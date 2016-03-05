@@ -69,7 +69,22 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\BaseLibrary;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\Externals\lib\wxwidgets;$(SolutionDir)\Externals\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\BaseLibrary;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\Externals\lib\wxwidgets;$(SolutionDir)\Externals\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\BaseLibrary;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\Externals\lib;$(SolutionDir)\Externals\lib\wxwidgets;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\BaseLibrary;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\Externals\lib;$(SolutionDir)\Externals\lib\wxwidgets;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>

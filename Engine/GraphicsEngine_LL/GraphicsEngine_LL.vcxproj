@@ -69,7 +69,22 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\BaseLibrary;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\Externals\lib\wxwidgets;$(SolutionDir)\Externals\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\BaseLibrary;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\Externals\lib\wxwidgets;$(SolutionDir)\Externals\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\BaseLibrary;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\Externals\lib;$(SolutionDir)\Externals\lib\wxwidgets;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\BaseLibrary;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)\Externals\lib;$(SolutionDir)\Externals\lib\wxwidgets;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>
@@ -131,6 +146,34 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GraphicsEngine\IGraphicsEngine.hpp" />
+    <ClInclude Include="ConstBufferHeap.hpp" />
+    <ClInclude Include="GraphicsNode.hpp" />
+    <ClInclude Include="GraphicsNodeFactory.hpp" />
+    <ClInclude Include="Light.hpp" />
+    <ClInclude Include="MemoryManager.hpp" />
+    <ClInclude Include="MeshEntity.hpp" />
+    <ClInclude Include="GraphicsEngine.hpp" />
+    <ClInclude Include="Material.hpp" />
+    <ClInclude Include="Mesh.hpp" />
+    <ClInclude Include="Pipeline.hpp" />
+    <ClInclude Include="Scene.hpp" />
+    <ClInclude Include="Scheduler.hpp" />
+    <ClInclude Include="SmallBufferHeap.hpp" />
+    <ClInclude Include="Texture2D.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ConstBufferHeap.cpp" />
+    <ClCompile Include="Light.cpp" />
+    <ClCompile Include="MemoryManager.cpp" />
+    <ClCompile Include="MeshEntity.cpp" />
+    <ClCompile Include="GraphicsEngine.cpp" />
+    <ClCompile Include="Material.cpp" />
+    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Pipeline.cpp" />
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="Scheduler.cpp" />
+    <ClCompile Include="SmallBufferHeap.cpp" />
+    <ClCompile Include="Texture2D.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

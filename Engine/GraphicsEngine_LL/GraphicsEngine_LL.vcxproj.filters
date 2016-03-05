@@ -5,9 +5,18 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Sources">
+    <Filter Include="Resources">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{83bdcfe3-d6f4-4fd2-95a0-74e9c68cb2e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Backend">
+      <UniqueIdentifier>{2fc7a18c-775b-463f-a7b4-2af4d1226d50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Pipeline">
+      <UniqueIdentifier>{13ebcb7a-64e7-4b59-a32d-4593d1c785b9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -17,5 +26,81 @@
     <ClInclude Include="..\GraphicsEngine\IGraphicsEngine.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="GraphicsEngine.hpp" />
+    <ClInclude Include="Mesh.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture2D.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.hpp">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshEntity.hpp">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.hpp">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Pipeline.hpp">
+      <Filter>Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="Scheduler.hpp">
+      <Filter>Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsNode.hpp">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsNodeFactory.hpp">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryManager.hpp">
+      <Filter>Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="SmallBufferHeap.hpp">
+      <Filter>Backend</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstBufferHeap.hpp">
+      <Filter>Backend</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="GraphicsEngine.cpp" />
+    <ClCompile Include="Texture2D.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshEntity.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Pipeline.cpp">
+      <Filter>Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="Scheduler.cpp">
+      <Filter>Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryManager.cpp">
+      <Filter>Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="SmallBufferHeap.cpp">
+      <Filter>Backend</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstBufferHeap.cpp">
+      <Filter>Backend</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
