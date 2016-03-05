@@ -66,6 +66,27 @@
     <ClInclude Include="ConstBufferHeap.hpp">
       <Filter>Backend</Filter>
     </ClInclude>
+    <ClInclude Include="..\GraphicsEngine\ITexture2D.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsEngine\IMaterial.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsEngine\IMesh.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsEngine\IScene.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsEngine\IMeshEntity.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsEngine\ITerrainEntity.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsEngine\ILight.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />

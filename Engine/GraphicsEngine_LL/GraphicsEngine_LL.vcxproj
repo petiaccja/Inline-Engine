@@ -146,6 +146,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GraphicsEngine\IGraphicsEngine.hpp" />
+    <ClInclude Include="..\GraphicsEngine\ILight.hpp" />
+    <ClInclude Include="..\GraphicsEngine\IMaterial.hpp" />
+    <ClInclude Include="..\GraphicsEngine\IMesh.hpp" />
+    <ClInclude Include="..\GraphicsEngine\IMeshEntity.hpp" />
+    <ClInclude Include="..\GraphicsEngine\IScene.hpp" />
+    <ClInclude Include="..\GraphicsEngine\ITerrainEntity.hpp" />
+    <ClInclude Include="..\GraphicsEngine\ITexture2D.hpp" />
     <ClInclude Include="ConstBufferHeap.hpp" />
     <ClInclude Include="GraphicsNode.hpp" />
     <ClInclude Include="GraphicsNodeFactory.hpp" />
