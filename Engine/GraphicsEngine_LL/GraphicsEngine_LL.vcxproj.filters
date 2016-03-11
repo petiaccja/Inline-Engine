@@ -87,6 +87,12 @@
     <ClInclude Include="..\GraphicsEngine\ILight.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="..\GraphicsEngine\Definitions.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsEngine\ICamera.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />

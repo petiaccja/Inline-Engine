@@ -17,5 +17,38 @@
     <ClInclude Include="..\GraphicsApi_LL\IGraphicsApi.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\ICommandQueue.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\ICommandAllocator.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\IGraphicsCommandList.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\ICopyCommandList.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\IResource.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\IRootSignature.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\IPipelineState.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\IDescriptorHeap.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\IFence.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\IComputeCommandList.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\ICommandList.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

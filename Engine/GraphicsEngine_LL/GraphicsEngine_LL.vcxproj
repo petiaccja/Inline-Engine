@@ -145,6 +145,8 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\GraphicsEngine\Definitions.hpp" />
+    <ClInclude Include="..\GraphicsEngine\ICamera.hpp" />
     <ClInclude Include="..\GraphicsEngine\IGraphicsEngine.hpp" />
     <ClInclude Include="..\GraphicsEngine\ILight.hpp" />
     <ClInclude Include="..\GraphicsEngine\IMaterial.hpp" />
