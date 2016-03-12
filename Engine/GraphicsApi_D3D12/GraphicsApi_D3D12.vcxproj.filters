@@ -50,5 +50,11 @@
     <ClInclude Include="..\GraphicsApi_LL\ICommandList.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\DescriptorHandle.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\Common.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

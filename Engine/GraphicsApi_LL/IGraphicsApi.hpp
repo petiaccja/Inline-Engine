@@ -16,31 +16,31 @@ class IRootSignature;
 class IPipelineState;
 class IDescriptorHeap;
 
-
+// todo: descriptor view bullshit
 class IGraphicsApi {
 public:
 	virtual ~IGraphicsApi() = default;
 	
 
 	// Command submission
-	ICommandQueue* CreateCommandQueue();
-	ICommandAllocator* CreateCommandAllocator();
-	IGraphicsCommandList* CreateGraphicsCommandList();
-	ICopyCommandList* CreateCopyCommandList();
+	virtual ICommandQueue* CreateCommandQueue() = 0;
+	virtual ICommandAllocator* CreateCommandAllocator() = 0;
+	virtual IGraphicsCommandList* CreateGraphicsCommandList() = 0;
+	virtual ICopyCommandList* CreateCopyCommandList() = 0;
 
 	// Resources
-	IResource* CreateCommittedResource();
+	virtual IResource* CreateCommittedResource() = 0;
 
 	// Pipeline and binding
-	IRootSignature* CreateRootSignature();
-	IPipelineState* CreateGraphicsPipelineState();
-	IDescriptorHeap* CreateDescriptorHeap();
+	virtual IRootSignature* CreateRootSignature() = 0;
+	virtual IPipelineState* CreateGraphicsPipelineState() = 0;
+	virtual IDescriptorHeap* CreateDescriptorHeap() = 0;
 
-	void CreateConstantBufferView();
-	void CreateDepthStencilView();
-	void CreateRenderTargetView();
-	void CreateShaderResourceView();
-	void CreateUnorderedAccessView() = delete;
+	virtual void CreateConstantBufferView() = 0;
+	virtual void CreateDepthStencilView() = 0;
+	virtual void CreateRenderTargetView() = 0;
+	virtual void CreateShaderResourceView() = 0;
+	virtual void CreateUnorderedAccessView() = delete; // not needed yet
 };
 
 

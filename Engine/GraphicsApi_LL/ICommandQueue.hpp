@@ -25,6 +25,7 @@ enum class eCommandQueuePriority {
 };
 
 
+// note: done
 class ICommandQueue {
 public:
 	void ExecuteCommandLists(ICommandList* const* commandLists);
