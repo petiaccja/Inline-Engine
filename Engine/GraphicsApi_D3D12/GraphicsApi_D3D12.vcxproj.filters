@@ -1,100 +1,40 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="Interfaces">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
+    <ClCompile Include="CommandQueue.cpp" />
+    <ClCompile Include="Fence.cpp" />
+    <ClCompile Include="GraphicsCommandList.cpp" />
+    <ClCompile Include="PipelineState.cpp" />
+    <ClCompile Include="Resource.cpp" />
+    <ClCompile Include="CommandAllocator.cpp" />
+    <ClCompile Include="RootSignature.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\GraphicsApi_LL\Common.hpp" />
+    <ClInclude Include="..\GraphicsApi_LL\DescriptorHandle.hpp" />
+    <ClInclude Include="..\GraphicsApi_LL\ICommandAllocator.hpp" />
+    <ClInclude Include="..\GraphicsApi_LL\ICommandList.hpp" />
+    <ClInclude Include="..\GraphicsApi_LL\ICommandQueue.hpp" />
+    <ClInclude Include="..\GraphicsApi_LL\IComputeCommandList.hpp" />
+    <ClInclude Include="..\GraphicsApi_LL\ICopyCommandList.hpp" />
+    <ClInclude Include="..\GraphicsApi_LL\IDescriptorHeap.hpp" />
+    <ClInclude Include="..\GraphicsApi_LL\IFence.hpp" />
+    <ClInclude Include="..\GraphicsApi_LL\IGraphicsApi.hpp" />
+    <ClInclude Include="..\GraphicsApi_LL\IGraphicsCommandList.hpp" />
+    <ClInclude Include="..\GraphicsApi_LL\IPipelineState.hpp" />
+    <ClInclude Include="..\GraphicsApi_LL\IResource.hpp" />
+    <ClInclude Include="..\GraphicsApi_LL\IRootSignature.hpp" />
+    <ClInclude Include="CommandQueue.hpp" />
+    <ClInclude Include="Fence.hpp" />
+    <ClInclude Include="CommandList.hpp" />
+    <ClInclude Include="GraphicsCommandList.hpp" />
+    <ClInclude Include="PipelineState.hpp" />
+    <ClInclude Include="NativeCast.hpp" />
+    <ClInclude Include="Resource.hpp" />
+    <ClInclude Include="CommandAllocator.hpp" />
+    <ClInclude Include="RootSignature.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\GraphicsApi_LL\Common.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\DescriptorHandle.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\ICommandAllocator.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\ICommandList.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\ICommandQueue.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\IComputeCommandList.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\ICopyCommandList.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\IDescriptorHeap.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\IFence.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\IGraphicsApi.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\IGraphicsCommandList.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\IPipelineState.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\IResource.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\IRootSignature.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-<<<<<<< HEAD
-    <ClInclude Include="Fence.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="CommandList.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="CommandQueue.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Fence.cpp" />
-    <ClCompile Include="CommandList.cpp" />
-=======
-    <ClInclude Include="CommandList.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CommandQueue.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Fence.hpp">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="CommandList.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CommandQueue.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Fence.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
->>>>>>> 6628d186fdc1206a70d46c01b58fee8fcb4784c5
   </ItemGroup>
 </Project>
