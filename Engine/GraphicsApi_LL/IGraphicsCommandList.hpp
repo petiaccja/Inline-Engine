@@ -71,9 +71,24 @@ public:
 	virtual void ExecuteBundle(ICommandList* bundle) = 0;
 
 	// input assembler
+	virtual void SetIndexBuffer(void* gpuVirtualAddress, size_t sizeInBytes, eFormat format) = 0;
 
+	virtual void SetPrimitiveTopology(ePrimitiveTopology topology) = 0;
+
+	virtual void SetVertexBuffers(unsigned startSlot,
+								  unsigned count,
+								  void** gpuVirtualAddress,
+								  unsigned* sizeInBytes,
+								  unsigned* strideInBytes) = 0;
 
 	// output merger
+	virtual void SetRenderTargets(unsigned numRenderTargets,
+								  DescriptorHandle* renderTargets,
+								  DescriptorHandle* depthStencil = nullptr) = 0;
+	virtual void SetBlendFactor(float r, float g, float b, float a) = 0;
+	virtual void SetStencilRef(unsigned stencilRef) = 0;
+
+	// barriers
 
 
 	// rasterizer state

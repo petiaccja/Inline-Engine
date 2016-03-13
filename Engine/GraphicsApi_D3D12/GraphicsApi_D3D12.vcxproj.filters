@@ -56,8 +56,25 @@
     <ClInclude Include="..\GraphicsApi_LL\Common.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
-    <ClInclude Include="CommandQueue.hpp">
-      <Filter>Interfaces</Filter>
+    <ClInclude Include="CommandList.hpp">
+      <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="CommandQueue.hpp">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Fence.hpp">
+      <Filter>Sources</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CommandList.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandQueue.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Fence.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

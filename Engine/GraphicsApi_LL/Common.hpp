@@ -45,3 +45,11 @@ struct TextureDescription {
 	size_t height;
 	size_t depth;
 };
+
+enum class ePrimitiveTopology {
+	POINTLIST = 1,
+	LINELIST = 2,
+	LINESTRIP = 3,
+	TRIANGLELIST = 4,
+	TRIANGLESTRIP = 5,
+};

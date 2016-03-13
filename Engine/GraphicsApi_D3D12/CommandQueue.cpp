@@ -3,6 +3,8 @@
 #include "CommandList.hpp"
 #include "Fence.hpp"
 
+#define _WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <vector>
 #include <d3d12.h>
 
