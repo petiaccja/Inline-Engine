@@ -6,7 +6,8 @@
 
 namespace inl {
 namespace gxapi_dx12 {
-	
+
+
 class Resource : public gxapi::IResource {
 public:
 	ID3D12Resource* GetNative();
