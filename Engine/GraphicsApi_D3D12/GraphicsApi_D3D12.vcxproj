@@ -22,7 +22,7 @@
     <ProjectGuid>{B7C8412E-1620-4762-914D-566E2DE4390E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GraphicsApi_D3D12</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -159,6 +159,7 @@
     <ClInclude Include="..\GraphicsApi_LL\IPipelineState.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\IResource.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\IRootSignature.hpp" />
+    <ClInclude Include="CommandQueue.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

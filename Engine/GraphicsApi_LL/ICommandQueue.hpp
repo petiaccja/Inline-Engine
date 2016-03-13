@@ -28,14 +28,14 @@ enum class eCommandQueuePriority {
 // note: done
 class ICommandQueue {
 public:
-	void ExecuteCommandLists(ICommandList* const* commandLists);
+	virtual void ExecuteCommandLists(uint32_t numCommandLists, ICommandList* const* commandLists) = 0;
 
-	void Signal(IFence* fence, uint64_t value);
-	void Wait(IFence* fence, uint64_t value);
+	virtual void Signal(IFence* fence, uint64_t value) = 0;
+	virtual void Wait(IFence* fence, uint64_t value) = 0;
 
-	eCommandQueueType GetType() const;
-	eCommandQueuePriority GetPriority() const;
-	bool IsGPUTimeoutEnabled() const;
+	virtual eCommandQueueType GetType() const = 0;
+	virtual eCommandQueuePriority GetPriority() const = 0;
+	virtual bool IsGPUTimeoutEnabled() const = 0;
 };
 
 } // namespace gxapi
