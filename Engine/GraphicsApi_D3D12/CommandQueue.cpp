@@ -10,24 +10,28 @@
 namespace inl {
 namespace gxapi_dx12 {
 
+
 void CommandQueue::ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommandList * const * commandLists) {
 	std::vector<ID3D12CommandList*> nativeCommandLists;
 	nativeCommandLists.reserve(numCommandLists);
 
 	for (int i = 0; i < numCommandLists; i++) {
-		nativeCommandLists.push_back(static_cast<CommandList*>(commandLists[i])->GetNative());
+		nativeCommandLists.push_back(static_cast<CommandList*>(commandLists[i])->GetNativeGenericList());
 	}
 
 	m_native->ExecuteCommandLists(nativeCommandLists.size(), nativeCommandLists.data());
 }
 
+
 void CommandQueue::Signal(gxapi::IFence* fence, uint64_t value) {
 	m_native->Signal(static_cast<Fence*>(fence)->GetNative(), value);
 }
 
+
 void CommandQueue::Wait(gxapi::IFence* fence, uint64_t value) {
 	m_native->Wait(static_cast<Fence*>(fence)->GetNative(), value);
 }
+
 
 gxapi::eCommandQueueType CommandQueue::GetType() const {
 	D3D12_COMMAND_LIST_TYPE nativeType = m_native->GetDesc().Type;
@@ -46,6 +50,7 @@ gxapi::eCommandQueueType CommandQueue::GetType() const {
 	return gxapi::eCommandQueueType();
 }
 
+
 gxapi::eCommandQueuePriority CommandQueue::GetPriority() const {
 	auto nativePriority = static_cast<D3D12_COMMAND_QUEUE_PRIORITY>(m_native->GetDesc().Priority);
 	switch (nativePriority) {
@@ -59,6 +64,7 @@ gxapi::eCommandQueuePriority CommandQueue::GetPriority() const {
 
 	return gxapi::eCommandQueuePriority();
 }
+
 
 bool CommandQueue::IsGPUTimeoutEnabled() const {
 	bool isDisabled = (m_native->GetDesc().Flags & D3D12_COMMAND_QUEUE_FLAG_DISABLE_GPU_TIMEOUT) != 0;

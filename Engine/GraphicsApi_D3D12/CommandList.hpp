@@ -10,10 +10,7 @@ namespace gxapi_dx12 {
 class CommandList : public gxapi::ICommandList {
 public:
 	
-	ID3D12CommandList* GetNative();
-
-protected:
-	ID3D12CommandList* m_native;
+	virtual ID3D12CommandList* GetNativeGenericList() = 0;
 };
 
 }
