@@ -50,5 +50,8 @@
     <ClInclude Include="..\GraphicsApi_LL\ICommandList.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="CommandQueue.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
