@@ -6,9 +6,10 @@ namespace inl {
 namespace gxapi {
 
 
+// note: done
 class ICommandAllocator {
 public:
-	void Reset();
+	virtual void Reset() = 0;
 
 };
 

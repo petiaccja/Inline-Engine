@@ -50,9 +50,13 @@
     <ClInclude Include="..\GraphicsApi_LL\ICommandList.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
-    <ClInclude Include="CommandQueue.hpp">
+    <ClInclude Include="..\GraphicsApi_LL\DescriptorHandle.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\Common.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="Fence.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
@@ -66,5 +70,27 @@
     </ClCompile>
     <ClCompile Include="Fence.cpp" />
     <ClCompile Include="CommandList.cpp" />
+=======
+    <ClInclude Include="CommandList.hpp">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandQueue.hpp">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Fence.hpp">
+      <Filter>Sources</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CommandList.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandQueue.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Fence.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+>>>>>>> 6628d186fdc1206a70d46c01b58fee8fcb4784c5
   </ItemGroup>
 </Project>

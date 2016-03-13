@@ -25,6 +25,7 @@ enum class eCommandQueuePriority {
 };
 
 
+// note: done
 class ICommandQueue {
 public:
 	virtual void ExecuteCommandLists(uint32_t numCommandLists, ICommandList* const* commandLists) = 0;
