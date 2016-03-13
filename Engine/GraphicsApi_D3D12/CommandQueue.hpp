@@ -5,18 +5,17 @@
 #include <d3d12.h>
 
 namespace inl {
-namespace gxapi {
+namespace gxapi_dx12 {
 
-class CommandQueue : public ICommandQueue
-{
+class CommandQueue : public gxapi::ICommandQueue {
 public:
-	virtual void ExecuteCommandLists(uint32_t numCommandLists, ICommandList* const* commandLists) override;
+	virtual void ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommandList* const* commandLists) override;
 
-	virtual void Signal(IFence* fence, uint64_t value) override;
-	virtual void Wait(IFence* fence, uint64_t value) override;
+	virtual void Signal(gxapi::IFence* fence, uint64_t value) override;
+	virtual void Wait(gxapi::IFence* fence, uint64_t value) override;
 
-	virtual eCommandQueueType GetType() const override;
-	virtual eCommandQueuePriority GetPriority() const override;
+	virtual gxapi::eCommandQueueType GetType() const override;
+	virtual gxapi::eCommandQueuePriority GetPriority() const override;
 	virtual bool IsGPUTimeoutEnabled() const override;
 
 private:

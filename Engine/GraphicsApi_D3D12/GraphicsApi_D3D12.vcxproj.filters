@@ -60,6 +60,21 @@
     <ClInclude Include="..\GraphicsApi_LL\IRootSignature.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
+<<<<<<< HEAD
+    <ClInclude Include="Fence.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandList.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CommandQueue.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Fence.cpp" />
+    <ClCompile Include="CommandList.cpp" />
+=======
     <ClInclude Include="CommandList.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -80,5 +95,6 @@
     <ClCompile Include="Fence.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+>>>>>>> 6628d186fdc1206a70d46c01b58fee8fcb4784c5
   </ItemGroup>
 </Project>

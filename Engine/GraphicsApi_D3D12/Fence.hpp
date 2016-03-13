@@ -5,10 +5,9 @@
 #include <d3d12.h>
 
 namespace inl {
-namespace gxapi {
+namespace gxapi_dx12 {
 
-class Fence : public IFence
-{
+class Fence : public gxapi::IFence {
 public:
 	ID3D12Fence* GetNative();
 

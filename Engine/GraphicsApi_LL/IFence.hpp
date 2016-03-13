@@ -3,8 +3,7 @@
 namespace inl {
 namespace gxapi {
 
-class IFence
-{
+class IFence {
 	//TODO
 };
 
