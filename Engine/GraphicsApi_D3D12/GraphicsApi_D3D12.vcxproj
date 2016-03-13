@@ -157,7 +157,14 @@
     <ClInclude Include="..\GraphicsApi_LL\IPipelineState.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\IResource.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\IRootSignature.hpp" />
+    <ClInclude Include="CommandList.hpp" />
     <ClInclude Include="CommandQueue.hpp" />
+    <ClInclude Include="Fence.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CommandList.cpp" />
+    <ClCompile Include="CommandQueue.cpp" />
+    <ClCompile Include="Fence.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

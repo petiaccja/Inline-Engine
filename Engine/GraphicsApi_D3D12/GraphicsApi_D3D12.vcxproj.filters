@@ -53,5 +53,18 @@
     <ClInclude Include="CommandQueue.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="Fence.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandList.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CommandQueue.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Fence.cpp" />
+    <ClCompile Include="CommandList.cpp" />
   </ItemGroup>
 </Project>

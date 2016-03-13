@@ -1,7 +1,7 @@
 #include "Fence.hpp"
 
 namespace inl {
-namespace gxapi {
+namespace gxapi_dx12 {
 
 
 ID3D12Fence* Fence::GetNative()
