@@ -1,16 +1,10 @@
 #pragma once
 
 #include "PipelineState.hpp"
-
+#include "Resource.hpp"
 
 namespace inl {
 namespace gxapi_dx12 {
-
-
-template <typename SourceType>
-void native_cast(SourceType const& source) {
-	static_assert(false, "SourceType not supprted!");
-}
 
 
 ID3D12PipelineState* native_cast(gxapi::IPipelineState* const source) {
@@ -18,14 +12,14 @@ ID3D12PipelineState* native_cast(gxapi::IPipelineState* const source) {
 }
 
 
-D3D12_CPU_DESCRIPTOR_HANDLE native_cast(gxapi::DescriptorHandle const& source) {
-	D3D12_CPU_DESCRIPTOR_HANDLE result;
-	result;
-	//source.
-
-	return ;
+ID3D12Resource* native_cast(gxapi::IResource* const source) {
+	return static_cast<Resource*>(source)->GetNative();
 }
 
+
+DXGI_FORMAT native_cast(eFormat source) {
+	static_assert(false, "TODO");
+}
 
 
 }

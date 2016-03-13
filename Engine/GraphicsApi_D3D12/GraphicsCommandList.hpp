@@ -101,6 +101,9 @@ public:
 
 protected:
 	ID3D12GraphicsCommandList* m_native;
+
+protected:
+	static D3D12_TEXTURE_COPY_LOCATION CreateTextureCopyLocation(gxapi::IResource* texture, TextureDescription descrition);
 };
 
 }

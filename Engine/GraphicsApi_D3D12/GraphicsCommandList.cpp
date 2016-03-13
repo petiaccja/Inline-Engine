@@ -39,7 +39,6 @@ void GraphicsCommandList::ClearDepthStencil(gxapi::DescriptorHandle dsv, float d
 
 	std::vector<D3D12_RECT> castedRects;
 	castedRects.reserve(numRects);
-
 	for (int i = 0; i < numRects; i++) {
 		castedRects.push_back(native_cast(rects[i]));
 	}
@@ -48,23 +47,51 @@ void GraphicsCommandList::ClearDepthStencil(gxapi::DescriptorHandle dsv, float d
 }
 
 
-void GraphicsCommandList::ClearRenderTarget(gxapi::DescriptorHandle rtv, ColorRGBA color, size_t numRects, Rectangle * rects) {
+void GraphicsCommandList::ClearRenderTarget(gxapi::DescriptorHandle rtv, ColorRGBA color, size_t numRects, Rectangle* rects) {
+	D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView;
+	renderTargetView.ptr = reinterpret_cast<size_t>(rtv.cpuAddress);
+
+	float nativeColor[4] = {color.r, color.g, color.b, color.a};
+
+	std::vector<D3D12_RECT> castedRects;
+	castedRects.reserve(numRects);
+	for (int i = 0; i < numRects; i++) {
+		castedRects.push_back(native_cast(rects[i]));
+	}
+
+	m_native->ClearRenderTargetView(renderTargetView, nativeColor, castedRects.size(), castedRects.data());
 }
 
 
-void GraphicsCommandList::CopyBuffer(gxapi::IResource * dst, size_t dstOffset, gxapi::IResource * src, size_t srcOffset, size_t numBytes) {
+void GraphicsCommandList::CopyBuffer(gxapi::IResource* dst, size_t dstOffset, gxapi::IResource* src, size_t srcOffset, size_t numBytes) {
+	m_native->CopyBufferRegion(native_cast(dst), dstOffset, native_cast(src), srcOffset, numBytes);
 }
 
 
-void GraphicsCommandList::CopyResource(gxapi::IResource * dst, gxapi::IResource * src) {
+void GraphicsCommandList::CopyResource(gxapi::IResource* dst, gxapi::IResource* src) {
+	m_native->CopyResource(native_cast(dst), native_cast(src));
 }
 
 
-void GraphicsCommandList::CopyTexture(gxapi::IResource * dst, unsigned dstSubresourceIndex, gxapi::IResource * src, unsigned srcSubresourceIndex) {
+void GraphicsCommandList::CopyTexture(gxapi::IResource* dst, unsigned dstSubresourceIndex, gxapi::IResource* src, unsigned srcSubresourceIndex) {
+	static_assert(false, "TODO");
+	//m_native->CopyTextureRegion(native_cast(dst), )
 }
 
 
-void GraphicsCommandList::CopyTexture(gxapi::IResource * dst, TextureDescription dstDesc, gxapi::IResource * src, TextureDescription srcDesc, int offx, int offy, int offz, Cube region) {
+void GraphicsCommandList::CopyTexture(gxapi::IResource* dst, TextureDescription dstDesc, gxapi::IResource* src, TextureDescription srcDesc, int offx, int offy, int offz, Cube region) {
+	auto nativeDst = CreateTextureCopyLocation(dst, dstDesc);
+	auto nativeSrc = CreateTextureCopyLocation(src, srcDesc);
+
+	D3D12_BOX srcBox;
+	srcBox.back = region.back;
+	srcBox.front = region.front;
+	srcBox.left = region.left;
+	srcBox.right = region.right;
+	srcBox.bottom = region.bottom;
+	srcBox.top = region.top;
+
+	m_native->CopyTextureRegion(&nativeDst, offx, offy, offz, &nativeSrc, &srcBox);
 }
 
 
@@ -105,6 +132,33 @@ void GraphicsCommandList::SetStencilRef(unsigned stencilRef) {
 
 
 void GraphicsCommandList::SetPipelineState(gxapi::IPipelineState * pipelineState) {
+}
+
+
+D3D12_TEXTURE_COPY_LOCATION GraphicsCommandList::CreateTextureCopyLocation(gxapi::IResource* texture, TextureDescription descrition) {
+
+	D3D12_TEXTURE_COPY_LOCATION result;
+	{
+		result.pResource = native_cast(texture);
+		result.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+		D3D12_PLACED_SUBRESOURCE_FOOTPRINT placedFootprint;
+		{
+			D3D12_SUBRESOURCE_FOOTPRINT footprint;
+			{
+				footprint.Depth = descrition.depth;
+				footprint.Format = native_cast(descrition.format);
+				footprint.Height = descrition.height;
+				footprint.Width = descrition.width;
+				static_assert(false, "TODO");
+				footprint.RowPitch;
+			}
+			placedFootprint.Footprint = footprint;
+			placedFootprint.Offset = 0;
+		}
+		result.PlacedFootprint = placedFootprint;
+	}
+
+	return result;
 }
 
 
