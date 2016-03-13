@@ -1,41 +1,42 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
     <Filter Include="Interfaces">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Sources">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\GraphicsApi_LL\IGraphicsApi.hpp">
+    <ClInclude Include="..\GraphicsApi_LL\Common.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\ICommandQueue.hpp">
+    <ClInclude Include="..\GraphicsApi_LL\DescriptorHandle.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
     <ClInclude Include="..\GraphicsApi_LL\ICommandAllocator.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\IGraphicsCommandList.hpp">
+    <ClInclude Include="..\GraphicsApi_LL\ICommandList.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\ICommandQueue.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\IComputeCommandList.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
     <ClInclude Include="..\GraphicsApi_LL\ICopyCommandList.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\IResource.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\IRootSignature.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\IPipelineState.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
     <ClInclude Include="..\GraphicsApi_LL\IDescriptorHeap.hpp">
@@ -44,37 +45,40 @@
     <ClInclude Include="..\GraphicsApi_LL\IFence.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\IComputeCommandList.hpp">
+    <ClInclude Include="..\GraphicsApi_LL\IGraphicsApi.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\ICommandList.hpp">
+    <ClInclude Include="..\GraphicsApi_LL\IGraphicsCommandList.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\DescriptorHandle.hpp">
+    <ClInclude Include="..\GraphicsApi_LL\IPipelineState.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\Common.hpp">
+    <ClInclude Include="..\GraphicsApi_LL\IResource.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\IRootSignature.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
     <ClInclude Include="CommandList.hpp">
-      <Filter>Sources</Filter>
+      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="CommandQueue.hpp">
-      <Filter>Sources</Filter>
+      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Fence.hpp">
-      <Filter>Sources</Filter>
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CommandList.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="CommandQueue.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Fence.cpp">
-      <Filter>Sources</Filter>
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
