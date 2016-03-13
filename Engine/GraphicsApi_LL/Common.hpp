@@ -53,3 +53,12 @@ enum class ePrimitiveTopology {
 	TRIANGLELIST = 4,
 	TRIANGLESTRIP = 5,
 };
+
+struct Viewport {
+	float topLeftX;
+	float topLeftY;
+	float width;
+	float height;
+	float minDepth;
+	float maxDepth;
+};

@@ -14,6 +14,7 @@ namespace gxapi {
 class IPipelineState;
 class IResource;
 class ICommandAllocator;
+class IRootSignature;
 
 
 class IGraphicsCommandList : public ICommandList {
@@ -89,13 +90,23 @@ public:
 	virtual void SetStencilRef(unsigned stencilRef) = 0;
 
 	// barriers
+	// TODO: transition, aliasing and bullshit barriers, i would put them into separate functions
 
 
 	// rasterizer state
+	virtual void SetScissorRects(unsigned numRects, Rectangle* rects) = 0;
+	virtual void SetViewports(unsigned numViewports, Viewport* viewports) = 0;
 
 	// set compute root signature stuff
 
 	// set graphics root signature stuff
+	virtual void SetGraphicsRootConstant(unsigned parameterIndex, unsigned destOffset, uint32_t value) = 0;
+	virtual void SetGraphicsRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, uint32_t* value) = 0;
+	virtual void SetGraphicsRootConstantBuffer(unsigned parameterIndex, void* gpuVirtualAddress) = 0;
+	virtual void SetGraphicsRootDescriptorTable(unsigned parameterIndex, DescriptorHandle baseHandle) = 0;
+	virtual void SetGraphicsRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) = 0;
+
+	virtual void SetGraphicsRootSignature(IRootSignature* rootSignature) = 0;
 
 	// set pipeline state
 	virtual void SetPipelineState(IPipelineState* pipelineState) = 0;
