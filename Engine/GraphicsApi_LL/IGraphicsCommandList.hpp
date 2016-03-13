@@ -69,7 +69,7 @@ public:
 							   unsigned numInstances = 1,
 							   unsigned startInstance = 0) = 0;
 
-	virtual void ExecuteBundle(ICommandList* bundle) = 0;
+	virtual void ExecuteBundle(IGraphicsCommandList* bundle) = 0;
 
 	// input assembler
 	virtual void SetIndexBuffer(void* gpuVirtualAddress, size_t sizeInBytes, eFormat format) = 0;

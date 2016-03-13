@@ -10,11 +10,12 @@
 namespace inl {
 namespace gxapi_dx12 {
 
+
 class GraphicsCommandList : public CommandList, public gxapi::IGraphicsCommandList {
 public:
 
 	virtual ID3D12CommandList* GetNativeGenericList() override;
-
+	ID3D12GraphicsCommandList* GetNative();
 
 
 	// Command list state
@@ -66,7 +67,7 @@ public:
 		unsigned numInstances = 1,
 		unsigned startInstance = 0) override;
 
-	virtual void ExecuteBundle(ICommandList* bundle) override;
+	virtual void ExecuteBundle(IGraphicsCommandList* bundle) override;
 
 	// input assembler
 	virtual void SetIndexBuffer(void* gpuVirtualAddress, size_t sizeInBytes, eFormat format) override;
@@ -87,12 +88,23 @@ public:
 	virtual void SetStencilRef(unsigned stencilRef) override;
 
 	// barriers
+	// TODO: transition, aliasing and bullshit barriers, i would put them into separate functions
+
 
 	// rasterizer state
+	virtual void SetScissorRects(unsigned numRects, Rectangle* rects) override;
+	virtual void SetViewports(unsigned numViewports, Viewport* viewports) override;
 
 	// set compute root signature stuff
 
 	// set graphics root signature stuff
+	virtual void SetGraphicsRootConstant(unsigned parameterIndex, unsigned destOffset, uint32_t value) override;
+	virtual void SetGraphicsRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, uint32_t* value) override;
+	virtual void SetGraphicsRootConstantBuffer(unsigned parameterIndex, void* gpuVirtualAddress) override;
+	virtual void SetGraphicsRootDescriptorTable(unsigned parameterIndex, gxapi::DescriptorHandle baseHandle) override;
+	virtual void SetGraphicsRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) override;
+
+	virtual void SetGraphicsRootSignature(gxapi::IRootSignature* rootSignature) override;
 
 	// set pipeline state
 	virtual void SetPipelineState(gxapi::IPipelineState* pipelineState) override;
