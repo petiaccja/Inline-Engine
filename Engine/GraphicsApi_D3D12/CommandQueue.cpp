@@ -13,17 +13,8 @@ namespace inl {
 namespace gxapi_dx12 {
 
 
-CommandQueue::CommandQueue(ID3D12CommandQueue* native) {
-	if (native == nullptr) {
-		throw std::runtime_error("Null pointer not allowed here.");
-	}
-
-	m_native = native;
-}
-
-
-CommandQueue::~CommandQueue() {
-	m_native->Release();
+CommandQueue::CommandQueue(ComPtr<ID3D12CommandQueue>& native)
+	: m_native{native} {
 }
 
 

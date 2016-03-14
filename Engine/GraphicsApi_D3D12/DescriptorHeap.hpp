@@ -2,15 +2,17 @@
 
 #include "../GraphicsApi_LL/IDescriptorHeap.hpp"
 
+#include <wrl.h>
 #include <d3d12.h>
 
 namespace inl {
 namespace gxapi_dx12 {
 
+using Microsoft::WRL::ComPtr;
+
 class DescriptorHeap : public gxapi::IDescriptorHeap {
 public:
-	DescriptorHeap(ID3D12DescriptorHeap* native);
-	~DescriptorHeap();
+	DescriptorHeap(ComPtr<ID3D12DescriptorHeap>& native);
 	DescriptorHeap(const DescriptorHeap&) = delete;
 	DescriptorHeap& operator=(const DescriptorHeap&) = delete;
 
@@ -22,7 +24,7 @@ public:
 	virtual bool IsShaderVisible() const override;
 
 private:
-	ID3D12DescriptorHeap* m_native;
+	ComPtr<ID3D12DescriptorHeap> m_native;
 };
 
 }

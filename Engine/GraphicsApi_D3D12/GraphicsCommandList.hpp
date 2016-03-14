@@ -5,16 +5,17 @@
 
 #include "../GraphicsApi_LL/Common.hpp"
 
+#include <wrl.h>
 #include <d3d12.h>
 
 namespace inl {
 namespace gxapi_dx12 {
 
+using Microsoft::WRL::ComPtr;
 
 class GraphicsCommandList : public CommandList, public gxapi::IGraphicsCommandList {
 public:
-	GraphicsCommandList(ID3D12GraphicsCommandList* native);
-	~GraphicsCommandList();
+	GraphicsCommandList(ComPtr<ID3D12GraphicsCommandList>& native);
 	GraphicsCommandList(const GraphicsCommandList&) = delete;
 	GraphicsCommandList& operator=(const GraphicsCommandList&) = delete;
 
@@ -116,7 +117,7 @@ public:
 
 
 protected:
-	ID3D12GraphicsCommandList* m_native;
+	ComPtr<ID3D12GraphicsCommandList> m_native;
 
 protected:
 	static D3D12_TEXTURE_COPY_LOCATION CreateTextureCopyLocation(gxapi::IResource* texture, TextureDescription descrition);

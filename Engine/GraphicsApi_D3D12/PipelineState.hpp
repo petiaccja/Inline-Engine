@@ -2,10 +2,13 @@
 
 #include "../GraphicsApi_LL/IPipelineState.hpp"
 
+#include <wrl.h>
 #include <d3d12.h>
 
 namespace inl {
 namespace gxapi_dx12 {
+
+using Microsoft::WRL::ComPtr;
 
 class PipelineState : public gxapi::IPipelineState {
 public:
@@ -13,7 +16,7 @@ public:
 	ID3D12PipelineState* GetNative();
 
 private:
-	ID3D12PipelineState* m_native;
+	ComPtr<ID3D12PipelineState> m_native;
 };
 
 }

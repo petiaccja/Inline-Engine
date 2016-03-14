@@ -2,6 +2,7 @@
 
 #include "../GraphicsApi_LL/ICommandList.hpp"
 
+#include <wrl.h>
 #include <d3d12.h>
 
 namespace inl {

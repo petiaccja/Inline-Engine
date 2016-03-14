@@ -2,16 +2,17 @@
 
 #include "../GraphicsApi_LL/ICommandAllocator.hpp"
 
+#include <wrl.h>
 #include <d3d12.h>
 
 namespace inl {
 namespace gxapi_dx12 {
 
+using Microsoft::WRL::ComPtr;
 
 class CommandAllocator : public gxapi::ICommandAllocator {
 public:
-	CommandAllocator(ID3D12CommandAllocator* native);
-	~CommandAllocator();
+	CommandAllocator(ComPtr<ID3D12CommandAllocator>& native);
 	CommandAllocator(const CommandAllocator&) = delete;
 	CommandAllocator& operator=(const CommandAllocator&) = delete;
 
@@ -20,7 +21,7 @@ public:
 	virtual void Reset() override;
 
 protected:
-	ID3D12CommandAllocator* m_native;
+	ComPtr<ID3D12CommandAllocator> m_native;
 };
 
 }

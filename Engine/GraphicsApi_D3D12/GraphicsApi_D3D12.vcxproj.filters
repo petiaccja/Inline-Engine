@@ -81,6 +81,9 @@
     <ClInclude Include="CommandQueue.hpp">
       <Filter>Implementation</Filter>
     </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\Common.hpp">
+      <Filter>Implementation</Filter>
+    </ClInclude>
     <ClInclude Include="..\GraphicsApi_LL\DescriptorHandle.hpp">
       <Filter>Implementation</Filter>
     </ClInclude>
@@ -108,8 +111,8 @@
     <ClInclude Include="RootSignature.hpp">
       <Filter>Implementation</Filter>
     </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\Common.hpp">
-      <Filter>Interfaces</Filter>
+    <ClInclude Include="d3dx12.h">
+      <Filter>Implementation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
