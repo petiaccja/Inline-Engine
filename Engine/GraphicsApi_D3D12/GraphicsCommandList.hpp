@@ -13,6 +13,10 @@ namespace gxapi_dx12 {
 
 class GraphicsCommandList : public CommandList, public gxapi::IGraphicsCommandList {
 public:
+	GraphicsCommandList(ID3D12GraphicsCommandList* native);
+	~GraphicsCommandList();
+	GraphicsCommandList(const GraphicsCommandList&) = delete;
+	GraphicsCommandList& operator=(const GraphicsCommandList&) = delete;
 
 	virtual ID3D12CommandList* GetNativeGenericList() override;
 	ID3D12GraphicsCommandList* GetNative();

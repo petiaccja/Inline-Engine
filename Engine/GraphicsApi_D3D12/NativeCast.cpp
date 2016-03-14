@@ -57,6 +57,15 @@ ID3D12RootSignature* native_cast(gxapi::IRootSignature* source) {
 }
 
 
+ID3D12Fence * native_cast(gxapi::IFence * source) {
+	if (source == nullptr) {
+		return nullptr;
+	}
+
+	return static_cast<Fence*>(source)->GetNative();
+}
+
+
 D3D12_PRIMITIVE_TOPOLOGY native_cast(ePrimitiveTopology source) {
 	switch (source) {
 	case ePrimitiveTopology::LINELIST:

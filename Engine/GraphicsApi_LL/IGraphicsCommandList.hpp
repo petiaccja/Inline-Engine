@@ -19,6 +19,7 @@ class IRootSignature;
 
 class IGraphicsCommandList : public ICommandList {
 public:
+	virtual ~IGraphicsCommandList() = default;
 
 	// Command list state
 	virtual void ResetState(IPipelineState* newState = nullptr) = 0;

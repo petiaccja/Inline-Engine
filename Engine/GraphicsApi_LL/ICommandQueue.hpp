@@ -28,6 +28,8 @@ enum class eCommandQueuePriority {
 // note: done
 class ICommandQueue {
 public:
+	virtual ~ICommandQueue() = default;
+
 	virtual void ExecuteCommandLists(uint32_t numCommandLists, ICommandList* const* commandLists) = 0;
 
 	virtual void Signal(IFence* fence, uint64_t value) = 0;

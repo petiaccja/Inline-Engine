@@ -5,6 +5,8 @@ namespace gxapi {
 
 
 class IRootSignature {
+public:
+	virtual ~IRootSignature() = default;
 
 };
 

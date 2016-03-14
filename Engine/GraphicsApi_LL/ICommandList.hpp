@@ -5,7 +5,7 @@ namespace inl {
 namespace gxapi {
 
 
-enum class eCommandListType{
+enum class eCommandListType {
 	COPY,
 	COMPUTE,
 	GRAPHICS,
@@ -15,6 +15,8 @@ enum class eCommandListType{
 
 class ICommandList {
 public:
+	virtual ~ICommandList() = default;
+
 	virtual eCommandListType GetType() = 0;
 };
 

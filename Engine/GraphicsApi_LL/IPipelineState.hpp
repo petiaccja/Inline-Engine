@@ -5,6 +5,7 @@ namespace gxapi {
 
 class IPipelineState {
 public:
+	virtual ~IPipelineState() = default;
 
 };
 

@@ -9,6 +9,11 @@ namespace gxapi_dx12 {
 
 class CommandQueue : public gxapi::ICommandQueue {
 public:
+	CommandQueue(ID3D12CommandQueue* native);
+	~CommandQueue();
+	CommandQueue(const CommandQueue&) = delete;
+	CommandQueue& operator=(const CommandQueue&) = delete;
+
 	virtual void ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommandList* const* commandLists) override;
 
 	virtual void Signal(gxapi::IFence* fence, uint64_t value) override;

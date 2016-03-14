@@ -4,6 +4,8 @@
 #include <cassert>
 #include <vector>
 
+#include "NativeCast.hpp"
+
 #include "CommandList.hpp"
 #include "Fence.hpp"
 
@@ -11,7 +13,17 @@ namespace inl {
 namespace gxapi_dx12 {
 
 
-void CommandQueue::ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommandList * const * commandLists) {
+CommandQueue::CommandQueue(ID3D12CommandQueue* native) {
+	m_native = native;
+}
+
+
+CommandQueue::~CommandQueue() {
+	m_native->Release();
+}
+
+
+void CommandQueue::ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommandList* const * commandLists) {
 	std::vector<ID3D12CommandList*> nativeCommandLists;
 	nativeCommandLists.reserve(numCommandLists);
 
@@ -24,12 +36,12 @@ void CommandQueue::ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommand
 
 
 void CommandQueue::Signal(gxapi::IFence* fence, uint64_t value) {
-	m_native->Signal(static_cast<Fence*>(fence)->GetNative(), value);
+	m_native->Signal(native_cast(fence), value);
 }
 
 
 void CommandQueue::Wait(gxapi::IFence* fence, uint64_t value) {
-	m_native->Wait(static_cast<Fence*>(fence)->GetNative(), value);
+	m_native->Wait(native_cast(fence), value);
 }
 
 
@@ -47,7 +59,7 @@ gxapi::eCommandQueueType CommandQueue::GetType() const {
 		assert(false);
 	}
 
-	return gxapi::eCommandQueueType();
+	return gxapi::eCommandQueueType{};
 }
 
 
@@ -62,7 +74,7 @@ gxapi::eCommandQueuePriority CommandQueue::GetPriority() const {
 		assert(false);
 	}
 
-	return gxapi::eCommandQueuePriority();
+	return gxapi::eCommandQueuePriority{};
 }
 
 
