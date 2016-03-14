@@ -147,7 +147,9 @@
     <ClInclude Include="CommandAllocator.hpp" />
     <ClInclude Include="CommandList.hpp" />
     <ClInclude Include="CommandQueue.hpp" />
+    <ClInclude Include="DescriptorHeap.hpp" />
     <ClInclude Include="Fence.hpp" />
+    <ClInclude Include="GraphicsApi.hpp" />
     <ClInclude Include="GraphicsCommandList.hpp" />
     <ClInclude Include="NativeCast.hpp" />
     <ClInclude Include="PipelineState.hpp" />
@@ -156,8 +158,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CommandAllocator.cpp" />
+    <ClCompile Include="CommandList.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
+    <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="Fence.cpp" />
+    <ClCompile Include="GraphicsApi.cpp" />
     <ClCompile Include="GraphicsCommandList.cpp" />
     <ClCompile Include="NativeCast.cpp" />
     <ClCompile Include="PipelineState.cpp" />

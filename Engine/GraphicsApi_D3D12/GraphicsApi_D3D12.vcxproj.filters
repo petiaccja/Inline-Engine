@@ -9,6 +9,9 @@
     <ClCompile Include="CommandAllocator.cpp" />
     <ClCompile Include="RootSignature.cpp" />
     <ClCompile Include="NativeCast.cpp" />
+    <ClCompile Include="GraphicsApi.cpp" />
+    <ClCompile Include="CommandList.cpp" />
+    <ClCompile Include="DescriptorHeap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GraphicsApi_LL\Common.hpp" />
@@ -34,6 +37,8 @@
     <ClInclude Include="Resource.hpp" />
     <ClInclude Include="CommandAllocator.hpp" />
     <ClInclude Include="RootSignature.hpp" />
+    <ClInclude Include="GraphicsApi.hpp" />
+    <ClInclude Include="DescriptorHeap.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
