@@ -16,14 +16,14 @@ public:
 	CommandQueue(const CommandQueue&) = delete;
 	CommandQueue& operator=(const CommandQueue&) = delete;
 
-	virtual void ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommandList* const* commandLists) override;
+	void ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommandList* const* commandLists) override;
 
-	virtual void Signal(gxapi::IFence* fence, uint64_t value) override;
-	virtual void Wait(gxapi::IFence* fence, uint64_t value) override;
+	void Signal(gxapi::IFence* fence, uint64_t value) override;
+	void Wait(gxapi::IFence* fence, uint64_t value) override;
 
-	virtual gxapi::eCommandListType GetType() const override;
-	virtual gxapi::eCommandQueuePriority GetPriority() const override;
-	virtual bool IsGPUTimeoutEnabled() const override;
+	gxapi::eCommandListType GetType() const override;
+	gxapi::eCommandQueuePriority GetPriority() const override;
+	bool IsGPUTimeoutEnabled() const override;
 
 private:
 	ComPtr<ID3D12CommandQueue> m_native;

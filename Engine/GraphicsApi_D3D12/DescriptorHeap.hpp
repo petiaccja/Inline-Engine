@@ -17,11 +17,11 @@ public:
 	DescriptorHeap& operator=(const DescriptorHeap&) = delete;
 
 
-	virtual gxapi::DescriptorHandle At(size_t index) const override;
+	gxapi::DescriptorHandle At(size_t index) const override;
 
-	virtual size_t GetNumDescriptors() const override;
-	virtual gxapi::eDesriptorHeapType GetType() const override;
-	virtual bool IsShaderVisible() const override;
+	size_t GetNumDescriptors() const override;
+	gxapi::eDesriptorHeapType GetType() const override;
+	bool IsShaderVisible() const override;
 
 private:
 	ComPtr<ID3D12DescriptorHeap> m_native;

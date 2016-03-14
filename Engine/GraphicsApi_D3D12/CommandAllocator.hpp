@@ -18,7 +18,7 @@ public:
 
 	ID3D12CommandAllocator* GetNative();
 
-	virtual void Reset() override;
+	void Reset() override;
 
 protected:
 	ComPtr<ID3D12CommandAllocator> m_native;

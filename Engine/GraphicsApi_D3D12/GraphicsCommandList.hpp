@@ -24,12 +24,12 @@ public:
 
 
 	// Command list state
-	virtual void ResetState(gxapi::IPipelineState* newState = nullptr) override;
-	virtual void Close() override;
-	virtual void Reset(gxapi::ICommandAllocator* allocator, gxapi::IPipelineState* newState = nullptr) override;
+	void ResetState(gxapi::IPipelineState* newState = nullptr) override;
+	void Close() override;
+	void Reset(gxapi::ICommandAllocator* allocator, gxapi::IPipelineState* newState = nullptr) override;
 
 	// Clear shit
-	virtual void ClearDepthStencil(gxapi::DescriptorHandle dsv,
+	void ClearDepthStencil(gxapi::DescriptorHandle dsv,
 		float depth,
 		uint8_t stencil,
 		size_t numRects = 0,
@@ -37,23 +37,23 @@ public:
 		bool clearDepth = true,
 		bool clearStencil = false) override;
 
-	virtual void ClearRenderTarget(gxapi::DescriptorHandle rtv,
+	void ClearRenderTarget(gxapi::DescriptorHandle rtv,
 		ColorRGBA color,
 		size_t numRects = 0,
 		inl::Rectangle* rects = nullptr) override;
 
 
 	// Resource copy
-	virtual void CopyBuffer(gxapi::IResource* dst, size_t dstOffset, gxapi::IResource* src, size_t srcOffset, size_t numBytes) override;
+	void CopyBuffer(gxapi::IResource* dst, size_t dstOffset, gxapi::IResource* src, size_t srcOffset, size_t numBytes) override;
 
-	virtual void CopyResource(gxapi::IResource* dst, gxapi::IResource* src) override;
+	void CopyResource(gxapi::IResource* dst, gxapi::IResource* src) override;
 
-	virtual void CopyTexture(gxapi::IResource* dst,
+	void CopyTexture(gxapi::IResource* dst,
 		unsigned dstSubresourceIndex,
 		gxapi::IResource* src,
 		unsigned srcSubresourceIndex) override;
 
-	virtual void CopyTexture(gxapi::IResource* dst,
+	void CopyTexture(gxapi::IResource* dst,
 		TextureDescription dstDesc,
 		gxapi::IResource* src,
 		TextureDescription srcDesc,
@@ -61,58 +61,58 @@ public:
 		Cube region) override;
 
 	// Draw
-	virtual void DrawIndexedInstanced(unsigned numIndices,
+	void DrawIndexedInstanced(unsigned numIndices,
 		unsigned startIndex = 0,
 		int vertexOffset = 0,
 		unsigned numInstances = 1,
 		unsigned startInstance = 0) override;
 
-	virtual void DrawInstanced(unsigned numVertices,
+	void DrawInstanced(unsigned numVertices,
 		unsigned startVertex = 0,
 		unsigned numInstances = 1,
 		unsigned startInstance = 0) override;
 
-	virtual void ExecuteBundle(IGraphicsCommandList* bundle) override;
+	void ExecuteBundle(IGraphicsCommandList* bundle) override;
 
 	// input assembler
-	virtual void SetIndexBuffer(void* gpuVirtualAddress, size_t sizeInBytes, eFormat format) override;
+	void SetIndexBuffer(void* gpuVirtualAddress, size_t sizeInBytes, eFormat format) override;
 
-	virtual void SetPrimitiveTopology(ePrimitiveTopology topology) override;
+	void SetPrimitiveTopology(ePrimitiveTopology topology) override;
 
-	virtual void SetVertexBuffers(unsigned startSlot,
+	void SetVertexBuffers(unsigned startSlot,
 		unsigned count,
 		void** gpuVirtualAddress,
 		unsigned* sizeInBytes,
 		unsigned* strideInBytes) override;
 
 	// output merger
-	virtual void SetRenderTargets(unsigned numRenderTargets,
+	void SetRenderTargets(unsigned numRenderTargets,
 		gxapi::DescriptorHandle* renderTargets,
 		gxapi::DescriptorHandle* depthStencil = nullptr) override;
-	virtual void SetBlendFactor(float r, float g, float b, float a) override;
-	virtual void SetStencilRef(unsigned stencilRef) override;
+	void SetBlendFactor(float r, float g, float b, float a) override;
+	void SetStencilRef(unsigned stencilRef) override;
 
 	// barriers
 	// TODO: transition, aliasing and bullshit barriers, i would put them into separate functions
 
 
 	// rasterizer state
-	virtual void SetScissorRects(unsigned numRects, inl::Rectangle* rects) override;
-	virtual void SetViewports(unsigned numViewports, Viewport* viewports) override;
+	void SetScissorRects(unsigned numRects, inl::Rectangle* rects) override;
+	void SetViewports(unsigned numViewports, Viewport* viewports) override;
 
 	// set compute root signature stuff
 
 	// set graphics root signature stuff
-	virtual void SetGraphicsRootConstant(unsigned parameterIndex, unsigned destOffset, uint32_t value) override;
-	virtual void SetGraphicsRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, uint32_t* value) override;
-	virtual void SetGraphicsRootConstantBuffer(unsigned parameterIndex, void* gpuVirtualAddress) override;
-	virtual void SetGraphicsRootDescriptorTable(unsigned parameterIndex, gxapi::DescriptorHandle baseHandle) override;
-	virtual void SetGraphicsRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) override;
+	void SetGraphicsRootConstant(unsigned parameterIndex, unsigned destOffset, uint32_t value) override;
+	void SetGraphicsRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, uint32_t* value) override;
+	void SetGraphicsRootConstantBuffer(unsigned parameterIndex, void* gpuVirtualAddress) override;
+	void SetGraphicsRootDescriptorTable(unsigned parameterIndex, gxapi::DescriptorHandle baseHandle) override;
+	void SetGraphicsRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) override;
 
-	virtual void SetGraphicsRootSignature(gxapi::IRootSignature* rootSignature) override;
+	void SetGraphicsRootSignature(gxapi::IRootSignature* rootSignature) override;
 
 	// set pipeline state
-	virtual void SetPipelineState(gxapi::IPipelineState* pipelineState) override;
+	void SetPipelineState(gxapi::IPipelineState* pipelineState) override;
 
 
 
