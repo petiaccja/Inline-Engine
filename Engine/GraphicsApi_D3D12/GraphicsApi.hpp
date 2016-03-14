@@ -2,10 +2,13 @@
 
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
 
+#include <wrl.h>
 #include <d3d12.h>
 
 namespace inl {
 namespace gxapi_dx12 {
+
+using Microsoft::WRL::ComPtr;
 
 class GraphicsApi : public gxapi::IGraphicsApi {
 public:
@@ -31,7 +34,7 @@ public:
 	virtual void CreateShaderResourceView() override;
 
 protected:
-	ID3D12Device* m_device;
+	ComPtr<ID3D12Device> m_device;
 };
 
 }

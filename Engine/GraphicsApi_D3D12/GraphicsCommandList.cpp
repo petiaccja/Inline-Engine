@@ -9,27 +9,18 @@ namespace inl {
 namespace gxapi_dx12 {
 
 
-GraphicsCommandList::GraphicsCommandList(ID3D12GraphicsCommandList* native) {
-	if (native == nullptr) {
-		throw std::runtime_error("Null pointer not allowed here.");
-	}
-
-	m_native = native;
-}
-
-
-GraphicsCommandList::~GraphicsCommandList() {
-	m_native->Release();
+GraphicsCommandList::GraphicsCommandList(ComPtr<ID3D12GraphicsCommandList>& native) 
+	: m_native{native} {
 }
 
 
 ID3D12CommandList* GraphicsCommandList::GetNativeGenericList() {
-	return m_native;
+	return m_native.Get();
 }
 
 
 ID3D12GraphicsCommandList * GraphicsCommandList::GetNative() {
-	return m_native;
+	return m_native.Get();
 }
 
 

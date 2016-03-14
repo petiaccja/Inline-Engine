@@ -2,15 +2,17 @@
 
 #include "../GraphicsApi_LL/ICommandQueue.hpp"
 
+#include <wrl.h>
 #include <d3d12.h>
 
 namespace inl {
 namespace gxapi_dx12 {
 
+using Microsoft::WRL::ComPtr;
+
 class CommandQueue : public gxapi::ICommandQueue {
 public:
-	CommandQueue(ID3D12CommandQueue* native);
-	~CommandQueue();
+	CommandQueue(ComPtr<ID3D12CommandQueue>& native);
 	CommandQueue(const CommandQueue&) = delete;
 	CommandQueue& operator=(const CommandQueue&) = delete;
 
@@ -24,7 +26,7 @@ public:
 	virtual bool IsGPUTimeoutEnabled() const override;
 
 private:
-	ID3D12CommandQueue* m_native;
+	ComPtr<ID3D12CommandQueue> m_native;
 };
 
 }
