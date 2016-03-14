@@ -1,20 +1,13 @@
 #pragma once
 
 #include "DescriptorHandle.hpp"
+#include "Common.hpp"
 
 #include <cstdint>
 
 
 namespace inl {
 namespace gxapi {
-
-
-enum class eDesriptorHeapType {
-	CBV_SRV_UAV,
-	SAMPLER,
-	RTV,
-	DSV,
-};
 
 // note: done
 class IDescriptorHeap {
