@@ -9,5 +9,5 @@ ID3D12Fence* Fence::GetNative() {
 }
 
 
-}
-}
+} // namespace gxapi_dx12
+} // namespace inl

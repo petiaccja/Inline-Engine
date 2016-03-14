@@ -24,5 +24,6 @@ protected:
 	ComPtr<ID3D12CommandAllocator> m_native;
 };
 
-}
-}
+
+} // namespace gxapi_dx12
+} // namespace inl

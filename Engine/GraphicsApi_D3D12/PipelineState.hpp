@@ -19,5 +19,5 @@ private:
 	ComPtr<ID3D12PipelineState> m_native;
 };
 
-}
-}
+} // namespace gxapi_dx12
+} // namespace inl

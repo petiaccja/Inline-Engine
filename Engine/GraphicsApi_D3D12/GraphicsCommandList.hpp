@@ -124,5 +124,6 @@ protected:
 	static D3D12_TEXTURE_COPY_LOCATION CreateTextureCopyLocation(gxapi::IResource* texture, unsigned subresourceIndex);
 };
 
-}
-}
+
+} //namespace gxapi_dx12
+} //namespace inl

@@ -26,13 +26,13 @@ ID3D12RootSignature* native_cast(gxapi::IRootSignature* source);
 
 ID3D12Fence* native_cast(gxapi::IFence* source);
 
-D3D12_PRIMITIVE_TOPOLOGY native_cast(ePrimitiveTopology source);
+D3D12_PRIMITIVE_TOPOLOGY native_cast(gxapi::ePrimitiveTopology source);
 
-D3D12_VIEWPORT native_cast(Viewport const & source);
+D3D12_VIEWPORT native_cast(gxapi::Viewport const & source);
 
-D3D12_RECT native_cast(inl::Rectangle const & source);
+D3D12_RECT native_cast(gxapi::Rectangle const & source);
 
-DXGI_FORMAT native_cast(eFormat source);
+DXGI_FORMAT native_cast(gxapi::eFormat source);
 
-}
-}
+} // namespace gxapi_dx12
+} // namespace inl

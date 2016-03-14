@@ -9,6 +9,5 @@ ID3D12RootSignature* RootSignature::GetNative() {
 }
 
 
-}
-}
-
+} // namespace gxapi_dx12
+} // namespace inl

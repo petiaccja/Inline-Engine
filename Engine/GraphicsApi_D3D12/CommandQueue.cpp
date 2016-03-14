@@ -79,5 +79,5 @@ bool CommandQueue::IsGPUTimeoutEnabled() const {
 }
 
 
-}
-}
+} // namespace gxapi_dx12
+} // namespace inl

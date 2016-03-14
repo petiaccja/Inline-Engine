@@ -1,5 +1,6 @@
 #include "CommandList.hpp"
 
+#include "../GraphicsApi_LL/Common.hpp"
 #include <cassert>
 
 namespace inl {
@@ -25,5 +26,6 @@ gxapi::eCommandListType CommandList::GetType() {
 	return gxapi::eCommandListType{};
 }
 
-}
-}
+
+} // namespace gxapi_dx12
+} // namespace inl

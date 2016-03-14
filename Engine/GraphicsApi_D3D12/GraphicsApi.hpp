@@ -37,5 +37,6 @@ protected:
 	ComPtr<ID3D12Device> m_device;
 };
 
-}
-}
+
+} // namespace gxapi_dx12
+} // namespace inl

@@ -290,5 +290,5 @@ D3D12_TEXTURE_COPY_LOCATION GraphicsCommandList::CreateTextureCopyLocation(gxapi
 }
 
 
-}
-}
+} // namespace gxapi_dx12
+} // namespace inl
