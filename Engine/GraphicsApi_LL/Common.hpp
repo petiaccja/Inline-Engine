@@ -67,6 +67,12 @@ struct Viewport {
 	float maxDepth;
 };
 
+enum class eCommandListType {
+	COPY,
+	COMPUTE,
+	GRAPHICS,
+	BUNDLE,
+};
 
 inline size_t GetFormatSizeInBytes(eFormat format) {
 	static_assert(false, "TODO implement");
