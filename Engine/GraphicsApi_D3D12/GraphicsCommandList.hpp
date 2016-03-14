@@ -19,7 +19,7 @@ public:
 	GraphicsCommandList(const GraphicsCommandList&) = delete;
 	GraphicsCommandList& operator=(const GraphicsCommandList&) = delete;
 
-	virtual ID3D12CommandList* GetNativeGenericList() override;
+	ID3D12CommandList* GetNativeGenericList() override;
 	ID3D12GraphicsCommandList* GetNative();
 
 
@@ -33,14 +33,14 @@ public:
 		float depth,
 		uint8_t stencil,
 		size_t numRects = 0,
-		inl::Rectangle* rects = nullptr,
+		gxapi::Rectangle* rects = nullptr,
 		bool clearDepth = true,
 		bool clearStencil = false) override;
 
 	void ClearRenderTarget(gxapi::DescriptorHandle rtv,
-		ColorRGBA color,
+		gxapi::ColorRGBA color,
 		size_t numRects = 0,
-		inl::Rectangle* rects = nullptr) override;
+		gxapi::Rectangle* rects = nullptr) override;
 
 
 	// Resource copy
@@ -54,11 +54,11 @@ public:
 		unsigned srcSubresourceIndex) override;
 
 	void CopyTexture(gxapi::IResource* dst,
-		TextureDescription dstDesc,
+		gxapi::TextureDescription dstDesc,
 		gxapi::IResource* src,
-		TextureDescription srcDesc,
+		gxapi::TextureDescription srcDesc,
 		int offx, int offy, int offz,
-		Cube region) override;
+		gxapi::Cube region) override;
 
 	// Draw
 	void DrawIndexedInstanced(unsigned numIndices,
@@ -75,9 +75,9 @@ public:
 	void ExecuteBundle(IGraphicsCommandList* bundle) override;
 
 	// input assembler
-	void SetIndexBuffer(void* gpuVirtualAddress, size_t sizeInBytes, eFormat format) override;
+	void SetIndexBuffer(void* gpuVirtualAddress, size_t sizeInBytes, gxapi::eFormat format) override;
 
-	void SetPrimitiveTopology(ePrimitiveTopology topology) override;
+	void SetPrimitiveTopology(gxapi::ePrimitiveTopology topology) override;
 
 	void SetVertexBuffers(unsigned startSlot,
 		unsigned count,
@@ -97,8 +97,8 @@ public:
 
 
 	// rasterizer state
-	void SetScissorRects(unsigned numRects, inl::Rectangle* rects) override;
-	void SetViewports(unsigned numViewports, Viewport* viewports) override;
+	void SetScissorRects(unsigned numRects, gxapi::Rectangle* rects) override;
+	void SetViewports(unsigned numViewports, gxapi::Viewport* viewports) override;
 
 	// set compute root signature stuff
 
@@ -120,7 +120,7 @@ protected:
 	ComPtr<ID3D12GraphicsCommandList> m_native;
 
 protected:
-	static D3D12_TEXTURE_COPY_LOCATION CreateTextureCopyLocation(gxapi::IResource* texture, TextureDescription descrition);
+	static D3D12_TEXTURE_COPY_LOCATION CreateTextureCopyLocation(gxapi::IResource* texture, gxapi::TextureDescription descrition);
 	static D3D12_TEXTURE_COPY_LOCATION CreateTextureCopyLocation(gxapi::IResource* texture, unsigned subresourceIndex);
 };
 
