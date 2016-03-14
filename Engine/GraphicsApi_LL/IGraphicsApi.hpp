@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Common.hpp"
+
 
 namespace inl {
 namespace gxapi {
@@ -23,18 +25,30 @@ public:
 	
 
 	// Command submission
-	virtual ICommandQueue* CreateCommandQueue() = 0;
-	virtual ICommandAllocator* CreateCommandAllocator() = 0;
-	virtual IGraphicsCommandList* CreateGraphicsCommandList() = 0;
-	virtual ICopyCommandList* CreateCopyCommandList() = 0;
+	virtual ICommandQueue* CreateCommandQueue(eCommandListType type,
+											  eCommandQueuePriority priority,
+											  bool enableGpuTimeout) = 0;
+
+	virtual ICommandAllocator* CreateCommandAllocator(eCommandListType type) = 0;
+
+	virtual IGraphicsCommandList* CreateGraphicsCommandList(ICommandAllocator* allocator,
+															IPipelineState* initialState) = 0;
+
+	virtual ICopyCommandList* CreateCopyCommandList(ICommandAllocator* allocator,
+													IPipelineState* initialState) = 0;
 
 	// Resources
-	virtual IResource* CreateCommittedResource() = 0;
+	virtual IResource* CreateCommittedResource(/* long-ass parameter list */) = 0;
+
 
 	// Pipeline and binding
-	virtual IRootSignature* CreateRootSignature() = 0;
-	virtual IPipelineState* CreateGraphicsPipelineState() = 0;
-	virtual IDescriptorHeap* CreateDescriptorHeap() = 0;
+	virtual IRootSignature* CreateRootSignature(/* long-ass complex shitstorm */) = 0;
+
+	virtual IPipelineState* CreateGraphicsPipelineState(/* oh my fucking god */) = 0;
+
+	virtual IDescriptorHeap* CreateDescriptorHeap(eDesriptorHeapType type,
+												  size_t numDescriptors,
+												  bool isShaderVisible) = 0;
 
 	virtual void CreateConstantBufferView() = 0;
 	virtual void CreateDepthStencilView() = 0;

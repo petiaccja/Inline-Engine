@@ -3,6 +3,7 @@
 #include <cstdint>
 
 namespace inl {
+namespace gxapi {
 
 
 
@@ -78,5 +79,14 @@ inline size_t GetFormatSizeInBytes(eFormat format) {
 	static_assert(false, "TODO implement");
 }
 
+enum class eDesriptorHeapType {
+	CBV_SRV_UAV,
+	SAMPLER,
+	RTV,
+	DSV,
+};
 
-}
+
+} // namespace gxapi
+} // namespace inl
+
