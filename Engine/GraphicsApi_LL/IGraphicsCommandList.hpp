@@ -116,5 +116,5 @@ public:
 };
 
 
-}
-}
+} // namespace gxapi
+} // namespace inl

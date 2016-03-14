@@ -12,7 +12,7 @@ class ICommandList;
 class IFence;
 
 
-enum class eCommandQueueType {
+enum class eCommandListType {
 	COPY,
 	COMPUTE,
 	GRAPHICS,
@@ -35,7 +35,7 @@ public:
 	virtual void Signal(IFence* fence, uint64_t value) = 0;
 	virtual void Wait(IFence* fence, uint64_t value) = 0;
 
-	virtual eCommandQueueType GetType() const = 0;
+	virtual eCommandListType GetType() const = 0;
 	virtual eCommandQueuePriority GetPriority() const = 0;
 	virtual bool IsGPUTimeoutEnabled() const = 0;
 };

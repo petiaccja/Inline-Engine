@@ -19,7 +19,7 @@ public:
 	virtual void Signal(gxapi::IFence* fence, uint64_t value) override;
 	virtual void Wait(gxapi::IFence* fence, uint64_t value) override;
 
-	virtual gxapi::eCommandQueueType GetType() const override;
+	virtual gxapi::eCommandListType GetType() const override;
 	virtual gxapi::eCommandQueuePriority GetPriority() const override;
 	virtual bool IsGPUTimeoutEnabled() const override;
 

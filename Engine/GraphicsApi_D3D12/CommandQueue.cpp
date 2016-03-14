@@ -49,21 +49,21 @@ void CommandQueue::Wait(gxapi::IFence* fence, uint64_t value) {
 }
 
 
-gxapi::eCommandQueueType CommandQueue::GetType() const {
+gxapi::eCommandListType CommandQueue::GetType() const {
 	D3D12_COMMAND_LIST_TYPE nativeType = m_native->GetDesc().Type;
 	switch (nativeType) {
 	case D3D12_COMMAND_LIST_TYPE_DIRECT:
 	case D3D12_COMMAND_LIST_TYPE_BUNDLE:
-		return gxapi::eCommandQueueType::GRAPHICS;
+		return gxapi::eCommandListType::GRAPHICS;
 	case D3D12_COMMAND_LIST_TYPE_COMPUTE:
-		return gxapi::eCommandQueueType::COMPUTE;
+		return gxapi::eCommandListType::COMPUTE;
 	case D3D12_COMMAND_LIST_TYPE_COPY:
-		return gxapi::eCommandQueueType::COPY;
+		return gxapi::eCommandListType::COPY;
 	default:
 		assert(false);
 	}
 
-	return gxapi::eCommandQueueType{};
+	return gxapi::eCommandListType{};
 }
 
 
