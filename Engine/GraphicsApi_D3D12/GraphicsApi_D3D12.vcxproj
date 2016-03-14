@@ -147,6 +147,7 @@
     <ClInclude Include="CommandAllocator.hpp" />
     <ClInclude Include="CommandList.hpp" />
     <ClInclude Include="CommandQueue.hpp" />
+    <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DescriptorHeap.hpp" />
     <ClInclude Include="Fence.hpp" />
     <ClInclude Include="GraphicsApi.hpp" />
