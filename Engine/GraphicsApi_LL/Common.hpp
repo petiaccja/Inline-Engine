@@ -68,8 +68,9 @@ struct Viewport {
 };
 
 
-//TODO implement
-size_t GetFormatSizeInBytes(eFormat format);
+inline size_t GetFormatSizeInBytes(eFormat format) {
+	static_assert(false, "TODO implement");
+}
 
 
 }
