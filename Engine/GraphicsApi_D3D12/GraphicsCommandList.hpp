@@ -28,14 +28,14 @@ public:
 		float depth,
 		uint8_t stencil,
 		size_t numRects = 0,
-		Rectangle* rects = nullptr,
+		inl::Rectangle* rects = nullptr,
 		bool clearDepth = true,
 		bool clearStencil = false) override;
 
 	virtual void ClearRenderTarget(gxapi::DescriptorHandle rtv,
 		ColorRGBA color,
 		size_t numRects = 0,
-		Rectangle* rects = nullptr) override;
+		inl::Rectangle* rects = nullptr) override;
 
 
 	// Resource copy
@@ -92,7 +92,7 @@ public:
 
 
 	// rasterizer state
-	virtual void SetScissorRects(unsigned numRects, Rectangle* rects) override;
+	virtual void SetScissorRects(unsigned numRects, inl::Rectangle* rects) override;
 	virtual void SetViewports(unsigned numViewports, Viewport* viewports) override;
 
 	// set compute root signature stuff

@@ -8,6 +8,7 @@
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="CommandAllocator.cpp" />
     <ClCompile Include="RootSignature.cpp" />
+    <ClCompile Include="NativeCast.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GraphicsApi_LL\Common.hpp" />

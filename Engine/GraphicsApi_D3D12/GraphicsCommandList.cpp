@@ -34,7 +34,7 @@ void GraphicsCommandList::Reset(gxapi::ICommandAllocator * allocator, gxapi::IPi
 }
 
 
-void GraphicsCommandList::ClearDepthStencil(gxapi::DescriptorHandle dsv, float depth, uint8_t stencil, size_t numRects, Rectangle* rects, bool clearDepth, bool clearStencil) {
+void GraphicsCommandList::ClearDepthStencil(gxapi::DescriptorHandle dsv, float depth, uint8_t stencil, size_t numRects, inl::Rectangle* rects, bool clearDepth, bool clearStencil) {
 	D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView;
 	depthStencilView.ptr = reinterpret_cast<uintptr_t>(dsv.cpuAddress);
 
@@ -54,7 +54,7 @@ void GraphicsCommandList::ClearDepthStencil(gxapi::DescriptorHandle dsv, float d
 }
 
 
-void GraphicsCommandList::ClearRenderTarget(gxapi::DescriptorHandle rtv, ColorRGBA color, size_t numRects, Rectangle* rects) {
+void GraphicsCommandList::ClearRenderTarget(gxapi::DescriptorHandle rtv, ColorRGBA color, size_t numRects, inl::Rectangle* rects) {
 	D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView;
 	renderTargetView.ptr = reinterpret_cast<uintptr_t>(rtv.cpuAddress);
 
@@ -184,7 +184,7 @@ void GraphicsCommandList::SetStencilRef(unsigned stencilRef) {
 }
 
 
-void GraphicsCommandList::SetScissorRects(unsigned numRects, Rectangle* rects) {
+void GraphicsCommandList::SetScissorRects(unsigned numRects, inl::Rectangle* rects) {
 	std::vector<D3D12_RECT> nativeRects;
 	nativeRects.reserve(numRects);
 
@@ -260,8 +260,9 @@ D3D12_TEXTURE_COPY_LOCATION GraphicsCommandList::CreateTextureCopyLocation(gxapi
 				footprint.Format = native_cast(descrition.format);
 				footprint.Height = descrition.height;
 				footprint.Width = descrition.width;
-				static_assert(false, "TODO: row pitch");
-				footprint.RowPitch;
+				size_t rowSize = GetFormatSizeInBytes(descrition.format)*descrition.width;
+				size_t alignement = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
+				footprint.RowPitch = rowSize + (alignement - rowSize % alignement) % alignement;
 			}
 			placedFootprint.Footprint = footprint;
 			placedFootprint.Offset = 0;

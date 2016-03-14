@@ -159,6 +159,7 @@
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="Fence.cpp" />
     <ClCompile Include="GraphicsCommandList.cpp" />
+    <ClCompile Include="NativeCast.cpp" />
     <ClCompile Include="PipelineState.cpp" />
     <ClCompile Include="Resource.cpp" />
     <ClCompile Include="RootSignature.cpp" />

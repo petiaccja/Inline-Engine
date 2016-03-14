@@ -2,6 +2,10 @@
 
 #include <cstdint>
 
+namespace inl {
+
+
+
 struct Rectangle {
 	Rectangle(int top, int bottom, int left, int right)
 		:top(top), bottom(bottom), left(left), right(right) {}
@@ -62,3 +66,10 @@ struct Viewport {
 	float minDepth;
 	float maxDepth;
 };
+
+
+//TODO implement
+size_t GetFormatSizeInBytes(eFormat format);
+
+
+}
