@@ -14,6 +14,8 @@ class Resource : public gxapi::IResource {
 public:
 	ID3D12Resource* GetNative();
 
+	gxapi::ResourceDesc GetDesc() override;
+
 private:
 	ComPtr<ID3D12Resource> m_native;
 };

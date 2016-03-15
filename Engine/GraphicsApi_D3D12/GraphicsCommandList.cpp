@@ -109,9 +109,9 @@ void GraphicsCommandList::CopyTexture(gxapi::IResource* dst, unsigned dstSubreso
 
 void GraphicsCommandList::CopyTexture(
 	gxapi::IResource* dst,
-	gxapi::TextureDescription dstDesc,
+	gxapi::TextureCopyDesc dstDesc,
 	gxapi::IResource* src,
-	gxapi::TextureDescription srcDesc,
+	gxapi::TextureCopyDesc srcDesc,
 	int offx, int offy, int offz,
 	gxapi::Cube region) {
 
@@ -264,7 +264,7 @@ void GraphicsCommandList::SetPipelineState(gxapi::IPipelineState * pipelineState
 }
 
 
-D3D12_TEXTURE_COPY_LOCATION GraphicsCommandList::CreateTextureCopyLocation(gxapi::IResource* texture, gxapi::TextureDescription descrition) {
+D3D12_TEXTURE_COPY_LOCATION GraphicsCommandList::CreateTextureCopyLocation(gxapi::IResource* texture, gxapi::TextureCopyDesc description) {
 
 	D3D12_TEXTURE_COPY_LOCATION result;
 	{
@@ -274,11 +274,11 @@ D3D12_TEXTURE_COPY_LOCATION GraphicsCommandList::CreateTextureCopyLocation(gxapi
 		{
 			D3D12_SUBRESOURCE_FOOTPRINT footprint;
 			{
-				footprint.Depth = descrition.depth;
-				footprint.Format = native_cast(descrition.format);
-				footprint.Height = descrition.height;
-				footprint.Width = descrition.width;
-				size_t rowSize = GetFormatSizeInBytes(descrition.format)*descrition.width;
+				footprint.Depth = description.depth;
+				footprint.Format = native_cast(description.format);
+				footprint.Height = description.height;
+				footprint.Width = description.width;
+				size_t rowSize = GetFormatSizeInBytes(description.format)*description.width;
 				size_t alignement = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
 				footprint.RowPitch = rowSize + (alignement - rowSize % alignement) % alignement;
 			}

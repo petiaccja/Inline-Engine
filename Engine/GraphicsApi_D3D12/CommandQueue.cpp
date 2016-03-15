@@ -39,20 +39,8 @@ void CommandQueue::Wait(gxapi::IFence* fence, uint64_t value) {
 	m_native->Wait(native_cast(fence), value);
 }
 
-
-gxapi::eCommandListType CommandQueue::GetType() const {
-	return native_cast(m_native->GetDesc().Type);
-}
-
-
-gxapi::eCommandQueuePriority CommandQueue::GetPriority() const {
-	return native_cast(static_cast<D3D12_COMMAND_QUEUE_PRIORITY>(m_native->GetDesc().Priority));
-}
-
-
-bool CommandQueue::IsGPUTimeoutEnabled() const {
-	bool isDisabled = (m_native->GetDesc().Flags & D3D12_COMMAND_QUEUE_FLAG_DISABLE_GPU_TIMEOUT) != 0;
-	return !isDisabled;
+gxapi::CommandQueueDesc CommandQueue::GetDesc() const {
+	return native_cast(m_native->GetDesc());
 }
 
 

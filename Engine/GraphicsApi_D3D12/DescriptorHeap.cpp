@@ -33,19 +33,8 @@ gxapi::DescriptorHandle DescriptorHeap::At(size_t index) const {
 	return result;
 }
 
-
-size_t DescriptorHeap::GetNumDescriptors() const {
-	return m_native->GetDesc().NumDescriptors;
-}
-
-
-gxapi::eDesriptorHeapType DescriptorHeap::GetType() const {
-	return native_cast(m_native->GetDesc().Type);
-}
-
-
-bool DescriptorHeap::IsShaderVisible() const {
-	return (m_native->GetDesc().Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) != 0;
+gxapi::DescriptorHeapDesc DescriptorHeap::GetDesc() const {
+	return native_cast(m_native->GetDesc());
 }
 
 

@@ -105,6 +105,25 @@ D3D12_COMMAND_LIST_TYPE native_cast(gxapi::eCommandListType source) {
 }
 
 
+D3D12_DESCRIPTOR_HEAP_TYPE native_cast(gxapi::eDesriptorHeapType source) {
+	using gxapi::eDesriptorHeapType;
+	switch (source) {
+	case eDesriptorHeapType::CBV_SRV_UAV:
+		return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	case eDesriptorHeapType::SAMPLER:
+		return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+	case eDesriptorHeapType::RTV:
+		return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	case eDesriptorHeapType::DSV:
+		return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	default:
+		assert(false);
+	}
+
+	return D3D12_DESCRIPTOR_HEAP_TYPE{};
+}
+
+
 INT native_cast(gxapi::eCommandQueuePriority source) {
 	switch (source) {
 	case gxapi::eCommandQueuePriority::NORMAL:
@@ -165,6 +184,30 @@ DXGI_FORMAT native_cast(gxapi::eFormat source) {
 	return DXGI_FORMAT{};
 }
 
+D3D12_COMMAND_QUEUE_DESC native_cast(gxapi::CommandQueueDesc source) {
+	D3D12_COMMAND_QUEUE_DESC result;
+	result.Type = native_cast(source.type);
+	result.Flags =  (source.enableGpuTimeout==false) ? D3D12_COMMAND_QUEUE_FLAG_DISABLE_GPU_TIMEOUT : D3D12_COMMAND_QUEUE_FLAG_NONE;
+	result.Priority = native_cast(source.priority);
+	result.NodeMask = 0;
+
+	return result;
+}
+
+
+D3D12_DESCRIPTOR_HEAP_DESC native_cast(gxapi::DescriptorHeapDesc source) {
+	D3D12_DESCRIPTOR_HEAP_DESC result;
+
+	result.Type = native_cast(source.type);
+	result.NumDescriptors = source.numDescriptors;
+	result.Flags = source.isShaderVisible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	result.NodeMask = 0;
+
+	return result;
+}
+
+
+
 
 
 
@@ -172,6 +215,81 @@ DXGI_FORMAT native_cast(gxapi::eFormat source) {
 ////////////////////////////////////////////////////////////
 // FROM NATIVE
 ////////////////////////////////////////////////////////////
+
+
+gxapi::eTextueDimension texture_dimension_cast(D3D12_RESOURCE_DIMENSION source) {
+	using gxapi::eTextueDimension;
+
+	switch (source) {
+	case D3D12_RESOURCE_DIMENSION_TEXTURE1D:
+		return eTextueDimension::ONE;
+	case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
+		return eTextueDimension::TWO;
+	case D3D12_RESOURCE_DIMENSION_TEXTURE3D:
+		return eTextueDimension::THREE;
+	default:
+		assert(false); //asserts on UKNOWN, and BUFFER too
+	}
+
+	return gxapi::eTextueDimension{};
+}
+
+
+gxapi::eFormat native_cast(DXGI_FORMAT source) {
+	static_assert(false, "TODO");
+	return gxapi::eFormat{};
+}
+
+
+gxapi::eTextureLayout native_cast(D3D12_TEXTURE_LAYOUT source) {
+	using gxapi::eTextureLayout;
+	switch (source) {
+	case D3D12_TEXTURE_LAYOUT_UNKNOWN:
+		return eTextureLayout::UNKNOWN;
+	case D3D12_TEXTURE_LAYOUT_ROW_MAJOR:
+		return eTextureLayout::ROW_MAJOR;
+	case D3D12_TEXTURE_LAYOUT_64KB_UNDEFINED_SWIZZLE:
+		return eTextureLayout::UNDEFINED_SWIZZLE;
+	case D3D12_TEXTURE_LAYOUT_64KB_STANDARD_SWIZZLE:
+		return eTextureLayout::STANDARD_SWIZZLE;
+	default:
+		assert(false);
+	}
+
+	return gxapi::eTextureLayout{};
+}
+
+
+gxapi::eResourceFlags native_cast(D3D12_RESOURCE_FLAGS source) {
+	using gxapi::eResourceFlags;
+
+	gxapi::eResourceFlags result = eResourceFlags::NONE;
+
+	if ((source & D3D12_RESOURCE_FLAG_NONE) != 0) {
+		result |= eResourceFlags::NONE;
+	}
+	if ((source & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0) {
+		result |= eResourceFlags::ALLOW_RENDER_TARGET;
+	}
+	if ((source & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0) {
+		result |= eResourceFlags::ALLOW_DEPTH_STENCIL;
+	}
+	if ((source & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS) != 0) {
+		result |= eResourceFlags::ALLOW_UNORDERED_ACCESS;
+	}
+	if ((source & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE) != 0) {
+		result |= eResourceFlags::DENY_SHADER_RESOURCE;
+	}
+	if ((source & D3D12_RESOURCE_FLAG_ALLOW_CROSS_ADAPTER) != 0) {
+		result |= eResourceFlags::ALLOW_CROSS_ADAPTER;
+	}
+	if ((source & D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS) != 0) {
+		result |= eResourceFlags::ALLOW_SIMULTANEOUS_ACCESS;
+	}
+
+	return result;
+}
+
 
 gxapi::eCommandListType native_cast(D3D12_COMMAND_LIST_TYPE source) {
 	switch (source) {
@@ -223,6 +341,62 @@ gxapi::eDesriptorHeapType native_cast(D3D12_DESCRIPTOR_HEAP_TYPE source) {
 }
 
 
+gxapi::CommandQueueDesc native_cast(D3D12_COMMAND_QUEUE_DESC source) {
+	gxapi::CommandQueueDesc result;
+
+	bool disableGpuTimeout = (source.Flags & D3D12_COMMAND_QUEUE_FLAG_DISABLE_GPU_TIMEOUT) != 0;
+	result.enableGpuTimeout = !disableGpuTimeout;
+	result.priority = native_cast(static_cast<D3D12_COMMAND_QUEUE_PRIORITY>(source.Priority));
+	result.type = native_cast(source.Type);
+
+	return result;
+}
+
+
+gxapi::DescriptorHeapDesc native_cast(D3D12_DESCRIPTOR_HEAP_DESC source) {
+	gxapi::DescriptorHeapDesc result;
+
+	result.isShaderVisible = (source.Flags & D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) != 0;
+	result.numDescriptors = source.NumDescriptors;
+	result.type = native_cast(source.Type);
+
+	return result;
+}
+
+
+gxapi::ResourceDesc native_cast(D3D12_RESOURCE_DESC source) {
+	gxapi::ResourceDesc result;
+
+	bool typeUnknown = source.Dimension == D3D12_RESOURCE_DIMENSION_UNKNOWN;
+	assert(typeUnknown == false);
+
+	result.type = (source.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER) ? gxapi::eResourceType::BUFFER : gxapi::eResourceType::TEXTURE;
+
+	if (result.type == gxapi::eResourceType::BUFFER) {
+		gxapi::BufferDesc bufferDesc;
+
+		bufferDesc.sizeInBytes = source.Width;
+
+		result.bufferDesc = bufferDesc;
+	}
+	else {
+		result.textureDesc = gxapi::TextureDesc{
+			texture_dimension_cast(source.Dimension),
+			source.Alignment,
+			source.Width,
+			source.Height,
+			source.DepthOrArraySize,
+			source.MipLevels,
+			native_cast(source.Format),
+			native_cast(source.Layout),
+			native_cast(source.Flags),
+			source.SampleDesc.Count,
+			source.SampleDesc.Quality
+		};
+	}
+
+	return result;
+}
 
 
 
