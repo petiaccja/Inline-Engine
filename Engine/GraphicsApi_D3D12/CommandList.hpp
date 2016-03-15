@@ -14,9 +14,9 @@ public:
 	virtual ~CommandList() = default;
 	virtual ID3D12CommandList* GetNativeGenericList() = 0;
 
-	virtual gxapi::eCommandListType GetType() override;
+	gxapi::eCommandListType GetType() override;
 };
 
 
-}
-}
+} // namespace gxapi_dx12
+} // namespace inl

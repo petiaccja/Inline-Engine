@@ -9,5 +9,5 @@ ID3D12Resource* Resource::GetNative() {
 }
 
 
-}
-}
+} // namespace gxapi_dx12
+} // namespace inl

@@ -9,5 +9,5 @@ ID3D12PipelineState* PipelineState::GetNative() {
 }
 
 
-}
-}
+} // namespace gxapi_dx12
+} // namespace inl

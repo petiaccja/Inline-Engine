@@ -18,5 +18,6 @@ private:
 	ComPtr<ID3D12Resource> m_native;
 };
 
-}
-}
+
+} // namespace gxapi_dx12
+} // namespace inl

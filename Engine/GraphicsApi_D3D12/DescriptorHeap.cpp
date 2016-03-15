@@ -63,5 +63,5 @@ bool DescriptorHeap::IsShaderVisible() const {
 }
 
 
-}
-}
+} // namespace gxapi_dx12
+} // namespace inl

@@ -99,5 +99,5 @@ void GraphicsApi::CreateShaderResourceView() {
 }
 
 
-}
-}
+} // namespace gxapi_dx12
+} // namespace inl

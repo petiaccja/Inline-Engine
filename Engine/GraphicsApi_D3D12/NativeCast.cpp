@@ -1,10 +1,6 @@
 #include "NativeCast.hpp"
 
-
-#include "PipelineState.hpp"
-#include "Resource.hpp"
-#include "CommandAllocator.hpp"
-#include "RootSignature.hpp"
+#include "../GraphicsApi_LL/Common.hpp"
 
 #include <cassert>
 
@@ -57,7 +53,7 @@ ID3D12RootSignature* native_cast(gxapi::IRootSignature* source) {
 }
 
 
-ID3D12Fence * native_cast(gxapi::IFence * source) {
+ID3D12Fence* native_cast(gxapi::IFence * source) {
 	if (source == nullptr) {
 		return nullptr;
 	}
@@ -66,7 +62,9 @@ ID3D12Fence * native_cast(gxapi::IFence * source) {
 }
 
 
-D3D12_PRIMITIVE_TOPOLOGY native_cast(ePrimitiveTopology source) {
+D3D12_PRIMITIVE_TOPOLOGY native_cast(gxapi::ePrimitiveTopology source) {
+	using gxapi::ePrimitiveTopology;
+
 	switch (source) {
 	case ePrimitiveTopology::LINELIST:
 		return D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_LINELIST;
@@ -87,7 +85,7 @@ D3D12_PRIMITIVE_TOPOLOGY native_cast(ePrimitiveTopology source) {
 }
 
 
-D3D12_VIEWPORT native_cast(Viewport const & source) {
+D3D12_VIEWPORT native_cast(gxapi::Viewport const & source) {
 	D3D12_VIEWPORT result;
 
 	result.TopLeftX = source.topLeftX;
@@ -101,7 +99,7 @@ D3D12_VIEWPORT native_cast(Viewport const & source) {
 }
 
 
-D3D12_RECT native_cast(inl::Rectangle const & source) {
+D3D12_RECT native_cast(gxapi::Rectangle const & source) {
 	D3D12_RECT result;
 
 	result.left = source.left;
@@ -113,7 +111,7 @@ D3D12_RECT native_cast(inl::Rectangle const & source) {
 }
 
 
-DXGI_FORMAT native_cast(eFormat source) {
+DXGI_FORMAT native_cast(gxapi::eFormat source) {
 	//TODO
 	assert(false);
 
@@ -121,5 +119,5 @@ DXGI_FORMAT native_cast(eFormat source) {
 }
 
 
-}
-}
+} // namespace gxapi_dx12
+} // namespace inl

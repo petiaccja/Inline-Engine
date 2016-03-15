@@ -19,5 +19,5 @@ protected:
 };
 
 
-}
-}
+} // namespace gxapi_dx12
+} // namespace inl

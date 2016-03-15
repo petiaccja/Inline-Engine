@@ -18,5 +18,6 @@ protected:
 	ComPtr<ID3D12Fence> m_native;
 };
 
-}
-}
+
+} // namespace gxapi_dx12
+} // namespace inl
