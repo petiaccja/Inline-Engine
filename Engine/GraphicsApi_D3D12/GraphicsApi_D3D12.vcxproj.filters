@@ -81,9 +81,6 @@
     <ClInclude Include="CommandQueue.hpp">
       <Filter>Implementation</Filter>
     </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\Common.hpp">
-      <Filter>Implementation</Filter>
-    </ClInclude>
     <ClInclude Include="..\GraphicsApi_LL\DescriptorHandle.hpp">
       <Filter>Implementation</Filter>
     </ClInclude>
@@ -113,6 +110,9 @@
     </ClInclude>
     <ClInclude Include="d3dx12.h">
       <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\Common.hpp">
+      <Filter>Interfaces</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
