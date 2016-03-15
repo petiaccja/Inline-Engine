@@ -25,20 +25,20 @@ public:
 	
 
 	// Command submission
-	virtual ICommandQueue* CreateCommandQueue(eCommandListType type,
-											  eCommandQueuePriority priority,
-											  bool enableGpuTimeout) = 0;
+	virtual ICommandQueue* CreateCommandQueue(CommandQueueDesc desc) = 0;
 
 	virtual ICommandAllocator* CreateCommandAllocator(eCommandListType type) = 0;
 
-	virtual IGraphicsCommandList* CreateGraphicsCommandList(ICommandAllocator* allocator,
-															IPipelineState* initialState) = 0;
+	virtual IGraphicsCommandList* CreateGraphicsCommandList(CommandListDesc desc) = 0;
 
-	virtual ICopyCommandList* CreateCopyCommandList(ICommandAllocator* allocator,
-													IPipelineState* initialState) = 0;
+	virtual ICopyCommandList* CreateCopyCommandList(CommandListDesc desc) = 0;
 
 	// Resources
-	virtual IResource* CreateCommittedResource(/* long-ass parameter list */) = 0;
+	virtual IResource* CreateCommittedResource(HeapProperties heapProperties,
+											   eHeapFlags heapFlags,
+											   ResourceDesc desc,
+											   eResourceState initialState,
+											   ClearValue* clearValue = nullptr) = 0;
 
 
 	// Pipeline and binding
@@ -46,9 +46,7 @@ public:
 
 	virtual IPipelineState* CreateGraphicsPipelineState(/* oh my fucking god */) = 0;
 
-	virtual IDescriptorHeap* CreateDescriptorHeap(eDesriptorHeapType type,
-												  size_t numDescriptors,
-												  bool isShaderVisible) = 0;
+	virtual IDescriptorHeap* CreateDescriptorHeap(DescriptorHeapDesc) = 0;
 
 	virtual void CreateConstantBufferView() = 0;
 	virtual void CreateDepthStencilView() = 0;

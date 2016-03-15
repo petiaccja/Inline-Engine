@@ -54,9 +54,9 @@ public:
 		unsigned srcSubresourceIndex) override;
 
 	void CopyTexture(gxapi::IResource* dst,
-		gxapi::TextureDescription dstDesc,
+		gxapi::TextureCopyDesc dstDesc,
 		gxapi::IResource* src,
-		gxapi::TextureDescription srcDesc,
+		gxapi::TextureCopyDesc srcDesc,
 		int offx, int offy, int offz,
 		gxapi::Cube region) override;
 
@@ -120,7 +120,7 @@ protected:
 	ComPtr<ID3D12GraphicsCommandList> m_native;
 
 protected:
-	static D3D12_TEXTURE_COPY_LOCATION CreateTextureCopyLocation(gxapi::IResource* texture, gxapi::TextureDescription descrition);
+	static D3D12_TEXTURE_COPY_LOCATION CreateTextureCopyLocation(gxapi::IResource* texture, gxapi::TextureCopyDesc descrition);
 	static D3D12_TEXTURE_COPY_LOCATION CreateTextureCopyLocation(gxapi::IResource* texture, unsigned subresourceIndex);
 };
 

@@ -7,8 +7,7 @@ class IResource {
 public:
 	virtual ~IResource() = default;
 
-
-	// TODO
+	virtual ResourceDesc GetDesc() = 0;
 };
 
 } // namespace gxapi

@@ -16,9 +16,7 @@ public:
 
 	virtual DescriptorHandle At(size_t index) const = 0;
 
-	virtual size_t GetNumDescriptors() const = 0;
-	virtual eDesriptorHeapType GetType() const = 0;
-	virtual bool IsShaderVisible() const = 0;
+	virtual DescriptorHeapDesc GetDesc() const = 0;
 };
 
 

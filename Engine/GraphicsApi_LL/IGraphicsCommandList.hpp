@@ -52,9 +52,9 @@ public:
 							 unsigned srcSubresourceIndex) = 0;
 
 	virtual void CopyTexture(IResource* dst,
-							 TextureDescription dstDesc,
+							 TextureCopyDesc dstDesc,
 							 IResource* src,
-							 TextureDescription srcDesc,
+							 TextureCopyDesc srcDesc,
 							 int offx, int offy, int offz,
 							 Cube region) = 0;
 

@@ -12,19 +12,6 @@ class ICommandList;
 class IFence;
 
 
-enum class eCommandListType {
-	COPY,
-	COMPUTE,
-	GRAPHICS,
-};
-
-
-enum class eCommandQueuePriority {
-	NORMAL,
-	HIGH,
-};
-
-
 // note: done
 class ICommandQueue {
 public:
@@ -35,9 +22,7 @@ public:
 	virtual void Signal(IFence* fence, uint64_t value) = 0;
 	virtual void Wait(IFence* fence, uint64_t value) = 0;
 
-	virtual eCommandListType GetType() const = 0;
-	virtual eCommandQueuePriority GetPriority() const = 0;
-	virtual bool IsGPUTimeoutEnabled() const = 0;
+	virtual CommandQueueDesc GetDesc() const = 0;
 };
 
 } // namespace gxapi
