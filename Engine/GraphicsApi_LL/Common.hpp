@@ -43,6 +43,10 @@ enum class eFormat {
 
 };
 
+inline size_t GetFormatSizeInBytes(eFormat format) {
+	static_assert(false, "TODO implement");
+}
+
 
 struct TextureDescription {
 	eFormat format;
@@ -74,10 +78,6 @@ enum class eCommandListType {
 	GRAPHICS,
 	BUNDLE,
 };
-
-inline size_t GetFormatSizeInBytes(eFormat format) {
-	static_assert(false, "TODO implement");
-}
 
 enum class eDesriptorHeapType {
 	CBV_SRV_UAV,

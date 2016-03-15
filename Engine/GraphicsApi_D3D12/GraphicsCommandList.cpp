@@ -24,6 +24,11 @@ ID3D12GraphicsCommandList * GraphicsCommandList::GetNative() {
 }
 
 
+gxapi::eCommandListType GraphicsCommandList::GetType() {
+	return CommandList::GetType();
+}
+
+
 void GraphicsCommandList::ResetState(gxapi::IPipelineState* newState) {
 	m_native->ClearState(native_cast(newState));
 }
@@ -39,7 +44,14 @@ void GraphicsCommandList::Reset(gxapi::ICommandAllocator * allocator, gxapi::IPi
 }
 
 
-void GraphicsCommandList::ClearDepthStencil(gxapi::DescriptorHandle dsv, float depth, uint8_t stencil, size_t numRects, inl::Rectangle* rects, bool clearDepth, bool clearStencil) {
+void GraphicsCommandList::ClearDepthStencil(
+	gxapi::DescriptorHandle dsv,
+	float depth,
+	uint8_t stencil,
+	size_t numRects,
+	gxapi::Rectangle* rects,
+	bool clearDepth, bool clearStencil) {
+
 	D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView;
 	depthStencilView.ptr = reinterpret_cast<uintptr_t>(dsv.cpuAddress);
 
@@ -59,7 +71,7 @@ void GraphicsCommandList::ClearDepthStencil(gxapi::DescriptorHandle dsv, float d
 }
 
 
-void GraphicsCommandList::ClearRenderTarget(gxapi::DescriptorHandle rtv, ColorRGBA color, size_t numRects, inl::Rectangle* rects) {
+void GraphicsCommandList::ClearRenderTarget(gxapi::DescriptorHandle rtv, gxapi::ColorRGBA color, size_t numRects, gxapi::Rectangle* rects) {
 	D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView;
 	renderTargetView.ptr = reinterpret_cast<uintptr_t>(rtv.cpuAddress);
 
@@ -95,17 +107,18 @@ void GraphicsCommandList::CopyTexture(gxapi::IResource* dst, unsigned dstSubreso
 }
 
 
-void GraphicsCommandList::CopyTexture(gxapi::IResource* dst, TextureDescription dstDesc, gxapi::IResource* src, TextureDescription srcDesc, int offx, int offy, int offz, Cube region) {
+void GraphicsCommandList::CopyTexture(
+	gxapi::IResource* dst,
+	gxapi::TextureDescription dstDesc,
+	gxapi::IResource* src,
+	gxapi::TextureDescription srcDesc,
+	int offx, int offy, int offz,
+	gxapi::Cube region) {
+
 	auto nativeDst = CreateTextureCopyLocation(dst, dstDesc);
 	auto nativeSrc = CreateTextureCopyLocation(src, srcDesc);
 
-	D3D12_BOX srcBox;
-	srcBox.back = region.back;
-	srcBox.front = region.front;
-	srcBox.left = region.left;
-	srcBox.right = region.right;
-	srcBox.bottom = region.bottom;
-	srcBox.top = region.top;
+	D3D12_BOX srcBox = native_cast(region);
 
 	m_native->CopyTextureRegion(&nativeDst, offx, offy, offz, &nativeSrc, &srcBox);
 }
@@ -126,7 +139,7 @@ void GraphicsCommandList::ExecuteBundle(IGraphicsCommandList* bundle) {
 }
 
 
-void GraphicsCommandList::SetIndexBuffer(void * gpuVirtualAddress, size_t sizeInBytes, eFormat format) {
+void GraphicsCommandList::SetIndexBuffer(void * gpuVirtualAddress, size_t sizeInBytes, gxapi::eFormat format) {
 	D3D12_INDEX_BUFFER_VIEW ibv;
 	ibv.BufferLocation = reinterpret_cast<std::uintptr_t>(gpuVirtualAddress);
 	ibv.Format = native_cast(format);
@@ -136,7 +149,7 @@ void GraphicsCommandList::SetIndexBuffer(void * gpuVirtualAddress, size_t sizeIn
 }
 
 
-void GraphicsCommandList::SetPrimitiveTopology(ePrimitiveTopology topology) {
+void GraphicsCommandList::SetPrimitiveTopology(gxapi::ePrimitiveTopology topology) {
 	m_native->IASetPrimitiveTopology(native_cast(topology));
 }
 
@@ -189,7 +202,7 @@ void GraphicsCommandList::SetStencilRef(unsigned stencilRef) {
 }
 
 
-void GraphicsCommandList::SetScissorRects(unsigned numRects, inl::Rectangle* rects) {
+void GraphicsCommandList::SetScissorRects(unsigned numRects, gxapi::Rectangle* rects) {
 	std::vector<D3D12_RECT> nativeRects;
 	nativeRects.reserve(numRects);
 
@@ -201,7 +214,7 @@ void GraphicsCommandList::SetScissorRects(unsigned numRects, inl::Rectangle* rec
 }
 
 
-void GraphicsCommandList::SetViewports(unsigned numViewports, Viewport* viewports) {
+void GraphicsCommandList::SetViewports(unsigned numViewports, gxapi::Viewport* viewports) {
 	std::vector<D3D12_VIEWPORT> nativeViewports;
 	nativeViewports.reserve(numViewports);
 
@@ -251,7 +264,7 @@ void GraphicsCommandList::SetPipelineState(gxapi::IPipelineState * pipelineState
 }
 
 
-D3D12_TEXTURE_COPY_LOCATION GraphicsCommandList::CreateTextureCopyLocation(gxapi::IResource* texture, TextureDescription descrition) {
+D3D12_TEXTURE_COPY_LOCATION GraphicsCommandList::CreateTextureCopyLocation(gxapi::IResource* texture, gxapi::TextureDescription descrition) {
 
 	D3D12_TEXTURE_COPY_LOCATION result;
 	{
