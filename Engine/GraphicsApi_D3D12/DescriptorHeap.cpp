@@ -1,5 +1,6 @@
 #include "DescriptorHeap.hpp"
 
+#include "NativeCast.hpp"
 #include "d3dx12.h"
 
 #include <cassert>
@@ -34,27 +35,12 @@ gxapi::DescriptorHandle DescriptorHeap::At(size_t index) const {
 
 
 size_t DescriptorHeap::GetNumDescriptors() const {
-	return size_t();
+	return m_native->GetDesc().NumDescriptors;
 }
 
 
 gxapi::eDesriptorHeapType DescriptorHeap::GetType() const {
-	using gxapi::eDesriptorHeapType;
-
-	switch (m_native->GetDesc().Type) {
-	case D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV:
-		return eDesriptorHeapType::CBV_SRV_UAV;
-	case D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER:
-		return eDesriptorHeapType::SAMPLER;
-	case D3D12_DESCRIPTOR_HEAP_TYPE_RTV:
-		return eDesriptorHeapType::RTV;
-	case D3D12_DESCRIPTOR_HEAP_TYPE_DSV:
-		return eDesriptorHeapType::DSV;
-	default:
-		assert(false);
-	}
-
-	return eDesriptorHeapType{};
+	return native_cast(m_native->GetDesc().Type);
 }
 
 

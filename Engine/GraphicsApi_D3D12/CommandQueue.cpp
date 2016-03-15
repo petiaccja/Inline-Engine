@@ -41,35 +41,12 @@ void CommandQueue::Wait(gxapi::IFence* fence, uint64_t value) {
 
 
 gxapi::eCommandListType CommandQueue::GetType() const {
-	D3D12_COMMAND_LIST_TYPE nativeType = m_native->GetDesc().Type;
-	switch (nativeType) {
-	case D3D12_COMMAND_LIST_TYPE_DIRECT:
-	case D3D12_COMMAND_LIST_TYPE_BUNDLE:
-		return gxapi::eCommandListType::GRAPHICS;
-	case D3D12_COMMAND_LIST_TYPE_COMPUTE:
-		return gxapi::eCommandListType::COMPUTE;
-	case D3D12_COMMAND_LIST_TYPE_COPY:
-		return gxapi::eCommandListType::COPY;
-	default:
-		assert(false);
-	}
-
-	return gxapi::eCommandListType{};
+	return native_cast(m_native->GetDesc().Type);
 }
 
 
 gxapi::eCommandQueuePriority CommandQueue::GetPriority() const {
-	auto nativePriority = static_cast<D3D12_COMMAND_QUEUE_PRIORITY>(m_native->GetDesc().Priority);
-	switch (nativePriority) {
-	case D3D12_COMMAND_QUEUE_PRIORITY_NORMAL:
-		return gxapi::eCommandQueuePriority::NORMAL;
-	case D3D12_COMMAND_QUEUE_PRIORITY_HIGH:
-		return gxapi::eCommandQueuePriority::HIGH;
-	default:
-		assert(false);
-	}
-
-	return gxapi::eCommandQueuePriority{};
+	return native_cast(static_cast<D3D12_COMMAND_QUEUE_PRIORITY>(m_native->GetDesc().Priority));
 }
 
 

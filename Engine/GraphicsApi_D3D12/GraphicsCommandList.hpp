@@ -22,6 +22,7 @@ public:
 	ID3D12CommandList* GetNativeGenericList() override;
 	ID3D12GraphicsCommandList* GetNative();
 
+	gxapi::eCommandListType GetType() override;
 
 	// Command list state
 	void ResetState(gxapi::IPipelineState* newState = nullptr) override;
