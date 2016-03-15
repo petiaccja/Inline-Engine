@@ -183,6 +183,20 @@ enum class ePrimitiveTopology {
 	TRIANGLESTRIP = 5,
 };
 
+enum class ePrimitiveTopologyType {
+	UNDEFINED = 0,
+	POINT = 1,
+	LINE = 2,
+	TRIANGLE = 3,
+	PATCH = 4
+};
+
+enum class eTriangleStripCutIndex {
+	DISABLED = 0,
+	FFFFh = 1,
+	FFFFFFFFh = 2
+};
+
 enum class eCommandListType {
 	COPY,
 	COMPUTE,
@@ -289,6 +303,60 @@ enum class eResourceType {
 	BUFFER,
 };
 
+enum class eColorMask {
+	RED = 1,
+	GREEN = 2,
+	BLUE = 4,
+	ALPHA = 8,
+	ALL = (RED | GREEN | BLUE | ALPHA),
+};
+
+enum class eBlendOperand {
+	ZERO,
+	ONE,
+
+	SHADER_OUT,
+	INV_SHADER_OUT,
+	SHADER_ALPHA,
+	INV_SHADER_ALPHA,
+
+	TARGET_OUT,
+	INV_TARGET_OUT,
+	TARGET_ALPHA,
+	INV_TARGET_ALPHA,
+
+	SHADER_ALPHA_SAT,
+	BLEND_FACTOR,
+	INV_BLEND_FACTOR,
+};
+
+enum class eBlendOperation {
+	ADD,
+	SUBTRACT,
+	REVERSE_SUBTRACT,
+	MIN,
+	MAX,
+};
+
+enum class eBlendLogicOperation {
+	CLEAR,
+	SET,
+	COPY,
+	COPY_INVERTED,
+	NOOP,
+	INVERT,
+	AND,
+	NAND,
+	OR,
+	NOR,
+	XOR,
+	EQUIV,
+	AND_REVERSE,
+	AND_INVERTED,
+	OR_REVERSE,
+	OR_INVERTED,
+};
+
 struct Viewport {
 	float topLeftX;
 	float topLeftY;
@@ -368,6 +436,7 @@ struct ClearValue {
 	};
 };
 
+
 struct TextureCopyDesc {
 	eFormat format;
 	size_t width;
@@ -375,16 +444,19 @@ struct TextureCopyDesc {
 	size_t depth;
 };
 
+
 struct CommandQueueDesc {
 	eCommandListType type;
 	eCommandQueuePriority priority;
 	bool enableGpuTimeout;
 };
 
+
 struct CommandListDesc {
 	ICommandAllocator* allocator;
 	IPipelineState* initialState;
 };
+
 
 struct DescriptorHeapDesc {
 	eDesriptorHeapType type;
@@ -393,7 +465,82 @@ struct DescriptorHeapDesc {
 };
 
 
+struct ShaderByteCodeDesc {
+	const void* shaderByteCode;
+	size_t sizeOfByteCode;
+};
 
+
+struct StreamOutputState {
+private:
+};
+
+
+struct RenderTargetBlendState {
+	bool enableBlending;
+	bool enableLogicOp;
+
+	eBlendOperand colorOperand1;
+	eBlendOperand colorOperand2;
+	eBlendOperation colorOperation;
+
+	eBlendOperand alphaOperand1;
+	eBlendOperand alphaOperand2;
+	eBlendOperation alphaOperation;
+
+	eColorMask mask;
+
+	eBlendLogicOperation logicOperation;
+};
+
+
+struct BlendState {
+	bool alphaToCoverage;
+	bool independentBlending;
+	RenderTargetBlendState& singleTarget = multiTarget[0];
+	RenderTargetBlendState multiTarget[8];
+};
+
+
+struct RasterizerState {
+
+};
+
+struct InputLayout {
+
+};
+
+struct DepthStencilState {
+
+};
+
+struct GraphicsPipelineStateDesc {
+	IRootSignature rootSignature;
+
+	ShaderByteCodeDesc vs;
+	ShaderByteCodeDesc gs;
+	ShaderByteCodeDesc hs;
+	ShaderByteCodeDesc ds;
+	ShaderByteCodeDesc ps;
+
+	StreamOutputState streamOutput;
+	RasterizerState rasterization;
+	DepthStencilState depthStencilState;
+	BlendState blending;
+	unsigned blendSampleMask;
+
+	InputLayout inputLayout;
+	ePrimitiveTopologyType primitiveTopologyType;
+	eTriangleStripCutIndex triangleStripCutIndex;
+
+	unsigned numRenderTargets;
+	eFormat renderTargetFormats[8];
+	eFormat depthStencilFormat;
+	unsigned multisampleCount;
+	unsigned multisampleQuality;
+
+	bool addDebugInfo;
+};
 
 
 
