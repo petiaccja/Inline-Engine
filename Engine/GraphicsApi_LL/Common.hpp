@@ -357,6 +357,49 @@ enum class eBlendLogicOperation {
 	OR_INVERTED,
 };
 
+enum class eFillMode {
+	WIREFRAME,
+	SOLID,
+};
+
+enum class eCullMode {
+	DRAW_ALL,
+	DRAW_CW,
+	DRAW_CCW,
+};
+
+enum class eConservativeRasterizationMode {
+	ON,
+	OFF,
+};
+
+enum class eComparisonFunction {
+	NEVER,
+	LESS,
+	LESS_EQUAL,
+	GREATER,
+	GREATER_EQUAL,
+	EQUAL,
+	NOT_EQUAL,
+	ALWAYS,
+};
+
+enum class eStencilOp {
+	KEEP,
+	ZERO,
+	REPLACE,
+	INCR_SAT,
+	DECR_SAT,
+	INCR_WRAP,
+	DECR_WRAP,
+	INVERT,
+};
+
+enum class eInputClassification {
+	VERTEX_DATA,
+	INSTANCE_DATA,
+};
+
 struct Viewport {
 	float topLeftX;
 	float topLeftY;
@@ -503,15 +546,53 @@ struct BlendState {
 
 
 struct RasterizerState {
+	eFillMode fillMode;
+	eCullMode cullMode;
+	int depthBias;
+	float depthBiasClamp;
+	float slopeScaledDepthBias;
+	bool depthClipEnabled;
+	bool multisampleEnabled;
+	bool lineAntialiasingEnabled;
+	unsigned forcedSampleCount;
+	eConservativeRasterizationMode conservativeRasterization;
+};
 
+
+struct InputElementDesc {
+	const char* semanticName;
+	unsigned semanticIndex;
+	eFormat format;
+	unsigned inputSlot;
+	unsigned offset;
+	eInputClassification classifiacation;
+	unsigned instanceDataStepRate;
 };
 
 struct InputLayout {
-
+	unsigned numElements;
+	InputElementDesc elements;
 };
 
 struct DepthStencilState {
-
+	bool enableDepthTest;
+	bool enableDepthStencilWrite;
+	eComparisonFunction depthFunc;
+	bool enableStencilTest;
+	uint8_t stencilReadMask;
+	uint8_t stencilWriteMask;
+	struct {
+		eStencilOp stencilOpOnStencilFail;
+		eStencilOp stencilOpOnDepthFail;
+		eStencilOp stencilOpOnPass;
+		eComparisonFunction stencilFunc;
+	} cwFace;
+	struct {
+		eStencilOp stencilOpOnStencilFail;
+		eStencilOp stencilOpOnDepthFail;
+		eStencilOp stencilOpOnPass;
+		eComparisonFunction stencilFunc;
+	} ccwFace;
 };
 
 struct GraphicsPipelineStateDesc {
