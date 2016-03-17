@@ -14,30 +14,28 @@ class GraphicsApi : public gxapi::IGraphicsApi {
 public:
 
 	// Command submission
-	gxapi::ICommandQueue* CreateCommandQueue(gxapi::eCommandListType type,
-		gxapi::eCommandQueuePriority priority,
-		bool enableGpuTimeout) override;
+	gxapi::ICommandQueue* CreateCommandQueue(gxapi::CommandQueueDesc desc) override;
 
 	gxapi::ICommandAllocator* CreateCommandAllocator(gxapi::eCommandListType type) override;
 
-	gxapi::IGraphicsCommandList* CreateGraphicsCommandList(gxapi::ICommandAllocator* allocator,
-		gxapi::IPipelineState* initialState) override;
+	gxapi::IGraphicsCommandList* CreateGraphicsCommandList(gxapi::CommandListDesc desc) override;
 
-	gxapi::ICopyCommandList* CreateCopyCommandList(gxapi::ICommandAllocator* allocator,
-		gxapi::IPipelineState* initialState) override;
+	gxapi::ICopyCommandList* CreateCopyCommandList(gxapi::CommandListDesc desc) override;
 
 	// Resources
-	gxapi::IResource* CreateCommittedResource(/* long-ass parameter list */) override;
+	gxapi::IResource* CreateCommittedResource(gxapi::HeapProperties heapProperties,
+	                                          gxapi::eHeapFlags heapFlags,
+	                                          gxapi::ResourceDesc desc,
+	                                          gxapi::eResourceState initialState,
+	                                          gxapi::ClearValue* clearValue = nullptr) override;
 
 
 	// Pipeline and binding
 	gxapi::IRootSignature* CreateRootSignature(/* long-ass complex shitstorm */) override;
 
-	gxapi::IPipelineState* CreateGraphicsPipelineState(/* oh my fucking god */) override;
+	gxapi::IPipelineState* CreateGraphicsPipelineState(gxapi::GraphicsPipelineStateDesc desc) override;
 
-	gxapi::IDescriptorHeap* CreateDescriptorHeap(gxapi::eDesriptorHeapType type,
-		size_t numDescriptors,
-		bool isShaderVisible) override;
+	gxapi::IDescriptorHeap* CreateDescriptorHeap(gxapi::DescriptorHeapDesc desc) override;
 
 	void CreateConstantBufferView() override;
 	void CreateDepthStencilView() override;

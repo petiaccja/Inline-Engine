@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Common.hpp"
+
 namespace inl {
 namespace gxapi {
 

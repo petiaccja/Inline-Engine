@@ -19,9 +19,7 @@ public:
 
 	gxapi::DescriptorHandle At(size_t index) const override;
 
-	size_t GetNumDescriptors() const override;
-	gxapi::eDesriptorHeapType GetType() const override;
-	bool IsShaderVisible() const override;
+	gxapi::DescriptorHeapDesc GetDesc() const override;
 
 private:
 	ComPtr<ID3D12DescriptorHeap> m_native;

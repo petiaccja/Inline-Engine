@@ -21,9 +21,7 @@ public:
 	void Signal(gxapi::IFence* fence, uint64_t value) override;
 	void Wait(gxapi::IFence* fence, uint64_t value) override;
 
-	gxapi::eCommandListType GetType() const override;
-	gxapi::eCommandQueuePriority GetPriority() const override;
-	bool IsGPUTimeoutEnabled() const override;
+	gxapi::CommandQueueDesc GetDesc() const override;
 
 private:
 	ComPtr<ID3D12CommandQueue> m_native;
