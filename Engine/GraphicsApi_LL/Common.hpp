@@ -475,7 +475,6 @@ enum class eTextureBorderColor {
 //------------------------------------------------------------------------------
 
 struct Viewport {
-	
 	float topLeftX;
 	float topLeftY;
 	float width;
@@ -485,6 +484,10 @@ struct Viewport {
 };
 
 struct HeapProperties {
+	HeapProperties(eHeapType type = eHeapType::DEFAULT,
+				   eCpuPageProperty cpuPageProperty = eCpuPageProperty::UNKNOWN,
+				   eMemoryPool memoryPool = eMemoryPool::UNKNOWN)
+		: type(type), pool(memoryPool), cpuPageProperty(cpuPageProperty) {}
 	eHeapType type;
 	eCpuPageProperty cpuPageProperty;
 	eMemoryPool pool;
@@ -532,6 +535,7 @@ struct TextureDesc {
 	eResourceFlags flags;
 	uint32_t multisampleCount;
 	uint32_t multisampleQuality;
+
 };
 
 
@@ -541,10 +545,22 @@ struct ResourceDesc {
 		TextureDesc textureDesc;
 		BufferDesc bufferDesc;
 	};
+
+	static inline ResourceDesc Buffer(uint64_t sizeInBytes);
+	static inline ResourceDesc Texture1D(uint64_t width, eFormat format);
+	static inline ResourceDesc Texture1DArray(uint64_t width, eFormat format, uint16_t arraySize);
+	static inline ResourceDesc Texture2D(uint64_t width, uint32_t height, eFormat format);
+	static inline ResourceDesc Texture2DArray(uint64_t width, uint32_t height, eFormat format, uint16_t arraySize);
+	static inline ResourceDesc Texture3D(uint64_t width, uint32_t height, uint16_t depth, eFormat format);
+	static inline ResourceDesc CubeMap(uint64_t width, uint32_t height, eFormat format);
 };
 
 
 struct ClearValue {
+	ClearValue() = default;
+	ClearValue(eFormat format, float r, float g, float b, float a) : format(format), color(r, g, b, a) {}
+	ClearValue(eFormat format, ColorRGBA color) : format(format), color(color) {}
+	ClearValue(eFormat format, float depth, uint8_t stencil = 0) : format(format), depthStencil{ depth, stencil } {}
 	eFormat format;
 	union {
 		ColorRGBA color;
@@ -557,10 +573,13 @@ struct ClearValue {
 
 
 struct TextureCopyDesc {
+	TextureCopyDesc() = default;
+	TextureCopyDesc(eFormat format, uint64_t width, uint32_t height = 1, uint16_t depth = 1) 
+		: format(format), width(width), height(height), depth(depth) {}
 	eFormat format;
-	size_t width;
-	size_t height;
-	size_t depth;
+	uint64_t width;
+	uint32_t height;
+	uint16_t depth;
 };
 
 
