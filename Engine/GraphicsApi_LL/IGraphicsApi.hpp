@@ -37,7 +37,7 @@ public:
 											   ClearValue* clearValue = nullptr) = 0;
 
 	// Pipeline and binding
-	virtual IRootSignature* CreateRootSignature(/* long-ass complex shitstorm */) = 0;
+	virtual IRootSignature* CreateRootSignature(RootSignatureDesc desc) = 0;
 	virtual IPipelineState* CreateGraphicsPipelineState(GraphicsPipelineStateDesc desc) = 0;
 	virtual IDescriptorHeap* CreateDescriptorHeap(DescriptorHeapDesc) = 0;
 

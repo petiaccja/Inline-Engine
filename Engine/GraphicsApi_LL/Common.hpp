@@ -5,7 +5,9 @@
 namespace inl {
 namespace gxapi {
 
-
+//------------------------------------------------------------------------------
+// Common structures
+//------------------------------------------------------------------------------
 
 struct Rectangle {
 	Rectangle(int top, int bottom, int left, int right)
@@ -36,6 +38,10 @@ struct ColorRGBA {
 	float r, g, b, a;
 };
 
+
+//------------------------------------------------------------------------------
+// Enumerations
+//------------------------------------------------------------------------------
 
 enum class eFormat {
 	UNKNOWN = 0,
@@ -400,7 +406,76 @@ enum class eInputClassification {
 	INSTANCE_DATA,
 };
 
+
+enum class eShaderVisiblity {
+	ALL,
+	VERTEX,
+	GEOMETRY,
+	HULL,
+	DOMAIN,
+	PIXEL,
+};
+
+enum class eTextureAddressMode {
+	WRAP,
+	MIRROR,
+	BORDER,
+	CLAMP,
+	MIRROR_ONE,
+};
+
+enum class eTextureFilterMode {
+	MIN_MAG_MIP_POINT = 0,
+	MIN_MAG_POINT_MIP_LINEAR = 0x1,
+	MIN_POINT_MAG_LINEAR_MIP_POINT = 0x4,
+	MIN_POINT_MAG_MIP_LINEAR = 0x5,
+	MIN_LINEAR_MAG_MIP_POINT = 0x10,
+	MIN_LINEAR_MAG_POINT_MIP_LINEAR = 0x11,
+	MIN_MAG_LINEAR_MIP_POINT = 0x14,
+	MIN_MAG_MIP_LINEAR = 0x15,
+	ANISOTROPIC = 0x55,
+	COMPARISON_MIN_MAG_MIP_POINT = 0x80,
+	COMPARISON_MIN_MAG_POINT_MIP_LINEAR = 0x81,
+	COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT = 0x84,
+	COMPARISON_MIN_POINT_MAG_MIP_LINEAR = 0x85,
+	COMPARISON_MIN_LINEAR_MAG_MIP_POINT = 0x90,
+	COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR = 0x91,
+	COMPARISON_MIN_MAG_LINEAR_MIP_POINT = 0x94,
+	COMPARISON_MIN_MAG_MIP_LINEAR = 0x95,
+	COMPARISON_ANISOTROPIC = 0xd5,
+	MINIMUM_MIN_MAG_MIP_POINT = 0x100,
+	MINIMUM_MIN_MAG_POINT_MIP_LINEAR = 0x101,
+	MINIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT = 0x104,
+	MINIMUM_MIN_POINT_MAG_MIP_LINEAR = 0x105,
+	MINIMUM_MIN_LINEAR_MAG_MIP_POINT = 0x110,
+	MINIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR = 0x111,
+	MINIMUM_MIN_MAG_LINEAR_MIP_POINT = 0x114,
+	MINIMUM_MIN_MAG_MIP_LINEAR = 0x115,
+	MINIMUM_ANISOTROPIC = 0x155,
+	MAXIMUM_MIN_MAG_MIP_POINT = 0x180,
+	MAXIMUM_MIN_MAG_POINT_MIP_LINEAR = 0x181,
+	MAXIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT = 0x184,
+	MAXIMUM_MIN_POINT_MAG_MIP_LINEAR = 0x185,
+	MAXIMUM_MIN_LINEAR_MAG_MIP_POINT = 0x190,
+	MAXIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR = 0x191,
+	MAXIMUM_MIN_MAG_LINEAR_MIP_POINT = 0x194,
+	MAXIMUM_MIN_MAG_MIP_LINEAR = 0x195,
+	MAXIMUM_ANISOTROPIC = 0x1d5
+};
+
+enum class eTextureBorderColor {
+	TRANSPARENT_BLACK,
+	OPAQUE_BLACK,
+	OPAQUE_WHITE,
+};
+
+
+//------------------------------------------------------------------------------
+// Rendering structures
+//------------------------------------------------------------------------------
+
 struct Viewport {
+	
 	float topLeftX;
 	float topLeftY;
 	float width;
@@ -623,7 +698,86 @@ struct GraphicsPipelineStateDesc {
 	bool addDebugInfo;
 };
 
+struct DescriptorRange {
+	enum eType {
+		CBV,
+		SRV,
+		UAV,
+		SAMPLER,
+	};
+	eType type;
+	unsigned numDescriptors;
+	unsigned baseShaderRegister;
+	unsigned registerSpace;
+	unsigned offsetFromTableStart;
+};
 
+struct RootDescriptorTable {
+	unsigned numDescriptorRanges;
+	DescriptorRange* descriptorRanges;
+};
+
+struct RootConstant {
+	unsigned shaderRegister;
+	unsigned registerSpace;
+	unsigned numConstants;
+};
+
+struct RootDescriptor {
+	unsigned shaderRegister;
+	unsigned registerSpace;
+};
+
+
+struct RootParameterDesc {
+	enum eType {
+		CONSTANT,
+		CBV,
+		SRV,
+		UAV,
+		DESCRIPTOR_TABLE,
+	};
+	eType type;
+	union {
+		RootDescriptorTable descriptorTable;
+		RootDescriptor descriptor;
+		RootConstant constant;
+	};
+	eShaderVisiblity shaderVisibility;
+};
+
+struct StaticSamplerDesc {
+	eTextureFilterMode filter;
+	eTextureAddressMode addressU;
+	eTextureAddressMode addressV;
+	eTextureAddressMode addressW;
+	float mipLevelBias;
+	unsigned maxAnisotropy;
+	eComparisonFunction compareFunc;
+	eTextureBorderColor border;
+	float minMipLevel;
+	float maxMipLevel;
+	unsigned shaderRegister;
+	unsigned registerSpace;
+	eShaderVisiblity shaderVisibility;
+};
+
+struct RootSignatureDesc {
+	unsigned numRootParameters;
+	RootParameterDesc* rootParameters;
+	unsigned numStaticSamplers;
+	StaticSamplerDesc* staticSamplers;
+};
+
+
+//------------------------------------------------------------------------------
+// User helper functions
+//------------------------------------------------------------------------------
+
+
+//------------------------------------------------------------------------------
+// Internal helper function
+//------------------------------------------------------------------------------
 
 inline unsigned GetFormatSizeInBytes(eFormat format) {
 	switch (format) {
