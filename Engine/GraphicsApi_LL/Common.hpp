@@ -421,6 +421,7 @@ struct BufferDesc {
 };
 
 struct TextureDesc {
+	TextureDesc() = default;
 	TextureDesc(eTextueDimension dimension,
 				uint64_t alignement,
 				uint64_t width,

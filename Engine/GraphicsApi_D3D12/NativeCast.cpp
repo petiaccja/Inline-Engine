@@ -178,8 +178,7 @@ D3D12_BOX native_cast(gxapi::Cube source) {
 
 
 DXGI_FORMAT native_cast(gxapi::eFormat source) {
-	//TODO
-	assert(false);
+	static_assert(false, "TODO");
 
 	return DXGI_FORMAT{};
 }
