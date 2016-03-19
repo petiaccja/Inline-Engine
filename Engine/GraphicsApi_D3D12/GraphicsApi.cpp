@@ -6,8 +6,12 @@
 #include "DescriptorHeap.hpp"
 #include "NativeCast.hpp"
 
+#include "d3dx12.h"
+
 #include <stdexcept>
 #include <cassert>
+#include <vector>
+#include <list>
 
 namespace inl {
 namespace gxapi_dx12 {
@@ -60,14 +64,100 @@ gxapi::IResource* GraphicsApi::CreateCommittedResource(gxapi::HeapProperties hea
 	gxapi::eResourceState initialState,
 	gxapi::ClearValue* clearValue) {
 
-	static_assert(false, "TODO");
-	return nullptr;
+	ComPtr<ID3D12Resource> native;
+
+	D3D12_HEAP_PROPERTIES nativeHeapProperties = native_cast(heapProperties);
+	D3D12_RESOURCE_DESC nativeResourceDesc = native_cast(desc);
+
+	if ((m_device->CreateCommittedResource(&nativeHeapProperties, native_cast(heapFlags), &nativeResourceDesc, native_cast(initialState), native_cast(clearValue), IID_PPV_ARGS(&native)))) {
+		throw std::runtime_error("Could not create commited resource");
+	}
+
+
+	return new Resource{native};
 }
 
 
-gxapi::IRootSignature* GraphicsApi::CreateRootSignature() {
-	assert(false);
-	return nullptr;
+gxapi::IRootSignature* GraphicsApi::CreateRootSignature(gxapi::RootSignatureDesc desc) {
+	ComPtr<ID3D12RootSignature> native;
+
+	//NATIVE PARAMETERS
+	//using list to guarantee that pointers remain valid
+	std::list<std::vector<D3D12_DESCRIPTOR_RANGE>> descriptorRangesPerRootParameter;
+	std::vector<D3D12_ROOT_PARAMETER> nativeParameters;
+	{
+		nativeParameters.reserve(desc.numRootParameters);
+		for (int i = 0; i < desc.numRootParameters; i++) {
+			const auto &source = desc.rootParameters[i];
+			D3D12_ROOT_PARAMETER nativeParameter;
+
+			nativeParameter.ShaderVisibility = native_cast(source.shaderVisibility);
+			nativeParameter.ParameterType = native_cast(source.type);
+
+			switch (nativeParameter.ParameterType) {
+			case D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE: {
+				const auto& srcTable = source.descriptorTable;
+				auto& dstTable = nativeParameter.DescriptorTable;
+
+				descriptorRangesPerRootParameter.push_back(std::vector<D3D12_DESCRIPTOR_RANGE>{});
+				auto& nativeRanges = descriptorRangesPerRootParameter.back();
+				nativeRanges.reserve(srcTable.numDescriptorRanges);
+				for (int i = 0; i< srcTable.numDescriptorRanges; i++) {
+					nativeRanges.push_back(native_cast(srcTable.descriptorRanges[i]));
+				}
+
+				dstTable.NumDescriptorRanges = nativeRanges.size();
+				dstTable.pDescriptorRanges = nativeRanges.data();
+			} break;
+			case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS: {
+				nativeParameter.Constants = native_cast(source.constant);
+			} break;
+			case D3D12_ROOT_PARAMETER_TYPE_CBV:
+			case D3D12_ROOT_PARAMETER_TYPE_SRV:
+			case D3D12_ROOT_PARAMETER_TYPE_UAV: {
+				nativeParameter.Descriptor = native_cast(source.descriptor);
+			} break;
+			default:
+				assert(false);
+				break;
+			}
+
+			nativeParameters.push_back(nativeParameter);
+		}
+	}
+
+	//NATIVE STATIC SAMPLERS
+	std::vector<D3D12_STATIC_SAMPLER_DESC> nativeSamplers;
+	{
+		nativeSamplers.reserve(desc.numStaticSamplers);
+		for (int i = 0; i < desc.numStaticSamplers; i++) {
+			nativeSamplers.push_back(native_cast(desc.staticSamplers[i]));
+		}
+	}
+
+	D3D12_ROOT_SIGNATURE_DESC nativeDesc;
+	nativeDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE; //TODO, default behaviour for now, might be needed to be updated later
+	nativeDesc.NumParameters = nativeParameters.size();
+	nativeDesc.pParameters = nativeParameters.data();
+	nativeDesc.NumStaticSamplers = nativeSamplers.size();
+	nativeDesc.pStaticSamplers = nativeSamplers.data();
+
+	ComPtr<ID3DBlob> serializedSignature;
+	ComPtr<ID3DBlob> error;
+	if (FAILED(D3D12SerializeRootSignature(&nativeDesc, D3D_ROOT_SIGNATURE_VERSION_1, &serializedSignature, &error))) {
+		std::string errorStr;
+		errorStr.reserve(error->GetBufferSize());
+		for (int i = 0; i < error->GetBufferSize(); i++) {
+			errorStr += static_cast<char*>(error->GetBufferPointer())[i];
+		}
+		throw std::runtime_error("Could not create root signature, error while serializing signature: " + errorStr);
+	}
+
+	if (FAILED(m_device->CreateRootSignature(0, serializedSignature->GetBufferPointer(), serializedSignature->GetBufferSize(), IID_PPV_ARGS(&native)))) {
+		throw std::runtime_error("Could not create root signature, error while executing ID3D12Device::CreateRootSignature.");
+	}
+
+	return new RootSignature{native};
 }
 
 

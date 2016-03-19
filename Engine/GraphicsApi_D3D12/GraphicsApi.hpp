@@ -2,6 +2,8 @@
 
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
 
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <wrl.h>
 #include <d3d12.h>
 
@@ -31,7 +33,7 @@ public:
 
 
 	// Pipeline and binding
-	gxapi::IRootSignature* CreateRootSignature(/* long-ass complex shitstorm */) override;
+	gxapi::IRootSignature* CreateRootSignature(gxapi::RootSignatureDesc desc) override;
 
 	gxapi::IPipelineState* CreateGraphicsPipelineState(gxapi::GraphicsPipelineStateDesc desc) override;
 

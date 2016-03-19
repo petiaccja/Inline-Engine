@@ -2,6 +2,8 @@
 
 #include "../GraphicsApi_LL/IPipelineState.hpp"
 
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <wrl.h>
 #include <d3d12.h>
 

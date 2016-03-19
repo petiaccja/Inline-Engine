@@ -4,6 +4,9 @@
 
 #include <cassert>
 
+//Dont even think about returning a pointer that points to a locally allocated space
+//#include <vector>
+
 namespace inl {
 namespace gxapi_dx12 {
 
@@ -66,6 +69,29 @@ ID3D12Fence* native_cast(gxapi::IFence * source) {
 }
 
 
+D3D12_SHADER_VISIBILITY native_cast(gxapi::eShaderVisiblity source) {
+	switch (source) {
+	case inl::gxapi::eShaderVisiblity::ALL:
+		return D3D12_SHADER_VISIBILITY_ALL;
+	case inl::gxapi::eShaderVisiblity::VERTEX:
+		return D3D12_SHADER_VISIBILITY_VERTEX;
+	case inl::gxapi::eShaderVisiblity::GEOMETRY:
+		return D3D12_SHADER_VISIBILITY_GEOMETRY;
+	case inl::gxapi::eShaderVisiblity::HULL:
+		return D3D12_SHADER_VISIBILITY_HULL;
+	case inl::gxapi::eShaderVisiblity::DOMAIN:
+		return D3D12_SHADER_VISIBILITY_DOMAIN;
+	case inl::gxapi::eShaderVisiblity::PIXEL:
+		return D3D12_SHADER_VISIBILITY_PIXEL;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_SHADER_VISIBILITY{};
+}
+
+
 D3D12_PRIMITIVE_TOPOLOGY native_cast(gxapi::ePrimitiveTopology source) {
 	using gxapi::ePrimitiveTopology;
 
@@ -124,6 +150,181 @@ D3D12_DESCRIPTOR_HEAP_TYPE native_cast(gxapi::eDesriptorHeapType source) {
 }
 
 
+D3D12_ROOT_PARAMETER_TYPE native_cast(gxapi::RootParameterDesc::eType source) {
+	switch (source) {
+	case gxapi::RootParameterDesc::CONSTANT:
+		return D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
+		break;
+	case gxapi::RootParameterDesc::CBV:
+		return D3D12_ROOT_PARAMETER_TYPE_CBV;
+		break;
+	case gxapi::RootParameterDesc::SRV:
+		return D3D12_ROOT_PARAMETER_TYPE_SRV;
+		break;
+	case gxapi::RootParameterDesc::UAV:
+		return D3D12_ROOT_PARAMETER_TYPE_UAV;
+		break;
+	case gxapi::RootParameterDesc::DESCRIPTOR_TABLE:
+		return D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		break;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_ROOT_PARAMETER_TYPE{};
+}
+
+D3D12_DESCRIPTOR_RANGE_TYPE native_cast(gxapi::DescriptorRange::eType source) {
+	switch (source) {
+	case inl::gxapi::DescriptorRange::CBV:
+		return D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+	case inl::gxapi::DescriptorRange::SRV:
+		return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	case inl::gxapi::DescriptorRange::UAV:
+		return D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+	case inl::gxapi::DescriptorRange::SAMPLER:
+		return D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_DESCRIPTOR_RANGE_TYPE{};
+}
+
+
+D3D12_TEXTURE_ADDRESS_MODE native_cast(gxapi::eTextureAddressMode source){
+	switch (source) {
+	case gxapi::eTextureAddressMode::WRAP:
+		return D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	case gxapi::eTextureAddressMode::MIRROR:
+		return D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
+	case gxapi::eTextureAddressMode::BORDER:
+		return D3D12_TEXTURE_ADDRESS_MODE_BORDER;
+	case gxapi::eTextureAddressMode::CLAMP:
+		return D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+	case gxapi::eTextureAddressMode::MIRROR_ONE:
+		return D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_TEXTURE_ADDRESS_MODE{};
+}
+
+
+D3D12_FILTER native_cast(gxapi::eTextureFilterMode source) {
+	switch (source) {
+	case gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT:
+		return D3D12_FILTER_MIN_MAG_MIP_POINT;
+	case gxapi::eTextureFilterMode::MIN_MAG_POINT_MIP_LINEAR:
+		return D3D12_FILTER_MIN_MAG_POINT_MIP_LINEAR;
+	case gxapi::eTextureFilterMode::MIN_POINT_MAG_LINEAR_MIP_POINT:
+		return D3D12_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
+	case gxapi::eTextureFilterMode::MIN_POINT_MAG_MIP_LINEAR:
+		return D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR;
+	case gxapi::eTextureFilterMode::MIN_LINEAR_MAG_MIP_POINT:
+		return D3D12_FILTER_MIN_LINEAR_MAG_MIP_POINT;
+	case gxapi::eTextureFilterMode::MIN_LINEAR_MAG_POINT_MIP_LINEAR:
+		return D3D12_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
+	case gxapi::eTextureFilterMode::MIN_MAG_LINEAR_MIP_POINT:
+		return D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+	case gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR:
+		return D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+	case gxapi::eTextureFilterMode::ANISOTROPIC:
+		return D3D12_FILTER_ANISOTROPIC;
+	case gxapi::eTextureFilterMode::COMPARISON_MIN_MAG_MIP_POINT:
+		return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
+	case gxapi::eTextureFilterMode::COMPARISON_MIN_MAG_POINT_MIP_LINEAR:
+		return D3D12_FILTER_COMPARISON_MIN_MAG_POINT_MIP_LINEAR;
+	case gxapi::eTextureFilterMode::COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT:
+		return D3D12_FILTER_COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT;
+	case gxapi::eTextureFilterMode::COMPARISON_MIN_POINT_MAG_MIP_LINEAR:
+		return D3D12_FILTER_COMPARISON_MIN_POINT_MAG_MIP_LINEAR;
+	case gxapi::eTextureFilterMode::COMPARISON_MIN_LINEAR_MAG_MIP_POINT:
+		return D3D12_FILTER_COMPARISON_MIN_LINEAR_MAG_MIP_POINT;
+	case gxapi::eTextureFilterMode::COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR:
+		return D3D12_FILTER_COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
+	case gxapi::eTextureFilterMode::COMPARISON_MIN_MAG_LINEAR_MIP_POINT:
+		return D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+	case gxapi::eTextureFilterMode::COMPARISON_MIN_MAG_MIP_LINEAR:
+		return D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+	case gxapi::eTextureFilterMode::COMPARISON_ANISOTROPIC:
+		return D3D12_FILTER_COMPARISON_ANISOTROPIC;
+	case gxapi::eTextureFilterMode::MINIMUM_MIN_MAG_MIP_POINT:
+		return D3D12_FILTER_MINIMUM_MIN_MAG_MIP_POINT;
+	case gxapi::eTextureFilterMode::MINIMUM_MIN_MAG_POINT_MIP_LINEAR:
+		return D3D12_FILTER_MINIMUM_MIN_MAG_POINT_MIP_LINEAR;
+	case gxapi::eTextureFilterMode::MINIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT:
+		return D3D12_FILTER_MINIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT;
+	case gxapi::eTextureFilterMode::MINIMUM_MIN_POINT_MAG_MIP_LINEAR:
+		return D3D12_FILTER_MINIMUM_MIN_POINT_MAG_MIP_LINEAR;
+	case gxapi::eTextureFilterMode::MINIMUM_MIN_LINEAR_MAG_MIP_POINT:
+		return D3D12_FILTER_MINIMUM_MIN_LINEAR_MAG_MIP_POINT;
+	case gxapi::eTextureFilterMode::MINIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR:
+		return D3D12_FILTER_MINIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
+	case gxapi::eTextureFilterMode::MINIMUM_MIN_MAG_LINEAR_MIP_POINT:
+		return D3D12_FILTER_MINIMUM_MIN_MAG_LINEAR_MIP_POINT;
+	case gxapi::eTextureFilterMode::MINIMUM_MIN_MAG_MIP_LINEAR:
+		return D3D12_FILTER_MINIMUM_MIN_MAG_MIP_LINEAR;
+	case gxapi::eTextureFilterMode::MINIMUM_ANISOTROPIC:
+		return D3D12_FILTER_MINIMUM_ANISOTROPIC;
+	case gxapi::eTextureFilterMode::MAXIMUM_MIN_MAG_MIP_POINT:
+		return D3D12_FILTER_MAXIMUM_MIN_MAG_MIP_POINT;
+	case gxapi::eTextureFilterMode::MAXIMUM_MIN_MAG_POINT_MIP_LINEAR:
+		return D3D12_FILTER_MAXIMUM_MIN_MAG_POINT_MIP_LINEAR;
+	case gxapi::eTextureFilterMode::MAXIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT:
+		return D3D12_FILTER_MAXIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT;
+	case gxapi::eTextureFilterMode::MAXIMUM_MIN_POINT_MAG_MIP_LINEAR:
+		return D3D12_FILTER_MAXIMUM_MIN_POINT_MAG_MIP_LINEAR;
+	case gxapi::eTextureFilterMode::MAXIMUM_MIN_LINEAR_MAG_MIP_POINT:
+		return D3D12_FILTER_MAXIMUM_MIN_LINEAR_MAG_MIP_POINT;
+	case gxapi::eTextureFilterMode::MAXIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR:
+		return D3D12_FILTER_MAXIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
+	case gxapi::eTextureFilterMode::MAXIMUM_MIN_MAG_LINEAR_MIP_POINT:
+		return D3D12_FILTER_MAXIMUM_MIN_MAG_LINEAR_MIP_POINT;
+	case gxapi::eTextureFilterMode::MAXIMUM_MIN_MAG_MIP_LINEAR:
+		return D3D12_FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR;
+	case gxapi::eTextureFilterMode::MAXIMUM_ANISOTROPIC:
+		return D3D12_FILTER_MAXIMUM_ANISOTROPIC;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_FILTER{};
+}
+
+
+D3D12_COMPARISON_FUNC native_cast(gxapi::eComparisonFunction source) {
+	switch (source) {
+	case inl::gxapi::eComparisonFunction::NEVER:
+		return D3D12_COMPARISON_FUNC_NEVER;
+	case inl::gxapi::eComparisonFunction::LESS:
+		return D3D12_COMPARISON_FUNC_LESS;
+	case inl::gxapi::eComparisonFunction::LESS_EQUAL:
+		return D3D12_COMPARISON_FUNC_LESS_EQUAL;
+	case inl::gxapi::eComparisonFunction::GREATER:
+		return D3D12_COMPARISON_FUNC_GREATER;
+	case inl::gxapi::eComparisonFunction::GREATER_EQUAL:
+		return D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+	case inl::gxapi::eComparisonFunction::EQUAL:
+		return D3D12_COMPARISON_FUNC_EQUAL;
+	case inl::gxapi::eComparisonFunction::NOT_EQUAL:
+		return D3D12_COMPARISON_FUNC_NOT_EQUAL;
+	case inl::gxapi::eComparisonFunction::ALWAYS:
+		return D3D12_COMPARISON_FUNC_ALWAYS;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_COMPARISON_FUNC{};
+}
+
+
 INT native_cast(gxapi::eCommandQueuePriority source) {
 	switch (source) {
 	case gxapi::eCommandQueuePriority::NORMAL:
@@ -135,6 +336,23 @@ INT native_cast(gxapi::eCommandQueuePriority source) {
 	}
 
 	return 0;
+}
+
+
+D3D12_STATIC_BORDER_COLOR native_cast(gxapi::eTextureBorderColor source) {
+	switch (source) {
+	case inl::gxapi::eTextureBorderColor::TRANSPARENT_BLACK:
+		return D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+	case inl::gxapi::eTextureBorderColor::OPAQUE_BLACK:
+		return D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
+	case inl::gxapi::eTextureBorderColor::OPAQUE_WHITE:
+		return D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_STATIC_BORDER_COLOR{};
 }
 
 
@@ -183,6 +401,77 @@ DXGI_FORMAT native_cast(gxapi::eFormat source) {
 	return DXGI_FORMAT{};
 }
 
+
+D3D12_DESCRIPTOR_RANGE native_cast(gxapi::DescriptorRange source) {
+	D3D12_DESCRIPTOR_RANGE result;
+
+	result.BaseShaderRegister = source.baseShaderRegister;
+	result.NumDescriptors = source.numDescriptors;
+	result.OffsetInDescriptorsFromTableStart = source.offsetFromTableStart;
+	result.RangeType = native_cast(source.type);
+	result.RegisterSpace = source.registerSpace;
+
+	return result;
+}
+
+D3D12_ROOT_CONSTANTS native_cast(gxapi::RootConstant source) {
+	D3D12_ROOT_CONSTANTS result;
+
+	result.Num32BitValues = source.numConstants;
+	result.RegisterSpace = source.registerSpace;
+	result.ShaderRegister = source.shaderRegister;
+
+	return result;
+}
+
+
+D3D12_ROOT_DESCRIPTOR native_cast(gxapi::RootDescriptor source) {
+	D3D12_ROOT_DESCRIPTOR result;
+
+	result.RegisterSpace = source.registerSpace;
+	result.ShaderRegister = source.shaderRegister;
+
+	return result;
+}
+
+
+D3D12_HEAP_PROPERTIES native_cast(gxapi::HeapProperties source) {
+	D3D12_HEAP_PROPERTIES result;
+	
+
+	result.CPUPageProperty = native_cast(source.cpuPageProperty);
+
+	result.MemoryPoolPreference = source.pool;
+	static_assert(false, "TODO");
+	result.Type = native_cast(source.type);
+	result.CreationNodeMask = 0;
+	result.VisibleNodeMask = 0;
+
+	return result;
+}
+
+
+D3D12_STATIC_SAMPLER_DESC native_cast(gxapi::StaticSamplerDesc source) {
+	D3D12_STATIC_SAMPLER_DESC result;
+
+	result.AddressU = native_cast(source.addressU);
+	result.AddressV = native_cast(source.addressV);
+	result.AddressW = native_cast(source.addressW);
+	result.BorderColor = native_cast(source.border);
+	result.ComparisonFunc = native_cast(source.compareFunc);
+	result.Filter = native_cast(source.filter);
+	result.MaxAnisotropy = source.maxAnisotropy;
+	result.MaxLOD = source.maxMipLevel;
+	result.MinLOD = source.minMipLevel;
+	result.MipLODBias = source.mipLevelBias;
+	result.RegisterSpace = source.registerSpace;
+	result.ShaderRegister = source.shaderRegister;
+	result.ShaderVisibility = native_cast(source.shaderVisibility);
+
+	return result;
+}
+
+
 D3D12_COMMAND_QUEUE_DESC native_cast(gxapi::CommandQueueDesc source) {
 	D3D12_COMMAND_QUEUE_DESC result;
 	result.Type = native_cast(source.type);
@@ -204,6 +493,7 @@ D3D12_DESCRIPTOR_HEAP_DESC native_cast(gxapi::DescriptorHeapDesc source) {
 
 	return result;
 }
+
 
 
 

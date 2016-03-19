@@ -2,6 +2,8 @@
 
 #include "../GraphicsApi_LL/IResource.hpp"
 
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <wrl.h>
 #include <d3d12.h>
 
@@ -12,6 +14,8 @@ using Microsoft::WRL::ComPtr;
 
 class Resource : public gxapi::IResource {
 public:
+	Resource(ComPtr<ID3D12Resource>& native);
+
 	ID3D12Resource* GetNative();
 
 	gxapi::ResourceDesc GetDesc() override;
