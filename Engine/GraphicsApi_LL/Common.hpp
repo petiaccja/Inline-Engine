@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <limits>
 
 namespace inl {
 namespace gxapi {
@@ -494,38 +495,12 @@ struct HeapProperties {
 };
 
 struct BufferDesc {
-	BufferDesc(size_t sizeInBytes = 0) : sizeInBytes(sizeInBytes) {}
 	size_t sizeInBytes;
 };
 
 struct TextureDesc {
-	TextureDesc() = default;
-	TextureDesc(eTextueDimension dimension,
-				uint64_t alignement,
-				uint64_t width,
-				uint32_t height,
-				uint16_t depthOrArraySize,
-				uint16_t mipLevels,
-				eFormat format,
-				eTextureLayout layout,
-				eResourceFlags flags,
-				uint32_t multisampleCount,
-				uint32_t multisampleQuality)
-		: dimension(dimension),
-		alignement(alignement),
-		width(width),
-		height(height),
-		depthOrArraySize(depthOrArraySize),
-		mipLevels(mipLevels),
-		format(format),
-		layout(layout),
-		flags(flags),
-		multisampleCount(multisampleCount),
-		multisampleQuality(multisampleQuality)
-	{}
-
 	eTextueDimension dimension;
-	uint64_t alignement;
+	uint64_t alignment;
 	uint64_t width;
 	uint32_t height;
 	uint16_t depthOrArraySize;
@@ -535,11 +510,12 @@ struct TextureDesc {
 	eResourceFlags flags;
 	uint32_t multisampleCount;
 	uint32_t multisampleQuality;
-
 };
 
 
 struct ResourceDesc {
+	ResourceDesc() = default;
+
 	eResourceType type;
 	union {
 		TextureDesc textureDesc;
@@ -547,12 +523,34 @@ struct ResourceDesc {
 	};
 
 	static inline ResourceDesc Buffer(uint64_t sizeInBytes);
-	static inline ResourceDesc Texture1D(uint64_t width, eFormat format);
-	static inline ResourceDesc Texture1DArray(uint64_t width, eFormat format, uint16_t arraySize);
-	static inline ResourceDesc Texture2D(uint64_t width, uint32_t height, eFormat format);
-	static inline ResourceDesc Texture2DArray(uint64_t width, uint32_t height, eFormat format, uint16_t arraySize);
-	static inline ResourceDesc Texture3D(uint64_t width, uint32_t height, uint16_t depth, eFormat format);
-	static inline ResourceDesc CubeMap(uint64_t width, uint32_t height, eFormat format);
+	static inline ResourceDesc Texture1D(uint64_t width, eFormat format, eResourceFlags flags = eResourceFlags::NONE,
+										 uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+										 uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+
+	static inline ResourceDesc Texture1DArray(uint64_t width, eFormat format, uint16_t arraySize,
+											  eResourceFlags flags = eResourceFlags::NONE,
+											  uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+											  uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+
+	static inline ResourceDesc Texture2D(uint64_t width, uint32_t height, eFormat format,
+										 eResourceFlags flags = eResourceFlags::NONE,
+										 uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+										 uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+
+	static inline ResourceDesc Texture2DArray(uint64_t width, uint32_t height, eFormat format, uint16_t arraySize,
+											  eResourceFlags flags = eResourceFlags::NONE,
+											  uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+											  uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+
+	static inline ResourceDesc Texture3D(uint64_t width, uint32_t height, uint16_t depth, eFormat format,
+										 eResourceFlags flags = eResourceFlags::NONE,
+										 uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+										 uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+
+	static inline ResourceDesc CubeMap(uint64_t width, uint32_t height, eFormat format,
+									   eResourceFlags flags = eResourceFlags::NONE,
+									   uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+									   uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
 };
 
 
@@ -574,7 +572,7 @@ struct ClearValue {
 
 struct TextureCopyDesc {
 	TextureCopyDesc() = default;
-	TextureCopyDesc(eFormat format, uint64_t width, uint32_t height = 1, uint16_t depth = 1) 
+	TextureCopyDesc(eFormat format, uint64_t width, uint32_t height = 1, uint16_t depth = 1)
 		: format(format), width(width), height(height), depth(depth) {}
 	eFormat format;
 	uint64_t width;
@@ -584,6 +582,9 @@ struct TextureCopyDesc {
 
 
 struct CommandQueueDesc {
+	CommandQueueDesc() = default;
+	CommandQueueDesc(eCommandListType type, eCommandQueuePriority priority = eCommandQueuePriority::NORMAL, bool enableGpuTimeout = true)
+		: type(type), priority(priority), enableGpuTimeout(enableGpuTimeout) {}
 	eCommandListType type;
 	eCommandQueuePriority priority;
 	bool enableGpuTimeout;
@@ -591,12 +592,17 @@ struct CommandQueueDesc {
 
 
 struct CommandListDesc {
+	CommandListDesc(ICommandAllocator* allocator = nullptr, IPipelineState* initialState = nullptr)
+		: allocator(allocator), initialState(initialState) {}
 	ICommandAllocator* allocator;
 	IPipelineState* initialState;
 };
 
 
 struct DescriptorHeapDesc {
+	DescriptorHeapDesc() = default;
+	DescriptorHeapDesc(eDesriptorHeapType type, size_t numDescriptors, bool isShaderVisible)
+		: type(type), numDescriptors(numDescriptors), isShaderVisible(isShaderVisible) {}
 	eDesriptorHeapType type;
 	size_t numDescriptors;
 	bool isShaderVisible;
@@ -604,6 +610,9 @@ struct DescriptorHeapDesc {
 
 
 struct ShaderByteCodeDesc {
+	ShaderByteCodeDesc() = default;
+	ShaderByteCodeDesc(const void* byteCode, size_t sizeOfByteCode)
+		: shaderByteCode(byteCode), sizeOfByteCode(sizeOfByteCode) {}
 	const void* shaderByteCode;
 	size_t sizeOfByteCode;
 };
@@ -615,6 +624,30 @@ private:
 
 
 struct RenderTargetBlendState {
+	RenderTargetBlendState(
+		bool enableBlending = false,
+		bool enableLogicOp = false,
+		eBlendOperand colorOperand1 = eBlendOperand::SHADER_OUT,
+		eBlendOperand colorOperand2 = eBlendOperand::ZERO,
+		eBlendOperation colorOperation = eBlendOperation::ADD,
+		eBlendOperand alphaOperand1 = eBlendOperand::SHADER_OUT,
+		eBlendOperand alphaOperand2 = eBlendOperand::ZERO,
+		eBlendOperation alphaOperation = eBlendOperation::ADD,
+		eColorMask mask = eColorMask::ALL,
+		eBlendLogicOperation logicOperation = eBlendLogicOperation::NOOP)
+		:
+		enableBlending(enableBlending),
+		enableLogicOp(enableLogicOp),
+		colorOperand1(colorOperand1),
+		colorOperand2(colorOperand2),
+		colorOperation(colorOperation),
+		alphaOperand1(alphaOperand1),
+		alphaOperand2(alphaOperand2),
+		alphaOperation(alphaOperation),
+		mask(mask),
+		logicOperation(logicOperation)
+	{}
+
 	bool enableBlending;
 	bool enableLogicOp;
 
@@ -641,6 +674,30 @@ struct BlendState {
 
 
 struct RasterizerState {
+	RasterizerState(
+		eFillMode fillMode = eFillMode::SOLID,
+		eCullMode cullMode = eCullMode::DRAW_ALL,
+		int depthBias = 0,
+		float depthBiasClamp = 0,
+		float slopeScaledDepthBias = 0,
+		bool depthClipEnabled = false,
+		bool multisampleEnabled = false,
+		bool lineAntialiasingEnabled = false,
+		unsigned forcedSampleCount = 0,
+		eConservativeRasterizationMode conservativeRasterization = eConservativeRasterizationMode::OFF)
+		:
+		fillMode(fillMode),
+		cullMode(cullMode),
+		depthBias(depthBias),
+		depthBiasClamp(depthBiasClamp),
+		slopeScaledDepthBias(slopeScaledDepthBias),
+		depthClipEnabled(depthClipEnabled),
+		multisampleEnabled(multisampleEnabled),
+		lineAntialiasingEnabled(lineAntialiasingEnabled),
+		forcedSampleCount(forcedSampleCount),
+		conservativeRasterization(conservativeRasterization)
+	{}
+
 	eFillMode fillMode;
 	eCullMode cullMode;
 	int depthBias;
@@ -655,6 +712,25 @@ struct RasterizerState {
 
 
 struct InputElementDesc {
+	InputElementDesc(
+		const char* semanticName = nullptr,
+		unsigned semanticIndex = 0,
+		eFormat format = eFormat::UNKNOWN,
+		unsigned inputSlot = 0,
+		unsigned offset = 0,
+		eInputClassification classifiacation = eInputClassification::VERTEX_DATA,
+		unsigned instanceDataStepRate = 1
+		)
+		:
+		semanticName(semanticName),
+		semanticIndex(semanticIndex),
+		format(format),
+		inputSlot(inputSlot),
+		offset(offset),
+		classifiacation(classifiacation),
+		instanceDataStepRate(instanceDataStepRate)
+	{}
+
 	const char* semanticName;
 	unsigned semanticIndex;
 	eFormat format;
@@ -670,24 +746,49 @@ struct InputLayout {
 };
 
 struct DepthStencilState {
+	struct FaceOperations {
+		FaceOperations(eStencilOp stencilOpOnStencilFail = eStencilOp::KEEP,
+					   eStencilOp stencilOpOnDepthFail = eStencilOp::KEEP,
+					   eStencilOp stencilOpOnPass = eStencilOp::KEEP,
+					   eComparisonFunction stencilFunc = eComparisonFunction::ALWAYS)
+			:stencilOpOnStencilFail(stencilOpOnStencilFail),
+			stencilOpOnDepthFail(stencilOpOnDepthFail),
+			stencilOpOnPass(stencilOpOnPass),
+			stencilFunc(stencilFunc)
+		{}
+
+		eStencilOp stencilOpOnStencilFail;
+		eStencilOp stencilOpOnDepthFail;
+		eStencilOp stencilOpOnPass;
+		eComparisonFunction stencilFunc;
+	};
+
+	DepthStencilState(bool enableDepthTest = false,
+					  bool enableDepthStencilWrite = true,
+					  eComparisonFunction depthFunc = eComparisonFunction::LESS,
+					  bool enableStencilTest = false,
+					  uint8_t stencilReadMask = 0,
+					  uint8_t stencilWriteMask = 0,
+					  FaceOperations cwFace = {},
+					  FaceOperations ccwFace = {})
+		:
+		enableDepthTest(enableDepthTest),
+		enableDepthStencilWrite(enableDepthStencilWrite),
+		depthFunc(depthFunc),
+		enableStencilTest(enableStencilTest),
+		stencilWriteMask(stencilWriteMask),
+		cwFace(cwFace),
+		ccwFace(ccwFace)
+	{}
+
 	bool enableDepthTest;
 	bool enableDepthStencilWrite;
 	eComparisonFunction depthFunc;
 	bool enableStencilTest;
 	uint8_t stencilReadMask;
 	uint8_t stencilWriteMask;
-	struct {
-		eStencilOp stencilOpOnStencilFail;
-		eStencilOp stencilOpOnDepthFail;
-		eStencilOp stencilOpOnPass;
-		eComparisonFunction stencilFunc;
-	} cwFace;
-	struct {
-		eStencilOp stencilOpOnStencilFail;
-		eStencilOp stencilOpOnDepthFail;
-		eStencilOp stencilOpOnPass;
-		eComparisonFunction stencilFunc;
-	} ccwFace;
+
+	FaceOperations cwFace, ccwFace;
 };
 
 struct GraphicsPipelineStateDesc {
@@ -725,6 +826,21 @@ struct DescriptorRange {
 		UAV,
 		SAMPLER,
 	};
+
+	DescriptorRange() = default;
+	DescriptorRange(eType type,
+					unsigned numDescriptors,
+					unsigned baseShaderRegister,
+					unsigned registerSpace,
+					unsigned offsetFromTableStart = std::numeric_limits<unsigned>::max())
+		:
+		type(type),
+		numDescriptors(numDescriptors),
+		baseShaderRegister(baseShaderRegister),
+		registerSpace(registerSpace),
+		offsetFromTableStart(offsetFromTableStart)
+	{}
+
 	eType type;
 	unsigned numDescriptors;
 	unsigned baseShaderRegister;
@@ -733,17 +849,26 @@ struct DescriptorRange {
 };
 
 struct RootDescriptorTable {
+	RootDescriptorTable() = default;
+	RootDescriptorTable(unsigned numDescriptorRanges, DescriptorRange* descriptorRanges = nullptr)
+		: numDescriptorRanges(numDescriptorRanges), descriptorRanges(descriptorRanges) {}
 	unsigned numDescriptorRanges;
 	DescriptorRange* descriptorRanges;
 };
 
 struct RootConstant {
+	RootConstant() = default;
+	RootConstant(unsigned shaderRegister, unsigned registerSpace, unsigned numConstant)
+		:shaderRegister(shaderRegister), registerSpace(registerSpace), numConstants(numConstants) {}
 	unsigned shaderRegister;
 	unsigned registerSpace;
 	unsigned numConstants;
 };
 
 struct RootDescriptor {
+	RootDescriptor() = default;
+	RootDescriptor(unsigned shaderRegister, unsigned registerSpace)
+		:shaderRegister(shaderRegister), registerSpace(registerSpace) {}
 	unsigned shaderRegister;
 	unsigned registerSpace;
 };
@@ -757,6 +882,9 @@ struct RootParameterDesc {
 		UAV,
 		DESCRIPTOR_TABLE,
 	};
+
+	RootParameterDesc() = default;
+
 	eType type;
 	union {
 		RootDescriptorTable descriptorTable;
@@ -764,9 +892,56 @@ struct RootParameterDesc {
 		RootConstant constant;
 	};
 	eShaderVisiblity shaderVisibility;
+
+	static inline RootParameterDesc Constant(unsigned numConstants, unsigned shaderRegister, unsigned registerSpace = 0,
+											 eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+
+	static inline RootParameterDesc Cbv(unsigned shaderRegister, unsigned registerSpace = 0,
+										eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+
+	static inline RootParameterDesc Srv(unsigned shaderRegister, unsigned registerSpace = 0,
+										eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+
+	static inline RootParameterDesc Uav(unsigned shaderRegister, unsigned registerSpace = 0,
+										eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+
+	static inline RootParameterDesc DescriptorTable(unsigned numDescriptorRanges, DescriptorRange* descriptorRanges,
+													eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
 };
 
 struct StaticSamplerDesc {
+	StaticSamplerDesc(
+		unsigned shaderRegister = 0,
+		eTextureFilterMode filter = eTextureFilterMode::ANISOTROPIC,
+		eTextureAddressMode addressU = eTextureAddressMode::WRAP,
+		eTextureAddressMode addressV = eTextureAddressMode::WRAP,
+		eTextureAddressMode addressW = eTextureAddressMode::WRAP,
+		float mipLevelBias = 0,
+		unsigned maxAnisotropy = 16,
+		eComparisonFunction compareFunc = eComparisonFunction::LESS_EQUAL,
+		eTextureBorderColor border = eTextureBorderColor::OPAQUE_WHITE,
+		float minMipLevel = 0,
+		float maxMipLevel = std::numeric_limits<float>::max(),
+		unsigned registerSpace = 0,
+		eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL
+		)
+
+		: filter(filter),
+		addressU(addressU),
+		addressV(addressV),
+		addressW(addressW),
+		mipLevelBias(mipLevelBias),
+		maxAnisotropy(maxAnisotropy),
+		compareFunc(compareFunc),
+		border(border),
+		minMipLevel(minMipLevel),
+		maxMipLevel(maxMipLevel),
+		shaderRegister(shaderRegister),
+		registerSpace(registerSpace),
+		shaderVisibility(shaderVisibility)
+	{}
+
+
 	eTextureFilterMode filter;
 	eTextureAddressMode addressU;
 	eTextureAddressMode addressV;
@@ -783,6 +958,16 @@ struct StaticSamplerDesc {
 };
 
 struct RootSignatureDesc {
+	RootSignatureDesc(unsigned numRootParameters = 0,
+					  RootParameterDesc* rootParameters = nullptr,
+					  unsigned numStaticSamplers = 0,
+					  StaticSamplerDesc* staticSamplers = nullptr)
+		: numRootParameters(numRootParameters),
+		rootParameters(rootParameters),
+		numStaticSamplers(numStaticSamplers),
+		staticSamplers(staticSamplers)
+	{}
+
 	unsigned numRootParameters;
 	RootParameterDesc* rootParameters;
 	unsigned numStaticSamplers;
@@ -794,6 +979,207 @@ struct RootSignatureDesc {
 // User helper functions
 //------------------------------------------------------------------------------
 
+inline ResourceDesc ResourceDesc::Buffer(uint64_t sizeInBytes) {
+	ResourceDesc desc;
+	desc.type = eResourceType::BUFFER;
+	desc.bufferDesc.sizeInBytes = sizeInBytes;
+	return desc;
+}
+
+inline ResourceDesc ResourceDesc::Texture1D(uint64_t width, eFormat format,
+											eResourceFlags flags,
+											uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+											uint64_t alignment, eTextureLayout layout)
+{
+	ResourceDesc desc;
+	desc.type = eResourceType::TEXTURE;
+
+	desc.textureDesc.dimension = eTextueDimension::ONE;
+	desc.textureDesc.format = format;
+	desc.textureDesc.width = width;
+	desc.textureDesc.height = 1;
+	desc.textureDesc.depthOrArraySize = 1;
+
+	desc.textureDesc.flags = flags;
+	desc.textureDesc.mipLevels = mipLevels;
+	desc.textureDesc.multisampleCount = multisampleCount;
+	desc.textureDesc.multisampleQuality = multisampleQuality;
+	desc.textureDesc.alignment = alignment;
+	desc.textureDesc.layout = layout;
+
+	return desc;
+}
+
+inline ResourceDesc ResourceDesc::Texture1DArray(uint64_t width, eFormat format, uint16_t arraySize,
+												 eResourceFlags flags,
+												 uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+												 uint64_t alignment, eTextureLayout layout)
+{
+	ResourceDesc desc;
+	desc.type = eResourceType::TEXTURE;
+
+	desc.textureDesc.dimension = eTextueDimension::ONE;
+	desc.textureDesc.format = format;
+	desc.textureDesc.width = width;
+	desc.textureDesc.height = 1;
+	desc.textureDesc.depthOrArraySize = arraySize;
+
+	desc.textureDesc.flags = flags;
+	desc.textureDesc.mipLevels = mipLevels;
+	desc.textureDesc.multisampleCount = multisampleCount;
+	desc.textureDesc.multisampleQuality = multisampleQuality;
+	desc.textureDesc.alignment = alignment;
+	desc.textureDesc.layout = layout;
+
+	return desc;
+}
+
+inline ResourceDesc ResourceDesc::Texture2D(uint64_t width, uint32_t height, eFormat format,
+											eResourceFlags flags,
+											uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+											uint64_t alignment, eTextureLayout layout) 
+{
+	ResourceDesc desc;
+	desc.type = eResourceType::TEXTURE;
+
+	desc.textureDesc.dimension = eTextueDimension::TWO;
+	desc.textureDesc.format = format;
+	desc.textureDesc.width = width;
+	desc.textureDesc.height = height;
+	desc.textureDesc.depthOrArraySize = 1;
+
+	desc.textureDesc.flags = flags;
+	desc.textureDesc.mipLevels = mipLevels;
+	desc.textureDesc.multisampleCount = multisampleCount;
+	desc.textureDesc.multisampleQuality = multisampleQuality;
+	desc.textureDesc.alignment = alignment;
+	desc.textureDesc.layout = layout;
+
+	return desc;
+}
+inline ResourceDesc ResourceDesc::Texture2DArray(uint64_t width, uint32_t height, eFormat format, uint16_t arraySize,
+												 eResourceFlags flags,
+												 uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+												 uint64_t alignment, eTextureLayout layout)
+{
+	ResourceDesc desc;
+	desc.type = eResourceType::TEXTURE;
+
+	desc.textureDesc.dimension = eTextueDimension::TWO;
+	desc.textureDesc.format = format;
+	desc.textureDesc.width = width;
+	desc.textureDesc.height = height;
+	desc.textureDesc.depthOrArraySize = arraySize;
+
+	desc.textureDesc.flags = flags;
+	desc.textureDesc.mipLevels = mipLevels;
+	desc.textureDesc.multisampleCount = multisampleCount;
+	desc.textureDesc.multisampleQuality = multisampleQuality;
+	desc.textureDesc.alignment = alignment;
+	desc.textureDesc.layout = layout;
+
+	return desc;
+}
+
+inline ResourceDesc ResourceDesc::Texture3D(uint64_t width, uint32_t height, uint16_t depth, eFormat format,
+											eResourceFlags flags,
+											uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+											uint64_t alignment, eTextureLayout layout)
+{
+	ResourceDesc desc;
+	desc.type = eResourceType::TEXTURE;
+
+	desc.textureDesc.dimension = eTextueDimension::THREE;
+	desc.textureDesc.format = format;
+	desc.textureDesc.width = width;
+	desc.textureDesc.height = height;
+	desc.textureDesc.depthOrArraySize = depth;
+
+	desc.textureDesc.flags = flags;
+	desc.textureDesc.mipLevels = mipLevels;
+	desc.textureDesc.multisampleCount = multisampleCount;
+	desc.textureDesc.multisampleQuality = multisampleQuality;
+	desc.textureDesc.alignment = alignment;
+	desc.textureDesc.layout = layout;
+
+	return desc;
+}
+inline ResourceDesc ResourceDesc::CubeMap(uint64_t width, uint32_t height, eFormat format,
+										  eResourceFlags flags,
+										  uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+										  uint64_t alignment, eTextureLayout layout)
+{
+	ResourceDesc desc;
+	desc.type = eResourceType::TEXTURE;
+
+	desc.textureDesc.dimension = eTextueDimension::TWO;
+	desc.textureDesc.format = format;
+	desc.textureDesc.width = width;
+	desc.textureDesc.height = height;
+	desc.textureDesc.depthOrArraySize = 6;
+
+	desc.textureDesc.flags = flags;
+	desc.textureDesc.mipLevels = mipLevels;
+	desc.textureDesc.multisampleCount = multisampleCount;
+	desc.textureDesc.multisampleQuality = multisampleQuality;
+	desc.textureDesc.alignment = alignment;
+	desc.textureDesc.layout = layout;
+
+	return desc;
+}
+
+
+
+inline RootParameterDesc RootParameterDesc::Constant(unsigned numConstants, unsigned shaderRegister, unsigned registerSpace, eShaderVisiblity shaderVisibility) {
+	RootParameterDesc desc;
+
+	desc.type = RootParameterDesc::CONSTANT;
+	desc.constant.numConstants = numConstants;
+	desc.constant.shaderRegister = shaderRegister;
+	desc.constant.registerSpace = registerSpace;
+	desc.shaderVisibility = shaderVisibility;
+
+	return desc;
+}
+inline RootParameterDesc RootParameterDesc::Cbv(unsigned shaderRegister, unsigned registerSpace, eShaderVisiblity shaderVisibility) {
+	RootParameterDesc desc;
+
+	desc.type = RootParameterDesc::CBV;
+	desc.descriptor.shaderRegister = shaderRegister;
+	desc.descriptor.registerSpace = registerSpace;
+	desc.shaderVisibility = shaderVisibility;
+	
+	return desc;
+}
+inline RootParameterDesc RootParameterDesc::Srv(unsigned shaderRegister, unsigned registerSpace, eShaderVisiblity shaderVisibility) {
+	RootParameterDesc desc;
+
+	desc.type = RootParameterDesc::SRV;
+	desc.descriptor.shaderRegister = shaderRegister;
+	desc.descriptor.registerSpace = registerSpace;
+	desc.shaderVisibility = shaderVisibility;
+
+	return desc;
+}
+inline RootParameterDesc RootParameterDesc::Uav(unsigned shaderRegister, unsigned registerSpace, eShaderVisiblity shaderVisibility) {
+	RootParameterDesc desc;
+
+	desc.type = RootParameterDesc::UAV;
+	desc.descriptor.shaderRegister = shaderRegister;
+	desc.descriptor.registerSpace = registerSpace;
+	desc.shaderVisibility = shaderVisibility;
+
+	return desc;
+}
+inline RootParameterDesc RootParameterDesc::DescriptorTable(unsigned numDescriptorRanges, DescriptorRange* descriptorRanges, eShaderVisiblity shaderVisibility) {
+	RootParameterDesc desc;
+
+	desc.descriptorTable.numDescriptorRanges = numDescriptorRanges;
+	desc.descriptorTable.descriptorRanges = descriptorRanges;
+	desc.shaderVisibility = shaderVisibility;
+
+	return desc;
+}
 
 //------------------------------------------------------------------------------
 // Internal helper function
