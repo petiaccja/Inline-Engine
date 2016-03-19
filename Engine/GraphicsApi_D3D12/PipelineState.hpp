@@ -14,7 +14,8 @@ using Microsoft::WRL::ComPtr;
 
 class PipelineState : public gxapi::IPipelineState {
 public:
-	
+	PipelineState(ComPtr<ID3D12PipelineState>& native);
+
 	ID3D12PipelineState* GetNative();
 
 private:

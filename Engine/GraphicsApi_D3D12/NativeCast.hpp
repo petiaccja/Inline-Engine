@@ -20,6 +20,8 @@ namespace gxapi_dx12 {
 // TO NATIVE
 ////////////////////////////////////////////////////////////
 
+//---------------
+//INTERFACE
 ID3D12PipelineState* native_cast(gxapi::IPipelineState* source);
 
 ID3D12Resource* native_cast(gxapi::IResource* source);
@@ -32,6 +34,8 @@ ID3D12RootSignature* native_cast(gxapi::IRootSignature* source);
 
 ID3D12Fence* native_cast(gxapi::IFence* source);
 
+//---------------
+//ENUM
 D3D12_SHADER_VISIBILITY native_cast(gxapi::eShaderVisiblity source);
 
 D3D12_PRIMITIVE_TOPOLOGY native_cast(gxapi::ePrimitiveTopology source);
@@ -52,29 +56,61 @@ D3D12_COMPARISON_FUNC native_cast(gxapi::eComparisonFunction source);
 
 INT native_cast(gxapi::eCommandQueuePriority source);
 
+D3D12_HEAP_TYPE native_cast(gxapi::eHeapType source);
+
+D3D12_CPU_PAGE_PROPERTY native_cast(gxapi::eCpuPageProperty source);
+
+D3D12_MEMORY_POOL native_cast(gxapi::eMemoryPool source);
+
 D3D12_STATIC_BORDER_COLOR native_cast(gxapi::eTextureBorderColor source);
 
+DXGI_FORMAT native_cast(gxapi::eFormat source);
+
+D3D12_TEXTURE_LAYOUT native_cast(gxapi::eTextureLayout source);
+
+D3D12_SHADER_BYTECODE native_cast(gxapi::ShaderByteCodeDesc source);
+
+D3D12_RESOURCE_DIMENSION native_cast(gxapi::eTextueDimension source);
+
+D3D12_RESOURCE_STATES native_cast(gxapi::eResourceState source);
+
+
+//---------------
+//FLAGS
+D3D12_RESOURCE_FLAGS native_cast(gxapi::eResourceFlags source);
+
+D3D12_HEAP_FLAGS native_cast(gxapi::eHeapFlags source);
+
+//---------------
+//OBJECT
 D3D12_VIEWPORT native_cast(gxapi::Viewport const & source);
 
 D3D12_RECT native_cast(gxapi::Rectangle const & source);
 
 D3D12_BOX native_cast(gxapi::Cube source);
 
-DXGI_FORMAT native_cast(gxapi::eFormat source);
+D3D12_CLEAR_VALUE native_cast(gxapi::ClearValue source);
 
-D3D12_DESCRIPTOR_RANGE native_cast(gxapi::DescriptorRange source);
-
-D3D12_ROOT_CONSTANTS native_cast(gxapi::RootConstant source);
-
+//---------------
+//DESCRIPTOR
 D3D12_ROOT_DESCRIPTOR native_cast(gxapi::RootDescriptor source);
 
 D3D12_HEAP_PROPERTIES native_cast(gxapi::HeapProperties source);
+
+D3D12_RESOURCE_DESC native_cast(gxapi::ResourceDesc source);
 
 D3D12_STATIC_SAMPLER_DESC native_cast(gxapi::StaticSamplerDesc source);
 
 D3D12_COMMAND_QUEUE_DESC native_cast(gxapi::CommandQueueDesc source);
 
 D3D12_DESCRIPTOR_HEAP_DESC native_cast(gxapi::DescriptorHeapDesc source);
+
+//---------------
+//OTHER
+D3D12_DESCRIPTOR_RANGE native_cast(gxapi::DescriptorRange source);
+
+D3D12_ROOT_CONSTANTS native_cast(gxapi::RootConstant source);
+
 
 ////////////////////////////////////////////////////////////
 // FROM NATIVE

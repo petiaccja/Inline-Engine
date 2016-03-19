@@ -69,10 +69,16 @@ gxapi::IResource* GraphicsApi::CreateCommittedResource(gxapi::HeapProperties hea
 	D3D12_HEAP_PROPERTIES nativeHeapProperties = native_cast(heapProperties);
 	D3D12_RESOURCE_DESC nativeResourceDesc = native_cast(desc);
 
-	if ((m_device->CreateCommittedResource(&nativeHeapProperties, native_cast(heapFlags), &nativeResourceDesc, native_cast(initialState), native_cast(clearValue), IID_PPV_ARGS(&native)))) {
-		throw std::runtime_error("Could not create commited resource");
+	D3D12_CLEAR_VALUE* pNativeClearValue = nullptr;
+	D3D12_CLEAR_VALUE nativeClearValue;
+	if (clearValue != nullptr) {
+		nativeClearValue = native_cast(*clearValue);
+		pNativeClearValue = &nativeClearValue;
 	}
 
+	if ((m_device->CreateCommittedResource(&nativeHeapProperties, native_cast(heapFlags), &nativeResourceDesc, native_cast(initialState), pNativeClearValue, IID_PPV_ARGS(&native)))) {
+		throw std::runtime_error("Could not create commited resource");
+	}
 
 	return new Resource{native};
 }
@@ -162,8 +168,42 @@ gxapi::IRootSignature* GraphicsApi::CreateRootSignature(gxapi::RootSignatureDesc
 
 
 gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(gxapi::GraphicsPipelineStateDesc desc) {
-	static_assert(false, "TODO");
-	return nullptr;
+	ComPtr<ID3D12PipelineState> native;
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC nativeDesc;
+
+	D3D12_STREAM_OUTPUT_DESC nativeStreamOutput;
+	static_assert(false, "TODO missing StreamOutputState implementation");
+
+	nativeDesc.pRootSignature = native_cast(desc.rootSignature);
+	nativeDesc.VS                     = native_cast(desc.vs);
+	nativeDesc.PS                     = native_cast(desc.ps);
+	nativeDesc.DS                     = native_cast(desc.ds);
+	nativeDesc.HS                     = native_cast(desc.hs);
+	nativeDesc.GS                     = native_cast(desc.gs);
+	nativeDesc.StreamOutput           = nativeStreamOutput;
+	nativeDesc.BlendState			  = native_cast(desc.blending);
+	nativeDesc.SampleMask			  = desc.sampleMask;
+	nativeDesc.RasterizerState        = desc.rasterizerState;
+	nativeDesc.DepthStencilState      = desc.depthStencilState;
+	nativeDesc.InputLayout            = desc.inputLayout;
+	nativeDesc.IBStripCutValue        = desc.iBStripCutValue;
+	nativeDesc.PrimitiveTopologyType  = desc.primitiveTopologyType;
+	nativeDesc.NumRenderTargets       = desc.numRenderTargets;
+	nativeDesc.RTVFormats             = desc.rTVFormats[8];
+	nativeDesc.DSVFormat              = desc.dSVFormat;
+	nativeDesc.SampleDesc             = desc.sampleDesc;
+	nativeDesc.NodeMask               = desc.nodeMask;
+	nativeDesc.CachedPSO              = desc.cachedPSO;
+	nativeDesc.Flags                  = desc.flags;
+
+
+
+	if (FAILED(m_device->CreateGraphicsPipelineState(&nativeDesc, IID_PPV_ARGS(&native)))) {
+		throw std::runtime_error("Could not create raphics pipeline state.");
+	}
+
+	return new PipelineState{native};
 }
 
 
