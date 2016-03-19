@@ -114,6 +114,9 @@
     <ClInclude Include="..\GraphicsApi_LL\Common.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\Exception.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
