@@ -2,6 +2,8 @@
 
 #include "../GraphicsApi_LL/IPipelineState.hpp"
 
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <wrl.h>
 #include <d3d12.h>
 
@@ -12,7 +14,8 @@ using Microsoft::WRL::ComPtr;
 
 class PipelineState : public gxapi::IPipelineState {
 public:
-	
+	PipelineState(ComPtr<ID3D12PipelineState>& native);
+
 	ID3D12PipelineState* GetNative();
 
 private:

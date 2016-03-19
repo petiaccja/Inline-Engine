@@ -5,6 +5,8 @@
 
 #include "../GraphicsApi_LL/Common.hpp"
 
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <wrl.h>
 #include <d3d12.h>
 

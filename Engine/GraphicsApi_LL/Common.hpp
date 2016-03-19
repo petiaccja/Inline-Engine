@@ -792,7 +792,7 @@ struct DepthStencilState {
 };
 
 struct GraphicsPipelineStateDesc {
-	IRootSignature rootSignature;
+	IRootSignature* rootSignature;
 
 	ShaderByteCodeDesc vs;
 	ShaderByteCodeDesc gs;
