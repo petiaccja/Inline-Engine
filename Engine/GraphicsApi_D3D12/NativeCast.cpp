@@ -77,17 +77,17 @@ ID3D12Fence* native_cast(gxapi::IFence * source) {
 
 D3D12_SHADER_VISIBILITY native_cast(gxapi::eShaderVisiblity source) {
 	switch (source) {
-	case inl::gxapi::eShaderVisiblity::ALL:
+	case gxapi::eShaderVisiblity::ALL:
 		return D3D12_SHADER_VISIBILITY_ALL;
-	case inl::gxapi::eShaderVisiblity::VERTEX:
+	case gxapi::eShaderVisiblity::VERTEX:
 		return D3D12_SHADER_VISIBILITY_VERTEX;
-	case inl::gxapi::eShaderVisiblity::GEOMETRY:
+	case gxapi::eShaderVisiblity::GEOMETRY:
 		return D3D12_SHADER_VISIBILITY_GEOMETRY;
-	case inl::gxapi::eShaderVisiblity::HULL:
+	case gxapi::eShaderVisiblity::HULL:
 		return D3D12_SHADER_VISIBILITY_HULL;
-	case inl::gxapi::eShaderVisiblity::DOMAIN:
+	case gxapi::eShaderVisiblity::DOMAIN:
 		return D3D12_SHADER_VISIBILITY_DOMAIN;
-	case inl::gxapi::eShaderVisiblity::PIXEL:
+	case gxapi::eShaderVisiblity::PIXEL:
 		return D3D12_SHADER_VISIBILITY_PIXEL;
 	default:
 		assert(false);
@@ -183,13 +183,13 @@ D3D12_ROOT_PARAMETER_TYPE native_cast(gxapi::RootParameterDesc::eType source) {
 
 D3D12_DESCRIPTOR_RANGE_TYPE native_cast(gxapi::DescriptorRange::eType source) {
 	switch (source) {
-	case inl::gxapi::DescriptorRange::CBV:
+	case gxapi::DescriptorRange::CBV:
 		return D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-	case inl::gxapi::DescriptorRange::SRV:
+	case gxapi::DescriptorRange::SRV:
 		return D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	case inl::gxapi::DescriptorRange::UAV:
+	case gxapi::DescriptorRange::UAV:
 		return D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-	case inl::gxapi::DescriptorRange::SAMPLER:
+	case gxapi::DescriptorRange::SAMPLER:
 		return D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
 	default:
 		assert(false);
@@ -306,21 +306,21 @@ D3D12_FILTER native_cast(gxapi::eTextureFilterMode source) {
 
 D3D12_COMPARISON_FUNC native_cast(gxapi::eComparisonFunction source) {
 	switch (source) {
-	case inl::gxapi::eComparisonFunction::NEVER:
+	case gxapi::eComparisonFunction::NEVER:
 		return D3D12_COMPARISON_FUNC_NEVER;
-	case inl::gxapi::eComparisonFunction::LESS:
+	case gxapi::eComparisonFunction::LESS:
 		return D3D12_COMPARISON_FUNC_LESS;
-	case inl::gxapi::eComparisonFunction::LESS_EQUAL:
+	case gxapi::eComparisonFunction::LESS_EQUAL:
 		return D3D12_COMPARISON_FUNC_LESS_EQUAL;
-	case inl::gxapi::eComparisonFunction::GREATER:
+	case gxapi::eComparisonFunction::GREATER:
 		return D3D12_COMPARISON_FUNC_GREATER;
-	case inl::gxapi::eComparisonFunction::GREATER_EQUAL:
+	case gxapi::eComparisonFunction::GREATER_EQUAL:
 		return D3D12_COMPARISON_FUNC_GREATER_EQUAL;
-	case inl::gxapi::eComparisonFunction::EQUAL:
+	case gxapi::eComparisonFunction::EQUAL:
 		return D3D12_COMPARISON_FUNC_EQUAL;
-	case inl::gxapi::eComparisonFunction::NOT_EQUAL:
+	case gxapi::eComparisonFunction::NOT_EQUAL:
 		return D3D12_COMPARISON_FUNC_NOT_EQUAL;
-	case inl::gxapi::eComparisonFunction::ALWAYS:
+	case gxapi::eComparisonFunction::ALWAYS:
 		return D3D12_COMPARISON_FUNC_ALWAYS;
 	default:
 		assert(false);
@@ -347,13 +347,13 @@ INT native_cast(gxapi::eCommandQueuePriority source) {
 
 D3D12_HEAP_TYPE native_cast(gxapi::eHeapType source) {
 	switch (source) {
-	case inl::gxapi::eHeapType::DEFAULT:
+	case gxapi::eHeapType::DEFAULT:
 		return D3D12_HEAP_TYPE_DEFAULT;
-	case inl::gxapi::eHeapType::UPLOAD:
+	case gxapi::eHeapType::UPLOAD:
 		return D3D12_HEAP_TYPE_UPLOAD;
-	case inl::gxapi::eHeapType::READBACK:
+	case gxapi::eHeapType::READBACK:
 		return D3D12_HEAP_TYPE_READBACK;
-	case inl::gxapi::eHeapType::CUSTOM:
+	case gxapi::eHeapType::CUSTOM:
 		return D3D12_HEAP_TYPE_CUSTOM;
 	default:
 		assert(false);
@@ -366,13 +366,13 @@ D3D12_HEAP_TYPE native_cast(gxapi::eHeapType source) {
 
 D3D12_CPU_PAGE_PROPERTY native_cast(gxapi::eCpuPageProperty source) {
 	switch (source) {
-	case inl::gxapi::eCpuPageProperty::UNKNOWN:
+	case gxapi::eCpuPageProperty::UNKNOWN:
 		return D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	case inl::gxapi::eCpuPageProperty::NOT_AVAILABLE:
+	case gxapi::eCpuPageProperty::NOT_AVAILABLE:
 		return D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
-	case inl::gxapi::eCpuPageProperty::WRITE_COMBINE:
+	case gxapi::eCpuPageProperty::WRITE_COMBINE:
 		return D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
-	case inl::gxapi::eCpuPageProperty::WRITE_BACK:
+	case gxapi::eCpuPageProperty::WRITE_BACK:
 		return D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
 	default:
 		assert(false);
@@ -385,11 +385,11 @@ D3D12_CPU_PAGE_PROPERTY native_cast(gxapi::eCpuPageProperty source) {
 
 D3D12_MEMORY_POOL native_cast(gxapi::eMemoryPool source) {
 	switch (source) {
-	case inl::gxapi::eMemoryPool::UNKNOWN:
+	case gxapi::eMemoryPool::UNKNOWN:
 		return D3D12_MEMORY_POOL_UNKNOWN;
-	case inl::gxapi::eMemoryPool::HOST:
+	case gxapi::eMemoryPool::HOST:
 		return D3D12_MEMORY_POOL_L0;
-	case inl::gxapi::eMemoryPool::DEDICATED:
+	case gxapi::eMemoryPool::DEDICATED:
 		return D3D12_MEMORY_POOL_L1;
 	default:
 		assert(false);
@@ -402,11 +402,11 @@ D3D12_MEMORY_POOL native_cast(gxapi::eMemoryPool source) {
 
 D3D12_STATIC_BORDER_COLOR native_cast(gxapi::eTextureBorderColor source) {
 	switch (source) {
-	case inl::gxapi::eTextureBorderColor::TRANSPARENT_BLACK:
+	case gxapi::eTextureBorderColor::TRANSPARENT_BLACK:
 		return D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
-	case inl::gxapi::eTextureBorderColor::OPAQUE_BLACK:
+	case gxapi::eTextureBorderColor::OPAQUE_BLACK:
 		return D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK;
-	case inl::gxapi::eTextureBorderColor::OPAQUE_WHITE:
+	case gxapi::eTextureBorderColor::OPAQUE_WHITE:
 		return D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE;
 	default:
 		assert(false);
@@ -419,137 +419,137 @@ D3D12_STATIC_BORDER_COLOR native_cast(gxapi::eTextureBorderColor source) {
 
 DXGI_FORMAT native_cast(gxapi::eFormat source) {
 	switch (source) {
-	case inl::gxapi::eFormat::UNKNOWN:
+	case gxapi::eFormat::UNKNOWN:
 		return DXGI_FORMAT_UNKNOWN;
-	case inl::gxapi::eFormat::R32G32B32A32_TYPELESS:
+	case gxapi::eFormat::R32G32B32A32_TYPELESS:
 		return DXGI_FORMAT_R32G32B32A32_TYPELESS;
-	case inl::gxapi::eFormat::R32G32B32A32_FLOAT:
+	case gxapi::eFormat::R32G32B32A32_FLOAT:
 		return DXGI_FORMAT_R32G32B32A32_FLOAT;
-	case inl::gxapi::eFormat::R32G32B32A32_UINT:
+	case gxapi::eFormat::R32G32B32A32_UINT:
 		return DXGI_FORMAT_R32G32B32A32_UINT;
-	case inl::gxapi::eFormat::R32G32B32A32_SINT:
+	case gxapi::eFormat::R32G32B32A32_SINT:
 		return DXGI_FORMAT_R32G32B32A32_SINT;
-	case inl::gxapi::eFormat::R32G32B32_TYPELESS:
+	case gxapi::eFormat::R32G32B32_TYPELESS:
 		return DXGI_FORMAT_R32G32B32_TYPELESS;
-	case inl::gxapi::eFormat::R32G32B32_FLOAT:
+	case gxapi::eFormat::R32G32B32_FLOAT:
 		return DXGI_FORMAT_R32G32B32_FLOAT;
-	case inl::gxapi::eFormat::R32G32B32_UINT:
+	case gxapi::eFormat::R32G32B32_UINT:
 		return DXGI_FORMAT_R32G32B32_UINT;
-	case inl::gxapi::eFormat::R32G32B32_SINT:
+	case gxapi::eFormat::R32G32B32_SINT:
 		return DXGI_FORMAT_R32G32B32_SINT;
-	case inl::gxapi::eFormat::R16G16B16A16_TYPELESS:
+	case gxapi::eFormat::R16G16B16A16_TYPELESS:
 		return DXGI_FORMAT_R16G16B16A16_TYPELESS;
-	case inl::gxapi::eFormat::R16G16B16A16_FLOAT:
+	case gxapi::eFormat::R16G16B16A16_FLOAT:
 		return DXGI_FORMAT_R16G16B16A16_FLOAT;
-	case inl::gxapi::eFormat::R16G16B16A16_UNORM:
+	case gxapi::eFormat::R16G16B16A16_UNORM:
 		return DXGI_FORMAT_R16G16B16A16_UNORM;
-	case inl::gxapi::eFormat::R16G16B16A16_UINT:
+	case gxapi::eFormat::R16G16B16A16_UINT:
 		return DXGI_FORMAT_R16G16B16A16_UINT;
-	case inl::gxapi::eFormat::R16G16B16A16_SNORM:
+	case gxapi::eFormat::R16G16B16A16_SNORM:
 		return DXGI_FORMAT_R16G16B16A16_SNORM;
-	case inl::gxapi::eFormat::R16G16B16A16_SINT:
+	case gxapi::eFormat::R16G16B16A16_SINT:
 		return DXGI_FORMAT_R16G16B16A16_SINT;
-	case inl::gxapi::eFormat::R32G32_TYPELESS:
+	case gxapi::eFormat::R32G32_TYPELESS:
 		return DXGI_FORMAT_R32G32_TYPELESS;
-	case inl::gxapi::eFormat::R32G32_FLOAT:
+	case gxapi::eFormat::R32G32_FLOAT:
 		return DXGI_FORMAT_R32G32_FLOAT;
-	case inl::gxapi::eFormat::R32G32_UINT:
+	case gxapi::eFormat::R32G32_UINT:
 		return DXGI_FORMAT_R32G32_UINT;
-	case inl::gxapi::eFormat::R32G32_SINT:
+	case gxapi::eFormat::R32G32_SINT:
 		return DXGI_FORMAT_R32G32_SINT;
-	case inl::gxapi::eFormat::R32G8X24_TYPELESS:
+	case gxapi::eFormat::R32G8X24_TYPELESS:
 		return DXGI_FORMAT_R32G8X24_TYPELESS;
-	case inl::gxapi::eFormat::D32_FLOAT_S8X24_UINT:
+	case gxapi::eFormat::D32_FLOAT_S8X24_UINT:
 		return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-	case inl::gxapi::eFormat::R32_FLOAT_X8X24_TYPELESS:
+	case gxapi::eFormat::R32_FLOAT_X8X24_TYPELESS:
 		return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-	case inl::gxapi::eFormat::X32_TYPELESS_G8X24_UINT:
+	case gxapi::eFormat::X32_TYPELESS_G8X24_UINT:
 		return DXGI_FORMAT_X32_TYPELESS_G8X24_UINT;
-	case inl::gxapi::eFormat::R10G10B10A2_TYPELESS:
+	case gxapi::eFormat::R10G10B10A2_TYPELESS:
 		return DXGI_FORMAT_R10G10B10A2_TYPELESS;
-	case inl::gxapi::eFormat::R10G10B10A2_UNORM:
+	case gxapi::eFormat::R10G10B10A2_UNORM:
 		return DXGI_FORMAT_R10G10B10A2_UNORM;
-	case inl::gxapi::eFormat::R10G10B10A2_UINT:
+	case gxapi::eFormat::R10G10B10A2_UINT:
 		return DXGI_FORMAT_R10G10B10A2_UINT;
-	case inl::gxapi::eFormat::R11G11B10_FLOAT:
+	case gxapi::eFormat::R11G11B10_FLOAT:
 		return DXGI_FORMAT_R11G11B10_FLOAT;
-	case inl::gxapi::eFormat::R8G8B8A8_TYPELESS:
+	case gxapi::eFormat::R8G8B8A8_TYPELESS:
 		return DXGI_FORMAT_R8G8B8A8_TYPELESS;
-	case inl::gxapi::eFormat::R8G8B8A8_UNORM:
+	case gxapi::eFormat::R8G8B8A8_UNORM:
 		return DXGI_FORMAT_R8G8B8A8_UNORM;
-	case inl::gxapi::eFormat::R8G8B8A8_UNORM_SRGB:
+	case gxapi::eFormat::R8G8B8A8_UNORM_SRGB:
 		return DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-	case inl::gxapi::eFormat::R8G8B8A8_UINT:
+	case gxapi::eFormat::R8G8B8A8_UINT:
 		return DXGI_FORMAT_R8G8B8A8_UINT;
-	case inl::gxapi::eFormat::R8G8B8A8_SNORM:
+	case gxapi::eFormat::R8G8B8A8_SNORM:
 		return DXGI_FORMAT_R8G8B8A8_SNORM;
-	case inl::gxapi::eFormat::R8G8B8A8_SINT:
+	case gxapi::eFormat::R8G8B8A8_SINT:
 		return DXGI_FORMAT_R8G8B8A8_SINT;
-	case inl::gxapi::eFormat::R16G16_TYPELESS:
+	case gxapi::eFormat::R16G16_TYPELESS:
 		return DXGI_FORMAT_R16G16_TYPELESS;
-	case inl::gxapi::eFormat::R16G16_FLOAT:
+	case gxapi::eFormat::R16G16_FLOAT:
 		return DXGI_FORMAT_R16G16_FLOAT;
-	case inl::gxapi::eFormat::R16G16_UNORM:
+	case gxapi::eFormat::R16G16_UNORM:
 		return DXGI_FORMAT_R16G16_UNORM;
-	case inl::gxapi::eFormat::R16G16_UINT:
+	case gxapi::eFormat::R16G16_UINT:
 		return DXGI_FORMAT_R16G16_UINT;
-	case inl::gxapi::eFormat::R16G16_SNORM:
+	case gxapi::eFormat::R16G16_SNORM:
 		return DXGI_FORMAT_R16G16_SNORM;
-	case inl::gxapi::eFormat::R16G16_SINT:
+	case gxapi::eFormat::R16G16_SINT:
 		return DXGI_FORMAT_R16G16_SINT;
-	case inl::gxapi::eFormat::R32_TYPELESS:
+	case gxapi::eFormat::R32_TYPELESS:
 		return DXGI_FORMAT_R32_TYPELESS;
-	case inl::gxapi::eFormat::D32_FLOAT:
+	case gxapi::eFormat::D32_FLOAT:
 		return DXGI_FORMAT_D32_FLOAT;
-	case inl::gxapi::eFormat::R32_FLOAT:
+	case gxapi::eFormat::R32_FLOAT:
 		return DXGI_FORMAT_R32_FLOAT;
-	case inl::gxapi::eFormat::R32_UINT:
+	case gxapi::eFormat::R32_UINT:
 		return DXGI_FORMAT_R32_UINT;
-	case inl::gxapi::eFormat::R32_SINT:
+	case gxapi::eFormat::R32_SINT:
 		return DXGI_FORMAT_R32_SINT;
-	case inl::gxapi::eFormat::R24G8_TYPELESS:
+	case gxapi::eFormat::R24G8_TYPELESS:
 		return DXGI_FORMAT_R24G8_TYPELESS;
-	case inl::gxapi::eFormat::D24_UNORM_S8_UINT:
+	case gxapi::eFormat::D24_UNORM_S8_UINT:
 		return DXGI_FORMAT_D24_UNORM_S8_UINT;
-	case inl::gxapi::eFormat::R24_UNORM_X8_TYPELESS:
+	case gxapi::eFormat::R24_UNORM_X8_TYPELESS:
 		return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-	case inl::gxapi::eFormat::X24_TYPELESS_G8_UINT:
+	case gxapi::eFormat::X24_TYPELESS_G8_UINT:
 		return DXGI_FORMAT_X24_TYPELESS_G8_UINT;
-	case inl::gxapi::eFormat::R8G8_TYPELESS:
+	case gxapi::eFormat::R8G8_TYPELESS:
 		return DXGI_FORMAT_R8G8_TYPELESS;
-	case inl::gxapi::eFormat::R8G8_UNORM:
+	case gxapi::eFormat::R8G8_UNORM:
 		return DXGI_FORMAT_R8G8_UNORM;
-	case inl::gxapi::eFormat::R8G8_UINT:
+	case gxapi::eFormat::R8G8_UINT:
 		return DXGI_FORMAT_R8G8_UINT;
-	case inl::gxapi::eFormat::R8G8_SNORM:
+	case gxapi::eFormat::R8G8_SNORM:
 		return DXGI_FORMAT_R8G8_SNORM;
-	case inl::gxapi::eFormat::R8G8_SINT:
+	case gxapi::eFormat::R8G8_SINT:
 		return DXGI_FORMAT_R8G8_SINT;
-	case inl::gxapi::eFormat::R16_TYPELESS:
+	case gxapi::eFormat::R16_TYPELESS:
 		return DXGI_FORMAT_R16_TYPELESS;
-	case inl::gxapi::eFormat::R16_FLOAT:
+	case gxapi::eFormat::R16_FLOAT:
 		return DXGI_FORMAT_R16_FLOAT;
-	case inl::gxapi::eFormat::D16_UNORM:
+	case gxapi::eFormat::D16_UNORM:
 		return DXGI_FORMAT_D16_UNORM;
-	case inl::gxapi::eFormat::R16_UNORM:
+	case gxapi::eFormat::R16_UNORM:
 		return DXGI_FORMAT_R16_UNORM;
-	case inl::gxapi::eFormat::R16_UINT:
+	case gxapi::eFormat::R16_UINT:
 		return DXGI_FORMAT_R16_UINT;
-	case inl::gxapi::eFormat::R16_SNORM:
+	case gxapi::eFormat::R16_SNORM:
 		return DXGI_FORMAT_R16_SNORM;
-	case inl::gxapi::eFormat::R16_SINT:
+	case gxapi::eFormat::R16_SINT:
 		return DXGI_FORMAT_R16_SINT;
-	case inl::gxapi::eFormat::R8_TYPELESS:
+	case gxapi::eFormat::R8_TYPELESS:
 		return DXGI_FORMAT_R8_TYPELESS;
-	case inl::gxapi::eFormat::R8_UNORM:
+	case gxapi::eFormat::R8_UNORM:
 		return DXGI_FORMAT_R8_UNORM;
-	case inl::gxapi::eFormat::R8_UINT:
+	case gxapi::eFormat::R8_UINT:
 		return DXGI_FORMAT_R8_UINT;
-	case inl::gxapi::eFormat::R8_SNORM:
+	case gxapi::eFormat::R8_SNORM:
 		return DXGI_FORMAT_R8_SNORM;
-	case inl::gxapi::eFormat::R8_SINT:
+	case gxapi::eFormat::R8_SINT:
 		return DXGI_FORMAT_R8_SINT;
-	case inl::gxapi::eFormat::A8_UNORM:
+	case gxapi::eFormat::A8_UNORM:
 		return DXGI_FORMAT_A8_UNORM;
 
 	default:
@@ -563,13 +563,13 @@ DXGI_FORMAT native_cast(gxapi::eFormat source) {
 
 D3D12_TEXTURE_LAYOUT native_cast(gxapi::eTextureLayout source) {
 	switch (source) {
-	case inl::gxapi::eTextureLayout::UNKNOWN:
+	case gxapi::eTextureLayout::UNKNOWN:
 		return D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	case inl::gxapi::eTextureLayout::ROW_MAJOR:
+	case gxapi::eTextureLayout::ROW_MAJOR:
 		return D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	case inl::gxapi::eTextureLayout::UNDEFINED_SWIZZLE:
+	case gxapi::eTextureLayout::UNDEFINED_SWIZZLE:
 		return D3D12_TEXTURE_LAYOUT_64KB_UNDEFINED_SWIZZLE;
-	case inl::gxapi::eTextureLayout::STANDARD_SWIZZLE:
+	case gxapi::eTextureLayout::STANDARD_SWIZZLE:
 		return D3D12_TEXTURE_LAYOUT_64KB_STANDARD_SWIZZLE;
 	default:
 		assert(false);
@@ -592,11 +592,11 @@ D3D12_SHADER_BYTECODE native_cast(gxapi::ShaderByteCodeDesc source) {
 
 D3D12_RESOURCE_DIMENSION native_cast(gxapi::eTextueDimension source) {
 	switch (source) {
-	case inl::gxapi::eTextueDimension::ONE:
+	case gxapi::eTextueDimension::ONE:
 		return D3D12_RESOURCE_DIMENSION_TEXTURE1D;
-	case inl::gxapi::eTextueDimension::TWO:
+	case gxapi::eTextueDimension::TWO:
 		return D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	case inl::gxapi::eTextueDimension::THREE:
+	case gxapi::eTextueDimension::THREE:
 		return D3D12_RESOURCE_DIMENSION_TEXTURE3D;
 	default:
 		assert(false);
@@ -609,41 +609,41 @@ D3D12_RESOURCE_DIMENSION native_cast(gxapi::eTextueDimension source) {
 
 D3D12_RESOURCE_STATES native_cast(gxapi::eResourceState source) {
 	switch (source) {
-	case inl::gxapi::eResourceState::COMMON:
+	case gxapi::eResourceState::COMMON:
 		return D3D12_RESOURCE_STATE_COMMON;
-	case inl::gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER:
+	case gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER:
 		return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-	case inl::gxapi::eResourceState::INDEX_BUFFER:
+	case gxapi::eResourceState::INDEX_BUFFER:
 		return D3D12_RESOURCE_STATE_INDEX_BUFFER;
-	case inl::gxapi::eResourceState::RENDER_TARGET:
+	case gxapi::eResourceState::RENDER_TARGET:
 		return D3D12_RESOURCE_STATE_RENDER_TARGET;
-	case inl::gxapi::eResourceState::UNORDERED_ACCESS:
+	case gxapi::eResourceState::UNORDERED_ACCESS:
 		return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-	case inl::gxapi::eResourceState::DEPTH_WRITE:
+	case gxapi::eResourceState::DEPTH_WRITE:
 		return D3D12_RESOURCE_STATE_DEPTH_WRITE;
-	case inl::gxapi::eResourceState::DEPTH_READ:
+	case gxapi::eResourceState::DEPTH_READ:
 		return D3D12_RESOURCE_STATE_DEPTH_READ;
-	case inl::gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE:
+	case gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE:
 		return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-	case inl::gxapi::eResourceState::PIXEL_SHADER_RESOURCE:
+	case gxapi::eResourceState::PIXEL_SHADER_RESOURCE:
 		return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-	case inl::gxapi::eResourceState::STREAM_OUT:
+	case gxapi::eResourceState::STREAM_OUT:
 		return D3D12_RESOURCE_STATE_STREAM_OUT;
-	case inl::gxapi::eResourceState::INDIRECT_ARGUMENT:
+	case gxapi::eResourceState::INDIRECT_ARGUMENT:
 		return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
-	case inl::gxapi::eResourceState::COPY_DEST:
+	case gxapi::eResourceState::COPY_DEST:
 		return D3D12_RESOURCE_STATE_COPY_DEST;
-	case inl::gxapi::eResourceState::COPY_SOURCE:
+	case gxapi::eResourceState::COPY_SOURCE:
 		return D3D12_RESOURCE_STATE_COPY_SOURCE;
-	case inl::gxapi::eResourceState::RESOLVE_DEST:
+	case gxapi::eResourceState::RESOLVE_DEST:
 		return D3D12_RESOURCE_STATE_RESOLVE_DEST;
-	case inl::gxapi::eResourceState::RESOLVE_SOURCE:
+	case gxapi::eResourceState::RESOLVE_SOURCE:
 		return D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
-	case inl::gxapi::eResourceState::GENERIC_READ:
+	case gxapi::eResourceState::GENERIC_READ:
 		return D3D12_RESOURCE_STATE_GENERIC_READ;
-	case inl::gxapi::eResourceState::PRESENT:
+	case gxapi::eResourceState::PRESENT:
 		return D3D12_RESOURCE_STATE_PRESENT;
-	case inl::gxapi::eResourceState::PREDICATION:
+	case gxapi::eResourceState::PREDICATION:
 		return D3D12_RESOURCE_STATE_PREDICATION;
 	default:
 		assert(false);
@@ -651,6 +651,242 @@ D3D12_RESOURCE_STATES native_cast(gxapi::eResourceState source) {
 	}
 
 	return D3D12_RESOURCE_STATES{};
+}
+
+
+D3D12_BLEND native_cast(gxapi::eBlendOperand source) {
+	switch (source) {
+	case gxapi::eBlendOperand::ZERO:
+		return D3D12_BLEND_ZERO;
+	case gxapi::eBlendOperand::ONE:
+		return D3D12_BLEND_ONE;
+	case gxapi::eBlendOperand::SHADER_OUT:
+		return D3D12_BLEND_SRC1_COLOR;
+	case gxapi::eBlendOperand::INV_SHADER_OUT:
+		return D3D12_BLEND_INV_SRC1_COLOR;
+	case gxapi::eBlendOperand::SHADER_ALPHA:
+		return D3D12_BLEND_SRC1_ALPHA;
+	case gxapi::eBlendOperand::INV_SHADER_ALPHA:
+		return D3D12_BLEND_INV_SRC1_ALPHA;
+	case gxapi::eBlendOperand::TARGET_OUT:
+		return D3D12_BLEND_DEST_COLOR;
+	case gxapi::eBlendOperand::INV_TARGET_OUT:
+		return D3D12_BLEND_INV_DEST_COLOR;
+	case gxapi::eBlendOperand::TARGET_ALPHA:
+		return D3D12_BLEND_DEST_ALPHA;
+	case gxapi::eBlendOperand::INV_TARGET_ALPHA:
+		return D3D12_BLEND_INV_DEST_ALPHA;
+	case gxapi::eBlendOperand::SHADER_ALPHA_SAT:
+		return D3D12_BLEND_SRC_ALPHA_SAT;
+	case gxapi::eBlendOperand::BLEND_FACTOR:
+		return D3D12_BLEND_BLEND_FACTOR;
+	case gxapi::eBlendOperand::INV_BLEND_FACTOR:
+		return D3D12_BLEND_INV_BLEND_FACTOR;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_BLEND{};
+}
+
+
+D3D12_BLEND_OP native_cast(gxapi::eBlendOperation source) {
+	switch (source) {
+	case gxapi::eBlendOperation::ADD:
+		return D3D12_BLEND_OP_ADD;
+	case gxapi::eBlendOperation::SUBTRACT:
+		return D3D12_BLEND_OP_SUBTRACT;
+	case gxapi::eBlendOperation::REVERSE_SUBTRACT:
+		return D3D12_BLEND_OP_REV_SUBTRACT;
+	case gxapi::eBlendOperation::MIN:
+		return D3D12_BLEND_OP_MIN;
+	case gxapi::eBlendOperation::MAX:
+		return D3D12_BLEND_OP_MAX;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_BLEND_OP{};
+}
+
+
+D3D12_LOGIC_OP native_cast(gxapi::eBlendLogicOperation source) {
+	switch (source) {
+	case gxapi::eBlendLogicOperation::CLEAR:
+		return D3D12_LOGIC_OP_CLEAR;
+	case gxapi::eBlendLogicOperation::SET:
+		return D3D12_LOGIC_OP_SET;
+	case gxapi::eBlendLogicOperation::COPY:
+		return D3D12_LOGIC_OP_COPY;
+	case gxapi::eBlendLogicOperation::COPY_INVERTED:
+		return D3D12_LOGIC_OP_COPY_INVERTED;
+	case gxapi::eBlendLogicOperation::NOOP:
+		return D3D12_LOGIC_OP_NOOP;
+	case gxapi::eBlendLogicOperation::INVERT:
+		return D3D12_LOGIC_OP_INVERT;
+	case gxapi::eBlendLogicOperation::AND:
+		return D3D12_LOGIC_OP_AND;
+	case gxapi::eBlendLogicOperation::NAND:
+		return D3D12_LOGIC_OP_NAND;
+	case gxapi::eBlendLogicOperation::OR:
+		return D3D12_LOGIC_OP_OR;
+	case gxapi::eBlendLogicOperation::NOR:
+		return D3D12_LOGIC_OP_NOR;
+	case gxapi::eBlendLogicOperation::XOR:
+		return D3D12_LOGIC_OP_XOR;
+	case gxapi::eBlendLogicOperation::EQUIV:
+		return D3D12_LOGIC_OP_EQUIV;
+	case gxapi::eBlendLogicOperation::AND_REVERSE:
+		return D3D12_LOGIC_OP_AND_REVERSE;
+	case gxapi::eBlendLogicOperation::AND_INVERTED:
+		return D3D12_LOGIC_OP_AND_INVERTED;
+	case gxapi::eBlendLogicOperation::OR_REVERSE:
+		return D3D12_LOGIC_OP_OR_REVERSE;
+	case gxapi::eBlendLogicOperation::OR_INVERTED:
+		return D3D12_LOGIC_OP_OR_INVERTED;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_LOGIC_OP{};
+}
+
+
+UINT8 native_cast(gxapi::eColorMask source) {
+	switch (source) {
+	case gxapi::eColorMask::RED:
+		return D3D12_COLOR_WRITE_ENABLE_RED;
+	case gxapi::eColorMask::GREEN:
+		return D3D12_COLOR_WRITE_ENABLE_GREEN;
+	case gxapi::eColorMask::BLUE:
+		return D3D12_COLOR_WRITE_ENABLE_BLUE;
+	case gxapi::eColorMask::ALPHA:
+		return D3D12_COLOR_WRITE_ENABLE_ALPHA;
+	case gxapi::eColorMask::ALL:
+		return D3D12_COLOR_WRITE_ENABLE_ALL;
+	default:
+		assert(false);
+		break;
+	}
+
+	return 0;
+}
+
+
+D3D12_FILL_MODE native_cast(gxapi::eFillMode source) {
+	switch (source) {
+	case gxapi::eFillMode::WIREFRAME:
+		return D3D12_FILL_MODE_WIREFRAME;
+	case gxapi::eFillMode::SOLID:
+		return D3D12_FILL_MODE_SOLID;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_FILL_MODE{};
+}
+
+
+D3D12_CULL_MODE native_cast(gxapi::eCullMode source) {
+	static_assert(frontFaceIsCCW == true, "Front face expected to be counter clockwise");
+
+	switch (source) {
+	case gxapi::eCullMode::DRAW_ALL:
+		return D3D12_CULL_MODE_NONE;
+	case gxapi::eCullMode::DRAW_CW:
+		return D3D12_CULL_MODE_FRONT;
+	case gxapi::eCullMode::DRAW_CCW:
+		return D3D12_CULL_MODE_BACK;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_CULL_MODE{};
+}
+
+
+D3D12_CONSERVATIVE_RASTERIZATION_MODE native_cast(gxapi::eConservativeRasterizationMode source) {
+	switch (source) {
+	case gxapi::eConservativeRasterizationMode::ON:
+		return D3D12_CONSERVATIVE_RASTERIZATION_MODE_ON;
+	case gxapi::eConservativeRasterizationMode::OFF:
+		return D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_CONSERVATIVE_RASTERIZATION_MODE{};
+}
+
+
+D3D12_STENCIL_OP native_cast(gxapi::eStencilOp source) {
+	switch (source) {
+	case gxapi::eStencilOp::KEEP:
+		return D3D12_STENCIL_OP_KEEP;
+	case gxapi::eStencilOp::ZERO:
+		return D3D12_STENCIL_OP_ZERO;
+	case gxapi::eStencilOp::REPLACE:
+		return D3D12_STENCIL_OP_REPLACE;
+	case gxapi::eStencilOp::INCR_SAT:
+		return D3D12_STENCIL_OP_INCR_SAT;
+	case gxapi::eStencilOp::DECR_SAT:
+		return D3D12_STENCIL_OP_DECR_SAT;
+	case gxapi::eStencilOp::INCR_WRAP:
+		return D3D12_STENCIL_OP_INCR;
+	case gxapi::eStencilOp::DECR_WRAP:
+		return D3D12_STENCIL_OP_DECR;
+	case gxapi::eStencilOp::INVERT:
+		return D3D12_STENCIL_OP_INVERT;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_STENCIL_OP{};
+}
+
+
+D3D12_INDEX_BUFFER_STRIP_CUT_VALUE native_cast(gxapi::eTriangleStripCutIndex source) {
+	switch (source) {
+	case gxapi::eTriangleStripCutIndex::DISABLED:
+		return D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
+	case gxapi::eTriangleStripCutIndex::FFFFh:
+		return D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF;
+	case gxapi::eTriangleStripCutIndex::FFFFFFFFh:
+		return D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFFFFFF;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_INDEX_BUFFER_STRIP_CUT_VALUE{};
+}
+
+
+D3D12_PRIMITIVE_TOPOLOGY_TYPE native_cast(gxapi::ePrimitiveTopologyType source) {
+	switch (source) {
+	case gxapi::ePrimitiveTopologyType::UNDEFINED:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_UNDEFINED;
+	case gxapi::ePrimitiveTopologyType::POINT:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_POINT;
+	case gxapi::ePrimitiveTopologyType::LINE:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE;
+	case gxapi::ePrimitiveTopologyType::TRIANGLE:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	case gxapi::ePrimitiveTopologyType::PATCH:
+		return D3D12_PRIMITIVE_TOPOLOGY_TYPE_PATCH;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_PRIMITIVE_TOPOLOGY_TYPE{};
 }
 
 
@@ -683,34 +919,34 @@ D3D12_RESOURCE_FLAGS native_cast(gxapi::eResourceFlags source) {
 D3D12_HEAP_FLAGS native_cast(gxapi::eHeapFlags source) {
 	D3D12_HEAP_FLAGS result = D3D12_HEAP_FLAG_NONE;
 
-	if ((source & inl::gxapi::eHeapFlags::SHARED) != 0) {
+	if ((source & gxapi::eHeapFlags::SHARED) != 0) {
 		result |= D3D12_HEAP_FLAG_SHARED;
 	}
-	if ((source & inl::gxapi::eHeapFlags::DENY_BUFFERS) != 0) {
+	if ((source & gxapi::eHeapFlags::DENY_BUFFERS) != 0) {
 		result |= D3D12_HEAP_FLAG_DENY_BUFFERS;
 	}
-	if ((source & inl::gxapi::eHeapFlags::ALLOW_DISPLAY) != 0) {
+	if ((source & gxapi::eHeapFlags::ALLOW_DISPLAY) != 0) {
 		result |= D3D12_HEAP_FLAG_ALLOW_DISPLAY;
 	}
-	if ((source & inl::gxapi::eHeapFlags::SHARED_CROSS_ADAPTER) != 0) {
+	if ((source & gxapi::eHeapFlags::SHARED_CROSS_ADAPTER) != 0) {
 		result |= D3D12_HEAP_FLAG_SHARED_CROSS_ADAPTER;
 	}
-	if ((source & inl::gxapi::eHeapFlags::DENY_RT_DS_TEXTURES) != 0) {
+	if ((source & gxapi::eHeapFlags::DENY_RT_DS_TEXTURES) != 0) {
 		result |= D3D12_HEAP_FLAG_DENY_RT_DS_TEXTURES;
 	}
-	if ((source & inl::gxapi::eHeapFlags::DENY_NON_RT_DS_TEXTURES) != 0) {
+	if ((source & gxapi::eHeapFlags::DENY_NON_RT_DS_TEXTURES) != 0) {
 		result |= D3D12_HEAP_FLAG_DENY_NON_RT_DS_TEXTURES;
 	}
-	if ((source & inl::gxapi::eHeapFlags::ALLOW_ALL_BUFFERS_AND_TEXTURES) != 0) {
+	if ((source & gxapi::eHeapFlags::ALLOW_ALL_BUFFERS_AND_TEXTURES) != 0) {
 		result |= D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES;
 	}
-	if ((source & inl::gxapi::eHeapFlags::ALLOW_ONLY_BUFFERS) != 0) {
+	if ((source & gxapi::eHeapFlags::ALLOW_ONLY_BUFFERS) != 0) {
 		result |= D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
 	}
-	if ((source & inl::gxapi::eHeapFlags::ALLOW_ONLY_NON_RT_DS_TEXTURES) != 0) {
+	if ((source & gxapi::eHeapFlags::ALLOW_ONLY_NON_RT_DS_TEXTURES) != 0) {
 		result |= D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES;
 	}
-	if ((source & inl::gxapi::eHeapFlags::ALLOW_ONLY_RT_DS_TEXTURES) != 0) {
+	if ((source & gxapi::eHeapFlags::ALLOW_ONLY_RT_DS_TEXTURES) != 0) {
 		result |= D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES;
 	}
 
@@ -879,6 +1115,88 @@ D3D12_DESCRIPTOR_HEAP_DESC native_cast(gxapi::DescriptorHeapDesc source) {
 	result.NumDescriptors = source.numDescriptors;
 	result.Flags = source.isShaderVisible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	result.NodeMask = 0;
+
+	return result;
+}
+
+
+D3D12_BLEND_DESC native_cast(gxapi::BlendState source) {
+	D3D12_BLEND_DESC result;
+
+	result.AlphaToCoverageEnable = source.alphaToCoverage;
+	result.IndependentBlendEnable = source.independentBlending;
+
+	size_t renderTargetCount = sizeof(result.RenderTarget) / sizeof(result.RenderTarget[0]);
+	for (size_t i = 0; i < renderTargetCount; i++) {
+		result.RenderTarget[i] = native_cast(source.multiTarget[i]);
+	}
+
+	return result;
+}
+
+
+D3D12_RENDER_TARGET_BLEND_DESC native_cast(gxapi::RenderTargetBlendState source) {
+	D3D12_RENDER_TARGET_BLEND_DESC result;
+
+	result.BlendEnable = source.enableBlending;
+	result.LogicOpEnable = source.enableLogicOp;
+	result.SrcBlend = native_cast(source.colorOperand1);
+	result.DestBlend = native_cast(source.colorOperand2);
+	result.BlendOp = native_cast(source.colorOperation);
+	result.SrcBlendAlpha = native_cast(source.alphaOperand1);
+	result.DestBlendAlpha = native_cast(source.alphaOperand2);
+	result.BlendOpAlpha = native_cast(source.alphaOperation);
+	result.LogicOp = native_cast(source.logicOperation);
+	result.RenderTargetWriteMask = native_cast(source.mask);
+
+	return result;
+}
+
+
+D3D12_RASTERIZER_DESC native_cast(gxapi::RasterizerState source) {
+	D3D12_RASTERIZER_DESC result;
+
+	result.FillMode = native_cast(source.fillMode);
+	result.CullMode = native_cast(source.cullMode);
+	result.FrontCounterClockwise = frontFaceIsCCW;
+	result.DepthBias = source.depthBias;
+	result.DepthBiasClamp = source.depthBiasClamp;
+	result.SlopeScaledDepthBias = source.slopeScaledDepthBias;
+	result.DepthClipEnable = source.depthClipEnabled;
+	result.MultisampleEnable = source.multisampleEnabled;
+	result.AntialiasedLineEnable = source.lineAntialiasingEnabled;
+	result.ForcedSampleCount = source.forcedSampleCount;
+	result.ConservativeRaster = native_cast(source.conservativeRasterization);
+
+	return result;
+}
+
+
+D3D12_DEPTH_STENCIL_DESC native_cast(gxapi::DepthStencilState source) {
+	D3D12_DEPTH_STENCIL_DESC result;
+
+	result.DepthEnable = source.enableDepthTest;
+	result.DepthWriteMask = source.enableDepthStencilWrite ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+	result.DepthFunc = native_cast(source.depthFunc);
+	result.StencilEnable = source.enableStencilTest;
+	result.StencilReadMask = source.stencilReadMask;
+	result.StencilWriteMask = source.stencilWriteMask;
+
+	static_assert(frontFaceIsCCW == true, "Front face expected to be counter clockwise");
+	result.FrontFace = native_cast(source.ccwFace);
+	result.BackFace = native_cast(source.cwFace);
+
+	return result;
+}
+
+
+D3D12_DEPTH_STENCILOP_DESC native_cast(gxapi::DepthStencilState::FaceOperations source) {
+	D3D12_DEPTH_STENCILOP_DESC result;
+
+	result.StencilFunc = native_cast(source.stencilFunc);
+	result.StencilPassOp = native_cast(source.stencilOpOnPass);
+	result.StencilFailOp = native_cast(source.stencilOpOnStencilFail);
+	result.StencilDepthFailOp = native_cast(source.stencilOpOnDepthFail);
 
 	return result;
 }

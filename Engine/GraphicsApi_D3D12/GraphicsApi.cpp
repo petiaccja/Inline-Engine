@@ -175,6 +175,18 @@ gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(gxapi::GraphicsP
 	D3D12_STREAM_OUTPUT_DESC nativeStreamOutput;
 	static_assert(false, "TODO missing StreamOutputState implementation");
 
+	std::vector<D3D12_INPUT_ELEMENT_DESC> nativeInputElements;
+	nativeInputElements.reserve(desc.inputLayout.numElements);
+
+	for (int i = 0; i < desc.inputLayout.numElements; i++) {
+		nativeInputElements.push_back(native_cast(desc.inputLayout.elements[i]));
+	}
+
+	D3D12_INPUT_LAYOUT_DESC nativeInputLayout;
+	nativeInputLayout.NumElements = nativeInputElements.size();
+	nativeInputLayout.pInputElementDescs = nativeInputElements.data();
+
+
 	nativeDesc.pRootSignature = native_cast(desc.rootSignature);
 	nativeDesc.VS                     = native_cast(desc.vs);
 	nativeDesc.PS                     = native_cast(desc.ps);
@@ -183,20 +195,25 @@ gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(gxapi::GraphicsP
 	nativeDesc.GS                     = native_cast(desc.gs);
 	nativeDesc.StreamOutput           = nativeStreamOutput;
 	nativeDesc.BlendState			  = native_cast(desc.blending);
-	nativeDesc.SampleMask			  = desc.sampleMask;
-	nativeDesc.RasterizerState        = desc.rasterizerState;
-	nativeDesc.DepthStencilState      = desc.depthStencilState;
-	nativeDesc.InputLayout            = desc.inputLayout;
-	nativeDesc.IBStripCutValue        = desc.iBStripCutValue;
-	nativeDesc.PrimitiveTopologyType  = desc.primitiveTopologyType;
+	nativeDesc.SampleMask			  = desc.blendSampleMask;
+	nativeDesc.RasterizerState        = native_cast(desc.rasterization);
+	nativeDesc.DepthStencilState      = native_cast(desc.depthStencilState);
+	nativeDesc.InputLayout            = nativeInputLayout;
+	nativeDesc.IBStripCutValue        = native_cast(desc.triangleStripCutIndex);
+	nativeDesc.PrimitiveTopologyType  = native_cast(desc.primitiveTopologyType);
 	nativeDesc.NumRenderTargets       = desc.numRenderTargets;
-	nativeDesc.RTVFormats             = desc.rTVFormats[8];
-	nativeDesc.DSVFormat              = desc.dSVFormat;
-	nativeDesc.SampleDesc             = desc.sampleDesc;
-	nativeDesc.NodeMask               = desc.nodeMask;
-	nativeDesc.CachedPSO              = desc.cachedPSO;
-	nativeDesc.Flags                  = desc.flags;
 
+	for (int i = 0; i < desc.numRenderTargets; i++) {
+		nativeDesc.RTVFormats[i] = native_cast(desc.renderTargetFormats[i]);
+	}
+
+	nativeDesc.DSVFormat              = native_cast(desc.depthStencilFormat);
+	nativeDesc.SampleDesc.Count       = desc.multisampleCount;
+	nativeDesc.SampleDesc.Quality     = desc.multisampleQuality;
+	nativeDesc.NodeMask               = 0;
+	nativeDesc.CachedPSO.CachedBlobSizeInBytes = 0;
+	nativeDesc.CachedPSO.pCachedBlob  = nullptr;
+	nativeDesc.Flags                  = desc.addDebugInfo ? D3D12_PIPELINE_STATE_FLAG_TOOL_DEBUG : D3D12_PIPELINE_STATE_FLAG_NONE;
 
 
 	if (FAILED(m_device->CreateGraphicsPipelineState(&nativeDesc, IID_PPV_ARGS(&native)))) {

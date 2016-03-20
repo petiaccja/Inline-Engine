@@ -18,6 +18,11 @@ namespace inl {
 namespace gxapi_dx12 {
 
 ////////////////////////////////////////////////////////////
+//CONSTANT
+constexpr bool frontFaceIsCCW = true;
+
+
+////////////////////////////////////////////////////////////
 // TO NATIVE
 ////////////////////////////////////////////////////////////
 
@@ -75,6 +80,25 @@ D3D12_RESOURCE_DIMENSION native_cast(gxapi::eTextueDimension source);
 
 D3D12_RESOURCE_STATES native_cast(gxapi::eResourceState source);
 
+D3D12_BLEND native_cast(gxapi::eBlendOperand source);
+
+D3D12_BLEND_OP native_cast(gxapi::eBlendOperation source);
+
+D3D12_LOGIC_OP native_cast(gxapi::eBlendLogicOperation source);
+
+UINT8 native_cast(gxapi::eColorMask source);
+
+D3D12_FILL_MODE native_cast(gxapi::eFillMode source);
+
+D3D12_CULL_MODE native_cast(gxapi::eCullMode source);
+
+D3D12_CONSERVATIVE_RASTERIZATION_MODE native_cast(gxapi::eConservativeRasterizationMode source);
+
+D3D12_STENCIL_OP native_cast(gxapi::eStencilOp source);
+
+D3D12_INDEX_BUFFER_STRIP_CUT_VALUE native_cast(gxapi::eTriangleStripCutIndex source);
+
+D3D12_PRIMITIVE_TOPOLOGY_TYPE native_cast(gxapi::ePrimitiveTopologyType source);
 
 //---------------
 //FLAGS
@@ -105,6 +129,16 @@ D3D12_STATIC_SAMPLER_DESC native_cast(gxapi::StaticSamplerDesc source);
 D3D12_COMMAND_QUEUE_DESC native_cast(gxapi::CommandQueueDesc source);
 
 D3D12_DESCRIPTOR_HEAP_DESC native_cast(gxapi::DescriptorHeapDesc source);
+
+D3D12_BLEND_DESC native_cast(gxapi::BlendState source);
+
+D3D12_RENDER_TARGET_BLEND_DESC native_cast(gxapi::RenderTargetBlendState source);
+
+D3D12_RASTERIZER_DESC native_cast(gxapi::RasterizerState source);
+
+D3D12_DEPTH_STENCIL_DESC native_cast(gxapi::DepthStencilState source);
+
+D3D12_DEPTH_STENCILOP_DESC native_cast(gxapi::DepthStencilState::FaceOperations source);
 
 //---------------
 //OTHER
