@@ -2,9 +2,16 @@
 
 #include <cstdint>
 #include <limits>
+#undef DOMAIN // math.h, conflicting with eShaderVisibility::DOMAIN
 
 namespace inl {
 namespace gxapi {
+
+
+class ICommandAllocator;
+class IRootSignature;
+class IPipelineState;
+
 
 //------------------------------------------------------------------------------
 // Common structures
