@@ -117,6 +117,12 @@
     <ClInclude Include="..\GraphicsApi_LL\Exception.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="DisableWin32Macros.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="EnableWin32Macros.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />

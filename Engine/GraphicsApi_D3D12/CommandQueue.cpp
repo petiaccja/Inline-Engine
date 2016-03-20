@@ -1,13 +1,15 @@
 #include "CommandQueue.hpp"
 
-#include <d3d12.h>
-#include <cassert>
-#include <vector>
-
 #include "NativeCast.hpp"
 
 #include "CommandList.hpp"
 #include "Fence.hpp"
+
+#include <cassert>
+#include <vector>
+
+#include <d3d12.h>
+#include "DisableWin32Macros.h"
 
 namespace inl {
 namespace gxapi_dx12 {

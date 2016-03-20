@@ -6,6 +6,8 @@
 #define NOMINMAX
 #include <wrl.h>
 #include <d3d12.h>
+#include "DisableWin32Macros.h"
+
 
 namespace inl {
 namespace gxapi_dx12 {
