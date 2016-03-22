@@ -35,12 +35,12 @@ void GraphicsCommandList::ResetState(gxapi::IPipelineState* newState) {
 
 
 void GraphicsCommandList::Close() {
-	m_native->Close();
+	m_native->Close(); //TODO error check
 }
 
 
-void GraphicsCommandList::Reset(gxapi::ICommandAllocator * allocator, gxapi::IPipelineState * newState) {
-	m_native->Reset(native_cast(allocator), native_cast(newState));
+void GraphicsCommandList::Reset(gxapi::ICommandAllocator* allocator, gxapi::IPipelineState* newState) {
+	m_native->Reset(native_cast(allocator), native_cast(newState)); //TODO error check
 }
 
 

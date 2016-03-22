@@ -749,7 +749,7 @@ struct InputElementDesc {
 
 struct InputLayout {
 	unsigned numElements;
-	InputElementDesc elements;
+	InputElementDesc* elements;
 };
 
 struct DepthStencilState {

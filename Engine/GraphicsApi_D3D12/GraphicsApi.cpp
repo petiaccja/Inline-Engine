@@ -76,7 +76,7 @@ gxapi::IResource* GraphicsApi::CreateCommittedResource(gxapi::HeapProperties hea
 		pNativeClearValue = &nativeClearValue;
 	}
 
-	if ((m_device->CreateCommittedResource(&nativeHeapProperties, native_cast(heapFlags), &nativeResourceDesc, native_cast(initialState), pNativeClearValue, IID_PPV_ARGS(&native)))) {
+	if (FAILED(m_device->CreateCommittedResource(&nativeHeapProperties, native_cast(heapFlags), &nativeResourceDesc, native_cast(initialState), pNativeClearValue, IID_PPV_ARGS(&native)))) {
 		throw std::runtime_error("Could not create commited resource");
 	}
 
@@ -174,6 +174,7 @@ gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(gxapi::GraphicsP
 
 	D3D12_STREAM_OUTPUT_DESC nativeStreamOutput;
 	static_assert(false, "TODO missing StreamOutputState implementation");
+	nativeStreamOutput.insert_member_name_here = desc.streamOutput.insert_corresponding_member_name_here;
 
 	std::vector<D3D12_INPUT_ELEMENT_DESC> nativeInputElements;
 	nativeInputElements.reserve(desc.inputLayout.numElements);

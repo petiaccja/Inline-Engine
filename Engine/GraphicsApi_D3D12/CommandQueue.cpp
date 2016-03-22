@@ -33,12 +33,12 @@ void CommandQueue::ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommand
 
 
 void CommandQueue::Signal(gxapi::IFence* fence, uint64_t value) {
-	m_native->Signal(native_cast(fence), value);
+	m_native->Signal(native_cast(fence), value); //TODO error check
 }
 
 
 void CommandQueue::Wait(gxapi::IFence* fence, uint64_t value) {
-	m_native->Wait(native_cast(fence), value);
+	m_native->Wait(native_cast(fence), value); //TODO error check
 }
 
 gxapi::CommandQueueDesc CommandQueue::GetDesc() const {

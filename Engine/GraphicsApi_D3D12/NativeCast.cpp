@@ -890,6 +890,21 @@ D3D12_PRIMITIVE_TOPOLOGY_TYPE native_cast(gxapi::ePrimitiveTopologyType source) 
 }
 
 
+D3D12_INPUT_CLASSIFICATION native_cast(gxapi::eInputClassification source) {
+	switch (source) {
+	case inl::gxapi::eInputClassification::VERTEX_DATA:
+		return D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+	case inl::gxapi::eInputClassification::INSTANCE_DATA:
+		return D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_INPUT_CLASSIFICATION{};
+}
+
+
 D3D12_RESOURCE_FLAGS native_cast(gxapi::eResourceFlags source) {
 	D3D12_RESOURCE_FLAGS result = D3D12_RESOURCE_FLAG_NONE;
 
@@ -1197,6 +1212,21 @@ D3D12_DEPTH_STENCILOP_DESC native_cast(gxapi::DepthStencilState::FaceOperations 
 	result.StencilPassOp = native_cast(source.stencilOpOnPass);
 	result.StencilFailOp = native_cast(source.stencilOpOnStencilFail);
 	result.StencilDepthFailOp = native_cast(source.stencilOpOnDepthFail);
+
+	return result;
+}
+
+
+D3D12_INPUT_ELEMENT_DESC native_cast(gxapi::InputElementDesc source) {
+	D3D12_INPUT_ELEMENT_DESC result;
+
+	result.SemanticName = source.semanticName;
+	result.SemanticIndex = source.semanticIndex;
+	result.Format = native_cast(source.format);
+	result.InputSlot = source.inputSlot;
+	result.AlignedByteOffset = source.offset;
+	result.InputSlotClass = native_cast(source.classifiacation);
+	result.InstanceDataStepRate = source.instanceDataStepRate;
 
 	return result;
 }

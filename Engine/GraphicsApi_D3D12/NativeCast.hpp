@@ -100,6 +100,8 @@ D3D12_INDEX_BUFFER_STRIP_CUT_VALUE native_cast(gxapi::eTriangleStripCutIndex sou
 
 D3D12_PRIMITIVE_TOPOLOGY_TYPE native_cast(gxapi::ePrimitiveTopologyType source);
 
+D3D12_INPUT_CLASSIFICATION native_cast(gxapi::eInputClassification source);
+
 //---------------
 //FLAGS
 D3D12_RESOURCE_FLAGS native_cast(gxapi::eResourceFlags source);
@@ -139,6 +141,8 @@ D3D12_RASTERIZER_DESC native_cast(gxapi::RasterizerState source);
 D3D12_DEPTH_STENCIL_DESC native_cast(gxapi::DepthStencilState source);
 
 D3D12_DEPTH_STENCILOP_DESC native_cast(gxapi::DepthStencilState::FaceOperations source);
+
+D3D12_INPUT_ELEMENT_DESC native_cast(gxapi::InputElementDesc source);
 
 //---------------
 //OTHER

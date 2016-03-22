@@ -20,7 +20,7 @@ uint64_t Fence::Fetch() {
 
 
 void Fence::Signal(uint64_t value) {
-	m_native->Signal(value);
+	m_native->Signal(value); //TODO error check
 }
 
 

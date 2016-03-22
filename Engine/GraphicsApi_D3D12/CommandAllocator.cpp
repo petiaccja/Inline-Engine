@@ -18,7 +18,7 @@ ID3D12CommandAllocator* CommandAllocator::GetNative() {
 
 
 void CommandAllocator::Reset() {
-	m_native->Reset();
+	m_native->Reset(); //TODO error check
 }
 
 
