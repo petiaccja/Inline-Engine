@@ -93,7 +93,7 @@ gxapi::IRootSignature* GraphicsApi::CreateRootSignature(gxapi::RootSignatureDesc
 	std::vector<D3D12_ROOT_PARAMETER> nativeParameters;
 	{
 		nativeParameters.reserve(desc.numRootParameters);
-		for (int i = 0; i < desc.numRootParameters; i++) {
+		for (unsigned i = 0; i < desc.numRootParameters; i++) {
 			const auto &source = desc.rootParameters[i];
 			D3D12_ROOT_PARAMETER nativeParameter;
 
@@ -108,7 +108,7 @@ gxapi::IRootSignature* GraphicsApi::CreateRootSignature(gxapi::RootSignatureDesc
 				descriptorRangesPerRootParameter.push_back(std::vector<D3D12_DESCRIPTOR_RANGE>{});
 				auto& nativeRanges = descriptorRangesPerRootParameter.back();
 				nativeRanges.reserve(srcTable.numDescriptorRanges);
-				for (int i = 0; i< srcTable.numDescriptorRanges; i++) {
+				for (unsigned i = 0; i< srcTable.numDescriptorRanges; i++) {
 					nativeRanges.push_back(native_cast(srcTable.descriptorRanges[i]));
 				}
 
@@ -136,7 +136,7 @@ gxapi::IRootSignature* GraphicsApi::CreateRootSignature(gxapi::RootSignatureDesc
 	std::vector<D3D12_STATIC_SAMPLER_DESC> nativeSamplers;
 	{
 		nativeSamplers.reserve(desc.numStaticSamplers);
-		for (int i = 0; i < desc.numStaticSamplers; i++) {
+		for (unsigned i = 0; i < desc.numStaticSamplers; i++) {
 			nativeSamplers.push_back(native_cast(desc.staticSamplers[i]));
 		}
 	}
@@ -153,7 +153,7 @@ gxapi::IRootSignature* GraphicsApi::CreateRootSignature(gxapi::RootSignatureDesc
 	if (FAILED(D3D12SerializeRootSignature(&nativeDesc, D3D_ROOT_SIGNATURE_VERSION_1, &serializedSignature, &error))) {
 		std::string errorStr;
 		errorStr.reserve(error->GetBufferSize());
-		for (int i = 0; i < error->GetBufferSize(); i++) {
+		for (unsigned i = 0; i < error->GetBufferSize(); i++) {
 			errorStr += static_cast<char*>(error->GetBufferPointer())[i];
 		}
 		throw std::runtime_error("Could not create root signature, error while serializing signature: " + errorStr);
@@ -183,7 +183,7 @@ gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(gxapi::GraphicsP
 	std::vector<D3D12_INPUT_ELEMENT_DESC> nativeInputElements;
 	nativeInputElements.reserve(desc.inputLayout.numElements);
 
-	for (int i = 0; i < desc.inputLayout.numElements; i++) {
+	for (unsigned i = 0; i < desc.inputLayout.numElements; i++) {
 		nativeInputElements.push_back(native_cast(desc.inputLayout.elements[i]));
 	}
 
@@ -208,7 +208,7 @@ gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(gxapi::GraphicsP
 	nativeDesc.PrimitiveTopologyType  = native_cast(desc.primitiveTopologyType);
 	nativeDesc.NumRenderTargets       = desc.numRenderTargets;
 
-	for (int i = 0; i < desc.numRenderTargets; i++) {
+	for (unsigned i = 0; i < desc.numRenderTargets; i++) {
 		nativeDesc.RTVFormats[i] = native_cast(desc.renderTargetFormats[i]);
 	}
 

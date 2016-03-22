@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../BaseLibrary/Utility_/BitflagEnum.hpp"
+
 #include <cstdint>
 #include <limits>
 #undef DOMAIN // math.h, conflicting with eShaderVisibility::DOMAIN
@@ -253,51 +255,6 @@ enum class eMemoryPool {
 	DEDICATED,
 };
 
-enum class eHeapFlags {
-	NONE = 0,
-	SHARED = 0x1,
-	DENY_BUFFERS = 0x4,
-	ALLOW_DISPLAY = 0x8,
-	SHARED_CROSS_ADAPTER = 0x20,
-	DENY_RT_DS_TEXTURES = 0x40,
-	DENY_NON_RT_DS_TEXTURES = 0x80,
-	ALLOW_ALL_BUFFERS_AND_TEXTURES = 0,
-	ALLOW_ONLY_BUFFERS = 0xc0,
-	ALLOW_ONLY_NON_RT_DS_TEXTURES = 0x44,
-	ALLOW_ONLY_RT_DS_TEXTURES = 0x84
-};
-
-enum class eResourceState {
-	COMMON = 0,
-	VERTEX_AND_CONSTANT_BUFFER = 0x1,
-	INDEX_BUFFER = 0x2,
-	RENDER_TARGET = 0x4,
-	UNORDERED_ACCESS = 0x8,
-	DEPTH_WRITE = 0x10,
-	DEPTH_READ = 0x20,
-	NON_PIXEL_SHADER_RESOURCE = 0x40,
-	PIXEL_SHADER_RESOURCE = 0x80,
-	STREAM_OUT = 0x100,
-	INDIRECT_ARGUMENT = 0x200,
-	COPY_DEST = 0x400,
-	COPY_SOURCE = 0x800,
-	RESOLVE_DEST = 0x1000,
-	RESOLVE_SOURCE = 0x2000,
-	GENERIC_READ = (((((0x1 | 0x2) | 0x40) | 0x80) | 0x200) | 0x800),
-	PRESENT = 0,
-	PREDICATION = 0x200
-};
-
-enum class eResourceFlags {
-	NONE = 0,
-	ALLOW_RENDER_TARGET = 0x1,
-	ALLOW_DEPTH_STENCIL = 0x2,
-	ALLOW_UNORDERED_ACCESS = 0x4,
-	DENY_SHADER_RESOURCE = 0x8,
-	ALLOW_CROSS_ADAPTER = 0x10,
-	ALLOW_SIMULTANEOUS_ACCESS = 0x20
-};
-
 enum class eTextueDimension {
 	ONE,
 	TWO,
@@ -315,14 +272,6 @@ enum class eTextureLayout {
 enum class eResourceType {
 	TEXTURE,
 	BUFFER,
-};
-
-enum class eColorMask {
-	RED = 1,
-	GREEN = 2,
-	BLUE = 4,
-	ALPHA = 8,
-	ALL = (RED | GREEN | BLUE | ALPHA),
 };
 
 enum class eBlendOperand {
@@ -479,6 +428,83 @@ enum class eTextureBorderColor {
 
 
 //------------------------------------------------------------------------------
+// Bitflag enumerations
+//------------------------------------------------------------------------------
+
+
+namespace bitflag_enum_impl {
+
+struct eHeapFlags_Base {
+	enum eHeapFlags {
+		NONE = 0,
+		SHARED = 0x1,
+		DENY_BUFFERS = 0x4,
+		ALLOW_DISPLAY = 0x8,
+		SHARED_CROSS_ADAPTER = 0x20,
+		DENY_RT_DS_TEXTURES = 0x40,
+		DENY_NON_RT_DS_TEXTURES = 0x80,
+		ALLOW_ALL_BUFFERS_AND_TEXTURES = 0,
+		ALLOW_ONLY_BUFFERS = 0xc0,
+		ALLOW_ONLY_NON_RT_DS_TEXTURES = 0x44,
+		ALLOW_ONLY_RT_DS_TEXTURES = 0x84
+	};
+};
+
+struct eResourceState_Base {
+	enum eResourceState {
+		COMMON = 0,
+		VERTEX_AND_CONSTANT_BUFFER = 0x1,
+		INDEX_BUFFER = 0x2,
+		RENDER_TARGET = 0x4,
+		UNORDERED_ACCESS = 0x8,
+		DEPTH_WRITE = 0x10,
+		DEPTH_READ = 0x20,
+		NON_PIXEL_SHADER_RESOURCE = 0x40,
+		PIXEL_SHADER_RESOURCE = 0x80,
+		STREAM_OUT = 0x100,
+		INDIRECT_ARGUMENT = 0x200,
+		COPY_DEST = 0x400,
+		COPY_SOURCE = 0x800,
+		RESOLVE_DEST = 0x1000,
+		RESOLVE_SOURCE = 0x2000,
+		GENERIC_READ = (((((0x1 | 0x2) | 0x40) | 0x80) | 0x200) | 0x800),
+		PRESENT = 0,
+		PREDICATION = 0x200
+	};
+};
+
+struct eResourceFlags_Base {
+	enum eResourceFlags {
+		NONE = 0,
+		ALLOW_RENDER_TARGET = 0x1,
+		ALLOW_DEPTH_STENCIL = 0x2,
+		ALLOW_UNORDERED_ACCESS = 0x4,
+		DENY_SHADER_RESOURCE = 0x8,
+		ALLOW_CROSS_ADAPTER = 0x10,
+		ALLOW_SIMULTANEOUS_ACCESS = 0x20
+	};
+};
+
+struct eColorMask_Base {
+	enum eColorMask {
+		RED = 1,
+		GREEN = 2,
+		BLUE = 4,
+		ALPHA = 8,
+		ALL = (RED | GREEN | BLUE | ALPHA),
+	};
+};
+
+} // namespace bitflag_enum_impl
+
+using eHeapFlags = exc::BitFlagEnum<bitflag_enum_impl::eHeapFlags_Base, bitflag_enum_impl::eHeapFlags_Base::eHeapFlags>;
+using eResourceState = exc::BitFlagEnum<bitflag_enum_impl::eResourceState_Base, bitflag_enum_impl::eResourceState_Base::eResourceState>;
+using eResourceFlags = exc::BitFlagEnum<bitflag_enum_impl::eResourceFlags_Base, bitflag_enum_impl::eResourceFlags_Base::eResourceFlags>;
+using eColorMask = exc::BitFlagEnum<bitflag_enum_impl::eColorMask_Base, bitflag_enum_impl::eColorMask_Base::eColorMask>;
+
+
+
+//------------------------------------------------------------------------------
 // Rendering structures
 //------------------------------------------------------------------------------
 
@@ -502,10 +528,14 @@ struct HeapProperties {
 };
 
 struct BufferDesc {
-	size_t sizeInBytes;
+	BufferDesc() = default;
+
+	uint64_t sizeInBytes;
 };
 
 struct TextureDesc {
+	TextureDesc() = default;
+
 	eTextueDimension dimension;
 	uint64_t alignment;
 	uint64_t width;
@@ -524,10 +554,12 @@ struct ResourceDesc {
 	ResourceDesc() = default;
 
 	eResourceType type;
-	union {
+
+	// C++ won't let it be a union because members are not POD types technically... Fuck that!
+	//union {
 		TextureDesc textureDesc;
 		BufferDesc bufferDesc;
-	};
+	//};
 
 	static inline ResourceDesc Buffer(uint64_t sizeInBytes);
 	static inline ResourceDesc Texture1D(uint64_t width, eFormat format, eResourceFlags flags = eResourceFlags::NONE,
@@ -1044,7 +1076,7 @@ inline ResourceDesc ResourceDesc::Texture1DArray(uint64_t width, eFormat format,
 inline ResourceDesc ResourceDesc::Texture2D(uint64_t width, uint32_t height, eFormat format,
 											eResourceFlags flags,
 											uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
-											uint64_t alignment, eTextureLayout layout) 
+											uint64_t alignment, eTextureLayout layout)
 {
 	ResourceDesc desc;
 	desc.type = eResourceType::TEXTURE;
@@ -1155,7 +1187,7 @@ inline RootParameterDesc RootParameterDesc::Cbv(unsigned shaderRegister, unsigne
 	desc.descriptor.shaderRegister = shaderRegister;
 	desc.descriptor.registerSpace = registerSpace;
 	desc.shaderVisibility = shaderVisibility;
-	
+
 	return desc;
 }
 inline RootParameterDesc RootParameterDesc::Srv(unsigned shaderRegister, unsigned registerSpace, eShaderVisiblity shaderVisibility) {

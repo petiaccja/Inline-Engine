@@ -15,9 +15,9 @@ namespace gxapi_dx12 {
 class CommandList : public gxapi::ICommandList {
 public:
 	virtual ~CommandList() = default;
-	virtual ID3D12CommandList* GetNativeGenericList() = 0;
+	virtual ID3D12CommandList* GetNativeGenericList() const = 0;
 
-	gxapi::eCommandListType GetType() override;
+	gxapi::eCommandListType GetType() const override;
 };
 
 

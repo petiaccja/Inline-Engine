@@ -608,47 +608,70 @@ D3D12_RESOURCE_DIMENSION native_cast(gxapi::eTextueDimension source) {
 
 
 D3D12_RESOURCE_STATES native_cast(gxapi::eResourceState source) {
-	switch (source) {
-	case gxapi::eResourceState::COMMON:
-		return D3D12_RESOURCE_STATE_COMMON;
-	case gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER:
-		return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-	case gxapi::eResourceState::INDEX_BUFFER:
-		return D3D12_RESOURCE_STATE_INDEX_BUFFER;
-	case gxapi::eResourceState::RENDER_TARGET:
-		return D3D12_RESOURCE_STATE_RENDER_TARGET;
-	case gxapi::eResourceState::UNORDERED_ACCESS:
-		return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-	case gxapi::eResourceState::DEPTH_WRITE:
-		return D3D12_RESOURCE_STATE_DEPTH_WRITE;
-	case gxapi::eResourceState::DEPTH_READ:
-		return D3D12_RESOURCE_STATE_DEPTH_READ;
-	case gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE:
-		return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-	case gxapi::eResourceState::PIXEL_SHADER_RESOURCE:
-		return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-	case gxapi::eResourceState::STREAM_OUT:
-		return D3D12_RESOURCE_STATE_STREAM_OUT;
-	case gxapi::eResourceState::INDIRECT_ARGUMENT:
-		return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
-	case gxapi::eResourceState::COPY_DEST:
-		return D3D12_RESOURCE_STATE_COPY_DEST;
-	case gxapi::eResourceState::COPY_SOURCE:
-		return D3D12_RESOURCE_STATE_COPY_SOURCE;
-	case gxapi::eResourceState::RESOLVE_DEST:
-		return D3D12_RESOURCE_STATE_RESOLVE_DEST;
-	case gxapi::eResourceState::RESOLVE_SOURCE:
-		return D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
-	case gxapi::eResourceState::GENERIC_READ:
-		return D3D12_RESOURCE_STATE_GENERIC_READ;
-	case gxapi::eResourceState::PRESENT:
-		return D3D12_RESOURCE_STATE_PRESENT;
-	case gxapi::eResourceState::PREDICATION:
-		return D3D12_RESOURCE_STATE_PREDICATION;
-	default:
-		assert(false);
-		break;
-	}
+	//static_assert(false, "this is a bitflag!");
+	//switch ((gxapi::eResourceState::EnumT)source) {
+	//case gxapi::eResourceState::COMMON:
+	//	return D3D12_RESOURCE_STATE_COMMON;
+	//case gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER:
+	//	return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+	//case gxapi::eResourceState::INDEX_BUFFER:
+	//	return D3D12_RESOURCE_STATE_INDEX_BUFFER;
+	//case gxapi::eResourceState::RENDER_TARGET:
+	//	return D3D12_RESOURCE_STATE_RENDER_TARGET;
+	//case gxapi::eResourceState::UNORDERED_ACCESS:
+	//	return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+	//case gxapi::eResourceState::DEPTH_WRITE:
+	//	return D3D12_RESOURCE_STATE_DEPTH_WRITE;
+	//case gxapi::eResourceState::DEPTH_READ:
+	//	return D3D12_RESOURCE_STATE_DEPTH_READ;
+	//case gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE:
+	//	return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+	//case gxapi::eResourceState::PIXEL_SHADER_RESOURCE:
+	//	return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+	//case gxapi::eResourceState::STREAM_OUT:
+	//	return D3D12_RESOURCE_STATE_STREAM_OUT;
+	//case gxapi::eResourceState::INDIRECT_ARGUMENT:
+	//	return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
+	//case gxapi::eResourceState::COPY_DEST:
+	//	return D3D12_RESOURCE_STATE_COPY_DEST;
+	//case gxapi::eResourceState::COPY_SOURCE:
+	//	return D3D12_RESOURCE_STATE_COPY_SOURCE;
+	//case gxapi::eResourceState::RESOLVE_DEST:
+	//	return D3D12_RESOURCE_STATE_RESOLVE_DEST;
+	//case gxapi::eResourceState::RESOLVE_SOURCE:
+	//	return D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
+	//case gxapi::eResourceState::GENERIC_READ:
+	//	return D3D12_RESOURCE_STATE_GENERIC_READ;
+	//case gxapi::eResourceState::PRESENT:
+	//	return D3D12_RESOURCE_STATE_PRESENT;
+	//case gxapi::eResourceState::PREDICATION:
+	//	return D3D12_RESOURCE_STATE_PREDICATION;
+	//default:
+	//	assert(false);
+	//	break;
+	//}
+
+	D3D12_RESOURCE_STATES nativeFlag = static_cast<D3D12_RESOURCE_STATES>(0);
+
+	// native  |= (boolean cast -> 1 if true, 0 if false ) * native value;
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::COMMON)						* D3D12_RESOURCE_STATE_COMMON					);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER)	* D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER	);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::INDEX_BUFFER)				* D3D12_RESOURCE_STATE_INDEX_BUFFER					);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::RENDER_TARGET)				* D3D12_RESOURCE_STATE_RENDER_TARGET					);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::UNORDERED_ACCESS)			* D3D12_RESOURCE_STATE_UNORDERED_ACCESS				);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::DEPTH_WRITE)					* D3D12_RESOURCE_STATE_DEPTH_WRITE					);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::DEPTH_READ)					* D3D12_RESOURCE_STATE_DEPTH_READ					);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE)	* D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE		);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::PIXEL_SHADER_RESOURCE)		* D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE			);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::STREAM_OUT)					* D3D12_RESOURCE_STATE_STREAM_OUT					);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::INDIRECT_ARGUMENT)			* D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT				);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::COPY_DEST)					* D3D12_RESOURCE_STATE_COPY_DEST						);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::COPY_SOURCE)					* D3D12_RESOURCE_STATE_COPY_SOURCE					);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::RESOLVE_DEST)				* D3D12_RESOURCE_STATE_RESOLVE_DEST					);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::RESOLVE_SOURCE)				* D3D12_RESOURCE_STATE_RESOLVE_SOURCE				);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::GENERIC_READ)				* D3D12_RESOURCE_STATE_GENERIC_READ					);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::PRESENT)						* D3D12_RESOURCE_STATE_PRESENT						);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::PREDICATION)					* D3D12_RESOURCE_STATE_PREDICATION					);
 
 	return D3D12_RESOURCE_STATES{};
 }
@@ -756,21 +779,34 @@ D3D12_LOGIC_OP native_cast(gxapi::eBlendLogicOperation source) {
 
 
 UINT8 native_cast(gxapi::eColorMask source) {
-	switch (source) {
-	case gxapi::eColorMask::RED:
-		return D3D12_COLOR_WRITE_ENABLE_RED;
-	case gxapi::eColorMask::GREEN:
-		return D3D12_COLOR_WRITE_ENABLE_GREEN;
-	case gxapi::eColorMask::BLUE:
-		return D3D12_COLOR_WRITE_ENABLE_BLUE;
-	case gxapi::eColorMask::ALPHA:
-		return D3D12_COLOR_WRITE_ENABLE_ALPHA;
-	case gxapi::eColorMask::ALL:
-		return D3D12_COLOR_WRITE_ENABLE_ALL;
-	default:
-		assert(false);
-		break;
-	}
+	//static_assert(false, "this is a bitflag!");
+	//switch ((gxapi::eColorMask::EnumT)source) {
+	//case gxapi::eColorMask::RED:
+	//	return D3D12_COLOR_WRITE_ENABLE_RED;
+	//case gxapi::eColorMask::GREEN:
+	//	return D3D12_COLOR_WRITE_ENABLE_GREEN;
+	//case gxapi::eColorMask::BLUE:
+	//	return D3D12_COLOR_WRITE_ENABLE_BLUE;
+	//case gxapi::eColorMask::ALPHA:
+	//	return D3D12_COLOR_WRITE_ENABLE_ALPHA;
+	//case gxapi::eColorMask::ALL:
+	//	return D3D12_COLOR_WRITE_ENABLE_ALL;
+	//default:
+	//	assert(false);
+	//	break;
+	//}
+
+	D3D12_COLOR_WRITE_ENABLE nativeFlag = static_cast<D3D12_COLOR_WRITE_ENABLE>(0);
+	using UnderlyingType = typename std::underlying_type<D3D12_COLOR_WRITE_ENABLE>::type;
+
+	// native  |= (boolean cast -> 1 if true, 0 if false ) * native value;
+	(UnderlyingType&)nativeFlag |= D3D12_COLOR_WRITE_ENABLE(bool(source & gxapi::eColorMask::RED)	* D3D12_COLOR_WRITE_ENABLE_RED);
+	(UnderlyingType&)nativeFlag |= D3D12_COLOR_WRITE_ENABLE(bool(source & gxapi::eColorMask::GREEN)	* D3D12_COLOR_WRITE_ENABLE_GREEN);
+	(UnderlyingType&)nativeFlag |= D3D12_COLOR_WRITE_ENABLE(bool(source & gxapi::eColorMask::BLUE)	* D3D12_COLOR_WRITE_ENABLE_BLUE);
+	(UnderlyingType&)nativeFlag |= D3D12_COLOR_WRITE_ENABLE(bool(source & gxapi::eColorMask::ALPHA)	* D3D12_COLOR_WRITE_ENABLE_ALPHA);
+	(UnderlyingType&)nativeFlag |= D3D12_COLOR_WRITE_ENABLE(bool(source & gxapi::eColorMask::ALL)	* D3D12_COLOR_WRITE_ENABLE_ALL);
+
+
 
 	return 0;
 }
@@ -908,22 +944,22 @@ D3D12_INPUT_CLASSIFICATION native_cast(gxapi::eInputClassification source) {
 D3D12_RESOURCE_FLAGS native_cast(gxapi::eResourceFlags source) {
 	D3D12_RESOURCE_FLAGS result = D3D12_RESOURCE_FLAG_NONE;
 
-	if ((source & gxapi::eResourceFlags::ALLOW_RENDER_TARGET) != 0) {
+	if (source & gxapi::eResourceFlags::ALLOW_RENDER_TARGET) {
 		result |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 	}
-	if ((source & gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL) != 0) {
+	if (source & gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL) {
 		result |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 	}
-	if ((source & gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS) != 0) {
+	if (source & gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS) {
 		result |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 	}
-	if ((source & gxapi::eResourceFlags::DENY_SHADER_RESOURCE) != 0) {
+	if (source & gxapi::eResourceFlags::DENY_SHADER_RESOURCE) {
 		result |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
 	}
-	if ((source & gxapi::eResourceFlags::ALLOW_CROSS_ADAPTER) != 0) {
+	if (source & gxapi::eResourceFlags::ALLOW_CROSS_ADAPTER) {
 		result |= D3D12_RESOURCE_FLAG_ALLOW_CROSS_ADAPTER;
 	}
-	if ((source & gxapi::eResourceFlags::ALLOW_SIMULTANEOUS_ACCESS) != 0) {
+	if (source & gxapi::eResourceFlags::ALLOW_SIMULTANEOUS_ACCESS) {
 		result |= D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS;
 	}
 
@@ -934,34 +970,34 @@ D3D12_RESOURCE_FLAGS native_cast(gxapi::eResourceFlags source) {
 D3D12_HEAP_FLAGS native_cast(gxapi::eHeapFlags source) {
 	D3D12_HEAP_FLAGS result = D3D12_HEAP_FLAG_NONE;
 
-	if ((source & gxapi::eHeapFlags::SHARED) != 0) {
+	if (source & gxapi::eHeapFlags::SHARED) {
 		result |= D3D12_HEAP_FLAG_SHARED;
 	}
-	if ((source & gxapi::eHeapFlags::DENY_BUFFERS) != 0) {
+	if (source & gxapi::eHeapFlags::DENY_BUFFERS) {
 		result |= D3D12_HEAP_FLAG_DENY_BUFFERS;
 	}
-	if ((source & gxapi::eHeapFlags::ALLOW_DISPLAY) != 0) {
+	if (source & gxapi::eHeapFlags::ALLOW_DISPLAY) {
 		result |= D3D12_HEAP_FLAG_ALLOW_DISPLAY;
 	}
-	if ((source & gxapi::eHeapFlags::SHARED_CROSS_ADAPTER) != 0) {
+	if (source & gxapi::eHeapFlags::SHARED_CROSS_ADAPTER) {
 		result |= D3D12_HEAP_FLAG_SHARED_CROSS_ADAPTER;
 	}
-	if ((source & gxapi::eHeapFlags::DENY_RT_DS_TEXTURES) != 0) {
+	if (source & gxapi::eHeapFlags::DENY_RT_DS_TEXTURES) {
 		result |= D3D12_HEAP_FLAG_DENY_RT_DS_TEXTURES;
 	}
-	if ((source & gxapi::eHeapFlags::DENY_NON_RT_DS_TEXTURES) != 0) {
+	if (source & gxapi::eHeapFlags::DENY_NON_RT_DS_TEXTURES) {
 		result |= D3D12_HEAP_FLAG_DENY_NON_RT_DS_TEXTURES;
 	}
-	if ((source & gxapi::eHeapFlags::ALLOW_ALL_BUFFERS_AND_TEXTURES) != 0) {
+	if (source & gxapi::eHeapFlags::ALLOW_ALL_BUFFERS_AND_TEXTURES) {
 		result |= D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES;
 	}
-	if ((source & gxapi::eHeapFlags::ALLOW_ONLY_BUFFERS) != 0) {
+	if (source & gxapi::eHeapFlags::ALLOW_ONLY_BUFFERS) {
 		result |= D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
 	}
-	if ((source & gxapi::eHeapFlags::ALLOW_ONLY_NON_RT_DS_TEXTURES) != 0) {
+	if (source & gxapi::eHeapFlags::ALLOW_ONLY_NON_RT_DS_TEXTURES) {
 		result |= D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES;
 	}
-	if ((source & gxapi::eHeapFlags::ALLOW_ONLY_RT_DS_TEXTURES) != 0) {
+	if (source & gxapi::eHeapFlags::ALLOW_ONLY_RT_DS_TEXTURES) {
 		result |= D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES;
 	}
 
@@ -1456,22 +1492,22 @@ gxapi::eResourceFlags native_cast(D3D12_RESOURCE_FLAGS source) {
 	gxapi::eResourceFlags result = eResourceFlags::NONE;
 
 	if ((source & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0) {
-		result |= eResourceFlags::ALLOW_RENDER_TARGET;
+		result += eResourceFlags::ALLOW_RENDER_TARGET;
 	}
 	if ((source & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0) {
-		result |= eResourceFlags::ALLOW_DEPTH_STENCIL;
+		result += eResourceFlags::ALLOW_DEPTH_STENCIL;
 	}
 	if ((source & D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS) != 0) {
-		result |= eResourceFlags::ALLOW_UNORDERED_ACCESS;
+		result += eResourceFlags::ALLOW_UNORDERED_ACCESS;
 	}
 	if ((source & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE) != 0) {
-		result |= eResourceFlags::DENY_SHADER_RESOURCE;
+		result += eResourceFlags::DENY_SHADER_RESOURCE;
 	}
 	if ((source & D3D12_RESOURCE_FLAG_ALLOW_CROSS_ADAPTER) != 0) {
-		result |= eResourceFlags::ALLOW_CROSS_ADAPTER;
+		result += eResourceFlags::ALLOW_CROSS_ADAPTER;
 	}
 	if ((source & D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS) != 0) {
-		result |= eResourceFlags::ALLOW_SIMULTANEOUS_ACCESS;
+		result += eResourceFlags::ALLOW_SIMULTANEOUS_ACCESS;
 	}
 
 	return result;

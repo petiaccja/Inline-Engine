@@ -144,6 +144,30 @@
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Logging_\Event.hpp" />
+    <ClInclude Include="Logging_\EventEntry.hpp" />
+    <ClInclude Include="Logging_\LogCentre.hpp" />
+    <ClInclude Include="Logging_\Logger.hpp" />
+    <ClInclude Include="Logging_\LogNode.hpp" />
+    <ClInclude Include="Logging_\LogPipe.hpp" />
+    <ClInclude Include="Logging_\LogStream.hpp" />
+    <ClInclude Include="Serialization_\BinarySerializer.hpp" />
+    <ClInclude Include="Serialization_\BinarySerializerExtensions.hpp" />
+    <ClInclude Include="Utility_\BitflagEnum.hpp" />
+    <ClInclude Include="Utility_\Singleton.hpp" />
+    <ClInclude Include="Utility_\Spinlock.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Logging_\Event.cpp" />
+    <ClCompile Include="Logging_\Logger.cpp" />
+    <ClCompile Include="Logging_\LogNode.cpp" />
+    <ClCompile Include="Logging_\LogPipe.cpp" />
+    <ClCompile Include="Logging_\LogStream.cpp" />
+    <ClCompile Include="Serialization_\BinarySerializer.cpp" />
+    <ClCompile Include="Serialization_\BinarySerializerExtensions.cpp" />
+    <ClCompile Include="Utility_\Spinlock.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

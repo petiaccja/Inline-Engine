@@ -24,7 +24,7 @@ void CommandQueue::ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommand
 	std::vector<ID3D12CommandList*> nativeCommandLists;
 	nativeCommandLists.reserve(numCommandLists);
 
-	for (int i = 0; i < numCommandLists; i++) {
+	for (unsigned i = 0; i < numCommandLists; i++) {
 		nativeCommandLists.push_back(static_cast<CommandList*>(commandLists[i])->GetNativeGenericList());
 	}
 

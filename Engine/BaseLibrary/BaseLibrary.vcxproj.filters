@@ -1,20 +1,84 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
+    <Filter Include="Utility">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
+    <Filter Include="Logging">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Serialization">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Utility_\BitflagEnum.hpp">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility_\Singleton.hpp">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility_\Spinlock.hpp">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging_\Event.hpp">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging_\EventEntry.hpp">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging_\LogCentre.hpp">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging_\Logger.hpp">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging_\LogNode.hpp">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging_\LogPipe.hpp">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging_\LogStream.hpp">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Serialization_\BinarySerializer.hpp">
+      <Filter>Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="Serialization_\BinarySerializerExtensions.hpp">
+      <Filter>Serialization</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Utility_\Spinlock.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging_\Event.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging_\Logger.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging_\LogNode.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging_\LogPipe.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging_\LogStream.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Serialization_\BinarySerializer.cpp">
+      <Filter>Serialization</Filter>
+    </ClCompile>
+    <ClCompile Include="Serialization_\BinarySerializerExtensions.cpp">
+      <Filter>Serialization</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

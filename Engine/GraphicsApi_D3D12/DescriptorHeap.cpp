@@ -23,8 +23,8 @@ gxapi::DescriptorHandle DescriptorHeap::At(size_t index) const {
 
 	size_t incrementSize = device->GetDescriptorHandleIncrementSize(m_native->GetDesc().Type);
 
-	CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandleHelper{m_native->GetCPUDescriptorHandleForHeapStart(), index, incrementSize};
-	CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandleHelper{m_native->GetGPUDescriptorHandleForHeapStart(), index, incrementSize};
+	CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandleHelper{m_native->GetCPUDescriptorHandleForHeapStart(), (int)index, incrementSize};
+	CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandleHelper{m_native->GetGPUDescriptorHandleForHeapStart(), (int)index, incrementSize};
 
 	gxapi::DescriptorHandle result;
 	result.cpuAddress = reinterpret_cast<void*>(uintptr_t(cpuHandleHelper.ptr));

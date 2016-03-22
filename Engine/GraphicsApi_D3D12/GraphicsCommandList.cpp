@@ -14,7 +14,7 @@ GraphicsCommandList::GraphicsCommandList(ComPtr<ID3D12GraphicsCommandList>& nati
 }
 
 
-ID3D12CommandList* GraphicsCommandList::GetNativeGenericList() {
+ID3D12CommandList* GraphicsCommandList::GetNativeGenericList() const {
 	return m_native.Get();
 }
 
@@ -24,7 +24,7 @@ ID3D12GraphicsCommandList * GraphicsCommandList::GetNative() {
 }
 
 
-gxapi::eCommandListType GraphicsCommandList::GetType() {
+gxapi::eCommandListType GraphicsCommandList::GetType() const {
 	return CommandList::GetType();
 }
 
@@ -61,7 +61,7 @@ void GraphicsCommandList::ClearDepthStencil(
 
 	std::vector<D3D12_RECT> castedRects;
 	castedRects.reserve(numRects);
-	for (int i = 0; i < numRects; i++) {
+	for (size_t i = 0; i < numRects; i++) {
 		castedRects.push_back(native_cast(rects[i]));
 	}
 
@@ -79,7 +79,7 @@ void GraphicsCommandList::ClearRenderTarget(gxapi::DescriptorHandle rtv, gxapi::
 
 	std::vector<D3D12_RECT> castedRects;
 	castedRects.reserve(numRects);
-	for (int i = 0; i < numRects; i++) {
+	for (size_t i = 0; i < numRects; i++) {
 		castedRects.push_back(native_cast(rects[i]));
 	}
 
@@ -158,7 +158,7 @@ void GraphicsCommandList::SetVertexBuffers(unsigned startSlot, unsigned count, v
 	std::vector<D3D12_VERTEX_BUFFER_VIEW> views;
 	views.reserve(count);
 
-	for (int i = 0; i < count; i++) {
+	for (unsigned i = 0; i < count; i++) {
 		D3D12_VERTEX_BUFFER_VIEW tmpView;
 		tmpView.BufferLocation = reinterpret_cast<uintptr_t>(gpuVirtualAddress[i]);
 		tmpView.SizeInBytes = sizeInBytes[i];
@@ -174,7 +174,7 @@ void GraphicsCommandList::SetVertexBuffers(unsigned startSlot, unsigned count, v
 void GraphicsCommandList::SetRenderTargets(unsigned numRenderTargets, gxapi::DescriptorHandle* renderTargets, gxapi::DescriptorHandle* depthStencil) {
 	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> renderTargetDescriptors;
 	renderTargetDescriptors.reserve(numRenderTargets);
-	for (int i = 0; i < numRenderTargets; i++) {
+	for (unsigned i = 0; i < numRenderTargets; i++) {
 		D3D12_CPU_DESCRIPTOR_HANDLE tmpDescriptor;
 		tmpDescriptor.ptr = reinterpret_cast<uintptr_t>(renderTargets[i].cpuAddress);
 		renderTargetDescriptors.push_back(tmpDescriptor);
@@ -206,7 +206,7 @@ void GraphicsCommandList::SetScissorRects(unsigned numRects, gxapi::Rectangle* r
 	std::vector<D3D12_RECT> nativeRects;
 	nativeRects.reserve(numRects);
 
-	for (int i = 0; i < numRects; i++) {
+	for (unsigned i = 0; i < numRects; i++) {
 		nativeRects.push_back(native_cast(rects[i]));
 	}
 
@@ -218,7 +218,7 @@ void GraphicsCommandList::SetViewports(unsigned numViewports, gxapi::Viewport* v
 	std::vector<D3D12_VIEWPORT> nativeViewports;
 	nativeViewports.reserve(numViewports);
 
-	for (int i = 0; i < numViewports; i++) {
+	for (unsigned i = 0; i < numViewports; i++) {
 		nativeViewports.push_back(native_cast(viewports[i]));
 	}
 
@@ -277,8 +277,8 @@ D3D12_TEXTURE_COPY_LOCATION GraphicsCommandList::CreateTextureCopyLocation(gxapi
 				footprint.Depth = description.depth;
 				footprint.Format = native_cast(description.format);
 				footprint.Height = description.height;
-				footprint.Width = description.width;
-				size_t rowSize = GetFormatSizeInBytes(description.format)*description.width;
+				footprint.Width = (UINT)description.width; // narrowing conversion!
+				size_t rowSize = size_t(GetFormatSizeInBytes(description.format)*description.width);
 				size_t alignement = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
 				footprint.RowPitch = rowSize + (alignement - rowSize % alignement) % alignement;
 			}

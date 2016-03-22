@@ -22,10 +22,10 @@ public:
 	GraphicsCommandList(const GraphicsCommandList&) = delete;
 	GraphicsCommandList& operator=(const GraphicsCommandList&) = delete;
 
-	ID3D12CommandList* GetNativeGenericList() override;
+	ID3D12CommandList* GetNativeGenericList() const override;
 	ID3D12GraphicsCommandList* GetNative();
 
-	gxapi::eCommandListType GetType() override;
+	gxapi::eCommandListType GetType() const override;
 
 	// Command list state
 	void ResetState(gxapi::IPipelineState* newState = nullptr) override;
@@ -121,7 +121,10 @@ public:
 
 
 protected:
-	ComPtr<ID3D12GraphicsCommandList> m_native;
+#define STRING2(x) #x
+#define STRING(x) STRING2(x)
+#pragma message(__FILE__ "(" STRING(__LINE__) ")" ": warning: Verify if mutable is necessary; conflict with constness of GetType")
+	mutable ComPtr<ID3D12GraphicsCommandList> m_native; // DX12 doesn't seem to know const
 
 protected:
 	static D3D12_TEXTURE_COPY_LOCATION CreateTextureCopyLocation(gxapi::IResource* texture, gxapi::TextureCopyDesc descrition);
