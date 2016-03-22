@@ -173,8 +173,12 @@ gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(gxapi::GraphicsP
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC nativeDesc;
 
 	D3D12_STREAM_OUTPUT_DESC nativeStreamOutput;
-	static_assert(false, "TODO missing StreamOutputState implementation");
-	nativeStreamOutput.insert_member_name_here = desc.streamOutput.insert_corresponding_member_name_here;
+	static_assert(sizeof(decltype(desc.streamOutput)) <= 1, "If Stream output is implemented, it should be handled propery here.");
+	nativeStreamOutput.NumEntries = 0;
+	nativeStreamOutput.NumStrides = 0;
+	nativeStreamOutput.pBufferStrides = nullptr;
+	nativeStreamOutput.pSODeclaration = nullptr;
+	nativeStreamOutput.RasterizedStream = 0;
 
 	std::vector<D3D12_INPUT_ELEMENT_DESC> nativeInputElements;
 	nativeInputElements.reserve(desc.inputLayout.numElements);
