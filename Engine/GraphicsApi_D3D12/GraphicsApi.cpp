@@ -241,25 +241,5 @@ gxapi::IDescriptorHeap* GraphicsApi::CreateDescriptorHeap(gxapi::DescriptorHeapD
 }
 
 
-void GraphicsApi::CreateConstantBufferView() {
-	static_assert(false, "TODO");
-}
-
-
-void GraphicsApi::CreateDepthStencilView() {
-	static_assert(false, "TODO");
-}
-
-
-void GraphicsApi::CreateRenderTargetView() {
-	static_assert(false, "TODO");
-}
-
-
-void GraphicsApi::CreateShaderResourceView() {
-	static_assert(false, "TODO");
-}
-
-
 } // namespace gxapi_dx12
 } // namespace inl

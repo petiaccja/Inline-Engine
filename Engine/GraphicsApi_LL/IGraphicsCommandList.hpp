@@ -1,11 +1,11 @@
 #pragma once
 
 #include "ICommandList.hpp"
-#include "DescriptorHandle.hpp"
 
 #include "Common.hpp"
 
 #include <cstdint>
+#include <utility>
 
 
 namespace inl {
@@ -92,7 +92,10 @@ public:
 
 	// barriers
 	// TODO: transition, aliasing and bullshit barriers, i would put them into separate functions
+	virtual void ResourceBarrier(unsigned numBarriers, ResourceBarrier* barriers);
 
+	template <class... Barriers>
+	void ResourceBarrier(Barriers&&... barriers);
 
 	// rasterizer state
 	virtual void SetScissorRects(unsigned numRects, Rectangle* rects) = 0;
@@ -112,8 +115,26 @@ public:
 	// set pipeline state
 	virtual void SetPipelineState(IPipelineState* pipelineState) = 0;
 
-
+protected:
+	template <class... Barriers>
+	void PopulateBarrierTable(::inl::gxapi::ResourceBarrier* table, int index, const TransitionBarrier& head, Barriers&&... tail);
+	void PopulateBarrierTable(::inl::gxapi::ResourceBarrier* table, int index) {}
 };
+
+
+template <class... Barriers>
+void IGraphicsCommandList::ResourceBarrier(Barriers&&... barriers) {
+	::inl::gxapi::ResourceBarrier table[sizeof...(Barriers)];
+	PopulateBarrierTable(table, 0, std::forward<Barriers&&>(barriers)...);
+}
+
+template <class... Barriers>
+void IGraphicsCommandList::PopulateBarrierTable(::inl::gxapi::ResourceBarrier* table, int index, const TransitionBarrier& head, Barriers&&... tail) {
+	table[index].type = eResourceBarrierType::TRANSITION;
+	table[index].transition = head;
+
+	PopulateBarrierTable(table, index+1, std::forward<Barriers&&>(barriers)...);
+}
 
 
 } // namespace gxapi

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "DescriptorHandle.hpp"
 #include "Common.hpp"
 
 #include <cstdint>

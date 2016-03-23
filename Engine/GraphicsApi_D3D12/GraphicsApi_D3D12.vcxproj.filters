@@ -81,9 +81,6 @@
     <ClInclude Include="CommandQueue.hpp">
       <Filter>Implementation</Filter>
     </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\DescriptorHandle.hpp">
-      <Filter>Implementation</Filter>
-    </ClInclude>
     <ClInclude Include="DescriptorHeap.hpp">
       <Filter>Implementation</Filter>
     </ClInclude>

@@ -27,10 +27,10 @@ public:
 
 	// Resources
 	gxapi::IResource* CreateCommittedResource(gxapi::HeapProperties heapProperties,
-	                                          gxapi::eHeapFlags heapFlags,
-	                                          gxapi::ResourceDesc desc,
-	                                          gxapi::eResourceState initialState,
-	                                          gxapi::ClearValue* clearValue = nullptr) override;
+											  gxapi::eHeapFlags heapFlags,
+											  gxapi::ResourceDesc desc,
+											  gxapi::eResourceState initialState,
+											  gxapi::ClearValue* clearValue = nullptr) override;
 
 
 	// Pipeline and binding
@@ -40,11 +40,25 @@ public:
 
 	gxapi::IDescriptorHeap* CreateDescriptorHeap(gxapi::DescriptorHeapDesc desc) override;
 
-	void CreateConstantBufferView() override;
-	void CreateDepthStencilView() override;
-	void CreateRenderTargetView() override;
-	void CreateShaderResourceView() override;
-	
+#pragma message("Implement CBV/SRV/RTV/DSV creation!")
+	void CreateConstantBufferView(gxapi::ConstantBufferViewDesc desc,
+								  gxapi::DescriptorHandle destination) override;
+
+	void CreateDepthStencilView(gxapi::DepthStencilViewDesc desc,
+								gxapi::DescriptorHandle destination) override;
+	void CreateDepthStencilView(gxapi::IResource* resource,
+								gxapi::DescriptorHandle destination) override;
+
+	void CreateRenderTargetView(gxapi::RenderTargetViewDesc resource,
+								gxapi::DescriptorHandle destination) override;
+	void CreateRenderTargetView(gxapi::IResource* resource,
+								gxapi::DescriptorHandle destination) override;
+
+	void CreateShaderResourceView(gxapi::ShaderResourceViewDesc resource,
+								  gxapi::DescriptorHandle destination) override;
+	void CreateShaderResourceView(gxapi::IResource* resource,
+								  gxapi::DescriptorHandle destination) override;
+
 
 protected:
 	ComPtr<ID3D12Device> m_device;

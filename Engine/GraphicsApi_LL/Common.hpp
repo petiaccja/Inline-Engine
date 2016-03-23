@@ -13,6 +13,7 @@ namespace gxapi {
 class ICommandAllocator;
 class IRootSignature;
 class IPipelineState;
+class IResource;
 
 
 //------------------------------------------------------------------------------
@@ -427,6 +428,55 @@ enum class eTextureBorderColor {
 };
 
 
+enum class eDsvDimension {
+	UNKNOWN = 0,
+	TEXTURE1D = 1,
+	TEXTURE1DARRAY = 2,
+	TEXTURE2D = 3,
+	TEXTURE2DARRAY = 4,
+	TEXTURE2DMS = 5,
+	TEXTURE2DMSARRAY = 6,
+};
+
+enum class eRtvDimension {
+	UNKNOWN = 0,
+	BUFFER = 1,
+	TEXTURE1D = 2,
+	TEXTURE1DARRAY = 3,
+	TEXTURE2D = 4,
+	TEXTURE2DARRAY = 5,
+	TEXTURE2DMS = 6,
+	TEXTURE2DMSARRAY = 7,
+	TEXTURE3D = 8
+};
+
+
+enum class eSrvDimension {
+	UNKNOWN = 0,
+	BUFFER = 1,
+	TEXTURE1D = 2,
+	TEXTURE1DARRAY = 3,
+	TEXTURE2D = 4,
+	TEXTURE2DARRAY = 5,
+	TEXTURE2DMS = 6,
+	TEXTURE2DMSARRAY = 7,
+	TEXTURE3D = 8,
+	TEXTURECUBE = 9,
+	TEXTURECUBEARRAY = 10
+};
+
+enum class eResourceBarrierSplit {
+	NORMAL,
+	BEGIN,
+	END,
+};
+
+enum class eResourceBarrierType {
+	TRANSITION,
+	ALIASING,
+	UAV,
+};
+
 //------------------------------------------------------------------------------
 // Bitflag enumerations
 //------------------------------------------------------------------------------
@@ -495,18 +545,51 @@ struct eColorMask_Base {
 	};
 };
 
+struct eDsvFlags_Base {
+	enum eDsvFlags {
+		NONE = 0,
+		READ_ONLY_DEPTH = 0x1,
+		READ_ONLY_STENCIL = 0x2,
+	};
+};
+
 } // namespace bitflag_enum_impl
 
 using eHeapFlags = exc::BitFlagEnum<bitflag_enum_impl::eHeapFlags_Base, bitflag_enum_impl::eHeapFlags_Base::eHeapFlags>;
 using eResourceState = exc::BitFlagEnum<bitflag_enum_impl::eResourceState_Base, bitflag_enum_impl::eResourceState_Base::eResourceState>;
 using eResourceFlags = exc::BitFlagEnum<bitflag_enum_impl::eResourceFlags_Base, bitflag_enum_impl::eResourceFlags_Base::eResourceFlags>;
 using eColorMask = exc::BitFlagEnum<bitflag_enum_impl::eColorMask_Base, bitflag_enum_impl::eColorMask_Base::eColorMask>;
-
+using eDsvFlags = exc::BitFlagEnum<bitflag_enum_impl::eDsvFlags_Base, bitflag_enum_impl::eDsvFlags_Base::eDsvFlags>;
 
 
 //------------------------------------------------------------------------------
 // Rendering structures
 //------------------------------------------------------------------------------
+
+
+
+// todo: operator++, += for traversing heap like iterator?
+//		ctor as obj(Heap*, index)
+struct DescriptorHandle {
+public:
+	DescriptorHandle() {
+		cpuAddress = nullptr;
+		gpuAddress = nullptr;
+	}
+	DescriptorHandle(const DescriptorHandle&) = default;
+	DescriptorHandle& operator=(const DescriptorHandle&) = default;
+
+	bool operator==(const DescriptorHandle& rhs) const {
+		return cpuAddress == rhs.cpuAddress && gpuAddress == rhs.gpuAddress;
+	}
+	bool operator!=(const DescriptorHandle& rhs) const {
+		return !(*this == rhs);
+	}
+public:
+	void* cpuAddress;
+	void* gpuAddress;
+};
+
 
 struct Viewport {
 	float topLeftX;
@@ -1013,6 +1096,211 @@ struct RootSignatureDesc {
 	StaticSamplerDesc* staticSamplers;
 };
 
+
+
+// buffer views
+
+struct ConstantBufferViewDesc {
+	const void* gpuVirtualAddress;
+	size_t sizeInBytes;
+};
+
+
+struct DsvTexture1D {
+	unsigned firstMipLevel;
+};
+struct DsvTexture1DArray {
+	unsigned firstMipLevel;
+	unsigned firstArrayElement;
+	unsigned activeArraySize;
+};
+struct DsvTexture2D {
+	unsigned firstMipLevel;
+};
+struct DsvTexture2DArray {
+	unsigned firstMipLevel;
+	unsigned firstArrayElement;
+	unsigned activeArraySize;
+};
+struct DsvTextureMultisampled2D {
+	// empty on purpose //
+};
+struct DsvTextureMultisampled2DArray {
+	unsigned firstArrayElement;
+	unsigned activeArraySize;
+};
+
+
+struct DepthStencilViewDesc {
+	eFormat format;
+	eDsvDimension dimension;
+	eDsvFlags flags;
+	union {
+		DsvTexture1D tex1D;
+		DsvTexture1DArray tex1DArray;
+		DsvTexture2D tex2D;
+		DsvTexture2DArray tex2DArray;
+		DsvTextureMultisampled2D texMS2D;
+		DsvTextureMultisampled2DArray texMS2DArray;
+	};
+};
+
+
+
+struct RtvBuffer {
+	size_t firstElement;
+	unsigned numElements;
+};
+struct RtvTexture1D {
+	unsigned firstMipLevel;
+};
+struct RtvTexture1DArray {
+	unsigned firstMipLevel;
+	unsigned firstArrayElement;
+	unsigned activeArraySize;
+};
+struct RtvTexture2D {
+	unsigned firstMipLevel;
+	unsigned planeIndex; // this has to do with format, e.g. D24_S8 has 2 planes
+};
+struct RtvTexture2DArray {
+	unsigned firstMipLevel;
+	unsigned firstArrayElement;
+	unsigned activeArraySize;
+	unsigned planeIndex;
+};
+struct RtvTextureMultisampled2D {
+	// empty on purpose //
+};
+struct RtvTextureMultisampled2DArray {
+	unsigned firstArrayElement;
+	unsigned activeArraySize;
+};
+struct RtvTexture3D {
+	unsigned firstMipLevel;
+	unsigned firstDepthIndex;
+	unsigned numDepthLevels;
+};
+
+struct RenderTargetViewDesc {
+	eFormat format;
+	eRtvDimension dimension;
+	union {
+		RtvBuffer buffer;
+		RtvTexture1D tex1D;
+		RtvTexture1DArray tex1DArray;
+		RtvTexture2D tex2D;
+		RtvTexture2DArray tex2DArray;
+		RtvTextureMultisampled2D texMS2D;
+		RtvTextureMultisampled2DArray texMS2DArray;
+		RtvTexture3D tex3D;
+	};
+};
+
+
+
+struct SrvBuffer {
+	size_t firstElement;
+	unsigned numElements;
+	unsigned structureStrideInBytes;
+	bool isRaw;
+};
+struct SrvTexture1D {
+	unsigned mostDetailedMip;
+	unsigned numMipLevels;
+	float mipLevelClamping;
+};
+struct SrvTexture1DArray {
+	unsigned mostDetailedMip;
+	unsigned numMipLevels;
+	float mipLevelClamping;
+
+	unsigned firstArrayElement;
+	unsigned activeArraySize;
+};
+struct SrvTexture2D {
+	unsigned mostDetailedMip;
+	unsigned numMipLevels;
+	float mipLevelClamping;
+	unsigned planeIndex; // this has to do with format, e.g. D24_S8 has 2 planes
+};
+struct SrvTexture2DArray {
+	unsigned mostDetailedMip;
+	unsigned numMipLevels;
+	float mipLevelClamping;
+	unsigned planeIndex; // this has to do with format, e.g. D24_S8 has 2 planes
+
+	unsigned firstArrayElement;
+	unsigned activeArraySize;
+};
+struct SrvTextureMultisampled2D {
+	// empty on purpose //
+};
+struct SrvTextureMultisampled2DArray {
+	unsigned firstArrayElement;
+	unsigned activeArraySize;
+};
+struct SrvTexture3D {
+	unsigned mostDetailedMip;
+	unsigned numMipLevels;
+	float mipLevelClamping;
+};
+struct SrvTextureCube {
+	unsigned mostDetailedMip;
+	unsigned numMipLevels;
+	float mipLevelClamping;
+};
+struct SrvTextureCubeArray {
+	unsigned mostDetailedMip;
+	unsigned numMipLevels;
+	float mipLevelClamping;
+	unsigned indexOfFirst2DTex;
+	unsigned numCubes;
+};
+
+struct ShaderResourceViewDesc {
+	eFormat format;
+	eSrvDimension dimension;
+
+	union {
+		SrvBuffer buffer;
+		SrvTexture1D tex1D;
+		SrvTexture1DArray tex1DArray;
+		SrvTexture2D tex2D;
+		SrvTexture2DArray tex2DArray;
+		SrvTextureMultisampled2D texMS2D;
+		SrvTextureMultisampled2DArray texMS2DArray;
+		SrvTexture3D tex3D;
+		SrvTextureCube texCube;
+		SrvTextureCubeArray texCubeArray;
+	};
+};
+
+
+struct ResourceBarrierTag {};
+
+struct TransitionBarrier : public ResourceBarrierTag {
+	TransitionBarrier() = default;
+	TransitionBarrier(IResource* resource,
+					  eResourceState beforeState,
+					  eResourceState afterState,
+					  unsigned subResource = 0,
+					  eResourceBarrierSplit splitMode = eResourceBarrierSplit::NORMAL)
+		: resource(resource), beforeState(beforeState), afterState(afterState), subResource(subResource), splitMode(splitMode) {}
+
+	IResource* resource;
+	unsigned subResource;
+	eResourceState beforeState;
+	eResourceState afterState;
+	eResourceBarrierSplit splitMode;
+};
+
+struct ResourceBarrier {
+	eResourceBarrierType type;
+	union {
+		TransitionBarrier transition;
+	};
+};
 
 //------------------------------------------------------------------------------
 // User helper functions

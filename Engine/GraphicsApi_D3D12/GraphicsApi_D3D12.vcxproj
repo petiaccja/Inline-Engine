@@ -135,7 +135,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GraphicsApi_LL\Common.hpp" />
-    <ClInclude Include="..\GraphicsApi_LL\DescriptorHandle.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\Exception.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\ICommandAllocator.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\ICommandList.hpp" />
