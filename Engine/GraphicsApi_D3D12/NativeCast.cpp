@@ -812,9 +812,9 @@ D3D12_PRIMITIVE_TOPOLOGY_TYPE native_cast(gxapi::ePrimitiveTopologyType source) 
 
 D3D12_INPUT_CLASSIFICATION native_cast(gxapi::eInputClassification source) {
 	switch (source) {
-	case inl::gxapi::eInputClassification::VERTEX_DATA:
+	case gxapi::eInputClassification::VERTEX_DATA:
 		return D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-	case inl::gxapi::eInputClassification::INSTANCE_DATA:
+	case gxapi::eInputClassification::INSTANCE_DATA:
 		return D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA;
 	default:
 		assert(false);
@@ -827,19 +827,19 @@ D3D12_INPUT_CLASSIFICATION native_cast(gxapi::eInputClassification source) {
 
 D3D12_DSV_DIMENSION native_cast(gxapi::eDsvDimension source) {
 	switch (source) {
-	case inl::gxapi::eDsvDimension::UNKNOWN:
+	case gxapi::eDsvDimension::UNKNOWN:
 		return D3D12_DSV_DIMENSION_UNKNOWN;
-	case inl::gxapi::eDsvDimension::TEXTURE1D:
+	case gxapi::eDsvDimension::TEXTURE1D:
 		return D3D12_DSV_DIMENSION_TEXTURE1D;
-	case inl::gxapi::eDsvDimension::TEXTURE1DARRAY:
+	case gxapi::eDsvDimension::TEXTURE1DARRAY:
 		return D3D12_DSV_DIMENSION_TEXTURE1DARRAY;
-	case inl::gxapi::eDsvDimension::TEXTURE2D:
+	case gxapi::eDsvDimension::TEXTURE2D:
 		return D3D12_DSV_DIMENSION_TEXTURE2D;
-	case inl::gxapi::eDsvDimension::TEXTURE2DARRAY:
+	case gxapi::eDsvDimension::TEXTURE2DARRAY:
 		return D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
-	case inl::gxapi::eDsvDimension::TEXTURE2DMS:
+	case gxapi::eDsvDimension::TEXTURE2DMS:
 		return D3D12_DSV_DIMENSION_TEXTURE2DMS;
-	case inl::gxapi::eDsvDimension::TEXTURE2DMSARRAY:
+	case gxapi::eDsvDimension::TEXTURE2DMSARRAY:
 		return D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY;
 	default:
 		assert(false);
@@ -847,6 +847,70 @@ D3D12_DSV_DIMENSION native_cast(gxapi::eDsvDimension source) {
 	}
 
 	return D3D12_DSV_DIMENSION{};
+}
+
+
+D3D12_RTV_DIMENSION native_cast(gxapi::eRtvDimension source) {
+	switch (source) {
+	case gxapi::eRtvDimension::UNKNOWN:
+		return D3D12_RTV_DIMENSION_UNKNOWN;
+	case gxapi::eRtvDimension::BUFFER:
+		return D3D12_RTV_DIMENSION_BUFFER;
+	case gxapi::eRtvDimension::TEXTURE1D:
+		return D3D12_RTV_DIMENSION_TEXTURE1D;
+	case gxapi::eRtvDimension::TEXTURE1DARRAY:
+		return D3D12_RTV_DIMENSION_TEXTURE1DARRAY;
+	case gxapi::eRtvDimension::TEXTURE2D:
+		return D3D12_RTV_DIMENSION_TEXTURE2D;
+	case gxapi::eRtvDimension::TEXTURE2DARRAY:
+		return D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
+	case gxapi::eRtvDimension::TEXTURE2DMS:
+		return D3D12_RTV_DIMENSION_TEXTURE2DMS;
+	case gxapi::eRtvDimension::TEXTURE2DMSARRAY:
+		return D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY;
+	case gxapi::eRtvDimension::TEXTURE3D:
+		return D3D12_RTV_DIMENSION_TEXTURE3D;
+		break;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_RTV_DIMENSION{};
+}
+
+
+D3D12_SRV_DIMENSION native_cast(gxapi::eSrvDimension source) {
+	switch (source) {
+	case gxapi::eSrvDimension::UNKNOWN:
+		assert(false);
+		break;
+	case gxapi::eSrvDimension::BUFFER:
+		return D3D12_SRV_DIMENSION_BUFFER;
+	case gxapi::eSrvDimension::TEXTURE1D:
+		return D3D12_SRV_DIMENSION_TEXTURE1D;
+	case gxapi::eSrvDimension::TEXTURE1DARRAY:
+		return D3D12_SRV_DIMENSION_TEXTURE1DARRAY;
+	case gxapi::eSrvDimension::TEXTURE2D:
+		return D3D12_SRV_DIMENSION_TEXTURE2D;
+	case gxapi::eSrvDimension::TEXTURE2DARRAY:
+		return D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
+	case gxapi::eSrvDimension::TEXTURE2DMS:
+		return D3D12_SRV_DIMENSION_TEXTURE2DMS;
+	case gxapi::eSrvDimension::TEXTURE2DMSARRAY:
+		return D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY;
+	case gxapi::eSrvDimension::TEXTURE3D:
+		return D3D12_SRV_DIMENSION_TEXTURE3D;
+	case gxapi::eSrvDimension::TEXTURECUBE:
+		return D3D12_SRV_DIMENSION_TEXTURECUBE;
+	case gxapi::eSrvDimension::TEXTURECUBEARRAY:
+		return D3D12_SRV_DIMENSION_TEXTURECUBEARRAY;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_SRV_DIMENSION{};
 }
 
 
@@ -1253,8 +1317,7 @@ D3D12_DEPTH_STENCIL_VIEW_DESC native_cast(gxapi::DepthStencilViewDesc source) {
 	result.ViewDimension = native_cast(source.dimension);
 	result.Flags = native_cast(source.flags);
 
-	auto dim = result.ViewDimension;
-	switch (dim) {
+	switch (result.ViewDimension) {
 	case D3D12_DSV_DIMENSION_UNKNOWN:
 		assert(false);
 		break;
@@ -1275,6 +1338,98 @@ D3D12_DEPTH_STENCIL_VIEW_DESC native_cast(gxapi::DepthStencilViewDesc source) {
 		break;
 	case D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY:
 		result.Texture2DMSArray = native_cast(source.texMS2DArray);
+		break;
+	default:
+		assert(false);
+		break;
+	}
+
+	return result;
+}
+
+
+D3D12_RENDER_TARGET_VIEW_DESC native_cast(gxapi::RenderTargetViewDesc source) {
+	D3D12_RENDER_TARGET_VIEW_DESC result;
+
+	result.Format = native_cast(source.format);
+	result.ViewDimension = native_cast(source.dimension);
+
+	switch (result.ViewDimension) {
+	case D3D12_RTV_DIMENSION_UNKNOWN:
+		assert(false);
+		break;
+	case D3D12_RTV_DIMENSION_BUFFER:
+		result.Buffer = native_cast(source.buffer);
+		break;
+	case D3D12_RTV_DIMENSION_TEXTURE1D:
+		result.Texture1D = native_cast(source.tex1D);
+		break;
+	case D3D12_RTV_DIMENSION_TEXTURE1DARRAY:
+		result.Texture1DArray = native_cast(source.tex1DArray);
+		break;
+	case D3D12_RTV_DIMENSION_TEXTURE2D:
+		result.Texture2D = native_cast(source.tex2D);
+		break;
+	case D3D12_RTV_DIMENSION_TEXTURE2DARRAY:
+		result.Texture2DArray = native_cast(source.tex2DArray);
+		break;
+	case D3D12_RTV_DIMENSION_TEXTURE2DMS:
+		result.Texture2DMS = native_cast(source.texMS2D);
+		break;
+	case D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY:
+		result.Texture2DMSArray = native_cast(source.texMS2DArray);
+		break;
+	case D3D12_RTV_DIMENSION_TEXTURE3D:
+		result.Texture3D = native_cast(source.tex3D);
+		break;
+	default:
+		assert(false);
+		break;
+	}
+
+	return result;
+}
+
+
+D3D12_SHADER_RESOURCE_VIEW_DESC native_cast(gxapi::ShaderResourceViewDesc source) {
+	D3D12_SHADER_RESOURCE_VIEW_DESC result;
+
+	result.Format = native_cast(source.format);
+	result.ViewDimension = native_cast(source.dimension);
+
+	switch (result.ViewDimension) {
+	case D3D12_SRV_DIMENSION_UNKNOWN:
+		assert(false);
+		break;
+	case D3D12_SRV_DIMENSION_BUFFER:
+		result.Buffer = native_cast(source.buffer);
+		break;
+	case D3D12_SRV_DIMENSION_TEXTURE1D:
+		result.Texture1D = native_cast(source.tex1D);
+		break;
+	case D3D12_SRV_DIMENSION_TEXTURE1DARRAY:
+		result.Texture1DArray = native_cast(source.tex1DArray);
+		break;
+	case D3D12_SRV_DIMENSION_TEXTURE2D:
+		result.Texture2D = native_cast(source.tex2D);
+		break;
+	case D3D12_SRV_DIMENSION_TEXTURE2DARRAY:
+		result.Texture2DArray = native_cast(source.tex2DArray);
+		break;
+	case D3D12_SRV_DIMENSION_TEXTURE2DMS:
+		result.Texture2DMS = native_cast(source.texMS2D);
+		break;
+	case D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY:
+		result.Texture2DMSArray = native_cast(source.texMS2DArray);
+		break;
+	case D3D12_SRV_DIMENSION_TEXTURE3D:
+		result.Texture3D = native_cast(source.tex3D);
+		break;
+	case D3D12_SRV_DIMENSION_TEXTURECUBE:
+		result.TextureCube = native_cast(source.texCube);
+		break;
+	case D3D12_SRV_DIMENSION_TEXTURECUBEARRAY:
+		result.TextureCubeArray = native_cast(source.texCubeArray);
 		break;
 	default:
 		assert(false);
@@ -1309,6 +1464,258 @@ DXGI_SWAP_CHAIN_DESC native_cast(gxapi::SwapChainDesc source) {
 
 	return result;
 }
+
+
+D3D12_TEX1D_DSV native_cast(gxapi::DsvTexture1D source) {
+	D3D12_TEX1D_DSV  result;
+
+	result.MipSlice = source.firstMipLevel;
+
+	return result;
+}
+
+
+D3D12_TEX1D_ARRAY_DSV native_cast(gxapi::DsvTexture1DArray source) {
+	D3D12_TEX1D_ARRAY_DSV result;
+
+	result.ArraySize = source.activeArraySize;
+	result.FirstArraySlice = source.firstArrayElement;
+	result.MipSlice = source.firstMipLevel;
+
+	return result;
+}
+
+
+D3D12_TEX2D_DSV native_cast(gxapi::DsvTexture2D source) {
+	D3D12_TEX2D_DSV result;
+
+	result.MipSlice = source.firstMipLevel;
+
+	return result;
+}
+
+
+D3D12_TEX2D_ARRAY_DSV native_cast(gxapi::DsvTexture2DArray source) {
+	D3D12_TEX2D_ARRAY_DSV result;
+
+	result.ArraySize = source.activeArraySize;
+	result.FirstArraySlice = source.firstArrayElement;
+	result.MipSlice = source.firstMipLevel;
+
+	return result;
+}
+
+
+D3D12_TEX2DMS_DSV native_cast(gxapi::DsvTextureMultisampled2D source) {
+	D3D12_TEX2DMS_DSV result = {};
+
+	return result;
+}
+
+
+D3D12_TEX2DMS_ARRAY_DSV native_cast(gxapi::DsvTextureMultisampled2DArray source) {
+	D3D12_TEX2DMS_ARRAY_DSV result;
+
+	result.ArraySize = source.activeArraySize;
+	result.FirstArraySlice = source.firstArrayElement;
+
+	return result;
+}
+
+
+D3D12_BUFFER_RTV native_cast(gxapi::RtvBuffer source) {
+	D3D12_BUFFER_RTV result;
+
+	result.NumElements = source.numElements;
+	result.FirstElement = source.firstElement;
+
+	return result;
+}
+
+D3D12_TEX1D_RTV native_cast(gxapi::RtvTexture1D source) {
+	D3D12_TEX1D_RTV result;
+
+	result.MipSlice = source.firstMipLevel;
+
+	return result;
+}
+
+
+D3D12_TEX1D_ARRAY_RTV native_cast(gxapi::RtvTexture1DArray source){
+	D3D12_TEX1D_ARRAY_RTV result;
+
+	result.ArraySize = source.activeArraySize;
+	result.FirstArraySlice = source.firstArrayElement;
+	result.MipSlice = source.firstMipLevel;
+
+	return result;
+}
+
+
+D3D12_TEX2D_RTV native_cast(gxapi::RtvTexture2D source) {
+	D3D12_TEX2D_RTV result;
+
+	result.PlaneSlice = source.planeIndex;
+	result.MipSlice = source.firstMipLevel;
+
+	return result;
+}
+
+
+D3D12_TEX2D_ARRAY_RTV native_cast(gxapi::RtvTexture2DArray source) {
+	D3D12_TEX2D_ARRAY_RTV result;
+
+	result.ArraySize = source.activeArraySize;
+	result.FirstArraySlice = source.firstArrayElement;
+	result.PlaneSlice = source.planeIndex;
+	result.MipSlice = source.firstMipLevel;
+
+	return result;
+}
+
+
+D3D12_TEX2DMS_RTV native_cast(gxapi::RtvTextureMultisampled2D source) {
+	D3D12_TEX2DMS_RTV result = {};
+	return result;
+}
+
+
+D3D12_TEX2DMS_ARRAY_RTV native_cast(gxapi::RtvTextureMultisampled2DArray source) {
+	D3D12_TEX2DMS_ARRAY_RTV result;
+
+	result.ArraySize = source.activeArraySize;
+	result.FirstArraySlice = source.firstArrayElement;
+
+	return result;
+}
+
+
+D3D12_TEX3D_RTV native_cast(gxapi::RtvTexture3D source) {
+	D3D12_TEX3D_RTV result;
+
+	result.WSize = source.numDepthLevels;
+	result.FirstWSlice = source.firstDepthIndex;
+	result.MipSlice = source.firstMipLevel;
+
+	return result;
+}
+
+
+D3D12_BUFFER_SRV native_cast(gxapi::SrvBuffer source) {
+	D3D12_BUFFER_SRV result;
+
+	result.NumElements = source.numElements;
+	result.FirstElement = source.firstElement;
+	result.StructureByteStride = source.structureStrideInBytes;
+	result.Flags = source.isRaw ? D3D12_BUFFER_SRV_FLAG_RAW : D3D12_BUFFER_SRV_FLAG_NONE;
+
+	return result;
+}
+
+
+D3D12_TEX1D_SRV native_cast(gxapi::SrvTexture1D source) {
+	D3D12_TEX1D_SRV result;
+
+	result.MipLevels = source.numMipLevels;
+	result.MostDetailedMip = source.mostDetailedMip;
+	result.ResourceMinLODClamp = source.mipLevelClamping;
+
+	return result;
+}
+
+
+D3D12_TEX1D_ARRAY_SRV native_cast(gxapi::SrvTexture1DArray source) {
+	D3D12_TEX1D_ARRAY_SRV result;
+
+	result.ArraySize = source.activeArraySize;
+	result.FirstArraySlice = source.firstArrayElement;
+	result.MipLevels = source.numMipLevels;
+	result.MostDetailedMip = source.mostDetailedMip;
+	result.ResourceMinLODClamp = source.mipLevelClamping;
+
+	return result;
+}
+
+
+D3D12_TEX2D_SRV native_cast(gxapi::SrvTexture2D source) {
+	D3D12_TEX2D_SRV result;
+
+	result.PlaneSlice = source.planeIndex;
+	result.MipLevels = source.numMipLevels;
+	result.MostDetailedMip = source.mostDetailedMip;
+	result.ResourceMinLODClamp = source.mipLevelClamping;
+
+	return result;
+}
+
+
+D3D12_TEX2D_ARRAY_SRV native_cast(gxapi::SrvTexture2DArray source) {
+	D3D12_TEX2D_ARRAY_SRV result;
+
+	result.PlaneSlice = source.planeIndex;
+	result.ArraySize = source.activeArraySize;
+	result.FirstArraySlice = source.firstArrayElement;
+	result.MipLevels = source.numMipLevels;
+	result.MostDetailedMip = source.mostDetailedMip;
+	result.ResourceMinLODClamp = source.mipLevelClamping;
+
+	return result;
+}
+
+
+D3D12_TEX2DMS_SRV native_cast(gxapi::SrvTextureMultisampled2D source) {
+	D3D12_TEX2DMS_SRV result = {};
+
+	return result;
+}
+
+
+D3D12_TEX2DMS_ARRAY_SRV native_cast(gxapi::SrvTextureMultisampled2DArray source) {
+	D3D12_TEX2DMS_ARRAY_SRV result;
+
+	result.ArraySize = source.activeArraySize;
+	result.FirstArraySlice = source.firstArrayElement;
+
+	return result;
+}
+
+
+D3D12_TEX3D_SRV native_cast(gxapi::SrvTexture3D source) {
+	D3D12_TEX3D_SRV result;
+	
+	result.MipLevels = source.numMipLevels;
+	result.MostDetailedMip = source.mostDetailedMip;
+	result.ResourceMinLODClamp = source.mipLevelClamping;
+
+	return result;
+}
+
+
+D3D12_TEXCUBE_SRV native_cast(gxapi::SrvTextureCube source) {
+	D3D12_TEXCUBE_SRV result;
+
+	result.MipLevels = source.numMipLevels;
+	result.MostDetailedMip = source.mostDetailedMip;
+	result.ResourceMinLODClamp = source.mipLevelClamping;
+
+	return result;
+}
+
+
+D3D12_TEXCUBE_ARRAY_SRV native_cast(gxapi::SrvTextureCubeArray source) {
+	D3D12_TEXCUBE_ARRAY_SRV result;
+
+	result.NumCubes = source.numCubes;
+	result.First2DArrayFace = source.indexOfFirst2DTex;
+	result.MipLevels = source.numMipLevels;
+	result.MostDetailedMip = source.mostDetailedMip;
+	result.ResourceMinLODClamp = source.mipLevelClamping;
+
+	return result;
+}
+
+
+
 
 
 //---------------

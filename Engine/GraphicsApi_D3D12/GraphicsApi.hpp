@@ -49,12 +49,12 @@ public:
 	void CreateDepthStencilView(gxapi::IResource* resource,
 	                            gxapi::DescriptorHandle destination) override;
 
-	void CreateRenderTargetView(gxapi::RenderTargetViewDesc resource,
+	void CreateRenderTargetView(gxapi::RenderTargetViewDesc desc,
 	                            gxapi::DescriptorHandle destination) override;
 	void CreateRenderTargetView(gxapi::IResource* resource,
 	                            gxapi::DescriptorHandle destination) override;
 
-	void CreateShaderResourceView(gxapi::ShaderResourceViewDesc resource,
+	void CreateShaderResourceView(gxapi::ShaderResourceViewDesc desc,
 	                              gxapi::DescriptorHandle destination) override;
 	void CreateShaderResourceView(gxapi::IResource* resource,
 	                              gxapi::DescriptorHandle destination) override;

@@ -98,6 +98,10 @@ D3D12_INPUT_CLASSIFICATION native_cast(gxapi::eInputClassification source);
 
 D3D12_DSV_DIMENSION native_cast(gxapi::eDsvDimension source);
 
+D3D12_RTV_DIMENSION native_cast(gxapi::eRtvDimension source);
+
+D3D12_SRV_DIMENSION native_cast(gxapi::eSrvDimension source);
+
 //---------------
 //FLAGS
 D3D12_RESOURCE_FLAGS native_cast(gxapi::eResourceFlags source);
@@ -150,7 +154,60 @@ D3D12_CONSTANT_BUFFER_VIEW_DESC native_cast(gxapi::ConstantBufferViewDesc source
 
 D3D12_DEPTH_STENCIL_VIEW_DESC native_cast(gxapi::DepthStencilViewDesc source);
 
+D3D12_RENDER_TARGET_VIEW_DESC native_cast(gxapi::RenderTargetViewDesc source);
+
+D3D12_SHADER_RESOURCE_VIEW_DESC native_cast(gxapi::ShaderResourceViewDesc source);
+
 DXGI_SWAP_CHAIN_DESC native_cast(gxapi::SwapChainDesc source);
+
+D3D12_TEX1D_DSV native_cast(gxapi::DsvTexture1D source);
+
+D3D12_TEX1D_ARRAY_DSV native_cast(gxapi::DsvTexture1DArray source);
+
+D3D12_TEX2D_DSV native_cast(gxapi::DsvTexture2D source);
+
+D3D12_TEX2D_ARRAY_DSV native_cast(gxapi::DsvTexture2DArray source);
+
+D3D12_TEX2DMS_DSV native_cast(gxapi::DsvTextureMultisampled2D source);
+
+D3D12_TEX2DMS_ARRAY_DSV native_cast(gxapi::DsvTextureMultisampled2DArray source);
+
+D3D12_BUFFER_RTV native_cast(gxapi::RtvBuffer source);
+
+D3D12_TEX1D_RTV native_cast(gxapi::RtvTexture1D source);
+
+D3D12_TEX1D_ARRAY_RTV native_cast(gxapi::RtvTexture1DArray source);
+
+D3D12_TEX2D_RTV native_cast(gxapi::RtvTexture2D source);
+
+D3D12_TEX2D_ARRAY_RTV native_cast(gxapi::RtvTexture2DArray source);
+
+D3D12_TEX2DMS_RTV native_cast(gxapi::RtvTextureMultisampled2D source);
+
+D3D12_TEX2DMS_ARRAY_RTV native_cast(gxapi::RtvTextureMultisampled2DArray source);
+
+D3D12_TEX3D_RTV native_cast(gxapi::RtvTexture3D source);
+
+D3D12_BUFFER_SRV native_cast(gxapi::SrvBuffer source);
+
+D3D12_TEX1D_SRV native_cast(gxapi::SrvTexture1D source);
+
+D3D12_TEX1D_ARRAY_SRV native_cast(gxapi::SrvTexture1DArray source);
+
+D3D12_TEX2D_SRV	native_cast(gxapi::SrvTexture2D source);
+
+D3D12_TEX2D_ARRAY_SRV native_cast(gxapi::SrvTexture2DArray source);
+
+D3D12_TEX2DMS_SRV native_cast(gxapi::SrvTextureMultisampled2D source);
+
+D3D12_TEX2DMS_ARRAY_SRV native_cast(gxapi::SrvTextureMultisampled2DArray source);
+
+D3D12_TEX3D_SRV native_cast(gxapi::SrvTexture3D source);
+
+D3D12_TEXCUBE_SRV native_cast(gxapi::SrvTextureCube source);
+
+D3D12_TEXCUBE_ARRAY_SRV native_cast(gxapi::SrvTextureCubeArray source);
+
 
 //---------------
 //OTHER
