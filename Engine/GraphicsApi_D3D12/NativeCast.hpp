@@ -150,6 +150,8 @@ D3D12_CONSTANT_BUFFER_VIEW_DESC native_cast(gxapi::ConstantBufferViewDesc source
 
 D3D12_DEPTH_STENCIL_VIEW_DESC native_cast(gxapi::DepthStencilViewDesc source);
 
+DXGI_SWAP_CHAIN_DESC native_cast(gxapi::SwapChainDesc source);
+
 //---------------
 //OTHER
 D3D12_DESCRIPTOR_RANGE native_cast(gxapi::DescriptorRange source);

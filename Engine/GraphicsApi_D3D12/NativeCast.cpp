@@ -1285,6 +1285,32 @@ D3D12_DEPTH_STENCIL_VIEW_DESC native_cast(gxapi::DepthStencilViewDesc source) {
 }
 
 
+DXGI_SWAP_CHAIN_DESC native_cast(gxapi::SwapChainDesc source) {
+	DXGI_SWAP_CHAIN_DESC result;
+
+	//TODO some values are set to a constant that might need to be customizable
+	result.BufferDesc.Width = source.width;
+	result.BufferDesc.Height = source.height;
+	result.BufferDesc.RefreshRate.Numerator = 60; 
+	result.BufferDesc.RefreshRate.Denominator = 1;
+	result.BufferDesc.Format = native_cast(source.format);
+	result.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	result.BufferDesc.Scaling = DXGI_MODE_SCALING_STRETCHED;
+
+	result.SampleDesc.Count = source.multisampleCount;
+	result.SampleDesc.Quality = source.multiSampleQuality;
+
+	result.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	result.BufferCount = source.numBuffers;
+	result.OutputWindow = source.targetWindow;
+	result.Windowed = !source.isFullScreen;
+	result.SwapEffect = source.multisampleCount > 1 ? DXGI_SWAP_EFFECT_DISCARD : DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	result.Flags = 0;
+
+	return result;
+}
+
+
 //---------------
 //OTHER
 
