@@ -68,10 +68,12 @@ public:
 };
 
 
+
 class ArgumentNull : public Exception {
 public:
 	using Exception::Exception;
 };
+
 
 
 class OutOfMemory : public Exception {
@@ -113,6 +115,21 @@ class OutOfRange : public Exception {
 public:
 	using Exception::Exception;
 };
+
+
+
+class NotImplementedMethod : public Exception {
+public:
+	using Exception::Exception;
+};
+
+
+
+class UnknownError : public Exception {
+public:
+	using Exception::Exception;
+};
+
 
 
 } // namespace gxapi

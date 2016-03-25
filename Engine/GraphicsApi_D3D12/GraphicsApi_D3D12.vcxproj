@@ -162,6 +162,7 @@
     <ClInclude Include="Fence.hpp" />
     <ClInclude Include="GraphicsApi.hpp" />
     <ClInclude Include="GraphicsCommandList.hpp" />
+    <ClInclude Include="Misc.hpp" />
     <ClInclude Include="NativeCast.hpp" />
     <ClInclude Include="PipelineState.hpp" />
     <ClInclude Include="Resource.hpp" />
@@ -177,6 +178,7 @@
     <ClCompile Include="Fence.cpp" />
     <ClCompile Include="GraphicsApi.cpp" />
     <ClCompile Include="GraphicsCommandList.cpp" />
+    <ClCompile Include="Misc.cpp" />
     <ClCompile Include="NativeCast.cpp" />
     <ClCompile Include="PipelineState.cpp" />
     <ClCompile Include="Resource.cpp" />

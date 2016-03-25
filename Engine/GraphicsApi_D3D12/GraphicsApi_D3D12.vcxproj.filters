@@ -40,6 +40,9 @@
     <ClCompile Include="SwapChain.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
+    <ClCompile Include="Misc.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GraphicsApi_LL\ICommandAllocator.hpp">
@@ -139,6 +142,9 @@
       <Filter>Interfaces</Filter>
     </ClInclude>
     <ClInclude Include="SwapChain.hpp">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="Misc.hpp">
       <Filter>Implementation</Filter>
     </ClInclude>
   </ItemGroup>

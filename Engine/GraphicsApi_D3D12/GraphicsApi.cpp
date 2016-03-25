@@ -5,6 +5,9 @@
 #include "GraphicsCommandList.hpp"
 #include "DescriptorHeap.hpp"
 #include "NativeCast.hpp"
+#include "Misc.hpp"
+
+#include "../GraphicsApi_LL/Exception.hpp"
 
 #include "d3dx12.h"
 
@@ -16,8 +19,8 @@
 namespace inl {
 namespace gxapi_dx12 {
 
+
 GraphicsApi::GraphicsApi(Microsoft::WRL::ComPtr<ID3D12Device> device) : m_device(device) {
-	
 }
 
 
@@ -25,9 +28,7 @@ gxapi::ICommandQueue* GraphicsApi::CreateCommandQueue(gxapi::CommandQueueDesc de
 	ComPtr<ID3D12CommandQueue> native;
 
 	auto nativeDesc = native_cast(desc);
-	if (FAILED(m_device->CreateCommandQueue(&nativeDesc, IID_PPV_ARGS(&native)))) {
-		throw std::runtime_error("Could not create command queue.");
-	}
+	ThrowIfFailed(m_device->CreateCommandQueue(&nativeDesc, IID_PPV_ARGS(&native)));
 
 	return new CommandQueue{native};
 }
@@ -36,9 +37,7 @@ gxapi::ICommandQueue* GraphicsApi::CreateCommandQueue(gxapi::CommandQueueDesc de
 gxapi::ICommandAllocator* GraphicsApi::CreateCommandAllocator(gxapi::eCommandListType type) {
 	ComPtr<ID3D12CommandAllocator> native;
 
-	if (FAILED(m_device->CreateCommandAllocator(native_cast(type), IID_PPV_ARGS(&native)))) {
-		throw std::runtime_error("Could not create command allocator.");
-	}
+	ThrowIfFailed(m_device->CreateCommandAllocator(native_cast(type), IID_PPV_ARGS(&native)));
 
 	return new CommandAllocator{native};
 }
@@ -47,9 +46,7 @@ gxapi::ICommandAllocator* GraphicsApi::CreateCommandAllocator(gxapi::eCommandLis
 gxapi::IGraphicsCommandList* GraphicsApi::CreateGraphicsCommandList(gxapi::CommandListDesc desc) {
 	ComPtr<ID3D12GraphicsCommandList> native;
 
-	if (FAILED(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, native_cast(desc.allocator), native_cast(desc.initialState), IID_PPV_ARGS(&native)))) {
-		throw std::runtime_error("Could not create command list.");
-	}
+	ThrowIfFailed(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, native_cast(desc.allocator), native_cast(desc.initialState), IID_PPV_ARGS(&native)));
 
 	return new GraphicsCommandList{native};
 }
@@ -80,9 +77,7 @@ gxapi::IResource* GraphicsApi::CreateCommittedResource(gxapi::HeapProperties hea
 		pNativeClearValue = &nativeClearValue;
 	}
 
-	if (FAILED(m_device->CreateCommittedResource(&nativeHeapProperties, native_cast(heapFlags), &nativeResourceDesc, native_cast(initialState), pNativeClearValue, IID_PPV_ARGS(&native)))) {
-		throw std::runtime_error("Could not create commited resource");
-	}
+	ThrowIfFailed(m_device->CreateCommittedResource(&nativeHeapProperties, native_cast(heapFlags), &nativeResourceDesc, native_cast(initialState), pNativeClearValue, IID_PPV_ARGS(&native)));
 
 	return new Resource{native};
 }
@@ -160,12 +155,10 @@ gxapi::IRootSignature* GraphicsApi::CreateRootSignature(gxapi::RootSignatureDesc
 		for (unsigned i = 0; i < error->GetBufferSize(); i++) {
 			errorStr += static_cast<char*>(error->GetBufferPointer())[i];
 		}
-		throw std::runtime_error("Could not create root signature, error while serializing signature: " + errorStr);
+		throw gxapi::Exception("Could not create root signature, error while serializing signature: " + errorStr);
 	}
 
-	if (FAILED(m_device->CreateRootSignature(0, serializedSignature->GetBufferPointer(), serializedSignature->GetBufferSize(), IID_PPV_ARGS(&native)))) {
-		throw std::runtime_error("Could not create root signature, error while executing ID3D12Device::CreateRootSignature.");
-	}
+	ThrowIfFailed(m_device->CreateRootSignature(0, serializedSignature->GetBufferPointer(), serializedSignature->GetBufferSize(), IID_PPV_ARGS(&native)));
 
 	return new RootSignature{native};
 }
@@ -225,9 +218,7 @@ gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(gxapi::GraphicsP
 	nativeDesc.Flags                  = desc.addDebugInfo ? D3D12_PIPELINE_STATE_FLAG_TOOL_DEBUG : D3D12_PIPELINE_STATE_FLAG_NONE;
 
 
-	if (FAILED(m_device->CreateGraphicsPipelineState(&nativeDesc, IID_PPV_ARGS(&native)))) {
-		throw std::runtime_error("Could not create raphics pipeline state.");
-	}
+	ThrowIfFailed(m_device->CreateGraphicsPipelineState(&nativeDesc, IID_PPV_ARGS(&native)));
 
 	return new PipelineState{native};
 }
@@ -237,9 +228,7 @@ gxapi::IDescriptorHeap* GraphicsApi::CreateDescriptorHeap(gxapi::DescriptorHeapD
 	ComPtr<ID3D12DescriptorHeap> native;
 
 	auto nativeDesc = native_cast(desc);
-	if (FAILED(m_device->CreateDescriptorHeap(&nativeDesc, IID_PPV_ARGS(&native)))) {
-		throw std::runtime_error("Could not create command allocator.");
-	}
+	ThrowIfFailed(m_device->CreateDescriptorHeap(&nativeDesc, IID_PPV_ARGS(&native)));
 
 	return new DescriptorHeap{native};
 }
