@@ -921,24 +921,12 @@ D3D12_SRV_DIMENSION native_cast(gxapi::eSrvDimension source) {
 D3D12_RESOURCE_FLAGS native_cast(gxapi::eResourceFlags source) {
 	D3D12_RESOURCE_FLAGS result = D3D12_RESOURCE_FLAG_NONE;
 
-	if (source & gxapi::eResourceFlags::ALLOW_RENDER_TARGET) {
-		result |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-	}
-	if (source & gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL) {
-		result |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-	}
-	if (source & gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS) {
-		result |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-	}
-	if (source & gxapi::eResourceFlags::DENY_SHADER_RESOURCE) {
-		result |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
-	}
-	if (source & gxapi::eResourceFlags::ALLOW_CROSS_ADAPTER) {
-		result |= D3D12_RESOURCE_FLAG_ALLOW_CROSS_ADAPTER;
-	}
-	if (source & gxapi::eResourceFlags::ALLOW_SIMULTANEOUS_ACCESS) {
-		result |= D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS;
-	}
+	result |= D3D12_RESOURCE_FLAGS(bool(source & gxapi::eResourceFlags::ALLOW_RENDER_TARGET) * D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	result |= D3D12_RESOURCE_FLAGS(bool(source & gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL) * D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+	result |= D3D12_RESOURCE_FLAGS(bool(source & gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS) * D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	result |= D3D12_RESOURCE_FLAGS(bool(source & gxapi::eResourceFlags::DENY_SHADER_RESOURCE) * D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE);
+	result |= D3D12_RESOURCE_FLAGS(bool(source & gxapi::eResourceFlags::ALLOW_CROSS_ADAPTER) * D3D12_RESOURCE_FLAG_ALLOW_CROSS_ADAPTER);
+	result |= D3D12_RESOURCE_FLAGS(bool(source & gxapi::eResourceFlags::ALLOW_SIMULTANEOUS_ACCESS) * D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS);
 
 	return result;
 }
@@ -947,36 +935,16 @@ D3D12_RESOURCE_FLAGS native_cast(gxapi::eResourceFlags source) {
 D3D12_HEAP_FLAGS native_cast(gxapi::eHeapFlags source) {
 	D3D12_HEAP_FLAGS result = D3D12_HEAP_FLAG_NONE;
 
-	if (source & gxapi::eHeapFlags::SHARED) {
-		result |= D3D12_HEAP_FLAG_SHARED;
-	}
-	if (source & gxapi::eHeapFlags::DENY_BUFFERS) {
-		result |= D3D12_HEAP_FLAG_DENY_BUFFERS;
-	}
-	if (source & gxapi::eHeapFlags::ALLOW_DISPLAY) {
-		result |= D3D12_HEAP_FLAG_ALLOW_DISPLAY;
-	}
-	if (source & gxapi::eHeapFlags::SHARED_CROSS_ADAPTER) {
-		result |= D3D12_HEAP_FLAG_SHARED_CROSS_ADAPTER;
-	}
-	if (source & gxapi::eHeapFlags::DENY_RT_DS_TEXTURES) {
-		result |= D3D12_HEAP_FLAG_DENY_RT_DS_TEXTURES;
-	}
-	if (source & gxapi::eHeapFlags::DENY_NON_RT_DS_TEXTURES) {
-		result |= D3D12_HEAP_FLAG_DENY_NON_RT_DS_TEXTURES;
-	}
-	if (source & gxapi::eHeapFlags::ALLOW_ALL_BUFFERS_AND_TEXTURES) {
-		result |= D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES;
-	}
-	if (source & gxapi::eHeapFlags::ALLOW_ONLY_BUFFERS) {
-		result |= D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS;
-	}
-	if (source & gxapi::eHeapFlags::ALLOW_ONLY_NON_RT_DS_TEXTURES) {
-		result |= D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES;
-	}
-	if (source & gxapi::eHeapFlags::ALLOW_ONLY_RT_DS_TEXTURES) {
-		result |= D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES;
-	}
+	result |= D3D12_HEAP_FLAGS(bool(source & gxapi::eHeapFlags::SHARED) * D3D12_HEAP_FLAG_SHARED);
+	result |= D3D12_HEAP_FLAGS(bool(source & gxapi::eHeapFlags::DENY_BUFFERS) * D3D12_HEAP_FLAG_DENY_BUFFERS);
+	result |= D3D12_HEAP_FLAGS(bool(source & gxapi::eHeapFlags::ALLOW_DISPLAY) * D3D12_HEAP_FLAG_ALLOW_DISPLAY);
+	result |= D3D12_HEAP_FLAGS(bool(source & gxapi::eHeapFlags::SHARED_CROSS_ADAPTER) * D3D12_HEAP_FLAG_SHARED_CROSS_ADAPTER);
+	result |= D3D12_HEAP_FLAGS(bool(source & gxapi::eHeapFlags::DENY_RT_DS_TEXTURES) * D3D12_HEAP_FLAG_DENY_RT_DS_TEXTURES);
+	result |= D3D12_HEAP_FLAGS(bool(source & gxapi::eHeapFlags::DENY_NON_RT_DS_TEXTURES) * D3D12_HEAP_FLAG_DENY_NON_RT_DS_TEXTURES);
+	result |= D3D12_HEAP_FLAGS(bool(source & gxapi::eHeapFlags::ALLOW_ALL_BUFFERS_AND_TEXTURES) * D3D12_HEAP_FLAG_ALLOW_ALL_BUFFERS_AND_TEXTURES);
+	result |= D3D12_HEAP_FLAGS(bool(source & gxapi::eHeapFlags::ALLOW_ONLY_BUFFERS) * D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
+	result |= D3D12_HEAP_FLAGS(bool(source & gxapi::eHeapFlags::ALLOW_ONLY_NON_RT_DS_TEXTURES) * D3D12_HEAP_FLAG_ALLOW_ONLY_NON_RT_DS_TEXTURES);
+	result |= D3D12_HEAP_FLAGS(bool(source & gxapi::eHeapFlags::ALLOW_ONLY_RT_DS_TEXTURES) * D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
 
 	return result;
 }
