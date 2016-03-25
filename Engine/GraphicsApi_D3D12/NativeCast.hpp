@@ -74,19 +74,13 @@ DXGI_FORMAT native_cast(gxapi::eFormat source);
 
 D3D12_TEXTURE_LAYOUT native_cast(gxapi::eTextureLayout source);
 
-D3D12_SHADER_BYTECODE native_cast(gxapi::ShaderByteCodeDesc source);
-
 D3D12_RESOURCE_DIMENSION native_cast(gxapi::eTextueDimension source);
-
-D3D12_RESOURCE_STATES native_cast(gxapi::eResourceState source);
 
 D3D12_BLEND native_cast(gxapi::eBlendOperand source);
 
 D3D12_BLEND_OP native_cast(gxapi::eBlendOperation source);
 
 D3D12_LOGIC_OP native_cast(gxapi::eBlendLogicOperation source);
-
-UINT8 native_cast(gxapi::eColorMask source);
 
 D3D12_FILL_MODE native_cast(gxapi::eFillMode source);
 
@@ -102,11 +96,19 @@ D3D12_PRIMITIVE_TOPOLOGY_TYPE native_cast(gxapi::ePrimitiveTopologyType source);
 
 D3D12_INPUT_CLASSIFICATION native_cast(gxapi::eInputClassification source);
 
+D3D12_DSV_DIMENSION native_cast(gxapi::eDsvDimension source);
+
 //---------------
 //FLAGS
 D3D12_RESOURCE_FLAGS native_cast(gxapi::eResourceFlags source);
 
 D3D12_HEAP_FLAGS native_cast(gxapi::eHeapFlags source);
+
+D3D12_RESOURCE_STATES native_cast(gxapi::eResourceState source);
+
+UINT8 native_cast(gxapi::eColorMask source);
+
+D3D12_DSV_FLAGS native_cast(gxapi::eDsvFlags source);
 
 //---------------
 //OBJECT
@@ -144,11 +146,19 @@ D3D12_DEPTH_STENCILOP_DESC native_cast(gxapi::DepthStencilState::FaceOperations 
 
 D3D12_INPUT_ELEMENT_DESC native_cast(gxapi::InputElementDesc source);
 
+D3D12_CONSTANT_BUFFER_VIEW_DESC native_cast(gxapi::ConstantBufferViewDesc source);
+
+D3D12_DEPTH_STENCIL_VIEW_DESC native_cast(gxapi::DepthStencilViewDesc source);
+
+DXGI_SWAP_CHAIN_DESC native_cast(gxapi::SwapChainDesc source);
+
 //---------------
 //OTHER
 D3D12_DESCRIPTOR_RANGE native_cast(gxapi::DescriptorRange source);
 
 D3D12_ROOT_CONSTANTS native_cast(gxapi::RootConstant source);
+
+D3D12_SHADER_BYTECODE native_cast(gxapi::ShaderByteCodeDesc source);
 
 
 ////////////////////////////////////////////////////////////

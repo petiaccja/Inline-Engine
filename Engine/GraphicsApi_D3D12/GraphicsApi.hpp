@@ -42,22 +42,22 @@ public:
 
 #pragma message("Implement CBV/SRV/RTV/DSV creation!")
 	void CreateConstantBufferView(gxapi::ConstantBufferViewDesc desc,
-								  gxapi::DescriptorHandle destination) override;
+	                              gxapi::DescriptorHandle destination) override;
 
 	void CreateDepthStencilView(gxapi::DepthStencilViewDesc desc,
-								gxapi::DescriptorHandle destination) override;
+	                            gxapi::DescriptorHandle destination) override;
 	void CreateDepthStencilView(gxapi::IResource* resource,
-								gxapi::DescriptorHandle destination) override;
+	                            gxapi::DescriptorHandle destination) override;
 
 	void CreateRenderTargetView(gxapi::RenderTargetViewDesc resource,
-								gxapi::DescriptorHandle destination) override;
+	                            gxapi::DescriptorHandle destination) override;
 	void CreateRenderTargetView(gxapi::IResource* resource,
-								gxapi::DescriptorHandle destination) override;
+	                            gxapi::DescriptorHandle destination) override;
 
 	void CreateShaderResourceView(gxapi::ShaderResourceViewDesc resource,
-								  gxapi::DescriptorHandle destination) override;
+	                              gxapi::DescriptorHandle destination) override;
 	void CreateShaderResourceView(gxapi::IResource* resource,
-								  gxapi::DescriptorHandle destination) override;
+	                              gxapi::DescriptorHandle destination) override;
 
 
 protected:

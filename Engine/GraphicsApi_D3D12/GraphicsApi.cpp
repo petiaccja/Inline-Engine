@@ -241,5 +241,62 @@ gxapi::IDescriptorHeap* GraphicsApi::CreateDescriptorHeap(gxapi::DescriptorHeapD
 }
 
 
+void GraphicsApi::CreateConstantBufferView(
+	gxapi::ConstantBufferViewDesc desc,
+	gxapi::DescriptorHandle destination) {
+
+	D3D12_CONSTANT_BUFFER_VIEW_DESC nativeDesc = native_cast(desc);
+	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
+	nativeCPUHandle.ptr = reinterpret_cast<uintptr_t>(destination.cpuAddress);
+	m_device->CreateConstantBufferView(&nativeDesc, nativeCPUHandle);
+}
+
+
+void GraphicsApi::CreateDepthStencilView(
+	gxapi::DepthStencilViewDesc desc,
+	gxapi::DescriptorHandle destination) {
+
+	D3D12_DEPTH_STENCIL_VIEW_DESC nativeDesc = native_cast(desc);
+	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
+	nativeCPUHandle.ptr = reinterpret_cast<uintptr_t>(destination.cpuAddress);
+	m_device->CreateDepthStencilView(nullptr, &nativeDesc, nativeCPUHandle);
+}
+
+
+void GraphicsApi::CreateDepthStencilView(
+	gxapi::IResource* resource,
+	gxapi::DescriptorHandle destination) {
+
+}
+
+
+void GraphicsApi::CreateRenderTargetView(
+	gxapi::RenderTargetViewDesc resource,
+	gxapi::DescriptorHandle destination) {
+
+}
+
+
+void GraphicsApi::CreateRenderTargetView(
+	gxapi::IResource* resource,
+	gxapi::DescriptorHandle destination) {
+
+}
+
+
+void GraphicsApi::CreateShaderResourceView(
+	gxapi::ShaderResourceViewDesc resource,
+	gxapi::DescriptorHandle destination) {
+
+}
+
+
+void GraphicsApi::CreateShaderResourceView(
+	gxapi::IResource* resource,
+	gxapi::DescriptorHandle destination) {
+
+}
+
+
 } // namespace gxapi_dx12
 } // namespace inl
