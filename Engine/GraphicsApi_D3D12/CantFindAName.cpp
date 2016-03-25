@@ -62,8 +62,8 @@ std::vector<AdapterInfo> CantFindAName::EnumerateAdapters() {
 
 
 ISwapChain* CantFindAName::CreateSwapChain(SwapChainDesc desc, ICommandQueue* flushThisQueue) {
-	// cats stuff to native counterparts
-	DXGI_SWAP_CHAIN_DESC1 nativeDesc;
+	// cast stuff to native counterparts
+	DXGI_SWAP_CHAIN_DESC nativeDesc;
 	ComPtr<ID3D12CommandQueue> nativeQueue = static_cast<CommandQueue*>(flushThisQueue)->m_native;
 
 
@@ -76,9 +76,12 @@ ISwapChain* CantFindAName::CreateSwapChain(SwapChainDesc desc, ICommandQueue* fl
 
 
 	// create the swap chain
+	ComPtr<IDXGISwapChain> swapChain;
+	if (FAILED(factory->CreateSwapChain(nativeQueue.Get(), &nativeDesc, &swapChain))) {
+		// throw error
+	}
 
-
-
+	
 }
 
 
