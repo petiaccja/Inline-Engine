@@ -115,6 +115,7 @@ D3D12_PRIMITIVE_TOPOLOGY native_cast(gxapi::ePrimitiveTopology source) {
 
 	default:
 		assert(false);
+		break;
 	}
 
 	return D3D12_PRIMITIVE_TOPOLOGY{};
@@ -131,6 +132,7 @@ D3D12_COMMAND_LIST_TYPE native_cast(gxapi::eCommandListType source) {
 		return D3D12_COMMAND_LIST_TYPE_DIRECT;
 	default:
 		assert(false);
+		break;
 	}
 
 	return D3D12_COMMAND_LIST_TYPE{};
@@ -150,6 +152,7 @@ D3D12_DESCRIPTOR_HEAP_TYPE native_cast(gxapi::eDesriptorHeapType source) {
 		return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	default:
 		assert(false);
+		break;
 	}
 
 	return D3D12_DESCRIPTOR_HEAP_TYPE{};
@@ -160,19 +163,14 @@ D3D12_ROOT_PARAMETER_TYPE native_cast(gxapi::RootParameterDesc::eType source) {
 	switch (source) {
 	case gxapi::RootParameterDesc::CONSTANT:
 		return D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-		break;
 	case gxapi::RootParameterDesc::CBV:
 		return D3D12_ROOT_PARAMETER_TYPE_CBV;
-		break;
 	case gxapi::RootParameterDesc::SRV:
 		return D3D12_ROOT_PARAMETER_TYPE_SRV;
-		break;
 	case gxapi::RootParameterDesc::UAV:
 		return D3D12_ROOT_PARAMETER_TYPE_UAV;
-		break;
 	case gxapi::RootParameterDesc::DESCRIPTOR_TABLE:
 		return D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-		break;
 	default:
 		assert(false);
 		break;
@@ -580,16 +578,6 @@ D3D12_TEXTURE_LAYOUT native_cast(gxapi::eTextureLayout source) {
 }
 
 
-D3D12_SHADER_BYTECODE native_cast(gxapi::ShaderByteCodeDesc source) {
-	D3D12_SHADER_BYTECODE result;
-
-	result.BytecodeLength = source.sizeOfByteCode;
-	result.pShaderBytecode = source.shaderByteCode;
-
-	return result;
-}
-
-
 D3D12_RESOURCE_DIMENSION native_cast(gxapi::eTextueDimension source) {
 	switch (source) {
 	case gxapi::eTextueDimension::ONE:
@@ -604,76 +592,6 @@ D3D12_RESOURCE_DIMENSION native_cast(gxapi::eTextueDimension source) {
 	}
 
 	return D3D12_RESOURCE_DIMENSION{};
-}
-
-
-D3D12_RESOURCE_STATES native_cast(gxapi::eResourceState source) {
-	//static_assert(false, "this is a bitflag!");
-	//switch ((gxapi::eResourceState::EnumT)source) {
-	//case gxapi::eResourceState::COMMON:
-	//	return D3D12_RESOURCE_STATE_COMMON;
-	//case gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER:
-	//	return D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-	//case gxapi::eResourceState::INDEX_BUFFER:
-	//	return D3D12_RESOURCE_STATE_INDEX_BUFFER;
-	//case gxapi::eResourceState::RENDER_TARGET:
-	//	return D3D12_RESOURCE_STATE_RENDER_TARGET;
-	//case gxapi::eResourceState::UNORDERED_ACCESS:
-	//	return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-	//case gxapi::eResourceState::DEPTH_WRITE:
-	//	return D3D12_RESOURCE_STATE_DEPTH_WRITE;
-	//case gxapi::eResourceState::DEPTH_READ:
-	//	return D3D12_RESOURCE_STATE_DEPTH_READ;
-	//case gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE:
-	//	return D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
-	//case gxapi::eResourceState::PIXEL_SHADER_RESOURCE:
-	//	return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
-	//case gxapi::eResourceState::STREAM_OUT:
-	//	return D3D12_RESOURCE_STATE_STREAM_OUT;
-	//case gxapi::eResourceState::INDIRECT_ARGUMENT:
-	//	return D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT;
-	//case gxapi::eResourceState::COPY_DEST:
-	//	return D3D12_RESOURCE_STATE_COPY_DEST;
-	//case gxapi::eResourceState::COPY_SOURCE:
-	//	return D3D12_RESOURCE_STATE_COPY_SOURCE;
-	//case gxapi::eResourceState::RESOLVE_DEST:
-	//	return D3D12_RESOURCE_STATE_RESOLVE_DEST;
-	//case gxapi::eResourceState::RESOLVE_SOURCE:
-	//	return D3D12_RESOURCE_STATE_RESOLVE_SOURCE;
-	//case gxapi::eResourceState::GENERIC_READ:
-	//	return D3D12_RESOURCE_STATE_GENERIC_READ;
-	//case gxapi::eResourceState::PRESENT:
-	//	return D3D12_RESOURCE_STATE_PRESENT;
-	//case gxapi::eResourceState::PREDICATION:
-	//	return D3D12_RESOURCE_STATE_PREDICATION;
-	//default:
-	//	assert(false);
-	//	break;
-	//}
-
-	D3D12_RESOURCE_STATES nativeFlag = static_cast<D3D12_RESOURCE_STATES>(0);
-
-	// native  |= (boolean cast -> 1 if true, 0 if false ) * native value;
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::COMMON)						* D3D12_RESOURCE_STATE_COMMON					);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER)	* D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER	);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::INDEX_BUFFER)				* D3D12_RESOURCE_STATE_INDEX_BUFFER					);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::RENDER_TARGET)				* D3D12_RESOURCE_STATE_RENDER_TARGET					);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::UNORDERED_ACCESS)			* D3D12_RESOURCE_STATE_UNORDERED_ACCESS				);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::DEPTH_WRITE)					* D3D12_RESOURCE_STATE_DEPTH_WRITE					);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::DEPTH_READ)					* D3D12_RESOURCE_STATE_DEPTH_READ					);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE)	* D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE		);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::PIXEL_SHADER_RESOURCE)		* D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE			);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::STREAM_OUT)					* D3D12_RESOURCE_STATE_STREAM_OUT					);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::INDIRECT_ARGUMENT)			* D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT				);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::COPY_DEST)					* D3D12_RESOURCE_STATE_COPY_DEST						);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::COPY_SOURCE)					* D3D12_RESOURCE_STATE_COPY_SOURCE					);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::RESOLVE_DEST)				* D3D12_RESOURCE_STATE_RESOLVE_DEST					);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::RESOLVE_SOURCE)				* D3D12_RESOURCE_STATE_RESOLVE_SOURCE				);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::GENERIC_READ)				* D3D12_RESOURCE_STATE_GENERIC_READ					);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::PRESENT)						* D3D12_RESOURCE_STATE_PRESENT						);
-	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::PREDICATION)					* D3D12_RESOURCE_STATE_PREDICATION					);
-
-	return D3D12_RESOURCE_STATES{};
 }
 
 
@@ -775,40 +693,6 @@ D3D12_LOGIC_OP native_cast(gxapi::eBlendLogicOperation source) {
 	}
 
 	return D3D12_LOGIC_OP{};
-}
-
-
-UINT8 native_cast(gxapi::eColorMask source) {
-	//static_assert(false, "this is a bitflag!");
-	//switch ((gxapi::eColorMask::EnumT)source) {
-	//case gxapi::eColorMask::RED:
-	//	return D3D12_COLOR_WRITE_ENABLE_RED;
-	//case gxapi::eColorMask::GREEN:
-	//	return D3D12_COLOR_WRITE_ENABLE_GREEN;
-	//case gxapi::eColorMask::BLUE:
-	//	return D3D12_COLOR_WRITE_ENABLE_BLUE;
-	//case gxapi::eColorMask::ALPHA:
-	//	return D3D12_COLOR_WRITE_ENABLE_ALPHA;
-	//case gxapi::eColorMask::ALL:
-	//	return D3D12_COLOR_WRITE_ENABLE_ALL;
-	//default:
-	//	assert(false);
-	//	break;
-	//}
-
-	D3D12_COLOR_WRITE_ENABLE nativeFlag = static_cast<D3D12_COLOR_WRITE_ENABLE>(0);
-	using UnderlyingType = typename std::underlying_type<D3D12_COLOR_WRITE_ENABLE>::type;
-
-	// native  |= (boolean cast -> 1 if true, 0 if false ) * native value;
-	(UnderlyingType&)nativeFlag |= D3D12_COLOR_WRITE_ENABLE(bool(source & gxapi::eColorMask::RED)	* D3D12_COLOR_WRITE_ENABLE_RED);
-	(UnderlyingType&)nativeFlag |= D3D12_COLOR_WRITE_ENABLE(bool(source & gxapi::eColorMask::GREEN)	* D3D12_COLOR_WRITE_ENABLE_GREEN);
-	(UnderlyingType&)nativeFlag |= D3D12_COLOR_WRITE_ENABLE(bool(source & gxapi::eColorMask::BLUE)	* D3D12_COLOR_WRITE_ENABLE_BLUE);
-	(UnderlyingType&)nativeFlag |= D3D12_COLOR_WRITE_ENABLE(bool(source & gxapi::eColorMask::ALPHA)	* D3D12_COLOR_WRITE_ENABLE_ALPHA);
-	(UnderlyingType&)nativeFlag |= D3D12_COLOR_WRITE_ENABLE(bool(source & gxapi::eColorMask::ALL)	* D3D12_COLOR_WRITE_ENABLE_ALL);
-
-
-
-	return 0;
 }
 
 
@@ -941,6 +825,35 @@ D3D12_INPUT_CLASSIFICATION native_cast(gxapi::eInputClassification source) {
 }
 
 
+D3D12_DSV_DIMENSION native_cast(gxapi::eDsvDimension source) {
+	switch (source) {
+	case inl::gxapi::eDsvDimension::UNKNOWN:
+		return D3D12_DSV_DIMENSION_UNKNOWN;
+	case inl::gxapi::eDsvDimension::TEXTURE1D:
+		return D3D12_DSV_DIMENSION_TEXTURE1D;
+	case inl::gxapi::eDsvDimension::TEXTURE1DARRAY:
+		return D3D12_DSV_DIMENSION_TEXTURE1DARRAY;
+	case inl::gxapi::eDsvDimension::TEXTURE2D:
+		return D3D12_DSV_DIMENSION_TEXTURE2D;
+	case inl::gxapi::eDsvDimension::TEXTURE2DARRAY:
+		return D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+	case inl::gxapi::eDsvDimension::TEXTURE2DMS:
+		return D3D12_DSV_DIMENSION_TEXTURE2DMS;
+	case inl::gxapi::eDsvDimension::TEXTURE2DMSARRAY:
+		return D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY;
+	default:
+		assert(false);
+		break;
+	}
+
+	return D3D12_DSV_DIMENSION{};
+}
+
+
+
+//---------------
+//FLAGS
+
 D3D12_RESOURCE_FLAGS native_cast(gxapi::eResourceFlags source) {
 	D3D12_RESOURCE_FLAGS result = D3D12_RESOURCE_FLAG_NONE;
 
@@ -1002,6 +915,58 @@ D3D12_HEAP_FLAGS native_cast(gxapi::eHeapFlags source) {
 	}
 
 	return result;
+}
+
+
+D3D12_RESOURCE_STATES native_cast(gxapi::eResourceState source) {
+	D3D12_RESOURCE_STATES nativeFlag = static_cast<D3D12_RESOURCE_STATES>(0);
+
+	// native  |= (boolean cast -> 1 if true, 0 if false ) * native value;
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::COMMON) * D3D12_RESOURCE_STATE_COMMON);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER) * D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::INDEX_BUFFER) * D3D12_RESOURCE_STATE_INDEX_BUFFER);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::RENDER_TARGET) * D3D12_RESOURCE_STATE_RENDER_TARGET);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::UNORDERED_ACCESS) * D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::DEPTH_WRITE) * D3D12_RESOURCE_STATE_DEPTH_WRITE);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::DEPTH_READ) * D3D12_RESOURCE_STATE_DEPTH_READ);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE) * D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::PIXEL_SHADER_RESOURCE) * D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::STREAM_OUT) * D3D12_RESOURCE_STATE_STREAM_OUT);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::INDIRECT_ARGUMENT) * D3D12_RESOURCE_STATE_INDIRECT_ARGUMENT);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::COPY_DEST) * D3D12_RESOURCE_STATE_COPY_DEST);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::COPY_SOURCE) * D3D12_RESOURCE_STATE_COPY_SOURCE);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::RESOLVE_DEST) * D3D12_RESOURCE_STATE_RESOLVE_DEST);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::RESOLVE_SOURCE) * D3D12_RESOURCE_STATE_RESOLVE_SOURCE);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::GENERIC_READ) * D3D12_RESOURCE_STATE_GENERIC_READ);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::PRESENT) * D3D12_RESOURCE_STATE_PRESENT);
+	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::PREDICATION) * D3D12_RESOURCE_STATE_PREDICATION);
+
+	return D3D12_RESOURCE_STATES{};
+}
+
+
+UINT8 native_cast(gxapi::eColorMask source) {
+	D3D12_COLOR_WRITE_ENABLE nativeFlag = static_cast<D3D12_COLOR_WRITE_ENABLE>(0);
+	using UnderlyingType = typename std::underlying_type<D3D12_COLOR_WRITE_ENABLE>::type;
+
+	// native  |= (boolean cast -> 1 if true, 0 if false ) * native value;
+	(UnderlyingType&)nativeFlag |= D3D12_COLOR_WRITE_ENABLE(bool(source & gxapi::eColorMask::RED) * D3D12_COLOR_WRITE_ENABLE_RED);
+	(UnderlyingType&)nativeFlag |= D3D12_COLOR_WRITE_ENABLE(bool(source & gxapi::eColorMask::GREEN) * D3D12_COLOR_WRITE_ENABLE_GREEN);
+	(UnderlyingType&)nativeFlag |= D3D12_COLOR_WRITE_ENABLE(bool(source & gxapi::eColorMask::BLUE) * D3D12_COLOR_WRITE_ENABLE_BLUE);
+	(UnderlyingType&)nativeFlag |= D3D12_COLOR_WRITE_ENABLE(bool(source & gxapi::eColorMask::ALPHA) * D3D12_COLOR_WRITE_ENABLE_ALPHA);
+	(UnderlyingType&)nativeFlag |= D3D12_COLOR_WRITE_ENABLE(bool(source & gxapi::eColorMask::ALL) * D3D12_COLOR_WRITE_ENABLE_ALL);
+
+	return nativeFlag;
+}
+
+
+D3D12_DSV_FLAGS native_cast(gxapi::eDsvFlags source) {
+	D3D12_DSV_FLAGS nativeFlag = D3D12_DSV_FLAG_NONE;
+
+	nativeFlag |= D3D12_DSV_FLAGS(bool(source & gxapi::eDsvFlags::READ_ONLY_DEPTH) * D3D12_DSV_FLAG_READ_ONLY_DEPTH);
+	nativeFlag |= D3D12_DSV_FLAGS(bool(source & gxapi::eDsvFlags::READ_ONLY_STENCIL) * D3D12_DSV_FLAG_READ_ONLY_STENCIL);
+
+	return nativeFlag;
 }
 
 
@@ -1121,6 +1086,9 @@ D3D12_RESOURCE_DESC native_cast(gxapi::ResourceDesc source) {
 		result.SampleDesc.Quality = tex.multisampleQuality;
 		result.Layout = native_cast(tex.layout);
 		result.Flags = native_cast(tex.flags);
+	}
+	else {
+		assert(false);
 	}
 
 	return result;
@@ -1268,6 +1236,55 @@ D3D12_INPUT_ELEMENT_DESC native_cast(gxapi::InputElementDesc source) {
 }
 
 
+D3D12_CONSTANT_BUFFER_VIEW_DESC native_cast(gxapi::ConstantBufferViewDesc source) {
+	D3D12_CONSTANT_BUFFER_VIEW_DESC result;
+
+	result.BufferLocation = reinterpret_cast<std::uintptr_t>(source.gpuVirtualAddress);
+	result.SizeInBytes = source.sizeInBytes;
+
+	return result;
+}
+
+
+D3D12_DEPTH_STENCIL_VIEW_DESC native_cast(gxapi::DepthStencilViewDesc source) {
+	D3D12_DEPTH_STENCIL_VIEW_DESC result;
+
+	result.Format = native_cast(source.format);
+	result.ViewDimension = native_cast(source.dimension);
+	result.Flags = native_cast(source.flags);
+
+	auto dim = result.ViewDimension;
+	switch (dim) {
+	case D3D12_DSV_DIMENSION_UNKNOWN:
+		assert(false);
+		break;
+	case D3D12_DSV_DIMENSION_TEXTURE1D:
+		result.Texture1D = native_cast(source.tex1D);
+		break;
+	case D3D12_DSV_DIMENSION_TEXTURE1DARRAY:
+		result.Texture1DArray = native_cast(source.tex1DArray);
+		break;
+	case D3D12_DSV_DIMENSION_TEXTURE2D:
+		result.Texture2D = native_cast(source.tex2D);
+		break;
+	case D3D12_DSV_DIMENSION_TEXTURE2DARRAY:
+		result.Texture2DArray = native_cast(source.tex2DArray);
+		break;
+	case D3D12_DSV_DIMENSION_TEXTURE2DMS:
+		result.Texture2DMS = native_cast(source.texMS2D);
+		break;
+	case D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY:
+		result.Texture2DMSArray = native_cast(source.texMS2DArray);
+		break;
+	default:
+		assert(false);
+		break;
+	}
+
+	return result;
+}
+
+
 //---------------
 //OTHER
 
@@ -1289,6 +1306,16 @@ D3D12_ROOT_CONSTANTS native_cast(gxapi::RootConstant source) {
 	result.Num32BitValues = source.numConstants;
 	result.RegisterSpace = source.registerSpace;
 	result.ShaderRegister = source.shaderRegister;
+
+	return result;
+}
+
+
+D3D12_SHADER_BYTECODE native_cast(gxapi::ShaderByteCodeDesc source) {
+	D3D12_SHADER_BYTECODE result;
+
+	result.BytecodeLength = source.sizeOfByteCode;
+	result.pShaderBytecode = source.shaderByteCode;
 
 	return result;
 }
