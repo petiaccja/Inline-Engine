@@ -2,8 +2,11 @@
 
 #include "../BaseLibrary/Utility_/BitflagEnum.hpp"
 
+#include "Native.hpp"
+
 #include <cstdint>
 #include <limits>
+#include <string>
 #undef DOMAIN // math.h, conflicting with eShaderVisibility::DOMAIN
 
 namespace inl {
@@ -560,6 +563,34 @@ using eResourceState = exc::BitFlagEnum<bitflag_enum_impl::eResourceState_Base, 
 using eResourceFlags = exc::BitFlagEnum<bitflag_enum_impl::eResourceFlags_Base, bitflag_enum_impl::eResourceFlags_Base::eResourceFlags>;
 using eColorMask = exc::BitFlagEnum<bitflag_enum_impl::eColorMask_Base, bitflag_enum_impl::eColorMask_Base::eColorMask>;
 using eDsvFlags = exc::BitFlagEnum<bitflag_enum_impl::eDsvFlags_Base, bitflag_enum_impl::eDsvFlags_Base::eDsvFlags>;
+
+
+
+//------------------------------------------------------------------------------
+// Adapter and swapchain
+//------------------------------------------------------------------------------
+
+struct AdapterInfo {
+	unsigned adapterId;
+	std::string name;
+	unsigned vendorId;
+	unsigned deviceId;
+	size_t dedicatedVideoMemory;
+	size_t dedicatedSystemMemory;
+	size_t sharedSystemMemory;
+	bool isSoftwareAdapter;
+};
+
+struct SwapChainDesc {
+	unsigned width;
+	unsigned height;
+	eFormat format;
+	unsigned multisampleCount;
+	unsigned multiSampleQuality;
+	unsigned numBuffers;
+	NativeWindowHandle targetWindow;
+	bool isFullScreen;
+};
 
 
 //------------------------------------------------------------------------------

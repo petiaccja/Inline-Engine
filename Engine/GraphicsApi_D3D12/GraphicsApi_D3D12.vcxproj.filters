@@ -34,6 +34,12 @@
     <ClCompile Include="RootSignature.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
+    <ClCompile Include="CantFindAName.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="SwapChain.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GraphicsApi_LL\ICommandAllocator.hpp">
@@ -118,6 +124,21 @@
       <Filter>Implementation</Filter>
     </ClInclude>
     <ClInclude Include="EnableWin32Macros.h">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\ICantFindAName.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="CantFindAName.hpp">
+      <Filter>Implementation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\Native.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\ISwapChain.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="SwapChain.hpp">
       <Filter>Implementation</Filter>
     </ClInclude>
   </ItemGroup>
