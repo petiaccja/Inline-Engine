@@ -244,6 +244,8 @@ gxapi::DescriptorHeapDesc native_cast(D3D12_DESCRIPTOR_HEAP_DESC source);
 
 gxapi::ResourceDesc native_cast(D3D12_RESOURCE_DESC source);
 
+gxapi::SwapChainDesc native_cast(DXGI_SWAP_CHAIN_DESC source);
+
 
 } // namespace gxapi_dx12
 } // namespace inl

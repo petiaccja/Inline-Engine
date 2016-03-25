@@ -1436,6 +1436,7 @@ DXGI_SWAP_CHAIN_DESC native_cast(gxapi::SwapChainDesc source) {
 	result.OutputWindow = source.targetWindow;
 	result.Windowed = !source.isFullScreen;
 	result.SwapEffect = source.multisampleCount > 1 ? DXGI_SWAP_EFFECT_DISCARD : DXGI_SWAP_EFFECT_FLIP_DISCARD;
+
 	result.Flags = 0;
 
 	return result;
@@ -2053,6 +2054,21 @@ gxapi::ResourceDesc native_cast(D3D12_RESOURCE_DESC source) {
 	return result;
 }
 
+
+gxapi::SwapChainDesc native_cast(DXGI_SWAP_CHAIN_DESC source) {
+	gxapi::SwapChainDesc result;
+
+	result.width = source.BufferDesc.Width;
+	result.height = source.BufferDesc.Height;
+	result.format = native_cast(source.BufferDesc.Format);
+	result.multisampleCount = source.SampleDesc.Count;
+	result.multiSampleQuality = source.SampleDesc.Quality;
+	result.numBuffers = source.BufferCount;
+	result.targetWindow = source.OutputWindow;
+	result.isFullScreen = !source.Windowed;
+
+	return result;
+}
 
 
 } // namespace gxapi_dx12
