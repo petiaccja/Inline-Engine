@@ -1,6 +1,9 @@
 #include "CantFindAName.hpp"
 #include "NativeCast.hpp"
+#include "SwapChain.hpp"
+#include "GraphicsApi.hpp"
 
+#include "../GraphicsApi_LL/Exception.hpp"
 
 #include <d3d12.h>
 #include <dxgi1_4.h>
@@ -25,7 +28,7 @@ std::vector<AdapterInfo> CantFindAName::EnumerateAdapters() {
 	ComPtr<IDXGIFactory4> factory;
 	if (FAILED(CreateDXGIFactory(IID_PPV_ARGS(&factory)))) {
 		// it is not supposed to fail unless you call it from a dll main
-		// throw some shit anyways
+		throw Exception("Are you calling this from a DllMain...? See, that's the problem.");
 	}
 
 
@@ -64,29 +67,65 @@ std::vector<AdapterInfo> CantFindAName::EnumerateAdapters() {
 ISwapChain* CantFindAName::CreateSwapChain(SwapChainDesc desc, ICommandQueue* flushThisQueue) {
 	// cast stuff to native counterparts
 	DXGI_SWAP_CHAIN_DESC nativeDesc;
-	ComPtr<ID3D12CommandQueue> nativeQueue = static_cast<CommandQueue*>(flushThisQueue)->m_native;
+	ComPtr<ID3D12CommandQueue> nativeQueue = native_cast(static_cast<CommandQueue*>(flushThisQueue));
 
 
 	// create a dxgi factory
 	ComPtr<IDXGIFactory4> factory;
 	if (FAILED(CreateDXGIFactory(IID_PPV_ARGS(&factory)))) {
 		// it is not supposed to fail unless you call it from a dll main
-		// throw some shit anyways
+		throw Exception("Failed to create DXGI factory... Are you calling this from a DllMain?");
 	}
 
 
 	// create the swap chain
 	ComPtr<IDXGISwapChain> swapChain;
-	if (FAILED(factory->CreateSwapChain(nativeQueue.Get(), &nativeDesc, &swapChain))) {
-		// throw error
+	switch (factory->CreateSwapChain(nativeQueue.Get(), &nativeDesc, &swapChain)) {
+		case S_OK:
+			break;
+		case E_OUTOFMEMORY: 
+			throw OutOfMemory("Not enough memory for swapchain.");
+		case DXGI_STATUS_OCCLUDED:
+			throw Exception("Full screen mode not available.");
+		default:
+			throw Exception("Unknown error.");
 	}
 
-	
+	ComPtr<IDXGISwapChain3> swapChain3;
+	if (FAILED(swapChain.As(&swapChain3))) {
+		throw Exception("Could not make IDXGISwapChain3 from IDXGISwapChain.");
+	}
+
+	return new SwapChain(swapChain3);
 }
 
 
 IGraphicsApi* CantFindAName::CreateGraphicsApi(unsigned adapterId) {
+	// create a dxgi factory
+	ComPtr<IDXGIFactory4> factory;
+	if (FAILED(CreateDXGIFactory(IID_PPV_ARGS(&factory)))) {
+		// it is not supposed to fail unless you call it from a dll main
+		throw Exception("Are you calling this from a DllMain...? See, that's the problem.");
+	}
 
+
+	// get the specified adapter
+	ComPtr<IDXGIAdapter1> adapter;
+	if (factory->EnumAdapters1(adapterId, &adapter) == DXGI_ERROR_NOT_FOUND) {
+		throw OutOfRange("This adapter does not exist. Dumbfuck...");
+	}
+
+
+	// create device w/ adapter
+	ComPtr<ID3D12Device> device;
+	switch (D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device))) {
+		case S_OK:
+			break;
+		default:
+			throw Exception("Failed to create D3D12 device.");
+	}
+
+	return new GraphicsApi(device);
 }
 
 

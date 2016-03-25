@@ -34,7 +34,7 @@ SwapChainDesc SwapChain::GetDesc() const {
 
 
 bool SwapChain::IsFullScreen() const {
-	DXGI_SWAP_CHAIN_FULLSCREEN_DESC desc;
+	DXGI_SWAP_CHAIN_FULLSCREEN_DESC desc = {};
 	m_native->GetFullscreenDesc(&desc);
 	return FALSE == desc.Windowed;
 }
@@ -47,14 +47,14 @@ unsigned SwapChain::GetCurrentBufferIndex() const {
 
 void SwapChain::SetFullScreen(bool isFullScreen) {
 	switch (m_native->SetFullscreenState(isFullScreen, nullptr)) {
+		case S_OK:
+			return;
 		case DXGI_ERROR_NOT_CURRENTLY_AVAILABLE:
 			throw Exception("Cannot swicth to fullscreen mode now. Try again later.");
 		case DXGI_STATUS_MODE_CHANGE_IN_PROGRESS:
 			throw InvalidState("Already transitioning to fullscreen or windowed.");
 		case E_OUTOFMEMORY: 
 			throw OutOfMemory("Not enough memory for swap chain.");
-		case S_OK:
-			return;
 		default:
 			throw Exception("Unknown error.");
 	}
@@ -64,8 +64,12 @@ void SwapChain::SetFullScreen(bool isFullScreen) {
 void SwapChain::Resize(unsigned width, unsigned height, unsigned bufferCount = 0, eFormat format = eFormat::UNKNOWN) {
 	HRESULT err = m_native->ResizeBuffers(bufferCount, width, height, native_cast(format), 0);
 	switch (err) {
+		case S_OK:
+			return;
 		case E_OUTOFMEMORY:
 			throw OutOfMemory("Not enough memory to resize swap chain");
+		default:
+			throw Exception("Unkown error.");
 	}
 }
 

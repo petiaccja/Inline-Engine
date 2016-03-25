@@ -15,6 +15,7 @@ namespace gxapi {
 //	InvalidArgument
 //	InvalidState
 //	InvalidCall
+//	ArgumentNull
 //	OutOfMemory
 //	FileNotFound
 //	ShaderCompilationError
@@ -66,6 +67,11 @@ public:
 	using Exception::Exception;
 };
 
+
+class ArgumentNull : public Exception {
+public:
+	using Exception::Exception;
+};
 
 
 class OutOfMemory : public Exception {

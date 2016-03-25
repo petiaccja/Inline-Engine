@@ -15,6 +15,7 @@ using Microsoft::WRL::ComPtr;
 
 class GraphicsApi : public gxapi::IGraphicsApi {
 public:
+	GraphicsApi(Microsoft::WRL::ComPtr<ID3D12Device> device);
 
 	// Command submission
 	gxapi::ICommandQueue* CreateCommandQueue(gxapi::CommandQueueDesc desc) override;

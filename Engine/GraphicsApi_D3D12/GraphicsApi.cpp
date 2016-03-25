@@ -16,6 +16,10 @@
 namespace inl {
 namespace gxapi_dx12 {
 
+GraphicsApi::GraphicsApi(Microsoft::WRL::ComPtr<ID3D12Device> device) : m_device(device) {
+	
+}
+
 
 gxapi::ICommandQueue* GraphicsApi::CreateCommandQueue(gxapi::CommandQueueDesc desc) {
 	ComPtr<ID3D12CommandQueue> native;
