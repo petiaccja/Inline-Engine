@@ -4,7 +4,7 @@
 
 #define _WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#include <windef.h>
+#include <windows.h>
 #undef _WIN32_LEAN_AND_MEAN
 #undef NOMINMAX
 #undef GENERIC_READ
