@@ -40,6 +40,8 @@ ID3D12RootSignature* native_cast(gxapi::IRootSignature* source);
 
 ID3D12Fence* native_cast(gxapi::IFence* source);
 
+ID3D12CommandQueue* native_cast(gxapi::ICommandQueue* source);
+
 //---------------
 //ENUM
 D3D12_SHADER_VISIBILITY native_cast(gxapi::eShaderVisiblity source);

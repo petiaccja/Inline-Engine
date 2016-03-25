@@ -20,6 +20,11 @@ CommandQueue::CommandQueue(ComPtr<ID3D12CommandQueue>& native)
 }
 
 
+ID3D12CommandQueue* CommandQueue::GetNative() {
+	return m_native.Get();
+}
+
+
 void CommandQueue::ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommandList* const * commandLists) {
 	std::vector<ID3D12CommandList*> nativeCommandLists;
 	nativeCommandLists.reserve(numCommandLists);

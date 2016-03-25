@@ -71,6 +71,14 @@ ID3D12Fence* native_cast(gxapi::IFence * source) {
 	return static_cast<Fence*>(source)->GetNative();
 }
 
+ID3D12CommandQueue* native_cast(gxapi::ICommandQueue* source) {
+	if (source == nullptr) {
+		return nullptr;
+	}
+
+	return static_cast<CommandQueue*>(source)->GetNative();
+}
+
 
 //---------------
 //ENUM

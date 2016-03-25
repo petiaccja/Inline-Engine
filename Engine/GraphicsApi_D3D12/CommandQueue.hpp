@@ -20,6 +20,8 @@ public:
 	CommandQueue(const CommandQueue&) = delete;
 	CommandQueue& operator=(const CommandQueue&) = delete;
 
+	ID3D12CommandQueue* GetNative();
+
 	void ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommandList* const* commandLists) override;
 
 	void Signal(gxapi::IFence* fence, uint64_t value) override;
