@@ -5,7 +5,7 @@
 #include "GraphicsCommandList.hpp"
 #include "DescriptorHeap.hpp"
 #include "NativeCast.hpp"
-#include "Misc.hpp"
+#include "ExceptionExpansions.hpp"
 
 #include "../GraphicsApi_LL/Exception.hpp"
 

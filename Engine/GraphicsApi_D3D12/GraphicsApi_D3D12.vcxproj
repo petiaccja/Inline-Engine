@@ -159,10 +159,10 @@
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DescriptorHeap.hpp" />
     <ClInclude Include="EnableWin32Macros.h" />
+    <ClInclude Include="ExceptionExpansions.hpp" />
     <ClInclude Include="Fence.hpp" />
     <ClInclude Include="GraphicsApi.hpp" />
     <ClInclude Include="GraphicsCommandList.hpp" />
-    <ClInclude Include="Misc.hpp" />
     <ClInclude Include="NativeCast.hpp" />
     <ClInclude Include="PipelineState.hpp" />
     <ClInclude Include="Resource.hpp" />
@@ -175,10 +175,10 @@
     <ClCompile Include="CommandList.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
+    <ClCompile Include="ExceptionExpansions.cpp" />
     <ClCompile Include="Fence.cpp" />
     <ClCompile Include="GraphicsApi.cpp" />
     <ClCompile Include="GraphicsCommandList.cpp" />
-    <ClCompile Include="Misc.cpp" />
     <ClCompile Include="NativeCast.cpp" />
     <ClCompile Include="PipelineState.cpp" />
     <ClCompile Include="Resource.cpp" />

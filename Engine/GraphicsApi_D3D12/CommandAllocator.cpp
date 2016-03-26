@@ -1,5 +1,6 @@
 #include "CommandAllocator.hpp"
 
+#include "ExceptionExpansions.hpp"
 
 #include <stdexcept>
 
@@ -18,7 +19,7 @@ ID3D12CommandAllocator* CommandAllocator::GetNative() {
 
 
 void CommandAllocator::Reset() {
-	m_native->Reset(); //TODO error check
+	ThrowIfFailed(m_native->Reset());
 }
 
 

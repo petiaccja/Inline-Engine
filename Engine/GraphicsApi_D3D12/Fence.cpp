@@ -1,5 +1,7 @@
 #include "Fence.hpp"
 
+#include "ExceptionExpansions.hpp"
+
 namespace inl {
 namespace gxapi_dx12 {
 
@@ -20,7 +22,7 @@ uint64_t Fence::Fetch() {
 
 
 void Fence::Signal(uint64_t value) {
-	m_native->Signal(value); //TODO error check
+	ThrowIfFailed(m_native->Signal(value));
 }
 
 

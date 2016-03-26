@@ -1,7 +1,7 @@
 #include "CommandQueue.hpp"
 
 #include "NativeCast.hpp"
-
+#include "ExceptionExpansions.hpp"
 #include "CommandList.hpp"
 #include "Fence.hpp"
 
@@ -38,12 +38,12 @@ void CommandQueue::ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommand
 
 
 void CommandQueue::Signal(gxapi::IFence* fence, uint64_t value) {
-	m_native->Signal(native_cast(fence), value); //TODO error check
+	ThrowIfFailed(m_native->Signal(native_cast(fence), value));
 }
 
 
 void CommandQueue::Wait(gxapi::IFence* fence, uint64_t value) {
-	m_native->Wait(native_cast(fence), value); //TODO error check
+	ThrowIfFailed(m_native->Wait(native_cast(fence), value));
 }
 
 gxapi::CommandQueueDesc CommandQueue::GetDesc() const {

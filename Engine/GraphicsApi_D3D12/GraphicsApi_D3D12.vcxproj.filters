@@ -40,7 +40,7 @@
     <ClCompile Include="SwapChain.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="Misc.cpp">
+    <ClCompile Include="ExceptionExpansions.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
   </ItemGroup>
@@ -144,7 +144,7 @@
     <ClInclude Include="SwapChain.hpp">
       <Filter>Implementation</Filter>
     </ClInclude>
-    <ClInclude Include="Misc.hpp">
+    <ClInclude Include="ExceptionExpansions.hpp">
       <Filter>Implementation</Filter>
     </ClInclude>
   </ItemGroup>
