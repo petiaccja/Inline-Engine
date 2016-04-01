@@ -136,7 +136,7 @@
   <ItemGroup>
     <ClInclude Include="..\GraphicsApi_LL\Common.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\Exception.hpp" />
-    <ClInclude Include="..\GraphicsApi_LL\ICantFindAName.hpp" />
+    <ClInclude Include="..\GraphicsApi_LL\IGxapiManager.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\ICommandAllocator.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\ICommandList.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\ICommandQueue.hpp" />
@@ -151,7 +151,7 @@
     <ClInclude Include="..\GraphicsApi_LL\IRootSignature.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\ISwapChain.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\Native.hpp" />
-    <ClInclude Include="CantFindAName.hpp" />
+    <ClInclude Include="GxapiManager.hpp" />
     <ClInclude Include="DisableWin32Macros.h" />
     <ClInclude Include="CommandAllocator.hpp" />
     <ClInclude Include="CommandList.hpp" />
@@ -170,7 +170,7 @@
     <ClInclude Include="SwapChain.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CantFindAName.cpp" />
+    <ClCompile Include="GxapiManager.cpp" />
     <ClCompile Include="CommandAllocator.cpp" />
     <ClCompile Include="CommandList.cpp" />
     <ClCompile Include="CommandQueue.cpp" />

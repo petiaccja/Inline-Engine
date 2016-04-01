@@ -8,6 +8,7 @@
 #include <limits>
 #include <string>
 #undef DOMAIN // math.h, conflicting with eShaderVisibility::DOMAIN
+#include <memory>
 
 namespace inl {
 namespace gxapi {
@@ -590,6 +591,12 @@ struct SwapChainDesc {
 	unsigned numBuffers;
 	NativeWindowHandle targetWindow;
 	bool isFullScreen;
+};
+
+
+struct ShaderProgramBinary {
+	std::unique_ptr<const void> data;
+	size_t size;
 };
 
 

@@ -1,14 +1,14 @@
 #pragma once
 
 
-#include "../GraphicsApi_LL/ICantFindAName.hpp"
+#include "../GraphicsApi_LL/IGxapiManager.hpp"
 
 
 namespace inl {
 namespace gxapi_dx12 {
 
 
-class CantFindAName : public gxapi::ICantFindAName {
+class GxapiManager : public gxapi::IGxapiManager {
 public:
 	std::vector<gxapi::AdapterInfo> EnumerateAdapters() override;
 

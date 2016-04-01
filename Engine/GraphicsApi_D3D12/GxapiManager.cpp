@@ -1,4 +1,4 @@
-#include "CantFindAName.hpp"
+#include "GxapiManager.hpp"
 #include "NativeCast.hpp"
 #include "SwapChain.hpp"
 #include "GraphicsApi.hpp"
@@ -23,7 +23,7 @@ namespace inl {
 namespace gxapi_dx12 {
 
 
-std::vector<AdapterInfo> CantFindAName::EnumerateAdapters() {
+std::vector<AdapterInfo> GxapiManager::EnumerateAdapters() {
 	// create a dxgi factory
 	ComPtr<IDXGIFactory4> factory;
 	if (FAILED(CreateDXGIFactory(IID_PPV_ARGS(&factory)))) {
@@ -64,7 +64,7 @@ std::vector<AdapterInfo> CantFindAName::EnumerateAdapters() {
 }
 
 
-ISwapChain* CantFindAName::CreateSwapChain(SwapChainDesc desc, ICommandQueue* flushThisQueue) {
+ISwapChain* GxapiManager::CreateSwapChain(SwapChainDesc desc, ICommandQueue* flushThisQueue) {
 	// cast stuff to native counterparts
 	DXGI_SWAP_CHAIN_DESC nativeDesc;
 	ComPtr<ID3D12CommandQueue> nativeQueue = native_cast(static_cast<CommandQueue*>(flushThisQueue));
@@ -100,7 +100,7 @@ ISwapChain* CantFindAName::CreateSwapChain(SwapChainDesc desc, ICommandQueue* fl
 }
 
 
-IGraphicsApi* CantFindAName::CreateGraphicsApi(unsigned adapterId) {
+IGraphicsApi* GxapiManager::CreateGraphicsApi(unsigned adapterId) {
 	// create a dxgi factory
 	ComPtr<IDXGIFactory4> factory;
 	if (FAILED(CreateDXGIFactory(IID_PPV_ARGS(&factory)))) {
