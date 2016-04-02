@@ -86,7 +86,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			RECT clientRect;
 			GetClientRect(hWnd, &clientRect);
 			FillRect(hdc, &clientRect, CreateSolidBrush(RGB(192, 0, 0)));
-			DrawTextA(hdc, "Initialize Device!", -1, &clientRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+			DrawTextA(hdc, " Initialize Device! ", -1, &clientRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
 			EndPaint(hWnd, &paintStruct);
 			return 0;
 		}

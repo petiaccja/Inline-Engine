@@ -10,5 +10,13 @@
     <ClCompile Include="main.cpp">
       <Filter>Files</Filter>
     </ClCompile>
+    <ClCompile Include="PicoEngine.cpp">
+      <Filter>Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PicoEngine.hpp">
+      <Filter>Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
