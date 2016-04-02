@@ -12,6 +12,7 @@ class Stream;
 };
 
 
+
 namespace inl {
 namespace gxapi {
 
@@ -27,9 +28,22 @@ public:
 	virtual ISwapChain* CreateSwapChain(SwapChainDesc desc, ICommandQueue* flushThisQueue) = 0;
 	virtual IGraphicsApi* CreateGraphicsApi(unsigned adapterId) = 0;
 
-	virtual ShaderProgramBinary CompileShader(exc::Stream& sourceCode,
-											  const std::unordered_map<std::string, exc::Stream*>& includeFiles
-											  )
+	virtual std::vector<std::string> GetShaderIncludeList(exc::Stream sourceCode);
+	virtual bool CompileShader(const exc::Stream& sourceCode,
+							   const std::string& mainFunctionName,
+							   gxapi::eShaderType type,
+							   eShaderCompileFlags flags,
+							   const std::unordered_map<std::string, exc::Stream*>& includeFiles,
+							   const std::vector<ShaderMacroDefinition>& macros,
+							   ShaderProgramBinary& shaderOut,
+							   std::string& errorMsg) = 0;
+	virtual bool CompileShaderFromFile(const std::string& fileName,
+									   const std::string& mainFunctionName,
+									   gxapi::eShaderType type,
+									   eShaderCompileFlags flags,
+									   const std::vector<ShaderMacroDefinition>& macros,
+									   ShaderProgramBinary& shaderOut,
+									   std::string& errorMsg) = 0;
 };
 
 

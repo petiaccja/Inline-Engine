@@ -61,7 +61,7 @@ void SwapChain::SetFullScreen(bool isFullScreen) {
 }
 
 
-void SwapChain::Resize(unsigned width, unsigned height, unsigned bufferCount = 0, eFormat format = eFormat::UNKNOWN) {
+void SwapChain::Resize(unsigned width, unsigned height, unsigned bufferCount, eFormat format) {
 	HRESULT err = m_native->ResizeBuffers(bufferCount, width, height, native_cast(format), 0);
 	switch (err) {
 		case S_OK:

@@ -116,6 +116,8 @@ UINT8 native_cast(gxapi::eColorMask source);
 
 D3D12_DSV_FLAGS native_cast(gxapi::eDsvFlags source);
 
+UINT native_cast(gxapi::eShaderCompileFlags);
+
 //---------------
 //OBJECT
 D3D12_VIEWPORT native_cast(gxapi::Viewport const & source);

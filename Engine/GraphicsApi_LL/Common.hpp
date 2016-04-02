@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../BaseLibrary/Utility_/BitflagEnum.hpp"
+#include "../BaseLibrary/BitflagEnum.hpp"
 
 #include "Native.hpp"
 
@@ -9,6 +9,7 @@
 #include <string>
 #undef DOMAIN // math.h, conflicting with eShaderVisibility::DOMAIN
 #include <memory>
+#include <vector>
 
 namespace inl {
 namespace gxapi {
@@ -57,6 +58,17 @@ struct ColorRGBA {
 //------------------------------------------------------------------------------
 // Enumerations
 //------------------------------------------------------------------------------
+
+
+enum class eShaderType {
+	VERTEX,
+	PIXEL,
+	DOMAIN,
+	HULL,
+	GEOMETRY,
+	COMPUTE,
+};
+
 
 enum class eFormat {
 	UNKNOWN = 0,
@@ -488,6 +500,22 @@ enum class eResourceBarrierType {
 
 namespace bitflag_enum_impl {
 
+
+struct eShaderCompileFlags_Base {
+	enum eShaderCompileFlags {
+		DEBUG = (1 << 0),
+		NO_OPTIMIZATION = (1 << 1),
+		ROW_MAJOR_MATRICES = (1 << 2),
+		COLUMN_MAJOR_MATRICES = (1 << 3),
+		FORCE_IEEE = (1 << 4),
+		WARNINGS_AS_ERRORS = (1 << 5),
+		OPTIMIZATION_LOW = (1 << 6),
+		OPTIMIZATION_MEDIUM = (1<< 7),
+		OPTIMIZATION_HIGH = (1 << 8),
+	};
+};
+
+
 struct eHeapFlags_Base {
 	enum eHeapFlags {
 		NONE = 0,
@@ -564,11 +592,13 @@ using eResourceState = exc::BitFlagEnum<bitflag_enum_impl::eResourceState_Base, 
 using eResourceFlags = exc::BitFlagEnum<bitflag_enum_impl::eResourceFlags_Base, bitflag_enum_impl::eResourceFlags_Base::eResourceFlags>;
 using eColorMask = exc::BitFlagEnum<bitflag_enum_impl::eColorMask_Base, bitflag_enum_impl::eColorMask_Base::eColorMask>;
 using eDsvFlags = exc::BitFlagEnum<bitflag_enum_impl::eDsvFlags_Base, bitflag_enum_impl::eDsvFlags_Base::eDsvFlags>;
+using eShaderCompileFlags = exc::BitFlagEnum<bitflag_enum_impl::eShaderCompileFlags_Base, bitflag_enum_impl::eShaderCompileFlags_Base::eShaderCompileFlags>;
+
 
 
 
 //------------------------------------------------------------------------------
-// Adapter and swapchain
+// Not rendering structures
 //------------------------------------------------------------------------------
 
 struct AdapterInfo {
@@ -595,8 +625,13 @@ struct SwapChainDesc {
 
 
 struct ShaderProgramBinary {
-	std::unique_ptr<const void> data;
-	size_t size;
+	std::vector<uint8_t> data;
+};
+
+
+struct ShaderMacroDefinition {
+	std::string name;
+	std::string value;
 };
 
 

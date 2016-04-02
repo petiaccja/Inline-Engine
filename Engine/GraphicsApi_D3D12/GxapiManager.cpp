@@ -2,6 +2,7 @@
 #include "NativeCast.hpp"
 #include "SwapChain.hpp"
 #include "GraphicsApi.hpp"
+#include "ExceptionExpansions.hpp"
 
 #include "../GraphicsApi_LL/Exception.hpp"
 
@@ -11,7 +12,8 @@
 #include <wrl.h>
 #include "DisableWin32Macros.h"
 
-#include <cstring>
+#include <string>
+#include <cassert>
 
 
 using Microsoft::WRL::ComPtr;
@@ -21,6 +23,42 @@ using namespace inl::gxapi;
 
 namespace inl {
 namespace gxapi_dx12 {
+
+
+
+class D3DStreamInclude : public ID3DInclude {
+public:
+	D3DStreamInclude(const std::unordered_map<std::string, exc::Stream*>& streams) : streams(streams) {}
+
+	HRESULT __stdcall Open(D3D_INCLUDE_TYPE IncludeType,
+						   LPCSTR pFileName,
+						   LPCVOID pParentData,
+						   LPCVOID *ppData,
+						   UINT *pBytes) override
+	{
+		try {
+			auto it = streams.find(pFileName);
+			if (it == streams.end()) {
+				return E_FAIL;
+			}
+
+			exc::Stream& stream = *it->second;
+
+
+		}
+		catch (std::exception ex) {
+
+		}
+
+	}
+
+	HRESULT __stdcall Close(LPCVOID pData) override {
+
+	}
+private:
+	const std::unordered_map<std::string, exc::Stream*>& streams;
+};
+
 
 
 std::vector<AdapterInfo> GxapiManager::EnumerateAdapters() {
@@ -83,7 +121,7 @@ ISwapChain* GxapiManager::CreateSwapChain(SwapChainDesc desc, ICommandQueue* flu
 	switch (factory->CreateSwapChain(nativeQueue.Get(), &nativeDesc, &swapChain)) {
 		case S_OK:
 			break;
-		case E_OUTOFMEMORY: 
+		case E_OUTOFMEMORY:
 			throw OutOfMemory("Not enough memory for swapchain.");
 		case DXGI_STATUS_OCCLUDED:
 			throw Exception("Full screen mode not available.");
@@ -128,6 +166,121 @@ IGraphicsApi* GxapiManager::CreateGraphicsApi(unsigned adapterId) {
 	return new GraphicsApi(device);
 }
 
+
+
+bool GxapiManager::CompileShader(const exc::Stream& sourceCode,
+								 const std::string& mainFunctionName,
+								 gxapi::eShaderType type,
+								 eShaderCompileFlags flags,
+								 const std::unordered_map<std::string, exc::Stream*>& includeFiles,
+								 const std::vector<ShaderMacroDefinition>& macros,
+								 ShaderProgramBinary& shaderOut,
+								 std::string& errorMsg)
+{
+	//ID3DBlob *code = nullptr;
+	//ID3DBlob *error = nullptr;
+
+	//std::unique_ptr<void> sourceCodeData;
+	//size_t sourceCodeSize;
+	//std::vector<D3D_SHADER_MACRO> d3dDefines(macros.size());
+
+
+
+	//D3DCompile(
+	//	sourceCodeData.get(),
+	//	sourceCodeSize,
+	//	nullptr,
+	//	d3dDefines.data(),
+	//	d3dIncludes,
+	//	mainFuncName,
+	//	d3dTarget,
+	//	native_cast(flags),
+	//	0
+	//	& code,
+	//	&error
+	//	)
+
+	errorMsg = "Method not implemented yet.";
+	return false;
+}
+
+
+
+bool GxapiManager::CompileShaderFromFile(const std::string& fileName,
+										 const std::string& mainFunctionName,
+										 gxapi::eShaderType type,
+										 gxapi::eShaderCompileFlags flags,
+										 const std::vector<gxapi::ShaderMacroDefinition>& macros,
+										 gxapi::ShaderProgramBinary& shaderOut,
+										 std::string& errorMsg)
+{
+	auto GetTarget = [](eShaderType type) -> const char* {
+		switch (type)
+		{
+			case inl::gxapi::eShaderType::VERTEX:
+				return "vs_5_0";
+			case inl::gxapi::eShaderType::PIXEL:
+				return "ps_5_0";
+			case inl::gxapi::eShaderType::DOMAIN:
+				return "ds_5_0";
+			case inl::gxapi::eShaderType::HULL:
+				return "hs_5_0";
+			case inl::gxapi::eShaderType::GEOMETRY:
+				return "gs_5_0";
+			case inl::gxapi::eShaderType::COMPUTE:
+				return "cs_5_0";
+			default:
+				return "invalid";
+		}
+	};
+
+	// variables
+	ID3DBlob *code = nullptr;
+	ID3DBlob *error = nullptr;
+
+	std::vector<D3D_SHADER_MACRO> d3dDefines(macros.size()); // native d3d macros
+	std::unique_ptr<wchar_t> wFileName(new wchar_t(fileName.size() + 1)); // file name widechar
+
+	// translate defines
+	auto defBegin = d3dDefines.begin();
+	for (auto& v : macros) {
+		defBegin->Name = v.name.c_str();
+		defBegin->Definition = v.value.c_str();
+		++defBegin;
+	}
+
+	// translate file name
+	mbstowcs(wFileName.get(), fileName.c_str(), fileName.size());
+
+	// compile code w/ d3d
+	HRESULT hr = D3DCompileFromFile(wFileName.get(),
+									d3dDefines.data(),
+									nullptr,
+									mainFunctionName.c_str(),
+									GetTarget(type),
+									native_cast(flags),
+									0,
+									&code,
+									&error);
+	
+
+	if (hr == S_OK) {
+		assert(code != nullptr);
+		shaderOut.data.resize(code->GetBufferSize());
+		memcpy(shaderOut.data.data(), code->GetBufferPointer(), shaderOut.data.size());
+	}
+	else {
+		if (error) {
+			errorMsg.assign((char*)error->GetBufferPointer(), error->GetBufferSize());
+		}
+		if (code) {
+			code->Release();
+		}
+		ThrowIfFailed(hr);
+	}
+
+	return true;
+}
 
 
 } // namespace gxapi_dx12

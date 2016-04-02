@@ -3,6 +3,7 @@
 #include "../GraphicsApi_LL/Common.hpp"
 
 #include <cassert>
+#include <d3dcompiler.h>
 
 //Dont even think about returning a pointer that points to a locally allocated space
 //#include <vector>
@@ -1010,6 +1011,22 @@ D3D12_DSV_FLAGS native_cast(gxapi::eDsvFlags source) {
 }
 
 
+UINT native_cast(gxapi::eShaderCompileFlags source) {
+	UINT nativeFlag = 0;
+
+	// native  |= (boolean cast -> 1 if true, 0 if false ) * native value;
+	nativeFlag |= (bool(source & gxapi::eShaderCompileFlags::DEBUG) * D3DCOMPILE_DEBUG);
+	nativeFlag |= (bool(source & gxapi::eShaderCompileFlags::NO_OPTIMIZATION) * D3DCOMPILE_OPTIMIZATION_LEVEL0);
+	nativeFlag |= (bool(source & gxapi::eShaderCompileFlags::OPTIMIZATION_LOW) * D3DCOMPILE_OPTIMIZATION_LEVEL1);
+	nativeFlag |= (bool(source & gxapi::eShaderCompileFlags::OPTIMIZATION_MEDIUM) * D3DCOMPILE_OPTIMIZATION_LEVEL2);
+	nativeFlag |= (bool(source & gxapi::eShaderCompileFlags::OPTIMIZATION_HIGH) * D3DCOMPILE_OPTIMIZATION_LEVEL3);
+	nativeFlag |= (bool(source & gxapi::eShaderCompileFlags::COLUMN_MAJOR_MATRICES) * D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR);
+	nativeFlag |= (bool(source & gxapi::eShaderCompileFlags::ROW_MAJOR_MATRICES) * D3DCOMPILE_PACK_MATRIX_ROW_MAJOR);
+	nativeFlag |= (bool(source & gxapi::eShaderCompileFlags::FORCE_IEEE) * D3DCOMPILE_IEEE_STRICTNESS);
+	nativeFlag |= (bool(source & gxapi::eShaderCompileFlags::WARNINGS_AS_ERRORS) * D3DCOMPILE_WARNINGS_ARE_ERRORS);
+
+	return nativeFlag;
+}
 
 
 //---------------
