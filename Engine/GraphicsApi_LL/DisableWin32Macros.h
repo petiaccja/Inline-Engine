@@ -17,6 +17,11 @@
 #define MATH_H_DOMAIN_DEFINED
 #endif
 
+#ifdef ERROR
+#pragma push_macro("ERROR")
+#undef ERROR
+#define WINDOWS_H_ERROR_DEFINED
+#endif
 
 #endif  //_MSC_VER
 

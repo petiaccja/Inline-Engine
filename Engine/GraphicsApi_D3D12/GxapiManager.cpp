@@ -10,11 +10,15 @@
 #include <dxgi1_4.h>
 #include <d3dcompiler.h>
 #include <wrl.h>
-#include "DisableWin32Macros.h"
+#include "../GraphicsApi_LL/DisableWin32Macros.h"
 
 #include <string>
 #include <cassert>
 
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#pragma warning(disable: 4996) // secure no warning does not work -.-
+#endif
 
 using Microsoft::WRL::ComPtr;
 
@@ -104,7 +108,7 @@ std::vector<AdapterInfo> GxapiManager::EnumerateAdapters() {
 
 ISwapChain* GxapiManager::CreateSwapChain(SwapChainDesc desc, ICommandQueue* flushThisQueue) {
 	// cast stuff to native counterparts
-	DXGI_SWAP_CHAIN_DESC nativeDesc;
+	DXGI_SWAP_CHAIN_DESC nativeDesc = native_cast(desc);
 	ComPtr<ID3D12CommandQueue> nativeQueue = native_cast(static_cast<CommandQueue*>(flushThisQueue));
 
 
@@ -139,6 +143,13 @@ ISwapChain* GxapiManager::CreateSwapChain(SwapChainDesc desc, ICommandQueue* flu
 
 
 IGraphicsApi* GxapiManager::CreateGraphicsApi(unsigned adapterId) {
+	// Enable debug layer
+	ComPtr<ID3D12Debug> debugController;
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
+	{
+		debugController->EnableDebugLayer();
+	}
+
 	// create a dxgi factory
 	ComPtr<IDXGIFactory4> factory;
 	if (FAILED(CreateDXGIFactory(IID_PPV_ARGS(&factory)))) {
@@ -239,7 +250,7 @@ bool GxapiManager::CompileShaderFromFile(const std::string& fileName,
 	ID3DBlob *error = nullptr;
 
 	std::vector<D3D_SHADER_MACRO> d3dDefines(macros.size()); // native d3d macros
-	std::unique_ptr<wchar_t> wFileName(new wchar_t(fileName.size() + 1)); // file name widechar
+	std::unique_ptr<wchar_t> wFileName(new wchar_t[fileName.size() + 1]); // file name widechar
 
 	// translate defines
 	auto defBegin = d3dDefines.begin();

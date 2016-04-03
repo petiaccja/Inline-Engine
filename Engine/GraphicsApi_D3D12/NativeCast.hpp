@@ -12,7 +12,7 @@
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <d3d12.h>
-#include "DisableWin32Macros.h"
+#include "../GraphicsApi_LL/DisableWin32Macros.h"
 
 namespace inl {
 namespace gxapi_dx12 {
@@ -103,6 +103,10 @@ D3D12_DSV_DIMENSION native_cast(gxapi::eDsvDimension source);
 D3D12_RTV_DIMENSION native_cast(gxapi::eRtvDimension source);
 
 D3D12_SRV_DIMENSION native_cast(gxapi::eSrvDimension source);
+
+D3D12_RESOURCE_BARRIER_FLAGS native_cast(gxapi::eResourceBarrierSplit source);
+
+D3D12_RESOURCE_BARRIER_TYPE native_cast(gxapi::eResourceBarrierType source);
 
 //---------------
 //FLAGS
@@ -211,6 +215,8 @@ D3D12_TEX3D_SRV native_cast(gxapi::SrvTexture3D source);
 D3D12_TEXCUBE_SRV native_cast(gxapi::SrvTextureCube source);
 
 D3D12_TEXCUBE_ARRAY_SRV native_cast(gxapi::SrvTextureCubeArray source);
+
+D3D12_RESOURCE_BARRIER native_cast(gxapi::ResourceBarrier source);
 
 
 //---------------

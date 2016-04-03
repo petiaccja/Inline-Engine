@@ -1,5 +1,6 @@
 #include "LogStream.hpp"
 #include "LogPipe.hpp"
+#include "LogNode.hpp"
 
 #include <intrin.h>
 #include <iostream>
@@ -22,14 +23,12 @@ LogStream::LogStream(LogStream&& rhs) {
 }
 
 LogStream::~LogStream() {
-	if (pipe) {
-		pipe->Close();
-	}
+	pipe->GetNode()->Flush();
 }
 
 LogStream& LogStream::operator=(LogStream&& rhs) {
 	if (pipe) {
-		pipe->Close();
+		pipe->GetNode()->Flush();
 	}
 
 	pipe = rhs.pipe;

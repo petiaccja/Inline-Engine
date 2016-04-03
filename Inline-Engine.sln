@@ -4,12 +4,23 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GraphicsEngine_LL", "Engine\GraphicsEngine_LL\GraphicsEngine_LL.vcxproj", "{040593FA-6149-4526-8754-2E2886759D0E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F55437F4-00C1-49AE-BFFC-4B0A6DC75081} = {F55437F4-00C1-49AE-BFFC-4B0A6DC75081}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BaseLibrary", "Engine\BaseLibrary\BaseLibrary.vcxproj", "{F55437F4-00C1-49AE-BFFC-4B0A6DC75081}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GraphicsApi_D3D12", "Engine\GraphicsApi_D3D12\GraphicsApi_D3D12.vcxproj", "{9FDED727-FF79-4B97-A077-618948D72BC0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F55437F4-00C1-49AE-BFFC-4B0A6DC75081} = {F55437F4-00C1-49AE-BFFC-4B0A6DC75081}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test_GraphicsApi", "Test\Test_GraphicsApi\Test_GraphicsApi.vcxproj", "{FA8D6870-7E63-484D-9405-E804EF4EF4F7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{9FDED727-FF79-4B97-A077-618948D72BC0} = {9FDED727-FF79-4B97-A077-618948D72BC0}
+		{F55437F4-00C1-49AE-BFFC-4B0A6DC75081} = {F55437F4-00C1-49AE-BFFC-4B0A6DC75081}
+		{040593FA-6149-4526-8754-2E2886759D0E} = {040593FA-6149-4526-8754-2E2886759D0E}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

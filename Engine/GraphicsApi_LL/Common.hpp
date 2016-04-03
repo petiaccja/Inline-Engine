@@ -8,6 +8,7 @@
 #include <limits>
 #include <string>
 #undef DOMAIN // math.h, conflicting with eShaderVisibility::DOMAIN
+#include "../GraphicsApi_LL/DisableWin32Macros.h"
 #include <memory>
 #include <vector>
 
@@ -808,8 +809,8 @@ struct ShaderByteCodeDesc {
 	ShaderByteCodeDesc() = default;
 	ShaderByteCodeDesc(const void* byteCode, size_t sizeOfByteCode)
 		: shaderByteCode(byteCode), sizeOfByteCode(sizeOfByteCode) {}
-	const void* shaderByteCode;
-	size_t sizeOfByteCode;
+	const void* shaderByteCode = nullptr;
+	size_t sizeOfByteCode = 0;
 };
 
 
@@ -861,10 +862,11 @@ struct RenderTargetBlendState {
 
 
 struct BlendState {
-	bool alphaToCoverage;
-	bool independentBlending;
-	RenderTargetBlendState& singleTarget = multiTarget[0];
+	BlendState() : singleTarget(multiTarget[0]) {}
+	bool alphaToCoverage = false;
+	bool independentBlending = false;
 	RenderTargetBlendState multiTarget[8];
+	RenderTargetBlendState& singleTarget;
 };
 
 
@@ -936,8 +938,8 @@ struct InputElementDesc {
 };
 
 struct InputLayout {
-	unsigned numElements;
-	InputElementDesc* elements;
+	unsigned numElements = 0;
+	InputElementDesc* elements = nullptr;
 };
 
 struct DepthStencilState {
@@ -987,6 +989,22 @@ struct DepthStencilState {
 };
 
 struct GraphicsPipelineStateDesc {
+	GraphicsPipelineStateDesc()
+		: 
+		blendSampleMask(0xFFFFFFFF),
+		multisampleCount(1),
+		multisampleQuality(0),
+		depthStencilFormat(eFormat::UNKNOWN),
+		numRenderTargets(1),
+		addDebugInfo(false),
+		primitiveTopologyType(ePrimitiveTopologyType::UNDEFINED),
+		triangleStripCutIndex(eTriangleStripCutIndex::DISABLED)
+	{
+		for (auto& v : renderTargetFormats) {
+			v = eFormat::UNKNOWN;
+		}
+	}
+
 	IRootSignature* rootSignature;
 
 	ShaderByteCodeDesc vs;

@@ -1,5 +1,6 @@
 #include "Logger.hpp"
 #include "LogNode.hpp"
+#include "LogPipe.hpp"
 
 #include <cassert>
 
@@ -42,7 +43,8 @@ void Logger::CloseStream() {
 }
 
 LogStream Logger::CreateLogStream(const std::string& name) {
-	std::shared_ptr<LogPipe> pipe = myNode->CreatePipe(name);
+	std::shared_ptr<LogPipe> pipe(new LogPipe(myNode));
+	myNode->AddPipe(pipe, name);
 	return LoggerInterface::Construct(pipe);
 }
 

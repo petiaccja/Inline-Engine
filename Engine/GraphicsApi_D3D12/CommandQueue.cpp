@@ -9,7 +9,7 @@
 #include <vector>
 
 #include <d3d12.h>
-#include "DisableWin32Macros.h"
+#include "../GraphicsApi_LL/DisableWin32Macros.h"
 
 namespace inl {
 namespace gxapi_dx12 {

@@ -17,6 +17,10 @@ class LogNode {
 	friend class LogPipe;
 private:
 	struct PipeInfo {
+		std::weak_ptr<LogPipe> pipe;
+		std::string name;
+	};
+	struct PipeInfoShared {
 		std::shared_ptr<LogPipe> pipe;
 		std::string name;
 	};
@@ -28,16 +32,13 @@ public:
 	void Flush();
 
 	/// <summar> Create a pipe connected to *this. </summary>
-	std::shared_ptr<LogPipe> CreatePipe(const std::string& name);
+	void AddPipe(std::shared_ptr<LogPipe> pipe, const std::string& name);
 
 	/// <summary> Specify output stream. </summary>
 	void SetOutputStream(std::ostream* outputStream);
 private:
 	/// <summary> Call this from Pipe whenever a new message is buffered. </summary>
 	void NotifyNewEvent();
-	/// <summary> Call this from Pipe when the pipe is closed or destroyed. </summary>
-	void NotifyClose(LogPipe* pipe);
-
 	
 	std::vector<PipeInfo> pipes; /// <summary> List of associated pipes. </summary>	
 	std::shared_timed_mutex mtx; /// <summary> Synchronize pipes with node. Node uses exclusive, pipes use shared mode. </summary>

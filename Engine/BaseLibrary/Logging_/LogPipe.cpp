@@ -2,13 +2,16 @@
 #include "LogNode.hpp"
 
 #include <thread>
+#include <iostream>
 
 namespace exc {
 
 
-LogPipe::LogPipe(LogNode* node) {
+LogPipe::LogPipe(std::shared_ptr<LogNode> node) {
 	this->node = node;
 }
+
+LogPipe::~LogPipe() {}
 
 void LogPipe::PutEvent(const Event& evt) {
 	if (!node) {
@@ -58,10 +61,9 @@ void LogPipe::PutEvent(Event&& evt) {
 	node->NotifyNewEvent();
 }
 
-void LogPipe::Close() {
-	node->Flush();
-	node->NotifyClose(this);
-	node = nullptr;
+
+std::shared_ptr<LogNode> LogPipe::GetNode() {
+	return node;
 }
 
 

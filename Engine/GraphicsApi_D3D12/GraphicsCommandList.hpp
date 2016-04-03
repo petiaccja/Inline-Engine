@@ -9,7 +9,7 @@
 #define NOMINMAX
 #include <wrl.h>
 #include <d3d12.h>
-#include "DisableWin32Macros.h"
+#include "../GraphicsApi_LL/DisableWin32Macros.h"
 
 namespace inl {
 namespace gxapi_dx12 {
@@ -96,8 +96,10 @@ public:
 	void SetBlendFactor(float r, float g, float b, float a) override;
 	void SetStencilRef(unsigned stencilRef) override;
 
+
 	// barriers
 	// TODO: transition, aliasing and bullshit barriers, i would put them into separate functions
+	void ResourceBarrier(unsigned numBarriers, inl::gxapi::ResourceBarrier * barriers) override;
 
 
 	// rasterizer state

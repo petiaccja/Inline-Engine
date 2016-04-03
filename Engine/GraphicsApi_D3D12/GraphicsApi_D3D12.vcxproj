@@ -82,6 +82,9 @@
     <Link>
       <SubSystem>Windows</SubSystem>
     </Link>
+    <Lib>
+      <AdditionalDependencies>d3d12.lib;d3dcompiler.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -95,6 +98,9 @@
     <Link>
       <SubSystem>Windows</SubSystem>
     </Link>
+    <Lib>
+      <AdditionalDependencies>d3d12.lib;d3dcompiler.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -112,6 +118,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <Lib>
+      <AdditionalDependencies>d3d12.lib;d3dcompiler.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -129,6 +138,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <Lib>
+      <AdditionalDependencies>d3d12.lib;d3dcompiler.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -152,13 +164,11 @@
     <ClInclude Include="..\GraphicsApi_LL\ISwapChain.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\Native.hpp" />
     <ClInclude Include="GxapiManager.hpp" />
-    <ClInclude Include="DisableWin32Macros.h" />
     <ClInclude Include="CommandAllocator.hpp" />
     <ClInclude Include="CommandList.hpp" />
     <ClInclude Include="CommandQueue.hpp" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DescriptorHeap.hpp" />
-    <ClInclude Include="EnableWin32Macros.h" />
     <ClInclude Include="ExceptionExpansions.hpp" />
     <ClInclude Include="Fence.hpp" />
     <ClInclude Include="GraphicsApi.hpp" />

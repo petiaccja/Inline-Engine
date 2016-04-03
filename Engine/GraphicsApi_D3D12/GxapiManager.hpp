@@ -15,6 +15,8 @@ public:
 	gxapi::ISwapChain* CreateSwapChain(gxapi::SwapChainDesc desc, gxapi::ICommandQueue* flushThisQueue) override;
 	gxapi::IGraphicsApi* CreateGraphicsApi(unsigned adapterId) override;
 
+	virtual std::vector<std::string> GetShaderIncludeList(exc::Stream& sourceCode) { return{}; };
+
 	bool CompileShader(const exc::Stream& sourceCode,
 					   const std::string& mainFunctionName,
 					   gxapi::eShaderType type,

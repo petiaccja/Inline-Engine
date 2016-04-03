@@ -3,9 +3,7 @@
 namespace exc {
 
 
-Event::Event() {
-	// empty
-}
+Event::Event() : type(eEventType::UNSPECIFIED) {}
 
 Event::Event(const std::string& message) {
 	this->message = message;
@@ -45,6 +43,10 @@ void Event::PutParameter(const EventParameter& parameter) {
 		case eEventParameterType::RAW:
 			this->parameters.push_back(
 				std::unique_ptr<EventParameter>(new EventParameterRaw(static_cast<const EventParameterRaw&>(parameter))));
+			break;
+		case eEventParameterType::STRING:
+			this->parameters.push_back(
+				std::unique_ptr<EventParameter>(new EventParameterString(static_cast<const EventParameterString&>(parameter))));
 			break;
 	}
 }

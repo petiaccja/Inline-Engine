@@ -13,6 +13,15 @@ enum class eEventParameterType {
 	FLOAT,
 	INT,
 	RAW,
+	STRING,
+};
+
+/// <summary> Denote the type of an event:  error, warning, info. Use unspecified if you don't care. </summary>
+enum class eEventType {
+	UNSPECIFIED,
+	ERROR,
+	WARNING,
+	INFO,
 };
 
 
@@ -63,7 +72,7 @@ struct EventParameterInt : public EventParameter {
 	EventParameterInt() = default;
 	EventParameterInt(const std::string& name) : EventParameter(name) {}
 	EventParameterInt(const char* name) : EventParameter(name) {}
-	EventParameterInt(const std::string& name, int value) : EventParameter(name), value(value) {}
+	EventParameterInt(std::string name, int value) : EventParameter(name), value(value) {}
 
 	/// <summary> Value associated with the parameter. </summary>
 	int value;
@@ -78,6 +87,28 @@ struct EventParameterInt : public EventParameter {
 	/// <summary> Get the underlying type which is Int. </summary>
 	eEventParameterType Type() const override { return eEventParameterType::INT; }
 };
+
+
+struct EventParameterString : public EventParameter {
+	EventParameterString() = default;
+	EventParameterString(const std::string& name) : EventParameter(name) {}
+	EventParameterString(const char* name) : EventParameter(name) {}
+	EventParameterString(std::string name, std::string value) : EventParameter(name), value(value) {}
+
+	/// <summary> Value associated with the parameter. </summary>
+	std::string value;
+
+	/// <summary> Convert the string value to quoted string. </summary>
+	std::string ToString() const override {
+		std::stringstream ss;
+		ss << "\"" << value << "\"";
+		return ss.str();
+	}
+
+	/// <summary> Get the underlying type which is Int. </summary>
+	eEventParameterType Type() const override { return eEventParameterType::STRING; }
+};
+
 
 struct EventParameterRaw : public EventParameter {
 	/// <summary> Raw binary data associated with parameter. </summary>
@@ -108,11 +139,20 @@ public:
 	/// <summary> Create an event with specific message. </sumary>
 	Event(const char* message) : Event(std::string(message)) {}
 
+	/// <summary> Create an event with message and type. </summary>
+	Event(std::string message, eEventType type) : Event(message) { this->type = type; }
+
 	/// <summary> Construct object with message and a list of parameters. </summary>
 	/// <param name="message"> The message of the event. </param>
 	/// <param name="parameters"> Any number of EventParameters which describe the event's parameters. </param>
 	template <class... Args>
 	Event(const std::string& message, Args&&... parameters);
+
+	template <class... Args> 
+	Event(const std::string& message, eEventType type, Args&&... parameters) : Event(std::string(message), std::forward<Args>(parameters)...) { this->type = type; }
+
+	template <class... Args>
+	Event(const char* message, Args&&... parameters) : Event(std::string(message), std::forward<Args>(parameters)...) {}
 
 	Event(const Event&);
 	Event(Event&&) = default;
@@ -143,6 +183,7 @@ private:
 
 	std::vector<std::unique_ptr<EventParameter>> parameters;
 	std::string message;
+	eEventType type;
 };
 
 

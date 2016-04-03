@@ -922,6 +922,32 @@ D3D12_SRV_DIMENSION native_cast(gxapi::eSrvDimension source) {
 	return D3D12_SRV_DIMENSION{};
 }
 
+D3D12_RESOURCE_BARRIER_FLAGS native_cast(gxapi::eResourceBarrierSplit source) {
+	switch (source) {
+		case gxapi::eResourceBarrierSplit::BEGIN:
+			return D3D12_RESOURCE_BARRIER_FLAG_BEGIN_ONLY;
+		case gxapi::eResourceBarrierSplit::END:
+			return D3D12_RESOURCE_BARRIER_FLAG_END_ONLY;
+		case gxapi::eResourceBarrierSplit::NORMAL:
+			return D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		default:
+			return D3D12_RESOURCE_BARRIER_FLAGS(0);
+	}
+}
+
+D3D12_RESOURCE_BARRIER_TYPE native_cast(gxapi::eResourceBarrierType source) {
+	switch (source)
+	{
+		case inl::gxapi::eResourceBarrierType::TRANSITION:
+			return D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+		case inl::gxapi::eResourceBarrierType::ALIASING:
+			return D3D12_RESOURCE_BARRIER_TYPE_ALIASING;
+		case inl::gxapi::eResourceBarrierType::UAV:
+			return D3D12_RESOURCE_BARRIER_TYPE_UAV;
+		default:
+			return D3D12_RESOURCE_BARRIER_TYPE(0);
+	}
+}
 
 
 //---------------
@@ -1748,7 +1774,29 @@ D3D12_SHADER_BYTECODE native_cast(gxapi::ShaderByteCodeDesc source) {
 }
 
 
+D3D12_RESOURCE_BARRIER native_cast(gxapi::ResourceBarrier source) {
+	D3D12_RESOURCE_BARRIER native{};
+	native.Type = native_cast(source.type);
+	native.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 
+
+	switch (source.type) {
+		case gxapi::eResourceBarrierType::TRANSITION:
+			native.Transition.StateBefore = native_cast(source.transition.beforeState);
+			native.Transition.StateAfter = native_cast(source.transition.afterState);
+			native.Transition.Subresource = source.transition.subResource;
+			native.Transition.pResource = native_cast(source.transition.resource);
+			native.Flags = native_cast(source.transition.splitMode);
+			break;
+		case gxapi::eResourceBarrierType::ALIASING:
+			break;
+		case gxapi::eResourceBarrierType::UAV:
+			break;
+		default:
+			break;
+	}
+	return native;
+}
 
 
 

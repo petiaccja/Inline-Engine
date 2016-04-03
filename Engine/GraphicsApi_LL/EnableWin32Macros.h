@@ -13,5 +13,8 @@
 #pragma pop_macro("DOMAIN")
 #endif
 
+#ifdef WINDOWS_H_ERROR_DEFINED
+#pragma pop_macro("ERROR")
+#endif
 
 #endif // _MSC_VER

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Logger.hpp"
-#include <BaseLibrary/Utility>
+#include "../Singleton.hpp"
+
 
 namespace exc {
 

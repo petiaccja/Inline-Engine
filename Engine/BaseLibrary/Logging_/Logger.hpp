@@ -41,7 +41,7 @@ private:
 	// do not ever flip the order of the two below!
 	// myNode must be destroyed first because it's using outputFile
 	std::unique_ptr<std::ofstream> outputFile;
-	std::unique_ptr<LogNode> myNode;
+	std::shared_ptr<LogNode> myNode;
 };
 
 

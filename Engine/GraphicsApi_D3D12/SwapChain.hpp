@@ -6,7 +6,7 @@
 #include <dxgi1_4.h>
 #include <d3dcompiler.h>
 #include <wrl.h>
-#include "DisableWin32Macros.h"
+#include "../GraphicsApi_LL/DisableWin32Macros.h"
 
 namespace inl {
 namespace gxapi_dx12 {

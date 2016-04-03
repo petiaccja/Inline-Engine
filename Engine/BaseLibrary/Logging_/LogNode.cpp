@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <chrono>
+#include <iostream>
 
 
 namespace exc {
@@ -16,27 +17,29 @@ LogNode::LogNode() {
 }
 
 LogNode::~LogNode() {
-	prohibitPipes = true;
-	mtx.lock();
-	prohibitPipes = false;
+	// this code is probably not necessery since i replaced all shit with shared and weak ptrs
 
-	for (auto& pipeInfo : pipes) {
-		// check if a LogStream keeps any pipe open.
-		if (pipeInfo.pipe.use_count() != 1) {
-			// if so then...
+	//prohibitPipes = true;
+	//mtx.lock();
+	//prohibitPipes = false;
 
-			// write that fact to logfile
-			if (outputStream && outputStream->good()) {
-				*outputStream << "[ERROR] The program will now terminate because you haven't closed all LogStreams before closing the Logger. Dumfuck...\n";
-				outputStream->flush();
-			}
+	//for (auto& pipeInfo : pipes) {
+	//	// check if a LogStream keeps any pipe open.
+	//	if (pipeInfo.pipe.use_count() != 1) {
+	//		// if so then...
 
-			// terminate program, we would have dangling pointers
-			std::terminate();
-		}
-	}
+	//		// write that fact to logfile
+	//		if (outputStream && outputStream->good()) {
+	//			*outputStream << "[ERROR] The program will now terminate because you haven't closed all LogStreams before closing the Logger. Dumfuck...\n";
+	//			outputStream->flush();
+	//		}
 
-	mtx.unlock();
+	//		// terminate program, we would have dangling pointers
+	//		std::terminate();
+	//	}
+	//}
+
+	//mtx.unlock();
 }
 
 
@@ -46,11 +49,32 @@ void LogNode::Flush() {
 	mtx.lock();
 	prohibitPipes = false;
 
+	// promote all pipes to shared_ptr
+	std::vector<PipeInfoShared> promotedPipes;
+	bool dirty = false;
+	for (auto& pipeInfo : pipes) {
+		std::shared_ptr<LogPipe> locked = pipeInfo.pipe.lock();
+		if (locked) {
+			promotedPipes.push_back({ locked, pipeInfo.name });
+		}
+		else {
+			dirty = true;
+		}
+	}
+	if (dirty) {
+		pipes.clear();
+		for (auto& pipeInfo : promotedPipes) {
+			pipes.push_back({ pipeInfo.pipe, pipeInfo.name });
+		}
+	}
+
+
+	// pop events from pipes
 	while (true) {
 		EventBuffer* oldestBuffer = nullptr;
 		std::string* oldestPipeName = nullptr;
 		std::chrono::high_resolution_clock::time_point oldestTimestamp = std::chrono::high_resolution_clock::time_point::max();
-		for (auto& pipeInfo : pipes) {
+		for (auto& pipeInfo : promotedPipes) {
 			if (!pipeInfo.pipe->buffer.empty()
 				&& pipeInfo.pipe->buffer[0].timestamp < oldestTimestamp)
 			{
@@ -99,35 +123,16 @@ void LogNode::NotifyNewEvent() {
 }
 
 
-void LogNode::NotifyClose(LogPipe* pipe) {
-	prohibitPipes = true;
-	mtx.lock();
-	prohibitPipes = false;
-
-	auto it = pipes.begin();
-	while (it != pipes.end() && it->pipe.get() != pipe) {
-		++it;
-	}
-	assert(it != pipes.end());
-	pipes.erase(it);
-
-	mtx.unlock();
-}
-
-
-std::shared_ptr<LogPipe> LogNode::CreatePipe(const std::string& name) {
+void LogNode::AddPipe(std::shared_ptr<LogPipe> pipe, const std::string& name) {
 	// Exclude all action by pipes.
 	// And anyone else for that matter.
 	prohibitPipes = true;
 	mtx.lock();
 	prohibitPipes = false;
 
-	auto ptr = std::shared_ptr<LogPipe>(new LogPipe(this));
-	pipes.push_back({ ptr, name });
+	pipes.push_back({ pipe, name });
 
 	mtx.unlock();
-
-	return ptr;
 }
 
 

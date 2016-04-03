@@ -205,6 +205,9 @@ gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(gxapi::GraphicsP
 	nativeDesc.PrimitiveTopologyType  = native_cast(desc.primitiveTopologyType);
 	nativeDesc.NumRenderTargets       = desc.numRenderTargets;
 
+	for (auto& v : nativeDesc.RTVFormats) {
+		v = DXGI_FORMAT_UNKNOWN;
+	}
 	for (unsigned i = 0; i < desc.numRenderTargets; i++) {
 		nativeDesc.RTVFormats[i] = native_cast(desc.renderTargetFormats[i]);
 	}

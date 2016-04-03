@@ -6,7 +6,7 @@
 #define NOMINMAX
 #include <wrl.h>
 #include <d3d12.h>
-#include "DisableWin32Macros.h"
+#include "../GraphicsApi_LL/DisableWin32Macros.h"
 
 namespace inl {
 namespace gxapi_dx12 {
@@ -41,7 +41,7 @@ public:
 
 	gxapi::IDescriptorHeap* CreateDescriptorHeap(gxapi::DescriptorHeapDesc desc) override;
 
-#pragma message("Implement CBV/SRV/RTV/DSV creation!")
+
 	void CreateConstantBufferView(gxapi::ConstantBufferViewDesc desc,
 	                              gxapi::DescriptorHandle destination) override;
 

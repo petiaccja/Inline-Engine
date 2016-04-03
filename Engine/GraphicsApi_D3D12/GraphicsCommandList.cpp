@@ -203,6 +203,15 @@ void GraphicsCommandList::SetStencilRef(unsigned stencilRef) {
 }
 
 
+void GraphicsCommandList::ResourceBarrier(unsigned numBarriers, inl::gxapi::ResourceBarrier* barriers) {
+	std::vector<D3D12_RESOURCE_BARRIER> nativeBarriers(numBarriers);
+	for (unsigned i = 0; i < numBarriers; i++) {
+		nativeBarriers[i] = native_cast(barriers[i]);
+	}
+	m_native->ResourceBarrier(numBarriers, nativeBarriers.data());
+}
+
+
 void GraphicsCommandList::SetScissorRects(unsigned numRects, gxapi::Rectangle* rects) {
 	std::vector<D3D12_RECT> nativeRects;
 	nativeRects.reserve(numRects);

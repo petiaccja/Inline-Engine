@@ -92,7 +92,7 @@ public:
 
 	// barriers
 	// TODO: transition, aliasing and bullshit barriers, i would put them into separate functions
-	virtual void ResourceBarrier(unsigned numBarriers, ResourceBarrier* barriers);
+	virtual void ResourceBarrier(unsigned numBarriers, ResourceBarrier* barriers) = 0;
 
 	template <class... Barriers>
 	void ResourceBarrier(Barriers&&... barriers);
