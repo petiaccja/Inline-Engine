@@ -13,6 +13,7 @@ namespace gxapi_dx12 {
 
 using Microsoft::WRL::ComPtr;
 
+
 class GraphicsApi : public gxapi::IGraphicsApi {
 public:
 	GraphicsApi(Microsoft::WRL::ComPtr<ID3D12Device> device);
@@ -59,6 +60,9 @@ public:
 	                              gxapi::DescriptorHandle destination) override;
 	void CreateShaderResourceView(gxapi::IResource* resource,
 	                              gxapi::DescriptorHandle destination) override;
+
+	// Misc
+	gxapi::IFence* CreateFence(uint64_t initialValue) override;
 
 
 protected:

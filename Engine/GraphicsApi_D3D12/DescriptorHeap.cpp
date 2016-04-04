@@ -1,4 +1,5 @@
 #include "DescriptorHeap.hpp"
+#include "../GraphicsApi_LL/Exception.hpp"
 
 #include "NativeCast.hpp"
 #include "d3dx12.h"
@@ -11,20 +12,27 @@ namespace gxapi_dx12 {
 
 
 DescriptorHeap::DescriptorHeap(ComPtr<ID3D12DescriptorHeap>& native)
-	: m_native{native} {
+	: m_native{ native }
+{
+	ID3D12Device* device;
+	if (FAILED(m_native->GetDevice(IID_PPV_ARGS(&device)))) {
+		throw inl::gxapi::Exception{ "Could not get device for heap." };
+	}
+
+	m_incrementSize = device->GetDescriptorHandleIncrementSize(m_native->GetDesc().Type);
+	m_cpuBaseHandle = m_native->GetCPUDescriptorHandleForHeapStart();
+	m_gpuBaseHandle = m_native->GetGPUDescriptorHandleForHeapStart();
 }
 
 
 gxapi::DescriptorHandle DescriptorHeap::At(size_t index) const {
 	ID3D12Device* device;
 	if (FAILED(m_native->GetDevice(IID_PPV_ARGS(&device)))) {
-		throw std::runtime_error{"Could not get device for heap."};
+		throw inl::gxapi::Exception{ "Could not get device for heap." };
 	}
 
-	size_t incrementSize = device->GetDescriptorHandleIncrementSize(m_native->GetDesc().Type);
-
-	CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandleHelper{m_native->GetCPUDescriptorHandleForHeapStart(), (int)index, (unsigned)incrementSize};
-	CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandleHelper{m_native->GetGPUDescriptorHandleForHeapStart(), (int)index, (unsigned)incrementSize};
+	CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandleHelper{ m_cpuBaseHandle, (int)index, (unsigned)m_incrementSize };
+	CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandleHelper{ m_gpuBaseHandle, (int)index, (unsigned)m_incrementSize };
 
 	gxapi::DescriptorHandle result;
 	result.cpuAddress = reinterpret_cast<void*>(uintptr_t(cpuHandleHelper.ptr));

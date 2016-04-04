@@ -23,6 +23,7 @@ public:
 
 	uint64_t Fetch() override;
 	void Signal(uint64_t value) override;
+	void Wait(uint64_t value, uint64_t timeoutMillis = FOREVER) override;
 
 protected:
 	ComPtr<ID3D12Fence> m_native;

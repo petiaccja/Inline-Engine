@@ -12,11 +12,14 @@ class ICommandAllocator;
 class IGraphicsCommandList;
 class ICopyCommandList;
 
+class IFence;
+
 class IResource;
 
 class IRootSignature;
 class IPipelineState;
 class IDescriptorHeap;
+
 
 // todo: descriptor view bullshit
 class IGraphicsApi {
@@ -61,6 +64,9 @@ public:
 										  DescriptorHandle destination) = 0;
 
 	virtual void CreateUnorderedAccessView() = delete; // not needed yet
+
+	// Misc
+	virtual IFence* CreateFence(uint64_t initialValue) = 0;
 };
 
 
