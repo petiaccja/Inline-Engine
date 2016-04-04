@@ -158,7 +158,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	m_commandList.reset(m_graphicsApi->CreateGraphicsCommandList(CommandListDesc{ m_commandAllocator.get(), m_defaultPso.get() }));
 
 	// Create a fence
-	//m_fence.reset(m_graphicsApi->CreateFence());
+	m_fence.reset(m_graphicsApi->CreateFence(0));
 }
 
 PicoEngine::~PicoEngine() {
@@ -167,12 +167,29 @@ PicoEngine::~PicoEngine() {
 
 
 void PicoEngine::Update() {
+	// reset command list
 	m_commandList->Reset(m_commandAllocator.get(), m_defaultPso.get());
 
+	// init drawing
 	m_commandList->ClearRenderTarget(m_rtvs->At(currentBackBuffer), ColorRGBA(0.2, 0.2, 0.7));
+	
+	// draw
+	// ...
 
+	// close command list
 	m_commandList->Close();
 
+
+	// commit to queue
+	ICommandList* lists[] = { m_commandList.get() };
+	m_commandQueue->ExecuteCommandLists(1, lists);
+
+	// wait for frame to finish
+	uint64_t prevValue = m_fence->Fetch();
+	m_commandQueue->Signal(m_fence.get(), prevValue + 1);
+	m_fence->Wait(prevValue + 1);
+
+	// present frame
 	m_swapChain->Present();
 }
 

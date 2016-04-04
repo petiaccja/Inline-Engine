@@ -310,6 +310,14 @@ void GraphicsApi::CreateShaderResourceView(
 	m_device->CreateShaderResourceView(native_cast(resource), nullptr, nativeCPUHandle);
 }
 
+gxapi::IFence * GraphicsApi::CreateFence(uint64_t initialValue)
+{
+	ComPtr<ID3D12Fence> native;
+	D3D12_FENCE_FLAGS flags = D3D12_FENCE_FLAG_NONE;
+	ThrowIfFailed(m_device->CreateFence(initialValue, flags, IID_PPV_ARGS(&native)));
+	return new Fence(native);
+}
+
 
 } // namespace gxapi_dx12
 } // namespace inl
