@@ -863,6 +863,17 @@ struct RenderTargetBlendState {
 
 struct BlendState {
 	BlendState() : singleTarget(multiTarget[0]) {}
+	BlendState& operator=(const BlendState& other) {
+		if (this == &other) {
+			return *this;
+		}
+
+		alphaToCoverage = other.alphaToCoverage;
+		independentBlending = other.independentBlending;
+		memcpy(multiTarget, other.multiTarget, sizeof(multiTarget));
+
+		return *this;
+	}
 	bool alphaToCoverage = false;
 	bool independentBlending = false;
 	RenderTargetBlendState multiTarget[8];

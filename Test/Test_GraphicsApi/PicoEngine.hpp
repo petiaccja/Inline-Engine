@@ -24,6 +24,9 @@ public:
 
 	void Update();
 protected:
+	static inl::gxapi::ShaderByteCodeDesc ToShaderByteCodeDesc(const inl::gxapi::ShaderProgramBinary& binary);
+	//static ShaderByteCodeDesc ToShaderByteCodeDesc(const ShaderProgramBinary& binary);
+
 	void Log(std::string s);
 	template <class... Args>
 	void Log(Args&&... args) {
