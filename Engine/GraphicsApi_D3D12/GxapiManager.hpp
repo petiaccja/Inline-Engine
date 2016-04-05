@@ -26,13 +26,11 @@ public:
 					   gxapi::ShaderProgramBinary& shaderOut,
 					   std::string& errorMsg) override;
 
-	bool CompileShaderFromFile(const std::string& fileName,
+	gxapi::ShaderProgramBinary CompileShaderFromFile(const std::string& fileName,
 							   const std::string& mainFunctionName,
 							   gxapi::eShaderType type,
 							   gxapi::eShaderCompileFlags flags,
-							   const std::vector<gxapi::ShaderMacroDefinition>& macros,
-							   gxapi::ShaderProgramBinary& shaderOut,
-							   std::string& errorMsg) override;
+							   const std::vector<gxapi::ShaderMacroDefinition>& macros) override;
 };
 
 

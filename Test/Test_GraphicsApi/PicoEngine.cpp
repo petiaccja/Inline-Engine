@@ -76,13 +76,10 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 
 	std::string errorMsg;
 	Log("Loading vertex shader.");
-	if (!m_gxapiManager->CompileShaderFromFile("shaders.hlsl", "VSmain", inl::gxapi::eShaderType::VERTEX, eShaderCompileFlags{}, {}, vertexBinary, errorMsg)) {
-		throw Exception("Could not compile shader. Message: " + errorMsg);
-	}
+	vertexBinary = m_gxapiManager->CompileShaderFromFile("shaders.hlsl", "VSmain", inl::gxapi::eShaderType::VERTEX, eShaderCompileFlags{}, {});
+	
 	Log("Loading fragment shader.");
-	if (!m_gxapiManager->CompileShaderFromFile("shaders.hlsl", "PSmain", inl::gxapi::eShaderType::PIXEL, eShaderCompileFlags{}, {}, pixelBinary, errorMsg)) {
-		throw Exception("Could not compile shader. Message: " + errorMsg);
-	}
+	pixelBinary = m_gxapiManager->CompileShaderFromFile("shaders.hlsl", "PSmain", inl::gxapi::eShaderType::PIXEL, eShaderCompileFlags{}, {});
 
 	InputLayout inputLayout;
 	std::vector<InputElementDesc> ilElements;

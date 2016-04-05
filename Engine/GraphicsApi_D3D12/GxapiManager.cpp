@@ -217,13 +217,11 @@ bool GxapiManager::CompileShader(const exc::Stream& sourceCode,
 
 
 
-bool GxapiManager::CompileShaderFromFile(const std::string& fileName,
+gxapi::ShaderProgramBinary GxapiManager::CompileShaderFromFile(const std::string& fileName,
 										 const std::string& mainFunctionName,
 										 gxapi::eShaderType type,
 										 gxapi::eShaderCompileFlags flags,
-										 const std::vector<gxapi::ShaderMacroDefinition>& macros,
-										 gxapi::ShaderProgramBinary& shaderOut,
-										 std::string& errorMsg)
+										 const std::vector<gxapi::ShaderMacroDefinition>& macros)
 {
 	auto GetTarget = [](eShaderType type) -> const char* {
 		switch (type)
@@ -260,6 +258,7 @@ bool GxapiManager::CompileShaderFromFile(const std::string& fileName,
 		defBegin->Definition = v.value.c_str();
 		++defBegin;
 	}
+	d3dDefines.push_back({ NULL, NULL });
 
 	// translate file name
 	mbstowcs(wFileName.get(), fileName.c_str(), wFileNameSize);
@@ -275,11 +274,14 @@ bool GxapiManager::CompileShaderFromFile(const std::string& fileName,
 									&code,
 									&error);
 	
+	ShaderProgramBinary shaderOut;
+	std::string errorMsg;
 
 	if (hr == S_OK) {
 		assert(code != nullptr);
 		shaderOut.data.resize(code->GetBufferSize());
 		memcpy(shaderOut.data.data(), code->GetBufferPointer(), shaderOut.data.size());
+		
 	}
 	else {
 		if (error) {
@@ -288,10 +290,10 @@ bool GxapiManager::CompileShaderFromFile(const std::string& fileName,
 		if (code) {
 			code->Release();
 		}
-		ThrowIfFailed(hr);
+		throw ShaderCompilationError(errorMsg);
 	}
 
-	return true;
+	return shaderOut;
 }
 
 
