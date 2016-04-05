@@ -23,6 +23,13 @@ constexpr bool frontFaceIsCCW = true;
 
 
 ////////////////////////////////////////////////////////////
+// SPECIAL
+void* native_cast_ptr(std::uintptr_t source);
+
+std::uintptr_t native_cast_ptr(const void* source);
+
+
+////////////////////////////////////////////////////////////
 // TO NATIVE
 ////////////////////////////////////////////////////////////
 
@@ -131,6 +138,8 @@ D3D12_RECT native_cast(gxapi::Rectangle const & source);
 D3D12_BOX native_cast(gxapi::Cube source);
 
 D3D12_CLEAR_VALUE native_cast(gxapi::ClearValue source);
+
+D3D12_RANGE native_cast(gxapi::MemoryRange source);
 
 //---------------
 //DESCRIPTOR

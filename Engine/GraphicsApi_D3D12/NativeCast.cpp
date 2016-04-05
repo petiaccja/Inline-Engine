@@ -12,6 +12,17 @@ namespace inl {
 namespace gxapi_dx12 {
 
 
+///////////////////////
+// SPECIAL
+void* native_cast_ptr(std::uintptr_t source) {
+	return reinterpret_cast<void*>(source);
+}
+
+std::uintptr_t native_cast_ptr(const void* source) {
+	return reinterpret_cast<std::uintptr_t>(source);
+}
+
+
 ////////////////////////////////////////////////////////////
 // TO NATIVE
 ////////////////////////////////////////////////////////////
@@ -1114,6 +1125,16 @@ D3D12_CLEAR_VALUE native_cast(gxapi::ClearValue source) {
 }
 
 
+D3D12_RANGE native_cast(gxapi::MemoryRange source) {
+	D3D12_RANGE result;
+
+	result.Begin = source.begin;
+	result.End = source.end;
+
+	return result;
+}
+
+
 //---------------
 //DESCRIPTOR
 
@@ -1322,7 +1343,7 @@ D3D12_INPUT_ELEMENT_DESC native_cast(gxapi::InputElementDesc source) {
 D3D12_CONSTANT_BUFFER_VIEW_DESC native_cast(gxapi::ConstantBufferViewDesc source) {
 	D3D12_CONSTANT_BUFFER_VIEW_DESC result;
 
-	result.BufferLocation = reinterpret_cast<std::uintptr_t>(source.gpuVirtualAddress);
+	result.BufferLocation = native_cast_ptr(source.gpuVirtualAddress);
 	result.SizeInBytes = source.sizeInBytes;
 
 	return result;

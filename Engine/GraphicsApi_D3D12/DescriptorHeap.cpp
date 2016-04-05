@@ -35,8 +35,8 @@ gxapi::DescriptorHandle DescriptorHeap::At(size_t index) const {
 	CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandleHelper{ m_gpuBaseHandle, (int)index, (unsigned)m_incrementSize };
 
 	gxapi::DescriptorHandle result;
-	result.cpuAddress = reinterpret_cast<void*>(uintptr_t(cpuHandleHelper.ptr));
-	result.gpuAddress = reinterpret_cast<void*>(uintptr_t(gpuHandleHelper.ptr));
+	result.cpuAddress = native_cast_ptr(cpuHandleHelper.ptr);
+	result.gpuAddress = native_cast_ptr(gpuHandleHelper.ptr);
 
 	return result;
 }

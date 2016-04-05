@@ -159,6 +159,92 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 
 	// Create a fence
 	m_fence.reset(m_graphicsApi->CreateFence(0));
+
+	
+	//Create an object to be drawn
+	static float vertices[] = {
+		// top
+		0.5, 0.5, 0.5,		0,0,1,	1,0,
+		-0.5, 0.5, 0.5,		0,0,1,	1,1,
+		-0.5, -0.5, 0.5,	0,0,1,	0,1,
+		0.5, -0.5, 0.5,		0,0,1,	0,0,
+		// bottom
+		0.5, 0.5, -0.5,		0,0,-1,	1,0,
+		-0.5, 0.5, -0.5,	0,0,-1,	1,1,
+		-0.5, -0.5, -0.5,	0,0,-1,	0,1,
+		0.5, -0.5, -0.5,	0,0,-1,	0,0,
+		// right
+		0.5, 0.5, 0.5,		1,0,0,	1,0,
+		0.5, -0.5, 0.5,		1,0,0,	1,1,
+		0.5, -0.5, -0.5,	1,0,0,	0,1,
+		0.5, 0.5, -0.5,		1,0,0,	0,0,
+		// left
+		-0.5, 0.5, 0.5,		-1,0,0,	1,0,
+		-0.5, -0.5, 0.5,	-1,0,0,	1,1,
+		-0.5, -0.5, -0.5,	-1,0,0,	0,1,
+		-0.5, 0.5, -0.5,	-1,0,0,	0,0,
+		// front
+		0.5, 0.5, 0.5,		0,1,0,	1,0,
+		0.5, 0.5, -0.5,		0,1,0,	1,1,
+		-0.5, 0.5, -0.5,	0,1,0,	0,1,
+		-0.5, 0.5, 0.5,		0,1,0,	0,0,
+		// back
+		0.5, -0.5, 0.5,		0,-1,0,	1,0,
+		0.5, -0.5, -0.5,	0,-1,0,	1,1,
+		-0.5, -0.5, -0.5,	0,-1,0,	0,1,
+		-0.5, -0.5, 0.5,	0,-1,0,	0,0,
+	};
+
+	static int indices[] = {
+		// top
+		0,1,3,
+		1,2,3,
+		// bottom
+		5,4,7,
+		6,5,7,
+		// right
+		8,9,11,
+		9,10,11,
+		// left
+		13,12,15,
+		14,13,15,
+		// front
+		16,17,19,
+		17,18,19,
+		// back
+		21,20,23,
+		22,21,23,
+	};
+
+	const MemoryRange noReadRange{0, 0};
+	{
+		ResourceDesc vertexBufferDesc;
+		vertexBufferDesc.type = eResourceType::BUFFER;
+		vertexBufferDesc.bufferDesc.sizeInBytes = sizeof(vertices);
+		m_vertexBuffer.reset(m_graphicsApi->CreateCommittedResource(HeapProperties{}, eHeapFlags::NONE, vertexBufferDesc, eResourceState::GENERIC_READ));
+
+		void* mappedVertexData = m_vertexBuffer->Map(0, &noReadRange);
+		memcpy(mappedVertexData, vertices, sizeof(vertices));
+		m_vertexBuffer->Unmap(0, nullptr);
+
+		vbv.gpuAddress = m_vertexBuffer->GetGPUAddress();
+		vbv.size = sizeof(vertices);
+		vbv.stride = sizeof(float) * (3+3+2);
+	}
+	{
+		ResourceDesc indexBufferDesc;
+		indexBufferDesc.type = eResourceType::BUFFER;
+		indexBufferDesc.bufferDesc.sizeInBytes = sizeof(indices);
+		m_indexBuffer.reset(m_graphicsApi->CreateCommittedResource(HeapProperties{}, eHeapFlags::NONE, indexBufferDesc, eResourceState::GENERIC_READ));
+
+		void* mappedIndexData = m_indexBuffer->Map(0, &noReadRange);
+		memcpy(mappedIndexData, indices, sizeof(indices));
+		m_indexBuffer->Unmap(0, nullptr);
+
+		ibv.gpuAddress = m_indexBuffer->GetGPUAddress();
+		ibv.format = eFormat::R32_UINT;
+		ibv.size = sizeof(indices);
+	}
 }
 
 PicoEngine::~PicoEngine() {
@@ -175,6 +261,9 @@ void PicoEngine::Update() {
 	
 	// draw
 	// ...
+	m_commandList->SetVertexBuffers(0, 1, vbAdress, vbSize, vbStride);
+	m_commandList->SetIndexBuffer(ibAddress, ibSize, ibFormat);
+
 
 	// close command list
 	m_commandList->Close();

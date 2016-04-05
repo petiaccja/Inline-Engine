@@ -11,10 +11,24 @@
 #include <GraphicsApi_LL/IFence.hpp>
 #include <GraphicsApi_LL/IDescriptorHeap.hpp>
 #include <GraphicsApi_LL/Common.hpp>
+#include <GraphicsApi_LL/IResource.hpp>
 
 namespace exc{
 class LogStream;
 }
+
+
+struct VertexBufferView {
+	void* gpuAddress;
+	unsigned size;
+	unsigned stride;
+};
+
+struct IndexBufferView {
+	void* gpuAddress;
+	unsigned size;
+	inl::gxapi::eFormat format;
+};
 
 
 class PicoEngine {
@@ -52,6 +66,12 @@ private:
 	std::unique_ptr<inl::gxapi::IDescriptorHeap> m_rtvs;
 	int currentBackBuffer;
 	
+	//objects
+	std::unique_ptr<inl::gxapi::IResource> m_vertexBuffer;
+	std::unique_ptr<inl::gxapi::IResource> m_indexBuffer;
+	VertexBufferView vbv;
+	IndexBufferView ibv;
+
 	// Logging
 	exc::LogStream* m_logStream;
 };

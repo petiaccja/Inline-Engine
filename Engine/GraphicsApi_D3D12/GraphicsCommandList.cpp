@@ -142,7 +142,7 @@ void GraphicsCommandList::ExecuteBundle(IGraphicsCommandList* bundle) {
 
 void GraphicsCommandList::SetIndexBuffer(void * gpuVirtualAddress, size_t sizeInBytes, gxapi::eFormat format) {
 	D3D12_INDEX_BUFFER_VIEW ibv;
-	ibv.BufferLocation = reinterpret_cast<std::uintptr_t>(gpuVirtualAddress);
+	ibv.BufferLocation = native_cast_ptr(gpuVirtualAddress);
 	ibv.Format = native_cast(format);
 	ibv.SizeInBytes = sizeInBytes;
 
