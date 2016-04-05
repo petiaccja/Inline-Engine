@@ -75,9 +75,11 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	ShaderProgramBinary pixelBinary;
 
 	std::string errorMsg;
+	Log("Loading vertex shader.");
 	if (!m_gxapiManager->CompileShaderFromFile("shaders.hlsl", "VSmain", inl::gxapi::eShaderType::VERTEX, eShaderCompileFlags{}, {}, vertexBinary, errorMsg)) {
 		throw Exception("Could not compile shader. Message: " + errorMsg);
 	}
+	Log("Loading fragment shader.");
 	if (!m_gxapiManager->CompileShaderFromFile("shaders.hlsl", "PSmain", inl::gxapi::eShaderType::PIXEL, eShaderCompileFlags{}, {}, pixelBinary, errorMsg)) {
 		throw Exception("Could not compile shader. Message: " + errorMsg);
 	}
@@ -100,7 +102,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 		ilColDesc.semanticIndex = 0;
 		ilColDesc.format = eFormat::R32G32B32_FLOAT;
 		ilColDesc.inputSlot = 0;
-		ilColDesc.offset = 12;
+		ilColDesc.offset = 3*sizeof(float);
 		ilColDesc.classifiacation = eInputClassification::VERTEX_DATA;
 		ilColDesc.instanceDataStepRate = 0;
 		ilElements.push_back(ilColDesc);
@@ -162,6 +164,9 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 
 	
 	//Create an object to be drawn
+	/*
+	//////////////////////
+	// CUBE
 	static float vertices[] = {
 		// top
 		0.5, 0.5, 0.5,		0,0,1,	1,0,
@@ -214,6 +219,19 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 		// back
 		21,20,23,
 		22,21,23,
+	};*/
+
+	//////////
+	// TRIANGLE
+	static float vertices[] = {
+		//pos              color
+		-0.5, -0.5, 0,     1, 0, 0,
+		 0.5, -0.5, 0,     0, 1, 0,
+		 0.0,  0.5, 0,     0, 0, 1
+	};
+
+	static std::uint32_t indices[] = {
+		0, 1, 2
 	};
 
 	const MemoryRange noReadRange{0, 0};
@@ -229,7 +247,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 
 		vbv.gpuAddress = m_vertexBuffer->GetGPUAddress();
 		vbv.size = sizeof(vertices);
-		vbv.stride = sizeof(float) * (3+3+2);
+		vbv.stride = sizeof(float) * (3+3);
 	}
 	{
 		ResourceDesc indexBufferDesc;
@@ -261,9 +279,10 @@ void PicoEngine::Update() {
 	
 	// draw
 	// ...
-	m_commandList->SetVertexBuffers(0, 1, vbAdress, vbSize, vbStride);
-	m_commandList->SetIndexBuffer(ibAddress, ibSize, ibFormat);
-
+	m_commandList->SetPrimitiveTopology(ePrimitiveTopology::TRIANGLELIST);
+	m_commandList->SetVertexBuffers(0, 1, &vbv.gpuAddress, &vbv.size, &vbv.stride);
+	m_commandList->SetIndexBuffer(ibv.gpuAddress, ibv.size, ibv.format);
+	m_commandList->DrawIndexedInstanced(ibv.size / sizeof(std::uint32_t));
 
 	// close command list
 	m_commandList->Close();

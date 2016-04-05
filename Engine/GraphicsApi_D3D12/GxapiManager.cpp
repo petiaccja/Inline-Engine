@@ -250,7 +250,8 @@ bool GxapiManager::CompileShaderFromFile(const std::string& fileName,
 	ID3DBlob *error = nullptr;
 
 	std::vector<D3D_SHADER_MACRO> d3dDefines(macros.size()); // native d3d macros
-	std::unique_ptr<wchar_t> wFileName(new wchar_t[fileName.size() + 1]); // file name widechar
+	const size_t wFileNameSize = fileName.size() + 1;
+	std::unique_ptr<wchar_t> wFileName(new wchar_t[wFileNameSize]); // file name widechar
 
 	// translate defines
 	auto defBegin = d3dDefines.begin();
@@ -261,7 +262,7 @@ bool GxapiManager::CompileShaderFromFile(const std::string& fileName,
 	}
 
 	// translate file name
-	mbstowcs(wFileName.get(), fileName.c_str(), fileName.size());
+	mbstowcs(wFileName.get(), fileName.c_str(), wFileNameSize);
 
 	// compile code w/ d3d
 	HRESULT hr = D3DCompileFromFile(wFileName.get(),
