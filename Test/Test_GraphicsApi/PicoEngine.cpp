@@ -73,8 +73,10 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	rtvDesc.dimension = eRtvDimension::TEXTURE2D;
 	rtvDesc.tex2D.firstMipLevel = 0;
 	rtvDesc.tex2D.planeIndex = 0;
-	m_graphicsApi->CreateRenderTargetView(rtvDesc, m_rtvs->At(0));
-	m_graphicsApi->CreateRenderTargetView(rtvDesc, m_rtvs->At(1));
+	IResource* rt1 = m_swapChain->GetBuffer(0);
+	IResource* rt2 = m_swapChain->GetBuffer(1);
+	m_graphicsApi->CreateRenderTargetView(rt1, rtvDesc, m_rtvs->At(0));
+	m_graphicsApi->CreateRenderTargetView(rt1, rtvDesc, m_rtvs->At(1));
 
 	// Create root signature
 	m_defaultRootSignature.reset(m_graphicsApi->CreateRootSignature(RootSignatureDesc{}));
