@@ -24,6 +24,7 @@ void ThrowIfFailed(HRESULT code, const std::string& additionalInfo) {
 		while (*curr != 0) {
 			msg.push_back(char(*(curr++)));
 		}
+		//msg += " Code: " + std::to_string(code);
 	}
 
 	if (additionalInfo.length() > 0) {

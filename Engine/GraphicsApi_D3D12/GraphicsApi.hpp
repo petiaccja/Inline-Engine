@@ -38,7 +38,7 @@ public:
 	// Pipeline and binding
 	gxapi::IRootSignature* CreateRootSignature(gxapi::RootSignatureDesc desc) override;
 
-	gxapi::IPipelineState* CreateGraphicsPipelineState(gxapi::GraphicsPipelineStateDesc desc) override;
+	gxapi::IPipelineState* CreateGraphicsPipelineState(const gxapi::GraphicsPipelineStateDesc& desc) override;
 
 	gxapi::IDescriptorHeap* CreateDescriptorHeap(gxapi::DescriptorHeapDesc desc) override;
 

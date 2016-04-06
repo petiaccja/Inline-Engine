@@ -107,7 +107,7 @@ gxapi::IRootSignature* GraphicsApi::CreateRootSignature(gxapi::RootSignatureDesc
 				descriptorRangesPerRootParameter.push_back(std::vector<D3D12_DESCRIPTOR_RANGE>{});
 				auto& nativeRanges = descriptorRangesPerRootParameter.back();
 				nativeRanges.reserve(srcTable.numDescriptorRanges);
-				for (unsigned i = 0; i< srcTable.numDescriptorRanges; i++) {
+				for (unsigned i = 0; i < srcTable.numDescriptorRanges; i++) {
 					nativeRanges.push_back(native_cast(srcTable.descriptorRanges[i]));
 				}
 
@@ -141,11 +141,12 @@ gxapi::IRootSignature* GraphicsApi::CreateRootSignature(gxapi::RootSignatureDesc
 	}
 
 	D3D12_ROOT_SIGNATURE_DESC nativeDesc;
-	nativeDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE; //TODO, default behaviour for now, might be needed to be updated later
+	//TODO might be needed to be updated later
+	nativeDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 	nativeDesc.NumParameters = nativeParameters.size();
-	nativeDesc.pParameters = nativeParameters.data();
+	nativeDesc.pParameters = nativeParameters.size() > 0 ? nativeParameters.data() : nullptr;
 	nativeDesc.NumStaticSamplers = nativeSamplers.size();
-	nativeDesc.pStaticSamplers = nativeSamplers.data();
+	nativeDesc.pStaticSamplers = nativeSamplers.size() > 0 ? nativeSamplers.data() : nullptr;
 
 	ComPtr<ID3DBlob> serializedSignature;
 	ComPtr<ID3DBlob> error;
@@ -164,10 +165,12 @@ gxapi::IRootSignature* GraphicsApi::CreateRootSignature(gxapi::RootSignatureDesc
 }
 
 
-gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(gxapi::GraphicsPipelineStateDesc desc) {
+gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(const gxapi::GraphicsPipelineStateDesc& desc) {
 	ComPtr<ID3D12PipelineState> native;
 
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC nativeDesc;
+	gxapi::GraphicsPipelineStateDesc desc2{desc};
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC nativeDesc = {};
 
 	D3D12_STREAM_OUTPUT_DESC nativeStreamOutput;
 	static_assert(sizeof(decltype(desc.streamOutput)) <= 1, "If Stream output is implemented, it should be handled propery here.");
@@ -221,7 +224,7 @@ gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(gxapi::GraphicsP
 	nativeDesc.Flags                  = desc.addDebugInfo ? D3D12_PIPELINE_STATE_FLAG_TOOL_DEBUG : D3D12_PIPELINE_STATE_FLAG_NONE;
 
 
-	ThrowIfFailed(m_device->CreateGraphicsPipelineState(&nativeDesc, IID_PPV_ARGS(&native)));
+	ThrowIfFailed(m_device->CreateGraphicsPipelineState(&nativeDesc, IID_PPV_ARGS(&native)), "While creating graphics PSO");
 
 	return new PipelineState{native};
 }
@@ -243,7 +246,7 @@ void GraphicsApi::CreateConstantBufferView(
 
 	D3D12_CONSTANT_BUFFER_VIEW_DESC nativeDesc = native_cast(desc);
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
-	nativeCPUHandle.ptr = reinterpret_cast<uintptr_t>(destination.cpuAddress);
+	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
 	m_device->CreateConstantBufferView(&nativeDesc, nativeCPUHandle);
 }
 
@@ -254,7 +257,7 @@ void GraphicsApi::CreateDepthStencilView(
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC nativeDesc = native_cast(desc);
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
-	nativeCPUHandle.ptr = reinterpret_cast<uintptr_t>(destination.cpuAddress);
+	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
 	m_device->CreateDepthStencilView(nullptr, &nativeDesc, nativeCPUHandle);
 }
 
@@ -264,7 +267,7 @@ void GraphicsApi::CreateDepthStencilView(
 	gxapi::DescriptorHandle destination) {
 
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
-	nativeCPUHandle.ptr = reinterpret_cast<uintptr_t>(destination.cpuAddress);
+	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
 	m_device->CreateDepthStencilView(native_cast(resource), nullptr, nativeCPUHandle);
 }
 
@@ -275,7 +278,7 @@ void GraphicsApi::CreateRenderTargetView(
 
 	D3D12_RENDER_TARGET_VIEW_DESC nativeDesc = native_cast(desc);
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
-	nativeCPUHandle.ptr = reinterpret_cast<uintptr_t>(destination.cpuAddress);
+	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
 	m_device->CreateRenderTargetView(nullptr, &nativeDesc, nativeCPUHandle);
 }
 
@@ -285,7 +288,7 @@ void GraphicsApi::CreateRenderTargetView(
 	gxapi::DescriptorHandle destination) {
 
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
-	nativeCPUHandle.ptr = reinterpret_cast<uintptr_t>(destination.cpuAddress);
+	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
 	m_device->CreateRenderTargetView(native_cast(resource), nullptr, nativeCPUHandle);
 }
 
@@ -296,7 +299,7 @@ void GraphicsApi::CreateShaderResourceView(
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC nativeDesc = native_cast(desc);
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
-	nativeCPUHandle.ptr = reinterpret_cast<uintptr_t>(destination.cpuAddress);
+	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
 	m_device->CreateShaderResourceView(nullptr, &nativeDesc, nativeCPUHandle);
 }
 
@@ -306,7 +309,7 @@ void GraphicsApi::CreateShaderResourceView(
 	gxapi::DescriptorHandle destination) {
 
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
-	nativeCPUHandle.ptr = reinterpret_cast<uintptr_t>(destination.cpuAddress);
+	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
 	m_device->CreateShaderResourceView(native_cast(resource), nullptr, nativeCPUHandle);
 }
 

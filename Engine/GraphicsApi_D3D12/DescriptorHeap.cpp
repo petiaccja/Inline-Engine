@@ -26,11 +26,6 @@ DescriptorHeap::DescriptorHeap(ComPtr<ID3D12DescriptorHeap>& native)
 
 
 gxapi::DescriptorHandle DescriptorHeap::At(size_t index) const {
-	ID3D12Device* device;
-	if (FAILED(m_native->GetDevice(IID_PPV_ARGS(&device)))) {
-		throw inl::gxapi::Exception{ "Could not get device for heap." };
-	}
-
 	CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandleHelper{ m_cpuBaseHandle, (int)index, (unsigned)m_incrementSize };
 	CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandleHelper{ m_gpuBaseHandle, (int)index, (unsigned)m_incrementSize };
 

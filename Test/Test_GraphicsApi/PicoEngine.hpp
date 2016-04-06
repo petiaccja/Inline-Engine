@@ -62,9 +62,11 @@ private:
 	std::unique_ptr<inl::gxapi::IPipelineState> m_defaultPso;
 	std::unique_ptr<inl::gxapi::IRootSignature> m_defaultRootSignature;
 	std::unique_ptr<inl::gxapi::IFence> m_fence;
+	inl::gxapi::Viewport m_viewport;
+	inl::gxapi::Rectangle m_scissorRect;
 
 	std::unique_ptr<inl::gxapi::IDescriptorHeap> m_rtvs;
-	int currentBackBuffer;
+	int m_currentBackBuffer;
 	
 	//objects
 	std::unique_ptr<inl::gxapi::IResource> m_vertexBuffer;

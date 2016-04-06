@@ -41,7 +41,7 @@ public:
 
 	// Pipeline and binding
 	virtual IRootSignature* CreateRootSignature(RootSignatureDesc desc) = 0;
-	virtual IPipelineState* CreateGraphicsPipelineState(GraphicsPipelineStateDesc desc) = 0;
+	virtual IPipelineState* CreateGraphicsPipelineState(const GraphicsPipelineStateDesc& desc) = 0;
 	virtual IDescriptorHeap* CreateDescriptorHeap(DescriptorHeapDesc) = 0;
 
 	// Views

@@ -1019,7 +1019,7 @@ D3D12_RESOURCE_STATES native_cast(gxapi::eResourceState source) {
 	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::PRESENT) * D3D12_RESOURCE_STATE_PRESENT);
 	nativeFlag |= D3D12_RESOURCE_STATES(bool(source & gxapi::eResourceState::PREDICATION) * D3D12_RESOURCE_STATE_PREDICATION);
 
-	return D3D12_RESOURCE_STATES{};
+	return nativeFlag;
 }
 
 
@@ -1162,7 +1162,7 @@ D3D12_HEAP_PROPERTIES native_cast(gxapi::HeapProperties source) {
 
 
 D3D12_RESOURCE_DESC native_cast(gxapi::ResourceDesc source) {
-	D3D12_RESOURCE_DESC result;
+	D3D12_RESOURCE_DESC result = {};
 
 	if (source.type == gxapi::eResourceType::BUFFER) {
 		result.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;

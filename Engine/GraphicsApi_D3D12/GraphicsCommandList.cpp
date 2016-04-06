@@ -54,7 +54,7 @@ void GraphicsCommandList::ClearDepthStencil(
 	bool clearDepth, bool clearStencil) {
 
 	D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView;
-	depthStencilView.ptr = reinterpret_cast<uintptr_t>(dsv.cpuAddress);
+	depthStencilView.ptr = native_cast_ptr(dsv.cpuAddress);
 
 	D3D12_CLEAR_FLAGS flags;
 	flags = static_cast<D3D12_CLEAR_FLAGS>(clearDepth ? D3D12_CLEAR_FLAGS::D3D12_CLEAR_FLAG_DEPTH : 0);
@@ -74,7 +74,7 @@ void GraphicsCommandList::ClearDepthStencil(
 
 void GraphicsCommandList::ClearRenderTarget(gxapi::DescriptorHandle rtv, gxapi::ColorRGBA color, size_t numRects, gxapi::Rectangle* rects) {
 	D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView;
-	renderTargetView.ptr = reinterpret_cast<uintptr_t>(rtv.cpuAddress);
+	renderTargetView.ptr = native_cast_ptr(rtv.cpuAddress);
 
 	float nativeColor[4] = {color.r, color.g, color.b, color.a};
 
@@ -161,7 +161,7 @@ void GraphicsCommandList::SetVertexBuffers(unsigned startSlot, unsigned count, v
 
 	for (unsigned i = 0; i < count; i++) {
 		D3D12_VERTEX_BUFFER_VIEW tmpView;
-		tmpView.BufferLocation = reinterpret_cast<uintptr_t>(gpuVirtualAddress[i]);
+		tmpView.BufferLocation = native_cast_ptr(gpuVirtualAddress[i]);
 		tmpView.SizeInBytes = sizeInBytes[i];
 		tmpView.StrideInBytes = strideInBytes[i];
 
@@ -177,14 +177,14 @@ void GraphicsCommandList::SetRenderTargets(unsigned numRenderTargets, gxapi::Des
 	renderTargetDescriptors.reserve(numRenderTargets);
 	for (unsigned i = 0; i < numRenderTargets; i++) {
 		D3D12_CPU_DESCRIPTOR_HANDLE tmpDescriptor;
-		tmpDescriptor.ptr = reinterpret_cast<uintptr_t>(renderTargets[i].cpuAddress);
+		tmpDescriptor.ptr = native_cast_ptr(renderTargets[i].cpuAddress);
 		renderTargetDescriptors.push_back(tmpDescriptor);
 	}
 
 	D3D12_CPU_DESCRIPTOR_HANDLE* pDepthStencilDescriptor = nullptr;
 	D3D12_CPU_DESCRIPTOR_HANDLE depthStencilDescriptor;
 	if (depthStencil != nullptr) {
-		depthStencilDescriptor.ptr = reinterpret_cast<uintptr_t>(depthStencil->cpuAddress);
+		depthStencilDescriptor.ptr = native_cast_ptr(depthStencil->cpuAddress);
 		pDepthStencilDescriptor = &depthStencilDescriptor;
 	}
 
@@ -247,20 +247,20 @@ void GraphicsCommandList::SetGraphicsRootConstants(unsigned parameterIndex, unsi
 
 
 void GraphicsCommandList::SetGraphicsRootConstantBuffer(unsigned parameterIndex, void* gpuVirtualAddress) {
-	m_native->SetGraphicsRootConstantBufferView(parameterIndex, reinterpret_cast<uintptr_t>(gpuVirtualAddress));
+	m_native->SetGraphicsRootConstantBufferView(parameterIndex, native_cast_ptr(gpuVirtualAddress));
 }
 
 
 void GraphicsCommandList::SetGraphicsRootDescriptorTable(unsigned parameterIndex, gxapi::DescriptorHandle baseHandle) {
 	D3D12_GPU_DESCRIPTOR_HANDLE baseDescriptor;
-	baseDescriptor.ptr = reinterpret_cast<uintptr_t>(baseHandle.gpuAddress);
+	baseDescriptor.ptr = native_cast_ptr(baseHandle.gpuAddress);
 
 	m_native->SetGraphicsRootDescriptorTable(parameterIndex, baseDescriptor);
 }
 
 
 void GraphicsCommandList::SetGraphicsRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) {
-	m_native->SetGraphicsRootShaderResourceView(parameterIndex, reinterpret_cast<uintptr_t>(gpuVirtualAddress));
+	m_native->SetGraphicsRootShaderResourceView(parameterIndex, native_cast_ptr(gpuVirtualAddress));
 }
 
 

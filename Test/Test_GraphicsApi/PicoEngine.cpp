@@ -6,9 +6,18 @@
 using namespace inl::gxapi;
 
 
-PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int height, exc::LogStream* logStream) {
+PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int height, exc::LogStream* logStream) :
+	m_scissorRect{0, height, 0, width}
+{
 	// Set vars
 	m_logStream = logStream;
+
+	m_viewport.topLeftX = 0;
+	m_viewport.topLeftY = 0;
+	m_viewport.width = width;
+	m_viewport.height = height;
+	m_viewport.minDepth = 0;
+	m_viewport.maxDepth = 1;
 
 
 	// Check adapter list
@@ -55,7 +64,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	swapChainDesc.multisampleCount = 1;
 	swapChainDesc.multiSampleQuality = 0;
 	m_swapChain.reset(m_gxapiManager->CreateSwapChain(swapChainDesc, m_commandQueue.get()));
-	currentBackBuffer = m_swapChain->GetCurrentBufferIndex();
+	m_currentBackBuffer = m_swapChain->GetCurrentBufferIndex();
 
 	// Get swap chain buffers
 	m_rtvs.reset(m_graphicsApi->CreateDescriptorHeap(DescriptorHeapDesc{ eDesriptorHeapType::RTV, 2, false }));
@@ -153,8 +162,14 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	m_defaultPso.reset(m_graphicsApi->CreateGraphicsPipelineState(psoDesc));
 
 	// Create command allocator and command list
+	Log("Creating command allocator.");
 	m_commandAllocator.reset(m_graphicsApi->CreateCommandAllocator(eCommandListType::GRAPHICS));
+	Log("Creating graphics command list.");
 	m_commandList.reset(m_graphicsApi->CreateGraphicsCommandList(CommandListDesc{ m_commandAllocator.get(), m_defaultPso.get() }));
+	// Command Lists are in recording state when created. In order
+	// to use CommandAllocator::Reset() later in the update
+	// function, the command list must first be closed.
+	m_commandList->Close();
 
 	// Create a fence
 	m_fence.reset(m_graphicsApi->CreateFence(0));
@@ -236,7 +251,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 		ResourceDesc vertexBufferDesc;
 		vertexBufferDesc.type = eResourceType::BUFFER;
 		vertexBufferDesc.bufferDesc.sizeInBytes = sizeof(vertices);
-		m_vertexBuffer.reset(m_graphicsApi->CreateCommittedResource(HeapProperties{}, eHeapFlags::NONE, vertexBufferDesc, eResourceState::GENERIC_READ));
+		m_vertexBuffer.reset(m_graphicsApi->CreateCommittedResource(HeapProperties{eHeapType::UPLOAD}, eHeapFlags::NONE, vertexBufferDesc, eResourceState::GENERIC_READ));
 
 		void* mappedVertexData = m_vertexBuffer->Map(0, &noReadRange);
 		memcpy(mappedVertexData, vertices, sizeof(vertices));
@@ -250,7 +265,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 		ResourceDesc indexBufferDesc;
 		indexBufferDesc.type = eResourceType::BUFFER;
 		indexBufferDesc.bufferDesc.sizeInBytes = sizeof(indices);
-		m_indexBuffer.reset(m_graphicsApi->CreateCommittedResource(HeapProperties{}, eHeapFlags::NONE, indexBufferDesc, eResourceState::GENERIC_READ));
+		m_indexBuffer.reset(m_graphicsApi->CreateCommittedResource(HeapProperties{eHeapType::UPLOAD}, eHeapFlags::NONE, indexBufferDesc, eResourceState::GENERIC_READ));
 
 		void* mappedIndexData = m_indexBuffer->Map(0, &noReadRange);
 		memcpy(mappedIndexData, indices, sizeof(indices));
@@ -260,6 +275,11 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 		ibv.format = eFormat::R32_UINT;
 		ibv.size = sizeof(indices);
 	}
+
+	//wait for command queue to finish
+	uint64_t prevValue = m_fence->Fetch();
+	m_commandQueue->Signal(m_fence.get(), prevValue + 1);
+	m_fence->Wait(prevValue + 1);
 }
 
 PicoEngine::~PicoEngine() {
@@ -268,22 +288,32 @@ PicoEngine::~PicoEngine() {
 
 
 void PicoEngine::Update() {
-	// reset command list
+	// query current back buffer id
+	m_currentBackBuffer = m_swapChain->GetCurrentBufferIndex();
+
+	// reset command allocator and list
+	m_commandAllocator->Reset();
 	m_commandList->Reset(m_commandAllocator.get(), m_defaultPso.get());
 
+	m_commandList->SetGraphicsRootSignature(m_defaultRootSignature.get());
+	m_commandList->SetViewports(1, &m_viewport);
+	m_commandList->SetScissorRects(1, &m_scissorRect);
+
+	DescriptorHandle currRenderTarget = m_rtvs->At(m_currentBackBuffer % 2);
+	m_commandList->SetRenderTargets(1, &currRenderTarget);
+
 	// init drawing
-	m_commandList->ClearRenderTarget(m_rtvs->At(currentBackBuffer), ColorRGBA(0.2, 0.2, 0.7));
+	m_commandList->ClearRenderTarget(currRenderTarget, ColorRGBA(0.2, 0.2, 0.7));
 	
 	// draw
-	// ...
 	m_commandList->SetPrimitiveTopology(ePrimitiveTopology::TRIANGLELIST);
 	m_commandList->SetVertexBuffers(0, 1, &vbv.gpuAddress, &vbv.size, &vbv.stride);
-	m_commandList->SetIndexBuffer(ibv.gpuAddress, ibv.size, ibv.format);
-	m_commandList->DrawIndexedInstanced(ibv.size / sizeof(std::uint32_t));
+	//m_commandList->SetIndexBuffer(ibv.gpuAddress, ibv.size, ibv.format);
+	//m_commandList->DrawIndexedInstanced(ibv.size / sizeof(std::uint32_t));
+	m_commandList->DrawInstanced(3);
 
 	// close command list
 	m_commandList->Close();
-
 
 	// commit to queue
 	ICommandList* lists[] = { m_commandList.get() };

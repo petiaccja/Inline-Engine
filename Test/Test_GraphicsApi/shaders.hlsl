@@ -7,8 +7,8 @@ struct PSInput {
 PSInput VSmain(float3 position : POSITION, float3 color : COLOR) {
 	PSInput result;
 
-	result.position = position;
-	result.color = color;
+	result.position = float4(position, 1);
+	result.color = float4(color, 1);
 
 	return result;
 }
