@@ -157,7 +157,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	psoDesc.blending = blendState;
 	psoDesc.depthStencilState.enableDepthTest = false;
 	psoDesc.depthStencilState.enableStencilTest = false;
-	psoDesc.blendSampleMask = UINT_MAX;
+	psoDesc.depthStencilState.enableDepthStencilWrite = false;
 	psoDesc.primitiveTopologyType = ePrimitiveTopologyType::TRIANGLE;
 	m_defaultPso.reset(m_graphicsApi->CreateGraphicsPipelineState(psoDesc));
 
