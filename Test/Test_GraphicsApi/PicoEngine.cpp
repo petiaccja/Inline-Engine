@@ -308,11 +308,11 @@ void PicoEngine::Update() {
 	m_commandList->ClearRenderTarget(currRenderTarget, ColorRGBA(0.2, 0.2, 0.7));
 	
 	// draw
-	m_commandList->SetPrimitiveTopology(ePrimitiveTopology::TRIANGLELIST);
-	m_commandList->SetVertexBuffers(0, 1, &vbv.gpuAddress, &vbv.size, &vbv.stride);
+	//m_commandList->SetPrimitiveTopology(ePrimitiveTopology::TRIANGLELIST);
+	//m_commandList->SetVertexBuffers(0, 1, &vbv.gpuAddress, &vbv.size, &vbv.stride);
 	//m_commandList->SetIndexBuffer(ibv.gpuAddress, ibv.size, ibv.format);
 	//m_commandList->DrawIndexedInstanced(ibv.size / sizeof(std::uint32_t));
-	m_commandList->DrawInstanced(3);
+	//m_commandList->DrawInstanced(3);
 
 	// close command list
 	m_commandList->Close();

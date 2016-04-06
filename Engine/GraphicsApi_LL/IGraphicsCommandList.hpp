@@ -17,7 +17,7 @@ class ICommandAllocator;
 class IRootSignature;
 
 
-class IGraphicsCommandList : public ICommandList {
+class IGraphicsCommandList : virtual public ICommandList {
 public:
 	virtual ~IGraphicsCommandList() = default;
 

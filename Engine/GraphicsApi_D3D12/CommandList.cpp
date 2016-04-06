@@ -7,12 +7,6 @@
 namespace inl {
 namespace gxapi_dx12 {
 
-gxapi::eCommandListType CommandList::GetType() const {
-	ID3D12CommandList* native = GetNativeGenericList();
-
-	return native_cast(native->GetType());
-}
-
 
 } // namespace gxapi_dx12
 } // namespace inl
