@@ -308,8 +308,8 @@ void PicoEngine::Update() {
 
 		DirectX::XMMATRIX world, view, proj;
 		world = DirectX::XMMatrixRotationZ(angle*3.1415926*2);
-		view = DirectX::XMMatrixLookAtRH({ 5,5,5}, { 0,0,0 }, { 0,0,1 });
-		proj = DirectX::XMMatrixPerspectiveFovRH((50.f / 180) * 3.1415926, (float)m_height/m_width, 0.1, 100);
+		view = DirectX::XMMatrixLookAtRH({ 4,2,2}, { 0,0,0 }, { 0,0,1 });
+		proj = DirectX::XMMatrixPerspectiveFovRH((50.f / 180) * 3.1415926, (float)m_width/m_height, 0.1, 100);
 		DirectX::XMMATRIX viewProj = view * proj;
 		m_commandList->SetGraphicsRootConstants(0, 0, 16, (uint32_t*)&world);
 		m_commandList->SetGraphicsRootConstants(0, 16, 16, (uint32_t*)&viewProj);
