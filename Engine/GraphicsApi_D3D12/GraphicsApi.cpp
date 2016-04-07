@@ -273,20 +273,21 @@ void GraphicsApi::CreateDepthStencilView(
 
 
 void GraphicsApi::CreateRenderTargetView(
+	gxapi::IResource* resource,
 	gxapi::RenderTargetViewDesc desc,
-	gxapi::DescriptorHandle destination) {
-
+	gxapi::DescriptorHandle destination)
+{
 	D3D12_RENDER_TARGET_VIEW_DESC nativeDesc = native_cast(desc);
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
 	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
-	m_device->CreateRenderTargetView(nullptr, &nativeDesc, nativeCPUHandle);
+	m_device->CreateRenderTargetView(native_cast(resource), &nativeDesc, nativeCPUHandle);
 }
 
 
 void GraphicsApi::CreateRenderTargetView(
 	gxapi::IResource* resource,
-	gxapi::DescriptorHandle destination) {
-
+	gxapi::DescriptorHandle destination)
+{
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
 	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
 	m_device->CreateRenderTargetView(native_cast(resource), nullptr, nativeCPUHandle);

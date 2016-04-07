@@ -30,10 +30,14 @@ void CommandQueue::ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommand
 	nativeCommandLists.reserve(numCommandLists);
 
 	for (unsigned i = 0; i < numCommandLists; i++) {
-		nativeCommandLists.push_back(static_cast<CommandList*>(commandLists[i])->GetNativeGenericList());
+		CommandList* list = dynamic_cast<CommandList*>(commandLists[i]);
+		ID3D12CommandList* nativeList = list->GetNativeGenericList();
+		nativeCommandLists.push_back(nativeList);
 	}
 
-	m_native->ExecuteCommandLists(nativeCommandLists.size(), nativeCommandLists.data());
+	size_t numLists = nativeCommandLists.size();
+	ID3D12CommandList** lists = nativeCommandLists.data();
+	m_native->ExecuteCommandLists(numLists, lists);
 }
 
 

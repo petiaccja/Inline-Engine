@@ -26,7 +26,7 @@ ID3D12GraphicsCommandList * GraphicsCommandList::GetNative() {
 
 
 gxapi::eCommandListType GraphicsCommandList::GetType() const {
-	return CommandList::GetType();
+	return gxapi::eCommandListType::GRAPHICS;
 }
 
 

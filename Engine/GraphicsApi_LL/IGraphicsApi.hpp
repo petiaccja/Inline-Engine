@@ -53,9 +53,10 @@ public:
 	virtual void CreateDepthStencilView(IResource* resource,
 										DescriptorHandle destination) = 0;
 
-	virtual void CreateRenderTargetView(RenderTargetViewDesc resource,
+	virtual void CreateRenderTargetView(IResource* resource,
 										DescriptorHandle destination) = 0;
 	virtual void CreateRenderTargetView(IResource* resource,
+										RenderTargetViewDesc desc,
 										DescriptorHandle destination) = 0;
 
 	virtual void CreateShaderResourceView(ShaderResourceViewDesc resource,

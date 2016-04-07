@@ -73,8 +73,11 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	rtvDesc.dimension = eRtvDimension::TEXTURE2D;
 	rtvDesc.tex2D.firstMipLevel = 0;
 	rtvDesc.tex2D.planeIndex = 0;
-	m_graphicsApi->CreateRenderTargetView(rtvDesc, m_rtvs->At(0));
-	m_graphicsApi->CreateRenderTargetView(rtvDesc, m_rtvs->At(1));
+	IResource* rt1 = m_swapChain->GetBuffer(0);
+	IResource* rt2 = m_swapChain->GetBuffer(1);
+	m_graphicsApi->CreateRenderTargetView(rt1, rtvDesc, m_rtvs->At(0));
+	//TODO is rt1 should be in both function calls?
+	m_graphicsApi->CreateRenderTargetView(rt1, rtvDesc, m_rtvs->At(1));
 
 	// Create root signature
 	m_defaultRootSignature.reset(m_graphicsApi->CreateRootSignature(RootSignatureDesc{}));
@@ -306,11 +309,11 @@ void PicoEngine::Update() {
 	m_commandList->ClearRenderTarget(currRenderTarget, ColorRGBA(0.2, 0.2, 0.7));
 	
 	// draw
-	m_commandList->SetPrimitiveTopology(ePrimitiveTopology::TRIANGLELIST);
-	m_commandList->SetVertexBuffers(0, 1, &vbv.gpuAddress, &vbv.size, &vbv.stride);
+	//m_commandList->SetPrimitiveTopology(ePrimitiveTopology::TRIANGLELIST);
+	//m_commandList->SetVertexBuffers(0, 1, &vbv.gpuAddress, &vbv.size, &vbv.stride);
 	//m_commandList->SetIndexBuffer(ibv.gpuAddress, ibv.size, ibv.format);
 	//m_commandList->DrawIndexedInstanced(ibv.size / sizeof(std::uint32_t));
-	m_commandList->DrawInstanced(3);
+	//m_commandList->DrawInstanced(3);
 
 	// close command list
 	m_commandList->Close();
