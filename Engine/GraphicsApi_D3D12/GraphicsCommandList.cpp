@@ -242,7 +242,7 @@ void GraphicsCommandList::SetGraphicsRootConstant(unsigned parameterIndex, unsig
 
 
 void GraphicsCommandList::SetGraphicsRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, uint32_t* value) {
-	m_native->SetComputeRoot32BitConstants(parameterIndex, numValues, value, destOffset);
+	m_native->SetGraphicsRoot32BitConstants(parameterIndex, numValues, value, destOffset);
 }
 
 

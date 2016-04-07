@@ -64,6 +64,7 @@ private:
 	std::unique_ptr<inl::gxapi::IFence> m_fence;
 	inl::gxapi::Viewport m_viewport;
 	inl::gxapi::Rectangle m_scissorRect;
+	int m_width, m_height;
 
 	std::unique_ptr<inl::gxapi::IDescriptorHeap> m_rtvs;
 	int m_currentBackBuffer;

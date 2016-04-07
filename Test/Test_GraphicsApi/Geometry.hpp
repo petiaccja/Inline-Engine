@@ -86,6 +86,20 @@ private:
 };
 
 
+
+//////////
+// TRIANGLE
+//static float vertices[] = {
+//	//pos              color
+//	-0.5, -0.5, 0,     1, 0, 0,
+//	0.5, -0.5, 0,     0, 1, 0,
+//	0.0,  0.5, 0,     0, 0, 1
+//};
+//
+//static std::uint32_t indices[] = {
+//	0, 1, 2
+//};
+
 //Create an object to be drawn
 /*
 //////////////////////

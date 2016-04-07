@@ -4,6 +4,10 @@
 
 #include <GraphicsApi_LL/Exception.hpp>
 
+#include <chrono>
+
+#include <DirectXMath.h>
+
 using namespace inl::gxapi;
 
 
@@ -19,6 +23,9 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	m_viewport.height = height;
 	m_viewport.minDepth = 0;
 	m_viewport.maxDepth = 1;
+
+	m_width = width;
+	m_height = height;
 
 
 	// Check adapter list
@@ -101,6 +108,11 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	Log("Loading fragment shader.");
 	pixelBinary = m_gxapiManager->CompileShaderFromFile("shaders.hlsl", "PSmain", inl::gxapi::eShaderType::PIXEL, eShaderCompileFlags{}, {});
 
+	std::stringstream ss_;
+	ss_ << "sizeof vertex = " << sizeof(Vertex);
+	Log(ss_.str());
+
+	// Create default PSO
 	InputLayout inputLayout;
 	std::vector<InputElementDesc> ilElements;
 	{
@@ -114,15 +126,25 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 		ilPosDesc.instanceDataStepRate = 0;
 		ilElements.push_back(ilPosDesc);
 
-		InputElementDesc ilColDesc;
-		ilColDesc.semanticName = "COLOR";
-		ilColDesc.semanticIndex = 0;
-		ilColDesc.format = eFormat::R32G32B32_FLOAT;
-		ilColDesc.inputSlot = 0;
-		ilColDesc.offset = 3*sizeof(float);
-		ilColDesc.classifiacation = eInputClassification::VERTEX_DATA;
-		ilColDesc.instanceDataStepRate = 0;
-		ilElements.push_back(ilColDesc);
+		InputElementDesc ilNormalDesc;
+		ilNormalDesc.semanticName = "NORMAL";
+		ilNormalDesc.semanticIndex = 0;
+		ilNormalDesc.format = eFormat::R32G32B32_FLOAT;
+		ilNormalDesc.inputSlot = 0;
+		ilNormalDesc.offset = 3*sizeof(float);
+		ilNormalDesc.classifiacation = eInputClassification::VERTEX_DATA;
+		ilNormalDesc.instanceDataStepRate = 0;
+		ilElements.push_back(ilNormalDesc);
+
+		InputElementDesc ilTexDesc;
+		ilTexDesc.semanticName = "TEX";
+		ilTexDesc.semanticIndex = 0;
+		ilTexDesc.format = eFormat::R32G32_FLOAT;
+		ilTexDesc.inputSlot = 0;
+		ilTexDesc.offset = 6 * sizeof(float);
+		ilTexDesc.classifiacation = eInputClassification::VERTEX_DATA;
+		ilTexDesc.instanceDataStepRate = 0;
+		ilElements.push_back(ilTexDesc);
 	}
 	inputLayout.elements = ilElements.data();
 	inputLayout.numElements = ilElements.size();
@@ -156,7 +178,6 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 		blendState.multiTarget[i].mask = eColorMask::ALL;
 	}
 
-	// Create default PSO
 	GraphicsPipelineStateDesc psoDesc{};
 	psoDesc.numRenderTargets = 1;
 	psoDesc.renderTargetFormats[0] = eFormat::R8G8B8A8_UNORM;
@@ -186,49 +207,37 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	m_fence.reset(m_graphicsApi->CreateFence(0));
 
 	
-
-
-	//////////
-	// TRIANGLE
-	static float vertices[] = {
-		//pos              color
-		-0.5, -0.5, 0,     1, 0, 0,
-		 0.5, -0.5, 0,     0, 1, 0,
-		 0.0,  0.5, 0,     0, 0, 1
-	};
-
-	static std::uint32_t indices[] = {
-		0, 1, 2
-	};
+	// Create geometry buffers
+	Geometry cube = Geometry::CreatCube();
 
 	const MemoryRange noReadRange{0, 0};
 	{
 		ResourceDesc vertexBufferDesc;
 		vertexBufferDesc.type = eResourceType::BUFFER;
-		vertexBufferDesc.bufferDesc.sizeInBytes = sizeof(vertices);
+		vertexBufferDesc.bufferDesc.sizeInBytes = sizeof(Vertex) * cube.GetNumVertices();
 		m_vertexBuffer.reset(m_graphicsApi->CreateCommittedResource(HeapProperties{eHeapType::UPLOAD}, eHeapFlags::NONE, vertexBufferDesc, eResourceState::GENERIC_READ));
 
 		void* mappedVertexData = m_vertexBuffer->Map(0, &noReadRange);
-		memcpy(mappedVertexData, vertices, sizeof(vertices));
+		memcpy(mappedVertexData, cube.GetVertices(), vertexBufferDesc.bufferDesc.sizeInBytes);
 		m_vertexBuffer->Unmap(0, nullptr);
 
 		vbv.gpuAddress = m_vertexBuffer->GetGPUAddress();
-		vbv.size = sizeof(vertices);
-		vbv.stride = sizeof(float) * (3+3);
+		vbv.size = vertexBufferDesc.bufferDesc.sizeInBytes;
+		vbv.stride = sizeof(Vertex);
 	}
 	{
 		ResourceDesc indexBufferDesc;
 		indexBufferDesc.type = eResourceType::BUFFER;
-		indexBufferDesc.bufferDesc.sizeInBytes = sizeof(indices);
+		indexBufferDesc.bufferDesc.sizeInBytes = sizeof(uint16_t) * cube.GetNumIndices();
 		m_indexBuffer.reset(m_graphicsApi->CreateCommittedResource(HeapProperties{eHeapType::UPLOAD}, eHeapFlags::NONE, indexBufferDesc, eResourceState::GENERIC_READ));
 
 		void* mappedIndexData = m_indexBuffer->Map(0, &noReadRange);
-		memcpy(mappedIndexData, indices, sizeof(indices));
+		memcpy(mappedIndexData, cube.GetIndices(), indexBufferDesc.bufferDesc.sizeInBytes);
 		m_indexBuffer->Unmap(0, nullptr);
 
 		ibv.gpuAddress = m_indexBuffer->GetGPUAddress();
-		ibv.format = eFormat::R32_UINT;
-		ibv.size = sizeof(indices);
+		ibv.format = eFormat::R16_UINT;
+		ibv.size = indexBufferDesc.bufferDesc.sizeInBytes;
 	}
 
 	//wait for command queue to finish
@@ -243,6 +252,10 @@ PicoEngine::~PicoEngine() {
 
 
 void PicoEngine::Update() {
+	static std::chrono::high_resolution_clock::time_point startTime;
+	double elapsedTotal = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - startTime).count() / 1e6;;
+
+
 	// query current back buffer id
 	m_currentBackBuffer = m_swapChain->GetCurrentBufferIndex();
 
@@ -250,7 +263,6 @@ void PicoEngine::Update() {
 	m_commandAllocator->Reset();
 	m_commandList->Reset(m_commandAllocator.get(), m_defaultPso.get());
 
-	m_commandList->SetGraphicsRootSignature(m_defaultRootSignature.get());
 	m_commandList->SetViewports(1, &m_viewport);
 	m_commandList->SetScissorRects(1, &m_scissorRect);
 
@@ -260,12 +272,27 @@ void PicoEngine::Update() {
 	// init drawing
 	m_commandList->ClearRenderTarget(currRenderTarget, ColorRGBA(0.2, 0.2, 0.7));
 	
-	// draw
 	m_commandList->SetPrimitiveTopology(ePrimitiveTopology::TRIANGLELIST);
-	m_commandList->SetVertexBuffers(0, 1, &vbv.gpuAddress, &vbv.size, &vbv.stride);
-	//m_commandList->SetIndexBuffer(ibv.gpuAddress, ibv.size, ibv.format);
-	//m_commandList->DrawIndexedInstanced(ibv.size / sizeof(std::uint32_t));
-	m_commandList->DrawInstanced(3);
+	m_commandList->SetGraphicsRootSignature(m_defaultRootSignature.get());
+	// draw
+	{
+		double angle;
+		double revs;
+		angle = std::modf(elapsedTotal*0.3, &revs);
+
+		DirectX::XMMATRIX world, view, proj;
+		world = DirectX::XMMatrixRotationZ(angle*3.1415926*2);
+		view = DirectX::XMMatrixLookAtRH({ 5,5,5}, { 0,0,0 }, { 0,0,1 });
+		proj = DirectX::XMMatrixPerspectiveFovRH(50.f / 180 * 3.1415926, (float)m_height/m_width, 0.1, 100);
+		DirectX::XMMATRIX viewProj = view * proj;
+		m_commandList->SetGraphicsRootConstants(0, 0, 16, (uint32_t*)&world);
+		m_commandList->SetGraphicsRootConstants(0, 16, 16, (uint32_t*)&viewProj);
+
+		m_commandList->SetVertexBuffers(0, 1, &vbv.gpuAddress, &vbv.size, &vbv.stride);
+		m_commandList->SetIndexBuffer(ibv.gpuAddress, ibv.size, ibv.format);
+		m_commandList->DrawIndexedInstanced(ibv.size / sizeof(std::uint16_t));
+	}
+	//m_commandList->DrawInstanced(3);
 
 	// close command list
 	m_commandList->Close();
