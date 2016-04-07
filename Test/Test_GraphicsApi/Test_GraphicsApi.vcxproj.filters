@@ -18,5 +18,13 @@
     <ClInclude Include="PicoEngine.hpp">
       <Filter>Files</Filter>
     </ClInclude>
+    <ClInclude Include="Geometry.hpp">
+      <Filter>Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shaders.hlsl">
+      <Filter>Files</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

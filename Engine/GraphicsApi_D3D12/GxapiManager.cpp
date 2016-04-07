@@ -227,17 +227,17 @@ gxapi::ShaderProgramBinary GxapiManager::CompileShaderFromFile(const std::string
 		switch (type)
 		{
 			case inl::gxapi::eShaderType::VERTEX:
-				return "vs_5_0";
+				return "vs_5_1";
 			case inl::gxapi::eShaderType::PIXEL:
-				return "ps_5_0";
+				return "ps_5_1";
 			case inl::gxapi::eShaderType::DOMAIN:
-				return "ds_5_0";
+				return "ds_5_1";
 			case inl::gxapi::eShaderType::HULL:
-				return "hs_5_0";
+				return "hs_5_1";
 			case inl::gxapi::eShaderType::GEOMETRY:
-				return "gs_5_0";
+				return "gs_5_1";
 			case inl::gxapi::eShaderType::COMPUTE:
-				return "cs_5_0";
+				return "cs_5_1";
 			default:
 				return "invalid";
 		}

@@ -1,4 +1,5 @@
 #include "PicoEngine.hpp"
+#include "Geometry.hpp"
 #include <BaseLibrary/Logging>
 
 #include <GraphicsApi_LL/Exception.hpp>
@@ -76,11 +77,18 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	IResource* rt1 = m_swapChain->GetBuffer(0);
 	IResource* rt2 = m_swapChain->GetBuffer(1);
 	m_graphicsApi->CreateRenderTargetView(rt1, rtvDesc, m_rtvs->At(0));
-	//TODO is rt1 should be in both function calls?
-	m_graphicsApi->CreateRenderTargetView(rt1, rtvDesc, m_rtvs->At(1));
+	m_graphicsApi->CreateRenderTargetView(rt2, rtvDesc, m_rtvs->At(1));
 
 	// Create root signature
-	m_defaultRootSignature.reset(m_graphicsApi->CreateRootSignature(RootSignatureDesc{}));
+	DescriptorRange descriptorRanges[1] = {
+		DescriptorRange{DescriptorRange::SRV, 1, 0, 0},
+	};
+	RootParameterDesc rootParameters[3] = {
+		RootParameterDesc::Constant(32, 0),
+		RootParameterDesc::Cbv(8),
+		RootParameterDesc::DescriptorTable(1, descriptorRanges),
+	};
+	m_defaultRootSignature.reset(m_graphicsApi->CreateRootSignature(RootSignatureDesc{3, rootParameters}));
 
 	//Compile shaders
 	ShaderProgramBinary vertexBinary;
@@ -178,63 +186,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	m_fence.reset(m_graphicsApi->CreateFence(0));
 
 	
-	//Create an object to be drawn
-	/*
-	//////////////////////
-	// CUBE
-	static float vertices[] = {
-		// top
-		0.5, 0.5, 0.5,		0,0,1,	1,0,
-		-0.5, 0.5, 0.5,		0,0,1,	1,1,
-		-0.5, -0.5, 0.5,	0,0,1,	0,1,
-		0.5, -0.5, 0.5,		0,0,1,	0,0,
-		// bottom
-		0.5, 0.5, -0.5,		0,0,-1,	1,0,
-		-0.5, 0.5, -0.5,	0,0,-1,	1,1,
-		-0.5, -0.5, -0.5,	0,0,-1,	0,1,
-		0.5, -0.5, -0.5,	0,0,-1,	0,0,
-		// right
-		0.5, 0.5, 0.5,		1,0,0,	1,0,
-		0.5, -0.5, 0.5,		1,0,0,	1,1,
-		0.5, -0.5, -0.5,	1,0,0,	0,1,
-		0.5, 0.5, -0.5,		1,0,0,	0,0,
-		// left
-		-0.5, 0.5, 0.5,		-1,0,0,	1,0,
-		-0.5, -0.5, 0.5,	-1,0,0,	1,1,
-		-0.5, -0.5, -0.5,	-1,0,0,	0,1,
-		-0.5, 0.5, -0.5,	-1,0,0,	0,0,
-		// front
-		0.5, 0.5, 0.5,		0,1,0,	1,0,
-		0.5, 0.5, -0.5,		0,1,0,	1,1,
-		-0.5, 0.5, -0.5,	0,1,0,	0,1,
-		-0.5, 0.5, 0.5,		0,1,0,	0,0,
-		// back
-		0.5, -0.5, 0.5,		0,-1,0,	1,0,
-		0.5, -0.5, -0.5,	0,-1,0,	1,1,
-		-0.5, -0.5, -0.5,	0,-1,0,	0,1,
-		-0.5, -0.5, 0.5,	0,-1,0,	0,0,
-	};
 
-	static int indices[] = {
-		// top
-		0,1,3,
-		1,2,3,
-		// bottom
-		5,4,7,
-		6,5,7,
-		// right
-		8,9,11,
-		9,10,11,
-		// left
-		13,12,15,
-		14,13,15,
-		// front
-		16,17,19,
-		17,18,19,
-		// back
-		21,20,23,
-		22,21,23,
-	};*/
 
 	//////////
 	// TRIANGLE
@@ -309,11 +261,11 @@ void PicoEngine::Update() {
 	m_commandList->ClearRenderTarget(currRenderTarget, ColorRGBA(0.2, 0.2, 0.7));
 	
 	// draw
-	//m_commandList->SetPrimitiveTopology(ePrimitiveTopology::TRIANGLELIST);
-	//m_commandList->SetVertexBuffers(0, 1, &vbv.gpuAddress, &vbv.size, &vbv.stride);
+	m_commandList->SetPrimitiveTopology(ePrimitiveTopology::TRIANGLELIST);
+	m_commandList->SetVertexBuffers(0, 1, &vbv.gpuAddress, &vbv.size, &vbv.stride);
 	//m_commandList->SetIndexBuffer(ibv.gpuAddress, ibv.size, ibv.format);
 	//m_commandList->DrawIndexedInstanced(ibv.size / sizeof(std::uint32_t));
-	//m_commandList->DrawInstanced(3);
+	m_commandList->DrawInstanced(3);
 
 	// close command list
 	m_commandList->Close();

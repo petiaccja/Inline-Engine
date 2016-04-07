@@ -1609,6 +1609,7 @@ inline RootParameterDesc RootParameterDesc::Uav(unsigned shaderRegister, unsigne
 inline RootParameterDesc RootParameterDesc::DescriptorTable(unsigned numDescriptorRanges, DescriptorRange* descriptorRanges, eShaderVisiblity shaderVisibility) {
 	RootParameterDesc desc;
 
+	desc.type = RootParameterDesc::DESCRIPTOR_TABLE;
 	desc.descriptorTable.numDescriptorRanges = numDescriptorRanges;
 	desc.descriptorTable.descriptorRanges = descriptorRanges;
 	desc.shaderVisibility = shaderVisibility;
