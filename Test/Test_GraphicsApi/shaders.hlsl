@@ -34,10 +34,10 @@ PSInput VSmain(VSInput input) {
 	PSInput result;
 
 	//result.position = float4(input.position, 1);
-	float4x4 wvp = mul(transform.world, transform.viewProj);
-	result.position = mul(float4(input.position, 1), wvp);
+	float4x4 wvp = mul(transform.viewProj, transform.world);
+	result.position = mul(wvp, float4(input.position, 1));
 	float3x3 worldRot = (float3x3)transform.world;
-	result.normal = mul(input.normal, worldRot);
+	result.normal = mul(worldRot, input.normal);
 
 	return result;
 }

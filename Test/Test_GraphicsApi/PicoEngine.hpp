@@ -67,6 +67,8 @@ private:
 	int m_width, m_height;
 
 	std::unique_ptr<inl::gxapi::IDescriptorHeap> m_rtvs;
+	std::unique_ptr<inl::gxapi::IDescriptorHeap> m_dsv;
+	std::vector<std::unique_ptr<inl::gxapi::IResource>> m_depthBuffers;
 	int m_currentBackBuffer;
 	
 	//objects

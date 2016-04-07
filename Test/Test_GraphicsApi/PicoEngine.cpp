@@ -86,6 +86,29 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	m_graphicsApi->CreateRenderTargetView(rt1, rtvDesc, m_rtvs->At(0));
 	m_graphicsApi->CreateRenderTargetView(rt2, rtvDesc, m_rtvs->At(1));
 
+	m_dsv.reset(m_graphicsApi->CreateDescriptorHeap(DescriptorHeapDesc{ eDesriptorHeapType::DSV, 2, false }));
+	{
+		ResourceDesc depthBufferDesc;
+		depthBufferDesc.type = eResourceType::TEXTURE;
+		depthBufferDesc.textureDesc.alignment = 0;
+		depthBufferDesc.textureDesc.depthOrArraySize = 1;
+		depthBufferDesc.textureDesc.dimension = eTextueDimension::TWO;
+		depthBufferDesc.textureDesc.flags = eResourceFlags::ALLOW_DEPTH_STENCIL;
+		depthBufferDesc.textureDesc.format = eFormat::D32_FLOAT;
+		depthBufferDesc.textureDesc.height = m_viewport.height;
+		depthBufferDesc.textureDesc.width = m_viewport.width;
+		depthBufferDesc.textureDesc.layout = eTextureLayout::UNKNOWN;
+		depthBufferDesc.textureDesc.mipLevels = 1;
+		depthBufferDesc.textureDesc.multisampleCount = 1;
+		depthBufferDesc.textureDesc.multisampleQuality = 0;
+		m_depthBuffers.push_back(std::move(std::unique_ptr<IResource>(m_graphicsApi->CreateCommittedResource(HeapProperties{}, {}, depthBufferDesc, eResourceState::GENERIC_READ))));
+		m_depthBuffers.push_back(std::move(std::unique_ptr<IResource>(m_graphicsApi->CreateCommittedResource(HeapProperties{}, {}, depthBufferDesc, eResourceState::GENERIC_READ))));
+
+		m_graphicsApi->CreateDepthStencilView(m_depthBuffers[0].get(), m_dsv->At(0));
+		m_graphicsApi->CreateDepthStencilView(m_depthBuffers[1].get(), m_dsv->At(1));
+	}
+
+
 	// Create root signature
 	DescriptorRange descriptorRanges[1] = {
 		DescriptorRange{DescriptorRange::SRV, 1, 0, 0},
@@ -187,9 +210,10 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	psoDesc.inputLayout = inputLayout;
 	psoDesc.rasterization = rasterizationState;
 	psoDesc.blending = blendState;
-	psoDesc.depthStencilState.enableDepthTest = false;
+	psoDesc.depthStencilState.enableDepthTest = true;
 	psoDesc.depthStencilState.enableStencilTest = false;
-	psoDesc.depthStencilState.enableDepthStencilWrite = false;
+	psoDesc.depthStencilState.enableDepthStencilWrite = true;
+	psoDesc.depthStencilFormat = eFormat::D32_FLOAT;
 	psoDesc.primitiveTopologyType = ePrimitiveTopologyType::TRIANGLE;
 	m_defaultPso.reset(m_graphicsApi->CreateGraphicsPipelineState(psoDesc));
 
@@ -267,11 +291,13 @@ void PicoEngine::Update() {
 	m_commandList->SetScissorRects(1, &m_scissorRect);
 
 	DescriptorHandle currRenderTarget = m_rtvs->At(m_currentBackBuffer % 2);
-	m_commandList->SetRenderTargets(1, &currRenderTarget);
+	DescriptorHandle currDepthStencil = m_dsv->At(m_currentBackBuffer % 2);
+	m_commandList->SetRenderTargets(1, &currRenderTarget, &currDepthStencil);
 
 	// init drawing
 	m_commandList->ClearRenderTarget(currRenderTarget, ColorRGBA(0.2, 0.2, 0.7));
-	
+	m_commandList->ClearDepthStencil(currDepthStencil, 1, 0);
+
 	m_commandList->SetPrimitiveTopology(ePrimitiveTopology::TRIANGLELIST);
 	m_commandList->SetGraphicsRootSignature(m_defaultRootSignature.get());
 	// draw
@@ -283,7 +309,7 @@ void PicoEngine::Update() {
 		DirectX::XMMATRIX world, view, proj;
 		world = DirectX::XMMatrixRotationZ(angle*3.1415926*2);
 		view = DirectX::XMMatrixLookAtRH({ 5,5,5}, { 0,0,0 }, { 0,0,1 });
-		proj = DirectX::XMMatrixPerspectiveFovRH(50.f / 180 * 3.1415926, (float)m_height/m_width, 0.1, 100);
+		proj = DirectX::XMMatrixPerspectiveFovRH((50.f / 180) * 3.1415926, (float)m_height/m_width, 0.1, 100);
 		DirectX::XMMATRIX viewProj = view * proj;
 		m_commandList->SetGraphicsRootConstants(0, 0, 16, (uint32_t*)&world);
 		m_commandList->SetGraphicsRootConstants(0, 16, 16, (uint32_t*)&viewProj);
