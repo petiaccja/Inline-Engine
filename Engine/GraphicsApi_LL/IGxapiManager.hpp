@@ -23,6 +23,8 @@ class ICommandQueue;
 
 class IGxapiManager {
 public:
+	virtual ~IGxapiManager() = default;
+
 	virtual std::vector<AdapterInfo> EnumerateAdapters() = 0;
 
 	virtual ISwapChain* CreateSwapChain(SwapChainDesc desc, ICommandQueue* flushThisQueue) = 0;

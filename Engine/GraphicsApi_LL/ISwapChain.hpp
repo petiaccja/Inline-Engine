@@ -11,6 +11,8 @@ class IResource;
 
 class ISwapChain {
 public:
+	virtual ~ISwapChain() = default;
+
 	virtual IResource* GetBuffer(unsigned index) = 0;
 	virtual SwapChainDesc GetDesc() const = 0;
 	virtual bool IsFullScreen() const = 0;

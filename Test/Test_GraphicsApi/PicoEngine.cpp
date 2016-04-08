@@ -101,8 +101,9 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 		depthBufferDesc.textureDesc.mipLevels = 1;
 		depthBufferDesc.textureDesc.multisampleCount = 1;
 		depthBufferDesc.textureDesc.multisampleQuality = 0;
-		m_depthBuffers.push_back(std::move(std::unique_ptr<IResource>(m_graphicsApi->CreateCommittedResource(HeapProperties{}, {}, depthBufferDesc, eResourceState::GENERIC_READ))));
-		m_depthBuffers.push_back(std::move(std::unique_ptr<IResource>(m_graphicsApi->CreateCommittedResource(HeapProperties{}, {}, depthBufferDesc, eResourceState::GENERIC_READ))));
+		ClearValue depthClearValue{ eFormat::D32_FLOAT, 1.0, 0 };
+		m_depthBuffers.push_back(std::move(std::unique_ptr<IResource>(m_graphicsApi->CreateCommittedResource(HeapProperties{}, {}, depthBufferDesc, eResourceState::GENERIC_READ, &depthClearValue))));
+		m_depthBuffers.push_back(std::move(std::unique_ptr<IResource>(m_graphicsApi->CreateCommittedResource(HeapProperties{}, {}, depthBufferDesc, eResourceState::GENERIC_READ, &depthClearValue))));
 
 		m_graphicsApi->CreateDepthStencilView(m_depthBuffers[0].get(), m_dsv->At(0));
 		m_graphicsApi->CreateDepthStencilView(m_depthBuffers[1].get(), m_dsv->At(1));

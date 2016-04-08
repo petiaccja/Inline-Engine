@@ -33,7 +33,6 @@ struct PSInput {
 PSInput VSmain(VSInput input) {
 	PSInput result;
 
-	//result.position = float4(input.position, 1);
 	float4x4 wvp = mul(transform.viewProj, transform.world);
 	result.position = mul(wvp, float4(input.position, 1));
 	float3x3 worldRot = (float3x3)transform.world;
@@ -44,6 +43,6 @@ PSInput VSmain(VSInput input) {
 
 // Pixel shader
 float4 PSmain(PSInput input) : SV_TARGET {
-	float ndotl = dot(input.normal, float3(-0.5, 0.5, 0.5));
-	return float4(ndotl, ndotl, ndotl,1);
+	float ndotl = saturate(dot(input.normal, float3(-0.5, 0.5, 0.5)));
+	return float4(ndotl*float3(0.8, 0.68, 0.6) + float3(0.12, 0.14, 0.18),1);
 }
