@@ -1,5 +1,5 @@
 #include "PicoEngine.hpp"
-#include <BaseLibrary/Logging>
+#include <BaseLibrary/Logging_All.hpp>
 
 #define _WIN32_LEAN_AND_MEAN
 #define NOMINMAX

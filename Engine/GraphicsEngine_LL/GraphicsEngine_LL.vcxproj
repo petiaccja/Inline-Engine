@@ -71,19 +71,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\BaseLibrary;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib\wxwidgets;$(SolutionDir)\Externals\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\Externals\libd;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\BaseLibrary;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib\wxwidgets;$(SolutionDir)\Externals\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\Externals\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\BaseLibrary;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib;$(SolutionDir)\Externals\lib\wxwidgets;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\Externals\libd64\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\BaseLibrary;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib;$(SolutionDir)\Externals\lib\wxwidgets;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)\Externals\lib64\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -168,6 +168,7 @@
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Scheduler.hpp" />
     <ClInclude Include="SmallBufferHeap.hpp" />
+    <ClInclude Include="Task.hpp" />
     <ClInclude Include="Texture2D.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -182,6 +183,7 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Scheduler.cpp" />
     <ClCompile Include="SmallBufferHeap.cpp" />
+    <ClCompile Include="Task.cpp" />
     <ClCompile Include="Texture2D.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -23,8 +23,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="shaders.hlsl">
-      <Filter>Files</Filter>
-    </FxCompile>
+    <None Include="shaders.hlsl" />
   </ItemGroup>
 </Project>

@@ -12,11 +12,11 @@
     <Filter Include="Scene">
       <UniqueIdentifier>{83bdcfe3-d6f4-4fd2-95a0-74e9c68cb2e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Backend">
-      <UniqueIdentifier>{2fc7a18c-775b-463f-a7b4-2af4d1226d50}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Pipeline">
       <UniqueIdentifier>{13ebcb7a-64e7-4b59-a32d-4593d1c785b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MemoryManager">
+      <UniqueIdentifier>{2fc7a18c-775b-463f-a7b4-2af4d1226d50}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -45,12 +45,6 @@
     <ClInclude Include="Light.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Pipeline.hpp">
-      <Filter>Backend</Filter>
-    </ClInclude>
-    <ClInclude Include="Scheduler.hpp">
-      <Filter>Backend</Filter>
-    </ClInclude>
     <ClInclude Include="GraphicsNode.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
@@ -58,13 +52,13 @@
       <Filter>Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="MemoryManager.hpp">
-      <Filter>Backend</Filter>
+      <Filter>MemoryManager</Filter>
     </ClInclude>
     <ClInclude Include="SmallBufferHeap.hpp">
-      <Filter>Backend</Filter>
+      <Filter>MemoryManager</Filter>
     </ClInclude>
     <ClInclude Include="ConstBufferHeap.hpp">
-      <Filter>Backend</Filter>
+      <Filter>MemoryManager</Filter>
     </ClInclude>
     <ClInclude Include="..\GraphicsEngine\ITexture2D.hpp">
       <Filter>Interfaces</Filter>
@@ -93,6 +87,15 @@
     <ClInclude Include="..\GraphicsEngine\ICamera.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="Pipeline.hpp">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="Scheduler.hpp">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="Task.hpp">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -114,20 +117,23 @@
     <ClCompile Include="Light.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Pipeline.cpp">
-      <Filter>Backend</Filter>
-    </ClCompile>
-    <ClCompile Include="Scheduler.cpp">
-      <Filter>Backend</Filter>
-    </ClCompile>
     <ClCompile Include="MemoryManager.cpp">
-      <Filter>Backend</Filter>
+      <Filter>MemoryManager</Filter>
     </ClCompile>
     <ClCompile Include="SmallBufferHeap.cpp">
-      <Filter>Backend</Filter>
+      <Filter>MemoryManager</Filter>
     </ClCompile>
     <ClCompile Include="ConstBufferHeap.cpp">
-      <Filter>Backend</Filter>
+      <Filter>MemoryManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Pipeline.cpp">
+      <Filter>Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Scheduler.cpp">
+      <Filter>Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Task.cpp">
+      <Filter>Pipeline</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

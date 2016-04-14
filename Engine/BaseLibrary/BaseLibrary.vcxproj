@@ -146,27 +146,38 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BitflagEnum.hpp" />
-    <ClInclude Include="Logging_\Event.hpp" />
-    <ClInclude Include="Logging_\EventEntry.hpp" />
-    <ClInclude Include="Logging_\LogCentre.hpp" />
-    <ClInclude Include="Logging_\Logger.hpp" />
-    <ClInclude Include="Logging_\LogNode.hpp" />
-    <ClInclude Include="Logging_\LogPipe.hpp" />
-    <ClInclude Include="Logging_\LogStream.hpp" />
-    <ClInclude Include="Serialization_\BinarySerializer.hpp" />
-    <ClInclude Include="Serialization_\BinarySerializerExtensions.hpp" />
+    <ClInclude Include="Graph\Node.hpp" />
+    <ClInclude Include="Graph\NodeFactory.hpp" />
+    <ClInclude Include="Graph\NodeLibrary.hpp" />
+    <ClInclude Include="Graph\Node_Arithmetic.hpp" />
+    <ClInclude Include="Graph\Node_Comparison.hpp" />
+    <ClInclude Include="Graph\Node_Logic.hpp" />
+    <ClInclude Include="Graph\Node_MathFunctions.hpp" />
+    <ClInclude Include="Graph\Port.hpp" />
+    <ClInclude Include="Logging\Event.hpp" />
+    <ClInclude Include="Logging\EventEntry.hpp" />
+    <ClInclude Include="Logging\LogCentre.hpp" />
+    <ClInclude Include="Logging\Logger.hpp" />
+    <ClInclude Include="Logging\LogNode.hpp" />
+    <ClInclude Include="Logging\LogPipe.hpp" />
+    <ClInclude Include="Logging\LogStream.hpp" />
+    <ClInclude Include="Serialization\BinarySerializer.hpp" />
+    <ClInclude Include="Serialization\BinarySerializerExtensions.hpp" />
     <ClInclude Include="Singleton.hpp" />
     <ClInclude Include="Spinlock.hpp" />
     <ClInclude Include="Stream.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Logging_\Event.cpp" />
-    <ClCompile Include="Logging_\Logger.cpp" />
-    <ClCompile Include="Logging_\LogNode.cpp" />
-    <ClCompile Include="Logging_\LogPipe.cpp" />
-    <ClCompile Include="Logging_\LogStream.cpp" />
-    <ClCompile Include="Serialization_\BinarySerializer.cpp" />
-    <ClCompile Include="Serialization_\BinarySerializerExtensions.cpp" />
+    <ClCompile Include="Graph\NodeFactory.cpp" />
+    <ClCompile Include="Graph\NodeLibrary.cpp" />
+    <ClCompile Include="Graph\Port.cpp" />
+    <ClCompile Include="Logging\Event.cpp" />
+    <ClCompile Include="Logging\Logger.cpp" />
+    <ClCompile Include="Logging\LogNode.cpp" />
+    <ClCompile Include="Logging\LogPipe.cpp" />
+    <ClCompile Include="Logging\LogStream.cpp" />
+    <ClCompile Include="Serialization\BinarySerializer.cpp" />
+    <ClCompile Include="Serialization\BinarySerializerExtensions.cpp" />
     <ClCompile Include="Spinlock.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

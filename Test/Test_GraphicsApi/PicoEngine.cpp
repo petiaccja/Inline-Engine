@@ -1,6 +1,6 @@
 #include "PicoEngine.hpp"
 #include "Geometry.hpp"
-#include <BaseLibrary/Logging>
+#include <BaseLibrary/Logging_All.hpp>
 
 #include <GraphicsApi_LL/Exception.hpp>
 

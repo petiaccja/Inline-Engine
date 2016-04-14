@@ -281,11 +281,13 @@ gxapi::ShaderProgramBinary GxapiManager::CompileShaderFromFile(const std::string
 		assert(code != nullptr);
 		shaderOut.data.resize(code->GetBufferSize());
 		memcpy(shaderOut.data.data(), code->GetBufferPointer(), shaderOut.data.size());
-		
+		code->Release();
+		if (error) error->Release();
 	}
 	else {
 		if (error) {
 			errorMsg.assign((char*)error->GetBufferPointer(), error->GetBufferSize());
+			error->Release();
 		}
 		if (code) {
 			code->Release();
