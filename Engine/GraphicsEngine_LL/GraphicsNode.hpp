@@ -12,6 +12,7 @@ namespace gxeng {
 
 class GraphicsNode : virtual public exc::NodeBase {
 public:
+	virtual Task GetTask() = 0;
 };
 
 
