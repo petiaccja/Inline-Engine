@@ -57,9 +57,6 @@
     <ClInclude Include="SmallBufferHeap.hpp">
       <Filter>MemoryManager</Filter>
     </ClInclude>
-    <ClInclude Include="ConstBufferHeap.hpp">
-      <Filter>MemoryManager</Filter>
-    </ClInclude>
     <ClInclude Include="..\GraphicsEngine\ITexture2D.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
@@ -96,6 +93,15 @@
     <ClInclude Include="Task.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
+    <ClInclude Include="ConstBufferManager.hpp">
+      <Filter>MemoryManager</Filter>
+    </ClInclude>
+    <ClInclude Include="DisposableConstBuffer.hpp">
+      <Filter>MemoryManager</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstBufferPage.hpp">
+      <Filter>MemoryManager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -123,9 +129,6 @@
     <ClCompile Include="SmallBufferHeap.cpp">
       <Filter>MemoryManager</Filter>
     </ClCompile>
-    <ClCompile Include="ConstBufferHeap.cpp">
-      <Filter>MemoryManager</Filter>
-    </ClCompile>
     <ClCompile Include="Pipeline.cpp">
       <Filter>Pipeline</Filter>
     </ClCompile>
@@ -134,6 +137,15 @@
     </ClCompile>
     <ClCompile Include="Task.cpp">
       <Filter>Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstBufferManager.cpp">
+      <Filter>MemoryManager</Filter>
+    </ClCompile>
+    <ClCompile Include="DisposableConstBuffer.cpp">
+      <Filter>MemoryManager</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstBufferPage.cpp">
+      <Filter>MemoryManager</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -155,7 +155,9 @@
     <ClInclude Include="..\GraphicsEngine\IScene.hpp" />
     <ClInclude Include="..\GraphicsEngine\ITerrainEntity.hpp" />
     <ClInclude Include="..\GraphicsEngine\ITexture2D.hpp" />
-    <ClInclude Include="ConstBufferHeap.hpp" />
+    <ClInclude Include="ConstBufferManager.hpp" />
+    <ClInclude Include="ConstBufferPage.hpp" />
+    <ClInclude Include="DisposableConstBuffer.hpp" />
     <ClInclude Include="GraphicsNode.hpp" />
     <ClInclude Include="GraphicsNodeFactory.hpp" />
     <ClInclude Include="Light.hpp" />
@@ -172,7 +174,9 @@
     <ClInclude Include="Texture2D.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ConstBufferHeap.cpp" />
+    <ClCompile Include="ConstBufferManager.cpp" />
+    <ClCompile Include="ConstBufferPage.cpp" />
+    <ClCompile Include="DisposableConstBuffer.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="MeshEntity.cpp" />

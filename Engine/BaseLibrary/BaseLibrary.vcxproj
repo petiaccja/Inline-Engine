@@ -161,6 +161,7 @@
     <ClInclude Include="Logging\LogNode.hpp" />
     <ClInclude Include="Logging\LogPipe.hpp" />
     <ClInclude Include="Logging\LogStream.hpp" />
+    <ClInclude Include="RingBuffer.hpp" />
     <ClInclude Include="Serialization\BinarySerializer.hpp" />
     <ClInclude Include="Serialization\BinarySerializerExtensions.hpp" />
     <ClInclude Include="Singleton.hpp" />
