@@ -25,8 +25,6 @@ using ElementaryTask = std::function<ExecutionResult(const ExecutionContext&)>;
 
 class Task {
 public:
-	using ElementaryTask = std::function<void()>;
-public:
 	Task();
 	Task(ElementaryTask subtask);
 	Task(const std::vector<ElementaryTask>& parallelSubtasks);

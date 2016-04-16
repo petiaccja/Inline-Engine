@@ -50,7 +50,7 @@ public:
 	bool RegisterNodeClass(const std::string& group);
 
 	/// <summary> Instantiate node class by name. </summary>
-	NodeBase* CreateNode(const std::string& name);
+	virtual NodeBase* CreateNode(const std::string& name);
 
 	/// <summary> Get information about a node by name. </summary>
 	const NodeInfo* GetNodeInfo(const std::string& name);

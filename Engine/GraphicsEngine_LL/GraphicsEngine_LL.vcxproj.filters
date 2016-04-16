@@ -135,5 +135,8 @@
     <ClCompile Include="Task.cpp">
       <Filter>Pipeline</Filter>
     </ClCompile>
+    <ClCompile Include="GraphicsNodeFactory.cpp">
+      <Filter>Pipeline</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -5,6 +5,7 @@
 #include <typeindex>
 #include <type_traits>
 #include <functional>
+#include <iterator>
 
 namespace exc {
 
@@ -81,6 +82,47 @@ private:
 /// to multiple input ports at the same time.
 /// </para>
 class OutputPortBase {
+private:
+	friend class LinkIteratorBase;
+
+	template <class T>
+	class LinkIteratorBase : public std::iterator<std::bidirectional_iterator_tag, T> {
+	private:
+		using ContainerIterator = typename std::conditional<std::is_const<T>::value, std::set<InputPortBase*>::const_iterator, std::set<InputPortBase*>::iterator>::type;
+		using ParentType = typename std::conditional<std::is_const<T>::value, const OutputPortBase, OutputPortBase>::type;
+
+		friend class OutputPortBase;
+		LinkIteratorBase(ParentType* parent, bool isBegin);
+	public:
+		LinkIteratorBase();
+		LinkIteratorBase(const LinkIteratorBase&) = default;
+		LinkIteratorBase& operator=(const LinkIteratorBase&) = default;
+
+		template <class U = const LinkIteratorBase<typename std::enable_if<!std::is_const<T>::value, const T>::type>>
+		LinkIteratorBase(U& rhs);
+		template <class U = const LinkIteratorBase<typename std::enable_if<!std::is_const<T>::value, const T>::type>>
+		LinkIteratorBase& operator=(U& rhs);
+
+		T& operator*();
+		T* operator->();
+
+		bool operator==(const LinkIteratorBase&);
+		bool operator!=(const LinkIteratorBase&);
+
+		LinkIteratorBase& operator++();
+		LinkIteratorBase operator++(int);
+		LinkIteratorBase& operator--();
+		LinkIteratorBase operator--(int);
+	private:
+		ParentType* parent;
+		std::set<InputPortBase*>::iterator containerIt;
+		int currentContainer;
+		static constexpr int NORMAL = 1;
+		static constexpr int ANYLINK = 2;
+	};
+public:
+	using LinkIterator = LinkIteratorBase<InputPortBase>;
+	using ConstLinkIterator = LinkIteratorBase<const InputPortBase>;
 public:
 	OutputPortBase();
 	~OutputPortBase();
@@ -100,11 +142,110 @@ public:
 	virtual void UnlinkAll();
 
 	//! TODO: add iterator support to iterate over links
+	LinkIterator begin();
+	LinkIterator end();
+	ConstLinkIterator begin() const;
+	ConstLinkIterator end() const;
+	ConstLinkIterator cbegin() const;
+	ConstLinkIterator cend() const;
 protected:
 	std::set<InputPortBase*> links;
 	std::set<InputPortBase*> anyLinks;
 };
 
+
+
+template <class T>
+OutputPortBase::LinkIteratorBase<T>::LinkIteratorBase(ParentType* parent, bool isBegin) : parent(parent) {
+	if (isBegin) {
+		currentContainer = NORMAL;
+		containerIt = parent->links.begin();
+		if (containerIt == parent->links.end()) {
+			containerIt = parent->anyLinks.begin();
+			currentContainer = ANYLINK;
+		}
+	}
+	else {
+		currentContainer = ANYLINK;
+		containerIt = parent->anyLinks.end();
+	}
+}
+template <class T>
+OutputPortBase::LinkIteratorBase<T>::LinkIteratorBase() {
+	currentContainer = ANYLINK;
+	parent = nullptr;
+}
+
+template <class T>
+template <class U>
+OutputPortBase::LinkIteratorBase<T>::LinkIteratorBase(U& rhs) {
+	parent = rhs.parent;
+	currentContainer = rhs.currentContainer;
+	containerIt = rhs.containerIt;
+}
+template <class T>
+template <class U>
+OutputPortBase::LinkIteratorBase<T>& OutputPortBase::LinkIteratorBase<T>::operator=(U& rhs) {
+	parent = rhs.parent;
+	currentContainer = rhs.currentContainer;
+	containerIt = rhs.containerIt;
+}
+
+template <class T>
+T& OutputPortBase::LinkIteratorBase<T>::operator*() {
+	return **containerIt;
+}
+
+template <class T>
+T* OutputPortBase::LinkIteratorBase<T>::operator->() {
+	return *containerIt;
+}
+
+template <class T>
+bool OutputPortBase::LinkIteratorBase<T>::operator==(const LinkIteratorBase& rhs) {
+	return (parent == rhs.parent && currentContainer == rhs.currentContainer && containerIt == rhs.containerIt);
+}
+
+template <class T>
+bool OutputPortBase::LinkIteratorBase<T>::operator!=(const LinkIteratorBase& rhs) {
+	return *this != rhs;
+}
+
+template <class T>
+OutputPortBase::LinkIteratorBase<T>& OutputPortBase::LinkIteratorBase<T>::operator++() {
+	containerIt++;
+	if (currentContainer == NORMAL && containerIt == parent->links.end()) {
+		currentContainer = ANYLINK;
+		containerIt = parent->anylinks.begin();
+	}
+	return *this;
+}
+
+template <class T>
+OutputPortBase::LinkIteratorBase<T>  OutputPortBase::LinkIteratorBase<T>::operator++(int) {
+	auto copy = *this;
+	++(*this);
+	return copy;
+}
+
+template <class T>
+OutputPortBase::LinkIteratorBase<T>& OutputPortBase::LinkIteratorBase<T>::operator--() {
+	if (currentContainer == ANYLINK && containerIt == parent->anyLinks.begin()) {
+		currentContainer = NORMAL;
+		containerIt = --(parent->links.end());
+	}
+	else {
+		--containerIt;
+	}
+	return *this;
+}
+
+template <class T>
+OutputPortBase::LinkIteratorBase<T>  OutputPortBase::LinkIteratorBase<T>::operator--(int) {
+	auto copy = *this;
+	--(*this);
+	return copy;
+}
 
 
 /// <summary>

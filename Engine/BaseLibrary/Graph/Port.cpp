@@ -154,6 +154,25 @@ void OutputPortBase::UnlinkAll() {
 	anyLinks.clear();
 }
 
+OutputPortBase::LinkIterator OutputPortBase::begin() {
+	return LinkIterator(this, true);
+}
+OutputPortBase::LinkIterator OutputPortBase::end() {
+	return LinkIterator(this, false);
+}
+OutputPortBase::ConstLinkIterator OutputPortBase::begin() const {
+	return ConstLinkIterator(this, true);
+}
+OutputPortBase::ConstLinkIterator OutputPortBase::end() const {
+	return ConstLinkIterator(this, false);
+}
+OutputPortBase::ConstLinkIterator OutputPortBase::cbegin() const {
+	return ConstLinkIterator(this, true);
+}
+OutputPortBase::ConstLinkIterator OutputPortBase::cend() const {
+	return ConstLinkIterator(this, false);
+}
+
 
 
 // This single function had to be moved to this cpp file because

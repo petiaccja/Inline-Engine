@@ -173,6 +173,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ConstBufferHeap.cpp" />
+    <ClCompile Include="GraphicsNodeFactory.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="MeshEntity.cpp" />

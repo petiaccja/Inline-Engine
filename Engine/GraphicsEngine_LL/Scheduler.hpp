@@ -10,10 +10,6 @@ namespace gxeng {
 class Scheduler {
 public:
 
-	void foo() {
-
-
-	}
 
 private:
 
