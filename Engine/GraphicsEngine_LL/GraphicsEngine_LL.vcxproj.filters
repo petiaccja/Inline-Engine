@@ -94,13 +94,13 @@
       <Filter>Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="ConstBufferManager.hpp">
-      <Filter>MemoryManager</Filter>
-    </ClInclude>
-    <ClInclude Include="DisposableConstBuffer.hpp">
-      <Filter>MemoryManager</Filter>
+      <Filter>Interfaces</Filter>
     </ClInclude>
     <ClInclude Include="ConstBufferPage.hpp">
-      <Filter>MemoryManager</Filter>
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="DisposableConstBuffer.hpp">
+      <Filter>Interfaces</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -141,13 +141,13 @@
     <ClCompile Include="GraphicsNodeFactory.cpp">
       <Filter>Pipeline</Filter>
     </ClCompile>
+    <ClCompile Include="ConstBufferPage.cpp">
+      <Filter>MemoryManager</Filter>
+    </ClCompile>
     <ClCompile Include="ConstBufferManager.cpp">
       <Filter>MemoryManager</Filter>
     </ClCompile>
     <ClCompile Include="DisposableConstBuffer.cpp">
-      <Filter>MemoryManager</Filter>
-    </ClCompile>
-    <ClCompile Include="ConstBufferPage.cpp">
       <Filter>MemoryManager</Filter>
     </ClCompile>
   </ItemGroup>

@@ -174,7 +174,6 @@
     <ClInclude Include="Texture2D.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ConstBufferHeap.cpp" />
     <ClCompile Include="GraphicsNodeFactory.cpp" />
     <ClCompile Include="ConstBufferManager.cpp" />
     <ClCompile Include="ConstBufferPage.cpp" />
