@@ -51,10 +51,16 @@ public:
 
 	NodeIterator Begin();
 	NodeIterator End();
-
 	NodeIterator AddNode(const std::string& fullName);
 	void Erase(NodeIterator node);
 	void AddLink(NodeIterator node1, int port1, NodeIterator node2, int port2);		
+
+	const lemon::ListDigraph& GetDependencyGraph() const { return m_dependencyGraph; }
+	const lemon::ListDigraph::NodeMap<exc::NodeBase*>& GetNodeMap() const { return m_dependencyGraphNodes; }
+	const lemon::ListDigraph& GetTaskGraph() const { return m_taskGraph; }
+	const lemon::ListDigraph::NodeMap<ElementaryTask>& GetTaskMap() const { return m_taskGraphMaps; }
+
+	void CalculateTaskGraph_Dbg() { CalculateTaskGraph(); }
 private:
 	void CalculateTaskGraph();
 	void CalculateDependencies();

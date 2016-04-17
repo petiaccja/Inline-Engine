@@ -191,7 +191,7 @@ void Pipeline::CalculateTaskGraph() {
 			}
 			// no out arc -> sink
 			if (lemon::countOutArcs(task.m_nodes, taskNode) == 0) {
-				sources.push_back(taskNodesToTaskGraphNodes[taskNode]);
+				sinks.push_back(taskNodesToTaskGraphNodes[taskNode]);
 			}
 		}
 		SourceSinkMapping sourceSinkMapForCurrentNode;
