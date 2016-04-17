@@ -3,6 +3,8 @@
 
 #include <rapidjson/rapidjson.h>
 #include <cassert>
+#include <map>
+
 
 
 namespace inl {
@@ -114,9 +116,13 @@ void Pipeline::AddLink(NodeIterator srcNode, int srcPort, NodeIterator dstNode, 
 }
 
 
-void Pipeline::ExpandTaskGraph() {
-	
+void Pipeline::CalculateTaskGraph() {
+	m_taskGraph.clear();
+	for (lemon::ListDigraph::NodeIt node(m_dependencyGraph); node != lemon::INVALID; ++node) {
+		
+	}
 }
+
 
 void Pipeline::CalculateDependencies() {
 	// Erase all arcs from the graph
@@ -127,12 +133,43 @@ void Pipeline::CalculateDependencies() {
 		m_dependencyGraph.erase(deleteMe);
 	}
 
-	// Construct mapping between nodes and their graph vertices
-	exc::OutputPortBase::LinkIterator a;
-	exc::OutputPortBase::ConstLinkIterator b = a;
-	exc::OutputPortBase::ConstLinkIterator c = b;
-	exc::OutputPortBase::LinkIterator d = a;
 
+	// Check if there's any link between two pipeline nodes
+	auto IsLinked = [](exc::NodeBase* srcNode, exc::NodeBase* dstNode)	-> bool {
+		for (size_t dstIn = 0; dstIn < dstNode->GetNumInputs(); dstIn++) {
+			exc::OutputPortBase* linked = dstNode->GetInput(dstIn)->GetLink();
+			for (size_t srcOut = 0; srcOut < srcNode->GetNumOutputs(); srcOut++) {
+				if (linked == srcNode->GetOutput(srcOut)) {
+					// a link from srcNode to dstNode was found!
+					return true;
+				}
+			}
+		}
+		// no link found
+		return false;
+	};
+
+	// Add all arcs to the graph accoring to inputPort->outputPort linkage
+	// sidenote: the algorithm will not create duplicate arcs in the graph
+	for (lemon::ListDigraph::NodeIt outerIt(m_dependencyGraph); outerIt != lemon::INVALID; ++outerIt) {
+		for (auto innerIt = ++lemon::ListDigraph::NodeIt(outerIt); outerIt != lemon::INVALID; ++outerIt) {
+			exc::NodeBase* srcNode = m_dependencyGraphNodes[outerIt];
+			exc::NodeBase* dstNode = m_dependencyGraphNodes[innerIt];
+
+			// Check if there's ANY link going in ANY direction b/w above nodes
+			// FIRST direction
+			if (IsLinked(srcNode, dstNode)) {
+				// a link from srcNode to dstNode was found, add an arc
+				m_dependencyGraph.addArc(outerIt, innerIt);
+			}
+
+			// REVERSE direction; FLIP nodes
+			if (IsLinked(dstNode, srcNode)) {
+				// a link from srcNode to dstNode was found, add an arc
+				m_dependencyGraph.addArc(outerIt, innerIt);
+			}
+		}
+	}
 }
 
 

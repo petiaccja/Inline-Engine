@@ -56,7 +56,7 @@ public:
 	void Erase(NodeIterator node);
 	void AddLink(NodeIterator node1, int port1, NodeIterator node2, int port2);		
 private:
-	void ExpandTaskGraph();
+	void CalculateTaskGraph();
 	void CalculateDependencies();
 
 
