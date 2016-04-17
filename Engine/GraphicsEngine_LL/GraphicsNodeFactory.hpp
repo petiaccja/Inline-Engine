@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <Graph/NodeFactory.hpp>
+#include "../BaseLibrary/Graph/NodeFactory.hpp"
 
 
 namespace inl {

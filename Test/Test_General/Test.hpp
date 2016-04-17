@@ -35,7 +35,7 @@ public:
 
 	template <class TestT>
 	void RegisterTest() {
-		testMap.insert({ TestT().Name(), []() -> int {TestT t; return t.Run(); } });
+		testMap.insert({ TestT::Name(), []() -> int {TestT t; return t.Run(); } });
 	}
 private:
 	struct StrCmp {
@@ -51,7 +51,6 @@ template <class T>
 class AutoRegisterTest {
 public:
 	virtual ~AutoRegisterTest() = default;
-	virtual std::string Name() const = 0;
 	virtual int Run() { return helper.a; }
 private:
 	struct Helper {

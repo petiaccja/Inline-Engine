@@ -5,7 +5,7 @@
 #include <vector>
 #include <iterator>
 #include <lemon/list_graph.h>
-#include <Graph/Node.hpp>
+#include "../BaseLibrary/Graph/Node.hpp"
 
 
 namespace inl {
@@ -40,8 +40,8 @@ public:
 	};
 
 public:
-	Pipeline() = default;
-	~Pipeline();
+	Pipeline();
+	~Pipeline() = default;
 
 	void CreateFromDescription(const std::string& jsonDescription);
 

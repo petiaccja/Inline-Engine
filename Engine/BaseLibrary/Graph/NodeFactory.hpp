@@ -104,7 +104,7 @@ bool NodeFactory::RegisterNodeClass(const std::string& group) {
 	creator.creator = []() -> NodeBase* {return new T();};
 
 	// insert class to registered classes' map
-	registeredClasses.insert({ strGroup + "/" + strName, std::move(creator) });
+	registeredClasses.insert({ strGroup + (strGroup.size() > 0 ? "/" : "") + strName, std::move(creator) });
 
 	return true;
 }
