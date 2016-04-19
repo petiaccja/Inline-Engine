@@ -156,6 +156,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Test_Pipeline.cpp" />
+    <ClCompile Include="Test_RingBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Test.hpp" />
