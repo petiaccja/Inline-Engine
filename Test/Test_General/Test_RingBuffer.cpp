@@ -17,12 +17,13 @@ using container_type = std::list<T>;
 template <typename T>
 using TestRingBuffer = RingBuffer<T, container_type<T>>;
 
-void TestAssert(bool val) {
+void TestAssertFunc(bool val, const char* expression) {
 	if (!val) {
-		throw std::runtime_error("ERROR (message text of this exception does not matter)");
+		throw std::runtime_error("Assertion failed while evaluating the following expression:\n"s + expression);
 	}
 }
 
+#define TestAssert(x) TestAssertFunc(x, #x)
 
 chrono::duration<float, chrono::seconds::period> TimedExecution(std::function<void()> func) {
 	auto start = high_resolution_clock::now();
@@ -42,7 +43,7 @@ public:
 	virtual int Run() override {
 
 		try {
-			const int count = 1e5;
+			const int count = 1e6;
 
 			string containerName{typeid(container_type<void>).name()};
 			containerName = containerName.substr(0, containerName.find('<'));
@@ -61,10 +62,8 @@ public:
 			cout << "Pushed " << count << " integers in " << duration.count() << " sec" << endl;
 
 			intBuffer.RotateFront();
-			int value = *(--intBuffer.End());
-			TestAssert(value == count-1);
-			value = *intBuffer.Begin();
-			TestAssert(value == count-2);
+			TestAssert(intBuffer.Back() == count-1);
+			TestAssert(intBuffer.Front() == count-2);
 			
 			////////////////////////////////
 
@@ -88,40 +87,68 @@ public:
 			cout << "Pushed " << count << " std::array<int, 100> in " << duration.count() << " sec" << endl;
 
 			arrayBuffer.RotateFront();
-			TestAssert((*(--arrayBuffer.End()))[0] == count-1);
+			TestAssert(arrayBuffer.Back()[0] == count-1);
 
 			////////////////////////////////
 
 			cout << "----" << endl;
 
-			TestRingBuffer<int> intBuffer2;
+			std::vector<int> intVector;
+			intVector.reserve(intBuffer.Size());
+
 			duration = TimedExecution(
-				[&intBuffer, &intBuffer2]() {
+				[&intBuffer, &intVector]() {
 					auto targetPos = intBuffer.End();
 					auto currPos = intBuffer.Begin();
 					do {
-						intBuffer2.PushFront(intBuffer.Front());
+						intVector.push_back(intBuffer.Front());
 						intBuffer.RotateFront();
 					} while (++currPos != targetPos);
 				}
 			);
-			cout << "Rotated and pushed " << count << " int in " << duration.count() << " sec" << endl;
+			cout << "Rotated and copied " << count << " int in " << duration.count() << " sec" << endl;
+
+			TestAssert(intVector[0] == intBuffer.Front());
 
 			////////////////////////////////
 
-			TestRingBuffer<std::array<int, 100>> arrayBuffer2;
+			std::vector<std::array<int, 100>> arrayVector;
+			arrayVector.reserve(arrayBuffer.Size());
+
 			duration = TimedExecution(
-				[&arrayBuffer, &arrayBuffer2]() {
+				[&arrayBuffer, &arrayVector]() {
 					auto targetPos = arrayBuffer.End();
 					auto currPos = arrayBuffer.Begin();
 					do {
-						arrayBuffer2.PushFront(arrayBuffer.Front());
+						arrayVector.push_back(arrayBuffer.Front());
 						arrayBuffer.RotateFront();
 					} while (++currPos != targetPos);
 				}
 			);
-			cout << "Rotated and pushed " << count << " std::array<int, 100> in " << duration.count() << " sec" << endl;
-			
+			cout << "Rotated and copied " << count << " std::array<int, 100> in " << duration.count() << " sec" << endl;
+
+
+			// Test iterator
+			int countedSize = 0;
+			int last;
+			for (int curr : intBuffer) {
+				last = curr;
+				countedSize += 1;
+			}
+
+			TestAssert(countedSize == intBuffer.Size());
+			TestAssert(last == intBuffer.Back());
+
+			countedSize = 0;
+			for (auto curr = intBuffer.Begin(); curr != intBuffer.End().AddRounds(2); ++curr) {
+				countedSize += 1;
+			}
+
+			TestAssert(countedSize == intBuffer.Size()*3);
+		}
+		catch(std::exception& e) {
+			std::cerr << "ERROR: " << e.what() << std::endl;
+			return 1;
 		}
 		catch (...) {
 			return 1;

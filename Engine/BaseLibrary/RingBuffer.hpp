@@ -9,48 +9,72 @@ template <typename T, typename ContainerT = std::list<T>>
 class RingBuffer {
 protected:
 	using ContainerIter = typename ContainerT::iterator;
+	using ContainerConstIter = typename ContainerT::const_iterator;
 
-public:
-	class Iterator {
+
+	// template iterator to minimize code duplication for iterator and const iterator
+
+	template <typename IterContainerT, typename IterContainerIterT>
+	class TemplateIterator :
+		public std::iterator <
+			std::bidirectional_iterator_tag,
+			typename IterContainerIterT::value_type
+		>
+	{
 	public:
 		friend class RingBuffer;
 
-		T& operator*() {
+		value_type& operator*() {
 			return *m_nativeIterator;
 		}
-		Iterator& operator++() {
+		TemplateIterator& operator++() {
 			m_offset += 1;
 			m_nativeIterator = RotateFrontNative(*m_pContainer, m_nativeIterator);
 			return *this;
 		}
-		Iterator operator++(int) {
-			Iterator copy{*this};
+		TemplateIterator operator++(int) {
+			TemplateIterator copy{*this};
 			++(*this);
 			return copy;
 		}
-		Iterator& operator--() {
+		TemplateIterator& operator--() {
 			m_offset -= 1;
 			m_nativeIterator = RotateBackNative(*m_pContainer, m_nativeIterator);
 			return *this;
 		}
-		Iterator operator--(int) {
-			Iterator copy{*this};
+		TemplateIterator operator--(int) {
+			TemplateIterator copy{*this};
 			--(*this);
 			return copy;
 		}
-		bool operator!=(const Iterator& other) {
+		bool operator!=(const TemplateIterator& other) {
 			if (m_offset != other.m_offset) {
 				return true;
 			}
 			return false;
 		}
+		// Adds "count" number of rounds to the iterator.
+		// This means that in order to reach the resulting iterator
+		// one would have to go around the whole ring count more
+		// rounds compared to the iterator the function is called on.
+		// Count may be negative. In this case the function
+		// decrements round count.
+		TemplateIterator AddRounds(int32_t count) const {
+			TemplateIterator result{*this};
+			result.m_offset += count * m_pContainer->size();
+			return result;
+		}
 	protected:
-		ContainerT* m_pContainer;
-		ContainerIter m_nativeIterator;
+		IterContainerT* m_pContainer;
+		IterContainerIterT m_nativeIterator;
 		int64_t m_offset;
+	}; // TemplateIterator
 
-	}; // class Iterator
 
+public:
+
+	using Iterator = TemplateIterator<ContainerT, ContainerIter>;
+	using ConstIterator = TemplateIterator<const ContainerT, ContainerConstIter>;
 
 public:
 
@@ -101,6 +125,22 @@ public:
 		return endIter;
 	}
 
+	ConstIterator Begin() const {
+		ConstIterator beginIter;
+		beginIter.m_pContainer = &m_container;
+		beginIter.m_nativeIterator = m_currBegin;
+		beginIter.m_offset = m_currOffset;
+		return beginIter;
+	}
+
+	ConstIterator End() const {
+		ConstIterator endIter;
+		endIter.m_pContainer = &m_container;
+		endIter.m_nativeIterator = m_currBegin;
+		endIter.m_offset = m_currOffset + static_cast<int64_t>(m_container.size());
+		return endIter;
+	}
+
 
 	// Access
 
@@ -110,6 +150,14 @@ public:
 
 	const T& Front() const {
 		return *m_currBegin;
+	}
+
+	T& Back() {
+		return *RotateBackNative(m_container, m_currBegin);
+	}
+
+	const T& Back() const {
+		return *RotateBackNative(m_container, m_currBegin);
 	}
 
 
@@ -123,10 +171,19 @@ public:
 		m_currBegin = m_container.insert(m_currBegin, std::move(element));
 	}
 
+	void PopFront() {
+		m_currBegin = m_container.erase(m_currBegin);
+	}
+
 	/// After this function, the element at front will become the element at back
 	void RotateFront() {
 		m_currBegin = RotateFrontNative(m_container, m_currBegin);
 		m_currOffset += 1;
+	}
+
+	void RotateBack() {
+		m_currBegin = RotateBackNative(m_container, m_currBegin);
+		m_currOffset -= 1;
 	}
 
 protected:
@@ -135,7 +192,9 @@ protected:
 	int64_t m_currOffset;
 
 private:
-	static ContainerIter RotateFrontNative(ContainerT& container, ContainerIter target) {
+
+	template <typename Fun_ContainerT, typename Fun_IterT>
+	static Fun_IterT RotateFrontNative(Fun_ContainerT& container, Fun_IterT target) {
 		if (container.size() == 0) {
 			return target;
 		}
@@ -146,7 +205,8 @@ private:
 		return target;
 	}
 
-	static ContainerIter RotateBackNative(ContainerT& container, ContainerIter target) {
+	template <typename Fun_ContainerT, typename Fun_IterT>
+	static Fun_IterT RotateBackNative(Fun_ContainerT& container, Fun_IterT target) {
 		if (container.size() == 0) {
 			return target;
 		}
@@ -163,12 +223,22 @@ private:
 
 // begin and end for "range-based for"
 template<typename T, typename C>
-typename exc::RingBuffer<T, C>::Iterator begin(exc::RingBuffer<T, C>& buffer) {
+typename RingBuffer<T, C>::Iterator begin(RingBuffer<T, C>& buffer) {
 	return buffer.Begin();
 }
 
 template<typename T, typename C>
-typename exc::RingBuffer<T, C>::Iterator end(exc::RingBuffer<T, C>& buffer) {
+typename RingBuffer<T, C>::Iterator end(RingBuffer<T, C>& buffer) {
+	return buffer.End();
+}
+
+template<typename T, typename C>
+typename RingBuffer<T, C>::ConstIterator cbegin(const RingBuffer<T, C>& buffer) {
+	return buffer.Begin();
+}
+
+template<typename T, typename C>
+typename RingBuffer<T, C>::ConstIterator cend(const RingBuffer<T, C>& buffer) {
 	return buffer.End();
 }
 
