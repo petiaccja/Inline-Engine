@@ -53,23 +53,25 @@ public:
 	NodeIterator End();
 	NodeIterator AddNode(const std::string& fullName);
 	void Erase(NodeIterator node);
-	void AddLink(NodeIterator node1, int port1, NodeIterator node2, int port2);		
+	void AddLink(NodeIterator srcNode, int srcPort, NodeIterator dstNode, int dstPort);
+	void Unlink(NodeIterator node, int inputPort);
 
 	const lemon::ListDigraph& GetDependencyGraph() const { return m_dependencyGraph; }
-	const lemon::ListDigraph::NodeMap<exc::NodeBase*>& GetNodeMap() const { return m_dependencyGraphNodes; }
+	const lemon::ListDigraph::NodeMap<exc::NodeBase*>& GetNodeMap() const { return m_nodeMap; }
 	const lemon::ListDigraph& GetTaskGraph() const { return m_taskGraph; }
-	const lemon::ListDigraph::NodeMap<ElementaryTask>& GetTaskMap() const { return m_taskGraphMaps; }
+	const lemon::ListDigraph::NodeMap<ElementaryTask>& GetTaskMap() const { return m_taskMap; }
 
 	void CalculateTaskGraph_Dbg() { CalculateTaskGraph(); }
 private:
 	void CalculateTaskGraph();
 	void CalculateDependencies();
 
+	bool m_isTaskGraphDirty;
 
 	lemon::ListDigraph m_dependencyGraph;
-	lemon::ListDigraph::NodeMap<exc::NodeBase*> m_dependencyGraphNodes;
+	lemon::ListDigraph::NodeMap<exc::NodeBase*> m_nodeMap;
 	lemon::ListDigraph m_taskGraph;
-	lemon::ListDigraph::NodeMap<ElementaryTask> m_taskGraphMaps;
+	lemon::ListDigraph::NodeMap<ElementaryTask> m_taskMap;
 	
 	GraphicsNodeFactory* m_factory;
 };

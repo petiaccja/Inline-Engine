@@ -33,7 +33,7 @@ const exc::NodeBase& Pipeline::NodeIterator::operator*() {
 const exc::NodeBase* Pipeline::NodeIterator::operator->() {
 	assert(m_parent != nullptr);
 	assert(m_parent->m_dependencyGraph.valid(m_graphIt));
-	return (m_parent->m_dependencyGraphNodes[m_graphIt]);
+	return (m_parent->m_nodeMap[m_graphIt]);
 }
 
 
@@ -62,12 +62,16 @@ Pipeline::NodeIterator Pipeline::NodeIterator::operator++(int) {
 
 
 Pipeline::Pipeline()
-	: m_dependencyGraphNodes(m_dependencyGraph), m_taskGraphMaps(m_taskGraph)
+	: m_nodeMap(m_dependencyGraph), m_taskMap(m_taskGraph), m_isTaskGraphDirty(true)
 {}
+
+
 
 void Pipeline::CreateFromDescription(const std::string& jsonDescription) {
 	throw std::logic_error("not implemented yet");
 }
+
+
 
 void Pipeline::SetFactory(GraphicsNodeFactory* factory) {
 	m_factory = factory;
@@ -87,17 +91,25 @@ Pipeline::NodeIterator Pipeline::End() {
 }
 
 
+
 Pipeline::NodeIterator Pipeline::AddNode(const std::string& fullName) {
 	exc::NodeBase* node = m_factory->CreateNode(fullName);
 	if (node != nullptr) {
 		lemon::ListDigraph::Node graphNode = m_dependencyGraph.addNode();
-		m_dependencyGraphNodes[graphNode] = node;
+		m_nodeMap[graphNode] = node;
+
+		// Set task graph to dirty
+		m_isTaskGraphDirty = true;
+
+		// return iterator to newly added node
 		return NodeIterator(this, lemon::ListDigraph::NodeIt(m_dependencyGraph, graphNode));
 	}
 	else {
 		throw std::runtime_error("Failed to create node.");
 	}
 }
+
+
 
 void Pipeline::Erase(NodeIterator node) {
 	if (node != End()) {
@@ -108,7 +120,12 @@ void Pipeline::Erase(NodeIterator node) {
 		delete nodePtr;
 		m_dependencyGraph.erase(node.m_graphIt);
 	}
+
+	// Set task graph to dirty
+	m_isTaskGraphDirty = true;
 }
+
+
 
 void Pipeline::AddLink(NodeIterator srcNode, int srcPort, NodeIterator dstNode, int dstPort) {
 	// Get pointers
@@ -117,6 +134,13 @@ void Pipeline::AddLink(NodeIterator srcNode, int srcPort, NodeIterator dstNode, 
 
 	exc::OutputPortBase* srcPortPtr = srcPtr->GetOutput(srcPort);
 	exc::InputPortBase* dstPortPtr = dstPtr->GetInput(dstPort);
+
+	if (srcPortPtr == nullptr) {
+		throw std::invalid_argument("Source node doesn't have that many ports.");
+	}
+	if (dstPortPtr == nullptr) {
+		throw std::invalid_argument("Destination node doesn't have that many ports.");
+	}
 
 	// Link ports
 	bool success = srcPortPtr->Link(dstPortPtr);
@@ -130,7 +154,35 @@ void Pipeline::AddLink(NodeIterator srcNode, int srcPort, NodeIterator dstNode, 
 	if (existingArc == lemon::INVALID) {
 		m_dependencyGraph.addArc(srcNode.m_graphIt, dstNode.m_graphIt);
 	}
+
+	// Set task graph to dirty
+	m_isTaskGraphDirty = true;
 }
+
+
+
+void Pipeline::Unlink(NodeIterator node, int inputPort) {
+	// Get pointers to node and port
+	auto* nodePtr = const_cast<exc::NodeBase*>(node.operator->());
+	exc::InputPortBase* portPtr = nodePtr->GetInput(inputPort);
+	
+	if (portPtr == nullptr) {
+		throw std::invalid_argument("Node doesn't have that many ports.");
+	}
+
+	// Get link's other side
+	exc::OutputPortBase* linkedPort = portPtr->GetLink();
+
+	// TODO: 
+	//	remove arc if need be
+	//	this would be O(N), that's bad, do something about it
+
+	portPtr->Unlink();
+
+	// Set task graph to dirty
+	m_isTaskGraphDirty = true;
+}
+
 
 
 void Pipeline::CalculateTaskGraph() {
@@ -151,7 +203,7 @@ void Pipeline::CalculateTaskGraph() {
 	// Iterate over each node in dependency graph, which graph is NOT expanded
 	for (lemon::ListDigraph::NodeIt depNode(m_dependencyGraph); depNode != lemon::INVALID; ++depNode) {
 		// Get pipeline node of this graph node
-		exc::NodeBase* pipelineNode = m_dependencyGraphNodes[depNode];
+		exc::NodeBase* pipelineNode = m_nodeMap[depNode];
 		gxeng::GraphicsNode* graphicsPipelineNode = dynamic_cast<gxeng::GraphicsNode*>(pipelineNode);
 
 		// Generate a Task from the pipeline node
@@ -171,7 +223,7 @@ void Pipeline::CalculateTaskGraph() {
 		for (lemon::ListDigraph::NodeIt taskNode(task.m_nodes); taskNode != lemon::INVALID; ++taskNode) {
 			auto taskGraphNode = m_taskGraph.addNode(); // add new node
 			taskNodesToTaskGraphNodes[taskNode] = taskGraphNode; // map new node to task.m_nodes' corresponding node
-			m_taskGraphMaps[taskGraphNode] = task.m_subtasks[taskNode]; // assign subtask
+			m_taskMap[taskGraphNode] = task.m_subtasks[taskNode]; // assign subtask
 		}
 		// Copy arcs
 		for (lemon::ListDigraph::ArcIt arc(task.m_nodes); arc != lemon::INVALID; ++arc) {
@@ -261,8 +313,8 @@ void Pipeline::CalculateDependencies() {
 	// sidenote: the algorithm will not create duplicate arcs in the graph
 	for (lemon::ListDigraph::NodeIt outerIt(m_dependencyGraph); outerIt != lemon::INVALID; ++outerIt) {
 		for (auto innerIt = ++lemon::ListDigraph::NodeIt(outerIt); outerIt != lemon::INVALID; ++outerIt) {
-			exc::NodeBase* srcNode = m_dependencyGraphNodes[outerIt];
-			exc::NodeBase* dstNode = m_dependencyGraphNodes[innerIt];
+			exc::NodeBase* srcNode = m_nodeMap[outerIt];
+			exc::NodeBase* dstNode = m_nodeMap[innerIt];
 
 			// Check if there's ANY link going in ANY direction b/w above nodes
 			// FIRST direction
