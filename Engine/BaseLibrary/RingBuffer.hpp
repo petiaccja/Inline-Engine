@@ -80,7 +80,7 @@ public:
 
 	// Construction and assignement
 
-	RingBuffer() {
+	RingBuffer() : m_currOffset{0} {
 		m_currBegin = m_container.begin();
 	}
 
