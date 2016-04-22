@@ -11,9 +11,9 @@ DisposableConstBuffer::DisposableConstBuffer(ConstBufferPage* page, size_t offse
 	m_size{size}
 {}
 
-void DisposableConstBuffer::UploadData(void* data, size_t size) {
+void DisposableConstBuffer::UploadData(const void* data, size_t size) {
 	if (size > m_size) {
-		throw inl::gxapi::InvalidArgument("Data given to be uploaded exceeds size of buffer."
+		throw inl::gxapi::InvalidArgument("Data given to be uploaded exceeds size of buffer. "
 			"Data size: " + std::to_string(size) + ". "
 			"Buffer size: " + std::to_string(m_size) + ".");
 	}

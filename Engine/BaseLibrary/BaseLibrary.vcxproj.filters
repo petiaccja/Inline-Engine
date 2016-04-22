@@ -84,6 +84,9 @@
     <ClInclude Include="RingBuffer.hpp">
       <Filter>All</Filter>
     </ClInclude>
+    <ClInclude Include="ScalarLiterals.hpp">
+      <Filter>All</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Spinlock.cpp">

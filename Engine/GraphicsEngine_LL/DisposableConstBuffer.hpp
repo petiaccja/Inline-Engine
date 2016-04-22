@@ -17,7 +17,7 @@ public:
 	DisposableConstBuffer(DisposableConstBuffer&) = delete;
 	DisposableConstBuffer& operator=(DisposableConstBuffer&) = delete;
 
-	void UploadData(void* data, size_t size);
+	void UploadData(const void* data, size_t size);
 	void* GetGpuAddress();
 
 protected:

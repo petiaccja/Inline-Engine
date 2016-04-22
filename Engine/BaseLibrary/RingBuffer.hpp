@@ -53,6 +53,9 @@ protected:
 			}
 			return false;
 		}
+		bool operator==(const TemplateIterator& other) {
+			return !(*this != other);
+		}
 		// Adds "count" number of rounds to the iterator.
 		// This means that in order to reach the resulting iterator
 		// one would have to go around the whole ring count more
@@ -102,7 +105,7 @@ public:
 
 	// Properties
 
-	size_t Size() const {
+	size_t Count() const {
 		return m_container.size();
 	}
 

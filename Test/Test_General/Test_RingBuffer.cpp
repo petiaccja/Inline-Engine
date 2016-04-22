@@ -1,5 +1,6 @@
 #include "Test.hpp"
 
+#include <BaseLibrary/ScalarLiterals.hpp>
 #include <BaseLibrary/RingBuffer.hpp>
 
 #include <iostream>
@@ -43,7 +44,7 @@ public:
 	virtual int Run() override {
 
 		try {
-			const int count = 1e6;
+			const int count = 1_mega;
 
 			string containerName{typeid(container_type<void>).name()};
 			containerName = containerName.substr(0, containerName.find('<'));
@@ -94,7 +95,7 @@ public:
 			cout << "----" << endl;
 
 			std::vector<int> intVector;
-			intVector.reserve(intBuffer.Size());
+			intVector.reserve(intBuffer.Count());
 
 			duration = TimedExecution(
 				[&intBuffer, &intVector]() {
@@ -113,7 +114,7 @@ public:
 			////////////////////////////////
 
 			std::vector<std::array<int, 100>> arrayVector;
-			arrayVector.reserve(arrayBuffer.Size());
+			arrayVector.reserve(arrayBuffer.Count());
 
 			duration = TimedExecution(
 				[&arrayBuffer, &arrayVector]() {
@@ -136,7 +137,7 @@ public:
 				countedSize += 1;
 			}
 
-			TestAssert(countedSize == intBuffer.Size());
+			TestAssert(countedSize == intBuffer.Count());
 			TestAssert(last == intBuffer.Back());
 
 			countedSize = 0;
@@ -144,7 +145,7 @@ public:
 				countedSize += 1;
 			}
 
-			TestAssert(countedSize == intBuffer.Size()*3);
+			TestAssert(countedSize == intBuffer.Count()*3);
 		}
 		catch(std::exception& e) {
 			std::cerr << "ERROR: " << e.what() << std::endl;

@@ -1,5 +1,7 @@
 #include "ConstBufferPage.hpp"
 
+#include <cassert>
+
 namespace inl {
 namespace gxeng {
 
@@ -11,7 +13,9 @@ ConstBufferPage::ConstBufferPage(std::unique_ptr<gxapi::IResource const>&& repre
 	m_pageSize{pageSize},
 	m_consumedSize(0),
 	m_age(0)
-{}
+{
+	assert(m_representedMemory->GetDesc().bufferDesc.sizeInBytes == m_pageSize);
+}
 
 
 void* ConstBufferPage::GetCpuAddress() const {

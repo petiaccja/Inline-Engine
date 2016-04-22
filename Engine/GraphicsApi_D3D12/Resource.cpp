@@ -15,7 +15,7 @@ ID3D12Resource* Resource::GetNative() {
 }
 
 
-gxapi::ResourceDesc Resource::GetDesc() {
+gxapi::ResourceDesc Resource::GetDesc() const {
 	return native_cast(m_native->GetDesc());
 }
 

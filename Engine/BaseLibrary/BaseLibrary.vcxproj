@@ -154,6 +154,7 @@
     <ClInclude Include="Graph\Node_Logic.hpp" />
     <ClInclude Include="Graph\Node_MathFunctions.hpp" />
     <ClInclude Include="Graph\Port.hpp" />
+    <ClInclude Include="ScalarLiterals.hpp" />
     <ClInclude Include="Logging\Event.hpp" />
     <ClInclude Include="Logging\EventEntry.hpp" />
     <ClInclude Include="Logging\LogCentre.hpp" />

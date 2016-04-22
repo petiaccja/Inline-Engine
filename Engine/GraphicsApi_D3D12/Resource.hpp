@@ -19,7 +19,7 @@ public:
 
 	ID3D12Resource* GetNative();
 
-	gxapi::ResourceDesc GetDesc() override;
+	gxapi::ResourceDesc GetDesc() const override;
 	void* Map(unsigned subresourceIndex, const gxapi::MemoryRange* readRange = nullptr) override;
 	void Unmap(unsigned subresourceIndex, const gxapi::MemoryRange* writtenRange = nullptr) override;
 	void* GetGPUAddress() override;
