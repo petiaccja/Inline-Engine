@@ -12,6 +12,7 @@
 namespace inl {
 namespace gxeng {
 
+using namespace exc::prefix;
 
 class ConstBufferManager {
 public:

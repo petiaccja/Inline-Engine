@@ -1,21 +1,25 @@
 #pragma once
 
+namespace exc {
+namespace prefix {
+
+
 ////////////////////////////////
 // SI UNITS
 
-constexpr long double operator "" _mili(long double x) {
+constexpr long double operator "" _milli(long double x) {
 	return x * 0.001l;
 }
-constexpr long double operator "" _mili(unsigned long long x) {
+constexpr long double operator "" _milli(unsigned long long x) {
 	return x * 0.001l;
 }
 
 
 constexpr long double operator "" _micro(long double x) {
-	return x * 0.001_mili;
+	return x * 0.001_milli;
 }
 constexpr long double operator "" _micro(unsigned long long x) {
-	return x * 0.001_mili;
+	return x * 0.001_milli;
 }
 
 
@@ -85,4 +89,8 @@ constexpr long long operator "" _Gi(unsigned long long x) {
 
 constexpr long long operator "" _Ti(unsigned long long x) {
 	return x * 1024_Gi;
+}
+
+
+}
 }

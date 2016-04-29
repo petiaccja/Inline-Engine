@@ -9,6 +9,7 @@
 #include <array>
 
 using namespace std;
+using namespace exc::prefix;
 using exc::RingBuffer;
 using std::chrono::high_resolution_clock;
 
@@ -44,7 +45,7 @@ public:
 	virtual int Run() override {
 
 		try {
-			const int count = 1_mega;
+			constexpr int count = int(1_mega);
 
 			string containerName{typeid(container_type<void>).name()};
 			containerName = containerName.substr(0, containerName.find('<'));
