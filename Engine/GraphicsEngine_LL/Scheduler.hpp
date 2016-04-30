@@ -10,10 +10,13 @@ namespace gxeng {
 
 class Scheduler {
 public:
+	// don't let anyone else 'own' the pipeline
+	void SetPipeline(Pipeline&& pipeline);
+	const Pipeline& GetPipeline() const;
 
-
+	void Execute();
 private:
-	Pipeline* pipeline;
+	Pipeline m_pipeline;
 };
 
 

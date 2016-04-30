@@ -117,9 +117,9 @@ int TestPipeline::Run() {
 	cout << "Creating pipeline..." << endl;
 
 	Pipeline pipeline;
-	pipeline.SetFactory(&factory);
 
 	try {
+		/*
 		// add nodes to pipeline
 		for (int i = 0; i < 5; i++) {
 			auto it = pipeline.AddNode("TestNode");
@@ -189,6 +189,7 @@ int TestPipeline::Run() {
 		}
 		Graphviz(pipeline.GetTaskGraph(), taskLabel, file);
 		file.close();
+		*/
 	}
 	catch (std::exception& ex) {
 		cout << "Failed to create pipeline: " << ex.what() << endl;

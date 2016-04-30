@@ -11,6 +11,7 @@
 #pragma warning(disable: 4267)
 #endif
 
+#include <lemon/euler.h>
 #include <lemon/list_graph.h>
 
 #ifdef _MSC_VER
@@ -49,22 +50,24 @@ public:
 		Pipeline* m_parent;
 	};
 
+
+	using DynamicDeleter = std::default_delete<exc::NodeBase>; // calls delete
+	using NoDeleter = struct { void operator()(exc::NodeBase*) { return; } }; // does nothing
 public:
 	Pipeline();
-	~Pipeline() = default;
+	Pipeline(const Pipeline&) = delete;
+	Pipeline(Pipeline&&);
+	Pipeline& operator=(const Pipeline&) = delete;
+	Pipeline& operator=(Pipeline&&);
+	~Pipeline();
 
-	void CreateFromDescription(const std::string& jsonDescription);
-
-	void SetFactory(GraphicsNodeFactory* factory);
-	GraphicsNodeFactory* GetFactory() const;
-
+	void CreateFromDescription(const std::string& jsonDescription, GraphicsNodeFactory& factory);
+	template <class Deleter> 
+	void CreateFromNodesList(const std::vector<exc::NodeBase*> nodes, Deleter nodeDeleter);
+	void Clear();
 
 	NodeIterator Begin();
 	NodeIterator End();
-	NodeIterator AddNode(const std::string& fullName);
-	void Erase(NodeIterator node);
-	void AddLink(NodeIterator srcNode, int srcPort, NodeIterator dstNode, int dstPort);
-	void Unlink(NodeIterator node, int inputPort);
 
 	const lemon::ListDigraph& GetDependencyGraph() const;
 	const lemon::ListDigraph::NodeMap<exc::NodeBase*>& GetNodeMap() const;
@@ -75,22 +78,56 @@ public:
 	void AddNodeMetaData();
 	template <class T>
 	void AddArcMetaData();
-
-	void CalculateTaskGraph_Dbg() { CalculateTaskGraph(); }
 private:
-	void CalculateTaskGraph() const; // const because m_taskGraph is lazy-evaluated, but GetTG should be const
-	void CalculateDependencies();
+	void CalculateTaskGraph();
+	void CalculateDependencyGraph();
 	bool IsLinked(exc::NodeBase* srcNode, exc::NodeBase* dstNode);
-
-	bool m_isTaskGraphDirty;
 
 	lemon::ListDigraph m_dependencyGraph;
 	lemon::ListDigraph::NodeMap<exc::NodeBase*> m_nodeMap;
-	mutable lemon::ListDigraph m_taskGraph;
-	mutable lemon::ListDigraph::NodeMap<ElementaryTask> m_taskMap;
-	
-	GraphicsNodeFactory* m_factory;
+	lemon::ListDigraph m_taskGraph;
+	lemon::ListDigraph::NodeMap<ElementaryTask> m_taskMap;
+
+	std::function<void(exc::NodeBase*)> m_nodeDeleter;
 };
+
+
+template <class Deleter>
+void Pipeline::CreateFromNodesList(const std::vector<exc::NodeBase*> nodes, Deleter nodeDeleter) {
+	// assign pipeline nodes to graph nodes
+	try {
+		for (auto pipelineNode : nodes) {
+			lemon::ListDigraph::Node graphNode = m_dependencyGraph.addNode();
+			m_nodeMap[graphNode] = pipelineNode;
+		}
+	}
+	catch (...) {
+		for (auto pipelineNode : nodes) {
+			nodeDeleter(pipelineNode);
+		}
+		throw;
+	}
+
+	// save deleter
+	m_nodeDeleter = nodeDeleter;
+
+	// calculate graphs
+	try {
+		CalculateDependencyGraph();
+		CalculateTaskGraph();
+	}
+	catch (...) {
+		Clear();
+		throw;
+	}
+
+	// check if graphs are DAGs
+	// note: if task graph is a DAG => dep. graph must be a DAG
+	bool isTaskGraphDAG = lemon::dag(m_taskGraph);
+	if (!isTaskGraphDAG) {
+		throw std::invalid_argument("Supplied nodes do not make a directed acyclic graph.");
+	}
+}
 
 
 

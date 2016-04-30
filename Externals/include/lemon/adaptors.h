@@ -3449,23 +3449,23 @@ namespace lemon {
     /// Its value type is inherited from the first node map type (\c IN).
     /// \tparam IN The type of the node map for the in-nodes.
     /// \tparam OUT The type of the node map for the out-nodes.
-    template <typename IN, typename OUT>
+    template <typename InputType, typename OutputType>
     class CombinedNodeMap {
     public:
 
       /// The key type of the map
       typedef Node Key;
       /// The value type of the map
-      typedef typename IN::Value Value;
+      typedef typename InputType::Value Value;
 
-      typedef typename MapTraits<IN>::ReferenceMapTag ReferenceMapTag;
-      typedef typename MapTraits<IN>::ReturnValue ReturnValue;
-      typedef typename MapTraits<IN>::ConstReturnValue ConstReturnValue;
-      typedef typename MapTraits<IN>::ReturnValue Reference;
-      typedef typename MapTraits<IN>::ConstReturnValue ConstReference;
+      typedef typename MapTraits<InputType>::ReferenceMapTag ReferenceMapTag;
+      typedef typename MapTraits<InputType>::ReturnValue ReturnValue;
+      typedef typename MapTraits<InputType>::ConstReturnValue ConstReturnValue;
+      typedef typename MapTraits<InputType>::ReturnValue Reference;
+      typedef typename MapTraits<InputType>::ConstReturnValue ConstReference;
 
       /// Constructor
-      CombinedNodeMap(IN& in_map, OUT& out_map)
+      CombinedNodeMap(InputType& in_map, OutputType& out_map)
         : _in_map(in_map), _out_map(out_map) {}
 
       /// Returns the value associated with the given key.
@@ -3497,8 +3497,8 @@ namespace lemon {
 
     private:
 
-      IN& _in_map;
-      OUT& _out_map;
+      InputType& _in_map;
+      OutputType& _out_map;
 
     };
 
@@ -3506,28 +3506,28 @@ namespace lemon {
     /// \brief Returns a combined node map
     ///
     /// This function just returns a combined node map.
-    template <typename IN, typename OUT>
-    static CombinedNodeMap<IN, OUT>
-    combinedNodeMap(IN& in_map, OUT& out_map) {
-      return CombinedNodeMap<IN, OUT>(in_map, out_map);
+    template <typename InputType, typename OutputType>
+    static CombinedNodeMap<InputType, OutputType>
+    combinedNodeMap(InputType& in_map, OutputType& out_map) {
+      return CombinedNodeMap<InputType, OutputType>(in_map, out_map);
     }
 
-    template <typename IN, typename OUT>
-    static CombinedNodeMap<const IN, OUT>
-    combinedNodeMap(const IN& in_map, OUT& out_map) {
-      return CombinedNodeMap<const IN, OUT>(in_map, out_map);
+    template <typename InputType, typename OutputType>
+    static CombinedNodeMap<const InputType, OutputType>
+    combinedNodeMap(const InputType& in_map, OutputType& out_map) {
+      return CombinedNodeMap<const InputType, OutputType>(in_map, out_map);
     }
 
-    template <typename IN, typename OUT>
-    static CombinedNodeMap<IN, const OUT>
-    combinedNodeMap(IN& in_map, const OUT& out_map) {
-      return CombinedNodeMap<IN, const OUT>(in_map, out_map);
+    template <typename InputType, typename OutputType>
+    static CombinedNodeMap<InputType, const OutputType>
+    combinedNodeMap(InputType& in_map, const OutputType& out_map) {
+      return CombinedNodeMap<InputType, const OutputType>(in_map, out_map);
     }
 
-    template <typename IN, typename OUT>
-    static CombinedNodeMap<const IN, const OUT>
-    combinedNodeMap(const IN& in_map, const OUT& out_map) {
-      return CombinedNodeMap<const IN, const OUT>(in_map, out_map);
+    template <typename InputType, typename OutputType>
+    static CombinedNodeMap<const InputType, const OutputType>
+    combinedNodeMap(const InputType& in_map, const OutputType& out_map) {
+      return CombinedNodeMap<const InputType, const OutputType>(in_map, out_map);
     }
 
     /// \brief Arc map combined from an arc map and a node map of the
