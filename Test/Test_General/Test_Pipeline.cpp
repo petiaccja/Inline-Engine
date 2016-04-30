@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <GraphicsEngine_LL/Scheduler.hpp>
 
 using namespace std;
 using namespace inl::gxeng;
@@ -25,12 +26,14 @@ public:
 	static std::vector<std::string> Info_GetOutputNames() { return{ "out" }; }
 
 	virtual void Update() override {
-		auto input = GetInput<0>();
+		auto input1 = GetInput<0>();
+		auto input2 = GetInput<1>();
 		auto output = GetOutput<0>();
-		auto inputValue = input.Get();
-		output.Set(inputValue + 1);
+		auto inputValue = input1.Get() + input2.Get() + 1;
+		output.Set(inputValue);
 		cout << "id = " << id << ", " << "value = " << inputValue << endl;
 	}
+
 	virtual void Notify(InputPortBase*) override {
 
 	}
@@ -45,27 +48,38 @@ public:
 	static std::vector<std::string> Info_GetOutputNames() { return{ "out" }; }
 
 	void Update() override {
-		auto input = GetInput<0>();
-		auto output = GetOutput<0>();
-		auto inputValue = input.Get();
-		output.Set(inputValue + 1);
-		cout << "id = " << id << ", " << "value = " << inputValue << endl;
+		auto input1 = GetInput<0>();
+		auto input2 = GetInput<1>();
+		value = input1.Get() + input2.Get();
+		cout << "id = " << id << ", " << "value = " << value << endl;
+		GetOutput<0>().Set(value);
 	}
+
 	void Notify(InputPortBase*) override {
 
 	}
-	ExecutionResult DoNothing(ExecutionContext) {
-		// do nothing
+
+	ExecutionResult DoSomething(ExecutionContext) {
+		++value;
+
+		auto input1 = GetInput<0>();
+		auto input2 = GetInput<1>();
+		int sum = input1.Get() + input2.Get() + value;
+		GetOutput<0>().Set(sum);
+		cout << "id = " << id << ", " << "value = " << sum << endl;
 		return ExecutionResult{};
 	}
+
 	Task GetTask() override {
 		return Task{ {
-				ElementaryTask([this](ExecutionContext ctx) { return DoNothing(ctx); }),
-				ElementaryTask([this](ExecutionContext ctx) { return DoNothing(ctx); }),
-				ElementaryTask([this](ExecutionContext ctx) { return DoNothing(ctx); }),
-				ElementaryTask([this](ExecutionContext ctx) { return DoNothing(ctx); }),
+				ElementaryTask([this](ExecutionContext ctx) { return DoSomething(ctx); }),
+				ElementaryTask([this](ExecutionContext ctx) { return DoSomething(ctx); }),
+				ElementaryTask([this](ExecutionContext ctx) { return DoSomething(ctx); }),
+				ElementaryTask([this](ExecutionContext ctx) { return DoSomething(ctx); }),
 		} };
 	}
+private:
+	int value = 0;
 };
 
 
@@ -117,43 +131,50 @@ int TestPipeline::Run() {
 	cout << "Creating pipeline..." << endl;
 
 	Pipeline pipeline;
+	Scheduler scheduler;
 
-	try {
-		/*
-		// add nodes to pipeline
-		for (int i = 0; i < 5; i++) {
-			auto it = pipeline.AddNode("TestNode");
-			dynamic_cast<const TestNode&>(*it).id = i;
-		}
-		{
-			auto itSp = pipeline.AddNode("TestGraphicsNode");
-			dynamic_cast<const TestGraphicsNode&>(*itSp).id = 100;
-			itSp = pipeline.AddNode("TestGraphicsNode");
-			dynamic_cast<const TestGraphicsNode&>(*itSp).id = 101;
-		}
+	try {		
+		// create a few nodes
+		TestNode node0, node1, node2, node3, node4;
+		TestGraphicsNode gnode0, gnode1;
 
-		// sort nodes by id
-		std::vector<Pipeline::NodeIterator> nodes;
-		for (auto it = pipeline.Begin(); it != pipeline.End(); ++it) {
-			nodes.push_back(it);
-		}
-		std::sort(nodes.begin(), nodes.end(), [](auto lhs, auto rhs) {
-			return dynamic_cast<const TestNode&>(*lhs).id < dynamic_cast<const TestNode&>(*rhs).id;
-		});
-		for (auto& node : nodes) {
-			//cout << dynamic_cast<const TestNode&>(*node).id << endl;
-		}
+		node0.id = 0;
+		node1.id = 1;
+		node2.id = 2;
+		node3.id = 3;
+		node4.id = 4;
+		gnode0.id = 100;
+		gnode1.id = 101;
+
+		node0.GetInput<0>().Set(0);
+		node0.GetInput<1>().Set(0);
+		node1.GetInput<0>().Set(0);
+		node1.GetInput<1>().Set(0);
+		node2.GetInput<0>().Set(0);
+		node2.GetInput<1>().Set(0);
+		node3.GetInput<0>().Set(0);
+		node3.GetInput<1>().Set(0);
+		node4.GetInput<0>().Set(0);
+		node4.GetInput<1>().Set(0);
+
+		gnode0.GetInput<0>().Set(0);
+		gnode0.GetInput<1>().Set(0);
+		gnode1.GetInput<0>().Set(0);
+		gnode1.GetInput<1>().Set(0);
 
 		// add a few links
-		pipeline.AddLink(nodes[0], 0, nodes[1], 0);
-		pipeline.AddLink(nodes[0], 0, nodes[2], 0);
-		pipeline.AddLink(nodes[0], 0, nodes[2], 1);
-		pipeline.AddLink(nodes[1], 0, nodes[5], 0);
-		pipeline.AddLink(nodes[2], 0, nodes[3], 0);
-		pipeline.AddLink(nodes[5], 0, nodes[4], 0);
-		pipeline.AddLink(nodes[2], 0, nodes[5], 1);
-		pipeline.AddLink(nodes[3], 0, nodes[4], 1);
-		pipeline.AddLink(nodes[4], 0, nodes[6], 0);
+		node0.GetOutput(0)->Link(node1.GetInput(0));
+		node0.GetOutput(0)->Link(node2.GetInput(0));
+		node0.GetOutput(0)->Link(node2.GetInput(1));
+		node1.GetOutput(0)->Link(gnode0.GetInput(0));
+		node2.GetOutput(0)->Link(node3.GetInput(0));
+		gnode0.GetOutput(0)->Link(node4.GetInput(0));
+		node2.GetOutput(0)->Link(gnode0.GetInput(1));
+		node3.GetOutput(0)->Link(node4.GetInput(1));
+		node4.GetOutput(0)->Link(gnode1.GetInput(0));
+
+		// create pipeline
+		pipeline.CreateFromNodesList({&node0, &node1, &node2, &node3, &node4, &gnode0, &gnode1}, Pipeline::NoDeleter());
 
 		// draw dependency graph
 		ofstream file("depgraph.dot");
@@ -174,22 +195,22 @@ int TestPipeline::Run() {
 		Graphviz(pipeline.GetDependencyGraph(), labelMap, file);
 		file.close();
 
-		// create task graph
-		pipeline.CalculateTaskGraph_Dbg();
-
 		// draw task graph
 		file.open("taskgraph.dot");
 		lemon::ListDigraph::NodeMap<std::string> taskLabel(pipeline.GetTaskGraph());
 		int taskIndex = 0;
 		for (lemon::ListDigraph::NodeIt node(pipeline.GetTaskGraph()); node != lemon::INVALID; ++node) {
-			bool isDummyTask = !(bool)pipeline.GetTaskMap()[node];
+			bool isDummyTask = !(bool)pipeline.GetTaskFunctionMap()[node];
 			stringstream ss;
 			ss << (isDummyTask ? "dummy_" : "") << "task_" << taskIndex++;
 			taskLabel[node] = ss.str();
 		}
 		Graphviz(pipeline.GetTaskGraph(), taskLabel, file);
 		file.close();
-		*/
+
+		// execute pipeline
+		scheduler.SetPipeline(std::move(pipeline));
+		scheduler.Execute();
 	}
 	catch (std::exception& ex) {
 		cout << "Failed to create pipeline: " << ex.what() << endl;

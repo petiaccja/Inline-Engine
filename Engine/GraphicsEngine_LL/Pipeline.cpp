@@ -61,8 +61,10 @@ Pipeline::NodeIterator Pipeline::NodeIterator::operator++(int) {
 
 
 Pipeline::Pipeline()
-	: m_nodeMap(m_dependencyGraph), m_taskMap(m_taskGraph)
-{}
+	: m_nodeMap(m_dependencyGraph), m_taskFunctionMap(m_taskGraph), m_taskParentMap(m_taskGraph, lemon::INVALID)
+{
+	m_nodeDeleter = NoDeleter();
+}
 
 
 Pipeline::Pipeline(Pipeline&& rhs) : Pipeline() {
@@ -74,7 +76,8 @@ Pipeline::Pipeline(Pipeline&& rhs) : Pipeline() {
 
 	lemon::DigraphCopy<decltype(rhs.m_taskGraph), decltype(this->m_taskGraph)>
 		taskCopy(rhs.m_taskGraph, this->m_taskGraph);
-	taskCopy.nodeMap(rhs.m_taskMap, this->m_taskMap);
+	taskCopy.nodeMap(rhs.m_taskFunctionMap, this->m_taskFunctionMap);
+	taskCopy.nodeMap(rhs.m_taskParentMap, this->m_taskParentMap);
 	taskCopy.run();
 
 	// clear rhs's stuff
@@ -111,6 +114,7 @@ void Pipeline::Clear() {
 	}
 	m_dependencyGraph.clear();
 	m_taskGraph.clear();
+	m_nodeDeleter = NoDeleter();
 }
 
 
@@ -140,7 +144,7 @@ void Pipeline::CalculateTaskGraph() {
 
 	lemon::ListDigraph::NodeMap<SourceSinkMapping> sourceSinkMapping(m_dependencyGraph); // map targets are in m_taskGraph
 
-	// Iterate over each node in dependency graph, which graph is NOT expanded
+	// Iterate over each node in dependency graph
 	for (lemon::ListDigraph::NodeIt depNode(m_dependencyGraph); depNode != lemon::INVALID; ++depNode) {
 		// Get pipeline node of this graph node
 		exc::NodeBase* pipelineNode = m_nodeMap[depNode];
@@ -163,7 +167,9 @@ void Pipeline::CalculateTaskGraph() {
 		for (lemon::ListDigraph::NodeIt taskNode(task.m_nodes); taskNode != lemon::INVALID; ++taskNode) {
 			auto taskGraphNode = m_taskGraph.addNode(); // add new node
 			taskNodesToTaskGraphNodes[taskNode] = taskGraphNode; // map new node to task.m_nodes' corresponding node
-			m_taskMap[taskGraphNode] = task.m_subtasks[taskNode]; // assign subtask
+
+			m_taskFunctionMap[taskGraphNode] = task.m_subtasks[taskNode]; // assign subtask
+			m_taskParentMap[taskGraphNode] = depNode; // assign parent of subtask
 		}
 		// Copy arcs
 		for (lemon::ListDigraph::ArcIt arc(task.m_nodes); arc != lemon::INVALID; ++arc) {
@@ -194,6 +200,7 @@ void Pipeline::CalculateTaskGraph() {
 		// If there are multiple sources, reduce them to one
 		if (sources.size() > 1) {
 			sourceSinkMapForCurrentNode.source = m_taskGraph.addNode();
+			m_taskParentMap[sourceSinkMapForCurrentNode.source] = lemon::INVALID;
 			for (auto& source : sources) {
 				m_taskGraph.addArc(sourceSinkMapForCurrentNode.source, source);
 			}
@@ -204,6 +211,7 @@ void Pipeline::CalculateTaskGraph() {
 		// If there are multiple sinks, reduce them to one
 		if (sinks.size() > 1) {
 			sourceSinkMapForCurrentNode.sink = m_taskGraph.addNode();
+			m_taskParentMap[sourceSinkMapForCurrentNode.sink] = lemon::INVALID;
 			for (auto& sink : sinks) {
 				m_taskGraph.addArc(sink, sourceSinkMapForCurrentNode.sink);
 			}
@@ -237,7 +245,7 @@ void Pipeline::CalculateDependencyGraph() {
 	// Add all arcs to the graph accoring to inputPort->outputPort linkage
 	// sidenote: the algorithm will not create duplicate arcs in the graph
 	for (lemon::ListDigraph::NodeIt outerIt(m_dependencyGraph); outerIt != lemon::INVALID; ++outerIt) {
-		for (auto innerIt = ++lemon::ListDigraph::NodeIt(outerIt); outerIt != lemon::INVALID; ++outerIt) {
+		for (auto innerIt = ++lemon::ListDigraph::NodeIt(outerIt); innerIt != lemon::INVALID; ++innerIt) {
 			exc::NodeBase* srcNode = m_nodeMap[outerIt];
 			exc::NodeBase* dstNode = m_nodeMap[innerIt];
 
@@ -283,8 +291,12 @@ const lemon::ListDigraph::NodeMap<exc::NodeBase*>& Pipeline::GetNodeMap() const 
 const lemon::ListDigraph& Pipeline::GetTaskGraph() const {
 	return m_taskGraph;
 }
-const lemon::ListDigraph::NodeMap<ElementaryTask>& Pipeline::GetTaskMap() const {
-	return m_taskMap;
+const lemon::ListDigraph::NodeMap<ElementaryTask>& Pipeline::GetTaskFunctionMap() const {
+	return m_taskFunctionMap;
+}
+
+const lemon::ListDigraph::NodeMap<lemon::ListDigraph::NodeIt>& Pipeline::GetTaskParentMap() const {
+	return m_taskParentMap;
 }
 
 

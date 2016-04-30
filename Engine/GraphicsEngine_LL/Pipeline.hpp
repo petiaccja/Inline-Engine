@@ -72,8 +72,9 @@ public:
 	const lemon::ListDigraph& GetDependencyGraph() const;
 	const lemon::ListDigraph::NodeMap<exc::NodeBase*>& GetNodeMap() const;
 	const lemon::ListDigraph& GetTaskGraph() const;
-	const lemon::ListDigraph::NodeMap<ElementaryTask>& GetTaskMap() const;
-
+	const lemon::ListDigraph::NodeMap<ElementaryTask>& GetTaskFunctionMap() const;
+	const lemon::ListDigraph::NodeMap<lemon::ListDigraph::NodeIt>& GetTaskParentMap() const;
+	
 	template <class T>
 	void AddNodeMetaData();
 	template <class T>
@@ -86,7 +87,8 @@ private:
 	lemon::ListDigraph m_dependencyGraph;
 	lemon::ListDigraph::NodeMap<exc::NodeBase*> m_nodeMap;
 	lemon::ListDigraph m_taskGraph;
-	lemon::ListDigraph::NodeMap<ElementaryTask> m_taskMap;
+	lemon::ListDigraph::NodeMap<ElementaryTask> m_taskFunctionMap;
+	lemon::ListDigraph::NodeMap<lemon::ListDigraph::NodeIt> m_taskParentMap;
 
 	std::function<void(exc::NodeBase*)> m_nodeDeleter;
 };
