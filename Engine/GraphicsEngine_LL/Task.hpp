@@ -3,7 +3,20 @@
 #include "../GraphicsApi_LL/ICommandList.hpp"
 
 #include <functional>
+
+
+#ifdef _MSC_VER // disable lemon warnings
+#pragma warning(push)
+#pragma warning(disable: 4267)
+#endif
+
 #include <lemon/list_graph.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+
 
 namespace inl {
 namespace gxeng {

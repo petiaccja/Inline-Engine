@@ -167,6 +167,7 @@
     <ClInclude Include="Material.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="Pipeline.hpp" />
+    <ClInclude Include="PipelineMetaData.hpp" />
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Scheduler.hpp" />
     <ClInclude Include="SmallBufferHeap.hpp" />
@@ -185,6 +186,7 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Pipeline.cpp" />
+    <ClCompile Include="PipelineMetaData.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Scheduler.cpp" />
     <ClCompile Include="SmallBufferHeap.cpp" />

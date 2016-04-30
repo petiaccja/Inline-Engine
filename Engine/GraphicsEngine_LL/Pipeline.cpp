@@ -6,8 +6,16 @@
 #include <cassert>
 #include <map>
 
+#ifdef _MSC_VER // disable lemon warnings
+#pragma warning(push)
+#pragma warning(disable: 4267)
+#endif
+
 #include <lemon/dfs.h>
 
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 
 namespace inl {
@@ -165,19 +173,27 @@ void Pipeline::Unlink(NodeIterator node, int inputPort) {
 	// Get pointers to node and port
 	auto* nodePtr = const_cast<exc::NodeBase*>(node.operator->());
 	exc::InputPortBase* portPtr = nodePtr->GetInput(inputPort);
-	
+
 	if (portPtr == nullptr) {
 		throw std::invalid_argument("Node doesn't have that many ports.");
 	}
 
 	// Get link's other side
 	exc::OutputPortBase* linkedPort = portPtr->GetLink();
-
-	// TODO: 
-	//	remove arc if need be
-	//	this would be O(N), that's bad, do something about it
-
 	portPtr->Unlink();
+
+	// Iterate over prev nodes in dependency graph, and check only those for false dependency
+	lemon::ListDigraph::InArcIt inArc(m_dependencyGraph, node.m_graphIt);
+	while (inArc != lemon::INVALID) {
+		if (!IsLinked(m_nodeMap[m_dependencyGraph.source(inArc)], m_nodeMap[node.m_graphIt])) {
+			m_dependencyGraph.erase(inArc);
+
+			// there must not be more false dependency (we removed them earlier)
+			// there must also not be double arcs
+			// therefore: we can break since loop will do nothing from now on
+			break;
+		}
+	}
 
 	// Set task graph to dirty
 	m_isTaskGraphDirty = true;
@@ -185,7 +201,7 @@ void Pipeline::Unlink(NodeIterator node, int inputPort) {
 
 
 
-void Pipeline::CalculateTaskGraph() {
+void Pipeline::CalculateTaskGraph() const {
 	// This structure is used to assign 
 	//		{source,sink} pairs in m_taskGraph
 	//		to
@@ -284,6 +300,7 @@ void Pipeline::CalculateTaskGraph() {
 }
 
 
+
 void Pipeline::CalculateDependencies() {
 	// Erase all arcs from the graph
 	lemon::ListDigraph::ArcIt arcIt(m_dependencyGraph);
@@ -292,22 +309,6 @@ void Pipeline::CalculateDependencies() {
 		++arcIt;
 		m_dependencyGraph.erase(deleteMe);
 	}
-
-
-	// Check if there's any link between two pipeline nodes
-	auto IsLinked = [](exc::NodeBase* srcNode, exc::NodeBase* dstNode)	-> bool {
-		for (size_t dstIn = 0; dstIn < dstNode->GetNumInputs(); dstIn++) {
-			exc::OutputPortBase* linked = dstNode->GetInput(dstIn)->GetLink();
-			for (size_t srcOut = 0; srcOut < srcNode->GetNumOutputs(); srcOut++) {
-				if (linked == srcNode->GetOutput(srcOut)) {
-					// a link from srcNode to dstNode was found!
-					return true;
-				}
-			}
-		}
-		// no link found
-		return false;
-	};
 
 	// Add all arcs to the graph accoring to inputPort->outputPort linkage
 	// sidenote: the algorithm will not create duplicate arcs in the graph
@@ -325,12 +326,46 @@ void Pipeline::CalculateDependencies() {
 
 			// REVERSE direction; FLIP nodes
 			if (IsLinked(dstNode, srcNode)) {
-				// a link from srcNode to dstNode was found, add an arc
-				m_dependencyGraph.addArc(outerIt, innerIt);
+				// a link from dstNode to srcNode was found, add an arc
+				m_dependencyGraph.addArc(innerIt, outerIt);
 			}
 		}
 	}
 }
+
+
+bool Pipeline::IsLinked(exc::NodeBase* srcNode, exc::NodeBase* dstNode) {
+	for (size_t dstIn = 0; dstIn < dstNode->GetNumInputs(); dstIn++) {
+		exc::OutputPortBase* linked = dstNode->GetInput(dstIn)->GetLink();
+		for (size_t srcOut = 0; srcOut < srcNode->GetNumOutputs(); srcOut++) {
+			if (linked == srcNode->GetOutput(srcOut)) {
+				// a link from srcNode to dstNode was found!
+				return true;
+			}
+		}
+	}
+	// no link found
+	return false;
+}
+
+
+const lemon::ListDigraph& Pipeline::GetDependencyGraph() const {
+	return m_dependencyGraph;
+}
+const lemon::ListDigraph::NodeMap<exc::NodeBase*>& Pipeline::GetNodeMap() const {
+	return m_nodeMap;
+}
+
+const lemon::ListDigraph& Pipeline::GetTaskGraph() const {
+	if (m_isTaskGraphDirty) {
+		CalculateTaskGraph();
+	}
+	return m_taskGraph;
+}
+const lemon::ListDigraph::NodeMap<ElementaryTask>& Pipeline::GetTaskMap() const {
+	return m_taskMap;
+}
+
 
 
 } // namespace gxeng

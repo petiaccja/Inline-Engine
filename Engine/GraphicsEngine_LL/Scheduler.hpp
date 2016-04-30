@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GraphicsNode.hpp"
+#include "Pipeline.hpp"
 
 
 namespace inl {
@@ -12,8 +13,7 @@ public:
 
 
 private:
-
-
+	Pipeline* pipeline;
 };
 
 

@@ -102,6 +102,9 @@
     <ClInclude Include="DisposableConstBuffer.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
+    <ClInclude Include="PipelineMetaData.hpp">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -149,6 +152,9 @@
     </ClCompile>
     <ClCompile Include="DisposableConstBuffer.cpp">
       <Filter>MemoryManager</Filter>
+    </ClCompile>
+    <ClCompile Include="PipelineMetaData.cpp">
+      <Filter>Pipeline</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

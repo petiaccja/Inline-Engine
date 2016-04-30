@@ -1,0 +1,26 @@
+digraph G {
+task_0 -> task_1;
+task_0 -> task_2;
+task_1 -> dummy_task_6;
+task_2 -> task_3;
+task_2 -> dummy_task_6;
+task_3 -> task_4;
+task_4 -> dummy_task_12;
+dummy_task_5 -> task_4;
+dummy_task_6 -> task_7;
+dummy_task_6 -> task_8;
+dummy_task_6 -> task_9;
+dummy_task_6 -> task_10;
+task_7 -> dummy_task_5;
+task_8 -> dummy_task_5;
+task_9 -> dummy_task_5;
+task_10 -> dummy_task_5;
+dummy_task_12 -> task_13;
+dummy_task_12 -> task_14;
+dummy_task_12 -> task_15;
+dummy_task_12 -> task_16;
+task_13 -> dummy_task_11;
+task_14 -> dummy_task_11;
+task_15 -> dummy_task_11;
+task_16 -> dummy_task_11;
+}

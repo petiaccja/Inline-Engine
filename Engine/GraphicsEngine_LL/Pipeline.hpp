@@ -4,8 +4,18 @@
 #include <string>
 #include <vector>
 #include <iterator>
-#include <lemon/list_graph.h>
 #include "../BaseLibrary/Graph/Node.hpp"
+
+#ifdef _MSC_VER // disable lemon warnings
+#pragma warning(push)
+#pragma warning(disable: 4267)
+#endif
+
+#include <lemon/list_graph.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 
 namespace inl {
@@ -56,22 +66,28 @@ public:
 	void AddLink(NodeIterator srcNode, int srcPort, NodeIterator dstNode, int dstPort);
 	void Unlink(NodeIterator node, int inputPort);
 
-	const lemon::ListDigraph& GetDependencyGraph() const { return m_dependencyGraph; }
-	const lemon::ListDigraph::NodeMap<exc::NodeBase*>& GetNodeMap() const { return m_nodeMap; }
-	const lemon::ListDigraph& GetTaskGraph() const { return m_taskGraph; }
-	const lemon::ListDigraph::NodeMap<ElementaryTask>& GetTaskMap() const { return m_taskMap; }
+	const lemon::ListDigraph& GetDependencyGraph() const;
+	const lemon::ListDigraph::NodeMap<exc::NodeBase*>& GetNodeMap() const;
+	const lemon::ListDigraph& GetTaskGraph() const;
+	const lemon::ListDigraph::NodeMap<ElementaryTask>& GetTaskMap() const;
+
+	template <class T>
+	void AddNodeMetaData();
+	template <class T>
+	void AddArcMetaData();
 
 	void CalculateTaskGraph_Dbg() { CalculateTaskGraph(); }
 private:
-	void CalculateTaskGraph();
+	void CalculateTaskGraph() const; // const because m_taskGraph is lazy-evaluated, but GetTG should be const
 	void CalculateDependencies();
+	bool IsLinked(exc::NodeBase* srcNode, exc::NodeBase* dstNode);
 
 	bool m_isTaskGraphDirty;
 
 	lemon::ListDigraph m_dependencyGraph;
 	lemon::ListDigraph::NodeMap<exc::NodeBase*> m_nodeMap;
-	lemon::ListDigraph m_taskGraph;
-	lemon::ListDigraph::NodeMap<ElementaryTask> m_taskMap;
+	mutable lemon::ListDigraph m_taskGraph;
+	mutable lemon::ListDigraph::NodeMap<ElementaryTask> m_taskMap;
 	
 	GraphicsNodeFactory* m_factory;
 };
