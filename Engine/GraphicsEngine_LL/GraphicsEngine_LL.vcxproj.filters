@@ -94,13 +94,13 @@
       <Filter>Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="ConstBufferManager.hpp">
-      <Filter>Interfaces</Filter>
+      <Filter>MemoryManager</Filter>
     </ClInclude>
     <ClInclude Include="ConstBufferPage.hpp">
-      <Filter>Interfaces</Filter>
+      <Filter>MemoryManager</Filter>
     </ClInclude>
     <ClInclude Include="DisposableConstBuffer.hpp">
-      <Filter>Interfaces</Filter>
+      <Filter>MemoryManager</Filter>
     </ClInclude>
     <ClInclude Include="PipelineMetaData.hpp">
       <Filter>Pipeline</Filter>
