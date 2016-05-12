@@ -74,6 +74,11 @@ DisposableConstBuffer ConstBufferManager::GetDisposableBuffer(size_t size) {
 			targetPage = &m_pages.Front();
 		}
 	}
+	else {
+		targetPage = &m_pages.Front();
+	}
+
+	assert(targetPage != nullptr);
 
 	// reset age to mach latest data that is being
 	// used from the page
