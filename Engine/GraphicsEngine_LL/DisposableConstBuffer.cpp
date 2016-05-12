@@ -5,11 +5,13 @@
 namespace inl {
 namespace gxeng {
 
+
 DisposableConstBuffer::DisposableConstBuffer(ConstBufferPage* page, size_t offsetOnPage, size_t size) :
 	m_page{page},
 	m_offsetOnPage{offsetOnPage},
 	m_size{size}
 {}
+
 
 void DisposableConstBuffer::UploadData(const void* data, size_t size) {
 	if (size > m_size) {
@@ -22,8 +24,9 @@ void DisposableConstBuffer::UploadData(const void* data, size_t size) {
 	memcpy(ptr + m_offsetOnPage, data, size);
 }
 
+
 void* DisposableConstBuffer::GetGpuAddress() {
-	return m_page->GetGpuAddress();
+	return (uint8_t*)(m_page->GetGpuAddress()) + m_offsetOnPage;
 }
 
 
