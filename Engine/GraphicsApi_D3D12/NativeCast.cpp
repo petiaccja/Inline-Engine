@@ -1235,7 +1235,7 @@ D3D12_DESCRIPTOR_HEAP_DESC native_cast(gxapi::DescriptorHeapDesc source) {
 	D3D12_DESCRIPTOR_HEAP_DESC result;
 
 	result.Type = native_cast(source.type);
-	result.NumDescriptors = source.numDescriptors;
+	result.NumDescriptors = static_cast<UINT>(source.numDescriptors);
 	result.Flags = source.isShaderVisible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	result.NodeMask = 0;
 
@@ -1344,7 +1344,7 @@ D3D12_CONSTANT_BUFFER_VIEW_DESC native_cast(gxapi::ConstantBufferViewDesc source
 	D3D12_CONSTANT_BUFFER_VIEW_DESC result;
 
 	result.BufferLocation = native_cast_ptr(source.gpuVirtualAddress);
-	result.SizeInBytes = source.sizeInBytes;
+	result.SizeInBytes = static_cast<UINT>(source.sizeInBytes);
 
 	return result;
 }

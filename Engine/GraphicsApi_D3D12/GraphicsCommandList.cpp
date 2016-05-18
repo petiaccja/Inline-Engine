@@ -68,7 +68,7 @@ void GraphicsCommandList::ClearDepthStencil(
 
 	D3D12_RECT* pRects = (castedRects.size() == 0) ? nullptr : castedRects.data();
 
-	m_native->ClearDepthStencilView(depthStencilView, flags, depth, stencil, castedRects.size(), pRects);
+	m_native->ClearDepthStencilView(depthStencilView, flags, depth, stencil, (UINT)castedRects.size(), pRects);
 }
 
 
@@ -86,7 +86,7 @@ void GraphicsCommandList::ClearRenderTarget(gxapi::DescriptorHandle rtv, gxapi::
 
 	D3D12_RECT* pRects = (castedRects.size() == 0) ? nullptr : castedRects.data();
 
-	m_native->ClearRenderTargetView(renderTargetView, nativeColor, castedRects.size(), pRects);
+	m_native->ClearRenderTargetView(renderTargetView, nativeColor, (UINT)castedRects.size(), pRects);
 }
 
 
@@ -144,7 +144,7 @@ void GraphicsCommandList::SetIndexBuffer(void * gpuVirtualAddress, size_t sizeIn
 	D3D12_INDEX_BUFFER_VIEW ibv;
 	ibv.BufferLocation = native_cast_ptr(gpuVirtualAddress);
 	ibv.Format = native_cast(format);
-	ibv.SizeInBytes = sizeInBytes;
+	ibv.SizeInBytes = static_cast<UINT>(sizeInBytes);
 
 	m_native->IASetIndexBuffer(&ibv);
 }
@@ -168,7 +168,7 @@ void GraphicsCommandList::SetVertexBuffers(unsigned startSlot, unsigned count, v
 		views.push_back(std::move(tmpView));
 	}
 
-	m_native->IASetVertexBuffers(startSlot, views.size(), views.data());
+	m_native->IASetVertexBuffers(startSlot, (UINT)views.size(), views.data());
 }
 
 
@@ -188,7 +188,7 @@ void GraphicsCommandList::SetRenderTargets(unsigned numRenderTargets, gxapi::Des
 		pDepthStencilDescriptor = &depthStencilDescriptor;
 	}
 
-	m_native->OMSetRenderTargets(renderTargetDescriptors.size(), renderTargetDescriptors.data(), false, pDepthStencilDescriptor);
+	m_native->OMSetRenderTargets((UINT)renderTargetDescriptors.size(), renderTargetDescriptors.data(), false, pDepthStencilDescriptor);
 }
 
 
@@ -220,7 +220,7 @@ void GraphicsCommandList::SetScissorRects(unsigned numRects, gxapi::Rectangle* r
 		nativeRects.push_back(native_cast(rects[i]));
 	}
 
-	m_native->RSSetScissorRects(nativeRects.size(), nativeRects.data());
+	m_native->RSSetScissorRects((UINT)nativeRects.size(), nativeRects.data());
 }
 
 
@@ -232,7 +232,7 @@ void GraphicsCommandList::SetViewports(unsigned numViewports, gxapi::Viewport* v
 		nativeViewports.push_back(native_cast(viewports[i]));
 	}
 
-	m_native->RSSetViewports(nativeViewports.size(), nativeViewports.data());
+	m_native->RSSetViewports((UINT)nativeViewports.size(), nativeViewports.data());
 }
 
 
@@ -290,7 +290,7 @@ D3D12_TEXTURE_COPY_LOCATION GraphicsCommandList::CreateTextureCopyLocation(gxapi
 				footprint.Width = (UINT)description.width; // narrowing conversion!
 				size_t rowSize = size_t(GetFormatSizeInBytes(description.format)*description.width);
 				size_t alignement = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
-				footprint.RowPitch = rowSize + (alignement - rowSize % alignement) % alignement;
+				footprint.RowPitch = static_cast<UINT>(rowSize + (alignement - rowSize % alignement) % alignement);
 			}
 			placedFootprint.Footprint = footprint;
 			placedFootprint.Offset = 0;

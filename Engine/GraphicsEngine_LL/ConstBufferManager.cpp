@@ -11,9 +11,8 @@ namespace gxeng {
 
 using namespace inl::gxapi;
 
-ConstBufferManager::ConstBufferManager(gxapi::IGraphicsApi* graphicsApi, uint8_t backBufferCount) :
-	m_graphicsApi{graphicsApi},
-	m_backBufferCount{backBufferCount}
+ConstBufferManager::ConstBufferManager(gxapi::IGraphicsApi* graphicsApi) :
+	m_graphicsApi{graphicsApi}
 {
 	m_pages.PushFront(std::move(CreatePage()));
 }
@@ -149,8 +148,9 @@ ConstBufferPage ConstBufferManager::CreateLargePage(size_t fittingSize) {
 	return newPage;
 }
 
+
 bool ConstBufferManager::HasBecomeAvailable(const ConstBufferPage& page) {
-	return page.m_age > m_backBufferCount;
+	return page.m_age >= CMDLIST_FINISH_FRAME_COUNT;
 }
 
 

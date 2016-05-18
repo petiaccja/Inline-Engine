@@ -35,7 +35,7 @@ void CommandQueue::ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommand
 		nativeCommandLists.push_back(nativeList);
 	}
 
-	size_t numLists = nativeCommandLists.size();
+	auto numLists = (UINT)nativeCommandLists.size();
 	ID3D12CommandList** lists = nativeCommandLists.data();
 	m_native->ExecuteCommandLists(numLists, lists);
 }

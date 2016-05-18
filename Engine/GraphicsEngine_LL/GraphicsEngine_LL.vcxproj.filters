@@ -15,7 +15,7 @@
     <Filter Include="Pipeline">
       <UniqueIdentifier>{13ebcb7a-64e7-4b59-a32d-4593d1c785b9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="MemoryManager">
+    <Filter Include="MemoryManagement">
       <UniqueIdentifier>{2fc7a18c-775b-463f-a7b4-2af4d1226d50}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -52,10 +52,10 @@
       <Filter>Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="MemoryManager.hpp">
-      <Filter>MemoryManager</Filter>
+      <Filter>MemoryManagement</Filter>
     </ClInclude>
     <ClInclude Include="SmallBufferHeap.hpp">
-      <Filter>MemoryManager</Filter>
+      <Filter>MemoryManagement</Filter>
     </ClInclude>
     <ClInclude Include="..\GraphicsEngine\ITexture2D.hpp">
       <Filter>Interfaces</Filter>
@@ -94,16 +94,22 @@
       <Filter>Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="ConstBufferManager.hpp">
-      <Filter>MemoryManager</Filter>
+      <Filter>MemoryManagement</Filter>
     </ClInclude>
     <ClInclude Include="ConstBufferPage.hpp">
-      <Filter>MemoryManager</Filter>
+      <Filter>MemoryManagement</Filter>
     </ClInclude>
     <ClInclude Include="DisposableConstBuffer.hpp">
-      <Filter>MemoryManager</Filter>
+      <Filter>MemoryManagement</Filter>
     </ClInclude>
     <ClInclude Include="PipelineMetaData.hpp">
       <Filter>Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuBuffer.hpp">
+      <Filter>MemoryManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="AsyncUploader.hpp">
+      <Filter>MemoryManagement</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -127,10 +133,10 @@
       <Filter>Scene</Filter>
     </ClCompile>
     <ClCompile Include="MemoryManager.cpp">
-      <Filter>MemoryManager</Filter>
+      <Filter>MemoryManagement</Filter>
     </ClCompile>
     <ClCompile Include="SmallBufferHeap.cpp">
-      <Filter>MemoryManager</Filter>
+      <Filter>MemoryManagement</Filter>
     </ClCompile>
     <ClCompile Include="Pipeline.cpp">
       <Filter>Pipeline</Filter>
@@ -145,16 +151,22 @@
       <Filter>Pipeline</Filter>
     </ClCompile>
     <ClCompile Include="ConstBufferPage.cpp">
-      <Filter>MemoryManager</Filter>
+      <Filter>MemoryManagement</Filter>
     </ClCompile>
     <ClCompile Include="ConstBufferManager.cpp">
-      <Filter>MemoryManager</Filter>
+      <Filter>MemoryManagement</Filter>
     </ClCompile>
     <ClCompile Include="DisposableConstBuffer.cpp">
-      <Filter>MemoryManager</Filter>
+      <Filter>MemoryManagement</Filter>
     </ClCompile>
     <ClCompile Include="PipelineMetaData.cpp">
       <Filter>Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="GpuBuffer.cpp">
+      <Filter>MemoryManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="AsyncUploader.cpp">
+      <Filter>MemoryManagement</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
