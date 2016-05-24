@@ -11,9 +11,8 @@ namespace gxeng {
 
 using namespace inl::gxapi;
 
-ConstBufferManager::ConstBufferManager(gxapi::IGraphicsApi* graphicsApi, uint8_t backBufferCount) :
-	m_graphicsApi{graphicsApi},
-	m_backBufferCount{backBufferCount}
+ConstBufferManager::ConstBufferManager(gxapi::IGraphicsApi* graphicsApi) :
+	m_graphicsApi{graphicsApi}
 {
 	m_pages.PushFront(std::move(CreatePage()));
 }
@@ -74,6 +73,11 @@ DisposableConstBuffer ConstBufferManager::GetDisposableBuffer(size_t size) {
 			targetPage = &m_pages.Front();
 		}
 	}
+	else {
+		targetPage = &m_pages.Front();
+	}
+
+	assert(targetPage != nullptr);
 
 	// reset age to mach latest data that is being
 	// used from the page
@@ -144,8 +148,9 @@ ConstBufferPage ConstBufferManager::CreateLargePage(size_t fittingSize) {
 	return newPage;
 }
 
+
 bool ConstBufferManager::HasBecomeAvailable(const ConstBufferPage& page) {
-	return page.m_age > m_backBufferCount;
+	return page.m_age >= CMDLIST_FINISH_FRAME_COUNT;
 }
 
 

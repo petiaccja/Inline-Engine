@@ -157,6 +157,7 @@
     <ClInclude Include="..\GraphicsEngine\IScene.hpp" />
     <ClInclude Include="..\GraphicsEngine\ITerrainEntity.hpp" />
     <ClInclude Include="..\GraphicsEngine\ITexture2D.hpp" />
+    <ClInclude Include="AsyncUploader.hpp" />
     <ClInclude Include="ConstBufferManager.hpp" />
     <ClInclude Include="ConstBufferPage.hpp" />
     <ClInclude Include="DisposableConstBuffer.hpp" />
@@ -175,9 +176,11 @@
     <ClInclude Include="SmallBufferHeap.hpp" />
     <ClInclude Include="Task.hpp" />
     <ClInclude Include="Texture2D.hpp" />
+    <ClInclude Include="GpuBuffer.hpp" />
     <ClInclude Include="Vertex.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AsyncUploader.cpp" />
     <ClCompile Include="GraphicsNodeFactory.cpp" />
     <ClCompile Include="ConstBufferManager.cpp" />
     <ClCompile Include="ConstBufferPage.cpp" />
@@ -196,6 +199,7 @@
     <ClCompile Include="Task.cpp" />
     <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="Vertex.cpp" />
+    <ClCompile Include="GpuBuffer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

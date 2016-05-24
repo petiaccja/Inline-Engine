@@ -16,7 +16,7 @@ using namespace exc::prefix;
 
 class ConstBufferManager {
 public:
-	ConstBufferManager(gxapi::IGraphicsApi* graphicsApi, uint8_t backBufferCount);
+	ConstBufferManager(gxapi::IGraphicsApi* graphicsApi);
 
 	DisposableConstBuffer GetDisposableBuffer(size_t size);
 	void FrameCompleted();
@@ -25,7 +25,6 @@ protected:
 	exc::RingBuffer<ConstBufferPage> m_largePages;
 	exc::RingBuffer<ConstBufferPage> m_pages;
 	gxapi::IGraphicsApi* m_graphicsApi;
-	uint8_t m_backBufferCount;
 	std::mutex m_mutex;
 
 protected:
@@ -36,6 +35,15 @@ protected:
 	static constexpr size_t PAGE_SIZE = 64_Ki;
 
 	static constexpr size_t MAX_PERMANENT_LARGE_PAGE_COUNT = 5;
+
+
+	// The number of frames needed to be completed for a
+	// command list to get from being assembled to being finished
+	// Expalnation: ("comp" means how many frames are completed)
+	// Frames:      |   0 comp   |   1 comp  |   2 comp   |
+	//         ...  |  assembly  |  process  |  finished  |  ...
+	static constexpr uint8_t CMDLIST_FINISH_FRAME_COUNT = 2;
+
 
 	static size_t AlignUp(size_t value, size_t alignement);
 

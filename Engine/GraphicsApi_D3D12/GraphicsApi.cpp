@@ -111,7 +111,7 @@ gxapi::IRootSignature* GraphicsApi::CreateRootSignature(gxapi::RootSignatureDesc
 					nativeRanges.push_back(native_cast(srcTable.descriptorRanges[i]));
 				}
 
-				dstTable.NumDescriptorRanges = nativeRanges.size();
+				dstTable.NumDescriptorRanges = (UINT)nativeRanges.size();
 				dstTable.pDescriptorRanges = nativeRanges.data();
 			} break;
 			case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS: {
@@ -143,9 +143,9 @@ gxapi::IRootSignature* GraphicsApi::CreateRootSignature(gxapi::RootSignatureDesc
 	D3D12_ROOT_SIGNATURE_DESC nativeDesc;
 	//TODO might be needed to be updated later
 	nativeDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-	nativeDesc.NumParameters = nativeParameters.size();
+	nativeDesc.NumParameters = (UINT)nativeParameters.size();
 	nativeDesc.pParameters = nativeParameters.size() > 0 ? nativeParameters.data() : nullptr;
-	nativeDesc.NumStaticSamplers = nativeSamplers.size();
+	nativeDesc.NumStaticSamplers = (UINT)nativeSamplers.size();
 	nativeDesc.pStaticSamplers = nativeSamplers.size() > 0 ? nativeSamplers.data() : nullptr;
 
 	ComPtr<ID3DBlob> serializedSignature;
@@ -188,7 +188,7 @@ gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(const gxapi::Gra
 	}
 
 	D3D12_INPUT_LAYOUT_DESC nativeInputLayout;
-	nativeInputLayout.NumElements = nativeInputElements.size();
+	nativeInputLayout.NumElements = (UINT)nativeInputElements.size();
 	nativeInputLayout.pInputElementDescs = nativeInputElements.data();
 
 
