@@ -28,6 +28,7 @@ void Fence::Signal(uint64_t value) {
 
 
 void Fence::Wait(uint64_t value, uint64_t timeoutMillis) {
+	//static_assert(false, "This is simply wrong, because thread_local is not per-class.");
 	// Wrapper for a Win32 event w/ lifetime management
 	struct EventHelper {
 		EventHelper() {

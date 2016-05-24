@@ -105,6 +105,9 @@
     <ClInclude Include="PipelineMetaData.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
+    <ClInclude Include="Vertex.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -155,6 +158,9 @@
     </ClCompile>
     <ClCompile Include="PipelineMetaData.cpp">
       <Filter>Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertex.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

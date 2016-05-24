@@ -13,15 +13,15 @@
     <Filter Include="Graph">
       <UniqueIdentifier>{de9e4377-f6f7-4245-adfc-97cf392beae0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Memory">
+      <UniqueIdentifier>{6cb7db5d-87d3-441b-94cf-ee6be9df0f0e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Stream.hpp">
-      <Filter>All</Filter>
-    </ClInclude>
-    <ClInclude Include="Spinlock.hpp">
       <Filter>All</Filter>
     </ClInclude>
     <ClInclude Include="Singleton.hpp">
@@ -87,11 +87,23 @@
     <ClInclude Include="ScalarLiterals.hpp">
       <Filter>All</Filter>
     </ClInclude>
+    <ClInclude Include="BitOperations.hpp">
+      <Filter>All</Filter>
+    </ClInclude>
+    <ClInclude Include="SpinMutex.hpp">
+      <Filter>All</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\SameSizeAllocatorEngine.hpp">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\MultiInstanceTLS.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\SlabAllocatorEngine.hpp">
+      <Filter>Memory</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Spinlock.cpp">
-      <Filter>All</Filter>
-    </ClCompile>
     <ClCompile Include="Serialization\BinarySerializer.cpp">
       <Filter>Serialization</Filter>
     </ClCompile>
@@ -121,6 +133,15 @@
     </ClCompile>
     <ClCompile Include="Logging\LogStream.cpp">
       <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="SpinMutex.cpp">
+      <Filter>All</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\SameSizeAllocatorEngine.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Memory\SlabAllocatorEngine.cpp">
+      <Filter>Memory</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
