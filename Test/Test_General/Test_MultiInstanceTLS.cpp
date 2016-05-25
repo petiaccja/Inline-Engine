@@ -1,5 +1,5 @@
 #include "Test.hpp"
-#include "BaseLibrary/Memory/MultiInstanceTLS.h"
+#include "BaseLibrary/Memory/MultiInstanceTLS.hpp"
 #include <thread>
 #include <mutex>
 #include <iostream>

@@ -96,10 +96,10 @@
     <ClInclude Include="Memory\SameSizeAllocatorEngine.hpp">
       <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="Memory\MultiInstanceTLS.h">
+    <ClInclude Include="Memory\SlabAllocatorEngine.hpp">
       <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="Memory\SlabAllocatorEngine.hpp">
+    <ClInclude Include="Memory\MultiInstanceTLS.hpp">
       <Filter>Memory</Filter>
     </ClInclude>
   </ItemGroup>

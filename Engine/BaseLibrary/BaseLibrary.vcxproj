@@ -157,7 +157,7 @@
     <ClInclude Include="Graph\Node_Logic.hpp" />
     <ClInclude Include="Graph\Node_MathFunctions.hpp" />
     <ClInclude Include="Graph\Port.hpp" />
-    <ClInclude Include="Memory\MultiInstanceTLS.h" />
+    <ClInclude Include="Memory\MultiInstanceTLS.hpp" />
     <ClInclude Include="Memory\SameSizeAllocatorEngine.hpp" />
     <ClInclude Include="Memory\SlabAllocatorEngine.hpp" />
     <ClInclude Include="ScalarLiterals.hpp" />
