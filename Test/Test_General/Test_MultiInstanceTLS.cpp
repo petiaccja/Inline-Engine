@@ -44,8 +44,8 @@ private:
 
 
 int TestMultiTLS::Run() {
-	constexpr int NumInstances = 4;
-	constexpr int NumThreads = 4;
+	constexpr int NumInstances = 2;
+	constexpr int NumThreads = 8;
 	static_assert(NumThreads % NumInstances == 0, "These two must be divisible");
 
 	TestUser instances[NumInstances];

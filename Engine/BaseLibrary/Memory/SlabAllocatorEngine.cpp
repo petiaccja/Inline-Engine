@@ -22,7 +22,8 @@ size_t SlabAllocatorEngine::Allocate() {
 		int index = CountTrailingZeros(mask);
 
 		if (index >= 0) {
-			BitTestAndSet(m_first->slotOccupancy, index);
+			bool correct = !BitTestAndSet(m_first->slotOccupancy, index);
+			assert(correct);
 			return IndexOf(m_first) * SlotsPerBlock + index;
 		}
 		else {
@@ -42,10 +43,10 @@ void SlabAllocatorEngine::Deallocate(size_t index) {
 	BlockOf(index, block, inBlockIndex);
 
 	size_t prevMask = block->slotOccupancy;
-	BitTestAndClear(block->slotOccupancy, inBlockIndex);
-	if (prevMask == ~size_t(0)) {
-		size_t indexOfFirst = IndexOf(m_first);
-		block->nextBlockIndex = indexOfFirst;
+	bool correct = BitTestAndClear(block->slotOccupancy, inBlockIndex);
+	assert(correct);
+	if (prevMask == ~size_t(0) && block != m_first) {
+		block->nextBlockIndex = m_first != nullptr ? IndexOf(m_first) : m_blocks.size();
 		m_first = block;
 	}
 }
