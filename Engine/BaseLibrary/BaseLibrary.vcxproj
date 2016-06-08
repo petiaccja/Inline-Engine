@@ -158,7 +158,6 @@
     <ClInclude Include="Graph\Node_MathFunctions.hpp" />
     <ClInclude Include="Graph\Port.hpp" />
     <ClInclude Include="Memory\MultiInstanceTLS.hpp" />
-    <ClInclude Include="Memory\SameSizeAllocatorEngine.hpp" />
     <ClInclude Include="Memory\SlabAllocatorEngine.hpp" />
     <ClInclude Include="ScalarLiterals.hpp" />
     <ClInclude Include="Logging\Event.hpp" />
@@ -184,7 +183,6 @@
     <ClCompile Include="Logging\LogNode.cpp" />
     <ClCompile Include="Logging\LogPipe.cpp" />
     <ClCompile Include="Logging\LogStream.cpp" />
-    <ClCompile Include="Memory\SameSizeAllocatorEngine.cpp" />
     <ClCompile Include="Memory\SlabAllocatorEngine.cpp">
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NoListing</AssemblerOutput>
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NoListing</AssemblerOutput>

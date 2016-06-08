@@ -93,9 +93,6 @@
     <ClInclude Include="SpinMutex.hpp">
       <Filter>All</Filter>
     </ClInclude>
-    <ClInclude Include="Memory\SameSizeAllocatorEngine.hpp">
-      <Filter>Memory</Filter>
-    </ClInclude>
     <ClInclude Include="Memory\SlabAllocatorEngine.hpp">
       <Filter>Memory</Filter>
     </ClInclude>
@@ -136,9 +133,6 @@
     </ClCompile>
     <ClCompile Include="SpinMutex.cpp">
       <Filter>All</Filter>
-    </ClCompile>
-    <ClCompile Include="Memory\SameSizeAllocatorEngine.cpp">
-      <Filter>Memory</Filter>
     </ClCompile>
     <ClCompile Include="Memory\SlabAllocatorEngine.cpp">
       <Filter>Memory</Filter>
