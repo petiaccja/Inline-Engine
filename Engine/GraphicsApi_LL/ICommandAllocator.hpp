@@ -12,6 +12,7 @@ public:
 	virtual ~ICommandAllocator() = default;
 
 	virtual void Reset() = 0;
+	virtual eCommandListType GetType() const = 0;
 
 };
 

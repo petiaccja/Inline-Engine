@@ -35,7 +35,11 @@ public:
 	/// </summary>
 	/// <param name="poolSize">The number of available slots in the pool.</param>
 	SlabAllocatorEngine(size_t poolSize);
+	SlabAllocatorEngine(const SlabAllocatorEngine& rhs);
+	SlabAllocatorEngine(SlabAllocatorEngine&& rhs);
 
+	SlabAllocatorEngine& operator=(const SlabAllocatorEngine& rhs);
+	SlabAllocatorEngine& operator=(SlabAllocatorEngine&& rhs);
 
 	/// <summary> Allocates space from the pool for one item. </summary>
 	/// <returns> The index of the allocated slot. </returns>
