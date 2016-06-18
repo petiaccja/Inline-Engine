@@ -102,6 +102,9 @@
     <ClInclude Include="Memory\MultiInstanceTLS.hpp">
       <Filter>Memory</Filter>
     </ClInclude>
+    <ClInclude Include="RingAllocationEngine.hpp">
+      <Filter>Memory</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">
@@ -141,6 +144,9 @@
       <Filter>Memory</Filter>
     </ClCompile>
     <ClCompile Include="Memory\SlabAllocatorEngine.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="RingAllocationEngine.cpp">
       <Filter>Memory</Filter>
     </ClCompile>
   </ItemGroup>

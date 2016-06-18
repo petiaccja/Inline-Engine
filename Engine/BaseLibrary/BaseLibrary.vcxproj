@@ -160,6 +160,7 @@
     <ClInclude Include="Memory\MultiInstanceTLS.hpp" />
     <ClInclude Include="Memory\SameSizeAllocatorEngine.hpp" />
     <ClInclude Include="Memory\SlabAllocatorEngine.hpp" />
+    <ClInclude Include="RingAllocationEngine.hpp" />
     <ClInclude Include="ScalarLiterals.hpp" />
     <ClInclude Include="Logging\Event.hpp" />
     <ClInclude Include="Logging\EventEntry.hpp" />
@@ -189,6 +190,7 @@
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NoListing</AssemblerOutput>
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NoListing</AssemblerOutput>
     </ClCompile>
+    <ClCompile Include="RingAllocationEngine.cpp" />
     <ClCompile Include="Serialization\BinarySerializer.cpp" />
     <ClCompile Include="Serialization\BinarySerializerExtensions.cpp" />
     <ClCompile Include="SpinMutex.cpp" />
