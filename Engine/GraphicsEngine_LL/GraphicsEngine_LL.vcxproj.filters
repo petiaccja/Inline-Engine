@@ -18,6 +18,9 @@
     <Filter Include="MemoryManagement">
       <UniqueIdentifier>{2fc7a18c-775b-463f-a7b4-2af4d1226d50}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Middleware">
+      <UniqueIdentifier>{ddb0ffd9-91c5-4cda-9bb1-ddf7349b9967}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -114,6 +117,21 @@
     <ClInclude Include="Vertex.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
+    <ClInclude Include="Binder.hpp">
+      <Filter>Middleware</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsCommandList.hpp">
+      <Filter>Middleware</Filter>
+    </ClInclude>
+    <ClInclude Include="ComputeCommandList.hpp">
+      <Filter>Middleware</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicCommandList.hpp">
+      <Filter>Middleware</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandAllocatorPool.hpp">
+      <Filter>Middleware</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -173,6 +191,21 @@
     </ClCompile>
     <ClCompile Include="AsyncUploader.cpp">
       <Filter>MemoryManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="Binder.cpp">
+      <Filter>Middleware</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputeCommandList.cpp">
+      <Filter>Middleware</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsCommandList.cpp">
+      <Filter>Middleware</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicCommandList.cpp">
+      <Filter>Middleware</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandAllocatorPool.cpp">
+      <Filter>Middleware</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

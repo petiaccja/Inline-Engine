@@ -14,6 +14,39 @@ SlabAllocatorEngine::SlabAllocatorEngine(size_t poolSize)
 }
 
 
+SlabAllocatorEngine::SlabAllocatorEngine(const SlabAllocatorEngine& rhs) {
+	size_t indexOfFirst = rhs.IndexOf(rhs.m_first);
+	m_blocks = rhs.m_blocks;
+	m_first = m_blocks.data() + indexOfFirst;
+	m_poolSize = rhs.m_poolSize;
+}
+
+SlabAllocatorEngine::SlabAllocatorEngine(SlabAllocatorEngine&& rhs) {
+	size_t indexOfFirst = rhs.IndexOf(rhs.m_first);
+	m_blocks = std::move(rhs.m_blocks); // move blocks, not copy
+	m_first = m_blocks.data() + indexOfFirst;
+	m_poolSize = rhs.m_poolSize;
+}
+
+SlabAllocatorEngine& SlabAllocatorEngine::operator=(const SlabAllocatorEngine& rhs) {
+	size_t indexOfFirst = rhs.IndexOf(rhs.m_first);
+	m_blocks = rhs.m_blocks;
+	m_first = m_blocks.data() + indexOfFirst;
+	m_poolSize = rhs.m_poolSize;
+
+	return *this;
+}
+
+SlabAllocatorEngine& SlabAllocatorEngine::operator=(SlabAllocatorEngine&& rhs) {
+	size_t indexOfFirst = rhs.IndexOf(rhs.m_first);
+	m_blocks = std::move(rhs.m_blocks); // move blocks, not copy
+	m_first = m_blocks.data() + indexOfFirst;
+	m_poolSize = rhs.m_poolSize;
+
+	return *this;
+}
+
+
 size_t SlabAllocatorEngine::Allocate() {
 	// check if not full
 	if (m_first != nullptr) {

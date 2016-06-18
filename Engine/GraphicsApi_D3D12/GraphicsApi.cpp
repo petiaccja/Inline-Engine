@@ -39,7 +39,7 @@ gxapi::ICommandAllocator* GraphicsApi::CreateCommandAllocator(gxapi::eCommandLis
 
 	ThrowIfFailed(m_device->CreateCommandAllocator(native_cast(type), IID_PPV_ARGS(&native)));
 
-	return new CommandAllocator{native};
+	return new CommandAllocator{native, type};
 }
 
 

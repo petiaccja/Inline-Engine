@@ -123,10 +123,12 @@ private:
 	}
 
 	const T& GetRef() const {
-		if (threadRepo.size() <= myIndex) {
-			threadRepo.resize(myIndex + 1);
-		}
-		if (!threadRepo[myIndex]) {
+		size_t size = threadRepo.size() - 1;
+		size_t testIndex = myIndex < size ? myIndex : size;
+		if (!threadRepo[testIndex]) {
+			if (threadRepo.size() - 1 <= myIndex) {
+				threadRepo.resize(myIndex + 2);
+			}
 			threadRepo[myIndex] = defaultRecord;
 		}
 		return threadRepo[myIndex].value();
