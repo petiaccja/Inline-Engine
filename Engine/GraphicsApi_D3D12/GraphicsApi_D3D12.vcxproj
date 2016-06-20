@@ -175,14 +175,13 @@
     <ClInclude Include="..\GraphicsApi_LL\Native.hpp" />
     <ClInclude Include="GxapiManager.hpp" />
     <ClInclude Include="CommandAllocator.hpp" />
-    <ClInclude Include="CommandList.hpp" />
     <ClInclude Include="CommandQueue.hpp" />
     <ClInclude Include="d3dx12.h" />
     <ClInclude Include="DescriptorHeap.hpp" />
     <ClInclude Include="ExceptionExpansions.hpp" />
     <ClInclude Include="Fence.hpp" />
     <ClInclude Include="GraphicsApi.hpp" />
-    <ClInclude Include="GraphicsCommandList.hpp" />
+    <ClInclude Include="CommandList.hpp" />
     <ClInclude Include="NativeCast.hpp" />
     <ClInclude Include="PipelineState.hpp" />
     <ClInclude Include="Resource.hpp" />
@@ -192,13 +191,12 @@
   <ItemGroup>
     <ClCompile Include="GxapiManager.cpp" />
     <ClCompile Include="CommandAllocator.cpp" />
-    <ClCompile Include="CommandList.cpp" />
     <ClCompile Include="CommandQueue.cpp" />
     <ClCompile Include="DescriptorHeap.cpp" />
     <ClCompile Include="ExceptionExpansions.cpp" />
     <ClCompile Include="Fence.cpp" />
     <ClCompile Include="GraphicsApi.cpp" />
-    <ClCompile Include="GraphicsCommandList.cpp" />
+    <ClCompile Include="CommandList.cpp" />
     <ClCompile Include="NativeCast.cpp" />
     <ClCompile Include="PipelineState.cpp" />
     <ClCompile Include="Resource.cpp" />

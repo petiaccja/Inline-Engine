@@ -2,7 +2,7 @@
 
 #include "CommandQueue.hpp"
 #include "CommandAllocator.hpp"
-#include "GraphicsCommandList.hpp"
+#include "CommandList.hpp"
 #include "DescriptorHeap.hpp"
 #include "NativeCast.hpp"
 #include "ExceptionExpansions.hpp"
@@ -52,10 +52,21 @@ gxapi::IGraphicsCommandList* GraphicsApi::CreateGraphicsCommandList(gxapi::Comma
 }
 
 
+gxapi::IComputeCommandList* GraphicsApi::CreateComputeCommandList(gxapi::CommandListDesc desc) {
+	ComPtr<ID3D12GraphicsCommandList> native;
+
+	ThrowIfFailed(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COMPUTE, native_cast(desc.allocator), native_cast(desc.initialState), IID_PPV_ARGS(&native)));
+
+	return new ComputeCommandList{ native };
+}
+
+
 gxapi::ICopyCommandList* GraphicsApi::CreateCopyCommandList(gxapi::CommandListDesc desc) {
-	//TODO not yet supported
-	assert(false);
-	return nullptr;
+	ComPtr<ID3D12GraphicsCommandList> native;
+
+	ThrowIfFailed(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_COPY, native_cast(desc.allocator), native_cast(desc.initialState), IID_PPV_ARGS(&native)));
+
+	return new CopyCommandList{ native };
 }
 
 

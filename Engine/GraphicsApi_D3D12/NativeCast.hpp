@@ -5,7 +5,7 @@
 #include "CommandAllocator.hpp"
 #include "CommandQueue.hpp"
 #include "RootSignature.hpp"
-#include "GraphicsCommandList.hpp"
+#include "CommandList.hpp"
 #include "Fence.hpp"
 #include "../GraphicsApi_LL/Common.hpp"
 

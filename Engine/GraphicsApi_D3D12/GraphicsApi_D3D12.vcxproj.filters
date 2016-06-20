@@ -4,9 +4,6 @@
     <ClCompile Include="CommandAllocator.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
-    <ClCompile Include="CommandList.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
     <ClCompile Include="CommandQueue.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
@@ -17,9 +14,6 @@
       <Filter>Implementation</Filter>
     </ClCompile>
     <ClCompile Include="GraphicsApi.cpp">
-      <Filter>Implementation</Filter>
-    </ClCompile>
-    <ClCompile Include="GraphicsCommandList.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
     <ClCompile Include="NativeCast.cpp">
@@ -41,6 +35,9 @@
       <Filter>Implementation</Filter>
     </ClCompile>
     <ClCompile Include="GxapiManager.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandList.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
   </ItemGroup>
@@ -75,9 +72,6 @@
     <ClInclude Include="CommandAllocator.hpp">
       <Filter>Implementation</Filter>
     </ClInclude>
-    <ClInclude Include="CommandList.hpp">
-      <Filter>Implementation</Filter>
-    </ClInclude>
     <ClInclude Include="CommandQueue.hpp">
       <Filter>Implementation</Filter>
     </ClInclude>
@@ -88,9 +82,6 @@
       <Filter>Implementation</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsApi.hpp">
-      <Filter>Implementation</Filter>
-    </ClInclude>
-    <ClInclude Include="GraphicsCommandList.hpp">
       <Filter>Implementation</Filter>
     </ClInclude>
     <ClInclude Include="NativeCast.hpp">
@@ -131,6 +122,9 @@
     </ClInclude>
     <ClInclude Include="..\GraphicsApi_LL\IGxapiManager.hpp">
       <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandList.hpp">
+      <Filter>Implementation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

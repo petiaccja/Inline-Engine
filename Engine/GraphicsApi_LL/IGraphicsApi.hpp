@@ -29,6 +29,7 @@ public:
 	virtual ICommandQueue* CreateCommandQueue(CommandQueueDesc desc) = 0;
 	virtual ICommandAllocator* CreateCommandAllocator(eCommandListType type) = 0;
 	virtual IGraphicsCommandList* CreateGraphicsCommandList(CommandListDesc desc) = 0;
+	virtual IComputeCommandList* CreateComputeCommandList(CommandListDesc desc) = 0;
 	virtual ICopyCommandList* CreateCopyCommandList(CommandListDesc desc) = 0;
 
 	// Resources

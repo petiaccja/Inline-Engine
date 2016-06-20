@@ -32,15 +32,17 @@ public:
 
 	virtual void CopyTexture(IResource* dst,
 							 unsigned dstSubresourceIndex,
+							 int dstX, int dstY, int dstZ,
 							 IResource* src,
-							 unsigned srcSubresourceIndex) = 0;
+							 unsigned srcSubresourceIndex,
+							 Cube srcRegion) = 0;
 
 	virtual void CopyTexture(IResource* dst,
 							 TextureCopyDesc dstDesc,
+							 int dstX, int dstY, int dstZ,
 							 IResource* src,
 							 TextureCopyDesc srcDesc,
-							 int offx, int offy, int offz,
-							 Cube region) = 0;
+							 Cube srcRegion) = 0;
 
 	// barriers
 	// TODO: transition, aliasing and bullshit barriers, i would put them into separate functions

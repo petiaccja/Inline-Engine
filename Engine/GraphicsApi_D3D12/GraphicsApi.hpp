@@ -11,8 +11,6 @@
 namespace inl {
 namespace gxapi_dx12 {
 
-using Microsoft::WRL::ComPtr;
-
 
 class GraphicsApi : public gxapi::IGraphicsApi {
 public:
@@ -24,7 +22,7 @@ public:
 	gxapi::ICommandAllocator* CreateCommandAllocator(gxapi::eCommandListType type) override;
 
 	gxapi::IGraphicsCommandList* CreateGraphicsCommandList(gxapi::CommandListDesc desc) override;
-
+	gxapi::IComputeCommandList* CreateComputeCommandList(gxapi::CommandListDesc desc) override;
 	gxapi::ICopyCommandList* CreateCopyCommandList(gxapi::CommandListDesc desc) override;
 
 	// Resources
@@ -67,7 +65,7 @@ public:
 
 
 protected:
-	ComPtr<ID3D12Device> m_device;
+	Microsoft::WRL::ComPtr<ID3D12Device> m_device;
 };
 
 

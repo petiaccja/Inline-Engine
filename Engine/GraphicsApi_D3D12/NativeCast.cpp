@@ -62,7 +62,25 @@ ID3D12GraphicsCommandList* native_cast(gxapi::IGraphicsCommandList* source) {
 		return nullptr;
 	}
 
-	return static_cast<GraphicsCommandList*>(source)->GetNative();
+	return dynamic_cast<GraphicsCommandList*>(source)->GetNative();
+}
+
+
+ID3D12GraphicsCommandList* native_cast(gxapi::IComputeCommandList* source) {
+	if (source == nullptr) {
+		return nullptr;
+	}
+
+	return dynamic_cast<ComputeCommandList*>(source)->GetNative();
+}
+
+
+ID3D12GraphicsCommandList* native_cast(gxapi::ICopyCommandList* source) {
+	if (source == nullptr) {
+		return nullptr;
+	}
+
+	return dynamic_cast<CopyCommandList*>(source)->GetNative();
 }
 
 

@@ -66,7 +66,7 @@ private:
 	inline void BlockOf(size_t globalIndex, Block*& block, int& inBlockIndex) {
 		size_t divRes = globalIndex / SlotsPerBlock;
 		block = &m_blocks[divRes];
-		inBlockIndex = globalIndex - (divRes * SlotsPerBlock); // globalIndex % SlotsPerBlock costs much more
+		inBlockIndex = int(globalIndex - (divRes * SlotsPerBlock)); // globalIndex % SlotsPerBlock costs much more
 	}
 private:
 	size_t m_poolSize;

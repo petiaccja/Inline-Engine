@@ -775,12 +775,13 @@ struct ClearValue {
 
 struct TextureCopyDesc {
 	TextureCopyDesc() = default;
-	TextureCopyDesc(eFormat format, uint64_t width, uint32_t height = 1, uint16_t depth = 1)
+	TextureCopyDesc(eFormat format, uint64_t width, size_t byteOffset = 0, uint32_t height = 1, uint16_t depth = 1)
 		: format(format), width(width), height(height), depth(depth) {}
 	eFormat format;
 	uint64_t width;
 	uint32_t height;
 	uint16_t depth;
+	size_t byteOffset;
 };
 
 
