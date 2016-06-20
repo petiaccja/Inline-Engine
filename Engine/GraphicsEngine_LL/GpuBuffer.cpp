@@ -2,6 +2,7 @@
 #include "GpuBuffer.hpp"
 
 #include "../GraphicsApi_LL/ICommandList.hpp"
+#include "../GraphicsApi_LL/Exception.hpp"
 
 namespace inl {
 namespace gxeng {
@@ -12,6 +13,10 @@ using namespace gxapi;
 //Generic Resource
 
 gxapi::IResource* GenericBuffer::GetResource() {
+	return m_resource.get();
+}
+
+gxapi::IResource const* GenericBuffer::GetResource() const {
 	return m_resource.get();
 }
 
@@ -33,22 +38,46 @@ VertexBuffer::VertexBuffer(gxapi::IGraphicsApi* graphicsApi, uint64_t size) {
 }
 
 
-Texture1D::Texture1D(gxapi::IGraphicsApi* graphicsApi, uint64_t width, gxapi::eFormat format) {
-	ResetResource(graphicsApi, ResourceDesc::Texture1D(width, format));
+uint64_t TextureBase::GetWidth() const {
+	return GetResource()->GetDesc().textureDesc.width;
 }
 
 
-Texture1DArray::Texture1DArray(gxapi::IGraphicsApi* graphicsApi, uint64_t width, gxapi::eFormat format, uint16_t count) {
-	ResetResource(graphicsApi, ResourceDesc::Texture1DArray(width, format, count));
+uint64_t TextureBase::GetHeight() const {
+	return GetResource()->GetDesc().textureDesc.height;
 }
 
 
-Texture2D::Texture2D(gxapi::IGraphicsApi* graphicsApi, uint64_t width, uint32_t height, gxapi::eFormat format) {
-	ResetResource(graphicsApi, ResourceDesc::Texture2D(width, height, format));
+uint64_t TextureBase::GetElementCount() const {
+	return GetResource()->GetDesc().textureDesc.depthOrArraySize;
 }
 
-Texture2DArray::Texture2DArray(gxapi::IGraphicsApi * graphicsApi, uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t count) {
-	ResetResource(graphicsApi, ResourceDesc::Texture2DArray(width, height, format, count));
+
+uint64_t TextureBase::GetDepth() const {
+	return GetResource()->GetDesc().textureDesc.depthOrArraySize;
+}
+
+
+gxapi::eFormat TextureBase::GetFormat() const {
+	return GetResource()->GetDesc().textureDesc.format;
+}
+
+
+Texture1D::Texture1D(gxapi::IGraphicsApi* graphicsApi, uint64_t width, gxapi::eFormat format, uint16_t elementCount) {
+	if (elementCount == 0) {
+		throw gxapi::InvalidArgument("\"count\" should not be zero.");
+	}
+
+	ResetResource(graphicsApi, ResourceDesc::Texture1DArray(width, format, elementCount));
+}
+
+
+Texture2D::Texture2D(gxapi::IGraphicsApi* graphicsApi, uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t elementCount) {
+	if (elementCount == 0) {
+		throw gxapi::InvalidArgument("\"count\" should not be zero.");
+	}
+
+	ResetResource(graphicsApi, ResourceDesc::Texture2DArray(width, height, format, elementCount));
 }
 
 
