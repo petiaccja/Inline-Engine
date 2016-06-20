@@ -15,15 +15,23 @@ namespace gxeng {
 
 
 class BasicCommandList {
+	struct AllocDeleter {
+		AllocDeleter(CommandAllocatorPool& pool) : pool(pool) {}
+		CommandAllocatorPool& pool;
+		void operator()(gxapi::ICommandAllocator* arg) { pool.RecycleAllocator(arg); }
+	};
 public:
-	BasicCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& cmdAllocatorPool, inl::gxapi::eCommandListType type);
-	
+	BasicCommandList(CommandAllocatorPool& cmdAllocatorPool, inl::gxapi::eCommandListType type);
+	~BasicCommandList();
+
 protected:
 	void UseResource(GenericBuffer* resource);
 	
 private:
 	std::vector<GenericBuffer*> m_usedResources;
-	gxapi::ICommandAllocator* m_cmdAllocator;
+
+	std::unique_ptr<gxapi::ICommandAllocator, AllocDeleter> m_commandAllocator;
+	std::unique_ptr<gxapi::ICommandList> m_commandList;
 };
 
 

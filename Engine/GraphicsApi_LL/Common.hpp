@@ -26,7 +26,9 @@ class IResource;
 // Common structures
 //------------------------------------------------------------------------------
 
+
 struct Rectangle {
+	Rectangle() = default;
 	Rectangle(int top, int bottom, int left, int right)
 		:top(top), bottom(bottom), left(left), right(right) {}
 

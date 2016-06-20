@@ -132,6 +132,9 @@
     <ClInclude Include="CommandAllocatorPool.hpp">
       <Filter>Middleware</Filter>
     </ClInclude>
+    <ClInclude Include="CopyCommandList.hpp">
+      <Filter>Middleware</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -205,6 +208,9 @@
       <Filter>Middleware</Filter>
     </ClCompile>
     <ClCompile Include="CommandAllocatorPool.cpp">
+      <Filter>Middleware</Filter>
+    </ClCompile>
+    <ClCompile Include="CopyCommandList.cpp">
       <Filter>Middleware</Filter>
     </ClCompile>
   </ItemGroup>

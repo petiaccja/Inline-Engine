@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../GraphicsApi_LL/IGraphicsCommandList.hpp"
+#include "../GraphicsApi_LL/ICommandList.hpp"
 #include "CommandList.hpp"
 
 #include "../GraphicsApi_LL/Common.hpp"
@@ -107,6 +107,13 @@ public:
 	void SetViewports(unsigned numViewports, gxapi::Viewport* viewports) override;
 
 	// set compute root signature stuff
+	void SetComputeRootConstant(unsigned parameterIndex, unsigned destOffset, uint32_t value) override {};
+	void SetComputeRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, uint32_t* value) override {};
+	void SetComputeRootConstantBuffer(unsigned parameterIndex, void* gpuVirtualAddress) override {};
+	void SetComputeRootDescriptorTable(unsigned parameterIndex, gxapi::DescriptorHandle baseHandle) override {};
+	void SetComputeRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) override {};
+
+	void SetComputeRootSignature(gxapi::IRootSignature* rootSignature) override {};
 
 	// set graphics root signature stuff
 	void SetGraphicsRootConstant(unsigned parameterIndex, unsigned destOffset, uint32_t value) override;

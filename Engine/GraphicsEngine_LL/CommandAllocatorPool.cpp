@@ -42,6 +42,11 @@ void CommandAllocatorPool::RecycleAllocator(gxapi::ICommandAllocator* allocator)
 	}
 }
 
+gxapi::IGraphicsApi* CommandAllocatorPool::GetGraphicsApi() const {
+	return m_gxPool.GetGraphicsApi();
+}
+
+
 
 } // namespace gxeng
 } // namespace inl

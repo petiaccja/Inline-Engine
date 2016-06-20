@@ -99,6 +99,9 @@
     <ClInclude Include="Memory\MultiInstanceTLS.hpp">
       <Filter>Memory</Filter>
     </ClInclude>
+    <ClInclude Include="Range.hpp">
+      <Filter>All</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">

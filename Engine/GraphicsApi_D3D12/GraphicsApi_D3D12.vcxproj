@@ -165,12 +165,9 @@
     <ClInclude Include="..\GraphicsApi_LL\ICommandAllocator.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\ICommandList.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\ICommandQueue.hpp" />
-    <ClInclude Include="..\GraphicsApi_LL\IComputeCommandList.hpp" />
-    <ClInclude Include="..\GraphicsApi_LL\ICopyCommandList.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\IDescriptorHeap.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\IFence.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\IGraphicsApi.hpp" />
-    <ClInclude Include="..\GraphicsApi_LL\IGraphicsCommandList.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\IPipelineState.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\IResource.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\IRootSignature.hpp" />

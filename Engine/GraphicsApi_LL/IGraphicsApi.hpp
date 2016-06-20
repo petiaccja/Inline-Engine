@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Common.hpp"
+#include "ICommandList.hpp"
 
 
 namespace inl {
@@ -9,8 +10,6 @@ namespace gxapi {
 
 class ICommandQueue;
 class ICommandAllocator;
-class IGraphicsCommandList;
-class ICopyCommandList;
 
 class IFence;
 

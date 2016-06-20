@@ -1,7 +1,7 @@
 
 #include "GpuBuffer.hpp"
 
-#include "../GraphicsApi_LL/IGraphicsCommandList.hpp"
+#include "../GraphicsApi_LL/ICommandList.hpp"
 
 namespace inl {
 namespace gxeng {

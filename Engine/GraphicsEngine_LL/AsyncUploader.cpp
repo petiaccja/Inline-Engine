@@ -1,6 +1,6 @@
 #include "AsyncUploader.hpp"
 
-#include "../GraphicsApi_LL/IGraphicsCommandList.hpp"
+#include "../GraphicsApi_LL/ICommandList.hpp"
 
 #include <algorithm>
 

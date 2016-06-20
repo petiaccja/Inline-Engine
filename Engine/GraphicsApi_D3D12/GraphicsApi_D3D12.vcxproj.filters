@@ -54,12 +54,6 @@
     <ClInclude Include="..\GraphicsApi_LL\ICommandQueue.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\IComputeCommandList.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\ICopyCommandList.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
     <ClInclude Include="..\GraphicsApi_LL\IDescriptorHeap.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
@@ -67,9 +61,6 @@
       <Filter>Interfaces</Filter>
     </ClInclude>
     <ClInclude Include="..\GraphicsApi_LL\IGraphicsApi.hpp">
-      <Filter>Interfaces</Filter>
-    </ClInclude>
-    <ClInclude Include="..\GraphicsApi_LL\IGraphicsCommandList.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
     <ClInclude Include="..\GraphicsApi_LL\IPipelineState.hpp">

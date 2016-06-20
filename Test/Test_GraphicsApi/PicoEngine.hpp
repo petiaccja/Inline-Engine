@@ -4,7 +4,7 @@
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
 #include <GraphicsApi_LL/ICommandQueue.hpp>
 #include <GraphicsApi_LL/ICommandAllocator.hpp>
-#include <GraphicsApi_LL/IGraphicsCommandList.hpp>
+#include <GraphicsApi_LL/ICommandList.hpp>
 #include <GraphicsApi_LL/ISwapChain.hpp>
 #include <GraphicsApi_LL/IPipelineState.hpp>
 #include <GraphicsApi_LL/IRootSignature.hpp>

@@ -159,6 +159,7 @@
     <ClInclude Include="Graph\Port.hpp" />
     <ClInclude Include="Memory\MultiInstanceTLS.hpp" />
     <ClInclude Include="Memory\SlabAllocatorEngine.hpp" />
+    <ClInclude Include="Range.hpp" />
     <ClInclude Include="ScalarLiterals.hpp" />
     <ClInclude Include="Logging\Event.hpp" />
     <ClInclude Include="Logging\EventEntry.hpp" />

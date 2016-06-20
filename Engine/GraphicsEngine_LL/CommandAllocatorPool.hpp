@@ -31,6 +31,8 @@ namespace impl {
 		inl::gxapi::ICommandAllocator* RequestAllocator();
 		void RecycleAllocator(inl::gxapi::ICommandAllocator* allocator);
 		void Reset(size_t initialSize = 1);
+
+		gxapi::IGraphicsApi* GetGraphicsApi() const { return m_gxApi; }
 	private:
 		std::vector<std::unique_ptr<inl::gxapi::ICommandAllocator>> m_pool;
 		exc::SlabAllocatorEngine m_allocator;
@@ -84,6 +86,7 @@ namespace impl {
 			auto* cmdAlloc = m_gxApi->CreateCommandAllocator(TYPE);
 			addressToIndex[cmdAlloc] = index;
 			m_pool[index].reset(cmdAlloc);
+			return m_pool[index].get();
 		}
 	}
 
@@ -118,6 +121,8 @@ public:
 
 	gxapi::ICommandAllocator* RequestAllocator(gxapi::eCommandListType type);
 	void RecycleAllocator(gxapi::ICommandAllocator* allocator);
+
+	gxapi::IGraphicsApi* GetGraphicsApi() const;
 private:
 	impl::CommandAllocatorPool<gxapi::eCommandListType::GRAPHICS> m_gxPool;
 	impl::CommandAllocatorPool<gxapi::eCommandListType::COMPUTE> m_cuPool;
