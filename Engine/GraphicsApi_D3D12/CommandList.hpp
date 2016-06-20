@@ -170,6 +170,9 @@ public:
 };
 
 
+#pragma warning(default: 4250)
+
+
 
 } //namespace gxapi_dx12
 } //namespace inl
