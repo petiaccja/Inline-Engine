@@ -166,6 +166,8 @@
     <ClInclude Include="ConstBufferPage.hpp" />
     <ClInclude Include="CopyCommandList.hpp" />
     <ClInclude Include="DisposableConstBuffer.hpp" />
+    <ClInclude Include="ExecutionContext.hpp" />
+    <ClInclude Include="ExecutionResult.hpp" />
     <ClInclude Include="GraphicsCommandList.hpp" />
     <ClInclude Include="GraphicsNode.hpp" />
     <ClInclude Include="GraphicsNodeFactory.hpp" />
@@ -176,7 +178,6 @@
     <ClInclude Include="Material.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="Pipeline.hpp" />
-    <ClInclude Include="PipelineMetaData.hpp" />
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Scheduler.hpp" />
     <ClInclude Include="SmallBufferHeap.hpp" />
@@ -192,6 +193,8 @@
     <ClCompile Include="CommandAllocatorPool.cpp" />
     <ClCompile Include="ComputeCommandList.cpp" />
     <ClCompile Include="CopyCommandList.cpp" />
+    <ClCompile Include="ExecutionContext.cpp" />
+    <ClCompile Include="ExecutionResult.cpp" />
     <ClCompile Include="GraphicsCommandList.cpp" />
     <ClCompile Include="GraphicsNodeFactory.cpp" />
     <ClCompile Include="ConstBufferManager.cpp" />
@@ -204,7 +207,6 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Pipeline.cpp" />
-    <ClCompile Include="PipelineMetaData.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Scheduler.cpp" />
     <ClCompile Include="SmallBufferHeap.cpp" />

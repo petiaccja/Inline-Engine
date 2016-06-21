@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../GraphicsApi_LL/ICommandList.hpp"
+#include "ExecutionContext.hpp"
+#include "ExecutionResult.hpp"
 
 #include <functional>
 
@@ -22,17 +23,7 @@ namespace inl {
 namespace gxeng {
 
 
-struct ExecutionContext {
-	
-};
-
-struct ExecutionResult {
-	inl::gxapi::ICommandList* commandList;
-};
-
 using ElementaryTask = std::function<ExecutionResult(const ExecutionContext&)>;
-
-
 
 
 class Task {

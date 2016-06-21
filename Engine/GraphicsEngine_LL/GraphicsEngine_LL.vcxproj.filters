@@ -105,9 +105,6 @@
     <ClInclude Include="DisposableConstBuffer.hpp">
       <Filter>MemoryManagement</Filter>
     </ClInclude>
-    <ClInclude Include="PipelineMetaData.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
     <ClInclude Include="GpuBuffer.hpp">
       <Filter>MemoryManagement</Filter>
     </ClInclude>
@@ -134,6 +131,12 @@
     </ClInclude>
     <ClInclude Include="CopyCommandList.hpp">
       <Filter>Middleware</Filter>
+    </ClInclude>
+    <ClInclude Include="ExecutionContext.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="ExecutionResult.hpp">
+      <Filter>Resources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -183,9 +186,6 @@
     <ClCompile Include="DisposableConstBuffer.cpp">
       <Filter>MemoryManagement</Filter>
     </ClCompile>
-    <ClCompile Include="PipelineMetaData.cpp">
-      <Filter>Pipeline</Filter>
-    </ClCompile>
     <ClCompile Include="Vertex.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
@@ -212,6 +212,12 @@
     </ClCompile>
     <ClCompile Include="CopyCommandList.cpp">
       <Filter>Middleware</Filter>
+    </ClCompile>
+    <ClCompile Include="ExecutionContext.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="ExecutionResult.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

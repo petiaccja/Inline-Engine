@@ -11,6 +11,7 @@ exc::NodeBase* inl::gxeng::GraphicsNodeFactory::CreateNode(const std::string & n
 	if (graphicsNode != nullptr) {
 		// do some special initialization for graphics nodes
 		// like set graphics engine or...
+		graphicsNode->InitGraphics();
 	}
 
 	return node;
