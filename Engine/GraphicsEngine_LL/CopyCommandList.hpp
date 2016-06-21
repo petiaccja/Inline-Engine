@@ -82,9 +82,9 @@ public:
 
 
 	// Resource copy
-	void CopyBuffer(GenericBuffer*, size_t dstOffset, GenericBuffer* src, size_t srcOffset, size_t numBytes);
+	void CopyBuffer(GenericResource*, size_t dstOffset, GenericResource* src, size_t srcOffset, size_t numBytes);
 
-	void CopyResource(GenericBuffer* dst, GenericBuffer* src);
+	void CopyResource(GenericResource* dst, GenericResource* src);
 
 	void CopyTexture(Texture1D* dst,
 					 Texture1D* src,

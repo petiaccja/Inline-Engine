@@ -12,16 +12,26 @@ using namespace gxapi;
 //==================================
 //Generic Resource
 
-gxapi::IResource* GenericBuffer::GetResource() {
-	return m_resource.get();
-}
-
-gxapi::IResource const* GenericBuffer::GetResource() const {
-	return m_resource.get();
+void* GenericResource::GetVirtualAddress() const {
+	return GetResource()->GetGPUAddress();
 }
 
 
-void GenericBuffer::ResetResource(gxapi::IGraphicsApi* graphicsApi, gxapi::ResourceDesc desc) {
+gxapi::ResourceDesc GenericResource::GetDescriptor() const {
+	return GetResource()->GetDesc();
+}
+
+
+gxapi::IResource* GenericResource::GetResource() {
+	return m_resource.get();
+}
+
+gxapi::IResource const* GenericResource::GetResource() const {
+	return m_resource.get();
+}
+
+
+void GenericResource::ResetResource(gxapi::IGraphicsApi* graphicsApi, gxapi::ResourceDesc desc) {
 	m_resource.reset(graphicsApi->CreateCommittedResource(
 		HeapProperties(eHeapType::DEFAULT),
 		eHeapFlags::NONE,
@@ -38,28 +48,28 @@ VertexBuffer::VertexBuffer(gxapi::IGraphicsApi* graphicsApi, uint64_t size) {
 }
 
 
-uint64_t TextureBase::GetWidth() const {
+uint64_t VertexBuffer::GetSize() const {
+	return GetResource()->GetDesc().bufferDesc.sizeInBytes;
+}
+
+
+gxapi::eFormat GenericTextureBase::GetFormat() const {
+	return GetResource()->GetDesc().textureDesc.format;
+}
+
+
+uint16_t ArrayTextureBase::GetElementCount() const {
+	return GetResource()->GetDesc().textureDesc.depthOrArraySize;
+}
+
+
+uint64_t HorizontalTextureBase::GetWidth() const {
 	return GetResource()->GetDesc().textureDesc.width;
 }
 
 
-uint64_t TextureBase::GetHeight() const {
+uint64_t VerticalTextureBase::GetHeight() const {
 	return GetResource()->GetDesc().textureDesc.height;
-}
-
-
-uint64_t TextureBase::GetElementCount() const {
-	return GetResource()->GetDesc().textureDesc.depthOrArraySize;
-}
-
-
-uint64_t TextureBase::GetDepth() const {
-	return GetResource()->GetDesc().textureDesc.depthOrArraySize;
-}
-
-
-gxapi::eFormat TextureBase::GetFormat() const {
-	return GetResource()->GetDesc().textureDesc.format;
 }
 
 
@@ -86,9 +96,15 @@ Texture3D::Texture3D(gxapi::IGraphicsApi* graphicsApi, uint64_t width, uint32_t 
 }
 
 
+uint16_t Texture3D::GetDepth() const {
+	return GetResource()->GetDesc().textureDesc.depthOrArraySize;
+}
+
+
 TextureCubeMap::TextureCubeMap(gxapi::IGraphicsApi * graphicsApi, uint64_t width, uint32_t height, gxapi::eFormat format) {
 	ResetResource(graphicsApi, ResourceDesc::CubeMap(width, height, format));
 }
+
 
 
 } // namespace gxeng

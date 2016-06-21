@@ -22,7 +22,7 @@ public:
 	gxapi::ResourceDesc GetDesc() const override;
 	void* Map(unsigned subresourceIndex, const gxapi::MemoryRange* readRange = nullptr) override;
 	void Unmap(unsigned subresourceIndex, const gxapi::MemoryRange* writtenRange = nullptr) override;
-	void* GetGPUAddress() override;
+	void* GetGPUAddress() const override;
 
 private:
 	ComPtr<ID3D12Resource> m_native;

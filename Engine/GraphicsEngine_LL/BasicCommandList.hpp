@@ -26,10 +26,10 @@ public:
 protected:
 	BasicCommandList(CommandAllocatorPool& cmdAllocatorPool, inl::gxapi::eCommandListType type);
 
-	void UseResource(GenericBuffer* resource);
+	void UseResource(GenericResource* resource);
 
 protected:
-	std::vector<GenericBuffer*> m_usedResources;
+	std::vector<GenericResource*> m_usedResources;
 	std::unique_ptr<gxapi::ICommandAllocator, AllocDeleter> m_commandAllocator;
 	std::unique_ptr<gxapi::ICommandList> m_commandList;
 };

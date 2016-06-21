@@ -48,7 +48,7 @@ void Resource::Unmap(unsigned subresourceIndex, const gxapi::MemoryRange* writte
 }
 
 
-void* Resource::GetGPUAddress() {
+void* Resource::GetGPUAddress() const {
 	return native_cast_ptr(m_native->GetGPUVirtualAddress());
 }
 
