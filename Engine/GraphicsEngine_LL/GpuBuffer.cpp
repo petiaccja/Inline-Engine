@@ -53,23 +53,13 @@ uint64_t VertexBuffer::GetSize() const {
 }
 
 
-gxapi::eFormat GenericTextureBase::GetFormat() const {
-	return GetResource()->GetDesc().textureDesc.format;
-}
-
-
-uint16_t ArrayTextureBase::GetElementCount() const {
-	return GetResource()->GetDesc().textureDesc.depthOrArraySize;
-}
-
-
-uint64_t HorizontalTextureBase::GetWidth() const {
+uint64_t GenericTextureBase::GetWidth() const {
 	return GetResource()->GetDesc().textureDesc.width;
 }
 
 
-uint64_t VerticalTextureBase::GetHeight() const {
-	return GetResource()->GetDesc().textureDesc.height;
+gxapi::eFormat GenericTextureBase::GetFormat() const {
+	return GetResource()->GetDesc().textureDesc.format;
 }
 
 
@@ -82,6 +72,11 @@ Texture1D::Texture1D(gxapi::IGraphicsApi* graphicsApi, uint64_t width, gxapi::eF
 }
 
 
+uint16_t Texture1D::GetArrayCount() const {
+	return GetResource()->GetDesc().textureDesc.depthOrArraySize;
+}
+
+
 Texture2D::Texture2D(gxapi::IGraphicsApi* graphicsApi, uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t elementCount) {
 	if (elementCount == 0) {
 		throw gxapi::InvalidArgument("\"count\" should not be zero.");
@@ -91,8 +86,23 @@ Texture2D::Texture2D(gxapi::IGraphicsApi* graphicsApi, uint64_t width, uint32_t 
 }
 
 
+uint64_t Texture2D::GetHeight() const {
+	return GetResource()->GetDesc().textureDesc.height;
+}
+
+
+uint16_t Texture2D::GetArrayCount() const {
+	return GetResource()->GetDesc().textureDesc.depthOrArraySize;
+}
+
+
 Texture3D::Texture3D(gxapi::IGraphicsApi* graphicsApi, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format) {
 	ResetResource(graphicsApi, ResourceDesc::Texture3D(width, height, depth, format));
+}
+
+
+uint64_t Texture3D::GetHeight() const {
+	return GetResource()->GetDesc().textureDesc.height;
 }
 
 
@@ -103,6 +113,11 @@ uint16_t Texture3D::GetDepth() const {
 
 TextureCubeMap::TextureCubeMap(gxapi::IGraphicsApi * graphicsApi, uint64_t width, uint32_t height, gxapi::eFormat format) {
 	ResetResource(graphicsApi, ResourceDesc::CubeMap(width, height, format));
+}
+
+
+uint64_t TextureCubeMap::GetHeight() const {
+	return GetResource()->GetDesc().textureDesc.height;
 }
 
 
