@@ -2,6 +2,7 @@
 
 #include "GraphicsNode.hpp"
 #include "Pipeline.hpp"
+#include "FrameContext.hpp"
 
 
 namespace inl {
@@ -14,7 +15,7 @@ public:
 	void SetPipeline(Pipeline&& pipeline);
 	const Pipeline& GetPipeline() const;
 
-	void Execute();
+	void Execute(FrameContext context);
 private:
 	Pipeline m_pipeline;
 };

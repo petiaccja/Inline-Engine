@@ -11,6 +11,10 @@ namespace gxeng {
 class ComputeCommandList : public CopyCommandList {
 public:
 	ComputeCommandList(CommandAllocatorPool& cmdAllocatorPool);
+	ComputeCommandList(const ComputeCommandList& rhs) = delete;
+	ComputeCommandList(ComputeCommandList&& rhs);
+	ComputeCommandList& operator=(const ComputeCommandList& rhs) = delete;
+	ComputeCommandList& operator=(ComputeCommandList&& rhs);
 protected:
 	ComputeCommandList(CommandAllocatorPool& cmdAllocatorPool, gxapi::eCommandListType type);
 
@@ -27,6 +31,8 @@ public:
 	//void BindCompute(BindParameter parameter, RWTexture2D* rwResource);
 	//void BindCompute(BindParameter parameter, RWTexture3D* rwResource);
 
+protected:
+	virtual Decomposition Decompose() override;
 private:
 	gxapi::IComputeCommandList* m_commandList;
 	Binder* m_computeBinder;

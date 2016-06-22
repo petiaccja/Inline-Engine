@@ -7,13 +7,21 @@ namespace gxeng {
 
 
 
-ExecutionContext::ExecutionContext() {
+ExecutionContext::ExecutionContext(CommandAllocatorPool& commandAllocatorPool) 
+	: m_commandAllocatorPool(&commandAllocatorPool)
+{}
 
+
+GraphicsCommandList ExecutionContext::GetGraphicsCommandList() {
+	return GraphicsCommandList(*m_commandAllocatorPool);
 }
 
+ComputeCommandList ExecutionContext::GetComputeCommandList() {
+	return ComputeCommandList(*m_commandAllocatorPool);
+}
 
-ExecutionContext::~ExecutionContext() {
-
+CopyCommandList ExecutionContext::GetCopyCommandList() {
+	return CopyCommandList(*m_commandAllocatorPool);
 }
 
 

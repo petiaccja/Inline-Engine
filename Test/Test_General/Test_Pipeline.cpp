@@ -210,7 +210,9 @@ int TestPipeline::Run() {
 
 		// execute pipeline
 		scheduler.SetPipeline(std::move(pipeline));
-		scheduler.Execute();
+
+
+		//scheduler.Execute();
 	}
 	catch (std::exception& ex) {
 		cout << "Failed to create pipeline: " << ex.what() << endl;

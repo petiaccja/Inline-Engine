@@ -7,6 +7,7 @@
 #include "../GraphicsApi_LL/IGxapiManager.hpp"
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include "../GraphicsApi_LL/ISwapChain.hpp"
+#include "../GraphicsApi_LL/ICommandQueue.hpp"
 
 
 namespace inl {
@@ -29,6 +30,9 @@ public:
 
 
 	void Update(float elapsed);
+
+private:
+	void CreatePipeline();
 
 private:
 	// Graphics API things
