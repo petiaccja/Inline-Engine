@@ -32,7 +32,7 @@ BasicCommandList& BasicCommandList::operator=(BasicCommandList&& rhs) {
 }
 
 
-void BasicCommandList::UseResource(GenericBuffer* resource) {
+void BasicCommandList::UseResource(GenericResource* resource) {
 	m_usedResources.push_back(resource);
 }
 

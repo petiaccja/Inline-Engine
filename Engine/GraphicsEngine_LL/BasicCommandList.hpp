@@ -20,7 +20,7 @@ public:
 		CommandAllocatorPool* commandAllocatorPool;
 		gxapi::ICommandAllocator* commandAllocator;
 		gxapi::ICommandList* commandList;
-		std::vector<GenericBuffer*> usedResources;
+		std::vector<GenericResource*> usedResources;
 	};
 private:
 	struct AllocDeleter {
@@ -40,11 +40,11 @@ public:
 	virtual Decomposition Decompose();
 protected:
 	BasicCommandList(CommandAllocatorPool& cmdAllocatorPool, inl::gxapi::eCommandListType type);
-	void UseResource(GenericBuffer* resource);
+	void UseResource(GenericResource* resource);
 	gxapi::ICommandList* GetCommandList() { return m_commandList.get(); }
 
 private:
-	std::vector<GenericBuffer*> m_usedResources;
+	std::vector<GenericResource*> m_usedResources;
 	std::unique_ptr<gxapi::ICommandAllocator, AllocDeleter> m_commandAllocator;
 	std::unique_ptr<gxapi::ICommandList> m_commandList;
 	CommandAllocatorPool* m_commandAllocatorPool;
