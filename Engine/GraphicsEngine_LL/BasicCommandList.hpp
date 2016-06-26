@@ -15,23 +15,39 @@ namespace gxeng {
 
 
 class BasicCommandList {
+public:
+	struct Decomposition {
+		CommandAllocatorPool* commandAllocatorPool;
+		gxapi::ICommandAllocator* commandAllocator;
+		gxapi::ICommandList* commandList;
+		std::vector<GenericResource*> usedResources;
+	};
+private:
 	struct AllocDeleter {
-		AllocDeleter(CommandAllocatorPool& pool) : pool(pool) {}
-		CommandAllocatorPool& pool;
-		void operator()(gxapi::ICommandAllocator* arg) { pool.RecycleAllocator(arg); }
+		AllocDeleter(CommandAllocatorPool& pool) : pool(&pool) {}
+		CommandAllocatorPool* pool;
+		void operator()(gxapi::ICommandAllocator* arg) { pool->RecycleAllocator(arg); }
 	};
 public:
+	BasicCommandList(const BasicCommandList& rhs) = delete; // could be, but big perf hit, better not allow user
+	BasicCommandList(BasicCommandList&& rhs);
+	BasicCommandList& operator=(const BasicCommandList& rhs) = delete; // could be, but big perf hit, better not allow user
+	BasicCommandList& operator=(BasicCommandList&& rhs);
+	virtual ~BasicCommandList() = default;
+
 	gxapi::eCommandListType GetType() const { return m_commandList->GetType(); }
-	virtual ~BasicCommandList();
+
+	virtual Decomposition Decompose();
 protected:
 	BasicCommandList(CommandAllocatorPool& cmdAllocatorPool, inl::gxapi::eCommandListType type);
-
 	void UseResource(GenericResource* resource);
+	gxapi::ICommandList* GetCommandList() { return m_commandList.get(); }
 
-protected:
+private:
 	std::vector<GenericResource*> m_usedResources;
 	std::unique_ptr<gxapi::ICommandAllocator, AllocDeleter> m_commandAllocator;
 	std::unique_ptr<gxapi::ICommandList> m_commandList;
+	CommandAllocatorPool* m_commandAllocatorPool;
 };
 
 

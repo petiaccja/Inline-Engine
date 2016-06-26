@@ -10,15 +10,16 @@ namespace gxeng {
 
 
 
-class ExecutionContext
-{
+class ExecutionContext {
 public:
-	ExecutionContext();
-	~ExecutionContext();
+	ExecutionContext(CommandAllocatorPool& commandAllocatorPool);
+	
 
 	GraphicsCommandList GetGraphicsCommandList();
 	ComputeCommandList GetComputeCommandList();
 	CopyCommandList GetCopyCommandList();
+private:
+	CommandAllocatorPool* m_commandAllocatorPool;
 };
 
 

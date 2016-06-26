@@ -13,7 +13,7 @@ const Pipeline& Scheduler::GetPipeline() const {
 	return m_pipeline;
 }
 
-void Scheduler::Execute() {
+void Scheduler::Execute(FrameContext context) {
 	const auto& taskGraph = m_pipeline.GetTaskGraph();
 	const auto& dependencyGraph = m_pipeline.GetDependencyGraph();
 	const auto& taskParentMap = m_pipeline.GetTaskParentMap();
@@ -35,25 +35,35 @@ void Scheduler::Execute() {
 		return taskOrderMap[n1] < taskOrderMap[n2];
 	});
 
-	// execute the tasks
-	lemon::ListDigraph::NodeMap<bool> nodeInitMap(dependencyGraph, false);
+	// execute the tasks in topological order on CPU side
 	std::vector<ExecutionResult> results;
 	for (auto& taskNode : taskNodes) {
-		// initialize parent node if not init already
-		lemon::ListDigraph::NodeIt parentGraphNode = taskParentMap[taskNode];
-		if (parentGraphNode != lemon::INVALID && !nodeInitMap[parentGraphNode]) {
-			exc::NodeBase* parentNode = nodeMap[parentGraphNode];
-			//parentNode->Update();
-			nodeInitMap[parentGraphNode] = true;
-		}
-
 		// execute the task
 		ElementaryTask task = taskFunctionMap[taskNode];
 		if (task) {
-			results.push_back(task(ExecutionContext{}));
+			results.push_back(task(ExecutionContext{*context.commandAllocatorPool}));
+		}
+	}
+
+	// send stuff to the GPU
+	for (auto& result : results) {
+		for (auto& listRecord : result) {
+			BasicCommandList::Decomposition decomp = listRecord.list->Decompose();
+
+			// TODO:
+			// make resources resident
+
+			context.commandQueue->ExecuteCommandLists(1, &decomp.commandList);
+			delete decomp.commandList;
+
+			// TODO:
+			// get a sync point
+			// mark commandAllocator for sync point
+			// mark usedResources for sync point			
 		}
 	}
 }
-	
+
+
 }
 }

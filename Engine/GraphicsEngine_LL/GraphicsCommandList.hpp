@@ -11,6 +11,10 @@ namespace gxeng {
 class GraphicsCommandList : public ComputeCommandList {
 public:
 	GraphicsCommandList(CommandAllocatorPool& cmdAllocatorPool);
+	GraphicsCommandList(const GraphicsCommandList& rhs) = delete;
+	GraphicsCommandList(GraphicsCommandList&& rhs);
+	GraphicsCommandList& operator=(const GraphicsCommandList& rhs) = delete;
+	GraphicsCommandList& operator=(GraphicsCommandList&& rhs);
 
 public:
 	// Clear shit
@@ -82,7 +86,8 @@ public:
 	// set pipeline state
 	void SetPipelineState(gxapi::IPipelineState* pipelineState);
 
-
+protected:
+	virtual Decomposition Decompose() override;
 private:
 	gxapi::IGraphicsCommandList* m_commandList;
 };

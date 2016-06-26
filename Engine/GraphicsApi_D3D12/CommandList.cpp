@@ -144,7 +144,7 @@ D3D12_TEXTURE_COPY_LOCATION CopyCommandList::CreateTextureCopyLocation(gxapi::IR
 				footprint.RowPitch = static_cast<UINT>(rowSize + (alignement - rowSize % alignement) % alignement);
 			}
 			placedFootprint.Footprint = footprint;
-			placedFootprint.Offset = 0;
+			placedFootprint.Offset = description.byteOffset;
 		}
 		result.PlacedFootprint = placedFootprint;
 	}
@@ -157,7 +157,7 @@ D3D12_TEXTURE_COPY_LOCATION CopyCommandList::CreateTextureCopyLocation(gxapi::IR
 {
 	D3D12_TEXTURE_COPY_LOCATION result;
 	result.pResource = native_cast(texture);
-	result.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+	result.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
 	result.SubresourceIndex = subresourceIndex;
 
 	return result;
