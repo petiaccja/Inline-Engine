@@ -19,7 +19,7 @@ using container_type = std::list<T>;
 template <typename T>
 using TestRingBuffer = RingBuffer<T, container_type<T>>;
 
-void TestAssertFunc(bool val, const char* expression) {
+static void TestAssertFunc(bool val, const char* expression) {
 	if (!val) {
 		throw std::runtime_error("Assertion failed while evaluating the following expression:\n"s + expression);
 	}

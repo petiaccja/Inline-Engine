@@ -26,6 +26,7 @@ protected:
 
 private:
 	std::unique_ptr<gxapi::IResource> m_resource;
+	gxapi::DescriptorHandle m_viewHandle; // dont forget it when copying the resource
 };
 
 //==================================
