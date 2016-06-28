@@ -159,8 +159,8 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Test_Allocator.cpp" />
     <ClCompile Include="Test_MultiInstanceTLS.cpp">
-      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AssemblyAndSourceCode</AssemblerOutput>
-      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AssemblyAndSourceCode</AssemblerOutput>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NoListing</AssemblerOutput>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NoListing</AssemblerOutput>
     </ClCompile>
     <ClCompile Include="Test_Pipeline.cpp" />
     <ClCompile Include="Test_RingBuffer.cpp" />
