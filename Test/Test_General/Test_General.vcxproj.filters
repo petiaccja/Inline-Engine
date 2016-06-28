@@ -30,6 +30,9 @@
     <ClCompile Include="Test_MultiInstanceTLS.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Test_RingAllocEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Test.hpp">

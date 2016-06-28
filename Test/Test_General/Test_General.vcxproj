@@ -163,6 +163,7 @@
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NoListing</AssemblerOutput>
     </ClCompile>
     <ClCompile Include="Test_Pipeline.cpp" />
+    <ClCompile Include="Test_RingAllocEngine.cpp" />
     <ClCompile Include="Test_RingBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>

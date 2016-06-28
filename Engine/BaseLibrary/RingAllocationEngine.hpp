@@ -1,6 +1,5 @@
 #pragma once
 
-#if 0
 
 #include <cstdint>
 #include <limits>
@@ -16,30 +15,58 @@ namespace exc {
 /// This class will not allocate the actual objects, it only
 /// administrates the object positions and sizes.
 ///
-/// SizeType will be used as the type of indices, and allocation sizes.
-/// Choosing a type for SizeType that occupies less space can increase performance.
-/// Please note that no allocation of size equal to the maximum value of SizeType can be made.
 /// </summary>
-using SizeType = size_t; //TODO cahnge to template parameter
 class RingAllocationEngine {
-protected:
-	struct CellData {
-		SizeType allocSize;
-		bool inUse; // Indicates weather this allocation is still needed
+private:
+	enum class eCellState { FREE = 0, INSIDE, END, PREVIOUS_IN_USE };
 
-		CellData() : allocSize(0), inUse(false) {}
+	class CellContainer {
+	public:
+		CellContainer(size_t size) :
+		m_bitset(size*CELL_SIZE) {}
+
+		void Set(size_t index, eCellState value) {
+			bool first = int(value) >> 1;
+			bool second = int(value) & 1;
+			m_bitset[index*CELL_SIZE] = first;
+			m_bitset[index*CELL_SIZE + 1] = second;
+		}
+
+		eCellState At(size_t index) const {
+			uint8_t first = m_bitset[index*CELL_SIZE];
+			uint8_t second = m_bitset[index*CELL_SIZE + 1];
+
+			return eCellState((first<<1) + second);
+		}
+
+		size_t Size() const {
+			return m_bitset.size() / CELL_SIZE;
+		}
+
+		void Resize(size_t size) {
+			m_bitset.resize(size*CELL_SIZE);
+
+		}
+
+		void Reset() {
+			size_t size = m_bitset.size();
+			m_bitset.clear();
+			m_bitset.resize(size);
+		}
+
+	protected:
+		static constexpr int CELL_SIZE = 2;
+		std::vector<bool> m_bitset;
 	};
 
 public:
-	static_assert(std::is_unsigned<SizeType>::value, "SizeType should be unsigned.");
-
 	/// <summary>
 	/// Initialize an allocator of specified size.
 	/// </summary>
 	/// <param name="poolSize">The number of available slots in the pool.</param>
-	RingAllocationEngine(SizeType poolSize)
-		: m_pool(poolSize) {
-	}
+	RingAllocationEngine(size_t poolSize) :
+		m_container(poolSize),
+		m_nextIndex(0) {}
 
 
 	/// <summary> Allocates space from the pool for one item. </summary>
@@ -47,95 +74,127 @@ public:
 	/// <returns> The starting index of the allocated range. </returns>
 	/// <exception cref="std::bad_alloc"> Thrown if allocation does not fit.</exception>
 	/// <exception cref="std::invalid_argument">
-	/// Thrown if allocation size is equal to the maximum value of SizeType.
-	/// Or if allocation size is zero.
+	/// If allocation size is zero.
 	/// </exception>
-	SizeType Allocate(SizeType allocationSize = 1) {
-		if (allocationSize > m_pool.size()) {
+	size_t Allocate(size_t allocationSize = 1) {
+		if (allocationSize > GetPoolSize()) {
 			throw std::bad_alloc();
 		}
-		if (allocationSize == 0 || allocationSize == INSIDE_ALLOCATION_ID) {
-			throw std::invalid_argument("Allocation size should be non-zero, and less than maximum representable value.");
+		if (allocationSize == 0) {
+			throw std::invalid_argument("Allocation size should be non-zero.");
 		}
 
-		SizeType allocStartIndex = m_nextIndex;
-		if (allocStartIndex + allocationSize > m_pool.size()) {
+		size_t allocStartIndex = m_nextIndex;
+		if (allocStartIndex + allocationSize > GetPoolSize()) {
 			allocStartIndex = 0;
 		}
 
-		bool isLastFree = m_pool[allocStartIndex + allocationSize-1].allocSize == 0;
-		if (!isLastFree) {
-			throw std::bad_alloc();
+		// check if last cell of allocation is free
+		// if it is, then the whole range of the allocation is free
+		{
+			bool isLastFree = m_container.At(allocStartIndex + allocationSize-1) == eCellState::FREE;
+			if (!isLastFree) {
+				throw std::bad_alloc();
+			}
 		}
 
-		m_pool[allocStartIndex].allocSize = allocationSize;
-		m_pool[allocStartIndex].inUse = true;
-		for (SizeType i = 1; i < allocationSize; i++) {
-			m_pool[allocStartIndex + i].allocSize = INSIDE_ALLOCATION_ID;
+		// mark allocated area
+		{
+			size_t end = allocationSize-1;
+			for (size_t i = 0; i < end; i++) {
+				m_container.Set(allocStartIndex + i, eCellState::INSIDE);
+			}
+			m_container.Set(allocStartIndex + end, eCellState::END);
 		}
 
-		m_nextIndex = (allocStartIndex + allocationSize) % m_pool.size();
+
+		m_nextIndex = (allocStartIndex + allocationSize) % m_container.Size();
 
 		return allocStartIndex;
 	}
 
 
-	// TODO calling this function in a particular order can create a pattern that makes the allocation alocate over an already allocated range
-
 	/// <summary> Deallocated the range starting at index. </summary>
 	/// <param name="index"> The starting index of the range that should be freed. </param>
 	/// <exception cref="std::out_of_range"> Thrown if index is out of the pools range.</exception>
-	void Deallocate(SizeType index) {
-		if (index >= m_pool.size()) {
+	void Deallocate(size_t index) {
+		if (index >= m_container.Size()) {
 			throw std::out_of_range("Given index is greater than the highest index in the pool");
 		}
 
-		SizeType allocatedSize = m_pool[index].allocSize;
-		SizeType prevIndex = index-1;
-		prevIndex = prevIndex >= m_pool.size() ? m_pool.size()-1 : prevIndex;
-		bool isPreviousAllocated = m_pool[prevIndex].allocSize != 0;
-		bool hasGapBetweenFrontAndThis = index != m_nextIndex;
-		if (hasGapBetweenFrontAndThis && isPreviousAllocated) {
-			//just mark unused, but keep allocation, because there are still allocated blocks before this one
-			m_pool[index].inUse = false;
-		} else {
-			//if it has no allocated space befor this one
-			//in other words if this is the last allocated range, it is time to deallocate
+		static_assert(std::is_unsigned<size_t>::value, "Utilizing underflow. Size type should be unsigned.");
+		size_t prevIndex = index-1;
+		prevIndex = prevIndex >= m_container.Size() ? m_container.Size()-1 : prevIndex;
+		bool isPreviousInUse = m_container.At(prevIndex) != eCellState::FREE;
+		bool previousIsNotFront = index != m_nextIndex;
 
-			//find the last allocation starting from here, that is not in use (can be freed)
-			SizeType lastFreeableIndex = index;
+		if (previousIsNotFront && isPreviousInUse) {
+			// there are still allocated blocks before this one
+
+			// mark all cells unused inside this allocation
+			size_t current = index;
+			bool isEnd;
 			do {
-				//TODO
-				static_assert(false, "TODO");
-			} while ();
-
+				isEnd = m_container.At(current) == eCellState::END;
+				m_container.Set(current, eCellState::PREVIOUS_IN_USE);
+				current = (current+1) % m_container.Size();
+			} while(!isEnd);
 		}
+		else {
+			// if it has no allocated space befor this one
+			// in other words if this is the last allocated range, it is time to deallocate
 
-		memset(m_pool.data(), 0, allocatedSize * sizeof(SizeType));
+			size_t current = index;
+
+			// lets free this allocation first
+			{
+				bool isEnd;
+				do {
+					isEnd = m_container.At(current) == eCellState::END;
+					m_container.Set(current, eCellState::FREE);
+					current = (current+1) % m_container.Size();
+				} while(!isEnd);
+			}
+
+			// go forward, and free every cell in a contigous range starting at this cell
+			// that is in the state of "previous in use"
+			{
+				while (m_container.At(current) == eCellState::PREVIOUS_IN_USE) {
+					m_container.Set(current, eCellState::FREE);
+					current = (current+1) % m_container.Size();
+				}
+			}
+		}
 	}
 
 
 	/// <summary> Resizes the pool, allocated slots won't be cleared, but may become invalid if pool is shrunk. </summary>
 	/// <param name="newPoolSize"> The number of available slots in the new pool. </param>
-	void Resize(SizeType newPoolSize) {
-		m_pool.resize(newPoolSize);
+	void Resize(size_t newPoolSize) {
+		m_container.Resize(newPoolSize);
+		if (m_nextIndex >= m_container.Size()) {
+			m_nextIndex = 0;
+		}
 	}
 
 
 	/// <summary> Clears all slots, does not affect pool size. </summary>
 	void Reset() {
-		memset(m_pool.data(), 0, sizeof(SizeType) * m_pool.size());
+		m_container.Reset();
+		m_nextIndex = 0;
 	}
-	
+
+
+	size_t GetPoolSize() const {
+		return m_container.Size();
+	}
+
+
 protected:
-	static constexpr SizeType INSIDE_ALLOCATION_ID = std::numeric_limits<SizeType>::max();
-
-	std::vector<CellData> m_pool;
-	SizeType m_nextIndex;
-
+	size_t m_nextIndex;
+	CellContainer m_container;
 };
 
 
 } // namespace exc
 
-#endif //0
