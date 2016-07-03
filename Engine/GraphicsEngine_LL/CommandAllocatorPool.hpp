@@ -127,6 +127,8 @@ private:
 	impl::CommandAllocatorPool<gxapi::eCommandListType::GRAPHICS> m_gxPool;
 	impl::CommandAllocatorPool<gxapi::eCommandListType::COMPUTE> m_cuPool;
 	impl::CommandAllocatorPool<gxapi::eCommandListType::COPY> m_cpPool;
+
+	std::mutex mtx; // Request and Recycle are internally locked -> may not be the best solution
 };
 
 

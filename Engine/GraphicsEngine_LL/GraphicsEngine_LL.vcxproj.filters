@@ -141,10 +141,10 @@
     <ClInclude Include="FrameContext.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
-    <ClInclude Include="Timeline.hpp">
+    <ClInclude Include="CommandQueue.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
-    <ClInclude Include="SyncPoint.hpp">
+    <ClInclude Include="CommandListTasks.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
   </ItemGroup>

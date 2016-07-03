@@ -1,6 +1,7 @@
 #include "Scheduler.hpp"
 
 #include <cassert>
+#include <iostream> // only for debugging
 
 namespace inl {
 namespace gxeng {
@@ -12,6 +13,12 @@ void Scheduler::SetPipeline(Pipeline&& pipeline) {
 const Pipeline& Scheduler::GetPipeline() const {
 	return m_pipeline;
 }
+
+Pipeline Scheduler::ReleasePipeline() {
+	return std::move(m_pipeline);
+}
+
+
 
 void Scheduler::Execute(FrameContext context) {
 	const auto& taskGraph = m_pipeline.GetTaskGraph();
@@ -41,7 +48,7 @@ void Scheduler::Execute(FrameContext context) {
 		// execute the task
 		ElementaryTask task = taskFunctionMap[taskNode];
 		if (task) {
-			results.push_back(task(ExecutionContext{*context.commandAllocatorPool}));
+			results.push_back(task(ExecutionContext{ *context.commandAllocatorPool }));
 		}
 	}
 
@@ -50,18 +57,51 @@ void Scheduler::Execute(FrameContext context) {
 		for (auto& listRecord : result) {
 			BasicCommandList::Decomposition decomp = listRecord.list->Decompose();
 
-			// TODO:
-			// make resources resident
+			auto beforeFence = context.commandQueue->IncrementFenceValue();
+			auto afterFence = context.commandQueue->IncrementFenceValue();
+			auto fence = context.commandQueue->GetFence();
 
+
+			// enqueue make resources resident
+			auto makeResidentTask = [resources = decomp.usedResources, list = decomp.commandList]{
+				std::cout << "Making stuff resident for " << list << std::endl;
+			};
+			std::unique_lock<std::mutex> initLkg(*context.initMutex);
+			context.initQueue->push({ makeResidentTask, fence, beforeFence });
+			initLkg.unlock();
+			context.initCv->notify_all();
+
+
+			// enqueue command list
+			dynamic_cast<gxapi::ICopyCommandList*>(decomp.commandList)->Close();
+
+			context.commandQueue->Wait(fence, beforeFence);
 			context.commandQueue->ExecuteCommandLists(1, &decomp.commandList);
+			context.commandQueue->Signal(fence, afterFence);
+
 			delete decomp.commandList;
 
-			// TODO:
-			// get a sync point
-			// mark commandAllocator for sync point
-			// mark usedResources for sync point			
+
+			// enqueue clean resources
+			auto evictTask = [decomp = std::move(decomp)]{
+				std::cout << "Cleaning stuff after " << decomp.commandList << std::endl;
+				decomp.commandAllocatorPool->RecycleAllocator(decomp.commandAllocator);
+			};
+			std::unique_lock<std::mutex> cleanLkg(*context.cleanMutex);
+			context.initQueue->push({ evictTask, fence, afterFence });
+			cleanLkg.unlock();
+			context.cleanCv->notify_all();
 		}
 	}
+}
+
+
+void Scheduler::MakeResident(std::vector<GenericResource*> usedResources) {
+
+}
+
+void Scheduler::Evict(std::vector<GenericResource*> usedResources) {
+
 }
 
 
