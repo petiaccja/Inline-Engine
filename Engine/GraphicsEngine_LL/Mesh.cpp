@@ -43,9 +43,11 @@ void Mesh::Update(int streamIndex, const void* vertexData, int vertexCount, int 
 }
 
 
-void Clear() {
+void Mesh::Clear() {
 	
 }
+
+
 
 
 Mesh::eValidationResult Mesh::Validate(const std::vector<VertexStream>& streams, const std::vector<unsigned> indices) {
@@ -86,12 +88,12 @@ int Mesh::GetNumSreams() const {
 }
 
 
-const void* Mesh::GetVertexBuffer(int streamIndex) const {
+const VertexBuffer* Mesh::GetVertexBuffer(int streamIndex) const {
 	return m_vertexBuffers[streamIndex];
 }
 
 
-const void* Mesh::GetIndexBuffer() const {
+const IndexBuffer* Mesh::GetIndexBuffer() const {
 	return m_indexBuffer;
 }
 

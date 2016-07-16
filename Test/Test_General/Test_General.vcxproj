@@ -166,6 +166,7 @@
     <ClCompile Include="Test_Pipeline.cpp" />
     <ClCompile Include="Test_RingAllocEngine.cpp" />
     <ClCompile Include="Test_RingBuffer.cpp" />
+    <ClCompile Include="Test_Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Test.hpp" />

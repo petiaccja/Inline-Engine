@@ -111,9 +111,6 @@
     <ClInclude Include="AsyncUploader.hpp">
       <Filter>MemoryManagement</Filter>
     </ClInclude>
-    <ClInclude Include="Vertex.hpp">
-      <Filter>Resources</Filter>
-    </ClInclude>
     <ClInclude Include="Binder.hpp">
       <Filter>Middleware</Filter>
     </ClInclude>
@@ -146,6 +143,15 @@
     </ClInclude>
     <ClInclude Include="CommandListTasks.hpp">
       <Filter>Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="TypedMesh.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex_old.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.hpp">
+      <Filter>Resources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
