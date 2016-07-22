@@ -12,7 +12,7 @@ namespace inl {
 namespace gxeng {
 
 
-
+/// <summary> Specifies the target registers type. </summary>
 enum class eBindParameterType {
 	CONSTANT = 2,
 	TEXTURE = 3,
@@ -21,7 +21,10 @@ enum class eBindParameterType {
 };
 
 
-
+/// <summary>
+/// Bind parameters identify a register in the shader. 
+/// You can bind resources to the register via <see cref="Binder"/> and <see cref="BasicCommandList"/>.
+/// </summary>
 struct BindParameter {
 	constexpr BindParameter(eBindParameterType type = eBindParameterType::CONSTANT, unsigned reg = 0, unsigned space = 0) :
 		type(type), reg(reg), space(space) {}
@@ -38,11 +41,14 @@ struct BindParameter {
 };
 
 
-
+/// <summary>
+/// Used to construct a Binder object.
+/// You can (and have to) specify other things besides the register.
+/// </summary>
 struct BindParameterDesc {
-	BindParameter parameter;
-	float relativeAccessFrequency;
-	float relativeChangeFrequency;
+	BindParameter parameter; /// <summary> Target register. </summary>
+	float relativeAccessFrequency; /// <summary> Not used currently. TODO: Read more about this aspect. </summary>
+	float relativeChangeFrequency; /// <summary> How often will you change this binding relative to others. Absolute value does not matter. </summary>
 	unsigned constantSize; /// <summary> Size of constant in bytes. Set to zero if unknown. </summary>
 };
 
@@ -67,8 +73,13 @@ private:
 	// Radix sort for BindParameters
 	static bool RadixLess(const BindParameter& lhs, const BindParameter& rhs);
 public:
+	/// <summary> Create a binder from specified binding points. </summary>
 	Binder(std::initializer_list<BindParameterDesc> parameters);
 
+	/// <summary> Get where in the root signature the specified parameter lies. </summary>
+	/// <param name="parameter"> The parameter to query. </param>
+	/// <param name="rootParamIndex"> The index of the record in the root signature. </param>
+	/// <param name="rootTableIndex"> If the above record is a descriptor table, the index in the table. Otherwise undefined. </param>
 	void Translate(BindParameter parameter, int& rootParamIndex, int& rootTableIndex) const;
 private:
 	void CalculateLayout(const std::initializer_list<BindParameterDesc>& parameters);
