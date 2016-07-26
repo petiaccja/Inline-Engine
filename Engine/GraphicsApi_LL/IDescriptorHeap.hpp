@@ -16,6 +16,7 @@ public:
 	virtual DescriptorHandle At(size_t index) const = 0;
 
 	virtual DescriptorHeapDesc GetDesc() const = 0;
+	virtual uint32_t GetIncrementSize() const = 0; 
 };
 
 

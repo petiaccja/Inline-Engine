@@ -147,6 +147,12 @@
     <ClInclude Include="CommandListTasks.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
+    <ClInclude Include="HighLevelDescHeap.hpp">
+      <Filter>MemoryManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceHeap.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -227,6 +233,12 @@
     </ClCompile>
     <ClCompile Include="ExecutionResult.cpp">
       <Filter>Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="HighLevelDescHeap.cpp">
+      <Filter>MemoryManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceHeap.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

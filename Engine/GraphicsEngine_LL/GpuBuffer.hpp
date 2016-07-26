@@ -3,30 +3,38 @@
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include "../GraphicsApi_LL/IResource.hpp"
 
+#include "HighLevelDescHeap.hpp"
+
 namespace inl {
 namespace gxeng {
 
+namespace impl {
+	class BasicHeap;
+}
 
+class MemoryManager;
 
 //==================================
 // Generic Resource
 
 class GenericResource {
+	friend class MemoryManager;
 public:
+	~GenericResource() noexcept;
+
 	void* GetVirtualAddress() const;
 	gxapi::ResourceDesc GetDescriptor() const;
-
-	//Dont use this function unless you really know what you are doing!
-	gxapi::IResource* GetResource();
-	//Dont use this function unless you really know what you are doing!
-	gxapi::IResource const* GetResource() const;
+	gxapi::DescriptorHandle GetViewHandle();
 
 protected:
-	void ResetResource(gxapi::IGraphicsApi * graphicsApi, gxapi::ResourceDesc desc);
+	GenericResource(TextureSpaceRef resourceView);
+	GenericResource(const GenericResource&) = delete;
+	GenericResource& operator=(GenericResource) = delete;
 
-private:
-	std::unique_ptr<gxapi::IResource> m_resource;
-	gxapi::DescriptorHandle m_viewHandle; // dont forget it when copying the resource
+protected:
+	gxapi::IResource* m_resource;
+	impl::BasicHeap* m_resourceHeap;
+	TextureSpaceRef m_resourceView;
 };
 
 //==================================
@@ -36,11 +44,12 @@ private:
 // Vertex buffer, index buffer
 
 class VertexBuffer : public GenericResource {
+	friend class MemoryManager;
 public:
-	VertexBuffer(){}
-	VertexBuffer(gxapi::IGraphicsApi* graphicsApi, uint64_t size);
-
 	uint64_t GetSize() const;
+
+protected:
+	VertexBuffer(TextureSpaceRef resourceView);
 };
 
 
@@ -57,7 +66,7 @@ public:
 	uint64_t GetWidth() const;
 	gxapi::eFormat GetFormat() const;
 protected:
-	GenericTextureBase() = default;
+	GenericTextureBase(TextureSpaceRef resourceView);
 };
 
 //==================================
@@ -67,40 +76,44 @@ protected:
 // Textures
 
 class Texture1D : public GenericTextureBase {
+	friend class MemoryManager;
 public:
-	Texture1D(){}
-	Texture1D(gxapi::IGraphicsApi* graphicsApi, uint64_t width, gxapi::eFormat format, uint16_t elementCount = 1);
-
 	uint16_t GetArrayCount() const;
+
+protected:
+	Texture1D(TextureSpaceRef resourceView);
 };
 
 
 class Texture2D : public GenericTextureBase {
+	friend class MemoryManager;
 public:
-	Texture2D(){}
-	Texture2D(gxapi::IGraphicsApi* graphicsApi, uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t elementCount = 1);
-
 	uint64_t GetHeight() const;
 	uint16_t GetArrayCount() const;
+
+protected:
+	Texture2D(TextureSpaceRef resourceView);
 };
 
 
 class Texture3D : public GenericTextureBase {
+	friend class MemoryManager;
 public:
-	Texture3D(){}
-	Texture3D(gxapi::IGraphicsApi* graphicsApi, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format);
-
 	uint64_t GetHeight() const;
 	uint16_t GetDepth() const;
+
+protected:
+	Texture3D(TextureSpaceRef resourceView);
 };
 
 
-class TextureCubeMap : public GenericTextureBase {
+class TextureCube : public GenericTextureBase {
+	friend class MemoryManager;
 public:
-	TextureCubeMap(){}
-	TextureCubeMap(gxapi::IGraphicsApi* graphicsApi, uint64_t width, uint32_t height, gxapi::eFormat format);
-
 	uint64_t GetHeight() const;
+
+protected:
+	TextureCube(TextureSpaceRef resourceView);
 };
 
 //==================================

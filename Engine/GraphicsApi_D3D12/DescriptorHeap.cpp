@@ -36,8 +36,14 @@ gxapi::DescriptorHandle DescriptorHeap::At(size_t index) const {
 	return result;
 }
 
+
 gxapi::DescriptorHeapDesc DescriptorHeap::GetDesc() const {
 	return native_cast(m_native->GetDesc());
+}
+
+
+uint32_t DescriptorHeap::GetIncrementSize() const {
+	return m_incrementSize;
 }
 
 

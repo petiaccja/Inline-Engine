@@ -1,6 +1,6 @@
 #include "Test.hpp"
 
-#include <BaseLibrary/RingAllocationEngine.hpp>
+#include <BaseLibrary/Memory/RingAllocationEngine.hpp>
 
 #include <iostream>
 #include <array>
@@ -135,6 +135,8 @@ public:
 				}
 			}
 
+
+			std::cout << "Test finished correctly" << std::endl;
 		}
 		catch(std::exception& ex) {
 			std::cout << "Test failed with exception: " << ex.what() << std::endl;

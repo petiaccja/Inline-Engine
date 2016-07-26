@@ -39,6 +39,8 @@ ID3D12PipelineState* native_cast(gxapi::IPipelineState* source);
 
 ID3D12Resource* native_cast(gxapi::IResource* source);
 
+const ID3D12Resource* native_cast(const gxapi::IResource* source);
+
 ID3D12CommandAllocator* native_cast(gxapi::ICommandAllocator* source);
 
 ID3D12GraphicsCommandList* native_cast(gxapi::IGraphicsCommandList* source);

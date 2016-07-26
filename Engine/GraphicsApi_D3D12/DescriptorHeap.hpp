@@ -19,14 +19,14 @@ public:
 	DescriptorHeap(const DescriptorHeap&) = delete;
 	DescriptorHeap& operator=(const DescriptorHeap&) = delete;
 
-
 	gxapi::DescriptorHandle At(size_t index) const override;
 
 	gxapi::DescriptorHeapDesc GetDesc() const override;
+	uint32_t GetIncrementSize() const override;
 
 private:
 	ComPtr<ID3D12DescriptorHeap> m_native;
-	size_t m_incrementSize;
+	uint32_t m_incrementSize;
 	D3D12_CPU_DESCRIPTOR_HANDLE m_cpuBaseHandle;
 	D3D12_GPU_DESCRIPTOR_HANDLE m_gpuBaseHandle;
 };
