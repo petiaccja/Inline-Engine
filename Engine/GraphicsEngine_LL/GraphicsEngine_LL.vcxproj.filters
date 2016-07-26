@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Interfaces">
@@ -111,9 +111,6 @@
     <ClInclude Include="AsyncUploader.hpp">
       <Filter>MemoryManagement</Filter>
     </ClInclude>
-    <ClInclude Include="Vertex.hpp">
-      <Filter>Resources</Filter>
-    </ClInclude>
     <ClInclude Include="Binder.hpp">
       <Filter>Middleware</Filter>
     </ClInclude>
@@ -152,6 +149,15 @@
     </ClInclude>
     <ClInclude Include="ResourceHeap.hpp">
       <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="TypedMesh.h">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex_old.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.hpp">
+      <Filter>Resources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

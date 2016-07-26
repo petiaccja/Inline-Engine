@@ -68,6 +68,11 @@ public:
 };
 
 
+class InvalidCast : public Exception {
+public:
+	using Exception::Exception;
+};
+
 
 class ArgumentNull : public Exception {
 public:

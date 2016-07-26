@@ -30,7 +30,7 @@ gxapi::ICommandQueue* GraphicsApi::CreateCommandQueue(gxapi::CommandQueueDesc de
 	auto nativeDesc = native_cast(desc);
 	ThrowIfFailed(m_device->CreateCommandQueue(&nativeDesc, IID_PPV_ARGS(&native)));
 
-	return new CommandQueue{native};
+	return new CommandQueue{ native };
 }
 
 
@@ -39,7 +39,7 @@ gxapi::ICommandAllocator* GraphicsApi::CreateCommandAllocator(gxapi::eCommandLis
 
 	ThrowIfFailed(m_device->CreateCommandAllocator(native_cast(type), IID_PPV_ARGS(&native)));
 
-	return new CommandAllocator{native, type};
+	return new CommandAllocator{ native, type };
 }
 
 
@@ -48,7 +48,7 @@ gxapi::IGraphicsCommandList* GraphicsApi::CreateGraphicsCommandList(gxapi::Comma
 
 	ThrowIfFailed(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, native_cast(desc.allocator), native_cast(desc.initialState), IID_PPV_ARGS(&native)));
 
-	return new GraphicsCommandList{native};
+	return new GraphicsCommandList{ native };
 }
 
 
@@ -71,10 +71,10 @@ gxapi::ICopyCommandList* GraphicsApi::CreateCopyCommandList(gxapi::CommandListDe
 
 
 gxapi::IResource* GraphicsApi::CreateCommittedResource(gxapi::HeapProperties heapProperties,
-	gxapi::eHeapFlags heapFlags,
-	gxapi::ResourceDesc desc,
-	gxapi::eResourceState initialState,
-	gxapi::ClearValue* clearValue) {
+													   gxapi::eHeapFlags heapFlags,
+													   gxapi::ResourceDesc desc,
+													   gxapi::eResourceState initialState,
+													   gxapi::ClearValue* clearValue) {
 
 	ComPtr<ID3D12Resource> native;
 
@@ -90,7 +90,7 @@ gxapi::IResource* GraphicsApi::CreateCommittedResource(gxapi::HeapProperties hea
 
 	ThrowIfFailed(m_device->CreateCommittedResource(&nativeHeapProperties, native_cast(heapFlags), &nativeResourceDesc, native_cast(initialState), pNativeClearValue, IID_PPV_ARGS(&native)));
 
-	return new Resource{native};
+	return new Resource{ native };
 }
 
 
@@ -102,40 +102,42 @@ gxapi::IRootSignature* GraphicsApi::CreateRootSignature(gxapi::RootSignatureDesc
 	std::list<std::vector<D3D12_DESCRIPTOR_RANGE>> descriptorRangesPerRootParameter;
 	std::vector<D3D12_ROOT_PARAMETER> nativeParameters;
 	{
-		nativeParameters.reserve(desc.numRootParameters);
-		for (unsigned i = 0; i < desc.numRootParameters; i++) {
-			const auto &source = desc.rootParameters[i];
+		nativeParameters.reserve(desc.rootParameters.size());
+		for (const auto& source : desc.rootParameters) {
 			D3D12_ROOT_PARAMETER nativeParameter;
 
 			nativeParameter.ShaderVisibility = native_cast(source.shaderVisibility);
 			nativeParameter.ParameterType = native_cast(source.type);
 
 			switch (nativeParameter.ParameterType) {
-			case D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE: {
-				const auto& srcTable = source.descriptorTable;
-				auto& dstTable = nativeParameter.DescriptorTable;
+				case D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE:
+				{
+					const auto& srcTable = source.As<gxapi::RootParameterDesc::DESCRIPTOR_TABLE>();
+					auto& dstTable = nativeParameter.DescriptorTable;
 
-				descriptorRangesPerRootParameter.push_back(std::vector<D3D12_DESCRIPTOR_RANGE>{});
-				auto& nativeRanges = descriptorRangesPerRootParameter.back();
-				nativeRanges.reserve(srcTable.numDescriptorRanges);
-				for (unsigned i = 0; i < srcTable.numDescriptorRanges; i++) {
-					nativeRanges.push_back(native_cast(srcTable.descriptorRanges[i]));
-				}
+					descriptorRangesPerRootParameter.push_back(std::vector<D3D12_DESCRIPTOR_RANGE>{});
+					auto& nativeRanges = descriptorRangesPerRootParameter.back();
+					nativeRanges.reserve(srcTable.ranges.size());
+					for (unsigned i = 0; i < srcTable.ranges.size(); i++) {
+						nativeRanges.push_back(native_cast(srcTable.ranges[i]));
+					}
 
-				dstTable.NumDescriptorRanges = (UINT)nativeRanges.size();
-				dstTable.pDescriptorRanges = nativeRanges.data();
-			} break;
-			case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS: {
-				nativeParameter.Constants = native_cast(source.constant);
-			} break;
-			case D3D12_ROOT_PARAMETER_TYPE_CBV:
-			case D3D12_ROOT_PARAMETER_TYPE_SRV:
-			case D3D12_ROOT_PARAMETER_TYPE_UAV: {
-				nativeParameter.Descriptor = native_cast(source.descriptor);
-			} break;
-			default:
-				assert(false);
-				break;
+					dstTable.NumDescriptorRanges = (UINT)nativeRanges.size();
+					dstTable.pDescriptorRanges = nativeRanges.data();
+				} break;
+				case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS:
+				{
+					nativeParameter.Constants = native_cast(source.As<gxapi::RootParameterDesc::CONSTANT>());
+				} break;
+				case D3D12_ROOT_PARAMETER_TYPE_CBV:
+				case D3D12_ROOT_PARAMETER_TYPE_SRV:
+				case D3D12_ROOT_PARAMETER_TYPE_UAV:
+				{
+					nativeParameter.Descriptor = native_cast(source.As<gxapi::RootParameterDesc::CBV>());
+				} break;
+				default:
+					assert(false);
+					break;
 			}
 
 			nativeParameters.push_back(nativeParameter);
@@ -145,9 +147,9 @@ gxapi::IRootSignature* GraphicsApi::CreateRootSignature(gxapi::RootSignatureDesc
 	//NATIVE STATIC SAMPLERS
 	std::vector<D3D12_STATIC_SAMPLER_DESC> nativeSamplers;
 	{
-		nativeSamplers.reserve(desc.numStaticSamplers);
-		for (unsigned i = 0; i < desc.numStaticSamplers; i++) {
-			nativeSamplers.push_back(native_cast(desc.staticSamplers[i]));
+		nativeSamplers.reserve(desc.staticSamplers.size());
+		for (const auto& staticSampler : desc.staticSamplers) {
+			nativeSamplers.push_back(native_cast(staticSampler));
 		}
 	}
 
@@ -172,14 +174,14 @@ gxapi::IRootSignature* GraphicsApi::CreateRootSignature(gxapi::RootSignatureDesc
 
 	ThrowIfFailed(m_device->CreateRootSignature(0, serializedSignature->GetBufferPointer(), serializedSignature->GetBufferSize(), IID_PPV_ARGS(&native)));
 
-	return new RootSignature{native};
+	return new RootSignature{ native };
 }
 
 
 gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(const gxapi::GraphicsPipelineStateDesc& desc) {
 	ComPtr<ID3D12PipelineState> native;
 
-	gxapi::GraphicsPipelineStateDesc desc2{desc};
+	gxapi::GraphicsPipelineStateDesc desc2{ desc };
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC nativeDesc = {};
 
@@ -204,20 +206,20 @@ gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(const gxapi::Gra
 
 
 	nativeDesc.pRootSignature = native_cast(desc.rootSignature);
-	nativeDesc.VS                     = native_cast(desc.vs);
-	nativeDesc.PS                     = native_cast(desc.ps);
-	nativeDesc.DS                     = native_cast(desc.ds);
-	nativeDesc.HS                     = native_cast(desc.hs);
-	nativeDesc.GS                     = native_cast(desc.gs);
-	nativeDesc.StreamOutput           = nativeStreamOutput;
-	nativeDesc.BlendState			  = native_cast(desc.blending);
-	nativeDesc.SampleMask			  = desc.blendSampleMask;
-	nativeDesc.RasterizerState        = native_cast(desc.rasterization);
-	nativeDesc.DepthStencilState      = native_cast(desc.depthStencilState);
-	nativeDesc.InputLayout            = nativeInputLayout;
-	nativeDesc.IBStripCutValue        = native_cast(desc.triangleStripCutIndex);
-	nativeDesc.PrimitiveTopologyType  = native_cast(desc.primitiveTopologyType);
-	nativeDesc.NumRenderTargets       = desc.numRenderTargets;
+	nativeDesc.VS = native_cast(desc.vs);
+	nativeDesc.PS = native_cast(desc.ps);
+	nativeDesc.DS = native_cast(desc.ds);
+	nativeDesc.HS = native_cast(desc.hs);
+	nativeDesc.GS = native_cast(desc.gs);
+	nativeDesc.StreamOutput = nativeStreamOutput;
+	nativeDesc.BlendState = native_cast(desc.blending);
+	nativeDesc.SampleMask = desc.blendSampleMask;
+	nativeDesc.RasterizerState = native_cast(desc.rasterization);
+	nativeDesc.DepthStencilState = native_cast(desc.depthStencilState);
+	nativeDesc.InputLayout = nativeInputLayout;
+	nativeDesc.IBStripCutValue = native_cast(desc.triangleStripCutIndex);
+	nativeDesc.PrimitiveTopologyType = native_cast(desc.primitiveTopologyType);
+	nativeDesc.NumRenderTargets = desc.numRenderTargets;
 
 	for (auto& v : nativeDesc.RTVFormats) {
 		v = DXGI_FORMAT_UNKNOWN;
@@ -226,18 +228,18 @@ gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(const gxapi::Gra
 		nativeDesc.RTVFormats[i] = native_cast(desc.renderTargetFormats[i]);
 	}
 
-	nativeDesc.DSVFormat              = native_cast(desc.depthStencilFormat);
-	nativeDesc.SampleDesc.Count       = desc.multisampleCount;
-	nativeDesc.SampleDesc.Quality     = desc.multisampleQuality;
-	nativeDesc.NodeMask               = 0;
+	nativeDesc.DSVFormat = native_cast(desc.depthStencilFormat);
+	nativeDesc.SampleDesc.Count = desc.multisampleCount;
+	nativeDesc.SampleDesc.Quality = desc.multisampleQuality;
+	nativeDesc.NodeMask = 0;
 	nativeDesc.CachedPSO.CachedBlobSizeInBytes = 0;
-	nativeDesc.CachedPSO.pCachedBlob  = nullptr;
-	nativeDesc.Flags                  = desc.addDebugInfo ? D3D12_PIPELINE_STATE_FLAG_TOOL_DEBUG : D3D12_PIPELINE_STATE_FLAG_NONE;
+	nativeDesc.CachedPSO.pCachedBlob = nullptr;
+	nativeDesc.Flags = desc.addDebugInfo ? D3D12_PIPELINE_STATE_FLAG_TOOL_DEBUG : D3D12_PIPELINE_STATE_FLAG_NONE;
 
 
 	ThrowIfFailed(m_device->CreateGraphicsPipelineState(&nativeDesc, IID_PPV_ARGS(&native)), "While creating graphics PSO");
 
-	return new PipelineState{native};
+	return new PipelineState{ native };
 }
 
 
@@ -247,7 +249,7 @@ gxapi::IDescriptorHeap* GraphicsApi::CreateDescriptorHeap(gxapi::DescriptorHeapD
 	auto nativeDesc = native_cast(desc);
 	ThrowIfFailed(m_device->CreateDescriptorHeap(&nativeDesc, IID_PPV_ARGS(&native)));
 
-	return new DescriptorHeap{native};
+	return new DescriptorHeap{ native };
 }
 
 

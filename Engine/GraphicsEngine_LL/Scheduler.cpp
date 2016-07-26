@@ -88,7 +88,7 @@ void Scheduler::Execute(FrameContext context) {
 				decomp.commandAllocatorPool->RecycleAllocator(decomp.commandAllocator);
 			};
 			std::unique_lock<std::mutex> cleanLkg(*context.cleanMutex);
-			context.initQueue->push({ evictTask, fence, afterFence });
+			context.cleanQueue->push({ evictTask, fence, afterFence });
 			cleanLkg.unlock();
 			context.cleanCv->notify_all();
 		}

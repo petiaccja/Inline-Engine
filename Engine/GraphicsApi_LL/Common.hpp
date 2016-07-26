@@ -11,6 +11,7 @@
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
 #include <memory>
 #include <vector>
+#include "Exception.hpp"
 
 namespace inl {
 namespace gxapi {
@@ -513,7 +514,7 @@ struct eShaderCompileFlags_Base {
 		FORCE_IEEE = (1 << 4),
 		WARNINGS_AS_ERRORS = (1 << 5),
 		OPTIMIZATION_LOW = (1 << 6),
-		OPTIMIZATION_MEDIUM = (1<< 7),
+		OPTIMIZATION_MEDIUM = (1 << 7),
 		OPTIMIZATION_HIGH = (1 << 8),
 	};
 };
@@ -721,8 +722,8 @@ struct ResourceDesc {
 
 	// C++ won't let it be a union because members are not POD types technically... Fuck that!
 	//union {
-		TextureDesc textureDesc;
-		BufferDesc bufferDesc;
+	TextureDesc textureDesc;
+	BufferDesc bufferDesc;
 	//};
 
 	static inline ResourceDesc Buffer(uint64_t sizeInBytes);
@@ -936,7 +937,7 @@ struct InputElementDesc {
 		unsigned offset = 0,
 		eInputClassification classifiacation = eInputClassification::VERTEX_DATA,
 		unsigned instanceDataStepRate = 1
-		)
+	)
 		:
 		semanticName(semanticName),
 		semanticIndex(semanticIndex),
@@ -1010,7 +1011,7 @@ struct DepthStencilState {
 
 struct GraphicsPipelineStateDesc {
 	GraphicsPipelineStateDesc()
-		: 
+		:
 		blendSampleMask(0xFFFFFFFF),
 		multisampleCount(1),
 		multisampleQuality(0),
@@ -1082,11 +1083,7 @@ struct DescriptorRange {
 };
 
 struct RootDescriptorTable {
-	RootDescriptorTable() = default;
-	RootDescriptorTable(unsigned numDescriptorRanges, DescriptorRange* descriptorRanges = nullptr)
-		: numDescriptorRanges(numDescriptorRanges), descriptorRanges(descriptorRanges) {}
-	unsigned numDescriptorRanges;
-	DescriptorRange* descriptorRanges;
+	std::vector<DescriptorRange> ranges;
 };
 
 struct RootConstant {
@@ -1114,18 +1111,74 @@ struct RootParameterDesc {
 		SRV,
 		UAV,
 		DESCRIPTOR_TABLE,
+		UNITIALIZED,
 	};
 
-	RootParameterDesc() = default;
+	// Special ctors and dtor to manage unions
+	RootParameterDesc() : m_type(UNITIALIZED), type(m_type), shaderVisibility(m_shaderVisibility) {};
+	RootParameterDesc(const RootParameterDesc& rhs) : m_type(rhs.m_type), type(m_type), shaderVisibility(m_shaderVisibility) {
+		m_shaderVisibility = rhs.m_shaderVisibility;
+		switch (m_type) {
+			case CONSTANT:
+				new (&constant) RootConstant(rhs.constant);
+				break;
+			case CBV:
+			case SRV:
+			case UAV:
+				new (&descriptor) RootDescriptor(rhs.descriptor);
+				break;
+			case DESCRIPTOR_TABLE:
+				new (&descriptorTable) RootDescriptorTable(rhs.descriptorTable);
+				break;
+		}
+	}
+	RootParameterDesc(RootParameterDesc&& rhs) : m_type(rhs.m_type), type(m_type), shaderVisibility(m_shaderVisibility) {
+		m_shaderVisibility = rhs.m_shaderVisibility;
+		switch (m_type) {
+			case CONSTANT:
+				new (&constant) RootConstant(std::move(rhs.constant));
+				break;
+			case CBV:
+			case SRV:
+			case UAV:
+				new (&descriptor) RootDescriptor(std::move(rhs.descriptor));
+				break;
+			case DESCRIPTOR_TABLE:
+				new (&descriptorTable) RootDescriptorTable(std::move(rhs.descriptorTable));
+				break;
+		}
+	}
+	RootParameterDesc& operator=(const RootParameterDesc& rhs) {
+		Destruct();
+		new (this) RootParameterDesc(rhs);
+		return *this;
+	}
+	RootParameterDesc& operator=(RootParameterDesc&& rhs) {
+		Destruct();
+		new (this) RootParameterDesc(std::move(rhs));
+		return *this;
+	}
+	~RootParameterDesc() {
+		Destruct();
+	}
 
-	eType type;
-	union {
-		RootDescriptorTable descriptorTable;
-		RootDescriptor descriptor;
-		RootConstant constant;
-	};
-	eShaderVisiblity shaderVisibility;
+	// Access to internal parameters.
+	const eType& type;
+	const eShaderVisiblity& shaderVisibility;
 
+	template <eType Type>
+	const typename std::conditional < Type == CONSTANT, RootConstant,
+		typename std::conditional < Type == CBV || Type == SRV || Type == UAV, RootDescriptor, 
+		typename std::conditional < Type == DESCRIPTOR_TABLE, RootDescriptorTable, void>::type>::type>::type &
+		As() const {};
+	template <eType Type>
+	typename std::conditional < Type == CONSTANT, RootConstant,
+		typename std::conditional < Type == CBV || Type == SRV || Type == UAV, RootDescriptor,
+		typename std::conditional < Type == DESCRIPTOR_TABLE, RootDescriptorTable, void>::type>::type>::type &
+		As() {};
+
+
+	// Constructors to initialize object.
 	static inline RootParameterDesc Constant(unsigned numConstants, unsigned shaderRegister, unsigned registerSpace = 0,
 											 eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
 
@@ -1140,6 +1193,31 @@ struct RootParameterDesc {
 
 	static inline RootParameterDesc DescriptorTable(unsigned numDescriptorRanges, DescriptorRange* descriptorRanges,
 													eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+	static inline RootParameterDesc DescriptorTable(std::vector<DescriptorRange> descriptorRanges,
+													eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+	static inline RootParameterDesc DescriptorTable(eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+
+private:
+	void Destruct() {
+		switch (m_type) {
+			case CONSTANT:
+				constant.~RootConstant(); break;
+			case CBV:
+			case SRV:
+			case UAV:
+				descriptor.~RootDescriptor(); break;
+			case DESCRIPTOR_TABLE:
+				descriptorTable.~RootDescriptorTable(); break;
+		}
+	}
+
+	eType m_type;
+	union {
+		RootDescriptorTable descriptorTable;
+		RootDescriptor descriptor;
+		RootConstant constant;
+	};
+	eShaderVisiblity m_shaderVisibility;
 };
 
 struct StaticSamplerDesc {
@@ -1157,7 +1235,7 @@ struct StaticSamplerDesc {
 		float maxMipLevel = std::numeric_limits<float>::max(),
 		unsigned registerSpace = 0,
 		eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL
-		)
+	)
 
 		: filter(filter),
 		addressU(addressU),
@@ -1191,20 +1269,8 @@ struct StaticSamplerDesc {
 };
 
 struct RootSignatureDesc {
-	RootSignatureDesc(unsigned numRootParameters = 0,
-					  RootParameterDesc* rootParameters = nullptr,
-					  unsigned numStaticSamplers = 0,
-					  StaticSamplerDesc* staticSamplers = nullptr)
-		: numRootParameters(numRootParameters),
-		rootParameters(rootParameters),
-		numStaticSamplers(numStaticSamplers),
-		staticSamplers(staticSamplers)
-	{}
-
-	unsigned numRootParameters;
-	RootParameterDesc* rootParameters;
-	unsigned numStaticSamplers;
-	StaticSamplerDesc* staticSamplers;
+	std::vector<RootParameterDesc> rootParameters;
+	std::vector<StaticSamplerDesc> staticSamplers;
 };
 
 
@@ -1571,54 +1637,133 @@ inline ResourceDesc ResourceDesc::CubeMap(uint64_t width, uint32_t height, eForm
 inline RootParameterDesc RootParameterDesc::Constant(unsigned numConstants, unsigned shaderRegister, unsigned registerSpace, eShaderVisiblity shaderVisibility) {
 	RootParameterDesc desc;
 
-	desc.type = RootParameterDesc::CONSTANT;
+	desc.m_type = RootParameterDesc::CONSTANT;
 	desc.constant.numConstants = numConstants;
 	desc.constant.shaderRegister = shaderRegister;
 	desc.constant.registerSpace = registerSpace;
-	desc.shaderVisibility = shaderVisibility;
+	desc.m_shaderVisibility = shaderVisibility;
 
 	return desc;
 }
 inline RootParameterDesc RootParameterDesc::Cbv(unsigned shaderRegister, unsigned registerSpace, eShaderVisiblity shaderVisibility) {
 	RootParameterDesc desc;
 
-	desc.type = RootParameterDesc::CBV;
+	desc.m_type = RootParameterDesc::CBV;
 	desc.descriptor.shaderRegister = shaderRegister;
 	desc.descriptor.registerSpace = registerSpace;
-	desc.shaderVisibility = shaderVisibility;
+	desc.m_shaderVisibility = shaderVisibility;
 
 	return desc;
 }
 inline RootParameterDesc RootParameterDesc::Srv(unsigned shaderRegister, unsigned registerSpace, eShaderVisiblity shaderVisibility) {
 	RootParameterDesc desc;
 
-	desc.type = RootParameterDesc::SRV;
+	desc.m_type = RootParameterDesc::SRV;
 	desc.descriptor.shaderRegister = shaderRegister;
 	desc.descriptor.registerSpace = registerSpace;
-	desc.shaderVisibility = shaderVisibility;
+	desc.m_shaderVisibility = shaderVisibility;
 
 	return desc;
 }
 inline RootParameterDesc RootParameterDesc::Uav(unsigned shaderRegister, unsigned registerSpace, eShaderVisiblity shaderVisibility) {
 	RootParameterDesc desc;
 
-	desc.type = RootParameterDesc::UAV;
+	desc.m_type = RootParameterDesc::UAV;
 	desc.descriptor.shaderRegister = shaderRegister;
 	desc.descriptor.registerSpace = registerSpace;
-	desc.shaderVisibility = shaderVisibility;
+	desc.m_shaderVisibility = shaderVisibility;
 
 	return desc;
 }
 inline RootParameterDesc RootParameterDesc::DescriptorTable(unsigned numDescriptorRanges, DescriptorRange* descriptorRanges, eShaderVisiblity shaderVisibility) {
 	RootParameterDesc desc;
 
-	desc.type = RootParameterDesc::DESCRIPTOR_TABLE;
-	desc.descriptorTable.numDescriptorRanges = numDescriptorRanges;
-	desc.descriptorTable.descriptorRanges = descriptorRanges;
-	desc.shaderVisibility = shaderVisibility;
+	desc.m_type = RootParameterDesc::DESCRIPTOR_TABLE;
+	desc.descriptorTable.ranges.assign(descriptorRanges, descriptorRanges + numDescriptorRanges);
+	desc.m_shaderVisibility = shaderVisibility;
 
 	return desc;
 }
+inline RootParameterDesc RootParameterDesc::DescriptorTable(std::vector<DescriptorRange> descriptorRanges, eShaderVisiblity shaderVisibility) {
+	RootParameterDesc desc;
+
+	desc.m_type = RootParameterDesc::DESCRIPTOR_TABLE;
+	desc.descriptorTable.ranges = std::move(descriptorRanges);
+	desc.m_shaderVisibility = shaderVisibility;
+
+	return desc;
+}
+inline RootParameterDesc RootParameterDesc::DescriptorTable(eShaderVisiblity shaderVisibility) {
+	RootParameterDesc desc;
+
+	desc.m_type = RootParameterDesc::DESCRIPTOR_TABLE;
+	desc.m_shaderVisibility = shaderVisibility;
+
+	return desc;
+}
+
+
+template <>
+inline const RootConstant& RootParameterDesc::As<RootParameterDesc::eType::CONSTANT>() const {
+	if (m_type != eType::CONSTANT) throw InvalidCast("Object has different type than requested.");
+	return constant;
+}
+
+template <>
+inline const RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::CBV>() const {
+	if (m_type != eType::CBV) throw InvalidCast("Object has different type than requested.");
+	return descriptor;
+}
+
+template <>
+inline const RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::SRV>() const {
+	if (m_type != eType::SRV) throw InvalidCast("Object has different type than requested.");
+	return descriptor;
+}
+
+template <>
+inline const RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::UAV>() const {
+	if (m_type != eType::UAV) throw InvalidCast("Object has different type than requested.");
+	return descriptor;
+}
+
+template <>
+inline const RootDescriptorTable& RootParameterDesc::As<RootParameterDesc::eType::DESCRIPTOR_TABLE>() const {
+	if (m_type != eType::DESCRIPTOR_TABLE) throw InvalidCast("Object has different type than requested.");
+	return descriptorTable;
+}
+
+template <>
+inline RootConstant& RootParameterDesc::As<RootParameterDesc::eType::CONSTANT>() {
+	if (m_type != eType::CONSTANT) throw InvalidCast("Object has different type than requested.");
+	return constant;
+}
+
+template <>
+inline RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::CBV>() {
+	if (m_type != eType::CBV) throw InvalidCast("Object has different type than requested.");
+	return descriptor;
+}
+
+template <>
+inline RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::SRV>() {
+	if (m_type != eType::SRV) throw InvalidCast("Object has different type than requested.");
+	return descriptor;
+}
+
+template <>
+inline RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::UAV>() {
+	if (m_type != eType::UAV) throw InvalidCast("Object has different type than requested.");
+	return descriptor;
+}
+
+template <>
+inline RootDescriptorTable& RootParameterDesc::As<RootParameterDesc::eType::DESCRIPTOR_TABLE>() {
+	if (m_type != eType::DESCRIPTOR_TABLE) throw InvalidCast("Object has different type than requested.");
+	return descriptorTable;
+}
+
+
 
 //------------------------------------------------------------------------------
 // Internal helper function

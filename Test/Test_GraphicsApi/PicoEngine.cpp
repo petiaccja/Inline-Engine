@@ -114,12 +114,12 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	DescriptorRange descriptorRanges[1] = {
 		DescriptorRange{DescriptorRange::SRV, 1, 0, 0},
 	};
-	RootParameterDesc rootParameters[3] = {
+	std::vector<RootParameterDesc> rootParameters = {
 		RootParameterDesc::Constant(32, 0),
 		RootParameterDesc::Cbv(8),
 		RootParameterDesc::DescriptorTable(1, descriptorRanges),
 	};
-	m_defaultRootSignature.reset(m_graphicsApi->CreateRootSignature(RootSignatureDesc{3, rootParameters}));
+	m_defaultRootSignature.reset(m_graphicsApi->CreateRootSignature(RootSignatureDesc{rootParameters}));
 
 	//Compile shaders
 	ShaderProgramBinary vertexBinary;

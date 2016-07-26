@@ -4,6 +4,8 @@
 #include <memory>
 #include <cstdint>
 
+#include "GpuBuffer.hpp"
+
 
 namespace inl {
 namespace gxeng {
@@ -52,14 +54,14 @@ public:
 	void Clear();
 
 	int GetNumSreams() const;
-	const void* GetVertexBuffer(int streamIndex) const;
-	const void* GetIndexBuffer() const;
+	const VertexBuffer* GetVertexBuffer(int streamIndex) const;
+	const IndexBuffer* GetIndexBuffer() const;
 private:
 	eValidationResult Validate(const std::vector<VertexStream>& streams, std::vector<unsigned> indices);
 	void Optimize(std::vector<VertexStream>& streams, std::vector<unsigned>& indices);
 private:
-	std::vector<void*> m_vertexBuffers;
-	void* m_indexBuffer;
+	std::vector<VertexBuffer*> m_vertexBuffers;
+	IndexBuffer* m_indexBuffer;
 };
 
 
