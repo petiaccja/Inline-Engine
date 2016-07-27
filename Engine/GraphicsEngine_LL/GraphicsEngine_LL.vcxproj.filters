@@ -147,10 +147,10 @@
     <ClInclude Include="TypedMesh.h">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="Vertex_old.hpp">
+    <ClInclude Include="Vertex.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="Vertex.hpp">
+    <ClInclude Include="VertexArrayView.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
   </ItemGroup>

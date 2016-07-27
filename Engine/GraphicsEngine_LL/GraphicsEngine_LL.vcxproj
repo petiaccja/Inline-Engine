@@ -188,7 +188,7 @@
     <ClInclude Include="Texture2D.hpp" />
     <ClInclude Include="GpuBuffer.hpp" />
     <ClInclude Include="TypedMesh.h" />
-    <ClInclude Include="Vertex_old.hpp" />
+    <ClInclude Include="VertexArrayView.hpp" />
     <ClInclude Include="Vertex.hpp" />
   </ItemGroup>
   <ItemGroup>
