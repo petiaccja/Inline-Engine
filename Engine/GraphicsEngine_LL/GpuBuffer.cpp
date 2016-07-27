@@ -4,6 +4,9 @@
 #include "../GraphicsApi_LL/ICommandList.hpp"
 #include "../GraphicsApi_LL/Exception.hpp"
 
+#include "MemoryManager.hpp"
+#include "ResourceHeap.hpp"
+
 namespace inl {
 namespace gxeng {
 
@@ -12,113 +15,104 @@ using namespace gxapi;
 //==================================
 //Generic Resource
 
+GenericResource::~GenericResource() {
+	m_resourceHeap->ReleaseUnderlying(this);
+}
+
+
 void* GenericResource::GetVirtualAddress() const {
-	return GetResource()->GetGPUAddress();
+	return m_resource->GetGPUAddress();
 }
 
 
 gxapi::ResourceDesc GenericResource::GetDescriptor() const {
-	return GetResource()->GetDesc();
+	return m_resource->GetDesc();
 }
 
-
-gxapi::IResource* GenericResource::GetResource() {
-	return m_resource.get();
+gxapi::DescriptorHandle GenericResource::GetViewHandle() {
+	return m_resourceView.Get();
 }
 
-gxapi::IResource const* GenericResource::GetResource() const {
-	return m_resource.get();
-}
+GenericResource::GenericResource(TextureSpaceRef resourceView) :
+	m_resourceView(resourceView)
+{}
 
-
-void GenericResource::ResetResource(gxapi::IGraphicsApi* graphicsApi, gxapi::ResourceDesc desc) {
-	m_resource.reset(graphicsApi->CreateCommittedResource(
-		HeapProperties(eHeapType::DEFAULT),
-		eHeapFlags::NONE,
-		desc,
-		eResourceState::COMMON
-	));
-}
 
 //==================================
 
-
-VertexBuffer::VertexBuffer(gxapi::IGraphicsApi* graphicsApi, uint64_t size) {
-	ResetResource(graphicsApi, ResourceDesc::Buffer(size));
-}
+VertexBuffer::VertexBuffer(TextureSpaceRef resourceView) :
+	GenericResource(resourceView)
+{}
 
 
 uint64_t VertexBuffer::GetSize() const {
-	return GetResource()->GetDesc().bufferDesc.sizeInBytes;
+	return m_resource->GetDesc().bufferDesc.sizeInBytes;
 }
 
 
 uint64_t GenericTextureBase::GetWidth() const {
-	return GetResource()->GetDesc().textureDesc.width;
+	return m_resource->GetDesc().textureDesc.width;
 }
 
 
 gxapi::eFormat GenericTextureBase::GetFormat() const {
-	return GetResource()->GetDesc().textureDesc.format;
+	return m_resource->GetDesc().textureDesc.format;
 }
 
 
-Texture1D::Texture1D(gxapi::IGraphicsApi* graphicsApi, uint64_t width, gxapi::eFormat format, uint16_t elementCount) {
-	if (elementCount == 0) {
-		throw gxapi::InvalidArgument("\"count\" should not be zero.");
-	}
-
-	ResetResource(graphicsApi, ResourceDesc::Texture1DArray(width, format, elementCount));
-}
+GenericTextureBase::GenericTextureBase(TextureSpaceRef resourceView) :
+	GenericResource(resourceView)
+{}
 
 
 uint16_t Texture1D::GetArrayCount() const {
-	return GetResource()->GetDesc().textureDesc.depthOrArraySize;
+	return m_resource->GetDesc().textureDesc.depthOrArraySize;
 }
 
 
-Texture2D::Texture2D(gxapi::IGraphicsApi* graphicsApi, uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t elementCount) {
-	if (elementCount == 0) {
-		throw gxapi::InvalidArgument("\"count\" should not be zero.");
-	}
-
-	ResetResource(graphicsApi, ResourceDesc::Texture2DArray(width, height, format, elementCount));
-}
+Texture1D::Texture1D(TextureSpaceRef resourceView) :
+	GenericTextureBase(resourceView)
+{}
 
 
 uint64_t Texture2D::GetHeight() const {
-	return GetResource()->GetDesc().textureDesc.height;
+	return m_resource->GetDesc().textureDesc.height;
 }
 
 
 uint16_t Texture2D::GetArrayCount() const {
-	return GetResource()->GetDesc().textureDesc.depthOrArraySize;
+	return m_resource->GetDesc().textureDesc.depthOrArraySize;
 }
 
 
-Texture3D::Texture3D(gxapi::IGraphicsApi* graphicsApi, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format) {
-	ResetResource(graphicsApi, ResourceDesc::Texture3D(width, height, depth, format));
-}
+Texture2D::Texture2D(TextureSpaceRef resourceView) :
+	GenericTextureBase(resourceView)
+{}
 
 
 uint64_t Texture3D::GetHeight() const {
-	return GetResource()->GetDesc().textureDesc.height;
+	return m_resource->GetDesc().textureDesc.height;
 }
 
 
 uint16_t Texture3D::GetDepth() const {
-	return GetResource()->GetDesc().textureDesc.depthOrArraySize;
+	return m_resource->GetDesc().textureDesc.depthOrArraySize;
 }
 
 
-TextureCubeMap::TextureCubeMap(gxapi::IGraphicsApi * graphicsApi, uint64_t width, uint32_t height, gxapi::eFormat format) {
-	ResetResource(graphicsApi, ResourceDesc::CubeMap(width, height, format));
+Texture3D::Texture3D(TextureSpaceRef resourceView) :
+	GenericTextureBase(resourceView)
+{}
+
+
+uint64_t TextureCube::GetHeight() const {
+	return m_resource->GetDesc().textureDesc.height;
 }
 
 
-uint64_t TextureCubeMap::GetHeight() const {
-	return GetResource()->GetDesc().textureDesc.height;
-}
+TextureCube::TextureCube(TextureSpaceRef resourceView) :
+	GenericTextureBase(resourceView)
+{}
 
 
 

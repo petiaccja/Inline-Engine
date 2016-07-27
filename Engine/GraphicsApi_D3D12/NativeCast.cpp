@@ -48,6 +48,15 @@ ID3D12Resource* native_cast(gxapi::IResource* source) {
 }
 
 
+const ID3D12Resource* native_cast(const gxapi::IResource* source) {
+	if (source == nullptr) {
+		return nullptr;
+	}
+
+	return static_cast<const Resource*>(source)->GetNative();
+}
+
+
 ID3D12CommandAllocator* native_cast(gxapi::ICommandAllocator* source) {
 	if (source == nullptr) {
 		return nullptr;

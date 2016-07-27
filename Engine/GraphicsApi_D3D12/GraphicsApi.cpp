@@ -276,34 +276,34 @@ void GraphicsApi::CreateDepthStencilView(
 
 
 void GraphicsApi::CreateDepthStencilView(
-	gxapi::IResource* resource,
+	const gxapi::IResource* resource,
 	gxapi::DescriptorHandle destination) {
 
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
 	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
-	m_device->CreateDepthStencilView(native_cast(resource), nullptr, nativeCPUHandle);
+	m_device->CreateDepthStencilView(const_cast<ID3D12Resource*>(native_cast(resource)), nullptr, nativeCPUHandle);
 }
 
 
 void GraphicsApi::CreateRenderTargetView(
-	gxapi::IResource* resource,
+	const gxapi::IResource* resource,
 	gxapi::RenderTargetViewDesc desc,
 	gxapi::DescriptorHandle destination)
 {
 	D3D12_RENDER_TARGET_VIEW_DESC nativeDesc = native_cast(desc);
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
 	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
-	m_device->CreateRenderTargetView(native_cast(resource), &nativeDesc, nativeCPUHandle);
+	m_device->CreateRenderTargetView(const_cast<ID3D12Resource*>(native_cast(resource)), &nativeDesc, nativeCPUHandle);
 }
 
 
 void GraphicsApi::CreateRenderTargetView(
-	gxapi::IResource* resource,
+	const gxapi::IResource* resource,
 	gxapi::DescriptorHandle destination)
 {
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
 	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
-	m_device->CreateRenderTargetView(native_cast(resource), nullptr, nativeCPUHandle);
+	m_device->CreateRenderTargetView(const_cast<ID3D12Resource*>(native_cast(resource)), nullptr, nativeCPUHandle);
 }
 
 
@@ -319,13 +319,35 @@ void GraphicsApi::CreateShaderResourceView(
 
 
 void GraphicsApi::CreateShaderResourceView(
-	gxapi::IResource* resource,
+	const gxapi::IResource* resource,
 	gxapi::DescriptorHandle destination) {
 
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
 	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
-	m_device->CreateShaderResourceView(native_cast(resource), nullptr, nativeCPUHandle);
+	m_device->CreateShaderResourceView(const_cast<ID3D12Resource*>(native_cast(resource)), nullptr, nativeCPUHandle);
 }
+
+
+void GraphicsApi::CopyDescriptors(
+	size_t numDstDescRanges,
+	gxapi::DescriptorHandle* dstRangeStarts,
+	uint32_t* dstRangeSizes,
+	size_t numSrcDescRanges,
+	gxapi::DescriptorHandle* srcRangeStarts,
+	gxapi::eDesriptorHeapType descHeapsType)
+{
+	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> nativeDstRangeStarts(numDstDescRanges);
+	for (int i = 0; i < numDstDescRanges; i++) {
+		nativeDstRangeStarts[i].ptr = native_cast_ptr(dstRangeStarts[i].cpuAddress);
+	}
+	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> nativeSrcRangeStarts(numSrcDescRanges);
+	for (int i = 0; i < numSrcDescRanges; i++) {
+		nativeSrcRangeStarts[i].ptr = native_cast_ptr(srcRangeStarts[i].cpuAddress);
+	}
+
+	m_device->CopyDescriptors(nativeDstRangeStarts.size(), nativeDstRangeStarts.data(), dstRangeSizes, nativeSrcRangeStarts.size(), nativeSrcRangeStarts.data(), nullptr, native_cast(descHeapsType));
+}
+
 
 gxapi::IFence * GraphicsApi::CreateFence(uint64_t initialValue)
 {

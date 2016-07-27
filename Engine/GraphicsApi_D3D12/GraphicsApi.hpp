@@ -46,19 +46,21 @@ public:
 
 	void CreateDepthStencilView(gxapi::DepthStencilViewDesc desc,
 								gxapi::DescriptorHandle destination) override;
-	void CreateDepthStencilView(gxapi::IResource* resource,
+	void CreateDepthStencilView(const gxapi::IResource* resource,
 								gxapi::DescriptorHandle destination) override;
 
-	void CreateRenderTargetView(gxapi::IResource* resource,
+	void CreateRenderTargetView(const gxapi::IResource* resource,
 								gxapi::DescriptorHandle destination) override;
-	void CreateRenderTargetView(gxapi::IResource* resource,
+	void CreateRenderTargetView(const gxapi::IResource* resource,
 								gxapi::RenderTargetViewDesc desc,
 								gxapi::DescriptorHandle destination) override;
 
 	void CreateShaderResourceView(gxapi::ShaderResourceViewDesc desc,
 								  gxapi::DescriptorHandle destination) override;
-	void CreateShaderResourceView(gxapi::IResource* resource,
+	void CreateShaderResourceView(const gxapi::IResource* resource,
 								  gxapi::DescriptorHandle destination) override;
+
+	void CopyDescriptors(size_t numDstDescRanges, gxapi::DescriptorHandle* dstRangeStarts, uint32_t* dstRangeSizes, size_t numSrcDescRanges, gxapi::DescriptorHandle* srcRangeStarts, gxapi::eDesriptorHeapType descHeapsType) override;
 
 	// Misc
 	gxapi::IFence* CreateFence(uint64_t initialValue) override;

@@ -18,6 +18,7 @@ public:
 	Resource(ComPtr<ID3D12Resource>& native);
 
 	ID3D12Resource* GetNative();
+	const ID3D12Resource* GetNative() const;
 
 	gxapi::ResourceDesc GetDesc() const override;
 	void* Map(unsigned subresourceIndex, const gxapi::MemoryRange* readRange = nullptr) override;
