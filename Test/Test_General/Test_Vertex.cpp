@@ -49,17 +49,17 @@ int TestVertex::Run() {
 	mathfu::Vector<float, 3>& pos0 = positionPart->GetPosition(0);
 
 	// create a vertex array view
-	VertexArrayView<VertexPart<POSITION>> view(&v, 1);
+	VertexArrayView<VertexPart<POSITION>> view(&v, 1, sizeof(MyVertex1));
 	const auto& cview = view;
 	VertexPart<POSITION>& part = view[0];
 	VertexPart<POSITION>& cpart = cview[0];
 
 	// create a vertex array view to const
-	VertexArrayView<const VertexPart<POSITION>> viewToConst(&v, 1);
+	VertexArrayView<const VertexPart<POSITION>> viewToConst(&v, 1, sizeof(MyVertex1));
 	const VertexPart<POSITION>& part2 = viewToConst[0];
 
 	// create const view from const
-	VertexArrayView<const VertexPart<POSITION>> viewToConstFromConst((const MyVertex1*)&v, 1);
+	VertexArrayView<const VertexPart<POSITION>> viewToConstFromConst((const MyVertex1*)&v, 1, sizeof(MyVertex1));
 
 	// create view from const
 	// VertexArrayView<VertexPart<POSITION>> viewFromConst((const MyVertex1*)&v, 1); // compile error
