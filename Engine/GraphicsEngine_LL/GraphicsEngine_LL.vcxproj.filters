@@ -207,9 +207,6 @@
     <ClCompile Include="DisposableConstBuffer.cpp">
       <Filter>MemoryManagement</Filter>
     </ClCompile>
-    <ClCompile Include="Vertex.cpp">
-      <Filter>Resources</Filter>
-    </ClCompile>
     <ClCompile Include="GpuBuffer.cpp">
       <Filter>MemoryManagement</Filter>
     </ClCompile>

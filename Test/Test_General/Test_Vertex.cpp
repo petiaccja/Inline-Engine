@@ -64,6 +64,11 @@ int TestVertex::Run() {
 	// create view from const
 	// VertexArrayView<VertexPart<POSITION>> viewFromConst((const MyVertex1*)&v, 1); // compile error
 
+	// iterators
+	decltype(viewToConstFromConst)::const_iterator it1 = viewToConstFromConst.begin();
+	auto it3 = viewToConstFromConst.begin();
+	decltype(view)::iterator it2 = view.begin();
+
 
 	return 0;
 }

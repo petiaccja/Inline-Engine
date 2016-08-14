@@ -142,59 +142,37 @@ public:
 template <eVertexElementSemantic Semantic, int... Indices>
 class VertexPartImpl;
 
-// Position
-template <>
-class VertexPart<POSITION> {
-public:
-	virtual ~VertexPart() = default;
-	using DataType = mathfu::Vector<float, 3>;
-	virtual DataType& GetPosition(int index) = 0;
-	virtual const DataType& GetPosition(int index) const = 0;
-};
+#define INL_GXENG_SIMPLE_ARG(...) __VA_ARGS__
+#define INL_GXENG_VERTEX_PART(SEMANTIC, DATA_TYPE, GET_NAME, MULTI_NAME, SINGLE_NAME)		\
+template <>																					\
+class VertexPart<SEMANTIC> {																\
+public:																						\
+	virtual ~VertexPart() = default;														\
+	using DataType = DATA_TYPE;																\
+	virtual DataType& GET_NAME (int index) = 0;												\
+	virtual const DataType& GET_NAME (int index) const = 0;									\
+};																							\
+																							\
+template <int Index, int... Indices>														\
+class VertexPartImpl<SEMANTIC, Index, Indices...> : public VertexPart<SEMANTIC> {			\
+public:																						\
+	DataType& GET_NAME(int index) override { return MULTI_NAME[index]; }					\
+	const DataType& GET_NAME(int index) const override { return MULTI_NAME[index]; }		\
+	VertexPartData<DataType, Index, Indices...> MULTI_NAME;									\
+};																							\
+																							\
+template <int Index>																		\
+class VertexPartImpl<SEMANTIC, Index> : public VertexPart<SEMANTIC> {						\
+public:																						\
+	DataType& GET_NAME(int index) override { return MULTI_NAME[index]; }					\
+	const DataType& GET_NAME(int index) const override { return MULTI_NAME[index]; }		\
+	VertexPartData<DataType, Index> MULTI_NAME;												\
+	DataType& SINGLE_NAME = MULTI_NAME[Index];												\
+}																								
 
-template <int Index, int... Indices>
-class VertexPartImpl<POSITION, Index, Indices...> : public VertexPart<POSITION> {
-public:
-	DataType& GetPosition(int index) override { return positions[index]; }
-	const DataType& GetPosition(int index) const override { return positions[index]; }
-	VertexPartData<DataType, Index, Indices...> positions;
-};
-
-template <int Index>
-class VertexPartImpl<POSITION, Index> : public VertexPart<POSITION> {
-public:
-	DataType& GetPosition(int index) override { return positions[index]; }
-	const DataType& GetPosition(int index) const override { return positions[index]; }
-	VertexPartData<DataType, Index> positions;
-	DataType& position = positions[Index];
-};
-
-// Normal
-template <>
-class VertexPart<NORMAL> {
-public:
-	virtual ~VertexPart() = default;
-	using DataType = mathfu::Vector<float, 3>;
-	virtual DataType& GetNormal(int index) = 0;
-	virtual const DataType& GetNormal(int index) const = 0;
-};
-
-template <int Index, int... Indices>
-class VertexPartImpl<NORMAL, Index, Indices...> : public VertexPart<NORMAL> {
-public:
-	DataType& GetNormal(int index) override { return normals[index]; }
-	const DataType& GetNormal(int index) const override { return normals[index]; }
-	VertexPartData<DataType, Index, Indices...> normals;
-};
-
-template <int Index>
-class VertexPartImpl<NORMAL, Index> : public VertexPart<NORMAL> {
-public:
-	DataType& GetNormal(int index) override { return normals[index]; }
-	const DataType& GetNormal(int index) const override { return normals[index]; }
-	VertexPartData<DataType, Index> normals;
-	DataType& normal = normals[Index];
-};
+// Actual definition of vertex parts
+INL_GXENG_VERTEX_PART(POSITION, INL_GXENG_SIMPLE_ARG(mathfu::Vector<float, 3>), GetPosition, positions, position);
+INL_GXENG_VERTEX_PART(NORMAL, INL_GXENG_SIMPLE_ARG(mathfu::Vector<float, 3>), GetNormal, normals, normal);
 
 
 
@@ -206,11 +184,11 @@ class ElementFilterHelper;
 template <class TypeListOfChosenElements, eVertexElementSemantic Filter, class HeadElement, class... RemainingElements>
 class ElementFilterHelper<TypeListOfChosenElements, Filter, HeadElement, RemainingElements...>
 	: public ElementFilterHelper<
-		typename std::conditional<HeadElement::semantic == Filter,
-								  typename ConcatTypeList<TypeListOfChosenElements, TypeList<HeadElement>>::type,
-								  TypeListOfChosenElements>::type,
-		Filter,
-		RemainingElements...>
+	typename std::conditional<HeadElement::semantic == Filter,
+	typename ConcatTypeList<TypeListOfChosenElements, TypeList<HeadElement>>::type,
+	TypeListOfChosenElements>::type,
+	Filter,
+	RemainingElements...>
 {};
 
 // Extracts Elements from TypeList of VertexElements.

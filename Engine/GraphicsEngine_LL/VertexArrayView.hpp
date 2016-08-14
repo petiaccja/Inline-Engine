@@ -7,7 +7,18 @@ namespace inl {
 namespace gxeng {
 
 
+template <class ViewT>
+class VertexArrayView;
 
+
+namespace impl {
+
+
+template <class ViewT>
+class HasIterator;
+
+
+// Basic iterator class to iterate over VertexArrayViews.
 template <class T>
 class iterator_impl : std::iterator<std::random_access_iterator_tag, T> {
 protected:
@@ -26,17 +37,17 @@ public:
 	bool operator!=(const iterator_impl& rhs) const { return !(*this == rhs); }
 
 	iterator_impl& operator++() { ++ptr; return *this; }
-	iterator_impl operator++(int) { iterator tmp(*this); ++ptr; return tmp; }
+	iterator_impl operator++(int) { iterator_impl tmp(*this); ++ptr; return tmp; }
 
 	// bidirectional
 	iterator_impl& operator--() { --ptr; return *this; }
-	iterator_impl operator--(int) { iterator tmp(*this); --ptr; return tmp; }
+	iterator_impl operator--(int) { iterator_impl tmp(*this); --ptr; return tmp; }
 
 	// random access
 	iterator_impl& operator+=(difference_type n) { ptr += n; return *this; }
 	iterator_impl& operator-=(difference_type n) { ptr -= n; return *this; }
-	iterator_impl operator+(difference_type n) const { iterator tmp(*this); ptr += n; return tmp; }
-	iterator_impl operator-(difference_type n) const { iterator tmp(*this); ptr -= n; return tmp; }
+	iterator_impl operator+(difference_type n) const { iterator_impl tmp(*this); ptr += n; return tmp; }
+	iterator_impl operator-(difference_type n) const { iterator_impl tmp(*this); ptr -= n; return tmp; }
 	difference_type operator-(const iterator_impl& rhs) const { return ptr - rhs.ptr; }
 
 	bool operator<(const iterator_impl& rhs) const { return ptr < rhs.ptr; }
@@ -48,35 +59,49 @@ protected:
 };
 
 
-template <class T>
+// Helper class to allow VertexArrayView to conditionally have non-const iterators.
+template <class ViewT>
 class HasIterator {
 public:
-	using type = typename std::remove_const<T>::type;
+	using type = typename std::remove_const<ViewT>::type;
+
 	class iterator : public iterator_impl<type> {
+		template <class ViewU> friend class VertexArrayView;
+		template <class ViewU> friend class const_iterator;
 	public:
-		template <class U>
-		friend class const_iterator;
 		using iterator_impl<type>::iterator_impl;
 	};
 };
 
+
+// Helper class to inherit from when not having non-const iterators.
 class DoesNotHaveIterator {};
 
 
-template <class T>
-class const_iterator : public iterator_impl<const T> {
+// Constant iterator that the view will always have.
+template <class ViewT>
+class const_iterator : public iterator_impl<const ViewT> {
+	template <class ViewU> friend class VertexArrayView;
 public:
-	using iterator_impl<const T>::iterator_impl;
-	const_iterator(HasIterator<T>::iterator& rhs) : ptr(rhs.ptr) {}
+	using iterator_impl<const ViewT>::iterator_impl;
+
+	// Convert from mutable iterators.
+	const_iterator(typename HasIterator<ViewT>::iterator& rhs) : ptr(rhs.ptr) {}
 };
 
 
+} // namespace impl
 
+
+/// <summary>
+/// Allows to edit or view a vertex array as if the vertices were another type.
+/// Useful for safely iterating over VertexParts of a given vertex type.
+/// </summary>
 template <class ViewT>
-class VertexArrayView : public std::conditional<std::is_const<ViewT>::value, HasIterator<ViewT>, DoesNotHaveIterator>::type {
+class VertexArrayView : public std::conditional<!std::is_const<ViewT>::value, impl::HasIterator<ViewT>, impl::DoesNotHaveIterator>::type {
 	static constexpr bool IsConst = std::is_const<ViewT>::value;
 public:
-	using const_iterator = const_iterator<ViewT>;
+	using const_iterator = impl::const_iterator<ViewT>;
 
 	/// <summary> Create an empty view. </summary>
 	VertexArrayView() : m_array(nullptr), m_stride(0), m_size(0) {}
@@ -148,29 +173,67 @@ public:
 	template<class = std::enable_if_t<!IsConst, const int>>
 	ViewT& operator[](size_t idx) {
 		assert(idx < m_size);
-		return *reinterpret_cast<ViewT*>(size_t(m_array) + idx*m_stride);
+		return *GetOffsetedPointer(idx);
 	}
 	/// <summary> Access array by index. </summary>
 	ViewT& operator[](size_t idx) const {
 		assert(idx < m_size);
-		return *reinterpret_cast<ViewT*>(size_t(m_array) + idx*m_stride);
+		return *GetOffsetedPointer(idx);
 	}
 
-
-	void begin() {
-		
+	/// <summary> Get mutable iterator to the first element of the container. </summary>
+	template <class = typename std::enable_if<!IsConst>::type>
+	auto begin() {
+		return iterator{ GetOffsetedPointer(0) };
+	}
+	/// <summary> Get mutable iterator to the end (past the last element) of the container. </summary>
+	template <class = typename std::enable_if<!IsConst>::type>
+	auto end() {
+		return iterator{ GetOffsetedPointer(Size()) };
 	}
 
+	/// <summary> Get const iterator to the first element of the container. </summary>
+	const_iterator begin() const {
+		return const_iterator{ GetOffsetedPointer(0) };
+	}
+	/// <summary> Get const iterator to the end (past the last element) of the container. </summary>
+	const_iterator end() const {
+		return const_iterator{ GetOffsetedPointer(Size()) };
+	}
+
+	/// <summary> Get const iterator to the first element of the container. </summary>
+	const_iterator cbegin() const {
+		return const_iterator{ GetOffsetedPointer(0) };
+	}
+	/// <summary> Get const iterator to the end (past the last element) of the container. </summary>
+	const_iterator cend() const {
+		return const_iterator{ GetOffsetedPointer(Size()) };
+	}
+
+protected:
+	// I don't honestly know if const overload is needed, but I don't really care.
+	/// <summary> Return a ViewT* pointer to element given by index. </summary>
+	ViewT* GetOffsetedPointer(size_t index) {
+		return reinterpret_cast<ViewT*>(size_t(m_array) + index*m_stride);
+	}
+	/// <summary> Return a ViewT* pointer to element given by index. </summary>
+	ViewT* GetOffsetedPointer(size_t index) const {
+		return reinterpret_cast<ViewT*>(size_t(m_array) + index*m_stride);
+	}
 
 private:
+	/// <summary> Init inner parameters and try to cast input to view type. </summary>
+	/// <exception cref="std::bas_cast"> Tries to dynamic_cast input type to view type, which might throw bad_cast. </exception>
 	template <class PVertexT>
 	void Init(PVertexT array, size_t size, size_t stride) {
 		m_stride = stride;
 		m_array = dynamic_cast<ViewT*>(array);
+		if (m_array == nullptr) {
+			throw std::bad_cast();
+		}
 		m_size = size;
 	}
-
-
+private:
 	ViewT* m_array;
 	size_t m_stride;
 	size_t m_size;
@@ -178,5 +241,5 @@ private:
 
 
 
-}
-}
+} // namespace gxeng
+} // namespace inl
