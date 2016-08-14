@@ -18,8 +18,19 @@ class MemoryManager {
 public:
 	MemoryManager(gxapi::IGraphicsApi* graphicsApi, HighLevelDescHeap* heap);
 
-	void IWantToUseThisResourceRightNow(GenericResource*) = delete; //TODO
-	void OkNowIDontNeedThisResourceForAWhile(GenericResource*) = delete; //TODO
+	/// <summary>
+	/// Makes given resources resident.
+	/// </summary>
+	/// <exception cref="inl::gxapi::OutOfMemory">
+	/// If there is not enough free memory in the resource's appropriate
+	/// memory pool for the resource to fit in.
+	/// </exception>
+	void LockResident(std::vector<GenericResource*> resources);
+
+	/// <summary>
+	/// TODO
+	/// </summary>
+	void UnlockResident(std::vector<GenericResource*> resources);
 
 	VertexBuffer* CreateVertexBuffer(eResourceHeapType heap, size_t size);
 	IndexBuffer* CreateIndexBuffer(eResourceHeapType heap, size_t size);

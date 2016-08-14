@@ -1,6 +1,8 @@
 #include "HighLevelDescHeap.hpp"
 
 #include <cassert>
+#include <array>
+#include <type_traits>
 
 namespace inl {
 namespace gxeng {
@@ -8,98 +10,82 @@ namespace gxeng {
 
 DescriptorReference::DescriptorReference(DescriptorReference&& other) {
 	m_position = other.m_position;
-	m_heapVersion = other.m_heapVersion;
-
-	other.m_position = 0;
-	other.m_heapVersion = HighLevelDescHeap::INVALID_VERSION;
+	other.m_position = INVALID_POSITION;
 }
 
 
 DescriptorReference& DescriptorReference::operator=(DescriptorReference&& other) {
-	if (this == &other) {
-		return *this;
-	}
+	assert(this != &other);
 
 	m_position = other.m_position;
-	m_heapVersion = other.m_heapVersion;
-
-	other.m_position = 0;
-	other.m_heapVersion = HighLevelDescHeap::INVALID_VERSION;
+	other.m_position = INVALID_POSITION;
 
 	return *this;
 }
 
 
-gxapi::DescriptorHandle DescriptorReference::Get() {
-	if (IsInvalid()) {
-		throw gxapi::InvalidState("Descriptor being dereferenced is INVALID!");
-	}
-
-	return m_homeHeap->m_heap->At(m_position);
+bool DescriptorReference::IsValid() const {
+	return m_position != INVALID_POSITION;
 }
 
 
-DescriptorReference::DescriptorReference(HighLevelDescHeap* home) :
-	m_homeHeap(home),
-	m_heapVersion(HighLevelDescHeap::INVALID_VERSION)
+DescriptorReference::DescriptorReference(size_t pos) noexcept :
+	m_position(pos)
 {}
 
-
-bool DescriptorReference::IsInvalid() const {
-	return m_heapVersion == HighLevelDescHeap::INVALID_VERSION || m_heapVersion < m_homeHeap->m_version;
-}
 
 
 //=========================================================
 
 
-TextureSpaceRef::TextureSpaceRef(const TextureSpaceRef& other) :
-	TextureSpaceRef(other.m_homeAllocator, other.m_homeHeap, other.m_homeHeap->m_version)
+TextureSpaceRef::TextureSpaceRef(TextureSpaceRef&& other) :
+	DescriptorReference(std::move(other)),
+	m_home(other.m_home)
 {}
 
 
-TextureSpaceRef& TextureSpaceRef::operator=(TextureSpaceRef other) {
-	std::swap(m_heapVersion, other.m_heapVersion);
-	std::swap(m_homeAllocator, other.m_homeAllocator);
-	std::swap(m_homeHeap, other.m_homeHeap);
-	std::swap(m_position, other.m_position);
+TextureSpaceRef& TextureSpaceRef::operator=(TextureSpaceRef&& other) {
+	if (this == &other) {
+		return *this;
+	}
+
+	DescriptorReference::operator=(std::move(other));
+	m_home = other.m_home;
 
 	return *this;
 }
 
 
-TextureSpaceRef::TextureSpaceRef(TextureSpaceRef&& other) :
-	DescriptorReference(std::move(other))
-{
-	m_homeAllocator = other.m_homeAllocator;
-}
-
-
 TextureSpaceRef::~TextureSpaceRef() {
-	if (IsInvalid()) {
-		return;
+	if (IsValid()) {
+		m_home->DeallocateTextureSpace(m_position);
 	}
-	m_homeAllocator->Deallocate(m_position);
 }
 
 
-TextureSpaceRef::TextureSpaceRef(exc::SlabAllocatorEngine* homeAllocator, HighLevelDescHeap* home, size_t heapVersion) :
-	DescriptorReference(home),
-	m_homeAllocator(homeAllocator)
-{
-	m_position = m_homeAllocator->Allocate();
-	m_heapVersion = heapVersion;
+gxapi::DescriptorHandle TextureSpaceRef::Get() {
+	if (!IsValid()) {
+		throw gxapi::InvalidState("Descriptor being dereferenced is INVALID!");
+	}
+
+	return m_home->GetAtTextureSpace(m_position);
 }
+
+
+TextureSpaceRef::TextureSpaceRef(HighLevelDescHeap* home, size_t pos) noexcept :
+	DescriptorReference(pos),
+	m_home(home)
+{}
 
 
 //=========================================================
 
 
 ScratchSpaceRef::ScratchSpaceRef(ScratchSpaceRef&& other) :
-	DescriptorReference(std::move(other))
-{
-	m_homeAllocator = other.m_homeAllocator;
-}
+	DescriptorReference(std::move(other)),
+	m_home(other.m_home),
+	m_allocationSize(other.m_allocationSize)
+{}
 
 
 ScratchSpaceRef& ScratchSpaceRef::operator=(ScratchSpaceRef&& other) {
@@ -108,92 +94,202 @@ ScratchSpaceRef& ScratchSpaceRef::operator=(ScratchSpaceRef&& other) {
 	}
 
 	DescriptorReference::operator=(std::move(other));
-	m_homeAllocator = other.m_homeAllocator;
+	m_home = other.m_home;
+	m_allocationSize = other.m_allocationSize;
 
 	return *this;
 }
 
 
 ScratchSpaceRef::~ScratchSpaceRef() {
-	if (IsInvalid()) {
-		return;
+	if (IsValid()) {
+		m_home->m_allocator.Deallocate(m_position);
 	}
-	m_homeAllocator->Deallocate(m_position);
 }
 
 
-ScratchSpaceRef::ScratchSpaceRef(exc::RingAllocationEngine* homeAllocator, HighLevelDescHeap* home, size_t heapVersion) :
-	DescriptorReference(home),
-	m_homeAllocator(homeAllocator)
+gxapi::DescriptorHandle ScratchSpaceRef::Get(size_t position) {
+	if (!IsValid()) {
+		throw gxapi::InvalidState("Descriptor being dereferenced is INVALID!");
+	}
+
+	if (position >= m_allocationSize) {
+		throw gxapi::OutOfRange("Requested scratch space descriptor is out of allocation range!");
+	}
+
+	return m_home->m_heap->At(m_position + position);
+}
+
+
+ScratchSpaceRef::ScratchSpaceRef(ScratchSpace * home, size_t pos, size_t allocSize) :
+	DescriptorReference(pos), 
+	m_home(home),
+	m_allocationSize(allocSize)
+{}
+
+
+//=========================================================
+
+
+ScratchSpaceRef ScratchSpace::Allocate(size_t size) {
+	return ScratchSpaceRef(this, m_allocator.Allocate(size), size);
+}
+
+
+ScratchSpace::ScratchSpace(gxapi::IGraphicsApi * graphicsApi, size_t size) :
+	m_allocator(size)
 {
-	m_position = m_homeAllocator->Allocate();
-	m_heapVersion = heapVersion;
+	gxapi::DescriptorHeapDesc desc(gxapi::eDesriptorHeapType::CBV_SRV_UAV, size, true);
+	m_heap.reset(graphicsApi->CreateDescriptorHeap(desc));
 }
 
 
 //=========================================================
 
 
-HighLevelDescHeap::HighLevelDescHeap(gxapi::IGraphicsApi * graphicsApi, size_t totalDescCount) :
+HighLevelDescHeap::HighLevelDescHeap(gxapi::IGraphicsApi* graphicsApi) :
 	m_graphicsApi(graphicsApi),
-	m_version(1),
-	m_textureSpaceAllocator(totalDescCount * (DEFAULT_TEXTURE_TO_SCRATH_RATIO/(1+DEFAULT_TEXTURE_TO_SCRATH_RATIO))),
-	m_scratchSpaceAllocator(totalDescCount-m_textureSpaceAllocator.Size())
+	m_textureSpaceAllocator(0) //FIXME can't initialize slab allocator with zero size
 {
-	assert(m_textureSpaceAllocator.Size()+m_scratchSpaceAllocator.GetPoolSize() == totalDescCount);
-
-	gxapi::DescriptorHeapDesc desc;
-	desc.isShaderVisible = true;
-	desc.numDescriptors = totalDescCount;
-	desc.type = gxapi::eDesriptorHeapType::CBV_SRV_UAV;
-
-	m_heap.reset(graphicsApi->CreateDescriptorHeap(desc));
+	PushNewTextureSpaceChunk();
 }
 
 
-void HighLevelDescHeap::ResizeRatio(size_t totalDescCount, float textureToScratchRatio) {
-	size_t textureSpaceSize = totalDescCount * (textureToScratchRatio/(1+textureToScratchRatio));
-	ResizeExplicit(textureSpaceSize, totalDescCount-textureSpaceSize);
+TextureSpaceRef HighLevelDescHeap::AllocateOnTextureSpace() {
+	std::lock_guard<std::mutex> lock(m_textureSpaceMtx);
+	size_t pos;
+	try {
+		pos = m_textureSpaceAllocator.Allocate();
+	}
+	catch (std::bad_alloc& ex) {
+		PushNewTextureSpaceChunk();
+		pos = m_textureSpaceAllocator.Allocate();
+	}
+
+	return TextureSpaceRef(this, pos);
+}
+
+ScratchSpace HighLevelDescHeap::CreateScratchSpace(size_t size) {
+	return ScratchSpace(m_graphicsApi, size);
 }
 
 
-void HighLevelDescHeap::ResizeExplicit(size_t textureSpaceSize, size_t scratchSpaceSize) {
-	m_textureSpaceAllocator.Resize(textureSpaceSize);
-	m_scratchSpaceAllocator.Resize(scratchSpaceSize);
+/* OLD
+struct CopyRequest {
+TextureSpaceRef* from;
+DescriptorReference* to;
 
-	// Lets free all slots
-	m_textureSpaceAllocator.Reset();
-	m_scratchSpaceAllocator.Reset();
+CopyRequest() = default;
+CopyRequest(TextureSpaceRef* from, DescriptorReference* to) : from(from), to(to){};
+};
 
-	gxapi::DescriptorHeapDesc desc;
-	desc.isShaderVisible = true;
-	desc.numDescriptors = textureSpaceSize+scratchSpaceSize;
-	desc.type = gxapi::eDesriptorHeapType::CBV_SRV_UAV;
+void CopyDescriptors(const std::vector<CopyRequest>& fromToList) {
+	if (fromToList.size() == 0) {
+		return;
+	}
 
-	m_heap.reset(m_graphicsApi->CreateDescriptorHeap(desc));
-	IncrementVersion();
-}
+	std::vector<std::vector<std::pair<size_t, size_t>>> sortableSubQueues(1);
+	for (auto& currRequest : fromToList) {
+		auto pCurrSubQueue = &(sortableSubQueues.back());
+		bool shouldBeSeparate = false;
+		for (auto& currSubRequest : *pCurrSubQueue) {
+			auto& currReqFrom = currRequest.from->m_position;
+			auto& currReqTo = currRequest.to->m_position;
+			auto& currSubReqFrom = currSubRequest.first;
+			auto& currSubReqTo = currSubRequest.second;
 
+			assert(currReqFrom != currReqTo);
 
-TextureSpaceRef HighLevelDescHeap::CreateOnTextureSpace() {
-	return TextureSpaceRef(&m_textureSpaceAllocator, this, m_version);
-}
+			bool readAfterWrite = currReqFrom == currSubReqTo;
+			bool writeAfterRead = currReqTo == currSubReqFrom;
+			if (readAfterWrite || writeAfterRead) {
+				shouldBeSeparate = true;
+				break;
+			}
+		}
+		if (shouldBeSeparate) {
+			sortableSubQueues.push_back({});
+			pCurrSubQueue = &(sortableSubQueues.back());
+		}
 
+		pCurrSubQueue->push_back({currRequest.from->m_position, currRequest.to->m_position});
+	}
 
-ScratchSpaceRef HighLevelDescHeap::CreateOnScratchSpace(size_t count) {
-	return ScratchSpaceRef(&m_scratchSpaceAllocator, this, m_version);
-}
+	for (auto& currSubQueue : sortableSubQueues) {
+		//Sorting a vector of pairs will result in a vector where the same values are neighbours
+		//This helps us dividing the requests into groups so that the operations are as efficient as possible
+		std::sort(currSubQueue.begin(), currSubQueue.end());
 
+		std::vector<gxapi::DescriptorHandle> srcStarts;
+		std::vector<gxapi::DescriptorHandle> dstStarts;
+		std::vector<uint32_t> counts;
 
-void HighLevelDescHeap::IncrementVersion() {
-	m_version += 1;
+		//Fill out requests
+		const auto invalidIter = currSubQueue.end();
+		auto previous = invalidIter;
+		for (auto curr = currSubQueue.begin(); curr != currSubQueue.end(); ++curr) {
+			auto srcCurr = m_heap->At(curr->first);
+			auto dstCurr = m_heap->At(curr->second);
 
-	// version number overflowed
-	if (m_version == INVALID_VERSION) {
-		throw gxapi::Exception("Operation on descriptor heap can not be done due to an internal error (version number overflowed)");
+			bool addNew = true;
+			if (previous != invalidIter) {
+				auto srcNeighborOfPrev = m_heap->At(previous->first + 1);
+				auto dstNeighborOfPrev = m_heap->At(previous->second + 1);
+
+				if (srcNeighborOfPrev == srcCurr && dstNeighborOfPrev == dstCurr) {
+					addNew = false;
+				}
+			}
+
+			if (addNew) {
+				srcStarts.push_back(srcCurr);
+				dstStarts.push_back(dstCurr);
+				counts.push_back(1);
+			}
+			else {
+				counts.back()++;
+			}
+
+			previous = curr;
+		}
+
+		assert(srcStarts.size() == dstStarts.size());
+		assert(dstStarts.size() == counts.size());
+
+		//TODO FIX
+		//m_graphicsApi->CopyDescriptors(dstStarts.size(), dstStarts.data(), counts.data(), srcStarts.size(), srcStarts.data(), m_heap->GetDesc().type);
 	}
 }
+*/
 
+
+void HighLevelDescHeap::DeallocateTextureSpace(size_t pos) {
+	std::lock_guard<std::mutex> lock(m_textureSpaceMtx);
+	m_textureSpaceAllocator.Deallocate(pos);
+}
+
+
+gxapi::DescriptorHandle HighLevelDescHeap::GetAtTextureSpace(size_t pos) {
+	size_t chunk = pos / TEXTURE_SPACE_CHUNK_SIZE;
+	size_t id = pos % TEXTURE_SPACE_CHUNK_SIZE;
+
+	assert(chunk < m_textureSpaceChunks.size());
+
+	return m_textureSpaceChunks[chunk]->At(id);
+}
+
+
+void HighLevelDescHeap::PushNewTextureSpaceChunk() {
+	gxapi::DescriptorHeapDesc desc(gxapi::eDesriptorHeapType::CBV_SRV_UAV, TEXTURE_SPACE_CHUNK_SIZE, false);
+	m_textureSpaceChunks.push_back(std::unique_ptr<gxapi::IDescriptorHeap>(m_graphicsApi->CreateDescriptorHeap(desc)));
+	try { // You never know
+		m_textureSpaceAllocator.Resize(m_textureSpaceAllocator.Size() + TEXTURE_SPACE_CHUNK_SIZE);
+	}
+	catch (...) {
+		m_textureSpaceChunks.pop_back();
+		throw;
+	}
+}
 
 
 } // namespace inl

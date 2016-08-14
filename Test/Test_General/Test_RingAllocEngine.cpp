@@ -47,7 +47,7 @@ public:
 			constexpr int size = 53;
 			exc::RingAllocationEngine allocator(size);
 
-			TestAssert(allocator.GetPoolSize() == size);
+			TestAssert(allocator.Size() == size);
 
 
 			{

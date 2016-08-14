@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <cassert>
 #include <vector>
+#include <array>
 #include <list>
 
 namespace inl {
@@ -309,8 +310,8 @@ void GraphicsApi::CreateRenderTargetView(
 
 void GraphicsApi::CreateShaderResourceView(
 	gxapi::ShaderResourceViewDesc desc,
-	gxapi::DescriptorHandle destination) {
-
+	gxapi::DescriptorHandle destination)
+{
 	D3D12_SHADER_RESOURCE_VIEW_DESC nativeDesc = native_cast(desc);
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
 	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
@@ -320,8 +321,8 @@ void GraphicsApi::CreateShaderResourceView(
 
 void GraphicsApi::CreateShaderResourceView(
 	const gxapi::IResource* resource,
-	gxapi::DescriptorHandle destination) {
-
+	gxapi::DescriptorHandle destination)
+{
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
 	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
 	m_device->CreateShaderResourceView(const_cast<ID3D12Resource*>(native_cast(resource)), nullptr, nativeCPUHandle);
@@ -329,11 +330,11 @@ void GraphicsApi::CreateShaderResourceView(
 
 
 void GraphicsApi::CopyDescriptors(
-	size_t numDstDescRanges,
-	gxapi::DescriptorHandle* dstRangeStarts,
-	uint32_t* dstRangeSizes,
 	size_t numSrcDescRanges,
-	gxapi::DescriptorHandle* srcRangeStarts,
+	gxapi::DescriptorHandle * srcRangeStarts,
+	size_t numDstDescRanges,
+	gxapi::DescriptorHandle * dstRangeStarts,
+	uint32_t * rangeCounts,
 	gxapi::eDesriptorHeapType descHeapsType)
 {
 	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> nativeDstRangeStarts(numDstDescRanges);
@@ -345,7 +346,22 @@ void GraphicsApi::CopyDescriptors(
 		nativeSrcRangeStarts[i].ptr = native_cast_ptr(srcRangeStarts[i].cpuAddress);
 	}
 
-	m_device->CopyDescriptors(nativeDstRangeStarts.size(), nativeDstRangeStarts.data(), dstRangeSizes, nativeSrcRangeStarts.size(), nativeSrcRangeStarts.data(), nullptr, native_cast(descHeapsType));
+	m_device->CopyDescriptors(nativeDstRangeStarts.size(), nativeDstRangeStarts.data(), rangeCounts, nativeSrcRangeStarts.size(), nativeSrcRangeStarts.data(), nullptr, native_cast(descHeapsType));
+}
+
+void GraphicsApi::CopyDescriptors(
+	gxapi::DescriptorHandle srcStart,
+	gxapi::DescriptorHandle dstStart,
+	size_t rangeCount,
+	gxapi::eDesriptorHeapType descHeapsType)
+{
+	D3D12_CPU_DESCRIPTOR_HANDLE nativeDstRangeStart;
+	nativeDstRangeStart.ptr = native_cast_ptr(dstStart.cpuAddress);
+
+	D3D12_CPU_DESCRIPTOR_HANDLE nativeSrcRangeStart;
+	nativeSrcRangeStart.ptr = native_cast_ptr(srcStart.cpuAddress);
+	
+	m_device->CopyDescriptorsSimple(rangeCount, nativeDstRangeStart, nativeSrcRangeStart, native_cast(descHeapsType));
 }
 
 
@@ -355,6 +371,30 @@ gxapi::IFence * GraphicsApi::CreateFence(uint64_t initialValue)
 	D3D12_FENCE_FLAGS flags = D3D12_FENCE_FLAG_NONE;
 	ThrowIfFailed(m_device->CreateFence(initialValue, flags, IID_PPV_ARGS(&native)));
 	return new Fence(native);
+}
+
+
+void GraphicsApi::MakeResident(std::vector<gxapi::IResource*> objects) {
+	std::vector<ID3D12Pageable*> nativeObjects;
+	nativeObjects.reserve(objects.size());
+
+	for (auto curr : objects) {
+		nativeObjects.push_back(native_cast(curr));
+	}
+
+	ThrowIfFailed(m_device->MakeResident(nativeObjects.size(), nativeObjects.data()));
+}
+
+
+void GraphicsApi::Evict(std::vector<gxapi::IResource*> objects) {
+	std::vector<ID3D12Pageable*> nativeObjects;
+	nativeObjects.reserve(objects.size());
+
+	for (auto curr : objects) {
+		nativeObjects.push_back(native_cast(curr));
+	}
+
+	ThrowIfFailed(m_device->Evict(nativeObjects.size(), nativeObjects.data()));
 }
 
 

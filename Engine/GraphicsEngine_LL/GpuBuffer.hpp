@@ -8,10 +8,6 @@
 namespace inl {
 namespace gxeng {
 
-namespace impl {
-	class BasicHeap;
-}
-
 class MemoryManager;
 
 //==================================
@@ -27,13 +23,13 @@ public:
 	gxapi::DescriptorHandle GetViewHandle();
 
 protected:
-	GenericResource(TextureSpaceRef resourceView);
+	GenericResource(TextureSpaceRef&& resourceView);
 	GenericResource(const GenericResource&) = delete;
 	GenericResource& operator=(GenericResource) = delete;
 
 protected:
 	gxapi::IResource* m_resource;
-	impl::BasicHeap* m_resourceHeap;
+	//impl::BasicHeap* m_resourceHeap;
 	TextureSpaceRef m_resourceView;
 };
 
@@ -49,7 +45,7 @@ public:
 	uint64_t GetSize() const;
 
 protected:
-	VertexBuffer(TextureSpaceRef resourceView);
+	using GenericResource::GenericResource;
 };
 
 
@@ -66,7 +62,7 @@ public:
 	uint64_t GetWidth() const;
 	gxapi::eFormat GetFormat() const;
 protected:
-	GenericTextureBase(TextureSpaceRef resourceView);
+	using GenericResource::GenericResource;
 };
 
 //==================================
@@ -81,7 +77,7 @@ public:
 	uint16_t GetArrayCount() const;
 
 protected:
-	Texture1D(TextureSpaceRef resourceView);
+	using GenericTextureBase::GenericTextureBase;
 };
 
 
@@ -92,7 +88,7 @@ public:
 	uint16_t GetArrayCount() const;
 
 protected:
-	Texture2D(TextureSpaceRef resourceView);
+	using GenericTextureBase::GenericTextureBase;
 };
 
 
@@ -103,7 +99,7 @@ public:
 	uint16_t GetDepth() const;
 
 protected:
-	Texture3D(TextureSpaceRef resourceView);
+	using GenericTextureBase::GenericTextureBase;
 };
 
 
@@ -113,7 +109,7 @@ public:
 	uint64_t GetHeight() const;
 
 protected:
-	TextureCube(TextureSpaceRef resourceView);
+	using GenericTextureBase::GenericTextureBase;
 };
 
 //==================================

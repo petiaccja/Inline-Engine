@@ -67,7 +67,7 @@ public:
 	/// <summary> Clears all slots, does not affect pool size. </summary>
 	void Reset();
 
-	size_t GetPoolSize() const;
+	size_t Size() const;
 
 protected:
 	size_t m_nextIndex;

@@ -66,10 +66,23 @@ public:
 
 	virtual void CreateUnorderedAccessView() = delete; // not needed yet
 
-	virtual void CopyDescriptors(size_t numDstDescRanges, gxapi::DescriptorHandle* dstRangeStarts, uint32_t* dstRangeSizes, size_t numSrcDescRanges, gxapi::DescriptorHandle* srcRangeStarts, gxapi::eDesriptorHeapType descHeapsType) = 0;
+	virtual void CopyDescriptors(size_t numSrcDescRanges,
+	                             gxapi::DescriptorHandle* srcRangeStarts,
+	                             size_t numDstDescRanges,
+	                             gxapi::DescriptorHandle* dstRangeStarts,
+	                             uint32_t* rangeCounts,
+	                             gxapi::eDesriptorHeapType descHeapsType) = 0;
+
+	virtual void CopyDescriptors(gxapi::DescriptorHandle srcStart,
+	                             gxapi::DescriptorHandle dstStart,
+	                             size_t rangeCount,
+	                             gxapi::eDesriptorHeapType descHeapsType) = 0;
 
 	// Misc
 	virtual IFence* CreateFence(uint64_t initialValue) = 0;
+
+	virtual void MakeResident(std::vector<gxapi::IResource*> objects) = 0;
+	virtual void Evict(std::vector<gxapi::IResource*> objects) = 0;
 };
 
 

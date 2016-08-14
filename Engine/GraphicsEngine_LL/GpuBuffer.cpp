@@ -16,7 +16,7 @@ using namespace gxapi;
 //Generic Resource
 
 GenericResource::~GenericResource() {
-	m_resourceHeap->ReleaseUnderlying(this);
+	//m_resourceHeap->ReleaseUnderlying(this);
 }
 
 
@@ -33,16 +33,12 @@ gxapi::DescriptorHandle GenericResource::GetViewHandle() {
 	return m_resourceView.Get();
 }
 
-GenericResource::GenericResource(TextureSpaceRef resourceView) :
-	m_resourceView(resourceView)
+GenericResource::GenericResource(TextureSpaceRef&& resourceView) :
+	m_resourceView(std::move(resourceView))
 {}
 
 
 //==================================
-
-VertexBuffer::VertexBuffer(TextureSpaceRef resourceView) :
-	GenericResource(resourceView)
-{}
 
 
 uint64_t VertexBuffer::GetSize() const {
@@ -60,19 +56,9 @@ gxapi::eFormat GenericTextureBase::GetFormat() const {
 }
 
 
-GenericTextureBase::GenericTextureBase(TextureSpaceRef resourceView) :
-	GenericResource(resourceView)
-{}
-
-
 uint16_t Texture1D::GetArrayCount() const {
 	return m_resource->GetDesc().textureDesc.depthOrArraySize;
 }
-
-
-Texture1D::Texture1D(TextureSpaceRef resourceView) :
-	GenericTextureBase(resourceView)
-{}
 
 
 uint64_t Texture2D::GetHeight() const {
@@ -85,11 +71,6 @@ uint16_t Texture2D::GetArrayCount() const {
 }
 
 
-Texture2D::Texture2D(TextureSpaceRef resourceView) :
-	GenericTextureBase(resourceView)
-{}
-
-
 uint64_t Texture3D::GetHeight() const {
 	return m_resource->GetDesc().textureDesc.height;
 }
@@ -100,19 +81,9 @@ uint16_t Texture3D::GetDepth() const {
 }
 
 
-Texture3D::Texture3D(TextureSpaceRef resourceView) :
-	GenericTextureBase(resourceView)
-{}
-
-
 uint64_t TextureCube::GetHeight() const {
 	return m_resource->GetDesc().textureDesc.height;
 }
-
-
-TextureCube::TextureCube(TextureSpaceRef resourceView) :
-	GenericTextureBase(resourceView)
-{}
 
 
 

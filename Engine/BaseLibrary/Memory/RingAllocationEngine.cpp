@@ -54,7 +54,7 @@ RingAllocationEngine::RingAllocationEngine(size_t poolSize) :
 
 
 size_t RingAllocationEngine::Allocate(size_t allocationSize) {
-	if (allocationSize > GetPoolSize()) {
+	if (allocationSize > Size()) {
 		throw std::bad_alloc();
 	}
 	if (allocationSize == 0) {
@@ -62,7 +62,7 @@ size_t RingAllocationEngine::Allocate(size_t allocationSize) {
 	}
 
 	size_t allocStartIndex = m_nextIndex;
-	if (allocStartIndex + allocationSize > GetPoolSize()) {
+	if (allocStartIndex + allocationSize > Size()) {
 		allocStartIndex = 0;
 	}
 
@@ -157,7 +157,7 @@ void RingAllocationEngine::Reset() {
 }
 
 
-size_t RingAllocationEngine::GetPoolSize() const {
+size_t RingAllocationEngine::Size() const {
 	return m_container.Size();
 }
 

@@ -6,37 +6,34 @@
 #include "../BaseLibrary/Memory/RingAllocationEngine.hpp"
 #include "../BaseLibrary/Memory/SlabAllocatorEngine.hpp"
 
+#include <vector>
+#include <mutex>
+
 namespace inl {
 namespace gxeng {
 
 class HighLevelDescHeap;
+class ScratchSpace;
 
 class DescriptorReference {
 public:
+	friend class HighLevelDescHeap;
+
 	DescriptorReference(const DescriptorReference&) = delete;
 	DescriptorReference& operator=(const DescriptorReference&) = delete;
 
 	DescriptorReference(DescriptorReference&&);
 	DescriptorReference& operator=(DescriptorReference&&);
 
-
-	/// <summary> Get the underlying descriptor. </summary>
-	/// <exception cref="inl::gxapi::InvalidStateException">
-	/// If called after the heap was resized (resizing a heap invalidates all of its contents).
-	/// Also if this reference was "moved" as in move semantics.
-	/// </exception>
-	/// <returns> Represented descriptor. </returns>
-	gxapi::DescriptorHandle Get();
+	bool IsValid() const;
 
 protected:
-	DescriptorReference(HighLevelDescHeap* home);
-
-	bool IsInvalid() const;
+	DescriptorReference(size_t pos) noexcept;
 
 protected:
-	HighLevelDescHeap* m_homeHeap;
-	size_t m_heapVersion;
 	size_t m_position;
+
+	static constexpr auto INVALID_POSITION = std::numeric_limits<size_t>::max();
 };
 
 
@@ -44,72 +41,99 @@ class TextureSpaceRef : public DescriptorReference {
 public:
 	friend class HighLevelDescHeap;
 
-	TextureSpaceRef(const TextureSpaceRef&);
-	TextureSpaceRef& operator=(TextureSpaceRef);
-
 	TextureSpaceRef(TextureSpaceRef&&);
-
+	TextureSpaceRef& operator=(TextureSpaceRef&&);
 	~TextureSpaceRef() noexcept;
+
+	/// <summary> Get the underlying descriptor. </summary>
+	/// <exception cref="inl::gxapi::InvalidStateException">
+	/// If this reference was "moved" as in move semantics.
+	/// </exception>
+	/// <returns> Represented descriptor. </returns>
+	gxapi::DescriptorHandle Get();
 protected:
-	TextureSpaceRef(exc::SlabAllocatorEngine* homeAllocator, HighLevelDescHeap* home, size_t heapVersion);
+	TextureSpaceRef(HighLevelDescHeap* home, size_t pos) noexcept;
 protected:
-	exc::SlabAllocatorEngine* m_homeAllocator;
+	HighLevelDescHeap* m_home;
 };
 
 
 class ScratchSpaceRef : public DescriptorReference {
 public:
-	friend class HighLevelDescHeap;
+	friend class ScratchSpace;
 
 	ScratchSpaceRef(ScratchSpaceRef&&);
 	ScratchSpaceRef& operator=(ScratchSpaceRef&&);
-
 	~ScratchSpaceRef() noexcept;
+
+	/// <summary> Get an underlying descriptor. </summary>
+	/// <exception cref="inl::gxapi::InvalidStateException">
+	/// If this reference was "moved" as in move semantics.
+	/// Or if position is outside the allocation range.
+	/// </exception>
+	/// <returns> Represented descriptor. </returns>
+	gxapi::DescriptorHandle Get(size_t position);
 protected:
-	ScratchSpaceRef(exc::RingAllocationEngine* homeAllocator, HighLevelDescHeap* home, size_t heapVersion);
+	ScratchSpaceRef(ScratchSpace* home, size_t pos, size_t allocSize);
 protected:
-	exc::RingAllocationEngine* m_homeAllocator;
+	ScratchSpace* m_home;
+	size_t m_allocationSize;
+};
+
+/// <summary>
+/// This class provides an abstraction ovear a shader visible heap
+/// that was meant to be used for draw commands.
+/// <para />
+/// Please note that this class is not thread safe.
+/// <para />
+/// Each CPU thread that generates command lists should have
+/// exclusive ownership over at least one instance of this class.
+/// </summary>
+class ScratchSpace {
+	friend class HighLevelDescHeap;
+	friend class ScratchSpaceRef;
+public:
+	ScratchSpaceRef Allocate(size_t size);
+
+protected:
+	ScratchSpace(gxapi::IGraphicsApi* graphicsApi, size_t size);
+
+protected:
+	std::unique_ptr<gxapi::IDescriptorHeap> m_heap;
+	exc::RingAllocationEngine m_allocator;
 };
 
 
-/*
-Name is subject to change
-*/
+/// <summary>
+/// This class was made for high level engine components
+/// that need a way of handling resource descriptors.
+/// <para />
+/// This class is thread safe.
+/// </summary>
+/// (Name is subject to change)
 class HighLevelDescHeap
 {
 public:
-	friend class DescriptorReference;
 	friend class TextureSpaceRef;
-	friend class ScratchSpaceRef;
-
-	static constexpr float DEFAULT_TEXTURE_TO_SCRATH_RATIO = 2.f;
 
 public:
-	HighLevelDescHeap(gxapi::IGraphicsApi* graphicsApi, size_t totalDescCount);
+	HighLevelDescHeap(gxapi::IGraphicsApi* graphicsApi);
 
-	/// <summary>Resizes this heap. ALL descriptor references will become invalid.</summary>
-	void ResizeRatio(size_t totalDescCount, float textureToScratchRatio = DEFAULT_TEXTURE_TO_SCRATH_RATIO);
-
-	/// <summary>Resizes this heap. ALL descriptor references will become invalid.</summary>
-	void ResizeExplicit(size_t textureSpaceSize, size_t scratchSpaceSize);
-
-	TextureSpaceRef CreateOnTextureSpace();
-	ScratchSpaceRef CreateOnScratchSpace(size_t count);
+	TextureSpaceRef AllocateOnTextureSpace();
+	ScratchSpace CreateScratchSpace(size_t size);
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
 
-	std::unique_ptr<gxapi::IDescriptorHeap> m_heap;
-	size_t m_version; // Each resize increases version number. Zero is reserved for invalid state.
-
-	exc::SlabAllocatorEngine m_textureSpaceAllocator; //TODO rename
-	exc::RingAllocationEngine m_scratchSpaceAllocator;
-
-protected:
-	static constexpr size_t INVALID_VERSION = 0;
+	static constexpr size_t TEXTURE_SPACE_CHUNK_SIZE = 256;
+	std::vector<std::unique_ptr<gxapi::IDescriptorHeap>> m_textureSpaceChunks;
+	std::mutex m_textureSpaceMtx; 
+	exc::SlabAllocatorEngine m_textureSpaceAllocator;
 
 protected:
-	void IncrementVersion();
+	void DeallocateTextureSpace(size_t pos);
+	gxapi::DescriptorHandle GetAtTextureSpace(size_t pos);
+	void PushNewTextureSpaceChunk();
 };
 
 

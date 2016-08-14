@@ -60,11 +60,23 @@ public:
 	void CreateShaderResourceView(const gxapi::IResource* resource,
 								  gxapi::DescriptorHandle destination) override;
 
-	void CopyDescriptors(size_t numDstDescRanges, gxapi::DescriptorHandle* dstRangeStarts, uint32_t* dstRangeSizes, size_t numSrcDescRanges, gxapi::DescriptorHandle* srcRangeStarts, gxapi::eDesriptorHeapType descHeapsType) override;
+	void CopyDescriptors(size_t numSrcDescRanges,
+	                     gxapi::DescriptorHandle* srcRangeStarts,
+	                     size_t numDstDescRanges,
+	                     gxapi::DescriptorHandle* dstRangeStarts,
+	                     uint32_t* rangeCounts,
+	                     gxapi::eDesriptorHeapType descHeapsType) override;
+
+	void CopyDescriptors(gxapi::DescriptorHandle srcStart,
+	                     gxapi::DescriptorHandle dstStart,
+	                     size_t rangeCount,
+	                     gxapi::eDesriptorHeapType descHeapsType) override;
 
 	// Misc
 	gxapi::IFence* CreateFence(uint64_t initialValue) override;
 
+	void MakeResident(std::vector<gxapi::IResource*> objects) override;
+	void Evict(std::vector<gxapi::IResource*> objects) override;
 
 protected:
 	Microsoft::WRL::ComPtr<ID3D12Device> m_device;
