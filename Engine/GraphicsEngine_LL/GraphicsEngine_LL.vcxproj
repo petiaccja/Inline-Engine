@@ -190,7 +190,7 @@
     <ClInclude Include="Texture2D.hpp" />
     <ClInclude Include="GpuBuffer.hpp" />
     <ClInclude Include="TypedMesh.h" />
-    <ClInclude Include="Vertex_old.hpp" />
+    <ClInclude Include="VertexArrayView.hpp" />
     <ClInclude Include="Vertex.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -221,7 +221,6 @@
     <ClCompile Include="SmallBufferHeap.cpp" />
     <ClCompile Include="Task.cpp" />
     <ClCompile Include="Texture2D.cpp" />
-    <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="GpuBuffer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
