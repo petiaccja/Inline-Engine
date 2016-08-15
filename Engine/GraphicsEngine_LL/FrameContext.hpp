@@ -15,7 +15,10 @@ class CommandAllocatorPool;
 
 struct FrameContext {
 	float frameTime;
+
+	gxapi::IGraphicsApi* gxApi;
 	CommandAllocatorPool* commandAllocatorPool;
+	ScratchSpacePool* scratchSpacePool;
 
 	CommandQueue* commandQueue;
 	std::queue<InitTask>* initQueue;

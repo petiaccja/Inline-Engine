@@ -93,11 +93,9 @@ class ScratchSpace {
 	friend class HighLevelDescHeap;
 	friend class ScratchSpaceRef;
 public:
-	ScratchSpaceRef Allocate(size_t size);
-
-protected:
 	ScratchSpace(gxapi::IGraphicsApi* graphicsApi, size_t size);
-
+	
+	ScratchSpaceRef Allocate(size_t size);
 protected:
 	std::unique_ptr<gxapi::IDescriptorHeap> m_heap;
 	exc::RingAllocationEngine m_allocator;

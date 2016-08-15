@@ -6,6 +6,10 @@
 
 namespace exc {
 
+SlabAllocatorEngine::SlabAllocatorEngine() : m_poolSize(0), m_blocks() {
+
+}
+
 
 SlabAllocatorEngine::SlabAllocatorEngine(size_t poolSize)
 	: m_poolSize(poolSize), m_blocks((poolSize + SlotsPerBlock - 1) / SlotsPerBlock)
@@ -86,45 +90,52 @@ void SlabAllocatorEngine::Deallocate(size_t index) {
 
 
 void SlabAllocatorEngine::Resize(size_t newPoolSize) {
-	// allocate space for new block list
-	std::vector<Block> newBlocks((newPoolSize + SlotsPerBlock - 1) / SlotsPerBlock);
+	if (newPoolSize > 0) {
+		// allocate space for new block list
+		std::vector<Block> newBlocks((newPoolSize + SlotsPerBlock - 1) / SlotsPerBlock);
 
-	// copy old elements
-	intptr_t indexOfLastFree = -1;
-	for (size_t i = 0; i < m_blocks.size() && i < newBlocks.size(); ++i) {
-		newBlocks[i].slotOccupancy = m_blocks[i].slotOccupancy;
-	}
-	// clear new elements
-	for (size_t i = m_blocks.size(); i < newBlocks.size(); ++i) {
-		newBlocks[i].slotOccupancy = 0;
-	}
-
-	// unlock slots of the OLD last block
-	if (newPoolSize > m_poolSize) {
-		auto last = &newBlocks[m_blocks.size() - 1];
-		int numLastSlots = (m_poolSize % SlotsPerBlock);
-		last->slotOccupancy &= ~size_t(0) >> (sizeof(size_t) * 8 - numLastSlots);
-	}
-
-	// lock last slots of the NEW last block
-	{
-		auto last = &newBlocks[newBlocks.size() - 1];
-		int numLastSlots = (newPoolSize % SlotsPerBlock);
-		last->slotOccupancy = ~size_t(0) << numLastSlots;
-	}
-
-	// create free blocks chain
-	intptr_t prevFree = std::numeric_limits<intptr_t>::max();
-	for (intptr_t i = newBlocks.size() - 1; i >= 0; --i) {
-		if (newBlocks[i].slotOccupancy < ~size_t(0)) {
-			newBlocks[i].nextBlockIndex = prevFree;
-			prevFree = i;
+		// copy old elements
+		intptr_t indexOfLastFree = -1;
+		for (size_t i = 0; i < m_blocks.size() && i < newBlocks.size(); ++i) {
+			newBlocks[i].slotOccupancy = m_blocks[i].slotOccupancy;
 		}
+		// clear new elements
+		for (size_t i = m_blocks.size(); i < newBlocks.size(); ++i) {
+			newBlocks[i].slotOccupancy = 0;
+		}
+
+		// unlock slots of the OLD last block
+		if (newPoolSize > m_poolSize) {
+			auto last = &newBlocks[m_blocks.size() - 1];
+			int numLastSlots = (m_poolSize % SlotsPerBlock);
+			last->slotOccupancy &= ~size_t(0) >> (sizeof(size_t) * 8 - numLastSlots);
+		}
+
+		// lock last slots of the NEW last block
+		{
+			auto last = &newBlocks[newBlocks.size() - 1];
+			int numLastSlots = (newPoolSize % SlotsPerBlock);
+			last->slotOccupancy = ~size_t(0) << numLastSlots;
+		}
+
+		// create free blocks chain
+		intptr_t prevFree = std::numeric_limits<intptr_t>::max();
+		for (intptr_t i = newBlocks.size() - 1; i >= 0; --i) {
+			if (newBlocks[i].slotOccupancy < ~size_t(0)) {
+				newBlocks[i].nextBlockIndex = prevFree;
+				prevFree = i;
+			}
+		}
+
+		// commit new storage space
+		m_blocks = std::move(newBlocks);
+		m_first = prevFree < (intptr_t)m_blocks.size() ? m_blocks.data() + prevFree : nullptr;
 	}
-	
-	// commit new storage space
-	m_blocks = std::move(newBlocks);
-	m_first = prevFree < (intptr_t)m_blocks.size() ? m_blocks.data() + prevFree : nullptr;
+	else {
+		m_blocks.clear();
+		m_first = nullptr;
+		m_poolSize = 0;
+	}
 }
 
 
@@ -136,13 +147,18 @@ void SlabAllocatorEngine::Reset() {
 	}
 
 	// get first and last blocks
-	m_first = &m_blocks[0];
-	auto last = &m_blocks[m_blocks.size() - 1];
+	if (m_blocks.size() > 0) {
+		m_first = &m_blocks[0];
+		auto last = &m_blocks[m_blocks.size() - 1];
 
-	// mask out unused part of last block
-	int numLastSlots = (m_poolSize % SlotsPerBlock);
-	if (numLastSlots != 0) {
-		last->slotOccupancy = ~size_t(0) << numLastSlots;
+		// mask out unused part of last block
+		int numLastSlots = (m_poolSize % SlotsPerBlock);
+		if (numLastSlots != 0) {
+			last->slotOccupancy = ~size_t(0) << numLastSlots;
+		}
+	}
+	else {
+		m_first = nullptr;
 	}
 }
 

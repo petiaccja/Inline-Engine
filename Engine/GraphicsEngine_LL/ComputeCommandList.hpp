@@ -10,13 +10,13 @@ namespace gxeng {
 
 class ComputeCommandList : public CopyCommandList {
 public:
-	ComputeCommandList(CommandAllocatorPool& cmdAllocatorPool);
+	ComputeCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool);
 	ComputeCommandList(const ComputeCommandList& rhs) = delete;
 	ComputeCommandList(ComputeCommandList&& rhs);
 	ComputeCommandList& operator=(const ComputeCommandList& rhs) = delete;
 	ComputeCommandList& operator=(ComputeCommandList&& rhs);
 protected:
-	ComputeCommandList(CommandAllocatorPool& cmdAllocatorPool, gxapi::eCommandListType type);
+	ComputeCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool, gxapi::eCommandListType type);
 
 public:
 	// set compute root signature stuff

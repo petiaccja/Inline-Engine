@@ -3,6 +3,7 @@
 #include "Pipeline.hpp"
 #include "Scheduler.hpp"
 #include "CommandAllocatorPool.hpp"
+#include "ScratchSpacePool.hpp"
 #include "CommandListTasks.hpp"
 
 #include "../GraphicsApi_LL/IGxapiManager.hpp"
@@ -64,6 +65,7 @@ private:
 	Scheduler m_scheduler;
 	Pipeline m_pipeline;
 	CommandAllocatorPool m_commandAllocatorPool;
+	ScratchSpacePool m_scratchSpacePool;
 	std::mutex m_commandAllocatorMutex;
 };
 

@@ -72,13 +72,13 @@ struct SubTexture3D {
 
 class CopyCommandList : public BasicCommandList {
 public:
-	CopyCommandList(CommandAllocatorPool& cmdAllocatorPool);
+	CopyCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool);
 	CopyCommandList(const CopyCommandList& rhs) = delete;
 	CopyCommandList(CopyCommandList&& rhs);
 	CopyCommandList& operator=(const CopyCommandList& rhs) = delete;
 	CopyCommandList& operator=(CopyCommandList&& rhs);
 protected:
-	CopyCommandList(CommandAllocatorPool& cmdAllocatorPool, gxapi::eCommandListType type);
+	CopyCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool, gxapi::eCommandListType type);
 
 public:
 	// Command list state
