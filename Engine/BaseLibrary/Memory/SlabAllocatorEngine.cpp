@@ -6,7 +6,7 @@
 
 namespace exc {
 
-SlabAllocatorEngine::SlabAllocatorEngine() : m_poolSize(0), m_blocks() {
+SlabAllocatorEngine::SlabAllocatorEngine() : m_poolSize(0), m_blocks(), m_first(nullptr) {
 
 }
 
@@ -105,7 +105,7 @@ void SlabAllocatorEngine::Resize(size_t newPoolSize) {
 		}
 
 		// unlock slots of the OLD last block
-		if (newPoolSize > m_poolSize) {
+		if (m_blocks.size() > 0 && newPoolSize > m_poolSize) {
 			auto last = &newBlocks[m_blocks.size() - 1];
 			int numLastSlots = (m_poolSize % SlotsPerBlock);
 			last->slotOccupancy &= ~size_t(0) >> (sizeof(size_t) * 8 - numLastSlots);

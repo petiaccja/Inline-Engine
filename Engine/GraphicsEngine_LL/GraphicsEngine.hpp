@@ -6,10 +6,12 @@
 #include "ScratchSpacePool.hpp"
 #include "CommandListTasks.hpp"
 
-#include "../GraphicsApi_LL/IGxapiManager.hpp"
-#include "../GraphicsApi_LL/IGraphicsApi.hpp"
-#include "../GraphicsApi_LL/ISwapChain.hpp"
-#include "../GraphicsApi_LL/ICommandQueue.hpp"
+#include <GraphicsApi_LL/IGxapiManager.hpp>
+#include <GraphicsApi_LL/IGraphicsApi.hpp>
+#include <GraphicsApi_LL/ISwapChain.hpp>
+#include <GraphicsApi_LL/ICommandQueue.hpp>
+
+#include <BaseLibrary/Logging_All.hpp>
 
 #include <queue>
 #include <condition_variable>
@@ -62,11 +64,16 @@ private:
 	std::condition_variable m_cleanCv;
 
 	// Facilities
-	Scheduler m_scheduler;
-	Pipeline m_pipeline;
 	CommandAllocatorPool m_commandAllocatorPool;
 	ScratchSpacePool m_scratchSpacePool;
 	std::mutex m_commandAllocatorMutex;
+	Scheduler m_scheduler;
+	Pipeline m_pipeline;
+
+	// Logging
+	exc::Logger m_logger;
+	exc::LogStream m_logStreamGeneral;
+	exc::LogStream m_logStreamPipeline;
 };
 
 

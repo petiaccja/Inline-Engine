@@ -21,6 +21,9 @@
     <Filter Include="Middleware">
       <UniqueIdentifier>{ddb0ffd9-91c5-4cda-9bb1-ddf7349b9967}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Nodes">
+      <UniqueIdentifier>{278a4320-a644-4688-bad7-0b4475a43003}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -162,6 +165,12 @@
     <ClInclude Include="ScratchSpacePool.hpp">
       <Filter>Middleware</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\ClearScreen.h">
+      <Filter>Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\FrameCounter.hpp">
+      <Filter>Nodes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -248,6 +257,9 @@
     </ClCompile>
     <ClCompile Include="ScratchSpacePool.cpp">
       <Filter>Middleware</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\ClearScreen.cpp">
+      <Filter>Nodes</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

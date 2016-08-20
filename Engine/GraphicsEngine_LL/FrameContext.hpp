@@ -4,6 +4,7 @@
 #include "CommandQueue.hpp"
 #include "CommandListTasks.hpp"
 #include <queue>
+#include <BaseLibrary/Logging/LogStream.hpp>
 
 
 namespace inl {
@@ -15,6 +16,7 @@ class CommandAllocatorPool;
 
 struct FrameContext {
 	float frameTime;
+	exc::LogStream* log;
 
 	gxapi::IGraphicsApi* gxApi;
 	CommandAllocatorPool* commandAllocatorPool;

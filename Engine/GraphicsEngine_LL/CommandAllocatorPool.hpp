@@ -115,6 +115,7 @@ namespace impl {
 
 	template <gxapi::eCommandListType TYPE>
 	void CommandAllocatorPool<TYPE>::RecycleAllocator(gxapi::ICommandAllocator* allocator) {
+		allocator->Reset();
 		assert(m_addressToIndex.count(allocator) > 0);
 		size_t index = m_addressToIndex[allocator];
 		m_allocator.Deallocate(index);

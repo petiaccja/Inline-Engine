@@ -54,7 +54,9 @@ void CopyCommandList::ResetState(gxapi::IPipelineState* newState) {
 
 
 // barriers
-// TODO
+void CopyCommandList::ResourceBarrier(unsigned numBarriers, gxapi::ResourceBarrier* barriers) {
+	m_commandList->ResourceBarrier(numBarriers, barriers);
+}
 
 
 

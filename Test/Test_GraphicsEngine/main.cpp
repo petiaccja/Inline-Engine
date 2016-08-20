@@ -134,13 +134,13 @@ int main() {
 	catch (inl::gxapi::Exception& ex) {
 		isEngineInit = false;
 
-		systemLogStream.Event("Error creating PicoEngine: " + ex.Message());
+		systemLogStream.Event("Error creating GraphicsEngine: " + ex.Message());
 		logger.Flush();
 	}
 	catch (std::exception& ex) {
 		isEngineInit = false;
 		
-		systemLogStream.Event(std::string("Error creating PicoEngine: ") + ex.what());
+		systemLogStream.Event(std::string("Error creating GraphicsEngine: ") + ex.what());
 		logger.Flush();
 	}
 

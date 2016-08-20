@@ -63,8 +63,10 @@ void Scheduler::Execute(FrameContext context) {
 
 
 			// enqueue make resources resident
-			auto makeResidentTask = [resources = decomp.usedResources, list = decomp.commandList.get()]{
-				std::cout << "Making stuff resident for " << list << std::endl;
+			auto makeResidentTask = [log = context.log, resources = decomp.usedResources, list = decomp.commandList.get()]{
+				std::stringstream ss;
+				ss << "Making stuff resident for " << list;
+				log->Event(ss.str());
 			};
 			std::unique_lock<std::mutex> initLkg(*context.initMutex);
 			context.initQueue->push({ makeResidentTask, fence, beforeFence });
@@ -84,8 +86,10 @@ void Scheduler::Execute(FrameContext context) {
 
 
 			// enqueue clean resources
-			auto evictTask = [decomp = std::make_shared<BasicCommandList::Decomposition>(std::move(decomp))]{
-				std::cout << "Cleaning stuff after " << decomp->commandList.get() << std::endl;
+			auto evictTask = [log = context.log, decomp = std::make_shared<BasicCommandList::Decomposition>(std::move(decomp))]{
+				std::stringstream ss;
+				ss << "Cleaning stuff after " << decomp->commandList.get();
+				log->Event(ss.str());
 			};
 			std::unique_lock<std::mutex> cleanLkg(*context.cleanMutex);
 			context.cleanQueue->push({ std::move(evictTask), fence, afterFence });
