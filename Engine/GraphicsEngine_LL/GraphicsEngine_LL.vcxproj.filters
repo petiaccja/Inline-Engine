@@ -159,6 +159,9 @@
     <ClInclude Include="ResourceHeap.hpp">
       <Filter>MemoryManagement</Filter>
     </ClInclude>
+    <ClInclude Include="ScratchSpacePool.hpp">
+      <Filter>Middleware</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -242,6 +245,9 @@
     </ClCompile>
     <ClCompile Include="ResourceHeap.cpp">
       <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="ScratchSpacePool.cpp">
+      <Filter>Middleware</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

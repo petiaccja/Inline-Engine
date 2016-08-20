@@ -15,6 +15,7 @@ using namespace gxapi;
 
 GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	: m_commandAllocatorPool(desc.graphicsApi),
+	m_scratchSpacePool(desc.graphicsApi),
 	m_gxapiManager(desc.gxapiManager),
 	m_graphicsApi(desc.graphicsApi),
 	m_masterCommandQueue(desc.graphicsApi->CreateCommandQueue(CommandQueueDesc{ eCommandListType::GRAPHICS }), desc.graphicsApi->CreateFence(0))
@@ -53,9 +54,13 @@ GraphicsEngine::~GraphicsEngine() {
 
 void GraphicsEngine::Update(float elapsed) {
 	FrameContext context;
-	context.commandAllocatorPool = &m_commandAllocatorPool;
-	context.commandQueue = &m_masterCommandQueue;
 	context.frameTime = elapsed;
+
+	context.gxApi = m_graphicsApi;
+	context.commandAllocatorPool = &m_commandAllocatorPool;
+	context.scratchSpacePool = &m_scratchSpacePool;
+
+	context.commandQueue = &m_masterCommandQueue;
 	context.initMutex = &m_initMutex;
 	context.cleanMutex = &m_cleanMutex;
 	context.initQueue = &m_initTasks;
@@ -117,8 +122,8 @@ void GraphicsEngine::CleanTaskThreadFunc() {
 void GraphicsEngine::CreatePipeline() {
 	// Test node
 	class Node : public GraphicsNode,
-		public exc::InputPortConfig<int, int, int>,
-		public exc::OutputPortConfig<int, int, int>
+		public exc::InputPortConfig<unsigned long long, unsigned long long, unsigned long long>,
+		public exc::OutputPortConfig<unsigned long long, unsigned long long, unsigned long long>
 	{
 	public:
 		Node() {

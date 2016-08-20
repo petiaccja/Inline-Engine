@@ -5,8 +5,8 @@ namespace inl {
 namespace gxeng {
 
 
-GraphicsCommandList::GraphicsCommandList(CommandAllocatorPool& cmdAllocatorPool)
-	: ComputeCommandList(cmdAllocatorPool, gxapi::eCommandListType::GRAPHICS)
+GraphicsCommandList::GraphicsCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool)
+	: ComputeCommandList(gxApi, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::GRAPHICS)
 {
 	m_commandList = dynamic_cast<gxapi::IGraphicsCommandList*>(GetCommandList());
 }

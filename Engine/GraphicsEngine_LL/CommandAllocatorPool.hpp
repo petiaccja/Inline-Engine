@@ -17,10 +17,32 @@ namespace gxeng {
 
 namespace impl {
 
-	template <inl::gxapi::eCommandListType TYPE>
-	class CommandAllocatorPool {
+	class CommandAllocatorPoolBase {
 	public:
-		CommandAllocatorPool(inl::gxapi::IGraphicsApi* gxApi, size_t initialSize = 1);
+		struct Deleter {
+		public:
+			Deleter() : m_container(nullptr) {}
+			explicit Deleter(CommandAllocatorPoolBase* container) : m_container(container) {}
+			void operator()(gxapi::ICommandAllocator* object) const {
+				assert(m_container != nullptr);
+				m_container->RecycleAllocator(object);
+			}
+		private:
+			CommandAllocatorPoolBase* m_container;
+		};
+		using UniquePtr = std::unique_ptr<gxapi::ICommandAllocator, Deleter>;
+	public:
+		virtual ~CommandAllocatorPoolBase() {}
+		virtual UniquePtr RequestAllocator() = 0;
+		virtual void RecycleAllocator(gxapi::ICommandAllocator*) = 0;
+	};
+
+
+	template <gxapi::eCommandListType TYPE>
+	class CommandAllocatorPool : public CommandAllocatorPoolBase {
+	public:
+	public:
+		explicit CommandAllocatorPool(gxapi::IGraphicsApi* gxApi, size_t initialSize = 1);
 		CommandAllocatorPool(const CommandAllocatorPool&) = delete;
 		CommandAllocatorPool(CommandAllocatorPool&& rhs);
 
@@ -28,33 +50,33 @@ namespace impl {
 		CommandAllocatorPool& operator=(CommandAllocatorPool&& rhs);
 
 
-		inl::gxapi::ICommandAllocator* RequestAllocator();
-		void RecycleAllocator(inl::gxapi::ICommandAllocator* allocator);
+		UniquePtr RequestAllocator() override;
+		void RecycleAllocator(gxapi::ICommandAllocator* allocator) override;
 		void Reset(size_t initialSize = 1);
 
 		gxapi::IGraphicsApi* GetGraphicsApi() const { return m_gxApi; }
 	private:
-		std::vector<std::unique_ptr<inl::gxapi::ICommandAllocator>> m_pool;
+		std::vector<std::unique_ptr<gxapi::ICommandAllocator>> m_pool;
 		exc::SlabAllocatorEngine m_allocator;
-		inl::gxapi::IGraphicsApi* m_gxApi;
-		std::map<inl::gxapi::ICommandAllocator*, size_t> addressToIndex;
+		gxapi::IGraphicsApi* m_gxApi;
+		std::map<gxapi::ICommandAllocator*, size_t> m_addressToIndex;
 	};
 
 
 
-	template <inl::gxapi::eCommandListType TYPE>
-	CommandAllocatorPool<TYPE>::CommandAllocatorPool(inl::gxapi::IGraphicsApi* gxApi, size_t initialSize)
+	template <gxapi::eCommandListType TYPE>
+	CommandAllocatorPool<TYPE>::CommandAllocatorPool(gxapi::IGraphicsApi* gxApi, size_t initialSize)
 		: m_pool(initialSize), m_allocator(initialSize), m_gxApi(gxApi)
 	{}
 
 
-	template <inl::gxapi::eCommandListType TYPE>
+	template <gxapi::eCommandListType TYPE>
 	CommandAllocatorPool<TYPE>::CommandAllocatorPool(CommandAllocatorPool&& rhs)
 		: m_pool(std::move(rhs.m_pool)), m_allocator(std::move(rhs.m_allocator)), m_gxApi(rhs.m_gxApi)
 	{}
 
 
-	template <inl::gxapi::eCommandListType TYPE>
+	template <gxapi::eCommandListType TYPE>
 	CommandAllocatorPool<TYPE>& CommandAllocatorPool<TYPE>::operator=(CommandAllocatorPool&& rhs) {
 		m_pool = std::move(rhs.m_pool);
 		m_allocator = std::move(rhs.m_allocator);
@@ -64,8 +86,8 @@ namespace impl {
 	}
 
 
-	template <inl::gxapi::eCommandListType TYPE>
-	inl::gxapi::ICommandAllocator* CommandAllocatorPool<TYPE>::RequestAllocator() {
+	template <gxapi::eCommandListType TYPE>
+	auto CommandAllocatorPool<TYPE>::RequestAllocator() -> UniquePtr {
 		size_t index;
 		try {
 			index = m_allocator.Allocate();
@@ -80,26 +102,26 @@ namespace impl {
 		}
 
 		if (m_pool[index] != nullptr) {
-			return m_pool[index].get();
+			return UniquePtr{ m_pool[index].get(), Deleter{this} };
 		}
 		else {
-			auto* cmdAlloc = m_gxApi->CreateCommandAllocator(TYPE);
-			addressToIndex[cmdAlloc] = index;
-			m_pool[index].reset(cmdAlloc);
-			return m_pool[index].get();
+			std::unique_ptr<gxapi::ICommandAllocator> ptr(m_gxApi->CreateCommandAllocator(TYPE));
+			m_addressToIndex[ptr.get()] = index;
+			m_pool[index] = std::move(ptr);
+			return UniquePtr{ m_pool[index].get(), Deleter{this} };
 		}
 	}
 
 
-	template <inl::gxapi::eCommandListType TYPE>
-	void CommandAllocatorPool<TYPE>::RecycleAllocator(inl::gxapi::ICommandAllocator* allocator) {
-		assert(addressToIndex.count(allocator) > 0);
-		size_t index = addressToIndex[allocator];
+	template <gxapi::eCommandListType TYPE>
+	void CommandAllocatorPool<TYPE>::RecycleAllocator(gxapi::ICommandAllocator* allocator) {
+		assert(m_addressToIndex.count(allocator) > 0);
+		size_t index = m_addressToIndex[allocator];
 		m_allocator.Deallocate(index);
 	}
 
 
-	template <inl::gxapi::eCommandListType TYPE>
+	template <gxapi::eCommandListType TYPE>
 	void CommandAllocatorPool<TYPE>::Reset(size_t initialSize) {
 		m_pool.clear();
 		m_allocator.Reset();
@@ -110,16 +132,18 @@ namespace impl {
 } // namespace impl
 
 
+using CmdAllocPtr = impl::CommandAllocatorPoolBase::UniquePtr;
 
 class CommandAllocatorPool {
 public:
-	CommandAllocatorPool(gxapi::IGraphicsApi* gxApi);
+public:
+	explicit CommandAllocatorPool(gxapi::IGraphicsApi* gxApi);
 	CommandAllocatorPool(const CommandAllocatorPool&) = delete;
 	CommandAllocatorPool(CommandAllocatorPool&& rhs) = default;
 	CommandAllocatorPool& operator=(const CommandAllocatorPool&) = delete;
 	CommandAllocatorPool& operator=(CommandAllocatorPool&& rhs) = default;
 
-	gxapi::ICommandAllocator* RequestAllocator(gxapi::eCommandListType type);
+	CmdAllocPtr RequestAllocator(gxapi::eCommandListType type);
 	void RecycleAllocator(gxapi::ICommandAllocator* allocator);
 
 	gxapi::IGraphicsApi* GetGraphicsApi() const;

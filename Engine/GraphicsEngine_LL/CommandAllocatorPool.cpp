@@ -8,12 +8,12 @@ namespace inl {
 namespace gxeng {
 
 
-CommandAllocatorPool::CommandAllocatorPool(gxapi::IGraphicsApi* gxApi) 
+CommandAllocatorPool::CommandAllocatorPool(gxapi::IGraphicsApi* gxApi)
 	: m_gxPool(gxApi), m_cuPool(gxApi), m_cpPool(gxApi)
 {}
 
 
-gxapi::ICommandAllocator* CommandAllocatorPool::RequestAllocator(gxapi::eCommandListType type) {
+auto CommandAllocatorPool::RequestAllocator(gxapi::eCommandListType type) -> CmdAllocPtr {
 	std::lock_guard<std::mutex> lkg(mtx); // this may not be the best way
 
 	switch (type)
@@ -43,6 +43,8 @@ void CommandAllocatorPool::RecycleAllocator(gxapi::ICommandAllocator* allocator)
 			m_cuPool.RecycleAllocator(allocator);
 		case gxapi::eCommandListType::GRAPHICS:
 			m_gxPool.RecycleAllocator(allocator);
+		default:
+			assert(false); // hülye vagy bazmeg
 	}
 }
 

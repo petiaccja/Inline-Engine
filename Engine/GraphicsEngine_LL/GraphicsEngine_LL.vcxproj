@@ -185,6 +185,7 @@
     <ClInclude Include="ResourceHeap.hpp" />
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Scheduler.hpp" />
+    <ClInclude Include="ScratchSpacePool.hpp" />
     <ClInclude Include="SmallBufferHeap.hpp" />
     <ClInclude Include="Task.hpp" />
     <ClInclude Include="Texture2D.hpp" />
@@ -218,6 +219,7 @@
     <ClCompile Include="ResourceHeap.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Scheduler.cpp" />
+    <ClCompile Include="ScratchSpacePool.cpp" />
     <ClCompile Include="SmallBufferHeap.cpp" />
     <ClCompile Include="Task.cpp" />
     <ClCompile Include="Texture2D.cpp" />

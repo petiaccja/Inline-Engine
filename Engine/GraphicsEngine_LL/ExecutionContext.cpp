@@ -7,21 +7,21 @@ namespace gxeng {
 
 
 
-ExecutionContext::ExecutionContext(CommandAllocatorPool& commandAllocatorPool) 
-	: m_commandAllocatorPool(&commandAllocatorPool)
+ExecutionContext::ExecutionContext(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool) 
+	: m_gxApi(gxApi), m_commandAllocatorPool(&commandAllocatorPool), m_scratchSpacePool(&scratchSpacePool)
 {}
 
 
-GraphicsCommandList ExecutionContext::GetGraphicsCommandList() {
-	return GraphicsCommandList(*m_commandAllocatorPool);
+GraphicsCommandList ExecutionContext::GetGraphicsCommandList() const {
+	return GraphicsCommandList(m_gxApi, *m_commandAllocatorPool, *m_scratchSpacePool);
 }
 
-ComputeCommandList ExecutionContext::GetComputeCommandList() {
-	return ComputeCommandList(*m_commandAllocatorPool);
+ComputeCommandList ExecutionContext::GetComputeCommandList() const {
+	return ComputeCommandList(m_gxApi, *m_commandAllocatorPool, *m_scratchSpacePool);
 }
 
-CopyCommandList ExecutionContext::GetCopyCommandList() {
-	return CopyCommandList(*m_commandAllocatorPool);
+CopyCommandList ExecutionContext::GetCopyCommandList() const {
+	return CopyCommandList(m_gxApi, *m_commandAllocatorPool, *m_scratchSpacePool);
 }
 
 

@@ -10,7 +10,7 @@ namespace gxeng {
 
 class GraphicsCommandList : public ComputeCommandList {
 public:
-	GraphicsCommandList(CommandAllocatorPool& cmdAllocatorPool);
+	GraphicsCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool);
 	GraphicsCommandList(const GraphicsCommandList& rhs) = delete;
 	GraphicsCommandList(GraphicsCommandList&& rhs);
 	GraphicsCommandList& operator=(const GraphicsCommandList& rhs) = delete;

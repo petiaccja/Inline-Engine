@@ -34,6 +34,7 @@ public:
 	/// Initialize an allocator of specified size.
 	/// </summary>
 	/// <param name="poolSize">The number of available slots in the pool.</param>
+	SlabAllocatorEngine();
 	SlabAllocatorEngine(size_t poolSize);
 	SlabAllocatorEngine(const SlabAllocatorEngine& rhs);
 	SlabAllocatorEngine(SlabAllocatorEngine&& rhs);

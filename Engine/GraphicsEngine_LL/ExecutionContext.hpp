@@ -12,14 +12,16 @@ namespace gxeng {
 
 class ExecutionContext {
 public:
-	ExecutionContext(CommandAllocatorPool& commandAllocatorPool);
-	
+	ExecutionContext(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool);
 
-	GraphicsCommandList GetGraphicsCommandList();
-	ComputeCommandList GetComputeCommandList();
-	CopyCommandList GetCopyCommandList();
+
+	GraphicsCommandList GetGraphicsCommandList() const;
+	ComputeCommandList GetComputeCommandList() const;
+	CopyCommandList GetCopyCommandList() const;
 private:
+	gxapi::IGraphicsApi* m_gxApi;
 	CommandAllocatorPool* m_commandAllocatorPool;
+	ScratchSpacePool* m_scratchSpacePool;
 };
 
 

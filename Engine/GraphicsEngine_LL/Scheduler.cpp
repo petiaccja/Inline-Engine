@@ -48,7 +48,7 @@ void Scheduler::Execute(FrameContext context) {
 		// execute the task
 		ElementaryTask task = taskFunctionMap[taskNode];
 		if (task) {
-			results.push_back(task(ExecutionContext{ *context.commandAllocatorPool }));
+			results.push_back(task(ExecutionContext{ context.gxApi, *context.commandAllocatorPool, *context.scratchSpacePool }));
 		}
 	}
 
@@ -63,7 +63,7 @@ void Scheduler::Execute(FrameContext context) {
 
 
 			// enqueue make resources resident
-			auto makeResidentTask = [resources = decomp.usedResources, list = decomp.commandList]{
+			auto makeResidentTask = [resources = decomp.usedResources, list = decomp.commandList.get()]{
 				std::cout << "Making stuff resident for " << list << std::endl;
 			};
 			std::unique_lock<std::mutex> initLkg(*context.initMutex);
@@ -73,22 +73,22 @@ void Scheduler::Execute(FrameContext context) {
 
 
 			// enqueue command list
-			dynamic_cast<gxapi::ICopyCommandList*>(decomp.commandList)->Close();
+			dynamic_cast<gxapi::ICopyCommandList*>(decomp.commandList.get())->Close();
 
+			gxapi::ICommandList* execLists[] = {
+				decomp.commandList.get(),
+			};
 			context.commandQueue->Wait(fence, beforeFence);
-			context.commandQueue->ExecuteCommandLists(1, &decomp.commandList);
+			context.commandQueue->ExecuteCommandLists(1, execLists);
 			context.commandQueue->Signal(fence, afterFence);
-
-			delete decomp.commandList;
 
 
 			// enqueue clean resources
-			auto evictTask = [decomp = std::move(decomp)]{
-				std::cout << "Cleaning stuff after " << decomp.commandList << std::endl;
-				decomp.commandAllocatorPool->RecycleAllocator(decomp.commandAllocator);
+			auto evictTask = [decomp = std::make_shared<BasicCommandList::Decomposition>(std::move(decomp))]{
+				std::cout << "Cleaning stuff after " << decomp->commandList.get() << std::endl;
 			};
 			std::unique_lock<std::mutex> cleanLkg(*context.cleanMutex);
-			context.cleanQueue->push({ evictTask, fence, afterFence });
+			context.cleanQueue->push({ std::move(evictTask), fence, afterFence });
 			cleanLkg.unlock();
 			context.cleanCv->notify_all();
 		}
