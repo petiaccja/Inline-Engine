@@ -75,8 +75,8 @@ public:
 	// Misc
 	gxapi::IFence* CreateFence(uint64_t initialValue) override;
 
-	void MakeResident(std::vector<gxapi::IResource*> objects) override;
-	void Evict(std::vector<gxapi::IResource*> objects) override;
+	void MakeResident(const std::vector<gxapi::IResource*>& objects) override;
+	void Evict(const std::vector<gxapi::IResource*>& objects) override;
 
 protected:
 	Microsoft::WRL::ComPtr<ID3D12Device> m_device;

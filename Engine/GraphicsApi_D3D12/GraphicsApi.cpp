@@ -374,7 +374,11 @@ gxapi::IFence * GraphicsApi::CreateFence(uint64_t initialValue)
 }
 
 
-void GraphicsApi::MakeResident(std::vector<gxapi::IResource*> objects) {
+void GraphicsApi::MakeResident(const std::vector<gxapi::IResource*>& objects) {
+	if (objects.size() == 0) {
+		return;
+	}
+
 	std::vector<ID3D12Pageable*> nativeObjects;
 	nativeObjects.reserve(objects.size());
 
@@ -386,7 +390,11 @@ void GraphicsApi::MakeResident(std::vector<gxapi::IResource*> objects) {
 }
 
 
-void GraphicsApi::Evict(std::vector<gxapi::IResource*> objects) {
+void GraphicsApi::Evict(const std::vector<gxapi::IResource*>& objects) {
+	if (objects.size() == 0) {
+		return;
+	}
+
 	std::vector<ID3D12Pageable*> nativeObjects;
 	nativeObjects.reserve(objects.size());
 

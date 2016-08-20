@@ -60,8 +60,8 @@ public:
 #endif
 
 
-#if 0 //TODO how can different high-level resources \
-use the same underlying resource when they need different descriptors?
+//TODO how can different high-level resources use the same underlying resource?
+#if 0
 
 class OverlappedBufferHeap final : public BasicHeap {
 public:

@@ -81,8 +81,8 @@ public:
 	// Misc
 	virtual IFence* CreateFence(uint64_t initialValue) = 0;
 
-	virtual void MakeResident(std::vector<gxapi::IResource*> objects) = 0;
-	virtual void Evict(std::vector<gxapi::IResource*> objects) = 0;
+	virtual void MakeResident(const std::vector<gxapi::IResource*>& objects) = 0;
+	virtual void Evict(const std::vector<gxapi::IResource*>& objects) = 0;
 };
 
 

@@ -7,6 +7,7 @@
 #include "GpuBuffer.hpp"
 
 #include <algorithm>
+#include <cassert>
 
 namespace inl {
 namespace gxeng {
@@ -19,26 +20,13 @@ MemoryManager::MemoryManager(gxapi::IGraphicsApi* graphicsApi, HighLevelDescHeap
 {}
 
 
-void MemoryManager::LockResident(std::vector<GenericResource*> resources) {
-	std::vector<gxapi::IResource*> underlying;
-	underlying.reserve(resources.size());
-	for (auto curr : resources) {
-		underlying.push_back(curr->m_resource);
-	}
-
-	m_graphicsApi->MakeResident(underlying);
+void MemoryManager::LockResident(const std::vector<GenericResource*>& resources) {
+	LockResident(resources.begin(), resources.end());
 }
 
 
-void MemoryManager::UnlockResident(std::vector<GenericResource*> resources) {
-	std::vector<gxapi::IResource*> underlying;
-	underlying.reserve(resources.size());
-	for (auto curr : resources) {
-		underlying.push_back(curr->m_resource);
-	}
-
-	//TODO do not evict the resource here! Only evict when space is needed.
-	m_graphicsApi->Evict(underlying);
+void MemoryManager::UnlockResident(const std::vector<GenericResource*>& resources) {
+	UnlockResident(resources.begin(), resources.end());
 }
 
 
@@ -97,6 +85,8 @@ void MemoryManager::InitializeResource(eResourceHeapType heap, GenericResource* 
 	switch(heap) {
 	case eResourceHeapType::CRITICAL: 
 		resource->m_resource = m_criticalHeap.Allocate(resource, desc);
+		resource->m_resourceHeap = &m_criticalHeap;
+		resource->resident = true;
 		break;
 	}
 

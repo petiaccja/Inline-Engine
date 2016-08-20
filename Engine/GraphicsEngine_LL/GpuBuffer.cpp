@@ -16,7 +16,7 @@ using namespace gxapi;
 //Generic Resource
 
 GenericResource::~GenericResource() {
-	//m_resourceHeap->ReleaseUnderlying(this);
+	m_resourceHeap->ReleaseUnderlying(this);
 }
 
 

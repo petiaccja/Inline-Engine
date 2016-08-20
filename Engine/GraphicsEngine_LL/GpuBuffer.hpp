@@ -3,6 +3,7 @@
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include "../GraphicsApi_LL/IResource.hpp"
 
+#include "ResourceHeap.hpp"
 #include "HighLevelDescHeap.hpp"
 
 namespace inl {
@@ -29,8 +30,9 @@ protected:
 
 protected:
 	gxapi::IResource* m_resource;
-	//impl::BasicHeap* m_resourceHeap;
+	impl::BasicHeap* m_resourceHeap;
 	TextureSpaceRef m_resourceView;
+	bool resident;
 };
 
 //==================================
