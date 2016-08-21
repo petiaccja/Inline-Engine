@@ -23,7 +23,9 @@ LogStream::LogStream(LogStream&& rhs) {
 }
 
 LogStream::~LogStream() {
-	pipe->GetNode()->Flush();
+	if (pipe) {
+		pipe->GetNode()->Flush();
+	}
 }
 
 LogStream& LogStream::operator=(LogStream&& rhs) {

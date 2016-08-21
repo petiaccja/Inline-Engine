@@ -18,49 +18,49 @@ public:
 
 public:
 	// Clear shit
-	void ClearDepthStencil(Texture2D*,
-								   float depth,
-								   uint8_t stencil,
-								   size_t numRects = 0,
-								   gxapi::Rectangle* rects = nullptr,
-								   bool clearDepth = true,
-								   bool clearStencil = false);
+	void ClearDepthStencil(Texture2D* resource,
+						   float depth,
+						   uint8_t stencil,
+						   size_t numRects = 0,
+						   gxapi::Rectangle* rects = nullptr,
+						   bool clearDepth = true,
+						   bool clearStencil = false);
 
-	void ClearRenderTarget(Texture2D*,
-								   gxapi::ColorRGBA color,
-								   size_t numRects = 0,
-								   gxapi::Rectangle* rects = nullptr);
+	void ClearRenderTarget(Texture2D* resource,
+						   gxapi::ColorRGBA color,
+						   size_t numRects = 0,
+						   gxapi::Rectangle* rects = nullptr);
 
 
 	// Draw
 	void DrawIndexedInstanced(unsigned numIndices,
-									  unsigned startIndex = 0,
-									  int vertexOffset = 0,
-									  unsigned numInstances = 1,
-									  unsigned startInstance = 0);
+							  unsigned startIndex = 0,
+							  int vertexOffset = 0,
+							  unsigned numInstances = 1,
+							  unsigned startInstance = 0);
 
 	void DrawInstanced(unsigned numVertices,
-							   unsigned startVertex = 0,
-							   unsigned numInstances = 1,
-							   unsigned startInstance = 0);
+					   unsigned startVertex = 0,
+					   unsigned numInstances = 1,
+					   unsigned startInstance = 0);
 
 	//!!! void ExecuteBundle(IGraphicsCommandList* bundle);
 
 	// input assembler
-	void SetIndexBuffer(IndexBuffer*, bool is32Bit);
+	void SetIndexBuffer(IndexBuffer* resource, bool is32Bit);
 
 	void SetPrimitiveTopology(gxapi::ePrimitiveTopology topology);
 
 	void SetVertexBuffers(unsigned startSlot,
-								  unsigned count,
-								  VertexBuffer**,
-								  unsigned* sizeInBytes,
-								  unsigned* strideInBytes);
+						  unsigned count,
+						  VertexBuffer** resources,
+						  unsigned* sizeInBytes,
+						  unsigned* strideInBytes);
 
 	// output merger
 	void SetRenderTargets(unsigned numRenderTargets,
-								  Texture2D** renderTargets,
-								  Texture2D* depthStencil = nullptr);
+						  Texture2D** renderTargets,
+						  Texture2D* depthStencil = nullptr);
 	void SetBlendFactor(float r, float g, float b, float a);
 	void SetStencilRef(unsigned stencilRef);
 

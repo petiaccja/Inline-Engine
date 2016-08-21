@@ -55,17 +55,19 @@ void Task::InitParallel(const std::vector<ElementaryTask>& subtasks) {
 void Task::InitSequential(const std::vector<ElementaryTask>& subtasks) {
 	ResetNodes();
 
-	lemon::ListDigraph::Node prevNode;
+	lemon::ListDigraph::Node prevNode = lemon::INVALID;
 
 	for (auto& subtask : subtasks) {
 		// create a node
-		auto node = m_nodes.addNode();
+		lemon::ListDigraph::Node node = m_nodes.addNode();
 		m_subtasks[node] = subtask;
 
 		// add arc b/w prev and current node
 		if (m_nodes.valid(prevNode)) {
 			m_nodes.addArc(prevNode, node);
 		}
+
+		prevNode = node;
 	}
 }
 

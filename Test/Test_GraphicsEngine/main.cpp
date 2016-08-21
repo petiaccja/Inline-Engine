@@ -69,7 +69,7 @@ int main() {
 	HWND hWnd = CreateWindowEx(
 		NULL,
 		TEXT("WC_ENGINETEST"),
-		TEXT("Engine Test, bitches!"),
+		TEXT("Graphics Engine Test"),
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
@@ -134,13 +134,13 @@ int main() {
 	catch (inl::gxapi::Exception& ex) {
 		isEngineInit = false;
 
-		systemLogStream.Event("Error creating PicoEngine: " + ex.Message());
+		systemLogStream.Event("Error creating GraphicsEngine: " + ex.Message());
 		logger.Flush();
 	}
 	catch (std::exception& ex) {
 		isEngineInit = false;
 		
-		systemLogStream.Event(std::string("Error creating PicoEngine: ") + ex.what());
+		systemLogStream.Event(std::string("Error creating GraphicsEngine: ") + ex.what());
 		logger.Flush();
 	}
 
@@ -148,6 +148,9 @@ int main() {
 	// Game-style main loop
 	MSG msg;
 	bool run = true;
+	std::chrono::high_resolution_clock::time_point timestamp = std::chrono::high_resolution_clock::now();
+	float fpsHistory[10] = {0};
+	unsigned fpsHistoryIdx = 0;
 	while (run) {
 		while (PeekMessage(&msg, hWnd, 0, 0, PM_REMOVE)) {
 			if (msg.message == WM_QUIT) {
@@ -157,8 +160,29 @@ int main() {
 			DispatchMessage(&msg);
 		}
 		if (engine) {
+			auto updateStart = std::chrono::high_resolution_clock::now();
 			engine->Update(0.016f);
-			std::this_thread::sleep_for(16ms);
+			auto updateEnd = std::chrono::high_resolution_clock::now();
+			std::chrono::nanoseconds updateElapsed = updateEnd - updateStart;
+
+
+			auto now = std::chrono::high_resolution_clock::now();
+			std::chrono::nanoseconds elapsed = now - timestamp;
+			timestamp = now;
+			std::this_thread::sleep_for(16ms - updateElapsed);
+
+			std::stringstream ss;
+			float currentFps = 1.0 / (elapsed.count() / 1e9);
+			fpsHistory[fpsHistoryIdx] = currentFps;
+			fpsHistoryIdx++; fpsHistoryIdx %= 10;
+			float avgFps = [&] {
+				float sum = 0;
+				for (auto v : fpsHistory)
+					sum += v;
+				return sum / 10.0f;
+			}();
+			ss << "Graphics Engine Test | " << "FPS=" << (int)avgFps;
+			SetWindowTextA(hWnd, ss.str().c_str());
 		}
 	}
 

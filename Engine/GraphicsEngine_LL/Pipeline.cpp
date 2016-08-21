@@ -163,6 +163,10 @@ void Pipeline::CalculateTaskGraph() {
 
 		// Merge-copy Task's graph into m_taskGraph, create mapping of nodes
 		// Copy nodes
+		int numSubtasks = lemon::countNodes(task.m_nodes);
+		if (numSubtasks == 0) {
+			throw std::logic_error("Task has zero subtasks.");
+		}
 		lemon::ListDigraph::NodeMap<decltype(m_taskGraph)::Node> taskNodesToTaskGraphNodes(task.m_nodes); // maps Task's nodes to m_taskGraph's nodes
 		for (lemon::ListDigraph::NodeIt taskNode(task.m_nodes); taskNode != lemon::INVALID; ++taskNode) {
 			auto taskGraphNode = m_taskGraph.addNode(); // add new node
@@ -184,18 +188,24 @@ void Pipeline::CalculateTaskGraph() {
 		std::vector<lemon::ListDigraph::Node> sinks; // sink as well
 		for (lemon::ListDigraph::NodeIt taskNode(task.m_nodes); taskNode != lemon::INVALID; ++taskNode) {
 			// no in arc -> source
-			if (lemon::countInArcs(task.m_nodes, taskNode) == 0) {
+			int inArcCount = lemon::countInArcs(task.m_nodes, taskNode);
+			if (inArcCount == 0) {
 				sources.push_back(taskNodesToTaskGraphNodes[taskNode]);
 			}
 			// no out arc -> sink
-			if (lemon::countOutArcs(task.m_nodes, taskNode) == 0) {
+			int outArcCount = lemon::countOutArcs(task.m_nodes, taskNode);
+			if (outArcCount == 0) {
 				sinks.push_back(taskNodesToTaskGraphNodes[taskNode]);
 			}
 		}
 		SourceSinkMapping sourceSinkMapForCurrentNode;
 		// If no sink or no source, it's certainly not a fucking DAG
 		if (sources.size() == 0 || sinks.size() == 0) {
-			throw std::logic_error("Not a f'kin' DAG."); // TODO: which node, which task, which what?
+			std::stringstream ss;
+			for (lemon::ListDigraph::ArcIt arc(task.m_nodes); arc != lemon::INVALID; ++arc) {
+				ss << task.m_nodes.id(task.m_nodes.source(arc)) << " -> " << task.m_nodes.id(task.m_nodes.target(arc)) << std::endl;
+			}
+			throw std::logic_error("Task graph of node has neither sources nor sinks.\n" + ss.str()); // TODO: which node, which task, which what?
 		}
 		// If there are multiple sources, reduce them to one
 		if (sources.size() > 1) {

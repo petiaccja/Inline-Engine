@@ -117,5 +117,11 @@ private:
 };
 
 
+template<class ...Barriers>
+void CopyCommandList::ResourceBarrier(Barriers && ...barriers) {
+	gxapi::ResourceBarrier* table[sizeof...(barriers)] = {&barriers...};
+	ResourceBarrier(sizeof...(barriers), barriers);
+}
+
 } // namespace gxeng
 } // namespace inl

@@ -5,6 +5,9 @@
 
 #include <iostream> // only for debugging
 
+#include "Nodes/ClearScreen.h"
+#include "Nodes/FrameCounter.hpp"
+
 
 namespace inl {
 namespace gxeng {
@@ -40,21 +43,34 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_runInitCleanTasks = true;
 	m_initTaskThread = std::thread(std::bind(&GraphicsEngine::InitTaskThreadFunc, this));
 	m_cleanTaskThread = std::thread(std::bind(&GraphicsEngine::CleanTaskThreadFunc, this));
+
+	// Init logger
+	m_logStreamGeneral = m_logger.CreateLogStream("General");
+	m_logStreamPipeline = m_logger.CreateLogStream("Pipeline");
+
+	m_logger.OpenStream(&std::cout);
 }
 
 
 GraphicsEngine::~GraphicsEngine() {
+	// Flush all the things.
+	m_masterCommandQueue.GetFence()->Signal(std::numeric_limits<uint64_t>::max());
+
+	// Stop tasks.
 	m_runInitCleanTasks = false;
 	m_initCv.notify_all();
 	m_cleanCv.notify_all();
-	m_cleanTaskThread.join();
 	m_initTaskThread.join();
+	m_cleanTaskThread.join();
+
+	m_logger.Flush();
 }
 
 
 void GraphicsEngine::Update(float elapsed) {
 	FrameContext context;
 	context.frameTime = elapsed;
+	context.log = &m_logStreamPipeline;
 
 	context.gxApi = m_graphicsApi;
 	context.commandAllocatorPool = &m_commandAllocatorPool;
@@ -68,12 +84,17 @@ void GraphicsEngine::Update(float elapsed) {
 	context.initCv = &m_initCv;
 	context.cleanCv = &m_cleanCv;
 	m_scheduler.Execute(context);
+
+	m_logger.Flush();
+
+	m_swapChain->Present();
 }
 
 
 
 void GraphicsEngine::InitTaskThreadFunc() {
-	while (m_runInitCleanTasks) {
+	bool notEmpty = false;
+	while (m_runInitCleanTasks || notEmpty) {
 		std::unique_lock<std::mutex> lkg(m_initMutex);
 
 		m_initCv.wait(lkg, [this] {
@@ -82,6 +103,8 @@ void GraphicsEngine::InitTaskThreadFunc() {
 
 		if (!m_initTasks.empty()) {
 			auto task = m_initTasks.front();
+			m_initTasks.pop();
+			notEmpty = !m_initTasks.empty();
 			lkg.unlock();
 
 			if (task.task) {
@@ -96,7 +119,8 @@ void GraphicsEngine::InitTaskThreadFunc() {
 
 
 void GraphicsEngine::CleanTaskThreadFunc() {
-	while (m_runInitCleanTasks) {
+	bool notEmpty = false;
+	while (m_runInitCleanTasks || notEmpty) {
 		std::unique_lock<std::mutex> lkg(m_cleanMutex);
 
 		m_cleanCv.wait(lkg, [this] {
@@ -105,6 +129,8 @@ void GraphicsEngine::CleanTaskThreadFunc() {
 
 		if (!m_cleanTasks.empty()) {
 			auto task = m_cleanTasks.front();
+			m_cleanTasks.pop();
+			notEmpty = !m_cleanTasks.empty();
 			lkg.unlock();
 
 			if (task.waitThisFence != nullptr) {
@@ -120,47 +146,10 @@ void GraphicsEngine::CleanTaskThreadFunc() {
 
 
 void GraphicsEngine::CreatePipeline() {
-	// Test node
-	class Node : public GraphicsNode,
-		public exc::InputPortConfig<unsigned long long, unsigned long long, unsigned long long>,
-		public exc::OutputPortConfig<unsigned long long, unsigned long long, unsigned long long>
-	{
-	public:
-		Node() {
-			GetInput<0>().Set(0);
-			GetInput<1>().Set(0);
-			GetInput<2>().Set(0);
-		}
-		virtual void Update() override {
-			std::cout << this << " updated." << std::endl;
-		}
-		virtual void Notify(exc::InputPortBase* sender) override {
-			std::cout << this << " notified." << std::endl;
-		}
-		virtual Task GetTask() override {
-			Task t;
-			t.InitSequential({
-				[this](ExecutionContext context)
-			{
-				if (this->GetInput<0>().Get() == 0) {
-					++frameCount;
-					this->GetOutput<0>().Set(frameCount);
-				}
-				else {
-					std::cout << "Frame " << this->GetInput<0>().Get() << std::endl;
-				}
-				return ExecutionResult();
-			}
-			});
-			return t;
-		}
-	private:
-		unsigned long long frameCount = 0;
-	};
+	auto* n1 = new FrameCounter();
+	auto* n2 = new ClearScreen();
+	n1->SetLog(&m_logStreamGeneral);
 
-	Node *n1 = new Node(), *n2 = new Node();
-
-	n1->GetOutput(0)->Link(n2->GetInput(0));
 	m_pipeline.CreateFromNodesList({ n1, n2 }, std::default_delete<exc::NodeBase>());
 }
 

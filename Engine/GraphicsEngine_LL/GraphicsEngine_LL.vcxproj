@@ -70,19 +70,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\BaseLibrary;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\Externals\libd;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\BaseLibrary;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\Externals\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\BaseLibrary;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\Externals\libd64\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\BaseLibrary;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\Externals\lib64\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -181,6 +181,8 @@
     <ClInclude Include="GraphicsEngine.hpp" />
     <ClInclude Include="Material.hpp" />
     <ClInclude Include="Mesh.hpp" />
+    <ClInclude Include="Nodes\ClearScreen.h" />
+    <ClInclude Include="Nodes\FrameCounter.hpp" />
     <ClInclude Include="Pipeline.hpp" />
     <ClInclude Include="ResourceHeap.hpp" />
     <ClInclude Include="Scene.hpp" />
@@ -215,6 +217,7 @@
     <ClCompile Include="GraphicsEngine.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="Nodes\ClearScreen.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="ResourceHeap.cpp" />
     <ClCompile Include="Scene.cpp" />
