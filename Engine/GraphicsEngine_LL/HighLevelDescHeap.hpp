@@ -18,6 +18,7 @@ class ScratchSpace;
 class DescriptorReference {
 public:
 	friend class HighLevelDescHeap;
+	friend class BackBufferHeap;
 
 	DescriptorReference(const DescriptorReference&) = delete;
 	DescriptorReference& operator=(const DescriptorReference&) = delete;
@@ -25,25 +26,7 @@ public:
 	DescriptorReference(DescriptorReference&&);
 	DescriptorReference& operator=(DescriptorReference&&);
 
-	bool IsValid() const;
-
-protected:
-	DescriptorReference(size_t pos) noexcept;
-
-protected:
-	size_t m_position;
-
-	static constexpr auto INVALID_POSITION = std::numeric_limits<size_t>::max();
-};
-
-
-class TextureSpaceRef : public DescriptorReference {
-public:
-	friend class HighLevelDescHeap;
-
-	TextureSpaceRef(TextureSpaceRef&&);
-	TextureSpaceRef& operator=(TextureSpaceRef&&);
-	~TextureSpaceRef() noexcept;
+	~DescriptorReference();
 
 	/// <summary> Get the underlying descriptor. </summary>
 	/// <exception cref="inl::gxapi::InvalidStateException">
@@ -51,14 +34,21 @@ public:
 	/// </exception>
 	/// <returns> Represented descriptor. </returns>
 	gxapi::DescriptorHandle Get();
+
+	bool IsValid() const;
+
 protected:
-	TextureSpaceRef(HighLevelDescHeap* home, size_t pos) noexcept;
+	DescriptorReference() = default;
+
+	void Invalidate();
+
 protected:
-	HighLevelDescHeap* m_home;
+	std::function<void(void)> m_deleter;
+	gxapi::DescriptorHandle m_handle;
 };
 
 
-class ScratchSpaceRef : public DescriptorReference {
+class ScratchSpaceRef {
 public:
 	friend class ScratchSpace;
 
@@ -73,11 +63,20 @@ public:
 	/// </exception>
 	/// <returns> Represented descriptor. </returns>
 	gxapi::DescriptorHandle Get(size_t position);
+
+	bool IsValid() const;
+
 protected:
 	ScratchSpaceRef(ScratchSpace* home, size_t pos, size_t allocSize);
+
+	void Invalidate();
+
 protected:
 	ScratchSpace* m_home;
+	size_t m_pos;
 	size_t m_allocationSize;
+
+	static constexpr auto INVALID_POS = std::numeric_limits<size_t>::max();
 };
 
 /// <summary>
@@ -112,12 +111,9 @@ protected:
 class HighLevelDescHeap
 {
 public:
-	friend class TextureSpaceRef;
-
-public:
 	HighLevelDescHeap(gxapi::IGraphicsApi* graphicsApi);
 
-	TextureSpaceRef AllocateOnTextureSpace();
+	DescriptorReference AllocateOnTextureSpace();
 	ScratchSpace CreateScratchSpace(size_t size);
 
 protected:

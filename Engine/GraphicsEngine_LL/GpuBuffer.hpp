@@ -17,22 +17,25 @@ class MemoryManager;
 class GenericResource {
 	friend class MemoryManager;
 public:
+	GenericResource(GenericResource&&);
+	GenericResource& operator=(GenericResource&&);
 	~GenericResource() noexcept;
 
-	void* GetVirtualAddress() const;
-	gxapi::ResourceDesc GetDescriptor() const;
-	gxapi::DescriptorHandle GetViewHandle();
-
-protected:
-	GenericResource(TextureSpaceRef&& resourceView);
 	GenericResource(const GenericResource&) = delete;
 	GenericResource& operator=(GenericResource) = delete;
 
+	void* GetVirtualAddress() const;
+	gxapi::ResourceDesc GetDescription() const;
+	gxapi::DescriptorHandle GetViewHandle();
+
+protected:
+	GenericResource(DescriptorReference&& resourceView);
+
 protected:
 	gxapi::IResource* m_resource;
-	impl::BasicHeap* m_resourceHeap;
-	TextureSpaceRef m_resourceView;
-	bool resident;
+	std::function<void(GenericResource*)> m_deleter;
+	DescriptorReference m_resourceView;
+	bool m_resident;
 };
 
 //==================================
@@ -85,6 +88,7 @@ protected:
 
 class Texture2D : public GenericTextureBase {
 	friend class MemoryManager;
+	friend class BackBufferHeap;
 public:
 	uint64_t GetHeight() const;
 	uint16_t GetArrayCount() const;

@@ -42,8 +42,8 @@ public:
 
 	VertexBuffer* CreateVertexBuffer(eResourceHeapType heap, size_t size);
 	IndexBuffer* CreateIndexBuffer(eResourceHeapType heap, size_t size);
-	Texture1D* CreateTexture1D(eResourceHeapType heap, uint64_t width, gxapi::eFormat format, uint16_t elementCount = 1);
-	Texture2D* CreateTexture2D(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t elementCount = 1);
+	Texture1D* CreateTexture1D(eResourceHeapType heap, uint64_t width, gxapi::eFormat format, uint16_t arraySize = 1);
+	Texture2D* CreateTexture2D(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1);
 	Texture3D* CreateTexture3D(eResourceHeapType heap, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format);
 	TextureCube* CreateTextureCube(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format);
 
@@ -75,11 +75,11 @@ inline void MemoryManager::LockResident(IterT begin, IterT end) {
 		auto currEvictableIter = m_evictables.find(curr);
 		bool evictable = currEvictableIter != m_evictables.end();
 		if (evictable) {
-			assert(curr->resident);
+			assert(curr->m_resident);
 			m_evictables.erase(currEvictableIter);
 		}
 		else {
-			if (curr->resident == false) {
+			if (curr->m_resident == false) {
 				lowLevelTargets.push_back(curr->m_resource);
 				highLevelTargets.push_back(curr);
 			}
@@ -107,7 +107,7 @@ inline void MemoryManager::LockResident(IterT begin, IterT end) {
 		auto currHighLevel = highLevelTargets[i];
 		assert(currHighLevel->m_resource == currLowlevel);
 
-		currHighLevel->resident = true;
+		currHighLevel->m_resident = true;
 	}
 }
 

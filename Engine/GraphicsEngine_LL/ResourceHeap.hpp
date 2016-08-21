@@ -2,6 +2,7 @@
 
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include "../GraphicsApi_LL/IResource.hpp"
+#include "../GraphicsApi_LL/ISwapChain.hpp"
 
 #include <unordered_map>
 
@@ -10,6 +11,7 @@ namespace gxeng {
 
 
 class GenericResource;
+class Texture2D;
 
 enum class eResourceHeapType { CRITICAL };
 
@@ -71,6 +73,24 @@ public:
 #endif
 
 
-} // impl
-} // gxeng
-} // inl
+} // namespace impl
+
+
+class BackBufferHeap
+{
+public:
+	BackBufferHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapChain* swapChain);
+
+	Texture2D& GetBackBuffer(unsigned index);
+	
+protected:
+	gxapi::IGraphicsApi* m_graphicsApi;
+	gxapi::ISwapChain* m_swapChain;
+
+	std::unique_ptr<gxapi::IDescriptorHeap> m_descriptorHeap;
+	std::vector<Texture2D> m_backBuffers;
+};
+
+
+} // namespace gxeng
+} // namespace inl

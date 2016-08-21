@@ -8,36 +8,60 @@ namespace inl {
 namespace gxeng {
 
 
-DescriptorReference::DescriptorReference(DescriptorReference&& other) {
-	m_position = other.m_position;
-	other.m_position = INVALID_POSITION;
+DescriptorReference::DescriptorReference(DescriptorReference && other) :
+	m_deleter(std::move(other.m_deleter)),
+	m_handle(std::move(other.m_handle))
+{
+	other.Invalidate();
 }
 
 
 DescriptorReference& DescriptorReference::operator=(DescriptorReference&& other) {
-	assert(this != &other);
+	if (this == &other) {
+		return *this;
+	}
 
-	m_position = other.m_position;
-	other.m_position = INVALID_POSITION;
+	m_deleter = std::move(other.m_deleter);
+	m_handle = std::move(other.m_handle);
+
+	other.Invalidate();
 
 	return *this;
 }
 
 
-bool DescriptorReference::IsValid() const {
-	return m_position != INVALID_POSITION;
+DescriptorReference::~DescriptorReference() {
+	if (m_deleter) {
+		m_deleter();
+	}
 }
 
 
-DescriptorReference::DescriptorReference(size_t pos) noexcept :
-	m_position(pos)
-{}
+gxapi::DescriptorHandle DescriptorReference::Get() {
+	if (!IsValid()) {
+		throw gxapi::InvalidState("Descriptor being retrieved is INVALID!");
+	}
+
+	return m_handle;
+}
+
+
+bool DescriptorReference::IsValid() const {
+	return m_handle.cpuAddress != nullptr || m_handle.gpuAddress != nullptr;
+}
+
+
+void DescriptorReference::Invalidate() {
+	m_handle.cpuAddress = nullptr;
+	m_handle.gpuAddress = nullptr;
+}
 
 
 
 //=========================================================
 
 
+#if 0
 TextureSpaceRef::TextureSpaceRef(TextureSpaceRef&& other) :
 	DescriptorReference(std::move(other)),
 	m_home(other.m_home)
@@ -76,16 +100,18 @@ TextureSpaceRef::TextureSpaceRef(HighLevelDescHeap* home, size_t pos) noexcept :
 	DescriptorReference(pos),
 	m_home(home)
 {}
-
+#endif
 
 //=========================================================
 
 
 ScratchSpaceRef::ScratchSpaceRef(ScratchSpaceRef&& other) :
-	DescriptorReference(std::move(other)),
 	m_home(other.m_home),
+	m_pos(other.m_pos),
 	m_allocationSize(other.m_allocationSize)
-{}
+{
+	other.Invalidate();
+}
 
 
 ScratchSpaceRef& ScratchSpaceRef::operator=(ScratchSpaceRef&& other) {
@@ -93,9 +119,11 @@ ScratchSpaceRef& ScratchSpaceRef::operator=(ScratchSpaceRef&& other) {
 		return *this;
 	}
 
-	DescriptorReference::operator=(std::move(other));
 	m_home = other.m_home;
+	m_pos = other.m_pos;
 	m_allocationSize = other.m_allocationSize;
+
+	other.Invalidate();
 
 	return *this;
 }
@@ -103,7 +131,7 @@ ScratchSpaceRef& ScratchSpaceRef::operator=(ScratchSpaceRef&& other) {
 
 ScratchSpaceRef::~ScratchSpaceRef() {
 	if (IsValid()) {
-		m_home->m_allocator.Deallocate(m_position);
+		m_home->m_allocator.Deallocate(m_pos);
 	}
 }
 
@@ -117,15 +145,25 @@ gxapi::DescriptorHandle ScratchSpaceRef::Get(size_t position) {
 		throw gxapi::OutOfRange("Requested scratch space descriptor is out of allocation range!");
 	}
 
-	return m_home->m_heap->At(m_position + position);
+	return m_home->m_heap->At(m_pos + position);
+}
+
+
+bool ScratchSpaceRef::IsValid() const {
+	return m_pos != INVALID_POS;
 }
 
 
 ScratchSpaceRef::ScratchSpaceRef(ScratchSpace * home, size_t pos, size_t allocSize) :
-	DescriptorReference(pos), 
 	m_home(home),
+	m_pos(pos),
 	m_allocationSize(allocSize)
 {}
+
+
+void ScratchSpaceRef::Invalidate() {
+	m_pos = INVALID_POS;
+}
 
 
 //=========================================================
@@ -149,24 +187,27 @@ ScratchSpace::ScratchSpace(gxapi::IGraphicsApi * graphicsApi, size_t size) :
 
 HighLevelDescHeap::HighLevelDescHeap(gxapi::IGraphicsApi* graphicsApi) :
 	m_graphicsApi(graphicsApi),
-	m_textureSpaceAllocator(0) //FIXME can't initialize slab allocator with zero size
+	m_textureSpaceAllocator(0)
 {
 	PushNewTextureSpaceChunk();
 }
 
 
-TextureSpaceRef HighLevelDescHeap::AllocateOnTextureSpace() {
+DescriptorReference HighLevelDescHeap::AllocateOnTextureSpace() {
 	std::lock_guard<std::mutex> lock(m_textureSpaceMtx);
 	size_t pos;
 	try {
 		pos = m_textureSpaceAllocator.Allocate();
 	}
-	catch (std::bad_alloc& ex) {
+	catch (std::bad_alloc&) {
 		PushNewTextureSpaceChunk();
 		pos = m_textureSpaceAllocator.Allocate();
 	}
 
-	return TextureSpaceRef(this, pos);
+	DescriptorReference result;
+	result.m_deleter = [this, pos]() { m_textureSpaceAllocator.Deallocate(pos); };
+	result.m_handle = GetAtTextureSpace(pos);
+	return result;
 }
 
 ScratchSpace HighLevelDescHeap::CreateScratchSpace(size_t size) {

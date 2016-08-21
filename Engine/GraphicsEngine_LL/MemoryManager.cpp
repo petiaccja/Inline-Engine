@@ -44,24 +44,24 @@ IndexBuffer* MemoryManager::CreateIndexBuffer(eResourceHeapType heap, size_t siz
 }
 
 
-Texture1D* MemoryManager::CreateTexture1D(eResourceHeapType heap, uint64_t width, gxapi::eFormat format, uint16_t elementCount) {
-	if (elementCount < 1) {
+Texture1D* MemoryManager::CreateTexture1D(eResourceHeapType heap, uint64_t width, gxapi::eFormat format, uint16_t arraySize) {
+	if (arraySize < 1) {
 		throw gxapi::InvalidArgument("\"count\" should not be at least one.");
 	}
 
 	std::unique_ptr<Texture1D> result(new Texture1D(m_descHeap->AllocateOnTextureSpace()));
-	InitializeResource(heap, result.get(), gxapi::ResourceDesc::Texture1DArray(width, format, elementCount));
+	InitializeResource(heap, result.get(), gxapi::ResourceDesc::Texture1DArray(width, format, arraySize));
 	return result.release();
 }
 
 
-Texture2D* MemoryManager::CreateTexture2D(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t elementCount) {
-	if (elementCount < 1) {
+Texture2D* MemoryManager::CreateTexture2D(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize) {
+	if (arraySize < 1) {
 		throw gxapi::InvalidArgument("\"count\" should not be at least one.");
 	}
 
 	std::unique_ptr<Texture2D> result(new Texture2D(m_descHeap->AllocateOnTextureSpace()));
-	InitializeResource(heap, result.get(), gxapi::ResourceDesc::Texture2DArray(width, height, format, elementCount));
+	InitializeResource(heap, result.get(), gxapi::ResourceDesc::Texture2DArray(width, height, format, arraySize));
 	return result.release();
 }
 
@@ -85,8 +85,8 @@ void MemoryManager::InitializeResource(eResourceHeapType heap, GenericResource* 
 	switch(heap) {
 	case eResourceHeapType::CRITICAL: 
 		resource->m_resource = m_criticalHeap.Allocate(resource, desc);
-		resource->m_resourceHeap = &m_criticalHeap;
-		resource->resident = true;
+		resource->m_deleter = std::bind(&impl::CriticalBufferHeap::ReleaseUnderlying, &m_criticalHeap, std::placeholders::_1);
+		resource->m_resident = true;
 		break;
 	}
 

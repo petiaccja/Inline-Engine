@@ -15,8 +15,39 @@ using namespace gxapi;
 //==================================
 //Generic Resource
 
+
+GenericResource::GenericResource(GenericResource&& other) :
+	m_resource(other.m_resource),
+	m_deleter(std::move(other.m_deleter)),
+	m_resourceView(std::move(m_resourceView)),
+	m_resident(other.m_resident)
+{
+	other.m_resource = nullptr;
+	other.m_deleter = nullptr;
+}
+
+
+GenericResource& GenericResource::operator=(GenericResource&& other) {
+	if (this == &other) {
+		return *this;
+	}
+
+	m_resource = other.m_resource;
+	m_deleter = std::move(other.m_deleter);
+	m_resourceView = std::move(m_resourceView);
+	m_resident = other.m_resident;
+
+	other.m_resource = nullptr;
+	other.m_deleter = nullptr;
+
+	return *this;
+}
+
+
 GenericResource::~GenericResource() {
-	m_resourceHeap->ReleaseUnderlying(this);
+	if (m_deleter) {
+		m_deleter(this);
+	}
 }
 
 
@@ -25,15 +56,17 @@ void* GenericResource::GetVirtualAddress() const {
 }
 
 
-gxapi::ResourceDesc GenericResource::GetDescriptor() const {
+gxapi::ResourceDesc GenericResource::GetDescription() const {
 	return m_resource->GetDesc();
 }
+
 
 gxapi::DescriptorHandle GenericResource::GetViewHandle() {
 	return m_resourceView.Get();
 }
 
-GenericResource::GenericResource(TextureSpaceRef&& resourceView) :
+
+GenericResource::GenericResource(DescriptorReference&& resourceView) :
 	m_resourceView(std::move(resourceView))
 {}
 
