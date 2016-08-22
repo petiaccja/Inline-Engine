@@ -7,8 +7,8 @@ namespace gxeng {
 
 
 class ClearScreen : 
-	public GraphicsNode, 
-	public exc::InputPortConfig<>,
+	public virtual GraphicsNode, 
+	public exc::InputPortConfig<gxapi::ColorRGBA>,
 	public exc::OutputPortConfig<>
 {
 public:
@@ -21,8 +21,9 @@ public:
 
 	virtual Task GetTask() override;
 
+	void SetTarget(Texture2D* target);
 private:
-
+	Texture2D* m_target = nullptr;
 };
 
 

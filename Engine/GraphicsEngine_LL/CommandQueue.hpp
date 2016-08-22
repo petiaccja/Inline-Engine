@@ -50,7 +50,7 @@ public:
 
 	// Queue stuff
 	void ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommandList* const* commandLists) {
-		
+		m_commandQueue->ExecuteCommandLists(numCommandLists, commandLists);
 	}
 
 	void Signal(gxapi::IFence* fence, uint64_t value) {

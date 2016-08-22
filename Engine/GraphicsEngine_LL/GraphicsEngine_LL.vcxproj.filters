@@ -171,6 +171,9 @@
     <ClInclude Include="Nodes\FrameCounter.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\FrameColor.hpp">
+      <Filter>Nodes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />

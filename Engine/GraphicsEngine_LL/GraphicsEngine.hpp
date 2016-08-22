@@ -6,6 +6,8 @@
 #include "ScratchSpacePool.hpp"
 #include "CommandListTasks.hpp"
 
+#include "ResourceHeap.hpp"
+
 #include <GraphicsApi_LL/IGxapiManager.hpp>
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
 #include <GraphicsApi_LL/ISwapChain.hpp>
@@ -16,6 +18,9 @@
 #include <queue>
 #include <condition_variable>
 #include <mutex>
+
+// TEMPORARY
+#include "Nodes/ClearScreen.h"
 
 
 namespace inl {
@@ -63,17 +68,24 @@ private:
 	std::condition_variable m_initCv;
 	std::condition_variable m_cleanCv;
 
-	// Facilities
+	// Pipeline Facilities
 	CommandAllocatorPool m_commandAllocatorPool;
 	ScratchSpacePool m_scratchSpacePool;
 	std::mutex m_commandAllocatorMutex;
 	Scheduler m_scheduler;
 	Pipeline m_pipeline;
+	std::vector<uint64_t> m_frameEndFenceValues;
+
+	// Memory
+	std::unique_ptr<BackBufferHeap> m_backBufferHeap;
 
 	// Logging
 	exc::Logger m_logger;
 	exc::LogStream m_logStreamGeneral;
 	exc::LogStream m_logStreamPipeline;
+
+	// TEMPORARY
+	ClearScreen* m_clearScreen;
 };
 
 

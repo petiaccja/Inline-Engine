@@ -51,7 +51,7 @@ BackBufferHeap::BackBufferHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapCha
 
 	{
 		gxapi::DescriptorHeapDesc heapDesc;
-		heapDesc.isShaderVisible = true;
+		heapDesc.isShaderVisible = false;
 		heapDesc.numDescriptors = numBuffers;
 		heapDesc.type = gxapi::eDesriptorHeapType::RTV;
 		m_descriptorHeap.reset(m_graphicsApi->CreateDescriptorHeap(heapDesc));
@@ -59,7 +59,7 @@ BackBufferHeap::BackBufferHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapCha
 
 	m_backBuffers.reserve(numBuffers);
 	for (unsigned i = 0; i < numBuffers; i++) {
-		const auto descHandle = m_descriptorHeap->At(i);
+		gxapi::DescriptorHandle descHandle = m_descriptorHeap->At(i);
 		gxapi::IResource* lowLeveBuffer = swapChain->GetBuffer(i);
 		m_graphicsApi->CreateRenderTargetView(lowLeveBuffer, descHandle);
 

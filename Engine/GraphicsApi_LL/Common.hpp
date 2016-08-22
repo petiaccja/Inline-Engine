@@ -660,6 +660,15 @@ public:
 	}
 	DescriptorHandle(const DescriptorHandle&) = default;
 	DescriptorHandle& operator=(const DescriptorHandle&) = default;
+	DescriptorHandle(DescriptorHandle&& rhs) {
+		cpuAddress = rhs.cpuAddress;
+		gpuAddress = rhs.gpuAddress;
+	}
+	DescriptorHandle& operator=(DescriptorHandle&& rhs) {
+		cpuAddress = rhs.cpuAddress;
+		gpuAddress = rhs.gpuAddress;
+		return *this;
+	}
 
 	bool operator==(const DescriptorHandle& rhs) const {
 		return cpuAddress == rhs.cpuAddress && gpuAddress == rhs.gpuAddress;

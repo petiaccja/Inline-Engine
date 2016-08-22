@@ -19,7 +19,7 @@ using namespace gxapi;
 GenericResource::GenericResource(GenericResource&& other) :
 	m_resource(other.m_resource),
 	m_deleter(std::move(other.m_deleter)),
-	m_resourceView(std::move(m_resourceView)),
+	m_resourceView(std::move(other.m_resourceView)),
 	m_resident(other.m_resident)
 {
 	other.m_resource = nullptr;

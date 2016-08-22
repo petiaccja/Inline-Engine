@@ -182,6 +182,7 @@
     <ClInclude Include="Material.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="Nodes\ClearScreen.h" />
+    <ClInclude Include="Nodes\FrameColor.hpp" />
     <ClInclude Include="Nodes\FrameCounter.hpp" />
     <ClInclude Include="Pipeline.hpp" />
     <ClInclude Include="ResourceHeap.hpp" />

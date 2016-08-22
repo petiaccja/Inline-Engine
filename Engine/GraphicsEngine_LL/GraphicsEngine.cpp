@@ -7,6 +7,7 @@
 
 #include "Nodes/ClearScreen.h"
 #include "Nodes/FrameCounter.hpp"
+#include "Nodes/FrameColor.hpp"
 
 
 namespace inl {
@@ -34,6 +35,11 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	swapChainDesc.multisampleCount = 1;
 	swapChainDesc.multiSampleQuality = 0;
 	m_swapChain.reset(m_gxapiManager->CreateSwapChain(swapChainDesc, m_masterCommandQueue.GetUnderlyingQueue()));
+
+	m_frameEndFenceValues.resize(m_swapChain->GetDesc().numBuffers, 0);
+
+	// Init backbuffer heap
+	m_backBufferHeap = std::make_unique<BackBufferHeap>(m_graphicsApi, m_swapChain.get());
 
 	// Do more stuff...
 	CreatePipeline();
@@ -68,6 +74,11 @@ GraphicsEngine::~GraphicsEngine() {
 
 
 void GraphicsEngine::Update(float elapsed) {
+	// Wait for previous frame on this BB to complete
+	int backBufferIndex = m_swapChain->GetCurrentBufferIndex();
+	m_masterCommandQueue.GetFence()->Wait(m_frameEndFenceValues[backBufferIndex]);
+
+	// Set up context
 	FrameContext context;
 	context.frameTime = elapsed;
 	context.log = &m_logStreamPipeline;
@@ -83,10 +94,22 @@ void GraphicsEngine::Update(float elapsed) {
 	context.cleanQueue = &m_cleanTasks;
 	context.initCv = &m_initCv;
 	context.cleanCv = &m_cleanCv;
+
+	// TEMPORARY: set screen to clear
+	Texture2D* backBuffer = &m_backBufferHeap->GetBackBuffer(backBufferIndex);
+	m_clearScreen->SetTarget(backBuffer);
+
+	// Execute the pipeline
 	m_scheduler.Execute(context);
 
+	// Mark frame completion
+	m_frameEndFenceValues[backBufferIndex] = m_masterCommandQueue.IncrementFenceValue();
+	m_masterCommandQueue.Signal(m_masterCommandQueue.GetFence(), m_frameEndFenceValues[backBufferIndex]);
+
+	// Flush log
 	m_logger.Flush();
 
+	// Present frame
 	m_swapChain->Present();
 }
 
@@ -147,10 +170,15 @@ void GraphicsEngine::CleanTaskThreadFunc() {
 
 void GraphicsEngine::CreatePipeline() {
 	auto* n1 = new FrameCounter();
-	auto* n2 = new ClearScreen();
+	auto* n2 = new FrameColor();
+	auto* n3 = new ClearScreen();
+	m_clearScreen = n3;
 	n1->SetLog(&m_logStreamGeneral);
 
-	m_pipeline.CreateFromNodesList({ n1, n2 }, std::default_delete<exc::NodeBase>());
+	n1->GetOutput(0)->Link(n2->GetInput(0));
+	n2->GetOutput(0)->Link(n3->GetInput(0));
+
+	m_pipeline.CreateFromNodesList({ n1, n2, n3 }, std::default_delete<exc::NodeBase>());
 }
 
 
