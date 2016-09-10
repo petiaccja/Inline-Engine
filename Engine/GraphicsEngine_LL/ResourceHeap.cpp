@@ -1,6 +1,7 @@
 #include "ResourceHeap.hpp"
 
 #include "GpuBuffer.hpp"
+#include "CopyCommandList.hpp"
 
 
 namespace inl {
@@ -27,7 +28,7 @@ gxapi::IResource* CriticalBufferHeap::Allocate(GenericResource* owner, gxapi::Re
 
 		retval = allocation.get();
 
-		//After the insertion has occured, no exception should leave uncatched
+		//NOTE: After the insertion has occured, no exception should leave uncatched
 		m_resources.insert({owner, std::move(allocation)});
 	}
 
@@ -80,6 +81,59 @@ BackBufferHeap::BackBufferHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapCha
 Texture2D& BackBufferHeap::GetBackBuffer(unsigned index) {
 	return m_backBuffers.at(index);
 }
+
+
+UploadHeap::UploadHeap(gxapi::IGraphicsApi* graphicsApi) :
+	m_graphicsApi(graphicsApi)
+{}
+
+
+void UploadHeap::UploadToResource(gxeng::CopyCommandList& cmdList, LinearBuffer& target, const void* data, size_t size) {
+	if (target.GetSize() < size) {
+		throw inl::gxapi::InvalidArgument("Target buffer is not large enough for the uploaded data to fit.", "target");
+	}
+
+	gxeng::DescriptorReference desc;
+	desc.m_deleter = nullptr;
+	desc.m_handle.cpuAddress = nullptr;
+	desc.m_handle.gpuAddress = nullptr;
+
+	m_stagedResources.push_back(GenericResource(std::move(desc)));
+	GenericResource& staged = m_stagedResources.back();
+
+	staged.m_deleter = nullptr;
+	staged.m_resident = true;
+	staged.m_resource = m_graphicsApi->CreateCommittedResource(
+		gxapi::HeapProperties(gxapi::eHeapType::UPLOAD),
+		gxapi::eHeapFlags::NONE,
+		gxapi::ResourceDesc::Buffer(size),
+		gxapi::eResourceState::COPY_DEST
+	);
+
+	gxapi::IResource* stagedRes = staged.m_resource;
+
+	gxapi::MemoryRange noReadRange{0, 0};
+	void* stagePtr = stagedRes->Map(0, &noReadRange);
+	memcpy(stagePtr, data, size);
+	stagedRes->Unmap(0);
+
+	{
+		gxapi::TransitionBarrier stageToSrc;
+		stageToSrc.beforeState = gxapi::eResourceState::COPY_DEST;
+		stageToSrc.afterState = gxapi::eResourceState::COPY_SOURCE;
+		stageToSrc.resource = stagedRes;
+		stageToSrc.subResource = 0xffffffff;
+		stageToSrc.splitMode = gxapi::eResourceBarrierSplit::NORMAL;
+
+		// Set stage's state to copy source
+		cmdList.ResourceBarrier(stageToSrc);
+		//Set target state to copy destination
+		cmdList.RegisterResourceTransition(SubresourceID(target.m_resource, 0xffffffff), gxapi::eResourceState::COPY_DEST);
+		//Copy
+		cmdList.CopyBuffer(&target, 0, &staged, 0, size);
+	}
+}
+
 
 } // namespace gxeng
 } // namespace inl

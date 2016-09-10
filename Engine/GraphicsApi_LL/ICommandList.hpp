@@ -2,6 +2,8 @@
 
 #include "Common.hpp"
 
+#include "../BaseLibrary/TemplateUtil.hpp"
+
 namespace inl {
 namespace gxapi {
 
@@ -46,15 +48,24 @@ public:
 
 	// barriers
 	// TODO: transition, aliasing and bullshit barriers, i would put them into separate functions
-	virtual void ResourceBarrier(unsigned numBarriers, ResourceBarrier* barriers) = 0;
+	virtual void ResourceBarrier(unsigned numBarriers, gxapi::ResourceBarrier* barriers) = 0;
 
 	template <class... Barriers>
-	void ResourceBarrier(Barriers&&... barriers);
+	std::enable_if_t<
+		exc::all<std::is_base_of<ResourceBarrierTag, std::remove_reference_t<Barriers>>...>::value,
+		void
+	>
+	ResourceBarrier(Barriers&&... barriers) {
+		constexpr unsigned int tableSize = sizeof...(Barriers);
+		::inl::gxapi::ResourceBarrier table[tableSize];
+		PopulateBarrierTable(table, std::forward<Barriers&&>(barriers)...);
+		ResourceBarrier(tableSize, (gxapi::ResourceBarrier*)table);
+	}
 
 protected:
 	template <class... Barriers>
-	void PopulateBarrierTable(::inl::gxapi::ResourceBarrier* table, int index, const TransitionBarrier& head, Barriers&&... tail);
-	void PopulateBarrierTable(::inl::gxapi::ResourceBarrier* table, int index) {}
+	void PopulateBarrierTable(::inl::gxapi::ResourceBarrier* target, const TransitionBarrier& head, Barriers&&... tail);
+	void PopulateBarrierTable(::inl::gxapi::ResourceBarrier* target) {}
 };
 
 
@@ -147,19 +158,12 @@ public:
 };
 
 
-
 template <class... Barriers>
-void ICopyCommandList::ResourceBarrier(Barriers&&... barriers) {
-	::inl::gxapi::ResourceBarrier table[sizeof...(Barriers)];
-	PopulateBarrierTable(table, 0, std::forward<Barriers&&>(barriers)...);
-}
+void ICopyCommandList::PopulateBarrierTable(::inl::gxapi::ResourceBarrier* target, const TransitionBarrier& head, Barriers&&... tail) {
+	target->type = eResourceBarrierType::TRANSITION;
+	target->transition = head;
 
-template <class... Barriers>
-void ICopyCommandList::PopulateBarrierTable(::inl::gxapi::ResourceBarrier* table, int index, const TransitionBarrier& head, Barriers&&... tail) {
-	table[index].type = eResourceBarrierType::TRANSITION;
-	table[index].transition = head;
-
-	PopulateBarrierTable(table, index + 1, std::forward<Barriers&&>(barriers)...);
+	PopulateBarrierTable(target + 1, std::forward<Barriers&&>(tail)...);
 }
 
 

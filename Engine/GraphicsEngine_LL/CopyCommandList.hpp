@@ -9,7 +9,8 @@
 #include "../GraphicsApi_LL/ICommandList.hpp"
 
 #include <mathfu/vector_2.h>
-
+#include <type_traits>
+#include <unordered_map>
 
 namespace inl {
 namespace gxapi {
@@ -21,7 +22,45 @@ class IPipelineState;
 namespace inl {
 namespace gxeng {
 
+struct SubresourceID {
+	SubresourceID() = default;
+	SubresourceID(gxapi::IResource* resource, unsigned subResource) : resource(resource), subResource(subResource) {}
+
+	bool operator==(const SubresourceID& other) const {
+		return resource == other.resource && subResource == other.subResource;
+	}
+
+	gxapi::IResource* resource;
+	unsigned subResource;
+};
+
+}
+}
+
+
+namespace std {
+using namespace inl;
+template<>
+struct hash<gxeng::SubresourceID> {
+	std::size_t operator()(const gxeng::SubresourceID& instance) const {
+		return std::hash<gxapi::IResource*>{}(instance.resource) ^ std::hash<unsigned>{}(instance.subResource);
+	}
+};
+}
+
+
+namespace inl {
+namespace gxeng {
+
 class CommandAllocatorPool;
+
+
+struct StateTransitionRegister {
+	gxapi::eResourceState lastTargetState; // Holds the target state of the last transition.
+
+	gxapi::eResourceState firstTargetState; // Holds the target state of the first transition. (Relevant if multipleTransition is true)
+	bool multipleTransition;
+};
 
 
 struct SubTexture1D {
@@ -86,7 +125,7 @@ public:
 
 
 	// Resource copy
-	void CopyBuffer(GenericResource*, size_t dstOffset, GenericResource* src, size_t srcOffset, size_t numBytes);
+	void CopyBuffer(GenericResource* dst, size_t dstOffset, GenericResource* src, size_t srcOffset, size_t numBytes);
 
 	void CopyResource(GenericResource* dst, GenericResource* src);
 
@@ -110,18 +149,22 @@ public:
 	template <class... Barriers>
 	void ResourceBarrier(Barriers&&... barriers);
 
+	void RegisterResourceTransition(const SubresourceID& subresource, gxapi::eResourceState targetState);
+	std::unordered_map<SubresourceID, StateTransitionRegister>& GetResourceTransitions() { return m_resourceTransitions; }
+
 protected:
 	virtual Decomposition Decompose() override;
 private:
 	gxapi::ICopyCommandList* m_commandList;
+	std::unordered_map<SubresourceID, StateTransitionRegister> m_resourceTransitions;
 };
 
 
 template<class ...Barriers>
 void CopyCommandList::ResourceBarrier(Barriers && ...barriers) {
-	gxapi::ResourceBarrier* table[sizeof...(barriers)] = {&barriers...};
-	ResourceBarrier(sizeof...(barriers), barriers);
+	m_commandList->ResourceBarrier(barriers...);
 }
+
 
 } // namespace gxeng
 } // namespace inl

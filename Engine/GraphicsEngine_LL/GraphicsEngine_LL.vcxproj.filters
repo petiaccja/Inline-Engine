@@ -270,9 +270,6 @@
     <ClCompile Include="HighLevelDescHeap.cpp">
       <Filter>MemoryManagement</Filter>
     </ClCompile>
-    <ClCompile Include="ResourceHeap.cpp">
-      <Filter>Resources</Filter>
-    </ClCompile>
     <ClCompile Include="ScratchSpacePool.cpp">
       <Filter>Middleware</Filter>
     </ClCompile>
@@ -284,6 +281,9 @@
     </ClCompile>
     <ClCompile Include="Nodes\Node_TescoRender.cpp">
       <Filter>Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceHeap.cpp">
+      <Filter>MemoryManagement</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

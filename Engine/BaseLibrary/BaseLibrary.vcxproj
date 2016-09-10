@@ -175,6 +175,7 @@
     <ClInclude Include="Singleton.hpp" />
     <ClInclude Include="SpinMutex.hpp" />
     <ClInclude Include="Stream.hpp" />
+    <ClInclude Include="TemplateUtil.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Graph\NodeFactory.cpp" />
