@@ -8,10 +8,11 @@
 
 namespace inl {
 namespace gxeng {
+namespace nodes {
 
 
 
-class FrameCounter : 
+class FrameCounter :
 	public exc::InputPortConfig<>,
 	public exc::OutputPortConfig<unsigned long long>
 {
@@ -42,5 +43,6 @@ private:
 
 
 
+} // namespace nodes
 } // namespace gxeng
 } // namespace inl

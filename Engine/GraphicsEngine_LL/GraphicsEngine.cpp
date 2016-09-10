@@ -5,9 +5,17 @@
 
 #include <iostream> // only for debugging
 
-#include "Nodes/ClearScreen.h"
-#include "Nodes/FrameCounter.hpp"
-#include "Nodes/FrameColor.hpp"
+#include "Nodes/Node_ClearRenderTarget.h"
+#include "Nodes/Node_FrameCounter.hpp"
+#include "Nodes/Node_FrameColor.hpp"
+#include "Nodes/Node_GetBackBuffer.hpp"
+#include "Nodes/Node_GetSceneByName.hpp"
+#include "Nodes/Node_TescoRender.hpp"
+
+#include "Scene.hpp"
+#include "TypedMesh.hpp"
+#include "MeshEntity.hpp"
+
 
 
 namespace inl {
@@ -55,6 +63,9 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_logStreamPipeline = m_logger.CreateLogStream("Pipeline");
 
 	m_logger.OpenStream(&std::cout);
+
+	// Init misc stuff
+	m_absoluteTime = decltype(m_absoluteTime)(0);
 }
 
 
@@ -74,13 +85,17 @@ GraphicsEngine::~GraphicsEngine() {
 
 
 void GraphicsEngine::Update(float elapsed) {
+	std::chrono::nanoseconds frameTime(long long(elapsed * 1e9));
+	m_absoluteTime += frameTime;
+
 	// Wait for previous frame on this BB to complete
 	int backBufferIndex = m_swapChain->GetCurrentBufferIndex();
 	m_masterCommandQueue.GetFence()->Wait(m_frameEndFenceValues[backBufferIndex]);
 
 	// Set up context
 	FrameContext context;
-	context.frameTime = elapsed;
+	context.frameTime = frameTime;
+	context.absoluteTime = m_absoluteTime;
 	context.log = &m_logStreamPipeline;
 
 	context.gxApi = m_graphicsApi;
@@ -88,16 +103,15 @@ void GraphicsEngine::Update(float elapsed) {
 	context.scratchSpacePool = &m_scratchSpacePool;
 
 	context.commandQueue = &m_masterCommandQueue;
+	context.backBuffer = &m_backBufferHeap->GetBackBuffer(backBufferIndex);
+	context.scenes = &m_scenes;
+
 	context.initMutex = &m_initMutex;
 	context.cleanMutex = &m_cleanMutex;
 	context.initQueue = &m_initTasks;
 	context.cleanQueue = &m_cleanTasks;
 	context.initCv = &m_initCv;
 	context.cleanCv = &m_cleanCv;
-
-	// TEMPORARY: set screen to clear
-	Texture2D* backBuffer = &m_backBufferHeap->GetBackBuffer(backBufferIndex);
-	m_clearScreen->SetTarget(backBuffer);
 
 	// Execute the pipeline
 	m_scheduler.Execute(context);
@@ -111,6 +125,45 @@ void GraphicsEngine::Update(float elapsed) {
 
 	// Present frame
 	m_swapChain->Present();
+}
+
+
+
+
+// Resources
+TypedMesh* GraphicsEngine::CreateMesh() {
+	return new TypedMesh();
+}
+
+// Scene
+Scene* GraphicsEngine::CreateScene(std::string name) {
+	// Declare a derived class for the sole purpose of making the destructor unregister the object from scene list.
+	class ObservedScene : public Scene {
+	public:
+		ObservedScene(std::function<void(Scene*)> deleteHandler, std::string name) :
+			Scene(std::move(name)), m_deleteHandler(std::move(deleteHandler))
+		{}
+		~ObservedScene() {
+			if (m_deleteHandler) { m_deleteHandler(static_cast<Scene*>(this)); }
+		}
+	protected:
+		std::function<void(Scene*)> m_deleteHandler;
+	};
+
+	// Functor to perform the unregistration.
+	auto unregisterScene = [this](Scene* arg) {
+		m_scenes.erase(arg);
+	};
+
+	// Allocate a new scene, and register it.
+	Scene* scene = new ObservedScene(unregisterScene, std::move(name));
+	m_scenes.insert(scene);
+
+	return scene;
+}
+
+MeshEntity* GraphicsEngine::CreateMeshEntity() {
+	return new MeshEntity();
 }
 
 
@@ -169,16 +222,34 @@ void GraphicsEngine::CleanTaskThreadFunc() {
 
 
 void GraphicsEngine::CreatePipeline() {
-	auto* n1 = new FrameCounter();
-	auto* n2 = new FrameColor();
-	auto* n3 = new ClearScreen();
-	m_clearScreen = n3;
-	n1->SetLog(&m_logStreamGeneral);
+	std::unique_ptr<nodes::FrameCounter> frameCounter(new nodes::FrameCounter());
+	std::unique_ptr<nodes::FrameColor> frameColor(new nodes::FrameColor());
+	std::unique_ptr<nodes::GetBackBuffer> getBackBuffer(new nodes::GetBackBuffer());
+	std::unique_ptr<nodes::ClearRenderTarget> clearRtv(new nodes::ClearRenderTarget());
+	std::unique_ptr<nodes::GetSceneByName> getWorldScene(new nodes::GetSceneByName());
+	std::unique_ptr<nodes::TescoRender> renderWorld(new nodes::TescoRender());
 
-	n1->GetOutput(0)->Link(n2->GetInput(0));
-	n2->GetOutput(0)->Link(n3->GetInput(0));
+	getWorldScene->GetInput<0>().Set("World");
 
-	m_pipeline.CreateFromNodesList({ n1, n2, n3 }, std::default_delete<exc::NodeBase>());
+	// link frame clear path
+	frameCounter->GetOutput(0)->Link(frameColor->GetInput(0));
+	frameColor->GetOutput(0)->Link(clearRtv->GetInput(1));
+	getBackBuffer->GetOutput(0)->Link(clearRtv->GetInput(0));
+	// link renderscene path
+	getWorldScene->GetOutput(0)->Link(renderWorld->GetInput(1));
+	// link to pathes together
+	clearRtv->GetOutput(0)->Link(renderWorld->GetInput(0));
+
+
+	m_pipeline.CreateFromNodesList({ frameCounter.get(), frameColor.get(), getBackBuffer.get(), clearRtv.get(), getWorldScene.get(), renderWorld.get() }, std::default_delete<exc::NodeBase>());
+
+
+	frameCounter.release();
+	frameColor.release();
+	getBackBuffer.release();
+	clearRtv.release();
+	getWorldScene.release();
+	renderWorld.release();
 }
 
 

@@ -212,6 +212,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				return DefWindowProc(hWnd, msg, wParam, lParam);
 			}
 		}
+		case WM_KEYUP:
+			PostQuitMessage(0);
+			return 0;
 		default:
 			return DefWindowProc(hWnd, msg, wParam, lParam);
 	}

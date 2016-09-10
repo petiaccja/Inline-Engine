@@ -168,6 +168,7 @@
     <ClInclude Include="ConstBufferPage.hpp" />
     <ClInclude Include="CopyCommandList.hpp" />
     <ClInclude Include="DisposableConstBuffer.hpp" />
+    <ClInclude Include="EntityCollection.hpp" />
     <ClInclude Include="ExecutionContext.hpp" />
     <ClInclude Include="ExecutionResult.hpp" />
     <ClInclude Include="FrameContext.hpp" />
@@ -181,9 +182,12 @@
     <ClInclude Include="GraphicsEngine.hpp" />
     <ClInclude Include="Material.hpp" />
     <ClInclude Include="Mesh.hpp" />
-    <ClInclude Include="Nodes\ClearScreen.h" />
-    <ClInclude Include="Nodes\FrameColor.hpp" />
-    <ClInclude Include="Nodes\FrameCounter.hpp" />
+    <ClInclude Include="Nodes\Node_GetBackBuffer.hpp" />
+    <ClInclude Include="Nodes\Node_ClearRenderTarget.h" />
+    <ClInclude Include="Nodes\Node_FrameColor.hpp" />
+    <ClInclude Include="Nodes\Node_FrameCounter.hpp" />
+    <ClInclude Include="Nodes\Node_GetSceneByName.hpp" />
+    <ClInclude Include="Nodes\Node_TescoRender.hpp" />
     <ClInclude Include="Pipeline.hpp" />
     <ClInclude Include="ResourceHeap.hpp" />
     <ClInclude Include="Scene.hpp" />
@@ -193,9 +197,10 @@
     <ClInclude Include="Task.hpp" />
     <ClInclude Include="Texture2D.hpp" />
     <ClInclude Include="GpuBuffer.hpp" />
-    <ClInclude Include="TypedMesh.h" />
+    <ClInclude Include="TypedMesh.hpp" />
     <ClInclude Include="VertexArrayView.hpp" />
     <ClInclude Include="Vertex.hpp" />
+    <ClInclude Include="VertexElementCompressor.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AsyncUploader.cpp" />
@@ -218,7 +223,8 @@
     <ClCompile Include="GraphicsEngine.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Nodes\ClearScreen.cpp" />
+    <ClCompile Include="Nodes\Node_ClearRenderTarget.cpp" />
+    <ClCompile Include="Nodes\Node_TescoRender.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="ResourceHeap.cpp" />
     <ClCompile Include="Scene.cpp" />
@@ -228,6 +234,7 @@
     <ClCompile Include="Task.cpp" />
     <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="GpuBuffer.cpp" />
+    <ClCompile Include="TypedMesh.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

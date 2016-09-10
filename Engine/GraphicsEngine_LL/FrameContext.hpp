@@ -1,34 +1,44 @@
 #pragma once
 
+#include <BaseLibrary/Logging/LogStream.hpp>
 #include "../GraphicsApi_LL/ICommandQueue.hpp"
+
 #include "CommandQueue.hpp"
 #include "CommandListTasks.hpp"
+
 #include <queue>
-#include <BaseLibrary/Logging/LogStream.hpp>
+#include <chrono>
+#include <set>
 
 
 namespace inl {
 namespace gxeng {
 
-class CommandAllocatorPool;
 
+class CommandAllocatorPool;
+class ScratchSpacePool;
+class Scene;
 
 
 struct FrameContext {
-	float frameTime;
-	exc::LogStream* log;
+	std::chrono::nanoseconds frameTime;
+	std::chrono::nanoseconds absoluteTime;
+	exc::LogStream* log = nullptr;
 
-	gxapi::IGraphicsApi* gxApi;
-	CommandAllocatorPool* commandAllocatorPool;
-	ScratchSpacePool* scratchSpacePool;
+	gxapi::IGraphicsApi* gxApi = nullptr;
+	CommandAllocatorPool* commandAllocatorPool = nullptr;
+	ScratchSpacePool* scratchSpacePool = nullptr;
 
-	CommandQueue* commandQueue;
-	std::queue<InitTask>* initQueue;
-	std::queue<CleanTask>* cleanQueue;
-	std::mutex* initMutex;
-	std::mutex* cleanMutex;
-	std::condition_variable* initCv;
-	std::condition_variable* cleanCv;
+	CommandQueue* commandQueue = nullptr;
+	Texture2D* backBuffer = nullptr;
+	const std::set<Scene*>* scenes = nullptr;
+
+	std::queue<InitTask>* initQueue = nullptr;
+	std::queue<CleanTask>* cleanQueue = nullptr;
+	std::mutex* initMutex = nullptr;
+	std::mutex* cleanMutex = nullptr;
+	std::condition_variable* initCv = nullptr;
+	std::condition_variable* cleanCv = nullptr;
 };
 
 

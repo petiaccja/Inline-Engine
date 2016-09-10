@@ -19,12 +19,14 @@
 #include <condition_variable>
 #include <mutex>
 
-// TEMPORARY
-#include "Nodes/ClearScreen.h"
-
 
 namespace inl {
 namespace gxeng {
+
+
+class TypedMesh;
+class Scene;
+class MeshEntity;
 
 
 struct GraphicsEngineDesc {
@@ -39,12 +41,22 @@ struct GraphicsEngineDesc {
 
 class GraphicsEngine {
 public:
+	// Custructors
 	GraphicsEngine(GraphicsEngineDesc desc);
 	GraphicsEngine(const GraphicsEngine&) = delete;
 	GraphicsEngine& operator=(const GraphicsEngine&) = delete;
 	~GraphicsEngine();
 
+	// Update scene
 	void Update(float elapsed);
+
+	// Resources
+	TypedMesh* CreateMesh();
+
+	// Scene
+	Scene* CreateScene(std::string name);
+	MeshEntity* CreateMeshEntity();
+
 private:
 	void CreatePipeline();
 
@@ -84,8 +96,11 @@ private:
 	exc::LogStream m_logStreamGeneral;
 	exc::LogStream m_logStreamPipeline;
 
-	// TEMPORARY
-	ClearScreen* m_clearScreen;
+	// Misc
+	std::chrono::nanoseconds m_absoluteTime;
+
+	// Scene
+	std::set<Scene*> m_scenes;
 };
 
 

@@ -49,15 +49,19 @@ class Mesh {
 		NOT_TRIANGLE,
 	};
 public:
-	void Set(std::vector<VertexStream> streams, std::vector<unsigned> indices);
+	template <class StreamIt, class IndexIt>
+	void Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstIndex, IndexIt lastIndex);
+
 	void Update(int streamIndex, const void* vertexData, int vertexCount, int offsetInVertex);
 	void Clear();
 
-	int GetNumSreams() const;
+	int GetNumStreams() const;
 	const VertexBuffer* GetVertexBuffer(int streamIndex) const;
 	const IndexBuffer* GetIndexBuffer() const;
 private:
-	eValidationResult Validate(const std::vector<VertexStream>& streams, std::vector<unsigned> indices);
+	template <class StreamIt, class IndexIt>
+	eValidationResult Validate(StreamIt firstStream, StreamIt lastStream, IndexIt firstIndex, IndexIt lastIndex);
+
 	void Optimize(std::vector<VertexStream>& streams, std::vector<unsigned>& indices);
 private:
 	std::vector<VertexBuffer*> m_vertexBuffers;

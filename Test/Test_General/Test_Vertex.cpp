@@ -42,24 +42,24 @@ int TestVertex::Run() {
 	MyVertex1 v;
 	v.normal.x() = 6;
 
-	static_cast<VertexPart<POSITION>*>(&v);
+	static_cast<VertexPart<eVertexElementSemantic::POSITION>*>(&v);
 
 	VertexBase* pVertex = &v;
-	auto* positionPart = dynamic_cast<VertexPart<POSITION>*>(pVertex);
+	auto* positionPart = dynamic_cast<VertexPart<eVertexElementSemantic::POSITION>*>(pVertex);
 	mathfu::Vector<float, 3>& pos0 = positionPart->GetPosition(0);
 
 	// create a vertex array view
-	VertexArrayView<VertexPart<POSITION>> view(&v, 1, sizeof(MyVertex1));
+	VertexArrayView<VertexPart<eVertexElementSemantic::POSITION>> view(&v, 1, sizeof(MyVertex1));
 	const auto& cview = view;
-	VertexPart<POSITION>& part = view[0];
-	VertexPart<POSITION>& cpart = cview[0];
+	VertexPart<eVertexElementSemantic::POSITION>& part = view[0];
+	VertexPart<eVertexElementSemantic::POSITION>& cpart = cview[0];
 
 	// create a vertex array view to const
-	VertexArrayView<const VertexPart<POSITION>> viewToConst(&v, 1, sizeof(MyVertex1));
-	const VertexPart<POSITION>& part2 = viewToConst[0];
+	VertexArrayView<const VertexPart<eVertexElementSemantic::POSITION>> viewToConst(&v, 1, sizeof(MyVertex1));
+	const VertexPart<eVertexElementSemantic::POSITION>& part2 = viewToConst[0];
 
 	// create const view from const
-	VertexArrayView<const VertexPart<POSITION>> viewToConstFromConst((const MyVertex1*)&v, 1, sizeof(MyVertex1));
+	VertexArrayView<const VertexPart<eVertexElementSemantic::POSITION>> viewToConstFromConst((const MyVertex1*)&v, 1, sizeof(MyVertex1));
 
 	// create view from const
 	// VertexArrayView<VertexPart<POSITION>> viewFromConst((const MyVertex1*)&v, 1); // compile error

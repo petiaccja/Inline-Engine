@@ -13,11 +13,11 @@ namespace gxeng {
 
 
 class ExecutionResult {
+public:
 	struct CommandListRecord {
 		BasicCommandList* list;
 		float aluVsBandwidthHeavy;
 	};
-public:
 	using Iterator = std::vector<CommandListRecord>::iterator;
 	using ConstIterator = std::vector<CommandListRecord>::const_iterator;
 public:

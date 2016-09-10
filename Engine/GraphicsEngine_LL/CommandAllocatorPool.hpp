@@ -10,6 +10,8 @@
 #include <map>
 #include <cassert>
 
+#include <iostream> // only for debug
+
 
 namespace inl {
 namespace gxeng {
@@ -100,6 +102,7 @@ namespace impl {
 
 			index = m_allocator.Allocate();
 		}
+		std::cout << "allocate " << index << std::endl;
 
 		if (m_pool[index] != nullptr) {
 			return UniquePtr{ m_pool[index].get(), Deleter{this} };
@@ -118,6 +121,7 @@ namespace impl {
 		allocator->Reset();
 		assert(m_addressToIndex.count(allocator) > 0);
 		size_t index = m_addressToIndex[allocator];
+		std::cout << "free " << index << std::endl;
 		m_allocator.Deallocate(index);
 	}
 

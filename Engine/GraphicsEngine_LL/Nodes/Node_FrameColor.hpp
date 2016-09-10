@@ -1,13 +1,14 @@
 #pragma once
 
 #include "../GraphicsNode.hpp"
-#include <BaseLibrary/Logging_All.hpp>
 
 #include <cmath>
 
 
 namespace inl {
 namespace gxeng {
+namespace nodes {
+
 
 
 class FrameColor :
@@ -30,7 +31,7 @@ public:
 		float b = sin(float(x + 240) / 360.f * 2.f * 3.1415926f);
 		b = 0.5f*b + 0.5f;
 
-		GetOutput<0>().Set(gxapi::ColorRGBA(r,g,b));
+		GetOutput<0>().Set(gxapi::ColorRGBA(r, g, b));
 	}
 
 	virtual void Notify(exc::InputPortBase* sender) override {}
@@ -38,5 +39,6 @@ public:
 
 
 
+} // namespace nodes
 } // namespace gxeng
 } // namespace inl

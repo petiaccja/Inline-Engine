@@ -4,24 +4,74 @@
 #include "ComputeCommandList.hpp"
 #include "CopyCommandList.hpp"
 
+#include "FrameContext.hpp"
+
+#include <chrono>
+
 
 namespace inl {
 namespace gxeng {
 
 
+//------------------------------------------------------------------------------
+// Prototypes of classes used.
+//------------------------------------------------------------------------------
+class Scene;
 
-class ExecutionContext {
+namespace nodes {
+class GetBackBuffer;
+class GetSceneByName;
+}
+
+
+
+//------------------------------------------------------------------------------
+// Special access contexts.
+//------------------------------------------------------------------------------
+class SceneAccessContext {
+	friend class nodes::GetSceneByName;
 public:
-	ExecutionContext(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool);
+	virtual ~SceneAccessContext() {}
+protected:
+	virtual const Scene* GetSceneByName(const std::string& name) const = 0;
+};
 
+
+
+class SwapChainAccessContext {
+	friend class nodes::GetBackBuffer;
+public:
+	virtual ~SwapChainAccessContext() {}
+protected:
+	virtual Texture2D* GetBackBuffer() const = 0;
+};
+
+
+
+//------------------------------------------------------------------------------
+// General execution context.
+//------------------------------------------------------------------------------
+class ExecutionContext 
+	: public SceneAccessContext,
+	public SwapChainAccessContext
+{
+public:
+	ExecutionContext(FrameContext* frameContext) : m_frameContext(frameContext) {
+		assert(frameContext != nullptr);
+	}
 
 	GraphicsCommandList GetGraphicsCommandList() const;
 	ComputeCommandList GetComputeCommandList() const;
 	CopyCommandList GetCopyCommandList() const;
+
+	std::chrono::nanoseconds GetFrameTime() const;
+	std::chrono::nanoseconds GetAbsoluteTime() const;
+
+protected:
+	const Scene* GetSceneByName(const std::string& name) const override;
+	Texture2D* GetBackBuffer() const override;	
 private:
-	gxapi::IGraphicsApi* m_gxApi;
-	CommandAllocatorPool* m_commandAllocatorPool;
-	ScratchSpacePool* m_scratchSpacePool;
+	FrameContext* m_frameContext;
 };
 
 

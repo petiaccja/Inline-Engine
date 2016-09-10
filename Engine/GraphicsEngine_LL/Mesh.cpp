@@ -14,9 +14,13 @@ namespace gxeng {
 //------------------------------------------------------------------------------
 
 
-void Mesh::Set(std::vector<VertexStream> streams, std::vector<unsigned> indices) {
-	// Validate and optimize input data
-	eValidationResult valid = Validate(streams, indices);
+template <class StreamIt, class IndexIt>
+void Mesh::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstIndex, IndexIt lastIndex) {
+	static_assert(std::is_same<VertexStream, decltype(*firstStream)>::value, "Not a VertexStream iterator.");
+	static_assert(std::is_integral<decltype(*firstStream)>::value, "Indices must be of integral type.");
+
+	// Validate input data
+	eValidationResult valid = Validate(firstStream, lastStream, firstIndex, lastIndex);
 	switch (valid) {
 		case eValidationResult::VERTEX_COUNT_MISMATCH:
 			throw std::invalid_argument("All streams must have the same number of vertices.");
@@ -30,11 +34,13 @@ void Mesh::Set(std::vector<VertexStream> streams, std::vector<unsigned> indices)
 		case eValidationResult::OK:
 			break;
 	}
+
 	//Optimize(streams, indices);
 
 	// Create vertex buffers and index buffer
 	// TODO...
 }
+
 
 
 void Mesh::Update(int streamIndex, const void* vertexData, int vertexCount, int offsetInVertex) {
@@ -48,29 +54,29 @@ void Mesh::Clear() {
 }
 
 
-
-
-Mesh::eValidationResult Mesh::Validate(const std::vector<VertexStream>& streams, const std::vector<unsigned> indices) {
-	if (streams.size() == 0 || indices.size() == 0) {
-		Clear();
+template <class StreamIt, class IndexIt>
+Mesh::eValidationResult Mesh::Validate(StreamIt firstStream, StreamIt lastStream, IndexIt firstIndex, IndexIt lastIndex) {
+	if (firstStream == lastStream) {
 		return eValidationResult::CLEAR;
 	}
 
-	auto vertexCount = streams[0].VertexCount();
-	for (auto& stream : streams) {
-		if (stream.VertexCount() != vertexCount) {
+	auto vertexCount = firstStream->VertexCount();
+	for (auto streamIt = firstStream; streamIt != lastStream; ++streamIt) {
+		if (streamIt->VertexCount() != vertexCount) {
 			return eValidationResult::VERTEX_COUNT_MISMATCH;
 		}
 	}
 
-	if (indices.size() % 3 != 0) {
-		return eValidationResult::NOT_TRIANGLE;
-	}
-
-	for (auto index : indices) {
-		if (index >= vertexCount) {
+	size_t numIndices = 0;
+	for (auto indexIt = firstIndex; indexIt != lastIndex; ++indexIt) {
+		if (*indexIt >= vertexCount) {
 			return eValidationResult::INDEX_TOO_LARGE;
 		}
+		++numIndices;
+	}
+
+	if (numIndices % 3 != 0) {
+		return eValidationResult::NOT_TRIANGLE;
 	}
 
 	return eValidationResult::OK;
@@ -83,7 +89,7 @@ void Mesh::Optimize(std::vector<VertexStream>& streams, std::vector<unsigned>& i
 }
 
 
-int Mesh::GetNumSreams() const {
+int Mesh::GetNumStreams() const {
 	return m_vertexBuffers.size();
 }
 

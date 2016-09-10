@@ -4,15 +4,17 @@
 
 namespace inl {
 namespace gxeng {
+namespace nodes {
 
 
-class ClearScreen : 
-	public virtual GraphicsNode, 
-	public exc::InputPortConfig<gxapi::ColorRGBA>,
-	public exc::OutputPortConfig<>
+class ClearRenderTarget :
+	public virtual GraphicsNode,
+	public exc::InputPortConfig<Texture2D*, gxapi::ColorRGBA>,
+	public exc::OutputPortConfig<Texture2D*>
 {
 public:
-	ClearScreen() {
+	ClearRenderTarget() {
+		this->GetInput<0>().Clear();
 	}
 
 	virtual void Update() override {}
@@ -20,12 +22,9 @@ public:
 	virtual void Notify(exc::InputPortBase* sender) override {}
 
 	virtual Task GetTask() override;
-
-	void SetTarget(Texture2D* target);
-private:
-	Texture2D* m_target = nullptr;
 };
 
 
+} // namespace nodes
 } // namespace gxeng
 } // namespace inl
