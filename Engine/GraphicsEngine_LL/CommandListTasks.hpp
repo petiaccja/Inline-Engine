@@ -13,7 +13,7 @@ namespace gxeng {
 struct InitTask {
 	std::function<void()> task;
 	gxapi::IFence* setThisFence;
-	unsigned long long toThisValue;
+	unsigned long long toThisValue; 
 };
 
 
