@@ -19,6 +19,7 @@ class DescriptorReference {
 public:
 	friend class HighLevelDescHeap;
 	friend class BackBufferHeap;
+	friend class UploadHeap;
 
 	DescriptorReference(const DescriptorReference&) = delete;
 	DescriptorReference& operator=(const DescriptorReference&) = delete;

@@ -16,6 +16,8 @@ class MemoryManager;
 
 class GenericResource {
 	friend class MemoryManager;
+	friend class UploadHeap;
+	friend class CopyCommandList;
 public:
 	GenericResource(GenericResource&&);
 	GenericResource& operator=(GenericResource&&);
@@ -44,7 +46,7 @@ protected:
 //==================================
 // Vertex buffer, index buffer
 
-class VertexBuffer : public GenericResource {
+class LinearBuffer : public GenericResource {
 	friend class MemoryManager;
 public:
 	uint64_t GetSize() const;
@@ -54,7 +56,8 @@ protected:
 };
 
 
-using IndexBuffer = VertexBuffer;
+using VertexBuffer = LinearBuffer;
+using IndexBuffer = LinearBuffer;
 
 //==================================
 

@@ -35,6 +35,33 @@ CopyCommandList& CopyCommandList::operator=(CopyCommandList&& rhs) {
 }
 
 
+void CopyCommandList::RegisterResourceTransition(const SubresourceID& subresource, gxapi::eResourceState targetState) {
+	auto iter = m_resourceTransitions.find(subresource);
+	if (iter == m_resourceTransitions.end()) {
+		StateTransitionRegister reg;
+		reg.lastTargetState = targetState;
+		reg.firstTargetState = targetState;
+		reg.multipleTransition = false;
+		m_resourceTransitions.insert({subresource, reg});
+	}
+	else {
+		const auto& prevTargetState = iter->second.lastTargetState;
+
+		ResourceBarrier(
+			gxapi::TransitionBarrier{
+				subresource.resource,
+				prevTargetState,
+				targetState,
+				subresource.subResource
+			}
+		);
+
+		iter->second.lastTargetState = targetState;
+		iter->second.multipleTransition = true;
+	}
+}
+
+
 BasicCommandList::Decomposition CopyCommandList::Decompose() {
 	m_commandList = nullptr;
 	return BasicCommandList::Decompose();
@@ -45,6 +72,11 @@ BasicCommandList::Decomposition CopyCommandList::Decompose() {
 // Command list state
 void CopyCommandList::ResetState(gxapi::IPipelineState* newState) {
 	m_commandList->ResetState(newState);
+}
+
+
+void CopyCommandList::CopyBuffer(GenericResource * dst, size_t dstOffset, GenericResource * src, size_t srcOffset, size_t numBytes) {
+	m_commandList->CopyBuffer(dst->m_resource, dstOffset, src->m_resource, srcOffset, numBytes);
 }
 
 

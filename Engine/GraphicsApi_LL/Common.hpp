@@ -1481,11 +1481,12 @@ struct TransitionBarrier : public ResourceBarrierTag {
 	eResourceBarrierSplit splitMode;
 };
 
+
 struct ResourceBarrier {
 	eResourceBarrierType type;
-	union {
+	//union {
 		TransitionBarrier transition;
-	};
+	//};
 };
 
 //------------------------------------------------------------------------------

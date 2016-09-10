@@ -9,11 +9,12 @@
 namespace inl {
 namespace gxeng {
 
-
+class CopyCommandList;
 class GenericResource;
+class LinearBuffer;
 class Texture2D;
 
-enum class eResourceHeapType { CRITICAL };
+enum class eResourceHeapType { CRITICAL, UPLOAD };
 
 
 namespace impl {
@@ -89,6 +90,18 @@ protected:
 
 	std::unique_ptr<gxapi::IDescriptorHeap> m_descriptorHeap;
 	std::vector<Texture2D> m_backBuffers;
+};
+
+
+class UploadHeap {
+public:
+	UploadHeap(gxapi::IGraphicsApi* graphicsApi);
+
+	void UploadToResource(gxeng::CopyCommandList& cmdList, LinearBuffer& target, const void* data, size_t size);
+
+protected:
+	gxapi::IGraphicsApi* m_graphicsApi;
+	std::vector<GenericResource> m_stagedResources;
 };
 
 

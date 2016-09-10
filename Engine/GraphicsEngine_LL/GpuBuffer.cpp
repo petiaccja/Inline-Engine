@@ -7,6 +7,8 @@
 #include "MemoryManager.hpp"
 #include "ResourceHeap.hpp"
 
+#include <utility>
+
 namespace inl {
 namespace gxeng {
 
@@ -74,7 +76,7 @@ GenericResource::GenericResource(DescriptorReference&& resourceView) :
 //==================================
 
 
-uint64_t VertexBuffer::GetSize() const {
+uint64_t LinearBuffer::GetSize() const {
 	return m_resource->GetDesc().bufferDesc.sizeInBytes;
 }
 
