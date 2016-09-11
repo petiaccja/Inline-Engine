@@ -115,7 +115,7 @@ void UploadHeap::UploadToResource(gxeng::CopyCommandList& cmdList, LinearBuffer&
 	gxapi::MemoryRange noReadRange{0, 0};
 	void* stagePtr = stagedRes->Map(0, &noReadRange);
 	memcpy(stagePtr, data, size);
-	stagedRes->Unmap(0);
+	// No need to unmap (see https://msdn.microsoft.com/en-us/library/windows/desktop/dn788712(v=vs.85).aspx)
 
 	{
 		gxapi::TransitionBarrier stageToSrc;
