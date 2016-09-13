@@ -152,7 +152,7 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 	auto commandAllocator = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
 	std::unique_ptr<gxapi::IGraphicsCommandList> commandList(context.gxApi->CreateGraphicsCommandList(gxapi::CommandListDesc{ commandAllocator.get() }));
 
-	gxapi::DescriptorHandle rtvHandle = context.backBuffer->GetViewHandle();
+	gxapi::DescriptorHandle rtvHandle = context.backBuffer->GetHandle();
 	commandList->SetRenderTargets(1, &rtvHandle);
 	commandList->ClearRenderTarget(rtvHandle, color);
 	commandList->Close();

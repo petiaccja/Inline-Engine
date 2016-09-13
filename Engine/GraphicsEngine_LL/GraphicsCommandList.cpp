@@ -51,7 +51,7 @@ void GraphicsCommandList::ClearDepthStencil(Texture2D* resource,
 											bool clearDepth,
 											bool clearStencil)
 {
-	m_commandList->ClearDepthStencil(resource->GetViewHandle(), depth, stencil, numRects, rects, clearDepth, clearStencil);
+	m_commandList->ClearDepthStencil(resource->GetHandle(), depth, stencil, numRects, rects, clearDepth, clearStencil);
 }
 
 void GraphicsCommandList::ClearRenderTarget(Texture2D* resource,
@@ -59,7 +59,7 @@ void GraphicsCommandList::ClearRenderTarget(Texture2D* resource,
 											size_t numRects,
 											gxapi::Rectangle* rects)
 {
-	m_commandList->ClearRenderTarget(resource->GetViewHandle(), color, numRects, rects);
+	m_commandList->ClearRenderTarget(resource->GetHandle(), color, numRects, rects);
 }
 
 
@@ -131,11 +131,11 @@ void GraphicsCommandList::SetRenderTargets(unsigned numRenderTargets,
 {
 	auto renderTargetHandles = std::make_unique<gxapi::DescriptorHandle[]>(numRenderTargets);
 	for (unsigned i = 0; i < numRenderTargets; ++i) {
-		renderTargetHandles[i] = renderTargets[i]->GetViewHandle();
+		renderTargetHandles[i] = renderTargets[i]->GetHandle();
 	}
 
 	if (depthStencil) {
-		gxapi::DescriptorHandle dsvHandle = depthStencil->GetViewHandle();
+		gxapi::DescriptorHandle dsvHandle = depthStencil->GetHandle();
 		m_commandList->SetRenderTargets(numRenderTargets,
 										renderTargetHandles.get(),
 										&dsvHandle);

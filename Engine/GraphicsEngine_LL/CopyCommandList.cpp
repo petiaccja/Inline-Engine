@@ -76,7 +76,7 @@ void CopyCommandList::ResetState(gxapi::IPipelineState* newState) {
 
 
 void CopyCommandList::CopyBuffer(GenericResource * dst, size_t dstOffset, GenericResource * src, size_t srcOffset, size_t numBytes) {
-	m_commandList->CopyBuffer(dst->m_resource, dstOffset, src->m_resource, srcOffset, numBytes);
+	m_commandList->CopyBuffer(dst->_GetResourcePtr(), dstOffset, src->_GetResourcePtr(), srcOffset, numBytes);
 }
 
 

@@ -57,7 +57,16 @@ protected:
 	std::unordered_set<GenericResource*> m_evictables;
 
 protected:
-	void InitializeResource(eResourceHeapType heap, GenericResource* resource, const gxapi::ResourceDesc& desc);
+	struct InitialResourceParameters {
+		InitialResourceParameters(DescriptorReference&& d) : desc(std::move(d)) {}
+
+		DescriptorReference desc;
+		gxapi::IResource* resource;		
+		bool residency;
+	};
+
+
+	InitialResourceParameters AllocateResource(eResourceHeapType heap, const gxapi::ResourceDesc& desc);
 };
 
 
@@ -75,12 +84,12 @@ inline void MemoryManager::LockResident(IterT begin, IterT end) {
 		auto currEvictableIter = m_evictables.find(curr);
 		bool evictable = currEvictableIter != m_evictables.end();
 		if (evictable) {
-			assert(curr->m_resident);
+			assert(curr->_GetResident());
 			m_evictables.erase(currEvictableIter);
 		}
 		else {
-			if (curr->m_resident == false) {
-				lowLevelTargets.push_back(curr->m_resource);
+			if (curr->_GetResident() == false) {
+				lowLevelTargets.push_back(curr->_GetResourcePtr());
 				highLevelTargets.push_back(curr);
 			}
 		}
@@ -93,7 +102,7 @@ inline void MemoryManager::LockResident(IterT begin, IterT end) {
 		std::vector<gxapi::IResource*> toEvict;
 		toEvict.reserve(m_evictables.size());
 		for (auto curr : m_evictables) {
-			toEvict.push_back(curr->m_resource);
+			toEvict.push_back(curr->_GetResourcePtr());
 		}
 		m_graphicsApi->Evict(toEvict);
 		m_evictables.clear();
@@ -105,9 +114,9 @@ inline void MemoryManager::LockResident(IterT begin, IterT end) {
 	for (size_t i = 0; i < highLevelTargets.size(); i++) {
 		auto currLowlevel = lowLevelTargets[i];
 		auto currHighLevel = highLevelTargets[i];
-		assert(currHighLevel->m_resource == currLowlevel);
+		assert(currHighLevel->_GetResourcePtr() == currLowlevel);
 
-		currHighLevel->m_resident = true;
+		currHighLevel->_SetResident(true);
 	}
 }
 

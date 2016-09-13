@@ -31,16 +31,20 @@ void MemoryManager::UnlockResident(const std::vector<GenericResource*>& resource
 
 
 VertexBuffer* MemoryManager::CreateVertexBuffer(eResourceHeapType heap, size_t size) {
-	std::unique_ptr<VertexBuffer> result(new VertexBuffer(m_descHeap->AllocateOnTextureSpace()));
-	InitializeResource(heap, result.get(), gxapi::ResourceDesc::Buffer(size));
-	return result.release();
+	InitialResourceParameters params = AllocateResource(heap, gxapi::ResourceDesc::Buffer(size));
+
+	VertexBuffer* result = new VertexBuffer(std::move(params.desc), params.resource);
+	result->_SetResident(params.residency);
+	return result;
 }
 
 
 IndexBuffer* MemoryManager::CreateIndexBuffer(eResourceHeapType heap, size_t size) {
-	std::unique_ptr<IndexBuffer> result(new IndexBuffer(m_descHeap->AllocateOnTextureSpace()));
-	InitializeResource(heap, result.get(), gxapi::ResourceDesc::Buffer(size));
-	return result.release();
+	InitialResourceParameters params = AllocateResource(heap, gxapi::ResourceDesc::Buffer(size));
+
+	IndexBuffer* result = new IndexBuffer(std::move(params.desc), params.resource);
+	result->_SetResident(params.residency);
+	return result;
 }
 
 
@@ -49,9 +53,11 @@ Texture1D* MemoryManager::CreateTexture1D(eResourceHeapType heap, uint64_t width
 		throw gxapi::InvalidArgument("\"count\" should not be at least one.");
 	}
 
-	std::unique_ptr<Texture1D> result(new Texture1D(m_descHeap->AllocateOnTextureSpace()));
-	InitializeResource(heap, result.get(), gxapi::ResourceDesc::Texture1DArray(width, format, arraySize));
-	return result.release();
+	InitialResourceParameters params = AllocateResource(heap, gxapi::ResourceDesc::Texture1DArray(width, format, arraySize));
+
+	Texture1D* result = new Texture1D(std::move(params.desc), params.resource);
+	result->_SetResident(params.residency);
+	return result;
 }
 
 
@@ -60,37 +66,43 @@ Texture2D* MemoryManager::CreateTexture2D(eResourceHeapType heap, uint64_t width
 		throw gxapi::InvalidArgument("\"count\" should not be at least one.");
 	}
 
-	std::unique_ptr<Texture2D> result(new Texture2D(m_descHeap->AllocateOnTextureSpace()));
-	InitializeResource(heap, result.get(), gxapi::ResourceDesc::Texture2DArray(width, height, format, arraySize));
-	return result.release();
+	InitialResourceParameters params = AllocateResource(heap, gxapi::ResourceDesc::Texture2DArray(width, height, format, arraySize));
+
+	Texture2D* result = new Texture2D(std::move(params.desc), params.resource);
+	result->_SetResident(params.residency);
+	return result;
 }
 
 
 Texture3D* MemoryManager::CreateTexture3D(eResourceHeapType heap, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format) {
-	std::unique_ptr<Texture3D> result(new Texture3D(m_descHeap->AllocateOnTextureSpace()));
-	InitializeResource(heap, result.get(), gxapi::ResourceDesc::Texture3D(width, height, depth, format));
-	return result.release();
+	InitialResourceParameters params = AllocateResource(heap, gxapi::ResourceDesc::Texture3D(width, height, depth, format));
+
+	Texture3D* result = new Texture3D(std::move(params.desc), params.resource);
+	result->_SetResident(params.residency);
+	return result;
 }
 
 
 TextureCube* MemoryManager::CreateTextureCube(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format) {
-	std::unique_ptr<TextureCube> result(new TextureCube(m_descHeap->AllocateOnTextureSpace()));
-	InitializeResource(heap, result.get(), gxapi::ResourceDesc::CubeMap(width, height, format));
-	return result.release();
+	InitialResourceParameters params = AllocateResource(heap, gxapi::ResourceDesc::CubeMap(width, height, format));
+
+	TextureCube* result = new TextureCube(std::move(params.desc), params.resource);
+	result->_SetResident(params.residency);
+	return result;
 }
 
 
-void MemoryManager::InitializeResource(eResourceHeapType heap, GenericResource* resource, const gxapi::ResourceDesc& desc) {
-	
+MemoryManager::InitialResourceParameters MemoryManager::AllocateResource(eResourceHeapType heap, const gxapi::ResourceDesc & desc) {
+	InitialResourceParameters retval(m_descHeap->AllocateOnTextureSpace());
+
 	switch(heap) {
 	case eResourceHeapType::CRITICAL: 
-		resource->m_resource = m_criticalHeap.Allocate(resource, desc);
-		resource->m_deleter = std::bind(&impl::CriticalBufferHeap::ReleaseUnderlying, &m_criticalHeap, std::placeholders::_1);
-		resource->m_resident = true;
+		retval.resource = m_criticalHeap.Allocate(desc);
+		retval.residency = true;
 		break;
 	}
 
-	m_graphicsApi->CreateShaderResourceView(resource->m_resource, resource->m_resourceView.Get());
+	return retval;
 }
 
 

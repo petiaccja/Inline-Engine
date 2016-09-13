@@ -14,30 +14,18 @@ CriticalBufferHeap::CriticalBufferHeap(gxapi::IGraphicsApi * graphicsApi) :
 {}
 
 
-gxapi::IResource* CriticalBufferHeap::Allocate(GenericResource* owner, gxapi::ResourceDesc desc) {
-	gxapi::IResource* retval;
-	{
-		std::unique_ptr<gxapi::IResource> allocation(
-			m_graphicsApi->CreateCommittedResource(
-				gxapi::HeapProperties(gxapi::eHeapType::DEFAULT),
-				gxapi::eHeapFlags::NONE,
-				desc,
-				gxapi::eResourceState::COMMON
-			)
-		);
-
-		retval = allocation.get();
-
-		//NOTE: After the insertion has occured, no exception should leave uncatched
-		m_resources.insert({owner, std::move(allocation)});
-	}
-
-	return retval;
+gxapi::IResource* CriticalBufferHeap::Allocate(gxapi::ResourceDesc desc) {
+	return m_graphicsApi->CreateCommittedResource(
+		gxapi::HeapProperties(gxapi::eHeapType::DEFAULT),
+		gxapi::eHeapFlags::NONE,
+		desc,
+		gxapi::eResourceState::COMMON
+	);
 }
 
 
 void CriticalBufferHeap::ReleaseUnderlying(GenericResource* owner) {
-	m_resources.erase(owner);
+	//m_resources.erase(owner);
 }
 
 
@@ -68,10 +56,9 @@ BackBufferHeap::BackBufferHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapCha
 		descRef.m_handle = descHandle;
 		descRef.m_deleter = nullptr; // Descriptors needn't be freed until this heap exists.
 
-		Texture2D highLevelBuffer(std::move(descRef));
-		highLevelBuffer.m_resource = lowLeveBuffer;
-		highLevelBuffer.m_deleter = nullptr; // Underlying resource deallocation is managed by the swap chain!
-		highLevelBuffer.m_resident = true; // I guess...
+		// Underlying resource deallocation is managed by the swap chain!
+		Texture2D highLevelBuffer(std::move(descRef), lowLeveBuffer, [](gxapi::IResource*){});
+		highLevelBuffer._SetResident(true); // I guess...
 
 		m_backBuffers.push_back(std::move(highLevelBuffer));
 	}
@@ -98,19 +85,22 @@ void UploadHeap::UploadToResource(gxeng::CopyCommandList& cmdList, LinearBuffer&
 	desc.m_handle.cpuAddress = nullptr;
 	desc.m_handle.gpuAddress = nullptr;
 
-	m_stagedResources.push_back(GenericResource(std::move(desc)));
-	GenericResource& staged = m_stagedResources.back();
-
-	staged.m_deleter = nullptr;
-	staged.m_resident = true;
-	staged.m_resource = m_graphicsApi->CreateCommittedResource(
+	gxapi::IResource* stagedRes = m_graphicsApi->CreateCommittedResource(
 		gxapi::HeapProperties(gxapi::eHeapType::UPLOAD),
 		gxapi::eHeapFlags::NONE,
 		gxapi::ResourceDesc::Buffer(size),
 		gxapi::eResourceState::COPY_DEST
 	);
 
-	gxapi::IResource* stagedRes = staged.m_resource;
+	m_stagedResources.push_back(
+		GenericResource(
+			std::move(desc),
+			stagedRes
+		)
+	);
+	GenericResource& staged = m_stagedResources.back();
+
+	staged._SetResident(true);
 
 	gxapi::MemoryRange noReadRange{0, 0};
 	void* stagePtr = stagedRes->Map(0, &noReadRange);
@@ -128,7 +118,7 @@ void UploadHeap::UploadToResource(gxeng::CopyCommandList& cmdList, LinearBuffer&
 		// Set stage's state to copy source
 		cmdList.ResourceBarrier(stageToSrc);
 		//Set target state to copy destination
-		cmdList.RegisterResourceTransition(SubresourceID(target.m_resource, 0xffffffff), gxapi::eResourceState::COPY_DEST);
+		cmdList.RegisterResourceTransition(SubresourceID(target._GetResourcePtr(), 0xffffffff), gxapi::eResourceState::COPY_DEST);
 		//Copy
 		cmdList.CopyBuffer(&target, 0, &staged, 0, size);
 	}

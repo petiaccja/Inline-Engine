@@ -17,15 +17,24 @@ using namespace gxapi;
 //==================================
 //Generic Resource
 
+GenericResource::GenericResource(DescriptorReference&& resourceView, gxapi::IResource* resource) : 
+	GenericResource(std::move(resourceView), resource, std::default_delete<gxapi::IResource>{})
+{}
+
+
+GenericResource::GenericResource(DescriptorReference&& resourceView, gxapi::IResource* resource, const Deleter& deleter) :
+	m_resourceView(std::move(resourceView)),
+	m_deleter(deleter),
+	m_resource(resource, m_deleter)
+{}
+
 
 GenericResource::GenericResource(GenericResource&& other) :
-	m_resource(other.m_resource),
-	m_deleter(std::move(other.m_deleter)),
 	m_resourceView(std::move(other.m_resourceView)),
+	m_deleter(std::move(other.m_deleter)),
+	m_resource(other.m_resource.release(), m_deleter),
 	m_resident(other.m_resident)
 {
-	other.m_resource = nullptr;
-	other.m_deleter = nullptr;
 }
 
 
@@ -34,22 +43,12 @@ GenericResource& GenericResource::operator=(GenericResource&& other) {
 		return *this;
 	}
 
-	m_resource = other.m_resource;
-	m_deleter = std::move(other.m_deleter);
 	m_resourceView = std::move(m_resourceView);
+	m_deleter = std::move(other.m_deleter);
+	m_resource = decltype(m_resource){other.m_resource.release(), m_deleter};
 	m_resident = other.m_resident;
 
-	other.m_resource = nullptr;
-	other.m_deleter = nullptr;
-
 	return *this;
-}
-
-
-GenericResource::~GenericResource() {
-	if (m_deleter) {
-		m_deleter(this);
-	}
 }
 
 
@@ -63,14 +62,29 @@ gxapi::ResourceDesc GenericResource::GetDescription() const {
 }
 
 
-gxapi::DescriptorHandle GenericResource::GetViewHandle() {
+gxapi::DescriptorHandle GenericResource::GetHandle() {
 	return m_resourceView.Get();
 }
 
 
-GenericResource::GenericResource(DescriptorReference&& resourceView) :
-	m_resourceView(std::move(resourceView))
-{}
+void GenericResource::_SetResident(bool value) noexcept {
+	m_resident = value;
+}
+
+
+bool GenericResource::_GetResident() const noexcept {
+	return m_resident;
+}
+
+
+gxapi::IResource* GenericResource::_GetResourcePtr() noexcept {
+	return m_resource.get();
+}
+
+
+const gxapi::IResource * GenericResource::_GetResourcePtr() const noexcept {
+	return m_resource.get();
+}
 
 
 //==================================
