@@ -45,12 +45,11 @@ protected:
 class CriticalBufferHeap final : public BasicHeap {
 public:
 	CriticalBufferHeap(gxapi::IGraphicsApi* graphicsApi);
-	gxapi::IResource* Allocate(GenericResource* owner, gxapi::ResourceDesc desc);
+	gxapi::IResource* Allocate(gxapi::ResourceDesc desc);
 	void ReleaseUnderlying(GenericResource* owner) override;
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
-	std::unordered_map<GenericResource*, std::unique_ptr<gxapi::IResource>> m_resources;
 };
 
 
@@ -63,7 +62,7 @@ public:
 #endif
 
 
-//TODO how can different high-level resources use the same underlying resource?
+//TODO
 #if 0
 
 class OverlappedBufferHeap final : public BasicHeap {

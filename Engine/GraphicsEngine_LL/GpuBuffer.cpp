@@ -17,39 +17,38 @@ using namespace gxapi;
 //==================================
 //Generic Resource
 
+GenericResource::GenericResource(DescriptorReference&& resourceView, gxapi::IResource* resource) :
+	GenericResource(std::move(resourceView), resource, std::default_delete<gxapi::IResource>{})
+{}
+
+
+GenericResource::GenericResource(DescriptorReference&& resourceView, gxapi::IResource* resource, const Deleter& deleter) :
+	m_resourceView(std::move(resourceView)),
+	m_deleter(deleter),
+	m_resource(resource, m_deleter)
+{}
+
 
 GenericResource::GenericResource(GenericResource&& other) :
-	m_resource(other.m_resource),
-	m_deleter(std::move(other.m_deleter)),
 	m_resourceView(std::move(other.m_resourceView)),
+	m_deleter(std::move(other.m_deleter)),
+	m_resource(other.m_resource.release(), m_deleter),
 	m_resident(other.m_resident)
 {
-	other.m_resource = nullptr;
-	other.m_deleter = nullptr;
 }
 
 
-GenericResource& GenericResource::operator=(GenericResource&& other) noexcept {
+GenericResource& GenericResource::operator=(GenericResource&& other) {
 	if (this == &other) {
 		return *this;
 	}
 
-	m_resource = other.m_resource;
-	m_deleter = std::move(other.m_deleter);
 	m_resourceView = std::move(m_resourceView);
+	m_deleter = std::move(other.m_deleter);
+	m_resource = decltype(m_resource){other.m_resource.release(), m_deleter};
 	m_resident = other.m_resident;
 
-	other.m_resource = nullptr;
-	other.m_deleter = nullptr;
-
 	return *this;
-}
-
-
-GenericResource::~GenericResource() {
-	if (m_deleter) {
-		m_deleter(this);
-	}
 }
 
 
@@ -63,14 +62,29 @@ gxapi::ResourceDesc GenericResource::GetDescription() const {
 }
 
 
-gxapi::DescriptorHandle GenericResource::GetViewHandle() {
+gxapi::DescriptorHandle GenericResource::GetHandle() {
 	return m_resourceView.Get();
 }
 
 
-GenericResource::GenericResource(DescriptorReference&& resourceView) :
-	m_resourceView(std::move(resourceView))
-{}
+void GenericResource::_SetResident(bool value) noexcept {
+	m_resident = value;
+}
+
+
+bool GenericResource::_GetResident() const noexcept {
+	return m_resident;
+}
+
+
+gxapi::IResource* GenericResource::_GetResourcePtr() noexcept {
+	return m_resource.get();
+}
+
+
+const gxapi::IResource * GenericResource::_GetResourcePtr() const noexcept {
+	return m_resource.get();
+}
 
 
 void GenericResource::RecordState(unsigned subresource, gxapi::eResourceState newState) {
@@ -89,7 +103,31 @@ gxapi::eResourceState GenericResource::ReadState(unsigned subresource) const {
 	return m_subresourceStates[subresource];
 }
 
-void GenericResource::InitResourceStates(unsigned numSubresources, gxapi::eResourceState initialState) {
+void GenericResource::InitResourceStates(gxapi::eResourceState initialState) {
+	gxapi::ResourceDesc desc = m_resource->GetDesc();
+	unsigned numSubresources = 0;
+	switch (desc.type) {
+		case eResourceType::TEXTURE:
+		{
+			switch (desc.textureDesc.dimension) {
+				case eTextueDimension::ONE:
+					numSubresources = desc.textureDesc.depthOrArraySize * desc.textureDesc.mipLevels;
+					break;
+				case eTextueDimension::TWO: 
+					numSubresources = desc.textureDesc.depthOrArraySize * desc.textureDesc.mipLevels;
+					break;
+				case eTextueDimension::THREE:
+					numSubresources = desc.textureDesc.mipLevels;
+					break;
+				default: assert(false);
+			}
+		}
+		case eResourceType::BUFFER:
+		{
+			numSubresources = 1;
+		}
+		default: assert(false);
+	}
 	m_subresourceStates.resize(numSubresources, initialState);
 }
 

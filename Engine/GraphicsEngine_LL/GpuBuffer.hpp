@@ -15,20 +15,21 @@ class MemoryManager;
 // Generic Resource
 
 class GenericResource {
-	friend class MemoryManager;
-	friend class UploadHeap;
-	friend class CopyCommandList;
 public:
+	using Deleter = std::function<void(gxapi::IResource*)>;
+
+	GenericResource(DescriptorReference&& resourceView, gxapi::IResource* resource);
+	GenericResource(DescriptorReference&& resourceView, gxapi::IResource* resource, const Deleter& deleter);
+
 	GenericResource(GenericResource&&);
-	GenericResource& operator=(GenericResource&&) noexcept;
-	~GenericResource() noexcept;
+	GenericResource& operator=(GenericResource&&);
 
 	GenericResource(const GenericResource&) = delete;
 	GenericResource& operator=(GenericResource) = delete;
 
 	void* GetVirtualAddress() const;
 	gxapi::ResourceDesc GetDescription() const;
-	gxapi::DescriptorHandle GetViewHandle();
+	gxapi::DescriptorHandle GetHandle();
 
 	/// <summary> Records the current state of the resource. Does not change resource state, only used for tracking it. </summary>
 	void RecordState(unsigned subresource, gxapi::eResourceState newState);
@@ -36,14 +37,18 @@ public:
 	void RecordState(gxapi::eResourceState newState);
 	/// <summary> Returns the current tracked state. </summary>
 	gxapi::eResourceState ReadState(unsigned subresource) const;
-protected:
-	explicit GenericResource(DescriptorReference&& resourceView);
 
-	void InitResourceStates(unsigned numSubresources, gxapi::eResourceState initialState);
+	void _SetResident(bool value) noexcept;
+	bool _GetResident() const noexcept;
+
+	gxapi::IResource* _GetResourcePtr() noexcept;
+	const gxapi::IResource* _GetResourcePtr() const noexcept;
 protected:
-	gxapi::IResource* m_resource;
-	std::function<void(GenericResource*)> m_deleter;
+	void InitResourceStates(gxapi::eResourceState initialState);
+protected:
 	DescriptorReference m_resourceView;
+	Deleter m_deleter;
+	std::unique_ptr<gxapi::IResource, Deleter&> m_resource;
 	bool m_resident;
 private:
 	std::vector<gxapi::eResourceState> m_subresourceStates;
@@ -56,12 +61,8 @@ private:
 // Vertex buffer, index buffer
 
 class LinearBuffer : public GenericResource {
-	friend class MemoryManager;
 public:
-	LinearBuffer();
-
 	uint64_t GetSize() const;
-protected:
 	using GenericResource::GenericResource;
 };
 
@@ -77,10 +78,10 @@ using IndexBuffer = LinearBuffer;
 
 class GenericTextureBase : public GenericResource {
 public:
+	using GenericResource::GenericResource;
+
 	uint64_t GetWidth() const;
 	gxapi::eFormat GetFormat() const;
-protected:
-	using GenericResource::GenericResource;
 };
 
 //==================================
@@ -90,45 +91,38 @@ protected:
 // Textures
 
 class Texture1D : public GenericTextureBase {
-	friend class MemoryManager;
 public:
-	uint16_t GetArrayCount() const;
-
-protected:
+	Texture1D();
 	using GenericTextureBase::GenericTextureBase;
+
+	uint16_t GetArrayCount() const;
 };
 
 
 class Texture2D : public GenericTextureBase {
-	friend class MemoryManager;
-	friend class BackBufferHeap;
 public:
+
+	using GenericTextureBase::GenericTextureBase;
+
 	uint64_t GetHeight() const;
 	uint16_t GetArrayCount() const;
-
-protected:
-	using GenericTextureBase::GenericTextureBase;
 };
 
 
 class Texture3D : public GenericTextureBase {
-	friend class MemoryManager;
 public:
+	using GenericTextureBase::GenericTextureBase;
+
 	uint64_t GetHeight() const;
 	uint16_t GetDepth() const;
-
-protected:
-	using GenericTextureBase::GenericTextureBase;
 };
 
 
 class TextureCube : public GenericTextureBase {
-	friend class MemoryManager;
 public:
-	uint64_t GetHeight() const;
-
-protected:
 	using GenericTextureBase::GenericTextureBase;
+
+	uint64_t GetHeight() const;
 };
 
 //==================================
