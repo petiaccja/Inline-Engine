@@ -11,19 +11,67 @@
 #include <memory>
 
 
+
+namespace inl {
+namespace gxeng {
+
+struct SubresourceId {
+	SubresourceId() = default;
+	SubresourceId(GenericResource* resource, unsigned subresource) : resource(resource), subresource(subresource) {}
+
+	bool operator==(const SubresourceId& other) const {
+		return resource == other.resource && subresource == other.subresource;
+	}
+
+	GenericResource* resource;
+	unsigned subresource;
+};
+
+struct SubresourceUsageInfo {
+	gxapi::eResourceState firstState; /// <summary> Holds the target state of the first transition. </summary>
+	gxapi::eResourceState lastState; /// <summary> Holds the target state of the last transition. </summary>
+	bool multipleStates; /// <sumamry> True if resource was used in more than one state. </summary>
+};
+
+struct ResourceUsage {
+	GenericResource* resource;
+	unsigned subresource;
+	gxapi::eResourceState firstState;
+	gxapi::eResourceState lastState;
+	bool multipleStates;
+};
+
+
+} // namespace gxeng
+} // namespace inl
+
+
+namespace std {
+
+using namespace inl;
+
+template<>
+struct hash<gxeng::SubresourceId> {
+	std::size_t operator()(const gxeng::SubresourceId& instance) const {
+		return std::hash<gxeng::GenericResource*>{}(instance.resource) ^ std::hash<unsigned>{}(instance.subresource);
+	}
+};
+
+} // namespace std
+
+
+
 namespace inl {
 namespace gxeng {
 
 
-
 class BasicCommandList {
-	using CmdListPtr = std::unique_ptr<gxapi::ICommandList>;
 public:
 
 	struct Decomposition {
 		CmdAllocPtr commandAllocator;
-		CmdListPtr commandList;
-		std::vector<GenericResource*> usedResources;
+		std::unique_ptr<gxapi::ICopyCommandList> commandList;
+		std::vector<ResourceUsage> usedResources;
 	};
 public:
 	BasicCommandList(const BasicCommandList& rhs) = delete; // could be, but big perf hit, better not allow user
@@ -40,16 +88,18 @@ protected:
 	void UseResource(GenericResource* resource);
 	gxapi::ICommandList* GetCommandList() const { return m_commandList.get(); }
 
+protected:
+	std::unordered_map<SubresourceId, SubresourceUsageInfo> m_resourceTransitions;
+
 private:
 	// Resources
-	std::vector<GenericResource*> m_usedResources;
 
 	// Part sources
 	ScratchSpacePool* m_scratchSpacePool;
 	// Parts
 	std::vector<ScratchSpacePtr> m_scratchSpaces;
 	CmdAllocPtr m_commandAllocator;
-	CmdListPtr m_commandList;
+	std::unique_ptr<gxapi::ICopyCommandList> m_commandList;
 	ScratchSpace* m_currentScratchSpace;
 };
 

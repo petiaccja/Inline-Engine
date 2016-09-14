@@ -20,7 +20,7 @@ CopyCommandList::CopyCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPoo
 
 CopyCommandList::CopyCommandList(CopyCommandList&& rhs)
 	: BasicCommandList(std::move(rhs)),
-	m_commandList(rhs.m_commandList) 
+	m_commandList(rhs.m_commandList)
 {
 	rhs.m_commandList = nullptr;
 }
@@ -35,29 +35,27 @@ CopyCommandList& CopyCommandList::operator=(CopyCommandList&& rhs) {
 }
 
 
-void CopyCommandList::RegisterResourceTransition(const SubresourceID& subresource, gxapi::eResourceState targetState) {
-	auto iter = m_resourceTransitions.find(subresource);
+void CopyCommandList::SetResourceState(GenericResource* resource, unsigned subresource, gxapi::eResourceState state) {
+	auto iter = m_resourceTransitions.find({ resource, subresource });
 	if (iter == m_resourceTransitions.end()) {
-		StateTransitionRegister reg;
-		reg.lastTargetState = targetState;
-		reg.firstTargetState = targetState;
-		reg.multipleTransition = false;
-		m_resourceTransitions.insert({subresource, reg});
+		SubresourceUsageInfo info;
+		info.lastState = state;
+		info.firstState = state;
+		info.multipleStates = false;
+		m_resourceTransitions.insert({ SubresourceId{resource, subresource}, info });
 	}
 	else {
-		const auto& prevTargetState = iter->second.lastTargetState;
+		const auto& prevLastState = iter->second.lastState;
 
-		ResourceBarrier(
-			gxapi::TransitionBarrier{
-				subresource.resource,
-				prevTargetState,
-				targetState,
-				subresource.subResource
-			}
-		);
+		ResourceBarrier(gxapi::TransitionBarrier{
+							resource->m_resource,
+							prevLastState,
+							state,
+							subresource
+		});
 
-		iter->second.lastTargetState = targetState;
-		iter->second.multipleTransition = true;
+		iter->second.lastState = state;
+		iter->second.multipleStates = true;
 	}
 }
 

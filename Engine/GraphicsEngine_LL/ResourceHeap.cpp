@@ -128,7 +128,7 @@ void UploadHeap::UploadToResource(gxeng::CopyCommandList& cmdList, LinearBuffer&
 		// Set stage's state to copy source
 		cmdList.ResourceBarrier(stageToSrc);
 		//Set target state to copy destination
-		cmdList.RegisterResourceTransition(SubresourceID(target.m_resource, 0xffffffff), gxapi::eResourceState::COPY_DEST);
+		cmdList.SetResourceState(&target, 0xffffffff, gxapi::eResourceState::COPY_DEST);
 		//Copy
 		cmdList.CopyBuffer(&target, 0, &staged, 0, size);
 	}

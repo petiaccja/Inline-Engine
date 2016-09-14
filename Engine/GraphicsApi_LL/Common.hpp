@@ -1484,9 +1484,19 @@ struct TransitionBarrier : public ResourceBarrierTag {
 
 struct ResourceBarrier {
 	eResourceBarrierType type;
-	//union {
+	union {
 		TransitionBarrier transition;
-	//};
+	};
+	ResourceBarrier() {}
+	ResourceBarrier(const TransitionBarrier& rhs) {
+		type = eResourceBarrierType::TRANSITION;
+		transition = rhs;
+	}
+	ResourceBarrier& operator=(const TransitionBarrier& rhs) {
+		type = eResourceBarrierType::TRANSITION;
+		transition = rhs;
+		return *this;
+	}
 };
 
 //------------------------------------------------------------------------------

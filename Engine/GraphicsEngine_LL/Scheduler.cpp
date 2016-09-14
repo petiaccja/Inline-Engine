@@ -56,7 +56,29 @@ void Scheduler::Execute(FrameContext context) {
 
 			// Enqueue all command lists on the GPU.
 			for (ExecutionResult::CommandListRecord& listRecord : result) {
-				EnqueueCommandList(*context.commandQueue, std::move(*listRecord.list), context);
+				auto dec = listRecord.list->Decompose();
+
+				std::sort(dec.usedResources.begin(), dec.usedResources.end(), [](const ResourceUsage& lhs, const ResourceUsage& rhs) {
+					return lhs.resource < rhs.resource || (lhs.resource == rhs.resource && lhs.subresource < rhs.subresource);
+				});
+
+				// Inject a transition barrier command list.
+				// TODO...
+				auto barriers = InjectBarriers(dec.usedResources.begin(), dec.usedResources.end());
+
+
+				// Enqueue actual command list.
+				std::vector<GenericResource*> usedResourceList;
+				usedResourceList.reserve(dec.usedResources.size());
+				for (const auto& v : dec.usedResources) {
+					usedResourceList.push_back(v.resource);
+				}
+
+				EnqueueCommandList(*context.commandQueue, std::move(dec.commandList), std::move(dec.commandAllocator), std::move(usedResourceList), context);
+
+
+				// Update resource states.
+				// TODO...
 			}
 		}
 	}
@@ -88,14 +110,12 @@ void Scheduler::Evict(std::vector<GenericResource*> usedResources) {
 }
 
 
-void Scheduler::EnqueueCommandList(CommandQueue & commandQueue,
-								   BasicCommandList commandList,
+void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
+								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
+								   CmdAllocPtr commandAllocator,
+								   std::vector<GenericResource*> usedResources,
 								   const FrameContext& context)
 {
-	// Decompose the command list for further processing.
-	BasicCommandList::Decomposition decomp = commandList.Decompose();
-
-
 	// Acquire fences.
 	uint64_t beforeFenceValue = context.commandQueue->IncrementFenceValue();
 	uint64_t afterFenceValue = context.commandQueue->IncrementFenceValue();
@@ -104,9 +124,10 @@ void Scheduler::EnqueueCommandList(CommandQueue & commandQueue,
 
 	// Enqueue CPU task to make resources resident before the command list runs.
 	// Sets the 'beforeFenceValue' to let the command list execute.
-	auto makeResidentTask = [log = context.log, resources = decomp.usedResources, list = decomp.commandList.get()]{
+	auto makeResidentTask = [log = context.log, resources = usedResources, commandList = commandList.get()] {
+		// careful, 'commandList' is a dangling pointer
 		std::stringstream ss;
-		ss << "Making stuff resident for " << list;
+		ss << "Making stuff resident for " << commandList;
 		log->Event(ss.str());
 	};
 	// Push task to queue.
@@ -119,10 +140,10 @@ void Scheduler::EnqueueCommandList(CommandQueue & commandQueue,
 	// Enqueue the command list itself on the GPU.
 	// Wait for 'beforeFenceValue' to be set.
 	// Sets 'afterFenceValue' when finished.
-	dynamic_cast<gxapi::ICopyCommandList*>(decomp.commandList.get())->Close();
+	commandList->Close();
 
 	gxapi::ICommandList* execLists[] = {
-		decomp.commandList.get(),
+		commandList.get(),
 	};
 	context.commandQueue->Wait(fence, beforeFenceValue);
 	context.commandQueue->ExecuteCommandLists(1, execLists);
@@ -131,9 +152,10 @@ void Scheduler::EnqueueCommandList(CommandQueue & commandQueue,
 
 	// Enqueue CPU task to clean up resources after command list finished.
 	// Wait for 'afterFenceValue' to be set.
-	auto evictTask = [log = context.log, decomp = std::make_shared<BasicCommandList::Decomposition>(std::move(decomp))]{
+	auto evictTask = [log = context.log, resources = usedResources, commandList = commandList.get(), commandAllocator = std::shared_ptr<gxapi::ICommandAllocator>(std::move(commandAllocator))]{
+		// careful, 'commandList' is a dangling pointer
 		std::stringstream ss;
-		ss << "Cleaning stuff after " << decomp->commandList.get();
+		ss << "Cleaning stuff after " << commandList;
 		log->Event(ss.str());
 	};
 	// Push task to queue.

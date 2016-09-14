@@ -29,7 +29,7 @@ GenericResource::GenericResource(GenericResource&& other) :
 }
 
 
-GenericResource& GenericResource::operator=(GenericResource&& other) {
+GenericResource& GenericResource::operator=(GenericResource&& other) noexcept {
 	if (this == &other) {
 		return *this;
 	}
@@ -72,6 +72,26 @@ GenericResource::GenericResource(DescriptorReference&& resourceView) :
 	m_resourceView(std::move(resourceView))
 {}
 
+
+void GenericResource::RecordState(unsigned subresource, gxapi::eResourceState newState) {
+	assert(subresource < m_subresourceStates.size());
+	m_subresourceStates[subresource] = newState;
+}
+
+void GenericResource::RecordState(gxapi::eResourceState newState) {
+	for (auto& state : m_subresourceStates) {
+		state = newState;
+	}
+}
+
+gxapi::eResourceState GenericResource::ReadState(unsigned subresource) const {
+	assert(subresource < m_subresourceStates.size());
+	return m_subresourceStates[subresource];
+}
+
+void GenericResource::InitResourceStates(unsigned numSubresources, gxapi::eResourceState initialState) {
+	m_subresourceStates.resize(numSubresources, initialState);
+}
 
 //==================================
 

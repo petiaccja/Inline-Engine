@@ -20,7 +20,7 @@ class GenericResource {
 	friend class CopyCommandList;
 public:
 	GenericResource(GenericResource&&);
-	GenericResource& operator=(GenericResource&&);
+	GenericResource& operator=(GenericResource&&) noexcept;
 	~GenericResource() noexcept;
 
 	GenericResource(const GenericResource&) = delete;
@@ -30,14 +30,23 @@ public:
 	gxapi::ResourceDesc GetDescription() const;
 	gxapi::DescriptorHandle GetViewHandle();
 
+	/// <summary> Records the current state of the resource. Does not change resource state, only used for tracking it. </summary>
+	void RecordState(unsigned subresource, gxapi::eResourceState newState);
+	/// <summary> Records the state of all subresources. Does not change resource state, only used for tracking it. </summary>
+	void RecordState(gxapi::eResourceState newState);
+	/// <summary> Returns the current tracked state. </summary>
+	gxapi::eResourceState ReadState(unsigned subresource) const;
 protected:
-	GenericResource(DescriptorReference&& resourceView);
+	explicit GenericResource(DescriptorReference&& resourceView);
 
+	void InitResourceStates(unsigned numSubresources, gxapi::eResourceState initialState);
 protected:
 	gxapi::IResource* m_resource;
 	std::function<void(GenericResource*)> m_deleter;
 	DescriptorReference m_resourceView;
 	bool m_resident;
+private:
+	std::vector<gxapi::eResourceState> m_subresourceStates;
 };
 
 //==================================
@@ -49,8 +58,9 @@ protected:
 class LinearBuffer : public GenericResource {
 	friend class MemoryManager;
 public:
-	uint64_t GetSize() const;
+	LinearBuffer();
 
+	uint64_t GetSize() const;
 protected:
 	using GenericResource::GenericResource;
 };
