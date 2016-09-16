@@ -3,7 +3,6 @@
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include "../GraphicsApi_LL/IResource.hpp"
 
-#include "ResourceHeap.hpp"
 #include "HighLevelDescHeap.hpp"
 
 namespace inl {
@@ -39,8 +38,8 @@ public:
 
 protected:
 	DescriptorReference m_resourceView;
-	Deleter m_deleter;
-	std::unique_ptr<gxapi::IResource, Deleter&> m_resource;
+	//Deleter m_deleter;
+	std::unique_ptr<gxapi::IResource, Deleter> m_resource;
 	bool m_resident;
 };
 
@@ -57,9 +56,20 @@ public:
 	uint64_t GetSize() const;
 };
 
-
 using VertexBuffer = LinearBuffer;
 using IndexBuffer = LinearBuffer;
+
+
+class ConstBuffer : public LinearBuffer {
+public:
+	ConstBuffer(DescriptorReference&& resourceView, gxapi::IResource* resource, void* gpuVirtualPtr, const Deleter& deleter);
+
+	void* GetVirtualAddress() const;
+
+protected:
+	void* m_gpuVirtualPtr;
+};
+
 
 //==================================
 

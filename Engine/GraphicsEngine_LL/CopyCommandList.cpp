@@ -52,7 +52,7 @@ void CopyCommandList::RegisterResourceTransition(const SubresourceID& subresourc
 				subresource.resource,
 				prevTargetState,
 				targetState,
-				subresource.subResource
+				subresource.subresource
 			}
 		);
 

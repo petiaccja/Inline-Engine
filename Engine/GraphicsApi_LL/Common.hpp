@@ -1489,6 +1489,9 @@ struct ResourceBarrier {
 	//};
 };
 
+
+constexpr auto RESOURCE_BARRIER_ALL_SUBRESOURCES = std::numeric_limits<unsigned int>::max();
+
 //------------------------------------------------------------------------------
 // User helper functions
 //------------------------------------------------------------------------------

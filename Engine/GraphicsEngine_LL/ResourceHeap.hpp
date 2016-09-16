@@ -1,8 +1,14 @@
 #pragma once
 
+#include "HighLevelDescHeap.hpp"
+#include "GpuBuffer.hpp"
+#include "SubresourceID.hpp"
+
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include "../GraphicsApi_LL/IResource.hpp"
 #include "../GraphicsApi_LL/ISwapChain.hpp"
+#include "../BaseLibrary/ScalarLiterals.hpp"
+#include "../BaseLibrary/RingBuffer.hpp"
 
 #include <unordered_map>
 
@@ -14,39 +20,28 @@ class GenericResource;
 class LinearBuffer;
 class Texture2D;
 
-enum class eResourceHeapType { CRITICAL, UPLOAD };
+
+enum class eResourceHeapType { CRITICAL };
 
 
 namespace impl {
 
+using namespace exc::prefix;
 
-class BasicHeap {
-public:
-	virtual ~BasicHeap() = default;
 
-	virtual void ReleaseUnderlying(GenericResource* owner) = 0;
+struct InitialResourceParameters {
+	InitialResourceParameters(DescriptorReference&& d) : desc(std::move(d)) {}
+
+	DescriptorReference desc;
+	gxapi::IResource* resource;		
+	bool residency;
 };
 
-#if 0 //TODO
-class ConstantBufferHeap final : public BasicHeap {
-public:
-	ConstantBufferHeap(gxapi::IGraphicsApi* graphicsApi);
 
-	gxapi::IResource* Allocate(GenericResource* owner, gxapi::ResourceDesc desc);
-	void ReleaseUnderlying(GenericResource* owner) override;
-
-protected:
-	gxapi::IGraphicsApi* m_graphicsApi;
-	static_assert(false, "TODO move const buffer implementation here!");
-};
-#endif
-
-
-class CriticalBufferHeap final : public BasicHeap {
+class CriticalBufferHeap {
 public:
 	CriticalBufferHeap(gxapi::IGraphicsApi* graphicsApi);
-	gxapi::IResource* Allocate(gxapi::ResourceDesc desc);
-	void ReleaseUnderlying(GenericResource* owner) override;
+	InitialResourceParameters Allocate(DescriptorReference&& viewRef, gxapi::ResourceDesc desc);
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
@@ -54,7 +49,7 @@ protected:
 
 
 #if 0 //TODO
-class StreamedBufferHeap final : public BasicHeap {
+class StreamedBufferHeap {
 public:
 	gxapi::IResource* Allocate(GenericResource* owner, gxapi::ResourceDesc desc);
 	void ReleaseUnderlying(GenericResource* owner) override;
@@ -65,7 +60,7 @@ public:
 //TODO
 #if 0
 
-class OverlappedBufferHeap final : public BasicHeap {
+class OverlappedBufferHeap {
 public:
 	//gxapi::IResource* Allocate(GenericResource* owner, gxapi::ResourceDesc desc, gxapi::IResource* shared = nullptr);
 	void ReleaseUnderlying(GenericResource* owner) override;
@@ -94,13 +89,24 @@ protected:
 
 class UploadHeap {
 public:
+	struct UploadDescription {
+		UploadDescription(GenericResource&& source, GenericResource* pDestination) :
+			source(std::move(source)), pDestination(pDestination) {}
+
+		GenericResource source;
+		GenericResource* pDestination;
+	};
+public:
 	UploadHeap(gxapi::IGraphicsApi* graphicsApi);
 
-	void UploadToResource(gxeng::CopyCommandList& cmdList, LinearBuffer& target, const void* data, size_t size);
+	//void UploadToResource(gxeng::CopyCommandList& cmdList, LinearBuffer& target, const void* data, size_t size);
+	void UploadToResource(LinearBuffer& target, const void* data, size_t size);
+
+	std::vector<UploadDescription>& _GetQueuedUploads();
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
-	std::vector<GenericResource> m_stagedResources;
+	std::vector<UploadDescription> m_uploadQueue;
 };
 
 

@@ -24,15 +24,13 @@ GenericResource::GenericResource(DescriptorReference&& resourceView, gxapi::IRes
 
 GenericResource::GenericResource(DescriptorReference&& resourceView, gxapi::IResource* resource, const Deleter& deleter) :
 	m_resourceView(std::move(resourceView)),
-	m_deleter(deleter),
-	m_resource(resource, m_deleter)
+	m_resource(resource, deleter)
 {}
 
 
 GenericResource::GenericResource(GenericResource&& other) :
 	m_resourceView(std::move(other.m_resourceView)),
-	m_deleter(std::move(other.m_deleter)),
-	m_resource(other.m_resource.release(), m_deleter),
+	m_resource(std::move(other.m_resource)),
 	m_resident(other.m_resident)
 {
 }
@@ -44,8 +42,7 @@ GenericResource& GenericResource::operator=(GenericResource&& other) {
 	}
 
 	m_resourceView = std::move(m_resourceView);
-	m_deleter = std::move(other.m_deleter);
-	m_resource = decltype(m_resource){other.m_resource.release(), m_deleter};
+	m_resource = std::move(other.m_resource);
 	m_resident = other.m_resident;
 
 	return *this;
@@ -134,6 +131,18 @@ uint64_t TextureCube::GetHeight() const {
 	return m_resource->GetDesc().textureDesc.height;
 }
 
+
+
+ConstBuffer::ConstBuffer(DescriptorReference && resourceView, gxapi::IResource* resource, void* gpuVirtualPtr, const Deleter& deleter) :
+	LinearBuffer(std::move(resourceView), resource, deleter),
+	m_gpuVirtualPtr(gpuVirtualPtr)
+{
+}
+
+
+void* ConstBuffer::GetVirtualAddress() const {
+	return m_gpuVirtualPtr;
+}
 
 
 } // namespace gxeng

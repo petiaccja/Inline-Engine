@@ -8,6 +8,12 @@ namespace inl {
 namespace gxeng {
 
 
+DescriptorReference::DescriptorReference(const gxapi::DescriptorHandle & handle, const std::function<void(void)>& deleter) :
+	m_handle(handle),
+	m_deleter(deleter)
+{}
+
+
 DescriptorReference::DescriptorReference(DescriptorReference && other) :
 	m_deleter(std::move(other.m_deleter)),
 	m_handle(std::move(other.m_handle))
@@ -204,9 +210,10 @@ DescriptorReference HighLevelDescHeap::AllocateOnTextureSpace() {
 		pos = m_textureSpaceAllocator.Allocate();
 	}
 
-	DescriptorReference result;
-	result.m_deleter = [this, pos]() { m_textureSpaceAllocator.Deallocate(pos); };
-	result.m_handle = GetAtTextureSpace(pos);
+	DescriptorReference result{
+		GetAtTextureSpace(pos),
+		[this, pos]() { m_textureSpaceAllocator.Deallocate(pos); }
+	};
 	return result;
 }
 

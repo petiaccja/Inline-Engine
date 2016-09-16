@@ -1,30 +1,57 @@
 #pragma once
 
-#include "../BaseLibrary/ScalarLiterals.hpp"
-#include "../BaseLibrary/RingBuffer.hpp"
-#include "../GraphicsApi_LL/IFence.hpp"
-#include "../GraphicsApi_LL/IGraphicsApi.hpp"
-#include "DisposableConstBuffer.hpp"
-#include "ConstBufferPage.hpp"
+#include "GpuBuffer.hpp"
 
-#include <mutex>
+#include "../GraphicsApi_LL/IGraphicsApi.hpp"
+#include "../GraphicsApi_LL/IResource.hpp"
+#include "../BaseLibrary/RingBuffer.hpp"
+#include "../BaseLibrary/ScalarLiterals.hpp"
+
+#include <memory>
 
 namespace inl {
 namespace gxeng {
 
 using namespace exc::prefix;
 
-class ConstBufferManager {
-public:
-	ConstBufferManager(gxapi::IGraphicsApi* graphicsApi);
+class MemoryManager;
 
-	DisposableConstBuffer GetDisposableBuffer(size_t size);
+class ConstantBufferHeap {
+protected:
+	class ConstBufferPage {
+	public:
+		ConstBufferPage() = default;
+		ConstBufferPage(std::unique_ptr<gxapi::IResource>&& representedMemory, void* cpuAddress, void* gpuAddress, size_t pageSize) :
+			m_representedMemory(std::move(representedMemory)),
+			m_cpuAddress(cpuAddress),
+			m_gpuAddress(gpuAddress),
+			m_pageSize(pageSize),
+			m_consumedSize(0),
+			m_age(0)
+		{}
+		ConstBufferPage(ConstBufferPage&&) = default;
+		ConstBufferPage& operator=(ConstBufferPage&&) = default;
+
+		std::unique_ptr<gxapi::IResource> m_representedMemory;
+		void* const m_cpuAddress;
+		void* const m_gpuAddress;
+		const size_t m_pageSize;
+		size_t m_consumedSize;
+		int m_age;
+	};
+
+public:
+	ConstantBufferHeap(gxapi::IGraphicsApi* graphicsApi);
+
+	ConstBuffer CreateBuffer(DescriptorReference&& viewRef, void* data, size_t dataSize);
+
 	void FrameCompleted();
 
 protected:
+	gxapi::IGraphicsApi* m_graphicsApi;
+
 	exc::RingBuffer<ConstBufferPage> m_largePages;
 	exc::RingBuffer<ConstBufferPage> m_pages;
-	gxapi::IGraphicsApi* m_graphicsApi;
 	std::mutex m_mutex;
 
 protected:
@@ -52,7 +79,6 @@ protected:
 	ConstBufferPage CreateLargePage(size_t fittingSize);
 	bool HasBecomeAvailable(const ConstBufferPage& page);
 };
-
 
 } // namespace gxeng
 } // namespace inl

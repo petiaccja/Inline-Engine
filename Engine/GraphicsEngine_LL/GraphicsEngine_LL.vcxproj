@@ -164,10 +164,8 @@
     <ClInclude Include="CommandListTasks.hpp" />
     <ClInclude Include="CommandQueue.hpp" />
     <ClInclude Include="ComputeCommandList.hpp" />
-    <ClInclude Include="ConstBufferManager.hpp" />
-    <ClInclude Include="ConstBufferPage.hpp" />
+    <ClInclude Include="ConstBufferHeap.hpp" />
     <ClInclude Include="CopyCommandList.hpp" />
-    <ClInclude Include="DisposableConstBuffer.hpp" />
     <ClInclude Include="EntityCollection.hpp" />
     <ClInclude Include="ExecutionContext.hpp" />
     <ClInclude Include="ExecutionResult.hpp" />
@@ -194,6 +192,7 @@
     <ClInclude Include="Scheduler.hpp" />
     <ClInclude Include="ScratchSpacePool.hpp" />
     <ClInclude Include="SmallBufferHeap.hpp" />
+    <ClInclude Include="SubresourceID.hpp" />
     <ClInclude Include="Task.hpp" />
     <ClInclude Include="Texture2D.hpp" />
     <ClInclude Include="GpuBuffer.hpp" />
@@ -208,14 +207,12 @@
     <ClCompile Include="Binder.cpp" />
     <ClCompile Include="CommandAllocatorPool.cpp" />
     <ClCompile Include="ComputeCommandList.cpp" />
+    <ClCompile Include="ConstBufferHeap.cpp" />
     <ClCompile Include="CopyCommandList.cpp" />
     <ClCompile Include="ExecutionContext.cpp" />
     <ClCompile Include="ExecutionResult.cpp" />
     <ClCompile Include="GraphicsCommandList.cpp" />
     <ClCompile Include="GraphicsNodeFactory.cpp" />
-    <ClCompile Include="ConstBufferManager.cpp" />
-    <ClCompile Include="ConstBufferPage.cpp" />
-    <ClCompile Include="DisposableConstBuffer.cpp" />
     <ClCompile Include="HighLevelDescHeap.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="MemoryManager.cpp" />

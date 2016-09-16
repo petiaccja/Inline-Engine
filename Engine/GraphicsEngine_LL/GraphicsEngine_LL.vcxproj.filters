@@ -99,15 +99,6 @@
     <ClInclude Include="Task.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
-    <ClInclude Include="ConstBufferManager.hpp">
-      <Filter>MemoryManagement</Filter>
-    </ClInclude>
-    <ClInclude Include="ConstBufferPage.hpp">
-      <Filter>MemoryManagement</Filter>
-    </ClInclude>
-    <ClInclude Include="DisposableConstBuffer.hpp">
-      <Filter>MemoryManagement</Filter>
-    </ClInclude>
     <ClInclude Include="GpuBuffer.hpp">
       <Filter>MemoryManagement</Filter>
     </ClInclude>
@@ -189,6 +180,12 @@
     <ClInclude Include="Nodes\Node_TescoRender.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
+    <ClInclude Include="ConstBufferHeap.hpp">
+      <Filter>MemoryManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="SubresourceID.hpp">
+      <Filter>MemoryManagement</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -227,15 +224,6 @@
     </ClCompile>
     <ClCompile Include="GraphicsNodeFactory.cpp">
       <Filter>Pipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="ConstBufferPage.cpp">
-      <Filter>MemoryManagement</Filter>
-    </ClCompile>
-    <ClCompile Include="ConstBufferManager.cpp">
-      <Filter>MemoryManagement</Filter>
-    </ClCompile>
-    <ClCompile Include="DisposableConstBuffer.cpp">
-      <Filter>MemoryManagement</Filter>
     </ClCompile>
     <ClCompile Include="GpuBuffer.cpp">
       <Filter>MemoryManagement</Filter>
@@ -283,6 +271,9 @@
       <Filter>Nodes</Filter>
     </ClCompile>
     <ClCompile Include="ResourceHeap.cpp">
+      <Filter>MemoryManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstBufferHeap.cpp">
       <Filter>MemoryManagement</Filter>
     </ClCompile>
   </ItemGroup>

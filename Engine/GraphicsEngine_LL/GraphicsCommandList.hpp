@@ -76,7 +76,7 @@ public:
 	void BindGraphics(BindParameter parameter, Texture1D* shaderResource);
 	void BindGraphics(BindParameter parameter, Texture2D* shaderResource);
 	void BindGraphics(BindParameter parameter, Texture3D* shaderResource);
-	void BindGraphics(BindParameter parameter, DisposableConstBuffer* shaderConstant);
+	void BindGraphics(BindParameter parameter, ConstBuffer* shaderConstant);
 	void BindGraphics(BindParameter parameter, const void* shaderConstant);
 	//void BindGraphics(BindParameter parameter, RWTexture1D* rwResource);
 	//void BindGraphics(BindParameter parameter, RWTexture2D* rwResource);

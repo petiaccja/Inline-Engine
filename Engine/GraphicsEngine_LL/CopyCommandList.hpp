@@ -1,9 +1,9 @@
 #pragma once
 
 #include "GpuBuffer.hpp"
-#include "DisposableConstBuffer.hpp"
 #include "Binder.hpp"
 #include "BasicCommandList.hpp"
+#include "SubresourceID.hpp"
 
 #include "../GraphicsApi_LL/Common.hpp"
 #include "../GraphicsApi_LL/ICommandList.hpp"
@@ -17,35 +17,6 @@ namespace gxapi {
 class ICommandAllocator;
 class IPipelineState;
 }
-}
-
-namespace inl {
-namespace gxeng {
-
-struct SubresourceID {
-	SubresourceID() = default;
-	SubresourceID(gxapi::IResource* resource, unsigned subResource) : resource(resource), subResource(subResource) {}
-
-	bool operator==(const SubresourceID& other) const {
-		return resource == other.resource && subResource == other.subResource;
-	}
-
-	gxapi::IResource* resource;
-	unsigned subResource;
-};
-
-}
-}
-
-
-namespace std {
-using namespace inl;
-template<>
-struct hash<gxeng::SubresourceID> {
-	std::size_t operator()(const gxeng::SubresourceID& instance) const {
-		return std::hash<gxapi::IResource*>{}(instance.resource) ^ std::hash<unsigned>{}(instance.subResource);
-	}
-};
 }
 
 
