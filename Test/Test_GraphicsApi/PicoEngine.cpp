@@ -117,7 +117,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	std::vector<RootParameterDesc> rootParameters = {
 		RootParameterDesc::Constant(32, 0),
 		RootParameterDesc::Cbv(8),
-		RootParameterDesc::DescriptorTable(1, descriptorRanges),
+		//RootParameterDesc::DescriptorTable(1, descriptorRanges),
 	};
 	m_defaultRootSignature.reset(m_graphicsApi->CreateRootSignature(RootSignatureDesc{rootParameters}));
 

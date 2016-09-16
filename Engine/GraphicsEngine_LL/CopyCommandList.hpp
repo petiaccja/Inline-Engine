@@ -25,15 +25,6 @@ namespace gxeng {
 
 class CommandAllocatorPool;
 
-
-struct StateTransitionRegister {
-	gxapi::eResourceState lastTargetState; // Holds the target state of the last transition.
-
-	gxapi::eResourceState firstTargetState; // Holds the target state of the first transition. (Relevant if multipleTransition is true)
-	bool multipleTransition;
-};
-
-
 struct SubTexture1D {
 	SubTexture1D(unsigned mipLevel = 0,
 				 unsigned arrayIndex = 0,
@@ -120,14 +111,11 @@ public:
 	template <class... Barriers>
 	void ResourceBarrier(Barriers&&... barriers);
 
-	void RegisterResourceTransition(const SubresourceID& subresource, gxapi::eResourceState targetState);
-	std::unordered_map<SubresourceID, StateTransitionRegister>& GetResourceTransitions() { return m_resourceTransitions; }
-
+	void SetResourceState(GenericResource* resource, unsigned subresource, gxapi::eResourceState state);
 protected:
 	virtual Decomposition Decompose() override;
 private:
 	gxapi::ICopyCommandList* m_commandList;
-	std::unordered_map<SubresourceID, StateTransitionRegister> m_resourceTransitions;
 };
 
 

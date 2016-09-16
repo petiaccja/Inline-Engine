@@ -99,7 +99,6 @@ public:
 public:
 	UploadHeap(gxapi::IGraphicsApi* graphicsApi);
 
-	//void UploadToResource(gxeng::CopyCommandList& cmdList, LinearBuffer& target, const void* data, size_t size);
 	void UploadToResource(LinearBuffer& target, const void* data, size_t size);
 
 	std::vector<UploadDescription>& _GetQueuedUploads();

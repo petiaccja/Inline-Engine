@@ -30,17 +30,27 @@ public:
 	gxapi::ResourceDesc GetDescription() const;
 	gxapi::DescriptorHandle GetHandle();
 
+	/// <summary> Records the current state of the resource. Does not change resource state, only used for tracking it. </summary>
+	void RecordState(unsigned subresource, gxapi::eResourceState newState);
+	/// <summary> Records the state of all subresources. Does not change resource state, only used for tracking it. </summary>
+	void RecordState(gxapi::eResourceState newState);
+	/// <summary> Returns the current tracked state. </summary>
+	gxapi::eResourceState ReadState(unsigned subresource) const;
+
 	void _SetResident(bool value) noexcept;
 	bool _GetResident() const noexcept;
 
 	gxapi::IResource* _GetResourcePtr() noexcept;
 	const gxapi::IResource* _GetResourcePtr() const noexcept;
-
+protected:
+	void InitResourceStates(gxapi::eResourceState initialState);
 protected:
 	DescriptorReference m_resourceView;
 	//Deleter m_deleter;
 	std::unique_ptr<gxapi::IResource, Deleter> m_resource;
 	bool m_resident;
+private:
+	std::vector<gxapi::eResourceState> m_subresourceStates;
 };
 
 //==================================
@@ -51,9 +61,8 @@ protected:
 
 class LinearBuffer : public GenericResource {
 public:
-	using GenericResource::GenericResource;
-
 	uint64_t GetSize() const;
+	using GenericResource::GenericResource;
 };
 
 using VertexBuffer = LinearBuffer;
@@ -93,6 +102,7 @@ public:
 
 class Texture1D : public GenericTextureBase {
 public:
+	Texture1D();
 	using GenericTextureBase::GenericTextureBase;
 
 	uint16_t GetArrayCount() const;
@@ -101,6 +111,7 @@ public:
 
 class Texture2D : public GenericTextureBase {
 public:
+
 	using GenericTextureBase::GenericTextureBase;
 
 	uint64_t GetHeight() const;
