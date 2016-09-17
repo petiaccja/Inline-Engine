@@ -44,6 +44,7 @@ Task ClearRenderTarget::GetTask() {
 				// cmdList.ResourceBarrier(gxapi::TransitionBarrier{m_target->})
 
 				// clear rtv
+				cmdList.SetResourceState(target, 0, gxapi::eResourceState::RENDER_TARGET);
 				cmdList.SetRenderTargets(1, &target, nullptr);
 				cmdList.ClearRenderTarget(target, clearColor);
 

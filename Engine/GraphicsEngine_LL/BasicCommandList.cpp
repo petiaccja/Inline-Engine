@@ -27,7 +27,7 @@ BasicCommandList::BasicCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorP
 
 
 BasicCommandList::BasicCommandList(BasicCommandList&& rhs)
-	: m_resourceTransitions(std::move(m_resourceTransitions)),
+	: m_resourceTransitions(std::move(rhs.m_resourceTransitions)),
 	m_scratchSpacePool(rhs.m_scratchSpacePool),
 	m_scratchSpaces(std::move(rhs.m_scratchSpaces)),
 	m_commandAllocator(std::move(rhs.m_commandAllocator)),
@@ -37,7 +37,7 @@ BasicCommandList::BasicCommandList(BasicCommandList&& rhs)
 
 
 BasicCommandList& BasicCommandList::operator=(BasicCommandList&& rhs) {
-	m_resourceTransitions = std::move(m_resourceTransitions);
+	m_resourceTransitions = std::move(rhs.m_resourceTransitions);
 	m_scratchSpacePool = rhs.m_scratchSpacePool;
 	m_scratchSpaces = std::move(rhs.m_scratchSpaces);
 	m_commandAllocator = std::move(rhs.m_commandAllocator);
@@ -55,10 +55,9 @@ BasicCommandList::Decomposition BasicCommandList::Decompose() {
 	decomposition.usedResources.reserve(m_resourceTransitions.size());
 
 	// Copy the elements of state transition map to vector w/ transforming types.
-	std::transform(m_resourceTransitions.begin(),
-				   m_resourceTransitions.end(),
-				   std::back_insert_iterator<decltype(decomposition.usedResources)>(decomposition.usedResources),
-				   [](const decltype(m_resourceTransitions)::value_type& in) { return ResourceUsage{ in.first.resource, in.first.subresource, in.second.firstState, in.second.lastState, in.second.multipleStates }; });
+	for (const auto& v : m_resourceTransitions) {
+		decomposition.usedResources.push_back( ResourceUsage{ v.first.resource, v.first.subresource, v.second.firstState, v.second.lastState, v.second.multipleStates } );
+	}
 
 	return decomposition;
 }

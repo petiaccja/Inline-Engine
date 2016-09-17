@@ -19,21 +19,26 @@ using namespace gxapi;
 
 GenericResource::GenericResource(DescriptorReference&& resourceView, gxapi::IResource* resource) :
 	GenericResource(std::move(resourceView), resource, std::default_delete<gxapi::IResource>{})
-{}
+{
+	InitResourceStates(eResourceState::COMMON);
+}
 
 
 GenericResource::GenericResource(DescriptorReference&& resourceView, gxapi::IResource* resource, const Deleter& deleter) :
 	m_resourceView(std::move(resourceView)),
 	m_deleter(deleter),
 	m_resource(resource, m_deleter)
-{}
+{
+	InitResourceStates(eResourceState::COMMON);
+}
 
 
 GenericResource::GenericResource(GenericResource&& other) :
 	m_resourceView(std::move(other.m_resourceView)),
 	m_deleter(std::move(other.m_deleter)),
 	m_resource(other.m_resource.release(), m_deleter),
-	m_resident(other.m_resident)
+	m_resident(other.m_resident),
+	m_subresourceStates(other.m_subresourceStates)
 {
 }
 
@@ -47,6 +52,7 @@ GenericResource& GenericResource::operator=(GenericResource&& other) {
 	m_deleter = std::move(other.m_deleter);
 	m_resource = decltype(m_resource){other.m_resource.release(), m_deleter};
 	m_resident = other.m_resident;
+	m_subresourceStates = other.m_subresourceStates;
 
 	return *this;
 }
@@ -113,7 +119,7 @@ void GenericResource::InitResourceStates(gxapi::eResourceState initialState) {
 				case eTextueDimension::ONE:
 					numSubresources = desc.textureDesc.depthOrArraySize * desc.textureDesc.mipLevels;
 					break;
-				case eTextueDimension::TWO: 
+				case eTextueDimension::TWO:
 					numSubresources = desc.textureDesc.depthOrArraySize * desc.textureDesc.mipLevels;
 					break;
 				case eTextueDimension::THREE:
@@ -121,10 +127,12 @@ void GenericResource::InitResourceStates(gxapi::eResourceState initialState) {
 					break;
 				default: assert(false);
 			}
+			break;
 		}
 		case eResourceType::BUFFER:
 		{
 			numSubresources = 1;
+			break;
 		}
 		default: assert(false);
 	}

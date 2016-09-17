@@ -63,9 +63,20 @@ void Scheduler::Execute(FrameContext context) {
 				});
 
 				// Inject a transition barrier command list.
-				// TODO...
 				auto barriers = InjectBarriers(dec.usedResources.begin(), dec.usedResources.end());
+				if (barriers.size() > 0) {
+					CmdAllocPtr injectAlloc = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::COPY);
+					std::unique_ptr<gxapi::ICopyCommandList> injectList(context.gxApi->CreateCopyCommandList({ injectAlloc.get() }));
 
+					injectList->ResourceBarrier(barriers.size(), barriers.data());
+					injectList->Close();
+
+					EnqueueCommandList(*context.commandQueue,
+									   std::move(injectList),
+									   std::move(injectAlloc),
+									   {},
+									   context);
+				}
 
 				// Enqueue actual command list.
 				std::vector<GenericResource*> usedResourceList;
@@ -74,11 +85,16 @@ void Scheduler::Execute(FrameContext context) {
 					usedResourceList.push_back(v.resource);
 				}
 
-				EnqueueCommandList(*context.commandQueue, std::move(dec.commandList), std::move(dec.commandAllocator), std::move(usedResourceList), context);
+				dec.commandList->Close();
+				EnqueueCommandList(*context.commandQueue,
+								   std::move(dec.commandList),
+								   std::move(dec.commandAllocator),
+								   std::move(usedResourceList),
+								   context);
 
 
 				// Update resource states.
-				// TODO...
+				UpdateResourceStates(dec.usedResources.begin(), dec.usedResources.end());
 			}
 		}
 	}
@@ -117,14 +133,14 @@ void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
 								   const FrameContext& context)
 {
 	// Acquire fences.
-	uint64_t beforeFenceValue = context.commandQueue->IncrementFenceValue();
-	uint64_t afterFenceValue = context.commandQueue->IncrementFenceValue();
 	gxapi::IFence* fence = context.commandQueue->GetFence();
-
+	uint64_t beforeFenceValue = 0;
+	beforeFenceValue = context.commandQueue->IncrementFenceValue();
+	uint64_t afterFenceValue = context.commandQueue->IncrementFenceValue();
 
 	// Enqueue CPU task to make resources resident before the command list runs.
 	// Sets the 'beforeFenceValue' to let the command list execute.
-	auto makeResidentTask = [log = context.log, resources = usedResources, commandList = commandList.get()] {
+	auto makeResidentTask = [log = context.log, resources = usedResources, commandList = commandList.get()]{
 		// careful, 'commandList' is a dangling pointer
 		std::stringstream ss;
 		ss << "Making stuff resident for " << commandList;
@@ -140,15 +156,12 @@ void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
 	// Enqueue the command list itself on the GPU.
 	// Wait for 'beforeFenceValue' to be set.
 	// Sets 'afterFenceValue' when finished.
-	commandList->Close();
-
 	gxapi::ICommandList* execLists[] = {
 		commandList.get(),
 	};
 	context.commandQueue->Wait(fence, beforeFenceValue);
 	context.commandQueue->ExecuteCommandLists(1, execLists);
 	context.commandQueue->Signal(fence, afterFenceValue);
-
 
 	// Enqueue CPU task to clean up resources after command list finished.
 	// Wait for 'afterFenceValue' to be set.
@@ -175,8 +188,25 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 	std::unique_ptr<gxapi::IGraphicsCommandList> commandList(context.gxApi->CreateGraphicsCommandList(gxapi::CommandListDesc{ commandAllocator.get() }));
 
 	gxapi::DescriptorHandle rtvHandle = context.backBuffer->GetHandle();
+
+	if (context.backBuffer->ReadState(0) != gxapi::eResourceState::RENDER_TARGET) {
+		commandList->ResourceBarrier(gxapi::TransitionBarrier(
+			context.backBuffer->_GetResourcePtr(),
+			context.backBuffer->ReadState(0),
+			gxapi::eResourceState::RENDER_TARGET,
+			0));
+	}
+
 	commandList->SetRenderTargets(1, &rtvHandle);
 	commandList->ClearRenderTarget(rtvHandle, color);
+
+	commandList->ResourceBarrier(gxapi::TransitionBarrier(
+		context.backBuffer->_GetResourcePtr(),
+		gxapi::eResourceState::RENDER_TARGET,
+		gxapi::eResourceState::PRESENT,
+		0));
+	context.backBuffer->RecordState(0, gxapi::eResourceState::PRESENT);
+
 	commandList->Close();
 
 	uint64_t afterFenceValue = context.commandQueue->IncrementFenceValue();
