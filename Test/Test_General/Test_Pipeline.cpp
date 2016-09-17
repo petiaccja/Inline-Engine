@@ -131,7 +131,7 @@ int TestPipeline::Run() {
 	cout << "Creating pipeline..." << endl;
 
 	Pipeline pipeline;
-	Scheduler scheduler;
+	//Scheduler scheduler;
 
 	try {		
 		// create a few nodes
@@ -209,7 +209,7 @@ int TestPipeline::Run() {
 		file.close();
 
 		// execute pipeline
-		scheduler.SetPipeline(std::move(pipeline));
+		//scheduler.SetPipeline(std::move(pipeline));
 
 
 		//scheduler.Execute();

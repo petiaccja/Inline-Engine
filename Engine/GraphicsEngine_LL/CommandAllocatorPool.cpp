@@ -1,6 +1,7 @@
 #include "CommandAllocatorPool.hpp"
 
 #include <algorithm>
+#include <cassert>
 
 
 
@@ -50,6 +51,18 @@ void CommandAllocatorPool::RecycleAllocator(gxapi::ICommandAllocator* allocator)
 
 gxapi::IGraphicsApi* CommandAllocatorPool::GetGraphicsApi() const {
 	return m_gxPool.GetGraphicsApi();
+}
+
+
+
+void CommandAllocatorPool::SetLogStream(exc::LogStream* logStream){
+	m_cpPool.SetLogStream(logStream);
+	m_cuPool.SetLogStream(logStream);
+	m_gxPool.SetLogStream(logStream);
+}
+
+exc::LogStream* CommandAllocatorPool::GetLogStream() const {
+	return m_gxPool.GetLogStream();
 }
 
 

@@ -21,9 +21,9 @@ public:
 
 	ID3D12Fence* GetNative();
 
-	uint64_t Fetch() override;
+	uint64_t Fetch() const override;
 	void Signal(uint64_t value) override;
-	void Wait(uint64_t value, uint64_t timeoutMillis = FOREVER) override;
+	void Wait(uint64_t value, uint64_t timeoutMillis = FOREVER) const override;
 
 protected:
 	ComPtr<ID3D12Fence> m_native;

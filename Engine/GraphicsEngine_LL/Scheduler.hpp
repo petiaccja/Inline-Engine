@@ -5,7 +5,9 @@
 #include "FrameContext.hpp"
 
 #include <BaseLibrary/optional.hpp>
-
+#include <GraphicsApi_LL/IFence.hpp>
+#include <memory>
+#include <cstdint>
 
 namespace inl {
 namespace gxeng {
@@ -14,6 +16,8 @@ namespace gxeng {
 
 class Scheduler {
 public:
+	explicit Scheduler(gxapi::IGraphicsApi* gxApi);
+
 	// don't let anyone else 'own' the pipeline
 	void SetPipeline(Pipeline&& pipeline);
 	const Pipeline& GetPipeline() const;
@@ -31,11 +35,11 @@ protected:
 	static void MakeResident(std::vector<GenericResource*> usedResources);
 	static void Evict(std::vector<GenericResource*> usedResources);
 
-	static void EnqueueCommandList(CommandQueue& commandQueue,
-								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
-								   CmdAllocPtr commandAllocator,
-								   std::vector<GenericResource*> usedResources,
-								   const FrameContext& context);
+	void EnqueueCommandList(CommandQueue& commandQueue,
+		std::unique_ptr<gxapi::ICopyCommandList> commandList,
+		CmdAllocPtr commandAllocator,
+		std::vector<GenericResource*> usedResources,
+		const FrameContext& context);
 
 	template <class UsedResourceIter>
 	static std::vector<gxapi::ResourceBarrier> Scheduler::InjectBarriers(UsedResourceIter firstResource, UsedResourceIter lastResource);
@@ -46,9 +50,11 @@ protected:
 	template <class UsedResourceIter>
 	static void UpdateResourceStates(UsedResourceIter firstResource, UsedResourceIter lastResource);
 
-	static void RenderFailureScreen(FrameContext context);
+	void RenderFailureScreen(FrameContext context);
 private:
 	Pipeline m_pipeline;
+	std::unique_ptr<gxapi::IFence> m_syncFence;
+	uint64_t m_syncFenceValue;
 };
 
 
@@ -66,7 +72,7 @@ std::vector<gxapi::ResourceBarrier> Scheduler::InjectBarriers(UsedResourceIter f
 		gxapi::eResourceState sourceState = resource->ReadState(subresource);
 
 		if (sourceState != targetState) {
-			barriers.push_back(gxapi::TransitionBarrier{nullptr, sourceState, targetState, subresource} );
+			barriers.push_back(gxapi::TransitionBarrier{ resource->_GetResourcePtr(), sourceState, targetState, subresource });
 		}
 	}
 
@@ -91,7 +97,7 @@ bool Scheduler::CanExecuteParallel(UsedResourceIter1 first1, UsedResourceIter1 l
 			// If the resources are the same, but uses are incompatible, return false.
 			if (it1->firstState != it2->firstState
 				|| it1->multipleUse
-				|| it2->multipleUse) 
+				|| it2->multipleUse)
 			{
 				return false;
 			}

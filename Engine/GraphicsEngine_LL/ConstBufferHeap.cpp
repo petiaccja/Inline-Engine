@@ -1,26 +1,20 @@
-
-#include "ConstBufferManager.hpp"
-
-#include "../GraphicsApi_LL/Exception.hpp"
-#include "../BaseLibrary/ScalarLiterals.hpp"
+#include "ConstBufferHeap.hpp"
 
 #include <cassert>
 
 namespace inl {
 namespace gxeng {
 
-using namespace inl::gxapi;
 
-ConstBufferManager::ConstBufferManager(gxapi::IGraphicsApi* graphicsApi) :
-	m_graphicsApi{graphicsApi}
+ConstantBufferHeap::ConstantBufferHeap(gxapi::IGraphicsApi* graphicsApi) :
+	m_graphicsApi(graphicsApi)
 {
-	m_pages.PushFront(std::move(CreatePage()));
+	m_pages.PushFront(CreatePage());
 }
 
 
-// this function might be called from infinite threads at the same time
-DisposableConstBuffer ConstBufferManager::GetDisposableBuffer(size_t size) {
-	size = AlignUp(size, ALIGNEMENT);
+ConstBuffer ConstantBufferHeap::CreateBuffer(DescriptorReference&& viewRef, void* data, size_t dataSize) {
+	size_t targetSize = AlignUp(dataSize, ALIGNEMENT);
 
 	std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -30,11 +24,10 @@ DisposableConstBuffer ConstBufferManager::GetDisposableBuffer(size_t size) {
 
 	ConstBufferPage* targetPage = nullptr;
 
-	if (m_pages.Front().m_consumedSize + size > m_pages.Front().m_pageSize) {
-		if (size > PAGE_SIZE) {
-			//throw inl::gxapi::OutOfMemory("Requested buffer size is bigger than page size. Buffer can not be created. Max size (page size) is: " + std::to_string(PAGE_SIZE));
+	if (m_pages.Front().m_consumedSize + targetSize > m_pages.Front().m_pageSize) {
+		if (targetSize > PAGE_SIZE) {
 			if (m_largePages.Count() == 0) {
-				m_largePages.PushFront(std::move(CreateLargePage(size)));
+				m_largePages.PushFront(std::move(CreateLargePage(targetSize)));
 			}
 			else {
 				if (HasBecomeAvailable(m_largePages.Front())) {
@@ -47,14 +40,14 @@ DisposableConstBuffer ConstBufferManager::GetDisposableBuffer(size_t size) {
 					m_largePages.RotateFront())
 				{
 					auto& currPage = m_largePages.Front();
-					if (currPage.m_consumedSize + size <= currPage.m_pageSize) {
+					if (currPage.m_consumedSize + targetSize <= currPage.m_pageSize) {
 						break; // current front will be selected as the target page, see below
 					}
 				}
 
 				bool noSuitable = roundEnd == m_largePages.Begin();
 				if (noSuitable) {
-					m_largePages.PushFront(std::move(CreateLargePage(size)));
+					m_largePages.PushFront(std::move(CreateLargePage(targetSize)));
 				}
 			}
 
@@ -83,14 +76,27 @@ DisposableConstBuffer ConstBufferManager::GetDisposableBuffer(size_t size) {
 	// used from the page
 	targetPage->m_age = 0;
 	size_t offset = targetPage->m_consumedSize;
-	targetPage->m_consumedSize += size;
-	DisposableConstBuffer result{targetPage, offset, size};
+	targetPage->m_consumedSize += targetSize;
 
-	return result;
+	void* cpuPtr = ((uint8_t*)targetPage->m_cpuAddress) + offset;
+	void* gpuPtr = ((uint8_t*)targetPage->m_gpuAddress) + offset;
+
+	memcpy(cpuPtr, data, dataSize);
+
+	gxapi::ConstantBufferViewDesc cbvDesc;
+	cbvDesc.gpuVirtualAddress = gpuPtr;
+	cbvDesc.sizeInBytes = targetSize;
+	m_graphicsApi->CreateConstantBufferView(cbvDesc, viewRef.Get());
+
+	//TODO deleter is only a placeholder here. A deleter that marks a const buffer available to overwrite is needed.
+	return ConstBuffer(std::move(viewRef), targetPage->m_representedMemory.get(), gpuPtr, [](gxapi::IResource*){});
 }
 
 
-void ConstBufferManager::FrameCompleted() {
+void ConstantBufferHeap::FrameCompleted() {
+	//TODO this is temporary.
+	return; //Do not clear the old buffers.
+
 	std::lock_guard<std::mutex> lock(m_mutex);
 
 	for (auto& curr : m_pages) {
@@ -118,27 +124,29 @@ void ConstBufferManager::FrameCompleted() {
 }
 
 
-size_t ConstBufferManager::AlignUp(size_t value, size_t alignement) {
+size_t ConstantBufferHeap::AlignUp(size_t value, size_t alignement) {
 	// alignement should be power of two
 	assert(((alignement-1) & alignement) == 0);
 	return (value + (alignement-1)) & ~(alignement-1);
 }
 
 
-ConstBufferPage ConstBufferManager::CreatePage() {
+ConstantBufferHeap::ConstBufferPage ConstantBufferHeap::CreatePage() {
 	return CreateLargePage(PAGE_SIZE);
 }
 
 
-ConstBufferPage ConstBufferManager::CreateLargePage(size_t fittingSize) {
-	ResourceDesc bufferDesc;
-	bufferDesc.type = eResourceType::BUFFER;
-	bufferDesc.bufferDesc.sizeInBytes = AlignUp(fittingSize, PAGE_SIZE);
-	std::unique_ptr<gxapi::IResource> resource;
-	resource.reset(m_graphicsApi->CreateCommittedResource(HeapProperties{eHeapType::UPLOAD},
-	                                                      eHeapFlags::NONE,
-	                                                      bufferDesc,
-	                                                      eResourceState::GENERIC_READ));
+ConstantBufferHeap::ConstBufferPage ConstantBufferHeap::CreateLargePage(size_t fittingSize) {
+	gxapi::ResourceDesc bufferDesc;
+	bufferDesc.type = gxapi::eResourceType::BUFFER;
+	bufferDesc.bufferDesc.sizeInBytes = AlignUp(fittingSize, ALIGNEMENT);
+	std::unique_ptr<gxapi::IResource> resource{
+		m_graphicsApi->CreateCommittedResource(gxapi::HeapProperties{gxapi::eHeapType::UPLOAD},
+			gxapi::eHeapFlags::NONE,
+			bufferDesc,
+			gxapi::eResourceState::GENERIC_READ
+		)
+	};
 
 	gxapi::MemoryRange noReadRange{0, 0};
 	void* cpuAddress = resource->Map(0, &noReadRange);
@@ -149,10 +157,9 @@ ConstBufferPage ConstBufferManager::CreateLargePage(size_t fittingSize) {
 }
 
 
-bool ConstBufferManager::HasBecomeAvailable(const ConstBufferPage& page) {
+bool ConstantBufferHeap::HasBecomeAvailable(const ConstBufferPage& page) {
 	return page.m_age >= CMDLIST_FINISH_FRAME_COUNT;
 }
-
 
 } // namespace gxeng
 } // namespace inl

@@ -11,6 +11,7 @@
 #include <cassert>
 
 #include <iostream> // only for debug
+#include "BaseLibrary/Logging/LogStream.hpp"
 
 
 namespace inl {
@@ -57,11 +58,15 @@ namespace impl {
 		void Reset(size_t initialSize = 1);
 
 		gxapi::IGraphicsApi* GetGraphicsApi() const { return m_gxApi; }
+
+		void SetLogStream(exc::LogStream* logStream) { m_logStream = logStream; }
+		exc::LogStream* GetLogStream() const { return m_logStream; }
 	private:
 		std::vector<std::unique_ptr<gxapi::ICommandAllocator>> m_pool;
 		exc::SlabAllocatorEngine m_allocator;
 		gxapi::IGraphicsApi* m_gxApi;
 		std::map<gxapi::ICommandAllocator*, size_t> m_addressToIndex;
+		exc::LogStream* m_logStream = nullptr;
 	};
 
 
@@ -102,7 +107,6 @@ namespace impl {
 
 			index = m_allocator.Allocate();
 		}
-		std::cout << "allocate " << index << std::endl;
 
 		if (m_pool[index] != nullptr) {
 			return UniquePtr{ m_pool[index].get(), Deleter{this} };
@@ -118,10 +122,15 @@ namespace impl {
 
 	template <gxapi::eCommandListType TYPE>
 	void CommandAllocatorPool<TYPE>::RecycleAllocator(gxapi::ICommandAllocator* allocator) {
+		if (m_logStream) {
+			std::stringstream ss;
+			ss << "Recycling: " << allocator;
+			m_logStream->Event(ss.str());
+		}
+
 		allocator->Reset();
 		assert(m_addressToIndex.count(allocator) > 0);
 		size_t index = m_addressToIndex[allocator];
-		std::cout << "free " << index << std::endl;
 		m_allocator.Deallocate(index);
 	}
 
@@ -152,6 +161,9 @@ public:
 	void RecycleAllocator(gxapi::ICommandAllocator* allocator);
 
 	gxapi::IGraphicsApi* GetGraphicsApi() const;
+
+	void SetLogStream(exc::LogStream* logStream);
+	exc::LogStream* GetLogStream() const;
 private:
 	impl::CommandAllocatorPool<gxapi::eCommandListType::GRAPHICS> m_gxPool;
 	impl::CommandAllocatorPool<gxapi::eCommandListType::COMPUTE> m_cuPool;

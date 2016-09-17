@@ -38,9 +38,9 @@ private:
 
 int TestAllocator::Run() {
 	// create a pool
-	constexpr int PoolSize = 1000'000;
+	constexpr int PoolSize = 100'000;
 
-	exc::SlabAllocatorEngine engine(PoolSize);
+	exc::SlabAllocatorEngine engine(1);
 
 	int idx = engine.Allocate();
 	engine.Deallocate(idx);
@@ -80,7 +80,14 @@ int TestAllocator::Run() {
 	try {
 		// initial load
 		for (int i = 0; i < BatchSize; ++i) {
-			auto index = engine.Allocate();
+			size_t index = 0;
+			try {
+				index = engine.Allocate();
+			}
+			catch (...)	{
+				engine.Resize(engine.Size() * 1.2f + 1);
+				index = engine.Allocate();
+			}
 			++counter[index];
 			allocations.push_back(index);
 		}
@@ -89,7 +96,14 @@ int TestAllocator::Run() {
 		for (int j = 0; j < NumCycles; j++) {
 			// allocate stuff
 			for (int i = 0; i < BatchSize; ++i) {
-				auto index = engine.Allocate();
+				size_t index = 0;
+				try {
+					index = engine.Allocate();
+				}
+				catch (...) {
+					engine.Resize(engine.Size() * 1.2f + 1);
+					index = engine.Allocate();
+				}
 				++counter[index];
 				allocations.push_back(index);
 			}

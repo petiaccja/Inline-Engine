@@ -30,7 +30,8 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_scratchSpacePool(desc.graphicsApi),
 	m_gxapiManager(desc.gxapiManager),
 	m_graphicsApi(desc.graphicsApi),
-	m_masterCommandQueue(desc.graphicsApi->CreateCommandQueue(CommandQueueDesc{ eCommandListType::GRAPHICS }), desc.graphicsApi->CreateFence(0))
+	m_masterCommandQueue(desc.graphicsApi->CreateCommandQueue(CommandQueueDesc{ eCommandListType::GRAPHICS }), desc.graphicsApi->CreateFence(0)),
+	m_scheduler(m_graphicsApi)
 {
 	// Create swapchain
 	SwapChainDesc swapChainDesc;
@@ -44,7 +45,7 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	swapChainDesc.multiSampleQuality = 0;
 	m_swapChain.reset(m_gxapiManager->CreateSwapChain(swapChainDesc, m_masterCommandQueue.GetUnderlyingQueue()));
 
-	m_frameEndFenceValues.resize(m_swapChain->GetDesc().numBuffers, 0);
+	m_frameEndFenceValues.resize(m_swapChain->GetDesc().numBuffers, {nullptr, 0});
 
 	// Init backbuffer heap
 	m_backBufferHeap = std::make_unique<BackBufferHeap>(m_graphicsApi, m_swapChain.get());
@@ -66,13 +67,11 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 
 	// Init misc stuff
 	m_absoluteTime = decltype(m_absoluteTime)(0);
+	//m_commandAllocatorPool.SetLogStream(&m_logStreamPipeline);
 }
 
 
 GraphicsEngine::~GraphicsEngine() {
-	// Flush all the things.
-	m_masterCommandQueue.GetFence()->Signal(std::numeric_limits<uint64_t>::max());
-
 	// Stop tasks.
 	m_runInitCleanTasks = false;
 	m_initCv.notify_all();
@@ -90,7 +89,9 @@ void GraphicsEngine::Update(float elapsed) {
 
 	// Wait for previous frame on this BB to complete
 	int backBufferIndex = m_swapChain->GetCurrentBufferIndex();
-	m_masterCommandQueue.GetFence()->Wait(m_frameEndFenceValues[backBufferIndex]);
+	if (m_frameEndFenceValues[backBufferIndex].first != nullptr) {
+		m_frameEndFenceValues[backBufferIndex].first->Wait(m_frameEndFenceValues[backBufferIndex].second);
+	}
 
 	// Set up context
 	FrameContext context;
@@ -117,8 +118,7 @@ void GraphicsEngine::Update(float elapsed) {
 	m_scheduler.Execute(context);
 
 	// Mark frame completion
-	m_frameEndFenceValues[backBufferIndex] = m_masterCommandQueue.IncrementFenceValue();
-	m_masterCommandQueue.Signal(m_masterCommandQueue.GetFence(), m_frameEndFenceValues[backBufferIndex]);
+	m_frameEndFenceValues[backBufferIndex] = m_masterCommandQueue.Signal();
 
 	// Flush log
 	m_logger.Flush();

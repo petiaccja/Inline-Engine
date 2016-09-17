@@ -130,6 +130,7 @@ void SlabAllocatorEngine::Resize(size_t newPoolSize) {
 		// commit new storage space
 		m_blocks = std::move(newBlocks);
 		m_first = prevFree < (intptr_t)m_blocks.size() ? m_blocks.data() + prevFree : nullptr;
+		m_poolSize = newPoolSize;
 	}
 	else {
 		m_blocks.clear();

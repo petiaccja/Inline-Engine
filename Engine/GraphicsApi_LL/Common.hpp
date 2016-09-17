@@ -1488,16 +1488,28 @@ struct ResourceBarrier {
 		TransitionBarrier transition;
 	};
 	ResourceBarrier() {}
+	ResourceBarrier(const ResourceBarrier& rhs) {
+		memcpy(this, &rhs, sizeof(*this));
+	}
 	ResourceBarrier(const TransitionBarrier& rhs) {
 		type = eResourceBarrierType::TRANSITION;
 		transition = rhs;
 	}
+
+	ResourceBarrier& operator=(const ResourceBarrier& rhs) {
+		memcpy(this, &rhs, sizeof(*this));
+		return *this;
+	}
+
 	ResourceBarrier& operator=(const TransitionBarrier& rhs) {
 		type = eResourceBarrierType::TRANSITION;
 		transition = rhs;
 		return *this;
 	}
 };
+
+
+constexpr auto RESOURCE_BARRIER_ALL_SUBRESOURCES = std::numeric_limits<unsigned int>::max();
 
 //------------------------------------------------------------------------------
 // User helper functions

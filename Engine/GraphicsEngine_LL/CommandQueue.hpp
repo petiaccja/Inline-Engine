@@ -14,10 +14,10 @@ class CommandQueue {
 public:
 	// Consturctors
 	CommandQueue(gxapi::IGraphicsApi* graphicsApi, gxapi::eCommandListType type, gxapi::eCommandQueuePriority priority = gxapi::eCommandQueuePriority::NORMAL)
-		: m_commandQueue(graphicsApi->CreateCommandQueue(gxapi::CommandQueueDesc{type, priority})), m_fence(graphicsApi->CreateFence(0))
+		: m_commandQueue(graphicsApi->CreateCommandQueue(gxapi::CommandQueueDesc{type, priority})), m_progressFence(graphicsApi->CreateFence(0))
 	{}
 	CommandQueue(gxapi::ICommandQueue* queue, gxapi::IFence* fence)
-		: m_commandQueue(queue), m_fence(fence)
+		: m_commandQueue(queue), m_progressFence(fence)
 	{}
 	
 	// General
@@ -30,21 +30,15 @@ public:
 	}
 
 
-	// Fence stuff
-	gxapi::IFence* GetFence() {
-		return m_fence.get();
+	// Synchronization stuff
+	std::pair<const gxapi::IFence*, uint64_t> Signal() {
+		++m_fenceValue;
+		m_commandQueue->Signal(m_progressFence.get(), m_fenceValue);
+		return{ m_progressFence.get(), m_fenceValue };
 	}
 
-	const gxapi::IFence* GetFence() const {
-		return m_fence.get();
-	}
-
-	unsigned long long GetFenceValue() const {
-		return m_fenceValue;
-	}
-
-	unsigned long long IncrementFenceValue() {
-		return ++m_fenceValue;
+	void Wait(gxapi::IFence* fence, uint64_t value) {
+		return m_commandQueue->Wait(fence, value);
 	}
 
 
@@ -53,19 +47,12 @@ public:
 		m_commandQueue->ExecuteCommandLists(numCommandLists, commandLists);
 	}
 
-	void Signal(gxapi::IFence* fence, uint64_t value) {
-		return m_commandQueue->Signal(fence, value);
-	}
-	void Wait(gxapi::IFence* fence, uint64_t value) {
-		return m_commandQueue->Wait(fence, value);
-	}
-
 	gxapi::CommandQueueDesc GetDesc() const {
 		return m_commandQueue->GetDesc();
 	}
 private:
 	std::unique_ptr<gxapi::ICommandQueue> m_commandQueue;
-	std::unique_ptr<gxapi::IFence> m_fence;
+	std::unique_ptr<gxapi::IFence> m_progressFence;
 	unsigned long long m_fenceValue = 0;
 };
 

@@ -86,7 +86,7 @@ private:
 	std::mutex m_commandAllocatorMutex;
 	Scheduler m_scheduler;
 	Pipeline m_pipeline;
-	std::vector<uint64_t> m_frameEndFenceValues;
+	std::vector<std::pair<const gxapi::IFence*, uint64_t>> m_frameEndFenceValues;
 
 	// Memory
 	std::unique_ptr<BackBufferHeap> m_backBufferHeap;

@@ -1,11 +1,18 @@
 #include "Scheduler.hpp"
 
+#include <GraphicsApi_LL/IGraphicsApi.hpp>
+
 #include <cassert>
 #include <iostream> // only for debugging
-#include "GraphicsApi_D3D12/DescriptorHeap.hpp"
 
 namespace inl {
 namespace gxeng {
+
+
+Scheduler::Scheduler(gxapi::IGraphicsApi* gxApi) 
+	: m_syncFence(gxApi->CreateFence(0)),
+	m_syncFenceValue(0)
+{}
 
 void Scheduler::SetPipeline(Pipeline&& pipeline) {
 	m_pipeline = std::move(pipeline);
@@ -65,17 +72,17 @@ void Scheduler::Execute(FrameContext context) {
 				// Inject a transition barrier command list.
 				auto barriers = InjectBarriers(dec.usedResources.begin(), dec.usedResources.end());
 				if (barriers.size() > 0) {
-					CmdAllocPtr injectAlloc = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::COPY);
-					std::unique_ptr<gxapi::ICopyCommandList> injectList(context.gxApi->CreateCopyCommandList({ injectAlloc.get() }));
+					CmdAllocPtr injectAlloc = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
+					std::unique_ptr<gxapi::ICopyCommandList> injectList(context.gxApi->CreateGraphicsCommandList({ injectAlloc.get() }));
 
-					injectList->ResourceBarrier(barriers.size(), barriers.data());
+					injectList->ResourceBarrier((unsigned)barriers.size(), barriers.data());
 					injectList->Close();
 
 					EnqueueCommandList(*context.commandQueue,
-									   std::move(injectList),
-									   std::move(injectAlloc),
-									   {},
-									   context);
+						std::move(injectList),
+						std::move(injectAlloc),
+						{},
+						context);
 				}
 
 				// Enqueue actual command list.
@@ -86,11 +93,12 @@ void Scheduler::Execute(FrameContext context) {
 				}
 
 				dec.commandList->Close();
+
 				EnqueueCommandList(*context.commandQueue,
-								   std::move(dec.commandList),
-								   std::move(dec.commandAllocator),
-								   std::move(usedResourceList),
-								   context);
+					std::move(dec.commandList),
+					std::move(dec.commandAllocator),
+					std::move(usedResourceList),
+					context);
 
 
 				// Update resource states.
@@ -127,68 +135,61 @@ void Scheduler::Evict(std::vector<GenericResource*> usedResources) {
 
 
 void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
-								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
-								   CmdAllocPtr commandAllocator,
-								   std::vector<GenericResource*> usedResources,
-								   const FrameContext& context)
+	std::unique_ptr<gxapi::ICopyCommandList> commandList,
+	CmdAllocPtr commandAllocator,
+	std::vector<GenericResource*> usedResources,
+	const FrameContext& context)
 {
-	// Acquire fences.
-	gxapi::IFence* fence = context.commandQueue->GetFence();
-	uint64_t beforeFenceValue = 0;
-	beforeFenceValue = context.commandQueue->IncrementFenceValue();
-	uint64_t afterFenceValue = context.commandQueue->IncrementFenceValue();
-
 	// Enqueue CPU task to make resources resident before the command list runs.
-	// Sets the 'beforeFenceValue' to let the command list execute.
 	auto makeResidentTask = [log = context.log, resources = usedResources, commandList = commandList.get()]{
 		// careful, 'commandList' is a dangling pointer
 		std::stringstream ss;
 		ss << "Making stuff resident for " << commandList;
-		log->Event(ss.str());
+		//log->Event(ss.str());
 	};
 	// Push task to queue.
 	std::unique_lock<std::mutex> initLkg(*context.initMutex);
-	context.initQueue->push({ makeResidentTask, fence, beforeFenceValue });
+	context.initQueue->push({ makeResidentTask, m_syncFence.get(), ++m_syncFenceValue });
 	initLkg.unlock();
 	context.initCv->notify_all();
 
 
 	// Enqueue the command list itself on the GPU.
-	// Wait for 'beforeFenceValue' to be set.
-	// Sets 'afterFenceValue' when finished.
 	gxapi::ICommandList* execLists[] = {
 		commandList.get(),
 	};
-	context.commandQueue->Wait(fence, beforeFenceValue);
+	context.commandQueue->Wait(m_syncFence.get(), m_syncFenceValue);
 	context.commandQueue->ExecuteCommandLists(1, execLists);
-	context.commandQueue->Signal(fence, afterFenceValue);
+	auto gpuSyncPoint = context.commandQueue->Signal();
 
 	// Enqueue CPU task to clean up resources after command list finished.
-	// Wait for 'afterFenceValue' to be set.
 	auto evictTask = [log = context.log, resources = usedResources, commandList = commandList.get(), commandAllocator = std::shared_ptr<gxapi::ICommandAllocator>(std::move(commandAllocator))]{
 		// careful, 'commandList' is a dangling pointer
 		std::stringstream ss;
 		ss << "Cleaning stuff after " << commandList;
-		log->Event(ss.str());
+		//log->Event(ss.str());
 	};
 	// Push task to queue.
 	std::unique_lock<std::mutex> cleanLkg(*context.cleanMutex);
-	context.cleanQueue->push({ std::move(evictTask), fence, afterFenceValue });
+	context.cleanQueue->push({ std::move(evictTask), gpuSyncPoint.first, gpuSyncPoint.second});
 	cleanLkg.unlock();
 	context.cleanCv->notify_all();
 }
 
 
 void Scheduler::RenderFailureScreen(FrameContext context) {
+	// Decide wether to show blinking image.
 	std::chrono::milliseconds elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(context.absoluteTime);
-	int colorMultiplier = elapsed.count() / 800 % 2;
+	int colorMultiplier = elapsed.count() / 400 % 2;
 	gxapi::ColorRGBA color{ 0.87f * colorMultiplier, 0, 0 };
 
+	// Create command allocator & list.
 	auto commandAllocator = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
 	std::unique_ptr<gxapi::IGraphicsCommandList> commandList(context.gxApi->CreateGraphicsCommandList(gxapi::CommandListDesc{ commandAllocator.get() }));
 
 	gxapi::DescriptorHandle rtvHandle = context.backBuffer->GetHandle();
 
+	// Transition backbuffer to RTV.
 	if (context.backBuffer->ReadState(0) != gxapi::eResourceState::RENDER_TARGET) {
 		commandList->ResourceBarrier(gxapi::TransitionBarrier(
 			context.backBuffer->_GetResourcePtr(),
@@ -197,9 +198,40 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 			0));
 	}
 
+	// Set RTV.
 	commandList->SetRenderTargets(1, &rtvHandle);
-	commandList->ClearRenderTarget(rtvHandle, color);
 
+	// Draw image.
+	int width = (int)context.backBuffer->GetWidth();
+	int height = (int)context.backBuffer->GetHeight();
+	commandList->ClearRenderTarget(rtvHandle, gxapi::ColorRGBA{ 0.2f, 0.2f, 0.2f });
+	std::vector<gxapi::Rectangle> rects;
+	for (float t = 0.2f; t < 0.8005f; t += 0.05f) {
+		int cx = int(t * width);
+		int cy = int(t * height);
+		gxapi::Rectangle rect;
+		rect.top = cy - height / 16;
+		rect.bottom = cy + height / 16;
+		rect.left = cx - width / 16;
+		rect.right = cx + width / 16;
+		rects.push_back(rect);
+	}
+	commandList->ClearRenderTarget(rtvHandle, color, rects.size(), rects.data());
+	rects.clear();
+	for (float t = 0.2f; t < 0.8005f; t += 0.05f) {
+		int cx = int(t * width);
+		int cy = int((1 - t) * height);
+		gxapi::Rectangle rect;
+		rect.top = cy - height / 16;
+		rect.bottom = cy + height / 16;
+		rect.left = cx - width / 16;
+		rect.right = cx + width / 16;
+		rects.push_back(rect);
+	}
+	commandList->ClearRenderTarget(rtvHandle, color, rects.size(), rects.data());
+
+
+	// Transition backbuffer to PRESENT.
 	commandList->ResourceBarrier(gxapi::TransitionBarrier(
 		context.backBuffer->_GetResourcePtr(),
 		gxapi::eResourceState::RENDER_TARGET,
@@ -207,26 +239,9 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 		0));
 	context.backBuffer->RecordState(0, gxapi::eResourceState::PRESENT);
 
+	// Enqueue command list.
 	commandList->Close();
-
-	uint64_t afterFenceValue = context.commandQueue->IncrementFenceValue();
-	gxapi::IFence* fence = context.commandQueue->GetFence();
-
-	// Enqueue command list
-	gxapi::ICommandList* execLists[] = {
-		commandList.get(),
-	};
-	context.commandQueue->ExecuteCommandLists(1, execLists);
-	context.commandQueue->Signal(fence, afterFenceValue);
-
-	// Push task only to delay release of command allocator.
-	auto evictTask = [log = context.log, commandAllocator = std::shared_ptr<gxapi::ICommandAllocator>(std::move(commandAllocator))]{
-		// empty on prupose
-	};
-	std::unique_lock<std::mutex> cleanLkg(*context.cleanMutex);
-	context.cleanQueue->push({ std::move(evictTask), fence, afterFenceValue });
-	cleanLkg.unlock();
-	context.cleanCv->notify_all();
+	EnqueueCommandList(*context.commandQueue, std::move(commandList), std::move(commandAllocator), {}, context);
 }
 
 

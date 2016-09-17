@@ -19,7 +19,7 @@ struct InitTask {
 
 struct CleanTask {
 	std::function<void()> task;
-	gxapi::IFence* waitThisFence;
+	const gxapi::IFence* waitThisFence;
 	unsigned long long toReachThisValue;
 };
 

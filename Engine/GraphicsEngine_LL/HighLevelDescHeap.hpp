@@ -17,9 +17,7 @@ class ScratchSpace;
 
 class DescriptorReference {
 public:
-	friend class HighLevelDescHeap;
-	friend class BackBufferHeap;
-	friend class UploadHeap;
+	DescriptorReference(const gxapi::DescriptorHandle& handle, const std::function<void(void)>& deleter);
 
 	DescriptorReference(const DescriptorReference&) = delete;
 	DescriptorReference& operator=(const DescriptorReference&) = delete;
@@ -39,8 +37,6 @@ public:
 	bool IsValid() const;
 
 protected:
-	DescriptorReference() = default;
-
 	void Invalidate();
 
 protected:

@@ -3,6 +3,7 @@
 #include "HighLevelDescHeap.hpp"
 #include "GpuBuffer.hpp"
 #include "ResourceHeap.hpp"
+#include "ConstBufferHeap.hpp"
 
 #include "../GraphicsApi_LL/Common.hpp"
 #include "../GraphicsApi_D3D12/DescriptorHeap.hpp"
@@ -40,6 +41,8 @@ public:
 	template<typename IterT>
 	void UnlockResident(IterT begin, IterT end);
 
+	ConstBuffer CreateConstBuffer(void* data, size_t size);
+
 	VertexBuffer* CreateVertexBuffer(eResourceHeapType heap, size_t size);
 	IndexBuffer* CreateIndexBuffer(eResourceHeapType heap, size_t size);
 	Texture1D* CreateTexture1D(eResourceHeapType heap, uint64_t width, gxapi::eFormat format, uint16_t arraySize = 1);
@@ -53,20 +56,13 @@ protected:
 	HighLevelDescHeap* m_descHeap;
 	impl::CriticalBufferHeap m_criticalHeap;
 
+	ConstantBufferHeap m_constBufferHeap;
+
 	std::mutex m_evictablesMtx;
 	std::unordered_set<GenericResource*> m_evictables;
 
 protected:
-	struct InitialResourceParameters {
-		InitialResourceParameters(DescriptorReference&& d) : desc(std::move(d)) {}
-
-		DescriptorReference desc;
-		gxapi::IResource* resource;		
-		bool residency;
-	};
-
-
-	InitialResourceParameters AllocateResource(eResourceHeapType heap, const gxapi::ResourceDesc& desc);
+	impl::InitialResourceParameters AllocateResource(eResourceHeapType heap, const gxapi::ResourceDesc& desc);
 };
 
 

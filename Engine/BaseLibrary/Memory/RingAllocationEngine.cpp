@@ -11,8 +11,8 @@ RingAllocationEngine::CellContainer::CellContainer(size_t size) :
 
 
 void RingAllocationEngine::CellContainer::Set(size_t index, eCellState value) {
-	bool first = int(value) >> 1;
-	bool second = int(value) & 1;
+	bool first = (int(value) >> 1) != 0;
+	bool second = (int(value) & 1) != 0;
 	m_bitset[index*CELL_SIZE] = first;
 	m_bitset[index*CELL_SIZE + 1] = second;
 }
