@@ -36,6 +36,7 @@ struct GraphicsEngineDesc {
 	bool fullScreen;
 	int width;
 	int height;
+	exc::Logger* logger;
 };
 
 
@@ -92,12 +93,13 @@ private:
 	std::unique_ptr<BackBufferHeap> m_backBufferHeap;
 
 	// Logging
-	exc::Logger m_logger;
+	exc::Logger* m_logger;
 	exc::LogStream m_logStreamGeneral;
 	exc::LogStream m_logStreamPipeline;
 
 	// Misc
 	std::chrono::nanoseconds m_absoluteTime;
+	uint64_t m_frame = 0;
 
 	// Scene
 	std::set<Scene*> m_scenes;

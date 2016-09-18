@@ -55,7 +55,7 @@ public:
 	void Update(int streamIndex, const void* vertexData, int vertexCount, int offsetInVertex);
 	void Clear();
 
-	int GetNumStreams() const;
+	size_t GetNumStreams() const;
 	const VertexBuffer* GetVertexBuffer(int streamIndex) const;
 	const IndexBuffer* GetIndexBuffer() const;
 private:

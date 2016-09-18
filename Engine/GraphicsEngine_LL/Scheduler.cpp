@@ -77,6 +77,7 @@ void Scheduler::Execute(FrameContext context) {
 
 					injectList->ResourceBarrier((unsigned)barriers.size(), barriers.data());
 					injectList->Close();
+					injectAlloc.get_deleter().madeFor = injectList.get();
 
 					EnqueueCommandList(*context.commandQueue,
 						std::move(injectList),
@@ -93,7 +94,7 @@ void Scheduler::Execute(FrameContext context) {
 				}
 
 				dec.commandList->Close();
-
+				
 				EnqueueCommandList(*context.commandQueue,
 					std::move(dec.commandList),
 					std::move(dec.commandAllocator),
@@ -111,7 +112,7 @@ void Scheduler::Execute(FrameContext context) {
 		// Scene cannot be rendered, but we should draw an error message on the screen for the devs.
 
 		// Log error.
-		context.log->Event(std::string("Fatal pipeline error: ") + ex.what());
+		//context.log->Event(std::string("Fatal pipeline error: ") + ex.what());
 
 		// Draw a red blinking background to signal error.
 		try {
@@ -141,10 +142,10 @@ void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
 	const FrameContext& context)
 {
 	// Enqueue CPU task to make resources resident before the command list runs.
-	auto makeResidentTask = [log = context.log, resources = usedResources, commandList = commandList.get()]{
+	auto makeResidentTask = [frame = context.frame, log = context.log, resources = usedResources, commandList = (gxapi::ICommandList*)commandList.get(), commandAllocator = commandAllocator.get()]{
 		// careful, 'commandList' is a dangling pointer
 		std::stringstream ss;
-		ss << "Making stuff resident for " << commandList;
+		ss << "#" << frame << " Making stuff resident for " << commandList << " ( " << commandAllocator << " )";
 		//log->Event(ss.str());
 	};
 	// Push task to queue.
@@ -152,6 +153,15 @@ void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
 	context.initQueue->push({ makeResidentTask, m_syncFence.get(), ++m_syncFenceValue });
 	initLkg.unlock();
 	context.initCv->notify_all();
+
+
+	// Debug log
+	{
+		commandAllocator.get_deleter().frame = context.frame;
+		std::stringstream ss;
+		ss << "#" << context.frame << " Enqueue: " << commandList.get() << " ( " << commandAllocator.get() << " ) ";
+		//context.log->Event(ss.str());
+	}
 
 
 	// Enqueue the command list itself on the GPU.
@@ -163,11 +173,12 @@ void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
 	auto gpuSyncPoint = context.commandQueue->Signal();
 
 	// Enqueue CPU task to clean up resources after command list finished.
-	auto evictTask = [log = context.log, resources = usedResources, commandList = commandList.get(), commandAllocator = std::shared_ptr<gxapi::ICommandAllocator>(std::move(commandAllocator))]{
+	auto evictTask = [frame = context.frame, log = context.log, resources = usedResources, commandList = (gxapi::ICommandList*)commandList.get(), commandAllocator = std::shared_ptr<gxapi::ICommandAllocator>(std::move(commandAllocator))]{
 		// careful, 'commandList' is a dangling pointer
 		std::stringstream ss;
-		ss << "Cleaning stuff after " << commandList;
+		ss << "#" << frame << " Cleaning stuff after " << commandList << " ( " << commandAllocator.get() << " )";
 		//log->Event(ss.str());
+		assert(commandAllocator.unique());
 	};
 	// Push task to queue.
 	std::unique_lock<std::mutex> cleanLkg(*context.cleanMutex);
@@ -186,6 +197,7 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 	// Create command allocator & list.
 	auto commandAllocator = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
 	std::unique_ptr<gxapi::IGraphicsCommandList> commandList(context.gxApi->CreateGraphicsCommandList(gxapi::CommandListDesc{ commandAllocator.get() }));
+	commandAllocator.get_deleter().madeFor = commandList.get();
 
 	gxapi::DescriptorHandle rtvHandle = context.backBuffer->GetHandle();
 

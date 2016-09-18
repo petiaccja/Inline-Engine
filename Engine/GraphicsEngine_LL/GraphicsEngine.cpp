@@ -31,7 +31,8 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_gxapiManager(desc.gxapiManager),
 	m_graphicsApi(desc.graphicsApi),
 	m_masterCommandQueue(desc.graphicsApi->CreateCommandQueue(CommandQueueDesc{ eCommandListType::GRAPHICS }), desc.graphicsApi->CreateFence(0)),
-	m_scheduler(m_graphicsApi)
+	m_scheduler(m_graphicsApi),
+	m_logger(desc.logger)
 {
 	// Create swapchain
 	SwapChainDesc swapChainDesc;
@@ -60,14 +61,12 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_cleanTaskThread = std::thread(std::bind(&GraphicsEngine::CleanTaskThreadFunc, this));
 
 	// Init logger
-	m_logStreamGeneral = m_logger.CreateLogStream("General");
-	m_logStreamPipeline = m_logger.CreateLogStream("Pipeline");
-
-	m_logger.OpenStream(&std::cout);
+	m_logStreamGeneral = m_logger->CreateLogStream("General");
+	m_logStreamPipeline = m_logger->CreateLogStream("Pipeline");
 
 	// Init misc stuff
 	m_absoluteTime = decltype(m_absoluteTime)(0);
-	//m_commandAllocatorPool.SetLogStream(&m_logStreamPipeline);
+	m_commandAllocatorPool.SetLogStream(&m_logStreamPipeline);
 }
 
 
@@ -79,7 +78,8 @@ GraphicsEngine::~GraphicsEngine() {
 	m_initTaskThread.join();
 	m_cleanTaskThread.join();
 
-	m_logger.Flush();
+	m_initTasks = {};
+	m_cleanTasks = {};
 }
 
 
@@ -98,6 +98,7 @@ void GraphicsEngine::Update(float elapsed) {
 	context.frameTime = frameTime;
 	context.absoluteTime = m_absoluteTime;
 	context.log = &m_logStreamPipeline;
+	context.frame = m_frame;
 
 	context.gxApi = m_graphicsApi;
 	context.commandAllocatorPool = &m_commandAllocatorPool;
@@ -121,10 +122,11 @@ void GraphicsEngine::Update(float elapsed) {
 	m_frameEndFenceValues[backBufferIndex] = m_masterCommandQueue.Signal();
 
 	// Flush log
-	m_logger.Flush();
+	// m_logger->Flush();
 
 	// Present frame
 	m_swapChain->Present();
+	++m_frame;
 }
 
 
@@ -170,52 +172,64 @@ MeshEntity* GraphicsEngine::CreateMeshEntity() {
 
 void GraphicsEngine::InitTaskThreadFunc() {
 	bool notEmpty = false;
-	while (m_runInitCleanTasks || notEmpty) {
-		std::unique_lock<std::mutex> lkg(m_initMutex);
+	try {
+		while (m_runInitCleanTasks || notEmpty) {
+			std::unique_lock<std::mutex> lkg(m_initMutex);
 
-		m_initCv.wait(lkg, [this] {
-			return !m_initTasks.empty() || !m_runInitCleanTasks;
-		});
+			m_initCv.wait(lkg, [this] {
+				return !m_initTasks.empty() || !m_runInitCleanTasks;
+			});
 
-		if (!m_initTasks.empty()) {
-			auto task = m_initTasks.front();
-			m_initTasks.pop();
-			notEmpty = !m_initTasks.empty();
-			lkg.unlock();
+			if (!m_initTasks.empty()) {
+				auto task = std::move(m_initTasks.front());
+				m_initTasks.pop();
+				notEmpty = !m_initTasks.empty();
+				lkg.unlock();
 
-			if (task.task) {
-				task.task();
-			}
-			if (task.setThisFence != nullptr) {
-				task.setThisFence->Signal(task.toThisValue);
+				if (task.task) {
+					task.task();
+				}
+				if (task.setThisFence != nullptr) {
+					task.setThisFence->Signal(task.toThisValue);
+				}
 			}
 		}
+	}
+	catch (std::exception& ex) {
+		m_logStreamPipeline.Event(std::string("Fatal error during init: ") + ex.what());
+		m_logger->Flush();
 	}
 }
 
 
 void GraphicsEngine::CleanTaskThreadFunc() {
 	bool notEmpty = false;
-	while (m_runInitCleanTasks || notEmpty) {
-		std::unique_lock<std::mutex> lkg(m_cleanMutex);
+	try {
+		while (m_runInitCleanTasks || notEmpty) {
+			std::unique_lock<std::mutex> lkg(m_cleanMutex);
 
-		m_cleanCv.wait(lkg, [this] {
-			return !m_cleanTasks.empty() || !m_runInitCleanTasks;
-		});
+			m_cleanCv.wait(lkg, [this] {
+				return !m_cleanTasks.empty() || !m_runInitCleanTasks;
+			});
 
-		if (!m_cleanTasks.empty()) {
-			auto task = m_cleanTasks.front();
-			m_cleanTasks.pop();
-			notEmpty = !m_cleanTasks.empty();
-			lkg.unlock();
+			if (!m_cleanTasks.empty()) {
+				auto task = std::move(m_cleanTasks.front());
+				m_cleanTasks.pop();
+				notEmpty = !m_cleanTasks.empty();
+				lkg.unlock();
 
-			if (task.waitThisFence != nullptr) {
-				task.waitThisFence->Wait(task.toReachThisValue);
-			}
-			if (task.task) {
-				task.task();
+				if (task.waitThisFence != nullptr) {
+					task.waitThisFence->Wait(task.toReachThisValue);
+				}
+				if (task.task) {
+					task.task();
+				}
 			}
 		}
+	}
+	catch (std::exception& ex) {
+		m_logStreamPipeline.Event(std::string("Fatal error during cleanup: ") + ex.what());
+		m_logger->Flush();
 	}
 }
 

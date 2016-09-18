@@ -97,7 +97,7 @@ private:
 		}
 		catch (std::bad_alloc&) {
 			size_t currentSize = allocator.Size();
-			allocator.Resize(currentSize * 1.2);
+			allocator.Resize(size_t(currentSize * 1.2 + 1));
 			myIndex = allocator.Allocate(); // supposed to have enough space now
 		}
 	}

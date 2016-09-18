@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4250) // inheritence via dominance bug
+#endif 
+
 #include "../GraphicsNode.hpp"
 
 #include "../Scene.hpp"

@@ -5,6 +5,7 @@
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
 
 #include <iostream>
+#include <fstream>
 
 #define _WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -24,6 +25,7 @@ using namespace std::chrono_literals;
 // Globals
 
 bool isEngineInit = false;
+std::ofstream logFile;
 exc::Logger logger;
 exc::LogStream systemLogStream = logger.CreateLogStream("system");
 exc::LogStream graphicsLogStream = logger.CreateLogStream("graphics");
@@ -42,7 +44,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 int main() {
 	// Initialize logger
-	logger.OpenStream(&std::cout);
+	logFile.open("engine_test.log");
+	if (logFile.is_open()) {
+		logger.OpenStream(&logFile);
+	}
+	else {
+		logger.OpenStream(&std::cout);
+	}
+
+	std::set_terminate([]()
+	{	
+		try {
+			std::rethrow_exception(std::current_exception());
+			systemLogStream.Event(std::string("Terminate called, shutting down services."));
+		}
+		catch (std::exception& ex) {
+			systemLogStream.Event(std::string("Terminate called, shutting down services.") + ex.what());
+		}
+		logger.Flush();
+		std::abort();
+	});
 
 
 	// Create and register window class
@@ -95,7 +116,7 @@ int main() {
 	int width = clientRect.right - clientRect.left;
 	int height = clientRect.bottom - clientRect.top;
 
-	// Create PicoEngine
+	// Create GraphicsEngine
 	systemLogStream.Event("Initializing Graphics Engine...");
 	std::unique_ptr<IGxapiManager> gxapiMgr;
 	std::unique_ptr<IGraphicsApi> gxapi;
@@ -125,6 +146,7 @@ int main() {
 		desc.width = width;
 		desc.height = height;
 		desc.targetWindow = hWnd;
+		desc.logger = &logger;
 
 		engine.reset(new GraphicsEngine(desc));
 		isEngineInit = true;
@@ -149,6 +171,7 @@ int main() {
 	MSG msg;
 	bool run = true;
 	std::chrono::high_resolution_clock::time_point timestamp = std::chrono::high_resolution_clock::now();
+	std::chrono::nanoseconds elapsed(1000);
 	float fpsHistory[10] = {0};
 	unsigned fpsHistoryIdx = 0;
 	while (run) {
@@ -160,29 +183,36 @@ int main() {
 			DispatchMessage(&msg);
 		}
 		if (engine) {
-			auto updateStart = std::chrono::high_resolution_clock::now();
-			engine->Update(0.016f);
-			auto updateEnd = std::chrono::high_resolution_clock::now();
-			std::chrono::nanoseconds updateElapsed = updateEnd - updateStart;
+			try {
+				auto updateStart = std::chrono::high_resolution_clock::now();
+				engine->Update(elapsed.count() / 1e9f);
+				auto updateEnd = std::chrono::high_resolution_clock::now();
+				std::chrono::nanoseconds updateElapsed = updateEnd - updateStart;
 
 
-			auto now = std::chrono::high_resolution_clock::now();
-			std::chrono::nanoseconds elapsed = now - timestamp;
-			timestamp = now;
-			std::this_thread::sleep_for(16ms - updateElapsed);
+				auto now = std::chrono::high_resolution_clock::now();
+				elapsed = now - timestamp;
+				timestamp = now;
+				//std::this_thread::sleep_for(16ms - updateElapsed);
 
-			std::stringstream ss;
-			float currentFps = 1.0 / (elapsed.count() / 1e9);
-			fpsHistory[fpsHistoryIdx] = currentFps;
-			fpsHistoryIdx++; fpsHistoryIdx %= 10;
-			float avgFps = [&] {
-				float sum = 0;
-				for (auto v : fpsHistory)
-					sum += v;
-				return sum / 10.0f;
-			}();
-			ss << "Graphics Engine Test | " << "FPS=" << (int)avgFps;
-			SetWindowTextA(hWnd, ss.str().c_str());
+				std::stringstream ss;
+				float currentFps = 1.0f / (elapsed.count() / 1e9f);
+				fpsHistory[fpsHistoryIdx] = currentFps;
+				fpsHistoryIdx++; fpsHistoryIdx %= 10;
+				float avgFps = [&] {
+					float sum = 0;
+					for (auto v : fpsHistory)
+						sum += v;
+					return sum / 10.0f;
+				}();
+				ss << "Graphics Engine Test | " << "FPS=" << (int)avgFps;
+				SetWindowTextA(hWnd, ss.str().c_str());
+			}
+			catch (std::exception& ex) {
+				systemLogStream.Event(std::string("Graphics engine error: ") + ex.what());
+				logger.Flush();
+				PostQuitMessage(0);
+			}
 		}
 	}
 
@@ -213,7 +243,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			}
 		}
 		case WM_KEYUP:
-			PostQuitMessage(0);
+			if (wParam == VK_ESCAPE) {
+				PostQuitMessage(0);
+			}
 			return 0;
 		default:
 			return DefWindowProc(hWnd, msg, wParam, lParam);

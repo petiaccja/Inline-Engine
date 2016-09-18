@@ -89,7 +89,7 @@ void Mesh::Optimize(std::vector<VertexStream>& streams, std::vector<unsigned>& i
 }
 
 
-int Mesh::GetNumStreams() const {
+size_t Mesh::GetNumStreams() const {
 	return m_vertexBuffers.size();
 }
 

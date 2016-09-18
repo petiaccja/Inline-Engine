@@ -39,6 +39,8 @@ struct FrameContext {
 	std::mutex* cleanMutex = nullptr;
 	std::condition_variable* initCv = nullptr;
 	std::condition_variable* cleanCv = nullptr;
+
+	uint64_t frame;
 };
 
 

@@ -346,7 +346,7 @@ void GraphicsApi::CopyDescriptors(
 		nativeSrcRangeStarts[i].ptr = native_cast_ptr(srcRangeStarts[i].cpuAddress);
 	}
 
-	m_device->CopyDescriptors(nativeDstRangeStarts.size(), nativeDstRangeStarts.data(), rangeCounts, nativeSrcRangeStarts.size(), nativeSrcRangeStarts.data(), nullptr, native_cast(descHeapsType));
+	m_device->CopyDescriptors((unsigned)nativeDstRangeStarts.size(), nativeDstRangeStarts.data(), rangeCounts, (unsigned)nativeSrcRangeStarts.size(), nativeSrcRangeStarts.data(), nullptr, native_cast(descHeapsType));
 }
 
 void GraphicsApi::CopyDescriptors(
@@ -361,7 +361,7 @@ void GraphicsApi::CopyDescriptors(
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeSrcRangeStart;
 	nativeSrcRangeStart.ptr = native_cast_ptr(srcStart.cpuAddress);
 	
-	m_device->CopyDescriptorsSimple(rangeCount, nativeDstRangeStart, nativeSrcRangeStart, native_cast(descHeapsType));
+	m_device->CopyDescriptorsSimple((unsigned)rangeCount, nativeDstRangeStart, nativeSrcRangeStart, native_cast(descHeapsType));
 }
 
 
@@ -386,7 +386,7 @@ void GraphicsApi::MakeResident(const std::vector<gxapi::IResource*>& objects) {
 		nativeObjects.push_back(native_cast(curr));
 	}
 
-	ThrowIfFailed(m_device->MakeResident(nativeObjects.size(), nativeObjects.data()));
+	ThrowIfFailed(m_device->MakeResident((unsigned)nativeObjects.size(), nativeObjects.data()));
 }
 
 
@@ -402,7 +402,7 @@ void GraphicsApi::Evict(const std::vector<gxapi::IResource*>& objects) {
 		nativeObjects.push_back(native_cast(curr));
 	}
 
-	ThrowIfFailed(m_device->Evict(nativeObjects.size(), nativeObjects.data()));
+	ThrowIfFailed(m_device->Evict((unsigned)nativeObjects.size(), nativeObjects.data()));
 }
 
 

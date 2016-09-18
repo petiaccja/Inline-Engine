@@ -15,8 +15,6 @@ CommandAllocatorPool::CommandAllocatorPool(gxapi::IGraphicsApi* gxApi)
 
 
 auto CommandAllocatorPool::RequestAllocator(gxapi::eCommandListType type) -> CmdAllocPtr {
-	std::lock_guard<std::mutex> lkg(mtx); // this may not be the best way
-
 	switch (type)
 	{
 		case gxapi::eCommandListType::COPY:
@@ -34,8 +32,6 @@ auto CommandAllocatorPool::RequestAllocator(gxapi::eCommandListType type) -> Cmd
 
 
 void CommandAllocatorPool::RecycleAllocator(gxapi::ICommandAllocator* allocator) {
-	std::lock_guard<std::mutex> lkg(mtx); // this may not be the best way
-
 	switch (allocator->GetType())
 	{
 		case gxapi::eCommandListType::COPY:

@@ -29,8 +29,8 @@ Task ClearRenderTarget::GetTask() {
 
 				// set viewport and scissor rects
 				gxapi::Viewport viewport;
-				viewport.width = target->GetWidth();
-				viewport.height = target->GetHeight();
+				viewport.width = (float)target->GetWidth();
+				viewport.height = (float)target->GetHeight();
 				viewport.topLeftX = 0;
 				viewport.topLeftY = 0;
 				viewport.minDepth = 0;

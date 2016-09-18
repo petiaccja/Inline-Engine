@@ -1,7 +1,7 @@
 #pragma once
 
 // inheritence by dominance
-// derived classes of ???PortConfig inherit methods from multiple sources or smth like that
+// derived classes of *PortConfig inherit methods from multiple sources or smth like that
 #ifdef _MSC_VER
 #pragma warning(disable: 4250)
 #endif

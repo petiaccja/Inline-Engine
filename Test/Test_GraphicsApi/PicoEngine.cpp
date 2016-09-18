@@ -19,8 +19,8 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 
 	m_viewport.topLeftX = 0;
 	m_viewport.topLeftY = 0;
-	m_viewport.width = width;
-	m_viewport.height = height;
+	m_viewport.width = (float)width;
+	m_viewport.height = (float)height;
 	m_viewport.minDepth = 0;
 	m_viewport.maxDepth = 1;
 
@@ -95,8 +95,8 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 		depthBufferDesc.textureDesc.dimension = eTextueDimension::TWO;
 		depthBufferDesc.textureDesc.flags = eResourceFlags::ALLOW_DEPTH_STENCIL;
 		depthBufferDesc.textureDesc.format = eFormat::D32_FLOAT;
-		depthBufferDesc.textureDesc.height = m_viewport.height;
-		depthBufferDesc.textureDesc.width = m_viewport.width;
+		depthBufferDesc.textureDesc.height = (unsigned)m_viewport.height;
+		depthBufferDesc.textureDesc.width = (unsigned)m_viewport.width;
 		depthBufferDesc.textureDesc.layout = eTextureLayout::UNKNOWN;
 		depthBufferDesc.textureDesc.mipLevels = 1;
 		depthBufferDesc.textureDesc.multisampleCount = 1;
@@ -171,7 +171,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 		ilElements.push_back(ilTexDesc);
 	}
 	inputLayout.elements = ilElements.data();
-	inputLayout.numElements = ilElements.size();
+	inputLayout.numElements = (unsigned)ilElements.size();
 
 	RasterizerState rasterizationState;
 	rasterizationState.fillMode = eFillMode::SOLID;
@@ -247,7 +247,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 		m_vertexBuffer->Unmap(0, nullptr);
 
 		vbv.gpuAddress = m_vertexBuffer->GetGPUAddress();
-		vbv.size = vertexBufferDesc.bufferDesc.sizeInBytes;
+		vbv.size = (unsigned)vertexBufferDesc.bufferDesc.sizeInBytes;
 		vbv.stride = sizeof(Vertex);
 	}
 	{
@@ -262,7 +262,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 
 		ibv.gpuAddress = m_indexBuffer->GetGPUAddress();
 		ibv.format = eFormat::R16_UINT;
-		ibv.size = indexBufferDesc.bufferDesc.sizeInBytes;
+		ibv.size = (unsigned)indexBufferDesc.bufferDesc.sizeInBytes;
 	}
 
 	//wait for command queue to finish
@@ -296,7 +296,7 @@ void PicoEngine::Update() {
 	m_commandList->SetRenderTargets(1, &currRenderTarget, &currDepthStencil);
 
 	// init drawing
-	m_commandList->ClearRenderTarget(currRenderTarget, ColorRGBA(0.2, 0.2, 0.7));
+	m_commandList->ClearRenderTarget(currRenderTarget, ColorRGBA(0.2f, 0.2f, 0.7f));
 	m_commandList->ClearDepthStencil(currDepthStencil, 1, 0);
 
 	m_commandList->SetPrimitiveTopology(ePrimitiveTopology::TRIANGLELIST);
@@ -308,9 +308,9 @@ void PicoEngine::Update() {
 		angle = std::modf(elapsedTotal*0.3, &revs);
 
 		DirectX::XMMATRIX world, view, proj;
-		world = DirectX::XMMatrixRotationZ(angle*3.1415926*2);
+		world = DirectX::XMMatrixRotationZ((float)angle*3.1415926f*2.0f);
 		view = DirectX::XMMatrixLookAtRH({ 4,2,2}, { 0,0,0 }, { 0,0,1 });
-		proj = DirectX::XMMatrixPerspectiveFovRH((50.f / 180) * 3.1415926, (float)m_width/m_height, 0.1, 100);
+		proj = DirectX::XMMatrixPerspectiveFovRH((50.f / 180.0f) * 3.1415926f, (float)m_width/m_height, 0.1f, 100.0f);
 		DirectX::XMMATRIX viewProj = view * proj;
 		m_commandList->SetGraphicsRootConstants(0, 0, 16, (uint32_t*)&world);
 		m_commandList->SetGraphicsRootConstants(0, 16, 16, (uint32_t*)&viewProj);
