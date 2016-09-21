@@ -26,12 +26,12 @@ using namespace gxapi;
 
 
 GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
-	: m_commandAllocatorPool(desc.graphicsApi),
-	m_scratchSpacePool(desc.graphicsApi),
-	m_gxapiManager(desc.gxapiManager),
+	: m_gxapiManager(desc.gxapiManager),
 	m_graphicsApi(desc.graphicsApi),
+	m_commandAllocatorPool(desc.graphicsApi),
+	m_scratchSpacePool(desc.graphicsApi),
 	m_masterCommandQueue(desc.graphicsApi->CreateCommandQueue(CommandQueueDesc{ eCommandListType::GRAPHICS }), desc.graphicsApi->CreateFence(0)),
-	m_scheduler(m_graphicsApi),
+	m_residencyQueue(std::unique_ptr<gxapi::IFence>(desc.graphicsApi->CreateFence(0))),
 	m_logger(desc.logger)
 {
 	// Create swapchain
@@ -55,11 +55,6 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	CreatePipeline();
 	m_scheduler.SetPipeline(std::move(m_pipeline));
 
-	// Launch init and clean tasks
-	m_runInitCleanTasks = true;
-	m_initTaskThread = std::thread(std::bind(&GraphicsEngine::InitTaskThreadFunc, this));
-	m_cleanTaskThread = std::thread(std::bind(&GraphicsEngine::CleanTaskThreadFunc, this));
-
 	// Init logger
 	m_logStreamGeneral = m_logger->CreateLogStream("General");
 	m_logStreamPipeline = m_logger->CreateLogStream("Pipeline");
@@ -71,15 +66,7 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 
 
 GraphicsEngine::~GraphicsEngine() {
-	// Stop tasks.
-	m_runInitCleanTasks = false;
-	m_initCv.notify_all();
-	m_cleanCv.notify_all();
-	m_initTaskThread.join();
-	m_cleanTaskThread.join();
-
-	m_initTasks = {};
-	m_cleanTasks = {};
+	// empty
 }
 
 
@@ -89,8 +76,8 @@ void GraphicsEngine::Update(float elapsed) {
 
 	// Wait for previous frame on this BB to complete
 	int backBufferIndex = m_swapChain->GetCurrentBufferIndex();
-	if (m_frameEndFenceValues[backBufferIndex].first != nullptr) {
-		m_frameEndFenceValues[backBufferIndex].first->Wait(m_frameEndFenceValues[backBufferIndex].second);
+	if (m_frameEndFenceValues[backBufferIndex]) {
+		m_frameEndFenceValues[backBufferIndex].Wait();
 	}
 
 	// Set up context
@@ -108,12 +95,7 @@ void GraphicsEngine::Update(float elapsed) {
 	context.backBuffer = &m_backBufferHeap->GetBackBuffer(backBufferIndex);
 	context.scenes = &m_scenes;
 
-	context.initMutex = &m_initMutex;
-	context.cleanMutex = &m_cleanMutex;
-	context.initQueue = &m_initTasks;
-	context.cleanQueue = &m_cleanTasks;
-	context.initCv = &m_initCv;
-	context.cleanCv = &m_cleanCv;
+	context.residencyQueue = &m_residencyQueue;
 
 	// Execute the pipeline
 	m_scheduler.Execute(context);
@@ -167,72 +149,6 @@ Scene* GraphicsEngine::CreateScene(std::string name) {
 MeshEntity* GraphicsEngine::CreateMeshEntity() {
 	return new MeshEntity();
 }
-
-
-
-void GraphicsEngine::InitTaskThreadFunc() {
-	bool notEmpty = false;
-	try {
-		while (m_runInitCleanTasks || notEmpty) {
-			std::unique_lock<std::mutex> lkg(m_initMutex);
-
-			m_initCv.wait(lkg, [this] {
-				return !m_initTasks.empty() || !m_runInitCleanTasks;
-			});
-
-			if (!m_initTasks.empty()) {
-				auto task = std::move(m_initTasks.front());
-				m_initTasks.pop();
-				notEmpty = !m_initTasks.empty();
-				lkg.unlock();
-
-				if (task.task) {
-					task.task();
-				}
-				if (task.setThisFence != nullptr) {
-					task.setThisFence->Signal(task.toThisValue);
-				}
-			}
-		}
-	}
-	catch (std::exception& ex) {
-		m_logStreamPipeline.Event(std::string("Fatal error during init: ") + ex.what());
-		m_logger->Flush();
-	}
-}
-
-
-void GraphicsEngine::CleanTaskThreadFunc() {
-	bool notEmpty = false;
-	try {
-		while (m_runInitCleanTasks || notEmpty) {
-			std::unique_lock<std::mutex> lkg(m_cleanMutex);
-
-			m_cleanCv.wait(lkg, [this] {
-				return !m_cleanTasks.empty() || !m_runInitCleanTasks;
-			});
-
-			if (!m_cleanTasks.empty()) {
-				auto task = std::move(m_cleanTasks.front());
-				m_cleanTasks.pop();
-				notEmpty = !m_cleanTasks.empty();
-				lkg.unlock();
-
-				if (task.waitThisFence != nullptr) {
-					task.waitThisFence->Wait(task.toReachThisValue);
-				}
-				if (task.task) {
-					task.task();
-				}
-			}
-		}
-	}
-	catch (std::exception& ex) {
-		m_logStreamPipeline.Event(std::string("Fatal error during cleanup: ") + ex.what());
-		m_logger->Flush();
-	}
-}
-
 
 
 void GraphicsEngine::CreatePipeline() {

@@ -24,7 +24,7 @@ namespace impl {
 	public:
 		struct Deleter {
 		public:
-			Deleter() : m_container(nullptr), frame(0), madeFor(nullptr) {}
+			Deleter() : m_container(nullptr) {}
 			Deleter(const Deleter&) = default;
 			Deleter(Deleter&&) = default;
 			Deleter& operator=(const Deleter&) = default;
@@ -32,11 +32,8 @@ namespace impl {
 			explicit Deleter(CommandAllocatorPoolBase* container) : m_container(container) {}
 			void operator()(gxapi::ICommandAllocator* object) const {
 				assert(m_container != nullptr);
-				m_container->RecycleAllocator(object, frame, madeFor);
+				m_container->RecycleAllocator(object);
 			}
-		public:
-			uint64_t frame;
-			gxapi::ICommandList* madeFor;
 		private:
 			CommandAllocatorPoolBase* m_container;
 		};
@@ -44,7 +41,7 @@ namespace impl {
 	public:
 		virtual ~CommandAllocatorPoolBase() {}
 		virtual UniquePtr RequestAllocator() = 0;
-		virtual void RecycleAllocator(gxapi::ICommandAllocator*, uint64_t frame = 0, gxapi::ICommandList* madeFor = nullptr) = 0;
+		virtual void RecycleAllocator(gxapi::ICommandAllocator*) = 0;
 	};
 
 
@@ -61,7 +58,7 @@ namespace impl {
 
 
 		UniquePtr RequestAllocator() override;
-		void RecycleAllocator(gxapi::ICommandAllocator* allocator, uint64_t frame = 0, gxapi::ICommandList* madeFor = nullptr) override;
+		void RecycleAllocator(gxapi::ICommandAllocator* allocator) override;
 		void Reset(size_t initialSize = 1);
 
 		gxapi::IGraphicsApi* GetGraphicsApi() const { return m_gxApi; }
@@ -132,12 +129,7 @@ namespace impl {
 
 
 	template <gxapi::eCommandListType TYPE>
-	void CommandAllocatorPool<TYPE>::RecycleAllocator(gxapi::ICommandAllocator* allocator, uint64_t frame, gxapi::ICommandList* madeFor) {
-		//if (m_logStream) {
-		//	std::stringstream ss;
-		//	ss << "#" << frame << " Recycling: " << allocator << " ( " << madeFor << " )";
-		//	m_logStream->Event(ss.str());
-		//}
+	void CommandAllocatorPool<TYPE>::RecycleAllocator(gxapi::ICommandAllocator* allocator) {
 		std::lock_guard<std::mutex> lkg(m_mtx);
 
 		allocator->Reset();

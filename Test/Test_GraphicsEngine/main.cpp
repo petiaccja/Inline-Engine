@@ -171,7 +171,10 @@ int main() {
 	MSG msg;
 	bool run = true;
 	std::chrono::high_resolution_clock::time_point timestamp = std::chrono::high_resolution_clock::now();
-	std::chrono::nanoseconds elapsed(1000);
+	std::chrono::nanoseconds frameTime(1000);
+	std::chrono::nanoseconds frameRateUpdate(0);
+	std::vector<std::chrono::nanoseconds> frameTimeHistory;
+	float avgFps = 0;
 	float fpsHistory[10] = {0};
 	unsigned fpsHistoryIdx = 0;
 	while (run) {
@@ -184,27 +187,35 @@ int main() {
 		}
 		if (engine) {
 			try {
+				// Measure time of Update().
 				auto updateStart = std::chrono::high_resolution_clock::now();
-				engine->Update(elapsed.count() / 1e9f);
+				engine->Update(frameTime.count() / 1e9f);
 				auto updateEnd = std::chrono::high_resolution_clock::now();
 				std::chrono::nanoseconds updateElapsed = updateEnd - updateStart;
 
-
+				// Calculate elapsed time for frame.
 				auto now = std::chrono::high_resolution_clock::now();
-				elapsed = now - timestamp;
+				frameTime = now - timestamp;
 				timestamp = now;
 				//std::this_thread::sleep_for(16ms - updateElapsed);
 
+				frameRateUpdate += frameTime;
+				if (frameRateUpdate > 500ms) {
+					frameRateUpdate = 0ns;
+
+					double avgFrameTime = 0.0;
+					for (auto v : frameTimeHistory) {
+						avgFrameTime += v.count() / 1e9;
+					}
+					avgFrameTime /= frameTimeHistory.size();
+					avgFps = 1 / avgFrameTime;
+
+					frameTimeHistory.clear();
+				}
+				frameTimeHistory.push_back(frameTime);
+				
+
 				std::stringstream ss;
-				float currentFps = 1.0f / (elapsed.count() / 1e9f);
-				fpsHistory[fpsHistoryIdx] = currentFps;
-				fpsHistoryIdx++; fpsHistoryIdx %= 10;
-				float avgFps = [&] {
-					float sum = 0;
-					for (auto v : fpsHistory)
-						sum += v;
-					return sum / 10.0f;
-				}();
 				ss << "Graphics Engine Test | " << "FPS=" << (int)avgFps;
 				SetWindowTextA(hWnd, ss.str().c_str());
 			}

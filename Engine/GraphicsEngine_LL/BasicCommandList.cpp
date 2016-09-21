@@ -19,9 +19,7 @@ BasicCommandList::BasicCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorP
 		case gxapi::eCommandListType::GRAPHICS: m_commandList.reset(gxApi->CreateGraphicsCommandList(desc)); break;
 		default: assert(false);
 	}
-
-	m_commandAllocator.get_deleter().madeFor = (gxapi::ICommandList*)m_commandList.get();
-
+	
 	// Create scratch space
 	m_scratchSpaces.push_back(m_scratchSpacePool->RequestScratchSpace());
 	m_currentScratchSpace = m_scratchSpaces[0].get();

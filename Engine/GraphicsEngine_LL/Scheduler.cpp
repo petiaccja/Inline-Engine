@@ -9,10 +9,8 @@ namespace inl {
 namespace gxeng {
 
 
-Scheduler::Scheduler(gxapi::IGraphicsApi* gxApi) 
-	: m_syncFence(gxApi->CreateFence(0)),
-	m_syncFenceValue(0)
-{}
+Scheduler::Scheduler()
+	{}
 
 void Scheduler::SetPipeline(Pipeline&& pipeline) {
 	m_pipeline = std::move(pipeline);
@@ -77,7 +75,6 @@ void Scheduler::Execute(FrameContext context) {
 
 					injectList->ResourceBarrier((unsigned)barriers.size(), barriers.data());
 					injectList->Close();
-					injectAlloc.get_deleter().madeFor = injectList.get();
 
 					EnqueueCommandList(*context.commandQueue,
 						std::move(injectList),
@@ -142,49 +139,18 @@ void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
 	const FrameContext& context)
 {
 	// Enqueue CPU task to make resources resident before the command list runs.
-	auto makeResidentTask = [frame = context.frame, log = context.log, resources = usedResources, commandList = (gxapi::ICommandList*)commandList.get(), commandAllocator = commandAllocator.get()]{
-		// careful, 'commandList' is a dangling pointer
-		std::stringstream ss;
-		ss << "#" << frame << " Making stuff resident for " << commandList << " ( " << commandAllocator << " )";
-		//log->Event(ss.str());
-	};
-	// Push task to queue.
-	std::unique_lock<std::mutex> initLkg(*context.initMutex);
-	context.initQueue->push({ makeResidentTask, m_syncFence.get(), ++m_syncFenceValue });
-	initLkg.unlock();
-	context.initCv->notify_all();
-
-
-	// Debug log
-	{
-		commandAllocator.get_deleter().frame = context.frame;
-		std::stringstream ss;
-		ss << "#" << context.frame << " Enqueue: " << commandList.get() << " ( " << commandAllocator.get() << " ) ";
-		//context.log->Event(ss.str());
-	}
-
+	SyncPoint residentPoint = context.residencyQueue->EnqueueInit(usedResources);
 
 	// Enqueue the command list itself on the GPU.
 	gxapi::ICommandList* execLists[] = {
 		commandList.get(),
 	};
-	context.commandQueue->Wait(m_syncFence.get(), m_syncFenceValue);
+	context.commandQueue->Wait(residentPoint);
 	context.commandQueue->ExecuteCommandLists(1, execLists);
-	auto gpuSyncPoint = context.commandQueue->Signal();
+	SyncPoint completionPoint = context.commandQueue->Signal();
 
 	// Enqueue CPU task to clean up resources after command list finished.
-	auto evictTask = [frame = context.frame, log = context.log, resources = usedResources, commandList = (gxapi::ICommandList*)commandList.get(), commandAllocator = std::shared_ptr<gxapi::ICommandAllocator>(std::move(commandAllocator))]{
-		// careful, 'commandList' is a dangling pointer
-		std::stringstream ss;
-		ss << "#" << frame << " Cleaning stuff after " << commandList << " ( " << commandAllocator.get() << " )";
-		//log->Event(ss.str());
-		assert(commandAllocator.unique());
-	};
-	// Push task to queue.
-	std::unique_lock<std::mutex> cleanLkg(*context.cleanMutex);
-	context.cleanQueue->push({ std::move(evictTask), gpuSyncPoint.first, gpuSyncPoint.second});
-	cleanLkg.unlock();
-	context.cleanCv->notify_all();
+	context.residencyQueue->EnqueueClean(completionPoint, std::move(usedResources), std::move(commandAllocator));
 }
 
 
@@ -197,7 +163,6 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 	// Create command allocator & list.
 	auto commandAllocator = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
 	std::unique_ptr<gxapi::IGraphicsCommandList> commandList(context.gxApi->CreateGraphicsCommandList(gxapi::CommandListDesc{ commandAllocator.get() }));
-	commandAllocator.get_deleter().madeFor = commandList.get();
 
 	gxapi::DescriptorHandle rtvHandle = context.backBuffer->GetHandle();
 

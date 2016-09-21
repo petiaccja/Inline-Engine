@@ -188,11 +188,13 @@
     <ClInclude Include="Nodes\Node_TescoRender.hpp" />
     <ClInclude Include="Pipeline.hpp" />
     <ClInclude Include="ResourceHeap.hpp" />
+    <ClInclude Include="ResourceResidencyQueue.hpp" />
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Scheduler.hpp" />
     <ClInclude Include="ScratchSpacePool.hpp" />
     <ClInclude Include="SmallBufferHeap.hpp" />
     <ClInclude Include="SubresourceID.hpp" />
+    <ClInclude Include="SyncPoint.hpp" />
     <ClInclude Include="Task.hpp" />
     <ClInclude Include="Texture2D.hpp" />
     <ClInclude Include="GpuBuffer.hpp" />
@@ -224,6 +226,7 @@
     <ClCompile Include="Nodes\Node_TescoRender.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="ResourceHeap.cpp" />
+    <ClCompile Include="ResourceResidencyQueue.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Scheduler.cpp" />
     <ClCompile Include="ScratchSpacePool.cpp" />

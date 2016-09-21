@@ -16,7 +16,7 @@ namespace gxeng {
 
 class Scheduler {
 public:
-	explicit Scheduler(gxapi::IGraphicsApi* gxApi);
+	Scheduler();
 
 	// don't let anyone else 'own' the pipeline
 	void SetPipeline(Pipeline&& pipeline);
@@ -35,7 +35,7 @@ protected:
 	static void MakeResident(std::vector<GenericResource*> usedResources);
 	static void Evict(std::vector<GenericResource*> usedResources);
 
-	void EnqueueCommandList(CommandQueue& commandQueue,
+	static void EnqueueCommandList(CommandQueue& commandQueue,
 		std::unique_ptr<gxapi::ICopyCommandList> commandList,
 		CmdAllocPtr commandAllocator,
 		std::vector<GenericResource*> usedResources,
@@ -50,11 +50,9 @@ protected:
 	template <class UsedResourceIter>
 	static void UpdateResourceStates(UsedResourceIter firstResource, UsedResourceIter lastResource);
 
-	void RenderFailureScreen(FrameContext context);
+	static void RenderFailureScreen(FrameContext context);
 private:
 	Pipeline m_pipeline;
-	std::unique_ptr<gxapi::IFence> m_syncFence;
-	uint64_t m_syncFenceValue;
 };
 
 

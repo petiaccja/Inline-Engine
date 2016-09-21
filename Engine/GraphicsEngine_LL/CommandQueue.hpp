@@ -5,6 +5,8 @@
 #include "../GraphicsApi_LL/ICommandQueue.hpp"
 #include "../GraphicsApi_LL/IFence.hpp"
 
+#include "SyncPoint.hpp"
+
 
 namespace inl {
 namespace gxeng {
@@ -31,14 +33,14 @@ public:
 
 
 	// Synchronization stuff
-	std::pair<const gxapi::IFence*, uint64_t> Signal() {
+	SyncPoint Signal() {
 		++m_fenceValue;
 		m_commandQueue->Signal(m_progressFence.get(), m_fenceValue);
-		return{ m_progressFence.get(), m_fenceValue };
+		return { m_progressFence, m_fenceValue };
 	}
 
-	void Wait(gxapi::IFence* fence, uint64_t value) {
-		return m_commandQueue->Wait(fence, value);
+	void Wait(SyncPoint waitFor) {
+		return m_commandQueue->Wait(waitFor.m_fence.get(), waitFor.m_value);
 	}
 
 
@@ -52,7 +54,7 @@ public:
 	}
 private:
 	std::unique_ptr<gxapi::ICommandQueue> m_commandQueue;
-	std::unique_ptr<gxapi::IFence> m_progressFence;
+	std::shared_ptr<gxapi::IFence> m_progressFence;
 	unsigned long long m_fenceValue = 0;
 };
 

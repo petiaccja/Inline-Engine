@@ -9,6 +9,7 @@
 #include <queue>
 #include <chrono>
 #include <set>
+#include "ResourceResidencyQueue.hpp"
 
 
 namespace inl {
@@ -32,13 +33,8 @@ struct FrameContext {
 	CommandQueue* commandQueue = nullptr;
 	Texture2D* backBuffer = nullptr;
 	const std::set<Scene*>* scenes = nullptr;
-
-	std::queue<InitTask>* initQueue = nullptr;
-	std::queue<CleanTask>* cleanQueue = nullptr;
-	std::mutex* initMutex = nullptr;
-	std::mutex* cleanMutex = nullptr;
-	std::condition_variable* initCv = nullptr;
-	std::condition_variable* cleanCv = nullptr;
+	
+	ResourceResidencyQueue* residencyQueue = nullptr;
 
 	uint64_t frame;
 };

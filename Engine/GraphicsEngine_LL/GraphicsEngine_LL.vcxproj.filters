@@ -186,6 +186,12 @@
     <ClInclude Include="SubresourceID.hpp">
       <Filter>MemoryManagement</Filter>
     </ClInclude>
+    <ClInclude Include="SyncPoint.hpp">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceResidencyQueue.hpp">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -275,6 +281,9 @@
     </ClCompile>
     <ClCompile Include="ConstBufferHeap.cpp">
       <Filter>MemoryManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceResidencyQueue.cpp">
+      <Filter>Pipeline</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
