@@ -199,6 +199,7 @@
     <ClInclude Include="Texture2D.hpp" />
     <ClInclude Include="GpuBuffer.hpp" />
     <ClInclude Include="TypedMesh.hpp" />
+    <ClInclude Include="UploadHeap.hpp" />
     <ClInclude Include="VertexArrayView.hpp" />
     <ClInclude Include="Vertex.hpp" />
     <ClInclude Include="VertexElementCompressor.hpp" />
@@ -235,6 +236,7 @@
     <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="GpuBuffer.cpp" />
     <ClCompile Include="TypedMesh.cpp" />
+    <ClCompile Include="UploadHeap.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

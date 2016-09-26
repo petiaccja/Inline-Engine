@@ -192,6 +192,9 @@
     <ClInclude Include="ResourceResidencyQueue.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
+    <ClInclude Include="UploadHeap.hpp">
+      <Filter>MemoryManagement</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -284,6 +287,9 @@
     </ClCompile>
     <ClCompile Include="ResourceResidencyQueue.cpp">
       <Filter>Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="UploadHeap.cpp">
+      <Filter>MemoryManagement</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

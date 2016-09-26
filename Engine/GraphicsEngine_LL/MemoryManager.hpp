@@ -3,6 +3,7 @@
 #include "HighLevelDescHeap.hpp"
 #include "GpuBuffer.hpp"
 #include "ResourceHeap.hpp"
+#include "UploadHeap.hpp"
 #include "ConstBufferHeap.hpp"
 
 #include "../GraphicsApi_LL/Common.hpp"
@@ -41,6 +42,7 @@ public:
 	template<typename IterT>
 	void UnlockResident(IterT begin, IterT end);
 
+	UploadHeap& GetUploadHeap();
 	ConstBuffer CreateConstBuffer(void* data, size_t size);
 
 	VertexBuffer* CreateVertexBuffer(eResourceHeapType heap, size_t size);
@@ -56,6 +58,7 @@ protected:
 	HighLevelDescHeap* m_descHeap;
 	impl::CriticalBufferHeap m_criticalHeap;
 
+	UploadHeap m_uploadHeap;
 	ConstantBufferHeap m_constBufferHeap;
 
 	std::mutex m_evictablesMtx;
