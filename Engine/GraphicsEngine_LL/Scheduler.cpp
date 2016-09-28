@@ -84,7 +84,7 @@ void Scheduler::Execute(FrameContext context) {
 				}
 
 				// Enqueue actual command list.
-				std::vector<GenericResource*> usedResourceList;
+				std::vector<std::shared_ptr<GenericResource>> usedResourceList;
 				usedResourceList.reserve(dec.usedResources.size());
 				for (const auto& v : dec.usedResources) {
 					usedResourceList.push_back(v.resource);
@@ -103,6 +103,22 @@ void Scheduler::Execute(FrameContext context) {
 				UpdateResourceStates(dec.usedResources.begin(), dec.usedResources.end());
 			}
 		}
+
+		// Set backBuffer to PRESENT state.
+		CmdAllocPtr injectAlloc = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
+		std::unique_ptr<gxapi::ICopyCommandList> injectList(context.gxApi->CreateGraphicsCommandList({ injectAlloc.get() }));
+
+		injectList->ResourceBarrier(gxapi::TransitionBarrier{
+			context.backBuffer->_GetResourcePtr(),
+			context.backBuffer->ReadState(0),
+			gxapi::eResourceState::PRESENT});
+		injectList->Close();
+
+		EnqueueCommandList(*context.commandQueue,
+			std::move(injectList),
+			std::move(injectAlloc),
+			{},
+			context);
 	}
 	catch (std::exception& ex) {
 		// One of the pipeline Nodes (Tasks) threw an exception.
@@ -135,7 +151,7 @@ void Scheduler::Evict(std::vector<GenericResource*> usedResources) {
 void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
 	std::unique_ptr<gxapi::ICopyCommandList> commandList,
 	CmdAllocPtr commandAllocator,
-	std::vector<GenericResource*> usedResources,
+	std::vector<std::shared_ptr<GenericResource>> usedResources,
 	const FrameContext& context)
 {
 	// Enqueue CPU task to make resources resident before the command list runs.

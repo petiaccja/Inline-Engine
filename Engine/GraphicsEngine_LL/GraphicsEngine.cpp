@@ -13,7 +13,7 @@
 #include "Nodes/Node_TescoRender.hpp"
 
 #include "Scene.hpp"
-#include "TypedMesh.hpp"
+#include "Mesh.hpp"
 #include "MeshEntity.hpp"
 
 
@@ -32,6 +32,8 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_scratchSpacePool(desc.graphicsApi),
 	m_masterCommandQueue(desc.graphicsApi->CreateCommandQueue(CommandQueueDesc{ eCommandListType::GRAPHICS }), desc.graphicsApi->CreateFence(0)),
 	m_residencyQueue(std::unique_ptr<gxapi::IFence>(desc.graphicsApi->CreateFence(0))),
+	m_descriptorHeap(desc.graphicsApi),
+	m_memoryManager(desc.graphicsApi, &m_descriptorHeap),
 	m_logger(desc.logger)
 {
 	// Create swapchain
@@ -46,7 +48,7 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	swapChainDesc.multiSampleQuality = 0;
 	m_swapChain.reset(m_gxapiManager->CreateSwapChain(swapChainDesc, m_masterCommandQueue.GetUnderlyingQueue()));
 
-	m_frameEndFenceValues.resize(m_swapChain->GetDesc().numBuffers, {nullptr, 0});
+	m_frameEndFenceValues.resize(m_swapChain->GetDesc().numBuffers, { nullptr, 0 });
 
 	// Init backbuffer heap
 	m_backBufferHeap = std::make_unique<BackBufferHeap>(m_graphicsApi, m_swapChain.get());
@@ -115,8 +117,8 @@ void GraphicsEngine::Update(float elapsed) {
 
 
 // Resources
-TypedMesh* GraphicsEngine::CreateMesh() {
-	return new TypedMesh();
+Mesh* GraphicsEngine::CreateMesh() {
+	return new Mesh(&m_memoryManager);
 }
 
 // Scene
@@ -147,7 +149,7 @@ Scene* GraphicsEngine::CreateScene(std::string name) {
 }
 
 MeshEntity* GraphicsEngine::CreateMeshEntity() {
-	return new MeshEntity();
+	return new MeshEntity;
 }
 
 

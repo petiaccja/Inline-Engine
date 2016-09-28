@@ -101,7 +101,7 @@ public:
 
 	void UploadToResource(LinearBuffer& target, const void* data, size_t size);
 
-	std::vector<UploadDescription>& _GetQueuedUploads();
+	const std::vector<UploadDescription>& _GetQueuedUploads();
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;

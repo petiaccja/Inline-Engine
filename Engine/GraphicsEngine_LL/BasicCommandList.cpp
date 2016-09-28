@@ -56,7 +56,7 @@ BasicCommandList::Decomposition BasicCommandList::Decompose() {
 
 	// Copy the elements of state transition map to vector w/ transforming types.
 	for (const auto& v : m_resourceTransitions) {
-		decomposition.usedResources.push_back( ResourceUsage{ v.first.resource, v.first.subresource, v.second.firstState, v.second.lastState, v.second.multipleStates } );
+		decomposition.usedResources.push_back( ResourceUsage{ std::move(v.first.resource), v.first.subresource, v.second.firstState, v.second.lastState, v.second.multipleStates } );
 	}
 
 	return decomposition;

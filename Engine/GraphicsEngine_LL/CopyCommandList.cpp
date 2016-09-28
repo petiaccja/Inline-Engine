@@ -35,14 +35,15 @@ CopyCommandList& CopyCommandList::operator=(CopyCommandList&& rhs) {
 }
 
 
-void CopyCommandList::SetResourceState(GenericResource* resource, unsigned subresource, gxapi::eResourceState state) {
-	auto iter = m_resourceTransitions.find({ resource, subresource });
+void CopyCommandList::SetResourceState(std::shared_ptr<GenericResource> resource, unsigned subresource, gxapi::eResourceState state) {
+	SubresourceId resId{resource, subresource};
+	auto iter = m_resourceTransitions.find(resId);
 	if (iter == m_resourceTransitions.end()) {
 		SubresourceUsageInfo info;
 		info.lastState = state;
 		info.firstState = state;
 		info.multipleStates = false;
-		m_resourceTransitions.insert({ SubresourceId{resource, subresource}, info });
+		m_resourceTransitions.insert({ std::move(resId), info });
 	}
 	else {
 		const auto& prevLastState = iter->second.lastState;

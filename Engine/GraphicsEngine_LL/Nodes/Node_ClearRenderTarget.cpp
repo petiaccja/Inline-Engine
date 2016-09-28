@@ -14,9 +14,10 @@ Task ClearRenderTarget::GetTask() {
 			ExecutionResult result;
 
 			// Update ports.
-			Texture2D* target = this->GetInput<0>().Get();
+			std::shared_ptr<Texture2D> target(this->GetInput<0>().Get(), [](void* ptr) {});
+			//Texture2D* target = this->GetInput<0>().Get();
 			this->GetInput<0>().Clear();
-			this->GetOutput<0>().Set(target);
+			this->GetOutput<0>().Set(target.get());
 
 
 			// Clear render target
@@ -40,13 +41,12 @@ Task ClearRenderTarget::GetTask() {
 				gxapi::Rectangle scissorRect{0, (int)target->GetHeight(), 0, (int)target->GetWidth()};
 				cmdList.SetScissorRects(1, &scissorRect);
 
-				// set an rtv barrier
-				// cmdList.ResourceBarrier(gxapi::TransitionBarrier{m_target->})
 
 				// clear rtv
+				auto* tmp = target.get();
 				cmdList.SetResourceState(target, 0, gxapi::eResourceState::RENDER_TARGET);
-				cmdList.SetRenderTargets(1, &target, nullptr);
-				cmdList.ClearRenderTarget(target, clearColor);
+				cmdList.SetRenderTargets(1, &tmp, nullptr);
+				cmdList.ClearRenderTarget(target.get(), clearColor);
 
 				// Output command list.
 				result.AddCommandList(std::move(cmdList));

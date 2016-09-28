@@ -65,8 +65,15 @@ public:
 	using GenericResource::GenericResource;
 };
 
-using VertexBuffer = LinearBuffer;
-using IndexBuffer = LinearBuffer;
+class VertexBuffer : public LinearBuffer {
+public:
+	using LinearBuffer::LinearBuffer;
+};
+
+class IndexBuffer : public LinearBuffer {
+public:
+	using LinearBuffer::LinearBuffer;
+};
 
 
 class ConstBuffer : public LinearBuffer {

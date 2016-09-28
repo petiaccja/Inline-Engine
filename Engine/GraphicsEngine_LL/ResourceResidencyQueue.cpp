@@ -66,7 +66,7 @@ const std::function<void()>& ResourceResidencyQueue::GetFailureHandler() const {
 }
 
 
-SyncPoint ResourceResidencyQueue::EnqueueInit(std::vector<GenericResource*> resources) {
+SyncPoint ResourceResidencyQueue::EnqueueInit(std::vector<std::shared_ptr<GenericResource>> resources) {
 	++m_fenceValue;
 	SyncPoint syncPoint(m_fence, m_fenceValue);
 
@@ -97,7 +97,7 @@ void ResourceResidencyQueue::InitThreadFunc() {
 		lk.unlock();
 
 		for (auto& task : workingSet) {
-			for (GenericResource* res : task->resources) {
+			for (const std::shared_ptr<GenericResource>& res : task->resources) {
 				// TODO...
 			}
 			task->syncPoint.m_fence->Signal(task->syncPoint.m_value);
@@ -127,7 +127,7 @@ void ResourceResidencyQueue::CleanThreadFunc() {
 
 		for (auto& task : workingSet) {
 			task->syncPoint.m_fence->Wait(task->syncPoint.m_value);
-			for (GenericResource* res : task->resources) {
+			for (const std::shared_ptr<GenericResource>& res : task->resources) {
 				// TODO...
 			}
 		}

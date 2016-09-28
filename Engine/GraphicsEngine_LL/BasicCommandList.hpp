@@ -18,13 +18,13 @@ namespace gxeng {
 
 struct SubresourceId {
 	SubresourceId() = default;
-	SubresourceId(GenericResource* resource, unsigned subresource) : resource(resource), subresource(subresource) {}
+	SubresourceId(std::shared_ptr<GenericResource> resource, unsigned subresource) : resource(std::move(resource)), subresource(subresource) {}
 
 	bool operator==(const SubresourceId& other) const {
 		return resource == other.resource && subresource == other.subresource;
 	}
 
-	GenericResource* resource;
+	std::shared_ptr<GenericResource> resource;
 	unsigned subresource;
 };
 
@@ -35,7 +35,7 @@ struct SubresourceUsageInfo {
 };
 
 struct ResourceUsage {
-	GenericResource* resource;
+	std::shared_ptr<GenericResource> resource;
 	unsigned subresource;
 	gxapi::eResourceState firstState;
 	gxapi::eResourceState lastState;
@@ -54,7 +54,7 @@ using namespace inl;
 template<>
 struct hash<gxeng::SubresourceId> {
 	std::size_t operator()(const gxeng::SubresourceId& instance) const {
-		return std::hash<gxeng::GenericResource*>{}(instance.resource) ^ std::hash<unsigned>{}(instance.subresource);
+		return std::hash<gxeng::GenericResource*>{}(instance.resource.get()) ^ std::hash<unsigned>{}(instance.subresource);
 	}
 };
 

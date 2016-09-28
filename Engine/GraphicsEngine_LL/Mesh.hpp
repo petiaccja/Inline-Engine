@@ -1,71 +1,30 @@
 #pragma once
 
-#include <vector>
-#include <memory>
-#include <cstdint>
+#include "MeshBuffer.hpp"
+#include "Vertex.hpp"
 
-#include "GpuBuffer.hpp"
+#include <type_traits>
 
 
 namespace inl {
 namespace gxeng {
 
-
-
-class VertexStream {
+class Mesh : protected MeshBuffer {
 public:
-	VertexStream();
-	VertexStream(const VertexStream&);
-	VertexStream(VertexStream&&);
-	VertexStream& operator=(const VertexStream&);
-	VertexStream& operator=(VertexStream&&);
-	~VertexStream() = default;
+	Mesh(MemoryManager* memoryManager) : MeshBuffer(memoryManager) {}
 
-	void Set(int stride, int count);
-	void Set(const void* data, int stride, int count);
-	void Set(std::unique_ptr<uint8_t>&& data, int stride, int count);
-	void Clear();
-	bool IsEmpty() const;
-	
-	void* Data() { return m_data.get(); }
-	const void* Data() const { return m_data.get(); }
-
-	int VertexCount() const { return m_count; }
-	int VertexStride() const { return m_stride; }
-	int Size() const { return m_count * m_stride; }
-private:
-	std::unique_ptr<uint8_t> m_data;
-	int m_stride;
-	int m_count;
-};
-
-
-class Mesh {
-	enum class eValidationResult {
-		OK,
-		CLEAR,
-		VERTEX_COUNT_MISMATCH,
-		INDEX_TOO_LARGE,
-		NOT_TRIANGLE,
-	};
-public:
-	template <class StreamIt, class IndexIt>
-	void Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstIndex, IndexIt lastIndex);
-
-	void Update(int streamIndex, const void* vertexData, int vertexCount, int offsetInVertex);
+	void Set(const VertexBase* vertices, size_t numVertices, size_t stride, const unsigned* indices, size_t numIndices);
+	void Update(const VertexBase* vertices, size_t numVertices, size_t stride, size_t offsetInVertices);
 	void Clear();
 
-	size_t GetNumStreams() const;
-	const VertexBuffer* GetVertexBuffer(int streamIndex) const;
-	const IndexBuffer* GetIndexBuffer() const;
-private:
-	template <class StreamIt, class IndexIt>
-	eValidationResult Validate(StreamIt firstStream, StreamIt lastStream, IndexIt firstIndex, IndexIt lastIndex);
+	using MeshBuffer::GetNumStreams;
+	using MeshBuffer::GetVertexBuffer;
+	using MeshBuffer::GetVertexBufferStride;
+	using MeshBuffer::GetIndexBuffer;
 
-	void Optimize(std::vector<VertexStream>& streams, std::vector<unsigned>& indices);
+	const std::vector<std::vector<VertexBase::Element>>& GetStreamElements() const;
 private:
-	std::vector<VertexBuffer*> m_vertexBuffers;
-	IndexBuffer* m_indexBuffer;
+	std::vector<std::vector<VertexBase::Element>> m_streamElements;
 };
 
 

@@ -118,7 +118,7 @@ void UploadHeap::UploadToResource(LinearBuffer& target, const void* data, size_t
 }
 
 
-std::vector<UploadHeap::UploadDescription>& UploadHeap::_GetQueuedUploads() {
+const std::vector<UploadHeap::UploadDescription>& UploadHeap::_GetQueuedUploads() {
 	return m_uploadQueue;
 }
 
