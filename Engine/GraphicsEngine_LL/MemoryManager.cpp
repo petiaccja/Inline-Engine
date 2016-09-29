@@ -17,6 +17,7 @@ MemoryManager::MemoryManager(gxapi::IGraphicsApi* graphicsApi, HighLevelDescHeap
 	m_graphicsApi(graphicsApi),
 	m_descHeap(heap),
 	m_criticalHeap(graphicsApi),
+	m_uploadHeap(graphicsApi),
 	m_constBufferHeap(graphicsApi)
 {}
 
@@ -28,6 +29,11 @@ void MemoryManager::LockResident(const std::vector<GenericResource*>& resources)
 
 void MemoryManager::UnlockResident(const std::vector<GenericResource*>& resources) {
 	UnlockResident(resources.begin(), resources.end());
+}
+
+
+UploadHeap& MemoryManager::GetUploadHeap() {
+	return m_uploadHeap;
 }
 
 

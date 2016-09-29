@@ -189,6 +189,9 @@
     <ClInclude Include="Mesh.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
+    <ClInclude Include="UploadHeap.hpp">
+      <Filter>MemoryManagement</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -275,6 +278,9 @@
     </ClCompile>
     <ClCompile Include="ResourceResidencyQueue.cpp">
       <Filter>Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="UploadHeap.cpp">
+      <Filter>MemoryManagement</Filter>
     </ClCompile>
     <ClCompile Include="MeshBuffer.cpp">
       <Filter>Resources</Filter>
