@@ -8,11 +8,11 @@ namespace gxeng {
 
 
 
-void Mesh::Set(const VertexBase* vertices, size_t numVertices, size_t stride, const unsigned* indices, size_t numIndices) {
+void Mesh::Set(const VertexBase* vertices, size_t numVertices, uint32_t stride, const unsigned* indices, size_t numIndices) {
 	// Create constants
 	auto& elements = vertices[0].GetElements();
 	std::vector<bool> elementMap(elements.size(), true);
-	size_t compressedStride = VertexCompressor::Size(*vertices, elementMap);
+	uint32_t compressedStride = (uint32_t)VertexCompressor::Size(*vertices, elementMap);
 
 	// Create a view to iterate over vertices
 	VertexArrayView<const VertexBase> inputArrayView{vertices, numVertices, stride};
@@ -39,7 +39,7 @@ void Mesh::Set(const VertexBase* vertices, size_t numVertices, size_t stride, co
 }
 
 
-void Mesh::Update(const VertexBase* vertices, size_t numVertices, size_t stride, size_t offsetInVertices) {
+void Mesh::Update(const VertexBase* vertices, size_t numVertices, uint32_t stride, size_t offsetInVertices) {
 	// Create constants
 	auto& elements = vertices[0].GetElements();
 	std::vector<bool> elementMap(elements.size(), true);

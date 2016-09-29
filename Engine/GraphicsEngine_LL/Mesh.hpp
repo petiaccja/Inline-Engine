@@ -13,8 +13,8 @@ class Mesh : protected MeshBuffer {
 public:
 	Mesh(MemoryManager* memoryManager) : MeshBuffer(memoryManager) {}
 
-	void Set(const VertexBase* vertices, size_t numVertices, size_t stride, const unsigned* indices, size_t numIndices);
-	void Update(const VertexBase* vertices, size_t numVertices, size_t stride, size_t offsetInVertices);
+	void Set(const VertexBase* vertices, size_t numVertices, uint32_t stride, const unsigned* indices, size_t numIndices);
+	void Update(const VertexBase* vertices, size_t numVertices, uint32_t stride, size_t offsetInVertices);
 	void Clear();
 
 	using MeshBuffer::GetNumStreams;

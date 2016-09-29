@@ -125,7 +125,7 @@ void Scheduler::Execute(FrameContext context) {
 		// Scene cannot be rendered, but we should draw an error message on the screen for the devs.
 
 		// Log error.
-		//context.log->Event(std::string("Fatal pipeline error: ") + ex.what());
+		context.log->Event(std::string("Fatal pipeline error: ") + ex.what());
 
 		// Draw a red blinking background to signal error.
 		try {

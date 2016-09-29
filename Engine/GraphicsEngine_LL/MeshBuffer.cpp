@@ -95,7 +95,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 
 
 
-void MeshBuffer::Update(int streamIndex, const void* vertexData, int vertexCount, int offsetInVertex) {
+void MeshBuffer::Update(uint32_t streamIndex, const void* vertexData, size_t vertexCount, size_t offsetInVertex) {
 	if (streamIndex > m_vertexBuffers.size()) {
 		throw std::out_of_range("Stream index is out of range.");
 	}

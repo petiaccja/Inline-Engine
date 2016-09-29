@@ -75,7 +75,7 @@ public:
 	template <class StreamIt, class IndexIt>
 	void Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstIndex, IndexIt lastIndex);
 
-	void Update(int streamIndex, const void* vertexData, int vertexCount, int offsetInVertex);
+	void Update(uint32_t streamIndex, const void* vertexData, size_t vertexCount, size_t offsetInVertex);
 	void Clear();
 
 	size_t GetNumStreams() const;
