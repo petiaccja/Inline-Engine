@@ -111,7 +111,7 @@ public:
 	template <class... Barriers>
 	void ResourceBarrier(Barriers&&... barriers);
 
-	void SetResourceState(GenericResource* resource, unsigned subresource, gxapi::eResourceState state);
+	void SetResourceState(std::shared_ptr<GenericResource> resource, unsigned subresource, gxapi::eResourceState state);
 protected:
 	virtual Decomposition Decompose() override;
 private:

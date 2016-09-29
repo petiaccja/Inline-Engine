@@ -2,6 +2,8 @@
 
 #include "GpuBuffer.hpp"
 
+#include <utility>
+
 namespace inl {
 namespace gxeng {
 
@@ -9,17 +11,17 @@ namespace gxeng {
 class UploadHeap {
 public:
 	struct UploadDescription {
-		UploadDescription(GenericResource&& source, GenericResource* pDestination) :
-		source(std::move(source)), pDestination(pDestination) {}
+		UploadDescription(GenericResource&& source, std::weak_ptr<GenericResource> destination) :
+		source(std::move(source)), destination(destination) {}
 
 		GenericResource source;
-		GenericResource* pDestination;
+		std::weak_ptr<GenericResource> destination;
 	};
 
 public:
 	UploadHeap(gxapi::IGraphicsApi* graphicsApi);
 
-	void UploadToResource(LinearBuffer& target, const void* data, size_t size);
+	void UploadToResource(std::weak_ptr<LinearBuffer> target, const void* data, size_t size);
 
 	std::vector<UploadDescription>& _GetQueuedUploads();
 

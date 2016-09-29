@@ -11,6 +11,7 @@
 #define NOMINMAX
 #include <Windows.h>
 #include <tchar.h>
+#include "MiniWorld.hpp"
 
 
 using std::cout;
@@ -45,12 +46,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 int main() {
 	// Initialize logger
 	logFile.open("engine_test.log");
-	if (logFile.is_open()) {
-		logger.OpenStream(&logFile);
-	}
-	else {
+	//if (logFile.is_open()) {
+	//	logger.OpenStream(&logFile);
+	//}
+	//else {
 		logger.OpenStream(&std::cout);
-	}
+	//}
 
 	std::set_terminate([]()
 	{	
@@ -170,13 +171,15 @@ int main() {
 	// Game-style main loop
 	MSG msg;
 	bool run = true;
+
+	MiniWorld miniWorld(engine.get());
+
 	std::chrono::high_resolution_clock::time_point timestamp = std::chrono::high_resolution_clock::now();
 	std::chrono::nanoseconds frameTime(1000);
 	std::chrono::nanoseconds frameRateUpdate(0);
 	std::vector<std::chrono::nanoseconds> frameTimeHistory;
 	float avgFps = 0;
-	float fpsHistory[10] = {0};
-	unsigned fpsHistoryIdx = 0;
+
 	while (run) {
 		while (PeekMessage(&msg, hWnd, 0, 0, PM_REMOVE)) {
 			if (msg.message == WM_QUIT) {
@@ -189,7 +192,11 @@ int main() {
 			try {
 				// Measure time of Update().
 				auto updateStart = std::chrono::high_resolution_clock::now();
-				engine->Update(frameTime.count() / 1e9f);
+
+				// Update world
+				miniWorld.UpdateWorld(frameTime.count() / 1e9f);
+				miniWorld.RenderWorld(frameTime.count() / 1e9f);
+
 				auto updateEnd = std::chrono::high_resolution_clock::now();
 				std::chrono::nanoseconds updateElapsed = updateEnd - updateStart;
 
@@ -197,7 +204,7 @@ int main() {
 				auto now = std::chrono::high_resolution_clock::now();
 				frameTime = now - timestamp;
 				timestamp = now;
-				//std::this_thread::sleep_for(16ms - updateElapsed);
+				//std::this_thread::sleep_for(16667us - updateElapsed);
 
 				frameRateUpdate += frameTime;
 				if (frameRateUpdate > 500ms) {

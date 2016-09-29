@@ -33,9 +33,6 @@
       <Filter>Interfaces</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsEngine.hpp" />
-    <ClInclude Include="Mesh.hpp">
-      <Filter>Resources</Filter>
-    </ClInclude>
     <ClInclude Include="Material.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
@@ -135,9 +132,6 @@
     <ClInclude Include="CommandQueue.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
-    <ClInclude Include="CommandListTasks.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
     <ClInclude Include="HighLevelDescHeap.hpp">
       <Filter>MemoryManagement</Filter>
     </ClInclude>
@@ -158,9 +152,6 @@
     </ClInclude>
     <ClInclude Include="EntityCollection.hpp">
       <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="TypedMesh.hpp">
-      <Filter>Resources</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_GetBackBuffer.hpp">
       <Filter>Nodes</Filter>
@@ -192,6 +183,12 @@
     <ClInclude Include="ResourceResidencyQueue.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
+    <ClInclude Include="MeshBuffer.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
     <ClInclude Include="UploadHeap.hpp">
       <Filter>MemoryManagement</Filter>
     </ClInclude>
@@ -199,9 +196,6 @@
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
     <ClCompile Include="Texture2D.cpp">
-      <Filter>Resources</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="Material.cpp">
@@ -270,9 +264,6 @@
     <ClCompile Include="ScratchSpacePool.cpp">
       <Filter>Middleware</Filter>
     </ClCompile>
-    <ClCompile Include="TypedMesh.cpp">
-      <Filter>Resources</Filter>
-    </ClCompile>
     <ClCompile Include="Nodes\Node_ClearRenderTarget.cpp">
       <Filter>Nodes</Filter>
     </ClCompile>
@@ -290,6 +281,12 @@
     </ClCompile>
     <ClCompile Include="UploadHeap.cpp">
       <Filter>MemoryManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshBuffer.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

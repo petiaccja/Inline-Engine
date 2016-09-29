@@ -21,6 +21,10 @@ public:
 	CommandQueue(gxapi::ICommandQueue* queue, gxapi::IFence* fence)
 		: m_commandQueue(queue), m_progressFence(fence)
 	{}
+	~CommandQueue() {
+		SyncPoint finish = Signal();
+		finish.Wait();
+	}
 	
 	// General
 	gxapi::ICommandQueue* GetUnderlyingQueue() {

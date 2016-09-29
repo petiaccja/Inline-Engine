@@ -4,10 +4,11 @@
 #include "Scheduler.hpp"
 #include "CommandAllocatorPool.hpp"
 #include "ScratchSpacePool.hpp"
-#include "CommandListTasks.hpp"
 #include "ResourceResidencyQueue.hpp"
 
 #include "ResourceHeap.hpp"
+#include "MemoryManager.hpp"
+#include "HighLevelDescHeap.hpp"
 
 #include <GraphicsApi_LL/IGxapiManager.hpp>
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
@@ -21,7 +22,7 @@ namespace inl {
 namespace gxeng {
 
 
-class TypedMesh;
+class Mesh;
 class Scene;
 class MeshEntity;
 
@@ -49,7 +50,7 @@ public:
 	void Update(float elapsed);
 
 	// Resources
-	TypedMesh* CreateMesh();
+	Mesh* CreateMesh();
 
 	// Scene
 	Scene* CreateScene(std::string name);
@@ -66,17 +67,18 @@ private:
 	// Pipeline Facilities
 	CommandAllocatorPool m_commandAllocatorPool;
 	ScratchSpacePool m_scratchSpacePool;
-	std::mutex m_commandAllocatorMutex;
-	Scheduler m_scheduler;
 	Pipeline m_pipeline;
+	Scheduler m_scheduler;
 	std::vector<SyncPoint> m_frameEndFenceValues;
+
+	// Memory
+	HighLevelDescHeap m_descriptorHeap;
+	MemoryManager m_memoryManager;
+	std::unique_ptr<BackBufferHeap> m_backBufferHeap;
 
 	// Pipeline elements
 	CommandQueue m_masterCommandQueue;
 	ResourceResidencyQueue m_residencyQueue;
-
-	// Memory
-	std::unique_ptr<BackBufferHeap> m_backBufferHeap;
 
 	// Logging
 	exc::Logger* m_logger;

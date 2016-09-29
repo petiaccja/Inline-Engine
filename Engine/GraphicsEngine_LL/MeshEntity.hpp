@@ -9,18 +9,20 @@ namespace inl {
 namespace gxeng {
 
 
-class TypedMesh;
+class Mesh;
 
 
 class MeshEntity {
 public:
-	void SetMesh(TypedMesh* mesh);
-	TypedMesh* GetMesh() const;
+	MeshEntity();
+
+	void SetMesh(Mesh* mesh);
+	Mesh* GetMesh() const;
 
 	void SetPosition(mathfu::Vector<float, 3> pos);
 	mathfu::Vector<float, 3> GetPosition() const;
 private:
-	TypedMesh* mesh;
+	Mesh* m_mesh;
 	mathfu::Vector<float, 3> m_position;
 };
 

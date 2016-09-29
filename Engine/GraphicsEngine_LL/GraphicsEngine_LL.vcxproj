@@ -161,7 +161,6 @@
     <ClInclude Include="BasicCommandList.hpp" />
     <ClInclude Include="Binder.hpp" />
     <ClInclude Include="CommandAllocatorPool.hpp" />
-    <ClInclude Include="CommandListTasks.hpp" />
     <ClInclude Include="CommandQueue.hpp" />
     <ClInclude Include="ComputeCommandList.hpp" />
     <ClInclude Include="ConstBufferHeap.hpp" />
@@ -179,7 +178,7 @@
     <ClInclude Include="MeshEntity.hpp" />
     <ClInclude Include="GraphicsEngine.hpp" />
     <ClInclude Include="Material.hpp" />
-    <ClInclude Include="Mesh.hpp" />
+    <ClInclude Include="MeshBuffer.hpp" />
     <ClInclude Include="Nodes\Node_GetBackBuffer.hpp" />
     <ClInclude Include="Nodes\Node_ClearRenderTarget.h" />
     <ClInclude Include="Nodes\Node_FrameColor.hpp" />
@@ -198,7 +197,7 @@
     <ClInclude Include="Task.hpp" />
     <ClInclude Include="Texture2D.hpp" />
     <ClInclude Include="GpuBuffer.hpp" />
-    <ClInclude Include="TypedMesh.hpp" />
+    <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="UploadHeap.hpp" />
     <ClInclude Include="VertexArrayView.hpp" />
     <ClInclude Include="Vertex.hpp" />
@@ -222,7 +221,7 @@
     <ClCompile Include="MeshEntity.cpp" />
     <ClCompile Include="GraphicsEngine.cpp" />
     <ClCompile Include="Material.cpp" />
-    <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="MeshBuffer.cpp" />
     <ClCompile Include="Nodes\Node_ClearRenderTarget.cpp" />
     <ClCompile Include="Nodes\Node_TescoRender.cpp" />
     <ClCompile Include="Pipeline.cpp" />
@@ -235,7 +234,7 @@
     <ClCompile Include="Task.cpp" />
     <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="GpuBuffer.cpp" />
-    <ClCompile Include="TypedMesh.cpp" />
+    <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="UploadHeap.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

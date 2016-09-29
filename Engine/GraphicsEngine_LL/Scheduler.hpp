@@ -38,7 +38,7 @@ protected:
 	static void EnqueueCommandList(CommandQueue& commandQueue,
 		std::unique_ptr<gxapi::ICopyCommandList> commandList,
 		CmdAllocPtr commandAllocator,
-		std::vector<GenericResource*> usedResources,
+		std::vector<std::shared_ptr<GenericResource>> usedResources,
 		const FrameContext& context);
 
 	template <class UsedResourceIter>
@@ -63,7 +63,7 @@ std::vector<gxapi::ResourceBarrier> Scheduler::InjectBarriers(UsedResourceIter f
 
 	// Collect all necessary barriers.
 	for (UsedResourceIter it = firstResource; it != lastResource; ++it) {
-		GenericResource* resource = it->resource;
+		GenericResource* resource = it->resource.get();
 		unsigned subresource = it->subresource;
 		gxapi::eResourceState targetState = it->firstState;
 
@@ -111,7 +111,7 @@ bool Scheduler::CanExecuteParallel(UsedResourceIter1 first1, UsedResourceIter1 l
 template <class UsedResourceIter>
 void Scheduler::UpdateResourceStates(UsedResourceIter firstResource, UsedResourceIter lastResource) {
 	for (auto it = firstResource; it != lastResource; ++it) {
-		GenericResource* resource = it->resource;
+		GenericResource* resource = it->resource.get();
 		resource->RecordState(it->subresource, it->lastState);
 	}
 }
