@@ -3,8 +3,10 @@
 #include <vector>
 #include <memory>
 #include <cstdint>
+#include <type_traits>
 
 #include "GpuBuffer.hpp"
+#include "MemoryManager.hpp"
 
 
 namespace inl {
@@ -13,46 +15,6 @@ namespace gxeng {
 
 class MemoryManager;
 
-
-//class VertexStream {
-//public:
-//	VertexStream();
-//	VertexStream(const VertexStream&);
-//	VertexStream(VertexStream&&);
-//	VertexStream& operator=(const VertexStream&);
-//	VertexStream& operator=(VertexStream&&);
-//	~VertexStream() = default;
-//
-//	/// <summary> Initializes stream to the specified size, with garbage initial data. </summary>
-//	/// <param name="stride"> Size of one vertex in bytes. </summary>
-//	/// <param name="count"> Number of vertices. </summary>
-//	void Set(int stride, int count);
-//
-//	/// <summary> Initializes stream to the specified size, copying 'data' </summary>
-//	/// <param name="data"> Stream is filled with memory pointed by data. Must be at least stride*count bytes. </summary>
-//	/// <param name="stride"> Size of one vertex in bytes. </summary>
-//	/// <param name="count"> Number of vertices. </summary>
-//	void Set(const void* data, int stride, int count);
-//
-//	/// <summary> Initializes stream to the specified size, taking ownership of 'data' </summary>
-//	/// <param name="data"> Stream is filled with data. Must be at least stride*count bytes. Data becomes invalid. </summary>
-//	/// <param name="stride"> Size of one vertex in bytes. </summary>
-//	/// <param name="count"> Number of vertices. </summary>
-//	void Set(std::unique_ptr<uint8_t>&& data, int stride, int count);
-//	void Clear();
-//	bool IsEmpty() const;
-//	
-//	void* Data() { return m_data.get(); }
-//	const void* Data() const { return m_data.get(); }
-//
-//	int VertexCount() const { return m_count; }
-//	int VertexStride() const { return m_stride; }
-//	int Size() const { return m_count * m_stride; }
-//private:
-//	std::unique_ptr<uint8_t> m_data;
-//	int m_stride;
-//	int m_count;
-//};
 
 struct VertexStream {
 	void* data;
@@ -92,6 +54,126 @@ private:
 	MemoryManager* m_memoryManager;
 };
 
+
+
+template <class StreamIt, class IndexIt>
+void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstIndex, IndexIt lastIndex) {
+	static_assert(std::is_same<VertexStream, std::decay_t<decltype(*firstStream)>>::value, "Not a VertexStream iterator.");
+	static_assert(std::is_integral<std::decay_t<decltype(*firstIndex)>>::value, "Indices must be of integral type.");
+
+	// Validate input data
+	eValidationResult valid = Validate(firstStream, lastStream, firstIndex, lastIndex);
+	switch (valid) {
+	case eValidationResult::VERTEX_COUNT_MISMATCH:
+		throw std::invalid_argument("All streams must have the same number of vertices.");
+		break;
+	case eValidationResult::INDEX_TOO_LARGE:
+		throw std::invalid_argument("Indices over-index the vertex buffers.");
+		break;
+	case eValidationResult::NOT_TRIANGLE:
+		throw std::invalid_argument("Index count not divisible by 3. Must be triangles.");
+		break;
+	case eValidationResult::OK:
+		break;
+	}
+
+	// Create vertex buffers.
+	std::vector<std::unique_ptr<VertexBuffer>> newVertexBuffers;
+	std::unique_ptr<IndexBuffer> newIndexBuffer;
+
+	for (StreamIt streamIt = firstStream; streamIt != lastStream; ++streamIt) {
+		const VertexStream& stream = *streamIt;
+		size_t streamSizeBytes = stream.stride * stream.count;
+		if (streamSizeBytes == 0) {
+			throw std::invalid_argument("Stream cannot have 0 stride or 0 vertices.");
+		}
+		std::unique_ptr<VertexBuffer> buffer(m_memoryManager->CreateVertexBuffer(eResourceHeapType::CRITICAL, streamSizeBytes));
+		newVertexBuffers.push_back(std::move(buffer));
+	}
+
+	// Create index buffer.
+	size_t numVertices = firstStream->count; // all must have the same number of verts, see Validate
+	size_t numIndices = std::distance(firstIndex, lastIndex);
+	// Not perfect, but hey, why'd you give more vertices if they are not indexed?
+	bool using32BitIndex = numVertices > 0xFFFFu;
+	unsigned indexStride = using32BitIndex ? sizeof(uint32_t) : sizeof(uint16_t);
+	size_t indexTotalSize = numIndices * indexStride;
+	newIndexBuffer.reset(m_memoryManager->CreateIndexBuffer(eResourceHeapType::CRITICAL, indexTotalSize));
+
+	// Fill the vertex buffers.
+	{
+		StreamIt sourceIt = firstStream;
+		auto bufferIt = newVertexBuffers.begin();
+		for (; bufferIt != newVertexBuffers.end(); ++bufferIt, ++sourceIt) {
+			// TODO...
+			const VertexStream& stream = *sourceIt;
+			m_memoryManager->GetUploadHeap().UploadToResource(*bufferIt->get(), stream.data, stream.count * stream.stride);
+		}
+	}
+
+	// Fill the index buffers.
+	if (std::is_pointer_v<IndexIt> && sizeof(*firstIndex) == indexStride) {
+		// If we have a pointer to the right type, just plain copy shit.
+		// TODO...
+		m_memoryManager->GetUploadHeap().UploadToResource(*m_indexBuffer.get(), firstIndex, numIndices * indexStride);
+	}
+	else {
+		// Copy indices one-by-one.
+		// TODO...
+		std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(indexStride * numIndices);
+		if (using32BitIndex) {
+			size_t i = 0;
+			for (auto it = firstIndex; it != lastIndex; ++it, ++i) {
+				reinterpret_cast<uint32_t*>(data.get())[i] = (uint32_t)*it;
+			}
+		}
+		else {
+			size_t i = 0;
+			for (auto it = firstIndex; it != lastIndex; ++it, ++i) {
+				reinterpret_cast<uint16_t*>(data.get())[i] = (uint16_t)*it;
+			}
+		}
+		m_memoryManager->GetUploadHeap().UploadToResource(*m_indexBuffer.get(), data.get(), numIndices * indexStride);
+	}
+
+	// Update internals.
+	m_vertexBuffers.clear();
+	m_indexBuffer.reset();
+	m_vertexBuffers.clear();
+	for (auto& buffer : newVertexBuffers) {
+		m_vertexBuffers.push_back(std::move(buffer));
+	}
+	m_indexBuffer = std::move(newIndexBuffer);
+}
+
+
+template <class StreamIt, class IndexIt>
+MeshBuffer::eValidationResult MeshBuffer::Validate(StreamIt firstStream, StreamIt lastStream, IndexIt firstIndex, IndexIt lastIndex) {
+	if (firstStream == lastStream) {
+		return eValidationResult::CLEAR;
+	}
+
+	auto vertexCount = firstStream->count;
+	for (auto streamIt = firstStream; streamIt != lastStream; ++streamIt) {
+		if (streamIt->count != vertexCount) {
+			return eValidationResult::VERTEX_COUNT_MISMATCH;
+		}
+	}
+
+	size_t numIndices = 0;
+	for (auto indexIt = firstIndex; indexIt != lastIndex; ++indexIt) {
+		if (*indexIt >= vertexCount) {
+			return eValidationResult::INDEX_TOO_LARGE;
+		}
+		++numIndices;
+	}
+
+	if (numIndices % 3 != 0) {
+		return eValidationResult::NOT_TRIANGLE;
+	}
+
+	return eValidationResult::OK;
+}
 
 
 } // namespace gxeng

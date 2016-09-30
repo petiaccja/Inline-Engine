@@ -17,7 +17,7 @@ void Mesh::Set(const VertexBase* vertices, size_t numVertices, uint32_t stride, 
 	// Create a view to iterate over vertices
 	VertexArrayView<const VertexBase> inputArrayView{vertices, numVertices, stride};
 
-	// Create a stream
+	// Create buffer for compressed vertices of stream
 	std::unique_ptr<uint8_t[]> compressedData = std::make_unique<uint8_t[]>(compressedStride * numVertices);
 
 	// Fill stream
@@ -68,8 +68,9 @@ void Mesh::Clear() {
 }
 
 
-const std::vector<std::vector<VertexBase::Element>>& Mesh::GetStreamElements() const {
-	return m_streamElements;
+const std::vector<VertexBase::Element>& Mesh::GetVertexBufferElements(size_t streamIndex) const {
+	assert(streamIndex < GetNumStreams());
+	return m_streamElements[streamIndex];
 }
 
 

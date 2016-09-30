@@ -41,7 +41,9 @@ public:
 			this->GetOutput<0>().Set(target);
 
 			if (target && entities) {
-				RenderScene(target, *entities, nullptr);
+				GraphicsCommandList cmdList = context.GetGraphicsCommandList();
+				RenderScene(target, *entities, cmdList);
+				result.AddCommandList(std::move(cmdList));
 			}
 
 			return result;
@@ -49,7 +51,7 @@ public:
 	}
 
 private:
-	void RenderScene(Texture2D* target, const EntityCollection<MeshEntity>& entities, gxapi::IGraphicsCommandList* commandList);
+	void RenderScene(Texture2D* target, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList);
 };
 
 

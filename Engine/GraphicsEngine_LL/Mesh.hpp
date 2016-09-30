@@ -11,6 +11,8 @@ namespace gxeng {
 
 class Mesh : protected MeshBuffer {
 public:
+
+public:
 	Mesh(MemoryManager* memoryManager) : MeshBuffer(memoryManager) {}
 
 	void Set(const VertexBase* vertices, size_t numVertices, uint32_t stride, const unsigned* indices, size_t numIndices);
@@ -22,7 +24,7 @@ public:
 	using MeshBuffer::GetVertexBufferStride;
 	using MeshBuffer::GetIndexBuffer;
 
-	const std::vector<std::vector<VertexBase::Element>>& GetStreamElements() const;
+	const std::vector<VertexBase::Element>& GetVertexBufferElements(size_t streamIndex) const;
 private:
 	std::vector<std::vector<VertexBase::Element>> m_streamElements;
 };
