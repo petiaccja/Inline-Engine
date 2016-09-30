@@ -16,7 +16,7 @@ namespace gxeng {
 //------------------------------------------------------------------------------
 
 MeshBuffer::MeshBuffer(MemoryManager* memoryManager)
-	: m_memoryManager(memoryManager) 
+	: m_memoryManager(memoryManager)
 {
 	assert(m_memoryManager != nullptr);
 }
@@ -34,7 +34,9 @@ void MeshBuffer::Update(uint32_t streamIndex, const void* vertexData, size_t ver
 	// Overwrite vertex buffer
 	// TODO...
 	size_t stride = m_vertexStrides[streamIndex];
-	//m_memoryManager->GetUploadHeap().UploadToResource(*m_vertexBufers[streamIndex].get(), firstIndex, numIndices * indexStride);
+	const std::shared_ptr<VertexBuffer>& buffer = m_vertexBuffers[streamIndex];
+	assert(buffer->GetSize() >= offsetInVertex * stride + vertexCount * stride);
+	m_memoryManager->GetUploadHeap().UploadToResource(buffer, offsetInVertex * stride, vertexData, vertexCount * stride);
 }
 
 

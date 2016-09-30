@@ -61,6 +61,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 	static_assert(std::is_same<VertexStream, std::decay_t<decltype(*firstStream)>>::value, "Not a VertexStream iterator.");
 	static_assert(std::is_integral<std::decay_t<decltype(*firstIndex)>>::value, "Indices must be of integral type.");
 
+
 	// Validate input data
 	eValidationResult valid = Validate(firstStream, lastStream, firstIndex, lastIndex);
 	switch (valid) {
@@ -77,6 +78,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 		break;
 	}
 
+
 	// Create vertex buffers.
 	std::vector<std::unique_ptr<VertexBuffer>> newVertexBuffers;
 	std::unique_ptr<IndexBuffer> newIndexBuffer;
@@ -91,6 +93,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 		newVertexBuffers.push_back(std::move(buffer));
 	}
 
+
 	// Create index buffer.
 	size_t numVertices = firstStream->count; // all must have the same number of verts, see Validate
 	size_t numIndices = std::distance(firstIndex, lastIndex);
@@ -100,14 +103,25 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 	size_t indexTotalSize = numIndices * indexStride;
 	newIndexBuffer.reset(m_memoryManager->CreateIndexBuffer(eResourceHeapType::CRITICAL, indexTotalSize));
 
+
+	// Update internals.
+	m_vertexBuffers.clear();
+	m_indexBuffer.reset();
+	m_vertexBuffers.clear();
+	for (auto& buffer : newVertexBuffers) {
+		m_vertexBuffers.push_back(std::move(buffer));
+	}
+	m_indexBuffer = std::move(newIndexBuffer);
+
+
 	// Fill the vertex buffers.
 	{
 		StreamIt sourceIt = firstStream;
-		auto bufferIt = newVertexBuffers.begin();
-		for (; bufferIt != newVertexBuffers.end(); ++bufferIt, ++sourceIt) {
+		auto bufferIt = m_vertexBuffers.begin();
+		for (; bufferIt != m_vertexBuffers.end(); ++bufferIt, ++sourceIt) {
 			// TODO...
 			const VertexStream& stream = *sourceIt;
-			m_memoryManager->GetUploadHeap().UploadToResource(*bufferIt->get(), stream.data, stream.count * stream.stride);
+			m_memoryManager->GetUploadHeap().UploadToResource(*bufferIt, 0, stream.data, stream.count * stream.stride);
 		}
 	}
 
@@ -115,7 +129,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 	if (std::is_pointer_v<IndexIt> && sizeof(*firstIndex) == indexStride) {
 		// If we have a pointer to the right type, just plain copy shit.
 		// TODO...
-		m_memoryManager->GetUploadHeap().UploadToResource(*m_indexBuffer.get(), firstIndex, numIndices * indexStride);
+		m_memoryManager->GetUploadHeap().UploadToResource(m_indexBuffer, 0, firstIndex, numIndices * indexStride);
 	}
 	else {
 		// Copy indices one-by-one.
@@ -133,17 +147,8 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 				reinterpret_cast<uint16_t*>(data.get())[i] = (uint16_t)*it;
 			}
 		}
-		m_memoryManager->GetUploadHeap().UploadToResource(*m_indexBuffer.get(), data.get(), numIndices * indexStride);
+		m_memoryManager->GetUploadHeap().UploadToResource(m_indexBuffer, 0, data.get(), numIndices * indexStride);
 	}
-
-	// Update internals.
-	m_vertexBuffers.clear();
-	m_indexBuffer.reset();
-	m_vertexBuffers.clear();
-	for (auto& buffer : newVertexBuffers) {
-		m_vertexBuffers.push_back(std::move(buffer));
-	}
-	m_indexBuffer = std::move(newIndexBuffer);
 }
 
 
