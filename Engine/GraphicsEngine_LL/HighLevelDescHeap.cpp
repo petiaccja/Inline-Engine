@@ -212,10 +212,11 @@ DescriptorReference HighLevelDescHeap::AllocateOnTextureSpace() {
 
 	DescriptorReference result{
 		GetAtTextureSpace(pos),
-		[this, pos]() { m_textureSpaceAllocator.Deallocate(pos); }
+		[this, pos]() { std::lock_guard<std::mutex> lock(m_textureSpaceMtx); m_textureSpaceAllocator.Deallocate(pos); }
 	};
 	return result;
 }
+
 
 ScratchSpace HighLevelDescHeap::CreateScratchSpace(size_t size) {
 	return ScratchSpace(m_graphicsApi, size);

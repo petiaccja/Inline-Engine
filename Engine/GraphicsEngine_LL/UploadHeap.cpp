@@ -9,8 +9,8 @@ UploadHeap::UploadHeap(gxapi::IGraphicsApi* graphicsApi) :
 {}
 
 
-void UploadHeap::UploadToResource(LinearBuffer& target, const void* data, size_t size) {
-	if (target.GetSize() < size) {
+void UploadHeap::UploadToResource(std::weak_ptr<LinearBuffer> target, size_t offset, const void* data, size_t size) {
+	if (target.lock()->GetSize() < (offset+size)) {
 		throw inl::gxapi::InvalidArgument("Target buffer is not large enough for the uploaded data to fit.", "target");
 	}
 
@@ -35,7 +35,8 @@ void UploadHeap::UploadToResource(LinearBuffer& target, const void* data, size_t
 				std::move(desc),
 				uploadRes
 			),
-			&target
+			target,
+			offset
 		);
 
 		m_uploadQueue.push_back(std::move(uploadDesc));
