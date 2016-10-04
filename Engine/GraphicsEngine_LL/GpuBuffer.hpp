@@ -19,6 +19,7 @@ public:
 
 	GenericResource(DescriptorReference&& resourceView, gxapi::IResource* resource);
 	GenericResource(DescriptorReference&& resourceView, gxapi::IResource* resource, const Deleter& deleter);
+	virtual ~GenericResource() {}
 
 	GenericResource(GenericResource&&);
 	GenericResource& operator=(GenericResource&&);

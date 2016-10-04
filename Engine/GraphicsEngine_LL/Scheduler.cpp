@@ -10,7 +10,7 @@ namespace gxeng {
 
 
 Scheduler::Scheduler()
-	{}
+{}
 
 void Scheduler::SetPipeline(Pipeline&& pipeline) {
 	m_pipeline = std::move(pipeline);
@@ -26,31 +26,22 @@ Pipeline Scheduler::ReleasePipeline() {
 
 void Scheduler::Execute(FrameContext context) {
 	const auto& taskGraph = m_pipeline.GetTaskGraph();
-	const auto& dependencyGraph = m_pipeline.GetDependencyGraph();
-	const auto& taskParentMap = m_pipeline.GetTaskParentMap();
-	const auto& nodeMap = m_pipeline.GetNodeMap();
 	const auto& taskFunctionMap = m_pipeline.GetTaskFunctionMap();
 
-	// Topologically sort the tasks.
-	lemon::ListDigraph::NodeMap<int> taskOrderMap(taskGraph);
-	bool isSortable = lemon::checkedTopologicalSort(taskGraph, taskOrderMap);
-	assert(isSortable);
+	auto tasks = MakeSchedule(taskGraph, taskFunctionMap);
 
-	std::vector<lemon::ListDigraph::NodeIt> taskNodes;
-	for (lemon::ListDigraph::NodeIt taskNode(taskGraph); taskNode != lemon::INVALID; ++taskNode) {
-		taskNodes.push_back(taskNode);
-	}
-
-	std::sort(taskNodes.begin(), taskNodes.end(), [&](auto n1, auto n2)
-	{
-		return taskOrderMap[n1] < taskOrderMap[n2];
+	// Inject copy task to the start.
+	tasks.insert(tasks.begin(),[context](ExecutionContext ctx){
+		auto cmdList = ctx.GetCopyCommandList();
+		UploadTask(cmdList, *context.uploadRequests);
+		ExecutionResult res;
+		return res;
 	});
 
-	// Execute the tasks in topological order.
+	// Execute the tasks.
 	try {
-		for (auto& taskNode : taskNodes) {
+		for (auto& task : tasks) {
 			// Execute the task on the CPU.
-			ElementaryTask task = taskFunctionMap[taskNode];
 			ExecutionResult result;
 			if (task) {
 				result = task(ExecutionContext{ &context });
@@ -77,10 +68,10 @@ void Scheduler::Execute(FrameContext context) {
 					injectList->Close();
 
 					EnqueueCommandList(*context.commandQueue,
-						std::move(injectList),
-						std::move(injectAlloc),
-						{},
-						context);
+									   std::move(injectList),
+									   std::move(injectAlloc),
+									   {},
+									   context);
 				}
 
 				// Enqueue actual command list.
@@ -91,12 +82,12 @@ void Scheduler::Execute(FrameContext context) {
 				}
 
 				dec.commandList->Close();
-				
+
 				EnqueueCommandList(*context.commandQueue,
-					std::move(dec.commandList),
-					std::move(dec.commandAllocator),
-					std::move(usedResourceList),
-					context);
+								   std::move(dec.commandList),
+								   std::move(dec.commandAllocator),
+								   std::move(usedResourceList),
+								   context);
 
 
 				// Update resource states.
@@ -111,14 +102,14 @@ void Scheduler::Execute(FrameContext context) {
 		injectList->ResourceBarrier(gxapi::TransitionBarrier{
 			context.backBuffer->_GetResourcePtr(),
 			context.backBuffer->ReadState(0),
-			gxapi::eResourceState::PRESENT});
+			gxapi::eResourceState::PRESENT });
 		injectList->Close();
 
 		EnqueueCommandList(*context.commandQueue,
-			std::move(injectList),
-			std::move(injectAlloc),
-			{},
-			context);
+						   std::move(injectList),
+						   std::move(injectAlloc),
+						   {},
+						   context);
 	}
 	catch (std::exception& ex) {
 		// One of the pipeline Nodes (Tasks) threw an exception.
@@ -147,12 +138,41 @@ void Scheduler::Evict(std::vector<GenericResource*> usedResources) {
 
 }
 
+std::vector<ElementaryTask> Scheduler::MakeSchedule(const lemon::ListDigraph& taskGraph,
+												const lemon::ListDigraph::NodeMap<ElementaryTask>& taskFunctionMap
+												/*std::vector<CommandQueue*> queues*/)
+{
+	// Topologically sort the tasks.
+	lemon::ListDigraph::NodeMap<int> taskOrderMap(taskGraph);
+	bool isSortable = lemon::checkedTopologicalSort(taskGraph, taskOrderMap);
+	assert(isSortable);
+
+	std::vector<lemon::ListDigraph::NodeIt> taskNodes;
+	for (lemon::ListDigraph::NodeIt taskNode(taskGraph); taskNode != lemon::INVALID; ++taskNode) {
+		taskNodes.push_back(taskNode);
+	}
+
+	std::sort(taskNodes.begin(), taskNodes.end(), [&](auto n1, auto n2)
+	{
+		return taskOrderMap[n1] < taskOrderMap[n2];
+	});
+
+	// Make a list of them.
+	std::vector<ElementaryTask> tasks;
+	for (auto node : taskNodes) {
+		auto& task = taskFunctionMap[node];
+		tasks.push_back(task);
+	}
+
+	return tasks;
+}
+
 
 void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
-	std::unique_ptr<gxapi::ICopyCommandList> commandList,
-	CmdAllocPtr commandAllocator,
-	std::vector<std::shared_ptr<GenericResource>> usedResources,
-	const FrameContext& context)
+								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
+								   CmdAllocPtr commandAllocator,
+								   std::vector<std::shared_ptr<GenericResource>> usedResources,
+								   const FrameContext& context)
 {
 	// Enqueue CPU task to make resources resident before the command list runs.
 	SyncPoint residentPoint = context.residencyQueue->EnqueueInit(usedResources);
@@ -235,6 +255,31 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 	// Enqueue command list.
 	commandList->Close();
 	EnqueueCommandList(*context.commandQueue, std::move(commandList), std::move(commandAllocator), {}, context);
+}
+
+
+
+void Scheduler::UploadTask(CopyCommandList& commandList, const std::vector<UploadHeap::UploadDescription>& uploads) {
+	for (auto& request : uploads) {
+		// Init copy parameters
+		const GenericResource* source = &request.source;
+		std::shared_ptr<GenericResource> destination = request.destination.lock();
+
+		// Check if resources are still valid
+		if (destination) {
+			// Set destination resource state
+			commandList.SetResourceState(destination, 0, gxapi::eResourceState::COPY_DEST);
+
+			// Copy buffer
+			if (const LinearBuffer* buffer = dynamic_cast<const LinearBuffer*>(source)) {
+				commandList.CopyBuffer(destination.get(), request.offsetDst, const_cast<GenericResource*>(source), 0, buffer->GetSize());
+			}
+			// Copy texture2D
+			else if (false) {
+				// TODO
+			}
+		}
+	}
 }
 
 

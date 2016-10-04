@@ -82,10 +82,6 @@ protected:
 	CopyCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool, gxapi::eCommandListType type);
 
 public:
-	// Command list state
-	void ResetState(gxapi::IPipelineState* newState = nullptr);
-
-
 	// Resource copy
 	void CopyBuffer(GenericResource* dst, size_t dstOffset, GenericResource* src, size_t srcOffset, size_t numBytes);
 

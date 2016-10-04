@@ -43,6 +43,15 @@ BasicCommandList::Decomposition ComputeCommandList::Decompose() {
 }
 
 
+// Command list state
+void ComputeCommandList::ResetState(gxapi::IPipelineState* newState) {
+	m_commandList->ResetState(newState);
+}
+
+void ComputeCommandList::SetPipelineState(gxapi::IPipelineState* pipelineState) {
+	m_commandList->SetPipelineState(pipelineState);
+}
+
 
 } // namespace gxeng
 } // namespace inl

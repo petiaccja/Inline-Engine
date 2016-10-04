@@ -52,10 +52,21 @@ void UploadHeap::UploadToResource(std::weak_ptr<LinearBuffer> target, size_t off
 }
 
 
-std::vector<UploadHeap::UploadDescription>& UploadHeap::_GetQueuedUploads() {
+const std::vector<UploadHeap::UploadDescription>& UploadHeap::_GetQueuedUploads() {
 	return m_uploadQueue;
 }
 
+void UploadHeap::_ClearQueuedUploads() {
+#pragma message("Artúr ezt csináld meg, lécci! UploadHeap.cpp:57")
+#pragma message("Becopyzom még vagy tízszer, hogy tuti lásd a sok buzi warning között :D")
+#pragma message("Artúr ezt csináld meg, lécci! UploadHeap.cpp:57")
+#pragma message("Artúr ezt csináld meg, lécci! UploadHeap.cpp:57")
+#pragma message("Artúr ezt csináld meg, lécci! UploadHeap.cpp:57")
+#pragma message("Artúr ezt csináld meg, lécci! UploadHeap.cpp:57")
+#pragma message("Artúr ezt csináld meg, lécci! UploadHeap.cpp:57")
+	throw std::runtime_error("Not implemented!");
+	m_uploadQueue.clear();
+}
 
 } // namespace gxeng
 } // namespace inl

@@ -96,6 +96,7 @@ void GraphicsEngine::Update(float elapsed) {
 	context.commandQueue = &m_masterCommandQueue;
 	context.backBuffer = &m_backBufferHeap->GetBackBuffer(backBufferIndex);
 	context.scenes = &m_scenes;
+	context.uploadRequests = &m_memoryManager.GetUploadHeap()._GetQueuedUploads();
 
 	context.residencyQueue = &m_residencyQueue;
 
@@ -104,6 +105,9 @@ void GraphicsEngine::Update(float elapsed) {
 
 	// Mark frame completion
 	m_frameEndFenceValues[backBufferIndex] = m_masterCommandQueue.Signal();
+
+	// Clean up after frame
+	// m_memoryManager.GetUploadHeap()._ClearQueuedUploads();
 
 	// Flush log
 	// m_logger->Flush();

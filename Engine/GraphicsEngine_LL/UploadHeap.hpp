@@ -24,8 +24,8 @@ public:
 
 	void UploadToResource(std::weak_ptr<LinearBuffer> target, size_t offset, const void* data, size_t size);
 
-	std::vector<UploadDescription>& _GetQueuedUploads();
-
+	const std::vector<UploadDescription>& _GetQueuedUploads();
+	void _ClearQueuedUploads();
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
 	std::vector<UploadDescription> m_uploadQueue;

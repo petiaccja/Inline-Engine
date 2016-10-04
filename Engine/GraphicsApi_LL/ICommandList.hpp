@@ -22,7 +22,6 @@ public:
 	virtual ~ICopyCommandList() = default;
 
 	// Command list state
-	virtual void ResetState(IPipelineState* newState = nullptr) = 0;
 	virtual void Close() = 0;
 	virtual void Reset(ICommandAllocator* allocator, IPipelineState* newState = nullptr) = 0;
 
@@ -82,6 +81,10 @@ public:
 	virtual void SetComputeRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) = 0;
 
 	virtual void SetComputeRootSignature(IRootSignature* rootSignature) = 0;
+
+	// set pipeline state
+	virtual void SetPipelineState(IPipelineState* pipelineState) = 0;
+	virtual void ResetState(IPipelineState* initialPipelineState) = 0;
 };
 
 
@@ -152,9 +155,6 @@ public:
 	virtual void SetGraphicsRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) = 0;
 
 	virtual void SetGraphicsRootSignature(IRootSignature* rootSignature) = 0;
-
-	// set pipeline state
-	virtual void SetPipelineState(IPipelineState* pipelineState) = 0;
 };
 
 

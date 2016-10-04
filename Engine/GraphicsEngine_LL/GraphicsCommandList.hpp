@@ -82,10 +82,6 @@ public:
 	//void BindGraphics(BindParameter parameter, RWTexture2D* rwResource);
 	//void BindGraphics(BindParameter parameter, RWTexture3D* rwResource);
 
-
-	// set pipeline state
-	void SetPipelineState(gxapi::IPipelineState* pipelineState);
-
 protected:
 	virtual Decomposition Decompose() override;
 private:

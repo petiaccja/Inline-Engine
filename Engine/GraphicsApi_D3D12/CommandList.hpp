@@ -44,7 +44,6 @@ public:
 
 
 	// Command list state
-	void ResetState(gxapi::IPipelineState* newState = nullptr) override;
 	void Close() override;
 	void Reset(gxapi::ICommandAllocator* allocator, gxapi::IPipelineState* newState = nullptr) override;
 
@@ -95,6 +94,10 @@ public:
 	void SetComputeRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) override;
 
 	void SetComputeRootSignature(gxapi::IRootSignature* rootSignature) override;
+
+	// set pipeline state
+	void SetPipelineState(gxapi::IPipelineState* pipelineState) override;
+	void ResetState(gxapi::IPipelineState* initialPipelineState) override;
 };
 
 
@@ -164,9 +167,6 @@ public:
 	void SetGraphicsRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) override;
 
 	void SetGraphicsRootSignature(gxapi::IRootSignature* rootSignature) override;
-
-	// set pipeline state
-	void SetPipelineState(gxapi::IPipelineState* pipelineState) override;
 };
 
 

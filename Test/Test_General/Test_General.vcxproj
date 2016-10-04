@@ -158,6 +158,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Test_Allocator.cpp" />
+    <ClCompile Include="Test_Binder.cpp" />
     <ClCompile Include="Test_GapiSync.cpp" />
     <ClCompile Include="Test_MultiInstanceTLS.cpp">
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NoListing</AssemblerOutput>

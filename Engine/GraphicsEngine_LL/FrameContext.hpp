@@ -9,6 +9,7 @@
 #include <chrono>
 #include <set>
 #include "ResourceResidencyQueue.hpp"
+#include "MemoryManager.hpp"
 
 
 namespace inl {
@@ -32,6 +33,7 @@ struct FrameContext {
 	CommandQueue* commandQueue = nullptr;
 	Texture2D* backBuffer = nullptr;
 	const std::set<Scene*>* scenes = nullptr;
+	const std::vector<UploadHeap::UploadDescription>* uploadRequests = nullptr;
 	
 	ResourceResidencyQueue* residencyQueue = nullptr;
 

@@ -8,7 +8,7 @@ namespace gxeng {
 
 
 
-Binder::Binder(std::initializer_list<BindParameterDesc> parameters) {
+Binder::Binder(const std::vector<BindParameterDesc>& parameters) {
 	CalculateLayout(parameters);
 }
 
@@ -22,16 +22,16 @@ void Binder::Translate(BindParameter parameter, int & rootParamIndex, int & root
 }
 
 
-void Binder::CalculateLayout(const std::initializer_list<BindParameterDesc>& parameters) {
+void Binder::CalculateLayout(const std::vector<BindParameterDesc>& parameters) {
 	// copy input parameters to mapping
 	m_parameters.reserve(parameters.size());
-	for (const auto& param : parameters) {
-		RootParameterMapping mapping;
-		mapping.bindParam = param.parameter;
-		mapping.rootParamIndex = -1;
-		mapping.rootTableIndex = -1;
-		m_parameters.push_back(mapping);
-	}
+	//for (const auto& param : parameters) {
+	//	RootParameterMapping mapping;
+	//	mapping.bindParam = param.parameter;
+	//	mapping.rootParamIndex = -1;
+	//	mapping.rootTableIndex = -1;
+	//	m_parameters.push_back(mapping);
+	//}
 
 
 	std::vector<std::vector<BindParameterDesc>> tableParams(1); // goes into descriptor heap (scratch space)
@@ -104,11 +104,12 @@ void Binder::CalculateLayout(const std::initializer_list<BindParameterDesc>& par
 			if (param.parameter.type != typeOfStreak
 				|| param.parameter.space != spaceOfStreak
 				|| param.parameter.reg != regOfStreak + 1
-				|| typeStreakLength == 0) 
+				|| typeStreakLength == 0)
 			{
-				rootTable.ranges.push_back(gxapi::DescriptorRange{ CastRangeType(typeOfStreak), 0, param.parameter.reg, param.parameter.space});
+				rootTable.ranges.push_back(gxapi::DescriptorRange{ CastRangeType(typeOfStreak), 0, param.parameter.reg, param.parameter.space });
 			}
 
+			typeOfStreak = param.parameter.type;
 			regOfStreak = param.parameter.reg;
 			(--rootTable.ranges.end())->numDescriptors++;
 		}
@@ -125,10 +126,10 @@ void Binder::CalculateLayout(const std::initializer_list<BindParameterDesc>& par
 
 
 // Note that this function is optimized for nvidia, without taking much care for nvidia either.
-void Binder::DistributeParameters(const std::initializer_list<BindParameterDesc>& parameters,
-								  std::vector<std::vector<BindParameterDesc>> & tableParams,
-								  std::vector<BindParameterDesc> & samplerParams,
-								  std::vector<BindParameterDesc> & constantParams)
+void Binder::DistributeParameters(const std::vector<BindParameterDesc>& parameters,
+	std::vector<std::vector<BindParameterDesc>> & tableParams,
+	std::vector<BindParameterDesc> & samplerParams,
+	std::vector<BindParameterDesc> & constantParams)
 {
 	// put SRV's and UAV's into descriptor table: they have so many limitation that inlining them is basically worthless
 	// put samplers into separate list
@@ -147,16 +148,37 @@ void Binder::DistributeParameters(const std::initializer_list<BindParameterDesc>
 	// how to compute required number of bytes in root signature
 	auto usedSpace = [&] {
 		int size = 0;
-		for (const auto& param : parameters) {
-			size += ((param.constantSize + 3) / 4 > 0 ? param.constantSize : 8); break; // inline constant size OR 64 bit virtual address
+		//for (const auto& param : parameters) {
+		//	size += ((param.constantSize + 3) / 4 > 0 ? param.constantSize : 8); break; // inline constant size OR 64 bit virtual address
+		//}
+		//size += tableParams.empty() ? 0 : 4; // 32 bits for each descriptor table
+
+		for (const auto& table : tableParams) {
+			size += 4;
 		}
-		size += tableParams.empty() ? 0 : 4; // 32 bits for each descriptor table
+		for (const auto& constant : constantParams) {
+			size += constant.constantSize > 0 ? ((constant.constantSize + 3) / 4 * 4) : 8;
+		}
+
 		return size;
 	};
 
 
-	// sort constant parametes by change frequency
+	// sort constant parametes by size, ascending, 0 is considered biggest
 	std::sort(constantParams.begin(), constantParams.end(), [](const BindParameterDesc& lhs, const BindParameterDesc& rhs)
+	{
+		auto lhscmp = lhs.constantSize <= 0 ? std::numeric_limits<decltype(lhs.constantSize)>::max() : lhs.constantSize;
+		auto rhscmp = rhs.constantSize <= 0 ? std::numeric_limits<decltype(rhs.constantSize)>::max() : rhs.constantSize;
+		return lhscmp < rhscmp;
+	});
+
+	// sort constant parametes by change frequency
+	auto largeBegin = constantParams.begin();
+	while (largeBegin != constantParams.end() && largeBegin->constantSize <= 8) {
+		largeBegin++;
+	}
+
+	std::sort(largeBegin, constantParams.end(), [](const BindParameterDesc& lhs, const BindParameterDesc& rhs)
 	{
 		return lhs.relativeChangeFrequency < rhs.relativeChangeFrequency;
 	});
@@ -166,22 +188,21 @@ void Binder::DistributeParameters(const std::initializer_list<BindParameterDesc>
 		auto convertIt = constantParams.rbegin();
 		auto endIt = constantParams.rend();
 		while (maxSize < usedSpace() && convertIt != endIt) {
-			if (convertIt->parameter.type == eBindParameterType::CONSTANT) {
-				convertIt->constantSize = 0;
-			}
+			convertIt->constantSize = 0;
 			++convertIt;
 		}
 	}
 
 	// throw CBVs into descriptor table until there's enough space
 	{
-		auto constantIt = constantParams.rbegin();
-		auto endIt = constantParams.rend();
-		while (maxSize < usedSpace() && constantIt != endIt) {
-			tableParams[0].push_back(*constantIt);
-			++constantIt;
+		while (maxSize < usedSpace()) {
+			auto constantIt = constantParams.rbegin();
+			auto endIt = constantParams.rend();
+			if (constantIt != endIt) {
+				tableParams[0].push_back(*constantIt);
+				constantParams.erase(--constantIt.base());
+			}
 		}
-		constantParams.erase(constantIt.base(), constantParams.end());
 	}
 }
 
@@ -190,10 +211,10 @@ std::pair<std::vector<Binder::RootParameterMapping>::const_iterator, bool> Binde
 	RootParameterMapping key;
 	key.bindParam = param;
 	key.constantCount = 0;
-	auto it =  std::lower_bound(m_parameters.begin(),
-							m_parameters.end(),
-							key,
-							[](const RootParameterMapping& lhs, const RootParameterMapping& rhs) {
+	auto it = std::lower_bound(m_parameters.begin(),
+		m_parameters.end(),
+		key,
+		[](const RootParameterMapping& lhs, const RootParameterMapping& rhs) {
 		return RadixLess(lhs.bindParam, rhs.bindParam);
 	});
 	return{ it, it != m_parameters.end() };
@@ -217,10 +238,10 @@ bool Binder::RadixLess(const BindParameter& lhs, const BindParameter& rhs) {
 
 gxapi::DescriptorRange::eType Binder::CastRangeType(eBindParameterType source) {
 	switch (source) {
-		case eBindParameterType::CONSTANT: return gxapi::DescriptorRange::CBV;
-		case eBindParameterType::TEXTURE: return gxapi::DescriptorRange::SRV;
-		case eBindParameterType::UNORDERED: return gxapi::DescriptorRange::UAV;
-		case eBindParameterType::SAMPLER: return gxapi::DescriptorRange::SAMPLER;
+	case eBindParameterType::CONSTANT: return gxapi::DescriptorRange::CBV;
+	case eBindParameterType::TEXTURE: return gxapi::DescriptorRange::SRV;
+	case eBindParameterType::UNORDERED: return gxapi::DescriptorRange::UAV;
+	case eBindParameterType::SAMPLER: return gxapi::DescriptorRange::SAMPLER;
 	}
 	assert(false);
 	return gxapi::DescriptorRange::eType(0); // just to silence the fucking warning

@@ -57,10 +57,6 @@ CopyCommandList::CopyCommandList(ComPtr<ID3D12GraphicsCommandList>& native)
 
 
 // Command list state
-void CopyCommandList::ResetState(gxapi::IPipelineState* newState) {
-	m_native->ClearState(native_cast(newState));
-}
-
 void CopyCommandList::Close() {
 	ThrowIfFailed(m_native->Close());
 }
@@ -211,6 +207,16 @@ void ComputeCommandList::SetComputeRootSignature(gxapi::IRootSignature* rootSign
 	m_native->SetComputeRootSignature(native_cast(rootSignature));
 }
 
+
+void ComputeCommandList::ResetState(gxapi::IPipelineState* newState) {
+	m_native->ClearState(native_cast(newState));
+}
+
+
+// set pipeline state
+void ComputeCommandList::SetPipelineState(gxapi::IPipelineState * pipelineState) {
+	m_native->SetPipelineState(native_cast(pipelineState));
+}
 
 
 //------------------------------------------------------------------------------
@@ -412,11 +418,6 @@ void GraphicsCommandList::SetGraphicsRootSignature(gxapi::IRootSignature* rootSi
 	m_native->SetGraphicsRootSignature(native_cast(rootSignature));
 }
 
-
-// set pipeline state
-void GraphicsCommandList::SetPipelineState(gxapi::IPipelineState * pipelineState) {
-	m_native->SetPipelineState(native_cast(pipelineState));
-}
 
 
 
