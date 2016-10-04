@@ -21,13 +21,13 @@ protected:
 	class ConstBufferPage {
 	public:
 		ConstBufferPage() = default;
-		ConstBufferPage(std::unique_ptr<gxapi::IResource>&& representedMemory, void* cpuAddress, void* gpuAddress, size_t pageSize) :
+		ConstBufferPage(std::unique_ptr<gxapi::IResource>&& representedMemory, void* cpuAddress, void* gpuAddress, size_t pageSize, size_t ownerFrameID) :
 			m_representedMemory(std::move(representedMemory)),
 			m_cpuAddress(cpuAddress),
 			m_gpuAddress(gpuAddress),
 			m_pageSize(pageSize),
 			m_consumedSize(0),
-			m_age(0)
+			m_ownerFrameID(ownerFrameID)
 		{}
 		ConstBufferPage(ConstBufferPage&&) = default;
 		ConstBufferPage& operator=(ConstBufferPage&&) = default;
@@ -37,15 +37,17 @@ protected:
 		void* const m_gpuAddress;
 		const size_t m_pageSize;
 		size_t m_consumedSize;
-		int m_age;
+		int m_ownerFrameID;
 	};
 
 public:
 	ConstantBufferHeap(gxapi::IGraphicsApi* graphicsApi);
 
-	ConstBuffer CreateBuffer(DescriptorReference&& viewRef, void* data, size_t dataSize);
+	VolatileConstBuffer CreateVolatileBuffer(DescriptorReference&& viewRef, void* data, size_t dataSize);
+	PersistentConstBuffer CreatePersistentBuffer(DescriptorReference&& viewRef, void* data, size_t dataSize) const;
 
-	void FrameCompleted();
+	void FrameCompletedCPU();
+	void FrameCompletedGPU();
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
@@ -53,6 +55,9 @@ protected:
 	exc::RingBuffer<ConstBufferPage> m_largePages;
 	exc::RingBuffer<ConstBufferPage> m_pages;
 	std::mutex m_mutex;
+
+	size_t m_currFrameID = 1;
+	size_t m_lastFinishedFrameID = 0;
 
 protected:
 	// From ( https://msdn.microsoft.com/en-us/library/windows/desktop/dn899216%28v=vs.85%29.aspx )
@@ -69,8 +74,7 @@ protected:
 	// Expalnation: ("comp" means how many frames are completed)
 	// Frames:      |   0 comp   |   1 comp  |   2 comp   |
 	//         ...  |  assembly  |  process  |  finished  |  ...
-	static constexpr uint8_t CMDLIST_FINISH_FRAME_COUNT = 2;
-
+	//static constexpr uint8_t CMDLIST_FINISH_FRAME_COUNT = 2;
 
 	static size_t AlignUp(size_t value, size_t alignement);
 

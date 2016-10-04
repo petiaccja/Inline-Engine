@@ -273,9 +273,6 @@
     <ClCompile Include="ResourceHeap.cpp">
       <Filter>MemoryManagement</Filter>
     </ClCompile>
-    <ClCompile Include="ConstBufferHeap.cpp">
-      <Filter>MemoryManagement</Filter>
-    </ClCompile>
     <ClCompile Include="ResourceResidencyQueue.cpp">
       <Filter>Pipeline</Filter>
     </ClCompile>
@@ -287,6 +284,9 @@
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
       <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstBufferHeap.cpp">
+      <Filter>MemoryManagement</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

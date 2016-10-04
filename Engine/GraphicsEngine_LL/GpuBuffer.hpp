@@ -65,27 +65,54 @@ public:
 	using GenericResource::GenericResource;
 };
 
+
 class VertexBuffer : public LinearBuffer {
 public:
 	using LinearBuffer::LinearBuffer;
 };
+
 
 class IndexBuffer : public LinearBuffer {
 public:
 	using LinearBuffer::LinearBuffer;
 };
 
+//==================================
+
+
+//==================================
+// Const Buffers
 
 class ConstBuffer : public LinearBuffer {
 public:
-	ConstBuffer(DescriptorReference&& resourceView, gxapi::IResource* resource, void* gpuVirtualPtr, const Deleter& deleter);
-
 	void* GetVirtualAddress() const;
+
+protected:
+	ConstBuffer(
+		DescriptorReference&& resourceView,
+		gxapi::IResource* resource,
+		void* gpuVirtualPtr);
 
 protected:
 	void* m_gpuVirtualPtr;
 };
 
+
+class VolatileConstBuffer : public ConstBuffer {
+public:
+	VolatileConstBuffer(
+		DescriptorReference&& resourceView,
+		gxapi::IResource* resource,
+		void* gpuVirtualPtr);
+};
+
+
+class PersistentConstBuffer : public ConstBuffer {
+public:
+	PersistentConstBuffer(DescriptorReference&& resourceView,
+		gxapi::IResource* resource,
+		void* gpuVirtualPtr);
+};
 
 //==================================
 
