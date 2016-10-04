@@ -44,7 +44,7 @@ struct BindParameter {
 		return type == rhs.type && reg == rhs.reg && space == rhs.space;
 	}
 	bool operator!=(const BindParameter& rhs) {
-		return *this != rhs;
+		return !(*this == rhs);
 	}
 };
 
