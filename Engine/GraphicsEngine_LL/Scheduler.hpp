@@ -35,11 +35,17 @@ protected:
 	static void MakeResident(std::vector<GenericResource*> usedResources);
 	static void Evict(std::vector<GenericResource*> usedResources);
 
+	static void UploadTask(CopyCommandList& commandList, const std::vector<UploadHeap::UploadDescription>& uploads);
+
+	static std::vector<ElementaryTask> MakeSchedule(const lemon::ListDigraph& taskGraph,
+													const lemon::ListDigraph::NodeMap<ElementaryTask>& taskFunctionMap
+													/*std::vector<CommandQueue*> queues*/);
+
 	static void EnqueueCommandList(CommandQueue& commandQueue,
-		std::unique_ptr<gxapi::ICopyCommandList> commandList,
-		CmdAllocPtr commandAllocator,
-		std::vector<std::shared_ptr<GenericResource>> usedResources,
-		const FrameContext& context);
+								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
+								   CmdAllocPtr commandAllocator,
+								   std::vector<std::shared_ptr<GenericResource>> usedResources,
+								   const FrameContext& context);
 
 	template <class UsedResourceIter>
 	static std::vector<gxapi::ResourceBarrier> Scheduler::InjectBarriers(UsedResourceIter firstResource, UsedResourceIter lastResource);

@@ -68,11 +68,6 @@ BasicCommandList::Decomposition CopyCommandList::Decompose() {
 
 
 
-// Command list state
-void CopyCommandList::ResetState(gxapi::IPipelineState* newState) {
-	m_commandList->ResetState(newState);
-}
-
 
 void CopyCommandList::CopyBuffer(GenericResource * dst, size_t dstOffset, GenericResource * src, size_t srcOffset, size_t numBytes) {
 	m_commandList->CopyBuffer(dst->_GetResourcePtr(), dstOffset, src->_GetResourcePtr(), srcOffset, numBytes);

@@ -693,8 +693,8 @@ struct Viewport {
 
 struct HeapProperties {
 	HeapProperties(eHeapType type = eHeapType::DEFAULT,
-				   eCpuPageProperty cpuPageProperty = eCpuPageProperty::UNKNOWN,
-				   eMemoryPool memoryPool = eMemoryPool::UNKNOWN)
+		eCpuPageProperty cpuPageProperty = eCpuPageProperty::UNKNOWN,
+		eMemoryPool memoryPool = eMemoryPool::UNKNOWN)
 		: type(type), pool(memoryPool), cpuPageProperty(cpuPageProperty) {}
 	eHeapType type;
 	eCpuPageProperty cpuPageProperty;
@@ -737,33 +737,33 @@ struct ResourceDesc {
 
 	static inline ResourceDesc Buffer(uint64_t sizeInBytes);
 	static inline ResourceDesc Texture1D(uint64_t width, eFormat format, eResourceFlags flags = eResourceFlags::NONE,
-										 uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
-										 uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
 
 	static inline ResourceDesc Texture1DArray(uint64_t width, eFormat format, uint16_t arraySize,
-											  eResourceFlags flags = eResourceFlags::NONE,
-											  uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
-											  uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+		eResourceFlags flags = eResourceFlags::NONE,
+		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
 
 	static inline ResourceDesc Texture2D(uint64_t width, uint32_t height, eFormat format,
-										 eResourceFlags flags = eResourceFlags::NONE,
-										 uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
-										 uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+		eResourceFlags flags = eResourceFlags::NONE,
+		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
 
 	static inline ResourceDesc Texture2DArray(uint64_t width, uint32_t height, eFormat format, uint16_t arraySize,
-											  eResourceFlags flags = eResourceFlags::NONE,
-											  uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
-											  uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+		eResourceFlags flags = eResourceFlags::NONE,
+		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
 
 	static inline ResourceDesc Texture3D(uint64_t width, uint32_t height, uint16_t depth, eFormat format,
-										 eResourceFlags flags = eResourceFlags::NONE,
-										 uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
-										 uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+		eResourceFlags flags = eResourceFlags::NONE,
+		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
 
 	static inline ResourceDesc CubeMap(uint64_t width, uint32_t height, eFormat format,
-									   eResourceFlags flags = eResourceFlags::NONE,
-									   uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
-									   uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+		eResourceFlags flags = eResourceFlags::NONE,
+		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
 };
 
 
@@ -974,9 +974,9 @@ struct InputLayout {
 struct DepthStencilState {
 	struct FaceOperations {
 		FaceOperations(eStencilOp stencilOpOnStencilFail = eStencilOp::KEEP,
-					   eStencilOp stencilOpOnDepthFail = eStencilOp::KEEP,
-					   eStencilOp stencilOpOnPass = eStencilOp::KEEP,
-					   eComparisonFunction stencilFunc = eComparisonFunction::ALWAYS)
+			eStencilOp stencilOpOnDepthFail = eStencilOp::KEEP,
+			eStencilOp stencilOpOnPass = eStencilOp::KEEP,
+			eComparisonFunction stencilFunc = eComparisonFunction::ALWAYS)
 			:stencilOpOnStencilFail(stencilOpOnStencilFail),
 			stencilOpOnDepthFail(stencilOpOnDepthFail),
 			stencilOpOnPass(stencilOpOnPass),
@@ -990,13 +990,13 @@ struct DepthStencilState {
 	};
 
 	DepthStencilState(bool enableDepthTest = true,
-					  bool enableDepthStencilWrite = true,
-					  eComparisonFunction depthFunc = eComparisonFunction::LESS,
-					  bool enableStencilTest = false,
-					  uint8_t stencilReadMask = 0,
-					  uint8_t stencilWriteMask = 0,
-					  FaceOperations cwFace = {},
-					  FaceOperations ccwFace = {})
+		bool enableDepthStencilWrite = true,
+		eComparisonFunction depthFunc = eComparisonFunction::LESS,
+		bool enableStencilTest = false,
+		uint8_t stencilReadMask = 0,
+		uint8_t stencilWriteMask = 0,
+		FaceOperations cwFace = {},
+		FaceOperations ccwFace = {})
 		:
 		enableDepthTest(enableDepthTest),
 		enableDepthStencilWrite(enableDepthStencilWrite),
@@ -1072,10 +1072,10 @@ struct DescriptorRange {
 
 	DescriptorRange() = default;
 	DescriptorRange(eType type,
-					unsigned numDescriptors,
-					unsigned baseShaderRegister,
-					unsigned registerSpace,
-					unsigned offsetFromTableStart = std::numeric_limits<unsigned>::max())
+		unsigned numDescriptors,
+		unsigned baseShaderRegister,
+		unsigned registerSpace,
+		unsigned offsetFromTableStart = std::numeric_limits<unsigned>::max())
 		:
 		type(type),
 		numDescriptors(numDescriptors),
@@ -1124,37 +1124,37 @@ struct RootParameterDesc {
 	};
 
 	// Special ctors and dtor to manage unions
-	RootParameterDesc() : m_type(UNITIALIZED), type(m_type), shaderVisibility(m_shaderVisibility) {};
+	RootParameterDesc() : m_type(UNITIALIZED), type(m_type), shaderVisibility(m_shaderVisibility), m_shaderVisibility(eShaderVisiblity::ALL) {};
 	RootParameterDesc(const RootParameterDesc& rhs) : m_type(rhs.m_type), type(m_type), shaderVisibility(m_shaderVisibility) {
 		m_shaderVisibility = rhs.m_shaderVisibility;
 		switch (m_type) {
-			case CONSTANT:
-				new (&constant) RootConstant(rhs.constant);
-				break;
-			case CBV:
-			case SRV:
-			case UAV:
-				new (&descriptor) RootDescriptor(rhs.descriptor);
-				break;
-			case DESCRIPTOR_TABLE:
-				new (&descriptorTable) RootDescriptorTable(rhs.descriptorTable);
-				break;
+		case CONSTANT:
+			new (&constant) RootConstant(rhs.constant);
+			break;
+		case CBV:
+		case SRV:
+		case UAV:
+			new (&descriptor) RootDescriptor(rhs.descriptor);
+			break;
+		case DESCRIPTOR_TABLE:
+			new (&descriptorTable) RootDescriptorTable(rhs.descriptorTable);
+			break;
 		}
 	}
 	RootParameterDesc(RootParameterDesc&& rhs) : m_type(rhs.m_type), type(m_type), shaderVisibility(m_shaderVisibility) {
 		m_shaderVisibility = rhs.m_shaderVisibility;
 		switch (m_type) {
-			case CONSTANT:
-				new (&constant) RootConstant(std::move(rhs.constant));
-				break;
-			case CBV:
-			case SRV:
-			case UAV:
-				new (&descriptor) RootDescriptor(std::move(rhs.descriptor));
-				break;
-			case DESCRIPTOR_TABLE:
-				new (&descriptorTable) RootDescriptorTable(std::move(rhs.descriptorTable));
-				break;
+		case CONSTANT:
+			new (&constant) RootConstant(std::move(rhs.constant));
+			break;
+		case CBV:
+		case SRV:
+		case UAV:
+			new (&descriptor) RootDescriptor(std::move(rhs.descriptor));
+			break;
+		case DESCRIPTOR_TABLE:
+			new (&descriptorTable) RootDescriptorTable(std::move(rhs.descriptorTable));
+			break;
 		}
 	}
 	RootParameterDesc& operator=(const RootParameterDesc& rhs) {
@@ -1162,7 +1162,7 @@ struct RootParameterDesc {
 		new (this) RootParameterDesc(rhs);
 		return *this;
 	}
-	RootParameterDesc& operator=(RootParameterDesc&& rhs) {
+	RootParameterDesc& operator=(RootParameterDesc&& rhs) noexcept {
 		Destruct();
 		new (this) RootParameterDesc(std::move(rhs));
 		return *this;
@@ -1177,7 +1177,7 @@ struct RootParameterDesc {
 
 	template <eType Type>
 	const typename std::conditional < Type == CONSTANT, RootConstant,
-		typename std::conditional < Type == CBV || Type == SRV || Type == UAV, RootDescriptor, 
+		typename std::conditional < Type == CBV || Type == SRV || Type == UAV, RootDescriptor,
 		typename std::conditional < Type == DESCRIPTOR_TABLE, RootDescriptorTable, void>::type>::type>::type &
 		As() const {};
 	template <eType Type>
@@ -1189,34 +1189,34 @@ struct RootParameterDesc {
 
 	// Constructors to initialize object.
 	static inline RootParameterDesc Constant(unsigned numConstants, unsigned shaderRegister, unsigned registerSpace = 0,
-											 eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+		eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
 
 	static inline RootParameterDesc Cbv(unsigned shaderRegister, unsigned registerSpace = 0,
-										eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+		eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
 
 	static inline RootParameterDesc Srv(unsigned shaderRegister, unsigned registerSpace = 0,
-										eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+		eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
 
 	static inline RootParameterDesc Uav(unsigned shaderRegister, unsigned registerSpace = 0,
-										eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+		eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
 
 	static inline RootParameterDesc DescriptorTable(unsigned numDescriptorRanges, DescriptorRange* descriptorRanges,
-													eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+		eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
 	static inline RootParameterDesc DescriptorTable(std::vector<DescriptorRange> descriptorRanges,
-													eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+		eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
 	static inline RootParameterDesc DescriptorTable(eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
 
 private:
 	void Destruct() {
 		switch (m_type) {
-			case CONSTANT:
-				constant.~RootConstant(); break;
-			case CBV:
-			case SRV:
-			case UAV:
-				descriptor.~RootDescriptor(); break;
-			case DESCRIPTOR_TABLE:
-				descriptorTable.~RootDescriptorTable(); break;
+		case CONSTANT:
+			constant.~RootConstant(); break;
+		case CBV:
+		case SRV:
+		case UAV:
+			descriptor.~RootDescriptor(); break;
+		case DESCRIPTOR_TABLE:
+			descriptorTable.~RootDescriptorTable(); break;
 		}
 	}
 
@@ -1468,10 +1468,10 @@ struct ResourceBarrierTag {};
 struct TransitionBarrier : public ResourceBarrierTag {
 	TransitionBarrier() = default;
 	TransitionBarrier(IResource* resource,
-					  eResourceState beforeState,
-					  eResourceState afterState,
-					  unsigned subResource = 0,
-					  eResourceBarrierSplit splitMode = eResourceBarrierSplit::NORMAL)
+		eResourceState beforeState,
+		eResourceState afterState,
+		unsigned subResource = 0,
+		eResourceBarrierSplit splitMode = eResourceBarrierSplit::NORMAL)
 		: resource(resource), beforeState(beforeState), afterState(afterState), subResource(subResource), splitMode(splitMode) {}
 
 	IResource* resource;
@@ -1523,9 +1523,9 @@ inline ResourceDesc ResourceDesc::Buffer(uint64_t sizeInBytes) {
 }
 
 inline ResourceDesc ResourceDesc::Texture1D(uint64_t width, eFormat format,
-											eResourceFlags flags,
-											uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
-											uint64_t alignment, eTextureLayout layout)
+	eResourceFlags flags,
+	uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+	uint64_t alignment, eTextureLayout layout)
 {
 	ResourceDesc desc;
 	desc.type = eResourceType::TEXTURE;
@@ -1547,9 +1547,9 @@ inline ResourceDesc ResourceDesc::Texture1D(uint64_t width, eFormat format,
 }
 
 inline ResourceDesc ResourceDesc::Texture1DArray(uint64_t width, eFormat format, uint16_t arraySize,
-												 eResourceFlags flags,
-												 uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
-												 uint64_t alignment, eTextureLayout layout)
+	eResourceFlags flags,
+	uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+	uint64_t alignment, eTextureLayout layout)
 {
 	ResourceDesc desc;
 	desc.type = eResourceType::TEXTURE;
@@ -1571,9 +1571,9 @@ inline ResourceDesc ResourceDesc::Texture1DArray(uint64_t width, eFormat format,
 }
 
 inline ResourceDesc ResourceDesc::Texture2D(uint64_t width, uint32_t height, eFormat format,
-											eResourceFlags flags,
-											uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
-											uint64_t alignment, eTextureLayout layout)
+	eResourceFlags flags,
+	uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+	uint64_t alignment, eTextureLayout layout)
 {
 	ResourceDesc desc;
 	desc.type = eResourceType::TEXTURE;
@@ -1594,9 +1594,9 @@ inline ResourceDesc ResourceDesc::Texture2D(uint64_t width, uint32_t height, eFo
 	return desc;
 }
 inline ResourceDesc ResourceDesc::Texture2DArray(uint64_t width, uint32_t height, eFormat format, uint16_t arraySize,
-												 eResourceFlags flags,
-												 uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
-												 uint64_t alignment, eTextureLayout layout)
+	eResourceFlags flags,
+	uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+	uint64_t alignment, eTextureLayout layout)
 {
 	ResourceDesc desc;
 	desc.type = eResourceType::TEXTURE;
@@ -1618,9 +1618,9 @@ inline ResourceDesc ResourceDesc::Texture2DArray(uint64_t width, uint32_t height
 }
 
 inline ResourceDesc ResourceDesc::Texture3D(uint64_t width, uint32_t height, uint16_t depth, eFormat format,
-											eResourceFlags flags,
-											uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
-											uint64_t alignment, eTextureLayout layout)
+	eResourceFlags flags,
+	uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+	uint64_t alignment, eTextureLayout layout)
 {
 	ResourceDesc desc;
 	desc.type = eResourceType::TEXTURE;
@@ -1641,9 +1641,9 @@ inline ResourceDesc ResourceDesc::Texture3D(uint64_t width, uint32_t height, uin
 	return desc;
 }
 inline ResourceDesc ResourceDesc::CubeMap(uint64_t width, uint32_t height, eFormat format,
-										  eResourceFlags flags,
-										  uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
-										  uint64_t alignment, eTextureLayout layout)
+	eResourceFlags flags,
+	uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+	uint64_t alignment, eTextureLayout layout)
 {
 	ResourceDesc desc;
 	desc.type = eResourceType::TEXTURE;
@@ -1663,7 +1663,6 @@ inline ResourceDesc ResourceDesc::CubeMap(uint64_t width, uint32_t height, eForm
 
 	return desc;
 }
-
 
 
 inline RootParameterDesc RootParameterDesc::Constant(unsigned numConstants, unsigned shaderRegister, unsigned registerSpace, eShaderVisiblity shaderVisibility) {
@@ -1711,6 +1710,7 @@ inline RootParameterDesc RootParameterDesc::DescriptorTable(unsigned numDescript
 	RootParameterDesc desc;
 
 	desc.m_type = RootParameterDesc::DESCRIPTOR_TABLE;
+	new (&desc.descriptorTable) RootDescriptorTable();
 	desc.descriptorTable.ranges.assign(descriptorRanges, descriptorRanges + numDescriptorRanges);
 	desc.m_shaderVisibility = shaderVisibility;
 
@@ -1720,6 +1720,7 @@ inline RootParameterDesc RootParameterDesc::DescriptorTable(std::vector<Descript
 	RootParameterDesc desc;
 
 	desc.m_type = RootParameterDesc::DESCRIPTOR_TABLE;
+	new (&desc.descriptorTable) RootDescriptorTable();
 	desc.descriptorTable.ranges = std::move(descriptorRanges);
 	desc.m_shaderVisibility = shaderVisibility;
 
@@ -1729,6 +1730,7 @@ inline RootParameterDesc RootParameterDesc::DescriptorTable(eShaderVisiblity sha
 	RootParameterDesc desc;
 
 	desc.m_type = RootParameterDesc::DESCRIPTOR_TABLE;
+	new (&desc.descriptorTable) RootDescriptorTable();
 	desc.m_shaderVisibility = shaderVisibility;
 
 	return desc;
@@ -1803,86 +1805,86 @@ inline RootDescriptorTable& RootParameterDesc::As<RootParameterDesc::eType::DESC
 
 inline unsigned GetFormatSizeInBytes(eFormat format) {
 	switch (format) {
-		case eFormat::R32G32B32A32_TYPELESS:
-		case eFormat::R32G32B32A32_FLOAT:
-		case eFormat::R32G32B32A32_UINT:
-		case eFormat::R32G32B32A32_SINT:
-			return 4 * 4;
-		case eFormat::R32G32B32_TYPELESS:
-		case eFormat::R32G32B32_FLOAT:
-		case eFormat::R32G32B32_UINT:
-		case eFormat::R32G32B32_SINT:
-			return 3 * 4;
-		case eFormat::R16G16B16A16_TYPELESS:
-		case eFormat::R16G16B16A16_FLOAT:
-		case eFormat::R16G16B16A16_UNORM:
-		case eFormat::R16G16B16A16_UINT:
-		case eFormat::R16G16B16A16_SNORM:
-		case eFormat::R16G16B16A16_SINT:
-			return 4 * 2;
-		case eFormat::R32G32_TYPELESS:
-		case eFormat::R32G32_FLOAT:
-		case eFormat::R32G32_UINT:
-		case eFormat::R32G32_SINT:
-			return 2 * 4;
-		case eFormat::R32G8X24_TYPELESS:
-		case eFormat::D32_FLOAT_S8X24_UINT:
-		case eFormat::R32_FLOAT_X8X24_TYPELESS:
-		case eFormat::X32_TYPELESS_G8X24_UINT:
-			return 8;
-		case eFormat::R10G10B10A2_TYPELESS:
-		case eFormat::R10G10B10A2_UNORM:
-		case eFormat::R10G10B10A2_UINT:
-		case eFormat::R11G11B10_FLOAT:
-			return 4 * 1;
-		case eFormat::R8G8B8A8_TYPELESS:
-		case eFormat::R8G8B8A8_UNORM:
-		case eFormat::R8G8B8A8_UNORM_SRGB:
-		case eFormat::R8G8B8A8_UINT:
-		case eFormat::R8G8B8A8_SNORM:
-		case eFormat::R8G8B8A8_SINT:
-			return 4 * 1;
-		case eFormat::R16G16_TYPELESS:
-		case eFormat::R16G16_FLOAT:
-		case eFormat::R16G16_UNORM:
-		case eFormat::R16G16_UINT:
-		case eFormat::R16G16_SNORM:
-		case eFormat::R16G16_SINT:
-			return 2 * 2;
-		case eFormat::R32_TYPELESS:
-		case eFormat::D32_FLOAT:
-		case eFormat::R32_FLOAT:
-		case eFormat::R32_UINT:
-		case eFormat::R32_SINT:
-			return 1 * 4;
-		case eFormat::R24G8_TYPELESS:
-		case eFormat::D24_UNORM_S8_UINT:
-		case eFormat::R24_UNORM_X8_TYPELESS:
-		case eFormat::X24_TYPELESS_G8_UINT:
-			return 4;
-		case eFormat::R8G8_TYPELESS:
-		case eFormat::R8G8_UNORM:
-		case eFormat::R8G8_UINT:
-		case eFormat::R8G8_SNORM:
-		case eFormat::R8G8_SINT:
-			return 2 * 1;
-		case eFormat::R16_TYPELESS:
-		case eFormat::R16_FLOAT:
-		case eFormat::D16_UNORM:
-		case eFormat::R16_UNORM:
-		case eFormat::R16_UINT:
-		case eFormat::R16_SNORM:
-		case eFormat::R16_SINT:
-			return 1 * 2;
-		case eFormat::R8_TYPELESS:
-		case eFormat::R8_UNORM:
-		case eFormat::R8_UINT:
-		case eFormat::R8_SNORM:
-		case eFormat::R8_SINT:
-		case eFormat::A8_UNORM:
-			return 1 * 1;
-		default:
-			return 0;
+	case eFormat::R32G32B32A32_TYPELESS:
+	case eFormat::R32G32B32A32_FLOAT:
+	case eFormat::R32G32B32A32_UINT:
+	case eFormat::R32G32B32A32_SINT:
+		return 4 * 4;
+	case eFormat::R32G32B32_TYPELESS:
+	case eFormat::R32G32B32_FLOAT:
+	case eFormat::R32G32B32_UINT:
+	case eFormat::R32G32B32_SINT:
+		return 3 * 4;
+	case eFormat::R16G16B16A16_TYPELESS:
+	case eFormat::R16G16B16A16_FLOAT:
+	case eFormat::R16G16B16A16_UNORM:
+	case eFormat::R16G16B16A16_UINT:
+	case eFormat::R16G16B16A16_SNORM:
+	case eFormat::R16G16B16A16_SINT:
+		return 4 * 2;
+	case eFormat::R32G32_TYPELESS:
+	case eFormat::R32G32_FLOAT:
+	case eFormat::R32G32_UINT:
+	case eFormat::R32G32_SINT:
+		return 2 * 4;
+	case eFormat::R32G8X24_TYPELESS:
+	case eFormat::D32_FLOAT_S8X24_UINT:
+	case eFormat::R32_FLOAT_X8X24_TYPELESS:
+	case eFormat::X32_TYPELESS_G8X24_UINT:
+		return 8;
+	case eFormat::R10G10B10A2_TYPELESS:
+	case eFormat::R10G10B10A2_UNORM:
+	case eFormat::R10G10B10A2_UINT:
+	case eFormat::R11G11B10_FLOAT:
+		return 4 * 1;
+	case eFormat::R8G8B8A8_TYPELESS:
+	case eFormat::R8G8B8A8_UNORM:
+	case eFormat::R8G8B8A8_UNORM_SRGB:
+	case eFormat::R8G8B8A8_UINT:
+	case eFormat::R8G8B8A8_SNORM:
+	case eFormat::R8G8B8A8_SINT:
+		return 4 * 1;
+	case eFormat::R16G16_TYPELESS:
+	case eFormat::R16G16_FLOAT:
+	case eFormat::R16G16_UNORM:
+	case eFormat::R16G16_UINT:
+	case eFormat::R16G16_SNORM:
+	case eFormat::R16G16_SINT:
+		return 2 * 2;
+	case eFormat::R32_TYPELESS:
+	case eFormat::D32_FLOAT:
+	case eFormat::R32_FLOAT:
+	case eFormat::R32_UINT:
+	case eFormat::R32_SINT:
+		return 1 * 4;
+	case eFormat::R24G8_TYPELESS:
+	case eFormat::D24_UNORM_S8_UINT:
+	case eFormat::R24_UNORM_X8_TYPELESS:
+	case eFormat::X24_TYPELESS_G8_UINT:
+		return 4;
+	case eFormat::R8G8_TYPELESS:
+	case eFormat::R8G8_UNORM:
+	case eFormat::R8G8_UINT:
+	case eFormat::R8G8_SNORM:
+	case eFormat::R8G8_SINT:
+		return 2 * 1;
+	case eFormat::R16_TYPELESS:
+	case eFormat::R16_FLOAT:
+	case eFormat::D16_UNORM:
+	case eFormat::R16_UNORM:
+	case eFormat::R16_UINT:
+	case eFormat::R16_SNORM:
+	case eFormat::R16_SINT:
+		return 1 * 2;
+	case eFormat::R8_TYPELESS:
+	case eFormat::R8_UNORM:
+	case eFormat::R8_UINT:
+	case eFormat::R8_SNORM:
+	case eFormat::R8_SINT:
+	case eFormat::A8_UNORM:
+		return 1 * 1;
+	default:
+		return 0;
 	}
 }
 

@@ -19,6 +19,10 @@ protected:
 	ComputeCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool, gxapi::eCommandListType type);
 
 public:
+	// Command list state
+	void ResetState(gxapi::IPipelineState* newState = nullptr);
+	void SetPipelineState(gxapi::IPipelineState* pipelineState);
+
 	// set compute root signature stuff
 	void SetComputeBinder(Binder* binder);
 
