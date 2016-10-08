@@ -32,6 +32,8 @@ exc::LogStream systemLogStream = logger.CreateLogStream("system");
 exc::LogStream graphicsLogStream = logger.CreateLogStream("graphics");
 
 
+std::string errorMessage;
+
 // -----------------------------------------------------------------------------
 // Function prototypes
 
@@ -122,6 +124,7 @@ int main() {
 	std::unique_ptr<IGxapiManager> gxapiMgr;
 	std::unique_ptr<IGraphicsApi> gxapi;
 	std::unique_ptr<GraphicsEngine> engine;
+	std::unique_ptr<MiniWorld> miniWorld;
 	try {
 		// Create manager
 		systemLogStream.Event("Creating GxApi Manager...");
@@ -150,30 +153,37 @@ int main() {
 		desc.logger = &logger;
 
 		engine.reset(new GraphicsEngine(desc));
+
+		// Create mini world
+		throw std::runtime_error("Init failed you fucking bitches!!!");
+		miniWorld.reset(new MiniWorld(engine.get()));
+
 		isEngineInit = true;
-		
+
 		logger.Flush();
 	}
 	catch (inl::gxapi::Exception& ex) {
 		isEngineInit = false;
-
-		systemLogStream.Event("Error creating GraphicsEngine: " + ex.Message());
+		errorMessage = "Error creating GraphicsEngine: " + ex.Message();
+		systemLogStream.Event(errorMessage);
 		logger.Flush();
 	}
 	catch (std::exception& ex) {
 		isEngineInit = false;
-		
-		systemLogStream.Event(std::string("Error creating GraphicsEngine: ") + ex.what());
+		errorMessage = std::string("Error creating GraphicsEngine: ") + ex.what();
+		systemLogStream.Event(errorMessage);
 		logger.Flush();
 	}
+
+
+	// Show the window
+	InvalidateRect(hWnd, nullptr, TRUE);
 
 
 	// Game-style main loop
 	MSG msg;
 	bool run = true;
-
-	MiniWorld miniWorld(engine.get());
-
+	
 	std::chrono::high_resolution_clock::time_point timestamp = std::chrono::high_resolution_clock::now();
 	std::chrono::nanoseconds frameTime(1000);
 	std::chrono::nanoseconds frameRateUpdate(0);
@@ -188,14 +198,14 @@ int main() {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-		if (engine) {
+		if (miniWorld) {
 			try {
 				// Measure time of Update().
 				auto updateStart = std::chrono::high_resolution_clock::now();
 
 				// Update world
-				miniWorld.UpdateWorld(frameTime.count() / 1e9f);
-				miniWorld.RenderWorld(frameTime.count() / 1e9f);
+				miniWorld->UpdateWorld(frameTime.count() / 1e9f);
+				miniWorld->RenderWorld(frameTime.count() / 1e9f);
 
 				auto updateEnd = std::chrono::high_resolution_clock::now();
 				std::chrono::nanoseconds updateElapsed = updateEnd - updateStart;
@@ -252,7 +262,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				RECT clientRect;
 				GetClientRect(hWnd, &clientRect);
 				FillRect(hdc, &clientRect, CreateSolidBrush(RGB(64, 96, 192)));
-				DrawTextA(hdc, " Initialize Engine! ", -1, &clientRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
+				DrawTextA(hdc, errorMessage.c_str(), -1, &clientRect, DT_SINGLELINE | DT_CENTER | DT_VCENTER);
 				EndPaint(hWnd, &paintStruct);
 				return 0;
 			}
