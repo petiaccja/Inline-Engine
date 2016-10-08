@@ -37,8 +37,13 @@ UploadHeap& MemoryManager::GetUploadHeap() {
 }
 
 
-ConstBuffer MemoryManager::CreateConstBuffer(void* data, size_t size) {
-	return m_constBufferHeap.CreateBuffer(m_descHeap->AllocateOnTextureSpace(), data, size);
+VolatileConstBuffer MemoryManager::CreateVolatileConstBuffer(void* data, size_t size) {
+	return m_constBufferHeap.CreateVolatileBuffer(m_descHeap->AllocateOnTextureSpace(), data, size);
+}
+
+
+PersistentConstBuffer MemoryManager::CreatePersistentConstBuffer(void * data, size_t size) {
+	return m_constBufferHeap.CreatePersistentBuffer(m_descHeap->AllocateOnTextureSpace(), data, size);
 }
 
 

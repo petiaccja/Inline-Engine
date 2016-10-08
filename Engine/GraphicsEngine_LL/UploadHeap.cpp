@@ -46,7 +46,9 @@ void UploadHeap::UploadToResource(std::weak_ptr<LinearBuffer> target, size_t off
 	gxapi::MemoryRange noReadRange{0, 0};
 	void* stagePtr = uploadRes->Map(0, &noReadRange);
 	memcpy(stagePtr, data, size);
-	// No need to unmap (see https://msdn.microsoft.com/en-us/library/windows/desktop/dn788712(v=vs.85).aspx)
+	// Theres no need to unmap but leaving a resource mapped has a performance hit while debugging
+	// see https://msdn.microsoft.com/en-us/library/windows/desktop/dn899215(v=vs.85).aspx#mapping_and_unmapping
+	uploadRes->Unmap(0, nullptr);
 }
 
 

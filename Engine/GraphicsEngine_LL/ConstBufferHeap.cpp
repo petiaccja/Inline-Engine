@@ -13,7 +13,7 @@ ConstantBufferHeap::ConstantBufferHeap(gxapi::IGraphicsApi* graphicsApi) :
 }
 
 
-ConstBuffer ConstantBufferHeap::CreateBuffer(DescriptorReference&& viewRef, void* data, size_t dataSize) {
+VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(DescriptorReference&& viewRef, void* data, size_t dataSize) {
 	size_t targetSize = AlignUp(dataSize, ALIGNEMENT);
 
 	std::lock_guard<std::mutex> lock(m_mutex);
@@ -60,7 +60,7 @@ ConstBuffer ConstantBufferHeap::CreateBuffer(DescriptorReference&& viewRef, void
 				m_pages.Front().m_consumedSize = 0;
 			}
 			else {
-				m_pages.PushFront(std::move(CreatePage()));
+				m_pages.PushFront(CreatePage());
 			}
 
 			targetPage = &m_pages.Front();
@@ -72,9 +72,9 @@ ConstBuffer ConstantBufferHeap::CreateBuffer(DescriptorReference&& viewRef, void
 
 	assert(targetPage != nullptr);
 
-	// reset age to mach latest data that is being
+	// set owner to mach latest data that is being
 	// used from the page
-	targetPage->m_age = 0;
+	targetPage->m_ownerFrameID = m_currFrameID;
 	size_t offset = targetPage->m_consumedSize;
 	targetPage->m_consumedSize += targetSize;
 
@@ -88,24 +88,45 @@ ConstBuffer ConstantBufferHeap::CreateBuffer(DescriptorReference&& viewRef, void
 	cbvDesc.sizeInBytes = targetSize;
 	m_graphicsApi->CreateConstantBufferView(cbvDesc, viewRef.Get());
 
-	//TODO deleter is only a placeholder here. A deleter that marks a const buffer available to overwrite is needed.
-	return ConstBuffer(std::move(viewRef), targetPage->m_representedMemory.get(), gpuPtr, [](gxapi::IResource*){});
+	return VolatileConstBuffer(std::move(viewRef), targetPage->m_representedMemory.get(), gpuPtr);
 }
 
 
-void ConstantBufferHeap::FrameCompleted() {
-	//TODO this is temporary.
-	return; //Do not clear the old buffers.
+PersistentConstBuffer ConstantBufferHeap::CreatePersistentBuffer(DescriptorReference&& viewRef, void* data, size_t dataSize) const {
+	std::unique_ptr<gxapi::IResource> resource{
+		m_graphicsApi->CreateCommittedResource(
+			gxapi::HeapProperties{gxapi::eHeapType::UPLOAD},
+			gxapi::eHeapFlags::NONE,
+			gxapi::ResourceDesc::Buffer(dataSize),
+			gxapi::eResourceState::GENERIC_READ
+		)
+	};
 
+	gxapi::MemoryRange noReadRange{0, 0};
+	void* dst = resource->Map(0, &noReadRange);
+	memcpy(dst, data, dataSize);
+	resource->Unmap(0, nullptr);
+
+	void* gpuPtr = resource->GetGPUAddress();
+
+	gxapi::ConstantBufferViewDesc cbvDesc;
+	cbvDesc.gpuVirtualAddress = gpuPtr;
+	cbvDesc.sizeInBytes = dataSize;
+	m_graphicsApi->CreateConstantBufferView(cbvDesc, viewRef.Get());
+
+	return PersistentConstBuffer(std::move(viewRef), resource.release(), gpuPtr);
+}
+
+
+void ConstantBufferHeap::FrameCompletedCPU() {
+	m_currFrameID++;
+}
+
+
+void ConstantBufferHeap::FrameCompletedGPU() {
 	std::lock_guard<std::mutex> lock(m_mutex);
 
-	for (auto& curr : m_pages) {
-		curr.m_age += 1;
-	}
-
-	for (auto& curr : m_largePages) {
-		curr.m_age += 1;
-	}
+	m_lastFinishedFrameID++;
 
 	bool foundVictim = true;
 	while (m_largePages.Count() > MAX_PERMANENT_LARGE_PAGE_COUNT && foundVictim) {
@@ -137,13 +158,12 @@ ConstantBufferHeap::ConstBufferPage ConstantBufferHeap::CreatePage() {
 
 
 ConstantBufferHeap::ConstBufferPage ConstantBufferHeap::CreateLargePage(size_t fittingSize) {
-	gxapi::ResourceDesc bufferDesc;
-	bufferDesc.type = gxapi::eResourceType::BUFFER;
-	bufferDesc.bufferDesc.sizeInBytes = AlignUp(fittingSize, ALIGNEMENT);
+	const size_t resourceSize = AlignUp(fittingSize, ALIGNEMENT);
 	std::unique_ptr<gxapi::IResource> resource{
-		m_graphicsApi->CreateCommittedResource(gxapi::HeapProperties{gxapi::eHeapType::UPLOAD},
+		m_graphicsApi->CreateCommittedResource(
+			gxapi::HeapProperties{gxapi::eHeapType::UPLOAD},
 			gxapi::eHeapFlags::NONE,
-			bufferDesc,
+			gxapi::ResourceDesc::Buffer(resourceSize),
 			gxapi::eResourceState::GENERIC_READ
 		)
 	};
@@ -152,13 +172,13 @@ ConstantBufferHeap::ConstBufferPage ConstantBufferHeap::CreateLargePage(size_t f
 	void* cpuAddress = resource->Map(0, &noReadRange);
 	void* gpuAddress = resource->GetGPUAddress();
 
-	ConstBufferPage newPage{std::move(resource), cpuAddress, gpuAddress, bufferDesc.bufferDesc.sizeInBytes};
+	ConstBufferPage newPage{std::move(resource), cpuAddress, gpuAddress, resourceSize, m_currFrameID};
 	return newPage;
 }
 
 
 bool ConstantBufferHeap::HasBecomeAvailable(const ConstBufferPage& page) {
-	return page.m_age >= CMDLIST_FINISH_FRAME_COUNT;
+	return page.m_ownerFrameID <= m_lastFinishedFrameID;
 }
 
 } // namespace gxeng

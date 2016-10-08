@@ -144,6 +144,34 @@ uint64_t LinearBuffer::GetSize() const {
 }
 
 
+//==================================
+
+
+ConstBuffer::ConstBuffer(DescriptorReference && resourceView, gxapi::IResource* resource, void* gpuVirtualPtr) :
+	LinearBuffer(std::move(resourceView), resource),
+	m_gpuVirtualPtr(gpuVirtualPtr)
+{
+}
+
+
+void* ConstBuffer::GetVirtualAddress() const {
+	return m_gpuVirtualPtr;
+}
+
+
+VolatileConstBuffer::VolatileConstBuffer(DescriptorReference && resourceView, gxapi::IResource* resource, void * gpuVirtualPtr):
+	ConstBuffer(std::move(resourceView), resource, gpuVirtualPtr)
+{}
+
+
+PersistentConstBuffer::PersistentConstBuffer(DescriptorReference && resourceView, gxapi::IResource* resource, void * gpuVirtualPtr):
+	ConstBuffer(std::move(resourceView), resource, gpuVirtualPtr)
+{}
+
+
+//==================================
+
+
 uint64_t GenericTextureBase::GetWidth() const {
 	return m_resource->GetDesc().textureDesc.width;
 }
@@ -184,17 +212,6 @@ uint64_t TextureCube::GetHeight() const {
 }
 
 
-
-ConstBuffer::ConstBuffer(DescriptorReference && resourceView, gxapi::IResource* resource, void* gpuVirtualPtr, const Deleter& deleter) :
-	LinearBuffer(std::move(resourceView), resource, deleter),
-	m_gpuVirtualPtr(gpuVirtualPtr)
-{
-}
-
-
-void* ConstBuffer::GetVirtualAddress() const {
-	return m_gpuVirtualPtr;
-}
 
 
 } // namespace gxeng

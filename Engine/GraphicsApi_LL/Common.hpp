@@ -638,6 +638,7 @@ struct ShaderMacroDefinition {
 	std::string value;
 };
 
+
 struct MemoryRange {
 	size_t begin;
 	size_t end;
