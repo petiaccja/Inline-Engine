@@ -155,7 +155,6 @@ int main() {
 		engine.reset(new GraphicsEngine(desc));
 
 		// Create mini world
-		throw std::runtime_error("Init failed you fucking bitches!!!");
 		miniWorld.reset(new MiniWorld(engine.get()));
 
 		isEngineInit = true;
