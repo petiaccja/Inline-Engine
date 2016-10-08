@@ -7,7 +7,8 @@
 #include "../GraphicsNode.hpp"
 
 #include "../Scene.hpp"
-#include "GraphicsApi_D3D12/CommandList.hpp"
+#include "GraphicsApi_LL/IPipelineState.hpp"
+#include "GraphicsApi_LL/IGxapiManager.hpp"
 
 
 namespace inl {
@@ -21,10 +22,7 @@ class TescoRender :
 	virtual public exc::OutputPortConfig<Texture2D*>
 {
 public:
-	TescoRender() {
-		this->GetInput<0>().Set(nullptr);
-		this->GetInput<1>().Set(nullptr);
-	}
+	TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager* gxapiManager);
 
 	void Update() override {}
 
@@ -49,6 +47,11 @@ public:
 			return result;
 		} });
 	}
+
+protected:
+	Binder m_binder;
+	std::unique_ptr<gxapi::IRootSignature> m_rootSignature;
+	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 private:
 	void RenderScene(Texture2D* target, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList);

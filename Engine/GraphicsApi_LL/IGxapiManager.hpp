@@ -39,6 +39,11 @@ public:
 							   const std::vector<ShaderMacroDefinition>& macros,
 							   ShaderProgramBinary& shaderOut,
 							   std::string& errorMsg) = 0;
+	virtual ShaderProgramBinary CompileShader(const std::string& sourceCode,
+												const std::string& mainFunctionName,
+												gxapi::eShaderType type,
+												eShaderCompileFlags flags,
+												const std::vector<ShaderMacroDefinition>& macros) = 0;
 	virtual ShaderProgramBinary CompileShaderFromFile(const std::string& fileName,
 									   const std::string& mainFunctionName,
 									   gxapi::eShaderType type,

@@ -53,7 +53,7 @@ public:
 
 	void SetVertexBuffers(unsigned startSlot,
 						  unsigned count,
-						  VertexBuffer** resources,
+						  const VertexBuffer** resources,
 						  unsigned* sizeInBytes,
 						  unsigned* strideInBytes);
 

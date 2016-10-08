@@ -163,7 +163,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::unique_ptr<nodes::GetBackBuffer> getBackBuffer(new nodes::GetBackBuffer());
 	std::unique_ptr<nodes::ClearRenderTarget> clearRtv(new nodes::ClearRenderTarget());
 	std::unique_ptr<nodes::GetSceneByName> getWorldScene(new nodes::GetSceneByName());
-	std::unique_ptr<nodes::TescoRender> renderWorld(new nodes::TescoRender());
+	std::unique_ptr<nodes::TescoRender> renderWorld(new nodes::TescoRender(m_graphicsApi, m_gxapiManager));
 
 	getWorldScene->GetInput<0>().Set("World");
 

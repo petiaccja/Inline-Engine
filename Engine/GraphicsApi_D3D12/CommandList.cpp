@@ -310,7 +310,7 @@ void GraphicsCommandList::SetPrimitiveTopology(gxapi::ePrimitiveTopology topolog
 }
 
 
-void GraphicsCommandList::SetVertexBuffers(unsigned startSlot, unsigned count, void ** gpuVirtualAddress, unsigned * sizeInBytes, unsigned * strideInBytes) {
+void GraphicsCommandList::SetVertexBuffers(unsigned startSlot, unsigned count, void** gpuVirtualAddress, unsigned* sizeInBytes, unsigned* strideInBytes) {
 	std::vector<D3D12_VERTEX_BUFFER_VIEW> views;
 	views.reserve(count);
 

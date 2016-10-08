@@ -101,7 +101,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 	bool using32BitIndex = numVertices > 0xFFFFu;
 	unsigned indexStride = using32BitIndex ? sizeof(uint32_t) : sizeof(uint16_t);
 	size_t indexTotalSize = numIndices * indexStride;
-	newIndexBuffer.reset(m_memoryManager->CreateIndexBuffer(eResourceHeapType::CRITICAL, indexTotalSize));
+	newIndexBuffer.reset(m_memoryManager->CreateIndexBuffer(eResourceHeapType::CRITICAL, indexTotalSize, numIndices));
 
 
 	// Update internals.

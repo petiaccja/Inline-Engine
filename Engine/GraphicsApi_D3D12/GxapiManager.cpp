@@ -179,42 +179,58 @@ IGraphicsApi* GxapiManager::CreateGraphicsApi(unsigned adapterId) {
 
 
 
-bool GxapiManager::CompileShader(const exc::Stream& sourceCode,
-								 const std::string& mainFunctionName,
-								 gxapi::eShaderType type,
-								 eShaderCompileFlags flags,
-								 const std::unordered_map<std::string, exc::Stream*>& includeFiles,
-								 const std::vector<ShaderMacroDefinition>& macros,
-								 ShaderProgramBinary& shaderOut,
-								 std::string& errorMsg)
+bool GxapiManager::CompileShader(
+	const exc::Stream& sourceCode,
+	const std::string& mainFunctionName,
+	gxapi::eShaderType type,
+	eShaderCompileFlags flags,
+	const std::unordered_map<std::string, exc::Stream*>& includeFiles,
+	const std::vector<ShaderMacroDefinition>& macros,
+	ShaderProgramBinary& shaderOut,
+	std::string& errorMsg)
 {
-	//ID3DBlob *code = nullptr;
-	//ID3DBlob *error = nullptr;
-
-	//std::unique_ptr<void> sourceCodeData;
-	//size_t sourceCodeSize;
-	//std::vector<D3D_SHADER_MACRO> d3dDefines(macros.size());
-
-
-
-	//D3DCompile(
-	//	sourceCodeData.get(),
-	//	sourceCodeSize,
-	//	nullptr,
-	//	d3dDefines.data(),
-	//	d3dIncludes,
-	//	mainFuncName,
-	//	d3dTarget,
-	//	native_cast(flags),
-	//	0
-	//	& code,
-	//	&error
-	//	)
-
-	errorMsg = "Method not implemented yet.";
-	return false;
+	throw gxapi::NotImplementedMethod();
 }
 
+
+gxapi::ShaderProgramBinary GxapiManager::CompileShader(
+	const std::string& sourceCode,
+	const std::string& mainFunctionName,
+	gxapi::eShaderType type,
+	gxapi::eShaderCompileFlags flags,
+	const std::vector<ShaderMacroDefinition>& macros)
+{
+	// variables
+	ID3DBlob *code = nullptr;
+	ID3DBlob *error = nullptr;
+
+	std::vector<D3D_SHADER_MACRO> d3dDefines(macros.size()); // native d3d macros
+
+	// translate defines
+	auto defBegin = d3dDefines.begin();
+	for (auto& v : macros) {
+		defBegin->Name = v.name.c_str();
+		defBegin->Definition = v.value.c_str();
+		++defBegin;
+	}
+	d3dDefines.push_back({ NULL, NULL });
+
+	// compile code w/ d3d
+	HRESULT hr = D3DCompile(
+		sourceCode.data(),
+		sourceCode.length(),
+		nullptr,
+		d3dDefines.data(),
+		nullptr,
+		mainFunctionName.c_str(),
+		GetTarget(type),
+		native_cast(flags),
+		0,
+		&code,
+		&error);
+
+	return ConvertShaderOutput(hr, code, error);
+}
 
 
 gxapi::ShaderProgramBinary GxapiManager::CompileShaderFromFile(const std::string& fileName,
@@ -223,26 +239,6 @@ gxapi::ShaderProgramBinary GxapiManager::CompileShaderFromFile(const std::string
 										 gxapi::eShaderCompileFlags flags,
 										 const std::vector<gxapi::ShaderMacroDefinition>& macros)
 {
-	auto GetTarget = [](eShaderType type) -> const char* {
-		switch (type)
-		{
-			case inl::gxapi::eShaderType::VERTEX:
-				return "vs_5_1";
-			case inl::gxapi::eShaderType::PIXEL:
-				return "ps_5_1";
-			case inl::gxapi::eShaderType::DOMAIN:
-				return "ds_5_1";
-			case inl::gxapi::eShaderType::HULL:
-				return "hs_5_1";
-			case inl::gxapi::eShaderType::GEOMETRY:
-				return "gs_5_1";
-			case inl::gxapi::eShaderType::COMPUTE:
-				return "cs_5_1";
-			default:
-				return "invalid";
-		}
-	};
-
 	// variables
 	ID3DBlob *code = nullptr;
 	ID3DBlob *error = nullptr;
@@ -274,7 +270,33 @@ gxapi::ShaderProgramBinary GxapiManager::CompileShaderFromFile(const std::string
 									&code,
 									&error);
 	
-	ShaderProgramBinary shaderOut;
+	return ConvertShaderOutput(hr, code, error);
+}
+
+
+const char* GxapiManager::GetTarget(gxapi::eShaderType type) {
+	switch (type)
+	{
+	case inl::gxapi::eShaderType::VERTEX:
+		return "vs_5_1";
+	case inl::gxapi::eShaderType::PIXEL:
+		return "ps_5_1";
+	case inl::gxapi::eShaderType::DOMAIN:
+		return "ds_5_1";
+	case inl::gxapi::eShaderType::HULL:
+		return "hs_5_1";
+	case inl::gxapi::eShaderType::GEOMETRY:
+		return "gs_5_1";
+	case inl::gxapi::eShaderType::COMPUTE:
+		return "cs_5_1";
+	}
+
+	return "invalid";
+}
+
+
+gxapi::ShaderProgramBinary GxapiManager::ConvertShaderOutput(HRESULT hr, ID3DBlob* code, ID3DBlob* error) {
+	gxapi::ShaderProgramBinary shaderOut;
 	std::string errorMsg;
 
 	if (hr == S_OK) {
@@ -292,7 +314,7 @@ gxapi::ShaderProgramBinary GxapiManager::CompileShaderFromFile(const std::string
 		if (code) {
 			code->Release();
 		}
-		throw ShaderCompilationError(errorMsg);
+		throw gxapi::ShaderCompilationError("Error while compiling shader:\n" + errorMsg);
 	}
 
 	return shaderOut;

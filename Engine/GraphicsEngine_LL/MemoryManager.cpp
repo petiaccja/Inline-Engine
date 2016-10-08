@@ -56,10 +56,10 @@ VertexBuffer* MemoryManager::CreateVertexBuffer(eResourceHeapType heap, size_t s
 }
 
 
-IndexBuffer* MemoryManager::CreateIndexBuffer(eResourceHeapType heap, size_t size) {
+IndexBuffer* MemoryManager::CreateIndexBuffer(eResourceHeapType heap, size_t size, size_t indexCount) {
 	impl::InitialResourceParameters params = AllocateResource(heap, gxapi::ResourceDesc::Buffer(size));
 
-	IndexBuffer* result = new IndexBuffer(std::move(params.desc), params.resource);
+	IndexBuffer* result = new IndexBuffer(std::move(params.desc), params.resource, indexCount);
 	result->_SetResident(params.residency);
 	return result;
 }

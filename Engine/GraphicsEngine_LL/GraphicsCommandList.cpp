@@ -103,7 +103,7 @@ void GraphicsCommandList::SetPrimitiveTopology(gxapi::ePrimitiveTopology topolog
 
 void GraphicsCommandList::SetVertexBuffers(unsigned startSlot,
 										   unsigned count,
-										   VertexBuffer** resources,
+										   const VertexBuffer** resources,
 										   unsigned* sizeInBytes,
 										   unsigned* strideInBytes)
 {

@@ -1,12 +1,37 @@
 #include "MiniWorld.hpp"
 
+#include <array>
 
 MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	m_graphicsEngine = graphicsEngine;
 
 	m_worldScene.reset(m_graphicsEngine->CreateScene("World"));
 
-	m_cubeMesh.reset(m_graphicsEngine->CreateMesh());
+	{
+		using namespace inl::gxeng;
+
+		std::array<
+			Vertex<
+				VertexElement<eVertexElementSemantic::POSITION, 0>,
+				VertexElement<eVertexElementSemantic::COLOR, 0>
+			>,
+			3
+		> vertices;
+
+		vertices[0].position = {-0.5, -0.5, 0};
+		vertices[0].color = {1, 0, 0};
+
+		vertices[1].position = {0.5, -0.5, 0};
+		vertices[1].color = {0, 1, 0};
+
+		vertices[2].position = {0, 0.5, 0};
+		vertices[2].color = {0, 0, 1};
+
+		const std::vector<unsigned> indices = {0, 1, 2};
+
+		m_cubeMesh.reset(m_graphicsEngine->CreateMesh());
+		m_cubeMesh->Set(vertices.data(), vertices.size(), 24, indices.data(), indices.size());
+	}
 
 	for (int i=0; i<10; i++) {
 		std::unique_ptr<inl::gxeng::MeshEntity> entity(m_graphicsEngine->CreateMeshEntity());

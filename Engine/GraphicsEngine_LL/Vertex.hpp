@@ -25,6 +25,7 @@ namespace gxeng {
 enum class eVertexElementSemantic {
 	POSITION,
 	NORMAL,
+	COLOR,
 };
 
 
@@ -192,6 +193,7 @@ public:																						\
 // Actual definition of vertex parts
 INL_GXENG_VERTEX_PART(eVertexElementSemantic::POSITION, INL_GXENG_SIMPLE_ARG(mathfu::Vector<float, 3>), GetPosition, positions, position);
 INL_GXENG_VERTEX_PART(eVertexElementSemantic::NORMAL, INL_GXENG_SIMPLE_ARG(mathfu::Vector<float, 3>), GetNormal, normals, normal);
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::COLOR, INL_GXENG_SIMPLE_ARG(mathfu::Vector<float, 3>), GetColor, colors, color);
 
 
 

@@ -75,7 +75,13 @@ public:
 
 class IndexBuffer : public LinearBuffer {
 public:
-	using LinearBuffer::LinearBuffer;
+	IndexBuffer(DescriptorReference&& resourceView, gxapi::IResource* resource, size_t indexCount);
+	IndexBuffer(DescriptorReference&& resourceView, gxapi::IResource* resource, const Deleter& deleter, size_t indexCount);
+
+	size_t GetIndexCount() const;
+
+protected:
+	size_t m_indexCount;
 };
 
 //==================================

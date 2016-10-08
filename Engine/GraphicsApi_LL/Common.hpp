@@ -946,7 +946,7 @@ struct InputElementDesc {
 		unsigned inputSlot = 0,
 		unsigned offset = 0,
 		eInputClassification classifiacation = eInputClassification::VERTEX_DATA,
-		unsigned instanceDataStepRate = 1
+		unsigned instanceDataStepRate = 0
 	)
 		:
 		semanticName(semanticName),

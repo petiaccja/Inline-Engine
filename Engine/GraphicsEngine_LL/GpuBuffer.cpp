@@ -144,6 +144,23 @@ uint64_t LinearBuffer::GetSize() const {
 }
 
 
+IndexBuffer::IndexBuffer(DescriptorReference&& resourceView, gxapi::IResource* resource, size_t indexCount) :
+	LinearBuffer(std::move(resourceView), resource),
+	m_indexCount(indexCount)
+{}
+
+
+IndexBuffer::IndexBuffer(DescriptorReference&& resourceView, gxapi::IResource* resource, const Deleter& deleter, size_t indexCount) :
+	LinearBuffer(std::move(resourceView), resource, deleter),
+	m_indexCount(indexCount)
+{}
+
+
+size_t IndexBuffer::GetIndexCount() const {
+	return m_indexCount;
+}
+
+
 //==================================
 
 
@@ -210,8 +227,6 @@ uint16_t Texture3D::GetDepth() const {
 uint64_t TextureCube::GetHeight() const {
 	return m_resource->GetDesc().textureDesc.height;
 }
-
-
 
 
 } // namespace gxeng
