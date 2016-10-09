@@ -27,6 +27,7 @@ InitialResourceParameters CriticalBufferHeap::Allocate(DescriptorReference&& vie
 
 	result.residency = true;
 
+	__debugbreak();
 	m_graphicsApi->CreateShaderResourceView(result.resource, result.desc.Get());
 
 	return result;

@@ -10,13 +10,8 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	{
 		using namespace inl::gxeng;
 
-		std::array<
-			Vertex<
-				VertexElement<eVertexElementSemantic::POSITION, 0>,
-				VertexElement<eVertexElementSemantic::COLOR, 0>
-			>,
-			3
-		> vertices;
+		using ColoredVertexT = Vertex<Position<0>, Color<0>>;
+		std::array<ColoredVertexT, 3> vertices;
 
 		vertices[0].position = {-0.5, -0.5, 0};
 		vertices[0].color = {1, 0, 0};
@@ -30,7 +25,7 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 		const std::vector<unsigned> indices = {0, 1, 2};
 
 		m_cubeMesh.reset(m_graphicsEngine->CreateMesh());
-		m_cubeMesh->Set(vertices.data(), vertices.size(), 24, indices.data(), indices.size());
+		m_cubeMesh->Set(vertices.data(), vertices.size(), sizeof(ColoredVertexT), indices.data(), indices.size());
 	}
 
 	for (int i=0; i<10; i++) {

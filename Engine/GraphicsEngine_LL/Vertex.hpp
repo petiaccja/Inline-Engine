@@ -51,6 +51,9 @@ using Position = VertexElement<eVertexElementSemantic::POSITION, Index>;
 template <int Index>
 using Normal = VertexElement<eVertexElementSemantic::NORMAL, Index>;
 
+template <int Index>
+using Color = VertexElement<eVertexElementSemantic::COLOR, Index>;
+
 
 
 namespace impl {
