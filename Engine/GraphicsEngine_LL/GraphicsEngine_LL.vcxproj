@@ -157,7 +157,6 @@
     <ClInclude Include="..\GraphicsEngine\IScene.hpp" />
     <ClInclude Include="..\GraphicsEngine\ITerrainEntity.hpp" />
     <ClInclude Include="..\GraphicsEngine\ITexture2D.hpp" />
-    <ClInclude Include="AsyncUploader.hpp" />
     <ClInclude Include="BasicCommandList.hpp" />
     <ClInclude Include="Binder.hpp" />
     <ClInclude Include="CommandAllocatorPool.hpp" />
@@ -186,8 +185,10 @@
     <ClInclude Include="Nodes\Node_GetSceneByName.hpp" />
     <ClInclude Include="Nodes\Node_TescoRender.hpp" />
     <ClInclude Include="Pipeline.hpp" />
+    <ClInclude Include="ResouceViewFactory.hpp" />
     <ClInclude Include="ResourceHeap.hpp" />
     <ClInclude Include="ResourceResidencyQueue.hpp" />
+    <ClInclude Include="ResourceView.hpp" />
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Scheduler.hpp" />
     <ClInclude Include="ScratchSpacePool.hpp" />
@@ -204,7 +205,6 @@
     <ClInclude Include="VertexElementCompressor.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AsyncUploader.cpp" />
     <ClCompile Include="BasicCommandList.cpp" />
     <ClCompile Include="Binder.cpp" />
     <ClCompile Include="CommandAllocatorPool.cpp" />
@@ -225,8 +225,10 @@
     <ClCompile Include="Nodes\Node_ClearRenderTarget.cpp" />
     <ClCompile Include="Nodes\Node_TescoRender.cpp" />
     <ClCompile Include="Pipeline.cpp" />
+    <ClCompile Include="ResouceViewFactory.cpp" />
     <ClCompile Include="ResourceHeap.cpp" />
     <ClCompile Include="ResourceResidencyQueue.cpp" />
+    <ClCompile Include="ResourceView.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Scheduler.cpp" />
     <ClCompile Include="ScratchSpacePool.cpp" />

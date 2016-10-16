@@ -49,7 +49,7 @@ const Scene* ExecutionContext::GetSceneByName(const std::string& name) const {
 	return nullptr;
 }
 
-Texture2D* ExecutionContext::GetBackBuffer() const {
+BackBuffer* ExecutionContext::GetBackBuffer() const {
 	return m_frameContext->backBuffer;
 }
 

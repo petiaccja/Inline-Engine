@@ -43,7 +43,7 @@ class SwapChainAccessContext {
 public:
 	virtual ~SwapChainAccessContext() {}
 protected:
-	virtual Texture2D* GetBackBuffer() const = 0;
+	virtual BackBuffer* GetBackBuffer() const = 0;
 };
 
 
@@ -69,7 +69,7 @@ public:
 
 protected:
 	const Scene* GetSceneByName(const std::string& name) const override;
-	Texture2D* GetBackBuffer() const override;	
+	BackBuffer* GetBackBuffer() const override;	
 private:
 	FrameContext* m_frameContext;
 };

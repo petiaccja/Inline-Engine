@@ -200,7 +200,7 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 	auto commandAllocator = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
 	std::unique_ptr<gxapi::IGraphicsCommandList> commandList(context.gxApi->CreateGraphicsCommandList(gxapi::CommandListDesc{ commandAllocator.get() }));
 
-	gxapi::DescriptorHandle rtvHandle = context.backBuffer->GetHandle();
+	gxapi::DescriptorHandle rtvHandle = context.backBuffer->GetView().GetHandle();
 
 	// Transition backbuffer to RTV.
 	if (context.backBuffer->ReadState(0) != gxapi::eResourceState::RENDER_TARGET) {

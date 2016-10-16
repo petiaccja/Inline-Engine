@@ -329,6 +329,18 @@ void GraphicsApi::CreateShaderResourceView(
 }
 
 
+void GraphicsApi::CreateShaderResourceView(
+	const gxapi::IResource * resource,
+	gxapi::ShaderResourceViewDesc desc,
+	gxapi::DescriptorHandle destination)
+{
+	D3D12_SHADER_RESOURCE_VIEW_DESC nativeDesc = native_cast(desc);
+	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
+	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
+	m_device->CreateShaderResourceView(const_cast<ID3D12Resource*>(native_cast(resource)), &nativeDesc, nativeCPUHandle);
+}
+
+
 void GraphicsApi::CopyDescriptors(
 	size_t numSrcDescRanges,
 	gxapi::DescriptorHandle * srcRangeStarts,

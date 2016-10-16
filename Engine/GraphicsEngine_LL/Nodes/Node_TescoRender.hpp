@@ -18,8 +18,8 @@ namespace nodes {
 
 class TescoRender :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<Texture2D*, const EntityCollection<MeshEntity>*>,
-	virtual public exc::OutputPortConfig<Texture2D*>
+	virtual public exc::InputPortConfig<BackBuffer*, const EntityCollection<MeshEntity>*>,
+	virtual public exc::OutputPortConfig<BackBuffer*>
 {
 public:
 	TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager* gxapiManager);
@@ -32,7 +32,7 @@ public:
 		return Task({ [this](const ExecutionContext& context) {
 			ExecutionResult result;
 
-			Texture2D* target = this->GetInput<0>().Get();
+			BackBuffer* target = this->GetInput<0>().Get();
 			this->GetInput<0>().Clear();
 			const EntityCollection<MeshEntity>* entities = this->GetInput<1>().Get();
 			this->GetInput<1>().Clear();
@@ -54,7 +54,7 @@ protected:
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 private:
-	void RenderScene(Texture2D* target, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList);
+	void RenderScene(BackBuffer* target, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList);
 };
 
 

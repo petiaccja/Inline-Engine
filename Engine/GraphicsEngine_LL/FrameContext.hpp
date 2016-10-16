@@ -31,7 +31,7 @@ struct FrameContext {
 	ScratchSpacePool* scratchSpacePool = nullptr;
 
 	CommandQueue* commandQueue = nullptr;
-	Texture2D* backBuffer = nullptr;
+	BackBuffer* backBuffer = nullptr;
 	const std::set<Scene*>* scenes = nullptr;
 	const std::vector<UploadHeap::UploadDescription>* uploadRequests = nullptr;
 	

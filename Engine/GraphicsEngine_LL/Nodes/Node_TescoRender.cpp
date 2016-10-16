@@ -94,7 +94,7 @@ TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager*
 
 	gxapi::GraphicsPipelineStateDesc psoDesc;
 	psoDesc.inputLayout.elements = inputElementDesc.data();
-	psoDesc.inputLayout.numElements = inputElementDesc.size();
+	psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
 	psoDesc.rootSignature = m_rootSignature.get();
 	psoDesc.vs.shaderByteCode = vertexShader.data.data();
 	psoDesc.vs.sizeOfByteCode = vertexShader.data.size();
@@ -111,11 +111,12 @@ TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager*
 }
 
 
-void TescoRender::RenderScene(Texture2D * target, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList) {
+void TescoRender::RenderScene(BackBuffer* target, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList) {
 	// Set render target
-	std::shared_ptr<GenericResource> targetFakeSharedPtr(target, [](void*) {});
-	commandList.SetResourceState(targetFakeSharedPtr, 0, gxapi::eResourceState::RENDER_TARGET);
-	commandList.SetRenderTargets(1, &target, nullptr); // no depth yet
+	auto pRTV = &target->GetView();
+	std::shared_ptr<BackBuffer> fakeSharedPtr(target, [](BackBuffer*){});
+	commandList.SetResourceState(fakeSharedPtr, 0, gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetRenderTargets(1, &pRTV, nullptr); // no depth yet
 
 	// Iterate over all entities
 	for (const MeshEntity* entity : entities) {
@@ -137,18 +138,18 @@ void TescoRender::RenderScene(Texture2D * target, const EntityCollection<MeshEnt
 
 		for (int streamID = 0; streamID < entity->GetMesh()->GetNumStreams(); streamID++) {
 			vertexBuffers.push_back(mesh->GetVertexBuffer(streamID).get());
-			sizes.push_back(vertexBuffers.back()->GetSize());
-			strides.push_back(mesh->GetVertexBufferStride(streamID));
+			sizes.push_back((unsigned)vertexBuffers.back()->GetSize());
+			strides.push_back((unsigned)mesh->GetVertexBufferStride(streamID));
 		}
 
 		assert(vertexBuffers.size() == sizes.size());
 		assert(sizes.size() == strides.size());
 
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
-		commandList.SetVertexBuffers(0, vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
-		commandList.DrawIndexedInstanced(mesh->GetIndexBuffer()->GetIndexCount());
+		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
+		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer()->GetIndexCount());
 
-		commandList.SetResourceState(targetFakeSharedPtr, 0, gxapi::eResourceState::PRESENT);
+		commandList.SetResourceState(fakeSharedPtr, 0, gxapi::eResourceState::PRESENT);
 	}
 }
 

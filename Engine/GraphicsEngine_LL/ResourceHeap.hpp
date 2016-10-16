@@ -30,9 +30,6 @@ using namespace exc::prefix;
 
 
 struct InitialResourceParameters {
-	InitialResourceParameters(DescriptorReference&& d) : desc(std::move(d)) {}
-
-	DescriptorReference desc;
 	gxapi::IResource* resource;		
 	bool residency;
 };
@@ -41,7 +38,7 @@ struct InitialResourceParameters {
 class CriticalBufferHeap {
 public:
 	CriticalBufferHeap(gxapi::IGraphicsApi* graphicsApi);
-	InitialResourceParameters Allocate(DescriptorReference&& viewRef, gxapi::ResourceDesc desc);
+	InitialResourceParameters Allocate(gxapi::ResourceDesc desc);
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
@@ -76,14 +73,14 @@ class BackBufferHeap
 public:
 	BackBufferHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapChain* swapChain);
 
-	Texture2D& GetBackBuffer(unsigned index);
+	BackBuffer& GetBackBuffer(unsigned index);
 	
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
 	gxapi::ISwapChain* m_swapChain;
 
 	std::unique_ptr<gxapi::IDescriptorHeap> m_descriptorHeap;
-	std::vector<Texture2D> m_backBuffers;
+	std::vector<BackBuffer> m_backBuffers;
 };
 
 

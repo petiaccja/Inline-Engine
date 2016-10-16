@@ -1,9 +1,10 @@
 #pragma once
 
+#include "ResourceView.hpp"
+#include "HighLevelDescHeap.hpp"
+
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include "../GraphicsApi_LL/IResource.hpp"
-
-#include "HighLevelDescHeap.hpp"
 
 namespace inl {
 namespace gxeng {
@@ -17,8 +18,8 @@ class GenericResource {
 public:
 	using Deleter = std::function<void(gxapi::IResource*)>;
 
-	GenericResource(DescriptorReference&& resourceView, gxapi::IResource* resource);
-	GenericResource(DescriptorReference&& resourceView, gxapi::IResource* resource, const Deleter& deleter);
+	GenericResource(gxapi::IResource* resource);
+	GenericResource(gxapi::IResource* resource, const Deleter& deleter);
 	virtual ~GenericResource() {}
 
 	GenericResource(GenericResource&&);
@@ -29,7 +30,6 @@ public:
 
 	void* GetVirtualAddress() const;
 	gxapi::ResourceDesc GetDescription() const;
-	gxapi::DescriptorHandle GetHandle();
 
 	/// <summary> Records the current state of the resource. Does not change resource state, only used for tracking it. </summary>
 	void RecordState(unsigned subresource, gxapi::eResourceState newState);
@@ -46,8 +46,6 @@ public:
 protected:
 	void InitResourceStates(gxapi::eResourceState initialState);
 protected:
-	DescriptorReference m_resourceView;
-	//Deleter m_deleter;
 	std::unique_ptr<gxapi::IResource, Deleter> m_resource;
 	bool m_resident;
 private:
@@ -75,8 +73,8 @@ public:
 
 class IndexBuffer : public LinearBuffer {
 public:
-	IndexBuffer(DescriptorReference&& resourceView, gxapi::IResource* resource, size_t indexCount);
-	IndexBuffer(DescriptorReference&& resourceView, gxapi::IResource* resource, const Deleter& deleter, size_t indexCount);
+	IndexBuffer(gxapi::IResource* resource, size_t indexCount);
+	IndexBuffer(gxapi::IResource* resource, const Deleter& deleter, size_t indexCount);
 
 	size_t GetIndexCount() const;
 
@@ -93,32 +91,26 @@ protected:
 class ConstBuffer : public LinearBuffer {
 public:
 	void* GetVirtualAddress() const;
+	gxapi::DescriptorHandle GetHandle();
 
 protected:
-	ConstBuffer(
-		DescriptorReference&& resourceView,
-		gxapi::IResource* resource,
-		void* gpuVirtualPtr);
+	ConstBuffer(DescriptorReference&& desc, gxapi::IResource* resource, void* gpuVirtualPtr);
 
 protected:
 	void* m_gpuVirtualPtr;
+	DescriptorReference m_CBV;
 };
 
 
 class VolatileConstBuffer : public ConstBuffer {
 public:
-	VolatileConstBuffer(
-		DescriptorReference&& resourceView,
-		gxapi::IResource* resource,
-		void* gpuVirtualPtr);
+	VolatileConstBuffer(DescriptorReference&& desc, gxapi::IResource* resource, void* gpuVirtualPtr);
 };
 
 
 class PersistentConstBuffer : public ConstBuffer {
 public:
-	PersistentConstBuffer(DescriptorReference&& resourceView,
-		gxapi::IResource* resource,
-		void* gpuVirtualPtr);
+	PersistentConstBuffer(DescriptorReference&& desc, gxapi::IResource* resource, void* gpuVirtualPtr);
 };
 
 //==================================
@@ -143,7 +135,6 @@ public:
 
 class Texture1D : public GenericTextureBase {
 public:
-	Texture1D();
 	using GenericTextureBase::GenericTextureBase;
 
 	uint16_t GetArrayCount() const;
@@ -152,7 +143,6 @@ public:
 
 class Texture2D : public GenericTextureBase {
 public:
-
 	using GenericTextureBase::GenericTextureBase;
 
 	uint64_t GetHeight() const;
@@ -174,6 +164,17 @@ public:
 	using GenericTextureBase::GenericTextureBase;
 
 	uint64_t GetHeight() const;
+};
+
+
+class BackBuffer : public Texture2D {
+public:
+	BackBuffer(DescriptorReference&& descRef, gxapi::RenderTargetViewDesc desc, gxapi::IResource* resource);
+
+	RenderTargetView& GetView();
+
+protected:
+	RenderTargetView m_RTV;
 };
 
 //==================================

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ComputeCommandList.hpp"
-
+#include "ResourceView.hpp"
 
 namespace inl {
 namespace gxeng {
@@ -18,7 +18,7 @@ public:
 
 public:
 	// Clear shit
-	void ClearDepthStencil(Texture2D* resource,
+	void ClearDepthStencil(DepthStencilView& resource,
 						   float depth,
 						   uint8_t stencil,
 						   size_t numRects = 0,
@@ -26,7 +26,7 @@ public:
 						   bool clearDepth = true,
 						   bool clearStencil = false);
 
-	void ClearRenderTarget(Texture2D* resource,
+	void ClearRenderTarget(RenderTargetView& resource,
 						   gxapi::ColorRGBA color,
 						   size_t numRects = 0,
 						   gxapi::Rectangle* rects = nullptr);
@@ -59,8 +59,8 @@ public:
 
 	// output merger
 	void SetRenderTargets(unsigned numRenderTargets,
-						  Texture2D** renderTargets,
-						  Texture2D* depthStencil = nullptr);
+						  RenderTargetView** renderTargets,
+						  DepthStencilView* depthStencil = nullptr);
 	void SetBlendFactor(float r, float g, float b, float a);
 	void SetStencilRef(unsigned stencilRef);
 

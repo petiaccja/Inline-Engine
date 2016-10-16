@@ -59,6 +59,9 @@ public:
 								  gxapi::DescriptorHandle destination) override;
 	void CreateShaderResourceView(const gxapi::IResource* resource,
 								  gxapi::DescriptorHandle destination) override;
+	void CreateShaderResourceView(const gxapi::IResource* resource,
+	                              gxapi::ShaderResourceViewDesc desc,
+	                              gxapi::DescriptorHandle destination) override;
 
 	void CopyDescriptors(size_t numSrcDescRanges,
 	                     gxapi::DescriptorHandle* srcRangeStarts,

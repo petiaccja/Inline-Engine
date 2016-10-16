@@ -13,7 +13,7 @@ namespace nodes {
 class GetBackBuffer :
 	virtual public GraphicsNode,
 	public exc::InputPortConfig<>,
-	public exc::OutputPortConfig<Texture2D*>
+	public exc::OutputPortConfig<BackBuffer*>
 {
 public:
 	GetBackBuffer() {}

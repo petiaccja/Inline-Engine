@@ -14,11 +14,11 @@ Task ClearRenderTarget::GetTask() {
 			ExecutionResult result;
 
 			// Update ports.
-			std::shared_ptr<Texture2D> target(this->GetInput<0>().Get(), [](void* ptr) {});
-			//Texture2D* target = this->GetInput<0>().Get();
+			std::shared_ptr<BackBuffer> target(this->GetInput<0>().Get(), [](BackBuffer*){});
 			this->GetInput<0>().Clear();
 			this->GetOutput<0>().Set(target.get());
 
+			//const auto& targetTexture = target->GetResource();
 
 			// Clear render target
 			if (target) {
@@ -43,10 +43,10 @@ Task ClearRenderTarget::GetTask() {
 
 
 				// clear rtv
-				auto* tmp = target.get();
+				auto pRTV = &target->GetView();
 				cmdList.SetResourceState(target, 0, gxapi::eResourceState::RENDER_TARGET);
-				cmdList.SetRenderTargets(1, &tmp, nullptr);
-				cmdList.ClearRenderTarget(target.get(), clearColor);
+				cmdList.SetRenderTargets(1, &pRTV, nullptr);
+				cmdList.ClearRenderTarget(*pRTV, clearColor);
 
 				// Output command list.
 				result.AddCommandList(std::move(cmdList));

@@ -7,13 +7,14 @@ namespace gxeng {
 
 
 ConstantBufferHeap::ConstantBufferHeap(gxapi::IGraphicsApi* graphicsApi) :
-	m_graphicsApi(graphicsApi)
+	m_graphicsApi(graphicsApi),
+	m_descHeap(graphicsApi)
 {
 	m_pages.PushFront(CreatePage());
 }
 
 
-VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(DescriptorReference&& viewRef, void* data, size_t dataSize) {
+VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(void* data, size_t dataSize) {
 	size_t targetSize = AlignUp(dataSize, ALIGNEMENT);
 
 	std::lock_guard<std::mutex> lock(m_mutex);
@@ -83,6 +84,7 @@ VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(DescriptorReference
 
 	memcpy(cpuPtr, data, dataSize);
 
+	auto viewRef = m_descHeap.AllocateOnTextureSpace();
 	gxapi::ConstantBufferViewDesc cbvDesc;
 	cbvDesc.gpuVirtualAddress = gpuPtr;
 	cbvDesc.sizeInBytes = targetSize;
@@ -92,7 +94,7 @@ VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(DescriptorReference
 }
 
 
-PersistentConstBuffer ConstantBufferHeap::CreatePersistentBuffer(DescriptorReference&& viewRef, void* data, size_t dataSize) const {
+PersistentConstBuffer ConstantBufferHeap::CreatePersistentBuffer(void* data, size_t dataSize) {
 	std::unique_ptr<gxapi::IResource> resource{
 		m_graphicsApi->CreateCommittedResource(
 			gxapi::HeapProperties{gxapi::eHeapType::UPLOAD},
@@ -109,6 +111,7 @@ PersistentConstBuffer ConstantBufferHeap::CreatePersistentBuffer(DescriptorRefer
 
 	void* gpuPtr = resource->GetGPUAddress();
 
+	auto viewRef = m_descHeap.AllocateOnTextureSpace();
 	gxapi::ConstantBufferViewDesc cbvDesc;
 	cbvDesc.gpuVirtualAddress = gpuPtr;
 	cbvDesc.sizeInBytes = dataSize;

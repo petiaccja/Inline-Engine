@@ -59,10 +59,13 @@ public:
 										RenderTargetViewDesc desc,
 										DescriptorHandle destination) = 0;
 
-	virtual void CreateShaderResourceView(ShaderResourceViewDesc resource,
-										  DescriptorHandle destination) = 0;
+	virtual void CreateShaderResourceView(ShaderResourceViewDesc descriptor,
+	                                      DescriptorHandle destination) = 0;
 	virtual void CreateShaderResourceView(const IResource* resource,
-										  DescriptorHandle destination) = 0;
+	                                      DescriptorHandle destination) = 0;
+	virtual void CreateShaderResourceView(const IResource* resource,
+	                                      ShaderResourceViewDesc descriptor,
+	                                      DescriptorHandle destination) = 0;
 
 	virtual void CreateUnorderedAccessView() = delete; // not needed yet
 

@@ -1,6 +1,5 @@
 #include "GraphicsCommandList.hpp"
 
-
 namespace inl {
 namespace gxeng {
 
@@ -43,7 +42,7 @@ BasicCommandList::Decomposition GraphicsCommandList::Decompose() {
 //------------------------------------------------------------------------------
 // Clear buffers
 //------------------------------------------------------------------------------
-void GraphicsCommandList::ClearDepthStencil(Texture2D* resource,
+void GraphicsCommandList::ClearDepthStencil(DepthStencilView& resource,
 											float depth,
 											uint8_t stencil,
 											size_t numRects,
@@ -51,15 +50,15 @@ void GraphicsCommandList::ClearDepthStencil(Texture2D* resource,
 											bool clearDepth,
 											bool clearStencil)
 {
-	m_commandList->ClearDepthStencil(resource->GetHandle(), depth, stencil, numRects, rects, clearDepth, clearStencil);
+	m_commandList->ClearDepthStencil(resource.GetHandle(), depth, stencil, numRects, rects, clearDepth, clearStencil);
 }
 
-void GraphicsCommandList::ClearRenderTarget(Texture2D* resource,
+void GraphicsCommandList::ClearRenderTarget(RenderTargetView& resource,
 											gxapi::ColorRGBA color,
 											size_t numRects,
 											gxapi::Rectangle* rects)
 {
-	m_commandList->ClearRenderTarget(resource->GetHandle(), color, numRects, rects);
+	m_commandList->ClearRenderTarget(resource.GetHandle(), color, numRects, rects);
 }
 
 
@@ -126,8 +125,8 @@ void GraphicsCommandList::SetVertexBuffers(unsigned startSlot,
 //------------------------------------------------------------------------------
 
 void GraphicsCommandList::SetRenderTargets(unsigned numRenderTargets,
-										   Texture2D** renderTargets,
-										   Texture2D* depthStencil)
+                                           RenderTargetView** renderTargets,
+                                           DepthStencilView* depthStencil)
 {
 	auto renderTargetHandles = std::make_unique<gxapi::DescriptorHandle[]>(numRenderTargets);
 	for (unsigned i = 0; i < numRenderTargets; ++i) {

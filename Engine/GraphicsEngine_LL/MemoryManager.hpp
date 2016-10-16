@@ -46,12 +46,12 @@ public:
 	VolatileConstBuffer CreateVolatileConstBuffer(void* data, size_t size);
 	PersistentConstBuffer CreatePersistentConstBuffer(void* data, size_t size);
 
-	VertexBuffer* CreateVertexBuffer(eResourceHeapType heap, size_t size);
-	IndexBuffer* CreateIndexBuffer(eResourceHeapType heap, size_t size, size_t indexCount);
-	Texture1D* CreateTexture1D(eResourceHeapType heap, uint64_t width, gxapi::eFormat format, uint16_t arraySize = 1);
-	Texture2D* CreateTexture2D(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1);
-	Texture3D* CreateTexture3D(eResourceHeapType heap, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format);
-	TextureCube* CreateTextureCube(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format);
+	std::unique_ptr<VertexBuffer> CreateVertexBuffer(eResourceHeapType heap, size_t size);
+	std::unique_ptr<IndexBuffer> CreateIndexBuffer(eResourceHeapType heap, size_t size, size_t indexCount);
+	std::unique_ptr<Texture1D> CreateTexture1D(eResourceHeapType heap, uint64_t width, gxapi::eFormat format, uint16_t arraySize = 1);
+	std::unique_ptr<Texture2D> CreateTexture2D(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1);
+	std::unique_ptr<Texture3D> CreateTexture3D(eResourceHeapType heap, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format);
+	std::unique_ptr<TextureCube> CreateTextureCube(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format);
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;

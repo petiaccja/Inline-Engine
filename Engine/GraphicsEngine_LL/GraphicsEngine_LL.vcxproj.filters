@@ -99,9 +99,6 @@
     <ClInclude Include="GpuBuffer.hpp">
       <Filter>MemoryManagement</Filter>
     </ClInclude>
-    <ClInclude Include="AsyncUploader.hpp">
-      <Filter>MemoryManagement</Filter>
-    </ClInclude>
     <ClInclude Include="Binder.hpp">
       <Filter>Middleware</Filter>
     </ClInclude>
@@ -192,6 +189,12 @@
     <ClInclude Include="UploadHeap.hpp">
       <Filter>MemoryManagement</Filter>
     </ClInclude>
+    <ClInclude Include="ResourceView.hpp">
+      <Filter>MemoryManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="ResouceViewFactory.hpp">
+      <Filter>MemoryManagement</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -229,9 +232,6 @@
       <Filter>Pipeline</Filter>
     </ClCompile>
     <ClCompile Include="GpuBuffer.cpp">
-      <Filter>MemoryManagement</Filter>
-    </ClCompile>
-    <ClCompile Include="AsyncUploader.cpp">
       <Filter>MemoryManagement</Filter>
     </ClCompile>
     <ClCompile Include="Binder.cpp">
@@ -286,6 +286,12 @@
       <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="ConstBufferHeap.cpp">
+      <Filter>MemoryManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceView.cpp">
+      <Filter>MemoryManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="ResouceViewFactory.cpp">
       <Filter>MemoryManagement</Filter>
     </ClCompile>
   </ItemGroup>

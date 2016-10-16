@@ -37,20 +37,21 @@ protected:
 		void* const m_gpuAddress;
 		const size_t m_pageSize;
 		size_t m_consumedSize;
-		int m_ownerFrameID;
+		size_t m_ownerFrameID;
 	};
 
 public:
 	ConstantBufferHeap(gxapi::IGraphicsApi* graphicsApi);
 
-	VolatileConstBuffer CreateVolatileBuffer(DescriptorReference&& viewRef, void* data, size_t dataSize);
-	PersistentConstBuffer CreatePersistentBuffer(DescriptorReference&& viewRef, void* data, size_t dataSize) const;
+	VolatileConstBuffer CreateVolatileBuffer(void* data, size_t dataSize);
+	PersistentConstBuffer CreatePersistentBuffer(void* data, size_t dataSize);
 
 	void FrameCompletedCPU();
 	void FrameCompletedGPU();
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
+	HighLevelDescHeap m_descHeap;
 
 	exc::RingBuffer<ConstBufferPage> m_largePages;
 	exc::RingBuffer<ConstBufferPage> m_pages;

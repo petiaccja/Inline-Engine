@@ -17,15 +17,14 @@ using namespace gxapi;
 //==================================
 //Generic Resource
 
-GenericResource::GenericResource(DescriptorReference&& resourceView, gxapi::IResource* resource) :
-	GenericResource(std::move(resourceView), resource, std::default_delete<gxapi::IResource>{})
+GenericResource::GenericResource(gxapi::IResource* resource) :
+	GenericResource(resource, std::default_delete<gxapi::IResource>{})
 {
 	InitResourceStates(eResourceState::COMMON);
 }
 
 
-GenericResource::GenericResource(DescriptorReference&& resourceView, gxapi::IResource* resource, const Deleter& deleter) :
-	m_resourceView(std::move(resourceView)),
+GenericResource::GenericResource(gxapi::IResource* resource, const Deleter& deleter) :
 	m_resource(resource, deleter)
 {
 	InitResourceStates(eResourceState::COMMON);
@@ -33,7 +32,6 @@ GenericResource::GenericResource(DescriptorReference&& resourceView, gxapi::IRes
 
 
 GenericResource::GenericResource(GenericResource&& other) :
-	m_resourceView(std::move(other.m_resourceView)),
 	m_resource(std::move(other.m_resource)),
 	m_resident(other.m_resident),
 	m_subresourceStates(other.m_subresourceStates)
@@ -46,7 +44,6 @@ GenericResource& GenericResource::operator=(GenericResource&& other) {
 		return *this;
 	}
 
-	m_resourceView = std::move(m_resourceView);
 	m_resource = std::move(other.m_resource);
 	m_resident = other.m_resident;
 	m_subresourceStates = std::move(other.m_subresourceStates);
@@ -62,11 +59,6 @@ void* GenericResource::GetVirtualAddress() const {
 
 gxapi::ResourceDesc GenericResource::GetDescription() const {
 	return m_resource->GetDesc();
-}
-
-
-gxapi::DescriptorHandle GenericResource::GetHandle() {
-	return m_resourceView.Get();
 }
 
 
@@ -144,14 +136,14 @@ uint64_t LinearBuffer::GetSize() const {
 }
 
 
-IndexBuffer::IndexBuffer(DescriptorReference&& resourceView, gxapi::IResource* resource, size_t indexCount) :
-	LinearBuffer(std::move(resourceView), resource),
+IndexBuffer::IndexBuffer(gxapi::IResource* resource, size_t indexCount) :
+	LinearBuffer(resource),
 	m_indexCount(indexCount)
 {}
 
 
-IndexBuffer::IndexBuffer(DescriptorReference&& resourceView, gxapi::IResource* resource, const Deleter& deleter, size_t indexCount) :
-	LinearBuffer(std::move(resourceView), resource, deleter),
+IndexBuffer::IndexBuffer(gxapi::IResource* resource, const Deleter& deleter, size_t indexCount) :
+	LinearBuffer(resource, deleter),
 	m_indexCount(indexCount)
 {}
 
@@ -164,9 +156,10 @@ size_t IndexBuffer::GetIndexCount() const {
 //==================================
 
 
-ConstBuffer::ConstBuffer(DescriptorReference && resourceView, gxapi::IResource* resource, void* gpuVirtualPtr) :
-	LinearBuffer(std::move(resourceView), resource),
-	m_gpuVirtualPtr(gpuVirtualPtr)
+ConstBuffer::ConstBuffer(DescriptorReference&& desc, gxapi::IResource* resource, void* gpuVirtualPtr) :
+	LinearBuffer(resource),
+	m_gpuVirtualPtr(gpuVirtualPtr),
+	m_CBV(std::move(desc))
 {
 }
 
@@ -176,13 +169,18 @@ void* ConstBuffer::GetVirtualAddress() const {
 }
 
 
-VolatileConstBuffer::VolatileConstBuffer(DescriptorReference && resourceView, gxapi::IResource* resource, void * gpuVirtualPtr):
-	ConstBuffer(std::move(resourceView), resource, gpuVirtualPtr)
+gxapi::DescriptorHandle ConstBuffer::GetHandle() {
+	return m_CBV.Get();
+}
+
+
+VolatileConstBuffer::VolatileConstBuffer(DescriptorReference&& desc, gxapi::IResource* resource, void * gpuVirtualPtr):
+	ConstBuffer(std::move(desc), resource, gpuVirtualPtr)
 {}
 
 
-PersistentConstBuffer::PersistentConstBuffer(DescriptorReference && resourceView, gxapi::IResource* resource, void * gpuVirtualPtr):
-	ConstBuffer(std::move(resourceView), resource, gpuVirtualPtr)
+PersistentConstBuffer::PersistentConstBuffer(DescriptorReference&& desc, gxapi::IResource* resource, void * gpuVirtualPtr):
+	ConstBuffer(std::move(desc), resource, gpuVirtualPtr)
 {}
 
 
@@ -226,6 +224,18 @@ uint16_t Texture3D::GetDepth() const {
 
 uint64_t TextureCube::GetHeight() const {
 	return m_resource->GetDesc().textureDesc.height;
+}
+
+
+BackBuffer::BackBuffer(DescriptorReference&& descRef, gxapi::RenderTargetViewDesc desc, gxapi::IResource* resource) :
+	// Underlying resource deallocation is managed by the swap chain!
+	Texture2D(resource, [](gxapi::IResource*){}),
+	m_RTV(std::shared_ptr<Texture2D>(this, [](Texture2D*){}), std::move(descRef), desc)
+{}
+
+
+RenderTargetView& BackBuffer::GetView() {
+	return m_RTV;
 }
 
 

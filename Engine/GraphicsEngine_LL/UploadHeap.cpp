@@ -31,10 +31,7 @@ void UploadHeap::UploadToResource(std::weak_ptr<LinearBuffer> target, size_t off
 
 	{
 		UploadDescription uploadDesc(
-			GenericResource(
-				std::move(desc),
-				uploadRes
-			),
+			GenericResource(uploadRes),
 			target,
 			offset
 		);
