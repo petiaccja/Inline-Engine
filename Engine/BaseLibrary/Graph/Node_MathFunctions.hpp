@@ -48,40 +48,42 @@ public:
 struct MathFunctionNames {
 public:
 	// general
-	static constexpr const char Abs[] = "Abs:Absolute value of the input";
+	static const char Abs[];
 	// exponential
-	static constexpr const char Exp[] = "Exp:Raises e to given power";
-	static constexpr const char Exp2[] = "Exp2:Raises 2 to given power";
-	static constexpr const char Log[] = "Log:Natural logarithm";
-	static constexpr const char Log10[] = "Log10:Base 10 logarithm";
-	static constexpr const char Log2[] = "Log2:Base 2 logarithm";
+	static const char Exp[];
+	static const char Exp2[];
+	static const char Log[];
+	static const char Log10[];
+	static const char Log2[];
 	// power
-	static constexpr const char Sqrt[] = "Sqrt:Square root of the input";
-	static constexpr const char Cbrt[] = "Cbrt:Cubic root of the input";
+	static const char Sqrt[];
+	static const char Cbrt[];
 	// trigonometric
-	static constexpr const char Sin[] = "Sin:Sine function";
-	static constexpr const char Cos[] = "Cos:Cosine function";
-	static constexpr const char Tan[] = "Tan:Tangent function";
-	static constexpr const char Asin[] = "Asin:Inverse sine function";
-	static constexpr const char Acos[] = "Acos:Inverse cosine function";
-	static constexpr const char Atan[] = "Atan:Inverse tangent function";
+	static const char Sin[];
+	static const char Cos[];
+	static const char Tan[];
+	static const char Asin[];
+	static const char Acos[];
+	static const char Atan[];
 	// hyperbolic
-	static constexpr const char Sinh[] = "Sinh:Hyperbolic sine function";
-	static constexpr const char Cosh[] = "Cosh:Hyperbolic cosine function";
-	static constexpr const char Tanh[] = "Tanh:Hyperbolic tangent function";
-	static constexpr const char Asinh[] = "Asinh:Inverse hyperbolic sine function";
-	static constexpr const char Acosh[] = "Acosh:Inverse hyperbolic cosine function";
-	static constexpr const char Atanh[] = "Atanh:Inverse hyperbolic tangent function";
+	static const char Sinh[];
+	static const char Cosh[];
+	static const char Tanh[];
+	static const char Asinh[];
+	static const char Acosh[];
+	static const char Atanh[];
 	// statistical
-	static constexpr const char Erf[] = "Erf:Error function, the integral of the bell curve";
-	static constexpr const char Erfc[] = "Erfc:Complementary error function";
-	static constexpr const char Gamma[] = "Gamma:Gamma function";
-	static constexpr const char Lgamma[] = "Lgamma:Natural logarithm of the absolute gamma function";
+	static const char Erf[];
+	static const char Erfc[];
+	static const char Gamma[];
+	static const char Lgamma[];
 	// rounding
-	static constexpr const char Ceil[] = "Ceil:The nearest integer not less than input";
-	static constexpr const char Floor[] = "Floor:The nearest integer not greater than";
-	static constexpr const char Round[] = "Round:The nearest integer";
+	static const char Ceil[];
+	static const char Floor[];
+	static const char Round[];
 };
+
+
 
 // general
 using FloatAbs = MathFunctionNode<float, std::abs, MathFunctionNames::Abs>;

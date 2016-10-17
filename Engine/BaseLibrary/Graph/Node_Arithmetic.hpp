@@ -108,52 +108,52 @@ struct LogarithmOperator {
 
 // Strings
 struct AddStrings {
-	static constexpr const char Name[] = "Add:Adds the two inputs";
-	static constexpr const char R[] = "R:A+B";
-	static constexpr const char A[] = "A";
-	static constexpr const char B[] = "B";
+	static const char Name[];
+	static const char R[];
+	static const char A[];
+	static const char B[];
 };
 
 struct SubtractStrings {
-	static constexpr const char Name[] = "Subtract:Subtracts the second input from the first";
-	static constexpr const char A[] = "A";
-	static constexpr const char B[] = "B";
-	static constexpr const char R[] = "R:A-B";
+	static const char Name[];
+	static const char A[];
+	static const char B[];
+	static const char R[];
 };
 
 struct MultiplyStrings {
-	static constexpr const char Name[] = "Multiply:Multiplies the two inputs";
-	static constexpr const char A[] = "A";
-	static constexpr const char B[] = "B";
-	static constexpr const char R[] = "R:A*B";
+	static const char Name[];
+	static const char A[];
+	static const char B[];
+	static const char R[];
 };
 
 struct DivideStrings {
-	static constexpr const char Name[] = "Divide:Divides the first input by the second";
-	static constexpr const char A[] = "A";
-	static constexpr const char B[] = "B";
-	static constexpr const char R[] = "R:A/B";
+	static const char Name[];
+	static const char A[];
+	static const char B[];
+	static const char R[];
 };
 
 struct ModuloStrings {
-	static constexpr const char Name[] = "Modulo:Divides the first input by the second, and takes the remainder";
-	static constexpr const char A[] = "A";
-	static constexpr const char B[] = "B";
-	static constexpr const char R[] = "R:A%B";
+	static const char Name[];
+	static const char A[];
+	static const char B[];
+	static const char R[];
 };
 
 struct PowerStrings {
-	static constexpr const char Name[] = "Power:Raises the first input to the power of the second input";
-	static constexpr const char A[] = "Base";
-	static constexpr const char B[] = "Power";
-	static constexpr const char R[] = "R:Base^Power";
+	static const char Name[];
+	static const char A[];
+	static const char B[];
+	static const char R[];
 };
 
 struct LogarithmStrings {
-	static constexpr const char Name[] = "LogB:Takes the base-<Base> logarithm of Argument";
-	static constexpr const char A[] = "Argument";
-	static constexpr const char B[] = "Base";
-	static constexpr const char R[] = "R:LogBase(Argument)";
+	static const char Name[];
+	static const char A[];
+	static const char B[];
+	static const char R[];
 };
 
 // Node templates

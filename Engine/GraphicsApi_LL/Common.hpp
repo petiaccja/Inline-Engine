@@ -990,8 +990,8 @@ struct DepthStencilState {
 		eComparisonFunction stencilFunc;
 	};
 
-	DepthStencilState(bool enableDepthTest = true,
-		bool enableDepthStencilWrite = true,
+	DepthStencilState(bool enableDepthTest = false,
+		bool enableDepthStencilWrite = false,
 		eComparisonFunction depthFunc = eComparisonFunction::LESS,
 		bool enableStencilTest = false,
 		uint8_t stencilReadMask = 0,

@@ -45,45 +45,45 @@ public:
 };
 
 struct EqualStrings {
-	static constexpr const char Name[] = "Equal: True if A==B evaluates true.";
-	static constexpr const char A[] = "A";
-	static constexpr const char B[] = "B";
-	static constexpr const char R[] = "R:A?=B";
+	static const char Name[];
+	static const char A[];
+	static const char B[];
+	static const char R[];
 };
 
 struct NotEqualStrings {
-	static constexpr const char Name[] = "NotEqual: True if A!=B evaluates true.";
-	static constexpr const char A[] = "A";
-	static constexpr const char B[] = "B";
-	static constexpr const char R[] = "R:A!=B";
+	static const char Name[];
+	static const char A[];
+	static const char B[];
+	static const char R[];
 };
 
 struct LessEqualStrings {
-	static constexpr const char Name[] = "LessEqual: True if A<=B evaluates true.";
-	static constexpr const char A[] = "A";
-	static constexpr const char B[] = "B";
-	static constexpr const char R[] = "R:A<=B";
+	static const char Name[];
+	static const char A[];
+	static const char B[];
+	static const char R[];
 };
 
 struct GreaterEqualStrings {
-	static constexpr const char Name[] = "GreaterEqual: True if A>=B evaluates true.";
-	static constexpr const char A[] = "A";
-	static constexpr const char B[] = "B";
-	static constexpr const char R[] = "R:A>=B";
+	static const char Name[];
+	static const char A[];
+	static const char B[];
+	static const char R[];
 };
 
 struct LessStrings {
-	static constexpr const char Name[] = "Less: True if A<B evaluates true.";
-	static constexpr const char A[] = "A";
-	static constexpr const char B[] = "B";
-	static constexpr const char R[] = "R:A<B";
+	static const char Name[];
+	static const char A[];
+	static const char B[];
+	static const char R[];
 };
 
 struct GreaterStrings {
-	static constexpr const char Name[] = "Greater: True if A>B evaluates true.";
-	static constexpr const char A[] = "A";
-	static constexpr const char B[] = "B";
-	static constexpr const char R[] = "R:A>B";
+	static const char Name[];
+	static const char A[];
+	static const char B[];
+	static const char R[];
 };
 
 template <typename T>
