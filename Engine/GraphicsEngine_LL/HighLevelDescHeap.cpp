@@ -180,6 +180,17 @@ ScratchSpaceRef ScratchSpace::Allocate(size_t size) {
 }
 
 
+DescriptorReference ScratchSpace::AllocateSingle() {
+	size_t pos = m_allocator.Allocate(1);
+	try {
+		return DescriptorReference(m_heap->At(pos), [this, pos]() {m_allocator.Deallocate(pos); });
+	}
+	catch (...) {
+		std::terminate();
+	}
+}
+
+
 ScratchSpace::ScratchSpace(gxapi::IGraphicsApi * graphicsApi, size_t size) :
 	m_allocator(size)
 {
