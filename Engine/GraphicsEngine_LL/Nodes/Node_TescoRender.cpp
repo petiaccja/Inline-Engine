@@ -113,7 +113,6 @@ TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager*
 
 void TescoRender::RenderScene(RenderTargetView& rtv, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList) {
 	// Set render target
-	//std::shared_ptr<BackBuffer> fakeSharedPtr(target, [](BackBuffer*){});
 	auto pRTV = &rtv;
 	commandList.SetResourceState(rtv.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetRenderTargets(1, &pRTV, nullptr); // no depth yet
