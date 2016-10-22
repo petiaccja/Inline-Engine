@@ -15,7 +15,14 @@ namespace nodes {
 
 
 bool CheckMeshFormat(const Mesh& mesh) {
-	return false;
+	for (size_t i = 0; i < mesh.GetNumStreams(); i++) {
+		auto& elements = mesh.GetVertexBufferElements(i);
+		if (elements.size() != 2) return false;
+		if (elements[0].semantic != eVertexElementSemantic::POSITION) return false;
+		if (elements[1].semantic != eVertexElementSemantic::COLOR) return false;
+	}
+
+	return true;
 }
 
 
@@ -135,7 +142,9 @@ void TescoRender::RenderScene(RenderTargetView& rtv, const EntityCollection<Mesh
 		std::vector<unsigned> sizes;
 		std::vector<unsigned> strides;
 
-		for (int streamID = 0; streamID < entity->GetMesh()->GetNumStreams(); streamID++) {
+		for (int streamID = 0; streamID < mesh->GetNumStreams(); streamID++) {
+			const auto& vb = mesh->GetVertexBuffer(streamID);
+			auto ptr = vb.get();
 			vertexBuffers.push_back(mesh->GetVertexBuffer(streamID).get());
 			sizes.push_back((unsigned)vertexBuffers.back()->GetSize());
 			strides.push_back((unsigned)mesh->GetVertexBufferStride(streamID));
