@@ -5,6 +5,8 @@
 #include <map>
 #include <algorithm>
 #include <mutex>
+#include <set>
+#include <deque>
 
 
 // optional is part of C++17, but not included in VS yet
@@ -12,12 +14,14 @@
 // uses boost license
 // replace when official is available
 // see https://github.com/akrzemi1/Optional
-#define TR2_OPTIONAL_DISABLE_EMULATION_OF_TYPE_TRAITS
-#include "../optional.hpp"
-namespace std {
-	template <class T>
-	using optional = experimental::optional<T>;
-}
+//#define TR2_OPTIONAL_DISABLE_EMULATION_OF_TYPE_TRAITS
+//#include "../optional.hpp"
+//namespace std {
+//	template <class T>
+//	using optional = experimental::optional<T>;
+//}
+
+#include <optional>
 
 namespace exc {
 
@@ -31,9 +35,9 @@ public:
 
 	~mi_tls() {
 		// deallocate our slot
-		std::lock_guard<std::mutex> lkg(allocatorLock);
+		std::lock_guard<std::mutex> lkg(indexAllocatorLock);
 
-		allocator.Deallocate(myIndex);
+		indexAllocator.Deallocate(myIndex);
 	}
 
 	// Construct from in-place arguments
@@ -90,68 +94,91 @@ public:
 	}
 private:
 	void AllocateSlot() {
-		std::lock_guard<std::mutex> lkg(allocatorLock);
+		std::lock_guard<std::mutex> lkg(indexAllocatorLock);
 
 		try {
-			myIndex = allocator.Allocate();
+			myIndex = indexAllocator.Allocate();
 		}
 		catch (std::bad_alloc&) {
-			size_t currentSize = allocator.Size();
-			allocator.Resize(size_t(currentSize * 1.2 + 1));
-			myIndex = allocator.Allocate(); // supposed to have enough space now
+			size_t currentSize = indexAllocator.Size();
+			indexAllocator.Resize(size_t(currentSize * 1.2 + 1));
+			myIndex = indexAllocator.Allocate(); // supposed to have enough space now
 		}
 	}
 
-	T& GetRef() { return GetRef_2(); }
-	inline T& GetRef_1() {
-		if (threadRepo.size() <= myIndex) {
-			threadRepo.resize(myIndex + 1);
-			threadRepo[myIndex] = defaultRecord;
-		}
-		return threadRepo[myIndex].value();
-	}
-	inline T& GetRef_2() {
-		size_t size = threadRepo.size()-1;
+
+	T& GetRef() {
+		size_t size = threadObjects.size()-1;
 		size_t testIndex = myIndex < size ? myIndex : size;
-		if (!threadRepo[testIndex]) {
-			if (threadRepo.size()-1 <= myIndex) {
-				threadRepo.resize(myIndex + 2);
+		if (!threadObjects[testIndex]) {
+			if (threadObjects.size()-1 <= myIndex) {
+				threadObjects.resize(myIndex + 2);
 			}
-			threadRepo[myIndex] = defaultRecord;
+			threadObjects[myIndex] = defaultRecord;
 		}
-		return threadRepo[myIndex].value();
+		return threadObjects[myIndex].value();
 	}
 
 	const T& GetRef() const {
-		size_t size = threadRepo.size() - 1;
+		size_t size = threadObjects.size() - 1;
 		size_t testIndex = myIndex < size ? myIndex : size;
-		if (!threadRepo[testIndex]) {
-			if (threadRepo.size() - 1 <= myIndex) {
-				threadRepo.resize(myIndex + 2);
+		if (!threadObjects[testIndex]) {
+			if (threadObjects.size() - 1 <= myIndex) {
+				threadObjects.resize(myIndex + 2);
 			}
-			threadRepo[myIndex] = defaultRecord;
+			threadObjects[myIndex] = defaultRecord;
 		}
-		return threadRepo[myIndex].value();
+		return threadObjects[myIndex].value();
 	}
+
+	void Register() {
+		std::lock_guard<std::mutex> lkg(registryLock);
+		myThreadObjects.insert(&threadObjects);
+		myThreadInstances.insert(&threadInstances);
+		threadInstances.insert(this);
+	}
+
+	//void UnregisterByThread() {
+	//	std::lock_guard<std::mutex> lkg(registryLock);
+	//	threadObjects.clear();
+	//	for (auto& instance : threadInstances) {
+	//		instance->myThreadObjects.erase(&threadObjects);
+	//		instant->myThreadInstances.erase(&threadInstances);
+	//	}
+	//}
+
+	//void UnregisterByInstance() {
+	//	std::lock_guard<std::mutex> lkg(registryLock);
+	//	for (auto& instances : myThreadInstances) {
+	//		instances.erase(this);
+	//	}
+	//	for (auto& objects : myThreadObjects) {
+	//		objects[myIndex].erase()
+	//	}
+	//}
 private:
+	static thread_local std::deque<std::optional<T>> threadObjects; // vector would be better, but deque.resize does not invalidate refs and ptrs
+	static std::mutex indexAllocatorLock;
+	static SlabAllocatorEngine indexAllocator;
+
 	size_t myIndex;
-
-	static thread_local std::vector<std::optional<T>> threadRepo;
-	static std::mutex allocatorLock;
-	static SlabAllocatorEngine allocator;
-
 	T defaultRecord;
+
+	//static std::mutex registryLock;
+	//thread_local std::set<mi_tls*> threadInstances;
+	//std::set<decltype(threadObjects)*> myThreadObjects;
+	//std::set<decltype(threadInstances)> myThreadInstances;
 };
 
 
 template <class T>
-thread_local std::vector<std::optional<T>> mi_tls<T>::threadRepo(1);
+thread_local std::deque<std::optional<T>> mi_tls<T>::threadObjects(1);
 
 template <class T>
-std::mutex mi_tls<T>::allocatorLock;
+std::mutex mi_tls<T>::indexAllocatorLock;
 
 template <class T>
-SlabAllocatorEngine mi_tls<T>::allocator(10);
+SlabAllocatorEngine mi_tls<T>::indexAllocator(10);
 
 
 

@@ -14,7 +14,7 @@ namespace gxapi_dx12 {
 
 class GraphicsApi : public gxapi::IGraphicsApi {
 public:
-	GraphicsApi(Microsoft::WRL::ComPtr<ID3D12Device> device);
+	GraphicsApi(Microsoft::WRL::ComPtr<ID3D12Device1> device);
 
 	// Command submission
 	gxapi::ICommandQueue* CreateCommandQueue(gxapi::CommandQueueDesc desc) override;
@@ -82,7 +82,7 @@ public:
 	void Evict(const std::vector<gxapi::IResource*>& objects) override;
 
 protected:
-	Microsoft::WRL::ComPtr<ID3D12Device> m_device;
+	Microsoft::WRL::ComPtr<ID3D12Device1> m_device;
 };
 
 

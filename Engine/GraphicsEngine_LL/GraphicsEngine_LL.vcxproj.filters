@@ -195,6 +195,12 @@
     <ClInclude Include="ResouceViewFactory.hpp">
       <Filter>MemoryManagement</Filter>
     </ClInclude>
+    <ClInclude Include="PipelineEventDispatcher.hpp">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="PipelineEventListener.hpp">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -293,6 +299,9 @@
     </ClCompile>
     <ClCompile Include="ResouceViewFactory.cpp">
       <Filter>MemoryManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="PipelineEventDispatcher.cpp">
+      <Filter>Pipeline</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

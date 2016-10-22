@@ -13,10 +13,65 @@ using std::cout;
 using std::endl;
 
 
+struct TestData {
+	long long value;
+	TestData(long long value = 0) : value(value) {
+		cout << "data: ctor " << this << endl;
+	}
+	TestData& operator++() {
+		++value;
+		return *this;
+	}
+	TestData(const TestData& rhs) {
+		cout << "data: copy " << this << endl;
+		value = rhs.value;
+	}
+	TestData(TestData&& rhs) {
+		cout << "data: move " << this << endl;
+		value = std::move(rhs.value);
+	}
+	TestData& operator=(const TestData& rhs) {
+		cout << "data: op=copy " << this << endl;
+		value = rhs.value;
+		return *this;
+	}
+	TestData& operator=(TestData&& rhs) {
+		cout << "data: op=move " << this << endl;
+		value = std::move(rhs.value);
+		return *this;
+	}
+	~TestData() {
+		cout << "data: dtor " << this << endl;
+	}
+};
+
 class TestUser {
 public:
-	TestUser() : value(0) {}
-	exc::mi_tls<long long> value;
+	TestUser() : value(0) {
+		cout << "user: ctor" << endl; 
+	}
+	TestUser(const TestUser& rhs) {
+		cout << "user: copy" << endl;
+		value = rhs.value;
+	}
+	TestUser(TestUser&& rhs) {
+		cout << "user: move" << endl;
+		value = std::move(rhs.value);
+	}
+	TestUser& operator=(const TestUser& rhs) {
+		cout << "user: op=copy" << endl;
+		value = rhs.value;
+		return *this;
+	}
+	TestUser& operator=(TestUser&& rhs) {
+		cout << "user: op=move" << endl;
+		value = std::move(rhs.value);
+		return *this;
+	}
+	~TestUser() {
+		cout << "user: dtor" << endl;
+	}
+	exc::mi_tls<TestData> value;
 };
 
 
@@ -44,11 +99,15 @@ private:
 
 
 int TestMultiTLS::Run() {
-	constexpr int NumInstances = 2;
-	constexpr int NumThreads = 8;
+	constexpr int NumInstances = 1;
+	constexpr int NumThreads = 1;
+	constexpr long long iterations = 100'000'000;
 	static_assert(NumThreads % NumInstances == 0, "These two must be divisible");
 
-	TestUser instances[NumInstances];
+	TestUser* instances[NumInstances];
+	for (auto& v : instances) {
+		v = new TestUser();
+	}
 	std::thread threads[NumThreads];
 	std::mutex mtx;
 
@@ -66,41 +125,27 @@ int TestMultiTLS::Run() {
 #ifdef _MSC_VER
 			SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 #endif
+			TestUser& myInstance = *instances[i/(NumThreads / NumInstances)];
 
-			volatile thread_local long long v = 0;
-			TestUser& myInstance = instances[i/(NumThreads / NumInstances)];
-			
-			volatile long long& myValue = (volatile long long&)myInstance.value;
+			long long js = iterations / 10;
+			for (long long j = 0; j < js; ++j) {
+				++(TestData&)myInstance.value;
+				++(TestData&)myInstance.value;
+				++(TestData&)myInstance.value;
+				++(TestData&)myInstance.value;
+				++(TestData&)myInstance.value;
 
-			for (long long i = 0; i < 10'000'000; ++i) {				
-				++myInstance.value;
-				++myInstance.value;
-				++myInstance.value;
-				++myInstance.value;
-				++myInstance.value;
-
-				++myInstance.value;
-				++myInstance.value;
-				++myInstance.value;
-				++myInstance.value;
-				++myInstance.value;
-
-				//++v;
-				//++v;
-				//++v;
-				//++v;
-				//++v;
-
-				//++v;
-				//++v;
-				//++v;
-				//++v;
-				//++v;
+				++(TestData&)myInstance.value;
+				++(TestData&)myInstance.value;
+				++(TestData&)myInstance.value;
+				++(TestData&)myInstance.value;
+				++(TestData&)myInstance.value;
 			}
-			//myInstance.value = v;
 
 			mtx.lock();
-			cout << myInstance.value << endl;
+			cout << ((TestData&)myInstance.value).value << endl;
+			delete &myInstance;
+			cout << "thread exiting" << endl;
 			mtx.unlock();
 		});
 		++i;
@@ -111,7 +156,12 @@ int TestMultiTLS::Run() {
 	}
 	auto endTime = std::chrono::high_resolution_clock::now();
 
-	cout << "Time = " << std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime).count() / 1e6 << " ms" << endl;
+	double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime).count() / 1e9; // seconds
+	cout << "Time = " << elapsed * 1000 << " ms" << endl;
+	cout << "Performance = " << 3.7e9 * elapsed / (iterations) << " cycles / operation" << endl;
+
+
+
 
 
 

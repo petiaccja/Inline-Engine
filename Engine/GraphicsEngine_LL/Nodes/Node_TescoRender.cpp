@@ -120,7 +120,7 @@ void TescoRender::RenderScene(BackBuffer* target, const EntityCollection<MeshEnt
 
 	// Iterate over all entities
 	for (const MeshEntity* entity : entities) {
-		std::cout << "Rendering entity " << entity << std::endl;
+		//std::cout << "Rendering entity " << entity << std::endl;
 		
 		// Get entity parameters
 		Mesh* mesh = entity->GetMesh();
@@ -128,7 +128,7 @@ void TescoRender::RenderScene(BackBuffer* target, const EntityCollection<MeshEnt
 
 		// Draw mesh
 		if (!CheckMeshFormat(*mesh)) {
-			std::cout << "Invalid mesh format." << std::endl;
+			//std::cout << "Invalid mesh format." << std::endl;
 			continue;
 		}
 

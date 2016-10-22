@@ -3,6 +3,7 @@
 #include <GraphicsApi_LL/IFence.hpp>
 #include <cstdint>
 #include <cassert>
+#include <memory>
 
 
 namespace inl {

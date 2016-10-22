@@ -32,7 +32,8 @@ template< typename TransformType,
           typename MatrixType,
           int Case = transform_traits<TransformType>::IsProjective ? 0
                    : int(MatrixType::RowsAtCompileTime) == int(transform_traits<TransformType>::HDim) ? 1
-                   : 2>
+                   : 2,
+          int RhsCols = MatrixType::ColsAtCompileTime>
 struct transform_right_product_impl;
 
 template< typename Other,
@@ -61,6 +62,22 @@ template< typename Other,
 struct transform_construct_from_matrix;
 
 template<typename TransformType> struct transform_take_affine_part;
+
+template<typename _Scalar, int _Dim, int _Mode, int _Options>
+struct traits<Transform<_Scalar,_Dim,_Mode,_Options> >
+{
+  typedef _Scalar Scalar;
+  typedef Eigen::Index StorageIndex;
+  typedef Dense StorageKind;
+  enum {
+    Dim1 = _Dim==Dynamic ? _Dim : _Dim + 1,
+    RowsAtCompileTime = _Mode==Projective ? Dim1 : _Dim,
+    ColsAtCompileTime = Dim1,
+    MaxRowsAtCompileTime = RowsAtCompileTime,
+    MaxColsAtCompileTime = ColsAtCompileTime,
+    Flags = 0
+  };
+};
 
 template<int Mode> struct transform_make_affine;
 
@@ -176,7 +193,7 @@ template<int Mode> struct transform_make_affine;
   * preprocessor token EIGEN_QT_SUPPORT is defined.
   *
   * This class can be extended with the help of the plugin mechanism described on the page
-  * \ref TopicCustomizingEigen by defining the preprocessor symbol \c EIGEN_TRANSFORM_PLUGIN.
+  * \ref TopicCustomizing_Plugins by defining the preprocessor symbol \c EIGEN_TRANSFORM_PLUGIN.
   *
   * \sa class Matrix, class Quaternion
   */
@@ -194,7 +211,8 @@ public:
   };
   /** the scalar type of the coefficients */
   typedef _Scalar Scalar;
-  typedef DenseIndex Index;
+  typedef Eigen::Index StorageIndex;
+  typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
   /** type of the matrix used to represent the transformation */
   typedef typename internal::make_proper_matrix_type<Scalar,Rows,HDim,Options>::type MatrixType;
   /** constified MatrixType */
@@ -216,9 +234,9 @@ public:
   /** type of a vector */
   typedef Matrix<Scalar,Dim,1> VectorType;
   /** type of a read/write reference to the translation part of the rotation */
-  typedef Block<MatrixType,Dim,1,int(Mode)==(AffineCompact)> TranslationPart;
+  typedef Block<MatrixType,Dim,1,!(internal::traits<MatrixType>::Flags & RowMajorBit)> TranslationPart;
   /** type of a read reference to the translation part of the rotation */
-  typedef const Block<ConstMatrixType,Dim,1,int(Mode)==(AffineCompact)> ConstTranslationPart;
+  typedef const Block<ConstMatrixType,Dim,1,!(internal::traits<MatrixType>::Flags & RowMajorBit)> ConstTranslationPart;
   /** corresponding translation type */
   typedef Translation<Scalar,Dim> TranslationType;
   
@@ -362,6 +380,9 @@ public:
   inline Transform& operator=(const QTransform& other);
   inline QTransform toQTransform(void) const;
   #endif
+  
+  Index rows() const { return int(Mode)==int(Projective) ? m_matrix.cols() : (m_matrix.cols()-1); }
+  Index cols() const { return m_matrix.cols(); }
 
   /** shortcut for m_matrix(row,col);
     * \sa MatrixBase::operator(Index,Index) const */
@@ -416,7 +437,7 @@ public:
     */
   // note: this function is defined here because some compilers cannot find the respective declaration
   template<typename OtherDerived>
-  EIGEN_STRONG_INLINE const typename OtherDerived::PlainObject
+  EIGEN_STRONG_INLINE const typename internal::transform_right_product_impl<Transform, OtherDerived>::ResultType
   operator * (const EigenBase<OtherDerived> &other) const
   { return internal::transform_right_product_impl<Transform, OtherDerived>::run(*this,other.derived()); }
 
@@ -474,7 +495,7 @@ public:
     return internal::transform_transform_product_impl<Transform,Transform>::run(*this,other);
   }
   
-  #ifdef __INTEL_COMPILER
+  #if EIGEN_COMP_ICC
 private:
   // this intermediate structure permits to workaround a bug in ICC 11:
   //   error: template instantiation resulted in unexpected function type of "Eigen::Transform<double, 3, 32, 0>
@@ -550,9 +571,9 @@ public:
 
   inline Transform& operator=(const UniformScaling<Scalar>& t);
   inline Transform& operator*=(const UniformScaling<Scalar>& s) { return scale(s.factor()); }
-  inline Transform<Scalar,Dim,(int(Mode)==int(Isometry)?int(Affine):int(Mode))> operator*(const UniformScaling<Scalar>& s) const
+  inline TransformTimeDiagonalReturnType operator*(const UniformScaling<Scalar>& s) const
   {
-    Transform<Scalar,Dim,(int(Mode)==int(Isometry)?int(Affine):int(Mode)),Options> res = *this;
+    TransformTimeDiagonalReturnType res = *this;
     res.scale(s.factor());
     return res;
   }
@@ -715,9 +736,13 @@ template<typename Scalar, int Dim, int Mode,int Options>
 Transform<Scalar,Dim,Mode,Options>& Transform<Scalar,Dim,Mode,Options>::operator=(const QMatrix& other)
 {
   EIGEN_STATIC_ASSERT(Dim==2, YOU_MADE_A_PROGRAMMING_MISTAKE)
-  m_matrix << other.m11(), other.m21(), other.dx(),
-              other.m12(), other.m22(), other.dy(),
-              0, 0, 1;
+  if (Mode == int(AffineCompact))
+    m_matrix << other.m11(), other.m21(), other.dx(),
+                other.m12(), other.m22(), other.dy();
+  else
+    m_matrix << other.m11(), other.m21(), other.dx(),
+                other.m12(), other.m22(), other.dy(),
+                0, 0, 1;
   return *this;
 }
 
@@ -1048,7 +1073,7 @@ void Transform<Scalar,Dim,Mode,Options>::computeRotationScaling(RotationMatrixTy
   }
 }
 
-/** decomposes the linear part of the transformation as a product rotation x scaling, the scaling being
+/** decomposes the linear part of the transformation as a product scaling x rotation, the scaling being
   * not necessarily positive.
   *
   * If either pointer is zero, the corresponding computation is skipped.
@@ -1263,8 +1288,8 @@ struct transform_product_result
   };
 };
 
-template< typename TransformType, typename MatrixType >
-struct transform_right_product_impl< TransformType, MatrixType, 0 >
+template< typename TransformType, typename MatrixType, int RhsCols>
+struct transform_right_product_impl< TransformType, MatrixType, 0, RhsCols>
 {
   typedef typename MatrixType::PlainObject ResultType;
 
@@ -1274,8 +1299,8 @@ struct transform_right_product_impl< TransformType, MatrixType, 0 >
   }
 };
 
-template< typename TransformType, typename MatrixType >
-struct transform_right_product_impl< TransformType, MatrixType, 1 >
+template< typename TransformType, typename MatrixType, int RhsCols>
+struct transform_right_product_impl< TransformType, MatrixType, 1, RhsCols>
 {
   enum { 
     Dim = TransformType::Dim, 
@@ -1300,8 +1325,8 @@ struct transform_right_product_impl< TransformType, MatrixType, 1 >
   }
 };
 
-template< typename TransformType, typename MatrixType >
-struct transform_right_product_impl< TransformType, MatrixType, 2 >
+template< typename TransformType, typename MatrixType, int RhsCols>
+struct transform_right_product_impl< TransformType, MatrixType, 2, RhsCols>
 {
   enum { 
     Dim = TransformType::Dim, 
@@ -1321,6 +1346,30 @@ struct transform_right_product_impl< TransformType, MatrixType, 2 >
     TopLeftLhs(res, 0, 0, Dim, other.cols()).noalias() += T.linear() * other;
 
     return res;
+  }
+};
+
+template< typename TransformType, typename MatrixType >
+struct transform_right_product_impl< TransformType, MatrixType, 2, 1> // rhs is a vector of size Dim
+{
+  typedef typename TransformType::MatrixType TransformMatrix;
+  enum {
+    Dim = TransformType::Dim,
+    HDim = TransformType::HDim,
+    OtherRows = MatrixType::RowsAtCompileTime,
+    WorkingRows = EIGEN_PLAIN_ENUM_MIN(TransformMatrix::RowsAtCompileTime,HDim)
+  };
+
+  typedef typename MatrixType::PlainObject ResultType;
+
+  static EIGEN_STRONG_INLINE ResultType run(const TransformType& T, const MatrixType& other)
+  {
+    EIGEN_STATIC_ASSERT(OtherRows==Dim, YOU_MIXED_MATRICES_OF_DIFFERENT_SIZES);
+
+    Matrix<typename ResultType::Scalar, Dim+1, 1> rhs;
+    rhs.template head<Dim>() = other; rhs[Dim] = typename ResultType::Scalar(1);
+    Matrix<typename ResultType::Scalar, WorkingRows, 1> res(T.matrix() * rhs);
+    return res.template head<Dim>();
   }
 };
 

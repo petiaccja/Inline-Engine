@@ -5,6 +5,8 @@
 #include "CommandAllocatorPool.hpp"
 #include "ScratchSpacePool.hpp"
 #include "ResourceResidencyQueue.hpp"
+#include "PipelineEventDispatcher.hpp"
+#include "PipelineEventListener.hpp"
 
 #include "ResourceHeap.hpp"
 #include "MemoryManager.hpp"
@@ -35,6 +37,30 @@ struct GraphicsEngineDesc {
 	int width;
 	int height;
 	exc::Logger* logger;
+};
+
+
+// Temporary, delete this!!!!44négy
+class PipelineEventPrinter : public PipelineEventListener {
+public:
+	PipelineEventPrinter() : m_log(nullptr) {}
+
+	void SetLog(exc::LogStream* log) { m_log = log; }
+
+	void OnFrameBeginDevice(uint64_t frameId) override {
+		m_log->Event(exc::Event{ "Frame begin - DEVICE", exc::EventParameterInt("frameId", frameId) });
+	}
+	void OnFrameBeginHost(uint64_t frameId) override {
+		m_log->Event(exc::Event{ "Frame begin - HOST", exc::EventParameterInt("frameId", frameId) });
+	}
+	void OnFrameCompleteDevice(uint64_t frameId) override {
+		m_log->Event(exc::Event{ "Frame finished - DEVICE", exc::EventParameterInt("frameId", frameId) });
+	}
+	void OnFrameCompleteHost(uint64_t frameId) override {
+		m_log->Event(exc::Event{ "Frame finished - HOST", exc::EventParameterInt("frameId", frameId) });
+	}
+private:
+	exc::LogStream* m_log;
 };
 
 
@@ -79,6 +105,8 @@ private:
 	// Pipeline elements
 	CommandQueue m_masterCommandQueue;
 	ResourceResidencyQueue m_residencyQueue;
+	PipelineEventDispatcher m_pipelineEventDispatcher;
+	PipelineEventPrinter m_pipelineEventPrinter; // DELETE THIS
 
 	// Logging
 	exc::Logger* m_logger;

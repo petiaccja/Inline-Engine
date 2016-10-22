@@ -64,6 +64,11 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	// Init misc stuff
 	m_absoluteTime = decltype(m_absoluteTime)(0);
 	m_commandAllocatorPool.SetLogStream(&m_logStreamPipeline);
+
+	// DELETE THIS
+	m_pipelineEventPrinter.SetLog(&m_logStreamPipeline);
+	m_pipelineEventDispatcher += &m_pipelineEventPrinter;
+
 }
 
 
@@ -101,16 +106,20 @@ void GraphicsEngine::Update(float elapsed) {
 	context.residencyQueue = &m_residencyQueue;
 
 	// Execute the pipeline
+	m_pipelineEventDispatcher.DispatchFrameBegin(m_frame);
 	m_scheduler.Execute(context);
+	m_pipelineEventDispatcher.DispatchFrameEnd(m_frame);
 
 	// Mark frame completion
-	m_frameEndFenceValues[backBufferIndex] = m_masterCommandQueue.Signal();
+	SyncPoint frameEnd = m_masterCommandQueue.Signal();
+	m_frameEndFenceValues[backBufferIndex] = frameEnd;
+	m_pipelineEventDispatcher.DispatchDeviceFrameEnd(frameEnd, m_frame);
 
 	// Clean up after frame
 	// m_memoryManager.GetUploadHeap()._ClearQueuedUploads();
 
 	// Flush log
-	// m_logger->Flush();
+	m_logger->Flush();
 
 	// Present frame
 	m_swapChain->Present();

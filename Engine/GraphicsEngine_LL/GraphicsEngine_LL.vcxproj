@@ -22,7 +22,7 @@
     <ProjectGuid>{040593FA-6149-4526-8754-2E2886759D0E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GraphicsEngine_LL</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -92,6 +92,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -104,6 +105,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -119,6 +121,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -136,6 +139,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -185,6 +189,8 @@
     <ClInclude Include="Nodes\Node_GetSceneByName.hpp" />
     <ClInclude Include="Nodes\Node_TescoRender.hpp" />
     <ClInclude Include="Pipeline.hpp" />
+    <ClInclude Include="PipelineEventDispatcher.hpp" />
+    <ClInclude Include="PipelineEventListener.hpp" />
     <ClInclude Include="ResouceViewFactory.hpp" />
     <ClInclude Include="ResourceHeap.hpp" />
     <ClInclude Include="ResourceResidencyQueue.hpp" />
@@ -225,6 +231,7 @@
     <ClCompile Include="Nodes\Node_ClearRenderTarget.cpp" />
     <ClCompile Include="Nodes\Node_TescoRender.cpp" />
     <ClCompile Include="Pipeline.cpp" />
+    <ClCompile Include="PipelineEventDispatcher.cpp" />
     <ClCompile Include="ResouceViewFactory.cpp" />
     <ClCompile Include="ResourceHeap.cpp" />
     <ClCompile Include="ResourceResidencyQueue.cpp" />
