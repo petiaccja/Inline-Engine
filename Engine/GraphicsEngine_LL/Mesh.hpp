@@ -23,6 +23,7 @@ public:
 	using MeshBuffer::GetVertexBuffer;
 	using MeshBuffer::GetVertexBufferStride;
 	using MeshBuffer::GetIndexBuffer;
+	using MeshBuffer::GetIndexBuffer32Bit;
 
 	const std::vector<VertexBase::Element>& GetVertexBufferElements(size_t streamIndex) const;
 private:

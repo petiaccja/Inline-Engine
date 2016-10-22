@@ -13,13 +13,13 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 		using ColoredVertexT = Vertex<Position<0>, Color<0>>;
 		std::array<ColoredVertexT, 3> vertices;
 
-		vertices[0].position = {-0.5, -0.5, 0};
+		vertices[0].position = {-0.5, -0.5, 0.5};
 		vertices[0].color = {1, 0, 0};
 
-		vertices[1].position = {0.5, -0.5, 0};
+		vertices[1].position = {0.5, -0.5, 0.5};
 		vertices[1].color = {0, 1, 0};
 
-		vertices[2].position = {0, 0.5, 0};
+		vertices[2].position = {0, 0.5, 0.5};
 		vertices[2].color = {0, 0, 1};
 
 		const std::vector<unsigned> indices = {0, 1, 2};

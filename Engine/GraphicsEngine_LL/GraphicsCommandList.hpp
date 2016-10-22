@@ -47,13 +47,13 @@ public:
 	//!!! void ExecuteBundle(IGraphicsCommandList* bundle);
 
 	// input assembler
-	void SetIndexBuffer(IndexBuffer* resource, bool is32Bit);
+	void SetIndexBuffer(const IndexBuffer* resource, bool is32Bit);
 
 	void SetPrimitiveTopology(gxapi::ePrimitiveTopology topology);
 
 	void SetVertexBuffers(unsigned startSlot,
 						  unsigned count,
-						  const VertexBuffer** resources,
+						  const VertexBuffer* const * resources,
 						  unsigned* sizeInBytes,
 						  unsigned* strideInBytes);
 
@@ -82,6 +82,9 @@ public:
 	//void BindGraphics(BindParameter parameter, RWTexture2D* rwResource);
 	//void BindGraphics(BindParameter parameter, RWTexture3D* rwResource);
 
+	void DEBUG_SetGraphicsRootSignature(gxapi::IRootSignature* rootsig) {
+		m_commandList->SetGraphicsRootSignature(rootsig);
+	}
 protected:
 	virtual Decomposition Decompose() override;
 private:

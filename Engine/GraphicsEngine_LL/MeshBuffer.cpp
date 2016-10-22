@@ -50,8 +50,7 @@ size_t MeshBuffer::GetNumStreams() const {
 	return m_vertexBuffers.size();
 }
 
-
-const std::shared_ptr<const VertexBuffer>& MeshBuffer::GetVertexBuffer(size_t streamIndex) const {
+std::shared_ptr<const VertexBuffer> MeshBuffer::GetVertexBuffer(size_t streamIndex) const {
 	assert(streamIndex < m_vertexBuffers.size());
 	return m_vertexBuffers[streamIndex];
 }
@@ -61,7 +60,7 @@ size_t MeshBuffer::GetVertexBufferStride(size_t streamIndex) const {
 	return m_vertexStrides[streamIndex];
 }
 
-const std::shared_ptr<const IndexBuffer>& MeshBuffer::GetIndexBuffer() const {
+std::shared_ptr<const IndexBuffer> MeshBuffer::GetIndexBuffer() const {
 	assert((bool)m_indexBuffer);
 	return m_indexBuffer;
 }

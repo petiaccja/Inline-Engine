@@ -124,6 +124,17 @@ void TescoRender::RenderScene(RenderTargetView& rtv, const EntityCollection<Mesh
 	commandList.SetResourceState(rtv.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetRenderTargets(1, &pRTV, nullptr); // no depth yet
 
+	gxapi::Rectangle rect{ 0, (int)rtv.GetResource()->GetHeight(), 0, (int)rtv.GetResource()->GetWidth() };
+	gxapi::Viewport viewport;
+	viewport.width = rect.right;
+	viewport.height = rect.bottom;
+	viewport.topLeftX = 0;
+	viewport.topLeftY = 0;
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+	commandList.SetScissorRects(1, &rect);
+	commandList.SetViewports(1, &viewport);
+
 	// Iterate over all entities
 	for (const MeshEntity* entity : entities) {
 		//std::cout << "Rendering entity " << entity << std::endl;
@@ -143,7 +154,7 @@ void TescoRender::RenderScene(RenderTargetView& rtv, const EntityCollection<Mesh
 		std::vector<unsigned> strides;
 
 		for (int streamID = 0; streamID < mesh->GetNumStreams(); streamID++) {
-			const auto& vb = mesh->GetVertexBuffer(streamID);
+			auto vb = mesh->GetVertexBuffer(streamID);
 			auto ptr = vb.get();
 			vertexBuffers.push_back(mesh->GetVertexBuffer(streamID).get());
 			sizes.push_back((unsigned)vertexBuffers.back()->GetSize());
@@ -153,11 +164,12 @@ void TescoRender::RenderScene(RenderTargetView& rtv, const EntityCollection<Mesh
 		assert(vertexBuffers.size() == sizes.size());
 		assert(sizes.size() == strides.size());
 
+		commandList.SetPipelineState(m_PSO.get());
+		commandList.DEBUG_SetGraphicsRootSignature(m_rootSignature.get());
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
+		commandList.SetIndexBuffer(mesh->GetIndexBuffer().get(), mesh->GetIndexBuffer32Bit());
 		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer()->GetIndexCount());
-
-		commandList.SetResourceState(rtv.GetResource(), 0, gxapi::eResourceState::PRESENT);
 	}
 }
 

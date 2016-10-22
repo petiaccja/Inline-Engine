@@ -114,11 +114,11 @@ public:
 
 	static void Compress(const VertexBase& input, const std::vector<bool>& elementMap, void* output) {
 		size_t offset = 0;
-		int index = 0;
+		size_t index = 0;
 		uint8_t* outputPtr = reinterpret_cast<uint8_t*>(output);
 
 		for (auto& element : input.GetElements()) {
-			if (elementMap.size() < index && elementMap[index]) {
+			if (elementMap.size() > index && (bool)elementMap[index]) {
 				switch (element.semantic) {
 				case eVertexElementSemantic::POSITION:
 				{

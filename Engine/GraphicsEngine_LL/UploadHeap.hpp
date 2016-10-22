@@ -12,7 +12,7 @@ class UploadHeap {
 public:
 	struct UploadDescription {
 		UploadDescription(GenericResource&& source, std::weak_ptr<GenericResource> destination, size_t offsetDst) :
-		source(std::move(source)), destination(destination) {}
+		source(std::move(source)), destination(destination), offsetDst(offsetDst) {}
 
 		GenericResource source;
 		std::weak_ptr<GenericResource> destination;

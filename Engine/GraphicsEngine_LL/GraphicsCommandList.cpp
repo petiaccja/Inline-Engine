@@ -88,7 +88,7 @@ void GraphicsCommandList::DrawInstanced(unsigned numVertices,
 // Input assembler
 //------------------------------------------------------------------------------
 
-void GraphicsCommandList::SetIndexBuffer(IndexBuffer* resource, bool is32Bit) {
+void GraphicsCommandList::SetIndexBuffer(const IndexBuffer* resource, bool is32Bit) {
 	m_commandList->SetIndexBuffer(resource->GetVirtualAddress(),
 								  resource->GetSize(),
 								  is32Bit ? gxapi::eFormat::R32_UINT : gxapi::eFormat::R16_UINT);
@@ -102,7 +102,7 @@ void GraphicsCommandList::SetPrimitiveTopology(gxapi::ePrimitiveTopology topolog
 
 void GraphicsCommandList::SetVertexBuffers(unsigned startSlot,
 										   unsigned count,
-										   const VertexBuffer** resources,
+										   const VertexBuffer* const * resources,
 										   unsigned* sizeInBytes,
 										   unsigned* strideInBytes)
 {

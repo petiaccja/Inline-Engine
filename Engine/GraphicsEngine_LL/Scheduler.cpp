@@ -32,9 +32,10 @@ void Scheduler::Execute(FrameContext context) {
 
 	// Inject copy task to the start.
 	tasks.insert(tasks.begin(),[context](ExecutionContext ctx){
-		auto cmdList = ctx.GetCopyCommandList();
+		auto cmdList = ctx.GetGraphicsCommandList();
 		UploadTask(cmdList, *context.uploadRequests);
 		ExecutionResult res;
+		res.AddCommandList(std::move(cmdList));
 		return res;
 	});
 
@@ -271,7 +272,7 @@ void Scheduler::UploadTask(CopyCommandList& commandList, const std::vector<Uploa
 			commandList.SetResourceState(destination, 0, gxapi::eResourceState::COPY_DEST);
 
 			// Copy buffer
-			if (const LinearBuffer* buffer = dynamic_cast<const LinearBuffer*>(source)) {
+			if (const LinearBuffer* buffer = dynamic_cast<const LinearBuffer*>(destination.get())) {
 				commandList.CopyBuffer(destination.get(), request.offsetDst, const_cast<GenericResource*>(source), 0, buffer->GetSize());
 			}
 			// Copy texture2D
