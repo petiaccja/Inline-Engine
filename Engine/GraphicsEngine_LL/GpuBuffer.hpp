@@ -91,26 +91,26 @@ protected:
 class ConstBuffer : public LinearBuffer {
 public:
 	void* GetVirtualAddress() const;
-	gxapi::DescriptorHandle GetHandle();
+	uint64_t GetSize() const;
 
 protected:
-	ConstBuffer(DescriptorReference&& desc, gxapi::IResource* resource, void* gpuVirtualPtr);
+	ConstBuffer(gxapi::IResource* resource, void* gpuVirtualPtr, uint32_t dataSize);
 
 protected:
 	void* m_gpuVirtualPtr;
-	DescriptorReference m_CBV;
+	uint32_t m_dataSize;
 };
 
 
 class VolatileConstBuffer : public ConstBuffer {
 public:
-	VolatileConstBuffer(DescriptorReference&& desc, gxapi::IResource* resource, void* gpuVirtualPtr);
+	VolatileConstBuffer(gxapi::IResource* resource, void* gpuVirtualPtr, uint32_t dataSize);
 };
 
 
 class PersistentConstBuffer : public ConstBuffer {
 public:
-	PersistentConstBuffer(DescriptorReference&& desc, gxapi::IResource* resource, void* gpuVirtualPtr);
+	PersistentConstBuffer(gxapi::IResource* resource, void* gpuVirtualPtr, uint32_t dataSize);
 };
 
 //==================================
@@ -170,6 +170,8 @@ public:
 class BackBuffer : public Texture2D {
 public:
 	BackBuffer(DescriptorReference&& descRef, gxapi::RenderTargetViewDesc desc, gxapi::IResource* resource);
+	BackBuffer(BackBuffer&&);
+	BackBuffer& operator=(BackBuffer&&);
 
 	RenderTargetView& GetView();
 

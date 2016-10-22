@@ -156,12 +156,11 @@ size_t IndexBuffer::GetIndexCount() const {
 //==================================
 
 
-ConstBuffer::ConstBuffer(DescriptorReference&& desc, gxapi::IResource* resource, void* gpuVirtualPtr) :
+ConstBuffer::ConstBuffer(gxapi::IResource* resource, void* gpuVirtualPtr, uint32_t dataSize) :
 	LinearBuffer(resource),
 	m_gpuVirtualPtr(gpuVirtualPtr),
-	m_CBV(std::move(desc))
-{
-}
+	m_dataSize(dataSize)
+{}
 
 
 void* ConstBuffer::GetVirtualAddress() const {
@@ -169,18 +168,18 @@ void* ConstBuffer::GetVirtualAddress() const {
 }
 
 
-gxapi::DescriptorHandle ConstBuffer::GetHandle() {
-	return m_CBV.Get();
+uint64_t ConstBuffer::GetSize() const {
+	return m_dataSize;
 }
 
 
-VolatileConstBuffer::VolatileConstBuffer(DescriptorReference&& desc, gxapi::IResource* resource, void * gpuVirtualPtr):
-	ConstBuffer(std::move(desc), resource, gpuVirtualPtr)
+VolatileConstBuffer::VolatileConstBuffer(gxapi::IResource* resource, void * gpuVirtualPtr, uint32_t dataSize):
+	ConstBuffer(resource, gpuVirtualPtr, dataSize)
 {}
 
 
-PersistentConstBuffer::PersistentConstBuffer(DescriptorReference&& desc, gxapi::IResource* resource, void * gpuVirtualPtr):
-	ConstBuffer(std::move(desc), resource, gpuVirtualPtr)
+PersistentConstBuffer::PersistentConstBuffer(gxapi::IResource* resource, void * gpuVirtualPtr, uint32_t dataSize):
+	ConstBuffer(resource, gpuVirtualPtr, dataSize)
 {}
 
 
@@ -232,6 +231,25 @@ BackBuffer::BackBuffer(DescriptorReference&& descRef, gxapi::RenderTargetViewDes
 	Texture2D(resource, [](gxapi::IResource*){}),
 	m_RTV(std::shared_ptr<Texture2D>(this, [](Texture2D*){}), std::move(descRef), desc)
 {}
+
+
+BackBuffer::BackBuffer(BackBuffer&& other):
+	Texture2D(std::move(other)),
+	m_RTV(std::move(other.m_RTV), std::shared_ptr<Texture2D>(this, [](Texture2D*){}))
+{}
+
+
+BackBuffer& BackBuffer::operator=(BackBuffer&& other) {
+	if (this == &other) {
+		return *this;
+	}
+
+	m_resource = std::move(other.m_resource);
+	m_resident = other.m_resident;
+	m_RTV = RenderTargetView(std::move(other.m_RTV), std::shared_ptr<Texture2D>(this, [](Texture2D*) {}));
+
+	return *this;
+}
 
 
 RenderTargetView& BackBuffer::GetView() {

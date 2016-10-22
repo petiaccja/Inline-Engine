@@ -15,7 +15,14 @@ namespace nodes {
 
 
 bool CheckMeshFormat(const Mesh& mesh) {
-	return false;
+	for (size_t i = 0; i < mesh.GetNumStreams(); i++) {
+		auto& elements = mesh.GetVertexBufferElements(i);
+		if (elements.size() != 2) return false;
+		if (elements[0].semantic != eVertexElementSemantic::POSITION) return false;
+		if (elements[1].semantic != eVertexElementSemantic::COLOR) return false;
+	}
+
+	return true;
 }
 
 
@@ -59,7 +66,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager* gxapiManager) :
 	m_binder({})
 {
-	this->GetInput<0>().Set(nullptr);
+	//this->GetInput<0>().Set(RenderTargetView());
 	this->GetInput<1>().Set(nullptr);
 
 	//Create root signature
@@ -111,11 +118,10 @@ TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager*
 }
 
 
-void TescoRender::RenderScene(BackBuffer* target, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList) {
+void TescoRender::RenderScene(RenderTargetView& rtv, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList) {
 	// Set render target
-	auto pRTV = &target->GetView();
-	std::shared_ptr<BackBuffer> fakeSharedPtr(target, [](BackBuffer*){});
-	commandList.SetResourceState(fakeSharedPtr, 0, gxapi::eResourceState::RENDER_TARGET);
+	auto pRTV = &rtv;
+	commandList.SetResourceState(rtv.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetRenderTargets(1, &pRTV, nullptr); // no depth yet
 
 	// Iterate over all entities
@@ -136,7 +142,9 @@ void TescoRender::RenderScene(BackBuffer* target, const EntityCollection<MeshEnt
 		std::vector<unsigned> sizes;
 		std::vector<unsigned> strides;
 
-		for (int streamID = 0; streamID < entity->GetMesh()->GetNumStreams(); streamID++) {
+		for (int streamID = 0; streamID < mesh->GetNumStreams(); streamID++) {
+			const auto& vb = mesh->GetVertexBuffer(streamID);
+			auto ptr = vb.get();
 			vertexBuffers.push_back(mesh->GetVertexBuffer(streamID).get());
 			sizes.push_back((unsigned)vertexBuffers.back()->GetSize());
 			strides.push_back((unsigned)mesh->GetVertexBufferStride(streamID));
@@ -149,7 +157,7 @@ void TescoRender::RenderScene(BackBuffer* target, const EntityCollection<MeshEnt
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer()->GetIndexCount());
 
-		commandList.SetResourceState(fakeSharedPtr, 0, gxapi::eResourceState::PRESENT);
+		commandList.SetResourceState(rtv.GetResource(), 0, gxapi::eResourceState::PRESENT);
 	}
 }
 

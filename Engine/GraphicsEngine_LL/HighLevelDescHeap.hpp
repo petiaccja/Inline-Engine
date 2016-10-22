@@ -92,6 +92,7 @@ public:
 	ScratchSpace(gxapi::IGraphicsApi* graphicsApi, size_t size);
 	
 	ScratchSpaceRef Allocate(size_t size);
+	DescriptorReference AllocateSingle();
 protected:
 	std::unique_ptr<gxapi::IDescriptorHeap> m_heap;
 	exc::RingAllocationEngine m_allocator;

@@ -13,9 +13,14 @@ VertexBufferView::VertexBufferView(const std::shared_ptr<VertexBuffer>& resource
 {}
 
 
-VertexBuffer& VertexBufferView::GetResource() {
-	return *m_resource;
+const std::shared_ptr<VertexBuffer>& VertexBufferView::GetResource() {
+	return m_resource;
 }
+
+
+ConstBufferView::ConstBufferView(const std::shared_ptr<ConstBuffer>& resource, DescriptorReference&& descRef) :
+	ResourceViewBase(resource, std::move(descRef))
+{}
 
 
 RenderTargetView::RenderTargetView(
@@ -23,22 +28,34 @@ RenderTargetView::RenderTargetView(
 	DescriptorReference && descRef,
 	gxapi::RenderTargetViewDesc desc
 ):
-	m_resource(resource),
-	m_descRef(std::move(descRef)),
+	ResourceViewBase(resource, std::move(descRef)),
 	m_desc(desc)
 {}
 
 
-gxapi::DescriptorHandle RenderTargetView::GetHandle() {
-	return m_descRef.Get();
+RenderTargetView::RenderTargetView(
+	RenderTargetView&& other,
+	const std::shared_ptr<Texture2D>& resource
+):
+	ResourceViewBase(resource, std::move(*other.m_descRef)),
+	m_desc(std::move(other.m_desc))
+{
+	other.m_resource.reset();
+	other.m_descRef.reset();
 }
+
+
+RenderTargetView::RenderTargetView(
+	const RenderTargetView& other,
+	const std::shared_ptr<Texture2D>& resource
+):
+	ResourceViewBase(resource, other.m_descRef),
+	m_desc(other.m_desc)
+{}
+
 
 gxapi::RenderTargetViewDesc RenderTargetView::GetDescription() const {
 	return m_desc;
-}
-
-const std::shared_ptr<Texture2D>& RenderTargetView::GetResource() {
-	return m_resource;
 }
 
 
@@ -47,38 +64,14 @@ DepthStencilView::DepthStencilView(
 	DescriptorReference && descRef,
 	gxapi::DepthStencilViewDesc desc
 ):
-	m_resource(resource),
-	m_descRef(std::move(descRef)),
+	ResourceViewBase(resource, std::move(descRef)),
 	m_desc(desc)
 {}
 
 
-gxapi::DescriptorHandle DepthStencilView::GetHandle() {
-	return m_descRef.Get();
-}
-
 
 gxapi::DepthStencilViewDesc DepthStencilView::GetDescription() const {
 	return m_desc;
-}
-
-
-const std::shared_ptr<Texture2D>& DepthStencilView::GetResource() {
-	return m_resource;
-}
-
-
-ShaderResourceView::ShaderResourceView(
-	DescriptorReference&& desc,
-	gxapi::eFormat format
-):
-	m_descRef(std::move(desc)),
-	m_format(format)
-{}
-
-
-gxapi::DescriptorHandle ShaderResourceView::GetHandle() {
-	return m_descRef.Get();
 }
 
 
@@ -88,8 +81,7 @@ BufferSRV::BufferSRV(
 	gxapi::eFormat format,
 	gxapi::SrvBuffer srvDesc
 ):
-	ShaderResourceView(std::move(desc), format),
-	m_resource(resource),
+	ShaderResourceView(resource, std::move(desc), format),
 	m_srvDesc(srvDesc)
 {}
 
@@ -99,10 +91,6 @@ const gxapi::SrvBuffer& BufferSRV::GetDescription() const {
 }
 
 
-LinearBuffer& BufferSRV::GetResource() {
-	return *m_resource;
-}
-
-
 } // namespace gxeng
 } // namespace inl
+

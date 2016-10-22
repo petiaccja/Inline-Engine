@@ -51,7 +51,6 @@ public:
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
-	HighLevelDescHeap m_descHeap;
 
 	exc::RingBuffer<ConstBufferPage> m_largePages;
 	exc::RingBuffer<ConstBufferPage> m_pages;

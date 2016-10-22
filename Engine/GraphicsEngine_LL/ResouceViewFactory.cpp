@@ -12,6 +12,35 @@ ResouceViewFactory::ResouceViewFactory(gxapi::IGraphicsApi* graphicsApi) :
 {}
 
 
+ConstBufferView ResouceViewFactory::CreateConstBufferView(
+	const std::shared_ptr<PersistentConstBuffer>& resource
+) {
+	auto descRef = m_descHeap.AllocateOnTextureSpace();
+
+	gxapi::ConstantBufferViewDesc desc;
+	desc.gpuVirtualAddress = resource->GetVirtualAddress();
+	desc.sizeInBytes = resource->GetSize();
+
+	m_graphicsApi->CreateConstantBufferView(desc, descRef.Get());
+
+	return ConstBufferView(resource, std::move(descRef));
+}
+
+ConstBufferView ResouceViewFactory::CreateConstBufferView(
+	const std::shared_ptr<VolatileConstBuffer>& resource,
+	ScratchSpace* scratchSpace
+) {
+	auto descRef = scratchSpace->AllocateSingle();
+
+	gxapi::ConstantBufferViewDesc desc;
+	desc.gpuVirtualAddress = resource->GetVirtualAddress();
+	desc.sizeInBytes = resource->GetSize();
+
+	m_graphicsApi->CreateConstantBufferView(desc, descRef.Get());
+
+	return ConstBufferView(resource, std::move(descRef));
+}
+
 DepthStencilView ResouceViewFactory::CreateDepthStencilView(
 	const std::shared_ptr<Texture2D>& resource,
 	gxapi::DsvTexture2DArray desc
@@ -38,10 +67,6 @@ RenderTargetView ResouceViewFactory::CreateRenderTargetView(
 	gxapi::RenderTargetViewDesc desc;
 	desc.format = resource->GetFormat();
 
-	static_assert(
-		std::is_same<std::remove_reference_t<decltype(resource)>::element_type, Texture2D>::value,
-		"resource should be a Texture2D shared_ptr"
-	);
 	desc.dimension = gxapi::eRtvDimension::TEXTURE2DARRAY;
 	desc.tex2DArray.activeArraySize = 1;
 	desc.tex2DArray.firstArrayElement = 0;

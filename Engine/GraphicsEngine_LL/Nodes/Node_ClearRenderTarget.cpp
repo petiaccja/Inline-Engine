@@ -14,14 +14,14 @@ Task ClearRenderTarget::GetTask() {
 			ExecutionResult result;
 
 			// Update ports.
-			std::shared_ptr<BackBuffer> target(this->GetInput<0>().Get(), [](BackBuffer*){});
-			this->GetInput<0>().Clear();
-			this->GetOutput<0>().Set(target.get());
+			auto target = this->GetInput<0>().Get();
+			auto targetTexture = target.GetResource().get();
 
-			//const auto& targetTexture = target->GetResource();
+			this->GetInput<0>().Clear();
+			this->GetOutput<0>().Set(target);
 
 			// Clear render target
-			if (target) {
+			if (targetTexture) {
 				// Acquire a command list.
 				GraphicsCommandList cmdList = context.GetGraphicsCommandList();
 
@@ -30,23 +30,23 @@ Task ClearRenderTarget::GetTask() {
 
 				// set viewport and scissor rects
 				gxapi::Viewport viewport;
-				viewport.width = (float)target->GetWidth();
-				viewport.height = (float)target->GetHeight();
+				viewport.width = (float)targetTexture->GetWidth();
+				viewport.height = (float)targetTexture->GetHeight();
 				viewport.topLeftX = 0;
 				viewport.topLeftY = 0;
 				viewport.minDepth = 0;
 				viewport.maxDepth = 1.0f;
 				cmdList.SetViewports(1, &viewport);
 
-				gxapi::Rectangle scissorRect{0, (int)target->GetHeight(), 0, (int)target->GetWidth()};
+				gxapi::Rectangle scissorRect{0, (int)targetTexture->GetHeight(), 0, (int)targetTexture->GetWidth()};
 				cmdList.SetScissorRects(1, &scissorRect);
 
 
 				// clear rtv
-				auto pRTV = &target->GetView();
-				cmdList.SetResourceState(target, 0, gxapi::eResourceState::RENDER_TARGET);
+				auto pRTV = &target;
+				cmdList.SetResourceState(target.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
 				cmdList.SetRenderTargets(1, &pRTV, nullptr);
-				cmdList.ClearRenderTarget(*pRTV, clearColor);
+				cmdList.ClearRenderTarget(target, clearColor);
 
 				// Output command list.
 				result.AddCommandList(std::move(cmdList));
