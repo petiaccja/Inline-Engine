@@ -33,6 +33,27 @@ RenderTargetView::RenderTargetView(
 {}
 
 
+RenderTargetView::RenderTargetView(
+	RenderTargetView&& other,
+	const std::shared_ptr<Texture2D>& resource
+):
+	ResourceViewBase(resource, std::move(*other.m_descRef)),
+	m_desc(std::move(other.m_desc))
+{
+	other.m_resource.reset();
+	other.m_descRef.reset();
+}
+
+
+RenderTargetView::RenderTargetView(
+	const RenderTargetView& other,
+	const std::shared_ptr<Texture2D>& resource
+):
+	ResourceViewBase(resource, other.m_descRef),
+	m_desc(other.m_desc)
+{}
+
+
 gxapi::RenderTargetViewDesc RenderTargetView::GetDescription() const {
 	return m_desc;
 }

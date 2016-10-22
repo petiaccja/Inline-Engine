@@ -170,6 +170,8 @@ public:
 class BackBuffer : public Texture2D {
 public:
 	BackBuffer(DescriptorReference&& descRef, gxapi::RenderTargetViewDesc desc, gxapi::IResource* resource);
+	BackBuffer(BackBuffer&&);
+	BackBuffer& operator=(BackBuffer&&);
 
 	RenderTargetView& GetView();
 

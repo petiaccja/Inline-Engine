@@ -108,17 +108,16 @@ BufferSRV ResouceViewFactory::CreateBufferSRV(
 	gxapi::eFormat format,
 	gxapi::SrvBuffer desc
 ) {
-	throw gxapi::NotImplementedMethod();
-	//auto descRef = m_descHeap.AllocateOnTextureSpace();
+	auto descRef = m_descHeap.AllocateOnTextureSpace();
 
 	gxapi::ShaderResourceViewDesc SRVdesc;
 	SRVdesc.format = format;
 	SRVdesc.dimension = gxapi::eSrvDimension::BUFFER;
 	SRVdesc.buffer = desc;
 
-	//m_graphicsApi->CreateShaderResourceView(resource->_GetResourcePtr(), SRVdesc, descRef.Get());
+	m_graphicsApi->CreateShaderResourceView(resource->_GetResourcePtr(), SRVdesc, descRef.Get());
 
-	//return BufferSRV(resource, std::move(descRef), format, desc);
+	return BufferSRV(resource, std::move(descRef), format, desc);
 }
 
 

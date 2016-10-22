@@ -13,7 +13,7 @@ namespace nodes {
 class GetBackBuffer :
 	virtual public GraphicsNode,
 	public exc::InputPortConfig<>,
-	public exc::OutputPortConfig<BackBuffer*>
+	public exc::OutputPortConfig<RenderTargetView>
 {
 public:
 	GetBackBuffer() {}
@@ -25,7 +25,8 @@ public:
 	virtual Task GetTask() override {
 		return Task({ [this](const ExecutionContext& context)
 		{
-			this->GetOutput<0>().Set(static_cast<const SwapChainAccessContext&>(context).GetBackBuffer());
+			auto& swapChainAccessContext = static_cast<const SwapChainAccessContext&>(context);
+			this->GetOutput<0>().Set(swapChainAccessContext.GetBackBuffer()->GetView());
 			return ExecutionResult{};
 		} });
 	}

@@ -233,6 +233,25 @@ BackBuffer::BackBuffer(DescriptorReference&& descRef, gxapi::RenderTargetViewDes
 {}
 
 
+BackBuffer::BackBuffer(BackBuffer&& other):
+	Texture2D(std::move(other)),
+	m_RTV(std::move(other.m_RTV), std::shared_ptr<Texture2D>(this, [](Texture2D*){}))
+{}
+
+
+BackBuffer& BackBuffer::operator=(BackBuffer&& other) {
+	if (this == &other) {
+		return *this;
+	}
+
+	m_resource = std::move(other.m_resource);
+	m_resident = other.m_resident;
+	m_RTV = RenderTargetView(std::move(other.m_RTV), std::shared_ptr<Texture2D>(this, [](Texture2D*) {}));
+
+	return *this;
+}
+
+
 RenderTargetView& BackBuffer::GetView() {
 	return m_RTV;
 }

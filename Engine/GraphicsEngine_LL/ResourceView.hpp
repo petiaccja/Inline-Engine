@@ -2,6 +2,7 @@
 
 #include "HighLevelDescHeap.hpp"
 
+#include <cassert>
 #include <utility>
 
 namespace inl {
@@ -16,9 +17,10 @@ class ConstBuffer;
 template <typename ResourceT>
 class ResourceViewBase {
 public:
+	ResourceViewBase() = default;
 	ResourceViewBase(const std::shared_ptr<ResourceT>& resource, DescriptorReference&& descRef) :
 		m_resource(resource),
-		m_descRef(std::move(descRef))
+		m_descRef(new DescriptorReference(std::move(descRef)))
 	{}
 
 	const std::shared_ptr<ResourceT>& GetResource() {
@@ -26,12 +28,19 @@ public:
 	}
 
 	gxapi::DescriptorHandle GetHandle() {
-		return m_descRef.Get();
+		assert(m_descRef);
+		return m_descRef->Get();
 	}
 
 protected:
+	ResourceViewBase(const std::shared_ptr<ResourceT>& resource, const std::shared_ptr<DescriptorReference>& descRef) :
+		m_resource(resource),
+		m_descRef(descRef)
+	{}
+
+protected:
 	std::shared_ptr<ResourceT> m_resource;
-	DescriptorReference m_descRef;
+	std::shared_ptr<DescriptorReference> m_descRef;
 };
 
 
@@ -56,7 +65,10 @@ public:
 
 class RenderTargetView : public ResourceViewBase<Texture2D> {
 public:
+	RenderTargetView() = default;
 	RenderTargetView(const std::shared_ptr<Texture2D>& resource, DescriptorReference&& descRef, gxapi::RenderTargetViewDesc desc);
+	RenderTargetView(RenderTargetView&& other, const std::shared_ptr<Texture2D>& resource);
+	RenderTargetView(const RenderTargetView& other, const std::shared_ptr<Texture2D>& resource);
 	
 	gxapi::RenderTargetViewDesc GetDescription() const;
 

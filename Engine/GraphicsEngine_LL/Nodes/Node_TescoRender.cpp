@@ -59,7 +59,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager* gxapiManager) :
 	m_binder({})
 {
-	this->GetInput<0>().Set(nullptr);
+	//this->GetInput<0>().Set(RenderTargetView());
 	this->GetInput<1>().Set(nullptr);
 
 	//Create root signature
@@ -111,11 +111,11 @@ TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager*
 }
 
 
-void TescoRender::RenderScene(BackBuffer* target, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList) {
+void TescoRender::RenderScene(RenderTargetView& rtv, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList) {
 	// Set render target
-	auto pRTV = &target->GetView();
-	std::shared_ptr<BackBuffer> fakeSharedPtr(target, [](BackBuffer*){});
-	commandList.SetResourceState(fakeSharedPtr, 0, gxapi::eResourceState::RENDER_TARGET);
+	//std::shared_ptr<BackBuffer> fakeSharedPtr(target, [](BackBuffer*){});
+	auto pRTV = &rtv;
+	commandList.SetResourceState(rtv.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetRenderTargets(1, &pRTV, nullptr); // no depth yet
 
 	// Iterate over all entities
@@ -149,7 +149,7 @@ void TescoRender::RenderScene(BackBuffer* target, const EntityCollection<MeshEnt
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer()->GetIndexCount());
 
-		commandList.SetResourceState(fakeSharedPtr, 0, gxapi::eResourceState::PRESENT);
+		commandList.SetResourceState(rtv.GetResource(), 0, gxapi::eResourceState::PRESENT);
 	}
 }
 
