@@ -195,7 +195,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, Texture3D* shade
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, ConstBuffer* shaderConstant) {
-	
+	throw std::runtime_error("not implemented");
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const void* shaderConstant, int size, int offset) {

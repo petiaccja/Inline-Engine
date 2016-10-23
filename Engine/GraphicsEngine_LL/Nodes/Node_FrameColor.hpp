@@ -12,23 +12,25 @@ namespace nodes {
 
 
 class FrameColor :
-	public exc::InputPortConfig<unsigned long long>,
+	public exc::InputPortConfig<double>,
 	public exc::OutputPortConfig<gxapi::ColorRGBA>
 {
 public:
 	FrameColor() {}
 
 	virtual void Update() override {
-		uint64_t x = GetInput<0>().Get();
-		x %= 360;
+		double x = GetInput<0>().Get();
+		constexpr double pi = 3.141592653589793238;
+		constexpr double frequency = 0.3;
+		x *= frequency;
 
-		float r = sin(float(x) / 360.f * 2.f * 3.1415926f);
+		float r = sin(x*2*pi);
 		r = 0.5f*r + 0.5f;
 
-		float g = sin(float(x + 120) / 360.f * 2.f * 3.1415926f);
+		float g = sin(x*2*pi + 2*pi/3);
 		g = 0.5f*g + 0.5f;
 
-		float b = sin(float(x + 240) / 360.f * 2.f * 3.1415926f);
+		float b = sin(x*2*pi + 4*pi/3);
 		b = 0.5f*b + 0.5f;
 
 		GetOutput<0>().Set(gxapi::ColorRGBA(r, g, b));

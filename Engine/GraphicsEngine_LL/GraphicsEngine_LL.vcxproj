@@ -188,6 +188,7 @@
     <ClInclude Include="Nodes\Node_FrameCounter.hpp" />
     <ClInclude Include="Nodes\Node_GetSceneByName.hpp" />
     <ClInclude Include="Nodes\Node_TescoRender.hpp" />
+    <ClInclude Include="Nodes\Node_GetTime.hpp" />
     <ClInclude Include="Pipeline.hpp" />
     <ClInclude Include="PipelineEventDispatcher.hpp" />
     <ClInclude Include="PipelineEventListener.hpp" />

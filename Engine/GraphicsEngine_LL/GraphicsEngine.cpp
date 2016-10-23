@@ -11,6 +11,7 @@
 #include "Nodes/Node_GetBackBuffer.hpp"
 #include "Nodes/Node_GetSceneByName.hpp"
 #include "Nodes/Node_TescoRender.hpp"
+#include "Nodes/Node_GetTime.hpp"
 
 #include "Scene.hpp"
 #include "Mesh.hpp"
@@ -167,7 +168,7 @@ MeshEntity* GraphicsEngine::CreateMeshEntity() {
 
 
 void GraphicsEngine::CreatePipeline() {
-	std::unique_ptr<nodes::FrameCounter> frameCounter(new nodes::FrameCounter());
+	std::unique_ptr<nodes::GetTime> frameCounter(new nodes::GetTime());
 	std::unique_ptr<nodes::FrameColor> frameColor(new nodes::FrameColor());
 	std::unique_ptr<nodes::GetBackBuffer> getBackBuffer(new nodes::GetBackBuffer());
 	std::unique_ptr<nodes::ClearRenderTarget> clearRtv(new nodes::ClearRenderTarget());

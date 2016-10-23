@@ -201,6 +201,9 @@
     <ClInclude Include="PipelineEventListener.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Node_GetTime.hpp">
+      <Filter>Nodes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
