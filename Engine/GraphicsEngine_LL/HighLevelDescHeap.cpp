@@ -202,153 +202,77 @@ ScratchSpace::ScratchSpace(gxapi::IGraphicsApi * graphicsApi, size_t size) :
 //=========================================================
 
 
-HighLevelDescHeap::HighLevelDescHeap(gxapi::IGraphicsApi* graphicsApi) :
+HostDescHeap::HostDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDesriptorHeapType type) :
 	m_graphicsApi(graphicsApi),
-	m_textureSpaceAllocator(0)
+	m_type(type),
+	m_heapChunkSize(GetOptimalChunkSize(type)),
+	m_allocator(0)
 {
 	PushNewTextureSpaceChunk();
 }
 
 
-DescriptorReference HighLevelDescHeap::AllocateOnTextureSpace() {
-	std::lock_guard<std::mutex> lock(m_textureSpaceMtx);
+DescriptorReference HostDescHeap::Allocate() {
+	std::lock_guard<std::mutex> lock(m_mutex);
 	size_t pos;
 	try {
-		pos = m_textureSpaceAllocator.Allocate();
+		pos = m_allocator.Allocate();
 	}
 	catch (std::bad_alloc&) {
 		PushNewTextureSpaceChunk();
-		pos = m_textureSpaceAllocator.Allocate();
+		pos = m_allocator.Allocate();
 	}
 
 	DescriptorReference result{
 		GetAtTextureSpace(pos),
-		[this, pos]() { std::lock_guard<std::mutex> lock(m_textureSpaceMtx); m_textureSpaceAllocator.Deallocate(pos); }
+		[this, pos]() { std::lock_guard<std::mutex> lock(m_mutex); m_allocator.Deallocate(pos); }
 	};
 	return result;
 }
 
 
-ScratchSpace HighLevelDescHeap::CreateScratchSpace(size_t size) {
-	return ScratchSpace(m_graphicsApi, size);
+void HostDescHeap::DeallocateTextureSpace(size_t pos) {
+	std::lock_guard<std::mutex> lock(m_mutex);
+	m_allocator.Deallocate(pos);
 }
 
 
-/* OLD
-struct CopyRequest {
-TextureSpaceRef* from;
-DescriptorReference* to;
+gxapi::DescriptorHandle HostDescHeap::GetAtTextureSpace(size_t pos) {
+	size_t chunk = pos / m_heapChunkSize;
+	size_t id = pos % m_heapChunkSize;
 
-CopyRequest() = default;
-CopyRequest(TextureSpaceRef* from, DescriptorReference* to) : from(from), to(to){};
-};
+	assert(chunk < m_heapChunks.size());
 
-void CopyDescriptors(const std::vector<CopyRequest>& fromToList) {
-	if (fromToList.size() == 0) {
-		return;
-	}
-
-	std::vector<std::vector<std::pair<size_t, size_t>>> sortableSubQueues(1);
-	for (auto& currRequest : fromToList) {
-		auto pCurrSubQueue = &(sortableSubQueues.back());
-		bool shouldBeSeparate = false;
-		for (auto& currSubRequest : *pCurrSubQueue) {
-			auto& currReqFrom = currRequest.from->m_position;
-			auto& currReqTo = currRequest.to->m_position;
-			auto& currSubReqFrom = currSubRequest.first;
-			auto& currSubReqTo = currSubRequest.second;
-
-			assert(currReqFrom != currReqTo);
-
-			bool readAfterWrite = currReqFrom == currSubReqTo;
-			bool writeAfterRead = currReqTo == currSubReqFrom;
-			if (readAfterWrite || writeAfterRead) {
-				shouldBeSeparate = true;
-				break;
-			}
-		}
-		if (shouldBeSeparate) {
-			sortableSubQueues.push_back({});
-			pCurrSubQueue = &(sortableSubQueues.back());
-		}
-
-		pCurrSubQueue->push_back({currRequest.from->m_position, currRequest.to->m_position});
-	}
-
-	for (auto& currSubQueue : sortableSubQueues) {
-		//Sorting a vector of pairs will result in a vector where the same values are neighbours
-		//This helps us dividing the requests into groups so that the operations are as efficient as possible
-		std::sort(currSubQueue.begin(), currSubQueue.end());
-
-		std::vector<gxapi::DescriptorHandle> srcStarts;
-		std::vector<gxapi::DescriptorHandle> dstStarts;
-		std::vector<uint32_t> counts;
-
-		//Fill out requests
-		const auto invalidIter = currSubQueue.end();
-		auto previous = invalidIter;
-		for (auto curr = currSubQueue.begin(); curr != currSubQueue.end(); ++curr) {
-			auto srcCurr = m_heap->At(curr->first);
-			auto dstCurr = m_heap->At(curr->second);
-
-			bool addNew = true;
-			if (previous != invalidIter) {
-				auto srcNeighborOfPrev = m_heap->At(previous->first + 1);
-				auto dstNeighborOfPrev = m_heap->At(previous->second + 1);
-
-				if (srcNeighborOfPrev == srcCurr && dstNeighborOfPrev == dstCurr) {
-					addNew = false;
-				}
-			}
-
-			if (addNew) {
-				srcStarts.push_back(srcCurr);
-				dstStarts.push_back(dstCurr);
-				counts.push_back(1);
-			}
-			else {
-				counts.back()++;
-			}
-
-			previous = curr;
-		}
-
-		assert(srcStarts.size() == dstStarts.size());
-		assert(dstStarts.size() == counts.size());
-
-		//TODO FIX
-		//m_graphicsApi->CopyDescriptors(dstStarts.size(), dstStarts.data(), counts.data(), srcStarts.size(), srcStarts.data(), m_heap->GetDesc().type);
-	}
-}
-*/
-
-
-void HighLevelDescHeap::DeallocateTextureSpace(size_t pos) {
-	std::lock_guard<std::mutex> lock(m_textureSpaceMtx);
-	m_textureSpaceAllocator.Deallocate(pos);
+	return m_heapChunks[chunk]->At(id);
 }
 
 
-gxapi::DescriptorHandle HighLevelDescHeap::GetAtTextureSpace(size_t pos) {
-	size_t chunk = pos / TEXTURE_SPACE_CHUNK_SIZE;
-	size_t id = pos % TEXTURE_SPACE_CHUNK_SIZE;
-
-	assert(chunk < m_textureSpaceChunks.size());
-
-	return m_textureSpaceChunks[chunk]->At(id);
-}
-
-
-void HighLevelDescHeap::PushNewTextureSpaceChunk() {
-	gxapi::DescriptorHeapDesc desc(gxapi::eDesriptorHeapType::CBV_SRV_UAV, TEXTURE_SPACE_CHUNK_SIZE, false);
-	m_textureSpaceChunks.push_back(std::unique_ptr<gxapi::IDescriptorHeap>(m_graphicsApi->CreateDescriptorHeap(desc)));
+void HostDescHeap::PushNewTextureSpaceChunk() {
+	gxapi::DescriptorHeapDesc desc(m_type, m_heapChunkSize, false);
+	m_heapChunks.push_back(std::unique_ptr<gxapi::IDescriptorHeap>(m_graphicsApi->CreateDescriptorHeap(desc)));
 	try { // You never know
-		m_textureSpaceAllocator.Resize(m_textureSpaceAllocator.Size() + TEXTURE_SPACE_CHUNK_SIZE);
+		m_allocator.Resize(m_allocator.Size() + m_heapChunkSize);
 	}
 	catch (...) {
-		m_textureSpaceChunks.pop_back();
+		m_heapChunks.pop_back();
 		throw;
 	}
+}
+
+
+size_t HostDescHeap::GetOptimalChunkSize(gxapi::eDesriptorHeapType type) {
+	switch (type) {
+	case gxapi::eDesriptorHeapType::CBV_SRV_UAV:
+	case gxapi::eDesriptorHeapType::SAMPLER:
+		return 256;
+	case gxapi::eDesriptorHeapType::RTV:
+	case gxapi::eDesriptorHeapType::DSV:
+		return 16;
+	default:
+		assert(false);
+	}
+
+	return 256;
 }
 
 

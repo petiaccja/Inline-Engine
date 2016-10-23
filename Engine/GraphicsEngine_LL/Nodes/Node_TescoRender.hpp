@@ -19,7 +19,7 @@ namespace nodes {
 
 class TescoRender :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<RenderTargetView, const EntityCollection<MeshEntity>*>,
+	virtual public exc::InputPortConfig<RenderTargetView, DepthStencilView, const EntityCollection<MeshEntity>*>,
 	virtual public exc::OutputPortConfig<RenderTargetView>
 {
 public:
@@ -35,14 +35,19 @@ public:
 
 			auto target = this->GetInput<0>().Get();
 			this->GetInput<0>().Clear();
-			const EntityCollection<MeshEntity>* entities = this->GetInput<1>().Get();
+
+			auto depthStencil = this->GetInput<1>().Get();
 			this->GetInput<1>().Clear();
+
+			const EntityCollection<MeshEntity>* entities = this->GetInput<2>().Get();
+			this->GetInput<2>().Clear();
+
 			this->GetOutput<0>().Set(target);
 
 			bool rtvIsValid = target.GetResource().get() != nullptr;
 			if (rtvIsValid && entities) {
 				GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-				RenderScene(target, *entities, cmdList);
+				RenderScene(target, depthStencil, *entities, cmdList);
 				result.AddCommandList(std::move(cmdList));
 			}
 
@@ -56,7 +61,7 @@ protected:
 	BindParameter m_cbBindParam;
 
 private:
-	void RenderScene(RenderTargetView& rtv, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList);
+	void RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList);
 };
 
 

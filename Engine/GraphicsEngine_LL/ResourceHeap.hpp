@@ -38,7 +38,7 @@ struct InitialResourceParameters {
 class CriticalBufferHeap {
 public:
 	CriticalBufferHeap(gxapi::IGraphicsApi* graphicsApi);
-	InitialResourceParameters Allocate(gxapi::ResourceDesc desc);
+	InitialResourceParameters Allocate(gxapi::ResourceDesc desc, gxapi::ClearValue* clearValue = nullptr);
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;

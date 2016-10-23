@@ -52,6 +52,9 @@ public:
 										DescriptorHandle destination) = 0;
 	virtual void CreateDepthStencilView(const IResource* resource,
 										DescriptorHandle destination) = 0;
+	virtual void CreateDepthStencilView(const IResource * resource,
+	                                    DepthStencilViewDesc desc,
+	                                    DescriptorHandle destination) = 0;
 
 	virtual void CreateRenderTargetView(const IResource* resource,
 										DescriptorHandle destination) = 0;

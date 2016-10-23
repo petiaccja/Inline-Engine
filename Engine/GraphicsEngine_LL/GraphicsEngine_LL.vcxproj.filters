@@ -204,6 +204,9 @@
     <ClInclude Include="Nodes\Node_GetTime.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Node_GetDepthBuffer.hpp">
+      <Filter>Nodes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -305,6 +308,9 @@
     </ClCompile>
     <ClCompile Include="PipelineEventDispatcher.cpp">
       <Filter>Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_GetDepthBuffer.cpp">
+      <Filter>Nodes</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

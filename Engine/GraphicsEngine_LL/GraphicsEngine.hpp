@@ -9,6 +9,7 @@
 #include "PipelineEventListener.hpp"
 
 #include "ResourceHeap.hpp"
+#include "ResouceViewFactory.hpp"
 #include "MemoryManager.hpp"
 #include "HighLevelDescHeap.hpp"
 
@@ -98,8 +99,8 @@ private:
 	std::vector<SyncPoint> m_frameEndFenceValues;
 
 	// Memory
-	HighLevelDescHeap m_descriptorHeap;
 	MemoryManager m_memoryManager;
+	ResourceViewFactory m_resViewFactory;
 	std::unique_ptr<BackBufferHeap> m_backBufferHeap;
 
 	// Pipeline elements

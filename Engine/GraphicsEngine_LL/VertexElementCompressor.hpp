@@ -61,6 +61,27 @@ public:
 
 
 template <>
+class VertexElementCompressor<eVertexElementSemantic::TEX_COORD> {
+public:
+	static size_t Size() { return 2 * sizeof(float); }
+
+	static std::array<uint8_t, 2 * sizeof(float)> Compress(const mathfu::Vector<float, 2>& input) {
+		std::array<uint8_t, 2 * sizeof(float)> ret;
+		*reinterpret_cast<uint32_t*>(ret.data() + 0) = *reinterpret_cast<const uint32_t*>(&input.x());
+		*reinterpret_cast<uint32_t*>(ret.data() + 4) = *reinterpret_cast<const uint32_t*>(&input.y());
+		return ret;
+	}
+
+	static mathfu::Vector<float, 2> Decompress(const void* input) {
+		mathfu::Vector<float, 2> ret;
+		ret.x() = *reinterpret_cast<const float*>(input) + 0;
+		ret.y() = *reinterpret_cast<const float*>(input) + 1;
+		return ret;
+	}
+};
+
+
+template <>
 class VertexElementCompressor<eVertexElementSemantic::COLOR> {
 public:
 	static size_t Size() { return 3 * sizeof(float); }
@@ -97,6 +118,9 @@ public:
 					break;
 				case eVertexElementSemantic::NORMAL:
 					size += VertexElementCompressor<eVertexElementSemantic::NORMAL>::Size();
+					break;
+				case eVertexElementSemantic::TEX_COORD:
+					size += VertexElementCompressor<eVertexElementSemantic::TEX_COORD>::Size();
 					break;
 				case eVertexElementSemantic::COLOR:
 					size += VertexElementCompressor<eVertexElementSemantic::COLOR>::Size();
@@ -137,6 +161,19 @@ public:
 				{
 					auto compressed = VertexElementCompressor<eVertexElementSemantic::NORMAL>::Compress(
 						dynamic_cast<const VertexPart<eVertexElementSemantic::NORMAL>&>(input).GetNormal(element.index));
+
+					for (auto v : compressed) {
+						*outputPtr = v;
+						++outputPtr;
+					}
+
+					offset += VertexElementCompressor<eVertexElementSemantic::NORMAL>::Size();
+					break;
+				}
+				case eVertexElementSemantic::TEX_COORD:
+				{
+					auto compressed = VertexElementCompressor<eVertexElementSemantic::TEX_COORD>::Compress(
+						dynamic_cast<const VertexPart<eVertexElementSemantic::TEX_COORD>&>(input).GetTexCoord(element.index));
 
 					for (auto v : compressed) {
 						*outputPtr = v;

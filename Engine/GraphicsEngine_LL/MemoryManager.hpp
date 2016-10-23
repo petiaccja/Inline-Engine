@@ -19,10 +19,16 @@
 namespace inl {
 namespace gxeng {
 
+// Utility function to move a resource from the stack to the heap
+template <typename T>
+inline std::shared_ptr<T> ToShared(T&& moved) {
+	return std::shared_ptr<T>(new T(std::move(moved)));
+}
+
 
 class MemoryManager {
 public:
-	MemoryManager(gxapi::IGraphicsApi* graphicsApi, HighLevelDescHeap* heap);
+	MemoryManager(gxapi::IGraphicsApi* graphicsApi);
 
 	/// <summary>
 	/// Makes given resources resident.
@@ -46,17 +52,17 @@ public:
 	VolatileConstBuffer CreateVolatileConstBuffer(void* data, size_t size);
 	PersistentConstBuffer CreatePersistentConstBuffer(void* data, size_t size);
 
-	std::unique_ptr<VertexBuffer> CreateVertexBuffer(eResourceHeapType heap, size_t size);
-	std::unique_ptr<IndexBuffer> CreateIndexBuffer(eResourceHeapType heap, size_t size, size_t indexCount);
-	std::unique_ptr<Texture1D> CreateTexture1D(eResourceHeapType heap, uint64_t width, gxapi::eFormat format, uint16_t arraySize = 1);
-	std::unique_ptr<Texture2D> CreateTexture2D(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1);
-	std::unique_ptr<Texture3D> CreateTexture3D(eResourceHeapType heap, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format);
-	std::unique_ptr<TextureCube> CreateTextureCube(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format);
+	VertexBuffer CreateVertexBuffer(eResourceHeapType heap, size_t size);
+	IndexBuffer CreateIndexBuffer(eResourceHeapType heap, size_t size, size_t indexCount);
+	Texture1D CreateTexture1D(eResourceHeapType heap, uint64_t width, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE, uint16_t arraySize = 1);
+	Texture2D CreateTexture2D(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE, uint16_t arraySize = 1);
+	Texture3D CreateTexture3D(eResourceHeapType heap, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE);
+	TextureCube CreateTextureCube(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE);
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
 
-	HighLevelDescHeap* m_descHeap;
+	HostDescHeap* m_descHeap;
 	impl::CriticalBufferHeap m_criticalHeap;
 
 	UploadHeap m_uploadHeap;

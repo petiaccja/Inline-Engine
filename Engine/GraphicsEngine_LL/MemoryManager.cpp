@@ -14,9 +14,8 @@ namespace inl {
 namespace gxeng {
 
 
-MemoryManager::MemoryManager(gxapi::IGraphicsApi* graphicsApi, HighLevelDescHeap* heap) :
+MemoryManager::MemoryManager(gxapi::IGraphicsApi* graphicsApi) :
 	m_graphicsApi(graphicsApi),
-	m_descHeap(heap),
 	m_criticalHeap(graphicsApi),
 	m_uploadHeap(graphicsApi),
 	m_constBufferHeap(graphicsApi)
@@ -48,73 +47,79 @@ PersistentConstBuffer MemoryManager::CreatePersistentConstBuffer(void * data, si
 }
 
 
-std::unique_ptr<VertexBuffer> MemoryManager::CreateVertexBuffer(eResourceHeapType heap, size_t size) {
+VertexBuffer MemoryManager::CreateVertexBuffer(eResourceHeapType heap, size_t size) {
 	impl::InitialResourceParameters params = AllocateResource(heap, gxapi::ResourceDesc::Buffer(size));
 
-	std::unique_ptr<VertexBuffer> result(new VertexBuffer(params.resource));
-	result->_SetResident(params.residency);
+	VertexBuffer result(params.resource);
+	result._SetResident(params.residency);
 	return result;
 }
 
 
-std::unique_ptr<IndexBuffer> MemoryManager::CreateIndexBuffer(eResourceHeapType heap, size_t size, size_t indexCount) {
+IndexBuffer MemoryManager::CreateIndexBuffer(eResourceHeapType heap, size_t size, size_t indexCount) {
 	impl::InitialResourceParameters params = AllocateResource(heap, gxapi::ResourceDesc::Buffer(size));
 
-	std::unique_ptr<IndexBuffer> result(new IndexBuffer(params.resource, indexCount));
-	result->_SetResident(params.residency);
+	IndexBuffer result(params.resource, indexCount);
+	result._SetResident(params.residency);
 	return result;
 }
 
 
-std::unique_ptr<Texture1D> MemoryManager::CreateTexture1D(eResourceHeapType heap, uint64_t width, gxapi::eFormat format, uint16_t arraySize) {
+Texture1D MemoryManager::CreateTexture1D(eResourceHeapType heap, uint64_t width, gxapi::eFormat format, gxapi::eResourceFlags flags, uint16_t arraySize) {
 	if (arraySize < 1) {
 		throw gxapi::InvalidArgument("\"count\" should not be at least one.");
 	}
 
-	impl::InitialResourceParameters params = AllocateResource(heap, gxapi::ResourceDesc::Texture1DArray(width, format, arraySize));
+	impl::InitialResourceParameters params = AllocateResource(heap, gxapi::ResourceDesc::Texture1DArray(width, format, arraySize, flags));
 
-	std::unique_ptr<Texture1D> result(new Texture1D(params.resource));
-	result->_SetResident(params.residency);
+	Texture1D result(params.resource);
+	result._SetResident(params.residency);
 	return result;
 }
 
 
-std::unique_ptr<Texture2D> MemoryManager::CreateTexture2D(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize) {
+Texture2D MemoryManager::CreateTexture2D(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, gxapi::eResourceFlags flags, uint16_t arraySize) {
 	if (arraySize < 1) {
 		throw gxapi::InvalidArgument("\"count\" should not be at least one.");
 	}
 
-	impl::InitialResourceParameters params = AllocateResource(heap, gxapi::ResourceDesc::Texture2DArray(width, height, format, arraySize));
+	impl::InitialResourceParameters params = AllocateResource(heap, gxapi::ResourceDesc::Texture2DArray(width, height, format, arraySize, flags));
 
-	std::unique_ptr<Texture2D> result(new Texture2D(params.resource));
-	result->_SetResident(params.residency);
+	Texture2D result(params.resource);
+	result._SetResident(params.residency);
 	return result;
 }
 
 
-std::unique_ptr<Texture3D> MemoryManager::CreateTexture3D(eResourceHeapType heap, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format) {
+Texture3D MemoryManager::CreateTexture3D(eResourceHeapType heap, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format, gxapi::eResourceFlags flags) {
 	impl::InitialResourceParameters params = AllocateResource(heap, gxapi::ResourceDesc::Texture3D(width, height, depth, format));
 
-	std::unique_ptr<Texture3D> result(new Texture3D(params.resource));
-	result->_SetResident(params.residency);
+	Texture3D result(params.resource);
+	result._SetResident(params.residency);
 	return result;
 }
 
 
-std::unique_ptr<TextureCube> MemoryManager::CreateTextureCube(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format) {
+TextureCube MemoryManager::CreateTextureCube(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, gxapi::eResourceFlags flags) {
 	impl::InitialResourceParameters params = AllocateResource(heap, gxapi::ResourceDesc::CubeMap(width, height, format));
 
-	std::unique_ptr<TextureCube> result(new TextureCube(params.resource));
-	result->_SetResident(params.residency);
+	TextureCube result(params.resource);
+	result._SetResident(params.residency);
 	return result;
 }
 
 
 impl::InitialResourceParameters MemoryManager::AllocateResource(eResourceHeapType heap, const gxapi::ResourceDesc& desc) {
 
+	gxapi::ClearValue* pClearValue = nullptr;
+	gxapi::ClearValue clearValue(desc.textureDesc.format, 1, 0);
+	if (desc.type == gxapi::eResourceType::TEXTURE && desc.textureDesc.flags & gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL) {
+		pClearValue = &clearValue;
+	}
+
 	switch(heap) {
 	case eResourceHeapType::CRITICAL: 
-		return m_criticalHeap.Allocate(desc);
+		return m_criticalHeap.Allocate(desc, pClearValue);
 		break;
 	}
 

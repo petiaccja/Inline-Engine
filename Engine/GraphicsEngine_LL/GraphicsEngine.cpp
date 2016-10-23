@@ -9,6 +9,7 @@
 #include "Nodes/Node_FrameCounter.hpp"
 #include "Nodes/Node_FrameColor.hpp"
 #include "Nodes/Node_GetBackBuffer.hpp"
+#include "Nodes/Node_GetDepthBuffer.hpp"
 #include "Nodes/Node_GetSceneByName.hpp"
 #include "Nodes/Node_TescoRender.hpp"
 #include "Nodes/Node_GetTime.hpp"
@@ -33,8 +34,8 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_scratchSpacePool(desc.graphicsApi),
 	m_masterCommandQueue(desc.graphicsApi->CreateCommandQueue(CommandQueueDesc{ eCommandListType::GRAPHICS }), desc.graphicsApi->CreateFence(0)),
 	m_residencyQueue(std::unique_ptr<gxapi::IFence>(desc.graphicsApi->CreateFence(0))),
-	m_descriptorHeap(desc.graphicsApi),
-	m_memoryManager(desc.graphicsApi, &m_descriptorHeap),
+	m_memoryManager(desc.graphicsApi),
+	m_resViewFactory(desc.graphicsApi),
 	m_logger(desc.logger)
 {
 	// Create swapchain
@@ -168,9 +169,12 @@ MeshEntity* GraphicsEngine::CreateMeshEntity() {
 
 
 void GraphicsEngine::CreatePipeline() {
+	auto swapChainDesc = m_swapChain->GetDesc();
+
 	std::unique_ptr<nodes::GetTime> frameCounter(new nodes::GetTime());
 	std::unique_ptr<nodes::FrameColor> frameColor(new nodes::FrameColor());
 	std::unique_ptr<nodes::GetBackBuffer> getBackBuffer(new nodes::GetBackBuffer());
+	std::unique_ptr<nodes::GetDepthBuffer> getDepthBuffer(new nodes::GetDepthBuffer(&m_memoryManager, &m_resViewFactory, swapChainDesc.width, swapChainDesc.height, swapChainDesc.numBuffers));
 	std::unique_ptr<nodes::ClearRenderTarget> clearRtv(new nodes::ClearRenderTarget());
 	std::unique_ptr<nodes::GetSceneByName> getWorldScene(new nodes::GetSceneByName());
 	std::unique_ptr<nodes::TescoRender> renderWorld(new nodes::TescoRender(m_graphicsApi, m_gxapiManager));
@@ -182,17 +186,19 @@ void GraphicsEngine::CreatePipeline() {
 	frameColor->GetOutput(0)->Link(clearRtv->GetInput(1));
 	getBackBuffer->GetOutput(0)->Link(clearRtv->GetInput(0));
 	// link renderscene path
-	getWorldScene->GetOutput(0)->Link(renderWorld->GetInput(1));
+	getWorldScene->GetOutput(0)->Link(renderWorld->GetInput(2));
+	getDepthBuffer->GetOutput(0)->Link(renderWorld->GetInput(1));
 	// link to pathes together
 	clearRtv->GetOutput(0)->Link(renderWorld->GetInput(0));
 
 
-	m_pipeline.CreateFromNodesList({ frameCounter.get(), frameColor.get(), getBackBuffer.get(), clearRtv.get(), getWorldScene.get(), renderWorld.get() }, std::default_delete<exc::NodeBase>());
+	m_pipeline.CreateFromNodesList({ frameCounter.get(), frameColor.get(), getBackBuffer.get(), getDepthBuffer.get(), clearRtv.get(), getWorldScene.get(), renderWorld.get() }, std::default_delete<exc::NodeBase>());
 
 
 	frameCounter.release();
 	frameColor.release();
 	getBackBuffer.release();
+	getDepthBuffer.release();
 	clearRtv.release();
 	getWorldScene.release();
 	renderWorld.release();

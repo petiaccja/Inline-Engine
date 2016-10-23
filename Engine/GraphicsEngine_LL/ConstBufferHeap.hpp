@@ -44,8 +44,8 @@ protected:
 public:
 	ConstantBufferHeap(gxapi::IGraphicsApi* graphicsApi);
 
-	VolatileConstBuffer CreateVolatileBuffer(void* data, size_t dataSize);
-	PersistentConstBuffer CreatePersistentBuffer(void* data, size_t dataSize);
+	VolatileConstBuffer CreateVolatileBuffer(void* data, uint32_t dataSize);
+	PersistentConstBuffer CreatePersistentBuffer(void* data, uint32_t dataSize);
 
 	void OnFrameBeginDevice(uint64_t frameId) override;
 	void OnFrameBeginHost(uint64_t frameId) override;

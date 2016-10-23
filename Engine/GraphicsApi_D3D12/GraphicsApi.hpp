@@ -48,6 +48,9 @@ public:
 								gxapi::DescriptorHandle destination) override;
 	void CreateDepthStencilView(const gxapi::IResource* resource,
 								gxapi::DescriptorHandle destination) override;
+	void CreateDepthStencilView(const gxapi::IResource* resource,
+	                            gxapi::DepthStencilViewDesc desc,
+	                            gxapi::DescriptorHandle destination) override;
 
 	void CreateRenderTargetView(const gxapi::IResource* resource,
 								gxapi::DescriptorHandle destination) override;

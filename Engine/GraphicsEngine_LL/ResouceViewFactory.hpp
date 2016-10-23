@@ -12,9 +12,9 @@ class Texture2D;
 class VertexBuffer;
 class LinearBuffer;
 
-class ResouceViewFactory {
+class ResourceViewFactory {
 public:
-	ResouceViewFactory(gxapi::IGraphicsApi* graphicsApi);
+	ResourceViewFactory(gxapi::IGraphicsApi* graphicsApi);
 
 	ConstBufferView CreateConstBufferView(const std::shared_ptr<PersistentConstBuffer>& resource);
 	ConstBufferView CreateConstBufferView(const std::shared_ptr<VolatileConstBuffer>& resource, ScratchSpace* scratchSpace);
@@ -26,7 +26,9 @@ public:
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
-	HighLevelDescHeap m_descHeap;
+	HostDescHeap m_CBV_SRV_UAV_Heap;
+	HostDescHeap m_DSV_Heap;
+	HostDescHeap m_RTV_Heap;
 };
 
 

@@ -186,6 +186,7 @@
     <ClInclude Include="Nodes\Node_ClearRenderTarget.h" />
     <ClInclude Include="Nodes\Node_FrameColor.hpp" />
     <ClInclude Include="Nodes\Node_FrameCounter.hpp" />
+    <ClInclude Include="Nodes\Node_GetDepthBuffer.hpp" />
     <ClInclude Include="Nodes\Node_GetSceneByName.hpp" />
     <ClInclude Include="Nodes\Node_TescoRender.hpp" />
     <ClInclude Include="Nodes\Node_GetTime.hpp" />
@@ -230,6 +231,7 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshBuffer.cpp" />
     <ClCompile Include="Nodes\Node_ClearRenderTarget.cpp" />
+    <ClCompile Include="Nodes\Node_GetDepthBuffer.cpp" />
     <ClCompile Include="Nodes\Node_TescoRender.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="PipelineEventDispatcher.cpp" />

@@ -6,16 +6,18 @@ namespace inl {
 namespace gxeng {
 
 
-ResouceViewFactory::ResouceViewFactory(gxapi::IGraphicsApi* graphicsApi) :
+ResourceViewFactory::ResourceViewFactory(gxapi::IGraphicsApi* graphicsApi) :
 	m_graphicsApi(graphicsApi),
-	m_descHeap(graphicsApi)
+	m_CBV_SRV_UAV_Heap(graphicsApi, gxapi::eDesriptorHeapType::CBV_SRV_UAV),
+	m_DSV_Heap(graphicsApi, gxapi::eDesriptorHeapType::DSV),
+	m_RTV_Heap(graphicsApi, gxapi::eDesriptorHeapType::RTV)
 {}
 
 
-ConstBufferView ResouceViewFactory::CreateConstBufferView(
+ConstBufferView ResourceViewFactory::CreateConstBufferView(
 	const std::shared_ptr<PersistentConstBuffer>& resource
 ) {
-	auto descRef = m_descHeap.AllocateOnTextureSpace();
+	auto descRef = m_CBV_SRV_UAV_Heap.Allocate();
 
 	gxapi::ConstantBufferViewDesc desc;
 	desc.gpuVirtualAddress = resource->GetVirtualAddress();
@@ -26,7 +28,8 @@ ConstBufferView ResouceViewFactory::CreateConstBufferView(
 	return ConstBufferView(resource, std::move(descRef));
 }
 
-ConstBufferView ResouceViewFactory::CreateConstBufferView(
+
+ConstBufferView ResourceViewFactory::CreateConstBufferView(
 	const std::shared_ptr<VolatileConstBuffer>& resource,
 	ScratchSpace* scratchSpace
 ) {
@@ -41,48 +44,42 @@ ConstBufferView ResouceViewFactory::CreateConstBufferView(
 	return ConstBufferView(resource, std::move(descRef));
 }
 
-DepthStencilView ResouceViewFactory::CreateDepthStencilView(
+
+DepthStencilView ResourceViewFactory::CreateDepthStencilView(
 	const std::shared_ptr<Texture2D>& resource,
 	gxapi::DsvTexture2DArray desc
 ) {
-	auto descRef = m_descHeap.AllocateOnTextureSpace();
+	auto descRef = m_DSV_Heap.Allocate();
 
 	gxapi::DepthStencilViewDesc DSVdesc;
 	DSVdesc.format = resource->GetFormat();
 	DSVdesc.dimension = gxapi::eDsvDimension::TEXTURE2DARRAY;
 	DSVdesc.tex2DArray = desc;
 
-	gxapi::NotImplementedMethod("CreateDepthStencilView that takes three parameters is required to finish implementing this function");
-	//m_graphicsApi->CreateDepthStencilView(resource->_GetResourcePtr(), RTVdesc, descRef.Get());
+	m_graphicsApi->CreateDepthStencilView(resource->_GetResourcePtr(), DSVdesc, descRef.Get());
 
 	return DepthStencilView(resource, std::move(descRef), DSVdesc);
 }
 
 
-RenderTargetView ResouceViewFactory::CreateRenderTargetView(
+RenderTargetView ResourceViewFactory::CreateRenderTargetView(
 	const std::shared_ptr<Texture2D>& resource
 ) {
-	auto descRef = m_descHeap.AllocateOnTextureSpace();
+	gxapi::RtvTexture2DArray desc;
+	desc.activeArraySize = 1;
+	desc.firstArrayElement = 0;
+	desc.planeIndex = 0;
+	desc.firstMipLevel = 0;
 
-	gxapi::RenderTargetViewDesc desc;
-	desc.format = resource->GetFormat();
-
-	desc.dimension = gxapi::eRtvDimension::TEXTURE2DARRAY;
-	desc.tex2DArray.activeArraySize = 1;
-	desc.tex2DArray.firstArrayElement = 0;
-	desc.tex2DArray.planeIndex = 0;
-
-	m_graphicsApi->CreateRenderTargetView(resource->_GetResourcePtr(), descRef.Get());
-
-	return RenderTargetView(resource, std::move(descRef), desc);
+	return CreateRenderTargetView(resource, desc);
 }
 
 
-RenderTargetView ResouceViewFactory::CreateRenderTargetView(
+RenderTargetView ResourceViewFactory::CreateRenderTargetView(
 	const std::shared_ptr<Texture2D>& resource,
 	gxapi::RtvTexture2DArray desc
 ) {
-	auto descRef = m_descHeap.AllocateOnTextureSpace();
+	auto descRef = m_RTV_Heap.Allocate();
 
 	gxapi::RenderTargetViewDesc RTVdesc;
 	RTVdesc.format = resource->GetFormat();
@@ -95,7 +92,7 @@ RenderTargetView ResouceViewFactory::CreateRenderTargetView(
 }
 
 
-VertexBufferView ResouceViewFactory::CreateVertexBufferView(
+VertexBufferView ResourceViewFactory::CreateVertexBufferView(
 	const std::shared_ptr<VertexBuffer>& resource,
 	uint32_t stride,
 	uint32_t size
@@ -103,12 +100,13 @@ VertexBufferView ResouceViewFactory::CreateVertexBufferView(
 	return VertexBufferView(resource, stride, size);
 }
 
-BufferSRV ResouceViewFactory::CreateBufferSRV(
+
+BufferSRV ResourceViewFactory::CreateBufferSRV(
 	const std::shared_ptr<LinearBuffer>& resource,
 	gxapi::eFormat format,
 	gxapi::SrvBuffer desc
 ) {
-	auto descRef = m_descHeap.AllocateOnTextureSpace();
+	auto descRef = m_CBV_SRV_UAV_Heap.Allocate();
 
 	gxapi::ShaderResourceViewDesc SRVdesc;
 	SRVdesc.format = format;

@@ -15,14 +15,15 @@ CriticalBufferHeap::CriticalBufferHeap(gxapi::IGraphicsApi * graphicsApi) :
 {}
 
 
-InitialResourceParameters CriticalBufferHeap::Allocate(gxapi::ResourceDesc desc) {
+InitialResourceParameters CriticalBufferHeap::Allocate(gxapi::ResourceDesc desc, gxapi::ClearValue* clearValue) {
 	InitialResourceParameters result;
 
 	result.resource = m_graphicsApi->CreateCommittedResource(
 		gxapi::HeapProperties(gxapi::eHeapType::DEFAULT),
 		gxapi::eHeapFlags::NONE,
 		desc,
-		gxapi::eResourceState::COMMON
+		gxapi::eResourceState::COMMON,
+		clearValue
 	);
 
 	result.residency = true;

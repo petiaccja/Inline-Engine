@@ -256,8 +256,8 @@ gxapi::IDescriptorHeap* GraphicsApi::CreateDescriptorHeap(gxapi::DescriptorHeapD
 
 void GraphicsApi::CreateConstantBufferView(
 	gxapi::ConstantBufferViewDesc desc,
-	gxapi::DescriptorHandle destination) {
-
+	gxapi::DescriptorHandle destination
+) {
 	D3D12_CONSTANT_BUFFER_VIEW_DESC nativeDesc = native_cast(desc);
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
 	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
@@ -267,8 +267,8 @@ void GraphicsApi::CreateConstantBufferView(
 
 void GraphicsApi::CreateDepthStencilView(
 	gxapi::DepthStencilViewDesc desc,
-	gxapi::DescriptorHandle destination) {
-
+	gxapi::DescriptorHandle destination
+) {
 	D3D12_DEPTH_STENCIL_VIEW_DESC nativeDesc = native_cast(desc);
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
 	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
@@ -278,19 +278,31 @@ void GraphicsApi::CreateDepthStencilView(
 
 void GraphicsApi::CreateDepthStencilView(
 	const gxapi::IResource* resource,
-	gxapi::DescriptorHandle destination) {
-
+	gxapi::DescriptorHandle destination
+) {
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
 	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
 	m_device->CreateDepthStencilView(const_cast<ID3D12Resource*>(native_cast(resource)), nullptr, nativeCPUHandle);
 }
 
 
+void GraphicsApi::CreateDepthStencilView(
+	const gxapi::IResource* resource,
+	gxapi::DepthStencilViewDesc desc,
+	gxapi::DescriptorHandle destination
+) {
+	D3D12_DEPTH_STENCIL_VIEW_DESC nativeDesc = native_cast(desc);
+	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
+	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
+	m_device->CreateDepthStencilView(const_cast<ID3D12Resource*>(native_cast(resource)), &nativeDesc, nativeCPUHandle);
+}
+
+
 void GraphicsApi::CreateRenderTargetView(
 	const gxapi::IResource* resource,
 	gxapi::RenderTargetViewDesc desc,
-	gxapi::DescriptorHandle destination)
-{
+	gxapi::DescriptorHandle destination
+) {
 	D3D12_RENDER_TARGET_VIEW_DESC nativeDesc = native_cast(desc);
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
 	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
@@ -300,8 +312,8 @@ void GraphicsApi::CreateRenderTargetView(
 
 void GraphicsApi::CreateRenderTargetView(
 	const gxapi::IResource* resource,
-	gxapi::DescriptorHandle destination)
-{
+	gxapi::DescriptorHandle destination
+) {
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
 	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
 	m_device->CreateRenderTargetView(const_cast<ID3D12Resource*>(native_cast(resource)), nullptr, nativeCPUHandle);
@@ -310,8 +322,8 @@ void GraphicsApi::CreateRenderTargetView(
 
 void GraphicsApi::CreateShaderResourceView(
 	gxapi::ShaderResourceViewDesc desc,
-	gxapi::DescriptorHandle destination)
-{
+	gxapi::DescriptorHandle destination
+) {
 	D3D12_SHADER_RESOURCE_VIEW_DESC nativeDesc = native_cast(desc);
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
 	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
@@ -321,8 +333,8 @@ void GraphicsApi::CreateShaderResourceView(
 
 void GraphicsApi::CreateShaderResourceView(
 	const gxapi::IResource* resource,
-	gxapi::DescriptorHandle destination)
-{
+	gxapi::DescriptorHandle destination
+) {
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
 	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
 	m_device->CreateShaderResourceView(const_cast<ID3D12Resource*>(native_cast(resource)), nullptr, nativeCPUHandle);
@@ -330,10 +342,10 @@ void GraphicsApi::CreateShaderResourceView(
 
 
 void GraphicsApi::CreateShaderResourceView(
-	const gxapi::IResource * resource,
+	const gxapi::IResource* resource,
 	gxapi::ShaderResourceViewDesc desc,
-	gxapi::DescriptorHandle destination)
-{
+	gxapi::DescriptorHandle destination
+) {
 	D3D12_SHADER_RESOURCE_VIEW_DESC nativeDesc = native_cast(desc);
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
 	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
@@ -347,8 +359,8 @@ void GraphicsApi::CopyDescriptors(
 	size_t numDstDescRanges,
 	gxapi::DescriptorHandle * dstRangeStarts,
 	uint32_t * rangeCounts,
-	gxapi::eDesriptorHeapType descHeapsType)
-{
+	gxapi::eDesriptorHeapType descHeapsType
+) {
 	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> nativeDstRangeStarts(numDstDescRanges);
 	for (int i = 0; i < numDstDescRanges; i++) {
 		nativeDstRangeStarts[i].ptr = native_cast_ptr(dstRangeStarts[i].cpuAddress);
@@ -365,8 +377,8 @@ void GraphicsApi::CopyDescriptors(
 	gxapi::DescriptorHandle srcStart,
 	gxapi::DescriptorHandle dstStart,
 	size_t rangeCount,
-	gxapi::eDesriptorHeapType descHeapsType)
-{
+	gxapi::eDesriptorHeapType descHeapsType
+) {
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeDstRangeStart;
 	nativeDstRangeStart.ptr = native_cast_ptr(dstStart.cpuAddress);
 

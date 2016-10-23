@@ -79,6 +79,7 @@ protected:
 
 class DepthStencilView : public ResourceViewBase<Texture2D> {
 public:
+	DepthStencilView() = default;
 	DepthStencilView(const std::shared_ptr<Texture2D>& resource, DescriptorReference&& descRef, gxapi::DepthStencilViewDesc desc);
 
 	gxapi::DepthStencilViewDesc GetDescription() const;

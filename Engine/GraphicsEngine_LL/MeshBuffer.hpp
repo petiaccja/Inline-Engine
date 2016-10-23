@@ -83,7 +83,6 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 
 	// Create vertex buffers.
 	std::vector<std::shared_ptr<VertexBuffer>> newVertexBuffers;
-	std::unique_ptr<IndexBuffer> newIndexBuffer;
 
 	for (StreamIt streamIt = firstStream; streamIt != lastStream; ++streamIt) {
 		const VertexStream& stream = *streamIt;
@@ -91,7 +90,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 		if (streamSizeBytes == 0) {
 			throw std::invalid_argument("Stream cannot have 0 stride or 0 vertices.");
 		}
-		std::shared_ptr<VertexBuffer> buffer(m_memoryManager->CreateVertexBuffer(eResourceHeapType::CRITICAL, streamSizeBytes));
+		std::shared_ptr<VertexBuffer> buffer = ToShared(m_memoryManager->CreateVertexBuffer(eResourceHeapType::CRITICAL, streamSizeBytes));
 		newVertexBuffers.push_back(std::move(buffer));
 	}
 
@@ -103,12 +102,12 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 	bool using32BitIndex = numVertices > 0xFFFFu;
 	unsigned indexStride = using32BitIndex ? sizeof(uint32_t) : sizeof(uint16_t);
 	size_t indexTotalSize = numIndices * indexStride;
-	newIndexBuffer = m_memoryManager->CreateIndexBuffer(eResourceHeapType::CRITICAL, indexTotalSize, numIndices);
+	IndexBuffer newIndexBuffer = m_memoryManager->CreateIndexBuffer(eResourceHeapType::CRITICAL, indexTotalSize, numIndices);
 
 
 	// Update internals.
 	m_vertexBuffers = std::move(newVertexBuffers);
-	m_indexBuffer = std::move(newIndexBuffer);
+	m_indexBuffer = ToShared(std::move(newIndexBuffer));
 	m_vertexStrides.clear();
 	for (StreamIt streamIt = firstStream; streamIt != lastStream; ++streamIt) {
 		m_vertexStrides.push_back(streamIt->stride);

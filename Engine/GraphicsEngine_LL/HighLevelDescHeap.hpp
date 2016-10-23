@@ -12,7 +12,7 @@
 namespace inl {
 namespace gxeng {
 
-class HighLevelDescHeap;
+class HostDescHeap;
 class ScratchSpace;
 
 class DescriptorReference {
@@ -86,11 +86,11 @@ protected:
 /// exclusive ownership over at least one instance of this class.
 /// </summary>
 class ScratchSpace {
-	friend class HighLevelDescHeap;
+	friend class HostDescHeap;
 	friend class ScratchSpaceRef;
 public:
 	ScratchSpace(gxapi::IGraphicsApi* graphicsApi, size_t size);
-	
+
 	ScratchSpaceRef Allocate(size_t size);
 	DescriptorReference AllocateSingle();
 protected:
@@ -106,28 +106,30 @@ protected:
 /// This class is thread safe.
 /// </summary>
 /// (Name is subject to change)
-class HighLevelDescHeap
+class HostDescHeap
 {
 public:
-	HighLevelDescHeap(gxapi::IGraphicsApi* graphicsApi);
+	HostDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDesriptorHeapType type);
 
-	DescriptorReference AllocateOnTextureSpace();
-	ScratchSpace CreateScratchSpace(size_t size);
+	DescriptorReference Allocate();
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
 
-	static constexpr size_t TEXTURE_SPACE_CHUNK_SIZE = 256;
-	std::vector<std::unique_ptr<gxapi::IDescriptorHeap>> m_textureSpaceChunks;
-	std::mutex m_textureSpaceMtx; 
-	exc::SlabAllocatorEngine m_textureSpaceAllocator;
+	const gxapi::eDesriptorHeapType m_type;
+
+	const size_t m_heapChunkSize;
+	std::vector<std::unique_ptr<gxapi::IDescriptorHeap>> m_heapChunks;
+	std::mutex m_mutex;
+	exc::SlabAllocatorEngine m_allocator;
 
 protected:
 	void DeallocateTextureSpace(size_t pos);
 	gxapi::DescriptorHandle GetAtTextureSpace(size_t pos);
 	void PushNewTextureSpaceChunk();
+	size_t GetOptimalChunkSize(gxapi::eDesriptorHeapType type);
 };
 
-
-} // namespace inl
 } // namespace gxeng
+} // namespace inl
+ 
