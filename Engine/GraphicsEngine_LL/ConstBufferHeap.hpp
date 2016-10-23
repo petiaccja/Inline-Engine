@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GpuBuffer.hpp"
+#include "PipelineEventListener.hpp"
 
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include "../GraphicsApi_LL/IResource.hpp"
@@ -16,7 +17,7 @@ using namespace exc::prefix;
 
 class MemoryManager;
 
-class ConstantBufferHeap {
+class ConstantBufferHeap : public PipelineEventListener {
 protected:
 	class ConstBufferPage {
 	public:
@@ -46,8 +47,10 @@ public:
 	VolatileConstBuffer CreateVolatileBuffer(void* data, size_t dataSize);
 	PersistentConstBuffer CreatePersistentBuffer(void* data, size_t dataSize);
 
-	void FrameCompletedCPU();
-	void FrameCompletedGPU();
+	void OnFrameBeginDevice(uint64_t frameId) override;
+	void OnFrameBeginHost(uint64_t frameId) override;
+	void OnFrameCompleteDevice(uint64_t frameId) override;
+	void OnFrameCompleteHost(uint64_t frameId) override;
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;

@@ -27,5 +27,5 @@ private:
 
 	// Entities
 	std::vector<std::unique_ptr<inl::gxeng::MeshEntity>> m_staticEntities;
-
+	std::vector<mathfu::Vector<float, 3>> m_velocities;
 };

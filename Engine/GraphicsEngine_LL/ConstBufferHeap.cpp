@@ -108,12 +108,15 @@ PersistentConstBuffer ConstantBufferHeap::CreatePersistentBuffer(void* data, siz
 }
 
 
-void ConstantBufferHeap::FrameCompletedCPU() {
-	m_currFrameID++;
-}
+void ConstantBufferHeap::OnFrameBeginDevice(uint64_t frameId)
+{}
 
 
-void ConstantBufferHeap::FrameCompletedGPU() {
+void ConstantBufferHeap::OnFrameBeginHost(uint64_t frameId)
+{}
+
+
+void ConstantBufferHeap::OnFrameCompleteDevice(uint64_t frameId) {
 	std::lock_guard<std::mutex> lock(m_mutex);
 
 	m_lastFinishedFrameID++;
@@ -132,6 +135,11 @@ void ConstantBufferHeap::FrameCompletedGPU() {
 			}
 		}
 	}
+}
+
+
+void ConstantBufferHeap::OnFrameCompleteHost(uint64_t frameId) {
+	m_currFrameID++;
 }
 
 

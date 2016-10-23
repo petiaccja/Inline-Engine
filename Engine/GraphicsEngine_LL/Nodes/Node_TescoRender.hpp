@@ -7,6 +7,7 @@
 #include "../GraphicsNode.hpp"
 
 #include "../Scene.hpp"
+#include "../ConstBufferHeap.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
@@ -52,6 +53,7 @@ public:
 protected:
 	Binder m_binder;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
+	BindParameter m_cbBindParam;
 
 private:
 	void RenderScene(RenderTargetView& rtv, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList);

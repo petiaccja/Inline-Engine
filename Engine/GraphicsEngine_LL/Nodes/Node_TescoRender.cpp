@@ -5,6 +5,8 @@
 
 #include "../../GraphicsApi_LL/IGxapiManager.hpp"
 
+#include <mathfu/matrix_4x4.h>
+
 #include <array>
 #include <iostream> // debug only
 
@@ -28,13 +30,13 @@ bool CheckMeshFormat(const Mesh& mesh) {
 
 const std::string SHADER_SRC = R"(
 
-/*
-cbuffer ConstantBuffer : register(b0)
+struct Transform
 {
-	float4x4 invTrModel;
 	float4x4 MVP;
 };
-*/
+
+ConstantBuffer<Transform> cb : register(b0);
+
 
 struct PSInput
 {
@@ -50,7 +52,8 @@ PSInput VSMain(float4 position : POSITION, float4 color : COLOR)
 	//float4 worldNormal = mul(normal, invTrModel);
 	//result.color = max(0.05, dot(float4(1, 1, -1, 0), worldNormal));
 
-	result.position = position;
+	//result.position = position;
+	result.position = mul(cb.MVP, position);
 	result.color = color;
 
 	return result;
@@ -71,8 +74,9 @@ TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager*
 
 
 	BindParameterDesc bindParamDesc;
-	bindParamDesc.parameter = BindParameter(eBindParameterType::CONSTANT, 0);
-	bindParamDesc.constantSize = 2*(sizeof(float)*4*4);
+	m_cbBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
+	bindParamDesc.parameter = m_cbBindParam;
+	bindParamDesc.constantSize = (sizeof(float)*4*4);
 	bindParamDesc.relativeAccessFrequency = 0;
 	bindParamDesc.relativeChangeFrequency = 0;
 	bindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
@@ -131,6 +135,10 @@ void TescoRender::RenderScene(RenderTargetView& rtv, const EntityCollection<Mesh
 	commandList.SetScissorRects(1, &rect);
 	commandList.SetViewports(1, &viewport);
 
+	commandList.SetPipelineState(m_PSO.get());
+	commandList.SetGraphicsBinder(&m_binder);
+	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
+
 	// Iterate over all entities
 	for (const MeshEntity* entity : entities) {
 		//std::cout << "Rendering entity " << entity << std::endl;
@@ -160,9 +168,11 @@ void TescoRender::RenderScene(RenderTargetView& rtv, const EntityCollection<Mesh
 		assert(vertexBuffers.size() == sizes.size());
 		assert(sizes.size() == strides.size());
 
-		commandList.SetPipelineState(m_PSO.get());
-		commandList.SetGraphicsBinder(&m_binder);
-		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
+		auto MVP = mathfu::Matrix<float, 4, 4>::FromTranslationVector(entity->GetPosition());
+		mathfu::VectorPacked<float, 4> matPacked[4];
+		MVP.Pack(matPacked);
+
+		commandList.BindGraphics(m_cbBindParam, matPacked, MVP.kElements * sizeof(float), 0);
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 		commandList.SetIndexBuffer(mesh->GetIndexBuffer().get(), mesh->GetIndexBuffer32Bit());
 		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer()->GetIndexCount());
