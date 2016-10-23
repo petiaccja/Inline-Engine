@@ -110,9 +110,10 @@ int TestBinder::Run() {
 	p.constantSize = 53;
 	parameters.push_back(p);
 
-	Binder binder(parameters);
+	throw std::invalid_argument("Binder requires a graphics api, so it's no longer testable this way. Create a mock graphics api.");
+	//Binder binder(parameters);
 
-	cout << binder;
+	//cout << binder;
 
 
 	return 0;

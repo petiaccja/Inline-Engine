@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
 #define _WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -30,6 +31,7 @@ std::ofstream logFile;
 exc::Logger logger;
 exc::LogStream systemLogStream = logger.CreateLogStream("system");
 exc::LogStream graphicsLogStream = logger.CreateLogStream("graphics");
+std::experimental::filesystem::path logFilePath;
 
 
 std::string errorMessage;
@@ -48,13 +50,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 int main() {
 	// Initialize logger
 	logFile.open("engine_test.log");
-	//if (logFile.is_open()) {
-	//	logger.OpenStream(&logFile);
-	//}
-	//else {
-		logger.OpenStream(&std::cout);
-	//}
+	logFilePath = std::experimental::filesystem::current_path();
+	logFilePath /= "engine_test.log";
+	cout << "Log files can be found at:\n   ";
+	cout << "   " << logFilePath << endl;
 
+	if (logFile.is_open()) {
+		logger.OpenStream(&logFile);
+	}
+	else {
+		logger.OpenStream(&std::cout);
+	}
+
+	// Set exception handler
 	std::set_terminate([]()
 	{	
 		try {
@@ -65,6 +73,13 @@ int main() {
 			systemLogStream.Event(std::string("Terminate called, shutting down services.") + ex.what());
 		}
 		logger.Flush();
+		logger.OpenStream(nullptr);
+		logFile.close();
+		int ans = MessageBoxA(NULL, "Open logs?", "Unhandled exception", MB_YESNO);
+		if (ans == IDYES) {
+			system(logFilePath.string().c_str());
+		}
+
 		std::abort();
 	});
 
@@ -108,7 +123,7 @@ int main() {
 		cout << "Could not create window." << endl;
 		return 0;
 	}
-
+	
 	// Show the window
 	ShowWindow(hWnd, SW_SHOW);
 	UpdateWindow(hWnd);
@@ -242,6 +257,8 @@ int main() {
 			}
 		}
 	}
+
+	cout << "Shutting down." << endl;
 
 	return 0;
 }

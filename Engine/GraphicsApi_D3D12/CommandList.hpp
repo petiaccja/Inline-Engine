@@ -88,7 +88,7 @@ public:
 
 	// set compute root signature stuff
 	void SetComputeRootConstant(unsigned parameterIndex, unsigned destOffset, uint32_t value) override;
-	void SetComputeRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, uint32_t* value) override;
+	void SetComputeRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, const uint32_t* value) override;
 	void SetComputeRootConstantBuffer(unsigned parameterIndex, void* gpuVirtualAddress) override;
 	void SetComputeRootDescriptorTable(unsigned parameterIndex, gxapi::DescriptorHandle baseHandle) override;
 	void SetComputeRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) override;
@@ -161,7 +161,7 @@ public:
 
 	// set graphics root signature stuff
 	void SetGraphicsRootConstant(unsigned parameterIndex, unsigned destOffset, uint32_t value) override;
-	void SetGraphicsRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, uint32_t* value) override;
+	void SetGraphicsRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, const uint32_t* value) override;
 	void SetGraphicsRootConstantBuffer(unsigned parameterIndex, void* gpuVirtualAddress) override;
 	void SetGraphicsRootDescriptorTable(unsigned parameterIndex, gxapi::DescriptorHandle baseHandle) override;
 	void SetGraphicsRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) override;

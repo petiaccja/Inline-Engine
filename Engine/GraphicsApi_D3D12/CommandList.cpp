@@ -180,7 +180,7 @@ void ComputeCommandList::SetComputeRootConstant(unsigned parameterIndex, unsigne
 }
 
 
-void ComputeCommandList::SetComputeRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, uint32_t* value) {
+void ComputeCommandList::SetComputeRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, const uint32_t* value) {
 	m_native->SetComputeRoot32BitConstants(parameterIndex, numValues, value, destOffset);
 }
 
@@ -391,7 +391,7 @@ void GraphicsCommandList::SetGraphicsRootConstant(unsigned parameterIndex, unsig
 }
 
 
-void GraphicsCommandList::SetGraphicsRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, uint32_t* value) {
+void GraphicsCommandList::SetGraphicsRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, const uint32_t* value) {
 	m_native->SetGraphicsRoot32BitConstants(parameterIndex, numValues, value, destOffset);
 }
 

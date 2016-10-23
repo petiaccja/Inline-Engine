@@ -51,7 +51,6 @@ public:
 
 protected:
 	Binder m_binder;
-	std::unique_ptr<gxapi::IRootSignature> m_rootSignature;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 private:

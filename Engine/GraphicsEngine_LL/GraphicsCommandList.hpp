@@ -77,7 +77,7 @@ public:
 	void BindGraphics(BindParameter parameter, Texture2D* shaderResource);
 	void BindGraphics(BindParameter parameter, Texture3D* shaderResource);
 	void BindGraphics(BindParameter parameter, ConstBuffer* shaderConstant);
-	void BindGraphics(BindParameter parameter, const void* shaderConstant);
+	void BindGraphics(BindParameter parameter, const void* shaderConstant, int size, int offset);
 	//void BindGraphics(BindParameter parameter, RWTexture1D* rwResource);
 	//void BindGraphics(BindParameter parameter, RWTexture2D* rwResource);
 	//void BindGraphics(BindParameter parameter, RWTexture3D* rwResource);
@@ -89,6 +89,7 @@ protected:
 	virtual Decomposition Decompose() override;
 private:
 	gxapi::IGraphicsCommandList* m_commandList;
+	Binder* m_binder = nullptr;
 };
 
 

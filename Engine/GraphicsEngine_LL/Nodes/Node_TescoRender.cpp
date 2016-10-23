@@ -64,24 +64,20 @@ float4 PSMain(PSInput input) : SV_TARGET
 
 
 TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager* gxapiManager) :
-	m_binder({})
+	m_binder(graphicsApi, {})
 {
 	//this->GetInput<0>().Set(RenderTargetView());
 	this->GetInput<1>().Set(nullptr);
 
-	//Create root signature
-	gxapi::RootSignatureDesc rootSigDesc;
-	rootSigDesc.rootParameters = { gxapi::RootParameterDesc::Cbv(0, 0, gxapi::eShaderVisiblity::VERTEX) };
-
-	m_rootSignature.reset(graphicsApi->CreateRootSignature(rootSigDesc));
 
 	BindParameterDesc bindParamDesc;
 	bindParamDesc.parameter = BindParameter(eBindParameterType::CONSTANT, 0);
 	bindParamDesc.constantSize = 2*(sizeof(float)*4*4);
 	bindParamDesc.relativeAccessFrequency = 0;
 	bindParamDesc.relativeChangeFrequency = 0;
+	bindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
 
-	m_binder = Binder{{bindParamDesc}};
+	m_binder = Binder{ graphicsApi, {bindParamDesc}};
 
 #if defined(_DEBUG)
 	// Enable better shader debugging with the graphics debugging tools.
@@ -102,7 +98,7 @@ TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager*
 	gxapi::GraphicsPipelineStateDesc psoDesc;
 	psoDesc.inputLayout.elements = inputElementDesc.data();
 	psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-	psoDesc.rootSignature = m_rootSignature.get();
+	psoDesc.rootSignature = m_binder.GetRootSignature();
 	psoDesc.vs.shaderByteCode = vertexShader.data.data();
 	psoDesc.vs.sizeOfByteCode = vertexShader.data.size();
 	psoDesc.ps.shaderByteCode = fragmentShader.data.data();
@@ -165,7 +161,7 @@ void TescoRender::RenderScene(RenderTargetView& rtv, const EntityCollection<Mesh
 		assert(sizes.size() == strides.size());
 
 		commandList.SetPipelineState(m_PSO.get());
-		commandList.DEBUG_SetGraphicsRootSignature(m_rootSignature.get());
+		commandList.SetGraphicsBinder(&m_binder);
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 		commandList.SetIndexBuffer(mesh->GetIndexBuffer().get(), mesh->GetIndexBuffer32Bit());

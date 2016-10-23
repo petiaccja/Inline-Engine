@@ -171,5 +171,51 @@ void GraphicsCommandList::SetViewports(unsigned numViewports, gxapi::Viewport* v
 }
 
 
+//------------------------------------------------------------------------------
+// Set graphics root signature stuff
+//------------------------------------------------------------------------------
+
+void GraphicsCommandList::SetGraphicsBinder(Binder* binder) {
+	assert(binder != nullptr);
+
+	m_binder = binder;
+	m_commandList->SetGraphicsRootSignature(m_binder->GetRootSignature());
+}
+
+void GraphicsCommandList::BindGraphics(BindParameter parameter, Texture1D* shaderResource) {
+	throw std::runtime_error("not implemented");
+}
+
+void GraphicsCommandList::BindGraphics(BindParameter parameter, Texture2D* shaderResource) {
+	throw std::runtime_error("not implemented");
+}
+
+void GraphicsCommandList::BindGraphics(BindParameter parameter, Texture3D* shaderResource) {
+	throw std::runtime_error("not implemented");
+}
+
+void GraphicsCommandList::BindGraphics(BindParameter parameter, ConstBuffer* shaderConstant) {
+	
+}
+
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const void* shaderConstant, int size, int offset) {
+	if (size % 4 != 0) {
+		throw std::invalid_argument("Size must be a multiple of 4.");
+	}
+
+	int slot;
+	int tableIndex;
+	const gxapi::RootSignatureDesc desc = m_binder->GetRootSignatureDesc();
+	m_binder->Translate(parameter, slot, tableIndex); // may throw out of range
+	if (desc.rootParameters[slot].type == gxapi::RootParameterDesc::CONSTANT) {
+		assert(desc.rootParameters[slot].As<gxapi::RootParameterDesc::CONSTANT>().numConstants >= (size + offset) / 4);
+		m_commandList->SetGraphicsRootConstants(slot, offset, size / 4, reinterpret_cast<const uint32_t*>(shaderConstant));
+	}
+	else {
+		throw std::invalid_argument("Parameter is not an inline constant.");
+	}
+}
+
+
 } // namespace gxeng
 } // namespace inl

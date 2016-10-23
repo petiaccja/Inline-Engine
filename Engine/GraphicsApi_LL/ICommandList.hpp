@@ -75,7 +75,7 @@ public:
 
 	// set compute root signature stuff
 	virtual void SetComputeRootConstant(unsigned parameterIndex, unsigned destOffset, uint32_t value) = 0;
-	virtual void SetComputeRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, uint32_t* value) = 0;
+	virtual void SetComputeRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, const uint32_t* value) = 0;
 	virtual void SetComputeRootConstantBuffer(unsigned parameterIndex, void* gpuVirtualAddress) = 0;
 	virtual void SetComputeRootDescriptorTable(unsigned parameterIndex, DescriptorHandle baseHandle) = 0;
 	virtual void SetComputeRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) = 0;
@@ -149,7 +149,7 @@ public:
 
 	// set graphics root signature stuff
 	virtual void SetGraphicsRootConstant(unsigned parameterIndex, unsigned destOffset, uint32_t value) = 0;
-	virtual void SetGraphicsRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, uint32_t* value) = 0;
+	virtual void SetGraphicsRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, const uint32_t* value) = 0;
 	virtual void SetGraphicsRootConstantBuffer(unsigned parameterIndex, void* gpuVirtualAddress) = 0;
 	virtual void SetGraphicsRootDescriptorTable(unsigned parameterIndex, DescriptorHandle baseHandle) = 0;
 	virtual void SetGraphicsRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) = 0;

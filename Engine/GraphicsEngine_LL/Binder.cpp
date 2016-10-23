@@ -1,15 +1,19 @@
 #pragma once
 
+#include <GraphicsApi_LL/IGraphicsApi.hpp>
+
 #include "Binder.hpp"
 #include <algorithm>
+
 
 namespace inl {
 namespace gxeng {
 
 
 
-Binder::Binder(const std::vector<BindParameterDesc>& parameters) {
+Binder::Binder(inl::gxapi::IGraphicsApi* gxApi, const std::vector<BindParameterDesc>& parameters) {
 	CalculateLayout(parameters);
+	m_rootSignature.reset(gxApi->CreateRootSignature(m_rootSignatureDesc));
 }
 
 void Binder::Translate(BindParameter parameter, int & rootParamIndex, int & rootTableIndex) const {
@@ -25,16 +29,8 @@ void Binder::Translate(BindParameter parameter, int & rootParamIndex, int & root
 void Binder::CalculateLayout(const std::vector<BindParameterDesc>& parameters) {
 	// copy input parameters to mapping
 	m_parameters.reserve(parameters.size());
-	//for (const auto& param : parameters) {
-	//	RootParameterMapping mapping;
-	//	mapping.bindParam = param.parameter;
-	//	mapping.rootParamIndex = -1;
-	//	mapping.rootTableIndex = -1;
-	//	m_parameters.push_back(mapping);
-	//}
 
-
-	std::vector<std::vector<BindParameterDesc>> tableParams(1); // goes into descriptor heap (scratch space)
+	std::vector<std::vector<BindParameterDesc>> tableParams; // goes into descriptor heap (scratch space)
 	std::vector<BindParameterDesc> samplerParams; // samplers are treated separately
 	std::vector<BindParameterDesc> constantParams; // inline constants and inline CBVs
 
@@ -58,10 +54,17 @@ void Binder::CalculateLayout(const std::vector<BindParameterDesc>& parameters) {
 
 		// fill desc
 		if (mapping.constantCount > 0) {
-			desc.rootParameters.push_back(gxapi::RootParameterDesc::Constant(mapping.constantCount, mapping.bindParam.reg, mapping.bindParam.space));
+			desc.rootParameters.push_back(gxapi::RootParameterDesc::Constant(
+				mapping.constantCount,
+				mapping.bindParam.reg,
+				mapping.bindParam.space,
+				param.shaderVisibility));
 		}
 		else {
-			desc.rootParameters.push_back(gxapi::RootParameterDesc::Cbv(mapping.bindParam.reg, mapping.bindParam.space));
+			desc.rootParameters.push_back(gxapi::RootParameterDesc::Cbv(
+				mapping.bindParam.reg,
+				mapping.bindParam.space,
+				param.shaderVisibility));
 		}
 	}
 	// descriptor tables
@@ -122,19 +125,24 @@ void Binder::CalculateLayout(const std::vector<BindParameterDesc>& parameters) {
 	{
 		return RadixLess(lhs.bindParam, rhs.bindParam);
 	});
+
+	m_rootSignatureDesc = desc;
 }
 
 
 // Note that this function is optimized for nvidia, without taking much care for nvidia either.
 void Binder::DistributeParameters(const std::vector<BindParameterDesc>& parameters,
-	std::vector<std::vector<BindParameterDesc>> & tableParams,
-	std::vector<BindParameterDesc> & samplerParams,
-	std::vector<BindParameterDesc> & constantParams)
+								  std::vector<std::vector<BindParameterDesc>> & tableParams,
+								  std::vector<BindParameterDesc> & samplerParams,
+								  std::vector<BindParameterDesc> & constantParams)
 {
 	// put SRV's and UAV's into descriptor table: they have so many limitation that inlining them is basically worthless
 	// put samplers into separate list
 	for (const auto& param : parameters) {
 		if (param.parameter.type == eBindParameterType::TEXTURE || param.parameter.type == eBindParameterType::UNORDERED) {
+			if (tableParams.size() == 0) {
+				tableParams.resize(1);
+			}
 			tableParams[0].push_back(param);
 		}
 		else if (param.parameter.type == eBindParameterType::SAMPLER) {
@@ -199,6 +207,9 @@ void Binder::DistributeParameters(const std::vector<BindParameterDesc>& paramete
 			auto constantIt = constantParams.rbegin();
 			auto endIt = constantParams.rend();
 			if (constantIt != endIt) {
+				if (tableParams.size() == 0) {
+					tableParams.resize(1);
+				}
 				tableParams[0].push_back(*constantIt);
 				constantParams.erase(--constantIt.base());
 			}
@@ -212,9 +223,9 @@ std::pair<std::vector<Binder::RootParameterMapping>::const_iterator, bool> Binde
 	key.bindParam = param;
 	key.constantCount = 0;
 	auto it = std::lower_bound(m_parameters.begin(),
-		m_parameters.end(),
-		key,
-		[](const RootParameterMapping& lhs, const RootParameterMapping& rhs) {
+							   m_parameters.end(),
+							   key,
+							   [](const RootParameterMapping& lhs, const RootParameterMapping& rhs) {
 		return RadixLess(lhs.bindParam, rhs.bindParam);
 	});
 	return{ it, it != m_parameters.end() };
@@ -238,10 +249,10 @@ bool Binder::RadixLess(const BindParameter& lhs, const BindParameter& rhs) {
 
 gxapi::DescriptorRange::eType Binder::CastRangeType(eBindParameterType source) {
 	switch (source) {
-	case eBindParameterType::CONSTANT: return gxapi::DescriptorRange::CBV;
-	case eBindParameterType::TEXTURE: return gxapi::DescriptorRange::SRV;
-	case eBindParameterType::UNORDERED: return gxapi::DescriptorRange::UAV;
-	case eBindParameterType::SAMPLER: return gxapi::DescriptorRange::SAMPLER;
+		case eBindParameterType::CONSTANT: return gxapi::DescriptorRange::CBV;
+		case eBindParameterType::TEXTURE: return gxapi::DescriptorRange::SRV;
+		case eBindParameterType::UNORDERED: return gxapi::DescriptorRange::UAV;
+		case eBindParameterType::SAMPLER: return gxapi::DescriptorRange::SAMPLER;
 	}
 	assert(false);
 	return gxapi::DescriptorRange::eType(0); // just to silence the fucking warning

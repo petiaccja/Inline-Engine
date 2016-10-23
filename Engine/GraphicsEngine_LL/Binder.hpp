@@ -9,6 +9,12 @@
 #include <initializer_list>
 
 
+namespace inl {namespace gxapi {
+	class IGraphicsApi;
+}
+}
+
+
 namespace inl {namespace gxeng {
 class Binder;
 }
@@ -58,6 +64,7 @@ struct BindParameterDesc {
 	unsigned constantSize = 0; /// <summary> Size of constant in bytes. Set to zero if unknown. </summary>
 	float relativeAccessFrequency = 1; /// <summary> Not used currently. TODO: Read more about this aspect. </summary>
 	float relativeChangeFrequency = 1; /// <summary> How often will you change this binding relative to others. Absolute value does not matter. </summary>
+	gxapi::eShaderVisiblity shaderVisibility = gxapi::eShaderVisiblity::ALL;
 };
 
 
@@ -83,13 +90,20 @@ private:
 	static bool RadixLess(const BindParameter& lhs, const BindParameter& rhs);
 public:
 	/// <summary> Create a binder from specified binding points. </summary>
-	Binder(const std::vector<BindParameterDesc>& parameters);
+	Binder(gxapi::IGraphicsApi* gxApi, const std::vector<BindParameterDesc>& parameters);
 
 	/// <summary> Get where in the root signature the specified parameter lies. </summary>
 	/// <param name="parameter"> The parameter to query. </param>
 	/// <param name="rootParamIndex"> The index of the record in the root signature. </param>
 	/// <param name="rootTableIndex"> If the above record is a descriptor table, the index in the table. Otherwise undefined. </param>
 	void Translate(BindParameter parameter, int& rootParamIndex, int& rootTableIndex) const;
+
+	/// <summary> Return the underlying root signature object. </summary>
+	gxapi::IRootSignature* GetRootSignature() const { return m_rootSignature.get(); }
+
+	/// <summary> Return the description of the underying root signature object. </summary>
+	/// <remarks> Use this to determine the type of slots returned by <see cref="Translate">. </remarks>
+	const gxapi::RootSignatureDesc& GetRootSignatureDesc() const { return m_rootSignatureDesc; }
 private:
 	void CalculateLayout(const std::vector<BindParameterDesc>& parameters);
 	void DistributeParameters(const std::vector<BindParameterDesc>& parameters,
@@ -101,8 +115,12 @@ private:
 	std::pair<std::vector<RootParameterMapping>::const_iterator, bool> FindMapping(BindParameter param) const;
 private:
 	std::vector<RootParameterMapping> m_parameters;
-	gxapi::IRootSignature* m_rootSignature;
-	static constexpr int maxSize = 64; // maximum root signature size. TODO: query from gxapi!!!
+	std::unique_ptr<gxapi::IRootSignature> m_rootSignature;
+	gxapi::RootSignatureDesc m_rootSignatureDesc;
+
+	// Maximum root signature size = 64 DWORDs.
+	// TODO: query from gxapi!
+	static constexpr int maxSize = 64*sizeof(uint32_t); 
 };
 
 
