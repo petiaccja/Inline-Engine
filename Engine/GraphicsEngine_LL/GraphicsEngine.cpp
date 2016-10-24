@@ -129,6 +129,29 @@ void GraphicsEngine::Update(float elapsed) {
 }
 
 
+void GraphicsEngine::SetScreenSize(unsigned width, unsigned height) {
+	SyncPoint sp = m_masterCommandQueue.Signal();
+	sp.Wait();
+
+	m_backBufferHeap.reset();
+	m_swapChain->Resize(width, height);
+	m_backBufferHeap = std::make_unique<BackBufferHeap>(m_graphicsApi, m_swapChain.get());
+
+	m_getBBNode->Resize(width, height);
+}
+void GraphicsEngine::GetScreenSize(unsigned& width, unsigned& height) {
+	auto desc = m_swapChain->GetDesc();
+	width = desc.width;
+	height = desc.height;
+}
+
+
+void GraphicsEngine::SetFullScreen(bool enable) {
+	m_swapChain->SetFullScreen(enable);
+}
+bool GraphicsEngine::GetFullScreen() const {
+	return m_swapChain->IsFullScreen();
+}
 
 
 // Resources
@@ -174,7 +197,8 @@ void GraphicsEngine::CreatePipeline() {
 	std::unique_ptr<nodes::GetTime> frameCounter(new nodes::GetTime());
 	std::unique_ptr<nodes::FrameColor> frameColor(new nodes::FrameColor());
 	std::unique_ptr<nodes::GetBackBuffer> getBackBuffer(new nodes::GetBackBuffer());
-	std::unique_ptr<nodes::GetDepthBuffer> getDepthBuffer(new nodes::GetDepthBuffer(&m_memoryManager, &m_resViewFactory, swapChainDesc.width, swapChainDesc.height, swapChainDesc.numBuffers));
+	std::unique_ptr<nodes::GetDepthBuffer> getDepthBuffer(new nodes::GetDepthBuffer(&m_memoryManager, &m_resViewFactory, swapChainDesc.width, swapChainDesc.height));
+	m_getBBNode = getDepthBuffer.get();
 	std::unique_ptr<nodes::ClearRenderTarget> clearRtv(new nodes::ClearRenderTarget());
 	std::unique_ptr<nodes::GetSceneByName> getWorldScene(new nodes::GetSceneByName());
 	std::unique_ptr<nodes::TescoRender> renderWorld(new nodes::TescoRender(m_graphicsApi, m_gxapiManager));

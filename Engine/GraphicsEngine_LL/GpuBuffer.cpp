@@ -8,6 +8,7 @@
 #include "ResourceHeap.hpp"
 
 #include <utility>
+#include <iostream>
 
 namespace inl {
 namespace gxeng {
@@ -173,12 +174,12 @@ uint64_t ConstBuffer::GetSize() const {
 }
 
 
-VolatileConstBuffer::VolatileConstBuffer(gxapi::IResource* resource, void * gpuVirtualPtr, uint32_t dataSize):
+VolatileConstBuffer::VolatileConstBuffer(gxapi::IResource* resource, void * gpuVirtualPtr, uint32_t dataSize) :
 	ConstBuffer(resource, gpuVirtualPtr, dataSize)
 {}
 
 
-PersistentConstBuffer::PersistentConstBuffer(gxapi::IResource* resource, void * gpuVirtualPtr, uint32_t dataSize):
+PersistentConstBuffer::PersistentConstBuffer(gxapi::IResource* resource, void * gpuVirtualPtr, uint32_t dataSize) :
 	ConstBuffer(resource, gpuVirtualPtr, dataSize)
 {}
 
@@ -228,14 +229,14 @@ uint64_t TextureCube::GetHeight() const {
 
 BackBuffer::BackBuffer(DescriptorReference&& descRef, gxapi::RenderTargetViewDesc desc, gxapi::IResource* resource) :
 	// Underlying resource deallocation is managed by the swap chain!
-	Texture2D(resource, [](gxapi::IResource*){}),
-	m_RTV(std::shared_ptr<Texture2D>(this, [](Texture2D*){}), std::move(descRef), desc)
+	Texture2D(resource, [](gxapi::IResource* res) {delete res;}),
+	m_RTV(std::shared_ptr<Texture2D>(this, [](Texture2D*) {}), std::move(descRef), desc)
 {}
 
 
-BackBuffer::BackBuffer(BackBuffer&& other):
+BackBuffer::BackBuffer(BackBuffer&& other) :
 	Texture2D(std::move(other)),
-	m_RTV(std::move(other.m_RTV), std::shared_ptr<Texture2D>(this, [](Texture2D*){}))
+	m_RTV(std::move(other.m_RTV), std::shared_ptr<Texture2D>(this, [](Texture2D*) {}))
 {}
 
 
@@ -250,7 +251,6 @@ BackBuffer& BackBuffer::operator=(BackBuffer&& other) {
 
 	return *this;
 }
-
 
 RenderTargetView& BackBuffer::GetView() {
 	return m_RTV;

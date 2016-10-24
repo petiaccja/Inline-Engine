@@ -33,7 +33,7 @@ public:
 		float b = sin(x*2*pi + 4*pi/3);
 		b = 0.5f*b + 0.5f;
 
-		GetOutput<0>().Set(gxapi::ColorRGBA(r, g, b));
+		GetOutput<0>().Set(gxapi::ColorRGBA(r*0.1f + 0.3f, g*0.1f + 0.3f, b*0.1f + 0.3f));
 	}
 
 	virtual void Notify(exc::InputPortBase* sender) override {}

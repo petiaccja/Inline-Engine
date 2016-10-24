@@ -4,6 +4,7 @@
 
 #include <cassert>
 #include <utility>
+#include <iostream>
 
 namespace inl {
 namespace gxeng {

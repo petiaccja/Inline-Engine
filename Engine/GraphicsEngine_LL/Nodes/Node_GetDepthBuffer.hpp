@@ -20,7 +20,7 @@ class GetDepthBuffer :
 	public exc::OutputPortConfig<DepthStencilView>
 {
 public:
-	GetDepthBuffer(MemoryManager* memgr, ResourceViewFactory* resViewFactory, unsigned width, unsigned height, size_t bufferCount);
+	GetDepthBuffer(MemoryManager* memgr, ResourceViewFactory* resViewFactory, unsigned width, unsigned height);
 
 	virtual void Update() override {}
 
@@ -28,9 +28,13 @@ public:
 
 	virtual Task GetTask() override;
 
+	void Resize(unsigned width, unsigned height);
+private:
+	void Init(unsigned width, unsigned height);
 protected:
-	size_t currBuffer;
-	std::vector<DepthStencilView> m_dsvs;
+	DepthStencilView m_dsv;
+	MemoryManager* m_memoryManager;
+	ResourceViewFactory* m_resourceViewFactory;
 };
 
 

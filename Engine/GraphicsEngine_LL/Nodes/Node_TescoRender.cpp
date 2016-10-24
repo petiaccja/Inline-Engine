@@ -60,7 +60,7 @@ PSInput VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoo
 	float4 worldNormal = mul(cb.invTrModel, normal);
 
 	result.position = mul(cb.MVP, position);
-	result.shade = max(0.05, dot(float4(1, 1, 1, 0), worldNormal));
+	result.shade = max(0.0f, dot(float4(1, 1, 1, 0), worldNormal)) + 0.34f;
 	result.texCoord = texCoord;
 
 	return result;
@@ -152,7 +152,7 @@ void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, cons
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
 	auto view = mathfu::Matrix<float, 4, 4>::FromTranslationVector(mathfu::Vector<float, 3>(0, 0, -7));
-	auto projection = mathfu::Matrix<float, 4, 4>::Perspective((60.f/180)*3.1415926536f, 4.f / 3.f, 1, 100);
+	auto projection = mathfu::Matrix<float, 4, 4>::Perspective((60.f/180)*3.1415926536f, (float)viewport.width / (float)viewport.height, 1, 100);
 	//auto projection = mathfu::Matrix<float, 4, 4>::Ortho(-1, 1, -1, 1, -1, 1);
 
 	auto viewProjection = projection * view;

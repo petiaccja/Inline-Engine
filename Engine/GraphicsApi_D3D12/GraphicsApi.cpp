@@ -22,6 +22,20 @@ namespace gxapi_dx12 {
 
 
 GraphicsApi::GraphicsApi(Microsoft::WRL::ComPtr<ID3D12Device1> device) : m_device(device) {
+	m_device->QueryInterface(IID_PPV_ARGS(&m_debugDevice));
+}
+
+GraphicsApi::~GraphicsApi() {
+	//if (m_debugDevice) {
+	//	m_debugDevice->ReportLiveDeviceObjects(D3D12_RLDO_DETAIL);
+	//}
+}
+
+void GraphicsApi::ReportLiveObjects() const {
+	OutputDebugStringW(L"Live Direct3D 12 objects:\n");
+	if (m_debugDevice) {
+		m_debugDevice->ReportLiveDeviceObjects(D3D12_RLDO_DETAIL);
+	}
 }
 
 

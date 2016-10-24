@@ -57,5 +57,13 @@ void* Resource::GetGPUAddress() const {
 }
 
 
+void Resource::SetName(const char* name) {
+	int count = strlen(name);
+	std::unique_ptr<wchar_t[]> dest = std::make_unique<wchar_t[]>(count + 1);
+	mbstowcs(dest.get(), name, count);
+	m_native->SetName(dest.get());
+}
+
+
 } // namespace gxapi_dx12
 } // namespace inl

@@ -14,6 +14,10 @@ namespace gxapi_dx12 {
 
 SwapChain::SwapChain(Microsoft::WRL::ComPtr<IDXGISwapChain3> native) {
 	m_native = native;
+	for (int i=0; i<GetDesc().numBuffers; ++i) {
+		std::unique_ptr<IResource> buf(GetBuffer(i));
+		buf->SetName("BackBuffer");
+	}
 }
 
 
@@ -50,7 +54,7 @@ void SwapChain::SetFullScreen(bool isFullScreen) {
 		case S_OK:
 			return;
 		case DXGI_ERROR_NOT_CURRENTLY_AVAILABLE:
-			throw Exception("Cannot swicth to fullscreen mode now. Try again later.");
+			throw Exception("Cannot switch to fullscreen mode now. Try again later.");
 		case DXGI_STATUS_MODE_CHANGE_IN_PROGRESS:
 			throw InvalidState("Already transitioning to fullscreen or windowed.");
 		case E_OUTOFMEMORY: 

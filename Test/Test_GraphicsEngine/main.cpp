@@ -32,6 +32,7 @@ exc::Logger logger;
 exc::LogStream systemLogStream = logger.CreateLogStream("system");
 exc::LogStream graphicsLogStream = logger.CreateLogStream("graphics");
 std::experimental::filesystem::path logFilePath;
+GraphicsEngine* pEngine = nullptr;
 
 
 std::string errorMessage;
@@ -64,7 +65,7 @@ int main() {
 
 	// Set exception handler
 	std::set_terminate([]()
-	{	
+	{
 		try {
 			std::rethrow_exception(std::current_exception());
 			systemLogStream.Event(std::string("Terminate called, shutting down services."));
@@ -123,7 +124,7 @@ int main() {
 		cout << "Could not create window." << endl;
 		return 0;
 	}
-	
+
 	// Show the window
 	ShowWindow(hWnd, SW_SHOW);
 	UpdateWindow(hWnd);
@@ -137,7 +138,13 @@ int main() {
 	// Create GraphicsEngine
 	systemLogStream.Event("Initializing Graphics Engine...");
 	std::unique_ptr<IGxapiManager> gxapiMgr;
-	std::unique_ptr<IGraphicsApi> gxapi;
+	struct ReportDeleter {
+		void operator()(IGraphicsApi* obj) const {
+			obj->ReportLiveObjects();
+			delete obj;
+		}
+	};
+	std::unique_ptr<IGraphicsApi, ReportDeleter> gxapi;
 	std::unique_ptr<GraphicsEngine> engine;
 	std::unique_ptr<MiniWorld> miniWorld;
 	try {
@@ -168,6 +175,7 @@ int main() {
 		desc.logger = &logger;
 
 		engine.reset(new GraphicsEngine(desc));
+		pEngine = engine.get();
 
 		// Create mini world
 		miniWorld.reset(new MiniWorld(engine.get()));
@@ -177,12 +185,14 @@ int main() {
 		logger.Flush();
 	}
 	catch (inl::gxapi::Exception& ex) {
+		pEngine = nullptr;
 		isEngineInit = false;
 		errorMessage = "Error creating GraphicsEngine: " + ex.Message();
 		systemLogStream.Event(errorMessage);
 		logger.Flush();
 	}
 	catch (std::exception& ex) {
+		pEngine = nullptr;
 		isEngineInit = false;
 		errorMessage = std::string("Error creating GraphicsEngine: ") + ex.what();
 		systemLogStream.Event(errorMessage);
@@ -197,7 +207,7 @@ int main() {
 	// Game-style main loop
 	MSG msg;
 	bool run = true;
-	
+
 	std::chrono::high_resolution_clock::time_point timestamp = std::chrono::high_resolution_clock::now();
 	std::chrono::nanoseconds frameTime(1000);
 	std::chrono::nanoseconds frameRateUpdate(0);
@@ -244,10 +254,12 @@ int main() {
 					frameTimeHistory.clear();
 				}
 				frameTimeHistory.push_back(frameTime);
-				
+
 
 				std::stringstream ss;
-				ss << "Graphics Engine Test | " << "FPS=" << (int)avgFps;
+				unsigned width, height;
+				engine->GetScreenSize(width, height);
+				ss << "Graphics Engine Test | " << width << "x" << height << " | FPS=" << (int)avgFps;
 				SetWindowTextA(hWnd, ss.str().c_str());
 			}
 			catch (std::exception& ex) {
@@ -286,9 +298,39 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				return DefWindowProc(hWnd, msg, wParam, lParam);
 			}
 		}
+		case WM_SIZE:
+		{
+			if (isEngineInit) {
+				RECT clientRect;
+				GetClientRect(hWnd, &clientRect);
+				unsigned width = clientRect.right - clientRect.top;
+				unsigned height = clientRect.bottom - clientRect.top;
+				pEngine->SetScreenSize(width, height);
+				return 0;
+			}
+			else {
+				return DefWindowProc(hWnd, msg, wParam, lParam);
+			}
+		}
 		case WM_KEYUP:
 			if (wParam == VK_ESCAPE) {
 				PostQuitMessage(0);
+				return 0;
+			}
+			else if (wParam == VK_RETURN) {
+				if (pEngine) {
+					bool isfs = pEngine->GetFullScreen();
+					if (isfs) {
+						pEngine->SetFullScreen(false);
+					}
+					else {
+						int monWidth = GetSystemMetrics(SM_CXSCREEN);
+						int monHeight = GetSystemMetrics(SM_CYSCREEN);
+						pEngine->SetFullScreen(true);
+						pEngine->SetScreenSize(monWidth, monHeight);
+					}
+				}
+				return 0;
 			}
 			return 0;
 		default:

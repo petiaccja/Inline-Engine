@@ -20,6 +20,9 @@
 
 #include <BaseLibrary/Logging_All.hpp>
 
+// DELETE THIS
+#include "Nodes/Node_GetDepthBuffer.hpp"
+
 
 namespace inl {
 namespace gxeng {
@@ -75,6 +78,10 @@ public:
 
 	// Update scene
 	void Update(float elapsed);
+	void SetScreenSize(unsigned width, unsigned height);
+	void GetScreenSize(unsigned& width, unsigned& height);
+	void SetFullScreen(bool enable);
+	bool GetFullScreen() const;
 
 	// Resources
 	Mesh* CreateMesh();
@@ -120,6 +127,9 @@ private:
 
 	// Scene
 	std::set<Scene*> m_scenes;
+
+	// DELETE THIS
+	nodes::GetDepthBuffer* m_getBBNode;
 };
 
 

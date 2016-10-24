@@ -13,6 +13,9 @@ public:
 	virtual void* Map(unsigned subresourceIndex, const MemoryRange* readRange = nullptr) = 0;
 	virtual void Unmap(unsigned subresourceIndex, const MemoryRange* writtenRange = nullptr) = 0;
 	virtual void* GetGPUAddress() const = 0;
+
+	// Debug
+	virtual void SetName(const char* name) = 0;
 };
 
 } // namespace gxapi

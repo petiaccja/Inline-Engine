@@ -3,6 +3,8 @@
 #include "GpuBuffer.hpp"
 #include "CopyCommandList.hpp"
 
+#include <iostream>
+
 
 namespace inl {
 namespace gxeng {
@@ -57,15 +59,15 @@ BackBufferHeap::BackBufferHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapCha
 	m_backBuffers.reserve(numBuffers);
 	for (unsigned i = 0; i < numBuffers; i++) {
 		gxapi::DescriptorHandle descHandle = m_descriptorHeap->At(i);
-		gxapi::IResource* lowLeveBuffer = swapChain->GetBuffer(i);
+		std::unique_ptr<gxapi::IResource> lowLeveBuffer(swapChain->GetBuffer(i));
 
 		auto resourceDesc = lowLeveBuffer->GetDesc();
 		assert(resourceDesc.textureDesc.depthOrArraySize == 1);
 		desc.format = resourceDesc.textureDesc.format;
 
-		m_graphicsApi->CreateRenderTargetView(lowLeveBuffer, desc, descHandle);
+		m_graphicsApi->CreateRenderTargetView(lowLeveBuffer.get(), desc, descHandle);
 
-		BackBuffer highLevelBuffer(DescriptorReference(descHandle, nullptr), desc, lowLeveBuffer);
+		BackBuffer highLevelBuffer(DescriptorReference(descHandle, nullptr), desc, lowLeveBuffer.release());
 		highLevelBuffer._SetResident(true); // I guess...
 
 		m_backBuffers.push_back(std::move(highLevelBuffer));

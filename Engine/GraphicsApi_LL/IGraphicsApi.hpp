@@ -89,6 +89,9 @@ public:
 
 	virtual void MakeResident(const std::vector<gxapi::IResource*>& objects) = 0;
 	virtual void Evict(const std::vector<gxapi::IResource*>& objects) = 0;
+
+	// Debug
+	virtual void ReportLiveObjects() const = 0;
 };
 
 
