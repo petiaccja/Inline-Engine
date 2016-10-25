@@ -47,7 +47,7 @@ BackBufferHeap::BackBufferHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapCha
 		gxapi::DescriptorHeapDesc heapDesc;
 		heapDesc.isShaderVisible = false;
 		heapDesc.numDescriptors = numBuffers;
-		heapDesc.type = gxapi::eDesriptorHeapType::RTV;
+		heapDesc.type = gxapi::eDescriptorHeapType::RTV;
 		m_descriptorHeap.reset(m_graphicsApi->CreateDescriptorHeap(heapDesc));
 	}
 

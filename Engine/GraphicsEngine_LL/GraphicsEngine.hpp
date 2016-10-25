@@ -9,7 +9,6 @@
 #include "PipelineEventListener.hpp"
 
 #include "ResourceHeap.hpp"
-#include "ResouceViewFactory.hpp"
 #include "MemoryManager.hpp"
 #include "HighLevelDescHeap.hpp"
 
@@ -107,7 +106,7 @@ private:
 
 	// Memory
 	MemoryManager m_memoryManager;
-	ResourceViewFactory m_resViewFactory;
+	DSVHeap m_dsvHeap; // TODO
 	std::unique_ptr<BackBufferHeap> m_backBufferHeap;
 
 	// Pipeline elements

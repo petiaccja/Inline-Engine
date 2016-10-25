@@ -193,7 +193,6 @@
     <ClInclude Include="Pipeline.hpp" />
     <ClInclude Include="PipelineEventDispatcher.hpp" />
     <ClInclude Include="PipelineEventListener.hpp" />
-    <ClInclude Include="ResouceViewFactory.hpp" />
     <ClInclude Include="ResourceHeap.hpp" />
     <ClInclude Include="ResourceResidencyQueue.hpp" />
     <ClInclude Include="ResourceView.hpp" />
@@ -235,7 +234,6 @@
     <ClCompile Include="Nodes\Node_TescoRender.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="PipelineEventDispatcher.cpp" />
-    <ClCompile Include="ResouceViewFactory.cpp" />
     <ClCompile Include="ResourceHeap.cpp" />
     <ClCompile Include="ResourceResidencyQueue.cpp" />
     <ClCompile Include="ResourceView.cpp" />

@@ -75,7 +75,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	m_currentBackBuffer = m_swapChain->GetCurrentBufferIndex();
 
 	// Get swap chain buffers
-	m_rtvs.reset(m_graphicsApi->CreateDescriptorHeap(DescriptorHeapDesc{ eDesriptorHeapType::RTV, 2, false }));
+	m_rtvs.reset(m_graphicsApi->CreateDescriptorHeap(DescriptorHeapDesc{ eDescriptorHeapType::RTV, 2, false }));
 	RenderTargetViewDesc rtvDesc;
 	rtvDesc.format = eFormat::R8G8B8A8_UNORM;
 	rtvDesc.dimension = eRtvDimension::TEXTURE2D;
@@ -86,7 +86,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	m_graphicsApi->CreateRenderTargetView(rt1, rtvDesc, m_rtvs->At(0));
 	m_graphicsApi->CreateRenderTargetView(rt2, rtvDesc, m_rtvs->At(1));
 
-	m_dsv.reset(m_graphicsApi->CreateDescriptorHeap(DescriptorHeapDesc{ eDesriptorHeapType::DSV, 2, false }));
+	m_dsv.reset(m_graphicsApi->CreateDescriptorHeap(DescriptorHeapDesc{ eDescriptorHeapType::DSV, 2, false }));
 	{
 		ResourceDesc depthBufferDesc;
 		depthBufferDesc.type = eResourceType::TEXTURE;

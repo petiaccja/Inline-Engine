@@ -4,7 +4,6 @@
 
 #include "../ResourceView.hpp"
 #include "../MemoryManager.hpp"
-#include "../ResouceViewFactory.hpp"
 
 #include <cmath>
 
@@ -20,7 +19,7 @@ class GetDepthBuffer :
 	public exc::OutputPortConfig<DepthStencilView>
 {
 public:
-	GetDepthBuffer(MemoryManager* memgr, ResourceViewFactory* resViewFactory, unsigned width, unsigned height);
+	GetDepthBuffer(MemoryManager* memgr, DSVHeap& dsvHeap, unsigned width, unsigned height);
 
 	virtual void Update() override {}
 
@@ -34,7 +33,7 @@ private:
 protected:
 	DepthStencilView m_dsv;
 	MemoryManager* m_memoryManager;
-	ResourceViewFactory* m_resourceViewFactory;
+	DSVHeap& m_dsvHeap;
 };
 
 
