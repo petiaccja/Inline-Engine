@@ -23,7 +23,7 @@ PipelineEventDispatcher::PipelineEventDispatcher(PipelineEventDispatcher&& rhs) 
 
 PipelineEventDispatcher& PipelineEventDispatcher::operator=(PipelineEventDispatcher&& rhs) {
 	Shutdown();
-	
+
 	state = std::move(rhs.state);
 	m_eventThread = std::move(rhs.m_eventThread);
 	m_deviceSyncThread = std::move(rhs.m_deviceSyncThread);
@@ -141,21 +141,21 @@ void PipelineEventDispatcher::DispatchThread(std::shared_ptr<State> state) {
 
 		// 6. call event handlers
 		for (auto& event : events) {
-			for (auto listener : state->m_listeners) {
-				try {
+			try {
+				for (auto listener : state->m_listeners) {
 					event.action(listener);
-					event.signal.set_value();
 				}
-				catch (...) {
-					assert(false); // should log instead
-					event.signal.set_exception(std::current_exception());
-				}
+				event.signal.set_value();
+			}
+			catch (...) {
+				assert(false); // should log instead
+				event.signal.set_exception(std::current_exception());
 			}
 		}
-
-		// 7. ???
-		// 8. profit
 	}
+
+	// 7. ???
+	// 8. profit
 }
 
 void PipelineEventDispatcher::DeviceSyncThread(std::shared_ptr<State> state) {

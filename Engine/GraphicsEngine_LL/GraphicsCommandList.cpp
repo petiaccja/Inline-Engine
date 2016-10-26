@@ -196,7 +196,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, Texture3D* shade
 
 void GraphicsCommandList::BindGraphicsTexture(BindParameter parameter, gxapi::DescriptorHandle handle) {
 	throw std::runtime_error("not implemented");
-	assert(binder != null);
+	assert(m_binder != nullptr);
 
 	int slot, tableIndex;
 	const gxapi::RootSignatureDesc& desc = m_binder->GetRootSignatureDesc();
@@ -213,7 +213,7 @@ void GraphicsCommandList::BindGraphicsTexture(BindParameter parameter, gxapi::De
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, ConstBuffer* shaderConstant) {
 	throw std::runtime_error("not implemented");
-	assert(binder != null);
+	assert(m_binder != nullptr);
 
 	int slot, tableIndex;
 	const gxapi::RootSignatureDesc& desc = m_binder->GetRootSignatureDesc();
@@ -235,7 +235,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const void* shad
 	if (size % 4 != 0) {
 		throw std::invalid_argument("Size must be a multiple of 4.");
 	}
-	assert(binder != null);
+	assert(m_binder != nullptr);
 
 	int slot;
 	int tableIndex;
