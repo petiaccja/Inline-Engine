@@ -1,14 +1,17 @@
 #pragma once
 
+#include "PipelineEventListener.hpp"
 #include "GpuBuffer.hpp"
 
 #include <utility>
+#include <mutex>
+#include <deque>
 
 namespace inl {
 namespace gxeng {
 
 
-class UploadHeap {
+class UploadHeap : public PipelineEventListener {
 public:
 	struct UploadDescription {
 		UploadDescription(GenericResource&& source, std::weak_ptr<GenericResource> destination, size_t offsetDst) :
@@ -24,11 +27,17 @@ public:
 
 	void UploadToResource(std::weak_ptr<LinearBuffer> target, size_t offset, const void* data, size_t size);
 
+	void OnFrameBeginDevice(uint64_t frameId) override;
+	void OnFrameBeginHost(uint64_t frameId) override;
+	void OnFrameCompleteDevice(uint64_t frameId) override;
+	void OnFrameCompleteHost(uint64_t frameId) override;
+
 	const std::vector<UploadDescription>& _GetQueuedUploads();
-	void _ClearQueuedUploads();
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
-	std::vector<UploadDescription> m_uploadQueue;
+	std::deque<std::vector<UploadDescription>> m_uploadQueues;
+
+	std::mutex m_mtx;
 };
 
 

@@ -38,7 +38,7 @@ protected:
 		void* const m_gpuAddress;
 		const size_t m_pageSize;
 		size_t m_consumedSize;
-		size_t m_ownerFrameID;
+		uint64_t m_ownerFrameID;
 	};
 
 public:
@@ -59,8 +59,8 @@ protected:
 	exc::RingBuffer<ConstBufferPage> m_pages;
 	std::mutex m_mutex;
 
-	size_t m_currFrameID = 1;
-	size_t m_lastFinishedFrameID = 0;
+	uint64_t m_currFrameID = 1;
+	uint64_t m_lastFinishedFrameID = 0;
 
 protected:
 	// From ( https://msdn.microsoft.com/en-us/library/windows/desktop/dn899216%28v=vs.85%29.aspx )

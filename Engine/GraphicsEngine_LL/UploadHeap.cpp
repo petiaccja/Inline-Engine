@@ -1,12 +1,18 @@
 #include "UploadHeap.hpp"
 
+
 namespace inl {
 namespace gxeng {
 
 
 UploadHeap::UploadHeap(gxapi::IGraphicsApi* graphicsApi) :
 	m_graphicsApi(graphicsApi)
-{}
+{
+	std::lock_guard<std::mutex> lock(m_mtx);
+
+	// Add a new queue before any frame starts to handle uploads at initialization.
+	m_uploadQueues.push_back(std::vector<UploadDescription>()); 
+}
 
 
 void UploadHeap::UploadToResource(std::weak_ptr<LinearBuffer> target, size_t offset, const void* data, size_t size) {
@@ -30,15 +36,20 @@ void UploadHeap::UploadToResource(std::weak_ptr<LinearBuffer> target, size_t off
 	);
 
 	{
+		std::lock_guard<std::mutex> lock(m_mtx);
+
+		auto& currQueue = m_uploadQueues.back();
+		
 		UploadDescription uploadDesc(
 			GenericResource(uploadRes),
 			target,
 			offset
 		);
 
-		m_uploadQueue.push_back(std::move(uploadDesc));
+		currQueue.push_back(std::move(uploadDesc));
+		
+		currQueue.back().source._SetResident(true);
 	}
-	m_uploadQueue.back().source._SetResident(true);
 
 	gxapi::MemoryRange noReadRange{0, 0};
 	void* stagePtr = uploadRes->Map(0, &noReadRange);
@@ -49,21 +60,32 @@ void UploadHeap::UploadToResource(std::weak_ptr<LinearBuffer> target, size_t off
 }
 
 
-const std::vector<UploadHeap::UploadDescription>& UploadHeap::_GetQueuedUploads() {
-	return m_uploadQueue;
+void UploadHeap::OnFrameBeginDevice(uint64_t frameId) {
 }
 
-void UploadHeap::_ClearQueuedUploads() {
-#pragma message("Artúr ezt csináld meg, lécci! UploadHeap.cpp:57")
-#pragma message("Becopyzom még vagy tízszer, hogy tuti lásd a sok buzi warning között :D")
-#pragma message("Artúr ezt csináld meg, lécci! UploadHeap.cpp:57")
-#pragma message("Artúr ezt csináld meg, lécci! UploadHeap.cpp:57")
-#pragma message("Artúr ezt csináld meg, lécci! UploadHeap.cpp:57")
-#pragma message("Artúr ezt csináld meg, lécci! UploadHeap.cpp:57")
-#pragma message("Artúr ezt csináld meg, lécci! UploadHeap.cpp:57")
-	throw std::runtime_error("Not implemented!");
-	m_uploadQueue.clear();
+
+void UploadHeap::OnFrameBeginHost(uint64_t frameId) {
+	std::lock_guard<std::mutex> lock(m_mtx);
+
+	m_uploadQueues.push_back(std::vector<UploadDescription>());
 }
+
+
+void UploadHeap::OnFrameCompleteDevice(uint64_t frameId) {
+	std::lock_guard<std::mutex> lock(m_mtx);
+
+	m_uploadQueues.pop_front();
+}
+
+
+void UploadHeap::OnFrameCompleteHost(uint64_t frameId) {
+}
+
+
+const std::vector<UploadHeap::UploadDescription>& UploadHeap::_GetQueuedUploads() {
+	return m_uploadQueues.back();
+}
+
 
 } // namespace gxeng
 } // namespace inl
