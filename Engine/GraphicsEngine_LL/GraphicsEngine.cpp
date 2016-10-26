@@ -70,8 +70,7 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_pipelineEventDispatcher += &m_memoryManager.GetUploadHeap();
 	// DELETE THIS
 	m_pipelineEventPrinter.SetLog(&m_logStreamPipeline);
-	//m_pipelineEventDispatcher += &m_pipelineEventPrinter;
-
+	m_pipelineEventDispatcher += &m_pipelineEventPrinter;
 }
 
 
