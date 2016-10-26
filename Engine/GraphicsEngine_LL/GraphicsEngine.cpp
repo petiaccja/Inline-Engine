@@ -35,7 +35,7 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_masterCommandQueue(desc.graphicsApi->CreateCommandQueue(CommandQueueDesc{ eCommandListType::GRAPHICS }), desc.graphicsApi->CreateFence(0)),
 	m_residencyQueue(std::unique_ptr<gxapi::IFence>(desc.graphicsApi->CreateFence(0))),
 	m_memoryManager(desc.graphicsApi),
-	m_resViewFactory(desc.graphicsApi),
+	m_dsvHeap(desc.graphicsApi),
 	m_logger(desc.logger)
 {
 	// Create swapchain
@@ -197,7 +197,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::unique_ptr<nodes::GetTime> frameCounter(new nodes::GetTime());
 	std::unique_ptr<nodes::FrameColor> frameColor(new nodes::FrameColor());
 	std::unique_ptr<nodes::GetBackBuffer> getBackBuffer(new nodes::GetBackBuffer());
-	std::unique_ptr<nodes::GetDepthBuffer> getDepthBuffer(new nodes::GetDepthBuffer(&m_memoryManager, &m_resViewFactory, swapChainDesc.width, swapChainDesc.height));
+	std::unique_ptr<nodes::GetDepthBuffer> getDepthBuffer(new nodes::GetDepthBuffer(&m_memoryManager, m_dsvHeap, swapChainDesc.width, swapChainDesc.height));
 	m_getBBNode = getDepthBuffer.get();
 	std::unique_ptr<nodes::ClearRenderTarget> clearRtv(new nodes::ClearRenderTarget());
 	std::unique_ptr<nodes::GetSceneByName> getWorldScene(new nodes::GetSceneByName());

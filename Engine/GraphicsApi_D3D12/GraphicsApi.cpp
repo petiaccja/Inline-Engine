@@ -373,7 +373,7 @@ void GraphicsApi::CopyDescriptors(
 	size_t numDstDescRanges,
 	gxapi::DescriptorHandle * dstRangeStarts,
 	uint32_t * rangeCounts,
-	gxapi::eDesriptorHeapType descHeapsType
+	gxapi::eDescriptorHeapType descHeapsType
 ) {
 	std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> nativeDstRangeStarts(numDstDescRanges);
 	for (int i = 0; i < numDstDescRanges; i++) {
@@ -391,7 +391,7 @@ void GraphicsApi::CopyDescriptors(
 	gxapi::DescriptorHandle srcStart,
 	gxapi::DescriptorHandle dstStart,
 	size_t rangeCount,
-	gxapi::eDesriptorHeapType descHeapsType
+	gxapi::eDescriptorHeapType descHeapsType
 ) {
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeDstRangeStart;
 	nativeDstRangeStart.ptr = native_cast_ptr(dstStart.cpuAddress);

@@ -8,12 +8,14 @@
 
 #include <vector>
 #include <mutex>
+#include <functional>
 
 namespace inl {
 namespace gxeng {
 
 class HostDescHeap;
 class ScratchSpace;
+class GenericResource;
 
 class DescriptorReference {
 public:
@@ -106,28 +108,53 @@ protected:
 /// This class is thread safe.
 /// </summary>
 /// (Name is subject to change)
-class HostDescHeap
-{
+class HostDescHeap {
 public:
-	HostDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDesriptorHeapType type);
+	HostDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type);
 
 	DescriptorReference Allocate();
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
 
-	const gxapi::eDesriptorHeapType m_type;
+	const gxapi::eDescriptorHeapType m_type;
 
+private:
 	const size_t m_heapChunkSize;
 	std::vector<std::unique_ptr<gxapi::IDescriptorHeap>> m_heapChunks;
 	std::mutex m_mutex;
 	exc::SlabAllocatorEngine m_allocator;
 
-protected:
+private:
 	void DeallocateTextureSpace(size_t pos);
 	gxapi::DescriptorHandle GetAtTextureSpace(size_t pos);
 	void PushNewTextureSpaceChunk();
-	size_t GetOptimalChunkSize(gxapi::eDesriptorHeapType type);
+	size_t GetOptimalChunkSize(gxapi::eDescriptorHeapType type);
+};
+
+
+class RTVHeap : protected HostDescHeap {
+public:
+	RTVHeap(gxapi::IGraphicsApi* graphicsApi);
+
+	DescriptorReference Create(GenericResource& resource, gxapi::RenderTargetViewDesc desc);
+};
+
+
+class DSVHeap : protected HostDescHeap {
+public:
+	DSVHeap(gxapi::IGraphicsApi* graphicsApi);
+
+	DescriptorReference Create(GenericResource& resource, gxapi::DepthStencilViewDesc desc);
+};
+
+
+class PersistentResViewHeap : protected HostDescHeap {
+public:
+	PersistentResViewHeap(gxapi::IGraphicsApi* graphicsApi);
+
+	DescriptorReference CreateCBV(gxapi::ConstantBufferViewDesc desc);
+	DescriptorReference CreateSRV(GenericResource& resource, gxapi::ShaderResourceViewDesc desc);
 };
 
 } // namespace gxeng

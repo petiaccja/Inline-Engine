@@ -19,12 +19,6 @@
 namespace inl {
 namespace gxeng {
 
-// Utility function to move a resource from the stack to the heap
-template <typename T>
-inline std::shared_ptr<T> ToShared(T&& moved) {
-	return std::shared_ptr<T>(new T(std::move(moved)));
-}
-
 
 class MemoryManager {
 public:
@@ -49,8 +43,8 @@ public:
 	void UnlockResident(IterT begin, IterT end);
 
 	UploadHeap& GetUploadHeap();
-	VolatileConstBuffer CreateVolatileConstBuffer(void* data, size_t size);
-	PersistentConstBuffer CreatePersistentConstBuffer(void* data, size_t size);
+	VolatileConstBuffer CreateVolatileConstBuffer(void* data, uint32_t size);
+	PersistentConstBuffer CreatePersistentConstBuffer(void* data, uint32_t size);
 
 	VertexBuffer CreateVertexBuffer(eResourceHeapType heap, size_t size);
 	IndexBuffer CreateIndexBuffer(eResourceHeapType heap, size_t size, size_t indexCount);

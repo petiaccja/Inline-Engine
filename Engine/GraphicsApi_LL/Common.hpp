@@ -248,7 +248,7 @@ enum class eCommandQueuePriority {
 };
 
 
-enum class eDesriptorHeapType {
+enum class eDescriptorHeapType {
 	CBV_SRV_UAV,
 	SAMPLER,
 	RTV,
@@ -816,9 +816,9 @@ struct CommandListDesc {
 
 struct DescriptorHeapDesc {
 	DescriptorHeapDesc() = default;
-	DescriptorHeapDesc(eDesriptorHeapType type, size_t numDescriptors, bool isShaderVisible)
+	DescriptorHeapDesc(eDescriptorHeapType type, size_t numDescriptors, bool isShaderVisible)
 		: type(type), numDescriptors(numDescriptors), isShaderVisible(isShaderVisible) {}
-	eDesriptorHeapType type;
+	eDescriptorHeapType type;
 	size_t numDescriptors;
 	bool isShaderVisible;
 };

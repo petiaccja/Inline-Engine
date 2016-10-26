@@ -1,5 +1,7 @@
 #include "HighLevelDescHeap.hpp"
 
+#include "GpuBuffer.hpp"
+
 #include <cassert>
 #include <array>
 #include <type_traits>
@@ -194,7 +196,7 @@ DescriptorReference ScratchSpace::AllocateSingle() {
 ScratchSpace::ScratchSpace(gxapi::IGraphicsApi * graphicsApi, size_t size) :
 	m_allocator(size)
 {
-	gxapi::DescriptorHeapDesc desc(gxapi::eDesriptorHeapType::CBV_SRV_UAV, size, true);
+	gxapi::DescriptorHeapDesc desc(gxapi::eDescriptorHeapType::CBV_SRV_UAV, size, true);
 	m_heap.reset(graphicsApi->CreateDescriptorHeap(desc));
 }
 
@@ -202,7 +204,7 @@ ScratchSpace::ScratchSpace(gxapi::IGraphicsApi * graphicsApi, size_t size) :
 //=========================================================
 
 
-HostDescHeap::HostDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDesriptorHeapType type) :
+HostDescHeap::HostDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type) :
 	m_graphicsApi(graphicsApi),
 	m_type(type),
 	m_heapChunkSize(GetOptimalChunkSize(type)),
@@ -260,13 +262,13 @@ void HostDescHeap::PushNewTextureSpaceChunk() {
 }
 
 
-size_t HostDescHeap::GetOptimalChunkSize(gxapi::eDesriptorHeapType type) {
+size_t HostDescHeap::GetOptimalChunkSize(gxapi::eDescriptorHeapType type) {
 	switch (type) {
-	case gxapi::eDesriptorHeapType::CBV_SRV_UAV:
-	case gxapi::eDesriptorHeapType::SAMPLER:
+	case gxapi::eDescriptorHeapType::CBV_SRV_UAV:
+	case gxapi::eDescriptorHeapType::SAMPLER:
 		return 256;
-	case gxapi::eDesriptorHeapType::RTV:
-	case gxapi::eDesriptorHeapType::DSV:
+	case gxapi::eDescriptorHeapType::RTV:
+	case gxapi::eDescriptorHeapType::DSV:
 		return 16;
 	default:
 		assert(false);
@@ -274,6 +276,58 @@ size_t HostDescHeap::GetOptimalChunkSize(gxapi::eDesriptorHeapType type) {
 
 	return 256;
 }
+
+
+RTVHeap::RTVHeap(gxapi::IGraphicsApi * graphicsApi) :
+	HostDescHeap(graphicsApi, gxapi::eDescriptorHeapType::RTV)
+{}
+
+
+DescriptorReference RTVHeap::Create(GenericResource & resource, gxapi::RenderTargetViewDesc desc) {
+	auto descRef = Allocate();
+
+	m_graphicsApi->CreateRenderTargetView(resource._GetResourcePtr(), desc, descRef.Get());
+
+	return descRef;
+}
+
+
+DSVHeap::DSVHeap(gxapi::IGraphicsApi* graphicsApi) :
+	HostDescHeap(graphicsApi, gxapi::eDescriptorHeapType::DSV)
+{}
+
+
+DescriptorReference DSVHeap::Create(GenericResource & resource, gxapi::DepthStencilViewDesc desc) {
+	auto descRef = Allocate();
+
+	m_graphicsApi->CreateDepthStencilView(resource._GetResourcePtr(), desc, descRef.Get());
+
+	return descRef;
+}
+
+
+PersistentResViewHeap::PersistentResViewHeap(gxapi::IGraphicsApi* graphicsApi) :
+	HostDescHeap(graphicsApi, gxapi::eDescriptorHeapType::CBV_SRV_UAV)
+{}
+
+
+DescriptorReference PersistentResViewHeap::CreateCBV(gxapi::ConstantBufferViewDesc desc) {
+	auto descRef = Allocate();
+
+	m_graphicsApi->CreateConstantBufferView(desc, descRef.Get());
+
+	return descRef;
+}
+
+
+DescriptorReference PersistentResViewHeap::CreateSRV(GenericResource& resource, gxapi::ShaderResourceViewDesc desc) {
+	auto descRef = Allocate();
+
+	m_graphicsApi->CreateShaderResourceView(resource._GetResourcePtr(), desc, descRef.Get());
+
+	return descRef;
+}
+
 
 
 } // namespace inl

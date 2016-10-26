@@ -59,7 +59,7 @@ D3D12_PRIMITIVE_TOPOLOGY native_cast(gxapi::ePrimitiveTopology source);
 
 D3D12_COMMAND_LIST_TYPE native_cast(gxapi::eCommandListType source);
 
-D3D12_DESCRIPTOR_HEAP_TYPE native_cast(gxapi::eDesriptorHeapType source);
+D3D12_DESCRIPTOR_HEAP_TYPE native_cast(gxapi::eDescriptorHeapType source);
 
 D3D12_ROOT_PARAMETER_TYPE native_cast(gxapi::RootParameterDesc::eType source);
 
@@ -255,7 +255,7 @@ gxapi::eCommandListType native_cast(D3D12_COMMAND_LIST_TYPE source);
 
 gxapi::eCommandQueuePriority native_cast(D3D12_COMMAND_QUEUE_PRIORITY source);
 
-gxapi::eDesriptorHeapType native_cast(D3D12_DESCRIPTOR_HEAP_TYPE source);
+gxapi::eDescriptorHeapType native_cast(D3D12_DESCRIPTOR_HEAP_TYPE source);
 
 gxapi::CommandQueueDesc native_cast(D3D12_COMMAND_QUEUE_DESC source);
 

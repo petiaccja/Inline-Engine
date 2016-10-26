@@ -186,16 +186,16 @@ D3D12_COMMAND_LIST_TYPE native_cast(gxapi::eCommandListType source) {
 }
 
 
-D3D12_DESCRIPTOR_HEAP_TYPE native_cast(gxapi::eDesriptorHeapType source) {
-	using gxapi::eDesriptorHeapType;
+D3D12_DESCRIPTOR_HEAP_TYPE native_cast(gxapi::eDescriptorHeapType source) {
+	using gxapi::eDescriptorHeapType;
 	switch (source) {
-	case eDesriptorHeapType::CBV_SRV_UAV:
+	case eDescriptorHeapType::CBV_SRV_UAV:
 		return D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	case eDesriptorHeapType::SAMPLER:
+	case eDescriptorHeapType::SAMPLER:
 		return D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
-	case eDesriptorHeapType::RTV:
+	case eDescriptorHeapType::RTV:
 		return D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	case eDesriptorHeapType::DSV:
+	case eDescriptorHeapType::DSV:
 		return D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	default:
 		assert(false);
@@ -2096,23 +2096,23 @@ gxapi::eCommandQueuePriority native_cast(D3D12_COMMAND_QUEUE_PRIORITY source) {
 	return gxapi::eCommandQueuePriority{};
 }
 
-gxapi::eDesriptorHeapType native_cast(D3D12_DESCRIPTOR_HEAP_TYPE source) {
-	using gxapi::eDesriptorHeapType;
+gxapi::eDescriptorHeapType native_cast(D3D12_DESCRIPTOR_HEAP_TYPE source) {
+	using gxapi::eDescriptorHeapType;
 
 	switch (source) {
 	case D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV:
-		return eDesriptorHeapType::CBV_SRV_UAV;
+		return eDescriptorHeapType::CBV_SRV_UAV;
 	case D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER:
-		return eDesriptorHeapType::SAMPLER;
+		return eDescriptorHeapType::SAMPLER;
 	case D3D12_DESCRIPTOR_HEAP_TYPE_RTV:
-		return eDesriptorHeapType::RTV;
+		return eDescriptorHeapType::RTV;
 	case D3D12_DESCRIPTOR_HEAP_TYPE_DSV:
-		return eDesriptorHeapType::DSV;
+		return eDescriptorHeapType::DSV;
 	default:
 		assert(false);
 	}
 
-	return eDesriptorHeapType{};
+	return eDescriptorHeapType{};
 }
 
 

@@ -90,7 +90,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 		if (streamSizeBytes == 0) {
 			throw std::invalid_argument("Stream cannot have 0 stride or 0 vertices.");
 		}
-		std::shared_ptr<VertexBuffer> buffer = ToShared(m_memoryManager->CreateVertexBuffer(eResourceHeapType::CRITICAL, streamSizeBytes));
+		auto buffer = std::make_shared<VertexBuffer>(m_memoryManager->CreateVertexBuffer(eResourceHeapType::CRITICAL, streamSizeBytes));
 		newVertexBuffers.push_back(std::move(buffer));
 	}
 
@@ -107,7 +107,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 
 	// Update internals.
 	m_vertexBuffers = std::move(newVertexBuffers);
-	m_indexBuffer = ToShared(std::move(newIndexBuffer));
+	m_indexBuffer = std::make_shared<IndexBuffer>(std::move(newIndexBuffer));
 	m_vertexStrides.clear();
 	for (StreamIt streamIt = firstStream; streamIt != lastStream; ++streamIt) {
 		m_vertexStrides.push_back(streamIt->stride);

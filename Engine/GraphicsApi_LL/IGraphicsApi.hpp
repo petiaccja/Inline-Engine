@@ -77,12 +77,12 @@ public:
 	                             size_t numDstDescRanges,
 	                             gxapi::DescriptorHandle* dstRangeStarts,
 	                             uint32_t* rangeCounts,
-	                             gxapi::eDesriptorHeapType descHeapsType) = 0;
+	                             gxapi::eDescriptorHeapType descHeapsType) = 0;
 
 	virtual void CopyDescriptors(gxapi::DescriptorHandle srcStart,
 	                             gxapi::DescriptorHandle dstStart,
 	                             size_t rangeCount,
-	                             gxapi::eDesriptorHeapType descHeapsType) = 0;
+	                             gxapi::eDescriptorHeapType descHeapsType) = 0;
 
 	// Misc
 	virtual IFence* CreateFence(uint64_t initialValue) = 0;
