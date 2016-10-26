@@ -271,7 +271,6 @@ int main() {
 	}
 
 	cout << "Shutting down." << endl;
-
 	return 0;
 }
 

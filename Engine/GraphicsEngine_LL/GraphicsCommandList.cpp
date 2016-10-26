@@ -183,30 +183,65 @@ void GraphicsCommandList::SetGraphicsBinder(Binder* binder) {
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, Texture1D* shaderResource) {
-	throw std::runtime_error("not implemented");
+	return BindGraphicsTexture(parameter, gxapi::DescriptorHandle());
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, Texture2D* shaderResource) {
-	throw std::runtime_error("not implemented");
+	return BindGraphicsTexture(parameter, gxapi::DescriptorHandle());
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, Texture3D* shaderResource) {
+	return BindGraphicsTexture(parameter, gxapi::DescriptorHandle());
+}
+
+void GraphicsCommandList::BindGraphicsTexture(BindParameter parameter, gxapi::DescriptorHandle handle) {
 	throw std::runtime_error("not implemented");
+	assert(binder != null);
+
+	int slot, tableIndex;
+	const gxapi::RootSignatureDesc& desc = m_binder->GetRootSignatureDesc();
+	m_binder->Translate(parameter, slot, tableIndex);
+	const auto& rootParam = desc.rootParameters[slot];
+
+	if (rootParam.type == gxapi::RootParameterDesc::DESCRIPTOR_TABLE) {
+		WriteScratchSpace(handle, slot, tableIndex);
+	}
+	else {
+		throw std::invalid_argument("Parameter is not an SRV.");
+	}
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, ConstBuffer* shaderConstant) {
 	throw std::runtime_error("not implemented");
+	assert(binder != null);
+
+	int slot, tableIndex;
+	const gxapi::RootSignatureDesc& desc = m_binder->GetRootSignatureDesc();
+	m_binder->Translate(parameter, slot, tableIndex);
+	const auto& rootParam = desc.rootParameters[slot];
+
+	if (rootParam.type == gxapi::RootParameterDesc::CBV) {
+		m_commandList->SetGraphicsRootConstantBuffer(slot, shaderConstant->GetVirtualAddress());
+	}
+	else if (rootParam.type == gxapi::RootParameterDesc::DESCRIPTOR_TABLE) {
+		WriteScratchSpace(gxapi::DescriptorHandle(), slot, tableIndex);
+	}
+	else {
+		throw std::invalid_argument("Parameter is not a CBV.");
+	}
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const void* shaderConstant, int size, int offset) {
 	if (size % 4 != 0) {
 		throw std::invalid_argument("Size must be a multiple of 4.");
 	}
+	assert(binder != null);
 
 	int slot;
 	int tableIndex;
-	const gxapi::RootSignatureDesc desc = m_binder->GetRootSignatureDesc();
+	const gxapi::RootSignatureDesc& desc = m_binder->GetRootSignatureDesc();
 	m_binder->Translate(parameter, slot, tableIndex); // may throw out of range
+
 	if (desc.rootParameters[slot].type == gxapi::RootParameterDesc::CONSTANT) {
 		assert(desc.rootParameters[slot].As<gxapi::RootParameterDesc::CONSTANT>().numConstants >= (size + offset) / 4);
 		m_commandList->SetGraphicsRootConstants(slot, offset, size / 4, reinterpret_cast<const uint32_t*>(shaderConstant));
@@ -214,6 +249,10 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const void* shad
 	else {
 		throw std::invalid_argument("Parameter is not an inline constant.");
 	}
+}
+
+void GraphicsCommandList::WriteScratchSpace(gxapi::DescriptorHandle handle, int slot, int index) {
+	
 }
 
 
