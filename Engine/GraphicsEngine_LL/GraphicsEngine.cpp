@@ -109,9 +109,9 @@ void GraphicsEngine::Update(float elapsed) {
 	context.residencyQueue = &m_residencyQueue;
 
 	// Execute the pipeline
-	m_pipelineEventDispatcher.DispatchFrameBegin(m_frame);
+	m_pipelineEventDispatcher.DispatchFrameBegin(m_frame).wait();
 	m_scheduler.Execute(context);
-	m_pipelineEventDispatcher.DispatchFrameEnd(m_frame);
+	m_pipelineEventDispatcher.DispatchFrameEnd(m_frame).wait();
 
 	// Mark frame completion
 	SyncPoint frameEnd = m_masterCommandQueue.Signal();

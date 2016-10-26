@@ -9,6 +9,12 @@ namespace gxeng {
 
 
 class GraphicsCommandList : public ComputeCommandList {
+	struct DescriptorTableState {
+		bool persistent;
+		int beginIndex;
+		int slot;
+		int size;
+	};
 public:
 	GraphicsCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool);
 	GraphicsCommandList(const GraphicsCommandList& rhs) = delete;
@@ -88,8 +94,12 @@ public:
 protected:
 	virtual Decomposition Decompose() override;
 private:
+	void BindGraphicsTexture(BindParameter parameter, gxapi::DescriptorHandle handle);
+	void WriteScratchSpace(gxapi::DescriptorHandle, int slot, int index);
+private:
 	gxapi::IGraphicsCommandList* m_commandList;
 	Binder* m_binder = nullptr;
+	std::vector<DescriptorTableState> m_tableStates;
 };
 
 
