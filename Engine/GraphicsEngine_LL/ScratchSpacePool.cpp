@@ -37,10 +37,11 @@ auto ScratchSpacePool::RequestScratchSpace() -> UniquePtr {
 
 
 void ScratchSpacePool::RecycleScratchSpace(ScratchSpace* scratchSpace) {
+	scratchSpace->Reset();
 	assert(m_addressToIndex.count(scratchSpace) > 0);
 	size_t index = m_addressToIndex[scratchSpace];
+	// Deallocate must be after the last operation on the target scratch space!
 	m_allocator.Deallocate(index);
-	scratchSpace->Reset();
 }
 
 

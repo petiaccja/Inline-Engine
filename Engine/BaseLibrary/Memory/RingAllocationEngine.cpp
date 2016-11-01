@@ -4,7 +4,6 @@
 
 namespace exc {
 
-
 RingAllocationEngine::CellContainer::CellContainer(size_t size) :
 	m_bitset(size*CELL_SIZE)
 {}
@@ -155,10 +154,6 @@ void RingAllocationEngine::Resize(size_t newPoolSize) {
 void RingAllocationEngine::Reset() {
 	m_container.Reset();
 	m_nextIndex = 0;
-	for (int i = 0; i < m_container.Size(); i++) {
-		assert(m_container.At(i) == eCellState::FREE);
-	}
-	assert(m_nextIndex == 0);
 }
 
 

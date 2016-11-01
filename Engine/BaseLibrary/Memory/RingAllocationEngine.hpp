@@ -9,6 +9,8 @@
 
 namespace exc {
 
+//extern std::atomic<bool> flag;
+
 /// <summary>
 /// This class provides a base for ring allocation tasks.
 /// 
