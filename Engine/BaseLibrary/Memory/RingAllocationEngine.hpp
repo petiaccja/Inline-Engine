@@ -64,7 +64,10 @@ public:
 	/// <param name="newPoolSize"> The number of available slots in the new pool. </param>
 	void Resize(size_t newPoolSize);
 
-	/// <summary> Clears all slots, does not affect pool size. </summary>
+	/// <summary>
+	/// Clears all slots, does not affect pool size.
+	/// Next allocation will be placed at the begginning.
+	/// </summary>
 	void Reset();
 
 	size_t Size() const;

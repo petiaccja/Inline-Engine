@@ -5,8 +5,8 @@
 namespace inl {
 namespace gxeng {
 
-ScratchSpacePool::ScratchSpacePool(gxapi::IGraphicsApi* gxApi) 
-	: m_gxApi(gxApi)
+ScratchSpacePool::ScratchSpacePool(gxapi::IGraphicsApi* gxApi, gxapi::eDescriptorHeapType type) 
+	: m_gxApi(gxApi), m_type(type)
 {}
 
 
@@ -28,7 +28,7 @@ auto ScratchSpacePool::RequestScratchSpace() -> UniquePtr {
 		return UniquePtr{ m_pool[index].get(), Deleter{this} };
 	}
 	else {
-		std::unique_ptr<ScratchSpace> ptr(new ScratchSpace{ m_gxApi, 1000 });
+		std::unique_ptr<ScratchSpace> ptr(new ScratchSpace{ m_gxApi, m_type, 1000 });
 		m_addressToIndex[ptr.get()] = index;
 		m_pool[index] = std::move(ptr);
 		return UniquePtr{ m_pool[index].get(), Deleter{this} };
@@ -40,6 +40,7 @@ void ScratchSpacePool::RecycleScratchSpace(ScratchSpace* scratchSpace) {
 	assert(m_addressToIndex.count(scratchSpace) > 0);
 	size_t index = m_addressToIndex[scratchSpace];
 	m_allocator.Deallocate(index);
+	scratchSpace->Reset();
 }
 
 

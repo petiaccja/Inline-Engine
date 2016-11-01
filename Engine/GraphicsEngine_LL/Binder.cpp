@@ -11,8 +11,9 @@ namespace gxeng {
 
 
 
-Binder::Binder(inl::gxapi::IGraphicsApi* gxApi, const std::vector<BindParameterDesc>& parameters) {
+Binder::Binder(inl::gxapi::IGraphicsApi* gxApi, const std::vector<BindParameterDesc>& parameters, const std::vector<gxapi::StaticSamplerDesc>& staticSamplers) {
 	CalculateLayout(parameters);
+	m_rootSignatureDesc.staticSamplers = staticSamplers;
 	m_rootSignature.reset(gxApi->CreateRootSignature(m_rootSignatureDesc));
 }
 
@@ -109,12 +110,12 @@ void Binder::CalculateLayout(const std::vector<BindParameterDesc>& parameters) {
 				|| param.parameter.reg != regOfStreak + 1
 				|| typeStreakLength == 0)
 			{
-				rootTable.ranges.push_back(gxapi::DescriptorRange{ CastRangeType(typeOfStreak), 0, param.parameter.reg, param.parameter.space });
+				rootTable.ranges.push_back(gxapi::DescriptorRange{ CastRangeType(param.parameter.type), 0, param.parameter.reg, param.parameter.space });
 			}
 
 			typeOfStreak = param.parameter.type;
 			regOfStreak = param.parameter.reg;
-			(--rootTable.ranges.end())->numDescriptors++;
+			rootTable.ranges.back().numDescriptors++;
 		}
 
 		++rootParamIndex;

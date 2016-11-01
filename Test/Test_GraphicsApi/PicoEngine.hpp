@@ -66,8 +66,11 @@ private:
 	inl::gxapi::Rectangle m_scissorRect;
 	int m_width, m_height;
 
+	int m_descriptorTableIndex;
+
 	std::unique_ptr<inl::gxapi::IDescriptorHeap> m_rtvs;
 	std::unique_ptr<inl::gxapi::IDescriptorHeap> m_dsv;
+	std::unique_ptr<inl::gxapi::IDescriptorHeap> m_srvHeap;
 	std::vector<std::unique_ptr<inl::gxapi::IResource>> m_depthBuffers;
 	int m_currentBackBuffer;
 	
@@ -76,6 +79,9 @@ private:
 	std::unique_ptr<inl::gxapi::IResource> m_indexBuffer;
 	VertexBufferView vbv;
 	IndexBufferView ibv;
+
+	std::unique_ptr<inl::gxapi::IResource> m_textureUpload;
+	std::unique_ptr<inl::gxapi::IResource> m_texture;
 
 	// Logging
 	exc::LogStream* m_logStream;

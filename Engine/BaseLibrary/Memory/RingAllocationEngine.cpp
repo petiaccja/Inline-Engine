@@ -1,6 +1,6 @@
 #include "RingAllocationEngine.hpp"
 
-
+#include <cassert>
 
 namespace exc {
 
@@ -66,11 +66,12 @@ size_t RingAllocationEngine::Allocate(size_t allocationSize) {
 		allocStartIndex = 0;
 	}
 
-	// check if last cell of allocation is free
-	// if it is, then the whole range of the allocation is free
+	// check if first and last cell of allocation is free
+	// if they are, then the whole range of the allocation is free
 	{
-		bool isLastFree = m_container.At(allocStartIndex + allocationSize-1) == eCellState::FREE;
-		if (!isLastFree) {
+		bool lastFree = m_container.At(allocStartIndex + allocationSize-1) == eCellState::FREE;
+		bool firstFree = m_container.At(allocStartIndex) == eCellState::FREE;
+		if (!lastFree || !firstFree) {
 			throw std::bad_alloc();
 		}
 	}
@@ -154,6 +155,10 @@ void RingAllocationEngine::Resize(size_t newPoolSize) {
 void RingAllocationEngine::Reset() {
 	m_container.Reset();
 	m_nextIndex = 0;
+	for (int i = 0; i < m_container.Size(); i++) {
+		assert(m_container.At(i) == eCellState::FREE);
+	}
+	assert(m_nextIndex == 0);
 }
 
 

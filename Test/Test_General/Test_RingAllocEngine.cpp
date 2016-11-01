@@ -44,6 +44,41 @@ public:
 
 	virtual int Run() override {
 		try {
+			{
+				exc::RingAllocationEngine allocator(5);
+				allocator.Allocate(1);
+				try {
+					allocator.Allocate(5);
+					throw std::runtime_error("New allocation has overriden an existing allocation");
+				}
+				catch (const std::bad_alloc&) {}
+			}
+			{
+				exc::RingAllocationEngine allocator(50);
+				for (int i = 0; i < 2000; i++) {
+					size_t pos = allocator.Allocate(1);
+					allocator.Deallocate(pos);
+				}
+				allocator.Reset();
+				for (int i = 0; i < 50; i++) {
+					allocator.Allocate(1);
+				}
+				allocator.Reset();
+				for (int i = 0; i < 2000; i++) {
+					size_t pos1 = allocator.Allocate(1);
+					size_t pos2 = allocator.Allocate(3);
+					allocator.Deallocate(pos1);
+					allocator.Deallocate(pos2);
+				}
+				allocator.Reset();
+				for (int i = 0; i < 2000; i++) {
+					size_t pos1 = allocator.Allocate(1);
+					size_t pos2 = allocator.Allocate(1);
+					allocator.Deallocate(pos1);
+					allocator.Deallocate(pos2);
+				}
+			}
+
 			constexpr int size = 53;
 			exc::RingAllocationEngine allocator(size);
 

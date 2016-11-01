@@ -4,6 +4,7 @@
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
 #include <GraphicsEngine_LL/Mesh.hpp>
 #include <GraphicsEngine_LL/MeshEntity.hpp>
+#include <GraphicsEngine_LL/DEBUG_TexturedEntity.hpp>
 #include <GraphicsEngine_LL/Scene.hpp>
 
 
@@ -26,6 +27,6 @@ private:
 	std::unique_ptr<inl::gxeng::Scene> m_worldScene;
 
 	// Entities
-	std::vector<std::unique_ptr<inl::gxeng::MeshEntity>> m_staticEntities;
+	std::vector<std::unique_ptr<inl::gxeng::DEBUG_TexturedEntity>> m_staticEntities;
 	std::vector<mathfu::Vector<float, 3>> m_velocities;
 };

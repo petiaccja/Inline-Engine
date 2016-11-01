@@ -6,14 +6,23 @@ namespace gxeng {
 
 
 
-ComputeCommandList::ComputeCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool)
-	: CopyCommandList(gxApi, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::COMPUTE)
+ComputeCommandList::ComputeCommandList(
+	gxapi::IGraphicsApi* gxApi,
+	CommandAllocatorPool& commandAllocatorPool,
+	ScratchSpacePool& scratchSpacePool
+):
+	CopyCommandList(gxApi, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::COMPUTE)
 {
 	m_commandList = dynamic_cast<gxapi::IComputeCommandList*>(GetCommandList());
 }
 
-ComputeCommandList::ComputeCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool, gxapi::eCommandListType type)
-	: CopyCommandList(gxApi, commandAllocatorPool, scratchSpacePool, type)
+ComputeCommandList::ComputeCommandList(
+	gxapi::IGraphicsApi* gxApi,
+	CommandAllocatorPool& commandAllocatorPool,
+	ScratchSpacePool& scratchSpacePool,
+	gxapi::eCommandListType type
+):
+	CopyCommandList(gxApi, commandAllocatorPool, scratchSpacePool, type)
 {
 	m_commandList = dynamic_cast<gxapi::IComputeCommandList*>(GetCommandList());
 }

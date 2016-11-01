@@ -51,9 +51,11 @@ class ScratchSpaceRef {
 public:
 	friend class ScratchSpace;
 
+	ScratchSpaceRef(const ScratchSpaceRef&) = delete;
+	ScratchSpaceRef& operator=(const ScratchSpaceRef&) = delete;
+
 	ScratchSpaceRef(ScratchSpaceRef&&);
 	ScratchSpaceRef& operator=(ScratchSpaceRef&&);
-	~ScratchSpaceRef() noexcept;
 
 	/// <summary> Get an underlying descriptor. </summary>
 	/// <exception cref="inl::gxapi::InvalidStateException">
@@ -61,21 +63,23 @@ public:
 	/// Or if position is outside the allocation range.
 	/// </exception>
 	/// <returns> Represented descriptor. </returns>
-	gxapi::DescriptorHandle Get(size_t position);
+	gxapi::DescriptorHandle Get(uint32_t position);
+
+	uint32_t Count() const;
 
 	bool IsValid() const;
 
 protected:
-	ScratchSpaceRef(ScratchSpace* home, size_t pos, size_t allocSize);
+	ScratchSpaceRef(ScratchSpace* home, uint32_t pos, uint32_t allocSize);
 
 	void Invalidate();
 
 protected:
 	ScratchSpace* m_home;
-	size_t m_pos;
-	size_t m_allocationSize;
+	uint32_t m_pos;
+	uint32_t m_allocationSize;
 
-	static constexpr auto INVALID_POS = std::numeric_limits<size_t>::max();
+	static constexpr auto INVALID_POS = std::numeric_limits<uint32_t>::max();
 };
 
 /// <summary>
@@ -91,10 +95,15 @@ class ScratchSpace {
 	friend class HostDescHeap;
 	friend class ScratchSpaceRef;
 public:
-	ScratchSpace(gxapi::IGraphicsApi* graphicsApi, size_t size);
+	ScratchSpace(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type, size_t size);
 
-	ScratchSpaceRef Allocate(size_t size);
-	DescriptorReference AllocateSingle();
+	ScratchSpaceRef Allocate(uint32_t size);
+
+	/// <summary>
+	/// Frees all allocations. Next allocation will be place at the begginning of the heap.
+	/// </summary>
+	void Reset();
+
 protected:
 	std::unique_ptr<gxapi::IDescriptorHeap> m_heap;
 	exc::RingAllocationEngine m_allocator;

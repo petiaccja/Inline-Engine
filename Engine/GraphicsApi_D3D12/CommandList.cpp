@@ -47,7 +47,7 @@ gxapi::eCommandListType BasicCommandList::GetType() const {
 
 // basic
 CopyCommandList::CopyCommandList(ComPtr<ID3D12GraphicsCommandList>& native)
-	: BasicCommandList(native) 
+	: BasicCommandList(native)
 {
 	
 	assert(native->GetType() == D3D12_COMMAND_LIST_TYPE_DIRECT ||
@@ -67,12 +67,13 @@ void CopyCommandList::Reset(gxapi::ICommandAllocator* allocator, gxapi::IPipelin
 
 
 // Resource copy
-void CopyCommandList::CopyBuffer(gxapi::IResource* dst,
-								 size_t dstOffset,
-								 gxapi::IResource* src,
-								 size_t srcOffset,
-								 size_t numBytes) 
-{
+void CopyCommandList::CopyBuffer(
+	gxapi::IResource* dst,
+	size_t dstOffset,
+	gxapi::IResource* src,
+	size_t srcOffset,
+	size_t numBytes
+) {
 	m_native->CopyBufferRegion(native_cast(dst), dstOffset, native_cast(src), srcOffset, numBytes);
 }
 
@@ -80,32 +81,48 @@ void CopyCommandList::CopyResource(gxapi::IResource* dst, gxapi::IResource* src)
 	m_native->CopyResource(native_cast(dst), native_cast(src));
 }
 
-void CopyCommandList::CopyTexture(gxapi::IResource* dst,
-				 unsigned dstSubresourceIndex,
-				 int dstX, int dstY, int dstZ,
-				 gxapi::IResource* src,
-				 unsigned srcSubresourceIndex,
-				 gxapi::Cube srcRegion) 
-{
+void CopyCommandList::CopyTexture(
+	gxapi::IResource* dst,
+	unsigned dstSubresourceIndex,
+	int dstX, int dstY, int dstZ,
+	gxapi::IResource* src,
+	unsigned srcSubresourceIndex,
+	gxapi::Cube srcRegion
+) {
 	auto nativeDst = CreateTextureCopyLocation(dst, dstSubresourceIndex);
 	auto nativeSrc = CreateTextureCopyLocation(src, srcSubresourceIndex);
 
 	m_native->CopyTextureRegion(&nativeDst, 0, 0, 0, &nativeSrc, nullptr);
 }
 
-void CopyCommandList::CopyTexture(gxapi::IResource* dst,
-				 gxapi::TextureCopyDesc dstDesc,
-				 int dstX, int dstY, int dstZ,
-				 gxapi::IResource* src,
-				 gxapi::TextureCopyDesc srcDesc,
-				 gxapi::Cube srcRegion) 
-{
+void CopyCommandList::CopyTexture(
+	gxapi::IResource* dst,
+	gxapi::TextureCopyDesc dstDesc,
+	int dstX, int dstY, int dstZ,
+	gxapi::IResource* src,
+	gxapi::TextureCopyDesc srcDesc,
+	gxapi::Cube srcRegion
+) {
 	auto nativeDst = CreateTextureCopyLocation(dst, dstDesc);
 	auto nativeSrc = CreateTextureCopyLocation(src, srcDesc);
 
 	D3D12_BOX srcBox = native_cast(srcRegion);
 
 	m_native->CopyTextureRegion(&nativeDst, dstX, dstY, dstZ, &nativeSrc, &srcBox);
+}
+
+
+void CopyCommandList::CopyTexture(
+	gxapi::IResource* dst,
+	gxapi::TextureCopyDesc dstDesc,
+	int dstX, int dstY, int dstZ,
+	gxapi::IResource* src,
+	gxapi::TextureCopyDesc srcDesc
+) {
+	auto nativeDst = CreateTextureCopyLocation(dst, dstDesc);
+	auto nativeSrc = CreateTextureCopyLocation(src, srcDesc);
+
+	m_native->CopyTextureRegion(&nativeDst, dstX, dstY, dstZ, &nativeSrc, nullptr);
 }
 
 
@@ -121,14 +138,27 @@ void CopyCommandList::ResourceBarrier(unsigned numBarriers, gxapi::ResourceBarri
 
 
 // helpers
-D3D12_TEXTURE_COPY_LOCATION CopyCommandList::CreateTextureCopyLocation(gxapi::IResource* texture, gxapi::TextureCopyDesc description) {
+D3D12_TEXTURE_COPY_LOCATION CopyCommandList::CreateTextureCopyLocation(gxapi::IResource* resource, gxapi::TextureCopyDesc description) {
 
 	D3D12_TEXTURE_COPY_LOCATION result;
 	{
-		result.pResource = native_cast(texture);
-		result.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-		D3D12_PLACED_SUBRESOURCE_FOOTPRINT placedFootprint;
-		{
+		result.pResource = native_cast(resource);
+
+		D3D12_RESOURCE_DESC resourceDesc = native_cast(resource)->GetDesc();
+		const bool isTexture = 
+			resourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE1D
+			|| resourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D
+			|| resourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE3D;
+
+		if (isTexture) {
+			result.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+			result.SubresourceIndex = description.subresourceIndex;
+		}
+		else {
+			assert(resourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER);
+			result.Type = D3D12_TEXTURE_COPY_TYPE::D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+			D3D12_PLACED_SUBRESOURCE_FOOTPRINT placedFootprint;
+
 			D3D12_SUBRESOURCE_FOOTPRINT footprint;
 			{
 				footprint.Depth = description.depth;
@@ -141,8 +171,9 @@ D3D12_TEXTURE_COPY_LOCATION CopyCommandList::CreateTextureCopyLocation(gxapi::IR
 			}
 			placedFootprint.Footprint = footprint;
 			placedFootprint.Offset = description.byteOffset;
+
+			result.PlacedFootprint = placedFootprint;
 		}
-		result.PlacedFootprint = placedFootprint;
 	}
 
 	return result;
@@ -416,6 +447,19 @@ void GraphicsCommandList::SetGraphicsRootShaderResource(unsigned parameterIndex,
 
 void GraphicsCommandList::SetGraphicsRootSignature(gxapi::IRootSignature* rootSignature) {
 	m_native->SetGraphicsRootSignature(native_cast(rootSignature));
+}
+
+
+void GraphicsCommandList::SetDescriptorHeaps(gxapi::IDescriptorHeap*const * heaps, uint32_t count) {
+
+	std::vector<ID3D12DescriptorHeap*> nativeHeaps;
+	nativeHeaps.reserve(count);
+
+	for (unsigned i = 0; i < count; i++) {
+		nativeHeaps.push_back(native_cast(heaps[i]));
+	}
+
+	m_native->SetDescriptorHeaps(count, nativeHeaps.data());
 }
 
 

@@ -9,21 +9,29 @@ namespace gxeng {
 
 
 GraphicsCommandList ExecutionContext::GetGraphicsCommandList() const {
-	return GraphicsCommandList(m_frameContext->gxApi,
-							   *m_frameContext->commandAllocatorPool,
-							   *m_frameContext->scratchSpacePool);
+	return GraphicsCommandList(
+		m_frameContext->gxApi,
+		*m_frameContext->commandAllocatorPool,
+		*m_frameContext->scratchSpacePool
+	);
 }
+
 
 ComputeCommandList ExecutionContext::GetComputeCommandList() const {
-	return ComputeCommandList(m_frameContext->gxApi,
-							  *m_frameContext->commandAllocatorPool,
-							  *m_frameContext->scratchSpacePool);
+	return ComputeCommandList(
+		m_frameContext->gxApi,
+		*m_frameContext->commandAllocatorPool,
+		*m_frameContext->scratchSpacePool
+	);
 }
 
+
 CopyCommandList ExecutionContext::GetCopyCommandList() const {
-	return CopyCommandList(m_frameContext->gxApi,
-						   *m_frameContext->commandAllocatorPool,
-						   *m_frameContext->scratchSpacePool);
+	return CopyCommandList(
+		m_frameContext->gxApi,
+		*m_frameContext->commandAllocatorPool,
+		*m_frameContext->scratchSpacePool
+	);
 }
 
 

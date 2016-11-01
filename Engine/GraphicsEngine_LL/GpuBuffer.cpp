@@ -212,6 +212,11 @@ uint16_t Texture2D::GetArrayCount() const {
 }
 
 
+uint32_t Texture2D::GetSubresourceIndex(uint32_t arrayIndex, uint32_t mipLevel) const {
+	return arrayIndex*GetDescription().textureDesc.mipLevels + mipLevel;
+}
+
+
 uint64_t Texture3D::GetHeight() const {
 	return m_resource->GetDesc().textureDesc.height;
 }

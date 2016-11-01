@@ -27,7 +27,7 @@ public:
 
 	using UniquePtr = std::unique_ptr<ScratchSpace, Deleter>;
 public:
-	ScratchSpacePool(gxapi::IGraphicsApi* gxApi);
+	ScratchSpacePool(gxapi::IGraphicsApi* gxApi, gxapi::eDescriptorHeapType type);
 	ScratchSpacePool(const ScratchSpacePool&) = delete;
 	ScratchSpacePool(ScratchSpacePool&&) = default;
 	ScratchSpacePool& operator=(const ScratchSpacePool&) = delete;
@@ -37,6 +37,7 @@ public:
 	void RecycleScratchSpace(ScratchSpace* scratchSpace);
 private:
 	std::vector<std::unique_ptr<ScratchSpace>> m_pool;
+	gxapi::eDescriptorHeapType m_type;
 	exc::SlabAllocatorEngine m_allocator;
 	gxapi::IGraphicsApi* m_gxApi;
 	std::map<ScratchSpace*, size_t> m_addressToIndex;

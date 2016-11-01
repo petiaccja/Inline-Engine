@@ -4,15 +4,24 @@ namespace inl {
 namespace gxeng {
 
 
-CopyCommandList::CopyCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool)
-	: BasicCommandList(gxApi, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::COPY)
+CopyCommandList::CopyCommandList(
+	gxapi::IGraphicsApi* gxApi,
+	CommandAllocatorPool& commandAllocatorPool,
+	ScratchSpacePool& scratchSpacePool
+):
+	BasicCommandList(gxApi, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::COPY)
 {
 	m_commandList = dynamic_cast<gxapi::ICopyCommandList*>(GetCommandList());
 }
 
 
-CopyCommandList::CopyCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool, gxapi::eCommandListType type)
-	: BasicCommandList(gxApi, commandAllocatorPool, scratchSpacePool, type)
+CopyCommandList::CopyCommandList(
+	gxapi::IGraphicsApi* gxApi,
+	CommandAllocatorPool& commandAllocatorPool,
+	ScratchSpacePool& scratchSpacePool,
+	gxapi::eCommandListType type
+):
+	BasicCommandList(gxApi, commandAllocatorPool, scratchSpacePool, type)
 {
 	m_commandList = dynamic_cast<gxapi::ICopyCommandList*>(GetCommandList());
 }
@@ -71,6 +80,48 @@ BasicCommandList::Decomposition CopyCommandList::Decompose() {
 
 void CopyCommandList::CopyBuffer(GenericResource * dst, size_t dstOffset, GenericResource * src, size_t srcOffset, size_t numBytes) {
 	m_commandList->CopyBuffer(dst->_GetResourcePtr(), dstOffset, src->_GetResourcePtr(), srcOffset, numBytes);
+}
+
+
+void CopyCommandList::CopyTexture(Texture2D* dst, Texture2D* src, SubTexture2D dstPlace, SubTexture2D srcPlace) {
+	gxapi::TextureCopyDesc dstDesc =
+		gxapi::TextureCopyDesc::Texture(dst->GetSubresourceIndex(dstPlace.arrayIndex, dstPlace.mipLevel));
+
+	gxapi::TextureCopyDesc srcDesc =
+		gxapi::TextureCopyDesc::Texture(src->GetSubresourceIndex(srcPlace.arrayIndex, srcPlace.mipLevel));
+
+	auto top = std::max(0, srcPlace.corner1.y());
+	auto bottom = srcPlace.corner2.y() < 0 ? src->GetHeight() : srcPlace.corner2.y();
+	auto left = std::max(0, srcPlace.corner1.x());
+	auto right = srcPlace.corner2.x() < 0 ? src->GetWidth() : srcPlace.corner2.x();
+
+	gxapi::Cube srcRegion(top, bottom, left, right, 0, 1);
+
+	auto offsetX = std::max(0, dstPlace.corner1.x());
+	auto offsetY = std::max(0, dstPlace.corner1.y());
+
+	m_commandList->CopyTexture(dst->_GetResourcePtr(), dstDesc, offsetX, offsetY, 0, src->_GetResourcePtr(), srcDesc, srcRegion);
+}
+
+
+void CopyCommandList::CopyTexture(Texture2D* dst, Texture2D* src, SubTexture2D dstPlace) {
+	gxapi::TextureCopyDesc dstDesc =
+		gxapi::TextureCopyDesc::Texture(dst->GetSubresourceIndex(dstPlace.arrayIndex, dstPlace.mipLevel));
+
+	gxapi::TextureCopyDesc srcDesc = gxapi::TextureCopyDesc::Texture(0);
+
+	auto offsetX = std::max(0, dstPlace.corner1.x());
+	auto offsetY = std::max(0, dstPlace.corner1.y());
+
+	m_commandList->CopyTexture(dst->_GetResourcePtr(), dstDesc, offsetX, offsetY, 0, src->_GetResourcePtr(), srcDesc);
+}
+
+
+void CopyCommandList::CopyTexture(Texture2D* dst, LinearBuffer* src, SubTexture2D dstPlace, gxapi::TextureCopyDesc bufferDesc) {
+	gxapi::TextureCopyDesc dstDesc =
+		gxapi::TextureCopyDesc::Texture(dst->GetSubresourceIndex(dstPlace.arrayIndex, dstPlace.mipLevel));
+
+	m_commandList->CopyTexture(dst->_GetResourcePtr(), dstDesc, dstPlace.corner1.x(), dstPlace.corner1.y(), 0, src->_GetResourcePtr(), bufferDesc);
 }
 
 

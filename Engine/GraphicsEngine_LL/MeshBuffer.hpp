@@ -122,7 +122,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 		for (; bufferIt != m_vertexBuffers.end(); ++bufferIt, ++sourceIt) {
 			// TODO...
 			const VertexStream& stream = *sourceIt;
-			m_memoryManager->GetUploadHeap().UploadToResource(*bufferIt, 0, stream.data, stream.count * stream.stride);
+			m_memoryManager->GetUploadHeap().Upload(*bufferIt, 0, stream.data, stream.count * stream.stride);
 		}
 	}
 
@@ -130,7 +130,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 	if (std::is_pointer_v<IndexIt> && sizeof(*firstIndex) == indexStride) {
 		// If we have a pointer to the right type, just plain copy shit.
 		// TODO...
-		m_memoryManager->GetUploadHeap().UploadToResource(m_indexBuffer, 0, firstIndex, numIndices * indexStride);
+		m_memoryManager->GetUploadHeap().Upload(m_indexBuffer, 0, firstIndex, numIndices * indexStride);
 	}
 	else {
 		// Copy indices one-by-one.
@@ -148,7 +148,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 				reinterpret_cast<uint16_t*>(data.get())[i] = (uint16_t)*it;
 			}
 		}
-		m_memoryManager->GetUploadHeap().UploadToResource(m_indexBuffer, 0, data.get(), numIndices * indexStride);
+		m_memoryManager->GetUploadHeap().Upload(m_indexBuffer, 0, data.get(), numIndices * indexStride);
 	}
 }
 

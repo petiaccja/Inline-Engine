@@ -13,6 +13,13 @@
 
 #pragma warning(disable: 4250)
 
+namespace inl {
+namespace gxapi {
+
+class IDescriptorHeap;
+
+}
+}
 
 namespace inl {
 namespace gxapi_dx12 {
@@ -71,13 +78,19 @@ public:
 					 gxapi::TextureCopyDesc srcDesc,
 					 gxapi::Cube srcRegion) override;
 
+	void CopyTexture(gxapi::IResource* dst,
+	                 gxapi::TextureCopyDesc dstDesc,
+	                 int dstX, int dstY, int dstZ,
+	                 gxapi::IResource* src,
+	                 gxapi::TextureCopyDesc srcDesc) override;
+
 	// barriers
 	// TODO: transition, aliasing and bullshit barriers, i would put them into separate functions
 	void ResourceBarrier(unsigned numBarriers, gxapi::ResourceBarrier* barriers) override;
 
 protected:
-	static D3D12_TEXTURE_COPY_LOCATION CreateTextureCopyLocation(gxapi::IResource* texture, gxapi::TextureCopyDesc descrition);
-	static D3D12_TEXTURE_COPY_LOCATION CreateTextureCopyLocation(gxapi::IResource* texture, unsigned subresourceIndex);
+	D3D12_TEXTURE_COPY_LOCATION CreateTextureCopyLocation(gxapi::IResource* resource, gxapi::TextureCopyDesc descrition);
+	D3D12_TEXTURE_COPY_LOCATION CreateTextureCopyLocation(gxapi::IResource* texture, unsigned subresourceIndex);
 };
 
 
@@ -167,6 +180,9 @@ public:
 	void SetGraphicsRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) override;
 
 	void SetGraphicsRootSignature(gxapi::IRootSignature* rootSignature) override;
+
+	// descriptor heaps
+	void SetDescriptorHeaps(gxapi::IDescriptorHeap*const * heaps, uint32_t count) override;
 };
 
 

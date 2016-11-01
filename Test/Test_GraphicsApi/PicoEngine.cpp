@@ -5,6 +5,7 @@
 #include <GraphicsApi_LL/Exception.hpp>
 
 #include <chrono>
+#include <array>
 
 #include <DirectXMath.h>
 
@@ -109,6 +110,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 		m_graphicsApi->CreateDepthStencilView(m_depthBuffers[1].get(), m_dsv->At(1));
 	}
 
+	m_srvHeap.reset(m_graphicsApi->CreateDescriptorHeap(DescriptorHeapDesc{ eDescriptorHeapType::CBV_SRV_UAV, 1, true }));
 
 	// Create root signature
 	DescriptorRange descriptorRanges[1] = {
@@ -117,9 +119,20 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	std::vector<RootParameterDesc> rootParameters = {
 		RootParameterDesc::Constant(32, 0),
 		RootParameterDesc::Cbv(8),
-		//RootParameterDesc::DescriptorTable(1, descriptorRanges),
+		RootParameterDesc::DescriptorTable(1, descriptorRanges),
 	};
-	m_defaultRootSignature.reset(m_graphicsApi->CreateRootSignature(RootSignatureDesc{rootParameters}));
+	m_descriptorTableIndex = 2;
+
+	StaticSamplerDesc samplerDesc;
+	samplerDesc.shaderRegister = 0;
+	samplerDesc.filter = eTextureFilterMode::MIN_MAG_MIP_POINT;
+	samplerDesc.addressU = eTextureAddressMode::WRAP;
+	samplerDesc.addressV = eTextureAddressMode::WRAP;
+	samplerDesc.addressW = eTextureAddressMode::WRAP;
+	samplerDesc.mipLevelBias = 0.f;
+	samplerDesc.registerSpace = 0;
+	samplerDesc.shaderVisibility = eShaderVisiblity::PIXEL;
+	m_defaultRootSignature.reset(m_graphicsApi->CreateRootSignature(RootSignatureDesc{rootParameters, {samplerDesc}}));
 
 	//Compile shaders
 	ShaderProgramBinary vertexBinary;
@@ -264,6 +277,56 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 		ibv.format = eFormat::R16_UINT;
 		ibv.size = (unsigned)indexBufferDesc.bufferDesc.sizeInBytes;
 	}
+	// create, upload texture
+	{
+		using PixelType = std::array<float, 4>;
+		std::vector<PixelType> img = {
+			{0.9f, 0.2f, 0.2f, 1.0f},
+			{0.2f, 0.9f, 0.2f, 1.0f},
+			{0.2f, 0.2f, 0.9f, 1.0f},
+			{0.1f, 0.1f, 0.1f, 1.0f}
+		};
+
+		int width = 2;
+		int height = 2;
+		assert(img.size() == width*height);
+
+		int rowSize = width * sizeof(PixelType);
+		int rowPitch = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
+		assert(rowSize <= rowPitch);
+
+		int bufferSize = height*rowPitch;
+
+		m_textureUpload.reset(m_graphicsApi->CreateCommittedResource(HeapProperties{eHeapType::UPLOAD}, eHeapFlags::NONE, ResourceDesc::Buffer(bufferSize), eResourceState::GENERIC_READ));
+
+		uint8_t* mapped = (uint8_t*)m_textureUpload->Map(0, &noReadRange);
+		//upload row-by-row (this is required because target buffer has different width due to alignment reasons)
+		uint8_t* imgByteData = (uint8_t*)img.data();
+		for (int y = 0; y < height; y++) {
+			memcpy(mapped + y*rowPitch, imgByteData + y*rowSize, rowSize);
+		}
+		m_textureUpload->Unmap(0, nullptr);
+
+		// Create texture on GPU
+		m_texture.reset(
+			m_graphicsApi->CreateCommittedResource(
+				HeapProperties{eHeapType::DEFAULT},
+				eHeapFlags::NONE,
+				ResourceDesc::Texture2D(width, height, eFormat::R32G32B32A32_FLOAT),
+				eResourceState::COPY_DEST
+			)
+		);
+
+		ShaderResourceViewDesc srvDesc;
+		srvDesc.dimension = eSrvDimension::TEXTURE2D;
+		srvDesc.format = m_texture->GetDesc().textureDesc.format;
+		srvDesc.tex2D.mipLevelClamping = 0;
+		srvDesc.tex2D.mostDetailedMip = 0;
+		srvDesc.tex2D.numMipLevels = 1;
+		srvDesc.tex2D.planeIndex = 0;
+
+		m_graphicsApi->CreateShaderResourceView(m_texture.get(), srvDesc, m_srvHeap->At(0));
+	}
 
 	//wait for command queue to finish
 	uint64_t prevValue = m_fence->Fetch();
@@ -280,13 +343,29 @@ void PicoEngine::Update() {
 	static std::chrono::high_resolution_clock::time_point startTime;
 	double elapsedTotal = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - startTime).count() / 1e6;;
 
-
 	// query current back buffer id
 	m_currentBackBuffer = m_swapChain->GetCurrentBufferIndex();
 
 	// reset command allocator and list
 	m_commandAllocator->Reset();
 	m_commandList->Reset(m_commandAllocator.get(), m_defaultPso.get());
+
+	static bool textureReady = false;
+	if (!textureReady) {
+		auto format = m_texture->GetDesc().textureDesc.format;
+		m_commandList->CopyTexture(m_texture.get(), TextureCopyDesc::Texture(0), 0, 0, 0, m_textureUpload.get(), TextureCopyDesc::Buffer(format, 2, 2, 1, 0));
+
+		ResourceBarrier barrier;
+		barrier.type = eResourceBarrierType::TRANSITION;
+		barrier.transition.resource = m_texture.get();
+		barrier.transition.beforeState = eResourceState::COPY_DEST;
+		barrier.transition.afterState = eResourceState::PIXEL_SHADER_RESOURCE;
+		barrier.transition.splitMode = eResourceBarrierSplit::NORMAL;
+		barrier.transition.subResource = TransitionBarrier::ALL_SUBRESOURCES;
+		m_commandList->ResourceBarrier(1, &barrier);
+
+		textureReady = true;
+	}
 
 	m_commandList->SetViewports(1, &m_viewport);
 	m_commandList->SetScissorRects(1, &m_scissorRect);
@@ -301,6 +380,9 @@ void PicoEngine::Update() {
 
 	m_commandList->SetPrimitiveTopology(ePrimitiveTopology::TRIANGLELIST);
 	m_commandList->SetGraphicsRootSignature(m_defaultRootSignature.get());
+	auto heapPtr = m_srvHeap.get();
+	m_commandList->SetDescriptorHeaps(&heapPtr, 1);
+	m_commandList->SetGraphicsRootDescriptorTable(m_descriptorTableIndex, m_srvHeap->At(0));
 	// draw
 	{
 		double angle;
