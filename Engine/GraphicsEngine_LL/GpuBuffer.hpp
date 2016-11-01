@@ -147,6 +147,7 @@ public:
 
 	uint64_t GetHeight() const;
 	uint16_t GetArrayCount() const;
+	uint32_t GetSubresourceIndex(uint32_t arrayIndex, uint32_t mipLevel) const;
 };
 
 

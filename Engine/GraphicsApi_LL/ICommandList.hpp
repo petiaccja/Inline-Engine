@@ -7,6 +7,7 @@
 namespace inl {
 namespace gxapi {
 
+class IDescriptorHeap;
 
 class ICommandList {
 public:
@@ -44,6 +45,12 @@ public:
 							 IResource* src,
 							 TextureCopyDesc srcDesc,
 							 Cube srcRegion) = 0;
+
+	virtual void CopyTexture(gxapi::IResource* dst,
+	                         gxapi::TextureCopyDesc dstDesc,
+	                         int dstX, int dstY, int dstZ,
+	                         gxapi::IResource* src,
+	                         gxapi::TextureCopyDesc srcDesc) = 0;
 
 	// barriers
 	// TODO: transition, aliasing and bullshit barriers, i would put them into separate functions
@@ -155,6 +162,9 @@ public:
 	virtual void SetGraphicsRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) = 0;
 
 	virtual void SetGraphicsRootSignature(IRootSignature* rootSignature) = 0;
+
+	// descriptor heaps
+	virtual void SetDescriptorHeaps(IDescriptorHeap*const * heaps, uint32_t count) = 0;
 };
 
 

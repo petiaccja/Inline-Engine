@@ -102,6 +102,15 @@ ID3D12RootSignature* native_cast(gxapi::IRootSignature* source) {
 }
 
 
+ID3D12DescriptorHeap* native_cast(gxapi::IDescriptorHeap* source) {
+	if (source == nullptr) {
+		return nullptr;
+	}
+
+	return static_cast<DescriptorHeap*>(source)->GetNative();
+}
+
+
 ID3D12Fence* native_cast(gxapi::IFence * source) {
 	if (source == nullptr) {
 		return nullptr;
@@ -1463,6 +1472,7 @@ D3D12_SHADER_RESOURCE_VIEW_DESC native_cast(gxapi::ShaderResourceViewDesc source
 
 	result.Format = native_cast(source.format);
 	result.ViewDimension = native_cast(source.dimension);
+	result.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
 	switch (result.ViewDimension) {
 	case D3D12_SRV_DIMENSION_UNKNOWN:
@@ -1794,7 +1804,9 @@ D3D12_DESCRIPTOR_RANGE native_cast(gxapi::DescriptorRange source) {
 
 	result.BaseShaderRegister = source.baseShaderRegister;
 	result.NumDescriptors = source.numDescriptors;
-	result.OffsetInDescriptorsFromTableStart = source.offsetFromTableStart;
+	result.OffsetInDescriptorsFromTableStart =
+		source.offsetFromTableStart == gxapi::DescriptorRange::OFFSET_APPEND ?
+		D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND : source.offsetFromTableStart;
 	result.RangeType = native_cast(source.type);
 	result.RegisterSpace = source.registerSpace;
 
@@ -1833,7 +1845,7 @@ D3D12_RESOURCE_BARRIER native_cast(gxapi::ResourceBarrier source) {
 			native.Transition.StateBefore = native_cast(source.transition.beforeState);
 			native.Transition.StateAfter = native_cast(source.transition.afterState);
 			native.Transition.Subresource =
-				source.transition.subResource == gxapi::RESOURCE_BARRIER_ALL_SUBRESOURCES ?
+				source.transition.subResource == gxapi::TransitionBarrier::ALL_SUBRESOURCES ?
 				D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES : source.transition.subResource;
 			native.Transition.pResource = native_cast(source.transition.resource);
 			native.Flags = native_cast(source.transition.splitMode);

@@ -24,6 +24,8 @@ public:
 	gxapi::DescriptorHeapDesc GetDesc() const override;
 	uint32_t GetIncrementSize() const override;
 
+	ID3D12DescriptorHeap* GetNative();
+
 private:
 	ComPtr<ID3D12DescriptorHeap> m_native;
 	uint32_t m_incrementSize;

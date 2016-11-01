@@ -5,8 +5,12 @@ namespace inl {
 namespace gxeng {
 
 
-BasicCommandList::BasicCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool, gxapi::eCommandListType type)
-	: m_scratchSpacePool(&scratchSpacePool)
+BasicCommandList::BasicCommandList(gxapi::IGraphicsApi* gxApi,
+	CommandAllocatorPool& commandAllocatorPool,
+	ScratchSpacePool& scratchSpacePool,
+	gxapi::eCommandListType type
+):
+	m_scratchSpacePool(&scratchSpacePool)
 {
 	// Create a command allocator
 	m_commandAllocator = commandAllocatorPool.RequestAllocator(type);
@@ -23,6 +27,11 @@ BasicCommandList::BasicCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorP
 	// Create scratch space
 	m_scratchSpaces.push_back(m_scratchSpacePool->RequestScratchSpace());
 	m_currentScratchSpace = m_scratchSpaces[0].get();
+}
+
+
+ScratchSpace* BasicCommandList::GetCurrentScratchSpace() {
+	return m_currentScratchSpace;
 }
 
 
@@ -52,6 +61,7 @@ BasicCommandList::Decomposition BasicCommandList::Decompose() {
 	Decomposition decomposition;
 	decomposition.commandAllocator = std::move(m_commandAllocator);
 	decomposition.commandList = std::move(m_commandList);
+	decomposition.scratchSpaces = std::move(m_scratchSpaces);
 	decomposition.usedResources.reserve(m_resourceTransitions.size());
 
 	// Copy the elements of state transition map to vector w/ transforming types.

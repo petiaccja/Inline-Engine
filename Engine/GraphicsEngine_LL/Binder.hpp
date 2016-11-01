@@ -90,7 +90,7 @@ private:
 	static bool RadixLess(const BindParameter& lhs, const BindParameter& rhs);
 public:
 	/// <summary> Create a binder from specified binding points. </summary>
-	Binder(gxapi::IGraphicsApi* gxApi, const std::vector<BindParameterDesc>& parameters);
+	Binder(gxapi::IGraphicsApi* gxApi, const std::vector<BindParameterDesc>& parameters, const std::vector<gxapi::StaticSamplerDesc>& staticSamplers = {});
 
 	/// <summary> Get where in the root signature the specified parameter lies. </summary>
 	/// <param name="parameter"> The parameter to query. </param>

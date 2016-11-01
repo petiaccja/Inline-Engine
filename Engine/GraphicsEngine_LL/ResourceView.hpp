@@ -15,11 +15,14 @@ class RTVHeap;
 class DSVHeap;
 class PersistentResViewHeap;
 class VertexBuffer;
-class Texture2D;
-class LinearBuffer;
 class ConstBuffer;
 class VolatileConstBuffer;
 class PersistentConstBuffer;
+class LinearBuffer;
+class Texture1D;
+class Texture2D;
+class Texture3D;
+class TextureCube;
 
 
 template <typename ResourceT>
@@ -30,11 +33,11 @@ public:
 		m_resource(resource)
 	{}
 
-	const std::shared_ptr<ResourceT>& GetResource() {
+	const std::shared_ptr<ResourceT>& GetResource() const {
 		return m_resource;
 	}
 
-	gxapi::DescriptorHandle GetHandle() {
+	gxapi::DescriptorHandle GetHandle() const {
 		assert(m_descRef);
 		return m_descRef->Get();
 	}
@@ -108,6 +111,61 @@ public:
 protected:
 	gxapi::eFormat m_format;
 	gxapi::SrvBuffer m_srvDesc;
+};
+
+
+class Texture1DSRV : public ResourceViewBase<Texture1D> {
+public:
+	Texture1DSRV() = default;
+	Texture1DSRV(const std::shared_ptr<Texture1D>& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvTexture1DArray srvDesc);
+
+	gxapi::eFormat GetFormat();
+	const gxapi::SrvTexture1DArray& GetDescription() const;
+
+protected:
+	gxapi::eFormat m_format;
+	gxapi::SrvTexture1DArray m_srvDesc;
+};
+
+
+class Texture2DSRV : public ResourceViewBase<Texture2D> {
+public:
+	Texture2DSRV() = default;
+	Texture2DSRV(const std::shared_ptr<Texture2D>& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvTexture2DArray srvDesc);
+
+	gxapi::eFormat GetFormat();
+	const gxapi::SrvTexture2DArray& GetDescription() const;
+
+protected:
+	gxapi::eFormat m_format;
+	gxapi::SrvTexture2DArray m_srvDesc;
+};
+
+
+class Texture3DSRV : public ResourceViewBase<Texture3D> {
+public:
+	Texture3DSRV() = default;
+	Texture3DSRV(const std::shared_ptr<Texture3D>& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvTexture3D srvDesc);
+
+	gxapi::eFormat GetFormat();
+	const gxapi::SrvTexture3D& GetDescription() const;
+
+protected:
+	gxapi::eFormat m_format;
+	gxapi::SrvTexture3D m_srvDesc;
+};
+
+
+class TextureCubeSRV : public ResourceViewBase<TextureCube> {
+public:
+	TextureCubeSRV(const std::shared_ptr<TextureCube>& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvTextureCube srvDesc);
+
+	gxapi::eFormat GetFormat();
+	const gxapi::SrvTextureCube& GetDescription() const;
+
+protected:
+	gxapi::eFormat m_format;
+	gxapi::SrvTextureCube m_srvDesc;
 };
 
 

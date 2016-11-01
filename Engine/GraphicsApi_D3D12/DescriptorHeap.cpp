@@ -47,5 +47,10 @@ uint32_t DescriptorHeap::GetIncrementSize() const {
 }
 
 
+ID3D12DescriptorHeap* DescriptorHeap::GetNative() {
+	return m_native.Get();
+}
+
+
 } // namespace gxapi_dx12
 } // namespace inl

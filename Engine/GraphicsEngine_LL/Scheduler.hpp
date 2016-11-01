@@ -44,6 +44,7 @@ protected:
 	static void EnqueueCommandList(CommandQueue& commandQueue,
 								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
 								   CmdAllocPtr commandAllocator,
+	                               std::vector<ScratchSpacePtr> scratchSpaces,
 								   std::vector<std::shared_ptr<GenericResource>> usedResources,
 								   const FrameContext& context);
 

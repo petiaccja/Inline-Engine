@@ -204,6 +204,9 @@
     <ClInclude Include="Nodes\Node_GetDepthBuffer.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
+    <ClInclude Include="DEBUG_TexturedEntity.hpp">
+      <Filter>Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -305,6 +308,9 @@
     </ClCompile>
     <ClCompile Include="Nodes\Node_GetDepthBuffer.cpp">
       <Filter>Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="DEBUG_TexturedEntity.cpp">
+      <Filter>Scene</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

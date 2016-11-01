@@ -72,6 +72,7 @@ void Scheduler::Execute(FrameContext context) {
 									   std::move(injectList),
 									   std::move(injectAlloc),
 									   {},
+									   {},
 									   context);
 				}
 
@@ -87,6 +88,7 @@ void Scheduler::Execute(FrameContext context) {
 				EnqueueCommandList(*context.commandQueue,
 								   std::move(dec.commandList),
 								   std::move(dec.commandAllocator),
+				                   std::move(dec.scratchSpaces),
 								   std::move(usedResourceList),
 								   context);
 
@@ -109,6 +111,7 @@ void Scheduler::Execute(FrameContext context) {
 		EnqueueCommandList(*context.commandQueue,
 						   std::move(injectList),
 						   std::move(injectAlloc),
+						   {},
 						   {},
 						   context);
 	}
@@ -172,6 +175,7 @@ std::vector<ElementaryTask> Scheduler::MakeSchedule(const lemon::ListDigraph& ta
 void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
 								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
 								   CmdAllocPtr commandAllocator,
+                                   std::vector<ScratchSpacePtr> scratchSpaces,
 								   std::vector<std::shared_ptr<GenericResource>> usedResources,
 								   const FrameContext& context)
 {
@@ -187,7 +191,7 @@ void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
 	SyncPoint completionPoint = context.commandQueue->Signal();
 
 	// Enqueue CPU task to clean up resources after command list finished.
-	context.residencyQueue->EnqueueClean(completionPoint, std::move(usedResources), std::move(commandAllocator));
+	context.residencyQueue->EnqueueClean(completionPoint, std::move(usedResources), std::move(commandAllocator), std::move(scratchSpaces));
 }
 
 
@@ -255,7 +259,7 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 
 	// Enqueue command list.
 	commandList->Close();
-	EnqueueCommandList(*context.commandQueue, std::move(commandList), std::move(commandAllocator), {}, context);
+	EnqueueCommandList(*context.commandQueue, std::move(commandList), std::move(commandAllocator), {}, {}, context);
 }
 
 
@@ -273,11 +277,14 @@ void Scheduler::UploadTask(CopyCommandList& commandList, const std::vector<Uploa
 
 			// Copy buffer
 			if (const LinearBuffer* buffer = dynamic_cast<const LinearBuffer*>(destination.get())) {
-				commandList.CopyBuffer(destination.get(), request.offsetDst, const_cast<GenericResource*>(source), 0, buffer->GetSize());
+				commandList.CopyBuffer(destination.get(), request.dstOffsetX, const_cast<GenericResource*>(source), 0, buffer->GetSize());
 			}
 			// Copy texture2D
-			else if (false) {
-				// TODO
+			else if (const Texture2D* buffer = dynamic_cast<const Texture2D*>(destination.get())) {
+				auto srcTexture = static_cast<LinearBuffer*>(const_cast<GenericResource*>(source));
+				auto dstTexture = static_cast<Texture2D*>(destination.get());
+
+				commandList.CopyTexture(dstTexture, srcTexture, SubTexture2D(0, 0, mathfu::Vector<int, 2>(request.dstOffsetX, request.dstOffsetY)), request.textureBufferDesc);
 			}
 		}
 	}

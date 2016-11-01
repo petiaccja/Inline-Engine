@@ -5,6 +5,7 @@
 #include "CommandAllocator.hpp"
 #include "CommandQueue.hpp"
 #include "RootSignature.hpp"
+#include "DescriptorHeap.hpp"
 #include "CommandList.hpp"
 #include "Fence.hpp"
 #include "../GraphicsApi_LL/Common.hpp"
@@ -46,6 +47,8 @@ ID3D12CommandAllocator* native_cast(gxapi::ICommandAllocator* source);
 ID3D12GraphicsCommandList* native_cast(gxapi::IGraphicsCommandList* source);
 
 ID3D12RootSignature* native_cast(gxapi::IRootSignature* source);
+
+ID3D12DescriptorHeap* native_cast(gxapi::IDescriptorHeap* source);
 
 ID3D12Fence* native_cast(gxapi::IFence* source);
 

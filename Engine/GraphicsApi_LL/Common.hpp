@@ -784,15 +784,31 @@ struct ClearValue {
 };
 
 
+// Describes which subresource of a texture should be used or
+// how data should be interpreted inside a buffer when treating it as a texture during a copy
 struct TextureCopyDesc {
 	TextureCopyDesc() = default;
-	TextureCopyDesc(eFormat format, uint64_t width, size_t byteOffset = 0, uint32_t height = 1, uint16_t depth = 1)
-		: format(format), width(width), height(height), depth(depth) {}
+	TextureCopyDesc(eFormat format, uint64_t width, uint32_t height, uint16_t depth, size_t byteOffset, uint32_t subresourceIndex)
+		: format(format), width(width), height(height), depth(depth), byteOffset(byteOffset), subresourceIndex(subresourceIndex) {}
+
+	// to describe texture information inside a buffer:
 	eFormat format;
 	uint64_t width;
 	uint32_t height;
 	uint16_t depth;
 	size_t byteOffset;
+
+	// to identify a texture subresource:
+	uint32_t subresourceIndex;
+	
+
+	static TextureCopyDesc Texture(uint32_t subresourceIndex) {
+		TextureCopyDesc result; result.subresourceIndex = subresourceIndex; return result;
+	}
+
+	static TextureCopyDesc Buffer(eFormat format, uint64_t width, uint32_t height, uint16_t depth, size_t byteOffset) {
+		return TextureCopyDesc(format, width, height, depth, byteOffset, 0);
+	}
 };
 
 
@@ -1076,7 +1092,7 @@ struct DescriptorRange {
 		unsigned numDescriptors,
 		unsigned baseShaderRegister,
 		unsigned registerSpace,
-		unsigned offsetFromTableStart = std::numeric_limits<unsigned>::max())
+		unsigned offsetFromTableStart = OFFSET_APPEND)
 		:
 		type(type),
 		numDescriptors(numDescriptors),
@@ -1090,6 +1106,8 @@ struct DescriptorRange {
 	unsigned baseShaderRegister;
 	unsigned registerSpace;
 	unsigned offsetFromTableStart;
+
+	static constexpr auto OFFSET_APPEND = std::numeric_limits<unsigned>::max();
 };
 
 struct RootDescriptorTable {
@@ -1480,6 +1498,8 @@ struct TransitionBarrier : public ResourceBarrierTag {
 	eResourceState beforeState;
 	eResourceState afterState;
 	eResourceBarrierSplit splitMode;
+
+	static constexpr auto ALL_SUBRESOURCES = std::numeric_limits<unsigned>::max();
 };
 
 
@@ -1509,8 +1529,6 @@ struct ResourceBarrier {
 	}
 };
 
-
-constexpr auto RESOURCE_BARRIER_ALL_SUBRESOURCES = std::numeric_limits<unsigned int>::max();
 
 //------------------------------------------------------------------------------
 // User helper functions

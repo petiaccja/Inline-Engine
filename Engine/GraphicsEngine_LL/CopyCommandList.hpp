@@ -73,13 +73,20 @@ struct SubTexture3D {
 
 class CopyCommandList : public BasicCommandList {
 public:
-	CopyCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool);
+	CopyCommandList(
+		gxapi::IGraphicsApi* gxApi,
+		CommandAllocatorPool& commandAllocatorPool,
+		ScratchSpacePool& scratchSpacePool);
 	CopyCommandList(const CopyCommandList& rhs) = delete;
 	CopyCommandList(CopyCommandList&& rhs);
 	CopyCommandList& operator=(const CopyCommandList& rhs) = delete;
 	CopyCommandList& operator=(CopyCommandList&& rhs);
 protected:
-	CopyCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool, gxapi::eCommandListType type);
+	CopyCommandList(
+		gxapi::IGraphicsApi* gxApi,
+		CommandAllocatorPool& commandAllocatorPool,
+		ScratchSpacePool& scratchSpacePool,
+		gxapi::eCommandListType type);
 
 public:
 	// Resource copy
@@ -93,8 +100,15 @@ public:
 					 SubTexture1D srcPlace = {});
 	void CopyTexture(Texture2D* dst,
 					 Texture2D* src,
-					 SubTexture2D dstPlace = {},
-					 SubTexture2D srcPlace = {});
+					 SubTexture2D dstPlace,
+					 SubTexture2D srcPlace);
+	void CopyTexture(Texture2D* dst,
+	                 Texture2D* src,
+	                 SubTexture2D dstPlace = {});
+	void CopyTexture(Texture2D* dst,
+					 LinearBuffer* src,
+					 SubTexture2D dstPlace,
+					 gxapi::TextureCopyDesc bufferDesc);
 	void CopyTexture(Texture3D* dst,
 					 Texture3D* src,
 					 SubTexture3D dstPlace = {},

@@ -1,6 +1,7 @@
 #include "Node_TescoRender.hpp"
 
 #include "../MeshEntity.hpp"
+#include "../DEBUG_TexturedEntity.hpp"
 #include "../Mesh.hpp"
 
 #include "../../GraphicsApi_LL/IGxapiManager.hpp"
@@ -38,6 +39,8 @@ struct Transform
 };
 
 ConstantBuffer<Transform> cb : register(b0);
+SamplerState TheSampler : register(s0);
+Texture2DArray<float4> tex : register(t0);
 
 float fun(float2 a)
 {
@@ -68,7 +71,9 @@ PSInput VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoo
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
-	return float4(0.2, 0.9, 0.9, 1.0)*input.shade*fun(input.texCoord*2);
+	//return float4(0.2, 0.9, 0.9, 1.0)*input.shade*fun(input.texCoord*2);
+	float3 coords = {input.texCoord.x, input.texCoord.y, 0.0};
+	return tex.Sample(TheSampler, coords) *  input.shade;
 }
 )";
 
@@ -80,15 +85,40 @@ TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager*
 	this->GetInput<2>().Set(nullptr);
 
 
-	BindParameterDesc bindParamDesc;
+	BindParameterDesc cbBindParamDesc;
 	m_cbBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
-	bindParamDesc.parameter = m_cbBindParam;
-	bindParamDesc.constantSize = (sizeof(float)*4*4*2);
-	bindParamDesc.relativeAccessFrequency = 0;
-	bindParamDesc.relativeChangeFrequency = 0;
-	bindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
+	cbBindParamDesc.parameter = m_cbBindParam;
+	cbBindParamDesc.constantSize = (sizeof(float)*4*4*2);
+	cbBindParamDesc.relativeAccessFrequency = 0;
+	cbBindParamDesc.relativeChangeFrequency = 0;
+	cbBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
 
-	m_binder = Binder{ graphicsApi, {bindParamDesc}};
+	BindParameterDesc texBindParamDesc;
+	m_texBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
+	texBindParamDesc.parameter = m_texBindParam;
+	texBindParamDesc.constantSize = 0;
+	texBindParamDesc.relativeAccessFrequency = 0;
+	texBindParamDesc.relativeChangeFrequency = 0;
+	texBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc sampBindParamDesc;
+	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
+	sampBindParamDesc.constantSize = 0;
+	sampBindParamDesc.relativeAccessFrequency = 0;
+	sampBindParamDesc.relativeChangeFrequency = 0;
+	sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	gxapi::StaticSamplerDesc samplerDesc;
+	samplerDesc.shaderRegister = 0;
+	samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
+	samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
+	samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
+	samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
+	samplerDesc.mipLevelBias = 0.f;
+	samplerDesc.registerSpace = 0;
+	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	m_binder = Binder{ graphicsApi, {cbBindParamDesc, texBindParamDesc, sampBindParamDesc}, {samplerDesc}};
 
 #if defined(_DEBUG)
 	// Enable better shader debugging with the graphics debugging tools.
@@ -160,7 +190,8 @@ void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, cons
 	// Iterate over all entities
 	for (const MeshEntity* entity : entities) {
 		//std::cout << "Rendering entity " << entity << std::endl;
-		
+		auto entityTextured = static_cast<const DEBUG_TexturedEntity*>(entity);
+
 		// Get entity parameters
 		Mesh* mesh = entity->GetMesh();
 		auto position = entity->GetPosition();
@@ -194,6 +225,7 @@ void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, cons
 		MVP.Pack(cbufferData.data());
 		invTrWorld.Pack(cbufferData.data()+4);
 
+		commandList.BindGraphics(m_texBindParam, entityTextured->GetTexture());
 		commandList.BindGraphics(m_cbBindParam, cbufferData.data(), sizeof(cbufferData), 0);
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 		commandList.SetIndexBuffer(mesh->GetIndexBuffer().get(), mesh->GetIndexBuffer32Bit());

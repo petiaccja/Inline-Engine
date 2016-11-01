@@ -74,6 +74,14 @@ public:
 	                     uint32_t* rangeCounts,
 	                     gxapi::eDescriptorHeapType descHeapsType) override;
 
+	void CopyDescriptors(size_t numSrcDescRanges,
+						 gxapi::DescriptorHandle* srcRangeStarts,
+						 uint32_t* srcRangeLengths,
+						 size_t numDstDescRanges,
+						 gxapi::DescriptorHandle* dstRangeStarts,
+						 uint32_t* dstRangeLengths,
+						 gxapi::eDescriptorHeapType descHeapsType) override;
+
 	void CopyDescriptors(gxapi::DescriptorHandle srcStart,
 	                     gxapi::DescriptorHandle dstStart,
 	                     size_t rangeCount,

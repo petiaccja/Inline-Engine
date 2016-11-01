@@ -15,7 +15,7 @@ ConstantBuffer<MiscInfo> misc : register(b8);
 Texture2D<float4> tex : register(t0);
 
 // Samplers
-sampler samp : register(s1);
+sampler samp : register(s0);
 
 
 struct VSInput {
@@ -27,6 +27,7 @@ struct VSInput {
 struct PSInput {
 	float4 position : SV_POSITION;
 	float3 normal : COLOR;
+	float2 texcoord : TEX;
 };
 
 // Vertex shader
@@ -37,12 +38,15 @@ PSInput VSmain(VSInput input) {
 	result.position = mul(wvp, float4(input.position, 1));
 	float3x3 worldRot = (float3x3)transform.world;
 	result.normal = mul(worldRot, input.normal);
+	result.texcoord = input.texcoord;
 
 	return result;
 }
 
 // Pixel shader
 float4 PSmain(PSInput input) : SV_TARGET {
-	float ndotl = saturate(dot(input.normal, float3(-0.5, 0.5, 0.5)));
-	return float4(ndotl*float3(0.8, 0.68, 0.6) + float3(0.12, 0.14, 0.18),1);
+	float ndotl = saturate(dot(input.normal, normalize(float3(-0.5, 0.5, 0.5))));
+	//float4 color = float3(0.8, 0.68, 0.6);
+	float3 color = tex.Sample(samp, input.texcoord).rgb;
+	return float4(color*(ndotl+float3(0.12, 0.14, 0.18)), 1);
 }

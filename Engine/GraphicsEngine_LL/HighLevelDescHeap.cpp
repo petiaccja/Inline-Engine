@@ -10,13 +10,13 @@ namespace inl {
 namespace gxeng {
 
 
-DescriptorReference::DescriptorReference(const gxapi::DescriptorHandle & handle, const std::function<void(void)>& deleter) :
+DescriptorReference::DescriptorReference(const gxapi::DescriptorHandle& handle, const std::function<void(void)>& deleter) :
 	m_handle(handle),
 	m_deleter(deleter)
 {}
 
 
-DescriptorReference::DescriptorReference(DescriptorReference && other) :
+DescriptorReference::DescriptorReference(DescriptorReference&& other) :
 	m_deleter(std::move(other.m_deleter)),
 	m_handle(std::move(other.m_handle))
 {
@@ -137,14 +137,7 @@ ScratchSpaceRef& ScratchSpaceRef::operator=(ScratchSpaceRef&& other) {
 }
 
 
-ScratchSpaceRef::~ScratchSpaceRef() {
-	if (IsValid()) {
-		m_home->m_allocator.Deallocate(m_pos);
-	}
-}
-
-
-gxapi::DescriptorHandle ScratchSpaceRef::Get(size_t position) {
+gxapi::DescriptorHandle ScratchSpaceRef::Get(uint32_t position) {
 	if (!IsValid()) {
 		throw gxapi::InvalidState("Descriptor being dereferenced is INVALID!");
 	}
@@ -157,12 +150,17 @@ gxapi::DescriptorHandle ScratchSpaceRef::Get(size_t position) {
 }
 
 
+uint32_t ScratchSpaceRef::Count() const {
+	return m_allocationSize;
+}
+
+
 bool ScratchSpaceRef::IsValid() const {
 	return m_pos != INVALID_POS;
 }
 
 
-ScratchSpaceRef::ScratchSpaceRef(ScratchSpace * home, size_t pos, size_t allocSize) :
+ScratchSpaceRef::ScratchSpaceRef(ScratchSpace * home, uint32_t pos, uint32_t allocSize) :
 	m_home(home),
 	m_pos(pos),
 	m_allocationSize(allocSize)
@@ -177,27 +175,22 @@ void ScratchSpaceRef::Invalidate() {
 //=========================================================
 
 
-ScratchSpaceRef ScratchSpace::Allocate(size_t size) {
-	return ScratchSpaceRef(this, m_allocator.Allocate(size), size);
-}
-
-
-DescriptorReference ScratchSpace::AllocateSingle() {
-	size_t pos = m_allocator.Allocate(1);
-	try {
-		return DescriptorReference(m_heap->At(pos), [this, pos]() {m_allocator.Deallocate(pos); });
-	}
-	catch (...) {
-		std::terminate();
-	}
-}
-
-
-ScratchSpace::ScratchSpace(gxapi::IGraphicsApi * graphicsApi, size_t size) :
+ScratchSpace::ScratchSpace(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type, size_t size) :
 	m_allocator(size)
 {
-	gxapi::DescriptorHeapDesc desc(gxapi::eDescriptorHeapType::CBV_SRV_UAV, size, true);
+	assert(type == gxapi::eDescriptorHeapType::CBV_SRV_UAV || type == gxapi::eDescriptorHeapType::SAMPLER);
+	gxapi::DescriptorHeapDesc desc(type, size, true);
 	m_heap.reset(graphicsApi->CreateDescriptorHeap(desc));
+}
+
+
+ScratchSpaceRef ScratchSpace::Allocate(uint32_t size) {
+	return ScratchSpaceRef(this, static_cast<uint32_t>(m_allocator.Allocate(size)), size);
+}
+
+
+void ScratchSpace::Reset() {
+	m_allocator.Reset();
 }
 
 

@@ -126,11 +126,24 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 		m_cubeMesh->Set(vertices.data(), vertices.size(), sizeof(ColoredVertexT), indices.data(), indices.size());
 	}
 
+	inl::gxeng::Texture2DSRV texture;
+	{
+		std::vector<std::array<float, 4>> imgData = {
+			{9.0f, 0.2f, 0.2f, 1.0f},
+			{0.2f, 9.0f, 0.2f, 1.0f},
+			{0.2f, 0.2f, 9.0f, 1.0f},
+			{0.3f, 0.3f, 0.3f, 1.0f}
+		};
+
+		texture = m_graphicsEngine->DEBUG_CreateTexture(imgData.data(), 2, 2, inl::gxapi::eFormat::R32G32B32A32_FLOAT);
+	}
+
 	const float extent = 3;
 	const int count = 6;
 	for (int i=0; i<count; i++) {
-		std::unique_ptr<inl::gxeng::MeshEntity> entity(m_graphicsEngine->CreateMeshEntity());
+		std::unique_ptr<inl::gxeng::DEBUG_TexturedEntity> entity(new inl::gxeng::DEBUG_TexturedEntity());
 		entity->SetMesh(m_cubeMesh.get());
+		entity->SetTexture(texture);
 		mathfu::Vector<float, 3> pos;
 		pos.x() = float((i+0.5f)*extent)/count - extent*0.5f;
 		pos.y() = 0;

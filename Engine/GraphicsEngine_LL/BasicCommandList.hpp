@@ -72,6 +72,7 @@ public:
 	struct Decomposition {
 		CmdAllocPtr commandAllocator;
 		std::unique_ptr<gxapi::ICopyCommandList> commandList;
+		std::vector<ScratchSpacePtr> scratchSpaces;
 		std::vector<ResourceUsage> usedResources;
 	};
 public:
@@ -85,9 +86,16 @@ public:
 
 	virtual Decomposition Decompose();
 protected:
-	BasicCommandList(gxapi::IGraphicsApi* gxApi, CommandAllocatorPool& commandAllocatorPool, ScratchSpacePool& scratchSpacePool, gxapi::eCommandListType type);
+	BasicCommandList(
+		gxapi::IGraphicsApi* gxApi,
+		CommandAllocatorPool& commandAllocatorPool,
+		ScratchSpacePool& scratchSpacePool,
+		gxapi::eCommandListType type);
+
 	void UseResource(GenericResource* resource);
 	gxapi::ICommandList* GetCommandList() const { return m_commandList.get(); }
+
+	ScratchSpace* GetCurrentScratchSpace();
 
 protected:
 	std::unordered_map<SubresourceId, SubresourceUsageInfo> m_resourceTransitions;

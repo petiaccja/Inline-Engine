@@ -36,7 +36,7 @@ void MeshBuffer::Update(uint32_t streamIndex, const void* vertexData, size_t ver
 	size_t stride = m_vertexStrides[streamIndex];
 	const std::shared_ptr<VertexBuffer>& buffer = m_vertexBuffers[streamIndex];
 	assert(buffer->GetSize() >= offsetInVertex * stride + vertexCount * stride);
-	m_memoryManager->GetUploadHeap().UploadToResource(buffer, offsetInVertex * stride, vertexData, vertexCount * stride);
+	m_memoryManager->GetUploadHeap().Upload(buffer, offsetInVertex * stride, vertexData, vertexCount * stride);
 }
 
 
