@@ -11,11 +11,10 @@ GraphicsCommandList::GraphicsCommandList(
 	gxapi::IGraphicsApi* gxApi,
 	CommandAllocatorPool& commandAllocatorPool,
 	ScratchSpacePool& scratchSpacePool
-):
+) :
 	ComputeCommandList(gxApi, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::GRAPHICS)
 {
 	m_commandList = dynamic_cast<gxapi::IGraphicsCommandList*>(GetCommandList());
-
 	m_graphicsApi = gxApi;
 }
 
@@ -78,7 +77,7 @@ void GraphicsCommandList::DrawIndexedInstanced(unsigned numIndices,
 											   unsigned startInstance)
 {
 	m_commandList->DrawIndexedInstanced(numIndices, startIndex, vertexOffset, numInstances, startInstance);
-	DuplicateDescriptors();
+	CommitRootTables();
 }
 
 void GraphicsCommandList::DrawInstanced(unsigned numVertices,
@@ -87,7 +86,7 @@ void GraphicsCommandList::DrawInstanced(unsigned numVertices,
 										unsigned startInstance)
 {
 	m_commandList->DrawInstanced(numVertices, startVertex, numInstances, startInstance);
-	DuplicateDescriptors();
+	CommitRootTables();
 }
 
 
@@ -132,8 +131,8 @@ void GraphicsCommandList::SetVertexBuffers(unsigned startSlot,
 //------------------------------------------------------------------------------
 
 void GraphicsCommandList::SetRenderTargets(unsigned numRenderTargets,
-                                           RenderTargetView** renderTargets,
-                                           DepthStencilView* depthStencil)
+										   RenderTargetView** renderTargets,
+										   DepthStencilView* depthStencil)
 {
 	auto renderTargetHandles = std::make_unique<gxapi::DescriptorHandle[]>(numRenderTargets);
 	for (unsigned i = 0; i < numRenderTargets; ++i) {
@@ -187,7 +186,7 @@ void GraphicsCommandList::SetGraphicsBinder(Binder* binder) {
 
 	m_binder = binder;
 	m_commandList->SetGraphicsRootSignature(m_binder->GetRootSignature());
-	InitializeDescTableStates();
+	InitRootTables();
 }
 
 
@@ -215,7 +214,7 @@ void GraphicsCommandList::BindGraphicsTexture(BindParameter parameter, gxapi::De
 	const auto& rootParam = desc.rootParameters[slot];
 
 	if (rootParam.type == gxapi::RootParameterDesc::DESCRIPTOR_TABLE) {
-		WriteScratchSpace(handle, slot, tableIndex);
+		UpdateRootTableSafe(handle, slot, tableIndex);
 	}
 	else {
 		throw std::invalid_argument("Parameter is not an SRV.");
@@ -223,8 +222,7 @@ void GraphicsCommandList::BindGraphicsTexture(BindParameter parameter, gxapi::De
 }
 
 
-void GraphicsCommandList::BindGraphics(BindParameter parameter, ConstBuffer* shaderConstant) {
-	throw std::runtime_error("not implemented");
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const ConstBufferView& shaderConstant) {
 	assert(m_binder != nullptr);
 
 	int slot, tableIndex;
@@ -233,10 +231,10 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, ConstBuffer* sha
 	const auto& rootParam = desc.rootParameters[slot];
 
 	if (rootParam.type == gxapi::RootParameterDesc::CBV) {
-		m_commandList->SetGraphicsRootConstantBuffer(slot, shaderConstant->GetVirtualAddress());
+		m_commandList->SetGraphicsRootConstantBuffer(slot, shaderConstant.GetResource()->GetVirtualAddress());
 	}
 	else if (rootParam.type == gxapi::RootParameterDesc::DESCRIPTOR_TABLE) {
-		WriteScratchSpace(gxapi::DescriptorHandle(), slot, tableIndex);
+		UpdateRootTableSafe(gxapi::DescriptorHandle(), slot, tableIndex);
 	}
 	else {
 		throw std::invalid_argument("Parameter is not a CBV.");
@@ -265,113 +263,133 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const void* shad
 }
 
 
-void GraphicsCommandList::WriteScratchSpace(gxapi::DescriptorHandle handle, int slot, int index) {
-	assert(
-		std::is_sorted(
-			m_tableStates.begin(),
-			m_tableStates.end(),
-			[](const DescriptorTableState& a, const DescriptorTableState& b){return a.slot < b.slot;}
-		)
-	);
+void GraphicsCommandList::UpdateRootTable(gxapi::DescriptorHandle handle, int rootSignatureSlot, int indexInTable) {
+	DescriptorTableState& table = FindRootTable(rootSignatureSlot);
 
-	// find the table with the given slot using binary search
-	auto tableIt = std::lower_bound(
-		m_tableStates.begin(),
-		m_tableStates.end(),
-		slot,
-		[](const DescriptorTableState& table, int slot){ return table.slot < slot; }
-	);
-	assert(tableIt != m_tableStates.end());
+	// if table is committed, duplicate it so that recent drawcalls won't be broken
+	if (table.committed) {
+		// update handle in advance so that duplicate will copy it instead and we save time
+		table.bindings[indexInTable] = handle;
+		DuplicateRootTable(table);
 
-	assert(tableIt->boundDescriptors.size() > index);
-	tableIt->boundDescriptors[index] = handle;
-
-	m_graphicsApi->CopyDescriptors(handle, tableIt->reference.Get(index), 1, gxapi::eDescriptorHeapType::CBV_SRV_UAV);
+		// update table root parameters
+		m_commandList->SetGraphicsRootDescriptorTable(rootSignatureSlot, table.reference.Get(0));
+	}
+	// just update the binding
+	else {
+		table.bindings[indexInTable] = handle;
+		m_graphicsApi->CopyDescriptors(handle, table.reference.Get(indexInTable), 1, gxapi::eDescriptorHeapType::CBV_SRV_UAV);
+	}
 }
 
 
-void GraphicsCommandList::DuplicateDescriptors() {
-	std::vector<gxapi::DescriptorHandle> srcStarts;
-	std::vector<gxapi::DescriptorHandle> dstStarts;
-	std::vector<uint32_t> srcLengths;
-	std::vector<uint32_t> dstLengths;
+void GraphicsCommandList::DuplicateRootTable(DescriptorTableState& table) {
+	uint32_t numDescriptors = table.bindings.size();
 
-	const size_t tableCount = m_tableStates.size();
-	srcStarts.reserve(tableCount);
-	dstStarts.reserve(tableCount);
-	srcLengths.reserve(tableCount);
-	dstLengths.reserve(tableCount);
+	// allocate new space on scratch space
+	ScratchSpaceRef space = GetCurrentScratchSpace()->Allocate(numDescriptors);
 
-	std::vector<DescriptorTableState> newStates;
-	newStates.reserve(m_tableStates.size());
-
-	for (auto& table : m_tableStates) {
-		DescriptorTableState newTable(
-			GetCurrentScratchSpace()->Allocate(table.reference.Count()),
-			false,
-			table.slot
-		);
-
-		newTable.boundDescriptors.resize(table.boundDescriptors.size());
-
-		for (unsigned i = 0; i < table.boundDescriptors.size(); i++) {
-			srcStarts.push_back(table.boundDescriptors[i]);
-			srcLengths.push_back(1);
-		}
-		dstStarts.push_back(newTable.reference.Get(0));
-		dstLengths.push_back(newTable.reference.Count());
-
-		newStates.push_back(std::move(newTable));
+	// copy old descriptors to new space
+	std::vector<gxapi::DescriptorHandle> sourceDescHandles(numDescriptors);
+	std::vector<uint32_t> sourceRangeSizes(numDescriptors, 1);
+	for (size_t i = 0; i < numDescriptors; ++i) {
+		sourceDescHandles[i] = table.bindings[i];
 	}
 
-	m_graphicsApi->CopyDescriptors(
-		srcStarts.size(),
-		srcStarts.data(),
-		srcLengths.data(),
-		dstStarts.size(),
-		dstStarts.data(),
-		dstLengths.data(),
-		gxapi::eDescriptorHeapType::CBV_SRV_UAV
-	);
+	gxapi::DescriptorHandle destDescHandle = space.Get(0);
 
-	m_tableStates = std::move(newStates);
+	m_graphicsApi->CopyDescriptors(
+		sourceDescHandles.size(), sourceDescHandles.data(), sourceRangeSizes.data(),
+		1, &destDescHandle, &numDescriptors,
+		gxapi::eDescriptorHeapType::CBV_SRV_UAV);
+
+	// update table parameters
+	table.committed = false;
+	table.reference = space;
 }
 
 
-void GraphicsCommandList::InitializeDescTableStates() {
-	m_tableStates.clear();
+auto GraphicsCommandList::FindRootTable(int rootSignatureSlot) -> DescriptorTableState& {
+	// root table states are already sorted by init
+	auto tableIt = std::lower_bound(
+		m_rootTableStates.begin(),
+		m_rootTableStates.end(),
+		rootSignatureSlot,
+		[](const DescriptorTableState& table, int slot) { return table.slot < slot; });
+
+	// slot must be valid
+	assert(tableIt != m_rootTableStates.end());
+
+	return *tableIt;
+}
+
+
+void GraphicsCommandList::InitRootTables() {
+	m_rootTableStates.clear();
 	const gxapi::RootSignatureDesc& desc = m_binder->GetRootSignatureDesc();
 
 	for (size_t slot = 0; slot < desc.rootParameters.size(); slot++) {
 		auto& param = desc.rootParameters[slot];
 		if (param.type == gxapi::RootParameterDesc::DESCRIPTOR_TABLE) {
 			auto& ranges = param.As<gxapi::RootParameterDesc::DESCRIPTOR_TABLE>().ranges;
-			assert(ranges.size() >= 1);
 
-			// NOTE: If first range is not a sampler, than no range is a sampler in this table
-			if(ranges[0].type == gxapi::DescriptorRange::eType::SAMPLER) {
-				throw std::runtime_error("Dynamic Samplers are not supported at this time");
+			if (ranges.size() <= 0) {
+				continue;
 			}
 
-			// =========================================================
-			// Assertion: ranges are contiguous
-#ifdef _DEBUG
-			if (ranges.size() > 1) {
-				for (auto& curr : ranges) {
-					assert(curr.offsetFromTableStart == gxapi::DescriptorRange::OFFSET_APPEND);
+			// if first range is NOT a sampler, non of the ranges are
+			// dynamic samplers are not supported, thus the exception
+			if (ranges[0].type == gxapi::DescriptorRange::eType::SAMPLER) {
+				throw std::runtime_error("Dynamic Samplers are not supported yet.");
+			}
+
+			// check if ranges are contiguous and not unbounded
+			size_t descriptorCountTotal = 0;
+			size_t appendIndex = 0;
+			size_t largestIndex = 0;
+			for (const auto& range : ranges) {
+				size_t rangeOffset;
+				descriptorCountTotal += range.numDescriptors;
+				if (range.offsetFromTableStart == gxapi::DescriptorRange::OFFSET_APPEND) {
+					rangeOffset = appendIndex;
 				}
+				else {
+					rangeOffset = range.offsetFromTableStart;
+				}
+				largestIndex = std::max(largestIndex, rangeOffset + range.numDescriptors);
+				appendIndex = rangeOffset + range.numDescriptors;
 			}
-#endif // _DEBUG
-			// =========================================================
+			assert(descriptorCountTotal == largestIndex);
 
-			unsigned tableSize = 0;
-			for (auto& range : ranges) {
-				tableSize += range.numDescriptors;
-			}
-
-			m_tableStates.push_back(DescriptorTableState(GetCurrentScratchSpace()->Allocate(tableSize), false, slot));
-			m_tableStates.back().boundDescriptors.resize(tableSize);
+			// add record for this table
+			m_rootTableStates.push_back({ GetCurrentScratchSpace()->Allocate(descriptorCountTotal), (int)slot });
+			m_rootTableStates.back().bindings.resize(descriptorCountTotal);
 		}
+	}
+}
+
+
+void GraphicsCommandList::CommitRootTables() {
+	for (auto& table : m_rootTableStates) {
+		table.committed = true;
+	}
+}
+
+
+void GraphicsCommandList::RenewRootTables() {
+	for (auto& table : m_rootTableStates) {
+		DuplicateRootTable(table);
+	}
+}
+
+void GraphicsCommandList::UpdateRootTableSafe(gxapi::DescriptorHandle handle, int rootSignatureSlot, int indexInTable) {
+	try {
+		UpdateRootTable(handle, rootSignatureSlot, indexInTable);
+	}
+	catch (std::bad_alloc&) {
+		NewScratchSpace(1000);
+		RenewRootTables();
+		UpdateRootTable(handle, rootSignatureSlot, indexInTable);
 	}
 }
 

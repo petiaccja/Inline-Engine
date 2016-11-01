@@ -92,6 +92,9 @@ public:
 	// set pipeline state
 	virtual void SetPipelineState(IPipelineState* pipelineState) = 0;
 	virtual void ResetState(IPipelineState* initialPipelineState) = 0;
+
+	// descriptor heaps
+	virtual void SetDescriptorHeaps(IDescriptorHeap*const * heaps, uint32_t count) = 0;
 };
 
 
@@ -162,9 +165,6 @@ public:
 	virtual void SetGraphicsRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) = 0;
 
 	virtual void SetGraphicsRootSignature(IRootSignature* rootSignature) = 0;
-
-	// descriptor heaps
-	virtual void SetDescriptorHeaps(IDescriptorHeap*const * heaps, uint32_t count) = 0;
 };
 
 

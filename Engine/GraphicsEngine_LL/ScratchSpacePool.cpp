@@ -11,6 +11,8 @@ ScratchSpacePool::ScratchSpacePool(gxapi::IGraphicsApi* gxApi, gxapi::eDescripto
 
 
 auto ScratchSpacePool::RequestScratchSpace() -> UniquePtr {
+	std::lock_guard<std::mutex> lkg(m_mutex);
+
 	size_t index;
 	try {
 		index = m_allocator.Allocate();
@@ -37,10 +39,11 @@ auto ScratchSpacePool::RequestScratchSpace() -> UniquePtr {
 
 
 void ScratchSpacePool::RecycleScratchSpace(ScratchSpace* scratchSpace) {
+	std::lock_guard<std::mutex> lkg(m_mutex);
+
 	scratchSpace->Reset();
 	assert(m_addressToIndex.count(scratchSpace) > 0);
 	size_t index = m_addressToIndex[scratchSpace];
-	// Deallocate must be after the last operation on the target scratch space!
 	m_allocator.Deallocate(index);
 }
 

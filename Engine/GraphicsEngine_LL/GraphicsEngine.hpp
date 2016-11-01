@@ -28,6 +28,8 @@ namespace gxeng {
 
 
 class Mesh;
+class Image;
+
 class Scene;
 class MeshEntity;
 
@@ -89,7 +91,7 @@ public:
 	Scene* CreateScene(std::string name);
 	MeshEntity* CreateMeshEntity();
 	Texture2DSRV DEBUG_CreateTexture(const void* data, uint32_t width, uint32_t height, gxapi::eFormat format);
-
+	Image* CreateImage();
 private:
 	void CreatePipeline();
 private:

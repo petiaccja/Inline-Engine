@@ -331,7 +331,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				}
 				return 0;
 			}
-			return 0;
+			return DefWindowProc(hWnd, msg, wParam, lParam);
 		default:
 			return DefWindowProc(hWnd, msg, wParam, lParam);
 	}

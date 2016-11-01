@@ -5,6 +5,7 @@
 #include "HighLevelDescHeap.hpp"
 #include <vector>
 #include <map>
+#include <mutex>
 
 
 namespace inl {
@@ -41,6 +42,8 @@ private:
 	exc::SlabAllocatorEngine m_allocator;
 	gxapi::IGraphicsApi* m_gxApi;
 	std::map<ScratchSpace*, size_t> m_addressToIndex;
+
+	std::mutex m_mutex;
 };
 
 

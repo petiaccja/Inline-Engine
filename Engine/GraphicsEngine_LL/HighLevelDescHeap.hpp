@@ -51,8 +51,9 @@ class ScratchSpaceRef {
 public:
 	friend class ScratchSpace;
 
-	ScratchSpaceRef(const ScratchSpaceRef&) = delete;
-	ScratchSpaceRef& operator=(const ScratchSpaceRef&) = delete;
+	ScratchSpaceRef() : m_home(nullptr), m_pos(INVALID_POS), m_allocationSize(0) {}
+	ScratchSpaceRef(const ScratchSpaceRef&) = default;
+	ScratchSpaceRef& operator=(const ScratchSpaceRef&) = default;
 
 	ScratchSpaceRef(ScratchSpaceRef&&);
 	ScratchSpaceRef& operator=(ScratchSpaceRef&&);
@@ -104,6 +105,8 @@ public:
 	/// </summary>
 	void Reset();
 
+
+	gxapi::IDescriptorHeap* GetHeap() const { return m_heap.get(); }
 protected:
 	std::unique_ptr<gxapi::IDescriptorHeap> m_heap;
 	exc::RingAllocationEngine m_allocator;

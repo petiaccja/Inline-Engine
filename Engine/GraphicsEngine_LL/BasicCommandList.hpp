@@ -96,19 +96,17 @@ protected:
 	gxapi::ICommandList* GetCommandList() const { return m_commandList.get(); }
 
 	ScratchSpace* GetCurrentScratchSpace();
-
+	void NewScratchSpace(size_t sizeHint);
 protected:
 	std::unordered_map<SubresourceId, SubresourceUsageInfo> m_resourceTransitions;
 
 private:
-	// Resources
-
 	// Part sources
 	ScratchSpacePool* m_scratchSpacePool;
 	// Parts
-	std::vector<ScratchSpacePtr> m_scratchSpaces;
 	CmdAllocPtr m_commandAllocator;
 	std::unique_ptr<gxapi::ICopyCommandList> m_commandList;
+	std::vector<ScratchSpacePtr> m_scratchSpaces;
 	ScratchSpace* m_currentScratchSpace;
 };
 

@@ -35,7 +35,7 @@ const char SHADER_SRC[] = R"(
 struct Transform
 {
 	float4x4 MVP;
-	float4x4 invTrModel;
+	float4x4 worldMat;
 };
 
 ConstantBuffer<Transform> cb : register(b0);
@@ -60,10 +60,11 @@ PSInput VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoo
 {
 	PSInput result;
 
-	float4 worldNormal = mul(cb.invTrModel, normal);
+	float3 worldNormal = normalize(mul((float3x3)cb.worldMat, normal.xyz));
+	float3 lightDir = normalize(float3(1,1,1));
 
 	result.position = mul(cb.MVP, position);
-	result.shade = max(0.0f, dot(float4(1, 1, 1, 0), worldNormal)) + 0.34f;
+	result.shade = max(0.0f, 0.8*dot(lightDir, worldNormal)) + 0.2;
 	result.texCoord = texCoord;
 
 	return result;
@@ -219,11 +220,10 @@ void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, cons
 
 		auto world = entity->GetTransform();
 		auto MVP = viewProjection * world;
-		auto invTrWorld = world.Inverse().Transpose();
 
 		std::array<mathfu::VectorPacked<float, 4>, 8> cbufferData;
 		MVP.Pack(cbufferData.data());
-		invTrWorld.Pack(cbufferData.data()+4);
+		world.Pack(cbufferData.data()+4);
 
 		commandList.BindGraphics(m_texBindParam, entityTextured->GetTexture());
 		commandList.BindGraphics(m_cbBindParam, cbufferData.data(), sizeof(cbufferData), 0);

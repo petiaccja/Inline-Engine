@@ -181,6 +181,7 @@
     <ClInclude Include="GraphicsNode.hpp" />
     <ClInclude Include="GraphicsNodeFactory.hpp" />
     <ClInclude Include="HighLevelDescHeap.hpp" />
+    <ClInclude Include="Image.hpp" />
     <ClInclude Include="Light.hpp" />
     <ClInclude Include="MemoryManager.hpp" />
     <ClInclude Include="MeshEntity.hpp" />
@@ -229,6 +230,7 @@
     <ClCompile Include="GraphicsCommandList.cpp" />
     <ClCompile Include="GraphicsNodeFactory.cpp" />
     <ClCompile Include="HighLevelDescHeap.cpp" />
+    <ClCompile Include="Image.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="MeshEntity.cpp" />

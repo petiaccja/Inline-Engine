@@ -49,7 +49,7 @@ gxapi::eCommandListType BasicCommandList::GetType() const {
 CopyCommandList::CopyCommandList(ComPtr<ID3D12GraphicsCommandList>& native)
 	: BasicCommandList(native)
 {
-	
+
 	assert(native->GetType() == D3D12_COMMAND_LIST_TYPE_DIRECT ||
 		   native->GetType() == D3D12_COMMAND_LIST_TYPE_COMPUTE ||
 		   native->GetType() == D3D12_COMMAND_LIST_TYPE_COPY);
@@ -145,7 +145,7 @@ D3D12_TEXTURE_COPY_LOCATION CopyCommandList::CreateTextureCopyLocation(gxapi::IR
 		result.pResource = native_cast(resource);
 
 		D3D12_RESOURCE_DESC resourceDesc = native_cast(resource)->GetDesc();
-		const bool isTexture = 
+		const bool isTexture =
 			resourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE1D
 			|| resourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D
 			|| resourceDesc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE3D;
@@ -247,6 +247,20 @@ void ComputeCommandList::ResetState(gxapi::IPipelineState* newState) {
 // set pipeline state
 void ComputeCommandList::SetPipelineState(gxapi::IPipelineState * pipelineState) {
 	m_native->SetPipelineState(native_cast(pipelineState));
+}
+
+
+// set descriptor heaps
+void ComputeCommandList::SetDescriptorHeaps(gxapi::IDescriptorHeap*const * heaps, uint32_t count) {
+
+	std::vector<ID3D12DescriptorHeap*> nativeHeaps;
+	nativeHeaps.reserve(count);
+
+	for (unsigned i = 0; i < count; i++) {
+		nativeHeaps.push_back(native_cast(heaps[i]));
+	}
+
+	m_native->SetDescriptorHeaps(count, nativeHeaps.data());
 }
 
 
@@ -448,20 +462,6 @@ void GraphicsCommandList::SetGraphicsRootShaderResource(unsigned parameterIndex,
 void GraphicsCommandList::SetGraphicsRootSignature(gxapi::IRootSignature* rootSignature) {
 	m_native->SetGraphicsRootSignature(native_cast(rootSignature));
 }
-
-
-void GraphicsCommandList::SetDescriptorHeaps(gxapi::IDescriptorHeap*const * heaps, uint32_t count) {
-
-	std::vector<ID3D12DescriptorHeap*> nativeHeaps;
-	nativeHeaps.reserve(count);
-
-	for (unsigned i = 0; i < count; i++) {
-		nativeHeaps.push_back(native_cast(heaps[i]));
-	}
-
-	m_native->SetDescriptorHeaps(count, nativeHeaps.data());
-}
-
 
 
 

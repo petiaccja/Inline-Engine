@@ -111,6 +111,9 @@ public:
 	// set pipeline state
 	void SetPipelineState(gxapi::IPipelineState* pipelineState) override;
 	void ResetState(gxapi::IPipelineState* initialPipelineState) override;
+
+	// descriptor heaps
+	void SetDescriptorHeaps(gxapi::IDescriptorHeap*const * heaps, uint32_t count) override;
 };
 
 
@@ -180,9 +183,6 @@ public:
 	void SetGraphicsRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) override;
 
 	void SetGraphicsRootSignature(gxapi::IRootSignature* rootSignature) override;
-
-	// descriptor heaps
-	void SetDescriptorHeaps(gxapi::IDescriptorHeap*const * heaps, uint32_t count) override;
 };
 
 

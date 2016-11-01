@@ -129,9 +129,9 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	inl::gxeng::Texture2DSRV texture;
 	{
 		std::vector<std::array<float, 4>> imgData = {
-			{9.0f, 0.2f, 0.2f, 1.0f},
-			{0.2f, 9.0f, 0.2f, 1.0f},
-			{0.2f, 0.2f, 9.0f, 1.0f},
+			{0.9f, 0.2f, 0.2f, 1.0f},
+			{0.2f, 0.9f, 0.2f, 1.0f},
+			{0.2f, 0.2f, 0.9f, 1.0f},
 			{0.3f, 0.3f, 0.3f, 1.0f}
 		};
 
