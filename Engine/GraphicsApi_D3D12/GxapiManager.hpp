@@ -16,30 +16,19 @@ public:
 	gxapi::ISwapChain* CreateSwapChain(gxapi::SwapChainDesc desc, gxapi::ICommandQueue* flushThisQueue) override;
 	gxapi::IGraphicsApi* CreateGraphicsApi(unsigned adapterId) override;
 
-	virtual std::vector<std::string> GetShaderIncludeList(exc::Stream& sourceCode) { return{}; };
 
-
-
-	bool CompileShader(const exc::Stream& sourceCode,
-					   const std::string& mainFunctionName,
-					   gxapi::eShaderType type,
-					   gxapi::eShaderCompileFlags flags,
-					   const std::unordered_map<std::string, exc::Stream*>& includeFiles,
-					   const std::vector<gxapi::ShaderMacroDefinition>& macros,
-					   gxapi::ShaderProgramBinary& shaderOut,
-					   std::string& errorMsg) override;
-
-	gxapi::ShaderProgramBinary CompileShader(const std::string& sourceCode,
-											const std::string& mainFunctionName,
-											gxapi::eShaderType type,
-											gxapi::eShaderCompileFlags flags,
-											const std::vector<gxapi::ShaderMacroDefinition>& macros) override;
+	gxapi::ShaderProgramBinary CompileShader(const char* source,
+											 const char* mainFunction,
+											 gxapi::eShaderType type,
+											 gxapi::eShaderCompileFlags flags,
+											 gxapi::IShaderIncludeProvider* includeProvider = nullptr,
+											 const char* macroDefinitions = nullptr) override;
 
 	gxapi::ShaderProgramBinary CompileShaderFromFile(const std::string& fileName,
-							   const std::string& mainFunctionName,
-							   gxapi::eShaderType type,
-							   gxapi::eShaderCompileFlags flags,
-							   const std::vector<gxapi::ShaderMacroDefinition>& macros) override;
+													 const std::string& mainFunctionName,
+													 gxapi::eShaderType type,
+													 gxapi::eShaderCompileFlags flags,
+													 const std::vector<gxapi::ShaderMacroDefinition>& macros) override;
 
 protected:
 	static const char* GetTarget(gxapi::eShaderType type);

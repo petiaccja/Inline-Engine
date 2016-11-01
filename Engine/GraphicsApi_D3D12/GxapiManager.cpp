@@ -178,66 +178,182 @@ IGraphicsApi* GxapiManager::CreateGraphicsApi(unsigned adapterId) {
 }
 
 
+struct Macro {
+	std::string name;
+	std::string definition;
+};
 
-bool GxapiManager::CompileShader(
-	const exc::Stream& sourceCode,
-	const std::string& mainFunctionName,
-	gxapi::eShaderType type,
-	eShaderCompileFlags flags,
-	const std::unordered_map<std::string, exc::Stream*>& includeFiles,
-	const std::vector<ShaderMacroDefinition>& macros,
-	ShaderProgramBinary& shaderOut,
-	std::string& errorMsg)
-{
-	throw gxapi::NotImplementedMethod();
+
+static std::vector<Macro> ParseMacros(const char* macros) {
+	if (macros == nullptr) {
+		return{};
+	}
+
+	enum {
+		NAME,
+		VALUE,
+	} state = NAME;
+	bool escape = false;
+	bool quote = false;
+
+	char c;
+	size_t i = 0;
+
+	Macro m;
+	std::vector<Macro> collection;
+
+	while ((c = macros[i]) != '\0') {
+		// escaped characters are just inserted, not processed further
+		if (escape) {
+			if (state == NAME)
+				m.name += c;
+			else if (state == VALUE)
+				m.definition += c;
+
+			escape = false;
+			continue;
+		}
+
+		// process characters
+		if (c == '"') {
+			quote = !quote;
+		}
+		else if (c == '\\') {
+			escape = true;
+		}
+		else if (c == '=' && !quote) {
+			if (state == NAME)
+				state = VALUE;
+			else
+				throw gxapi::InvalidArgument("invalid = sign at character " + std::to_string(i));
+		}
+		else if (isspace(c) && !quote) {
+			// finish off current record on space
+			if (state == VALUE) {
+				state = NAME;
+				collection.push_back(m);
+				m.name = m.definition = "";
+			}
+		}
+		else {
+			if (state == NAME)
+				m.name += c;
+			else if (state == VALUE)
+				m.definition += c;
+		}
+	}
+
+	return collection;
 }
 
 
+class D3dIncludeProvider : public ID3DInclude {
+public:
+	D3dIncludeProvider(IShaderIncludeProvider* userProvider) : userProvider(userProvider) {}
+	virtual ~D3dIncludeProvider() {}
+
+	HRESULT Open(D3D_INCLUDE_TYPE IncludeType,
+				 LPCSTR pFileName,
+				 LPCVOID pParentData,
+				 LPCVOID* ppData,
+				 UINT* pBytes) override
+	{
+		bool systemInclude = IncludeType == D3D_INCLUDE_SYSTEM;
+
+		// search in cache
+		std::string searchKey = systemInclude ? "<" : "\"";
+		searchKey += pFileName;
+		auto it = cache.find(searchKey);
+		// if in cache, return that
+		if (it != cache.end()) {
+			*ppData = it->second.c_str();
+			*pBytes = (UINT)it->second.size();
+			return S_OK;
+		}
+
+		// load by user-provider
+		std::string includeData;
+		try {
+			includeData = userProvider->LoadInclude(pFileName, systemInclude);
+		}
+		catch (...) {
+			*ppData = nullptr;
+			*pBytes = 0;
+			return E_FAIL;
+		}
+
+		// store in cache
+		auto insit = cache.insert({ searchKey, includeData });
+
+		// return newly inserted data
+		it = insit.first;
+		*ppData = it->second.c_str();
+		*pBytes = (UINT)it->second.size();
+		return S_OK;
+	}
+	HRESULT Close(LPCVOID pData) override {
+		return S_OK;
+	}
+private:
+	std::unordered_map<std::string, std::string> cache;
+	IShaderIncludeProvider* userProvider;
+};
+
+
 gxapi::ShaderProgramBinary GxapiManager::CompileShader(
-	const std::string& sourceCode,
-	const std::string& mainFunctionName,
+	const char* source,
+	const char* mainFunction,
 	gxapi::eShaderType type,
 	gxapi::eShaderCompileFlags flags,
-	const std::vector<ShaderMacroDefinition>& macros)
+	gxapi::IShaderIncludeProvider* includeProvider,
+	const char* macroDefinitions)
 {
-	// variables
-	ID3DBlob *code = nullptr;
-	ID3DBlob *error = nullptr;
+	std::vector<Macro> parsedMacroDefinitions = ParseMacros(macroDefinitions);
 
-	std::vector<D3D_SHADER_MACRO> d3dDefines(macros.size()); // native d3d macros
+	ComPtr<ID3DBlob> binaryCode;
+	ComPtr<ID3DBlob> errorMessage;
+	std::vector<D3D_SHADER_MACRO> d3dMacrosDefines;
+	D3dIncludeProvider d3dIncludeProvider(includeProvider);
 
-	// translate defines
-	auto defBegin = d3dDefines.begin();
-	for (auto& v : macros) {
-		defBegin->Name = v.name.c_str();
-		defBegin->Definition = v.value.c_str();
-		++defBegin;
-	}
-	d3dDefines.push_back({ NULL, NULL });
-
-	// compile code w/ d3d
 	HRESULT hr = D3DCompile(
-		sourceCode.data(),
-		sourceCode.length(),
-		nullptr,
-		d3dDefines.data(),
-		nullptr,
-		mainFunctionName.c_str(),
+		source, strlen(source) + 1,
+		"my_source.hlsl",
+		d3dMacrosDefines.data(),
+		&d3dIncludeProvider,
+		mainFunction,
 		GetTarget(type),
 		native_cast(flags),
 		0,
-		&code,
-		&error);
+		&binaryCode,
+		&errorMessage);
 
-	return ConvertShaderOutput(hr, code, error);
+	if (hr == S_OK) {
+		size_t size = binaryCode->GetBufferSize();
+		ShaderProgramBinary ret;
+		ret.data.resize(size);
+		memcpy(ret.data.data(), binaryCode->GetBufferPointer(), size);
+		return ret;
+	}
+	else {
+		if (errorMessage.Get() != nullptr) {
+			size_t errSize = errorMessage->GetBufferSize();
+			std::unique_ptr<char[]> errorStr = std::make_unique<char[]>(errSize + 1);
+			memcpy(errorStr.get(), errorMessage->GetBufferPointer(), errSize);
+			errorStr[errSize] = '\0';
+
+			ShaderCompilationError ex(std::string("Shader compilation failed:\n") + errorStr.get());
+			throw ex;
+		}
+		throw ShaderCompilationError("Failed to compile that crap, but did not get error msg.");
+	}
 }
 
 
 gxapi::ShaderProgramBinary GxapiManager::CompileShaderFromFile(const std::string& fileName,
-										 const std::string& mainFunctionName,
-										 gxapi::eShaderType type,
-										 gxapi::eShaderCompileFlags flags,
-										 const std::vector<gxapi::ShaderMacroDefinition>& macros)
+															   const std::string& mainFunctionName,
+															   gxapi::eShaderType type,
+															   gxapi::eShaderCompileFlags flags,
+															   const std::vector<gxapi::ShaderMacroDefinition>& macros)
 {
 	// variables
 	ID3DBlob *code = nullptr;
@@ -269,7 +385,7 @@ gxapi::ShaderProgramBinary GxapiManager::CompileShaderFromFile(const std::string
 									0,
 									&code,
 									&error);
-	
+
 	return ConvertShaderOutput(hr, code, error);
 }
 
@@ -277,18 +393,18 @@ gxapi::ShaderProgramBinary GxapiManager::CompileShaderFromFile(const std::string
 const char* GxapiManager::GetTarget(gxapi::eShaderType type) {
 	switch (type)
 	{
-	case inl::gxapi::eShaderType::VERTEX:
-		return "vs_5_1";
-	case inl::gxapi::eShaderType::PIXEL:
-		return "ps_5_1";
-	case inl::gxapi::eShaderType::DOMAIN:
-		return "ds_5_1";
-	case inl::gxapi::eShaderType::HULL:
-		return "hs_5_1";
-	case inl::gxapi::eShaderType::GEOMETRY:
-		return "gs_5_1";
-	case inl::gxapi::eShaderType::COMPUTE:
-		return "cs_5_1";
+		case inl::gxapi::eShaderType::VERTEX:
+			return "vs_5_1";
+		case inl::gxapi::eShaderType::PIXEL:
+			return "ps_5_1";
+		case inl::gxapi::eShaderType::DOMAIN:
+			return "ds_5_1";
+		case inl::gxapi::eShaderType::HULL:
+			return "hs_5_1";
+		case inl::gxapi::eShaderType::GEOMETRY:
+			return "gs_5_1";
+		case inl::gxapi::eShaderType::COMPUTE:
+			return "cs_5_1";
 	}
 
 	return "invalid";

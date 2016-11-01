@@ -51,16 +51,16 @@ public:
 	void SetLog(exc::LogStream* log) { m_log = log; }
 
 	void OnFrameBeginDevice(uint64_t frameId) override {
-		m_log->Event(exc::Event{ "Frame begin - DEVICE", exc::EventParameterInt("frameId", frameId) });
+		m_log->Event(exc::Event{ "Frame begin - DEVICE", exc::EventParameterInt("frameId", (int)frameId) });
 	}
 	void OnFrameBeginHost(uint64_t frameId) override {
-		m_log->Event(exc::Event{ "Frame begin - HOST", exc::EventParameterInt("frameId", frameId) });
+		m_log->Event(exc::Event{ "Frame begin - HOST", exc::EventParameterInt("frameId", (int)frameId) });
 	}
 	void OnFrameCompleteDevice(uint64_t frameId) override {
-		m_log->Event(exc::Event{ "Frame finished - DEVICE", exc::EventParameterInt("frameId", frameId) });
+		m_log->Event(exc::Event{ "Frame finished - DEVICE", exc::EventParameterInt("frameId", (int)frameId) });
 	}
 	void OnFrameCompleteHost(uint64_t frameId) override {
-		m_log->Event(exc::Event{ "Frame finished - HOST", exc::EventParameterInt("frameId", frameId) });
+		m_log->Event(exc::Event{ "Frame finished - HOST", exc::EventParameterInt("frameId", (int)frameId) });
 	}
 private:
 	exc::LogStream* m_log;

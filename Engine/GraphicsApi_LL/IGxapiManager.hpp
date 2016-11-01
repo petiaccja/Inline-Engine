@@ -21,6 +21,12 @@ class IGraphicsApi;
 class ICommandQueue;
 
 
+class IShaderIncludeProvider {
+public:
+	virtual std::string LoadInclude(const char* includeName, bool systemInclude) = 0;
+};
+
+
 class IGxapiManager {
 public:
 	virtual ~IGxapiManager() = default;
@@ -30,25 +36,21 @@ public:
 	virtual ISwapChain* CreateSwapChain(SwapChainDesc desc, ICommandQueue* flushThisQueue) = 0;
 	virtual IGraphicsApi* CreateGraphicsApi(unsigned adapterId) = 0;
 
-	virtual std::vector<std::string> GetShaderIncludeList(exc::Stream& sourceCode) = 0;
-	virtual bool CompileShader(const exc::Stream& sourceCode,
-							   const std::string& mainFunctionName,
-							   gxapi::eShaderType type,
-							   eShaderCompileFlags flags,
-							   const std::unordered_map<std::string, exc::Stream*>& includeFiles,
-							   const std::vector<ShaderMacroDefinition>& macros,
-							   ShaderProgramBinary& shaderOut,
-							   std::string& errorMsg) = 0;
-	virtual ShaderProgramBinary CompileShader(const std::string& sourceCode,
-												const std::string& mainFunctionName,
-												gxapi::eShaderType type,
-												eShaderCompileFlags flags,
-												const std::vector<ShaderMacroDefinition>& macros) = 0;
+
+	// macro definitions: identifier=value identifier="v a\" \=lue"
+	virtual ShaderProgramBinary CompileShader(const char* source,
+											  const char* mainFunction,
+											  gxapi::eShaderType type,
+											  gxapi::eShaderCompileFlags flags,
+											  gxapi::IShaderIncludeProvider* includeProvider = nullptr,
+											  const char* macroDefinitions = nullptr) = 0;
+
+
 	virtual ShaderProgramBinary CompileShaderFromFile(const std::string& fileName,
-									   const std::string& mainFunctionName,
-									   gxapi::eShaderType type,
-									   eShaderCompileFlags flags,
-									   const std::vector<ShaderMacroDefinition>& macros) = 0;
+													  const std::string& mainFunctionName,
+													  gxapi::eShaderType type,
+													  eShaderCompileFlags flags,
+													  const std::vector<ShaderMacroDefinition>& macros) = 0;
 };
 
 

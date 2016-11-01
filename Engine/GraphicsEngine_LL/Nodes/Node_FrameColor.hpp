@@ -24,13 +24,13 @@ public:
 		constexpr double frequency = 0.3;
 		x *= frequency;
 
-		float r = sin(x*2*pi);
+		float r = (float)sin(x*2*pi);
 		r = 0.5f*r + 0.5f;
 
-		float g = sin(x*2*pi + 2*pi/3);
+		float g = (float)sin(x*2*pi + 2*pi/3);
 		g = 0.5f*g + 0.5f;
 
-		float b = sin(x*2*pi + 4*pi/3);
+		float b = (float)sin(x*2*pi + 4*pi/3);
 		b = 0.5f*b + 0.5f;
 
 		GetOutput<0>().Set(gxapi::ColorRGBA(r*0.1f + 0.3f, g*0.1f + 0.3f, b*0.1f + 0.3f));

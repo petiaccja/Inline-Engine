@@ -243,7 +243,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const void* shad
 	m_binder->Translate(parameter, slot, tableIndex); // may throw out of range
 
 	if (desc.rootParameters[slot].type == gxapi::RootParameterDesc::CONSTANT) {
-		assert(desc.rootParameters[slot].As<gxapi::RootParameterDesc::CONSTANT>().numConstants >= (size + offset) / 4);
+		assert(desc.rootParameters[slot].As<gxapi::RootParameterDesc::CONSTANT>().numConstants >= unsigned(size + offset) / 4);
 		m_commandList->SetGraphicsRootConstants(slot, offset, size / 4, reinterpret_cast<const uint32_t*>(shaderConstant));
 	}
 	else {

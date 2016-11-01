@@ -14,7 +14,7 @@ namespace gxapi_dx12 {
 
 SwapChain::SwapChain(Microsoft::WRL::ComPtr<IDXGISwapChain3> native) {
 	m_native = native;
-	for (int i=0; i<GetDesc().numBuffers; ++i) {
+	for (unsigned i=0; i<GetDesc().numBuffers; ++i) {
 		std::unique_ptr<IResource> buf(GetBuffer(i));
 		buf->SetName("BackBuffer");
 	}
