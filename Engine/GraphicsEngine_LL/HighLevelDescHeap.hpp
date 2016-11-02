@@ -96,7 +96,7 @@ class ScratchSpace {
 	friend class HostDescHeap;
 	friend class ScratchSpaceRef;
 public:
-	ScratchSpace(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type, size_t size);
+	ScratchSpace(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type, uint32_t size);
 
 	ScratchSpaceRef Allocate(uint32_t size);
 
@@ -105,11 +105,11 @@ public:
 	/// </summary>
 	void Reset();
 
-
 	gxapi::IDescriptorHeap* GetHeap() const { return m_heap.get(); }
 protected:
 	std::unique_ptr<gxapi::IDescriptorHeap> m_heap;
-	exc::RingAllocationEngine m_allocator;
+	uint32_t m_size;
+	uint32_t m_top;
 };
 
 

@@ -175,8 +175,9 @@ void ScratchSpaceRef::Invalidate() {
 //=========================================================
 
 
-ScratchSpace::ScratchSpace(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type, size_t size) :
-	m_allocator(size)
+ScratchSpace::ScratchSpace(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type, uint32_t size) :
+	m_size(size),
+	m_top(0)
 {
 	assert(type == gxapi::eDescriptorHeapType::CBV_SRV_UAV || type == gxapi::eDescriptorHeapType::SAMPLER);
 	gxapi::DescriptorHeapDesc desc(type, size, true);
@@ -185,12 +186,18 @@ ScratchSpace::ScratchSpace(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorH
 
 
 ScratchSpaceRef ScratchSpace::Allocate(uint32_t size) {
-	return ScratchSpaceRef(this, static_cast<uint32_t>(m_allocator.Allocate(size)), size);
+	uint32_t newTop = m_top + size;
+	if (newTop > m_size) {
+		throw std::bad_alloc();
+	}
+	uint32_t descPosition = m_top;
+	m_top = newTop;
+	return ScratchSpaceRef(this, descPosition, size);
 }
 
 
 void ScratchSpace::Reset() {
-	m_allocator.Reset();
+	m_top = 0;
 }
 
 

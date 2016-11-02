@@ -138,7 +138,9 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 		texture = m_graphicsEngine->DEBUG_CreateTexture(imgData.data(), 2, 2, inl::gxapi::eFormat::R32G32B32A32_FLOAT);
 	}
 
-	const float extent = 3;
+	srand(time(nullptr));
+
+	const float extent = 5;
 	const int count = 6;
 	for (int i=0; i<count; i++) {
 		std::unique_ptr<inl::gxeng::DEBUG_TexturedEntity> entity(new inl::gxeng::DEBUG_TexturedEntity());
