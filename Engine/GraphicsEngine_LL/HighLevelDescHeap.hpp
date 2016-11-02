@@ -52,11 +52,6 @@ public:
 	friend class ScratchSpace;
 
 	ScratchSpaceRef() : m_home(nullptr), m_pos(INVALID_POS), m_allocationSize(0) {}
-	ScratchSpaceRef(const ScratchSpaceRef&) = default;
-	ScratchSpaceRef& operator=(const ScratchSpaceRef&) = default;
-
-	ScratchSpaceRef(ScratchSpaceRef&&);
-	ScratchSpaceRef& operator=(ScratchSpaceRef&&);
 
 	/// <summary> Get an underlying descriptor. </summary>
 	/// <exception cref="inl::gxapi::InvalidStateException">
@@ -72,8 +67,6 @@ public:
 
 protected:
 	ScratchSpaceRef(ScratchSpace* home, uint32_t pos, uint32_t allocSize);
-
-	void Invalidate();
 
 protected:
 	ScratchSpace* m_home;

@@ -113,30 +113,6 @@ TextureSpaceRef::TextureSpaceRef(HighLevelDescHeap* home, size_t pos) noexcept :
 //=========================================================
 
 
-ScratchSpaceRef::ScratchSpaceRef(ScratchSpaceRef&& other) :
-	m_home(other.m_home),
-	m_pos(other.m_pos),
-	m_allocationSize(other.m_allocationSize)
-{
-	other.Invalidate();
-}
-
-
-ScratchSpaceRef& ScratchSpaceRef::operator=(ScratchSpaceRef&& other) {
-	if (this == &other) {
-		return *this;
-	}
-
-	m_home = other.m_home;
-	m_pos = other.m_pos;
-	m_allocationSize = other.m_allocationSize;
-
-	other.Invalidate();
-
-	return *this;
-}
-
-
 gxapi::DescriptorHandle ScratchSpaceRef::Get(uint32_t position) {
 	if (!IsValid()) {
 		throw gxapi::InvalidState("Descriptor being dereferenced is INVALID!");
@@ -160,16 +136,11 @@ bool ScratchSpaceRef::IsValid() const {
 }
 
 
-ScratchSpaceRef::ScratchSpaceRef(ScratchSpace * home, uint32_t pos, uint32_t allocSize) :
+ScratchSpaceRef::ScratchSpaceRef(ScratchSpace* home, uint32_t pos, uint32_t allocSize) :
 	m_home(home),
 	m_pos(pos),
 	m_allocationSize(allocSize)
 {}
-
-
-void ScratchSpaceRef::Invalidate() {
-	m_pos = INVALID_POS;
-}
 
 
 //=========================================================
