@@ -1,9 +1,9 @@
 #pragma once
 
-#include "HighLevelDescHeap.hpp"
-#include "GpuBuffer.hpp"
-#include "ResourceHeap.hpp"
-#include "UploadHeap.hpp"
+#include "HostDescHeap.hpp"
+#include "MemoryObject.hpp"
+#include "CriticalBufferHeap.hpp"
+#include "UploadManager.hpp"
 #include "ConstBufferHeap.hpp"
 
 #include "../GraphicsApi_LL/Common.hpp"
@@ -19,6 +19,7 @@
 namespace inl {
 namespace gxeng {
 
+enum class eResourceHeapType { CRITICAL };
 
 class MemoryManager {
 public:
@@ -31,18 +32,18 @@ public:
 	/// If there is not enough free memory in the resource's appropriate
 	/// memory pool for the resource to fit in.
 	/// </exception>
-	void LockResident(const std::vector<GenericResource*>& resources);
+	void LockResident(const std::vector<MemoryObject*>& resources);
 	template<typename IterT>
 	void LockResident(IterT begin, IterT end);
 
 	/// <summary>
 	/// WRITE A DESCRIPTION
 	/// </summary>
-	void UnlockResident(const std::vector<GenericResource*>& resources);
+	void UnlockResident(const std::vector<MemoryObject*>& resources);
 	template<typename IterT>
 	void UnlockResident(IterT begin, IterT end);
 
-	UploadHeap& GetUploadHeap();
+	UploadManager& GetUploadHeap();
 	VolatileConstBuffer CreateVolatileConstBuffer(void* data, uint32_t size);
 	PersistentConstBuffer CreatePersistentConstBuffer(void* data, uint32_t size);
 
@@ -59,14 +60,14 @@ protected:
 	HostDescHeap* m_descHeap;
 	impl::CriticalBufferHeap m_criticalHeap;
 
-	UploadHeap m_uploadHeap;
+	UploadManager m_uploadHeap;
 	ConstantBufferHeap m_constBufferHeap;
 
 	std::mutex m_evictablesMtx;
-	std::unordered_set<GenericResource*> m_evictables;
+	std::unordered_set<MemoryObject*> m_evictables;
 
 protected:
-	impl::InitialResourceParameters AllocateResource(eResourceHeapType heap, const gxapi::ResourceDesc& desc);
+	MemoryObjectDescriptor AllocateResource(eResourceHeapType heap, const gxapi::ResourceDesc& desc);
 };
 
 
@@ -74,10 +75,8 @@ template<typename IterT>
 inline void MemoryManager::LockResident(IterT begin, IterT end) {
 
 	std::vector<gxapi::IResource*> lowLevelTargets;
-	std::vector<GenericResource*> highLevelTargets;
+	std::vector<MemoryObject*> highLevelTargets;
 
-	//lowLevelTargets.reserve(resources.size());
-	//highLevelTargets.reserve(resources.size());
 	IterT currIter = begin;
 	while (currIter != end) {
 		auto curr = *(currIter++);
@@ -123,7 +122,7 @@ inline void MemoryManager::LockResident(IterT begin, IterT end) {
 
 template<typename IterT>
 inline void MemoryManager::UnlockResident(IterT begin, IterT end) {
-	static_assert(std::is_same<typename IterT::value_type, GenericResource*>::value, "Iterator type should point to \"GenericResource*\"");
+	static_assert(std::is_same<typename IterT::value_type, MemoryObject*>::value);
 
 	std::lock_guard<std::mutex> lock(m_evictablesMtx);
 	for (auto curr = begin; curr != end; ++curr) {

@@ -1,4 +1,4 @@
-#include "UploadHeap.hpp"
+#include "UploadManager.hpp"
 
 #include <GraphicsApi_LL/Common.hpp>
 
@@ -6,7 +6,7 @@ namespace inl {
 namespace gxeng {
 
 
-UploadHeap::UploadHeap(gxapi::IGraphicsApi* graphicsApi) :
+UploadManager::UploadManager(gxapi::IGraphicsApi* graphicsApi) :
 	m_graphicsApi(graphicsApi)
 {
 	std::lock_guard<std::mutex> lock(m_mtx);
@@ -16,7 +16,7 @@ UploadHeap::UploadHeap(gxapi::IGraphicsApi* graphicsApi) :
 }
 
 
-void UploadHeap::Upload(std::weak_ptr<LinearBuffer> target, size_t offset, const void* data, size_t size) {
+void UploadManager::Upload(std::weak_ptr<LinearBuffer> target, size_t offset, const void* data, size_t size) {
 	if (target.lock()->GetSize() < (offset+size)) {
 		throw inl::gxapi::InvalidArgument("Target buffer is not large enough for the uploaded data to fit.", "target");
 	}
@@ -34,9 +34,14 @@ void UploadHeap::Upload(std::weak_ptr<LinearBuffer> target, size_t offset, const
 		std::lock_guard<std::mutex> lock(m_mtx);
 
 		auto& currQueue = m_uploadQueues.back();
+
+		MemoryObjectDescriptor desc;
+		desc.resource = uploadRes;
+		desc.resident = true;
+		desc.deleter = std::default_delete<gxapi::IResource>();
 		
 		UploadDescription uploadDesc(
-			GenericResource(uploadRes),
+			MemoryObject(desc),
 			target,
 			offset
 		);
@@ -55,7 +60,7 @@ void UploadHeap::Upload(std::weak_ptr<LinearBuffer> target, size_t offset, const
 }
 
 
-void UploadHeap::Upload(std::weak_ptr<Texture2D> target,
+void UploadManager::Upload(std::weak_ptr<Texture2D> target,
 						uint32_t offsetX,
 						uint32_t offsetY,
 						const void* data,
@@ -69,7 +74,7 @@ void UploadHeap::Upload(std::weak_ptr<Texture2D> target,
 
 	auto pixelSize = gxapi::GetFormatSizeInBytes(format);
 	auto rowSize = width * pixelSize;
-	size_t rowPitch = AlignUp(rowSize, DUP_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+	size_t rowPitch = SnapUpwrads(rowSize, DUP_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 	auto requiredSize = rowPitch * height;
 
 	gxapi::IResource* uploadRes = m_graphicsApi->CreateCommittedResource(
@@ -86,8 +91,13 @@ void UploadHeap::Upload(std::weak_ptr<Texture2D> target,
 
 		auto& currQueue = m_uploadQueues.back();
 
+		MemoryObjectDescriptor desc;
+		desc.resource = uploadRes;
+		desc.resident = true;
+		desc.deleter = std::default_delete<gxapi::IResource>();
+
 		UploadDescription uploadDesc(
-			GenericResource(uploadRes),
+			MemoryObject(desc),
 			target,
 			offsetX,
 			offsetY,
@@ -111,37 +121,37 @@ void UploadHeap::Upload(std::weak_ptr<Texture2D> target,
 }
 
 
-void UploadHeap::OnFrameBeginDevice(uint64_t frameId) {
+void UploadManager::OnFrameBeginDevice(uint64_t frameId) {
 }
 
 
-void UploadHeap::OnFrameBeginHost(uint64_t frameId) {
+void UploadManager::OnFrameBeginHost(uint64_t frameId) {
 	std::lock_guard<std::mutex> lock(m_mtx);
 
 	m_uploadQueues.push_back(std::vector<UploadDescription>());
 }
 
 
-void UploadHeap::OnFrameCompleteDevice(uint64_t frameId) {
+void UploadManager::OnFrameCompleteDevice(uint64_t frameId) {
 	std::lock_guard<std::mutex> lock(m_mtx);
 
 	m_uploadQueues.pop_front();
 }
 
 
-void UploadHeap::OnFrameCompleteHost(uint64_t frameId) {
+void UploadManager::OnFrameCompleteHost(uint64_t frameId) {
 }
 
 
-const std::vector<UploadHeap::UploadDescription>& UploadHeap::_GetQueuedUploads() {
+const std::vector<UploadManager::UploadDescription>& UploadManager::_GetQueuedUploads() {
 	return m_uploadQueues.back();
 }
 
 
-size_t UploadHeap::AlignUp(size_t value, size_t alignement) {
+size_t UploadManager::SnapUpwrads(size_t value, size_t gridSize) {
 	// alignement should be power of two
-	assert(((alignement-1) & alignement) == 0);
-	return (value + (alignement-1)) & ~(alignement-1);
+	assert(((gridSize-1) & gridSize) == 0);
+	return (value + (gridSize-1)) & ~(gridSize-1);
 }
 
 

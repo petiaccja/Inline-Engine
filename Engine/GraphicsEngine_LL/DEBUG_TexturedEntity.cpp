@@ -1,5 +1,5 @@
 #include "DEBUG_TexturedEntity.hpp"
-#include "GpuBuffer.hpp"
+#include "MemoryObject.hpp"
 
 namespace inl {
 namespace gxeng {

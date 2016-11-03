@@ -54,7 +54,7 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_frameEndFenceValues.resize(m_swapChain->GetDesc().numBuffers, { nullptr, 0 });
 
 	// Init backbuffer heap
-	m_backBufferHeap = std::make_unique<BackBufferHeap>(m_graphicsApi, m_swapChain.get());
+	m_backBufferHeap = std::make_unique<BackBufferManager>(m_graphicsApi, m_swapChain.get());
 
 	// Do more stuff...
 	CreatePipeline();
@@ -136,7 +136,7 @@ void GraphicsEngine::SetScreenSize(unsigned width, unsigned height) {
 
 	m_backBufferHeap.reset();
 	m_swapChain->Resize(width, height);
-	m_backBufferHeap = std::make_unique<BackBufferHeap>(m_graphicsApi, m_swapChain.get());
+	m_backBufferHeap = std::make_unique<BackBufferManager>(m_graphicsApi, m_swapChain.get());
 
 	m_getBBNode->Resize(width, height);
 }

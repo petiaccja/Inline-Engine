@@ -1,43 +1,12 @@
-#include "ResourceHeap.hpp"
+#include "BackBufferManager.hpp"
 
-#include "GpuBuffer.hpp"
-#include "CopyCommandList.hpp"
-
-#include <iostream>
-
+#include "MemoryObject.hpp"
 
 namespace inl {
 namespace gxeng {
-namespace impl {
 
 
-
-CriticalBufferHeap::CriticalBufferHeap(gxapi::IGraphicsApi * graphicsApi) :
-	m_graphicsApi(graphicsApi)
-{}
-
-
-InitialResourceParameters CriticalBufferHeap::Allocate(gxapi::ResourceDesc desc, gxapi::ClearValue* clearValue) {
-	InitialResourceParameters result;
-
-	result.resource = m_graphicsApi->CreateCommittedResource(
-		gxapi::HeapProperties(gxapi::eHeapType::DEFAULT),
-		gxapi::eHeapFlags::NONE,
-		desc,
-		gxapi::eResourceState::COMMON,
-		clearValue
-	);
-
-	result.residency = true;
-
-	return result;
-}
-
-
-} // namespace impl
-
-
-BackBufferHeap::BackBufferHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapChain* swapChain) :
+BackBufferManager::BackBufferManager(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapChain* swapChain) :
 	m_graphicsApi(graphicsApi),
 	m_swapChain(swapChain)
 {
@@ -67,18 +36,25 @@ BackBufferHeap::BackBufferHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapCha
 
 		m_graphicsApi->CreateRenderTargetView(lowLeveBuffer.get(), desc, descHandle);
 
-		BackBuffer highLevelBuffer(DescriptorReference(descHandle, nullptr), desc, lowLeveBuffer.release());
-		highLevelBuffer._SetResident(true); // I guess...
-
-		m_backBuffers.push_back(std::move(highLevelBuffer));
+		MemoryObjectDescriptor bufferDesc;
+		bufferDesc.resident = true;
+		bufferDesc.deleter = std::default_delete<gxapi::IResource>();
+		bufferDesc.resource = lowLeveBuffer.release();
+		try {
+			BackBuffer highLevelBuffer(DescriptorReference(descHandle, nullptr), desc, bufferDesc);
+			m_backBuffers.push_back(std::move(highLevelBuffer));
+		}
+		catch (...) {
+			//if an exception is thrown while creating the back buffer, the resource would leak.
+			std::terminate();
+		}
 	}
 }
 
 
-BackBuffer& BackBufferHeap::GetBackBuffer(unsigned index) {
+BackBuffer& BackBufferManager::GetBackBuffer(unsigned index) {
 	return m_backBuffers.at(index);
 }
-
 
 
 } // namespace gxeng

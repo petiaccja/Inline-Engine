@@ -5,7 +5,7 @@
 #include <functional>
 
 #include "SyncPoint.hpp"
-#include "ResourceHeap.hpp"
+#include "CriticalBufferHeap.hpp"
 #include "CommandAllocatorPool.hpp"
 #include <atomic>
 
@@ -17,10 +17,10 @@ namespace gxeng {
 class ResourceResidencyQueue {
 	struct Task {
 		Task() = default;
-		Task(std::vector<std::shared_ptr<GenericResource>> resources, SyncPoint syncPoint)
+		Task(std::vector<std::shared_ptr<MemoryObject>> resources, SyncPoint syncPoint)
 			: resources(std::move(resources)), syncPoint(syncPoint) {}
 		virtual ~Task() {};
-		std::vector<std::shared_ptr<GenericResource>> resources;
+		std::vector<std::shared_ptr<MemoryObject>> resources;
 		SyncPoint syncPoint;
 	};
 public:
@@ -41,7 +41,7 @@ public:
 	///			  returned sync point is signaled. </summary>
 	/// <param name="resources"> The resources to be made available resident on GPU memory. </param>
 	/// <returns> The SyncPoint returned will be signaled when the requested resources are all resident. </returns>
-	SyncPoint EnqueueInit(std::vector<std::shared_ptr<GenericResource>> resources);
+	SyncPoint EnqueueInit(std::vector<std::shared_ptr<MemoryObject>> resources);
 
 	/// <summary> Enqueue a list of resources which should be marked as evictable. 
 	///			  Their memory may be made unresident if more space is needed on the GPU. </summary>
@@ -52,7 +52,7 @@ public:
 	/// <remarks> The cleanObjects list could be used to free up command lists and command allocators associated 
 	///			  with the resources. </remarks>
 	template <class... CleanObjectT>
-	void EnqueueClean(SyncPoint waitFor, std::vector<std::shared_ptr<GenericResource>> resources, CleanObjectT&&... cleanObjects);
+	void EnqueueClean(SyncPoint waitFor, std::vector<std::shared_ptr<MemoryObject>> resources, CleanObjectT&&... cleanObjects);
 
 private:
 	void InitThreadFunc();
@@ -85,10 +85,10 @@ private:
 
 
 template<class... CleanObjectT>
-inline void ResourceResidencyQueue::EnqueueClean(SyncPoint waitFor, std::vector<std::shared_ptr<GenericResource>> resources, CleanObjectT&&... cleanObjects) {
+inline void ResourceResidencyQueue::EnqueueClean(SyncPoint waitFor, std::vector<std::shared_ptr<MemoryObject>> resources, CleanObjectT&&... cleanObjects) {
 	struct SpecialTask : Task {
 		SpecialTask() = default;
-		SpecialTask(std::vector<std::shared_ptr<GenericResource>> resources, SyncPoint syncPoint, CleanObjectT&&... cleanObjects)
+		SpecialTask(std::vector<std::shared_ptr<MemoryObject>> resources, SyncPoint syncPoint, CleanObjectT&&... cleanObjects)
 			: Task(std::move(resources), std::move(syncPoint)), data(std::forward<CleanObjectT>(cleanObjects)...) {}
 		std::tuple<CleanObjectT...> data;
  	};

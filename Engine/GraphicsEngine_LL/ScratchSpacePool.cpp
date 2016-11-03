@@ -1,6 +1,6 @@
 #include "ScratchSpacePool.hpp"
 #include <cassert>
-
+#include <algorithm>
 
 namespace inl {
 namespace gxeng {
@@ -30,7 +30,7 @@ auto ScratchSpacePool::RequestScratchSpace() -> UniquePtr {
 		return UniquePtr{ m_pool[index].get(), Deleter{this} };
 	}
 	else {
-		std::unique_ptr<ScratchSpace> ptr(new ScratchSpace{ m_gxApi, m_type, 1000 });
+		std::unique_ptr<StackDescHeap> ptr(new StackDescHeap{ m_gxApi, m_type, 1000 });
 		m_addressToIndex[ptr.get()] = index;
 		m_pool[index] = std::move(ptr);
 		return UniquePtr{ m_pool[index].get(), Deleter{this} };
@@ -38,7 +38,7 @@ auto ScratchSpacePool::RequestScratchSpace() -> UniquePtr {
 }
 
 
-void ScratchSpacePool::RecycleScratchSpace(ScratchSpace* scratchSpace) {
+void ScratchSpacePool::RecycleScratchSpace(StackDescHeap* scratchSpace) {
 	std::lock_guard<std::mutex> lkg(m_mutex);
 
 	scratchSpace->Reset();

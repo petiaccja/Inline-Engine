@@ -77,7 +77,7 @@ void Scheduler::Execute(FrameContext context) {
 				}
 
 				// Enqueue actual command list.
-				std::vector<std::shared_ptr<GenericResource>> usedResourceList;
+				std::vector<std::shared_ptr<MemoryObject>> usedResourceList;
 				usedResourceList.reserve(dec.usedResources.size());
 				for (const auto& v : dec.usedResources) {
 					usedResourceList.push_back(v.resource);
@@ -133,12 +133,12 @@ void Scheduler::Execute(FrameContext context) {
 }
 
 
-void Scheduler::MakeResident(std::vector<GenericResource*> usedResources) {
+void Scheduler::MakeResident(std::vector<MemoryObject*> usedResources) {
 
 }
 
 
-void Scheduler::Evict(std::vector<GenericResource*> usedResources) {
+void Scheduler::Evict(std::vector<MemoryObject*> usedResources) {
 
 }
 
@@ -176,7 +176,7 @@ void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
 								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
 								   CmdAllocPtr commandAllocator,
                                    std::vector<ScratchSpacePtr> scratchSpaces,
-								   std::vector<std::shared_ptr<GenericResource>> usedResources,
+								   std::vector<std::shared_ptr<MemoryObject>> usedResources,
 								   const FrameContext& context)
 {
 	// Enqueue CPU task to make resources resident before the command list runs.
@@ -264,11 +264,11 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 
 
 
-void Scheduler::UploadTask(CopyCommandList& commandList, const std::vector<UploadHeap::UploadDescription>& uploads) {
+void Scheduler::UploadTask(CopyCommandList& commandList, const std::vector<UploadManager::UploadDescription>& uploads) {
 	for (auto& request : uploads) {
 		// Init copy parameters
-		const GenericResource* source = &request.source;
-		std::shared_ptr<GenericResource> destination = request.destination.lock();
+		const MemoryObject* source = &request.source;
+		std::shared_ptr<MemoryObject> destination = request.destination.lock();
 
 		// Check if resources are still valid
 		if (destination) {
@@ -277,11 +277,11 @@ void Scheduler::UploadTask(CopyCommandList& commandList, const std::vector<Uploa
 
 			// Copy buffer
 			if (const LinearBuffer* buffer = dynamic_cast<const LinearBuffer*>(destination.get())) {
-				commandList.CopyBuffer(destination.get(), request.dstOffsetX, const_cast<GenericResource*>(source), 0, buffer->GetSize());
+				commandList.CopyBuffer(destination.get(), request.dstOffsetX, const_cast<MemoryObject*>(source), 0, buffer->GetSize());
 			}
 			// Copy texture2D
 			else if (const Texture2D* buffer = dynamic_cast<const Texture2D*>(destination.get())) {
-				auto srcTexture = static_cast<LinearBuffer*>(const_cast<GenericResource*>(source));
+				auto srcTexture = static_cast<LinearBuffer*>(const_cast<MemoryObject*>(source));
 				auto dstTexture = static_cast<Texture2D*>(destination.get());
 
 				commandList.CopyTexture(dstTexture, srcTexture, SubTexture2D(0, 0, mathfu::Vector<int, 2>(request.dstOffsetX, request.dstOffsetY)), request.textureBufferDesc);

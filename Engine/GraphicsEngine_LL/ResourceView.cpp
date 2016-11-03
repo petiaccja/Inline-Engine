@@ -1,7 +1,7 @@
 #include "ResourceView.hpp"
 
-#include "GpuBuffer.hpp"
-#include "HighLevelDescHeap.hpp"
+#include "MemoryObject.hpp"
+#include "HostDescHeap.hpp"
 
 
 namespace inl {

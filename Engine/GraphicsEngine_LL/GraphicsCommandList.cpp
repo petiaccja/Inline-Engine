@@ -287,7 +287,7 @@ void GraphicsCommandList::DuplicateRootTable(DescriptorTableState& table) {
 	uint32_t numDescriptors = table.bindings.size();
 
 	// allocate new space on scratch space
-	ScratchSpaceRef space = GetCurrentScratchSpace()->Allocate(numDescriptors);
+	DescriptorArrayRef space = GetCurrentScratchSpace()->Allocate(numDescriptors);
 
 	// copy old descriptors to new space
 	std::vector<gxapi::DescriptorHandle> sourceDescHandles(numDescriptors);

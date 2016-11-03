@@ -3,7 +3,7 @@
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include "../GraphicsApi_LL/Common.hpp"
 
-#include "GpuBuffer.hpp"
+#include "MemoryObject.hpp"
 #include "CommandAllocatorPool.hpp"
 #include "ScratchSpacePool.hpp"
 
@@ -18,13 +18,13 @@ namespace gxeng {
 
 struct SubresourceId {
 	SubresourceId() = default;
-	SubresourceId(std::shared_ptr<GenericResource> resource, unsigned subresource) : resource(std::move(resource)), subresource(subresource) {}
+	SubresourceId(std::shared_ptr<MemoryObject> resource, unsigned subresource) : resource(std::move(resource)), subresource(subresource) {}
 
 	bool operator==(const SubresourceId& other) const {
 		return resource == other.resource && subresource == other.subresource;
 	}
 
-	std::shared_ptr<GenericResource> resource;
+	std::shared_ptr<MemoryObject> resource;
 	unsigned subresource;
 };
 
@@ -35,7 +35,7 @@ struct SubresourceUsageInfo {
 };
 
 struct ResourceUsage {
-	std::shared_ptr<GenericResource> resource;
+	std::shared_ptr<MemoryObject> resource;
 	unsigned subresource;
 	gxapi::eResourceState firstState;
 	gxapi::eResourceState lastState;
@@ -54,7 +54,7 @@ using namespace inl;
 template<>
 struct hash<gxeng::SubresourceId> {
 	std::size_t operator()(const gxeng::SubresourceId& instance) const {
-		return std::hash<gxeng::GenericResource*>{}(instance.resource.get()) ^ std::hash<unsigned>{}(instance.subresource);
+		return std::hash<gxeng::MemoryObject*>{}(instance.resource.get()) ^ std::hash<unsigned>{}(instance.subresource);
 	}
 };
 
@@ -92,10 +92,10 @@ protected:
 		ScratchSpacePool& scratchSpacePool,
 		gxapi::eCommandListType type);
 
-	void UseResource(GenericResource* resource);
+	void UseResource(MemoryObject* resource);
 	gxapi::ICommandList* GetCommandList() const { return m_commandList.get(); }
 
-	ScratchSpace* GetCurrentScratchSpace();
+	StackDescHeap* GetCurrentScratchSpace();
 	void NewScratchSpace(size_t sizeHint);
 protected:
 	std::unordered_map<SubresourceId, SubresourceUsageInfo> m_resourceTransitions;
@@ -107,7 +107,7 @@ private:
 	CmdAllocPtr m_commandAllocator;
 	std::unique_ptr<gxapi::ICopyCommandList> m_commandList;
 	std::vector<ScratchSpacePtr> m_scratchSpaces;
-	ScratchSpace* m_currentScratchSpace;
+	StackDescHeap* m_currentScratchSpace;
 };
 
 

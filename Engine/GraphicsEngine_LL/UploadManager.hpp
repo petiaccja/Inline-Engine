@@ -1,7 +1,7 @@
 #pragma once
 
 #include "PipelineEventListener.hpp"
-#include "GpuBuffer.hpp"
+#include "MemoryObject.hpp"
 
 #include <utility>
 #include <mutex>
@@ -11,18 +11,18 @@ namespace inl {
 namespace gxeng {
 
 
-class UploadHeap : public PipelineEventListener {
+class UploadManager : public PipelineEventListener {
 public:
 	struct UploadDescription {
-		UploadDescription(GenericResource&& source,
-						  const std::weak_ptr<GenericResource>& destination,
+		UploadDescription(MemoryObject&& source,
+						  const std::weak_ptr<MemoryObject>& destination,
 						  size_t bufferOffset) :
 			source(std::move(source)),
 			destination(destination),
 			dstOffsetX(bufferOffset) {}
 
-		UploadDescription(GenericResource&& source,
-						  const std::weak_ptr<GenericResource>& destination,
+		UploadDescription(MemoryObject&& source,
+						  const std::weak_ptr<MemoryObject>& destination,
 						  size_t dstOffsetX, uint32_t dstOffsetY, uint32_t dstOffsetZ,
 						  gxapi::TextureCopyDesc textureBufferDesc) :
 			source(std::move(source)),
@@ -30,11 +30,11 @@ public:
 			dstOffsetX(dstOffsetX), dstOffsetY(dstOffsetY), dstOffsetZ(dstOffsetZ),
 			textureBufferDesc(textureBufferDesc) {}
 		
-		GenericResource source;
+		MemoryObject source;
 
 		// Destination is a weak pointer because it might get deleted before
 		// the graphics engine starts to process the request.
-		std::weak_ptr<GenericResource> destination;
+		std::weak_ptr<MemoryObject> destination;
 
 		size_t dstOffsetX; // also offset in linear buffer
 		uint32_t dstOffsetY;
@@ -44,7 +44,7 @@ public:
 	};
 
 public:
-	UploadHeap(gxapi::IGraphicsApi* graphicsApi);
+	UploadManager(gxapi::IGraphicsApi* graphicsApi);
 
 	void Upload(std::weak_ptr<LinearBuffer> target, size_t offset, const void* data, size_t size);
 
@@ -64,10 +64,10 @@ protected:
 	std::mutex m_mtx;
 
 protected:
-	static size_t AlignUp(size_t value, size_t alignement);
-
-protected:
 	static constexpr int DUP_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT = 256;
+
+private:
+	static size_t SnapUpwrads(size_t value, size_t gridSize);
 };
 
 

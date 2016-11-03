@@ -33,7 +33,7 @@ struct FrameContext {
 	CommandQueue* commandQueue = nullptr;
 	BackBuffer* backBuffer = nullptr;
 	const std::set<Scene*>* scenes = nullptr;
-	const std::vector<UploadHeap::UploadDescription>* uploadRequests = nullptr;
+	const std::vector<UploadManager::UploadDescription>* uploadRequests = nullptr;
 	
 	ResourceResidencyQueue* residencyQueue = nullptr;
 

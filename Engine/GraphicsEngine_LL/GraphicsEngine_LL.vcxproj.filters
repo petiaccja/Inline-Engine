@@ -24,6 +24,15 @@
     <Filter Include="Nodes">
       <UniqueIdentifier>{278a4320-a644-4688-bad7-0b4475a43003}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MemoryManagement\Descriptors">
+      <UniqueIdentifier>{4a221379-da82-4348-85fc-f3c634d6d1cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MemoryManagement\Heaps">
+      <UniqueIdentifier>{0bc0f2ea-8951-4f9b-aa22-14e074397237}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MemoryManagement\ObjectManagement">
+      <UniqueIdentifier>{cd72d15e-05c9-4d33-a977-8cb4d1092c69}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -55,9 +64,6 @@
       <Filter>Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="MemoryManager.hpp">
-      <Filter>MemoryManagement</Filter>
-    </ClInclude>
-    <ClInclude Include="SmallBufferHeap.hpp">
       <Filter>MemoryManagement</Filter>
     </ClInclude>
     <ClInclude Include="..\GraphicsEngine\ITexture2D.hpp">
@@ -96,9 +102,6 @@
     <ClInclude Include="Task.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
-    <ClInclude Include="GpuBuffer.hpp">
-      <Filter>MemoryManagement</Filter>
-    </ClInclude>
     <ClInclude Include="Binder.hpp">
       <Filter>Middleware</Filter>
     </ClInclude>
@@ -129,17 +132,11 @@
     <ClInclude Include="CommandQueue.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
-    <ClInclude Include="HighLevelDescHeap.hpp">
-      <Filter>MemoryManagement</Filter>
-    </ClInclude>
     <ClInclude Include="Vertex.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
     <ClInclude Include="VertexArrayView.hpp">
       <Filter>Resources</Filter>
-    </ClInclude>
-    <ClInclude Include="ResourceHeap.hpp">
-      <Filter>MemoryManagement</Filter>
     </ClInclude>
     <ClInclude Include="ScratchSpacePool.hpp">
       <Filter>Middleware</Filter>
@@ -168,12 +165,6 @@
     <ClInclude Include="Nodes\Node_TescoRender.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
-    <ClInclude Include="ConstBufferHeap.hpp">
-      <Filter>MemoryManagement</Filter>
-    </ClInclude>
-    <ClInclude Include="SubresourceID.hpp">
-      <Filter>MemoryManagement</Filter>
-    </ClInclude>
     <ClInclude Include="SyncPoint.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
@@ -185,12 +176,6 @@
     </ClInclude>
     <ClInclude Include="Mesh.hpp">
       <Filter>Resources</Filter>
-    </ClInclude>
-    <ClInclude Include="UploadHeap.hpp">
-      <Filter>MemoryManagement</Filter>
-    </ClInclude>
-    <ClInclude Include="ResourceView.hpp">
-      <Filter>MemoryManagement</Filter>
     </ClInclude>
     <ClInclude Include="PipelineEventDispatcher.hpp">
       <Filter>Pipeline</Filter>
@@ -209,6 +194,30 @@
     </ClInclude>
     <ClInclude Include="Image.hpp">
       <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="HostDescHeap.hpp">
+      <Filter>MemoryManagement\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="StackDescHeap.hpp">
+      <Filter>MemoryManagement\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceView.hpp">
+      <Filter>MemoryManagement\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="UploadManager.hpp">
+      <Filter>MemoryManagement\ObjectManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstBufferHeap.hpp">
+      <Filter>MemoryManagement\Heaps</Filter>
+    </ClInclude>
+    <ClInclude Include="BackBufferManager.hpp">
+      <Filter>MemoryManagement\ObjectManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryObject.hpp">
+      <Filter>MemoryManagement\ObjectManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="CriticalBufferHeap.hpp">
+      <Filter>MemoryManagement\Heaps</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -231,9 +240,6 @@
     <ClCompile Include="MemoryManager.cpp">
       <Filter>MemoryManagement</Filter>
     </ClCompile>
-    <ClCompile Include="SmallBufferHeap.cpp">
-      <Filter>MemoryManagement</Filter>
-    </ClCompile>
     <ClCompile Include="Pipeline.cpp">
       <Filter>Pipeline</Filter>
     </ClCompile>
@@ -245,9 +251,6 @@
     </ClCompile>
     <ClCompile Include="GraphicsNodeFactory.cpp">
       <Filter>Pipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="GpuBuffer.cpp">
-      <Filter>MemoryManagement</Filter>
     </ClCompile>
     <ClCompile Include="Binder.cpp">
       <Filter>Middleware</Filter>
@@ -273,9 +276,6 @@
     <ClCompile Include="ExecutionResult.cpp">
       <Filter>Pipeline</Filter>
     </ClCompile>
-    <ClCompile Include="HighLevelDescHeap.cpp">
-      <Filter>MemoryManagement</Filter>
-    </ClCompile>
     <ClCompile Include="ScratchSpacePool.cpp">
       <Filter>Middleware</Filter>
     </ClCompile>
@@ -285,26 +285,14 @@
     <ClCompile Include="Nodes\Node_TescoRender.cpp">
       <Filter>Nodes</Filter>
     </ClCompile>
-    <ClCompile Include="ResourceHeap.cpp">
-      <Filter>MemoryManagement</Filter>
-    </ClCompile>
     <ClCompile Include="ResourceResidencyQueue.cpp">
       <Filter>Pipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="UploadHeap.cpp">
-      <Filter>MemoryManagement</Filter>
     </ClCompile>
     <ClCompile Include="MeshBuffer.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
       <Filter>Resources</Filter>
-    </ClCompile>
-    <ClCompile Include="ConstBufferHeap.cpp">
-      <Filter>MemoryManagement</Filter>
-    </ClCompile>
-    <ClCompile Include="ResourceView.cpp">
-      <Filter>MemoryManagement</Filter>
     </ClCompile>
     <ClCompile Include="PipelineEventDispatcher.cpp">
       <Filter>Pipeline</Filter>
@@ -317,6 +305,30 @@
     </ClCompile>
     <ClCompile Include="Image.cpp">
       <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="HostDescHeap.cpp">
+      <Filter>MemoryManagement\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="StackDescHeap.cpp">
+      <Filter>MemoryManagement\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceView.cpp">
+      <Filter>MemoryManagement\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="UploadManager.cpp">
+      <Filter>MemoryManagement\ObjectManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstBufferHeap.cpp">
+      <Filter>MemoryManagement\Heaps</Filter>
+    </ClCompile>
+    <ClCompile Include="BackBufferManager.cpp">
+      <Filter>MemoryManagement\ObjectManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryObject.cpp">
+      <Filter>MemoryManagement\ObjectManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="CriticalBufferHeap.cpp">
+      <Filter>MemoryManagement\Heaps</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

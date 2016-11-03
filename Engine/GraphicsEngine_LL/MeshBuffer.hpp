@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <type_traits>
 
-#include "GpuBuffer.hpp"
+#include "MemoryObject.hpp"
 #include "MemoryManager.hpp"
 
 

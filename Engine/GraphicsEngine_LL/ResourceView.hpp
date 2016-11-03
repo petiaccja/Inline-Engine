@@ -1,5 +1,7 @@
 #pragma once
 
+#include "HostDescHeap.hpp"
+
 #include <GraphicsApi_LL/Common.hpp>
 
 #include <cassert>
@@ -10,7 +12,6 @@ namespace inl {
 namespace gxeng {
 
 
-class DescriptorReference;
 class RTVHeap;
 class DSVHeap;
 class PersistentResViewHeap;

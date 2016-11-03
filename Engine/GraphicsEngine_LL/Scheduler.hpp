@@ -25,17 +25,17 @@ public:
 	void Execute(FrameContext context);
 protected:
 	struct UsedResource {
-		GenericResource* resource;
+		MemoryObject* resource;
 		unsigned subresource;
 		float firstState;
 		bool multipleUse;
 	};
 
 
-	static void MakeResident(std::vector<GenericResource*> usedResources);
-	static void Evict(std::vector<GenericResource*> usedResources);
+	static void MakeResident(std::vector<MemoryObject*> usedResources);
+	static void Evict(std::vector<MemoryObject*> usedResources);
 
-	static void UploadTask(CopyCommandList& commandList, const std::vector<UploadHeap::UploadDescription>& uploads);
+	static void UploadTask(CopyCommandList& commandList, const std::vector<UploadManager::UploadDescription>& uploads);
 
 	static std::vector<ElementaryTask> MakeSchedule(const lemon::ListDigraph& taskGraph,
 													const lemon::ListDigraph::NodeMap<ElementaryTask>& taskFunctionMap
@@ -45,7 +45,7 @@ protected:
 								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
 								   CmdAllocPtr commandAllocator,
 	                               std::vector<ScratchSpacePtr> scratchSpaces,
-								   std::vector<std::shared_ptr<GenericResource>> usedResources,
+								   std::vector<std::shared_ptr<MemoryObject>> usedResources,
 								   const FrameContext& context);
 
 	template <class UsedResourceIter>
@@ -70,7 +70,7 @@ std::vector<gxapi::ResourceBarrier> Scheduler::InjectBarriers(UsedResourceIter f
 
 	// Collect all necessary barriers.
 	for (UsedResourceIter it = firstResource; it != lastResource; ++it) {
-		GenericResource* resource = it->resource.get();
+		MemoryObject* resource = it->resource.get();
 		unsigned subresource = it->subresource;
 		gxapi::eResourceState targetState = it->firstState;
 
@@ -118,7 +118,7 @@ bool Scheduler::CanExecuteParallel(UsedResourceIter1 first1, UsedResourceIter1 l
 template <class UsedResourceIter>
 void Scheduler::UpdateResourceStates(UsedResourceIter firstResource, UsedResourceIter lastResource) {
 	for (auto it = firstResource; it != lastResource; ++it) {
-		GenericResource* resource = it->resource.get();
+		MemoryObject* resource = it->resource.get();
 		resource->RecordState(it->subresource, it->lastState);
 	}
 }

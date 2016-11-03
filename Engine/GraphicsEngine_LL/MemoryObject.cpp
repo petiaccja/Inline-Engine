@@ -1,11 +1,11 @@
 
-#include "GpuBuffer.hpp"
+#include "MemoryObject.hpp"
 
 #include "../GraphicsApi_LL/ICommandList.hpp"
 #include "../GraphicsApi_LL/Exception.hpp"
 
 #include "MemoryManager.hpp"
-#include "ResourceHeap.hpp"
+#include "CriticalBufferHeap.hpp"
 
 #include <utility>
 #include <iostream>
@@ -16,23 +16,18 @@ namespace gxeng {
 using namespace gxapi;
 
 //==================================
-//Generic Resource
 
-GenericResource::GenericResource(gxapi::IResource* resource) :
-	GenericResource(resource, std::default_delete<gxapi::IResource>{})
+MemoryObject::MemoryObject(MemoryObjectDescriptor desc) :
+	m_resource(desc.resource, desc.deleter)
 {
+	m_resident = desc.resident;
+
 	InitResourceStates(eResourceState::COMMON);
 }
 
 
-GenericResource::GenericResource(gxapi::IResource* resource, const Deleter& deleter) :
-	m_resource(resource, deleter)
-{
-	InitResourceStates(eResourceState::COMMON);
-}
 
-
-GenericResource::GenericResource(GenericResource&& other) :
+MemoryObject::MemoryObject(MemoryObject&& other) :
 	m_resource(std::move(other.m_resource)),
 	m_resident(other.m_resident),
 	m_subresourceStates(other.m_subresourceStates)
@@ -40,7 +35,7 @@ GenericResource::GenericResource(GenericResource&& other) :
 }
 
 
-GenericResource& GenericResource::operator=(GenericResource&& other) {
+MemoryObject& MemoryObject::operator=(MemoryObject&& other) {
 	if (this == &other) {
 		return *this;
 	}
@@ -53,53 +48,53 @@ GenericResource& GenericResource::operator=(GenericResource&& other) {
 }
 
 
-void* GenericResource::GetVirtualAddress() const {
+void* MemoryObject::GetVirtualAddress() const {
 	return m_resource->GetGPUAddress();
 }
 
 
-gxapi::ResourceDesc GenericResource::GetDescription() const {
+gxapi::ResourceDesc MemoryObject::GetDescription() const {
 	return m_resource->GetDesc();
 }
 
 
-void GenericResource::_SetResident(bool value) noexcept {
+void MemoryObject::_SetResident(bool value) noexcept {
 	m_resident = value;
 }
 
 
-bool GenericResource::_GetResident() const noexcept {
+bool MemoryObject::_GetResident() const noexcept {
 	return m_resident;
 }
 
 
-gxapi::IResource* GenericResource::_GetResourcePtr() noexcept {
+gxapi::IResource* MemoryObject::_GetResourcePtr() noexcept {
 	return m_resource.get();
 }
 
 
-const gxapi::IResource * GenericResource::_GetResourcePtr() const noexcept {
+const gxapi::IResource * MemoryObject::_GetResourcePtr() const noexcept {
 	return m_resource.get();
 }
 
 
-void GenericResource::RecordState(unsigned subresource, gxapi::eResourceState newState) {
+void MemoryObject::RecordState(unsigned subresource, gxapi::eResourceState newState) {
 	assert(subresource < m_subresourceStates.size());
 	m_subresourceStates[subresource] = newState;
 }
 
-void GenericResource::RecordState(gxapi::eResourceState newState) {
+void MemoryObject::RecordState(gxapi::eResourceState newState) {
 	for (auto& state : m_subresourceStates) {
 		state = newState;
 	}
 }
 
-gxapi::eResourceState GenericResource::ReadState(unsigned subresource) const {
+gxapi::eResourceState MemoryObject::ReadState(unsigned subresource) const {
 	assert(subresource < m_subresourceStates.size());
 	return m_subresourceStates[subresource];
 }
 
-void GenericResource::InitResourceStates(gxapi::eResourceState initialState) {
+void MemoryObject::InitResourceStates(gxapi::eResourceState initialState) {
 	gxapi::ResourceDesc desc = m_resource->GetDesc();
 	unsigned numSubresources = 0;
 	switch (desc.type) {
@@ -137,14 +132,8 @@ uint64_t LinearBuffer::GetSize() const {
 }
 
 
-IndexBuffer::IndexBuffer(gxapi::IResource* resource, size_t indexCount) :
-	LinearBuffer(resource),
-	m_indexCount(indexCount)
-{}
-
-
-IndexBuffer::IndexBuffer(gxapi::IResource* resource, const Deleter& deleter, size_t indexCount) :
-	LinearBuffer(resource, deleter),
+IndexBuffer::IndexBuffer(MemoryObjectDescriptor desc, size_t indexCount) :
+	LinearBuffer(desc),
 	m_indexCount(indexCount)
 {}
 
@@ -157,8 +146,8 @@ size_t IndexBuffer::GetIndexCount() const {
 //==================================
 
 
-ConstBuffer::ConstBuffer(gxapi::IResource* resource, void* gpuVirtualPtr, uint32_t dataSize) :
-	LinearBuffer(resource),
+ConstBuffer::ConstBuffer(MemoryObjectDescriptor desc, void* gpuVirtualPtr, uint32_t dataSize) :
+	LinearBuffer(desc),
 	m_gpuVirtualPtr(gpuVirtualPtr),
 	m_dataSize(dataSize)
 {}
@@ -174,13 +163,13 @@ uint64_t ConstBuffer::GetSize() const {
 }
 
 
-VolatileConstBuffer::VolatileConstBuffer(gxapi::IResource* resource, void * gpuVirtualPtr, uint32_t dataSize) :
-	ConstBuffer(resource, gpuVirtualPtr, dataSize)
+VolatileConstBuffer::VolatileConstBuffer(MemoryObjectDescriptor desc, void * gpuVirtualPtr, uint32_t dataSize) :
+	ConstBuffer(desc, gpuVirtualPtr, dataSize)
 {}
 
 
-PersistentConstBuffer::PersistentConstBuffer(gxapi::IResource* resource, void * gpuVirtualPtr, uint32_t dataSize) :
-	ConstBuffer(resource, gpuVirtualPtr, dataSize)
+PersistentConstBuffer::PersistentConstBuffer(MemoryObjectDescriptor desc, void * gpuVirtualPtr, uint32_t dataSize) :
+	ConstBuffer(desc, gpuVirtualPtr, dataSize)
 {}
 
 
@@ -232,10 +221,9 @@ uint64_t TextureCube::GetHeight() const {
 }
 
 
-BackBuffer::BackBuffer(DescriptorReference&& descRef, gxapi::RenderTargetViewDesc desc, gxapi::IResource* resource) :
-	// Underlying resource deallocation is managed by the swap chain!
-	Texture2D(resource, [](gxapi::IResource* res) {delete res;}),
-	m_RTV(std::shared_ptr<Texture2D>(this, [](Texture2D*) {}), std::move(descRef), desc)
+BackBuffer::BackBuffer(DescriptorReference&& descRef, gxapi::RenderTargetViewDesc rtvDesc, MemoryObjectDescriptor desc) :
+	Texture2D(desc),
+	m_RTV(std::shared_ptr<Texture2D>(this, [](Texture2D*) {}), std::move(descRef), rtvDesc)
 {}
 
 

@@ -1,10 +1,11 @@
-#include "HighLevelDescHeap.hpp"
+#include "HostDescHeap.hpp"
 
-#include "GpuBuffer.hpp"
+#include "MemoryObject.hpp"
 
 #include <cassert>
 #include <array>
 #include <type_traits>
+
 
 namespace inl {
 namespace gxeng {
@@ -65,114 +66,7 @@ void DescriptorReference::Invalidate() {
 }
 
 
-
-//=========================================================
-
-
-#if 0
-TextureSpaceRef::TextureSpaceRef(TextureSpaceRef&& other) :
-	DescriptorReference(std::move(other)),
-	m_home(other.m_home)
-{}
-
-
-TextureSpaceRef& TextureSpaceRef::operator=(TextureSpaceRef&& other) {
-	if (this == &other) {
-		return *this;
-	}
-
-	DescriptorReference::operator=(std::move(other));
-	m_home = other.m_home;
-
-	return *this;
-}
-
-
-TextureSpaceRef::~TextureSpaceRef() {
-	if (IsValid()) {
-		m_home->DeallocateTextureSpace(m_position);
-	}
-}
-
-
-gxapi::DescriptorHandle TextureSpaceRef::Get() {
-	if (!IsValid()) {
-		throw gxapi::InvalidState("Descriptor being dereferenced is INVALID!");
-	}
-
-	return m_home->GetAtTextureSpace(m_position);
-}
-
-
-TextureSpaceRef::TextureSpaceRef(HighLevelDescHeap* home, size_t pos) noexcept :
-	DescriptorReference(pos),
-	m_home(home)
-{}
-#endif
-
-//=========================================================
-
-
-gxapi::DescriptorHandle ScratchSpaceRef::Get(uint32_t position) {
-	if (!IsValid()) {
-		throw gxapi::InvalidState("Descriptor being dereferenced is INVALID!");
-	}
-
-	if (position >= m_allocationSize) {
-		throw gxapi::OutOfRange("Requested scratch space descriptor is out of allocation range!");
-	}
-
-	return m_home->m_heap->At(m_pos + position);
-}
-
-
-uint32_t ScratchSpaceRef::Count() const {
-	return m_allocationSize;
-}
-
-
-bool ScratchSpaceRef::IsValid() const {
-	return m_pos != INVALID_POS;
-}
-
-
-ScratchSpaceRef::ScratchSpaceRef(ScratchSpace* home, uint32_t pos, uint32_t allocSize) :
-	m_home(home),
-	m_pos(pos),
-	m_allocationSize(allocSize)
-{}
-
-
-//=========================================================
-
-
-ScratchSpace::ScratchSpace(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type, uint32_t size) :
-	m_size(size),
-	m_top(0)
-{
-	assert(type == gxapi::eDescriptorHeapType::CBV_SRV_UAV || type == gxapi::eDescriptorHeapType::SAMPLER);
-	gxapi::DescriptorHeapDesc desc(type, size, true);
-	m_heap.reset(graphicsApi->CreateDescriptorHeap(desc));
-}
-
-
-ScratchSpaceRef ScratchSpace::Allocate(uint32_t size) {
-	uint32_t newTop = m_top + size;
-	if (newTop > m_size) {
-		throw std::bad_alloc();
-	}
-	uint32_t descPosition = m_top;
-	m_top = newTop;
-	return ScratchSpaceRef(this, descPosition, size);
-}
-
-
-void ScratchSpace::Reset() {
-	m_top = 0;
-}
-
-
-//=========================================================
+// =======================================================
 
 
 HostDescHeap::HostDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type) :
@@ -236,8 +130,8 @@ void HostDescHeap::PushNewTextureSpaceChunk() {
 size_t HostDescHeap::GetOptimalChunkSize(gxapi::eDescriptorHeapType type) {
 	switch (type) {
 	case gxapi::eDescriptorHeapType::CBV_SRV_UAV:
-	case gxapi::eDescriptorHeapType::SAMPLER:
 		return 256;
+	case gxapi::eDescriptorHeapType::SAMPLER:
 	case gxapi::eDescriptorHeapType::RTV:
 	case gxapi::eDescriptorHeapType::DSV:
 		return 16;
@@ -254,7 +148,7 @@ RTVHeap::RTVHeap(gxapi::IGraphicsApi * graphicsApi) :
 {}
 
 
-DescriptorReference RTVHeap::Create(GenericResource & resource, gxapi::RenderTargetViewDesc desc) {
+DescriptorReference RTVHeap::Create(MemoryObject & resource, gxapi::RenderTargetViewDesc desc) {
 	auto descRef = Allocate();
 
 	m_graphicsApi->CreateRenderTargetView(resource._GetResourcePtr(), desc, descRef.Get());
@@ -268,7 +162,7 @@ DSVHeap::DSVHeap(gxapi::IGraphicsApi* graphicsApi) :
 {}
 
 
-DescriptorReference DSVHeap::Create(GenericResource & resource, gxapi::DepthStencilViewDesc desc) {
+DescriptorReference DSVHeap::Create(MemoryObject & resource, gxapi::DepthStencilViewDesc desc) {
 	auto descRef = Allocate();
 
 	m_graphicsApi->CreateDepthStencilView(resource._GetResourcePtr(), desc, descRef.Get());
@@ -291,7 +185,7 @@ DescriptorReference PersistentResViewHeap::CreateCBV(gxapi::ConstantBufferViewDe
 }
 
 
-DescriptorReference PersistentResViewHeap::CreateSRV(GenericResource& resource, gxapi::ShaderResourceViewDesc desc) {
+DescriptorReference PersistentResViewHeap::CreateSRV(MemoryObject& resource, gxapi::ShaderResourceViewDesc desc) {
 	auto descRef = Allocate();
 
 	m_graphicsApi->CreateShaderResourceView(resource._GetResourcePtr(), desc, descRef.Get());

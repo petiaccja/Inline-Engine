@@ -1,7 +1,7 @@
 #pragma once
 
 #include <memory>
-#include "GpuBuffer.hpp"
+#include "MemoryObject.hpp"
 
 
 namespace inl {

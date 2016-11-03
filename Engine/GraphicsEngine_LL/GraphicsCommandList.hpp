@@ -3,6 +3,7 @@
 #include "ComputeCommandList.hpp"
 #include "ResourceView.hpp"
 #include "PipelineEventListener.hpp"
+#include "StackDescHeap.hpp"
 
 namespace inl {
 namespace gxeng {
@@ -12,11 +13,11 @@ namespace gxeng {
 class GraphicsCommandList : public ComputeCommandList {
 	struct DescriptorTableState {
 		DescriptorTableState() : slot(0), committed(false) {}
-		DescriptorTableState(ScratchSpaceRef&& reference, int slot)
+		DescriptorTableState(DescriptorArrayRef&& reference, int slot)
 			: reference(std::move(reference)), slot(slot), committed(false)
 		{}
 
-		ScratchSpaceRef reference; // current place in scratch space
+		DescriptorArrayRef reference; // current place in scratch space
 		int slot; // which root signature slot it belongs to
 		bool committed; // true if modifying descriptor in sratch space would break previous draw calls
 		std::vector<gxapi::DescriptorHandle> bindings; // currently bound descriptor handle, staging heap sources

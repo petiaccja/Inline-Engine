@@ -165,6 +165,7 @@
     <ClInclude Include="..\GraphicsEngine\IScene.hpp" />
     <ClInclude Include="..\GraphicsEngine\ITerrainEntity.hpp" />
     <ClInclude Include="..\GraphicsEngine\ITexture2D.hpp" />
+    <ClInclude Include="BackBufferManager.hpp" />
     <ClInclude Include="BasicCommandList.hpp" />
     <ClInclude Include="Binder.hpp" />
     <ClInclude Include="CommandAllocatorPool.hpp" />
@@ -176,11 +177,12 @@
     <ClInclude Include="EntityCollection.hpp" />
     <ClInclude Include="ExecutionContext.hpp" />
     <ClInclude Include="ExecutionResult.hpp" />
+    <ClInclude Include="StackDescHeap.hpp" />
     <ClInclude Include="FrameContext.hpp" />
     <ClInclude Include="GraphicsCommandList.hpp" />
     <ClInclude Include="GraphicsNode.hpp" />
     <ClInclude Include="GraphicsNodeFactory.hpp" />
-    <ClInclude Include="HighLevelDescHeap.hpp" />
+    <ClInclude Include="HostDescHeap.hpp" />
     <ClInclude Include="Image.hpp" />
     <ClInclude Include="Light.hpp" />
     <ClInclude Include="MemoryManager.hpp" />
@@ -199,25 +201,24 @@
     <ClInclude Include="Pipeline.hpp" />
     <ClInclude Include="PipelineEventDispatcher.hpp" />
     <ClInclude Include="PipelineEventListener.hpp" />
-    <ClInclude Include="ResourceHeap.hpp" />
+    <ClInclude Include="CriticalBufferHeap.hpp" />
     <ClInclude Include="ResourceResidencyQueue.hpp" />
     <ClInclude Include="ResourceView.hpp" />
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Scheduler.hpp" />
     <ClInclude Include="ScratchSpacePool.hpp" />
-    <ClInclude Include="SmallBufferHeap.hpp" />
-    <ClInclude Include="SubresourceID.hpp" />
     <ClInclude Include="SyncPoint.hpp" />
     <ClInclude Include="Task.hpp" />
     <ClInclude Include="Texture2D.hpp" />
-    <ClInclude Include="GpuBuffer.hpp" />
+    <ClInclude Include="MemoryObject.hpp" />
     <ClInclude Include="Mesh.hpp" />
-    <ClInclude Include="UploadHeap.hpp" />
+    <ClInclude Include="UploadManager.hpp" />
     <ClInclude Include="VertexArrayView.hpp" />
     <ClInclude Include="Vertex.hpp" />
     <ClInclude Include="VertexElementCompressor.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BackBufferManager.cpp" />
     <ClCompile Include="BasicCommandList.cpp" />
     <ClCompile Include="Binder.cpp" />
     <ClCompile Include="CommandAllocatorPool.cpp" />
@@ -227,9 +228,10 @@
     <ClCompile Include="DEBUG_TexturedEntity.cpp" />
     <ClCompile Include="ExecutionContext.cpp" />
     <ClCompile Include="ExecutionResult.cpp" />
+    <ClCompile Include="StackDescHeap.cpp" />
     <ClCompile Include="GraphicsCommandList.cpp" />
     <ClCompile Include="GraphicsNodeFactory.cpp" />
-    <ClCompile Include="HighLevelDescHeap.cpp" />
+    <ClCompile Include="HostDescHeap.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
@@ -242,18 +244,17 @@
     <ClCompile Include="Nodes\Node_TescoRender.cpp" />
     <ClCompile Include="Pipeline.cpp" />
     <ClCompile Include="PipelineEventDispatcher.cpp" />
-    <ClCompile Include="ResourceHeap.cpp" />
+    <ClCompile Include="CriticalBufferHeap.cpp" />
     <ClCompile Include="ResourceResidencyQueue.cpp" />
     <ClCompile Include="ResourceView.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Scheduler.cpp" />
     <ClCompile Include="ScratchSpacePool.cpp" />
-    <ClCompile Include="SmallBufferHeap.cpp" />
     <ClCompile Include="Task.cpp" />
     <ClCompile Include="Texture2D.cpp" />
-    <ClCompile Include="GpuBuffer.cpp" />
+    <ClCompile Include="MemoryObject.cpp" />
     <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="UploadHeap.cpp" />
+    <ClCompile Include="UploadManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

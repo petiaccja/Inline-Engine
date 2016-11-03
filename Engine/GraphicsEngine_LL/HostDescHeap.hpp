@@ -3,7 +3,6 @@
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include "../GraphicsApi_LL/Exception.hpp"
 #include "../GraphicsApi_LL/IDescriptorHeap.hpp"
-#include "../BaseLibrary/Memory/RingAllocationEngine.hpp"
 #include "../BaseLibrary/Memory/SlabAllocatorEngine.hpp"
 
 #include <vector>
@@ -14,8 +13,7 @@ namespace inl {
 namespace gxeng {
 
 class HostDescHeap;
-class ScratchSpace;
-class GenericResource;
+class MemoryObject;
 
 class DescriptorReference {
 public:
@@ -47,72 +45,19 @@ protected:
 };
 
 
-class ScratchSpaceRef {
-public:
-	friend class ScratchSpace;
-
-	ScratchSpaceRef() : m_home(nullptr), m_pos(INVALID_POS), m_allocationSize(0) {}
-
-	/// <summary> Get an underlying descriptor. </summary>
-	/// <exception cref="inl::gxapi::InvalidStateException">
-	/// If this reference was "moved" as in move semantics.
-	/// Or if position is outside the allocation range.
-	/// </exception>
-	/// <returns> Represented descriptor. </returns>
-	gxapi::DescriptorHandle Get(uint32_t position);
-
-	uint32_t Count() const;
-
-	bool IsValid() const;
-
-protected:
-	ScratchSpaceRef(ScratchSpace* home, uint32_t pos, uint32_t allocSize);
-
-protected:
-	ScratchSpace* m_home;
-	uint32_t m_pos;
-	uint32_t m_allocationSize;
-
-	static constexpr auto INVALID_POS = std::numeric_limits<uint32_t>::max();
-};
-
-/// <summary>
-/// This class provides an abstraction ovear a shader visible heap
-/// that was meant to be used for draw commands.
-/// <para />
-/// Please note that this class is not thread safe.
-/// <para />
-/// Each CPU thread that generates command lists should have
-/// exclusive ownership over at least one instance of this class.
-/// </summary>
-class ScratchSpace {
-	friend class HostDescHeap;
-	friend class ScratchSpaceRef;
-public:
-	ScratchSpace(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type, uint32_t size);
-
-	ScratchSpaceRef Allocate(uint32_t size);
-
-	/// <summary>
-	/// Frees all allocations. Next allocation will be place at the begginning of the heap.
-	/// </summary>
-	void Reset();
-
-	gxapi::IDescriptorHeap* GetHeap() const { return m_heap.get(); }
-protected:
-	std::unique_ptr<gxapi::IDescriptorHeap> m_heap;
-	uint32_t m_size;
-	uint32_t m_top;
-};
-
-
 /// <summary>
 /// This class was made for high level engine components
 /// that need a way of handling resource descriptors.
 /// <para />
 /// This class is thread safe.
+/// <para />
+/// The heap automatically grows if current size is not
+/// sufficient for a new allocation.
+/// When the heap grows all the pointers to previous allocation remain valid.
+/// This object can only represent non-shader visible heaps
+/// due to the fact, that growing is implemented by creating
+/// a new descriptor heap (but only one shader visible heap can be bound at a time).
 /// </summary>
-/// (Name is subject to change)
 class HostDescHeap {
 public:
 	HostDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type);
@@ -142,7 +87,7 @@ class RTVHeap : protected HostDescHeap {
 public:
 	RTVHeap(gxapi::IGraphicsApi* graphicsApi);
 
-	DescriptorReference Create(GenericResource& resource, gxapi::RenderTargetViewDesc desc);
+	DescriptorReference Create(MemoryObject& resource, gxapi::RenderTargetViewDesc desc);
 };
 
 
@@ -150,7 +95,7 @@ class DSVHeap : protected HostDescHeap {
 public:
 	DSVHeap(gxapi::IGraphicsApi* graphicsApi);
 
-	DescriptorReference Create(GenericResource& resource, gxapi::DepthStencilViewDesc desc);
+	DescriptorReference Create(MemoryObject& resource, gxapi::DepthStencilViewDesc desc);
 };
 
 
@@ -159,7 +104,7 @@ public:
 	PersistentResViewHeap(gxapi::IGraphicsApi* graphicsApi);
 
 	DescriptorReference CreateCBV(gxapi::ConstantBufferViewDesc desc);
-	DescriptorReference CreateSRV(GenericResource& resource, gxapi::ShaderResourceViewDesc desc);
+	DescriptorReference CreateSRV(MemoryObject& resource, gxapi::ShaderResourceViewDesc desc);
 };
 
 } // namespace gxeng

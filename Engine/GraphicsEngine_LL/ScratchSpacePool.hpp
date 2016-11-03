@@ -2,7 +2,7 @@
 
 #include "../BaseLibrary/Memory/SlabAllocatorEngine.hpp"
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
-#include "HighLevelDescHeap.hpp"
+#include "StackDescHeap.hpp"
 #include <vector>
 #include <map>
 #include <mutex>
@@ -19,14 +19,14 @@ public:
 	public:
 		Deleter() : m_container(nullptr) {}
 		explicit Deleter(ScratchSpacePool* container) : m_container(container) {}
-		void operator()(ScratchSpace* object) const {
+		void operator()(StackDescHeap* object) const {
 			m_container->RecycleScratchSpace(object);
 		}
 	private:
 		ScratchSpacePool* m_container;
 	};
 
-	using UniquePtr = std::unique_ptr<ScratchSpace, Deleter>;
+	using UniquePtr = std::unique_ptr<StackDescHeap, Deleter>;
 public:
 	ScratchSpacePool(gxapi::IGraphicsApi* gxApi, gxapi::eDescriptorHeapType type);
 	ScratchSpacePool(const ScratchSpacePool&) = delete;
@@ -35,13 +35,13 @@ public:
 	ScratchSpacePool& operator=(ScratchSpacePool&& rhs) = default;;
 
 	UniquePtr RequestScratchSpace();
-	void RecycleScratchSpace(ScratchSpace* scratchSpace);
+	void RecycleScratchSpace(StackDescHeap* scratchSpace);
 private:
-	std::vector<std::unique_ptr<ScratchSpace>> m_pool;
+	std::vector<std::unique_ptr<StackDescHeap>> m_pool;
 	gxapi::eDescriptorHeapType m_type;
 	exc::SlabAllocatorEngine m_allocator;
 	gxapi::IGraphicsApi* m_gxApi;
-	std::map<ScratchSpace*, size_t> m_addressToIndex;
+	std::map<StackDescHeap*, size_t> m_addressToIndex;
 
 	std::mutex m_mutex;
 };

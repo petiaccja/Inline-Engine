@@ -1,9 +1,8 @@
 #pragma once
 
-#include "GpuBuffer.hpp"
+#include "MemoryObject.hpp"
 #include "Binder.hpp"
 #include "BasicCommandList.hpp"
-#include "SubresourceID.hpp"
 
 #include "../GraphicsApi_LL/Common.hpp"
 #include "../GraphicsApi_LL/ICommandList.hpp"
@@ -90,9 +89,9 @@ protected:
 
 public:
 	// Resource copy
-	void CopyBuffer(GenericResource* dst, size_t dstOffset, GenericResource* src, size_t srcOffset, size_t numBytes);
+	void CopyBuffer(MemoryObject* dst, size_t dstOffset, MemoryObject* src, size_t srcOffset, size_t numBytes);
 
-	void CopyResource(GenericResource* dst, GenericResource* src);
+	void CopyResource(MemoryObject* dst, MemoryObject* src);
 
 	void CopyTexture(Texture1D* dst,
 					 Texture1D* src,
@@ -121,7 +120,7 @@ public:
 	template <class... Barriers>
 	void ResourceBarrier(Barriers&&... barriers);
 
-	void SetResourceState(std::shared_ptr<GenericResource> resource, unsigned subresource, gxapi::eResourceState state);
+	void SetResourceState(std::shared_ptr<MemoryObject> resource, unsigned subresource, gxapi::eResourceState state);
 protected:
 	virtual Decomposition Decompose() override;
 private:

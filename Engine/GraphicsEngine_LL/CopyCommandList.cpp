@@ -44,7 +44,7 @@ CopyCommandList& CopyCommandList::operator=(CopyCommandList&& rhs) {
 }
 
 
-void CopyCommandList::SetResourceState(std::shared_ptr<GenericResource> resource, unsigned subresource, gxapi::eResourceState state) {
+void CopyCommandList::SetResourceState(std::shared_ptr<MemoryObject> resource, unsigned subresource, gxapi::eResourceState state) {
 	SubresourceId resId{resource, subresource};
 	auto iter = m_resourceTransitions.find(resId);
 	if (iter == m_resourceTransitions.end()) {
@@ -78,7 +78,7 @@ BasicCommandList::Decomposition CopyCommandList::Decompose() {
 
 
 
-void CopyCommandList::CopyBuffer(GenericResource * dst, size_t dstOffset, GenericResource * src, size_t srcOffset, size_t numBytes) {
+void CopyCommandList::CopyBuffer(MemoryObject * dst, size_t dstOffset, MemoryObject * src, size_t srcOffset, size_t numBytes) {
 	m_commandList->CopyBuffer(dst->_GetResourcePtr(), dstOffset, src->_GetResourcePtr(), srcOffset, numBytes);
 }
 

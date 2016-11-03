@@ -35,7 +35,7 @@ BasicCommandList::BasicCommandList(gxapi::IGraphicsApi* gxApi,
 }
 
 
-ScratchSpace* BasicCommandList::GetCurrentScratchSpace() {
+StackDescHeap* BasicCommandList::GetCurrentScratchSpace() {
 	return m_currentScratchSpace;
 }
 

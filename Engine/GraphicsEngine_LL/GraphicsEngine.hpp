@@ -8,9 +8,10 @@
 #include "PipelineEventDispatcher.hpp"
 #include "PipelineEventListener.hpp"
 
-#include "ResourceHeap.hpp"
+#include "CriticalBufferHeap.hpp"
+#include "BackBufferManager.hpp"
 #include "MemoryManager.hpp"
-#include "HighLevelDescHeap.hpp"
+#include "HostDescHeap.hpp"
 
 #include <GraphicsApi_LL/IGxapiManager.hpp>
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
@@ -111,7 +112,7 @@ private:
 	// Memory
 	MemoryManager m_memoryManager;
 	DSVHeap m_dsvHeap; // TODO
-	std::unique_ptr<BackBufferHeap> m_backBufferHeap;
+	std::unique_ptr<BackBufferManager> m_backBufferHeap;
 
 	// Pipeline elements
 	CommandQueue m_masterCommandQueue;

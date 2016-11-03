@@ -14,7 +14,7 @@ ConstantBufferHeap::ConstantBufferHeap(gxapi::IGraphicsApi* graphicsApi) :
 
 
 VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(void* data, uint32_t dataSize) {
-	size_t targetSize = AlignUp(dataSize, ALIGNEMENT);
+	size_t targetSize = SnapUpward(dataSize, ALIGNEMENT);
 
 	std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -83,7 +83,12 @@ VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(void* data, uint32_
 
 	memcpy(cpuPtr, data, dataSize);
 
-	return VolatileConstBuffer(targetPage->m_representedMemory.get(), gpuPtr, dataSize);
+	MemoryObjectDescriptor desc;
+	desc.resident = true;
+	desc.deleter = [](gxapi::IResource*){};
+	desc.resource = targetPage->m_representedMemory.get();
+
+	return VolatileConstBuffer(desc, gpuPtr, dataSize);
 }
 
 
@@ -104,7 +109,12 @@ PersistentConstBuffer ConstantBufferHeap::CreatePersistentBuffer(void* data, uin
 
 	void* gpuPtr = resource->GetGPUAddress();
 
-	return PersistentConstBuffer(resource.release(), gpuPtr, dataSize);
+	MemoryObjectDescriptor desc;
+	desc.resident = true;
+	desc.deleter = std::default_delete<gxapi::IResource>();
+	desc.resource = resource.release();
+
+	return PersistentConstBuffer(desc, gpuPtr, dataSize);
 }
 
 
@@ -143,10 +153,10 @@ void ConstantBufferHeap::OnFrameCompleteHost(uint64_t frameId) {
 }
 
 
-size_t ConstantBufferHeap::AlignUp(size_t value, size_t alignement) {
+size_t ConstantBufferHeap::SnapUpward(size_t value, size_t gridSize) {
 	// alignement should be power of two
-	assert(((alignement-1) & alignement) == 0);
-	return (value + (alignement-1)) & ~(alignement-1);
+	assert(((gridSize-1) & gridSize) == 0);
+	return (value + (gridSize-1)) & ~(gridSize-1);
 }
 
 
@@ -156,7 +166,7 @@ ConstantBufferHeap::ConstBufferPage ConstantBufferHeap::CreatePage() {
 
 
 ConstantBufferHeap::ConstBufferPage ConstantBufferHeap::CreateLargePage(size_t fittingSize) {
-	const size_t resourceSize = AlignUp(fittingSize, ALIGNEMENT);
+	const size_t resourceSize = SnapUpward(fittingSize, ALIGNEMENT);
 	std::unique_ptr<gxapi::IResource> resource{
 		m_graphicsApi->CreateCommittedResource(
 			gxapi::HeapProperties{gxapi::eHeapType::UPLOAD},
