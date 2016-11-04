@@ -67,7 +67,7 @@ protected:
 	std::unordered_set<MemoryObject*> m_evictables;
 
 protected:
-	MemoryObjectDescriptor AllocateResource(eResourceHeapType heap, const gxapi::ResourceDesc& desc);
+	MemoryObjDesc AllocateResource(eResourceHeapType heap, const gxapi::ResourceDesc& desc);
 };
 
 

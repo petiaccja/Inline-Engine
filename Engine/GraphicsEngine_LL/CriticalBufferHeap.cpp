@@ -17,19 +17,16 @@ CriticalBufferHeap::CriticalBufferHeap(gxapi::IGraphicsApi * graphicsApi) :
 {}
 
 
-MemoryObjectDescriptor CriticalBufferHeap::Allocate(gxapi::ResourceDesc desc, gxapi::ClearValue* clearValue) {
-	MemoryObjectDescriptor result;
-
-	result.resource = m_graphicsApi->CreateCommittedResource(
-		gxapi::HeapProperties(gxapi::eHeapType::DEFAULT),
-		gxapi::eHeapFlags::NONE,
-		desc,
-		gxapi::eResourceState::COMMON,
-		clearValue
+MemoryObjDesc CriticalBufferHeap::Allocate(gxapi::ResourceDesc desc, gxapi::ClearValue* clearValue) {
+	MemoryObjDesc result = MemoryObjDesc(
+		m_graphicsApi->CreateCommittedResource(
+			gxapi::HeapProperties(gxapi::eHeapType::DEFAULT),
+			gxapi::eHeapFlags::NONE,
+			desc,
+			gxapi::eResourceState::COMMON,
+			clearValue
+		)
 	);
-
-	result.deleter = std::default_delete<gxapi::IResource>();
-	result.resident = true;
 
 	return result;
 }

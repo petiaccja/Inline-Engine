@@ -16,19 +16,21 @@ class MemoryManager;
 
 //==================================
 
-struct MemoryObjectDescriptor {
-	gxapi::IResource* resource;
-	bool resident;
+struct MemoryObjDesc {
+	using Deleter = std::function<void(gxapi::IResource*)>;
+	using UniqPtr = std::unique_ptr<gxapi::IResource, Deleter>;
 
-	// Deleter must contain a valid callable. (std::default_delete is acceppted)
-	std::function<void(gxapi::IResource*)> deleter; 
+	MemoryObjDesc() = default;
+	MemoryObjDesc(gxapi::IResource* ptr, bool resident = true);
+
+	UniqPtr resource;
+	bool resident;
 };
 
 class MemoryObject {
 public:
-	using Deleter = std::function<void(gxapi::IResource*)>;
-
-	MemoryObject(MemoryObjectDescriptor desc);
+	using Deleter = MemoryObjDesc::Deleter;
+	MemoryObject(MemoryObjDesc&& desc);
 	virtual ~MemoryObject() {}
 
 	MemoryObject(MemoryObject&&);
@@ -81,7 +83,7 @@ public:
 
 class IndexBuffer : public LinearBuffer {
 public:
-	IndexBuffer(MemoryObjectDescriptor desc, size_t indexCount);
+	IndexBuffer(MemoryObjDesc&& desc, size_t indexCount);
 
 	size_t GetIndexCount() const;
 
@@ -101,7 +103,7 @@ public:
 	uint64_t GetSize() const;
 
 protected:
-	ConstBuffer(MemoryObjectDescriptor desc, void* gpuVirtualPtr, uint32_t dataSize);
+	ConstBuffer(MemoryObjDesc&& desc, void* gpuVirtualPtr, uint32_t dataSize);
 
 protected:
 	void* m_gpuVirtualPtr;
@@ -111,13 +113,13 @@ protected:
 
 class VolatileConstBuffer : public ConstBuffer {
 public:
-	VolatileConstBuffer(MemoryObjectDescriptor desc, void* gpuVirtualPtr, uint32_t dataSize);
+	VolatileConstBuffer(MemoryObjDesc&& desc, void* gpuVirtualPtr, uint32_t dataSize);
 };
 
 
 class PersistentConstBuffer : public ConstBuffer {
 public:
-	PersistentConstBuffer(MemoryObjectDescriptor desc, void* gpuVirtualPtr, uint32_t dataSize);
+	PersistentConstBuffer(MemoryObjDesc&& desc, void* gpuVirtualPtr, uint32_t dataSize);
 };
 
 //==================================
@@ -177,7 +179,7 @@ public:
 
 class BackBuffer : public Texture2D {
 public:
-	BackBuffer(DescriptorReference&& descRef, gxapi::RenderTargetViewDesc rtvDesc, MemoryObjectDescriptor desc);
+	BackBuffer(DescriptorReference&& descRef, gxapi::RenderTargetViewDesc rtvDesc, MemoryObjDesc&& objDesc);
 	BackBuffer(BackBuffer&&);
 	BackBuffer& operator=(BackBuffer&&);
 

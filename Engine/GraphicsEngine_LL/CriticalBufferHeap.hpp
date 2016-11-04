@@ -13,7 +13,7 @@ namespace impl {
 class CriticalBufferHeap {
 public:
 	CriticalBufferHeap(gxapi::IGraphicsApi* graphicsApi);
-	MemoryObjectDescriptor Allocate(gxapi::ResourceDesc desc, gxapi::ClearValue* clearValue = nullptr);
+	MemoryObjDesc Allocate(gxapi::ResourceDesc desc, gxapi::ClearValue* clearValue = nullptr);
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;

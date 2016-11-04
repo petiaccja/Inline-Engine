@@ -28,26 +28,16 @@ BackBufferManager::BackBufferManager(gxapi::IGraphicsApi* graphicsApi, gxapi::IS
 	m_backBuffers.reserve(numBuffers);
 	for (unsigned i = 0; i < numBuffers; i++) {
 		gxapi::DescriptorHandle descHandle = m_descriptorHeap->At(i);
-		std::unique_ptr<gxapi::IResource> lowLeveBuffer(swapChain->GetBuffer(i));
+		MemoryObjDesc bufferDesc = MemoryObjDesc(swapChain->GetBuffer(i));
 
-		auto resourceDesc = lowLeveBuffer->GetDesc();
+		auto resourceDesc = bufferDesc.resource->GetDesc();
 		assert(resourceDesc.textureDesc.depthOrArraySize == 1);
 		desc.format = resourceDesc.textureDesc.format;
 
-		m_graphicsApi->CreateRenderTargetView(lowLeveBuffer.get(), desc, descHandle);
+		m_graphicsApi->CreateRenderTargetView(bufferDesc.resource.get(), desc, descHandle);
 
-		MemoryObjectDescriptor bufferDesc;
-		bufferDesc.resident = true;
-		bufferDesc.deleter = std::default_delete<gxapi::IResource>();
-		bufferDesc.resource = lowLeveBuffer.release();
-		try {
-			BackBuffer highLevelBuffer(DescriptorReference(descHandle, nullptr), desc, bufferDesc);
-			m_backBuffers.push_back(std::move(highLevelBuffer));
-		}
-		catch (...) {
-			//if an exception is thrown while creating the back buffer, the resource would leak.
-			std::terminate();
-		}
+		BackBuffer highLevelBuffer(DescriptorReference(descHandle, nullptr), desc, std::move(bufferDesc));
+		m_backBuffers.push_back(std::move(highLevelBuffer));
 	}
 }
 

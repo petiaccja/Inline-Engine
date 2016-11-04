@@ -17,14 +17,20 @@ using namespace gxapi;
 
 //==================================
 
-MemoryObject::MemoryObject(MemoryObjectDescriptor desc) :
-	m_resource(desc.resource, desc.deleter)
+MemoryObjDesc::MemoryObjDesc(gxapi::IResource* ptr, bool resident):
+	resource(ptr, std::default_delete<gxapi::IResource>()),
+	resident(resident)
+{}
+
+
+
+MemoryObject::MemoryObject(MemoryObjDesc&& desc) :
+	m_resource(std::move(desc.resource))
 {
 	m_resident = desc.resident;
 
 	InitResourceStates(eResourceState::COMMON);
 }
-
 
 
 MemoryObject::MemoryObject(MemoryObject&& other) :
@@ -132,8 +138,8 @@ uint64_t LinearBuffer::GetSize() const {
 }
 
 
-IndexBuffer::IndexBuffer(MemoryObjectDescriptor desc, size_t indexCount) :
-	LinearBuffer(desc),
+IndexBuffer::IndexBuffer(MemoryObjDesc&& desc, size_t indexCount) :
+	LinearBuffer(std::move(desc)),
 	m_indexCount(indexCount)
 {}
 
@@ -146,8 +152,8 @@ size_t IndexBuffer::GetIndexCount() const {
 //==================================
 
 
-ConstBuffer::ConstBuffer(MemoryObjectDescriptor desc, void* gpuVirtualPtr, uint32_t dataSize) :
-	LinearBuffer(desc),
+ConstBuffer::ConstBuffer(MemoryObjDesc&& desc, void* gpuVirtualPtr, uint32_t dataSize) :
+	LinearBuffer(std::move(desc)),
 	m_gpuVirtualPtr(gpuVirtualPtr),
 	m_dataSize(dataSize)
 {}
@@ -163,13 +169,13 @@ uint64_t ConstBuffer::GetSize() const {
 }
 
 
-VolatileConstBuffer::VolatileConstBuffer(MemoryObjectDescriptor desc, void * gpuVirtualPtr, uint32_t dataSize) :
-	ConstBuffer(desc, gpuVirtualPtr, dataSize)
+VolatileConstBuffer::VolatileConstBuffer(MemoryObjDesc&& desc, void * gpuVirtualPtr, uint32_t dataSize) :
+	ConstBuffer(std::move(desc), gpuVirtualPtr, dataSize)
 {}
 
 
-PersistentConstBuffer::PersistentConstBuffer(MemoryObjectDescriptor desc, void * gpuVirtualPtr, uint32_t dataSize) :
-	ConstBuffer(desc, gpuVirtualPtr, dataSize)
+PersistentConstBuffer::PersistentConstBuffer(MemoryObjDesc&& desc, void * gpuVirtualPtr, uint32_t dataSize) :
+	ConstBuffer(std::move(desc), gpuVirtualPtr, dataSize)
 {}
 
 
@@ -221,8 +227,8 @@ uint64_t TextureCube::GetHeight() const {
 }
 
 
-BackBuffer::BackBuffer(DescriptorReference&& descRef, gxapi::RenderTargetViewDesc rtvDesc, MemoryObjectDescriptor desc) :
-	Texture2D(desc),
+BackBuffer::BackBuffer(DescriptorReference&& descRef, gxapi::RenderTargetViewDesc rtvDesc, MemoryObjDesc&& objDesc) :
+	Texture2D(std::move(objDesc)),
 	m_RTV(std::shared_ptr<Texture2D>(this, [](Texture2D*) {}), std::move(descRef), rtvDesc)
 {}
 
@@ -248,6 +254,7 @@ BackBuffer& BackBuffer::operator=(BackBuffer&& other) {
 RenderTargetView& BackBuffer::GetView() {
 	return m_RTV;
 }
+
 
 
 } // namespace gxeng

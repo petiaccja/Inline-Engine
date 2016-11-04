@@ -48,17 +48,17 @@ PersistentConstBuffer MemoryManager::CreatePersistentConstBuffer(void * data, ui
 
 
 VertexBuffer MemoryManager::CreateVertexBuffer(eResourceHeapType heap, size_t size) {
-	MemoryObjectDescriptor desc = AllocateResource(heap, gxapi::ResourceDesc::Buffer(size));
+	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::Buffer(size));
 
-	VertexBuffer result(desc);
+	VertexBuffer result(std::move(desc));
 	return result;
 }
 
 
 IndexBuffer MemoryManager::CreateIndexBuffer(eResourceHeapType heap, size_t size, size_t indexCount) {
-	MemoryObjectDescriptor desc = AllocateResource(heap, gxapi::ResourceDesc::Buffer(size));
+	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::Buffer(size));
 
-	IndexBuffer result(desc, indexCount);
+	IndexBuffer result(std::move(desc), indexCount);
 	return result;
 }
 
@@ -68,9 +68,9 @@ Texture1D MemoryManager::CreateTexture1D(eResourceHeapType heap, uint64_t width,
 		throw gxapi::InvalidArgument("\"count\" should not be at least one.");
 	}
 
-	MemoryObjectDescriptor desc = AllocateResource(heap, gxapi::ResourceDesc::Texture1DArray(width, format, arraySize, flags));
+	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::Texture1DArray(width, format, arraySize, flags));
 
-	Texture1D result(desc);
+	Texture1D result(std::move(desc));
 	return result;
 }
 
@@ -80,46 +80,46 @@ Texture2D MemoryManager::CreateTexture2D(eResourceHeapType heap, uint64_t width,
 		throw gxapi::InvalidArgument("\"count\" should not be at least one.");
 	}
 
-	MemoryObjectDescriptor desc = AllocateResource(heap, gxapi::ResourceDesc::Texture2DArray(width, height, format, arraySize, flags));
+	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::Texture2DArray(width, height, format, arraySize, flags));
 
-	Texture2D result(desc);
+	Texture2D result(std::move(desc));
 	return result;
 }
 
 
 Texture3D MemoryManager::CreateTexture3D(eResourceHeapType heap, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format, gxapi::eResourceFlags flags) {
-	MemoryObjectDescriptor desc = AllocateResource(heap, gxapi::ResourceDesc::Texture3D(width, height, depth, format));
+	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::Texture3D(width, height, depth, format));
 
-	Texture3D result(desc);
+	Texture3D result(std::move(desc));
 	return result;
 }
 
 
 TextureCube MemoryManager::CreateTextureCube(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, gxapi::eResourceFlags flags) {
-	MemoryObjectDescriptor desc = AllocateResource(heap, gxapi::ResourceDesc::CubeMap(width, height, format));
+	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::CubeMap(width, height, format));
 
-	TextureCube result(desc);
+	TextureCube result(std::move(desc));
 	return result;
 }
 
 
-MemoryObjectDescriptor MemoryManager::AllocateResource(eResourceHeapType heap, const gxapi::ResourceDesc& desc) {
+MemoryObjDesc MemoryManager::AllocateResource(eResourceHeapType heap, const gxapi::ResourceDesc& desc) {
 
 	gxapi::ClearValue* pClearValue = nullptr;
-	gxapi::ClearValue clearValue(desc.textureDesc.format, 1, 0);
-	if (desc.type == gxapi::eResourceType::TEXTURE && desc.textureDesc.flags & gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL) {
+	gxapi::ClearValue clearValue(std::move(desc).textureDesc.format, 1, 0);
+	if (std::move(desc).type == gxapi::eResourceType::TEXTURE && desc.textureDesc.flags & gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL) {
 		pClearValue = &clearValue;
 	}
 
 	switch(heap) {
 	case eResourceHeapType::CRITICAL: 
-		return m_criticalHeap.Allocate(desc, pClearValue);
+		return m_criticalHeap.Allocate(std::move(desc), pClearValue);
 		break;
 	default:
 		assert(false);
 	}
 
-	return MemoryObjectDescriptor();
+	return MemoryObjDesc();
 }
 
 

@@ -83,24 +83,24 @@ VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(void* data, uint32_
 
 	memcpy(cpuPtr, data, dataSize);
 
-	MemoryObjectDescriptor desc;
+	MemoryObjDesc desc;
 	desc.resident = true;
-	desc.deleter = [](gxapi::IResource*){};
-	desc.resource = targetPage->m_representedMemory.get();
+	desc.resource = MemoryObjDesc::UniqPtr(targetPage->m_representedMemory.get(), [](gxapi::IResource*){});
 
-	return VolatileConstBuffer(desc, gpuPtr, dataSize);
+	return VolatileConstBuffer(std::move(desc), gpuPtr, dataSize);
 }
 
 
 PersistentConstBuffer ConstantBufferHeap::CreatePersistentBuffer(void* data, uint32_t dataSize) {
-	std::unique_ptr<gxapi::IResource> resource{
+	MemoryObjDesc objDesc = MemoryObjDesc(
 		m_graphicsApi->CreateCommittedResource(
 			gxapi::HeapProperties{gxapi::eHeapType::UPLOAD},
 			gxapi::eHeapFlags::NONE,
 			gxapi::ResourceDesc::Buffer(dataSize),
 			gxapi::eResourceState::GENERIC_READ
 		)
-	};
+	);
+	auto resource = objDesc.resource.get();
 
 	gxapi::MemoryRange noReadRange{0, 0};
 	void* dst = resource->Map(0, &noReadRange);
@@ -109,12 +109,7 @@ PersistentConstBuffer ConstantBufferHeap::CreatePersistentBuffer(void* data, uin
 
 	void* gpuPtr = resource->GetGPUAddress();
 
-	MemoryObjectDescriptor desc;
-	desc.resident = true;
-	desc.deleter = std::default_delete<gxapi::IResource>();
-	desc.resource = resource.release();
-
-	return PersistentConstBuffer(desc, gpuPtr, dataSize);
+	return PersistentConstBuffer(std::move(objDesc), gpuPtr, dataSize);
 }
 
 

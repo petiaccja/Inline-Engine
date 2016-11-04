@@ -21,42 +21,37 @@ void UploadManager::Upload(std::weak_ptr<LinearBuffer> target, size_t offset, co
 		throw inl::gxapi::InvalidArgument("Target buffer is not large enough for the uploaded data to fit.", "target");
 	}
 
-	gxapi::IResource* uploadRes = m_graphicsApi->CreateCommittedResource(
-		gxapi::HeapProperties(gxapi::eHeapType::UPLOAD),
-		gxapi::eHeapFlags::NONE,
-		gxapi::ResourceDesc::Buffer(size),
-		//NOTE: GENERIC_READ is the required starting state for upload heap resources according to msdn
-		// (also there is no need for resource state transition)
-		gxapi::eResourceState::GENERIC_READ 
+	MemoryObjDesc uploadObjDesc = MemoryObjDesc(
+		m_graphicsApi->CreateCommittedResource(
+			gxapi::HeapProperties(gxapi::eHeapType::UPLOAD),
+			gxapi::eHeapFlags::NONE,
+			gxapi::ResourceDesc::Buffer(size),
+			//NOTE: GENERIC_READ is the required starting state for upload heap resources according to msdn
+			// (also there is no need for resource state transition)
+			gxapi::eResourceState::GENERIC_READ 
+		)
 	);
-
+	auto uploadResource = uploadObjDesc.resource.get();
 	{
 		std::lock_guard<std::mutex> lock(m_mtx);
 
 		auto& currQueue = m_uploadQueues.back();
-
-		MemoryObjectDescriptor desc;
-		desc.resource = uploadRes;
-		desc.resident = true;
-		desc.deleter = std::default_delete<gxapi::IResource>();
 		
 		UploadDescription uploadDesc(
-			MemoryObject(desc),
+			MemoryObject(std::move(uploadObjDesc)),
 			target,
 			offset
 		);
 
 		currQueue.push_back(std::move(uploadDesc));
-		
-		currQueue.back().source._SetResident(true);
 	}
 
 	gxapi::MemoryRange noReadRange{0, 0};
-	void* stagePtr = uploadRes->Map(0, &noReadRange);
+	void* stagePtr = uploadResource->Map(0, &noReadRange);
 	memcpy(stagePtr, data, size);
 	// Theres no need to unmap but leaving a resource mapped has a performance hit while debugging
 	// see https://msdn.microsoft.com/en-us/library/windows/desktop/dn899215(v=vs.85).aspx#mapping_and_unmapping
-	uploadRes->Unmap(0, nullptr);
+	uploadResource->Unmap(0, nullptr);
 }
 
 
@@ -77,27 +72,24 @@ void UploadManager::Upload(std::weak_ptr<Texture2D> target,
 	size_t rowPitch = SnapUpwrads(rowSize, DUP_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 	auto requiredSize = rowPitch * height;
 
-	gxapi::IResource* uploadRes = m_graphicsApi->CreateCommittedResource(
-		gxapi::HeapProperties(gxapi::eHeapType::UPLOAD),
-		gxapi::eHeapFlags::NONE,
-		gxapi::ResourceDesc::Buffer(requiredSize),
-		//NOTE: GENERIC_READ is the required starting state for upload heap resources according to msdn
-		// (also there is no need for resource state transition)
-		gxapi::eResourceState::GENERIC_READ 
+	MemoryObjDesc uploadObjDesc = MemoryObjDesc(
+		m_graphicsApi->CreateCommittedResource(
+			gxapi::HeapProperties(gxapi::eHeapType::UPLOAD),
+			gxapi::eHeapFlags::NONE,
+			gxapi::ResourceDesc::Buffer(requiredSize),
+			//NOTE: GENERIC_READ is the required starting state for upload heap resources according to msdn
+			// (also there is no need for resource state transition)
+			gxapi::eResourceState::GENERIC_READ 
+		)
 	);
-
+	auto uploadResource = uploadObjDesc.resource.get();
 	{
 		std::lock_guard<std::mutex> lock(m_mtx);
 
 		auto& currQueue = m_uploadQueues.back();
 
-		MemoryObjectDescriptor desc;
-		desc.resource = uploadRes;
-		desc.resident = true;
-		desc.deleter = std::default_delete<gxapi::IResource>();
-
 		UploadDescription uploadDesc(
-			MemoryObject(desc),
+			MemoryObject(std::move(uploadObjDesc)),
 			target,
 			offsetX,
 			offsetY,
@@ -111,13 +103,13 @@ void UploadManager::Upload(std::weak_ptr<Texture2D> target,
 	}
 
 	gxapi::MemoryRange noReadRange{0, 0};
-	auto stagePtr = reinterpret_cast<uint8_t*>(uploadRes->Map(0, &noReadRange));
+	auto stagePtr = reinterpret_cast<uint8_t*>(uploadResource->Map(0, &noReadRange));
 	auto byteData = reinterpret_cast<const uint8_t*>(data);
 	//copy texture row-by-row
 	for (size_t y = 0; y < height; y++) {
 		memcpy(stagePtr + rowPitch*y, byteData + rowSize*y, rowSize);
 	}
-	uploadRes->Unmap(0, nullptr);
+	uploadResource->Unmap(0, nullptr);
 }
 
 
