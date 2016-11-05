@@ -17,7 +17,7 @@ using namespace gxapi;
 
 //==================================
 
-MemoryObjDesc::MemoryObjDesc(gxapi::IResource* ptr, bool resident):
+MemoryObjDesc::MemoryObjDesc(gxapi::IResource* ptr, bool resident) :
 	resource(ptr, std::default_delete<gxapi::IResource>()),
 	resident(resident)
 {}
@@ -37,8 +37,7 @@ MemoryObject::MemoryObject(MemoryObject&& other) :
 	m_resource(std::move(other.m_resource)),
 	m_resident(other.m_resident),
 	m_subresourceStates(other.m_subresourceStates)
-{
-}
+{}
 
 
 MemoryObject& MemoryObject::operator=(MemoryObject&& other) {
@@ -182,18 +181,23 @@ PersistentConstBuffer::PersistentConstBuffer(MemoryObjDesc&& desc, void * gpuVir
 //==================================
 
 
-uint64_t GenericTextureBase::GetWidth() const {
-	return m_resource->GetDesc().textureDesc.width;
-}
-
-
-gxapi::eFormat GenericTextureBase::GetFormat() const {
-	return m_resource->GetDesc().textureDesc.format;
+uint64_t Texture1D::GetWidth() const {
+	return GetDescription().textureDesc.width;
 }
 
 
 uint16_t Texture1D::GetArrayCount() const {
 	return m_resource->GetDesc().textureDesc.depthOrArraySize;
+}
+
+
+gxapi::eFormat Texture1D::GetFormat() const {
+	return GetDescription().textureDesc.format;
+}
+
+
+uint64_t Texture2D::GetWidth() const {
+	return GetDescription().textureDesc.width;
 }
 
 
@@ -212,6 +216,16 @@ uint32_t Texture2D::GetSubresourceIndex(uint32_t arrayIndex, uint32_t mipLevel) 
 }
 
 
+gxapi::eFormat Texture2D::GetFormat() const {
+	return GetDescription().textureDesc.format;
+}
+
+
+uint64_t Texture3D::GetWidth() const {
+	return GetDescription().textureDesc.width;
+}
+
+
 uint64_t Texture3D::GetHeight() const {
 	return m_resource->GetDesc().textureDesc.height;
 }
@@ -222,8 +236,23 @@ uint16_t Texture3D::GetDepth() const {
 }
 
 
+gxapi::eFormat Texture3D::GetFormat() const {
+	return GetDescription().textureDesc.format;
+}
+
+
+uint64_t TextureCube::GetWidth() const {
+	return GetDescription().textureDesc.width;
+}
+
+
 uint64_t TextureCube::GetHeight() const {
 	return m_resource->GetDesc().textureDesc.height;
+}
+
+
+gxapi::eFormat TextureCube::GetFormat() const {
+	return GetDescription().textureDesc.format;
 }
 
 
@@ -251,10 +280,10 @@ BackBuffer& BackBuffer::operator=(BackBuffer&& other) {
 	return *this;
 }
 
+
 RenderTargetView& BackBuffer::GetView() {
 	return m_RTV;
 }
-
 
 
 } // namespace gxeng

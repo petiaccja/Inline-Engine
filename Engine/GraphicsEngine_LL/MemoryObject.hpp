@@ -62,6 +62,7 @@ protected:
 private:
 	std::vector<gxapi::eResourceState> m_subresourceStates;
 };
+
 //==================================
 
 
@@ -126,54 +127,48 @@ public:
 
 
 //==================================
-// Shared Texture Properties
+// Textures
 
-class GenericTextureBase : public MemoryObject {
+class Texture1D : public MemoryObject {
 public:
 	using MemoryObject::MemoryObject;
 
 	uint64_t GetWidth() const;
+	uint16_t GetArrayCount() const;
 	gxapi::eFormat GetFormat() const;
 };
 
-//==================================
 
-
-//==================================
-// Textures
-
-class Texture1D : public GenericTextureBase {
+class Texture2D : public MemoryObject {
 public:
-	using GenericTextureBase::GenericTextureBase;
+	using MemoryObject::MemoryObject;
 
-	uint16_t GetArrayCount() const;
-};
-
-
-class Texture2D : public GenericTextureBase {
-public:
-	using GenericTextureBase::GenericTextureBase;
-
+	uint64_t GetWidth() const;
 	uint64_t GetHeight() const;
 	uint16_t GetArrayCount() const;
 	uint32_t GetSubresourceIndex(uint32_t arrayIndex, uint32_t mipLevel) const;
+	gxapi::eFormat GetFormat() const;
 };
 
 
-class Texture3D : public GenericTextureBase {
+class Texture3D : public MemoryObject {
 public:
-	using GenericTextureBase::GenericTextureBase;
+	using MemoryObject::MemoryObject;
 
+	uint64_t GetWidth() const;
 	uint64_t GetHeight() const;
 	uint16_t GetDepth() const;
+	gxapi::eFormat GetFormat() const;
 };
 
 
-class TextureCube : public GenericTextureBase {
+class TextureCube : public MemoryObject {
 public:
-	using GenericTextureBase::GenericTextureBase;
+	using MemoryObject::MemoryObject;
 
+	uint64_t GetWidth() const;
 	uint64_t GetHeight() const;
+	gxapi::eFormat GetFormat() const;
 };
 
 
