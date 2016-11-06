@@ -16,8 +16,8 @@
 
 #include "Scene.hpp"
 #include "Mesh.hpp"
+#include "Image.hpp"
 #include "MeshEntity.hpp"
-#include "DEBUG_TexturedEntity.hpp"
 
 
 namespace inl {
@@ -32,7 +32,7 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_graphicsApi(desc.graphicsApi),
 	m_commandAllocatorPool(desc.graphicsApi),
 	m_scratchSpacePool(desc.graphicsApi, gxapi::eDescriptorHeapType::CBV_SRV_UAV),
-	m_DEBUG_textureSpace(desc.graphicsApi),
+	m_textureSpace(desc.graphicsApi),
 	m_masterCommandQueue(desc.graphicsApi->CreateCommandQueue(CommandQueueDesc{ eCommandListType::GRAPHICS }), desc.graphicsApi->CreateFence(0)),
 	m_residencyQueue(std::unique_ptr<gxapi::IFence>(desc.graphicsApi->CreateFence(0))),
 	m_memoryManager(desc.graphicsApi),
@@ -160,6 +160,10 @@ Mesh* GraphicsEngine::CreateMesh() {
 	return new Mesh(&m_memoryManager);
 }
 
+Image* GraphicsEngine::CreateImage() {
+	return new Image(&m_memoryManager, &m_textureSpace);
+}
+
 // Scene
 Scene* GraphicsEngine::CreateScene(std::string name) {
 	// Declare a derived class for the sole purpose of making the destructor unregister the object from scene list.
@@ -189,23 +193,6 @@ Scene* GraphicsEngine::CreateScene(std::string name) {
 
 MeshEntity* GraphicsEngine::CreateMeshEntity() {
 	return new MeshEntity;
-}
-
-
-Texture2DSRV GraphicsEngine::DEBUG_CreateTexture(const void* data, uint32_t width, uint32_t height, gxapi::eFormat format) {
-
-	auto texture = std::make_shared<Texture2D>(m_memoryManager.CreateTexture2D(eResourceHeapType::CRITICAL, width, height, format));
-	m_memoryManager.GetUploadHeap().Upload(texture, 0, 0, data, width, height, format);
-
-	gxapi::SrvTexture2DArray desc;
-	desc.activeArraySize = 1;
-	desc.firstArrayElement = 0;
-	desc.mipLevelClamping = 0;
-	desc.mostDetailedMip = 0;
-	desc.numMipLevels = 1;
-	desc.planeIndex = 0;
-
-	return Texture2DSRV(texture, m_DEBUG_textureSpace, format, desc);
 }
 
 

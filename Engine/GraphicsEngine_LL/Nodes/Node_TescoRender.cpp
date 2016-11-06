@@ -1,8 +1,8 @@
 #include "Node_TescoRender.hpp"
 
 #include "../MeshEntity.hpp"
-#include "../DEBUG_TexturedEntity.hpp"
 #include "../Mesh.hpp"
+#include "../Image.hpp"
 
 #include "../../GraphicsApi_LL/IGxapiManager.hpp"
 
@@ -190,9 +190,6 @@ void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, cons
 
 	// Iterate over all entities
 	for (const MeshEntity* entity : entities) {
-		//std::cout << "Rendering entity " << entity << std::endl;
-		auto entityTextured = static_cast<const DEBUG_TexturedEntity*>(entity);
-
 		// Get entity parameters
 		Mesh* mesh = entity->GetMesh();
 		auto position = entity->GetPosition();
@@ -225,7 +222,7 @@ void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, cons
 		MVP.Pack(cbufferData.data());
 		world.Pack(cbufferData.data()+4);
 
-		commandList.BindGraphics(m_texBindParam, entityTextured->GetTexture());
+		commandList.BindGraphics(m_texBindParam, *entity->GetTexture()->GetSrv());
 		commandList.BindGraphics(m_cbBindParam, cbufferData.data(), sizeof(cbufferData), 0);
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 		commandList.SetIndexBuffer(mesh->GetIndexBuffer().get(), mesh->GetIndexBuffer32Bit());

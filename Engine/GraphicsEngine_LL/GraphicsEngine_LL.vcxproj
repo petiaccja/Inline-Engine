@@ -173,7 +173,6 @@
     <ClInclude Include="ComputeCommandList.hpp" />
     <ClInclude Include="ConstBufferHeap.hpp" />
     <ClInclude Include="CopyCommandList.hpp" />
-    <ClInclude Include="DEBUG_TexturedEntity.hpp" />
     <ClInclude Include="EntityCollection.hpp" />
     <ClInclude Include="ExecutionContext.hpp" />
     <ClInclude Include="ExecutionResult.hpp" />
@@ -225,7 +224,6 @@
     <ClCompile Include="ComputeCommandList.cpp" />
     <ClCompile Include="ConstBufferHeap.cpp" />
     <ClCompile Include="CopyCommandList.cpp" />
-    <ClCompile Include="DEBUG_TexturedEntity.cpp" />
     <ClCompile Include="ExecutionContext.cpp" />
     <ClCompile Include="ExecutionResult.cpp" />
     <ClCompile Include="StackDescHeap.cpp" />

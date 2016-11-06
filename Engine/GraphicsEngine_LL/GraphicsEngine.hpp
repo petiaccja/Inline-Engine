@@ -91,7 +91,6 @@ public:
 	// Scene
 	Scene* CreateScene(std::string name);
 	MeshEntity* CreateMeshEntity();
-	Texture2DSRV DEBUG_CreateTexture(const void* data, uint32_t width, uint32_t height, gxapi::eFormat format);
 	Image* CreateImage();
 private:
 	void CreatePipeline();
@@ -104,7 +103,7 @@ private:
 	// Pipeline Facilities
 	CommandAllocatorPool m_commandAllocatorPool;
 	ScratchSpacePool m_scratchSpacePool; // Creates CBV_SRV_UAV type scratch spaces
-	PersistentResViewHeap m_DEBUG_textureSpace;
+	PersistentResViewHeap m_textureSpace;
 	Pipeline m_pipeline;
 	Scheduler m_scheduler;
 	std::vector<SyncPoint> m_frameEndFenceValues;

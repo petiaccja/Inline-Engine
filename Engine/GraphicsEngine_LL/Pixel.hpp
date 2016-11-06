@@ -10,8 +10,8 @@ namespace gxeng {
 
 
 enum class ePixelChannelType {
-	INT8,
-	INT16,
+	INT8_NORM,
+	INT16_NORM,
 	INT32,
 	//FLOAT16,
 	FLOAT32,
@@ -28,8 +28,8 @@ namespace impl {
 template <ePixelChannelType ChannelType>
 class GetChannelType {
 public:
-	using type = typename std::conditional<ChannelType == ePixelChannelType::INT8, uint8_t,
-		typename std::conditional<ChannelType == ePixelChannelType::INT16, uint16_t,
+	using type = typename std::conditional<ChannelType == ePixelChannelType::INT8_NORM, uint8_t,
+		typename std::conditional<ChannelType == ePixelChannelType::INT16_NORM, uint16_t,
 		typename std::conditional<ChannelType == ePixelChannelType::INT32, uint32_t,
 		//typename std::conditional<ChannelType == ePixelChannelType::FLOAT16, float,
 		typename std::conditional<ChannelType == ePixelChannelType::FLOAT32, float, void>::type>::type>::type>::type/*>::type*/;
@@ -62,6 +62,8 @@ template <class T>
 class PixelData<T, 1> {
 public:
 	using Type = T;
+	PixelData() = default;
+	PixelData(T r) : channels{ r } {}
 	union {
 		T channels[1];
 		T red;
@@ -73,6 +75,8 @@ template <class T>
 class PixelData<T, 2> {
 public:
 	using Type = T;
+	PixelData() = default;
+	PixelData(T r, T g) : channels{ r, g } {}
 	union {
 		T channels[2];
 		struct { T red, green; };
@@ -83,6 +87,8 @@ template <class T>
 class PixelData<T, 3> {
 public:
 	using Type = T;
+	PixelData() = default;
+	PixelData(T r, T g, T b) : channels{ r, g, b } {}
 	union {
 		T channels[3];
 		struct { T red, green, blue; };
@@ -93,6 +99,8 @@ template <class T>
 class PixelData<T, 4> {
 public:
 	using Type = T;
+	PixelData() = default;
+	PixelData(T r, T g, T b, T a) : channels{ r, g, b, a } {}
 	union {
 		T channels[4];
 		struct { T red, green, blue, alpha; };
@@ -112,7 +120,7 @@ public:
 	virtual size_t StructureSize() const = 0;
 };
 
-template <ePixelChannelType ChannalType, int ChannelCount, ePixelClass Type>
+template <ePixelChannelType ChannelType, int ChannelCount, ePixelClass Type>
 class Pixel;
 
 template <ePixelChannelType ChannelType, int ChannelCount>
@@ -120,10 +128,12 @@ class Pixel<ChannelType, ChannelCount, ePixelClass::LINEAR>
 	: public impl::PixelData<typename impl::GetChannelType<ChannelType>::type, ChannelCount>
 {
 public:
-	class PixelReader : IPixelReader {
+	using impl::PixelData<typename impl::GetChannelType<ChannelType>::type, ChannelCount>::PixelData;
+
+	class PixelReader : public IPixelReader {
 	public:
 		float Get(const void* pixel, int channel) const override {
-			return impl::DenormalizeColor<float>(reinterpret_cast<Pixel*>(pixel)->channels[channel]);
+			return impl::DenormalizeColor<float>(reinterpret_cast<const Pixel*>(pixel)->channels[channel]);
 		}
 		void Set(void* pixel, int channel, float value) const override {
 			reinterpret_cast<Pixel*>(pixel)->channels[channel] = impl::NormalizeColor<Type>(value);
@@ -141,7 +151,7 @@ public:
 			return sizeof(Pixel);
 		}
 	};
-	IPixelReader& Reader() {
+	static IPixelReader& Reader() {
 		return reader;
 	}
 private:

@@ -186,9 +186,6 @@
     <ClInclude Include="Nodes\Node_GetDepthBuffer.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
-    <ClInclude Include="DEBUG_TexturedEntity.hpp">
-      <Filter>Scene</Filter>
-    </ClInclude>
     <ClInclude Include="Image.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
@@ -299,9 +296,6 @@
     </ClCompile>
     <ClCompile Include="Nodes\Node_GetDepthBuffer.cpp">
       <Filter>Nodes</Filter>
-    </ClCompile>
-    <ClCompile Include="DEBUG_TexturedEntity.cpp">
-      <Filter>Scene</Filter>
     </ClCompile>
     <ClCompile Include="Image.cpp">
       <Filter>Resources</Filter>

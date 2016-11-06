@@ -1,5 +1,4 @@
 #include "MiniWorld.hpp"
-
 #include <array>
 
 inline float rand2() {
@@ -7,6 +6,8 @@ inline float rand2() {
 }
 
 MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
+	using namespace inl::gxeng;
+
 	m_graphicsEngine = graphicsEngine;
 
 	m_worldScene.reset(m_graphicsEngine->CreateScene("World"));
@@ -126,28 +127,30 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 		m_cubeMesh->Set(vertices.data(), vertices.size(), indices.data(), indices.size());
 	}
 
-	inl::gxeng::Texture2DSRV texture;
 	{
-		std::vector<std::array<float, 4>> imgData = {
-			{0.9f, 0.2f, 0.2f, 1.0f},
-			{0.2f, 0.9f, 0.2f, 1.0f},
-			{0.2f, 0.2f, 0.9f, 1.0f},
-			{0.3f, 0.3f, 0.3f, 1.0f}
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
+		std::vector<PixelT> imgData = {
+			{220, 32, 32, 255},
+			{32, 220, 22, 255},
+			{32, 32, 220, 255},
+			{64, 64, 64, 255}
 		};
 
-		texture = m_graphicsEngine->DEBUG_CreateTexture(imgData.data(), 2, 2, inl::gxapi::eFormat::R32G32B32A32_FLOAT);
+		m_checker.reset(m_graphicsEngine->CreateImage());
+		m_checker->SetLayout(2, 2, ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR);
+		m_checker->Update(0, 0, 2, 2, imgData.data(), PixelT::Reader());
 	}
 
 	srand(time(nullptr));
 
 	const float extent = 5;
 	const int count = 6;
-	for (int i=0; i<count; i++) {
-		std::unique_ptr<inl::gxeng::DEBUG_TexturedEntity> entity(new inl::gxeng::DEBUG_TexturedEntity());
+	for (int i = 0; i < count; i++) {
+		std::unique_ptr<inl::gxeng::MeshEntity> entity(new inl::gxeng::MeshEntity());
 		entity->SetMesh(m_cubeMesh.get());
-		entity->SetTexture(texture);
+		entity->SetTexture(m_checker.get());
 		mathfu::Vector<float, 3> pos;
-		pos.x() = float((i+0.5f)*extent)/count - extent*0.5f;
+		pos.x() = float((i + 0.5f)*extent) / count - extent*0.5f;
 		pos.y() = 0;
 		pos.z() = 0;
 		entity->SetPosition(pos);
@@ -163,8 +166,8 @@ void MiniWorld::UpdateWorld(float elapsed) {
 	assert(m_staticEntities.size() == m_velocities.size());
 	for (int i = 0; i < m_staticEntities.size(); i++) {
 		auto& currEntity = m_staticEntities[i];
-		auto& currVel = m_velocities[i]; 
-		
+		auto& currVel = m_velocities[i];
+
 		currVel += mathfu::Vector<float, 3>(rand2(), rand2(), 0)*5.f*elapsed;
 
 		const float maxSpeed = 2.5f;
@@ -173,7 +176,7 @@ void MiniWorld::UpdateWorld(float elapsed) {
 		}
 
 		auto newPos = currEntity->GetPosition() + currVel*elapsed;
-		
+
 		if (newPos.x() > boundary || newPos.x() < -boundary) {
 			currVel.x() *= -1;
 			newPos = currEntity->GetPosition();
