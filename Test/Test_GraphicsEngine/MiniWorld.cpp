@@ -123,7 +123,7 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 		};
 
 		m_cubeMesh.reset(m_graphicsEngine->CreateMesh());
-		m_cubeMesh->Set(vertices.data(), vertices.size(), sizeof(ColoredVertexT), indices.data(), indices.size());
+		m_cubeMesh->Set(vertices.data(), vertices.size(), indices.data(), indices.size());
 	}
 
 	inl::gxeng::Texture2DSRV texture;

@@ -2,7 +2,7 @@
 #include <thread>
 #include <iostream>
 #include "GraphicsEngine_LL/Vertex.hpp"
-#include "GraphicsEngine_LL/VertexArrayView.hpp"
+#include "BaseLibrary/ArrayView.hpp"
 
 using namespace std::literals::chrono_literals;
 
@@ -35,6 +35,7 @@ private:
 
 int TestVertex::Run() {
 	using namespace inl::gxeng;
+	using exc::ArrayView;
 
 	// create a vertex
 	using MyVertex1 = Vertex < Position<0>, Position<1>, Normal<0> >;
@@ -49,17 +50,17 @@ int TestVertex::Run() {
 	mathfu::Vector<float, 3>& pos0 = positionPart->GetPosition(0);
 
 	// create a vertex array view
-	VertexArrayView<VertexPart<eVertexElementSemantic::POSITION>> view(&v, 1, sizeof(MyVertex1));
+	ArrayView<VertexPart<eVertexElementSemantic::POSITION>> view(&v, 1, sizeof(MyVertex1));
 	const auto& cview = view;
 	VertexPart<eVertexElementSemantic::POSITION>& part = view[0];
 	VertexPart<eVertexElementSemantic::POSITION>& cpart = cview[0];
 
 	// create a vertex array view to const
-	VertexArrayView<const VertexPart<eVertexElementSemantic::POSITION>> viewToConst(&v, 1, sizeof(MyVertex1));
+	ArrayView<const VertexPart<eVertexElementSemantic::POSITION>> viewToConst(&v, 1, sizeof(MyVertex1));
 	const VertexPart<eVertexElementSemantic::POSITION>& part2 = viewToConst[0];
 
 	// create const view from const
-	VertexArrayView<const VertexPart<eVertexElementSemantic::POSITION>> viewToConstFromConst((const MyVertex1*)&v, 1, sizeof(MyVertex1));
+	ArrayView<const VertexPart<eVertexElementSemantic::POSITION>> viewToConstFromConst((const MyVertex1*)&v, 1, sizeof(MyVertex1));
 
 	// create view from const
 	// VertexArrayView<VertexPart<POSITION>> viewFromConst((const MyVertex1*)&v, 1); // compile error

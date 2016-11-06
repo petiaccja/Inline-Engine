@@ -184,7 +184,7 @@ class VertexPartImpl<SEMANTIC, Index, Indices...> : public VertexPart<SEMANTIC> 
 public:																						\
 	DataType& GET_NAME(int index) override { return MULTI_NAME[index]; }					\
 	const DataType& GET_NAME(int index) const override { return MULTI_NAME[index]; }		\
-	impl::VertexPartData<DataType, Index, Indices...> MULTI_NAME;									\
+	impl::VertexPartData<DataType, Index, Indices...> MULTI_NAME;							\
 };																							\
 																							\
 template <int Index>																		\
@@ -192,9 +192,23 @@ class VertexPartImpl<SEMANTIC, Index> : public VertexPart<SEMANTIC> {						\
 public:																						\
 	DataType& GET_NAME(int index) override { return MULTI_NAME[index]; }					\
 	const DataType& GET_NAME(int index) const override { return MULTI_NAME[index]; }		\
-	impl::VertexPartData<DataType, Index> MULTI_NAME;												\
+	impl::VertexPartData<DataType, Index> MULTI_NAME;										\
 	DataType& SINGLE_NAME = MULTI_NAME[Index];												\
-}																								
+}		
+
+//#define INL_GXENG_VERTEX_PART(SEMANTIC, DATA_TYPE, GET_NAME, MULTI_NAME, SINGLE_NAME)		\
+//template <int... Indices>																	\
+//class VertexPartImpl<SEMANTIC, Indices...> {												\
+//public:																						\
+//	using DataType = DATA_TYPE;																\
+//	DataType& GET_NAME(int index) { return MULTI_NAME[index]; }					\
+//	const DataType& GET_NAME(int index) const { return MULTI_NAME[index]; }		\
+//	union {																					\
+//		impl::VertexPartData<DataType, Indices...> MULTI_NAME;									\
+//		DataType SINGLE_NAME;																\
+//	};																						\
+//};
+
 
 // Actual definition of vertex parts
 INL_GXENG_VERTEX_PART(eVertexElementSemantic::POSITION, INL_GXENG_SIMPLE_ARG(mathfu::Vector<float, 3>), GetPosition, positions, position);
@@ -269,6 +283,7 @@ public:
 	};
 public:
 	virtual const std::vector<Element>& GetElements() const = 0;
+	virtual size_t StructureSize() const = 0;
 	virtual ~VertexBase() {}
 };
 
@@ -280,6 +295,9 @@ class Vertex : public VertexBase, public impl::VertexHelper<impl::SemanticList<>
 public:
 	const std::vector<Element>& GetElements() const override {
 		return elements;
+	}
+	size_t StructureSize() const override {
+		return sizeof(Vertex);
 	}
 private:
 	static std::vector<Element> elements;

@@ -2,38 +2,37 @@
 
 #include <memory>
 #include "MemoryObject.hpp"
+#include "Pixel.hpp"
+#include "MemoryManager.hpp"
 
 
 namespace inl {
 namespace gxeng {
 
 
-enum class eImageBitDepth {
-	INT8,
-	INT16,
-	INT32,
-	FLOAT16,
-	FLOAT32,
-};
-
-enum class eImageChannels {
-	MONO,
-	RGB,
-	RGBA,
-	RGBE,
-};
-
-
 
 class Image {
 public:
-	Image();
+	Image(MemoryManager* memoryManager);
 	~Image();
 
-	size_t Width();
-	size_t Height();
+	void SetLayout(size_t width, size_t height, ePixelChannelType channelType, int channelCount, ePixelClass pixelClass);
+	void Update(size_t x, size_t y, size_t width, size_t height, void* pixels, const IPixelReader& reader);
+
+	size_t GetWidth();
+	size_t GetHeight();
+	ePixelChannelType GetChannelType() const;
+	int GetChannelCount() const;
+	ePixelClass GetPixelClass() const;
+protected:
+	static gxapi::eFormat ConvertFormat(ePixelChannelType channelType, int channelCount, ePixelClass pixelClass);
 private:
-	std::shared_ptr<Texture2DSRV> m_resource;
+	std::shared_ptr<Texture2D> m_resource;
+	ePixelChannelType m_channelType;
+	int m_channelCount;
+	ePixelClass m_pixelClass;
+	MemoryManager* m_memoryManager;
+
 };
 
 

@@ -201,6 +201,7 @@
     <ClInclude Include="Pipeline.hpp" />
     <ClInclude Include="PipelineEventDispatcher.hpp" />
     <ClInclude Include="PipelineEventListener.hpp" />
+    <ClInclude Include="Pixel.hpp" />
     <ClInclude Include="CriticalBufferHeap.hpp" />
     <ClInclude Include="ResourceResidencyQueue.hpp" />
     <ClInclude Include="ResourceView.hpp" />
@@ -213,7 +214,6 @@
     <ClInclude Include="MemoryObject.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="UploadManager.hpp" />
-    <ClInclude Include="VertexArrayView.hpp" />
     <ClInclude Include="Vertex.hpp" />
     <ClInclude Include="VertexElementCompressor.hpp" />
   </ItemGroup>

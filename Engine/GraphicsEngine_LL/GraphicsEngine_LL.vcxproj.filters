@@ -135,9 +135,6 @@
     <ClInclude Include="Vertex.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="VertexArrayView.hpp">
-      <Filter>Resources</Filter>
-    </ClInclude>
     <ClInclude Include="ScratchSpacePool.hpp">
       <Filter>Middleware</Filter>
     </ClInclude>
@@ -218,6 +215,9 @@
     </ClInclude>
     <ClInclude Include="CriticalBufferHeap.hpp">
       <Filter>MemoryManagement\Heaps</Filter>
+    </ClInclude>
+    <ClInclude Include="Pixel.hpp">
+      <Filter>Resources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
