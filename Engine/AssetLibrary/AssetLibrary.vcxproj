@@ -89,8 +89,14 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <Lib>
-      <AdditionalDependencies>zlibstaticd.lib;assimp-vc140-mt.lib</AdditionalDependencies>
+      <AdditionalDependencies>assimp-vc140-mt.lib</AdditionalDependencies>
     </Lib>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Externals\bin_d\*" "$(OutputPath)"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copy dlls to correct directory</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -136,8 +142,11 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>zlibstatic.lib;assimp-vc140-mt.lib</AdditionalDependencies>
+      <AdditionalDependencies>assimp-vc140-mt.lib</AdditionalDependencies>
     </Lib>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Externals\bin\*" "$(OutputPath)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
