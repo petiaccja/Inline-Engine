@@ -1,4 +1,7 @@
 #include "MiniWorld.hpp"
+
+#include <AssetLibrary/Model.hpp>
+
 #include <array>
 
 inline float rand2() {
@@ -13,118 +16,13 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	m_worldScene.reset(m_graphicsEngine->CreateScene("World"));
 
 	{
-		using namespace inl::gxeng;
+		inl::asset::Model model("monkey.dae");
 
-		using ColoredVertexT = Vertex<Position<0>, Normal<0>, TexCoord<0>>;
-		std::array<ColoredVertexT, 24> vertices;
-
-		// top
-		vertices[0].position = { 0.5, 0.5, 0.5 };
-		vertices[0].normal = { 0, 0, 1 };
-		vertices[0].texCoord = { 1, 0 };
-		vertices[1].position = { -0.5, 0.5, 0.5 };
-		vertices[1].normal = { 0, 0, 1 };
-		vertices[1].texCoord = { 1, 1 };
-		vertices[2].position = { -0.5, -0.5, 0.5 };
-		vertices[2].normal = { 0, 0, 1 };
-		vertices[2].texCoord = { 0, 1 };
-		vertices[3].position = { 0.5, -0.5, 0.5 };
-		vertices[3].normal = { 0, 0, 1 };
-
-		// bottom
-		vertices[3].texCoord = { 0, 0 };
-		vertices[4].position = { 0.5, 0.5, -0.5 };
-		vertices[4].normal = { 0, 0, -1 };
-		vertices[4].texCoord = { 1, 0 };
-		vertices[5].position = { -0.5, 0.5, -0.5 };
-		vertices[5].normal = { 0, 0, -1 };
-		vertices[5].texCoord = { 1, 1 };
-		vertices[6].position = { -0.5, -0.5, -0.5 };
-		vertices[6].normal = { 0, 0, -1 };
-		vertices[6].texCoord = { 0, 1 };
-		vertices[7].position = { 0.5, -0.5, -0.5 };
-		vertices[7].normal = { 0, 0, -1 };
-		vertices[7].texCoord = { 0, 0 };
-
-		// right
-		vertices[8].position = { 0.5, 0.5, 0.5 };
-		vertices[8].normal = { 1, 0, 0 };
-		vertices[8].texCoord = { 1, 0 };
-		vertices[9].position = { 0.5, -0.5, 0.5 };
-		vertices[9].normal = { 1, 0, 0 };
-		vertices[9].texCoord = { 1, 1 };
-		vertices[10].position = { 0.5, -0.5, -0.5 };
-		vertices[10].normal = { 1, 0, 0 };
-		vertices[10].texCoord = { 0, 1 };
-		vertices[11].position = { 0.5, 0.5, -0.5 };
-		vertices[11].normal = { 1, 0, 0 };
-		vertices[11].texCoord = { 0, 0 };
-
-		//left
-		vertices[12].position = { -0.5, 0.5, 0.5 };
-		vertices[12].normal = { -1, 0, 0 };
-		vertices[12].texCoord = { 1, 0 };
-		vertices[13].position = { -0.5, -0.5, 0.5 };
-		vertices[13].normal = { -1, 0, 0 };
-		vertices[13].texCoord = { 1, 1 };
-		vertices[14].position = { -0.5, -0.5, -0.5 };
-		vertices[14].normal = { -1, 0, 0 };
-		vertices[14].texCoord = { 0, 1 };
-		vertices[15].position = { -0.5, 0.5, -0.5 };
-		vertices[15].normal = { -1, 0, 0 };
-		vertices[15].texCoord = { 0, 0 };
-
-		// front
-		vertices[16].position = { 0.5, 0.5, 0.5 };
-		vertices[16].normal = { 0, 1, 0 };
-		vertices[16].texCoord = { 1, 0 };
-		vertices[17].position = { 0.5, 0.5, -0.5 };
-		vertices[17].normal = { 0, 1, 0 };
-		vertices[17].texCoord = { 1, 1 };
-		vertices[18].position = { -0.5, 0.5, -0.5 };
-		vertices[18].normal = { 0, 1, 0 };
-		vertices[18].texCoord = { 0, 1 };
-		vertices[19].position = { -0.5, 0.5, 0.5 };
-		vertices[19].normal = { 0, 1, 0 };
-		vertices[19].texCoord = { 0, 0 };
-
-		//back
-		vertices[20].position = { 0.5, -0.5, 0.5 };
-		vertices[20].normal = { 0, -1, 0 };
-		vertices[20].texCoord = { 1, 0 };
-		vertices[21].position = { 0.5, -0.5, -0.5 };
-		vertices[21].normal = { 0, -1, 0 };
-		vertices[21].texCoord = { 1, 1 };
-		vertices[22].position = { -0.5, -0.5, -0.5 };
-		vertices[22].normal = { 0, -1, 0 };
-		vertices[22].texCoord = { 0, 1 };
-		vertices[23].position = { -0.5, -0.5, 0.5 };
-		vertices[23].normal = { 0, -1, 0 };
-		vertices[23].texCoord = { 0, 0 };
-
-		const std::vector<unsigned> indices = {
-			// top
-			0,1,3,
-			1,2,3,
-			// bottom
-			5,4,7,
-			6,5,7,
-			// right
-			8,9,11,
-			9,10,11,
-			// left
-			13,12,15,
-			14,13,15,
-			// front
-			16,17,19,
-			17,18,19,
-			// back
-			21,20,23,
-			22,21,23,
-		};
+		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0);
+		std::vector<unsigned> modelIndices = model.GetIndices(0);
 
 		m_cubeMesh.reset(m_graphicsEngine->CreateMesh());
-		m_cubeMesh->Set(vertices.data(), vertices.size(), indices.data(), indices.size());
+		m_cubeMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
 	}
 
 	{
