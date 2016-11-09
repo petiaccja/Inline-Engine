@@ -61,9 +61,9 @@ public:
 
 protected:
 	Binder m_binder;
-	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 	BindParameter m_cbBindParam;
 	BindParameter m_texBindParam;
+	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 private:
 	void RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, const Camera* camera, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList);

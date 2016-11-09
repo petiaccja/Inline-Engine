@@ -55,13 +55,14 @@ void UploadManager::Upload(std::weak_ptr<LinearBuffer> target, size_t offset, co
 }
 
 
-void UploadManager::Upload(std::weak_ptr<Texture2D> target,
-						uint32_t offsetX,
-						uint32_t offsetY,
-						const void* data,
-						size_t width,
-						size_t height,
-						gxapi::eFormat format
+void UploadManager::Upload(
+	std::weak_ptr<Texture2D> target,
+	uint32_t offsetX,
+	uint32_t offsetY,
+	const void* data,
+	uint64_t width,
+	uint32_t height,
+	gxapi::eFormat format
 ) {
 	if (target.lock()->GetWidth() < (offsetX + width) || target.lock()->GetHeight() < (offsetY + height)) {
 		throw inl::gxapi::InvalidArgument("Uploaded data does not fit inside target texture. (Uploaded size or offset is too large)", "target");

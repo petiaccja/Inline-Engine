@@ -49,7 +49,7 @@ public:
 	void Upload(std::weak_ptr<LinearBuffer> target, size_t offset, const void* data, size_t size);
 
 	// The pixels from the source image must be in row-major order inside memory.
-	void Upload(std::weak_ptr<Texture2D> target, uint32_t offsetX, uint32_t offsetY, const void* data, size_t width, size_t height, gxapi::eFormat format);
+	void Upload(std::weak_ptr<Texture2D> target, uint32_t offsetX, uint32_t offsetY, const void* data, uint64_t width, uint32_t height, gxapi::eFormat format);
 
 	void OnFrameBeginDevice(uint64_t frameId) override;
 	void OnFrameBeginHost(uint64_t frameId) override;

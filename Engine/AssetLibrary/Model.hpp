@@ -15,26 +15,6 @@
 namespace inl {
 namespace asset {
 
-static mathfu::Matrix<float, 4, 4> GetAbsoluteTransform(const aiNode* node) {
-	const auto& m = node->mTransformation;
-	/*mathfu::Matrix<float, 4, 4> currTransform{
-		m.a1, m.b1, m.c1, m.d1,
-		m.a2, m.b2, m.c2, m.d2,
-		m.a3, m.b3, m.c3, m.d3,
-		m.a4, m.b4, m.c4, m.d4
-	};*/
-	mathfu::Matrix<float, 4, 4> currTransform{
-		m.a1, m.a2, m.a3, m.a4,
-		m.b1, m.b2, m.b3, m.b4,
-		m.c1, m.c2, m.c3, m.c4,
-		m.d1, m.d2, m.d3, m.d4
-	};
-	if (node->mParent == nullptr) {
-		return currTransform;
-	}
-	return currTransform * GetAbsoluteTransform(node->mParent);
-}
-
 enum class AxisDir : int { POS_X = 1, NEG_X = -1, POS_Y = 2, NEG_Y = -2, POS_Z = 3, NEG_Z = -3 };
 
 class Model {

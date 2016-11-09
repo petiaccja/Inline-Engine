@@ -3,6 +3,7 @@
 #include "../MeshEntity.hpp"
 #include "../Mesh.hpp"
 #include "../Image.hpp"
+#include "../GraphicsEngine.hpp"
 
 #include "../../GraphicsApi_LL/IGxapiManager.hpp"
 
@@ -29,6 +30,21 @@ bool CheckMeshFormat(const Mesh& mesh) {
 	return true;
 }
 
+static void ConvertToSubmittable(
+	Mesh* mesh,
+	std::vector<const gxeng::VertexBuffer*>& vertexBuffers,
+	std::vector<unsigned>& sizes,
+	std::vector<unsigned>& strides
+) {
+	for (int streamID = 0; streamID < mesh->GetNumStreams(); streamID++) {
+		vertexBuffers.push_back(mesh->GetVertexBuffer(streamID).get());
+		sizes.push_back((unsigned)vertexBuffers.back()->GetSize());
+		strides.push_back((unsigned)mesh->GetVertexBufferStride(streamID));
+	}
+
+	assert(vertexBuffers.size() == sizes.size());
+	assert(sizes.size() == strides.size());
+}
 
 const char SHADER_SRC[] = R"(
 
@@ -73,7 +89,7 @@ PSInput VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoo
 float4 PSMain(PSInput input) : SV_TARGET
 {
 	//return float4(0.2, 0.9, 0.9, 1.0)*input.shade*fun(input.texCoord*2);
-	float3 coords = {input.texCoord.x, input.texCoord.y, 0.0};
+	float3 coords = {input.texCoord.x, 1-input.texCoord.y, 0.0};
 	return tex.Sample(TheSampler, coords) *  input.shade;
 }
 )";
@@ -119,7 +135,7 @@ TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager*
 	samplerDesc.registerSpace = 0;
 	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-	m_binder = Binder{ graphicsApi, {cbBindParamDesc, texBindParamDesc, sampBindParamDesc}, {samplerDesc}};
+	m_binder = Binder{ graphicsApi, {cbBindParamDesc, texBindParamDesc, sampBindParamDesc}, {samplerDesc} };
 
 #if defined(_DEBUG)
 	// Enable better shader debugging with the graphics debugging tools.
@@ -146,7 +162,7 @@ TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager*
 	psoDesc.vs.sizeOfByteCode = vertexShader.data.size();
 	psoDesc.ps.shaderByteCode = fragmentShader.data.data();
 	psoDesc.ps.sizeOfByteCode = fragmentShader.data.size();
-	//psoDesc.rasterization = RasterizerState();
+	//psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
 	//psoDesc.blending = BlendState();
 	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
 	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT;
@@ -189,6 +205,10 @@ void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, cons
 
 	auto viewProjection = projection * view;
 
+	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
+	std::vector<unsigned> sizes;
+	std::vector<unsigned> strides;
+
 	// Iterate over all entities
 	for (const MeshEntity* entity : entities) {
 		// Get entity parameters
@@ -201,20 +221,7 @@ void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, cons
 			continue;
 		}
 
-		std::vector<const gxeng::VertexBuffer*> vertexBuffers;
-		std::vector<unsigned> sizes;
-		std::vector<unsigned> strides;
-
-		for (int streamID = 0; streamID < mesh->GetNumStreams(); streamID++) {
-			auto vb = mesh->GetVertexBuffer(streamID);
-			auto ptr = vb.get();
-			vertexBuffers.push_back(mesh->GetVertexBuffer(streamID).get());
-			sizes.push_back((unsigned)vertexBuffers.back()->GetSize());
-			strides.push_back((unsigned)mesh->GetVertexBufferStride(streamID));
-		}
-
-		assert(vertexBuffers.size() == sizes.size());
-		assert(sizes.size() == strides.size());
+		ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
 
 		auto world = entity->GetTransform();
 		auto MVP = viewProjection * world;

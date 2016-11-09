@@ -131,6 +131,10 @@ void GraphicsEngine::Update(float elapsed) {
 
 
 void GraphicsEngine::SetScreenSize(unsigned width, unsigned height) {
+	if (width == 0 || height == 0) {
+		return;
+	}
+
 	SyncPoint sp = m_masterCommandQueue.Signal();
 	sp.Wait();
 
