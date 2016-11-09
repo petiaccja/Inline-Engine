@@ -17,17 +17,10 @@ namespace asset {
 
 static mathfu::Matrix<float, 4, 4> GetAbsoluteTransform(const aiNode* node) {
 	const auto& m = node->mTransformation;
-	/*mathfu::Matrix<float, 4, 4> currTransform{
-		m.a1, m.b1, m.c1, m.d1,
-		m.a2, m.b2, m.c2, m.d2,
-		m.a3, m.b3, m.c3, m.d3,
-		m.a4, m.b4, m.c4, m.d4
-	};*/
+	// this constructor expects elements to be in column-major order
+	// so no pretty formatting is possible that visualizes how elemnts are in the matrix -_-
 	mathfu::Matrix<float, 4, 4> currTransform{
-		m.a1, m.a2, m.a3, m.a4,
-		m.b1, m.b2, m.b3, m.b4,
-		m.c1, m.c2, m.c3, m.c4,
-		m.d1, m.d2, m.d3, m.d4
+		m.a1, m.a2, m.a3, m.a4, m.b1, m.b2, m.b3, m.b4, m.c1, m.c2, m.c3, m.c4, m.d1, m.d2, m.d3, m.d4
 	};
 	if (node->mParent == nullptr) {
 		return currTransform;

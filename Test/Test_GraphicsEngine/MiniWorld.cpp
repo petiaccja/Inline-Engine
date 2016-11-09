@@ -42,7 +42,7 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	srand(time(nullptr));
 
 	const float extent = 5;
-	const int count = 6;
+	const int count = 2;
 	for (int i = 0; i < count; i++) {
 		std::unique_ptr<inl::gxeng::MeshEntity> entity(new inl::gxeng::MeshEntity());
 		entity->SetMesh(m_cubeMesh.get());
@@ -60,6 +60,7 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 }
 
 void MiniWorld::UpdateWorld(float elapsed) {
+	return;
 	const float boundary = 3;
 	assert(m_staticEntities.size() == m_velocities.size());
 	for (int i = 0; i < m_staticEntities.size(); i++) {

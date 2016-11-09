@@ -131,6 +131,10 @@ void GraphicsEngine::Update(float elapsed) {
 
 
 void GraphicsEngine::SetScreenSize(unsigned width, unsigned height) {
+	if (width == 0 || height == 0) {
+		return;
+	}
+
 	SyncPoint sp = m_masterCommandQueue.Signal();
 	sp.Wait();
 
@@ -206,7 +210,7 @@ void GraphicsEngine::CreatePipeline() {
 	m_getBBNode = getDepthBuffer.get();
 	std::unique_ptr<nodes::ClearRenderTarget> clearRtv(new nodes::ClearRenderTarget());
 	std::unique_ptr<nodes::GetSceneByName> getWorldScene(new nodes::GetSceneByName());
-	std::unique_ptr<nodes::TescoRender> renderWorld(new nodes::TescoRender(m_graphicsApi, m_gxapiManager));
+	std::unique_ptr<nodes::TescoRender> renderWorld(new nodes::TescoRender(m_graphicsApi, m_gxapiManager, this));
 
 	getWorldScene->GetInput<0>().Set("World");
 
