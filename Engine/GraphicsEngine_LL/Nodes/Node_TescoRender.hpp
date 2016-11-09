@@ -11,12 +11,6 @@
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
-namespace inl {
-namespace gxeng {
-class GraphicsEngine;
-class Mesh;
-}	
-}
 
 namespace inl {
 namespace gxeng {
@@ -29,7 +23,7 @@ class TescoRender :
 	virtual public exc::OutputPortConfig<RenderTargetView>
 {
 public:
-	TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager* gxapiManager, GraphicsEngine* graphicsEngine);
+	TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager* gxapiManager);
 
 	void Update() override {}
 
@@ -66,13 +60,6 @@ protected:
 	BindParameter m_cbBindParam;
 	BindParameter m_texBindParam;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
-
-	//Coordinate system symbol
-	Binder m_coordSysBinder;
-	BindParameter m_coordSysTransform;
-	std::unique_ptr<gxapi::IPipelineState> m_coordSysPSO;
-	std::unique_ptr<Mesh> m_coordSysMesh;
-
 
 private:
 	void RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList);

@@ -95,41 +95,8 @@ float4 PSMain(PSInput input) : SV_TARGET
 )";
 
 
-const char CSYS_SHADER_SRC[] = R"(
-
-struct Transform
-{
-	float4x4 MVP;
-};
-
-ConstantBuffer<Transform> cb : register(b0);
-
-struct PSInput
-{
-	float4 position : SV_POSITION;
-	float3 color : COLOR;
-};
-
-PSInput VSMain(float4 position : POSITION)
-{
-	PSInput result;
-
-	result.position = mul(cb.MVP, position);
-	result.color = position.xyz;
-
-	return result;
-}
-
-float4 PSMain(PSInput input) : SV_TARGET
-{
-	return float4(input.color, 1);
-}
-)";
-
-
-TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager* gxapiManager, GraphicsEngine* graphicsEngine) :
-	m_binder(graphicsApi, {}),
-	m_coordSysBinder(graphicsApi, {})
+TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager* gxapiManager) :
+	m_binder(graphicsApi, {})
 {
 	//this->GetInput<0>().Set(RenderTargetView());
 	this->GetInput<2>().Set(nullptr);
@@ -204,56 +171,6 @@ TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager*
 	psoDesc.renderTargetFormats[0] = gxapi::eFormat::R8G8B8A8_UNORM;
 
 	m_PSO.reset(graphicsApi->CreateGraphicsPipelineState(psoDesc));
-
-	
-	
-
-	//Coord system
-	BindParameterDesc csysTransformBindDesc;
-	m_coordSysTransform = BindParameter(eBindParameterType::CONSTANT, 0);
-	csysTransformBindDesc.parameter = m_coordSysTransform;
-	csysTransformBindDesc.constantSize = (sizeof(float)*4*4);
-	csysTransformBindDesc.relativeAccessFrequency = 0;
-	csysTransformBindDesc.relativeChangeFrequency = 0;
-	csysTransformBindDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
-
-	m_coordSysBinder = Binder{ graphicsApi, {csysTransformBindDesc} };
-
-	vertexShader = gxapiManager->CompileShader(CSYS_SHADER_SRC, "VSMain", gxapi::eShaderType::VERTEX, compileFlags);
-	fragmentShader =  gxapiManager->CompileShader(CSYS_SHADER_SRC, "PSMain", gxapi::eShaderType::PIXEL, compileFlags);
-
-	inputElementDesc = {
-		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0)
-	};
-
-	psoDesc.inputLayout.elements = inputElementDesc.data();
-	psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-	psoDesc.rootSignature = m_coordSysBinder.GetRootSignature();
-	psoDesc.vs.shaderByteCode = vertexShader.data.data();
-	psoDesc.vs.sizeOfByteCode = vertexShader.data.size();
-	psoDesc.ps.shaderByteCode = fragmentShader.data.data();
-	psoDesc.ps.sizeOfByteCode = fragmentShader.data.size();
-	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::LINE;
-	psoDesc.numRenderTargets = 1;
-	psoDesc.renderTargetFormats[0] = gxapi::eFormat::R8G8B8A8_UNORM;
-
-	m_coordSysPSO.reset(graphicsApi->CreateGraphicsPipelineState(psoDesc));
-
-
-	std::vector<Vertex<Position<0>>> modelVertices(4);
-	modelVertices[0].position = {0, 0, 0};
-	modelVertices[1].position = {1, 0, 0};
-	modelVertices[2].position = {0, 1, 0};
-	modelVertices[3].position = {0, 0, 1};
-
-	std::vector<unsigned> modelIndices = {
-		0, 1,
-		0, 2,
-		0, 3
-	};
-
-	m_coordSysMesh.reset(graphicsEngine->CreateMesh());
-	m_coordSysMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
 }
 
 
@@ -317,28 +234,6 @@ void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, cons
 		commandList.SetIndexBuffer(mesh->GetIndexBuffer().get(), mesh->GetIndexBuffer32Bit());
 		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer()->GetIndexCount());
 	}
-
-	vertexBuffers.clear();
-	sizes.clear();
-	strides.clear();
-	ConvertToSubmittable(m_coordSysMesh.get(), vertexBuffers, sizes, strides);
-
-	auto world = mathfu::Matrix<float, 4, 4>::FromTranslationVector(mathfu::Vector<float, 3>(-2, -2, 0));
-	auto MVP = viewProjection * world;
-
-	std::array<mathfu::VectorPacked<float, 4>, 4> cbufferDataCoordSys;
-	MVP.Pack(cbufferDataCoordSys.data());
-
-	commandList.SetPipelineState(m_coordSysPSO.get());
-	commandList.SetGraphicsBinder(&m_coordSysBinder);
-	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::LINELIST);
-
-	commandList.BindGraphics(m_coordSysTransform, cbufferDataCoordSys.data(), sizeof(cbufferDataCoordSys), 0);
-	commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
-	commandList.SetIndexBuffer(m_coordSysMesh->GetIndexBuffer().get(), m_coordSysMesh->GetIndexBuffer32Bit());
-	commandList.DrawIndexedInstanced((unsigned)m_coordSysMesh->GetIndexBuffer()->GetIndexCount());
-
-
 }
 
 
