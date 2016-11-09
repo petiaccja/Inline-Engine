@@ -9,9 +9,9 @@
 #include <GraphicsEngine_LL/Camera.hpp>
 
 
-class MiniWorld {
+class QCWorld {
 public:
-	MiniWorld(inl::gxeng::GraphicsEngine* graphicsEngine);
+	QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine);
 	
 	void UpdateWorld(float elapsed);
 	void RenderWorld(float elapsed);

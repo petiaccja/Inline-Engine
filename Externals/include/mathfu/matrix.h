@@ -839,7 +839,7 @@ inline Matrix<T, rows, columns> operator*(const T& s,
 template <class T, int rows, int columns>
 inline Vector<T, rows> operator*(const Matrix<T, rows, columns>& m,
                                  const Vector<T, columns>& v) {
-  const Vector<T, rows> result(0);
+  Vector<T, rows> result(0.f);
   int offset = 0;
   for (int column = 0; column < columns; column++) {
     for (int row = 0; row < rows; row++) {

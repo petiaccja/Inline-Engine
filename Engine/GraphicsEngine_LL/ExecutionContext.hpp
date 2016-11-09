@@ -21,6 +21,7 @@ class Scene;
 namespace nodes {
 class GetBackBuffer;
 class GetSceneByName;
+class GetCameraByName;
 }
 
 
@@ -30,10 +31,12 @@ class GetSceneByName;
 //------------------------------------------------------------------------------
 class SceneAccessContext {
 	friend class nodes::GetSceneByName;
+	friend class nodes::GetCameraByName;
 public:
 	virtual ~SceneAccessContext() {}
 protected:
 	virtual const Scene* GetSceneByName(const std::string& name) const = 0;
+	virtual const Camera* GetCameraByName(const std::string& name) const = 0;
 };
 
 
@@ -69,6 +72,7 @@ public:
 
 protected:
 	const Scene* GetSceneByName(const std::string& name) const override;
+	const Camera* GetCameraByName(const std::string& name) const override;
 	BackBuffer* GetBackBuffer() const override;	
 private:
 	FrameContext* m_frameContext;

@@ -1,6 +1,7 @@
 #include "ExecutionContext.hpp"
 
 #include "Scene.hpp"
+#include "Camera.hpp"
 
 
 namespace inl {
@@ -52,6 +53,16 @@ const Scene* ExecutionContext::GetSceneByName(const std::string& name) const {
 	for (auto scene : *m_frameContext->scenes) {
 		if (scene->GetName() == name) {
 			return scene;
+		}
+	}
+	return nullptr;
+}
+
+
+const Camera* ExecutionContext::GetCameraByName(const std::string& name) const {
+	for (auto camera : *m_frameContext->cameras) {
+		if (camera->GetName() == name) {
+			return camera;
 		}
 	}
 	return nullptr;

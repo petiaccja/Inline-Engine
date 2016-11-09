@@ -7,6 +7,7 @@
 #include "../GraphicsNode.hpp"
 
 #include "../Scene.hpp"
+#include "../Camera.hpp"
 #include "../ConstBufferHeap.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
@@ -19,7 +20,7 @@ namespace nodes {
 
 class TescoRender :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<RenderTargetView, DepthStencilView, const EntityCollection<MeshEntity>*>,
+	virtual public exc::InputPortConfig<RenderTargetView, DepthStencilView, const Camera*, const EntityCollection<MeshEntity>*>,
 	virtual public exc::OutputPortConfig<RenderTargetView>
 {
 public:
@@ -39,15 +40,18 @@ public:
 			auto depthStencil = this->GetInput<1>().Get();
 			this->GetInput<1>().Clear();
 
-			const EntityCollection<MeshEntity>* entities = this->GetInput<2>().Get();
+			const Camera* camera = this->GetInput<2>().Get();
 			this->GetInput<2>().Clear();
+
+			const EntityCollection<MeshEntity>* entities = this->GetInput<3>().Get();
+			this->GetInput<3>().Clear();
 
 			this->GetOutput<0>().Set(target);
 
 			bool rtvIsValid = target.GetResource().get() != nullptr;
 			if (rtvIsValid && entities) {
 				GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-				RenderScene(target, depthStencil, *entities, cmdList);
+				RenderScene(target, depthStencil, camera, *entities, cmdList);
 				result.AddCommandList(std::move(cmdList));
 			}
 
@@ -62,7 +66,7 @@ protected:
 	BindParameter m_texBindParam;
 
 private:
-	void RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList);
+	void RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, const Camera* camera, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList);
 };
 
 

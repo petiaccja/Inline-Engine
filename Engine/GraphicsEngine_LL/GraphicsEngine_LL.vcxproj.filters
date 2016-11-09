@@ -216,6 +216,12 @@
     <ClInclude Include="Pixel.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.hpp">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GetCameraByName.hpp">
+      <Filter>Nodes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -323,6 +329,9 @@
     </ClCompile>
     <ClCompile Include="CriticalBufferHeap.cpp">
       <Filter>MemoryManagement\Heaps</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Scene</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

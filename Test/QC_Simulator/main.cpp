@@ -12,7 +12,7 @@
 #define NOMINMAX
 #include <Windows.h>
 #include <tchar.h>
-#include "MiniWorld.hpp"
+#include "QCWorld.hpp"
 
 
 using std::cout;
@@ -33,7 +33,7 @@ exc::LogStream systemLogStream = logger.CreateLogStream("system");
 exc::LogStream graphicsLogStream = logger.CreateLogStream("graphics");
 std::experimental::filesystem::path logFilePath;
 GraphicsEngine* pEngine = nullptr;
-MiniWorld* pMiniWorld = nullptr;
+QCWorld* pMiniWorld = nullptr;
 
 
 std::string errorMessage;
@@ -147,7 +147,7 @@ int main() {
 	};
 	std::unique_ptr<IGraphicsApi, ReportDeleter> gxapi;
 	std::unique_ptr<GraphicsEngine> engine;
-	std::unique_ptr<MiniWorld> miniWorld;
+	std::unique_ptr<QCWorld> miniWorld;
 	try {
 		// Create manager
 		systemLogStream.Event("Creating GxApi Manager...");
@@ -179,7 +179,7 @@ int main() {
 		pEngine = engine.get();
 
 		// Create mini world
-		miniWorld.reset(new MiniWorld(engine.get()));
+		miniWorld.reset(new QCWorld(engine.get()));
 		pMiniWorld = miniWorld.get();
 
 		isEngineInit = true;

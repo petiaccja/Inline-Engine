@@ -42,6 +42,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AssetLibrary", "Engine\Asse
 		{040593FA-6149-4526-8754-2E2886759D0E} = {040593FA-6149-4526-8754-2E2886759D0E}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test Projects", "Test Projects", "{FAEB17F1-1424-4515-A440-C5A073FCB788}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QC_Simulator", "Test\QC_Simulator\QC_Simulator.vcxproj", "{FA6E910E-1105-4A46-A1D3-5579EA99FDB8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -106,9 +110,23 @@ Global
 		{F86D82F2-5F25-4928-996E-8025257DF358}.Release|x64.Build.0 = Release|x64
 		{F86D82F2-5F25-4928-996E-8025257DF358}.Release|x86.ActiveCfg = Release|Win32
 		{F86D82F2-5F25-4928-996E-8025257DF358}.Release|x86.Build.0 = Release|Win32
+		{FA6E910E-1105-4A46-A1D3-5579EA99FDB8}.Debug|x64.ActiveCfg = Debug|x64
+		{FA6E910E-1105-4A46-A1D3-5579EA99FDB8}.Debug|x64.Build.0 = Debug|x64
+		{FA6E910E-1105-4A46-A1D3-5579EA99FDB8}.Debug|x86.ActiveCfg = Debug|Win32
+		{FA6E910E-1105-4A46-A1D3-5579EA99FDB8}.Debug|x86.Build.0 = Debug|Win32
+		{FA6E910E-1105-4A46-A1D3-5579EA99FDB8}.Release|x64.ActiveCfg = Release|x64
+		{FA6E910E-1105-4A46-A1D3-5579EA99FDB8}.Release|x64.Build.0 = Release|x64
+		{FA6E910E-1105-4A46-A1D3-5579EA99FDB8}.Release|x86.ActiveCfg = Release|Win32
+		{FA6E910E-1105-4A46-A1D3-5579EA99FDB8}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FA8D6870-7E63-484D-9405-E804EF4EF4F7} = {FAEB17F1-1424-4515-A440-C5A073FCB788}
+		{1B008766-8A60-4D98-B1F2-8BB530C2703E} = {FAEB17F1-1424-4515-A440-C5A073FCB788}
+		{5395F775-4B14-4D80-84A4-1830F10ECBF0} = {FAEB17F1-1424-4515-A440-C5A073FCB788}
+		{FA6E910E-1105-4A46-A1D3-5579EA99FDB8} = {FAEB17F1-1424-4515-A440-C5A073FCB788}
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

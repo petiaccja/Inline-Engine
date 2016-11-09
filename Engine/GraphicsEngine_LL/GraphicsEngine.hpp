@@ -33,6 +33,7 @@ class Image;
 
 class Scene;
 class MeshEntity;
+class Camera;
 
 
 struct GraphicsEngineDesc {
@@ -87,11 +88,12 @@ public:
 
 	// Resources
 	Mesh* CreateMesh();
+	Image* CreateImage();
 
 	// Scene
 	Scene* CreateScene(std::string name);
 	MeshEntity* CreateMeshEntity();
-	Image* CreateImage();
+	Camera* CreateCamera(std::string name);
 private:
 	void CreatePipeline();
 private:
@@ -130,6 +132,7 @@ private:
 
 	// Scene
 	std::set<Scene*> m_scenes;
+	std::set<Camera*> m_cameras;
 
 	// DELETE THIS
 	nodes::GetDepthBuffer* m_getBBNode;

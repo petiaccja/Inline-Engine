@@ -11,10 +11,12 @@
 #include "Nodes/Node_GetBackBuffer.hpp"
 #include "Nodes/Node_GetDepthBuffer.hpp"
 #include "Nodes/Node_GetSceneByName.hpp"
+#include "Nodes/Node_GetCameraByName.hpp"
 #include "Nodes/Node_TescoRender.hpp"
 #include "Nodes/Node_GetTime.hpp"
 
 #include "Scene.hpp"
+#include "Camera.hpp"
 #include "Mesh.hpp"
 #include "Image.hpp"
 #include "MeshEntity.hpp"
@@ -104,6 +106,7 @@ void GraphicsEngine::Update(float elapsed) {
 	context.commandQueue = &m_masterCommandQueue;
 	context.backBuffer = &m_backBufferHeap->GetBackBuffer(backBufferIndex);
 	context.scenes = &m_scenes;
+	context.cameras = &m_cameras;
 	context.uploadRequests = &m_memoryManager.GetUploadHeap()._GetQueuedUploads();
 
 	context.residencyQueue = &m_residencyQueue;
@@ -117,9 +120,6 @@ void GraphicsEngine::Update(float elapsed) {
 	SyncPoint frameEnd = m_masterCommandQueue.Signal();
 	m_frameEndFenceValues[backBufferIndex] = frameEnd;
 	m_pipelineEventDispatcher.DispatchDeviceFrameEnd(frameEnd, m_frame);
-
-	// Clean up after frame
-	// m_memoryManager.GetUploadHeap()._ClearQueuedUploads();
 
 	// Flush log
 	m_logger->Flush();
@@ -191,6 +191,33 @@ Scene* GraphicsEngine::CreateScene(std::string name) {
 	return scene;
 }
 
+Camera* GraphicsEngine::CreateCamera(std::string name) {
+	class ObservedCamera : public Camera {
+	public:
+		ObservedCamera(std::function<void(Camera*)> deleteHandler, std::string name) :
+			m_deleteHandler(std::move(deleteHandler))
+		{
+			SetName(name);
+		}
+		~ObservedCamera() {
+			if (m_deleteHandler) { m_deleteHandler(static_cast<Camera*>(this)); }
+		}
+	protected:
+		std::function<void(Camera*)> m_deleteHandler;
+	};
+
+	// Functor to perform the unregistration.
+	auto unregisterCamera = [this](Camera* arg) {
+		m_cameras.erase(arg);
+	};
+
+	// Allocate a new scene, and register it.
+	Camera* camera = new ObservedCamera(unregisterCamera, std::move(name));
+	m_cameras.insert(camera);
+
+	return camera;
+}
+
 MeshEntity* GraphicsEngine::CreateMeshEntity() {
 	return new MeshEntity;
 }
@@ -207,21 +234,24 @@ void GraphicsEngine::CreatePipeline() {
 	std::unique_ptr<nodes::ClearRenderTarget> clearRtv(new nodes::ClearRenderTarget());
 	std::unique_ptr<nodes::GetSceneByName> getWorldScene(new nodes::GetSceneByName());
 	std::unique_ptr<nodes::TescoRender> renderWorld(new nodes::TescoRender(m_graphicsApi, m_gxapiManager));
+	std::unique_ptr<nodes::GetCameraByName> getCamera(new nodes::GetCameraByName());
 
 	getWorldScene->GetInput<0>().Set("World");
+	getCamera->GetInput<0>().Set("WorldCam");
 
 	// link frame clear path
 	frameCounter->GetOutput(0)->Link(frameColor->GetInput(0));
 	frameColor->GetOutput(0)->Link(clearRtv->GetInput(1));
 	getBackBuffer->GetOutput(0)->Link(clearRtv->GetInput(0));
 	// link renderscene path
-	getWorldScene->GetOutput(0)->Link(renderWorld->GetInput(2));
+	getWorldScene->GetOutput(0)->Link(renderWorld->GetInput(3));
+	getCamera->GetOutput(0)->Link(renderWorld->GetInput(2));
 	getDepthBuffer->GetOutput(0)->Link(renderWorld->GetInput(1));
 	// link to pathes together
 	clearRtv->GetOutput(0)->Link(renderWorld->GetInput(0));
 
 
-	m_pipeline.CreateFromNodesList({ frameCounter.get(), frameColor.get(), getBackBuffer.get(), getDepthBuffer.get(), clearRtv.get(), getWorldScene.get(), renderWorld.get() }, std::default_delete<exc::NodeBase>());
+	m_pipeline.CreateFromNodesList({ frameCounter.get(), frameColor.get(), getBackBuffer.get(), getDepthBuffer.get(), clearRtv.get(), getWorldScene.get(), getCamera.get(), renderWorld.get() }, std::default_delete<exc::NodeBase>());
 
 
 	frameCounter.release();
@@ -230,6 +260,7 @@ void GraphicsEngine::CreatePipeline() {
 	getDepthBuffer.release();
 	clearRtv.release();
 	getWorldScene.release();
+	getCamera.release();
 	renderWorld.release();
 }
 

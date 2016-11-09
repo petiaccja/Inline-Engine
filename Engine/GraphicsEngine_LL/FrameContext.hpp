@@ -19,6 +19,7 @@ namespace gxeng {
 class CommandAllocatorPool;
 class ScratchSpacePool;
 class Scene;
+class Camera;
 
 
 struct FrameContext {
@@ -33,6 +34,7 @@ struct FrameContext {
 	CommandQueue* commandQueue = nullptr;
 	BackBuffer* backBuffer = nullptr;
 	const std::set<Scene*>* scenes = nullptr;
+	const std::set<Camera*>* cameras = nullptr;
 	const std::vector<UploadManager::UploadDescription>* uploadRequests = nullptr;
 	
 	ResourceResidencyQueue* residencyQueue = nullptr;

@@ -158,7 +158,7 @@ TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager*
 }
 
 
-void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList) {
+void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, const Camera* camera, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList) {
 	// Set render target
 	auto pRTV = &rtv;
 	commandList.SetResourceState(rtv.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
@@ -182,9 +182,10 @@ void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, cons
 	commandList.SetGraphicsBinder(&m_binder);
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	auto view = mathfu::Matrix<float, 4, 4>::FromTranslationVector(mathfu::Vector<float, 3>(0, 0, -7));
-	auto projection = mathfu::Matrix<float, 4, 4>::Perspective((60.f/180)*3.1415926536f, (float)viewport.width / (float)viewport.height, 1, 100);
-	//auto projection = mathfu::Matrix<float, 4, 4>::Ortho(-1, 1, -1, 1, -1, 1);
+	//auto view = mathfu::Matrix<float, 4, 4>::FromTranslationVector(mathfu::Vector<float, 3>(0, 0, -7));
+	//auto projection = mathfu::Matrix<float, 4, 4>::Perspective((60.f/180)*3.1415926536f, (float)viewport.width / (float)viewport.height, 1, 100);
+	mathfu::Matrix4x4f view = camera->GetViewMatrixRH();
+	mathfu::Matrix4x4f projection = camera->GetPerspectiveMatrixRH(0.5, 100);
 
 	auto viewProjection = projection * view;
 

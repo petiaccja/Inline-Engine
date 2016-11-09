@@ -1,4 +1,4 @@
-#include "MiniWorld.hpp"
+#include "QCWorld.hpp"
 
 #include <AssetLibrary/Model.hpp>
 
@@ -8,7 +8,7 @@ inline float rand2() {
 	return (rand() / float(RAND_MAX)) * 2 - 1;
 }
 
-MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
+QCWorld::QCWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	using namespace inl::gxeng;
 
 	m_graphicsEngine = graphicsEngine;
@@ -63,7 +63,7 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	}
 }
 
-void MiniWorld::UpdateWorld(float elapsed) {
+void QCWorld::UpdateWorld(float elapsed) {
 	const float boundary = 3;
 	assert(m_staticEntities.size() == m_velocities.size());
 	for (int i = 0; i < m_staticEntities.size(); i++) {
@@ -93,10 +93,10 @@ void MiniWorld::UpdateWorld(float elapsed) {
 	}
 }
 
-void MiniWorld::SetAspectRatio(float ar) {
+void QCWorld::SetAspectRatio(float ar) {
 	m_camera->SetFOVAspect(60.f / 180.f * 3.1419f, ar);
 }
 
-void MiniWorld::RenderWorld(float elapsed) {
+void QCWorld::RenderWorld(float elapsed) {
 	m_graphicsEngine->Update(elapsed);
 }
