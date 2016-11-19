@@ -70,7 +70,7 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_absoluteTime = decltype(m_absoluteTime)(0);
 	m_commandAllocatorPool.SetLogStream(&m_logStreamPipeline);
 
-	m_pipelineEventDispatcher += &m_memoryManager.GetUploadHeap();
+	m_pipelineEventDispatcher += &m_memoryManager.GetUploadManager();
 	// DELETE THIS
 	m_pipelineEventPrinter.SetLog(&m_logStreamPipeline);
 	m_pipelineEventDispatcher += &m_pipelineEventPrinter;
@@ -107,7 +107,7 @@ void GraphicsEngine::Update(float elapsed) {
 	context.backBuffer = &m_backBufferHeap->GetBackBuffer(backBufferIndex);
 	context.scenes = &m_scenes;
 	context.cameras = &m_cameras;
-	context.uploadRequests = &m_memoryManager.GetUploadHeap()._GetQueuedUploads();
+	context.uploadRequests = &m_memoryManager.GetUploadManager()._GetQueuedUploads();
 
 	context.residencyQueue = &m_residencyQueue;
 

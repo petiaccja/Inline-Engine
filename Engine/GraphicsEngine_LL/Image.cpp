@@ -63,7 +63,7 @@ void Image::Update(size_t x, size_t y, size_t width, size_t height, void* pixels
 		throw std::invalid_argument("Pixel types mismatch, conversion is not supported yet (but will be).");
 	}
 
-	m_memoryManager->GetUploadHeap().Upload(m_resource->GetResource(), x, y, pixels, width, height, m_resource->GetFormat());
+	m_memoryManager->GetUploadManager().Upload(m_resource->GetResource(), x, y, pixels, width, height, m_resource->GetFormat());
 }
 
 
