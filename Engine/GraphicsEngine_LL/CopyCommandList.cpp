@@ -67,10 +67,9 @@ void CopyCommandList::SetResourceState(std::shared_ptr<MemoryObject> resource, u
 					subresource
 				}
 			);
+			iter->second.lastState = state;
+			iter->second.multipleStates = true;
 		}
-
-		iter->second.lastState = state;
-		iter->second.multipleStates = true;
 	}
 }
 
