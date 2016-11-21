@@ -43,7 +43,7 @@ public:
 	template<typename IterT>
 	void UnlockResident(IterT begin, IterT end);
 
-	UploadManager& GetUploadHeap();
+	UploadManager& GetUploadManager();
 	VolatileConstBuffer CreateVolatileConstBuffer(void* data, uint32_t size);
 	PersistentConstBuffer CreatePersistentConstBuffer(void* data, uint32_t size);
 

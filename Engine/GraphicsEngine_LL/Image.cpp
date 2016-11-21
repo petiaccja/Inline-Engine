@@ -85,7 +85,7 @@ void Image::Update(size_t x, size_t y, size_t width, size_t height, const void* 
 	}
 
 	// upload data to gpu
-	m_memoryManager->GetUploadHeap().Upload(m_resource->GetResource(), x, y, pixels, width, height, m_resource->GetFormat(), bytesPerRow);
+	m_memoryManager->GetUploadManager().Upload(m_resource->GetResource(), x, y, pixels, width, height, m_resource->GetFormat(), bytesPerRow);
 }
 
 

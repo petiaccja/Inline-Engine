@@ -32,7 +32,7 @@ void MemoryManager::UnlockResident(const std::vector<MemoryObject*>& resources) 
 }
 
 
-UploadManager& MemoryManager::GetUploadHeap() {
+UploadManager& MemoryManager::GetUploadManager() {
 	return m_uploadHeap;
 }
 
