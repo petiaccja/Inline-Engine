@@ -47,7 +47,8 @@ CopyCommandList& CopyCommandList::operator=(CopyCommandList&& rhs) {
 void CopyCommandList::SetResourceState(std::shared_ptr<MemoryObject> resource, unsigned subresource, gxapi::eResourceState state) {
 	SubresourceId resId{resource, subresource};
 	auto iter = m_resourceTransitions.find(resId);
-	if (iter == m_resourceTransitions.end()) {
+	bool firstTransition = iter == m_resourceTransitions.end();
+	if (firstTransition) {
 		SubresourceUsageInfo info;
 		info.lastState = state;
 		info.firstState = state;
@@ -55,17 +56,20 @@ void CopyCommandList::SetResourceState(std::shared_ptr<MemoryObject> resource, u
 		m_resourceTransitions.insert({ std::move(resId), info });
 	}
 	else {
-		const auto& prevLastState = iter->second.lastState;
+		const auto& prevState = iter->second.lastState;
 
-		ResourceBarrier(gxapi::TransitionBarrier{
-							resource->_GetResourcePtr(),
-							prevLastState,
-							state,
-							subresource
-		});
-
-		iter->second.lastState = state;
-		iter->second.multipleStates = true;
+		if (prevState != state) {
+			ResourceBarrier(
+				gxapi::TransitionBarrier{
+					resource->_GetResourcePtr(),
+					prevState,
+					state,
+					subresource
+				}
+			);
+			iter->second.lastState = state;
+			iter->second.multipleStates = true;
+		}
 	}
 }
 
