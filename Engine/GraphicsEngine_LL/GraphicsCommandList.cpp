@@ -284,7 +284,7 @@ void GraphicsCommandList::UpdateRootTable(gxapi::DescriptorHandle handle, int ro
 
 
 void GraphicsCommandList::DuplicateRootTable(DescriptorTableState& table) {
-	uint32_t numDescriptors = table.bindings.size();
+	uint32_t numDescriptors = (uint32_t)table.bindings.size();
 
 	// allocate new space on scratch space
 	DescriptorArrayRef space = GetCurrentScratchSpace()->Allocate(numDescriptors);
@@ -362,7 +362,7 @@ void GraphicsCommandList::InitRootTables() {
 			assert(descriptorCountTotal == largestIndex);
 
 			// add record for this table
-			m_rootTableStates.push_back({ GetCurrentScratchSpace()->Allocate(descriptorCountTotal), (int)slot });
+			m_rootTableStates.push_back({ GetCurrentScratchSpace()->Allocate((uint32_t)descriptorCountTotal), (int)slot });
 			m_rootTableStates.back().bindings.resize(descriptorCountTotal);
 		}
 	}

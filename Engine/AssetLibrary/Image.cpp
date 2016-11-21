@@ -70,7 +70,7 @@ void Image::Create(size_t width, size_t height, eChannelType type, int channelCo
 	FREE_IMAGE_TYPE fiType;
 	int bpp;
 
-	if (type == eChannelType::INT8 & channelCount <= 4) {
+	if (type == eChannelType::INT8 && channelCount <= 4) {
 		fiType = FIT_BITMAP;
 		bpp = 8 * channelCount;
 	}
@@ -100,7 +100,7 @@ void Image::Create(size_t width, size_t height, eChannelType type, int channelCo
 		throw std::invalid_argument("unsupported pixel type");
 	}
 
-	BOOL isImageOk = m_image.setSize(fiType, width, height, bpp);
+	BOOL isImageOk = m_image.setSize(fiType, (unsigned)width, (unsigned)height, bpp);
 	if (!isImageOk) {
 		throw std::runtime_error("fájled to create image");
 	}
@@ -116,8 +116,6 @@ void Image::Load(const std::string& file) {
 void Image::TranslateImageType(eChannelType& typeOut, size_t& countOut) const {
 	FREE_IMAGE_TYPE type = m_image.getImageType();
 	FREE_IMAGE_COLOR_TYPE colorType = m_image.getColorType();
-	eChannelType channelType;
-	size_t channelCount;
 
 	if (type == FIT_BITMAP) {
 		int bitdepth = m_image.getBitsPerPixel();

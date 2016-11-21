@@ -27,8 +27,8 @@ class CommandAllocatorPool;
 struct SubTexture1D {
 	SubTexture1D(unsigned mipLevel = 0,
 				 unsigned arrayIndex = 0,
-				 int firstPixel = -1,
-				 int lastPixel = -1)
+				 intptr_t firstPixel = -1,
+				 intptr_t lastPixel = -1)
 		: mipLevel(mipLevel),
 		arrayIndex(arrayIndex),
 		firstPixel(firstPixel),
@@ -36,14 +36,14 @@ struct SubTexture1D {
 
 	unsigned mipLevel;
 	unsigned arrayIndex;
-	int firstPixel, lastPixel;
+	intptr_t firstPixel, lastPixel;
 };
 
 struct SubTexture2D {
 	SubTexture2D(unsigned mipLevel = 0,
 				 unsigned arrayIndex = 0,
-				 mathfu::Vector<int, 2> corner1 = { -1, -1 },
-				 mathfu::Vector<int, 2> corner2 = { -1, -1 })
+				 mathfu::Vector<intptr_t, 2> corner1 = { -1, -1 },
+				 mathfu::Vector<intptr_t, 2> corner2 = { -1, -1 })
 		: mipLevel(mipLevel),
 		arrayIndex(arrayIndex),
 		corner1(corner1),
@@ -51,21 +51,21 @@ struct SubTexture2D {
 
 	unsigned mipLevel;
 	unsigned arrayIndex;
-	mathfu::Vector<int, 2> corner1;
-	mathfu::Vector<int, 2> corner2;
+	mathfu::Vector<intptr_t, 2> corner1;
+	mathfu::Vector<intptr_t, 2> corner2;
 };
 
 struct SubTexture3D {
 	SubTexture3D(unsigned mipLevel = 0,
-				 mathfu::Vector<int, 3> corner1 = { -1, -1, -1 },
-				 mathfu::Vector<int, 3> corner2 = { -1, -1, -1 })
+				 mathfu::Vector<intptr_t, 3> corner1 = { -1, -1, -1 },
+				 mathfu::Vector<intptr_t, 3> corner2 = { -1, -1, -1 })
 		: mipLevel(mipLevel),
 		corner1(corner1),
 		corner2(corner2) {}
 
 	unsigned mipLevel;
-	mathfu::Vector<int, 3> corner1;
-	mathfu::Vector<int, 3> corner2;
+	mathfu::Vector<intptr_t, 3> corner1;
+	mathfu::Vector<intptr_t, 3> corner2;
 };
 
 

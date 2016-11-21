@@ -284,7 +284,7 @@ void Scheduler::UploadTask(CopyCommandList& commandList, const std::vector<Uploa
 				auto srcTexture = static_cast<LinearBuffer*>(const_cast<MemoryObject*>(source));
 				auto dstTexture = static_cast<Texture2D*>(destination.get());
 
-				commandList.CopyTexture(dstTexture, srcTexture, SubTexture2D(0, 0, mathfu::Vector<int, 2>(request.dstOffsetX, request.dstOffsetY)), request.textureBufferDesc);
+				commandList.CopyTexture(dstTexture, srcTexture, SubTexture2D(0, 0, mathfu::Vector<intptr_t, 2>((intptr_t)request.dstOffsetX, (intptr_t)request.dstOffsetY)), request.textureBufferDesc);
 			}
 		}
 	}

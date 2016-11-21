@@ -90,17 +90,17 @@ void CopyCommandList::CopyTexture(Texture2D* dst, Texture2D* src, SubTexture2D d
 	gxapi::TextureCopyDesc srcDesc =
 		gxapi::TextureCopyDesc::Texture(src->GetSubresourceIndex(srcPlace.arrayIndex, srcPlace.mipLevel));
 
-	auto top = std::max(0, srcPlace.corner1.y());
+	auto top = std::max(intptr_t(0), srcPlace.corner1.y());
 	auto bottom = srcPlace.corner2.y() < 0 ? src->GetHeight() : srcPlace.corner2.y();
-	auto left = std::max(0, srcPlace.corner1.x());
+	auto left = std::max(intptr_t(0), srcPlace.corner1.x());
 	auto right = srcPlace.corner2.x() < 0 ? src->GetWidth() : srcPlace.corner2.x();
 
-	gxapi::Cube srcRegion(top, bottom, left, right, 0, 1);
+	gxapi::Cube srcRegion((int)top, (int)bottom, (int)left, (int)right, 0, 1);
 
-	auto offsetX = std::max(0, dstPlace.corner1.x());
-	auto offsetY = std::max(0, dstPlace.corner1.y());
+	auto offsetX = std::max(intptr_t(0), dstPlace.corner1.x());
+	auto offsetY = std::max(intptr_t(0), dstPlace.corner1.y());
 
-	m_commandList->CopyTexture(dst->_GetResourcePtr(), dstDesc, offsetX, offsetY, 0, src->_GetResourcePtr(), srcDesc, srcRegion);
+	m_commandList->CopyTexture(dst->_GetResourcePtr(), dstDesc, (int)offsetX, (int)offsetY, 0, src->_GetResourcePtr(), srcDesc, srcRegion);
 }
 
 
@@ -110,10 +110,10 @@ void CopyCommandList::CopyTexture(Texture2D* dst, Texture2D* src, SubTexture2D d
 
 	gxapi::TextureCopyDesc srcDesc = gxapi::TextureCopyDesc::Texture(0);
 
-	auto offsetX = std::max(0, dstPlace.corner1.x());
-	auto offsetY = std::max(0, dstPlace.corner1.y());
+	auto offsetX = std::max(intptr_t(0), dstPlace.corner1.x());
+	auto offsetY = std::max(intptr_t(0), dstPlace.corner1.y());
 
-	m_commandList->CopyTexture(dst->_GetResourcePtr(), dstDesc, offsetX, offsetY, 0, src->_GetResourcePtr(), srcDesc);
+	m_commandList->CopyTexture(dst->_GetResourcePtr(), dstDesc, (int)offsetX, (int)offsetY, 0, src->_GetResourcePtr(), srcDesc);
 }
 
 
@@ -121,7 +121,7 @@ void CopyCommandList::CopyTexture(Texture2D* dst, LinearBuffer* src, SubTexture2
 	gxapi::TextureCopyDesc dstDesc =
 		gxapi::TextureCopyDesc::Texture(dst->GetSubresourceIndex(dstPlace.arrayIndex, dstPlace.mipLevel));
 
-	m_commandList->CopyTexture(dst->_GetResourcePtr(), dstDesc, dstPlace.corner1.x(), dstPlace.corner1.y(), 0, src->_GetResourcePtr(), bufferDesc);
+	m_commandList->CopyTexture(dst->_GetResourcePtr(), dstDesc, (int)dstPlace.corner1.x(), (int)dstPlace.corner1.y(), 0, src->_GetResourcePtr(), bufferDesc);
 }
 
 

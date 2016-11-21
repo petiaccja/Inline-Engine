@@ -60,7 +60,6 @@ void* Resource::GetGPUAddress() const {
 void Resource::SetName(const char* name) {
 	size_t count = strlen(name);
 	std::unique_ptr<wchar_t[]> dest = std::make_unique<wchar_t[]>(count + 1);
-#define _CRT_SECURE_NO_WARNINGS 1
 	mbstowcs(dest.get(), name, count);
 	m_native->SetName(dest.get());
 }

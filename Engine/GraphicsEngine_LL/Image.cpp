@@ -26,7 +26,7 @@ void Image::SetLayout(size_t width, size_t height, ePixelChannelType channelType
 	}
 
 	try {
-		Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, format);
+		Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, (uint32_t)height, format);
 		auto resourcePtr = std::make_shared<Texture2D>(std::move(texture));
 		gxapi::SrvTexture2DArray desc;
 		desc.activeArraySize = 1;
@@ -85,7 +85,7 @@ void Image::Update(size_t x, size_t y, size_t width, size_t height, const void* 
 	}
 
 	// upload data to gpu
-	m_memoryManager->GetUploadManager().Upload(m_resource->GetResource(), x, y, pixels, width, height, m_resource->GetFormat(), bytesPerRow);
+	m_memoryManager->GetUploadManager().Upload(m_resource->GetResource(), (uint32_t)x, (uint32_t)y, pixels, width, (uint32_t)height, m_resource->GetFormat(), bytesPerRow);
 }
 
 
