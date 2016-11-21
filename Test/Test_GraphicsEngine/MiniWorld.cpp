@@ -1,6 +1,7 @@
 #include "MiniWorld.hpp"
 
 #include <AssetLibrary/Model.hpp>
+#include <AssetLibrary/Image.hpp>
 
 #include <array>
 
@@ -30,17 +31,13 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	}
 
 	{
-		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
-		std::vector<PixelT> imgData = {
-			{220, 32, 32, 255},
-			{32, 220, 22, 255},
-			{32, 32, 220, 255},
-			{64, 64, 64, 255}
-		};
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
+		inl::asset::Image img("monkey.png");
+		assert(img.GetChannelCount() == 3 && img.GetType() == inl::asset::eChannelType::INT8);
 
-		m_checker.reset(m_graphicsEngine->CreateImage());
-		m_checker->SetLayout(2, 2, ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR);
-		m_checker->Update(0, 0, 2, 2, imgData.data(), PixelT::Reader());
+		m_texture.reset(m_graphicsEngine->CreateImage());
+		m_texture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
+		m_texture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
 	}
 
 	srand(time(nullptr));
@@ -50,7 +47,7 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	for (int i = 0; i < count; i++) {
 		std::unique_ptr<inl::gxeng::MeshEntity> entity(new inl::gxeng::MeshEntity());
 		entity->SetMesh(m_cubeMesh.get());
-		entity->SetTexture(m_checker.get());
+		entity->SetTexture(m_texture.get());
 		mathfu::Vector<float, 3> pos;
 		pos.x() = float((i + 0.5f)*extent) / count - extent*0.5f;
 		pos.y() = 0;

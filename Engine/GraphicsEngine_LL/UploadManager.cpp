@@ -62,7 +62,8 @@ void UploadManager::Upload(
 	const void* data,
 	uint64_t width,
 	uint32_t height,
-	gxapi::eFormat format
+	gxapi::eFormat format,
+	size_t bytesPerRow
 ) {
 	if (target.lock()->GetWidth() < (offsetX + width) || target.lock()->GetHeight() < (offsetY + height)) {
 		throw inl::gxapi::InvalidArgument("Uploaded data does not fit inside target texture. (Uploaded size or offset is too large)", "target");
@@ -71,7 +72,7 @@ void UploadManager::Upload(
 	auto pixelSize = gxapi::GetFormatSizeInBytes(format);
 	auto rowSize = width * pixelSize;
 	size_t rowPitch = SnapUpwrads(rowSize, DUP_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
-	auto requiredSize = rowPitch * height;
+	auto requiredSize = bytesPerRow > 0 ? bytesPerRow : rowPitch * height;
 
 	MemoryObjDesc uploadObjDesc = MemoryObjDesc(
 		m_graphicsApi->CreateCommittedResource(

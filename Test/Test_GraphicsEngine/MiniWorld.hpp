@@ -23,7 +23,7 @@ private:
 
 	// Resource
 	std::unique_ptr<inl::gxeng::Mesh> m_cubeMesh;
-	std::unique_ptr<inl::gxeng::Image> m_checker;
+	std::unique_ptr<inl::gxeng::Image> m_texture;
 
 	// Scenes
 	std::unique_ptr<inl::gxeng::Scene> m_worldScene;

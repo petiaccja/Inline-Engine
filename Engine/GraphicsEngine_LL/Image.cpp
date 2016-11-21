@@ -24,9 +24,6 @@ void Image::SetLayout(size_t width, size_t height, ePixelChannelType channelType
 	if (!ConvertFormat(channelType, channelCount, pixelClass, format, resultChCnt)) {
 		throw std::invalid_argument("Unsupported texture format.");
 	}
-	if (channelCount != resultChCnt) {
-		throw std::invalid_argument("3 channel not yet supported, use 4 channels instead.");
-	}
 
 	try {
 		Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, format);
@@ -50,7 +47,7 @@ void Image::SetLayout(size_t width, size_t height, ePixelChannelType channelType
 	}
 }
 
-void Image::Update(size_t x, size_t y, size_t width, size_t height, void* pixels, const IPixelReader& reader) {
+void Image::Update(size_t x, size_t y, size_t width, size_t height, const void* pixels, const IPixelReader& reader, size_t bytesPerRow) {
 	if (!m_resource) {
 		throw std::logic_error("Must create image first.");
 	}
@@ -59,11 +56,36 @@ void Image::Update(size_t x, size_t y, size_t width, size_t height, void* pixels
 		throw std::out_of_range("Destination region out of bounds.");
 	}
 
-	if (reader.GetChannelCount() != GetChannelCount() || reader.GetPixelClass() != GetPixelClass() || reader.GetChannelType() != GetChannelType()) {
-		throw std::invalid_argument("Pixel types mismatch, conversion is not supported yet (but will be).");
+	if (GetChannelCount() != 4 && reader.GetChannelCount() == 3) {
+		if (reader.GetChannelCount() != GetChannelCount()
+			|| reader.GetPixelClass() != GetPixelClass()
+			|| reader.GetChannelType() != GetChannelType())
+		{
+			throw std::invalid_argument("Pixel types mismatch, conversion is not supported yet (but will be).");
+		}
 	}
 
-	m_memoryManager->GetUploadHeap().Upload(m_resource->GetResource(), x, y, pixels, width, height, m_resource->GetFormat());
+	// convert 3 channel pixels to 4 channels
+	std::unique_ptr<uint8_t> pixels4;
+	if (reader.GetChannelCount() == 3) {
+		size_t structureSize = reader.StructureSize();
+		size_t structureSize4 = structureSize * 4 / 3;
+		size_t channelSize = structureSize / 3;
+		pixels4.reset(new uint8_t[structureSize4 * width * height]);
+		size_t dstPitch = width * structureSize4;
+		size_t srcPitch = bytesPerRow > 0 ? bytesPerRow : width * structureSize;
+		for (size_t y = 0; y < height; ++y) {
+			for (size_t x = 0; x < height; ++x) {
+				uint8_t* dst = pixels4.get() + (y * dstPitch + x * structureSize4);
+				memcpy(dst, (uint8_t*)pixels + (y * srcPitch + x * structureSize), structureSize);
+				memset(dst + structureSize, 0, channelSize);
+			}
+		}
+		pixels = pixels4.get();
+	}
+
+	// upload data to gpu
+	m_memoryManager->GetUploadHeap().Upload(m_resource->GetResource(), x, y, pixels, width, height, m_resource->GetFormat(), bytesPerRow);
 }
 
 
@@ -136,6 +158,8 @@ bool Image::ConvertFormat(ePixelChannelType channelType, int channelCount, ePixe
 			return true;
 		}
 	}
+
+	return false;
 }
 
 

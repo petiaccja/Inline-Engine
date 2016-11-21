@@ -17,7 +17,7 @@ public:
 	~Image();
 
 	void SetLayout(size_t width, size_t height, ePixelChannelType channelType, int channelCount, ePixelClass pixelClass);
-	void Update(size_t x, size_t y, size_t width, size_t height, void* pixels, const IPixelReader& reader);
+	void Update(size_t x, size_t y, size_t width, size_t height, const void* pixels, const IPixelReader& reader, size_t bytesPerRow = 0);
 
 	size_t GetWidth();
 	size_t GetHeight();
