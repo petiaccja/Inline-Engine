@@ -9,6 +9,7 @@
 #include "../BaseLibrary/ScalarLiterals.hpp"
 
 #include <memory>
+#include <mutex>
 
 namespace inl {
 namespace gxeng {

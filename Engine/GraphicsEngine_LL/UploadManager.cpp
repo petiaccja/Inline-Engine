@@ -2,6 +2,8 @@
 
 #include <GraphicsApi_LL/Common.hpp>
 
+#include <cassert>
+
 namespace inl {
 namespace gxeng {
 
@@ -16,12 +18,12 @@ UploadManager::UploadManager(gxapi::IGraphicsApi* graphicsApi) :
 }
 
 
-void UploadManager::Upload(std::weak_ptr<LinearBuffer> target, size_t offset, const void* data, size_t size) {
-	if (target.lock()->GetSize() < (offset+size)) {
+void UploadManager::Upload(const LinearBuffer& target, size_t offset, const void* data, size_t size) {
+	if (target.GetSize() < (offset+size)) {
 		throw inl::gxapi::InvalidArgument("Target buffer is not large enough for the uploaded data to fit.", "target");
 	}
 
-	MemoryObjDesc uploadObjDesc = MemoryObjDesc(
+	MemoryObjDesc uploadObjDesc(
 		m_graphicsApi->CreateCommittedResource(
 			gxapi::HeapProperties(gxapi::eHeapType::UPLOAD),
 			gxapi::eHeapFlags::NONE,
@@ -38,7 +40,7 @@ void UploadManager::Upload(std::weak_ptr<LinearBuffer> target, size_t offset, co
 		auto& currQueue = m_uploadQueues.back();
 		
 		UploadDescription uploadDesc(
-			MemoryObject(std::move(uploadObjDesc)),
+			LinearBuffer(std::move(uploadObjDesc)),
 			target,
 			offset
 		);
@@ -56,7 +58,7 @@ void UploadManager::Upload(std::weak_ptr<LinearBuffer> target, size_t offset, co
 
 
 void UploadManager::Upload(
-	std::weak_ptr<Texture2D> target,
+	const Texture2D& target,
 	uint32_t offsetX,
 	uint32_t offsetY,
 	const void* data,
@@ -65,7 +67,7 @@ void UploadManager::Upload(
 	gxapi::eFormat format,
 	size_t bytesPerRow
 ) {
-	if (target.lock()->GetWidth() < (offsetX + width) || target.lock()->GetHeight() < (offsetY + height)) {
+	if (target.GetWidth() < (offsetX + width) || target.GetHeight() < (offsetY + height)) {
 		throw inl::gxapi::InvalidArgument("Uploaded data does not fit inside target texture. (Uploaded size or offset is too large)", "target");
 	}
 
@@ -91,7 +93,7 @@ void UploadManager::Upload(
 		auto& currQueue = m_uploadQueues.back();
 
 		UploadDescription uploadDesc(
-			MemoryObject(std::move(uploadObjDesc)),
+			LinearBuffer(std::move(uploadObjDesc)),
 			target,
 			offsetX,
 			offsetY,

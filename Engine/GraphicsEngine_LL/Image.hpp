@@ -4,6 +4,7 @@
 #include "MemoryObject.hpp"
 #include "Pixel.hpp"
 #include "MemoryManager.hpp"
+#include "ResourceView.hpp"
 
 
 namespace inl {

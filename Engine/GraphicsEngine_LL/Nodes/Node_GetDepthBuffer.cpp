@@ -15,7 +15,7 @@ GetDepthBuffer::GetDepthBuffer(MemoryManager* memgr, DSVHeap& dsvHeap, unsigned 
 
 
 void GetDepthBuffer::Init(unsigned width, unsigned height) {
-	auto resource = std::make_shared<Texture2D>(m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, gxapi::eFormat::D32_FLOAT, gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL));
+	Texture2D resource(m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, gxapi::eFormat::D32_FLOAT, gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL));
 	gxapi::DsvTexture2DArray desc;
 	desc.activeArraySize = 1;
 	desc.firstArrayElement = 0;

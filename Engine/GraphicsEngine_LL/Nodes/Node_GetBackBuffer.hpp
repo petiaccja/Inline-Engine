@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../GraphicsNode.hpp"
+#include "../BackBuffer.hpp"
 
 #include <cmath>
 

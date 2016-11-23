@@ -165,6 +165,7 @@
     <ClInclude Include="..\GraphicsEngine\IScene.hpp" />
     <ClInclude Include="..\GraphicsEngine\ITerrainEntity.hpp" />
     <ClInclude Include="..\GraphicsEngine\ITexture2D.hpp" />
+    <ClInclude Include="BackBuffer.hpp" />
     <ClInclude Include="BackBufferManager.hpp" />
     <ClInclude Include="BasicCommandList.hpp" />
     <ClInclude Include="Binder.hpp" />
@@ -220,6 +221,7 @@
     <ClInclude Include="VertexElementCompressor.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BackBuffer.cpp" />
     <ClCompile Include="BackBufferManager.cpp" />
     <ClCompile Include="BasicCommandList.cpp" />
     <ClCompile Include="Binder.cpp" />

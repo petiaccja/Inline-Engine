@@ -1,6 +1,10 @@
 #include "BackBufferManager.hpp"
 
 #include "MemoryObject.hpp"
+#include "BackBuffer.hpp"
+#include "HostDescHeap.hpp"
+
+#include <cassert>
 
 namespace inl {
 namespace gxeng {

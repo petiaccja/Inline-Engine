@@ -24,83 +24,102 @@ MemoryObjDesc::MemoryObjDesc(gxapi::IResource* ptr, bool resident) :
 
 
 
-MemoryObject::MemoryObject(MemoryObjDesc&& desc) :
-	m_resource(std::move(desc.resource))
-{
-	m_resident = desc.resident;
+bool MemoryObject::PtrLess(const MemoryObject& lhs, const MemoryObject& rhs) {
+	assert(lhs.m_contents);
+	assert(rhs.m_contents);
+	return lhs.m_contents.get() < rhs.m_contents.get();
+}
 
+
+bool MemoryObject::PtrGreater(const MemoryObject& lhs, const MemoryObject& rhs) {
+	assert(lhs.m_contents);
+	assert(rhs.m_contents);
+	return lhs.m_contents.get() > rhs.m_contents.get();
+}
+
+
+bool MemoryObject::PtrEqual(const MemoryObject& lhs, const MemoryObject& rhs) {
+	// "An empty shared_ptr may have a non-null stored pointer if the aliasing constructor was used to create it."
+	// from: http://en.cppreference.com/w/cpp/memory/shared_ptr
+	assert(lhs.m_contents);
+	assert(rhs.m_contents);
+	return lhs.m_contents.get() == rhs.m_contents.get();
+}
+
+
+MemoryObject::MemoryObject(nullptr_t) {}
+
+
+MemoryObject::MemoryObject(MemoryObjDesc&& desc) :
+	m_contents(new Contents{std::move(desc.resource), desc.resident, {}})
+{
 	InitResourceStates(eResourceState::COMMON);
 }
 
 
-MemoryObject::MemoryObject(MemoryObject&& other) :
-	m_resource(std::move(other.m_resource)),
-	m_resident(other.m_resident),
-	m_subresourceStates(other.m_subresourceStates)
-{}
-
-
-MemoryObject& MemoryObject::operator=(MemoryObject&& other) {
-	if (this == &other) {
-		return *this;
-	}
-
-	m_resource = std::move(other.m_resource);
-	m_resident = other.m_resident;
-	m_subresourceStates = std::move(other.m_subresourceStates);
-
-	return *this;
+bool MemoryObject::operator==(const MemoryObject& other) const {
+	return PtrEqual(*this, other);
 }
 
 
 void* MemoryObject::GetVirtualAddress() const {
-	return m_resource->GetGPUAddress();
+	assert(m_contents);
+	return m_contents->resource->GetGPUAddress();
 }
 
 
 gxapi::ResourceDesc MemoryObject::GetDescription() const {
-	return m_resource->GetDesc();
+	assert(m_contents);
+	return m_contents->resource->GetDesc();
 }
 
 
 void MemoryObject::_SetResident(bool value) noexcept {
-	m_resident = value;
+	assert(m_contents);
+	m_contents->resident = value;
 }
 
 
 bool MemoryObject::_GetResident() const noexcept {
-	return m_resident;
+	assert(m_contents);
+	return m_contents->resident;
 }
 
 
 gxapi::IResource* MemoryObject::_GetResourcePtr() noexcept {
-	return m_resource.get();
+	assert(m_contents);
+	return m_contents->resource.get();
 }
 
 
 const gxapi::IResource * MemoryObject::_GetResourcePtr() const noexcept {
-	return m_resource.get();
+	assert(m_contents);
+	return m_contents->resource.get();
 }
 
 
 void MemoryObject::RecordState(unsigned subresource, gxapi::eResourceState newState) {
-	assert(subresource < m_subresourceStates.size());
-	m_subresourceStates[subresource] = newState;
+	assert(m_contents);
+	assert(subresource < m_contents->subresourceStates.size());
+	m_contents->subresourceStates[subresource] = newState;
 }
 
 void MemoryObject::RecordState(gxapi::eResourceState newState) {
-	for (auto& state : m_subresourceStates) {
+	assert(m_contents);
+	for (auto& state : m_contents->subresourceStates) {
 		state = newState;
 	}
 }
 
 gxapi::eResourceState MemoryObject::ReadState(unsigned subresource) const {
-	assert(subresource < m_subresourceStates.size());
-	return m_subresourceStates[subresource];
+	assert(m_contents);
+	assert(subresource < m_contents->subresourceStates.size());
+	return m_contents->subresourceStates[subresource];
 }
 
 void MemoryObject::InitResourceStates(gxapi::eResourceState initialState) {
-	gxapi::ResourceDesc desc = m_resource->GetDesc();
+	assert(m_contents);
+	gxapi::ResourceDesc desc = m_contents->resource->GetDesc();
 	unsigned numSubresources = 0;
 	switch (desc.type) {
 		case eResourceType::TEXTURE:
@@ -126,14 +145,18 @@ void MemoryObject::InitResourceStates(gxapi::eResourceState initialState) {
 		}
 		default: assert(false);
 	}
-	m_subresourceStates.resize(numSubresources, initialState);
+	m_contents->subresourceStates.resize(numSubresources, initialState);
 }
 
 //==================================
 
 
 uint64_t LinearBuffer::GetSize() const {
-	return m_resource->GetDesc().bufferDesc.sizeInBytes;
+	return GetDescription().bufferDesc.sizeInBytes;
+}
+
+
+IndexBuffer::IndexBuffer(nullptr_t) : LinearBuffer(nullptr) {
 }
 
 
@@ -187,7 +210,7 @@ uint64_t Texture1D::GetWidth() const {
 
 
 uint16_t Texture1D::GetArrayCount() const {
-	return m_resource->GetDesc().textureDesc.depthOrArraySize;
+	return GetDescription().textureDesc.depthOrArraySize;
 }
 
 
@@ -202,12 +225,12 @@ uint64_t Texture2D::GetWidth() const {
 
 
 uint64_t Texture2D::GetHeight() const {
-	return m_resource->GetDesc().textureDesc.height;
+	return GetDescription().textureDesc.height;
 }
 
 
 uint16_t Texture2D::GetArrayCount() const {
-	return m_resource->GetDesc().textureDesc.depthOrArraySize;
+	return GetDescription().textureDesc.depthOrArraySize;
 }
 
 
@@ -227,12 +250,12 @@ uint64_t Texture3D::GetWidth() const {
 
 
 uint64_t Texture3D::GetHeight() const {
-	return m_resource->GetDesc().textureDesc.height;
+	return GetDescription().textureDesc.height;
 }
 
 
 uint16_t Texture3D::GetDepth() const {
-	return m_resource->GetDesc().textureDesc.depthOrArraySize;
+	return GetDescription().textureDesc.depthOrArraySize;
 }
 
 
@@ -247,42 +270,12 @@ uint64_t TextureCube::GetWidth() const {
 
 
 uint64_t TextureCube::GetHeight() const {
-	return m_resource->GetDesc().textureDesc.height;
+	return GetDescription().textureDesc.height;
 }
 
 
 gxapi::eFormat TextureCube::GetFormat() const {
 	return GetDescription().textureDesc.format;
-}
-
-
-BackBuffer::BackBuffer(DescriptorReference&& descRef, gxapi::RenderTargetViewDesc rtvDesc, MemoryObjDesc&& objDesc) :
-	Texture2D(std::move(objDesc)),
-	m_RTV(std::shared_ptr<Texture2D>(this, [](Texture2D*) {}), std::move(descRef), rtvDesc)
-{}
-
-
-BackBuffer::BackBuffer(BackBuffer&& other) :
-	Texture2D(std::move(other)),
-	m_RTV(std::move(other.m_RTV), std::shared_ptr<Texture2D>(this, [](Texture2D*) {}))
-{}
-
-
-BackBuffer& BackBuffer::operator=(BackBuffer&& other) {
-	if (this == &other) {
-		return *this;
-	}
-
-	m_resource = std::move(other.m_resource);
-	m_resident = other.m_resident;
-	m_RTV = RenderTargetView(std::move(other.m_RTV), std::shared_ptr<Texture2D>(this, [](Texture2D*) {}));
-
-	return *this;
-}
-
-
-RenderTargetView& BackBuffer::GetView() {
-	return m_RTV;
 }
 
 

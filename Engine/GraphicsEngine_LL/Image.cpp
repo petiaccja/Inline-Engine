@@ -27,7 +27,6 @@ void Image::SetLayout(size_t width, size_t height, ePixelChannelType channelType
 
 	try {
 		Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, (uint32_t)height, format);
-		auto resourcePtr = std::make_shared<Texture2D>(std::move(texture));
 		gxapi::SrvTexture2DArray desc;
 		desc.activeArraySize = 1;
 		desc.firstArrayElement = 0;
@@ -35,7 +34,7 @@ void Image::SetLayout(size_t width, size_t height, ePixelChannelType channelType
 		desc.mostDetailedMip = 0;
 		desc.numMipLevels = -1;
 		desc.planeIndex = 0;
-		m_resource.reset(new Texture2DSRV(resourcePtr, *m_descriptorHeap, resourcePtr->GetFormat(), desc));
+		m_resource.reset(new Texture2DSRV(texture, *m_descriptorHeap, texture.GetFormat(), desc));
 
 		m_channelCount = channelCount;
 		m_channelType = channelType;
@@ -91,7 +90,7 @@ void Image::Update(size_t x, size_t y, size_t width, size_t height, const void* 
 
 size_t Image::GetWidth() {
 	if (m_resource) {
-		return m_resource->GetResource()->GetWidth();
+		return m_resource->GetResource().GetWidth();
 	}
 	else {
 		return 0;
@@ -100,7 +99,7 @@ size_t Image::GetWidth() {
 
 size_t Image::GetHeight() {
 	if (m_resource) {
-		return m_resource->GetResource()->GetHeight();
+		return m_resource->GetResource().GetHeight();
 	}
 	else {
 		return 0;
