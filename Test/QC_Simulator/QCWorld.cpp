@@ -20,7 +20,30 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	m_camera->SetPosition({0, -8, 3});
 
 	{
-		inl::asset::Model model("monkey.dae");
+		std::array<inl::gxeng::Vertex<Position<0>, Normal<0>, TexCoord<0>>, 4> modelVertices;
+		modelVertices[0].position = { -1.f, -1.f, 0.f };
+		modelVertices[1].position = { 1.f, -1.f, 0.f };
+		modelVertices[2].position = { 1.f, 1.f, 0.f };
+		modelVertices[3].position = { -1.f, 1.f, 0.f };
+		modelVertices[0].normal = { 0, 0, 1 };
+		modelVertices[1].normal = { 0, 0, 1 };
+		modelVertices[2].normal = { 0, 0, 1 };
+		modelVertices[3].normal = { 0, 0, 1 };
+		modelVertices[0].texCoord = { 0, 0 };
+		modelVertices[1].texCoord = { 1, 0 };
+		modelVertices[2].texCoord = { 1, 1 };
+		modelVertices[3].texCoord = { 0, 1 };
+		std::array<unsigned, 6> modelIndices {
+			0,1,2,
+			3,2,0,
+		};
+
+		m_terrainMesh.reset(m_graphicsEngine->CreateMesh());
+		m_terrainMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+	}
+
+	{
+		inl::asset::Model model("qc.dae");
 
 		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0);
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
@@ -43,12 +66,20 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 		m_checker->Update(0, 0, 2, 2, imgData.data(), PixelT::Reader());
 	}
 
+	m_terrain.reset(m_graphicsEngine->CreateMeshEntity());
+	m_terrain->SetMesh(m_terrainMesh.get());
+	m_terrain->SetTexture(m_checker.get());
+	m_terrain->SetPosition({ 0,0,-1 });
+	m_terrain->SetRotation({ 1,0,0,0 });
+	m_terrain->SetScale({ 3,3,3 });
+	m_worldScene->GetMeshEntities().Add(m_terrain.get());
+
 	srand(time(nullptr));
 
 	const float extent = 5;
 	const int count = 6;
 	for (int i = 0; i < count; i++) {
-		std::unique_ptr<inl::gxeng::MeshEntity> entity(new inl::gxeng::MeshEntity());
+		std::unique_ptr<inl::gxeng::MeshEntity> entity(m_graphicsEngine->CreateMeshEntity());
 		entity->SetMesh(m_cubeMesh.get());
 		entity->SetTexture(m_checker.get());
 		mathfu::Vector<float, 3> pos;

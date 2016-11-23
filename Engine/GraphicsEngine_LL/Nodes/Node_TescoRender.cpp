@@ -36,6 +36,10 @@ static void ConvertToSubmittable(
 	std::vector<unsigned>& sizes,
 	std::vector<unsigned>& strides
 ) {
+	vertexBuffers.clear();
+	sizes.clear();
+	strides.clear();
+
 	for (int streamID = 0; streamID < mesh->GetNumStreams(); streamID++) {
 		vertexBuffers.push_back(mesh->GetVertexBuffer(streamID).get());
 		sizes.push_back((unsigned)vertexBuffers.back()->GetSize());

@@ -138,7 +138,14 @@ void UploadManager::OnFrameCompleteHost(uint64_t frameId) {
 
 
 const std::vector<UploadManager::UploadDescription>& UploadManager::_GetQueuedUploads() {
-	return m_uploadQueues.back();
+	if (!m_uploadQueues.empty()) {
+		return m_uploadQueues.back();
+	}
+	else {
+#pragma message("This should be fixed");
+		static std::vector<UploadManager::UploadDescription> tmp;
+		return tmp;
+	}
 }
 
 
