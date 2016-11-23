@@ -18,8 +18,8 @@ public:
 	}
 
 	virtual void Update() override {}
-
 	virtual void Notify(exc::InputPortBase* sender) override {}
+	void InitGraphics(const GraphicsContext&) override {}
 
 	virtual Task GetTask() override;
 };

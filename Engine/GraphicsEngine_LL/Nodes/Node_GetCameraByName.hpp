@@ -17,8 +17,8 @@ public:
 	GetCameraByName() {}
 
 	void Update() override {}
-
 	void Notify(exc::InputPortBase* sender) override {}
+	void InitGraphics(const GraphicsContext&) override {}
 
 	Task GetTask() override {
 		return Task({ [this](const ExecutionContext& context)

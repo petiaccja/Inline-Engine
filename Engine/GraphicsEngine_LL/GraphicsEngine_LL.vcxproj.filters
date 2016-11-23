@@ -222,6 +222,9 @@
     <ClInclude Include="Nodes\Node_GetCameraByName.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
+    <ClInclude Include="GraphicsContext.hpp">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -332,6 +335,9 @@
     </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsContext.cpp">
+      <Filter>Pipeline</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

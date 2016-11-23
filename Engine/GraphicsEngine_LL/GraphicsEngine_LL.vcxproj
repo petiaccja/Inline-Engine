@@ -177,6 +177,7 @@
     <ClInclude Include="EntityCollection.hpp" />
     <ClInclude Include="ExecutionContext.hpp" />
     <ClInclude Include="ExecutionResult.hpp" />
+    <ClInclude Include="GraphicsContext.hpp" />
     <ClInclude Include="Nodes\Node_GetCameraByName.hpp" />
     <ClInclude Include="StackDescHeap.hpp" />
     <ClInclude Include="FrameContext.hpp" />
@@ -229,6 +230,7 @@
     <ClCompile Include="CopyCommandList.cpp" />
     <ClCompile Include="ExecutionContext.cpp" />
     <ClCompile Include="ExecutionResult.cpp" />
+    <ClCompile Include="GraphicsContext.cpp" />
     <ClCompile Include="StackDescHeap.cpp" />
     <ClCompile Include="GraphicsCommandList.cpp" />
     <ClCompile Include="GraphicsNodeFactory.cpp" />

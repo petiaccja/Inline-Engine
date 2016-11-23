@@ -22,8 +22,8 @@ public:
 	GetDepthBuffer(MemoryManager* memgr, DSVHeap& dsvHeap, unsigned width, unsigned height);
 
 	virtual void Update() override {}
-
 	virtual void Notify(exc::InputPortBase* sender) override {}
+	void InitGraphics(const GraphicsContext&) override {}
 
 	virtual Task GetTask() override;
 

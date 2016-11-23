@@ -58,6 +58,7 @@ public:
 	void Notify(InputPortBase*) override {
 
 	}
+	void InitGraphics(const GraphicsContext&) override {}
 
 	ExecutionResult DoSomething(ExecutionContext) {
 		++value;
