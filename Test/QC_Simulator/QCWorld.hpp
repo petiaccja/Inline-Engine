@@ -23,6 +23,7 @@ private:
 
 	// Resource
 	std::unique_ptr<inl::gxeng::Mesh> m_cubeMesh;
+	std::unique_ptr<inl::gxeng::Mesh> m_terrainMesh;
 	std::unique_ptr<inl::gxeng::Image> m_checker;
 
 	// Scenes
@@ -32,4 +33,5 @@ private:
 	// Entities
 	std::vector<std::unique_ptr<inl::gxeng::MeshEntity>> m_staticEntities;
 	std::vector<mathfu::Vector<float, 3>> m_velocities;
+	std::unique_ptr<inl::gxeng::MeshEntity> m_terrain;
 };
