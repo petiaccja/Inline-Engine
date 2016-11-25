@@ -78,7 +78,8 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 
 
 GraphicsEngine::~GraphicsEngine() {
-	// empty
+	SyncPoint lastSync = m_masterCommandQueue.Signal();
+	lastSync.Wait();
 }
 
 

@@ -33,7 +33,7 @@ exc::LogStream systemLogStream = logger.CreateLogStream("system");
 exc::LogStream graphicsLogStream = logger.CreateLogStream("graphics");
 std::experimental::filesystem::path logFilePath;
 GraphicsEngine* pEngine = nullptr;
-QCWorld* pMiniWorld = nullptr;
+QCWorld* pQcWorld = nullptr;
 
 
 std::string errorMessage;
@@ -42,8 +42,7 @@ std::string errorMessage;
 // Function prototypes
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-
+bool ProcessControls(int key, bool down);
 
 
 // -----------------------------------------------------------------------------
@@ -147,7 +146,7 @@ int main() {
 	};
 	std::unique_ptr<IGraphicsApi, ReportDeleter> gxapi;
 	std::unique_ptr<GraphicsEngine> engine;
-	std::unique_ptr<QCWorld> miniWorld;
+	std::unique_ptr<QCWorld> qcWorld;
 	try {
 		// Create manager
 		systemLogStream.Event("Creating GxApi Manager...");
@@ -179,8 +178,8 @@ int main() {
 		pEngine = engine.get();
 
 		// Create mini world
-		miniWorld.reset(new QCWorld(engine.get()));
-		pMiniWorld = miniWorld.get();
+		qcWorld.reset(new QCWorld(engine.get()));
+		pQcWorld = qcWorld.get();
 
 		isEngineInit = true;
 
@@ -224,14 +223,14 @@ int main() {
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-		if (miniWorld) {
+		if (qcWorld) {
 			try {
 				// Measure time of Update().
 				auto updateStart = std::chrono::high_resolution_clock::now();
 
 				// Update world
-				miniWorld->UpdateWorld(frameTime.count() / 1e9f);
-				miniWorld->RenderWorld(frameTime.count() / 1e9f);
+				qcWorld->UpdateWorld(frameTime.count() / 1e9f);
+				qcWorld->RenderWorld(frameTime.count() / 1e9f);
 
 				auto updateEnd = std::chrono::high_resolution_clock::now();
 				std::chrono::nanoseconds updateElapsed = updateEnd - updateStart;
@@ -307,12 +306,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				unsigned width = clientRect.right - clientRect.top;
 				unsigned height = clientRect.bottom - clientRect.top;
 				pEngine->SetScreenSize(width, height);
-				pMiniWorld->SetAspectRatio((float)width / (float(height)));
+				pQcWorld->SetAspectRatio((float)width / (float(height)));
 				return 0;
 			}
 			else {
 				return DefWindowProc(hWnd, msg, wParam, lParam);
 			}
+		}
+		case WM_KEYDOWN:
+		{
+			if (ProcessControls(wParam, true)) {
+				return 0;
+			}
+			return DefWindowProc(hWnd, msg, wParam, lParam);
 		}
 		case WM_KEYUP:
 			if (wParam == VK_ESCAPE) {
@@ -334,8 +340,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				}
 				return 0;
 			}
+			else if (ProcessControls(wParam, false)) {
+				return 0;
+			}
 			return DefWindowProc(hWnd, msg, wParam, lParam);
 		default:
 			return DefWindowProc(hWnd, msg, wParam, lParam);
 	}
+}
+
+
+
+bool ProcessControls(int key, bool down) {
+	bool enable = down;
+	switch (key) {
+		case 'W': pQcWorld->TiltForward(enable); break;
+		case 'A': pQcWorld->TiltLeft(enable); break;
+		case 'S': pQcWorld->TiltBackward(enable); break;
+		case 'D': pQcWorld->TiltRight(enable); break;
+		case 'Q': pQcWorld->RotateLeft(enable); break;
+		case 'E': pQcWorld->RotateRight(enable); break;
+		case VK_SPACE: pQcWorld->Ascend(enable); break;
+		case VK_CONTROL: pQcWorld->Descend(enable); break;
+		case VK_UP: if (!down) pQcWorld->IncreaseBase(); break;
+		case VK_DOWN: if (!down) pQcWorld->DecreaseBase(); break;
+		default: return false;
+	}
+	return true;
 }

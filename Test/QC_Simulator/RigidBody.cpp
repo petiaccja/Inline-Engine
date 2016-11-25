@@ -1,29 +1,28 @@
 #include "RigidBody.hpp"
+#include <iostream>
 
 using namespace mathfu;
+using namespace std;
 
-void RigidBody::Reset() {
+
+RigidBody::RigidBody() {
+	StopMotion();
+}
+
+void RigidBody::StopMotion() {
 	v = { 0,0,0 };
 	dq = { 0,0,0,0 };
 	w_ = { 0,0,0 };
+	w = { 0,0,0 };
 }
 
 
 void RigidBody::Update(float timestep, mathfu::Vector3f F_, mathfu::Vector3f T_) {
-	// copter parameters
-	float m = 2;
-	float arm_len = 0.25;
-	float Ixx = arm_len*arm_len / 2 * 0.2 * 4;
-	float Iyy = Ixx;
-	float Izz = arm_len*arm_len * 0.2 * 4;
-	Matrix3x3f I = {
-		Ixx, 0, 0,
-		0, Iyy, 0,
-		0, 0, Izz };
-
 	// advance position
-	Vector3f Fdrag = -v * v.Normalized();
-	Vector3f Fgravity = { 0, 0, -9.81f };
+	Vector3f Fdrag;
+	float linv = v.Length();
+	Fdrag = 0.5f * Cd * 1.225f * linv * -v;
+	Vector3f Fgravity = m*G;
 	Vector3f F = q*F_ + Fdrag + Fgravity;
 
 	auto a = F / m;
@@ -37,12 +36,19 @@ void RigidBody::Update(float timestep, mathfu::Vector3f F_, mathfu::Vector3f T_)
 		-q[3], q[2], -q[1], q[0]
 	}.Transpose();
 	Vector4f q_vec = { q[0], q[1], q[2], q[3] };
-	w_ = 2.f * (G*q_vec);
+	Vector4f dq_vec = { dq[0], dq[1], dq[2], dq[3] };
+	w_ = q.Inverse() * w;
+	mathfu::Vector3f Tdrag_ = -0.05f*w_;
+	T_ += Tdrag_;
 	auto dw_ = I.Inverse()*T_ - I.Inverse()*Vector3f::CrossProduct(w_, I*w_);
 	w_ = w_ + timestep*dw_;
-	Vector4f dq_vec = 0.5f * (G.Transpose() * w_);
+	dq_vec = 0.5f * (G.Transpose() * w_);
 
 	q_vec = q_vec + timestep * dq_vec;
 	q_vec.Normalize();
 	q = {q_vec[0], q_vec[1], q_vec[2], q_vec[3]};
+	w = q*w_;
+
+	//cout << "p = [" << q[0] << "\t" << q[1] << "\t" << q[2] << "\t" << q[3]<< endl;
+	//cout << "q = [" << p[0] << "\t" << p[1] << "\t" << p[2] << endl;
 }
