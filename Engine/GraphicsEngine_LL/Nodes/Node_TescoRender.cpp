@@ -18,7 +18,7 @@ namespace gxeng {
 namespace nodes {
 
 
-bool CheckMeshFormat(const Mesh& mesh) {
+static bool CheckMeshFormat(const Mesh& mesh) {
 	for (size_t i = 0; i < mesh.GetNumStreams(); i++) {
 		auto& elements = mesh.GetVertexBufferElements(i);
 		if (elements.size() != 3) return false;
@@ -41,7 +41,7 @@ static void ConvertToSubmittable(
 	strides.clear();
 
 	for (int streamID = 0; streamID < mesh->GetNumStreams(); streamID++) {
-		vertexBuffers.push_back(mesh->GetVertexBuffer(streamID).get());
+		vertexBuffers.push_back(&mesh->GetVertexBuffer(streamID));
 		sizes.push_back((unsigned)vertexBuffers.back()->GetSize());
 		strides.push_back((unsigned)mesh->GetVertexBufferStride(streamID));
 	}
@@ -184,7 +184,7 @@ void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, cons
 	commandList.SetResourceState(rtv.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetRenderTargets(1, &pRTV, &dsv);
 
-	gxapi::Rectangle rect{ 0, (int)rtv.GetResource()->GetHeight(), 0, (int)rtv.GetResource()->GetWidth() };
+	gxapi::Rectangle rect{ 0, (int)rtv.GetResource().GetHeight(), 0, (int)rtv.GetResource().GetWidth() };
 	gxapi::Viewport viewport;
 	viewport.width = (float)rect.right;
 	viewport.height = (float)rect.bottom;
@@ -237,8 +237,8 @@ void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, cons
 		commandList.BindGraphics(m_texBindParam, *entity->GetTexture()->GetSrv());
 		commandList.BindGraphics(m_cbBindParam, cbufferData.data(), sizeof(cbufferData), 0);
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
-		commandList.SetIndexBuffer(mesh->GetIndexBuffer().get(), mesh->GetIndexBuffer32Bit());
-		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer()->GetIndexCount());
+		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->GetIndexBuffer32Bit());
+		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
 	}
 }
 

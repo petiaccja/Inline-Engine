@@ -41,17 +41,17 @@ public:
 	void Clear();
 
 	size_t GetNumStreams() const;
-	std::shared_ptr<const VertexBuffer> GetVertexBuffer(size_t streamIndex) const;
+	const VertexBuffer& GetVertexBuffer(size_t streamIndex) const;
 	size_t GetVertexBufferStride(size_t streamIndex) const;
-	std::shared_ptr<const IndexBuffer> GetIndexBuffer() const;
+	const IndexBuffer& GetIndexBuffer() const;
 	bool GetIndexBuffer32Bit() const { return m_isIndex32Bit; }
 private:
 	template <class StreamIt, class IndexIt>
 	eValidationResult Validate(StreamIt firstStream, StreamIt lastStream, IndexIt firstIndex, IndexIt lastIndex);
 private:
-	std::vector<std::shared_ptr<VertexBuffer>> m_vertexBuffers;
+	std::vector<VertexBuffer> m_vertexBuffers;
 	std::vector<size_t> m_vertexStrides;
-	std::shared_ptr<IndexBuffer> m_indexBuffer;
+	IndexBuffer m_indexBuffer;
 	bool m_isIndex32Bit;
 	MemoryManager* m_memoryManager;
 };
@@ -82,7 +82,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 
 
 	// Create vertex buffers.
-	std::vector<std::shared_ptr<VertexBuffer>> newVertexBuffers;
+	std::vector<VertexBuffer> newVertexBuffers;
 
 	for (StreamIt streamIt = firstStream; streamIt != lastStream; ++streamIt) {
 		const VertexStream& stream = *streamIt;
@@ -90,7 +90,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 		if (streamSizeBytes == 0) {
 			throw std::invalid_argument("Stream cannot have 0 stride or 0 vertices.");
 		}
-		auto buffer = std::make_shared<VertexBuffer>(m_memoryManager->CreateVertexBuffer(eResourceHeapType::CRITICAL, streamSizeBytes));
+		VertexBuffer buffer(m_memoryManager->CreateVertexBuffer(eResourceHeapType::CRITICAL, streamSizeBytes));
 		newVertexBuffers.push_back(std::move(buffer));
 	}
 
@@ -107,7 +107,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 
 	// Update internals.
 	m_vertexBuffers = std::move(newVertexBuffers);
-	m_indexBuffer = std::make_shared<IndexBuffer>(std::move(newIndexBuffer));
+	m_indexBuffer = std::move(newIndexBuffer);
 	m_vertexStrides.clear();
 	for (StreamIt streamIt = firstStream; streamIt != lastStream; ++streamIt) {
 		m_vertexStrides.push_back(streamIt->stride);

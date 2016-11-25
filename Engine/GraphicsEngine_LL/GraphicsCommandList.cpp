@@ -231,7 +231,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const ConstBuffe
 	const auto& rootParam = desc.rootParameters[slot];
 
 	if (rootParam.type == gxapi::RootParameterDesc::CBV) {
-		m_commandList->SetGraphicsRootConstantBuffer(slot, shaderConstant.GetResource()->GetVirtualAddress());
+		m_commandList->SetGraphicsRootConstantBuffer(slot, shaderConstant.GetResource().GetVirtualAddress());
 	}
 	else if (rootParam.type == gxapi::RootParameterDesc::DESCRIPTOR_TABLE) {
 		UpdateRootTableSafe(gxapi::DescriptorHandle(), slot, tableIndex);

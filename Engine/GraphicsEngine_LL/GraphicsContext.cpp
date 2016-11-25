@@ -55,21 +55,21 @@ Texture2D GraphicsContext::CreateDepthStencil2D(uint64_t width, uint32_t height,
 Texture2DSRV GraphicsContext::CreateSrv(Texture2D& texture, gxapi::eFormat format, gxapi::SrvTexture2DArray desc) const {
 	if (m_srvHeap == nullptr) throw std::logic_error("Cannot create src without srv heap.");
 
-	return Texture2DSRV{ std::shared_ptr<Texture2D>(&texture, [](void*) {}), *m_srvHeap, format, desc };
+	return Texture2DSRV{texture, *m_srvHeap, format, desc };
 }
 
 
 RenderTargetView GraphicsContext::CreateRtv(Texture2D& texture, gxapi::RtvTexture2DArray desc) const {
 	if (m_srvHeap == nullptr) throw std::logic_error("Cannot create rtv without rtv heap.");
 
-	return RenderTargetView{ std::shared_ptr<Texture2D>(&texture, [](void*) {}), *m_rtvHeap, desc };
+	return RenderTargetView{ texture, *m_rtvHeap, desc };
 }
 
 
 DepthStencilView GraphicsContext::CreateDsv(Texture2D& texture, gxapi::DsvTexture2DArray desc) const {
 	if (m_srvHeap == nullptr) throw std::logic_error("Cannot create dsv without dsv heap.");
 
-	return DepthStencilView{ std::shared_ptr<Texture2D>(&texture, [](void*) {}), *m_dsvHeap, desc };
+	return DepthStencilView{ texture, *m_dsvHeap, desc };
 }
 
 

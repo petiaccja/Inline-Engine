@@ -1,5 +1,7 @@
 #include "Scheduler.hpp"
 
+#include "BackBuffer.hpp"
+
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
 
 #include <cassert>
@@ -56,7 +58,9 @@ void Scheduler::Execute(FrameContext context) {
 				auto dec = listRecord.list->Decompose();
 
 				std::sort(dec.usedResources.begin(), dec.usedResources.end(), [](const ResourceUsage& lhs, const ResourceUsage& rhs) {
-					return lhs.resource < rhs.resource || (lhs.resource == rhs.resource && lhs.subresource < rhs.subresource);
+					auto lhsPtr = lhs.resource._GetResourcePtr();
+					auto rhsPtr = rhs.resource._GetResourcePtr();
+					return lhsPtr < rhsPtr || (lhs.resource._GetResourcePtr() == rhs.resource._GetResourcePtr() && lhs.subresource < rhs.subresource);
 				});
 
 				// Inject a transition barrier command list.
@@ -77,7 +81,7 @@ void Scheduler::Execute(FrameContext context) {
 				}
 
 				// Enqueue actual command list.
-				std::vector<std::shared_ptr<MemoryObject>> usedResourceList;
+				std::vector<MemoryObject> usedResourceList;
 				usedResourceList.reserve(dec.usedResources.size());
 				for (const auto& v : dec.usedResources) {
 					usedResourceList.push_back(v.resource);
@@ -176,7 +180,7 @@ void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
 								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
 								   CmdAllocPtr commandAllocator,
                                    std::vector<ScratchSpacePtr> scratchSpaces,
-								   std::vector<std::shared_ptr<MemoryObject>> usedResources,
+								   std::vector<MemoryObject> usedResources,
 								   const FrameContext& context)
 {
 	// Enqueue CPU task to make resources resident before the command list runs.
@@ -267,25 +271,21 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 void Scheduler::UploadTask(CopyCommandList& commandList, const std::vector<UploadManager::UploadDescription>& uploads) {
 	for (auto& request : uploads) {
 		// Init copy parameters
-		const MemoryObject* source = &request.source;
-		std::shared_ptr<MemoryObject> destination = request.destination.lock();
+		auto& source = request.source;
+		auto& destination = const_cast<MemoryObject&>(request.destination);
 
-		// Check if resources are still valid
-		if (destination) {
-			// Set destination resource state
-			commandList.SetResourceState(destination, 0, gxapi::eResourceState::COPY_DEST);
+		// Set destination resource state
+		commandList.SetResourceState(destination, 0, gxapi::eResourceState::COPY_DEST);
 
-			// Copy buffer
-			if (const LinearBuffer* buffer = dynamic_cast<const LinearBuffer*>(destination.get())) {
-				commandList.CopyBuffer(destination.get(), request.dstOffsetX, const_cast<MemoryObject*>(source), 0, buffer->GetSize());
-			}
-			// Copy texture2D
-			else if (const Texture2D* buffer = dynamic_cast<const Texture2D*>(destination.get())) {
-				auto srcTexture = static_cast<LinearBuffer*>(const_cast<MemoryObject*>(source));
-				auto dstTexture = static_cast<Texture2D*>(destination.get());
+		auto destType = request.destType;
 
-				commandList.CopyTexture(dstTexture, srcTexture, SubTexture2D(0, 0, mathfu::Vector<intptr_t, 2>((intptr_t)request.dstOffsetX, (intptr_t)request.dstOffsetY)), request.textureBufferDesc);
-			}
+		if (destType == UploadManager::DestType::BUFFER) {
+			auto& dstBuffer = static_cast<LinearBuffer&>(destination);
+			commandList.CopyBuffer(dstBuffer, request.dstOffsetX, source, 0, dstBuffer.GetSize());
+		}
+		else if (destType == UploadManager::DestType::TEXTURE_2D) {
+			auto& dstTexture = static_cast<Texture2D&>(destination);
+			commandList.CopyTexture(dstTexture, source, SubTexture2D(0, 0, mathfu::Vector<intptr_t, 2>((intptr_t)request.dstOffsetX, (intptr_t)request.dstOffsetY)), request.textureBufferDesc);
 		}
 	}
 }

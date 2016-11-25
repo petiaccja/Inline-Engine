@@ -20,7 +20,7 @@ class CommandAllocatorPool;
 class ScratchSpacePool;
 class Scene;
 class Camera;
-
+class BackBuffer;
 
 struct FrameContext {
 	std::chrono::nanoseconds frameTime;

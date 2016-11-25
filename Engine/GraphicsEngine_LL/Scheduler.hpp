@@ -45,7 +45,7 @@ protected:
 								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
 								   CmdAllocPtr commandAllocator,
 	                               std::vector<ScratchSpacePtr> scratchSpaces,
-								   std::vector<std::shared_ptr<MemoryObject>> usedResources,
+								   std::vector<MemoryObject> usedResources,
 								   const FrameContext& context);
 
 	template <class UsedResourceIter>
@@ -70,14 +70,14 @@ std::vector<gxapi::ResourceBarrier> Scheduler::InjectBarriers(UsedResourceIter f
 
 	// Collect all necessary barriers.
 	for (UsedResourceIter it = firstResource; it != lastResource; ++it) {
-		MemoryObject* resource = it->resource.get();
+		auto& resource = it->resource;
 		unsigned subresource = it->subresource;
 		gxapi::eResourceState targetState = it->firstState;
 
-		gxapi::eResourceState sourceState = resource->ReadState(subresource);
+		gxapi::eResourceState sourceState = resource.ReadState(subresource);
 
 		if (sourceState != targetState) {
-			barriers.push_back(gxapi::TransitionBarrier{ resource->_GetResourcePtr(), sourceState, targetState, subresource });
+			barriers.push_back(gxapi::TransitionBarrier{ resource._GetResourcePtr(), sourceState, targetState, subresource });
 		}
 	}
 
@@ -92,10 +92,10 @@ bool Scheduler::CanExecuteParallel(UsedResourceIter1 first1, UsedResourceIter1 l
 
 	// Advance the two iterators on the sorted ranges simultaneously.
 	while (it1 != last1 && it2 != last2) {
-		if (it1->resource < it2->resource) {
+		if (MemoryObject::PtrLess(it1->resource, it2->resource)) {
 			++it1;
 		}
-		else if (it1->resource > it2->resource) {
+		else if (MemoryObject::PtrGreater(it1->resource, it2->resource)) {
 			++it2;
 		}
 		else {
@@ -118,8 +118,7 @@ bool Scheduler::CanExecuteParallel(UsedResourceIter1 first1, UsedResourceIter1 l
 template <class UsedResourceIter>
 void Scheduler::UpdateResourceStates(UsedResourceIter firstResource, UsedResourceIter lastResource) {
 	for (auto it = firstResource; it != lastResource; ++it) {
-		MemoryObject* resource = it->resource.get();
-		resource->RecordState(it->subresource, it->lastState);
+		it->resource.RecordState(it->subresource, it->lastState);
 	}
 }
 

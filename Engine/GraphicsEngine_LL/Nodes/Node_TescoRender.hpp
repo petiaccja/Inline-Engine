@@ -48,8 +48,7 @@ public:
 
 			this->GetOutput<0>().Set(target);
 
-			bool rtvIsValid = target.GetResource().get() != nullptr;
-			if (rtvIsValid && entities) {
+			if (entities) {
 				GraphicsCommandList cmdList = context.GetGraphicsCommandList();
 				RenderScene(target, depthStencil, camera, *entities, cmdList);
 				result.AddCommandList(std::move(cmdList));

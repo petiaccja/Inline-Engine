@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ResourceView.hpp"
+//#include "ResourceView.hpp"
 
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include "../GraphicsApi_LL/IResource.hpp"
@@ -12,7 +12,8 @@ namespace gxeng {
 
 
 class MemoryManager;
-
+class DescriptorReference;
+class RenderTargetView;
 
 //==================================
 
@@ -27,17 +28,30 @@ struct MemoryObjDesc {
 	bool resident;
 };
 
+
 class MemoryObject {
 public:
 	using Deleter = MemoryObjDesc::Deleter;
-	MemoryObject(MemoryObjDesc&& desc);
+
+public:
+	static bool PtrLess(const MemoryObject& lhs, const MemoryObject& rhs);
+	static bool PtrGreater(const MemoryObject& lhs, const MemoryObject& rhs);
+	static bool PtrEqual(const MemoryObject& lhs, const MemoryObject& rhs);
+
+public:
+	explicit MemoryObject(nullptr_t);
+	explicit MemoryObject(MemoryObjDesc&& desc);
 	virtual ~MemoryObject() {}
 
-	MemoryObject(MemoryObject&&);
-	MemoryObject& operator=(MemoryObject&&);
+	MemoryObject(const MemoryObject&) = default;
+	MemoryObject(MemoryObject&&) = default;
 
-	MemoryObject(const MemoryObject&) = delete;
-	MemoryObject& operator=(MemoryObject) = delete;
+	MemoryObject& operator=(const MemoryObject&) = default;
+	MemoryObject& operator=(MemoryObject&&) = default;
+
+	/// <summary> Returns true if and only if operands are referring to the same resource.
+	/// Different MemoryObject instances are equal if one is the copy of the other. </summary>
+	bool operator==(const MemoryObject&) const;
 
 	void* GetVirtualAddress() const;
 	gxapi::ResourceDesc GetDescription() const;
@@ -54,13 +68,20 @@ public:
 
 	gxapi::IResource* _GetResourcePtr() noexcept;
 	const gxapi::IResource* _GetResourcePtr() const noexcept;
+
 protected:
 	void InitResourceStates(gxapi::eResourceState initialState);
-protected:
-	std::unique_ptr<gxapi::IResource, Deleter> m_resource;
-	bool m_resident;
+
 private:
-	std::vector<gxapi::eResourceState> m_subresourceStates;
+	struct Contents {
+		std::unique_ptr<gxapi::IResource, Deleter> resource;
+		bool resident;
+
+		std::vector<gxapi::eResourceState> subresourceStates;
+	};
+
+private:
+	std::shared_ptr<Contents> m_contents;
 };
 
 //==================================
@@ -84,6 +105,7 @@ public:
 
 class IndexBuffer : public LinearBuffer {
 public:
+	explicit IndexBuffer(nullptr_t);
 	IndexBuffer(MemoryObjDesc&& desc, size_t indexCount);
 
 	size_t GetIndexCount() const;
@@ -171,18 +193,6 @@ public:
 	gxapi::eFormat GetFormat() const;
 };
 
-
-class BackBuffer : public Texture2D {
-public:
-	BackBuffer(DescriptorReference&& descRef, gxapi::RenderTargetViewDesc rtvDesc, MemoryObjDesc&& objDesc);
-	BackBuffer(BackBuffer&&);
-	BackBuffer& operator=(BackBuffer&&);
-
-	RenderTargetView& GetView();
-
-protected:
-	RenderTargetView m_RTV;
-};
 
 //==================================
 

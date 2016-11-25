@@ -1,13 +1,17 @@
 #pragma once
 
 #include "MemoryObject.hpp"
+#include "ResourceView.hpp"
 #include <cstdint>
 
 
 namespace inl {
 namespace gxeng {
 
-
+class MemoryManager;
+class PersistentResViewHeap;
+class RTVHeap;
+class DSVHeap;
 
 class GraphicsContext {
 public:

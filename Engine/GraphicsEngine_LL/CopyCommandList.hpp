@@ -89,7 +89,7 @@ protected:
 
 public:
 	// Resource copy
-	void CopyBuffer(MemoryObject* dst, size_t dstOffset, MemoryObject* src, size_t srcOffset, size_t numBytes);
+	void CopyBuffer(MemoryObject& dst, size_t dstOffset, const MemoryObject& src, size_t srcOffset, size_t numBytes);
 
 	void CopyResource(MemoryObject* dst, MemoryObject* src);
 
@@ -97,15 +97,15 @@ public:
 					 Texture1D* src,
 					 SubTexture1D dstPlace = {},
 					 SubTexture1D srcPlace = {});
-	void CopyTexture(Texture2D* dst,
-					 Texture2D* src,
+	void CopyTexture(Texture2D& dst,
+					 const Texture2D& src,
 					 SubTexture2D dstPlace,
 					 SubTexture2D srcPlace);
-	void CopyTexture(Texture2D* dst,
-	                 Texture2D* src,
+	void CopyTexture(Texture2D& dst,
+	                 const Texture2D& src,
 	                 SubTexture2D dstPlace = {});
-	void CopyTexture(Texture2D* dst,
-					 LinearBuffer* src,
+	void CopyTexture(Texture2D& dst,
+					 const LinearBuffer& src,
 					 SubTexture2D dstPlace,
 					 gxapi::TextureCopyDesc bufferDesc);
 	void CopyTexture(Texture3D* dst,
@@ -120,7 +120,7 @@ public:
 	template <class... Barriers>
 	void ResourceBarrier(Barriers&&... barriers);
 
-	void SetResourceState(std::shared_ptr<MemoryObject> resource, unsigned subresource, gxapi::eResourceState state);
+	void SetResourceState(MemoryObject& resource, unsigned subresource, gxapi::eResourceState state);
 protected:
 	virtual Decomposition Decompose() override;
 private:
