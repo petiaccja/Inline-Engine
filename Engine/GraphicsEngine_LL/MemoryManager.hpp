@@ -32,14 +32,14 @@ public:
 	/// If there is not enough free memory in the resource's appropriate
 	/// memory pool for the resource to fit in.
 	/// </exception>
-	void LockResident(const std::vector<MemoryObject*>& resources);
+	void LockResident(const std::vector<MemoryObject>& resources);
 	template<typename IterT>
 	void LockResident(IterT begin, IterT end);
 
 	/// <summary>
 	/// WRITE A DESCRIPTION
 	/// </summary>
-	void UnlockResident(const std::vector<MemoryObject*>& resources);
+	void UnlockResident(const std::vector<MemoryObject>& resources);
 	template<typename IterT>
 	void UnlockResident(IterT begin, IterT end);
 
@@ -57,14 +57,13 @@ public:
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
 
-	HostDescHeap* m_descHeap;
 	impl::CriticalBufferHeap m_criticalHeap;
 
 	UploadManager m_uploadHeap;
 	ConstantBufferHeap m_constBufferHeap;
 
 	std::mutex m_evictablesMtx;
-	std::unordered_set<MemoryObject*> m_evictables;
+	std::unordered_set<MemoryObject> m_evictables;
 
 protected:
 	MemoryObjDesc AllocateResource(eResourceHeapType heap, const gxapi::ResourceDesc& desc);
@@ -72,62 +71,66 @@ protected:
 
 
 template<typename IterT>
-inline void MemoryManager::LockResident(IterT begin, IterT end) {
+void MemoryManager::LockResident(IterT begin, IterT end) {
+	static_assert(std::is_same<typename IterT::value_type, MemoryObject>::value);
 
 	std::vector<gxapi::IResource*> lowLevelTargets;
-	std::vector<MemoryObject*> highLevelTargets;
+	std::vector<MemoryObject> highLevelTargets;
 
-	IterT currIter = begin;
-	while (currIter != end) {
-		auto curr = *(currIter++);
-		auto currEvictableIter = m_evictables.find(curr);
-		bool evictable = currEvictableIter != m_evictables.end();
-		if (evictable) {
-			assert(curr->_GetResident());
-			m_evictables.erase(currEvictableIter);
-		}
-		else {
-			if (curr->_GetResident() == false) {
-				lowLevelTargets.push_back(curr->_GetResourcePtr());
-				highLevelTargets.push_back(curr);
+	{
+		std::lock_guard<std::mutex> lock(m_evictablesMtx);
+
+		IterT currIter = begin;
+		while (currIter != end) {
+			auto& curr = *(currIter++);
+			auto currEvictableIter = m_evictables.find(curr);
+			bool evictable = currEvictableIter != m_evictables.end();
+			if (evictable) {
+				assert(curr._GetResident());
+				m_evictables.erase(currEvictableIter);
+			}
+			else {
+				if (curr._GetResident() == false) {
+					lowLevelTargets.push_back(curr._GetResourcePtr());
+					highLevelTargets.push_back(curr);
+				}
 			}
 		}
-	}
 
-	try {
-		m_graphicsApi->MakeResident(lowLevelTargets);
-	}
-	catch (gxapi::OutOfMemory&) {
-		std::vector<gxapi::IResource*> toEvict;
-		toEvict.reserve(m_evictables.size());
-		for (auto curr : m_evictables) {
-			toEvict.push_back(curr->_GetResourcePtr());
+		try {
+			m_graphicsApi->MakeResident(lowLevelTargets);
 		}
-		m_graphicsApi->Evict(toEvict);
-		m_evictables.clear();
+		catch (gxapi::OutOfMemory&) {
+			std::vector<gxapi::IResource*> toEvict;
+			toEvict.reserve(m_evictables.size());
+			for (auto& curr : m_evictables) {
+				// NOTE I'm not sure why 'curr' is a const reference. I had to add a const cast.
+				toEvict.push_back(const_cast<gxapi::IResource*>(curr._GetResourcePtr()));
+			}
+			m_graphicsApi->Evict(toEvict);
+			m_evictables.clear();
 
-		m_graphicsApi->MakeResident(lowLevelTargets);
+			m_graphicsApi->MakeResident(lowLevelTargets);
+		}
 	}
 
 	assert(lowLevelTargets.size() == highLevelTargets.size());
 	for (size_t i = 0; i < highLevelTargets.size(); i++) {
 		auto currLowlevel = lowLevelTargets[i];
-		auto currHighLevel = highLevelTargets[i];
-		assert(currHighLevel->_GetResourcePtr() == currLowlevel);
+		auto& currHighLevel = highLevelTargets[i];
+		assert(currHighLevel._GetResourcePtr() == currLowlevel);
 
-		currHighLevel->_SetResident(true);
+		currHighLevel._SetResident(true);
 	}
 }
 
 
 template<typename IterT>
-inline void MemoryManager::UnlockResident(IterT begin, IterT end) {
-	static_assert(std::is_same<typename IterT::value_type, MemoryObject*>::value);
+void MemoryManager::UnlockResident(IterT begin, IterT end) {
+	static_assert(std::is_same<typename IterT::value_type, MemoryObject>::value);
 
 	std::lock_guard<std::mutex> lock(m_evictablesMtx);
-	for (auto curr = begin; curr != end; ++curr) {
-		m_evictables.insert(*curr);
-	}
+	m_evictables.insert(begin, end);
 }
 
 } // namespace gxeng

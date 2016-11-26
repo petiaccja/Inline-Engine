@@ -28,9 +28,11 @@ struct MemoryObjDesc {
 	bool resident;
 };
 
-
+// TODO make std hash for memory object
 class MemoryObject {
 public:
+	friend struct std::hash<MemoryObject>;
+
 	using Deleter = MemoryObjDesc::Deleter;
 
 public:
@@ -198,3 +200,12 @@ public:
 
 } // namespace gxeng
 } // namespace inl
+
+namespace std {
+template <>
+struct hash<inl::gxeng::MemoryObject> {
+	size_t operator()(const inl::gxeng::MemoryObject& obj) const {
+		return reinterpret_cast<size_t>(obj.m_contents.get());
+	}
+};
+}
