@@ -152,6 +152,12 @@ int main() {
 		systemLogStream.Event("Creating GxApi Manager...");
 		gxapiMgr.reset(new GxapiManager());
 		auto adapters = gxapiMgr->EnumerateAdapters();
+		std::string cardList;
+		for (auto adapter : adapters) {
+			cardList += "\n";
+			cardList += adapter.name;
+		}
+		systemLogStream.Event("Available graphics cards:" + cardList);
 
 
 		// Create graphics api

@@ -1,5 +1,6 @@
 #pragma once
 
+#define FREEIMAGE_COLORORDER 0
 #include <FreeImage/FreeImagePlus.h>
 
 #include <type_traits>

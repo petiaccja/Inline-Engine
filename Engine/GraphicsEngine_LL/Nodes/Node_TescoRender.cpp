@@ -81,10 +81,10 @@ PSInput VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoo
 	PSInput result;
 
 	float3 worldNormal = normalize(mul((float3x3)cb.worldMat, normal.xyz));
-	float3 lightDir = normalize(float3(1,1,1));
+	float3 lightDir = normalize(float3(0.4,0.4,-1));
 
 	result.position = mul(cb.MVP, position);
-	result.shade = max(0.0f, 0.8*dot(lightDir, worldNormal)) + 0.2;
+	result.shade = max(0.0f, -0.8*dot(lightDir, worldNormal)) + 0.2;
 	result.texCoord = texCoord;
 
 	return result;

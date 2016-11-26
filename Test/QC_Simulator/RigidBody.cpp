@@ -38,7 +38,7 @@ void RigidBody::Update(float timestep, mathfu::Vector3f F_, mathfu::Vector3f T_)
 	Vector4f q_vec = { q[0], q[1], q[2], q[3] };
 	Vector4f dq_vec = { dq[0], dq[1], dq[2], dq[3] };
 	w_ = q.Inverse() * w;
-	mathfu::Vector3f Tdrag_ = -0.05f*w_;
+	mathfu::Vector3f Tdrag_ = -0.1f*w_*w_.Length();
 	T_ += Tdrag_;
 	auto dw_ = I.Inverse()*T_ - I.Inverse()*Vector3f::CrossProduct(w_, I*w_);
 	w_ = w_ + timestep*dw_;
