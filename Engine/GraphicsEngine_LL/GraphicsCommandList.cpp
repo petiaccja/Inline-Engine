@@ -363,6 +363,7 @@ void GraphicsCommandList::InitRootTables() {
 
 			// add record for this table
 			m_rootTableStates.push_back({ GetCurrentScratchSpace()->Allocate((uint32_t)descriptorCountTotal), (int)slot });
+			m_commandList->SetGraphicsRootDescriptorTable(m_rootTableStates.back().slot, m_rootTableStates.back().reference.Get(0));
 			m_rootTableStates.back().bindings.resize(descriptorCountTotal);
 		}
 	}

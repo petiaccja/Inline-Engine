@@ -100,7 +100,7 @@ void Image::Create(size_t width, size_t height, eChannelType type, int channelCo
 		throw std::invalid_argument("unsupported pixel type");
 	}
 
-	BOOL isImageOk = m_image.setSize(fiType, (unsigned)width, (unsigned)height, bpp);
+	BOOL isImageOk = m_image.setSize(fiType, (unsigned)width, (unsigned)height, bpp, 0xFF00'0000, 0x00FF'0000, 0x0000'FF00);
 	if (!isImageOk) {
 		throw std::runtime_error("fájled to create image");
 	}

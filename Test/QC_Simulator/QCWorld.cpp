@@ -1,8 +1,10 @@
 #include "QCWorld.hpp"
 
 #include <AssetLibrary/Model.hpp>
+#include "AssetLibrary/Image.hpp"
 
 #include <array>
+#include <random>
 
 inline float rand2() {
 	return (rand() / float(RAND_MAX)) * 2 - 1;
@@ -23,37 +25,65 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 
 	// Create terrain mesh
 	{
-		std::array<inl::gxeng::Vertex<Position<0>, Normal<0>, TexCoord<0>>, 4> modelVertices;
-		modelVertices[0].position = { -1.f, -1.f, 0.f };
-		modelVertices[1].position = { 1.f, -1.f, 0.f };
-		modelVertices[2].position = { 1.f, 1.f, 0.f };
-		modelVertices[3].position = { -1.f, 1.f, 0.f };
-		modelVertices[0].normal = { 0, 0, 1 };
-		modelVertices[1].normal = { 0, 0, 1 };
-		modelVertices[2].normal = { 0, 0, 1 };
-		modelVertices[3].normal = { 0, 0, 1 };
-		modelVertices[0].texCoord = { 0, 0 };
-		modelVertices[1].texCoord = { 1, 0 };
-		modelVertices[2].texCoord = { 1, 1 };
-		modelVertices[3].texCoord = { 0, 1 };
-		std::array<unsigned, 6> modelIndices{
-			0,1,2,
-			3,2,0,
-		};
+		inl::asset::Model model("assets\\terrain.fbx");
+
+		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0);
+		std::vector<unsigned> modelIndices = model.GetIndices(0);
 
 		m_terrainMesh.reset(m_graphicsEngine->CreateMesh());
 		m_terrainMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
 	}
 
+	// Create terrain texture
+	{
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\terrain.jpg");
+
+		m_terrainTexture.reset(m_graphicsEngine->CreateImage());
+		m_terrainTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
+		m_terrainTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+	}
+
 	// Create QC mesh
 	{
-		inl::asset::Model model("qc.fbx");
+		inl::asset::Model model("assets\\quadcopter.fbx");
 
 		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0);
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
 
 		m_quadcopterMesh.reset(m_graphicsEngine->CreateMesh());
 		m_quadcopterMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+	}
+
+	// Create QC texture
+	{
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\quadcopter.jpg");
+
+		m_quadcopterTexture.reset(m_graphicsEngine->CreateImage());
+		m_quadcopterTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
+		m_quadcopterTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+	}
+
+	// Create tree mesh
+	{
+		inl::asset::Model model("assets\\pine_tree.fbx");
+
+		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0);
+		std::vector<unsigned> modelIndices = model.GetIndices(0);
+
+		m_treeMesh.reset(m_graphicsEngine->CreateMesh());
+		m_treeMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+	}
+
+	// Create tree texture
+	{
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\pine_tree.jpg");
+
+		m_treeTexture.reset(m_graphicsEngine->CreateImage());
+		m_treeTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
+		m_treeTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
 	}
 
 	// Create checker texture
@@ -74,20 +104,29 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	// Set up terrain
 	m_terrainEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_terrainEntity->SetMesh(m_terrainMesh.get());
-	m_terrainEntity->SetTexture(m_checkerTexture.get());
-	m_terrainEntity->SetPosition({ 0,0,-1 });
+	m_terrainEntity->SetTexture(m_terrainTexture.get());
+	m_terrainEntity->SetPosition({ 0,0,0 });
 	m_terrainEntity->SetRotation({ 1,0,0,0 });
-	m_terrainEntity->SetScale({ 3,3,3 });
+	m_terrainEntity->SetScale({ 1,1,1 });
 	m_worldScene->GetMeshEntities().Add(m_terrainEntity.get());
 
 	// Set up copter
 	m_quadcopterEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_quadcopterEntity->SetMesh(m_quadcopterMesh.get());
-	m_quadcopterEntity->SetTexture(m_checkerTexture.get());
+	m_quadcopterEntity->SetTexture(m_quadcopterTexture.get());
 	m_quadcopterEntity->SetPosition({ 0,0,3 });
 	m_quadcopterEntity->SetRotation({ 1,0,0,0 });
 	m_quadcopterEntity->SetScale({ 1,1,1 });
 	m_worldScene->GetMeshEntities().Add(m_quadcopterEntity.get());
+
+	// Set up trees
+	AddTree({ 2, 2, 0 });
+	AddTree({ 11, 6, 0 });
+	AddTree({ 13, 8, 0 });
+	AddTree({ 10.5f, 8.5f, 0 });
+	AddTree({ -17, -12, 0 });
+	AddTree({ 8, 14, 0 });
+	AddTree({ 9, -12, 0 });
 
 	// Set up simulation
 	m_rigidBody.SetPosition({0, 0, 1});
@@ -125,17 +164,35 @@ void QCWorld::UpdateWorld(float elapsed) {
 	mathfu::Vector3f upDir = m_rigidBody.GetRotation() * mathfu::Vector3f{ 0,0,1 };
 	frontDir.z() = 0;
 	upDir.z() = 0;
-	mathfu::Vector3f viewDir = (frontDir.LengthSquared() > upDir.LengthSquared()) ? frontDir.Normalized() : upDir.Normalized();
+	mathfu::Vector3f viewDir = (5*frontDir.LengthSquared() > upDir.LengthSquared()) ? frontDir.Normalized() : upDir.Normalized();
 	m_camera->SetTarget(m_rigidBody.GetPosition());
-	m_camera->SetPosition(m_rigidBody.GetPosition() - viewDir * 3 + mathfu::Vector3f{ 0,0,1.5f });
+	m_camera->SetPosition(m_rigidBody.GetPosition() - viewDir * 1.5 + mathfu::Vector3f{ 0,0,0.35f });
 }
 
 void QCWorld::SetAspectRatio(float ar) {
-	m_camera->SetFOVAspect(60.f / 180.f * 3.1419f, ar);
+	m_camera->SetFOVAspect(75.f / 180.f * 3.1419f, ar);
 }
 
 void QCWorld::RenderWorld(float elapsed) {
 	m_graphicsEngine->Update(elapsed);
+}
+
+
+void QCWorld::AddTree(mathfu::Vector3f position) {
+	std::unique_ptr<inl::gxeng::MeshEntity> tree;
+
+	static std::mt19937_64 rne;
+	static std::uniform_real_distribution<float> rng{ 0.8f, 1.2f };
+	float s = rng(rne);
+
+	tree.reset(m_graphicsEngine->CreateMeshEntity());
+	tree->SetMesh(m_treeMesh.get());
+	tree->SetTexture(m_treeTexture.get());
+	tree->SetPosition(position);
+	tree->SetRotation({ 1,0,0,0 });
+	tree->SetScale({ s,s,s });
+	m_worldScene->GetMeshEntities().Add(tree.get());
+	m_staticEntities.push_back(std::move(tree));
 }
 
 

@@ -37,10 +37,10 @@ struct RotorInfo {
 		rpm[2] += 2.0f*offsetRpm*((int)ascend - (int)descend);
 		rpm[3] += 2.0f*offsetRpm*((int)ascend - (int)descend);
 
-		rpm[0] += 1.0f*offsetRpm*(+(int)rotateLeft - (int)rotateRight);
-		rpm[1] += 1.0f*offsetRpm*(-(int)rotateLeft + (int)rotateRight);
-		rpm[2] += 1.0f*offsetRpm*(-(int)rotateLeft + (int)rotateRight);
-		rpm[3] += 1.0f*offsetRpm*(+(int)rotateLeft - (int)rotateRight);
+		rpm[0] += 5.0f*offsetRpm*(+(int)rotateLeft - (int)rotateRight);
+		rpm[1] += 5.0f*offsetRpm*(-(int)rotateLeft + (int)rotateRight);
+		rpm[2] += 5.0f*offsetRpm*(-(int)rotateLeft + (int)rotateRight);
+		rpm[3] += 5.0f*offsetRpm*(+(int)rotateLeft - (int)rotateRight);
 		return rpm;
 	}
 };
@@ -66,12 +66,19 @@ public:
 	void IncreaseBase();
 	void DecreaseBase();
 private:
+	void AddTree(mathfu::Vector3f position);
+private:
 	// Engine
 	inl::gxeng::GraphicsEngine* m_graphicsEngine;
 
 	// Resource
 	std::unique_ptr<inl::gxeng::Mesh> m_quadcopterMesh;
+	std::unique_ptr<inl::gxeng::Image> m_quadcopterTexture;
 	std::unique_ptr<inl::gxeng::Mesh> m_terrainMesh;
+	std::unique_ptr<inl::gxeng::Image> m_terrainTexture;
+	std::unique_ptr<inl::gxeng::Mesh> m_treeMesh;
+	std::unique_ptr<inl::gxeng::Image> m_treeTexture;
+
 	std::unique_ptr<inl::gxeng::Image> m_checkerTexture;
 
 	// Scenes
