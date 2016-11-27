@@ -61,7 +61,7 @@ void PIDController::Update(mathfu::Quaternionf orientation, float lift, mathfu::
 
 	file << "r  = [" << r[0] << ", " << r[1] << ", " << r[2] << ", " << r[3] << "]" << endl;
 	file << "q  = [" << q[0] << ", " << q[1] << ", " << q[2] << ", " << q[3] << "]" << endl;
-	file << "w  = [" << w[0] << ", " << w[1] << ", " << w[2] << ", " << w[3] << "]" << endl;
+	file << "w  = [" << w[0] << ", " << w[1] << ", " << w[2] << "]" << endl;
 	file << "e  = [" << e[0] << ", " << e[1] << ", " << e[2] << ", " << e[3] << "]" << endl;
 	file << "de = [" << de[0] << ", " << de[1] << ", " << de[2] << ", " << "]" << endl;
 	file << "T  = [" << torque[0] << ", " << torque[1] << ", " << torque[2] << "]" << endl << endl;

@@ -117,7 +117,7 @@ void Rotor::SetTorque(mathfu::Vector3f force, mathfu::Vector3f torque, mathfu::V
 		lifts[2] = (c*(force.z() - torque.x() / a + torque.y() / a) - torque.z()) / (4 * c);
 		lifts[3] = (c*(force.z() - torque.x() / a - torque.y() / a) + torque.z()) / (4 * c);
 		torque *= 0.98f;
-	} while (lifts[0] < 0 && lifts[1] < 0 && lifts[2] < 0 && lifts[3] < 0);
+	} while (lifts[0] <= 0 && lifts[1] <= 0 && lifts[2] <= 0 && lifts[3] <= 0);
 
 	// lift = cl * rpm^2 / 3600
 	// rpm^2 = lift/cl*3600
