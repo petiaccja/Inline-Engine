@@ -5,9 +5,11 @@
 
 class Rotor {
 public:
-	void SetRPM(mathfu::Vector4f rpm);
-	mathfu::Vector3f NetForce();
-	mathfu::Vector3f NetTorque();
+	Rotor();
+	void SetRPM(mathfu::Vector4f rpm, mathfu::Vector3f& force, mathfu::Vector3f& torque) const;
+	void SetTorque(mathfu::Vector3f force, mathfu::Vector3f torque, mathfu::Vector4f& rpm) const;
 private:
-	mathfu::Vector4f rpm{ 0,0,0,0 };
+	float diameter = .30f, elevation = .12f, cdrag = 1.0f, clift = 1.0f;
+	float airdensity = 1.225f;
+	float arm = 0.25f;
 };

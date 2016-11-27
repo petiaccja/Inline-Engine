@@ -9,14 +9,16 @@
 #include <GraphicsEngine_LL/Camera.hpp>
 #include "RigidBody.hpp"
 #include "Rotor.hpp"
+#include "PIDController.hpp"
 
 
-struct RotorInfo {
-	float baseRpm = 3763;
+struct ControlInfo {
+	float weight = 19.62; // weight!=mass is in newtowns, not kg!
 	float offsetRpm = 100;
 	bool ascend = false, descend = false;
 	bool front = false, back = false, left = false, right = false;
 	bool rotateLeft = false, rotateRight = false;
+	float heading = 0.0f;
 
 	//           >   y   <
 	//           1       2
@@ -25,23 +27,24 @@ struct RotorInfo {
 	//             /   \
 	//           3       4
 	//           >       <
-	mathfu::Vector4f RPM() const {
-		mathfu::Vector4f rpm{ baseRpm, baseRpm, baseRpm, baseRpm };
-		rpm[0] += 0.6f*offsetRpm*((int)front + (int)left);
-		rpm[1] += 0.6f*offsetRpm*((int)front + (int)right);
-		rpm[2] += 0.6f*offsetRpm*((int)back + (int)left);
-		rpm[3] += 0.6f*offsetRpm*((int)back + (int)right);
-
-		rpm[0] += 2.0f*offsetRpm*((int)ascend - (int)descend);
-		rpm[1] += 2.0f*offsetRpm*((int)ascend - (int)descend);
-		rpm[2] += 2.0f*offsetRpm*((int)ascend - (int)descend);
-		rpm[3] += 2.0f*offsetRpm*((int)ascend - (int)descend);
-
-		rpm[0] += 5.0f*offsetRpm*(+(int)rotateLeft - (int)rotateRight);
-		rpm[1] += 5.0f*offsetRpm*(-(int)rotateLeft + (int)rotateRight);
-		rpm[2] += 5.0f*offsetRpm*(-(int)rotateLeft + (int)rotateRight);
-		rpm[3] += 5.0f*offsetRpm*(+(int)rotateLeft - (int)rotateRight);
+	mathfu::Vector4f RPM(const Rotor& rotor) const {
+		mathfu::Vector3f force, torque;
+		force = { 0, 0, weight + (int)ascend - (int)descend };
+		torque = {
+			0.05f*((int)back - (int)front),
+			0.05f*((int)right - (int)left),
+			0.2f*((int)rotateLeft - (int)rotateRight)
+		};
+		mathfu::Vector4f rpm;
+		rotor.SetTorque(force, torque, rpm);
 		return rpm;
+	}
+
+	mathfu::Quaternionf Orientation() const {
+		auto x = mathfu::Quaternionf::FromAngleAxis(0.2f*((int)back - (int)front), {1, 0, 0});
+		auto y = mathfu::Quaternionf::FromAngleAxis(0.2f*((int)right - (int)left), { 0, 1, 0 });
+		auto z = mathfu::Quaternionf::FromAngleAxis(heading, { 0, 0, 1 });
+		return z*y*x;
 	}
 };
 
@@ -91,7 +94,8 @@ private:
 	std::unique_ptr<inl::gxeng::MeshEntity> m_quadcopterEntity;
 
 	// Simulation
-	RigidBody m_rigidBody;
+	PIDController m_controller;
 	Rotor m_rotor;
-	RotorInfo m_rotorInfo;
+	RigidBody m_rigidBody;
+	ControlInfo m_rotorInfo;
 };

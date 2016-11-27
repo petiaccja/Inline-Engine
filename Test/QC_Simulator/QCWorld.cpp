@@ -148,12 +148,30 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 }
 
 void QCWorld::UpdateWorld(float elapsed) {
+	// Update QC heading
+	m_rotorInfo.heading += 2.0f*((int)m_rotorInfo.rotateLeft - (int)m_rotorInfo.rotateRight)*elapsed;
+
 	// Update simulation
-	mathfu::Vector4f rpm = m_rotorInfo.RPM();
-	m_rotor.SetRPM(rpm);
-	mathfu::Vector3f force = m_rotor.NetForce();
-	mathfu::Vector3f torque = m_rotor.NetTorque();
-	m_rigidBody.Update(elapsed, force, torque);
+	bool controller = true;
+	if (!controller) {
+		mathfu::Vector4f rpm = m_rotorInfo.RPM(m_rotor);
+		mathfu::Vector3f force;
+		mathfu::Vector3f torque;
+		m_rotor.SetRPM(rpm, force, torque);
+		m_rigidBody.Update(elapsed, force, torque);
+	}
+	else {
+		mathfu::Quaternionf orientation = m_rotorInfo.Orientation();
+		mathfu::Quaternionf q = m_rigidBody.GetRotation();
+		mathfu::Vector3f force;
+		mathfu::Vector3f torque;
+		mathfu::Vector4f rpm;
+		float lift = 2.0f * 9.81 + 2.5f*((int)m_rotorInfo.ascend - (int)m_rotorInfo.descend);
+		m_controller.Update(orientation, lift, q, m_rigidBody.GetAngularVelocity(), elapsed, force, torque);
+		m_rotor.SetTorque(force, torque, rpm);
+		m_rotor.SetRPM(rpm, force, torque);
+		m_rigidBody.Update(elapsed, force, torque);
+	}
 
 	// Move quadcopter entity
 	m_quadcopterEntity->SetPosition(m_rigidBody.GetPosition());
@@ -199,16 +217,16 @@ void QCWorld::AddTree(mathfu::Vector3f position) {
 
 
 void QCWorld::TiltForward(bool set) {
-	m_rotorInfo.back = set;
-}
-void QCWorld::TiltBackward(bool set) {
 	m_rotorInfo.front = set;
 }
+void QCWorld::TiltBackward(bool set) {
+	m_rotorInfo.back = set;
+}
 void QCWorld::TiltRight(bool set) {
-	m_rotorInfo.left = set;
+	m_rotorInfo.right = set;
 }
 void QCWorld::TiltLeft(bool set) {
-	m_rotorInfo.right = set;
+	m_rotorInfo.left = set;
 }
 void QCWorld::RotateRight(bool set) {
 	m_rotorInfo.rotateRight = set;
@@ -223,8 +241,8 @@ void QCWorld::Descend(bool set) {
 	m_rotorInfo.descend = set;
 }
 void QCWorld::IncreaseBase() {
-	m_rotorInfo.baseRpm += 15.f;
+	//m_rotorInfo.baseRpm += 15.f;
 }
 void QCWorld::DecreaseBase() {
-	m_rotorInfo.baseRpm -= 15.f;
+	//m_rotorInfo.baseRpm -= 15.f;
 }

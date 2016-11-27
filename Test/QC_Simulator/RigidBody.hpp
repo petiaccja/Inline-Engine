@@ -14,7 +14,9 @@ public:
 	void SetRotation(mathfu::Quaternionf q) { this->q = q; }
 
 	mathfu::Vector3f GetPosition() const { return p; }
+	mathfu::Vector3f GetVelocity() const { return v; }
 	mathfu::Quaternionf GetRotation() const { return q; }
+	mathfu::Vector3f GetAngularVelocity() const { return w; }
 
 	void SetMass(float mass) { m = mass; }
 	void SetInertia(mathfu::Matrix3x3f inertia) { I = inertia; }

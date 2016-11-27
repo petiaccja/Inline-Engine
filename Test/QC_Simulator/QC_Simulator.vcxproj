@@ -150,12 +150,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="PIDController.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="QCWorld.cpp" />
     <ClCompile Include="RigidBody.cpp" />
     <ClCompile Include="Rotor.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="PIDController.hpp" />
     <ClInclude Include="QCWorld.hpp" />
     <ClInclude Include="RigidBody.hpp" />
     <ClInclude Include="Rotor.hpp" />
