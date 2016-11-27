@@ -21,7 +21,7 @@ void RigidBody::Update(float timestep, mathfu::Vector3f F_, mathfu::Vector3f T_)
 	// advance position
 	Vector3f Fdrag;
 	float linv = v.Length();
-	Fdrag = 0.5f * Cd * 1.225f * linv * -v * 0.02f;
+	Fdrag = 0.5f * Cd * 1.225f * linv * -v * 0.1f;
 	Vector3f Fgravity = m*G;
 	Vector3f F = q*F_ + Fdrag + Fgravity;
 

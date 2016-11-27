@@ -1,11 +1,12 @@
 #include "PIDController.hpp"
 #include <fstream>
+#include <cmath>
 
 using namespace std;
 using namespace mathfu;
 
 
-static ofstream file("control.txt");
+//static ofstream file("control.txt");
 
 
 PIDController::PIDController() {
@@ -14,8 +15,8 @@ PIDController::PIDController() {
 	de = { 0, 0, 0 };
 
 	Kp = 2.0f;
-	Ki = 0.3f;
-	Kd = 0.3f;
+	Ki = 0.02f;
+	Kd = 0.4f;
 
 	//Ki = 0;
 	//Kd = 0;
@@ -59,14 +60,17 @@ void PIDController::Update(mathfu::Quaternionf orientation, float lift, mathfu::
 	torque = Kp*P + Ki*I + Kd*D;
 	force = q*Vector3f{ 0, 0, 1 };
 
-	file << "r  = [" << r[0] << ", " << r[1] << ", " << r[2] << ", " << r[3] << "]" << endl;
-	file << "q  = [" << q[0] << ", " << q[1] << ", " << q[2] << ", " << q[3] << "]" << endl;
-	file << "w  = [" << w[0] << ", " << w[1] << ", " << w[2] << "]" << endl;
-	file << "e  = [" << e[0] << ", " << e[1] << ", " << e[2] << ", " << e[3] << "]" << endl;
-	file << "de = [" << de[0] << ", " << de[1] << ", " << de[2] << ", " << "]" << endl;
-	file << "T  = [" << torque[0] << ", " << torque[1] << ", " << torque[2] << "]" << endl << endl;
+	//file << "r  = [" << r[0] << ", " << r[1] << ", " << r[2] << ", " << r[3] << "]" << endl;
+	//file << "q  = [" << q[0] << ", " << q[1] << ", " << q[2] << ", " << q[3] << "]" << endl;
+	//file << "w  = [" << w[0] << ", " << w[1] << ", " << w[2] << "]" << endl;
+	//file << "e  = [" << e[0] << ", " << e[1] << ", " << e[2] << ", " << e[3] << "]" << endl;
+	//file << "de = [" << de[0] << ", " << de[1] << ", " << de[2] << ", " << "]" << endl;
+	//file << "T  = [" << torque[0] << ", " << torque[1] << ", " << torque[2] << "]" << endl << endl;
 
 	torque = q.Inverse()*torque;
+	if (isnan(torque.x()) || isnan(torque.y()) || isnan(torque.z())) {
+		__debugbreak();
+	}
 
 	if (force.z() > 0.5) {
 		force.z() = lift / force.z();
