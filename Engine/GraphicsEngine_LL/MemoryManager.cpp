@@ -22,13 +22,16 @@ MemoryManager::MemoryManager(gxapi::IGraphicsApi* graphicsApi) :
 {}
 
 
-void MemoryManager::LockResident(const std::vector<MemoryObject*>& resources) {
-	LockResident(resources.begin(), resources.end());
+void MemoryManager::LockResident(const std::vector<MemoryObject>& resources) {
+	// Lock resident wants to modify contents but not the vector.
+	auto& nonconst = const_cast<std::vector<MemoryObject>&>(resources);
+	LockResident(nonconst.begin(), nonconst.end());
 }
 
 
-void MemoryManager::UnlockResident(const std::vector<MemoryObject*>& resources) {
-	UnlockResident(resources.begin(), resources.end());
+void MemoryManager::UnlockResident(const std::vector<MemoryObject>& resources) {
+	auto& nonconst = const_cast<std::vector<MemoryObject>&>(resources);
+	UnlockResident(nonconst.begin(), nonconst.end());
 }
 
 
