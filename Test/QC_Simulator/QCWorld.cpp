@@ -166,7 +166,7 @@ void QCWorld::UpdateWorld(float elapsed) {
 		mathfu::Vector3f force;
 		mathfu::Vector3f torque;
 		mathfu::Vector4f rpm;
-		float lift = 2.0f * 9.81 + 2.5f*((int)m_rotorInfo.ascend - (int)m_rotorInfo.descend);
+		float lift = 2.0f * 9.81 + 5.f*((int)m_rotorInfo.ascend - (int)m_rotorInfo.descend);
 		m_controller.Update(orientation, lift, q, m_rigidBody.GetAngularVelocity(), elapsed, force, torque);
 		m_rotor.SetTorque(force, torque, rpm);
 		m_rotor.SetRPM(rpm, force, torque);

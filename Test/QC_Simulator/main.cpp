@@ -364,12 +364,12 @@ bool ProcessControls(int key, bool down) {
 		case 'A': pQcWorld->TiltLeft(enable); break;
 		case 'S': pQcWorld->TiltBackward(enable); break;
 		case 'D': pQcWorld->TiltRight(enable); break;
-		case 'Q': pQcWorld->RotateLeft(enable); break;
-		case 'E': pQcWorld->RotateRight(enable); break;
-		case VK_SPACE: pQcWorld->Ascend(enable); break;
-		case VK_CONTROL: pQcWorld->Descend(enable); break;
-		case VK_UP: if (!down) pQcWorld->IncreaseBase(); break;
-		case VK_DOWN: if (!down) pQcWorld->DecreaseBase(); break;
+		case VK_LEFT: pQcWorld->RotateLeft(enable); break;
+		case VK_RIGHT: pQcWorld->RotateRight(enable); break;
+		case VK_UP: pQcWorld->Ascend(enable); break;
+		case VK_DOWN: pQcWorld->Descend(enable); break;
+		//case VK_UP: if (!down) pQcWorld->IncreaseBase(); break;
+		//case VK_DOWN: if (!down) pQcWorld->DecreaseBase(); break;
 		default: return false;
 	}
 	return true;

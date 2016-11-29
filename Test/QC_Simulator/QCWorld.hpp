@@ -41,8 +41,8 @@ struct ControlInfo {
 	}
 
 	mathfu::Quaternionf Orientation() const {
-		auto x = mathfu::Quaternionf::FromAngleAxis(0.2f*((int)back - (int)front), {1, 0, 0});
-		auto y = mathfu::Quaternionf::FromAngleAxis(0.2f*((int)right - (int)left), { 0, 1, 0 });
+		auto x = mathfu::Quaternionf::FromAngleAxis(0.35f*((int)back - (int)front), {1, 0, 0});
+		auto y = mathfu::Quaternionf::FromAngleAxis(0.35f*((int)right - (int)left), { 0, 1, 0 });
 		auto z = mathfu::Quaternionf::FromAngleAxis(heading, { 0, 0, 1 });
 		return z*y*x;
 	}

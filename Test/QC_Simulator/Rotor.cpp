@@ -116,12 +116,18 @@ void Rotor::SetTorque(mathfu::Vector3f force, mathfu::Vector3f torque, mathfu::V
 		lifts[1] = (c*(force.z() + torque.x() / a - torque.y() / a) - torque.z()) / (4 * c);
 		lifts[2] = (c*(force.z() - torque.x() / a + torque.y() / a) - torque.z()) / (4 * c);
 		lifts[3] = (c*(force.z() - torque.x() / a - torque.y() / a) + torque.z()) / (4 * c);
-		torque *= 0.98f;
-	} while (lifts[0] <= 0 && lifts[1] <= 0 && lifts[2] <= 0 && lifts[3] <= 0);
 
-	// lift = cl * rpm^2 / 3600
-	// rpm^2 = lift/cl*3600
-	for (int i=0; i<4; ++i) {
-		rpm[i] = sqrt(lifts[i] / cl * 3600);
+		// lift = cl * rpm^2 / 3600
+		// rpm^2 = lift/cl*3600
+		for (int i = 0; i<4; ++i) {
+			rpm[i] = sqrt(lifts[i] / cl * 3600);
+		}
+
+		torque *= 0.98f;
+	} while (lifts[0] <= 0 || lifts[1] <= 0 || lifts[2] <= 0 || lifts[3] <= 0
+		|| rpm[0] <= 1000 || rpm[1] <= 1000 || rpm[2] <= 1000 || rpm[3] <= 1000);
+
+	if (isnan(rpm.x()) || isnan(rpm.y()) || isnan(rpm.z()) || isnan(rpm.w())) {
+		__debugbreak();
 	}
 }
