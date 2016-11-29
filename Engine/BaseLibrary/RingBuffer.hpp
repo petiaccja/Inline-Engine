@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list>
+#include <cassert>
 
 namespace exc {
 
@@ -47,14 +48,13 @@ protected:
 			--(*this);
 			return copy;
 		}
-		bool operator!=(const TemplateIterator& other) {
-			if (m_offset != other.m_offset) {
-				return true;
-			}
-			return false;
+		inline bool operator==(const TemplateIterator& other) const {
+			assert(m_pContainer == other.m_pContainer);
+			return m_offset == other.m_offset;
 		}
-		bool operator==(const TemplateIterator& other) {
-			return !(*this != other);
+		inline bool operator!=(const TemplateIterator& other) const {
+			assert(m_pContainer == other.m_pContainer);
+			return !(*this == other);
 		}
 		// Adds "count" number of rounds to the iterator.
 		// This means that in order to reach the resulting iterator

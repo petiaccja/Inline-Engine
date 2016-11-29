@@ -18,9 +18,7 @@ VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(void* data, uint32_
 
 	std::lock_guard<std::mutex> lock(m_mutex);
 
-	if (HasBecomeAvailable(m_pages.Front())) {
-		m_pages.Front().m_consumedSize = 0; // mark it empty
-	}
+	MarkEmptyIfRecycled(m_pages.Front());
 
 	ConstBufferPage* targetPage = nullptr;
 
@@ -40,6 +38,7 @@ VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(void* data, uint32_
 					m_largePages.RotateFront())
 				{
 					auto& currPage = m_largePages.Front();
+					MarkEmptyIfRecycled(currPage);
 					if (currPage.m_consumedSize + targetSize <= currPage.m_pageSize) {
 						break; // current front will be selected as the target page, see below
 					}
@@ -183,6 +182,14 @@ ConstantBufferHeap::ConstBufferPage ConstantBufferHeap::CreateLargePage(size_t f
 bool ConstantBufferHeap::HasBecomeAvailable(const ConstBufferPage& page) {
 	return page.m_ownerFrameID <= m_lastFinishedFrameID;
 }
+
+
+void ConstantBufferHeap::MarkEmptyIfRecycled(ConstBufferPage& page) {
+	if (HasBecomeAvailable(page)) {
+		page.m_consumedSize = 0;
+	}
+}
+
 
 } // namespace gxeng
 } // namespace inl
