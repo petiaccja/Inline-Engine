@@ -37,46 +37,7 @@ float Drag(float rpm, float diam, float elev, float c, float airdensity) {
 
 
 Rotor::Rotor() {
-	// just testing equations
-	mathfu::Vector3f F;
-	mathfu::Vector3f T;
-	mathfu::Vector4f rpm;
 
-	cout << "lift(3760 rpm) = " << Lift(3760.f, diameter, elevation, cdrag, airdensity) << endl;
-	cout << "lift(3770 rpm) = " << Lift(3770.f, diameter, elevation, cdrag, airdensity) << endl;
-	cout << "drag(7000 rpm) = " << Drag(7000.f, diameter, elevation, cdrag, airdensity) << endl << endl;
-
-		F = { 0, 0, 19.62f };
-	T = { 0, 0, 0 };
-	SetTorque(F, T, rpm);
-	cout << "[" << rpm[0] << ", " << rpm[1] << ", " << rpm[2] << ", " << rpm[3] << "]" << endl;
-	SetRPM(rpm, F, T);
-	cout << "[" << F[0] << ", " << F[1] << ", " << F[2] << "]" << endl;
-	cout << "[" << T[0] << ", " << T[1] << ", " << T[2] << "]" << endl << endl;
-
-	F = { 0, 0, 19.62f };
-	T = { 0, 0, 0.1f };
-	SetTorque(F, T, rpm);
-	cout << "[" << rpm[0] << ", " << rpm[1] << ", " << rpm[2] << ", " << rpm[3] << "]" << endl;
-	SetRPM(rpm, F, T);
-	cout << "[" << F[0] << ", " << F[1] << ", " << F[2] << "]" << endl;
-	cout << "[" << T[0] << ", " << T[1] << ", " << T[2] << "]" << endl << endl;
-
-	F = { 0, 0, 19.62f };
-	T = { 0.1f, 0, 0 };
-	SetTorque(F, T, rpm);
-	cout << "[" << rpm[0] << ", " << rpm[1] << ", " << rpm[2] << ", " << rpm[3] << "]" << endl;
-	SetRPM(rpm, F, T);
-	cout << "[" << F[0] << ", " << F[1] << ", " << F[2] << "]" << endl;
-	cout << "[" << T[0] << ", " << T[1] << ", " << T[2] << "]" << endl << endl;
-
-	F = { 0, 0, 19.62f };
-	T = { 0, 0.1f, 0 };
-	SetTorque(F, T, rpm);
-	cout << "[" << rpm[0] << ", " << rpm[1] << ", " << rpm[2] << ", " << rpm[3] << "]" << endl;
-	SetRPM(rpm, F, T);
-	cout << "[" << F[0] << ", " << F[1] << ", " << F[2] << "]" << endl;
-	cout << "[" << T[0] << ", " << T[1] << ", " << T[2] << "]" << endl << endl;
 }
 
 

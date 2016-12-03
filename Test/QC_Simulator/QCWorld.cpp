@@ -134,10 +134,9 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 
 	// copter parameters
 	float m = 2;
-	float arm_len = 0.25;
-	float Ixx = arm_len*arm_len / 2 * 0.2 * 4;
-	float Iyy = Ixx;
-	float Izz = arm_len*arm_len * 0.2 * 4;
+	float Ixx = 0.026;
+	float Iyy = 0.024;
+	float Izz = 0.048;
 	mathfu::Matrix3x3f I = {
 		Ixx, 0, 0,
 		0, Iyy, 0,
@@ -145,6 +144,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	m_rigidBody.SetMass(m);
 	m_rigidBody.SetInertia(I);
 	m_rigidBody.SetGravity({ 0, 0, -9.81f });
+	m_controller.SetInertia(I);
 }
 
 void QCWorld::UpdateWorld(float elapsed) {
