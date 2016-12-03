@@ -60,7 +60,10 @@ public:
 	void OnFrameCompleteDevice(uint64_t frameId) override;
 	void OnFrameCompleteHost(uint64_t frameId) override;
 
-	const std::vector<UploadDescription>& _GetQueuedUploads();
+	//const std::vector<UploadDescription>& _GetQueuedUploads();
+
+	/// <summary>Removes the least recent upload queue, and returns it to the caller.</summary>
+	std::vector<UploadDescription> _TakeQueuedUploads();
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
 	std::deque<std::vector<UploadDescription>> m_uploadQueues;

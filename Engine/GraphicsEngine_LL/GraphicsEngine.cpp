@@ -108,7 +108,9 @@ void GraphicsEngine::Update(float elapsed) {
 	context.backBuffer = &m_backBufferHeap->GetBackBuffer(backBufferIndex);
 	context.scenes = &m_scenes;
 	context.cameras = &m_cameras;
-	context.uploadRequests = &m_memoryManager.GetUploadManager()._GetQueuedUploads();
+
+	std::vector<UploadManager::UploadDescription> uploadRequests = m_memoryManager.GetUploadManager()._TakeQueuedUploads();
+	context.uploadRequests = &uploadRequests;
 
 	context.residencyQueue = &m_residencyQueue;
 

@@ -123,15 +123,11 @@ void UploadManager::OnFrameBeginDevice(uint64_t frameId) {
 
 void UploadManager::OnFrameBeginHost(uint64_t frameId) {
 	std::lock_guard<std::mutex> lock(m_mtx);
-
 	m_uploadQueues.push_back(std::vector<UploadDescription>());
 }
 
 
 void UploadManager::OnFrameCompleteDevice(uint64_t frameId) {
-	std::lock_guard<std::mutex> lock(m_mtx);
-
-	m_uploadQueues.pop_front();
 }
 
 
@@ -139,15 +135,15 @@ void UploadManager::OnFrameCompleteHost(uint64_t frameId) {
 }
 
 
-const std::vector<UploadManager::UploadDescription>& UploadManager::_GetQueuedUploads() {
-	if (!m_uploadQueues.empty()) {
-		return m_uploadQueues.back();
+std::vector<UploadManager::UploadDescription> UploadManager::_TakeQueuedUploads() {
+	std::vector<UploadDescription> result;
+	{
+		std::lock_guard<std::mutex> lock(m_mtx);
+		assert(!m_uploadQueues.empty());
+		result = std::move(m_uploadQueues.front());
+		m_uploadQueues.pop_front();
 	}
-	else {
-#pragma message("This should be fixed");
-		static std::vector<UploadManager::UploadDescription> tmp;
-		return tmp;
-	}
+	return result;
 }
 
 
