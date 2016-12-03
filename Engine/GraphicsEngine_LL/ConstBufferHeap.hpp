@@ -76,6 +76,7 @@ protected:
 	ConstBufferPage CreatePage();
 	ConstBufferPage CreateLargePage(size_t fittingSize);
 	bool HasBecomeAvailable(const ConstBufferPage& page);
+	void MarkEmptyIfRecycled(ConstBufferPage& page);
 };
 
 } // namespace gxeng
