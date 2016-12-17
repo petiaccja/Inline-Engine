@@ -2,6 +2,7 @@
 
 #include "MemoryObject.hpp"
 #include "ResourceView.hpp"
+#include "ShaderManager.hpp"
 #include <cstdint>
 
 
@@ -20,7 +21,9 @@ public:
 					RTVHeap* rtvHeap = nullptr,
 					DSVHeap* dsvHeap = nullptr,
 					int processorCount = 0,
-					int deviceCount = 0);
+					int deviceCount = 0,
+					ShaderManager* shaderManager = nullptr,
+					gxapi::IGraphicsApi* graphicsApi = nullptr);
 	GraphicsContext(const GraphicsContext& rhs) = default;
 	GraphicsContext(GraphicsContext&& rhs) = default;
 	GraphicsContext& operator=(const GraphicsContext& rhs) = default;
@@ -38,13 +41,22 @@ public:
 	RenderTargetView CreateRtv(Texture2D& renderTarget, gxapi::RtvTexture2DArray desc) const;
 	DepthStencilView CreateDsv(Texture2D& depthStencilView, gxapi::DsvTexture2DArray desc) const;
 
+	// Shaders and PSOs
+	ShaderProgram CreateShader(const std::string& name, ShaderParts stages, const std::string& macros);
+	gxapi::IPipelineState* CreatePSO(const gxapi::GraphicsPipelineStateDesc& desc);
+
 private:
+	// Memory management stuff
 	MemoryManager* m_memoryManager;
 	PersistentResViewHeap* m_srvHeap;
 	RTVHeap* m_rtvHeap;
 	DSVHeap* m_dsvHeap;
 	int m_processorCount;
 	int m_deviceCount;
+
+	// Shaders and PSOs
+	ShaderManager* m_shaderManager;
+	gxapi::IGraphicsApi* m_graphicsApi;
 };
 
 

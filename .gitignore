@@ -245,3 +245,6 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
+/Inline-Engine.sln.db
+/Inline-Engine.sln.db-shm
+/Inline-Engine.sln.db-wal

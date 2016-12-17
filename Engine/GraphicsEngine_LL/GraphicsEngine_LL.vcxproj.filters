@@ -228,6 +228,9 @@
     <ClInclude Include="BackBuffer.hpp">
       <Filter>MemoryManagement\ObjectManagement</Filter>
     </ClInclude>
+    <ClInclude Include="ShaderManager.hpp">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -344,6 +347,9 @@
     </ClCompile>
     <ClCompile Include="BackBuffer.cpp">
       <Filter>MemoryManagement\ObjectManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderManager.cpp">
+      <Filter>Pipeline</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

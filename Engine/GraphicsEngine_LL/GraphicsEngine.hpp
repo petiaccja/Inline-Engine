@@ -12,6 +12,7 @@
 #include "BackBufferManager.hpp"
 #include "MemoryManager.hpp"
 #include "HostDescHeap.hpp"
+#include "ShaderManager.hpp"
 
 #include <GraphicsApi_LL/IGxapiManager.hpp>
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
@@ -108,6 +109,7 @@ private:
 	PersistentResViewHeap m_textureSpace;
 	Pipeline m_pipeline;
 	Scheduler m_scheduler;
+	ShaderManager m_shaderManager;
 	std::vector<SyncPoint> m_frameEndFenceValues;
 
 	// Memory

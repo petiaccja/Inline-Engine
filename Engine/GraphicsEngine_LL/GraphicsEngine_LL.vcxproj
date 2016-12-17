@@ -180,6 +180,7 @@
     <ClInclude Include="ExecutionResult.hpp" />
     <ClInclude Include="GraphicsContext.hpp" />
     <ClInclude Include="Nodes\Node_GetCameraByName.hpp" />
+    <ClInclude Include="ShaderManager.hpp" />
     <ClInclude Include="StackDescHeap.hpp" />
     <ClInclude Include="FrameContext.hpp" />
     <ClInclude Include="GraphicsCommandList.hpp" />
@@ -233,6 +234,7 @@
     <ClCompile Include="ExecutionContext.cpp" />
     <ClCompile Include="ExecutionResult.cpp" />
     <ClCompile Include="GraphicsContext.cpp" />
+    <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="StackDescHeap.cpp" />
     <ClCompile Include="GraphicsCommandList.cpp" />
     <ClCompile Include="GraphicsNodeFactory.cpp" />

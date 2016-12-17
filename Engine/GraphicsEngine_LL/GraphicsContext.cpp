@@ -6,12 +6,27 @@ namespace inl {
 namespace gxeng {
 
 
-GraphicsContext::GraphicsContext(MemoryManager* memoryManager, PersistentResViewHeap* srvHeap, RTVHeap* rtvHeap, DSVHeap* dsvHeap, int processorCount, int deviceCount)
-	: m_memoryManager(memoryManager), m_srvHeap(srvHeap), m_rtvHeap(rtvHeap), m_dsvHeap(dsvHeap), m_processorCount(processorCount), m_deviceCount(deviceCount)
+GraphicsContext::GraphicsContext(MemoryManager* memoryManager,
+	PersistentResViewHeap* srvHeap,
+	RTVHeap* rtvHeap,
+	DSVHeap* dsvHeap,
+	int processorCount,
+	int deviceCount,
+	ShaderManager* shaderManager,
+	gxapi::IGraphicsApi* graphicsApi)
+
+	: m_memoryManager(memoryManager),
+	m_srvHeap(srvHeap),
+	m_rtvHeap(rtvHeap),
+	m_dsvHeap(dsvHeap),
+	m_processorCount(processorCount),
+	m_deviceCount(deviceCount),
+	m_shaderManager(shaderManager),
+	m_graphicsApi(graphicsApi)
 {}
 
 
-// Parallelism
+
 int GraphicsContext::GetProcessorCoreCount() const {
 	return m_processorCount;
 }
@@ -71,6 +86,16 @@ DepthStencilView GraphicsContext::CreateDsv(Texture2D& texture, gxapi::DsvTextur
 
 	return DepthStencilView{ texture, *m_dsvHeap, desc };
 }
+
+
+ShaderProgram GraphicsContext::CreateShader(const std::string& name, ShaderParts stages, const std::string& macros) {
+	return m_shaderManager->CreateShader(name, stages, macros);
+}
+
+gxapi::IPipelineState* GraphicsContext::CreatePSO(const gxapi::GraphicsPipelineStateDesc& desc) {
+	return m_graphicsApi->CreateGraphicsPipelineState(desc);
+}
+
 
 
 } // namespace gxeng

@@ -39,7 +39,8 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_residencyQueue(std::unique_ptr<gxapi::IFence>(desc.graphicsApi->CreateFence(0))),
 	m_memoryManager(desc.graphicsApi),
 	m_dsvHeap(desc.graphicsApi),
-	m_logger(desc.logger)
+	m_logger(desc.logger),
+	m_shaderManager(desc.gxapiManager)
 {
 	// Create swapchain
 	SwapChainDesc swapChainDesc;

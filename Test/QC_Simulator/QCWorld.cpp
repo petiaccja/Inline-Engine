@@ -10,7 +10,7 @@ inline float rand2() {
 	return (rand() / float(RAND_MAX)) * 2 - 1;
 }
 
-QCWorld::QCWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
+QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	using namespace inl::gxeng;
 
 	m_graphicsEngine = graphicsEngine;
