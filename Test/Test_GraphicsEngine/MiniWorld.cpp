@@ -17,8 +17,9 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	m_worldScene.reset(m_graphicsEngine->CreateScene("World"));
 	m_camera.reset(m_graphicsEngine->CreateCamera("WorldCam"));
 	m_camera->SetTargeted(true);
-	m_camera->SetTarget({0, 0, 0});
-	m_camera->SetPosition({0, -8, 3});
+	m_camera->SetPosition({0, 0, 8});
+	m_camera->SetTarget({ 0, 0, 0 });
+	m_camera->SetUpVector({ 0, 1, 0 });
 
 	{
 		inl::asset::Model model("monkey.dae");
@@ -43,7 +44,7 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	srand(time(nullptr));
 
 	const float extent = 5;
-	const int count = 6;
+	const int count = 3;
 	for (int i = 0; i < count; i++) {
 		std::unique_ptr<inl::gxeng::MeshEntity> entity(new inl::gxeng::MeshEntity());
 		entity->SetMesh(m_cubeMesh.get());
@@ -85,7 +86,7 @@ void MiniWorld::UpdateWorld(float elapsed) {
 			newPos = currEntity->GetPosition();
 		}
 
-		currEntity->SetPosition(newPos);
+		//currEntity->SetPosition(newPos);
 		currEntity->SetRotation(currEntity->GetRotation() * mathfu::Quaternion<float>::FromAngleAxis(1.5f*elapsed, currVel.Normalized()));
 	}
 }

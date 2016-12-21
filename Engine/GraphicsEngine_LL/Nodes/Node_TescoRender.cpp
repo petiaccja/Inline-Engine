@@ -80,11 +80,11 @@ PSInput VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoo
 {
 	PSInput result;
 
-	float3 worldNormal = normalize(mul((float3x3)cb.worldMat, normal.xyz));
-	float3 lightDir = normalize(float3(0.4,0.4,-1));
+	float3 worldNormal = normalize(mul(cb.worldMat, float4(normal.xyz, 0.0)).xyz);
+	float3 lightDir = normalize(float3(0.4, 0.4, 1.0));
 
 	result.position = mul(cb.MVP, position);
-	result.shade = max(0.0f, -0.8*dot(lightDir, worldNormal)) + 0.2;
+	result.shade = max(0.0f, 0.8*dot(lightDir, worldNormal)) + 0.2;
 	result.texCoord = texCoord;
 
 	return result;
@@ -94,7 +94,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 {
 	//return float4(0.2, 0.9, 0.9, 1.0)*input.shade*fun(input.texCoord*2);
 	float3 coords = {input.texCoord.x, 1-input.texCoord.y, 0.0};
-	return tex.Sample(TheSampler, coords) *  input.shade;
+	return tex.Sample(TheSampler, coords) * input.shade;
 }
 )";
 
@@ -166,7 +166,7 @@ TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager*
 	psoDesc.vs.sizeOfByteCode = vertexShader.data.size();
 	psoDesc.ps.shaderByteCode = fragmentShader.data.data();
 	psoDesc.ps.sizeOfByteCode = fragmentShader.data.size();
-	//psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
+	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
 	//psoDesc.blending = BlendState();
 	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
 	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT;
@@ -202,8 +202,6 @@ void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, cons
 	commandList.SetGraphicsBinder(&m_binder);
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	//auto view = mathfu::Matrix<float, 4, 4>::FromTranslationVector(mathfu::Vector<float, 3>(0, 0, -7));
-	//auto projection = mathfu::Matrix<float, 4, 4>::Perspective((60.f/180)*3.1415926536f, (float)viewport.width / (float)viewport.height, 1, 100);
 	mathfu::Matrix4x4f view = camera->GetViewMatrixRH();
 	mathfu::Matrix4x4f projection = camera->GetPerspectiveMatrixRH(0.5, 100);
 
