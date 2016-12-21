@@ -46,6 +46,27 @@ static mathfu::Matrix<float, 4, 4> GetAbsoluteTransform(const aiNode* node) {
 }
 
 
+mathfu::Vector4f GetAxis(AxisDir dir) {
+	switch (dir) {
+	case AxisDir::POS_X:
+		return mathfu::Vector4f(+1, 0, 0, 0);
+	case AxisDir::NEG_X:
+		return mathfu::Vector4f(-1, 0, 0, 0);
+	case AxisDir::POS_Y:
+		return mathfu::Vector4f(0, +1, 0, 0);
+	case AxisDir::NEG_Y:
+		return mathfu::Vector4f(0, -1, 0, 0);
+	case AxisDir::POS_Z:
+		return mathfu::Vector4f(0, 0, +1, 0);
+	case AxisDir::NEG_Z:
+		return mathfu::Vector4f(0, 0, -1, 0);
+	default:
+		assert(false);
+	}
+
+	return mathfu::Vector4f(0, 0, 0, 0);
+}
+
 
 Model::Model() :
 	m_scene(nullptr)

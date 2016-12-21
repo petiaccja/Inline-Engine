@@ -22,12 +22,15 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_camera->SetTarget({ 0, 0, 0 });
 	m_camera->SetPosition({ 0, -8, 3 });
 
+	inl::asset::CoordSysLayout coordSysLayout = {
+		inl::asset::AxisDir::POS_X, inl::asset::AxisDir::POS_Z, inl::asset::AxisDir::NEG_Y
+	};
 
 	// Create terrain mesh
 	{
 		inl::asset::Model model("assets\\terrain.fbx");
 
-		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0);
+		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0, coordSysLayout);
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
 
 		m_terrainMesh.reset(m_graphicsEngine->CreateMesh());
@@ -48,7 +51,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	{
 		inl::asset::Model model("assets\\quadcopter.fbx");
 
-		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0);
+		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0, coordSysLayout);
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
 
 		m_quadcopterMesh.reset(m_graphicsEngine->CreateMesh());
@@ -69,7 +72,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	{
 		inl::asset::Model model("assets\\pine_tree.fbx");
 
-		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0);
+		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0, coordSysLayout);
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
 
 		m_treeMesh.reset(m_graphicsEngine->CreateMesh());

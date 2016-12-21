@@ -44,7 +44,7 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	srand(time(nullptr));
 
 	const float extent = 5;
-	const int count = 3;
+	const int count = 6;
 	for (int i = 0; i < count; i++) {
 		std::unique_ptr<inl::gxeng::MeshEntity> entity(new inl::gxeng::MeshEntity());
 		entity->SetMesh(m_cubeMesh.get());
@@ -86,7 +86,7 @@ void MiniWorld::UpdateWorld(float elapsed) {
 			newPos = currEntity->GetPosition();
 		}
 
-		//currEntity->SetPosition(newPos);
+		currEntity->SetPosition(newPos);
 		currEntity->SetRotation(currEntity->GetRotation() * mathfu::Quaternion<float>::FromAngleAxis(1.5f*elapsed, currVel.Normalized()));
 	}
 }

@@ -73,6 +73,7 @@ struct PSInput
 {
 	float4 position : SV_POSITION;
 	float shade : SHADE;
+	float3 normal : NO;
 	float2 texCoord : TEX_COORD;
 };
 
@@ -81,10 +82,12 @@ PSInput VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoo
 	PSInput result;
 
 	float3 worldNormal = normalize(mul(cb.worldMat, float4(normal.xyz, 0.0)).xyz);
-	float3 lightDir = normalize(float3(0.4, 0.4, 1.0));
+	//float3 worldNormal = normalize(normal.xyz);
+	float3 lightDir = normalize(float3(0.4, 0.4, 0.4));
 
 	result.position = mul(cb.MVP, position);
 	result.shade = max(0.0f, 0.8*dot(lightDir, worldNormal)) + 0.2;
+	result.normal = worldNormal;
 	result.texCoord = texCoord;
 
 	return result;
@@ -95,6 +98,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 	//return float4(0.2, 0.9, 0.9, 1.0)*input.shade*fun(input.texCoord*2);
 	float3 coords = {input.texCoord.x, 1-input.texCoord.y, 0.0};
 	return tex.Sample(TheSampler, coords) * input.shade;
+	//return float4(input.normal, 0.0);
 }
 )";
 
@@ -166,7 +170,7 @@ TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager*
 	psoDesc.vs.sizeOfByteCode = vertexShader.data.size();
 	psoDesc.ps.shaderByteCode = fragmentShader.data.data();
 	psoDesc.ps.sizeOfByteCode = fragmentShader.data.size();
-	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
 	//psoDesc.blending = BlendState();
 	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
 	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT;
