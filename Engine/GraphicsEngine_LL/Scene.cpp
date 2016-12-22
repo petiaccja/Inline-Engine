@@ -6,7 +6,6 @@ namespace gxeng {
 
 
 
-
 Scene::Scene(std::string name)
 	: m_name(std::move(name))
 {}
@@ -30,6 +29,13 @@ const EntityCollection<MeshEntity>& Scene::GetMeshEntities() const {
 	return m_meshEntities;
 }
 
+void Scene::SetSun(DirectionalLight* sun) {
+	m_sun = sun;
+}
+
+const DirectionalLight& Scene::GetSun() const {
+	return *m_sun;
+}
 
 
 } // namespace gxeng

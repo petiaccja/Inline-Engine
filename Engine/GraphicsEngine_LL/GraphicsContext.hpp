@@ -41,6 +41,10 @@ public:
 	RenderTargetView CreateRtv(Texture2D& renderTarget, gxapi::RtvTexture2DArray desc) const;
 	DepthStencilView CreateDsv(Texture2D& depthStencilView, gxapi::DsvTexture2DArray desc) const;
 
+	// Vertex buffer
+	VertexBuffer CreateVertexBuffer(const void* data, size_t size);
+	IndexBuffer CreateIndexBuffer(const void* data, size_t size, size_t indexCount);
+
 	// Shaders and PSOs
 	ShaderProgram CreateShader(const std::string& name, ShaderParts stages, const std::string& macros);
 	gxapi::IPipelineState* CreatePSO(const gxapi::GraphicsPipelineStateDesc& desc);

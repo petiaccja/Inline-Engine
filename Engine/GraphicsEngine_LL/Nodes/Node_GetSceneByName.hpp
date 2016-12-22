@@ -3,7 +3,7 @@
 #include "../GraphicsNode.hpp"
 
 #include "../Scene.hpp"
-
+#include "../DirectionalLight.hpp"
 
 namespace inl {
 namespace gxeng {
@@ -13,7 +13,7 @@ namespace nodes {
 class GetSceneByName :
 	virtual public GraphicsNode,
 	virtual public exc::InputPortConfig<std::string>,
-	virtual public exc::OutputPortConfig<const EntityCollection<MeshEntity>*>
+	virtual public exc::OutputPortConfig<const EntityCollection<MeshEntity>*, const DirectionalLight*>
 {
 public:
 	GetSceneByName() {}
@@ -38,6 +38,7 @@ public:
 
 			// set scene parameters to output ports
 			this->GetOutput<0>().Set(&scene->GetMeshEntities());
+			this->GetOutput<1>().Set(&scene->GetSun());
 			
 			return ExecutionResult{};
 		} });

@@ -179,7 +179,12 @@
     <ClInclude Include="ExecutionContext.hpp" />
     <ClInclude Include="ExecutionResult.hpp" />
     <ClInclude Include="GraphicsContext.hpp" />
+    <ClInclude Include="Nodes\Node_CombineGBuffer.hpp" />
+    <ClInclude Include="Nodes\Node_GenCSM.hpp" />
+    <ClInclude Include="Nodes\Node_GenGBuffer.hpp" />
     <ClInclude Include="Nodes\Node_GetCameraByName.hpp" />
+    <ClInclude Include="Nodes\Node_LightsDeferred.hpp" />
+    <ClInclude Include="Nodes\Node_RenderToBackbuffer.hpp" />
     <ClInclude Include="ShaderManager.hpp" />
     <ClInclude Include="StackDescHeap.hpp" />
     <ClInclude Include="FrameContext.hpp" />
@@ -188,7 +193,7 @@
     <ClInclude Include="GraphicsNodeFactory.hpp" />
     <ClInclude Include="HostDescHeap.hpp" />
     <ClInclude Include="Image.hpp" />
-    <ClInclude Include="Light.hpp" />
+    <ClInclude Include="DirectionalLight.hpp" />
     <ClInclude Include="MemoryManager.hpp" />
     <ClInclude Include="MeshEntity.hpp" />
     <ClInclude Include="GraphicsEngine.hpp" />
@@ -217,6 +222,7 @@
     <ClInclude Include="Texture2D.hpp" />
     <ClInclude Include="MemoryObject.hpp" />
     <ClInclude Include="Mesh.hpp" />
+    <ClInclude Include="TextureViewPack.hpp" />
     <ClInclude Include="UploadManager.hpp" />
     <ClInclude Include="Vertex.hpp" />
     <ClInclude Include="VertexElementCompressor.hpp" />
@@ -234,13 +240,17 @@
     <ClCompile Include="ExecutionContext.cpp" />
     <ClCompile Include="ExecutionResult.cpp" />
     <ClCompile Include="GraphicsContext.cpp" />
+    <ClCompile Include="Nodes\Node_CombineGBuffer.cpp" />
+    <ClCompile Include="Nodes\Node_GenGBuffer.cpp" />
+    <ClCompile Include="Nodes\Node_LightsDeferred.cpp" />
+    <ClCompile Include="Nodes\Node_RenderToBackbuffer.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="StackDescHeap.cpp" />
     <ClCompile Include="GraphicsCommandList.cpp" />
     <ClCompile Include="GraphicsNodeFactory.cpp" />
     <ClCompile Include="HostDescHeap.cpp" />
     <ClCompile Include="Image.cpp" />
-    <ClCompile Include="Light.cpp" />
+    <ClCompile Include="DirectionalLight.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="MeshEntity.cpp" />
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -261,6 +271,7 @@
     <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="MemoryObject.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="TextureViewPack.cpp" />
     <ClCompile Include="UploadManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

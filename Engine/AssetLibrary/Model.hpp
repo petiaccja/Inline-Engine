@@ -15,7 +15,7 @@
 namespace inl {
 namespace asset {
 
-enum class AxisDir : uint8_t { POS_X = 1, NEG_X = -1, POS_Y = 2, NEG_Y = -2, POS_Z = 3, NEG_Z = -3 };
+enum class AxisDir : uint8_t { POS_X, NEG_X, POS_Y, NEG_Y, POS_Z, NEG_Z };
 
 mathfu::Vector4f GetAxis(AxisDir dir);
 

@@ -7,6 +7,7 @@
 #include <shared_mutex>
 
 #include <GraphicsApi_LL/IGxapiManager.hpp>
+#include <GraphicsApi_LL/Common.hpp>
 
 
 namespace inl {
@@ -20,8 +21,10 @@ public:
 	ShaderStage(std::vector<uint8_t> binary) : m_binary(std::move(binary)) {}
 
 	operator bool() const { return m_binary.size() > 0; }
+	operator gxapi::ShaderByteCodeDesc() const { return gxapi::ShaderByteCodeDesc(m_binary.data(), m_binary.size()); }
 
 	const void* Data() const { return m_binary.data(); }
+	size_t Size() const { return m_binary.size(); }
 private:
 	std::vector<uint8_t> m_binary;
 };

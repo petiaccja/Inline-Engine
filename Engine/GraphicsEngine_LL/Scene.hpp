@@ -8,7 +8,7 @@ namespace gxeng {
 
 class MeshEntity;
 class TerrainEntity;
-class Light;
+class DirectionalLight;
 class GraphicsEngine;
 
 
@@ -26,15 +26,20 @@ public:
 	EntityCollection<MeshEntity>& GetMeshEntities();
 	const EntityCollection<MeshEntity>& GetMeshEntities() const;
 
+	void SetSun(DirectionalLight* sun);
+	const DirectionalLight& GetSun() const;
+
 	//EntityCollection<TerrainEntity>& GetTerrainEntities();
 	//const EntityCollection<TerrainEntity>& GetTerrainEntities() const;
 
 	//EntityCollection<Light>& GetLights();
 	//const EntityCollection<Light>& GetLights() const;
+
 private:
-	EntityCollection<MeshEntity> m_meshEntities;
-	EntityCollection<TerrainEntity> m_terrainEntities;
-	EntityCollection<Light> m_lights;
+	EntityCollection<MeshEntity> m_meshEntities;	
+	DirectionalLight* m_sun = nullptr;
+	//EntityCollection<TerrainEntity> m_terrainEntities;
+	//EntityCollection<Light> m_lights;
 
 	std::string m_name;
 };

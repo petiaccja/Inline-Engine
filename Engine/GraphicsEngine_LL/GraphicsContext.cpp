@@ -88,6 +88,20 @@ DepthStencilView GraphicsContext::CreateDsv(Texture2D& texture, gxapi::DsvTextur
 }
 
 
+VertexBuffer GraphicsContext::CreateVertexBuffer(const void* data, size_t size) {
+	VertexBuffer result = m_memoryManager->CreateVertexBuffer(eResourceHeapType::CRITICAL, size);
+	m_memoryManager->GetUploadManager().Upload(result, 0, data, size);
+	return result;
+}
+
+
+IndexBuffer GraphicsContext::CreateIndexBuffer(const void* data, size_t size, size_t indexCount) {
+	IndexBuffer result = m_memoryManager->CreateIndexBuffer(eResourceHeapType::CRITICAL, size, indexCount);
+	m_memoryManager->GetUploadManager().Upload(result, 0, data, size);
+	return result;
+}
+
+
 ShaderProgram GraphicsContext::CreateShader(const std::string& name, ShaderParts stages, const std::string& macros) {
 	return m_shaderManager->CreateShader(name, stages, macros);
 }

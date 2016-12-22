@@ -33,6 +33,9 @@
     <Filter Include="MemoryManagement\ObjectManagement">
       <UniqueIdentifier>{cd72d15e-05c9-4d33-a977-8cb4d1092c69}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Nodes\DeferredPipeline">
+      <UniqueIdentifier>{2ef57f3c-8e5d-4b28-ba57-a435d1be5c25}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -52,9 +55,6 @@
       <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="MeshEntity.hpp">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Light.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsNode.hpp">
@@ -231,6 +231,27 @@
     <ClInclude Include="ShaderManager.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
+    <ClInclude Include="DirectionalLight.hpp">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_CombineGBuffer.hpp">
+      <Filter>Nodes\DeferredPipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GenCSM.hpp">
+      <Filter>Nodes\DeferredPipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GenGBuffer.hpp">
+      <Filter>Nodes\DeferredPipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_LightsDeferred.hpp">
+      <Filter>Nodes\DeferredPipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureViewPack.hpp">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_RenderToBackbuffer.hpp">
+      <Filter>Nodes\DeferredPipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -244,9 +265,6 @@
       <Filter>Scene</Filter>
     </ClCompile>
     <ClCompile Include="MeshEntity.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="Light.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
     <ClCompile Include="MemoryManager.cpp">
@@ -350,6 +368,24 @@
     </ClCompile>
     <ClCompile Include="ShaderManager.cpp">
       <Filter>Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectionalLight.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_GenGBuffer.cpp">
+      <Filter>Nodes\DeferredPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_CombineGBuffer.cpp">
+      <Filter>Nodes\DeferredPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureViewPack.cpp">
+      <Filter>Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_LightsDeferred.cpp">
+      <Filter>Nodes\DeferredPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_RenderToBackbuffer.cpp">
+      <Filter>Nodes\DeferredPipeline</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
