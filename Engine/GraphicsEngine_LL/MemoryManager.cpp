@@ -109,9 +109,40 @@ TextureCube MemoryManager::CreateTextureCube(eResourceHeapType heap, uint64_t wi
 MemoryObjDesc MemoryManager::AllocateResource(eResourceHeapType heap, const gxapi::ResourceDesc& desc) {
 
 	gxapi::ClearValue* pClearValue = nullptr;
-	gxapi::ClearValue clearValue(std::move(desc).textureDesc.format, 1, 0);
-	if (std::move(desc).type == gxapi::eResourceType::TEXTURE && desc.textureDesc.flags & gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL) {
-		pClearValue = &clearValue;
+
+	bool depthStencilTexture = (desc.type == gxapi::eResourceType::TEXTURE) && (desc.textureDesc.flags & gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL);
+	bool renderTargetTexture = (desc.type == gxapi::eResourceType::TEXTURE) && (desc.textureDesc.flags & gxapi::eResourceFlags::ALLOW_RENDER_TARGET);
+
+	using gxapi::eFormat;
+	gxapi::eFormat clearFormat = desc.textureDesc.format;
+	if (depthStencilTexture) {
+		switch (desc.textureDesc.format) {
+		case eFormat::D16_UNORM:
+		case eFormat::D24_UNORM_S8_UINT:
+		case eFormat::D32_FLOAT:
+		case eFormat::D32_FLOAT_S8X24_UINT:
+			break; // just leave the format as it is
+
+		case eFormat::R32_TYPELESS:
+			clearFormat = eFormat::D32_FLOAT;
+			break;
+		case eFormat::R32_FLOAT_X8X24_TYPELESS:
+			clearFormat = eFormat::D32_FLOAT_S8X24_UINT;
+			break;
+		default:
+			assert(false);
+			// I know I know... this exception message is horribe
+			throw std::runtime_error("Resource requested to be created is a depth stencil texture but its format can not be recognized while determining clear value format.");
+		}
+	}
+
+	gxapi::ClearValue dsvClearValue(clearFormat, 1, 0);
+	gxapi::ClearValue rtvClearValue(clearFormat, gxapi::ColorRGBA(0, 0, 0, 1));
+	if (depthStencilTexture) {
+		pClearValue = &dsvClearValue;
+	}
+	if (renderTargetTexture) {
+		pClearValue = &rtvClearValue;
 	}
 
 	switch(heap) {

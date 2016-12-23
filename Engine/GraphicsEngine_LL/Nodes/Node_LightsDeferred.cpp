@@ -3,7 +3,7 @@
 namespace inl::gxeng::nodes {
 
 
-LightsDeferred::LightsDeferred(gxapi::IGraphicsApi * graphicsApi, gxapi::IGxapiManager * gxapiManager) :
+LightsDeferred::LightsDeferred(gxapi::IGraphicsApi * graphicsApi) :
 	m_binder(graphicsApi, {})
 {
 

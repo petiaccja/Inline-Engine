@@ -7,6 +7,7 @@
 #include <GraphicsEngine_LL/MeshEntity.hpp>
 #include <GraphicsEngine_LL/Scene.hpp>
 #include <GraphicsEngine_LL/Camera.hpp>
+#include <GraphicsEngine_LL/DirectionalLight.hpp>
 
 
 class MiniWorld {
@@ -32,4 +33,5 @@ private:
 	// Entities
 	std::vector<std::unique_ptr<inl::gxeng::MeshEntity>> m_staticEntities;
 	std::vector<mathfu::Vector<float, 3>> m_velocities;
+	inl::gxeng::DirectionalLight m_sun;
 };

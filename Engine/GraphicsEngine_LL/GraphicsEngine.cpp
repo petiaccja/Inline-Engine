@@ -15,6 +15,14 @@
 #include "Nodes/Node_TescoRender.hpp"
 #include "Nodes/Node_GetTime.hpp"
 
+//deferred
+#include "Nodes/Node_GenGBuffer.hpp"
+#include "Nodes/Node_CombineGBuffer.hpp"
+#include "Nodes/Node_LightsDeferred.hpp"
+#include "Nodes/Node_RenderToBackbuffer.hpp"
+
+#include "WindowResizeListener.hpp"
+
 #include "Scene.hpp"
 #include "Camera.hpp"
 #include "Mesh.hpp"
@@ -39,6 +47,8 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_residencyQueue(std::unique_ptr<gxapi::IFence>(desc.graphicsApi->CreateFence(0))),
 	m_memoryManager(desc.graphicsApi),
 	m_dsvHeap(desc.graphicsApi),
+	m_rtvHeap(desc.graphicsApi),
+	m_persResViewHeap(desc.graphicsApi),
 	m_logger(desc.logger),
 	m_shaderManager(desc.gxapiManager)
 {
@@ -58,6 +68,17 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 
 	// Init backbuffer heap
 	m_backBufferHeap = std::make_unique<BackBufferManager>(m_graphicsApi, m_swapChain.get());
+
+	// Init shader manager before creating the pipeline
+	m_shaderManager.AddSourceDirectory("../../Engine/GraphicsEngine_LL/Nodes/Shaders");
+#ifdef NDEBUG
+	m_shaderManager.SetShaderCompileFlags(gxapi::eShaderCompileFlags::OPTIMIZATION_HIGH);
+#else
+	gxapi::eShaderCompileFlags flags = gxapi::eShaderCompileFlags::NO_OPTIMIZATION;
+	flags += gxapi::eShaderCompileFlags::DEBUG;
+	m_shaderManager.SetShaderCompileFlags(flags);
+#endif // NDEBUG
+
 
 	// Do more stuff...
 	CreatePipeline();
@@ -146,7 +167,9 @@ void GraphicsEngine::SetScreenSize(unsigned width, unsigned height) {
 	m_swapChain->Resize(width, height);
 	m_backBufferHeap = std::make_unique<BackBufferManager>(m_graphicsApi, m_swapChain.get());
 
-	m_getBBNode->Resize(width, height);
+	for (auto curr : m_windowResizeListeners) {
+		curr->WindowResized(width, height);
+	}
 }
 void GraphicsEngine::GetScreenSize(unsigned& width, unsigned& height) {
 	auto desc = m_swapChain->GetDesc();
@@ -234,42 +257,63 @@ MeshEntity* GraphicsEngine::CreateMeshEntity() {
 void GraphicsEngine::CreatePipeline() {
 	auto swapChainDesc = m_swapChain->GetDesc();
 
-	std::unique_ptr<nodes::GetTime> frameCounter(new nodes::GetTime());
-	std::unique_ptr<nodes::FrameColor> frameColor(new nodes::FrameColor());
-	std::unique_ptr<nodes::GetBackBuffer> getBackBuffer(new nodes::GetBackBuffer());
-	std::unique_ptr<nodes::GetDepthBuffer> getDepthBuffer(new nodes::GetDepthBuffer(&m_memoryManager, m_dsvHeap, swapChainDesc.width, swapChainDesc.height));
-	m_getBBNode = getDepthBuffer.get();
-	std::unique_ptr<nodes::ClearRenderTarget> clearRtv(new nodes::ClearRenderTarget());
 	std::unique_ptr<nodes::GetSceneByName> getWorldScene(new nodes::GetSceneByName());
-	std::unique_ptr<nodes::TescoRender> renderWorld(new nodes::TescoRender(m_graphicsApi, m_gxapiManager));
 	std::unique_ptr<nodes::GetCameraByName> getCamera(new nodes::GetCameraByName());
+	std::unique_ptr<nodes::GetBackBuffer> getBackBuffer(new nodes::GetBackBuffer());
+
+	std::unique_ptr<nodes::GenGBuffer> genGBuffer(new nodes::GenGBuffer(m_graphicsApi, swapChainDesc.width, swapChainDesc.height));
+	std::unique_ptr<nodes::CombineGBuffer> combineGBuffer(new nodes::CombineGBuffer(m_graphicsApi, swapChainDesc.width, swapChainDesc.height));
+	std::unique_ptr<nodes::LightsDeferred> lightsDeferred(new nodes::LightsDeferred(m_graphicsApi));
+	std::unique_ptr<nodes::RenderToBackbuffer> renderToBackbuffer(new nodes::RenderToBackbuffer(m_graphicsApi));
 
 	getWorldScene->GetInput<0>().Set("World");
 	getCamera->GetInput<0>().Set("WorldCam");
 
-	// link frame clear path
-	frameCounter->GetOutput(0)->Link(frameColor->GetInput(0));
-	frameColor->GetOutput(0)->Link(clearRtv->GetInput(1));
-	getBackBuffer->GetOutput(0)->Link(clearRtv->GetInput(0));
-	// link renderscene path
-	getWorldScene->GetOutput(0)->Link(renderWorld->GetInput(3));
-	getCamera->GetOutput(0)->Link(renderWorld->GetInput(2));
-	getDepthBuffer->GetOutput(0)->Link(renderWorld->GetInput(1));
-	// link to pathes together
-	clearRtv->GetOutput(0)->Link(renderWorld->GetInput(0));
+	// To genGBuffer
+	getCamera->GetOutput(0)->Link(genGBuffer->GetInput(0));
+	getWorldScene->GetOutput(0)->Link(genGBuffer->GetInput(1));
 
+	// To combineGBuffer
+	genGBuffer->GetOutput(0)->Link(combineGBuffer->GetInput(0));
+	genGBuffer->GetOutput(1)->Link(combineGBuffer->GetInput(1));
+	genGBuffer->GetOutput(2)->Link(combineGBuffer->GetInput(2));
+	getCamera->GetOutput(0)->Link(combineGBuffer->GetInput(3));
+	getWorldScene->GetOutput(1)->Link(combineGBuffer->GetInput(4));
 
-	m_pipeline.CreateFromNodesList({ frameCounter.get(), frameColor.get(), getBackBuffer.get(), getDepthBuffer.get(), clearRtv.get(), getWorldScene.get(), getCamera.get(), renderWorld.get() }, std::default_delete<exc::NodeBase>());
+	// To lightsDeferred
+	combineGBuffer->GetOutput(0)->Link(lightsDeferred->GetInput(0));
+	genGBuffer->GetOutput(0)->Link(lightsDeferred->GetInput(1));
+	genGBuffer->GetOutput(1)->Link(lightsDeferred->GetInput(2));
+	genGBuffer->GetOutput(2)->Link(lightsDeferred->GetInput(3));
+	getCamera->GetOutput(0)->Link(lightsDeferred->GetInput(4));
 
+	getBackBuffer->GetOutput(0)->Link(renderToBackbuffer->GetInput(0));
+	lightsDeferred->GetOutput(0)->Link(renderToBackbuffer->GetInput(1));
 
-	frameCounter.release();
-	frameColor.release();
-	getBackBuffer.release();
-	getDepthBuffer.release();
-	clearRtv.release();
-	getWorldScene.release();
-	getCamera.release();
-	renderWorld.release();
+	GraphicsContext graphicsContext(&m_memoryManager, &m_persResViewHeap, &m_rtvHeap, &m_dsvHeap, std::thread::hardware_concurrency(), 1, &m_shaderManager, m_graphicsApi);
+
+	getWorldScene->InitGraphics(graphicsContext);
+	getCamera->InitGraphics(graphicsContext);
+	getBackBuffer->InitGraphics(graphicsContext);
+	genGBuffer->InitGraphics(graphicsContext);
+	combineGBuffer->InitGraphics(graphicsContext);
+	lightsDeferred->InitGraphics(graphicsContext);
+	renderToBackbuffer->InitGraphics(graphicsContext);
+
+	m_windowResizeListeners.push_back(genGBuffer.get());
+	m_windowResizeListeners.push_back(combineGBuffer.get());
+
+	{
+		m_pipeline.CreateFromNodesList({ getWorldScene.get(), getCamera.get(), getBackBuffer.get(), genGBuffer.get(), combineGBuffer.get(), lightsDeferred.get(), renderToBackbuffer.get() }, std::default_delete<exc::NodeBase>());
+
+		getWorldScene.release();
+		getCamera.release();
+		getBackBuffer.release();
+		genGBuffer.release();
+		combineGBuffer.release();
+		lightsDeferred.release();
+		renderToBackbuffer.release();
+	}
 }
 
 

@@ -241,7 +241,7 @@ bool Binder::RadixLess(const BindParameter& lhs, const BindParameter& rhs) {
 	if (lhs.type == rhs.type && lhs.space < rhs.space) {
 		return true; // less
 	}
-	if (lhs.type == rhs.type && lhs.space == rhs.space && rhs.reg < rhs.space) {
+	if (lhs.type == rhs.type && lhs.space == rhs.space && lhs.reg < rhs.reg) {
 		return true; // less
 	}
 	return false; // greater-equal

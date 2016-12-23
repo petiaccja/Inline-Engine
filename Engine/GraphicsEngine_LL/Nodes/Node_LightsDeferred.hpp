@@ -20,7 +20,7 @@ class LightsDeferred :
 	virtual public exc::OutputPortConfig<RenderTargetPack>
 {
 public:
-	LightsDeferred(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager* gxapiManager);
+	LightsDeferred(gxapi::IGraphicsApi* graphicsApi);
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
@@ -57,6 +57,8 @@ public:
 		} });
 	}
 
+protected:
+	RenderTargetPack m_renderTarget;
 
 protected:
 	Binder m_binder;

@@ -7,6 +7,7 @@
 #include "../ConstBufferHeap.hpp"
 #include "../GraphicsContext.hpp"
 #include "../TextureViewPack.hpp"
+#include "../WindowResizeListener.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
@@ -17,13 +18,12 @@ namespace inl::gxeng::nodes {
 class GenGBuffer :
 	virtual public GraphicsNode,
 	virtual public exc::InputPortConfig<const Camera*, const EntityCollection<MeshEntity>*>,
-	virtual public exc::OutputPortConfig<DepthStencilPack, RenderTargetPack, RenderTargetPack>
+	virtual public exc::OutputPortConfig<DepthStencilPack, RenderTargetPack, RenderTargetPack>,
+	public WindowResizeListener
 {
 public:
 	GenGBuffer(
 		gxapi::IGraphicsApi* graphicsApi,
-		gxapi::IGxapiManager* gxapiManager,
-		MemoryManager* memgr,
 		unsigned width,
 		unsigned height);
 
@@ -55,7 +55,7 @@ public:
 		} });
 	}
 
-	void Resize(unsigned width, unsigned height);
+	void WindowResized(unsigned width, unsigned height) override;
 
 protected:
 	unsigned m_width;

@@ -50,23 +50,19 @@ static void ConvertToSubmittable(
 
 GenGBuffer::GenGBuffer(
 	gxapi::IGraphicsApi* graphicsApi,
-	gxapi::IGxapiManager* gxapiManager,
-	MemoryManager* memgr,
 	unsigned width,
 	unsigned height
-) :
-	m_memoryManager(memgr),
+):
+	m_width(width),
+	m_height(height),
 	m_binder(graphicsApi, {})
 {
-	m_width = width;
-	m_height = height;
-
 	this->GetInput<0>().Set(nullptr);
 
 	BindParameterDesc cbBindParamDesc;
 	m_cbBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
 	cbBindParamDesc.parameter = m_cbBindParam;
-	cbBindParamDesc.constantSize = (sizeof(float) * 4 * 4 * 2);
+	cbBindParamDesc.constantSize = sizeof(float) * 4 * 4 * 2;
 	cbBindParamDesc.relativeAccessFrequency = 0;
 	cbBindParamDesc.relativeChangeFrequency = 0;
 	cbBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
@@ -109,7 +105,7 @@ void GenGBuffer::InitGraphics(const GraphicsContext& context) {
 	shaderParts.vs = true;
 	shaderParts.ps = true;
 
-	auto shader = m_graphicsContext.CreateShader("GenGBuffer.hlsl", shaderParts, "");
+	auto shader = m_graphicsContext.CreateShader("GenGBuffer", shaderParts, "");
 
 	std::vector<gxapi::InputElementDesc> inputElementDesc = {
 		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
@@ -124,7 +120,10 @@ void GenGBuffer::InitGraphics(const GraphicsContext& context) {
 	psoDesc.vs = shader.vs;
 	psoDesc.ps = shader.ps;
 	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
-	//psoDesc.blending = BlendState();
+	psoDesc.blending.multiTarget[0].enableBlending = false;
+	psoDesc.blending.multiTarget[0].enableLogicOp = false;
+	psoDesc.blending.multiTarget[1].enableBlending = false;
+	psoDesc.blending.multiTarget[1].enableLogicOp = false;
 	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
 	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT;
 	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
@@ -136,7 +135,7 @@ void GenGBuffer::InitGraphics(const GraphicsContext& context) {
 }
 
 
-void GenGBuffer::Resize(unsigned width, unsigned height) {
+void GenGBuffer::WindowResized(unsigned width, unsigned height) {
 	m_width = width;
 	m_height = height;
 	InitBuffers();
@@ -146,9 +145,25 @@ void GenGBuffer::Resize(unsigned width, unsigned height) {
 void GenGBuffer::InitBuffers() {
 	using gxapi::eFormat;
 
-	m_depthStencil = DepthStencilPack(m_width, m_height, eFormat::D32_FLOAT, m_graphicsContext);
-	m_albedoRoughness = RenderTargetPack(m_width, m_height, eFormat::R8G8B8A8_UNORM, m_graphicsContext);
-	m_normal = RenderTargetPack(m_width, m_height, eFormat::R32G32_FLOAT, m_graphicsContext);
+	m_depthStencil = DepthStencilPack(
+		m_width,
+		m_height,
+		eFormat::D32_FLOAT,
+		eFormat::R32_FLOAT,
+		eFormat::R32_TYPELESS,
+		m_graphicsContext);
+
+	m_albedoRoughness = RenderTargetPack(
+		m_width,
+		m_height,
+		eFormat::R8G8B8A8_UNORM,
+		m_graphicsContext);
+
+	m_normal = RenderTargetPack(
+		m_width,
+		m_height,
+		eFormat::R16G16_FLOAT,
+		m_graphicsContext);
 }
 
 
@@ -176,8 +191,8 @@ void GenGBuffer::RenderScene(const Camera* camera, const EntityCollection<MeshEn
 
 	commandList.SetResourceState(m_depthStencil.dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
 	commandList.ClearDepthStencil(m_depthStencil.dsv, 1, 0);
-	commandList.ClearRenderTarget(m_albedoRoughness.rtv, gxapi::ColorRGBA());
-	commandList.ClearRenderTarget(m_normal.rtv, gxapi::ColorRGBA(1, 1, 1, 0));
+	commandList.ClearRenderTarget(m_albedoRoughness.rtv, gxapi::ColorRGBA(0, 0, 0, 1));
+	commandList.ClearRenderTarget(m_normal.rtv, gxapi::ColorRGBA(0, 0, 0, 1));
 
 	commandList.SetPipelineState(m_PSO.get());
 	commandList.SetGraphicsBinder(&m_binder);

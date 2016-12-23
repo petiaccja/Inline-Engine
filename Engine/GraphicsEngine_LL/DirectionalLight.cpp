@@ -5,13 +5,13 @@ namespace inl::gxeng {
 
 DirectionalLight::DirectionalLight(mathfu::Vector3f direction, mathfu::Vector3f color
 ):
-	m_direction(direction),
+	m_direction(direction.Normalized()),
 	m_color(color)
 {}
 
 
 void DirectionalLight::SetDirection(const mathfu::Vector3f& dir) {
-	m_direction = dir;
+	m_direction = dir.Normalized();
 }
 
 

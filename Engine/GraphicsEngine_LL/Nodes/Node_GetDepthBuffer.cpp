@@ -20,7 +20,7 @@ void GetDepthBuffer::Init(unsigned width, unsigned height) {
 	desc.activeArraySize = 1;
 	desc.firstArrayElement = 0;
 	desc.firstMipLevel = 0;
-	m_dsv = DepthStencilView(resource, m_dsvHeap, desc);
+	m_dsv = DepthStencilView(resource, m_dsvHeap, resource.GetFormat(), desc);
 }
 
 

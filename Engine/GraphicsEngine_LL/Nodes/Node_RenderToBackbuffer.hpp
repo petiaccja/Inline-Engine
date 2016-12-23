@@ -12,7 +12,7 @@
 
 namespace inl::gxeng::nodes {
 
-
+// This is a utility node used for testing, makes it easier to render a node's output on the screen.
 class RenderToBackbuffer :
 	virtual public GraphicsNode,
 	virtual public exc::InputPortConfig<RenderTargetView, RenderTargetPack>,

@@ -103,12 +103,13 @@ gxapi::RenderTargetViewDesc RenderTargetView::GetDescription() const {
 DepthStencilView::DepthStencilView(
 	const Texture2D& resource,
 	DSVHeap& heap,
+	gxapi::eFormat format,
 	gxapi::DsvTexture2DArray desc
 ):
 	ResourceViewBase(resource)
 {
 	gxapi::DepthStencilViewDesc DSVdesc;
-	DSVdesc.format = resource.GetFormat();
+	DSVdesc.format = format;
 	DSVdesc.dimension = gxapi::eDsvDimension::TEXTURE2DARRAY;
 	DSVdesc.tex2DArray = desc;
 

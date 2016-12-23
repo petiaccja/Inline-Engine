@@ -81,10 +81,10 @@ RenderTargetView GraphicsContext::CreateRtv(Texture2D& texture, gxapi::RtvTextur
 }
 
 
-DepthStencilView GraphicsContext::CreateDsv(Texture2D& texture, gxapi::DsvTexture2DArray desc) const {
+DepthStencilView GraphicsContext::CreateDsv(Texture2D& texture, gxapi::eFormat format, gxapi::DsvTexture2DArray desc) const {
 	if (m_srvHeap == nullptr) throw std::logic_error("Cannot create dsv without dsv heap.");
 
-	return DepthStencilView{ texture, *m_dsvHeap, desc };
+	return DepthStencilView{ texture, *m_dsvHeap, format, desc };
 }
 
 

@@ -18,7 +18,7 @@ RenderTargetPack::RenderTargetPack(uint64_t width, uint32_t height, gxapi::eForm
 	gxapi::SrvTexture2DArray srvDesc;
 	srvDesc.activeArraySize = 1;
 	srvDesc.firstArrayElement = 0;
-	srvDesc.numMipLevels = 0;
+	srvDesc.numMipLevels = -1;
 	srvDesc.mipLevelClamping = 0;
 	srvDesc.mostDetailedMip = 0;
 	srvDesc.planeIndex = 0;
@@ -27,25 +27,32 @@ RenderTargetPack::RenderTargetPack(uint64_t width, uint32_t height, gxapi::eForm
 }
 
 
-DepthStencilPack::DepthStencilPack(uint64_t width, uint32_t height, gxapi::eFormat format, GraphicsContext & context) {
-	Texture2D tex = context.CreateDepthStencil2D(width, height, format, true);
+DepthStencilPack::DepthStencilPack(
+	uint64_t width,
+	uint32_t height,
+	gxapi::eFormat formatDepthStencil,
+	gxapi::eFormat formatColor,
+	gxapi::eFormat formatTypeless,
+	GraphicsContext& context
+) {
+	Texture2D tex = context.CreateDepthStencil2D(width, height, formatTypeless, true);
 
 	gxapi::DsvTexture2DArray dsvDesc;
 	dsvDesc.activeArraySize = 1;
 	dsvDesc.firstArrayElement = 0;
 	dsvDesc.firstMipLevel = 0;
 
-	dsv = context.CreateDsv(tex, dsvDesc);
+	dsv = context.CreateDsv(tex, formatDepthStencil, dsvDesc);
 
 	gxapi::SrvTexture2DArray srvDesc;
 	srvDesc.activeArraySize = 1;
 	srvDesc.firstArrayElement = 0;
-	srvDesc.numMipLevels = 0;
+	srvDesc.numMipLevels = -1;
 	srvDesc.mipLevelClamping = 0;
 	srvDesc.mostDetailedMip = 0;
 	srvDesc.planeIndex = 0;
 
-	srv = context.CreateSrv(tex, format, srvDesc);
+	srv = context.CreateSrv(tex, formatColor, srvDesc);
 }
 
 

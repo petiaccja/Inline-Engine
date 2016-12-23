@@ -26,7 +26,7 @@ struct PS_Output
 };
 
 
-PSInput VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoord : TEX_COORD)
+PS_Input VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoord : TEX_COORD)
 {
 	PS_Input result;
 
@@ -34,13 +34,13 @@ PSInput VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoo
 
 	result.position = mul(cb.MVP, position);
 	result.normal = worldNormal.xy;
-	result.texCoord = texCoord;
+	result.texCoord = texCoord.xy;
 
 	return result;
 }
 
 
-PS_OUTPUT PSMain(PS_Input input)
+PS_Output PSMain(PS_Input input)
 {
 	PS_Output output;
 
@@ -49,4 +49,6 @@ PS_OUTPUT PSMain(PS_Input input)
 	output.albedo_roughness = float4(albedoTex.Sample(theSampler, coords).rgb, 0.25);
 	//TODO implement normal mapping
 	output.normal = input.normal;
+	
+	return output;
 }

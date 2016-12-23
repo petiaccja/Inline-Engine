@@ -17,10 +17,14 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 	// Create scene and camera
 	m_worldScene.reset(m_graphicsEngine->CreateScene("World"));
+	m_sun.SetColor({1, 1, 1});
+	m_sun.SetDirection({ 1, 1, 1 });
+	m_worldScene->SetSun(&m_sun);
 	m_camera.reset(m_graphicsEngine->CreateCamera("WorldCam"));
 	m_camera->SetTargeted(true);
 	m_camera->SetTarget({ 0, 0, 0 });
 	m_camera->SetPosition({ 0, -8, 3 });
+	m_camera->SetUpVector({0, 3, 8});
 
 	inl::asset::CoordSysLayout coordSysLayout = {
 		inl::asset::AxisDir::POS_X, inl::asset::AxisDir::POS_Z, inl::asset::AxisDir::NEG_Y

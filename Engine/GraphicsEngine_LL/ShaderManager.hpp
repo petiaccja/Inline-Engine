@@ -182,7 +182,7 @@ public:
 	void ReloadShaders();
 private:
 	// Find a source in dirs, resource and codes by its name. Does not lock anything.
-	std::string FindShaderCode(const std::string& name);
+	std::pair<std::string, std::string> FindShaderCode(const std::string& name);
 
 	// Compiles a shader to binary according to parameters.
 	ShaderProgram CompileShader(const std::string& sourceCode, const std::string& macros, ShaderParts parts);

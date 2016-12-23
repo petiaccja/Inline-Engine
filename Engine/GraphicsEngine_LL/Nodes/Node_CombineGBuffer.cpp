@@ -8,7 +8,11 @@
 namespace inl::gxeng::nodes {
 
 
-CombineGBuffer::CombineGBuffer(gxapi::IGraphicsApi* graphicsApi, unsigned width, unsigned height) :
+CombineGBuffer::CombineGBuffer(
+	gxapi::IGraphicsApi* graphicsApi,
+	unsigned width,
+	unsigned height
+):
 	m_width(width),
 	m_height(height),
 	m_binder(graphicsApi, {}),
@@ -18,7 +22,7 @@ CombineGBuffer::CombineGBuffer(gxapi::IGraphicsApi* graphicsApi, unsigned width,
 	BindParameterDesc sunBindParamDesc;
 	m_sunBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
 	sunBindParamDesc.parameter = m_sunBindParam;
-	sunBindParamDesc.constantSize = 0;
+	sunBindParamDesc.constantSize = sizeof(float) * 4 * 2;
 	sunBindParamDesc.relativeAccessFrequency = 0;
 	sunBindParamDesc.relativeChangeFrequency = 0;
 	sunBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
@@ -48,7 +52,7 @@ CombineGBuffer::CombineGBuffer(gxapi::IGraphicsApi* graphicsApi, unsigned width,
 
 	gxapi::StaticSamplerDesc samplerDesc;
 	samplerDesc.shaderRegister = 0;
-	samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_LINEAR_MIP_POINT;
+	samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
 	samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
 	samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
 	samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
@@ -56,13 +60,14 @@ CombineGBuffer::CombineGBuffer(gxapi::IGraphicsApi* graphicsApi, unsigned width,
 	samplerDesc.registerSpace = 0;
 	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-	m_binder = Binder{ graphicsApi,{ albedoRoughnessBindParamDesc, normalBindParamDesc, sampBindParamDesc },{ samplerDesc } };
+	m_binder = Binder{ graphicsApi,{ sunBindParamDesc, albedoRoughnessBindParamDesc, normalBindParamDesc, sampBindParamDesc },{ samplerDesc } };
 }
 
 
 void CombineGBuffer::InitGraphics(const GraphicsContext& context) {
-
 	m_graphicsContext = context;
+
+	InitBuffer();
 
 	std::vector<float> vertices = {
 		-1, -1, 0,
@@ -77,13 +82,12 @@ void CombineGBuffer::InitGraphics(const GraphicsContext& context) {
 	m_fsq = m_graphicsContext.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
 	m_fsqIndices = m_graphicsContext.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
 
-	InitBuffer();
 
 	ShaderParts shaderParts;
 	shaderParts.vs = true;
 	shaderParts.ps = true;
 
-	auto shader = m_graphicsContext.CreateShader("CombineGBuffer.hlsl", shaderParts, "");
+	auto shader = m_graphicsContext.CreateShader("CombineGBuffer", shaderParts, "");
 
 	std::vector<gxapi::InputElementDesc> inputElementDesc = {
 		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0)
@@ -96,9 +100,10 @@ void CombineGBuffer::InitGraphics(const GraphicsContext& context) {
 	psoDesc.vs = shader.vs;
 	psoDesc.ps = shader.ps;
 	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
-	//psoDesc.blending = BlendState();
-	//psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
-	//psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT;
+	psoDesc.blending.singleTarget.enableBlending = false;
+	psoDesc.blending.singleTarget.enableLogicOp = false;
+	psoDesc.depthStencilState.enableDepthTest = false;
+	psoDesc.depthStencilState.enableStencilTest = false;
 	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 	psoDesc.numRenderTargets = 1;
 	psoDesc.renderTargetFormats[0] = gxapi::eFormat::R16G16B16A16_FLOAT;
@@ -107,7 +112,7 @@ void CombineGBuffer::InitGraphics(const GraphicsContext& context) {
 }
 
 
-void CombineGBuffer::Resize(unsigned width, unsigned height) {
+void CombineGBuffer::WindowResized(unsigned width, unsigned height) {
 	m_width = width;
 	m_height = height;
 	InitBuffer();
@@ -157,7 +162,10 @@ void CombineGBuffer::RenderCombined(
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
 	unsigned vbSize = m_fsq.GetSize();
-	unsigned vbStride = 3*sizeof(float);
+	unsigned vbStride = 3 * sizeof(float);
+
+	commandList.SetResourceState(albedoRoughness.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+	commandList.SetResourceState(normal.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 
 	commandList.BindGraphics(m_sunBindParam, cbufferSun.data(), sizeof(cbufferSun), 0);
 	commandList.BindGraphics(m_albedoRoughnessBindParam, albedoRoughness);

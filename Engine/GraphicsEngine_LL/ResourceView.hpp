@@ -87,7 +87,7 @@ protected:
 class DepthStencilView : public ResourceViewBase<Texture2D> {
 public:
 	DepthStencilView() = default;
-	DepthStencilView(const Texture2D& resource, DSVHeap& heap, gxapi::DsvTexture2DArray desc);
+	DepthStencilView(const Texture2D& resource, DSVHeap& heap, gxapi::eFormat format, gxapi::DsvTexture2DArray desc);
 
 	gxapi::DepthStencilViewDesc GetDescription() const;
 

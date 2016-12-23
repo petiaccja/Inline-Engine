@@ -15,6 +15,10 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	m_graphicsEngine = graphicsEngine;
 
 	m_worldScene.reset(m_graphicsEngine->CreateScene("World"));
+	m_sun.SetColor(mathfu::Vector3f(1, 1, 0.75));
+	m_sun.SetDirection(mathfu::Vector3f(1, 1, 1));
+	m_worldScene->SetSun(&m_sun);
+
 	m_camera.reset(m_graphicsEngine->CreateCamera("WorldCam"));
 	m_camera->SetTargeted(true);
 	m_camera->SetPosition({0, 0, 8});

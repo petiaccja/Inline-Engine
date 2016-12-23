@@ -13,6 +13,7 @@
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
 
 #include <string>
+#include <regex>
 #include <cassert>
 
 #ifdef _MSC_VER
@@ -317,7 +318,7 @@ gxapi::ShaderProgramBinary GxapiManager::CompileShader(
 
 	HRESULT hr = D3DCompile(
 		source, strlen(source) + 1,
-		"my_source.hlsl",
+		nullptr,
 		d3dMacrosDefines.data(),
 		&d3dIncludeProvider,
 		mainFunction,
@@ -337,11 +338,13 @@ gxapi::ShaderProgramBinary GxapiManager::CompileShader(
 	else {
 		if (errorMessage.Get() != nullptr) {
 			size_t errSize = errorMessage->GetBufferSize();
-			std::unique_ptr<char[]> errorStr = std::make_unique<char[]>(errSize + 1);
-			memcpy(errorStr.get(), errorMessage->GetBufferPointer(), errSize);
-			errorStr[errSize] = '\0';
+			std::string errorStr;
+			errorStr.resize(errSize);
+			memcpy(errorStr.data(), errorMessage->GetBufferPointer(), errSize);
 
-			ShaderCompilationError ex(std::string("Shader compilation failed:\n") + errorStr.get());
+			errorStr = std::regex_replace(errorStr, std::regex(R"([[:alnum:]@/_\-\:\\]+(\([0-9\-,]+\):))"), "\\1", std::regex_constants::format_sed);
+
+			ShaderCompilationError ex(std::string("Shader compilation failed:\n") + errorStr);
 			throw ex;
 		}
 		throw ShaderCompilationError("Failed to compile that crap, but did not get error msg.");

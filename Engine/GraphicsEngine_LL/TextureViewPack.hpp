@@ -19,7 +19,14 @@ struct RenderTargetPack {
 
 struct DepthStencilPack {
 	DepthStencilPack() = default;
-	DepthStencilPack(uint64_t width, uint32_t height, gxapi::eFormat format, GraphicsContext& context);
+	DepthStencilPack(
+		uint64_t width,
+		uint32_t height,
+		gxapi::eFormat formatDepthStencil,
+		gxapi::eFormat formatColor,
+		gxapi::eFormat formatTypeless,
+		GraphicsContext& context);
+
 	DepthStencilView dsv;
 	Texture2DSRV srv;
 };

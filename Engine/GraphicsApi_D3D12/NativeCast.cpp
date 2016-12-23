@@ -658,13 +658,13 @@ D3D12_BLEND native_cast(gxapi::eBlendOperand source) {
 	case gxapi::eBlendOperand::ONE:
 		return D3D12_BLEND_ONE;
 	case gxapi::eBlendOperand::SHADER_OUT:
-		return D3D12_BLEND_SRC1_COLOR;
+		return D3D12_BLEND_SRC_COLOR;
 	case gxapi::eBlendOperand::INV_SHADER_OUT:
-		return D3D12_BLEND_INV_SRC1_COLOR;
+		return D3D12_BLEND_INV_SRC_COLOR;
 	case gxapi::eBlendOperand::SHADER_ALPHA:
-		return D3D12_BLEND_SRC1_ALPHA;
+		return D3D12_BLEND_SRC_ALPHA;
 	case gxapi::eBlendOperand::INV_SHADER_ALPHA:
-		return D3D12_BLEND_INV_SRC1_ALPHA;
+		return D3D12_BLEND_INV_SRC_ALPHA;
 	case gxapi::eBlendOperand::TARGET_OUT:
 		return D3D12_BLEND_DEST_COLOR;
 	case gxapi::eBlendOperand::INV_TARGET_OUT:

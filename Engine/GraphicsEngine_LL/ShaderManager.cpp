@@ -91,11 +91,23 @@ const ShaderProgram& ShaderManager::CreateShader(const std::string& name, Shader
 	std::unique_lock<std::mutex> shaderLock(m_compileMutexes[nameHash % m_numCompileMutexes]);
 
 	// find requested shader code
-	std::string shaderSource = FindShaderCode(name.c_str());
+	std::string shaderSource;
+	std::string shaderPath;
+	{
+		auto pathSourcePair = FindShaderCode(name.c_str());
+		shaderPath = pathSourcePair.first;
+		shaderSource = pathSourcePair.second;
+	}
 
 	// determine what parts to compile, and compile them
 	ShaderParts partsToCompile = requestedParts.SetSubtract(shader->parts);
-	ShaderProgram program = CompileShader(shaderSource.c_str(), macros.c_str(), partsToCompile);
+	ShaderProgram program;
+	try {
+		program = CompileShader(shaderSource.c_str(), macros.c_str(), partsToCompile);
+	}
+	catch (gxapi::ShaderCompilationError& ex) {
+		throw gxapi::ShaderCompilationError("Error while compiling shader '" + shaderPath + "'. Compiler message: " + ex.what());
+	}
 
 	shader->parts = shader->parts.SetUnion(partsToCompile);
 	if (partsToCompile.vs) { shader->program.vs = std::move(program.vs); }
@@ -104,6 +116,8 @@ const ShaderProgram& ShaderManager::CreateShader(const std::string& name, Shader
 	if (partsToCompile.gs) { shader->program.gs = std::move(program.gs); }
 	if (partsToCompile.ps) { shader->program.ps = std::move(program.ps); }
 	if (partsToCompile.cs) { shader->program.cs = std::move(program.cs); }
+
+	return shader->program;
 }
 
 
@@ -120,13 +134,13 @@ void ShaderManager::ReloadShaders() {
 }
 
 
-std::string ShaderManager::FindShaderCode(const std::string& name) {
+std::pair<std::string, std::string> ShaderManager::FindShaderCode(const std::string& name) {
 	std::string keyName = StripShaderName(name);
 
 	// try it in direct source cache
 	auto codeIt = m_codes.find(keyName);
 	if (codeIt != m_codes.end()) {
-		return codeIt->second;
+		return { keyName, codeIt->second };
 	}
 
 	// try it in directories
@@ -140,7 +154,7 @@ std::string ShaderManager::FindShaderCode(const std::string& name) {
 			std::unique_ptr<char[]> content = std::make_unique<char[]>(s + 1);
 			fs.read(content.get(), s);
 			content[s] = '\0';
-			return content.get();
+			return { filepath.generic_string(), content.get() };
 		}
 	}
 
@@ -158,7 +172,7 @@ ShaderProgram ShaderManager::CompileShader(const std::string& sourceCode, const 
 		std::function<std::string(const char*)> m_findShader;
 	};
 
-	IncludeProvider includeProvider([this](const char* name) { return FindShaderCode(name); });
+	IncludeProvider includeProvider([this](const char* name) { return FindShaderCode(name).second; });
 	ShaderProgram ret;
 
 	static const char* const mainNames[] = {
@@ -181,7 +195,7 @@ ShaderProgram ShaderManager::CompileShader(const std::string& sourceCode, const 
 	int compileIndices[7]; // last item is a guard (-1), not used otherwise
 	{
 		for (auto& v : compileIndices) { v = -1; }
-		int idx;
+		int idx = 0;
 		if (parts.vs) { compileIndices[idx] = 0; ++idx; }
 		if (parts.hs) { compileIndices[idx] = 1; ++idx; }
 		if (parts.ds) { compileIndices[idx] = 2; ++idx; }
@@ -192,8 +206,9 @@ ShaderProgram ShaderManager::CompileShader(const std::string& sourceCode, const 
 
 	int idx = 0;
 	while (compileIndices[idx] != -1) {
-		const char* mainName = mainNames[idx];
-		gxapi::eShaderType type = types[idx];
+		const int stageId = compileIndices[idx];
+		const char* mainName = mainNames[stageId];
+		gxapi::eShaderType type = types[stageId];
 		auto binary = m_gxapiManager->CompileShader(sourceCode.c_str(),
 			mainName,
 			type,

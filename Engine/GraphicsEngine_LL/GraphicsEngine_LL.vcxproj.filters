@@ -252,6 +252,9 @@
     <ClInclude Include="Nodes\Node_RenderToBackbuffer.hpp">
       <Filter>Nodes\DeferredPipeline</Filter>
     </ClInclude>
+    <ClInclude Include="WindowResizeListener.hpp">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />

@@ -8,6 +8,7 @@
 #include "../ConstBufferHeap.hpp"
 #include "../GraphicsContext.hpp"
 #include "../TextureViewPack.hpp"
+#include "../WindowResizeListener.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
@@ -18,7 +19,8 @@ namespace inl::gxeng::nodes {
 class CombineGBuffer :
 	virtual public GraphicsNode,
 	virtual public exc::InputPortConfig<DepthStencilPack, RenderTargetPack, RenderTargetPack, const Camera*, const DirectionalLight*>,
-	virtual public exc::OutputPortConfig<RenderTargetPack>
+	virtual public exc::OutputPortConfig<RenderTargetPack>,
+	public WindowResizeListener
 {
 public:
 	CombineGBuffer(gxapi::IGraphicsApi* graphicsApi, unsigned width, unsigned height);
@@ -56,7 +58,7 @@ public:
 		} });
 	}
 
-	void Resize(unsigned width, unsigned height);
+	void WindowResized(unsigned width, unsigned height) override;
 
 protected:
 	unsigned m_width;

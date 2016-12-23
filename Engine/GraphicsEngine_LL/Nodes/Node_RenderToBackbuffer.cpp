@@ -58,7 +58,7 @@ void RenderToBackbuffer::InitGraphics(const GraphicsContext& context) {
 	shaderParts.vs = true;
 	shaderParts.ps = true;
 
-	auto shader = m_graphicsContext.CreateShader("RenderToBackbuffer.hlsl", shaderParts, "");
+	auto shader = m_graphicsContext.CreateShader("RenderToBackbuffer", shaderParts, "");
 
 	std::vector<gxapi::InputElementDesc> inputElementDesc = {
 		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0)
@@ -103,6 +103,7 @@ void RenderToBackbuffer::RenderScene(RenderTargetView& rtv, Texture2DSRV& textur
 	unsigned vbSize = m_fsq.GetSize();
 	unsigned vbStride = 3 * sizeof(float);
 
+	commandList.SetResourceState(texture.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 	commandList.BindGraphics(m_texBindParam, texture);
 	commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
 	commandList.SetIndexBuffer(&m_fsqIndices, false);

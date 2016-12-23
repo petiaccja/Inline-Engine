@@ -7,6 +7,7 @@
 #include <GraphicsEngine_LL/MeshEntity.hpp>
 #include <GraphicsEngine_LL/Scene.hpp>
 #include <GraphicsEngine_LL/Camera.hpp>
+#include <GraphicsEngine_LL/DirectionalLight.hpp>
 #include "RigidBody.hpp"
 #include "Rotor.hpp"
 #include "PIDController.hpp"
@@ -84,14 +85,16 @@ private:
 
 	std::unique_ptr<inl::gxeng::Image> m_checkerTexture;
 
-	// Scenes
-	std::unique_ptr<inl::gxeng::Scene> m_worldScene;
-	std::unique_ptr<inl::gxeng::Camera> m_camera;
-
 	// Entities
 	std::vector<std::unique_ptr<inl::gxeng::MeshEntity>> m_staticEntities;
 	std::unique_ptr<inl::gxeng::MeshEntity> m_terrainEntity;
 	std::unique_ptr<inl::gxeng::MeshEntity> m_quadcopterEntity;
+
+	inl::gxeng::DirectionalLight m_sun;
+
+	// Scenes
+	std::unique_ptr<inl::gxeng::Camera> m_camera;
+	std::unique_ptr<inl::gxeng::Scene> m_worldScene;
 
 	// Simulation
 	PIDController m_controller;

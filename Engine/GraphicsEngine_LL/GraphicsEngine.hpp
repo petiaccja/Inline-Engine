@@ -36,6 +36,8 @@ class Scene;
 class MeshEntity;
 class Camera;
 
+class WindowResizeListener;
+
 
 struct GraphicsEngineDesc {
 	gxapi::IGxapiManager* gxapiManager;
@@ -103,6 +105,17 @@ private:
 	gxapi::IGraphicsApi* m_graphicsApi; // external resource, we should not delete it
 	std::unique_ptr<gxapi::ISwapChain> m_swapChain;
 
+	// Memory
+	// NOTE: Pipeline is constructed after (and destructed before) view heaps because
+	// pipeline nodes use these heaps through the graphics context.
+	MemoryManager m_memoryManager;
+	// FIXME: these heaps might not belong to the graphics engine instance
+	DSVHeap m_dsvHeap;
+	RTVHeap m_rtvHeap;
+	PersistentResViewHeap m_persResViewHeap;
+	std::unique_ptr<BackBufferManager> m_backBufferHeap;
+	std::vector<WindowResizeListener*> m_windowResizeListeners;
+
 	// Pipeline Facilities
 	CommandAllocatorPool m_commandAllocatorPool;
 	ScratchSpacePool m_scratchSpacePool; // Creates CBV_SRV_UAV type scratch spaces
@@ -111,11 +124,6 @@ private:
 	Scheduler m_scheduler;
 	ShaderManager m_shaderManager;
 	std::vector<SyncPoint> m_frameEndFenceValues;
-
-	// Memory
-	MemoryManager m_memoryManager;
-	DSVHeap m_dsvHeap; // TODO
-	std::unique_ptr<BackBufferManager> m_backBufferHeap;
 
 	// Pipeline elements
 	CommandQueue m_masterCommandQueue;
@@ -135,9 +143,6 @@ private:
 	// Scene
 	std::set<Scene*> m_scenes;
 	std::set<Camera*> m_cameras;
-
-	// DELETE THIS
-	nodes::GetDepthBuffer* m_getBBNode;
 };
 
 
