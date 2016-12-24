@@ -100,8 +100,6 @@ void CombineGBuffer::InitGraphics(const GraphicsContext& context) {
 	psoDesc.vs = shader.vs;
 	psoDesc.ps = shader.ps;
 	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
-	psoDesc.blending.singleTarget.enableBlending = false;
-	psoDesc.blending.singleTarget.enableLogicOp = false;
 	psoDesc.depthStencilState.enableDepthTest = false;
 	psoDesc.depthStencilState.enableStencilTest = false;
 	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;

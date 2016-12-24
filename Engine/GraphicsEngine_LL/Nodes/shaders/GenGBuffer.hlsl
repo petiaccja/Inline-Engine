@@ -30,10 +30,10 @@ PS_Input VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCo
 {
 	PS_Input result;
 
-	float3 worldNormal = normalize(mul(cb.worldViewInvTr, float4(normal.xyz, 0.0)).xyz);
+	float3 viewNormal = normalize(mul(cb.worldViewInvTr, float4(normal.xyz, 0.0)).xyz);
 
 	result.position = mul(cb.MVP, position);
-	result.normal = worldNormal.xy;
+	result.normal = viewNormal.xy;
 	result.texCoord = texCoord.xy;
 
 	return result;

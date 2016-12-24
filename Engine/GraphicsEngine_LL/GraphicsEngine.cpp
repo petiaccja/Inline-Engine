@@ -20,6 +20,7 @@
 #include "Nodes/Node_CombineGBuffer.hpp"
 #include "Nodes/Node_LightsDeferred.hpp"
 #include "Nodes/Node_RenderToBackbuffer.hpp"
+#include "Nodes/Node_DrawSky.hpp"
 
 #include "WindowResizeListener.hpp"
 
@@ -264,6 +265,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::unique_ptr<nodes::GenGBuffer> genGBuffer(new nodes::GenGBuffer(m_graphicsApi, swapChainDesc.width, swapChainDesc.height));
 	std::unique_ptr<nodes::CombineGBuffer> combineGBuffer(new nodes::CombineGBuffer(m_graphicsApi, swapChainDesc.width, swapChainDesc.height));
 	std::unique_ptr<nodes::LightsDeferred> lightsDeferred(new nodes::LightsDeferred(m_graphicsApi));
+	std::unique_ptr<nodes::DrawSky> drawSky(new nodes::DrawSky(m_graphicsApi));
 	std::unique_ptr<nodes::RenderToBackbuffer> renderToBackbuffer(new nodes::RenderToBackbuffer(m_graphicsApi));
 
 	getWorldScene->GetInput<0>().Set("World");
@@ -287,8 +289,14 @@ void GraphicsEngine::CreatePipeline() {
 	genGBuffer->GetOutput(2)->Link(lightsDeferred->GetInput(3));
 	getCamera->GetOutput(0)->Link(lightsDeferred->GetInput(4));
 
+	// To drawSky
+	lightsDeferred->GetOutput(0)->Link(drawSky->GetInput(0));
+	genGBuffer->GetOutput(0)->Link(drawSky->GetInput(1));
+	getCamera->GetOutput(0)->Link(drawSky->GetInput(2));
+	getWorldScene->GetOutput(1)->Link(drawSky->GetInput(3));
+
 	getBackBuffer->GetOutput(0)->Link(renderToBackbuffer->GetInput(0));
-	lightsDeferred->GetOutput(0)->Link(renderToBackbuffer->GetInput(1));
+	drawSky->GetOutput(0)->Link(renderToBackbuffer->GetInput(1));
 
 	GraphicsContext graphicsContext(&m_memoryManager, &m_persResViewHeap, &m_rtvHeap, &m_dsvHeap, std::thread::hardware_concurrency(), 1, &m_shaderManager, m_graphicsApi);
 
@@ -298,13 +306,25 @@ void GraphicsEngine::CreatePipeline() {
 	genGBuffer->InitGraphics(graphicsContext);
 	combineGBuffer->InitGraphics(graphicsContext);
 	lightsDeferred->InitGraphics(graphicsContext);
+	drawSky->InitGraphics(graphicsContext);
 	renderToBackbuffer->InitGraphics(graphicsContext);
 
 	m_windowResizeListeners.push_back(genGBuffer.get());
 	m_windowResizeListeners.push_back(combineGBuffer.get());
 
 	{
-		m_pipeline.CreateFromNodesList({ getWorldScene.get(), getCamera.get(), getBackBuffer.get(), genGBuffer.get(), combineGBuffer.get(), lightsDeferred.get(), renderToBackbuffer.get() }, std::default_delete<exc::NodeBase>());
+		m_pipeline.CreateFromNodesList(
+			{
+				getWorldScene.get(),
+				getCamera.get(),
+				getBackBuffer.get(),
+				genGBuffer.get(),
+				combineGBuffer.get(),
+				lightsDeferred.get(),
+				drawSky.get(),
+				renderToBackbuffer.get()
+			},
+			std::default_delete<exc::NodeBase>());
 
 		getWorldScene.release();
 		getCamera.release();
@@ -312,6 +332,7 @@ void GraphicsEngine::CreatePipeline() {
 		genGBuffer.release();
 		combineGBuffer.release();
 		lightsDeferred.release();
+		drawSky.release();
 		renderToBackbuffer.release();
 	}
 }

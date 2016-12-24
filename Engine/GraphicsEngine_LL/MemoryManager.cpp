@@ -126,7 +126,7 @@ MemoryObjDesc MemoryManager::AllocateResource(eResourceHeapType heap, const gxap
 		case eFormat::R32_TYPELESS:
 			clearFormat = eFormat::D32_FLOAT;
 			break;
-		case eFormat::R32_FLOAT_X8X24_TYPELESS:
+		case eFormat::R32G8X24_TYPELESS:
 			clearFormat = eFormat::D32_FLOAT_S8X24_UINT;
 			break;
 		default:

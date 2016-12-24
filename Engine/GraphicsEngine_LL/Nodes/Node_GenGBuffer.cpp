@@ -120,13 +120,23 @@ void GenGBuffer::InitGraphics(const GraphicsContext& context) {
 	psoDesc.vs = shader.vs;
 	psoDesc.ps = shader.ps;
 	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
+	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 	psoDesc.blending.multiTarget[0].enableBlending = false;
 	psoDesc.blending.multiTarget[0].enableLogicOp = false;
 	psoDesc.blending.multiTarget[1].enableBlending = false;
 	psoDesc.blending.multiTarget[1].enableLogicOp = false;
+
 	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
-	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT;
-	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+	psoDesc.depthStencilState.enableStencilTest = true;
+	psoDesc.depthStencilState.stencilReadMask = 0;
+	psoDesc.depthStencilState.stencilWriteMask = ~uint8_t(0);
+	psoDesc.depthStencilState.ccwFace.stencilFunc = gxapi::eComparisonFunction::ALWAYS;
+	psoDesc.depthStencilState.ccwFace.stencilOpOnStencilFail = gxapi::eStencilOp::KEEP;
+	psoDesc.depthStencilState.ccwFace.stencilOpOnDepthFail = gxapi::eStencilOp::KEEP;
+	psoDesc.depthStencilState.ccwFace.stencilOpOnPass = gxapi::eStencilOp::REPLACE;
+	psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
+	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT_S8X24_UINT;
+	
 	psoDesc.numRenderTargets = 2;
 	psoDesc.renderTargetFormats[0] = gxapi::eFormat::R8G8B8A8_UNORM;
 	psoDesc.renderTargetFormats[1] = gxapi::eFormat::R16G16_FLOAT;
@@ -144,13 +154,13 @@ void GenGBuffer::WindowResized(unsigned width, unsigned height) {
 
 void GenGBuffer::InitBuffers() {
 	using gxapi::eFormat;
-
+	
 	m_depthStencil = DepthStencilPack(
 		m_width,
 		m_height,
-		eFormat::D32_FLOAT,
-		eFormat::R32_FLOAT,
-		eFormat::R32_TYPELESS,
+		eFormat::D32_FLOAT_S8X24_UINT,
+		eFormat::R32_FLOAT_X8X24_TYPELESS,
+		eFormat::R32G8X24_TYPELESS,
 		m_graphicsContext);
 
 	m_albedoRoughness = RenderTargetPack(
@@ -190,9 +200,10 @@ void GenGBuffer::RenderScene(const Camera* camera, const EntityCollection<MeshEn
 	commandList.SetViewports(1, &viewport);
 
 	commandList.SetResourceState(m_depthStencil.dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
-	commandList.ClearDepthStencil(m_depthStencil.dsv, 1, 0);
+	commandList.ClearDepthStencil(m_depthStencil.dsv, 1, 0, 0, nullptr, true, true);
 	commandList.ClearRenderTarget(m_albedoRoughness.rtv, gxapi::ColorRGBA(0, 0, 0, 1));
 	commandList.ClearRenderTarget(m_normal.rtv, gxapi::ColorRGBA(0, 0, 0, 1));
+	commandList.SetStencilRef(1); // background is 0, anything other than that is 1
 
 	commandList.SetPipelineState(m_PSO.get());
 	commandList.SetGraphicsBinder(&m_binder);

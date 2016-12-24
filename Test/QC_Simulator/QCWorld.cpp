@@ -17,8 +17,8 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 	// Create scene and camera
 	m_worldScene.reset(m_graphicsEngine->CreateScene("World"));
-	m_sun.SetColor({1, 1, 1});
-	m_sun.SetDirection({ 1, 1, 1 });
+	m_sun.SetColor({1.0f, 0.9f, 0.8f});
+	m_sun.SetDirection({ 0.5f, -0.1f, 1.0f });
 	m_worldScene->SetSun(&m_sun);
 	m_camera.reset(m_graphicsEngine->CreateCamera("WorldCam"));
 	m_camera->SetTargeted(true);

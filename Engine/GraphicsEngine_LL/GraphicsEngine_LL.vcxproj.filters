@@ -255,6 +255,9 @@
     <ClInclude Include="WindowResizeListener.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Node_DrawSky.hpp">
+      <Filter>Nodes\DeferredPipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -388,6 +391,9 @@
       <Filter>Nodes\DeferredPipeline</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_RenderToBackbuffer.cpp">
+      <Filter>Nodes\DeferredPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_DrawSky.cpp">
       <Filter>Nodes\DeferredPipeline</Filter>
     </ClCompile>
   </ItemGroup>

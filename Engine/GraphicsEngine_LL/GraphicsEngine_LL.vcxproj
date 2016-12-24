@@ -180,6 +180,7 @@
     <ClInclude Include="ExecutionResult.hpp" />
     <ClInclude Include="GraphicsContext.hpp" />
     <ClInclude Include="Nodes\Node_CombineGBuffer.hpp" />
+    <ClInclude Include="Nodes\Node_DrawSky.hpp" />
     <ClInclude Include="Nodes\Node_GenCSM.hpp" />
     <ClInclude Include="Nodes\Node_GenGBuffer.hpp" />
     <ClInclude Include="Nodes\Node_GetCameraByName.hpp" />
@@ -242,6 +243,7 @@
     <ClCompile Include="ExecutionResult.cpp" />
     <ClCompile Include="GraphicsContext.cpp" />
     <ClCompile Include="Nodes\Node_CombineGBuffer.cpp" />
+    <ClCompile Include="Nodes\Node_DrawSky.cpp" />
     <ClCompile Include="Nodes\Node_GenGBuffer.cpp" />
     <ClCompile Include="Nodes\Node_LightsDeferred.cpp" />
     <ClCompile Include="Nodes\Node_RenderToBackbuffer.cpp" />

@@ -1,8 +1,8 @@
 
 struct Sun
 {
-    float4 dir; // in view space
-    float4 color;
+	float4 dir; // in view space
+	float4 color;
 };
 
 ConstantBuffer<Sun> sun : register(b0);
