@@ -186,6 +186,7 @@
     <ClInclude Include="Nodes\Node_GetCameraByName.hpp" />
     <ClInclude Include="Nodes\Node_LightsDeferred.hpp" />
     <ClInclude Include="Nodes\Node_RenderToBackbuffer.hpp" />
+    <ClInclude Include="PipelineTypes.hpp" />
     <ClInclude Include="ShaderManager.hpp" />
     <ClInclude Include="StackDescHeap.hpp" />
     <ClInclude Include="FrameContext.hpp" />

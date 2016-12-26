@@ -258,6 +258,9 @@
     <ClInclude Include="Nodes\Node_DrawSky.hpp">
       <Filter>Nodes\DeferredPipeline</Filter>
     </ClInclude>
+    <ClInclude Include="PipelineTypes.hpp">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
