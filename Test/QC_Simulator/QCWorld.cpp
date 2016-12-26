@@ -24,7 +24,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_camera->SetTargeted(true);
 	m_camera->SetTarget({ 0, 0, 0 });
 	m_camera->SetPosition({ 0, -8, 3 });
-	m_camera->SetUpVector({0, 3, 8});
+	m_camera->SetUpVector({0, 0, 1});
 
 	inl::asset::CoordSysLayout coordSysLayout = {
 		inl::asset::AxisDir::POS_X, inl::asset::AxisDir::POS_Z, inl::asset::AxisDir::NEG_Y
