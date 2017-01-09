@@ -47,8 +47,6 @@ bool MemoryObject::PtrEqual(const MemoryObject& lhs, const MemoryObject& rhs) {
 }
 
 
-MemoryObject::MemoryObject(nullptr_t) {}
-
 
 MemoryObject::MemoryObject(MemoryObjDesc&& desc) :
 	m_contents(new Contents{std::move(desc.resource), desc.resident, {}})

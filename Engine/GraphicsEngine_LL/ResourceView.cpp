@@ -21,7 +21,7 @@ const VertexBuffer& VertexBufferView::GetResource() {
 
 
 ConstBufferView::ConstBufferView(const VolatileConstBuffer& resource, PersistentResViewHeap& heap) :
-	ResourceViewBase(resource)
+	ResourceViewBase(resource, &heap)
 {
 	gxapi::ConstantBufferViewDesc desc;
 	desc.gpuVirtualAddress = resource.GetVirtualAddress();

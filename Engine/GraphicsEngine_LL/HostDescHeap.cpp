@@ -66,131 +66,128 @@ void DescriptorReference::Invalidate() {
 }
 
 
-// =======================================================
 
 
-HostDescHeap::HostDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type) :
-	m_graphicsApi(graphicsApi),
-	m_type(type),
-	m_heapChunkSize(GetOptimalChunkSize(type)),
-	m_allocator(0)
-{
-	PushNewTextureSpaceChunk();
-}
+HostDescHeap::HostDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType heapType, size_t heapSize)
+	: m_graphicsApi(graphicsApi),
+	heapDim(heapSize),
+	m_heapType(heapType),
+	m_allocEngine(0),
+	m_descriptorCount(0)
+{}
 
-
-DescriptorReference HostDescHeap::Allocate() {
-	std::lock_guard<std::mutex> lock(m_mutex);
-	size_t pos;
+size_t HostDescHeap::Allocate() {
 	try {
-		pos = m_allocator.Allocate();
+		std::lock_guard<std::mutex> lkg(m_allocMutex);
+		m_allocEngine.Allocate();
 	}
 	catch (std::bad_alloc&) {
-		PushNewTextureSpaceChunk();
-		pos = m_allocator.Allocate();
-	}
-
-	DescriptorReference result{
-		GetAtTextureSpace(pos),
-		[this, pos]() { std::lock_guard<std::mutex> lock(m_mutex); m_allocator.Deallocate(pos); }
-	};
-	return result;
-}
-
-
-void HostDescHeap::DeallocateTextureSpace(size_t pos) {
-	std::lock_guard<std::mutex> lock(m_mutex);
-	m_allocator.Deallocate(pos);
-}
-
-
-gxapi::DescriptorHandle HostDescHeap::GetAtTextureSpace(size_t pos) {
-	size_t chunk = pos / m_heapChunkSize;
-	size_t id = pos % m_heapChunkSize;
-
-	assert(chunk < m_heapChunks.size());
-
-	return m_heapChunks[chunk]->At(id);
-}
-
-
-void HostDescHeap::PushNewTextureSpaceChunk() {
-	gxapi::DescriptorHeapDesc desc(m_type, m_heapChunkSize, false);
-	m_heapChunks.push_back(std::unique_ptr<gxapi::IDescriptorHeap>(m_graphicsApi->CreateDescriptorHeap(desc)));
-	try { // You never know
-		m_allocator.Resize(m_allocator.Size() + m_heapChunkSize);
-	}
-	catch (...) {
-		m_heapChunks.pop_back();
-		throw;
+		std::lock_guard<std::mutex> lkg(m_listMutex);
+		Grow();
+		m_allocEngine.Allocate();
 	}
 }
 
+void HostDescHeap::Deallocate(size_t pos) {
+	std::lock_guard<std::mutex> lkg(m_allocMutex);
+	m_allocEngine.Deallocate(pos);
+}
 
-size_t HostDescHeap::GetOptimalChunkSize(gxapi::eDescriptorHeapType type) {
-	switch (type) {
-	case gxapi::eDescriptorHeapType::CBV_SRV_UAV:
-		return 256;
-	case gxapi::eDescriptorHeapType::SAMPLER:
-	case gxapi::eDescriptorHeapType::RTV:
-	case gxapi::eDescriptorHeapType::DSV:
-		return 16;
-	default:
-		assert(false);
+gxapi::DescriptorHandle HostDescHeap::At(size_t pos) {
+	assert(pos < m_descriptorCount);
+
+	// structure is like a 3D texture
+	const size_t chunkIdx = pos / (chunkDim*chunkDim); // z = i / (width*height)
+	const size_t heapIdx = (pos - chunkIdx*heapDim*chunkDim) / heapDim; // y = (i - z*width*height) / width
+	const size_t descIdx = (pos - chunkIdx*heapDim*chunkDim - heapIdx*heapDim) / 1; // x = (i - z*width*height - y*width) / 1
+
+	ChunkListItem* chunk = m_first.get();
+	for (size_t i = chunkIdx; i != 0; --i) {
+		chunk = chunk->next.get();
 	}
 
-	return 256;
+	gxapi::IDescriptorHeap* heap = chunk->heaps[heapIdx].get();
+	gxapi::DescriptorHandle desc = heap->At(descIdx);
+
+	return desc;
 }
+
+void HostDescHeap::Grow() {
+	// find last chunk
+	ChunkListItem* chunk = m_first.get();
+	while (chunk->next) {
+		chunk = chunk->next.get();
+	}
+
+	// find last heap
+	ptrdiff_t heapIdx = 0;
+	while (heapIdx < chunkDim && chunk->heaps[heapIdx]) {
+		++heapIdx;
+	}
+
+	// add new chunk if needed
+	if (heapIdx >= chunkDim) {
+		chunk->next = std::make_unique<ChunkListItem>();
+		chunk = chunk->next.get();
+		heapIdx = 0;
+	}
+
+	// allocate new heap
+	chunk->heaps[heapIdx].reset(m_graphicsApi->CreateDescriptorHeap({m_heapType, heapDim, false}));
+	m_descriptorCount += heapDim;
+	m_allocEngine.Resize(m_descriptorCount);
+}
+
 
 
 RTVHeap::RTVHeap(gxapi::IGraphicsApi * graphicsApi) :
-	HostDescHeap(graphicsApi, gxapi::eDescriptorHeapType::RTV)
+	HostDescHeap(graphicsApi, gxapi::eDescriptorHeapType::RTV, 32)
 {}
 
 
-DescriptorReference RTVHeap::Create(MemoryObject & resource, gxapi::RenderTargetViewDesc desc) {
-	auto descRef = Allocate();
+size_t RTVHeap::Create(MemoryObject & resource, gxapi::RenderTargetViewDesc desc) {
+	auto place = Allocate();
 
-	m_graphicsApi->CreateRenderTargetView(resource._GetResourcePtr(), desc, descRef.Get());
+	m_graphicsApi->CreateRenderTargetView(resource._GetResourcePtr(), desc, At(place));
 
-	return descRef;
+	return place;
 }
 
 
 DSVHeap::DSVHeap(gxapi::IGraphicsApi* graphicsApi) :
-	HostDescHeap(graphicsApi, gxapi::eDescriptorHeapType::DSV)
+	HostDescHeap(graphicsApi, gxapi::eDescriptorHeapType::DSV, 16)
 {}
 
 
-DescriptorReference DSVHeap::Create(MemoryObject & resource, gxapi::DepthStencilViewDesc desc) {
-	auto descRef = Allocate();
+size_t DSVHeap::Create(MemoryObject & resource, gxapi::DepthStencilViewDesc desc) {
+	auto place = Allocate();
 
-	m_graphicsApi->CreateDepthStencilView(resource._GetResourcePtr(), desc, descRef.Get());
+	m_graphicsApi->CreateDepthStencilView(resource._GetResourcePtr(), desc, At(place));
 
-	return descRef;
+	return place;
 }
 
 
 PersistentResViewHeap::PersistentResViewHeap(gxapi::IGraphicsApi* graphicsApi) :
-	HostDescHeap(graphicsApi, gxapi::eDescriptorHeapType::CBV_SRV_UAV)
+	HostDescHeap(graphicsApi, gxapi::eDescriptorHeapType::CBV_SRV_UAV, 256)
 {}
 
 
-DescriptorReference PersistentResViewHeap::CreateCBV(gxapi::ConstantBufferViewDesc desc) {
-	auto descRef = Allocate();
+size_t PersistentResViewHeap::CreateCBV(gxapi::ConstantBufferViewDesc desc) {
+	auto place = Allocate();
 
-	m_graphicsApi->CreateConstantBufferView(desc, descRef.Get());
+	m_graphicsApi->CreateConstantBufferView(desc, At(place));
 
-	return descRef;
+	return place;
 }
 
 
-DescriptorReference PersistentResViewHeap::CreateSRV(MemoryObject& resource, gxapi::ShaderResourceViewDesc desc) {
-	auto descRef = Allocate();
+size_t PersistentResViewHeap::CreateSRV(MemoryObject& resource, gxapi::ShaderResourceViewDesc desc) {
+	auto place = Allocate();
 
-	m_graphicsApi->CreateShaderResourceView(resource._GetResourcePtr(), desc, descRef.Get());
+	m_graphicsApi->CreateShaderResourceView(resource._GetResourcePtr(), desc, At(place));
 
-	return descRef;
+	return place;
 }
 
 

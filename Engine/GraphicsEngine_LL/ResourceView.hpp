@@ -20,34 +20,39 @@ class PersistentResViewHeap;
 
 template <typename ResourceT>
 class ResourceViewBase {
+	struct SharedState {
+		ResourceT resource;
+		HostDescHeap* heap = nullptr;
+		size_t place = -1;
+		~SharedState() {
+			if (heap) {
+				heap->Deallocate(m_place);
+			}
+		}
+	};
 public:
-	ResourceViewBase() : m_resource(nullptr) {};
-	explicit ResourceViewBase(const ResourceT& resource) :
-		m_resource(resource)
-	{}
-
+	ResourceViewBase() = default;
+	
 	ResourceT& GetResource() {
 		return m_resource;
 	}
-
 	const ResourceT& GetResource() const {
 		return m_resource;
 	}
-
 	gxapi::DescriptorHandle GetHandle() const {
-		assert(m_descRef);
-		return m_descRef->Get();
+		assert(m_state && m_state->heap);
+		return m_state->heap->At(m_state->place);
 	}
 
+	explicit operator bool() {
+		return m_state && m_state->heap;
+	}
 protected:
-	ResourceViewBase(const ResourceT& resource, const std::shared_ptr<DescriptorReference>& descRef) :
-		m_resource(resource),
-		m_descRef(descRef)
-	{}
-
-protected:
-	ResourceT m_resource;
-	std::shared_ptr<DescriptorReference> m_descRef;
+	ResourceViewBase(const ResourceT& resource, HostDescHeap* heap) {
+		m_state = std::make_shared<SharedState>(resource, heap, heap->Allocate());
+	}
+private:
+	std::shared_ptr<SharedState> m_state;
 };
 
 

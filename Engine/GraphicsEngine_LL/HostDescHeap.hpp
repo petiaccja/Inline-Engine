@@ -15,6 +15,7 @@ namespace gxeng {
 class HostDescHeap;
 class MemoryObject;
 
+
 class DescriptorReference {
 public:
 	DescriptorReference(const gxapi::DescriptorHandle& handle, const std::function<void(void)>& deleter);
@@ -59,27 +60,33 @@ protected:
 /// a new descriptor heap (but only one shader visible heap can be bound at a time).
 /// </summary>
 class HostDescHeap {
-public:
-	HostDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type);
+	static constexpr size_t chunkDim = 64;
+	struct ChunkListItem {
+		std::unique_ptr<gxapi::IDescriptorHeap> heaps[chunkDim];
+		std::unique_ptr<ChunkListItem> next;
+	};
 
-	DescriptorReference Allocate();
+public:
+	HostDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType heapType, size_t heapSize);
+
+	size_t Allocate();
+	void Deallocate(size_t pos);
+	gxapi::DescriptorHandle At(size_t pos);
+private:
+	void Grow();
 
 protected:
-	gxapi::IGraphicsApi* m_graphicsApi;
-
-	const gxapi::eDescriptorHeapType m_type;
-
+	gxapi::IGraphicsApi* const m_graphicsApi;
 private:
-	const size_t m_heapChunkSize;
-	std::vector<std::unique_ptr<gxapi::IDescriptorHeap>> m_heapChunks;
-	std::mutex m_mutex;
-	exc::SlabAllocatorEngine m_allocator;
+	std::mutex m_listMutex;
+	std::unique_ptr<ChunkListItem> m_first;
+	size_t m_descriptorCount;
 
-private:
-	void DeallocateTextureSpace(size_t pos);
-	gxapi::DescriptorHandle GetAtTextureSpace(size_t pos);
-	void PushNewTextureSpaceChunk();
-	size_t GetOptimalChunkSize(gxapi::eDescriptorHeapType type);
+	std::mutex m_allocMutex;
+	exc::SlabAllocatorEngine m_allocEngine;
+
+	const size_t heapDim;
+	const gxapi::eDescriptorHeapType m_heapType;
 };
 
 
@@ -87,7 +94,7 @@ class RTVHeap : protected HostDescHeap {
 public:
 	RTVHeap(gxapi::IGraphicsApi* graphicsApi);
 
-	DescriptorReference Create(MemoryObject& resource, gxapi::RenderTargetViewDesc desc);
+	static void Create(MemoryObject& resource, gxapi::RenderTargetViewDesc desc);
 };
 
 
@@ -95,7 +102,7 @@ class DSVHeap : protected HostDescHeap {
 public:
 	DSVHeap(gxapi::IGraphicsApi* graphicsApi);
 
-	DescriptorReference Create(MemoryObject& resource, gxapi::DepthStencilViewDesc desc);
+	static void Create(MemoryObject& resource, gxapi::DepthStencilViewDesc desc);
 };
 
 
@@ -103,10 +110,11 @@ class PersistentResViewHeap : protected HostDescHeap {
 public:
 	PersistentResViewHeap(gxapi::IGraphicsApi* graphicsApi);
 
-	DescriptorReference CreateCBV(gxapi::ConstantBufferViewDesc desc);
-	DescriptorReference CreateSRV(MemoryObject& resource, gxapi::ShaderResourceViewDesc desc);
+	static void CreateCBV(gxapi::ConstantBufferViewDesc desc);
+	static void CreateSRV(MemoryObject& resource, gxapi::ShaderResourceViewDesc desc);
 };
+
 
 } // namespace gxeng
 } // namespace inl
- 
+
