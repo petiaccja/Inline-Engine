@@ -5,9 +5,7 @@ namespace inl::gxeng::nodes {
 
 
 RenderToBackbuffer::RenderToBackbuffer(gxapi::IGraphicsApi * graphicsApi):
-	m_binder(graphicsApi, {}),
-	m_fsq(nullptr),
-	m_fsqIndices(nullptr)
+	m_binder(graphicsApi, {})
 {
 	BindParameterDesc texBindParamDesc;
 	m_texBindParam = BindParameter(eBindParameterType::TEXTURE, 0);

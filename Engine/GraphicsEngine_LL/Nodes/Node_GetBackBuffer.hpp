@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../GraphicsNode.hpp"
-#include "../BackBuffer.hpp"
+#include "../ResourceView.hpp"
 
 #include <cmath>
 
@@ -27,7 +27,7 @@ public:
 		return Task({ [this](const ExecutionContext& context)
 		{
 			auto& swapChainAccessContext = static_cast<const SwapChainAccessContext&>(context);
-			this->GetOutput<0>().Set(swapChainAccessContext.GetBackBuffer()->GetView());
+			this->GetOutput<0>().Set(*swapChainAccessContext.GetBackBuffer());
 			return ExecutionResult{};
 		} });
 	}

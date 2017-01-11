@@ -46,7 +46,7 @@ class SwapChainAccessContext {
 public:
 	virtual ~SwapChainAccessContext() {}
 protected:
-	virtual BackBuffer* GetBackBuffer() const = 0;
+	virtual RenderTargetView* GetBackBuffer() const = 0;
 };
 
 
@@ -73,7 +73,7 @@ public:
 protected:
 	const Scene* GetSceneByName(const std::string& name) const override;
 	const Camera* GetCameraByName(const std::string& name) const override;
-	BackBuffer* GetBackBuffer() const override;	
+	RenderTargetView* GetBackBuffer() const override;	
 private:
 	FrameContext* m_frameContext;
 };

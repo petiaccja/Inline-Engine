@@ -1,4 +1,3 @@
-
 #include "MemoryObject.hpp"
 
 #include "../GraphicsApi_LL/ICommandList.hpp"
@@ -152,11 +151,6 @@ void MemoryObject::InitResourceStates(gxapi::eResourceState initialState) {
 uint64_t LinearBuffer::GetSize() const {
 	return GetDescription().bufferDesc.sizeInBytes;
 }
-
-
-IndexBuffer::IndexBuffer(nullptr_t) : LinearBuffer(nullptr) {
-}
-
 
 IndexBuffer::IndexBuffer(MemoryObjDesc&& desc, size_t indexCount) :
 	LinearBuffer(std::move(desc)),

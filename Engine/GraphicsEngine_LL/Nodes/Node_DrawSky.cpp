@@ -6,9 +6,7 @@ namespace inl::gxeng::nodes {
 
 
 DrawSky::DrawSky(gxapi::IGraphicsApi * graphicsApi):
-	m_binder(graphicsApi, {}),
-	m_fsq(nullptr),
-	m_fsqIndices(nullptr)
+	m_binder(graphicsApi, {})
 {
 	BindParameterDesc cbBindParamDesc;
 	m_cbBindParam = BindParameter(eBindParameterType::CONSTANT, 0);

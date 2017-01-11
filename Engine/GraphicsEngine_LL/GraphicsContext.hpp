@@ -38,7 +38,7 @@ public:
 	Texture2D CreateRenderTarget2D(uint64_t width, uint32_t height, gxapi::eFormat format, bool shaderResource, uint16_t arraySize = 1) const;
 	Texture2D CreateDepthStencil2D(uint64_t width, uint32_t height, gxapi::eFormat format, bool shaderResource, uint16_t arraySize = 1) const;
 	Texture2DSRV CreateSrv(Texture2D& texture, gxapi::eFormat format, gxapi::SrvTexture2DArray desc = {}) const;
-	RenderTargetView CreateRtv(Texture2D& renderTarget, gxapi::RtvTexture2DArray desc) const;
+	RenderTargetView CreateRtv(Texture2D& renderTarget, gxapi::eFormat format, gxapi::RtvTexture2DArray desc) const;
 	DepthStencilView CreateDsv(Texture2D& depthStencilView, gxapi::eFormat format, gxapi::DsvTexture2DArray desc) const;
 
 	// Vertex buffer

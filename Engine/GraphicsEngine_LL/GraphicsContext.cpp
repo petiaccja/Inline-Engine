@@ -74,10 +74,10 @@ Texture2DSRV GraphicsContext::CreateSrv(Texture2D& texture, gxapi::eFormat forma
 }
 
 
-RenderTargetView GraphicsContext::CreateRtv(Texture2D& texture, gxapi::RtvTexture2DArray desc) const {
+RenderTargetView GraphicsContext::CreateRtv(Texture2D& texture, gxapi::eFormat format, gxapi::RtvTexture2DArray desc) const {
 	if (m_srvHeap == nullptr) throw std::logic_error("Cannot create rtv without rtv heap.");
 
-	return RenderTargetView{ texture, *m_rtvHeap, desc };
+	return RenderTargetView{ texture, *m_rtvHeap, format, desc };
 }
 
 

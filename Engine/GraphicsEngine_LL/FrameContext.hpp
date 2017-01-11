@@ -20,7 +20,7 @@ class CommandAllocatorPool;
 class ScratchSpacePool;
 class Scene;
 class Camera;
-class BackBuffer;
+class RenderTargetView;
 
 struct FrameContext {
 	std::chrono::nanoseconds frameTime;
@@ -32,7 +32,7 @@ struct FrameContext {
 	ScratchSpacePool* scratchSpacePool = nullptr;
 
 	CommandQueue* commandQueue = nullptr;
-	BackBuffer* backBuffer = nullptr;
+	RenderTargetView* backBuffer = nullptr;
 	const std::set<Scene*>* scenes = nullptr;
 	const std::set<Camera*>* cameras = nullptr;
 	const std::vector<UploadManager::UploadDescription>* uploadRequests = nullptr;

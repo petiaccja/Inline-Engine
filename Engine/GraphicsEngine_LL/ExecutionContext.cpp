@@ -68,7 +68,7 @@ const Camera* ExecutionContext::GetCameraByName(const std::string& name) const {
 	return nullptr;
 }
 
-BackBuffer* ExecutionContext::GetBackBuffer() const {
+RenderTargetView* ExecutionContext::GetBackBuffer() const {
 	return m_frameContext->backBuffer;
 }
 

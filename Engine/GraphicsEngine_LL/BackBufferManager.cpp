@@ -1,7 +1,7 @@
 #include "BackBufferManager.hpp"
 
 #include "MemoryObject.hpp"
-#include "BackBuffer.hpp"
+#include "ResourceView.hpp"
 #include "HostDescHeap.hpp"
 
 #include <cassert>
@@ -24,29 +24,30 @@ BackBufferManager::BackBufferManager(gxapi::IGraphicsApi* graphicsApi, gxapi::IS
 		m_descriptorHeap.reset(m_graphicsApi->CreateDescriptorHeap(heapDesc));
 	}
 
-	gxapi::RenderTargetViewDesc desc;
-	desc.dimension = gxapi::eRtvDimension::TEXTURE2D;
-	desc.tex2D.firstMipLevel = 0;
-	desc.tex2D.planeIndex = 0;
+	gxapi::RenderTargetViewDesc rtvDesc;
+	rtvDesc.dimension = gxapi::eRtvDimension::TEXTURE2DARRAY;
+	rtvDesc.tex2DArray.activeArraySize = 1;
+	rtvDesc.tex2DArray.firstArrayElement = 0;
+	rtvDesc.tex2DArray.firstMipLevel = 0;
+	rtvDesc.tex2DArray.planeIndex = 0;
 
 	m_backBuffers.reserve(numBuffers);
 	for (unsigned i = 0; i < numBuffers; i++) {
-		gxapi::DescriptorHandle descHandle = m_descriptorHeap->At(i);
-		MemoryObjDesc bufferDesc = MemoryObjDesc(swapChain->GetBuffer(i));
+		MemoryObjDesc texDesc = MemoryObjDesc(swapChain->GetBuffer(i));
+		gxapi::ResourceDesc resourceDesc = texDesc.resource->GetDesc();
+		gxapi::DescriptorHandle descriptorHandle = m_descriptorHeap->At(i);
 
-		auto resourceDesc = bufferDesc.resource->GetDesc();
-		assert(resourceDesc.textureDesc.depthOrArraySize == 1);
-		desc.format = resourceDesc.textureDesc.format;
+		rtvDesc.format = resourceDesc.textureDesc.format;
+		
+		Texture2D texture{ std::move(texDesc) };
 
-		m_graphicsApi->CreateRenderTargetView(bufferDesc.resource.get(), desc, descHandle);
-
-		BackBuffer highLevelBuffer(DescriptorReference(descHandle, nullptr), desc, std::move(bufferDesc));
-		m_backBuffers.push_back(std::move(highLevelBuffer));
+		RenderTargetView rtv{texture, descriptorHandle, graphicsApi, rtvDesc.format, rtvDesc.tex2DArray };
+		m_backBuffers.push_back(std::move(rtv));
 	}
 }
 
 
-BackBuffer& BackBufferManager::GetBackBuffer(unsigned index) {
+RenderTargetView& BackBufferManager::GetBackBuffer(unsigned index) {
 	return m_backBuffers.at(index);
 }
 

@@ -112,7 +112,7 @@ public:
 
 class IndexBuffer : public LinearBuffer {
 public:
-	explicit IndexBuffer(nullptr_t);
+	IndexBuffer() : m_indexCount(0) {}
 	IndexBuffer(MemoryObjDesc&& desc, size_t indexCount);
 
 	size_t GetIndexCount() const;
