@@ -14,7 +14,7 @@ namespace nodes {
 class GetBackBuffer :
 	virtual public GraphicsNode,
 	public exc::InputPortConfig<>,
-	public exc::OutputPortConfig<RenderTargetView>
+	public exc::OutputPortConfig<RenderTargetView2D>
 {
 public:
 	GetBackBuffer() {}

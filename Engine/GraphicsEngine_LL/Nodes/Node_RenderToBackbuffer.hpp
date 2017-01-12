@@ -15,7 +15,7 @@ namespace inl::gxeng::nodes {
 // This is a utility node used for testing, makes it easier to render a node's output on the screen.
 class RenderToBackbuffer :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<RenderTargetView, RenderTargetPack>,
+	virtual public exc::InputPortConfig<RenderTargetView2D, RenderTargetPack>,
 	virtual public exc::OutputPortConfig<>
 {
 public:
@@ -56,8 +56,8 @@ protected:
 
 private:
 	void RenderScene(
-		RenderTargetView& rtv,
-		Texture2DSRV& texture,
+		RenderTargetView2D& rtv,
+		TextureView2D& texture,
 		GraphicsCommandList& commandList);
 };
 

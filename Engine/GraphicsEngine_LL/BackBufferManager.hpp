@@ -8,7 +8,7 @@ namespace inl {
 namespace gxeng {
 
 
-class RenderTargetView;
+class RenderTargetView2D;
 
 
 class BackBufferManager
@@ -16,14 +16,14 @@ class BackBufferManager
 public:
 	BackBufferManager(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapChain* swapChain);
 
-	RenderTargetView& GetBackBuffer(unsigned index);
+	RenderTargetView2D& GetBackBuffer(unsigned index);
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
 	gxapi::ISwapChain* m_swapChain;
 
 	std::unique_ptr<gxapi::IDescriptorHeap> m_descriptorHeap;
-	std::vector<RenderTargetView> m_backBuffers;
+	std::vector<RenderTargetView2D> m_backBuffers;
 };
 
 

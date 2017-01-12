@@ -26,11 +26,11 @@ public:
 	int GetChannelCount() const;
 	ePixelClass GetPixelClass() const;
 
-	std::shared_ptr<const Texture2DSRV> GetSrv();
+	std::shared_ptr<const TextureView2D> GetSrv();
 protected:
 	static bool Image::ConvertFormat(ePixelChannelType channelType, int channelCount, ePixelClass pixelClass, gxapi::eFormat& fmt, int& resultingChannelCount);
 private:
-	std::shared_ptr<Texture2DSRV> m_resource;
+	std::shared_ptr<TextureView2D> m_resource;
 	ePixelChannelType m_channelType;
 	int m_channelCount;
 	ePixelClass m_pixelClass;

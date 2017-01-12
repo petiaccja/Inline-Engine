@@ -77,7 +77,7 @@ void RenderToBackbuffer::InitGraphics(const GraphicsContext& context) {
 }
 
 
-void RenderToBackbuffer::RenderScene(RenderTargetView& rtv, Texture2DSRV& texture, GraphicsCommandList& commandList) {
+void RenderToBackbuffer::RenderScene(RenderTargetView2D& rtv, TextureView2D& texture, GraphicsCommandList& commandList) {
 	auto* pRTV = &rtv;
 	commandList.SetResourceState(pRTV->GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetRenderTargets(1, &pRTV);

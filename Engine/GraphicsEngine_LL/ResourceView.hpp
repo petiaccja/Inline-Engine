@@ -88,11 +88,11 @@ public:
 };
 
 
-class RenderTargetView : public ResourceViewBase<Texture2D> {
+class RenderTargetView2D : public ResourceViewBase<Texture2D> {
 public:
-	RenderTargetView() = default;
-	RenderTargetView(const Texture2D& resource, RTVHeap& heap, gxapi::eFormat format, gxapi::RtvTexture2DArray desc);
-	RenderTargetView(const Texture2D& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::RtvTexture2DArray desc);
+	RenderTargetView2D() = default;
+	RenderTargetView2D(const Texture2D& resource, RTVHeap& heap, gxapi::eFormat format, gxapi::RtvTexture2DArray desc);
+	RenderTargetView2D(const Texture2D& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::RtvTexture2DArray desc);
 	
 	gxapi::RenderTargetViewDesc GetDescription() const;
 
@@ -101,11 +101,11 @@ protected:
 };
 
 
-class DepthStencilView : public ResourceViewBase<Texture2D> {
+class DepthStencilView2D : public ResourceViewBase<Texture2D> {
 public:
-	DepthStencilView() = default;
-	DepthStencilView(const Texture2D& resource, DSVHeap& heap, gxapi::eFormat format, gxapi::DsvTexture2DArray desc);
-	DepthStencilView(const Texture2D& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::DsvTexture2DArray desc);
+	DepthStencilView2D() = default;
+	DepthStencilView2D(const Texture2D& resource, DSVHeap& heap, gxapi::eFormat format, gxapi::DsvTexture2DArray desc);
+	DepthStencilView2D(const Texture2D& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::DsvTexture2DArray desc);
 
 	gxapi::DepthStencilViewDesc GetDescription() const;
 
@@ -115,11 +115,11 @@ protected:
 
 
 
-class BufferSRV : public ResourceViewBase<LinearBuffer> {
+class BufferView : public ResourceViewBase<LinearBuffer> {
 public:
-	BufferSRV() = default;
-	BufferSRV(const LinearBuffer& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvBuffer desc);
-	BufferSRV(const LinearBuffer& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::SrvBuffer desc);
+	BufferView() = default;
+	BufferView(const LinearBuffer& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvBuffer desc);
+	BufferView(const LinearBuffer& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::SrvBuffer desc);
 
 	gxapi::eFormat GetFormat();
 	const gxapi::SrvBuffer& GetDescription() const;
@@ -130,11 +130,11 @@ protected:
 };
 
 
-class Texture1DSRV : public ResourceViewBase<Texture1D> {
+class TextureView1D : public ResourceViewBase<Texture1D> {
 public:
-	Texture1DSRV() = default;
-	Texture1DSRV(const Texture1D& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvTexture1DArray desc);
-	Texture1DSRV(const Texture1D& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::SrvTexture1DArray desc);
+	TextureView1D() = default;
+	TextureView1D(const Texture1D& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvTexture1DArray desc);
+	TextureView1D(const Texture1D& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::SrvTexture1DArray desc);
 
 	gxapi::eFormat GetFormat();
 	const gxapi::SrvTexture1DArray& GetDescription() const;
@@ -145,11 +145,11 @@ protected:
 };
 
 
-class Texture2DSRV : public ResourceViewBase<Texture2D> {
+class TextureView2D : public ResourceViewBase<Texture2D> {
 public:
-	Texture2DSRV() = default;
-	Texture2DSRV(const Texture2D& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvTexture2DArray desc);
-	Texture2DSRV(const Texture2D& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::SrvTexture2DArray desc);
+	TextureView2D() = default;
+	TextureView2D(const Texture2D& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvTexture2DArray desc);
+	TextureView2D(const Texture2D& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::SrvTexture2DArray desc);
 
 	gxapi::eFormat GetFormat();
 	const gxapi::SrvTexture2DArray& GetDescription() const;
@@ -160,11 +160,11 @@ protected:
 };
 
 
-class Texture3DSRV : public ResourceViewBase<Texture3D> {
+class TextureView3D : public ResourceViewBase<Texture3D> {
 public:
-	Texture3DSRV() = default;
-	Texture3DSRV(const Texture3D& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvTexture3D desc);
-	Texture3DSRV(const Texture3D& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::SrvTexture3D desc);
+	TextureView3D() = default;
+	TextureView3D(const Texture3D& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvTexture3D desc);
+	TextureView3D(const Texture3D& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::SrvTexture3D desc);
 
 	gxapi::eFormat GetFormat();
 	const gxapi::SrvTexture3D& GetDescription() const;
@@ -175,10 +175,10 @@ protected:
 };
 
 
-class TextureCubeSRV : public ResourceViewBase<TextureCube> {
+class TextureViewCube : public ResourceViewBase<TextureCube> {
 public:
-	TextureCubeSRV(const TextureCube& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvTextureCube desc);
-	TextureCubeSRV(const TextureCube& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::SrvTextureCube desc);
+	TextureViewCube(const TextureCube& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvTextureCube desc);
+	TextureViewCube(const TextureCube& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::SrvTextureCube desc);
 
 	gxapi::eFormat GetFormat();
 	const gxapi::SrvTextureCube& GetDescription() const;

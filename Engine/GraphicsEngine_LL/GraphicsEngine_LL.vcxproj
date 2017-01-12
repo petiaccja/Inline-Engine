@@ -246,6 +246,7 @@
     <ClCompile Include="Nodes\Node_GenGBuffer.cpp" />
     <ClCompile Include="Nodes\Node_LightsDeferred.cpp" />
     <ClCompile Include="Nodes\Node_RenderToBackbuffer.cpp" />
+    <ClCompile Include="PipelineTypes.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="StackDescHeap.cpp" />
     <ClCompile Include="GraphicsCommandList.cpp" />

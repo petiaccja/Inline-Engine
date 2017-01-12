@@ -41,13 +41,13 @@ BackBufferManager::BackBufferManager(gxapi::IGraphicsApi* graphicsApi, gxapi::IS
 		
 		Texture2D texture{ std::move(texDesc) };
 
-		RenderTargetView rtv{texture, descriptorHandle, graphicsApi, rtvDesc.format, rtvDesc.tex2DArray };
+		RenderTargetView2D rtv{texture, descriptorHandle, graphicsApi, rtvDesc.format, rtvDesc.tex2DArray };
 		m_backBuffers.push_back(std::move(rtv));
 	}
 }
 
 
-RenderTargetView& BackBufferManager::GetBackBuffer(unsigned index) {
+RenderTargetView2D& BackBufferManager::GetBackBuffer(unsigned index) {
 	return m_backBuffers.at(index);
 }
 

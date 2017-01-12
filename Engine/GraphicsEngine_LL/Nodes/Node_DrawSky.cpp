@@ -92,8 +92,8 @@ void DrawSky::InitGraphics(const GraphicsContext & context) {
 
 
 void DrawSky::Render(
-	RenderTargetView& rtv,
-	DepthStencilView& dsv,
+	RenderTargetView2D& rtv,
+	DepthStencilView2D& dsv,
 	const Camera* camera,
 	const DirectionalLight* sun,
 	GraphicsCommandList& commandList

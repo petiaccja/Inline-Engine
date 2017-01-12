@@ -12,7 +12,7 @@ namespace gxeng {
 
 
 class MemoryManager;
-class RenderTargetView;
+class RenderTargetView2D;
 
 
 

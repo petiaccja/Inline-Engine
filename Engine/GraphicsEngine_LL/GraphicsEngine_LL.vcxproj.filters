@@ -393,5 +393,8 @@
     <ClCompile Include="Nodes\Node_DrawSky.cpp">
       <Filter>Nodes\DeferredPipeline</Filter>
     </ClCompile>
+    <ClCompile Include="PipelineTypes.cpp">
+      <Filter>Pipeline</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

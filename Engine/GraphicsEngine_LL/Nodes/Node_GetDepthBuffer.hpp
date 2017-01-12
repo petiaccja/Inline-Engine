@@ -16,7 +16,7 @@ namespace nodes {
 class GetDepthBuffer :
 	virtual public GraphicsNode,
 	public exc::InputPortConfig<>,
-	public exc::OutputPortConfig<DepthStencilView>
+	public exc::OutputPortConfig<DepthStencilView2D>
 {
 public:
 	GetDepthBuffer(MemoryManager* memgr, DSVHeap& dsvHeap, unsigned width, unsigned height);
@@ -31,7 +31,7 @@ public:
 private:
 	void Init(unsigned width, unsigned height);
 protected:
-	DepthStencilView m_dsv;
+	DepthStencilView2D m_dsv;
 	MemoryManager* m_memoryManager;
 	DSVHeap& m_dsvHeap;
 };

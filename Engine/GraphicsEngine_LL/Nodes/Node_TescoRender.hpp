@@ -20,8 +20,8 @@ namespace nodes {
 
 class TescoRender :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<RenderTargetView, DepthStencilView, const Camera*, const EntityCollection<MeshEntity>*>,
-	virtual public exc::OutputPortConfig<RenderTargetView>
+	virtual public exc::InputPortConfig<RenderTargetView2D, DepthStencilView2D, const Camera*, const EntityCollection<MeshEntity>*>,
+	virtual public exc::OutputPortConfig<RenderTargetView2D>
 {
 public:
 	TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager* gxapiManager);
@@ -65,7 +65,7 @@ protected:
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 private:
-	void RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, const Camera* camera, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList);
+	void RenderScene(RenderTargetView2D& rtv, DepthStencilView2D& dsv, const Camera* camera, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList);
 };
 
 

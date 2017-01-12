@@ -121,9 +121,9 @@ void CombineGBuffer::InitBuffer() {
 
 
 void CombineGBuffer::RenderCombined(
-	Texture2DSRV& depthStencil,
-	Texture2DSRV& albedoRoughness,
-	Texture2DSRV& normal,
+	TextureView2D& depthStencil,
+	TextureView2D& albedoRoughness,
+	TextureView2D& normal,
 	const Camera* camera,
 	const DirectionalLight* sun,
 	GraphicsCommandList & commandList
