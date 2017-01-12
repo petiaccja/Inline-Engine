@@ -51,7 +51,6 @@ protected:
 /// exclusive ownership over at least one instance of this class.
 /// </summary>
 class StackDescHeap {
-	friend class HostDescHeap;
 	friend class DescriptorArrayRef;
 public:
 	StackDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type, uint32_t size);

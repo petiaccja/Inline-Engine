@@ -34,7 +34,7 @@ void Image::SetLayout(size_t width, size_t height, ePixelChannelType channelType
 		desc.mostDetailedMip = 0;
 		desc.numMipLevels = -1;
 		desc.planeIndex = 0;
-		m_resource.reset(new Texture2DSRV(texture, *m_descriptorHeap, texture.GetFormat(), desc));
+		m_resource.reset(new TextureView2D(texture, *m_descriptorHeap, texture.GetFormat(), desc));
 
 		m_channelCount = channelCount;
 		m_channelType = channelType;
@@ -119,7 +119,7 @@ ePixelClass Image::GetPixelClass() const {
 }
 
 
-std::shared_ptr<const Texture2DSRV> Image::GetSrv() {
+std::shared_ptr<const TextureView2D> Image::GetSrv() {
 	return m_resource;
 }
 

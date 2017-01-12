@@ -16,8 +16,7 @@ namespace gxeng {
 //------------------------------------------------------------------------------
 
 MeshBuffer::MeshBuffer(MemoryManager* memoryManager)
-	: m_memoryManager(memoryManager),
-	m_indexBuffer(nullptr)
+	: m_memoryManager(memoryManager)
 {
 	assert(m_memoryManager != nullptr);
 }
@@ -43,7 +42,7 @@ void MeshBuffer::Update(uint32_t streamIndex, const void* vertexData, size_t ver
 
 void MeshBuffer::Clear() {
 	m_vertexBuffers.clear();
-	m_indexBuffer = IndexBuffer(nullptr);
+	m_indexBuffer = IndexBuffer();
 }
 
 

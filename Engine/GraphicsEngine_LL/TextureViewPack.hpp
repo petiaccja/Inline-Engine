@@ -12,8 +12,8 @@ namespace inl::gxeng::nodes {
 struct RenderTargetPack {
 	RenderTargetPack() = default;
 	RenderTargetPack(uint64_t width, uint32_t height, gxapi::eFormat format, GraphicsContext& context);
-	RenderTargetView rtv;
-	Texture2DSRV srv;
+	RenderTargetView2D rtv;
+	TextureView2D srv;
 };
 
 
@@ -27,8 +27,8 @@ struct DepthStencilPack {
 		gxapi::eFormat formatTypeless,
 		GraphicsContext& context);
 
-	DepthStencilView dsv;
-	Texture2DSRV srv;
+	DepthStencilView2D dsv;
+	TextureView2D srv;
 };
 
 

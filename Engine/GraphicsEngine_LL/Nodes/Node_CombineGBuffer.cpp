@@ -15,9 +15,7 @@ CombineGBuffer::CombineGBuffer(
 ):
 	m_width(width),
 	m_height(height),
-	m_binder(graphicsApi, {}),
-	m_fsq(nullptr),
-	m_fsqIndices(nullptr)
+	m_binder(graphicsApi, {})
 {
 	BindParameterDesc sunBindParamDesc;
 	m_sunBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
@@ -123,9 +121,9 @@ void CombineGBuffer::InitBuffer() {
 
 
 void CombineGBuffer::RenderCombined(
-	Texture2DSRV& depthStencil,
-	Texture2DSRV& albedoRoughness,
-	Texture2DSRV& normal,
+	TextureView2D& depthStencil,
+	TextureView2D& albedoRoughness,
+	TextureView2D& normal,
 	const Camera* camera,
 	const DirectionalLight* sun,
 	GraphicsCommandList & commandList

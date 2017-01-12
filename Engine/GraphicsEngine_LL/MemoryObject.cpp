@@ -1,4 +1,3 @@
-
 #include "MemoryObject.hpp"
 
 #include "../GraphicsApi_LL/ICommandList.hpp"
@@ -46,8 +45,6 @@ bool MemoryObject::PtrEqual(const MemoryObject& lhs, const MemoryObject& rhs) {
 	return lhs.m_contents.get() == rhs.m_contents.get();
 }
 
-
-MemoryObject::MemoryObject(nullptr_t) {}
 
 
 MemoryObject::MemoryObject(MemoryObjDesc&& desc) :
@@ -154,11 +151,6 @@ void MemoryObject::InitResourceStates(gxapi::eResourceState initialState) {
 uint64_t LinearBuffer::GetSize() const {
 	return GetDescription().bufferDesc.sizeInBytes;
 }
-
-
-IndexBuffer::IndexBuffer(nullptr_t) : LinearBuffer(nullptr) {
-}
-
 
 IndexBuffer::IndexBuffer(MemoryObjDesc&& desc, size_t indexCount) :
 	LinearBuffer(std::move(desc)),

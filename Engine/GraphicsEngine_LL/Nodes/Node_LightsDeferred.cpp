@@ -10,10 +10,10 @@ LightsDeferred::LightsDeferred(gxapi::IGraphicsApi * graphicsApi) :
 }
 
 void LightsDeferred::RenderScene(
-	RenderTargetView & rtv,
-	Texture2DSRV & depthStencil,
-	Texture2DSRV & albedoRoughness,
-	Texture2DSRV & normal,
+	RenderTargetView2D & rtv,
+	TextureView2D & depthStencil,
+	TextureView2D & albedoRoughness,
+	TextureView2D & normal,
 	const Camera * camera,
 	GraphicsCommandList & commandList
 ) {

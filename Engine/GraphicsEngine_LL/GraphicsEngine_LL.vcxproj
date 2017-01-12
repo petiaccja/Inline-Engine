@@ -165,7 +165,6 @@
     <ClInclude Include="..\GraphicsEngine\IScene.hpp" />
     <ClInclude Include="..\GraphicsEngine\ITerrainEntity.hpp" />
     <ClInclude Include="..\GraphicsEngine\ITexture2D.hpp" />
-    <ClInclude Include="BackBuffer.hpp" />
     <ClInclude Include="BackBufferManager.hpp" />
     <ClInclude Include="BasicCommandList.hpp" />
     <ClInclude Include="Binder.hpp" />
@@ -231,7 +230,6 @@
     <ClInclude Include="WindowResizeListener.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BackBuffer.cpp" />
     <ClCompile Include="BackBufferManager.cpp" />
     <ClCompile Include="BasicCommandList.cpp" />
     <ClCompile Include="Binder.cpp" />
@@ -248,6 +246,7 @@
     <ClCompile Include="Nodes\Node_GenGBuffer.cpp" />
     <ClCompile Include="Nodes\Node_LightsDeferred.cpp" />
     <ClCompile Include="Nodes\Node_RenderToBackbuffer.cpp" />
+    <ClCompile Include="PipelineTypes.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="StackDescHeap.cpp" />
     <ClCompile Include="GraphicsCommandList.cpp" />

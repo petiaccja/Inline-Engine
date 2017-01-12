@@ -3,6 +3,8 @@
 #include "MemoryObject.hpp"
 #include "HostDescHeap.hpp"
 
+#include <GraphicsApi_LL/IGraphicsApi.hpp>
+
 
 namespace inl {
 namespace gxeng {
@@ -21,92 +23,88 @@ const VertexBuffer& VertexBufferView::GetResource() {
 
 
 ConstBufferView::ConstBufferView(const VolatileConstBuffer& resource, PersistentResViewHeap& heap) :
-	ResourceViewBase(resource)
+	ResourceViewBase(resource, &heap)
 {
 	gxapi::ConstantBufferViewDesc desc;
 	desc.gpuVirtualAddress = resource.GetVirtualAddress();
 	desc.sizeInBytes = resource.GetSize();
 
-	m_descRef.reset(new DescriptorReference(heap.CreateCBV(desc)));
+	heap.CreateCBV(desc, GetHandle());
 }
 
 
 ConstBufferView::ConstBufferView(const PersistentConstBuffer& resource, PersistentResViewHeap& heap) :
-	ResourceViewBase(resource)
+	ResourceViewBase(resource, &heap)
 {
 	gxapi::ConstantBufferViewDesc desc;
 	desc.gpuVirtualAddress = resource.GetVirtualAddress();
 	desc.sizeInBytes = resource.GetSize();
 
-	m_descRef.reset(new DescriptorReference(heap.CreateCBV(desc)));
+	heap.CreateCBV(desc, GetHandle());
+}
+
+ConstBufferView::ConstBufferView(const VolatileConstBuffer & resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi * gxapi)
+	: ResourceViewBase(resource, handle)
+{
+	gxapi::ConstantBufferViewDesc desc;
+	desc.gpuVirtualAddress = resource.GetVirtualAddress();
+	desc.sizeInBytes = resource.GetSize();
+
+	gxapi->CreateConstantBufferView(desc, GetHandle());
+}
+
+ConstBufferView::ConstBufferView(const PersistentConstBuffer & resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi * gxapi)
+	: ResourceViewBase(resource, handle)
+{
+	gxapi::ConstantBufferViewDesc desc;
+	desc.gpuVirtualAddress = resource.GetVirtualAddress();
+	desc.sizeInBytes = resource.GetSize();
+
+	gxapi->CreateConstantBufferView(desc, GetHandle());
 }
 
 
-RenderTargetView::RenderTargetView(
-	const Texture2D& resource,
-	RTVHeap& heap,
-	gxapi::RtvTexture2DArray desc
-):
-	ResourceViewBase(resource)
+RenderTargetView2D::RenderTargetView2D(const Texture2D& resource,
+								   RTVHeap& heap, 
+								   gxapi::eFormat format,
+								   gxapi::RtvTexture2DArray desc)
+	:
+	ResourceViewBase(resource, &heap)
 {
 	gxapi::RenderTargetViewDesc RTVdesc;
-	RTVdesc.format = resource.GetFormat();
+	RTVdesc.format = format;
 	RTVdesc.dimension = gxapi::eRtvDimension::TEXTURE2DARRAY;
 	RTVdesc.tex2DArray = desc;
 
 	m_desc = RTVdesc;
 
-	m_descRef.reset(new DescriptorReference(heap.Create(m_resource, RTVdesc)));
+	heap.Create(GetResource(), RTVdesc, GetHandle());
 }
 
-
-RenderTargetView::RenderTargetView(
-	const Texture2D& resource,
-	DescriptorReference&& handle,
-	gxapi::RenderTargetViewDesc desc
-):
-	ResourceViewBase(resource),
-	m_desc(desc)
+RenderTargetView2D::RenderTargetView2D(const Texture2D & resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi * gxapi, gxapi::eFormat format, gxapi::RtvTexture2DArray desc)
+	: ResourceViewBase(resource, handle)
 {
-	m_descRef.reset(new DescriptorReference(std::move(handle)));
+	gxapi::RenderTargetViewDesc RTVdesc;
+	RTVdesc.format = format;
+	RTVdesc.dimension = gxapi::eRtvDimension::TEXTURE2DARRAY;
+	RTVdesc.tex2DArray = desc;
+
+	m_desc = RTVdesc;
+
+	gxapi->CreateRenderTargetView(GetResource()._GetResourcePtr(), RTVdesc, GetHandle());
 }
 
-/*
-RenderTargetView::RenderTargetView(
-	RenderTargetView&& other,
-	const Texture2D& resource
-):
-	ResourceViewBase(resource),
-	m_desc(std::move(other.m_desc))
-{
-	m_descRef = std::move(other.m_descRef);
-
-	other.m_descRef.reset();
-}
-
-
-RenderTargetView::RenderTargetView(
-	const RenderTargetView& other,
-	const Texture2D& resource
-):
-	ResourceViewBase(resource, other.m_descRef),
-	m_desc(other.m_desc)
-{}
-*/
-
-
-gxapi::RenderTargetViewDesc RenderTargetView::GetDescription() const {
+gxapi::RenderTargetViewDesc RenderTargetView2D::GetDescription() const {
 	return m_desc;
 }
 
 
-DepthStencilView::DepthStencilView(
-	const Texture2D& resource,
-	DSVHeap& heap,
-	gxapi::eFormat format,
-	gxapi::DsvTexture2DArray desc
-):
-	ResourceViewBase(resource)
+DepthStencilView2D::DepthStencilView2D(const Texture2D& resource,
+								   DSVHeap& heap,
+								   gxapi::eFormat format,
+								   gxapi::DsvTexture2DArray desc)
+	:
+	ResourceViewBase(resource, &heap)
 {
 	gxapi::DepthStencilViewDesc DSVdesc;
 	DSVdesc.format = format;
@@ -115,23 +113,35 @@ DepthStencilView::DepthStencilView(
 
 	m_desc = DSVdesc;
 
-	m_descRef.reset(new DescriptorReference(heap.Create(m_resource, DSVdesc)));
+	heap.Create(GetResource(), DSVdesc, GetHandle());
+}
+
+DepthStencilView2D::DepthStencilView2D(const Texture2D & resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi * gxapi, gxapi::eFormat format, gxapi::DsvTexture2DArray desc)
+	: ResourceViewBase(resource, handle)
+{
+	gxapi::DepthStencilViewDesc DSVdesc;
+	DSVdesc.format = format;
+	DSVdesc.dimension = gxapi::eDsvDimension::TEXTURE2DARRAY;
+	DSVdesc.tex2DArray = desc;
+
+	m_desc = DSVdesc;
+
+	gxapi->CreateDepthStencilView(GetResource()._GetResourcePtr(), DSVdesc, GetHandle());
 }
 
 
 
-gxapi::DepthStencilViewDesc DepthStencilView::GetDescription() const {
+gxapi::DepthStencilViewDesc DepthStencilView2D::GetDescription() const {
 	return m_desc;
 }
 
 
-BufferSRV::BufferSRV(
-	const LinearBuffer& resource,
-	PersistentResViewHeap& heap,
-	gxapi::eFormat format,
-	gxapi::SrvBuffer desc
-):
-	ResourceViewBase(resource),
+BufferView::BufferView(const LinearBuffer& resource,
+					 PersistentResViewHeap& heap,
+					 gxapi::eFormat format,
+					 gxapi::SrvBuffer desc
+) :
+	ResourceViewBase(resource, &heap),
 	m_format(format),
 	m_srvDesc(desc)
 {
@@ -140,56 +150,82 @@ BufferSRV::BufferSRV(
 	fullSrvDesc.dimension = gxapi::eSrvDimension::BUFFER;
 	fullSrvDesc.buffer = desc;
 
-	m_descRef.reset(new DescriptorReference(heap.CreateSRV(m_resource, fullSrvDesc)));
+	heap.CreateSRV(GetResource(), fullSrvDesc, GetHandle());
+}
+
+BufferView::BufferView(const LinearBuffer & resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi * gxapi, gxapi::eFormat format, gxapi::SrvBuffer desc)
+	: ResourceViewBase(resource, handle),
+	m_format(format),
+	m_srvDesc(desc)
+{
+	gxapi::ShaderResourceViewDesc fullSrvDesc;
+	fullSrvDesc.format = format;
+	fullSrvDesc.dimension = gxapi::eSrvDimension::BUFFER;
+	fullSrvDesc.buffer = desc;
+
+	gxapi->CreateShaderResourceView(GetResource()._GetResourcePtr(), fullSrvDesc, GetHandle());
 }
 
 
-gxapi::eFormat BufferSRV::GetFormat() {
+gxapi::eFormat BufferView::GetFormat() {
 	return m_format;
 }
 
 
-const gxapi::SrvBuffer& BufferSRV::GetDescription() const {
+const gxapi::SrvBuffer& BufferView::GetDescription() const {
 	return m_srvDesc;
 }
 
 
-Texture1DSRV::Texture1DSRV(
+TextureView1D::TextureView1D(
 	const Texture1D& resource,
 	PersistentResViewHeap& heap,
 	gxapi::eFormat format,
-	gxapi::SrvTexture1DArray srvDesc
-):
-	ResourceViewBase(resource),
+	gxapi::SrvTexture1DArray desc
+) :
+	ResourceViewBase(resource, &heap),
 	m_format(format),
-	m_srvDesc(srvDesc)
+	m_srvDesc(desc)
 {
 	gxapi::ShaderResourceViewDesc fullSrvDesc;
 	fullSrvDesc.format = format;
 	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURE1DARRAY;
-	fullSrvDesc.tex1DArray = srvDesc;
+	fullSrvDesc.tex1DArray = desc;
 
-	m_descRef.reset(new DescriptorReference(heap.CreateSRV(m_resource, fullSrvDesc)));
+	heap.CreateSRV(GetResource(), fullSrvDesc, GetHandle());
+}
+
+TextureView1D::TextureView1D(const Texture1D & resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi * gxapi, gxapi::eFormat format, gxapi::SrvTexture1DArray desc)
+	: ResourceViewBase(resource, handle),
+	m_format(format),
+	m_srvDesc(desc)
+{
+	gxapi::ShaderResourceViewDesc fullSrvDesc;
+	fullSrvDesc.format = format;
+	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURE1DARRAY;
+	fullSrvDesc.tex1DArray = desc;
+
+	gxapi->CreateShaderResourceView(GetResource()._GetResourcePtr(), fullSrvDesc, GetHandle());
 }
 
 
-gxapi::eFormat Texture1DSRV::GetFormat() {
+gxapi::eFormat TextureView1D::GetFormat() {
 	return m_format;
 }
 
 
-const gxapi::SrvTexture1DArray& Texture1DSRV::GetDescription() const {
+const gxapi::SrvTexture1DArray& TextureView1D::GetDescription() const {
 	return m_srvDesc;
 }
 
 
-Texture2DSRV::Texture2DSRV(
+TextureView2D::TextureView2D(
 	const Texture2D& resource,
 	PersistentResViewHeap & heap,
 	gxapi::eFormat format,
 	gxapi::SrvTexture2DArray srvDesc
-):
-	ResourceViewBase(resource),
+) :
+	ResourceViewBase(resource, &heap),
 	m_format(format),
 	m_srvDesc(srvDesc)
 {
@@ -198,27 +234,40 @@ Texture2DSRV::Texture2DSRV(
 	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURE2DARRAY;
 	fullSrvDesc.tex2DArray = srvDesc;
 
-	m_descRef.reset(new DescriptorReference(heap.CreateSRV(m_resource, fullSrvDesc)));
+	heap.CreateSRV(GetResource(), fullSrvDesc, GetHandle());
+}
+
+TextureView2D::TextureView2D(const Texture2D & resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi * gxapi, gxapi::eFormat format, gxapi::SrvTexture2DArray srvDesc)
+	: ResourceViewBase(resource, handle),
+	m_format(format),
+	m_srvDesc(srvDesc)
+{
+	gxapi::ShaderResourceViewDesc fullSrvDesc;
+	fullSrvDesc.format = format;
+	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURE2DARRAY;
+	fullSrvDesc.tex2DArray = srvDesc;
+
+	gxapi->CreateShaderResourceView(GetResource()._GetResourcePtr(), fullSrvDesc, GetHandle());
 }
 
 
-gxapi::eFormat Texture2DSRV::GetFormat() {
+gxapi::eFormat TextureView2D::GetFormat() {
 	return m_format;
 }
 
 
-const gxapi::SrvTexture2DArray& Texture2DSRV::GetDescription() const {
+const gxapi::SrvTexture2DArray& TextureView2D::GetDescription() const {
 	return m_srvDesc;
 }
 
 
-Texture3DSRV::Texture3DSRV(
+TextureView3D::TextureView3D(
 	const Texture3D& resource,
 	PersistentResViewHeap& heap,
 	gxapi::eFormat format,
 	gxapi::SrvTexture3D srvDesc
-):
-	ResourceViewBase(resource),
+) :
+	ResourceViewBase(resource, &heap),
 	m_format(format),
 	m_srvDesc(srvDesc)
 {
@@ -227,45 +276,71 @@ Texture3DSRV::Texture3DSRV(
 	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURE3D;
 	fullSrvDesc.tex3D = srvDesc;
 
-	m_descRef.reset(new DescriptorReference(heap.CreateSRV(m_resource, fullSrvDesc)));
+	heap.CreateSRV(GetResource(), fullSrvDesc, GetHandle());
+}
+
+TextureView3D::TextureView3D(const Texture3D & resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi * gxapi, gxapi::eFormat format, gxapi::SrvTexture3D srvDesc)
+	: ResourceViewBase(resource, handle),
+	m_format(format),
+	m_srvDesc(srvDesc)
+{
+	gxapi::ShaderResourceViewDesc fullSrvDesc;
+	fullSrvDesc.format = format;
+	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURE3D;
+	fullSrvDesc.tex3D = srvDesc;
+
+	gxapi->CreateShaderResourceView(GetResource()._GetResourcePtr(), fullSrvDesc, GetHandle());
 }
 
 
-gxapi::eFormat Texture3DSRV::GetFormat() {
+gxapi::eFormat TextureView3D::GetFormat() {
 	return m_format;
 }
 
 
-const gxapi::SrvTexture3D& Texture3DSRV::GetDescription() const {
+const gxapi::SrvTexture3D& TextureView3D::GetDescription() const {
 	return m_srvDesc;
 }
 
 
-TextureCubeSRV::TextureCubeSRV(
+TextureViewCube::TextureViewCube(
 	const TextureCube& resource,
 	PersistentResViewHeap& heap,
 	gxapi::eFormat format,
 	gxapi::SrvTextureCube srvDesc
 ) :
-	ResourceViewBase(resource),
+	ResourceViewBase(resource, &heap),
 	m_format(format),
 	m_srvDesc(srvDesc)
-	{
+{
 	gxapi::ShaderResourceViewDesc fullSrvDesc;
 	fullSrvDesc.format = format;
 	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURECUBE;
 	fullSrvDesc.texCube = srvDesc;
 
-	m_descRef.reset(new DescriptorReference(heap.CreateSRV(m_resource, fullSrvDesc)));
+	heap.CreateSRV(GetResource(), fullSrvDesc, GetHandle());
+}
+
+TextureViewCube::TextureViewCube(const TextureCube & resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi * gxapi, gxapi::eFormat format, gxapi::SrvTextureCube srvDesc)
+	: ResourceViewBase(resource, handle),
+	m_format(format),
+	m_srvDesc(srvDesc)
+{
+	gxapi::ShaderResourceViewDesc fullSrvDesc;
+	fullSrvDesc.format = format;
+	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURECUBE;
+	fullSrvDesc.texCube = srvDesc;
+
+	gxapi->CreateShaderResourceView(GetResource()._GetResourcePtr(), fullSrvDesc, GetHandle());
 }
 
 
-gxapi::eFormat TextureCubeSRV::GetFormat() {
+gxapi::eFormat TextureViewCube::GetFormat() {
 	return m_format;
 }
 
 
-const gxapi::SrvTextureCube & TextureCubeSRV::GetDescription() const {
+const gxapi::SrvTextureCube & TextureViewCube::GetDescription() const {
 	return m_srvDesc;
 }
 

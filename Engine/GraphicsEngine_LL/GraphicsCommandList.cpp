@@ -46,7 +46,7 @@ BasicCommandList::Decomposition GraphicsCommandList::Decompose() {
 //------------------------------------------------------------------------------
 // Clear buffers
 //------------------------------------------------------------------------------
-void GraphicsCommandList::ClearDepthStencil(DepthStencilView& resource,
+void GraphicsCommandList::ClearDepthStencil(DepthStencilView2D& resource,
 											float depth,
 											uint8_t stencil,
 											size_t numRects,
@@ -57,7 +57,7 @@ void GraphicsCommandList::ClearDepthStencil(DepthStencilView& resource,
 	m_commandList->ClearDepthStencil(resource.GetHandle(), depth, stencil, numRects, rects, clearDepth, clearStencil);
 }
 
-void GraphicsCommandList::ClearRenderTarget(RenderTargetView& resource,
+void GraphicsCommandList::ClearRenderTarget(RenderTargetView2D& resource,
 											gxapi::ColorRGBA color,
 											size_t numRects,
 											gxapi::Rectangle* rects)
@@ -131,8 +131,8 @@ void GraphicsCommandList::SetVertexBuffers(unsigned startSlot,
 //------------------------------------------------------------------------------
 
 void GraphicsCommandList::SetRenderTargets(unsigned numRenderTargets,
-										   RenderTargetView** renderTargets,
-										   DepthStencilView* depthStencil)
+										   RenderTargetView2D** renderTargets,
+										   DepthStencilView2D* depthStencil)
 {
 	auto renderTargetHandles = std::make_unique<gxapi::DescriptorHandle[]>(numRenderTargets);
 	for (unsigned i = 0; i < numRenderTargets; ++i) {
@@ -190,17 +190,17 @@ void GraphicsCommandList::SetGraphicsBinder(Binder* binder) {
 }
 
 
-void GraphicsCommandList::BindGraphics(BindParameter parameter, const Texture1DSRV& shaderResource) {
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureView1D& shaderResource) {
 	return BindGraphicsTexture(parameter, shaderResource.GetHandle());
 }
 
 
-void GraphicsCommandList::BindGraphics(BindParameter parameter, const Texture2DSRV& shaderResource) {
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureView2D& shaderResource) {
 	return BindGraphicsTexture(parameter, shaderResource.GetHandle());
 }
 
 
-void GraphicsCommandList::BindGraphics(BindParameter parameter, const Texture3DSRV& shaderResource) {
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureView3D& shaderResource) {
 	return BindGraphicsTexture(parameter, shaderResource.GetHandle());
 }
 

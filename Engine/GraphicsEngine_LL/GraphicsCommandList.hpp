@@ -34,7 +34,7 @@ public:
 
 public:
 	// Clear shit
-	void ClearDepthStencil(DepthStencilView& resource,
+	void ClearDepthStencil(DepthStencilView2D& resource,
 						   float depth,
 						   uint8_t stencil,
 						   size_t numRects = 0,
@@ -42,7 +42,7 @@ public:
 						   bool clearDepth = true,
 						   bool clearStencil = false);
 
-	void ClearRenderTarget(RenderTargetView& resource,
+	void ClearRenderTarget(RenderTargetView2D& resource,
 						   gxapi::ColorRGBA color,
 						   size_t numRects = 0,
 						   gxapi::Rectangle* rects = nullptr);
@@ -75,8 +75,8 @@ public:
 
 	// output merger
 	void SetRenderTargets(unsigned numRenderTargets,
-						  RenderTargetView** renderTargets,
-						  DepthStencilView* depthStencil = nullptr);
+						  RenderTargetView2D** renderTargets,
+						  DepthStencilView2D* depthStencil = nullptr);
 	void SetBlendFactor(float r, float g, float b, float a);
 	void SetStencilRef(unsigned stencilRef);
 
@@ -89,9 +89,9 @@ public:
 	// set graphics root signature stuff
 	void SetGraphicsBinder(Binder* binder);
 
-	void BindGraphics(BindParameter parameter, const Texture1DSRV& shaderResource);
-	void BindGraphics(BindParameter parameter, const Texture2DSRV& shaderResource);
-	void BindGraphics(BindParameter parameter, const Texture3DSRV& shaderResource);
+	void BindGraphics(BindParameter parameter, const TextureView1D& shaderResource);
+	void BindGraphics(BindParameter parameter, const TextureView2D& shaderResource);
+	void BindGraphics(BindParameter parameter, const TextureView3D& shaderResource);
 	void BindGraphics(BindParameter parameter, const ConstBufferView& shaderConstant);
 	void BindGraphics(BindParameter parameter, const void* shaderConstant, int size, int offset);
 	//void BindGraphics(BindParameter parameter, RWTexture1D* rwResource);
