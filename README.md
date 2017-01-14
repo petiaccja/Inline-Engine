@@ -5,7 +5,11 @@ Inline Engine is a game graphics library that leverages the power of DirectX 12 
 
 Usage
 ---
+### Integrate into your project
 Currently, the engine is not yet available for integration or public use, as it's still in its infancy.
+
+### Play around
+Download the project, open the solution in Visual Studio 2017 RC (2015 might do as well, but not tested), and hit compile. It does not do much yet, but there is a quadcopter simulator with which you can play or tweak the PID controller. Note that you need a graphics card that supports DirectX 12 (feature level 11_0) and appropriate drivers.
 
 Core ideas
 ---
@@ -17,4 +21,8 @@ Inspired by CryEngine's flow graph and Unreal's BluePrint, users can leverage th
 
 ### Adding your own rendering algorithms
 The above-mentioned rendering task graph provides an interface to implement custom task nodes. The nodes inputs and outputs are defined, and the programmer can code the data transform performed on the inputs. The node can access the underlying Direct3D 12 API through a simplified interface. The framework that executes the task graph takes the responsibility of distributing work accross multiple CPU cores and the scheduling of generated GPU command lists.
+
+Legal
+---
+There is no licence yet, so the code is 'const' or 'readonly', unavailable for redistribution in any form. We are too lazy to figure out which licence to add, and will not be doing so unless it becomes necessary.
 
