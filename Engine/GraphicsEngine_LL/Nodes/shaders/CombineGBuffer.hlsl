@@ -62,7 +62,8 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	
 	float diffFactor = max(0.0, dot(normal, sun.dir.xyz))*(1-shadowFactor);
 	
-	float4 ambientColor = (1.0-sun.color)*0.5;
+	float4 ambientColor = float4(0.12, 0.16, 0.23, 1);//(1.0-sun.color)*0.5;
 	
-	return tex_albedoRoughness.Sample(theSampler, coords) * lerp(ambientColor, sun.color, diffFactor);
+	float4 outColor = tex_albedoRoughness.Sample(theSampler, coords) * lerp(ambientColor, sun.color, diffFactor);
+	return pow(outColor, 0.45f);
 }
