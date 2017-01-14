@@ -13,7 +13,7 @@ RenderTargetPack::RenderTargetPack(uint64_t width, uint32_t height, gxapi::eForm
 	rtvDesc.planeIndex = 0;
 	rtvDesc.firstMipLevel = 0;
 
-	rtv = context.CreateRtv(tex, rtvDesc);
+	rtv = context.CreateRtv(tex, format, rtvDesc);
 
 	gxapi::SrvTexture2DArray srvDesc;
 	srvDesc.activeArraySize = 1;

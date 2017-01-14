@@ -6,9 +6,7 @@ namespace inl::gxeng::nodes {
 
 
 DrawSky::DrawSky(gxapi::IGraphicsApi * graphicsApi):
-	m_binder(graphicsApi, {}),
-	m_fsq(nullptr),
-	m_fsqIndices(nullptr)
+	m_binder(graphicsApi, {})
 {
 	BindParameterDesc cbBindParamDesc;
 	m_cbBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
@@ -94,8 +92,8 @@ void DrawSky::InitGraphics(const GraphicsContext & context) {
 
 
 void DrawSky::Render(
-	RenderTargetView& rtv,
-	DepthStencilView& dsv,
+	RenderTargetView2D& rtv,
+	DepthStencilView2D& dsv,
 	const Camera* camera,
 	const DirectionalLight* sun,
 	GraphicsCommandList& commandList

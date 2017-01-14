@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../GraphicsNode.hpp"
-#include "../BackBuffer.hpp"
+#include "../ResourceView.hpp"
 
 #include <cmath>
 
@@ -14,7 +14,7 @@ namespace nodes {
 class GetBackBuffer :
 	virtual public GraphicsNode,
 	public exc::InputPortConfig<>,
-	public exc::OutputPortConfig<RenderTargetView>
+	public exc::OutputPortConfig<RenderTargetView2D>
 {
 public:
 	GetBackBuffer() {}
@@ -27,7 +27,7 @@ public:
 		return Task({ [this](const ExecutionContext& context)
 		{
 			auto& swapChainAccessContext = static_cast<const SwapChainAccessContext&>(context);
-			this->GetOutput<0>().Set(swapChainAccessContext.GetBackBuffer()->GetView());
+			this->GetOutput<0>().Set(*swapChainAccessContext.GetBackBuffer());
 			return ExecutionResult{};
 		} });
 	}

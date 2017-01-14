@@ -9,8 +9,8 @@ namespace nodes {
 
 class ClearRenderTarget :
 	public virtual GraphicsNode,
-	public exc::InputPortConfig<RenderTargetView, gxapi::ColorRGBA>,
-	public exc::OutputPortConfig<RenderTargetView>
+	public exc::InputPortConfig<RenderTargetView2D, gxapi::ColorRGBA>,
+	public exc::OutputPortConfig<RenderTargetView2D>
 {
 public:
 	ClearRenderTarget() {

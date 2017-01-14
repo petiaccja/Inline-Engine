@@ -17,9 +17,7 @@ CombineGBuffer::CombineGBuffer(
 ):
 	m_width(width),
 	m_height(height),
-	m_binder(graphicsApi, {}),
-	m_fsq(nullptr),
-	m_fsqIndices(nullptr)
+	m_binder(graphicsApi, {})
 {
 	BindParameterDesc sunBindParamDesc;
 	m_sunBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
@@ -197,9 +195,9 @@ void CombineGBuffer::InitBuffer() {
 
 
 void CombineGBuffer::RenderCombined(
-	Texture2DSRV& depthStencil,
-	Texture2DSRV& albedoRoughness,
-	Texture2DSRV& normal,
+	TextureView2D& depthStencil,
+	TextureView2D& albedoRoughness,
+	TextureView2D& normal,
 	const ShadowCascades* sunShadowMaps,
 	const Camera* camera,
 	const DirectionalLight* sun,
@@ -229,7 +227,7 @@ void CombineGBuffer::RenderCombined(
 	commandList.SetResourceState(albedoRoughness.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 	commandList.SetResourceState(normal.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 	commandList.SetResourceState(depthStencil.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
-	auto& sunShadowMapSrv = const_cast<Texture2DSRV&>(sunShadowMaps->mapArray.srv);
+	auto& sunShadowMapSrv = const_cast<TextureView2D&>(sunShadowMaps->mapArray.srv);
 	const unsigned count = sunShadowMaps->mapArray.srv.GetResource().GetArrayCount();
 	for (int i = 0; i < count; i++) {
 		commandList.SetResourceState(sunShadowMapSrv.GetResource(), i, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);

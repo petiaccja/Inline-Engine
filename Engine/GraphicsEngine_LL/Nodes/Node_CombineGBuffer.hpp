@@ -56,9 +56,9 @@ protected:
 private:
 	void InitBuffer();
 	void RenderCombined(
-		Texture2DSRV& depthStencil,
-		Texture2DSRV& albedoRoughness,
-		Texture2DSRV& normal,
+		TextureView2D& depthStencil,
+		TextureView2D& albedoRoughness,
+		TextureView2D& normal,
 		const ShadowCascades* sunShadowMaps,
 		const Camera* camera,
 		const DirectionalLight* sun,

@@ -179,7 +179,7 @@ void GenGBuffer::InitBuffers() {
 
 void GenGBuffer::RenderScene(const Camera* camera, const EntityCollection<MeshEntity>& entities, GraphicsCommandList & commandList) {
 	// Set render target
-	std::array<RenderTargetView*, 2> RTVs = {
+	std::array<RenderTargetView2D*, 2> RTVs = {
 		&m_albedoRoughness.rtv,
 		&m_normal.rtv
 	};

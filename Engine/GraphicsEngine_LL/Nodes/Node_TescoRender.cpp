@@ -106,7 +106,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager* gxapiManager) :
 	m_binder(graphicsApi, {})
 {
-	//this->GetInput<0>().Set(RenderTargetView());
+	//this->GetInput<0>().Set(RenderTargetView2D());
 	this->GetInput<2>().Set(nullptr);
 
 
@@ -182,7 +182,7 @@ TescoRender::TescoRender(gxapi::IGraphicsApi* graphicsApi, gxapi::IGxapiManager*
 }
 
 
-void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, const Camera* camera, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList) {
+void TescoRender::RenderScene(RenderTargetView2D& rtv, DepthStencilView2D& dsv, const Camera* camera, const EntityCollection<MeshEntity>& entities, GraphicsCommandList& commandList) {
 	// Set render target
 	auto pRTV = &rtv;
 	commandList.SetResourceState(rtv.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);

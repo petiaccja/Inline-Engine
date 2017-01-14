@@ -12,10 +12,9 @@ namespace gxeng {
 
 
 class MemoryManager;
-class DescriptorReference;
-class RenderTargetView;
+class RenderTargetView2D;
 
-//==================================
+
 
 struct MemoryObjDesc {
 	using Deleter = std::function<void(gxapi::IResource*)>;
@@ -41,7 +40,7 @@ public:
 	static bool PtrEqual(const MemoryObject& lhs, const MemoryObject& rhs);
 
 public:
-	explicit MemoryObject(nullptr_t);
+	MemoryObject() = default;
 	explicit MemoryObject(MemoryObjDesc&& desc);
 	virtual ~MemoryObject() {}
 
@@ -51,9 +50,15 @@ public:
 	MemoryObject& operator=(const MemoryObject&) = default;
 	MemoryObject& operator=(MemoryObject&&) = default;
 
+
 	/// <summary> Returns true if and only if operands are referring to the same resource.
 	/// Different MemoryObject instances are equal if one is the copy of the other. </summary>
 	bool operator==(const MemoryObject&) const;
+
+	explicit operator bool() const {
+		return (bool)m_contents;
+	}
+
 
 	void* GetVirtualAddress() const;
 	gxapi::ResourceDesc GetDescription() const;
@@ -107,7 +112,7 @@ public:
 
 class IndexBuffer : public LinearBuffer {
 public:
-	explicit IndexBuffer(nullptr_t);
+	IndexBuffer() : m_indexCount(0) {}
 	IndexBuffer(MemoryObjDesc&& desc, size_t indexCount);
 
 	size_t GetIndexCount() const;
