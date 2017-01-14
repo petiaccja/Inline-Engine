@@ -33,6 +33,10 @@ public:
 	void SetFOVAspect(float horizontalFov, float aspectRatio);
 	void SetFOVAxis(float horizontalFov, float verticalFov);
 
+	// Set depth plane Z offset.
+	void SetNearPlane(float zOffset);
+	void SetFarPlane(float zOffset);
+
 	// Get positional properties.
 	mathfu::Vector3f GetPosition() const;
 	mathfu::Vector3f GetLookDirection() const;
@@ -46,13 +50,17 @@ public:
 	float GetAspectRatio() const;
 	float GetFocus() const;
 
+	// Get depth plane Z offset.
+	float GetNearPlane() const;
+	float GetFarPlane() const;
+
 	// Matrices
 	mathfu::Matrix4x4f GetViewMatrixRH() const;
 	mathfu::Matrix4x4f GetViewMatrixLH() const;
-	mathfu::Matrix4x4f GetPerspectiveMatrixRH(float nearPlane, float farPlane) const;
-	mathfu::Matrix4x4f GetPerspectiveMatrixLH(float nearPlane, float farPlane) const;
-	mathfu::Matrix4x4f GetOrthographicMatrixRH(float nearPlane, float farPlane) const;
-	mathfu::Matrix4x4f GetOrthographicMatrixLH(float nearPlane, float farPlane) const;
+	mathfu::Matrix4x4f GetPerspectiveMatrixRH() const;
+	mathfu::Matrix4x4f GetPerspectiveMatrixLH() const;
+	mathfu::Matrix4x4f GetOrthographicMatrixRH() const;
+	mathfu::Matrix4x4f GetOrthographicMatrixLH() const;
 private:
 	mathfu::Vector3f m_position;
 	mathfu::Vector3f m_upVector;
@@ -63,6 +71,9 @@ private:
 	float m_fovH;
 	float m_fovV;
 	float m_focus;
+
+	float m_nearPlane;
+	float m_farPlane;
 
 	std::string m_name;
 };

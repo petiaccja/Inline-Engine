@@ -716,6 +716,8 @@ class Matrix {
 
   /// @brief Create a 4x4 perspective Matrix.
   ///
+  /// This is a modified version: Z is mapped to [0, 1]
+  ///
   /// @param fovy Field of view.
   /// @param aspect Aspect ratio.
   /// @param znear Near plane location.
@@ -728,6 +730,8 @@ class Matrix {
   }
 
   /// @brief Create a 4x4 orthographic Matrix.
+  ///
+  /// This is a modified version: Z is mapped to [0, 1]
   ///
   /// @param left Left extent.
   /// @param right Right extent.
@@ -1319,30 +1323,35 @@ bool InverseHelper(const Matrix<T, 4, 4>& m, Matrix<T, 4, 4>* const inverse) {
 
 /// @cond MATHFU_INTERNAL
 /// Create a 4x4 perpective matrix.
+/// Modified for Inline Engine.
 template <class T>
 inline Matrix<T, 4, 4> PerspectiveHelper(T fovy, T aspect, T znear, T zfar,
                                          T handedness) {
-  const T y = 1 / tan(static_cast<T>(fovy) * static_cast<T>(.5));
-  const T x = y / aspect;
-  const T zdist = (znear - zfar);
-  const T zfar_per_zdist = zfar / zdist;
-  return Matrix<T, 4, 4>(x, 0, 0, 0, 0, y, 0, 0, 0, 0,
-                         zfar_per_zdist * handedness, -1 * handedness, 0, 0,
-                         2.0f * znear * zfar_per_zdist, 0);
+	const T y = 1 / tan(fovy * static_cast<T>(0.5));
+	const T x = y / aspect;
+	const T zdist = (zfar - znear);
+	const T zfar_per_zdist = zfar / zdist;
+
+	return mathfu::Matrix4x4f(
+		x, 0, 0, 0,
+		0, y, 0, 0,
+		0, 0, -zfar_per_zdist * handedness, -1 * handedness,
+		0, 0, -znear * zfar_per_zdist, 0);
 }
 /// @endcond
 
 /// @cond MATHFU_INTERNAL
 /// Create a 4x4 orthographic matrix.
+/// Modified for Inline Engine.
 template <class T>
 static inline Matrix<T, 4, 4> OrthoHelper(T left, T right, T bottom, T top,
                                           T znear, T zfar, T handedness) {
-  return Matrix<T, 4, 4>(static_cast<T>(2) / (right - left), 0, 0, 0, 0,
-                         static_cast<T>(2) / (top - bottom), 0, 0, 0, 0,
-                         -handedness * static_cast<T>(2) / (zfar - znear), 0,
-                         -(right + left) / (right - left),
-                         -(top + bottom) / (top - bottom),
-                         -(zfar + znear) / (zfar - znear), static_cast<T>(1));
+  return Matrix<T, 4, 4>(
+	  static_cast<T>(2) / (right - left), 0, 0, 0,
+	  0, static_cast<T>(2) / (top - bottom), 0, 0,
+	  0, 0, static_cast<T>(1) / (zfar - znear), 0,
+      -(right + left) / (right - left), -(top + bottom) / (top - bottom), -znear / (zfar - znear), static_cast<T>(1)
+  );
 }
 /// @endcond
 

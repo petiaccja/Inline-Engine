@@ -15,7 +15,7 @@ namespace gxeng {
 
 class RTVHeap;
 class DSVHeap;
-class PersistentResViewHeap;
+class CbvSrvUavHeap;
 
 
 template <typename ResourceT>
@@ -66,8 +66,7 @@ protected:
 
 class ConstBufferView : public ResourceViewBase<ConstBuffer> {
 public:
-	ConstBufferView(const VolatileConstBuffer& resource, PersistentResViewHeap& heap);
-	ConstBufferView(const PersistentConstBuffer& resource, PersistentResViewHeap& heap);
+	ConstBufferView(const ConstBuffer& resource, size_t offset, size_t size, CbvSrvUavHeap& heap);
 };
 
 
@@ -98,7 +97,7 @@ protected:
 
 class BufferSRV : public ResourceViewBase<LinearBuffer> {
 public:
-	BufferSRV(const LinearBuffer& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvBuffer srvDesc);
+	BufferSRV(const LinearBuffer& resource, CbvSrvUavHeap& heap, gxapi::eFormat format, gxapi::SrvBuffer srvDesc);
 
 	gxapi::eFormat GetFormat();
 	const gxapi::SrvBuffer& GetDescription() const;
@@ -112,7 +111,7 @@ protected:
 class Texture1DSRV : public ResourceViewBase<Texture1D> {
 public:
 	Texture1DSRV() = default;
-	Texture1DSRV(const Texture1D& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvTexture1DArray srvDesc);
+	Texture1DSRV(const Texture1D& resource, CbvSrvUavHeap& heap, gxapi::eFormat format, gxapi::SrvTexture1DArray srvDesc);
 
 	gxapi::eFormat GetFormat();
 	const gxapi::SrvTexture1DArray& GetDescription() const;
@@ -126,7 +125,7 @@ protected:
 class Texture2DSRV : public ResourceViewBase<Texture2D> {
 public:
 	Texture2DSRV() = default;
-	Texture2DSRV(const Texture2D& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvTexture2DArray srvDesc);
+	Texture2DSRV(const Texture2D& resource, CbvSrvUavHeap& heap, gxapi::eFormat format, gxapi::SrvTexture2DArray srvDesc);
 
 	gxapi::eFormat GetFormat();
 	const gxapi::SrvTexture2DArray& GetDescription() const;
@@ -140,7 +139,7 @@ protected:
 class Texture3DSRV : public ResourceViewBase<Texture3D> {
 public:
 	Texture3DSRV() = default;
-	Texture3DSRV(const Texture3D& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvTexture3D srvDesc);
+	Texture3DSRV(const Texture3D& resource, CbvSrvUavHeap& heap, gxapi::eFormat format, gxapi::SrvTexture3D srvDesc);
 
 	gxapi::eFormat GetFormat();
 	const gxapi::SrvTexture3D& GetDescription() const;
@@ -153,7 +152,7 @@ protected:
 
 class TextureCubeSRV : public ResourceViewBase<TextureCube> {
 public:
-	TextureCubeSRV(const TextureCube& resource, PersistentResViewHeap& heap, gxapi::eFormat format, gxapi::SrvTextureCube srvDesc);
+	TextureCubeSRV(const TextureCube& resource, CbvSrvUavHeap& heap, gxapi::eFormat format, gxapi::SrvTextureCube srvDesc);
 
 	gxapi::eFormat GetFormat();
 	const gxapi::SrvTextureCube& GetDescription() const;

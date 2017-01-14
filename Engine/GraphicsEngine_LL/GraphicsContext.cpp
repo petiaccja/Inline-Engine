@@ -7,7 +7,7 @@ namespace gxeng {
 
 
 GraphicsContext::GraphicsContext(MemoryManager* memoryManager,
-	PersistentResViewHeap* srvHeap,
+	CbvSrvUavHeap* srvHeap,
 	RTVHeap* rtvHeap,
 	DSVHeap* dsvHeap,
 	int processorCount,
@@ -99,6 +99,23 @@ IndexBuffer GraphicsContext::CreateIndexBuffer(const void* data, size_t size, si
 	IndexBuffer result = m_memoryManager->CreateIndexBuffer(eResourceHeapType::CRITICAL, size, indexCount);
 	m_memoryManager->GetUploadManager().Upload(result, 0, data, size);
 	return result;
+}
+
+
+VolatileConstBuffer GraphicsContext::CreateVolatileConstBuffer(const void * data, size_t size) {
+	VolatileConstBuffer result = m_memoryManager->CreateVolatileConstBuffer(data, size);
+	m_memoryManager->GetUploadManager().Upload(result, 0, data, size);
+	return result;
+}
+
+
+ConstBufferView GraphicsContext::CreateCbv(VolatileConstBuffer& buffer, size_t offset, size_t size, CbvSrvUavHeap& viewHeap) {
+	return ConstBufferView(
+		buffer,
+		offset,
+		size,
+		viewHeap
+	);
 }
 
 

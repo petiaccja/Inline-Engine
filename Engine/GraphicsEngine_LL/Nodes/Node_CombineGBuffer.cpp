@@ -1,6 +1,8 @@
 
 #include "Node_CombineGBuffer.hpp"
 
+#include "Node_GenCSM.hpp"
+
 #include "../DirectionalLight.hpp"
 
 #include <array>
@@ -27,6 +29,16 @@ CombineGBuffer::CombineGBuffer(
 	sunBindParamDesc.relativeChangeFrequency = 0;
 	sunBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
+	BindParameterDesc transformBindParamDesc;
+	m_transformBindParam = BindParameter(eBindParameterType::CONSTANT, 1);
+	transformBindParamDesc.parameter = m_transformBindParam;
+	transformBindParamDesc.constantSize = sizeof(float) * 4 * 4 * 2;
+	// Size is unknown - forces to be placed in a descriptor table.
+	//transformBindParamDesc.constantSize = 0; 
+	transformBindParamDesc.relativeAccessFrequency = 0;
+	transformBindParamDesc.relativeChangeFrequency = 0;
+	transformBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
 	BindParameterDesc albedoRoughnessBindParamDesc;
 	m_albedoRoughnessBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
 	albedoRoughnessBindParamDesc.parameter = m_albedoRoughnessBindParam;
@@ -42,6 +54,22 @@ CombineGBuffer::CombineGBuffer(
 	normalBindParamDesc.relativeAccessFrequency = 0;
 	normalBindParamDesc.relativeChangeFrequency = 0;
 	normalBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc depthBindParamDesc;
+	m_depthBindParam = BindParameter(eBindParameterType::TEXTURE, 2);
+	depthBindParamDesc.parameter = m_depthBindParam;
+	depthBindParamDesc.constantSize = 0;
+	depthBindParamDesc.relativeAccessFrequency = 0;
+	depthBindParamDesc.relativeChangeFrequency = 0;
+	depthBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc shadowMapBindParamDesc;
+	m_shadowMapBindParam = BindParameter(eBindParameterType::TEXTURE, 3);
+	shadowMapBindParamDesc.parameter = m_shadowMapBindParam;
+	shadowMapBindParamDesc.constantSize = 0;
+	shadowMapBindParamDesc.relativeAccessFrequency = 0;
+	shadowMapBindParamDesc.relativeChangeFrequency = 0;
+	shadowMapBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
 	BindParameterDesc sampBindParamDesc;
 	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
@@ -60,7 +88,19 @@ CombineGBuffer::CombineGBuffer(
 	samplerDesc.registerSpace = 0;
 	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-	m_binder = Binder{ graphicsApi,{ sunBindParamDesc, albedoRoughnessBindParamDesc, normalBindParamDesc, sampBindParamDesc },{ samplerDesc } };
+	m_binder = Binder{
+		graphicsApi,
+		{
+			sunBindParamDesc,
+			transformBindParamDesc,
+			albedoRoughnessBindParamDesc,
+			normalBindParamDesc,
+			depthBindParamDesc,
+			shadowMapBindParamDesc,
+			sampBindParamDesc
+		},
+		{ samplerDesc }
+	};
 }
 
 
@@ -109,6 +149,40 @@ void CombineGBuffer::InitGraphics(const GraphicsContext& context) {
 	m_PSO.reset(m_graphicsContext.CreatePSO(psoDesc));
 }
 
+Task CombineGBuffer::GetTask() {
+	return Task({ [this](const ExecutionContext& context) {
+		ExecutionResult result;
+
+		auto depthStencil = this->GetInput<0>().Get();
+		this->GetInput<0>().Clear();
+
+		auto albedoRoughness = this->GetInput<1>().Get();
+		this->GetInput<1>().Clear();
+
+		auto normal = this->GetInput<2>().Get();
+		this->GetInput<2>().Clear();
+
+		auto sunShadowMaps = this->GetInput<3>().Get();
+		this->GetInput<3>().Clear();
+
+		const Camera* camera = this->GetInput<4>().Get();
+		this->GetInput<4>().Clear();
+
+		const DirectionalLight* sun = this->GetInput<5>().Get();
+		this->GetInput<5>().Clear();
+
+		GraphicsCommandList cmdList = context.GetGraphicsCommandList();
+//		CbvSrvUavHeap volatileViewHeap = context.GetVolatileViewHeap();
+		RenderCombined(depthStencil.srv, albedoRoughness.srv, normal.srv, sunShadowMaps, camera, sun, cmdList);
+		result.AddCommandList(std::move(cmdList));
+	//	result.GiveVolatileViewHeap(std::move(volatileViewHeap));
+
+		this->GetOutput<0>().Set(m_renderTarget);
+
+		return result;
+	} });
+}
+
 
 void CombineGBuffer::WindowResized(unsigned width, unsigned height) {
 	m_width = width;
@@ -126,6 +200,7 @@ void CombineGBuffer::RenderCombined(
 	Texture2DSRV& depthStencil,
 	Texture2DSRV& albedoRoughness,
 	Texture2DSRV& normal,
+	const ShadowCascades* sunShadowMaps,
 	const Camera* camera,
 	const DirectionalLight* sun,
 	GraphicsCommandList & commandList
@@ -150,24 +225,64 @@ void CombineGBuffer::RenderCombined(
 	commandList.SetGraphicsBinder(&m_binder);
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
+
+	commandList.SetResourceState(albedoRoughness.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+	commandList.SetResourceState(normal.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+	commandList.SetResourceState(depthStencil.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+	auto& sunShadowMapSrv = const_cast<Texture2DSRV&>(sunShadowMaps->mapArray.srv);
+	const unsigned count = sunShadowMaps->mapArray.srv.GetResource().GetArrayCount();
+	for (int i = 0; i < count; i++) {
+		commandList.SetResourceState(sunShadowMapSrv.GetResource(), i, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+	}
+
+
 	mathfu::Matrix4x4f viewInvTr = camera->GetViewMatrixRH().Inverse().Transpose();
 	mathfu::Vector4f sunViewDir = viewInvTr * mathfu::Vector4f(sun->GetDirection(), 0.0f);
 	mathfu::Vector4f sunColor = mathfu::Vector4f(sun->GetColor(), 1.0f);
-
 	std::array<mathfu::VectorPacked<float, 4>, 2> cbufferSun;
 	sunViewDir.Pack(cbufferSun.data());
 	sunColor.Pack(cbufferSun.data() + 1);
+	
+	mathfu::Matrix4x4f ndcToWorld = (camera->GetPerspectiveMatrixRH() * camera->GetViewMatrixRH()).Inverse();
+	mathfu::Matrix4x4f worldToShadowView = LightViewTransform(sun);
+
+	assert(sunShadowMaps->subCameras.size() == sunShadowMaps->mapArray.srv.GetResource().GetArrayCount());
+	const size_t cascadeCount = sunShadowMaps->subCameras.size();
+
+	// Size is: rows in ndcToWorld matrix + rows in all worldToShadow matrices
+	constexpr int rowsPerMatrix = 4;
+	std::array<mathfu::VectorPacked<float, 4>, 2 * rowsPerMatrix> cbufferTransform;
+	//std::vector<mathfu::VectorPacked<float, 4>> cbufferTransform(rowsPerMatrix + rowsPerMatrix * cascadeCount);
+	ndcToWorld.Pack(cbufferTransform.data());
+
+	mathfu::Matrix4x4f worldToShadow = LightDirectionalProjectionTransform(worldToShadowView, &sunShadowMaps->subCameras[0]) * worldToShadowView;
+	worldToShadow.Pack(cbufferTransform.data() + rowsPerMatrix);
+
+	auto worldToShadowTransformsStart = cbufferTransform.data() + rowsPerMatrix;
+	for (int i = 0; i < cascadeCount; i++) {
+		//TODO(Artur)
+		//mathfu::Matrix4x4f worldToShadow = LightDirectionalProjectionTransform(worldToShadowView, &sunShadowMaps->subCameras[i]) * worldToShadowView;
+		//worldToShadow.Pack(worldToShadowTransformsStart + rowsPerMatrix*i);
+	}
+	
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
 	unsigned vbSize = m_fsq.GetSize();
 	unsigned vbStride = 3 * sizeof(float);
 
-	commandList.SetResourceState(albedoRoughness.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
-	commandList.SetResourceState(normal.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+	// TODO add abiltiy to bind constant buffers
+
+	//const size_t transformBufferSize = cbufferTransform.size() * sizeof(mathfu::VectorPacked<float, 4>);
+	//auto transformBuffer = m_graphicsContext.CreateVolatileConstBuffer(cbufferTransform.data(), transformBufferSize);
+	//auto transformBufferView = m_graphicsContext.CreateCbv(transformBuffer, 0, transformBufferSize, volatileViewHeap);
 
 	commandList.BindGraphics(m_sunBindParam, cbufferSun.data(), sizeof(cbufferSun), 0);
+	commandList.BindGraphics(m_transformBindParam, cbufferTransform.data(), sizeof(cbufferTransform), 0);
+	//commandList.BindGraphics(m_transformBindParam, transformBufferView);
 	commandList.BindGraphics(m_albedoRoughnessBindParam, albedoRoughness);
 	commandList.BindGraphics(m_normalBindParam, normal);
+	commandList.BindGraphics(m_depthBindParam, depthStencil);
+	commandList.BindGraphics(m_shadowMapBindParam, sunShadowMapSrv);
 	commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
 	commandList.SetIndexBuffer(&m_fsqIndices, false);
 	commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());

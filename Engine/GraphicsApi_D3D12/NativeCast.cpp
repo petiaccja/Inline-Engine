@@ -1845,7 +1845,7 @@ D3D12_RESOURCE_BARRIER native_cast(gxapi::ResourceBarrier source) {
 			native.Transition.StateBefore = native_cast(source.transition.beforeState);
 			native.Transition.StateAfter = native_cast(source.transition.afterState);
 			native.Transition.Subresource =
-				source.transition.subResource == gxapi::TransitionBarrier::ALL_SUBRESOURCES ?
+				source.transition.subResource == gxapi::ALL_SUBRESOURCES ?
 				D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES : source.transition.subResource;
 			native.Transition.pResource = native_cast(source.transition.resource);
 			native.Flags = native_cast(source.transition.splitMode);

@@ -24,6 +24,8 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	m_camera->SetPosition({0, 0, 8});
 	m_camera->SetTarget({ 0, 0, 0 });
 	m_camera->SetUpVector({ 0, 1, 0 });
+	m_camera->SetNearPlane(0.5);
+	m_camera->SetFarPlane(20.0);
 
 	{
 		inl::asset::Model model("monkey.dae");

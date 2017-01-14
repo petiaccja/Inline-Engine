@@ -40,12 +40,12 @@ UploadManager& MemoryManager::GetUploadManager() {
 }
 
 
-VolatileConstBuffer MemoryManager::CreateVolatileConstBuffer(void* data, uint32_t size) {
+VolatileConstBuffer MemoryManager::CreateVolatileConstBuffer(const void* data, uint32_t size) {
 	return m_constBufferHeap.CreateVolatileBuffer(data, size);
 }
 
 
-PersistentConstBuffer MemoryManager::CreatePersistentConstBuffer(void * data, uint32_t size) {
+PersistentConstBuffer MemoryManager::CreatePersistentConstBuffer(const void * data, uint32_t size) {
 	return m_constBufferHeap.CreatePersistentBuffer(data, size);
 }
 

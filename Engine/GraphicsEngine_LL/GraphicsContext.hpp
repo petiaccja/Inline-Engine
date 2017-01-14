@@ -3,6 +3,7 @@
 #include "MemoryObject.hpp"
 #include "ResourceView.hpp"
 #include "ShaderManager.hpp"
+#include "VolatileViewHeap.hpp"
 #include <cstdint>
 
 
@@ -10,14 +11,14 @@ namespace inl {
 namespace gxeng {
 
 class MemoryManager;
-class PersistentResViewHeap;
+class CbvSrvUavHeap;
 class RTVHeap;
 class DSVHeap;
 
 class GraphicsContext {
 public:
 	GraphicsContext(MemoryManager* memoryManager = nullptr,
-					PersistentResViewHeap* srvHeap = nullptr,
+					CbvSrvUavHeap* srvHeap = nullptr,
 					RTVHeap* rtvHeap = nullptr,
 					DSVHeap* dsvHeap = nullptr,
 					int processorCount = 0,
@@ -45,6 +46,10 @@ public:
 	VertexBuffer CreateVertexBuffer(const void* data, size_t size);
 	IndexBuffer CreateIndexBuffer(const void* data, size_t size, size_t indexCount);
 
+	// Constant buffers
+	VolatileConstBuffer CreateVolatileConstBuffer(const void* data, size_t size);
+	ConstBufferView CreateCbv(VolatileConstBuffer& buffer, size_t offset, size_t size, CbvSrvUavHeap& viewHeap);
+
 	// Shaders and PSOs
 	ShaderProgram CreateShader(const std::string& name, ShaderParts stages, const std::string& macros);
 	gxapi::IPipelineState* CreatePSO(const gxapi::GraphicsPipelineStateDesc& desc);
@@ -52,7 +57,7 @@ public:
 private:
 	// Memory management stuff
 	MemoryManager* m_memoryManager;
-	PersistentResViewHeap* m_srvHeap;
+	CbvSrvUavHeap* m_srvHeap;
 	RTVHeap* m_rtvHeap;
 	DSVHeap* m_dsvHeap;
 	int m_processorCount;

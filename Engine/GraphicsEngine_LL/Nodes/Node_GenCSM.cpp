@@ -1,16 +1,17 @@
-#include "Node_GenGBuffer.hpp"
+#include "Node_GenCSM.hpp"
 
-
+#include "../DirectionalLight.hpp"
 #include "../MeshEntity.hpp"
 #include "../Mesh.hpp"
 #include "../Image.hpp"
 #include "../GraphicsEngine.hpp"
 
-#include "../../GraphicsApi_LL/IGxapiManager.hpp"
+#include <GraphicsApi_LL/IGxapiManager.hpp>
 
 #include <mathfu/matrix_4x4.h>
 
 #include <array>
+
 
 namespace inl::gxeng::nodes {
 
@@ -26,6 +27,7 @@ static bool CheckMeshFormat(const Mesh& mesh) {
 
 	return true;
 }
+
 
 static void ConvertToSubmittable(
 	Mesh* mesh,
@@ -48,21 +50,79 @@ static void ConvertToSubmittable(
 }
 
 
-GenGBuffer::GenGBuffer(
+mathfu::Matrix4x4f LightViewTransform(const DirectionalLight * light) {
+	auto dir = light->GetDirection();
+
+	auto z = dir;
+	auto x = mathfu::Vector3f::CrossProduct({ 0, 1, 0 }, z);
+	if (x.LengthSquared() < 0.0001f) {
+		x = mathfu::Vector3f(1, 0, 0);
+	}
+	else {
+		x.Normalize();
+	}
+	auto y = mathfu::Vector3f::CrossProduct(z, x);
+
+	return mathfu::Matrix4x4f(x.x(), x.y(), x.z(), 0, y.x(), y.y(), y.z(), 0, z.x(), z.y(), z.z(), 0, 0, 0, 0, 1).Inverse();
+}
+
+
+mathfu::Matrix4x4f LightDirectionalProjectionTransform(const mathfu::Matrix4x4f & lightViewTransform, const Camera * camera) {
+	// Get camera frustum in world space than transform it to sun view space and fit an aabb on it.
+	// This aabb is the ortho proj.
+
+	const std::array<mathfu::Vector4f, 8> camFrustum = {
+		// near plane
+		mathfu::Vector4f(-1.f, -1.f, -0.f, 1.f),
+		mathfu::Vector4f(+1.f, -1.f, -0.f, 1.f),
+		mathfu::Vector4f(+1.f, +1.f, -0.f, 1.f),
+		mathfu::Vector4f(-1.f, +1.f, -0.f, 1.f),
+
+		// far plane
+		mathfu::Vector4f(-1.f, -1.f, +1.f, 1.f),
+		mathfu::Vector4f(+1.f, -1.f, +1.f, 1.f),
+		mathfu::Vector4f(+1.f, +1.f, +1.f, 1.f),
+		mathfu::Vector4f(-1.f, +1.f, +1.f, 1.f)
+	};
+
+	auto camProjToWorld = (camera->GetPerspectiveMatrixRH() * camera->GetViewMatrixRH()).Inverse();
+	auto transform = lightViewTransform * camProjToWorld;
+
+	mathfu::Vector4f aabbMin = mathfu::Vector4f(INFINITY, INFINITY, INFINITY, INFINITY);
+	mathfu::Vector4f aabbMax = -aabbMin;
+
+	for (const auto& curr : camFrustum) {
+		auto v = transform * curr;
+		float w = v.w();
+		v /= w;
+		aabbMin = mathfu::Vector4f::Min(aabbMin, v);
+		aabbMax = mathfu::Vector4f::Max(aabbMax, v);
+	}
+
+	float depth = aabbMax.z() - aabbMin.z();
+
+	// RIGHT HANDED
+	return mathfu::Matrix4x4f::Ortho(aabbMin.x(), aabbMax.x(), aabbMin.y(), aabbMax.y(), aabbMax.z() + depth, aabbMin.z(), 1.f);
+}
+
+
+GenCSM::GenCSM(
 	gxapi::IGraphicsApi* graphicsApi,
 	unsigned width,
 	unsigned height
-):
+) :
 	m_width(width),
 	m_height(height),
 	m_binder(graphicsApi, {})
 {
 	this->GetInput<0>().Set(nullptr);
 
+	m_cascades.subCameras.resize(m_cascadeCount);
+
 	BindParameterDesc cbBindParamDesc;
 	m_cbBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
 	cbBindParamDesc.parameter = m_cbBindParam;
-	cbBindParamDesc.constantSize = sizeof(float) * 4 * 4 * 2;
+	cbBindParamDesc.constantSize = sizeof(float) * 4 * 4;
 	cbBindParamDesc.relativeAccessFrequency = 0;
 	cbBindParamDesc.relativeChangeFrequency = 0;
 	cbBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
@@ -96,7 +156,7 @@ GenGBuffer::GenGBuffer(
 }
 
 
-void GenGBuffer::InitGraphics(const GraphicsContext& context) {
+void GenCSM::InitGraphics(const GraphicsContext& context) {
 	m_graphicsContext = context;
 
 	InitBuffers();
@@ -105,7 +165,7 @@ void GenGBuffer::InitGraphics(const GraphicsContext& context) {
 	shaderParts.vs = true;
 	shaderParts.ps = true;
 
-	auto shader = m_graphicsContext.CreateShader("GenGBuffer", shaderParts, "");
+	auto shader = m_graphicsContext.CreateShader("GenCSM", shaderParts, "");
 
 	std::vector<gxapi::InputElementDesc> inputElementDesc = {
 		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
@@ -119,7 +179,7 @@ void GenGBuffer::InitGraphics(const GraphicsContext& context) {
 	psoDesc.rootSignature = m_binder.GetRootSignature();
 	psoDesc.vs = shader.vs;
 	psoDesc.ps = shader.ps;
-	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
+	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CW);
 	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 	psoDesc.blending.multiTarget[0].enableBlending = false;
 	psoDesc.blending.multiTarget[0].enableLogicOp = false;
@@ -127,68 +187,106 @@ void GenGBuffer::InitGraphics(const GraphicsContext& context) {
 	psoDesc.blending.multiTarget[1].enableLogicOp = false;
 
 	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
-	psoDesc.depthStencilState.enableStencilTest = true;
-	psoDesc.depthStencilState.stencilReadMask = 0;
-	psoDesc.depthStencilState.stencilWriteMask = ~uint8_t(0);
-	psoDesc.depthStencilState.ccwFace.stencilFunc = gxapi::eComparisonFunction::ALWAYS;
-	psoDesc.depthStencilState.ccwFace.stencilOpOnStencilFail = gxapi::eStencilOp::KEEP;
-	psoDesc.depthStencilState.ccwFace.stencilOpOnDepthFail = gxapi::eStencilOp::KEEP;
-	psoDesc.depthStencilState.ccwFace.stencilOpOnPass = gxapi::eStencilOp::REPLACE;
-	psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
-	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT_S8X24_UINT;
-	
-	psoDesc.numRenderTargets = 2;
-	psoDesc.renderTargetFormats[0] = gxapi::eFormat::R8G8B8A8_UNORM;
-	psoDesc.renderTargetFormats[1] = gxapi::eFormat::R16G16_FLOAT;
+	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT;
+
+	psoDesc.numRenderTargets = 0;
 
 	m_PSO.reset(m_graphicsContext.CreatePSO(psoDesc));
 }
 
 
-void GenGBuffer::WindowResized(unsigned width, unsigned height) {
+Task GenCSM::GetTask() {
+	return Task({ [this](const ExecutionContext& context) {
+		ExecutionResult result;
+
+		const Camera* camera = this->GetInput<0>().Get();
+		this->GetInput<0>().Clear();
+
+		const DirectionalLight* sun = this->GetInput<1>().Get();
+		this->GetInput<1>().Clear();
+
+		const EntityCollection<MeshEntity>* entities = this->GetInput<2>().Get();
+		this->GetInput<2>().Clear();
+
+		if (entities) {
+			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
+			RenderScene(camera, sun, *entities, context.GetFrameNumber(), cmdList);
+			result.AddCommandList(std::move(cmdList));
+		}
+
+		this->GetOutput<0>().Set(&m_cascades);
+
+		return result;
+	} });
+}
+
+
+void GenCSM::SetShadowMapSize(unsigned width, unsigned height) {
 	m_width = width;
 	m_height = height;
 	InitBuffers();
 }
 
 
-void GenGBuffer::InitBuffers() {
+void GenCSM::InitBuffers() {
 	using gxapi::eFormat;
-	
-	m_depthStencil = DepthStencilPack(
-		m_width,
-		m_height,
-		eFormat::D32_FLOAT_S8X24_UINT,
-		eFormat::R32_FLOAT_X8X24_TYPELESS,
-		eFormat::R32G8X24_TYPELESS,
-		m_graphicsContext);
 
-	m_albedoRoughness = RenderTargetPack(
+	m_cascades.mapArray = DepthStencilArrayPack(
 		m_width,
 		m_height,
-		eFormat::R8G8B8A8_UNORM,
-		m_graphicsContext);
-
-	m_normal = RenderTargetPack(
-		m_width,
-		m_height,
-		eFormat::R16G16_FLOAT,
+		m_cascadeCount,
+		eFormat::D32_FLOAT,
+		eFormat::R32_FLOAT,
+		eFormat::R32_TYPELESS,
 		m_graphicsContext);
 }
 
 
-void GenGBuffer::RenderScene(const Camera* camera, const EntityCollection<MeshEntity>& entities, GraphicsCommandList & commandList) {
-	// Set render target
-	std::array<RenderTargetView*, 2> RTVs = {
-		&m_albedoRoughness.rtv,
-		&m_normal.rtv
+Camera& GenCSM::CalculateSubCamera(const Camera* camera, unsigned cascadeID) {
+	// maps every x in range [0, 1] to an exponentialy
+	// increasing curve in the range [0, 1]
+	auto Exponential = [](float x) {
+		constexpr float steepness = 32;
+		return (std::pow(steepness, x) - 1.f) / (steepness - 1.f);
 	};
-	for (auto curr : RTVs) {
-		commandList.SetResourceState(curr->GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
-	}
-	commandList.SetRenderTargets(RTVs.size(), RTVs.data(), &m_depthStencil.dsv);
 
-	gxapi::Rectangle rect{ 0, (int)m_normal.rtv.GetResource().GetHeight(), 0, (int)m_normal.rtv.GetResource().GetWidth() };
+	assert(m_cascades.subCameras.size() == m_cascadeCount);
+	assert(cascadeID < m_cascadeCount);
+
+	const float origDepth = camera->GetFarPlane() - camera->GetNearPlane();
+	const float origNear = camera->GetNearPlane();
+	
+	const float nearOffset = origDepth * Exponential(float(cascadeID) / m_cascadeCount);
+	const float farOffset = origDepth * Exponential(float(cascadeID + 1) / m_cascadeCount);
+	const float newFar = origNear + farOffset;
+	const float newNear = origNear + nearOffset;
+
+	Camera& cam = m_cascades.subCameras[cascadeID];
+	cam = *camera;
+	cam.SetNearPlane(newNear);
+	cam.SetFarPlane(newFar);
+
+	return cam;
+}
+
+
+void GenCSM::RenderScene(
+	const Camera* camera,
+	const DirectionalLight* sun,
+	const EntityCollection<MeshEntity>& entities,
+	uint64_t frameID,
+	GraphicsCommandList & commandList
+) {
+	// Set render target
+	//const int cascadeID = frameID % m_cascadeCount;
+	const int cascadeID = 0;
+
+	assert(m_cascades.mapArray.dsvs.size() == m_cascadeCount);
+	auto& renderTargetDsv = m_cascades.mapArray.dsvs[cascadeID];
+
+	commandList.SetRenderTargets(0, nullptr, &renderTargetDsv);
+
+	gxapi::Rectangle rect{ 0, static_cast<int>(m_height), 0, static_cast<int>(m_width) };
 	gxapi::Viewport viewport;
 	viewport.width = (float)rect.right;
 	viewport.height = (float)rect.bottom;
@@ -199,20 +297,17 @@ void GenGBuffer::RenderScene(const Camera* camera, const EntityCollection<MeshEn
 	commandList.SetScissorRects(1, &rect);
 	commandList.SetViewports(1, &viewport);
 
-	commandList.SetResourceState(m_depthStencil.dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
-	commandList.ClearDepthStencil(m_depthStencil.dsv, 1, 0, 0, nullptr, true, true);
-	commandList.ClearRenderTarget(m_albedoRoughness.rtv, gxapi::ColorRGBA(0, 0, 0, 1));
-	commandList.ClearRenderTarget(m_normal.rtv, gxapi::ColorRGBA(0, 0, 0, 1));
-	commandList.SetStencilRef(1); // background is 0, anything other than that is 1
+	commandList.SetResourceState(renderTargetDsv.GetResource(), cascadeID, gxapi::eResourceState::DEPTH_WRITE);
+	commandList.ClearDepthStencil(renderTargetDsv, 1, 0);
 
 	commandList.SetPipelineState(m_PSO.get());
 	commandList.SetGraphicsBinder(&m_binder);
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	mathfu::Matrix4x4f view = camera->GetViewMatrixRH();
-	mathfu::Matrix4x4f projection = camera->GetPerspectiveMatrixRH();
+	Camera& subcamera = CalculateSubCamera(camera, cascadeID);
 
-	auto viewProjection = projection * view;
+	auto view = LightViewTransform(sun);
+	auto viewProjection = LightDirectionalProjectionTransform(view, &subcamera) * view;
 
 	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
 	std::vector<unsigned> sizes;
@@ -233,12 +328,10 @@ void GenGBuffer::RenderScene(const Camera* camera, const EntityCollection<MeshEn
 		ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
 
 		auto world = entity->GetTransform();
-		auto worldViewInvTr = (view * world).Inverse().Transpose();
 		auto MVP = viewProjection * world;
 
-		std::array<mathfu::VectorPacked<float, 4>, 8> cbufferData;
+		std::array<mathfu::VectorPacked<float, 4>, 4> cbufferData;
 		MVP.Pack(cbufferData.data());
-		worldViewInvTr.Pack(cbufferData.data() + 4);
 
 		commandList.BindGraphics(m_texBindParam, *entity->GetTexture()->GetSrv());
 		commandList.BindGraphics(m_cbBindParam, cbufferData.data(), sizeof(cbufferData), 0);

@@ -17,6 +17,7 @@
 
 //deferred
 #include "Nodes/Node_GenGBuffer.hpp"
+#include "Nodes/Node_GenCSM.hpp"
 #include "Nodes/Node_CombineGBuffer.hpp"
 #include "Nodes/Node_LightsDeferred.hpp"
 #include "Nodes/Node_RenderToBackbuffer.hpp"
@@ -262,6 +263,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::unique_ptr<nodes::GetCameraByName> getCamera(new nodes::GetCameraByName());
 	std::unique_ptr<nodes::GetBackBuffer> getBackBuffer(new nodes::GetBackBuffer());
 
+	std::unique_ptr<nodes::GenCSM> genCSM(new nodes::GenCSM(m_graphicsApi, 1024, 2048));
 	std::unique_ptr<nodes::GenGBuffer> genGBuffer(new nodes::GenGBuffer(m_graphicsApi, swapChainDesc.width, swapChainDesc.height));
 	std::unique_ptr<nodes::CombineGBuffer> combineGBuffer(new nodes::CombineGBuffer(m_graphicsApi, swapChainDesc.width, swapChainDesc.height));
 	std::unique_ptr<nodes::LightsDeferred> lightsDeferred(new nodes::LightsDeferred(m_graphicsApi));
@@ -271,6 +273,11 @@ void GraphicsEngine::CreatePipeline() {
 	getWorldScene->GetInput<0>().Set("World");
 	getCamera->GetInput<0>().Set("WorldCam");
 
+	// To genCSM
+	getCamera->GetOutput(0)->Link(genCSM->GetInput(0));
+	getWorldScene->GetOutput(1)->Link(genCSM->GetInput(1));
+	getWorldScene->GetOutput(0)->Link(genCSM->GetInput(2));
+
 	// To genGBuffer
 	getCamera->GetOutput(0)->Link(genGBuffer->GetInput(0));
 	getWorldScene->GetOutput(0)->Link(genGBuffer->GetInput(1));
@@ -279,8 +286,9 @@ void GraphicsEngine::CreatePipeline() {
 	genGBuffer->GetOutput(0)->Link(combineGBuffer->GetInput(0));
 	genGBuffer->GetOutput(1)->Link(combineGBuffer->GetInput(1));
 	genGBuffer->GetOutput(2)->Link(combineGBuffer->GetInput(2));
-	getCamera->GetOutput(0)->Link(combineGBuffer->GetInput(3));
-	getWorldScene->GetOutput(1)->Link(combineGBuffer->GetInput(4));
+	genCSM->GetOutput(0)->Link(combineGBuffer->GetInput(3));
+	getCamera->GetOutput(0)->Link(combineGBuffer->GetInput(4));
+	getWorldScene->GetOutput(1)->Link(combineGBuffer->GetInput(5));
 
 	// To lightsDeferred
 	combineGBuffer->GetOutput(0)->Link(lightsDeferred->GetInput(0));
@@ -297,12 +305,14 @@ void GraphicsEngine::CreatePipeline() {
 
 	getBackBuffer->GetOutput(0)->Link(renderToBackbuffer->GetInput(0));
 	drawSky->GetOutput(0)->Link(renderToBackbuffer->GetInput(1));
+	//genCSM->GetOutput(0)->Link(renderToBackbuffer->GetInput(1));
 
 	GraphicsContext graphicsContext(&m_memoryManager, &m_persResViewHeap, &m_rtvHeap, &m_dsvHeap, std::thread::hardware_concurrency(), 1, &m_shaderManager, m_graphicsApi);
 
 	getWorldScene->InitGraphics(graphicsContext);
 	getCamera->InitGraphics(graphicsContext);
 	getBackBuffer->InitGraphics(graphicsContext);
+	genCSM->InitGraphics(graphicsContext);
 	genGBuffer->InitGraphics(graphicsContext);
 	combineGBuffer->InitGraphics(graphicsContext);
 	lightsDeferred->InitGraphics(graphicsContext);
@@ -318,6 +328,7 @@ void GraphicsEngine::CreatePipeline() {
 				getWorldScene.get(),
 				getCamera.get(),
 				getBackBuffer.get(),
+				genCSM.get(),
 				genGBuffer.get(),
 				combineGBuffer.get(),
 				lightsDeferred.get(),
@@ -329,6 +340,7 @@ void GraphicsEngine::CreatePipeline() {
 		getWorldScene.release();
 		getCamera.release();
 		getBackBuffer.release();
+		genCSM.release();
 		genGBuffer.release();
 		combineGBuffer.release();
 		lightsDeferred.release();

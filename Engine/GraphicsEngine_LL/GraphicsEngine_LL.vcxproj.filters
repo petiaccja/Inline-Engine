@@ -261,6 +261,9 @@
     <ClInclude Include="PipelineTypes.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
+    <ClInclude Include="VolatileViewHeap.hpp">
+      <Filter>Middleware</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -398,6 +401,12 @@
     </ClCompile>
     <ClCompile Include="Nodes\Node_DrawSky.cpp">
       <Filter>Nodes\DeferredPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_GenCSM.cpp">
+      <Filter>Nodes\DeferredPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="VolatileViewHeap.cpp">
+      <Filter>Middleware</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

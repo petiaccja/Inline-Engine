@@ -45,6 +45,11 @@ std::chrono::nanoseconds ExecutionContext::GetAbsoluteTime() const {
 }
 
 
+uint64_t ExecutionContext::GetFrameNumber() const {
+	return m_frameContext->frame;
+}
+
+
 //------------------------------------------------------------------------------
 // Special access functions
 //------------------------------------------------------------------------------

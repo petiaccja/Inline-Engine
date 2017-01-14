@@ -13,7 +13,7 @@ ConstantBufferHeap::ConstantBufferHeap(gxapi::IGraphicsApi* graphicsApi) :
 }
 
 
-VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(void* data, uint32_t dataSize) {
+VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(const void* data, uint32_t dataSize) {
 	size_t targetSize = SnapUpward(dataSize, ALIGNEMENT);
 
 	std::lock_guard<std::mutex> lock(m_mutex);
@@ -90,7 +90,7 @@ VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(void* data, uint32_
 }
 
 
-PersistentConstBuffer ConstantBufferHeap::CreatePersistentBuffer(void* data, uint32_t dataSize) {
+PersistentConstBuffer ConstantBufferHeap::CreatePersistentBuffer(const void* data, uint32_t dataSize) {
 	MemoryObjDesc objDesc = MemoryObjDesc(
 		m_graphicsApi->CreateCommittedResource(
 			gxapi::HeapProperties{gxapi::eHeapType::UPLOAD},

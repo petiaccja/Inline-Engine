@@ -2,6 +2,8 @@
 
 #include "GraphicsContext.hpp"
 
+#include <vector>
+
 namespace inl::gxeng::nodes {
 
 
@@ -31,5 +33,20 @@ struct DepthStencilPack {
 	Texture2DSRV srv;
 };
 
+
+struct DepthStencilArrayPack {
+	DepthStencilArrayPack() = default;
+	DepthStencilArrayPack(
+		uint64_t width,
+		uint32_t height,
+		uint16_t count,
+		gxapi::eFormat formatDepthStencil,
+		gxapi::eFormat formatColor,
+		gxapi::eFormat formatTypeless,
+		GraphicsContext& context);
+
+	std::vector<DepthStencilView> dsvs;
+	Texture2DSRV srv;
+};
 
 } // namespace inl::gxeng::nodes

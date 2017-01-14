@@ -112,14 +112,14 @@ private:
 	// FIXME: these heaps might not belong to the graphics engine instance
 	DSVHeap m_dsvHeap;
 	RTVHeap m_rtvHeap;
-	PersistentResViewHeap m_persResViewHeap;
+	CbvSrvUavHeap m_persResViewHeap;
 	std::unique_ptr<BackBufferManager> m_backBufferHeap;
 	std::vector<WindowResizeListener*> m_windowResizeListeners;
 
 	// Pipeline Facilities
 	CommandAllocatorPool m_commandAllocatorPool;
 	ScratchSpacePool m_scratchSpacePool; // Creates CBV_SRV_UAV type scratch spaces
-	PersistentResViewHeap m_textureSpace;
+	CbvSrvUavHeap m_textureSpace;
 	Pipeline m_pipeline;
 	Scheduler m_scheduler;
 	ShaderManager m_shaderManager;

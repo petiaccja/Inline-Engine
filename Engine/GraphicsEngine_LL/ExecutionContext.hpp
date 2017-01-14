@@ -3,8 +3,10 @@
 #include "GraphicsCommandList.hpp"
 #include "ComputeCommandList.hpp"
 #include "CopyCommandList.hpp"
+#include "VolatileViewHeap.hpp"
 
 #include "FrameContext.hpp"
+
 
 #include <chrono>
 
@@ -67,8 +69,12 @@ public:
 	ComputeCommandList GetComputeCommandList() const;
 	CopyCommandList GetCopyCommandList() const;
 
+	//TODO GetVolatileViewHeap() const;
+
 	std::chrono::nanoseconds GetFrameTime() const;
 	std::chrono::nanoseconds GetAbsoluteTime() const;
+
+	uint64_t GetFrameNumber() const;
 
 protected:
 	const Scene* GetSceneByName(const std::string& name) const override;

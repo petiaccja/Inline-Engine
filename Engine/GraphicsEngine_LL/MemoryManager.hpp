@@ -44,8 +44,8 @@ public:
 	void UnlockResident(IterT begin, IterT end);
 
 	UploadManager& GetUploadManager();
-	VolatileConstBuffer CreateVolatileConstBuffer(void* data, uint32_t size);
-	PersistentConstBuffer CreatePersistentConstBuffer(void* data, uint32_t size);
+	VolatileConstBuffer CreateVolatileConstBuffer(const void* data, uint32_t size);
+	PersistentConstBuffer CreatePersistentConstBuffer(const void* data, uint32_t size);
 
 	VertexBuffer CreateVertexBuffer(eResourceHeapType heap, size_t size);
 	IndexBuffer CreateIndexBuffer(eResourceHeapType heap, size_t size, size_t indexCount);

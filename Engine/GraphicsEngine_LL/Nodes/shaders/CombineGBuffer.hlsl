@@ -5,10 +5,20 @@ struct Sun
 	float4 color;
 };
 
+
+struct Transform
+{
+    float4x4 ndcToWorld;
+    float4x4 worldToShadow;
+};
+
 ConstantBuffer<Sun> sun : register(b0);
+ConstantBuffer<Transform> transform : register(b1);
 SamplerState theSampler : register(s0);
 Texture2D<float4> tex_albedoRoughness : register(t0);
 Texture2D<float2> tex_normal : register(t1);
+Texture2D<float> tex_depth : register(t2);
+Texture2DArray<float> tex_shadowMaps : register(t3);
 
 struct PS_Input
 {
@@ -33,7 +43,26 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float2 nSmpl = tex_normal.Sample(theSampler, coords).xy;
 	float3 normal = float3(nSmpl.xy, sqrt(1.0 - nSmpl.x*nSmpl.x - nSmpl.y*nSmpl.y));
 	
-	float shade = max(0.0, dot(normal, sun.dir.xyz));
+	float shadowFactor = 0.0;
+	float depth = tex_depth.Sample(theSampler, coords).x;
 	
-	return tex_albedoRoughness.Sample(theSampler, coords) * shade * sun.color;
+	float4 worldPos = mul(transform.ndcToWorld, float4(float3(input.texCoord.xy*2.0-1.0, depth), 1.0));
+	worldPos.xyz /= worldPos.w;
+	worldPos.w = 1.0;
+	float4 shadowPos = mul(transform.worldToShadow, worldPos);
+	//shadowPos.xyz /= shadowPos.w;
+	shadowPos.xy = shadowPos.xy*0.5 + 0.5;
+	shadowPos.y = 1.0-shadowPos.y;
+	
+	shadowFactor += tex_shadowMaps.Sample(theSampler, float3(shadowPos.xy, 0.0)).x < shadowPos.z ? 1.0 : 0.0;
+	
+	if (shadowPos.x > 1 || shadowPos.y > 1 || shadowPos.x < 0 || shadowPos.y < 0) {
+        shadowFactor = 0;
+	}
+	
+	float diffFactor = max(0.0, dot(normal, sun.dir.xyz))*(1-shadowFactor);
+	
+	float4 ambientColor = (1.0-sun.color)*0.5;
+	
+	return tex_albedoRoughness.Sample(theSampler, coords) * lerp(ambientColor, sun.color, diffFactor);
 }

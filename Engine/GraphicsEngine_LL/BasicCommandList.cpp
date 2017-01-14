@@ -45,6 +45,7 @@ void BasicCommandList::NewScratchSpace(size_t sizeHint) {
 		return;
 	}
 
+	assert(m_scratchSpacePool != nullptr);
 	ScratchSpacePtr newScratchSpace = m_scratchSpacePool->RequestScratchSpace();
 	m_scratchSpaces.push_back(std::move(newScratchSpace));
 	m_currentScratchSpace = m_scratchSpaces.back().get();
@@ -57,9 +58,9 @@ void BasicCommandList::NewScratchSpace(size_t sizeHint) {
 BasicCommandList::BasicCommandList(BasicCommandList&& rhs)
 	: m_resourceTransitions(std::move(rhs.m_resourceTransitions)),
 	m_scratchSpacePool(rhs.m_scratchSpacePool),
-	m_scratchSpaces(std::move(rhs.m_scratchSpaces)),
 	m_commandAllocator(std::move(rhs.m_commandAllocator)),
 	m_commandList(std::move(rhs.m_commandList)),
+	m_scratchSpaces(std::move(rhs.m_scratchSpaces)),
 	m_currentScratchSpace(rhs.m_currentScratchSpace)
 {}
 
@@ -67,9 +68,9 @@ BasicCommandList::BasicCommandList(BasicCommandList&& rhs)
 BasicCommandList& BasicCommandList::operator=(BasicCommandList&& rhs) {
 	m_resourceTransitions = std::move(rhs.m_resourceTransitions);
 	m_scratchSpacePool = rhs.m_scratchSpacePool;
-	m_scratchSpaces = std::move(rhs.m_scratchSpaces);
 	m_commandAllocator = std::move(rhs.m_commandAllocator);
 	m_commandList = std::move(rhs.m_commandList);
+	m_scratchSpaces = std::move(rhs.m_scratchSpaces);
 	m_currentScratchSpace = rhs.m_currentScratchSpace;
 
 	return *this;

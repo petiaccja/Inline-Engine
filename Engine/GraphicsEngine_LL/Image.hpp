@@ -14,7 +14,7 @@ namespace gxeng {
 
 class Image {
 public:
-	Image(MemoryManager* memoryManager, PersistentResViewHeap* descriptorHeap);
+	Image(MemoryManager* memoryManager, CbvSrvUavHeap* descriptorHeap);
 	~Image();
 
 	void SetLayout(size_t width, size_t height, ePixelChannelType channelType, int channelCount, ePixelClass pixelClass);
@@ -35,7 +35,7 @@ private:
 	int m_channelCount;
 	ePixelClass m_pixelClass;
 	MemoryManager* m_memoryManager;
-	PersistentResViewHeap* m_descriptorHeap;
+	CbvSrvUavHeap* m_descriptorHeap;
 
 };
 

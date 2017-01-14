@@ -207,7 +207,7 @@ void TescoRender::RenderScene(RenderTargetView& rtv, DepthStencilView& dsv, cons
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
 	mathfu::Matrix4x4f view = camera->GetViewMatrixRH();
-	mathfu::Matrix4x4f projection = camera->GetPerspectiveMatrixRH(0.5, 100);
+	mathfu::Matrix4x4f projection = camera->GetPerspectiveMatrixRH();
 
 	auto viewProjection = projection * view;
 

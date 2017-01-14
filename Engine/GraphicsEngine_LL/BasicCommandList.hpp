@@ -6,6 +6,7 @@
 #include "MemoryObject.hpp"
 #include "CommandAllocatorPool.hpp"
 #include "ScratchSpacePool.hpp"
+#include "HostDescHeap.hpp"
 
 #include <vector>
 #include <memory>

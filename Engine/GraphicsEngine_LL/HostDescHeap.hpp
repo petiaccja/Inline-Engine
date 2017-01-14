@@ -62,6 +62,8 @@ class HostDescHeap {
 public:
 	HostDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type);
 
+	HostDescHeap(HostDescHeap&&) = default;
+
 	DescriptorReference Allocate();
 
 protected:
@@ -99,9 +101,11 @@ public:
 };
 
 
-class PersistentResViewHeap : protected HostDescHeap {
+class CbvSrvUavHeap : protected HostDescHeap {
 public:
-	PersistentResViewHeap(gxapi::IGraphicsApi* graphicsApi);
+	CbvSrvUavHeap(gxapi::IGraphicsApi* graphicsApi);
+
+	CbvSrvUavHeap(CbvSrvUavHeap&&) = default;
 
 	DescriptorReference CreateCBV(gxapi::ConstantBufferViewDesc desc);
 	DescriptorReference CreateSRV(MemoryObject& resource, gxapi::ShaderResourceViewDesc desc);

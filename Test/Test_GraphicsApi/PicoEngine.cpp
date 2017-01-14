@@ -361,7 +361,7 @@ void PicoEngine::Update() {
 		barrier.transition.beforeState = eResourceState::COPY_DEST;
 		barrier.transition.afterState = eResourceState::PIXEL_SHADER_RESOURCE;
 		barrier.transition.splitMode = eResourceBarrierSplit::NORMAL;
-		barrier.transition.subResource = TransitionBarrier::ALL_SUBRESOURCES;
+		barrier.transition.subResource = ALL_SUBRESOURCES;
 		m_commandList->ResourceBarrier(1, &barrier);
 
 		textureReady = true;

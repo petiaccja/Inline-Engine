@@ -100,6 +100,16 @@ void Scheduler::Execute(FrameContext context) {
 				// Update resource states.
 				UpdateResourceStates(dec.usedResources.begin(), dec.usedResources.end());
 			}
+
+			// TODO(Artur) accumulate all clean tasks, and schedule one singe clean task per node to reduce fences (aka sync points)
+			/*
+			std::optional<>& volatileHeap = result.GetVolatileViewHeap();
+			if (volatileHeap.has_value()) {
+				SyncPoint completionPoint = context.commandQueue->Signal();
+				// Enqueue CPU task to clean up resources after command list finished.
+				context.residencyQueue->EnqueueClean(completionPoint, {}, std::move(volatileHeap.value()));
+			}
+			*/
 		}
 
 		// Set backBuffer to PRESENT state.

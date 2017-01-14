@@ -12,6 +12,8 @@ Camera::Camera()
 	m_fovH(60.f / 180.f*3.14159f),
 	m_fovV(45.f / 180.f*3.14159f),
 	m_focus(1.f),
+	m_nearPlane(0.1f),
+	m_farPlane(100.0f),
 	m_name("unnamed")
 {}
 
@@ -63,6 +65,14 @@ void Camera::SetFOVAxis(float horizontalFov, float verticalFov) {
 	m_fovV = verticalFov;
 }
 
+// Set depth plane Z offset.
+void Camera::SetNearPlane(float zOffset) {
+	m_nearPlane = zOffset;
+}
+void Camera::SetFarPlane(float zOffset) {
+	m_farPlane = zOffset;
+}
+
 // Get positional properties.
 mathfu::Vector3f Camera::GetPosition() const {
 	return m_position;
@@ -94,6 +104,13 @@ float Camera::GetFocus() const {
 	return m_focus;
 }
 
+// Get depth plane Z offset.
+float Camera::GetNearPlane() const {
+	return m_nearPlane;
+}
+float Camera::GetFarPlane() const {
+	return m_farPlane;
+}
 
 
 // Matrices
@@ -103,17 +120,17 @@ mathfu::Matrix4x4f Camera::GetViewMatrixRH() const {
 mathfu::Matrix4x4f Camera::GetViewMatrixLH() const {
 	return mathfu::Matrix4x4f::LookAt(m_position + m_lookdir, m_position, m_upVector, -1.0f);
 }
-mathfu::Matrix4x4f Camera::GetPerspectiveMatrixRH(float nearPlane, float farPlane) const {
-	return mathfu::Matrix4x4f::Perspective(m_fovV, m_fovH / m_fovV, nearPlane, farPlane, +1.0f);
+mathfu::Matrix4x4f Camera::GetPerspectiveMatrixRH() const {
+	return mathfu::Matrix4x4f::Perspective(m_fovV, m_fovH / m_fovV, m_nearPlane, m_farPlane, +1.0f);
 }
-mathfu::Matrix4x4f Camera::GetPerspectiveMatrixLH(float nearPlane, float farPlane) const {
-	return mathfu::Matrix4x4f::Perspective(m_fovV, m_fovH / m_fovV, nearPlane, farPlane, -1.0f);
+mathfu::Matrix4x4f Camera::GetPerspectiveMatrixLH() const {
+	return mathfu::Matrix4x4f::Perspective(m_fovV, m_fovH / m_fovV, m_nearPlane, m_farPlane, -1.0f);
 }
-mathfu::Matrix4x4f Camera::GetOrthographicMatrixRH(float nearPlane, float farPlane) const {
-	return mathfu::Matrix4x4f::Ortho(-m_fovH / 2, m_fovH / 2, -m_fovV / 2, m_fovV / 2, nearPlane, farPlane, +1.0f);
+mathfu::Matrix4x4f Camera::GetOrthographicMatrixRH() const {
+	return mathfu::Matrix4x4f::Ortho(-m_fovH / 2, m_fovH / 2, -m_fovV / 2, m_fovV / 2, m_nearPlane, m_farPlane, +1.0f);
 }
-mathfu::Matrix4x4f Camera::GetOrthographicMatrixLH(float nearPlane, float farPlane) const {
-	return mathfu::Matrix4x4f::Ortho(-m_fovH / 2, m_fovH / 2, -m_fovV / 2, m_fovV / 2, nearPlane, farPlane, -1.0f);
+mathfu::Matrix4x4f Camera::GetOrthographicMatrixLH() const {
+	return mathfu::Matrix4x4f::Ortho(-m_fovH / 2, m_fovH / 2, -m_fovV / 2, m_fovV / 2, m_nearPlane, m_farPlane, -1.0f);
 }
 
 

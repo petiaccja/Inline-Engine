@@ -4,7 +4,7 @@ namespace inl {
 namespace gxeng {
 
 
-Image::Image(MemoryManager* memoryManager, PersistentResViewHeap* descriptorHeap) {
+Image::Image(MemoryManager* memoryManager, CbvSrvUavHeap* descriptorHeap) {
 	assert(memoryManager != nullptr);
 	m_memoryManager = memoryManager;
 	m_descriptorHeap = descriptorHeap;

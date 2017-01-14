@@ -20,23 +20,14 @@ const VertexBuffer& VertexBufferView::GetResource() {
 }
 
 
-ConstBufferView::ConstBufferView(const VolatileConstBuffer& resource, PersistentResViewHeap& heap) :
+ConstBufferView::ConstBufferView(const ConstBuffer& resource, size_t offset, size_t size, CbvSrvUavHeap& heap) :
 	ResourceViewBase(resource)
 {
+	assert((offset + size) <= resource.GetSize());
+
 	gxapi::ConstantBufferViewDesc desc;
-	desc.gpuVirtualAddress = resource.GetVirtualAddress();
-	desc.sizeInBytes = resource.GetSize();
-
-	m_descRef.reset(new DescriptorReference(heap.CreateCBV(desc)));
-}
-
-
-ConstBufferView::ConstBufferView(const PersistentConstBuffer& resource, PersistentResViewHeap& heap) :
-	ResourceViewBase(resource)
-{
-	gxapi::ConstantBufferViewDesc desc;
-	desc.gpuVirtualAddress = resource.GetVirtualAddress();
-	desc.sizeInBytes = resource.GetSize();
+	desc.gpuVirtualAddress = static_cast<uint8_t*>(resource.GetVirtualAddress()) + offset;
+	desc.sizeInBytes = size;
 
 	m_descRef.reset(new DescriptorReference(heap.CreateCBV(desc)));
 }
@@ -127,7 +118,7 @@ gxapi::DepthStencilViewDesc DepthStencilView::GetDescription() const {
 
 BufferSRV::BufferSRV(
 	const LinearBuffer& resource,
-	PersistentResViewHeap& heap,
+	CbvSrvUavHeap& heap,
 	gxapi::eFormat format,
 	gxapi::SrvBuffer desc
 ):
@@ -156,7 +147,7 @@ const gxapi::SrvBuffer& BufferSRV::GetDescription() const {
 
 Texture1DSRV::Texture1DSRV(
 	const Texture1D& resource,
-	PersistentResViewHeap& heap,
+	CbvSrvUavHeap& heap,
 	gxapi::eFormat format,
 	gxapi::SrvTexture1DArray srvDesc
 ):
@@ -185,7 +176,7 @@ const gxapi::SrvTexture1DArray& Texture1DSRV::GetDescription() const {
 
 Texture2DSRV::Texture2DSRV(
 	const Texture2D& resource,
-	PersistentResViewHeap & heap,
+	CbvSrvUavHeap & heap,
 	gxapi::eFormat format,
 	gxapi::SrvTexture2DArray srvDesc
 ):
@@ -214,7 +205,7 @@ const gxapi::SrvTexture2DArray& Texture2DSRV::GetDescription() const {
 
 Texture3DSRV::Texture3DSRV(
 	const Texture3D& resource,
-	PersistentResViewHeap& heap,
+	CbvSrvUavHeap& heap,
 	gxapi::eFormat format,
 	gxapi::SrvTexture3D srvDesc
 ):
@@ -243,7 +234,7 @@ const gxapi::SrvTexture3D& Texture3DSRV::GetDescription() const {
 
 TextureCubeSRV::TextureCubeSRV(
 	const TextureCube& resource,
-	PersistentResViewHeap& heap,
+	CbvSrvUavHeap& heap,
 	gxapi::eFormat format,
 	gxapi::SrvTextureCube srvDesc
 ) :

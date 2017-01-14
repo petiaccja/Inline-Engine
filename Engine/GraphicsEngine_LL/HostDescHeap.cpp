@@ -171,12 +171,12 @@ DescriptorReference DSVHeap::Create(MemoryObject & resource, gxapi::DepthStencil
 }
 
 
-PersistentResViewHeap::PersistentResViewHeap(gxapi::IGraphicsApi* graphicsApi) :
+CbvSrvUavHeap::CbvSrvUavHeap(gxapi::IGraphicsApi* graphicsApi) :
 	HostDescHeap(graphicsApi, gxapi::eDescriptorHeapType::CBV_SRV_UAV)
 {}
 
 
-DescriptorReference PersistentResViewHeap::CreateCBV(gxapi::ConstantBufferViewDesc desc) {
+DescriptorReference CbvSrvUavHeap::CreateCBV(gxapi::ConstantBufferViewDesc desc) {
 	auto descRef = Allocate();
 
 	m_graphicsApi->CreateConstantBufferView(desc, descRef.Get());
@@ -185,7 +185,7 @@ DescriptorReference PersistentResViewHeap::CreateCBV(gxapi::ConstantBufferViewDe
 }
 
 
-DescriptorReference PersistentResViewHeap::CreateSRV(MemoryObject& resource, gxapi::ShaderResourceViewDesc desc) {
+DescriptorReference CbvSrvUavHeap::CreateSRV(MemoryObject& resource, gxapi::ShaderResourceViewDesc desc) {
 	auto descRef = Allocate();
 
 	m_graphicsApi->CreateShaderResourceView(resource._GetResourcePtr(), desc, descRef.Get());

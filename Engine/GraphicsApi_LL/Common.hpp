@@ -1498,9 +1498,9 @@ struct TransitionBarrier : public ResourceBarrierTag {
 	eResourceState beforeState;
 	eResourceState afterState;
 	eResourceBarrierSplit splitMode;
-
-	static constexpr auto ALL_SUBRESOURCES = std::numeric_limits<unsigned>::max();
 };
+
+static constexpr auto ALL_SUBRESOURCES = std::numeric_limits<unsigned>::max();
 
 
 struct ResourceBarrier {
