@@ -36,6 +36,9 @@
     <Filter Include="Nodes\DeferredPipeline">
       <UniqueIdentifier>{2ef57f3c-8e5d-4b28-ba57-a435d1be5c25}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Nodes\DeferredPipeline\Shaders">
+      <UniqueIdentifier>{d804e9f8-c90b-43e0-a9e7-e5ce3e4e0717}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -405,5 +408,22 @@
     <ClCompile Include="PipelineTypes.cpp">
       <Filter>Pipeline</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Nodes\Shaders\CombineGBuffer.hlsl">
+      <Filter>Nodes\DeferredPipeline\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\DrawSky.hlsl">
+      <Filter>Nodes\DeferredPipeline\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\GenCSM.hlsl">
+      <Filter>Nodes\DeferredPipeline\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\GenGBuffer.hlsl">
+      <Filter>Nodes\DeferredPipeline\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
+      <Filter>Nodes\DeferredPipeline\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
