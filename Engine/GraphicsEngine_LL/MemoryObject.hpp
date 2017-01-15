@@ -130,26 +130,36 @@ protected:
 class ConstBuffer : public LinearBuffer {
 public:
 	void* GetVirtualAddress() const;
+
 	uint64_t GetSize() const;
+	uint64_t GetDataSize() const;
 
 protected:
-	ConstBuffer(MemoryObjDesc&& desc, void* gpuVirtualPtr, uint32_t dataSize);
+	ConstBuffer(MemoryObjDesc&& desc, void* gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize);
 
 protected:
 	void* m_gpuVirtualPtr;
+
+	// m_dataSize is the size of the data stored in this buffer
 	uint32_t m_dataSize;
+
+	// volatile const buffers are placed on pages where the data
+	// is aligned and the allocation size fits the alignement
+	// therefore the allocation might be bigger than the actual
+	// data size. This allocation size is the m_bufferSize.
+	uint32_t m_bufferSize;
 };
 
 
 class VolatileConstBuffer : public ConstBuffer {
 public:
-	VolatileConstBuffer(MemoryObjDesc&& desc, void* gpuVirtualPtr, uint32_t dataSize);
+	VolatileConstBuffer(MemoryObjDesc&& desc, void* gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize);
 };
 
 
 class PersistentConstBuffer : public ConstBuffer {
 public:
-	PersistentConstBuffer(MemoryObjDesc&& desc, void* gpuVirtualPtr, uint32_t dataSize);
+	PersistentConstBuffer(MemoryObjDesc&& desc, void* gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize);
 };
 
 //==================================

@@ -27,12 +27,20 @@ CombineGBuffer::CombineGBuffer(
 	sunBindParamDesc.relativeChangeFrequency = 0;
 	sunBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
+	BindParameterDesc cascadeBoundaryBindParamDesc;
+	m_cascadeBoundaryBindParam = BindParameter(eBindParameterType::CONSTANT, 1);
+	cascadeBoundaryBindParamDesc.parameter = m_cascadeBoundaryBindParam;
+	cascadeBoundaryBindParamDesc.constantSize = sizeof(float) * 4 * 4; // 4 floats would be enough but alignement..
+	cascadeBoundaryBindParamDesc.relativeAccessFrequency = 0;
+	cascadeBoundaryBindParamDesc.relativeChangeFrequency = 0;
+	cascadeBoundaryBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
 	BindParameterDesc transformBindParamDesc;
-	m_transformBindParam = BindParameter(eBindParameterType::CONSTANT, 1);
+	m_transformBindParam = BindParameter(eBindParameterType::CONSTANT, 2);
 	transformBindParamDesc.parameter = m_transformBindParam;
-	transformBindParamDesc.constantSize = sizeof(float) * 4 * 4 * 2;
+	//transformBindParamDesc.constantSize = sizeof(float) * 4 * 4 * 2;
 	// Size is unknown - forces to be placed in a descriptor table.
-	//transformBindParamDesc.constantSize = 0; 
+	transformBindParamDesc.constantSize = 0; 
 	transformBindParamDesc.relativeAccessFrequency = 0;
 	transformBindParamDesc.relativeChangeFrequency = 0;
 	transformBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
@@ -78,7 +86,7 @@ CombineGBuffer::CombineGBuffer(
 
 	gxapi::StaticSamplerDesc samplerDesc;
 	samplerDesc.shaderRegister = 0;
-	samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
+	samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_LINEAR_MIP_POINT;
 	samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
 	samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
 	samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
@@ -90,6 +98,7 @@ CombineGBuffer::CombineGBuffer(
 		graphicsApi,
 		{
 			sunBindParamDesc,
+			cascadeBoundaryBindParamDesc,
 			transformBindParamDesc,
 			albedoRoughnessBindParamDesc,
 			normalBindParamDesc,
@@ -170,10 +179,10 @@ Task CombineGBuffer::GetTask() {
 		this->GetInput<5>().Clear();
 
 		GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-//		CbvSrvUavHeap volatileViewHeap = context.GetVolatileViewHeap();
-		RenderCombined(depthStencil.srv, albedoRoughness.srv, normal.srv, sunShadowMaps, camera, sun, cmdList);
+		VolatileViewHeap volatileViewHeap = context.GetVolatileViewHeap();
+		RenderCombined(depthStencil.srv, albedoRoughness.srv, normal.srv, sunShadowMaps, camera, sun, volatileViewHeap, cmdList);
 		result.AddCommandList(std::move(cmdList));
-	//	result.GiveVolatileViewHeap(std::move(volatileViewHeap));
+		result.GiveVolatileViewHeap(std::move(volatileViewHeap));
 
 		this->GetOutput<0>().Set(m_renderTarget);
 
@@ -201,6 +210,7 @@ void CombineGBuffer::RenderCombined(
 	const ShadowCascades* sunShadowMaps,
 	const Camera* camera,
 	const DirectionalLight* sun,
+	VolatileViewHeap& volatileViewHeap,
 	GraphicsCommandList & commandList
 ) {
 	// Set render target
@@ -223,60 +233,72 @@ void CombineGBuffer::RenderCombined(
 	commandList.SetGraphicsBinder(&m_binder);
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-
 	commandList.SetResourceState(albedoRoughness.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 	commandList.SetResourceState(normal.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 	commandList.SetResourceState(depthStencil.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 	auto& sunShadowMapSrv = const_cast<TextureView2D&>(sunShadowMaps->mapArray.srv);
-	const unsigned count = sunShadowMaps->mapArray.srv.GetResource().GetArrayCount();
+	const unsigned count = sunShadowMapSrv.GetResource().GetArrayCount();
+	assert(sunShadowMapSrv.GetResource().GetDescription().textureDesc.mipLevels == 1);
 	for (int i = 0; i < count; i++) {
 		commandList.SetResourceState(sunShadowMapSrv.GetResource(), i, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 	}
 
-
-	mathfu::Matrix4x4f viewInvTr = camera->GetViewMatrixRH().Inverse().Transpose();
-	mathfu::Vector4f sunViewDir = viewInvTr * mathfu::Vector4f(sun->GetDirection(), 0.0f);
-	mathfu::Vector4f sunColor = mathfu::Vector4f(sun->GetColor(), 1.0f);
-	std::array<mathfu::VectorPacked<float, 4>, 2> cbufferSun;
-	sunViewDir.Pack(cbufferSun.data());
-	sunColor.Pack(cbufferSun.data() + 1);
-	
-	mathfu::Matrix4x4f ndcToWorld = (camera->GetPerspectiveMatrixRH() * camera->GetViewMatrixRH()).Inverse();
-	mathfu::Matrix4x4f worldToShadowView = LightViewTransform(sun);
-
 	assert(sunShadowMaps->subCameras.size() == sunShadowMaps->mapArray.srv.GetResource().GetArrayCount());
 	const size_t cascadeCount = sunShadowMaps->subCameras.size();
 
-	// Size is: rows in ndcToWorld matrix + rows in all worldToShadow matrices
-	constexpr int rowsPerMatrix = 4;
-	std::array<mathfu::VectorPacked<float, 4>, 2 * rowsPerMatrix> cbufferTransform;
-	//std::vector<mathfu::VectorPacked<float, 4>> cbufferTransform(rowsPerMatrix + rowsPerMatrix * cascadeCount);
-	ndcToWorld.Pack(cbufferTransform.data());
-
-	mathfu::Matrix4x4f worldToShadow = LightDirectionalProjectionTransform(worldToShadowView, &sunShadowMaps->subCameras[0]) * worldToShadowView;
-	worldToShadow.Pack(cbufferTransform.data() + rowsPerMatrix);
-
-	auto worldToShadowTransformsStart = cbufferTransform.data() + rowsPerMatrix;
-	for (int i = 0; i < cascadeCount; i++) {
-		//TODO(Artur)
-		//mathfu::Matrix4x4f worldToShadow = LightDirectionalProjectionTransform(worldToShadowView, &sunShadowMaps->subCameras[i]) * worldToShadowView;
-		//worldToShadow.Pack(worldToShadowTransformsStart + rowsPerMatrix*i);
+	// Fill sun const buffer
+	std::array<mathfu::VectorPacked<float, 4>, 2> cbufferSun;
+	{
+		mathfu::Matrix4x4f viewInvTr = camera->GetViewMatrixRH().Inverse().Transpose();
+		mathfu::Vector4f sunViewDir = viewInvTr * mathfu::Vector4f(sun->GetDirection(), 0.0f);
+		mathfu::Vector4f sunColor = mathfu::Vector4f(sun->GetColor(), 1.0f);
+		sunViewDir.Pack(cbufferSun.data());
+		sunColor.Pack(cbufferSun.data() + 1);
 	}
-	
+
+	// Fill cascade boudaries const buffer
+	std::vector<std::array<float, 4>> cbufferCascadeBoudaries(cascadeCount-1);
+	{
+		auto projection = camera->GetPerspectiveMatrixRH();
+		for (int i = 0; i < cbufferCascadeBoudaries.size(); i++) {
+			auto& cam = sunShadowMaps->subCameras[i];
+
+			auto destiation = projection * mathfu::Vector4f(0, 0, -cam.GetFarPlane(), 1);
+			cbufferCascadeBoudaries[i][0] = destiation.z() / destiation.w();
+		}
+	}
+
+	// Fill transforms const buffer
+	constexpr int rowsPerMatrix = 4;
+	std::vector<mathfu::VectorPacked<float, 4>> cbufferTransform(rowsPerMatrix + rowsPerMatrix * cascadeCount);
+	{
+		mathfu::Matrix4x4f ndcToWorld = (camera->GetPerspectiveMatrixRH() * camera->GetViewMatrixRH()).Inverse();
+		mathfu::Matrix4x4f worldToShadowView = LightViewTransform(sun);
+
+		ndcToWorld.Pack(cbufferTransform.data());
+
+		auto worldToShadowTransformsStart = cbufferTransform.data() + rowsPerMatrix;
+		for (int i = 0; i < cascadeCount; i++) {
+			auto cam = &sunShadowMaps->subCameras[i];
+			mathfu::Matrix4x4f worldToShadow = LightDirectionalProjectionTransform(worldToShadowView, cam) * worldToShadowView;
+			worldToShadow.Pack(worldToShadowTransformsStart + rowsPerMatrix*i);
+		}
+	}
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
 	unsigned vbSize = m_fsq.GetSize();
 	unsigned vbStride = 3 * sizeof(float);
 
-	// TODO add abiltiy to bind constant buffers
-
-	//const size_t transformBufferSize = cbufferTransform.size() * sizeof(mathfu::VectorPacked<float, 4>);
-	//auto transformBuffer = m_graphicsContext.CreateVolatileConstBuffer(cbufferTransform.data(), transformBufferSize);
-	//auto transformBufferView = m_graphicsContext.CreateCbv(transformBuffer, 0, transformBufferSize, volatileViewHeap);
+	const size_t transformBufferSize = cbufferTransform.size() * sizeof(mathfu::VectorPacked<float, 4>);
+	auto transformBuffer = m_graphicsContext.CreateVolatileConstBuffer(cbufferTransform.data(), transformBufferSize);
+	auto transformBufferView = m_graphicsContext.CreateCbv(transformBuffer, 0, transformBufferSize, volatileViewHeap);
 
 	commandList.BindGraphics(m_sunBindParam, cbufferSun.data(), sizeof(cbufferSun), 0);
-	commandList.BindGraphics(m_transformBindParam, cbufferTransform.data(), sizeof(cbufferTransform), 0);
-	//commandList.BindGraphics(m_transformBindParam, transformBufferView);
+	commandList.BindGraphics(
+		m_cascadeBoundaryBindParam,
+		cbufferCascadeBoudaries.data(),
+		sizeof(decltype(cbufferCascadeBoudaries)::value_type) * cbufferCascadeBoudaries.size(), 0);
+	commandList.BindGraphics(m_transformBindParam, transformBufferView);
 	commandList.BindGraphics(m_albedoRoughnessBindParam, albedoRoughness);
 	commandList.BindGraphics(m_normalBindParam, normal);
 	commandList.BindGraphics(m_depthBindParam, depthStencil);

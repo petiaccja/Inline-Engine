@@ -120,7 +120,7 @@ void HostDescHeap<HeapType>::Grow() {
 
 	// if there aren't any chunks
 	if (chunk == nullptr) {
-		m_first = std::make_unique<ChunkListItem>();;
+		m_first = std::make_unique<ChunkListItem>();
 		chunk = m_first.get();
 	}
 

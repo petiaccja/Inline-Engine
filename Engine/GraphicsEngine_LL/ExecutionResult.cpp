@@ -33,6 +33,16 @@ void ExecutionResult::AddCommandList(CopyCommandList&& list) {
 }
 
 
+void ExecutionResult::GiveVolatileViewHeap(VolatileViewHeap&& heap) {
+	m_volatileViewHeap = std::move(heap);
+}
+
+
+std::optional<VolatileViewHeap>& ExecutionResult::GetVolatileViewHeap() {
+	return m_volatileViewHeap;
+}
+
+
 void ExecutionResult::Reset() {
 	m_lists.clear();
 	m_gxLists.clear();

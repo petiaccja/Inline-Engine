@@ -166,10 +166,11 @@ size_t IndexBuffer::GetIndexCount() const {
 //==================================
 
 
-ConstBuffer::ConstBuffer(MemoryObjDesc&& desc, void* gpuVirtualPtr, uint32_t dataSize) :
+ConstBuffer::ConstBuffer(MemoryObjDesc&& desc, void* gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize) :
 	LinearBuffer(std::move(desc)),
 	m_gpuVirtualPtr(gpuVirtualPtr),
-	m_dataSize(dataSize)
+	m_dataSize(dataSize),
+	m_bufferSize(bufferSize)
 {}
 
 
@@ -179,17 +180,22 @@ void* ConstBuffer::GetVirtualAddress() const {
 
 
 uint64_t ConstBuffer::GetSize() const {
+	return m_bufferSize;
+}
+
+
+uint64_t ConstBuffer::GetDataSize() const {
 	return m_dataSize;
 }
 
 
-VolatileConstBuffer::VolatileConstBuffer(MemoryObjDesc&& desc, void * gpuVirtualPtr, uint32_t dataSize) :
-	ConstBuffer(std::move(desc), gpuVirtualPtr, dataSize)
+VolatileConstBuffer::VolatileConstBuffer(MemoryObjDesc&& desc, void * gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize) :
+	ConstBuffer(std::move(desc), gpuVirtualPtr, dataSize, bufferSize)
 {}
 
 
-PersistentConstBuffer::PersistentConstBuffer(MemoryObjDesc&& desc, void * gpuVirtualPtr, uint32_t dataSize) :
-	ConstBuffer(std::move(desc), gpuVirtualPtr, dataSize)
+PersistentConstBuffer::PersistentConstBuffer(MemoryObjDesc&& desc, void * gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize) :
+	ConstBuffer(std::move(desc), gpuVirtualPtr, dataSize, bufferSize)
 {}
 
 

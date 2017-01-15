@@ -36,6 +36,12 @@ CopyCommandList ExecutionContext::GetCopyCommandList() const {
 }
 
 
+VolatileViewHeap ExecutionContext::GetVolatileViewHeap() const {
+	// TODO(Artur) request volatile heap from pool
+	return VolatileViewHeap(m_frameContext->gxApi);
+}
+
+
 std::chrono::nanoseconds ExecutionContext::GetFrameTime() const {
 	return m_frameContext->frameTime;
 }

@@ -58,7 +58,7 @@ public:
 	DescriptorArrayRef Allocate(uint32_t size);
 
 	/// <summary>
-	/// Frees all allocations. Next allocation will be place at the begginning of the heap.
+	/// Frees all allocations. Next allocation will be placed at the begginning of the heap.
 	/// </summary>
 	void Reset();
 
