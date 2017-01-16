@@ -11,10 +11,10 @@ DrawSky::DrawSky(gxapi::IGraphicsApi * graphicsApi):
 	BindParameterDesc cbBindParamDesc;
 	m_cbBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
 	cbBindParamDesc.parameter = m_cbBindParam;
-	cbBindParamDesc.constantSize = sizeof(float) * 4 * 3;
+	cbBindParamDesc.constantSize = sizeof(float) * 4 * 3 + sizeof(float)*16 + sizeof(float)*4;
 	cbBindParamDesc.relativeAccessFrequency = 0;
 	cbBindParamDesc.relativeChangeFrequency = 0;
-	cbBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+	cbBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 	BindParameterDesc sampBindParamDesc;
 	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
@@ -124,9 +124,11 @@ void DrawSky::Render(
 	unsigned vbStride = 3 * sizeof(float);
 
 	struct Sun {
+		mathfu::VectorPacked<float, 4> invViewProj[4];
 		mathfu::VectorPacked<float, 4> dirView;
 		mathfu::VectorPacked<float, 4> dirWorld;
 		mathfu::VectorPacked<float, 4> color;
+		mathfu::VectorPacked<float, 4> viewPos;
 	};
 
 	Sun sunCB;
@@ -134,10 +136,13 @@ void DrawSky::Render(
 	mathfu::Matrix4x4f viewInvTr = camera->GetViewMatrixRH().Inverse().Transpose();
 	mathfu::Vector4f sunViewDir = viewInvTr * mathfu::Vector4f(sun->GetDirection(), 0.0f);
 	mathfu::Vector4f sunColor = mathfu::Vector4f(sun->GetColor(), 1.0f);
+	mathfu::Matrix4x4f invViewProj = (camera->GetPerspectiveMatrixRH() * camera->GetViewMatrixRH()).Inverse();
 
 	sunCB.dirView = sunViewDir;
 	sunCB.dirWorld = mathfu::Vector4f(sun->GetDirection(), 0.0);
 	sunCB.color = sunColor;
+	invViewProj.Pack(sunCB.invViewProj);
+	sunCB.viewPos = mathfu::Vector4f(camera->GetPosition(), 1);
 
 	commandList.BindGraphics(m_cbBindParam, &sunCB, sizeof(sunCB), 0);
 	commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
