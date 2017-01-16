@@ -438,7 +438,7 @@ bool ProcessRawInput(RAWINPUT* raw) {
 		static float lookoff = 0.0f;
 		static float look = 0.0f;
 
-		if (lmbDown) {
+		if (rmbDown) {
 			turnr += -dx / 400.f;
 			pQcWorld->Heading(heading + turnr);
 		}
