@@ -16,9 +16,9 @@
 struct ControlInfo {
 	float weight = 19.62; // weight!=mass is in newtowns, not kg!
 	float offsetRpm = 100;
-	bool ascend = false, descend = false;
-	bool front = false, back = false, left = false, right = false;
-	bool rotateLeft = false, rotateRight = false;
+	float ascend = 0, descend = 0;
+	float front = 0, back = 0, left = 0, right = 0;
+	float rotateLeft = 0, rotateRight = 0;
 	float heading = 0.0f;
 
 	//           >   y   <
@@ -42,8 +42,8 @@ struct ControlInfo {
 	}
 
 	mathfu::Quaternionf Orientation() const {
-		auto x = mathfu::Quaternionf::FromAngleAxis(0.35f*((int)back - (int)front), {1, 0, 0});
-		auto y = mathfu::Quaternionf::FromAngleAxis(0.35f*((int)right - (int)left), { 0, 1, 0 });
+		auto x = mathfu::Quaternionf::FromAngleAxis(0.35f*(back - front), {1, 0, 0});
+		auto y = mathfu::Quaternionf::FromAngleAxis(0.35f*(right - left), { 0, 1, 0 });
 		auto z = mathfu::Quaternionf::FromAngleAxis(heading, { 0, 0, 1 });
 		return z*y*x;
 	}
@@ -59,16 +59,20 @@ public:
 
 	void SetAspectRatio(float ar);
 
-	void TiltForward(bool set);
-	void TiltBackward(bool set);
-	void TiltRight(bool set);
-	void TiltLeft(bool set);
-	void RotateRight(bool set);
-	void RotateLeft(bool set);
-	void Ascend(bool set);
-	void Descend(bool set);
+	void TiltForward(float set);
+	void TiltBackward(float set);
+	void TiltRight(float set);
+	void TiltLeft(float set);
+	void RotateRight(float set);
+	void RotateLeft(float set);
+	void Ascend(float set);
+	void Descend(float set);
 	void IncreaseBase();
 	void DecreaseBase();
+	void Heading(float set);
+	float Heading() const;
+	void Look(float set) { lookTilt = set; }
+	float Look() const { return lookTilt; }
 private:
 	void AddTree(mathfu::Vector3f position);
 private:
@@ -101,4 +105,5 @@ private:
 	Rotor m_rotor;
 	RigidBody m_rigidBody;
 	ControlInfo m_rotorInfo;
+	float lookTilt = -0.4f;
 };

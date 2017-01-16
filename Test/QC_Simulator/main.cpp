@@ -43,6 +43,7 @@ std::string errorMessage;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 bool ProcessControls(int key, bool down);
+bool ProcessRawInput(RAWINPUT* raw);
 
 
 // -----------------------------------------------------------------------------
@@ -210,6 +211,16 @@ int main() {
 	// Show the window
 	InvalidateRect(hWnd, nullptr, TRUE);
 
+	// Register for raw input
+	RAWINPUTDEVICE Rid[1];
+	Rid[0].usUsagePage = 0x01;
+	Rid[0].usUsage = 0x02;
+	Rid[0].dwFlags = 0;   // adds HID mouse and also ignores legacy mouse messages
+	Rid[0].hwndTarget = 0;
+	if (RegisterRawInputDevices(Rid, 1, sizeof(Rid[0])) == FALSE) {
+		cout << "Raw input failed: " << GetLastError() << endl;
+	}
+
 
 	// Game-style main loop
 	MSG msg;
@@ -350,6 +361,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				return 0;
 			}
 			return DefWindowProc(hWnd, msg, wParam, lParam);
+		case WM_INPUT: {
+			// get raw input data
+			UINT dwSize;
+			GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
+			std::vector<LPBYTE> lpb(dwSize);
+			if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb.data(), &dwSize,
+				sizeof(RAWINPUTHEADER)) != dwSize)
+				OutputDebugString(TEXT("GetRawInputData does not return correct size !\n"));
+
+			RAWINPUT* raw = (RAWINPUT*)lpb.data();
+			if (ProcessRawInput(raw)) {
+				return 0;
+			}
+			else {
+				DefWindowProc(hWnd, msg, wParam, lParam);
+			}
+		}
 		default:
 			return DefWindowProc(hWnd, msg, wParam, lParam);
 	}
@@ -358,7 +386,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 
 
 bool ProcessControls(int key, bool down) {
-	bool enable = down;
+	float enable = down ? 1.f : 0.f;
 	switch (key) {
 		case 'W': pQcWorld->TiltForward(enable); break;
 		case 'A': pQcWorld->TiltLeft(enable); break;
@@ -368,9 +396,80 @@ bool ProcessControls(int key, bool down) {
 		case VK_RIGHT: pQcWorld->RotateRight(enable); break;
 		case VK_UP: pQcWorld->Ascend(enable); break;
 		case VK_DOWN: pQcWorld->Descend(enable); break;
-		//case VK_UP: if (!down) pQcWorld->IncreaseBase(); break;
-		//case VK_DOWN: if (!down) pQcWorld->DecreaseBase(); break;
 		default: return false;
 	}
 	return true;
+}
+
+bool ProcessRawInput(RAWINPUT* raw) {
+	if (raw->header.dwType == RIM_TYPEMOUSE) {
+		// track up/down states
+		static bool lmbDown = false, mmbDown = false, rmbDown = false;
+		if (raw->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN) {
+			lmbDown = true;
+		}
+		if (raw->data.mouse.usButtonFlags & RI_MOUSE_MIDDLE_BUTTON_DOWN) {
+			mmbDown = true;
+		}
+		if (raw->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_DOWN) {
+			rmbDown = true;
+		}
+		if (raw->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_UP) {
+			lmbDown = false;
+		}
+		if (raw->data.mouse.usButtonFlags & RI_MOUSE_MIDDLE_BUTTON_UP) {
+			mmbDown = false;
+		}
+		if (raw->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_UP) {
+			rmbDown = false;
+		}
+
+		// check if relative
+		bool relative = raw->data.mouse.usFlags == 0;
+		if (!relative) {
+			return false;
+		}
+
+		//  set motion
+		float dx = raw->data.mouse.lLastX, dy = raw->data.mouse.lLastY;
+		static float tiltfw = 0.0f, tiltr = 0.0f;
+		static float turnr = 0.0f;
+		static float heading = 0.0f;
+		static float lookoff = 0.0f;
+		static float look = 0.0f;
+
+		if (lmbDown) {
+			turnr += -dx / 400.f;
+			pQcWorld->Heading(heading + turnr);
+		}
+		else {
+			heading = pQcWorld->Heading();
+			turnr = 0.0f;
+		}
+
+		if (mmbDown) {
+			tiltfw += -dy / 300.f;
+			tiltr += dx / 300.f;
+			pQcWorld->TiltForward(tiltfw);
+			pQcWorld->TiltRight(tiltr);
+		}
+		else {
+			pQcWorld->TiltForward(0);
+			pQcWorld->TiltRight(0);
+			tiltfw = tiltr = 0;
+		}
+
+		if (rmbDown) {
+			lookoff += -dy / 400.f;
+			pQcWorld->Look(look + lookoff);
+		}
+		else {
+			look = pQcWorld->Look();
+			lookoff = 0;
+		}
+
+		return true;
+	}
+
+	return false;
 }

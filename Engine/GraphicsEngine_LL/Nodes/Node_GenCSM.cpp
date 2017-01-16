@@ -51,7 +51,7 @@ static void ConvertToSubmittable(
 
 
 mathfu::Matrix4x4f LightViewTransform(const DirectionalLight * light) {
-	auto dir = light->GetDirection();
+	auto dir = -light->GetDirection();
 
 	auto z = dir;
 	auto x = mathfu::Vector3f::CrossProduct({ 0, 1, 0 }, z);

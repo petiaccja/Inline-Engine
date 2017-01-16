@@ -81,7 +81,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	shadowFactor +=
 		tex_shadowMaps.Sample(theSampler, float3(shadowPos.xy, selectedCascade)).x < shadowPos.z ? 1.0 : 0.0;
 	
-	float diffFactor = max(0.0, dot(normal, sun.dir.xyz))*(1-shadowFactor);
+	float diffFactor = max(0.0, dot(normal, -sun.dir.xyz))*(1-shadowFactor);
 	
 	float4 ambientColor = float4(0.12, 0.16, 0.23, 1);//(1.0-sun.color)*0.5;
 	

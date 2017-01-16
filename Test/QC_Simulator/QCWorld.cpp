@@ -17,8 +17,10 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 	// Create scene and camera
 	m_worldScene.reset(m_graphicsEngine->CreateScene("World"));
-	m_sun.SetColor({1.0f, 0.9f, 0.8f});
-	m_sun.SetDirection({ 0.5f, -0.1f, 1.0f });
+	//m_sun.SetColor({1.0f, 0.63f, 0.46f});
+	//m_sun.SetDirection({ 0.8f, -0.7f, -0.15f });
+	m_sun.SetColor({1.0f, 0.9f, 0.85f});
+	m_sun.SetDirection({ 0.8f, -0.7f, -2.f });
 	m_worldScene->SetSun(&m_sun);
 	m_camera.reset(m_graphicsEngine->CreateCamera("WorldCam"));
 	m_camera->SetTargeted(true);
@@ -191,7 +193,7 @@ void QCWorld::UpdateWorld(float elapsed) {
 	upDir.z() = 0;
 	mathfu::Vector3f viewDir = (5*frontDir.LengthSquared() > upDir.LengthSquared()) ? frontDir.Normalized() : upDir.Normalized();
 	m_camera->SetTarget(m_rigidBody.GetPosition());
-	m_camera->SetPosition(m_rigidBody.GetPosition() - viewDir * 1.5 + mathfu::Vector3f{ 0,0,0.35f });
+	m_camera->SetPosition(m_rigidBody.GetPosition() + (-viewDir * 1.5 + mathfu::Vector3f{ 0,0,-lookTilt }).Normalized() * 1.5f);
 }
 
 void QCWorld::SetAspectRatio(float ar) {
@@ -223,28 +225,28 @@ void QCWorld::AddTree(mathfu::Vector3f position) {
 
 
 
-void QCWorld::TiltForward(bool set) {
+void QCWorld::TiltForward(float set) {
 	m_rotorInfo.front = set;
 }
-void QCWorld::TiltBackward(bool set) {
+void QCWorld::TiltBackward(float set) {
 	m_rotorInfo.back = set;
 }
-void QCWorld::TiltRight(bool set) {
+void QCWorld::TiltRight(float set) {
 	m_rotorInfo.right = set;
 }
-void QCWorld::TiltLeft(bool set) {
+void QCWorld::TiltLeft(float set) {
 	m_rotorInfo.left = set;
 }
-void QCWorld::RotateRight(bool set) {
+void QCWorld::RotateRight(float set) {
 	m_rotorInfo.rotateRight = set;
 }
-void QCWorld::RotateLeft(bool set) {
+void QCWorld::RotateLeft(float set) {
 	m_rotorInfo.rotateLeft = set;
 }
-void QCWorld::Ascend(bool set) {
+void QCWorld::Ascend(float set) {
 	m_rotorInfo.ascend = set;
 }
-void QCWorld::Descend(bool set) {
+void QCWorld::Descend(float set) {
 	m_rotorInfo.descend = set;
 }
 void QCWorld::IncreaseBase() {
@@ -252,4 +254,10 @@ void QCWorld::IncreaseBase() {
 }
 void QCWorld::DecreaseBase() {
 	//m_rotorInfo.baseRpm -= 15.f;
+}
+void QCWorld::Heading(float set) {
+	m_rotorInfo.heading = set;
+}
+float QCWorld::Heading() const {
+	return m_rotorInfo.heading;
 }

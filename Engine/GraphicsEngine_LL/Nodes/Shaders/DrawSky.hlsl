@@ -37,6 +37,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//return float4(0.4, .75, 1.0, 1.0)*max(0.05, smoothstep(-0.15, 0.1, sun.dirWorld.y));
 	float3 lookDir = normalize(input.worldPos - sun.viewPos);
 	float horizon = pow(1.f - pow(dot(lookDir, float3(0, 0, 1)), 2), 10);
-	float corona = pow(0.5f + 0.5f*dot(sun.dirWorld, lookDir), 4);
-	return 0.8*(float4(0.6, 0.86, 1, 1.0)*horizon + sun.color*corona*0.3 + float4(0.4, 0.78, 1, 1)*(1-horizon));
+	float corona = pow(0.5f + 0.5f*dot(-sun.dirWorld, lookDir), 4);
+	float sundisk = saturate(600 * (dot(-sun.dirWorld, lookDir) - 0.9993908270191));
+	return 0.8*((float4(0.6, 0.86, 1, 1.0)+sun.color)*0.5f*horizon + sun.color*(corona*0.6+sundisk) + float4(0.4, 0.78, 1, 1)*(1-horizon));
 }
