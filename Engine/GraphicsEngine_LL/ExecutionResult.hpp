@@ -3,7 +3,7 @@
 #include "GraphicsCommandList.hpp"
 #include "ComputeCommandList.hpp"
 #include "CopyCommandList.hpp"
-#include "HostDescHeap.hpp"
+#include "VolatileViewHeap.hpp"
 
 #include <optional>
 #include <list>
@@ -34,9 +34,8 @@ public:
 	void AddCommandList(ComputeCommandList&& list, float aluVsBandwidthHeavy = 0.5);
 	void AddCommandList(CopyCommandList&& list);
 	
-	// TODO
-	//void GiveVolatileViewHeap(heap);
-	//std::optional<>& GetVolatileViewHeap();
+	void GiveVolatileViewHeap(VolatileViewHeap&& heap);
+	std::optional<VolatileViewHeap>& GetVolatileViewHeap();
 
 	size_t GetNumLists() const { return m_lists.size(); }
 	CommandListRecord& operator[](size_t idx) { return m_lists[idx]; }
@@ -55,6 +54,8 @@ private:
 	std::list<GraphicsCommandList> m_gxLists;
 	std::list<ComputeCommandList> m_cuLists;
 	std::list<CopyCommandList> m_cpLists;
+
+	std::optional<VolatileViewHeap> m_volatileViewHeap;
 };
 
 

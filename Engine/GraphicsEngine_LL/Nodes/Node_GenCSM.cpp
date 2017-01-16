@@ -279,65 +279,66 @@ void GenCSM::RenderScene(
 ) {
 	// Set render target
 	//const int cascadeID = frameID % m_cascadeCount;
-	const int cascadeID = 0;
+	//const int cascadeID = 0;
+	for (int cascadeID = 0; cascadeID < m_cascadeCount; cascadeID++) {
+		assert(m_cascades.mapArray.dsvs.size() == m_cascadeCount);
+		auto& renderTargetDsv = m_cascades.mapArray.dsvs[cascadeID];
 
-	assert(m_cascades.mapArray.dsvs.size() == m_cascadeCount);
-	auto& renderTargetDsv = m_cascades.mapArray.dsvs[cascadeID];
+		commandList.SetRenderTargets(0, nullptr, &renderTargetDsv);
 
-	commandList.SetRenderTargets(0, nullptr, &renderTargetDsv);
+		gxapi::Rectangle rect{ 0, static_cast<int>(m_height), 0, static_cast<int>(m_width) };
+		gxapi::Viewport viewport;
+		viewport.width = (float)rect.right;
+		viewport.height = (float)rect.bottom;
+		viewport.topLeftX = 0;
+		viewport.topLeftY = 0;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		commandList.SetScissorRects(1, &rect);
+		commandList.SetViewports(1, &viewport);
 
-	gxapi::Rectangle rect{ 0, static_cast<int>(m_height), 0, static_cast<int>(m_width) };
-	gxapi::Viewport viewport;
-	viewport.width = (float)rect.right;
-	viewport.height = (float)rect.bottom;
-	viewport.topLeftX = 0;
-	viewport.topLeftY = 0;
-	viewport.minDepth = 0.0f;
-	viewport.maxDepth = 1.0f;
-	commandList.SetScissorRects(1, &rect);
-	commandList.SetViewports(1, &viewport);
+		commandList.SetResourceState(renderTargetDsv.GetResource(), cascadeID, gxapi::eResourceState::DEPTH_WRITE);
+		commandList.ClearDepthStencil(renderTargetDsv, 1, 0);
 
-	commandList.SetResourceState(renderTargetDsv.GetResource(), cascadeID, gxapi::eResourceState::DEPTH_WRITE);
-	commandList.ClearDepthStencil(renderTargetDsv, 1, 0);
+		commandList.SetPipelineState(m_PSO.get());
+		commandList.SetGraphicsBinder(&m_binder);
+		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	commandList.SetPipelineState(m_PSO.get());
-	commandList.SetGraphicsBinder(&m_binder);
-	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
+		Camera& subcamera = CalculateSubCamera(camera, cascadeID);
 
-	Camera& subcamera = CalculateSubCamera(camera, cascadeID);
+		auto view = LightViewTransform(sun);
+		auto viewProjection = LightDirectionalProjectionTransform(view, &subcamera) * view;
 
-	auto view = LightViewTransform(sun);
-	auto viewProjection = LightDirectionalProjectionTransform(view, &subcamera) * view;
+		std::vector<const gxeng::VertexBuffer*> vertexBuffers;
+		std::vector<unsigned> sizes;
+		std::vector<unsigned> strides;
 
-	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
-	std::vector<unsigned> sizes;
-	std::vector<unsigned> strides;
+		// Iterate over all entities
+		for (const MeshEntity* entity : entities) {
+			// Get entity parameters
+			Mesh* mesh = entity->GetMesh();
+			auto position = entity->GetPosition();
 
-	// Iterate over all entities
-	for (const MeshEntity* entity : entities) {
-		// Get entity parameters
-		Mesh* mesh = entity->GetMesh();
-		auto position = entity->GetPosition();
+			// Draw mesh
+			if (!CheckMeshFormat(*mesh)) {
+				assert(false);
+				continue;
+			}
 
-		// Draw mesh
-		if (!CheckMeshFormat(*mesh)) {
-			assert(false);
-			continue;
+			ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
+
+			auto world = entity->GetTransform();
+			auto MVP = viewProjection * world;
+
+			std::array<mathfu::VectorPacked<float, 4>, 4> cbufferData;
+			MVP.Pack(cbufferData.data());
+
+			commandList.BindGraphics(m_texBindParam, *entity->GetTexture()->GetSrv());
+			commandList.BindGraphics(m_cbBindParam, cbufferData.data(), sizeof(cbufferData), 0);
+			commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
+			commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->GetIndexBuffer32Bit());
+			commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
 		}
-
-		ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
-
-		auto world = entity->GetTransform();
-		auto MVP = viewProjection * world;
-
-		std::array<mathfu::VectorPacked<float, 4>, 4> cbufferData;
-		MVP.Pack(cbufferData.data());
-
-		commandList.BindGraphics(m_texBindParam, *entity->GetTexture()->GetSrv());
-		commandList.BindGraphics(m_cbBindParam, cbufferData.data(), sizeof(cbufferData), 0);
-		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
-		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->GetIndexBuffer32Bit());
-		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
 	}
 }
 

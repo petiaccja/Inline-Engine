@@ -69,7 +69,7 @@ public:
 	ComputeCommandList GetComputeCommandList() const;
 	CopyCommandList GetCopyCommandList() const;
 
-	//TODO GetVolatileViewHeap() const;
+	VolatileViewHeap GetVolatileViewHeap() const;
 
 	std::chrono::nanoseconds GetFrameTime() const;
 	std::chrono::nanoseconds GetAbsoluteTime() const;

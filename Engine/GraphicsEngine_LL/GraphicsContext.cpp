@@ -104,15 +104,15 @@ IndexBuffer GraphicsContext::CreateIndexBuffer(const void* data, size_t size, si
 
 VolatileConstBuffer GraphicsContext::CreateVolatileConstBuffer(const void * data, size_t size) {
 	VolatileConstBuffer result = m_memoryManager->CreateVolatileConstBuffer(data, size);
-	m_memoryManager->GetUploadManager().Upload(result, 0, data, size);
 	return result;
 }
 
 
-ConstBufferView GraphicsContext::CreateCbv(VolatileConstBuffer& buffer, size_t offset, size_t size, CbvSrvUavHeap& viewHeap) {
+ConstBufferView GraphicsContext::CreateCbv(VolatileConstBuffer& buffer, size_t offset, size_t size, VolatileViewHeap& viewHeap) {
 	return ConstBufferView(
 		buffer,
-		viewHeap
+		viewHeap.Allocate(),
+		m_graphicsApi
 	);
 }
 

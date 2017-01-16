@@ -46,6 +46,7 @@ protected:
 	GraphicsContext m_graphicsContext;
 	Binder m_binder;
 	BindParameter m_sunBindParam;
+	BindParameter m_cascadeBoundaryBindParam;
 	BindParameter m_transformBindParam;
 	BindParameter m_albedoRoughnessBindParam;
 	BindParameter m_normalBindParam;
@@ -62,6 +63,7 @@ private:
 		const ShadowCascades* sunShadowMaps,
 		const Camera* camera,
 		const DirectionalLight* sun,
+		VolatileViewHeap& volatileViewHeap,
 		GraphicsCommandList& commandList);
 };
 

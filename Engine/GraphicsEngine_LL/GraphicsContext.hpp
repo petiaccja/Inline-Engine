@@ -48,7 +48,7 @@ public:
 
 	// Constant buffers
 	VolatileConstBuffer CreateVolatileConstBuffer(const void* data, size_t size);
-	ConstBufferView CreateCbv(VolatileConstBuffer& buffer, size_t offset, size_t size, CbvSrvUavHeap& viewHeap);
+	ConstBufferView CreateCbv(VolatileConstBuffer& buffer, size_t offset, size_t size, VolatileViewHeap& viewHeap);
 
 	// Shaders and PSOs
 	ShaderProgram CreateShader(const std::string& name, ShaderParts stages, const std::string& macros);

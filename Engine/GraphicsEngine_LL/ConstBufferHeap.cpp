@@ -14,7 +14,7 @@ ConstantBufferHeap::ConstantBufferHeap(gxapi::IGraphicsApi* graphicsApi) :
 
 
 VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(const void* data, uint32_t dataSize) {
-	size_t targetSize = SnapUpward(dataSize, ALIGNEMENT);
+	uint32_t targetSize = SnapUpward(dataSize, ALIGNEMENT);
 
 	std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -86,7 +86,7 @@ VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(const void* data, u
 	desc.resident = true;
 	desc.resource = MemoryObjDesc::UniqPtr(targetPage->m_representedMemory.get(), [](gxapi::IResource*){});
 
-	return VolatileConstBuffer(std::move(desc), gpuPtr, dataSize);
+	return VolatileConstBuffer(std::move(desc), gpuPtr, dataSize, targetSize);
 }
 
 
@@ -108,7 +108,7 @@ PersistentConstBuffer ConstantBufferHeap::CreatePersistentBuffer(const void* dat
 
 	void* gpuPtr = resource->GetGPUAddress();
 
-	return PersistentConstBuffer(std::move(objDesc), gpuPtr, dataSize);
+	return PersistentConstBuffer(std::move(objDesc), gpuPtr, dataSize, dataSize);
 }
 
 
