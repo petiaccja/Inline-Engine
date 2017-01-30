@@ -485,6 +485,16 @@ enum class eSrvDimension {
 	TEXTURECUBEARRAY = 10
 };
 
+enum class eUavDimension {
+	UNKNOWN = 0,
+	BUFFER = 1,
+	TEXTURE1D = 2,
+	TEXTURE1DARRAY = 3,
+	TEXTURE2D = 4,
+	TEXTURE2DARRAY = 5,
+	TEXTURE3D = 8
+};
+
 enum class eResourceBarrierSplit {
 	NORMAL,
 	BEGIN,
@@ -1492,6 +1502,61 @@ struct ShaderResourceViewDesc {
 		SrvTextureCubeArray texCubeArray;
 	};
 };
+
+
+struct UavBuffer {
+	bool raw;
+
+	unsigned firstElement;
+	unsigned numElements;
+	unsigned elementStride;
+
+	unsigned countOffset;
+};
+
+struct UavTexture1D {
+	unsigned mipLevel;
+};
+
+struct UavTexture1DArray {
+	unsigned mipLevel;
+	unsigned firstArrayElement;
+	unsigned activeArraySize;
+};
+
+struct UavTexture2D {
+	unsigned mipLevel;
+	unsigned planeIndex;
+};
+
+struct UavTexture2DArray {
+	unsigned mipLevel;
+	unsigned planeIndex;
+
+	unsigned firstArrayElement;
+	unsigned activeArraySize;
+};
+
+struct UavTexture3D {
+	unsigned mipLevel;
+
+	unsigned firstDepthLayer;
+	unsigned depthSize;
+};
+
+struct UnorderedAccessViewDesc {
+	eFormat format;
+	eUavDimension dimension;
+	union {
+		UavBuffer buffer;
+		UavTexture1D tex1D;
+		UavTexture1DArray tex1DArray;
+		UavTexture2D tex2D;
+		UavTexture2DArray tex2DArray;
+		UavTexture3D tex3D;
+	};
+};
+
 
 
 struct ResourceBarrierTag {};

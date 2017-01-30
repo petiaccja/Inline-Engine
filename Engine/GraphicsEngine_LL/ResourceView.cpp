@@ -68,7 +68,7 @@ ConstBufferView::ConstBufferView(const PersistentConstBuffer & resource, gxapi::
 
 RenderTargetView2D::RenderTargetView2D(
 	const Texture2D& resource,
-	RTVHeap& heap, 
+	RTVHeap& heap,
 	gxapi::eFormat format,
 	gxapi::RtvTexture2DArray desc
 ) :
@@ -384,6 +384,190 @@ gxapi::eFormat TextureViewCube::GetFormat() {
 const gxapi::SrvTextureCube & TextureViewCube::GetDescription() const {
 	return m_srvDesc;
 }
+
+
+//------------------------------------------------------------------------------
+// RWs
+//------------------------------------------------------------------------------
+
+
+RWBufferView::RWBufferView(const LinearBuffer& resource,
+						   CbvSrvUavHeap& heap,
+						   gxapi::eFormat format,
+						   gxapi::UavBuffer desc) 
+	:
+	ResourceViewBase(resource, &heap),
+	m_format(format),
+	m_uavDesc(desc) 
+{
+	gxapi::UnorderedAccessViewDesc fullUavDesc;
+	fullUavDesc.format = format;
+	fullUavDesc.dimension = gxapi::eUavDimension::BUFFER;
+	fullUavDesc.buffer = desc;
+
+	heap.CreateUAV(GetResource(), fullUavDesc, GetHandle());
+}
+
+RWBufferView::RWBufferView(const LinearBuffer& resource,
+						   gxapi::DescriptorHandle handle,
+						   gxapi::IGraphicsApi* gxapi, gxapi::eFormat format,
+						   gxapi::UavBuffer desc) 
+	:
+	ResourceViewBase(resource, handle),
+	m_format(format),
+	m_uavDesc(desc)
+{
+	gxapi::UnorderedAccessViewDesc fullUavDesc;
+	fullUavDesc.format = format;
+	fullUavDesc.dimension = gxapi::eUavDimension::BUFFER;
+	fullUavDesc.buffer = desc;
+
+	gxapi->CreateUnorderedAccessView(GetResource()._GetResourcePtr(), fullUavDesc, GetHandle());
+}
+
+gxapi::eFormat RWBufferView::GetFormat() {
+	return m_format;
+}
+
+const gxapi::UavBuffer& RWBufferView::GetDescription() const {
+	return m_uavDesc;
+}
+
+
+
+RWTextureView1D::RWTextureView1D(const Texture1D& resource,
+								 CbvSrvUavHeap& heap,
+								 gxapi::eFormat format, 
+								 gxapi::UavTexture1DArray desc) 
+	:
+	ResourceViewBase(resource, &heap),
+	m_format(format),
+	m_uavDesc(desc)
+{
+	gxapi::UnorderedAccessViewDesc fullUavDesc;
+	fullUavDesc.format = format;
+	fullUavDesc.dimension = gxapi::eUavDimension::TEXTURE1D;
+	fullUavDesc.tex1DArray = desc;
+
+	heap.CreateUAV(GetResource(), fullUavDesc, GetHandle());
+}
+
+RWTextureView1D::RWTextureView1D(const Texture1D& resource,
+								 gxapi::DescriptorHandle handle,
+								 gxapi::IGraphicsApi* gxapi,
+								 gxapi::eFormat format,
+								 gxapi::UavTexture1DArray desc)
+	:
+	ResourceViewBase(resource, handle),
+	m_format(format),
+	m_uavDesc(desc)
+{
+	gxapi::UnorderedAccessViewDesc fullUavDesc;
+	fullUavDesc.format = format;
+	fullUavDesc.dimension = gxapi::eUavDimension::TEXTURE1D;
+	fullUavDesc.tex1DArray = desc;
+
+	gxapi->CreateUnorderedAccessView(GetResource()._GetResourcePtr(), fullUavDesc, GetHandle());
+}
+
+gxapi::eFormat RWTextureView1D::GetFormat() {
+	return m_format;
+}
+
+const gxapi::UavTexture1DArray& RWTextureView1D::GetDescription() const {
+	return m_uavDesc;
+}
+
+
+
+RWTextureView2D::RWTextureView2D(const Texture2D& resource,
+								 CbvSrvUavHeap& heap,
+								 gxapi::eFormat format,
+								 gxapi::UavTexture2DArray desc) 
+	:
+	ResourceViewBase(resource, &heap),
+	m_format(format),
+	m_uavDesc(desc)
+{
+	gxapi::UnorderedAccessViewDesc fullUavDesc;
+	fullUavDesc.format = format;
+	fullUavDesc.dimension = gxapi::eUavDimension::TEXTURE2DARRAY;
+	fullUavDesc.tex2DArray = desc;
+
+	heap.CreateUAV(GetResource(), fullUavDesc, GetHandle());
+}
+
+RWTextureView2D::RWTextureView2D(const Texture2D& resource,
+								 gxapi::DescriptorHandle handle,
+								 gxapi::IGraphicsApi* gxapi,
+								 gxapi::eFormat format,
+								 gxapi::UavTexture2DArray desc) 
+	:
+	ResourceViewBase(resource, handle),
+	m_format(format),
+	m_uavDesc(desc)
+{
+	gxapi::UnorderedAccessViewDesc fullUavDesc;
+	fullUavDesc.format = format;
+	fullUavDesc.dimension = gxapi::eUavDimension::TEXTURE2DARRAY;
+	fullUavDesc.tex2DArray = desc;
+
+	gxapi->CreateUnorderedAccessView(GetResource()._GetResourcePtr(), fullUavDesc, GetHandle());
+}
+
+gxapi::eFormat RWTextureView2D::GetFormat() {
+	return m_format;
+}
+
+const gxapi::UavTexture2DArray& RWTextureView2D::GetDescription() const {
+	return m_uavDesc;
+}
+
+
+
+RWTextureView3D::RWTextureView3D(const Texture3D& resource,
+								 CbvSrvUavHeap& heap,
+								 gxapi::eFormat format, 
+								 gxapi::UavTexture3D desc) 
+	:
+	ResourceViewBase(resource, &heap),
+	m_format(format),
+	m_uavDesc(desc)
+{
+	gxapi::UnorderedAccessViewDesc fullUavDesc;
+	fullUavDesc.format = format;
+	fullUavDesc.dimension = gxapi::eUavDimension::TEXTURE3D;
+	fullUavDesc.tex3D = desc;
+
+	heap.CreateUAV(GetResource(), fullUavDesc, GetHandle());
+}
+
+RWTextureView3D::RWTextureView3D(const Texture3D& resource,
+								 gxapi::DescriptorHandle handle,
+								 gxapi::IGraphicsApi* gxapi,
+								 gxapi::eFormat format,
+								 gxapi::UavTexture3D desc) 
+	:
+	ResourceViewBase(resource, handle),
+	m_format(format),
+	m_uavDesc(desc)
+{
+	gxapi::UnorderedAccessViewDesc fullUavDesc;
+	fullUavDesc.format = format;
+	fullUavDesc.dimension = gxapi::eUavDimension::TEXTURE3D;
+	fullUavDesc.tex3D = desc;
+
+	gxapi->CreateUnorderedAccessView(GetResource()._GetResourcePtr(), fullUavDesc, GetHandle());
+}
+
+gxapi::eFormat RWTextureView3D::GetFormat() {
+	return m_format;
+}
+
+const gxapi::UavTexture3D& RWTextureView3D::GetDescription() const {
+	return m_uavDesc;
+}
+
 
 
 } // namespace gxeng

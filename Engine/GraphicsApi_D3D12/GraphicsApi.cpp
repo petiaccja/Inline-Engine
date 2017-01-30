@@ -375,6 +375,36 @@ void GraphicsApi::CreateShaderResourceView(const gxapi::IResource* resource,
 }
 
 
+void GraphicsApi::CreateUnorderedAccessView(gxapi::UnorderedAccessViewDesc descriptor,
+											gxapi::DescriptorHandle destination)
+{
+	D3D12_UNORDERED_ACCESS_VIEW_DESC nativeDesc = native_cast(descriptor);
+	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
+	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
+	m_device->CreateUnorderedAccessView(nullptr, nullptr, &nativeDesc, nativeCPUHandle);
+}
+
+
+void GraphicsApi::CreateUnorderedAccessView(const gxapi::IResource* resource,
+											gxapi::DescriptorHandle destination)
+{
+	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
+	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
+	m_device->CreateUnorderedAccessView(const_cast<ID3D12Resource*>(native_cast(resource)), nullptr, nullptr, nativeCPUHandle);
+}
+
+
+void GraphicsApi::CreateUnorderedAccessView(const gxapi::IResource* resource,
+											gxapi::UnorderedAccessViewDesc descriptor,
+											gxapi::DescriptorHandle destination)
+{
+	D3D12_UNORDERED_ACCESS_VIEW_DESC nativeDesc = native_cast(descriptor);
+	D3D12_CPU_DESCRIPTOR_HANDLE nativeCPUHandle;
+	nativeCPUHandle.ptr = native_cast_ptr(destination.cpuAddress);
+	m_device->CreateUnorderedAccessView(const_cast<ID3D12Resource*>(native_cast(resource)), nullptr, &nativeDesc, nativeCPUHandle);
+}
+
+
 void GraphicsApi::CopyDescriptors(size_t numSrcDescRanges,
 								  gxapi::DescriptorHandle * srcRangeStarts,
 								  size_t numDstDescRanges,
@@ -442,7 +472,7 @@ void GraphicsApi::CopyDescriptors(gxapi::DescriptorHandle srcStart,
 
 	D3D12_CPU_DESCRIPTOR_HANDLE nativeSrcRangeStart;
 	nativeSrcRangeStart.ptr = native_cast_ptr(srcStart.cpuAddress);
-	
+
 	m_device->CopyDescriptorsSimple((unsigned)rangeCount, nativeDstRangeStart, nativeSrcRangeStart, native_cast(descHeapsType));
 }
 

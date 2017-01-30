@@ -23,7 +23,7 @@ class IDescriptorHeap;
 // todo: descriptor view bullshit
 class IGraphicsApi {
 public:
-	virtual ~IGraphicsApi() = default;	
+	virtual ~IGraphicsApi() = default;
 
 	// Command submission
 	virtual ICommandQueue* CreateCommandQueue(CommandQueueDesc desc) = 0;
@@ -46,7 +46,7 @@ public:
 	virtual IDescriptorHeap* CreateDescriptorHeap(DescriptorHeapDesc) = 0;
 
 	// Views
-	virtual void CreateConstantBufferView(ConstantBufferViewDesc desc, 
+	virtual void CreateConstantBufferView(ConstantBufferViewDesc desc,
 										  DescriptorHandle destination) = 0;
 
 	virtual void CreateDepthStencilView(DepthStencilViewDesc desc,
@@ -54,8 +54,8 @@ public:
 	virtual void CreateDepthStencilView(const IResource* resource,
 										DescriptorHandle destination) = 0;
 	virtual void CreateDepthStencilView(const IResource * resource,
-	                                    DepthStencilViewDesc desc,
-	                                    DescriptorHandle destination) = 0;
+										DepthStencilViewDesc desc,
+										DescriptorHandle destination) = 0;
 
 	virtual void CreateRenderTargetView(const IResource* resource,
 										DescriptorHandle destination) = 0;
@@ -64,21 +64,29 @@ public:
 										DescriptorHandle destination) = 0;
 
 	virtual void CreateShaderResourceView(ShaderResourceViewDesc descriptor,
-	                                      DescriptorHandle destination) = 0;
+										  DescriptorHandle destination) = 0;
 	virtual void CreateShaderResourceView(const IResource* resource,
-	                                      DescriptorHandle destination) = 0;
+										  DescriptorHandle destination) = 0;
 	virtual void CreateShaderResourceView(const IResource* resource,
-	                                      ShaderResourceViewDesc descriptor,
-	                                      DescriptorHandle destination) = 0;
+										  ShaderResourceViewDesc descriptor,
+										  DescriptorHandle destination) = 0;
+
+	virtual void CreateUnorderedAccessView(UnorderedAccessViewDesc descriptor,
+										   DescriptorHandle destination) = 0;
+	virtual void CreateUnorderedAccessView(const IResource* resource,
+										   DescriptorHandle destination) = 0;
+	virtual void CreateUnorderedAccessView(const IResource* resource,
+										   UnorderedAccessViewDesc descriptor,
+										   DescriptorHandle destination) = 0;
 
 	virtual void CreateUnorderedAccessView() = delete; // not needed yet
 
 	virtual void CopyDescriptors(size_t numSrcDescRanges,
-	                             gxapi::DescriptorHandle* srcRangeStarts,
-	                             size_t numDstDescRanges,
-	                             gxapi::DescriptorHandle* dstRangeStarts,
-	                             uint32_t* rangeCounts,
-	                             gxapi::eDescriptorHeapType descHeapsType) = 0;
+								 gxapi::DescriptorHandle* srcRangeStarts,
+								 size_t numDstDescRanges,
+								 gxapi::DescriptorHandle* dstRangeStarts,
+								 uint32_t* rangeCounts,
+								 gxapi::eDescriptorHeapType descHeapsType) = 0;
 
 	virtual void CopyDescriptors(size_t numSrcDescRanges,
 								 gxapi::DescriptorHandle* srcRangeStarts,
@@ -89,9 +97,9 @@ public:
 								 gxapi::eDescriptorHeapType descHeapsType) = 0;
 
 	virtual void CopyDescriptors(gxapi::DescriptorHandle srcStart,
-	                             gxapi::DescriptorHandle dstStart,
-	                             size_t rangeCount,
-	                             gxapi::eDescriptorHeapType descHeapsType) = 0;
+								 gxapi::DescriptorHandle dstStart,
+								 size_t rangeCount,
+								 gxapi::eDescriptorHeapType descHeapsType) = 0;
 
 	// Misc
 	virtual IFence* CreateFence(uint64_t initialValue) = 0;

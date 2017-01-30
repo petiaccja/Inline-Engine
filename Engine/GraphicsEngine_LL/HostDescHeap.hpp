@@ -176,6 +176,7 @@ public:
 
 	void CreateCBV(gxapi::ConstantBufferViewDesc desc, gxapi::DescriptorHandle destination);
 	void CreateSRV(MemoryObject& resource, gxapi::ShaderResourceViewDesc desc, gxapi::DescriptorHandle destination);
+	void CreateUAV(MemoryObject& resource, gxapi::UnorderedAccessViewDesc desc, gxapi::DescriptorHandle destination);
 };
 
 

@@ -116,6 +116,8 @@ D3D12_RTV_DIMENSION native_cast(gxapi::eRtvDimension source);
 
 D3D12_SRV_DIMENSION native_cast(gxapi::eSrvDimension source);
 
+D3D12_UAV_DIMENSION native_cast(gxapi::eUavDimension source);
+
 D3D12_RESOURCE_BARRIER_FLAGS native_cast(gxapi::eResourceBarrierSplit source);
 
 D3D12_RESOURCE_BARRIER_TYPE native_cast(gxapi::eResourceBarrierType source);
@@ -180,6 +182,8 @@ D3D12_RENDER_TARGET_VIEW_DESC native_cast(gxapi::RenderTargetViewDesc source);
 
 D3D12_SHADER_RESOURCE_VIEW_DESC native_cast(gxapi::ShaderResourceViewDesc source);
 
+D3D12_UNORDERED_ACCESS_VIEW_DESC native_cast(gxapi::UnorderedAccessViewDesc source);
+
 DXGI_SWAP_CHAIN_DESC native_cast(gxapi::SwapChainDesc source);
 
 D3D12_TEX1D_DSV native_cast(gxapi::DsvTexture1D source);
@@ -229,6 +233,18 @@ D3D12_TEX3D_SRV native_cast(gxapi::SrvTexture3D source);
 D3D12_TEXCUBE_SRV native_cast(gxapi::SrvTextureCube source);
 
 D3D12_TEXCUBE_ARRAY_SRV native_cast(gxapi::SrvTextureCubeArray source);
+
+D3D12_BUFFER_UAV native_cast(gxapi::UavBuffer source);
+
+D3D12_TEX1D_UAV native_cast(gxapi::UavTexture1D source);
+
+D3D12_TEX1D_ARRAY_UAV native_cast(gxapi::UavTexture1DArray source);
+
+D3D12_TEX2D_UAV	native_cast(gxapi::UavTexture2D source);
+
+D3D12_TEX2D_ARRAY_UAV native_cast(gxapi::UavTexture2DArray source);
+
+D3D12_TEX3D_UAV native_cast(gxapi::UavTexture3D source);
 
 D3D12_RESOURCE_BARRIER native_cast(gxapi::ResourceBarrier source);
 

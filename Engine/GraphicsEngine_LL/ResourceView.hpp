@@ -189,5 +189,65 @@ protected:
 };
 
 
+class RWBufferView : public ResourceViewBase<LinearBuffer> {
+public:
+	RWBufferView() = default;
+	RWBufferView(const LinearBuffer& resource, CbvSrvUavHeap& heap, gxapi::eFormat format, gxapi::UavBuffer desc);
+	RWBufferView(const LinearBuffer& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::UavBuffer desc);
+
+	gxapi::eFormat GetFormat();
+	const gxapi::UavBuffer& GetDescription() const;
+
+protected:
+	gxapi::eFormat m_format;
+	gxapi::UavBuffer m_uavDesc;
+};
+
+
+class RWTextureView1D : public ResourceViewBase<Texture1D> {
+public:
+	RWTextureView1D() = default;
+	RWTextureView1D(const Texture1D& resource, CbvSrvUavHeap& heap, gxapi::eFormat format, gxapi::UavTexture1DArray desc);
+	RWTextureView1D(const Texture1D& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::UavTexture1DArray desc);
+
+	gxapi::eFormat GetFormat();
+	const gxapi::UavTexture1DArray& GetDescription() const;
+
+protected:
+	gxapi::eFormat m_format;
+	gxapi::UavTexture1DArray m_uavDesc;
+};
+
+
+class RWTextureView2D : public ResourceViewBase<Texture2D> {
+public:
+	RWTextureView2D() = default;
+	RWTextureView2D(const Texture2D& resource, CbvSrvUavHeap& heap, gxapi::eFormat format, gxapi::UavTexture2DArray desc);
+	RWTextureView2D(const Texture2D& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::UavTexture2DArray desc);
+
+	gxapi::eFormat GetFormat();
+	const gxapi::UavTexture2DArray& GetDescription() const;
+
+protected:
+	gxapi::eFormat m_format;
+	gxapi::UavTexture2DArray m_uavDesc;
+};
+
+
+class RWTextureView3D : public ResourceViewBase<Texture3D> {
+public:
+	RWTextureView3D() = default;
+	RWTextureView3D(const Texture3D& resource, CbvSrvUavHeap& heap, gxapi::eFormat format, gxapi::UavTexture3D desc);
+	RWTextureView3D(const Texture3D& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::UavTexture3D desc);
+
+	gxapi::eFormat GetFormat();
+	const gxapi::UavTexture3D& GetDescription() const;
+
+protected:
+	gxapi::eFormat m_format;
+	gxapi::UavTexture3D m_uavDesc;
+};
+
+
 } // namespace gxeng
 } // namespace inl

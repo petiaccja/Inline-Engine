@@ -47,6 +47,11 @@ void CbvSrvUavHeap::CreateSRV(MemoryObject& resource, gxapi::ShaderResourceViewD
 }
 
 
+void CbvSrvUavHeap::CreateUAV(MemoryObject& resource, gxapi::UnorderedAccessViewDesc desc, gxapi::DescriptorHandle destination) {
+	m_graphicsApi->CreateUnorderedAccessView(resource._GetResourcePtr(), desc, destination);
+}
+
+
 
 } // namespace inl
 } // namespace gxeng

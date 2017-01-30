@@ -969,6 +969,33 @@ D3D12_SRV_DIMENSION native_cast(gxapi::eSrvDimension source) {
 	return D3D12_SRV_DIMENSION{};
 }
 
+
+D3D12_UAV_DIMENSION native_cast(gxapi::eUavDimension source) {
+	switch (source) {
+		case gxapi::eUavDimension::UNKNOWN:
+			assert(false);
+			break;
+		case gxapi::eUavDimension::BUFFER:
+			return D3D12_UAV_DIMENSION_BUFFER;
+		case gxapi::eUavDimension::TEXTURE1D:
+			return D3D12_UAV_DIMENSION_TEXTURE1D;
+		case gxapi::eUavDimension::TEXTURE1DARRAY:
+			return D3D12_UAV_DIMENSION_TEXTURE1DARRAY;
+		case gxapi::eUavDimension::TEXTURE2D:
+			return D3D12_UAV_DIMENSION_TEXTURE2D;
+		case gxapi::eUavDimension::TEXTURE2DARRAY:
+			return D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+		case gxapi::eUavDimension::TEXTURE3D:
+			return D3D12_UAV_DIMENSION_TEXTURE3D;
+		default:
+			assert(false);
+			break;
+	}
+
+	return D3D12_UAV_DIMENSION{};
+}
+
+
 D3D12_RESOURCE_BARRIER_FLAGS native_cast(gxapi::eResourceBarrierSplit source) {
 	switch (source) {
 		case gxapi::eResourceBarrierSplit::BEGIN:
@@ -1517,6 +1544,43 @@ D3D12_SHADER_RESOURCE_VIEW_DESC native_cast(gxapi::ShaderResourceViewDesc source
 }
 
 
+D3D12_UNORDERED_ACCESS_VIEW_DESC native_cast(gxapi::UnorderedAccessViewDesc source) {
+	D3D12_UNORDERED_ACCESS_VIEW_DESC result;
+
+	result.Format = native_cast(source.format);
+	result.ViewDimension = native_cast(source.dimension);
+
+	switch (result.ViewDimension) {
+		case D3D12_UAV_DIMENSION_UNKNOWN:
+			assert(false);
+			break;
+		case D3D12_UAV_DIMENSION_BUFFER:
+			result.Buffer = native_cast(source.buffer);
+			break;
+		case D3D12_UAV_DIMENSION_TEXTURE1D:
+			result.Texture1D = native_cast(source.tex1D);
+			break;
+		case D3D12_UAV_DIMENSION_TEXTURE1DARRAY:
+			result.Texture1DArray = native_cast(source.tex1DArray);
+			break;
+		case D3D12_UAV_DIMENSION_TEXTURE2D:
+			result.Texture2D = native_cast(source.tex2D);
+			break;
+		case D3D12_UAV_DIMENSION_TEXTURE2DARRAY:
+			result.Texture2DArray = native_cast(source.tex2DArray);
+			break;
+		case D3D12_UAV_DIMENSION_TEXTURE3D:
+			result.Texture3D = native_cast(source.tex3D);
+			break;
+		default:
+			assert(false);
+			break;
+	}
+
+	return result;
+}
+
+
 DXGI_SWAP_CHAIN_DESC native_cast(gxapi::SwapChainDesc source) {
 	DXGI_SWAP_CHAIN_DESC result;
 
@@ -1788,6 +1852,72 @@ D3D12_TEXCUBE_ARRAY_SRV native_cast(gxapi::SrvTextureCubeArray source) {
 	result.MipLevels = source.numMipLevels;
 	result.MostDetailedMip = source.mostDetailedMip;
 	result.ResourceMinLODClamp = source.mipLevelClamping;
+
+	return result;
+}
+
+
+D3D12_BUFFER_UAV native_cast(gxapi::UavBuffer source) {
+	D3D12_BUFFER_UAV result;
+
+	result.CounterOffsetInBytes = source.countOffset;
+	result.FirstElement = source.firstElement;
+	result.NumElements = source.numElements;
+	result.StructureByteStride = source.elementStride;
+	result.Flags = source.raw ? D3D12_BUFFER_UAV_FLAG_RAW : D3D12_BUFFER_UAV_FLAG_NONE;
+
+	return result;
+}
+
+
+D3D12_TEX1D_UAV native_cast(gxapi::UavTexture1D source) {
+	D3D12_TEX1D_UAV result;
+
+	result.MipSlice = source.mipLevel;
+
+	return result;
+}
+
+
+D3D12_TEX1D_ARRAY_UAV native_cast(gxapi::UavTexture1DArray source) {
+	D3D12_TEX1D_ARRAY_UAV result;
+
+	result.ArraySize = source.activeArraySize;
+	result.FirstArraySlice = source.firstArrayElement;
+	result.MipSlice = source.mipLevel;
+
+	return result;
+}
+
+
+D3D12_TEX2D_UAV	native_cast(gxapi::UavTexture2D source) {
+	D3D12_TEX2D_UAV result;
+
+	result.PlaneSlice = source.planeIndex;
+	result.MipSlice = source.mipLevel;
+
+	return result;
+}
+
+
+D3D12_TEX2D_ARRAY_UAV native_cast(gxapi::UavTexture2DArray source) {
+	D3D12_TEX2D_ARRAY_UAV result;
+
+	result.PlaneSlice = source.planeIndex;
+	result.ArraySize = source.activeArraySize;
+	result.FirstArraySlice = source.firstArrayElement;
+	result.MipSlice = source.mipLevel;
+
+	return result;
+}
+
+
+D3D12_TEX3D_UAV native_cast(gxapi::UavTexture3D source) {
+	D3D12_TEX3D_UAV result;
+
+	result.MipSlice = source.mipLevel;
+	result.FirstWSlice = source.firstDepthLayer;
+	result.WSize = source.depthSize;
 
 	return result;
 }

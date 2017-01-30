@@ -68,6 +68,14 @@ public:
 	                              gxapi::ShaderResourceViewDesc desc,
 	                              gxapi::DescriptorHandle destination) override;
 
+	void CreateUnorderedAccessView(gxapi::UnorderedAccessViewDesc descriptor,
+								   gxapi::DescriptorHandle destination) override;
+	void CreateUnorderedAccessView(const gxapi::IResource* resource,
+								   gxapi::DescriptorHandle destination) override;
+	void CreateUnorderedAccessView(const gxapi::IResource* resource,
+								   gxapi::UnorderedAccessViewDesc descriptor,
+								   gxapi::DescriptorHandle destination) override;
+
 	void CopyDescriptors(size_t numSrcDescRanges,
 	                     gxapi::DescriptorHandle* srcRangeStarts,
 	                     size_t numDstDescRanges,
