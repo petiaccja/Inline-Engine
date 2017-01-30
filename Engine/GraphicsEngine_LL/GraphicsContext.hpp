@@ -53,6 +53,7 @@ public:
 	// Shaders and PSOs
 	ShaderProgram CreateShader(const std::string& name, ShaderParts stages, const std::string& macros);
 	gxapi::IPipelineState* CreatePSO(const gxapi::GraphicsPipelineStateDesc& desc);
+	gxapi::IPipelineState* CreatePSO(const gxapi::ComputePipelineStateDesc& desc);
 
 private:
 	// Memory management stuff

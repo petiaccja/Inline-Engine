@@ -73,6 +73,8 @@ public:
 	float Heading() const;
 	void Look(float set) { lookTilt = set; }
 	float Look() const { return lookTilt; }
+
+	void IWantSunsetBitches();
 private:
 	void AddTree(mathfu::Vector3f position);
 private:
@@ -82,6 +84,8 @@ private:
 	// Resource
 	std::unique_ptr<inl::gxeng::Mesh> m_quadcopterMesh;
 	std::unique_ptr<inl::gxeng::Image> m_quadcopterTexture;
+	std::unique_ptr<inl::gxeng::Mesh> m_axesMesh;
+	std::unique_ptr<inl::gxeng::Image> m_axesTexture;
 	std::unique_ptr<inl::gxeng::Mesh> m_terrainMesh;
 	std::unique_ptr<inl::gxeng::Image> m_terrainTexture;
 	std::unique_ptr<inl::gxeng::Mesh> m_treeMesh;
@@ -93,6 +97,7 @@ private:
 	std::vector<std::unique_ptr<inl::gxeng::MeshEntity>> m_staticEntities;
 	std::unique_ptr<inl::gxeng::MeshEntity> m_terrainEntity;
 	std::unique_ptr<inl::gxeng::MeshEntity> m_quadcopterEntity;
+	std::unique_ptr<inl::gxeng::MeshEntity> m_axesEntity;
 
 	inl::gxeng::DirectionalLight m_sun;
 

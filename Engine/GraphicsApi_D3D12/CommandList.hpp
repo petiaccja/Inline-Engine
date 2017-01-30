@@ -99,12 +99,16 @@ class ComputeCommandList : public CopyCommandList, virtual public gxapi::IComput
 public:
 	ComputeCommandList(ComPtr<ID3D12GraphicsCommandList>& native);
 
+	// draw
+	void Dispatch(size_t dimx, size_t dimy = 1, size_t dimz = 1) override;
+
 	// set compute root signature stuff
 	void SetComputeRootConstant(unsigned parameterIndex, unsigned destOffset, uint32_t value) override;
 	void SetComputeRootConstants(unsigned parameterIndex, unsigned destOffset, unsigned numValues, const uint32_t* value) override;
 	void SetComputeRootConstantBuffer(unsigned parameterIndex, void* gpuVirtualAddress) override;
 	void SetComputeRootDescriptorTable(unsigned parameterIndex, gxapi::DescriptorHandle baseHandle) override;
 	void SetComputeRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) override;
+	void SetComputeRootUnorderedResource(unsigned parameterIndex, void* gpuVirtualAddress) override;
 
 	void SetComputeRootSignature(gxapi::IRootSignature* rootSignature) override;
 

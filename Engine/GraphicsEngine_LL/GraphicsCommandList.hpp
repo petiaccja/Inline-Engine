@@ -4,6 +4,7 @@
 #include "ResourceView.hpp"
 #include "PipelineEventListener.hpp"
 #include "StackDescHeap.hpp"
+#include "BindingManager.hpp"
 
 namespace inl {
 namespace gxeng {
@@ -11,17 +12,6 @@ namespace gxeng {
 
 
 class GraphicsCommandList : public ComputeCommandList {
-	struct DescriptorTableState {
-		DescriptorTableState() : slot(0), committed(false) {}
-		DescriptorTableState(DescriptorArrayRef&& reference, int slot)
-			: reference(std::move(reference)), slot(slot), committed(false)
-		{}
-
-		DescriptorArrayRef reference; // current place in scratch space
-		int slot; // which root signature slot it belongs to
-		bool committed; // true if modifying descriptor in sratch space would break previous draw calls
-		std::vector<gxapi::DescriptorHandle> bindings; // currently bound descriptor handle, staging heap sources
-	};
 public:
 	GraphicsCommandList(
 		gxapi::IGraphicsApi* gxApi,
@@ -99,37 +89,12 @@ public:
 	//void BindGraphics(BindParameter parameter, RWTexture3D* rwResource);
 protected:
 	virtual Decomposition Decompose() override;
+	virtual void NewScratchSpace(size_t hint) override;
 private:
-	void BindGraphicsTexture(BindParameter parameter, gxapi::DescriptorHandle handle);
-
-	// scratch space managment
-
-	/// <summary> Updates a binding which is managed on the scratch space. </summary>
-	void UpdateRootTable(gxapi::DescriptorHandle, int rootSignatureSlot, int indexInTable);
-	/// <summary> Updates a binding, handles case where scratch space gets full.
-	void UpdateRootTableSafe(gxapi::DescriptorHandle, int rootSignatureSlot, int indexInTable);
-
-	/// <summary> Copies a whole scratch space table to a fresh range in scratch space. </summary>
-	void DuplicateRootTable(DescriptorTableState& table);
-
-	/// <summary> Get reference to root table state identified by it's root signature slot. </summary>
-	DescriptorTableState&  FindRootTable(int rootSignatureSlot);
-
-	/// <summary> Calculates root table states based on the currently bound Binder. </summary>
-	void InitRootTables();
-
-	/// <summary> Marks all root tables committed. Call this after each drawcall. </summary>
-	void CommitRootTables();
-
-	/// <summary> Copies ALL scratch space tables to a fresh range. Used after a new scratch space is bound. </summary>
-	void RenewRootTables();
-private:
-	gxapi::IGraphicsApi *m_graphicsApi;
 	gxapi::IGraphicsCommandList* m_commandList;
-	Binder* m_binder = nullptr;
 
 	// scratch space managment
-	std::vector<DescriptorTableState> m_rootTableStates;
+	BindingManager<gxapi::eCommandListType::GRAPHICS> m_graphicsBindingManager;
 };
 
 

@@ -67,6 +67,27 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	// Create QC texture
 	{
 		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\axes.jpg");
+
+		m_axesTexture.reset(m_graphicsEngine->CreateImage());
+		m_axesTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
+		m_axesTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+	}
+
+	// Create axes mesh
+	{
+		inl::asset::Model model("assets\\axes.fbx");
+
+		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0, { inl::asset::AxisDir::POS_Z, inl::asset::AxisDir::POS_Y, inl::asset::AxisDir::POS_X });
+		std::vector<unsigned> modelIndices = model.GetIndices(0);
+
+		m_axesMesh.reset(m_graphicsEngine->CreateMesh());
+		m_axesMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+	}
+
+	// Create axes texture
+	{
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
 		inl::asset::Image img("assets\\quadcopter.jpg");
 
 		m_quadcopterTexture.reset(m_graphicsEngine->CreateImage());
@@ -128,6 +149,15 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_quadcopterEntity->SetScale({ 1,1,1 });
 	m_worldScene->GetMeshEntities().Add(m_quadcopterEntity.get());
 
+	// Set up axes
+	m_axesEntity.reset(m_graphicsEngine->CreateMeshEntity());
+	m_axesEntity->SetMesh(m_axesMesh.get());
+	m_axesEntity->SetTexture(m_axesTexture.get());
+	m_axesEntity->SetPosition({ 0,0,3 });
+	m_axesEntity->SetRotation({ 1,0,0,0 });
+	m_axesEntity->SetScale({ 1,1,1 });
+	//m_worldScene->GetMeshEntities().Add(m_axesEntity.get());
+
 	// Set up trees
 	AddTree({ 2, 2, 0 });
 	AddTree({ 11, 6, 0 });
@@ -185,6 +215,9 @@ void QCWorld::UpdateWorld(float elapsed) {
 	// Move quadcopter entity
 	m_quadcopterEntity->SetPosition(m_rigidBody.GetPosition());
 	m_quadcopterEntity->SetRotation(m_rigidBody.GetRotation());
+
+	m_axesEntity->SetPosition(m_quadcopterEntity->GetPosition());
+	m_axesEntity->SetRotation(m_rotorInfo.Orientation());
 
 	// Follow copter with camera
 	mathfu::Vector3f frontDir = m_rigidBody.GetRotation() * mathfu::Vector3f{ 0,1,0 };
@@ -260,4 +293,10 @@ void QCWorld::Heading(float set) {
 }
 float QCWorld::Heading() const {
 	return m_rotorInfo.heading;
+}
+
+
+void QCWorld::IWantSunsetBitches() {
+	m_sun.SetColor({1.0f, 0.65f, 0.25f});
+	m_sun.SetDirection({ 0.8f, -0.7f, -0.15f });
 }

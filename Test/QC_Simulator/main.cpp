@@ -357,6 +357,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				}
 				return 0;
 			}
+			else if (wParam == 'L') {
+				pQcWorld->IWantSunsetBitches();
+				return 0;
+			}
 			else if (ProcessControls(wParam, false)) {
 				return 0;
 			}
@@ -378,6 +382,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				DefWindowProc(hWnd, msg, wParam, lParam);
 			}
 		}
+		case WM_KILLFOCUS:
+			ShowCursor(TRUE);
 		default:
 			return DefWindowProc(hWnd, msg, wParam, lParam);
 	}
@@ -405,6 +411,7 @@ bool ProcessRawInput(RAWINPUT* raw) {
 	if (raw->header.dwType == RIM_TYPEMOUSE) {
 		// track up/down states
 		static bool lmbDown = false, mmbDown = false, rmbDown = false;
+		static POINT cursorPos{ 0, 0 };
 		if (raw->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN) {
 			lmbDown = true;
 		}
@@ -422,6 +429,13 @@ bool ProcessRawInput(RAWINPUT* raw) {
 		}
 		if (raw->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_UP) {
 			rmbDown = false;
+		}
+		bool down = mmbDown || rmbDown;
+		if (down) {
+			SetCursorPos(cursorPos.x, cursorPos.y);
+		}
+		else {
+			GetCursorPos(&cursorPos);
 		}
 
 		// check if relative
@@ -447,6 +461,7 @@ bool ProcessRawInput(RAWINPUT* raw) {
 			turnr = 0.0f;
 		}
 
+		static bool lastMmbDown = false;
 		if (mmbDown) {
 			tiltfw += -dy / 300.f;
 			tiltr += dx / 300.f;
@@ -454,10 +469,13 @@ bool ProcessRawInput(RAWINPUT* raw) {
 			pQcWorld->TiltRight(tiltr);
 		}
 		else {
-			pQcWorld->TiltForward(0);
-			pQcWorld->TiltRight(0);
+			if (lastMmbDown != mmbDown) {
+				pQcWorld->TiltForward(0);
+				pQcWorld->TiltRight(0);
+			}
 			tiltfw = tiltr = 0;
 		}
+		lastMmbDown = mmbDown;
 
 		if (rmbDown) {
 			lookoff += -dy / 400.f;

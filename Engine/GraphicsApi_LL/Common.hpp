@@ -800,7 +800,7 @@ struct TextureCopyDesc {
 
 	// to identify a texture subresource:
 	uint32_t subresourceIndex;
-	
+
 
 	static TextureCopyDesc Texture(uint32_t subresourceIndex) {
 		TextureCopyDesc result; result.subresourceIndex = subresourceIndex; return result;
@@ -1079,6 +1079,18 @@ struct GraphicsPipelineStateDesc {
 	bool addDebugInfo;
 };
 
+struct ComputePipelineStateDesc {
+	ComputePipelineStateDesc() : rootSignature(nullptr), addDebugInfo(false) {}
+	ComputePipelineStateDesc(
+		IRootSignature* rootSignature,
+		ShaderByteCodeDesc cs,
+		bool addDebugInfo = false)
+		: rootSignature(rootSignature), cs(cs), addDebugInfo(addDebugInfo) {};
+	IRootSignature* rootSignature;
+	ShaderByteCodeDesc cs;
+	bool addDebugInfo;
+};
+
 struct DescriptorRange {
 	enum eType {
 		CBV,
@@ -1147,33 +1159,33 @@ struct RootParameterDesc {
 	RootParameterDesc(const RootParameterDesc& rhs) : m_type(rhs.m_type), type(m_type), shaderVisibility(m_shaderVisibility) {
 		m_shaderVisibility = rhs.m_shaderVisibility;
 		switch (m_type) {
-		case CONSTANT:
-			new (&constant) RootConstant(rhs.constant);
-			break;
-		case CBV:
-		case SRV:
-		case UAV:
-			new (&descriptor) RootDescriptor(rhs.descriptor);
-			break;
-		case DESCRIPTOR_TABLE:
-			new (&descriptorTable) RootDescriptorTable(rhs.descriptorTable);
-			break;
+			case CONSTANT:
+				new (&constant) RootConstant(rhs.constant);
+				break;
+			case CBV:
+			case SRV:
+			case UAV:
+				new (&descriptor) RootDescriptor(rhs.descriptor);
+				break;
+			case DESCRIPTOR_TABLE:
+				new (&descriptorTable) RootDescriptorTable(rhs.descriptorTable);
+				break;
 		}
 	}
 	RootParameterDesc(RootParameterDesc&& rhs) : m_type(rhs.m_type), type(m_type), shaderVisibility(m_shaderVisibility) {
 		m_shaderVisibility = rhs.m_shaderVisibility;
 		switch (m_type) {
-		case CONSTANT:
-			new (&constant) RootConstant(std::move(rhs.constant));
-			break;
-		case CBV:
-		case SRV:
-		case UAV:
-			new (&descriptor) RootDescriptor(std::move(rhs.descriptor));
-			break;
-		case DESCRIPTOR_TABLE:
-			new (&descriptorTable) RootDescriptorTable(std::move(rhs.descriptorTable));
-			break;
+			case CONSTANT:
+				new (&constant) RootConstant(std::move(rhs.constant));
+				break;
+			case CBV:
+			case SRV:
+			case UAV:
+				new (&descriptor) RootDescriptor(std::move(rhs.descriptor));
+				break;
+			case DESCRIPTOR_TABLE:
+				new (&descriptorTable) RootDescriptorTable(std::move(rhs.descriptorTable));
+				break;
 		}
 	}
 	RootParameterDesc& operator=(const RootParameterDesc& rhs) {
@@ -1228,14 +1240,14 @@ struct RootParameterDesc {
 private:
 	void Destruct() {
 		switch (m_type) {
-		case CONSTANT:
-			constant.~RootConstant(); break;
-		case CBV:
-		case SRV:
-		case UAV:
-			descriptor.~RootDescriptor(); break;
-		case DESCRIPTOR_TABLE:
-			descriptorTable.~RootDescriptorTable(); break;
+			case CONSTANT:
+				constant.~RootConstant(); break;
+			case CBV:
+			case SRV:
+			case UAV:
+				descriptor.~RootDescriptor(); break;
+			case DESCRIPTOR_TABLE:
+				descriptorTable.~RootDescriptorTable(); break;
 		}
 	}
 
@@ -1824,86 +1836,86 @@ inline RootDescriptorTable& RootParameterDesc::As<RootParameterDesc::eType::DESC
 
 inline unsigned GetFormatSizeInBytes(eFormat format) {
 	switch (format) {
-	case eFormat::R32G32B32A32_TYPELESS:
-	case eFormat::R32G32B32A32_FLOAT:
-	case eFormat::R32G32B32A32_UINT:
-	case eFormat::R32G32B32A32_SINT:
-		return 4 * 4;
-	case eFormat::R32G32B32_TYPELESS:
-	case eFormat::R32G32B32_FLOAT:
-	case eFormat::R32G32B32_UINT:
-	case eFormat::R32G32B32_SINT:
-		return 3 * 4;
-	case eFormat::R16G16B16A16_TYPELESS:
-	case eFormat::R16G16B16A16_FLOAT:
-	case eFormat::R16G16B16A16_UNORM:
-	case eFormat::R16G16B16A16_UINT:
-	case eFormat::R16G16B16A16_SNORM:
-	case eFormat::R16G16B16A16_SINT:
-		return 4 * 2;
-	case eFormat::R32G32_TYPELESS:
-	case eFormat::R32G32_FLOAT:
-	case eFormat::R32G32_UINT:
-	case eFormat::R32G32_SINT:
-		return 2 * 4;
-	case eFormat::R32G8X24_TYPELESS:
-	case eFormat::D32_FLOAT_S8X24_UINT:
-	case eFormat::R32_FLOAT_X8X24_TYPELESS:
-	case eFormat::X32_TYPELESS_G8X24_UINT:
-		return 8;
-	case eFormat::R10G10B10A2_TYPELESS:
-	case eFormat::R10G10B10A2_UNORM:
-	case eFormat::R10G10B10A2_UINT:
-	case eFormat::R11G11B10_FLOAT:
-		return 4 * 1;
-	case eFormat::R8G8B8A8_TYPELESS:
-	case eFormat::R8G8B8A8_UNORM:
-	case eFormat::R8G8B8A8_UNORM_SRGB:
-	case eFormat::R8G8B8A8_UINT:
-	case eFormat::R8G8B8A8_SNORM:
-	case eFormat::R8G8B8A8_SINT:
-		return 4 * 1;
-	case eFormat::R16G16_TYPELESS:
-	case eFormat::R16G16_FLOAT:
-	case eFormat::R16G16_UNORM:
-	case eFormat::R16G16_UINT:
-	case eFormat::R16G16_SNORM:
-	case eFormat::R16G16_SINT:
-		return 2 * 2;
-	case eFormat::R32_TYPELESS:
-	case eFormat::D32_FLOAT:
-	case eFormat::R32_FLOAT:
-	case eFormat::R32_UINT:
-	case eFormat::R32_SINT:
-		return 1 * 4;
-	case eFormat::R24G8_TYPELESS:
-	case eFormat::D24_UNORM_S8_UINT:
-	case eFormat::R24_UNORM_X8_TYPELESS:
-	case eFormat::X24_TYPELESS_G8_UINT:
-		return 4;
-	case eFormat::R8G8_TYPELESS:
-	case eFormat::R8G8_UNORM:
-	case eFormat::R8G8_UINT:
-	case eFormat::R8G8_SNORM:
-	case eFormat::R8G8_SINT:
-		return 2 * 1;
-	case eFormat::R16_TYPELESS:
-	case eFormat::R16_FLOAT:
-	case eFormat::D16_UNORM:
-	case eFormat::R16_UNORM:
-	case eFormat::R16_UINT:
-	case eFormat::R16_SNORM:
-	case eFormat::R16_SINT:
-		return 1 * 2;
-	case eFormat::R8_TYPELESS:
-	case eFormat::R8_UNORM:
-	case eFormat::R8_UINT:
-	case eFormat::R8_SNORM:
-	case eFormat::R8_SINT:
-	case eFormat::A8_UNORM:
-		return 1 * 1;
-	default:
-		return 0;
+		case eFormat::R32G32B32A32_TYPELESS:
+		case eFormat::R32G32B32A32_FLOAT:
+		case eFormat::R32G32B32A32_UINT:
+		case eFormat::R32G32B32A32_SINT:
+			return 4 * 4;
+		case eFormat::R32G32B32_TYPELESS:
+		case eFormat::R32G32B32_FLOAT:
+		case eFormat::R32G32B32_UINT:
+		case eFormat::R32G32B32_SINT:
+			return 3 * 4;
+		case eFormat::R16G16B16A16_TYPELESS:
+		case eFormat::R16G16B16A16_FLOAT:
+		case eFormat::R16G16B16A16_UNORM:
+		case eFormat::R16G16B16A16_UINT:
+		case eFormat::R16G16B16A16_SNORM:
+		case eFormat::R16G16B16A16_SINT:
+			return 4 * 2;
+		case eFormat::R32G32_TYPELESS:
+		case eFormat::R32G32_FLOAT:
+		case eFormat::R32G32_UINT:
+		case eFormat::R32G32_SINT:
+			return 2 * 4;
+		case eFormat::R32G8X24_TYPELESS:
+		case eFormat::D32_FLOAT_S8X24_UINT:
+		case eFormat::R32_FLOAT_X8X24_TYPELESS:
+		case eFormat::X32_TYPELESS_G8X24_UINT:
+			return 8;
+		case eFormat::R10G10B10A2_TYPELESS:
+		case eFormat::R10G10B10A2_UNORM:
+		case eFormat::R10G10B10A2_UINT:
+		case eFormat::R11G11B10_FLOAT:
+			return 4 * 1;
+		case eFormat::R8G8B8A8_TYPELESS:
+		case eFormat::R8G8B8A8_UNORM:
+		case eFormat::R8G8B8A8_UNORM_SRGB:
+		case eFormat::R8G8B8A8_UINT:
+		case eFormat::R8G8B8A8_SNORM:
+		case eFormat::R8G8B8A8_SINT:
+			return 4 * 1;
+		case eFormat::R16G16_TYPELESS:
+		case eFormat::R16G16_FLOAT:
+		case eFormat::R16G16_UNORM:
+		case eFormat::R16G16_UINT:
+		case eFormat::R16G16_SNORM:
+		case eFormat::R16G16_SINT:
+			return 2 * 2;
+		case eFormat::R32_TYPELESS:
+		case eFormat::D32_FLOAT:
+		case eFormat::R32_FLOAT:
+		case eFormat::R32_UINT:
+		case eFormat::R32_SINT:
+			return 1 * 4;
+		case eFormat::R24G8_TYPELESS:
+		case eFormat::D24_UNORM_S8_UINT:
+		case eFormat::R24_UNORM_X8_TYPELESS:
+		case eFormat::X24_TYPELESS_G8_UINT:
+			return 4;
+		case eFormat::R8G8_TYPELESS:
+		case eFormat::R8G8_UNORM:
+		case eFormat::R8G8_UINT:
+		case eFormat::R8G8_SNORM:
+		case eFormat::R8G8_SINT:
+			return 2 * 1;
+		case eFormat::R16_TYPELESS:
+		case eFormat::R16_FLOAT:
+		case eFormat::D16_UNORM:
+		case eFormat::R16_UNORM:
+		case eFormat::R16_UINT:
+		case eFormat::R16_SNORM:
+		case eFormat::R16_SINT:
+			return 1 * 2;
+		case eFormat::R8_TYPELESS:
+		case eFormat::R8_UNORM:
+		case eFormat::R8_UINT:
+		case eFormat::R8_SNORM:
+		case eFormat::R8_SINT:
+		case eFormat::A8_UNORM:
+			return 1 * 1;
+		default:
+			return 0;
 	}
 }
 

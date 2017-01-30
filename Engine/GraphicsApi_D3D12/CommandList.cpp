@@ -205,6 +205,12 @@ ComputeCommandList::ComputeCommandList(ComPtr<ID3D12GraphicsCommandList>& native
 }
 
 
+// draw
+void ComputeCommandList::Dispatch(size_t numThreadGroupsX, size_t numThreadGroupsY, size_t numThreadGroupsZ) {
+	m_native->Dispatch(numThreadGroupsX, numThreadGroupsY, numThreadGroupsZ);
+}
+
+
 // set graphics root signature stuff
 void ComputeCommandList::SetComputeRootConstant(unsigned parameterIndex, unsigned destOffset, uint32_t value) {
 	m_native->SetComputeRoot32BitConstant(parameterIndex, value, destOffset);
@@ -231,6 +237,11 @@ void ComputeCommandList::SetComputeRootDescriptorTable(unsigned parameterIndex, 
 
 void ComputeCommandList::SetComputeRootShaderResource(unsigned parameterIndex, void* gpuVirtualAddress) {
 	m_native->SetComputeRootShaderResourceView(parameterIndex, native_cast_ptr(gpuVirtualAddress));
+}
+
+
+void ComputeCommandList::SetComputeRootUnorderedResource(unsigned parameterIndex, void* gpuVirtualAddress) {
+	m_native->SetComputeRootUnorderedAccessView(parameterIndex, native_cast_ptr(gpuVirtualAddress));
 }
 
 

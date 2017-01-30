@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CopyCommandList.hpp"
+#include "BindingManager.hpp"
 
 
 namespace inl {
@@ -25,6 +26,9 @@ protected:
 		gxapi::eCommandListType type);
 
 public:
+	// Draw
+	void Dispatch(size_t numThreadGroupsX, size_t numThreadGroupsY, size_t numThreadGroupsZ);
+
 	// Command list state
 	void ResetState(gxapi::IPipelineState* newState = nullptr);
 	void SetPipelineState(gxapi::IPipelineState* pipelineState);
@@ -32,20 +36,23 @@ public:
 	// set compute root signature stuff
 	void SetComputeBinder(Binder* binder);
 
-	void BindCompute(BindParameter parameter, Texture1D* shaderResource);
-	void BindCompute(BindParameter parameter, Texture2D* shaderResource);
-	void BindCompute(BindParameter parameter, Texture3D* shaderResource);
-	void BindCompute(BindParameter parameter, ConstBuffer* shaderConstant);
-	void BindCompute(BindParameter parameter, const void* shaderConstant);
+	void BindCompute(BindParameter parameter, const TextureView1D& shaderResource);
+	void BindCompute(BindParameter parameter, const TextureView2D& shaderResource);
+	void BindCompute(BindParameter parameter, const TextureView3D& shaderResource);
+	void BindCompute(BindParameter parameter, const ConstBufferView& shaderConstant);
+	void BindCompute(BindParameter parameter, const void* shaderConstant, int size, int offset);
 	//void BindCompute(BindParameter parameter, RWTexture1D* rwResource);
 	//void BindCompute(BindParameter parameter, RWTexture2D* rwResource);
 	//void BindCompute(BindParameter parameter, RWTexture3D* rwResource);
 
 protected:
 	virtual Decomposition Decompose() override;
+	virtual void NewScratchSpace(size_t hint) override;
 private:
 	gxapi::IComputeCommandList* m_commandList;
-	Binder* m_computeBinder;
+
+	// scratch space managment
+	BindingManager<gxapi::eCommandListType::COMPUTE> m_computeBindingManager;
 };
 
 

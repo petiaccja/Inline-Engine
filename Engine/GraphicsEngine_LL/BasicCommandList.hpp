@@ -97,10 +97,10 @@ protected:
 	gxapi::ICommandList* GetCommandList() const { return m_commandList.get(); }
 
 	StackDescHeap* GetCurrentScratchSpace();
-	void NewScratchSpace(size_t sizeHint);
+	virtual void NewScratchSpace(size_t sizeHint);
 protected:
 	std::unordered_map<SubresourceId, SubresourceUsageInfo> m_resourceTransitions;
-
+	gxapi::IGraphicsApi* m_graphicsApi;
 private:
 	// Part sources
 	ScratchSpacePool* m_scratchSpacePool;

@@ -168,6 +168,7 @@
     <ClInclude Include="BackBufferManager.hpp" />
     <ClInclude Include="BasicCommandList.hpp" />
     <ClInclude Include="Binder.hpp" />
+    <ClInclude Include="BindingManager.hpp" />
     <ClInclude Include="Camera.hpp" />
     <ClInclude Include="CommandAllocatorPool.hpp" />
     <ClInclude Include="CommandQueue.hpp" />
@@ -186,6 +187,7 @@
     <ClInclude Include="Nodes\Node_LightsDeferred.hpp" />
     <ClInclude Include="Nodes\Node_RenderToBackbuffer.hpp" />
     <ClInclude Include="PipelineTypes.hpp" />
+    <ClInclude Include="RootTableManager.hpp" />
     <ClInclude Include="ShaderManager.hpp" />
     <ClInclude Include="StackDescHeap.hpp" />
     <ClInclude Include="FrameContext.hpp" />

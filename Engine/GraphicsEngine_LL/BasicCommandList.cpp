@@ -13,6 +13,9 @@ BasicCommandList::BasicCommandList(gxapi::IGraphicsApi* gxApi,
 ) :
 	m_scratchSpacePool(&scratchSpacePool)
 {
+	// Set gxapi
+	m_graphicsApi = gxApi;
+
 	// Create a command allocator
 	m_commandAllocator = commandAllocatorPool.RequestAllocator(type);
 

@@ -258,6 +258,23 @@ gxapi::IPipelineState* GraphicsApi::CreateGraphicsPipelineState(const gxapi::Gra
 }
 
 
+gxapi::IPipelineState* GraphicsApi::CreateComputePipelineState(const gxapi::ComputePipelineStateDesc& desc) {
+	D3D12_COMPUTE_PIPELINE_STATE_DESC nativeDesc;
+	nativeDesc.CachedPSO.CachedBlobSizeInBytes = 0;
+	nativeDesc.CachedPSO.pCachedBlob = nullptr;
+	nativeDesc.CS.pShaderBytecode = desc.cs.shaderByteCode;
+	nativeDesc.CS.BytecodeLength = desc.cs.sizeOfByteCode;
+	nativeDesc.Flags = desc.addDebugInfo ? D3D12_PIPELINE_STATE_FLAG_TOOL_DEBUG : D3D12_PIPELINE_STATE_FLAG_NONE;
+	nativeDesc.NodeMask = 0;
+	nativeDesc.pRootSignature = native_cast(desc.rootSignature);
+
+	ComPtr<ID3D12PipelineState> native;
+	ThrowIfFailed(m_device->CreateComputePipelineState(&nativeDesc, IID_PPV_ARGS(&native)), "While creating compute PSO");
+
+	return new PipelineState{ native };
+}
+
+
 gxapi::IDescriptorHeap* GraphicsApi::CreateDescriptorHeap(gxapi::DescriptorHeapDesc desc) {
 	ComPtr<ID3D12DescriptorHeap> native;
 

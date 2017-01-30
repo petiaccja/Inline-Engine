@@ -15,7 +15,8 @@ GraphicsCommandList::GraphicsCommandList(
 	ComputeCommandList(gxApi, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::GRAPHICS)
 {
 	m_commandList = dynamic_cast<gxapi::IGraphicsCommandList*>(GetCommandList());
-	m_graphicsApi = gxApi;
+	m_graphicsBindingManager = BindingManager<gxapi::eCommandListType::GRAPHICS>(m_graphicsApi, m_commandList);
+	m_graphicsBindingManager.SetDescriptorHeap(GetCurrentScratchSpace());
 }
 
 
@@ -47,20 +48,20 @@ BasicCommandList::Decomposition GraphicsCommandList::Decompose() {
 // Clear buffers
 //------------------------------------------------------------------------------
 void GraphicsCommandList::ClearDepthStencil(DepthStencilView2D& resource,
-											float depth,
-											uint8_t stencil,
-											size_t numRects,
-											gxapi::Rectangle* rects,
-											bool clearDepth,
-											bool clearStencil)
+	float depth,
+	uint8_t stencil,
+	size_t numRects,
+	gxapi::Rectangle* rects,
+	bool clearDepth,
+	bool clearStencil)
 {
 	m_commandList->ClearDepthStencil(resource.GetHandle(), depth, stencil, numRects, rects, clearDepth, clearStencil);
 }
 
 void GraphicsCommandList::ClearRenderTarget(RenderTargetView2D& resource,
-											gxapi::ColorRGBA color,
-											size_t numRects,
-											gxapi::Rectangle* rects)
+	gxapi::ColorRGBA color,
+	size_t numRects,
+	gxapi::Rectangle* rects)
 {
 	m_commandList->ClearRenderTarget(resource.GetHandle(), color, numRects, rects);
 }
@@ -71,22 +72,22 @@ void GraphicsCommandList::ClearRenderTarget(RenderTargetView2D& resource,
 //------------------------------------------------------------------------------
 
 void GraphicsCommandList::DrawIndexedInstanced(unsigned numIndices,
-											   unsigned startIndex,
-											   int vertexOffset,
-											   unsigned numInstances,
-											   unsigned startInstance)
+	unsigned startIndex,
+	int vertexOffset,
+	unsigned numInstances,
+	unsigned startInstance)
 {
 	m_commandList->DrawIndexedInstanced(numIndices, startIndex, vertexOffset, numInstances, startInstance);
-	CommitRootTables();
+	m_graphicsBindingManager.CommitDrawCall();
 }
 
 void GraphicsCommandList::DrawInstanced(unsigned numVertices,
-										unsigned startVertex,
-										unsigned numInstances,
-										unsigned startInstance)
+	unsigned startVertex,
+	unsigned numInstances,
+	unsigned startInstance)
 {
 	m_commandList->DrawInstanced(numVertices, startVertex, numInstances, startInstance);
-	CommitRootTables();
+	m_graphicsBindingManager.CommitDrawCall();
 }
 
 
@@ -96,8 +97,8 @@ void GraphicsCommandList::DrawInstanced(unsigned numVertices,
 
 void GraphicsCommandList::SetIndexBuffer(const IndexBuffer* resource, bool is32Bit) {
 	m_commandList->SetIndexBuffer(resource->GetVirtualAddress(),
-								  resource->GetSize(),
-								  is32Bit ? gxapi::eFormat::R32_UINT : gxapi::eFormat::R16_UINT);
+		resource->GetSize(),
+		is32Bit ? gxapi::eFormat::R32_UINT : gxapi::eFormat::R16_UINT);
 }
 
 
@@ -107,10 +108,10 @@ void GraphicsCommandList::SetPrimitiveTopology(gxapi::ePrimitiveTopology topolog
 
 
 void GraphicsCommandList::SetVertexBuffers(unsigned startSlot,
-										   unsigned count,
-										   const VertexBuffer* const * resources,
-										   unsigned* sizeInBytes,
-										   unsigned* strideInBytes)
+	unsigned count,
+	const VertexBuffer* const * resources,
+	unsigned* sizeInBytes,
+	unsigned* strideInBytes)
 {
 	auto virtualAddresses = std::make_unique<void*[]>(count);
 
@@ -119,10 +120,10 @@ void GraphicsCommandList::SetVertexBuffers(unsigned startSlot,
 	}
 
 	m_commandList->SetVertexBuffers(startSlot,
-									count,
-									virtualAddresses.get(),
-									sizeInBytes,
-									strideInBytes);
+		count,
+		virtualAddresses.get(),
+		sizeInBytes,
+		strideInBytes);
 }
 
 
@@ -131,8 +132,8 @@ void GraphicsCommandList::SetVertexBuffers(unsigned startSlot,
 //------------------------------------------------------------------------------
 
 void GraphicsCommandList::SetRenderTargets(unsigned numRenderTargets,
-										   RenderTargetView2D** renderTargets,
-										   DepthStencilView2D* depthStencil)
+	RenderTargetView2D** renderTargets,
+	DepthStencilView2D* depthStencil)
 {
 	auto renderTargetHandles = std::make_unique<gxapi::DescriptorHandle[]>(numRenderTargets);
 	for (unsigned i = 0; i < numRenderTargets; ++i) {
@@ -142,13 +143,13 @@ void GraphicsCommandList::SetRenderTargets(unsigned numRenderTargets,
 	if (depthStencil) {
 		gxapi::DescriptorHandle dsvHandle = depthStencil->GetHandle();
 		m_commandList->SetRenderTargets(numRenderTargets,
-										renderTargetHandles.get(),
-										&dsvHandle);
+			renderTargetHandles.get(),
+			&dsvHandle);
 	}
 	else {
 		m_commandList->SetRenderTargets(numRenderTargets,
-										renderTargetHandles.get(),
-										nullptr);
+			renderTargetHandles.get(),
+			nullptr);
 	}
 }
 
@@ -183,215 +184,64 @@ void GraphicsCommandList::SetViewports(unsigned numViewports, gxapi::Viewport* v
 
 void GraphicsCommandList::SetGraphicsBinder(Binder* binder) {
 	assert(binder != nullptr);
-
-	m_binder = binder;
-	m_commandList->SetGraphicsRootSignature(m_binder->GetRootSignature());
-	InitRootTables();
+	m_graphicsBindingManager.SetBinder(binder);
 }
 
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureView1D& shaderResource) {
-	return BindGraphicsTexture(parameter, shaderResource.GetHandle());
-}
-
-
-void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureView2D& shaderResource) {
-	return BindGraphicsTexture(parameter, shaderResource.GetHandle());
-}
-
-
-void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureView3D& shaderResource) {
-	return BindGraphicsTexture(parameter, shaderResource.GetHandle());
-}
-
-
-void GraphicsCommandList::BindGraphicsTexture(BindParameter parameter, gxapi::DescriptorHandle handle) {
-	assert(m_binder != nullptr);
-
-	int slot, tableIndex;
-	const gxapi::RootSignatureDesc& desc = m_binder->GetRootSignatureDesc();
-	m_binder->Translate(parameter, slot, tableIndex);
-	const auto& rootParam = desc.rootParameters[slot];
-
-	if (rootParam.type == gxapi::RootParameterDesc::DESCRIPTOR_TABLE) {
-		UpdateRootTableSafe(handle, slot, tableIndex);
-	}
-	else {
-		throw std::invalid_argument("Parameter is not an SRV.");
-	}
-}
-
-
-void GraphicsCommandList::BindGraphics(BindParameter parameter, const ConstBufferView& shaderConstant) {
-	assert(m_binder != nullptr);
-
-	int slot, tableIndex;
-	const gxapi::RootSignatureDesc& desc = m_binder->GetRootSignatureDesc();
-	m_binder->Translate(parameter, slot, tableIndex);
-	const auto& rootParam = desc.rootParameters[slot];
-
-	if (rootParam.type == gxapi::RootParameterDesc::CBV) {
-		m_commandList->SetGraphicsRootConstantBuffer(slot, shaderConstant.GetResource().GetVirtualAddress());
-	}
-	else if (rootParam.type == gxapi::RootParameterDesc::DESCRIPTOR_TABLE) {
-		UpdateRootTableSafe(gxapi::DescriptorHandle(), slot, tableIndex);
-	}
-	else {
-		throw std::invalid_argument("Parameter is not a CBV.");
-	}
-}
-
-
-void GraphicsCommandList::BindGraphics(BindParameter parameter, const void* shaderConstant, int size, int offset) {
-	if (size % 4 != 0) {
-		throw std::invalid_argument("Size must be a multiple of 4.");
-	}
-	assert(m_binder != nullptr);
-
-	int slot;
-	int tableIndex;
-	const gxapi::RootSignatureDesc& desc = m_binder->GetRootSignatureDesc();
-	m_binder->Translate(parameter, slot, tableIndex); // may throw out of range
-
-	if (desc.rootParameters[slot].type == gxapi::RootParameterDesc::CONSTANT) {
-		assert(desc.rootParameters[slot].As<gxapi::RootParameterDesc::CONSTANT>().numConstants >= unsigned(size + offset) / 4);
-		m_commandList->SetGraphicsRootConstants(slot, offset, size / 4, reinterpret_cast<const uint32_t*>(shaderConstant));
-	}
-	else {
-		throw std::invalid_argument("Parameter is not an inline constant.");
-	}
-}
-
-
-void GraphicsCommandList::UpdateRootTable(gxapi::DescriptorHandle handle, int rootSignatureSlot, int indexInTable) {
-	DescriptorTableState& table = FindRootTable(rootSignatureSlot);
-
-	// if table is committed, duplicate it so that recent drawcalls won't be broken
-	if (table.committed) {
-		// update handle in advance so that duplicate will copy it instead and we save time
-		table.bindings[indexInTable] = handle;
-		DuplicateRootTable(table);
-
-		// update table root parameters
-		m_commandList->SetGraphicsRootDescriptorTable(rootSignatureSlot, table.reference.Get(0));
-	}
-	// just update the binding
-	else {
-		table.bindings[indexInTable] = handle;
-		m_graphicsApi->CopyDescriptors(handle, table.reference.Get(indexInTable), 1, gxapi::eDescriptorHeapType::CBV_SRV_UAV);
-	}
-}
-
-
-void GraphicsCommandList::DuplicateRootTable(DescriptorTableState& table) {
-	uint32_t numDescriptors = (uint32_t)table.bindings.size();
-
-	// allocate new space on scratch space
-	DescriptorArrayRef space = GetCurrentScratchSpace()->Allocate(numDescriptors);
-
-	// copy old descriptors to new space
-	std::vector<gxapi::DescriptorHandle> sourceDescHandles(numDescriptors);
-	std::vector<uint32_t> sourceRangeSizes(numDescriptors, 1);
-	for (size_t i = 0; i < numDescriptors; ++i) {
-		sourceDescHandles[i] = table.bindings[i];
-	}
-
-	gxapi::DescriptorHandle destDescHandle = space.Get(0);
-
-	m_graphicsApi->CopyDescriptors(
-		sourceDescHandles.size(), sourceDescHandles.data(), sourceRangeSizes.data(),
-		1, &destDescHandle, &numDescriptors,
-		gxapi::eDescriptorHeapType::CBV_SRV_UAV);
-
-	// update table parameters
-	table.committed = false;
-	table.reference = space;
-}
-
-
-auto GraphicsCommandList::FindRootTable(int rootSignatureSlot) -> DescriptorTableState& {
-	// root table states are already sorted by init
-	auto tableIt = std::lower_bound(
-		m_rootTableStates.begin(),
-		m_rootTableStates.end(),
-		rootSignatureSlot,
-		[](const DescriptorTableState& table, int slot) { return table.slot < slot; });
-
-	// slot must be valid
-	assert(tableIt != m_rootTableStates.end());
-
-	return *tableIt;
-}
-
-
-void GraphicsCommandList::InitRootTables() {
-	m_rootTableStates.clear();
-	const gxapi::RootSignatureDesc& desc = m_binder->GetRootSignatureDesc();
-
-	for (size_t slot = 0; slot < desc.rootParameters.size(); slot++) {
-		auto& param = desc.rootParameters[slot];
-		if (param.type == gxapi::RootParameterDesc::DESCRIPTOR_TABLE) {
-			auto& ranges = param.As<gxapi::RootParameterDesc::DESCRIPTOR_TABLE>().ranges;
-
-			if (ranges.size() <= 0) {
-				continue;
-			}
-
-			// if first range is NOT a sampler, non of the ranges are
-			// dynamic samplers are not supported, thus the exception
-			if (ranges[0].type == gxapi::DescriptorRange::eType::SAMPLER) {
-				throw std::runtime_error("Dynamic Samplers are not supported yet.");
-			}
-
-			// check if ranges are contiguous and not unbounded
-			size_t descriptorCountTotal = 0;
-			size_t appendIndex = 0;
-			size_t largestIndex = 0;
-			for (const auto& range : ranges) {
-				size_t rangeOffset;
-				descriptorCountTotal += range.numDescriptors;
-				if (range.offsetFromTableStart == gxapi::DescriptorRange::OFFSET_APPEND) {
-					rangeOffset = appendIndex;
-				}
-				else {
-					rangeOffset = range.offsetFromTableStart;
-				}
-				largestIndex = std::max(largestIndex, rangeOffset + range.numDescriptors);
-				appendIndex = rangeOffset + range.numDescriptors;
-			}
-			assert(descriptorCountTotal == largestIndex);
-
-			// add record for this table
-			m_rootTableStates.push_back({ GetCurrentScratchSpace()->Allocate((uint32_t)descriptorCountTotal), (int)slot });
-			m_commandList->SetGraphicsRootDescriptorTable(m_rootTableStates.back().slot, m_rootTableStates.back().reference.Get(0));
-			m_rootTableStates.back().bindings.resize(descriptorCountTotal);
-		}
-	}
-}
-
-
-void GraphicsCommandList::CommitRootTables() {
-	for (auto& table : m_rootTableStates) {
-		table.committed = true;
-	}
-}
-
-
-void GraphicsCommandList::RenewRootTables() {
-	for (auto& table : m_rootTableStates) {
-		DuplicateRootTable(table);
-	}
-}
-
-void GraphicsCommandList::UpdateRootTableSafe(gxapi::DescriptorHandle handle, int rootSignatureSlot, int indexInTable) {
 	try {
-		UpdateRootTable(handle, rootSignatureSlot, indexInTable);
+		m_graphicsBindingManager.Bind(parameter, shaderResource);
 	}
 	catch (std::bad_alloc&) {
 		NewScratchSpace(1000);
-		RenewRootTables();
-		UpdateRootTable(handle, rootSignatureSlot, indexInTable);
+		m_graphicsBindingManager.Bind(parameter, shaderResource);
 	}
+}
+
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureView2D& shaderResource) {
+	try {
+		m_graphicsBindingManager.Bind(parameter, shaderResource);
+	}
+	catch (std::bad_alloc&) {
+		NewScratchSpace(1000);
+		m_graphicsBindingManager.Bind(parameter, shaderResource);
+	}
+}
+
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureView3D& shaderResource) {
+	try {
+		m_graphicsBindingManager.Bind(parameter, shaderResource);
+	}
+	catch (std::bad_alloc&) {
+		NewScratchSpace(1000);
+		m_graphicsBindingManager.Bind(parameter, shaderResource);
+	}
+}
+
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const ConstBufferView& shaderConstant) {
+	try {
+		m_graphicsBindingManager.Bind(parameter, shaderConstant);
+	}
+	catch (std::bad_alloc&) {
+		NewScratchSpace(1000);
+		m_graphicsBindingManager.Bind(parameter, shaderConstant);
+	}
+}
+
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const void* shaderConstant, int size, int offset) {
+	try {
+		m_graphicsBindingManager.Bind(parameter, shaderConstant, size, offset);
+	}
+	catch (std::bad_alloc&) {
+		NewScratchSpace(1000);
+		m_graphicsBindingManager.Bind(parameter, shaderConstant, size, offset);
+	}
+}
+
+
+void GraphicsCommandList::NewScratchSpace(size_t hint) {
+	ComputeCommandList::NewScratchSpace(hint);
+	m_graphicsBindingManager.SetDescriptorHeap(GetCurrentScratchSpace());
 }
 
 

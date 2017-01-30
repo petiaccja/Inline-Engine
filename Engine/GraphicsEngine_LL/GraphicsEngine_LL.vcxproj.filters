@@ -264,6 +264,12 @@
     <ClInclude Include="VolatileViewHeap.hpp">
       <Filter>Middleware</Filter>
     </ClInclude>
+    <ClInclude Include="RootTableManager.hpp">
+      <Filter>Middleware</Filter>
+    </ClInclude>
+    <ClInclude Include="BindingManager.hpp">
+      <Filter>Middleware</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />

@@ -125,6 +125,9 @@ gxapi::IPipelineState* GraphicsContext::CreatePSO(const gxapi::GraphicsPipelineS
 	return m_graphicsApi->CreateGraphicsPipelineState(desc);
 }
 
+gxapi::IPipelineState* GraphicsContext::CreatePSO(const gxapi::ComputePipelineStateDesc& desc) {
+	return m_graphicsApi->CreateComputePipelineState(desc);
+}
 
 
 } // namespace gxeng
