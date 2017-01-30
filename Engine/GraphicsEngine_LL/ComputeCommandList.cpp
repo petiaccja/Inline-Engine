@@ -12,7 +12,7 @@ ComputeCommandList::ComputeCommandList(
 	gxapi::IGraphicsApi* gxApi,
 	CommandAllocatorPool& commandAllocatorPool,
 	ScratchSpacePool& scratchSpacePool
-):
+) :
 	CopyCommandList(gxApi, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::COMPUTE)
 {
 	m_commandList = dynamic_cast<gxapi::IComputeCommandList*>(GetCommandList());
@@ -26,7 +26,7 @@ ComputeCommandList::ComputeCommandList(
 	CommandAllocatorPool& commandAllocatorPool,
 	ScratchSpacePool& scratchSpacePool,
 	gxapi::eCommandListType type
-):
+) :
 	CopyCommandList(gxApi, commandAllocatorPool, scratchSpacePool, type)
 {
 	m_commandList = dynamic_cast<gxapi::IComputeCommandList*>(GetCommandList());
@@ -52,7 +52,7 @@ ComputeCommandList& ComputeCommandList::operator=(ComputeCommandList&& rhs) {
 
 BasicCommandList::Decomposition ComputeCommandList::Decompose() {
 	m_commandList = nullptr;
-	
+
 	return CopyCommandList::Decompose();
 }
 
@@ -133,6 +133,48 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const void* shader
 	catch (std::bad_alloc&) {
 		NewScratchSpace(1000);
 		m_computeBindingManager.Bind(parameter, shaderConstant, size, offset);
+	}
+}
+
+void ComputeCommandList::BindCompute(BindParameter parameter, const RWTextureView1D& rwResource) {
+	try {
+		m_computeBindingManager.Bind(parameter, rwResource);
+	}
+	catch (std::bad_alloc&) {
+		NewScratchSpace(1000);
+		m_computeBindingManager.Bind(parameter, rwResource);
+	}
+}
+
+void ComputeCommandList::BindCompute(BindParameter parameter, const RWTextureView2D& rwResource) {
+	try {
+		m_computeBindingManager.Bind(parameter, rwResource);
+	}
+	catch (std::bad_alloc&) {
+		NewScratchSpace(1000);
+		m_computeBindingManager.Bind(parameter, rwResource);
+	}
+}
+
+void ComputeCommandList::BindCompute(BindParameter parameter, const RWTextureView3D& rwResource) {
+	try {
+		m_computeBindingManager.Bind(parameter, rwResource);
+	}
+	catch (std::bad_alloc&) {
+		NewScratchSpace(1000);
+		m_computeBindingManager.Bind(parameter, rwResource);
+	}
+}
+
+void ComputeCommandList::BindCompute(BindParameter parameter, const RWBufferView& rwResource) {
+	{
+		try {
+			m_computeBindingManager.Bind(parameter, rwResource);
+		}
+		catch (std::bad_alloc&) {
+			NewScratchSpace(1000);
+			m_computeBindingManager.Bind(parameter, rwResource);
+		}
 	}
 }
 

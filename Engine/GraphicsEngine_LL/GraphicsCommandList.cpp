@@ -245,5 +245,48 @@ void GraphicsCommandList::NewScratchSpace(size_t hint) {
 }
 
 
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWTextureView1D& rwResource) {
+	try {
+		m_graphicsBindingManager.Bind(parameter, rwResource);
+	}
+	catch (std::bad_alloc&) {
+		NewScratchSpace(1000);
+		m_graphicsBindingManager.Bind(parameter, rwResource);
+	}
+}
+
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWTextureView2D& rwResource) {
+	try {
+		m_graphicsBindingManager.Bind(parameter, rwResource);
+	}
+	catch (std::bad_alloc&) {
+		NewScratchSpace(1000);
+		m_graphicsBindingManager.Bind(parameter, rwResource);
+	}
+}
+
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWTextureView3D& rwResource) {
+	try {
+		m_graphicsBindingManager.Bind(parameter, rwResource);
+	}
+	catch (std::bad_alloc&) {
+		NewScratchSpace(1000);
+		m_graphicsBindingManager.Bind(parameter, rwResource);
+	}
+}
+
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWBufferView& rwResource) {
+	{
+		try {
+			m_graphicsBindingManager.Bind(parameter, rwResource);
+		}
+		catch (std::bad_alloc&) {
+			NewScratchSpace(1000);
+			m_graphicsBindingManager.Bind(parameter, rwResource);
+		}
+	}
+}
+
+
 } // namespace gxeng
 } // namespace inl

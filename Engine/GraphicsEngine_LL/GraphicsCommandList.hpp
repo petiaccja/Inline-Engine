@@ -84,9 +84,10 @@ public:
 	void BindGraphics(BindParameter parameter, const TextureView3D& shaderResource);
 	void BindGraphics(BindParameter parameter, const ConstBufferView& shaderConstant);
 	void BindGraphics(BindParameter parameter, const void* shaderConstant, int size, int offset);
-	//void BindGraphics(BindParameter parameter, RWTexture1D* rwResource);
-	//void BindGraphics(BindParameter parameter, RWTexture2D* rwResource);
-	//void BindGraphics(BindParameter parameter, RWTexture3D* rwResource);
+	void BindGraphics(BindParameter parameter, const RWTextureView1D& rwResource);
+	void BindGraphics(BindParameter parameter, const RWTextureView2D& rwResource);
+	void BindGraphics(BindParameter parameter, const RWTextureView3D& rwResource);
+	void BindGraphics(BindParameter parameter, const RWBufferView& rwResource);
 protected:
 	virtual Decomposition Decompose() override;
 	virtual void NewScratchSpace(size_t hint) override;

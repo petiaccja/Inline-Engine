@@ -41,9 +41,10 @@ public:
 	void BindCompute(BindParameter parameter, const TextureView3D& shaderResource);
 	void BindCompute(BindParameter parameter, const ConstBufferView& shaderConstant);
 	void BindCompute(BindParameter parameter, const void* shaderConstant, int size, int offset);
-	//void BindCompute(BindParameter parameter, RWTexture1D* rwResource);
-	//void BindCompute(BindParameter parameter, RWTexture2D* rwResource);
-	//void BindCompute(BindParameter parameter, RWTexture3D* rwResource);
+	void BindCompute(BindParameter parameter, const RWTextureView1D& rwResource);
+	void BindCompute(BindParameter parameter, const RWTextureView2D& rwResource);
+	void BindCompute(BindParameter parameter, const RWTextureView3D& rwResource);
+	void BindCompute(BindParameter parameter, const RWBufferView& rwResource);
 
 protected:
 	virtual Decomposition Decompose() override;

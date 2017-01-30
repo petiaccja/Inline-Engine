@@ -23,6 +23,11 @@ public:
 	void Bind(BindParameter parameter, const TextureView3D& shaderResource);
 	void Bind(BindParameter parameter, const ConstBufferView& shaderConstant);
 	void Bind(BindParameter parameter, const void* shaderConstant, int size, int offset);
+
+	void Bind(BindParameter parameter, const RWTextureView1D& rwResource);
+	void Bind(BindParameter parameter, const RWTextureView2D& rwResource);
+	void Bind(BindParameter parameter, const RWTextureView3D& rwResource);
+	void Bind(BindParameter parameter, const RWBufferView& rwResource);
 protected:
 	void SetRootConstants(gxapi::IGraphicsCommandList* list, unsigned parameterIndex, unsigned destOffset, unsigned numValues, const uint32_t* value);
 	void SetRootConstants(gxapi::IComputeCommandList* list, unsigned parameterIndex, unsigned destOffset, unsigned numValues, const uint32_t* value);
@@ -31,6 +36,7 @@ protected:
 
 private:
 	void BindTexture(BindParameter parameter, gxapi::DescriptorHandle handle);
+	void BindUav(BindParameter parameter, gxapi::DescriptorHandle handle);
 };
 
 
@@ -121,6 +127,45 @@ void BindingManager<Type>::Bind(BindParameter parameter, const void* shaderConst
 	else {
 		throw std::invalid_argument("Parameter is not an inline constant.");
 	}
+}
+
+
+
+template <gxapi::eCommandListType Type>
+void BindingManager<Type>::BindUav(BindParameter parameter, gxapi::DescriptorHandle handle) {
+	assert(m_binder != nullptr);
+
+	int slot, tableIndex;
+	const gxapi::RootSignatureDesc& desc = m_binder->GetRootSignatureDesc();
+	m_binder->Translate(parameter, slot, tableIndex);
+	const auto& rootParam = desc.rootParameters[slot];
+
+	if (rootParam.type == gxapi::RootParameterDesc::DESCRIPTOR_TABLE) {
+		UpdateBinding(handle, slot, tableIndex);
+	}
+	else {
+		throw std::invalid_argument("Parameter is not an UAV.");
+	}
+}
+
+template <gxapi::eCommandListType Type>
+void BindingManager<Type>::Bind(BindParameter parameter, const RWTextureView1D& rwResource) {
+	return BindUav(parameter, rwResource.GetHandle());
+}
+
+template <gxapi::eCommandListType Type>
+void BindingManager<Type>::Bind(BindParameter parameter, const RWTextureView2D& rwResource) {
+	return BindUav(parameter, rwResource.GetHandle());
+}
+
+template <gxapi::eCommandListType Type>
+void BindingManager<Type>::Bind(BindParameter parameter, const RWTextureView3D& rwResource) {
+	return BindUav(parameter, rwResource.GetHandle());
+}
+
+template <gxapi::eCommandListType Type>
+void BindingManager<Type>::Bind(BindParameter parameter, const RWBufferView& rwResource) {
+	return BindUav(parameter, rwResource.GetHandle());
 }
 
 
