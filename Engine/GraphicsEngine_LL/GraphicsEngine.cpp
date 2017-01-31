@@ -5,22 +5,19 @@
 
 #include <iostream> // only for debugging
 
-#include "Nodes/Node_ClearRenderTarget.h"
 #include "Nodes/Node_FrameCounter.hpp"
 #include "Nodes/Node_FrameColor.hpp"
 #include "Nodes/Node_GetBackBuffer.hpp"
-#include "Nodes/Node_GetDepthBuffer.hpp"
 #include "Nodes/Node_GetSceneByName.hpp"
 #include "Nodes/Node_GetCameraByName.hpp"
-#include "Nodes/Node_TescoRender.hpp"
 #include "Nodes/Node_GetTime.hpp"
 
-//deferred
-#include "Nodes/Node_GenGBuffer.hpp"
+//forward
+#include "Nodes/Node_ForwardRender.hpp"
+#include "Nodes/Node_DepthPrepass.hpp"
+
 #include "Nodes/Node_GenCSM.hpp"
-#include "Nodes/Node_CombineGBuffer.hpp"
-#include "Nodes/Node_LightsDeferred.hpp"
-#include "Nodes/Node_RenderToBackbuffer.hpp"
+#include "Nodes/Node_RenderToBackBuffer.hpp"
 #include "Nodes/Node_DrawSky.hpp"
 
 #include "WindowResizeListener.hpp"
@@ -261,90 +258,51 @@ void GraphicsEngine::CreatePipeline() {
 
 	std::unique_ptr<nodes::GetSceneByName> getWorldScene(new nodes::GetSceneByName());
 	std::unique_ptr<nodes::GetCameraByName> getCamera(new nodes::GetCameraByName());
-	std::unique_ptr<nodes::GetBackBuffer> getBackBuffer(new nodes::GetBackBuffer());
+	std::unique_ptr<nodes::RenderToBackBuffer> renderToBackbuffer(new nodes::RenderToBackBuffer(m_graphicsApi));
 
-	std::unique_ptr<nodes::GenCSM> genCSM(new nodes::GenCSM(m_graphicsApi, 1024, 2048));
-	std::unique_ptr<nodes::GenGBuffer> genGBuffer(new nodes::GenGBuffer(m_graphicsApi, swapChainDesc.width, swapChainDesc.height));
-	std::unique_ptr<nodes::CombineGBuffer> combineGBuffer(new nodes::CombineGBuffer(m_graphicsApi, swapChainDesc.width, swapChainDesc.height));
-	std::unique_ptr<nodes::LightsDeferred> lightsDeferred(new nodes::LightsDeferred(m_graphicsApi));
-	std::unique_ptr<nodes::DrawSky> drawSky(new nodes::DrawSky(m_graphicsApi));
-	std::unique_ptr<nodes::RenderToBackbuffer> renderToBackbuffer(new nodes::RenderToBackbuffer(m_graphicsApi));
+	std::unique_ptr<nodes::ForwardRender> forwardRender(new nodes::ForwardRender(m_graphicsApi, swapChainDesc.width, swapChainDesc.height));
+	std::unique_ptr<nodes::DepthPrepass> depthPrePass(new nodes::DepthPrepass(m_graphicsApi, swapChainDesc.width, swapChainDesc.height));
 
 	getWorldScene->GetInput<0>().Set("World");
 	getCamera->GetInput<0>().Set("WorldCam");
 
-	// To genCSM
-	getCamera->GetOutput(0)->Link(genCSM->GetInput(0));
-	getWorldScene->GetOutput(1)->Link(genCSM->GetInput(1));
-	getWorldScene->GetOutput(0)->Link(genCSM->GetInput(2));
+	depthPrePass->GetInput<0>().Link(getWorldScene->GetOutput(0));
+	depthPrePass->GetInput<1>().Link(getCamera->GetOutput(0));
 
-	// To genGBuffer
-	getCamera->GetOutput(0)->Link(genGBuffer->GetInput(0));
-	getWorldScene->GetOutput(0)->Link(genGBuffer->GetInput(1));
+	forwardRender->GetInput<0>().Link(depthPrePass->GetOutput(0));
+	forwardRender->GetInput<1>().Link(getWorldScene->GetOutput(0));
+	forwardRender->GetInput<2>().Link(getCamera->GetOutput(0));
+	forwardRender->GetInput<3>().Link(getWorldScene->GetOutput(1));
 
-	// To combineGBuffer
-	genGBuffer->GetOutput(0)->Link(combineGBuffer->GetInput(0));
-	genGBuffer->GetOutput(1)->Link(combineGBuffer->GetInput(1));
-	genGBuffer->GetOutput(2)->Link(combineGBuffer->GetInput(2));
-	genCSM->GetOutput(0)->Link(combineGBuffer->GetInput(3));
-	getCamera->GetOutput(0)->Link(combineGBuffer->GetInput(4));
-	getWorldScene->GetOutput(1)->Link(combineGBuffer->GetInput(5));
-
-	// To lightsDeferred
-	combineGBuffer->GetOutput(0)->Link(lightsDeferred->GetInput(0));
-	genGBuffer->GetOutput(0)->Link(lightsDeferred->GetInput(1));
-	genGBuffer->GetOutput(1)->Link(lightsDeferred->GetInput(2));
-	genGBuffer->GetOutput(2)->Link(lightsDeferred->GetInput(3));
-	getCamera->GetOutput(0)->Link(lightsDeferred->GetInput(4));
-
-	// To drawSky
-	lightsDeferred->GetOutput(0)->Link(drawSky->GetInput(0));
-	genGBuffer->GetOutput(0)->Link(drawSky->GetInput(1));
-	getCamera->GetOutput(0)->Link(drawSky->GetInput(2));
-	getWorldScene->GetOutput(1)->Link(drawSky->GetInput(3));
-
-	getBackBuffer->GetOutput(0)->Link(renderToBackbuffer->GetInput(0));
-	drawSky->GetOutput(0)->Link(renderToBackbuffer->GetInput(1));
-	//genCSM->GetOutput(0)->Link(renderToBackbuffer->GetInput(1));
+	renderToBackbuffer->GetInput<0>().Link(forwardRender->GetOutput(0));
 
 	GraphicsContext graphicsContext(&m_memoryManager, &m_persResViewHeap, &m_rtvHeap, &m_dsvHeap, std::thread::hardware_concurrency(), 1, &m_shaderManager, m_graphicsApi);
 
 	getWorldScene->InitGraphics(graphicsContext);
 	getCamera->InitGraphics(graphicsContext);
-	getBackBuffer->InitGraphics(graphicsContext);
-	genCSM->InitGraphics(graphicsContext);
-	genGBuffer->InitGraphics(graphicsContext);
-	combineGBuffer->InitGraphics(graphicsContext);
-	lightsDeferred->InitGraphics(graphicsContext);
-	drawSky->InitGraphics(graphicsContext);
+	depthPrePass->InitGraphics(graphicsContext);
+	forwardRender->InitGraphics(graphicsContext);
 	renderToBackbuffer->InitGraphics(graphicsContext);
 
-	m_windowResizeListeners.push_back(genGBuffer.get());
-	m_windowResizeListeners.push_back(combineGBuffer.get());
+	m_windowResizeListeners.push_back(forwardRender.get());
+	m_windowResizeListeners.push_back(depthPrePass.get());
 
 	{
 		m_pipeline.CreateFromNodesList(
 			{
 				getWorldScene.get(),
 				getCamera.get(),
-				getBackBuffer.get(),
-				genCSM.get(),
-				genGBuffer.get(),
-				combineGBuffer.get(),
-				lightsDeferred.get(),
-				drawSky.get(),
+				depthPrePass.get(),
+				forwardRender.get(),
 				renderToBackbuffer.get()
 			},
-			std::default_delete<exc::NodeBase>());
+			std::default_delete<exc::NodeBase>()
+		);
 
 		getWorldScene.release();
 		getCamera.release();
-		getBackBuffer.release();
-		genCSM.release();
-		genGBuffer.release();
-		combineGBuffer.release();
-		lightsDeferred.release();
-		drawSky.release();
+		depthPrePass.release();
+		forwardRender.release();
 		renderToBackbuffer.release();
 	}
 }

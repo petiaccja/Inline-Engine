@@ -21,9 +21,6 @@
 
 #include <BaseLibrary/Logging_All.hpp>
 
-// DELETE THIS
-#include "Nodes/Node_GetDepthBuffer.hpp"
-
 
 namespace inl {
 namespace gxeng {

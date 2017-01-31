@@ -1,10 +1,10 @@
-#include "Node_RenderToBackbuffer.hpp"
+#include "Node_RenderToBackBuffer.hpp"
 
 
 namespace inl::gxeng::nodes {
 
 
-RenderToBackbuffer::RenderToBackbuffer(gxapi::IGraphicsApi * graphicsApi):
+RenderToBackBuffer::RenderToBackBuffer(gxapi::IGraphicsApi * graphicsApi):
 	m_binder(graphicsApi, {})
 {
 	BindParameterDesc texBindParamDesc;
@@ -36,7 +36,7 @@ RenderToBackbuffer::RenderToBackbuffer(gxapi::IGraphicsApi * graphicsApi):
 }
 
 
-void RenderToBackbuffer::InitGraphics(const GraphicsContext& context) {
+void RenderToBackBuffer::InitGraphics(const GraphicsContext& context) {
 	m_graphicsContext = context;
 
 	std::vector<float> vertices = {
@@ -56,7 +56,7 @@ void RenderToBackbuffer::InitGraphics(const GraphicsContext& context) {
 	shaderParts.vs = true;
 	shaderParts.ps = true;
 
-	auto shader = m_graphicsContext.CreateShader("RenderToBackbuffer", shaderParts, "");
+	auto shader = m_graphicsContext.CreateShader("RenderToBackBuffer", shaderParts, "");
 
 	std::vector<gxapi::InputElementDesc> inputElementDesc = {
 		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0)
@@ -77,7 +77,7 @@ void RenderToBackbuffer::InitGraphics(const GraphicsContext& context) {
 }
 
 
-void RenderToBackbuffer::RenderScene(RenderTargetView2D& rtv, TextureView2D& texture, GraphicsCommandList& commandList) {
+void RenderToBackBuffer::Render(RenderTargetView2D& rtv, const TextureView2D& texture, GraphicsCommandList& commandList) {
 	auto* pRTV = &rtv;
 	commandList.SetResourceState(pRTV->GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetRenderTargets(1, &pRTV);
@@ -101,7 +101,7 @@ void RenderToBackbuffer::RenderScene(RenderTargetView2D& rtv, TextureView2D& tex
 	unsigned vbSize = m_fsq.GetSize();
 	unsigned vbStride = 3 * sizeof(float);
 
-	commandList.SetResourceState(texture.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+	commandList.SetResourceState(const_cast<Texture2D&>(texture.GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 	commandList.BindGraphics(m_texBindParam, texture);
 	commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
 	commandList.SetIndexBuffer(&m_fsqIndices, false);

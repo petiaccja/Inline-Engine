@@ -1,14 +1,9 @@
-#include "Node_GenGBuffer.hpp"
-
+#include "Node_DepthPrepass.hpp"
 
 #include "../MeshEntity.hpp"
 #include "../Mesh.hpp"
 #include "../Image.hpp"
-#include "../GraphicsEngine.hpp"
-
-#include "../../GraphicsApi_LL/IGxapiManager.hpp"
-
-#include <mathfu/matrix_4x4.h>
+#include "../DirectionalLight.hpp"
 
 #include <array>
 
@@ -26,6 +21,7 @@ static bool CheckMeshFormat(const Mesh& mesh) {
 
 	return true;
 }
+
 
 static void ConvertToSubmittable(
 	Mesh* mesh,
@@ -48,32 +44,21 @@ static void ConvertToSubmittable(
 }
 
 
-GenGBuffer::GenGBuffer(
-	gxapi::IGraphicsApi* graphicsApi,
-	unsigned width,
-	unsigned height
-):
+
+DepthPrepass::DepthPrepass(gxapi::IGraphicsApi * graphicsApi, unsigned width, unsigned height):
+	m_binder(graphicsApi, {}),
 	m_width(width),
-	m_height(height),
-	m_binder(graphicsApi, {})
+	m_height(height)
 {
-	this->GetInput<0>().Set(nullptr);
+	this->GetInput<0>().Set({});
 
-	BindParameterDesc cbBindParamDesc;
-	m_cbBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
-	cbBindParamDesc.parameter = m_cbBindParam;
-	cbBindParamDesc.constantSize = sizeof(float) * 4 * 4 * 2;
-	cbBindParamDesc.relativeAccessFrequency = 0;
-	cbBindParamDesc.relativeChangeFrequency = 0;
-	cbBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
-
-	BindParameterDesc texBindParamDesc;
-	m_texBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
-	texBindParamDesc.parameter = m_texBindParam;
-	texBindParamDesc.constantSize = 0;
-	texBindParamDesc.relativeAccessFrequency = 0;
-	texBindParamDesc.relativeChangeFrequency = 0;
-	texBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+	BindParameterDesc transformBindParamDesc;
+	m_transformBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
+	transformBindParamDesc.parameter = m_transformBindParam;
+	transformBindParamDesc.constantSize = sizeof(float) * 4 * 4;
+	transformBindParamDesc.relativeAccessFrequency = 0;
+	transformBindParamDesc.relativeChangeFrequency = 0;
+	transformBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
 
 	BindParameterDesc sampBindParamDesc;
 	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
@@ -92,20 +77,20 @@ GenGBuffer::GenGBuffer(
 	samplerDesc.registerSpace = 0;
 	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-	m_binder = Binder{ graphicsApi,{ cbBindParamDesc, texBindParamDesc, sampBindParamDesc },{ samplerDesc } };
+	m_binder = Binder{ graphicsApi,{ transformBindParamDesc, sampBindParamDesc },{ samplerDesc } };
 }
 
 
-void GenGBuffer::InitGraphics(const GraphicsContext& context) {
+void DepthPrepass::InitGraphics(const GraphicsContext & context) {
 	m_graphicsContext = context;
 
-	InitBuffers();
+	InitRenderTarget();
 
 	ShaderParts shaderParts;
 	shaderParts.vs = true;
 	shaderParts.ps = true;
 
-	auto shader = m_graphicsContext.CreateShader("GenGBuffer", shaderParts, "");
+	auto shader = m_graphicsContext.CreateShader("DepthPrepass", shaderParts, "");
 
 	std::vector<gxapi::InputElementDesc> inputElementDesc = {
 		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
@@ -121,74 +106,87 @@ void GenGBuffer::InitGraphics(const GraphicsContext& context) {
 	psoDesc.ps = shader.ps;
 	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
 	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
-	psoDesc.blending.multiTarget[0].enableBlending = false;
-	psoDesc.blending.multiTarget[0].enableLogicOp = false;
-	psoDesc.blending.multiTarget[1].enableBlending = false;
-	psoDesc.blending.multiTarget[1].enableLogicOp = false;
 
 	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
-	psoDesc.depthStencilState.enableStencilTest = true;
-	psoDesc.depthStencilState.stencilReadMask = 0;
-	psoDesc.depthStencilState.stencilWriteMask = ~uint8_t(0);
-	psoDesc.depthStencilState.ccwFace.stencilFunc = gxapi::eComparisonFunction::ALWAYS;
-	psoDesc.depthStencilState.ccwFace.stencilOpOnStencilFail = gxapi::eStencilOp::KEEP;
-	psoDesc.depthStencilState.ccwFace.stencilOpOnDepthFail = gxapi::eStencilOp::KEEP;
-	psoDesc.depthStencilState.ccwFace.stencilOpOnPass = gxapi::eStencilOp::REPLACE;
-	psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
+	psoDesc.depthStencilState.enableStencilTest = false;
+
 	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT_S8X24_UINT;
-	
-	psoDesc.numRenderTargets = 2;
-	psoDesc.renderTargetFormats[0] = gxapi::eFormat::R8G8B8A8_UNORM;
-	psoDesc.renderTargetFormats[1] = gxapi::eFormat::R16G16_FLOAT;
+
+	psoDesc.numRenderTargets = 0;
 
 	m_PSO.reset(m_graphicsContext.CreatePSO(psoDesc));
 }
 
 
-void GenGBuffer::WindowResized(unsigned width, unsigned height) {
+Task DepthPrepass::GetTask() {
+	return Task({ [this](const ExecutionContext& context) {
+		ExecutionResult result;
+
+		const EntityCollection<MeshEntity>* entities = this->GetInput<0>().Get();
+		this->GetInput<0>().Clear();
+
+		const Camera* camera = this->GetInput<1>().Get();
+		this->GetInput<1>().Clear();
+
+		this->GetOutput<0>().Set(pipeline::Texture2D(m_depthTargetSrv, m_dsv));
+
+		if (entities) {
+			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
+			CopyCommandList cpyCmdList = context.GetCopyCommandList();
+
+			RenderScene(m_dsv, *entities, camera, cmdList);
+			result.AddCommandList(std::move(cmdList));
+		}
+
+		return result;
+	} });
+}
+
+
+void DepthPrepass::WindowResized(unsigned width, unsigned height) {
 	m_width = width;
 	m_height = height;
-	InitBuffers();
+	InitRenderTarget();
 }
 
 
-void GenGBuffer::InitBuffers() {
+void DepthPrepass::InitRenderTarget() {
 	using gxapi::eFormat;
-	
-	m_depthStencil = DepthStencilPack(
-		m_width,
-		m_height,
-		eFormat::D32_FLOAT_S8X24_UINT,
-		eFormat::R32_FLOAT_X8X24_TYPELESS,
-		eFormat::R32G8X24_TYPELESS,
-		m_graphicsContext);
 
-	m_albedoRoughness = RenderTargetPack(
-		m_width,
-		m_height,
-		eFormat::R8G8B8A8_UNORM,
-		m_graphicsContext);
+	auto formatDepthStencil = eFormat::D32_FLOAT_S8X24_UINT;
+	auto formatColor = eFormat::R32_FLOAT_X8X24_TYPELESS;
+	auto formatTypeless = eFormat::R32G8X24_TYPELESS;
 
-	m_normal = RenderTargetPack(
-		m_width,
-		m_height,
-		eFormat::R16G16_FLOAT,
-		m_graphicsContext);
+	Texture2D tex = m_graphicsContext.CreateDepthStencil2D(m_width, m_height, formatTypeless, true);
+
+	gxapi::DsvTexture2DArray dsvDesc;
+	dsvDesc.activeArraySize = 1;
+	dsvDesc.firstArrayElement = 0;
+	dsvDesc.firstMipLevel = 0;
+
+	m_dsv = m_graphicsContext.CreateDsv(tex, formatDepthStencil, dsvDesc);
+
+	gxapi::SrvTexture2DArray srvDesc;
+	srvDesc.activeArraySize = 1;
+	srvDesc.firstArrayElement = 0;
+	srvDesc.numMipLevels = -1;
+	srvDesc.mipLevelClamping = 0;
+	srvDesc.mostDetailedMip = 0;
+	srvDesc.planeIndex = 0;
+
+	m_depthTargetSrv = m_graphicsContext.CreateSrv(tex, formatColor, srvDesc);
 }
 
 
-void GenGBuffer::RenderScene(const Camera* camera, const EntityCollection<MeshEntity>& entities, GraphicsCommandList & commandList) {
-	// Set render target
-	std::array<RenderTargetView2D*, 2> RTVs = {
-		&m_albedoRoughness.rtv,
-		&m_normal.rtv
-	};
-	for (auto curr : RTVs) {
-		commandList.SetResourceState(curr->GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
-	}
-	commandList.SetRenderTargets(RTVs.size(), RTVs.data(), &m_depthStencil.dsv);
+void DepthPrepass::RenderScene(
+	DepthStencilView2D& dsv,
+	const EntityCollection<MeshEntity>& entities,
+	const Camera* camera,
+	GraphicsCommandList& commandList
+) {
+	commandList.SetRenderTargets(0, nullptr, &dsv);
 
-	gxapi::Rectangle rect{ 0, (int)m_normal.rtv.GetResource().GetHeight(), 0, (int)m_normal.rtv.GetResource().GetWidth() };
+	gxapi::Rectangle rect{ 0, (int)m_dsv.GetResource().GetHeight(), 0, (int)m_dsv.GetResource().GetWidth() };
 	gxapi::Viewport viewport;
 	viewport.width = (float)rect.right;
 	viewport.height = (float)rect.bottom;
@@ -199,11 +197,8 @@ void GenGBuffer::RenderScene(const Camera* camera, const EntityCollection<MeshEn
 	commandList.SetScissorRects(1, &rect);
 	commandList.SetViewports(1, &viewport);
 
-	commandList.SetResourceState(m_depthStencil.dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
-	commandList.ClearDepthStencil(m_depthStencil.dsv, 1, 0, 0, nullptr, true, true);
-	commandList.ClearRenderTarget(m_albedoRoughness.rtv, gxapi::ColorRGBA(0, 0, 0, 1));
-	commandList.ClearRenderTarget(m_normal.rtv, gxapi::ColorRGBA(0, 0, 0, 1));
-	commandList.SetStencilRef(1); // background is 0, anything other than that is 1
+	commandList.SetResourceState(dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
+	commandList.ClearDepthStencil(dsv, 1, 0);
 
 	commandList.SetPipelineState(m_PSO.get());
 	commandList.SetGraphicsBinder(&m_binder);
@@ -213,7 +208,7 @@ void GenGBuffer::RenderScene(const Camera* camera, const EntityCollection<MeshEn
 	mathfu::Matrix4x4f projection = camera->GetPerspectiveMatrixRH();
 
 	auto viewProjection = projection * view;
-
+	
 	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
 	std::vector<unsigned> sizes;
 	std::vector<unsigned> strides;
@@ -232,16 +227,13 @@ void GenGBuffer::RenderScene(const Camera* camera, const EntityCollection<MeshEn
 
 		ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
 
-		auto world = entity->GetTransform();
-		auto worldViewInvTr = (view * world).Inverse().Transpose();
-		auto MVP = viewProjection * world;
+		auto MVP = viewProjection * entity->GetTransform();
 
-		std::array<mathfu::VectorPacked<float, 4>, 8> cbufferData;
-		MVP.Pack(cbufferData.data());
-		worldViewInvTr.Pack(cbufferData.data() + 4);
+		std::array<mathfu::VectorPacked<float, 4>, 4> transformCBData;
+		MVP.Pack(transformCBData.data());
 
-		commandList.BindGraphics(m_texBindParam, *entity->GetTexture()->GetSrv());
-		commandList.BindGraphics(m_cbBindParam, cbufferData.data(), sizeof(cbufferData), 0);
+		commandList.BindGraphics(m_transformBindParam, transformCBData.data(), sizeof(transformCBData), 0);
+
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->GetIndexBuffer32Bit());
 		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());

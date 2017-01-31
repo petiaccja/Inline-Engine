@@ -5,21 +5,23 @@
 #include "../Scene.hpp"
 #include "../Camera.hpp"
 #include "../ConstBufferHeap.hpp"
-#include "../TextureViewPack.hpp"
+#include "../PipelineTypes.hpp"
+#include "../GraphicsContext.hpp"
+
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
 
 namespace inl::gxeng::nodes {
 
-// This is a utility node used for testing, makes it easier to render a node's output on the screen.
-class RenderToBackbuffer :
+
+class RenderToBackBuffer :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<RenderTargetView2D, RenderTargetPack>,
+	virtual public exc::InputPortConfig<pipeline::Texture2D>,
 	virtual public exc::OutputPortConfig<>
 {
 public:
-	RenderToBackbuffer(gxapi::IGraphicsApi* graphicsApi);
+	RenderToBackBuffer(gxapi::IGraphicsApi* graphicsApi);
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
@@ -29,14 +31,14 @@ public:
 		return Task({ [this](const ExecutionContext& context) {
 			ExecutionResult result;
 
-			auto backBuffer = this->GetInput<0>().Get();
+			auto& swapChainAccessContext = static_cast<const SwapChainAccessContext&>(context);
+			auto& backBuffer = *swapChainAccessContext.GetBackBuffer();
+
+			auto sourceTexture = this->GetInput<0>().Get();
 			this->GetInput<0>().Clear();
 
-			auto sourceTexture = this->GetInput<1>().Get();
-			this->GetInput<1>().Clear();
-
 			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-			RenderScene(backBuffer, sourceTexture.srv, cmdList);
+			Render(backBuffer, sourceTexture.QueryRead(), cmdList);
 			result.AddCommandList(std::move(cmdList));
 
 			return result;
@@ -55,9 +57,9 @@ protected:
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 private:
-	void RenderScene(
+	void Render(
 		RenderTargetView2D& rtv,
-		TextureView2D& texture,
+		const TextureView2D& texture,
 		GraphicsCommandList& commandList);
 };
 

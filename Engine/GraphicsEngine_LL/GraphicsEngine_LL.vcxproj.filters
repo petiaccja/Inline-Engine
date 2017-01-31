@@ -36,7 +36,10 @@
     <Filter Include="Nodes\DeferredPipeline">
       <UniqueIdentifier>{2ef57f3c-8e5d-4b28-ba57-a435d1be5c25}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Nodes\DeferredPipeline\Shaders">
+    <Filter Include="Nodes\ForwardPipeline">
+      <UniqueIdentifier>{37a2d765-13fa-497f-9c3f-aeb98d5b2e44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nodes\Shaders">
       <UniqueIdentifier>{d804e9f8-c90b-43e0-a9e7-e5ce3e4e0717}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -150,9 +153,6 @@
     <ClInclude Include="Nodes\Node_GetBackBuffer.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Node_ClearRenderTarget.h">
-      <Filter>Nodes</Filter>
-    </ClInclude>
     <ClInclude Include="Nodes\Node_FrameColor.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
@@ -160,9 +160,6 @@
       <Filter>Nodes</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_GetSceneByName.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_TescoRender.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
     <ClInclude Include="SyncPoint.hpp">
@@ -184,9 +181,6 @@
       <Filter>Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_GetTime.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_GetDepthBuffer.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
     <ClInclude Include="Image.hpp">
@@ -234,24 +228,6 @@
     <ClInclude Include="DirectionalLight.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Node_CombineGBuffer.hpp">
-      <Filter>Nodes\DeferredPipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_GenCSM.hpp">
-      <Filter>Nodes\DeferredPipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_GenGBuffer.hpp">
-      <Filter>Nodes\DeferredPipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_LightsDeferred.hpp">
-      <Filter>Nodes\DeferredPipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="TextureViewPack.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_RenderToBackbuffer.hpp">
-      <Filter>Nodes\DeferredPipeline</Filter>
-    </ClInclude>
     <ClInclude Include="WindowResizeListener.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
@@ -269,6 +245,18 @@
     </ClInclude>
     <ClInclude Include="BindingManager.hpp">
       <Filter>Middleware</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_ForwardRender.hpp">
+      <Filter>Nodes\ForwardPipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GenCSM.hpp">
+      <Filter>Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_DepthPrepass.hpp">
+      <Filter>Nodes\ForwardPipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_RenderToBackBuffer.hpp">
+      <Filter>Nodes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -327,12 +315,6 @@
     <ClCompile Include="ScratchSpacePool.cpp">
       <Filter>Middleware</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes\Node_ClearRenderTarget.cpp">
-      <Filter>Nodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_TescoRender.cpp">
-      <Filter>Nodes</Filter>
-    </ClCompile>
     <ClCompile Include="ResourceResidencyQueue.cpp">
       <Filter>Pipeline</Filter>
     </ClCompile>
@@ -344,9 +326,6 @@
     </ClCompile>
     <ClCompile Include="PipelineEventDispatcher.cpp">
       <Filter>Pipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_GetDepthBuffer.cpp">
-      <Filter>Nodes</Filter>
     </ClCompile>
     <ClCompile Include="Image.cpp">
       <Filter>Resources</Filter>
@@ -387,25 +366,7 @@
     <ClCompile Include="DirectionalLight.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes\Node_GenGBuffer.cpp">
-      <Filter>Nodes\DeferredPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_CombineGBuffer.cpp">
-      <Filter>Nodes\DeferredPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="TextureViewPack.cpp">
-      <Filter>Pipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_LightsDeferred.cpp">
-      <Filter>Nodes\DeferredPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_RenderToBackbuffer.cpp">
-      <Filter>Nodes\DeferredPipeline</Filter>
-    </ClCompile>
     <ClCompile Include="Nodes\Node_DrawSky.cpp">
-      <Filter>Nodes\DeferredPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_GenCSM.cpp">
       <Filter>Nodes\DeferredPipeline</Filter>
     </ClCompile>
     <ClCompile Include="VolatileViewHeap.cpp">
@@ -414,22 +375,34 @@
     <ClCompile Include="PipelineTypes.cpp">
       <Filter>Pipeline</Filter>
     </ClCompile>
+    <ClCompile Include="Nodes\Node_ForwardRender.cpp">
+      <Filter>Nodes\ForwardPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_GenCSM.cpp">
+      <Filter>Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_DepthPrepass.cpp">
+      <Filter>Nodes\ForwardPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_RenderToBackBuffer.cpp">
+      <Filter>Nodes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Nodes\Shaders\CombineGBuffer.hlsl">
-      <Filter>Nodes\DeferredPipeline\Shaders</Filter>
+      <Filter>Nodes\Shaders</Filter>
     </None>
     <None Include="Nodes\Shaders\DrawSky.hlsl">
-      <Filter>Nodes\DeferredPipeline\Shaders</Filter>
+      <Filter>Nodes\Shaders</Filter>
     </None>
     <None Include="Nodes\Shaders\GenCSM.hlsl">
-      <Filter>Nodes\DeferredPipeline\Shaders</Filter>
+      <Filter>Nodes\Shaders</Filter>
     </None>
     <None Include="Nodes\Shaders\GenGBuffer.hlsl">
-      <Filter>Nodes\DeferredPipeline\Shaders</Filter>
+      <Filter>Nodes\Shaders</Filter>
     </None>
     <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
-      <Filter>Nodes\DeferredPipeline\Shaders</Filter>
+      <Filter>Nodes\Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>

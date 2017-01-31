@@ -24,6 +24,7 @@ namespace nodes {
 class GetBackBuffer;
 class GetSceneByName;
 class GetCameraByName;
+class RenderToBackBuffer;
 }
 
 
@@ -45,6 +46,7 @@ protected:
 
 class SwapChainAccessContext {
 	friend class nodes::GetBackBuffer;
+	friend class nodes::RenderToBackBuffer;
 public:
 	virtual ~SwapChainAccessContext() {}
 protected:

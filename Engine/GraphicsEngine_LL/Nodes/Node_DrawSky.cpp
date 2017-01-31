@@ -2,6 +2,10 @@
 
 #include <array>
 
+// OBSOLETE
+// please update this class to match current pipeline
+
+#if 0
 namespace inl::gxeng::nodes {
 
 
@@ -152,3 +156,4 @@ void DrawSky::Render(
 
 
 } // namespace inl::gxeng::nodes
+#endif

@@ -5,12 +5,14 @@
 #include "../Scene.hpp"
 #include "../Camera.hpp"
 #include "../ConstBufferHeap.hpp"
-#include "../TextureViewPack.hpp"
 #include "../DirectionalLight.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
+// OBSOLETE
+// please update this class to match current pipeline
 
+#if 0
 namespace inl::gxeng::nodes {
 
 
@@ -74,3 +76,4 @@ private:
 
 
 } // namespace inl::gxeng::nodes
+#endif

@@ -6,7 +6,7 @@
 #include "../Camera.hpp"
 #include "../ConstBufferHeap.hpp"
 #include "../GraphicsContext.hpp"
-#include "../TextureViewPack.hpp"
+#include "../PipelineTypes.hpp"
 #include "../WindowResizeListener.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
@@ -14,6 +14,11 @@
 #include <vector>
 
 
+
+// OBSOLETE
+// this class should be updated to match current pipeline
+
+#if 0
 namespace inl::gxeng::nodes {
 
 
@@ -81,7 +86,7 @@ protected:
 
 protected:
 	unsigned m_cascadeCount = 5;
-	ShadowCascades m_cascades;
+	ShadowCascades_DEPRECATED m_cascades;
 	//std::vector<ShadowMapCascade> m_cascades; // cameras for subfrusta
 
 private:
@@ -97,3 +102,4 @@ private:
 
 
 } // namespace inl::gxeng::nodes
+#endif

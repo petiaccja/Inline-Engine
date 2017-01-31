@@ -13,6 +13,8 @@
 #include <array>
 
 
+// OBSOLETE, please update
+#if 0
 namespace inl::gxeng::nodes {
 
 
@@ -344,3 +346,4 @@ void GenCSM::RenderScene(
 
 
 } // namespace inl::gxeng::nodes
+#endif
