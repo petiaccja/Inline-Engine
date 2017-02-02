@@ -1579,11 +1579,16 @@ struct TransitionBarrier : public ResourceBarrierTag {
 
 static constexpr auto ALL_SUBRESOURCES = std::numeric_limits<unsigned>::max();
 
+struct UavBarrier : public ResourceBarrierTag {
+	UavBarrier(IResource* resource = nullptr) : resource(resource) {}
+	IResource* resource;
+};
 
 struct ResourceBarrier {
 	eResourceBarrierType type;
 	union {
 		TransitionBarrier transition;
+		UavBarrier uav;
 	};
 	ResourceBarrier() {}
 	ResourceBarrier(const ResourceBarrier& rhs) {
@@ -1592,6 +1597,10 @@ struct ResourceBarrier {
 	ResourceBarrier(const TransitionBarrier& rhs) {
 		type = eResourceBarrierType::TRANSITION;
 		transition = rhs;
+	}
+	ResourceBarrier(const UavBarrier& rhs) {
+		type = eResourceBarrierType::UAV;
+		uav = rhs;
 	}
 
 	ResourceBarrier& operator=(const ResourceBarrier& rhs) {
@@ -1602,6 +1611,11 @@ struct ResourceBarrier {
 	ResourceBarrier& operator=(const TransitionBarrier& rhs) {
 		type = eResourceBarrierType::TRANSITION;
 		transition = rhs;
+		return *this;
+	}
+	ResourceBarrier& operator=(const UavBarrier& rhs) {
+		type = eResourceBarrierType::UAV;
+		uav = rhs;
 		return *this;
 	}
 };
