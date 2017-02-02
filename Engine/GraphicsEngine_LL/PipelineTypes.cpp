@@ -8,37 +8,11 @@ namespace inl::gxeng::pipeline {
 Texture2D::Texture2D() {}
 
 
-Texture2D::Texture2D(TextureView2D srv)
-	: Texture2D(srv, RenderTargetView2D())
-{}
-
-
-Texture2D::Texture2D(RenderTargetView2D rtv)
-	: Texture2D({}, rtv)
-{}
-
-
-Texture2D::Texture2D(TextureView2D srv, RenderTargetView2D rtv)
-	: m_srv(std::move(srv)),
-	m_renderTexture({RenderTextureType::RENDER_TARGET, rtv, {}}),
-	m_beenCopied(false),
-	m_beenUsed(false),
-	m_usageCount(std::make_shared<std::atomic_size_t>(1))
-{}
-
-
-Texture2D::Texture2D(TextureView2D srv, DepthStencilView2D dsv)
-	: m_srv(std::move(srv)),
-	m_renderTexture({ RenderTextureType::DEPTH_STENCIL, {}, dsv }),
-	m_beenCopied(false),
-	m_beenUsed(false),
-	m_usageCount(std::make_shared<std::atomic_size_t>(1))
-{}
-
-
-Texture2D::Texture2D(const Texture2D& rhs) 
+Texture2D::Texture2D(const Texture2D& rhs)
 	: m_srv(rhs.m_srv),
-	m_renderTexture(rhs.m_renderTexture),
+	m_rtv(rhs.m_rtv),
+	m_dsv(rhs.m_dsv),
+	m_uav(rhs.m_uav),
 	m_beenCopied(false),
 	m_beenUsed(false),
 	m_usageCount(rhs.m_usageCount)
@@ -51,10 +25,12 @@ Texture2D::Texture2D(const Texture2D& rhs)
 
 Texture2D::Texture2D(Texture2D&& rhs)
 	: m_srv(std::move(rhs.m_srv)),
-	m_renderTexture(std::move(rhs.m_renderTexture)),
+	m_rtv(std::move(rhs.m_rtv)),
+	m_dsv(std::move(rhs.m_dsv)),
+	m_uav(std::move(rhs.m_uav)),
 	m_beenCopied(rhs.m_beenCopied),
 	m_beenUsed(rhs.m_beenUsed),
-	m_usageCount(std::move(rhs.m_usageCount)) 
+	m_usageCount(std::move(rhs.m_usageCount))
 {
 	rhs.m_beenUsed = false;
 	rhs.m_beenCopied = false;
@@ -65,7 +41,9 @@ Texture2D& Texture2D::operator=(const Texture2D& rhs) {
 	Clean();
 
 	m_srv = rhs.m_srv;
-	m_renderTexture = rhs.m_renderTexture;
+	m_rtv = rhs.m_rtv;
+	m_dsv = rhs.m_dsv;
+	m_uav = rhs.m_uav;
 	m_usageCount = rhs.m_usageCount;
 	m_beenUsed = false;
 	m_beenCopied = false;
@@ -81,7 +59,9 @@ Texture2D& Texture2D::operator=(Texture2D&& rhs) {
 	Clean();
 
 	m_srv = std::move(rhs.m_srv);
-	m_renderTexture = std::move(rhs.m_renderTexture);
+	m_rtv = std::move(rhs.m_rtv);
+	m_dsv = std::move(rhs.m_dsv);
+	m_uav = std::move(rhs.m_uav);
 	m_usageCount = std::move(rhs.m_usageCount);
 	m_beenUsed = rhs.m_beenUsed;
 	m_beenCopied = rhs.m_beenCopied;
@@ -105,20 +85,32 @@ void Texture2D::Clean() {
 }
 
 
+void Texture2D::AddView(TextureView2D srv) {
+	m_srv = std::move(srv);
+}
+void Texture2D::AddView(RenderTargetView2D rtv) {
+	m_rtv = std::move(rtv);
+}
+void Texture2D::AddView(DepthStencilView2D dsv) {
+	m_dsv = std::move(dsv);
+}
+void Texture2D::AddView(RWTextureView2D uav) {
+	m_uav = std::move(uav);
+}
+
 
 bool Texture2D::Readable() const {
 	return (bool)m_srv;
 }
-bool Texture2D::Writable() const {
-	switch (m_renderTexture.type) {
-	case RenderTextureType::RENDER_TARGET:
-		return (bool)m_renderTexture.rtv;
-	case RenderTextureType::DEPTH_STENCIL:
-		return (bool)m_renderTexture.dsv;
-	default:
-		assert(false);
-	}
-	return false;
+
+bool Texture2D::WritableRenderTarget() const {
+	return (bool)m_rtv;
+}
+bool Texture2D::WritableDepthStencil() const {
+	return (bool)m_dsv;
+}
+bool Texture2D::WritableRW() const {
+	return (bool)m_uav;
 }
 
 
@@ -128,22 +120,39 @@ const TextureView2D& Texture2D::QueryRead() const {
 }
 
 
-const RenderTexture2D& Texture2D::QueryWrite(CopyCommandList& copyMaker, GraphicsContext& graphicsContext) {
+const RenderTargetView2D& Texture2D::QueryRenderTarget(CopyCommandList& copyMaker, GraphicsContext& graphicsContext) {
+	CopyIfNeeded(copyMaker, graphicsContext);
+
+	return m_rtv;
+}
+
+const DepthStencilView2D& Texture2D::QueryDepthStencil(CopyCommandList& copyMaker, GraphicsContext& graphicsContext) {
+	CopyIfNeeded(copyMaker, graphicsContext);
+
+	return m_dsv;
+}
+
+const RWTextureView2D& Texture2D::QueryRW(CopyCommandList& copyMaker, GraphicsContext& graphicsContext) {
+	CopyIfNeeded(copyMaker, graphicsContext);
+
+	return m_uav;
+}
+
+
+void Texture2D::CopyIfNeeded(CopyCommandList& copyMaker, GraphicsContext& graphicsContext) {
 	if (!m_beenCopied) {
 		m_beenUsed = true;
 		m_beenCopied = true;
 
 		// determine if copy is needed
 		bool needCopy = *m_usageCount > 1;
-		if (!needCopy) {
-			return m_renderTexture;
-		}
 
 		// copy the whole texture
-		throw std::logic_error("Channeling a single texture to multiple nodes for writing is not supported yet.");
+		if (needCopy) {
+			throw std::logic_error("Channeling a single texture to multiple nodes for writing is not supported yet.");
+		}
 	}
 }
-
 
 
 }
