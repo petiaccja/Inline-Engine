@@ -185,5 +185,13 @@ void ComputeCommandList::NewScratchSpace(size_t hint) {
 }
 
 
+//------------------------------------------------------------------------------
+// UAV barrier
+//------------------------------------------------------------------------------
+void ComputeCommandList::UAVBarrier(MemoryObject& memoryObject) {
+	m_commandList->ResourceBarrier(gxapi::UavBarrier(memoryObject._GetResourcePtr()));
+}
+
+
 } // namespace gxeng
 } // namespace inl
