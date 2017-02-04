@@ -87,20 +87,16 @@ void DepthReduction::WindowResized(unsigned width, unsigned height) {
 void DepthReduction::InitRenderTarget() {
 	using gxapi::eFormat;
 
-	auto formatDepthReductionResult = eFormat::R32G32B32A32_FLOAT;
-	auto formatColor = eFormat::R32_FLOAT_X8X24_TYPELESS;
-	auto formatTypeless = eFormat::R32G8X24_TYPELESS;
+	auto formatDepthReductionResult = eFormat::R32G32_FLOAT;
 
-	gxapi::SrvTexture2DArray srvDesc;
-	srvDesc.activeArraySize = 1;
-	srvDesc.firstArrayElement = 0;
-	srvDesc.numMipLevels = -1;
-	srvDesc.mipLevelClamping = 0;
-	srvDesc.mostDetailedMip = 0;
-	srvDesc.planeIndex = 0;
+	gxapi::UavTexture2DArray uavDesc;
+	uavDesc.activeArraySize = 1;
+	uavDesc.firstArrayElement = 0;
+	uavDesc.mipLevel = 0;
+	uavDesc.planeIndex = 0;
 
 	Texture2D tex = m_graphicsContext.CreateTexture2D(m_width, m_height, formatDepthReductionResult, 1);
-	//m_graphicsContext
+	m_graphicsContext.CreateUav(tex, formatDepthReductionResult, uavDesc);
 }
 
 
