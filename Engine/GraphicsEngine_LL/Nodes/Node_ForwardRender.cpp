@@ -162,12 +162,10 @@ Task ForwardRender::GetTask() {
 
 		if (entities) {
 			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-			CopyCommandList cpyCmdList = context.GetCopyCommandList();
 
-			pipeline::RenderTexture2D depthTarget = depthStencil.QueryWrite(cpyCmdList, m_graphicsContext);
-			assert(depthTarget.type == pipeline::RenderTextureType::DEPTH_STENCIL);
+			DepthStencilView2D dsv = depthStencil.QueryDepthStencil(cmdList, m_graphicsContext);
 
-			RenderScene(depthTarget.dsv, *entities, camera, sun, cmdList);
+			RenderScene(dsv, *entities, camera, sun, cmdList);
 			result.AddCommandList(std::move(cmdList));
 		}
 

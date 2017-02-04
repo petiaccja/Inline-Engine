@@ -17,24 +17,27 @@ namespace inl::gxeng::pipeline {
 
 enum class RenderTextureType { RENDER_TARGET, DEPTH_STENCIL };
 
-struct RenderTexture2D {
-	RenderTextureType type;
+template <class T, class... List>
+struct is_any_of;
 
-	// Could be a union but would need to explicitly define the
-	// constructors and destructor for this struct
-	// which is too much boilerplate for so little performance gain.
-	RenderTargetView2D rtv;
-	DepthStencilView2D dsv;
+template <class T>
+struct is_any_of<T> {
+	static constexpr bool value = false;
 };
+
+template <class T, class U, class... List>
+struct is_any_of<T, U, List...> {
+	static constexpr bool value = std::is_same<T, U>::value || is_any_of<T, List...>::value;
+};
+
 
 
 class Texture2D {
 public:
 	Texture2D();
-	Texture2D(TextureView2D srv);
-	Texture2D(RenderTargetView2D rtv);
-	Texture2D(TextureView2D srv, RenderTargetView2D rtv);
-	Texture2D(TextureView2D srv, DepthStencilView2D dsv);
+
+	template <class ViewHeadT, class... ViewT, class = std::enable_if_t<is_any_of<std::decay_t<ViewHeadT>, TextureView2D, RenderTargetView2D, DepthStencilView2D, RWTextureView2D>::value, void>>
+	Texture2D(ViewHeadT&& view, ViewT&&... views);
 
 	Texture2D(const Texture2D&);
 	Texture2D(Texture2D&&);
@@ -42,23 +45,55 @@ public:
 	Texture2D& operator=(Texture2D&&);
 	~Texture2D();
 
+	void AddView(TextureView2D srv);
+	void AddView(RenderTargetView2D rtv);
+	void AddView(DepthStencilView2D dsv);
+	void AddView(RWTextureView2D uav);
+
 	bool Readable() const;
-	bool Writable() const;
+	bool WritableRenderTarget() const;
+	bool WritableDepthStencil() const;
+	bool WritableRW() const;
 
 	// TODO(Artur) Nodes must be able to modify texture state even if reading only
 	// eg. set the texture to pixel shader resource
 	const TextureView2D& QueryRead() const;
-	const RenderTexture2D& QueryWrite(CopyCommandList& copyMaker, GraphicsContext& graphicsContext);
+	const RenderTargetView2D& QueryRenderTarget(CopyCommandList& copyMaker, GraphicsContext& graphicsContext);
+	const DepthStencilView2D& QueryDepthStencil(CopyCommandList& copyMaker, GraphicsContext& graphicsContext);
+	const RWTextureView2D& QueryRW(CopyCommandList& copyMaker, GraphicsContext& graphicsContext);
 private:
 	void Clean();
+	void CopyIfNeeded(CopyCommandList& copyMaker, GraphicsContext& graphicsContext);
+
+	template <class ViewHeadT, class... ViewTailT>
+	void AddViews(ViewHeadT&& head, ViewTailT&&... tail);
+	void AddViews() {};
 private:
 	TextureView2D m_srv;
-	RenderTexture2D m_renderTexture;
+	RenderTargetView2D m_rtv;
+	DepthStencilView2D m_dsv;
+	RWTextureView2D m_uav;
 	mutable bool m_beenCopied;
 	mutable bool m_beenUsed;
 	std::shared_ptr<std::atomic_size_t> m_usageCount;
 };
 
+
+template <class ViewHeadT, class... ViewT, class = std::enable_if_t<is_any_of<std::decay_t<ViewHeadT>, TextureView2D, RenderTargetView2D, DepthStencilView2D, RWTextureView2D>::value, void>>
+Texture2D::Texture2D(ViewHeadT&& view, ViewT&&... views) :
+	m_beenCopied(false),
+	m_beenUsed(false),
+	m_usageCount(std::make_shared<std::atomic_size_t>(1))
+{
+	AddViews(std::forward<ViewHeadT>(view), std::forward<ViewT>(views)...);
+}
+
+
+template <class ViewHeadT, class... ViewTailT>
+void Texture2D::AddViews(ViewHeadT&& head, ViewTailT&&... tail) {
+	AddView(std::forward<ViewHeadT>(head));
+	AddViews(std::forward<ViewTailT>(tail)...);
+}
 
 
 }
