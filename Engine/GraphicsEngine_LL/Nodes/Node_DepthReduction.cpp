@@ -9,6 +9,28 @@
 
 namespace inl::gxeng::nodes {
 
+static void setWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsigned groupSizeH, unsigned& dispatchW, unsigned& dispatchH)
+{
+	//set up work group sizes
+	unsigned gw = 0, gh = 0, count = 1;
+
+	while (gw < w)
+	{
+		gw = groupSizeW * count;
+		count++;
+	}
+
+	count = 1;
+
+	while (gh < h)
+	{
+		gh = groupSizeH * count;
+		count++;
+	}
+
+	dispatchW = float(gw) / groupSizeW;
+	dispatchH = float(gh) / groupSizeH;
+}
 
 DepthReduction::DepthReduction(gxapi::IGraphicsApi * graphicsApi, unsigned width, unsigned height):
 	m_binder(graphicsApi, {}),
@@ -105,9 +127,14 @@ void DepthReduction::RenderScene(
 	pipeline::Texture2D& depthTex,
 	ComputeCommandList& commandList
 ) {
+	unsigned dispatchW, dispatchH;
+	setWorkgroupSize(std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
+
 	commandList.BindCompute(gxeng::BindParameter(), uav);
-	commandList.Dispatch(1, 1, 1);
-	commandList.ResourceBarrier();
+	commandList.SetPipelineState(m_CSO.get());
+	commandList.SetComputeBinder(&m_binder);
+	commandList.Dispatch(dispatchW, dispatchH, 1);
+	commandList.ResourceBarrier(gxapi::UavBarrier());
 }
 
 

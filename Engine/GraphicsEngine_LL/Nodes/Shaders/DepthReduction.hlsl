@@ -5,8 +5,8 @@
  * Output Y: max depth in each tile
  */
 
-Texture2D inputTex : register(t0)
-RWTexture2D<float4> outputTex : register(u0)
+Texture2D inputTex : register(t0);
+RWTexture2D<float2> outputTex : register(u0);
 
 #define LOCAL_SIZE_X 16
 #define LOCAL_SIZE_Y 16
@@ -15,20 +15,26 @@ RWTexture2D<float4> outputTex : register(u0)
 //y: max depth
 groupshared float2 localData[LOCAL_SIZE_X * LOCAL_SIZE_Y];
 
-void init(uint2 dispatchThreadId, groupIndex)
+void init(uint2 dispatchThreadId, uint groupIndex)
 {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 	if (any(dispatchThreadId.xy >= inputTexSize.xy))
 		return;
 
-	float depth = inputTex.Load(dispatchThreadId.xy, 0);
+	float depth = inputTex.Load(int3(dispatchThreadId.xy, 0)).x;
 
 	if (depth < 1.0f && depth > 0.0f)
 	{
 		localData[groupIndex].x = min(depth, localData[groupIndex].x);
 		localData[groupIndex].y = max(depth, localData[groupIndex].y);
 	}
+}
+
+void reduce(uint groupIndex, uint idx)
+{
+	localData[groupIndex].x = min(localData[groupIndex].x, localData[groupIndex + idx].x);
+	localData[groupIndex].y = max(localData[groupIndex].y, localData[groupIndex + idx].y);
 }
 
 [numthreads(LOCAL_SIZE_X, LOCAL_SIZE_Y, 1)]
@@ -41,7 +47,7 @@ void CSMain(
 {
 	localData[groupIndex] = float2(0.0f, 0.0f);
 	uint3 dispatchThreadId2 = uint3(groupId.x * 2, groupId.y * 2, 0.0f);
-	dispatchThreadId2.xy = dispatchThreadId2.xy * uint2(LOCAL_SIZE_X, LOCAL_SIZE_Y) + groupThreadId;
+	dispatchThreadId2.xy = dispatchThreadId2.xy * uint2(LOCAL_SIZE_X, LOCAL_SIZE_Y) + groupThreadId.xy;
 	init(dispatchThreadId2.xy, groupIndex);
 	init(uint2(dispatchThreadId2.x + LOCAL_SIZE_X, dispatchThreadId2.y), groupIndex);
 
@@ -60,6 +66,6 @@ void CSMain(
 
 	if (!groupIndex)
 	{
-		outputTex[groupId] = localData[0];
+		outputTex[groupId.xy].xy = localData[0];
 	}
 }
