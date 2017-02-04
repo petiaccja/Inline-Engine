@@ -39,18 +39,16 @@ protected:
 	unsigned m_height;
 
 	gxeng::RWTextureView2D m_uav;
-	TextureView2D m_reductionTargetSrv;
 
 protected:
 	GraphicsContext m_graphicsContext;
 	Binder m_binder;
-	BindParameter m_transformBindParam;
-	std::unique_ptr<gxapi::IPipelineState> m_PSO;
+	std::unique_ptr<gxapi::IPipelineState> m_CSO;
 
 private:
 	void InitRenderTarget();
 	void RenderScene(
-		gxeng::RWTextureView2D& uav,
+		const gxeng::RWTextureView2D& uav,
 		pipeline::Texture2D& depthTex,
 		ComputeCommandList& commandList);
 };
