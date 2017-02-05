@@ -42,6 +42,9 @@
     <Filter Include="Nodes\Shaders">
       <UniqueIdentifier>{d804e9f8-c90b-43e0-a9e7-e5ce3e4e0717}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Materials">
+      <UniqueIdentifier>{98cd6cfb-25da-4059-bd57-422f8cb974b9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -403,6 +406,15 @@
     </None>
     <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
       <Filter>Nodes\Shaders</Filter>
+    </None>
+    <None Include="Materials\bitmap_color_2d.mtl.hlsl">
+      <Filter>Materials</Filter>
+    </None>
+    <None Include="Materials\bitmap_value_2d.mtl.hlsl">
+      <Filter>Materials</Filter>
+    </None>
+    <None Include="Materials\simple_diffuse.mtl.hlsl">
+      <Filter>Materials</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -3,6 +3,7 @@
 #include "ShaderManager.hpp"
 
 #include <BaseLibrary/Graph_All.hpp>
+#include <mathfu/mathfu_exc.hpp>
 
 #include <regex>
 #include <sstream>
@@ -14,11 +15,14 @@
 namespace inl::gxeng {
 
 
+class Image;
+
+
 enum class eMaterialShaderParamType {
 	COLOR = 0,
 	VALUE = 1,
-	MAP_COLOR_2D = 2,
-	MAP_VALUE_2D = 3,
+	BITMAP_COLOR_2D = 2,
+	BITMAP_VALUE_2D = 3,
 	UNKNOWN = 1000,
 };
 
@@ -28,9 +32,10 @@ class MaterialShader {
 public:
 	MaterialShader(ShaderManager* shaderManager) : m_shaderManager(shaderManager) {}
 	virtual ~MaterialShader() {};
-	virtual std::string GetShaderCode(ShaderManager& shaderManager) const = 0;
-
-public:
+	virtual std::string GetShaderCode() const = 0;
+	virtual std::vector<eMaterialShaderParamType> GetShaderParameters() const;
+	virtual eMaterialShaderParamType GetShaderOutputType() const;
+protected:
 	static std::string RemoveComments(std::string code);
 	static std::string FindFunctionSignature(std::string code, const std::string& functionName);
 	static void SplitFunctionSignature(std::string signature, std::string& returnType, std::vector<std::pair<std::string, std::string>>& parameters);
@@ -48,12 +53,11 @@ class MaterialShaderEquation : public MaterialShader {
 public:
 	MaterialShaderEquation(ShaderManager* shaderManager) : MaterialShader(shaderManager) {}
 
-	std::string GetShaderCode(ShaderManager& shaderManager) const override;
+	std::string GetShaderCode() const override;
 
 	void SetSourceName(const std::string& name);
 	void SetSourceCode(const std::string& code);
 private:
-	bool m_isCode = true;
 	std::string m_source;
 };
 
@@ -86,25 +90,70 @@ private:
 	};
 
 public:
-	MaterialShaderGraph(ShaderManager* shaderManager) : MaterialShader(shaderManager) {}
+	MaterialShaderGraph(ShaderManager* shaderManager);
 
-	std::string GetShaderCode(ShaderManager& shaderManager) const override;
+	std::string GetShaderCode() const override;
 
 	void SetGraph(std::vector<std::unique_ptr<MaterialShader>> nodes, std::vector<Link> links);
+protected:
+	void AssembleShaderCode();
 private:
 	std::vector<std::unique_ptr<MaterialShader>> m_nodes;
 	std::vector<Link> m_links;
+	std::string m_source;
+};
+
+
+class Material {
+public:
+	class Parameter {
+	public:
+		Parameter();
+		Parameter(eMaterialShaderParamType type);
+
+		Parameter& operator=(Image*);
+		Parameter& operator=(mathfu::Vector4f);
+		Parameter& operator=(float);
+
+		eMaterialShaderParamType GetType() const;
+		operator Image*() const;
+		operator mathfu::Vector4f() const;
+		operator float() const;
+	private:
+		eMaterialShaderParamType m_type;
+		union Data {
+			Data() { memset(this, 0, sizeof(*this)); }
+			Data(const Data& rhs) { memcpy(this, &rhs, sizeof(*this)); }
+			Data& operator=(const Data& rhs) { memcpy(this, &rhs, sizeof(*this)); return *this; }
+			Image* image;
+			mathfu::Vector4f color;
+			float value;
+		} m_data;
+	};
+
+public:
+	void SetShader(MaterialShader* shader);
+	size_t GetParameterCount() const;
+	Parameter& operator[](size_t index);
+	const Parameter& operator[](size_t index) const;
+
+private:
+	std::vector<Parameter> m_parameters;
+	MaterialShader* m_shader = nullptr;
 };
 
 
 
-
 // TEST IMPLEMENTATION
-inline std::string MaterialGenPixelShader(std::string shadingFunction) {
+inline std::string MaterialGenPixelShader(const MaterialShader& shader) {
 	// get material shading function's HLSL code
 	eMaterialShaderParamType returnType;
 	std::vector<eMaterialShaderParamType> params;
-	MaterialShader::ExtractShaderParameters(shadingFunction, "main", returnType, params);
+	std::string shadingFunction;
+
+	returnType = shader.GetShaderOutputType();
+	params = shader.GetShaderParameters();
+	shadingFunction = shader.GetShaderCode();
 
 	// rename "main" to something else
 	std::stringstream renameMain;
@@ -128,12 +177,12 @@ inline std::string MaterialGenPixelShader(std::string shadingFunction) {
 				constantBuffer << "    float param" << i << "; \n";
 				break;
 			}
-			case eMaterialShaderParamType::MAP_COLOR_2D: {
+			case eMaterialShaderParamType::BITMAP_COLOR_2D: {
 				textures << "Texture2D<float4> map" << i << " : register(t" << i << "); \n";
 				textures << "SamplerState samp" << i << " : register(s" << i << "); \n";
 				break;
 			}
-			case eMaterialShaderParamType::MAP_VALUE_2D: {
+			case eMaterialShaderParamType::BITMAP_VALUE_2D: {
 				textures << "Texture2D<float> map" << i << " : register(t" << i << "); \n";
 				textures << "SamplerState samp" << i << " : register(s" << i << "); \n";
 				break;
@@ -159,13 +208,13 @@ inline std::string MaterialGenPixelShader(std::string shadingFunction) {
 				PSMain << "    input" << i << " = cb.param" << i << "; \n\n";
 				break;
 			}
-			case eMaterialShaderParamType::MAP_COLOR_2D: {
+			case eMaterialShaderParamType::BITMAP_COLOR_2D: {
 				PSMain << "    MapColor2D input" << i << "; \n";
 				PSMain << "    input" << i << ".map = map" << i << "; \n";
 				PSMain << "    input" << i << ".samp = samp" << i << "; \n\n";
 				break;
 			}
-			case eMaterialShaderParamType::MAP_VALUE_2D: {
+			case eMaterialShaderParamType::BITMAP_VALUE_2D: {
 				PSMain << "    MapValue2D input" << i << "; \n";
 				PSMain << "    input" << i << ".map = map" << i << "; \n";
 				PSMain << "    input" << i << ".samp = samp" << i << "; \n\n";

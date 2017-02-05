@@ -25,6 +25,7 @@
 #include "Scene.hpp"
 #include "Camera.hpp"
 #include "Mesh.hpp"
+#include "Material.hpp"
 #include "Image.hpp"
 #include "MeshEntity.hpp"
 
@@ -194,6 +195,20 @@ Mesh* GraphicsEngine::CreateMesh() {
 Image* GraphicsEngine::CreateImage() {
 	return new Image(&m_memoryManager, &m_textureSpace);
 }
+
+Material* GraphicsEngine::CreateMaterial() {
+	return new Material;
+}
+
+MaterialShaderEquation* GraphicsEngine::CreateMaterialShaderEquation() {
+	return new MaterialShaderEquation(&m_shaderManager);
+}
+
+MaterialShaderGraph* GraphicsEngine::CreateMaterialShaderGraph() {
+	return new MaterialShaderGraph(&m_shaderManager);
+}
+
+
 
 // Scene
 Scene* GraphicsEngine::CreateScene(std::string name) {

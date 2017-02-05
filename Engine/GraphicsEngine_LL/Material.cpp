@@ -7,35 +7,43 @@ namespace inl::gxeng {
 
 
 //------------------------------------------------------------------------------
-// ShaderEquation
+// MaterialShader
 //------------------------------------------------------------------------------
 
 std::string MaterialShader::LoadShaderSource(std::string name) const {
-	//m_shaderManager->LoadSource();
-	return {};
+	std::string code = m_shaderManager->LoadShaderSource(name);
+	return code;
 }
+
+std::vector<eMaterialShaderParamType> MaterialShader::GetShaderParameters() const {
+	std::vector<eMaterialShaderParamType> params;
+	eMaterialShaderParamType ret;
+	ExtractShaderParameters(GetShaderCode(), "main", ret, params);
+	return params;
+}
+
+eMaterialShaderParamType MaterialShader::GetShaderOutputType() const {
+	std::vector<eMaterialShaderParamType> params;
+	eMaterialShaderParamType ret;
+	ExtractShaderParameters(GetShaderCode(), "main", ret, params);
+	return ret;
+}
+
 
 
 //------------------------------------------------------------------------------
 // ShaderEquation
 //------------------------------------------------------------------------------
 
-std::string MaterialShaderEquation::GetShaderCode(ShaderManager& shaderManager) const {
-	if (m_isCode) {
-		return m_source;
-	}
-	else {
-		// shaderManager.loadSource(m_source);
-	}
+std::string MaterialShaderEquation::GetShaderCode() const {
+	return m_source;
 }
 
 void MaterialShaderEquation::SetSourceName(const std::string& name) {
-	m_isCode = false;
-	m_source = name;
+	m_source = LoadShaderSource(name);
 }
 
 void MaterialShaderEquation::SetSourceCode(const std::string& code) {
-	m_isCode = true;
 	m_source = code;
 }
 
@@ -45,7 +53,17 @@ void MaterialShaderEquation::SetSourceCode(const std::string& code) {
 // ShaderGraph
 //------------------------------------------------------------------------------
 
-std::string MaterialShaderGraph::GetShaderCode(ShaderManager& shaderManager) const {
+
+MaterialShaderGraph::MaterialShaderGraph(ShaderManager* shaderManager) : MaterialShader(shaderManager) {
+
+}
+
+std::string MaterialShaderGraph::GetShaderCode() const {
+	return m_source;
+}
+
+
+void MaterialShaderGraph::AssembleShaderCode() {
 	std::vector<ShaderNode> shaderNodes(m_nodes.size());
 	std::vector<std::vector<eMaterialShaderParamType>> shaderNodeParams(m_nodes.size());
 	std::vector<eMaterialShaderParamType> shaderNodeReturns(m_nodes.size());
@@ -54,11 +72,11 @@ std::string MaterialShaderGraph::GetShaderCode(ShaderManager& shaderManager) con
 	// collect individual shader codes and set number of input params for each node
 	for (size_t i = 0; i < m_nodes.size(); ++i) {
 		MaterialShader* shader = m_nodes[i].get();
-		functions[i] = shader->GetShaderCode(shaderManager);
+		functions[i] = shader->GetShaderCode();
 		ExtractShaderParameters(functions[i], "main", shaderNodeReturns[i], shaderNodeParams[i]);
 
 		for (auto p : shaderNodeParams[i]) {
-			if (p == eMaterialShaderParamType::UNKNOWN) { 
+			if (p == eMaterialShaderParamType::UNKNOWN) {
 				throw std::runtime_error("Parameter of unknown type.");
 			}
 		}
@@ -145,7 +163,7 @@ std::string MaterialShaderGraph::GetShaderCode(ShaderManager& shaderManager) con
 	for (auto idx : topologicalOrder) {
 		shaderNodes[idx].Update();
 	}
-	
+
 	// assemble resulting code
 	std::stringstream finalCode;
 	// sub-functions
@@ -174,14 +192,16 @@ std::string MaterialShaderGraph::GetShaderCode(ShaderManager& shaderManager) con
 	// return statement
 	finalCode << "return " << finalCodePort.Get() << ";\n";
 	finalCode << "}\n";
-	
 
-	return finalCode.str();
+
+	m_source = finalCode.str();
 }
 
 void MaterialShaderGraph::SetGraph(std::vector<std::unique_ptr<MaterialShader>> nodes, std::vector<Link> links) {
 	m_nodes = std::move(nodes);
 	m_links = std::move(links);
+
+	AssembleShaderCode();
 }
 
 
@@ -305,8 +325,8 @@ void MaterialShader::SplitFunctionSignature(std::string signature, std::string& 
 std::string MaterialShader::GetParameterString(eMaterialShaderParamType type) {
 	switch (type) {
 		case eMaterialShaderParamType::COLOR: return "float4";
-		case eMaterialShaderParamType::MAP_COLOR_2D: return "MapColor2D";
-		case eMaterialShaderParamType::MAP_VALUE_2D: return "MapValue2D";
+		case eMaterialShaderParamType::BITMAP_COLOR_2D: return "MapColor2D";
+		case eMaterialShaderParamType::BITMAP_VALUE_2D: return "MapValue2D";
 		case eMaterialShaderParamType::UNKNOWN: return "anyád";
 		case eMaterialShaderParamType::VALUE: return "float";
 	}
@@ -319,10 +339,10 @@ eMaterialShaderParamType MaterialShader::GetParameterType(std::string typeString
 		return eMaterialShaderParamType::VALUE;
 	}
 	else if (typeString == "MapColor2D") {
-		return eMaterialShaderParamType::MAP_COLOR_2D;
+		return eMaterialShaderParamType::BITMAP_COLOR_2D;
 	}
 	else if (typeString == "MapValue2D") {
-		return eMaterialShaderParamType::MAP_VALUE_2D;
+		return eMaterialShaderParamType::BITMAP_VALUE_2D;
 	}
 	else {
 		return eMaterialShaderParamType::UNKNOWN;
@@ -402,6 +422,97 @@ std::string MaterialShaderGraph::ShaderNode::GetPreamble() const {
 	return m_preamble;
 }
 
+
+
+
+
+//------------------------------------------------------------------------------
+// Material
+//------------------------------------------------------------------------------
+
+Material::Parameter::Parameter() {
+	m_type = eMaterialShaderParamType::UNKNOWN;
+}
+Material::Parameter::Parameter(eMaterialShaderParamType type) {
+	m_type = type;
+}
+
+
+Material::Parameter& Material::Parameter::operator=(Image* image) {
+	if (m_type != eMaterialShaderParamType::BITMAP_COLOR_2D || m_type != eMaterialShaderParamType::BITMAP_VALUE_2D) {
+		throw std::invalid_argument("This parameter is not an image.");
+	}
+
+	m_data.image = image;
+}
+
+Material::Parameter& Material::Parameter::operator=(mathfu::Vector4f color) {
+	if (m_type != eMaterialShaderParamType::COLOR) {
+		throw std::invalid_argument("This parameter is not a color.");
+	}
+
+	m_data.color = color;
+}
+
+Material::Parameter& Material::Parameter::operator=(float value) {
+	if (m_type != eMaterialShaderParamType::VALUE) {
+		throw std::invalid_argument("This parameter is not a value.");
+	}
+
+	m_data.value = value;
+}
+
+
+eMaterialShaderParamType Material::Parameter::GetType() const {
+	return m_type;
+}
+
+
+Material::Parameter::operator Image*() const {
+	if (m_type != eMaterialShaderParamType::BITMAP_COLOR_2D || m_type != eMaterialShaderParamType::BITMAP_VALUE_2D) {
+		throw std::invalid_argument("This parameter is not an image.");
+	}
+	return m_data.image;
+}
+
+Material::Parameter::operator mathfu::Vector4f() const {
+	if (m_type != eMaterialShaderParamType::COLOR) {
+		throw std::invalid_argument("This parameter is not a color.");
+	}
+	return m_data.color;
+}
+
+Material::Parameter::operator float() const {
+	if (m_type != eMaterialShaderParamType::VALUE) {
+		throw std::invalid_argument("This parameter is not a value.");
+	}
+	return m_data.value;
+}
+
+
+
+void Material::SetShader(MaterialShader* shader) {
+	m_shader = shader;
+	auto typelist = m_shader->GetShaderParameters();
+	m_parameters.clear();
+	for (auto paramType : typelist) {
+		m_parameters.push_back(Parameter{ paramType });
+	}
+}
+
+size_t Material::GetParameterCount() const {
+	return m_parameters.size();
+}
+
+Material::Parameter& Material::operator[](size_t index) {
+	assert(index < m_parameters.size());
+	return m_parameters[index];
+}
+
+const Material::Parameter& Material::operator[](size_t index) const {
+	assert(index < m_parameters.size());
+	return m_parameters[index];
+}
 
 
 } // namespace inl::gxeng
