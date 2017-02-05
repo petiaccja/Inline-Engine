@@ -101,7 +101,9 @@ Task DepthReduction::GetTask() {
 		gxeng::pipeline::Texture2D depthTex = this->GetInput<0>().Get();
 		this->GetInput<0>().Clear();
 
-		this->GetOutput<0>().Set(m_uav);
+		this->GetOutput<0>().Set(pipeline::Texture2D(m_srv));
+
+		this->GetOutput<1>().Set(depthTex);
 
 		{
 			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
@@ -133,8 +135,17 @@ void DepthReduction::InitRenderTarget() {
 	uavDesc.mipLevel = 0;
 	uavDesc.planeIndex = 0;
 
+	gxapi::SrvTexture2DArray srvDesc;
+	srvDesc.activeArraySize = 1;
+	srvDesc.firstArrayElement = 0;
+	srvDesc.numMipLevels = -1;
+	srvDesc.mipLevelClamping = 0;
+	srvDesc.mostDetailedMip = 0;
+	srvDesc.planeIndex = 0;
+
 	Texture2D tex = m_graphicsContext.CreateRWTexture2D(m_width, m_height, formatDepthReductionResult, 1);
 	m_uav = m_graphicsContext.CreateUav(tex, formatDepthReductionResult, uavDesc);
+	m_srv = m_graphicsContext.CreateSrv(tex, formatDepthReductionResult, srvDesc);
 }
 
 

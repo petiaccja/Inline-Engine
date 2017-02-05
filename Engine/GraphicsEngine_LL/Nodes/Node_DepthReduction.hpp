@@ -20,7 +20,7 @@ namespace inl::gxeng::nodes {
 class DepthReduction :
 	virtual public GraphicsNode,
 	virtual public exc::InputPortConfig<pipeline::Texture2D>,
-	virtual public exc::OutputPortConfig<gxeng::RWTextureView2D>,
+	virtual public exc::OutputPortConfig<pipeline::Texture2D, pipeline::Texture2D>,
 	public WindowResizeListener
 {
 public:
@@ -39,6 +39,7 @@ protected:
 	unsigned m_height;
 
 	gxeng::RWTextureView2D m_uav;
+	gxeng::TextureView2D m_srv;
 
 protected:
 	GraphicsContext m_graphicsContext;
