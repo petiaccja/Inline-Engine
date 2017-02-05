@@ -15,6 +15,7 @@
 //forward
 #include "Nodes/Node_ForwardRender.hpp"
 #include "Nodes/Node_DepthPrepass.hpp"
+#include "Nodes/Node_DepthReduction.hpp"
 
 #include "Nodes/Node_GenCSM.hpp"
 #include "Nodes/Node_RenderToBackBuffer.hpp"
@@ -263,6 +264,7 @@ void GraphicsEngine::CreatePipeline() {
 
 	std::unique_ptr<nodes::ForwardRender> forwardRender(new nodes::ForwardRender(m_graphicsApi, swapChainDesc.width, swapChainDesc.height));
 	std::unique_ptr<nodes::DepthPrepass> depthPrePass(new nodes::DepthPrepass(m_graphicsApi, swapChainDesc.width, swapChainDesc.height));
+	std::unique_ptr<nodes::DepthReduction> depthReduction(new nodes::DepthReduction(m_graphicsApi, swapChainDesc.width, swapChainDesc.height));
 
 	getWorldScene->GetInput<0>().Set("World");
 	getCamera->GetInput<0>().Set("WorldCam");
@@ -270,23 +272,28 @@ void GraphicsEngine::CreatePipeline() {
 	depthPrePass->GetInput<0>().Link(getWorldScene->GetOutput(0));
 	depthPrePass->GetInput<1>().Link(getCamera->GetOutput(0));
 
+	depthReduction->GetInput<0>().Link(depthPrePass->GetOutput(0));
+
 	forwardRender->GetInput<0>().Link(depthPrePass->GetOutput(0));
 	forwardRender->GetInput<1>().Link(getWorldScene->GetOutput(0));
 	forwardRender->GetInput<2>().Link(getCamera->GetOutput(0));
 	forwardRender->GetInput<3>().Link(getWorldScene->GetOutput(1));
 
-	renderToBackbuffer->GetInput<0>().Link(forwardRender->GetOutput(0));
+	//renderToBackbuffer->GetInput<0>().Link(forwardRender->GetOutput(0));
+	renderToBackbuffer->GetInput<0>().Link(depthReduction->GetOutput(0));
 
 	GraphicsContext graphicsContext(&m_memoryManager, &m_persResViewHeap, &m_rtvHeap, &m_dsvHeap, std::thread::hardware_concurrency(), 1, &m_shaderManager, m_graphicsApi);
 
 	getWorldScene->InitGraphics(graphicsContext);
 	getCamera->InitGraphics(graphicsContext);
 	depthPrePass->InitGraphics(graphicsContext);
+	depthReduction->InitGraphics(graphicsContext);
 	forwardRender->InitGraphics(graphicsContext);
 	renderToBackbuffer->InitGraphics(graphicsContext);
 
 	m_windowResizeListeners.push_back(forwardRender.get());
 	m_windowResizeListeners.push_back(depthPrePass.get());
+	m_windowResizeListeners.push_back(depthReduction.get());
 
 	{
 		m_pipeline.CreateFromNodesList(
@@ -294,6 +301,7 @@ void GraphicsEngine::CreatePipeline() {
 				getWorldScene.get(),
 				getCamera.get(),
 				depthPrePass.get(),
+				depthReduction.get(),
 				forwardRender.get(),
 				renderToBackbuffer.get()
 			},
@@ -303,6 +311,7 @@ void GraphicsEngine::CreatePipeline() {
 		getWorldScene.release();
 		getCamera.release();
 		depthPrePass.release();
+		depthReduction.release();
 		forwardRender.release();
 		renderToBackbuffer.release();
 	}

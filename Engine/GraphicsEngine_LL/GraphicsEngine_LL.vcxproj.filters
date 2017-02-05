@@ -258,6 +258,9 @@
     <ClInclude Include="Nodes\Node_RenderToBackBuffer.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Node_DepthReduction.hpp">
+      <Filter>Nodes\ForwardPipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -387,6 +390,9 @@
     <ClCompile Include="Nodes\Node_RenderToBackBuffer.cpp">
       <Filter>Nodes</Filter>
     </ClCompile>
+    <ClCompile Include="Nodes\Node_DepthReduction.cpp">
+      <Filter>Nodes\ForwardPipeline</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Nodes\Shaders\CombineGBuffer.hlsl">
@@ -404,5 +410,16 @@
     <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
       <Filter>Nodes\Shaders</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Nodes\Shaders\DepthPrepass.hlsl">
+      <Filter>Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\DepthReduction.hlsl">
+      <Filter>Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\ForwardRender.hlsl">
+      <Filter>Nodes\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
