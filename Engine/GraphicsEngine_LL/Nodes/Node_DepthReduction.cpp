@@ -44,7 +44,15 @@ DepthReduction::DepthReduction(gxapi::IGraphicsApi * graphicsApi, unsigned width
 	sampBindParamDesc.constantSize = 0;
 	sampBindParamDesc.relativeAccessFrequency = 0;
 	sampBindParamDesc.relativeChangeFrequency = 0;
-	sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+	sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+	BindParameterDesc depthBindParamDesc;
+	m_depthBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
+	depthBindParamDesc.parameter = m_depthBindParam;
+	depthBindParamDesc.constantSize = 0;
+	depthBindParamDesc.relativeAccessFrequency = 0;
+	depthBindParamDesc.relativeChangeFrequency = 0;
+	depthBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 	gxapi::StaticSamplerDesc samplerDesc;
 	samplerDesc.shaderRegister = 0;
@@ -54,9 +62,9 @@ DepthReduction::DepthReduction(gxapi::IGraphicsApi * graphicsApi, unsigned width
 	samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
 	samplerDesc.mipLevelBias = 0.f;
 	samplerDesc.registerSpace = 0;
-	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-	m_binder = Binder{ graphicsApi,{ sampBindParamDesc },{ samplerDesc } };
+	m_binder = Binder{ graphicsApi,{ sampBindParamDesc, depthBindParamDesc },{ samplerDesc } };
 }
 
 
@@ -133,6 +141,7 @@ void DepthReduction::RenderScene(
 	commandList.BindCompute(gxeng::BindParameter(), uav);
 	commandList.SetPipelineState(m_CSO.get());
 	commandList.SetComputeBinder(&m_binder);
+	commandList.BindCompute(m_depthBindParam, depthTex.QueryRead());
 	commandList.Dispatch(dispatchW, dispatchH, 1);
 	commandList.ResourceBarrier(gxapi::UavBarrier());
 }
