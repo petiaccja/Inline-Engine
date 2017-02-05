@@ -28,6 +28,9 @@ namespace gxeng {
 
 class Mesh;
 class Image;
+class Material;
+class MaterialShaderEquation;
+class MaterialShaderGraph;
 
 class Scene;
 class MeshEntity;
@@ -89,6 +92,9 @@ public:
 	// Resources
 	Mesh* CreateMesh();
 	Image* CreateImage();
+	Material* CreateMaterial();
+	MaterialShaderEquation* CreateMaterialShaderEquation();
+	MaterialShaderGraph* CreateMaterialShaderGraph();
 
 	// Scene
 	Scene* CreateScene(std::string name);

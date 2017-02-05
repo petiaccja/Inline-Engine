@@ -134,7 +134,16 @@ void ShaderManager::ReloadShaders() {
 }
 
 
-std::pair<std::string, std::string> ShaderManager::FindShaderCode(const std::string& name) {
+std::string ShaderManager::LoadShaderSource(const std::string& name) const {
+	std::shared_lock<std::shared_mutex> lkg(m_sourceMutex);
+
+	auto code = FindShaderCode(name);
+
+	return code.second;
+}
+
+
+std::pair<std::string, std::string> ShaderManager::FindShaderCode(const std::string& name) const {
 	std::string keyName = StripShaderName(name);
 
 	// try it in direct source cache

@@ -30,6 +30,9 @@ ComputeCommandList::ComputeCommandList(
 	CopyCommandList(gxApi, commandAllocatorPool, scratchSpacePool, type)
 {
 	m_commandList = dynamic_cast<gxapi::IComputeCommandList*>(GetCommandList());
+
+	m_computeBindingManager = BindingManager<gxapi::eCommandListType::COMPUTE>(m_graphicsApi, m_commandList);
+	m_computeBindingManager.SetDescriptorHeap(GetCurrentScratchSpace());
 }
 
 
