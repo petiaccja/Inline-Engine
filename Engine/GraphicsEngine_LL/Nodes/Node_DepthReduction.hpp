@@ -44,6 +44,7 @@ protected:
 	GraphicsContext m_graphicsContext;
 	Binder m_binder;
 	BindParameter m_depthBindParam;
+	BindParameter m_outputBindParam;
 	std::unique_ptr<gxapi::IPipelineState> m_CSO;
 
 private:

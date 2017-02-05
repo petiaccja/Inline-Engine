@@ -54,6 +54,14 @@ DepthReduction::DepthReduction(gxapi::IGraphicsApi * graphicsApi, unsigned width
 	depthBindParamDesc.relativeChangeFrequency = 0;
 	depthBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+	BindParameterDesc outputBindParamDesc;
+	m_outputBindParam = BindParameter(eBindParameterType::UNORDERED, 0);
+	outputBindParamDesc.parameter = m_outputBindParam;
+	outputBindParamDesc.constantSize = 0;
+	outputBindParamDesc.relativeAccessFrequency = 0;
+	outputBindParamDesc.relativeChangeFrequency = 0;
+	outputBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
 	gxapi::StaticSamplerDesc samplerDesc;
 	samplerDesc.shaderRegister = 0;
 	samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
@@ -64,7 +72,7 @@ DepthReduction::DepthReduction(gxapi::IGraphicsApi * graphicsApi, unsigned width
 	samplerDesc.registerSpace = 0;
 	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-	m_binder = Binder{ graphicsApi,{ sampBindParamDesc, depthBindParamDesc },{ samplerDesc } };
+	m_binder = Binder{ graphicsApi,{ sampBindParamDesc, depthBindParamDesc, outputBindParamDesc },{ samplerDesc } };
 }
 
 
@@ -138,10 +146,10 @@ void DepthReduction::RenderScene(
 	unsigned dispatchW, dispatchH;
 	setWorkgroupSize(std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
 
-	commandList.BindCompute(gxeng::BindParameter(), uav);
 	commandList.SetPipelineState(m_CSO.get());
 	commandList.SetComputeBinder(&m_binder);
 	commandList.BindCompute(m_depthBindParam, depthTex.QueryRead());
+	commandList.BindCompute(m_outputBindParam, uav);
 	commandList.Dispatch(dispatchW, dispatchH, 1);
 	commandList.ResourceBarrier(gxapi::UavBarrier());
 }
