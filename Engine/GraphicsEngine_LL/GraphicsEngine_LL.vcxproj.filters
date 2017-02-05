@@ -410,16 +410,14 @@
     <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
       <Filter>Nodes\Shaders</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Nodes\Shaders\DepthPrepass.hlsl">
+    <None Include="Nodes\Shaders\DepthPrepass.hlsl">
       <Filter>Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DepthReduction.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DepthReduction.hlsl">
       <Filter>Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\ForwardRender.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\ForwardRender.hlsl">
       <Filter>Nodes\Shaders</Filter>
-    </FxCompile>
+    </None>
   </ItemGroup>
 </Project>

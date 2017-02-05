@@ -147,11 +147,11 @@ void DepthReduction::RenderScene(
 	setWorkgroupSize(std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
 
 	commandList.SetPipelineState(m_CSO.get());
-	commandList.SetGraphicsBinder(&m_binder);
-	commandList.BindGraphics(m_depthBindParam, depthTex.QueryRead());
-	commandList.BindGraphics(m_outputBindParam, uav);
+	commandList.SetComputeBinder(&m_binder);
+	commandList.BindCompute(m_depthBindParam, depthTex.QueryRead());
+	commandList.BindCompute(m_outputBindParam, uav);
 	commandList.Dispatch(dispatchW, dispatchH, 1);
-	commandList.ResourceBarrier(gxapi::UavBarrier());
+	commandList.ResourceBarrier(gxapi::UavBarrier{const_cast<gxapi::IResource*>(uav.GetResource()._GetResourcePtr())});
 }
 
 
