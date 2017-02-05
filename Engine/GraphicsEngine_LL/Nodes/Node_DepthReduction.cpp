@@ -117,7 +117,7 @@ void DepthReduction::InitRenderTarget() {
 	uavDesc.mipLevel = 0;
 	uavDesc.planeIndex = 0;
 
-	Texture2D tex = m_graphicsContext.CreateTexture2D(m_width, m_height, formatDepthReductionResult, 1);
+	Texture2D tex = m_graphicsContext.CreateRWTexture2D(m_width, m_height, formatDepthReductionResult, 1);
 	m_graphicsContext.CreateUav(tex, formatDepthReductionResult, uavDesc);
 }
 
