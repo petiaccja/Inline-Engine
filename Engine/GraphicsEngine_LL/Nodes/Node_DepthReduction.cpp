@@ -104,7 +104,7 @@ Task DepthReduction::GetTask() {
 		this->GetOutput<0>().Set(m_uav);
 
 		{
-			ComputeCommandList cmdList = context.GetComputeCommandList();
+			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
 
 			RenderScene(m_uav, depthTex, cmdList);
 			result.AddCommandList(std::move(cmdList));
@@ -141,15 +141,15 @@ void DepthReduction::InitRenderTarget() {
 void DepthReduction::RenderScene(
 	const gxeng::RWTextureView2D& uav,
 	pipeline::Texture2D& depthTex,
-	ComputeCommandList& commandList
+	GraphicsCommandList& commandList
 ) {
 	unsigned dispatchW, dispatchH;
 	setWorkgroupSize(std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
 
 	commandList.SetPipelineState(m_CSO.get());
-	commandList.SetComputeBinder(&m_binder);
-	commandList.BindCompute(m_depthBindParam, depthTex.QueryRead());
-	commandList.BindCompute(m_outputBindParam, uav);
+	commandList.SetGraphicsBinder(&m_binder);
+	commandList.BindGraphics(m_depthBindParam, depthTex.QueryRead());
+	commandList.BindGraphics(m_outputBindParam, uav);
 	commandList.Dispatch(dispatchW, dispatchH, 1);
 	commandList.ResourceBarrier(gxapi::UavBarrier());
 }

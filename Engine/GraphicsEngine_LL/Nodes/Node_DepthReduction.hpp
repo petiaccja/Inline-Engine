@@ -52,7 +52,7 @@ private:
 	void RenderScene(
 		const gxeng::RWTextureView2D& uav,
 		pipeline::Texture2D& depthTex,
-		ComputeCommandList& commandList);
+		GraphicsCommandList& commandList);
 };
 
 
