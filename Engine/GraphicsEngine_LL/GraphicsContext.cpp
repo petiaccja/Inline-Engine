@@ -69,6 +69,9 @@ Texture2D GraphicsContext::CreateRWTexture2D(uint64_t width, uint32_t height, gx
 
 	gxapi::eResourceFlags flags = gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS;
 	if (renderTarget) { flags += gxapi::eResourceFlags::ALLOW_RENDER_TARGET; }
+
+	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, format, flags, arraySize);
+	return texture;
 }
 
 
