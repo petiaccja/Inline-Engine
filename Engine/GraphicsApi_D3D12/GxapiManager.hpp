@@ -3,6 +3,8 @@
 #include "../GraphicsApi_LL/IGxapiManager.hpp"
 
 #include <d3d12.h>
+#include <dxgi1_4.h>
+#include <wrl.h>
 
 
 namespace inl {
@@ -11,6 +13,8 @@ namespace gxapi_dx12 {
 
 class GxapiManager : public gxapi::IGxapiManager {
 public:
+	GxapiManager();
+
 	std::vector<gxapi::AdapterInfo> EnumerateAdapters() override;
 
 	gxapi::ISwapChain* CreateSwapChain(gxapi::SwapChainDesc desc, gxapi::ICommandQueue* flushThisQueue) override;
@@ -33,6 +37,10 @@ public:
 protected:
 	static const char* GetTarget(gxapi::eShaderType type);
 	static gxapi::ShaderProgramBinary ConvertShaderOutput(HRESULT hr, ID3DBlob* code, ID3DBlob* error);
+private:
+	Microsoft::WRL::ComPtr<IDXGIFactory4> m_factory;
+	Microsoft::WRL::ComPtr<ID3D12Debug> m_debugController;
+	unsigned m_numHardwareAdapters = 0;
 };
 
 

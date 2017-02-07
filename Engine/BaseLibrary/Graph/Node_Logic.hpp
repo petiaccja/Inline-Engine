@@ -26,7 +26,7 @@ public:
 	void Update() override final {
 		if (lastActivated >= 0) {
 			InputPort<AnyType>* port = static_cast<InputPort<AnyType>*>(GetInput(lastActivated));
-			GetOutput<0>().Set(*port->Get());
+			GetOutput<0>().Set(port->Get());
 			lastActivated = -1;
 		}
 	}
@@ -87,7 +87,7 @@ public:
 	void Update() override final {
 		if (lastActivated >= 0 && activationMap == 0b11'1111) {
 			InputPort<AnyType>* port = static_cast<InputPort<AnyType>*>(GetInput(lastActivated + 1));
-			GetOutput<0>().Set(*port->Get());
+			GetOutput<0>().Set(port->Get());
 		}
 	}
 

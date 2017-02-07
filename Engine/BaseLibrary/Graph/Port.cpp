@@ -1,13 +1,45 @@
 #include "Port.hpp"
 #include "Node.hpp"
 
+#include <cassert>
+
+
 namespace exc {
 
 
-////////////////////////////////////////////////////////////////////////////////
+
+//------------------------------------------------------------------------------
+// AnyType
+//------------------------------------------------------------------------------
+
+AnyType::AnyType() {}
+
+AnyType::AnyType(const AnyType& rhs) {
+	m_data = std::unique_ptr<AnyTypeData>(rhs.m_data->Clone());
+}
+
+AnyType::AnyType(AnyType&& rhs) {
+	m_data = std::move(rhs.m_data);
+}
+
+AnyType& AnyType::operator=(const AnyType& rhs) {
+	m_data = std::unique_ptr<AnyTypeData>(rhs.m_data->Clone());
+	return *this;
+}
+
+AnyType& AnyType::operator=(AnyType&& rhs) {
+	m_data = std::move(rhs.m_data);
+	return *this;
+}
+
+AnyType::AnyType(std::unique_ptr<AnyTypeData> data) {
+	m_data = std::move(data);
+}
+
+
+//------------------------------------------------------------------------------
 // InputPortBase
-//
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 
 
 InputPortBase::InputPortBase() {
@@ -65,10 +97,10 @@ void InputPortBase::NotifyAll() {
 
 
 
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 // OutputPortBase
 //
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
 
 OutputPortBase::OutputPortBase() {
 	// = default
@@ -85,42 +117,13 @@ bool OutputPortBase::Link(InputPortBase* destination) {
 		return false;
 	}
 
-	// anytype ports receive special treatment
-	if (destination->GetType() == typeid(AnyType)) {
-		InputPort<AnyType>* destSpec = static_cast<InputPort<AnyType>*>(destination);
-
-		// TYPE CONSTRAINT NOT IMPLEMENTED YET
-		//if (destSpec->GetCurrentType() == this->GetType() || destSpec->GetCurrentType() == typeid(AnyType)) {
-		//	// set link
-		//	anyLinks.insert(destination);
-		//	destination->SetLinkState(this);
-
-		//	// create a type constraint
-		//	// TODO...
-
-		//	return true;
-		//}
-		//else {
-		//	return false;
-		//}
-
-		anyLinks.insert(destination);
-		destination->SetLinkState(this);
-		return true;
-	}
-	else if (destination->GetType() == this->GetType()) {
+	if (destination->IsCompatible(GetType()) || GetType() == typeid(AnyType)) {
 		links.insert(destination);
 		destination->SetLinkState(this);
 		return true;
 	}
-	else if (this->GetType() == typeid(AnyType)) {
-		links.insert(destination);
-		destination->SetLinkState(this);
-		return true;
-	}
-	else {
-		return false;
-	}
+
+	return false;
 }
 
 
@@ -133,13 +136,6 @@ void OutputPortBase::Unlink(InputPortBase* other) {
 		other->SetLinkState(nullptr);
 		return;
 	}
-
-	it = anyLinks.find(other);
-	if (it != anyLinks.end()) {
-		anyLinks.erase(it);
-		other->SetLinkState(nullptr);
-		return;
-	}
 }
 
 
@@ -147,30 +143,26 @@ void OutputPortBase::UnlinkAll() {
 	for (auto v : links) {
 		v->SetLinkState(nullptr);
 	}
-	for (auto v : anyLinks) {
-		v->SetLinkState(nullptr);
-	}
 	links.clear();
-	anyLinks.clear();
 }
 
 OutputPortBase::LinkIterator OutputPortBase::begin() {
-	return LinkIterator(this, true);
+	return links.begin();
 }
 OutputPortBase::LinkIterator OutputPortBase::end() {
-	return LinkIterator(this, false);
+	return links.end();
 }
 OutputPortBase::ConstLinkIterator OutputPortBase::begin() const {
-	return ConstLinkIterator(this, true);
+	return links.begin();
 }
 OutputPortBase::ConstLinkIterator OutputPortBase::end() const {
-	return ConstLinkIterator(this, false);
+	return links.end();
 }
 OutputPortBase::ConstLinkIterator OutputPortBase::cbegin() const {
-	return ConstLinkIterator(this, true);
+	return links.cbegin();
 }
 OutputPortBase::ConstLinkIterator OutputPortBase::cend() const {
-	return ConstLinkIterator(this, false);
+	return links.cend();
 }
 
 
@@ -180,10 +172,12 @@ OutputPortBase::ConstLinkIterator OutputPortBase::cend() const {
 // if this function definition is inlined to the class.
 void OutputPort<void>::Set() {
 	for (auto v : links) {
-		static_cast<InputPort<void>*>(v)->Set();
-	}
-	for (auto v : anyLinks) {
-		static_cast<InputPort<AnyType>*>(v)->Set();
+		if (v->GetType() == typeid(void)) {
+			static_cast<InputPort<void>*>(v)->Set();
+		}
+		else {
+			assert(false);
+		}
 	}
 }
 
