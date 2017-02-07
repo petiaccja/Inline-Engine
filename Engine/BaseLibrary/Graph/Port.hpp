@@ -6,6 +6,8 @@
 #include <type_traits>
 #include <functional>
 #include <iterator>
+#include <memory>
+#include <unordered_map>
 
 namespace exc {
 
@@ -13,10 +15,117 @@ class InputPortBase;
 class OutputPortBase;
 class NodeBase;
 
+template <class T>
+class OutputPort;
+
+template <class T, class C>
+class InputPort;
+
 
 /// <summary> Special type to parametrize Ports with.
 /// Allows this kind of port to be connected to any type. </summary>
 class AnyType {
+	template <class T, class C>
+	friend class InputPort;
+	friend class OutputPort<AnyType>;
+private:
+	class AnyTypeData {
+	public:
+		virtual ~AnyTypeData() = default;
+		virtual void* Get() = 0;
+		virtual const void* Get() const = 0;
+		virtual size_t Size() const = 0;
+		virtual AnyTypeData* Clone() const = 0;
+		virtual std::type_index GetType() const = 0;
+	};
+public:
+	AnyType();
+	AnyType(const AnyType& rhs);
+	AnyType(AnyType&& rhs);
+	AnyType& operator=(const AnyType& rhs);
+	AnyType& operator=(AnyType&& rhs);
+
+	operator bool() { return (bool)m_data; }
+	const void* Get() const { return m_data->Get(); }
+	size_t Size() const { return m_data->Size(); }
+	std::type_index GetType() const { return m_data->GetType(); }
+private:
+	AnyType(std::unique_ptr<AnyTypeData> data);
+private:
+	std::unique_ptr<AnyTypeData> m_data;
+};
+
+
+/// <summary>
+/// Converts types when passed between output->input ports.
+/// <para> To implement converters for a certain type, specialize
+///		this class for the type. The specialization must have an operator[]
+///		taking an std::type_index, and returning a (const void*, void) functor.
+///		The functor should convert the source type (defined by the type_index param)
+///		to the destination type (defined by the specialization). </para>
+/// <para> If the conversion is not possible or not implemented, the operator[]
+///		method should throw an std::out_of_range. </para>
+/// </summary>
+template <class T>
+class PortConverter {
+public:
+	using Functor = void(*)(const void*, void*);
+	Functor operator[](std::type_index type) const {
+		throw std::out_of_range("Cannot find a converter for this type.");
+	}
+	bool CanConvert(std::type_index type) const {
+		return false;
+	}
+};
+
+
+/// <summary> Use this as a helper to implement <see cref="PortConverter"/> specializations.
+/// <para> Inherit from this class, then pass the conversion functions to its constructor.
+///		The conversion functions should not be member functions, and must have the signature
+///		DestinationType(const SourceType&amp;). Argument can be passed by const-ref or value. </para>
+///	</summary>
+template <class T>
+class PortConverterCollection {
+public:
+	template <class... Functions>
+	explicit PortConverterCollection(Functions... functions) {
+		RegisterFunctions(functions...);
+	}
+
+	auto operator[](std::type_index sourceType) const -> const std::function<void(const void*, void*)>& {
+		auto it = m_converters.find(sourceType);
+		if (it != m_converters.end()) {
+			return it->second;
+		}
+		else {
+			throw std::out_of_range("Cannot find a converter for this type.");
+		}
+	}
+
+	bool CanConvert(std::type_index type) const {
+		return m_converters.count(type) > 0;
+	}
+private:
+	template <class Head, class... Functions>
+	void RegisterFunctions(Head head, Functions... functions) {
+		RegisterFunction(head);
+		RegisterFunctions(functions...);
+	}
+	void RegisterFunctions() {}
+
+	template <class SourceT>
+	void RegisterFunction(T(*function)(SourceT)) {
+		auto convfunc = [function](const void* src, void* dst)
+		{
+			*reinterpret_cast<T*>(dst) = function(*reinterpret_cast<const SourceT*>(src));
+		};
+		m_converters.insert({
+			typeid(SourceT),
+			convfunc
+		});
+	}
+private:
+	std::unordered_map<std::type_index, std::function<void(const void*, void*)>> m_converters;
 };
 
 
@@ -30,6 +139,7 @@ class AnyType {
 /// </summary>
 class InputPortBase {
 	friend class OutputPortBase;
+	friend class OutputPort<AnyType>;
 public:
 	InputPortBase();
 	~InputPortBase();
@@ -42,6 +152,8 @@ public:
 
 	/// <summary> Get typeid of underlying data. </summary>
 	virtual std::type_index GetType() const = 0;
+	/// <summary> Get if can convert from certain type. </summary>
+	virtual bool IsCompatible(std::type_index type) const = 0;
 
 	/// <summary> Link this port to an output port. </summary>
 	/// <returns> True if succesfully linked. Make sures types are compatible. </returns>
@@ -59,10 +171,14 @@ public:
 	/// <summary> Get which output port it is linked to. </summary>
 	/// <returns> The other end. Null if not linked. </returns>
 	OutputPortBase* GetLink() const;
+
+	/// <summary> Set type that is to be converted automatically. </summary>
+	template <class U>
+	void SetConvert(const U& u);
 protected:
 	OutputPortBase* link;
 	void NotifyAll();
-
+	virtual void SetConvert(const void* object, std::type_index type) = 0;
 private:
 	// should only be called by an output port when it's ready with building up the linkage
 	// this function only sets internal state of the inputport to represent the link set up by outputport
@@ -82,47 +198,9 @@ private:
 /// to multiple input ports at the same time.
 /// </para>
 class OutputPortBase {
-private:
-	friend class LinkIteratorBase;
-
-	template <class T>
-	class LinkIteratorBase : public std::iterator<std::bidirectional_iterator_tag, T> {
-	private:
-		using ContainerIterator = typename std::conditional<std::is_const<T>::value, std::set<InputPortBase*>::const_iterator, std::set<InputPortBase*>::iterator>::type;
-		using ParentType = typename std::conditional<std::is_const<T>::value, const OutputPortBase, OutputPortBase>::type;
-
-		friend class OutputPortBase;
-		LinkIteratorBase(ParentType* parent, bool isBegin);
-	public:
-		LinkIteratorBase();
-		LinkIteratorBase(const LinkIteratorBase&) = default;
-		LinkIteratorBase& operator=(const LinkIteratorBase&) = default;
-
-		template <class U = const LinkIteratorBase<typename std::enable_if<!std::is_const<T>::value, const T>::type>>
-		LinkIteratorBase(U& rhs);
-		template <class U = const LinkIteratorBase<typename std::enable_if<!std::is_const<T>::value, const T>::type>>
-		LinkIteratorBase& operator=(U& rhs);
-
-		T& operator*();
-		T* operator->();
-
-		bool operator==(const LinkIteratorBase&);
-		bool operator!=(const LinkIteratorBase&);
-
-		LinkIteratorBase& operator++();
-		LinkIteratorBase operator++(int);
-		LinkIteratorBase& operator--();
-		LinkIteratorBase operator--(int);
-	private:
-		ParentType* parent;
-		std::set<InputPortBase*>::iterator containerIt;
-		int currentContainer;
-		static constexpr int NORMAL = 1;
-		static constexpr int ANYLINK = 2;
-	};
 public:
-	using LinkIterator = LinkIteratorBase<InputPortBase>;
-	using ConstLinkIterator = LinkIteratorBase<const InputPortBase>;
+	using LinkIterator = std::set<InputPortBase*>::iterator;
+	using ConstLinkIterator = std::set<InputPortBase*>::const_iterator;
 public:
 	OutputPortBase();
 	~OutputPortBase();
@@ -150,102 +228,8 @@ public:
 	ConstLinkIterator cend() const;
 protected:
 	std::set<InputPortBase*> links;
-	std::set<InputPortBase*> anyLinks;
 };
 
-
-
-template <class T>
-OutputPortBase::LinkIteratorBase<T>::LinkIteratorBase(ParentType* parent, bool isBegin) : parent(parent) {
-	if (isBegin) {
-		currentContainer = NORMAL;
-		containerIt = parent->links.begin();
-		if (containerIt == parent->links.end()) {
-			containerIt = parent->anyLinks.begin();
-			currentContainer = ANYLINK;
-		}
-	}
-	else {
-		currentContainer = ANYLINK;
-		containerIt = parent->anyLinks.end();
-	}
-}
-template <class T>
-OutputPortBase::LinkIteratorBase<T>::LinkIteratorBase() {
-	currentContainer = ANYLINK;
-	parent = nullptr;
-}
-
-template <class T>
-template <class U>
-OutputPortBase::LinkIteratorBase<T>::LinkIteratorBase(U& rhs) {
-	parent = rhs.parent;
-	currentContainer = rhs.currentContainer;
-	containerIt = rhs.containerIt;
-}
-template <class T>
-template <class U>
-OutputPortBase::LinkIteratorBase<T>& OutputPortBase::LinkIteratorBase<T>::operator=(U& rhs) {
-	parent = rhs.parent;
-	currentContainer = rhs.currentContainer;
-	containerIt = rhs.containerIt;
-}
-
-template <class T>
-T& OutputPortBase::LinkIteratorBase<T>::operator*() {
-	return **containerIt;
-}
-
-template <class T>
-T* OutputPortBase::LinkIteratorBase<T>::operator->() {
-	return *containerIt;
-}
-
-template <class T>
-bool OutputPortBase::LinkIteratorBase<T>::operator==(const LinkIteratorBase& rhs) {
-	return (parent == rhs.parent && currentContainer == rhs.currentContainer && containerIt == rhs.containerIt);
-}
-
-template <class T>
-bool OutputPortBase::LinkIteratorBase<T>::operator!=(const LinkIteratorBase& rhs) {
-	return *this != rhs;
-}
-
-template <class T>
-OutputPortBase::LinkIteratorBase<T>& OutputPortBase::LinkIteratorBase<T>::operator++() {
-	containerIt++;
-	if (currentContainer == NORMAL && containerIt == parent->links.end()) {
-		currentContainer = ANYLINK;
-		containerIt = parent->anylinks.begin();
-	}
-	return *this;
-}
-
-template <class T>
-OutputPortBase::LinkIteratorBase<T>  OutputPortBase::LinkIteratorBase<T>::operator++(int) {
-	auto copy = *this;
-	++(*this);
-	return copy;
-}
-
-template <class T>
-OutputPortBase::LinkIteratorBase<T>& OutputPortBase::LinkIteratorBase<T>::operator--() {
-	if (currentContainer == ANYLINK && containerIt == parent->anyLinks.begin()) {
-		currentContainer = NORMAL;
-		containerIt = --(parent->links.end());
-	}
-	else {
-		--containerIt;
-	}
-	return *this;
-}
-
-template <class T>
-OutputPortBase::LinkIteratorBase<T>  OutputPortBase::LinkIteratorBase<T>::operator--(int) {
-	auto copy = *this;
-	--(*this);
-	return copy;
-}
 
 
 /// <summary>
@@ -254,8 +238,7 @@ OutputPortBase::LinkIteratorBase<T>  OutputPortBase::LinkIteratorBase<T>::operat
 /// just use this template, but it may be necessary to specialize this template
 /// for certain data types to improve efficiency or change behaviour. </para>
 /// </summary>
-
-template <class T>
+template <class T, class ConverterT = PortConverter<T>>
 class InputPort : public InputPortBase {
 public:
 	InputPort() {
@@ -312,11 +295,36 @@ public:
 		return typeid(T);
 	}
 
+	virtual bool IsCompatible(std::type_index type) const override;
+protected:
+	virtual void SetConvert(const void* object, std::type_index type) override;
 private:
 	bool isSet;
 	T data;
+	ConverterT converter;
 };
 
+
+template <class T, class ConverterT = PortConverter<T>>
+void InputPort<T, ConverterT>::SetConvert(const void* object, std::type_index type) {
+	if (type == typeid(T)) {
+		data = *reinterpret_cast<const T*>(object);
+	}
+	else {
+		converter[type](object, &data);
+	}
+}
+
+
+template <class T, class ConverterT = PortConverter<T>>
+bool InputPort<T, ConverterT>::IsCompatible(std::type_index type) const {
+	if (type == typeid(T)) {
+		return true;
+	}
+	else {
+		return converter.CanConvert(type);
+	}
+}
 
 
 /// <summary>
@@ -350,9 +358,9 @@ public:
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-/// Specialization for void type ports
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
+// Specialization for void type ports
+//------------------------------------------------------------------------------
 template <>
 class InputPort<void> : public InputPortBase {
 public:
@@ -388,15 +396,23 @@ public:
 	std::type_index GetType() const override {
 		return typeid(void);
 	}
+
+	bool IsCompatible(std::type_index type) const override {
+		return true;
+	}
+protected:
+	void SetConvert(const void* object, std::type_index type) override {
+		// conversion does nothing
+	}
 private:
 	bool isSet;
 };
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-/// Specialization for void type ports.
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
+// Specialization for void type ports.
+//------------------------------------------------------------------------------
 template <>
 class OutputPort<void> : public OutputPortBase {
 public:
@@ -421,40 +437,15 @@ public:
 };
 
 
+class NullPortConverter {};
 
-////////////////////////////////////////////////////////////////////////////////
-/// A special object which is used with AnyType ports.
-////////////////////////////////////////////////////////////////////////////////
-class AnyTypeData {
-	friend class OutputPort<AnyType>;
+//------------------------------------------------------------------------------
+// Template specialization for AnyType ports.
+//------------------------------------------------------------------------------
+template <class ConverterT>
+class InputPort<AnyType, ConverterT> : public InputPortBase {
 public:
-	/// Get pointer to stored object's memory layout.
-	/// \return Pointer to the stored object, null if empty.
-	virtual void* Get() = 0;
-
-	/// Get const pointer to stored object's memory layout.
-	/// \return Pointer to the stored object, null if empty.
-	virtual const void* Get() const = 0;
-
-	/// Get the size of the stored object.
-	/// \return Size of the object in bytes, 0 if empty.
-	virtual size_t Size() const = 0;
-
-	virtual ~AnyTypeData() = default;
-private:
-	// Try to set stored object on an input port. If target has
-	// incompatible type, false is returned.
-	virtual bool SendToInputport(InputPortBase* target) const = 0;
-};
-
-
-////////////////////////////////////////////////////////////////////////////////
-/// Template specialization for AnyType ports.
-////////////////////////////////////////////////////////////////////////////////
-template <>
-class InputPort<AnyType> : public InputPortBase {
-public:
-	InputPort() : currentType(typeid(AnyType)), data(nullptr) {
+	InputPort() : data(nullptr) {
 	}
 
 	/// Set data as input.
@@ -462,22 +453,9 @@ public:
 	/// \return Returns true, always. Should return false if type constraints \
 	/// don't allow insertion of data, but type constraints are not implemented yet.
 	template <class U>
-	bool Set(const U& data) {
-		// AnyType is an invalid type
-		static_assert(!std::is_same<U, AnyType>::value, "AnyType is not a valid data type for Set");
-
-		// check if U equals currentType
-		// can't set mismatching type!
-		// TYPE CONSTRAINT NOT IMPLEMENTED YET
-		//if (currentType != typeid(U)) {
-		//	//return false;
-		//}
-
-		// delete old/previous data if any
-		Clear();
-
+	void Set(const U& data) {
 		// create new data
-		class AnyTypeDataSpec : public AnyTypeData {
+		class AnyTypeDataSpec : public AnyType::AnyTypeData {
 		public:
 			AnyTypeDataSpec() = default;
 			AnyTypeDataSpec(const U& data) : data(data) {};
@@ -485,29 +463,19 @@ public:
 			void* Get() override { return reinterpret_cast<void*>(&data); }
 			const void* Get() const override { return reinterpret_cast<const void*>(&data); }
 			size_t Size() const override { return sizeof(data); }
+			std::type_index GetType() const override { return typeid(U); }
+			AnyTypeData* Clone() const override { return new AnyTypeDataSpec{ data }; }
 		private:
-			bool SendToInputport(InputPortBase* target) const override {
-				if (target->GetType() == typeid(AnyType)) {
-					InputPort<AnyType>* targetSpec = static_cast<InputPort<AnyType>*>(target);
-					return targetSpec->Set(data);
-				}
-				else {
-					InputPort<U>* targetSpec = dynamic_cast<InputPort<U>*>(target);
-					if (targetSpec != nullptr) {
-						targetSpec->Set(data);
-						return true;
-					}
-					else {
-						return false;
-					}
-				}
-			}
 			U data;
 		};
-		this->data = new AnyTypeDataSpec{ data };
+		this->data = AnyType(std::unique_ptr<AnyType::AnyTypeData>(new AnyTypeDataSpec{ data }));
 
 		NotifyAll();
-		return true;
+	}
+
+	template <>
+	void Set<AnyType>(const AnyType& in) {
+		data = in;
 	}
 
 	/// Set void data.
@@ -515,84 +483,51 @@ public:
 	bool Set() {
 		Clear();
 
-		class AnyTypeDataVoid : public AnyTypeData {
+		class AnyTypeDataVoid : public AnyType::AnyTypeData {
 		public:
-			virtual void* Get() {
-				return nullptr;
-			}
-			virtual const void* Get() const {
-				return nullptr;
-			}
-			virtual size_t Size() const {
-				return 0;
-			}
-		private:
-			virtual bool SendToInputport(InputPortBase* target) const {
-				if (target->GetType() == typeid(AnyType)) {
-					InputPort<AnyType>* targetSpec = static_cast<InputPort<AnyType>*>(target);
-					return targetSpec->Set();
-				}
-				else if (target->GetType() == typeid(void)) {
-					InputPort<void>* targetSpec = static_cast<InputPort<void>*>(target);
-					targetSpec->Set();
-					return true;
-				}
-				else {
-					return false;
-				}
-			}
+			virtual void* Get() { return nullptr; }
+			virtual const void* Get() const { return nullptr; }
+			virtual size_t Size() const { return 0; }
+			std::type_index GetType() const { return typeid(void); }
+			AnyTypeData* Clone() const override { return new AnyTypeDataVoid{}; }
 		};
-		this->data = new AnyTypeDataVoid();
+		this->data = AnyType(std::unique_ptr<AnyType::AnyTypeData>(new AnyTypeDataVoid()));
 
 		NotifyAll();
 		return true;
 	}
 
-	/// Get stored data.
-	/// \return Pointer to a special object constaining the data. \
-	/// Null if no data is stored.
-	AnyTypeData* Get() {
-		return data;
-	}
-	/// Get stored data.
-	/// \return Pointer to a special object constaining the data. \
-	/// Null if no data is stored.
-	const AnyTypeData* Get() const {
+	AnyType Get() const {
 		return data;
 	}
 
-	/// Clear currently set data.
 	void Clear() override {
-		if (data) {
-			delete data;
-			data = nullptr;
-		}
+		data = AnyType{};
 	}
 
-	/// Check if there's any data set.
 	bool IsSet() const override {
-		return data != nullptr;
+		return data.Get() != nullptr;
 	}
-	/// Get type of this port.
-	/// \return Always typeid(AnyType).
+
 	std::type_index GetType() const override {
 		return typeid(AnyType);
 	}
-	/// Get current type.
-	/// Used by type constraints, which are not implemented yet, so it's irrelevant.
-	std::type_index GetCurrentType() const {
-		return currentType;
-	}
 
+	bool IsCompatible(std::type_index type) const override {
+		return type != typeid(void);
+	}
+protected:
+	void SetConvert(const void* object, std::type_index type) override {
+		throw std::invalid_argument("AnyType ports cannot convert anything.");
+	}
 private:
-	AnyTypeData* data;
-	std::type_index currentType;
+	AnyType data;
 };
 
 
-////////////////////////////////////////////////////////////////////////////////
-/// Template specialization for AnyType ports.
-////////////////////////////////////////////////////////////////////////////////
+//------------------------------------------------------------------------------
+// Template specialization for AnyType ports.
+//------------------------------------------------------------------------------
 template <>
 class OutputPort<AnyType> : public OutputPortBase {
 public:
@@ -603,12 +538,14 @@ public:
 	/// linked to this output port. For example, a recieved "float" type won't
 	/// be sent to a linked "int" type input port.
 	/// \param data A special object which contains the real data.
-	void Set(const AnyTypeData& data) {
-		for (auto v : links) {
-			data.SendToInputport(v);
-		}
-		for (auto v : anyLinks) {
-			data.SendToInputport(v);
+	void Set(const AnyType& data) {
+		for (auto& v : links) {
+			if (v->GetType() != typeid(AnyType)) {
+				v->SetConvert(data.Get(), data.GetType());
+			}
+			else {
+				static_cast<InputPort<AnyType>*>(v)->Set(data);
+			}
 		}
 	}
 
@@ -630,54 +567,38 @@ private:
 template <class T>
 void OutputPort<T>::Set(const T& data) {
 	for (auto v : links) {
-		static_cast<InputPort<T>*>(v)->Set(data);
-	}
-	for (auto v : anyLinks) {
-		static_cast<InputPort<AnyType>*>(v)->Set(data);
+		if (v->GetType() == GetType()) {
+			static_cast<InputPort<T>*>(v)->Set(data);
+		}
+		else if (v->GetType() == typeid(AnyType)) {
+			static_cast<InputPort<AnyType>*>(v)->Set(data);
+		}
+		else {
+			v->SetConvert(data);
+		}
 	}
 }
 
 
 
-// rough prototype for enforcing types of AnyType ports
-// type constraint is not that easy so i'll keep it for later
-
-// cases:
-// OUTPUT	-	INPUT
-// anytype	-	anytype
-// t		-	anytype
-// anytype	-	t
-/*
-class TypeConstraint {
-public:
-	TypeConstraint(OutputPort<AnyType>& op, InputPort<AnyType>& ip) {
-
+//------------------------------------------------------------------------------
+// Misc methods
+//------------------------------------------------------------------------------
+template <class U>
+void InputPortBase::SetConvert(const U& u) {
+	if (GetType() != typeid(AnyType)) {
+		SetConvert(reinterpret_cast<const void*>(&u), typeid(U));
 	}
-
-	TypeConstraint(OutputPort<AnyType>& op, InputPortBase& ip) {
-		// redirect double-anytype calls
-		if (ip.GetType() == typeid(AnyType)) {
-			new (this) TypeConstraint(op, static_cast<InputPort<AnyType>&>(ip));
-			return;
-		}
-
-		// create constraint
+	else {
+		static_cast<InputPort<AnyType>*>(this)->Set(u);
 	}
+}
 
-	TypeConstraint(OutputPortBase& op, InputPort<AnyType>& ip) {
-		// redirect double-anytype calls
-		if (op.GetType() == typeid(AnyType)) {
-			new (this) TypeConstraint(static_cast<OutputPort<AnyType>&>(op), ip);
-			return;
-		}
 
-		// create constraint
-	}
-};
-*/
-
-// explicit instantiations
-extern template class InputPort<AnyType>;
+//------------------------------------------------------------------------------
+// Explicit instantiations
+//------------------------------------------------------------------------------
+extern template class InputPort<AnyType, NullPortConverter>;
 extern template class OutputPort<AnyType>;
 
 } // namespace exc
