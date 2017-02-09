@@ -32,10 +32,9 @@ static void setWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsign
 	dispatchH = float(gh) / groupSizeH;
 }
 
-DepthReduction::DepthReduction(gxapi::IGraphicsApi * graphicsApi, unsigned width, unsigned height):
-	m_binder(graphicsApi, {}),
-	m_width(width),
-	m_height(height)
+
+DepthReduction::DepthReduction(gxapi::IGraphicsApi * graphicsApi):
+	m_binder(graphicsApi, {})
 {
 	this->GetInput<0>().Set({});
 
@@ -76,9 +75,12 @@ DepthReduction::DepthReduction(gxapi::IGraphicsApi * graphicsApi, unsigned width
 }
 
 
-void DepthReduction::InitGraphics(const GraphicsContext & context) {
+void DepthReduction::InitGraphics(const GraphicsContext& context) {
 	m_graphicsContext = context;
 
+	auto swapChainDesc = context.GetSwapChainDesc();
+	m_width = swapChainDesc.width;
+	m_height = swapChainDesc.height;
 	InitRenderTarget();
 
 	ShaderParts shaderParts;
@@ -114,13 +116,6 @@ Task DepthReduction::GetTask() {
 
 		return result;
 	} });
-}
-
-
-void DepthReduction::WindowResized(unsigned width, unsigned height) {
-	m_width = width;
-	m_height = height;
-	InitRenderTarget();
 }
 
 

@@ -1,6 +1,7 @@
 #include "GraphicsContext.hpp"
 #include "MemoryManager.hpp"
 
+#include <GraphicsApi_LL/ISwapChain.hpp>
 
 namespace inl {
 namespace gxeng {
@@ -13,6 +14,7 @@ GraphicsContext::GraphicsContext(MemoryManager* memoryManager,
 								 int processorCount,
 								 int deviceCount,
 								 ShaderManager* shaderManager,
+								 gxapi::ISwapChain* swapChain,
 								 gxapi::IGraphicsApi* graphicsApi)
 
 	: m_memoryManager(memoryManager),
@@ -22,6 +24,7 @@ GraphicsContext::GraphicsContext(MemoryManager* memoryManager,
 	m_processorCount(processorCount),
 	m_deviceCount(deviceCount),
 	m_shaderManager(shaderManager),
+	m_swapChain(swapChain),
 	m_graphicsApi(graphicsApi)
 {}
 
@@ -32,6 +35,11 @@ int GraphicsContext::GetProcessorCoreCount() const {
 }
 int GraphicsContext::GetGraphicsDeviceCount() const {
 	return m_deviceCount;
+}
+
+
+gxapi::SwapChainDesc GraphicsContext::GetSwapChainDesc() const {
+	return m_swapChain->GetDesc();
 }
 
 

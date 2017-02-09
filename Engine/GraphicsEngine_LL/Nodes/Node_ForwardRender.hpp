@@ -10,7 +10,6 @@
 #include "../ConstBufferHeap.hpp"
 #include "../GraphicsContext.hpp"
 #include "../PipelineTypes.hpp"
-#include "../WindowResizeListener.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
@@ -20,11 +19,10 @@ class ForwardRender :
 	virtual public GraphicsNode,
 	// Inputs: depth stencil (from depth prepass), geometry, camera, sun
 	virtual public exc::InputPortConfig<pipeline::Texture2D, const EntityCollection<MeshEntity>*, const Camera*, const DirectionalLight*>,
-	virtual public exc::OutputPortConfig<pipeline::Texture2D>,
-	public WindowResizeListener
+	virtual public exc::OutputPortConfig<pipeline::Texture2D>
 {
 public:
-	ForwardRender(gxapi::IGraphicsApi* graphicsApi, unsigned width, unsigned height);
+	ForwardRender(gxapi::IGraphicsApi* graphicsApi);
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
@@ -32,11 +30,9 @@ public:
 
 	Task GetTask() override;
 
-	void WindowResized(unsigned width, unsigned height) override;
-
 protected:
-	unsigned m_width;
-	unsigned m_height;
+	//unsigned m_width;
+	//unsigned m_height;
 
 	RenderTargetView2D m_rtv;
 	TextureView2D m_renderTargetSrv;
@@ -50,7 +46,7 @@ protected:
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 private:
-	void InitRenderTarget();
+	void InitRenderTarget(unsigned width, unsigned height);
 	void RenderScene(
 		DepthStencilView2D& dsv,
 		const EntityCollection<MeshEntity>& entities,

@@ -24,6 +24,7 @@ public:
 					int processorCount = 0,
 					int deviceCount = 0,
 					ShaderManager* shaderManager = nullptr,
+					gxapi::ISwapChain* swapChain = nullptr,
 					gxapi::IGraphicsApi* graphicsApi = nullptr);
 	GraphicsContext(const GraphicsContext& rhs) = default;
 	GraphicsContext(GraphicsContext&& rhs) = default;
@@ -33,6 +34,9 @@ public:
 	// Parallelism
 	int GetProcessorCoreCount() const;
 	int GetGraphicsDeviceCount() const;
+
+	// Swap chain
+	gxapi::SwapChainDesc GetSwapChainDesc() const;
 
 	// Create pipeline textures
 	Texture2D CreateTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1) const;
@@ -68,6 +72,8 @@ private:
 
 	// Shaders and PSOs
 	ShaderManager* m_shaderManager;
+
+	gxapi::ISwapChain* m_swapChain;
 	gxapi::IGraphicsApi* m_graphicsApi;
 };
 

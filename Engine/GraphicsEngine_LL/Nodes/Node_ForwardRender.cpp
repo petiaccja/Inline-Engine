@@ -45,10 +45,8 @@ static void ConvertToSubmittable(
 
 
 
-ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi, unsigned width, unsigned height):
-	m_binder(graphicsApi, {}),
-	m_width(width),
-	m_height(height)
+ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi):
+	m_binder(graphicsApi, {})
 {
 	this->GetInput<0>().Set({});
 
@@ -97,10 +95,11 @@ ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi, unsigned width, 
 }
 
 
-void ForwardRender::InitGraphics(const GraphicsContext & context) {
+void ForwardRender::InitGraphics(const GraphicsContext& context) {
 	m_graphicsContext = context;
 
-	InitRenderTarget();
+	auto swapChainDesc = context.GetSwapChainDesc();
+	InitRenderTarget(swapChainDesc.width, swapChainDesc.height);
 
 	ShaderParts shaderParts;
 	shaderParts.vs = true;
@@ -174,17 +173,10 @@ Task ForwardRender::GetTask() {
 }
 
 
-void ForwardRender::WindowResized(unsigned width, unsigned height) {
-	m_width = width;
-	m_height = height;
-	InitRenderTarget();
-}
-
-
-void ForwardRender::InitRenderTarget() {
+void ForwardRender::InitRenderTarget(unsigned width, unsigned height) {
 	auto format = gxapi::eFormat::R16G16B16A16_FLOAT;
 
-	Texture2D tex = m_graphicsContext.CreateRenderTarget2D(m_width, m_height, format, true);
+	Texture2D tex = m_graphicsContext.CreateRenderTarget2D(width, height, format, true);
 
 	gxapi::RtvTexture2DArray rtvDesc;
 	rtvDesc.activeArraySize = 1;

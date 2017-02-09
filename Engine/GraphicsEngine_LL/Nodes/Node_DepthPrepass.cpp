@@ -45,10 +45,8 @@ static void ConvertToSubmittable(
 
 
 
-DepthPrepass::DepthPrepass(gxapi::IGraphicsApi * graphicsApi, unsigned width, unsigned height):
-	m_binder(graphicsApi, {}),
-	m_width(width),
-	m_height(height)
+DepthPrepass::DepthPrepass(gxapi::IGraphicsApi* graphicsApi):
+	m_binder(graphicsApi, {})
 {
 	this->GetInput<0>().Set({});
 
@@ -84,7 +82,8 @@ DepthPrepass::DepthPrepass(gxapi::IGraphicsApi * graphicsApi, unsigned width, un
 void DepthPrepass::InitGraphics(const GraphicsContext & context) {
 	m_graphicsContext = context;
 
-	InitRenderTarget();
+	auto swapChainDesc = context.GetSwapChainDesc();
+	InitRenderTarget(swapChainDesc.width, swapChainDesc.height);
 
 	ShaderParts shaderParts;
 	shaderParts.vs = true;
@@ -143,21 +142,14 @@ Task DepthPrepass::GetTask() {
 }
 
 
-void DepthPrepass::WindowResized(unsigned width, unsigned height) {
-	m_width = width;
-	m_height = height;
-	InitRenderTarget();
-}
-
-
-void DepthPrepass::InitRenderTarget() {
+void DepthPrepass::InitRenderTarget(unsigned width, unsigned height) {
 	using gxapi::eFormat;
 
 	auto formatDepthStencil = eFormat::D32_FLOAT_S8X24_UINT;
 	auto formatColor = eFormat::R32_FLOAT_X8X24_TYPELESS;
 	auto formatTypeless = eFormat::R32G8X24_TYPELESS;
 
-	Texture2D tex = m_graphicsContext.CreateDepthStencil2D(m_width, m_height, formatTypeless, true);
+	Texture2D tex = m_graphicsContext.CreateDepthStencil2D(width, height, formatTypeless, true);
 
 	gxapi::DsvTexture2DArray dsvDesc;
 	dsvDesc.activeArraySize = 1;

@@ -10,7 +10,6 @@
 #include "../ConstBufferHeap.hpp"
 #include "../GraphicsContext.hpp"
 #include "../PipelineTypes.hpp"
-#include "../WindowResizeListener.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
@@ -20,11 +19,10 @@ namespace inl::gxeng::nodes {
 class DepthPrepass :
 	virtual public GraphicsNode,
 	virtual public exc::InputPortConfig<const EntityCollection<MeshEntity>*, const Camera*>,
-	virtual public exc::OutputPortConfig<pipeline::Texture2D>,
-	public WindowResizeListener
+	virtual public exc::OutputPortConfig<pipeline::Texture2D>
 {
 public:
-	DepthPrepass(gxapi::IGraphicsApi* graphicsApi, unsigned width, unsigned height);
+	DepthPrepass(gxapi::IGraphicsApi* graphicsApi);
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
@@ -32,12 +30,7 @@ public:
 
 	Task GetTask() override;
 
-	void WindowResized(unsigned width, unsigned height) override;
-
 protected:
-	unsigned m_width;
-	unsigned m_height;
-
 	DepthStencilView2D m_dsv;
 	TextureView2D m_depthTargetSrv;
 
@@ -48,7 +41,7 @@ protected:
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 private:
-	void InitRenderTarget();
+	void InitRenderTarget(unsigned width, unsigned height);
 	void RenderScene(
 		DepthStencilView2D& dsv,
 		const EntityCollection<MeshEntity>& entities,

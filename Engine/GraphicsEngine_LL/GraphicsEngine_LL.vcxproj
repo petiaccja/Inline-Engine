@@ -226,7 +226,6 @@
     <ClInclude Include="Vertex.hpp" />
     <ClInclude Include="VertexElementCompressor.hpp" />
     <ClInclude Include="VolatileViewHeap.hpp" />
-    <ClInclude Include="WindowResizeListener.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BackBufferManager.cpp" />

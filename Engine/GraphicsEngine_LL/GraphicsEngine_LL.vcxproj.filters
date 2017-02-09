@@ -231,9 +231,6 @@
     <ClInclude Include="DirectionalLight.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="WindowResizeListener.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
     <ClInclude Include="Nodes\Node_DrawSky.hpp">
       <Filter>Nodes\DeferredPipeline</Filter>
     </ClInclude>

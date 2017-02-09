@@ -10,7 +10,6 @@
 #include "../ConstBufferHeap.hpp"
 #include "../GraphicsContext.hpp"
 #include "../PipelineTypes.hpp"
-#include "../WindowResizeListener.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
@@ -20,19 +19,16 @@ namespace inl::gxeng::nodes {
 class DepthReduction :
 	virtual public GraphicsNode,
 	virtual public exc::InputPortConfig<pipeline::Texture2D>,
-	virtual public exc::OutputPortConfig<pipeline::Texture2D, pipeline::Texture2D>,
-	public WindowResizeListener
+	virtual public exc::OutputPortConfig<pipeline::Texture2D, pipeline::Texture2D>
 {
 public:
-	DepthReduction(gxapi::IGraphicsApi* graphicsApi, unsigned width, unsigned height);
+	DepthReduction(gxapi::IGraphicsApi* graphicsApi);
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
 	void InitGraphics(const GraphicsContext& context) override;
 
 	Task GetTask() override;
-
-	void WindowResized(unsigned width, unsigned height) override;
 
 protected:
 	unsigned m_width;
