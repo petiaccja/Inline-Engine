@@ -106,6 +106,12 @@ public:
 
 class VertexCompressor {
 public:
+	struct Element {
+		eVertexElementSemantic semantic;
+		int index;
+		int offset;
+	};
+public:
 	static size_t Size(const VertexBase& input, const std::vector<bool>& elementMap) {
 		size_t size = 0;
 		int index = 0;
@@ -113,21 +119,21 @@ public:
 		for (auto& element : input.GetElements()) {
 			if (index < elementMap.size() && elementMap[index]) {
 				switch (element.semantic) {
-				case eVertexElementSemantic::POSITION:
-					size += VertexElementCompressor<eVertexElementSemantic::POSITION>::Size();
-					break;
-				case eVertexElementSemantic::NORMAL:
-					size += VertexElementCompressor<eVertexElementSemantic::NORMAL>::Size();
-					break;
-				case eVertexElementSemantic::TEX_COORD:
-					size += VertexElementCompressor<eVertexElementSemantic::TEX_COORD>::Size();
-					break;
-				case eVertexElementSemantic::COLOR:
-					size += VertexElementCompressor<eVertexElementSemantic::COLOR>::Size();
-					break;
-				default:
-					throw std::domain_error("Unsupported vertex element type.");
-					break;
+					case eVertexElementSemantic::POSITION:
+						size += VertexElementCompressor<eVertexElementSemantic::POSITION>::Size();
+						break;
+					case eVertexElementSemantic::NORMAL:
+						size += VertexElementCompressor<eVertexElementSemantic::NORMAL>::Size();
+						break;
+					case eVertexElementSemantic::TEX_COORD:
+						size += VertexElementCompressor<eVertexElementSemantic::TEX_COORD>::Size();
+						break;
+					case eVertexElementSemantic::COLOR:
+						size += VertexElementCompressor<eVertexElementSemantic::COLOR>::Size();
+						break;
+					default:
+						throw std::domain_error("Unsupported vertex element type.");
+						break;
 				}
 			}
 
@@ -136,74 +142,79 @@ public:
 		return size;
 	}
 
-	static void Compress(const VertexBase& input, const std::vector<bool>& elementMap, void* output) {
+	static std::vector<Element> Compress(const VertexBase& input, const std::vector<bool>& elementMap, void* output) {
 		size_t offset = 0;
-		size_t index = 0;
+		int index = 0;
 		uint8_t* outputPtr = reinterpret_cast<uint8_t*>(output);
+		std::vector<Element> compressedElements;
 
 		for (auto& element : input.GetElements()) {
 			if (elementMap.size() > index && (bool)elementMap[index]) {
+				compressedElements.push_back({ element.semantic, element.index, (int)offset });
+
 				switch (element.semantic) {
-				case eVertexElementSemantic::POSITION:
-				{
-					auto compressed = VertexElementCompressor<eVertexElementSemantic::POSITION>::Compress(
-						dynamic_cast<const VertexPart<eVertexElementSemantic::POSITION>&>(input).GetPosition(element.index));
+					case eVertexElementSemantic::POSITION:
+					{
+						auto compressed = VertexElementCompressor<eVertexElementSemantic::POSITION>::Compress(
+							dynamic_cast<const VertexPart<eVertexElementSemantic::POSITION>&>(input).GetPosition(element.index));
 
-					for (auto v : compressed) {
-						*outputPtr = v;
-						++outputPtr;
+						for (auto v : compressed) {
+							*outputPtr = v;
+							++outputPtr;
+						}
+
+						offset += VertexElementCompressor<eVertexElementSemantic::POSITION>::Size();
+						break;
 					}
+					case eVertexElementSemantic::NORMAL:
+					{
+						auto compressed = VertexElementCompressor<eVertexElementSemantic::NORMAL>::Compress(
+							dynamic_cast<const VertexPart<eVertexElementSemantic::NORMAL>&>(input).GetNormal(element.index));
 
-					offset += VertexElementCompressor<eVertexElementSemantic::POSITION>::Size();
-					break;
-				}
-				case eVertexElementSemantic::NORMAL:
-				{
-					auto compressed = VertexElementCompressor<eVertexElementSemantic::NORMAL>::Compress(
-						dynamic_cast<const VertexPart<eVertexElementSemantic::NORMAL>&>(input).GetNormal(element.index));
+						for (auto v : compressed) {
+							*outputPtr = v;
+							++outputPtr;
+						}
 
-					for (auto v : compressed) {
-						*outputPtr = v;
-						++outputPtr;
+						offset += VertexElementCompressor<eVertexElementSemantic::NORMAL>::Size();
+						break;
 					}
+					case eVertexElementSemantic::TEX_COORD:
+					{
+						auto compressed = VertexElementCompressor<eVertexElementSemantic::TEX_COORD>::Compress(
+							dynamic_cast<const VertexPart<eVertexElementSemantic::TEX_COORD>&>(input).GetTexCoord(element.index));
 
-					offset += VertexElementCompressor<eVertexElementSemantic::NORMAL>::Size();
-					break;
-				}
-				case eVertexElementSemantic::TEX_COORD:
-				{
-					auto compressed = VertexElementCompressor<eVertexElementSemantic::TEX_COORD>::Compress(
-						dynamic_cast<const VertexPart<eVertexElementSemantic::TEX_COORD>&>(input).GetTexCoord(element.index));
+						for (auto v : compressed) {
+							*outputPtr = v;
+							++outputPtr;
+						}
 
-					for (auto v : compressed) {
-						*outputPtr = v;
-						++outputPtr;
+						offset += VertexElementCompressor<eVertexElementSemantic::NORMAL>::Size();
+						break;
 					}
+					case eVertexElementSemantic::COLOR:
+					{
+						auto compressed = VertexElementCompressor<eVertexElementSemantic::COLOR>::Compress(
+							dynamic_cast<const VertexPart<eVertexElementSemantic::COLOR>&>(input).GetColor(element.index));
 
-					offset += VertexElementCompressor<eVertexElementSemantic::NORMAL>::Size();
-					break;
-				}
-				case eVertexElementSemantic::COLOR:
-				{
-					auto compressed = VertexElementCompressor<eVertexElementSemantic::COLOR>::Compress(
-						dynamic_cast<const VertexPart<eVertexElementSemantic::COLOR>&>(input).GetColor(element.index));
+						for (auto v : compressed) {
+							*outputPtr = v;
+							++outputPtr;
+						}
 
-					for (auto v : compressed) {
-						*outputPtr = v;
-						++outputPtr;
+						offset += VertexElementCompressor<eVertexElementSemantic::COLOR>::Size();
+						break;
 					}
-
-					offset += VertexElementCompressor<eVertexElementSemantic::COLOR>::Size();
-					break;
-				}
-				default:
-					throw std::domain_error("Unsupported element type.");
-					break;
+					default:
+						throw std::domain_error("Unsupported element type.");
+						break;
 				}
 			}
 
 			++index;
 		}
+
+		return compressedElements;
 	}
 };
 

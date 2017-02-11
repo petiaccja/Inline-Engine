@@ -35,6 +35,7 @@ public:
 	virtual std::string GetShaderCode() const = 0;
 	virtual std::vector<eMaterialShaderParamType> GetShaderParameters() const;
 	virtual eMaterialShaderParamType GetShaderOutputType() const;
+	virtual size_t GetHash() const { return std::hash<std::string>()(GetShaderCode()); }
 protected:
 	static std::string RemoveComments(std::string code);
 	static std::string FindFunctionSignature(std::string code, const std::string& functionName);

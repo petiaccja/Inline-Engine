@@ -2,6 +2,8 @@
 
 #include "../GraphicsApi_LL/ICommandList.hpp"
 #include "../GraphicsApi_LL/Exception.hpp"
+#include "../GraphicsApi_D3D12/Resource.hpp"
+#include "../GraphicsApi_D3D12/NativeCast.hpp"
 
 #include "MemoryManager.hpp"
 #include "CriticalBufferHeap.hpp"
@@ -48,8 +50,17 @@ bool MemoryObject::PtrEqual(const MemoryObject& lhs, const MemoryObject& rhs) {
 
 
 MemoryObject::MemoryObject(MemoryObjDesc&& desc) :
-	m_contents(new Contents{std::move(desc.resource), desc.resident, {}})
+	m_contents(new Contents{ std::move(desc.resource), desc.resident, {} })
 {
+	//auto deleter = m_contents->resource.get_deleter();
+	//auto* ptr = m_contents->resource.release();
+	//m_contents->resource = MemoryObjDesc::UniqPtr(ptr, [deleter](gxapi::IResource* ptr) {
+	//	std::cout << "memobj destroy: ";
+	//	std::cout << "ptr = " << ptr;
+	//	std::cout << ", dxptr = " << gxapi_dx12::native_cast(static_cast<gxapi_dx12::Resource*>(ptr));
+	//	std::cout << std::endl;
+	//	deleter(ptr);
+	//});
 	InitResourceStates(eResourceState::COMMON);
 }
 

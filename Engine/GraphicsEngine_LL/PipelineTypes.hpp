@@ -79,7 +79,7 @@ private:
 };
 
 
-template <class ViewHeadT, class... ViewT, class = std::enable_if_t<is_any_of<std::decay_t<ViewHeadT>, TextureView2D, RenderTargetView2D, DepthStencilView2D, RWTextureView2D>::value, void>>
+template <class ViewHeadT, class... ViewT, class>
 Texture2D::Texture2D(ViewHeadT&& view, ViewT&&... views) :
 	m_beenCopied(false),
 	m_beenUsed(false),

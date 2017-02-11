@@ -69,6 +69,9 @@ Texture2D GraphicsContext::CreateRWTexture2D(uint64_t width, uint32_t height, gx
 
 	gxapi::eResourceFlags flags = gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS;
 	if (renderTarget) { flags += gxapi::eResourceFlags::ALLOW_RENDER_TARGET; }
+
+	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, format, flags, arraySize);
+	return texture;
 }
 
 
@@ -115,7 +118,7 @@ IndexBuffer GraphicsContext::CreateIndexBuffer(const void* data, size_t size, si
 
 
 VolatileConstBuffer GraphicsContext::CreateVolatileConstBuffer(const void * data, size_t size) {
-	VolatileConstBuffer result = m_memoryManager->CreateVolatileConstBuffer(data, size);
+	VolatileConstBuffer result = m_memoryManager->CreateVolatileConstBuffer(data, (uint32_t)size);
 	return result;
 }
 

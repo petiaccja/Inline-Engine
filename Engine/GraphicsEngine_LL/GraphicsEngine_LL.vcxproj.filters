@@ -392,16 +392,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Nodes\Shaders\CombineGBuffer.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
     <None Include="Nodes\Shaders\DrawSky.hlsl">
       <Filter>Nodes\Shaders</Filter>
     </None>
     <None Include="Nodes\Shaders\GenCSM.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\GenGBuffer.hlsl">
       <Filter>Nodes\Shaders</Filter>
     </None>
     <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
@@ -415,6 +409,9 @@
     </None>
     <None Include="Materials\simple_diffuse.mtl.hlsl">
       <Filter>Materials</Filter>
+    </None>
+    <None Include="Nodes\Shaders\ForwardRender.hlsl">
+      <Filter>Nodes\Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>

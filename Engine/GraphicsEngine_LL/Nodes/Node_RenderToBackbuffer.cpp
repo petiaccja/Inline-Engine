@@ -98,7 +98,7 @@ void RenderToBackBuffer::Render(RenderTargetView2D& rtv, const TextureView2D& te
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
-	unsigned vbSize = m_fsq.GetSize();
+	unsigned vbSize = (unsigned)m_fsq.GetSize();
 	unsigned vbStride = 3 * sizeof(float);
 
 	commandList.SetResourceState(const_cast<Texture2D&>(texture.GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
