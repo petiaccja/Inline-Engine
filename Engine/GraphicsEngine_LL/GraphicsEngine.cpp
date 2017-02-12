@@ -276,6 +276,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::unique_ptr<nodes::ForwardRender> forwardRender(new nodes::ForwardRender(m_graphicsApi));
 	std::unique_ptr<nodes::DepthPrepass> depthPrePass(new nodes::DepthPrepass(m_graphicsApi));
 	std::unique_ptr<nodes::DepthReduction> depthReduction(new nodes::DepthReduction(m_graphicsApi));
+	std::unique_ptr<nodes::DrawSky> drawSky(new nodes::DrawSky(m_graphicsApi));
 
 	getWorldScene->GetInput<0>().Set("World");
 	getCamera->GetInput<0>().Set("WorldCam");
@@ -283,28 +284,35 @@ void GraphicsEngine::CreatePipeline() {
 	depthPrePass->GetInput<0>().Link(getWorldScene->GetOutput(0));
 	depthPrePass->GetInput<1>().Link(getCamera->GetOutput(0));
 
-	depthReduction->GetInput<0>().Link(depthPrePass->GetOutput(0));
+	//depthReduction->GetInput<0>().Link(depthPrePass->GetOutput(0));
 
-	forwardRender->GetInput<0>().Link(depthReduction->GetOutput(1));
+	//forwardRender->GetInput<0>().Link(depthReduction->GetOutput(1));
+	forwardRender->GetInput<0>().Link(depthPrePass->GetOutput(0));
 	forwardRender->GetInput<1>().Link(getWorldScene->GetOutput(0));
 	forwardRender->GetInput<2>().Link(getCamera->GetOutput(0));
 	forwardRender->GetInput<3>().Link(getWorldScene->GetOutput(1));
 
+	drawSky->GetInput<0>().Link(forwardRender->GetOutput(0));
+	drawSky->GetInput<1>().Link(depthPrePass->GetOutput(0));
+	drawSky->GetInput<2>().Link(getCamera->GetOutput(0));
+	drawSky->GetInput<3>().Link(getWorldScene->GetOutput(1));
+
+	renderToBackbuffer->GetInput<0>().Link(drawSky->GetOutput(0));
 	//renderToBackbuffer->GetInput<0>().Link(forwardRender->GetOutput(0));
-	renderToBackbuffer->GetInput<0>().Link(depthReduction->GetOutput(0));
+	//renderToBackbuffer->GetInput<0>().Link(depthReduction->GetOutput(0));
 
 	m_graphicsNodes = {
-		getWorldScene.get(),
-		getCamera.get(),
-		depthPrePass.get(),
-		depthReduction.get(),
-		forwardRender.get(),
-		renderToBackbuffer.get()
+		getWorldScene.release(),
+		getCamera.release(),
+		depthPrePass.release(),
+		//depthReduction.release(),
+		forwardRender.release(),
+		renderToBackbuffer.release(),
+		drawSky.release()
 	};
+	try {
+		InitializeGraphicsNodes();
 
-	InitializeGraphicsNodes();
-
-	{
 		std::vector<exc::NodeBase*> nodeList;
 		nodeList.reserve(m_graphicsNodes.size());
 		for (auto curr : m_graphicsNodes) {
@@ -314,13 +322,12 @@ void GraphicsEngine::CreatePipeline() {
 			nodeList,
 			std::default_delete<exc::NodeBase>()
 		);
-
-		getWorldScene.release();
-		getCamera.release();
-		depthPrePass.release();
-		depthReduction.release();
-		forwardRender.release();
-		renderToBackbuffer.release();
+	}
+	catch (...) {
+		for (auto currNode : m_graphicsNodes) {
+			delete currNode;
+		}
+		throw;
 	}
 }
 

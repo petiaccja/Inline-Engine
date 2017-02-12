@@ -6,21 +6,20 @@
 #include "../Camera.hpp"
 #include "../ConstBufferHeap.hpp"
 #include "../DirectionalLight.hpp"
+#include "../GraphicsContext.hpp"
+#include "../PipelineTypes.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
-// OBSOLETE
-// please update this class to match current pipeline
 
-#if 0
 namespace inl::gxeng::nodes {
 
 
 class DrawSky :
 	virtual public GraphicsNode,
-	// Inputs: HDR image from CombineGBuffer, depth stencil, camera, sun
-	virtual public exc::InputPortConfig<RenderTargetPack, DepthStencilPack, const Camera*, const DirectionalLight*>,
-	virtual public exc::OutputPortConfig<RenderTargetPack>
+	// Inputs: frame color, frame depth stencil, camera, sun
+	virtual public exc::InputPortConfig<pipeline::Texture2D, pipeline::Texture2D, const Camera*, const DirectionalLight*>,
+	virtual public exc::OutputPortConfig<pipeline::Texture2D> // frame color
 {
 public:
 	DrawSky(gxapi::IGraphicsApi* graphicsApi);
@@ -46,7 +45,16 @@ public:
 			this->GetInput<3>().Clear();
 
 			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-			Render(renderTarget.rtv, depthStencil.dsv, camera, sun, cmdList);
+			
+
+			Render(
+				const_cast<RenderTargetView2D&>(renderTarget.QueryRenderTarget(cmdList, m_graphicsContext)),
+				const_cast<DepthStencilView2D&>(depthStencil.QueryDepthStencil(cmdList, m_graphicsContext)),
+				camera,
+				sun,
+				cmdList
+			);
+
 			result.AddCommandList(std::move(cmdList));
 
 			this->GetOutput<0>().Set(renderTarget);
@@ -62,7 +70,8 @@ protected:
 
 protected:
 	Binder m_binder;
-	BindParameter m_cbBindParam;
+	BindParameter m_sunCbBindParam;
+	BindParameter m_camCbBindParam;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 private:
@@ -76,4 +85,3 @@ private:
 
 
 } // namespace inl::gxeng::nodes
-#endif

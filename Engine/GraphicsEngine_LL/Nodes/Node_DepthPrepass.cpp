@@ -107,8 +107,6 @@ void DepthPrepass::InitGraphics(const GraphicsContext & context) {
 	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
-	psoDesc.depthStencilState.enableStencilTest = false;
-
 	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT_S8X24_UINT;
 
 	psoDesc.numRenderTargets = 0;
@@ -190,7 +188,7 @@ void DepthPrepass::RenderScene(
 	commandList.SetViewports(1, &viewport);
 
 	commandList.SetResourceState(dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
-	commandList.ClearDepthStencil(dsv, 1, 0);
+	commandList.ClearDepthStencil(dsv, 1, 0, 0, nullptr, true, true);
 
 	commandList.SetPipelineState(m_PSO.get());
 	commandList.SetGraphicsBinder(&m_binder);

@@ -20,7 +20,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	//m_sun.SetColor({1.0f, 0.63f, 0.46f});
 	//m_sun.SetDirection({ 0.8f, -0.7f, -0.15f });
 	m_sun.SetColor({1.0f, 0.9f, 0.85f});
-	m_sun.SetDirection({ 0.8f, -0.7f, -2.f });
+	m_sun.SetDirection({ 0.8f, -0.7f, -0.9f });
 	m_worldScene->SetSun(&m_sun);
 	m_camera.reset(m_graphicsEngine->CreateCamera("WorldCam"));
 	m_camera->SetTargeted(true);

@@ -33,9 +33,6 @@
     <Filter Include="MemoryManagement\ObjectManagement">
       <UniqueIdentifier>{cd72d15e-05c9-4d33-a977-8cb4d1092c69}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Nodes\DeferredPipeline">
-      <UniqueIdentifier>{2ef57f3c-8e5d-4b28-ba57-a435d1be5c25}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Nodes\ForwardPipeline">
       <UniqueIdentifier>{37a2d765-13fa-497f-9c3f-aeb98d5b2e44}</UniqueIdentifier>
     </Filter>
@@ -231,9 +228,6 @@
     <ClInclude Include="DirectionalLight.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Node_DrawSky.hpp">
-      <Filter>Nodes\DeferredPipeline</Filter>
-    </ClInclude>
     <ClInclude Include="PipelineTypes.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
@@ -259,6 +253,9 @@
       <Filter>Nodes</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_DepthReduction.hpp">
+      <Filter>Nodes\ForwardPipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_DrawSky.hpp">
       <Filter>Nodes\ForwardPipeline</Filter>
     </ClInclude>
   </ItemGroup>
@@ -369,9 +366,6 @@
     <ClCompile Include="DirectionalLight.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes\Node_DrawSky.cpp">
-      <Filter>Nodes\DeferredPipeline</Filter>
-    </ClCompile>
     <ClCompile Include="VolatileViewHeap.cpp">
       <Filter>Middleware</Filter>
     </ClCompile>
@@ -391,6 +385,9 @@
       <Filter>Nodes</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_DepthReduction.cpp">
+      <Filter>Nodes\ForwardPipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_DrawSky.cpp">
       <Filter>Nodes\ForwardPipeline</Filter>
     </ClCompile>
   </ItemGroup>
