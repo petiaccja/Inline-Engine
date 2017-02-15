@@ -44,7 +44,7 @@ public:
 	const VertexBuffer& GetVertexBuffer(size_t streamIndex) const;
 	size_t GetVertexBufferStride(size_t streamIndex) const;
 	const IndexBuffer& GetIndexBuffer() const;
-	bool GetIndexBuffer32Bit() const { return m_isIndex32Bit; }
+	bool IsIndexBuffer32Bit() const { return m_isIndex32Bit; }
 private:
 	template <class StreamIt, class IndexIt>
 	eValidationResult Validate(StreamIt firstStream, StreamIt lastStream, IndexIt firstIndex, IndexIt lastIndex);

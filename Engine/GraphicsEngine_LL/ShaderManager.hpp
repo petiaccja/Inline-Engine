@@ -29,6 +29,10 @@ private:
 	std::vector<uint8_t> m_binary;
 };
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4522)
+#endif
+
 /// <summary> Helper class for keeping track of which shader stages have been compiled. </summary>
 struct ShaderParts {
 	bool vs = false, hs = false, ds = false, gs = false, ps = false, cs = false;
@@ -79,6 +83,10 @@ struct ShaderParts {
 		return *this;
 	}
 };
+
+#ifdef _MSC_VER
+#pragma warning(default: 4522)
+#endif
 
 /// <summary> Contains all binaries associated with a shader program.
 /// It should be added to a PSO and used in the pipeline. </summary>

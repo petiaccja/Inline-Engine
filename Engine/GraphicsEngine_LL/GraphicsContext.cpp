@@ -126,7 +126,7 @@ IndexBuffer GraphicsContext::CreateIndexBuffer(const void* data, size_t size, si
 
 
 VolatileConstBuffer GraphicsContext::CreateVolatileConstBuffer(const void * data, size_t size) {
-	VolatileConstBuffer result = m_memoryManager->CreateVolatileConstBuffer(data, size);
+	VolatileConstBuffer result = m_memoryManager->CreateVolatileConstBuffer(data, (uint32_t)size);
 	return result;
 }
 

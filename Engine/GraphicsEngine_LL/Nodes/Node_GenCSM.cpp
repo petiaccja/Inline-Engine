@@ -338,7 +338,7 @@ void GenCSM::RenderScene(
 			commandList.BindGraphics(m_texBindParam, *entity->GetTexture()->GetSrv());
 			commandList.BindGraphics(m_cbBindParam, cbufferData.data(), sizeof(cbufferData), 0);
 			commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
-			commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->GetIndexBuffer32Bit());
+			commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
 			commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
 		}
 	}
