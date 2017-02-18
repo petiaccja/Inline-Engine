@@ -15,18 +15,30 @@ std::string MaterialShader::LoadShaderSource(std::string name) const {
 	return code;
 }
 
-std::vector<eMaterialShaderParamType> MaterialShader::GetShaderParameters() const {
-	std::vector<eMaterialShaderParamType> params;
+std::vector<MaterialShaderParameter> MaterialShader::GetShaderParameters() const {
+	std::vector<MaterialShaderParameter> params;
 	eMaterialShaderParamType ret;
 	ExtractShaderParameters(GetShaderCode(), "main", ret, params);
 	return params;
 }
 
 eMaterialShaderParamType MaterialShader::GetShaderOutputType() const {
-	std::vector<eMaterialShaderParamType> params;
+	std::vector<MaterialShaderParameter> params;
 	eMaterialShaderParamType ret;
 	ExtractShaderParameters(GetShaderCode(), "main", ret, params);
 	return ret;
+}
+
+
+void MaterialShader::SetName(std::string name) {
+	if (name.find("__") != name.npos) {
+		throw std::invalid_argument("Name cannot contain double-underscores.");
+	}
+	m_name = name;
+}
+
+const std::string& MaterialShader::GetName() const {
+	return m_name;
 }
 
 
@@ -54,9 +66,9 @@ void MaterialShaderEquation::SetSourceCode(const std::string& code) {
 //------------------------------------------------------------------------------
 
 
-MaterialShaderGraph::MaterialShaderGraph(ShaderManager* shaderManager) : MaterialShader(shaderManager) {
-
-}
+MaterialShaderGraph::MaterialShaderGraph(ShaderManager* shaderManager)
+	: MaterialShader(shaderManager)
+{}
 
 std::string MaterialShaderGraph::GetShaderCode() const {
 	return m_source;
@@ -65,7 +77,7 @@ std::string MaterialShaderGraph::GetShaderCode() const {
 
 void MaterialShaderGraph::AssembleShaderCode() {
 	std::vector<ShaderNode> shaderNodes(m_nodes.size());
-	std::vector<std::vector<eMaterialShaderParamType>> shaderNodeParams(m_nodes.size());
+	std::vector<std::vector<MaterialShaderParameter>> shaderNodeParams(m_nodes.size());
 	std::vector<eMaterialShaderParamType> shaderNodeReturns(m_nodes.size());
 	std::vector<std::string> functions(m_nodes.size());
 
@@ -76,7 +88,7 @@ void MaterialShaderGraph::AssembleShaderCode() {
 		ExtractShaderParameters(functions[i], "main", shaderNodeReturns[i], shaderNodeParams[i]);
 
 		for (auto p : shaderNodeParams[i]) {
-			if (p == eMaterialShaderParamType::UNKNOWN) {
+			if (p.type == eMaterialShaderParamType::UNKNOWN) {
 				throw std::runtime_error("Parameter of unknown type.");
 			}
 		}
@@ -142,7 +154,7 @@ void MaterialShaderGraph::AssembleShaderCode() {
 			}
 			else {
 				std::stringstream ss;
-				ss << "param" << freeParams.size();
+				ss << m_nodes[node]->GetName() << "__" << shaderNodeParams[node][i].name;
 				static_cast<exc::InputPort<std::string>*>(input)->Set(ss.str());
 				freeParams.push_back({ node, (size_t)i, ss.str() });
 			}
@@ -178,7 +190,7 @@ void MaterialShaderGraph::AssembleShaderCode() {
 	for (auto& p : freeParams) {
 		if (!firstParam)
 			finalCode << ", ";
-		finalCode << GetParameterString(shaderNodeParams[p.node][p.input]) << " ";
+		finalCode << GetParameterString(shaderNodeParams[p.node][p.input].type) << " ";
 		finalCode << p.name;
 		firstParam = false;
 	}
@@ -186,7 +198,7 @@ void MaterialShaderGraph::AssembleShaderCode() {
 	finalCode << "\n";
 	// preambles
 	for (auto idx : topologicalOrder) {
-		finalCode << shaderNodes[idx].GetPreamble() << "\n";
+		finalCode << "    " << shaderNodes[idx].GetPreamble() << "\n";
 	}
 	finalCode << "\n";
 	// return statement
@@ -269,6 +281,7 @@ std::string MaterialShader::FindFunctionSignature(std::string code, const std::s
 	while (code[matchEndIdx] != ')') {
 		matchEndIdx--;
 	}
+	++matchEndIdx;
 
 	return code.substr(returnIdx, matchEndIdx - returnIdx);
 }
@@ -288,7 +301,7 @@ void MaterialShader::SplitFunctionSignature(std::string signature, std::string& 
 		}
 		// trim leading and trailing whitespaces
 		intptr_t firstChar = 0;
-		while (firstChar < param.size() && isspace(param[firstChar])) {
+		while (firstChar < (intptr_t)param.size() && isspace(param[firstChar])) {
 			++firstChar;
 		}
 		intptr_t lastChar = param.size() - 1;
@@ -298,7 +311,7 @@ void MaterialShader::SplitFunctionSignature(std::string signature, std::string& 
 		if (firstChar >= lastChar) {
 			throw std::invalid_argument("Parameter of main has no type specifier or declaration name.");
 		}
-		param = param.substr(firstChar, lastChar);
+		param = param.substr(firstChar, lastChar-firstChar+1);
 
 		// split param to type and name
 		firstChar = 0;
@@ -329,6 +342,7 @@ std::string MaterialShader::GetParameterString(eMaterialShaderParamType type) {
 		case eMaterialShaderParamType::BITMAP_VALUE_2D: return "MapValue2D";
 		case eMaterialShaderParamType::UNKNOWN: return "anyád";
 		case eMaterialShaderParamType::VALUE: return "float";
+		default: return "anyád";
 	}
 }
 eMaterialShaderParamType MaterialShader::GetParameterType(std::string typeString) {
@@ -350,7 +364,7 @@ eMaterialShaderParamType MaterialShader::GetParameterType(std::string typeString
 }
 
 
-void MaterialShader::ExtractShaderParameters(std::string code, const std::string& functionName, eMaterialShaderParamType& returnType, std::vector<eMaterialShaderParamType>& parameters) {
+void MaterialShader::ExtractShaderParameters(std::string code, const std::string& functionName, eMaterialShaderParamType& returnType, std::vector<MaterialShaderParameter>& parameters) {
 	code = RemoveComments(code);
 	std::string signature = FindFunctionSignature(code, functionName);
 
@@ -361,10 +375,12 @@ void MaterialShader::ExtractShaderParameters(std::string code, const std::string
 	returnType = GetParameterType(returnTypeStr);
 
 	// collect results
-	std::vector<eMaterialShaderParamType> params;
+	std::vector<MaterialShaderParameter> params;
 	for (const auto& p : paramList) {
-		eMaterialShaderParamType type = GetParameterType(p.first);
-		params.push_back(type);
+		MaterialShaderParameter param;
+		param.type = GetParameterType(p.first);
+		param.name = p.second;
+		params.push_back(param);
 	}
 
 	parameters = std::move(params);
@@ -439,11 +455,12 @@ Material::Parameter::Parameter(eMaterialShaderParamType type) {
 
 
 Material::Parameter& Material::Parameter::operator=(Image* image) {
-	if (m_type != eMaterialShaderParamType::BITMAP_COLOR_2D || m_type != eMaterialShaderParamType::BITMAP_VALUE_2D) {
+	if (m_type != eMaterialShaderParamType::BITMAP_COLOR_2D && m_type != eMaterialShaderParamType::BITMAP_VALUE_2D) {
 		throw std::invalid_argument("This parameter is not an image.");
 	}
 
 	m_data.image = image;
+	return *this;
 }
 
 Material::Parameter& Material::Parameter::operator=(mathfu::Vector4f color) {
@@ -452,6 +469,7 @@ Material::Parameter& Material::Parameter::operator=(mathfu::Vector4f color) {
 	}
 
 	m_data.color = color;
+	return *this;
 }
 
 Material::Parameter& Material::Parameter::operator=(float value) {
@@ -460,6 +478,7 @@ Material::Parameter& Material::Parameter::operator=(float value) {
 	}
 
 	m_data.value = value;
+	return *this;
 }
 
 
@@ -469,7 +488,7 @@ eMaterialShaderParamType Material::Parameter::GetType() const {
 
 
 Material::Parameter::operator Image*() const {
-	if (m_type != eMaterialShaderParamType::BITMAP_COLOR_2D || m_type != eMaterialShaderParamType::BITMAP_VALUE_2D) {
+	if (m_type != eMaterialShaderParamType::BITMAP_COLOR_2D && m_type != eMaterialShaderParamType::BITMAP_VALUE_2D) {
 		throw std::invalid_argument("This parameter is not an image.");
 	}
 	return m_data.image;
@@ -493,10 +512,12 @@ Material::Parameter::operator float() const {
 
 void Material::SetShader(MaterialShader* shader) {
 	m_shader = shader;
-	auto typelist = m_shader->GetShaderParameters();
+	auto params = m_shader->GetShaderParameters();
 	m_parameters.clear();
-	for (auto paramType : typelist) {
-		m_parameters.push_back(Parameter{ paramType });
+	m_paramNameMap.clear();
+	for (auto p : params) {
+		m_parameters.push_back(Parameter{ p.type });
+		m_paramNameMap.insert({ p.name, m_parameters.size() - 1 });
 	}
 }
 
@@ -512,6 +533,18 @@ Material::Parameter& Material::operator[](size_t index) {
 const Material::Parameter& Material::operator[](size_t index) const {
 	assert(index < m_parameters.size());
 	return m_parameters[index];
+}
+
+Material::Parameter& Material::operator[](const std::string& name) {
+	auto it = m_paramNameMap.find(name);
+	assert(it != m_paramNameMap.end());
+	return (*this)[it->second];
+}
+
+const Material::Parameter& Material::operator[](const std::string& name) const {
+	auto it = m_paramNameMap.find(name);
+	assert(it != m_paramNameMap.end());
+	return (*this)[it->second];
 }
 
 

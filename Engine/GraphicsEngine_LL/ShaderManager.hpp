@@ -191,6 +191,10 @@ public:
 
 	/// <summary> Return the source code of a certain shader. </summary>
 	std::string LoadShaderSource(const std::string& name) const;
+
+	/// <summary> Compile arbitrary source code without adding it to the library. </summary>
+	/// <remarks> Include directives will still work if registered files are referenced. </remarks>
+	ShaderProgram CompileShader(const std::string& sourceCode, ShaderParts parts, const std::string& macros = {});
 private:
 	/// <summary> Find a source in dirs, resource and codes by its name. Does not lock anything. </summary>
 	/// <returns> 
@@ -200,7 +204,7 @@ private:
 	std::pair<std::string, std::string> FindShaderCode(const std::string& name) const;
 
 	/// <summary> Compiles a shader to binary according to parameters. </summary>
-	ShaderProgram CompileShader(const std::string& sourceCode, const std::string& macros, ShaderParts parts);
+	ShaderProgram CompileShaderInternal(const std::string& sourceCode, ShaderParts parts, const std::string& macros);
 
 	// Cuts off extension (only .hlsl, .glsl, .cg, .txt), converts to lowercase.
 	static std::string StripShaderName(std::string name);

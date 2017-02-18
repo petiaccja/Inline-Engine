@@ -12,7 +12,7 @@ namespace inl::gxeng::nodes {
 
 static bool CheckMeshFormat(const Mesh& mesh) {
 	for (size_t i = 0; i < mesh.GetNumStreams(); i++) {
-		auto& elements = mesh.GetVertexBufferElements(i);
+		auto& elements = mesh.GetLayout()[0];
 		if (elements.size() != 3) return false;
 		if (elements[0].semantic != eVertexElementSemantic::POSITION) return false;
 		if (elements[1].semantic != eVertexElementSemantic::NORMAL) return false;

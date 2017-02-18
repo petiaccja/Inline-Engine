@@ -207,7 +207,7 @@ ComputeCommandList::ComputeCommandList(ComPtr<ID3D12GraphicsCommandList>& native
 
 // draw
 void ComputeCommandList::Dispatch(size_t numThreadGroupsX, size_t numThreadGroupsY, size_t numThreadGroupsZ) {
-	m_native->Dispatch(numThreadGroupsX, numThreadGroupsY, numThreadGroupsZ);
+	m_native->Dispatch((UINT)numThreadGroupsX, (UINT)numThreadGroupsY, (UINT)numThreadGroupsZ);
 }
 
 

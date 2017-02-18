@@ -144,12 +144,21 @@ ShaderProgram GraphicsContext::CreateShader(const std::string& name, ShaderParts
 	return m_shaderManager->CreateShader(name, stages, macros);
 }
 
+ShaderProgram GraphicsContext::CompileShader(const std::string& code, ShaderParts stages, const std::string& macros) {
+	return m_shaderManager->CompileShader(code, stages, macros);
+}
+
 gxapi::IPipelineState* GraphicsContext::CreatePSO(const gxapi::GraphicsPipelineStateDesc& desc) {
 	return m_graphicsApi->CreateGraphicsPipelineState(desc);
 }
 
 gxapi::IPipelineState* GraphicsContext::CreatePSO(const gxapi::ComputePipelineStateDesc& desc) {
 	return m_graphicsApi->CreateComputePipelineState(desc);
+}
+
+
+Binder GraphicsContext::CreateBinder(const std::vector<BindParameterDesc>& parameters, const std::vector<gxapi::StaticSamplerDesc>& staticSamplers) const {
+	return Binder(m_graphicsApi, parameters, staticSamplers);
 }
 
 

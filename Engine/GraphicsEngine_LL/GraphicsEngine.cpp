@@ -70,7 +70,9 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 
 	// Init shader manager before creating the pipeline
 	m_shaderManager.AddSourceDirectory("../../Engine/GraphicsEngine_LL/Nodes/Shaders");
+	m_shaderManager.AddSourceDirectory("../../Engine/GraphicsEngine_LL/Materials");
 	m_shaderManager.AddSourceDirectory("./Shaders");
+	m_shaderManager.AddSourceDirectory("./Materials");
 #ifdef NDEBUG
 	m_shaderManager.SetShaderCompileFlags(gxapi::eShaderCompileFlags::OPTIMIZATION_HIGH);
 #else

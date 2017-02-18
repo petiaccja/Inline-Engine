@@ -6,6 +6,7 @@ namespace gxeng {
 
 MeshEntity::MeshEntity() :
 	m_mesh(nullptr),
+	m_material(nullptr),
 	m_texture(nullptr),
 	m_position(0, 0, 0),
 	m_rotation(0, mathfu::Vector<float, 3>(1, 0, 0)),
@@ -19,6 +20,13 @@ void MeshEntity::SetMesh(Mesh* mesh) {
 }
 Mesh* MeshEntity::GetMesh() const {
 	return m_mesh;
+}
+
+void MeshEntity::SetMaterial(Material* material) {
+	m_material = material;
+}
+Material* MeshEntity::GetMaterial() const {
+	return m_material;
 }
 
 void MeshEntity::SetTexture(Image* texture) {

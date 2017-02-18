@@ -28,8 +28,8 @@ static void setWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsign
 		count++;
 	}
 
-	dispatchW = float(gw) / groupSizeW;
-	dispatchH = float(gh) / groupSizeH;
+	dispatchW = unsigned(float(gw) / groupSizeW);
+	dispatchH = unsigned(float(gh) / groupSizeH);
 }
 
 
@@ -150,7 +150,7 @@ void DepthReduction::RenderScene(
 	GraphicsCommandList& commandList
 ) {
 	unsigned dispatchW, dispatchH;
-	setWorkgroupSize(std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
+	setWorkgroupSize((unsigned)std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
 
 	commandList.SetPipelineState(m_CSO.get());
 	commandList.SetComputeBinder(&m_binder);

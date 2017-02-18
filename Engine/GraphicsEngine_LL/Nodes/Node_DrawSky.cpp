@@ -129,7 +129,7 @@ void DrawSky::Render(
 	commandList.SetStencilRef(0); // only allow sky to be rendered to background pixels
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
-	unsigned vbSize = m_fsq.GetSize();
+	unsigned vbSize = (unsigned)m_fsq.GetSize();
 	unsigned vbStride = 3 * sizeof(float);
 
 	struct Sun {

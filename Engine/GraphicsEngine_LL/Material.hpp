@@ -27,26 +27,36 @@ enum class eMaterialShaderParamType {
 };
 
 
+struct MaterialShaderParameter {
+	std::string name;
+	eMaterialShaderParamType type;
+};
+
+
 
 class MaterialShader {
 public:
 	MaterialShader(ShaderManager* shaderManager) : m_shaderManager(shaderManager) {}
 	virtual ~MaterialShader() {};
 	virtual std::string GetShaderCode() const = 0;
-	virtual std::vector<eMaterialShaderParamType> GetShaderParameters() const;
+	virtual std::vector<MaterialShaderParameter> GetShaderParameters() const;
 	virtual eMaterialShaderParamType GetShaderOutputType() const;
 	virtual size_t GetHash() const { return std::hash<std::string>()(GetShaderCode()); }
+
+	void SetName(std::string name);
+	const std::string& GetName() const;
 protected:
 	static std::string RemoveComments(std::string code);
 	static std::string FindFunctionSignature(std::string code, const std::string& functionName);
 	static void SplitFunctionSignature(std::string signature, std::string& returnType, std::vector<std::pair<std::string, std::string>>& parameters);
 	static std::string GetParameterString(eMaterialShaderParamType type);
 	static eMaterialShaderParamType GetParameterType(std::string typeString);
-	static void ExtractShaderParameters(std::string code, const std::string& functionName, eMaterialShaderParamType& returnType, std::vector<eMaterialShaderParamType>& parameters);
+	static void ExtractShaderParameters(std::string code, const std::string& functionName, eMaterialShaderParamType& returnType, std::vector<MaterialShaderParameter>& parameters);
 protected:
 	std::string LoadShaderSource(std::string name) const;
 private:
 	ShaderManager* m_shaderManager;
+	std::string m_name;
 };
 
 
@@ -134,13 +144,18 @@ public:
 
 public:
 	void SetShader(MaterialShader* shader);
+	MaterialShader* GetShader() const { return m_shader; }
 	size_t GetParameterCount() const;
+
 	Parameter& operator[](size_t index);
 	const Parameter& operator[](size_t index) const;
 
+	Parameter& operator[](const std::string& name);
+	const Parameter& operator[](const std::string& name) const;
 private:
 	std::vector<Parameter> m_parameters;
 	MaterialShader* m_shader = nullptr;
+	std::unordered_map<std::string, size_t> m_paramNameMap; // maps parameter names to indices
 };
 
 
@@ -148,11 +163,9 @@ private:
 // TEST IMPLEMENTATION
 inline std::string MaterialGenPixelShader(const MaterialShader& shader) {
 	// get material shading function's HLSL code
-	eMaterialShaderParamType returnType;
-	std::vector<eMaterialShaderParamType> params;
+	std::vector<MaterialShaderParameter> params;
 	std::string shadingFunction;
 
-	returnType = shader.GetShaderOutputType();
 	params = shader.GetShaderParameters();
 	shadingFunction = shader.GetShaderCode();
 
@@ -162,62 +175,109 @@ inline std::string MaterialGenPixelShader(const MaterialShader& shader) {
 	std::regex_replace(std::ostreambuf_iterator<char>(renameMain), shadingFunction.begin(), shadingFunction.end(), renameRegex, "mtl_shader");
 	shadingFunction = renameMain.str();
 
+	// structures
+	std::string structures =
+		"struct PsInput {\n"
+		"    float4 ndcPos : SV_POSITION;\n"
+		"    float3 worldNormal : NO;\n"
+		"    float2 texCoord : TEX_COORD;\n"
+		"};\n\n"
+		"struct MapColor2D {\n"
+		"    Texture2DArray<float4> tex;\n"
+		"    SamplerState samp;\n"
+		"};\n\n"
+		"struct MapValue2D {\n"
+		"    Texture2DArray<float> tex;\n"
+		"    SamplerState samp;\n"
+		"};\n";
+
+	// globals
+	std::string globals =
+		"static float3 g_lightDir;\n"
+		"static float3 g_lightColor;\n"
+		"static float3 g_normal;\n"
+		"static float3 g_tex0;\n";
+
 	// add constant buffer, textures and samplers according to shader parameters
-	std::stringstream constantBuffer;
-	size_t constantBufferSize;
+	std::stringstream lightConstantBuffer;
+	std::stringstream mtlConstantBuffer;
 	std::stringstream textures;
 
-	constantBuffer << "struct CB { \n";
+	lightConstantBuffer << "struct LightConstants {\n"
+		"    float3 direction;\n"
+		"    float3 color;\n"
+		"};\n";
+	lightConstantBuffer << "ConstantBuffer<LightConstants> lightCb: register(b100); \n";
+
+	mtlConstantBuffer << "struct MtlConstants { \n";
+	int numMtlConstants = 0;
 	for (size_t i = 0; i < params.size(); ++i) {
-		switch (params[i]) {
-			case eMaterialShaderParamType::COLOR: {
-				constantBuffer << "    float4 param" << i << "; \n";
+		switch (params[i].type) {
+			case eMaterialShaderParamType::COLOR:
+			{
+				mtlConstantBuffer << "    float4 param" << i << "; \n";
+				++numMtlConstants;
 				break;
 			}
-			case eMaterialShaderParamType::VALUE: {
-				constantBuffer << "    float param" << i << "; \n";
+			case eMaterialShaderParamType::VALUE:
+			{
+				mtlConstantBuffer << "    float param" << i << "; \n";
+				++numMtlConstants;
 				break;
 			}
-			case eMaterialShaderParamType::BITMAP_COLOR_2D: {
-				textures << "Texture2D<float4> map" << i << " : register(t" << i << "); \n";
+			case eMaterialShaderParamType::BITMAP_COLOR_2D:
+			{
+				textures << "Texture2DArray<float4> tex" << i << " : register(t" << i << "); \n";
 				textures << "SamplerState samp" << i << " : register(s" << i << "); \n";
 				break;
 			}
-			case eMaterialShaderParamType::BITMAP_VALUE_2D: {
-				textures << "Texture2D<float> map" << i << " : register(t" << i << "); \n";
+			case eMaterialShaderParamType::BITMAP_VALUE_2D:
+			{
+				textures << "Texture2DArray<float> tex" << i << " : register(t" << i << "); \n";
 				textures << "SamplerState samp" << i << " : register(s" << i << "); \n";
 				break;
 			}
 		}
 	}
-	constantBuffer << "} \n";
-	constantBuffer << "ConstantBuffer<CB> : register(b0); \n";
+	mtlConstantBuffer << "};\n";
+	mtlConstantBuffer << "ConstantBuffer<MtlConstants> mtlCb: register(b200); \n";
+	if (numMtlConstants == 0) {
+		mtlConstantBuffer = std::stringstream();
+	}
 
 	// main function
 	std::stringstream PSMain;
 
-	PSMain << "float4 PSMain() : COLOR0 {   \n";
+	PSMain << "float4 PSMain(PsInput psInput) : SV_TARGET {\n";
+	PSMain << "    g_lightDir = lightCb.direction;\n";
+	PSMain << "    g_lightColor = lightCb.color;\n";
+	PSMain << "    g_normal = psInput.worldNormal;\n";
+	PSMain << "    g_tex0 = float3(psInput.texCoord, 0.0f);\n";
 	for (size_t i = 0; i < params.size(); ++i) {
-		switch (params[i]) {
-			case eMaterialShaderParamType::COLOR: {
+		switch (params[i].type) {
+			case eMaterialShaderParamType::COLOR:
+			{
 				PSMain << "    float4 input" << i << "; \n";
-				PSMain << "    input" << i << " = cb.param" << i << "; \n\n";
+				PSMain << "    input" << i << " = mtlCb.param" << i << "; \n\n";
 				break;
 			}
-			case eMaterialShaderParamType::VALUE: {
+			case eMaterialShaderParamType::VALUE:
+			{
 				PSMain << "    float input" << i << "; \n";
-				PSMain << "    input" << i << " = cb.param" << i << "; \n\n";
+				PSMain << "    input" << i << " = mtlCb.param" << i << "; \n\n";
 				break;
 			}
-			case eMaterialShaderParamType::BITMAP_COLOR_2D: {
+			case eMaterialShaderParamType::BITMAP_COLOR_2D:
+			{
 				PSMain << "    MapColor2D input" << i << "; \n";
-				PSMain << "    input" << i << ".map = map" << i << "; \n";
+				PSMain << "    input" << i << ".tex = tex" << i << "; \n";
 				PSMain << "    input" << i << ".samp = samp" << i << "; \n\n";
 				break;
 			}
-			case eMaterialShaderParamType::BITMAP_VALUE_2D: {
+			case eMaterialShaderParamType::BITMAP_VALUE_2D:
+			{
 				PSMain << "    MapValue2D input" << i << "; \n";
-				PSMain << "    input" << i << ".map = map" << i << "; \n";
+				PSMain << "    input" << i << ".tex = tex" << i << "; \n";
 				PSMain << "    input" << i << ".samp = samp" << i << "; \n\n";
 				break;
 			}
@@ -232,7 +292,19 @@ inline std::string MaterialGenPixelShader(const MaterialShader& shader) {
 	}
 	PSMain << "); \n} \n";
 
-	return constantBuffer.str() + "\n" + textures.str() + "\n" + shadingFunction + "\n\n" + PSMain.str();
+	return
+		structures
+		+ "\n//-------------------------------------\n\n"
+		+ globals
+		+ "\n//-------------------------------------\n\n"
+		+ lightConstantBuffer.str()
+		+ mtlConstantBuffer.str()
+		+ "\n//-------------------------------------\n\n"
+		+ textures.str()
+		+ "\n//-------------------------------------\n\n"
+		+ shadingFunction
+		+ "\n//-------------------------------------\n\n"
+		+ PSMain.str();
 }
 
 

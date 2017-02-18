@@ -37,15 +37,16 @@ void Mesh::Set(const VertexBase* vertices, size_t numVertices, const unsigned* i
 	MeshBuffer::Set(&stream, &stream + 1, indices, indices + numIndices);
 
 	// Set stream elements.
-	m_layout.clear();
+	std::vector<std::vector<Element>> layout;
+	layout.clear();
 	std::vector<Element> streamElements;
 	for (const auto& e : compressedElements) {
 		streamElements.push_back({ e.semantic, e.index, e.offset });
 	}
-	m_layout.push_back(streamElements);
+	layout.push_back(streamElements);
 
 	// Calculate hashes
-	CalculateHashes(m_layout, m_elementHash, m_layoutHash);
+	m_layout = Layout(layout);
 }
 
 
@@ -74,18 +75,17 @@ void Mesh::Update(const VertexBase* vertices, size_t numVertices, size_t offsetI
 
 void Mesh::Clear() {
 	MeshBuffer::Clear();
-	m_layout.clear();
+	m_layout.Clear();
 }
 
 
-const std::vector<Mesh::Element>& Mesh::GetVertexBufferElements(size_t streamIndex) const {
-	assert(streamIndex < GetNumStreams());
-	return m_layout[streamIndex];
+const Mesh::Layout& Mesh::GetLayout() const {
+	return m_layout;
 }
 
 
 
-bool Mesh::EqualElements(const Mesh& rhs) const {
+bool Mesh::Layout::EqualElements(const Layout& rhs) const {
 	if (m_elementHash != rhs.m_elementHash) {
 		return false;
 	}
@@ -110,7 +110,7 @@ bool Mesh::EqualElements(const Mesh& rhs) const {
 	return true;
 }
 
-bool Mesh::EqualLayout(const Mesh& rhs) const {
+bool Mesh::Layout::EqualLayout(const Layout& rhs) const {
 	if (m_layoutHash != rhs.m_layoutHash) {
 		return false;
 	}
@@ -133,12 +133,16 @@ bool Mesh::EqualLayout(const Mesh& rhs) const {
 	return true;
 }
 
-size_t Mesh::GetElementHash() const {
+size_t Mesh::Layout::GetElementHash() const {
 	return m_elementHash;
 }
 
-size_t Mesh::GetLayoutHash() const {
+size_t Mesh::Layout::GetLayoutHash() const {
 	return m_layoutHash;
+}
+
+size_t Mesh::Layout::GetStreamCount() const {
+	return m_layout.size();
 }
 
 
@@ -167,7 +171,7 @@ inline uint64_t inthash(uint64_t key) {
 }
 
 
-std::vector<Mesh::Element> Mesh::GetAllElements(const std::vector<std::vector<Element>>& layout) {
+std::vector<Mesh::Element> Mesh::Layout::GetAllElements(const std::vector<std::vector<Element>>& layout) {
 	std::vector<Element> allElements;
 	std::vector<Element> streamElements;
 
@@ -189,7 +193,7 @@ std::vector<Mesh::Element> Mesh::GetAllElements(const std::vector<std::vector<El
 }
 
 
-void Mesh::RadixSortElements(std::vector<Element>& elements) {
+void Mesh::Layout::RadixSortElements(std::vector<Element>& elements) {
 	std::stable_sort(elements.begin(), elements.end(), [](const Element& lhs, const Element& rhs) {
 		return lhs.offset < rhs.offset;
 	});
@@ -202,7 +206,7 @@ void Mesh::RadixSortElements(std::vector<Element>& elements) {
 }
 
 
-void Mesh::CalculateHashes(const std::vector<std::vector<Element>>& layout, size_t& elementHash, size_t& layoutHash) {
+void Mesh::Layout::CalculateHashes(const std::vector<std::vector<Element>>& layout, size_t& elementHash, size_t& layoutHash) {
 	std::vector<Element> allElements;
 
 	elementHash = 0;

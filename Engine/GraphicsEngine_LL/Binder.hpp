@@ -89,6 +89,8 @@ private:
 	// Radix sort for BindParameters
 	static bool RadixLess(const BindParameter& lhs, const BindParameter& rhs);
 public:
+	Binder() = default;
+
 	/// <summary> Create a binder from specified binding points. </summary>
 	Binder(gxapi::IGraphicsApi* gxApi, const std::vector<BindParameterDesc>& parameters, const std::vector<gxapi::StaticSamplerDesc>& staticSamplers = {});
 

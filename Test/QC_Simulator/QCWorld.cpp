@@ -116,6 +116,25 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_treeTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
 	}
 
+	// Create tree material
+	{
+		m_treeMaterial.reset(m_graphicsEngine->CreateMaterial());
+		m_treeShader.reset(m_graphicsEngine->CreateMaterialShaderGraph());
+		std::unique_ptr<inl::gxeng::MaterialShaderEquation> mapShader(m_graphicsEngine->CreateMaterialShaderEquation());
+		std::unique_ptr<inl::gxeng::MaterialShaderEquation> diffuseShader(m_graphicsEngine->CreateMaterialShaderEquation());
+
+		mapShader->SetSourceName("bitmap_color_2d.mtl");
+		diffuseShader->SetSourceName("simple_diffuse.mtl");
+
+		std::vector<std::unique_ptr<inl::gxeng::MaterialShader>> nodes;
+		nodes.push_back(std::move(mapShader));
+		nodes.push_back(std::move(diffuseShader));
+		m_treeShader->SetGraph(std::move(nodes), { {0, 1, 0} });
+		m_treeMaterial->SetShader(m_treeShader.get());
+
+		(*m_treeMaterial)[0] = m_treeTexture.get();
+	}
+
 	// Create checker texture
 	{
 		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
@@ -247,6 +266,7 @@ void QCWorld::AddTree(mathfu::Vector3f position) {
 
 	tree.reset(m_graphicsEngine->CreateMeshEntity());
 	tree->SetMesh(m_treeMesh.get());
+	tree->SetMaterial(m_treeMaterial.get());
 	tree->SetTexture(m_treeTexture.get());
 	tree->SetPosition(position);
 	tree->SetRotation({ 1,0,0,0 });

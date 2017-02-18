@@ -4,16 +4,19 @@
 #include "ResourceView.hpp"
 #include "ShaderManager.hpp"
 #include "VolatileViewHeap.hpp"
+#include "Binder.hpp"
 #include <cstdint>
 
 
 namespace inl {
 namespace gxeng {
 
+
 class MemoryManager;
 class CbvSrvUavHeap;
 class RTVHeap;
 class DSVHeap;
+
 
 class GraphicsContext {
 public:
@@ -58,8 +61,12 @@ public:
 
 	// Shaders and PSOs
 	ShaderProgram CreateShader(const std::string& name, ShaderParts stages, const std::string& macros);
+	ShaderProgram CompileShader(const std::string& code, ShaderParts stages, const std::string& macros);
 	gxapi::IPipelineState* CreatePSO(const gxapi::GraphicsPipelineStateDesc& desc);
 	gxapi::IPipelineState* CreatePSO(const gxapi::ComputePipelineStateDesc& desc);
+
+	// Binding
+	Binder CreateBinder(const std::vector<BindParameterDesc>& parameters, const std::vector<gxapi::StaticSamplerDesc>& staticSamplers = {}) const;
 
 private:
 	// Memory management stuff
