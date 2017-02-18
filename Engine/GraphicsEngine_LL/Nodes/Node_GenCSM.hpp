@@ -7,7 +7,6 @@
 #include "../ConstBufferHeap.hpp"
 #include "../GraphicsContext.hpp"
 #include "../PipelineTypes.hpp"
-#include "../WindowResizeListener.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 

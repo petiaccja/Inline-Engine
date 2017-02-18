@@ -127,6 +127,7 @@ private:
 	Scheduler m_scheduler;
 	ShaderManager m_shaderManager;
 	std::vector<SyncPoint> m_frameEndFenceValues;
+	std::vector<GraphicsNode*> m_graphicsNodes;
 
 	// Pipeline elements
 	CommandQueue m_masterCommandQueue;
@@ -146,6 +147,9 @@ private:
 	// Scene
 	std::set<Scene*> m_scenes;
 	std::set<Camera*> m_cameras;
+
+private:
+	void InitializeGraphicsNodes();
 };
 
 

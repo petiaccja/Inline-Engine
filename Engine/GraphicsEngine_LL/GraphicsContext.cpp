@@ -1,6 +1,7 @@
 #include "GraphicsContext.hpp"
 #include "MemoryManager.hpp"
 
+#include <GraphicsApi_LL/ISwapChain.hpp>
 
 namespace inl {
 namespace gxeng {
@@ -13,6 +14,7 @@ GraphicsContext::GraphicsContext(MemoryManager* memoryManager,
 								 int processorCount,
 								 int deviceCount,
 								 ShaderManager* shaderManager,
+								 gxapi::ISwapChain* swapChain,
 								 gxapi::IGraphicsApi* graphicsApi)
 
 	: m_memoryManager(memoryManager),
@@ -22,6 +24,7 @@ GraphicsContext::GraphicsContext(MemoryManager* memoryManager,
 	m_processorCount(processorCount),
 	m_deviceCount(deviceCount),
 	m_shaderManager(shaderManager),
+	m_swapChain(swapChain),
 	m_graphicsApi(graphicsApi)
 {}
 
@@ -32,6 +35,11 @@ int GraphicsContext::GetProcessorCoreCount() const {
 }
 int GraphicsContext::GetGraphicsDeviceCount() const {
 	return m_deviceCount;
+}
+
+
+gxapi::SwapChainDesc GraphicsContext::GetSwapChainDesc() const {
+	return m_swapChain->GetDesc();
 }
 
 
@@ -136,12 +144,21 @@ ShaderProgram GraphicsContext::CreateShader(const std::string& name, ShaderParts
 	return m_shaderManager->CreateShader(name, stages, macros);
 }
 
+ShaderProgram GraphicsContext::CompileShader(const std::string& code, ShaderParts stages, const std::string& macros) {
+	return m_shaderManager->CompileShader(code, stages, macros);
+}
+
 gxapi::IPipelineState* GraphicsContext::CreatePSO(const gxapi::GraphicsPipelineStateDesc& desc) {
 	return m_graphicsApi->CreateGraphicsPipelineState(desc);
 }
 
 gxapi::IPipelineState* GraphicsContext::CreatePSO(const gxapi::ComputePipelineStateDesc& desc) {
 	return m_graphicsApi->CreateComputePipelineState(desc);
+}
+
+
+Binder GraphicsContext::CreateBinder(const std::vector<BindParameterDesc>& parameters, const std::vector<gxapi::StaticSamplerDesc>& staticSamplers) const {
+	return Binder(m_graphicsApi, parameters, staticSamplers);
 }
 
 

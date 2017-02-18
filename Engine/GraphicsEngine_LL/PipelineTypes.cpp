@@ -149,7 +149,7 @@ void Texture2D::CopyIfNeeded(CopyCommandList& copyMaker, GraphicsContext& graphi
 
 		// copy the whole texture
 		if (needCopy) {
-			throw std::logic_error("Channeling a single texture to multiple nodes for writing is not supported yet.");
+			//throw std::logic_error("Channeling a single texture to multiple nodes for writing is not supported yet.");
 		}
 	}
 }

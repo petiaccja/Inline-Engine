@@ -16,13 +16,13 @@
 namespace inl::gxeng::nodes {
 
 
-class DepthPrepass :
+class DepthReduction :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<const EntityCollection<MeshEntity>*, const Camera*>,
-	virtual public exc::OutputPortConfig<pipeline::Texture2D>
+	virtual public exc::InputPortConfig<pipeline::Texture2D>,
+	virtual public exc::OutputPortConfig<pipeline::Texture2D, pipeline::Texture2D>
 {
 public:
-	DepthPrepass(gxapi::IGraphicsApi* graphicsApi);
+	DepthReduction(gxapi::IGraphicsApi* graphicsApi);
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
@@ -31,21 +31,24 @@ public:
 	Task GetTask() override;
 
 protected:
-	DepthStencilView2D m_dsv;
-	TextureView2D m_depthTargetSrv;
+	unsigned m_width;
+	unsigned m_height;
+
+	gxeng::RWTextureView2D m_uav;
+	gxeng::TextureView2D m_srv;
 
 protected:
 	GraphicsContext m_graphicsContext;
 	Binder m_binder;
-	BindParameter m_transformBindParam;
-	std::unique_ptr<gxapi::IPipelineState> m_PSO;
+	BindParameter m_depthBindParam;
+	BindParameter m_outputBindParam;
+	std::unique_ptr<gxapi::IPipelineState> m_CSO;
 
 private:
-	void InitRenderTarget(unsigned width, unsigned height);
+	void InitRenderTarget();
 	void RenderScene(
-		DepthStencilView2D& dsv,
-		const EntityCollection<MeshEntity>& entities,
-		const Camera* camera,
+		const gxeng::RWTextureView2D& uav,
+		pipeline::Texture2D& depthTex,
 		GraphicsCommandList& commandList);
 };
 

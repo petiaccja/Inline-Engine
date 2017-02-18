@@ -11,6 +11,7 @@ namespace gxeng {
 
 
 class Mesh;
+class Material;
 class Image;
 
 
@@ -20,6 +21,8 @@ public:
 
 	void SetMesh(Mesh* mesh);
 	Mesh* GetMesh() const;
+	void SetMaterial(Material* material);
+	Material* GetMaterial() const;
 	void SetTexture(Image* texture);
 	Image* GetTexture() const;
 
@@ -35,6 +38,7 @@ public:
 
 private:
 	Mesh* m_mesh;
+	Material* m_material;
 	Image* m_texture;
 	mathfu::Vector<float, 3> m_position;
 	mathfu::Quaternion<float> m_rotation;

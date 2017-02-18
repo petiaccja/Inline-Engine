@@ -15,12 +15,11 @@
 //forward
 #include "Nodes/Node_ForwardRender.hpp"
 #include "Nodes/Node_DepthPrepass.hpp"
+#include "Nodes/Node_DepthReduction.hpp"
 
 #include "Nodes/Node_GenCSM.hpp"
 #include "Nodes/Node_RenderToBackBuffer.hpp"
 #include "Nodes/Node_DrawSky.hpp"
-
-#include "WindowResizeListener.hpp"
 
 #include "Scene.hpp"
 #include "Camera.hpp"
@@ -71,7 +70,9 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 
 	// Init shader manager before creating the pipeline
 	m_shaderManager.AddSourceDirectory("../../Engine/GraphicsEngine_LL/Nodes/Shaders");
+	m_shaderManager.AddSourceDirectory("../../Engine/GraphicsEngine_LL/Materials");
 	m_shaderManager.AddSourceDirectory("./Shaders");
+	m_shaderManager.AddSourceDirectory("./Materials");
 #ifdef NDEBUG
 	m_shaderManager.SetShaderCompileFlags(gxapi::eShaderCompileFlags::OPTIMIZATION_HIGH);
 #else
@@ -168,9 +169,7 @@ void GraphicsEngine::SetScreenSize(unsigned width, unsigned height) {
 	m_swapChain->Resize(width, height);
 	m_backBufferHeap = std::make_unique<BackBufferManager>(m_graphicsApi, m_swapChain.get());
 
-	for (auto curr : m_windowResizeListeners) {
-		curr->WindowResized(width, height);
-	}
+	InitializeGraphicsNodes();
 }
 void GraphicsEngine::GetScreenSize(unsigned& width, unsigned& height) {
 	auto desc = m_swapChain->GetDesc();
@@ -276,8 +275,10 @@ void GraphicsEngine::CreatePipeline() {
 	std::unique_ptr<nodes::GetCameraByName> getCamera(new nodes::GetCameraByName());
 	std::unique_ptr<nodes::RenderToBackBuffer> renderToBackbuffer(new nodes::RenderToBackBuffer(m_graphicsApi));
 
-	std::unique_ptr<nodes::ForwardRender> forwardRender(new nodes::ForwardRender(m_graphicsApi, swapChainDesc.width, swapChainDesc.height));
-	std::unique_ptr<nodes::DepthPrepass> depthPrePass(new nodes::DepthPrepass(m_graphicsApi, swapChainDesc.width, swapChainDesc.height));
+	std::unique_ptr<nodes::ForwardRender> forwardRender(new nodes::ForwardRender(m_graphicsApi));
+	std::unique_ptr<nodes::DepthPrepass> depthPrePass(new nodes::DepthPrepass(m_graphicsApi));
+	std::unique_ptr<nodes::DepthReduction> depthReduction(new nodes::DepthReduction(m_graphicsApi));
+	std::unique_ptr<nodes::DrawSky> drawSky(new nodes::DrawSky(m_graphicsApi));
 
 	getWorldScene->GetInput<0>().Set("World");
 	getCamera->GetInput<0>().Set("WorldCam");
@@ -285,41 +286,57 @@ void GraphicsEngine::CreatePipeline() {
 	depthPrePass->GetInput<0>().Link(getWorldScene->GetOutput(0));
 	depthPrePass->GetInput<1>().Link(getCamera->GetOutput(0));
 
+	//depthReduction->GetInput<0>().Link(depthPrePass->GetOutput(0));
+
+	//forwardRender->GetInput<0>().Link(depthReduction->GetOutput(1));
 	forwardRender->GetInput<0>().Link(depthPrePass->GetOutput(0));
 	forwardRender->GetInput<1>().Link(getWorldScene->GetOutput(0));
 	forwardRender->GetInput<2>().Link(getCamera->GetOutput(0));
 	forwardRender->GetInput<3>().Link(getWorldScene->GetOutput(1));
 
-	renderToBackbuffer->GetInput<0>().Link(forwardRender->GetOutput(0));
+	drawSky->GetInput<0>().Link(forwardRender->GetOutput(0));
+	drawSky->GetInput<1>().Link(depthPrePass->GetOutput(0));
+	drawSky->GetInput<2>().Link(getCamera->GetOutput(0));
+	drawSky->GetInput<3>().Link(getWorldScene->GetOutput(1));
 
-	GraphicsContext graphicsContext(&m_memoryManager, &m_persResViewHeap, &m_rtvHeap, &m_dsvHeap, std::thread::hardware_concurrency(), 1, &m_shaderManager, m_graphicsApi);
+	renderToBackbuffer->GetInput<0>().Link(drawSky->GetOutput(0));
+	//renderToBackbuffer->GetInput<0>().Link(forwardRender->GetOutput(0));
+	//renderToBackbuffer->GetInput<0>().Link(depthReduction->GetOutput(0));
 
-	getWorldScene->InitGraphics(graphicsContext);
-	getCamera->InitGraphics(graphicsContext);
-	depthPrePass->InitGraphics(graphicsContext);
-	forwardRender->InitGraphics(graphicsContext);
-	renderToBackbuffer->InitGraphics(graphicsContext);
+	m_graphicsNodes = {
+		getWorldScene.release(),
+		getCamera.release(),
+		depthPrePass.release(),
+		//depthReduction.release(),
+		forwardRender.release(),
+		renderToBackbuffer.release(),
+		drawSky.release()
+	};
+	try {
+		InitializeGraphicsNodes();
 
-	m_windowResizeListeners.push_back(forwardRender.get());
-	m_windowResizeListeners.push_back(depthPrePass.get());
-
-	{
+		std::vector<exc::NodeBase*> nodeList;
+		nodeList.reserve(m_graphicsNodes.size());
+		for (auto curr : m_graphicsNodes) {
+			nodeList.push_back(curr);
+		}
 		m_pipeline.CreateFromNodesList(
-			{
-				getWorldScene.get(),
-				getCamera.get(),
-				depthPrePass.get(),
-				forwardRender.get(),
-				renderToBackbuffer.get()
-			},
+			nodeList,
 			std::default_delete<exc::NodeBase>()
 		);
+	}
+	catch (...) {
+		for (auto currNode : m_graphicsNodes) {
+			delete currNode;
+		}
+		throw;
+	}
+}
 
-		getWorldScene.release();
-		getCamera.release();
-		depthPrePass.release();
-		forwardRender.release();
-		renderToBackbuffer.release();
+void GraphicsEngine::InitializeGraphicsNodes() {
+	GraphicsContext graphicsContext(&m_memoryManager, &m_persResViewHeap, &m_rtvHeap, &m_dsvHeap, std::thread::hardware_concurrency(), 1, &m_shaderManager, m_swapChain.get(), m_graphicsApi);
+	for (auto curr : m_graphicsNodes) {
+		curr->InitGraphics(graphicsContext);
 	}
 }
 

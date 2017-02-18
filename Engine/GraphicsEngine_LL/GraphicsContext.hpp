@@ -4,16 +4,19 @@
 #include "ResourceView.hpp"
 #include "ShaderManager.hpp"
 #include "VolatileViewHeap.hpp"
+#include "Binder.hpp"
 #include <cstdint>
 
 
 namespace inl {
 namespace gxeng {
 
+
 class MemoryManager;
 class CbvSrvUavHeap;
 class RTVHeap;
 class DSVHeap;
+
 
 class GraphicsContext {
 public:
@@ -24,6 +27,7 @@ public:
 					int processorCount = 0,
 					int deviceCount = 0,
 					ShaderManager* shaderManager = nullptr,
+					gxapi::ISwapChain* swapChain = nullptr,
 					gxapi::IGraphicsApi* graphicsApi = nullptr);
 	GraphicsContext(const GraphicsContext& rhs) = default;
 	GraphicsContext(GraphicsContext&& rhs) = default;
@@ -33,6 +37,9 @@ public:
 	// Parallelism
 	int GetProcessorCoreCount() const;
 	int GetGraphicsDeviceCount() const;
+
+	// Swap chain
+	gxapi::SwapChainDesc GetSwapChainDesc() const;
 
 	// Create pipeline textures
 	Texture2D CreateTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1) const;
@@ -54,8 +61,12 @@ public:
 
 	// Shaders and PSOs
 	ShaderProgram CreateShader(const std::string& name, ShaderParts stages, const std::string& macros);
+	ShaderProgram CompileShader(const std::string& code, ShaderParts stages, const std::string& macros);
 	gxapi::IPipelineState* CreatePSO(const gxapi::GraphicsPipelineStateDesc& desc);
 	gxapi::IPipelineState* CreatePSO(const gxapi::ComputePipelineStateDesc& desc);
+
+	// Binding
+	Binder CreateBinder(const std::vector<BindParameterDesc>& parameters, const std::vector<gxapi::StaticSamplerDesc>& staticSamplers = {}) const;
 
 private:
 	// Memory management stuff
@@ -68,6 +79,8 @@ private:
 
 	// Shaders and PSOs
 	ShaderManager* m_shaderManager;
+
+	gxapi::ISwapChain* m_swapChain;
 	gxapi::IGraphicsApi* m_graphicsApi;
 };
 
