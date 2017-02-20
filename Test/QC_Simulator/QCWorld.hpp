@@ -3,6 +3,7 @@
 
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
 #include <GraphicsEngine_LL/Mesh.hpp>
+#include <GraphicsEngine_LL/Material.hpp>
 #include <GraphicsEngine_LL/Image.hpp>
 #include <GraphicsEngine_LL/MeshEntity.hpp>
 #include <GraphicsEngine_LL/Scene.hpp>
@@ -92,6 +93,9 @@ private:
 	std::unique_ptr<inl::gxeng::Image> m_treeTexture;
 
 	std::unique_ptr<inl::gxeng::Image> m_checkerTexture;
+
+	std::unique_ptr<inl::gxeng::Material> m_treeMaterial;
+	std::unique_ptr<inl::gxeng::MaterialShaderGraph> m_treeShader;
 
 	// Entities
 	std::vector<std::unique_ptr<inl::gxeng::MeshEntity>> m_staticEntities;

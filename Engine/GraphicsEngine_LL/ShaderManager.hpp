@@ -29,6 +29,10 @@ private:
 	std::vector<uint8_t> m_binary;
 };
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4522)
+#endif
+
 /// <summary> Helper class for keeping track of which shader stages have been compiled. </summary>
 struct ShaderParts {
 	bool vs = false, hs = false, ds = false, gs = false, ps = false, cs = false;
@@ -79,6 +83,10 @@ struct ShaderParts {
 		return *this;
 	}
 };
+
+#ifdef _MSC_VER
+#pragma warning(default: 4522)
+#endif
 
 /// <summary> Contains all binaries associated with a shader program.
 /// It should be added to a PSO and used in the pipeline. </summary>
@@ -180,26 +188,37 @@ public:
 
 	/// <summary> It does not do anything, but I guess it will be good for something in the future. </summary>
 	void ReloadShaders();
-private:
-	// Find a source in dirs, resource and codes by its name. Does not lock anything.
-	std::pair<std::string, std::string> FindShaderCode(const std::string& name);
 
-	// Compiles a shader to binary according to parameters.
-	ShaderProgram CompileShader(const std::string& sourceCode, const std::string& macros, ShaderParts parts);
+	/// <summary> Return the source code of a certain shader. </summary>
+	std::string LoadShaderSource(const std::string& name) const;
+
+	/// <summary> Compile arbitrary source code without adding it to the library. </summary>
+	/// <remarks> Include directives will still work if registered files are referenced. </remarks>
+	ShaderProgram CompileShader(const std::string& sourceCode, ShaderParts parts, const std::string& macros = {});
+private:
+	/// <summary> Find a source in dirs, resource and codes by its name. Does not lock anything. </summary>
+	/// <returns> 
+	///		A {name, code} pair, where name is the canonical, unique name for the shader,
+	///		and code is the actual HLSL(/other) shader code. 
+	/// </returns>
+	std::pair<std::string, std::string> FindShaderCode(const std::string& name) const;
+
+	/// <summary> Compiles a shader to binary according to parameters. </summary>
+	ShaderProgram CompileShaderInternal(const std::string& sourceCode, ShaderParts parts, const std::string& macros);
 
 	// Cuts off extension (only .hlsl, .glsl, .cg, .txt), converts to lowercase.
-	std::string StripShaderName(std::string name);
+	static std::string StripShaderName(std::string name);
 private:
 	gxapi::IGxapiManager* m_gxapiManager;
 
-	PathContainer m_directories;
-	CodeContainer m_codes;
+	PathContainer m_directories; /// <summary> List of directories where shaders should be searched for. </summary>
+	CodeContainer m_codes; /// <summary> List of {fileName, sourceCode} of runtime-added char* shaders. </summary>
 
-	ShaderContainer m_shaders;
+	ShaderContainer m_shaders; /// <summary> List of compiled shaders. </summary>
 
-	std::shared_mutex m_sourceMutex;
-	std::mutex m_shaderMutex;
-	std::unique_ptr<std::mutex[]> m_compileMutexes;
+	mutable std::shared_mutex m_sourceMutex; /// <summary> Lock when accessing directory or code maps. </summary>
+	std::mutex m_shaderMutex; /// <summary> Shared: when reading m_shaders; Exclusive: when writing m_shaders. </summary>
+	std::unique_ptr<std::mutex[]> m_compileMutexes; /// <summary> Hash-modulo select one, lock when accessing hashed shader binary. </summary>
 	size_t m_numCompileMutexes;
 
 	gxapi::eShaderCompileFlags m_compileFlags;

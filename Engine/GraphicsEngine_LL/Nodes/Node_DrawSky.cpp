@@ -2,23 +2,28 @@
 
 #include <array>
 
-// OBSOLETE
-// please update this class to match current pipeline
 
-#if 0
 namespace inl::gxeng::nodes {
 
 
 DrawSky::DrawSky(gxapi::IGraphicsApi * graphicsApi):
 	m_binder(graphicsApi, {})
 {
-	BindParameterDesc cbBindParamDesc;
-	m_cbBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
-	cbBindParamDesc.parameter = m_cbBindParam;
-	cbBindParamDesc.constantSize = sizeof(float) * 4 * 3 + sizeof(float)*16 + sizeof(float)*4;
-	cbBindParamDesc.relativeAccessFrequency = 0;
-	cbBindParamDesc.relativeChangeFrequency = 0;
-	cbBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+	BindParameterDesc sunCbBindParamDesc;
+	m_sunCbBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
+	sunCbBindParamDesc.parameter = m_sunCbBindParam;
+	sunCbBindParamDesc.constantSize = sizeof(float) * 4 * 2;
+	sunCbBindParamDesc.relativeAccessFrequency = 0;
+	sunCbBindParamDesc.relativeChangeFrequency = 0;
+	sunCbBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+	BindParameterDesc camCbBindParamDesc;
+	m_camCbBindParam = BindParameter(eBindParameterType::CONSTANT, 1);
+	camCbBindParamDesc.parameter = m_camCbBindParam;
+	camCbBindParamDesc.constantSize = sizeof(float) * 16 + sizeof(float) * 4;
+	camCbBindParamDesc.relativeAccessFrequency = 0;
+	camCbBindParamDesc.relativeChangeFrequency = 0;
+	camCbBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 	BindParameterDesc sampBindParamDesc;
 	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
@@ -37,7 +42,7 @@ DrawSky::DrawSky(gxapi::IGraphicsApi * graphicsApi):
 	samplerDesc.registerSpace = 0;
 	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-	m_binder = Binder{ graphicsApi,{ cbBindParamDesc, sampBindParamDesc },{ samplerDesc } };
+	m_binder = Binder{ graphicsApi,{ sunCbBindParamDesc, camCbBindParamDesc, sampBindParamDesc },{ samplerDesc } };
 }
 
 
@@ -124,31 +129,35 @@ void DrawSky::Render(
 	commandList.SetStencilRef(0); // only allow sky to be rendered to background pixels
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
-	unsigned vbSize = m_fsq.GetSize();
+	unsigned vbSize = (unsigned)m_fsq.GetSize();
 	unsigned vbStride = 3 * sizeof(float);
 
 	struct Sun {
-		mathfu::VectorPacked<float, 4> invViewProj[4];
-		mathfu::VectorPacked<float, 4> dirView;
-		mathfu::VectorPacked<float, 4> dirWorld;
+		mathfu::VectorPacked<float, 4> dir;
 		mathfu::VectorPacked<float, 4> color;
-		mathfu::VectorPacked<float, 4> viewPos;
+		
+	};
+
+	struct Cam {
+		mathfu::VectorPacked<float, 4> invViewProj[4];
+		mathfu::VectorPacked<float, 4> pos;
 	};
 
 	Sun sunCB;
+	Cam camCB;
 
 	mathfu::Matrix4x4f viewInvTr = camera->GetViewMatrixRH().Inverse().Transpose();
 	mathfu::Vector4f sunViewDir = viewInvTr * mathfu::Vector4f(sun->GetDirection(), 0.0f);
 	mathfu::Vector4f sunColor = mathfu::Vector4f(sun->GetColor(), 1.0f);
 	mathfu::Matrix4x4f invViewProj = (camera->GetPerspectiveMatrixRH() * camera->GetViewMatrixRH()).Inverse();
 
-	sunCB.dirView = sunViewDir;
-	sunCB.dirWorld = mathfu::Vector4f(sun->GetDirection(), 0.0);
+	sunCB.dir = mathfu::Vector4f(sun->GetDirection(), 0.0);
 	sunCB.color = sunColor;
-	invViewProj.Pack(sunCB.invViewProj);
-	sunCB.viewPos = mathfu::Vector4f(camera->GetPosition(), 1);
+	invViewProj.Pack(camCB.invViewProj);
+	camCB.pos = mathfu::Vector4f(camera->GetPosition(), 1);
 
-	commandList.BindGraphics(m_cbBindParam, &sunCB, sizeof(sunCB), 0);
+	commandList.BindGraphics(m_sunCbBindParam, &sunCB, sizeof(sunCB), 0);
+	commandList.BindGraphics(m_camCbBindParam, &camCB, sizeof(camCB), 0);
 	commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
 	commandList.SetIndexBuffer(&m_fsqIndices, false);
 	commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
@@ -156,4 +165,3 @@ void DrawSky::Render(
 
 
 } // namespace inl::gxeng::nodes
-#endif

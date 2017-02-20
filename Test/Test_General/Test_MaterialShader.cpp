@@ -18,7 +18,7 @@ public:
 	TestMaterialShader() {}
 
 	static std::string Name() {
-		return "MaterialShader";
+		return "Material Shader";
 	}
 	int Run() override;
 };
@@ -45,9 +45,9 @@ int TestMaterialShader::Run() {
 		"   return color*0.4f; \n"
 		"}";
 
-	MaterialShaderEquation shaderNode;
-	MaterialShaderEquation darkenNode;
-	MaterialShaderEquation mapNode;
+	MaterialShaderEquation shaderNode(nullptr);
+	MaterialShaderEquation darkenNode(nullptr);
+	MaterialShaderEquation mapNode(nullptr);
 	shaderNode.SetSourceCode(simpleShader);
 	darkenNode.SetSourceCode(darken);
 	mapNode.SetSourceCode(mapColor2D);
@@ -65,13 +65,13 @@ int TestMaterialShader::Run() {
 		{ 2, 3, 1 },
 	};
 
-	MaterialShaderGraph graph;
+	MaterialShaderGraph graph(nullptr);
 	graph.SetGraph(std::move(nodes), std::move(links));
-	std::string shaderCode = graph.GetShaderCode(*(ShaderManager*)nullptr);
+	std::string shaderCode = graph.GetShaderCode();
 	cout << shaderCode << endl;
 
 
-	std::string code = inl::gxeng::MaterialGenPixelShader(shaderCode);
+	std::string code = inl::gxeng::MaterialGenPixelShader(graph);
 	cout << "---------------------------" << endl;
 	cout << code << endl;
 

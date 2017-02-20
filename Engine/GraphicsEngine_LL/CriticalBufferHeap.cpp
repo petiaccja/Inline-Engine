@@ -20,7 +20,7 @@ CriticalBufferHeap::CriticalBufferHeap(gxapi::IGraphicsApi * graphicsApi) :
 MemoryObjDesc CriticalBufferHeap::Allocate(gxapi::ResourceDesc desc, gxapi::ClearValue* clearValue) {
 	MemoryObjDesc result = MemoryObjDesc(
 		m_graphicsApi->CreateCommittedResource(
-			gxapi::HeapProperties(gxapi::eHeapType::CUSTOM, gxapi::eCpuPageProperty::NOT_AVAILABLE, gxapi::eMemoryPool::DEDICATED),
+			gxapi::HeapProperties(gxapi::eHeapType::DEFAULT, gxapi::eCpuPageProperty::UNKNOWN, gxapi::eMemoryPool::UNKNOWN),
 			gxapi::eHeapFlags::NONE,
 			desc,
 			gxapi::eResourceState::COMMON,

@@ -30,6 +30,9 @@ ComputeCommandList::ComputeCommandList(
 	CopyCommandList(gxApi, commandAllocatorPool, scratchSpacePool, type)
 {
 	m_commandList = dynamic_cast<gxapi::IComputeCommandList*>(GetCommandList());
+
+	m_computeBindingManager = BindingManager<gxapi::eCommandListType::COMPUTE>(m_graphicsApi, m_commandList);
+	m_computeBindingManager.SetDescriptorHeap(GetCurrentScratchSpace());
 }
 
 
@@ -182,6 +185,14 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const RWBufferView
 void ComputeCommandList::NewScratchSpace(size_t hint) {
 	BasicCommandList::NewScratchSpace(hint);
 	m_computeBindingManager.SetDescriptorHeap(GetCurrentScratchSpace());
+}
+
+
+//------------------------------------------------------------------------------
+// UAV barrier
+//------------------------------------------------------------------------------
+void ComputeCommandList::UAVBarrier(MemoryObject& memoryObject) {
+	m_commandList->ResourceBarrier(gxapi::UavBarrier(memoryObject._GetResourcePtr()));
 }
 
 

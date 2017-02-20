@@ -1983,6 +1983,7 @@ D3D12_RESOURCE_BARRIER native_cast(gxapi::ResourceBarrier source) {
 		case gxapi::eResourceBarrierType::ALIASING:
 			break;
 		case gxapi::eResourceBarrierType::UAV:
+			native.UAV.pResource = native_cast(source.uav.resource);
 			break;
 		default:
 			break;

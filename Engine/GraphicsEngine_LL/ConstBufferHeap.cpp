@@ -14,7 +14,7 @@ ConstantBufferHeap::ConstantBufferHeap(gxapi::IGraphicsApi* graphicsApi) :
 
 
 VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(const void* data, uint32_t dataSize) {
-	uint32_t targetSize = SnapUpward(dataSize, ALIGNEMENT);
+	uint32_t targetSize = (uint32_t)SnapUpward(dataSize, ALIGNEMENT);
 
 	std::lock_guard<std::mutex> lock(m_mutex);
 

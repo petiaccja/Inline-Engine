@@ -1,19 +1,21 @@
 #include "GraphicsContext.hpp"
 #include "MemoryManager.hpp"
 
+#include <GraphicsApi_LL/ISwapChain.hpp>
 
 namespace inl {
 namespace gxeng {
 
 
 GraphicsContext::GraphicsContext(MemoryManager* memoryManager,
-	CbvSrvUavHeap* srvHeap,
-	RTVHeap* rtvHeap,
-	DSVHeap* dsvHeap,
-	int processorCount,
-	int deviceCount,
-	ShaderManager* shaderManager,
-	gxapi::IGraphicsApi* graphicsApi)
+								 CbvSrvUavHeap* srvHeap,
+								 RTVHeap* rtvHeap,
+								 DSVHeap* dsvHeap,
+								 int processorCount,
+								 int deviceCount,
+								 ShaderManager* shaderManager,
+								 gxapi::ISwapChain* swapChain,
+								 gxapi::IGraphicsApi* graphicsApi)
 
 	: m_memoryManager(memoryManager),
 	m_srvHeap(srvHeap),
@@ -22,6 +24,7 @@ GraphicsContext::GraphicsContext(MemoryManager* memoryManager,
 	m_processorCount(processorCount),
 	m_deviceCount(deviceCount),
 	m_shaderManager(shaderManager),
+	m_swapChain(swapChain),
 	m_graphicsApi(graphicsApi)
 {}
 
@@ -35,6 +38,11 @@ int GraphicsContext::GetGraphicsDeviceCount() const {
 }
 
 
+gxapi::SwapChainDesc GraphicsContext::GetSwapChainDesc() const {
+	return m_swapChain->GetDesc();
+}
+
+
 Texture2D GraphicsContext::CreateTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize) const {
 	if (m_memoryManager == nullptr) throw std::logic_error("Cannot create texture without memory manager.");
 
@@ -43,13 +51,11 @@ Texture2D GraphicsContext::CreateTexture2D(uint64_t width, uint32_t height, gxap
 }
 
 
-Texture2D GraphicsContext::CreateRenderTarget2D(uint64_t width, uint32_t height, gxapi::eFormat format, bool shaderResource, uint16_t arraySize) const {
+Texture2D GraphicsContext::CreateRenderTarget2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize) const {
 	if (m_memoryManager == nullptr) throw std::logic_error("Cannot create texture without memory manager.");
 
 	gxapi::eResourceFlags flags = gxapi::eResourceFlags::ALLOW_RENDER_TARGET;
-	if (!shaderResource) {
-		flags += gxapi::eResourceFlags::DENY_SHADER_RESOURCE;
-	}
+
 	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, format, flags, arraySize);
 	return texture;
 }
@@ -66,25 +72,42 @@ Texture2D GraphicsContext::CreateDepthStencil2D(uint64_t width, uint32_t height,
 	return texture;
 }
 
+Texture2D GraphicsContext::CreateRWTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, bool renderTarget, uint16_t arraySize) const {
+	if (m_memoryManager == nullptr) throw std::logic_error("Cannot create texture without memory manager.");
+
+	gxapi::eResourceFlags flags = gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS;
+	if (renderTarget) { flags += gxapi::eResourceFlags::ALLOW_RENDER_TARGET; }
+
+	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, format, flags, arraySize);
+	return texture;
+}
+
 
 TextureView2D GraphicsContext::CreateSrv(Texture2D& texture, gxapi::eFormat format, gxapi::SrvTexture2DArray desc) const {
-	if (m_srvHeap == nullptr) throw std::logic_error("Cannot create src without srv heap.");
+	if (m_srvHeap == nullptr) throw std::logic_error("Cannot create srv without srv/cbv/uav heap.");
 
-	return TextureView2D{texture, *m_srvHeap, format, desc };
+	return TextureView2D{ texture, *m_srvHeap, format, desc };
 }
 
 
 RenderTargetView2D GraphicsContext::CreateRtv(Texture2D& texture, gxapi::eFormat format, gxapi::RtvTexture2DArray desc) const {
-	if (m_srvHeap == nullptr) throw std::logic_error("Cannot create rtv without rtv heap.");
+	if (m_rtvHeap == nullptr) throw std::logic_error("Cannot create rtv without rtv heap.");
 
 	return RenderTargetView2D{ texture, *m_rtvHeap, format, desc };
 }
 
 
 DepthStencilView2D GraphicsContext::CreateDsv(Texture2D& texture, gxapi::eFormat format, gxapi::DsvTexture2DArray desc) const {
-	if (m_srvHeap == nullptr) throw std::logic_error("Cannot create dsv without dsv heap.");
+	if (m_dsvHeap == nullptr) throw std::logic_error("Cannot create dsv without dsv heap.");
 
 	return DepthStencilView2D{ texture, *m_dsvHeap, format, desc };
+}
+
+
+RWTextureView2D GraphicsContext::CreateUav(Texture2D& rwTexture, gxapi::eFormat format, gxapi::UavTexture2DArray desc) const {
+	if (m_srvHeap == nullptr) throw std::logic_error("Cannot create uav wihtout srv/cbv/uav heap.");
+
+	return RWTextureView2D{ rwTexture, *m_srvHeap, format, desc };
 }
 
 
@@ -103,7 +126,7 @@ IndexBuffer GraphicsContext::CreateIndexBuffer(const void* data, size_t size, si
 
 
 VolatileConstBuffer GraphicsContext::CreateVolatileConstBuffer(const void * data, size_t size) {
-	VolatileConstBuffer result = m_memoryManager->CreateVolatileConstBuffer(data, size);
+	VolatileConstBuffer result = m_memoryManager->CreateVolatileConstBuffer(data, (uint32_t)size);
 	return result;
 }
 
@@ -121,12 +144,21 @@ ShaderProgram GraphicsContext::CreateShader(const std::string& name, ShaderParts
 	return m_shaderManager->CreateShader(name, stages, macros);
 }
 
+ShaderProgram GraphicsContext::CompileShader(const std::string& code, ShaderParts stages, const std::string& macros) {
+	return m_shaderManager->CompileShader(code, stages, macros);
+}
+
 gxapi::IPipelineState* GraphicsContext::CreatePSO(const gxapi::GraphicsPipelineStateDesc& desc) {
 	return m_graphicsApi->CreateGraphicsPipelineState(desc);
 }
 
 gxapi::IPipelineState* GraphicsContext::CreatePSO(const gxapi::ComputePipelineStateDesc& desc) {
 	return m_graphicsApi->CreateComputePipelineState(desc);
+}
+
+
+Binder GraphicsContext::CreateBinder(const std::vector<BindParameterDesc>& parameters, const std::vector<gxapi::StaticSamplerDesc>& staticSamplers) const {
+	return Binder(m_graphicsApi, parameters, staticSamplers);
 }
 
 

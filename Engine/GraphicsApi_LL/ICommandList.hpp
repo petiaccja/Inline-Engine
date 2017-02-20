@@ -69,8 +69,8 @@ public:
 	}
 
 protected:
-	template <class... Barriers>
-	void PopulateBarrierTable(::inl::gxapi::ResourceBarrier* target, const TransitionBarrier& head, Barriers&&... tail);
+	template <class Head, class... Barriers>
+	void PopulateBarrierTable(::inl::gxapi::ResourceBarrier* target, const Head& head, Barriers&&... tail);
 	void PopulateBarrierTable(::inl::gxapi::ResourceBarrier* target) {}
 };
 
@@ -172,10 +172,9 @@ public:
 };
 
 
-template <class... Barriers>
-void ICopyCommandList::PopulateBarrierTable(::inl::gxapi::ResourceBarrier* target, const TransitionBarrier& head, Barriers&&... tail) {
-	target->type = eResourceBarrierType::TRANSITION;
-	target->transition = head;
+template <class Head, class... Barriers>
+void ICopyCommandList::PopulateBarrierTable(::inl::gxapi::ResourceBarrier* target, const Head& head, Barriers&&... tail) {
+	*target = ::inl::gxapi::ResourceBarrier(head);
 
 	PopulateBarrierTable(target + 1, std::forward<Barriers&&>(tail)...);
 }

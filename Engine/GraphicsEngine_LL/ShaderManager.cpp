@@ -103,7 +103,7 @@ const ShaderProgram& ShaderManager::CreateShader(const std::string& name, Shader
 	ShaderParts partsToCompile = requestedParts.SetSubtract(shader->parts);
 	ShaderProgram program;
 	try {
-		program = CompileShader(shaderSource.c_str(), macros.c_str(), partsToCompile);
+		program = CompileShaderInternal(shaderSource.c_str(), partsToCompile, macros.c_str());
 	}
 	catch (gxapi::ShaderCompilationError& ex) {
 		throw gxapi::ShaderCompilationError("Error while compiling shader '" + shaderPath + "'. Compiler message: " + ex.what());
@@ -134,7 +134,24 @@ void ShaderManager::ReloadShaders() {
 }
 
 
-std::pair<std::string, std::string> ShaderManager::FindShaderCode(const std::string& name) {
+std::string ShaderManager::LoadShaderSource(const std::string& name) const {
+	std::shared_lock<std::shared_mutex> lkg(m_sourceMutex);
+
+	auto code = FindShaderCode(name);
+
+	return code.second;
+}
+
+
+ShaderProgram ShaderManager::CompileShader(const std::string& sourceCode, ShaderParts parts, const std::string& macros) {
+	// lock source maps (read only lock)
+	std::shared_lock<std::shared_mutex> sourceLock(m_sourceMutex);
+
+	return CompileShaderInternal(sourceCode, parts, macros);
+}
+
+
+std::pair<std::string, std::string> ShaderManager::FindShaderCode(const std::string& name) const {
 	std::string keyName = StripShaderName(name);
 
 	// try it in direct source cache
@@ -161,7 +178,7 @@ std::pair<std::string, std::string> ShaderManager::FindShaderCode(const std::str
 	throw std::runtime_error("Shader was not found.");
 }
 
-ShaderProgram ShaderManager::CompileShader(const std::string& sourceCode, const std::string& macros, ShaderParts parts) {
+ShaderProgram ShaderManager::CompileShaderInternal(const std::string& sourceCode, ShaderParts parts, const std::string& macros) {
 	class IncludeProvider : public gxapi::IShaderIncludeProvider {
 	public:
 		IncludeProvider(std::function<std::string(const char*)> findShader) : m_findShader(findShader) {}

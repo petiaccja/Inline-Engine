@@ -7,9 +7,7 @@
 #include "../GraphicsApi_LL/Exception.hpp"
 
 #include <d3d12.h>
-#include <dxgi1_4.h>
 #include <d3dcompiler.h>
-#include <wrl.h>
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
 
 #include <string>
@@ -65,26 +63,44 @@ private:
 };
 
 
-
-std::vector<AdapterInfo> GxapiManager::EnumerateAdapters() {
+GxapiManager::GxapiManager() {
 	// create a dxgi factory
-	ComPtr<IDXGIFactory4> factory;
-	if (FAILED(CreateDXGIFactory(IID_PPV_ARGS(&factory)))) {
+	if (FAILED(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&m_factory)))) {
 		// it is not supposed to fail unless you call it from a dll main
 		throw Exception("Are you calling this from a DllMain...? See, that's the problem.");
 	}
 
+	// Enable debug layer
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&m_debugController))))
+	{
+		m_debugController->EnableDebugLayer();
+	}
+}
 
+
+std::vector<AdapterInfo> GxapiManager::EnumerateAdapters() {
 	std::vector<AdapterInfo> adapterInfos;
 	ComPtr<IDXGIAdapter1> adapter;
 
 
 	// enumerate adapters one by one
 	unsigned index = 0;
-	while (factory->EnumAdapters1(index, &adapter) != DXGI_ERROR_NOT_FOUND) {
+	while (m_factory->EnumAdapters1(index, &adapter) != DXGI_ERROR_NOT_FOUND) {
 		DXGI_ADAPTER_DESC1 desc;
 		AdapterInfo info;
 		adapter->GetDesc1(&desc); // you better not fail
+
+		// Exclude microsoft basic renderer
+		if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
+			++index;
+			continue;
+		}
+
+		// Exclude if no DX12 support
+		if (FAILED(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device1), nullptr))) {
+			++index;
+			continue;
+		}
 
 		// fill our info with dxgi info
 		char mbs[256];
@@ -96,11 +112,31 @@ std::vector<AdapterInfo> GxapiManager::EnumerateAdapters() {
 		info.dedicatedVideoMemory = desc.DedicatedVideoMemory;
 		info.dedicatedSystemMemory = desc.DedicatedSystemMemory;
 		info.sharedSystemMemory = desc.SharedSystemMemory;
-		info.isSoftwareAdapter = (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) != 0;
+		info.isSoftwareAdapter = false;
 		adapterInfos.push_back(info);
 
 		// next adapter, bitches
 		++index;
+	}
+	m_numHardwareAdapters = index;
+
+	// enumerate WARP
+	if (SUCCEEDED(m_factory->EnumWarpAdapter(IID_PPV_ARGS(&adapter)))) {
+		DXGI_ADAPTER_DESC1 desc;
+		AdapterInfo info;
+		adapter->GetDesc1(&desc);
+
+		//char mbs[256];
+		//wcstombs(mbs, desc.Description, 256);
+		info.name = "WARP12";// mbs;
+		info.adapterId = index;
+		info.vendorId = desc.VendorId;
+		info.deviceId = desc.DeviceId;
+		info.dedicatedVideoMemory = desc.DedicatedVideoMemory;
+		info.dedicatedSystemMemory = desc.DedicatedSystemMemory;
+		info.sharedSystemMemory = desc.SharedSystemMemory;
+		info.isSoftwareAdapter = true;
+		adapterInfos.push_back(info);
 	}
 
 	return adapterInfos;
@@ -113,17 +149,9 @@ ISwapChain* GxapiManager::CreateSwapChain(SwapChainDesc desc, ICommandQueue* flu
 	ComPtr<ID3D12CommandQueue> nativeQueue = native_cast(static_cast<CommandQueue*>(flushThisQueue));
 
 
-	// create a dxgi factory
-	ComPtr<IDXGIFactory4> factory;
-	if (FAILED(CreateDXGIFactory(IID_PPV_ARGS(&factory)))) {
-		// it is not supposed to fail unless you call it from a dll main
-		throw Exception("Failed to create DXGI factory... Are you calling this from a DllMain?");
-	}
-
-
 	// create the swap chain
 	ComPtr<IDXGISwapChain> swapChain;
-	switch (factory->CreateSwapChain(nativeQueue.Get(), &nativeDesc, &swapChain)) {
+	switch (m_factory->CreateSwapChain(nativeQueue.Get(), &nativeDesc, &swapChain)) {
 		case S_OK:
 			break;
 		case E_OUTOFMEMORY:
@@ -144,24 +172,14 @@ ISwapChain* GxapiManager::CreateSwapChain(SwapChainDesc desc, ICommandQueue* flu
 
 
 IGraphicsApi* GxapiManager::CreateGraphicsApi(unsigned adapterId) {
-	// Enable debug layer
-	ComPtr<ID3D12Debug> debugController;
-	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
-	{
-		debugController->EnableDebugLayer();
-	}
-
-	// create a dxgi factory
-	ComPtr<IDXGIFactory4> factory;
-	if (FAILED(CreateDXGIFactory(IID_PPV_ARGS(&factory)))) {
-		// it is not supposed to fail unless you call it from a dll main
-		throw Exception("Are you calling this from a DllMain...? See, that's the problem.");
-	}
-
-
 	// get the specified adapter
 	ComPtr<IDXGIAdapter1> adapter;
-	if (factory->EnumAdapters1(adapterId, &adapter) == DXGI_ERROR_NOT_FOUND) {
+	if (adapterId == m_numHardwareAdapters) {
+		if (FAILED(m_factory->EnumWarpAdapter(IID_PPV_ARGS(&adapter)))) {
+			throw InvalidArgument("Could not acquire WARP adapter.");
+		}
+	}
+	else if (DXGI_ERROR_NOT_FOUND == m_factory->EnumAdapters1(adapterId, &adapter)) {
 		throw OutOfRange("This adapter does not exist. Dumbfuck...");
 	}
 

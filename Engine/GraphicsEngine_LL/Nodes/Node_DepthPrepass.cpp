@@ -12,7 +12,7 @@ namespace inl::gxeng::nodes {
 
 static bool CheckMeshFormat(const Mesh& mesh) {
 	for (size_t i = 0; i < mesh.GetNumStreams(); i++) {
-		auto& elements = mesh.GetVertexBufferElements(i);
+		auto& elements = mesh.GetLayout()[0];
 		if (elements.size() != 3) return false;
 		if (elements[0].semantic != eVertexElementSemantic::POSITION) return false;
 		if (elements[1].semantic != eVertexElementSemantic::NORMAL) return false;
@@ -45,10 +45,8 @@ static void ConvertToSubmittable(
 
 
 
-DepthPrepass::DepthPrepass(gxapi::IGraphicsApi * graphicsApi, unsigned width, unsigned height):
-	m_binder(graphicsApi, {}),
-	m_width(width),
-	m_height(height)
+DepthPrepass::DepthPrepass(gxapi::IGraphicsApi* graphicsApi):
+	m_binder(graphicsApi, {})
 {
 	this->GetInput<0>().Set({});
 
@@ -84,7 +82,8 @@ DepthPrepass::DepthPrepass(gxapi::IGraphicsApi * graphicsApi, unsigned width, un
 void DepthPrepass::InitGraphics(const GraphicsContext & context) {
 	m_graphicsContext = context;
 
-	InitRenderTarget();
+	auto swapChainDesc = context.GetSwapChainDesc();
+	InitRenderTarget(swapChainDesc.width, swapChainDesc.height);
 
 	ShaderParts shaderParts;
 	shaderParts.vs = true;
@@ -108,8 +107,6 @@ void DepthPrepass::InitGraphics(const GraphicsContext & context) {
 	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
-	psoDesc.depthStencilState.enableStencilTest = false;
-
 	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT_S8X24_UINT;
 
 	psoDesc.numRenderTargets = 0;
@@ -143,21 +140,14 @@ Task DepthPrepass::GetTask() {
 }
 
 
-void DepthPrepass::WindowResized(unsigned width, unsigned height) {
-	m_width = width;
-	m_height = height;
-	InitRenderTarget();
-}
-
-
-void DepthPrepass::InitRenderTarget() {
+void DepthPrepass::InitRenderTarget(unsigned width, unsigned height) {
 	using gxapi::eFormat;
 
 	auto formatDepthStencil = eFormat::D32_FLOAT_S8X24_UINT;
 	auto formatColor = eFormat::R32_FLOAT_X8X24_TYPELESS;
 	auto formatTypeless = eFormat::R32G8X24_TYPELESS;
 
-	Texture2D tex = m_graphicsContext.CreateDepthStencil2D(m_width, m_height, formatTypeless, true);
+	Texture2D tex = m_graphicsContext.CreateDepthStencil2D(width, height, formatTypeless, true);
 
 	gxapi::DsvTexture2DArray dsvDesc;
 	dsvDesc.activeArraySize = 1;
@@ -198,7 +188,7 @@ void DepthPrepass::RenderScene(
 	commandList.SetViewports(1, &viewport);
 
 	commandList.SetResourceState(dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
-	commandList.ClearDepthStencil(dsv, 1, 0);
+	commandList.ClearDepthStencil(dsv, 1, 0, 0, nullptr, true, true);
 
 	commandList.SetPipelineState(m_PSO.get());
 	commandList.SetGraphicsBinder(&m_binder);
@@ -235,7 +225,7 @@ void DepthPrepass::RenderScene(
 		commandList.BindGraphics(m_transformBindParam, transformCBData.data(), sizeof(transformCBData), 0);
 
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
-		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->GetIndexBuffer32Bit());
+		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
 		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
 	}
 }

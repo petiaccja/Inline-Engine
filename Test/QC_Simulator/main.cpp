@@ -49,7 +49,7 @@ bool ProcessRawInput(RAWINPUT* raw);
 // -----------------------------------------------------------------------------
 // main()
 
-int main() {
+int main(int argc, char* argv[]) {
 	// Initialize logger
 	logFile.open("engine_test.log");
 	logFilePath = std::experimental::filesystem::current_path();
@@ -162,10 +162,14 @@ int main() {
 
 
 		// Create graphics api
+		int device = 0;
+		if (argc == 3 && argv[1] == std::string("--device") && isdigit(argv[2][0])) {
+			device = argv[2][0] - '0'; // works for single digits, good enough, lol
+		}
 		systemLogStream.Event("Creating GraphicsApi...");
-		gxapi.reset(gxapiMgr->CreateGraphicsApi(adapters[0].adapterId));
+		gxapi.reset(gxapiMgr->CreateGraphicsApi(adapters[device].adapterId));
 		std::stringstream ss;
-		ss << "Using graphics card: " << adapters[0].name;
+		ss << "Using graphics card: " << adapters[device].name;
 		systemLogStream.Event(ss.str());
 
 
@@ -358,10 +362,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				return 0;
 			}
 			else if (wParam == 'L') {
-				pQcWorld->IWantSunsetBitches();
+				if (pQcWorld) {
+					pQcWorld->IWantSunsetBitches();
+				}
 				return 0;
 			}
-			else if (ProcessControls(wParam, false)) {
+			else if (pQcWorld && ProcessControls(wParam, false)) {
 				return 0;
 			}
 			return DefWindowProc(hWnd, msg, wParam, lParam);
@@ -375,7 +381,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				OutputDebugString(TEXT("GetRawInputData does not return correct size !\n"));
 
 			RAWINPUT* raw = (RAWINPUT*)lpb.data();
-			if (ProcessRawInput(raw)) {
+			if (pQcWorld && ProcessRawInput(raw)) {
 				return 0;
 			}
 			else {

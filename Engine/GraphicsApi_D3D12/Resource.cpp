@@ -1,7 +1,12 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "Resource.hpp"
 
 #include "NativeCast.hpp"
 #include "ExceptionExpansions.hpp"
+
 
 namespace inl {
 namespace gxapi_dx12 {

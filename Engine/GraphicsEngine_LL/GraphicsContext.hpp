@@ -4,16 +4,19 @@
 #include "ResourceView.hpp"
 #include "ShaderManager.hpp"
 #include "VolatileViewHeap.hpp"
+#include "Binder.hpp"
 #include <cstdint>
 
 
 namespace inl {
 namespace gxeng {
 
+
 class MemoryManager;
 class CbvSrvUavHeap;
 class RTVHeap;
 class DSVHeap;
+
 
 class GraphicsContext {
 public:
@@ -24,6 +27,7 @@ public:
 					int processorCount = 0,
 					int deviceCount = 0,
 					ShaderManager* shaderManager = nullptr,
+					gxapi::ISwapChain* swapChain = nullptr,
 					gxapi::IGraphicsApi* graphicsApi = nullptr);
 	GraphicsContext(const GraphicsContext& rhs) = default;
 	GraphicsContext(GraphicsContext&& rhs) = default;
@@ -34,13 +38,18 @@ public:
 	int GetProcessorCoreCount() const;
 	int GetGraphicsDeviceCount() const;
 
+	// Swap chain
+	gxapi::SwapChainDesc GetSwapChainDesc() const;
+
 	// Create pipeline textures
 	Texture2D CreateTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1) const;
-	Texture2D CreateRenderTarget2D(uint64_t width, uint32_t height, gxapi::eFormat format, bool shaderResource, uint16_t arraySize = 1) const;
+	Texture2D CreateRenderTarget2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1) const;
 	Texture2D CreateDepthStencil2D(uint64_t width, uint32_t height, gxapi::eFormat format, bool shaderResource, uint16_t arraySize = 1) const;
+	Texture2D CreateRWTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, bool renderTarget, uint16_t arraySize = 1) const;
 	TextureView2D CreateSrv(Texture2D& texture, gxapi::eFormat format, gxapi::SrvTexture2DArray desc = {}) const;
 	RenderTargetView2D CreateRtv(Texture2D& renderTarget, gxapi::eFormat format, gxapi::RtvTexture2DArray desc) const;
 	DepthStencilView2D CreateDsv(Texture2D& depthStencilView, gxapi::eFormat format, gxapi::DsvTexture2DArray desc) const;
+	RWTextureView2D CreateUav(Texture2D& rwTexture, gxapi::eFormat format, gxapi::UavTexture2DArray desc) const;
 
 	// Vertex buffer
 	VertexBuffer CreateVertexBuffer(const void* data, size_t size);
@@ -52,8 +61,12 @@ public:
 
 	// Shaders and PSOs
 	ShaderProgram CreateShader(const std::string& name, ShaderParts stages, const std::string& macros);
+	ShaderProgram CompileShader(const std::string& code, ShaderParts stages, const std::string& macros);
 	gxapi::IPipelineState* CreatePSO(const gxapi::GraphicsPipelineStateDesc& desc);
 	gxapi::IPipelineState* CreatePSO(const gxapi::ComputePipelineStateDesc& desc);
+
+	// Binding
+	Binder CreateBinder(const std::vector<BindParameterDesc>& parameters, const std::vector<gxapi::StaticSamplerDesc>& staticSamplers = {}) const;
 
 private:
 	// Memory management stuff
@@ -66,6 +79,8 @@ private:
 
 	// Shaders and PSOs
 	ShaderManager* m_shaderManager;
+
+	gxapi::ISwapChain* m_swapChain;
 	gxapi::IGraphicsApi* m_graphicsApi;
 };
 
