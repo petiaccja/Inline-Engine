@@ -11,14 +11,16 @@ namespace inl {
 namespace gxapi_dx12 {
 
 
-DescriptorHeap::DescriptorHeap(ComPtr<ID3D12DescriptorHeap>& native)
+DescriptorHeap::DescriptorHeap(ComPtr<ID3D12DescriptorHeap>& native, ID3D12Device* device)
 	: m_native{ native }
 {
-	ID3D12Device* device;
-	if (FAILED(m_native->GetDevice(IID_PPV_ARGS(&device)))) {
-		throw inl::gxapi::Exception{ "Could not get device for heap." };
-	}
+	// THIS SHIT IF FUCKED UP BECAUSE OF RENDERDOC
 
+	//ID3D12Device* device;
+	//if (FAILED(m_native->GetDevice(IID_PPV_ARGS(&device)))) {
+	//	throw inl::gxapi::Exception{ "Could not get device for heap." };
+	//}
+	
 	m_incrementSize = device->GetDescriptorHandleIncrementSize(m_native->GetDesc().Type);
 	m_cpuBaseHandle = m_native->GetCPUDescriptorHandleForHeapStart();
 	m_gpuBaseHandle = m_native->GetGPUDescriptorHandleForHeapStart();
