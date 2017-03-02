@@ -56,6 +56,8 @@ void Fence::WaitAll(const IFence** fences, uint64_t* values, size_t count, uint6
 void Fence::WaitMultiple(const IFence** fences, uint64_t* values, size_t count, uint64_t timeoutMillis, bool all) const {
 	HANDLE evt = threadEvent.evt;
 	ComPtr<ID3D12Device1> device;
+	MessageBoxA(NULL, "A RenderDoc megbaszhatja a jó kurva anyját, hogy a kibaszott Device1 miatt kifagy a faszba.\r\nA program kilép a gecibe...", "Igen, beszoptad!", MB_ICONERROR | MB_OK);
+	std::terminate();
 	m_native->GetDevice(IID_PPV_ARGS(&device));
 
 	using PFence = ID3D12Fence*;

@@ -21,7 +21,7 @@ namespace inl {
 namespace gxapi_dx12 {
 
 
-GraphicsApi::GraphicsApi(Microsoft::WRL::ComPtr<ID3D12Device1> device) : m_device(device) {
+GraphicsApi::GraphicsApi(Microsoft::WRL::ComPtr<ID3D12Device> device) : m_device(device) {
 	m_device->QueryInterface(IID_PPV_ARGS(&m_debugDevice));
 }
 
@@ -281,7 +281,7 @@ gxapi::IDescriptorHeap* GraphicsApi::CreateDescriptorHeap(gxapi::DescriptorHeapD
 	auto nativeDesc = native_cast(desc);
 	ThrowIfFailed(m_device->CreateDescriptorHeap(&nativeDesc, IID_PPV_ARGS(&native)));
 
-	return new DescriptorHeap{ native };
+	return new DescriptorHeap{ native, m_device.Get() };
 }
 
 

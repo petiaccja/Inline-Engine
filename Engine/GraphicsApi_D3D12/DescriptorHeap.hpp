@@ -15,7 +15,7 @@ using Microsoft::WRL::ComPtr;
 
 class DescriptorHeap : public gxapi::IDescriptorHeap {
 public:
-	DescriptorHeap(ComPtr<ID3D12DescriptorHeap>& native);
+	DescriptorHeap(ComPtr<ID3D12DescriptorHeap>& native, ID3D12Device* device /* REMOVE THAT FUCKING PARAMETER, FUCKING RENDERDOC */);
 	DescriptorHeap(const DescriptorHeap&) = delete;
 	DescriptorHeap& operator=(const DescriptorHeap&) = delete;
 
