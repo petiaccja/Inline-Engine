@@ -110,7 +110,7 @@ Task DepthReduction::GetTask() {
 		{
 			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
 
-			RenderScene(m_uav, depthTex, cmdList);
+			this->RenderScene(m_uav, depthTex, cmdList);
 			result.AddCommandList(std::move(cmdList));
 		}
 
@@ -138,7 +138,10 @@ void DepthReduction::InitRenderTarget() {
 	srvDesc.mostDetailedMip = 0;
 	srvDesc.planeIndex = 0;
 
-	Texture2D tex = m_graphicsContext.CreateRWTexture2D(m_width, m_height, formatDepthReductionResult, 1);
+	unsigned dispatchW, dispatchH;
+	setWorkgroupSize((unsigned)std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
+
+	Texture2D tex = m_graphicsContext.CreateRWTexture2D(dispatchW, dispatchH, formatDepthReductionResult, 1);
 	m_uav = m_graphicsContext.CreateUav(tex, formatDepthReductionResult, uavDesc);
 	m_srv = m_graphicsContext.CreateSrv(tex, formatDepthReductionResult, srvDesc);
 }

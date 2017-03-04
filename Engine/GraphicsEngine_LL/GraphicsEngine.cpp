@@ -286,7 +286,7 @@ void GraphicsEngine::CreatePipeline() {
 	depthPrePass->GetInput<0>().Link(getWorldScene->GetOutput(0));
 	depthPrePass->GetInput<1>().Link(getCamera->GetOutput(0));
 
-	//depthReduction->GetInput<0>().Link(depthPrePass->GetOutput(0));
+	depthReduction->GetInput<0>().Link(depthPrePass->GetOutput(0));
 
 	//forwardRender->GetInput<0>().Link(depthReduction->GetOutput(1));
 	forwardRender->GetInput<0>().Link(depthPrePass->GetOutput(0));
@@ -307,7 +307,7 @@ void GraphicsEngine::CreatePipeline() {
 		getWorldScene.release(),
 		getCamera.release(),
 		depthPrePass.release(),
-		//depthReduction.release(),
+		depthReduction.release(),
 		forwardRender.release(),
 		renderToBackbuffer.release(),
 		drawSky.release()
