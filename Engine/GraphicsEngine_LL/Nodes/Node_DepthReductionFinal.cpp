@@ -17,6 +17,7 @@ DepthReductionFinal::DepthReductionFinal(gxapi::IGraphicsApi * graphicsApi):
 	BindParameterDesc uniformsBindParamDesc;
 	m_uniformsBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
 	uniformsBindParamDesc.parameter = m_uniformsBindParam;
+	//TODO convert to constant buffer object, as this is too large...
 	uniformsBindParamDesc.constantSize = sizeof(float) * (4*4 * 4 + 4 * 6 + 1 * 4);
 	uniformsBindParamDesc.relativeAccessFrequency = 0;
 	uniformsBindParamDesc.relativeChangeFrequency = 0;
@@ -37,13 +38,29 @@ DepthReductionFinal::DepthReductionFinal(gxapi::IGraphicsApi * graphicsApi):
 	reductionBindParamDesc.relativeChangeFrequency = 0;
 	reductionBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-	BindParameterDesc outputBindParamDesc;
-	m_outputBindParam = BindParameter(eBindParameterType::UNORDERED, 0);
-	outputBindParamDesc.parameter = m_outputBindParam;
-	outputBindParamDesc.constantSize = 0;
-	outputBindParamDesc.relativeAccessFrequency = 0;
-	outputBindParamDesc.relativeChangeFrequency = 0;
-	outputBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+	BindParameterDesc outputBindParamDesc0;
+	m_outputBindParam0 = BindParameter(eBindParameterType::UNORDERED, 0);
+	outputBindParamDesc0.parameter = m_outputBindParam0;
+	outputBindParamDesc0.constantSize = 0;
+	outputBindParamDesc0.relativeAccessFrequency = 0;
+	outputBindParamDesc0.relativeChangeFrequency = 0;
+	outputBindParamDesc0.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+	BindParameterDesc outputBindParamDesc1;
+	m_outputBindParam1 = BindParameter(eBindParameterType::UNORDERED, 1);
+	outputBindParamDesc1.parameter = m_outputBindParam1;
+	outputBindParamDesc1.constantSize = 0;
+	outputBindParamDesc1.relativeAccessFrequency = 0;
+	outputBindParamDesc1.relativeChangeFrequency = 0;
+	outputBindParamDesc1.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+	BindParameterDesc outputBindParamDesc2;
+	m_outputBindParam2 = BindParameter(eBindParameterType::UNORDERED, 2);
+	outputBindParamDesc2.parameter = m_outputBindParam2;
+	outputBindParamDesc2.constantSize = 0;
+	outputBindParamDesc2.relativeAccessFrequency = 0;
+	outputBindParamDesc2.relativeChangeFrequency = 0;
+	outputBindParamDesc2.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 	gxapi::StaticSamplerDesc samplerDesc;
 	samplerDesc.shaderRegister = 0;
@@ -55,7 +72,7 @@ DepthReductionFinal::DepthReductionFinal(gxapi::IGraphicsApi * graphicsApi):
 	samplerDesc.registerSpace = 0;
 	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-	m_binder = Binder{ graphicsApi,{ uniformsBindParamDesc, sampBindParamDesc, reductionBindParamDesc, outputBindParamDesc, outputBindParamDesc, outputBindParamDesc },{ samplerDesc } };
+	m_binder = Binder{ graphicsApi,{ uniformsBindParamDesc, sampBindParamDesc, reductionBindParamDesc, outputBindParamDesc0, outputBindParamDesc1, outputBindParamDesc2 },{ samplerDesc } };
 }
 
 
@@ -196,9 +213,9 @@ void DepthReductionFinal::RenderScene(
 	commandList.SetPipelineState(m_CSO.get());
 	commandList.SetComputeBinder(&m_binder);
 	commandList.BindCompute(m_reductionBindParam, reductionTex.QueryRead());
-	commandList.BindCompute(m_outputBindParam, light_mvp_uav);
-	commandList.BindCompute(m_outputBindParam, shadow_mx_uav);
-	commandList.BindCompute(m_outputBindParam, csm_splits_uav);
+	commandList.BindCompute(m_outputBindParam0, light_mvp_uav);
+	commandList.BindCompute(m_outputBindParam1, shadow_mx_uav);
+	commandList.BindCompute(m_outputBindParam2, csm_splits_uav);
 	commandList.BindCompute(m_uniformsBindParam, &uniformsCBData, sizeof(uniformsCBData), 0);
 	commandList.Dispatch(1, 1, 1);
 	commandList.ResourceBarrier(gxapi::UavBarrier{const_cast<gxapi::IResource*>(light_mvp_uav.GetResource()._GetResourcePtr())});
