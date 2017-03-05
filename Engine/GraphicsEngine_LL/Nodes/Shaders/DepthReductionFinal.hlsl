@@ -102,7 +102,7 @@ float4x4 get_camera_matrix(camera c)
 	m[0] = float4(x, 0);
 	m[1] = float4(c.up_vector, 0);
 	m[2] = float4(-c.view_dir, 0);
-	m[3] = float4(float3(0), 1);
+	m[3] = float4(float3(0.0f, 0.0f, 0.0f), 1);
 	m = transpose(m);
 
 	return m * create_translation(-c.pos);
@@ -114,22 +114,25 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 projection, float4x4 vi
 	//frustum corners in ndc space
 	float3 ndc_frustum_corners[8] =
 	{
-		vec3(-1.0f, 1.0f, -1.0f),
-		vec3(1.0f, 1.0f, -1.0f),
-		vec3(1.0f, -1.0f, -1.0f),
-		vec3(-1.0f, -1.0f, -1.0f),
-		vec3(-1.0f, 1.0f, 1.0f),
-		vec3(1.0f, 1.0f, 1.0f),
-		vec3(1.0f, -1.0f, 1.0f),
-		vec3(-1.0f, -1.0f, 1.0f),
+		float3(-1.0f, 1.0f, -1.0f),
+		float3(1.0f, 1.0f, -1.0f),
+		float3(1.0f, -1.0f, -1.0f),
+		float3(-1.0f, -1.0f, -1.0f),
+		float3(-1.0f, 1.0f, 1.0f),
+		float3(1.0f, 1.0f, 1.0f),
+		float3(1.0f, -1.0f, 1.0f),
+		float3(-1.0f, -1.0f, 1.0f),
 	};
 
 	float3 ws_frustum_corners[8];
 
-	float4x4 inv_viewproj = inverse(projection * view);
+	float4x4 vp = projection * view;
+
+	//TODO!!!!!!!!!!!!!!!!!!
+	float4x4 inv_viewproj = vp;//inverse(vp);
 	for (int c = 0; c < 8; ++c)
 	{
-		float4 trans = inv_viewproj * float4(ndc_frustum_corners[c], 1);
+		float4 trans = mul(inv_viewproj, float4(ndc_frustum_corners[c], 1));
 		ws_frustum_corners[c] = trans.xyz / trans.w;
 	}
 
@@ -144,9 +147,11 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 projection, float4x4 vi
 	}
 
 	//calc split centroid center
-	float3 centroid_center = float3(0);
-	for (int i = 0; i < 8; ++i)
-		centroid_center += ws_frustum_corners[i];
+	float3 centroid_center = float3(0, 0, 0);
+	for (int j = 0; j < 8; ++j)
+	{
+		centroid_center += ws_frustum_corners[j];
+	}
 	centroid_center /= 8.0f;
 
 	float3 up = normalize(cross(cam.view_dir, cam.up_vector));
@@ -157,11 +162,11 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 projection, float4x4 vi
 	camera new_light_cam = lookat_func(light_cam_pos, light_cam_lookat, up);
 	float4x4 light_view_mat = get_camera_matrix(new_light_cam);
 
-	float3 mins = float3(FLT_MAX);
-	float3 maxes = float3(-FLT_MAX);
-	for (int i = 0; i < 8; ++i)
+	float3 mins = float3(FLT_MAX, FLT_MAX, FLT_MAX);
+	float3 maxes = float3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+	for (int k = 0; k < 8; ++k)
 	{
-		float3 corner = (light_view_mat * float4(ws_frustum_corners[i], 1)).xyz;
+		float3 corner = (mul(light_view_mat, float4(ws_frustum_corners[k], 1))).xyz;
 		mins = min(mins, corner);
 		maxes = max(maxes, corner);
 	}
@@ -243,10 +248,10 @@ void CSMain(
 
 		localData[groupIndex] = float2(1.0f, 0.0f);
 
-		for (int y = groupThreadId.y * (inputTexSize.y / LOCAL_SIZE_Y); y < (groupThreadId.y + 1) * (inputTexSize.y / LOCAL_SIZE_Y); ++y)
-			for (int x = groupThreadId.x * (inputTexSize.x / LOCAL_SIZE_X); x < (groupThreadId.x + 1) * (inputTexSize.x / LOCAL_SIZE_X); ++x)
+		for (uint y = groupThreadId.y * (inputTexSize.y / LOCAL_SIZE_Y); y < (groupThreadId.y + 1) * (inputTexSize.y / LOCAL_SIZE_Y); ++y)
+			for (uint x = groupThreadId.x * (inputTexSize.x / LOCAL_SIZE_X); x < (groupThreadId.x + 1) * (inputTexSize.x / LOCAL_SIZE_X); ++x)
 			{
-				init(ivec2(x, y), local_index);
+				init(uint2(x, y), groupIndex);
 			}
 
 		GroupMemoryBarrierWithGroupSync();
@@ -296,19 +301,19 @@ void CSMain(
 					norm_frustum_splits[c] = (frustum_splits[c] - uniforms.cam_near) / (uniforms.cam_far - uniforms.cam_near);
 
 				frustum_splits[3].y = uniforms.cam_far;
-				for (int c = 0; c < 4; ++c)
-					outputTex2[c] = frustum_splits[c];
+				for (uint d = 0; d < 4; ++d)
+					outputTex2[uint2(d,0)] = frustum_splits[d];
 			}
 
 			{
 				camera cam, light_cam;
-				cam.pos = uniforms.cam_pos;
-				cam.view_dir = uniforms.cam_view_dir;
-				cam.up_vector = uniforms.cam_up_vector;
+				cam.pos = uniforms.cam_pos.xyz;
+				cam.view_dir = uniforms.cam_view_dir.xyz;
+				cam.up_vector = uniforms.cam_up_vector.xyz;
 
-				light_cam.pos = uniforms.light_cam_pos;
-				light_cam.view_dir = uniforms.light_cam_view_dir;
-				light_cam.up_vector = uniforms.light_cam_up_vector;
+				light_cam.pos = uniforms.light_cam_pos.xyz;
+				light_cam.view_dir = uniforms.light_cam_view_dir.xyz;
+				light_cam.up_vector = uniforms.light_cam_up_vector.xyz;
 				for (int c = 0; c < 4; ++c)
 					light_mvp[c] = efficient_shadow_split_matrix(c, uniforms.projection, uniforms.view, norm_frustum_splits, cam, light_cam, uniforms.tex_size);
 			}
@@ -317,12 +322,12 @@ void CSMain(
 		for (int c = 0; c < 4; ++c)
 			shadow_mat[c] = uniforms.bias_mx * light_mvp[c] * uniforms.inv_mv;
 
-		for (int c = 0; c < 4; ++c)
+		for (uint d = 0; d < 4; ++d)
 		{
-			for (int d = 0; d < 4; ++d)
+			for (uint e = 0; e < 4; ++e)
 			{
-				outputTex0[c * 4 + d] = light_mvp[c][d];
-				outputTex1[c * 4 + d] = shadow_mat[c][d];
+				outputTex0[uint2(d * 4 + e,0)] = light_mvp[d][e];
+				outputTex1[uint2(d * 4 + e,0)] = shadow_mat[d][e];
 			}
 		}
 	}

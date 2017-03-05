@@ -58,7 +58,8 @@ private:
 		const gxeng::RWTextureView2D& csm_splits_uav,
 		pipeline::Texture2D& reductionTex,
 		const Camera* camera,
-		GraphicsCommandList& commandList);
+		GraphicsCommandList& commandList,
+		const ExecutionContext& context);
 };
 
 

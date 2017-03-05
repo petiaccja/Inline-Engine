@@ -292,6 +292,7 @@ void GraphicsEngine::CreatePipeline() {
 
 	depthReductionFinal->GetInput<0>().Link(depthReduction->GetOutput(0));
 	depthReductionFinal->GetInput<1>().Link(depthReduction->GetOutput(1));
+	depthReductionFinal->GetInput<2>().Link(getCamera->GetOutput(0));
 
 	forwardRender->GetInput<0>().Link(depthReductionFinal->GetOutput(3));
 	//forwardRender->GetInput<0>().Link(depthPrePass->GetOutput(0));

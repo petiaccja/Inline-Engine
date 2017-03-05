@@ -9,6 +9,16 @@
 
 namespace inl::gxeng::nodes {
 
+struct Uniforms
+{
+	mathfu::VectorPacked<float, 4> projection[4], view[4];
+	mathfu::VectorPacked<float, 4> bias_mx[4], inv_mv[4];
+	mathfu::VectorPacked<float, 4> cam_pos, cam_view_dir, cam_up_vector;
+	mathfu::VectorPacked<float, 4> light_cam_pos, light_cam_view_dir, light_cam_up_vector;
+	float cam_near, cam_far, tex_size;
+	float dummy;
+};
+
 DepthReductionFinal::DepthReductionFinal(gxapi::IGraphicsApi * graphicsApi):
 	m_binder(graphicsApi, {})
 {
@@ -17,8 +27,7 @@ DepthReductionFinal::DepthReductionFinal(gxapi::IGraphicsApi * graphicsApi):
 	BindParameterDesc uniformsBindParamDesc;
 	m_uniformsBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
 	uniformsBindParamDesc.parameter = m_uniformsBindParam;
-	//TODO convert to constant buffer object, as this is too large...
-	uniformsBindParamDesc.constantSize = sizeof(float) * (4*4 * 4 + 4 * 6 + 1 * 4);
+	uniformsBindParamDesc.constantSize = sizeof(Uniforms);
 	uniformsBindParamDesc.relativeAccessFrequency = 0;
 	uniformsBindParamDesc.relativeChangeFrequency = 0;
 	uniformsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
@@ -116,7 +125,7 @@ Task DepthReductionFinal::GetTask() {
 		{
 			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
 
-			this->RenderScene(m_light_mvp_uav, m_shadow_mx_uav, m_csm_splits_uav, reductionTex, camera, cmdList);
+			this->RenderScene(m_light_mvp_uav, m_shadow_mx_uav, m_csm_splits_uav, reductionTex, camera, cmdList, context);
 			result.AddCommandList(std::move(cmdList));
 		}
 
@@ -160,23 +169,14 @@ void DepthReductionFinal::InitRenderTarget() {
 	m_csm_splits_srv = m_graphicsContext.CreateSrv(csm_splits_tex, formatCSMSplits, srvDesc);
 }
 
-struct Uniforms
-{
-	mathfu::VectorPacked<float, 4> projection[4], view[4];
-	mathfu::VectorPacked<float, 4> bias_mx[4], inv_mv[4];
-	mathfu::VectorPacked<float, 4> cam_pos, cam_view_dir, cam_up_vector;
-	mathfu::VectorPacked<float, 4> light_cam_pos, light_cam_view_dir, light_cam_up_vector;
-	float cam_near, cam_far, tex_size;
-	float dummy;
-};
-
 void DepthReductionFinal::RenderScene(
 	const gxeng::RWTextureView2D& light_mvp_uav,
 	const gxeng::RWTextureView2D& shadow_mx_uav,
 	const gxeng::RWTextureView2D& csm_splits_uav,
 	pipeline::Texture2D& reductionTex,
 	const Camera* camera,
-	GraphicsCommandList& commandList
+	GraphicsCommandList& commandList,
+	const ExecutionContext& context
 ) {
 	Uniforms uniformsCBData;
 
@@ -210,13 +210,17 @@ void DepthReductionFinal::RenderScene(
 	//TODO get from somewhere
 	uniformsCBData.tex_size = 2048;
 
+	//create single-frame only cb
+	gxeng::VolatileConstBuffer cb = m_graphicsContext.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
+	gxeng::ConstBufferView cbv = m_graphicsContext.CreateCbv(cb, 0, sizeof(Uniforms), context.GetVolatileViewHeap());
+
 	commandList.SetPipelineState(m_CSO.get());
 	commandList.SetComputeBinder(&m_binder);
 	commandList.BindCompute(m_reductionBindParam, reductionTex.QueryRead());
 	commandList.BindCompute(m_outputBindParam0, light_mvp_uav);
 	commandList.BindCompute(m_outputBindParam1, shadow_mx_uav);
 	commandList.BindCompute(m_outputBindParam2, csm_splits_uav);
-	commandList.BindCompute(m_uniformsBindParam, &uniformsCBData, sizeof(uniformsCBData), 0);
+	commandList.BindCompute(m_uniformsBindParam, cbv);
 	commandList.Dispatch(1, 1, 1);
 	commandList.ResourceBarrier(gxapi::UavBarrier{const_cast<gxapi::IResource*>(light_mvp_uav.GetResource()._GetResourcePtr())});
 	commandList.ResourceBarrier(gxapi::UavBarrier{ const_cast<gxapi::IResource*>(shadow_mx_uav.GetResource()._GetResourcePtr()) });
