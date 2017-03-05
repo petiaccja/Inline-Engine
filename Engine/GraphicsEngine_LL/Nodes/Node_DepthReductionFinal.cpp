@@ -202,10 +202,13 @@ void DepthReductionFinal::RenderScene(
 	cam_view_dir.Pack(&uniformsCBData.cam_view_dir);
 	cam_up_vector.Pack(&uniformsCBData.cam_up_vector);
 
-	//TODO light dir etc.
-
 	uniformsCBData.cam_near = camera->GetNearPlane();
 	uniformsCBData.cam_far = camera->GetFarPlane();
+
+	//TODO get from somewhere
+	uniformsCBData.light_cam_pos = mathfu::Vector4f(0, 0, 0, 1);
+	uniformsCBData.light_cam_view_dir = mathfu::Vector4f(1, 1, 1, 0).Normalized();
+	uniformsCBData.light_cam_up_vector = mathfu::Vector4f(0, 1, 0, 0);
 
 	//TODO get from somewhere
 	uniformsCBData.tex_size = 2048;
