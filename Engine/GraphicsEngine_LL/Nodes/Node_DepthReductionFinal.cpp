@@ -11,7 +11,7 @@ namespace inl::gxeng::nodes {
 
 struct Uniforms
 {
-	mathfu::VectorPacked<float, 4> projection[4], view[4];
+	mathfu::VectorPacked<float, 4> invVP[4];
 	mathfu::VectorPacked<float, 4> bias_mx[4], inv_mv[4];
 	mathfu::VectorPacked<float, 4> cam_pos, cam_view_dir, cam_up_vector;
 	mathfu::VectorPacked<float, 4> light_cam_pos, light_cam_view_dir, light_cam_up_vector;
@@ -182,9 +182,9 @@ void DepthReductionFinal::RenderScene(
 
 	mathfu::Matrix4x4f view = camera->GetViewMatrixRH();
 	mathfu::Matrix4x4f projection = camera->GetPerspectiveMatrixRH();
+	mathfu::Matrix4x4f vp = projection * view;
 
-	projection.Pack(uniformsCBData.projection);
-	view.Pack(uniformsCBData.view);
+	vp.Inverse().Pack(uniformsCBData.invVP);
 
 	mathfu::Matrix4x4f  bias_matrix(0.5f, 0, 0, 0,			// column #1
 									0, 0.5f, 0, 0,			// column #2

@@ -13,7 +13,7 @@ RWTexture2D<float2> outputTex2 : register(u2);
 
 struct Uniforms
 {
-	float4x4 projection, view;
+	float4x4 invVP;
 	float4x4 bias_mx, inv_mv;
 	float4 cam_pos, cam_view_dir, cam_up_vector;
 	float4 light_cam_pos, light_cam_view_dir, light_cam_up_vector;
@@ -140,7 +140,7 @@ float4x4 get_camera_matrix(camera c)
 }
 
 //heavily based on mjp shadow sample
-float4x4 efficient_shadow_split_matrix(int idx, float4x4 projection, float4x4 view, float2 frustum_splits[4], camera cam, camera light_cam, float shadow_map_size)
+float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_splits[4], camera cam, camera light_cam, float shadow_map_size)
 {
 	//frustum corners in ndc space
 	float3 ndc_frustum_corners[8] =
@@ -157,9 +157,8 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 projection, float4x4 vi
 
 	float3 ws_frustum_corners[8];
 
-	float4x4 vp = projection * view;
+	float4x4 inv_viewproj = invVP;
 
-	float4x4 inv_viewproj = inverse(vp);
 	for (int c = 0; c < 8; ++c)
 	{
 		float4 trans = mul(inv_viewproj, float4(ndc_frustum_corners[c], 1));
@@ -345,7 +344,7 @@ void CSMain(
 				light_cam.view_dir = uniforms.light_cam_view_dir.xyz;
 				light_cam.up_vector = uniforms.light_cam_up_vector.xyz;
 				for (int c = 0; c < 4; ++c)
-					light_mvp[c] = efficient_shadow_split_matrix(c, uniforms.projection, uniforms.view, norm_frustum_splits, cam, light_cam, uniforms.tex_size);
+					light_mvp[c] = efficient_shadow_split_matrix(c, uniforms.invVP, norm_frustum_splits, cam, light_cam, uniforms.tex_size);
 			}
 		}
 
