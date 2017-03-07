@@ -73,6 +73,30 @@ ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi) {
 	albedoBindParamDesc.relativeChangeFrequency = 0;
 	albedoBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
+	BindParameterDesc shadowMapBindParamDesc;
+	m_shadowMapBindParam = BindParameter(eBindParameterType::TEXTURE, 1);
+	shadowMapBindParamDesc.parameter = m_shadowMapBindParam;
+	shadowMapBindParamDesc.constantSize = 0;
+	shadowMapBindParamDesc.relativeAccessFrequency = 0;
+	shadowMapBindParamDesc.relativeChangeFrequency = 0;
+	shadowMapBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc shadowMXBindParamDesc;
+	m_shadowMXBindParam = BindParameter(eBindParameterType::TEXTURE, 2);
+	shadowMXBindParamDesc.parameter = m_shadowMXBindParam;
+	shadowMXBindParamDesc.constantSize = 0;
+	shadowMXBindParamDesc.relativeAccessFrequency = 0;
+	shadowMXBindParamDesc.relativeChangeFrequency = 0;
+	shadowMXBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc csmSplitsBindParamDesc;
+	m_csmSplitsBindParam = BindParameter(eBindParameterType::TEXTURE, 3);
+	csmSplitsBindParamDesc.parameter = m_csmSplitsBindParam;
+	csmSplitsBindParamDesc.constantSize = 0;
+	csmSplitsBindParamDesc.relativeAccessFrequency = 0;
+	csmSplitsBindParamDesc.relativeChangeFrequency = 0;
+	csmSplitsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
 	BindParameterDesc sampBindParamDesc;
 	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
 	sampBindParamDesc.constantSize = 0;
@@ -90,7 +114,7 @@ ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi) {
 	samplerDesc.registerSpace = 0;
 	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-	m_binder = Binder{ graphicsApi,{ transformBindParamDesc, sunBindParamDesc, albedoBindParamDesc, sampBindParamDesc },{ samplerDesc } };
+	m_binder = Binder{ graphicsApi,{ transformBindParamDesc, sunBindParamDesc, albedoBindParamDesc, shadowMapBindParamDesc, shadowMXBindParamDesc, csmSplitsBindParamDesc, sampBindParamDesc },{ samplerDesc } };
 }
 
 
@@ -156,6 +180,15 @@ Task ForwardRender::GetTask() {
 		const DirectionalLight* sun = this->GetInput<3>().Get();
 		this->GetInput<3>().Clear();
 
+		gxeng::pipeline::Texture2D shadowMapTex = this->GetInput<4>().Get();
+		this->GetInput<4>().Clear();
+
+		gxeng::pipeline::Texture2D shadowMXTex = this->GetInput<5>().Get();
+		this->GetInput<5>().Clear();
+
+		gxeng::pipeline::Texture2D csmSplitsTex = this->GetInput<6>().Get();
+		this->GetInput<6>().Clear();
+
 		this->GetOutput<0>().Set(pipeline::Texture2D(m_renderTargetSrv, m_rtv));
 
 		if (entities) {
@@ -163,7 +196,7 @@ Task ForwardRender::GetTask() {
 
 			DepthStencilView2D dsv = depthStencil.QueryDepthStencil(cmdList, m_graphicsContext);
 
-			RenderScene(dsv, *entities, camera, sun, cmdList);
+			RenderScene(dsv, *entities, camera, sun, shadowMapTex, shadowMXTex, csmSplitsTex, cmdList);
 			result.AddCommandList(std::move(cmdList));
 		}
 
@@ -200,6 +233,9 @@ void ForwardRender::RenderScene(
 	const EntityCollection<MeshEntity>& entities,
 	const Camera* camera,
 	const DirectionalLight* sun,
+	pipeline::Texture2D& shadowMapTex,
+	pipeline::Texture2D& shadowMXTex,
+	pipeline::Texture2D& csmSplitsTex,
 	GraphicsCommandList& commandList
 ) {
 	// Set render target
@@ -223,6 +259,10 @@ void ForwardRender::RenderScene(
 	commandList.SetStencilRef(1); // background is 0, anything other than that is 1
 
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
+
+	commandList.BindGraphics(m_shadowMapBindParam, shadowMapTex.QueryRead());
+	commandList.BindGraphics(m_shadowMXBindParam, shadowMXTex.QueryRead());
+	commandList.BindGraphics(m_csmSplitsBindParam, csmSplitsTex.QueryRead());
 
 	mathfu::Matrix4x4f view = camera->GetViewMatrixRH();
 	mathfu::Matrix4x4f projection = camera->GetPerspectiveMatrixRH();

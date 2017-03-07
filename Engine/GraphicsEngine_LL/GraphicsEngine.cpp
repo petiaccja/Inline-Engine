@@ -303,7 +303,9 @@ void GraphicsEngine::CreatePipeline() {
 	forwardRender->GetInput<1>().Link(getWorldScene->GetOutput(0));
 	forwardRender->GetInput<2>().Link(getCamera->GetOutput(0));
 	forwardRender->GetInput<3>().Link(getWorldScene->GetOutput(1));
-	//forwardRender->GetInput<4>().Link(csm->GetOutput(0));
+	forwardRender->GetInput<4>().Link(csm->GetOutput(0));
+	forwardRender->GetInput<5>().Link(depthReductionFinal->GetOutput(1));
+	forwardRender->GetInput<6>().Link(depthReductionFinal->GetOutput(2));
 
 	drawSky->GetInput<0>().Link(forwardRender->GetOutput(0));
 	drawSky->GetInput<1>().Link(depthPrePass->GetOutput(0));

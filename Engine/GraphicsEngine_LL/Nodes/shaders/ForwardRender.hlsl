@@ -15,7 +15,9 @@ ConstantBuffer<Transform> transform : register(b0);
 ConstantBuffer<Sun> sun : register(b1);
 SamplerState theSampler : register(s0);
 Texture2DArray<float4> albedoTex : register(t0);
-
+Texture2D<float4> shadowMapTex : register(t1);
+Texture2D<float4> shadowMXTex : register(t2);
+Texture2D<float4> csmSplitsTex : register(t3);
 
 struct PS_Input
 {

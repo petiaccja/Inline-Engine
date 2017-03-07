@@ -19,7 +19,7 @@ namespace inl::gxeng::nodes {
 class ForwardRender :
 	virtual public GraphicsNode,
 	// Inputs: depth stencil (from depth prepass), geometry, camera, sun
-	virtual public exc::InputPortConfig<pipeline::Texture2D, const EntityCollection<MeshEntity>*, const Camera*, const DirectionalLight*>,
+	virtual public exc::InputPortConfig<pipeline::Texture2D, const EntityCollection<MeshEntity>*, const Camera*, const DirectionalLight*, pipeline::Texture2D, pipeline::Texture2D, pipeline::Texture2D>,
 	virtual public exc::OutputPortConfig<pipeline::Texture2D>
 {
 private:
@@ -57,6 +57,9 @@ private:
 		const EntityCollection<MeshEntity>& entities,
 		const Camera* camera,
 		const DirectionalLight* sun,
+		pipeline::Texture2D& shadowMapTex,
+		pipeline::Texture2D& shadowMXTex,
+		pipeline::Texture2D& csmSplitsTex,
 		GraphicsCommandList& commandList);
 
 	static std::string GenerateVertexShader(const Mesh::Layout& layout);
@@ -76,6 +79,9 @@ protected:
 	BindParameter m_transformBindParam;
 	BindParameter m_sunBindParam;
 	BindParameter m_albedoBindParam;
+	BindParameter m_shadowMapBindParam;
+	BindParameter m_shadowMXBindParam;
+	BindParameter m_csmSplitsBindParam;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 private:
 	struct ElementHash {
