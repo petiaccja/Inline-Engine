@@ -261,6 +261,9 @@
     <ClInclude Include="Nodes\Node_DepthReductionFinal.hpp">
       <Filter>Nodes\ForwardPipeline</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Node_CSM.hpp">
+      <Filter>Nodes\ForwardPipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -396,6 +399,9 @@
     <ClCompile Include="Nodes\Node_DepthReductionFinal.cpp">
       <Filter>Nodes\ForwardPipeline</Filter>
     </ClCompile>
+    <ClCompile Include="Nodes\Node_CSM.cpp">
+      <Filter>Nodes\ForwardPipeline</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Nodes\Shaders\DrawSky.hlsl">
@@ -428,6 +434,7 @@
     <None Include="Nodes\Shaders\ForwardRender.hlsl">
       <Filter>Nodes\Shaders</Filter>
     </None>
+    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
     <None Include="Nodes\Shaders\ForwardRender.hlsl" />
   </ItemGroup>
   <ItemGroup>

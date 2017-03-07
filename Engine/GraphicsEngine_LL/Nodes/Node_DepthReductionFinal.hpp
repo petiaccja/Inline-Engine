@@ -18,8 +18,8 @@ namespace inl::gxeng::nodes {
 
 class DepthReductionFinal :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<pipeline::Texture2D, pipeline::Texture2D, const Camera*>,
-	virtual public exc::OutputPortConfig<pipeline::Texture2D, pipeline::Texture2D, pipeline::Texture2D, pipeline::Texture2D>
+	virtual public exc::InputPortConfig<pipeline::Texture2D, const Camera*, const DirectionalLight*>,
+	virtual public exc::OutputPortConfig<pipeline::Texture2D, pipeline::Texture2D, pipeline::Texture2D>
 {
 public:
 	DepthReductionFinal(gxapi::IGraphicsApi* graphicsApi);
@@ -58,6 +58,7 @@ private:
 		const gxeng::RWTextureView2D& csm_splits_uav,
 		pipeline::Texture2D& reductionTex,
 		const Camera* camera,
+		const DirectionalLight* sun,
 		GraphicsCommandList& commandList,
 		const ExecutionContext& context);
 };

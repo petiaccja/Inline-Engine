@@ -110,22 +110,20 @@ Task DepthReductionFinal::GetTask() {
 		gxeng::pipeline::Texture2D reductionTex = this->GetInput<0>().Get();
 		this->GetInput<0>().Clear();
 
-		gxeng::pipeline::Texture2D depthTex = this->GetInput<1>().Get();
+		const Camera* camera = this->GetInput<1>().Get();
 		this->GetInput<1>().Clear();
 
-		const Camera* camera = this->GetInput<2>().Get();
+		const DirectionalLight* sun = this->GetInput<2>().Get();
 		this->GetInput<2>().Clear();
 
 		this->GetOutput<0>().Set(pipeline::Texture2D(m_light_mvp_srv));
 		this->GetOutput<1>().Set(pipeline::Texture2D(m_shadow_mx_srv));
 		this->GetOutput<2>().Set(pipeline::Texture2D(m_csm_splits_srv));
 
-		this->GetOutput<3>().Set(depthTex);
-
 		{
 			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
 
-			this->RenderScene(m_light_mvp_uav, m_shadow_mx_uav, m_csm_splits_uav, reductionTex, camera, cmdList, context);
+			this->RenderScene(m_light_mvp_uav, m_shadow_mx_uav, m_csm_splits_uav, reductionTex, camera, sun, cmdList, context);
 			result.AddCommandList(std::move(cmdList));
 		}
 
@@ -175,6 +173,7 @@ void DepthReductionFinal::RenderScene(
 	const gxeng::RWTextureView2D& csm_splits_uav,
 	pipeline::Texture2D& reductionTex,
 	const Camera* camera,
+	const DirectionalLight* sun,
 	GraphicsCommandList& commandList,
 	const ExecutionContext& context
 ) {
@@ -207,7 +206,7 @@ void DepthReductionFinal::RenderScene(
 
 	//TODO get from somewhere
 	uniformsCBData.light_cam_pos = mathfu::Vector4f(0, 0, 0, 1);
-	uniformsCBData.light_cam_view_dir = mathfu::Vector4f(1, 1, 1, 0).Normalized();
+	uniformsCBData.light_cam_view_dir = mathfu::Vector4f(sun->GetDirection(), 0);//mathfu::Vector4f(1, 1, 1, 0).Normalized();
 	uniformsCBData.light_cam_up_vector = mathfu::Vector4f(0, 1, 0, 0);
 
 	//TODO get from somewhere

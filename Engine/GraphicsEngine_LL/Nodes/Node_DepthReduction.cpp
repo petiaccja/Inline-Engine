@@ -105,8 +105,6 @@ Task DepthReduction::GetTask() {
 
 		this->GetOutput<0>().Set(pipeline::Texture2D(m_srv));
 
-		this->GetOutput<1>().Set(depthTex);
-
 		{
 			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
 

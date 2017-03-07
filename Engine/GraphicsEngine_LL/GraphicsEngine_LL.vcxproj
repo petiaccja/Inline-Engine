@@ -179,6 +179,7 @@
     <ClInclude Include="ExecutionContext.hpp" />
     <ClInclude Include="ExecutionResult.hpp" />
     <ClInclude Include="GraphicsContext.hpp" />
+    <ClInclude Include="Nodes\Node_CSM.hpp" />
     <ClInclude Include="Nodes\Node_DepthPrepass.hpp" />
     <ClInclude Include="Nodes\Node_DepthReduction.hpp" />
     <ClInclude Include="Nodes\Node_DepthReductionFinal.hpp" />
@@ -240,6 +241,7 @@
     <ClCompile Include="ExecutionContext.cpp" />
     <ClCompile Include="ExecutionResult.cpp" />
     <ClCompile Include="GraphicsContext.cpp" />
+    <ClCompile Include="Nodes\Node_CSM.cpp" />
     <ClCompile Include="Nodes\Node_DepthPrepass.cpp" />
     <ClCompile Include="Nodes\Node_DepthReduction.cpp" />
     <ClCompile Include="Nodes\Node_DepthReductionFinal.cpp" />
