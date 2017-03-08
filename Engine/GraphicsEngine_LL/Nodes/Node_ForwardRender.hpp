@@ -35,6 +35,7 @@ private:
 	};
 	struct VsConstants {
 		mathfu::VectorPacked<float, 4> mvp[4];
+		mathfu::VectorPacked<float, 4> mv[4];
 		mathfu::VectorPacked<float, 4> model[4];
 	};	
 	struct LightConstants {
