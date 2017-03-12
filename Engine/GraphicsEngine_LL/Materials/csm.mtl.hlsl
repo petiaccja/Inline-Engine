@@ -1,34 +1,3 @@
-
-struct Transform
-{
-	float4x4 MVP;
-	float4x4 MV;
-	float4x4 worldInvTr;
-};
-
-struct Sun
-{
-	float4 dir; // in world space
-	float4 color;
-};
-
-ConstantBuffer<Transform> transform : register(b0);
-ConstantBuffer<Sun> sun : register(b1);
-SamplerState theSampler : register(s0);
-//SamplerState shadowSampler : register(s1);
-Texture2DArray<float4> albedoTex : register(t0);
-Texture2D<float> shadowMapTex : register(t1);
-Texture2D<float4> shadowMXTex : register(t2);
-Texture2D<float4> csmSplitsTex : register(t3);
-
-struct PS_Input
-{
-	float4 position : SV_POSITION;
-	float3 normal : NO;
-	float2 texCoord : TEX_COORD0;
-	float4 vsPosition : TEX_COORD1;
-};
-
 float2 get_shadow_uv(float2 uv, float cascade_idx)
 {
 	float2 res = float2(uv.x*0.25, uv.y) + cascade_idx * float2(0.25, 0);
@@ -145,24 +114,7 @@ float get_shadow(float4 vs_pos)
 	//return vec3(texture(tex, gl_FragCoord.xy / vec2(1280, 720)).x*0.1);
 }
 
-PS_Input VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoord : TEX_COORD)
-{
-	PS_Input result;
-
-	float3 worldNormal = normalize(mul(transform.worldInvTr, float4(normal.xyz, 0.0)).xyz);
-
-	result.position = mul(transform.MVP, position);
-	result.vsPosition = mul(transform.MV, position);
-	result.normal = worldNormal;
-	result.texCoord = texCoord.xy;
-
-	return result;
-}
-
-float4 PSMain(PS_Input input): SV_TARGET
-{
-	float3 coords = {input.texCoord.x, 1-input.texCoord.y, 0.0};
-	float3 albedo = albedoTex.Sample(theSampler, coords).rgb;
-	float shadow = get_shadow(input.vsPosition);
-	return float4((max(0.0, dot(normalize(input.normal), -sun.dir)) * shadow) * albedo, 1.0);
+float4 main(float4 diffuse) {
+	return float4( get_shadow(input.vsPosition) );
+	//return float4(saturate(dot(-g_lightDir, g_normal)) * diffuse * g_lightColor, 1.0f) + 0.5*float4(0.6, 0, 0, 1.0f);;
 }

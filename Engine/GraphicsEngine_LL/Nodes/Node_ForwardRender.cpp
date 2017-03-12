@@ -66,7 +66,7 @@ ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi) {
 	sunBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
 	BindParameterDesc albedoBindParamDesc;
-	m_albedoBindParam = BindParameter(eBindParameterType::TEXTURE, 3);
+	m_albedoBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
 	albedoBindParamDesc.parameter = m_albedoBindParam;
 	albedoBindParamDesc.constantSize = 0;
 	albedoBindParamDesc.relativeAccessFrequency = 0;
@@ -74,7 +74,7 @@ ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi) {
 	albedoBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
 	BindParameterDesc shadowMapBindParamDesc;
-	m_shadowMapBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
+	m_shadowMapBindParam = BindParameter(eBindParameterType::TEXTURE, 1);
 	shadowMapBindParamDesc.parameter = m_shadowMapBindParam;
 	shadowMapBindParamDesc.constantSize = 0;
 	shadowMapBindParamDesc.relativeAccessFrequency = 0;
@@ -82,7 +82,7 @@ ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi) {
 	shadowMapBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
 	BindParameterDesc shadowMXBindParamDesc;
-	m_shadowMXBindParam = BindParameter(eBindParameterType::TEXTURE, 1);
+	m_shadowMXBindParam = BindParameter(eBindParameterType::TEXTURE, 2);
 	shadowMXBindParamDesc.parameter = m_shadowMXBindParam;
 	shadowMXBindParamDesc.constantSize = 0;
 	shadowMXBindParamDesc.relativeAccessFrequency = 0;
@@ -90,7 +90,7 @@ ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi) {
 	shadowMXBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
 	BindParameterDesc csmSplitsBindParamDesc;
-	m_csmSplitsBindParam = BindParameter(eBindParameterType::TEXTURE, 2);
+	m_csmSplitsBindParam = BindParameter(eBindParameterType::TEXTURE, 3);
 	csmSplitsBindParamDesc.parameter = m_csmSplitsBindParam;
 	csmSplitsBindParamDesc.constantSize = 0;
 	csmSplitsBindParamDesc.relativeAccessFrequency = 0;
@@ -533,7 +533,7 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 }
 
 Binder ForwardRender::GenerateBinder(const std::vector<MaterialShaderParameter>& mtlParams, std::vector<int>& offsets, size_t& materialCbSize) {
-	int textureRegister = 3;
+	int textureRegister = 0;
 	int cbSize = 0;
 	std::vector<BindParameterDesc> descs;
 	offsets.clear();
@@ -623,7 +623,7 @@ Binder ForwardRender::GenerateBinder(const std::vector<MaterialShaderParameter>&
 	}
 
 	std::vector<gxapi::StaticSamplerDesc> samplerParams;
-	for (int i = 3; i < textureRegister; ++i) {
+	for (int i = 0; i < textureRegister; ++i) {
 		samplerDesc.parameter.reg = i;
 		descs.push_back(samplerDesc);
 		samplerParams.push_back(samplerParam);
