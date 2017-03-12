@@ -1,3 +1,9 @@
+#pragma once
+
+#define str(s) #s
+
+const char* csmShaderPart = str( ///////////////////////////////////////////////////////////////////
+
 float2 get_shadow_uv(float2 uv, float cascade_idx)
 {
 	float2 res = float2(uv.x*0.25, uv.y) + cascade_idx * float2(0.25, 0);
@@ -18,11 +24,11 @@ float shadow_pcf_3x3(MapValue2D shadowMapTex, float4 shadow_coord, float2 scale,
 	float accum = 0;
 	int count = 0;
 	for (int c = -size; c <= size; ++c)
-		for (int d = -size; d <= size; ++d)
-		{
-			accum += offset_lookup(shadow_coord, offset + float2(c, d) * 1.5, scale, cascade);
-			++count;
-		}
+	for (int d = -size; d <= size; ++d)
+	{
+	accum += offset_lookup(shadow_coord, offset + float2(c, d) * 1.5, scale, cascade);
+	++count;
+	}
 
 	return accum / count;*/
 	return offset_lookup(shadowMapTex, shadow_coord, offset, scale, cascade); //TODO only one sample for now
@@ -114,6 +120,4 @@ float get_shadow(MapValue2D shadowMapTex, MapColor2D shadowMXTex, MapColor2D csm
 	//return vec3(texture(tex, gl_FragCoord.xy / vec2(1280, 720)).x*0.1);
 }
 
-float main(MapValue2D shadowMapTex, MapColor2D shadowMXTex, MapColor2D csmSplitsTex, float4 vsPosition) {
-	return get_shadow(vsPosition);
-}
+)///////////////////////////////////////////////////////////////////////////////////////
