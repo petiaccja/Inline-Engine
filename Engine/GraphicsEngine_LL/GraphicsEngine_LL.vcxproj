@@ -329,6 +329,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="Nodes\Shaders\CSM.hlsl" />
+    <FxCompile Include="Nodes\Shaders\CSMSample.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
     <FxCompile Include="Nodes\Shaders\DepthReductionFinal.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>

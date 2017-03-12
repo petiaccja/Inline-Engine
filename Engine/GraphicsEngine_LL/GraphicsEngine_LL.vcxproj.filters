@@ -442,5 +442,11 @@
     <FxCompile Include="Nodes\Shaders\DepthReductionFinal.hlsl">
       <Filter>Nodes\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="Nodes\Shaders\CSM.hlsl">
+      <Filter>Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\CSMSample.hlsl">
+      <Filter>Nodes\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

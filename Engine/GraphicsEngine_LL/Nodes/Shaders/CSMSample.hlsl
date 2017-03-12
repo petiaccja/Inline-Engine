@@ -1,6 +1,6 @@
 Texture2D<float> shadowMapTex : register(t500);
 Texture2D<float4> shadowMXTex : register(t501);
-Texture2D<float4> csmSplitsTex : register(t502);
+Texture2D<float2> csmSplitsTex : register(t502);
 SamplerState theSampler : register(s500);
 
 float2 get_shadow_uv(float2 uv, float cascade_idx)
