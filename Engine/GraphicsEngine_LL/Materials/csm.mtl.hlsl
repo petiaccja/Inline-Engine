@@ -5,14 +5,14 @@ float2 get_shadow_uv(float2 uv, float cascade_idx)
 	return res;
 }
 
-float offset_lookup(float4 loc, float2 offset, float2 scale, float cascade)
+float offset_lookup(MapValue2D shadowMapTex, float4 loc, float2 offset, float2 scale, float cascade)
 {
 	//return shadowMapTex.SampleCmp(shadowSampler, get_shadow_uv(loc.xy, cascade), loc.z, int2(offset)).x;
 	//return shadowMapTex.Sample(theSampler, get_shadow_uv(loc.xy, cascade), int2(offset)).x;
-	return shadowMapTex.Sample(theSampler, get_shadow_uv(loc.xy, cascade)).x;
+	return shadowMapTex.tex.Sample(theSampler, get_shadow_uv(loc.xy, cascade)).x;
 }
 
-float shadow_pcf_3x3(float4 shadow_coord, float2 scale, float2 offset, float cascade)
+float shadow_pcf_3x3(MapValue2D shadowMapTex, float4 shadow_coord, float2 scale, float2 offset, float cascade)
 {
 	/*const int size = 1;
 	float accum = 0;
@@ -25,15 +25,15 @@ float shadow_pcf_3x3(float4 shadow_coord, float2 scale, float2 offset, float cas
 		}
 
 	return accum / count;*/
-	return offset_lookup(shadow_coord, offset, scale, cascade); //TODO only one sample for now
+	return offset_lookup(shadowMapTex, shadow_coord, offset, scale, cascade); //TODO only one sample for now
 }
 
-float sample_csm(int cascade, float4 vs_pos)
+float sample_csm(MapValue2D shadowMapTex, MapColor2D shadowMXTex, int cascade, float4 vs_pos)
 {
 	float4x4 shadow_mx;
 	for (int d = 0; d < 4; ++d)
 	{
-		shadow_mx[d] = shadowMXTex.Load(int3(cascade * 4 + d, 0, 0));
+		shadow_mx[d] = shadowMXTex.tex.Load(int3(cascade * 4 + d, 0, 0));
 	}
 	float4 shadow_coord = mul(shadow_mx, vs_pos);
 	shadow_coord /= shadow_coord.w;
@@ -50,19 +50,19 @@ float sample_csm(int cascade, float4 vs_pos)
 	}
 
 	uint3 inputTexSize;
-	shadowMapTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
+	shadowMapTex.tex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 	float2 scale = 1.0 / float2(inputTexSize.xy);
 
-	return shadow_pcf_3x3(shadow_coord, scale, offset, cascade);
+	return shadow_pcf_3x3(shadowMapTex, shadow_coord, scale, offset, cascade);
 }
 
 //vec3 get_shadow(sampler2D tex, vec4 shadow_coord)
-float get_shadow(float4 vs_pos)
+float get_shadow(MapValue2D shadowMapTex, MapColor2D shadowMXTex, MapColor2D csmSplitsTex, float4 vs_pos)
 {
 	int cascade;
 	for (int c = 0; c < 4; ++c)
 	{
-		float2 split = csmSplitsTex.Load(int3(c, 0, 0)).xy;
+		float2 split = csmSplitsTex.tex.Load(int3(c, 0, 0)).xy;
 
 		if (-vs_pos.z >= split.x && -vs_pos.z < split.y)
 		{
@@ -71,11 +71,11 @@ float get_shadow(float4 vs_pos)
 		}
 	}
 
-	float shadow_term = sample_csm(cascade, vs_pos);
+	float shadow_term = sample_csm(shadowMapTex, shadowMXTex, cascade, vs_pos);
 
 	{ //filter across cascades
 		const float blendThreshold = 0.05f;
-		float2 split = csmSplitsTex.Load(int3(cascade, 0, 0)).xy;
+		float2 split = csmSplitsTex.tex.Load(int3(cascade, 0, 0)).xy;
 		float prevSplit = split.x;
 		float nextSplit = split.y;
 		float splitSize = nextSplit - prevSplit;
@@ -114,7 +114,6 @@ float get_shadow(float4 vs_pos)
 	//return vec3(texture(tex, gl_FragCoord.xy / vec2(1280, 720)).x*0.1);
 }
 
-float4 main(float4 diffuse) {
-	return float4( get_shadow(input.vsPosition) );
-	//return float4(saturate(dot(-g_lightDir, g_normal)) * diffuse * g_lightColor, 1.0f) + 0.5*float4(0.6, 0, 0, 1.0f);;
+float main(MapValue2D shadowMapTex, MapColor2D shadowMXTex, MapColor2D csmSplitsTex, float4 vsPosition) {
+	return get_shadow(vsPosition);
 }
