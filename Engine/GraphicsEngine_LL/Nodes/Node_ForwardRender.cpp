@@ -104,13 +104,6 @@ ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi) {
 	sampBindParamDesc.relativeChangeFrequency = 0;
 	sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-	/*BindParameterDesc shadowSamplerBindParamDesc;
-	shadowSamplerBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 1);
-	shadowSamplerBindParamDesc.constantSize = 0;
-	shadowSamplerBindParamDesc.relativeAccessFrequency = 0;
-	shadowSamplerBindParamDesc.relativeChangeFrequency = 0;
-	shadowSamplerBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;*/
-
 	gxapi::StaticSamplerDesc samplerDesc;
 	samplerDesc.shaderRegister = 0;
 	samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
@@ -121,7 +114,7 @@ ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi) {
 	samplerDesc.registerSpace = 0;
 	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-	m_binder = Binder{ graphicsApi,{ transformBindParamDesc, sunBindParamDesc, albedoBindParamDesc, shadowMapBindParamDesc, shadowMXBindParamDesc, csmSplitsBindParamDesc, sampBindParamDesc/*, shadowSamplerBindParamDesc*/ },{ samplerDesc } };
+	m_binder = Binder{ graphicsApi,{ transformBindParamDesc, sunBindParamDesc, albedoBindParamDesc, shadowMapBindParamDesc, shadowMXBindParamDesc, csmSplitsBindParamDesc, sampBindParamDesc },{ samplerDesc } };
 }
 
 
@@ -293,9 +286,9 @@ void ForwardRender::RenderScene(
 			commandList.SetPipelineState(scenario.pso.get());
 			commandList.SetGraphicsBinder(&scenario.binder);
 
-			commandList.BindGraphics(m_shadowMapBindParam, shadowMapTex.QueryRead());
-			commandList.BindGraphics(m_shadowMXBindParam, shadowMXTex.QueryRead());
-			commandList.BindGraphics(m_csmSplitsBindParam, csmSplitsTex.QueryRead());
+			commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 500), shadowMapTex.QueryRead());
+			commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 501), shadowMXTex.QueryRead());
+			commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 502), csmSplitsTex.QueryRead());
 
 			// Set material parameters
 			std::vector<uint8_t> materialConstants(scenario.constantsSize);
@@ -578,6 +571,44 @@ Binder ForwardRender::GenerateBinder(const std::vector<MaterialShaderParameter>&
 		}
 	}
 
+	BindParameterDesc theSamplerDesc;
+	theSamplerDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 500);
+	theSamplerDesc.constantSize = 0;
+	theSamplerDesc.relativeAccessFrequency = 0;
+	theSamplerDesc.relativeChangeFrequency = 0;
+	theSamplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	gxapi::StaticSamplerDesc theSamplerParam;
+	theSamplerParam.shaderRegister = 500;
+	theSamplerParam.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
+	theSamplerParam.addressU = gxapi::eTextureAddressMode::WRAP;
+	theSamplerParam.addressV = gxapi::eTextureAddressMode::WRAP;
+	theSamplerParam.addressW = gxapi::eTextureAddressMode::WRAP;
+	theSamplerParam.mipLevelBias = 0.f;
+	theSamplerParam.registerSpace = 0;
+	theSamplerParam.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc shadowMapBindParamDesc;
+	shadowMapBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 500);
+	shadowMapBindParamDesc.constantSize = 0;
+	shadowMapBindParamDesc.relativeAccessFrequency = 0;
+	shadowMapBindParamDesc.relativeChangeFrequency = 0;
+	shadowMapBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc shadowMXBindParamDesc;
+	shadowMXBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 501);
+	shadowMXBindParamDesc.constantSize = 0;
+	shadowMXBindParamDesc.relativeAccessFrequency = 0;
+	shadowMXBindParamDesc.relativeChangeFrequency = 0;
+	shadowMXBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc csmSplitsBindParamDesc;
+	csmSplitsBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 502);
+	csmSplitsBindParamDesc.constantSize = 0;
+	csmSplitsBindParamDesc.relativeAccessFrequency = 0;
+	csmSplitsBindParamDesc.relativeChangeFrequency = 0;
+	csmSplitsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
 	BindParameterDesc vsCbDesc;
 	vsCbDesc.parameter = BindParameter(eBindParameterType::CONSTANT, 0);
 	vsCbDesc.constantSize = sizeof(VsConstants);
@@ -618,6 +649,12 @@ Binder ForwardRender::GenerateBinder(const std::vector<MaterialShaderParameter>&
 
 	descs.push_back(vsCbDesc);
 	descs.push_back(lightCbDesc);
+	
+	descs.push_back(theSamplerDesc);
+	descs.push_back(shadowMapBindParamDesc);
+	descs.push_back(shadowMXBindParamDesc);
+	descs.push_back(csmSplitsBindParamDesc);
+
 	if (cbSize > 0) {
 		descs.push_back(mtlCbDesc);
 	}
@@ -628,6 +665,8 @@ Binder ForwardRender::GenerateBinder(const std::vector<MaterialShaderParameter>&
 		descs.push_back(samplerDesc);
 		samplerParams.push_back(samplerParam);
 	}
+
+	samplerParams.push_back(theSamplerParam);
 
 	materialCbSize = cbSize;
 

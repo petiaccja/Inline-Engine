@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <string>
 
-
 namespace inl::gxeng {
 
 
@@ -248,11 +247,11 @@ inline std::string MaterialGenPixelShader(const MaterialShader& shader) {
 
 	// main function
 	std::stringstream PSMain;
-
+	PSMain << "#include \"CSMSample\"\n";
 	PSMain << "float4 PSMain(PsInput psInput) : SV_TARGET {\n";
 	PSMain << "    g_lightDir = lightCb.direction;\n";
 	PSMain << "    g_lightColor = lightCb.color;\n";
-	PSMain << "    g_lightColor *= get_shadow(tex1, tex2, tex3);\n";
+	PSMain << "    g_lightColor *= get_shadow(psInput.vsPosition);\n";
 	PSMain << "    g_normal = psInput.worldNormal;\n";
 	PSMain << "    g_tex0 = float3(psInput.texCoord, 0.0f);\n";
 	for (size_t i = 0; i < params.size(); ++i) {
