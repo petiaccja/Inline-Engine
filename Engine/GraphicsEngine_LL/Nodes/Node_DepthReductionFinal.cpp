@@ -227,6 +227,9 @@ void DepthReductionFinal::RenderScene(
 	commandList.ResourceBarrier(gxapi::UavBarrier{const_cast<gxapi::IResource*>(light_mvp_uav.GetResource()._GetResourcePtr())});
 	commandList.ResourceBarrier(gxapi::UavBarrier{ const_cast<gxapi::IResource*>(shadow_mx_uav.GetResource()._GetResourcePtr()) });
 	commandList.ResourceBarrier(gxapi::UavBarrier{ const_cast<gxapi::IResource*>(csm_splits_uav.GetResource()._GetResourcePtr()) });
+	commandList.UAVBarrier((Texture2D&)light_mvp_uav.GetResource());
+	commandList.UAVBarrier((Texture2D&)shadow_mx_uav.GetResource());
+	commandList.UAVBarrier((Texture2D&)csm_splits_uav.GetResource());
 }
 
 
