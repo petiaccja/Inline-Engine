@@ -216,6 +216,10 @@ void DepthReductionFinal::RenderScene(
 	gxeng::VolatileConstBuffer cb = m_graphicsContext.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	gxeng::ConstBufferView cbv = m_graphicsContext.CreateCbv(cb, 0, sizeof(Uniforms), context.GetVolatileViewHeap());
 
+	commandList.SetResourceState(const_cast<Texture2D&>(light_mvp_uav.GetResource()), 0, gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.SetResourceState(const_cast<Texture2D&>(shadow_mx_uav.GetResource()), 0, gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.SetResourceState(const_cast<Texture2D&>(csm_splits_uav.GetResource()), 0, gxapi::eResourceState::UNORDERED_ACCESS);
+
 	commandList.SetPipelineState(m_CSO.get());
 	commandList.SetComputeBinder(&m_binder);
 	commandList.BindCompute(m_reductionBindParam, reductionTex.QueryRead());

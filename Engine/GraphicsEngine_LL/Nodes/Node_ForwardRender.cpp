@@ -286,6 +286,10 @@ void ForwardRender::RenderScene(
 			commandList.SetPipelineState(scenario.pso.get());
 			commandList.SetGraphicsBinder(&scenario.binder);
 
+			commandList.SetResourceState(const_cast<Texture2D&>(shadowMapTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+			commandList.SetResourceState(const_cast<Texture2D&>(shadowMXTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+			commandList.SetResourceState(const_cast<Texture2D&>(csmSplitsTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+
 			commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 500), shadowMapTex.QueryRead());
 			commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 501), shadowMXTex.QueryRead());
 			commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 502), csmSplitsTex.QueryRead());

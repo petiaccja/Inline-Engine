@@ -201,6 +201,8 @@ void CSM::RenderScene(
 	commandList.SetGraphicsBinder(&m_binder);
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
+
+	commandList.SetResourceState(const_cast<Texture2D&>(lightMVPTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 	commandList.BindGraphics(m_lightMVPBindParam, lightMVPTex.QueryRead());
 	
 	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
