@@ -16,6 +16,8 @@
 #include "Nodes/Node_ForwardRender.hpp"
 #include "Nodes/Node_DepthPrepass.hpp"
 #include "Nodes/Node_DepthReduction.hpp"
+#include "Nodes/Node_DepthReductionFinal.hpp"
+#include "Nodes/Node_CSM.hpp"
 
 #include "Nodes/Node_GenCSM.hpp"
 #include "Nodes/Node_RenderToBackBuffer.hpp"
@@ -278,6 +280,8 @@ void GraphicsEngine::CreatePipeline() {
 	std::unique_ptr<nodes::ForwardRender> forwardRender(new nodes::ForwardRender(m_graphicsApi));
 	std::unique_ptr<nodes::DepthPrepass> depthPrePass(new nodes::DepthPrepass(m_graphicsApi));
 	std::unique_ptr<nodes::DepthReduction> depthReduction(new nodes::DepthReduction(m_graphicsApi));
+	std::unique_ptr<nodes::DepthReductionFinal> depthReductionFinal(new nodes::DepthReductionFinal(m_graphicsApi));
+	std::unique_ptr<nodes::CSM> csm(new nodes::CSM(m_graphicsApi));
 	std::unique_ptr<nodes::DrawSky> drawSky(new nodes::DrawSky(m_graphicsApi));
 
 	getWorldScene->GetInput<0>().Set("World");
@@ -286,13 +290,22 @@ void GraphicsEngine::CreatePipeline() {
 	depthPrePass->GetInput<0>().Link(getWorldScene->GetOutput(0));
 	depthPrePass->GetInput<1>().Link(getCamera->GetOutput(0));
 
-	//depthReduction->GetInput<0>().Link(depthPrePass->GetOutput(0));
+	depthReduction->GetInput<0>().Link(depthPrePass->GetOutput(0));
 
-	//forwardRender->GetInput<0>().Link(depthReduction->GetOutput(1));
+	depthReductionFinal->GetInput<0>().Link(depthReduction->GetOutput(0));
+	depthReductionFinal->GetInput<1>().Link(getCamera->GetOutput(0));
+	depthReductionFinal->GetInput<2>().Link(getWorldScene->GetOutput(1));
+
+	csm->GetInput<0>().Link(getWorldScene->GetOutput(0));
+	csm->GetInput<1>().Link(depthReductionFinal->GetOutput(0));
+
 	forwardRender->GetInput<0>().Link(depthPrePass->GetOutput(0));
 	forwardRender->GetInput<1>().Link(getWorldScene->GetOutput(0));
 	forwardRender->GetInput<2>().Link(getCamera->GetOutput(0));
 	forwardRender->GetInput<3>().Link(getWorldScene->GetOutput(1));
+	forwardRender->GetInput<4>().Link(csm->GetOutput(0));
+	forwardRender->GetInput<5>().Link(depthReductionFinal->GetOutput(1));
+	forwardRender->GetInput<6>().Link(depthReductionFinal->GetOutput(2));
 
 	drawSky->GetInput<0>().Link(forwardRender->GetOutput(0));
 	drawSky->GetInput<1>().Link(depthPrePass->GetOutput(0));
@@ -301,13 +314,14 @@ void GraphicsEngine::CreatePipeline() {
 
 	renderToBackbuffer->GetInput<0>().Link(drawSky->GetOutput(0));
 	//renderToBackbuffer->GetInput<0>().Link(forwardRender->GetOutput(0));
-	//renderToBackbuffer->GetInput<0>().Link(depthReduction->GetOutput(0));
 
 	m_graphicsNodes = {
 		getWorldScene.release(),
 		getCamera.release(),
 		depthPrePass.release(),
-		//depthReduction.release(),
+		depthReduction.release(),
+		depthReductionFinal.release(),
+		csm.release(),
 		forwardRender.release(),
 		renderToBackbuffer.release(),
 		drawSky.release()

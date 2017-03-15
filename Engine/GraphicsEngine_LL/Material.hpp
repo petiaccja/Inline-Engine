@@ -11,7 +11,6 @@
 #include <algorithm>
 #include <string>
 
-
 namespace inl::gxeng {
 
 
@@ -180,7 +179,8 @@ inline std::string MaterialGenPixelShader(const MaterialShader& shader) {
 		"struct PsInput {\n"
 		"    float4 ndcPos : SV_POSITION;\n"
 		"    float3 worldNormal : NO;\n"
-		"    float2 texCoord : TEX_COORD;\n"
+		"	 float2 texCoord : TEX_COORD0;\n"
+		"	 float4 vsPosition : TEX_COORD1;\n"
 		"};\n\n"
 		"struct MapColor2D {\n"
 		"    Texture2DArray<float4> tex;\n"
@@ -247,10 +247,11 @@ inline std::string MaterialGenPixelShader(const MaterialShader& shader) {
 
 	// main function
 	std::stringstream PSMain;
-
+	PSMain << "#include \"CSMSample\"\n";
 	PSMain << "float4 PSMain(PsInput psInput) : SV_TARGET {\n";
 	PSMain << "    g_lightDir = lightCb.direction;\n";
 	PSMain << "    g_lightColor = lightCb.color;\n";
+	PSMain << "    g_lightColor *= get_shadow(psInput.vsPosition);\n";
 	PSMain << "    g_normal = psInput.worldNormal;\n";
 	PSMain << "    g_tex0 = float3(psInput.texCoord, 0.0f);\n";
 	for (size_t i = 0; i < params.size(); ++i) {

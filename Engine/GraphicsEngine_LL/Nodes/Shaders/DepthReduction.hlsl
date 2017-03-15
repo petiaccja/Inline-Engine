@@ -45,10 +45,13 @@ void CSMain(
 	uint groupIndex : SV_GroupIndex //LocalInvocationIndex
 	)
 {
-	localData[groupIndex] = float2(0.0f, 0.0f);
-	uint3 dispatchThreadId2 = uint3(groupId.x * 2, groupId.y * 2, 0.0f);
+	localData[groupIndex] = float2(1.0f, 0.0f);
+
+	//get data from every second workgroup on the x axis
+	uint3 dispatchThreadId2 = uint3(groupId.x * 2, groupId.y, 0.0f);
 	dispatchThreadId2.xy = dispatchThreadId2.xy * uint2(LOCAL_SIZE_X, LOCAL_SIZE_Y) + groupThreadId.xy;
 	init(dispatchThreadId2.xy, groupIndex);
+	//get data from every other workgroup on the x axis
 	init(uint2(dispatchThreadId2.x + LOCAL_SIZE_X, dispatchThreadId2.y), groupIndex);
 
 	GroupMemoryBarrierWithGroupSync();

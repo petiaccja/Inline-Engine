@@ -16,13 +16,13 @@
 namespace inl::gxeng::nodes {
 
 
-class DepthReduction :
+class CSM :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<pipeline::Texture2D>,
+	virtual public exc::InputPortConfig<const EntityCollection<MeshEntity>*, pipeline::Texture2D>,
 	virtual public exc::OutputPortConfig<pipeline::Texture2D>
 {
 public:
-	DepthReduction(gxapi::IGraphicsApi* graphicsApi);
+	CSM(gxapi::IGraphicsApi* graphicsApi);
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
@@ -31,24 +31,22 @@ public:
 	Task GetTask() override;
 
 protected:
-	unsigned m_width;
-	unsigned m_height;
-
-	gxeng::RWTextureView2D m_uav;
-	gxeng::TextureView2D m_srv;
+	DepthStencilView2D m_dsv;
+	TextureView2D m_depthTargetSrv;
 
 protected:
 	GraphicsContext m_graphicsContext;
 	Binder m_binder;
-	BindParameter m_depthBindParam;
-	BindParameter m_outputBindParam;
-	std::unique_ptr<gxapi::IPipelineState> m_CSO;
+	BindParameter m_uniformsBindParam;
+	BindParameter m_lightMVPBindParam;
+	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 private:
-	void InitRenderTarget();
+	void InitRenderTarget(unsigned width, unsigned height);
 	void RenderScene(
-		const gxeng::RWTextureView2D& uav,
-		pipeline::Texture2D& depthTex,
+		DepthStencilView2D& dsv,
+		const EntityCollection<MeshEntity>& entities,
+		pipeline::Texture2D& lightMVPTex,
 		GraphicsCommandList& commandList);
 };
 

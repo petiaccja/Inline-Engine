@@ -73,6 +73,30 @@ ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi) {
 	albedoBindParamDesc.relativeChangeFrequency = 0;
 	albedoBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
+	BindParameterDesc shadowMapBindParamDesc;
+	m_shadowMapBindParam = BindParameter(eBindParameterType::TEXTURE, 1);
+	shadowMapBindParamDesc.parameter = m_shadowMapBindParam;
+	shadowMapBindParamDesc.constantSize = 0;
+	shadowMapBindParamDesc.relativeAccessFrequency = 0;
+	shadowMapBindParamDesc.relativeChangeFrequency = 0;
+	shadowMapBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc shadowMXBindParamDesc;
+	m_shadowMXBindParam = BindParameter(eBindParameterType::TEXTURE, 2);
+	shadowMXBindParamDesc.parameter = m_shadowMXBindParam;
+	shadowMXBindParamDesc.constantSize = 0;
+	shadowMXBindParamDesc.relativeAccessFrequency = 0;
+	shadowMXBindParamDesc.relativeChangeFrequency = 0;
+	shadowMXBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc csmSplitsBindParamDesc;
+	m_csmSplitsBindParam = BindParameter(eBindParameterType::TEXTURE, 3);
+	csmSplitsBindParamDesc.parameter = m_csmSplitsBindParam;
+	csmSplitsBindParamDesc.constantSize = 0;
+	csmSplitsBindParamDesc.relativeAccessFrequency = 0;
+	csmSplitsBindParamDesc.relativeChangeFrequency = 0;
+	csmSplitsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
 	BindParameterDesc sampBindParamDesc;
 	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
 	sampBindParamDesc.constantSize = 0;
@@ -90,7 +114,7 @@ ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi) {
 	samplerDesc.registerSpace = 0;
 	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-	m_binder = Binder{ graphicsApi,{ transformBindParamDesc, sunBindParamDesc, albedoBindParamDesc, sampBindParamDesc },{ samplerDesc } };
+	m_binder = Binder{ graphicsApi,{ transformBindParamDesc, sunBindParamDesc, albedoBindParamDesc, shadowMapBindParamDesc, shadowMXBindParamDesc, csmSplitsBindParamDesc, sampBindParamDesc },{ samplerDesc } };
 }
 
 
@@ -156,6 +180,15 @@ Task ForwardRender::GetTask() {
 		const DirectionalLight* sun = this->GetInput<3>().Get();
 		this->GetInput<3>().Clear();
 
+		gxeng::pipeline::Texture2D shadowMapTex = this->GetInput<4>().Get();
+		this->GetInput<4>().Clear();
+
+		gxeng::pipeline::Texture2D shadowMXTex = this->GetInput<5>().Get();
+		this->GetInput<5>().Clear();
+
+		gxeng::pipeline::Texture2D csmSplitsTex = this->GetInput<6>().Get();
+		this->GetInput<6>().Clear();
+
 		this->GetOutput<0>().Set(pipeline::Texture2D(m_renderTargetSrv, m_rtv));
 
 		if (entities) {
@@ -163,7 +196,7 @@ Task ForwardRender::GetTask() {
 
 			DepthStencilView2D dsv = depthStencil.QueryDepthStencil(cmdList, m_graphicsContext);
 
-			RenderScene(dsv, *entities, camera, sun, cmdList);
+			RenderScene(dsv, *entities, camera, sun, shadowMapTex, shadowMXTex, csmSplitsTex, cmdList);
 			result.AddCommandList(std::move(cmdList));
 		}
 
@@ -200,6 +233,9 @@ void ForwardRender::RenderScene(
 	const EntityCollection<MeshEntity>& entities,
 	const Camera* camera,
 	const DirectionalLight* sun,
+	pipeline::Texture2D& shadowMapTex,
+	pipeline::Texture2D& shadowMXTex,
+	pipeline::Texture2D& csmSplitsTex,
 	GraphicsCommandList& commandList
 ) {
 	// Set render target
@@ -250,6 +286,14 @@ void ForwardRender::RenderScene(
 			commandList.SetPipelineState(scenario.pso.get());
 			commandList.SetGraphicsBinder(&scenario.binder);
 
+			commandList.SetResourceState(const_cast<Texture2D&>(shadowMapTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+			commandList.SetResourceState(const_cast<Texture2D&>(shadowMXTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+			commandList.SetResourceState(const_cast<Texture2D&>(csmSplitsTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+
+			commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 500), shadowMapTex.QueryRead());
+			commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 501), shadowMXTex.QueryRead());
+			commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 502), csmSplitsTex.QueryRead());
+
 			// Set material parameters
 			std::vector<uint8_t> materialConstants(scenario.constantsSize);
 			for (size_t paramIdx = 0; paramIdx < material->GetParameterCount(); ++paramIdx) {
@@ -286,6 +330,7 @@ void ForwardRender::RenderScene(
 			LightConstants lightConstants;
 			entity->GetTransform().Pack(vsConstants.model);
 			(viewProjection * entity->GetTransform()).Pack(vsConstants.mvp);
+			(view * entity->GetTransform()).Pack(vsConstants.mv);
 			lightConstants.direction = sun->GetDirection().Normalized();
 			lightConstants.color = sun->GetColor();
 
@@ -449,6 +494,7 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"struct VsConstants \n"
 		"{\n"
 		"	float4x4 MVP;\n"
+		"	float4x4 MV;\n"
 		"	float4x4 worldInvTr;"
 		"};\n"
 		"ConstantBuffer<VsConstants> vsConstants : register(b0);\n"
@@ -457,7 +503,8 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"{\n"
 		"	float4 position : SV_POSITION;\n"
 		"	float3 normal : NO;\n"
-		"	float2 texCoord : TEX_COORD;\n"
+		"	float2 texCoord : TEX_COORD0;\n"
+		"	float4 vsPosition : TEX_COORD1;\n"
 		"};\n"
 
 		"PS_Input VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoord : TEX_COORD)\n"
@@ -467,6 +514,7 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"	float3 worldNormal = normalize(mul(vsConstants.worldInvTr, float4(normal.xyz, 0.0)).xyz);\n"
 
 		"	result.position = mul(vsConstants.MVP, position);\n"
+		"	result.vsPosition = mul(vsConstants.MV, position);\n"
 		"	result.normal = worldNormal;\n"
 		"	result.texCoord = texCoord.xy;\n"
 
@@ -527,6 +575,44 @@ Binder ForwardRender::GenerateBinder(const std::vector<MaterialShaderParameter>&
 		}
 	}
 
+	BindParameterDesc theSamplerDesc;
+	theSamplerDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 500);
+	theSamplerDesc.constantSize = 0;
+	theSamplerDesc.relativeAccessFrequency = 0;
+	theSamplerDesc.relativeChangeFrequency = 0;
+	theSamplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	gxapi::StaticSamplerDesc theSamplerParam;
+	theSamplerParam.shaderRegister = 500;
+	theSamplerParam.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
+	theSamplerParam.addressU = gxapi::eTextureAddressMode::WRAP;
+	theSamplerParam.addressV = gxapi::eTextureAddressMode::WRAP;
+	theSamplerParam.addressW = gxapi::eTextureAddressMode::WRAP;
+	theSamplerParam.mipLevelBias = 0.f;
+	theSamplerParam.registerSpace = 0;
+	theSamplerParam.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc shadowMapBindParamDesc;
+	shadowMapBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 500);
+	shadowMapBindParamDesc.constantSize = 0;
+	shadowMapBindParamDesc.relativeAccessFrequency = 0;
+	shadowMapBindParamDesc.relativeChangeFrequency = 0;
+	shadowMapBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc shadowMXBindParamDesc;
+	shadowMXBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 501);
+	shadowMXBindParamDesc.constantSize = 0;
+	shadowMXBindParamDesc.relativeAccessFrequency = 0;
+	shadowMXBindParamDesc.relativeChangeFrequency = 0;
+	shadowMXBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc csmSplitsBindParamDesc;
+	csmSplitsBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 502);
+	csmSplitsBindParamDesc.constantSize = 0;
+	csmSplitsBindParamDesc.relativeAccessFrequency = 0;
+	csmSplitsBindParamDesc.relativeChangeFrequency = 0;
+	csmSplitsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
 	BindParameterDesc vsCbDesc;
 	vsCbDesc.parameter = BindParameter(eBindParameterType::CONSTANT, 0);
 	vsCbDesc.constantSize = sizeof(VsConstants);
@@ -567,6 +653,12 @@ Binder ForwardRender::GenerateBinder(const std::vector<MaterialShaderParameter>&
 
 	descs.push_back(vsCbDesc);
 	descs.push_back(lightCbDesc);
+	
+	descs.push_back(theSamplerDesc);
+	descs.push_back(shadowMapBindParamDesc);
+	descs.push_back(shadowMXBindParamDesc);
+	descs.push_back(csmSplitsBindParamDesc);
+
 	if (cbSize > 0) {
 		descs.push_back(mtlCbDesc);
 	}
@@ -577,6 +669,8 @@ Binder ForwardRender::GenerateBinder(const std::vector<MaterialShaderParameter>&
 		descs.push_back(samplerDesc);
 		samplerParams.push_back(samplerParam);
 	}
+
+	samplerParams.push_back(theSamplerParam);
 
 	materialCbSize = cbSize;
 
