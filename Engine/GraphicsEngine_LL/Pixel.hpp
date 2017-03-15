@@ -36,21 +36,21 @@ public:
 };
 
 
-template <class InputT>
-float NormalizeColor(std::enable_if_t<std::is_floating_point<InputT>::value, InputT> input) {
+template <class InputT, std::enable_if_t<std::is_floating_point<InputT>::value, int> = 0>
+float NormalizeColor(InputT input) {
 	return input;
 }
-template <class InputT>
-float NormalizeColor(std::enable_if_t<std::is_unsigned<InputT>::value, InputT> input) {
+template <class InputT, std::enable_if_t<std::is_unsigned<InputT>::value, int> = 0>
+float NormalizeColor(InputT input) {
 	return float(input) / float(InputT(-1));
 }
 
-template <class OutputT>
-std::enable_if_t<std::is_unsigned<OutputT>::value, OutputT> DenormalizeColor(float input) {
+template <class OutputT, std::enable_if_t<std::is_unsigned<OutputT>::value, int> = 0>
+OutputT DenormalizeColor(float input) {
 	return OutputT(input * float(~OutputT(0)));
 }
-template <class OutputT>
-std::enable_if_t<std::is_floating_point<OutputT>::value, OutputT> DenormalizeColor(float input) {
+template <class OutputT, std::enable_if_t<std::is_floating_point<OutputT>::value, int> = 0>
+OutputT DenormalizeColor(float input) {
 	return input;
 }
 
@@ -136,7 +136,8 @@ public:
 			return impl::DenormalizeColor<float>(reinterpret_cast<const Pixel*>(pixel)->channels[channel]);
 		}
 		void Set(void* pixel, int channel, float value) const override {
-			reinterpret_cast<Pixel*>(pixel)->channels[channel] = impl::NormalizeColor<Type>(value);
+			Pixel* px = reinterpret_cast<Pixel*>(pixel);
+			px->channels[channel] = impl::DenormalizeColor<PixelData::Type>(value);
 		}
 		ePixelChannelType GetChannelType() const override {
 			return ChannelType;

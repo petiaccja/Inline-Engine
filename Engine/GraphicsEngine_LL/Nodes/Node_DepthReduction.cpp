@@ -158,7 +158,7 @@ void DepthReduction::RenderScene(
 	commandList.BindCompute(m_depthBindParam, depthTex.QueryRead());
 	commandList.BindCompute(m_outputBindParam, uav);
 	commandList.Dispatch(dispatchW, dispatchH, 1);
-	commandList.ResourceBarrier(gxapi::UavBarrier{const_cast<gxapi::IResource*>(uav.GetResource()._GetResourcePtr())});
+	commandList.UAVBarrier(uav.GetResource());
 }
 
 
