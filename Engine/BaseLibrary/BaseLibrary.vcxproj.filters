@@ -16,6 +16,12 @@
     <Filter Include="Memory">
       <UniqueIdentifier>{6cb7db5d-87d3-441b-94cf-ee6be9df0f0e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Platform">
+      <UniqueIdentifier>{06bb74bb-70ab-4e2e-a83d-cae6e8b18edf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platform\Win32">
+      <UniqueIdentifier>{97a6f889-39e8-4462-8594-1ff05db4c592}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -114,6 +120,25 @@
     <ClInclude Include="ArrayView.hpp">
       <Filter>All</Filter>
     </ClInclude>
+    <ClInclude Include="Platform\WindowCommon.hpp">
+      <Filter>Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\Window.hpp">
+      <Filter>Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\Timer.hpp">
+      <Filter>Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\Sys.hpp">
+      <Filter>Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\Win32\Window.hpp">
+      <Filter>Platform\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\Win32\Timer.hpp">
+      <Filter>Platform\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Common_tmp.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">
@@ -155,5 +180,15 @@
     <ClCompile Include="Memory\RingAllocationEngine.cpp">
       <Filter>Memory</Filter>
     </ClCompile>
+    <ClCompile Include="Platform\Win32\Sys.cpp">
+      <Filter>Platform\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Platform\Win32\Timer.cpp">
+      <Filter>Platform\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Platform\Win32\Window.cpp">
+      <Filter>Platform\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Common_tmp.cpp" />
   </ItemGroup>
 </Project>

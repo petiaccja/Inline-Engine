@@ -158,6 +158,10 @@
     <ClInclude Include="ArrayView.hpp" />
     <ClInclude Include="BitflagEnum.hpp" />
     <ClInclude Include="BitOperations.hpp" />
+    <ClCompile Include="Common_tmp.cpp">
+      <FileType>CppHeader</FileType>
+    </ClCompile>
+    <ClInclude Include="Common_tmp.hpp" />
     <ClInclude Include="Graph\Node.hpp" />
     <ClInclude Include="Graph\NodeFactory.hpp" />
     <ClInclude Include="Graph\NodeLibrary.hpp" />
@@ -169,6 +173,12 @@
     <ClInclude Include="Memory\MultiInstanceTLS.hpp" />
     <ClInclude Include="Memory\RingAllocationEngine.hpp" />
     <ClInclude Include="Memory\SlabAllocatorEngine.hpp" />
+    <ClInclude Include="Platform\Sys.hpp" />
+    <ClInclude Include="Platform\Timer.hpp" />
+    <ClInclude Include="Platform\Win32\Timer.hpp" />
+    <ClInclude Include="Platform\Win32\Window.hpp" />
+    <ClInclude Include="Platform\Window.hpp" />
+    <ClInclude Include="Platform\WindowCommon.hpp" />
     <ClInclude Include="Range.hpp" />
     <ClInclude Include="ScalarLiterals.hpp" />
     <ClInclude Include="Logging\Event.hpp" />
@@ -201,6 +211,9 @@
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NoListing</AssemblerOutput>
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NoListing</AssemblerOutput>
     </ClCompile>
+    <ClCompile Include="Platform\Win32\Sys.cpp" />
+    <ClCompile Include="Platform\Win32\Timer.cpp" />
+    <ClCompile Include="Platform\Win32\Window.cpp" />
     <ClCompile Include="Serialization\BinarySerializer.cpp" />
     <ClCompile Include="Serialization\BinarySerializerExtensions.cpp" />
     <ClCompile Include="SpinMutex.cpp" />
