@@ -3,7 +3,7 @@
 #include "../GraphicsNode.hpp"
 
 #include "../Scene.hpp"
-#include "../Camera.hpp"
+#include "../PerspectiveCamera.hpp"
 #include "../ConstBufferHeap.hpp"
 #include "../PipelineTypes.hpp"
 #include "../GraphicsContext.hpp"

@@ -5,7 +5,7 @@
 #include "Node_GenCSM.hpp"
 
 #include "../Scene.hpp"
-#include "../Camera.hpp"
+#include "../BasicCamera.hpp"
 #include "../Mesh.hpp"
 #include "../Material.hpp"
 #include "../ConstBufferHeap.hpp"
@@ -19,7 +19,7 @@ namespace inl::gxeng::nodes {
 class ForwardRender :
 	virtual public GraphicsNode,
 	// Inputs: depth stencil (from depth prepass), geometry, camera, sun
-	virtual public exc::InputPortConfig<pipeline::Texture2D, const EntityCollection<MeshEntity>*, const Camera*, const DirectionalLight*, pipeline::Texture2D, pipeline::Texture2D, pipeline::Texture2D>,
+	virtual public exc::InputPortConfig<pipeline::Texture2D, const EntityCollection<MeshEntity>*, const BasicCamera*, const DirectionalLight*, pipeline::Texture2D, pipeline::Texture2D, pipeline::Texture2D>,
 	virtual public exc::OutputPortConfig<pipeline::Texture2D>
 {
 private:
@@ -56,7 +56,7 @@ private:
 	void RenderScene(
 		DepthStencilView2D& dsv,
 		const EntityCollection<MeshEntity>& entities,
-		const Camera* camera,
+		const BasicCamera* camera,
 		const DirectionalLight* sun,
 		pipeline::Texture2D& shadowMapTex,
 		pipeline::Texture2D& shadowMXTex,

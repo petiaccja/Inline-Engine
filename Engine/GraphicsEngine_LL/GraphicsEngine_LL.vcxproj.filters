@@ -42,6 +42,9 @@
     <Filter Include="Materials">
       <UniqueIdentifier>{98cd6cfb-25da-4059-bd57-422f8cb974b9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Overlay">
+      <UniqueIdentifier>{da9c57e1-ec19-4e49-9a4d-80011ca787d7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -213,9 +216,6 @@
     <ClInclude Include="Pixel.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.hpp">
-      <Filter>Scene</Filter>
-    </ClInclude>
     <ClInclude Include="Nodes\Node_GetCameraByName.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
@@ -263,6 +263,30 @@
     </ClInclude>
     <ClInclude Include="Nodes\Node_CSM.hpp">
       <Filter>Nodes\ForwardPipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="PerspectiveCamera.hpp">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicCamera.hpp">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Overlay.hpp">
+      <Filter>Overlay</Filter>
+    </ClInclude>
+    <ClInclude Include="OverlayEntity.hpp">
+      <Filter>Overlay</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GetOverlayByName.hpp">
+      <Filter>Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_Blend.hpp">
+      <Filter>Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_OverlayRender.hpp">
+      <Filter>Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="OrthographicCamera.hpp">
+      <Filter>Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -360,9 +384,6 @@
     <ClCompile Include="CriticalBufferHeap.cpp">
       <Filter>MemoryManagement\Heaps</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
     <ClCompile Include="GraphicsContext.cpp">
       <Filter>Pipeline</Filter>
     </ClCompile>
@@ -402,6 +423,27 @@
     <ClCompile Include="Nodes\Node_CSM.cpp">
       <Filter>Nodes\ForwardPipeline</Filter>
     </ClCompile>
+    <ClCompile Include="PerspectiveCamera.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicCamera.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Overlay.cpp">
+      <Filter>Overlay</Filter>
+    </ClCompile>
+    <ClCompile Include="OverlayEntity.cpp">
+      <Filter>Overlay</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_Blend.cpp">
+      <Filter>Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_OverlayRender.cpp">
+      <Filter>Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="OrthographicCamera.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Nodes\Shaders\DrawSky.hlsl">
@@ -434,6 +476,10 @@
     <None Include="Nodes\Shaders\ForwardRender.hlsl">
       <Filter>Nodes\Shaders</Filter>
     </None>
+    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
+    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
+    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
+    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
     <None Include="Nodes\Shaders\ForwardRender.hlsl" />
     <None Include="Nodes\Shaders\ForwardRender.hlsl" />
     <None Include="Nodes\Shaders\ForwardRender.hlsl" />

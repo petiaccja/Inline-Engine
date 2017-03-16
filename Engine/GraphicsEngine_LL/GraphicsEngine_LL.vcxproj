@@ -166,10 +166,16 @@
     <ClInclude Include="..\GraphicsEngine\ITerrainEntity.hpp" />
     <ClInclude Include="..\GraphicsEngine\ITexture2D.hpp" />
     <ClInclude Include="BackBufferManager.hpp" />
+    <ClInclude Include="BasicCamera.hpp" />
     <ClInclude Include="BasicCommandList.hpp" />
     <ClInclude Include="Binder.hpp" />
     <ClInclude Include="BindingManager.hpp" />
-    <ClInclude Include="Camera.hpp" />
+    <ClInclude Include="Nodes\Node_Blend.hpp" />
+    <ClInclude Include="Nodes\Node_GetOverlayByName.hpp" />
+    <ClInclude Include="OrthographicCamera.hpp" />
+    <ClInclude Include="Overlay.hpp" />
+    <ClInclude Include="OverlayEntity.hpp" />
+    <ClInclude Include="PerspectiveCamera.hpp" />
     <ClInclude Include="CommandAllocatorPool.hpp" />
     <ClInclude Include="CommandQueue.hpp" />
     <ClInclude Include="ComputeCommandList.hpp" />
@@ -187,6 +193,7 @@
     <ClInclude Include="Nodes\Node_ForwardRender.hpp" />
     <ClInclude Include="Nodes\Node_GenCSM.hpp" />
     <ClInclude Include="Nodes\Node_GetCameraByName.hpp" />
+    <ClInclude Include="Nodes\Node_OverlayRender.hpp" />
     <ClInclude Include="Nodes\Node_RenderToBackBuffer.hpp" />
     <ClInclude Include="PipelineTypes.hpp" />
     <ClInclude Include="RootTableManager.hpp" />
@@ -233,7 +240,12 @@
     <ClCompile Include="BackBufferManager.cpp" />
     <ClCompile Include="BasicCommandList.cpp" />
     <ClCompile Include="Binder.cpp" />
-    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="BasicCamera.cpp" />
+    <ClCompile Include="Nodes\Node_Blend.cpp" />
+    <ClCompile Include="OrthographicCamera.cpp" />
+    <ClCompile Include="Overlay.cpp" />
+    <ClCompile Include="OverlayEntity.cpp" />
+    <ClCompile Include="PerspectiveCamera.cpp" />
     <ClCompile Include="CommandAllocatorPool.cpp" />
     <ClCompile Include="ComputeCommandList.cpp" />
     <ClCompile Include="ConstBufferHeap.cpp" />
@@ -248,6 +260,7 @@
     <ClCompile Include="Nodes\Node_DrawSky.cpp" />
     <ClCompile Include="Nodes\Node_ForwardRender.cpp" />
     <ClCompile Include="Nodes\Node_GenCSM.cpp" />
+    <ClCompile Include="Nodes\Node_OverlayRender.cpp" />
     <ClCompile Include="Nodes\Node_RenderToBackBuffer.cpp" />
     <ClCompile Include="PipelineTypes.cpp" />
     <ClCompile Include="ShaderManager.cpp" />

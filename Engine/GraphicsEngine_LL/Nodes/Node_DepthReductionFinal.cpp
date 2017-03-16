@@ -110,7 +110,7 @@ Task DepthReductionFinal::GetTask() {
 		gxeng::pipeline::Texture2D reductionTex = this->GetInput<0>().Get();
 		this->GetInput<0>().Clear();
 
-		const Camera* camera = this->GetInput<1>().Get();
+		const BasicCamera* camera = this->GetInput<1>().Get();
 		this->GetInput<1>().Clear();
 
 		const DirectionalLight* sun = this->GetInput<2>().Get();
@@ -172,7 +172,7 @@ void DepthReductionFinal::RenderScene(
 	const gxeng::RWTextureView2D& shadow_mx_uav,
 	const gxeng::RWTextureView2D& csm_splits_uav,
 	pipeline::Texture2D& reductionTex,
-	const Camera* camera,
+	const BasicCamera* camera,
 	const DirectionalLight* sun,
 	GraphicsCommandList& commandList,
 	const ExecutionContext& context
@@ -180,7 +180,7 @@ void DepthReductionFinal::RenderScene(
 	Uniforms uniformsCBData;
 
 	mathfu::Matrix4x4f view = camera->GetViewMatrixRH();
-	mathfu::Matrix4x4f projection = camera->GetPerspectiveMatrixRH();
+	mathfu::Matrix4x4f projection = camera->GetProjectionMatrixRH();
 	mathfu::Matrix4x4f vp = projection * view;
 
 	vp.Inverse().Pack(uniformsCBData.invVP);
@@ -193,16 +193,21 @@ void DepthReductionFinal::RenderScene(
 
 	view.Inverse().Pack(uniformsCBData.inv_mv);
 
-	mathfu::Vector4f cam_pos(camera->GetPosition(), 1.0f);
-	mathfu::Vector4f cam_view_dir(camera->GetLookDirection(), 0.0f);
-	mathfu::Vector4f cam_up_vector(camera->GetUpVector(), 0.0f);
+	const PerspectiveCamera* perpectiveCamera = dynamic_cast<const PerspectiveCamera*>(camera);
+	if (perpectiveCamera == nullptr) {
+		throw std::invalid_argument("Depth reduction only works with perspective camera");
+	}
+
+	mathfu::Vector4f cam_pos(perpectiveCamera->GetPosition(), 1.0f);
+	mathfu::Vector4f cam_view_dir(perpectiveCamera->GetLookDirection(), 0.0f);
+	mathfu::Vector4f cam_up_vector(perpectiveCamera->GetUpVector(), 0.0f);
 	
 	cam_pos.Pack(&uniformsCBData.cam_pos);
 	cam_view_dir.Pack(&uniformsCBData.cam_view_dir);
 	cam_up_vector.Pack(&uniformsCBData.cam_up_vector);
 
-	uniformsCBData.cam_near = camera->GetNearPlane();
-	uniformsCBData.cam_far = camera->GetFarPlane();
+	uniformsCBData.cam_near = perpectiveCamera->GetNearPlane();
+	uniformsCBData.cam_far = perpectiveCamera->GetFarPlane();
 
 	//TODO get from somewhere
 	uniformsCBData.light_cam_pos = mathfu::Vector4f(0, 0, 0, 1);

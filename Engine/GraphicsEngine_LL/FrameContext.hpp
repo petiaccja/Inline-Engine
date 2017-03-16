@@ -3,6 +3,7 @@
 #include <BaseLibrary/Logging/LogStream.hpp>
 #include "../GraphicsApi_LL/ICommandQueue.hpp"
 
+#include "BasicCamera.hpp"
 #include "CommandQueue.hpp"
 
 #include <queue>
@@ -19,7 +20,8 @@ namespace gxeng {
 class CommandAllocatorPool;
 class ScratchSpacePool;
 class Scene;
-class Camera;
+class Overlay;
+class PerspectiveCamera;
 class RenderTargetView2D;
 
 struct FrameContext {
@@ -34,7 +36,8 @@ struct FrameContext {
 	CommandQueue* commandQueue = nullptr;
 	RenderTargetView2D* backBuffer = nullptr;
 	const std::set<Scene*>* scenes = nullptr;
-	const std::set<Camera*>* cameras = nullptr;
+	const std::set<Overlay*>* overlays = nullptr;
+	const std::set<BasicCamera*>* cameras = nullptr;
 	const std::vector<UploadManager::UploadDescription>* uploadRequests = nullptr;
 	
 	ResourceResidencyQueue* residencyQueue = nullptr;

@@ -868,22 +868,22 @@ struct RenderTargetBlendState {
 	RenderTargetBlendState(
 		bool enableBlending = false,
 		bool enableLogicOp = false,
-		eBlendOperand colorOperand1 = eBlendOperand::SHADER_OUT,
-		eBlendOperand colorOperand2 = eBlendOperand::ZERO,
+		eBlendOperand shaderColorFactor = eBlendOperand::SHADER_OUT,
+		eBlendOperand targetColorFactor = eBlendOperand::ZERO,
 		eBlendOperation colorOperation = eBlendOperation::ADD,
-		eBlendOperand alphaOperand1 = eBlendOperand::SHADER_OUT,
-		eBlendOperand alphaOperand2 = eBlendOperand::ZERO,
+		eBlendOperand shaderAlphaFactor = eBlendOperand::SHADER_OUT,
+		eBlendOperand targetAlphaFactor = eBlendOperand::ZERO,
 		eBlendOperation alphaOperation = eBlendOperation::ADD,
 		eColorMask mask = eColorMask::ALL,
 		eBlendLogicOperation logicOperation = eBlendLogicOperation::NOOP)
 		:
 		enableBlending(enableBlending),
 		enableLogicOp(enableLogicOp),
-		colorOperand1(colorOperand1),
-		colorOperand2(colorOperand2),
+		shaderColorFactor(shaderColorFactor),
+		targetColorFactor(targetColorFactor),
 		colorOperation(colorOperation),
-		alphaOperand1(alphaOperand1),
-		alphaOperand2(alphaOperand2),
+		shaderAlphaFactor(shaderAlphaFactor),
+		targetAlphaFactor(targetAlphaFactor),
 		alphaOperation(alphaOperation),
 		mask(mask),
 		logicOperation(logicOperation)
@@ -892,12 +892,12 @@ struct RenderTargetBlendState {
 	bool enableBlending;
 	bool enableLogicOp;
 
-	eBlendOperand colorOperand1;
-	eBlendOperand colorOperand2;
+	eBlendOperand shaderColorFactor;
+	eBlendOperand targetColorFactor;
 	eBlendOperation colorOperation;
 
-	eBlendOperand alphaOperand1;
-	eBlendOperand alphaOperand2;
+	eBlendOperand shaderAlphaFactor;
+	eBlendOperand targetAlphaFactor;
 	eBlendOperation alphaOperation;
 
 	eColorMask mask;

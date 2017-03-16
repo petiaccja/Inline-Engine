@@ -205,11 +205,11 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 	for (UINT i = 0; i < targetCount; ++i) {
 		blendState.multiTarget[i].enableBlending = false;
 		blendState.multiTarget[i].enableLogicOp = false;
-		blendState.multiTarget[i].colorOperand1 = eBlendOperand::ONE;
-		blendState.multiTarget[i].colorOperand2 = eBlendOperand::ZERO;
+		blendState.multiTarget[i].shaderColorFactor = eBlendOperand::ONE;
+		blendState.multiTarget[i].targetColorFactor = eBlendOperand::ZERO;
 		blendState.multiTarget[i].colorOperation = eBlendOperation::ADD;
-		blendState.multiTarget[i].alphaOperand1 = eBlendOperand::ONE;
-		blendState.multiTarget[i].alphaOperand2 = eBlendOperand::ZERO;
+		blendState.multiTarget[i].shaderAlphaFactor = eBlendOperand::ONE;
+		blendState.multiTarget[i].targetAlphaFactor = eBlendOperand::ZERO;
 		blendState.multiTarget[i].alphaOperation = eBlendOperation::ADD;
 		blendState.multiTarget[i].logicOperation = eBlendLogicOperation::NOOP;
 		blendState.multiTarget[i].mask = eColorMask::ALL;

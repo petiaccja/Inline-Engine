@@ -5,7 +5,7 @@
 #include "Node_GenCSM.hpp"
 
 #include "../Scene.hpp"
-#include "../Camera.hpp"
+#include "../BasicCamera.hpp"
 #include "../Mesh.hpp"
 #include "../ConstBufferHeap.hpp"
 #include "../GraphicsContext.hpp"
@@ -18,7 +18,7 @@ namespace inl::gxeng::nodes {
 
 class DepthReductionFinal :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<pipeline::Texture2D, const Camera*, const DirectionalLight*>,
+	virtual public exc::InputPortConfig<pipeline::Texture2D, const BasicCamera*, const DirectionalLight*>,
 	virtual public exc::OutputPortConfig<pipeline::Texture2D, pipeline::Texture2D, pipeline::Texture2D>
 {
 public:
@@ -57,7 +57,7 @@ private:
 		const gxeng::RWTextureView2D& shadow_mx_uav,
 		const gxeng::RWTextureView2D& csm_splits_uav,
 		pipeline::Texture2D& reductionTex,
-		const Camera* camera,
+		const BasicCamera* camera,
 		const DirectionalLight* sun,
 		GraphicsCommandList& commandList,
 		const ExecutionContext& context);

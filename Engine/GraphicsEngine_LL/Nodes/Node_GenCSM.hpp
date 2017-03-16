@@ -3,7 +3,7 @@
 #include "../GraphicsNode.hpp"
 
 #include "../Scene.hpp"
-#include "../Camera.hpp"
+#include "../PerspectiveCamera.hpp"
 #include "../ConstBufferHeap.hpp"
 #include "../GraphicsContext.hpp"
 #include "../PipelineTypes.hpp"
@@ -33,12 +33,12 @@ mathfu::Matrix4x4f LightViewTransform(const DirectionalLight* light);
 /// rendering shadow map for the corresponding directional light, and camera.
 /// The frustum of the light is fitted on the camera frustum.
 /// </summary>
-mathfu::Matrix4x4f LightDirectionalProjectionTransform(const mathfu::Matrix4x4f& lightViewTransform, const Camera* camera);
+mathfu::Matrix4x4f LightDirectionalProjectionTransform(const mathfu::Matrix4x4f& lightViewTransform, const PerspectiveCamera* camera);
 
 
 // A single shadow map and the corresponding camera for cascaded shadow maps
 struct ShadowMapCascade {
-	Camera subCamera;
+	PerspectiveCamera subCamera;
 	DepthStencilPack map;
 };
 
@@ -46,14 +46,14 @@ struct ShadowMapCascade {
 // a cascaded shadow map
 struct ShadowCascades {
 	DepthStencilArrayPack mapArray;
-	std::vector<Camera> subCameras;
+	std::vector<PerspectiveCamera> subCameras;
 };
 
 
 // Cascaded shadow mapping
 class GenCSM :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<const Camera*, const DirectionalLight*, const EntityCollection<MeshEntity>*>,
+	virtual public exc::InputPortConfig<const PerspectiveCamera*, const DirectionalLight*, const EntityCollection<MeshEntity>*>,
 	virtual public exc::OutputPortConfig<const ShadowCascades*>
 {
 public:
@@ -90,9 +90,9 @@ protected:
 
 private:
 	void InitBuffers();
-	Camera& CalculateSubCamera(const Camera* camera, unsigned cascadeID);
+	PerspectiveCamera& CalculateSubCamera(const PerspectiveCamera* camera, unsigned cascadeID);
 	void RenderScene(
-		const Camera* camera,
+		const PerspectiveCamera* camera,
 		const DirectionalLight* sun,
 		const EntityCollection<MeshEntity>& entities,
 		uint64_t frameID,

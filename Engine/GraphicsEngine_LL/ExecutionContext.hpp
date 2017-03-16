@@ -19,10 +19,12 @@ namespace gxeng {
 // Prototypes of classes used.
 //------------------------------------------------------------------------------
 class Scene;
+class Overlay;
 
 namespace nodes {
 class GetBackBuffer;
 class GetSceneByName;
+class GetOverlayByName;
 class GetCameraByName;
 class RenderToBackBuffer;
 }
@@ -39,9 +41,17 @@ public:
 	virtual ~SceneAccessContext() {}
 protected:
 	virtual const Scene* GetSceneByName(const std::string& name) const = 0;
-	virtual const Camera* GetCameraByName(const std::string& name) const = 0;
+	virtual const BasicCamera* GetCameraByName(const std::string& name) const = 0;
 };
 
+
+class OverlayAccessContext {
+	friend class nodes::GetOverlayByName;
+public:
+	virtual ~OverlayAccessContext() {}
+protected:
+	virtual const Overlay* GetOverlayByName(const std::string& name) const = 0;
+};
 
 
 class SwapChainAccessContext {
@@ -60,6 +70,7 @@ protected:
 //------------------------------------------------------------------------------
 class ExecutionContext 
 	: public SceneAccessContext,
+	public OverlayAccessContext,
 	public SwapChainAccessContext
 {
 public:
@@ -80,7 +91,8 @@ public:
 
 protected:
 	const Scene* GetSceneByName(const std::string& name) const override;
-	const Camera* GetCameraByName(const std::string& name) const override;
+	const BasicCamera* GetCameraByName(const std::string& name) const override;
+	const Overlay* GetOverlayByName(const std::string& name) const override;
 	RenderTargetView2D* GetBackBuffer() const override;	
 private:
 	FrameContext* m_frameContext;

@@ -19,7 +19,7 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	m_sun.SetDirection(mathfu::Vector3f(1, 1, 1));
 	m_worldScene->SetSun(&m_sun);
 
-	m_camera.reset(m_graphicsEngine->CreateCamera("WorldCam"));
+	m_camera.reset(m_graphicsEngine->CreatePerspectiveCamera("WorldCam"));
 	m_camera->SetTargeted(true);
 	m_camera->SetPosition({0, 0, 8});
 	m_camera->SetTarget({ 0, 0, 0 });

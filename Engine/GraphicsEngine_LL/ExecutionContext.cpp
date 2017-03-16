@@ -1,7 +1,8 @@
 #include "ExecutionContext.hpp"
 
 #include "Scene.hpp"
-#include "Camera.hpp"
+#include "Overlay.hpp"
+#include "BasicCamera.hpp"
 
 
 namespace inl {
@@ -70,7 +71,7 @@ const Scene* ExecutionContext::GetSceneByName(const std::string& name) const {
 }
 
 
-const Camera* ExecutionContext::GetCameraByName(const std::string& name) const {
+const BasicCamera* ExecutionContext::GetCameraByName(const std::string& name) const {
 	for (auto camera : *m_frameContext->cameras) {
 		if (camera->GetName() == name) {
 			return camera;
@@ -78,6 +79,17 @@ const Camera* ExecutionContext::GetCameraByName(const std::string& name) const {
 	}
 	return nullptr;
 }
+
+
+const Overlay* ExecutionContext::GetOverlayByName(const std::string & name) const {
+	for (auto overlay : *m_frameContext->overlays) {
+		if (overlay->GetName() == name) {
+			return overlay;
+		}
+	}
+	return nullptr;
+}
+
 
 RenderTargetView2D* ExecutionContext::GetBackBuffer() const {
 	return m_frameContext->backBuffer;

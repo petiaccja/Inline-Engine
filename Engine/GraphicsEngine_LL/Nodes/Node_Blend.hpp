@@ -1,28 +1,29 @@
 #pragma once
 
+
 #include "../GraphicsNode.hpp"
 
-#include "Node_GenCSM.hpp"
-
-#include "../Scene.hpp"
-#include "../PerspectiveCamera.hpp"
-#include "../Mesh.hpp"
 #include "../ConstBufferHeap.hpp"
-#include "../GraphicsContext.hpp"
 #include "../PipelineTypes.hpp"
+#include "../GraphicsContext.hpp"
+
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
+
 
 namespace inl::gxeng::nodes {
 
 
-class CSM :
+class Blend :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<const EntityCollection<MeshEntity>*, pipeline::Texture2D>,
+	virtual public exc::InputPortConfig<pipeline::Texture2D, pipeline::Texture2D>,
 	virtual public exc::OutputPortConfig<pipeline::Texture2D>
 {
 public:
-	CSM(gxapi::IGraphicsApi* graphicsApi);
+	enum BlendMode { CASUAL_ALPHA_BLEND };
+
+public:
+	Blend(gxapi::IGraphicsApi* graphicsApi, BlendMode mode);
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
@@ -31,25 +32,32 @@ public:
 	Task GetTask() override;
 
 protected:
-	DepthStencilView2D m_dsv;
-	TextureView2D m_depthTargetSrv;
+	static constexpr auto COLOR_FORMAT = gxapi::eFormat::R8G8B8A8_UNORM;
 
 protected:
+	RenderTargetView2D m_rtv;
+	TextureView2D m_renderTargetSrv;
+
+	VertexBuffer m_fsq;
+	IndexBuffer m_fsqIndices;
+
 	GraphicsContext m_graphicsContext;
+
+protected:
+	BlendMode m_mode;
+
 	Binder m_binder;
-	BindParameter m_uniformsBindParam;
-	BindParameter m_lightMVPBindParam;
+	BindParameter m_tex0Param;
+	BindParameter m_tex1Param;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 private:
 	void InitRenderTarget(unsigned width, unsigned height);
-	void RenderScene(
-		DepthStencilView2D& dsv,
-		const EntityCollection<MeshEntity>& entities,
-		pipeline::Texture2D& lightMVPTex,
+	void Render(
+		const TextureView2D& texture0,
+		const TextureView2D& texture1,
 		GraphicsCommandList& commandList);
 };
 
 
 } // namespace inl::gxeng::nodes
-

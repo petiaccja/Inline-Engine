@@ -5,7 +5,7 @@
 #include "Node_GenCSM.hpp"
 
 #include "../Scene.hpp"
-#include "../Camera.hpp"
+#include "../PerspectiveCamera.hpp"
 #include "../Mesh.hpp"
 #include "../ConstBufferHeap.hpp"
 #include "../GraphicsContext.hpp"
@@ -18,7 +18,7 @@ namespace inl::gxeng::nodes {
 
 class DepthPrepass :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<const EntityCollection<MeshEntity>*, const Camera*>,
+	virtual public exc::InputPortConfig<const EntityCollection<MeshEntity>*, const BasicCamera*>,
 	virtual public exc::OutputPortConfig<pipeline::Texture2D>
 {
 public:
@@ -45,7 +45,7 @@ private:
 	void RenderScene(
 		DepthStencilView2D& dsv,
 		const EntityCollection<MeshEntity>& entities,
-		const Camera* camera,
+		const BasicCamera* camera,
 		GraphicsCommandList& commandList);
 };
 

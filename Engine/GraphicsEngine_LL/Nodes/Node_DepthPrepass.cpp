@@ -122,7 +122,7 @@ Task DepthPrepass::GetTask() {
 		const EntityCollection<MeshEntity>* entities = this->GetInput<0>().Get();
 		this->GetInput<0>().Clear();
 
-		const Camera* camera = this->GetInput<1>().Get();
+		const BasicCamera* camera = this->GetInput<1>().Get();
 		this->GetInput<1>().Clear();
 
 		this->GetOutput<0>().Set(pipeline::Texture2D(m_depthTargetSrv, m_dsv));
@@ -171,7 +171,7 @@ void DepthPrepass::InitRenderTarget(unsigned width, unsigned height) {
 void DepthPrepass::RenderScene(
 	DepthStencilView2D& dsv,
 	const EntityCollection<MeshEntity>& entities,
-	const Camera* camera,
+	const BasicCamera* camera,
 	GraphicsCommandList& commandList
 ) {
 	commandList.SetRenderTargets(0, nullptr, &dsv);
@@ -195,7 +195,7 @@ void DepthPrepass::RenderScene(
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
 	mathfu::Matrix4x4f view = camera->GetViewMatrixRH();
-	mathfu::Matrix4x4f projection = camera->GetPerspectiveMatrixRH();
+	mathfu::Matrix4x4f projection = camera->GetProjectionMatrixRH();
 
 	auto viewProjection = projection * view;
 	

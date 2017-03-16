@@ -6,8 +6,7 @@
 #include <mathfu/quaternion.h>
 #include <mathfu/matrix_4x4.h>
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 class Mesh;
@@ -47,5 +46,4 @@ private:
 
 
 
-} // namespace gxeng
-} // namespace inl
+} // namespace inl::gxeng

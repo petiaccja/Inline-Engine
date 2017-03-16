@@ -1,5 +1,7 @@
 #include "Node_DrawSky.hpp"
 
+#include "../PerspectiveCamera.hpp"
+
 #include <array>
 
 
@@ -103,7 +105,7 @@ void DrawSky::InitGraphics(const GraphicsContext & context) {
 void DrawSky::Render(
 	RenderTargetView2D& rtv,
 	DepthStencilView2D& dsv,
-	const Camera* camera,
+	const BasicCamera* camera,
 	const DirectionalLight* sun,
 	GraphicsCommandList& commandList
 ) {
@@ -149,12 +151,18 @@ void DrawSky::Render(
 	mathfu::Matrix4x4f viewInvTr = camera->GetViewMatrixRH().Inverse().Transpose();
 	mathfu::Vector4f sunViewDir = viewInvTr * mathfu::Vector4f(sun->GetDirection(), 0.0f);
 	mathfu::Vector4f sunColor = mathfu::Vector4f(sun->GetColor(), 1.0f);
-	mathfu::Matrix4x4f invViewProj = (camera->GetPerspectiveMatrixRH() * camera->GetViewMatrixRH()).Inverse();
+	mathfu::Matrix4x4f invViewProj = (camera->GetProjectionMatrixRH() * camera->GetViewMatrixRH()).Inverse();
 
 	sunCB.dir = mathfu::Vector4f(sun->GetDirection(), 0.0);
 	sunCB.color = sunColor;
 	invViewProj.Pack(camCB.invViewProj);
-	camCB.pos = mathfu::Vector4f(camera->GetPosition(), 1);
+
+	const PerspectiveCamera* perpectiveCamera = dynamic_cast<const PerspectiveCamera*>(camera);
+	if (perpectiveCamera == nullptr) {
+		throw std::invalid_argument("Sky drawing only works with perspective camera");
+	}
+
+	camCB.pos = mathfu::Vector4f(perpectiveCamera->GetPosition(), 1);
 
 	commandList.BindGraphics(m_sunCbBindParam, &sunCB, sizeof(sunCB), 0);
 	commandList.BindGraphics(m_camCbBindParam, &camCB, sizeof(camCB), 0);

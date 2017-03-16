@@ -34,7 +34,10 @@ class MaterialShaderGraph;
 
 class Scene;
 class MeshEntity;
-class Camera;
+class Overlay;
+class OverlayEntity;
+class PerspectiveCamera;
+class OrthographicCamera;
 
 class WindowResizeListener;
 
@@ -98,8 +101,11 @@ public:
 
 	// Scene
 	Scene* CreateScene(std::string name);
+	Overlay* CreateOverlay(std::string name);
 	MeshEntity* CreateMeshEntity();
-	Camera* CreateCamera(std::string name);
+	OverlayEntity* CreateOverlayEntity();
+	PerspectiveCamera* CreatePerspectiveCamera(std::string name);
+	OrthographicCamera* CreateOrthographicCamera(std::string name);
 private:
 	void CreatePipeline();
 private:
@@ -146,7 +152,8 @@ private:
 
 	// Scene
 	std::set<Scene*> m_scenes;
-	std::set<Camera*> m_cameras;
+	std::set<Overlay*> m_overlays;
+	std::set<BasicCamera*> m_cameras;
 
 private:
 	void InitializeGraphicsNodes();

@@ -327,7 +327,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				unsigned width = clientRect.right - clientRect.top;
 				unsigned height = clientRect.bottom - clientRect.top;
 				pEngine->SetScreenSize(width, height);
-				pQcWorld->SetAspectRatio((float)width / (float(height)));
+				pQcWorld->ScreenSizeChanged(width, height);
 				return 0;
 			}
 			else {

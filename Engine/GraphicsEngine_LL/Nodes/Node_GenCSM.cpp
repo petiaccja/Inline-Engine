@@ -69,7 +69,7 @@ mathfu::Matrix4x4f LightViewTransform(const DirectionalLight * light) {
 }
 
 
-mathfu::Matrix4x4f LightDirectionalProjectionTransform(const mathfu::Matrix4x4f & lightViewTransform, const Camera * camera) {
+mathfu::Matrix4x4f LightDirectionalProjectionTransform(const mathfu::Matrix4x4f & lightViewTransform, const PerspectiveCamera * camera) {
 	// Get camera frustum in world space than transform it to sun view space and fit an aabb on it.
 	// This aabb is the ortho proj.
 
@@ -201,7 +201,7 @@ Task GenCSM::GetTask() {
 	return Task({ [this](const ExecutionContext& context) {
 		ExecutionResult result;
 
-		const Camera* camera = this->GetInput<0>().Get();
+		const PerspectiveCamera* camera = this->GetInput<0>().Get();
 		this->GetInput<0>().Clear();
 
 		const DirectionalLight* sun = this->GetInput<1>().Get();
@@ -244,7 +244,7 @@ void GenCSM::InitBuffers() {
 }
 
 
-Camera& GenCSM::CalculateSubCamera(const Camera* camera, unsigned cascadeID) {
+PerspectiveCamera& GenCSM::CalculateSubCamera(const PerspectiveCamera* camera, unsigned cascadeID) {
 	// maps every x in range [0, 1] to an exponentialy
 	// increasing curve in the range [0, 1]
 	auto Exponential = [](float x) {
@@ -263,7 +263,7 @@ Camera& GenCSM::CalculateSubCamera(const Camera* camera, unsigned cascadeID) {
 	const float newFar = origNear + farOffset;
 	const float newNear = origNear + nearOffset;
 
-	Camera& cam = m_cascades.subCameras[cascadeID];
+	PerspectiveCamera& cam = m_cascades.subCameras[cascadeID];
 	cam = *camera;
 	cam.SetNearPlane(newNear);
 	cam.SetFarPlane(newFar);
@@ -273,7 +273,7 @@ Camera& GenCSM::CalculateSubCamera(const Camera* camera, unsigned cascadeID) {
 
 
 void GenCSM::RenderScene(
-	const Camera* camera,
+	const PerspectiveCamera* camera,
 	const DirectionalLight* sun,
 	const EntityCollection<MeshEntity>& entities,
 	uint64_t frameID,
@@ -306,7 +306,7 @@ void GenCSM::RenderScene(
 		commandList.SetGraphicsBinder(&m_binder);
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-		Camera& subcamera = CalculateSubCamera(camera, cascadeID);
+		PerspectiveCamera& subcamera = CalculateSubCamera(camera, cascadeID);
 
 		auto view = LightViewTransform(sun);
 		auto viewProjection = LightDirectionalProjectionTransform(view, &subcamera) * view;

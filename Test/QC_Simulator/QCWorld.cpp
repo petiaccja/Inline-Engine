@@ -15,6 +15,49 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 	m_graphicsEngine = graphicsEngine;
 
+	//Create gui
+	{
+		unsigned width, height;
+		m_guiOverlay.reset(m_graphicsEngine->CreateOverlay("Gui"));
+		m_guiCamera.reset(m_graphicsEngine->CreateOrthographicCamera("GuiCamera"));
+		graphicsEngine->GetScreenSize(width, height);
+		m_guiCamera->SetBounds(0, width, height, 0, -1, 1);
+
+		std::vector<inl::gxeng::Vertex<Position<0>, TexCoord<0>>> vertices(4);
+		vertices[0].position = mathfu::Vector3f(0, 0, 0);
+		vertices[1].position = mathfu::Vector3f(0, 1, 0);
+		vertices[2].position = mathfu::Vector3f(1, 1, 0);
+		vertices[3].position = mathfu::Vector3f(1, 0, 0);
+
+		vertices[0].texCoord = mathfu::Vector2f(0, 0);
+		vertices[1].texCoord = mathfu::Vector2f(0, 1);
+		vertices[2].texCoord = mathfu::Vector2f(1, 1);
+		vertices[3].texCoord = mathfu::Vector2f(1, 0);
+
+		std::vector<unsigned> indices = { 0, 1, 2, 0, 2, 3 };
+
+		m_overlayQuadMesh.reset(m_graphicsEngine->CreateMesh());
+		m_overlayQuadMesh->Set(vertices.data(), vertices.size(), indices.data(), indices.size());
+
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\overlay.png");
+		m_overlayTexture.reset(m_graphicsEngine->CreateImage());
+		m_overlayTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR);
+		m_overlayTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+
+		std::unique_ptr<inl::gxeng::OverlayEntity> element;
+
+		element.reset(m_graphicsEngine->CreateOverlayEntity());
+		element->SetMesh(m_overlayQuadMesh.get());
+		element->SetScale({ (float)img.GetWidth()*0.75f, (float)img.GetHeight()*0.75f });
+		element->SetTexture(m_overlayTexture.get());
+		m_overlayElements.push_back(std::move(element));
+
+		for (auto& curr : m_overlayElements) {
+			m_guiOverlay->GetEntities().Add(curr.get());
+		}
+	}
+	
 	// Create scene and camera
 	m_worldScene.reset(m_graphicsEngine->CreateScene("World"));
 	//m_sun.SetColor({1.0f, 0.63f, 0.46f});
@@ -22,7 +65,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_sun.SetColor({1.0f, 0.9f, 0.85f});
 	m_sun.SetDirection({ 0.8f, -0.7f, -0.9f });
 	m_worldScene->SetSun(&m_sun);
-	m_camera.reset(m_graphicsEngine->CreateCamera("WorldCam"));
+	m_camera.reset(m_graphicsEngine->CreatePerspectiveCamera("WorldCam"));
 	m_camera->SetTargeted(true);
 	m_camera->SetTarget({ 0, 0, 0 });
 	m_camera->SetPosition({ 0, -8, 3 });
@@ -248,8 +291,10 @@ void QCWorld::UpdateWorld(float elapsed) {
 	m_camera->SetPosition(m_rigidBody.GetPosition() + (-viewDir * 1.5 + mathfu::Vector3f{ 0,0,-lookTilt }).Normalized() * 1.5f);
 }
 
-void QCWorld::SetAspectRatio(float ar) {
-	m_camera->SetFOVAspect(75.f / 180.f * 3.1419f, ar);
+void QCWorld::ScreenSizeChanged(int width, int height) {
+	const float aspect = width / ((float)height);
+	m_camera->SetFOVAspect(75.f / 180.f * 3.1419f, aspect);
+	m_guiCamera->SetBounds(0, width, height, 0, -1, 1);
 }
 
 void QCWorld::RenderWorld(float elapsed) {

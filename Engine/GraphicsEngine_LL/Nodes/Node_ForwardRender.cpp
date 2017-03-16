@@ -174,7 +174,7 @@ Task ForwardRender::GetTask() {
 		const EntityCollection<MeshEntity>* entities = this->GetInput<1>().Get();
 		this->GetInput<1>().Clear();
 
-		const Camera* camera = this->GetInput<2>().Get();
+		const BasicCamera* camera = this->GetInput<2>().Get();
 		this->GetInput<2>().Clear();
 
 		const DirectionalLight* sun = this->GetInput<3>().Get();
@@ -231,7 +231,7 @@ void ForwardRender::InitRenderTarget(unsigned width, unsigned height) {
 void ForwardRender::RenderScene(
 	DepthStencilView2D& dsv,
 	const EntityCollection<MeshEntity>& entities,
-	const Camera* camera,
+	const BasicCamera* camera,
 	const DirectionalLight* sun,
 	pipeline::Texture2D& shadowMapTex,
 	pipeline::Texture2D& shadowMXTex,
@@ -261,7 +261,7 @@ void ForwardRender::RenderScene(
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
 	mathfu::Matrix4x4f view = camera->GetViewMatrixRH();
-	mathfu::Matrix4x4f projection = camera->GetPerspectiveMatrixRH();
+	mathfu::Matrix4x4f projection = camera->GetProjectionMatrixRH();
 	auto viewProjection = projection * view;
 
 

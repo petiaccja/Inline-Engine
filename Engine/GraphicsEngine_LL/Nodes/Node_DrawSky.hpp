@@ -3,7 +3,7 @@
 #include "../GraphicsNode.hpp"
 
 #include "../Scene.hpp"
-#include "../Camera.hpp"
+#include "../BasicCamera.hpp"
 #include "../ConstBufferHeap.hpp"
 #include "../DirectionalLight.hpp"
 #include "../GraphicsContext.hpp"
@@ -18,7 +18,7 @@ namespace inl::gxeng::nodes {
 class DrawSky :
 	virtual public GraphicsNode,
 	// Inputs: frame color, frame depth stencil, camera, sun
-	virtual public exc::InputPortConfig<pipeline::Texture2D, pipeline::Texture2D, const Camera*, const DirectionalLight*>,
+	virtual public exc::InputPortConfig<pipeline::Texture2D, pipeline::Texture2D, const BasicCamera*, const DirectionalLight*>,
 	virtual public exc::OutputPortConfig<pipeline::Texture2D> // frame color
 {
 public:
@@ -38,7 +38,7 @@ public:
 			auto depthStencil = this->GetInput<1>().Get();
 			this->GetInput<1>().Clear();
 
-			const Camera* camera = this->GetInput<2>().Get();
+			const BasicCamera* camera = this->GetInput<2>().Get();
 			this->GetInput<2>().Clear();
 
 			const DirectionalLight* sun = this->GetInput<3>().Get();
@@ -78,7 +78,7 @@ private:
 	void Render(
 		RenderTargetView2D& rtv,
 		DepthStencilView2D& dsv,
-		const Camera* camera,
+		const BasicCamera* camera,
 		const DirectionalLight* sun,
 		GraphicsCommandList& commandList);
 };

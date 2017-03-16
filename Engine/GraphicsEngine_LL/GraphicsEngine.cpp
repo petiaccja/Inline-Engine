@@ -23,12 +23,20 @@
 #include "Nodes/Node_RenderToBackBuffer.hpp"
 #include "Nodes/Node_DrawSky.hpp"
 
+//Gui
+#include "Nodes/Node_OverlayRender.hpp"
+#include "Nodes/Node_GetOverlayByName.hpp"
+#include "Nodes/Node_Blend.hpp"
+
 #include "Scene.hpp"
-#include "Camera.hpp"
+#include "PerspectiveCamera.hpp"
+#include "OrthographicCamera.hpp"
 #include "Mesh.hpp"
 #include "Material.hpp"
 #include "Image.hpp"
 #include "MeshEntity.hpp"
+#include "Overlay.hpp"
+#include "OverlayEntity.hpp"
 
 
 namespace inl {
@@ -133,6 +141,7 @@ void GraphicsEngine::Update(float elapsed) {
 	context.commandQueue = &m_masterCommandQueue;
 	context.backBuffer = &m_backBufferHeap->GetBackBuffer(backBufferIndex);
 	context.scenes = &m_scenes;
+	context.overlays = &m_overlays;
 	context.cameras = &m_cameras;
 
 	std::vector<UploadManager::UploadDescription> uploadRequests = m_memoryManager.GetUploadManager()._TakeQueuedUploads();
@@ -238,28 +247,77 @@ Scene* GraphicsEngine::CreateScene(std::string name) {
 	return scene;
 }
 
-Camera* GraphicsEngine::CreateCamera(std::string name) {
-	class ObservedCamera : public Camera {
+Overlay* GraphicsEngine::CreateOverlay(std::string name) {
+	// Declare a derived class for the sole purpose of making the destructor unregister the object from overlay list.
+	class ObservedOverlay : public Overlay {
 	public:
-		ObservedCamera(std::function<void(Camera*)> deleteHandler, std::string name) :
+		ObservedOverlay(std::function<void(Overlay*)> deleteHandler, std::string name) :
+			Overlay(std::move(name)), m_deleteHandler(std::move(deleteHandler)) {}
+		~ObservedOverlay() {
+			if (m_deleteHandler) { m_deleteHandler(static_cast<Overlay*>(this)); }
+		}
+	protected:
+		std::function<void(Overlay*)> m_deleteHandler;
+	};
+
+	auto unregisterOverlay = [this](Overlay* arg) {
+		m_overlays.erase(arg);
+	};
+
+	Overlay* overlay = new ObservedOverlay(unregisterOverlay, std::move(name));
+	m_overlays.insert(overlay);
+
+	return overlay;
+}
+
+PerspectiveCamera* GraphicsEngine::CreatePerspectiveCamera(std::string name) {
+	class ObservedPerspectiveCamera : public PerspectiveCamera {
+	public:
+		ObservedPerspectiveCamera(std::function<void(PerspectiveCamera*)> deleteHandler, std::string name) :
 			m_deleteHandler(std::move(deleteHandler))
 		{
 			SetName(name);
 		}
-		~ObservedCamera() {
-			if (m_deleteHandler) { m_deleteHandler(static_cast<Camera*>(this)); }
+		~ObservedPerspectiveCamera() {
+			if (m_deleteHandler) { m_deleteHandler(static_cast<PerspectiveCamera*>(this)); }
 		}
 	protected:
-		std::function<void(Camera*)> m_deleteHandler;
+		std::function<void(PerspectiveCamera*)> m_deleteHandler;
 	};
 
 	// Functor to perform the unregistration.
-	auto unregisterCamera = [this](Camera* arg) {
+	auto unregisterCamera = [this](PerspectiveCamera* arg) {
 		m_cameras.erase(arg);
 	};
 
 	// Allocate a new scene, and register it.
-	Camera* camera = new ObservedCamera(unregisterCamera, std::move(name));
+	PerspectiveCamera* camera = new ObservedPerspectiveCamera(unregisterCamera, std::move(name));
+	m_cameras.insert(camera);
+
+	return camera;
+}
+
+OrthographicCamera* GraphicsEngine::CreateOrthographicCamera(std::string name) {
+	class ObservedOrthographicCamera : public OrthographicCamera {
+	public:
+		ObservedOrthographicCamera(std::function<void(OrthographicCamera*)> deleteHandler, std::string name) :
+			m_deleteHandler(std::move(deleteHandler)) {
+			SetName(name);
+		}
+		~ObservedOrthographicCamera() {
+			if (m_deleteHandler) { m_deleteHandler(static_cast<OrthographicCamera*>(this)); }
+		}
+	protected:
+		std::function<void(OrthographicCamera*)> m_deleteHandler;
+	};
+
+	// Functor to perform the unregistration.
+	auto unregisterCamera = [this](OrthographicCamera* arg) {
+		m_cameras.erase(arg);
+	};
+
+	// Allocate a new scene, and register it.
+	OrthographicCamera* camera = new ObservedOrthographicCamera(unregisterCamera, std::move(name));
 	m_cameras.insert(camera);
 
 	return camera;
@@ -269,10 +327,17 @@ MeshEntity* GraphicsEngine::CreateMeshEntity() {
 	return new MeshEntity;
 }
 
+OverlayEntity* GraphicsEngine::CreateOverlayEntity() {
+	return new OverlayEntity;
+}
+
 
 void GraphicsEngine::CreatePipeline() {
 	auto swapChainDesc = m_swapChain->GetDesc();
 
+	// -----------------------------
+	// 3D pipeline path
+	// -----------------------------
 	std::unique_ptr<nodes::GetSceneByName> getWorldScene(new nodes::GetSceneByName());
 	std::unique_ptr<nodes::GetCameraByName> getCamera(new nodes::GetCameraByName());
 	std::unique_ptr<nodes::RenderToBackBuffer> renderToBackbuffer(new nodes::RenderToBackBuffer(m_graphicsApi));
@@ -283,6 +348,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::unique_ptr<nodes::DepthReductionFinal> depthReductionFinal(new nodes::DepthReductionFinal(m_graphicsApi));
 	std::unique_ptr<nodes::CSM> csm(new nodes::CSM(m_graphicsApi));
 	std::unique_ptr<nodes::DrawSky> drawSky(new nodes::DrawSky(m_graphicsApi));
+
 
 	getWorldScene->GetInput<0>().Set("World");
 	getCamera->GetInput<0>().Set("WorldCam");
@@ -312,8 +378,26 @@ void GraphicsEngine::CreatePipeline() {
 	drawSky->GetInput<2>().Link(getCamera->GetOutput(0));
 	drawSky->GetInput<3>().Link(getWorldScene->GetOutput(1));
 
-	renderToBackbuffer->GetInput<0>().Link(drawSky->GetOutput(0));
-	//renderToBackbuffer->GetInput<0>().Link(forwardRender->GetOutput(0));
+
+	// -----------------------------
+	// Gui pipeline path
+	// -----------------------------
+	std::unique_ptr<nodes::GetOverlayByName> getGui(new nodes::GetOverlayByName());
+	std::unique_ptr<nodes::GetCameraByName> getGuiCamera(new nodes::GetCameraByName());
+	std::unique_ptr<nodes::OverlayRender> guiRender(new nodes::OverlayRender(m_graphicsApi));
+	std::unique_ptr<nodes::Blend> alphaBlend(new nodes::Blend(m_graphicsApi, nodes::Blend::CASUAL_ALPHA_BLEND));
+
+	getGui->GetInput<0>().Set("Gui");
+	getGuiCamera->GetInput<0>().Set("GuiCamera");
+
+	guiRender->GetInput<0>().Link(getGui->GetOutput(0));
+	guiRender->GetInput<1>().Link(getGuiCamera->GetOutput(0));
+
+	alphaBlend->GetInput<0>().Link(drawSky->GetOutput(0));
+	alphaBlend->GetInput<1>().Link(guiRender->GetOutput(0));
+
+	renderToBackbuffer->GetInput<0>().Link(alphaBlend->GetOutput(0));
+	
 
 	m_graphicsNodes = {
 		getWorldScene.release(),
@@ -324,20 +408,22 @@ void GraphicsEngine::CreatePipeline() {
 		csm.release(),
 		forwardRender.release(),
 		renderToBackbuffer.release(),
-		drawSky.release()
+		drawSky.release(),
+
+		getGui.release(),
+		getGuiCamera.release(),
+		guiRender.release(),
+		alphaBlend.release()
 	};
+
+	std::vector<exc::NodeBase*> nodeList;
 	try {
 		InitializeGraphicsNodes();
 
-		std::vector<exc::NodeBase*> nodeList;
 		nodeList.reserve(m_graphicsNodes.size());
 		for (auto curr : m_graphicsNodes) {
 			nodeList.push_back(curr);
 		}
-		m_pipeline.CreateFromNodesList(
-			nodeList,
-			std::default_delete<exc::NodeBase>()
-		);
 	}
 	catch (...) {
 		for (auto currNode : m_graphicsNodes) {
@@ -345,6 +431,11 @@ void GraphicsEngine::CreatePipeline() {
 		}
 		throw;
 	}
+	// CreateFromNodesList frees up resources if anything goes wrong
+	m_pipeline.CreateFromNodesList(
+		nodeList,
+		std::default_delete<exc::NodeBase>()
+	);
 }
 
 void GraphicsEngine::InitializeGraphicsNodes() {

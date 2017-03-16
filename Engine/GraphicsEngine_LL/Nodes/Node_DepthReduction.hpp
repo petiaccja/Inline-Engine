@@ -5,7 +5,7 @@
 #include "Node_GenCSM.hpp"
 
 #include "../Scene.hpp"
-#include "../Camera.hpp"
+#include "../PerspectiveCamera.hpp"
 #include "../Mesh.hpp"
 #include "../ConstBufferHeap.hpp"
 #include "../GraphicsContext.hpp"

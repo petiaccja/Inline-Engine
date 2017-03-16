@@ -16,7 +16,8 @@ class IScene;
 class ILight;
 class IMeshEntity;
 class ITerrainEntity;
-class ICamera;
+class PerspectiveCamera;
+class OrthographicCamera;
 
 /// <summary>
 /// <para>The graphics engine handles the rendering of a 3D scene.</para>
@@ -52,7 +53,8 @@ public:
 	virtual ILight* CreateLight() = 0;
 	virtual IMeshEntity* CreateMeshEntity() = 0;
 	virtual ITerrainEntity* CreateTerrainEntity() = 0;
-	virtual ICamera* CreateCamera() = 0;
+	virtual PerspectiveCamera* CreatePerspectiveCamera() = 0;
+	virtual OrthographicCamera* CreateOrthographicCamera() = 0;
 
 	// Rendering.
 	virtual void RenderWorld(double elapsed) = 0;
