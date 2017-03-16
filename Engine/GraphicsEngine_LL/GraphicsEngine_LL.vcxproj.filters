@@ -461,9 +461,6 @@
     <None Include="Nodes\Shaders\DepthReduction.hlsl">
       <Filter>Nodes\Shaders</Filter>
     </None>
-    <None Include="Nodes\Shaders\ForwardRender.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
     <None Include="Materials\bitmap_color_2d.mtl.hlsl">
       <Filter>Materials</Filter>
     </None>
@@ -476,24 +473,14 @@
     <None Include="Nodes\Shaders\ForwardRender.hlsl">
       <Filter>Nodes\Shaders</Filter>
     </None>
-    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
-    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
-    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
-    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
-    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
-    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
-    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
-    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Nodes\Shaders\DepthReductionFinal.hlsl">
+    <None Include="Nodes\Shaders\CSM.hlsl">
       <Filter>Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\CSM.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\CSMSample.hlsl">
       <Filter>Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\CSMSample.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DepthReductionFinal.hlsl">
       <Filter>Nodes\Shaders</Filter>
-    </FxCompile>
+    </None>
   </ItemGroup>
 </Project>
