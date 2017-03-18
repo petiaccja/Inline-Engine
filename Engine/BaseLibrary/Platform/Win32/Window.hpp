@@ -2,19 +2,16 @@
 #pragma once
 
 #include "../WindowCommon.hpp"
-
-#define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <queue>
-
-//#include "SFML/Graphics/RenderWindow.hpp"
-//#include "SFML/Window/Event.hpp"
-//#include "BaseLibrary/Common.h"
+#include <functional>
 
 class Window
 {
 public:
+	// TMP HEKK
+	void RegOnPaint(const std::function<void()>& fn) { hekkOnPaint = fn; }
+
 	Window(const WindowDesc& d);
 	~Window();
 
@@ -45,16 +42,13 @@ public:
 	float GetClientAspectRatio() const;
 
 	ivec2 GetCenterPos() const;
-protected:
-	//typedef UINT_PTR WPARAM;
 
-	//eWindowMsg	ConvertFromSFMLWindowMsg(sf::Event::EventType windowMsg);
-	//eMouseBtn	ConvertFromSFMLMouseBtn(sf::Mouse::Button btn);
-	//eKey		ConvertFromSFMLKey(sf::Keyboard::Key key);
-	eKey		ConvertFromWindowsKey(WPARAM key);
-	//sf::Uint32	ConvertToSFMLWindowStyle(eWindowStyle style);
+public:
+	// HEKK
+	std::function<void()> hekkOnPaint;
 
 protected:
+	eKey	ConvertFromWindowsKey(WPARAM key);
 	friend LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	void PostEvent(const MSG& msg);
 
@@ -66,3 +60,6 @@ protected:
 	//sf::RenderWindow w;
 	//ivec2 lastMousePos;
 };
+
+// TMP HEKK
+extern Window* GWindow;

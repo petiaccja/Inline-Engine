@@ -2,8 +2,8 @@
 #pragma once
 #include <string>
 
-#undef min
-#undef max
+//#undef min
+//#undef max
 
 struct ivec2
 {
@@ -42,7 +42,8 @@ class Color
 {
 public:
 	Color() {}
-	Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a) : r(r), g(g), b(b), a(a) {}
+	Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a): r(r), g(g), b(b), a(a) {}
+	Color(uint8_t r, uint8_t g, uint8_t b): Color(r, g, b, 255) {}
 
 	uint8_t r;
 	uint8_t g;
@@ -74,6 +75,11 @@ public:
 
 	Rect(T& x, T& y, T& width, T& height)
 		:x(x), y(y), width(width), height(height) {
+	}
+
+	vec2 GetCenter()
+	{
+		return vec2(x + 0.5f * width, y + 0.5f * height);
 	}
 
 	T x;

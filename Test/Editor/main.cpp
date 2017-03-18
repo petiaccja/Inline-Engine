@@ -14,6 +14,8 @@ using namespace inl::gxeng;
 Window* window;
 GuiEngine* guiEngine;
 IGraphicsEngine* graphicsEngine;
+EngineCore Core;
+InputCore Input;
 
 void InitGameScripts();
 void InitGui();
@@ -23,16 +25,11 @@ void main()
 	// Create Game Window
 	WindowDesc d;
 	d.clientSize = uvec2(800, 600);
-	d.style = eWindowStyle::BORDERLESS;
+	d.style = eWindowStyle::DEFAULT;
 	window = new Window(d);
 
 	// Init Graphics Engine
-	//GraphicsEngineRasterZsirosDesc graphicsDesc;
-	//graphicsDesc.gapiType = eGapiType::DX11;
-	//graphicsDesc.targetWindow = window;
-	//graphicsEngine = Core.InitGraphicsEngineRasterZsiros(graphicsDesc);
-	//graphicsEngine = new
-	graphicsEngine = Core.InitGraphicsEngine();
+	graphicsEngine = Core.InitGraphicsEngine(window->GetClientWidth(), window->GetClientHeight(), (HWND)window->GetHandle());
 
 	// Init Gui Engine
 	guiEngine = Core.InitGuiEngine(graphicsEngine);
@@ -43,7 +40,7 @@ void main()
 	// Init Game Scripts
 	InitGameScripts(); // Manual bullshit, TODO !!!
 
-					   // Create timer, delta time -> engine
+	// Create timer, delta time -> engine
 	Timer* timer = new Timer();
 	timer->Start();
 
@@ -136,8 +133,18 @@ void InitGui()
 	GuiLayer* layer = canvas->AddLayer();
 
 	// Test button
-	GuiControl* button = layer->AddControl();
-	button->SetBackgroundToColor(Color::RED);
-	button->SetRect(0, 0, 100, 50);
-	//button->SetText("Button");
+	GuiButton* button = layer->AddButton();
+	button->SetBackgroundToColor(Color(55, 55, 55));
+	button->SetRect(0, 0, 60, 22);
+	button->SetText("File");
+
+	GuiButton* button2 = layer->AddButton();
+	button2->SetBackgroundToColor(Color(55, 55, 55));
+	button2->SetRect(61, 0, 60, 22);
+	button2->SetText("Edit");
+
+	GuiButton* button3 = layer->AddButton();
+	button3->SetBackgroundToColor(Color(55, 55, 55));
+	button3->SetRect(122, 0, 60, 22);
+	button3->SetText("About");
 }

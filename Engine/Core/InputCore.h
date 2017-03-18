@@ -93,5 +93,3 @@ protected:
 	std::vector<std::function<void(const ivec2& clientMousePos)>> onMouseMidDownCallbacks;
 	std::vector<std::function<void(const ivec2& mouseDelta, const ivec2& clientMousePos)>> onMouseMoveCallbacks;
 };
-
-extern InputCore Input;

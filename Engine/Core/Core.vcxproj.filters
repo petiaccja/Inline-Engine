@@ -11,18 +11,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Core.hpp">
+    <ClInclude Include="InputCore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="InputCore.h">
+    <ClInclude Include="Core.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Core.cpp">
+    <ClCompile Include="InputCore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="InputCore.cpp">
+    <ClCompile Include="Core.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -6,14 +6,12 @@ using namespace inl::gxeng;
 class EngineCore
 {
 public:
-	IGraphicsEngine* InitGraphicsEngine();
+	IGraphicsEngine* InitGraphicsEngine(int width, int height, HWND hwnd);
 	GuiEngine* InitGuiEngine(IGraphicsEngine* graphicsEngine);
 
-	void Update(float DeltaTime);
+	void Update(float deltaTime);
 
 protected:
 	IGraphicsEngine* graphicsEngine;
 	GuiEngine* guiEngine;
 };
-
-extern EngineCore Core;

@@ -1,7 +1,5 @@
 #include "InputCore.h"
 
-InputCore Input;
-
 InputCore::InputCore()
 {
 	//for(auto& keyDownInfo : keyDownArray)

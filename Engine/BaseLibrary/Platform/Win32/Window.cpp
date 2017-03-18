@@ -3,11 +3,14 @@
 #include <cassert>
 #include <limits>
 #include <assert.h>
-//#include "SFML/Graphics/Sprite.hpp"
-//#include "SFML/Graphics/RenderTexture.hpp"
 #include <windowsx.h>
-#include <winuser.h>
+#include <gdiplus.h>
+#include <objidl.h>
 #include <fstream>
+#pragma comment (lib, "gdiplus.lib")
+//using namespace Gdiplus;
+
+Window* GWindow = NULL;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -34,14 +37,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_SIZE:
 	case WM_SIZING:
-	case WM_DISPLAYCHANGE:
-		window->PostEvent(s);
-		break;
+	case WM_DISPLAYCHANGE: window->PostEvent(s); break;
 	case WM_PAINT:
-		//PAINTSTRUCT ps;
-		//BeginPaint(hwnd, &ps);
-		//EndPaint(hwnd, &ps);
+	{
+		PAINTSTRUCT ps;
+		BeginPaint(hwnd, &ps);
+		if (window->hekkOnPaint)
+		{
+			window->hekkOnPaint();
+		}
+		EndPaint(hwnd, &ps);
 		break;
+	}
 	case WM_DESTROY:
 		PostQuitMessage(WM_QUIT);
 		break;
@@ -51,8 +58,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 Window::Window(const WindowDesc& d)
+:hekkOnPaint(nullptr)
 {
+	GWindow = this;
 	bClosed = false;
+
+	// Initialize GDI+.
+	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+	ULONG_PTR           gdiplusToken;
+	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
 	int interpretedStyle;
 	if (d.style == eWindowStyle::BORDERLESS)
@@ -79,7 +93,7 @@ Window::Window(const WindowDesc& d)
 	wC.cbSize = sizeof(WNDCLASSEX);
 	wC.cbClsExtra = 0;
 	wC.cbWndExtra = 0;
-	wC.hbrBackground = (HBRUSH)GetStockObject((int)interpretedBrush);
+	wC.hbrBackground = NULL;// (HBRUSH)GetStockObject((int)interpretedBrush);
 	wC.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	wC.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
 	wC.hIconSm = nullptr;
@@ -87,7 +101,7 @@ Window::Window(const WindowDesc& d)
 	wC.lpszMenuName = nullptr;
 	wC.hInstance = appID;
 	wC.lpfnWndProc = WndProc;
-	wC.style = 0;// CS_HREDRAW | CS_VREDRAW;
+	wC.style = CS_HREDRAW | CS_VREDRAW;
 	RegisterClassEx(&wC);
 
 	RECT adjustedsize = { 0 };
@@ -133,7 +147,6 @@ Window::Window(const WindowDesc& d)
 	Rid[0].dwFlags = RIDEV_INPUTSINK;
 	Rid[0].hwndTarget = hwnd;
 	RegisterRawInputDevices(Rid, 1, sizeof(Rid[0]));
-
 }
 
 Window::~Window()

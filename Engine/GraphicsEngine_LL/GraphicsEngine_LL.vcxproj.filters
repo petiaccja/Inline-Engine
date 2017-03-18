@@ -422,5 +422,9 @@
     <None Include="Nodes\Shaders\ForwardRender.hlsl">
       <Filter>Nodes\Shaders</Filter>
     </None>
+    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
+    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
+    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
+    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
   </ItemGroup>
 </Project>

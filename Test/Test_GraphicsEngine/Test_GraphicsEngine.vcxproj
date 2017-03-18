@@ -120,7 +120,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>BaseLibrary.lib;GraphicsApi_D3D12.lib;GraphicsEngine_LL.lib;AssetLibrary.lib;d3d12.lib;d3dcompiler.lib;dxgi.lib;lemon.lib;FreeImagePlusd.lib;FreeImaged.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>GraphicsEngine_LL.lib;AssetLibrary.lib;lemon.lib;FreeImagePlusd.lib;FreeImaged.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -158,7 +158,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>BaseLibrary.lib;GraphicsApi_D3D12.lib;GraphicsEngine_LL.lib;AssetLibrary.lib;d3d12.lib;d3dcompiler.lib;dxgi.lib;lemon.lib;FreeImagePlus.lib;FreeImage.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>GraphicsEngine_LL.lib;AssetLibrary.lib;d3d12.lib;d3dcompiler.lib;dxgi.lib;lemon.lib;FreeImagePlus.lib;FreeImage.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
