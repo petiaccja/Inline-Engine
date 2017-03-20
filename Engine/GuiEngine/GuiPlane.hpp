@@ -5,23 +5,53 @@
 class GuiPlane : public GuiControl
 {
 public:
-	GuiPlane(){}
-
-	void SetColor(Color& color);
+	GuiPlane();
 
 	virtual void OnPaint(HDC dc, Gdiplus::Graphics* graphics) override;
 
+	void SetActiveColor(Color& color);
+	void SetBaseColor(Color& color);
+	void SetHoverColor(Color& color);
+
 protected:
-	Color color;
+	Color activeColor;
+
+	Color baseColor;
+	Color hoverColor;
 };
 
-inline void GuiPlane::SetColor(Color& color)
+inline GuiPlane::GuiPlane()
+:baseColor(55, 55, 55), hoverColor(80, 80, 80)
 {
-	this->color = color;
+	SetActiveColor(baseColor);
+
+	OnCursorEnter += [&](CursorEvent& event){
+		SetActiveColor(hoverColor);
+	};
+
+	OnCursorLeave += [&](CursorEvent& event) {
+		SetActiveColor(baseColor);
+	};
 }
 
 inline void GuiPlane::OnPaint(HDC dc, Gdiplus::Graphics* graphics)
 {
-	Gdiplus::SolidBrush  brush(Gdiplus::Color(color.a, color.r, color.g, color.b));
+	Gdiplus::SolidBrush  brush(Gdiplus::Color(activeColor.a, activeColor.r, activeColor.g, activeColor.b));
 	graphics->FillRectangle(&brush, Gdiplus::Rect(rect.x, rect.y, rect.width, rect.height));
+}
+
+inline void GuiPlane::SetActiveColor(Color& color)
+{
+	activeColor = color;
+}
+
+inline void GuiPlane::SetBaseColor(Color& color)
+{
+	baseColor = color;
+	SetActiveColor(baseColor);
+}
+
+inline void GuiPlane::SetHoverColor(Color& color)
+{
+	hoverColor = color;
 }

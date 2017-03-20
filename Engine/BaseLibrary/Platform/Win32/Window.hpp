@@ -9,7 +9,6 @@
 class Window
 {
 public:
-	// TMP HEKK
 	void RegOnPaint(const std::function<void()>& fn) { hekkOnPaint = fn; }
 
 	Window(const WindowDesc& d);
@@ -36,7 +35,8 @@ public:
 	size_t GetHandle() const;
 
 	uint32_t GetClientWidth() const;
-	uint32_t  GetClientHeight() const;
+	uint32_t GetClientHeight() const;
+	ivec2 GetClientCursorPos() const;
 
 	unsigned GetNumClientPixels() const;
 	float GetClientAspectRatio() const;
@@ -46,6 +46,9 @@ public:
 public:
 	// HEKK
 	std::function<void()> hekkOnPaint;
+
+	Delegate<void(WindowEvent&)> OnMousePress;
+	Delegate<void(WindowEvent&)> OnMouseRelease;
 
 protected:
 	eKey	ConvertFromWindowsKey(WPARAM key);
@@ -57,9 +60,4 @@ protected:
 	bool bClosed;
 
 	std::queue<MSG> wndProcMessages;
-	//sf::RenderWindow w;
-	//ivec2 lastMousePos;
 };
-
-// TMP HEKK
-extern Window* GWindow;

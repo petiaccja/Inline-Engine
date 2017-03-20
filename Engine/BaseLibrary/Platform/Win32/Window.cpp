@@ -8,9 +8,6 @@
 #include <objidl.h>
 #include <fstream>
 #pragma comment (lib, "gdiplus.lib")
-//using namespace Gdiplus;
-
-Window* GWindow = NULL;
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -40,13 +37,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_DISPLAYCHANGE: window->PostEvent(s); break;
 	case WM_PAINT:
 	{
-		PAINTSTRUCT ps;
-		BeginPaint(hwnd, &ps);
+		//PAINTSTRUCT ps;
+		//BeginPaint(hwnd, &ps);
 		if (window->hekkOnPaint)
 		{
 			window->hekkOnPaint();
 		}
-		EndPaint(hwnd, &ps);
+		//EndPaint(hwnd, &ps);
 		break;
 	}
 	case WM_DESTROY:
@@ -60,13 +57,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 Window::Window(const WindowDesc& d)
 :hekkOnPaint(nullptr)
 {
-	GWindow = this;
 	bClosed = false;
-
-	// Initialize GDI+.
-	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-	ULONG_PTR           gdiplusToken;
-	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
 	int interpretedStyle;
 	if (d.style == eWindowStyle::BORDERLESS)
@@ -161,14 +152,11 @@ void Window::PostEvent(const MSG& msg)
 
 bool Window::PopEvent(WindowEvent& evt_out)
 {
-	evt_out.deltaX = 0;
-	evt_out.deltaY = 0;
+	evt_out.mouseDelta.Zero();
 	evt_out.key = INVALID_eKey;
 	evt_out.mouseBtn = INVALID_eMouseBtn;
 	evt_out.msg = INVALID_eWindowsMsg;
-	evt_out.x = 0;
-	evt_out.y = 0;
-
+	evt_out.mousePos.Zero();
 
 	MSG msg;
 	if (PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE))
@@ -196,33 +184,43 @@ bool Window::PopEvent(WindowEvent& evt_out)
 	{
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
-
-		evt_out.x = GET_X_LPARAM(msg.lParam);
-		evt_out.y = GET_Y_LPARAM(msg.lParam);
+		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		OnMousePress(evt_out);
 	}
 	else if (msg.message == WM_RBUTTONDOWN)
 	{
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::RIGHT;
-
-		evt_out.x = GET_X_LPARAM(msg.lParam);
-		evt_out.y = GET_Y_LPARAM(msg.lParam);
+		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		OnMousePress(evt_out);
+	}
+	else if (msg.message == WM_MBUTTONDOWN)
+	{
+		evt_out.msg = MOUSE_PRESS;
+		evt_out.mouseBtn = eMouseBtn::MID;
+		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		OnMousePress(evt_out);
 	}
 	else if (msg.message == WM_LBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
-
-		evt_out.x = GET_X_LPARAM(msg.lParam);
-		evt_out.y = GET_Y_LPARAM(msg.lParam);
+		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		OnMouseRelease(evt_out);
 	}
 	else if (msg.message == WM_RBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::RIGHT;
-
-		evt_out.x = GET_X_LPARAM(msg.lParam);
-		evt_out.y = GET_Y_LPARAM(msg.lParam);
+		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		OnMouseRelease(evt_out);
+	}
+	else if (msg.message == WM_MBUTTONUP)
+	{
+		evt_out.msg = MOUSE_RELEASE;
+		evt_out.mouseBtn = eMouseBtn::MID;
+		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		OnMouseRelease(evt_out);
 	}
 	else if (msg.message == WM_KEYDOWN)
 	{
@@ -258,9 +256,7 @@ bool Window::PopEvent(WindowEvent& evt_out)
 
 		if (raw->header.dwType == RIM_TYPEMOUSE)
 		{
-			evt_out.deltaX = raw->data.mouse.lLastX;
-			evt_out.deltaY = raw->data.mouse.lLastY;
-
+			evt_out.mouseDelta = ivec2(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
 			evt_out.msg = MOUSE_MOVE;
 		}
 	}
@@ -378,6 +374,17 @@ uint32_t Window::GetClientHeight() const
 {
 	RECT rect; GetClientRect(hwnd, &rect);
 	return (uint32_t)(rect.bottom - rect.top);
+}
+
+ivec2 Window::GetClientCursorPos() const
+{
+	ivec2 cursorPos = Sys::GetCursorPos();
+	POINT p;
+	p.x = cursorPos.x;
+	p.y = cursorPos.y;
+	ScreenToClient(hwnd, &p);
+
+	return ivec2(p.x, p.y);
 }
 
 unsigned Window::GetNumClientPixels() const

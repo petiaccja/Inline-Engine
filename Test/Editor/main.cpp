@@ -17,8 +17,14 @@ IGraphicsEngine* graphicsEngine;
 EngineCore Core;
 InputCore Input;
 
+GuiButton* button;
+GuiButton* button2;
+GuiButton* button3;
+
 void InitGameScripts();
 void InitGui();
+void Update(float deltaTime);
+
 
 void main()
 {
@@ -32,7 +38,7 @@ void main()
 	graphicsEngine = Core.InitGraphicsEngine(window->GetClientWidth(), window->GetClientHeight(), (HWND)window->GetHandle());
 
 	// Init Gui Engine
-	guiEngine = Core.InitGuiEngine(graphicsEngine);
+	guiEngine = Core.InitGuiEngine(*graphicsEngine, *window);
 
 	// Init gui
 	InitGui();
@@ -44,7 +50,8 @@ void main()
 	Timer* timer = new Timer();
 	timer->Start();
 
-
+	
+	window->SetTitle(L"Inline Engine Editor");
 	// Main loop, till window open
 	while (window->IsOpen())
 	{
@@ -52,49 +59,49 @@ void main()
 		Input.ClearFrameData();
 
 		// Process input events coming from O.S.-> Window
-		WindowEvent evt;
-		while (window->PopEvent(evt))
-		{
-			switch (evt.msg)
-			{
-			case KEY_PRESS:
-			{
-				if (evt.key != INVALID_eKey)
-					Input.KeyPress(evt.key);
-			} break;
-
-			case KEY_RELEASE:
-			{
-				if (evt.key != INVALID_eKey)
-					Input.KeyRelease(evt.key);
-			} break;
-
-			case MOUSE_MOVE:
-			{
-				Input.MouseMove(ivec2(evt.deltaX, evt.deltaY), ivec2(evt.x, evt.y));
-			} break;
-
-			case MOUSE_PRESS:
-			{
-				switch (evt.mouseBtn)
-				{
-				case LEFT:	Input.MouseLeftPress();		break;
-				case RIGHT:	Input.MouseRightPress();	break;
-				case MID:	Input.MouseMidPress();		break;
-				}
-			} break;
-
-			case MOUSE_RELEASE:
-			{
-				switch (evt.mouseBtn)
-				{
-				case LEFT:	Input.MouseLeftRelease();	break;
-				case RIGHT: Input.MouseRightRelease();	break;
-				case MID:	Input.MouseMidRelease();	break;
-				}
-			} break;
-			}
-		}
+		//WindowEvent evt;
+		//while (window->PopEvent(evt))
+		//{
+		//	switch (evt.msg)
+		//	{
+		//	case KEY_PRESS:
+		//	{
+		//		if (evt.key != INVALID_eKey)
+		//			Input.KeyPress(evt.key);
+		//	} break;
+		//
+		//	case KEY_RELEASE:
+		//	{
+		//		if (evt.key != INVALID_eKey)
+		//			Input.KeyRelease(evt.key);
+		//	} break;
+		//
+		//	case MOUSE_MOVE:
+		//	{
+		//		Input.MouseMove(ivec2(evt.deltaX, evt.deltaY), ivec2(evt.x, evt.y));
+		//	} break;
+		//
+		//	case MOUSE_PRESS:
+		//	{
+		//		switch (evt.mouseBtn)
+		//		{
+		//		case LEFT:	Input.MouseLeftPress();		break;
+		//		case RIGHT:	Input.MouseRightPress();	break;
+		//		case MID:	Input.MouseMidPress();		break;
+		//		}
+		//	} break;
+		//
+		//	case MOUSE_RELEASE:
+		//	{
+		//		switch (evt.mouseBtn)
+		//		{
+		//		case LEFT:	Input.MouseLeftRelease();	break;
+		//		case RIGHT: Input.MouseRightRelease();	break;
+		//		case MID:	Input.MouseMidRelease();	break;
+		//		}
+		//	} break;
+		//	}
+		//}
 
 		// Dispatch Inputs
 		Input.Update();
@@ -109,11 +116,14 @@ void main()
 		}
 
 		// Get delta seconds from the timer
-		float deltaSeconds = timer->GetSecondsPassed();
+		float deltaTime = timer->GetSecondsPassed();
 		timer->Reset();
 
+		Update(deltaTime);
+
 		// Go Excessive Engine go !!
-		Core.Update(deltaSeconds);
+		Core.Update(deltaTime);
+		Sleep(30);
 	}
 
 	// Cleanup
@@ -129,22 +139,29 @@ void InitGameScripts()
 void InitGui()
 {
 	// Canvas and Layer
-	GuiCanvas* canvas = guiEngine->AddCanvas();
-	GuiLayer* layer = canvas->AddLayer();
+	//GuiCanvas* canvas = guiEngine->AddCanvas();
+	//GuiLayer* layer = canvas->AddLayer();
 
 	// Test button
-	GuiButton* button = layer->AddButton();
-	button->SetBackgroundToColor(Color(55, 55, 55));
-	button->SetRect(0, 0, 60, 22);
-	button->SetText("File");
+	//button = layer->AddButton();
+	//button->SetBackgroundToColor(Color(55, 55, 55));
+	//button->SetRect(0, 0, 60, 22);
+	//button->SetText("File");
+	//
+	//button2 = layer->AddButton();
+	//button2->SetBackgroundToColor(Color(55, 55, 55));
+	//button2->SetRect(61, 0, 60, 22);
+	//button2->SetText("Edit");
+	//
+	//button3 = layer->AddButton();
+	//button3->SetBackgroundToColor(Color(55, 55, 55));
+	//button3->SetRect(122, 0, 60, 22);
+	//button3->SetText("About");
+}
 
-	GuiButton* button2 = layer->AddButton();
-	button2->SetBackgroundToColor(Color(55, 55, 55));
-	button2->SetRect(61, 0, 60, 22);
-	button2->SetText("Edit");
-
-	GuiButton* button3 = layer->AddButton();
-	button3->SetBackgroundToColor(Color(55, 55, 55));
-	button3->SetRect(122, 0, 60, 22);
-	button3->SetText("About");
+void Update(float deltaTime)
+{
+	button->Move(deltaTime * 5, deltaTime * 5);
+	button2->Move(deltaTime * 5, deltaTime * 5);
+	button3->Move(deltaTime * 5, deltaTime * 5);
 }

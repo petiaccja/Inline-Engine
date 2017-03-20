@@ -35,6 +35,7 @@ protected:
 inline GuiText::GuiText()
 :color(Color::WHITE), fontSize(12), textAlign(eTextAlign::CENTER)
 {
+	
 }
 
 inline void GuiText::Set(const std::wstring& text)

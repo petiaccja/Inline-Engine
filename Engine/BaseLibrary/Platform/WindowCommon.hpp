@@ -3,7 +3,7 @@
 
 #include "Sys.hpp"
 #include <string>
-
+#include <BaseLibrary/Common_tmp.hpp>
 
 ENUM_CLASS_BITFLAG( eWindowStyle, int )
 {
@@ -40,15 +40,13 @@ enum eWindowMsg
 
 struct WindowEvent
 {
-	WindowEvent() : msg(INVALID_eWindowsMsg), key(INVALID_eKey), deltaX(0), deltaY(0), x(0), y(0){}
+	WindowEvent(): msg(INVALID_eWindowsMsg), key(INVALID_eKey), mouseDelta(0, 0), mousePos(0, 0) {}
 
 	eWindowMsg msg;
 	eKey	   key;
 	eMouseBtn  mouseBtn;
-	int32_t	   deltaX;
-	int32_t	   deltaY;
-	int32_t	   x;
-	int32_t	   y;
+	ivec2	   mouseDelta;
+	ivec2	   mousePos;
 };
 
 // Descriptor of window

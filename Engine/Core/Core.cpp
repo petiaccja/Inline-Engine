@@ -30,12 +30,12 @@ IGraphicsEngine* EngineCore::InitGraphicsEngine(int width, int height, HWND hwnd
 	return nullptr;
 }
 
-GuiEngine* EngineCore::InitGuiEngine(IGraphicsEngine * graphicsEngine)
+GuiEngine* EngineCore::InitGuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindow)
 {
 	if (guiEngine)
 		delete guiEngine;
 
-	guiEngine = new GuiEngine(graphicsEngine);
+	guiEngine = new GuiEngine(graphicsEngine, targetWindow);
 	return guiEngine;
 }
 
