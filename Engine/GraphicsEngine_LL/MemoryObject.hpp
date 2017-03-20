@@ -73,8 +73,7 @@ public:
 	void _SetResident(bool value) noexcept;
 	bool _GetResident() const noexcept;
 
-	gxapi::IResource* _GetResourcePtr() noexcept;
-	const gxapi::IResource* _GetResourcePtr() const noexcept;
+	gxapi::IResource* _GetResourcePtr() const noexcept;
 
 protected:
 	void InitResourceStates(gxapi::eResourceState initialState);

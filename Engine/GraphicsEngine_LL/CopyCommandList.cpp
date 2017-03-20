@@ -44,7 +44,7 @@ CopyCommandList& CopyCommandList::operator=(CopyCommandList&& rhs) {
 }
 
 
-void CopyCommandList::SetResourceState(MemoryObject& resource, unsigned subresource, gxapi::eResourceState state) {
+void CopyCommandList::SetResourceState(const MemoryObject& resource, unsigned subresource, gxapi::eResourceState state) {
 	SubresourceId resId{resource, subresource};
 	auto iter = m_resourceTransitions.find(resId);
 	bool firstTransition = iter == m_resourceTransitions.end();
@@ -59,7 +59,7 @@ void CopyCommandList::SetResourceState(MemoryObject& resource, unsigned subresou
 		const auto& prevState = iter->second.lastState;
 
 		if (prevState != state) {
-			ResourceBarrier(
+			m_commandList->ResourceBarrier(
 				gxapi::TransitionBarrier{
 					resource._GetResourcePtr(),
 					prevState,
@@ -151,13 +151,6 @@ void CopyCommandList::CopyTexture(Texture2D& dst, const LinearBuffer& src, SubTe
 
 // resource copy
 // TODO
-
-
-// barriers
-void CopyCommandList::ResourceBarrier(unsigned numBarriers, gxapi::ResourceBarrier* barriers) {
-	m_commandList->ResourceBarrier(numBarriers, barriers);
-}
-
 
 
 

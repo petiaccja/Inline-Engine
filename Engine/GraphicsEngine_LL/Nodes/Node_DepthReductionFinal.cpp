@@ -221,9 +221,9 @@ void DepthReductionFinal::RenderScene(
 	gxeng::VolatileConstBuffer cb = m_graphicsContext.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	gxeng::ConstBufferView cbv = m_graphicsContext.CreateCbv(cb, 0, sizeof(Uniforms), context.GetVolatileViewHeap());
 
-	commandList.SetResourceState(const_cast<Texture2D&>(light_mvp_uav.GetResource()), 0, gxapi::eResourceState::UNORDERED_ACCESS);
-	commandList.SetResourceState(const_cast<Texture2D&>(shadow_mx_uav.GetResource()), 0, gxapi::eResourceState::UNORDERED_ACCESS);
-	commandList.SetResourceState(const_cast<Texture2D&>(csm_splits_uav.GetResource()), 0, gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.SetResourceState(light_mvp_uav.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.SetResourceState(shadow_mx_uav.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.SetResourceState(csm_splits_uav.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
 
 	commandList.SetPipelineState(m_CSO.get());
 	commandList.SetComputeBinder(&m_binder);
@@ -233,12 +233,9 @@ void DepthReductionFinal::RenderScene(
 	commandList.BindCompute(m_outputBindParam2, csm_splits_uav);
 	commandList.BindCompute(m_uniformsBindParam, cbv);
 	commandList.Dispatch(1, 1, 1);
-	commandList.ResourceBarrier(gxapi::UavBarrier{const_cast<gxapi::IResource*>(light_mvp_uav.GetResource()._GetResourcePtr())});
-	commandList.ResourceBarrier(gxapi::UavBarrier{ const_cast<gxapi::IResource*>(shadow_mx_uav.GetResource()._GetResourcePtr()) });
-	commandList.ResourceBarrier(gxapi::UavBarrier{ const_cast<gxapi::IResource*>(csm_splits_uav.GetResource()._GetResourcePtr()) });
-	commandList.UAVBarrier((Texture2D&)light_mvp_uav.GetResource());
-	commandList.UAVBarrier((Texture2D&)shadow_mx_uav.GetResource());
-	commandList.UAVBarrier((Texture2D&)csm_splits_uav.GetResource());
+	commandList.UAVBarrier(light_mvp_uav.GetResource());
+	commandList.UAVBarrier(shadow_mx_uav.GetResource());
+	commandList.UAVBarrier(csm_splits_uav.GetResource());
 }
 
 

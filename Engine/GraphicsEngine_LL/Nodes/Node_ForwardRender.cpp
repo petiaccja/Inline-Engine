@@ -322,7 +322,7 @@ void ForwardRender::RenderScene(
 				}
 			}
 			if (scenario.constantsSize > 0) {
-				commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 200), materialConstants.data(), materialConstants.size(), 0);
+				commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 200), materialConstants.data(), (int)materialConstants.size(), 0);
 			}
 
 			// Set vertex and light constants
@@ -341,8 +341,8 @@ void ForwardRender::RenderScene(
 			vertexBuffers.clear(); sizes.clear(); strides.clear();
 			for (size_t i = 0; i < mesh->GetNumStreams(); ++i) {
 				vertexBuffers.push_back(&mesh->GetVertexBuffer(i));
-				sizes.push_back(mesh->GetVertexBuffer(i).GetSize());
-				strides.push_back(mesh->GetVertexBufferStride(i));
+				sizes.push_back((unsigned)mesh->GetVertexBuffer(i).GetSize());
+				strides.push_back((unsigned)mesh->GetVertexBufferStride(i));
 			}
 			commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 			commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());

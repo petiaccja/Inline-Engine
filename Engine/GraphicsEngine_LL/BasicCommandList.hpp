@@ -93,7 +93,6 @@ protected:
 		ScratchSpacePool& scratchSpacePool,
 		gxapi::eCommandListType type);
 
-	void UseResource(MemoryObject* resource);
 	gxapi::ICommandList* GetCommandList() const { return m_commandList.get(); }
 
 	StackDescHeap* GetCurrentScratchSpace();

@@ -217,7 +217,7 @@ void CSM::RenderScene(
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 		viewport.topLeftY = 0;
-		viewport.topLeftX = c * cascadeSize;
+		viewport.topLeftX = float(c * cascadeSize);
 		commandList.SetViewports(1, &viewport);
 
 		// Iterate over all entities
