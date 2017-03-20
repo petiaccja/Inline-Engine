@@ -1,5 +1,8 @@
 #include "Timer.hpp"
 
+namespace exc {
+
+
 Timer::Timer() {
 	m_state = STOPPED;
 	m_accumulator = 0.0;
@@ -47,3 +50,6 @@ void Timer::SetSpeed(double speed) {
 double Timer::GetSpeed() const {
 	return m_speed;
 }
+
+
+} // namespace exc

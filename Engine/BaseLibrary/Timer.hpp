@@ -2,6 +2,8 @@
 
 #include <chrono>
 
+namespace exc {
+
 /// <summary>
 /// Utility class for high resolution timing.
 /// </summary>
@@ -37,3 +39,6 @@ private:
 	eState m_state;
 	std::chrono::high_resolution_clock::time_point m_startTime;
 };
+
+
+} // namespace exc
