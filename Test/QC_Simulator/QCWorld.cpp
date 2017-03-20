@@ -18,7 +18,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	//Create gui
 	{
 		unsigned width, height;
-		m_guiOverlay.reset(m_graphicsEngine->CreateOverlay("Gui"));
+		m_guiScene.reset(m_graphicsEngine->CreateScene("Gui"));
 		m_guiCamera.reset(m_graphicsEngine->CreateOrthographicCamera("GuiCamera"));
 		graphicsEngine->GetScreenSize(width, height);
 		m_guiCamera->SetBounds(0, width, height, 0, -1, 1);
@@ -54,7 +54,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_overlayElements.push_back(std::move(element));
 
 		for (auto& curr : m_overlayElements) {
-			m_guiOverlay->GetEntities().Add(curr.get());
+			m_guiScene->GetOverlayEntities().Add(curr.get());
 		}
 	}
 	
@@ -64,7 +64,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	//m_sun.SetDirection({ 0.8f, -0.7f, -0.15f });
 	m_sun.SetColor({1.0f, 0.9f, 0.85f});
 	m_sun.SetDirection({ 0.8f, -0.7f, -0.9f });
-	m_worldScene->SetSun(&m_sun);
+	m_worldScene->GetDirectionalLights().Add(&m_sun);
 	m_camera.reset(m_graphicsEngine->CreatePerspectiveCamera("WorldCam"));
 	m_camera->SetTargeted(true);
 	m_camera->SetTarget({ 0, 0, 0 });
@@ -162,7 +162,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	// Create tree material
 	{
 		m_treeMaterial.reset(m_graphicsEngine->CreateMaterial());
-		m_treeShader.reset(m_graphicsEngine->CreateMaterialShaderGraph());
+		m_simpleShader.reset(m_graphicsEngine->CreateMaterialShaderGraph());
 		std::unique_ptr<inl::gxeng::MaterialShaderEquation> mapShader(m_graphicsEngine->CreateMaterialShaderEquation());
 		std::unique_ptr<inl::gxeng::MaterialShaderEquation> diffuseShader(m_graphicsEngine->CreateMaterialShaderEquation());
 
@@ -172,10 +172,16 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		std::vector<std::unique_ptr<inl::gxeng::MaterialShader>> nodes;
 		nodes.push_back(std::move(mapShader));
 		nodes.push_back(std::move(diffuseShader));
-		m_treeShader->SetGraph(std::move(nodes), { {0, 1, 0} });
-		m_treeMaterial->SetShader(m_treeShader.get());
+		m_simpleShader->SetGraph(std::move(nodes), { {0, 1, 0} });
+		m_treeMaterial->SetShader(m_simpleShader.get());
+		m_quadcopterMaterial->SetShader(m_simpleShader.get());
+		m_axesMaterial->SetShader(m_simpleShader.get());
+		m_terrainMaterial->SetShader(m_simpleShader.get());
 
 		(*m_treeMaterial)[0] = m_treeTexture.get();
+		(*m_quadcopterMaterial)[0] = m_quadcopterTexture.get();
+		(*m_axesMaterial)[0] = m_axesTexture.get();
+		(*m_terrainMaterial)[0] = m_terrainTexture.get();
 	}
 
 	// Create checker texture
@@ -196,7 +202,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	// Set up terrain
 	m_terrainEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_terrainEntity->SetMesh(m_terrainMesh.get());
-	m_terrainEntity->SetTexture(m_terrainTexture.get());
+	m_terrainEntity->SetMaterial(m_terrainMaterial.get());
 	m_terrainEntity->SetPosition({ 0,0,0 });
 	m_terrainEntity->SetRotation({ 1,0,0,0 });
 	m_terrainEntity->SetScale({ 1,1,1 });
@@ -205,7 +211,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	// Set up copter
 	m_quadcopterEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_quadcopterEntity->SetMesh(m_quadcopterMesh.get());
-	m_quadcopterEntity->SetTexture(m_quadcopterTexture.get());
+	m_quadcopterEntity->SetMaterial(m_quadcopterMaterial.get());
 	m_quadcopterEntity->SetPosition({ 0,0,3 });
 	m_quadcopterEntity->SetRotation({ 1,0,0,0 });
 	m_quadcopterEntity->SetScale({ 1,1,1 });
@@ -214,7 +220,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	// Set up axes
 	m_axesEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_axesEntity->SetMesh(m_axesMesh.get());
-	m_axesEntity->SetTexture(m_axesTexture.get());
+	m_axesEntity->SetMaterial(m_axesMaterial.get());
 	m_axesEntity->SetPosition({ 0,0,3 });
 	m_axesEntity->SetRotation({ 1,0,0,0 });
 	m_axesEntity->SetScale({ 1,1,1 });
@@ -312,7 +318,6 @@ void QCWorld::AddTree(mathfu::Vector3f position) {
 	tree.reset(m_graphicsEngine->CreateMeshEntity());
 	tree->SetMesh(m_treeMesh.get());
 	tree->SetMaterial(m_treeMaterial.get());
-	tree->SetTexture(m_treeTexture.get());
 	tree->SetPosition(position);
 	tree->SetRotation({ 1,0,0,0 });
 	tree->SetScale({ s,s,s });

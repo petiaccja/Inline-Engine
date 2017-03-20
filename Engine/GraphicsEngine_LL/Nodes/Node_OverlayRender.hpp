@@ -15,8 +15,7 @@ namespace inl::gxeng::nodes {
 
 class OverlayRender :
 	virtual public GraphicsNode,
-
-	virtual public exc::InputPortConfig<const EntityCollection<OverlayEntity>*, const BasicCamera*>,
+	virtual public exc::InputPortConfig<pipeline::Texture2D, const EntityCollection<OverlayEntity>*, const BasicCamera*>,
 	virtual public exc::OutputPortConfig<pipeline::Texture2D>
 {
 public:
@@ -55,8 +54,8 @@ protected:
 	void InitColoredPso();
 	void InitTexturedPso();
 
-	void InitRenderTarget(unsigned width, unsigned height);
 	void RenderScene(
+		const RenderTargetView2D& target,
 		const EntityCollection<OverlayEntity>& entities,
 		const BasicCamera* camera,
 		GraphicsCommandList& commandList);
@@ -67,8 +66,6 @@ protected:
 	static constexpr auto COLOR_FORMAT = gxapi::eFormat::R8G8B8A8_UNORM;
 
 protected:
-	RenderTargetView2D m_rtv;
-	TextureView2D m_renderTargetSrv;
 
 	GraphicsContext m_graphicsContext;
 

@@ -17,7 +17,7 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	m_worldScene.reset(m_graphicsEngine->CreateScene("World"));
 	m_sun.SetColor(mathfu::Vector3f(1, 1, 0.75));
 	m_sun.SetDirection(mathfu::Vector3f(1, 1, 1));
-	m_worldScene->SetSun(&m_sun);
+	m_worldScene->GetDirectionalLights().Add(&m_sun);
 
 	m_camera.reset(m_graphicsEngine->CreatePerspectiveCamera("WorldCam"));
 	m_camera->SetTargeted(true);
@@ -54,7 +54,14 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 	for (int i = 0; i < count; i++) {
 		std::unique_ptr<inl::gxeng::MeshEntity> entity(new inl::gxeng::MeshEntity());
 		entity->SetMesh(m_cubeMesh.get());
-		entity->SetTexture(m_texture.get());
+		// texture won't cut it anymore
+		// one must use materials
+		// null materials won't cut it now, and will never do so
+		// i was lazy to create a material for the entities, so this code should never run, it will die anyway
+		// use QC simulator for testing
+		// this project is kinda obsolete anyway
+		assert(false);
+		entity->SetMaterial(nullptr);
 		mathfu::Vector<float, 3> pos;
 		pos.x() = float((i + 0.5f)*extent) / count - extent*0.5f;
 		pos.y() = 0;

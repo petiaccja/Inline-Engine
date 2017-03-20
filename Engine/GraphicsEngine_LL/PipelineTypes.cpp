@@ -114,6 +114,42 @@ bool Texture2D::WritableRW() const {
 }
 
 
+void Texture2D::GetSize(uint64_t& width, uint32_t& height) const {
+	if (m_srv) {
+		width = m_srv.GetResource().GetWidth();
+		height = m_srv.GetResource().GetHeight();
+	}
+	else if (m_rtv) {
+		width = m_rtv.GetResource().GetWidth();
+		height = m_rtv.GetResource().GetHeight();
+	}
+	else if (m_dsv) {
+		width = m_dsv.GetResource().GetWidth();
+		height = m_dsv.GetResource().GetHeight();
+	}
+	else if (m_uav) {
+		width = m_uav.GetResource().GetWidth();
+		height = m_uav.GetResource().GetHeight();
+	}
+	else {
+		width = 0;
+		height = 0;
+	}
+}
+uint64_t Texture2D::Width() const {
+	uint64_t w;
+	uint32_t h;
+	GetSize(w, h);
+	return w;
+}
+uint32_t Texture2D::Height() const {
+	uint64_t w;
+	uint32_t h;
+	GetSize(w, h);
+	return h;
+}
+
+
 const TextureView2D& Texture2D::QueryRead() const {
 	m_beenUsed = true;
 	return m_srv;

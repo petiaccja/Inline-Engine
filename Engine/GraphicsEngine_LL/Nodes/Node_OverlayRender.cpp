@@ -2,7 +2,6 @@
 
 #include "../GraphicsNode.hpp"
 
-#include "../Overlay.hpp"
 #include "../OverlayEntity.hpp"
 #include "../Image.hpp"
 #include "../Mesh.hpp"
@@ -49,9 +48,6 @@ OverlayRender::OverlayRender(gxapi::IGraphicsApi* graphicsApi) {
 void OverlayRender::InitGraphics(const GraphicsContext & context) {
 	m_graphicsContext = context;
 
-	auto swapChainDesc = context.GetSwapChainDesc();
-	InitRenderTarget(swapChainDesc.width, swapChainDesc.height);
-
 	InitColoredPso();
 	InitTexturedPso();
 }
@@ -61,17 +57,20 @@ Task OverlayRender::GetTask() {
 	return Task({ [this](const ExecutionContext& context) {
 		ExecutionResult result;
 
-		const EntityCollection<OverlayEntity>* entities = this->GetInput<0>().Get();
+		auto target = this->GetInput<0>().Get();
 		this->GetInput<0>().Clear();
 
-		const BasicCamera* camera = this->GetInput<1>().Get();
+		const EntityCollection<OverlayEntity>* entities = this->GetInput<1>().Get();
+		this->GetInput<0>().Clear();
+
+		const BasicCamera* camera = this->GetInput<2>().Get();
 		this->GetInput<1>().Clear();
 
 		GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-		RenderScene(*entities, camera, cmdList);
+		RenderScene(target.QueryRenderTarget(cmdList, m_graphicsContext), *entities, camera, cmdList);
 		result.AddCommandList(std::move(cmdList));
 
-		this->GetOutput<0>().Set(pipeline::Texture2D(m_renderTargetSrv, m_rtv));
+		this->GetOutput<0>().Set(target);
 
 		return result;
 	} });
@@ -204,40 +203,19 @@ void OverlayRender::InitTexturedPso() {
 }
 
 
-
-void OverlayRender::InitRenderTarget(unsigned width, unsigned height) {
-	Texture2D tex = m_graphicsContext.CreateRenderTarget2D(width, height, COLOR_FORMAT, true);
-
-	gxapi::RtvTexture2DArray rtvDesc;
-	rtvDesc.activeArraySize = 1;
-	rtvDesc.firstArrayElement = 0;
-	rtvDesc.planeIndex = 0;
-	rtvDesc.firstMipLevel = 0;
-	m_rtv = m_graphicsContext.CreateRtv(tex, COLOR_FORMAT, rtvDesc);
-
-	gxapi::SrvTexture2DArray srvDesc;
-	srvDesc.activeArraySize = 1;
-	srvDesc.firstArrayElement = 0;
-	srvDesc.numMipLevels = -1;
-	srvDesc.mipLevelClamping = 0;
-	srvDesc.mostDetailedMip = 0;
-	srvDesc.planeIndex = 0;
-	m_renderTargetSrv = m_graphicsContext.CreateSrv(tex, COLOR_FORMAT, srvDesc);
-}
-
-
 void OverlayRender::RenderScene(
+	const RenderTargetView2D& target,
 	const EntityCollection<OverlayEntity>& entities,
 	const BasicCamera* camera,
 	GraphicsCommandList & commandList
 ) {
 	// Set render target
-	auto pRTV = &m_rtv;
-	commandList.SetResourceState(m_rtv.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
+	auto pRTV = &target;
+	commandList.SetResourceState(target.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetRenderTargets(1, &pRTV);
-	commandList.ClearRenderTarget(m_rtv, gxapi::ColorRGBA(0, 0, 0, 0));
+	commandList.ClearRenderTarget(target, gxapi::ColorRGBA(0, 0, 0, 0));
 
-	gxapi::Rectangle rect{ 0, (int)m_rtv.GetResource().GetHeight(), 0, (int)m_rtv.GetResource().GetWidth() };
+	gxapi::Rectangle rect{ 0, (int)target.GetResource().GetHeight(), 0, (int)target.GetResource().GetWidth() };
 	gxapi::Viewport viewport;
 	viewport.width = (float)rect.right;
 	viewport.height = (float)rect.bottom;

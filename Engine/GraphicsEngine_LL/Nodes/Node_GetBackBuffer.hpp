@@ -2,6 +2,7 @@
 
 #include "../GraphicsNode.hpp"
 #include "../ResourceView.hpp"
+#include "../PipelineTypes.hpp"
 
 #include <cmath>
 
@@ -14,7 +15,7 @@ namespace nodes {
 class GetBackBuffer :
 	virtual public GraphicsNode,
 	public exc::InputPortConfig<>,
-	public exc::OutputPortConfig<RenderTargetView2D>
+	public exc::OutputPortConfig<pipeline::Texture2D>
 {
 public:
 	GetBackBuffer() {}
@@ -27,7 +28,9 @@ public:
 		return Task({ [this](const ExecutionContext& context)
 		{
 			auto& swapChainAccessContext = static_cast<const SwapChainAccessContext&>(context);
-			this->GetOutput<0>().Set(*swapChainAccessContext.GetBackBuffer());
+			pipeline::Texture2D output;
+			output.AddView(*swapChainAccessContext.GetBackBuffer());
+			this->GetOutput<0>().Set(output);
 			return ExecutionResult{};
 		} });
 	}

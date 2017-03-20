@@ -38,9 +38,6 @@ public:
 	int GetProcessorCoreCount() const;
 	int GetGraphicsDeviceCount() const;
 
-	// Swap chain
-	gxapi::SwapChainDesc GetSwapChainDesc() const;
-
 	// Create pipeline textures
 	Texture2D CreateTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1) const;
 	Texture2D CreateRenderTarget2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1) const;

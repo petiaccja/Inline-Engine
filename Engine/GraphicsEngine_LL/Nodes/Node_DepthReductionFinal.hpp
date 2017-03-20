@@ -2,8 +2,6 @@
 
 #include "../GraphicsNode.hpp"
 
-#include "Node_GenCSM.hpp"
-
 #include "../Scene.hpp"
 #include "../BasicCamera.hpp"
 #include "../Mesh.hpp"

@@ -21,9 +21,6 @@
     <Filter Include="Middleware">
       <UniqueIdentifier>{ddb0ffd9-91c5-4cda-9bb1-ddf7349b9967}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Nodes">
-      <UniqueIdentifier>{278a4320-a644-4688-bad7-0b4475a43003}</UniqueIdentifier>
-    </Filter>
     <Filter Include="MemoryManagement\Descriptors">
       <UniqueIdentifier>{4a221379-da82-4348-85fc-f3c634d6d1cb}</UniqueIdentifier>
     </Filter>
@@ -33,17 +30,20 @@
     <Filter Include="MemoryManagement\ObjectManagement">
       <UniqueIdentifier>{cd72d15e-05c9-4d33-a977-8cb4d1092c69}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Nodes\ForwardPipeline">
-      <UniqueIdentifier>{37a2d765-13fa-497f-9c3f-aeb98d5b2e44}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nodes\Shaders">
-      <UniqueIdentifier>{d804e9f8-c90b-43e0-a9e7-e5ce3e4e0717}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Materials">
       <UniqueIdentifier>{98cd6cfb-25da-4059-bd57-422f8cb974b9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Overlay">
-      <UniqueIdentifier>{da9c57e1-ec19-4e49-9a4d-80011ca787d7}</UniqueIdentifier>
+    <Filter Include="Nodes">
+      <UniqueIdentifier>{c18b293d-9d94-453e-8486-9d3b8b614c34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nodes\ForwardRenderer">
+      <UniqueIdentifier>{4eafdf62-4696-4151-af89-d7f190e59dc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nodes\Rendering">
+      <UniqueIdentifier>{bf61464b-9a01-400e-b2bf-cfafd24d515a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Nodes\General">
+      <UniqueIdentifier>{3e242522-430d-401c-8b83-5d0c9b29ed5e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -153,18 +153,6 @@
     <ClInclude Include="EntityCollection.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Node_GetBackBuffer.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_FrameColor.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_FrameCounter.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_GetSceneByName.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
     <ClInclude Include="SyncPoint.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
@@ -182,9 +170,6 @@
     </ClInclude>
     <ClInclude Include="PipelineEventListener.hpp">
       <Filter>Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_GetTime.hpp">
-      <Filter>Nodes</Filter>
     </ClInclude>
     <ClInclude Include="Image.hpp">
       <Filter>Resources</Filter>
@@ -216,9 +201,6 @@
     <ClInclude Include="Pixel.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Node_GetCameraByName.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
     <ClInclude Include="GraphicsContext.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
@@ -240,53 +222,53 @@
     <ClInclude Include="BindingManager.hpp">
       <Filter>Middleware</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Node_ForwardRender.hpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_GenCSM.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_DepthPrepass.hpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_RenderToBackBuffer.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_DepthReduction.hpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_DrawSky.hpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_DepthReductionFinal.hpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_CSM.hpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
-    </ClInclude>
     <ClInclude Include="PerspectiveCamera.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="BasicCamera.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Overlay.hpp">
-      <Filter>Overlay</Filter>
-    </ClInclude>
-    <ClInclude Include="OverlayEntity.hpp">
-      <Filter>Overlay</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_GetOverlayByName.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_Blend.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_OverlayRender.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
     <ClInclude Include="OrthographicCamera.hpp">
       <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="OverlayEntity.hpp">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_CSM.hpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_DepthPrepass.hpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_DepthReduction.hpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_DepthReductionFinal.hpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_DrawSky.hpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_ForwardRender.hpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_OverlayRender.hpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_Blend.hpp">
+      <Filter>Nodes\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GetBackBuffer.hpp">
+      <Filter>Nodes\General</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GetCameraByName.hpp">
+      <Filter>Nodes\General</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GetSceneByName.hpp">
+      <Filter>Nodes\General</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GetTime.hpp">
+      <Filter>Nodes\General</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -399,68 +381,44 @@
     <ClCompile Include="PipelineTypes.cpp">
       <Filter>Pipeline</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes\Node_ForwardRender.cpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_GenCSM.cpp">
-      <Filter>Nodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_DepthPrepass.cpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_RenderToBackBuffer.cpp">
-      <Filter>Nodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_DepthReduction.cpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_DrawSky.cpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_DepthReductionFinal.cpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_CSM.cpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
-    </ClCompile>
     <ClCompile Include="PerspectiveCamera.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
     <ClCompile Include="BasicCamera.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Overlay.cpp">
-      <Filter>Overlay</Filter>
-    </ClCompile>
-    <ClCompile Include="OverlayEntity.cpp">
-      <Filter>Overlay</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_Blend.cpp">
-      <Filter>Nodes</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_OverlayRender.cpp">
-      <Filter>Nodes</Filter>
-    </ClCompile>
     <ClCompile Include="OrthographicCamera.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
+    <ClCompile Include="OverlayEntity.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_CSM.cpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_DepthPrepass.cpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_DepthReduction.cpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_DepthReductionFinal.cpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_DrawSky.cpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_ForwardRender.cpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_OverlayRender.cpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_Blend.cpp">
+      <Filter>Nodes\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Nodes\Shaders\DrawSky.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\GenCSM.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\DepthPrepass.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\DepthReduction.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
     <None Include="Materials\bitmap_color_2d.mtl.hlsl">
       <Filter>Materials</Filter>
     </None>
@@ -469,18 +427,6 @@
     </None>
     <None Include="Materials\simple_diffuse.mtl.hlsl">
       <Filter>Materials</Filter>
-    </None>
-    <None Include="Nodes\Shaders\ForwardRender.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\CSM.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\CSMSample.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\DepthReductionFinal.hlsl">
-      <Filter>Nodes\Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>

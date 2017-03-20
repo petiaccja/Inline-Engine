@@ -121,9 +121,6 @@ ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi) {
 void ForwardRender::InitGraphics(const GraphicsContext& context) {
 	m_graphicsContext = context;
 
-	auto swapChainDesc = context.GetSwapChainDesc();
-	InitRenderTarget(swapChainDesc.width, swapChainDesc.height);
-
 	ShaderParts shaderParts;
 	shaderParts.vs = true;
 	shaderParts.ps = true;
@@ -168,65 +165,45 @@ Task ForwardRender::GetTask() {
 	return Task({ [this](const ExecutionContext& context) {
 		ExecutionResult result;
 
-		auto depthStencil = this->GetInput<0>().Get();
-		this->GetInput<0>().Clear();
-
-		const EntityCollection<MeshEntity>* entities = this->GetInput<1>().Get();
+		auto target = this->GetInput<0>().Get();
 		this->GetInput<1>().Clear();
 
-		const BasicCamera* camera = this->GetInput<2>().Get();
+		auto depthStencil = this->GetInput<1>().Get();
+		this->GetInput<1>().Clear();
+
+		const EntityCollection<MeshEntity>* entities = this->GetInput<2>().Get();
 		this->GetInput<2>().Clear();
 
-		const DirectionalLight* sun = this->GetInput<3>().Get();
+		const BasicCamera* camera = this->GetInput<3>().Get();
 		this->GetInput<3>().Clear();
 
-		gxeng::pipeline::Texture2D shadowMapTex = this->GetInput<4>().Get();
+		const EntityCollection<DirectionalLight>* directionalLights = this->GetInput<4>().Get();
+		assert(directionalLights->Size() == 1);
 		this->GetInput<4>().Clear();
 
-		gxeng::pipeline::Texture2D shadowMXTex = this->GetInput<5>().Get();
+		gxeng::pipeline::Texture2D shadowMapTex = this->GetInput<5>().Get();
 		this->GetInput<5>().Clear();
 
-		gxeng::pipeline::Texture2D csmSplitsTex = this->GetInput<6>().Get();
+		gxeng::pipeline::Texture2D shadowMXTex = this->GetInput<6>().Get();
 		this->GetInput<6>().Clear();
 
-		this->GetOutput<0>().Set(pipeline::Texture2D(m_renderTargetSrv, m_rtv));
+		gxeng::pipeline::Texture2D csmSplitsTex = this->GetInput<7>().Get();
+		this->GetInput<7>().Clear();
+
+		this->GetOutput<0>().Set(target);
 
 		if (entities) {
 			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
 
 			DepthStencilView2D dsv = depthStencil.QueryDepthStencil(cmdList, m_graphicsContext);
 
-			RenderScene(dsv, *entities, camera, sun, shadowMapTex, shadowMXTex, csmSplitsTex, cmdList);
+			RenderScene(dsv, *entities, camera, *directionalLights->begin(), shadowMapTex, shadowMXTex, csmSplitsTex, cmdList);
 			result.AddCommandList(std::move(cmdList));
 		}
 
 		return result;
 	} });
 }
-
-
-void ForwardRender::InitRenderTarget(unsigned width, unsigned height) {
-	auto format = gxapi::eFormat::R16G16B16A16_FLOAT;
-
-	Texture2D tex = m_graphicsContext.CreateRenderTarget2D(width, height, format, true);
-
-	gxapi::RtvTexture2DArray rtvDesc;
-	rtvDesc.activeArraySize = 1;
-	rtvDesc.firstArrayElement = 0;
-	rtvDesc.planeIndex = 0;
-	rtvDesc.firstMipLevel = 0;
-	m_rtv = m_graphicsContext.CreateRtv(tex, format, rtvDesc);
-
-	gxapi::SrvTexture2DArray srvDesc;
-	srvDesc.activeArraySize = 1;
-	srvDesc.firstArrayElement = 0;
-	srvDesc.numMipLevels = -1;
-	srvDesc.mipLevelClamping = 0;
-	srvDesc.mostDetailedMip = 0;
-	srvDesc.planeIndex = 0;
-	m_renderTargetSrv = m_graphicsContext.CreateSrv(tex, format, srvDesc);
-}
-
 
 void ForwardRender::RenderScene(
 	DepthStencilView2D& dsv,
@@ -275,119 +252,83 @@ void ForwardRender::RenderScene(
 		Mesh* mesh = entity->GetMesh();
 		Material* material = entity->GetMaterial();
 
-		if (material != nullptr) {
-			// Set pipeline state & binder
-			const Mesh::Layout& layout = mesh->GetLayout();
-			const MaterialShader* materialShader = material->GetShader();
-			assert(materialShader != nullptr);
+		assert(mesh != nullptr);
+		assert(material != nullptr);
 
-			ScenarioData& scenario = GetScenario(layout, *materialShader);
+		// Set pipeline state & binder
+		const Mesh::Layout& layout = mesh->GetLayout();
+		const MaterialShader* materialShader = material->GetShader();
+		assert(materialShader != nullptr);
 
-			commandList.SetPipelineState(scenario.pso.get());
-			commandList.SetGraphicsBinder(&scenario.binder);
+		ScenarioData& scenario = GetScenario(layout, *materialShader);
 
-			commandList.SetResourceState(const_cast<Texture2D&>(shadowMapTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
-			commandList.SetResourceState(const_cast<Texture2D&>(shadowMXTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
-			commandList.SetResourceState(const_cast<Texture2D&>(csmSplitsTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+		commandList.SetPipelineState(scenario.pso.get());
+		commandList.SetGraphicsBinder(&scenario.binder);
 
-			commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 500), shadowMapTex.QueryRead());
-			commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 501), shadowMXTex.QueryRead());
-			commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 502), csmSplitsTex.QueryRead());
+		commandList.SetResourceState(const_cast<Texture2D&>(shadowMapTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+		commandList.SetResourceState(const_cast<Texture2D&>(shadowMXTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+		commandList.SetResourceState(const_cast<Texture2D&>(csmSplitsTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 
-			// Set material parameters
-			std::vector<uint8_t> materialConstants(scenario.constantsSize);
-			for (size_t paramIdx = 0; paramIdx < material->GetParameterCount(); ++paramIdx) {
-				const Material::Parameter& param = (*material)[paramIdx];
-				switch (param.GetType()) {
-					case eMaterialShaderParamType::BITMAP_COLOR_2D:
-					case eMaterialShaderParamType::BITMAP_VALUE_2D:
-					{
-						BindParameter bindSlot(eBindParameterType::TEXTURE, scenario.offsets[paramIdx]);
-						commandList.BindGraphics(bindSlot, *((Image*)param)->GetSrv());
-						break;
-					}
-					case eMaterialShaderParamType::COLOR:
-					{
-						*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 0) = ((mathfu::Vector4f)param).x();
-						*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 4) = ((mathfu::Vector4f)param).y();
-						*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 8) = ((mathfu::Vector4f)param).z();
-						*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 12) = ((mathfu::Vector4f)param).w();
-						break;
-					}
-					case eMaterialShaderParamType::VALUE:
-					{
-						*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx]) = ((float)param);
-						break;
-					}
-				}
-			}
-			if (scenario.constantsSize > 0) {
-				commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 200), materialConstants.data(), (int)materialConstants.size(), 0);
-			}
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 500), shadowMapTex.QueryRead());
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 501), shadowMXTex.QueryRead());
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 502), csmSplitsTex.QueryRead());
 
-			// Set vertex and light constants
-			VsConstants vsConstants;
-			LightConstants lightConstants;
-			entity->GetTransform().Pack(vsConstants.model);
-			(viewProjection * entity->GetTransform()).Pack(vsConstants.mvp);
-			(view * entity->GetTransform()).Pack(vsConstants.mv);
-			lightConstants.direction = sun->GetDirection().Normalized();
-			lightConstants.color = sun->GetColor();
-
-			commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 0), &vsConstants, sizeof(vsConstants), 0);
-			commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 100), &lightConstants, sizeof(lightConstants), 0);
-
-			// Set primitives
-			vertexBuffers.clear(); sizes.clear(); strides.clear();
-			for (size_t i = 0; i < mesh->GetNumStreams(); ++i) {
-				vertexBuffers.push_back(&mesh->GetVertexBuffer(i));
-				sizes.push_back((unsigned)mesh->GetVertexBuffer(i).GetSize());
-				strides.push_back((unsigned)mesh->GetVertexBufferStride(i));
-			}
-			commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
-			commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
-
-			// Drawcall
-			commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
-		}
-		else {
-			// THIS PATH IS USED TO BYPASS MATERIAL SYSTEM AND RENDER ENTITIES WITH SIMPLY A TEXTURE
-			// THIS IS DEPRECATED, REMOVE IT ASAP!
-			commandList.SetPipelineState(m_PSO.get());
-			commandList.SetGraphicsBinder(&m_binder);
-
+		// Set material parameters
+		std::vector<uint8_t> materialConstants(scenario.constantsSize);
+		for (size_t paramIdx = 0; paramIdx < material->GetParameterCount(); ++paramIdx) {
+			const Material::Parameter& param = (*material)[paramIdx];
+			switch (param.GetType()) {
+			case eMaterialShaderParamType::BITMAP_COLOR_2D:
+			case eMaterialShaderParamType::BITMAP_VALUE_2D:
 			{
-				std::array<mathfu::VectorPacked<float, 4>, 2> sunCBData;
-				auto sunDir = mathfu::Vector4f(sun->GetDirection(), 0.0);
-				auto sunColor = mathfu::Vector4f(sun->GetColor(), 0.0);
-
-				sunDir.Pack(sunCBData.data());
-				sunColor.Pack(sunCBData.data() + 1);
-				commandList.BindGraphics(m_sunBindParam, sunCBData.data(), sizeof(sunCBData), 0);
+				BindParameter bindSlot(eBindParameterType::TEXTURE, scenario.offsets[paramIdx]);
+				commandList.BindGraphics(bindSlot, *((Image*)param)->GetSrv());
+				break;
 			}
-
-			// Draw mesh
-			if (!CheckMeshFormat(*mesh)) {
-				continue;
+			case eMaterialShaderParamType::COLOR:
+			{
+				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 0) = ((mathfu::Vector4f)param).x();
+				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 4) = ((mathfu::Vector4f)param).y();
+				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 8) = ((mathfu::Vector4f)param).z();
+				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 12) = ((mathfu::Vector4f)param).w();
+				break;
 			}
-
-			ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
-
-			auto world = entity->GetTransform();
-			auto MVP = viewProjection * world;
-			auto worldInvTr = world.Inverse().Transpose();
-
-			std::array<mathfu::VectorPacked<float, 4>, 8> transformCBData;
-			MVP.Pack(transformCBData.data());
-			worldInvTr.Pack(transformCBData.data() + 4);
-
-			commandList.BindGraphics(m_albedoBindParam, *entity->GetTexture()->GetSrv());
-			commandList.BindGraphics(m_transformBindParam, transformCBData.data(), sizeof(transformCBData), 0);
-
-			commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
-			commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
-			commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
+			case eMaterialShaderParamType::VALUE:
+			{
+				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx]) = ((float)param);
+				break;
+			}
+			}
 		}
+		if (scenario.constantsSize > 0) {
+			commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 200), materialConstants.data(), (int)materialConstants.size(), 0);
+		}
+
+		// Set vertex and light constants
+		VsConstants vsConstants;
+		LightConstants lightConstants;
+		entity->GetTransform().Pack(vsConstants.model);
+		(viewProjection * entity->GetTransform()).Pack(vsConstants.mvp);
+		(view * entity->GetTransform()).Pack(vsConstants.mv);
+		lightConstants.direction = sun->GetDirection().Normalized();
+		lightConstants.color = sun->GetColor();
+
+		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 0), &vsConstants, sizeof(vsConstants), 0);
+		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 100), &lightConstants, sizeof(lightConstants), 0);
+
+		// Set primitives
+		vertexBuffers.clear(); sizes.clear(); strides.clear();
+		for (size_t i = 0; i < mesh->GetNumStreams(); ++i) {
+			vertexBuffers.push_back(&mesh->GetVertexBuffer(i));
+			sizes.push_back((unsigned)mesh->GetVertexBuffer(i).GetSize());
+			strides.push_back((unsigned)mesh->GetVertexBufferStride(i));
+		}
+		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
+		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
+
+		// Drawcall
+		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
+
 	}
 }
 
@@ -537,41 +478,41 @@ Binder ForwardRender::GenerateBinder(const std::vector<MaterialShaderParameter>&
 
 	for (auto& param : mtlParams) {
 		switch (param.type) {
-			case eMaterialShaderParamType::BITMAP_COLOR_2D:
-			case eMaterialShaderParamType::BITMAP_VALUE_2D:
-			{
-				BindParameterDesc desc;
-				desc.parameter = BindParameter(eBindParameterType::TEXTURE, textureRegister);
-				desc.constantSize = 0;
-				desc.relativeAccessFrequency = 0;
-				desc.relativeChangeFrequency = 0;
-				desc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-				descs.push_back(desc);
+		case eMaterialShaderParamType::BITMAP_COLOR_2D:
+		case eMaterialShaderParamType::BITMAP_VALUE_2D:
+		{
+			BindParameterDesc desc;
+			desc.parameter = BindParameter(eBindParameterType::TEXTURE, textureRegister);
+			desc.constantSize = 0;
+			desc.relativeAccessFrequency = 0;
+			desc.relativeChangeFrequency = 0;
+			desc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+			descs.push_back(desc);
 
-				offsets.push_back(desc.parameter.reg);
+			offsets.push_back(desc.parameter.reg);
 
-				++textureRegister;
+			++textureRegister;
 
-				break;
-			}
-			case eMaterialShaderParamType::COLOR:
-			{
-				cbSize = ((cbSize + 15) / 16) * 16; // correct alignement
-				offsets.push_back(cbSize);
-				cbSize += 16;
+			break;
+		}
+		case eMaterialShaderParamType::COLOR:
+		{
+			cbSize = ((cbSize + 15) / 16) * 16; // correct alignement
+			offsets.push_back(cbSize);
+			cbSize += 16;
 
-				break;
-			}
-			case eMaterialShaderParamType::VALUE:
-			{
-				cbSize = ((cbSize + 3) / 4) * 4; // correct alignement
-				offsets.push_back(cbSize);
-				cbSize += sizeof(float);
+			break;
+		}
+		case eMaterialShaderParamType::VALUE:
+		{
+			cbSize = ((cbSize + 3) / 4) * 4; // correct alignement
+			offsets.push_back(cbSize);
+			cbSize += sizeof(float);
 
-				break;
-			}
-			default:
-				assert(false);;
+			break;
+		}
+		default:
+			assert(false);;
 		}
 	}
 
@@ -653,7 +594,7 @@ Binder ForwardRender::GenerateBinder(const std::vector<MaterialShaderParameter>&
 
 	descs.push_back(vsCbDesc);
 	descs.push_back(lightCbDesc);
-	
+
 	descs.push_back(theSamplerDesc);
 	descs.push_back(shadowMapBindParamDesc);
 	descs.push_back(shadowMXBindParamDesc);

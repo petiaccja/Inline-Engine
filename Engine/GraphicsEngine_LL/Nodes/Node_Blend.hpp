@@ -16,7 +16,9 @@ namespace inl::gxeng::nodes {
 
 class Blend :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<pipeline::Texture2D, pipeline::Texture2D>,
+	// Target, A, B
+	virtual public exc::InputPortConfig<pipeline::Texture2D, pipeline::Texture2D, pipeline::Texture2D>,
+	// Output
 	virtual public exc::OutputPortConfig<pipeline::Texture2D>
 {
 public:
@@ -35,9 +37,6 @@ protected:
 	static constexpr auto COLOR_FORMAT = gxapi::eFormat::R8G8B8A8_UNORM;
 
 protected:
-	RenderTargetView2D m_rtv;
-	TextureView2D m_renderTargetSrv;
-
 	VertexBuffer m_fsq;
 	IndexBuffer m_fsqIndices;
 
@@ -52,8 +51,8 @@ protected:
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 private:
-	void InitRenderTarget(unsigned width, unsigned height);
 	void Render(
+		const RenderTargetView2D& target,
 		const TextureView2D& texture0,
 		const TextureView2D& texture1,
 		GraphicsCommandList& commandList);

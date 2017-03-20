@@ -38,11 +38,6 @@ int GraphicsContext::GetGraphicsDeviceCount() const {
 }
 
 
-gxapi::SwapChainDesc GraphicsContext::GetSwapChainDesc() const {
-	return m_swapChain->GetDesc();
-}
-
-
 Texture2D GraphicsContext::CreateTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize) const {
 	if (m_memoryManager == nullptr) throw std::logic_error("Cannot create texture without memory manager.");
 

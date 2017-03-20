@@ -1,8 +1,7 @@
 #pragma once
 
 #include "../GraphicsNode.hpp"
-
-#include "Node_GenCSM.hpp"
+#pragma once 
 
 #include "../Scene.hpp"
 #include "../PerspectiveCamera.hpp"

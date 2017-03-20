@@ -19,20 +19,21 @@ namespace gxeng {
 // Prototypes of classes used.
 //------------------------------------------------------------------------------
 class Scene;
-class Overlay;
 
 namespace nodes {
 class GetBackBuffer;
 class GetSceneByName;
-class GetOverlayByName;
 class GetCameraByName;
-class RenderToBackBuffer;
 }
 
 
 
 //------------------------------------------------------------------------------
 // Special access contexts.
+// Special access nodes are a very few specifics that are provided by the 
+// graphics engine. These nodes have restricted access to the graphics engines
+// internals such as back buffers, scene and timers.
+// DO NOT ADD YOU OWN NODE AS FRIEND JUST BECAUSE YOU FEEL LIKE DOING SO!!!
 //------------------------------------------------------------------------------
 class SceneAccessContext {
 	friend class nodes::GetSceneByName;
@@ -45,18 +46,8 @@ protected:
 };
 
 
-class OverlayAccessContext {
-	friend class nodes::GetOverlayByName;
-public:
-	virtual ~OverlayAccessContext() {}
-protected:
-	virtual const Overlay* GetOverlayByName(const std::string& name) const = 0;
-};
-
-
 class SwapChainAccessContext {
 	friend class nodes::GetBackBuffer;
-	friend class nodes::RenderToBackBuffer;
 public:
 	virtual ~SwapChainAccessContext() {}
 protected:
@@ -70,7 +61,6 @@ protected:
 //------------------------------------------------------------------------------
 class ExecutionContext 
 	: public SceneAccessContext,
-	public OverlayAccessContext,
 	public SwapChainAccessContext
 {
 public:
@@ -92,7 +82,6 @@ public:
 protected:
 	const Scene* GetSceneByName(const std::string& name) const override;
 	const BasicCamera* GetCameraByName(const std::string& name) const override;
-	const Overlay* GetOverlayByName(const std::string& name) const override;
 	RenderTargetView2D* GetBackBuffer() const override;	
 private:
 	FrameContext* m_frameContext;

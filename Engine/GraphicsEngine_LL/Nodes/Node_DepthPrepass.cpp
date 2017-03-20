@@ -82,9 +82,6 @@ DepthPrepass::DepthPrepass(gxapi::IGraphicsApi* graphicsApi):
 void DepthPrepass::InitGraphics(const GraphicsContext & context) {
 	m_graphicsContext = context;
 
-	auto swapChainDesc = context.GetSwapChainDesc();
-	InitRenderTarget(swapChainDesc.width, swapChainDesc.height);
-
 	ShaderParts shaderParts;
 	shaderParts.vs = true;
 	shaderParts.ps = true;
@@ -119,19 +116,22 @@ Task DepthPrepass::GetTask() {
 	return Task({ [this](const ExecutionContext& context) {
 		ExecutionResult result;
 
-		const EntityCollection<MeshEntity>* entities = this->GetInput<0>().Get();
+		auto target = this->GetInput<0>().Get();
 		this->GetInput<0>().Clear();
 
-		const BasicCamera* camera = this->GetInput<1>().Get();
+		const EntityCollection<MeshEntity>* entities = this->GetInput<1>().Get();
 		this->GetInput<1>().Clear();
 
-		this->GetOutput<0>().Set(pipeline::Texture2D(m_depthTargetSrv, m_dsv));
+		const BasicCamera* camera = this->GetInput<2>().Get();
+		this->GetInput<2>().Clear();
+
+		this->GetOutput<0>().Set(target);
 
 		if (entities) {
 			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
 			CopyCommandList cpyCmdList = context.GetCopyCommandList();
 
-			RenderScene(m_dsv, *entities, camera, cmdList);
+			RenderScene(target.QueryDepthStencil(cmdList, m_graphicsContext), *entities, camera, cmdList);
 			result.AddCommandList(std::move(cmdList));
 		}
 
@@ -140,43 +140,15 @@ Task DepthPrepass::GetTask() {
 }
 
 
-void DepthPrepass::InitRenderTarget(unsigned width, unsigned height) {
-	using gxapi::eFormat;
-
-	auto formatDepthStencil = eFormat::D32_FLOAT_S8X24_UINT;
-	auto formatColor = eFormat::R32_FLOAT_X8X24_TYPELESS;
-	auto formatTypeless = eFormat::R32G8X24_TYPELESS;
-
-	Texture2D tex = m_graphicsContext.CreateDepthStencil2D(width, height, formatTypeless, true);
-
-	gxapi::DsvTexture2DArray dsvDesc;
-	dsvDesc.activeArraySize = 1;
-	dsvDesc.firstArrayElement = 0;
-	dsvDesc.firstMipLevel = 0;
-
-	m_dsv = m_graphicsContext.CreateDsv(tex, formatDepthStencil, dsvDesc);
-
-	gxapi::SrvTexture2DArray srvDesc;
-	srvDesc.activeArraySize = 1;
-	srvDesc.firstArrayElement = 0;
-	srvDesc.numMipLevels = -1;
-	srvDesc.mipLevelClamping = 0;
-	srvDesc.mostDetailedMip = 0;
-	srvDesc.planeIndex = 0;
-
-	m_depthTargetSrv = m_graphicsContext.CreateSrv(tex, formatColor, srvDesc);
-}
-
-
 void DepthPrepass::RenderScene(
-	DepthStencilView2D& dsv,
+	const DepthStencilView2D& dsv,
 	const EntityCollection<MeshEntity>& entities,
 	const BasicCamera* camera,
 	GraphicsCommandList& commandList
 ) {
 	commandList.SetRenderTargets(0, nullptr, &dsv);
 
-	gxapi::Rectangle rect{ 0, (int)m_dsv.GetResource().GetHeight(), 0, (int)m_dsv.GetResource().GetWidth() };
+	gxapi::Rectangle rect{ 0, (int)dsv.GetResource().GetHeight(), 0, (int)dsv.GetResource().GetWidth() };
 	gxapi::Viewport viewport;
 	viewport.width = (float)rect.right;
 	viewport.height = (float)rect.bottom;

@@ -4,6 +4,7 @@
 #include "../Mesh.hpp"
 #include "../Image.hpp"
 #include "../DirectionalLight.hpp"
+#include "../PerspectiveCamera.hpp"
 
 #include <array>
 

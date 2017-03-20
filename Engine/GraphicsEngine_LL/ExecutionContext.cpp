@@ -1,7 +1,6 @@
 #include "ExecutionContext.hpp"
 
 #include "Scene.hpp"
-#include "Overlay.hpp"
 #include "BasicCamera.hpp"
 
 
@@ -75,16 +74,6 @@ const BasicCamera* ExecutionContext::GetCameraByName(const std::string& name) co
 	for (auto camera : *m_frameContext->cameras) {
 		if (camera->GetName() == name) {
 			return camera;
-		}
-	}
-	return nullptr;
-}
-
-
-const Overlay* ExecutionContext::GetOverlayByName(const std::string & name) const {
-	for (auto overlay : *m_frameContext->overlays) {
-		if (overlay->GetName() == name) {
-			return overlay;
 		}
 	}
 	return nullptr;

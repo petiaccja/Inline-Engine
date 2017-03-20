@@ -59,9 +59,6 @@ Blend::Blend(gxapi::IGraphicsApi * graphicsApi, BlendMode mode) :
 void Blend::InitGraphics(const GraphicsContext& context) {
 	m_graphicsContext = context;
 
-	auto swapChainDesc = context.GetSwapChainDesc();
-	InitRenderTarget(swapChainDesc.width, swapChainDesc.height);
-
 	std::vector<float> vertices = {
 		-1, -1, 
 		+1, -1, 
@@ -115,50 +112,33 @@ Task Blend::GetTask() {
 	return Task({ [this](const ExecutionContext& context) {
 		ExecutionResult result;
 
-		auto texture0 = this->GetInput<0>().Get();
+		auto target = this->GetInput<0>().Get();
 		this->GetInput<0>().Clear();
 
-		auto texture1 = this->GetInput<1>().Get();
+		auto texture0 = this->GetInput<1>().Get();
 		this->GetInput<1>().Clear();
 
+		auto texture1 = this->GetInput<2>().Get();
+		this->GetInput<2>().Clear();
+
 		GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-		Render(texture0.QueryRead(), texture1.QueryRead(), cmdList);
+		Render(target.QueryRenderTarget(cmdList, m_graphicsContext), texture0.QueryRead(), texture1.QueryRead(), cmdList);
 		result.AddCommandList(std::move(cmdList));
 
-		this->GetOutput<0>().Set(pipeline::Texture2D(m_renderTargetSrv, m_rtv));
+		this->GetOutput<0>().Set(target);
 
 		return result;
 	} });
 }
 
 
-void Blend::InitRenderTarget(unsigned width, unsigned height) {
-	Texture2D tex = m_graphicsContext.CreateRenderTarget2D(width, height, COLOR_FORMAT, true);
-
-	gxapi::RtvTexture2DArray rtvDesc;
-	rtvDesc.activeArraySize = 1;
-	rtvDesc.firstArrayElement = 0;
-	rtvDesc.planeIndex = 0;
-	rtvDesc.firstMipLevel = 0;
-	m_rtv = m_graphicsContext.CreateRtv(tex, COLOR_FORMAT, rtvDesc);
-
-	gxapi::SrvTexture2DArray srvDesc;
-	srvDesc.activeArraySize = 1;
-	srvDesc.firstArrayElement = 0;
-	srvDesc.numMipLevels = -1;
-	srvDesc.mipLevelClamping = 0;
-	srvDesc.mostDetailedMip = 0;
-	srvDesc.planeIndex = 0;
-	m_renderTargetSrv = m_graphicsContext.CreateSrv(tex, COLOR_FORMAT, srvDesc);
-}
-
-
 void Blend::Render(
+	const RenderTargetView2D& target,
 	const TextureView2D& texture0,
 	const TextureView2D& texture1,
 	GraphicsCommandList& commandList)
 {
-	auto* pRTV = &m_rtv;
+	auto* pRTV = &target;
 	commandList.SetResourceState(pRTV->GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetRenderTargets(1, &pRTV);
 

@@ -34,7 +34,7 @@ static void setWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsign
 
 
 DepthReduction::DepthReduction(gxapi::IGraphicsApi * graphicsApi):
-	m_binder(graphicsApi, {})
+	m_binder(graphicsApi, {}), m_width(0), m_height(0)
 {
 	this->GetInput<0>().Set({});
 
@@ -78,11 +78,6 @@ DepthReduction::DepthReduction(gxapi::IGraphicsApi * graphicsApi):
 void DepthReduction::InitGraphics(const GraphicsContext& context) {
 	m_graphicsContext = context;
 
-	auto swapChainDesc = context.GetSwapChainDesc();
-	m_width = swapChainDesc.width;
-	m_height = swapChainDesc.height;
-	InitRenderTarget();
-
 	ShaderParts shaderParts;
 	shaderParts.cs = true;
 
@@ -102,6 +97,13 @@ Task DepthReduction::GetTask() {
 
 		gxeng::pipeline::Texture2D depthTex = this->GetInput<0>().Get();
 		this->GetInput<0>().Clear();
+
+		if (depthTex.Width() != m_width || depthTex.Height() != m_height) {
+			m_width = depthTex.Width();
+			m_height = depthTex.Height();
+			InitRenderTarget();
+		}
+
 
 		this->GetOutput<0>().Set(pipeline::Texture2D(m_srv));
 

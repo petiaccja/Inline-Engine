@@ -29,12 +29,19 @@ const EntityCollection<MeshEntity>& Scene::GetMeshEntities() const {
 	return m_meshEntities;
 }
 
-void Scene::SetSun(DirectionalLight* sun) {
-	m_sun = sun;
+EntityCollection<OverlayEntity>& Scene::GetOverlayEntities() {
+	return m_overlayEntities;
 }
 
-const DirectionalLight& Scene::GetSun() const {
-	return *m_sun;
+const EntityCollection<OverlayEntity>& Scene::GetOverlayEntities() const {
+	return m_overlayEntities;
+}
+
+EntityCollection<DirectionalLight>& Scene::GetDirectionalLights() {
+	return m_directionalLights;
+}
+const EntityCollection<DirectionalLight>& Scene::GetDirectionalLights() const {
+	return m_directionalLights;
 }
 
 

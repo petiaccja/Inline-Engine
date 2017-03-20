@@ -5,8 +5,6 @@
 
 #include <iostream> // only for debugging
 
-#include "Nodes/Node_FrameCounter.hpp"
-#include "Nodes/Node_FrameColor.hpp"
 #include "Nodes/Node_GetBackBuffer.hpp"
 #include "Nodes/Node_GetSceneByName.hpp"
 #include "Nodes/Node_GetCameraByName.hpp"
@@ -18,14 +16,10 @@
 #include "Nodes/Node_DepthReduction.hpp"
 #include "Nodes/Node_DepthReductionFinal.hpp"
 #include "Nodes/Node_CSM.hpp"
-
-#include "Nodes/Node_GenCSM.hpp"
-#include "Nodes/Node_RenderToBackBuffer.hpp"
 #include "Nodes/Node_DrawSky.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
-#include "Nodes/Node_GetOverlayByName.hpp"
 #include "Nodes/Node_Blend.hpp"
 
 #include "Scene.hpp"
@@ -35,7 +29,6 @@
 #include "Material.hpp"
 #include "Image.hpp"
 #include "MeshEntity.hpp"
-#include "Overlay.hpp"
 #include "OverlayEntity.hpp"
 
 
@@ -247,28 +240,6 @@ Scene* GraphicsEngine::CreateScene(std::string name) {
 	return scene;
 }
 
-Overlay* GraphicsEngine::CreateOverlay(std::string name) {
-	// Declare a derived class for the sole purpose of making the destructor unregister the object from overlay list.
-	class ObservedOverlay : public Overlay {
-	public:
-		ObservedOverlay(std::function<void(Overlay*)> deleteHandler, std::string name) :
-			Overlay(std::move(name)), m_deleteHandler(std::move(deleteHandler)) {}
-		~ObservedOverlay() {
-			if (m_deleteHandler) { m_deleteHandler(static_cast<Overlay*>(this)); }
-		}
-	protected:
-		std::function<void(Overlay*)> m_deleteHandler;
-	};
-
-	auto unregisterOverlay = [this](Overlay* arg) {
-		m_overlays.erase(arg);
-	};
-
-	Overlay* overlay = new ObservedOverlay(unregisterOverlay, std::move(name));
-	m_overlays.insert(overlay);
-
-	return overlay;
-}
 
 PerspectiveCamera* GraphicsEngine::CreatePerspectiveCamera(std::string name) {
 	class ObservedPerspectiveCamera : public PerspectiveCamera {
@@ -340,7 +311,7 @@ void GraphicsEngine::CreatePipeline() {
 	// -----------------------------
 	std::unique_ptr<nodes::GetSceneByName> getWorldScene(new nodes::GetSceneByName());
 	std::unique_ptr<nodes::GetCameraByName> getCamera(new nodes::GetCameraByName());
-	std::unique_ptr<nodes::RenderToBackBuffer> renderToBackbuffer(new nodes::RenderToBackBuffer(m_graphicsApi));
+	std::unique_ptr<nodes::GetBackBuffer> getBackBuffer(new nodes::GetBackBuffer());
 
 	std::unique_ptr<nodes::ForwardRender> forwardRender(new nodes::ForwardRender(m_graphicsApi));
 	std::unique_ptr<nodes::DepthPrepass> depthPrePass(new nodes::DepthPrepass(m_graphicsApi));
@@ -353,8 +324,11 @@ void GraphicsEngine::CreatePipeline() {
 	getWorldScene->GetInput<0>().Set("World");
 	getCamera->GetInput<0>().Set("WorldCam");
 
-	depthPrePass->GetInput<0>().Link(getWorldScene->GetOutput(0));
-	depthPrePass->GetInput<1>().Link(getCamera->GetOutput(0));
+	static_assert(false, "Node graphics linking must be fixed. Do not even try to run, it's not gonna work.");
+
+	// MISSING (fatal): link target depth tex to input(0) of depthPrePass
+	depthPrePass->GetInput(1)->Link(getWorldScene->GetOutput(0));
+	depthPrePass->GetInput(2)->Link(getCamera->GetOutput(0));
 
 	depthReduction->GetInput<0>().Link(depthPrePass->GetOutput(0));
 
@@ -365,13 +339,14 @@ void GraphicsEngine::CreatePipeline() {
 	csm->GetInput<0>().Link(getWorldScene->GetOutput(0));
 	csm->GetInput<1>().Link(depthReductionFinal->GetOutput(0));
 
-	forwardRender->GetInput<0>().Link(depthPrePass->GetOutput(0));
-	forwardRender->GetInput<1>().Link(getWorldScene->GetOutput(0));
-	forwardRender->GetInput<2>().Link(getCamera->GetOutput(0));
-	forwardRender->GetInput<3>().Link(getWorldScene->GetOutput(1));
-	forwardRender->GetInput<4>().Link(csm->GetOutput(0));
-	forwardRender->GetInput<5>().Link(depthReductionFinal->GetOutput(1));
-	forwardRender->GetInput<6>().Link(depthReductionFinal->GetOutput(2));
+	// MISSING (fatal): link target color float16 tex to input(0) of forwardRender
+	forwardRender->GetInput(1)->Link(depthPrePass->GetOutput(0));
+	forwardRender->GetInput(2)->Link(getWorldScene->GetOutput(0));
+	forwardRender->GetInput(3)->Link(getCamera->GetOutput(0));
+	forwardRender->GetInput(4)->Link(getWorldScene->GetOutput(1));
+	forwardRender->GetInput(5)->Link(csm->GetOutput(0));
+	forwardRender->GetInput(6)->Link(depthReductionFinal->GetOutput(1));
+	forwardRender->GetInput(7)->Link(depthReductionFinal->GetOutput(2));
 
 	drawSky->GetInput<0>().Link(forwardRender->GetOutput(0));
 	drawSky->GetInput<1>().Link(depthPrePass->GetOutput(0));
@@ -382,22 +357,20 @@ void GraphicsEngine::CreatePipeline() {
 	// -----------------------------
 	// Gui pipeline path
 	// -----------------------------
-	std::unique_ptr<nodes::GetOverlayByName> getGui(new nodes::GetOverlayByName());
+	std::unique_ptr<nodes::GetSceneByName> getGuiScene(new nodes::GetSceneByName());
 	std::unique_ptr<nodes::GetCameraByName> getGuiCamera(new nodes::GetCameraByName());
 	std::unique_ptr<nodes::OverlayRender> guiRender(new nodes::OverlayRender(m_graphicsApi));
 	std::unique_ptr<nodes::Blend> alphaBlend(new nodes::Blend(m_graphicsApi, nodes::Blend::CASUAL_ALPHA_BLEND));
 
-	getGui->GetInput<0>().Set("Gui");
+	getGuiScene->GetInput<0>().Set("Gui");
 	getGuiCamera->GetInput<0>().Set("GuiCamera");
 
-	guiRender->GetInput<0>().Link(getGui->GetOutput(0));
+	guiRender->GetInput<0>().Link(getGuiScene->GetOutput(0));
 	guiRender->GetInput<1>().Link(getGuiCamera->GetOutput(0));
 
-	alphaBlend->GetInput<0>().Link(drawSky->GetOutput(0));
-	alphaBlend->GetInput<1>().Link(guiRender->GetOutput(0));
-
-	renderToBackbuffer->GetInput<0>().Link(alphaBlend->GetOutput(0));
-	
+	alphaBlend->GetInput<0>().Link(getBackBuffer->GetOutput(0));
+	alphaBlend->GetInput<1>().Link(drawSky->GetOutput(0));
+	alphaBlend->GetInput<2>().Link(guiRender->GetOutput(0));
 
 	m_graphicsNodes = {
 		getWorldScene.release(),
@@ -407,10 +380,9 @@ void GraphicsEngine::CreatePipeline() {
 		depthReductionFinal.release(),
 		csm.release(),
 		forwardRender.release(),
-		renderToBackbuffer.release(),
 		drawSky.release(),
 
-		getGui.release(),
+		getGuiScene.release(),
 		getGuiCamera.release(),
 		guiRender.release(),
 		alphaBlend.release()

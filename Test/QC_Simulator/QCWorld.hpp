@@ -7,7 +7,6 @@
 #include <GraphicsEngine_LL/Image.hpp>
 #include <GraphicsEngine_LL/MeshEntity.hpp>
 #include <GraphicsEngine_LL/Scene.hpp>
-#include <GraphicsEngine_LL/Overlay.hpp>
 #include <GraphicsEngine_LL/OverlayEntity.hpp>
 #include <GraphicsEngine_LL/PerspectiveCamera.hpp>
 #include <GraphicsEngine_LL/OrthographicCamera.hpp>
@@ -98,7 +97,10 @@ private:
 	std::unique_ptr<inl::gxeng::Image> m_checkerTexture;
 
 	std::unique_ptr<inl::gxeng::Material> m_treeMaterial;
-	std::unique_ptr<inl::gxeng::MaterialShaderGraph> m_treeShader;
+	std::unique_ptr<inl::gxeng::Material> m_quadcopterMaterial;
+	std::unique_ptr<inl::gxeng::Material> m_terrainMaterial;
+	std::unique_ptr<inl::gxeng::Material> m_axesMaterial;
+	std::unique_ptr<inl::gxeng::MaterialShaderGraph> m_simpleShader;
 
 	// Entities
 	std::vector<std::unique_ptr<inl::gxeng::MeshEntity>> m_staticEntities;
@@ -114,7 +116,7 @@ private:
 
 	// Gui
 	std::unique_ptr<inl::gxeng::OrthographicCamera> m_guiCamera;
-	std::unique_ptr<inl::gxeng::Overlay> m_guiOverlay;
+	std::unique_ptr<inl::gxeng::Scene> m_guiScene;
 	std::unique_ptr<inl::gxeng::Mesh> m_overlayQuadMesh;
 	std::unique_ptr<inl::gxeng::Image> m_overlayTexture;
 	std::vector<std::unique_ptr<inl::gxeng::OverlayEntity>> m_overlayElements;

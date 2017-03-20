@@ -1,9 +1,6 @@
 #pragma once
 
 #include "../GraphicsNode.hpp"
-
-#include "Node_GenCSM.hpp"
-
 #include "../Scene.hpp"
 #include "../BasicCamera.hpp"
 #include "../Mesh.hpp"
@@ -18,8 +15,16 @@ namespace inl::gxeng::nodes {
 
 class ForwardRender :
 	virtual public GraphicsNode,
-	// Inputs: depth stencil (from depth prepass), geometry, camera, sun
-	virtual public exc::InputPortConfig<pipeline::Texture2D, const EntityCollection<MeshEntity>*, const BasicCamera*, const DirectionalLight*, pipeline::Texture2D, pipeline::Texture2D, pipeline::Texture2D>,
+	// Inputs: target, depth stencil (from depth prepass), geometry, camera, sun
+	virtual public exc::InputPortConfig<
+	pipeline::Texture2D,
+	pipeline::Texture2D,
+	const EntityCollection<MeshEntity>*,
+	const BasicCamera*,
+	const EntityCollection<DirectionalLight>*,
+	pipeline::Texture2D,
+	pipeline::Texture2D,
+	pipeline::Texture2D>,
 	virtual public exc::OutputPortConfig<pipeline::Texture2D>
 {
 private:
@@ -52,7 +57,6 @@ public:
 	Task GetTask() override;
 
 private:
-	void InitRenderTarget(unsigned width, unsigned height);
 	void RenderScene(
 		DepthStencilView2D& dsv,
 		const EntityCollection<MeshEntity>& entities,

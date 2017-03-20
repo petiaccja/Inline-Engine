@@ -34,7 +34,6 @@ class MaterialShaderGraph;
 
 class Scene;
 class MeshEntity;
-class Overlay;
 class OverlayEntity;
 class PerspectiveCamera;
 class OrthographicCamera;
