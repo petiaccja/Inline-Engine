@@ -177,10 +177,8 @@
     <ClInclude Include="Platform\PlatformDefinitions.h" />
     <ClInclude Include="Platform\PlatformUtils.h" />
     <ClInclude Include="Platform\Sys.hpp" />
-    <ClInclude Include="Platform\Timer.hpp" />
     <ClInclude Include="Platform\Win32\PlatformDefinitions.h" />
     <ClInclude Include="Platform\Win32\PlatformUtils.h" />
-    <ClInclude Include="Platform\Win32\Timer.hpp" />
     <ClInclude Include="Platform\Win32\Window.hpp" />
     <ClInclude Include="Platform\Window.hpp" />
     <ClInclude Include="Platform\WindowCommon.hpp" />
@@ -218,7 +216,6 @@
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NoListing</AssemblerOutput>
     </ClCompile>
     <ClCompile Include="Platform\Win32\Sys.cpp" />
-    <ClCompile Include="Platform\Win32\Timer.cpp" />
     <ClCompile Include="Platform\Win32\Window.cpp" />
     <ClCompile Include="Serialization\BinarySerializer.cpp" />
     <ClCompile Include="Serialization\BinarySerializerExtensions.cpp" />

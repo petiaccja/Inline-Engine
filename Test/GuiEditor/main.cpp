@@ -2,13 +2,14 @@
 // CryEngine, UE4, Unity, Godot, etc.. get REKT
 
 #include <BaseLibrary/Platform/Window.hpp>
-#include <BaseLibrary/Platform/Timer.hpp>
+#include <BaseLibrary/Timer.hpp>
 #include <GraphicsEngine/IGraphicsEngine.hpp>
 #include <GuiEngine/GuiEngine.hpp>
 #include <Core/Core.hpp>
 #include <Core/InputCore.h>
 #include <string>
 
+using namespace exc;
 using namespace inl::gxeng;
 
 Window* window;
@@ -119,7 +120,7 @@ void main()
 		}
 
 		// Get delta seconds from the timer
-		float deltaTime = timer->GetSecondsPassed();
+		float deltaTime = timer->Elapsed();
 		timer->Reset();
 
 		Update(deltaTime);
