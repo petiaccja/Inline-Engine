@@ -139,6 +139,21 @@
       <Filter>Platform\Win32</Filter>
     </ClInclude>
     <ClInclude Include="Common_tmp.hpp" />
+    <ClInclude Include="Timer.hpp">
+      <Filter>All</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\Win32\PlatformDefinitions.h">
+      <Filter>Platform\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\Win32\PlatformUtils.h">
+      <Filter>Platform\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\PlatformDefinitions.h">
+      <Filter>Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\PlatformUtils.h">
+      <Filter>Platform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">
@@ -190,5 +205,8 @@
       <Filter>Platform\Win32</Filter>
     </ClCompile>
     <ClCompile Include="Common_tmp.cpp" />
+    <ClCompile Include="Timer.cpp">
+      <Filter>All</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

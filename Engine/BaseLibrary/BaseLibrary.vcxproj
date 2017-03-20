@@ -155,6 +155,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Timer.cpp" />
     <ClInclude Include="ArrayView.hpp" />
     <ClInclude Include="BitflagEnum.hpp" />
     <ClInclude Include="BitOperations.hpp" />
@@ -173,8 +174,12 @@
     <ClInclude Include="Memory\MultiInstanceTLS.hpp" />
     <ClInclude Include="Memory\RingAllocationEngine.hpp" />
     <ClInclude Include="Memory\SlabAllocatorEngine.hpp" />
+    <ClInclude Include="Platform\PlatformDefinitions.h" />
+    <ClInclude Include="Platform\PlatformUtils.h" />
     <ClInclude Include="Platform\Sys.hpp" />
     <ClInclude Include="Platform\Timer.hpp" />
+    <ClInclude Include="Platform\Win32\PlatformDefinitions.h" />
+    <ClInclude Include="Platform\Win32\PlatformUtils.h" />
     <ClInclude Include="Platform\Win32\Timer.hpp" />
     <ClInclude Include="Platform\Win32\Window.hpp" />
     <ClInclude Include="Platform\Window.hpp" />
@@ -196,6 +201,7 @@
     <ClInclude Include="Stream.hpp" />
     <ClInclude Include="TemplateUtil.hpp" />
     <ClInclude Include="ThreadName.hpp" />
+    <ClInclude Include="Timer.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Graph\NodeFactory.cpp" />
