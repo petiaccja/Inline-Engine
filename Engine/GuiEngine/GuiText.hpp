@@ -22,20 +22,27 @@ public:
 
 	void Set(const std::wstring& text);
 	void Set(const std::string& text);
-	
+	void SetAlign(eTextAlign align);
+
 	virtual void OnPaint(HDC dc, Gdiplus::Graphics* graphics) override;
 
 protected:
 	std::wstring text;
 	Color color;
 	int fontSize;
-	eTextAlign textAlign;
+	eTextAlign align;
 };
 
 inline GuiText::GuiText()
-:color(Color::WHITE), fontSize(12), textAlign(eTextAlign::CENTER)
+:color(Color::WHITE), fontSize(12), align(eTextAlign::CENTER)
 {
-	
+	OnParentChanged += [&](GuiControl* parent)
+	{
+		parent->OnTransformChanged += [&](Rect<float>& rect)
+		{
+			SetRect(rect);
+		};
+	};
 }
 
 inline void GuiText::Set(const std::wstring& text)
@@ -55,21 +62,61 @@ inline void GuiText::OnPaint(HDC hdc, Gdiplus::Graphics* graphics)
 	Gdiplus::FontFamily  fontFamily(L"Helvetica");
 	Gdiplus::Font        font(&fontFamily, fontSize, Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
 
+	// Text alignment
+	Gdiplus::RectF gdiRect(rect.x, rect.y, rect.width, rect.height);
+	Gdiplus::RectF textRect;
+	graphics->MeasureString(text.c_str(), text.size(), &font, gdiRect, &textRect);
+
 	vec2 textPos;
-	switch (textAlign)
+	switch (align)
 	{
 		case eTextAlign::CENTER:
 		{
-			Gdiplus::RectF layoutRect(rect.x, rect.y, rect.width, rect.height);
-			Gdiplus::RectF boundRect;
-			graphics->MeasureString(text.c_str(), text.size(), &font, layoutRect, &boundRect);
-
 			textPos = rect.GetCenter();
-			textPos.x -= boundRect.Width * 0.5f;
-			textPos.y -= boundRect.Height * 0.5f;
-
-			break;
-		}
+			textPos.x -= textRect.Width * 0.5f;
+			textPos.y -= textRect.Height * 0.5f;
+			
+		} break;
+		case eTextAlign::LEFT:
+		{
+			textPos.x = rect.x;
+			textPos.y = rect.GetCenter().y - textRect.Height * 0.5f;
+		} break;
+		case eTextAlign::RIGHT:
+		{
+			textPos.x = rect.GetRight() - textRect.Width;
+			textPos.y = rect.GetCenter().y - textRect.Height * 0.5f;
+		} break;
+		case eTextAlign::TOP:
+		{
+			textPos.x = rect.GetCenter().x - textRect.Width * 0.5f;
+			textPos.y = rect.GetTop();
+		} break;
+		case eTextAlign::BOTTOM:
+		{
+			textPos.x = rect.GetCenter().x - textRect.Width * 0.5f;
+			textPos.y = rect.GetBottom() - textRect.Height;
+		} break;
+		case eTextAlign::TOP_LEFT:
+		{
+			textPos.x = rect.GetLeft();
+			textPos.y = rect.GetTop();
+		} break;
+		case eTextAlign::TOP_RIGHT:
+		{
+			textPos.x = rect.GetRight() - textRect.Width;
+			textPos.y = rect.GetTop();
+		} break;
+		case eTextAlign::BOTTOM_LEFT:
+		{
+			textPos.x = rect.GetLeft();
+			textPos.y = rect.GetBottom() - textRect.Height;
+		} break;
+		case eTextAlign::BOTTOM_RIGHT:
+		{
+			textPos.x = rect.GetRight() - textRect.Width;
+			textPos.y = rect.GetBottom() - textRect.Height;
+		} break;
 		default:__debugbreak();
 	}
 
@@ -77,4 +124,9 @@ inline void GuiText::OnPaint(HDC hdc, Gdiplus::Graphics* graphics)
 
 	graphics->SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAliasGridFit);
 	graphics->DrawString(text.c_str(), -1, &font, pointF, &brush);
+}
+
+inline void GuiText::SetAlign(eTextAlign align)
+{
+	this->align = align;
 }

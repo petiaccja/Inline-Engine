@@ -12,6 +12,7 @@ public:
 	void SetBackgroundToColor(Color& baseColor, Color& hoverColor);
 	void SetText(const std::wstring& text);
 	void SetText(const std::string& text);
+	void SetTextAlign(eTextAlign align);
 
 protected:
 	GuiPlane* background;
@@ -20,8 +21,8 @@ protected:
 
 inline GuiButton::GuiButton()
 {
-	background = AddChildPlane();
-	text = AddChildText();
+	background = AddPlane();
+	text = AddText();
 }
 
 inline void GuiButton::SetBackgroundToColor(Color& baseColor, Color& hoverColor)
@@ -38,4 +39,9 @@ inline void GuiButton::SetText(const std::wstring& text)
 inline void GuiButton::SetText(const std::string& text)
 {
 	this->text->Set(text);
+}
+
+inline void GuiButton::SetTextAlign(eTextAlign align)
+{
+	text->SetAlign(align);
 }

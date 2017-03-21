@@ -9,7 +9,7 @@
 #include <fstream>
 #pragma comment (lib, "gdiplus.lib")
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	Window* window;
 	if (msg == WM_NCCREATE)
@@ -17,15 +17,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		window = static_cast<Window*>(reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams);
 	
 		SetLastError(0);
-		SetWindowLongPtr(hwnd, -21, reinterpret_cast<LONG_PTR>(window));
+		SetWindowLongPtr(handle, -21, reinterpret_cast<LONG_PTR>(window));
 	}
 	else
 	{
-		window = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, -21));
+		window = reinterpret_cast<Window*>(GetWindowLongPtr(handle, -21));
 	}
 
 	MSG s;
-	s.hwnd = hwnd;
+	s.hwnd = handle;
 	s.message = msg;
 	s.lParam = lParam;
 	s.wParam = wParam;
@@ -51,7 +51,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 
-	return DefWindowProc(hwnd, msg, wParam, lParam);
+	return DefWindowProc(handle, msg, wParam, lParam);
 }
 
 Window::Window(const WindowDesc& d)
@@ -110,7 +110,7 @@ Window::Window(const WindowDesc& d)
 
 	std::wstring captionText(d.capText.begin(), d.capText.end());
 
-	hwnd = CreateWindowExW(0,
+	handle = CreateWindowExW(0,
 		L"windowclass",
 		captionText.c_str(),
 		(int)interpretedStyle,
@@ -123,8 +123,8 @@ Window::Window(const WindowDesc& d)
 		appID,
 		this);
 
-	ShowWindow(hwnd, SW_SHOW);
-	UpdateWindow(hwnd);
+	ShowWindow(handle, SW_SHOW);
+	UpdateWindow(handle);
 
 	//SetWindowLongPtr(hwnd, GWL_USERDATA, (LONG_PTR)this);
 
@@ -136,7 +136,7 @@ Window::Window(const WindowDesc& d)
 	Rid[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
 	Rid[0].usUsage = HID_USAGE_GENERIC_MOUSE;
 	Rid[0].dwFlags = RIDEV_INPUTSINK;
-	Rid[0].hwndTarget = hwnd;
+	Rid[0].hwndTarget = handle;
 	RegisterRawInputDevices(Rid, 1, sizeof(Rid[0]));
 }
 
@@ -159,7 +159,7 @@ bool Window::PopEvent(WindowEvent& evt_out)
 	evt_out.mousePos.Zero();
 
 	MSG msg;
-	if (PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE))
+	if (PeekMessage(&msg, handle, 0, 0, PM_REMOVE))
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
@@ -298,60 +298,42 @@ bool Window::PopEvent(WindowEvent& evt_out)
 
 void Window::Close() 
 {
-	CloseWindow(hwnd);
+	CloseWindow(handle);
 	bClosed = true;
 }
 
 void Window::Clear(const Color& color)
 {
 	// TODO
-	//w.clear(sf::Color(color.r, color.g, color.b, color.a));
 }
 
 void Window::SetPos(const ivec2& pos /*= ivec2(0, 0)*/)
 {
 	RECT rect;
-	GetWindowRect(hwnd, &rect);
-	SetWindowPos(hwnd, HWND_TOP, pos.x, pos.y, rect.right - rect.left, rect.bottom - rect.top, 0);
-	//w.setPosition(sf::Vector2i(pos.x, pos.y));
+	GetWindowRect(handle, &rect);
+	SetWindowPos(handle, HWND_TOP, pos.x, pos.y, rect.right - rect.left, rect.bottom - rect.top, 0);
 }
 
 void Window::SetSize(const uvec2& size)
 {
 	RECT rect;
-	GetWindowRect(hwnd, &rect);
-	SetWindowPos(hwnd, HWND_TOP, rect.left, rect.bottom, size.x, size.y, 0);
-	//w.setSize(sf::Vector2u(pos.x, pos.y));
+	GetWindowRect(handle, &rect);
+	SetWindowPos(handle, HWND_TOP, rect.left, rect.bottom, size.x, size.y, 0);
 }
 
 void Window::SetClientPixels(const Color* const pixels)
 {
 	// TODO
-	//static thread_local sf::Sprite	sprite;
-	//static thread_local sf::Texture texture;
-	//static thread_local bool bInited = false;
-	//
-	//if (!bInited)
-	//{
-	//	texture.create(GetClientWidth(), GetClientHeight());
-	//	sprite.setTexture(texture);
-	//	bInited = true;
-	//}
-	//
-	//texture.update((uint8_t*)pixels);
-	//
-	//w.draw(sprite);
 }
 
 void Window::SetCursorVisible(bool bVisible)
 {
 	// TODO
-	//w.setMouseCursorVisible(bVisible);
 }
 
 void Window::SetTitle(const std::wstring& text)
 {
-	SetWindowText(hwnd, text.c_str());
+	SetWindowText(handle, text.c_str());
 }
 
 bool Window::IsOpen() const
@@ -359,20 +341,25 @@ bool Window::IsOpen() const
 	return !bClosed;
 }
 
+bool Window::IsFocused() const
+{
+	return GetFocus() == handle;
+}
+
 size_t Window::GetHandle() const
 {
-	return (size_t)hwnd;
+	return (size_t)handle;
 }
 
 uint32_t Window::GetClientWidth() const 
 {
-	RECT rect; GetClientRect(hwnd, &rect);
+	RECT rect; GetClientRect(handle, &rect);
 	return (uint32_t)(rect.right - rect.left);
 }
 
 uint32_t Window::GetClientHeight() const
 {
-	RECT rect; GetClientRect(hwnd, &rect);
+	RECT rect; GetClientRect(handle, &rect);
 	return (uint32_t)(rect.bottom - rect.top);
 }
 
@@ -382,7 +369,7 @@ ivec2 Window::GetClientCursorPos() const
 	POINT p;
 	p.x = cursorPos.x;
 	p.y = cursorPos.y;
-	ScreenToClient(hwnd, &p);
+	ScreenToClient(handle, &p);
 
 	return ivec2(p.x, p.y);
 }
@@ -395,63 +382,15 @@ unsigned Window::GetNumClientPixels() const
 float Window::GetClientAspectRatio() const 
 {
 	return (float)GetClientWidth() * GetClientHeight();
-	//const sf::Vector2u size = w.getSize();
-	//return (float)size.x / size.y;
 }
 
 ivec2 Window::GetCenterPos() const
 {
 	WINDOWINFO info;
-	assert(GetWindowInfo(hwnd, &info));
+	assert(GetWindowInfo(handle, &info));
 
 	return ivec2((int)((info.rcWindow.right - info.rcWindow.left) * 0.5f), (int)((info.rcWindow.bottom - info.rcWindow.right) * 0.5f));
-	//auto size = w.getSize();
-	//auto pos = w.getPosition();
-	//
-	//return ivec2(pos.x + size.x * 0.5, pos.y + size.y * 0.5);
 }
-
-//eWindowMsg Window::ConvertFromSFMLWindowMsg(sf::Event::EventType windowMsg)
-//{
-//	switch (windowMsg)
-//	{
-//	case sf::Event::EventType::Closed:					return CLOSE;
-//	case sf::Event::EventType::Resized:					return RESIZE;
-//	case sf::Event::EventType::LostFocus:				return DEFOCUS;
-//	case sf::Event::EventType::GainedFocus:				return FOCUS;
-//	case sf::Event::EventType::TextEntered:				return TEXT_ENTERED;
-//	case sf::Event::EventType::KeyPressed:				return KEY_PRESS;
-//	case sf::Event::EventType::KeyReleased:				return KEY_RELEASE;
-//	case sf::Event::EventType::MouseWheelScrolled:
-//	case sf::Event::EventType::MouseWheelMoved:			return MOUSE_SCROLL;
-//	case sf::Event::EventType::MouseButtonPressed:		return MOUSE_PRESS;
-//	case sf::Event::EventType::MouseButtonReleased:		return MOUSE_RELEASE;
-//	case sf::Event::EventType::MouseMoved:				return MOUSE_MOVE;
-//	case sf::Event::EventType::MouseEntered:			return MOUSE_ENTER;
-//	case sf::Event::EventType::MouseLeft:				return MOUSE_LEAVE;
-//	case sf::Event::EventType::JoystickButtonPressed:	return JOYSTICK_BUTTON_PRESS;
-//	case sf::Event::EventType::JoystickButtonReleased:	return JOYSTICK_BUTTON_RELEASE;
-//	case sf::Event::EventType::JoystickMoved:			return JOYSTICK_MOVE;
-//	case sf::Event::EventType::JoystickConnected:		return JOYSTICK_CONNECT;
-//	case sf::Event::EventType::JoystickDisconnected:	return JOYSTICK_DISCONNECT;
-//	}
-//
-//	return INVALID;
-//}
-//
-//eMouseBtn Window::ConvertFromSFMLMouseBtn(sf::Mouse::Button btn)
-//{
-//	switch (btn)
-//	{
-//		case sf::Mouse::Button::Left:		return eMouseBtn::LEFT;
-//		case sf::Mouse::Button::Right:		return eMouseBtn::RIGHT;
-//		case sf::Mouse::Button::Middle:		return eMouseBtn::MID;
-//		case sf::Mouse::Button::XButton1:	return eMouseBtn::EXTRA1;
-//		case sf::Mouse::Button::XButton2:	return eMouseBtn::EXTRA2;
-//	}
-//
-//	return eMouseBtn::INVALID;
-//}
 
 eKey Window::ConvertFromWindowsKey(WPARAM key)
 {
@@ -562,128 +501,3 @@ eKey Window::ConvertFromWindowsKey(WPARAM key)
 
 	return INVALID_eKey;
 }
-
-//eKey Window::ConvertFromSFMLKey(sf::Keyboard::Key key)
-//{
-//	switch (key)
-//	{
-//	case sf::Keyboard::A:			return eKey::A;
-//	case sf::Keyboard::B:			return eKey::B;
-//	case sf::Keyboard::C:			return eKey::C;
-//	case sf::Keyboard::D:			return eKey::D;
-//	case sf::Keyboard::E:			return eKey::E;
-//	case sf::Keyboard::F:			return eKey::F;
-//	case sf::Keyboard::G:			return eKey::G;
-//	case sf::Keyboard::H:			return eKey::H;
-//	case sf::Keyboard::I:			return eKey::I;
-//	case sf::Keyboard::J:			return eKey::J;
-//	case sf::Keyboard::K:			return eKey::K;
-//	case sf::Keyboard::L:			return eKey::L;
-//	case sf::Keyboard::M:			return eKey::M;
-//	case sf::Keyboard::N:			return eKey::N;
-//	case sf::Keyboard::O:			return eKey::O;
-//	case sf::Keyboard::P:			return eKey::P;
-//	case sf::Keyboard::Q:			return eKey::Q;
-//	case sf::Keyboard::R:			return eKey::R;
-//	case sf::Keyboard::S:			return eKey::S;
-//	case sf::Keyboard::T:			return eKey::T;
-//	case sf::Keyboard::U:			return eKey::U;
-//	case sf::Keyboard::V:			return eKey::V;
-//	case sf::Keyboard::W:			return eKey::W;
-//	case sf::Keyboard::X:			return eKey::X;
-//	case sf::Keyboard::Y:			return eKey::Y;
-//	case sf::Keyboard::Z:			return eKey::Z;
-//	case sf::Keyboard::Num0:		return eKey::NUM0;
-//	case sf::Keyboard::Num1:		return eKey::NUM1;
-//	case sf::Keyboard::Num2:		return eKey::NUM2;
-//	case sf::Keyboard::Num3:		return eKey::NUM3;
-//	case sf::Keyboard::Num4:		return eKey::NUM4;
-//	case sf::Keyboard::Num5:		return eKey::NUM5;
-//	case sf::Keyboard::Num6:		return eKey::NUM6;
-//	case sf::Keyboard::Num7:		return eKey::NUM7;
-//	case sf::Keyboard::Num8:		return eKey::NUM8;
-//	case sf::Keyboard::Num9:		return eKey::NUM9;
-//	case sf::Keyboard::Escape:		return eKey::ESC;
-//	case sf::Keyboard::LControl:	return eKey::LCTRL;
-//	case sf::Keyboard::LShift:		return eKey::LSHIFT;
-//	case sf::Keyboard::LAlt:		return eKey::LALT;
-//	case sf::Keyboard::LSystem:		return eKey::LSYS;
-//	case sf::Keyboard::RControl:	return eKey::RCTRL;
-//	case sf::Keyboard::RShift:		return eKey::RSHIFT;
-//	case sf::Keyboard::RAlt:		return eKey::RALT;
-//	case sf::Keyboard::RSystem:		return eKey::RSYS;
-//	case sf::Keyboard::Menu:		return eKey::MENU;
-//	case sf::Keyboard::LBracket:	return eKey::LBRACKET;
-//	case sf::Keyboard::RBracket:	return eKey::RBRACKET;
-//	case sf::Keyboard::SemiColon:	return eKey::SEMICOLON;
-//	case sf::Keyboard::Comma:		return eKey::COMMA;
-//	case sf::Keyboard::Period:		return eKey::PERIOD;
-//	case sf::Keyboard::Quote:		return eKey::QUOTE;
-//	case sf::Keyboard::Slash:		return eKey::SLASH;
-//	case sf::Keyboard::BackSlash:	return eKey::BACKSLASH;
-//	case sf::Keyboard::Tilde:		return eKey::TILDE;
-//	case sf::Keyboard::Equal:		return eKey::EQUAL;
-//	case sf::Keyboard::Dash:		return eKey::DASH;
-//	case sf::Keyboard::Space:		return eKey::SPACE;
-//	case sf::Keyboard::Return:		return eKey::RETURN;
-//	case sf::Keyboard::BackSpace:	return eKey::BACKSPACE;
-//	case sf::Keyboard::Tab:			return eKey::TAB;
-//	case sf::Keyboard::PageUp:		return eKey::PAGEUP;
-//	case sf::Keyboard::PageDown:	return eKey::PAGEDDOWN;
-//	case sf::Keyboard::End:			return eKey::END;
-//	case sf::Keyboard::Home:		return eKey::HOME;
-//	case sf::Keyboard::Insert:		return eKey::INS;
-//	case sf::Keyboard::Delete:		return eKey::DEL;
-//	case sf::Keyboard::Add:			return eKey::ADD;
-//	case sf::Keyboard::Subtract:	return eKey::SUB;
-//	case sf::Keyboard::Multiply:	return eKey::MUL;
-//	case sf::Keyboard::Divide:		return eKey::DIV;
-//	case sf::Keyboard::Left:		return eKey::LEFT;
-//	case sf::Keyboard::Right:		return eKey::RIGHT;
-//	case sf::Keyboard::Up:			return eKey::UP;
-//	case sf::Keyboard::Down:		return eKey::DOWN;
-//	case sf::Keyboard::Numpad0:		return eKey::NUM0;
-//	case sf::Keyboard::Numpad1:		return eKey::NUM1;
-//	case sf::Keyboard::Numpad2:		return eKey::NUM2;
-//	case sf::Keyboard::Numpad3:		return eKey::NUM3;
-//	case sf::Keyboard::Numpad4:		return eKey::NUM4;
-//	case sf::Keyboard::Numpad5:		return eKey::NUM5;
-//	case sf::Keyboard::Numpad6:		return eKey::NUM6;
-//	case sf::Keyboard::Numpad7:		return eKey::NUM7;
-//	case sf::Keyboard::Numpad8:		return eKey::NUM8;
-//	case sf::Keyboard::Numpad9:		return eKey::NUM9;
-//	case sf::Keyboard::F1:			return eKey::F1;
-//	case sf::Keyboard::F2:			return eKey::F2;
-//	case sf::Keyboard::F3:			return eKey::F3;
-//	case sf::Keyboard::F4:			return eKey::F4;
-//	case sf::Keyboard::F5:			return eKey::F5;
-//	case sf::Keyboard::F6:			return eKey::F6;
-//	case sf::Keyboard::F7:			return eKey::F7;
-//	case sf::Keyboard::F8:			return eKey::F8;
-//	case sf::Keyboard::F9:			return eKey::F9;
-//	case sf::Keyboard::F10:			return eKey::F10;
-//	case sf::Keyboard::F11:			return eKey::F11;
-//	case sf::Keyboard::F12:			return eKey::F12;
-//	case sf::Keyboard::F13:			return eKey::F13;
-//	case sf::Keyboard::F14:			return eKey::F14;
-//	case sf::Keyboard::F15:			return eKey::F15;
-//	case sf::Keyboard::Pause:		return eKey::PAUSE;
-//	case sf::Keyboard::KeyCount:	return eKey::COUNT;
-//	}
-//
-//	return eKey::INVALID;
-//}
-//
-//sf::Uint32	Window::ConvertToSFMLWindowStyle(eWindowStyle style)
-//{
-//	switch (style)
-//	{
-//	case eWindowStyle::DEFAULT:							return sf::Style::Default;
-//	case eWindowStyle::BORDERLESS:						return sf::Style::None;
-//	case eWindowStyle::TITLE_FIXBORDER:					return sf::Style::Titlebar;
-//	case eWindowStyle::TITLE_RESIZEABLEBORDER:			return sf::Style::Titlebar | sf::Style::Resize;
-//	case eWindowStyle::TITLE_CLOSEABLE:					return sf::Style::Titlebar | sf::Style::Close;
-//	}
-//
-//	return sf::Style::Default;
-//}

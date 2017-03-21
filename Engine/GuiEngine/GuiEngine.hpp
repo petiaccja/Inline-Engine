@@ -89,6 +89,10 @@ inline void GuiEngine::Update(float deltaTime)
 	// Render
 	InvalidateRect((HWND)targetWindow.GetHandle(), NULL, true);
 	
+
+	if (!targetWindow.IsFocused())
+		return;
+
 	// Search hovered control to fire event on them
 	GuiControl* newHoveredControl = nullptr;
 	TraverseGuiControls([&](GuiControl* guiControl)

@@ -123,6 +123,7 @@
     <ClInclude Include="GuiControl.hpp" />
     <ClInclude Include="GuiEngine.hpp" />
     <ClInclude Include="GuiLayer.hpp" />
+    <ClInclude Include="GuiList.hpp" />
     <ClInclude Include="GuiPlane.hpp" />
     <ClInclude Include="GuiText.hpp" />
   </ItemGroup>

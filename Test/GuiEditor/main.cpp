@@ -18,9 +18,9 @@ IGraphicsEngine* graphicsEngine;
 EngineCore Core;
 InputCore Input;
 
-GuiButton* button;
-GuiButton* button2;
-GuiButton* button3;
+//GuiButton* button;
+//GuiButton* button2;
+//GuiButton* button3;
 
 void InitGameScripts();
 void InitGui();
@@ -146,6 +146,10 @@ void InitGui()
 	GuiCanvas* canvas = guiEngine->AddCanvas();
 	GuiLayer* layer = canvas->AddLayer();
 
+	GuiButton* button;
+	GuiButton* button2;
+	GuiButton* button3;
+
 	// Menu
 	{
 	button = layer->AddButton();
@@ -175,7 +179,7 @@ void InitGui()
 	// Node1
 	{
 	{
-	int x = 200;
+	int x = 400;
 	int y = 100;
 	vec2 pinSize = { 10, 10 };
 	float pinSpace = 20.f;
@@ -184,19 +188,19 @@ void InitGui()
 	button->SetRect(x, y, 60, 60);
 	button->SetText("Node1");
 	button->OnCursorClick += [](CursorEvent& evt) {MessageBoxA(NULL, "Node1Click", "Node1Click", MB_OK); };
-	GuiButton* pin0 = button->AddChildButton();
+	GuiButton* pin0 = button->AddButton();
 	pin0->SetBackgroundToColor(Color(100), Color(150));
 	pin0->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5, pinSize.x, pinSize.y);
 	pin0->OnCursorClick += [](CursorEvent& evt) {MessageBoxA(NULL, "pin0Click", "pin0Click", MB_OK); };
-	GuiButton* pin1 = button->AddChildButton();
+	GuiButton* pin1 = button->AddButton();
 	pin1->SetBackgroundToColor(Color(100), Color(150));
 	pin1->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace, pinSize.x, pinSize.y);
 	pin1->OnCursorClick += [](CursorEvent& evt) {MessageBoxA(NULL, "pin1Click", "pin1Click", MB_OK); };
-	GuiButton* pin2 = button->AddChildButton();
+	GuiButton* pin2 = button->AddButton();
 	pin2->SetBackgroundToColor(Color(100), Color(150));
 	pin2->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace * 2.f, pinSize.x, pinSize.y);
 	pin2->OnCursorClick += [](CursorEvent& evt) {MessageBoxA(NULL, "pin2Click", "pin2Click", MB_OK); };
-	GuiButton* outputPin = button->AddChildButton();
+	GuiButton* outputPin = button->AddButton();
 	outputPin->SetBackgroundToColor(Color(100), Color(150));
 	outputPin->SetRect(x + 60 - pinSize.x * 0.5, y + 30 - pinSize.y * 0.5, pinSize.x, pinSize.y);
 	outputPin->OnCursorClick += [](CursorEvent& evt) {MessageBoxA(NULL, "outputPin", "outputPin", MB_OK); };
@@ -204,7 +208,7 @@ void InitGui()
 
 	//Node2
 	{
-	int x = 100;
+	int x = 300;
 	int y = 100;
 	vec2 pinSize = { 10, 10 };
 	float pinSpace = 20.f;
@@ -212,22 +216,49 @@ void InitGui()
 	button->SetBackgroundToColor(Color(55), Color(80));
 	button->SetRect(x, y, 60, 60);
 	button->SetText("Node2");
-	GuiButton* pin0 = button->AddChildButton();
+	GuiButton* pin0 = button->AddButton();
 	pin0->SetBackgroundToColor(Color(100), Color(150));
 	pin0->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5, pinSize.x, pinSize.y);
-	GuiButton* pin1 = button->AddChildButton();
+	GuiButton* pin1 = button->AddButton();
 	pin1->SetBackgroundToColor(Color(100), Color(150));
 	pin1->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace, pinSize.x, pinSize.y);
-	GuiButton* pin2 = button->AddChildButton();
+	GuiButton* pin2 = button->AddButton();
 	pin2->SetBackgroundToColor(Color(100), Color(150));
 	pin2->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace * 2.f, pinSize.x, pinSize.y);
-	GuiButton* outputPin = button->AddChildButton();
+	GuiButton* outputPin = button->AddButton();
 	outputPin->SetBackgroundToColor(Color(100), Color(150));
 	outputPin->SetRect(x + 60 - pinSize.x * 0.5, y + 30 - pinSize.y * 0.5, pinSize.x, pinSize.y);
 	}
 	}
 
 	// Control List
+	{
+		eTextAlign align = eTextAlign::LEFT;
+		GuiList* list = layer->AddList();
+		GuiButton* button = list->AddButton();
+		button->SetText("Button");
+		button->SetTextAlign(align);
+		GuiButton* button1 = list->AddButton();
+		button1->SetText("Text");
+		button1->SetTextAlign(align);
+		GuiButton* button2 = list->AddButton();
+		button2->SetText("Slider");
+		button2->SetTextAlign(align);
+		GuiButton* button3 = list->AddButton();
+		button3->SetText("List");
+		button3->SetTextAlign(align);
+		GuiButton* button4 = list->AddButton();
+		button4->SetText("MenuBar");
+		button4->SetTextAlign(align);
+		GuiButton* button5 = list->AddButton();
+		button5->SetText("Menu");
+		button5->SetTextAlign(align);
+		GuiButton* button6 = list->AddButton();
+		button6->SetText("Splitter");
+		button6->SetTextAlign(align);
+		list->SetStride(25);
+		list->SetRect(0, 35, 60, 600);
+	}
 }
 
 void Update(float deltaTime)

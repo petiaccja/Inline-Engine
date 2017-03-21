@@ -4,17 +4,17 @@
 #include "GuiText.hpp"
 #include "GuiButton.hpp"
 
-GuiPlane* GuiControl::AddChildPlane()
+GuiPlane* GuiControl::AddPlane()
 {
 	return AddChild<GuiPlane>();
 }
 
-GuiText* GuiControl::AddChildText()
+GuiText* GuiControl::AddText()
 {
 	return AddChild<GuiText>();
 }
 
-GuiButton* GuiControl::AddChildButton()
+GuiButton* GuiControl::AddButton()
 {
 	return AddChild<GuiButton>();
 }

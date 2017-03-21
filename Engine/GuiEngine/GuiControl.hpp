@@ -34,9 +34,9 @@ public:
 	template<class T>
 	T* AddChild();
 
-	GuiPlane*  AddChildPlane();
-	GuiText*   AddChildText();
-	GuiButton* AddChildButton();
+	GuiPlane*  AddPlane();
+	GuiText*   AddText();
+	GuiButton* AddButton();
 
 	bool RemoveChild(GuiControl* child);
 
@@ -46,6 +46,7 @@ public:
 	void Move(const vec2& delta);
 
 	void SetRect(float x, float y, float width, float height);
+	void SetRect(Rect<float>& rect);
 
 	const std::vector<GuiControl*>& GetChildren();
 	Rect<float> GetRect();
@@ -58,6 +59,8 @@ public:
 	Delegate<void(CursorEvent&)> OnCursorEnter;
 	Delegate<void(CursorEvent&)> OnCursorLeave;
 	Delegate<void(CursorEvent&)> OnCursorStay;
+	Delegate<void(Rect<float>&)> OnTransformChanged;
+	Delegate<void(GuiControl*)> OnParentChanged;
 
 protected:
 	Rect<float> rect;
@@ -71,7 +74,7 @@ protected:
 };
 
 inline GuiControl::GuiControl()
-:parent(nullptr), front(nullptr), back(nullptr)
+:parent(nullptr), front(nullptr), back(nullptr), rect(0, 0, 60, 20)
 {
 
 }
@@ -107,6 +110,7 @@ T* GuiControl::AddChild()
 {
 	T* child = new T();
 	child->parent = this;
+	child->OnParentChanged(this);
 
 	if (children.size() != 0)
 	{
@@ -137,9 +141,14 @@ inline void GuiControl::SetRect(float x, float y, float width, float height)
 	rect.width = width;
 	rect.height = height;
 
-	for (GuiControl* child : children)
-		child->SetRect(x, y, width, height);
+	OnTransformChanged(rect);
 }
+
+inline void GuiControl::SetRect(Rect<float>& rect)
+{
+	SetRect(rect.x, rect.y, rect.width, rect.height);
+}
+
 
 inline void GuiControl::Move(float dx, float dy)
 {

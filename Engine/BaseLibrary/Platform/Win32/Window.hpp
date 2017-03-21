@@ -31,6 +31,7 @@ public:
 
 	// Getters
 	bool IsOpen() const;
+	bool IsFocused() const;
 
 	size_t GetHandle() const;
 
@@ -56,7 +57,7 @@ protected:
 	void PostEvent(const MSG& msg);
 
 protected:
-	HWND hwnd;
+	HWND handle;
 	bool bClosed;
 
 	std::queue<MSG> wndProcMessages;

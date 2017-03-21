@@ -32,6 +32,14 @@ inline GuiPlane::GuiPlane()
 	OnCursorLeave += [&](CursorEvent& event) {
 		SetActiveColor(baseColor);
 	};
+
+	OnParentChanged += [&](GuiControl* parent)
+	{
+		parent->OnTransformChanged += [&](Rect<float>& rect)
+		{
+			SetRect(rect);
+		};
+	};
 }
 
 inline void GuiPlane::OnPaint(HDC dc, Gdiplus::Graphics* graphics)

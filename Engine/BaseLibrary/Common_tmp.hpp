@@ -85,7 +85,7 @@ public:
 	Rect() {
 	}
 
-	Rect(T& x, T& y, T& width, T& height)
+	Rect(const T& x, const T& y, const T& width, const T& height)
 		:x(x), y(y), width(width), height(height) {
 	}
 
@@ -98,6 +98,26 @@ public:
 	vec2 GetCenter()
 	{
 		return vec2(x + 0.5f * width, y + 0.5f * height);
+	}
+
+	float GetRight()
+	{
+		return x + width;
+	}
+
+	float GetLeft()
+	{
+		return x;
+	}
+
+	float GetTop()
+	{
+		return y;
+	}
+
+	float GetBottom()
+	{
+		return y + height;
 	}
 
 	T x;
