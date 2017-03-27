@@ -24,6 +24,7 @@ InputCore Input;
 
 void InitGameScripts();
 void InitGui();
+void InitContextMenuTest();
 void Update(float deltaTime);
 
 
@@ -43,6 +44,7 @@ void main()
 
 	// Init gui
 	InitGui();
+	//InitContextMenuTest();
 
 	// Init Game Scripts
 	InitGameScripts(); // Manual bullshit, TODO !!!
@@ -142,13 +144,12 @@ void InitGameScripts()
 
 void InitGui()
 {
-	// Canvas and Layer
-	GuiCanvas* canvas = guiEngine->AddCanvas();
-	GuiLayer* layer = canvas->AddLayer();
+	// New Layer
+	GuiLayer* layer = guiEngine->AddLayer();
 
-	GuiButton* button;
-	GuiButton* button2;
-	GuiButton* button3;
+	GuiButton* button = layer->AddButton();
+	GuiButton* button2 = layer->AddButton();
+	GuiButton* button3 = layer->AddButton();
 
 	// Menu
 	{
@@ -157,12 +158,12 @@ void InitGui()
 	button->SetRect(0, 0, 60, 22);
 	button->SetText("File");
 
-	button->OnCursorClick += [](CursorEvent& evt) {MessageBoxA(NULL, "Click", "Click", MB_OK); };
-	button->OnCursorPress += [](CursorEvent& evt) {MessageBoxA(NULL, "Press", "Press", MB_OK); };
-	button->OnCursorRelease += [](CursorEvent& evt) {MessageBoxA(NULL, "Release", "Release", MB_OK); };
-	button->OnCursorEnter += [](CursorEvent& evt) {MessageBoxA(NULL, "Enter", "Enter", MB_OK); };
-	button->OnCursorLeave += [](CursorEvent& evt) {MessageBoxA(NULL, "Leave", "Leave", MB_OK); };
-	button->OnCursorStay += [](CursorEvent& evt) {MessageBoxA(NULL, "Stay", "Stay", MB_OK); };
+	//button->OnClick += [](CursorEvent& evt) {MessageBoxA(NULL, "Click", "Click", MB_OK); };
+	//button->OnPress += [](CursorEvent& evt) {MessageBoxA(NULL, "Press", "Press", MB_OK); };
+	//button->OnRelease += [](CursorEvent& evt) {MessageBoxA(NULL, "Release", "Release", MB_OK); };
+	//button->OnCursorEnter += [](CursorEvent& evt) {MessageBoxA(NULL, "Enter", "Enter", MB_OK); };
+	//button->OnCursorLeave += [](CursorEvent& evt) {MessageBoxA(NULL, "Leave", "Leave", MB_OK); };
+	//button->OnCursorHover += [](CursorEvent& evt) {MessageBoxA(NULL, "Hover", "Hover", MB_OK); };
 
 	button2 = layer->AddButton();
 	button2->SetBackgroundToColor(Color(55, 55, 55), Color(80, 80, 80));
@@ -178,7 +179,6 @@ void InitGui()
 
 	// Node1
 	{
-	{
 	int x = 400;
 	int y = 100;
 	vec2 pinSize = { 10, 10 };
@@ -187,25 +187,26 @@ void InitGui()
 	button->SetBackgroundToColor(Color(55), Color(80));
 	button->SetRect(x, y, 60, 60);
 	button->SetText("Node1");
-	button->OnCursorClick += [](CursorEvent& evt) {MessageBoxA(NULL, "Node1Click", "Node1Click", MB_OK); };
+	button->OnClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "Node1Click", "Node1Click", MB_OK); };
 	GuiButton* pin0 = button->AddButton();
 	pin0->SetBackgroundToColor(Color(100), Color(150));
 	pin0->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5, pinSize.x, pinSize.y);
-	pin0->OnCursorClick += [](CursorEvent& evt) {MessageBoxA(NULL, "pin0Click", "pin0Click", MB_OK); };
+	pin0->OnClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "pin0Click", "pin0Click", MB_OK); };
 	GuiButton* pin1 = button->AddButton();
 	pin1->SetBackgroundToColor(Color(100), Color(150));
 	pin1->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace, pinSize.x, pinSize.y);
-	pin1->OnCursorClick += [](CursorEvent& evt) {MessageBoxA(NULL, "pin1Click", "pin1Click", MB_OK); };
+	pin1->OnClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "pin1Click", "pin1Click", MB_OK); };
 	GuiButton* pin2 = button->AddButton();
 	pin2->SetBackgroundToColor(Color(100), Color(150));
 	pin2->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace * 2.f, pinSize.x, pinSize.y);
-	pin2->OnCursorClick += [](CursorEvent& evt) {MessageBoxA(NULL, "pin2Click", "pin2Click", MB_OK); };
+	pin2->OnClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "pin2Click", "pin2Click", MB_OK); };
 	GuiButton* outputPin = button->AddButton();
 	outputPin->SetBackgroundToColor(Color(100), Color(150));
 	outputPin->SetRect(x + 60 - pinSize.x * 0.5, y + 30 - pinSize.y * 0.5, pinSize.x, pinSize.y);
-	outputPin->OnCursorClick += [](CursorEvent& evt) {MessageBoxA(NULL, "outputPin", "outputPin", MB_OK); };
+	outputPin->OnClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "outputPin", "outputPin", MB_OK); };
 	}
 
+	GuiControl* node2;
 	//Node2
 	{
 	int x = 300;
@@ -213,10 +214,12 @@ void InitGui()
 	vec2 pinSize = { 10, 10 };
 	float pinSpace = 20.f;
 	button = layer->AddButton();
+	
 	button->SetBackgroundToColor(Color(55), Color(80));
 	button->SetRect(x, y, 60, 60);
 	button->SetText("Node2");
 	GuiButton* pin0 = button->AddButton();
+	node2 = pin0;
 	pin0->SetBackgroundToColor(Color(100), Color(150));
 	pin0->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5, pinSize.x, pinSize.y);
 	GuiButton* pin1 = button->AddButton();
@@ -229,36 +232,109 @@ void InitGui()
 	outputPin->SetBackgroundToColor(Color(100), Color(150));
 	outputPin->SetRect(x + 60 - pinSize.x * 0.5, y + 30 - pinSize.y * 0.5, pinSize.x, pinSize.y);
 	}
+
+	
+	{
+	// Control List
+	eTextAlign align = eTextAlign::LEFT;
+	GuiList* list = layer->AddList();
+	GuiButton* button = list->AddButton();
+	button->SetText("Button");
+	button->SetTextAlign(align);
+	GuiButton* button1 = list->AddButton();
+	button1->SetText("Text");
+	button1->SetTextAlign(align);
+	GuiButton* button2 = list->AddButton();
+	button2->SetText("Slider");
+	button2->SetTextAlign(align);
+	GuiButton* button3 = list->AddButton();
+	button3->SetText("List");
+	button3->SetTextAlign(align);
+	GuiButton* button4 = list->AddButton();
+	button4->SetText("MenuBar");
+	button4->SetTextAlign(align);
+	GuiButton* button5 = list->AddButton();
+	button5->SetText("Menu");
+	button5->SetTextAlign(align);
+	GuiButton* button6 = list->AddButton();
+	button6->SetText("Splitter");
+	button6->SetTextAlign(align);
+	list->SetStride(25);
+	list->SetRect(0, 70, 60, 600);
 	}
 
-	// Control List
 	{
-		eTextAlign align = eTextAlign::LEFT;
-		GuiList* list = layer->AddList();
-		GuiButton* button = list->AddButton();
-		button->SetText("Button");
-		button->SetTextAlign(align);
-		GuiButton* button1 = list->AddButton();
-		button1->SetText("Text");
-		button1->SetTextAlign(align);
-		GuiButton* button2 = list->AddButton();
-		button2->SetText("Slider");
-		button2->SetTextAlign(align);
-		GuiButton* button3 = list->AddButton();
-		button3->SetText("List");
-		button3->SetTextAlign(align);
-		GuiButton* button4 = list->AddButton();
-		button4->SetText("MenuBar");
-		button4->SetTextAlign(align);
-		GuiButton* button5 = list->AddButton();
-		button5->SetText("Menu");
-		button5->SetTextAlign(align);
-		GuiButton* button6 = list->AddButton();
-		button6->SetText("Splitter");
-		button6->SetTextAlign(align);
-		list->SetStride(25);
-		list->SetRect(0, 35, 60, 600);
+	// Control List
+	eTextAlign align = eTextAlign::LEFT;
+	GuiList* list = layer->AddList();
+	GuiButton* button = list->AddButton();
+	button->SetText("Disconnect");
+	button->SetTextAlign(align);
+	button->SetRect(0, 0, 10, 20);
+	GuiButton* button1 = list->AddButton();
+	button1->SetText(L"Amit csak ákársz vaze");
+	button1->SetTextAlign(align);
+	button1->SetRect(0, 0, 10, 20);
+	//GuiButton* button2 = list->AddButton();
+	//button2->SetText("Slider");
+	//button2->SetTextAlign(align);
+	//GuiButton* button3 = list->AddButton();
+	//button3->SetText("List");
+	//button3->SetTextAlign(align);
+	//GuiButton* button4 = list->AddButton();
+	//button4->SetText("MenuBar");
+	//button4->SetTextAlign(align);
+	//GuiButton* button5 = list->AddButton();
+	//button5->SetText("Menu");
+	//button5->SetTextAlign(align);
+	//GuiButton* button6 = list->AddButton();
+	//button6->SetText("Splitter");
+	//button6->SetTextAlign(align);
+	list->SetStride(25);
+	list->SetRect(0, 70, 150, 600);
+	
+	node2->SetContextMenu(list->Clone());
+	list->Remove();
 	}
+
+	// Slider o yeah
+	{
+		GuiSlider* slider = layer->AddSlider();
+		slider->SetRect(200, 500, 100, 15);
+
+		GuiSlider* slider2 = layer->AddSlider();
+		slider2->SetValue(70);
+		slider2->SetRect(200, 520, 100, 15);
+
+		GuiSlider* slider3 = layer->AddSlider();
+		slider3->SetValue(25);
+		slider3->SetRect(200, 540, 100, 15);
+	}
+}
+
+void InitContextMenuTest()
+{
+	// New Layer
+	GuiLayer* layer = guiEngine->AddLayer();
+
+	GuiList* list = layer->AddList();
+	GuiButton* button = list->AddButton();
+	button->SetRect(0, 0, 50, 50);
+	button->SetText("Button");
+	list->SetRect(0, 0, 50, 100);//TODO Enélkül fos a clone
+	GuiList* contextMenu = list->Clone();
+
+	button->background->SetName("ORIG_PLANE");
+	contextMenu->GetChildren()[0]->AsButton()->background->SetName("CLONE_PLANE");
+	//button->background->SetName("PLANE");
+	//contextMenu->SetName("clone");
+
+	button->SetContextMenu(contextMenu);
+
+	// Tehát GuiControl* self átadása nem hülyeség, mert így a user ha akar akkor leszármazás nélkül is tud klónolni lokális viselkedést !
+	// A usernek legyen lehetõsége arra is hogy csak layout - ot cloneoljon
+	//Clone
+	//CloneWithoutEvents
 }
 
 void Update(float deltaTime)

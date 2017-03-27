@@ -55,7 +55,6 @@ LRESULT CALLBACK WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 }
 
 Window::Window(const WindowDesc& d)
-:hekkOnPaint(nullptr)
 {
 	bClosed = false;
 

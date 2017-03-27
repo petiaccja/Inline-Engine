@@ -47,6 +47,11 @@ struct vec2
 
 	float x;
 	float y;
+
+	vec2 operator - (const vec2& b)
+	{
+		return vec2(x - b.x, y - b.y);
+	}
 };
 
 class Color
@@ -181,11 +186,24 @@ enum class enumClass : enumType
 
 
 
+template<class T>
+T saturate(const T& val)
+{
+	T result = val;
+
+	if (result < 0)
+		result = 0;
+
+	if (result > 1)
+		result = 1;
+
+	return result;
+}
 
 
-
-////////// DELEGATE, TODO REVIEW, REMOVE //////////////////////////
-
+///////////////////////////////////////////////////////////////////////////
+////////////////////////// DELEGATE, TODO REVIEW //////////////////////////
+///////////////////////////////////////////////////////////////////////////
 template <typename Signature>
 struct Delegate;
 
@@ -211,10 +229,24 @@ struct Delegate<void(Args...)>
 			return this->d_callback(std::forward<Args>(args)...);
 		}
 	};
-	std::vector<std::unique_ptr<base>> d_callbacks;
+	std::vector<std::shared_ptr<base>> d_callbacks;
 
-	Delegate(Delegate const&) = delete;
-	void operator=(Delegate const&) = delete;
+	Delegate(Delegate const& other)
+	{
+		*this = other;
+	}
+
+	Delegate& operator=(Delegate const& other)
+	{
+		d_callbacks = other.d_callbacks;
+		return *this;
+	}
+
+	operator bool() const
+	{
+		return d_callbacks.size() != 0;
+	}
+
 public:
 	Delegate() {}
 	template <typename T>
@@ -235,14 +267,15 @@ public:
 	//	return *this;
 	//}
 
-	void operator()(Args... args) {
-		for (auto& callback : this->d_callbacks) {
+	void operator()(Args... args)
+	{
+		// I'm sorry but it's necessary to copy the array, because callbacks can remove and add elements to them lol
+		auto callbacks = d_callbacks;
+		for (auto& callback : callbacks) {
 			callback->do_call(args...);
 		}
 	}
 };
-
-// ----------------------------------------------------------------------------
 
 template <typename RC, typename Class, typename... Args>
 class MemberCall_{

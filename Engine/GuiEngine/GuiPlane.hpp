@@ -5,9 +5,10 @@
 class GuiPlane : public GuiControl
 {
 public:
-	GuiPlane();
+	GuiPlane(GuiEngine* guiEngine);
 
-	virtual void OnPaint(HDC dc, Gdiplus::Graphics* graphics) override;
+	// Important to implement in derived classes
+	virtual GuiPlane* Clone() const override { return new GuiPlane(*this); }
 
 	void SetActiveColor(Color& color);
 	void SetBaseColor(Color& color);
@@ -15,38 +16,41 @@ public:
 
 protected:
 	Color activeColor;
-
 	Color baseColor;
 	Color hoverColor;
 };
 
-inline GuiPlane::GuiPlane()
-:baseColor(55, 55, 55), hoverColor(80, 80, 80)
+inline GuiPlane::GuiPlane(GuiEngine* guiEngine)
+:GuiControl(guiEngine), baseColor(55, 55, 55), hoverColor(55, 55, 55)
 {
 	SetActiveColor(baseColor);
 
-	OnCursorEnter += [&](CursorEvent& event){
-		SetActiveColor(hoverColor);
-	};
-
-	OnCursorLeave += [&](CursorEvent& event) {
-		SetActiveColor(baseColor);
-	};
-
-	OnParentChanged += [&](GuiControl* parent)
+	OnCursorEnter += [](GuiControl* selff, CursorEvent& event)
 	{
-		parent->OnTransformChanged += [&](Rect<float>& rect)
-		{
-			SetRect(rect);
-		};
+		GuiPlane* self = selff->AsPlane();
+		self->SetActiveColor(self->hoverColor);
+	};
+
+	OnCursorLeave += [](GuiControl* selff, CursorEvent& event)
+	{
+		GuiPlane* self = selff->AsPlane();
+		self->SetActiveColor(self->baseColor);
+	};
+
+	OnParentTransformChanged += [&](GuiControl* self, Rect<float>& rect)
+	{
+		//self->AsPlane()->SetRect(rect);
+	};
+
+	OnPaint += [](GuiControl* selff, HDC dc, Gdiplus::Graphics* graphics)
+	{
+		GuiPlane* self = selff->AsPlane();
+
+		Gdiplus::SolidBrush  brush(Gdiplus::Color(self->activeColor.a, self->activeColor.r, self->activeColor.g, self->activeColor.b));
+		graphics->FillRectangle(&brush, Gdiplus::Rect(self->GetPosX(), self->GetPosY(), self->GetWidth(), self->GetHeight()));
 	};
 }
 
-inline void GuiPlane::OnPaint(HDC dc, Gdiplus::Graphics* graphics)
-{
-	Gdiplus::SolidBrush  brush(Gdiplus::Color(activeColor.a, activeColor.r, activeColor.g, activeColor.b));
-	graphics->FillRectangle(&brush, Gdiplus::Rect(rect.x, rect.y, rect.width, rect.height));
-}
 
 inline void GuiPlane::SetActiveColor(Color& color)
 {

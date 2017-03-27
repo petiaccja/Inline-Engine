@@ -150,6 +150,6 @@ public:
 	static std::wstring	GetExeDirW();
 	static std::string	GetExeDir();
 
-	static ivec2	GetCursorPos();
-	static uvec2	GetScreenSize();
+	static ivec2 GetCursorPos();
+	static uvec2 GetScreenSize();
 };

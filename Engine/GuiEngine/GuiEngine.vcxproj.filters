@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GuiCanvas.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GuiControl.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -39,9 +36,15 @@
     <ClInclude Include="GuiList.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GuiSlider.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GuiControl.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GuiSlider.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>

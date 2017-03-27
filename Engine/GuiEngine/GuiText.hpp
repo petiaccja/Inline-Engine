@@ -18,13 +18,13 @@ enum class eTextAlign
 class GuiText : public GuiControl
 {
 public:
-	GuiText();
+	GuiText(GuiEngine* guiEngine);
+
+	virtual GuiText* Clone() const { return new GuiText(*this); }
 
 	void Set(const std::wstring& text);
 	void Set(const std::string& text);
 	void SetAlign(eTextAlign align);
-
-	virtual void OnPaint(HDC dc, Gdiplus::Graphics* graphics) override;
 
 protected:
 	std::wstring text;
@@ -33,49 +33,41 @@ protected:
 	eTextAlign align;
 };
 
-inline GuiText::GuiText()
-:color(Color::WHITE), fontSize(12), align(eTextAlign::CENTER)
+inline GuiText::GuiText(GuiEngine* guiEngine)
+:GuiControl(guiEngine), color(Color::WHITE), fontSize(12), align(eTextAlign::CENTER)
 {
-	OnParentChanged += [&](GuiControl* parent)
+	OnParentTransformChanged += [&](GuiControl* self, Rect<float>& rect)
 	{
-		parent->OnTransformChanged += [&](Rect<float>& rect)
-		{
-			SetRect(rect);
-		};
+		self->AsText()->SetRect(rect);
 	};
-}
 
-inline void GuiText::Set(const std::wstring& text)
-{
-	this->text = text;
-}
-
-inline void GuiText::Set(const std::string& text)
-{
-	// Conversion to wchar_t
-	this->text = std::wstring(text.begin(), text.end());
-}
-
-inline void GuiText::OnPaint(HDC hdc, Gdiplus::Graphics* graphics)
-{
-	Gdiplus::SolidBrush  brush(Gdiplus::Color(color.r, color.g, color.b, color.a));
-	Gdiplus::FontFamily  fontFamily(L"Helvetica");
-	Gdiplus::Font        font(&fontFamily, fontSize, Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
-
-	// Text alignment
-	Gdiplus::RectF gdiRect(rect.x, rect.y, rect.width, rect.height);
-	Gdiplus::RectF textRect;
-	graphics->MeasureString(text.c_str(), text.size(), &font, gdiRect, &textRect);
-
-	vec2 textPos;
-	switch (align)
+	OnPaint += [](GuiControl* selff, HDC hdc, Gdiplus::Graphics* graphics)
 	{
+		GuiText* self = selff->AsText();
+		auto text = self->text;
+		auto color = self->color;
+		auto fontSize = self->fontSize;
+		auto align = self->align;
+		auto rect = self->GetRect();
+	
+		Gdiplus::SolidBrush  brush(Gdiplus::Color(color.r, color.g, color.b, color.a));
+		Gdiplus::FontFamily  fontFamily(L"Helvetica");
+		Gdiplus::Font        font(&fontFamily, fontSize, Gdiplus::FontStyleRegular, Gdiplus::UnitPixel);
+	
+		// Text alignment
+		Gdiplus::RectF gdiRect(rect.x, rect.y, rect.width, rect.height);
+		Gdiplus::RectF textRect;
+		graphics->MeasureString(text.c_str(), text.size(), &font, gdiRect, &textRect);
+	
+		vec2 textPos;
+		switch (align)
+		{
 		case eTextAlign::CENTER:
 		{
 			textPos = rect.GetCenter();
 			textPos.x -= textRect.Width * 0.5f;
 			textPos.y -= textRect.Height * 0.5f;
-			
+	
 		} break;
 		case eTextAlign::LEFT:
 		{
@@ -118,12 +110,24 @@ inline void GuiText::OnPaint(HDC hdc, Gdiplus::Graphics* graphics)
 			textPos.y = rect.GetBottom() - textRect.Height;
 		} break;
 		default:__debugbreak();
-	}
+		}
+	
+		Gdiplus::PointF pointF(textPos.x, textPos.y);
+	
+		graphics->SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAliasGridFit);
+		graphics->DrawString(text.c_str(), -1, &font, pointF, &brush);
+	};
+}
 
-	Gdiplus::PointF pointF(textPos.x, textPos.y);
+inline void GuiText::Set(const std::wstring& text)
+{
+	this->text = text;
+}
 
-	graphics->SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAliasGridFit);
-	graphics->DrawString(text.c_str(), -1, &font, pointF, &brush);
+inline void GuiText::Set(const std::string& text)
+{
+	// Conversion to wchar_t
+	this->text = std::wstring(text.begin(), text.end());
 }
 
 inline void GuiText::SetAlign(eTextAlign align)

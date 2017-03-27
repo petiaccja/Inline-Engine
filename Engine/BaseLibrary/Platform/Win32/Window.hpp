@@ -9,8 +9,6 @@
 class Window
 {
 public:
-	void RegOnPaint(const std::function<void()>& fn) { hekkOnPaint = fn; }
-
 	Window(const WindowDesc& d);
 	~Window();
 
@@ -46,7 +44,7 @@ public:
 
 public:
 	// HEKK
-	std::function<void()> hekkOnPaint;
+	Delegate<void()> hekkOnPaint;
 
 	Delegate<void(WindowEvent&)> OnMousePress;
 	Delegate<void(WindowEvent&)> OnMouseRelease;

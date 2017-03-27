@@ -3,18 +3,35 @@
 #include "GuiPlane.hpp"
 #include "GuiText.hpp"
 #include "GuiButton.hpp"
+#include "GuiList.hpp"
+#include "GuiEngine.hpp"
 
 GuiPlane* GuiControl::AddPlane()
 {
-	return AddChild<GuiPlane>();
+	return Add<GuiPlane>();
 }
 
 GuiText* GuiControl::AddText()
 {
-	return AddChild<GuiText>();
+	return Add<GuiText>();
 }
 
 GuiButton* GuiControl::AddButton()
 {
-	return AddChild<GuiButton>();
+	return Add<GuiButton>();
+}
+
+GuiList* GuiControl::AddList()
+{
+	return Add<GuiList>();
+}
+
+float GuiControl::GetClientCursorPosX()
+{
+	return guiEngine->GetWindowCursorPosX() - pos.x;
+}
+
+float GuiControl::GetClientCursorPosY()
+{
+	return guiEngine->GetWindowCursorPosY() - pos.y;
 }

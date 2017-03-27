@@ -119,16 +119,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="GuiButton.hpp" />
-    <ClInclude Include="GuiCanvas.hpp" />
     <ClInclude Include="GuiControl.hpp" />
     <ClInclude Include="GuiEngine.hpp" />
     <ClInclude Include="GuiLayer.hpp" />
     <ClInclude Include="GuiList.hpp" />
     <ClInclude Include="GuiPlane.hpp" />
+    <ClInclude Include="GuiSlider.hpp" />
     <ClInclude Include="GuiText.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GuiControl.cpp" />
+    <ClCompile Include="GuiSlider.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

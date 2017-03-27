@@ -139,9 +139,8 @@ void InitGameScripts()
 
 void InitGui()
 {
-	// Canvas and Layer
-	//GuiCanvas* canvas = guiEngine->AddCanvas();
-	//GuiLayer* layer = canvas->AddLayer();
+	// Layer
+	//GuiLayer* layer = guiEngine->AddLayer();
 
 	// Test button
 	//button = layer->AddButton();
