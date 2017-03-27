@@ -270,6 +270,18 @@
     <ClInclude Include="Nodes\Node_GetTime.hpp">
       <Filter>Nodes\General</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Node_CreateTexture.hpp">
+      <Filter>Nodes\General</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_TextureProperties.hpp">
+      <Filter>Nodes\General</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\ExampleTemplate.hpp">
+      <Filter>Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeContext.hpp">
+      <Filter>Pipeline</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -416,6 +428,9 @@
     </ClCompile>
     <ClCompile Include="Nodes\Node_Blend.cpp">
       <Filter>Nodes\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="NodeContext.cpp">
+      <Filter>Pipeline</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
