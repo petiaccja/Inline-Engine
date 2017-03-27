@@ -195,9 +195,6 @@
     <ClInclude Include="ConstBufferHeap.hpp" />
     <ClInclude Include="CopyCommandList.hpp" />
     <ClInclude Include="EntityCollection.hpp" />
-    <ClInclude Include="ExecutionContext.hpp" />
-    <ClInclude Include="ExecutionResult.hpp" />
-    <ClInclude Include="GraphicsContext.hpp" />
     <ClInclude Include="PipelineTypes.hpp" />
     <ClInclude Include="RootTableManager.hpp" />
     <ClInclude Include="ShaderManager.hpp" />
@@ -225,7 +222,6 @@
     <ClInclude Include="Scheduler.hpp" />
     <ClInclude Include="ScratchSpacePool.hpp" />
     <ClInclude Include="SyncPoint.hpp" />
-    <ClInclude Include="Task.hpp" />
     <ClInclude Include="Texture2D.hpp" />
     <ClInclude Include="MemoryObject.hpp" />
     <ClInclude Include="Mesh.hpp" />
@@ -255,9 +251,6 @@
     <ClCompile Include="ComputeCommandList.cpp" />
     <ClCompile Include="ConstBufferHeap.cpp" />
     <ClCompile Include="CopyCommandList.cpp" />
-    <ClCompile Include="ExecutionContext.cpp" />
-    <ClCompile Include="ExecutionResult.cpp" />
-    <ClCompile Include="GraphicsContext.cpp" />
     <ClCompile Include="PipelineTypes.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="StackDescHeap.cpp" />
@@ -279,7 +272,6 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Scheduler.cpp" />
     <ClCompile Include="ScratchSpacePool.cpp" />
-    <ClCompile Include="Task.cpp" />
     <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="MemoryObject.cpp" />
     <ClCompile Include="Mesh.cpp" />

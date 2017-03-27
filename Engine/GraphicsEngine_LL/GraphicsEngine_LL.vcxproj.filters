@@ -108,9 +108,6 @@
     <ClInclude Include="Scheduler.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
-    <ClInclude Include="Task.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
     <ClInclude Include="Binder.hpp">
       <Filter>Middleware</Filter>
     </ClInclude>
@@ -128,12 +125,6 @@
     </ClInclude>
     <ClInclude Include="CopyCommandList.hpp">
       <Filter>Middleware</Filter>
-    </ClInclude>
-    <ClInclude Include="ExecutionContext.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="ExecutionResult.hpp">
-      <Filter>Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="FrameContext.hpp">
       <Filter>Pipeline</Filter>
@@ -200,9 +191,6 @@
     </ClInclude>
     <ClInclude Include="Pixel.hpp">
       <Filter>Resources</Filter>
-    </ClInclude>
-    <ClInclude Include="GraphicsContext.hpp">
-      <Filter>Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="ShaderManager.hpp">
       <Filter>Pipeline</Filter>
@@ -306,9 +294,6 @@
     <ClCompile Include="Scheduler.cpp">
       <Filter>Pipeline</Filter>
     </ClCompile>
-    <ClCompile Include="Task.cpp">
-      <Filter>Pipeline</Filter>
-    </ClCompile>
     <ClCompile Include="GraphicsNodeFactory.cpp">
       <Filter>Pipeline</Filter>
     </ClCompile>
@@ -329,12 +314,6 @@
     </ClCompile>
     <ClCompile Include="CopyCommandList.cpp">
       <Filter>Middleware</Filter>
-    </ClCompile>
-    <ClCompile Include="ExecutionContext.cpp">
-      <Filter>Pipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="ExecutionResult.cpp">
-      <Filter>Pipeline</Filter>
     </ClCompile>
     <ClCompile Include="ScratchSpacePool.cpp">
       <Filter>Middleware</Filter>
@@ -377,9 +356,6 @@
     </ClCompile>
     <ClCompile Include="CriticalBufferHeap.cpp">
       <Filter>MemoryManagement\Heaps</Filter>
-    </ClCompile>
-    <ClCompile Include="GraphicsContext.cpp">
-      <Filter>Pipeline</Filter>
     </ClCompile>
     <ClCompile Include="ShaderManager.cpp">
       <Filter>Pipeline</Filter>
