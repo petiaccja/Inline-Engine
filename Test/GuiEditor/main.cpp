@@ -40,7 +40,7 @@ void main()
 	graphicsEngine = Core.InitGraphicsEngine(window->GetClientWidth(), window->GetClientHeight(), (HWND)window->GetHandle());
 
 	// Init Gui Engine
-	guiEngine = Core.InitGuiEngine(*graphicsEngine, *window);
+	guiEngine = Core.InitGuiEngine(graphicsEngine, window);
 
 	// Init gui
 	InitGui();

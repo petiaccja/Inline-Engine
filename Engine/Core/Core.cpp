@@ -7,6 +7,12 @@ using namespace inl::gxapi_dx12;
 using namespace inl::gxapi;
 using namespace inl::gxeng;
 
+EngineCore::EngineCore()
+:guiEngine(nullptr), graphicsEngine(nullptr)
+{
+
+}
+
 IGraphicsEngine* EngineCore::InitGraphicsEngine(int width, int height, HWND hwnd)
 {
 	//// Create manager
@@ -30,7 +36,7 @@ IGraphicsEngine* EngineCore::InitGraphicsEngine(int width, int height, HWND hwnd
 	return nullptr;
 }
 
-GuiEngine* EngineCore::InitGuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindow)
+GuiEngine* EngineCore::InitGuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindow)
 {
 	if (guiEngine)
 		delete guiEngine;

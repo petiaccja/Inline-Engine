@@ -39,7 +39,7 @@ void main()
 	graphicsEngine = Core.InitGraphicsEngine(window->GetClientWidth(), window->GetClientHeight(), (HWND)window->GetHandle());
 
 	// Init Gui Engine
-	guiEngine = Core.InitGuiEngine(*graphicsEngine, *window);
+	guiEngine = Core.InitGuiEngine(graphicsEngine, window);
 
 	// Init gui
 	InitGui();
@@ -161,7 +161,7 @@ void InitGui()
 
 void Update(float deltaTime)
 {
-	button->Move(deltaTime * 5, deltaTime * 5);
-	button2->Move(deltaTime * 5, deltaTime * 5);
-	button3->Move(deltaTime * 5, deltaTime * 5);
+	//button->Move(deltaTime * 5, deltaTime * 5);
+	//button2->Move(deltaTime * 5, deltaTime * 5);
+	//button3->Move(deltaTime * 5, deltaTime * 5);
 }

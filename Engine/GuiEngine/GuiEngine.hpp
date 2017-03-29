@@ -9,7 +9,7 @@ using namespace inl::gxeng;
 class GuiEngine
 {
 public:
-	GuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindow);
+	GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindow);
 	~GuiEngine();
 
 	GuiLayer* AddLayer();
@@ -19,8 +19,8 @@ public:
 
 	void TraverseGuiControls(const std::function<void(GuiControl*)>& fn);
 
-	int GetWindowCursorPosX() { return targetWindow.GetClientCursorPos().x; }
-	int GetWindowCursorPosY() { return targetWindow.GetClientCursorPos().y; }
+	int GetWindowCursorPosX() { return targetWindow->GetClientCursorPos().x; }
+	int GetWindowCursorPosY() { return targetWindow->GetClientCursorPos().y; }
 
 public:
 	Delegate<void(CursorEvent& evt)> onMouseClick;
@@ -29,8 +29,8 @@ public:
 	Delegate<void(CursorEvent& evt)> onMouseMove;
 
 protected:
-	IGraphicsEngine& graphicsEngine;
-	Window& targetWindow;
+	IGraphicsEngine* graphicsEngine;
+	Window* targetWindow;
 
 	std::vector<GuiLayer*> layers; // "layers" rendered first
 	GuiLayer* postProcessLayer; // postProcessLayer renders above "layers"
@@ -41,7 +41,7 @@ protected:
 
 
 
-inline GuiEngine::GuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindow)
+inline GuiEngine::GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindow)
 :graphicsEngine(graphicsEngine), targetWindow(targetWindow), hoveredControl(nullptr), activeContextMenu(nullptr), postProcessLayer(AddLayer())
 {
 	// Initialize GDI+
@@ -50,14 +50,14 @@ inline GuiEngine::GuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindo
 	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
 	// I'm sorry but with current GDI+ gui render we need to do the rendering when the window repainting itself
-	targetWindow.hekkOnPaint += [&]() {
+	targetWindow->hekkOnPaint += [&]() {
 		Render();
 	};
 
 	// Propagate mousePress
 	thread_local GuiControl* hoveredControlOnPress = nullptr;
 	thread_local ivec2 mousePosWhenPress = ivec2(-1, -1);
-	targetWindow.onMousePress += [&](WindowEvent& event)
+	targetWindow->onMousePress += [&](WindowEvent& event)
 	{
 		CursorEvent eventData;
 		eventData.cursorClientPos = event.mousePos;
@@ -79,7 +79,7 @@ inline GuiEngine::GuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindo
 	};
 
 	// Propagate mouseRelease
-	targetWindow.onMouseRelease += [&](WindowEvent& event)
+	targetWindow->onMouseRelease += [&](WindowEvent& event)
 	{
 		CursorEvent eventData;
 		eventData.cursorClientPos = event.mousePos;
@@ -138,7 +138,7 @@ inline GuiEngine::GuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindo
 	};
 
 	// Propagate onMouseMove
-	targetWindow.onMouseMove += [&](WindowEvent& event)
+	targetWindow->onMouseMove += [&](WindowEvent& event)
 	{
 		CursorEvent eventData;
 		eventData.cursorClientPos = event.mousePos;
@@ -164,18 +164,18 @@ inline GuiLayer* GuiEngine::AddLayer()
 
 inline void GuiEngine::Update(float deltaTime)
 {
-	if (!targetWindow.IsFocused())
+	if (!targetWindow->IsFocused())
 		return;
 
 	// Let's hint the window to repaint itself
-	InvalidateRect((HWND)targetWindow.GetHandle(), NULL, true);
+	InvalidateRect((HWND)targetWindow->GetHandle(), NULL, true);
 
 	TraverseGuiControls([=](GuiControl* guiControl)
 	{
 		guiControl->onUpdate(guiControl, deltaTime);
 	});
 
-	ivec2 cursorPos = targetWindow.GetClientCursorPos();
+	ivec2 cursorPos = targetWindow->GetClientCursorPos();
 	
 	// Search hovered control to fire event on them
 	GuiControl* newHoveredControl = nullptr;
@@ -223,11 +223,11 @@ inline void GuiEngine::Update(float deltaTime)
 
 inline void GuiEngine::Render()
 {
-	Gdiplus::Graphics* originalGraphics = Gdiplus::Graphics::FromHWND((HWND)targetWindow.GetHandle());
+	Gdiplus::Graphics* originalGraphics = Gdiplus::Graphics::FromHWND((HWND)targetWindow->GetHandle());
 	HDC hdc = originalGraphics->GetHDC();
 
 	RECT Client_Rect;
-	GetClientRect((HWND)targetWindow.GetHandle(), &Client_Rect);
+	GetClientRect((HWND)targetWindow->GetHandle(), &Client_Rect);
 	int win_width = Client_Rect.right - Client_Rect.left;
 	int win_height = Client_Rect.bottom - Client_Rect.top;
 	HDC Memhdc;
@@ -251,7 +251,6 @@ inline void GuiEngine::Render()
 	DeleteObject(Membitmap);
 	DeleteDC(Memhdc);
 	DeleteDC(hdc);
-	InvalidateRect((HWND)targetWindow.GetHandle(), NULL, true);
 }
 
 inline void GuiEngine::TraverseGuiControls(const std::function<void(GuiControl*)>& fn)

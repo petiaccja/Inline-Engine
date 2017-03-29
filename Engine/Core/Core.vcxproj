@@ -85,7 +85,7 @@
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>GraphicsEngine_LL.lib;GuiEngine.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>GraphicsEngine_LL.lib;GuiEngine.lib;AssetLibrary.lib;lemon.lib;FreeImaged.lib;FreeImagePlusd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
     </Lib>
