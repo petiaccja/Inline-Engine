@@ -257,6 +257,8 @@ bool Window::PopEvent(WindowEvent& evt_out)
 		{
 			evt_out.mouseDelta = ivec2(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
 			evt_out.msg = MOUSE_MOVE;
+
+			onMouseMove(evt_out);
 		}
 	}
 	else if (msg.message == WM_CLOSE)

@@ -48,6 +48,7 @@ public:
 
 	Delegate<void(WindowEvent&)> onMousePress;
 	Delegate<void(WindowEvent&)> onMouseRelease;
+	Delegate<void(WindowEvent&)> onMouseMove;
 
 protected:
 	eKey	ConvertFromWindowsKey(WPARAM key);

@@ -11,13 +11,19 @@ public:
 	// Important to implement in derived classes
 	virtual GuiSlider* Clone() const override { return new GuiSlider(*this); }
 
-	void SetValue(float val) { value = val; }
-	void SetMinValue(float val) { minValue = val; }
-	void SetMaxValue(float val) { maxValue = val; }
+	void SetValue(float val);
+	void SetMinValue(float val);
+	void SetMaxValue(float val);
+
+	void SlideToValue(float value);
+	void SlideToNormedPercent(float normedPercent);
 
 protected:
-	void UpdateSliderFromValue();
-	void OnPressed(CursorEvent& evt);
+	void SlideToCursor();
+	void SlideToValue() { SlideToValue(value); }
+
+public:
+	Delegate<void(GuiControl* self, float value)> OnValueChanged;
 
 protected:
 	GuiPlane* background;
@@ -27,44 +33,47 @@ protected:
 	float minValue;
 	float maxValue;
 	float sliderWidth;
+
+	bool bSliding;
 };
 
-inline GuiSlider::GuiSlider(GuiEngine* guiEngine)
-:GuiControl(guiEngine), value(0), minValue(0), maxValue(1), sliderWidth(5)
-{
-	background = AddPlane();
-	slider = AddPlane();
-	slider->SetBaseColor(Color(100, 100, 100));
-	slider->SetHoverColor(Color(100, 100, 100));
-
-	onTransformChanged += [](GuiControl* selff, Rect<float>& rect)
-	{
-		GuiSlider* self = selff->AsSlider();
-
-		self->background->SetRect(rect);
-		self->UpdateSliderFromValue();
-	};
-
-	//OnUpdate += [](GuiControl* selff, float deltaTime)
-	//{
-	//	GuiSlider* self = selff->AsSlider();
-	//	self->onUpdated();
-	//};
-	//
-	onPress += [](GuiControl* selff, CursorEvent& evt)
-	{
-		GuiSlider* self = selff->AsSlider();
-		self->OnPressed(evt);
-	};
-	//
-	
-
-	UpdateSliderFromValue();
-}
-
-inline void GuiSlider::UpdateSliderFromValue()
+inline void GuiSlider::SlideToValue(float value)
 {
 	float normedPercent = value / (maxValue - minValue);
+	SlideToNormedPercent(normedPercent);
+}
+
+inline void GuiSlider::SlideToNormedPercent(float normedPercent)
+{
 	slider->SetSize(sliderWidth, GetHeight());
 	slider->SetPos(GetPosX() + normedPercent * (GetWidth() - slider->GetWidth()), GetPosY());
+}
+
+inline void GuiSlider::SlideToCursor()
+{
+	// Ha cursor sliderHalfWidth() - nél van akkor 0, ha GetWidth() - sliderHalfWidth() - nél akkor meg egy
+	float normalizedPercent = (GetClientCursorPosX() - slider->GetHalfWidth()) / (GetWidth() - slider->GetWidth());
+	normalizedPercent = saturate(normalizedPercent);
+	SlideToNormedPercent(normalizedPercent);
+}
+
+inline void GuiSlider::SetValue(float val)
+{
+	value = clamp(val, minValue, maxValue);
+	SlideToValue(value);
+	OnValueChanged(this, val);
+}
+
+inline void GuiSlider::SetMinValue(float val)
+{
+	minValue = val;
+	val = clamp(val, minValue, maxValue);
+	SetValue(val);
+}
+
+inline void GuiSlider::SetMaxValue(float val)
+{
+	maxValue = val;
+	val = clamp(val, minValue, maxValue);
+	SetValue(val);
 }

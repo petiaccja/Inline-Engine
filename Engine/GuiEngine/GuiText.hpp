@@ -36,7 +36,7 @@ protected:
 inline GuiText::GuiText(GuiEngine* guiEngine)
 :GuiControl(guiEngine), color(Color::WHITE), fontSize(12), align(eTextAlign::CENTER)
 {
-	onParentTransformChanged += [&](GuiControl* self, Rect<float>& rect)
+	onParentTransformChange += [&](GuiControl* self, Rect<float>& rect)
 	{
 		self->AsText()->SetRect(rect);
 	};

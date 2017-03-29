@@ -21,7 +21,7 @@ protected:
 };
 
 inline GuiPlane::GuiPlane(GuiEngine* guiEngine)
-:GuiControl(guiEngine), baseColor(55, 55, 55), hoverColor(55, 55, 55)
+:GuiControl(guiEngine), baseColor(45, 45, 45), hoverColor(75, 75, 75)
 {
 	SetActiveColor(baseColor);
 
@@ -37,7 +37,7 @@ inline GuiPlane::GuiPlane(GuiEngine* guiEngine)
 		self->SetActiveColor(self->baseColor);
 	};
 
-	onParentTransformChanged += [&](GuiControl* self, Rect<float>& rect)
+	onParentTransformChange += [&](GuiControl* self, Rect<float>& rect)
 	{
 		//self->AsPlane()->SetRect(rect);
 	};

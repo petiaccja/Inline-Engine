@@ -17,13 +17,16 @@ public:
 	void Update(float deltaTime);
 	void Render();
 
-	void SetActiveSlider(GuiSlider* s) { activeSlider = s; }
-
 	void TraverseGuiControls(const std::function<void(GuiControl*)>& fn);
 
 	int GetWindowCursorPosX() { return targetWindow.GetClientCursorPos().x; }
 	int GetWindowCursorPosY() { return targetWindow.GetClientCursorPos().y; }
-	GuiSlider* GetActiveSlider() { return activeSlider; }
+
+public:
+	Delegate<void(CursorEvent& evt)> onMouseClick;
+	Delegate<void(CursorEvent& evt)> onMousePress;
+	Delegate<void(CursorEvent& evt)> onMouseRelease;
+	Delegate<void(CursorEvent& evt)> onMouseMove;
 
 protected:
 	IGraphicsEngine& graphicsEngine;
@@ -34,13 +37,12 @@ protected:
 
 	GuiControl* hoveredControl;
 	GuiControl* activeContextMenu;
-	GuiSlider* activeSlider;
 };
 
 
 
 inline GuiEngine::GuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindow)
-:graphicsEngine(graphicsEngine), targetWindow(targetWindow), hoveredControl(nullptr), activeContextMenu(nullptr), activeSlider(nullptr), postProcessLayer(AddLayer())
+:graphicsEngine(graphicsEngine), targetWindow(targetWindow), hoveredControl(nullptr), activeContextMenu(nullptr), postProcessLayer(AddLayer())
 {
 	// Initialize GDI+
 	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
@@ -54,15 +56,21 @@ inline GuiEngine::GuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindo
 
 	// Propagate mousePress
 	thread_local GuiControl* hoveredControlOnPress = nullptr;
+	thread_local ivec2 mousePosWhenPress = ivec2(-1, -1);
 	targetWindow.onMousePress += [&](WindowEvent& event)
 	{
-		hoveredControlOnPress = hoveredControl;
+		CursorEvent eventData;
+		eventData.cursorClientPos = event.mousePos;
+		onMousePress(eventData);
+
+		//hoveredControlOnPress = hoveredControl;
+		mousePosWhenPress = event.mousePos;
 
 		if (hoveredControl)
 		{
-			hoveredControl->TraverseTowardParents([=](GuiControl* control)
+			hoveredControl->TraverseTowardParents([&](GuiControl* control)
 			{
-				control->onPress(control, CursorEvent(event.mousePos));
+				control->onMousePress(control, eventData);
 			});
 		}
 
@@ -73,23 +81,35 @@ inline GuiEngine::GuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindo
 	// Propagate mouseRelease
 	targetWindow.onMouseRelease += [&](WindowEvent& event)
 	{
+		CursorEvent eventData;
+		eventData.cursorClientPos = event.mousePos;
+		onMouseRelease(eventData);
+
+		// Mouse click
+		bool bClick = mousePosWhenPress == event.mousePos;
+
+		if (bClick)
+			onMouseClick(eventData);
+
 		if (activeContextMenu)
 			activeContextMenu->Remove();
 
 		if (hoveredControl)
 		{
-			// Mouse release
-			hoveredControl->TraverseTowardParents([=](GuiControl* control)
+			// Control Mouse release
+			hoveredControl->TraverseTowardParents([&](GuiControl* control)
 			{
-				control->onRelease(control, CursorEvent(event.mousePos));
+				control->onMouseRelease(control, eventData);
 			});
 
-			// Mouse click (so hoveredControl was the last guiControl we've pressed on)
-			if (hoveredControl == hoveredControlOnPress)
+			// Control Mouse click
+			if (bClick)
 			{
-				hoveredControl->TraverseTowardParents([=](GuiControl* control)
+				onMouseClick(eventData);
+
+				hoveredControl->TraverseTowardParents([&](GuiControl* control)
 				{
-					control->onClick(control, CursorEvent(event.mousePos));
+					control->onMouseClick(control, eventData);
 
 					if (event.mouseBtn == eMouseBtn::RIGHT)
 					{
@@ -102,7 +122,7 @@ inline GuiEngine::GuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindo
 
 								if (activeContextMenu)
 								{
-									postProcessLayer->Add(activeContextMenu);
+									postProcessLayer->AddControl(activeContextMenu);
 
 									Rect<float> rect = activeContextMenu->GetRect();
 									rect.x = event.mousePos.x;
@@ -115,6 +135,15 @@ inline GuiEngine::GuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindo
 				});
 			}
 		}
+	};
+
+	// Propagate onMouseMove
+	targetWindow.onMouseMove += [&](WindowEvent& event)
+	{
+		CursorEvent eventData;
+		eventData.cursorClientPos = event.mousePos;
+
+		onMouseMove(eventData);
 	};
 }
 

@@ -11,8 +11,8 @@ public:
 	GuiLayer(GuiEngine* guiEngine);
 	~GuiLayer();
 
-	void Add(GuiControl* child);
-	bool Remove(GuiControl* child);
+	void AddControl(GuiControl* child);
+	bool RemoveControl(GuiControl* child);
 
 	GuiControl* AddControl();
 	GuiButton* AddButton();
@@ -43,14 +43,14 @@ inline GuiLayer::~GuiLayer()
 	delete layer;
 }
 
-inline void GuiLayer::Add(GuiControl* child)
+inline void GuiLayer::AddControl(GuiControl* child)
 {
 	layer->Add(child);
 }
 
-inline bool GuiLayer::Remove(GuiControl* child)
+inline bool GuiLayer::RemoveControl(GuiControl* child)
 {
-	return layer->Remove(child);
+	return layer->RemoveChild(child);
 }
 
 

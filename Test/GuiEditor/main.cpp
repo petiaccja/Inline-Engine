@@ -187,23 +187,23 @@ void InitGui()
 	button->SetBackgroundToColor(Color(55), Color(80));
 	button->SetRect(x, y, 60, 60);
 	button->SetText("Node1");
-	button->onClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "Node1Click", "Node1Click", MB_OK); };
+	button->onMouseClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "Node1Click", "Node1Click", MB_OK); };
 	GuiButton* pin0 = button->AddButton();
 	pin0->SetBackgroundToColor(Color(100), Color(150));
 	pin0->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5, pinSize.x, pinSize.y);
-	pin0->onClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "pin0Click", "pin0Click", MB_OK); };
+	pin0->onMouseClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "pin0Click", "pin0Click", MB_OK); };
 	GuiButton* pin1 = button->AddButton();
 	pin1->SetBackgroundToColor(Color(100), Color(150));
 	pin1->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace, pinSize.x, pinSize.y);
-	pin1->onClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "pin1Click", "pin1Click", MB_OK); };
+	pin1->onMouseClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "pin1Click", "pin1Click", MB_OK); };
 	GuiButton* pin2 = button->AddButton();
 	pin2->SetBackgroundToColor(Color(100), Color(150));
 	pin2->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace * 2.f, pinSize.x, pinSize.y);
-	pin2->onClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "pin2Click", "pin2Click", MB_OK); };
+	pin2->onMouseClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "pin2Click", "pin2Click", MB_OK); };
 	GuiButton* outputPin = button->AddButton();
 	outputPin->SetBackgroundToColor(Color(100), Color(150));
 	outputPin->SetRect(x + 60 - pinSize.x * 0.5, y + 30 - pinSize.y * 0.5, pinSize.x, pinSize.y);
-	outputPin->onClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "outputPin", "outputPin", MB_OK); };
+	outputPin->onMouseClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "outputPin", "outputPin", MB_OK); };
 	}
 
 	GuiControl* node2;
@@ -275,21 +275,6 @@ void InitGui()
 	button1->SetText(L"Amit csak ákársz vaze");
 	button1->SetTextAlign(align);
 	button1->SetRect(0, 0, 10, 20);
-	//GuiButton* button2 = list->AddButton();
-	//button2->SetText("Slider");
-	//button2->SetTextAlign(align);
-	//GuiButton* button3 = list->AddButton();
-	//button3->SetText("List");
-	//button3->SetTextAlign(align);
-	//GuiButton* button4 = list->AddButton();
-	//button4->SetText("MenuBar");
-	//button4->SetTextAlign(align);
-	//GuiButton* button5 = list->AddButton();
-	//button5->SetText("Menu");
-	//button5->SetTextAlign(align);
-	//GuiButton* button6 = list->AddButton();
-	//button6->SetText("Splitter");
-	//button6->SetTextAlign(align);
 	list->SetStride(25);
 	list->SetRect(0, 70, 150, 600);
 	
@@ -303,11 +288,11 @@ void InitGui()
 		slider->SetRect(200, 500, 100, 15);
 
 		GuiSlider* slider2 = layer->AddSlider();
-		slider2->SetValue(70);
+		slider2->SetValue(0.7);
 		slider2->SetRect(200, 520, 100, 15);
 
 		GuiSlider* slider3 = layer->AddSlider();
-		slider3->SetValue(25);
+		slider3->SetValue(0.5);
 		slider3->SetRect(200, 540, 100, 15);
 	}
 }

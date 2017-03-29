@@ -22,6 +22,11 @@ struct ivec2
 		return *this;
 	}
 
+	bool operator == (const ivec2& rhs)
+	{
+		return x == rhs.x && y == rhs.y;
+	}
+
 	void Zero()
 	{
 		x = 0;
@@ -200,6 +205,19 @@ T saturate(const T& val)
 	return result;
 }
 
+template<class T>
+T clamp(const T& val, const T& minVal, const T& maxVal)
+{
+	T result = val;
+
+	if (result < minVal)
+		result = minVal;
+
+	if (result > maxVal)
+		result = maxVal;
+
+	return result;
+}
 
 ///////////////////////////////////////////////////////////////////////////
 ////////////////////////// DELEGATE, TODO REVIEW //////////////////////////
