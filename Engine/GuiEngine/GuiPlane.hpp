@@ -25,24 +25,24 @@ inline GuiPlane::GuiPlane(GuiEngine* guiEngine)
 {
 	SetActiveColor(baseColor);
 
-	OnCursorEnter += [](GuiControl* selff, CursorEvent& event)
+	onCursorEnter += [](GuiControl* selff, CursorEvent& event)
 	{
 		GuiPlane* self = selff->AsPlane();
 		self->SetActiveColor(self->hoverColor);
 	};
 
-	OnCursorLeave += [](GuiControl* selff, CursorEvent& event)
+	onCursorLeave += [](GuiControl* selff, CursorEvent& event)
 	{
 		GuiPlane* self = selff->AsPlane();
 		self->SetActiveColor(self->baseColor);
 	};
 
-	OnParentTransformChanged += [&](GuiControl* self, Rect<float>& rect)
+	onParentTransformChanged += [&](GuiControl* self, Rect<float>& rect)
 	{
 		//self->AsPlane()->SetRect(rect);
 	};
 
-	OnPaint += [](GuiControl* selff, HDC dc, Gdiplus::Graphics* graphics)
+	onPaint += [](GuiControl* selff, HDC dc, Gdiplus::Graphics* graphics)
 	{
 		GuiPlane* self = selff->AsPlane();
 

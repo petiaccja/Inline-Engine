@@ -46,8 +46,8 @@ public:
 	// HEKK
 	Delegate<void()> hekkOnPaint;
 
-	Delegate<void(WindowEvent&)> OnMousePress;
-	Delegate<void(WindowEvent&)> OnMouseRelease;
+	Delegate<void(WindowEvent&)> onMousePress;
+	Delegate<void(WindowEvent&)> onMouseRelease;
 
 protected:
 	eKey	ConvertFromWindowsKey(WPARAM key);

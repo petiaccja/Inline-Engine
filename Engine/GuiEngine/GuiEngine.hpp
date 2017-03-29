@@ -54,7 +54,7 @@ inline GuiEngine::GuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindo
 
 	// Propagate mousePress
 	thread_local GuiControl* hoveredControlOnPress = nullptr;
-	targetWindow.OnMousePress += [&](WindowEvent& event)
+	targetWindow.onMousePress += [&](WindowEvent& event)
 	{
 		hoveredControlOnPress = hoveredControl;
 
@@ -62,7 +62,7 @@ inline GuiEngine::GuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindo
 		{
 			hoveredControl->TraverseTowardParents([=](GuiControl* control)
 			{
-				control->OnPress(control, CursorEvent(event.mousePos));
+				control->onPress(control, CursorEvent(event.mousePos));
 			});
 		}
 
@@ -71,7 +71,7 @@ inline GuiEngine::GuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindo
 	};
 
 	// Propagate mouseRelease
-	targetWindow.OnMouseRelease += [&](WindowEvent& event)
+	targetWindow.onMouseRelease += [&](WindowEvent& event)
 	{
 		if (activeContextMenu)
 			activeContextMenu->Remove();
@@ -81,7 +81,7 @@ inline GuiEngine::GuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindo
 			// Mouse release
 			hoveredControl->TraverseTowardParents([=](GuiControl* control)
 			{
-				control->OnRelease(control, CursorEvent(event.mousePos));
+				control->onRelease(control, CursorEvent(event.mousePos));
 			});
 
 			// Mouse click (so hoveredControl was the last guiControl we've pressed on)
@@ -89,7 +89,7 @@ inline GuiEngine::GuiEngine(IGraphicsEngine& graphicsEngine, Window& targetWindo
 			{
 				hoveredControl->TraverseTowardParents([=](GuiControl* control)
 				{
-					control->OnClick(control, CursorEvent(event.mousePos));
+					control->onClick(control, CursorEvent(event.mousePos));
 
 					if (event.mouseBtn == eMouseBtn::RIGHT)
 					{
@@ -143,7 +143,7 @@ inline void GuiEngine::Update(float deltaTime)
 
 	TraverseGuiControls([=](GuiControl* guiControl)
 	{
-		guiControl->OnUpdate(guiControl, deltaTime);
+		guiControl->onUpdate(guiControl, deltaTime);
 	});
 
 	ivec2 cursorPos = targetWindow.GetClientCursorPos();
@@ -165,7 +165,7 @@ inline void GuiEngine::Update(float deltaTime)
 			// Cursor Enter
 			newHoveredControl->TraverseTowardParents([&](GuiControl* control)
 			{
-				control->OnCursorEnter(control, CursorEvent(cursorPos));
+				control->onCursorEnter(control, CursorEvent(cursorPos));
 			});
 		}
 		
@@ -174,7 +174,7 @@ inline void GuiEngine::Update(float deltaTime)
 			// Cursor Leave
 			hoveredControl->TraverseTowardParents([&](GuiControl* control)
 			{
-				control->OnCursorLeave(control, CursorEvent(cursorPos));
+				control->onCursorLeave(control, CursorEvent(cursorPos));
 			});
 		}
 	}
@@ -185,7 +185,7 @@ inline void GuiEngine::Update(float deltaTime)
 			// Cursor Hover
 			hoveredControl->TraverseTowardParents([&](GuiControl* control)
 			{
-				control->OnCursorHover(control, CursorEvent(cursorPos));
+				control->onCursorHover(control, CursorEvent(cursorPos));
 			});
 		}
 	}
@@ -214,7 +214,7 @@ inline void GuiEngine::Render()
 	// Draw
 	TraverseGuiControls([&](GuiControl* control)
 	{
-		control->OnPaint(control, Memhdc, graphics);
+		control->onPaint(control, Memhdc, graphics);
 	});
 
 	// After draw

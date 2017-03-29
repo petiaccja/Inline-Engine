@@ -184,42 +184,42 @@ bool Window::PopEvent(WindowEvent& evt_out)
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
 		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		OnMousePress(evt_out);
+		onMousePress(evt_out);
 	}
 	else if (msg.message == WM_RBUTTONDOWN)
 	{
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::RIGHT;
 		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		OnMousePress(evt_out);
+		onMousePress(evt_out);
 	}
 	else if (msg.message == WM_MBUTTONDOWN)
 	{
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::MID;
 		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		OnMousePress(evt_out);
+		onMousePress(evt_out);
 	}
 	else if (msg.message == WM_LBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
 		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		OnMouseRelease(evt_out);
+		onMouseRelease(evt_out);
 	}
 	else if (msg.message == WM_RBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::RIGHT;
 		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		OnMouseRelease(evt_out);
+		onMouseRelease(evt_out);
 	}
 	else if (msg.message == WM_MBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::MID;
 		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		OnMouseRelease(evt_out);
+		onMouseRelease(evt_out);
 	}
 	else if (msg.message == WM_KEYDOWN)
 	{

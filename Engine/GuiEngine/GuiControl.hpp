@@ -63,16 +63,18 @@ public:
 	GuiSlider* AsSlider() { return (GuiSlider*)this; }
 
 	void SetRect(float x, float y, float width, float height);
-	void SetRect(const Rect<float>& rect) { SetRect(rect.x, rect.y, rect.width, rect.height); }
-	void SetName(const std::wstring& str) { name = str; }
-	void SetName(const std::string& str)  { SetName(std::wstring(str.begin(), str.end())); }
-	void SetContextMenu(GuiControl* c)	  { contextMenu = c; }
-	void SetPos(const vec2& p) { SetRect(p.x, p.y, size.x, size.y); }
-	void SetPosX(float x)		{ SetRect(x, pos.y, size.x, size.y); }
-	void SetPosY(float y)		{ SetRect(pos.x, y, size.x, size.y); }
-	void SetSize(const vec2& s) { SetRect(pos.x, pos.y, s.x, s.y); }
-	void SetWidth(float w)		{ SetSize(vec2(w, size.y)); }
-	void SetHeight(float h)		{ SetSize(vec2(size.x, h)); }
+	void SetRect(const Rect<float>& rect)	{ SetRect(rect.x, rect.y, rect.width, rect.height); }
+	void SetName(const std::wstring& str)	{ name = str; }
+	void SetName(const std::string& str)	{ SetName(std::wstring(str.begin(), str.end())); }
+	void SetContextMenu(GuiControl* c)		{ contextMenu = c; }
+	void SetPos(const vec2& p)				{ SetPos(p.x, p.y); }
+	void SetPos(float x, float y)			{ SetRect(x, y, size.x, size.y); }
+	void SetPosX(float x)					{ SetRect(x, pos.y, size.x, size.y); }
+	void SetPosY(float y)					{ SetRect(pos.x, y, size.x, size.y); }
+	void SetSize(const vec2& s)				{ SetSize(s.x, s.y); }
+	void SetSize(float width, float height) { SetRect(pos.x, pos.y, width, height); }
+	void SetWidth(float w)					{ SetSize(vec2(w, size.y)); }
+	void SetHeight(float h)					{ SetSize(vec2(size.x, h)); }
 
 	float GetClientCursorPosX();
 	float GetClientCursorPosY();
@@ -107,21 +109,21 @@ protected:
 	GuiEngine* guiEngine;
 
 public:
-	Delegate<void(GuiControl* self, CursorEvent& evt)> OnClick;
-	Delegate<void(GuiControl* self, CursorEvent& evt)> OnPress;
-	Delegate<void(GuiControl* self, CursorEvent& evt)> OnRelease;
+	Delegate<void(GuiControl* self, CursorEvent& evt)> onClick;
+	Delegate<void(GuiControl* self, CursorEvent& evt)> onPress;
+	Delegate<void(GuiControl* self, CursorEvent& evt)> onRelease;
 
-	Delegate<void(GuiControl* self, CursorEvent& evt)> OnCursorEnter;
-	Delegate<void(GuiControl* self, CursorEvent& evt)> OnCursorLeave;
-	Delegate<void(GuiControl* self, CursorEvent& evt)> OnCursorHover;
+	Delegate<void(GuiControl* self, CursorEvent& evt)> onCursorEnter;
+	Delegate<void(GuiControl* self, CursorEvent& evt)> onCursorLeave;
+	Delegate<void(GuiControl* self, CursorEvent& evt)> onCursorHover;
 
-	Delegate<void(GuiControl* self, Rect<float>& rect)> OnTransformChanged;
-	Delegate<void(GuiControl* self, Rect<float>& rect)> OnParentTransformChanged;
+	Delegate<void(GuiControl* self, Rect<float>& rect)> onTransformChanged;
+	Delegate<void(GuiControl* self, Rect<float>& rect)> onParentTransformChanged;
 
-	Delegate<void(GuiControl* self, GuiControl* parent)> OnParentChanged;
+	Delegate<void(GuiControl* self, GuiControl* parent)> onParentChanged;
 
-	Delegate<void(GuiControl* self, HDC dc, Gdiplus::Graphics* graphics)> OnPaint;
-	Delegate<void(GuiControl* self, float deltaTime)> OnUpdate;
+	Delegate<void(GuiControl* self, HDC dc, Gdiplus::Graphics* graphics)> onPaint;
+	Delegate<void(GuiControl* self, float deltaTime)> onUpdate;
 };
 
 inline GuiControl::GuiControl(GuiEngine* guiEngine)
@@ -152,17 +154,17 @@ inline GuiControl& GuiControl::operator = (const GuiControl& other)
 	pos = other.pos;
 	size = other.size;
 	name = other.name;
-	OnClick = other.OnClick;
-	OnPress = other.OnPress;
-	OnRelease = other.OnRelease;
-	OnCursorEnter = other.OnCursorEnter;
-	OnCursorLeave = other.OnCursorLeave;
-	OnCursorHover = other.OnCursorHover;
-	OnTransformChanged = other.OnTransformChanged;
-	OnParentTransformChanged = other.OnParentTransformChanged;
-	//OnParentChanged = other.OnParentChanged;
-	OnPaint = other.OnPaint;
-	OnUpdate = other.OnUpdate;
+	onClick = other.onClick;
+	onPress = other.onPress;
+	onRelease = other.onRelease;
+	onCursorEnter = other.onCursorEnter;
+	onCursorLeave = other.onCursorLeave;
+	onCursorHover = other.onCursorHover;
+	onTransformChanged = other.onTransformChanged;
+	onParentTransformChanged = other.onParentTransformChanged;
+	//OnParentChanged = other.onParentChanged;
+	onPaint = other.onPaint;
+	onUpdate = other.onUpdate;
 
 	// Context menu
 	if(other.contextMenu)
@@ -198,7 +200,7 @@ inline void GuiControl::Add(GuiControl* child)
 	childrenIndices.insert(std::make_pair(child, children.size()));
 	children.push_back(child);
 
-	child->OnParentChanged(child, this);
+	child->onParentChanged(child, this);
 }
 
 inline bool GuiControl::Remove(GuiControl* child)
@@ -262,18 +264,18 @@ inline void GuiControl::SetRect(float x, float y, float width, float height)
 	size.y = height;
 
 	Rect<float> rect = GetRect();
-	OnTransformChanged(this, rect);
+	onTransformChanged(this, rect);
 
 	// Child iteration and set rect solves the following code
 	//OnParentChanged += [](GuiControl* selff, GuiControl* parent)
 	//{
 	//	GuiPlane* self = selff->AsPlane();
-	//	parent->OnTransformChanged += [=](GuiControl* self2_, Rect<float>& rect)
+	//	parent->onTransformChanged += [=](GuiControl* self2_, Rect<float>& rect)
 	//	{
 	//		self->AsPlane()->SetRect(rect);
 	//	};
 	//};
 
 	for (GuiControl* child : children)
-		child->OnParentTransformChanged(child, rect);
+		child->onParentTransformChanged(child, rect);
 }

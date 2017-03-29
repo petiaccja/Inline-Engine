@@ -33,10 +33,10 @@
     <ClInclude Include="GuiText.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GuiList.hpp">
+    <ClInclude Include="GuiSlider.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GuiSlider.hpp">
+    <ClInclude Include="GuiList.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

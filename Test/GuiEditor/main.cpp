@@ -158,12 +158,12 @@ void InitGui()
 	button->SetRect(0, 0, 60, 22);
 	button->SetText("File");
 
-	//button->OnClick += [](CursorEvent& evt) {MessageBoxA(NULL, "Click", "Click", MB_OK); };
-	//button->OnPress += [](CursorEvent& evt) {MessageBoxA(NULL, "Press", "Press", MB_OK); };
-	//button->OnRelease += [](CursorEvent& evt) {MessageBoxA(NULL, "Release", "Release", MB_OK); };
-	//button->OnCursorEnter += [](CursorEvent& evt) {MessageBoxA(NULL, "Enter", "Enter", MB_OK); };
-	//button->OnCursorLeave += [](CursorEvent& evt) {MessageBoxA(NULL, "Leave", "Leave", MB_OK); };
-	//button->OnCursorHover += [](CursorEvent& evt) {MessageBoxA(NULL, "Hover", "Hover", MB_OK); };
+	//button->onClick += [](CursorEvent& evt) {MessageBoxA(NULL, "Click", "Click", MB_OK); };
+	//button->onPress += [](CursorEvent& evt) {MessageBoxA(NULL, "Press", "Press", MB_OK); };
+	//button->onRelease += [](CursorEvent& evt) {MessageBoxA(NULL, "Release", "Release", MB_OK); };
+	//button->onCursorEnter += [](CursorEvent& evt) {MessageBoxA(NULL, "Enter", "Enter", MB_OK); };
+	//button->onCursorLeave += [](CursorEvent& evt) {MessageBoxA(NULL, "Leave", "Leave", MB_OK); };
+	//button->onCursorHover += [](CursorEvent& evt) {MessageBoxA(NULL, "Hover", "Hover", MB_OK); };
 
 	button2 = layer->AddButton();
 	button2->SetBackgroundToColor(Color(55, 55, 55), Color(80, 80, 80));
@@ -187,23 +187,23 @@ void InitGui()
 	button->SetBackgroundToColor(Color(55), Color(80));
 	button->SetRect(x, y, 60, 60);
 	button->SetText("Node1");
-	button->OnClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "Node1Click", "Node1Click", MB_OK); };
+	button->onClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "Node1Click", "Node1Click", MB_OK); };
 	GuiButton* pin0 = button->AddButton();
 	pin0->SetBackgroundToColor(Color(100), Color(150));
 	pin0->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5, pinSize.x, pinSize.y);
-	pin0->OnClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "pin0Click", "pin0Click", MB_OK); };
+	pin0->onClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "pin0Click", "pin0Click", MB_OK); };
 	GuiButton* pin1 = button->AddButton();
 	pin1->SetBackgroundToColor(Color(100), Color(150));
 	pin1->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace, pinSize.x, pinSize.y);
-	pin1->OnClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "pin1Click", "pin1Click", MB_OK); };
+	pin1->onClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "pin1Click", "pin1Click", MB_OK); };
 	GuiButton* pin2 = button->AddButton();
 	pin2->SetBackgroundToColor(Color(100), Color(150));
 	pin2->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace * 2.f, pinSize.x, pinSize.y);
-	pin2->OnClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "pin2Click", "pin2Click", MB_OK); };
+	pin2->onClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "pin2Click", "pin2Click", MB_OK); };
 	GuiButton* outputPin = button->AddButton();
 	outputPin->SetBackgroundToColor(Color(100), Color(150));
 	outputPin->SetRect(x + 60 - pinSize.x * 0.5, y + 30 - pinSize.y * 0.5, pinSize.x, pinSize.y);
-	outputPin->OnClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "outputPin", "outputPin", MB_OK); };
+	outputPin->onClick += [](GuiControl* self, CursorEvent& evt) {MessageBoxA(NULL, "outputPin", "outputPin", MB_OK); };
 	}
 
 	GuiControl* node2;

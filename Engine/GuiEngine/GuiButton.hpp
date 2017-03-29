@@ -32,7 +32,7 @@ inline GuiButton::GuiButton(GuiEngine* guiEngine)
 	//background = AddPlane();
 	//text = AddText();
 
-	OnTransformChanged += [](GuiControl* selff, Rect<float>& rect)
+	onTransformChanged += [](GuiControl* selff, Rect<float>& rect)
 	{
 		selff->AsButton()->background->SetRect(rect);//TODO REMOVE
 	};

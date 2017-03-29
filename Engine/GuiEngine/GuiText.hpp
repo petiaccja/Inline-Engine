@@ -36,12 +36,12 @@ protected:
 inline GuiText::GuiText(GuiEngine* guiEngine)
 :GuiControl(guiEngine), color(Color::WHITE), fontSize(12), align(eTextAlign::CENTER)
 {
-	OnParentTransformChanged += [&](GuiControl* self, Rect<float>& rect)
+	onParentTransformChanged += [&](GuiControl* self, Rect<float>& rect)
 	{
 		self->AsText()->SetRect(rect);
 	};
 
-	OnPaint += [](GuiControl* selff, HDC hdc, Gdiplus::Graphics* graphics)
+	onPaint += [](GuiControl* selff, HDC hdc, Gdiplus::Graphics* graphics)
 	{
 		GuiText* self = selff->AsText();
 		auto text = self->text;

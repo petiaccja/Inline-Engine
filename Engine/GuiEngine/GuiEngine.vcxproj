@@ -125,11 +125,13 @@
     <ClInclude Include="GuiList.hpp" />
     <ClInclude Include="GuiPlane.hpp" />
     <ClInclude Include="GuiSlider.hpp" />
+    <ClCompile Include="GuiSlider.cpp">
+      <FileType>CppHeader</FileType>
+    </ClCompile>
     <ClInclude Include="GuiText.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GuiControl.cpp" />
-    <ClCompile Include="GuiSlider.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
