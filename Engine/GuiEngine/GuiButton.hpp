@@ -16,7 +16,7 @@ public:
 	virtual GuiButton& operator = (const GuiButton& other);
 	virtual GuiButton* Clone() const override { return new GuiButton(*this); }
 
-	void SetBackgroundToColor(Color& baseColor, Color& hoverColor);
+	void SetBackgroundToColor(Color& idleColor, Color& hoverColor);
 	void SetText(const std::wstring& text);
 	void SetText(const std::string& text);
 	void SetTextAlign(eTextAlign align);
@@ -61,9 +61,9 @@ inline GuiButton& GuiButton::operator = (const GuiButton& other)
 	return *this;
 }
 
-inline void GuiButton::SetBackgroundToColor(Color& baseColor, Color& hoverColor)
+inline void GuiButton::SetBackgroundToColor(Color& idleColor, Color& hoverColor)
 {
-	background->SetBaseColor(baseColor);
+	background->SetIdleColor(idleColor);
 	background->SetHoverColor(hoverColor);
 }
 

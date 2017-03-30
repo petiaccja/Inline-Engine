@@ -72,6 +72,15 @@ public:
 	uint8_t b;
 	uint8_t a;
 
+	Color operator + (int val)
+	{
+		Color color;
+		color.r = r + val;
+		color.g = g + val;
+		color.b = b + val;
+
+		return color;
+	}
 public:
 	static Color BLACK;
 	static Color WHITE;

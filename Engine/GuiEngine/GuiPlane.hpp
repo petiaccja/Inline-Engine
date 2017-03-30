@@ -11,30 +11,34 @@ public:
 	virtual GuiPlane* Clone() const override { return new GuiPlane(*this); }
 
 	void SetActiveColor(Color& color);
-	void SetBaseColor(Color& color);
+	void SetIdleColor(Color& color);
 	void SetHoverColor(Color& color);
+
+	Color& GetActiveColor() { return activeColor; }
+	Color& GetIdleColor() { return idleColor; }
+	Color& GetHoverColor() { return hoverColor; }
 
 protected:
 	Color activeColor;
-	Color baseColor;
+	Color idleColor;
 	Color hoverColor;
 };
 
 inline GuiPlane::GuiPlane(GuiEngine* guiEngine)
-:GuiControl(guiEngine), baseColor(45, 45, 45), hoverColor(75, 75, 75)
+:GuiControl(guiEngine), idleColor(45, 45, 45), hoverColor(75, 75, 75)
 {
-	SetActiveColor(baseColor);
+	SetActiveColor(idleColor);
 
-	onCursorEnter += [](GuiControl* selff, CursorEvent& event)
+	onMouseEnter += [](GuiControl* selff, CursorEvent& event)
 	{
 		GuiPlane* self = selff->AsPlane();
 		self->SetActiveColor(self->hoverColor);
 	};
 
-	onCursorLeave += [](GuiControl* selff, CursorEvent& event)
+	onMouseLeave += [](GuiControl* selff, CursorEvent& event)
 	{
 		GuiPlane* self = selff->AsPlane();
-		self->SetActiveColor(self->baseColor);
+		self->SetActiveColor(self->idleColor);
 	};
 
 	onParentTransformChange += [&](GuiControl* self, Rect<float>& rect)
@@ -57,10 +61,10 @@ inline void GuiPlane::SetActiveColor(Color& color)
 	activeColor = color;
 }
 
-inline void GuiPlane::SetBaseColor(Color& color)
+inline void GuiPlane::SetIdleColor(Color& color)
 {
-	baseColor = color;
-	SetActiveColor(baseColor);
+	idleColor = color;
+	SetActiveColor(idleColor);
 }
 
 inline void GuiPlane::SetHoverColor(Color& color)

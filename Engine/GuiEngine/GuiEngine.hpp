@@ -70,7 +70,8 @@ inline GuiEngine::GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindo
 		{
 			hoveredControl->TraverseTowardParents([&](GuiControl* control)
 			{
-				control->onMousePress(control, eventData);
+				if(control->IsPointInside(event.mousePos))
+					control->onMousePress(control, eventData);
 			});
 		}
 
@@ -99,7 +100,8 @@ inline GuiEngine::GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindo
 			// Control Mouse release
 			hoveredControl->TraverseTowardParents([&](GuiControl* control)
 			{
-				control->onMouseRelease(control, eventData);
+				if (control->IsPointInside(event.mousePos))
+					control->onMouseRelease(control, eventData);
 			});
 
 			// Control Mouse click
@@ -109,25 +111,28 @@ inline GuiEngine::GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindo
 
 				hoveredControl->TraverseTowardParents([&](GuiControl* control)
 				{
-					control->onMouseClick(control, eventData);
-
-					if (event.mouseBtn == eMouseBtn::RIGHT)
+					if (control->IsPointInside(event.mousePos))
 					{
-						if (control->GetContextMenu())
+						control->onMouseClick(control, eventData);
+
+						if (event.mouseBtn == eMouseBtn::RIGHT)
 						{
-							// Add to the top most layer
-							if (layers.size() > 0)
+							if (control->GetContextMenu())
 							{
-								activeContextMenu = control->GetContextMenu();
-
-								if (activeContextMenu)
+								// Add to the top most layer
+								if (layers.size() > 0)
 								{
-									postProcessLayer->AddControl(activeContextMenu);
+									activeContextMenu = control->GetContextMenu();
 
-									Rect<float> rect = activeContextMenu->GetRect();
-									rect.x = event.mousePos.x;
-									rect.y = event.mousePos.y;
-									activeContextMenu->SetRect(rect);
+									if (activeContextMenu)
+									{
+										postProcessLayer->AddControl(activeContextMenu);
+
+										Rect<float> rect = activeContextMenu->GetRect();
+										rect.x = event.mousePos.x;
+										rect.y = event.mousePos.y;
+										activeContextMenu->SetRect(rect);
+									}
 								}
 							}
 						}
@@ -179,42 +184,42 @@ inline void GuiEngine::Update(float deltaTime)
 	
 	// Search hovered control to fire event on them
 	GuiControl* newHoveredControl = nullptr;
-	TraverseGuiControls([&](GuiControl* guiControl)
+	TraverseGuiControls([&](GuiControl* control)
 	{
-		if (guiControl->GetRect().IsPointInside(cursorPos))
-		{
-			newHoveredControl = guiControl;
-		}
+		if (control->IsPointInside(cursorPos))
+			newHoveredControl = control;
 	});
 
 	if (newHoveredControl != hoveredControl)
 	{
-		if (newHoveredControl)
-		{
-			// Cursor Enter
-			newHoveredControl->TraverseTowardParents([&](GuiControl* control)
-			{
-				control->onCursorEnter(control, CursorEvent(cursorPos));
-			});
-		}
-		
+		// Cursor Leave
 		if (hoveredControl)
 		{
-			// Cursor Leave
 			hoveredControl->TraverseTowardParents([&](GuiControl* control)
 			{
-				control->onCursorLeave(control, CursorEvent(cursorPos));
+				control->onMouseLeave(control, CursorEvent(cursorPos));
+			});
+		}
+
+		// Cursor Enter
+		if (newHoveredControl)
+		{
+			newHoveredControl->TraverseTowardParents([&](GuiControl* control)
+			{
+				if (control->IsPointInside(cursorPos))
+					control->onMouseEnter(control, CursorEvent(cursorPos));
 			});
 		}
 	}
 	else
 	{
+		// Cursor Hover
 		if (hoveredControl)
 		{
-			// Cursor Hover
 			hoveredControl->TraverseTowardParents([&](GuiControl* control)
 			{
-				control->onCursorHover(control, CursorEvent(cursorPos));
+				if(control->IsPointInside(cursorPos))
+					control->onMouseHover(control, CursorEvent(cursorPos));
 			});
 		}
 	}

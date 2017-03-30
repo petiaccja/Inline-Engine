@@ -7,8 +7,9 @@ GuiSlider::GuiSlider(GuiEngine* guiEngine)
 {
 	background = AddPlane();
 	slider = AddPlane();
-	slider->SetBaseColor(Color(100, 100, 100));
-	slider->SetHoverColor(Color(100, 100, 100));
+	slider->SetIdleColor(Color(130, 130, 130));
+	slider->SetHoverColor(slider->GetIdleColor());
+	background->SetHoverColor(background->GetIdleColor());
 
 	onTransformChange += [](GuiControl* selff, Rect<float>& rect)
 	{
@@ -16,6 +17,20 @@ GuiSlider::GuiSlider(GuiEngine* guiEngine)
 
 		self->background->SetRect(rect);
 		self->SlideToValue();
+	};
+
+	onMouseEnter += [](GuiControl* selff, CursorEvent& evt)
+	{
+		GuiSlider* self = selff->AsSlider();
+		self->slider->SetActiveColor(self->slider->GetIdleColor() + 65);
+		self->background->SetActiveColor(self->background->GetIdleColor() + 35);
+	};
+
+	onMouseLeave += [](GuiControl* selff, CursorEvent& evt)
+	{
+		GuiSlider* self = selff->AsSlider();
+		self->slider->SetActiveColor(self->slider->GetIdleColor());
+		self->background->SetActiveColor(self->background->GetIdleColor());
 	};
 
 	// Start drag

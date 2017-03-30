@@ -1,6 +1,6 @@
 #pragma once
 #include <BaseLibrary\Common_tmp.hpp>
-#include <unordered_map>
+#include "GuiEvent.h"
 
 // TMP HEKK (REMOVE)
 #include <BaseLibrary\Platform\Window.hpp>
@@ -11,15 +11,7 @@
 #undef max
 // TMP HEKK END
 
-class CursorEvent
-{
-public:
-	CursorEvent(): cursorClientPos(0,0){}
-	CursorEvent(ivec2 cursorClientPos): cursorClientPos(cursorClientPos){}
-
-public:
-	ivec2 cursorClientPos;
-};
+#include <unordered_map>
 
 class GuiEngine;
 class GuiPlane;
@@ -78,6 +70,8 @@ public:
 	void SetWidth(float w)					{ SetSize(vec2(w, size.y)); }
 	void SetHeight(float h)					{ SetSize(vec2(size.x, h)); }
 
+	void SetEventPropagationPolicy(eEventPropagationPolicy e) { eventPropagationPolicy = e; }
+
 	float GetClientCursorPosX();
 	float GetClientCursorPosY();
 	float GetPosX()		  { return pos.x; }
@@ -95,6 +89,10 @@ public:
 	GuiControl* GetContextMenu() { return contextMenu; }
 	const std::vector<GuiControl*>& GetChildren() { return children; }
 
+	eEventPropagationPolicy GetEventPropagationPolicy() { return eventPropagationPolicy; }
+
+	bool IsPointInside(ivec2 pt) { return GetRect().IsPointInside(pt); }
+
 protected:
 	std::wstring name;
 	vec2 pos;
@@ -102,6 +100,8 @@ protected:
 	GuiControl* parent;
 	std::vector<GuiControl*> children;
 	std::unordered_map<GuiControl*, size_t> childrenIndices; // For optimizing (Add & Remove) functions
+
+	eEventPropagationPolicy eventPropagationPolicy;
 
 	// Layering (Our neighbours in the tree hierarchy)
 	GuiControl* front;
@@ -117,10 +117,9 @@ public:
 	Delegate<void(GuiControl* self, CursorEvent& evt)> onMousePress;
 	Delegate<void(GuiControl* self, CursorEvent& evt)> onMouseRelease;
 	Delegate<void(GuiControl* self, CursorEvent& evt)> onMouseMove;
-
-	Delegate<void(GuiControl* self, CursorEvent& evt)> onCursorEnter;
-	Delegate<void(GuiControl* self, CursorEvent& evt)> onCursorLeave;
-	Delegate<void(GuiControl* self, CursorEvent& evt)> onCursorHover;
+	Delegate<void(GuiControl* self, CursorEvent& evt)> onMouseEnter;
+	Delegate<void(GuiControl* self, CursorEvent& evt)> onMouseLeave;
+	Delegate<void(GuiControl* self, CursorEvent& evt)> onMouseHover;
 
 	Delegate<void(GuiControl* self, Rect<float>& rect)> onTransformChange;
 	Delegate<void(GuiControl* self, Rect<float>& rect)> onParentTransformChange;
@@ -132,7 +131,7 @@ public:
 };
 
 inline GuiControl::GuiControl(GuiEngine* guiEngine)
-:guiEngine(guiEngine), pos(0, 0), size(60,20), parent(nullptr), front(nullptr), back(nullptr), contextMenu(nullptr)
+:guiEngine(guiEngine), pos(0, 0), eventPropagationPolicy(eEventPropagationPolicy::PROCESS), size(60,20), parent(nullptr), front(nullptr), back(nullptr), contextMenu(nullptr)
 {
 
 }
@@ -162,9 +161,9 @@ inline GuiControl& GuiControl::operator = (const GuiControl& other)
 	onMousePress = other.onMousePress;
 	onMouseRelease = other.onMouseRelease;
 	onMouseMove = other.onMouseMove;
-	onCursorEnter = other.onCursorEnter;
-	onCursorLeave = other.onCursorLeave;
-	onCursorHover = other.onCursorHover;
+	onMouseEnter = other.onMouseEnter;
+	onMouseLeave = other.onMouseLeave;
+	onMouseHover = other.onMouseHover;
 	onTransformChange = other.onTransformChange;
 	onParentTransformChange = other.onParentTransformChange;
 	onPaint = other.onPaint;
@@ -241,12 +240,22 @@ inline bool GuiControl::Remove()
 
 inline void GuiControl::TraverseTowardParents(const std::function<void(GuiControl*)>& fn)
 {
-	fn(this);
+	// Terminate recursive call
+	if (eventPropagationPolicy == eEventPropagationPolicy::STOP)
+		return;
 
-	if (back)
-		back->TraverseTowardParents(fn);
-	else if (parent)
-		fn(parent);
+	// Process fn for this control
+	if (eventPropagationPolicy == eEventPropagationPolicy::PROCESS || eventPropagationPolicy == eEventPropagationPolicy::PROCESS_STOP)
+		fn(this);
+
+	// Continue recursive calls
+	if (eventPropagationPolicy == eEventPropagationPolicy::PROCESS || eventPropagationPolicy == eEventPropagationPolicy::AVOID)
+	{
+		if (back)
+			back->TraverseTowardParents(fn);
+		else if (parent)
+			fn(parent);// parent->TraverseTowardParents(fn);
+	}
 }
 
 inline void GuiControl::Move(float dx, float dy)

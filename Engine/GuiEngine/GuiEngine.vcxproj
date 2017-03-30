@@ -122,6 +122,7 @@
     <ClInclude Include="GuiButton.hpp" />
     <ClInclude Include="GuiControl.hpp" />
     <ClInclude Include="GuiEngine.hpp" />
+    <ClInclude Include="GuiEvent.h" />
     <ClInclude Include="GuiLayer.hpp" />
     <ClInclude Include="GuiList.hpp" />
     <ClInclude Include="GuiPlane.hpp" />
