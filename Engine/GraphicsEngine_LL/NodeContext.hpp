@@ -17,7 +17,18 @@ class CbvSrvUavHeap;
 class RTVHeap;
 class DSVHeap;
 
+class GraphicsCommandList;
+class ComputeCommandList;
+class CopyCommandList;
+class BasicCommandList;
 
+class ScratchSpacePool;
+class CommandAllocatorPool;
+
+
+//------------------------------------------------------------------------------
+// Engine Context
+//------------------------------------------------------------------------------
 
 class EngineContext {
 public:
@@ -37,6 +48,10 @@ private:
 };
 
 
+
+//------------------------------------------------------------------------------
+// Setup Context
+//------------------------------------------------------------------------------
 
 class SetupContext {
 public:
@@ -91,10 +106,15 @@ private:
 
 
 
+//------------------------------------------------------------------------------
+// Render Context
+//------------------------------------------------------------------------------
+
 class RenderContext {
 public:
 	RenderContext(MemoryManager* memoryManager = nullptr,
 				  CbvSrvUavHeap* srvHeap = nullptr,
+				  VolatileViewHeap* volatileViewHeap = nullptr,
 				  ShaderManager* shaderManager = nullptr,
 				  gxapi::IGraphicsApi* graphicsApi = nullptr,
 				  CommandAllocatorPool* commandAllocatorPool = nullptr,
@@ -107,7 +127,7 @@ public:
 
 	// Constant buffers
 	VolatileConstBuffer CreateVolatileConstBuffer(const void* data, size_t size) const;
-	ConstBufferView CreateCbv(VolatileConstBuffer& buffer, size_t offset, size_t size, VolatileViewHeap& viewHeap) const;
+	ConstBufferView CreateCbv(VolatileConstBuffer& buffer, size_t offset, size_t size) const;
 
 	// Shaders and PSOs
 	ShaderProgram CreateShader(const std::string& name, ShaderParts stages, const std::string& macros) const;
@@ -127,6 +147,7 @@ private:
 	// Memory management stuff
 	MemoryManager* m_memoryManager;
 	CbvSrvUavHeap* m_srvHeap;
+	VolatileViewHeap* m_volatileViewHeap;
 
 	// Shaders and PSOs
 	ShaderManager* m_shaderManager;
@@ -135,7 +156,7 @@ private:
 	// Command list
 	CommandAllocatorPool* m_commandAllocatorPool;
 	ScratchSpacePool* m_scratchSpacePool;
-	BasicCommandList* m_commandList;
+	std::unique_ptr<BasicCommandList> m_commandList;
 };
 
 

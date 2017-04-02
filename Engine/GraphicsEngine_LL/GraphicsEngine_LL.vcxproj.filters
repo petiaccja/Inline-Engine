@@ -408,6 +408,9 @@
     <ClCompile Include="NodeContext.cpp">
       <Filter>Pipeline</Filter>
     </ClCompile>
+    <ClCompile Include="GraphicsNode.cpp">
+      <Filter>Pipeline</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Materials\bitmap_color_2d.mtl.hlsl">

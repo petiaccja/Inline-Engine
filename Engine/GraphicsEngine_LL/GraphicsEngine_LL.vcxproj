@@ -235,6 +235,7 @@
     <ClCompile Include="BasicCommandList.cpp" />
     <ClCompile Include="Binder.cpp" />
     <ClCompile Include="BasicCamera.cpp" />
+    <ClCompile Include="GraphicsNode.cpp" />
     <ClCompile Include="NodeContext.cpp" />
     <ClCompile Include="Nodes\Node_Blend.cpp" />
     <ClCompile Include="Nodes\Node_CSM.cpp" />
