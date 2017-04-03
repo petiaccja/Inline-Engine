@@ -71,6 +71,8 @@ public:
 /// </remarks>
 class GraphicsNode : virtual public exc::NodeBase {
 public:
+	GraphicsNode();
+
 	virtual void Initialize(EngineContext& context) = 0;
 
 	const lemon::ListDigraph& GetTaskGraph() const;

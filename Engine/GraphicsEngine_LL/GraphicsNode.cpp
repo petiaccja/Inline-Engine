@@ -4,6 +4,11 @@
 namespace inl::gxeng {
 
 
+GraphicsNode::GraphicsNode()
+	: m_taskMap(m_taskNodes)
+{}
+
+
 
 const lemon::ListDigraph& GraphicsNode::GetTaskGraph() const {
 	return m_taskNodes;

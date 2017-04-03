@@ -100,7 +100,6 @@ public:
 
 	// Scene
 	Scene* CreateScene(std::string name);
-	Overlay* CreateOverlay(std::string name);
 	MeshEntity* CreateMeshEntity();
 	OverlayEntity* CreateOverlayEntity();
 	PerspectiveCamera* CreatePerspectiveCamera(std::string name);
@@ -151,7 +150,6 @@ private:
 
 	// Scene
 	std::set<Scene*> m_scenes;
-	std::set<Overlay*> m_overlays;
 	std::set<BasicCamera*> m_cameras;
 
 private:

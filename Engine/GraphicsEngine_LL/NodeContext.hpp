@@ -142,6 +142,8 @@ public:
 	GraphicsCommandList& AsGraphics();
 	ComputeCommandList& AsCompute();
 	CopyCommandList& AsCopy();
+	gxapi::eCommandListType GetType() const { return m_type; }
+	bool IsListInitialized() const { return (bool)m_commandList; }
 
 private:
 	// Memory management stuff
@@ -157,6 +159,7 @@ private:
 	CommandAllocatorPool* m_commandAllocatorPool;
 	ScratchSpacePool* m_scratchSpacePool;
 	std::unique_ptr<BasicCommandList> m_commandList;
+	gxapi::eCommandListType m_type = static_cast<gxapi::eCommandListType>(0xDEADBEEF);
 };
 
 

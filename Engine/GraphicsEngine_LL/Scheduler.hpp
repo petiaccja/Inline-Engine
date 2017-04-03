@@ -3,11 +3,13 @@
 #include "GraphicsNode.hpp"
 #include "Pipeline.hpp"
 #include "FrameContext.hpp"
+#include "ScratchSpacePool.hpp"
 
 #include <BaseLibrary/optional.hpp>
 #include <GraphicsApi_LL/IFence.hpp>
 #include <memory>
 #include <cstdint>
+#include <vector>
 
 namespace inl {
 namespace gxeng {
@@ -35,17 +37,17 @@ protected:
 	static void MakeResident(std::vector<MemoryObject*> usedResources);
 	static void Evict(std::vector<MemoryObject*> usedResources);
 
-	static void UploadTask(CopyCommandList& commandList, const std::vector<UploadManager::UploadDescription>& uploads);
 
-	static std::vector<ElementaryTask> MakeSchedule(const lemon::ListDigraph& taskGraph,
-													const lemon::ListDigraph::NodeMap<ElementaryTask>& taskFunctionMap
+	static std::vector<GraphicsTask*> MakeSchedule(const lemon::ListDigraph& taskGraph,
+												   const lemon::ListDigraph::NodeMap<GraphicsTask*>& taskFunctionMap
 													/*std::vector<CommandQueue*> queues*/);
 
 	static void EnqueueCommandList(CommandQueue& commandQueue,
 								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
 								   CmdAllocPtr commandAllocator,
-	                               std::vector<ScratchSpacePtr> scratchSpaces,
+								   std::vector<ScratchSpacePtr> scratchSpaces,
 								   std::vector<MemoryObject> usedResources,
+								   std::unique_ptr<VolatileViewHeap> volatileHeap,
 								   const FrameContext& context);
 
 	template <class UsedResourceIter>
@@ -60,6 +62,15 @@ protected:
 	static void RenderFailureScreen(FrameContext context);
 private:
 	Pipeline m_pipeline;
+private:
+	class UploadTask : public GraphicsTask {
+	public:
+		UploadTask(const std::vector<UploadManager::UploadDescription>* uploads) : m_uploads(uploads) {}
+		void Setup(SetupContext& context) override;
+		void Execute(RenderContext& context) override;
+	private:
+		const std::vector<UploadManager::UploadDescription>* m_uploads;
+	};
 };
 
 

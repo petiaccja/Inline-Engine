@@ -227,8 +227,11 @@ GraphicsCommandList& RenderContext::AsGraphics() {
 		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandAllocatorPool, *m_scratchSpacePool));
 		return *dynamic_cast<GraphicsCommandList*>(m_commandList.get());
 	}
+	else if (m_type == gxapi::eCommandListType::GRAPHICS) {
+		return *dynamic_cast<GraphicsCommandList*>(m_commandList.get());
+	}
 	else {
-		throw std::logic_error("You may call AsType() functions only once. Store the reference, but don't move or copy the object.");
+		throw std::logic_error("Your first call to AsType() determines the command list type. You did not choose GRAPHICS, thus this call is invalid.");
 	}
 }
 ComputeCommandList& RenderContext::AsCompute() {
@@ -236,8 +239,11 @@ ComputeCommandList& RenderContext::AsCompute() {
 		m_commandList.reset(new ComputeCommandList(m_graphicsApi, *m_commandAllocatorPool, *m_scratchSpacePool));
 		return *dynamic_cast<ComputeCommandList*>(m_commandList.get());
 	}
+	else if (m_type == gxapi::eCommandListType::COMPUTE) {
+		return *dynamic_cast<ComputeCommandList*>(m_commandList.get());
+	}
 	else {
-		throw std::logic_error("You may call AsType() functions only once. Store the reference, but don't move or copy the object.");
+		throw std::logic_error("Your first call to AsType() determines the command list type. You did not choose COMPUTE, thus this call is invalid.");
 	}
 }
 CopyCommandList& RenderContext::AsCopy() {
@@ -245,8 +251,11 @@ CopyCommandList& RenderContext::AsCopy() {
 		m_commandList.reset(new CopyCommandList(m_graphicsApi, *m_commandAllocatorPool, *m_scratchSpacePool));
 		return *dynamic_cast<CopyCommandList*>(m_commandList.get());
 	}
+	else if (m_type == gxapi::eCommandListType::COPY) {
+		return *dynamic_cast<CopyCommandList*>(m_commandList.get());
+	}
 	else {
-		throw std::logic_error("You may call AsType() functions only once. Store the reference, but don't move or copy the object.");
+		throw std::logic_error("Your first call to AsType() determines the command list type. You did not choose COPY, thus this call is invalid.");
 	}
 }
 

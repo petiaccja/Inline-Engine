@@ -20,7 +20,6 @@ namespace gxeng {
 class CommandAllocatorPool;
 class ScratchSpacePool;
 class Scene;
-class Overlay;
 class PerspectiveCamera;
 class RenderTargetView2D;
 
@@ -32,11 +31,15 @@ struct FrameContext {
 	gxapi::IGraphicsApi* gxApi = nullptr;
 	CommandAllocatorPool* commandAllocatorPool = nullptr;
 	ScratchSpacePool* scratchSpacePool = nullptr;
+	MemoryManager* memoryManager = nullptr;
+	CbvSrvUavHeap* textureSpace = nullptr;
+	RTVHeap* rtvHeap = nullptr;
+	DSVHeap* dsvHeap = nullptr;
+	ShaderManager* shaderManager = nullptr;
 
 	CommandQueue* commandQueue = nullptr;
 	RenderTargetView2D* backBuffer = nullptr;
 	const std::set<Scene*>* scenes = nullptr;
-	const std::set<Overlay*>* overlays = nullptr;
 	const std::set<BasicCamera*>* cameras = nullptr;
 	const std::vector<UploadManager::UploadDescription>* uploadRequests = nullptr;
 	

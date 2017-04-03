@@ -1,10 +1,11 @@
 #pragma once
 
-#include "Task.hpp"
 #include <string>
 #include <vector>
 #include <iterator>
 #include "../BaseLibrary/Graph/Node.hpp"
+
+#include "GraphicsNode.hpp"
 
 #ifdef _MSC_VER // disable lemon warnings
 #pragma warning(push)
@@ -50,9 +51,15 @@ public:
 		Pipeline* m_parent;
 	};
 
+	class SimpleNodeTask : public GraphicsTask {
+	public:
+		SimpleNodeTask(exc::NodeBase* subject) : m_subject(subject) {}
+		void Setup(SetupContext& context) override { m_subject->Update(); }
+		void Execute(RenderContext& context) override {}
+	private:
+		exc::NodeBase* m_subject;
+	};
 
-	using DynamicDeleter = std::default_delete<exc::NodeBase>; // calls delete
-	using NoDeleter = struct { void operator()(exc::NodeBase*) { return; } }; // does nothing
 public:
 	Pipeline();
 	Pipeline(const Pipeline&) = delete;
@@ -62,8 +69,7 @@ public:
 	~Pipeline();
 
 	void CreateFromDescription(const std::string& jsonDescription, GraphicsNodeFactory& factory);
-	template <class Deleter> 
-	void CreateFromNodesList(const std::vector<exc::NodeBase*> nodes, Deleter nodeDeleter);
+	void CreateFromNodesList(const std::vector<std::shared_ptr<exc::NodeBase>> nodes);
 	void Clear();
 
 	NodeIterator Begin();
@@ -72,13 +78,13 @@ public:
 	const lemon::ListDigraph& GetDependencyGraph() const;
 	const lemon::ListDigraph::NodeMap<exc::NodeBase*>& GetNodeMap() const;
 	const lemon::ListDigraph& GetTaskGraph() const;
-	const lemon::ListDigraph::NodeMap<ElementaryTask>& GetTaskFunctionMap() const;
+	const lemon::ListDigraph::NodeMap<GraphicsTask*>& GetTaskFunctionMap() const;
 	const lemon::ListDigraph::NodeMap<lemon::ListDigraph::NodeIt>& GetTaskParentMap() const;
 	
 	template <class T>
-	void AddNodeMetaData();
+	void AddNodeMetaData() = delete;
 	template <class T>
-	void AddArcMetaData();
+	void AddArcMetaData() = delete;
 private:
 	void CalculateTaskGraph();
 	void CalculateDependencyGraph();
@@ -87,10 +93,12 @@ private:
 	lemon::ListDigraph m_dependencyGraph;
 	lemon::ListDigraph::NodeMap<exc::NodeBase*> m_nodeMap;
 	lemon::ListDigraph m_taskGraph;
-	lemon::ListDigraph::NodeMap<ElementaryTask> m_taskFunctionMap;
+	lemon::ListDigraph::NodeMap<GraphicsTask*> m_taskFunctionMap;
 	lemon::ListDigraph::NodeMap<lemon::ListDigraph::NodeIt> m_taskParentMap;
 
 	std::function<void(exc::NodeBase*)> m_nodeDeleter;
+
+	std::vector<std::unique_ptr<SimpleNodeTask>> m_taskWrappers;
 };
 
 

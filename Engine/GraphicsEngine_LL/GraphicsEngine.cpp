@@ -130,11 +130,15 @@ void GraphicsEngine::Update(float elapsed) {
 	context.gxApi = m_graphicsApi;
 	context.commandAllocatorPool = &m_commandAllocatorPool;
 	context.scratchSpacePool = &m_scratchSpacePool;
+	context.memoryManager = &m_memoryManager;
+	context.textureSpace = &m_textureSpace;
+	context.rtvHeap = &m_rtvHeap;
+	context.dsvHeap = &m_dsvHeap;
+	context.shaderManager = &m_shaderManager;
 
 	context.commandQueue = &m_masterCommandQueue;
 	context.backBuffer = &m_backBufferHeap->GetBackBuffer(backBufferIndex);
 	context.scenes = &m_scenes;
-	context.overlays = &m_overlays;
 	context.cameras = &m_cameras;
 
 	std::vector<UploadManager::UploadDescription> uploadRequests = m_memoryManager.GetUploadManager()._TakeQueuedUploads();
