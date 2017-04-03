@@ -28,7 +28,7 @@ void GraphicsNode::SetTaskSingle(GraphicsTask* task) {
 void GraphicsNode::SetTaskGraph(const lemon::ListDigraph& nodes, const lemon::ListDigraph::NodeMap<GraphicsTask*>& map) {
 	m_taskNodes.clear();
 
-	lemon::DigraphCopy<decltype(nodes), decltype(m_taskNodes)> copy(nodes, m_taskNodes);
+	lemon::DigraphCopy<std::decay_t<decltype(nodes)>, std::decay_t<decltype(m_taskNodes)>> copy(nodes, m_taskNodes);
 	copy.nodeMap(map, m_taskMap);
 	copy.run();
 }

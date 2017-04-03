@@ -33,8 +33,8 @@ class CommandAllocatorPool;
 class EngineContext {
 public:
 	EngineContext(int cpuCount = 1, int gpuCount = 1);
-	EngineContext(EngineContext&) = delete;
-	EngineContext& operator=(EngineContext&) = delete;
+	EngineContext(EngineContext&&) = delete;
+	EngineContext& operator=(EngineContext&&) = delete;
 	EngineContext(const EngineContext&) = delete;
 	EngineContext& operator=(const EngineContext&) = delete;
 

@@ -76,11 +76,11 @@ public:
 	NodeIterator End();
 
 	const lemon::ListDigraph& GetDependencyGraph() const;
-	const lemon::ListDigraph::NodeMap<exc::NodeBase*>& GetNodeMap() const;
+	const lemon::ListDigraph::NodeMap<std::shared_ptr<exc::NodeBase>>& GetNodeMap() const;
 	const lemon::ListDigraph& GetTaskGraph() const;
 	const lemon::ListDigraph::NodeMap<GraphicsTask*>& GetTaskFunctionMap() const;
 	const lemon::ListDigraph::NodeMap<lemon::ListDigraph::NodeIt>& GetTaskParentMap() const;
-	
+
 	template <class T>
 	void AddNodeMetaData() = delete;
 	template <class T>
@@ -91,53 +91,13 @@ private:
 	bool IsLinked(exc::NodeBase* srcNode, exc::NodeBase* dstNode);
 
 	lemon::ListDigraph m_dependencyGraph;
-	lemon::ListDigraph::NodeMap<exc::NodeBase*> m_nodeMap;
+	lemon::ListDigraph::NodeMap<std::shared_ptr<exc::NodeBase>> m_nodeMap;
 	lemon::ListDigraph m_taskGraph;
 	lemon::ListDigraph::NodeMap<GraphicsTask*> m_taskFunctionMap;
 	lemon::ListDigraph::NodeMap<lemon::ListDigraph::NodeIt> m_taskParentMap;
 
-	std::function<void(exc::NodeBase*)> m_nodeDeleter;
-
 	std::vector<std::unique_ptr<SimpleNodeTask>> m_taskWrappers;
 };
-
-
-template <class Deleter>
-void Pipeline::CreateFromNodesList(const std::vector<exc::NodeBase*> nodes, Deleter nodeDeleter) {
-	// assign pipeline nodes to graph nodes
-	try {
-		for (auto pipelineNode : nodes) {
-			lemon::ListDigraph::Node graphNode = m_dependencyGraph.addNode();
-			m_nodeMap[graphNode] = pipelineNode;
-		}
-	}
-	catch (...) {
-		for (auto pipelineNode : nodes) {
-			nodeDeleter(pipelineNode);
-		}
-		throw;
-	}
-
-	// save deleter
-	m_nodeDeleter = nodeDeleter;
-
-	// calculate graphs
-	try {
-		CalculateDependencyGraph();
-		CalculateTaskGraph();
-	}
-	catch (...) {
-		Clear();
-		throw;
-	}
-
-	// check if graphs are DAGs
-	// note: if task graph is a DAG => dep. graph must be a DAG
-	bool isTaskGraphDAG = lemon::dag(m_taskGraph);
-	if (!isTaskGraphDAG) {
-		throw std::invalid_argument("Supplied nodes do not make a directed acyclic graph.");
-	}
-}
 
 
 

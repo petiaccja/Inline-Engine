@@ -32,7 +32,7 @@ const exc::NodeBase& Pipeline::NodeIterator::operator*() {
 const exc::NodeBase* Pipeline::NodeIterator::operator->() {
 	assert(m_parent != nullptr);
 	assert(m_parent->m_dependencyGraph.valid(m_graphIt));
-	return (m_parent->m_nodeMap[m_graphIt]);
+	return (m_parent->m_nodeMap[m_graphIt]).get();
 }
 
 
@@ -105,9 +105,34 @@ void Pipeline::CreateFromDescription(const std::string& jsonDescription, Graphic
 }
 
 
+void Pipeline::CreateFromNodesList(const std::vector<std::shared_ptr<exc::NodeBase>> nodes) {
+	// assign pipeline nodes to graph nodes
+	for (auto pipelineNode : nodes) {
+		lemon::ListDigraph::Node graphNode = m_dependencyGraph.addNode();
+		m_nodeMap[graphNode] = pipelineNode;
+	}
+
+	// calculate graphs
+	try {
+		CalculateDependencyGraph();
+		CalculateTaskGraph();
+	}
+	catch (...) {
+		Clear();
+		throw;
+	}
+
+	// check if graphs are DAGs
+	// note: if task graph is a DAG => dep. graph must be a DAG
+	bool isTaskGraphDAG = lemon::dag(m_taskGraph);
+	if (!isTaskGraphDAG) {
+		throw std::invalid_argument("Supplied nodes do not make a directed acyclic graph.");
+	}
+}
+
+
 void Pipeline::Clear() {
 	for (lemon::ListDigraph::NodeIt graphNode(m_dependencyGraph); graphNode != lemon::INVALID; ++graphNode) {
-		m_nodeDeleter(m_nodeMap[graphNode]);
 		m_nodeMap[graphNode] = nullptr; // not necessary, but better make sure
 	}
 	m_dependencyGraph.clear();
@@ -145,7 +170,7 @@ void Pipeline::CalculateTaskGraph() {
 	// Iterate over each node in dependency graph
 	for (lemon::ListDigraph::NodeIt depNode(m_dependencyGraph); depNode != lemon::INVALID; ++depNode) {
 		// Get pipeline node of this graph node
-		exc::NodeBase* pipelineNode = m_nodeMap[depNode];
+		exc::NodeBase* pipelineNode = m_nodeMap[depNode].get();
 		assert(pipelineNode != nullptr); // each graph node must have a pipeline node assigned
 
 		// Merge subgraph of graphics pipeline node into expanded task graph
@@ -265,8 +290,8 @@ void Pipeline::CalculateDependencyGraph() {
 	// sidenote: the algorithm will not create duplicate arcs in the graph
 	for (lemon::ListDigraph::NodeIt outerIt(m_dependencyGraph); outerIt != lemon::INVALID; ++outerIt) {
 		for (auto innerIt = ++lemon::ListDigraph::NodeIt(outerIt); innerIt != lemon::INVALID; ++innerIt) {
-			exc::NodeBase* srcNode = m_nodeMap[outerIt];
-			exc::NodeBase* dstNode = m_nodeMap[innerIt];
+			exc::NodeBase* srcNode = m_nodeMap[outerIt].get();
+			exc::NodeBase* dstNode = m_nodeMap[innerIt].get();
 
 			// Check if there's ANY link going in ANY direction b/w above nodes
 			// FIRST direction
@@ -303,7 +328,7 @@ bool Pipeline::IsLinked(exc::NodeBase* srcNode, exc::NodeBase* dstNode) {
 const lemon::ListDigraph& Pipeline::GetDependencyGraph() const {
 	return m_dependencyGraph;
 }
-const lemon::ListDigraph::NodeMap<exc::NodeBase*>& Pipeline::GetNodeMap() const {
+const lemon::ListDigraph::NodeMap<std::shared_ptr<exc::NodeBase>>& Pipeline::GetNodeMap() const {
 	return m_nodeMap;
 }
 

@@ -14,7 +14,7 @@ namespace inl::gxeng {
 // Engine Context
 //------------------------------------------------------------------------------
 
-EngineContext::EngineContext(int cpuCount = 1, int gpuCount = 1) {
+EngineContext::EngineContext(int cpuCount, int gpuCount) {
 	m_cpuCount = cpuCount;
 	m_gpuCount = gpuCount;
 }
@@ -34,12 +34,12 @@ int EngineContext::GetGraphicsDeviceCount() const {
 // Setup Context
 //------------------------------------------------------------------------------
 
-SetupContext::SetupContext(MemoryManager* memoryManager = nullptr,
-						   CbvSrvUavHeap* srvHeap = nullptr,
-						   RTVHeap* rtvHeap = nullptr,
-						   DSVHeap* dsvHeap = nullptr,
-						   ShaderManager* shaderManager = nullptr,
-						   gxapi::IGraphicsApi* graphicsApi = nullptr)
+SetupContext::SetupContext(MemoryManager* memoryManager,
+						   CbvSrvUavHeap* srvHeap,
+						   RTVHeap* rtvHeap,
+						   DSVHeap* dsvHeap,
+						   ShaderManager* shaderManager,
+						   gxapi::IGraphicsApi* graphicsApi)
 	: m_memoryManager(memoryManager),
 	m_srvHeap(srvHeap),
 	m_rtvHeap(rtvHeap),
@@ -168,13 +168,13 @@ Binder SetupContext::CreateBinder(const std::vector<BindParameterDesc>& paramete
 //------------------------------------------------------------------------------
 
 
-RenderContext::RenderContext(MemoryManager* memoryManager = nullptr,
-							 CbvSrvUavHeap* srvHeap = nullptr,
-							 VolatileViewHeap* volatileViewHeap = nullptr,
-							 ShaderManager* shaderManager = nullptr,
-							 gxapi::IGraphicsApi* graphicsApi = nullptr,
-							 CommandAllocatorPool* commandAllocatorPool = nullptr,
-							 ScratchSpacePool* scratchSpacePool = nullptr)
+RenderContext::RenderContext(MemoryManager* memoryManager,
+							 CbvSrvUavHeap* srvHeap,
+							 VolatileViewHeap* volatileViewHeap,
+							 ShaderManager* shaderManager,
+							 gxapi::IGraphicsApi* graphicsApi,
+							 CommandAllocatorPool* commandAllocatorPool,
+							 ScratchSpacePool* scratchSpacePool)
 	: m_memoryManager(memoryManager),
 	m_srvHeap(srvHeap),
 	m_volatileViewHeap(volatileViewHeap),
