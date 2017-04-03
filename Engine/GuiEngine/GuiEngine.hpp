@@ -12,12 +12,13 @@ public:
 	GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindow);
 	~GuiEngine();
 
+	GuiLayer* CreateLayer();
 	GuiLayer* AddLayer();
 
 	void Update(float deltaTime);
 	void Render();
 
-	void TraverseGuiControls(const std::function<void(GuiControl*)>& fn);
+	void TraverseGuiControls(const std::function<void(Widget*)>& fn);
 
 	int GetWindowCursorPosX() { return targetWindow->GetClientCursorPos().x; }
 	int GetWindowCursorPosY() { return targetWindow->GetClientCursorPos().y; }
@@ -35,14 +36,12 @@ protected:
 	std::vector<GuiLayer*> layers; // "layers" rendered first
 	GuiLayer* postProcessLayer; // postProcessLayer renders above "layers"
 
-	GuiControl* hoveredControl;
-	GuiControl* activeContextMenu;
+	Widget* hoveredControl;
+	Widget* activeContextMenu;
 };
 
-
-
 inline GuiEngine::GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindow)
-:graphicsEngine(graphicsEngine), targetWindow(targetWindow), hoveredControl(nullptr), activeContextMenu(nullptr), postProcessLayer(AddLayer())
+:graphicsEngine(graphicsEngine), targetWindow(targetWindow), hoveredControl(nullptr), activeContextMenu(nullptr), postProcessLayer(CreateLayer())
 {
 	// Initialize GDI+
 	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
@@ -55,7 +54,7 @@ inline GuiEngine::GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindo
 	};
 
 	// Propagate mousePress
-	thread_local GuiControl* hoveredControlOnPress = nullptr;
+	thread_local Widget* hoveredControlOnPress = nullptr;
 	thread_local ivec2 mousePosWhenPress = ivec2(-1, -1);
 	targetWindow->onMousePress += [&](WindowEvent& event)
 	{
@@ -68,7 +67,7 @@ inline GuiEngine::GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindo
 
 		if (hoveredControl)
 		{
-			hoveredControl->TraverseTowardParents([&](GuiControl* control)
+			hoveredControl->TraverseTowardParents([&](Widget* control)
 			{
 				if(control->IsPointInside(event.mousePos))
 					control->onMousePress(control, eventData);
@@ -98,7 +97,7 @@ inline GuiEngine::GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindo
 		if (hoveredControl)
 		{
 			// Control Mouse release
-			hoveredControl->TraverseTowardParents([&](GuiControl* control)
+			hoveredControl->TraverseTowardParents([&](Widget* control)
 			{
 				if (control->IsPointInside(event.mousePos))
 					control->onMouseRelease(control, eventData);
@@ -109,7 +108,7 @@ inline GuiEngine::GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindo
 			{
 				onMouseClick(eventData);
 
-				hoveredControl->TraverseTowardParents([&](GuiControl* control)
+				hoveredControl->TraverseTowardParents([&](Widget* control)
 				{
 					if (control->IsPointInside(event.mousePos))
 					{
@@ -162,9 +161,14 @@ inline GuiEngine::~GuiEngine()
 
 inline GuiLayer* GuiEngine::AddLayer()
 {
-	GuiLayer* layer = new GuiLayer(this);
+	GuiLayer* layer = CreateLayer();
 	layers.push_back(layer);
 	return layer;
+}
+
+inline GuiLayer* GuiEngine::CreateLayer()
+{
+	return new GuiLayer(this);
 }
 
 inline void GuiEngine::Update(float deltaTime)
@@ -175,16 +179,16 @@ inline void GuiEngine::Update(float deltaTime)
 	// Let's hint the window to repaint itself
 	InvalidateRect((HWND)targetWindow->GetHandle(), NULL, true);
 
-	TraverseGuiControls([=](GuiControl* guiControl)
+	TraverseGuiControls([=](Widget* Widget)
 	{
-		guiControl->onUpdate(guiControl, deltaTime);
+		Widget->onUpdate(Widget, deltaTime);
 	});
 
 	ivec2 cursorPos = targetWindow->GetClientCursorPos();
 	
 	// Search hovered control to fire event on them
-	GuiControl* newHoveredControl = nullptr;
-	TraverseGuiControls([&](GuiControl* control)
+	Widget* newHoveredControl = nullptr;
+	TraverseGuiControls([&](Widget* control)
 	{
 		if (control->IsPointInside(cursorPos))
 			newHoveredControl = control;
@@ -195,7 +199,7 @@ inline void GuiEngine::Update(float deltaTime)
 		// Cursor Leave
 		if (hoveredControl)
 		{
-			hoveredControl->TraverseTowardParents([&](GuiControl* control)
+			hoveredControl->TraverseTowardParents([&](Widget* control)
 			{
 				control->onMouseLeave(control, CursorEvent(cursorPos));
 			});
@@ -204,7 +208,7 @@ inline void GuiEngine::Update(float deltaTime)
 		// Cursor Enter
 		if (newHoveredControl)
 		{
-			newHoveredControl->TraverseTowardParents([&](GuiControl* control)
+			newHoveredControl->TraverseTowardParents([&](Widget* control)
 			{
 				if (control->IsPointInside(cursorPos))
 					control->onMouseEnter(control, CursorEvent(cursorPos));
@@ -216,7 +220,7 @@ inline void GuiEngine::Update(float deltaTime)
 		// Cursor Hover
 		if (hoveredControl)
 		{
-			hoveredControl->TraverseTowardParents([&](GuiControl* control)
+			hoveredControl->TraverseTowardParents([&](Widget* control)
 			{
 				if(control->IsPointInside(cursorPos))
 					control->onMouseHover(control, CursorEvent(cursorPos));
@@ -246,10 +250,35 @@ inline void GuiEngine::Render()
 	graphics->SetSmoothingMode(Gdiplus::SmoothingModeDefault);
 
 	// Draw
-	TraverseGuiControls([&](GuiControl* control)
+	//TraverseGuiControls([&](Widget* control)
+	//{
+	//	control->onPaint(control, graphics);
+	//});
+
+
+	std::function<void(Widget* control, Rect<float>& clipRect)> traverseControls;
+	traverseControls = [&](Widget* control, Rect<float>& clipRect)
 	{
-		control->onPaint(control, Memhdc, graphics);
-	});
+		control->onPaint(control, graphics, clipRect);
+
+		Rect<float> newClipRect = clipRect.Intersect(control->GetClientRect());
+
+		for (Widget* child : control->GetChildren())
+			traverseControls(child, newClipRect);
+	};
+
+	auto allLayers = layers;
+	allLayers.push_back(postProcessLayer);
+
+	for (GuiLayer* layer : allLayers)
+	{
+		Rect<float> clipRect(0, 0, 9999, 9999);
+		for (Widget* rootControl : layer->GetControls())
+		{
+			traverseControls(rootControl, clipRect);
+		}
+	}
+
 
 	// After draw
 	BitBlt(hdc, 0, 0, win_width, win_height, Memhdc, 0, 0, SRCCOPY);
@@ -258,14 +287,14 @@ inline void GuiEngine::Render()
 	DeleteDC(hdc);
 }
 
-inline void GuiEngine::TraverseGuiControls(const std::function<void(GuiControl*)>& fn)
+inline void GuiEngine::TraverseGuiControls(const std::function<void(Widget*)>& fn)
 {
-	std::function<void(GuiControl* control, const std::function<void(GuiControl* control)>& fn)> traverseControls;
-	traverseControls = [&](GuiControl* control, const std::function<void(GuiControl* control)>& fn)
+	std::function<void(Widget* control, const std::function<void(Widget* control)>& fn)> traverseControls;
+	traverseControls = [&](Widget* control, const std::function<void(Widget* control)>& fn)
 	{
 		fn(control);
 
-		for (GuiControl* child : control->GetChildren())
+		for (Widget* child : control->GetChildren())
 			traverseControls(child, fn);
 	};
 
@@ -274,9 +303,9 @@ inline void GuiEngine::TraverseGuiControls(const std::function<void(GuiControl*)
 
 	for (GuiLayer* layer : allLayers)
 	{
-		for (GuiControl* rootControl : layer->GetControls())
+		for (Widget* rootControl : layer->GetControls())
 		{
-			traverseControls(rootControl, [&](GuiControl* control)
+			traverseControls(rootControl, [&](Widget* control)
 			{
 				fn(control);
 			});

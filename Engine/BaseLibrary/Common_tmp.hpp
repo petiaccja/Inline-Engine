@@ -57,22 +57,32 @@ struct vec2
 	{
 		return vec2(x - b.x, y - b.y);
 	}
+
+	vec2 operator + (const vec2& b)
+	{
+		return vec2(x + b.x, y + b.y);
+	}
+
+	vec2 operator * (float val)
+	{
+		return vec2(x * val, y * val);
+	}
 };
 
 class Color
 {
 public:
-	Color() {}
-	Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a): r(r), g(g), b(b), a(a) {}
-	Color(uint8_t r, uint8_t g, uint8_t b): Color(r, g, b, 255) {}
-	Color(uint8_t greyscale) : Color(greyscale, greyscale, greyscale, 255) {}
+	inline Color() {}
+	inline Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a): r(r), g(g), b(b), a(a) {}
+	inline Color(uint8_t r, uint8_t g, uint8_t b): Color(r, g, b, 255) {}
+	inline Color(uint8_t greyscale) : Color(greyscale, greyscale, greyscale, 255) {}
 
 	uint8_t r;
 	uint8_t g;
 	uint8_t b;
 	uint8_t a;
 
-	Color operator + (int val)
+	inline Color operator + (int val)
 	{
 		Color color;
 		color.r = r + val;
@@ -81,6 +91,12 @@ public:
 
 		return color;
 	}
+
+	inline bool operator == (const Color& color)
+	{
+		return memcmp(this, &color, sizeof(Color)) == 0;
+	}
+
 public:
 	static Color BLACK;
 	static Color WHITE;
@@ -101,42 +117,69 @@ template<class T>
 class Rect
 {
 public:
-	Rect() {
+	inline Rect() {
 	}
 
-	Rect(const T& x, const T& y, const T& width, const T& height)
+	inline Rect(const T& x, const T& y, const T& width, const T& height)
 		:x(x), y(y), width(width), height(height) {
 	}
 
-	bool IsPointInside(ivec2 point)
+	Rect Intersect(const Rect& other) const
+	{
+		Rect result;
+
+		float maxLeft = std::max(x, other.x);
+		float maxTop = std::max(y, other.y);
+		float minBottom = std::min(GetBottom(), other.GetBottom());
+		float minRight = std::min(GetRight(), other.GetRight());
+
+		result.x = maxLeft;
+		result.y = maxTop;
+		result.width = minRight - maxLeft;
+		result.height = minBottom - maxTop;
+
+		return result;
+	}
+
+	inline bool IsPointInside(ivec2 point) const
 	{
 		return	point.x >= x && point.x <= x + width &&
 				point.y >= y && point.y <= y + height;
 	}
 
-	vec2 GetCenter()
+	inline vec2 GetCenter() const
 	{
 		return vec2(x + 0.5f * width, y + 0.5f * height);
 	}
 
-	float GetRight()
+	inline float GetRight() const
 	{
 		return x + width;
 	}
 
-	float GetLeft()
+	inline float GetLeft() const
 	{
 		return x;
 	}
 
-	float GetTop()
+	inline float GetTop() const
 	{
 		return y;
 	}
 
-	float GetBottom()
+	inline float GetBottom() const
 	{
 		return y + height;
+	}
+
+	inline bool operator == (const Rect<T>& other)
+	{
+		return memcmp(this, &other, sizeof(Rect<T>)) == 0;
+	}
+
+	inline bool operator != (const Rect<T>& other)
+	{
+		return memcmp(this, &other, sizeof(Rect<T>)) != 0;
 	}
 
 	T x;

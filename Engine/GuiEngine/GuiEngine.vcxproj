@@ -120,12 +120,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="GuiButton.hpp" />
-    <ClInclude Include="GuiControl.hpp" />
+    <ClInclude Include="Widget.hpp" />
     <ClInclude Include="GuiEngine.hpp" />
     <ClInclude Include="GuiEvent.h" />
     <ClInclude Include="GuiLayer.hpp" />
     <ClInclude Include="GuiList.hpp" />
-    <ClInclude Include="GuiPlane.hpp" />
     <ClInclude Include="GuiSlider.hpp" />
     <ClCompile Include="GuiSlider.cpp">
       <FileType>CppHeader</FileType>
@@ -133,7 +132,7 @@
     <ClInclude Include="GuiText.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GuiControl.cpp" />
+    <ClCompile Include="Widget.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

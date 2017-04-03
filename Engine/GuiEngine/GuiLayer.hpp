@@ -11,30 +11,30 @@ public:
 	GuiLayer(GuiEngine* guiEngine);
 	~GuiLayer();
 
-	void AddControl(GuiControl* child);
-	bool RemoveControl(GuiControl* child);
+	void AddControl(Widget* child);
+	bool RemoveControl(Widget* child);
 
-	GuiControl* AddControl();
+	Widget* AddControl();
 	GuiButton* AddButton();
 	GuiText* AddText();
 	GuiList* AddList();
-	GuiPlane* AddPlane();
+	Widget* AddPlane();
 	GuiSlider* AddSlider();
 
-	const std::vector<GuiControl*>& GetControls() const;
+	const std::vector<Widget*>& GetControls() const;
 
 protected:
 	template<class T>
 	T* AddControl();
 
 protected:
-	GuiControl* layer;
+	Widget* layer;
 
 	GuiEngine* guiEngine;
 };
 
 inline GuiLayer::GuiLayer(GuiEngine* guiEngine)
-:guiEngine(guiEngine), layer(new GuiControl(guiEngine))
+:guiEngine(guiEngine), layer(new Widget(guiEngine, true))
 {
 }
 
@@ -43,12 +43,12 @@ inline GuiLayer::~GuiLayer()
 	delete layer;
 }
 
-inline void GuiLayer::AddControl(GuiControl* child)
+inline void GuiLayer::AddControl(Widget* child)
 {
 	layer->Add(child);
 }
 
-inline bool GuiLayer::RemoveControl(GuiControl* child)
+inline bool GuiLayer::RemoveControl(Widget* child)
 {
 	return layer->RemoveChild(child);
 }
@@ -60,9 +60,9 @@ inline T* GuiLayer::AddControl()
 	return layer->Add<T>();
 }
 
-inline GuiControl* GuiLayer::AddControl()
+inline Widget* GuiLayer::AddControl()
 {
-	return AddControl<GuiControl>();
+	return AddControl<Widget>();
 }
 
 inline GuiButton* GuiLayer::AddButton()
@@ -80,9 +80,9 @@ inline GuiList* GuiLayer::AddList()
 	return AddControl<GuiList>();
 }
 
-inline GuiPlane* GuiLayer::AddPlane()
+inline Widget* GuiLayer::AddPlane()
 {
-	return AddControl<GuiPlane>();
+	return AddControl<Widget>();
 }
 
 inline GuiSlider* GuiLayer::AddSlider()
@@ -90,7 +90,7 @@ inline GuiSlider* GuiLayer::AddSlider()
 	return AddControl<GuiSlider>();
 }
 
-inline const std::vector<GuiControl*>& GuiLayer::GetControls() const
+inline const std::vector<Widget*>& GuiLayer::GetControls() const
 {
 	return layer->GetChildren();
 }

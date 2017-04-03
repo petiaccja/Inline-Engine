@@ -1,6 +1,6 @@
 #pragma once
 #include <BaseLibrary\Common_tmp.hpp>
-#include "GuiPlane.hpp"
+#include "Widget.hpp"
 
 enum class eTextAlign
 {
@@ -15,7 +15,7 @@ enum class eTextAlign
 	BOTTOM_RIGHT,
 };
 
-class GuiText : public GuiControl
+class GuiText : public Widget
 {
 public:
 	GuiText(GuiEngine* guiEngine);
@@ -34,17 +34,19 @@ protected:
 };
 
 inline GuiText::GuiText(GuiEngine* guiEngine)
-:GuiControl(guiEngine), color(Color::WHITE), fontSize(12), align(eTextAlign::CENTER)
+:Widget(guiEngine), color(Color::WHITE), fontSize(12), align(eTextAlign::CENTER)
 {
-	onParentTransformChange += [&](GuiControl* self, Rect<float>& rect)
-	{
-		self->AsText()->SetRect(rect);
-	};
+	HideBgImage();
+	HideBgColor();
 
-	onPaint += [](GuiControl* selff, HDC hdc, Gdiplus::Graphics* graphics)
+	onPaint += [](Widget* selff, Gdiplus::Graphics* graphics, Rect<float>& clipRect)
 	{
 		GuiText* self = selff->AsText();
 		auto text = self->text;
+
+		if (text.length() == 0)
+			return;
+
 		auto color = self->color;
 		auto fontSize = self->fontSize;
 		auto align = self->align;

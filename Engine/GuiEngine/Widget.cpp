@@ -1,37 +1,37 @@
 #pragma once
-#include "GuiControl.hpp"
-#include "GuiPlane.hpp"
+#include "Widget.hpp"
+#include "Widget.hpp"
 #include "GuiText.hpp"
 #include "GuiButton.hpp"
 #include "GuiList.hpp"
 #include "GuiEngine.hpp"
 
-GuiPlane* GuiControl::AddPlane()
+Widget* Widget::AddWidget()
 {
-	return Add<GuiPlane>();
+	return Add<Widget>();
 }
 
-GuiText* GuiControl::AddText()
+GuiText* Widget::AddText()
 {
 	return Add<GuiText>();
 }
 
-GuiButton* GuiControl::AddButton()
+GuiButton* Widget::AddButton()
 {
 	return Add<GuiButton>();
 }
 
-GuiList* GuiControl::AddList()
+GuiList* Widget::AddList()
 {
 	return Add<GuiList>();
 }
 
-float GuiControl::GetClientCursorPosX()
+float Widget::GetClientSpaceCursorPosX()
 {
 	return guiEngine->GetWindowCursorPosX() - pos.x;
 }
 
-float GuiControl::GetClientCursorPosY()
+float Widget::GetClientSpaceCursorPosY()
 {
 	return guiEngine->GetWindowCursorPosY() - pos.y;
 }
