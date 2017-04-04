@@ -1,6 +1,6 @@
 #pragma once
 #include <BaseLibrary\Common_tmp.hpp>
-#include "GuiControl.hpp"
+#include "Widget.hpp"
 
 enum class eGuiListDirection
 {
@@ -8,40 +8,66 @@ enum class eGuiListDirection
 	HORIZONTAL,
 };
 
-class GuiList : public GuiControl
+class GuiList : public Widget
 {
 public:
 	GuiList(GuiEngine* guiEngine);
-
+	GuiList(const GuiList& other) { *this = other; }
+	
 	// Important to implement in derived classes
 	virtual GuiList* Clone() const override { return new GuiList(*this); }
 
-	void SetStride(float val) { stride = val; }
+	void SetDirection(eGuiListDirection dir);
+
+	eGuiListDirection GetDirection() { return direction; }
 
 protected:
-	float stride;
-	eGuiListDirection eDirection;
+	void ArrangeChilds();
+
+protected:
+	eGuiListDirection direction;
 };
 
 inline GuiList::GuiList(GuiEngine* guiEngine)
-:GuiControl(guiEngine), eDirection(eGuiListDirection::VERTICAL)
+:Widget(guiEngine), direction(eGuiListDirection::VERTICAL)
 {
-	onTransformChange += [](GuiControl* selff, Rect<float>& rect)
+	// Transparent background
+	//SetColorForAllStates(Color(0, 0, 0, 0));
+
+	onTransformChange += [](Widget* selff, Rect<float>& rect)
 	{
 		GuiList* self = selff->AsList();
-
-		int i = 0;
-		for (GuiControl* list : self->GetChildren())
-		{
-			if (self->eDirection == eGuiListDirection::VERTICAL)
-			{
-				list->SetRect(self->GetPosX(), self->GetPosY() + i * self->stride, self->GetWidth(), self->stride);
-			}
-			else
-			{
-				list->SetRect(self->GetPosX() + i * self->stride, self->GetPosY(), self->stride, self->GetHeight());
-			}
-			++i;
-		}
+		self->ArrangeChilds();
 	};
+}
+
+inline void GuiList::SetDirection(eGuiListDirection dir)
+{
+	direction = dir;
+	ArrangeChilds();
+}
+
+inline void GuiList::ArrangeChilds()
+{
+	int i = 0;
+	vec2 finalSize(0,0);
+	float distance = 0;
+	float maxDiameter = 0;
+	for (Widget* child : GetChildren())
+	{
+		if (direction == eGuiListDirection::VERTICAL)
+		{
+			child->SetRect(GetClientPosX(), GetClientPosY() + finalSize.y, child->GetWidth(), child->GetHeight());
+			finalSize.y += child->GetHeight();
+			finalSize.x = std::max(finalSize.x, child->GetWidth());
+		}
+		else if (direction == eGuiListDirection::HORIZONTAL)
+		{
+			child->SetRect(GetClientPosX() + finalSize.x, GetClientPosY(), child->GetWidth(), child->GetHeight());
+			finalSize.x += child->GetWidth();
+			finalSize.y = std::max(finalSize.y, child->GetHeight());
+		}
+		++i;
+	}
+	SetClientSize(finalSize);
 }

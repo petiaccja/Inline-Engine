@@ -1,9 +1,9 @@
 #pragma once
 #include <BaseLibrary\Common_tmp.hpp>
-#include "GuiControl.hpp"
-#include "GuiPlane.hpp"
+#include "Widget.hpp"
+#include "Widget.hpp"
 
-class GuiSlider : public GuiControl
+class GuiSlider : public Widget
 {
 public:
 	GuiSlider(GuiEngine* guiEngine);
@@ -23,11 +23,11 @@ protected:
 	void SlideToValue() { SlideToValue(value); }
 
 public:
-	Delegate<void(GuiControl* self, float value)> OnValueChanged;
+	Delegate<void(Widget* self, float value)> OnValueChanged;
 
 protected:
-	GuiPlane* background;
-	GuiPlane* slider;
+	Widget* background;
+	Widget* slider;
 
 	float value;
 	float minValue;
@@ -52,7 +52,7 @@ inline void GuiSlider::SlideToNormedPercent(float normedPercent)
 inline void GuiSlider::SlideToCursor()
 {
 	// Ha cursor sliderHalfWidth() - nél van akkor 0, ha GetWidth() - sliderHalfWidth() - nél akkor meg egy
-	float normalizedPercent = (GetClientCursorPosX() - slider->GetHalfWidth()) / (GetWidth() - slider->GetWidth());
+	float normalizedPercent = (GetClientSpaceCursorPosX() - slider->GetHalfWidth()) / (GetWidth() - slider->GetWidth());
 	normalizedPercent = saturate(normalizedPercent);
 	SlideToNormedPercent(normalizedPercent);
 }

@@ -1,6 +1,12 @@
 Inline Engine
 ===
 
+Notice
+---
+Please note that facilities other than graphics have recently been added to this repository. These features aim to implement a full-featured game engine. We will update the readme as soon as it becomes more clear to us how we will manage the repository. The description below still stands for the graphics engine part.
+
+Introduction (graphics)
+---
 Inline Engine is a game graphics library that leverages the power of DirectX 12 and similar APIs. It got its name from the overuse of inline methods to speed up the software, however, it's not a victim of such behaviour. The engine is aimed at integration into complete game engines and real-time simulation environments.
 
 Usage

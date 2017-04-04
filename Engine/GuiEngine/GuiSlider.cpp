@@ -3,38 +3,33 @@
 #include "GuiEngine.hpp"
 
 GuiSlider::GuiSlider(GuiEngine* guiEngine)
-:GuiControl(guiEngine), value(0), minValue(0), maxValue(1), sliderWidth(5), bSliding(false)
+:Widget(guiEngine), value(0), minValue(0), maxValue(1), sliderWidth(5), bSliding(false)
 {
-	background = AddPlane();
-	slider = AddPlane();
-	slider->SetIdleColor(Color(130, 130, 130));
-	slider->SetHoverColor(slider->GetIdleColor());
-	background->SetHoverColor(background->GetIdleColor());
+	slider = AddWidget();
+	slider->SetBgIdleColor(Color(130));
+	slider->SetBgHoverColor(slider->GetBgIdleColor());
 
-	onTransformChange += [](GuiControl* selff, Rect<float>& rect)
+	onTransformChange += [](Widget* selff, Rect<float>& rect)
 	{
 		GuiSlider* self = selff->AsSlider();
 
-		self->background->SetRect(rect);
 		self->SlideToValue();
 	};
 
-	onMouseEnter += [](GuiControl* selff, CursorEvent& evt)
+	onMouseEnter += [](Widget* selff, CursorEvent& evt)
 	{
 		GuiSlider* self = selff->AsSlider();
-		self->slider->SetActiveColor(self->slider->GetIdleColor() + 65);
-		self->background->SetActiveColor(self->background->GetIdleColor() + 35);
+		self->slider->SetBgActiveColor(self->slider->GetBgIdleColor() + 65);
 	};
 
-	onMouseLeave += [](GuiControl* selff, CursorEvent& evt)
+	onMouseLeave += [](Widget* selff, CursorEvent& evt)
 	{
 		GuiSlider* self = selff->AsSlider();
-		self->slider->SetActiveColor(self->slider->GetIdleColor());
-		self->background->SetActiveColor(self->background->GetIdleColor());
+		self->slider->SetBgActiveColorToIdle();
 	};
 
 	// Start drag
-	onMousePress += [](GuiControl* selff, CursorEvent& evt)
+	onMousePress += [](Widget* selff, CursorEvent& evt)
 	{
 		GuiSlider* self = selff->AsSlider();
 		self->bSliding = true;
