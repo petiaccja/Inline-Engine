@@ -5,7 +5,6 @@
 
 #include "../ConstBufferHeap.hpp"
 #include "../PipelineTypes.hpp"
-#include "../GraphicsContext.hpp"
 
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
@@ -14,25 +13,28 @@
 namespace inl::gxeng::nodes {
 
 
+/// <summary>
+/// Inputs: Blend Destination, Blend source, BlendMode
+/// Output: Blend Destination
+/// </summary>
 class Blend :
 	virtual public GraphicsNode,
-	// Target, A, B
-	virtual public exc::InputPortConfig<pipeline::Texture2D, pipeline::Texture2D, pipeline::Texture2D>,
-	// Output
-	virtual public exc::OutputPortConfig<pipeline::Texture2D>
+	virtual public GraphicsTask,
+	virtual public exc::InputPortConfig<Texture2D, Texture2D, Blend::BlendMode>,
+	virtual public exc::OutputPortConfig<Texture2D>
 {
 public:
 	enum BlendMode { CASUAL_ALPHA_BLEND };
 
 public:
-	Blend(gxapi::IGraphicsApi* graphicsApi, BlendMode mode);
+	Blend(gxapi::IGraphicsApi* graphicsApi);
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
-	void InitGraphics(const GraphicsContext& context) override;
-
-	Task GetTask() override;
-
+	void Initialize(EngineContext& context) override;
+	void Setup(SetupContext& context) override;
+	void Execute(RenderContext& context) override;
+	
 protected:
 	static constexpr auto COLOR_FORMAT = gxapi::eFormat::R8G8B8A8_UNORM;
 
@@ -40,22 +42,18 @@ protected:
 	VertexBuffer m_fsq;
 	IndexBuffer m_fsqIndices;
 
-	GraphicsContext m_graphicsContext;
-
 protected:
-	BlendMode m_mode;
+	BlendMode m_blendMode = CASUAL_ALPHA_BLEND;
 
 	Binder m_binder;
 	BindParameter m_tex0Param;
-	BindParameter m_tex1Param;
+	ShaderProgram m_shader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
+	gxapi::eFormat m_renderTargetFormat = gxapi::eFormat::UNKNOWN;
 
-private:
-	void Render(
-		const RenderTargetView2D& target,
-		const TextureView2D& texture0,
-		const TextureView2D& texture1,
-		GraphicsCommandList& commandList);
+private: // excute context
+	RenderTargetView2D m_blendDest;
+	TextureView2D m_blendSrc;
 };
 
 

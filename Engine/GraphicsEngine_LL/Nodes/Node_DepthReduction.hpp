@@ -7,7 +7,6 @@
 #include "../PerspectiveCamera.hpp"
 #include "../Mesh.hpp"
 #include "../ConstBufferHeap.hpp"
-#include "../GraphicsContext.hpp"
 #include "../PipelineTypes.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
@@ -17,19 +16,22 @@ namespace inl::gxeng::nodes {
 
 class DepthReduction :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<pipeline::Texture2D>,
-	virtual public exc::OutputPortConfig<pipeline::Texture2D>
+	virtual public GraphicsTask,
+	virtual public exc::InputPortConfig<Texture2D>,
+	virtual public exc::OutputPortConfig<Texture2D>
 {
 public:
 	DepthReduction(gxapi::IGraphicsApi* graphicsApi);
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
-	void InitGraphics(const GraphicsContext& context) override;
-
-	Task GetTask() override;
+	void Initialize(EngineContext& context) override;
+	void Setup(SetupContext& context) override;
+	void Execute(RenderContext& context) override;
 
 protected:
+	TextureView2D m_depthView;
+
 	unsigned m_width;
 	unsigned m_height;
 
@@ -37,18 +39,13 @@ protected:
 	gxeng::TextureView2D m_srv;
 
 protected:
-	GraphicsContext m_graphicsContext;
 	Binder m_binder;
 	BindParameter m_depthBindParam;
 	BindParameter m_outputBindParam;
 	std::unique_ptr<gxapi::IPipelineState> m_CSO;
 
 private:
-	void InitRenderTarget();
-	void RenderScene(
-		const gxeng::RWTextureView2D& uav,
-		pipeline::Texture2D& depthTex,
-		GraphicsCommandList& commandList);
+	void InitRenderTarget(SetupContext& context);
 };
 
 

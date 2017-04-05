@@ -4,7 +4,9 @@
 #include "../Mesh.hpp"
 #include "../Image.hpp"
 #include "../DirectionalLight.hpp"
-#include "../GraphicsContext.hpp"
+#include "../NodeContext.hpp"
+#include "../GraphicsCommandList.hpp"
+#include "../ResourceView.hpp"
 
 #include <array>
 
@@ -118,107 +120,73 @@ ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi) {
 }
 
 
-void ForwardRender::InitGraphics(const GraphicsContext& context) {
-	m_graphicsContext = context;
-
-	ShaderParts shaderParts;
-	shaderParts.vs = true;
-	shaderParts.ps = true;
-
-	auto shader = m_graphicsContext.CreateShader("ForwardRender", shaderParts, "");
-
-	std::vector<gxapi::InputElementDesc> inputElementDesc = {
-		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
-		gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
-		gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
-	};
-
-	gxapi::GraphicsPipelineStateDesc psoDesc;
-	psoDesc.inputLayout.elements = inputElementDesc.data();
-	psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-	psoDesc.rootSignature = m_binder.GetRootSignature();
-	psoDesc.vs = shader.vs;
-	psoDesc.ps = shader.ps;
-	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
-	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
-
-	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
-	psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::EQUAL;
-	psoDesc.depthStencilState.enableStencilTest = true;
-	psoDesc.depthStencilState.stencilReadMask = 0;
-	psoDesc.depthStencilState.stencilWriteMask = ~uint8_t(0);
-	psoDesc.depthStencilState.ccwFace.stencilFunc = gxapi::eComparisonFunction::ALWAYS;
-	psoDesc.depthStencilState.ccwFace.stencilOpOnStencilFail = gxapi::eStencilOp::KEEP;
-	psoDesc.depthStencilState.ccwFace.stencilOpOnDepthFail = gxapi::eStencilOp::KEEP;
-	psoDesc.depthStencilState.ccwFace.stencilOpOnPass = gxapi::eStencilOp::REPLACE;
-	psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
-	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT_S8X24_UINT;
-
-	psoDesc.numRenderTargets = 1;
-	psoDesc.renderTargetFormats[0] = gxapi::eFormat::R16G16B16A16_FLOAT;
-
-	m_PSO.reset(m_graphicsContext.CreatePSO(psoDesc));
+void ForwardRender::Initialize(EngineContext & context) {
+	GraphicsNode::SetTaskSingle(this);
 }
 
 
-Task ForwardRender::GetTask() {
-	return Task({ [this](const ExecutionContext& context) {
-		ExecutionResult result;
+void ForwardRender::Setup(SetupContext& context) {
+	auto target = this->GetInput<0>().Get();
+	this->GetInput<1>().Clear();
+	gxapi::RtvTexture2DArray rtvDesc;
+	rtvDesc.activeArraySize = 1;
+	rtvDesc.firstArrayElement = 0;
+	rtvDesc.firstMipLevel = 0;
+	rtvDesc.planeIndex = 0;
+	m_rtv = context.CreateRtv(target, target.GetFormat(), rtvDesc);
 
-		auto target = this->GetInput<0>().Get();
-		this->GetInput<1>().Clear();
+	auto depthStencil = this->GetInput<1>().Get();
+	this->GetInput<1>().Clear();
+	gxapi::DsvTexture2DArray dsvDesc;
+	dsvDesc.activeArraySize = 1;
+	dsvDesc.firstArrayElement = 0;
+	dsvDesc.firstMipLevel = 0;
+	m_dsv = context.CreateDsv(depthStencil, depthStencil.GetFormat(), dsvDesc);
 
-		auto depthStencil = this->GetInput<1>().Get();
-		this->GetInput<1>().Clear();
+	m_entities = this->GetInput<2>().Get();
+	this->GetInput<2>().Clear();
 
-		const EntityCollection<MeshEntity>* entities = this->GetInput<2>().Get();
-		this->GetInput<2>().Clear();
+	m_camera = this->GetInput<3>().Get();
+	this->GetInput<3>().Clear();
 
-		const BasicCamera* camera = this->GetInput<3>().Get();
-		this->GetInput<3>().Clear();
+	m_directionalLights = this->GetInput<4>().Get();
+	assert(m_directionalLights->Size() == 1);
+	this->GetInput<4>().Clear();
 
-		const EntityCollection<DirectionalLight>* directionalLights = this->GetInput<4>().Get();
-		assert(directionalLights->Size() == 1);
-		this->GetInput<4>().Clear();
+	auto shadowMapTex = this->GetInput<5>().Get();
+	this->GetInput<5>().Clear();
+	gxapi::SrvTexture2DArray srvDesc;
+	srvDesc.activeArraySize = 1;
+	srvDesc.firstArrayElement = 0;
+	srvDesc.mipLevelClamping = 0;
+	srvDesc.mostDetailedMip = 0;
+	srvDesc.numMipLevels = 1;
+	srvDesc.planeIndex = 0;
+	m_shadowMapTexView = context.CreateSrv(shadowMapTex, shadowMapTex.GetFormat(), srvDesc);
 
-		gxeng::pipeline::Texture2D shadowMapTex = this->GetInput<5>().Get();
-		this->GetInput<5>().Clear();
+	auto shadowMXTex = this->GetInput<6>().Get();
+	this->GetInput<6>().Clear();
+	m_shadowMXTexView = context.CreateSrv(shadowMXTex, shadowMXTex.GetFormat(), srvDesc);
 
-		gxeng::pipeline::Texture2D shadowMXTex = this->GetInput<6>().Get();
-		this->GetInput<6>().Clear();
+	auto csmSplitsTex = this->GetInput<7>().Get();
+	this->GetInput<7>().Clear();
+	m_csmSplitsTexView = context.CreateSrv(csmSplitsTex, csmSplitsTex.GetFormat(), srvDesc);
 
-		gxeng::pipeline::Texture2D csmSplitsTex = this->GetInput<7>().Get();
-		this->GetInput<7>().Clear();
-
-		this->GetOutput<0>().Set(target);
-
-		if (entities) {
-			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-
-			DepthStencilView2D dsv = depthStencil.QueryDepthStencil(cmdList, m_graphicsContext);
-
-			RenderScene(dsv, *entities, camera, *directionalLights->begin(), shadowMapTex, shadowMXTex, csmSplitsTex, cmdList);
-			result.AddCommandList(std::move(cmdList));
-		}
-
-		return result;
-	} });
+	this->GetOutput<0>().Set(target);
 }
 
-void ForwardRender::RenderScene(
-	DepthStencilView2D& dsv,
-	const EntityCollection<MeshEntity>& entities,
-	const BasicCamera* camera,
-	const DirectionalLight* sun,
-	pipeline::Texture2D& shadowMapTex,
-	pipeline::Texture2D& shadowMXTex,
-	pipeline::Texture2D& csmSplitsTex,
-	GraphicsCommandList& commandList
-) {
+
+void ForwardRender::Execute(RenderContext& context) {
+	if (m_entities == nullptr) {
+		return;
+	}
+
+	gxeng::GraphicsCommandList& commandList = context.AsGraphics();
+
 	// Set render target
 	auto pRTV = &m_rtv;
 	commandList.SetResourceState(m_rtv.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
-	commandList.SetRenderTargets(1, &pRTV, &dsv);
+	commandList.SetRenderTargets(1, &pRTV, &m_dsv);
 	commandList.ClearRenderTarget(m_rtv, gxapi::ColorRGBA(0, 0, 0, 1));
 
 	gxapi::Rectangle rect{ 0, (int)m_rtv.GetResource().GetHeight(), 0, (int)m_rtv.GetResource().GetWidth() };
@@ -232,13 +200,13 @@ void ForwardRender::RenderScene(
 	commandList.SetScissorRects(1, &rect);
 	commandList.SetViewports(1, &viewport);
 
-	commandList.SetResourceState(dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
+	commandList.SetResourceState(m_dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
 	commandList.SetStencilRef(1); // background is 0, anything other than that is 1
 
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	mathfu::Matrix4x4f view = camera->GetViewMatrixRH();
-	mathfu::Matrix4x4f projection = camera->GetProjectionMatrixRH();
+	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();
+	mathfu::Matrix4x4f projection = m_camera->GetProjectionMatrixRH();
 	auto viewProjection = projection * view;
 
 
@@ -247,7 +215,7 @@ void ForwardRender::RenderScene(
 	std::vector<unsigned> strides;
 
 	// Iterate over all entities
-	for (const MeshEntity* entity : entities) {
+	for (const MeshEntity* entity : *m_entities) {
 		// Get entity parameters
 		Mesh* mesh = entity->GetMesh();
 		Material* material = entity->GetMaterial();
@@ -260,18 +228,19 @@ void ForwardRender::RenderScene(
 		const MaterialShader* materialShader = material->GetShader();
 		assert(materialShader != nullptr);
 
-		ScenarioData& scenario = GetScenario(layout, *materialShader);
+		ScenarioData& scenario = GetScenario(
+			context, layout, *materialShader, m_rtv.GetDescription().format, m_dsv.GetDescription().format);
 
 		commandList.SetPipelineState(scenario.pso.get());
 		commandList.SetGraphicsBinder(&scenario.binder);
 
-		commandList.SetResourceState(const_cast<Texture2D&>(shadowMapTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
-		commandList.SetResourceState(const_cast<Texture2D&>(shadowMXTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
-		commandList.SetResourceState(const_cast<Texture2D&>(csmSplitsTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+		commandList.SetResourceState(m_shadowMapTexView.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+		commandList.SetResourceState(m_shadowMXTexView.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+		commandList.SetResourceState(m_csmSplitsTexView.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 
-		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 500), shadowMapTex.QueryRead());
-		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 501), shadowMXTex.QueryRead());
-		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 502), csmSplitsTex.QueryRead());
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 500), m_shadowMapTexView);
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 501), m_shadowMXTexView);
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 502), m_csmSplitsTexView);
 
 		// Set material parameters
 		std::vector<uint8_t> materialConstants(scenario.constantsSize);
@@ -304,6 +273,9 @@ void ForwardRender::RenderScene(
 			commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 200), materialConstants.data(), (int)materialConstants.size(), 0);
 		}
 
+		assert(m_directionalLights->Size() == 1);
+		const DirectionalLight* sun = *m_directionalLights->begin();
+
 		// Set vertex and light constants
 		VsConstants vsConstants;
 		LightConstants lightConstants;
@@ -334,7 +306,13 @@ void ForwardRender::RenderScene(
 
 
 
-ForwardRender::ScenarioData& ForwardRender::GetScenario(const Mesh::Layout& layout, const MaterialShader& shader) {
+ForwardRender::ScenarioData& ForwardRender::GetScenario(
+	RenderContext& context,
+	const Mesh::Layout& layout,
+	const MaterialShader& shader,
+	gxapi::eFormat renderTargetFormat,
+	gxapi::eFormat depthStencilFormat)
+{
 	std::string shaderCode = shader.GetShaderCode();
 
 	ScenarioDesc key{ layout, shaderCode };
@@ -350,7 +328,7 @@ ForwardRender::ScenarioData& ForwardRender::GetScenario(const Mesh::Layout& layo
 			std::string vsCode = GenerateVertexShader(layout);
 			ShaderParts vsParts;
 			vsParts.vs = true;
-			auto res = m_vertexShaders.insert({ layout, m_graphicsContext.CompileShader(vsCode, vsParts, "") });
+			auto res = m_vertexShaders.insert({ layout, context.CompileShader(vsCode, vsParts, "") });
 			vsIt = res.first;
 		}
 
@@ -359,57 +337,39 @@ ForwardRender::ScenarioData& ForwardRender::GetScenario(const Mesh::Layout& layo
 			std::string psCode = GeneratePixelShader(shader);
 			ShaderParts psParts;
 			psParts.ps = true;
-			auto res = m_materialShaders.insert({ shaderCode, m_graphicsContext.CompileShader(psCode, psParts, "") });
+			auto res = m_materialShaders.insert({ shaderCode, context.CompileShader(psCode, psParts, "") });
 			psIt = res.first;
 		}
 
 		// Create PSO
-		std::vector<gxapi::InputElementDesc> inputElementDesc = {
-			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
-			gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
-			gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
-		};
-
-
 		std::unique_ptr<gxapi::IPipelineState> pso;
 		std::vector<int> offsets;
 		size_t constantsSize;
 		Binder binder;
 
-		binder = GenerateBinder(shader.GetShaderParameters(), offsets, constantsSize);
-
-		gxapi::GraphicsPipelineStateDesc psoDesc;
-		psoDesc.inputLayout.elements = inputElementDesc.data();
-		psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-		psoDesc.rootSignature = binder.GetRootSignature();
-		psoDesc.vs = vsIt->second.vs;
-		psoDesc.ps = psIt->second.ps;
-		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
-		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
-
-		psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
-		psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::EQUAL;
-		psoDesc.depthStencilState.enableStencilTest = true;
-		psoDesc.depthStencilState.stencilReadMask = 0;
-		psoDesc.depthStencilState.stencilWriteMask = ~uint8_t(0);
-		psoDesc.depthStencilState.ccwFace.stencilFunc = gxapi::eComparisonFunction::ALWAYS;
-		psoDesc.depthStencilState.ccwFace.stencilOpOnStencilFail = gxapi::eStencilOp::KEEP;
-		psoDesc.depthStencilState.ccwFace.stencilOpOnDepthFail = gxapi::eStencilOp::KEEP;
-		psoDesc.depthStencilState.ccwFace.stencilOpOnPass = gxapi::eStencilOp::REPLACE;
-		psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
-		psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT_S8X24_UINT;
-
-		psoDesc.numRenderTargets = 1;
-		psoDesc.renderTargetFormats[0] = gxapi::eFormat::R16G16B16A16_FLOAT;
-
-		pso.reset(m_graphicsContext.CreatePSO(psoDesc));
+		binder = GenerateBinder(context, shader.GetShaderParameters(), offsets, constantsSize);
+		pso = CreatePso(context, binder, vsIt->second.vs, psIt->second.ps, renderTargetFormat, depthStencilFormat);
 
 		auto res = m_scenarios.insert({ key, ScenarioData() });
 		scenarioIt = res.first;
 		scenarioIt->second.pso = std::move(pso);
+		scenarioIt->second.renderTargetFormat = renderTargetFormat;
+		scenarioIt->second.depthStencilFormat = depthStencilFormat;
 		scenarioIt->second.offsets = std::move(offsets);
 		scenarioIt->second.binder = std::move(binder);
 		scenarioIt->second.constantsSize = constantsSize;
+	}
+	else if (scenarioIt->second.renderTargetFormat != renderTargetFormat
+		|| scenarioIt->second.depthStencilFormat != depthStencilFormat)
+	{
+		auto& vs = m_vertexShaders.at(layout).vs;
+		auto& ps = m_materialShaders.at(shaderCode).ps;
+
+		auto newPso = CreatePso(context, scenarioIt->second.binder, vs, ps, renderTargetFormat, depthStencilFormat);
+
+		scenarioIt->second.pso = std::move(newPso);
+		scenarioIt->second.renderTargetFormat = renderTargetFormat;
+		scenarioIt->second.depthStencilFormat = depthStencilFormat;
 	}
 
 	return scenarioIt->second;
@@ -470,7 +430,7 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 	return code;
 }
 
-Binder ForwardRender::GenerateBinder(const std::vector<MaterialShaderParameter>& mtlParams, std::vector<int>& offsets, size_t& materialCbSize) {
+Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<MaterialShaderParameter>& mtlParams, std::vector<int>& offsets, size_t& materialCbSize) {
 	int textureRegister = 0;
 	int cbSize = 0;
 	std::vector<BindParameterDesc> descs;
@@ -615,7 +575,53 @@ Binder ForwardRender::GenerateBinder(const std::vector<MaterialShaderParameter>&
 
 	materialCbSize = cbSize;
 
-	return m_graphicsContext.CreateBinder(descs, samplerParams);
+	return context.CreateBinder(descs, samplerParams);
+}
+
+
+std::unique_ptr<gxapi::IPipelineState> ForwardRender::CreatePso(
+	RenderContext& context,
+	Binder& binder,
+	ShaderStage& vs,
+	ShaderStage & ps,
+	gxapi::eFormat renderTargetFormat,
+	gxapi::eFormat depthStencilFormat)
+{
+	std::unique_ptr<gxapi::IPipelineState> result;
+
+	std::vector<gxapi::InputElementDesc> inputElementDesc = {
+		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
+		gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
+		gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
+	};
+
+	gxapi::GraphicsPipelineStateDesc psoDesc;
+	psoDesc.inputLayout.elements = inputElementDesc.data();
+	psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
+	psoDesc.rootSignature = binder.GetRootSignature();
+	psoDesc.vs = vs;
+	psoDesc.ps = ps;
+	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
+	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+
+	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
+	psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::EQUAL;
+	psoDesc.depthStencilState.enableStencilTest = true;
+	psoDesc.depthStencilState.stencilReadMask = 0;
+	psoDesc.depthStencilState.stencilWriteMask = ~uint8_t(0);
+	psoDesc.depthStencilState.ccwFace.stencilFunc = gxapi::eComparisonFunction::ALWAYS;
+	psoDesc.depthStencilState.ccwFace.stencilOpOnStencilFail = gxapi::eStencilOp::KEEP;
+	psoDesc.depthStencilState.ccwFace.stencilOpOnDepthFail = gxapi::eStencilOp::KEEP;
+	psoDesc.depthStencilState.ccwFace.stencilOpOnPass = gxapi::eStencilOp::REPLACE;
+	psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
+	psoDesc.depthStencilFormat = depthStencilFormat;
+
+	psoDesc.numRenderTargets = 1;
+	psoDesc.renderTargetFormats[0] = renderTargetFormat;
+
+	result.reset(context.CreatePSO(psoDesc));
+
+	return result;
 }
 
 

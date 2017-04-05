@@ -1,6 +1,7 @@
 #include "Node_DrawSky.hpp"
 
 #include "../PerspectiveCamera.hpp"
+#include "../GraphicsCommandList.hpp"
 
 #include <array>
 
@@ -48,71 +49,112 @@ DrawSky::DrawSky(gxapi::IGraphicsApi * graphicsApi):
 }
 
 
-void DrawSky::InitGraphics(const GraphicsContext & context) {
-	m_graphicsContext = context;
-
-	std::vector<float> vertices = {
-		-1, -1, 0,
-		+1, -1, 0,
-		+1, +1, 0,
-		-1, +1, 0
-	};
-	std::vector<uint16_t> indices = {
-		0, 1, 2,
-		0, 2, 3
-	};
-	m_fsq = m_graphicsContext.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-	m_fsqIndices = m_graphicsContext.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-
-	ShaderParts shaderParts;
-	shaderParts.vs = true;
-	shaderParts.ps = true;
-
-	auto shader = m_graphicsContext.CreateShader("DrawSky", shaderParts, "");
-
-	std::vector<gxapi::InputElementDesc> inputElementDesc = {
-		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0)
-	};
-
-	gxapi::GraphicsPipelineStateDesc psoDesc;
-	psoDesc.inputLayout.elements = inputElementDesc.data();
-	psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-	psoDesc.rootSignature = m_binder.GetRootSignature();
-	psoDesc.vs = shader.vs;
-	psoDesc.ps = shader.ps;
-	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
-	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
-
-	psoDesc.depthStencilState.enableDepthTest = false;
-	psoDesc.depthStencilState.enableDepthStencilWrite = false;
-	psoDesc.depthStencilState.enableStencilTest = true;
-	psoDesc.depthStencilState.stencilReadMask = ~uint8_t(0);
-	psoDesc.depthStencilState.stencilWriteMask = 0;
-	psoDesc.depthStencilState.ccwFace.stencilFunc = gxapi::eComparisonFunction::EQUAL;
-	psoDesc.depthStencilState.ccwFace.stencilOpOnStencilFail = gxapi::eStencilOp::KEEP;
-	psoDesc.depthStencilState.ccwFace.stencilOpOnDepthFail = gxapi::eStencilOp::KEEP;
-	psoDesc.depthStencilState.ccwFace.stencilOpOnPass = gxapi::eStencilOp::KEEP;
-	psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
-	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT_S8X24_UINT;
-	
-	psoDesc.numRenderTargets = 1;
-	psoDesc.renderTargetFormats[0] = gxapi::eFormat::R16G16B16A16_FLOAT;
-
-	m_PSO.reset(m_graphicsContext.CreatePSO(psoDesc));
+void DrawSky::Initialize(EngineContext & context) {
+	GraphicsNode::SetTaskSingle(this);
 }
 
 
-void DrawSky::Render(
-	RenderTargetView2D& rtv,
-	DepthStencilView2D& dsv,
-	const BasicCamera* camera,
-	const DirectionalLight* sun,
-	GraphicsCommandList& commandList
-) {
-	auto* pRTV = &rtv;
-	commandList.SetResourceState(rtv.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
-	commandList.SetResourceState(dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_READ);
-	commandList.SetRenderTargets(1, &pRTV, &dsv);
+void DrawSky::Setup(SetupContext & context) {
+
+	//================================================
+	// Set inputs, outputs
+
+	auto renderTarget = this->GetInput<0>().Get();
+	this->GetInput<1>().Clear();
+	gxapi::RtvTexture2DArray rtvDesc;
+	rtvDesc.activeArraySize = 1;
+	rtvDesc.firstArrayElement = 0;
+	rtvDesc.firstMipLevel = 0;
+	rtvDesc.planeIndex = 0;
+	m_rtv = context.CreateRtv(renderTarget, renderTarget.GetFormat(), rtvDesc);
+
+	auto depthStencil = this->GetInput<1>().Get();
+	this->GetInput<1>().Clear();
+	gxapi::DsvTexture2DArray dsvDesc;
+	dsvDesc.activeArraySize = 1;
+	dsvDesc.firstArrayElement = 0;
+	dsvDesc.firstMipLevel = 0;
+	m_dsv = context.CreateDsv(depthStencil, depthStencil.GetFormat(), dsvDesc);
+
+	m_camera = this->GetInput<2>().Get();
+	this->GetInput<2>().Clear();
+
+	m_sun = this->GetInput<3>().Get();
+	this->GetInput<3>().Clear();
+
+	this->GetOutput<0>().Set(renderTarget);
+
+
+	//================================================
+	// Create or modify pipeline state and other complementary objects if needed
+
+	if (!m_fsq.HasObject()) {
+		std::vector<float> vertices = {
+			-1, -1, 0,
+			+1, -1, 0,
+			+1, +1, 0,
+			-1, +1, 0
+		};
+		std::vector<uint16_t> indices = {
+			0, 1, 2,
+			0, 2, 3
+		};
+		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
+		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
+	}
+
+	if (!m_shader.ps || !m_shader.vs) {
+		ShaderParts shaderParts;
+		shaderParts.vs = true;
+		shaderParts.ps = true;
+
+		m_shader = context.CreateShader("DrawSky", shaderParts, "");
+	}
+
+	if (m_colorFormat != renderTarget.GetFormat() || m_depthStencilFormat != depthStencil.GetFormat()) {
+		std::vector<gxapi::InputElementDesc> inputElementDesc = {
+			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0)
+		};
+
+		m_colorFormat = renderTarget.GetFormat();
+		m_depthStencilFormat = renderTarget.GetFormat();
+
+		gxapi::GraphicsPipelineStateDesc psoDesc;
+		psoDesc.inputLayout.elements = inputElementDesc.data();
+		psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
+		psoDesc.rootSignature = m_binder.GetRootSignature();
+		psoDesc.vs = m_shader.vs;
+		psoDesc.ps = m_shader.ps;
+		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+
+		psoDesc.depthStencilState.enableDepthTest = false;
+		psoDesc.depthStencilState.enableDepthStencilWrite = false;
+		psoDesc.depthStencilState.enableStencilTest = true;
+		psoDesc.depthStencilState.stencilReadMask = ~uint8_t(0);
+		psoDesc.depthStencilState.stencilWriteMask = 0;
+		psoDesc.depthStencilState.ccwFace.stencilFunc = gxapi::eComparisonFunction::EQUAL;
+		psoDesc.depthStencilState.ccwFace.stencilOpOnStencilFail = gxapi::eStencilOp::KEEP;
+		psoDesc.depthStencilState.ccwFace.stencilOpOnDepthFail = gxapi::eStencilOp::KEEP;
+		psoDesc.depthStencilState.ccwFace.stencilOpOnPass = gxapi::eStencilOp::KEEP;
+		psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
+		psoDesc.depthStencilFormat = m_depthStencilFormat;
+
+		psoDesc.numRenderTargets = 1;
+		psoDesc.renderTargetFormats[0] = m_colorFormat;
+
+		m_PSO.reset(context.CreatePSO(psoDesc));
+	}
+}
+
+
+void DrawSky::Execute(RenderContext & context) {
+	gxeng::GraphicsCommandList& commandList = context.AsGraphics();
+
+	auto* pRTV = &m_rtv;
+	commandList.SetResourceState(m_rtv.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(m_dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_READ);
+	commandList.SetRenderTargets(1, &pRTV, &m_dsv);
 
 	gxapi::Rectangle rect{ 0, (int)pRTV->GetResource().GetHeight(), 0, (int)pRTV->GetResource().GetWidth() };
 	gxapi::Viewport viewport;
@@ -137,7 +179,7 @@ void DrawSky::Render(
 	struct Sun {
 		mathfu::VectorPacked<float, 4> dir;
 		mathfu::VectorPacked<float, 4> color;
-		
+
 	};
 
 	struct Cam {
@@ -148,16 +190,16 @@ void DrawSky::Render(
 	Sun sunCB;
 	Cam camCB;
 
-	mathfu::Matrix4x4f viewInvTr = camera->GetViewMatrixRH().Inverse().Transpose();
-	mathfu::Vector4f sunViewDir = viewInvTr * mathfu::Vector4f(sun->GetDirection(), 0.0f);
-	mathfu::Vector4f sunColor = mathfu::Vector4f(sun->GetColor(), 1.0f);
-	mathfu::Matrix4x4f invViewProj = (camera->GetProjectionMatrixRH() * camera->GetViewMatrixRH()).Inverse();
+	mathfu::Matrix4x4f viewInvTr = m_camera->GetViewMatrixRH().Inverse().Transpose();
+	mathfu::Vector4f sunViewDir = viewInvTr * mathfu::Vector4f(m_sun->GetDirection(), 0.0f);
+	mathfu::Vector4f sunColor = mathfu::Vector4f(m_sun->GetColor(), 1.0f);
+	mathfu::Matrix4x4f invViewProj = (m_camera->GetProjectionMatrixRH() * m_camera->GetViewMatrixRH()).Inverse();
 
-	sunCB.dir = mathfu::Vector4f(sun->GetDirection(), 0.0);
+	sunCB.dir = mathfu::Vector4f(m_sun->GetDirection(), 0.0);
 	sunCB.color = sunColor;
 	invViewProj.Pack(camCB.invViewProj);
 
-	const PerspectiveCamera* perpectiveCamera = dynamic_cast<const PerspectiveCamera*>(camera);
+	const PerspectiveCamera* perpectiveCamera = dynamic_cast<const PerspectiveCamera*>(m_camera);
 	if (perpectiveCamera == nullptr) {
 		throw std::invalid_argument("Sky drawing only works with perspective camera");
 	}
@@ -170,6 +212,5 @@ void DrawSky::Render(
 	commandList.SetIndexBuffer(&m_fsqIndices, false);
 	commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
 }
-
 
 } // namespace inl::gxeng::nodes

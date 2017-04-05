@@ -6,26 +6,29 @@
 #include "../BasicCamera.hpp"
 #include "../Mesh.hpp"
 #include "../ConstBufferHeap.hpp"
-#include "../GraphicsContext.hpp"
 #include "../PipelineTypes.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
 namespace inl::gxeng::nodes {
 
+/// <summary>
+/// Inputs: framebuffer, overlay entites, overlay camera
+/// </summary>
 class OverlayRender :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<pipeline::Texture2D, const EntityCollection<OverlayEntity>*, const BasicCamera*>,
-	virtual public exc::OutputPortConfig<pipeline::Texture2D>
+	virtual public GraphicsTask,
+	virtual public exc::InputPortConfig<Texture2D, const EntityCollection<OverlayEntity>*, const BasicCamera*>,
+	virtual public exc::OutputPortConfig<Texture2D>
 {
 public:
 	OverlayRender(gxapi::IGraphicsApi* graphicsApi);
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
-	void InitGraphics(const GraphicsContext& context) override;
-
-	Task GetTask() override;
+	void Initialize(EngineContext& context) override;
+	void Setup(SetupContext& context) override;
+	void Execute(RenderContext& context) override;
 
 
 protected:
@@ -41,6 +44,14 @@ protected:
 		BindParameter colorParam;
 	};
 
+protected:
+	gxapi::eFormat m_renderTargetFormat;
+
+	ShaderProgram m_coloredShader;
+	ColoredPipelineObjects m_coloredPipeline;
+
+	ShaderProgram m_texturedShader;
+	TexturedPipelineObjects m_texturedPipeline;
 
 protected:
 	void InitColoredBindings(gxapi::IGraphicsApi * graphicsApi);
@@ -49,28 +60,18 @@ protected:
 	gxapi::GraphicsPipelineStateDesc GetPsoDesc(
 		std::vector<gxapi::InputElementDesc>& inputElementDesc,
 		gxeng::ShaderProgram& shader,
-		const Binder& binder) const;
+		const Binder& binder,
+		gxapi::eFormat renderTargetFormat) const;
 
-	void InitColoredPso();
-	void InitTexturedPso();
-
-	void RenderScene(
-		const RenderTargetView2D& target,
-		const EntityCollection<OverlayEntity>& entities,
-		const BasicCamera* camera,
-		GraphicsCommandList& commandList);
+	void InitColoredPso(SetupContext& context, gxapi::eFormat renderTargetFormat);
+	void InitTexturedPso(SetupContext& context, gxapi::eFormat renderTargetFormat);
 
 	static bool CheckMeshFormat(Mesh* mesh);
 
-protected:
-	static constexpr auto COLOR_FORMAT = gxapi::eFormat::R8G8B8A8_UNORM;
-
-protected:
-
-	GraphicsContext m_graphicsContext;
-
-	ColoredPipelineObjects m_coloredPipeline;
-	TexturedPipelineObjects m_texturedPipeline;
+private: // execution context
+	RenderTargetView2D m_target;
+	EntityCollection<OverlayEntity>* m_entities;
+	BasicCamera* m_camera;
 };
 
 

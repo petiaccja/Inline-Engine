@@ -6,7 +6,6 @@
 #include "../BasicCamera.hpp"
 #include "../ConstBufferHeap.hpp"
 #include "../DirectionalLight.hpp"
-#include "../GraphicsContext.hpp"
 #include "../PipelineTypes.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
@@ -14,73 +13,46 @@
 
 namespace inl::gxeng::nodes {
 
-
+/// <summary>
+/// Inputs: frame color, frame depth stencil, camera, sun
+/// Output: frame color
+/// </summary>
 class DrawSky :
 	virtual public GraphicsNode,
-	// Inputs: frame color, frame depth stencil, camera, sun
-	virtual public exc::InputPortConfig<pipeline::Texture2D, pipeline::Texture2D, const BasicCamera*, const DirectionalLight*>,
-	virtual public exc::OutputPortConfig<pipeline::Texture2D> // frame color
+	virtual public GraphicsTask,
+	virtual public exc::InputPortConfig<Texture2D, Texture2D, const BasicCamera*, const DirectionalLight*>,
+	virtual public exc::OutputPortConfig<Texture2D>
 {
 public:
 	DrawSky(gxapi::IGraphicsApi* graphicsApi);
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
-	void InitGraphics(const GraphicsContext& context) override;
-
-	Task GetTask() override {
-		return Task({ [this](const ExecutionContext& context) {
-			ExecutionResult result;
-
-			auto renderTarget = this->GetInput<0>().Get();
-			this->GetInput<0>().Clear();
-
-			auto depthStencil = this->GetInput<1>().Get();
-			this->GetInput<1>().Clear();
-
-			const BasicCamera* camera = this->GetInput<2>().Get();
-			this->GetInput<2>().Clear();
-
-			const DirectionalLight* sun = this->GetInput<3>().Get();
-			this->GetInput<3>().Clear();
-
-			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-			
-
-			Render(
-				const_cast<RenderTargetView2D&>(renderTarget.QueryRenderTarget(cmdList, m_graphicsContext)),
-				const_cast<DepthStencilView2D&>(depthStencil.QueryDepthStencil(cmdList, m_graphicsContext)),
-				camera,
-				sun,
-				cmdList
-			);
-
-			result.AddCommandList(std::move(cmdList));
-
-			this->GetOutput<0>().Set(renderTarget);
-
-			return result;
-		} });
-	}
+	
+	void Initialize(EngineContext& context) override;
+	void Setup(SetupContext& context) override;
+	void Execute(RenderContext& context) override;
 
 protected:
-	GraphicsContext m_graphicsContext;
 	VertexBuffer m_fsq;
 	IndexBuffer m_fsqIndices;
+	bool fsqInited;
+
+private: // execution
+	RenderTargetView2D m_rtv;
+	DepthStencilView2D m_dsv;
+	const BasicCamera* m_camera;
+	const DirectionalLight* m_sun;
 
 protected:
 	Binder m_binder;
 	BindParameter m_sunCbBindParam;
 	BindParameter m_camCbBindParam;
-	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
-private:
-	void Render(
-		RenderTargetView2D& rtv,
-		DepthStencilView2D& dsv,
-		const BasicCamera* camera,
-		const DirectionalLight* sun,
-		GraphicsCommandList& commandList);
+	gxeng::ShaderProgram m_shader;
+	std::unique_ptr<gxapi::IPipelineState> m_PSO;
+	gxapi::eFormat m_colorFormat = gxapi::eFormat::UNKNOWN;
+	gxapi::eFormat m_depthStencilFormat = gxapi::eFormat::UNKNOWN;
 };
 
 

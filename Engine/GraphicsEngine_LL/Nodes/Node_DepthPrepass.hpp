@@ -6,41 +6,42 @@
 #include "../PerspectiveCamera.hpp"
 #include "../Mesh.hpp"
 #include "../ConstBufferHeap.hpp"
-#include "../GraphicsContext.hpp"
 #include "../PipelineTypes.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
 namespace inl::gxeng::nodes {
 
-
+/// <summary>
+/// Inputs: render target, entities, camera
+/// </summary>
 class DepthPrepass :
 	virtual public GraphicsNode,
-	// depth texture, entities, camera
-	virtual public exc::InputPortConfig<pipeline::Texture2D, const EntityCollection<MeshEntity>*, const BasicCamera*>,
-	virtual public exc::OutputPortConfig<pipeline::Texture2D>
+	virtual public GraphicsTask,
+	virtual public exc::InputPortConfig<Texture2D, const EntityCollection<MeshEntity>*, const BasicCamera*>,
+	virtual public exc::OutputPortConfig<Texture2D>
 {
 public:
 	DepthPrepass(gxapi::IGraphicsApi* graphicsApi);
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
-	void InitGraphics(const GraphicsContext& context) override;
 
-	Task GetTask() override;
+	void Initialize(EngineContext& context) override;
+	void Setup(SetupContext& context) override;
+	void Execute(RenderContext& context) override;
 	
 protected:
-	GraphicsContext m_graphicsContext;
 	Binder m_binder;
 	BindParameter m_transformBindParam;
+	ShaderProgram m_shader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
+	gxapi::eFormat m_depthStencilFormat = gxapi::eFormat::UNKNOWN;
 
-private:
-	void RenderScene(
-		const DepthStencilView2D& dsv,
-		const EntityCollection<MeshEntity>& entities,
-		const BasicCamera* camera,
-		GraphicsCommandList& commandList);
+private: // execution context
+	DepthStencilView2D m_targetDsv;
+	const EntityCollection<MeshEntity>* m_entities;
+	const BasicCamera* m_camera;
 };
 
 

@@ -6,8 +6,8 @@
 #include "../Image.hpp"
 #include "../Mesh.hpp"
 #include "../ConstBufferHeap.hpp"
-#include "../GraphicsContext.hpp"
 #include "../PipelineTypes.hpp"
+#include "../GraphicsCommandList.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 #include "Node_OverlayRender.hpp"
@@ -45,36 +45,109 @@ OverlayRender::OverlayRender(gxapi::IGraphicsApi* graphicsApi) {
 }
 
 
-void OverlayRender::InitGraphics(const GraphicsContext & context) {
-	m_graphicsContext = context;
-
-	InitColoredPso();
-	InitTexturedPso();
+void OverlayRender::Initialize(EngineContext& context) {
+	GraphicsNode::SetTaskSingle(this);
 }
 
 
-Task OverlayRender::GetTask() {
-	return Task({ [this](const ExecutionContext& context) {
-		ExecutionResult result;
+void OverlayRender::Setup(SetupContext& context) {
+	auto target = this->GetInput<0>().Get();
+	this->GetInput<0>().Clear();
 
-		auto target = this->GetInput<0>().Get();
-		this->GetInput<0>().Clear();
+	const EntityCollection<OverlayEntity>* entities = this->GetInput<1>().Get();
+	this->GetInput<0>().Clear();
 
-		const EntityCollection<OverlayEntity>* entities = this->GetInput<1>().Get();
-		this->GetInput<0>().Clear();
+	const BasicCamera* camera = this->GetInput<2>().Get();
+	this->GetInput<1>().Clear();
 
-		const BasicCamera* camera = this->GetInput<2>().Get();
-		this->GetInput<1>().Clear();
+	this->GetOutput<0>().Set(target);
 
-		GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-		RenderScene(target.QueryRenderTarget(cmdList, m_graphicsContext), *entities, camera, cmdList);
-		result.AddCommandList(std::move(cmdList));
+	InitColoredPso(context, target.GetFormat());
+	InitTexturedPso(context, target.GetFormat());
 
-		this->GetOutput<0>().Set(target);
-
-		return result;
-	} });
+	m_renderTargetFormat = target.GetFormat();
 }
+
+
+void OverlayRender::Execute(RenderContext& context) {
+	GraphicsCommandList& commandList = context.AsGraphics();
+	// Set render target
+	auto pRTV = &m_target;
+	commandList.SetResourceState(m_target.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetRenderTargets(1, &pRTV);
+	commandList.ClearRenderTarget(m_target, gxapi::ColorRGBA(0, 0, 0, 0));
+
+	gxapi::Rectangle rect{ 0, (int)m_target.GetResource().GetHeight(), 0, (int)m_target.GetResource().GetWidth() };
+	gxapi::Viewport viewport;
+	viewport.width = (float)rect.right;
+	viewport.height = (float)rect.bottom;
+	viewport.topLeftX = 0;
+	viewport.topLeftY = 0;
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+	commandList.SetScissorRects(1, &rect);
+	commandList.SetViewports(1, &viewport);
+
+	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
+
+	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();
+	mathfu::Matrix4x4f projection = m_camera->GetProjectionMatrixRH();
+	auto viewProjection = projection * view;
+
+	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
+	std::vector<unsigned> sizes;
+	std::vector<unsigned> strides;
+
+	// Iterate over all entities
+	for (const OverlayEntity* entity : *m_entities) {
+		if (entity->GetVisible() == false) {
+			continue;
+		}
+
+		Mesh* mesh = entity->GetMesh();
+
+		if (!CheckMeshFormat(mesh)) {
+			assert(false);
+		}
+
+		auto world = entity->GetTransform();
+		auto MVP = viewProjection * world;
+
+		std::array<mathfu::VectorPacked<float, 4>, 4> transformCBData;
+		MVP.Pack(transformCBData.data());
+
+		auto renderType = entity->GetSurfaceType();
+		if (renderType == OverlayEntity::COLORED) {
+			auto color = entity->GetColor();
+			if (color.w() == 0.f) {
+				continue;
+			}
+
+			commandList.SetPipelineState(m_coloredPipeline.pso.get());
+			commandList.SetGraphicsBinder(&m_coloredPipeline.binder);
+
+			mathfu::VectorPacked<float, 4> colorCBData;
+			color.Pack(&colorCBData);
+
+			commandList.BindGraphics(m_coloredPipeline.transformParam, transformCBData.data(), sizeof(transformCBData), 0);
+			commandList.BindGraphics(m_coloredPipeline.colorParam, colorCBData.data, sizeof(colorCBData), 0);
+		}
+		else {
+			assert(renderType == OverlayEntity::TEXTURED);
+			commandList.SetPipelineState(m_texturedPipeline.pso.get());
+			commandList.SetGraphicsBinder(&m_texturedPipeline.binder);
+
+			commandList.BindGraphics(m_texturedPipeline.textureParam, *entity->GetTexture()->GetSrv());
+			commandList.BindGraphics(m_texturedPipeline.transformParam, transformCBData.data(), sizeof(transformCBData), 0);
+		}
+
+		ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
+		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
+		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
+		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
+	}
+}
+
 
 
 
@@ -140,7 +213,8 @@ void OverlayRender::InitTexturedBindings(gxapi::IGraphicsApi* graphicsApi) {
 gxapi::GraphicsPipelineStateDesc OverlayRender::GetPsoDesc(
 	std::vector<gxapi::InputElementDesc>& inputElementDesc,
 	gxeng::ShaderProgram& shader,
-	const Binder& binder) const
+	const Binder& binder,
+	gxapi::eFormat renderTargetFormat) const
 {
 	gxapi::GraphicsPipelineStateDesc psoDesc;
 	psoDesc.inputLayout.elements = inputElementDesc.data();
@@ -163,126 +237,48 @@ gxapi::GraphicsPipelineStateDesc OverlayRender::GetPsoDesc(
 	psoDesc.depthStencilFormat = gxapi::eFormat::UNKNOWN;
 
 	psoDesc.numRenderTargets = 1;
-	psoDesc.renderTargetFormats[0] = COLOR_FORMAT;
+	psoDesc.renderTargetFormats[0] = renderTargetFormat;
 	return psoDesc;
 }
 
 
-void OverlayRender::InitColoredPso() {
-	ShaderParts shaderParts;
-	shaderParts.vs = true;
-	shaderParts.ps = true;
+void OverlayRender::InitColoredPso(SetupContext& context, gxapi::eFormat renderTargetFormat) {
+	if (!m_coloredShader.vs || !m_coloredShader.ps) {
+		ShaderParts shaderParts;
+		shaderParts.vs = true;
+		shaderParts.ps = true;
 
-	auto shader = m_graphicsContext.CreateShader("OverlayColored", shaderParts, "");
-
+		m_coloredShader = context.CreateShader("OverlayColored", shaderParts, "");
+	}
+	
 	std::vector<gxapi::InputElementDesc> inputElementDesc = {
 		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0)
 	};
 
-	gxapi::GraphicsPipelineStateDesc psoDesc = GetPsoDesc(inputElementDesc, shader, m_coloredPipeline.binder);
-
-	m_coloredPipeline.pso.reset(m_graphicsContext.CreatePSO(psoDesc));
+	if (m_coloredPipeline.pso == nullptr || m_renderTargetFormat != renderTargetFormat) {
+		gxapi::GraphicsPipelineStateDesc psoDesc = GetPsoDesc(inputElementDesc, m_coloredShader, m_coloredPipeline.binder, renderTargetFormat);
+		m_coloredPipeline.pso.reset(context.CreatePSO(psoDesc));
+	}
 }
 
 
-void OverlayRender::InitTexturedPso() {
-	ShaderParts shaderParts;
-	shaderParts.vs = true;
-	shaderParts.ps = true;
+void OverlayRender::InitTexturedPso(SetupContext& context, gxapi::eFormat renderTargetFormat) {
+	if (!m_texturedShader.vs || !m_texturedShader.ps) {
+		ShaderParts shaderParts;
+		shaderParts.vs = true;
+		shaderParts.ps = true;
 
-	auto shader = m_graphicsContext.CreateShader("OverlayTextured", shaderParts, "");
+		m_texturedShader = context.CreateShader("OverlayTextured", shaderParts, "");
+	}
 
 	std::vector<gxapi::InputElementDesc> inputElementDesc = {
 		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
 		gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12),
 	};
 
-	gxapi::GraphicsPipelineStateDesc psoDesc = GetPsoDesc(inputElementDesc, shader, m_texturedPipeline.binder);
-
-	m_texturedPipeline.pso.reset(m_graphicsContext.CreatePSO(psoDesc));
-}
-
-
-void OverlayRender::RenderScene(
-	const RenderTargetView2D& target,
-	const EntityCollection<OverlayEntity>& entities,
-	const BasicCamera* camera,
-	GraphicsCommandList & commandList
-) {
-	// Set render target
-	auto pRTV = &target;
-	commandList.SetResourceState(target.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
-	commandList.SetRenderTargets(1, &pRTV);
-	commandList.ClearRenderTarget(target, gxapi::ColorRGBA(0, 0, 0, 0));
-
-	gxapi::Rectangle rect{ 0, (int)target.GetResource().GetHeight(), 0, (int)target.GetResource().GetWidth() };
-	gxapi::Viewport viewport;
-	viewport.width = (float)rect.right;
-	viewport.height = (float)rect.bottom;
-	viewport.topLeftX = 0;
-	viewport.topLeftY = 0;
-	viewport.minDepth = 0.0f;
-	viewport.maxDepth = 1.0f;
-	commandList.SetScissorRects(1, &rect);
-	commandList.SetViewports(1, &viewport);
-
-	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
-
-	mathfu::Matrix4x4f view = camera->GetViewMatrixRH();
-	mathfu::Matrix4x4f projection = camera->GetProjectionMatrixRH();
-	auto viewProjection = projection * view;
-
-	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
-	std::vector<unsigned> sizes;
-	std::vector<unsigned> strides;
-
-	// Iterate over all entities
-	for (const OverlayEntity* entity : entities) {
-		if (entity->GetVisible() == false) {
-			continue;
-		}
-
-		Mesh* mesh = entity->GetMesh();
-
-		if (!CheckMeshFormat(mesh)) {
-			assert(false);
-		}
-
-		auto world = entity->GetTransform();
-		auto MVP = viewProjection * world;
-
-		std::array<mathfu::VectorPacked<float, 4>, 4> transformCBData;
-		MVP.Pack(transformCBData.data());
-
-		auto renderType = entity->GetSurfaceType();
-		if (renderType == OverlayEntity::COLORED) {
-			auto color = entity->GetColor();
-			if (color.w() == 0.f) {
-				continue;
-			}
-
-			commandList.SetPipelineState(m_coloredPipeline.pso.get());
-			commandList.SetGraphicsBinder(&m_coloredPipeline.binder);
-
-			mathfu::VectorPacked<float, 4> colorCBData;
-			color.Pack(&colorCBData);
-
-			commandList.BindGraphics(m_coloredPipeline.transformParam, transformCBData.data(), sizeof(transformCBData), 0);
-			commandList.BindGraphics(m_coloredPipeline.colorParam, colorCBData.data, sizeof(colorCBData), 0);
-		}
-		else {
-			assert(renderType == OverlayEntity::TEXTURED);
-			commandList.SetPipelineState(m_texturedPipeline.pso.get());
-			commandList.SetGraphicsBinder(&m_texturedPipeline.binder);
-
-			commandList.BindGraphics(m_texturedPipeline.textureParam, *entity->GetTexture()->GetSrv());
-			commandList.BindGraphics(m_texturedPipeline.transformParam, transformCBData.data(), sizeof(transformCBData), 0);
-		}
-
-		ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
-		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
-		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
-		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
+	if (m_texturedPipeline.pso == nullptr || m_renderTargetFormat != renderTargetFormat) {
+		gxapi::GraphicsPipelineStateDesc psoDesc = GetPsoDesc(inputElementDesc, m_texturedShader, m_texturedPipeline.binder, renderTargetFormat);
+		m_texturedPipeline.pso.reset(context.CreatePSO(psoDesc));
 	}
 }
 

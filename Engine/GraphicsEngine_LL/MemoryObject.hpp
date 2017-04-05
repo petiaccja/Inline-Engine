@@ -59,6 +59,9 @@ public:
 		return (bool)m_contents;
 	}
 
+	bool HasObject() const {
+		return (bool)m_contents;
+	}
 
 	void* GetVirtualAddress() const;
 	gxapi::ResourceDesc GetDescription() const;

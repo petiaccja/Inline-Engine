@@ -5,7 +5,8 @@
 
 #include "../ConstBufferHeap.hpp"
 #include "../PipelineTypes.hpp"
-#include "../GraphicsContext.hpp"
+#include "../MemoryObject.hpp"
+#include "../GraphicsCommandList.hpp"
 
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
@@ -15,8 +16,7 @@
 namespace inl::gxeng::nodes {
 
 
-Blend::Blend(gxapi::IGraphicsApi * graphicsApi, BlendMode mode) :
-	m_mode(mode),
+Blend::Blend(gxapi::IGraphicsApi * graphicsApi) :
 	m_binder(graphicsApi, {})
 {
 	BindParameterDesc tex0ParamDesc;
@@ -26,14 +26,6 @@ Blend::Blend(gxapi::IGraphicsApi * graphicsApi, BlendMode mode) :
 	tex0ParamDesc.relativeAccessFrequency = 0;
 	tex0ParamDesc.relativeChangeFrequency = 0;
 	tex0ParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	BindParameterDesc tex1ParamDesc;
-	m_tex1Param = BindParameter(eBindParameterType::TEXTURE, 1);
-	tex1ParamDesc.parameter = m_tex1Param;
-	tex1ParamDesc.constantSize = 0;
-	tex1ParamDesc.relativeAccessFrequency = 0;
-	tex1ParamDesc.relativeChangeFrequency = 0;
-	tex1ParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
 	BindParameterDesc sampBindParamDesc;
 	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
@@ -52,93 +44,105 @@ Blend::Blend(gxapi::IGraphicsApi * graphicsApi, BlendMode mode) :
 	samplerDesc.registerSpace = 0;
 	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-	m_binder = Binder{ graphicsApi,{ tex0ParamDesc, tex1ParamDesc, sampBindParamDesc },{ samplerDesc } };
+	m_binder = Binder{ graphicsApi,{ tex0ParamDesc, sampBindParamDesc },{ samplerDesc } };
 }
 
 
-void Blend::InitGraphics(const GraphicsContext& context) {
-	m_graphicsContext = context;
+void Blend::Initialize(EngineContext & context) {
+	GraphicsNode::SetTaskSingle(this);
+}
 
-	std::vector<float> vertices = {
-		-1, -1, 
-		+1, -1, 
-		+1, +1, 
-		-1, +1
-	};
-	std::vector<uint16_t> indices = {
-		0, 1, 2,
-		0, 2, 3
-	};
-	m_fsq = m_graphicsContext.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-	m_fsqIndices = m_graphicsContext.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
 
-	ShaderParts shaderParts;
-	shaderParts.vs = true;
-	shaderParts.ps = true;
+void Blend::Setup(SetupContext& context) {
+	auto& target = this->GetInput<0>().Get();
+	this->GetInput<0>().Clear();
+	gxapi::RtvTexture2DArray rtvDesc;
+	rtvDesc.activeArraySize = 1;
+	rtvDesc.firstArrayElement = 0;
+	rtvDesc.firstMipLevel = 0;
+	rtvDesc.planeIndex = 0;
+	m_blendDest = context.CreateRtv(target, target.GetFormat(), rtvDesc);
 
-	std::string shaderName;
+	auto blendSrc = this->GetInput<1>().Get();
+	this->GetInput<1>().Clear();
+	gxapi::SrvTexture2DArray srvDesc;
+	srvDesc.activeArraySize = 1;
+	srvDesc.firstArrayElement = 0;
+	srvDesc.mipLevelClamping = 0;
+	srvDesc.mostDetailedMip = 0;
+	srvDesc.numMipLevels = 1;
+	srvDesc.planeIndex = 0;
+	m_blendSrc = context.CreateSrv(blendSrc, blendSrc.GetFormat(), srvDesc);
 
-	switch (m_mode) {
-	case CASUAL_ALPHA_BLEND:
-		shaderName = "Blend_CasualAlpha";
-		break;
-	default:
-		assert(false);
-		break;
+	BlendMode currBlendMode = this->GetInput<2>().Get();
+	this->GetInput<2>().Clear();
+
+	this->GetOutput<0>().Set(target);
+
+	if (!m_fsq.HasObject() || !m_fsqIndices.HasObject()) {
+		std::vector<float> vertices = {
+			-1, -1,
+			+1, -1,
+			+1, +1,
+			-1, +1
+		};
+		std::vector<uint16_t> indices = {
+			0, 1, 2,
+			0, 2, 3
+		};
+		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
+		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
 	}
 
-	auto shader = m_graphicsContext.CreateShader(shaderName, shaderParts, "");
+	if (!m_shader.vs || m_shader.ps) {
+		ShaderParts shaderParts;
+		shaderParts.vs = true;
+		shaderParts.ps = true;
 
-	std::vector<gxapi::InputElementDesc> inputElementDesc = {
-		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32_FLOAT, 0, 0)
-	};
+		m_shader = context.CreateShader("BendSource", shaderParts, "");
+	}
+	
+	if (m_renderTargetFormat != target.GetFormat() || m_blendMode != currBlendMode) {
+		m_renderTargetFormat = target.GetFormat();
+		m_blendMode = currBlendMode;
 
-	gxapi::GraphicsPipelineStateDesc psoDesc;
-	psoDesc.inputLayout.elements = inputElementDesc.data();
-	psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-	psoDesc.rootSignature = m_binder.GetRootSignature();
-	psoDesc.vs = shader.vs;
-	psoDesc.ps = shader.ps;
-	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
-	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
-	psoDesc.numRenderTargets = 1;
-	psoDesc.renderTargetFormats[0] = COLOR_FORMAT;
+		std::vector<gxapi::InputElementDesc> inputElementDesc = {
+			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32_FLOAT, 0, 0)
+		};
 
-	m_PSO.reset(m_graphicsContext.CreatePSO(psoDesc));
+		gxapi::GraphicsPipelineStateDesc psoDesc;
+		psoDesc.inputLayout.elements = inputElementDesc.data();
+		psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
+		psoDesc.rootSignature = m_binder.GetRootSignature();
+		psoDesc.vs = m_shader.vs;
+		psoDesc.ps = m_shader.ps;
+		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+		psoDesc.blending.alphaToCoverage = false;
+		psoDesc.blending.independentBlending = false;
+		psoDesc.blending.singleTarget.enableBlending = true;
+		psoDesc.blending.singleTarget.alphaOperation = gxapi::eBlendOperation::ADD;
+		psoDesc.blending.singleTarget.shaderAlphaFactor = gxapi::eBlendOperand::SHADER_ALPHA;
+		psoDesc.blending.singleTarget.targetAlphaFactor = gxapi::eBlendOperand::INV_SHADER_ALPHA;
+		psoDesc.blending.singleTarget.colorOperation = gxapi::eBlendOperation::ADD;
+		psoDesc.blending.singleTarget.shaderColorFactor = gxapi::eBlendOperand::SHADER_ALPHA;
+		psoDesc.blending.singleTarget.targetColorFactor = gxapi::eBlendOperand::INV_SHADER_ALPHA;
+		psoDesc.blending.singleTarget.enableLogicOp = false;
+		psoDesc.blending.singleTarget.mask = gxapi::eColorMask::ALL;
+		
+		psoDesc.numRenderTargets = 1;
+		psoDesc.renderTargetFormats[0] = m_renderTargetFormat;
+
+		m_PSO.reset(context.CreatePSO(psoDesc));
+	}
+	
 }
 
 
-Task Blend::GetTask() {
-	return Task({ [this](const ExecutionContext& context) {
-		ExecutionResult result;
+void Blend::Execute(RenderContext& context) {
+	gxeng::GraphicsCommandList& commandList = context.AsGraphics();
 
-		auto target = this->GetInput<0>().Get();
-		this->GetInput<0>().Clear();
-
-		auto texture0 = this->GetInput<1>().Get();
-		this->GetInput<1>().Clear();
-
-		auto texture1 = this->GetInput<2>().Get();
-		this->GetInput<2>().Clear();
-
-		GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-		Render(target.QueryRenderTarget(cmdList, m_graphicsContext), texture0.QueryRead(), texture1.QueryRead(), cmdList);
-		result.AddCommandList(std::move(cmdList));
-
-		this->GetOutput<0>().Set(target);
-
-		return result;
-	} });
-}
-
-
-void Blend::Render(
-	const RenderTargetView2D& target,
-	const TextureView2D& texture0,
-	const TextureView2D& texture1,
-	GraphicsCommandList& commandList)
-{
-	auto* pRTV = &target;
+	auto* pRTV = &m_blendDest;
 	commandList.SetResourceState(pRTV->GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetRenderTargets(1, &pRTV);
 
@@ -161,14 +165,13 @@ void Blend::Render(
 	unsigned vbSize = (unsigned)m_fsq.GetSize();
 	unsigned vbStride = 2 * sizeof(float);
 
-	commandList.SetResourceState(const_cast<Texture2D&>(texture0.GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
-	commandList.BindGraphics(m_tex0Param, texture0);
-	commandList.SetResourceState(const_cast<Texture2D&>(texture1.GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
-	commandList.BindGraphics(m_tex1Param, texture1);
+	commandList.SetResourceState(const_cast<Texture2D&>(m_blendSrc.GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+	commandList.BindGraphics(m_tex0Param, m_blendSrc);
 
 	commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
 	commandList.SetIndexBuffer(&m_fsqIndices, false);
 	commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
 }
+
 
 } // namespace inl::gxeng::nodes

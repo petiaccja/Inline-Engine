@@ -4,6 +4,7 @@
 #include "../Mesh.hpp"
 #include "../Image.hpp"
 #include "../DirectionalLight.hpp"
+#include "../GraphicsCommandList.hpp"
 
 #include <array>
 
@@ -75,51 +76,62 @@ DepthReduction::DepthReduction(gxapi::IGraphicsApi * graphicsApi):
 }
 
 
-void DepthReduction::InitGraphics(const GraphicsContext& context) {
-	m_graphicsContext = context;
+void DepthReduction::Initialize(EngineContext & context) {}
 
-	ShaderParts shaderParts;
-	shaderParts.cs = true;
 
-	auto shader = m_graphicsContext.CreateShader("DepthReduction", shaderParts, "");
+void DepthReduction::Setup(SetupContext& context) {
+	if (m_CSO == nullptr) {
+		ShaderParts shaderParts;
+		shaderParts.cs = true;
 
-	gxapi::ComputePipelineStateDesc csoDesc;
-	csoDesc.rootSignature = m_binder.GetRootSignature();
-	csoDesc.cs = shader.cs;
+		auto shader = context.CreateShader("DepthReduction", shaderParts, "");
 
-	m_CSO.reset(m_graphicsContext.CreatePSO(csoDesc));
+		gxapi::ComputePipelineStateDesc csoDesc;
+		csoDesc.rootSignature = m_binder.GetRootSignature();
+		csoDesc.cs = shader.cs;
+
+		m_CSO.reset(context.CreatePSO(csoDesc));
+	}
+
+	auto& inputDepth = this->GetInput<0>().Get();
+
+	gxapi::SrvTexture2DArray desc;
+	desc.activeArraySize = 1;
+	desc.firstArrayElement = 0;
+	desc.mipLevelClamping = 0;
+	desc.mostDetailedMip = 0;
+	desc.numMipLevels = 1;
+	desc.planeIndex = 0;
+
+	m_depthView = context.CreateSrv(inputDepth, inputDepth.GetFormat(), desc);
+	this->GetInput<0>().Clear();
+
+	if (inputDepth.GetWidth() != m_width || inputDepth.GetHeight() != m_height) {
+		m_width = inputDepth.GetWidth();
+		m_height = inputDepth.GetHeight();
+		InitRenderTarget(context);
+	}
+
+	this->GetOutput<0>().Set(m_srv.GetResource());
 }
 
 
-Task DepthReduction::GetTask() {
-	return Task({ [this](const ExecutionContext& context) {
-		ExecutionResult result;
+void DepthReduction::Execute(RenderContext & context) {
+	auto& commandList = context.AsCompute();
 
-		gxeng::pipeline::Texture2D depthTex = this->GetInput<0>().Get();
-		this->GetInput<0>().Clear();
+	unsigned dispatchW, dispatchH;
+	setWorkgroupSize((unsigned)std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
 
-		if (depthTex.Width() != m_width || depthTex.Height() != m_height) {
-			m_width = depthTex.Width();
-			m_height = depthTex.Height();
-			InitRenderTarget();
-		}
-
-
-		this->GetOutput<0>().Set(pipeline::Texture2D(m_srv));
-
-		{
-			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-
-			this->RenderScene(m_uav, depthTex, cmdList);
-			result.AddCommandList(std::move(cmdList));
-		}
-
-		return result;
-	} });
+	commandList.SetPipelineState(m_CSO.get());
+	commandList.SetComputeBinder(&m_binder);
+	commandList.BindCompute(m_depthBindParam, m_depthView);
+	commandList.BindCompute(m_outputBindParam, m_uav);
+	commandList.Dispatch(dispatchW, dispatchH, 1);
+	commandList.UAVBarrier(m_uav.GetResource());
 }
 
 
-void DepthReduction::InitRenderTarget() {
+void DepthReduction::InitRenderTarget(SetupContext& context) {
 	using gxapi::eFormat;
 
 	auto formatDepthReductionResult = eFormat::R32G32_FLOAT;
@@ -141,26 +153,9 @@ void DepthReduction::InitRenderTarget() {
 	unsigned dispatchW, dispatchH;
 	setWorkgroupSize((unsigned)std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
 
-	Texture2D tex = m_graphicsContext.CreateRWTexture2D(dispatchW, dispatchH, formatDepthReductionResult, 1);
-	m_uav = m_graphicsContext.CreateUav(tex, formatDepthReductionResult, uavDesc);
-	m_srv = m_graphicsContext.CreateSrv(tex, formatDepthReductionResult, srvDesc);
-}
-
-
-void DepthReduction::RenderScene(
-	const gxeng::RWTextureView2D& uav,
-	pipeline::Texture2D& depthTex,
-	GraphicsCommandList& commandList
-) {
-	unsigned dispatchW, dispatchH;
-	setWorkgroupSize((unsigned)std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
-
-	commandList.SetPipelineState(m_CSO.get());
-	commandList.SetComputeBinder(&m_binder);
-	commandList.BindCompute(m_depthBindParam, depthTex.QueryRead());
-	commandList.BindCompute(m_outputBindParam, uav);
-	commandList.Dispatch(dispatchW, dispatchH, 1);
-	commandList.UAVBarrier(uav.GetResource());
+	Texture2D tex = context.CreateRWTexture2D(dispatchW, dispatchH, formatDepthReductionResult, 1);
+	m_uav = context.CreateUav(tex, formatDepthReductionResult, uavDesc);
+	m_srv = context.CreateSrv(tex, formatDepthReductionResult, srvDesc);
 }
 
 

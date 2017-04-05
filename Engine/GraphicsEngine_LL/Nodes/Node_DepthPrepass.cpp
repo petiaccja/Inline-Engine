@@ -4,6 +4,7 @@
 #include "../Mesh.hpp"
 #include "../Image.hpp"
 #include "../DirectionalLight.hpp"
+#include "../GraphicsCommandList.hpp"
 
 #include <array>
 
@@ -79,76 +80,76 @@ DepthPrepass::DepthPrepass(gxapi::IGraphicsApi* graphicsApi):
 }
 
 
-void DepthPrepass::InitGraphics(const GraphicsContext & context) {
-	m_graphicsContext = context;
-
-	ShaderParts shaderParts;
-	shaderParts.vs = true;
-	shaderParts.ps = true;
-
-	auto shader = m_graphicsContext.CreateShader("DepthPrepass", shaderParts, "");
-
-	std::vector<gxapi::InputElementDesc> inputElementDesc = {
-		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
-		gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
-		gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
-	};
-
-	gxapi::GraphicsPipelineStateDesc psoDesc;
-	psoDesc.inputLayout.elements = inputElementDesc.data();
-	psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-	psoDesc.rootSignature = m_binder.GetRootSignature();
-	psoDesc.vs = shader.vs;
-	psoDesc.ps = shader.ps;
-	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
-	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
-
-	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
-	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT_S8X24_UINT;
-
-	psoDesc.numRenderTargets = 0;
-
-	m_PSO.reset(m_graphicsContext.CreatePSO(psoDesc));
+void DepthPrepass::Initialize(EngineContext & context) {
+	GraphicsNode::SetTaskSingle(this);
 }
 
 
-Task DepthPrepass::GetTask() {
-	return Task({ [this](const ExecutionContext& context) {
-		ExecutionResult result;
+void DepthPrepass::Setup(SetupContext & context) {
+	auto& depthStencil = this->GetInput<0>().Get();
+	this->GetInput<0>().Clear();
 
-		auto target = this->GetInput<0>().Get();
-		this->GetInput<0>().Clear();
+	gxapi::DsvTexture2DArray desc;
+	desc.activeArraySize = 1;
+	desc.firstArrayElement = 0;
+	desc.firstMipLevel = 0;
 
-		const EntityCollection<MeshEntity>* entities = this->GetInput<1>().Get();
-		this->GetInput<1>().Clear();
+	m_targetDsv = context.CreateDsv(depthStencil, depthStencil.GetFormat(), desc);
+	
+	m_entities = this->GetInput<1>().Get();
+	this->GetInput<1>().Clear();
 
-		const BasicCamera* camera = this->GetInput<2>().Get();
-		this->GetInput<2>().Clear();
+	m_camera = this->GetInput<2>().Get();
+	this->GetInput<2>().Clear();
 
-		this->GetOutput<0>().Set(target);
+	this->GetOutput<0>().Set(depthStencil);
 
-		if (entities) {
-			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-			CopyCommandList cpyCmdList = context.GetCopyCommandList();
+	if (!m_shader.vs || !m_shader.ps) {
+		ShaderParts shaderParts;
+		shaderParts.vs = true;
+		shaderParts.ps = true;
 
-			RenderScene(target.QueryDepthStencil(cmdList, m_graphicsContext), *entities, camera, cmdList);
-			result.AddCommandList(std::move(cmdList));
-		}
+		m_shader = context.CreateShader("DepthPrepass", shaderParts, "");
+	}
 
-		return result;
-	} });
+	if (m_PSO == nullptr || m_depthStencilFormat != depthStencil.GetFormat()) {
+		m_depthStencilFormat = depthStencil.GetFormat();
+
+		std::vector<gxapi::InputElementDesc> inputElementDesc = {
+			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
+			gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
+			gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
+		};
+
+		gxapi::GraphicsPipelineStateDesc psoDesc;
+		psoDesc.inputLayout.elements = inputElementDesc.data();
+		psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
+		psoDesc.rootSignature = m_binder.GetRootSignature();
+		psoDesc.vs = m_shader.vs;
+		psoDesc.ps = m_shader.ps;
+		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
+		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+
+		psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
+		psoDesc.depthStencilFormat = m_depthStencilFormat;
+
+		psoDesc.numRenderTargets = 0;
+
+		m_PSO.reset(context.CreatePSO(psoDesc));
+	}
 }
 
 
-void DepthPrepass::RenderScene(
-	const DepthStencilView2D& dsv,
-	const EntityCollection<MeshEntity>& entities,
-	const BasicCamera* camera,
-	GraphicsCommandList& commandList
-) {
-	commandList.SetRenderTargets(0, nullptr, &dsv);
+void DepthPrepass::Execute(RenderContext & context) {
+	if (!m_entities) {
+		return;
+	}
 
-	gxapi::Rectangle rect{ 0, (int)dsv.GetResource().GetHeight(), 0, (int)dsv.GetResource().GetWidth() };
+	auto& commandList = context.AsGraphics();
+
+	commandList.SetRenderTargets(0, nullptr, &m_targetDsv);
+
+	gxapi::Rectangle rect{ 0, (int)m_targetDsv.GetResource().GetHeight(), 0, (int)m_targetDsv.GetResource().GetWidth() };
 	gxapi::Viewport viewport;
 	viewport.width = (float)rect.right;
 	viewport.height = (float)rect.bottom;
@@ -159,24 +160,24 @@ void DepthPrepass::RenderScene(
 	commandList.SetScissorRects(1, &rect);
 	commandList.SetViewports(1, &viewport);
 
-	commandList.SetResourceState(dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
-	commandList.ClearDepthStencil(dsv, 1, 0, 0, nullptr, true, true);
+	commandList.SetResourceState(m_targetDsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
+	commandList.ClearDepthStencil(m_targetDsv, 1, 0, 0, nullptr, true, true);
 
 	commandList.SetPipelineState(m_PSO.get());
 	commandList.SetGraphicsBinder(&m_binder);
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	mathfu::Matrix4x4f view = camera->GetViewMatrixRH();
-	mathfu::Matrix4x4f projection = camera->GetProjectionMatrixRH();
+	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();
+	mathfu::Matrix4x4f projection = m_camera->GetProjectionMatrixRH();
 
 	auto viewProjection = projection * view;
-	
+
 	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
 	std::vector<unsigned> sizes;
 	std::vector<unsigned> strides;
 
 	// Iterate over all entities
-	for (const MeshEntity* entity : entities) {
+	for (const MeshEntity* entity : *m_entities) {
 		// Get entity parameters
 		Mesh* mesh = entity->GetMesh();
 		auto position = entity->GetPosition();
