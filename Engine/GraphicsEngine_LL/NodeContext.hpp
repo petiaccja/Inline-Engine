@@ -33,8 +33,8 @@ class CommandAllocatorPool;
 class EngineContext {
 public:
 	EngineContext(int cpuCount = 1, int gpuCount = 1);
-	EngineContext(EngineContext&) = delete;
-	EngineContext& operator=(EngineContext&) = delete;
+	EngineContext(EngineContext&&) = delete;
+	EngineContext& operator=(EngineContext&&) = delete;
 	EngineContext(const EngineContext&) = delete;
 	EngineContext& operator=(const EngineContext&) = delete;
 
@@ -142,6 +142,8 @@ public:
 	GraphicsCommandList& AsGraphics();
 	ComputeCommandList& AsCompute();
 	CopyCommandList& AsCopy();
+	gxapi::eCommandListType GetType() const { return m_type; }
+	bool IsListInitialized() const { return (bool)m_commandList; }
 
 private:
 	// Memory management stuff
@@ -157,6 +159,7 @@ private:
 	CommandAllocatorPool* m_commandAllocatorPool;
 	ScratchSpacePool* m_scratchSpacePool;
 	std::unique_ptr<BasicCommandList> m_commandList;
+	gxapi::eCommandListType m_type = static_cast<gxapi::eCommandListType>(0xDEADBEEF);
 };
 
 
