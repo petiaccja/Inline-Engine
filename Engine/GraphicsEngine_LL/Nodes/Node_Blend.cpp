@@ -74,8 +74,7 @@ void Blend::Setup(SetupContext& context) {
 	srvDesc.planeIndex = 0;
 	m_blendSrc = context.CreateSrv(blendSrc, blendSrc.GetFormat(), srvDesc);
 
-	BlendMode currBlendMode = this->GetInput<2>().Get();
-	this->GetInput<2>().Clear();
+	gxapi::RenderTargetBlendState currBlendMode = this->GetInput<2>().Get();
 
 	this->GetOutput<0>().Set(target);
 
@@ -120,15 +119,7 @@ void Blend::Setup(SetupContext& context) {
 		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 		psoDesc.blending.alphaToCoverage = false;
 		psoDesc.blending.independentBlending = false;
-		psoDesc.blending.singleTarget.enableBlending = true;
-		psoDesc.blending.singleTarget.alphaOperation = gxapi::eBlendOperation::ADD;
-		psoDesc.blending.singleTarget.shaderAlphaFactor = gxapi::eBlendOperand::SHADER_ALPHA;
-		psoDesc.blending.singleTarget.targetAlphaFactor = gxapi::eBlendOperand::INV_SHADER_ALPHA;
-		psoDesc.blending.singleTarget.colorOperation = gxapi::eBlendOperation::ADD;
-		psoDesc.blending.singleTarget.shaderColorFactor = gxapi::eBlendOperand::SHADER_ALPHA;
-		psoDesc.blending.singleTarget.targetColorFactor = gxapi::eBlendOperand::INV_SHADER_ALPHA;
-		psoDesc.blending.singleTarget.enableLogicOp = false;
-		psoDesc.blending.singleTarget.mask = gxapi::eColorMask::ALL;
+		psoDesc.blending.singleTarget = m_blendMode;
 		
 		psoDesc.numRenderTargets = 1;
 		psoDesc.renderTargetFormats[0] = m_renderTargetFormat;

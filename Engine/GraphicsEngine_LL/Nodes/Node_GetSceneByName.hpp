@@ -5,14 +5,12 @@
 #include "../Scene.hpp"
 #include "../DirectionalLight.hpp"
 
-namespace inl {
-namespace gxeng {
-namespace nodes {
+namespace inl::gxeng::nodes {
 
 
 class GetSceneByName :
 	virtual public GraphicsNode,
-	public GraphicsTask,
+	virtual public GraphicsTask,
 	virtual public exc::InputPortConfig<std::string>,
 	virtual public exc::OutputPortConfig<const EntityCollection<MeshEntity>*, const EntityCollection<OverlayEntity>*, const EntityCollection<DirectionalLight>*>
 {
@@ -22,6 +20,10 @@ public:
 	void Update() override {}
 
 	void Notify(exc::InputPortBase* sender) override {}
+
+	void Initialize(EngineContext& context) override {
+		GraphicsNode::SetTaskSingle(this);
+	}
 
 	void Setup(SetupContext& context) {
 		// read scene name from input port
@@ -45,7 +47,4 @@ public:
 };
 
 
-
-} // namespace nodes
-} // namespace gxeng
-} // namespace inl
+} // namespace inl::gxeng::nodes

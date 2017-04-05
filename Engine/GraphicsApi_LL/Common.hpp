@@ -889,6 +889,23 @@ struct RenderTargetBlendState {
 		logicOperation(logicOperation)
 	{}
 
+	bool operator==(const RenderTargetBlendState& other) const {
+		return enableBlending == other.enableBlending
+			&& enableLogicOp == other.enableLogicOp
+			&& shaderColorFactor == other.shaderColorFactor
+			&& targetColorFactor == other.targetColorFactor
+			&& colorOperation == other.colorOperation
+			&& shaderAlphaFactor == other.shaderAlphaFactor
+			&& targetAlphaFactor == other.targetAlphaFactor
+			&& alphaOperation == other.alphaOperation
+			&& mask == other.mask
+			&& logicOperation == other.logicOperation;
+	}
+
+	bool operator!=(const RenderTargetBlendState& other) const {
+		return !(*this == other);
+	}
+
 	bool enableBlending;
 	bool enableLogicOp;
 

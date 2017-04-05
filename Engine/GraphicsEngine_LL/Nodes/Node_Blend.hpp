@@ -20,12 +20,9 @@ namespace inl::gxeng::nodes {
 class Blend :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<Texture2D, Texture2D, Blend::BlendMode>,
+	virtual public exc::InputPortConfig<Texture2D, Texture2D, gxapi::RenderTargetBlendState>,
 	virtual public exc::OutputPortConfig<Texture2D>
 {
-public:
-	enum BlendMode { CASUAL_ALPHA_BLEND };
-
 public:
 	Blend(gxapi::IGraphicsApi* graphicsApi);
 
@@ -43,7 +40,7 @@ protected:
 	IndexBuffer m_fsqIndices;
 
 protected:
-	BlendMode m_blendMode = CASUAL_ALPHA_BLEND;
+	gxapi::RenderTargetBlendState m_blendMode;
 
 	Binder m_binder;
 	BindParameter m_tex0Param;

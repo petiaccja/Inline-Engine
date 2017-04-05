@@ -131,7 +131,7 @@ private:
 	Scheduler m_scheduler;
 	ShaderManager m_shaderManager;
 	std::vector<SyncPoint> m_frameEndFenceValues;
-	std::vector<GraphicsNode*> m_graphicsNodes;
+	std::vector<std::shared_ptr<GraphicsNode>> m_graphicsNodes;
 
 	// Pipeline elements
 	CommandQueue m_masterCommandQueue;

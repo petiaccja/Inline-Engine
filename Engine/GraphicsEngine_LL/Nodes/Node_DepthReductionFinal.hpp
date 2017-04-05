@@ -6,7 +6,6 @@
 #include "../BasicCamera.hpp"
 #include "../Mesh.hpp"
 #include "../ConstBufferHeap.hpp"
-#include "../GraphicsContext.hpp"
 #include "../PipelineTypes.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"

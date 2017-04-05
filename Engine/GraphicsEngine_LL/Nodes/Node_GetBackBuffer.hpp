@@ -21,7 +21,7 @@ public:
 
 	virtual void Notify(exc::InputPortBase* sender) override {}
 
-	virtual void Initialize(EngineContext& context) override {
+	void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);
 	}
 
