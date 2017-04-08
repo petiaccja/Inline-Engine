@@ -225,4 +225,5 @@ struct hash<inl::gxeng::MemoryObject> {
 		return reinterpret_cast<size_t>(obj.m_contents.get());
 	}
 };
+
 }

@@ -9,45 +9,6 @@
 namespace inl::gxeng::nodes {
 
 
-DrawSky::DrawSky(gxapi::IGraphicsApi * graphicsApi):
-	m_binder(graphicsApi, {})
-{
-	BindParameterDesc sunCbBindParamDesc;
-	m_sunCbBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
-	sunCbBindParamDesc.parameter = m_sunCbBindParam;
-	sunCbBindParamDesc.constantSize = sizeof(float) * 4 * 2;
-	sunCbBindParamDesc.relativeAccessFrequency = 0;
-	sunCbBindParamDesc.relativeChangeFrequency = 0;
-	sunCbBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
-
-	BindParameterDesc camCbBindParamDesc;
-	m_camCbBindParam = BindParameter(eBindParameterType::CONSTANT, 1);
-	camCbBindParamDesc.parameter = m_camCbBindParam;
-	camCbBindParamDesc.constantSize = sizeof(float) * 16 + sizeof(float) * 4;
-	camCbBindParamDesc.relativeAccessFrequency = 0;
-	camCbBindParamDesc.relativeChangeFrequency = 0;
-	camCbBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
-
-	BindParameterDesc sampBindParamDesc;
-	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
-	sampBindParamDesc.constantSize = 0;
-	sampBindParamDesc.relativeAccessFrequency = 0;
-	sampBindParamDesc.relativeChangeFrequency = 0;
-	sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	gxapi::StaticSamplerDesc samplerDesc;
-	samplerDesc.shaderRegister = 0;
-	samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_LINEAR_MIP_POINT;
-	samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.mipLevelBias = 0.f;
-	samplerDesc.registerSpace = 0;
-	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	m_binder = Binder{ graphicsApi,{ sunCbBindParamDesc, camCbBindParamDesc, sampBindParamDesc },{ samplerDesc } };
-}
-
 
 void DrawSky::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
@@ -84,6 +45,43 @@ void DrawSky::Setup(SetupContext & context) {
 
 	this->GetOutput<0>().Set(renderTarget);
 
+
+	if (!m_binder.has_value()) {
+		BindParameterDesc sunCbBindParamDesc;
+		m_sunCbBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
+		sunCbBindParamDesc.parameter = m_sunCbBindParam;
+		sunCbBindParamDesc.constantSize = sizeof(float) * 4 * 2;
+		sunCbBindParamDesc.relativeAccessFrequency = 0;
+		sunCbBindParamDesc.relativeChangeFrequency = 0;
+		sunCbBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc camCbBindParamDesc;
+		m_camCbBindParam = BindParameter(eBindParameterType::CONSTANT, 1);
+		camCbBindParamDesc.parameter = m_camCbBindParam;
+		camCbBindParamDesc.constantSize = sizeof(float) * 16 + sizeof(float) * 4;
+		camCbBindParamDesc.relativeAccessFrequency = 0;
+		camCbBindParamDesc.relativeChangeFrequency = 0;
+		camCbBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc sampBindParamDesc;
+		sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
+		sampBindParamDesc.constantSize = 0;
+		sampBindParamDesc.relativeAccessFrequency = 0;
+		sampBindParamDesc.relativeChangeFrequency = 0;
+		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		gxapi::StaticSamplerDesc samplerDesc;
+		samplerDesc.shaderRegister = 0;
+		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_LINEAR_MIP_POINT;
+		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.mipLevelBias = 0.f;
+		samplerDesc.registerSpace = 0;
+		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		m_binder = context.CreateBinder({ sunCbBindParamDesc, camCbBindParamDesc, sampBindParamDesc }, { samplerDesc });
+	}
 
 	//================================================
 	// Create or modify pipeline state and other complementary objects if needed
@@ -122,7 +120,7 @@ void DrawSky::Setup(SetupContext & context) {
 		gxapi::GraphicsPipelineStateDesc psoDesc;
 		psoDesc.inputLayout.elements = inputElementDesc.data();
 		psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-		psoDesc.rootSignature = m_binder.GetRootSignature();
+		psoDesc.rootSignature = m_binder->GetRootSignature();
 		psoDesc.vs = m_shader.vs;
 		psoDesc.ps = m_shader.ps;
 		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
@@ -168,7 +166,7 @@ void DrawSky::Execute(RenderContext & context) {
 	commandList.SetViewports(1, &viewport);
 
 	commandList.SetPipelineState(m_PSO.get());
-	commandList.SetGraphicsBinder(&m_binder);
+	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 	commandList.SetStencilRef(0); // only allow sky to be rendered to background pixels
 

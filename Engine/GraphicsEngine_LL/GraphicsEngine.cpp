@@ -6,6 +6,8 @@
 #include <iostream> // only for debugging
 
 #include "Nodes/Node_GetBackBuffer.hpp"
+#include "Nodes/Node_TextureProperties.hpp"
+#include "Nodes/Node_CreateTexture.hpp"
 #include "Nodes/Node_GetSceneByName.hpp"
 #include "Nodes/Node_GetCameraByName.hpp"
 #include "Nodes/Node_GetTime.hpp"
@@ -318,20 +320,30 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::GetCameraByName> getCamera(new nodes::GetCameraByName());
 	std::shared_ptr<nodes::GetBackBuffer> getBackBuffer(new nodes::GetBackBuffer());
 
-	std::shared_ptr<nodes::ForwardRender> forwardRender(new nodes::ForwardRender(m_graphicsApi));
-	std::shared_ptr<nodes::DepthPrepass> depthPrePass(new nodes::DepthPrepass(m_graphicsApi));
-	std::shared_ptr<nodes::DepthReduction> depthReduction(new nodes::DepthReduction(m_graphicsApi));
-	std::shared_ptr<nodes::DepthReductionFinal> depthReductionFinal(new nodes::DepthReductionFinal(m_graphicsApi));
-	std::shared_ptr<nodes::CSM> csm(new nodes::CSM(m_graphicsApi));
-	std::shared_ptr<nodes::DrawSky> drawSky(new nodes::DrawSky(m_graphicsApi));
+	std::shared_ptr<nodes::TextureProperties> backBufferProperties(new nodes::TextureProperties());
+	std::shared_ptr<nodes::CreateTexture> createDepthBuffer(new nodes::CreateTexture());
+	std::shared_ptr<nodes::CreateTexture> createHdrRenderTarget(new nodes::CreateTexture());
+	std::shared_ptr<nodes::CreateTexture> createCsmTextures(new nodes::CreateTexture());
+	std::shared_ptr<nodes::ForwardRender> forwardRender(new nodes::ForwardRender());
+	std::shared_ptr<nodes::DepthPrepass> depthPrePass(new nodes::DepthPrepass());
+	std::shared_ptr<nodes::DepthReduction> depthReduction(new nodes::DepthReduction());
+	std::shared_ptr<nodes::DepthReductionFinal> depthReductionFinal(new nodes::DepthReductionFinal());
+	std::shared_ptr<nodes::CSM> csm(new nodes::CSM());
+	std::shared_ptr<nodes::DrawSky> drawSky(new nodes::DrawSky());
 
+	static_assert(false, "Node graphics linking must be fixed. Do not even try to run, it's not gonna work.");
 
 	getWorldScene->GetInput<0>().Set("World");
 	getCamera->GetInput<0>().Set("WorldCam");
 
-	static_assert(false, "Node graphics linking must be fixed. Do not even try to run, it's not gonna work.");
+	backBufferProperties->GetInput<0>().Link(getBackBuffer->GetOutput(0));
 
-	// MISSING (fatal): link target depth tex to input(0) of depthPrePass
+	createDepthBuffer->GetInput<0>().Link(backBufferProperties->GetOutput(0));
+	createDepthBuffer->GetInput<1>().Link(backBufferProperties->GetOutput(1));
+	createDepthBuffer->GetInput<2>().Set(gxapi::eFormat::D32_FLOAT_S8X24_UINT);
+	createDepthBuffer->GetInput<3>().Set(1);
+
+	depthPrePass->GetInput(0)->Link(createDepthBuffer->GetOutput(0));
 	depthPrePass->GetInput(1)->Link(getWorldScene->GetOutput(0));
 	depthPrePass->GetInput(2)->Link(getCamera->GetOutput(0));
 
@@ -341,10 +353,24 @@ void GraphicsEngine::CreatePipeline() {
 	depthReductionFinal->GetInput<1>().Link(getCamera->GetOutput(0));
 	depthReductionFinal->GetInput<2>().Link(getWorldScene->GetOutput(1));
 
-	csm->GetInput<0>().Link(getWorldScene->GetOutput(0));
-	csm->GetInput<1>().Link(depthReductionFinal->GetOutput(0));
+	constexpr unsigned cascadeSize = 1024;
+	constexpr unsigned numCascades = 4;
 
-	// MISSING (fatal): link target color float16 tex to input(0) of forwardRender
+	createCsmTextures->GetInput<0>().Set(cascadeSize);
+	createCsmTextures->GetInput<1>().Set(cascadeSize);
+	createCsmTextures->GetInput<2>().Set(gxapi::eFormat::R16G16B16A16_FLOAT);
+	createCsmTextures->GetInput<3>().Set(numCascades);
+
+	csm->GetInput<0>().Link(createCsmTextures->GetOutput(0));
+	csm->GetInput<1>().Link(getWorldScene->GetOutput(0));
+	csm->GetInput<2>().Link(depthReductionFinal->GetOutput(0));
+
+	createHdrRenderTarget->GetInput<0>().Link(backBufferProperties->GetOutput(0));
+	createHdrRenderTarget->GetInput<1>().Link(backBufferProperties->GetOutput(1));
+	createHdrRenderTarget->GetInput<2>().Set(gxapi::eFormat::R16G16B16A16_FLOAT);
+	createHdrRenderTarget->GetInput<3>().Set(1);
+
+	forwardRender->GetInput(0)->Link(createHdrRenderTarget->GetOutput(0));
 	forwardRender->GetInput(1)->Link(depthPrePass->GetOutput(0));
 	forwardRender->GetInput(2)->Link(getWorldScene->GetOutput(0));
 	forwardRender->GetInput(3)->Link(getCamera->GetOutput(0));
@@ -364,8 +390,8 @@ void GraphicsEngine::CreatePipeline() {
 	// -----------------------------
 	std::shared_ptr<nodes::GetSceneByName> getGuiScene(new nodes::GetSceneByName());
 	std::shared_ptr<nodes::GetCameraByName> getGuiCamera(new nodes::GetCameraByName());
-	std::shared_ptr<nodes::OverlayRender> guiRender(new nodes::OverlayRender(m_graphicsApi));
-	std::shared_ptr<nodes::Blend> alphaBlend(new nodes::Blend(m_graphicsApi));
+	std::shared_ptr<nodes::OverlayRender> guiRender(new nodes::OverlayRender());
+	std::shared_ptr<nodes::Blend> alphaBlend(new nodes::Blend());
 
 	getGuiScene->GetInput<0>().Set("Gui");
 	getGuiCamera->GetInput<0>().Set("GuiCamera");

@@ -39,11 +39,6 @@ static void ConvertToSubmittable(
 
 
 
-OverlayRender::OverlayRender(gxapi::IGraphicsApi* graphicsApi) {
-	InitColoredBindings(graphicsApi);
-	InitTexturedBindings(graphicsApi);
-}
-
 
 void OverlayRender::Initialize(EngineContext& context) {
 	GraphicsNode::SetTaskSingle(this);
@@ -61,6 +56,9 @@ void OverlayRender::Setup(SetupContext& context) {
 	this->GetInput<1>().Clear();
 
 	this->GetOutput<0>().Set(target);
+
+	InitColoredBindings(context);
+	InitTexturedBindings(context);
 
 	InitColoredPso(context, target.GetFormat());
 	InitTexturedPso(context, target.GetFormat());
@@ -124,7 +122,7 @@ void OverlayRender::Execute(RenderContext& context) {
 			}
 
 			commandList.SetPipelineState(m_coloredPipeline.pso.get());
-			commandList.SetGraphicsBinder(&m_coloredPipeline.binder);
+			commandList.SetGraphicsBinder(&m_coloredPipeline.binder.value());
 
 			mathfu::VectorPacked<float, 4> colorCBData;
 			color.Pack(&colorCBData);
@@ -135,7 +133,7 @@ void OverlayRender::Execute(RenderContext& context) {
 		else {
 			assert(renderType == OverlayEntity::TEXTURED);
 			commandList.SetPipelineState(m_texturedPipeline.pso.get());
-			commandList.SetGraphicsBinder(&m_texturedPipeline.binder);
+			commandList.SetGraphicsBinder(&m_texturedPipeline.binder.value());
 
 			commandList.BindGraphics(m_texturedPipeline.textureParam, *entity->GetTexture()->GetSrv());
 			commandList.BindGraphics(m_texturedPipeline.transformParam, transformCBData.data(), sizeof(transformCBData), 0);
@@ -151,62 +149,66 @@ void OverlayRender::Execute(RenderContext& context) {
 
 
 
-void OverlayRender::InitColoredBindings(gxapi::IGraphicsApi* graphicsApi) {
-	BindParameterDesc transformBindParamDesc;
-	m_coloredPipeline.transformParam = BindParameter(eBindParameterType::CONSTANT, 0);
-	transformBindParamDesc.parameter = m_coloredPipeline.transformParam;
-	transformBindParamDesc.constantSize = sizeof(float) * 4 * 4;
-	transformBindParamDesc.relativeAccessFrequency = 0;
-	transformBindParamDesc.relativeChangeFrequency = 0;
-	transformBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
+void OverlayRender::InitColoredBindings(SetupContext& context) {
+	if (!m_coloredPipeline.binder.has_value()) {
+		BindParameterDesc transformBindParamDesc;
+		m_coloredPipeline.transformParam = BindParameter(eBindParameterType::CONSTANT, 0);
+		transformBindParamDesc.parameter = m_coloredPipeline.transformParam;
+		transformBindParamDesc.constantSize = sizeof(float) * 4 * 4;
+		transformBindParamDesc.relativeAccessFrequency = 0;
+		transformBindParamDesc.relativeChangeFrequency = 0;
+		transformBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
 
-	BindParameterDesc colorBindParamDesc;
-	m_coloredPipeline.colorParam = BindParameter(eBindParameterType::CONSTANT, 1);
-	colorBindParamDesc.parameter = m_coloredPipeline.colorParam;
-	colorBindParamDesc.constantSize = sizeof(float) * 4;
-	colorBindParamDesc.relativeAccessFrequency = 0;
-	colorBindParamDesc.relativeChangeFrequency = 0;
-	colorBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+		BindParameterDesc colorBindParamDesc;
+		m_coloredPipeline.colorParam = BindParameter(eBindParameterType::CONSTANT, 1);
+		colorBindParamDesc.parameter = m_coloredPipeline.colorParam;
+		colorBindParamDesc.constantSize = sizeof(float) * 4;
+		colorBindParamDesc.relativeAccessFrequency = 0;
+		colorBindParamDesc.relativeChangeFrequency = 0;
+		colorBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-	m_coloredPipeline.binder = Binder{ graphicsApi,{ transformBindParamDesc, colorBindParamDesc } };
+		m_coloredPipeline.binder = context.CreateBinder({ transformBindParamDesc, colorBindParamDesc });
+	}
 }
 
 
-void OverlayRender::InitTexturedBindings(gxapi::IGraphicsApi* graphicsApi) {
-	BindParameterDesc transformBindParamDesc;
-	m_texturedPipeline.transformParam = BindParameter(eBindParameterType::CONSTANT, 0);
-	transformBindParamDesc.parameter = m_texturedPipeline.transformParam;
-	transformBindParamDesc.constantSize = sizeof(float) * 4 * 4;
-	transformBindParamDesc.relativeAccessFrequency = 0;
-	transformBindParamDesc.relativeChangeFrequency = 0;
-	transformBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
+void OverlayRender::InitTexturedBindings(SetupContext& context) {
+	if (!m_texturedPipeline.binder.has_value()) {
+		BindParameterDesc transformBindParamDesc;
+		m_texturedPipeline.transformParam = BindParameter(eBindParameterType::CONSTANT, 0);
+		transformBindParamDesc.parameter = m_texturedPipeline.transformParam;
+		transformBindParamDesc.constantSize = sizeof(float) * 4 * 4;
+		transformBindParamDesc.relativeAccessFrequency = 0;
+		transformBindParamDesc.relativeChangeFrequency = 0;
+		transformBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
 
-	BindParameterDesc textureBindParamDesc;
-	m_texturedPipeline.textureParam = BindParameter(eBindParameterType::TEXTURE, 0);
-	textureBindParamDesc.parameter = m_texturedPipeline.textureParam;
-	textureBindParamDesc.constantSize = 0;
-	textureBindParamDesc.relativeAccessFrequency = 0;
-	textureBindParamDesc.relativeChangeFrequency = 0;
-	textureBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+		BindParameterDesc textureBindParamDesc;
+		m_texturedPipeline.textureParam = BindParameter(eBindParameterType::TEXTURE, 0);
+		textureBindParamDesc.parameter = m_texturedPipeline.textureParam;
+		textureBindParamDesc.constantSize = 0;
+		textureBindParamDesc.relativeAccessFrequency = 0;
+		textureBindParamDesc.relativeChangeFrequency = 0;
+		textureBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-	BindParameterDesc sampBindParamDesc;
-	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
-	sampBindParamDesc.constantSize = 0;
-	sampBindParamDesc.relativeAccessFrequency = 0;
-	sampBindParamDesc.relativeChangeFrequency = 0;
-	sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+		BindParameterDesc sampBindParamDesc;
+		sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
+		sampBindParamDesc.constantSize = 0;
+		sampBindParamDesc.relativeAccessFrequency = 0;
+		sampBindParamDesc.relativeChangeFrequency = 0;
+		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-	gxapi::StaticSamplerDesc samplerDesc;
-	samplerDesc.shaderRegister = 0;
-	samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
-	samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.mipLevelBias = 0.f;
-	samplerDesc.registerSpace = 0;
-	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+		gxapi::StaticSamplerDesc samplerDesc;
+		samplerDesc.shaderRegister = 0;
+		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
+		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.mipLevelBias = 0.f;
+		samplerDesc.registerSpace = 0;
+		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-	m_texturedPipeline.binder = Binder{ graphicsApi,{ transformBindParamDesc, textureBindParamDesc, sampBindParamDesc },{ samplerDesc } };
+		m_texturedPipeline.binder = context.CreateBinder({ transformBindParamDesc, textureBindParamDesc, sampBindParamDesc },{ samplerDesc });
+	}
 }
 
 
@@ -256,7 +258,7 @@ void OverlayRender::InitColoredPso(SetupContext& context, gxapi::eFormat renderT
 	};
 
 	if (m_coloredPipeline.pso == nullptr || m_renderTargetFormat != renderTargetFormat) {
-		gxapi::GraphicsPipelineStateDesc psoDesc = GetPsoDesc(inputElementDesc, m_coloredShader, m_coloredPipeline.binder, renderTargetFormat);
+		gxapi::GraphicsPipelineStateDesc psoDesc = GetPsoDesc(inputElementDesc, m_coloredShader, m_coloredPipeline.binder.value(), renderTargetFormat);
 		m_coloredPipeline.pso.reset(context.CreatePSO(psoDesc));
 	}
 }
@@ -277,7 +279,7 @@ void OverlayRender::InitTexturedPso(SetupContext& context, gxapi::eFormat render
 	};
 
 	if (m_texturedPipeline.pso == nullptr || m_renderTargetFormat != renderTargetFormat) {
-		gxapi::GraphicsPipelineStateDesc psoDesc = GetPsoDesc(inputElementDesc, m_texturedShader, m_texturedPipeline.binder, renderTargetFormat);
+		gxapi::GraphicsPipelineStateDesc psoDesc = GetPsoDesc(inputElementDesc, m_texturedShader, m_texturedPipeline.binder.value(), renderTargetFormat);
 		m_texturedPipeline.pso.reset(context.CreatePSO(psoDesc));
 	}
 }

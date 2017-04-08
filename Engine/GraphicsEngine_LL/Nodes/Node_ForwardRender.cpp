@@ -48,75 +48,8 @@ static void ConvertToSubmittable(
 
 
 
-ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi) {
+ForwardRender::ForwardRender() {
 	this->GetInput<0>().Set({});
-
-	BindParameterDesc transformBindParamDesc;
-	m_transformBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
-	transformBindParamDesc.parameter = m_transformBindParam;
-	transformBindParamDesc.constantSize = sizeof(float) * 4 * 4 * 2;
-	transformBindParamDesc.relativeAccessFrequency = 0;
-	transformBindParamDesc.relativeChangeFrequency = 0;
-	transformBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
-
-	BindParameterDesc sunBindParamDesc;
-	m_sunBindParam = BindParameter(eBindParameterType::CONSTANT, 1);
-	sunBindParamDesc.parameter = m_sunBindParam;
-	sunBindParamDesc.constantSize = sizeof(float) * 4 * 2;
-	sunBindParamDesc.relativeAccessFrequency = 0;
-	sunBindParamDesc.relativeChangeFrequency = 0;
-	sunBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	BindParameterDesc albedoBindParamDesc;
-	m_albedoBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
-	albedoBindParamDesc.parameter = m_albedoBindParam;
-	albedoBindParamDesc.constantSize = 0;
-	albedoBindParamDesc.relativeAccessFrequency = 0;
-	albedoBindParamDesc.relativeChangeFrequency = 0;
-	albedoBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	BindParameterDesc shadowMapBindParamDesc;
-	m_shadowMapBindParam = BindParameter(eBindParameterType::TEXTURE, 1);
-	shadowMapBindParamDesc.parameter = m_shadowMapBindParam;
-	shadowMapBindParamDesc.constantSize = 0;
-	shadowMapBindParamDesc.relativeAccessFrequency = 0;
-	shadowMapBindParamDesc.relativeChangeFrequency = 0;
-	shadowMapBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	BindParameterDesc shadowMXBindParamDesc;
-	m_shadowMXBindParam = BindParameter(eBindParameterType::TEXTURE, 2);
-	shadowMXBindParamDesc.parameter = m_shadowMXBindParam;
-	shadowMXBindParamDesc.constantSize = 0;
-	shadowMXBindParamDesc.relativeAccessFrequency = 0;
-	shadowMXBindParamDesc.relativeChangeFrequency = 0;
-	shadowMXBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	BindParameterDesc csmSplitsBindParamDesc;
-	m_csmSplitsBindParam = BindParameter(eBindParameterType::TEXTURE, 3);
-	csmSplitsBindParamDesc.parameter = m_csmSplitsBindParam;
-	csmSplitsBindParamDesc.constantSize = 0;
-	csmSplitsBindParamDesc.relativeAccessFrequency = 0;
-	csmSplitsBindParamDesc.relativeChangeFrequency = 0;
-	csmSplitsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	BindParameterDesc sampBindParamDesc;
-	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
-	sampBindParamDesc.constantSize = 0;
-	sampBindParamDesc.relativeAccessFrequency = 0;
-	sampBindParamDesc.relativeChangeFrequency = 0;
-	sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	gxapi::StaticSamplerDesc samplerDesc;
-	samplerDesc.shaderRegister = 0;
-	samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
-	samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.mipLevelBias = 0.f;
-	samplerDesc.registerSpace = 0;
-	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	m_binder = Binder{ graphicsApi,{ transformBindParamDesc, sunBindParamDesc, albedoBindParamDesc, shadowMapBindParamDesc, shadowMXBindParamDesc, csmSplitsBindParamDesc, sampBindParamDesc },{ samplerDesc } };
 }
 
 
@@ -173,6 +106,76 @@ void ForwardRender::Setup(SetupContext& context) {
 	m_csmSplitsTexView = context.CreateSrv(csmSplitsTex, csmSplitsTex.GetFormat(), srvDesc);
 
 	this->GetOutput<0>().Set(target);
+
+
+	if (!m_binder.has_value()) {
+		BindParameterDesc transformBindParamDesc;
+		m_transformBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
+		transformBindParamDesc.parameter = m_transformBindParam;
+		transformBindParamDesc.constantSize = sizeof(float) * 4 * 4 * 2;
+		transformBindParamDesc.relativeAccessFrequency = 0;
+		transformBindParamDesc.relativeChangeFrequency = 0;
+		transformBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
+
+		BindParameterDesc sunBindParamDesc;
+		m_sunBindParam = BindParameter(eBindParameterType::CONSTANT, 1);
+		sunBindParamDesc.parameter = m_sunBindParam;
+		sunBindParamDesc.constantSize = sizeof(float) * 4 * 2;
+		sunBindParamDesc.relativeAccessFrequency = 0;
+		sunBindParamDesc.relativeChangeFrequency = 0;
+		sunBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		BindParameterDesc albedoBindParamDesc;
+		m_albedoBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
+		albedoBindParamDesc.parameter = m_albedoBindParam;
+		albedoBindParamDesc.constantSize = 0;
+		albedoBindParamDesc.relativeAccessFrequency = 0;
+		albedoBindParamDesc.relativeChangeFrequency = 0;
+		albedoBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		BindParameterDesc shadowMapBindParamDesc;
+		m_shadowMapBindParam = BindParameter(eBindParameterType::TEXTURE, 1);
+		shadowMapBindParamDesc.parameter = m_shadowMapBindParam;
+		shadowMapBindParamDesc.constantSize = 0;
+		shadowMapBindParamDesc.relativeAccessFrequency = 0;
+		shadowMapBindParamDesc.relativeChangeFrequency = 0;
+		shadowMapBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		BindParameterDesc shadowMXBindParamDesc;
+		m_shadowMXBindParam = BindParameter(eBindParameterType::TEXTURE, 2);
+		shadowMXBindParamDesc.parameter = m_shadowMXBindParam;
+		shadowMXBindParamDesc.constantSize = 0;
+		shadowMXBindParamDesc.relativeAccessFrequency = 0;
+		shadowMXBindParamDesc.relativeChangeFrequency = 0;
+		shadowMXBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		BindParameterDesc csmSplitsBindParamDesc;
+		m_csmSplitsBindParam = BindParameter(eBindParameterType::TEXTURE, 3);
+		csmSplitsBindParamDesc.parameter = m_csmSplitsBindParam;
+		csmSplitsBindParamDesc.constantSize = 0;
+		csmSplitsBindParamDesc.relativeAccessFrequency = 0;
+		csmSplitsBindParamDesc.relativeChangeFrequency = 0;
+		csmSplitsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		BindParameterDesc sampBindParamDesc;
+		sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
+		sampBindParamDesc.constantSize = 0;
+		sampBindParamDesc.relativeAccessFrequency = 0;
+		sampBindParamDesc.relativeChangeFrequency = 0;
+		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		gxapi::StaticSamplerDesc samplerDesc;
+		samplerDesc.shaderRegister = 0;
+		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
+		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.mipLevelBias = 0.f;
+		samplerDesc.registerSpace = 0;
+		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		m_binder = context.CreateBinder({ transformBindParamDesc, sunBindParamDesc, albedoBindParamDesc, shadowMapBindParamDesc, shadowMXBindParamDesc, csmSplitsBindParamDesc, sampBindParamDesc },{ samplerDesc });
+	}
 }
 
 

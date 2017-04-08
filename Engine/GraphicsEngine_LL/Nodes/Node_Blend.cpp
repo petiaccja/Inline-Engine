@@ -16,38 +16,6 @@
 namespace inl::gxeng::nodes {
 
 
-Blend::Blend(gxapi::IGraphicsApi * graphicsApi) :
-	m_binder(graphicsApi, {})
-{
-	BindParameterDesc tex0ParamDesc;
-	m_tex0Param = BindParameter(eBindParameterType::TEXTURE, 0);
-	tex0ParamDesc.parameter = m_tex0Param;
-	tex0ParamDesc.constantSize = 0;
-	tex0ParamDesc.relativeAccessFrequency = 0;
-	tex0ParamDesc.relativeChangeFrequency = 0;
-	tex0ParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	BindParameterDesc sampBindParamDesc;
-	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
-	sampBindParamDesc.constantSize = 0;
-	sampBindParamDesc.relativeAccessFrequency = 0;
-	sampBindParamDesc.relativeChangeFrequency = 0;
-	sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	gxapi::StaticSamplerDesc samplerDesc;
-	samplerDesc.shaderRegister = 0;
-	samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_LINEAR_MIP_POINT;
-	samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.mipLevelBias = 0.f;
-	samplerDesc.registerSpace = 0;
-	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	m_binder = Binder{ graphicsApi,{ tex0ParamDesc, sampBindParamDesc },{ samplerDesc } };
-}
-
-
 void Blend::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
 }
@@ -55,7 +23,6 @@ void Blend::Initialize(EngineContext & context) {
 
 void Blend::Setup(SetupContext& context) {
 	auto& target = this->GetInput<0>().Get();
-	this->GetInput<0>().Clear();
 	gxapi::RtvTexture2DArray rtvDesc;
 	rtvDesc.activeArraySize = 1;
 	rtvDesc.firstArrayElement = 0;
@@ -64,7 +31,6 @@ void Blend::Setup(SetupContext& context) {
 	m_blendDest = context.CreateRtv(target, target.GetFormat(), rtvDesc);
 
 	auto blendSrc = this->GetInput<1>().Get();
-	this->GetInput<1>().Clear();
 	gxapi::SrvTexture2DArray srvDesc;
 	srvDesc.activeArraySize = 1;
 	srvDesc.firstArrayElement = 0;
@@ -77,6 +43,36 @@ void Blend::Setup(SetupContext& context) {
 	gxapi::RenderTargetBlendState currBlendMode = this->GetInput<2>().Get();
 
 	this->GetOutput<0>().Set(target);
+
+
+	if (!m_binder.has_value()) {
+		BindParameterDesc tex0ParamDesc;
+		m_tex0Param = BindParameter(eBindParameterType::TEXTURE, 0);
+		tex0ParamDesc.parameter = m_tex0Param;
+		tex0ParamDesc.constantSize = 0;
+		tex0ParamDesc.relativeAccessFrequency = 0;
+		tex0ParamDesc.relativeChangeFrequency = 0;
+		tex0ParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		BindParameterDesc sampBindParamDesc;
+		sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
+		sampBindParamDesc.constantSize = 0;
+		sampBindParamDesc.relativeAccessFrequency = 0;
+		sampBindParamDesc.relativeChangeFrequency = 0;
+		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		gxapi::StaticSamplerDesc samplerDesc;
+		samplerDesc.shaderRegister = 0;
+		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_LINEAR_MIP_POINT;
+		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.mipLevelBias = 0.f;
+		samplerDesc.registerSpace = 0;
+		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		m_binder = context.CreateBinder({ tex0ParamDesc, sampBindParamDesc }, { samplerDesc });
+	}
 
 	if (!m_fsq.HasObject() || !m_fsqIndices.HasObject()) {
 		std::vector<float> vertices = {
@@ -112,7 +108,7 @@ void Blend::Setup(SetupContext& context) {
 		gxapi::GraphicsPipelineStateDesc psoDesc;
 		psoDesc.inputLayout.elements = inputElementDesc.data();
 		psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-		psoDesc.rootSignature = m_binder.GetRootSignature();
+		psoDesc.rootSignature = m_binder->GetRootSignature();
 		psoDesc.vs = m_shader.vs;
 		psoDesc.ps = m_shader.ps;
 		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
@@ -149,7 +145,7 @@ void Blend::Execute(RenderContext& context) {
 	commandList.SetViewports(1, &viewport);
 
 	commandList.SetPipelineState(m_PSO.get());
-	commandList.SetGraphicsBinder(&m_binder);
+	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;

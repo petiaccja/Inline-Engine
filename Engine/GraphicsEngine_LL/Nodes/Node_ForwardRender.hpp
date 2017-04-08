@@ -10,6 +10,8 @@
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
+#include <optional>
+
 namespace inl::gxeng::nodes {
 
 /// <summary>
@@ -54,7 +56,7 @@ private:
 	};
 
 public:
-	ForwardRender(gxapi::IGraphicsApi* graphicsApi);
+	ForwardRender();
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
@@ -83,7 +85,7 @@ private:
 		gxapi::eFormat depthStencilFormat);
 
 protected:
-	Binder m_binder;
+	std::optional<Binder> m_binder;
 	BindParameter m_transformBindParam;
 	BindParameter m_sunBindParam;
 	BindParameter m_albedoBindParam;

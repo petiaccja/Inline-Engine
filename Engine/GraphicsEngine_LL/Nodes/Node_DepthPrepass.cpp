@@ -46,37 +46,8 @@ static void ConvertToSubmittable(
 
 
 
-DepthPrepass::DepthPrepass(gxapi::IGraphicsApi* graphicsApi):
-	m_binder(graphicsApi, {})
-{
+DepthPrepass::DepthPrepass() {
 	this->GetInput<0>().Set({});
-
-	BindParameterDesc transformBindParamDesc;
-	m_transformBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
-	transformBindParamDesc.parameter = m_transformBindParam;
-	transformBindParamDesc.constantSize = sizeof(float) * 4 * 4;
-	transformBindParamDesc.relativeAccessFrequency = 0;
-	transformBindParamDesc.relativeChangeFrequency = 0;
-	transformBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
-
-	BindParameterDesc sampBindParamDesc;
-	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
-	sampBindParamDesc.constantSize = 0;
-	sampBindParamDesc.relativeAccessFrequency = 0;
-	sampBindParamDesc.relativeChangeFrequency = 0;
-	sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	gxapi::StaticSamplerDesc samplerDesc;
-	samplerDesc.shaderRegister = 0;
-	samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
-	samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.mipLevelBias = 0.f;
-	samplerDesc.registerSpace = 0;
-	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	m_binder = Binder{ graphicsApi,{ transformBindParamDesc, sampBindParamDesc },{ samplerDesc } };
 }
 
 
@@ -104,6 +75,35 @@ void DepthPrepass::Setup(SetupContext & context) {
 
 	this->GetOutput<0>().Set(depthStencil);
 
+	if (!m_binder.has_value()) {
+		BindParameterDesc transformBindParamDesc;
+		m_transformBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
+		transformBindParamDesc.parameter = m_transformBindParam;
+		transformBindParamDesc.constantSize = sizeof(float) * 4 * 4;
+		transformBindParamDesc.relativeAccessFrequency = 0;
+		transformBindParamDesc.relativeChangeFrequency = 0;
+		transformBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
+
+		BindParameterDesc sampBindParamDesc;
+		sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
+		sampBindParamDesc.constantSize = 0;
+		sampBindParamDesc.relativeAccessFrequency = 0;
+		sampBindParamDesc.relativeChangeFrequency = 0;
+		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		gxapi::StaticSamplerDesc samplerDesc;
+		samplerDesc.shaderRegister = 0;
+		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
+		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.mipLevelBias = 0.f;
+		samplerDesc.registerSpace = 0;
+		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		m_binder = context.CreateBinder({ transformBindParamDesc, sampBindParamDesc },{ samplerDesc });
+	}
+
 	if (!m_shader.vs || !m_shader.ps) {
 		ShaderParts shaderParts;
 		shaderParts.vs = true;
@@ -124,7 +124,7 @@ void DepthPrepass::Setup(SetupContext & context) {
 		gxapi::GraphicsPipelineStateDesc psoDesc;
 		psoDesc.inputLayout.elements = inputElementDesc.data();
 		psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-		psoDesc.rootSignature = m_binder.GetRootSignature();
+		psoDesc.rootSignature = m_binder->GetRootSignature();
 		psoDesc.vs = m_shader.vs;
 		psoDesc.ps = m_shader.ps;
 		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
@@ -164,7 +164,7 @@ void DepthPrepass::Execute(RenderContext & context) {
 	commandList.ClearDepthStencil(m_targetDsv, 1, 0, 0, nullptr, true, true);
 
 	commandList.SetPipelineState(m_PSO.get());
-	commandList.SetGraphicsBinder(&m_binder);
+	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
 	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();

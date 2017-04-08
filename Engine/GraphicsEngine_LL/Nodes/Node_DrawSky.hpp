@@ -10,6 +10,7 @@
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
+#include <optional>
 
 namespace inl::gxeng::nodes {
 
@@ -24,8 +25,6 @@ class DrawSky :
 	virtual public exc::OutputPortConfig<Texture2D>
 {
 public:
-	DrawSky(gxapi::IGraphicsApi* graphicsApi);
-
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
 	
@@ -45,7 +44,7 @@ private: // execution
 	const DirectionalLight* m_sun;
 
 protected:
-	Binder m_binder;
+	std::optional<Binder> m_binder;
 	BindParameter m_sunCbBindParam;
 	BindParameter m_camCbBindParam;
 

@@ -10,6 +10,8 @@
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
+#include <optional>
+
 namespace inl::gxeng::nodes {
 
 /// <summary>
@@ -22,8 +24,6 @@ class OverlayRender :
 	virtual public exc::OutputPortConfig<Texture2D>
 {
 public:
-	OverlayRender(gxapi::IGraphicsApi* graphicsApi);
-
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
 	void Initialize(EngineContext& context) override;
@@ -33,7 +33,7 @@ public:
 
 protected:
 	struct BasePipelineObjects {
-		Binder binder;
+		std::optional<Binder> binder;
 		BindParameter transformParam;
 		std::unique_ptr<gxapi::IPipelineState> pso;
 	};
@@ -54,8 +54,8 @@ protected:
 	TexturedPipelineObjects m_texturedPipeline;
 
 protected:
-	void InitColoredBindings(gxapi::IGraphicsApi * graphicsApi);
-	void InitTexturedBindings(gxapi::IGraphicsApi * graphicsApi);
+	void InitColoredBindings(SetupContext& context);
+	void InitTexturedBindings(SetupContext& context);
 
 	gxapi::GraphicsPipelineStateDesc GetPsoDesc(
 		std::vector<gxapi::InputElementDesc>& inputElementDesc,

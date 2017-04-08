@@ -11,6 +11,8 @@
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
+#include <optional>
+
 namespace inl::gxeng::nodes {
 
 
@@ -21,7 +23,7 @@ class DepthReduction :
 	virtual public exc::OutputPortConfig<Texture2D>
 {
 public:
-	DepthReduction(gxapi::IGraphicsApi* graphicsApi);
+	DepthReduction();
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
@@ -39,7 +41,7 @@ protected:
 	gxeng::TextureView2D m_srv;
 
 protected:
-	Binder m_binder;
+	std::optional<Binder> m_binder;
 	BindParameter m_depthBindParam;
 	BindParameter m_outputBindParam;
 	std::unique_ptr<gxapi::IPipelineState> m_CSO;

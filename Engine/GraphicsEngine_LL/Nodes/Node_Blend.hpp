@@ -9,6 +9,7 @@
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
+#include <optional>
 
 namespace inl::gxeng::nodes {
 
@@ -24,8 +25,6 @@ class Blend :
 	virtual public exc::OutputPortConfig<Texture2D>
 {
 public:
-	Blend(gxapi::IGraphicsApi* graphicsApi);
-
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
 	void Initialize(EngineContext& context) override;
@@ -42,7 +41,7 @@ protected:
 protected:
 	gxapi::RenderTargetBlendState m_blendMode;
 
-	Binder m_binder;
+	std::optional<Binder> m_binder;
 	BindParameter m_tex0Param;
 	ShaderProgram m_shader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
