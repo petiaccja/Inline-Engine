@@ -146,6 +146,9 @@ void GraphicsEngine::Update(float elapsed) {
 
 	context.residencyQueue = &m_residencyQueue;
 
+	// Update special nodes for current frame
+	UpdateSpecialNodes();
+
 	// Execute the pipeline
 	m_pipelineEventDispatcher.DispatchFrameBegin(m_frame).wait();
 	m_scheduler.Execute(context);
@@ -176,8 +179,6 @@ void GraphicsEngine::SetScreenSize(unsigned width, unsigned height) {
 	m_backBufferHeap.reset();
 	m_swapChain->Resize(width, height);
 	m_backBufferHeap = std::make_unique<BackBufferManager>(m_graphicsApi, m_swapChain.get());
-
-	InitializeGraphicsNodes();
 }
 void GraphicsEngine::GetScreenSize(unsigned& width, unsigned& height) {
 	auto desc = m_swapChain->GetDesc();
@@ -405,15 +406,83 @@ void GraphicsEngine::CreatePipeline() {
 		alphaBlend
 	};
 
-	InitializeGraphicsNodes();
 
 	std::vector<std::shared_ptr<exc::NodeBase>> nodeList;
 	nodeList.reserve(m_graphicsNodes.size());
 	for (auto curr : m_graphicsNodes) {
 		nodeList.push_back(curr);
 	}
-	// CreateFromNodesList frees up resources if anything goes wrong
 	m_pipeline.CreateFromNodesList(nodeList);
+
+
+	EngineContext engineContext(1, 1);
+	InitializeGraphicsNodes(m_pipeline, engineContext);
+	m_specialNodes = SelectSpecialNodes(m_pipeline);
+}
+
+
+void GraphicsEngine::InitializeGraphicsNodes(Pipeline& pipeline, EngineContext& context) {
+	for (Pipeline::NodeIterator it = pipeline.Begin(); it != pipeline.End(); ++it) {
+		if (const GraphicsNode* ptr = dynamic_cast<const GraphicsNode*>(&*it)) {
+			// Pipeline disallows linking of its nodes, that's why it only returns const pointers.
+			// We are not changing linking configuration here, so const_cast is justified.
+			const_cast<GraphicsNode*>(ptr)->Initialize(context);
+		}
+	}
+}
+
+std::vector<GraphicsNode*> GraphicsEngine::SelectSpecialNodes(Pipeline& pipeline) {
+	std::vector<GraphicsNode*> specialNodes;
+
+	for (Pipeline::NodeIterator it = pipeline.Begin(); it != pipeline.End(); ++it) {
+		// Pipeline disallows linking of its nodes, that's why it only returns const pointers.
+		// We are not changing linking configuration here, so const_cast is justified.
+		if (const nodes::GetSceneByName* ptr = dynamic_cast<const nodes::GetSceneByName*>(&*it)) {
+			specialNodes.push_back(const_cast<nodes::GetSceneByName*>(ptr));
+		}
+		else if (const nodes::GetCameraByName* ptr = dynamic_cast<const nodes::GetCameraByName*>(&*it)) {
+			specialNodes.push_back(const_cast<nodes::GetCameraByName*>(ptr));
+		}
+		else if (const nodes::GetBackBuffer* ptr = dynamic_cast<const nodes::GetBackBuffer*>(&*it)) {
+			specialNodes.push_back(const_cast<nodes::GetBackBuffer*>(ptr));
+		}
+		else if (const nodes::GetTime* ptr = dynamic_cast<const nodes::GetTime*>(&*it)) {
+			specialNodes.push_back(const_cast<nodes::GetTime*>(ptr));
+		}
+	}
+
+	return specialNodes;
+}
+
+
+void GraphicsEngine::UpdateSpecialNodes() {
+	std::vector<const Scene*> scenes;
+	for (auto scene : m_scenes) {
+		scenes.push_back(scene);
+	}
+
+	std::vector<const BasicCamera*> cameras;
+	for (auto camera : m_cameras) {
+		cameras.push_back(camera);
+	}
+
+	int backBufferIndex = m_swapChain->GetCurrentBufferIndex();
+	Texture2D backBuffer = m_backBufferHeap->GetBackBuffer(backBufferIndex).GetResource();
+
+	for (auto node : m_specialNodes) {
+		if (auto* getScene = dynamic_cast<nodes::GetSceneByName*>(node)) {
+			getScene->SetSceneList(scenes);
+		}
+		else if (auto* getCamera = dynamic_cast<nodes::GetCameraByName*>(node)) {
+			getCamera->SetCameraList(cameras);
+		}
+		else if (auto* getBB = dynamic_cast<nodes::GetBackBuffer*>(node)) {
+			getBB->SetBuffer(backBuffer);
+		}
+		else if (auto* getTime = dynamic_cast<nodes::GetTime*>(node)) {
+			getTime->SetTime(m_absoluteTime.count() / 1e9);
+		}
+	}
 }
 
 

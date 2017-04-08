@@ -10,6 +10,9 @@
 namespace inl::gxeng::nodes {
 
 
+/// <summary>
+/// Return the texture that identifies the current backbuffer.
+/// </sumnmary>
 class GetBackBuffer :
 	virtual public GraphicsNode,
 	public GraphicsTask,
@@ -18,7 +21,6 @@ class GetBackBuffer :
 {
 public:
 	virtual void Update() override {}
-
 	virtual void Notify(exc::InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override {
@@ -26,11 +28,20 @@ public:
 	}
 
 	void Setup(SetupContext& context) override {
-		auto& swapChainAccessContext = static_cast<const SwapChainAccessContext&>(context);
-		GetOutput<0>().Set(swapChainAccessContext.GetBackBuffer());
+		GetOutput<0>().Set(m_backBuffer);
 	}
 
 	void Execute(RenderContext& context) override {}
+
+
+	void SetBuffer(Texture2D backBuffer) {
+		m_backBuffer = std::move(backBuffer);
+	}
+	const Texture2D& GetBuffer() const {
+		return m_backBuffer;
+	}
+private:
+	Texture2D m_backBuffer;
 };
 
 

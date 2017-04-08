@@ -106,6 +106,9 @@ public:
 	OrthographicCamera* CreateOrthographicCamera(std::string name);
 private:
 	void CreatePipeline();
+	static void InitializeGraphicsNodes(Pipeline& pipeline, EngineContext& context);
+	static std::vector<GraphicsNode*> SelectSpecialNodes(Pipeline& pipeline);
+	void UpdateSpecialNodes();
 private:
 	// Graphics API things
 	gxapi::IGxapiManager* m_gxapiManager; // external resource, we should not delete it
@@ -113,10 +116,7 @@ private:
 	std::unique_ptr<gxapi::ISwapChain> m_swapChain;
 
 	// Memory
-	// NOTE: Pipeline is constructed after (and destructed before) view heaps because
-	// pipeline nodes use these heaps through the graphics context.
 	MemoryManager m_memoryManager;
-	// FIXME: these heaps might not belong to the graphics engine instance
 	DSVHeap m_dsvHeap;
 	RTVHeap m_rtvHeap;
 	CbvSrvUavHeap m_persResViewHeap;
@@ -132,12 +132,13 @@ private:
 	ShaderManager m_shaderManager;
 	std::vector<SyncPoint> m_frameEndFenceValues;
 	std::vector<std::shared_ptr<GraphicsNode>> m_graphicsNodes;
+	std::vector<GraphicsNode*> m_specialNodes;
 
 	// Pipeline elements
 	CommandQueue m_masterCommandQueue;
 	ResourceResidencyQueue m_residencyQueue;
 	PipelineEventDispatcher m_pipelineEventDispatcher;
-	PipelineEventPrinter m_pipelineEventPrinter; // DELETE THIS
+	PipelineEventPrinter m_pipelineEventPrinter; // ONLY FOR TEST PURPOSES
 
 	// Logging
 	exc::Logger* m_logger;
@@ -151,9 +152,6 @@ private:
 	// Scene
 	std::set<Scene*> m_scenes;
 	std::set<BasicCamera*> m_cameras;
-
-private:
-	void InitializeGraphicsNodes();
 };
 
 
