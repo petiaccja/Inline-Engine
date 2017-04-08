@@ -526,34 +526,40 @@ std::string TidyTypeName(std::string name) {
 	for (auto c : name) {
 		if (c == '<') {
 			inTemplate++;
+			s2 += "&lt;";
 		}
 		else if (c == '>') {
 			inTemplate--;
+			s2 += "&gt;";
 		}
-		if (inTemplate == 0 && c != '>') {
+		else {
 			s2 += c;
 		}
 	}
 
-	std::regex classFilter("\s*class\s*");
+	std::regex classFilter(R"(\s*class\s*)");
 	s2 = std::regex_replace(s2, classFilter, "");
 
-	std::regex structFilter("\s*struct\s*");
+	std::regex structFilter(R"(\s*struct\s*)");
 	s2 = std::regex_replace(s2, structFilter, "");
 
-	std::regex ptrFilter("\s*__ptr64\s*");
+	std::regex enumFilter(R"(\s*enum\s*)");
+	s2 = std::regex_replace(s2, enumFilter, "");
+
+	std::regex ptrFilter(R"(\s*__ptr64\s*)");
 	s2 = std::regex_replace(s2, ptrFilter, "");
 
-	std::regex constFilter("\s*const\s*");
+	std::regex constFilter(R"(\s*const\s*)");
 	s2 = std::regex_replace(s2, constFilter, "");
 
-	std::regex namespaceFilter1("\s*inl::gxeng::\s*");
+	std::regex namespaceFilter1(R"(\s*inl::gxeng::\s*)");
 	s2 = std::regex_replace(s2, namespaceFilter1, "");
 
-	std::regex namespaceFilter2("\s*inl::\s*");
+	std::regex namespaceFilter2(R"(\s*inl::\s*)");
 	s2 = std::regex_replace(s2, namespaceFilter2, "");
 
-
+	std::regex stringFilter(R"(\s*std::basic_string.*)");
+	s2 = std::regex_replace(s2, stringFilter, "std::string");
 
 
 	return s2;
@@ -596,7 +602,7 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 	// Write out nodes
 	for (const auto& v : nodeIndexMap) {
 		dot << "node" << v.second << " [shape=record, label=\"";
-		dot << "" << TidyTypeName(typeid(*v.first).name()) << " : " << v.first;
+		dot << "&lt;&lt;&lt; " << TidyTypeName(typeid(*v.first).name()) << " &gt;&gt;&gt;";
 		dot << " | {";
 		// Inputs
 		dot << "{";
