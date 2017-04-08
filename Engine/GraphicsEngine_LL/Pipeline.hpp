@@ -72,8 +72,8 @@ public:
 	void CreateFromNodesList(const std::vector<std::shared_ptr<exc::NodeBase>> nodes);
 	void Clear();
 
-	NodeIterator Begin();
-	NodeIterator End();
+	NodeIterator Begin() const;
+	NodeIterator End() const;
 
 	const lemon::ListDigraph& GetDependencyGraph() const;
 	const lemon::ListDigraph::NodeMap<std::shared_ptr<exc::NodeBase>>& GetNodeMap() const;

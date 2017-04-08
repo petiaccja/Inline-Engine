@@ -109,6 +109,7 @@ private:
 	static void InitializeGraphicsNodes(Pipeline& pipeline, EngineContext& context);
 	static std::vector<GraphicsNode*> SelectSpecialNodes(Pipeline& pipeline);
 	void UpdateSpecialNodes();
+	static void DumpPipelineGraph(const Pipeline& pipeline, std::string file);
 private:
 	// Graphics API things
 	gxapi::IGxapiManager* m_gxapiManager; // external resource, we should not delete it

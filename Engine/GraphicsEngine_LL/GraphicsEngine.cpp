@@ -440,6 +440,7 @@ void GraphicsEngine::CreatePipeline() {
 	}
 	m_pipeline.CreateFromNodesList(nodeList);
 
+	DumpPipelineGraph(m_pipeline, "pipeline_graph.dot");
 
 	EngineContext engineContext(1, 1);
 	InitializeGraphicsNodes(m_pipeline, engineContext);
@@ -506,10 +507,110 @@ void GraphicsEngine::UpdateSpecialNodes() {
 			getBB->SetBuffer(backBuffer);
 		}
 		else if (auto* getTime = dynamic_cast<nodes::GetTime*>(node)) {
-			getTime->SetTime(m_absoluteTime.count() / 1e9);
+			getTime->SetAbsoluteTime(m_absoluteTime.count() / 1e9);
 		}
 	}
 }
+
+
+void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string file) {
+	std::stringstream dot; // graphviz dot file
+
+	struct PortMap {
+		const exc::NodeBase* parent;
+		int portIndex;
+	};
+
+	std::map<const exc::InputPortBase*, PortMap> inputParents;
+	std::map<const exc::OutputPortBase*, PortMap> outputParents;
+	std::map<const exc::NodeBase*, int> nodeMap;
+
+	// Fill node map and parent maps
+	for (auto it = pipeline.Begin(); it != pipeline.End(); ++it) {
+		const exc::NodeBase* node = &*it;
+		int nodeIndex = nodeMap.size();
+		nodeMap.insert({ node, nodeIndex });
+
+		for (int i = 0; i < node->GetNumInputs(); ++i) {
+			inputParents.insert({ node->GetInput(i), PortMap{node, i} });
+		}
+		for (int i = 0; i < node->GetNumOutputs(); ++i) {
+			outputParents.insert({ node->GetOutput(i), PortMap{ node, i } });
+		}
+	}
+
+	// Write out preamble
+	dot << "digraph structs {" << std::endl;
+	dot << "rankdir=LR;" << std::endl;
+	dot << "node [shape=record];" << std::endl;
+	dot << std::endl;
+
+	// Write out nodes
+	for (const auto& v : nodeMap) {
+		dot << "node" << v.second << " [shape=record, label=\"";
+		dot << "" << typeid(v.first).name() << " : " << v.first;
+		dot << " | {";
+		// Inputs
+		dot << "{";
+		for (int i = 0; i < v.first->GetNumInputs(); ++i) {
+			const exc::InputPortBase* port = v.first->GetInput(i);
+			dot << "<in" << i << "> ";
+			dot << port->GetType().name();
+			if (i < (int)v.first->GetNumInputs() - 1) {
+				dot << " | ";
+			}
+		}
+		dot << "} | ";
+		// Outputs
+		dot << "{";
+		for (int i = 0; i < v.first->GetNumOutputs(); ++i) {
+			const exc::OutputPortBase* port = v.first->GetOutput(i);
+			dot << "<out" << i << "> ";
+			dot << port->GetType().name();
+			if (i < (int)v.first->GetNumOutputs() - 1) {
+				dot << " | ";
+			}
+		}
+		dot << "}";
+
+		dot << "}\"];" << std::endl;
+	}
+
+	dot << std::endl;
+
+	// Write out links
+	for (const auto& v : nodeMap) {
+		// Inputs
+		for (int i = 0; i < v.first->GetNumInputs(); ++i) {
+			const exc::InputPortBase* target = v.first->GetInput(i);
+			exc::OutputPortBase* source = target->GetLink();
+			if (source) {
+				auto srcNode = outputParents[source];
+				auto tarNode = inputParents[target];
+
+				dot << "node" << nodeMap[srcNode.parent] << ":";
+				dot << "out" << srcNode.portIndex;
+				dot << " -> ";
+				dot << "node" << nodeMap[tarNode.parent] << ":";
+				dot << "in" << tarNode.portIndex;
+				dot << ";" << std::endl;
+			}
+		}
+	}
+
+	dot << std::endl;
+
+	// Write closing
+	dot << "}" << std::endl;
+
+
+	// Write out file
+	std::ofstream f(file, std::ios::trunc);
+	if (f.is_open()) {
+		f << dot.str();
+	}
+}
+
 
 
 } // namespace gxeng
