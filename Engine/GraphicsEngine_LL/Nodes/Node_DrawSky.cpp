@@ -21,7 +21,6 @@ void DrawSky::Setup(SetupContext & context) {
 	// Set inputs, outputs
 
 	auto renderTarget = this->GetInput<0>().Get();
-	this->GetInput<1>().Clear();
 	gxapi::RtvTexture2DArray rtvDesc;
 	rtvDesc.activeArraySize = 1;
 	rtvDesc.firstArrayElement = 0;
@@ -30,7 +29,6 @@ void DrawSky::Setup(SetupContext & context) {
 	m_rtv = context.CreateRtv(renderTarget, renderTarget.GetFormat(), rtvDesc);
 
 	auto depthStencil = this->GetInput<1>().Get();
-	this->GetInput<1>().Clear();
 	gxapi::DsvTexture2DArray dsvDesc;
 	dsvDesc.activeArraySize = 1;
 	dsvDesc.firstArrayElement = 0;
@@ -38,10 +36,8 @@ void DrawSky::Setup(SetupContext & context) {
 	m_dsv = context.CreateDsv(depthStencil, depthStencil.GetFormat(), dsvDesc);
 
 	m_camera = this->GetInput<2>().Get();
-	this->GetInput<2>().Clear();
 
 	m_sun = this->GetInput<3>().Get();
-	this->GetInput<3>().Clear();
 
 	this->GetOutput<0>().Set(renderTarget);
 

@@ -58,7 +58,6 @@ void DepthPrepass::Initialize(EngineContext & context) {
 
 void DepthPrepass::Setup(SetupContext & context) {
 	auto& depthStencil = this->GetInput<0>().Get();
-	this->GetInput<0>().Clear();
 
 	gxapi::DsvTexture2DArray desc;
 	desc.activeArraySize = 1;
@@ -68,10 +67,8 @@ void DepthPrepass::Setup(SetupContext & context) {
 	m_targetDsv = context.CreateDsv(depthStencil, depthStencil.GetFormat(), desc);
 	
 	m_entities = this->GetInput<1>().Get();
-	this->GetInput<1>().Clear();
 
 	m_camera = this->GetInput<2>().Get();
-	this->GetInput<2>().Clear();
 
 	this->GetOutput<0>().Set(depthStencil);
 

@@ -46,14 +46,17 @@ void OverlayRender::Initialize(EngineContext& context) {
 
 
 void OverlayRender::Setup(SetupContext& context) {
-	auto target = this->GetInput<0>().Get();
-	this->GetInput<0>().Clear();
+	auto& target = this->GetInput<0>().Get();
+	gxapi::RtvTexture2DArray rtvDesc;
+	rtvDesc.activeArraySize = 1;
+	rtvDesc.firstArrayElement = 0;
+	rtvDesc.firstMipLevel = 0;
+	rtvDesc.planeIndex = 0;
+	m_target = context.CreateRtv(target, target.GetFormat(), rtvDesc);
 
-	const EntityCollection<OverlayEntity>* entities = this->GetInput<1>().Get();
-	this->GetInput<0>().Clear();
+	m_entities = this->GetInput<1>().Get();
 
-	const BasicCamera* camera = this->GetInput<2>().Get();
-	this->GetInput<1>().Clear();
+	m_camera = this->GetInput<2>().Get();
 
 	this->GetOutput<0>().Set(target);
 

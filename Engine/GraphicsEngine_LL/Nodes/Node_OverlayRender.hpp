@@ -70,8 +70,8 @@ protected:
 
 private: // execution context
 	RenderTargetView2D m_target;
-	EntityCollection<OverlayEntity>* m_entities;
-	BasicCamera* m_camera;
+	const EntityCollection<OverlayEntity>* m_entities;
+	const BasicCamera* m_camera;
 };
 
 

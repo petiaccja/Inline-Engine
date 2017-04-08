@@ -54,7 +54,6 @@ void DepthReduction::Setup(SetupContext& context) {
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
 	m_depthView = context.CreateSrv(inputDepth, inputDepth.GetFormat(), srvDesc);
-	this->GetInput<0>().Clear();
 
 	if (inputDepth.GetWidth() != m_width || inputDepth.GetHeight() != m_height) {
 		m_width = inputDepth.GetWidth();

@@ -43,13 +43,10 @@ void DepthReductionFinal::Setup(SetupContext& context) {
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
 	m_reductionTexSrv = context.CreateSrv(reductionTex, reductionTex.GetFormat(), srvDesc);
-	this->GetInput<0>().Clear();
 
 	m_camera = this->GetInput<1>().Get();
-	this->GetInput<1>().Clear();
 
 	m_sun = this->GetInput<2>().Get();
-	this->GetInput<2>().Clear();
 
 	this->GetOutput<0>().Set(m_light_mvp_uav.GetResource());
 	this->GetOutput<1>().Set(m_shadow_mx_uav.GetResource());

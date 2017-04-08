@@ -59,8 +59,7 @@ void ForwardRender::Initialize(EngineContext & context) {
 
 
 void ForwardRender::Setup(SetupContext& context) {
-	auto target = this->GetInput<0>().Get();
-	this->GetInput<1>().Clear();
+	auto& target = this->GetInput<0>().Get();
 	gxapi::RtvTexture2DArray rtvDesc;
 	rtvDesc.activeArraySize = 1;
 	rtvDesc.firstArrayElement = 0;
@@ -68,8 +67,7 @@ void ForwardRender::Setup(SetupContext& context) {
 	rtvDesc.planeIndex = 0;
 	m_rtv = context.CreateRtv(target, target.GetFormat(), rtvDesc);
 
-	auto depthStencil = this->GetInput<1>().Get();
-	this->GetInput<1>().Clear();
+	auto& depthStencil = this->GetInput<1>().Get();
 	gxapi::DsvTexture2DArray dsvDesc;
 	dsvDesc.activeArraySize = 1;
 	dsvDesc.firstArrayElement = 0;
@@ -77,14 +75,11 @@ void ForwardRender::Setup(SetupContext& context) {
 	m_dsv = context.CreateDsv(depthStencil, depthStencil.GetFormat(), dsvDesc);
 
 	m_entities = this->GetInput<2>().Get();
-	this->GetInput<2>().Clear();
 
 	m_camera = this->GetInput<3>().Get();
-	this->GetInput<3>().Clear();
 
 	m_directionalLights = this->GetInput<4>().Get();
 	assert(m_directionalLights->Size() == 1);
-	this->GetInput<4>().Clear();
 
 	auto shadowMapTex = this->GetInput<5>().Get();
 	this->GetInput<5>().Clear();
