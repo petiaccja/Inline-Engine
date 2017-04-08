@@ -131,7 +131,6 @@ void CSM::Setup(SetupContext & context) {
 		//TODO
 		constexpr unsigned cascadeSize = 1024;
 		constexpr unsigned numCascades = 4;
-		InitRenderTarget(cascadeSize * numCascades, cascadeSize);
 
 		ShaderParts shaderParts;
 		shaderParts.vs = true;

@@ -41,7 +41,9 @@ DepthReduction::DepthReduction():
 }
 
 
-void DepthReduction::Initialize(EngineContext & context) {}
+void DepthReduction::Initialize(EngineContext & context) {
+	SetTaskSingle(this);
+}
 
 
 void DepthReduction::Setup(SetupContext& context) {

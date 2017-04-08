@@ -49,8 +49,6 @@ private: // render context
 
 private:
 	void InitRenderTarget(unsigned width, unsigned height);
-	void RenderScene(
-		GraphicsCommandList& commandList);
 };
 
 

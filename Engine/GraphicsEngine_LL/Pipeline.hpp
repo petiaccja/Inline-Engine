@@ -32,7 +32,7 @@ public:
 	class NodeIterator : public std::bidirectional_iterator_tag {
 	private:
 		friend class inl::gxeng::Pipeline;
-		NodeIterator(Pipeline* parent, lemon::ListDigraph::NodeIt graphIt);
+		NodeIterator(const Pipeline* parent, lemon::ListDigraph::NodeIt graphIt);
 	public:
 		NodeIterator();
 		NodeIterator(const NodeIterator&) = default;
@@ -48,7 +48,7 @@ public:
 		NodeIterator operator++(int);
 	private:
 		lemon::ListDigraph::NodeIt m_graphIt;
-		Pipeline* m_parent;
+		const Pipeline* m_parent;
 	};
 
 	class SimpleNodeTask : public GraphicsTask {

@@ -106,7 +106,6 @@ public:
 	OrthographicCamera* CreateOrthographicCamera(std::string name);
 private:
 	void CreatePipeline();
-	static void InitializeGraphicsNodes(Pipeline& pipeline, EngineContext& context);
 	static std::vector<GraphicsNode*> SelectSpecialNodes(Pipeline& pipeline);
 	void UpdateSpecialNodes();
 	static void DumpPipelineGraph(const Pipeline& pipeline, std::string file);

@@ -1,2 +1,2 @@
-.\graphviz_dot\dot -Tsvg graph.txt -o pipeline_graph.svg
+.\graphviz_dot\dot -Tsvg ..\Test\QC_Simulator\pipeline_graph.dot -o pipeline_graph.svg
 .\pipeline_graph.svg

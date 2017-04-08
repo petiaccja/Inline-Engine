@@ -4,6 +4,8 @@
 #include "../BaseLibrary/Graph/Node.hpp"
 
 #include <iostream> // only for debugging
+#include <regex> // as well...
+#include <lemon/bfs.h> // as well...
 
 #include "Nodes/Node_GetBackBuffer.hpp"
 #include "Nodes/Node_TextureProperties.hpp"
@@ -331,7 +333,6 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::CSM> csm(new nodes::CSM());
 	std::shared_ptr<nodes::DrawSky> drawSky(new nodes::DrawSky());
 
-	static_assert(false, "Node graphics linking must be fixed. Do not even try to run, it's not gonna work.");
 
 	getWorldScene->GetInput<0>().Set("World");
 	getCamera->GetInput<0>().Set("WorldCam");
@@ -419,11 +420,17 @@ void GraphicsEngine::CreatePipeline() {
 	m_graphicsNodes = {
 		getWorldScene,
 		getCamera,
+		getBackBuffer,
+
+		backBufferProperties,
+		createDepthBuffer,
+		createHdrRenderTarget,
+		createCsmTextures,
+		forwardRender,
 		depthPrePass,
 		depthReduction,
 		depthReductionFinal,
 		csm,
-		forwardRender,
 		drawSky,
 
 		getGuiScene,
@@ -438,25 +445,24 @@ void GraphicsEngine::CreatePipeline() {
 	for (auto curr : m_graphicsNodes) {
 		nodeList.push_back(curr);
 	}
+
+	EngineContext engineContext(1, 1);
+	for (auto& node : nodeList) {
+		if (auto graphicsNode = dynamic_cast<GraphicsNode*>(node.get())) {
+			graphicsNode->Initialize(engineContext);
+		}
+	}
+
 	m_pipeline.CreateFromNodesList(nodeList);
 
 	DumpPipelineGraph(m_pipeline, "pipeline_graph.dot");
 
-	EngineContext engineContext(1, 1);
-	InitializeGraphicsNodes(m_pipeline, engineContext);
 	m_specialNodes = SelectSpecialNodes(m_pipeline);
+
+	throw std::logic_error("I don't think it's gonna work at all...\nSee Tools/show_pipeline_graph.bat and fix linkings.");
 }
 
 
-void GraphicsEngine::InitializeGraphicsNodes(Pipeline& pipeline, EngineContext& context) {
-	for (Pipeline::NodeIterator it = pipeline.Begin(); it != pipeline.End(); ++it) {
-		if (const GraphicsNode* ptr = dynamic_cast<const GraphicsNode*>(&*it)) {
-			// Pipeline disallows linking of its nodes, that's why it only returns const pointers.
-			// We are not changing linking configuration here, so const_cast is justified.
-			const_cast<GraphicsNode*>(ptr)->Initialize(context);
-		}
-	}
-}
 
 std::vector<GraphicsNode*> GraphicsEngine::SelectSpecialNodes(Pipeline& pipeline) {
 	std::vector<GraphicsNode*> specialNodes;
@@ -513,6 +519,47 @@ void GraphicsEngine::UpdateSpecialNodes() {
 }
 
 
+std::string TidyTypeName(std::string name) {
+	std::string s2;
+
+	int inTemplate = 0;
+	for (auto c : name) {
+		if (c == '<') {
+			inTemplate++;
+		}
+		else if (c == '>') {
+			inTemplate--;
+		}
+		if (inTemplate == 0 && c != '>') {
+			s2 += c;
+		}
+	}
+
+	std::regex classFilter("\s*class\s*");
+	s2 = std::regex_replace(s2, classFilter, "");
+
+	std::regex structFilter("\s*struct\s*");
+	s2 = std::regex_replace(s2, structFilter, "");
+
+	std::regex ptrFilter("\s*__ptr64\s*");
+	s2 = std::regex_replace(s2, ptrFilter, "");
+
+	std::regex constFilter("\s*const\s*");
+	s2 = std::regex_replace(s2, constFilter, "");
+
+	std::regex namespaceFilter1("\s*inl::gxeng::\s*");
+	s2 = std::regex_replace(s2, namespaceFilter1, "");
+
+	std::regex namespaceFilter2("\s*inl::\s*");
+	s2 = std::regex_replace(s2, namespaceFilter2, "");
+
+
+
+
+	return s2;
+}
+
+
 void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string file) {
 	std::stringstream dot; // graphviz dot file
 
@@ -523,13 +570,13 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 
 	std::map<const exc::InputPortBase*, PortMap> inputParents;
 	std::map<const exc::OutputPortBase*, PortMap> outputParents;
-	std::map<const exc::NodeBase*, int> nodeMap;
+	std::map<const exc::NodeBase*, int> nodeIndexMap;
 
 	// Fill node map and parent maps
 	for (auto it = pipeline.Begin(); it != pipeline.End(); ++it) {
 		const exc::NodeBase* node = &*it;
-		int nodeIndex = nodeMap.size();
-		nodeMap.insert({ node, nodeIndex });
+		int nodeIndex = nodeIndexMap.size();
+		nodeIndexMap.insert({ node, nodeIndex });
 
 		for (int i = 0; i < node->GetNumInputs(); ++i) {
 			inputParents.insert({ node->GetInput(i), PortMap{node, i} });
@@ -542,20 +589,21 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 	// Write out preamble
 	dot << "digraph structs {" << std::endl;
 	dot << "rankdir=LR;" << std::endl;
+	dot << "ranksep=\"0.8\";" << std::endl;
 	dot << "node [shape=record];" << std::endl;
 	dot << std::endl;
 
 	// Write out nodes
-	for (const auto& v : nodeMap) {
+	for (const auto& v : nodeIndexMap) {
 		dot << "node" << v.second << " [shape=record, label=\"";
-		dot << "" << typeid(v.first).name() << " : " << v.first;
+		dot << "" << TidyTypeName(typeid(*v.first).name()) << " : " << v.first;
 		dot << " | {";
 		// Inputs
 		dot << "{";
 		for (int i = 0; i < v.first->GetNumInputs(); ++i) {
 			const exc::InputPortBase* port = v.first->GetInput(i);
 			dot << "<in" << i << "> ";
-			dot << port->GetType().name();
+			dot << TidyTypeName(port->GetType().name());
 			if (i < (int)v.first->GetNumInputs() - 1) {
 				dot << " | ";
 			}
@@ -566,7 +614,7 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 		for (int i = 0; i < v.first->GetNumOutputs(); ++i) {
 			const exc::OutputPortBase* port = v.first->GetOutput(i);
 			dot << "<out" << i << "> ";
-			dot << port->GetType().name();
+			dot << TidyTypeName(port->GetType().name());
 			if (i < (int)v.first->GetNumOutputs() - 1) {
 				dot << " | ";
 			}
@@ -579,26 +627,70 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 	dot << std::endl;
 
 	// Write out links
-	for (const auto& v : nodeMap) {
+	for (const auto& v : nodeIndexMap) {
 		// Inputs
 		for (int i = 0; i < v.first->GetNumInputs(); ++i) {
 			const exc::InputPortBase* target = v.first->GetInput(i);
 			exc::OutputPortBase* source = target->GetLink();
-			if (source) {
+			if (source && outputParents.count(source) > 0) {
 				auto srcNode = outputParents[source];
 				auto tarNode = inputParents[target];
 
-				dot << "node" << nodeMap[srcNode.parent] << ":";
+				dot << "node" << nodeIndexMap[srcNode.parent] << ":";
 				dot << "out" << srcNode.portIndex;
 				dot << " -> ";
-				dot << "node" << nodeMap[tarNode.parent] << ":";
+				dot << "node" << nodeIndexMap[tarNode.parent] << ":";
 				dot << "in" << tarNode.portIndex;
 				dot << ";" << std::endl;
+				assert(tarNode.portIndex == i);
 			}
 		}
 	}
 
 	dot << std::endl;
+
+	// Write ranks
+	/*
+	std::map<exc::NodeBase*, int> nodeRankMap;
+	lemon::Bfs<lemon::ListDigraph> bfs{ pipeline.GetDependencyGraph() };
+	bfs.init();
+	for (lemon::ListDigraph::NodeIt it(pipeline.GetDependencyGraph()); it != lemon::INVALID; ++it) {
+		if (lemon::countInArcs(pipeline.GetDependencyGraph(), it) == 0) {
+			bfs.run(it);
+
+			for (lemon::ListDigraph::NodeIt nit(pipeline.GetDependencyGraph()); nit != lemon::INVALID; ++nit) {
+				auto* node = pipeline.GetNodeMap()[nit].get();
+				int currentDist = bfs.reached(nit) ? bfs.dist(nit) : -1;
+				int oldDist = nodeRankMap.count(node) > 0 ? nodeRankMap[node] : -1;
+				nodeRankMap[node] =  std::max(currentDist, oldDist);
+			}
+		}
+	}
+
+	std::vector<std::pair<exc::NodeBase*, int>> nodeRanks;
+	for (auto& v : nodeRankMap) {
+		nodeRanks.push_back({ v.first, v.second });
+	}
+
+	std::sort(nodeRanks.begin(), nodeRanks.end(), [](const auto& a, const auto& b) {
+		return a.second < b.second;
+	});
+
+	int prevRank = -5;
+	for (int i = 0; i < nodeRanks.size(); ++i) {
+		if (prevRank != nodeRanks[i].second) {
+			if (prevRank != -5) {
+				dot << "}" << std::endl;
+			}
+			dot << "{rank=same;";
+		}
+		dot << " node" << nodeIndexMap[nodeRanks[i].first];
+		prevRank = nodeRanks[i].second;
+	}
+	if (nodeRanks.size()) {
+		dot << "}" << std::endl;
+	}
+	*/
 
 	// Write closing
 	dot << "}" << std::endl;

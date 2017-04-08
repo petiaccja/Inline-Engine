@@ -17,7 +17,7 @@ namespace gxeng {
 // Iterator
 //------------------------------------------------------------------------------
 
-Pipeline::NodeIterator::NodeIterator(Pipeline* parent, lemon::ListDigraph::NodeIt graphIt)
+Pipeline::NodeIterator::NodeIterator(const Pipeline* parent, lemon::ListDigraph::NodeIt graphIt)
 	: m_graphIt(graphIt), m_parent(parent)
 {}
 
@@ -140,7 +140,7 @@ void Pipeline::Clear() {
 }
 
 
-Pipeline::NodeIterator Pipeline::Begin() const{
+Pipeline::NodeIterator Pipeline::Begin() const {
 	return{ this, lemon::ListDigraph::NodeIt(m_dependencyGraph) };
 }
 
