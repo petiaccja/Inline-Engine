@@ -140,12 +140,12 @@ void Pipeline::Clear() {
 }
 
 
-Pipeline::NodeIterator Pipeline::Begin() {
+Pipeline::NodeIterator Pipeline::Begin() const{
 	return{ this, lemon::ListDigraph::NodeIt(m_dependencyGraph) };
 }
 
 
-Pipeline::NodeIterator Pipeline::End() {
+Pipeline::NodeIterator Pipeline::End() const {
 	return{ this, lemon::INVALID };
 }
 
