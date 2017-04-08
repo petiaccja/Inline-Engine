@@ -270,6 +270,9 @@
     <ClInclude Include="NodeContext.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\NodeUtility.hpp">
+      <Filter>Nodes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />

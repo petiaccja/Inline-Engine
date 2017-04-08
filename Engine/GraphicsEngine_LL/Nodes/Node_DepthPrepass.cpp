@@ -1,5 +1,7 @@
 #include "Node_DepthPrepass.hpp"
 
+#include "NodeUtility.hpp"
+
 #include "../MeshEntity.hpp"
 #include "../Mesh.hpp"
 #include "../Image.hpp"
@@ -58,13 +60,14 @@ void DepthPrepass::Initialize(EngineContext & context) {
 
 void DepthPrepass::Setup(SetupContext & context) {
 	auto& depthStencil = this->GetInput<0>().Get();
+	const gxapi::eFormat currDepthStencilFormat = FormatAnyToDepthStencil(depthStencil.GetFormat());
 
 	gxapi::DsvTexture2DArray desc;
 	desc.activeArraySize = 1;
 	desc.firstArrayElement = 0;
 	desc.firstMipLevel = 0;
 
-	m_targetDsv = context.CreateDsv(depthStencil, depthStencil.GetFormat(), desc);
+	m_targetDsv = context.CreateDsv(depthStencil, currDepthStencilFormat, desc);
 	
 	m_entities = this->GetInput<1>().Get();
 
@@ -109,8 +112,8 @@ void DepthPrepass::Setup(SetupContext & context) {
 		m_shader = context.CreateShader("DepthPrepass", shaderParts, "");
 	}
 
-	if (m_PSO == nullptr || m_depthStencilFormat != depthStencil.GetFormat()) {
-		m_depthStencilFormat = depthStencil.GetFormat();
+	if (m_PSO == nullptr || m_depthStencilFormat != currDepthStencilFormat) {
+		m_depthStencilFormat = currDepthStencilFormat;
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
 			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),

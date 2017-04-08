@@ -341,7 +341,7 @@ void GraphicsEngine::CreatePipeline() {
 
 	createDepthBuffer->GetInput<0>().Link(backBufferProperties->GetOutput(0));
 	createDepthBuffer->GetInput<1>().Link(backBufferProperties->GetOutput(1));
-	createDepthBuffer->GetInput<2>().Set(gxapi::eFormat::D32_FLOAT_S8X24_UINT);
+	createDepthBuffer->GetInput<2>().Set(gxapi::eFormat::R32G8X24_TYPELESS);
 	createDepthBuffer->GetInput<3>().Set(1);
 
 	depthPrePass->GetInput(0)->Link(createDepthBuffer->GetOutput(0));
@@ -359,7 +359,7 @@ void GraphicsEngine::CreatePipeline() {
 
 	createCsmTextures->GetInput<0>().Set(cascadeSize);
 	createCsmTextures->GetInput<1>().Set(cascadeSize);
-	createCsmTextures->GetInput<2>().Set(gxapi::eFormat::R16G16B16A16_FLOAT);
+	createCsmTextures->GetInput<2>().Set(gxapi::eFormat::R32_TYPELESS);
 	createCsmTextures->GetInput<3>().Set(numCascades);
 
 	csm->GetInput<0>().Link(createCsmTextures->GetOutput(0));

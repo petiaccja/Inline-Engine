@@ -172,6 +172,7 @@
     <ClInclude Include="BindingManager.hpp" />
     <ClInclude Include="NodeContext.hpp" />
     <ClInclude Include="Nodes\ExampleTemplate.hpp" />
+    <ClInclude Include="Nodes\NodeUtility.hpp" />
     <ClInclude Include="Nodes\Node_Blend.hpp" />
     <ClInclude Include="Nodes\Node_CreateTexture.hpp" />
     <ClInclude Include="Nodes\Node_CSM.hpp" />

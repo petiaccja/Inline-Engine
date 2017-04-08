@@ -1,5 +1,7 @@
 #include "Node_CSM.hpp"
 
+#include "NodeUtility.hpp"
+
 #include "../MeshEntity.hpp"
 #include "../Mesh.hpp"
 #include "../Image.hpp"
@@ -61,13 +63,14 @@ void CSM::Initialize(EngineContext & context) {
 
 void CSM::Setup(SetupContext & context) {
 	Texture2D& renderTarget = this->GetInput<0>().Get();
+	const gxapi::eFormat currDepthStencil = FormatAnyToDepthStencil(renderTarget.GetFormat());
 	gxapi::DsvTexture2DArray dsvDesc;
 	dsvDesc.activeArraySize = 1;
 	dsvDesc.firstMipLevel = 0;
 	m_dsvs.resize(renderTarget.GetArrayCount());
 	for (int i = 0; i < m_dsvs.size(); i++) {
 		dsvDesc.firstArrayElement = i;
-		m_dsvs[i] = context.CreateDsv(renderTarget, renderTarget.GetFormat(), dsvDesc);
+		m_dsvs[i] = context.CreateDsv(renderTarget, currDepthStencil, dsvDesc);
 	}
 
 	m_entities = this->GetInput<1>().Get();
@@ -125,8 +128,8 @@ void CSM::Setup(SetupContext & context) {
 		m_binder = context.CreateBinder({ uniformsBindParamDesc, lightMVPBindParamDesc, sampBindParamDesc },{ samplerDesc });
 	}
 
-	if (!m_PSO || renderTarget.GetFormat() != m_depthStencilFormat) {
-		m_depthStencilFormat = renderTarget.GetFormat();
+	if (!m_PSO || currDepthStencil != m_depthStencilFormat) {
+		m_depthStencilFormat = currDepthStencil;
 
 		//TODO
 		constexpr unsigned cascadeSize = 1024;

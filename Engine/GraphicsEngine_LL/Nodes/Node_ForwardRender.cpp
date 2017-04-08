@@ -1,5 +1,7 @@
 #include "Node_ForwardRender.hpp"
 
+#include "NodeUtility.hpp"
+
 #include "../MeshEntity.hpp"
 #include "../Mesh.hpp"
 #include "../Image.hpp"
@@ -11,6 +13,7 @@
 #include <array>
 
 namespace inl::gxeng::nodes {
+
 
 
 static bool CheckMeshFormat(const Mesh& mesh) {
@@ -72,7 +75,7 @@ void ForwardRender::Setup(SetupContext& context) {
 	dsvDesc.activeArraySize = 1;
 	dsvDesc.firstArrayElement = 0;
 	dsvDesc.firstMipLevel = 0;
-	m_dsv = context.CreateDsv(depthStencil, depthStencil.GetFormat(), dsvDesc);
+	m_dsv = context.CreateDsv(depthStencil, FormatAnyToDepthStencil(depthStencil.GetFormat()), dsvDesc);
 
 	m_entities = this->GetInput<2>().Get();
 

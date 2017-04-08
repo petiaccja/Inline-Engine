@@ -1,5 +1,7 @@
 #include "Node_DepthReduction.hpp"
 
+#include "NodeUtility.hpp"
+
 #include "../MeshEntity.hpp"
 #include "../Mesh.hpp"
 #include "../Image.hpp"
@@ -55,7 +57,7 @@ void DepthReduction::Setup(SetupContext& context) {
 	srvDesc.mostDetailedMip = 0;
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
-	m_depthView = context.CreateSrv(inputDepth, inputDepth.GetFormat(), srvDesc);
+	m_depthView = context.CreateSrv(inputDepth, FormatDepthToColor(inputDepth.GetFormat()), srvDesc);
 
 	if (inputDepth.GetWidth() != m_width || inputDepth.GetHeight() != m_height) {
 		m_width = inputDepth.GetWidth();

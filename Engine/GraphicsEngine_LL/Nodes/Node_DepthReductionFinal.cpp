@@ -1,5 +1,7 @@
 #include "Node_DepthReductionFinal.hpp"
 
+#include "NodeUtility.hpp"
+
 #include "../MeshEntity.hpp"
 #include "../Mesh.hpp"
 #include "../Image.hpp"

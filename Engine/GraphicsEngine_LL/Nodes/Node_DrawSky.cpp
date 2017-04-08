@@ -1,5 +1,7 @@
 #include "Node_DrawSky.hpp"
 
+#include "NodeUtility.hpp"
+
 #include "../PerspectiveCamera.hpp"
 #include "../GraphicsCommandList.hpp"
 
@@ -29,11 +31,12 @@ void DrawSky::Setup(SetupContext & context) {
 	m_rtv = context.CreateRtv(renderTarget, renderTarget.GetFormat(), rtvDesc);
 
 	auto depthStencil = this->GetInput<1>().Get();
+	const gxapi::eFormat currDepthStencilFormat = FormatAnyToDepthStencil(depthStencil.GetFormat());
 	gxapi::DsvTexture2DArray dsvDesc;
 	dsvDesc.activeArraySize = 1;
 	dsvDesc.firstArrayElement = 0;
 	dsvDesc.firstMipLevel = 0;
-	m_dsv = context.CreateDsv(depthStencil, depthStencil.GetFormat(), dsvDesc);
+	m_dsv = context.CreateDsv(depthStencil, currDepthStencilFormat, dsvDesc);
 
 	m_camera = this->GetInput<2>().Get();
 
@@ -105,13 +108,13 @@ void DrawSky::Setup(SetupContext & context) {
 		m_shader = context.CreateShader("DrawSky", shaderParts, "");
 	}
 
-	if (m_colorFormat != renderTarget.GetFormat() || m_depthStencilFormat != depthStencil.GetFormat()) {
+	if (m_colorFormat != renderTarget.GetFormat() || m_depthStencilFormat != currDepthStencilFormat) {
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
 			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0)
 		};
 
 		m_colorFormat = renderTarget.GetFormat();
-		m_depthStencilFormat = renderTarget.GetFormat();
+		m_depthStencilFormat = currDepthStencilFormat;
 
 		gxapi::GraphicsPipelineStateDesc psoDesc;
 		psoDesc.inputLayout.elements = inputElementDesc.data();
