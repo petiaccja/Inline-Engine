@@ -21,7 +21,7 @@ namespace inl::gxeng::nodes {
 class DrawSky :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<Texture2D, Texture2D, const BasicCamera*, const DirectionalLight*>,
+	virtual public exc::InputPortConfig<Texture2D, Texture2D, const BasicCamera*, const EntityCollection<DirectionalLight>*>,
 	virtual public exc::OutputPortConfig<Texture2D>
 {
 public:
@@ -41,7 +41,7 @@ private: // execution
 	RenderTargetView2D m_rtv;
 	DepthStencilView2D m_dsv;
 	const BasicCamera* m_camera;
-	const DirectionalLight* m_sun;
+	const EntityCollection<DirectionalLight>* m_suns;
 
 protected:
 	std::optional<Binder> m_binder;

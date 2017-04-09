@@ -39,8 +39,7 @@ void DrawSky::Setup(SetupContext & context) {
 	m_dsv = context.CreateDsv(depthStencil, currDepthStencilFormat, dsvDesc);
 
 	m_camera = this->GetInput<2>().Get();
-
-	m_sun = this->GetInput<3>().Get();
+	m_suns = this->GetInput<3>().Get();
 
 	this->GetOutput<0>().Set(renderTarget);
 
@@ -187,12 +186,17 @@ void DrawSky::Execute(RenderContext & context) {
 	Sun sunCB;
 	Cam camCB;
 
+	// TODO render all the suns using additive blending
+	assert(m_suns != nullptr);
+	assert(m_suns->Size() > 0);
+	auto sun = *m_suns->begin();
+
 	mathfu::Matrix4x4f viewInvTr = m_camera->GetViewMatrixRH().Inverse().Transpose();
-	mathfu::Vector4f sunViewDir = viewInvTr * mathfu::Vector4f(m_sun->GetDirection(), 0.0f);
-	mathfu::Vector4f sunColor = mathfu::Vector4f(m_sun->GetColor(), 1.0f);
+	mathfu::Vector4f sunViewDir = viewInvTr * mathfu::Vector4f(sun->GetDirection(), 0.0f);
+	mathfu::Vector4f sunColor = mathfu::Vector4f(sun->GetColor(), 1.0f);
 	mathfu::Matrix4x4f invViewProj = (m_camera->GetProjectionMatrixRH() * m_camera->GetViewMatrixRH()).Inverse();
 
-	sunCB.dir = mathfu::Vector4f(m_sun->GetDirection(), 0.0);
+	sunCB.dir = mathfu::Vector4f(sun->GetDirection(), 0.0);
 	sunCB.color = sunColor;
 	invViewProj.Pack(camCB.invViewProj);
 

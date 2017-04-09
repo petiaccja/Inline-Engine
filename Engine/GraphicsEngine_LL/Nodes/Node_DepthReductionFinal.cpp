@@ -8,6 +8,7 @@
 #include "../DirectionalLight.hpp"
 #include "../PerspectiveCamera.hpp"
 #include "../GraphicsCommandList.hpp"
+#include "../EntityCollection.hpp"
 
 #include <array>
 
@@ -48,7 +49,7 @@ void DepthReductionFinal::Setup(SetupContext& context) {
 
 	m_camera = this->GetInput<1>().Get();
 
-	m_sun = this->GetInput<2>().Get();
+	m_suns = this->GetInput<2>().Get();
 
 	this->GetOutput<0>().Set(m_light_mvp_uav.GetResource());
 	this->GetOutput<1>().Set(m_shadow_mx_uav.GetResource());
@@ -167,9 +168,11 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 	uniformsCBData.cam_near = perpectiveCamera->GetNearPlane();
 	uniformsCBData.cam_far = perpectiveCamera->GetFarPlane();
 
+	assert(m_suns->Size() > 0);
+	auto sun = *m_suns->begin();
 	//TODO get from somewhere
 	uniformsCBData.light_cam_pos = mathfu::Vector4f(0, 0, 0, 1);
-	uniformsCBData.light_cam_view_dir = mathfu::Vector4f(m_sun->GetDirection(), 0);//mathfu::Vector4f(1, 1, 1, 0).Normalized();
+	uniformsCBData.light_cam_view_dir = mathfu::Vector4f(sun->GetDirection(), 0);//mathfu::Vector4f(1, 1, 1, 0).Normalized();
 	uniformsCBData.light_cam_up_vector = mathfu::Vector4f(0, 1, 0, 0);
 
 	//TODO get from somewhere

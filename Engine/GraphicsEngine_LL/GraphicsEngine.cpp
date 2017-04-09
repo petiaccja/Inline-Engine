@@ -352,7 +352,7 @@ void GraphicsEngine::CreatePipeline() {
 
 	depthReductionFinal->GetInput<0>().Link(depthReduction->GetOutput(0));
 	depthReductionFinal->GetInput<1>().Link(getCamera->GetOutput(0));
-	depthReductionFinal->GetInput<2>().Link(getWorldScene->GetOutput(1));
+	depthReductionFinal->GetInput<2>().Link(getWorldScene->GetOutput(2));
 
 	constexpr unsigned cascadeSize = 1024;
 	constexpr unsigned numCascades = 4;
@@ -375,7 +375,7 @@ void GraphicsEngine::CreatePipeline() {
 	forwardRender->GetInput(1)->Link(depthPrePass->GetOutput(0));
 	forwardRender->GetInput(2)->Link(getWorldScene->GetOutput(0));
 	forwardRender->GetInput(3)->Link(getCamera->GetOutput(0));
-	forwardRender->GetInput(4)->Link(getWorldScene->GetOutput(1));
+	forwardRender->GetInput(4)->Link(getWorldScene->GetOutput(2));
 	forwardRender->GetInput(5)->Link(csm->GetOutput(0));
 	forwardRender->GetInput(6)->Link(depthReductionFinal->GetOutput(1));
 	forwardRender->GetInput(7)->Link(depthReductionFinal->GetOutput(2));
@@ -383,7 +383,7 @@ void GraphicsEngine::CreatePipeline() {
 	drawSky->GetInput<0>().Link(forwardRender->GetOutput(0));
 	drawSky->GetInput<1>().Link(depthPrePass->GetOutput(0));
 	drawSky->GetInput<2>().Link(getCamera->GetOutput(0));
-	drawSky->GetInput<3>().Link(getWorldScene->GetOutput(1));
+	drawSky->GetInput<3>().Link(getWorldScene->GetOutput(2));
 
 
 	// -----------------------------
@@ -398,7 +398,7 @@ void GraphicsEngine::CreatePipeline() {
 	getGuiCamera->GetInput<0>().Set("GuiCamera");
 
 	guiRender->GetInput<0>().Link(getBackBuffer->GetOutput(0));
-	guiRender->GetInput<1>().Link(getGuiScene->GetOutput(0));
+	guiRender->GetInput<1>().Link(getGuiScene->GetOutput(1));
 	guiRender->GetInput<2>().Link(getGuiCamera->GetOutput(0));
 
 	// NOTE: the intended behaviour of this blending is to draw the render target on top of the shader output (render target contains overlay, shader output contains scene)

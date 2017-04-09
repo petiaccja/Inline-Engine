@@ -18,7 +18,7 @@ namespace inl::gxeng::nodes {
 class DepthReductionFinal :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<Texture2D, const BasicCamera*, const DirectionalLight*>,
+	virtual public exc::InputPortConfig<Texture2D, const BasicCamera*, const EntityCollection<DirectionalLight>*>,
 	virtual public exc::OutputPortConfig<Texture2D, Texture2D, Texture2D>
 {
 public:
@@ -55,7 +55,7 @@ private: // render context
 	RWTextureView2D m_csm_splits_uav;
 	TextureView2D m_reductionTexSrv;
 	const BasicCamera* m_camera;
-	const DirectionalLight* m_sun;
+	const EntityCollection<DirectionalLight>* m_suns;
 
 private:
 	void InitRenderTarget(SetupContext& context);
