@@ -159,9 +159,13 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_treeTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
 	}
 
-	// Create tree material
+	// Create materials
 	{
 		m_treeMaterial.reset(m_graphicsEngine->CreateMaterial());
+		m_quadcopterMaterial.reset(m_graphicsEngine->CreateMaterial());
+		m_axesMaterial.reset(m_graphicsEngine->CreateMaterial());
+		m_terrainMaterial.reset(m_graphicsEngine->CreateMaterial());
+
 		m_simpleShader.reset(m_graphicsEngine->CreateMaterialShaderGraph());
 		std::unique_ptr<inl::gxeng::MaterialShaderEquation> mapShader(m_graphicsEngine->CreateMaterialShaderEquation());
 		std::unique_ptr<inl::gxeng::MaterialShaderEquation> diffuseShader(m_graphicsEngine->CreateMaterialShaderEquation());

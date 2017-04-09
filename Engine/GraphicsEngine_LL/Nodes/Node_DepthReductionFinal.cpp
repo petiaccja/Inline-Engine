@@ -36,6 +36,9 @@ void DepthReductionFinal::Initialize(EngineContext & context) {
 
 
 void DepthReductionFinal::Setup(SetupContext& context) {
+	InitRenderTarget(context);
+
+
 	Texture2D reductionTex = this->GetInput<0>().Get();
 
 	gxapi::SrvTexture2DArray srvDesc;
@@ -48,7 +51,6 @@ void DepthReductionFinal::Setup(SetupContext& context) {
 	m_reductionTexSrv = context.CreateSrv(reductionTex, reductionTex.GetFormat(), srvDesc);
 
 	m_camera = this->GetInput<1>().Get();
-
 	m_suns = this->GetInput<2>().Get();
 
 	this->GetOutput<0>().Set(m_light_mvp_uav.GetResource());
@@ -201,38 +203,42 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 
 
 void DepthReductionFinal::InitRenderTarget(SetupContext& context) {
-	using gxapi::eFormat;
+	if (!m_isInit) {
+		m_isInit = true;
 
-	auto formatLightMVP = eFormat::R32G32B32A32_FLOAT;
-	auto formatShadowMX = eFormat::R32G32B32A32_FLOAT;
-	auto formatCSMSplits = eFormat::R32G32_FLOAT;
+		using gxapi::eFormat;
 
-	gxapi::UavTexture2DArray uavDesc;
-	uavDesc.activeArraySize = 1;
-	uavDesc.firstArrayElement = 0;
-	uavDesc.mipLevel = 0;
-	uavDesc.planeIndex = 0;
+		auto formatLightMVP = eFormat::R32G32B32A32_FLOAT;
+		auto formatShadowMX = eFormat::R32G32B32A32_FLOAT;
+		auto formatCSMSplits = eFormat::R32G32_FLOAT;
 
-	gxapi::SrvTexture2DArray srvDesc;
-	srvDesc.activeArraySize = 1;
-	srvDesc.firstArrayElement = 0;
-	srvDesc.numMipLevels = -1;
-	srvDesc.mipLevelClamping = 0;
-	srvDesc.mostDetailedMip = 0;
-	srvDesc.planeIndex = 0;
+		gxapi::UavTexture2DArray uavDesc;
+		uavDesc.activeArraySize = 1;
+		uavDesc.firstArrayElement = 0;
+		uavDesc.mipLevel = 0;
+		uavDesc.planeIndex = 0;
 
-	//TODO 1D tex
-	Texture2D light_mvp_tex = context.CreateRWTexture2D(4 * 4, 1, formatLightMVP, 1);
-	m_light_mvp_uav = context.CreateUav(light_mvp_tex, formatLightMVP, uavDesc);
-	//m_light_mvp_srv = context.CreateSrv(light_mvp_tex, formatLightMVP, srvDesc);
+		gxapi::SrvTexture2DArray srvDesc;
+		srvDesc.activeArraySize = 1;
+		srvDesc.firstArrayElement = 0;
+		srvDesc.numMipLevels = -1;
+		srvDesc.mipLevelClamping = 0;
+		srvDesc.mostDetailedMip = 0;
+		srvDesc.planeIndex = 0;
 
-	Texture2D shadow_mx_tex = context.CreateRWTexture2D(4 * 4, 1, formatShadowMX, 1);
-	m_shadow_mx_uav = context.CreateUav(shadow_mx_tex, formatShadowMX, uavDesc);
-	//m_shadow_mx_srv = context.CreateSrv(shadow_mx_tex, formatShadowMX, srvDesc);
+		//TODO 1D tex
+		Texture2D light_mvp_tex = context.CreateRWTexture2D(4 * 4, 1, formatLightMVP, 1);
+		m_light_mvp_uav = context.CreateUav(light_mvp_tex, formatLightMVP, uavDesc);
+		//m_light_mvp_srv = context.CreateSrv(light_mvp_tex, formatLightMVP, srvDesc);
 
-	Texture2D csm_splits_tex = context.CreateRWTexture2D(4, 1, formatCSMSplits, 1);
-	m_csm_splits_uav = context.CreateUav(csm_splits_tex, formatCSMSplits, uavDesc);
-	//m_csm_splits_srv = context.CreateSrv(csm_splits_tex, formatCSMSplits, srvDesc);
+		Texture2D shadow_mx_tex = context.CreateRWTexture2D(4 * 4, 1, formatShadowMX, 1);
+		m_shadow_mx_uav = context.CreateUav(shadow_mx_tex, formatShadowMX, uavDesc);
+		//m_shadow_mx_srv = context.CreateSrv(shadow_mx_tex, formatShadowMX, srvDesc);
+
+		Texture2D csm_splits_tex = context.CreateRWTexture2D(4, 1, formatCSMSplits, 1);
+		m_csm_splits_uav = context.CreateUav(csm_splits_tex, formatCSMSplits, uavDesc);
+		//m_csm_splits_srv = context.CreateSrv(csm_splits_tex, formatCSMSplits, srvDesc);
+	}
 }
 
 

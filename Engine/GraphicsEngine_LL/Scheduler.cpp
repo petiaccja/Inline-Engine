@@ -59,9 +59,9 @@ void Scheduler::Execute(FrameContext context) {
 				if (renderContext.IsListInitialized()) {
 					BasicCommandList* commandList;
 					switch (renderContext.GetType()) {
-						case gxapi::eCommandListType::GRAPHICS: commandList = &renderContext.AsGraphics();
-						case gxapi::eCommandListType::COMPUTE: commandList = &renderContext.AsCompute();
-						case gxapi::eCommandListType::COPY: commandList = &renderContext.AsCopy();
+						case gxapi::eCommandListType::GRAPHICS: commandList = &renderContext.AsGraphics(); break;
+						case gxapi::eCommandListType::COMPUTE: commandList = &renderContext.AsCompute(); break;
+						case gxapi::eCommandListType::COPY: commandList = &renderContext.AsCopy(); break;
 						default: assert(false);
 					}
 					BasicCommandList::Decomposition decomposition = commandList->Decompose();

@@ -53,6 +53,14 @@ private:
 // Setup Context
 //------------------------------------------------------------------------------
 
+struct TextureUsage {
+	bool shaderResource = true;
+	bool renderTarget = false;
+	bool depthStencil = false;
+	bool randomAccess = false;
+};
+
+
 class SetupContext {
 public:
 	SetupContext(MemoryManager* memoryManager = nullptr,
@@ -68,7 +76,8 @@ public:
 
 
 	// Create resources
-	Texture2D CreateTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1) const;
+	Texture2D CreateTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, TextureUsage usage, uint16_t arraySize = 1) const;
+	Texture2D CreateShaderResource2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1) const;
 	Texture2D CreateRenderTarget2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1) const;
 	Texture2D CreateDepthStencil2D(uint64_t width, uint32_t height, gxapi::eFormat format, bool shaderResource, uint16_t arraySize = 1) const;
 	Texture2D CreateRWTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, bool renderTarget, uint16_t arraySize = 1) const;

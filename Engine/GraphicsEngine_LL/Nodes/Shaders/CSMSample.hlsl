@@ -60,7 +60,8 @@ float sample_csm(int cascade, float4 vs_pos)
 	}
 
 	uint3 inputTexSize;
-	shadowMapTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
+	uint levels;
+	shadowMapTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z, levels);
 	float2 scale = 1.0 / float2(inputTexSize.xy);
 
 	return shadow_pcf_3x3(shadow_coord, scale, offset, cascade);

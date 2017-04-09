@@ -49,7 +49,19 @@ SetupContext::SetupContext(MemoryManager* memoryManager,
 {}
 
 
-Texture2D SetupContext::CreateTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize) const {
+Texture2D SetupContext::CreateTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, TextureUsage usage, uint16_t arraySize) const {
+	gxapi::eResourceFlags flags;
+
+	if (!usage.shaderResource) flags += gxapi::eResourceFlags::DENY_SHADER_RESOURCE;
+	if (usage.renderTarget) flags += gxapi::eResourceFlags::ALLOW_RENDER_TARGET;
+	if (usage.depthStencil) flags += gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL;
+	if (usage.randomAccess) flags += gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS;
+
+	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, format, flags, arraySize);
+	return texture;
+}
+
+Texture2D SetupContext::CreateShaderResource2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize) const {
 	if (m_memoryManager == nullptr) throw std::logic_error("Cannot create texture without memory manager.");
 
 	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, format, gxapi::eResourceFlags::NONE, arraySize);
@@ -225,6 +237,7 @@ Binder RenderContext::CreateBinder(const std::vector<BindParameterDesc>& paramet
 GraphicsCommandList& RenderContext::AsGraphics() {
 	if (!m_commandList) {
 		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandAllocatorPool, *m_scratchSpacePool));
+		m_type = gxapi::eCommandListType::GRAPHICS;
 		return *dynamic_cast<GraphicsCommandList*>(m_commandList.get());
 	}
 	else if (m_type == gxapi::eCommandListType::GRAPHICS) {
@@ -236,7 +249,8 @@ GraphicsCommandList& RenderContext::AsGraphics() {
 }
 ComputeCommandList& RenderContext::AsCompute() {
 	if (!m_commandList) {
-		m_commandList.reset(new ComputeCommandList(m_graphicsApi, *m_commandAllocatorPool, *m_scratchSpacePool));
+		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandAllocatorPool, *m_scratchSpacePool)); // only graphics queues now
+		m_type = gxapi::eCommandListType::COMPUTE;
 		return *dynamic_cast<ComputeCommandList*>(m_commandList.get());
 	}
 	else if (m_type == gxapi::eCommandListType::COMPUTE) {
@@ -248,7 +262,8 @@ ComputeCommandList& RenderContext::AsCompute() {
 }
 CopyCommandList& RenderContext::AsCopy() {
 	if (!m_commandList) {
-		m_commandList.reset(new CopyCommandList(m_graphicsApi, *m_commandAllocatorPool, *m_scratchSpacePool));
+		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandAllocatorPool, *m_scratchSpacePool)); // only graphics queues now
+		m_type = gxapi::eCommandListType::COPY;
 		return *dynamic_cast<CopyCommandList*>(m_commandList.get());
 	}
 	else if (m_type == gxapi::eCommandListType::COPY) {

@@ -93,7 +93,7 @@ void ForwardRender::Setup(SetupContext& context) {
 	srvDesc.mostDetailedMip = 0;
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
-	m_shadowMapTexView = context.CreateSrv(shadowMapTex, shadowMapTex.GetFormat(), srvDesc);
+	m_shadowMapTexView = context.CreateSrv(shadowMapTex, FormatDepthToColor(shadowMapTex.GetFormat()), srvDesc);
 
 	auto shadowMXTex = this->GetInput<6>().Get();
 	this->GetInput<6>().Clear();

@@ -332,6 +332,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::DepthReductionFinal> depthReductionFinal(new nodes::DepthReductionFinal());
 	std::shared_ptr<nodes::CSM> csm(new nodes::CSM());
 	std::shared_ptr<nodes::DrawSky> drawSky(new nodes::DrawSky());
+	TextureUsage usage;
 
 
 	getWorldScene->GetInput<0>().Set("World");
@@ -343,6 +344,9 @@ void GraphicsEngine::CreatePipeline() {
 	createDepthBuffer->GetInput<1>().Link(backBufferProperties->GetOutput(1));
 	createDepthBuffer->GetInput<2>().Set(gxapi::eFormat::R32G8X24_TYPELESS);
 	createDepthBuffer->GetInput<3>().Set(1);
+	usage = TextureUsage();
+	usage.depthStencil = true;
+	createDepthBuffer->GetInput<4>().Set(usage);
 
 	depthPrePass->GetInput(0)->Link(createDepthBuffer->GetOutput(0));
 	depthPrePass->GetInput(1)->Link(getWorldScene->GetOutput(0));
@@ -361,6 +365,9 @@ void GraphicsEngine::CreatePipeline() {
 	createCsmTextures->GetInput<1>().Set(cascadeSize);
 	createCsmTextures->GetInput<2>().Set(gxapi::eFormat::R32_TYPELESS);
 	createCsmTextures->GetInput<3>().Set(numCascades);
+	usage = TextureUsage();
+	usage.depthStencil = true;
+	createCsmTextures->GetInput<4>().Set(usage);
 
 	csm->GetInput<0>().Link(createCsmTextures->GetOutput(0));
 	csm->GetInput<1>().Link(getWorldScene->GetOutput(0));
@@ -370,6 +377,9 @@ void GraphicsEngine::CreatePipeline() {
 	createHdrRenderTarget->GetInput<1>().Link(backBufferProperties->GetOutput(1));
 	createHdrRenderTarget->GetInput<2>().Set(gxapi::eFormat::R16G16B16A16_FLOAT);
 	createHdrRenderTarget->GetInput<3>().Set(1);
+	usage = TextureUsage();
+	usage.renderTarget = true;
+	createHdrRenderTarget->GetInput<4>().Set(usage);
 
 	forwardRender->GetInput(0)->Link(createHdrRenderTarget->GetOutput(0));
 	forwardRender->GetInput(1)->Link(depthPrePass->GetOutput(0));
@@ -458,8 +468,6 @@ void GraphicsEngine::CreatePipeline() {
 	DumpPipelineGraph(m_pipeline, "pipeline_graph.dot");
 
 	m_specialNodes = SelectSpecialNodes(m_pipeline);
-
-	throw std::logic_error("I don't think it's gonna work at all...\nSee Tools/show_pipeline_graph.bat and fix linkings.");
 }
 
 

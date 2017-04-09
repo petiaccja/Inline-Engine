@@ -50,6 +50,7 @@ protected:
 	std::unique_ptr<gxapi::IPipelineState> m_CSO;
 
 private: // render context
+	bool m_isInit = false;
 	RWTextureView2D m_light_mvp_uav;
 	RWTextureView2D m_shadow_mx_uav;
 	RWTextureView2D m_csm_splits_uav;
