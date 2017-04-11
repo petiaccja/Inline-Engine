@@ -35,12 +35,18 @@
     <ClInclude Include="Widget.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GuiCollapsable.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GuiSlider.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="Widget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GuiCollapsable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

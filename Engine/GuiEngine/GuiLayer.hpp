@@ -3,6 +3,7 @@
 #include "GuiButton.hpp"
 #include "GuiList.hpp"
 #include "GuiSlider.hpp"
+#include "GuiCollapsable.hpp"
 #include <vector>
 
 class GuiLayer
@@ -11,8 +12,8 @@ public:
 	GuiLayer(GuiEngine* guiEngine);
 	~GuiLayer();
 
-	void AddControl(Widget* child);
-	bool RemoveControl(Widget* child);
+	void Add(Widget* child);
+	bool Remove(Widget* child);
 
 	Widget* AddControl();
 	GuiButton* AddButton();
@@ -20,6 +21,7 @@ public:
 	GuiList* AddList();
 	Widget* AddPlane();
 	GuiSlider* AddSlider();
+	GuiCollapsable* AddCollapsable();
 
 	const std::vector<Widget*>& GetControls() const;
 
@@ -43,14 +45,14 @@ inline GuiLayer::~GuiLayer()
 	delete layer;
 }
 
-inline void GuiLayer::AddControl(Widget* child)
+inline void GuiLayer::Add(Widget* child)
 {
 	layer->Add(child);
 }
 
-inline bool GuiLayer::RemoveControl(Widget* child)
+inline bool GuiLayer::Remove(Widget* child)
 {
-	return layer->RemoveChild(child);
+	return layer->Remove(child);
 }
 
 
@@ -88,6 +90,11 @@ inline Widget* GuiLayer::AddPlane()
 inline GuiSlider* GuiLayer::AddSlider()
 {
 	return AddControl<GuiSlider>();
+}
+
+inline GuiCollapsable* GuiLayer::AddCollapsable()
+{
+	return AddControl<GuiCollapsable>();
 }
 
 inline const std::vector<Widget*>& GuiLayer::GetControls() const

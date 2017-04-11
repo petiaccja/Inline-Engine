@@ -2,9 +2,17 @@
 #pragma once
 
 #include "../WindowCommon.hpp"
+
+#define NOMINMAX
 #include <windows.h>
 #include <queue>
 #include <functional>
+
+#define min(a,b) a < b ? a : b
+#define max(a,b) a > b ? a : b
+#include <gdiplus.h>
+#undef min
+#undef max
 
 class Window
 {

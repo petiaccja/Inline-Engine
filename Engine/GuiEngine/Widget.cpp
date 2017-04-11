@@ -1,6 +1,5 @@
 #pragma once
 #include "Widget.hpp"
-#include "Widget.hpp"
 #include "GuiText.hpp"
 #include "GuiButton.hpp"
 #include "GuiList.hpp"

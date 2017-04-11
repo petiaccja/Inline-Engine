@@ -1,20 +1,22 @@
 #pragma once
-#include <GraphicsEngine/IGraphicsEngine.hpp>
 #include <GuiEngine/GuiEngine.hpp>
-#include <BaseLibrary\Platform\Window.hpp>
+#include <BaseLibrary/Platform/Window.hpp>
+#include <GraphicsEngine_LL/GraphicsEngine.hpp>
 using namespace inl::gxeng;
 
 class EngineCore
 {
 public:
 	EngineCore();
+	~EngineCore();
 
-	IGraphicsEngine* InitGraphicsEngine(int width, int height, HWND hwnd);
-	GuiEngine* InitGuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindow);
+	GraphicsEngine* InitGraphicsEngine(int width, int height, HWND hwnd);
+	GuiEngine* InitGuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow);
 
 	void Update(float deltaTime);
 
 protected:
-	IGraphicsEngine* graphicsEngine;
+	GraphicsEngine* graphicsEngine;
 	GuiEngine* guiEngine;
+	exc::Logger logger;
 };

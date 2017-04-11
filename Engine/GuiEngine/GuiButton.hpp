@@ -25,30 +25,25 @@ inline GuiButton::GuiButton(GuiEngine* guiEngine)
 :Widget(guiEngine)
 {
 	text = AddText();
-
-	onTransformChange += [](Widget* selff, Rect<float>& rect)
-	{
-		selff->AsButton()->text->SetRect(rect);
-	};
 }
 
 inline GuiButton& GuiButton::operator = (const GuiButton& other)
 {
 	Widget::operator = (other);
 
-	text = GetChildByIdx<GuiText>(other.text->GetIdx());
+	text = GetChildByIdx<GuiText>(other.text->GetIndexInParent());
 
 	return *this;
 }
 
 inline void GuiButton::SetText(const std::wstring& str)
 {
-	text->Set(str);
+	text->SetText(str);
 }
 
 inline void GuiButton::SetText(const std::string& str)
 {
-	text->Set(str);
+	text->SetText(str);
 }
 
 inline void GuiButton::SetTextAlign(eTextAlign align)

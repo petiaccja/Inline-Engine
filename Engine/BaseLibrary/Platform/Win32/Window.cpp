@@ -4,7 +4,6 @@
 #include <limits>
 #include <assert.h>
 #include <windowsx.h>
-#include <gdiplus.h>
 #include <objidl.h>
 #include <fstream>
 #pragma comment (lib, "gdiplus.lib")
@@ -127,16 +126,21 @@ Window::Window(const WindowDesc& d)
 
 	//SetWindowLongPtr(hwnd, GWL_USERDATA, (LONG_PTR)this);
 
-	// Register raw mouse
+	// Register raw mouse, TODO REMOVE IT
 	const unsigned HID_USAGE_PAGE_GENERIC = 0x01;
 	const unsigned HID_USAGE_GENERIC_MOUSE = 0x02;
+	static bool bInited = false;
+	if (!bInited)
+	{
+		bInited = true;
 
-	RAWINPUTDEVICE Rid[1];
-	Rid[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
-	Rid[0].usUsage = HID_USAGE_GENERIC_MOUSE;
-	Rid[0].dwFlags = RIDEV_INPUTSINK;
-	Rid[0].hwndTarget = handle;
-	RegisterRawInputDevices(Rid, 1, sizeof(Rid[0]));
+		RAWINPUTDEVICE Rid[1];
+		Rid[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
+		Rid[0].usUsage = HID_USAGE_GENERIC_MOUSE;
+		Rid[0].dwFlags = RIDEV_INPUTSINK;
+		Rid[0].hwndTarget = handle;
+		RegisterRawInputDevices(Rid, 1, sizeof(Rid[0]));
+	}
 }
 
 Window::~Window()

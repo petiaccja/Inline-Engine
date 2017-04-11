@@ -9,27 +9,26 @@ GuiSlider::GuiSlider(GuiEngine* guiEngine)
 	slider->SetBgIdleColor(Color(130));
 	slider->SetBgHoverColor(slider->GetBgIdleColor());
 
-	onTransformChange += [](Widget* selff, Rect<float>& rect)
+	onTransformChanged += [](Widget* selff, RectF& rect)
 	{
 		GuiSlider* self = selff->AsSlider();
-
 		self->SlideToValue();
 	};
 
-	onMouseEnter += [](Widget* selff, CursorEvent& evt)
+	onMouseEntered += [](Widget* selff, CursorEvent& evt)
 	{
 		GuiSlider* self = selff->AsSlider();
 		self->slider->SetBgActiveColor(self->slider->GetBgIdleColor() + 65);
 	};
 
-	onMouseLeave += [](Widget* selff, CursorEvent& evt)
+	onMouseLeaved += [](Widget* selff, CursorEvent& evt)
 	{
 		GuiSlider* self = selff->AsSlider();
 		self->slider->SetBgActiveColorToIdle();
 	};
 
 	// Start drag
-	onMousePress += [](Widget* selff, CursorEvent& evt)
+	onMousePressed += [](Widget* selff, CursorEvent& evt)
 	{
 		GuiSlider* self = selff->AsSlider();
 		self->bSliding = true;

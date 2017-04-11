@@ -13,15 +13,20 @@ EngineCore::EngineCore()
 
 }
 
-IGraphicsEngine* EngineCore::InitGraphicsEngine(int width, int height, HWND hwnd)
+EngineCore::~EngineCore()
 {
-	//// Create manager
+	delete guiEngine;
+	delete graphicsEngine;
+}
+
+GraphicsEngine* EngineCore::InitGraphicsEngine(int width, int height, HWND hwnd)
+{
+	// Create Graphics Api
 	GxapiManager* gxApiMgr = new GxapiManager();
 	auto adapters = gxApiMgr->EnumerateAdapters();
-	
-	// Create graphics api
 	IGraphicsApi* gxApi = gxApiMgr->CreateGraphicsApi(adapters[0].adapterId);
 	
+	// Create GraphicsEngine
 	GraphicsEngineDesc desc;
 	desc.fullScreen = false;
 	desc.graphicsApi = gxApi;
@@ -29,14 +34,14 @@ IGraphicsEngine* EngineCore::InitGraphicsEngine(int width, int height, HWND hwnd
 	desc.width = width;
 	desc.height = height;
 	desc.targetWindow = hwnd;
-	desc.logger = nullptr;// &logger;
+	desc.logger = &logger;
 	
-	//engine.reset(new GraphicsEngine(desc));
-	//pEngine = engine.get();
-	return nullptr;
+	graphicsEngine = new GraphicsEngine(desc);
+
+	return graphicsEngine;
 }
 
-GuiEngine* EngineCore::InitGuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindow)
+GuiEngine* EngineCore::InitGuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow)
 {
 	if (guiEngine)
 		delete guiEngine;
@@ -47,5 +52,6 @@ GuiEngine* EngineCore::InitGuiEngine(IGraphicsEngine* graphicsEngine, Window* ta
 
 void EngineCore::Update(float deltaTime)
 {
+	graphicsEngine->Update(deltaTime);
 	guiEngine->Update(deltaTime);
 }

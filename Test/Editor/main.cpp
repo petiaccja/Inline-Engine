@@ -3,7 +3,6 @@
 
 #include <BaseLibrary/Platform/Window.hpp>
 #include <BaseLibrary/Timer.hpp>
-#include <GraphicsEngine/IGraphicsEngine.hpp>
 #include <GuiEngine/GuiEngine.hpp>
 #include <Core/Core.hpp>
 #include <Core/InputCore.h>
@@ -14,7 +13,7 @@ using namespace inl::gxeng;
 
 Window* window;
 GuiEngine* guiEngine;
-IGraphicsEngine* graphicsEngine;
+GraphicsEngine* graphicsEngine;
 EngineCore Core;
 InputCore Input;
 
@@ -35,8 +34,27 @@ void main()
 	d.style = eWindowStyle::DEFAULT;
 	window = new Window(d);
 
+	d.clientSize = uvec2(800, 600);
+	//d.style = eWindowStyle::BORDERLESS;
+	auto window2 = new Window(d);
+
+	HWND a = (HWND)window->GetHandle();
+	HWND b = (HWND)window2->GetHandle();
+
+	//SetParent(b, a); //a will be the new parent b
+	//DWORD style = GetWindowLong(b, GWL_STYLE); //get the b style
+	//style &= ~(WS_POPUP | WS_CAPTION); //reset the "caption" and "popup" bits
+	//style |= WS_CHILD; //set the "child" bit
+	//SetWindowLong(b, GWL_STYLE, style); //set the new style of b
+	//RECT rc; //temporary rectangle
+	////GetClientRect(a, &rc); //the "inside border" rectangle for a
+	////MoveWindow(b, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, true); //place b at (x,y,w,h) in a
+	//UpdateWindow(a);
+
+	//std::swap(window, window2);
+
 	// Init Graphics Engine
-	graphicsEngine = Core.InitGraphicsEngine(window->GetClientWidth(), window->GetClientHeight(), (HWND)window->GetHandle());
+	graphicsEngine = Core.InitGraphicsEngine(window2->GetClientWidth(), window2->GetClientHeight(), (HWND)window2->GetHandle());
 
 	// Init Gui Engine
 	guiEngine = Core.InitGuiEngine(graphicsEngine, window);
@@ -48,8 +66,8 @@ void main()
 	Timer* timer = new Timer();
 	timer->Start();
 
-
 	window->SetTitle(L"Inline Gui Editor");
+
 	// Main loop, till window open
 	while (window->IsOpen())
 	{
@@ -58,6 +76,7 @@ void main()
 
 		WindowEvent evt;
 		while (window->PopEvent(evt));
+		while (window2->PopEvent(evt));
 
 		// Process input events coming from O.S.-> Window
 		//WindowEvent evt;
@@ -108,13 +127,13 @@ void main()
 		Input.Update();
 
 		// IsKeyPressed Enterre sose lesz igaz, mert asszem hogy a window message - ben kétszer szerepel az enter megnyomása, mert system message is jön, meg egy nem system message is
-		if (Input.IsKeyPressed(ENTER))
-		{
-			uint32_t width = window->GetClientWidth();
-			uint32_t height = window->GetClientHeight();
-
-			graphicsEngine->SetResolution(width, height);
-		}
+		//if (Input.IsKeyPressed(ENTER))
+		//{
+		//	uint32_t width = window->GetClientWidth();
+		//	uint32_t height = window->GetClientHeight();
+		//
+		//	graphicsEngine->SetResolution(width, height);
+		//}
 
 		// Get delta seconds from the timer
 		float deltaTime = timer->Elapsed();
@@ -122,6 +141,7 @@ void main()
 
 		// Go Excessive Engine go !!
 		Core.Update(deltaTime);
+
 		Sleep(30);
 	}
 
@@ -134,7 +154,63 @@ void InitGui()
 {
 	// New Layer
 	GuiLayer* layer = guiEngine->AddLayer();
+	//GuiText* btn = layer->AddText();
+	//btn->SetText(L"Button");
+	//btn->SetPadding(10);
+	//btn->SetBgColorForAllStates(Color(50));
+	//btn->SetPos(50, 50);
+	//btn->SetAlign(eTextAlign::CENTER);
+	//btn->SetBorder(1, Color::RED);
 
+	// GuiButton létrejötténél nem tudott a padding, ezért nem helyezõdik el jól a GuiText a buttonban... a GetClientRect() padding nélkül...
+	// Megoldás hogy GuiButton transform változásnál szépen rearrangolja a child controlokat alignment policy - k és egyéb policy - k alapján !!!
+	GuiButton* btn2 = layer->AddButton();
+	btn2->SetRect(0, 0, 100, 200);
+	btn2->SetText(L"Button");
+	btn2->SetBgColorForAllStates(Color(50));
+	btn2->SetTextAlign(eTextAlign::CENTER);
+	btn2->SetPadding(10);
+	btn2->SetBorder(3, Color::RED);
+
+	return;
+	// Gui collapsable
+	{
+		GuiCollapsable* collapsable = layer->AddCollapsable();
+		collapsable->SetName("collapsable");
+		collapsable->SetCaptionText(L"Collapsable");
+		collapsable->SetRect(500, 500, 60, 30);
+		collapsable->AddToList<GuiButton>()->SetText("LOL");
+		collapsable->AddToList<GuiButton>()->SetText("LOL2");
+		//collapsable->SetMargin(10, 10, 10, 10);
+		collapsable->SetBgColorForAllStates(Color(150));
+
+		GuiCollapsable* collapsable2 = layer->AddCollapsable();
+		collapsable2->SetName("Collapsable2");
+		collapsable2->SetCaptionText(L"Collapsable2");
+		collapsable2->SetRect(500, 520, 60, 30);
+		collapsable2->AddToList<GuiButton>()->SetText("LOL");
+		collapsable2->AddToList<GuiButton>()->SetText("LOL2");
+		collapsable2->SetBgColorForAllStates(Color(0, 0, 0, 0));
+		
+		GuiCollapsable* collapsableList = layer->AddCollapsable();
+		collapsableList->SetCaptionText(L"CaptionText");
+		collapsableList->SetName("CollapsableList");
+		collapsableList->AddToList(collapsable);
+		collapsableList->AddToList(collapsable2);
+
+		collapsableList->SetFitToChildren(true);
+		collapsableList->SetRect(500, 400, 10, 250);
+		collapsableList->SetBorder(1, Color::WHITE);
+		collapsableList->SetBgColorForAllStates(Color(150));
+
+		Widget* caption = collapsableList->GetCaption();
+		caption->SetBgIdleColor(Color(20));
+		caption->SetBgHoverColor(Color(0));
+
+		int asd = 5;
+		asd++;
+	}
+	//return;
 	//auto button = layer->AddButton();
 	//button->SetRect(0, 0, 100, 100);
 	//button->SetText("halleluja");
@@ -170,32 +246,40 @@ void InitGui()
 
 
 
-	GuiButton* button = layer->AddButton();
-	GuiButton* button2 = layer->AddButton();
-	GuiButton* button3 = layer->AddButton();
+	//GuiButton* button = layer->AddButton();
+	//GuiButton* button2 = layer->AddButton();
+	//GuiButton* button3 = layer->AddButton();
 	
 	// Menu
 	{
 		// Control List
 		eTextAlign align = eTextAlign::CENTER;
 		GuiList* list = layer->AddList();
+		list->SetBorder(1, Color::RED);
 		GuiButton* button = list->AddButton();
 		button->SetText("File");
 		button->SetTextAlign(align);
+		button->SetPadding(4, 4, 4, 4);
 		GuiButton* button1 = list->AddButton();
 		button1->SetText("Edit");
 		button1->SetTextAlign(align);
+		button1->SetPadding(4, 4, 4, 4);
 		GuiButton* button2 = list->AddButton();
 		button2->SetText("Project");
 		button2->SetTextAlign(align);
+		button2->SetPadding(4, 4, 4, 4);
 		GuiButton* button3 = list->AddButton();
 		button3->SetText("Resources");
 		button3->SetTextAlign(align);
+		button3->SetPadding(4, 4, 4, 4);
 		GuiButton* button4 = list->AddButton();
 		button4->SetText("Help");
 		button4->SetTextAlign(align);
+		button4->SetPadding(4, 4, 4, 4);
 		list->SetDirection(eGuiListDirection::HORIZONTAL);
 	
+		list->SetBgColorForAllStates(Color(0));
+		list->SetRect(0, 0, 0, 0);
 		//{
 		//	auto button = layer->AddButton();
 		//	button->SetBgToColor(Color(55, 55, 55), Color(80, 80, 80));
@@ -266,47 +350,55 @@ void InitGui()
 	vec2 pinSize = { 10, 10 };
 	float pinSpace = 20.f;
 	GuiButton* button = layer->AddButton();
-	
+	button->DisableClipChildren();
+
+	//button->DisableClip();
 	button->SetBgToColor(Color(45), Color(50));
 	button->SetRect(x, y, 60, 60);
 	button->SetText("Node2");
 	GuiButton* pin0 = button->AddButton();
 	node2 = pin0;
-	pin0->DisableClip();
+	//pin0->DisableClip();
 	pin0->SetBgToColor(Color(120), Color(180));
 	pin0->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5, pinSize.x, pinSize.y);
 	GuiButton* pin1 = button->AddButton();
-	pin1->DisableClip();
+	//pin1->DisableClip();
 	pin1->SetBgToColor(Color(120), Color(180));
 	pin1->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace, pinSize.x, pinSize.y);
 	GuiButton* pin2 = button->AddButton();
 	pin2->SetBgToColor(Color(120), Color(180));
 	pin2->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace * 2.f, pinSize.x, pinSize.y);
-	pin2->DisableClip();
+	//pin2->DisableClip();
 	GuiButton* outputPin = button->AddButton();
 	outputPin->SetBgToColor(Color(120), Color(180));
 	outputPin->SetRect(x + 60 - pinSize.x * 0.5, y + 30 - pinSize.y * 0.5, pinSize.x, pinSize.y);
+	//outputPin->DisableClip();
 	}
 	
 	
 	{
 	// Control List
 	eTextAlign align = eTextAlign::LEFT;
+
 	GuiList* list = layer->AddList();
-	list->SetBorder(1, Color(255));
+	list->SetBorder(1, Color(0, 0, 255));
 	list->SetDirection(eGuiListDirection::HORIZONTAL);
+
 	GuiButton* button = list->AddButton();
 	button->SetBorder(1, Color(255, 0, 0));
 	button->SetText("Button");
 	button->SetTextAlign(align);
+
 	GuiButton* button1 = list->AddButton();
 	button1->SetText("Text");
 	button1->SetTextAlign(align);
 	button1->SetBorder(1, Color(0, 255, 0));
+
 	list->SetRect(0, 70, 60, 600);
+
 	GuiList* clone = list->Clone();
-	list->Add(clone);
-	list->SetRect(0, 70, 60, 600);
+	//list->Add(clone);
+	//list->SetRect(50, 200, 60, 600);
 	int asd = 5;
 	asd++;
 	}

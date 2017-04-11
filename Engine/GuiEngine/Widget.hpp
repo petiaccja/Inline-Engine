@@ -4,12 +4,12 @@
 
 // TMP HEKK (REMOVE)
 #include <BaseLibrary\Platform\Window.hpp>
-#define min(a,b) a < b ? a : b
-#define max(a,b) a > b ? a : b
-#include <gdiplus.h>
-#undef min
-#undef max
-// TMP HEKK END
+//#define min(a,b) a < b ? a : b
+//#define max(a,b) a > b ? a : b
+//#include <gdiplus.h>
+//#undef min
+//#undef max
+//// TMP HEKK END
 
 #include <unordered_map>
 
@@ -19,6 +19,7 @@ class GuiText;
 class GuiButton;
 class GuiList;
 class GuiSlider;
+class GuiCollapsable;
 
 class Widget
 {
@@ -43,7 +44,7 @@ public:
 	GuiButton*	AddButton();
 	GuiList*	AddList();
 
-	bool RemoveChild(Widget* child);
+	bool Remove(Widget* child);
 	bool Remove();
 
 	void TraverseTowardParents(const std::function<void(Widget*)>& fn);
@@ -59,12 +60,19 @@ public:
 	GuiButton* AsButton() { return (GuiButton*)this; }
 	GuiList*   AsList()   { return (GuiList*)this; }
 	GuiSlider* AsSlider() { return (GuiSlider*)this; }
+	GuiCollapsable* AsCollapsable() { return (GuiCollapsable*)this; }
 
+
+	void SetClientRect(float x, float y, float width, float height);
 	void SetRect(float x, float y, float width, float height);
-	void SetRect(const Rect<float>& rect)	{ SetRect(rect.x, rect.y, rect.width, rect.height); }
+	void SetClientSize(float width, float height) { SetClientRect(GetClientRect().left, GetClientRect().top, width, height); }
+
+	void SetClientRect(const RectF rect) { SetClientRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); }
+	void SetRect(const RectF& rect)	{ SetRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); }
+
 	void SetName(const std::wstring& str)	{ name = str; }
 	void SetName(const std::string& str)	{ SetName(std::wstring(str.begin(), str.end())); }
-	void SetContextMenu(Widget* c)		{ contextMenu = c; }
+	void SetContextMenu(Widget* c)			{ contextMenu = c; }
 	void SetPos(const vec2& p)				{ SetPos(p.x, p.y); }
 	void SetPos(float x, float y)			{ SetRect(x, y, size.x, size.y); }
 	void SetCenterPos(float x, float y)		{ SetPos(x - GetHalfWidth(), y + GetHalfHeight()); }
@@ -76,13 +84,12 @@ public:
 	void SetHeight(float h)					{ SetSize(vec2(size.x, h)); }
 
 	void SetClientSize(const vec2& s) { SetClientSize(s.x, s.y); }
-	void SetClientSize(float width, float height) { SetSize(width + borderPixelSize * 2, height + borderPixelSize * 2); }
 
 	void SetEventPropagationPolicy(eEventPropagationPolicy e) { eventPropagationPolicy = e; }
 
-	void EnableClip() { SetClip(true); }
-	void DisableClip() { SetClip(false); }
-	void SetClip(bool b) { bClip = b; }
+	void EnableClipChildren() { SetClipChildren(true); }
+	void DisableClipChildren() { SetClipChildren(false); }
+	void SetClipChildren(bool b) { bClipChildren = b; }
 
 	void SetBgToColor(const Color& idleColor, const Color& hoverColor);
 	void SetBgIdleColor(const Color& color);
@@ -99,14 +106,24 @@ public:
 	void SetBgActiveImageToHover();
 	void SetBgImageForAllStates(const std::wstring& filePath);
 
+	void SetBorder(float leftLength, float rightLength, float topLength, float bottomLength, const Color& color);
+	void SetBorder(float borderLength, const Color& color) { SetBorder(borderLength, borderLength, borderLength, borderLength, color); }
+	
+	void SetMargin(float leftLength, float topLength, float rightLength, float bottomLength);
+	void SetPadding(float leftLength, float topLength, float rightLength, float bottomLength);
+	void SetMargin(float length) { SetMargin(length, length, length, length); }
+	void SetPadding(float length) { SetPadding(length, length, length, length); }
+
+	void SetBgImageVisibility(bool bVisible) { bBgImageVisible = bVisible; }
+	void SetBgColorVisibility(bool bVisible) { bBgColorVisible = bVisible; }
+
+	void SetFitToChildren(bool bFit) { bFitToChildren = bFit; }
+
 	void HideBgImage() { SetBgImageVisibility(false); }
 	void HideBgColor() { SetBgColorVisibility(false); }
 
 	void ShowBgImage() { SetBgImageVisibility(true); }
 	void ShowBgColor() { SetBgColorVisibility(true); }
-
-	void SetBgImageVisibility(bool bVisible) { bBgImageVisible = bVisible; }
-	void SetBgColorVisibility(bool bVisible) { bBgColorVisible = bVisible; }
 
 	float GetClientSpaceCursorPosX();
 	float GetClientSpaceCursorPosY();
@@ -124,31 +141,37 @@ public:
 	float GetHalfHeight() { return GetHeight() * 0.5f; }
 	vec2 GetHalfSize() { return vec2(GetHalfWidth(), GetHalfHeight()); }
 
-	float GetClientPosX() { return pos.x + borderPixelSize; }
-	float GetClientPosY() { return pos.y + borderPixelSize; }
-	vec2 GetClientPos() { return pos + vec2(borderPixelSize, borderPixelSize); }
-	float GetClientCenterPosY() { return GetClientPosY() - GetHalfHeight(); }
-	float GetClientCenterPosX() { return GetClientPosX() + GetHalfWidth(); }
+	const RectF& GetPadding() const { return padding; }
+	const RectF& GetMargin() const { return margin; }
+
+	float GetClientPosX() { return GetClientRect().left; }
+	float GetClientPosY() { return GetClientRect().top; }
+	vec2 GetClientPos() { return GetClientRect().GetPos(); }
+	float GetClientCenterPosY() { return GetClientPosY() - GetClientHalfHeight(); }
+	float GetClientCenterPosX() { return GetClientPosX() + GetClientHalfWidth(); }
 	vec2 GetClientCenterPos() { return GetClientPos() + GetClientHalfSize(); }
-	vec2 GetClientSize() { return size - vec2(borderPixelSize, borderPixelSize) * 2; }
-	float GetClientWidth() { return size.x - borderPixelSize * 2; }
-	float GetClientHeight() { return size.y - borderPixelSize * 2; }
+	vec2 GetClientSize() { return GetClientRect().GetSize(); }
+	float GetClientWidth() { return GetClientRect().GetWidth(); }
+	float GetClientHeight() { return GetClientRect().GetHeight(); }
 	float GetClientHalfWidth() { return GetClientWidth() * 0.5f; }
 	float GetClientHalfHeight() { return GetClientWidth() * 0.5f; }
-	vec2 GetClientHalfSize() { return vec2(GetClientWidth() * 0.5f, GetClientHeight() * 0.5f); }
+	vec2 GetClientHalfSize() { return GetClientSize() * 0.5f; }
 
-	Rect<float> GetRect() { return Rect<float>(pos.x, pos.y, size.x, size.y); }
-	Rect<float> GetClientRect() { return Rect<float>(pos.x + borderPixelSize, pos.y + borderPixelSize, size.x - borderPixelSize * 2, size.y - borderPixelSize * 2); }
+	RectF GetRect();
+	RectF GetClientRect();
+	RectF GetPaddingRect();
+	RectF GetBorderRect();
 
 	Widget* GetParent() { return parent; }
 	Widget* GetContextMenu() { return contextMenu; }
-	const std::vector<Widget*>& GetChildren() { return children; }
+	std::vector<Widget*>& GetChildren() { return children; }
+	RectF GetChildrenBoundRect();
 
 	template<class T>
 	T* GetChildByIdx(int index) { return (T*)GetChildren()[index]; }
 
 	Widget* GetChildByIdx(int index) { return GetChildren()[index]; }
-	int GetIdx() { return idx; }
+	int GetIndexInParent() { return indexInParent; }
 
 	eEventPropagationPolicy GetEventPropagationPolicy() { return eventPropagationPolicy; }
 
@@ -162,11 +185,12 @@ public:
 
 
 	bool IsPointInside(ivec2 pt) { return GetRect().IsPointInside(pt); }
-	bool IsLayer() { return bLayer; }
 
-	void SetBorder(float borderPixelSize, const Color& borderColor) { this->borderPixelSize = borderPixelSize; this->borderColor = borderColor; }
+	bool IsLayer() { return bLayer; }
+	bool IsChildrenClipEnabled() { return bClipChildren; }
+
 	const Color& GetBorderColor() { return borderColor; }
-	float GetBorderPixelSize() { return borderPixelSize; }
+	RectF GetBorder() { return border; }
 
 protected:
 	void SetActiveImage(Gdiplus::Bitmap* image) { bgActiveImage = image; }
@@ -188,14 +212,16 @@ protected:
 	bool bLayer;
 
 	// Is clipped by parent client area?
-	bool bClip;
+	bool bClipChildren;
+
+	// If true parent rectangle will be exactly aroound childs always
+	bool bFitToChildren;
 
 	// children index in parent
-	int idx;
-
+	int indexInParent;
+	
 	// Children widgets
 	std::vector<Widget*> children;
-	std::unordered_map<Widget*, size_t> childrenIndices; // For optimizing (Add & Remove) functions
 
 	// What this widget should do with the message it reaches while moving up in hierarchy (toward parents)
 	eEventPropagationPolicy eventPropagationPolicy;
@@ -219,75 +245,172 @@ protected:
 
 	// Border
 	Color borderColor;
-	float borderPixelSize;
+	RectF border;
+
+	// Margin
+	RectF margin;
+
+	// Padding
+	RectF padding;
 
 	// Access to god
 	GuiEngine* guiEngine;
 
 public:
-	Delegate<void(Widget* self, CursorEvent& evt)> onMouseClick;
-	Delegate<void(Widget* self, CursorEvent& evt)> onMousePress;
-	Delegate<void(Widget* self, CursorEvent& evt)> onMouseRelease;
-	Delegate<void(Widget* self, CursorEvent& evt)> onMouseMove;
-	Delegate<void(Widget* self, CursorEvent& evt)> onMouseEnter;
-	Delegate<void(Widget* self, CursorEvent& evt)> onMouseLeave;
-	Delegate<void(Widget* self, CursorEvent& evt)> onMouseHover;
+	Delegate<void(Widget* self, CursorEvent& evt)> onMouseClicked;
+	Delegate<void(Widget* self, CursorEvent& evt)> onMousePressed;
+	Delegate<void(Widget* self, CursorEvent& evt)> onMouseReleased;
+	Delegate<void(Widget* self, CursorEvent& evt)> onMouseMoved;
+	Delegate<void(Widget* self, CursorEvent& evt)> onMouseEntered;
+	Delegate<void(Widget* self, CursorEvent& evt)> onMouseLeaved;
+	Delegate<void(Widget* self, CursorEvent& evt)> onMouseHovered;
 
-	Delegate<void(Widget* self, Rect<float>& rect)> onTransformChange;
-	Delegate<void(Widget* self, Rect<float>& rect)> onParentTransformChange;
-	Delegate<void(Widget* self, Widget* parent)> onParentChange;
+	Delegate<void(Widget* self, RectF& rect)> onTransformChanged;
+	Delegate<void(Widget* self, RectF& rect)> onParentTransformChanged;
+	Delegate<void(Widget* self, RectF& rect)> onChildTransformChanged;
+	Delegate<void(Widget* self, Widget* parent)> onParentChanged;
+	Delegate<void(Widget* self, Widget* child)> onChildAdded;
+	Delegate<void(Widget* self, Widget* child)> onChildRemoved;
 
-	Delegate<void(Widget* self, Gdiplus::Graphics* graphics, Rect<float>& clipRect)> onPaint;
+	Delegate<void(Widget* self, Gdiplus::Graphics* graphics, RectF& clipRect)> onPaint;
 	Delegate<void(Widget* self, float deltaTime)> onUpdate;
+
+	//virtual void OnMouseClicked(CursorEvent& evt) {}
+	//virtual void OnMousePressed(CursorEvent& evt) {}
+	//virtual void OnMouseReleased(CursorEvent& evt) {}
+	//virtual void OnMouseMoved(CursorEvent& evt) {}
+	//virtual void OnMouseEntered(CursorEvent& evt) {}
+	//virtual void OnMouseLeaved(CursorEvent& evt) {}
+	//virtual void OnMouseHovered(CursorEvent& evt) {}
+	//virtual void OnTransformChanged(Widget* self, RectF& rect) {}
+	//virtual void OnParentTransformChanged(Widget* self, RectF& rect) {}
+	//virtual void OnChildTransformChanged(Widget* self, RectF& rect) {}
+	//virtual void OnParentChanged(Widget* self, Widget* parent) {}
+	//virtual void OnChildAdded(Widget* self, Widget* child) {}
+	//virtual void OnChildRemoved(Widget* self, Widget* child) {}
+	//
+	//virtual void OnPaint(Widget* self, Gdiplus::Graphics* graphics, RectF& clipRect) {}
+	//virtual void OnUpdate(Widget* self, float deltaTime) {}
 };
 
 inline Widget::Widget(GuiEngine* guiEngine, bool bLayer)
-:guiEngine(guiEngine), pos(0, 0), eventPropagationPolicy(eEventPropagationPolicy::PROCESS), size(60, 20), idx(-1), bLayer(bLayer), parent(nullptr), front(nullptr), back(nullptr), contextMenu(nullptr), bgIdleColor(45), bgHoverColor(75), bgActiveImage(nullptr), bgIdleImage(nullptr), bgHoverImage(nullptr), borderPixelSize(0), borderColor(128), bBgImageVisible(true), bBgColorVisible(true)
+:guiEngine(guiEngine), pos(0, 0), eventPropagationPolicy(eEventPropagationPolicy::PROCESS), size(60, 20), indexInParent(-1), bLayer(bLayer), parent(nullptr), front(nullptr), back(nullptr), contextMenu(nullptr), bgIdleColor(45), bgHoverColor(75), bgActiveImage(nullptr), bgIdleImage(nullptr), bgHoverImage(nullptr), border(0,0,0,0), borderColor(128), bBgImageVisible(true), bBgColorVisible(true), bClipChildren(true), bFitToChildren(false), margin(0,0,0,0), padding(0,0,0,0)
 {
 	SetBgActiveColor(bgIdleColor);
 
-	onMouseEnter += [](Widget* self, CursorEvent& event)
+	onMouseEntered += [](Widget* self, CursorEvent& event)
 	{
 		self->SetBgActiveColor(self->GetBgHoverColor());
 		self->SetBgActiveImage(self->GetBgHoverImage());
 	};
 
-	onMouseLeave += [](Widget* self, CursorEvent& event)
+	onMouseLeaved += [](Widget* self, CursorEvent& event)
 	{
 		self->SetBgActiveColor(self->GetBgIdleColor());
 		self->SetBgActiveImage(self->GetBgIdleImage());
 	};
 
-	onPaint += [](Widget* self, Gdiplus::Graphics* graphics, Rect<float>& clipRect)
+	onPaint += [](Widget* self, Gdiplus::Graphics* graphics, RectF& clipRect)
 	{
-		Rect<float> clientRect = self->GetClientRect();
-		Rect<float> rect = self->GetRect();
+		RectF paddingRect = self->GetPaddingRect();
+		RectF borderRect = self->GetBorderRect();
+		const RectF& border = self->border;
 
-		Gdiplus::Rect gdiBorderRect(rect.x, rect.y, rect.width, rect.height);
-		Gdiplus::Rect gdiClientRect(clientRect.x, clientRect.y, clientRect.width, clientRect.height);
-		Gdiplus::Rect gdiClipRect(clipRect.x, clipRect.y, clipRect.width, clipRect.height);
+		Gdiplus::Rect gdiBorderRect(borderRect.left, borderRect.top, borderRect.GetWidth(), borderRect.GetHeight());
+		Gdiplus::Rect gdiPaddingRect(paddingRect.left, paddingRect.top, paddingRect.GetWidth(), paddingRect.GetHeight());
+		Gdiplus::Rect gdiClipRect(clipRect.left, clipRect.top, clipRect.GetWidth(), clipRect.GetHeight());
 
-		//Before we draw everything use the clip rectangle
-		if(self->bClip)
-			graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeReplace);
+		// Clipping
+		graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeReplace);
 
-		// Draw border rectangle
-		if (self->borderPixelSize != 0)
+		// Draw left border
+		Gdiplus::SolidBrush borderBrush(Gdiplus::Color(self->borderColor.a, self->borderColor.r, self->borderColor.g, self->borderColor.b));
+		if (border.left != 0)
 		{
-			Gdiplus::SolidBrush brush(Gdiplus::Color(self->borderColor.a, self->borderColor.r, self->borderColor.g, self->borderColor.b));
-			graphics->FillRectangle(&brush, gdiBorderRect);
+			RectF tmp = borderRect;
+
+			// Setup left border
+			tmp.right = tmp.left + border.left;
+
+			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
+			graphics->FillRectangle(&borderBrush, tmpGdi);
 		}
 
+		// Draw right border
+		if (border.right != 0)
+		{
+			RectF tmp = borderRect;
+
+			// Setup right border
+			tmp.left = tmp.right - border.right;
+
+			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
+			graphics->FillRectangle(&borderBrush, tmpGdi);
+		}
+		
+		// Draw top border
+		if (border.top != 0)
+		{
+			RectF tmp = borderRect;
+
+			// Setup top border
+			tmp.bottom = tmp.top + border.top;
+
+			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
+			graphics->FillRectangle(&borderBrush, tmpGdi);
+		}
+
+		// Draw bottom border
+		if (border.bottom != 0)
+		{
+			RectF tmp = borderRect;
+
+			// Setup top border
+			tmp.top = tmp.bottom - border.bottom;
+
+			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
+			graphics->FillRectangle(&borderBrush, tmpGdi);
+		}
+
+
+		// Draw Background Image Rectangle
 		if (self->GetBgActiveImage() && self->bBgImageVisible)
 		{
-			graphics->DrawImage(self->GetBgActiveImage(), gdiClientRect);
+			graphics->DrawImage(self->GetBgActiveImage(), gdiPaddingRect);
 		}
-		else if(self->bBgColorVisible)
+		else if(self->bBgColorVisible) // Draw Background Colored Rectangle
 		{
-			// Draw main rectangle
 			Color bgColor = self->GetBgActiveColor();
 			Gdiplus::SolidBrush brush(Gdiplus::Color(bgColor.a, bgColor.r, bgColor.g, bgColor.b));
-			graphics->FillRectangle(&brush, gdiClientRect);
+			graphics->FillRectangle(&brush, gdiPaddingRect);
+		}
+	};
+
+	// TODO REMOVE THESE
+	onChildAdded += [](Widget* self, Widget* child)
+	{
+		if (self->bFitToChildren)
+		{
+			RectF boundRect = self->GetChildrenBoundRect();
+			self->SetClientSize(boundRect.GetSize());
+		}
+	};
+	
+	onChildRemoved += [](Widget* self, Widget* child)
+	{
+		if (self->bFitToChildren)
+		{
+			RectF boundRect = self->GetChildrenBoundRect();
+			self->SetClientSize(boundRect.GetSize());
+		}
+	};
+	
+	onChildTransformChanged += [](Widget* self, RectF& rect)
+	{
+		if (self->bFitToChildren)
+		{
+			RectF boundRect = self->GetChildrenBoundRect();
+			self->SetClientSize(boundRect.GetSize());
 		}
 	};
 }
@@ -311,13 +434,12 @@ inline void Widget::Clear()
 	front = nullptr;
 	back = nullptr;
 	parent = nullptr;
-	idx = -1;
+	indexInParent = -1;
 
 	for (Widget* c : children)
 		delete c;
 
 	children.clear();
-	childrenIndices.clear();
 }
 
 inline Widget& Widget::operator = (const Widget& other)
@@ -328,22 +450,27 @@ inline Widget& Widget::operator = (const Widget& other)
 	pos = other.pos;
 	size = other.size;
 	name = other.name;
-	onMouseClick = other.onMouseClick;
-	onMousePress = other.onMousePress;
-	onMouseRelease = other.onMouseRelease;
-	onMouseMove = other.onMouseMove;
-	onMouseEnter = other.onMouseEnter;
-	onMouseLeave = other.onMouseLeave;
-	onMouseHover = other.onMouseHover;
-	onTransformChange = other.onTransformChange;
-	onParentTransformChange = other.onParentTransformChange;
+	onMouseClicked = other.onMouseClicked;
+	onMousePressed = other.onMousePressed;
+	onMouseReleased = other.onMouseReleased;
+	onMouseMoved = other.onMouseMoved;
+	onMouseEntered = other.onMouseEntered;
+	onMouseLeaved = other.onMouseLeaved;
+	onMouseHovered = other.onMouseHovered;
+	onTransformChanged = other.onTransformChanged;
+	onParentTransformChanged = other.onParentTransformChanged;
 	onPaint = other.onPaint;
 	onUpdate = other.onUpdate;
-	idx = other.idx;
+	indexInParent = other.indexInParent;
 	bLayer = other.bLayer;
+	bClipChildren = other.bClipChildren;
+	bFitToChildren = other.bFitToChildren;
+	indexInParent = other.indexInParent;
 	borderColor = other.borderColor;
-	borderPixelSize = other.borderPixelSize;
-	
+	border = other.border;
+	margin = other.margin;
+	padding = other.padding;
+
 	// Background
 	if (other.bgIdleImage)
 		bgIdleImage = other.bgIdleImage->Clone(Gdiplus::RectF(0, 0, other.bgIdleImage->GetWidth(), other.bgIdleImage->GetHeight()), other.bgIdleImage->GetPixelFormat());
@@ -385,7 +512,7 @@ T* Widget::Add()
 inline void Widget::Add(Widget* child)
 {
 	if (child->parent)
-		child->parent->RemoveChild(child);
+		child->parent->Remove(child);
 
 	child->parent = this;
 
@@ -396,43 +523,56 @@ inline void Widget::Add(Widget* child)
 		lastControl->front = child;
 	}
 
-	childrenIndices.insert(std::make_pair(child, children.size()));
-	child->idx = children.size();
+	child->indexInParent = children.size();
 	children.push_back(child);
 
-	child->onParentChange(child, this);
+	child->onParentChanged(child, this);
+	onChildAdded(this, child);
 }
 
-inline bool Widget::RemoveChild(Widget* child)
+inline bool Widget::Remove(Widget* child)
 {
-	auto it = childrenIndices.find(child);
-	if (it != childrenIndices.end())
+	int potentialIndex = child->indexInParent;
+	std::vector<Widget*>& children = GetChildren();
+
+	if (potentialIndex < children.size())
 	{
-		if (child->front)
-			child->front->back = nullptr;
+		Widget* potentialMatch = children[potentialIndex];
 
-		if (child->back)
-			child->back->front = nullptr;
+		if (child == potentialMatch)
+		{
+			if (child->front)
+				child->front->back = nullptr;
 
-		child->parent = nullptr;
-		child->idx = -1;
-		child->front = nullptr;
-		child->back = nullptr;
+			if (child->back)
+				child->back->front = nullptr;
 
-		children.erase(children.begin() + it->second);
-		childrenIndices.erase(it);
-		return true;
+			child->parent = nullptr;
+			child->indexInParent = -1;
+			child->front = nullptr;
+			child->back = nullptr;
+
+			// Erase
+			children.erase(children.begin() + potentialIndex);
+
+			// After erasing it's important to correct the neighbours widget's indexes
+			for (int i = potentialIndex; i < children.size(); ++i)
+				if (children[i]->indexInParent != -1)
+					--children[i]->indexInParent;
+
+			onChildRemoved(this, child);
+			child->onParentChanged(child, nullptr);
+
+			return true;
+		}
 	}
-	else
-	{
-		return false;
-	}
+	return false;
 }
 
 inline bool Widget::Remove()
 {
 	if (parent)
-		return parent->RemoveChild(this);
+		return parent->Remove(this);
 
 	return false;
 }
@@ -459,32 +599,55 @@ inline void Widget::TraverseTowardParents(const std::function<void(Widget*)>& fn
 
 inline void Widget::Move(float dx, float dy)
 {
-	pos.x += dx;
-	pos.y += dy;
-
-	for (Widget* child : children)
-		child->Move(dx, dy);
+	SetPos(pos.x + dx, pos.y + dy);
 }
 
 inline void Widget::SetRect(float x, float y, float width, float height)
 {
-	Rect<float> oldRect = GetRect();
+	RectF oldRect = GetRect();
+
 	pos.x = x;
 	pos.y = y;
 	size.x = width;
 	size.y = height;
-	Rect<float> rect = GetRect();
+	RectF rect = GetRect();
 
 	if (rect != oldRect)
 	{
-		onTransformChange(this, rect);
-
 		for (Widget* child : children)
 		{
-			//child->Move(rect.x - oldRect.x, rect.y - oldRect.y);
-			child->onParentTransformChange(child, rect);
+			child->Move(rect.GetPos() - oldRect.GetPos());
+			child->onParentTransformChanged(child, rect);
 		}
+		
+		onTransformChanged(this, rect);
+
+		if (parent)
+			parent->onChildTransformChanged(parent, rect);
 	}
+}
+
+inline void Widget::SetClientRect(float x, float y, float width, float height)
+{
+	RectF resultRect = RectF(x, y, x + width, y + height);
+
+	// Convert length to signed offset
+	RectF padding_ = padding;
+	RectF border_ = border;
+	RectF margin_ = margin;
+	padding_.left *= -1;
+	padding_.top *= -1;
+	border_.left *= -1;
+	border_.top *= -1;
+	margin_.left *= -1;
+	margin_.top *= -1;
+
+	// Now we can move the sides in appropriate directions
+	resultRect.MoveSides(padding_);
+	resultRect.MoveSides(border_);
+	resultRect.MoveSides(margin_);
+
+	SetRect(resultRect);
 }
 
 inline void Widget::SetBgIdleImage(const std::wstring& str)
@@ -519,6 +682,7 @@ inline void Widget::SetBgIdleColor(const Color& color)
 		SetBgActiveColor(color);
 
 	bgIdleColor = color;
+	ShowBgColor();
 }
 
 inline void Widget::SetBgToColor(const Color& idleColor, const Color& hoverColor)
@@ -528,6 +692,7 @@ inline void Widget::SetBgToColor(const Color& idleColor, const Color& hoverColor
 
 	SetBgHoverColor(hoverColor);
 	SetBgIdleColor(idleColor);
+	ShowBgColor();
 }
 
 inline void Widget::SetBgHoverColor(const Color& color)
@@ -536,22 +701,26 @@ inline void Widget::SetBgHoverColor(const Color& color)
 		SetBgActiveColor(color);
 
 	bgHoverColor = color;
+	ShowBgColor();
 }
 
 inline void Widget::SetBgActiveColorToIdle()
 {
 	SetBgActiveColor(GetBgIdleColor());
+	ShowBgColor();
 }
 
 inline void Widget::SetBgActiveColorToHover()
 {
 	SetBgActiveColor(GetBgHoverColor());
+	ShowBgColor();
 }
 
 inline void Widget::SetBgColorForAllStates(const Color& color)
 {
 	SetBgHoverColor(color);
 	SetBgIdleColor(color);
+	ShowBgColor();
 }
 
 inline void Widget::SetBgActiveImageToIdle()
@@ -568,4 +737,98 @@ inline void Widget::SetBgImageForAllStates(const std::wstring& filePath)
 {
 	SetBgIdleImage(filePath);
 	SetBgHoverImage(filePath);
+}
+
+inline RectF Widget::GetChildrenBoundRect()
+{
+	// NOOB SOLUTION QUERY CHILDS
+	auto& children = GetChildren();
+
+	RectF idealRect;
+
+	if (children.size() != 0)
+		idealRect = children[0]->GetRect();
+
+	for (int i = 1; i < children.size(); ++i)
+		idealRect = children[i]->GetRect().Union(idealRect);
+
+	return idealRect;
+}
+
+inline RectF Widget::GetRect()
+{
+	return RectF::FromSize(pos.x, pos.y, size.x, size.y);
+}
+
+inline RectF Widget::GetClientRect()
+{
+	RectF result = GetRect();
+
+	result.MoveSidesLocal(-margin);
+	result.MoveSidesLocal(-border);
+	result.MoveSidesLocal(-padding);
+
+	return result;
+}
+
+inline RectF Widget::GetPaddingRect()
+{
+	RectF result = GetRect();
+
+	result.MoveSidesLocal(-margin);
+	result.MoveSidesLocal(-border);
+
+	return result;
+}
+
+inline RectF Widget::GetBorderRect()
+{
+	RectF result = GetRect();
+
+	result.MoveSidesLocal(-margin);
+
+	return result;
+}
+
+inline void Widget::SetMargin(float leftLength, float topLength, float rightLength, float bottomLength)
+{
+	margin = RectF(leftLength, topLength, rightLength, bottomLength);
+
+	//RectF newMargin = RectF(leftLength, topLength, rightLength, bottomLength);
+	//RectF deltaMargin = margin - newMargin;
+	//margin = newMargin;
+	//
+	//RectF newRect = GetRect();
+	//newRect.MoveSidesLocal(-deltaMargin);
+	//
+	//SetRect(newRect);
+}
+
+inline void Widget::SetPadding(float leftLength, float topLength, float rightLength, float bottomLength)
+{
+	padding = RectF(leftLength, topLength, rightLength, bottomLength);
+
+	//RectF newPadding = RectF(leftLength, topLength, rightLength, bottomLength);
+	//RectF deltaPadding = padding - newPadding;
+	//padding = newPadding;
+	//
+	//RectF newRect = GetRect();
+	//newRect.MoveSidesLocal(-deltaPadding);
+	//
+	//SetRect(newRect);
+}
+
+inline void Widget::SetBorder(float leftLength, float topLength, float rightLength, float bottomLength, const Color& color)
+{
+	border = RectF(leftLength, topLength, rightLength, bottomLength);
+
+	//RectF newBorder = RectF(leftLength, topLength, rightLength, bottomLength);
+	//RectF deltaBorder = border - newBorder;
+	//
+	//border = newBorder;
+	//borderColor = color;
+	//
+	//RectF newRect = GetRect();
+	//newRect.MoveSidesLocal(-deltaBorder);
+	//SetRect(newRect);
 }

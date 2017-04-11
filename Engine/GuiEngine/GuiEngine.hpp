@@ -1,5 +1,5 @@
 #pragma once
-#include <GraphicsEngine\IGraphicsEngine.hpp>
+#include <GraphicsEngine_LL/GraphicsEngine.hpp>
 #include "GuiLayer.hpp"
 #include <vector>
 #include <functional>
@@ -9,7 +9,7 @@ using namespace inl::gxeng;
 class GuiEngine
 {
 public:
-	GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindow);
+	GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow);
 	~GuiEngine();
 
 	GuiLayer* CreateLayer();
@@ -20,8 +20,10 @@ public:
 
 	void TraverseGuiControls(const std::function<void(Widget*)>& fn);
 
-	int GetWindowCursorPosX() { return targetWindow->GetClientCursorPos().x; }
-	int GetWindowCursorPosY() { return targetWindow->GetClientCursorPos().y; }
+	inline int GetWindowCursorPosX() { return targetWindow->GetClientCursorPos().x; }
+	inline int GetWindowCursorPosY() { return targetWindow->GetClientCursorPos().y; }
+
+	inline Window* GetTargetWindow() { return targetWindow; }
 
 public:
 	Delegate<void(CursorEvent& evt)> onMouseClick;
@@ -29,8 +31,14 @@ public:
 	Delegate<void(CursorEvent& evt)> onMouseRelease;
 	Delegate<void(CursorEvent& evt)> onMouseMove;
 
+	// TODO TEMPORARY GDI+, REMOVE IT OR I KILL MYSELF !!!!
+	Gdiplus::Graphics* graphics;
+	HDC hdc;
+	HDC memHDC;
+	HBITMAP memBitmap;
+
 protected:
-	IGraphicsEngine* graphicsEngine;
+	GraphicsEngine* graphicsEngine;
 	Window* targetWindow;
 
 	std::vector<GuiLayer*> layers; // "layers" rendered first
@@ -40,7 +48,7 @@ protected:
 	Widget* activeContextMenu;
 };
 
-inline GuiEngine::GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindow)
+inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow)
 :graphicsEngine(graphicsEngine), targetWindow(targetWindow), hoveredControl(nullptr), activeContextMenu(nullptr), postProcessLayer(CreateLayer())
 {
 	// Initialize GDI+
@@ -69,8 +77,8 @@ inline GuiEngine::GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindo
 		{
 			hoveredControl->TraverseTowardParents([&](Widget* control)
 			{
-				if(control->IsPointInside(event.mousePos))
-					control->onMousePress(control, eventData);
+				if(control->GetPaddingRect().IsPointInside(event.mousePos))
+					control->onMousePressed(control, eventData);
 			});
 		}
 
@@ -99,8 +107,8 @@ inline GuiEngine::GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindo
 			// Control Mouse release
 			hoveredControl->TraverseTowardParents([&](Widget* control)
 			{
-				if (control->IsPointInside(event.mousePos))
-					control->onMouseRelease(control, eventData);
+				if (control->GetPaddingRect().IsPointInside(event.mousePos))
+					control->onMouseReleased(control, eventData);
 			});
 
 			// Control Mouse click
@@ -110,9 +118,9 @@ inline GuiEngine::GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindo
 
 				hoveredControl->TraverseTowardParents([&](Widget* control)
 				{
-					if (control->IsPointInside(event.mousePos))
+					if (control->GetPaddingRect().IsPointInside(event.mousePos))
 					{
-						control->onMouseClick(control, eventData);
+						control->onMouseClicked(control, eventData);
 
 						if (event.mouseBtn == eMouseBtn::RIGHT)
 						{
@@ -125,11 +133,11 @@ inline GuiEngine::GuiEngine(IGraphicsEngine* graphicsEngine, Window* targetWindo
 
 									if (activeContextMenu)
 									{
-										postProcessLayer->AddControl(activeContextMenu);
+										postProcessLayer->Add(activeContextMenu);
 
-										Rect<float> rect = activeContextMenu->GetRect();
-										rect.x = event.mousePos.x;
-										rect.y = event.mousePos.y;
+										RectF rect = activeContextMenu->GetRect();
+										rect.left = event.mousePos.x;
+										rect.top = event.mousePos.y;
 										activeContextMenu->SetRect(rect);
 									}
 								}
@@ -190,7 +198,7 @@ inline void GuiEngine::Update(float deltaTime)
 	Widget* newHoveredControl = nullptr;
 	TraverseGuiControls([&](Widget* control)
 	{
-		if (control->IsPointInside(cursorPos))
+		if (control->GetPaddingRect().IsPointInside(cursorPos))
 			newHoveredControl = control;
 	});
 
@@ -201,7 +209,7 @@ inline void GuiEngine::Update(float deltaTime)
 		{
 			hoveredControl->TraverseTowardParents([&](Widget* control)
 			{
-				control->onMouseLeave(control, CursorEvent(cursorPos));
+				control->onMouseLeaved(control, CursorEvent(cursorPos));
 			});
 		}
 
@@ -210,8 +218,8 @@ inline void GuiEngine::Update(float deltaTime)
 		{
 			newHoveredControl->TraverseTowardParents([&](Widget* control)
 			{
-				if (control->IsPointInside(cursorPos))
-					control->onMouseEnter(control, CursorEvent(cursorPos));
+				if (control->GetPaddingRect().IsPointInside(cursorPos))
+					control->onMouseEntered(control, CursorEvent(cursorPos));
 			});
 		}
 	}
@@ -222,8 +230,8 @@ inline void GuiEngine::Update(float deltaTime)
 		{
 			hoveredControl->TraverseTowardParents([&](Widget* control)
 			{
-				if(control->IsPointInside(cursorPos))
-					control->onMouseHover(control, CursorEvent(cursorPos));
+				if(control->GetPaddingRect().IsPointInside(cursorPos))
+					control->onMouseHovered(control, CursorEvent(cursorPos));
 			});
 		}
 	}
@@ -233,35 +241,33 @@ inline void GuiEngine::Update(float deltaTime)
 inline void GuiEngine::Render()
 {
 	Gdiplus::Graphics* originalGraphics = Gdiplus::Graphics::FromHWND((HWND)targetWindow->GetHandle());
-	HDC hdc = originalGraphics->GetHDC();
+	hdc = originalGraphics->GetHDC();
 
 	RECT Client_Rect;
 	GetClientRect((HWND)targetWindow->GetHandle(), &Client_Rect);
 	int win_width = Client_Rect.right - Client_Rect.left;
 	int win_height = Client_Rect.bottom - Client_Rect.top;
-	HDC Memhdc;
-	
-	HBITMAP Membitmap;
-	Memhdc = CreateCompatibleDC(hdc);
-	Membitmap = CreateCompatibleBitmap(hdc, win_width, win_height);
-	SelectObject(Memhdc, Membitmap);
 
-	Gdiplus::Graphics* graphics = Gdiplus::Graphics::FromHDC(Memhdc);
+	memHDC = CreateCompatibleDC(hdc);
+	memBitmap = CreateCompatibleBitmap(hdc, win_width, win_height);
+	SelectObject(memHDC, memBitmap);
+
+	graphics = Gdiplus::Graphics::FromHDC(memHDC);
 	graphics->SetSmoothingMode(Gdiplus::SmoothingModeDefault);
 
-	// Draw
-	//TraverseGuiControls([&](Widget* control)
-	//{
-	//	control->onPaint(control, graphics);
-	//});
-
-
-	std::function<void(Widget* control, Rect<float>& clipRect)> traverseControls;
-	traverseControls = [&](Widget* control, Rect<float>& clipRect)
+	std::function<void(Widget* control, RectF& clipRect)> traverseControls;
+	traverseControls = [&](Widget* control, RectF& clipRect)
 	{
 		control->onPaint(control, graphics, clipRect);
 
-		Rect<float> newClipRect = clipRect.Intersect(control->GetClientRect());
+		// Control the clipping rect of the children controls
+		RectF rect;
+		if (control->IsChildrenClipEnabled())
+			rect = control->GetClientRect();
+		else
+			rect = RectF(-9999999, -9999999, 9999999, 9999999);
+
+		RectF newClipRect = clipRect.Intersect(rect);
 
 		for (Widget* child : control->GetChildren())
 			traverseControls(child, newClipRect);
@@ -272,18 +278,19 @@ inline void GuiEngine::Render()
 
 	for (GuiLayer* layer : allLayers)
 	{
-		Rect<float> clipRect(0, 0, 9999, 9999);
+		RectF clipRect(-9999999, -9999999, 99999999, 99999999);
 		for (Widget* rootControl : layer->GetControls())
 		{
 			traverseControls(rootControl, clipRect);
 		}
 	}
 
+	// Present
+	BitBlt(hdc, 0, 0, targetWindow->GetClientWidth(), targetWindow->GetClientHeight(), memHDC, 0, 0, SRCCOPY);
 
-	// After draw
-	BitBlt(hdc, 0, 0, win_width, win_height, Memhdc, 0, 0, SRCCOPY);
-	DeleteObject(Membitmap);
-	DeleteDC(Memhdc);
+	// Clean up
+	DeleteObject(memBitmap);
+	DeleteDC(memHDC);
 	DeleteDC(hdc);
 }
 

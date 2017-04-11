@@ -1,7 +1,6 @@
 #pragma once
 #include <BaseLibrary\Common_tmp.hpp>
 #include "Widget.hpp"
-#include "Widget.hpp"
 
 class GuiSlider : public Widget
 {

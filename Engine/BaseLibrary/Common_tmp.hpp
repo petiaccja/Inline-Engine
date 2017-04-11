@@ -7,8 +7,6 @@
 #include <utility>
 #include <vector>
 
-//#undef min
-//#undef max
 
 struct ivec2
 {
@@ -69,6 +67,32 @@ struct vec2
 	}
 };
 
+struct vec4
+{
+	inline vec4() {}
+	vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+
+	float x;
+	float y;
+	float z;
+	float w;
+
+	vec4 operator - (const vec4& b)
+	{
+		return vec4(x - b.x, y - b.y, z - b.z, w - b.w);
+	}
+
+	vec4 operator + (const vec4& b)
+	{
+		return vec4(x + b.x, y + b.y, z + b.z, w + b.w);
+	}
+
+	vec4 operator * (float val)
+	{
+		return vec4(x * val, y * val, z * val, w * val);
+	}
+};
+
 class Color
 {
 public:
@@ -117,76 +141,145 @@ template<class T>
 class Rect
 {
 public:
-	inline Rect() {
+	inline Rect():left(0), right(0), top(0), bottom(0)
+	{}
+
+	inline Rect(const T& left, const T& top, const T& right, const T& bottom)
+	:left(left), right(right), top(top), bottom(bottom)
+	{}
+	
+	static Rect FromSize(float left, float top, float width, float height)
+	{
+		return Rect(left, top, left + width, top + height);
 	}
 
-	inline Rect(const T& x, const T& y, const T& width, const T& height)
-		:x(x), y(y), width(width), height(height) {
+	void MoveSides(const Rect& offset)
+	{
+		left   += offset.left;
+		right  += offset.right;
+		top	   += offset.top;
+		bottom += offset.bottom;
 	}
+
+	void MoveSidesLocal(const Rect& offset)
+	{
+		left   -= offset.left;
+		right  += offset.right;
+		top	   -= offset.top;
+		bottom += offset.bottom;
+	}
+
+	Rect Union(const Rect& other) const
+	{
+		Rect result;
+
+		float maxLeft = std::min(left, other.left);
+		float maxTop = std::min(top, other.top);
+		float minBottom = std::max(bottom, other.bottom);
+		float minRight = std::max(right, other.right);
+
+		result.left = maxLeft;
+		result.top = maxTop;
+		result.right = minRight;
+		result.bottom = minBottom;
+
+		return result;
+	};
 
 	Rect Intersect(const Rect& other) const
 	{
 		Rect result;
 
-		float maxLeft = std::max(x, other.x);
-		float maxTop = std::max(y, other.y);
-		float minBottom = std::min(GetBottom(), other.GetBottom());
-		float minRight = std::min(GetRight(), other.GetRight());
+		float maxLeft = std::max(left, other.left);
+		float maxTop = std::max(top, other.top);
+		float minBottom = std::min(bottom, other.bottom);
+		float minRight = std::min(right, other.right);
 
-		result.x = maxLeft;
-		result.y = maxTop;
-		result.width = minRight - maxLeft;
-		result.height = minBottom - maxTop;
+		result.left = maxLeft;
+		result.top = maxTop;
+		result.right = minRight;
+		result.bottom = minBottom;
 
 		return result;
 	}
 
-	inline bool IsPointInside(ivec2 point) const
+	Rect operator -() const
 	{
-		return	point.x >= x && point.x <= x + width &&
-				point.y >= y && point.y <= y + height;
+		Rect result;
+		result.left = -left;
+		result.right = -right;
+		result.top = -top;
+		result.bottom = -bottom;
+		return result;
+	};
+
+	Rect operator - (const Rect& other) const
+	{
+		Rect result;
+		result.left = left - other.top;
+		result.right = right - other.right;
+		result.top = top - other.top;
+		result.bottom = bottom - other.bottom;
+		return result;
 	}
 
-	inline vec2 GetCenter() const
+	bool IsPointInside(ivec2 point) const
 	{
-		return vec2(x + 0.5f * width, y + 0.5f * height);
+		return	point.x >= left && point.x <= right &&
+				point.y >= top && point.y <= bottom;
 	}
 
-	inline float GetRight() const
+	vec2 GetSize() const { return vec2(GetWidth(), GetHeight()); }
+	vec2 GetPos() const { return vec2(left, top); }
+
+	vec2 GetCenter() const
 	{
-		return x + width;
+		return vec2(left + 0.5f * GetWidth(), top + 0.5f * GetHeight());
 	}
 
-	inline float GetLeft() const
-	{
-		return x;
-	}
-
-	inline float GetTop() const
-	{
-		return y;
-	}
-
-	inline float GetBottom() const
-	{
-		return y + height;
-	}
-
-	inline bool operator == (const Rect<T>& other)
+	bool operator == (const Rect<T>& other) const
 	{
 		return memcmp(this, &other, sizeof(Rect<T>)) == 0;
 	}
 
-	inline bool operator != (const Rect<T>& other)
+	bool operator != (const Rect<T>& other) const
 	{
 		return memcmp(this, &other, sizeof(Rect<T>)) != 0;
 	}
 
-	T x;
-	T y;
-	T width;
-	T height;
+	void SetWidth(float width)
+	{
+		right = left + width;
+	}
+
+	void SetHeight(float height)
+	{
+		bottom = top + height;
+	}
+
+	float GetWidth() const
+	{
+		return right - left;
+	}
+
+	float GetHeight() const
+	{
+		return bottom - top;
+	}
+
+	T left;
+	T right;
+	T top;
+	T bottom;
 };
+
+typedef Rect<float> RectF;
+
+
+
+
+
+
 
 #define ENUM_CLASS_BITFLAG( enumClass, enumType )  \
 enum class enumClass : enumType; \
@@ -321,7 +414,8 @@ public:
 	Delegate() {}
 	template <typename T>
 	Delegate& operator+= (T&& callback) {
-		this->d_callbacks.emplace_back(new call<T>(std::forward<T>(callback)));
+		d_callbacks.emplace_back(new call<T>(std::forward<T>(callback)));
+		//d_callbacks.emplace(d_callbacks.begin(), new call<T>(std::forward<T>(callback)));
 		return *this;
 	}
 	//template <typename T>

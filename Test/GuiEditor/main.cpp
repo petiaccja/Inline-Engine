@@ -14,7 +14,7 @@ using namespace inl::gxeng;
 
 Window* window;
 GuiEngine* guiEngine;
-IGraphicsEngine* graphicsEngine;
+GraphicsEngine* graphicsEngine;
 EngineCore Core;
 InputCore Input;
 
@@ -118,7 +118,7 @@ void main()
 			uint32_t width = window->GetClientWidth();
 			uint32_t height = window->GetClientHeight();
 
-			graphicsEngine->SetResolution(width, height);
+			graphicsEngine->SetScreenSize(width, height);
 		}
 
 		// Get delta seconds from the timer
