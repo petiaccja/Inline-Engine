@@ -111,8 +111,8 @@ float get_shadow(float4 vs_pos)
 		}*/
 	}
 
-	//return cascade;
-	return shadow_term;
+	//return cascade * 0.25;
+	 return shadow_term;
 	//return float(shadow_coord.z - 0.005 < texture(tex, shadow_coord.xy).x) * shadow_selector / 4.0;
 	//return ls_ndc_pos.z/0.25;
 	//return shadow_coord.xyz;

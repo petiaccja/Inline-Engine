@@ -194,8 +194,8 @@ void DepthReductionFinal::RenderScene(
 	view.Inverse().Pack(uniformsCBData.inv_mv);
 
 	mathfu::Vector4f cam_pos(camera->GetPosition(), 1.0f);
-	mathfu::Vector4f cam_view_dir(camera->GetLookDirection(), 0.0f);
-	mathfu::Vector4f cam_up_vector(camera->GetUpVector(), 0.0f);
+	mathfu::Vector4f cam_view_dir(camera->GetLookDirection().Normalized(), 0.0f);
+	mathfu::Vector4f cam_up_vector(camera->GetUpVector().Normalized(), 0.0f);
 	
 	cam_pos.Pack(&uniformsCBData.cam_pos);
 	cam_view_dir.Pack(&uniformsCBData.cam_view_dir);
@@ -205,9 +205,30 @@ void DepthReductionFinal::RenderScene(
 	uniformsCBData.cam_far = camera->GetFarPlane();
 
 	//TODO get from somewhere
-	uniformsCBData.light_cam_pos = mathfu::Vector4f(0, 0, 0, 1);
-	uniformsCBData.light_cam_view_dir = mathfu::Vector4f(sun->GetDirection(), 0);//mathfu::Vector4f(1, 1, 1, 0).Normalized();
-	uniformsCBData.light_cam_up_vector = mathfu::Vector4f(0, 1, 0, 0);
+	mathfu::Vector4f light_cam_pos = mathfu::Vector4f(0, 0, 0, 1);
+	mathfu::Vector4f light_cam_view_dir = mathfu::Vector4f(sun->GetDirection().Normalized(), 0);//mathfu::Vector4f(1, 1, 1, 0).Normalized();
+	mathfu::Vector4f light_cam_up_vector = mathfu::Vector4f(0, 0, 1, 0);
+
+	auto lookat = [](mathfu::Vector3f eye, mathfu::Vector3f lookat, mathfu::Vector3f up, mathfu::Vector3f* result) -> void
+	{
+		result[0] = (lookat - eye).Normalized(); //view dir
+		result[1] = up.Normalized();
+		result[2] = eye;
+		mathfu::Vector3f right = mathfu::Vector3f::CrossProduct(result[0], result[1]).Normalized();
+		result[1] = mathfu::Vector3f::CrossProduct(right, result[0]).Normalized();
+	};
+
+	mathfu::Vector3f res[3];
+
+	lookat(light_cam_pos.xyz(), light_cam_view_dir.xyz(), light_cam_up_vector.xyz(), res);
+
+	light_cam_pos = mathfu::Vector4f(res[2], 1);
+	light_cam_view_dir = mathfu::Vector4f(res[0], 0);
+	light_cam_up_vector = mathfu::Vector4f(res[1], 0);
+
+	light_cam_pos.Pack(&uniformsCBData.light_cam_pos);
+	light_cam_view_dir.Pack(&uniformsCBData.light_cam_view_dir);
+	light_cam_up_vector.Pack(&uniformsCBData.light_cam_up_vector);
 
 	//TODO get from somewhere
 	uniformsCBData.tex_size = 2048;

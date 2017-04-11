@@ -78,9 +78,14 @@ float4x4 ortographic(float left, float right, float bottom, float top, float nea
 	r[0].x = 2.0 / (right - left);
 	r[1].y = 2.0 / (top - bottom);
 	r[2].z = -2.0 / (far - near);
-	r[3].x = -((right + left) / (right - left));
-	r[3].y = -((top + bottom) / (top - bottom));
-	r[3].z = -((far + near) / (far - near));
+	
+	//r[3].x = -((right + left) / (right - left));
+	//r[3].y = -((top + bottom) / (top - bottom));
+	//r[3].z = -((far + near) / (far - near));
+	r[0].w = -((right + left) / (right - left));
+	r[1].w = -((top + bottom) / (top - bottom));
+	r[2].w = -((far + near) / (far - near));
+	
 	r[3].w = 1.0;
 
 	return r;
@@ -88,10 +93,14 @@ float4x4 ortographic(float left, float right, float bottom, float top, float nea
 
 float4x4 create_translation(float3 vec)
 {
-	return float4x4(1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		vec.x, vec.y, vec.z, 1);
+//	return float4x4(1, 0, 0, 0,
+//		0, 1, 0, 0,
+//		0, 0, 1, 0,
+//		vec.x, vec.y, vec.z, 1);
+	return float4x4(1, 0, 0, vec.x,
+		0, 1, 0, vec.y,
+		0, 0, 1, vec.z,
+		0, 0, 0, 1);
 }
 
 float4x4 get_camera_matrix(camera c)
@@ -103,9 +112,9 @@ float4x4 get_camera_matrix(camera c)
 	m[1] = float4(c.up_vector, 0);
 	m[2] = float4(-c.view_dir, 0);
 	m[3] = float4(float3(0.0f, 0.0f, 0.0f), 1);
-	m = transpose(m);
+	//m = transpose(m);
 
-	return m * create_translation(-c.pos);
+	return mul(m, create_translation(-c.pos));
 }
 
 //heavily based on mjp shadow sample
@@ -188,7 +197,11 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 
 	camera split_shadow_cam = lookat_func(cam_pos, centroid_center, up);
 
-	return split_ortho_matrix * get_camera_matrix(split_shadow_cam);
+	return mul(split_ortho_matrix, get_camera_matrix(split_shadow_cam));
+	//camera sanity_cam = lookat_func(float3(0,0,1), float3(0,-1,0), float3(0,0,1));
+	//return mul(split_ortho_matrix, get_camera_matrix(sanity_cam));
+	//return ortographic(-100, 100, -100, 100, 0.0f, 100);
+	//return mul(ortographic(-25, 25, -25, 25, 0.0f, 25), light_view_mat);
 }
 
 float log_partition_from_range(uint part, float minz, float maxz)
@@ -298,7 +311,7 @@ void CSMain(
 				for (int c = 0; c < 4; ++c)
 					norm_frustum_splits[c] = (frustum_splits[c] - uniforms.cam_near) / (uniforms.cam_far - uniforms.cam_near);
 
-				frustum_splits[3].y = uniforms.cam_far;
+				//frustum_splits[3].y = uniforms.cam_far;
 				for (uint d = 0; d < 4; ++d)
 					outputTex2[uint2(d,0)] = frustum_splits[d];
 			}
@@ -318,7 +331,7 @@ void CSMain(
 		}
 
 		for (int c = 0; c < 4; ++c)
-			shadow_mat[c] = uniforms.bias_mx * light_mvp[c] * uniforms.inv_mv;
+			shadow_mat[c] = mul(uniforms.bias_mx, mul(light_mvp[c], uniforms.inv_mv));
 
 		for (uint d = 0; d < 4; ++d)
 		{
