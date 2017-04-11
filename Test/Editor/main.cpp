@@ -30,11 +30,11 @@ void main()
 {
 	// Create Game Window
 	WindowDesc d;
-	d.clientSize = uvec2(800, 600);
+	d.clientSize = Vector2u(800, 600);
 	d.style = eWindowStyle::DEFAULT;
 	window = new Window(d);
 
-	d.clientSize = uvec2(800, 600);
+	d.clientSize = Vector2u(800, 600);
 	//d.style = eWindowStyle::BORDERLESS;
 	auto window2 = new Window(d);
 
@@ -98,7 +98,7 @@ void main()
 		//
 		//	case MOUSE_MOVE:
 		//	{
-		//		Input.MouseMove(ivec2(evt.deltaX, evt.deltaY), ivec2(evt.x, evt.y));
+		//		Input.MouseMove(Vector2i(evt.deltaX, evt.deltaY), Vector2i(evt.x, evt.y));
 		//	} break;
 		//
 		//	case MOUSE_PRESS:
@@ -169,7 +169,7 @@ void InitGui()
 	btn2->SetText(L"Button");
 	btn2->SetBgColorForAllStates(Color(50));
 	btn2->SetTextAlign(eTextAlign::CENTER);
-	btn2->SetPadding(10);
+	btn2->SetPadding(5);
 	btn2->SetBorder(3, Color::RED);
 
 	return;
@@ -315,7 +315,7 @@ void InitGui()
 	//{
 	//int x = 400;
 	//int y = 100;
-	//vec2 pinSize = { 10, 10 };
+	//Vector2f pinSize = { 10, 10 };
 	//float pinSpace = 20.f;
 	//button = layer->AddButton();
 	//button->SetBgToColor(Color(55), Color(80));
@@ -347,7 +347,7 @@ void InitGui()
 	{
 	int x = 300;
 	int y = 100;
-	vec2 pinSize = { 10, 10 };
+	Vector2f pinSize = { 10, 10 };
 	float pinSpace = 20.f;
 	GuiButton* button = layer->AddButton();
 	button->DisableClipChildren();
@@ -360,18 +360,18 @@ void InitGui()
 	node2 = pin0;
 	//pin0->DisableClip();
 	pin0->SetBgToColor(Color(120), Color(180));
-	pin0->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5, pinSize.x, pinSize.y);
+	pin0->SetRect(x - pinSize.x() * 0.5, y + pinSize.y() * 0.5, pinSize.x(), pinSize.y());
 	GuiButton* pin1 = button->AddButton();
 	//pin1->DisableClip();
 	pin1->SetBgToColor(Color(120), Color(180));
-	pin1->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace, pinSize.x, pinSize.y);
+	pin1->SetRect(x - pinSize.x() * 0.5, y + pinSize.y() * 0.5 + pinSpace, pinSize.x(), pinSize.y());
 	GuiButton* pin2 = button->AddButton();
 	pin2->SetBgToColor(Color(120), Color(180));
-	pin2->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace * 2.f, pinSize.x, pinSize.y);
+	pin2->SetRect(x - pinSize.x() * 0.5, y + pinSize.y() * 0.5 + pinSpace * 2.f, pinSize.x(), pinSize.y());
 	//pin2->DisableClip();
 	GuiButton* outputPin = button->AddButton();
 	outputPin->SetBgToColor(Color(120), Color(180));
-	outputPin->SetRect(x + 60 - pinSize.x * 0.5, y + 30 - pinSize.y * 0.5, pinSize.x, pinSize.y);
+	outputPin->SetRect(x + 60 - pinSize.x() * 0.5, y + 30 - pinSize.y() * 0.5, pinSize.x(), pinSize.y());
 	//outputPin->DisableClip();
 	}
 	

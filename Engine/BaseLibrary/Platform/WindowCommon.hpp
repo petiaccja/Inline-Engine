@@ -45,8 +45,8 @@ struct WindowEvent
 	eWindowMsg msg;
 	eKey	   key;
 	eMouseBtn  mouseBtn;
-	ivec2	   mouseDelta;
-	ivec2	   mousePos;
+	Vector2i	   mouseDelta;
+	Vector2i	   mousePos;
 };
 
 // Descriptor of window
@@ -56,5 +56,5 @@ struct WindowDesc
 
 	std::string	 capText;
 	eWindowStyle style;
-	uvec2 clientSize;
+	Vector2u clientSize;
 };

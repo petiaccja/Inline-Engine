@@ -7,91 +7,8 @@
 #include <utility>
 #include <vector>
 
-
-struct ivec2
-{
-	inline ivec2() {}
-	ivec2(int x, int y): x(x), y(y) {}
-
-	ivec2& operator +=(const ivec2& rhs)
-	{
-		x += rhs.x;
-		x += rhs.y;
-		return *this;
-	}
-
-	bool operator == (const ivec2& rhs)
-	{
-		return x == rhs.x && y == rhs.y;
-	}
-
-	void Zero()
-	{
-		x = 0;
-		y = 0;
-	}
-
-	int x;
-	int y;
-};
-
-struct uvec2
-{
-	inline uvec2() {}
-	uvec2(unsigned int x, unsigned int y): x(x), y(y) {}
-	unsigned int x;
-	unsigned int y;
-};
-
-struct vec2
-{
-	inline vec2() {}
-	vec2(float x, float y): x(x), y(y) {}
-
-	float x;
-	float y;
-
-	vec2 operator - (const vec2& b)
-	{
-		return vec2(x - b.x, y - b.y);
-	}
-
-	vec2 operator + (const vec2& b)
-	{
-		return vec2(x + b.x, y + b.y);
-	}
-
-	vec2 operator * (float val)
-	{
-		return vec2(x * val, y * val);
-	}
-};
-
-struct vec4
-{
-	inline vec4() {}
-	vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
-
-	float x;
-	float y;
-	float z;
-	float w;
-
-	vec4 operator - (const vec4& b)
-	{
-		return vec4(x - b.x, y - b.y, z - b.z, w - b.w);
-	}
-
-	vec4 operator + (const vec4& b)
-	{
-		return vec4(x + b.x, y + b.y, z + b.z, w + b.w);
-	}
-
-	vec4 operator * (float val)
-	{
-		return vec4(x * val, y * val, z * val, w * val);
-	}
-};
+#include <mathfu/mathfu_exc.hpp>
+using namespace mathfu;
 
 class Color
 {
@@ -133,8 +50,8 @@ struct RectNormed
 {
 	RectNormed() :bottomLeftPercentNormed(0, 0), topRightPercentNormed(1, 1) {}
 
-	vec2 bottomLeftPercentNormed;
-	vec2 topRightPercentNormed;
+	Vector2f bottomLeftPercentNormed;
+	Vector2f topRightPercentNormed;
 };
 
 template<class T>
@@ -223,18 +140,18 @@ public:
 		return result;
 	}
 
-	bool IsPointInside(ivec2 point) const
+	bool IsPointInside(Vector2i point) const
 	{
-		return	point.x >= left && point.x <= right &&
-				point.y >= top && point.y <= bottom;
+		return	point.x() >= left && point.x() <= right	&&
+				point.y() >= top  && point.y() <= bottom;
 	}
 
-	vec2 GetSize() const { return vec2(GetWidth(), GetHeight()); }
-	vec2 GetPos() const { return vec2(left, top); }
+	Vector2f GetSize() const { return Vector2f(GetWidth(), GetHeight()); }
+	Vector2f GetPos() const { return Vector2f(left, top); }
 
-	vec2 GetCenter() const
+	Vector2f GetCenter() const
 	{
-		return vec2(left + 0.5f * GetWidth(), top + 0.5f * GetHeight());
+		return Vector2f(left + 0.5f * GetWidth(), top + 0.5f * GetHeight());
 	}
 
 	bool operator == (const Rect<T>& other) const

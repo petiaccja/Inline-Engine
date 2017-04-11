@@ -72,24 +72,24 @@ inline void GuiList::SetDirection(eGuiListDirection dir)
 inline void GuiList::ArrangeChilds()
 {
 	int i = 0;
-	vec2 finalSize(0, 0);
+	Vector2f finalSize(0, 0);
 	float distance = 0;
 	float maxDiameter = 0;
 	for (Widget* child : GetChildren())
 	{
 		if (direction == eGuiListDirection::VERTICAL)
 		{
-			//child->SetRect(GetClientPosX(), GetClientPosY() + finalSize.y, child->GetWidth(), child->GetHeight());
-			child->SetPos(GetClientPosX(), GetClientPosY() + finalSize.y);
-			finalSize.y += child->GetHeight();
-			finalSize.x = std::max(finalSize.x, child->GetWidth());
+			//child->SetRect(GetClientPosX(), GetClientPosY() + finalSize.y(), child->GetWidth(), child->GetHeight());
+			child->SetPos(GetClientPosX(), GetClientPosY() + finalSize.y());
+			finalSize.y() += child->GetHeight();
+			finalSize.x() = std::max(finalSize.x(), child->GetWidth());
 		}
 		else if (direction == eGuiListDirection::HORIZONTAL)
 		{
-			//child->SetRect(GetClientPosX() + finalSize.x, GetClientPosY(), child->GetWidth(), child->GetHeight());
-			child->SetPos(GetClientPosX() + finalSize.x, GetClientPosY());
-			finalSize.x += child->GetWidth();
-			finalSize.y = std::max(finalSize.y, child->GetHeight());
+			//child->SetRect(GetClientPosX() + finalSize.x(), GetClientPosY(), child->GetWidth(), child->GetHeight());
+			child->SetPos(GetClientPosX() + finalSize.x(), GetClientPosY());
+			finalSize.x() += child->GetWidth();
+			finalSize.y() = std::max(finalSize.y(), child->GetHeight());
 		}
 		++i;
 	}

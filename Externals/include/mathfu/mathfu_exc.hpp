@@ -24,6 +24,14 @@ using Vector2d = mathfu::Vector<double, 2>;
 using Vector3d = mathfu::Vector<double, 3>;
 using Vector4d = mathfu::Vector<double, 4>;
 
+using Vector2u = mathfu::Vector<unsigned int, 2>;
+using Vector3u = mathfu::Vector<unsigned int, 3>;
+using Vector4u = mathfu::Vector<unsigned int, 4>;
+
+using Vector2i = mathfu::Vector<int, 2>;
+using Vector3i = mathfu::Vector<int, 3>;
+using Vector4i = mathfu::Vector<int, 4>;
+
 /// 4 rows by 4 columns float matrix.
 using Matrix4x4f = mathfu::Matrix<float, 4, 4>;
 /// 3 rows by 4 columns float matrix.

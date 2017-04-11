@@ -29,10 +29,10 @@ GuiList* Widget::AddList()
 
 float Widget::GetClientSpaceCursorPosX()
 {
-	return guiEngine->GetWindowCursorPosX() - pos.x;
+	return guiEngine->GetWindowCursorPosX() - pos.x();
 }
 
 float Widget::GetClientSpaceCursorPosY()
 {
-	return guiEngine->GetWindowCursorPosY() - pos.y;
+	return guiEngine->GetWindowCursorPosY() - pos.y();
 }

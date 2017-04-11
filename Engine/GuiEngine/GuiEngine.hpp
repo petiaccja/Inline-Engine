@@ -22,8 +22,8 @@ public:
 
 	void TraverseGuiControls(const std::function<void(Widget*)>& fn);
 
-	inline int GetWindowCursorPosX() { return targetWindow->GetClientCursorPos().x; }
-	inline int GetWindowCursorPosY() { return targetWindow->GetClientCursorPos().y; }
+	inline int GetWindowCursorPosX() { return targetWindow->GetClientCursorPos().x(); }
+	inline int GetWindowCursorPosY() { return targetWindow->GetClientCursorPos().y(); }
 
 	inline Window* GetTargetWindow() { return targetWindow; }
 
@@ -65,7 +65,7 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 
 	// Propagate mousePress
 	thread_local Widget* hoveredControlOnPress = nullptr;
-	thread_local ivec2 mousePosWhenPress = ivec2(-1, -1);
+	thread_local Vector2i mousePosWhenPress = Vector2i(-1, -1);
 	targetWindow->onMousePress += [&](WindowEvent& event)
 	{
 		CursorEvent eventData;
@@ -138,8 +138,8 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 										postProcessLayer->Add(activeContextMenu);
 
 										RectF rect = activeContextMenu->GetRect();
-										rect.left = event.mousePos.x;
-										rect.top = event.mousePos.y;
+										rect.left = event.mousePos.x();
+										rect.top = event.mousePos.y();
 										activeContextMenu->SetRect(rect);
 									}
 								}
@@ -194,7 +194,7 @@ inline void GuiEngine::Update(float deltaTime)
 		Widget->onUpdate(Widget, deltaTime);
 	});
 
-	ivec2 cursorPos = targetWindow->GetClientCursorPos();
+	Vector2i cursorPos = targetWindow->GetClientCursorPos();
 
 	// Search hovered control to fire event on them
 	Widget* newHoveredControl = nullptr;

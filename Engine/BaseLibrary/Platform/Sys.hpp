@@ -141,7 +141,7 @@ public:
 
 	static void			ShowMsgBox(const std::wstring& msg);
 
-	static void			SetCursorPos(const ivec2& pos);
+	static void			SetCursorPos(const Vector2i& pos);
 	static void			SetCursorVisible(bool b);
 
 	static void*		GetDLLProcAddress(DLLHandle h, const std::string& procName);
@@ -150,6 +150,6 @@ public:
 	static std::wstring	GetExeDirW();
 	static std::string	GetExeDir();
 
-	static ivec2 GetCursorPos();
-	static uvec2 GetScreenSize();
+	static Vector2i GetCursorPos();
+	static Vector2u GetScreenSize();
 };

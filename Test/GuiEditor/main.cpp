@@ -32,7 +32,7 @@ void main()
 {
 	// Create Game Window
 	WindowDesc d;
-	d.clientSize = uvec2(800, 600);
+	d.clientSize = Vector2u(800, 600);
 	d.style = eWindowStyle::DEFAULT;
 	window = new Window(d);
 
@@ -84,7 +84,7 @@ void main()
 		//
 		//	case MOUSE_MOVE:
 		//	{
-		//		Input.MouseMove(ivec2(evt.deltaX, evt.deltaY), ivec2(evt.x, evt.y));
+		//		Input.MouseMove(Vector2i(evt.deltaX, evt.deltaY), Vector2i(evt.x, evt.y));
 		//	} break;
 		//
 		//	case MOUSE_PRESS:
@@ -181,7 +181,7 @@ void InitGui()
 	//{
 	//int x = 400;
 	//int y = 100;
-	//vec2 pinSize = { 10, 10 };
+	//Vector2f pinSize = { 10, 10 };
 	//float pinSpace = 20.f;
 	//button = layer->AddButton();
 	//button->SetBackgroundToColor(Color(55), Color(80));
@@ -211,7 +211,7 @@ void InitGui()
 	//{
 	//int x = 300;
 	//int y = 100;
-	//vec2 pinSize = { 10, 10 };
+	//Vector2f pinSize = { 10, 10 };
 	//float pinSpace = 20.f;
 	//button = layer->AddButton();
 	//

@@ -15,10 +15,10 @@ class CursorEvent
 {
 public:
 	CursorEvent() : cursorClientPos(0, 0) {}
-	CursorEvent(ivec2 cursorClientPos) : cursorClientPos(cursorClientPos) {}
+	CursorEvent(Vector2i cursorClientPos) : cursorClientPos(cursorClientPos) {}
 
 public:
-	ivec2 cursorClientPos;
+	Vector2i cursorClientPos;
 };
 
 } //namespace inl::gui

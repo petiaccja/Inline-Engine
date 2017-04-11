@@ -20,22 +20,22 @@ public:
 	void MouseMidPress();
 	void MouseMidRelease();
 	
-	void MouseMove(const ivec2& mouseDelta, const ivec2& clientMousePos);
+	void MouseMove(const Vector2i& mouseDelta, const Vector2i& clientMousePos);
 
 	void RegOnKeyDown(eKey key, const std::function<void()> callb);
 	void RegOnKeyPressed(eKey key, const std::function<void()> callb);
 	void RegOnKeyReleased(eKey key, const std::function<void()> callb);
 
-	void RegOnMouseRightPressed(  const std::function<void(const ivec2& clientMousePos)> callb);
-	void RegOnMouseRightReleased( const std::function<void(const ivec2& clientMousePos)> callb);
-	void RegOnMouseRightDown(	  const std::function<void(const ivec2& clientMousePos)> callb);
-	void RegOnMouseLeftPressed(	  const std::function<void(const ivec2& clientMousePos)> callb);
-	void RegOnMouseLeftReleased(  const std::function<void(const ivec2& clientMousePos)> callb);
-	void RegOnMouseLeftDown(	  const std::function<void(const ivec2& clientMousePos)> callb);
-	void RegOnMouseMidPressed(	  const std::function<void(const ivec2& clientMousePos)> callb);
-	void RegOnMouseMidReleased(	  const std::function<void(const ivec2& clientMousePos)> callb);
-	void RegOnMouseMidDown(		  const std::function<void(const ivec2& clientMousePos)> callb);
-	void RegOnMouseMove(		  const std::function<void(const ivec2& mouseDelta, const ivec2& clientMousePos)> callb);
+	void RegOnMouseRightPressed(  const std::function<void(const Vector2i& clientMousePos)> callb);
+	void RegOnMouseRightReleased( const std::function<void(const Vector2i& clientMousePos)> callb);
+	void RegOnMouseRightDown(	  const std::function<void(const Vector2i& clientMousePos)> callb);
+	void RegOnMouseLeftPressed(	  const std::function<void(const Vector2i& clientMousePos)> callb);
+	void RegOnMouseLeftReleased(  const std::function<void(const Vector2i& clientMousePos)> callb);
+	void RegOnMouseLeftDown(	  const std::function<void(const Vector2i& clientMousePos)> callb);
+	void RegOnMouseMidPressed(	  const std::function<void(const Vector2i& clientMousePos)> callb);
+	void RegOnMouseMidReleased(	  const std::function<void(const Vector2i& clientMousePos)> callb);
+	void RegOnMouseMidDown(		  const std::function<void(const Vector2i& clientMousePos)> callb);
+	void RegOnMouseMove(		  const std::function<void(const Vector2i& mouseDelta, const Vector2i& clientMousePos)> callb);
 
 	void ClearFrameData();
 	void Update();
@@ -54,7 +54,7 @@ public:
 	bool IsMidMouseBtnReleased();
 	bool IsMidMouseBtnDown();
 	
-	bool IsMouseMove(ivec2& mouseDelta_out);
+	bool IsMouseMove(Vector2i& mouseDelta_out);
 
 protected:
 	struct KeyInfo
@@ -73,8 +73,8 @@ protected:
 	bool bMouseLeftDownPrevFrame;
 	bool bMouseMidDownCurFrame;
 	bool bMouseMidDownPrevFrame;
-	ivec2 mouseDelta;
-	ivec2 clientMousePos;
+	Vector2i mouseDelta;
+	Vector2i clientMousePos;
 
 	// Registered keyboard callbacks
 	std::vector<std::pair<eKey, std::function<void()>>> onKeyDownCallbacks;
@@ -82,14 +82,14 @@ protected:
 	std::vector<std::pair<eKey, std::function<void()>>> onKeyReleasedCallbacks;
 
 	// Registered mouse callbacks
-	std::vector<std::function<void(const ivec2& clientMousePos)>> onMouseRightPressedCallbacks;
-	std::vector<std::function<void(const ivec2& clientMousePos)>> onMouseRightReleasedCallbacks;
-	std::vector<std::function<void(const ivec2& clientMousePos)>> onMouseRightDownCallbacks;
-	std::vector<std::function<void(const ivec2& clientMousePos)>> onMouseLeftPressedCallbacks;
-	std::vector<std::function<void(const ivec2& clientMousePos)>> onMouseLeftReleasedCallbacks;
-	std::vector<std::function<void(const ivec2& clientMousePos)>> onMouseLeftDownCallbacks;
-	std::vector<std::function<void(const ivec2& clientMousePos)>> onMouseMidPressedCallbacks;
-	std::vector<std::function<void(const ivec2& clientMousePos)>> onMouseMidReleasedCallbacks;
-	std::vector<std::function<void(const ivec2& clientMousePos)>> onMouseMidDownCallbacks;
-	std::vector<std::function<void(const ivec2& mouseDelta, const ivec2& clientMousePos)>> onMouseMoveCallbacks;
+	std::vector<std::function<void(const Vector2i& clientMousePos)>> onMouseRightPressedCallbacks;
+	std::vector<std::function<void(const Vector2i& clientMousePos)>> onMouseRightReleasedCallbacks;
+	std::vector<std::function<void(const Vector2i& clientMousePos)>> onMouseRightDownCallbacks;
+	std::vector<std::function<void(const Vector2i& clientMousePos)>> onMouseLeftPressedCallbacks;
+	std::vector<std::function<void(const Vector2i& clientMousePos)>> onMouseLeftReleasedCallbacks;
+	std::vector<std::function<void(const Vector2i& clientMousePos)>> onMouseLeftDownCallbacks;
+	std::vector<std::function<void(const Vector2i& clientMousePos)>> onMouseMidPressedCallbacks;
+	std::vector<std::function<void(const Vector2i& clientMousePos)>> onMouseMidReleasedCallbacks;
+	std::vector<std::function<void(const Vector2i& clientMousePos)>> onMouseMidDownCallbacks;
+	std::vector<std::function<void(const Vector2i& mouseDelta, const Vector2i& clientMousePos)>> onMouseMoveCallbacks;
 };

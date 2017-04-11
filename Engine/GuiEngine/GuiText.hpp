@@ -69,60 +69,60 @@ inline GuiText::GuiText(GuiEngine* guiEngine)
 		Gdiplus::RectF textRect;
 		graphics->MeasureString(text.c_str(), text.size(), &font, gdiRect, &textRect);
 
-		vec2 textPos;
+		Vector2f textPos;
 		switch (align)
 		{
 		case eTextAlign::CENTER:
 		{
 			textPos = rect.GetCenter();
-			textPos.x -= textRect.Width * 0.5f;
-			textPos.y -= textRect.Height * 0.5f;
+			textPos.x() -= textRect.Width * 0.5f;
+			textPos.y() -= textRect.Height * 0.5f;
 
 		} break;
 		case eTextAlign::LEFT:
 		{
-			textPos.x = rect.left;
-			textPos.y = rect.GetCenter().y - textRect.Height * 0.5f;
+			textPos.x() = rect.left;
+			textPos.y() = rect.GetCenter().y() - textRect.Height * 0.5f;
 		} break;
 		case eTextAlign::RIGHT:
 		{
-			textPos.x = rect.right - textRect.Width;
-			textPos.y = rect.GetCenter().y - textRect.Height * 0.5f;
+			textPos.x() = rect.right - textRect.Width;
+			textPos.y() = rect.GetCenter().y() - textRect.Height * 0.5f;
 		} break;
 		case eTextAlign::TOP:
 		{
-			textPos.x = rect.GetCenter().x - textRect.Width * 0.5f;
-			textPos.y = rect.top;
+			textPos.x() = rect.GetCenter().x() - textRect.Width * 0.5f;
+			textPos.y() = rect.top;
 		} break;
 		case eTextAlign::BOTTOM:
 		{
-			textPos.x = rect.GetCenter().x - textRect.Width * 0.5f;
-			textPos.y = rect.bottom - textRect.Height;
+			textPos.x() = rect.GetCenter().x() - textRect.Width * 0.5f;
+			textPos.y() = rect.bottom - textRect.Height;
 		} break;
 		case eTextAlign::TOP_LEFT:
 		{
-			textPos.x = rect.left;
-			textPos.y = rect.top;
+			textPos.x() = rect.left;
+			textPos.y() = rect.top;
 		} break;
 		case eTextAlign::TOP_RIGHT:
 		{
-			textPos.x = rect.right - textRect.Width;
-			textPos.y = rect.top;
+			textPos.x() = rect.right - textRect.Width;
+			textPos.y() = rect.top;
 		} break;
 		case eTextAlign::BOTTOM_LEFT:
 		{
-			textPos.x = rect.left;
-			textPos.y = rect.bottom - textRect.Height;
+			textPos.x() = rect.left;
+			textPos.y() = rect.bottom - textRect.Height;
 		} break;
 		case eTextAlign::BOTTOM_RIGHT:
 		{
-			textPos.x = rect.right - textRect.Width;
-			textPos.y = rect.bottom - textRect.Height;
+			textPos.x() = rect.right - textRect.Width;
+			textPos.y() = rect.bottom - textRect.Height;
 		} break;
 		default:__debugbreak();
 		}
 
-		Gdiplus::PointF pointF(textPos.x, textPos.y);
+		Gdiplus::PointF pointF(textPos.x(), textPos.y());
 
 		graphics->SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAliasGridFit);
 		graphics->DrawString(text.c_str(), -1, &font, pointF, &brush);

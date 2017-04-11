@@ -52,7 +52,7 @@ public:
 	void TraverseTowardParents(const std::function<void(Widget*)>& fn);
 
 	void Move(float dx, float dy);
-	void Move(const vec2& delta) { Move(delta.x, delta.y); }
+	void Move(const Vector2f& delta) { Move(delta.x(), delta.y()); }
 
 	void FillParent() { SetRect(parent->GetRect()); }
 	void Stretch() {}
@@ -75,17 +75,17 @@ public:
 	void SetName(const std::wstring& str) { name = str; }
 	void SetName(const std::string& str) { SetName(std::wstring(str.begin(), str.end())); }
 	void SetContextMenu(Widget* c) { contextMenu = c; }
-	void SetPos(const vec2& p) { SetPos(p.x, p.y); }
-	void SetPos(float x, float y) { SetRect(x, y, size.x, size.y); }
+	void SetPos(const Vector2f& p) { SetPos(p.x(), p.y()); }
+	void SetPos(float x, float y) { SetRect(x, y, size.x(), size.y()); }
 	void SetCenterPos(float x, float y) { SetPos(x - GetHalfWidth(), y + GetHalfHeight()); }
-	void SetPosX(float x) { SetRect(x, pos.y, size.x, size.y); }
-	void SetPosY(float y) { SetRect(pos.x, y, size.x, size.y); }
-	void SetSize(const vec2& s) { SetSize(s.x, s.y); }
-	void SetSize(float width, float height) { SetRect(pos.x, pos.y, width, height); }
-	void SetWidth(float w) { SetSize(vec2(w, size.y)); }
-	void SetHeight(float h) { SetSize(vec2(size.x, h)); }
+	void SetPosX(float x) { SetRect(x, pos.y(), size.x(), size.y()); }
+	void SetPosY(float y) { SetRect(pos.x(), y, size.x(), size.y()); }
+	void SetSize(const Vector2f& s) { SetSize(s.x(), s.y()); }
+	void SetSize(float width, float height) { SetRect(pos.x(), pos.y(), width, height); }
+	void SetWidth(float w) { SetSize(Vector2f(w, size.y())); }
+	void SetHeight(float h) { SetSize(Vector2f(size.x(), h)); }
 
-	void SetClientSize(const vec2& s) { SetClientSize(s.x, s.y); }
+	void SetClientSize(const Vector2f& s) { SetClientSize(s.x(), s.y()); }
 
 	void SetEventPropagationPolicy(eEventPropagationPolicy e) { eventPropagationPolicy = e; }
 
@@ -130,34 +130,34 @@ public:
 	float GetClientSpaceCursorPosX();
 	float GetClientSpaceCursorPosY();
 
-	float GetPosX() { return pos.x; }
-	float GetPosY() { return pos.y; }
-	const vec2& GetPos() { return pos; }
-	float GetCenterPosX() { return pos.x + GetHalfWidth(); }
-	float GetCenterPosY() { return pos.y + GetHalfHeight(); }
-	vec2 GetCenterPos() { return pos + GetHalfSize(); }
-	const vec2& GetSize() { return size; }
-	float GetWidth() { return size.x; }
-	float GetHeight() { return size.y; }
+	float GetPosX() { return pos.x(); }
+	float GetPosY() { return pos.y(); }
+	const Vector2f& GetPos() { return pos; }
+	float GetCenterPosX() { return pos.x() + GetHalfWidth(); }
+	float GetCenterPosY() { return pos.y() + GetHalfHeight(); }
+	Vector2f GetCenterPos() { return pos + GetHalfSize(); }
+	const Vector2f& GetSize() { return size; }
+	float GetWidth() { return size.x(); }
+	float GetHeight() { return size.y(); }
 	float GetHalfWidth() { return GetWidth() * 0.5f; }
 	float GetHalfHeight() { return GetHeight() * 0.5f; }
-	vec2 GetHalfSize() { return vec2(GetHalfWidth(), GetHalfHeight()); }
+	Vector2f GetHalfSize() { return Vector2f(GetHalfWidth(), GetHalfHeight()); }
 
 	const RectF& GetPadding() const { return padding; }
 	const RectF& GetMargin() const { return margin; }
 
 	float GetClientPosX() { return GetClientRect().left; }
 	float GetClientPosY() { return GetClientRect().top; }
-	vec2 GetClientPos() { return GetClientRect().GetPos(); }
+	Vector2f GetClientPos() { return GetClientRect().GetPos(); }
 	float GetClientCenterPosY() { return GetClientPosY() - GetClientHalfHeight(); }
 	float GetClientCenterPosX() { return GetClientPosX() + GetClientHalfWidth(); }
-	vec2 GetClientCenterPos() { return GetClientPos() + GetClientHalfSize(); }
-	vec2 GetClientSize() { return GetClientRect().GetSize(); }
+	Vector2f GetClientCenterPos() { return GetClientPos() + GetClientHalfSize(); }
+	Vector2f GetClientSize() { return GetClientRect().GetSize(); }
 	float GetClientWidth() { return GetClientRect().GetWidth(); }
 	float GetClientHeight() { return GetClientRect().GetHeight(); }
 	float GetClientHalfWidth() { return GetClientWidth() * 0.5f; }
 	float GetClientHalfHeight() { return GetClientWidth() * 0.5f; }
-	vec2 GetClientHalfSize() { return GetClientSize() * 0.5f; }
+	Vector2f GetClientHalfSize() { return GetClientSize() * 0.5f; }
 
 	RectF GetRect();
 	RectF GetClientRect();
@@ -186,7 +186,7 @@ public:
 	Gdiplus::Bitmap* GetBgHoverImage() { return bgHoverImage; }
 
 
-	bool IsPointInside(ivec2 pt) { return GetRect().IsPointInside(pt); }
+	bool IsPointInside(Vector2i pt) { return GetRect().IsPointInside(pt); }
 
 	bool IsLayer() { return bLayer; }
 	bool IsChildrenClipEnabled() { return bClipChildren; }
@@ -202,10 +202,10 @@ protected:
 	std::wstring name;
 
 	// Position
-	vec2 pos;
+	Vector2f pos;
 
 	// Width, Height
-	vec2 size;
+	Vector2f size;
 
 	// Parent widget
 	Widget* parent;
@@ -601,17 +601,17 @@ inline void Widget::TraverseTowardParents(const std::function<void(Widget*)>& fn
 
 inline void Widget::Move(float dx, float dy)
 {
-	SetPos(pos.x + dx, pos.y + dy);
+	SetPos(pos.x() + dx, pos.y() + dy);
 }
 
 inline void Widget::SetRect(float x, float y, float width, float height)
 {
 	RectF oldRect = GetRect();
 
-	pos.x = x;
-	pos.y = y;
-	size.x = width;
-	size.y = height;
+	pos.x() = x;
+	pos.y() = y;
+	size.x() = width;
+	size.y() = height;
 	RectF rect = GetRect();
 
 	if (rect != oldRect)
@@ -759,7 +759,7 @@ inline RectF Widget::GetChildrenBoundRect()
 
 inline RectF Widget::GetRect()
 {
-	return RectF::FromSize(pos.x, pos.y, size.x, size.y);
+	return RectF::FromSize(pos.x(), pos.y(), size.x(), size.y());
 }
 
 inline RectF Widget::GetClientRect()

@@ -26,8 +26,8 @@ public:
 
 	void Clear(const Color& color);
 
-	void SetPos(const ivec2& pos = ivec2(0, 0));
-	void SetSize(const uvec2& size);
+	void SetPos(const Vector2i& pos = Vector2i(0, 0));
+	void SetSize(const Vector2u& size);
 
 	void SetClientPixels(const Color* const pixels);
 
@@ -43,12 +43,12 @@ public:
 
 	uint32_t GetClientWidth() const;
 	uint32_t GetClientHeight() const;
-	ivec2 GetClientCursorPos() const;
+	Vector2i GetClientCursorPos() const;
 
 	unsigned GetNumClientPixels() const;
 	float GetClientAspectRatio() const;
 
-	ivec2 GetCenterPos() const;
+	Vector2i GetCenterPos() const;
 
 public:
 	// HEKK

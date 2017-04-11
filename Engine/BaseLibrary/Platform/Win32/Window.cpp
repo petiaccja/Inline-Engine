@@ -96,15 +96,15 @@ Window::Window(const WindowDesc& d)
 	RECT adjustedsize = { 0 };
 	AdjustWindowRect(&adjustedsize, (int)interpretedStyle, 0);
 
-	unsigned width = d.clientSize.x - adjustedsize.left + adjustedsize.right;
-	unsigned height = d.clientSize.y - adjustedsize.top + adjustedsize.bottom;
+	unsigned width = d.clientSize.x() - adjustedsize.left + adjustedsize.right;
+	unsigned height = d.clientSize.y() - adjustedsize.top + adjustedsize.bottom;
 
-	uvec2 screenSize = Sys::GetScreenSize();
-	if(width > screenSize.x)
-		width = screenSize.x;
+	Vector2u screenSize = Sys::GetScreenSize();
+	if(width > screenSize.x())
+		width = screenSize.x();
 
-	if(height > screenSize.y)
-		height = screenSize.y;
+	if(height > screenSize.y())
+		height = screenSize.y();
 
 	std::wstring captionText(d.capText.begin(), d.capText.end());
 
@@ -155,11 +155,13 @@ void Window::PostEvent(const MSG& msg)
 
 bool Window::PopEvent(WindowEvent& evt_out)
 {
-	evt_out.mouseDelta.Zero();
+	evt_out.mouseDelta.x() = 0;
+	evt_out.mouseDelta.y() = 0;
 	evt_out.key = INVALID_eKey;
 	evt_out.mouseBtn = INVALID_eMouseBtn;
 	evt_out.msg = INVALID_eWindowsMsg;
-	evt_out.mousePos.Zero();
+	evt_out.mousePos.x() = 0;
+	evt_out.mousePos.y() = 0;
 
 	MSG msg;
 	if (PeekMessage(&msg, handle, 0, 0, PM_REMOVE))
@@ -187,42 +189,42 @@ bool Window::PopEvent(WindowEvent& evt_out)
 	{
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
-		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.mousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMousePress(evt_out);
 	}
 	else if (msg.message == WM_RBUTTONDOWN)
 	{
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::RIGHT;
-		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.mousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMousePress(evt_out);
 	}
 	else if (msg.message == WM_MBUTTONDOWN)
 	{
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::MID;
-		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.mousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMousePress(evt_out);
 	}
 	else if (msg.message == WM_LBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
-		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.mousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMouseRelease(evt_out);
 	}
 	else if (msg.message == WM_RBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::RIGHT;
-		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.mousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMouseRelease(evt_out);
 	}
 	else if (msg.message == WM_MBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::MID;
-		evt_out.mousePos = ivec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.mousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMouseRelease(evt_out);
 	}
 	else if (msg.message == WM_KEYDOWN)
@@ -259,7 +261,7 @@ bool Window::PopEvent(WindowEvent& evt_out)
 
 		if (raw->header.dwType == RIM_TYPEMOUSE)
 		{
-			evt_out.mouseDelta = ivec2(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
+			evt_out.mouseDelta = Vector2i(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
 			evt_out.msg = MOUSE_MOVE;
 
 			onMouseMove(evt_out);
@@ -312,18 +314,18 @@ void Window::Clear(const Color& color)
 	// TODO
 }
 
-void Window::SetPos(const ivec2& pos /*= ivec2(0, 0)*/)
+void Window::SetPos(const Vector2i& pos /*= Vector2i(0, 0)*/)
 {
 	RECT rect;
 	GetWindowRect(handle, &rect);
-	SetWindowPos(handle, HWND_TOP, pos.x, pos.y, rect.right - rect.left, rect.bottom - rect.top, 0);
+	SetWindowPos(handle, HWND_TOP, pos.x(), pos.y(), rect.right - rect.left, rect.bottom - rect.top, 0);
 }
 
-void Window::SetSize(const uvec2& size)
+void Window::SetSize(const Vector2u& size)
 {
 	RECT rect;
 	GetWindowRect(handle, &rect);
-	SetWindowPos(handle, HWND_TOP, rect.left, rect.bottom, size.x, size.y, 0);
+	SetWindowPos(handle, HWND_TOP, rect.left, rect.bottom, size.x(), size.y(), 0);
 }
 
 void Window::SetClientPixels(const Color* const pixels)
@@ -368,15 +370,15 @@ uint32_t Window::GetClientHeight() const
 	return (uint32_t)(rect.bottom - rect.top);
 }
 
-ivec2 Window::GetClientCursorPos() const
+Vector2i Window::GetClientCursorPos() const
 {
-	ivec2 cursorPos = Sys::GetCursorPos();
+	Vector2i cursorPos = Sys::GetCursorPos();
 	POINT p;
-	p.x = cursorPos.x;
-	p.y = cursorPos.y;
+	p.x = cursorPos.x();
+	p.y = cursorPos.y();
 	ScreenToClient(handle, &p);
 
-	return ivec2(p.x, p.y);
+	return Vector2i(p.x, p.y);
 }
 
 unsigned Window::GetNumClientPixels() const
@@ -389,12 +391,12 @@ float Window::GetClientAspectRatio() const
 	return (float)GetClientWidth() * GetClientHeight();
 }
 
-ivec2 Window::GetCenterPos() const
+Vector2i Window::GetCenterPos() const
 {
 	WINDOWINFO info;
 	assert(GetWindowInfo(handle, &info));
 
-	return ivec2((int)((info.rcWindow.right - info.rcWindow.left) * 0.5f), (int)((info.rcWindow.bottom - info.rcWindow.right) * 0.5f));
+	return Vector2i((int)((info.rcWindow.right - info.rcWindow.left) * 0.5f), (int)((info.rcWindow.bottom - info.rcWindow.right) * 0.5f));
 }
 
 eKey Window::ConvertFromWindowsKey(WPARAM key)
