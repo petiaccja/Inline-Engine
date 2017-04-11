@@ -2,6 +2,8 @@
 #include <BaseLibrary\Common_tmp.hpp>
 #include "Widget.hpp"
 
+namespace inl::gui {
+
 class GuiSlider : public Widget
 {
 public:
@@ -76,3 +78,5 @@ inline void GuiSlider::SetMaxValue(float val)
 	val = clamp(val, minValue, maxValue);
 	SetValue(val);
 }
+
+} // namespace inl::gui

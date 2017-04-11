@@ -1,6 +1,8 @@
 #pragma once
 #include <BaseLibrary\Common_tmp.hpp>
 
+namespace inl::gui {
+
 enum class eEventPropagationPolicy
 {
 	PROCESS,
@@ -18,3 +20,5 @@ public:
 public:
 	ivec2 cursorClientPos;
 };
+
+} //namespace inl::gui

@@ -2,6 +2,8 @@
 #include <BaseLibrary\Common_tmp.hpp>
 #include "Widget.hpp"
 
+namespace inl::gui {
+
 enum class eGuiListDirection
 {
 	VERTICAL,
@@ -13,7 +15,7 @@ class GuiList : public Widget
 public:
 	GuiList(GuiEngine* guiEngine);
 	GuiList(const GuiList& other) { *this = other; }
-	
+
 	// Important to implement in derived classes
 	virtual GuiList* Clone() const override { return new GuiList(*this); }
 
@@ -29,7 +31,7 @@ protected:
 };
 
 inline GuiList::GuiList(GuiEngine* guiEngine)
-:Widget(guiEngine), direction(eGuiListDirection::VERTICAL)
+	:Widget(guiEngine), direction(eGuiListDirection::VERTICAL)
 {
 	SetFitToChildren(true);
 
@@ -70,7 +72,7 @@ inline void GuiList::SetDirection(eGuiListDirection dir)
 inline void GuiList::ArrangeChilds()
 {
 	int i = 0;
-	vec2 finalSize(0,0);
+	vec2 finalSize(0, 0);
 	float distance = 0;
 	float maxDiameter = 0;
 	for (Widget* child : GetChildren())
@@ -93,3 +95,5 @@ inline void GuiList::ArrangeChilds()
 	}
 	//SetClientSize(finalSize);
 }
+
+} // namespace inl::gui

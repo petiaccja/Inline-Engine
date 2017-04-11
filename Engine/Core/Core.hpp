@@ -2,7 +2,9 @@
 #include <GuiEngine/GuiEngine.hpp>
 #include <BaseLibrary/Platform/Window.hpp>
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
+
 using namespace inl::gxeng;
+using namespace inl::gui;
 
 class EngineCore
 {

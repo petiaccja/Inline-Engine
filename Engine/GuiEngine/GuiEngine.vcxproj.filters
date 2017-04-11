@@ -40,13 +40,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GuiSlider.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="Widget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GuiCollapsable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GuiSlider.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

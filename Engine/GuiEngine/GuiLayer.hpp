@@ -6,6 +6,8 @@
 #include "GuiCollapsable.hpp"
 #include <vector>
 
+namespace inl::gui {
+
 class GuiLayer
 {
 public:
@@ -101,3 +103,5 @@ inline const std::vector<Widget*>& GuiLayer::GetControls() const
 {
 	return layer->GetChildren();
 }
+
+} // namespace inl::gui

@@ -1,6 +1,8 @@
 #pragma once
 #include "GuiCollapsable.hpp"
 
+using namespace inl::gui;
+
 GuiCollapsable::GuiCollapsable(GuiEngine* guiEngine)
 :GuiList(guiEngine), bOpened(false)
 {

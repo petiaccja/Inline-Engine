@@ -6,6 +6,8 @@
 
 using namespace inl::gxeng;
 
+namespace inl::gui {
+
 class GuiEngine
 {
 public:
@@ -77,7 +79,7 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 		{
 			hoveredControl->TraverseTowardParents([&](Widget* control)
 			{
-				if(control->GetPaddingRect().IsPointInside(event.mousePos))
+				if (control->GetPaddingRect().IsPointInside(event.mousePos))
 					control->onMousePressed(control, eventData);
 			});
 		}
@@ -161,7 +163,7 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 
 inline GuiEngine::~GuiEngine()
 {
-	for(auto& layer : layers)
+	for (auto& layer : layers)
 		delete layer;
 
 	layers.clear();
@@ -193,7 +195,7 @@ inline void GuiEngine::Update(float deltaTime)
 	});
 
 	ivec2 cursorPos = targetWindow->GetClientCursorPos();
-	
+
 	// Search hovered control to fire event on them
 	Widget* newHoveredControl = nullptr;
 	TraverseGuiControls([&](Widget* control)
@@ -230,7 +232,7 @@ inline void GuiEngine::Update(float deltaTime)
 		{
 			hoveredControl->TraverseTowardParents([&](Widget* control)
 			{
-				if(control->GetPaddingRect().IsPointInside(cursorPos))
+				if (control->GetPaddingRect().IsPointInside(cursorPos))
 					control->onMouseHovered(control, CursorEvent(cursorPos));
 			});
 		}
@@ -319,3 +321,5 @@ inline void GuiEngine::TraverseGuiControls(const std::function<void(Widget*)>& f
 		}
 	}
 }
+
+} //namespace inl::gui

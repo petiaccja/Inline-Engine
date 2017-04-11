@@ -2,6 +2,9 @@
 #include <BaseLibrary\Common_tmp.hpp>
 #include "Widget.hpp"
 
+
+namespace inl::gui {
+
 enum class eTextAlign
 {
 	LEFT,
@@ -60,7 +63,7 @@ inline GuiText::GuiText(GuiEngine* guiEngine)
 		Gdiplus::SolidBrush  brush(Gdiplus::Color(color.r, color.g, color.b, color.a));
 		Gdiplus::FontFamily  fontFamily(L"Helvetica");
 		Gdiplus::Font        font(&fontFamily, fontSize, Gdiplus::FontStyleBold, Gdiplus::UnitPixel);
-	
+
 		// Text alignment
 		Gdiplus::RectF gdiRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight());
 		Gdiplus::RectF textRect;
@@ -74,7 +77,7 @@ inline GuiText::GuiText(GuiEngine* guiEngine)
 			textPos = rect.GetCenter();
 			textPos.x -= textRect.Width * 0.5f;
 			textPos.y -= textRect.Height * 0.5f;
-	
+
 		} break;
 		case eTextAlign::LEFT:
 		{
@@ -120,7 +123,7 @@ inline GuiText::GuiText(GuiEngine* guiEngine)
 		}
 
 		Gdiplus::PointF pointF(textPos.x, textPos.y);
-	
+
 		graphics->SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAliasGridFit);
 		graphics->DrawString(text.c_str(), -1, &font, pointF, &brush);
 	};
@@ -147,10 +150,12 @@ inline void GuiText::ArrangeText(Gdiplus::Graphics* graphics)
 {
 	Gdiplus::FontFamily  fontFamily(L"Helvetica");
 	Gdiplus::Font        font(&fontFamily, fontSize, Gdiplus::FontStyleBold, Gdiplus::UnitPixel);
-	
+
 	Gdiplus::RectF gdiRect(-999999, -999999, 9999999, 9999999);
 	Gdiplus::RectF textRect;
 	graphics->MeasureString(text.c_str(), text.size(), &font, gdiRect, &textRect);
-	
+
 	SetClientSize(ceil(textRect.Width), ceil(textRect.Height));
 }
+
+} // namespace inl::gui

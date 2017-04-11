@@ -5,6 +5,8 @@
 #include "GuiList.hpp"
 #include "GuiEngine.hpp"
 
+using namespace inl::gui;
+
 Widget* Widget::AddWidget()
 {
 	return Add<Widget>();

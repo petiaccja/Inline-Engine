@@ -2,6 +2,8 @@
 #include "GuiSlider.hpp"
 #include "GuiEngine.hpp"
 
+using namespace inl::gui;
+
 GuiSlider::GuiSlider(GuiEngine* guiEngine)
 :Widget(guiEngine), value(0), minValue(0), maxValue(1), sliderWidth(5), bSliding(false)
 {

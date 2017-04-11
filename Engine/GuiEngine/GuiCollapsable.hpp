@@ -2,6 +2,8 @@
 #include "GuiList.hpp"
 #include "GuiButton.hpp"
 
+namespace inl::gui {
+
 class GuiCollapsable : public GuiList
 {
 public:
@@ -30,3 +32,5 @@ inline void GuiCollapsable::SetCaptionText(const std::wstring& str)
 {
 	caption->SetText(str);
 }
+
+} //namespace inl::gui

@@ -2,6 +2,8 @@
 #include <BaseLibrary\Common_tmp.hpp>
 #include "GuiText.hpp"
 
+namespace inl::gui {
+
 class GuiButton : public Widget
 {
 public:
@@ -50,3 +52,5 @@ inline void GuiButton::SetTextAlign(eTextAlign align)
 {
 	text->SetAlign(align);
 }
+
+} // namespace inl::gui

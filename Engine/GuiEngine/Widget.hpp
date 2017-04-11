@@ -13,6 +13,8 @@
 
 #include <unordered_map>
 
+namespace inl::gui {
+
 class GuiEngine;
 class Widget;
 class GuiText;
@@ -55,10 +57,10 @@ public:
 	void FillParent() { SetRect(parent->GetRect()); }
 	void Stretch() {}
 
-	Widget*  AsPlane()  { return (Widget*)this; }
-	GuiText*   AsText()   { return (GuiText*)this; }
+	Widget*  AsPlane() { return (Widget*)this; }
+	GuiText*   AsText() { return (GuiText*)this; }
 	GuiButton* AsButton() { return (GuiButton*)this; }
-	GuiList*   AsList()   { return (GuiList*)this; }
+	GuiList*   AsList() { return (GuiList*)this; }
 	GuiSlider* AsSlider() { return (GuiSlider*)this; }
 	GuiCollapsable* AsCollapsable() { return (GuiCollapsable*)this; }
 
@@ -68,20 +70,20 @@ public:
 	void SetClientSize(float width, float height) { SetClientRect(GetClientRect().left, GetClientRect().top, width, height); }
 
 	void SetClientRect(const RectF rect) { SetClientRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); }
-	void SetRect(const RectF& rect)	{ SetRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); }
+	void SetRect(const RectF& rect) { SetRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); }
 
-	void SetName(const std::wstring& str)	{ name = str; }
-	void SetName(const std::string& str)	{ SetName(std::wstring(str.begin(), str.end())); }
-	void SetContextMenu(Widget* c)			{ contextMenu = c; }
-	void SetPos(const vec2& p)				{ SetPos(p.x, p.y); }
-	void SetPos(float x, float y)			{ SetRect(x, y, size.x, size.y); }
-	void SetCenterPos(float x, float y)		{ SetPos(x - GetHalfWidth(), y + GetHalfHeight()); }
-	void SetPosX(float x)					{ SetRect(x, pos.y, size.x, size.y); }
-	void SetPosY(float y)					{ SetRect(pos.x, y, size.x, size.y); }
-	void SetSize(const vec2& s)				{ SetSize(s.x, s.y); }
+	void SetName(const std::wstring& str) { name = str; }
+	void SetName(const std::string& str) { SetName(std::wstring(str.begin(), str.end())); }
+	void SetContextMenu(Widget* c) { contextMenu = c; }
+	void SetPos(const vec2& p) { SetPos(p.x, p.y); }
+	void SetPos(float x, float y) { SetRect(x, y, size.x, size.y); }
+	void SetCenterPos(float x, float y) { SetPos(x - GetHalfWidth(), y + GetHalfHeight()); }
+	void SetPosX(float x) { SetRect(x, pos.y, size.x, size.y); }
+	void SetPosY(float y) { SetRect(pos.x, y, size.x, size.y); }
+	void SetSize(const vec2& s) { SetSize(s.x, s.y); }
 	void SetSize(float width, float height) { SetRect(pos.x, pos.y, width, height); }
-	void SetWidth(float w)					{ SetSize(vec2(w, size.y)); }
-	void SetHeight(float h)					{ SetSize(vec2(size.x, h)); }
+	void SetWidth(float w) { SetSize(vec2(w, size.y)); }
+	void SetHeight(float h) { SetSize(vec2(size.x, h)); }
 
 	void SetClientSize(const vec2& s) { SetClientSize(s.x, s.y); }
 
@@ -108,7 +110,7 @@ public:
 
 	void SetBorder(float leftLength, float rightLength, float topLength, float bottomLength, const Color& color);
 	void SetBorder(float borderLength, const Color& color) { SetBorder(borderLength, borderLength, borderLength, borderLength, color); }
-	
+
 	void SetMargin(float leftLength, float topLength, float rightLength, float bottomLength);
 	void SetPadding(float leftLength, float topLength, float rightLength, float bottomLength);
 	void SetMargin(float length) { SetMargin(length, length, length, length); }
@@ -128,16 +130,16 @@ public:
 	float GetClientSpaceCursorPosX();
 	float GetClientSpaceCursorPosY();
 
-	float GetPosX()		  { return pos.x; }
-	float GetPosY()		  { return pos.y; }
-	const vec2& GetPos()  { return pos; }
+	float GetPosX() { return pos.x; }
+	float GetPosY() { return pos.y; }
+	const vec2& GetPos() { return pos; }
 	float GetCenterPosX() { return pos.x + GetHalfWidth(); }
 	float GetCenterPosY() { return pos.y + GetHalfHeight(); }
-	vec2 GetCenterPos()  { return pos + GetHalfSize(); }
+	vec2 GetCenterPos() { return pos + GetHalfSize(); }
 	const vec2& GetSize() { return size; }
-	float GetWidth()	  { return size.x; }
-	float GetHeight()	  { return size.y; }
-	float GetHalfWidth()  { return GetWidth() * 0.5f; }
+	float GetWidth() { return size.x; }
+	float GetHeight() { return size.y; }
+	float GetHalfWidth() { return GetWidth() * 0.5f; }
 	float GetHalfHeight() { return GetHeight() * 0.5f; }
 	vec2 GetHalfSize() { return vec2(GetHalfWidth(), GetHalfHeight()); }
 
@@ -219,7 +221,7 @@ protected:
 
 	// children index in parent
 	int indexInParent;
-	
+
 	// Children widgets
 	std::vector<Widget*> children;
 
@@ -294,7 +296,7 @@ public:
 };
 
 inline Widget::Widget(GuiEngine* guiEngine, bool bLayer)
-:guiEngine(guiEngine), pos(0, 0), eventPropagationPolicy(eEventPropagationPolicy::PROCESS), size(60, 20), indexInParent(-1), bLayer(bLayer), parent(nullptr), front(nullptr), back(nullptr), contextMenu(nullptr), bgIdleColor(45), bgHoverColor(75), bgActiveImage(nullptr), bgIdleImage(nullptr), bgHoverImage(nullptr), border(0,0,0,0), borderColor(128), bBgImageVisible(true), bBgColorVisible(true), bClipChildren(true), bFitToChildren(false), margin(0,0,0,0), padding(0,0,0,0)
+	:guiEngine(guiEngine), pos(0, 0), eventPropagationPolicy(eEventPropagationPolicy::PROCESS), size(60, 20), indexInParent(-1), bLayer(bLayer), parent(nullptr), front(nullptr), back(nullptr), contextMenu(nullptr), bgIdleColor(45), bgHoverColor(75), bgActiveImage(nullptr), bgIdleImage(nullptr), bgHoverImage(nullptr), border(0, 0, 0, 0), borderColor(128), bBgImageVisible(true), bBgColorVisible(true), bClipChildren(true), bFitToChildren(false), margin(0, 0, 0, 0), padding(0, 0, 0, 0)
 {
 	SetBgActiveColor(bgIdleColor);
 
@@ -347,7 +349,7 @@ inline Widget::Widget(GuiEngine* guiEngine, bool bLayer)
 			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
 			graphics->FillRectangle(&borderBrush, tmpGdi);
 		}
-		
+
 		// Draw top border
 		if (border.top != 0)
 		{
@@ -378,7 +380,7 @@ inline Widget::Widget(GuiEngine* guiEngine, bool bLayer)
 		{
 			graphics->DrawImage(self->GetBgActiveImage(), gdiPaddingRect);
 		}
-		else if(self->bBgColorVisible) // Draw Background Colored Rectangle
+		else if (self->bBgColorVisible) // Draw Background Colored Rectangle
 		{
 			Color bgColor = self->GetBgActiveColor();
 			Gdiplus::SolidBrush brush(Gdiplus::Color(bgColor.a, bgColor.r, bgColor.g, bgColor.b));
@@ -395,7 +397,7 @@ inline Widget::Widget(GuiEngine* guiEngine, bool bLayer)
 			self->SetClientSize(boundRect.GetSize());
 		}
 	};
-	
+
 	onChildRemoved += [](Widget* self, Widget* child)
 	{
 		if (self->bFitToChildren)
@@ -404,7 +406,7 @@ inline Widget::Widget(GuiEngine* guiEngine, bool bLayer)
 			self->SetClientSize(boundRect.GetSize());
 		}
 	};
-	
+
 	onChildTransformChanged += [](Widget* self, RectF& rect)
 	{
 		if (self->bFitToChildren)
@@ -416,13 +418,13 @@ inline Widget::Widget(GuiEngine* guiEngine, bool bLayer)
 }
 
 inline Widget::Widget(GuiEngine* guiEngine)
-:Widget(guiEngine, false)
+	:Widget(guiEngine, false)
 {
 
 }
 
 inline Widget::Widget()
-:Widget(nullptr, false)
+	: Widget(nullptr, false)
 {
 
 }
@@ -488,7 +490,7 @@ inline Widget& Widget::operator = (const Widget& other)
 	bgHoverColor = other.bgHoverColor;
 
 	// Context menu
-	if(other.contextMenu)
+	if (other.contextMenu)
 		contextMenu = other.contextMenu->Clone();
 
 	for (Widget* child : other.children)
@@ -619,7 +621,7 @@ inline void Widget::SetRect(float x, float y, float width, float height)
 			child->Move(rect.GetPos() - oldRect.GetPos());
 			child->onParentTransformChanged(child, rect);
 		}
-		
+
 		onTransformChanged(this, rect);
 
 		if (parent)
@@ -832,3 +834,5 @@ inline void Widget::SetBorder(float leftLength, float topLength, float rightLeng
 	//newRect.MoveSidesLocal(-deltaBorder);
 	//SetRect(newRect);
 }
+
+} // namespace inl::gui
