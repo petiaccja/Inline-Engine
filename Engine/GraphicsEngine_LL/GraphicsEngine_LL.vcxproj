@@ -166,28 +166,36 @@
     <ClInclude Include="..\GraphicsEngine\ITerrainEntity.hpp" />
     <ClInclude Include="..\GraphicsEngine\ITexture2D.hpp" />
     <ClInclude Include="BackBufferManager.hpp" />
+    <ClInclude Include="BasicCamera.hpp" />
     <ClInclude Include="BasicCommandList.hpp" />
     <ClInclude Include="Binder.hpp" />
     <ClInclude Include="BindingManager.hpp" />
-    <ClInclude Include="Camera.hpp" />
-    <ClInclude Include="CommandAllocatorPool.hpp" />
-    <ClInclude Include="CommandQueue.hpp" />
-    <ClInclude Include="ComputeCommandList.hpp" />
-    <ClInclude Include="ConstBufferHeap.hpp" />
-    <ClInclude Include="CopyCommandList.hpp" />
-    <ClInclude Include="EntityCollection.hpp" />
-    <ClInclude Include="ExecutionContext.hpp" />
-    <ClInclude Include="ExecutionResult.hpp" />
-    <ClInclude Include="GraphicsContext.hpp" />
+    <ClInclude Include="NodeContext.hpp" />
+    <ClInclude Include="Nodes\ExampleTemplate.hpp" />
+    <ClInclude Include="Nodes\NodeUtility.hpp" />
+    <ClInclude Include="Nodes\Node_Blend.hpp" />
+    <ClInclude Include="Nodes\Node_CreateTexture.hpp" />
     <ClInclude Include="Nodes\Node_CSM.hpp" />
     <ClInclude Include="Nodes\Node_DepthPrepass.hpp" />
     <ClInclude Include="Nodes\Node_DepthReduction.hpp" />
     <ClInclude Include="Nodes\Node_DepthReductionFinal.hpp" />
     <ClInclude Include="Nodes\Node_DrawSky.hpp" />
     <ClInclude Include="Nodes\Node_ForwardRender.hpp" />
-    <ClInclude Include="Nodes\Node_GenCSM.hpp" />
+    <ClInclude Include="Nodes\Node_GetBackBuffer.hpp" />
     <ClInclude Include="Nodes\Node_GetCameraByName.hpp" />
-    <ClInclude Include="Nodes\Node_RenderToBackBuffer.hpp" />
+    <ClInclude Include="Nodes\Node_GetSceneByName.hpp" />
+    <ClInclude Include="Nodes\Node_GetTime.hpp" />
+    <ClInclude Include="Nodes\Node_OverlayRender.hpp" />
+    <ClInclude Include="Nodes\Node_TextureProperties.hpp" />
+    <ClInclude Include="OrthographicCamera.hpp" />
+    <ClInclude Include="OverlayEntity.hpp" />
+    <ClInclude Include="PerspectiveCamera.hpp" />
+    <ClInclude Include="CommandAllocatorPool.hpp" />
+    <ClInclude Include="CommandQueue.hpp" />
+    <ClInclude Include="ComputeCommandList.hpp" />
+    <ClInclude Include="ConstBufferHeap.hpp" />
+    <ClInclude Include="CopyCommandList.hpp" />
+    <ClInclude Include="EntityCollection.hpp" />
     <ClInclude Include="PipelineTypes.hpp" />
     <ClInclude Include="RootTableManager.hpp" />
     <ClInclude Include="ShaderManager.hpp" />
@@ -204,11 +212,6 @@
     <ClInclude Include="GraphicsEngine.hpp" />
     <ClInclude Include="Material.hpp" />
     <ClInclude Include="MeshBuffer.hpp" />
-    <ClInclude Include="Nodes\Node_GetBackBuffer.hpp" />
-    <ClInclude Include="Nodes\Node_FrameColor.hpp" />
-    <ClInclude Include="Nodes\Node_FrameCounter.hpp" />
-    <ClInclude Include="Nodes\Node_GetSceneByName.hpp" />
-    <ClInclude Include="Nodes\Node_GetTime.hpp" />
     <ClInclude Include="Pipeline.hpp" />
     <ClInclude Include="PipelineEventDispatcher.hpp" />
     <ClInclude Include="PipelineEventListener.hpp" />
@@ -220,7 +223,6 @@
     <ClInclude Include="Scheduler.hpp" />
     <ClInclude Include="ScratchSpacePool.hpp" />
     <ClInclude Include="SyncPoint.hpp" />
-    <ClInclude Include="Task.hpp" />
     <ClInclude Include="Texture2D.hpp" />
     <ClInclude Include="MemoryObject.hpp" />
     <ClInclude Include="Mesh.hpp" />
@@ -233,22 +235,25 @@
     <ClCompile Include="BackBufferManager.cpp" />
     <ClCompile Include="BasicCommandList.cpp" />
     <ClCompile Include="Binder.cpp" />
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="CommandAllocatorPool.cpp" />
-    <ClCompile Include="ComputeCommandList.cpp" />
-    <ClCompile Include="ConstBufferHeap.cpp" />
-    <ClCompile Include="CopyCommandList.cpp" />
-    <ClCompile Include="ExecutionContext.cpp" />
-    <ClCompile Include="ExecutionResult.cpp" />
-    <ClCompile Include="GraphicsContext.cpp" />
+    <ClCompile Include="BasicCamera.cpp" />
+    <ClCompile Include="GraphicsNode.cpp" />
+    <ClCompile Include="NodeContext.cpp" />
+    <ClCompile Include="Nodes\NodeUtility.cpp" />
+    <ClCompile Include="Nodes\Node_Blend.cpp" />
     <ClCompile Include="Nodes\Node_CSM.cpp" />
     <ClCompile Include="Nodes\Node_DepthPrepass.cpp" />
     <ClCompile Include="Nodes\Node_DepthReduction.cpp" />
     <ClCompile Include="Nodes\Node_DepthReductionFinal.cpp" />
     <ClCompile Include="Nodes\Node_DrawSky.cpp" />
     <ClCompile Include="Nodes\Node_ForwardRender.cpp" />
-    <ClCompile Include="Nodes\Node_GenCSM.cpp" />
-    <ClCompile Include="Nodes\Node_RenderToBackBuffer.cpp" />
+    <ClCompile Include="Nodes\Node_OverlayRender.cpp" />
+    <ClCompile Include="OrthographicCamera.cpp" />
+    <ClCompile Include="OverlayEntity.cpp" />
+    <ClCompile Include="PerspectiveCamera.cpp" />
+    <ClCompile Include="CommandAllocatorPool.cpp" />
+    <ClCompile Include="ComputeCommandList.cpp" />
+    <ClCompile Include="ConstBufferHeap.cpp" />
+    <ClCompile Include="CopyCommandList.cpp" />
     <ClCompile Include="PipelineTypes.cpp" />
     <ClCompile Include="ShaderManager.cpp" />
     <ClCompile Include="StackDescHeap.cpp" />
@@ -270,46 +275,11 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Scheduler.cpp" />
     <ClCompile Include="ScratchSpacePool.cpp" />
-    <ClCompile Include="Task.cpp" />
     <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="MemoryObject.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="UploadManager.cpp" />
     <ClCompile Include="VolatileViewHeap.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Nodes\Shaders\DrawSky.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="Nodes\Shaders\GenCSM.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Nodes\Shaders\DepthPrepass.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Nodes\Shaders\DepthReduction.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Nodes\Shaders\ForwardRender.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="Materials\bitmap_color_2d.mtl.hlsl">
@@ -321,23 +291,6 @@
     <None Include="Materials\simple_diffuse.mtl.hlsl">
       <FileType>Document</FileType>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Nodes\Shaders\ForwardRender.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Nodes\Shaders\CSM.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\CSMSample.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DepthReductionFinal.hlsl">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

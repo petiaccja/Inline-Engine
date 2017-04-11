@@ -115,12 +115,7 @@ public:
 
 
 	// barriers
-	void ResourceBarrier(unsigned numBarriers, gxapi::ResourceBarrier* barriers);
-
-	template <class... Barriers>
-	void ResourceBarrier(Barriers&&... barriers);
-
-	void SetResourceState(MemoryObject& resource, unsigned subresource, gxapi::eResourceState state);
+	void SetResourceState(const MemoryObject& resource, unsigned subresource, gxapi::eResourceState state);
 protected:
 	virtual Decomposition Decompose() override;
 private:

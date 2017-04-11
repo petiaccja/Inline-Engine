@@ -58,27 +58,30 @@ public:
 	void Notify(InputPortBase*) override {
 
 	}
-	void InitGraphics(const GraphicsContext&) override {}
 
-	ExecutionResult DoSomething(ExecutionContext) {
-		++value;
+	// OBSOLETE
 
-		auto input1 = GetInput<0>();
-		auto input2 = GetInput<1>();
-		int sum = input1.Get() + input2.Get() + value;
-		GetOutput<0>().Set(sum);
-		cout << "id = " << id << ", " << "value = " << sum << endl;
-		return ExecutionResult{};
-	}
+	//void InitGraphics(const GraphicsContext&) override {}
 
-	Task GetTask() override {
-		return Task{ {
-				ElementaryTask([this](ExecutionContext ctx) { return DoSomething(ctx); }),
-				ElementaryTask([this](ExecutionContext ctx) { return DoSomething(ctx); }),
-				ElementaryTask([this](ExecutionContext ctx) { return DoSomething(ctx); }),
-				ElementaryTask([this](ExecutionContext ctx) { return DoSomething(ctx); }),
-		} };
-	}
+	//ExecutionResult DoSomething(ExecutionContext) {
+	//	++value;
+
+	//	auto input1 = GetInput<0>();
+	//	auto input2 = GetInput<1>();
+	//	int sum = input1.Get() + input2.Get() + value;
+	//	GetOutput<0>().Set(sum);
+	//	cout << "id = " << id << ", " << "value = " << sum << endl;
+	//	return ExecutionResult{};
+	//}
+
+	//Task GetTask() override {
+	//	return Task{ {
+	//			ElementaryTask([this](ExecutionContext ctx) { return DoSomething(ctx); }),
+	//			ElementaryTask([this](ExecutionContext ctx) { return DoSomething(ctx); }),
+	//			ElementaryTask([this](ExecutionContext ctx) { return DoSomething(ctx); }),
+	//			ElementaryTask([this](ExecutionContext ctx) { return DoSomething(ctx); }),
+	//	} };
+	//}
 private:
 	int value = 0;
 };
@@ -126,14 +129,14 @@ int TestPipeline::Run() {
 	cout << "Creating factory..." << endl;
 
 	GraphicsNodeFactory factory;
-	factory.RegisterNodeClass<TestNode>("");
-	factory.RegisterNodeClass<TestGraphicsNode>("");
+	//factory.RegisterNodeClass<TestNode>("");
+	//factory.RegisterNodeClass<TestGraphicsNode>("");
 
 	cout << "Creating pipeline..." << endl;
 
 	Pipeline pipeline;
 	//Scheduler scheduler;
-
+	/*
 	try {		
 		// create a few nodes
 		TestNode node0, node1, node2, node3, node4;
@@ -218,6 +221,6 @@ int TestPipeline::Run() {
 	catch (std::exception& ex) {
 		cout << "Failed to create pipeline: " << ex.what() << endl;
 	}
-
+	*/
 	return 0;
 }

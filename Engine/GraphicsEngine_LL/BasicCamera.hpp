@@ -1,22 +1,23 @@
 #pragma once
 
-
-#include <string>
 #include <mathfu/mathfu_exc.hpp>
 
+#include <string>
 
 namespace inl::gxeng {
 
-
-class Camera {
+/// <summary>
+/// Abstract base class of perspective and orthographic cameras
+/// </summary>
+class BasicCamera {
 public:
 	enum eMoveBehaviour {
 		KEEP_TARGET,
 		KEEP_LOOKDIR,
 	};
 public:
-	Camera();
-	virtual ~Camera() {}
+	BasicCamera();
+	virtual ~BasicCamera() = default;
 
 	void SetName(std::string name);
 	const std::string& GetName() const;
@@ -30,10 +31,8 @@ public:
 
 	// Set rendering properties.
 	void SetFocus(float focusDistance);
-	void SetFOVAspect(float horizontalFov, float aspectRatio);
-	void SetFOVAxis(float horizontalFov, float verticalFov);
 
-	// Set depth plane Z offset.
+	// negative values are valid
 	void SetNearPlane(float zOffset);
 	void SetFarPlane(float zOffset);
 
@@ -45,38 +44,33 @@ public:
 	mathfu::Vector3f GetUpVector() const;
 
 	// Get rendering properties.
-	float GetFOVVertical() const;
-	float GetFOVHorizontal() const;
-	float GetAspectRatio() const;
 	float GetFocus() const;
 
 	// Get depth plane Z offset.
 	float GetNearPlane() const;
 	float GetFarPlane() const;
 
-	// Matrices
-	mathfu::Matrix4x4f GetViewMatrixRH() const;
-	mathfu::Matrix4x4f GetViewMatrixLH() const;
-	mathfu::Matrix4x4f GetPerspectiveMatrixRH() const;
-	mathfu::Matrix4x4f GetPerspectiveMatrixLH() const;
-	mathfu::Matrix4x4f GetOrthographicMatrixRH() const;
-	mathfu::Matrix4x4f GetOrthographicMatrixLH() const;
-private:
+	virtual float GetAspectRatio() const = 0;
+
+	virtual mathfu::Matrix4x4f GetViewMatrixRH() const = 0;
+	virtual mathfu::Matrix4x4f GetViewMatrixLH() const = 0;
+	virtual mathfu::Matrix4x4f GetProjectionMatrixRH() const = 0;
+	virtual mathfu::Matrix4x4f GetProjectionMatrixLH() const = 0;
+
+protected:
+	std::string m_name;
+
 	mathfu::Vector3f m_position;
 	mathfu::Vector3f m_upVector;
 	mathfu::Vector3f m_lookdir;
 	float m_targetDistance;
 	bool m_targeted = false;
 
-	float m_fovH;
-	float m_fovV;
 	float m_focus;
 
 	float m_nearPlane;
 	float m_farPlane;
-
-	std::string m_name;
 };
 
 
-} // namespace inl::gxeng
+} // inl::gxeng

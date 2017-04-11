@@ -47,7 +47,7 @@ BasicCommandList::Decomposition GraphicsCommandList::Decompose() {
 //------------------------------------------------------------------------------
 // Clear buffers
 //------------------------------------------------------------------------------
-void GraphicsCommandList::ClearDepthStencil(DepthStencilView2D& resource,
+void GraphicsCommandList::ClearDepthStencil(const DepthStencilView2D& resource,
 	float depth,
 	uint8_t stencil,
 	size_t numRects,
@@ -58,7 +58,7 @@ void GraphicsCommandList::ClearDepthStencil(DepthStencilView2D& resource,
 	m_commandList->ClearDepthStencil(resource.GetHandle(), depth, stencil, numRects, rects, clearDepth, clearStencil);
 }
 
-void GraphicsCommandList::ClearRenderTarget(RenderTargetView2D& resource,
+void GraphicsCommandList::ClearRenderTarget(const RenderTargetView2D& resource,
 	gxapi::ColorRGBA color,
 	size_t numRects,
 	gxapi::Rectangle* rects)
@@ -132,8 +132,8 @@ void GraphicsCommandList::SetVertexBuffers(unsigned startSlot,
 //------------------------------------------------------------------------------
 
 void GraphicsCommandList::SetRenderTargets(unsigned numRenderTargets,
-	RenderTargetView2D** renderTargets,
-	DepthStencilView2D* depthStencil)
+	const RenderTargetView2D* const* renderTargets,
+	const DepthStencilView2D* depthStencil)
 {
 	auto renderTargetHandles = std::make_unique<gxapi::DescriptorHandle[]>(numRenderTargets);
 	for (unsigned i = 0; i < numRenderTargets; ++i) {

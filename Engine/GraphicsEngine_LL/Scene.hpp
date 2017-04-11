@@ -6,10 +6,13 @@
 namespace inl {
 namespace gxeng {
 
-class MeshEntity;
-class TerrainEntity;
-class DirectionalLight;
+
 class GraphicsEngine;
+
+class MeshEntity;
+class OverlayEntity;
+
+class DirectionalLight;
 
 
 class Scene {
@@ -26,20 +29,16 @@ public:
 	EntityCollection<MeshEntity>& GetMeshEntities();
 	const EntityCollection<MeshEntity>& GetMeshEntities() const;
 
-	void SetSun(DirectionalLight* sun);
-	const DirectionalLight& GetSun() const;
+	EntityCollection<OverlayEntity>& GetOverlayEntities();
+	const EntityCollection<OverlayEntity>& GetOverlayEntities() const;
 
-	//EntityCollection<TerrainEntity>& GetTerrainEntities();
-	//const EntityCollection<TerrainEntity>& GetTerrainEntities() const;
-
-	//EntityCollection<Light>& GetLights();
-	//const EntityCollection<Light>& GetLights() const;
+	EntityCollection<DirectionalLight>& GetDirectionalLights();
+	const EntityCollection<DirectionalLight>& GetDirectionalLights() const;
 
 private:
 	EntityCollection<MeshEntity> m_meshEntities;	
-	DirectionalLight* m_sun = nullptr;
-	//EntityCollection<TerrainEntity> m_terrainEntities;
-	//EntityCollection<Light> m_lights;
+	EntityCollection<OverlayEntity> m_overlayEntities;
+	EntityCollection<DirectionalLight> m_directionalLights;
 
 	std::string m_name;
 };

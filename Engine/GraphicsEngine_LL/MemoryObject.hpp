@@ -59,6 +59,9 @@ public:
 		return (bool)m_contents;
 	}
 
+	bool HasObject() const {
+		return (bool)m_contents;
+	}
 
 	void* GetVirtualAddress() const;
 	gxapi::ResourceDesc GetDescription() const;
@@ -73,8 +76,7 @@ public:
 	void _SetResident(bool value) noexcept;
 	bool _GetResident() const noexcept;
 
-	gxapi::IResource* _GetResourcePtr() noexcept;
-	const gxapi::IResource* _GetResourcePtr() const noexcept;
+	gxapi::IResource* _GetResourcePtr() const noexcept;
 
 protected:
 	void InitResourceStates(gxapi::eResourceState initialState);
@@ -223,4 +225,5 @@ struct hash<inl::gxeng::MemoryObject> {
 		return reinterpret_cast<size_t>(obj.m_contents.get());
 	}
 };
+
 }

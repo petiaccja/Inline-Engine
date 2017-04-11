@@ -2,51 +2,48 @@
 
 #include "../GraphicsNode.hpp"
 
-#include "Node_GenCSM.hpp"
-
 #include "../Scene.hpp"
-#include "../Camera.hpp"
+#include "../PerspectiveCamera.hpp"
 #include "../Mesh.hpp"
 #include "../ConstBufferHeap.hpp"
-#include "../GraphicsContext.hpp"
 #include "../PipelineTypes.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
+#include <optional>
+
 namespace inl::gxeng::nodes {
 
-
+/// <summary>
+/// Inputs: render target, entities, camera
+/// </summary>
 class DepthPrepass :
 	virtual public GraphicsNode,
-	virtual public exc::InputPortConfig<const EntityCollection<MeshEntity>*, const Camera*>,
-	virtual public exc::OutputPortConfig<pipeline::Texture2D>
+	virtual public GraphicsTask,
+	virtual public exc::InputPortConfig<Texture2D, const EntityCollection<MeshEntity>*, const BasicCamera*>,
+	virtual public exc::OutputPortConfig<Texture2D>
 {
 public:
-	DepthPrepass(gxapi::IGraphicsApi* graphicsApi);
+	DepthPrepass();
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
-	void InitGraphics(const GraphicsContext& context) override;
 
-	Task GetTask() override;
-
+	void Initialize(EngineContext& context) override;
+	void Setup(SetupContext& context) override;
+	void Execute(RenderContext& context) override;
+	
 protected:
-	DepthStencilView2D m_dsv;
-	TextureView2D m_depthTargetSrv;
-
-protected:
-	GraphicsContext m_graphicsContext;
-	Binder m_binder;
+	std::optional<Binder> m_binder;
 	BindParameter m_transformBindParam;
+	ShaderProgram m_shader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
+	gxapi::eFormat m_depthStencilFormat = gxapi::eFormat::UNKNOWN;
 
-private:
-	void InitRenderTarget(unsigned width, unsigned height);
-	void RenderScene(
-		DepthStencilView2D& dsv,
-		const EntityCollection<MeshEntity>& entities,
-		const Camera* camera,
-		GraphicsCommandList& commandList);
+private: // execution context
+	DepthStencilView2D m_targetDsv;
+	const EntityCollection<MeshEntity>* m_entities;
+	const BasicCamera* m_camera;
 };
 
 

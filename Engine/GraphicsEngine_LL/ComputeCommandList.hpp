@@ -47,7 +47,7 @@ public:
 	void BindCompute(BindParameter parameter, const RWBufferView& rwResource);
 
 	// UAV barriers
-	void UAVBarrier(MemoryObject& memoryObject);
+	void UAVBarrier(const MemoryObject& memoryObject);
 protected:
 	virtual Decomposition Decompose() override;
 	virtual void NewScratchSpace(size_t hint) override;

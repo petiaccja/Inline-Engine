@@ -1,13 +1,18 @@
-Texture2D<float> shadowMapTex : register(t500);
+Texture2DArray<float> shadowMapTex : register(t500);
 Texture2D<float4> shadowMXTex : register(t501);
 Texture2D<float2> csmSplitsTex : register(t502);
 SamplerState theSampler : register(s500);
 
-float2 get_shadow_uv(float2 uv, float cascade_idx)
+// TODO replace all the hardwired constants that
+// depend on number of cascades (shadowMapTex array element count)
+
+float3 get_shadow_uv(float2 uv, float cascade_idx)
 {
-	float2 res = float2(uv.x*0.25, uv.y) + cascade_idx * float2(0.25, 0);
-	res.x = clamp(res.x, cascade_idx * 0.25, (cascade_idx + 1) * 0.25);
-	return res;
+	// float2 res = float2(uv.x*0.25, uv.y) + cascade_idx * float2(0.25, 0);
+	// res.x = clamp(res.x, cascade_idx * 0.25, (cascade_idx + 1) * 0.25);
+	// return res;
+	
+	return float3(uv, cascade_idx);
 }
 
 float offset_lookup(float4 loc, float2 offset, float2 scale, float cascade)
@@ -55,7 +60,8 @@ float sample_csm(int cascade, float4 vs_pos)
 	}
 
 	uint3 inputTexSize;
-	shadowMapTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
+	uint levels;
+	shadowMapTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z, levels);
 	float2 scale = 1.0 / float2(inputTexSize.xy);
 
 	return shadow_pcf_3x3(shadow_coord, scale, offset, cascade);

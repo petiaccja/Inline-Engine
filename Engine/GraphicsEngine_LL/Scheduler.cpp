@@ -2,6 +2,8 @@
 
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
 
+#include "GraphicsCommandList.hpp"
+
 #include <cassert>
 #include <iostream> // only for debugging
 
@@ -31,80 +33,84 @@ void Scheduler::Execute(FrameContext context) {
 	auto tasks = MakeSchedule(taskGraph, taskFunctionMap);
 
 	// Inject copy task to the start.
-	tasks.insert(tasks.begin(),[context](ExecutionContext ctx){
-		auto cmdList = ctx.GetGraphicsCommandList();
-		UploadTask(cmdList, *context.uploadRequests);
-		ExecutionResult res;
-		res.AddCommandList(std::move(cmdList));
-		return res;
-	});
+	UploadTask uploadTask(context.uploadRequests);
+	tasks.insert(tasks.begin(), &uploadTask);
 
-	// Execute the tasks.
+	// Setup and execute the tasks.
 	try {
+		// PHASE I.: Setup() tasks in correct order
 		for (auto& task : tasks) {
+			if (task != nullptr) {
+				SetupContext setupContext(context.memoryManager, context.textureSpace, context.rtvHeap, context.dsvHeap, context.shaderManager, context.gxApi);
+				task->Setup(setupContext);
+			}
+		}
+
+		// PHASE II.: Execute() tasks in correct
+		for (auto& task : tasks) {
+			VolatileViewHeap volatileHeap(context.gxApi);
+			RenderContext renderContext(context.memoryManager, context.textureSpace, &volatileHeap, context.shaderManager, context.gxApi, context.commandAllocatorPool, context.scratchSpacePool);
+
 			// Execute the task on the CPU.
-			ExecutionResult result;
-			if (task) {
-				result = task(ExecutionContext{ &context });
-			}
-			else {
-				continue;
-			}
+			if (task != nullptr) {
+				task->Execute(renderContext);
 
-			// Enqueue all command lists on the GPU.
-			for (ExecutionResult::CommandListRecord& listRecord : result) {
-				auto dec = listRecord.list->Decompose();
+				// Enqueue all command lists on the GPU.
+				if (renderContext.IsListInitialized()) {
+					BasicCommandList* commandList;
+					switch (renderContext.GetType()) {
+						case gxapi::eCommandListType::GRAPHICS: commandList = &renderContext.AsGraphics(); break;
+						case gxapi::eCommandListType::COMPUTE: commandList = &renderContext.AsCompute(); break;
+						case gxapi::eCommandListType::COPY: commandList = &renderContext.AsCopy(); break;
+						default: assert(false);
+					}
+					BasicCommandList::Decomposition decomposition = commandList->Decompose();
 
-				std::sort(dec.usedResources.begin(), dec.usedResources.end(), [](const ResourceUsage& lhs, const ResourceUsage& rhs) {
-					auto lhsPtr = lhs.resource._GetResourcePtr();
-					auto rhsPtr = rhs.resource._GetResourcePtr();
-					return lhsPtr < rhsPtr || (lhs.resource._GetResourcePtr() == rhs.resource._GetResourcePtr() && lhs.subresource < rhs.subresource);
-				});
+					std::sort(decomposition.usedResources.begin(), decomposition.usedResources.end(), [](const ResourceUsage& lhs, const ResourceUsage& rhs) {
+						auto lhsPtr = lhs.resource._GetResourcePtr();
+						auto rhsPtr = rhs.resource._GetResourcePtr();
+						return lhsPtr < rhsPtr || (lhs.resource._GetResourcePtr() == rhs.resource._GetResourcePtr() && lhs.subresource < rhs.subresource);
+					});
 
-				// Inject a transition barrier command list.
-				auto barriers = InjectBarriers(dec.usedResources.begin(), dec.usedResources.end());
-				if (barriers.size() > 0) {
-					CmdAllocPtr injectAlloc = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
-					std::unique_ptr<gxapi::ICopyCommandList> injectList(context.gxApi->CreateGraphicsCommandList({ injectAlloc.get() }));
+					// Inject a transition barrier command list.
+					auto barriers = InjectBarriers(decomposition.usedResources.begin(), decomposition.usedResources.end());
+					if (barriers.size() > 0) {
+						CmdAllocPtr injectAlloc = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
+						std::unique_ptr<gxapi::ICopyCommandList> injectList(context.gxApi->CreateGraphicsCommandList({ injectAlloc.get() }));
 
-					injectList->ResourceBarrier((unsigned)barriers.size(), barriers.data());
-					injectList->Close();
+						injectList->ResourceBarrier((unsigned)barriers.size(), barriers.data());
+						injectList->Close();
+
+						EnqueueCommandList(*context.commandQueue,
+										   std::move(injectList),
+										   std::move(injectAlloc),
+										   {},
+										   {},
+										   {},
+										   context);
+					}
+
+					// Enqueue actual command list.
+					std::vector<MemoryObject> usedResourceList;
+					usedResourceList.reserve(decomposition.usedResources.size());
+					for (const auto& v : decomposition.usedResources) {
+						usedResourceList.push_back(v.resource);
+					}
+
+					decomposition.commandList->Close();
 
 					EnqueueCommandList(*context.commandQueue,
-									   std::move(injectList),
-									   std::move(injectAlloc),
-									   {},
-									   {},
+									   std::move(decomposition.commandList),
+									   std::move(decomposition.commandAllocator),
+									   std::move(decomposition.scratchSpaces),
+									   std::move(usedResourceList),
+									   std::unique_ptr<VolatileViewHeap>(new VolatileViewHeap(std::move(volatileHeap))),
 									   context);
+
+
+					// Update resource states.
+					UpdateResourceStates(decomposition.usedResources.begin(), decomposition.usedResources.end());
 				}
-
-				// Enqueue actual command list.
-				std::vector<MemoryObject> usedResourceList;
-				usedResourceList.reserve(dec.usedResources.size());
-				for (const auto& v : dec.usedResources) {
-					usedResourceList.push_back(v.resource);
-				}
-
-				dec.commandList->Close();
-
-				EnqueueCommandList(*context.commandQueue,
-								   std::move(dec.commandList),
-								   std::move(dec.commandAllocator),
-				                   std::move(dec.scratchSpaces),
-								   std::move(usedResourceList),
-								   context);
-
-
-				// Update resource states.
-				UpdateResourceStates(dec.usedResources.begin(), dec.usedResources.end());
-			}
-
-			// TODO(Artur) accumulate all clean tasks, and schedule one singe clean task per node to reduce fences (aka sync points)
-			std::optional<VolatileViewHeap>& volatileHeap = result.GetVolatileViewHeap();
-			if (volatileHeap.has_value()) {
-				SyncPoint completionPoint = context.commandQueue->Signal();
-				// Enqueue CPU task to clean up resources after command list finished.
-				context.residencyQueue->EnqueueClean(completionPoint, {}, std::move(volatileHeap.value()));
 			}
 		}
 
@@ -121,6 +127,7 @@ void Scheduler::Execute(FrameContext context) {
 		EnqueueCommandList(*context.commandQueue,
 						   std::move(injectList),
 						   std::move(injectAlloc),
+						   {},
 						   {},
 						   {},
 						   context);
@@ -152,9 +159,9 @@ void Scheduler::Evict(std::vector<MemoryObject*> usedResources) {
 
 }
 
-std::vector<ElementaryTask> Scheduler::MakeSchedule(const lemon::ListDigraph& taskGraph,
-												const lemon::ListDigraph::NodeMap<ElementaryTask>& taskFunctionMap
-												/*std::vector<CommandQueue*> queues*/)
+std::vector<GraphicsTask*> Scheduler::MakeSchedule(const lemon::ListDigraph& taskGraph,
+													const lemon::ListDigraph::NodeMap<GraphicsTask*>& taskFunctionMap
+/*std::vector<CommandQueue*> queues*/)
 {
 	// Topologically sort the tasks.
 	lemon::ListDigraph::NodeMap<int> taskOrderMap(taskGraph);
@@ -172,7 +179,7 @@ std::vector<ElementaryTask> Scheduler::MakeSchedule(const lemon::ListDigraph& ta
 	});
 
 	// Make a list of them.
-	std::vector<ElementaryTask> tasks;
+	std::vector<GraphicsTask*> tasks;
 	for (auto node : taskNodes) {
 		auto& task = taskFunctionMap[node];
 		tasks.push_back(task);
@@ -185,8 +192,9 @@ std::vector<ElementaryTask> Scheduler::MakeSchedule(const lemon::ListDigraph& ta
 void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
 								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
 								   CmdAllocPtr commandAllocator,
-                                   std::vector<ScratchSpacePtr> scratchSpaces,
+								   std::vector<ScratchSpacePtr> scratchSpaces,
 								   std::vector<MemoryObject> usedResources,
+								   std::unique_ptr<VolatileViewHeap> volatileHeap,
 								   const FrameContext& context)
 {
 	// Enqueue CPU task to make resources resident before the command list runs.
@@ -201,7 +209,7 @@ void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
 	SyncPoint completionPoint = context.commandQueue->Signal();
 
 	// Enqueue CPU task to clean up resources after command list finished.
-	context.residencyQueue->EnqueueClean(completionPoint, std::move(usedResources), std::move(commandAllocator), std::move(scratchSpaces));
+	context.residencyQueue->EnqueueClean(completionPoint, std::move(usedResources), std::move(commandAllocator), std::move(scratchSpaces), std::move(volatileHeap));
 }
 
 
@@ -269,13 +277,17 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 
 	// Enqueue command list.
 	commandList->Close();
-	EnqueueCommandList(*context.commandQueue, std::move(commandList), std::move(commandAllocator), {}, {}, context);
+	EnqueueCommandList(*context.commandQueue, std::move(commandList), std::move(commandAllocator), {}, {}, {}, context);
 }
 
 
+void Scheduler::UploadTask::Setup(SetupContext& context) {
+	return;
+}
+void Scheduler::UploadTask::Execute(RenderContext& context) {
+	CopyCommandList& commandList = context.AsGraphics();
 
-void Scheduler::UploadTask(CopyCommandList& commandList, const std::vector<UploadManager::UploadDescription>& uploads) {
-	for (auto& request : uploads) {
+	for (auto& request : *m_uploads) {
 		// Init copy parameters
 		auto& source = request.source;
 		auto& destination = const_cast<MemoryObject&>(request.destination);

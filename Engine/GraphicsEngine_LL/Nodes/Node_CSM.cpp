@@ -1,9 +1,12 @@
 #include "Node_CSM.hpp"
 
+#include "NodeUtility.hpp"
+
 #include "../MeshEntity.hpp"
 #include "../Mesh.hpp"
 #include "../Image.hpp"
 #include "../DirectionalLight.hpp"
+#include "../GraphicsCommandList.hpp"
 
 #include <array>
 
@@ -50,178 +53,160 @@ static void ConvertToSubmittable(
 
 
 
-CSM::CSM(gxapi::IGraphicsApi* graphicsApi):
-	m_binder(graphicsApi, {})
-{
-	this->GetInput<0>().Set({});
+CSM::CSM() {}
 
-	BindParameterDesc uniformsBindParamDesc;
-	m_uniformsBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
-	uniformsBindParamDesc.parameter = m_uniformsBindParam;
-	uniformsBindParamDesc.constantSize = sizeof(Uniforms);
-	uniformsBindParamDesc.relativeAccessFrequency = 0;
-	uniformsBindParamDesc.relativeChangeFrequency = 0;
-	uniformsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
 
-	BindParameterDesc lightMVPBindParamDesc;
-	m_lightMVPBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
-	lightMVPBindParamDesc.parameter = m_lightMVPBindParam;
-	lightMVPBindParamDesc.constantSize = 0;
-	lightMVPBindParamDesc.relativeAccessFrequency = 0;
-	lightMVPBindParamDesc.relativeChangeFrequency = 0;
-	lightMVPBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
-
-	BindParameterDesc sampBindParamDesc;
-	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
-	sampBindParamDesc.constantSize = 0;
-	sampBindParamDesc.relativeAccessFrequency = 0;
-	sampBindParamDesc.relativeChangeFrequency = 0;
-	sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
-
-	gxapi::StaticSamplerDesc samplerDesc;
-	samplerDesc.shaderRegister = 0;
-	samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
-	samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.mipLevelBias = 0.f;
-	samplerDesc.registerSpace = 0;
-	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	m_binder = Binder{ graphicsApi,{ uniformsBindParamDesc, lightMVPBindParamDesc, sampBindParamDesc },{ samplerDesc } };
-}
-
-//TODO
-const unsigned cascadeSize = 1024;
-const unsigned numCascades = 4;
-
-void CSM::InitGraphics(const GraphicsContext & context) {
-	m_graphicsContext = context;
-
-	InitRenderTarget(cascadeSize * numCascades, cascadeSize);
-
-	ShaderParts shaderParts;
-	shaderParts.vs = true;
-	shaderParts.ps = true;
-
-	auto shader = m_graphicsContext.CreateShader("CSM", shaderParts, "");
-
-	std::vector<gxapi::InputElementDesc> inputElementDesc = {
-		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
-		gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
-		gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
-	};
-
-	gxapi::GraphicsPipelineStateDesc psoDesc;
-	psoDesc.inputLayout.elements = inputElementDesc.data();
-	psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-	psoDesc.rootSignature = m_binder.GetRootSignature();
-	psoDesc.vs = shader.vs;
-	psoDesc.ps = shader.ps;
-	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
-	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
-
-	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
-	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT_S8X24_UINT;
-
-	psoDesc.numRenderTargets = 0;
-
-	m_PSO.reset(m_graphicsContext.CreatePSO(psoDesc));
+void CSM::Initialize(EngineContext & context) {
+	GraphicsNode::SetTaskSingle(this);
 }
 
 
-Task CSM::GetTask() {
-	return Task({ [this](const ExecutionContext& context) {
-		ExecutionResult result;
-
-		const EntityCollection<MeshEntity>* entities = this->GetInput<0>().Get();
-		this->GetInput<0>().Clear();
-
-		gxeng::pipeline::Texture2D lightMVPTex = this->GetInput<1>().Get();
-		this->GetInput<1>().Clear();
-
-		this->GetOutput<0>().Set(pipeline::Texture2D(m_depthTargetSrv, m_dsv));
-
-		if (entities) {
-			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-			CopyCommandList cpyCmdList = context.GetCopyCommandList();
-
-			RenderScene(m_dsv, *entities, lightMVPTex, cmdList);
-			result.AddCommandList(std::move(cmdList));
-		}
-
-		return result;
-	} });
-}
-
-
-void CSM::InitRenderTarget(unsigned width, unsigned height) {
-	using gxapi::eFormat;
-
-	auto formatDepthStencil = eFormat::D32_FLOAT_S8X24_UINT;
-	auto formatColor = eFormat::R32_FLOAT_X8X24_TYPELESS;
-	auto formatTypeless = eFormat::R32G8X24_TYPELESS;
-
-	Texture2D tex = m_graphicsContext.CreateDepthStencil2D(width, height, formatTypeless, true);
-
+void CSM::Setup(SetupContext & context) {
+	Texture2D& renderTarget = this->GetInput<0>().Get();
+	const gxapi::eFormat currDepthStencil = FormatAnyToDepthStencil(renderTarget.GetFormat());
 	gxapi::DsvTexture2DArray dsvDesc;
 	dsvDesc.activeArraySize = 1;
-	dsvDesc.firstArrayElement = 0;
 	dsvDesc.firstMipLevel = 0;
+	m_dsvs.resize(renderTarget.GetArrayCount());
+	for (int i = 0; i < m_dsvs.size(); i++) {
+		dsvDesc.firstArrayElement = i;
+		m_dsvs[i] = context.CreateDsv(renderTarget, currDepthStencil, dsvDesc);
+	}
 
-	m_dsv = m_graphicsContext.CreateDsv(tex, formatDepthStencil, dsvDesc);
+	m_entities = this->GetInput<1>().Get();
+	this->GetInput<1>().Clear();
 
+	Texture2D& lightMVPTex = this->GetInput<2>().Get();
 	gxapi::SrvTexture2DArray srvDesc;
 	srvDesc.activeArraySize = 1;
 	srvDesc.firstArrayElement = 0;
-	srvDesc.numMipLevels = -1;
 	srvDesc.mipLevelClamping = 0;
 	srvDesc.mostDetailedMip = 0;
+	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
+	m_lightMVPTexSrv = context.CreateSrv(lightMVPTex, lightMVPTex.GetFormat(), srvDesc);
 
-	m_depthTargetSrv = m_graphicsContext.CreateSrv(tex, formatColor, srvDesc);
+	this->GetOutput<0>().Set(renderTarget);
+
+
+	if (!m_binder.has_value()) {
+		this->GetInput<0>().Set({});
+
+		BindParameterDesc uniformsBindParamDesc;
+		m_uniformsBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
+		uniformsBindParamDesc.parameter = m_uniformsBindParam;
+		uniformsBindParamDesc.constantSize = sizeof(Uniforms);
+		uniformsBindParamDesc.relativeAccessFrequency = 0;
+		uniformsBindParamDesc.relativeChangeFrequency = 0;
+		uniformsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
+
+		BindParameterDesc lightMVPBindParamDesc;
+		m_lightMVPBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
+		lightMVPBindParamDesc.parameter = m_lightMVPBindParam;
+		lightMVPBindParamDesc.constantSize = 0;
+		lightMVPBindParamDesc.relativeAccessFrequency = 0;
+		lightMVPBindParamDesc.relativeChangeFrequency = 0;
+		lightMVPBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
+
+		BindParameterDesc sampBindParamDesc;
+		sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
+		sampBindParamDesc.constantSize = 0;
+		sampBindParamDesc.relativeAccessFrequency = 0;
+		sampBindParamDesc.relativeChangeFrequency = 0;
+		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
+
+		gxapi::StaticSamplerDesc samplerDesc;
+		samplerDesc.shaderRegister = 0;
+		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
+		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.mipLevelBias = 0.f;
+		samplerDesc.registerSpace = 0;
+		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, lightMVPBindParamDesc, sampBindParamDesc },{ samplerDesc });
+	}
+
+	if (!m_PSO || currDepthStencil != m_depthStencilFormat) {
+		m_depthStencilFormat = currDepthStencil;
+
+		//TODO
+		constexpr unsigned cascadeSize = 1024;
+		constexpr unsigned numCascades = 4;
+
+		ShaderParts shaderParts;
+		shaderParts.vs = true;
+		shaderParts.ps = true;
+
+		auto shader = context.CreateShader("CSM", shaderParts, "");
+
+		std::vector<gxapi::InputElementDesc> inputElementDesc = {
+			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
+			gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
+			gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
+		};
+
+		gxapi::GraphicsPipelineStateDesc psoDesc;
+		psoDesc.inputLayout.elements = inputElementDesc.data();
+		psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
+		psoDesc.rootSignature = m_binder->GetRootSignature();
+		psoDesc.vs = shader.vs;
+		psoDesc.ps = shader.ps;
+		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
+		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+
+		psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
+		psoDesc.depthStencilFormat = m_depthStencilFormat;
+
+		psoDesc.numRenderTargets = 0;
+
+		m_PSO.reset(context.CreatePSO(psoDesc));
+	}
 }
 
 
-void CSM::RenderScene(
-	DepthStencilView2D& dsv,
-	const EntityCollection<MeshEntity>& entities,
-	pipeline::Texture2D& lightMVPTex,
-	GraphicsCommandList& commandList
-) {
-	commandList.SetRenderTargets(0, nullptr, &dsv);
+void CSM::Execute(RenderContext & context) {
+	GraphicsCommandList& commandList = context.AsGraphics();
 
-	gxapi::Rectangle rect{ 0, (int)m_dsv.GetResource().GetHeight(), 0, (int)m_dsv.GetResource().GetWidth() };
+	assert(m_dsvs.size() > 0);
+
+	Texture2D cascadeTextures = m_dsvs[0].GetResource();
+	const uint16_t numCascades = m_dsvs.size();
+	const uint64_t cascadeWidth = cascadeTextures.GetWidth();
+	const uint64_t cascadeHeight = cascadeTextures.GetHeight();
+
+	gxapi::Rectangle rect{ 0, (int)cascadeTextures.GetHeight(), 0, (int)cascadeTextures.GetWidth() };
 	commandList.SetScissorRects(1, &rect);
 
-	commandList.SetResourceState(dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
-	commandList.ClearDepthStencil(dsv, 1, 0, 0, nullptr, true, true);
-
 	commandList.SetPipelineState(m_PSO.get());
-	commandList.SetGraphicsBinder(&m_binder);
+	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
+	commandList.SetResourceState(m_lightMVPTexSrv.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+	commandList.BindGraphics(m_lightMVPBindParam, m_lightMVPTexSrv);
 
-	commandList.SetResourceState(const_cast<Texture2D&>(lightMVPTex.QueryRead().GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
-	commandList.BindGraphics(m_lightMVPBindParam, lightMVPTex.QueryRead());
-	
 	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
 	std::vector<unsigned> sizes;
 	std::vector<unsigned> strides;
 
-	for (int c = 0; c < numCascades; ++c)
-	{
+	for (int cascadeIdx = 0; cascadeIdx < numCascades; ++cascadeIdx) {
+		commandList.SetRenderTargets(0, nullptr, &m_dsvs[cascadeIdx]);
+
+		commandList.SetResourceState(cascadeTextures, cascadeIdx, gxapi::eResourceState::DEPTH_WRITE);
+		commandList.ClearDepthStencil(m_dsvs[cascadeIdx], 1, 0, 0, nullptr, true, true);
+
 		gxapi::Viewport viewport;
-		viewport.height = cascadeSize;
-		viewport.width = cascadeSize;
+		viewport.height = (float)cascadeHeight;
+		viewport.width = (float)cascadeWidth;
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 		viewport.topLeftY = 0;
-		viewport.topLeftX = c * cascadeSize;
+		viewport.topLeftX = 0;
 		commandList.SetViewports(1, &viewport);
 
 		// Iterate over all entities
-		for (const MeshEntity* entity : entities) {
+		for (const MeshEntity* entity : *m_entities) {
 			// Get entity parameters
 			Mesh* mesh = entity->GetMesh();
 			auto position = entity->GetPosition();
@@ -239,14 +224,13 @@ void CSM::RenderScene(
 			Uniforms uniformsCBData;
 			model.Pack(uniformsCBData.model);
 
-			uniformsCBData.cascadeIDX = c;
+			uniformsCBData.cascadeIDX = cascadeIdx;
 
 			commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(uniformsCBData), 0);
 
 			commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 			commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
 			commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
-		
 		}
 	}
 }

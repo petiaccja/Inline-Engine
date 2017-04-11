@@ -7,7 +7,9 @@
 #include <GraphicsEngine_LL/Image.hpp>
 #include <GraphicsEngine_LL/MeshEntity.hpp>
 #include <GraphicsEngine_LL/Scene.hpp>
-#include <GraphicsEngine_LL/Camera.hpp>
+#include <GraphicsEngine_LL/OverlayEntity.hpp>
+#include <GraphicsEngine_LL/PerspectiveCamera.hpp>
+#include <GraphicsEngine_LL/OrthographicCamera.hpp>
 #include <GraphicsEngine_LL/DirectionalLight.hpp>
 #include "RigidBody.hpp"
 #include "Rotor.hpp"
@@ -58,7 +60,7 @@ public:
 	void UpdateWorld(float elapsed);
 	void RenderWorld(float elapsed);
 
-	void SetAspectRatio(float ar);
+	void ScreenSizeChanged(int width, int height);
 
 	void TiltForward(float set);
 	void TiltBackward(float set);
@@ -95,7 +97,10 @@ private:
 	std::unique_ptr<inl::gxeng::Image> m_checkerTexture;
 
 	std::unique_ptr<inl::gxeng::Material> m_treeMaterial;
-	std::unique_ptr<inl::gxeng::MaterialShaderGraph> m_treeShader;
+	std::unique_ptr<inl::gxeng::Material> m_quadcopterMaterial;
+	std::unique_ptr<inl::gxeng::Material> m_terrainMaterial;
+	std::unique_ptr<inl::gxeng::Material> m_axesMaterial;
+	std::unique_ptr<inl::gxeng::MaterialShaderGraph> m_simpleShader;
 
 	// Entities
 	std::vector<std::unique_ptr<inl::gxeng::MeshEntity>> m_staticEntities;
@@ -106,8 +111,15 @@ private:
 	inl::gxeng::DirectionalLight m_sun;
 
 	// Scenes
-	std::unique_ptr<inl::gxeng::Camera> m_camera;
+	std::unique_ptr<inl::gxeng::PerspectiveCamera> m_camera;
 	std::unique_ptr<inl::gxeng::Scene> m_worldScene;
+
+	// Gui
+	std::unique_ptr<inl::gxeng::OrthographicCamera> m_guiCamera;
+	std::unique_ptr<inl::gxeng::Scene> m_guiScene;
+	std::unique_ptr<inl::gxeng::Mesh> m_overlayQuadMesh;
+	std::unique_ptr<inl::gxeng::Image> m_overlayTexture;
+	std::vector<std::unique_ptr<inl::gxeng::OverlayEntity>> m_overlayElements;
 
 	// Simulation
 	PIDController m_controller;

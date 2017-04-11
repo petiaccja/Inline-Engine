@@ -93,14 +93,7 @@ bool MemoryObject::_GetResident() const noexcept {
 	return m_contents->resident;
 }
 
-
-gxapi::IResource* MemoryObject::_GetResourcePtr() noexcept {
-	assert(m_contents);
-	return m_contents->resource.get();
-}
-
-
-const gxapi::IResource * MemoryObject::_GetResourcePtr() const noexcept {
+gxapi::IResource * MemoryObject::_GetResourcePtr() const noexcept {
 	assert(m_contents);
 	return m_contents->resource.get();
 }

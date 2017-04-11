@@ -7,7 +7,6 @@ namespace gxeng {
 MeshEntity::MeshEntity() :
 	m_mesh(nullptr),
 	m_material(nullptr),
-	m_texture(nullptr),
 	m_position(0, 0, 0),
 	m_rotation(0, mathfu::Vector<float, 3>(1, 0, 0)),
 	m_scale(1, 1, 1)
@@ -27,13 +26,6 @@ void MeshEntity::SetMaterial(Material* material) {
 }
 Material* MeshEntity::GetMaterial() const {
 	return m_material;
-}
-
-void MeshEntity::SetTexture(Image* texture) {
-	m_texture = texture;
-}
-Image* MeshEntity::GetTexture() const {
-	return m_texture;
 }
 
 

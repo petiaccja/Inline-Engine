@@ -716,7 +716,7 @@ class Matrix {
 
   /// @brief Create a 4x4 perspective Matrix.
   ///
-  /// This is a modified version: Z is mapped to [0, 1]
+  /// NOTE This is a modified version: Z is mapped to [0, 1]
   ///
   /// @param fovy Field of view.
   /// @param aspect Aspect ratio.
@@ -731,7 +731,7 @@ class Matrix {
 
   /// @brief Create a 4x4 orthographic Matrix.
   ///
-  /// This is a modified version: Z is mapped to [0, 1]
+  /// NOTE This is a modified version: Z is mapped to [0, 1]
   ///
   /// @param left Left extent.
   /// @param right Right extent.
@@ -1323,7 +1323,7 @@ bool InverseHelper(const Matrix<T, 4, 4>& m, Matrix<T, 4, 4>* const inverse) {
 
 /// @cond MATHFU_INTERNAL
 /// Create a 4x4 perpective matrix.
-/// Modified for Inline Engine.
+/// NOTE Modified for Inline Engine.
 template <class T>
 inline Matrix<T, 4, 4> PerspectiveHelper(T fovy, T aspect, T znear, T zfar,
                                          T handedness) {
@@ -1342,7 +1342,7 @@ inline Matrix<T, 4, 4> PerspectiveHelper(T fovy, T aspect, T znear, T zfar,
 
 /// @cond MATHFU_INTERNAL
 /// Create a 4x4 orthographic matrix.
-/// Modified for Inline Engine.
+/// NOTE Modified for Inline Engine.
 template <class T>
 static inline Matrix<T, 4, 4> OrthoHelper(T left, T right, T bottom, T top,
                                           T znear, T zfar, T handedness) {
