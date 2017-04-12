@@ -2,7 +2,6 @@
 
 #include "../GraphicsNode.hpp"
 
-
 #include "../Scene.hpp"
 #include "../PerspectiveCamera.hpp"
 #include "../Mesh.hpp"
