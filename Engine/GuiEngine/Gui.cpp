@@ -1,5 +1,5 @@
 #pragma once
-#include "Widget.hpp"
+#include "Gui.hpp"
 #include "GuiText.hpp"
 #include "GuiButton.hpp"
 #include "GuiList.hpp"
@@ -7,32 +7,37 @@
 
 using namespace inl::gui;
 
-Widget* Widget::AddWidget()
+Gui* Gui::AddGui()
 {
-	return Add<Widget>();
+	return Add<Gui>();
 }
 
-GuiText* Widget::AddText()
+GuiText* Gui::AddText()
 {
 	return Add<GuiText>();
 }
 
-GuiButton* Widget::AddButton()
+GuiButton* Gui::AddButton()
 {
 	return Add<GuiButton>();
 }
 
-GuiList* Widget::AddList()
+GuiList* Gui::AddList()
 {
 	return Add<GuiList>();
 }
 
-float Widget::GetClientSpaceCursorPosX()
+GuiSlider* Gui::AddSlider()
+{
+	return Add<GuiSlider>();
+}
+
+float Gui::GetClientSpaceCursorPosX()
 {
 	return guiEngine->GetWindowCursorPosX() - pos.x();
 }
 
-float Widget::GetClientSpaceCursorPosY()
+float Gui::GetClientSpaceCursorPosY()
 {
 	return guiEngine->GetWindowCursorPosY() - pos.y();
 }

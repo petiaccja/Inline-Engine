@@ -32,21 +32,24 @@
     <ClInclude Include="GuiEvent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Widget.hpp">
+    <ClInclude Include="GuiCollapsable.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GuiCollapsable.hpp">
+    <ClInclude Include="Gui.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Widget.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GuiCollapsable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GuiSlider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GuiLayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

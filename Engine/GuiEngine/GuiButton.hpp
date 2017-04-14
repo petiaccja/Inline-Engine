@@ -4,7 +4,7 @@
 
 namespace inl::gui {
 
-class GuiButton : public Widget
+class GuiButton : public Gui
 {
 public:
 	GuiButton(GuiEngine* guiEngine);
@@ -14,24 +14,26 @@ public:
 	virtual GuiButton* Clone() const override { return new GuiButton(*this); }
 	GuiButton& operator = (const GuiButton& other);
 
-	//void SetBackgroundToColor(Color& idleColor, Color& hoverColor);
 	void SetText(const std::wstring& text);
 	void SetText(const std::string& text);
-	void SetTextAlign(eTextAlign align);
+	//void SetTextAlign(eTextAlign align);
+
+	GuiText* GetTextGui() { return text; }
 
 public:
 	GuiText* text;
 };
 
 inline GuiButton::GuiButton(GuiEngine* guiEngine)
-:Widget(guiEngine)
+:Gui(guiEngine)
 {
 	text = AddText();
+	//SetAutoSize(true);
 }
 
 inline GuiButton& GuiButton::operator = (const GuiButton& other)
 {
-	Widget::operator = (other);
+	Gui::operator = (other);
 
 	text = GetChildByIdx<GuiText>(other.text->GetIndexInParent());
 
@@ -48,9 +50,9 @@ inline void GuiButton::SetText(const std::string& str)
 	text->SetText(str);
 }
 
-inline void GuiButton::SetTextAlign(eTextAlign align)
-{
-	text->SetAlign(align);
-}
+//inline void GuiButton::SetTextAlign(eTextAlign align)
+//{
+//	text->SetTextAlign(align);
+//}
 
 } // namespace inl::gui

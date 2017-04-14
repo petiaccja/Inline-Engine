@@ -14,7 +14,7 @@ public:
 
 	void SetCaptionText(const std::wstring& str);
 
-	void AddToList(Widget* w) { list->Add(w); }
+	void AddToList(Gui* w) { list->Add(w); }
 
 	template<class T>
 	T* AddToList() { return list->Add<T>(); }

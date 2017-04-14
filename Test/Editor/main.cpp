@@ -154,63 +154,120 @@ void InitGui()
 {
 	// New Layer
 	GuiLayer* layer = guiEngine->AddLayer();
-	//GuiText* btn = layer->AddText();
-	//btn->SetText(L"Button");
-	//btn->SetPadding(10);
-	//btn->SetBgColorForAllStates(Color(50));
-	//btn->SetPos(50, 50);
-	//btn->SetAlign(eTextAlign::CENTER);
-	//btn->SetBorder(1, Color::RED);
+	
+	GuiText* t = layer->AddText();
+	t->SetText(L"Nem igaz már hogy nem mûködik");
+	t->SetBgColorForAllStates(Color::RED);
+	t->SetRect(100, 100, 150, 40);
+	t->AlignFitChildrenHor();
+	//t->AlignFillParentHorizontal();
 
-	// GuiButton létrejötténél nem tudott a padding, ezért nem helyezõdik el jól a GuiText a buttonban... a GetClientRect() padding nélkül...
-	// Megoldás hogy GuiButton transform változásnál szépen rearrangolja a child controlokat alignment policy - k és egyéb policy - k alapján !!!
-	GuiButton* btn2 = layer->AddButton();
-	btn2->SetRect(0, 0, 100, 200);
-	btn2->SetText(L"Button");
-	btn2->SetBgColorForAllStates(Color(50));
-	btn2->SetTextAlign(eTextAlign::CENTER);
-	btn2->SetPadding(5);
-	btn2->SetBorder(3, Color::RED);
+	//t->AlignCenter();
+	//t->SetAlign(eGuiAlign::CENTER);
+	//GuiText* t2 = t->Clone();
 
+	//t->SetAlign(eGuiAlign::STRETCH_H);
+	//t->AlignStretchHorizontal();
+	//t->SetAutoWidth(true);
+
+	//t2->SetRect(100, 140, 100, 40);
+
+	Gui* container = layer->AddGui();
+	container->SetRect(100, 100, 500, 100);
+	container->SetBgColorForAllStates(Color::BLUE);
+	container->Add(t);
+	//container->AlignFitChildrenHorizontal();
+	container->AlignFillParentHor();
+	//container->Add(t2);
+	//container->SetAutoWidth(true);
+
+	//container->SetAutoWidth(true);
+	
+	//container->EnableClipChildren();
+	
 	return;
-	// Gui collapsable
-	{
-		GuiCollapsable* collapsable = layer->AddCollapsable();
-		collapsable->SetName("collapsable");
-		collapsable->SetCaptionText(L"Collapsable");
-		collapsable->SetRect(500, 500, 60, 30);
-		collapsable->AddToList<GuiButton>()->SetText("LOL");
-		collapsable->AddToList<GuiButton>()->SetText("LOL2");
-		//collapsable->SetMargin(10, 10, 10, 10);
-		collapsable->SetBgColorForAllStates(Color(150));
+	//GuiButton* text = layer->AddButton();
+	//text->SetText("LOLMAR_HAT_NEM_IGAZ");
+	//text->SetAutoSize(true);
+	//text->SetBgColorForAllStates(Color::RED);
+	////text->SetColor(Color(255)); // TODO !!!
+	//text->SetRect(100, 100, 10, 10);
+	// Arrange Measure test
 
-		GuiCollapsable* collapsable2 = layer->AddCollapsable();
-		collapsable2->SetName("Collapsable2");
-		collapsable2->SetCaptionText(L"Collapsable2");
-		collapsable2->SetRect(500, 520, 60, 30);
-		collapsable2->AddToList<GuiButton>()->SetText("LOL");
-		collapsable2->AddToList<GuiButton>()->SetText("LOL2");
-		collapsable2->SetBgColorForAllStates(Color(0, 0, 0, 0));
-		
-		GuiCollapsable* collapsableList = layer->AddCollapsable();
-		collapsableList->SetCaptionText(L"CaptionText");
-		collapsableList->SetName("CollapsableList");
-		collapsableList->AddToList(collapsable);
-		collapsableList->AddToList(collapsable2);
+	//GuiButton* btn2 = layer->AddButton();
+	//btn2->SetText(L"Button");
+	////btn2->SetBgColorForAllStates(Color(0));
+	//btn2->GetTextGui()->SetBgColorForAllStates(Color(50));
+	//btn2->GetTextGui()->SetAlign(eGuiAlign::STRETCH);
+	//btn2->SetBorder(3, Color::RED);
+	//btn2->SetPadding(10);
+	//
+	//btn2->SetRect(0, 0, 100, 200);
+	//btn2->SetContentAlign(eGuiAlign::CENTER);
 
-		collapsableList->SetFitToChildren(true);
-		collapsableList->SetRect(500, 400, 10, 250);
-		collapsableList->SetBorder(1, Color::WHITE);
-		collapsableList->SetBgColorForAllStates(Color(150));
+	// Arrange Measure test
 
-		Widget* caption = collapsableList->GetCaption();
-		caption->SetBgIdleColor(Color(20));
-		caption->SetBgHoverColor(Color(0));
-
-		int asd = 5;
-		asd++;
-	}
+	//GuiList* list = layer->AddList();
+	//GuiButton* btn = list->AddButton();
+	//btn->SetText("Button1asdasdasd");
+	//btn->SetMargin(5, 5, 5, 5);
+	////btn->SetPadding(4);
+	//////btn->SetAutoWidth(true);
+	////btn->SetBorder(1, Color(100));
+	////btn->SetAlign(eGuiAlign::STRETCH_H);
+	////btn->SetSize(btn->GetSize() + Vector2f(20, 20));
+	//GuiButton* btn2 = list->AddButton();
+	//btn2->SetText("Button2");
+	//btn2->SetMargin(0, 0, 0, 0);
+	////btn2->SetPadding(4);
+	////btn2->SetBorder(1, Color(100));
+	//list->SetBgColorForAllStates(Color(150));
+	//list->SetRect(0, 0, 100, 100);
 	//return;
+
+
+	//GuiList* list = layer->AddList();
+	//GuiButton* btn0 = list->AddButton();
+	//btn0->SetText("Teszt");
+	//GuiButton* btn1 = list->AddButton();
+	//btn1->SetText("Teszt2");
+	//
+	//list->SetRect(100, 100, 200, 200);
+	//return;
+
+	// Gui collapsable
+	//{
+	//	GuiCollapsable* collapsable = layer->AddCollapsable();
+	//	collapsable->SetName("collapsable");
+	//	collapsable->SetCaptionText(L"Collapsable");
+	//	
+	//	collapsable->AddToList<GuiButton>()->SetText("LOL");
+	//	collapsable->AddToList<GuiButton>()->SetText("LOL2");
+	//	collapsable->SetRect(100, 100, 200, 30);
+	//	GuiCollapsable* collapsable2 = layer->AddCollapsable();
+	//	collapsable2->SetName("Collapsable2");
+	//	collapsable2->SetCaptionText(L"Collapsable2");
+	//	collapsable2->SetRect(500, 520, 60, 30);
+	//	collapsable2->AddToList<GuiButton>()->SetText("LOL");
+	//	collapsable2->AddToList<GuiButton>()->SetText("LOL2");
+	//	
+	//	GuiCollapsable* collapsableList = layer->AddCollapsable();
+	//	collapsableList->SetCaptionText(L"CaptionText");
+	//	collapsableList->SetName("CollapsableList");
+	//	collapsableList->AddToList(collapsable);
+	//	collapsableList->AddToList(collapsable2);
+	//	//collapsableList->SetFitToChildren(true);
+	//	collapsableList->SetRect(200, 200, 10, 10);
+	//	Gui* caption = collapsableList->GetCaption();
+	//	//caption->SetBgIdleColor(Color(20));
+	//	//caption->SetBgHoverColor(Color(0));
+	//
+	//
+	//	int asd = 5;
+	//	asd++;
+	//}
+	//return;
+
 	//auto button = layer->AddButton();
 	//button->SetRect(0, 0, 100, 100);
 	//button->SetText("halleluja");
@@ -258,23 +315,23 @@ void InitGui()
 		list->SetBorder(1, Color::RED);
 		GuiButton* button = list->AddButton();
 		button->SetText("File");
-		button->SetTextAlign(align);
+		//button->SetTextAlign(align);
 		button->SetPadding(4, 4, 4, 4);
 		GuiButton* button1 = list->AddButton();
 		button1->SetText("Edit");
-		button1->SetTextAlign(align);
+		//button1->SetTextAlign(align);
 		button1->SetPadding(4, 4, 4, 4);
 		GuiButton* button2 = list->AddButton();
 		button2->SetText("Project");
-		button2->SetTextAlign(align);
+		//button2->SetTextAlign(align);
 		button2->SetPadding(4, 4, 4, 4);
 		GuiButton* button3 = list->AddButton();
 		button3->SetText("Resources");
-		button3->SetTextAlign(align);
+		//button3->SetTextAlign(align);
 		button3->SetPadding(4, 4, 4, 4);
 		GuiButton* button4 = list->AddButton();
 		button4->SetText("Help");
-		button4->SetTextAlign(align);
+		//button4->SetTextAlign(align);
 		button4->SetPadding(4, 4, 4, 4);
 		list->SetDirection(eGuiListDirection::HORIZONTAL);
 	
@@ -322,27 +379,27 @@ void InitGui()
 	//button->SetName("NODE");
 	//button->SetRect(x, y, 60, 60);
 	//button->SetText("Node1");
-	//button->onMouseClick += [](Widget* self, CursorEvent& evt) {MessageBoxA(NULL, "Node1Click", "Node1Click", MB_OK); };
+	//button->onMouseClick += [](Gui* self, CursorEvent& evt) {MessageBoxA(NULL, "Node1Click", "Node1Click", MB_OK); };
 	//GuiButton* pin0 = button->AddButton();
 	//pin0->SetName("PIN");
 	//pin0->SetBgToColor(Color(255), Color(255));
 	//pin0->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5, pinSize.x, pinSize.y);
-	//pin0->onMouseClick += [](Widget* self, CursorEvent& evt) {MessageBoxA(NULL, "pin0Click", "pin0Click", MB_OK); };
+	//pin0->onMouseClick += [](Gui* self, CursorEvent& evt) {MessageBoxA(NULL, "pin0Click", "pin0Click", MB_OK); };
 	//GuiButton* pin1 = button->AddButton();
 	//pin1->SetBgToColor(Color(100), Color(150));
 	//pin1->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace, pinSize.x, pinSize.y);
-	//pin1->onMouseClick += [](Widget* self, CursorEvent& evt) {MessageBoxA(NULL, "pin1Click", "pin1Click", MB_OK); };
+	//pin1->onMouseClick += [](Gui* self, CursorEvent& evt) {MessageBoxA(NULL, "pin1Click", "pin1Click", MB_OK); };
 	//GuiButton* pin2 = button->AddButton();
 	//pin2->SetBgToColor(Color(100), Color(150));
 	//pin2->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace * 2.f, pinSize.x, pinSize.y);
-	//pin2->onMouseClick += [](Widget* self, CursorEvent& evt) {MessageBoxA(NULL, "pin2Click", "pin2Click", MB_OK); };
+	//pin2->onMouseClick += [](Gui* self, CursorEvent& evt) {MessageBoxA(NULL, "pin2Click", "pin2Click", MB_OK); };
 	//GuiButton* outputPin = button->AddButton();
 	//outputPin->SetBgToColor(Color(100), Color(150));
 	//outputPin->SetRect(x + 60 - pinSize.x * 0.5, y + 30 - pinSize.y * 0.5, pinSize.x, pinSize.y);
-	//outputPin->onMouseClick += [](Widget* self, CursorEvent& evt) {MessageBoxA(NULL, "outputPin", "outputPin", MB_OK); };
+	//outputPin->onMouseClick += [](Gui* self, CursorEvent& evt) {MessageBoxA(NULL, "outputPin", "outputPin", MB_OK); };
 	//}
 	
-	Widget* node2;
+	Gui* node2;
 	//Node2
 	{
 	int x = 300;
@@ -356,6 +413,7 @@ void InitGui()
 	button->SetBgToColor(Color(45), Color(50));
 	button->SetRect(x, y, 60, 60);
 	button->SetText("Node2");
+	button->AlignCenter();
 	GuiButton* pin0 = button->AddButton();
 	node2 = pin0;
 	//pin0->DisableClip();
@@ -387,16 +445,16 @@ void InitGui()
 	GuiButton* button = list->AddButton();
 	button->SetBorder(1, Color(255, 0, 0));
 	button->SetText("Button");
-	button->SetTextAlign(align);
+	//button->SetTextAlign(align);
 
 	GuiButton* button1 = list->AddButton();
 	button1->SetText("Text");
-	button1->SetTextAlign(align);
+	//button1->SetTextAlign(align);
 	button1->SetBorder(1, Color(0, 255, 0));
 
 	list->SetRect(0, 70, 60, 600);
 
-	GuiList* clone = list->Clone();
+	//GuiList* clone = list->Clone();
 	//list->Add(clone);
 	//list->SetRect(50, 200, 60, 600);
 	int asd = 5;
@@ -409,11 +467,11 @@ void InitGui()
 	GuiList* list = layer->AddList();
 	GuiButton* button = list->AddButton();
 	button->SetText("Disconnect");
-	button->SetTextAlign(align);
+	//button->SetTextAlign(align);
 	//button->SetRect(0, 0, 10, 20);
 	GuiButton* button1 = list->AddButton();
 	button1->SetText(L"Amit csak ákársz vaze");
-	button1->SetTextAlign(align);
+	//button1->SetTextAlign(align);
 	//button1->SetRect(0, 0, 10, 20);
 	//list->SetStride(25);
 	list->SetRect(0, 70, 150, 600);
@@ -439,10 +497,10 @@ void InitGui()
 
 	////Image test
 	//{
-	//	Widget* p = layer->AddPlane();
+	//	Gui* p = layer->AddPlane();
 	//	//p->SetImageForAllStates(L"c:\\UE4Interface_5.jpg");
 	//	p->SetRect(0, 0, 800, 200);
-	//	Widget* clone = p->Clone();
+	//	Gui* clone = p->Clone();
 	//	clone->SetRect(0, 200, 800, 200);
 	//	//p->Clone()->SetRect(0, 400, 800, 200);
 	//	//p->Clone()->SetRect(0, 600, 800, 200);
@@ -469,7 +527,7 @@ void InitGui()
 //
 //	button->SetContextMenu(contextMenu);
 //
-//	// Tehát Widget* self átadása nem hülyeség, mert így a user ha akar akkor leszármazás nélkül is tud klónolni lokális viselkedést !
+//	// Tehát Gui* self átadása nem hülyeség, mert így a user ha akar akkor leszármazás nélkül is tud klónolni lokális viselkedést !
 //	// A usernek legyen lehetõsége arra is hogy csak layout - ot cloneoljon
 //	//Clone
 //	//CloneWithoutEvents

@@ -1,10 +1,10 @@
 #pragma once
 #include <BaseLibrary\Common_tmp.hpp>
-#include "Widget.hpp"
+#include "Gui.hpp"
 
 namespace inl::gui {
 
-class GuiSlider : public Widget
+class GuiSlider : public Gui
 {
 public:
 	GuiSlider(GuiEngine* guiEngine);
@@ -24,11 +24,11 @@ protected:
 	void SlideToValue() { SlideToValue(value); }
 
 public:
-	Delegate<void(Widget* self, float value)> OnValueChanged;
+	Delegate<void(Gui* self, float value)> OnValueChanged;
 
 protected:
-	Widget* background;
-	Widget* slider;
+	Gui* background;
+	Gui* slider;
 
 	float value;
 	float minValue;

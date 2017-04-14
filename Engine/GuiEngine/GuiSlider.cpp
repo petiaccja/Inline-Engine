@@ -5,47 +5,43 @@
 using namespace inl::gui;
 
 GuiSlider::GuiSlider(GuiEngine* guiEngine)
-:Widget(guiEngine), value(0), minValue(0), maxValue(1), sliderWidth(5), bSliding(false)
+:Gui(guiEngine), value(0), minValue(0), maxValue(1), sliderWidth(5), bSliding(false)
 {
-	slider = AddWidget();
+	slider = AddGui();
 	slider->SetBgIdleColor(Color(130));
 	slider->SetBgHoverColor(slider->GetBgIdleColor());
 
-	onTransformChanged += [](Widget* selff, RectF& rect)
+	onTransformChanged += [this](RectF& rect)
 	{
-		GuiSlider* self = selff->AsSlider();
-		self->SlideToValue();
+		SlideToValue();
 	};
 
-	onMouseEntered += [](Widget* selff, CursorEvent& evt)
+	onMouseEntered += [this](CursorEvent& evt)
 	{
-		GuiSlider* self = selff->AsSlider();
-		self->slider->SetBgActiveColor(self->slider->GetBgIdleColor() + 65);
+		slider->SetBgActiveColor(slider->GetBgIdleColor() + 65);
 	};
 
-	onMouseLeaved += [](Widget* selff, CursorEvent& evt)
+	onMouseLeaved += [this](CursorEvent& evt)
 	{
-		GuiSlider* self = selff->AsSlider();
-		self->slider->SetBgActiveColorToIdle();
+		slider->SetBgActiveColorToIdle();
 	};
 
 	// Start drag
-	onMousePressed += [](Widget* selff, CursorEvent& evt)
+	onMousePressed += [this](CursorEvent& evt)
 	{
-		GuiSlider* self = selff->AsSlider();
-		self->bSliding = true;
-		self->SlideToCursor();
+		bSliding = true;
+		SlideToCursor();
 	};
 
 	// Dragging
-	guiEngine->onMouseMove += [&](CursorEvent& evt)
+	guiEngine->onMouseMove += [this](CursorEvent& evt)
 	{
 		if (bSliding)
 			SlideToCursor();
 	};
 
 	// Stop draw
-	guiEngine->onMouseRelease += [&](CursorEvent& evt)
+	guiEngine->onMouseRelease += [this](CursorEvent& evt)
 	{
 		bSliding = false;
 	};

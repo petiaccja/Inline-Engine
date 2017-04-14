@@ -1,6 +1,6 @@
 #pragma once
 #include <BaseLibrary\Common_tmp.hpp>
-#include "Widget.hpp"
+#include "Gui.hpp"
 
 namespace inl::gui {
 
@@ -10,7 +10,7 @@ enum class eGuiListDirection
 	HORIZONTAL,
 };
 
-class GuiList : public Widget
+class GuiList : public Gui
 {
 public:
 	GuiList(GuiEngine* guiEngine);
@@ -20,80 +20,76 @@ public:
 	virtual GuiList* Clone() const override { return new GuiList(*this); }
 
 	void SetDirection(eGuiListDirection dir);
-
 	eGuiListDirection GetDirection() { return direction; }
 
 protected:
-	void ArrangeChilds();
+	//void MeasureContentChilds();
+
+	virtual Vector2f MeasureChildren(const Vector2f& availableSize) override;
+	virtual Vector2f ArrangeChildren(const Vector2f& finalSize) override;
 
 protected:
 	eGuiListDirection direction;
 };
 
 inline GuiList::GuiList(GuiEngine* guiEngine)
-	:Widget(guiEngine), direction(eGuiListDirection::VERTICAL)
+:Gui(guiEngine), direction(eGuiListDirection::VERTICAL)
 {
-	SetFitToChildren(true);
-
-	SetBgColorForAllStates(Color(0, 0, 0, 255));
-
-	onChildAdded += [](Widget* selff, Widget* child)
-	{
-		GuiList* self = selff->AsList();
-		child->SetFitToChildren(true);
-		self->ArrangeChilds();
-	};
-
-	onChildRemoved += [](Widget* selff, Widget* child)
-	{
-		GuiList* self = selff->AsList();
-		self->ArrangeChilds();
-	};
-
-	onTransformChanged += [](Widget* selff, RectF& rect)
-	{
-		GuiList* self = selff->AsList();
-		self->ArrangeChilds();
-	};
-
-	onChildTransformChanged += [](Widget* selff, RectF& rect)
-	{
-		GuiList* self = selff->AsList();
-		self->ArrangeChilds();
-	};
+	SetBgColorForAllStates(GetBgIdleColor());
 }
 
 inline void GuiList::SetDirection(eGuiListDirection dir)
 {
 	direction = dir;
-	ArrangeChilds();
 }
 
-inline void GuiList::ArrangeChilds()
+inline Vector2f GuiList::MeasureChildren(const Vector2f& availableSize)
 {
-	int i = 0;
 	Vector2f finalSize(0, 0);
-	float distance = 0;
-	float maxDiameter = 0;
-	for (Widget* child : GetChildren())
+	for (Gui* child : GetChildren())
 	{
+		Vector2f childSize = child->Measure(Vector2f(FLT_MAX, FLT_MAX));
+
 		if (direction == eGuiListDirection::VERTICAL)
 		{
-			//child->SetRect(GetClientPosX(), GetClientPosY() + finalSize.y(), child->GetWidth(), child->GetHeight());
-			child->SetPos(GetClientPosX(), GetClientPosY() + finalSize.y());
-			finalSize.y() += child->GetHeight();
-			finalSize.x() = std::max(finalSize.x(), child->GetWidth());
+			finalSize.y() += childSize.y();
+			finalSize.x() = std::max(finalSize.x(), childSize.x());
 		}
 		else if (direction == eGuiListDirection::HORIZONTAL)
 		{
-			//child->SetRect(GetClientPosX() + finalSize.x(), GetClientPosY(), child->GetWidth(), child->GetHeight());
-			child->SetPos(GetClientPosX() + finalSize.x(), GetClientPosY());
-			finalSize.x() += child->GetWidth();
-			finalSize.y() = std::max(finalSize.y(), child->GetHeight());
+			finalSize.x() += childSize.x();
+			finalSize.y() = std::max(finalSize.y(), childSize.y());
 		}
-		++i;
 	}
-	//SetClientSize(finalSize);
+
+	return finalSize;
+}
+
+inline Vector2f GuiList::ArrangeChildren(const Vector2f& finalSize)
+{
+	Vector2f pos = GetClientPos();
+	Vector2f size(0, 0);
+	for (Gui* child : GetChildren())
+	{
+		Vector2f desiredSize = child->DesiredSize;
+
+		if (direction == eGuiListDirection::VERTICAL)
+		{
+			child->Arrange(pos.x(), pos.y() + size.y(), desiredSize);
+
+			size.y() += desiredSize.y();
+			size.x() = std::max(size.x(), desiredSize.x());
+		}
+		else if (direction == eGuiListDirection::HORIZONTAL)
+		{
+			child->Arrange(GetClientPosX() + size.x(), GetClientPosY(), desiredSize);
+
+			size.x() += desiredSize.x();
+			size.y() = std::max(size.y(), desiredSize.y());
+		}
+	}
+
+	return size;
 }
 
 } // namespace inl::gui

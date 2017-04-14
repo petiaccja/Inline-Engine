@@ -43,6 +43,7 @@ public:
 
 	uint32_t GetClientWidth() const;
 	uint32_t GetClientHeight() const;
+	Vector2u GetClientSize() const;
 	Vector2i GetClientCursorPos() const;
 
 	unsigned GetNumClientPixels() const;
@@ -54,9 +55,10 @@ public:
 	// HEKK
 	Delegate<void()> hekkOnPaint;
 
-	Delegate<void(WindowEvent&)> onMousePress;
-	Delegate<void(WindowEvent&)> onMouseRelease;
-	Delegate<void(WindowEvent&)> onMouseMove;
+	Delegate<void(WindowEvent&)>	onMousePressed;
+	Delegate<void(WindowEvent&)>	onMouseReleased;
+	Delegate<void(WindowEvent&)>	onMouseMoved;
+	Delegate<void(Vector2u&)>		onClientSizeChanged;
 
 protected:
 	eKey	ConvertFromWindowsKey(WPARAM key);

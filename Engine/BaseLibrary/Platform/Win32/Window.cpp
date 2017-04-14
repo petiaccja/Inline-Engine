@@ -33,7 +33,7 @@ LRESULT CALLBACK WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_SIZE:
 	case WM_SIZING:
-	case WM_DISPLAYCHANGE: window->PostEvent(s); break;
+	case WM_WINDOWPOSCHANGED: window->PostEvent(s); break;
 	case WM_PAINT:
 	{
 		//PAINTSTRUCT ps;
@@ -177,7 +177,7 @@ bool Window::PopEvent(WindowEvent& evt_out)
 			msg = wndProcMessages.front();
 			wndProcMessages.pop();
 
-			TranslateMessage(&msg);
+			//TranslateMessage(&msg);
 		}
 		else
 		{
@@ -190,42 +190,42 @@ bool Window::PopEvent(WindowEvent& evt_out)
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
 		evt_out.mousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		onMousePress(evt_out);
+		onMousePressed(evt_out);
 	}
 	else if (msg.message == WM_RBUTTONDOWN)
 	{
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::RIGHT;
 		evt_out.mousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		onMousePress(evt_out);
+		onMousePressed(evt_out);
 	}
 	else if (msg.message == WM_MBUTTONDOWN)
 	{
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::MID;
 		evt_out.mousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		onMousePress(evt_out);
+		onMousePressed(evt_out);
 	}
 	else if (msg.message == WM_LBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
 		evt_out.mousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		onMouseRelease(evt_out);
+		onMouseReleased(evt_out);
 	}
 	else if (msg.message == WM_RBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::RIGHT;
 		evt_out.mousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		onMouseRelease(evt_out);
+		onMouseReleased(evt_out);
 	}
 	else if (msg.message == WM_MBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::MID;
 		evt_out.mousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		onMouseRelease(evt_out);
+		onMouseReleased(evt_out);
 	}
 	else if (msg.message == WM_KEYDOWN)
 	{
@@ -264,7 +264,7 @@ bool Window::PopEvent(WindowEvent& evt_out)
 			evt_out.mouseDelta = Vector2i(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
 			evt_out.msg = MOUSE_MOVE;
 
-			onMouseMove(evt_out);
+			onMouseMoved(evt_out);
 		}
 	}
 	else if (msg.message == WM_CLOSE)
@@ -283,17 +283,15 @@ bool Window::PopEvent(WindowEvent& evt_out)
 	}
 	else if (msg.message == WM_SIZE)
 	{
-		// TODO
-		/*std::ofstream os("WM_SIZE.txt", std::ios::app);
-		os << GET_X_LPARAM(msg.lParam);
-		os << '\n';
-		os << GET_Y_LPARAM(msg.lParam);
-		os << '\n';
-		os.close();*/
+		int x = GET_X_LPARAM(msg.lParam);
+		int y = GET_Y_LPARAM(msg.lParam);
+
+		onClientSizeChanged(Vector2u(x, y));
 	}
 	else if (msg.message == WM_SIZING)
 	{
-
+		int x = GET_X_LPARAM(msg.lParam);
+		int y = GET_Y_LPARAM(msg.lParam);
 	}
 	else
 	{
@@ -368,6 +366,12 @@ uint32_t Window::GetClientHeight() const
 {
 	RECT rect; GetClientRect(handle, &rect);
 	return (uint32_t)(rect.bottom - rect.top);
+}
+
+Vector2u Window::GetClientSize() const
+{
+	RECT rect; GetClientRect(handle, &rect);
+	return Vector2u(rect.right - rect.left, rect.bottom - rect.top);
 }
 
 Vector2i Window::GetClientCursorPos() const

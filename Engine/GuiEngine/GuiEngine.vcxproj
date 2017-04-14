@@ -124,9 +124,12 @@
       <FileType>CppHeader</FileType>
     </ClCompile>
     <ClInclude Include="GuiCollapsable.hpp" />
-    <ClInclude Include="Widget.hpp" />
+    <ClInclude Include="Gui.hpp" />
     <ClInclude Include="GuiEngine.hpp" />
     <ClInclude Include="GuiEvent.h" />
+    <ClCompile Include="GuiLayer.cpp">
+      <FileType>CppHeader</FileType>
+    </ClCompile>
     <ClInclude Include="GuiLayer.hpp" />
     <ClInclude Include="GuiList.hpp" />
     <ClInclude Include="GuiSlider.hpp" />
@@ -136,7 +139,7 @@
     <ClInclude Include="GuiText.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Widget.cpp" />
+    <ClCompile Include="Gui.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

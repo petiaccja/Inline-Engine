@@ -187,26 +187,26 @@ void InitGui()
 	//button->SetBackgroundToColor(Color(55), Color(80));
 	//button->SetRect(x, y, 60, 60);
 	//button->SetText("Node1");
-	//button->onMouseClick += [](Widget* self, CursorEvent& evt) {MessageBoxA(NULL, "Node1Click", "Node1Click", MB_OK); };
+	//button->onMouseClick += [](Gui* self, CursorEvent& evt) {MessageBoxA(NULL, "Node1Click", "Node1Click", MB_OK); };
 	//GuiButton* pin0 = button->AddButton();
 	//pin0->SetBackgroundToColor(Color(100), Color(150));
 	//pin0->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5, pinSize.x, pinSize.y);
-	//pin0->onMouseClick += [](Widget* self, CursorEvent& evt) {MessageBoxA(NULL, "pin0Click", "pin0Click", MB_OK); };
+	//pin0->onMouseClick += [](Gui* self, CursorEvent& evt) {MessageBoxA(NULL, "pin0Click", "pin0Click", MB_OK); };
 	//GuiButton* pin1 = button->AddButton();
 	//pin1->SetBackgroundToColor(Color(100), Color(150));
 	//pin1->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace, pinSize.x, pinSize.y);
-	//pin1->onMouseClick += [](Widget* self, CursorEvent& evt) {MessageBoxA(NULL, "pin1Click", "pin1Click", MB_OK); };
+	//pin1->onMouseClick += [](Gui* self, CursorEvent& evt) {MessageBoxA(NULL, "pin1Click", "pin1Click", MB_OK); };
 	//GuiButton* pin2 = button->AddButton();
 	//pin2->SetBackgroundToColor(Color(100), Color(150));
 	//pin2->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace * 2.f, pinSize.x, pinSize.y);
-	//pin2->onMouseClick += [](Widget* self, CursorEvent& evt) {MessageBoxA(NULL, "pin2Click", "pin2Click", MB_OK); };
+	//pin2->onMouseClick += [](Gui* self, CursorEvent& evt) {MessageBoxA(NULL, "pin2Click", "pin2Click", MB_OK); };
 	//GuiButton* outputPin = button->AddButton();
 	//outputPin->SetBackgroundToColor(Color(100), Color(150));
 	//outputPin->SetRect(x + 60 - pinSize.x * 0.5, y + 30 - pinSize.y * 0.5, pinSize.x, pinSize.y);
-	//outputPin->onMouseClick += [](Widget* self, CursorEvent& evt) {MessageBoxA(NULL, "outputPin", "outputPin", MB_OK); };
+	//outputPin->onMouseClick += [](Gui* self, CursorEvent& evt) {MessageBoxA(NULL, "outputPin", "outputPin", MB_OK); };
 	//}
 	//
-	//Widget* node2;
+	//Gui* node2;
 	////Node2
 	//{
 	//int x = 300;
@@ -297,16 +297,16 @@ void InitGui()
 	//}
 
 	// Image test
-	{
-		Widget* p = layer->AddPlane();
-		p->SetBgImageForAllStates(L"c:\\UE4Interface_5.jpg");
-		p->SetRect(0, 0, 800, 200);
-		Widget* clone = p->Clone();
-		clone->SetRect(0, 200, 800, 200);
-		//p->Clone()->SetRect(0, 400, 800, 200);
-		//p->Clone()->SetRect(0, 600, 800, 200);
-		//p->Clone()->SetRect(0, 800, 800, 200);
-	}
+	//{
+	//	Gui* p = layer->AddPlane();
+	//	p->SetBgImageForAllStates(L"c:\\UE4Interface_5.jpg");
+	//	p->SetRect(0, 0, 800, 200);
+	//	Gui* clone = p->Clone();
+	//	clone->SetRect(0, 200, 800, 200);
+	//	//p->Clone()->SetRect(0, 400, 800, 200);
+	//	//p->Clone()->SetRect(0, 600, 800, 200);
+	//	//p->Clone()->SetRect(0, 800, 800, 200);
+	//}
 }
 
 void InitContextMenuTest()
@@ -328,7 +328,7 @@ void InitContextMenuTest()
 	//
 	//button->SetContextMenu(contextMenu);
 
-	// Tehát Widget* self átadása nem hülyeség, mert így a user ha akar akkor leszármazás nélkül is tud klónolni lokális viselkedést !
+	// Tehát Gui* self átadása nem hülyeség, mert így a user ha akar akkor leszármazás nélkül is tud klónolni lokális viselkedést !
 	// A usernek legyen lehetõsége arra is hogy csak layout - ot cloneoljon
 	//Clone
 	//CloneWithoutEvents

@@ -6,22 +6,21 @@ using namespace inl::gui;
 GuiCollapsable::GuiCollapsable(GuiEngine* guiEngine)
 :GuiList(guiEngine), bOpened(false)
 {
-	SetFitToChildren(true);
+	//SetAutoSize(true);
 
 	list = new GuiList(guiEngine);
 	list->SetBgColorForAllStates(Color(0, 0, 0, 0));
 
 	caption = AddButton();
+	//caption->SetAlign(eGuiAlign::STRETCH_H);
 
-	caption->onMousePressed += [](Widget* selff, CursorEvent& evt)
+	caption->onMousePressed += [this](CursorEvent& evt)
 	{
-		GuiCollapsable* self = selff->GetParent()->AsCollapsable();
-
-		if (self->bOpened)
-			self->Remove(self->list);
+		if (bOpened)
+			Remove(list);
 		else
-			self->Add(self->list);
+			Add(list);
 
-		self->bOpened = !self->bOpened;
+		bOpened = !bOpened;
 	};
 }
