@@ -87,13 +87,15 @@ void ForwardRender::Setup(SetupContext& context) {
 	auto shadowMapTex = this->GetInput<5>().Get();
 	this->GetInput<5>().Clear();
 	gxapi::SrvTexture2DArray srvDesc;
-	srvDesc.activeArraySize = 1;
+	srvDesc.activeArraySize = 4;
 	srvDesc.firstArrayElement = 0;
 	srvDesc.mipLevelClamping = 0;
 	srvDesc.mostDetailedMip = 0;
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
 	m_shadowMapTexView = context.CreateSrv(shadowMapTex, FormatDepthToColor(shadowMapTex.GetFormat()), srvDesc);
+
+	srvDesc.activeArraySize = 1;
 
 	auto shadowMXTex = this->GetInput<6>().Get();
 	this->GetInput<6>().Clear();
