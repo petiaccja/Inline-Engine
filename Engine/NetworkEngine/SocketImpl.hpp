@@ -10,6 +10,7 @@ namespace inl::net
 	{
 	protected:
 		enums::Type socket_type = enums::Type::Unknown;
+		enums::IPVersion ip_version = enums::IPVersion::IPv4;
 
 	public:
 		inline SocketImpl() { }
@@ -21,14 +22,13 @@ namespace inl::net
 		virtual bool Connect(const std::string &ip, uint port) = 0;
 		virtual bool Disconnect() = 0;
 		virtual bool Listen(uint max_conections = 0) = 0; // if max_connections == 0 { max_connections = infinite }
-		virtual bool HasPendingConnection(bool &pending) = 0;
+		virtual bool HasPendingConnection() = 0;
 		virtual bool HasPendingData(uint &size) = 0;
 		virtual SocketImpl *Accept() = 0;
-		virtual SocketImpl *Accept(const std::string &out_addr, uint &out_port) = 0;
-		virtual bool SendTo(const byte *data, uint count, uint &bytes_sent, const std::string &dest_ip, uint dest_port) = 0;
-		virtual bool Send(const byte *data, uint count, uint &bytes_sent) = 0;
-		virtual bool ReceiveFrom(const byte *data, uint size, uint &bytes_read, const std::string &source_ip, uint &source_port, enums::ReceiveFlag flags = enums::ReceiveFlag::None) = 0;
-		virtual bool Receive(const byte *data, uint size, uint &bytes_read, enums::ReceiveFlag flags = enums::ReceiveFlag::None) = 0;
+		virtual bool SendTo(const char *data, uint count, uint &bytes_sent, const std::string &dest_ip, uint dest_port) = 0;
+		virtual bool Send(const char *data, uint count, uint &bytes_sent) = 0;
+		virtual bool ReceiveFrom(const char *data, uint size, uint &bytes_read, const std::string &source_ip, uint &source_port, enums::ReceiveFlag flags = enums::ReceiveFlag::None) = 0;
+		virtual bool Receive(const char *data, uint size, uint &bytes_read, enums::ReceiveFlag flags = enums::ReceiveFlag::None) = 0;
 		virtual bool Wait(enums::WaitCondition condition, uint wait_time) = 0;
 		virtual enums::ConnectionState GetConnectionState() = 0;
 		virtual bool GetPeerAddress(std::string &out_ip, uint &out_port) = 0;
@@ -38,6 +38,11 @@ namespace inl::net
 		virtual bool LeaveMulticastGroup(const std::string &ip, uint port) = 0;
 		virtual bool SetMulticastLoopback(bool loopback) = 0;
 		virtual bool SetMulticastTtl(unsigned short time_to_live) = 0;
+		
+		inline void SetIPVersion(enums::IPVersion version)
+		{
+			ip_version = version;
+		}
 
 		inline void SetSendBufferSize(int size)
 		{
@@ -60,7 +65,14 @@ namespace inl::net
 			return socket_type;
 		}
 
+		inline enums::IPVersion GetIPVersion() const
+		{
+			return ip_version;
+		}
+
 		bool isConnected;
+		std::string IPAddress;
+		uint Port;
 	private:
 		uint send_buffer_len = 1024, receive_buffer_len = 1024;
 	};

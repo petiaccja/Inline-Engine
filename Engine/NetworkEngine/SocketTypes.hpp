@@ -10,6 +10,12 @@ namespace inl::net::enums
 		UDP
 	};
 
+	enum class IPVersion
+	{
+		IPv4,
+		IPv6
+	};
+
 	enum class ConnectionState
 	{
 		Connected,
