@@ -4,7 +4,7 @@
 
 // TMP HEKK (REMOVE)
 #include <BaseLibrary\Platform\Window.hpp>
-//#define min(a,b) a < b ? a : b
+//#define min(a,b) a < b ? a . b
 //#define max(a,b) a > b ? a : b
 //#include <gdiplus.h>
 //#undef min
@@ -29,15 +29,6 @@ enum class eGuiAlignHor
 	LEFT,
 	CENTER,
 	RIGHT,
-	STRETCH,
-	STRETCH_LEFT,
-	STRETCH_RIGHT,
-	FILL_PARENT,
-	FILL_PARENT_LEFT,
-	FILL_PARENT_RIGHT,
-	FIT_CHILDREN,
-	FIT_CHILDREN_LEFT,
-	FIT_CHILDREN_RIGHT,
 };
 
 enum class eGuiAlignVer
@@ -46,15 +37,13 @@ enum class eGuiAlignVer
 	TOP,
 	CENTER,
 	BOTTOM,
-	STRETCH,
-	STRETCH_TOP,
-	STRETCH_BOTTOM,
+};
+
+enum class eGuiStretch
+{
+	NONE,
 	FILL_PARENT,
-	FILL_PARENT_TOP,
-	FILL_PARENT_BOTTOM,
 	FIT_CHILDREN,
-	FIT_CHILDREN_TOP,
-	FIT_CHILDREN_BOTTOM,
 };
 
 class Gui
@@ -64,6 +53,8 @@ public:
 	Gui();
 	Gui(GuiEngine* guiEngine);
 	Gui(GuiEngine* guiEngine, bool bLayer);
+
+	void InitFromImage(const std::wstring& idleImagePath, const std::wstring& hoverImagePath);
 
 	virtual ~Gui() { Clear(); }
 	void Clear();
@@ -81,6 +72,7 @@ public:
 	GuiButton*	AddButton();
 	GuiList*	AddList();
 	GuiSlider*	AddSlider();
+	GuiCollapsable* AddCollapsable();
 
 	bool Remove(Gui* child);
 	bool Remove();
@@ -91,8 +83,10 @@ public:
 	void Move(const Vector2f& delta) { Move(delta.x(), delta.y()); }
 
 	const Vector2f& Measure(const Vector2f& availableSize);
-	Vector2f Arrange(const Vector2f& pos, const Vector2f& size);
-	Vector2f Arrange(float posX, float posY, const Vector2f& size) { return Arrange(Vector2f(posX, posY), size); }
+
+	//Vector2f Arrange(const Vector2f& pos, const Vector2f& size) { Arrange(pos, size, true); }
+	Vector2f Arrange(const Vector2f& pos, const Vector2f& size, bool bEnableFillParent = true);
+	Vector2f Arrange(float posX, float posY, const Vector2f& size) { return Arrange(Vector2f(posX, posY), size, true); }	
 
 	void EnableClipChildren() { SetClipChildren(true); }
 	void DisableClipChildren() { SetClipChildren(false); }
@@ -105,11 +99,11 @@ public:
 	GuiCollapsable* AsCollapsable() { return (GuiCollapsable*)this; }
 
 
-	void SetClientRect(float x, float y, float width, float height) { SetClientRect(x, y, width, height, true); }
-	void SetClientRect(const RectF rect) { SetClientRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), true); }
+	void SetContentRect(float x, float y, float width, float height) { SetContentRect(x, y, width, height, true, true); }
+	void SetContentRect(const RectF rect) { SetContentRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); }
 
-	void SetRect(float x, float y, float width, float height) { SetRect(x, y, width, height, true); }
-	void SetRect(const RectF& rect) { SetRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), true); }
+	void SetRect(float x, float y, float width, float height) { SetRect(x, y, width, height, true, true); }
+	void SetRect(const RectF& rect) { SetRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); }
 
 	void SetName(const std::wstring& str) { name = str; }
 	void SetName(const std::string& str) { SetName(std::wstring(str.begin(), str.end())); }
@@ -123,11 +117,11 @@ public:
 	void SetWidth(float w) { SetSize(Vector2f(w, size.y())); }
 	void SetHeight(float h) { SetSize(Vector2f(size.x(), h)); }
 
-	void SetSize(const Vector2f& s) { SetSize(s.x(), s.y(), true); }
-	void SetSize(float width, float height) { SetRect(pos.x(), pos.y(), width, height, true); }
+	void SetSize(const Vector2f& s) { SetSize(s.x(), s.y()); }
+	void SetSize(float width, float height) { SetRect(pos.x(), pos.y(), width, height, true, true); }
 
-	void SetClientSize(float width, float height) { SetClientRect(GetClientRect().left, GetClientRect().top, width, height, true); }
-	void SetClientSize(const Vector2f& s) { SetClientSize(s.x(), s.y(), true); }
+	void SetContentSize(float width, float height) { SetContentRect(GetContentRect().left, GetContentRect().top, width, height, true, true); }
+	void SetContentSize(const Vector2f& s) { SetContentSize(s.x(), s.y()); }
 
 	void SetEventPropagationPolicy(eEventPropagationPolicy e) { eventPropagationPolicy = e; }
 
@@ -141,8 +135,9 @@ public:
 	void SetBgActiveColorToHover();
 	void SetBgColorForAllStates(const Color& color);
 
-	void SetBgIdleImage(const std::wstring& filePath);
-	void SetBgHoverImage(const std::wstring& filePath);
+	void SetBgToImage(const std::wstring& idleImagePath, const std::wstring& hoverImagePath);
+	void SetBgIdleImage(const std::wstring& path);
+	void SetBgHoverImage(const std::wstring& path);
 	void SetBgActiveImage(Gdiplus::Bitmap* image) { bgActiveImage = image; }
 	void SetBgActiveImageToIdle();
 	void SetBgActiveImageToHover();
@@ -154,39 +149,49 @@ public:
 	void SetMargin(float leftLength, float topLength, float rightLength, float bottomLength);
 	void SetMargin(float length) { SetMargin(length, length, length, length); }
 
+	void SetMarginLeft(float length)	{ SetMargin(length, margin.top, margin.right, margin.bottom); }
+	void SetMarginRight(float length)	{ SetMargin(margin.left, margin.top, length, margin.bottom); }
+	void SetMarginTop(float length)		{ SetMargin(margin.left, length, margin.right, margin.bottom); }
+	void SetMarginBottom(float length)	{ SetMargin(margin.left, margin.top, margin.right, length); }
+
 	void SetPadding(float leftLength, float topLength, float rightLength, float bottomLength);
 	void SetPadding(float length) { SetPadding(length, length, length, length); }
 
-	void SetAlign(eGuiAlignHor horizontalAlign, eGuiAlignVer verticalAlign) { this->horizontalAlign = horizontalAlign; this->verticalAlign = verticalAlign; bDirtyLayout = true; }
-	void SetAlignHor(eGuiAlignHor align) { horizontalAlign = align; bDirtyLayout = true; }
-	void SetAlignVer(eGuiAlignVer align) { verticalAlign = align; bDirtyLayout = true; }
+	void SetAlign(eGuiAlignHor horizontalAlign, eGuiAlignVer verticalAlign) { alignHor = horizontalAlign; alignVer = verticalAlign; bDirtyLayout = true; }
+	void SetAlignHor(eGuiAlignHor align) { alignHor = align; bDirtyLayout = true; }
+	void SetAlignVer(eGuiAlignVer align) { alignVer = align; bDirtyLayout = true; }
+
+	void SetStretch(eGuiStretch stretch) { SetStretch(stretch, stretch); }
+	void SetStretch(eGuiStretch horizontalStretch, eGuiStretch verticalStretch) { stretchHor = horizontalStretch; stretchVer = verticalStretch; bDirtyLayout = true; }
+	void SetStretchHor(eGuiStretch stretch) { stretchHor = stretch; bDirtyLayout = true; }
+	void SetStretchVer(eGuiStretch stretch) { stretchVer = stretch; bDirtyLayout = true; }
 
 	void AlignLeft()					{ SetAlignHor(eGuiAlignHor::LEFT); }
 	void AlignRight()					{ SetAlignHor(eGuiAlignHor::RIGHT); }
-	void AlignStretchHor()				{ SetAlignHor(eGuiAlignHor::STRETCH); }
 	void AlignTop()						{ SetAlignVer(eGuiAlignVer::TOP); }
 	void AlignBottom()					{ SetAlignVer(eGuiAlignVer::BOTTOM); }
-	void AlignStretchVer()				{ SetAlignVer(eGuiAlignVer::STRETCH); }
 	void AlignTopLeft()					{ SetAlign(eGuiAlignHor::LEFT, eGuiAlignVer::TOP); }
 	void AlignTopRight()				{ SetAlign(eGuiAlignHor::RIGHT, eGuiAlignVer::TOP); }
 	void AlignBottomLeft()				{ SetAlign(eGuiAlignHor::LEFT, eGuiAlignVer::BOTTOM); }
 	void AlignBottomRight()				{ SetAlign(eGuiAlignHor::RIGHT, eGuiAlignVer::BOTTOM); }
 	void AlignCenter()					{ SetAlign(eGuiAlignHor::CENTER, eGuiAlignVer::CENTER); }
-	void AlignStretch()					{ SetAlign(eGuiAlignHor::STRETCH, eGuiAlignVer::STRETCH); }
-	void AlignFillParentHor()			{ SetAlignHor(eGuiAlignHor::FILL_PARENT); }
-	void AlignFillParentVer()			{ SetAlignVer(eGuiAlignVer::FILL_PARENT); }
-	void AlignFillParent()				{ SetAlign(eGuiAlignHor::FILL_PARENT, eGuiAlignVer::FILL_PARENT); }
-	void AlignFitChildrenHor()			{ SetAlignHor(eGuiAlignHor::FIT_CHILDREN); }
-	void AlignFitChildrenVer()			{ SetAlignVer(eGuiAlignVer::FIT_CHILDREN); }
-	void AlignFitChildren()				{ SetAlign(eGuiAlignHor::FIT_CHILDREN, eGuiAlignVer::FIT_CHILDREN); }
+	void AlignCenterHor() { SetAlignHor(eGuiAlignHor::CENTER); }
+	void AlignCenterVer() { SetAlignVer(eGuiAlignVer::CENTER); }
 
+	void StretchNone() { SetStretch(eGuiStretch::NONE); }
+	void StretchNoneHor() { SetStretchHor(eGuiStretch::NONE); }
+	void StretchNoneVor() { SetStretchVer(eGuiStretch::NONE); }
+	
+	void StretchFillParent() { SetStretch(eGuiStretch::FILL_PARENT); }
+	void StretchFillParentHor() { SetStretchHor(eGuiStretch::FILL_PARENT); }
+	void StretchFillParentVer() { SetStretchVer(eGuiStretch::FILL_PARENT); }
+
+	void StretchFitToChildren() { SetStretch(eGuiStretch::FIT_CHILDREN); }
+	void StretchFitToChildrenHor() { SetStretchHor(eGuiStretch::FIT_CHILDREN); }
+	void StretchFitToChildrenVer() { SetStretchVer(eGuiStretch::FIT_CHILDREN); }
+	
 	void SetBgImageVisibility(bool bVisible) { bBgImageVisible = bVisible; }
 	void SetBgColorVisibility(bool bVisible) { bBgColorVisible = bVisible; }
-
-	//void SetAutoSize(bool bAutoWidth, bool bAutoHeight) { bAutoWidth = bAutoWidth; bAutoHeight = bAutoHeight; bDirtyLayout = true; }
-	//void SetAutoSize(bool b) { SetAutoSize(b, b); }
-	//void SetAutoWidth(bool b) { bAutoWidth = b; bDirtyLayout = true; }
-	//void SetAutoHeight(bool b) { bAutoHeight = b; bDirtyLayout = true; }
 
 	void HideBgImage() { SetBgImageVisibility(false); }
 	void HideBgColor() { SetBgColorVisibility(false); }
@@ -194,8 +199,11 @@ public:
 	void ShowBgImage() { SetBgImageVisibility(true); }
 	void ShowBgColor() { SetBgColorVisibility(true); }
 
-	float GetClientSpaceCursorPosX();
-	float GetClientSpaceCursorPosY();
+	template<class T>
+	T* Copy(T* other);
+
+	float GetContentSpaceCursorPosX();
+	float GetContentSpaceCursorPosY();
 
 	float GetPosX() { return pos.x(); }
 	float GetPosY() { return pos.y(); }
@@ -204,6 +212,8 @@ public:
 	float GetCenterPosY() { return pos.y() + GetHalfHeight(); }
 	Vector2f GetCenterPos() { return pos + GetHalfSize(); }
 	const Vector2f& GetSize() { return size; }
+	float GetSizeX() { return size.x(); }
+	float GetSizeY() { return size.y(); }
 	float GetWidth() { return size.x(); }
 	float GetHeight() { return size.y(); }
 	float GetHalfWidth() { return GetWidth() * 0.5f; }
@@ -213,28 +223,30 @@ public:
 	const RectF& GetPadding() const { return padding; }
 	const RectF& GetMargin() const { return margin; }
 
-	float GetClientPosX() { return GetClientRect().left; }
-	float GetClientPosY() { return GetClientRect().top; }
-	Vector2f GetClientPos() { return GetClientRect().GetPos(); }
-	float GetClientCenterPosY() { return GetClientPosY() - GetClientHalfHeight(); }
-	float GetClientCenterPosX() { return GetClientPosX() + GetClientHalfWidth(); }
-	Vector2f GetClientCenterPos() { return GetClientPos() + GetClientHalfSize(); }
-	Vector2f GetClientSize() { return GetClientRect().GetSize(); }
-	float GetClientWidth() { return GetClientRect().GetWidth(); }
-	float GetClientHeight() { return GetClientRect().GetHeight(); }
-	float GetClientHalfWidth() { return GetClientWidth() * 0.5f; }
-	float GetClientHalfHeight() { return GetClientWidth() * 0.5f; }
-	Vector2f GetClientHalfSize() { return GetClientSize() * 0.5f; }
+	float GetContentPosX() { return GetContentPos().x(); }
+	float GetContentPosY() { return GetContentPos().y(); }
+	Vector2f GetContentPos() { return GetContentRect().GetPos(); }
+	float GetContentCenterPosY() { return GetContentPosY() - GetContentHalfHeight(); }
+	float GetContentCenterPosX() { return GetContentPosX() + GetContentHalfWidth(); }
+	Vector2f GetContentCenterPos() { return GetContentPos() + GetContentHalfSize(); }
+	Vector2f GetContentSize() { return GetContentRect().GetSize(); }
+	float GetContentSizeX() { return GetContentSize().x(); }
+	float GetContentSizeY() { return GetContentSize().y(); }
+	float GetContentWidth() { return GetContentRect().GetWidth(); }
+	float GetContentHeight() { return GetContentRect().GetHeight(); }
+	float GetContentHalfWidth() { return GetContentWidth() * 0.5f; }
+	float GetContentHalfHeight() { return GetContentWidth() * 0.5f; }
+	Vector2f GetContentHalfSize() { return GetContentSize() * 0.5f; }
 
 	RectF GetRect();
-	RectF GetClientRect();
+	RectF GetContentRect();
 	RectF GetPaddingRect();
 	RectF GetBorderRect();
+	RectF GetChildrenRect();
 
 	Gui* GetParent() { return parent; }
 	Gui* GetContextMenu() { return contextMenu; }
 	std::vector<Gui*>& GetChildren() { return children; }
-	RectF GetChildrenBoundRect();
 
 	template<class T>
 	T* GetChildByIdx(int index) { return (T*)GetChildren()[index]; }
@@ -262,17 +274,17 @@ public:
 	RectF GetBorder() { return border; }
 
 protected:
-	void SetClientRect(float x, float y, float width, float height, bool bFireEvents);
-	void SetClientRect(const RectF rect, bool bFireEvents) { SetClientRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), bFireEvents); }
+	void SetContentRect(float x, float y, float width, float height, bool bMoveChildren, bool bMakeLayoutDirty);
+	void SetContentRect(const RectF rect, bool bMoveChildren, bool bMakeLayoutDirty) { SetContentRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), bMoveChildren, bMakeLayoutDirty); }
 
-	void SetRect(float x, float y, float width, float height, bool bFireEvents);
-	void SetRect(const RectF& rect, bool bFireEvents) { SetRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), bFireEvents); }
+	void SetRect(float x, float y, float width, float height, bool bMoveChildren, bool bMakeLayoutDirty);
+	void SetRect(const RectF& rect, bool bMoveChildren, bool bMakeLayoutDirty) { SetRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), bMoveChildren, bMakeLayoutDirty); }
 	
-	void SetClientSize(float width, float height, bool bFireEvents) { SetClientRect(GetClientRect().left, GetClientRect().top, width, height, bFireEvents); }
-	void SetClientSize(const Vector2f& s, bool bFireEvents) { SetClientSize(s.x(), s.y(), bFireEvents); }
+	void SetContentSize(float width, float height, bool bMakeLayoutDirty) { SetContentRect(GetContentRect().left, GetContentRect().top, width, height, false, bMakeLayoutDirty); }
+	void SetContentSize(const Vector2f& s, bool bMakeLayoutDirty) { SetContentSize(s.x(), s.y(), bMakeLayoutDirty); }
 
-	void SetSize(const Vector2f& s, bool bFireEvents) { SetSize(s.x(), s.y(), bFireEvents); }
-	void SetSize(float width, float height, bool bFireEvents) { SetRect(pos.x(), pos.y(), width, height, bFireEvents); }
+	void SetSize(const Vector2f& s, bool bMakeLayoutDirty) { SetSize(s.x(), s.y(), bMakeLayoutDirty); }
+	void SetSize(float width, float height, bool bMakeLayoutDirty) { SetRect(pos.x(), pos.y(), width, height, false, bMakeLayoutDirty); }
 
 	void SetActiveImage(Gdiplus::Bitmap* image) { bgActiveImage = image; }
 
@@ -299,7 +311,7 @@ protected:
 	// IsLayer ?
 	bool bLayer;
 
-	// Is clipped by parent client area?
+	// Is clipped by parent content area?
 	bool bClipChildren;
 
 	// If true parent rectangle will be exactly aroound childs always
@@ -331,6 +343,7 @@ protected:
 	Gdiplus::Bitmap* bgIdleImage;
 	Gdiplus::Bitmap* bgHoverImage;
 	Gdiplus::Bitmap* bgActiveImage;
+
 	Color bgIdleColor;
 	Color bgHoverColor;
 	Color bgActiveColor;
@@ -345,35 +358,69 @@ protected:
 	// Padding
 	RectF padding;
 
-	// Content align
-	eGuiAlignVer verticalAlign;
-	eGuiAlignHor horizontalAlign;
+	// Alignment & Stretch
+	eGuiAlignHor	alignHor;
+	eGuiAlignVer	alignVer;
+	eGuiStretch		stretchHor;
+	eGuiStretch		stretchVer;
 
 	// Access to god
 	GuiEngine* guiEngine;
 
 public:
-	Vector2f DesiredSize;
+	Vector2f desiredSize;
 
 	// Public events
 	Delegate<void(CursorEvent& evt)> onMouseClicked;
+	Delegate<void(Gui* self, CursorEvent& evt)> onMouseClickedClonable;
+
+	Delegate<void(CursorEvent& evt)> onMouseDblClicked;
+	Delegate<void(Gui* self, CursorEvent& evt)> onMouseDblClickedClonable;
+	
 	Delegate<void(CursorEvent& evt)> onMousePressed;
+	Delegate<void(Gui* self, CursorEvent& evt)> onMousePressedClonable;
+
 	Delegate<void(CursorEvent& evt)> onMouseReleased;
+	Delegate<void(Gui* self, CursorEvent& evt)> onMouseReleasedClonable;
+
 	Delegate<void(CursorEvent& evt)> onMouseMoved;
+	Delegate<void(Gui* self, CursorEvent& evt)> onMouseMovedClonable;
+
 	Delegate<void(CursorEvent& evt)> onMouseEntered;
+	Delegate<void(Gui* self, CursorEvent& evt)> onMouseEnteredClonable;
+
 	Delegate<void(CursorEvent& evt)> onMouseLeaved;
+	Delegate<void(Gui* self, CursorEvent& evt)> onMouseLeavedClonable;
+
 	Delegate<void(CursorEvent& evt)> onMouseHovered;
+	Delegate<void(Gui* self, CursorEvent& evt)> onMouseHoveredClonable;
+
 	Delegate<void(float deltaTime)> onUpdate;
+	Delegate<void(Gui* self, float deltaTime)> onUpdateClonable;
 
 	Delegate<void(RectF& rect)> onTransformChanged;
+	Delegate<void(Gui* self, RectF& rect)> onTransformChangedClonable;
+
 	Delegate<void(Vector2f pos)> onPosChanged;
+	Delegate<void(Gui* self, Vector2f pos)> onPosChangedClonable;
+
 	Delegate<void(Vector2f size)> onSizeChanged;
+	Delegate<void(Gui* self, Vector2f size)> onSizeChangedClonable;
 
 	Delegate<void(RectF& rect)> onParentTransformChanged;
+	Delegate<void(Gui* self, RectF& rect)> onParentTransformChangedClonable;
+
 	Delegate<void(RectF& rect)> onChildTransformChanged;
+	Delegate<void(Gui* self, RectF& rect)> onChildTransformChangedClonable;
+
 	Delegate<void(Gui* parent)> onParentChanged;
+	Delegate<void(Gui* self, Gui* parent)> onParentChangedClonable;
+
 	Delegate<void(Gui* child)> onChildAdded;
+	Delegate<void(Gui* self, Gui* child)> onChildAddedClonable;
+
 	Delegate<void(Gui* child)> onChildRemoved;
+	Delegate<void(Gui* self, Gui* child)> onChildRemovedClonable;
 };
 
 inline Gui::Gui(GuiEngine* guiEngine, bool bLayer)
@@ -397,42 +444,38 @@ inline Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 	borderColor = Color(128);
 	bBgImageVisible = true;
 	bBgColorVisible = true;
-	bClipChildren = false;
+	bClipChildren = true;
 	margin = RectF(0, 0, 0, 0);
 	padding = RectF(0, 0, 0, 0);
-	DesiredSize = Vector2f(0, 0);
+	desiredSize = Vector2f(0, 0);
 	bDirtyLayout = false;
-	horizontalAlign = eGuiAlignHor::NONE;
-	verticalAlign = eGuiAlignVer::NONE;
-	
+	alignHor = eGuiAlignHor::NONE;
+	alignVer = eGuiAlignVer::NONE;
+	stretchHor = eGuiStretch::NONE;
+	stretchVer = eGuiStretch::NONE;
 
 	SetBgActiveColor(bgIdleColor);
 
-	onMouseEntered += [this](CursorEvent& event)
+	onMouseEnteredClonable += [](Gui* self, CursorEvent& event)
 	{
-		SetBgActiveColor(GetBgHoverColor());
-		SetBgActiveImage(GetBgHoverImage());
+		self->SetBgActiveColor(self->GetBgHoverColor());
+		self->SetBgActiveImage(self->GetBgHoverImage());
 	};
 
-	onMouseLeaved += [this](CursorEvent& event)
+	onMouseLeavedClonable += [](Gui* self, CursorEvent& event)
 	{
-		SetBgActiveColor(GetBgIdleColor());
-		SetBgActiveImage(GetBgIdleImage());
-	};
-
-	onSizeChanged += [this](Vector2f size)
-	{
-		bDirtyLayout = true;
+		self->SetBgActiveColor(self->GetBgIdleColor());
+		self->SetBgActiveImage(self->GetBgIdleImage());
 	};
 	
-	onChildRemoved += [this](Gui* child)
+	onChildRemovedClonable += [](Gui* self, Gui* child)
 	{
-		bDirtyLayout = true;
+		self->bDirtyLayout = true;
 	};
 	
-	onChildAdded += [this](Gui* child)
+	onChildAddedClonable += [](Gui* self, Gui* child)
 	{
-		bDirtyLayout = true;
+		self->bDirtyLayout = true;
 	};
 }
 
@@ -443,14 +486,14 @@ inline Gui::Gui(GuiEngine* guiEngine)
 }
 
 inline Gui::Gui()
-: Gui(nullptr, false)
+:Gui(nullptr, false)
 {
 
 }
 
 inline void Gui::Clear()
 {
-	Remove();
+	//Remove();
 
 	front = nullptr;
 	back = nullptr;
@@ -480,8 +523,27 @@ inline Gui& Gui::operator = (const Gui& other)
 	margin = other.margin;
 	padding = other.padding;
 	bDirtyLayout = other.bDirtyLayout;
-	verticalAlign = other.verticalAlign;
-	horizontalAlign = other.horizontalAlign;
+	alignHor = other.alignHor;
+	alignVer = other.alignVer;
+	stretchHor = other.stretchHor;
+	stretchVer = other.stretchVer;
+
+	onMouseClickedClonable = other.onMouseClickedClonable;
+	onMousePressedClonable = other.onMousePressedClonable;
+	onMouseReleasedClonable = other.onMouseReleasedClonable;
+	onMouseMovedClonable = other.onMouseMovedClonable;
+	onMouseEnteredClonable = other.onMouseEnteredClonable;
+	onMouseLeavedClonable = other.onMouseLeavedClonable;
+	onMouseHoveredClonable = other.onMouseHoveredClonable;
+	onUpdateClonable = other.onUpdateClonable;
+	onTransformChangedClonable = other.onTransformChangedClonable;
+	onPosChangedClonable = other.onPosChangedClonable;
+	onSizeChangedClonable = other.onSizeChangedClonable;
+	onParentTransformChangedClonable = other.onParentTransformChangedClonable;
+	onChildTransformChangedClonable = other.onChildTransformChangedClonable;
+	onParentChangedClonable = other.onParentChangedClonable;
+	onChildAddedClonable = other.onChildAddedClonable;
+	onChildRemovedClonable = other.onChildRemovedClonable;
 
 	// Background
 	if (other.bgIdleImage)
@@ -500,8 +562,7 @@ inline Gui& Gui::operator = (const Gui& other)
 	bgHoverColor = other.bgHoverColor;
 
 	// Context menu
-	if (other.contextMenu)
-		contextMenu = other.contextMenu->Clone();
+	contextMenu = Copy(other.contextMenu);
 
 	for (Gui* child : other.children)
 		Add(child->Clone());
@@ -511,6 +572,12 @@ inline Gui& Gui::operator = (const Gui& other)
 		other.parent->Add(this);
 
 	return *this;
+}
+
+inline void Gui::InitFromImage(const std::wstring& idleImagePath, const std::wstring& hoverImagePath)
+{
+	SetBgToImage(idleImagePath, hoverImagePath);
+	SetSize(Vector2f(GetBgIdleImage()->GetWidth(), GetBgIdleImage()->GetHeight()));
 }
 
 template<class T>
@@ -539,7 +606,10 @@ inline void Gui::Add(Gui* child)
 	children.push_back(child);
 
 	child->onParentChanged(this);
+	child->onParentChangedClonable(child, this);
+
 	onChildAdded(child);
+	onChildAddedClonable(this, child);
 }
 
 inline bool Gui::Remove(Gui* child)
@@ -573,7 +643,10 @@ inline bool Gui::Remove(Gui* child)
 					--children[i]->indexInParent;
 
 			onChildRemoved(child);
+			onChildRemovedClonable(this, child);
+
 			child->onParentChanged(nullptr);
+			child->onParentChangedClonable(child, nullptr);
 
 			return true;
 		}
@@ -587,6 +660,19 @@ inline bool Gui::Remove()
 		return parent->Remove(this);
 
 	return false;
+}
+
+template<class T>
+T* Gui::Copy(T* other)
+{
+	if (!other)
+		return nullptr;
+
+	int idx = other->GetIndexInParent();
+	if (idx == -1)
+		return other->Clone();
+	else
+		return GetChildByIdx<T>(other->GetIndexInParent());
 }
 
 inline void Gui::TraverseTowardParents(const std::function<void(Gui*)>& fn)
@@ -614,7 +700,7 @@ inline void Gui::Move(float dx, float dy)
 	SetPos(pos.x() + dx, pos.y() + dy);
 }
 
-inline void Gui::SetRect(float x, float y, float width, float height, bool bFireEvents)
+inline void Gui::SetRect(float x, float y, float width, float height, bool bMoveChildren, bool bMakeLayoutDirty)
 {
 	RectF oldRect = GetRect();
 
@@ -628,35 +714,37 @@ inline void Gui::SetRect(float x, float y, float width, float height, bool bFire
 	{
 		for (Gui* child : children)
 		{
-			child->Move(rect.GetPos() - oldRect.GetPos());
+			if(bMoveChildren)
+				child->Move(rect.GetPos() - oldRect.GetPos());
 
 			child->onParentTransformChanged(rect);
+			child->onParentTransformChangedClonable(child, rect);
 		}
+		
+		onTransformChanged(rect);
 
-		if (bFireEvents)
+		if (parent)
 		{
-			onTransformChanged(rect);
-
-			if (parent)
-				parent->onChildTransformChanged(rect);
+			parent->onChildTransformChanged(rect);
+			parent->onChildTransformChangedClonable(parent, rect);
 		}
 	}
 
-	if (bFireEvents)
+	if (rect.GetPos() != oldRect.GetPos())
 	{
-		if (rect.GetPos() != oldRect.GetPos())
-		{
-			onPosChanged(rect.GetPos());
-		}
+		onPosChanged(rect.GetPos());
+	}
 
-		if (rect.GetSize() != oldRect.GetSize())
-		{
-			onSizeChanged(rect.GetSize());
-		}
+	if (rect.GetSize() != oldRect.GetSize())
+	{
+		onSizeChanged(rect.GetSize());
+
+		if (bMakeLayoutDirty)
+			bDirtyLayout = true;
 	}
 }
 
-inline void Gui::SetClientRect(float x, float y, float width, float height, bool bFireEvents)
+inline void Gui::SetContentRect(float x, float y, float width, float height, bool bFireEvents, bool bMoveChildren)
 {
 	RectF resultRect = RectF(x, y, x + width, y + height);
 
@@ -676,7 +764,7 @@ inline void Gui::SetClientRect(float x, float y, float width, float height, bool
 	resultRect.MoveSides(border_);
 	//resultRect.MoveSides(margin_);
 
-	SetRect(resultRect, bFireEvents);
+	SetRect(resultRect, bFireEvents, bMoveChildren);
 }
 
 inline void Gui::SetBgIdleImage(const std::wstring& str)
@@ -711,7 +799,6 @@ inline void Gui::SetBgIdleColor(const Color& color)
 		SetBgActiveColor(color);
 
 	bgIdleColor = color;
-	ShowBgColor();
 }
 
 inline void Gui::SetBgToColor(const Color& idleColor, const Color& hoverColor)
@@ -721,7 +808,6 @@ inline void Gui::SetBgToColor(const Color& idleColor, const Color& hoverColor)
 
 	SetBgHoverColor(hoverColor);
 	SetBgIdleColor(idleColor);
-	ShowBgColor();
 }
 
 inline void Gui::SetBgHoverColor(const Color& color)
@@ -730,26 +816,30 @@ inline void Gui::SetBgHoverColor(const Color& color)
 		SetBgActiveColor(color);
 
 	bgHoverColor = color;
-	ShowBgColor();
 }
 
 inline void Gui::SetBgActiveColorToIdle()
 {
 	SetBgActiveColor(GetBgIdleColor());
-	ShowBgColor();
 }
 
 inline void Gui::SetBgActiveColorToHover()
 {
 	SetBgActiveColor(GetBgHoverColor());
-	ShowBgColor();
 }
 
 inline void Gui::SetBgColorForAllStates(const Color& color)
 {
 	SetBgHoverColor(color);
 	SetBgIdleColor(color);
-	ShowBgColor();
+}
+
+inline void Gui::SetBgToImage(const std::wstring& idleImagePath, const std::wstring& hoverImagePath)
+{
+	HideBgColor();
+
+	SetBgIdleImage(idleImagePath);
+	SetBgHoverImage(hoverImagePath);
 }
 
 inline void Gui::SetBgActiveImageToIdle()
@@ -800,37 +890,34 @@ inline void Gui::SetBorder(float leftLength, float topLength, float rightLength,
 {
 	border = RectF(leftLength, topLength, rightLength, bottomLength);
 	borderColor = color;
-	//RectF newBorder = RectF(leftLength, topLength, rightLength, bottomLength);
-	//RectF deltaBorder = border - newBorder;
-	//
-	//border = newBorder;
-	//borderColor = color;
-	//
-	//RectF newRect = GetRect();
-	//newRect.MoveSidesLocal(-deltaBorder);
-	//SetRect(newRect);
+//RectF newBorder = RectF(leftLength, topLength, rightLength, bottomLength);
+//RectF deltaBorder = border - newBorder;
+//
+//border = newBorder;
+//borderColor = color;
+//
+//RectF newRect = GetRect();
+//newRect.MoveSidesLocal(-deltaBorder);
+//SetRect(newRect);
 }
 
 inline void Gui::RefreshLayout()
 {
-	Gui* arrangeRoot = nullptr;
-	
-	if (parent && !parent->IsLayer())
-		arrangeRoot = parent;
+	//if (IsLayer())
+	//	return;
 
-	while (arrangeRoot && arrangeRoot->GetParent() && !arrangeRoot->IsLayer())
+	Gui* arrangeRoot = this;
+
+	while (arrangeRoot && arrangeRoot->GetParent())
 		arrangeRoot = arrangeRoot->GetParent();
 
-	if (!arrangeRoot || arrangeRoot->IsLayer())
-		arrangeRoot = this;
+	// How much space that control needs
+	Vector2f desiredSize = arrangeRoot->Measure(arrangeRoot->GetContentSize());
 
-	// The size children wants
-	Vector2f desiredSize = arrangeRoot->Measure(arrangeRoot->GetClientSize());
+	//desiredSize.x() += border.left + border.right;
+	//desiredSize.y() += border.top + border.bottom;
 
-	Vector2f finalSize = desiredSize;// Vector2f::Max(desiredSize, GetClientSize());
-
-	// Do we really want to always arrange to parent's position?
-	arrangeRoot->Arrange(arrangeRoot->GetPos(), finalSize);
+	arrangeRoot->Arrange(arrangeRoot->GetPos(), desiredSize, true);
 }
 
 inline const Vector2f& Gui::Measure(const Vector2f& availableSize)
@@ -839,113 +926,110 @@ inline const Vector2f& Gui::Measure(const Vector2f& availableSize)
 	//avaSize.x() -= margin.left + margin.right;
 	//avaSize.y() -= margin.top + margin.bottom;
 
-	DesiredSize = MeasureChildren(avaSize);
+	desiredSize = MeasureChildren(avaSize);
 
-
-	// Variations...
-	//1. FIT & PARENT->FIT
-	//2. FIT & PARENT_>FILL
-	//3. FILL & parent->FIT
-	//4. FILL & parent-> FILL
-
-	// TEST PURPOSE, Force user chosed size as desired size
-	if (horizontalAlign != eGuiAlignHor::FIT_CHILDREN && horizontalAlign != eGuiAlignHor::FILL_PARENT)
-		DesiredSize.x() = GetSize().x();
-
-	if (verticalAlign != eGuiAlignVer::FIT_CHILDREN && verticalAlign != eGuiAlignVer::FILL_PARENT)
-		DesiredSize.y() = GetSize().y();
-
-	// Fit stretch to parent
-	if (parent)
-	{
-		if (horizontalAlign == eGuiAlignHor::FILL_PARENT && parent->horizontalAlign != eGuiAlignHor::FIT_CHILDREN)
-		{
-			DesiredSize.x() = std::max(DesiredSize.x(), parent->GetClientSize().x());
-		}
-		if (verticalAlign == eGuiAlignVer::FILL_PARENT && parent->verticalAlign != eGuiAlignVer::FIT_CHILDREN)
-		{
-			DesiredSize.y() = std::max(DesiredSize.y(), parent->GetClientSize().y());
-		}
-	}
-
-	//DesiredSize.x() += margin.left + margin.right;
-	//DesiredSize.y() += margin.top + margin.bottom;
-	return DesiredSize;
+	//desiredSize.x() += margin.left + margin.right;
+	//desiredSize.y() += margin.top + margin.bottom;
+	return desiredSize;
 }
 
-inline Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
+inline Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size, bool bEnableFillParent /*= true*/)
 {
 	Vector2f newPos = pos;
 	Vector2f newSize = size;
 
-	// Self alignment in parent
-	if (parent)
+	switch (alignVer)
 	{
-		RectF contentRect = parent->GetClientRect();
-	
-		switch (horizontalAlign)
+	case eGuiAlignVer::TOP:
+	{
+		newPos.y() = parent->GetPosY();
+		break;
+	}
+	case eGuiAlignVer::CENTER:
+	{
+		if (parent)
 		{
-		case eGuiAlignHor::LEFT:
-		{
-			newPos.x() = contentRect.left;
-			break;
+			newPos.y() = parent->GetCenterPosY() - newSize.y() * 0.5;
 		}
-		case eGuiAlignHor::CENTER:
+		break;
+	}
+	case eGuiAlignVer::BOTTOM:
+	{
+		newPos.y() = parent->GetHeight() - newSize.y();
+		break;
+	}
+	}
+
+	switch (alignHor)
+	{
+	case eGuiAlignHor::LEFT:
+	{
+		newPos.x() = parent->GetPosX();
+		break;
+	}
+	case eGuiAlignHor::CENTER:
+	{
+		if (parent)
 		{
-			newPos.x() = contentRect.GetCenter().x() - newSize.x() * 0.5;
-			break;
+			newPos.x() = parent->GetCenterPosX() - newSize.x() * 0.5;
 		}
-		case eGuiAlignHor::RIGHT:
+		break;
+	}
+	case eGuiAlignHor::RIGHT:
+	{
+		newPos.x() = parent->GetWidth() - newSize.x();
+		break;
+	}
+	}
+
+	bool bFitToChildrenHor = stretchHor == eGuiStretch::FIT_CHILDREN;
+	bool bFitToChildrenVer = stretchVer == eGuiStretch::FIT_CHILDREN;
+	bool bFitToChildren = bFitToChildrenHor | bFitToChildrenVer;
+	bool bFillParentHor = stretchHor == eGuiStretch::FILL_PARENT;
+	bool bFillParentVer = stretchVer == eGuiStretch::FILL_PARENT;
+	bool bFillParent = (bFillParentHor || bFillParentVer) && bEnableFillParent;
+
+	if (bFitToChildren)
+	{
+		ArrangeChildren(newSize);
+
+		RectF childrenRect = GetChildrenRect();
+		
+		if(bFitToChildrenHor)
+			newSize.x() = childrenRect.right - newPos.x();
+
+		if (bFitToChildrenVer)
+			newSize.y() = childrenRect.bottom - newPos.y();
+	}
+
+	if (bFillParent)
+	{
+		if (bFillParentHor && parent->stretchHor != eGuiStretch::FIT_CHILDREN)
 		{
-			newPos.x() = contentRect.right - newSize.x();
-			break;
+			newSize.x() = parent->GetContentSizeX();
+			newPos.x() = parent->GetContentPosX() + margin.left;
 		}
-		case eGuiAlignHor::STRETCH:
+		
+		if (bFillParentVer && parent->stretchVer != eGuiStretch::FIT_CHILDREN)
 		{
-			// ???
-			break;
-		}
-		case eGuiAlignHor::FILL_PARENT:
-		{
-			newPos.x() = contentRect.left;
-			break;
-		}
+			newSize.y() = parent->GetContentSizeY();
+			newPos.y() = parent->GetContentPosY() + margin.top;
 		}
 	}
-	
 
-	// Child content can only modify our size if we have autoWidth or autoHeight set !
-	//if (bAutoWidth)
-	//	newSize.x() = size.x();
-	//else
-	//	newSize.x() = DesiredSize.x();
-	//
-	//if (bAutoHeight)
-	//	newSize.y() = size.y();
-	//else
-	//	newSize.y() = DesiredSize.y();
+	SetRect(newPos.x(), newPos.y(), newSize.x(), newSize.y(), true, false);
 
+	ArrangeChildren(newSize);
 
-	//newPos.x() += margin.left;
-	//newPos.y() += margin.top;
-	//newSize.x() -= margin.left + margin.right;
-	//newSize.y() -= margin.top + margin.bottom;
-
-	// Arrange ourselves
-	SetRect(newPos.x(), newPos.y(), newSize.x(), newSize.y(), false);
-
-	// Arrange children
-	Vector2f finalSize = ArrangeChildren(newSize);
-
-	// Deferred layout refresh
+	// Here we have up to date layout, it's not dirty
 	bDirtyLayout = false;
 
-	return finalSize;
+	return newSize;
 }
 
 inline Vector2f Gui::MeasureChildren(const Vector2f& availableSize)
 {
-	Vector2f size(0, 0);
+	Vector2f size = GetSize();
 	for (Gui* child : GetChildren())
 	{
 		Vector2f desiredSize = child->Measure(availableSize);
@@ -957,12 +1041,21 @@ inline Vector2f Gui::MeasureChildren(const Vector2f& availableSize)
 
 inline Vector2f Gui::ArrangeChildren(const Vector2f& finalSize)
 {
+	std::vector<Gui*>& children = GetChildren();
+
+	//RectF finalRect(GetPos(), finalSize);
+
 	Vector2f size(0, 0);
 	for (Gui* child : GetChildren())
 	{
-		child->Arrange(child->GetPos(), child->DesiredSize);
+		//RectF childRect = RectF::Intersect(finalRect, RectF(child->GetContentPos(), child->desiredSize));
+
+		Vector2f sizeUsed = child->Arrange(child->GetPos(), child->desiredSize);
+		//Vector2f sizeUsed = child->Arrange(childRect.GetPos(), childRect.GetSize());
+		size = Vector2f::Max(size, sizeUsed);
 	}
-	return finalSize;
+
+	return size;
 }
 
 inline void Gui::OnPaint(Gdiplus::Graphics* graphics, RectF& clipRect)
@@ -1043,28 +1136,12 @@ inline void Gui::OnPaint(Gdiplus::Graphics* graphics, RectF& clipRect)
 	}
 }
 
-inline RectF Gui::GetChildrenBoundRect()
-{
-	// NOOB SOLUTION QUERY CHILDS
-	auto& children = GetChildren();
-
-	RectF idealRect;
-
-	if (children.size() != 0)
-		idealRect = children[0]->GetRect();
-
-	for (int i = 1; i < children.size(); ++i)
-		idealRect = children[i]->GetRect().Union(idealRect);
-
-	return idealRect;
-}
-
 inline RectF Gui::GetRect()
 {
-	return RectF::FromSize(pos.x(), pos.y(), size.x(), size.y());
+	return RectF(pos, size);
 }
 
-inline RectF Gui::GetClientRect()
+inline RectF Gui::GetContentRect()
 {
 	RectF result = GetRect();
 
@@ -1092,6 +1169,22 @@ inline RectF Gui::GetBorderRect()
 	result.MoveSidesLocal(-margin);
 
 	return result;
+}
+
+inline RectF Gui::GetChildrenRect()
+{
+	auto& children = GetChildren();
+
+	if (children.size() == 0)
+		return RectF(0, 0, 0, 0);
+
+	// TODO slow performance.. Collect child boundingbox when onChildAdded, onChildRemoved, onChildTransformChanged..
+	RectF boundingRect = children[0]->GetRect();
+
+	for (int i = 1; i < children.size(); ++i)
+		boundingRect.Union(children[i]->GetRect());
+
+	return boundingRect;
 }
 
 } // namespace inl::gui

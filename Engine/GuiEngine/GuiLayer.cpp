@@ -7,9 +7,9 @@ using namespace inl::gui;
 GuiLayer::GuiLayer(GuiEngine* guiEngine)
 :Gui(guiEngine, true)
 {
-	Vector2u windowClientArea = guiEngine->GetTargetWindow()->GetClientSize();
-	SetSize(Vector2f(windowClientArea.x(), windowClientArea.y()));
+	Vector2u windowContentArea = guiEngine->GetTargetWindow()->GetClientSize();
+	SetSize(Vector2f(windowContentArea.x(), windowContentArea.y()));
 
-	SetBorder(3, Color::RED);
 	HideBgColor();
+	SetName("layer");
 }

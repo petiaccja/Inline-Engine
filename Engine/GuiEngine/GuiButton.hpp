@@ -28,14 +28,13 @@ inline GuiButton::GuiButton(GuiEngine* guiEngine)
 :Gui(guiEngine)
 {
 	text = AddText();
-	//SetAutoSize(true);
 }
 
 inline GuiButton& GuiButton::operator = (const GuiButton& other)
 {
 	Gui::operator = (other);
 
-	text = GetChildByIdx<GuiText>(other.text->GetIndexInParent());
+	text = Copy(other.text);
 
 	return *this;
 }

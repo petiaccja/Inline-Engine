@@ -15,7 +15,7 @@ using namespace inl::gxeng;
 Window* window;
 GuiEngine* guiEngine;
 GraphicsEngine* graphicsEngine;
-EngineCore Core;
+Core Core;
 InputCore Input;
 
 //GuiButton* button;

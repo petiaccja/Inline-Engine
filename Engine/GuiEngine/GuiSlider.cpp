@@ -11,26 +11,30 @@ GuiSlider::GuiSlider(GuiEngine* guiEngine)
 	slider->SetBgIdleColor(Color(130));
 	slider->SetBgHoverColor(slider->GetBgIdleColor());
 
-	onTransformChanged += [this](RectF& rect)
+	onTransformChangedClonable += [](Gui* _self, RectF& rect)
 	{
-		SlideToValue();
+		GuiSlider* self = _self->AsSlider();
+		self->SlideToValue();
 	};
 
-	onMouseEntered += [this](CursorEvent& evt)
+	onMouseEnteredClonable += [](Gui* _self, CursorEvent& evt)
 	{
-		slider->SetBgActiveColor(slider->GetBgIdleColor() + 65);
+		GuiSlider* self = _self->AsSlider();
+		self->slider->SetBgActiveColor(self->slider->GetBgIdleColor() + 65);
 	};
 
-	onMouseLeaved += [this](CursorEvent& evt)
+	onMouseLeavedClonable += [](Gui* _self, CursorEvent& evt)
 	{
-		slider->SetBgActiveColorToIdle();
+		GuiSlider* self = _self->AsSlider();
+		self->slider->SetBgActiveColorToIdle();
 	};
 
 	// Start drag
-	onMousePressed += [this](CursorEvent& evt)
+	onMousePressedClonable += [](Gui* _self, CursorEvent& evt)
 	{
-		bSliding = true;
-		SlideToCursor();
+		GuiSlider* self = _self->AsSlider();
+		self->bSliding = true;
+		self->SlideToCursor();
 	};
 
 	// Dragging

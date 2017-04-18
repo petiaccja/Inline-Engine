@@ -32,12 +32,17 @@ GuiSlider* Gui::AddSlider()
 	return Add<GuiSlider>();
 }
 
-float Gui::GetClientSpaceCursorPosX()
+GuiCollapsable* Gui::AddCollapsable()
+{
+	return Add<GuiCollapsable>();
+}
+
+float Gui::GetContentSpaceCursorPosX()
 {
 	return guiEngine->GetWindowCursorPosX() - pos.x();
 }
 
-float Gui::GetClientSpaceCursorPosY()
+float Gui::GetContentSpaceCursorPosY()
 {
 	return guiEngine->GetWindowCursorPosY() - pos.y();
 }

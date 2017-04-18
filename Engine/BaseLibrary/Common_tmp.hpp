@@ -61,6 +61,10 @@ public:
 	inline Rect():left(0), right(0), top(0), bottom(0)
 	{}
 
+	inline Rect(const Vector2f& pos, const Vector2f& size)
+	: left(pos.x()), right(pos.x() + size.x()), top(pos.y()), bottom(pos.y() + size.y())
+	{}
+
 	inline Rect(const T& left, const T& top, const T& right, const T& bottom)
 	:left(left), right(right), top(top), bottom(bottom)
 	{}
@@ -86,14 +90,35 @@ public:
 		bottom += offset.bottom;
 	}
 
-	Rect Union(const Rect& other) const
+	void Union(const Rect& other)
+	{
+		*this = Rect::Union(*this, other);
+	};
+
+	void UnionWidth(float width)
+	{
+		Rect selfCopy = *this;
+		selfCopy.SetWidth(width);
+
+		Union(*this, selfCopy);
+	}
+
+	void UnionHeight(float height)
+	{
+		Rect selfCopy = *this;
+		selfCopy.SetHeight(height);
+
+		Union(*this, selfCopy);
+	}
+
+	static Rect Union(const Rect& a, const Rect& b)
 	{
 		Rect result;
 
-		float maxLeft = std::min(left, other.left);
-		float maxTop = std::min(top, other.top);
-		float minBottom = std::max(bottom, other.bottom);
-		float minRight = std::max(right, other.right);
+		float maxLeft = std::min(a.left, b.left);
+		float maxTop = std::min(a.top, b.top);
+		float minBottom = std::max(a.bottom, b.bottom);
+		float minRight = std::max(a.right, b.right);
 
 		result.left = maxLeft;
 		result.top = maxTop;
@@ -103,14 +128,19 @@ public:
 		return result;
 	};
 
-	Rect Intersect(const Rect& other) const
+	void Intersect(const Rect& other)
+	{
+		*this = Rect::Intersect(*this, other);
+	}
+
+	static Rect Intersect(const Rect& a, const Rect& b)
 	{
 		Rect result;
 
-		float maxLeft = std::max(left, other.left);
-		float maxTop = std::max(top, other.top);
-		float minBottom = std::min(bottom, other.bottom);
-		float minRight = std::min(right, other.right);
+		float maxLeft = std::max(a.left, b.left);
+		float maxTop = std::max(a.top, b.top);
+		float minBottom = std::min(a.bottom, b.bottom);
+		float minRight = std::min(a.right, b.right);
 
 		result.left = maxLeft;
 		result.top = maxTop;
@@ -148,6 +178,11 @@ public:
 
 	Vector2f GetSize() const { return Vector2f(GetWidth(), GetHeight()); }
 	Vector2f GetPos() const { return Vector2f(left, top); }
+	float GetPosX() const { return GetPos().x(); }
+	float GetPosY() const { return GetPos().y(); }
+
+	float GetSizeX() const { return GetSize().x(); }
+	float GetSizeY() const { return GetSize().y(); }
 
 	Vector2f GetCenter() const
 	{
@@ -182,6 +217,12 @@ public:
 	float GetHeight() const
 	{
 		return bottom - top;
+	}
+
+	void SetSize(const Vector2f& size)
+	{
+		SetWidth(size.x());
+		SetHeight(size.y());
 	}
 
 	T left;

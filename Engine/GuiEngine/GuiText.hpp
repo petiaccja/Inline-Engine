@@ -69,7 +69,7 @@ inline void GuiText::OnPaint(Gdiplus::Graphics* graphics, RectF& clipRect)
 	if (text.length() == 0)
 		return;
 
-	auto rect = GetClientRect();
+	auto rect = GetContentRect();
 
 	Gdiplus::RectF gdiClipRect = Gdiplus::RectF(rect.left, rect.top, rect.GetWidth(), rect.GetHeight());
 
@@ -145,7 +145,7 @@ inline void GuiText::OnPaint(Gdiplus::Graphics* graphics, RectF& clipRect)
 
 	Gdiplus::PointF pointF(textPos.x(), textPos.y());
 
-	graphics->SetTextRenderingHint(Gdiplus::TextRenderingHintAntiAliasGridFit);
+	graphics->SetTextRenderingHint(Gdiplus::TextRenderingHintClearTypeGridFit);
 	graphics->DrawString(text.c_str(), -1, &font, pointF, &brush);
 };
 

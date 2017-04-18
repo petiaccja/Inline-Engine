@@ -59,9 +59,9 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
 	// I'm sorry but with current GDI+ gui render we need to do the rendering when the window repainting itself
-	targetWindow->hekkOnPaint += [&]() {
-		Render();
-	};
+	//targetWindow->hekkOnPaint += [&]() {
+	//	Render();
+	//};
 
 	// Propagate mousePress
 	thread_local Gui* hoveredControlOnPress = nullptr;
@@ -69,18 +69,20 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 	targetWindow->onMousePressed += [&](WindowEvent& event)
 	{
 		CursorEvent eventData;
-		eventData.cursorClientPos = event.mousePos;
+		eventData.cursorContentPos = event.clientMousePos;
 		onMousePress(eventData);
 
-		//hoveredControlOnPress = hoveredControl;
-		mousePosWhenPress = event.mousePos;
+		mousePosWhenPress = event.clientMousePos;
 
 		if (hoveredControl)
 		{
 			hoveredControl->TraverseTowardParents([&](Gui* control)
 			{
-				if (control->GetPaddingRect().IsPointInside(event.mousePos))
+				if (control->GetPaddingRect().IsPointInside(event.clientMousePos))
+				{
 					control->onMousePressed(eventData);
+					control->onMousePressedClonable(control, eventData);
+				}
 			});
 		}
 
@@ -92,11 +94,11 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 	targetWindow->onMouseReleased += [&](WindowEvent& event)
 	{
 		CursorEvent eventData;
-		eventData.cursorClientPos = event.mousePos;
+		eventData.cursorContentPos = event.clientMousePos;
 		onMouseRelease(eventData);
 
 		// Mouse click
-		bool bClick = mousePosWhenPress == event.mousePos;
+		bool bClick = mousePosWhenPress == event.clientMousePos;
 
 		if (bClick)
 			onMouseClick(eventData);
@@ -109,8 +111,11 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 			// Control Mouse release
 			hoveredControl->TraverseTowardParents([&](Gui* control)
 			{
-				if (control->GetPaddingRect().IsPointInside(event.mousePos))
+				if (control->GetPaddingRect().IsPointInside(event.clientMousePos))
+				{
 					control->onMouseReleased(eventData);
+					control->onMouseReleasedClonable(control, eventData);
+				}
 			});
 
 			// Control Mouse click
@@ -120,9 +125,10 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 
 				hoveredControl->TraverseTowardParents([&](Gui* control)
 				{
-					if (control->GetPaddingRect().IsPointInside(event.mousePos))
+					if (control->GetPaddingRect().IsPointInside(event.clientMousePos))
 					{
 						control->onMouseClicked(eventData);
+						control->onMouseClickedClonable(control, eventData);
 
 						if (event.mouseBtn == eMouseBtn::RIGHT)
 						{
@@ -138,8 +144,8 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 										postProcessLayer->Add(activeContextMenu);
 
 										RectF rect = activeContextMenu->GetRect();
-										rect.left = event.mousePos.x();
-										rect.top = event.mousePos.y();
+										rect.left = event.clientMousePos.x();
+										rect.top = event.clientMousePos.y();
 										activeContextMenu->SetRect(rect);
 									}
 								}
@@ -155,9 +161,22 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 	targetWindow->onMouseMoved += [&](WindowEvent& event)
 	{
 		CursorEvent eventData;
-		eventData.cursorClientPos = event.mousePos;
+		eventData.cursorContentPos = event.clientMousePos;
+		eventData.mouseDelta = event.mouseDelta;
 
 		onMouseMove(eventData);
+
+		if (hoveredControl)
+		{
+			hoveredControl->TraverseTowardParents([&](Gui* control)
+			{
+				if (control->GetPaddingRect().IsPointInside(event.clientMousePos))
+				{
+					control->onMouseMoved(eventData);
+					control->onMouseMovedClonable(control, eventData);
+				}
+			});
+		}
 	};
 
 	targetWindow->onClientSizeChanged += [this](Vector2u& size)
@@ -199,18 +218,21 @@ inline void GuiEngine::Update(float deltaTime)
 	// Let's hint the window to repaint itself
 	InvalidateRect((HWND)targetWindow->GetHandle(), NULL, true);
 
-	TraverseGuiControls([=](Gui* widget)
+	TraverseGuiControls([=](Gui* control)
 	{
-		widget->onUpdate(deltaTime);
+		control->onUpdate(deltaTime);
+		control->onUpdateClonable(control, deltaTime);
 	});
 
 	Vector2i cursorPos = targetWindow->GetClientCursorPos();
+
+	CursorEvent eventData(cursorPos);
 
 	// Search hovered control to fire event on them
 	Gui* newHoveredControl = nullptr;
 	TraverseGuiControls([&](Gui* control)
 	{
-		if (control->GetPaddingRect().IsPointInside(cursorPos))
+		if (!control->IsLayer() && control->GetPaddingRect().IsPointInside(cursorPos))
 			newHoveredControl = control;
 	});
 
@@ -221,7 +243,8 @@ inline void GuiEngine::Update(float deltaTime)
 		{
 			hoveredControl->TraverseTowardParents([&](Gui* control)
 			{
-				control->onMouseLeaved(CursorEvent(cursorPos));
+				control->onMouseLeaved(eventData);
+				control->onMouseLeavedClonable(control, eventData);
 			});
 		}
 
@@ -230,8 +253,11 @@ inline void GuiEngine::Update(float deltaTime)
 		{
 			newHoveredControl->TraverseTowardParents([&](Gui* control)
 			{
-				if (control->GetPaddingRect().IsPointInside(cursorPos))
-					control->onMouseEntered(CursorEvent(cursorPos));
+				if (control != hoveredControl && control->GetPaddingRect().IsPointInside(cursorPos))
+				{
+					control->onMouseEntered(eventData);
+					control->onMouseEnteredClonable(control, eventData);
+				}
 			});
 		}
 	}
@@ -243,7 +269,10 @@ inline void GuiEngine::Update(float deltaTime)
 			hoveredControl->TraverseTowardParents([&](Gui* control)
 			{
 				if (control->GetPaddingRect().IsPointInside(cursorPos))
-					control->onMouseHovered(CursorEvent(cursorPos));
+				{
+					control->onMouseHovered(eventData);
+					control->onMouseHoveredClonable(control, eventData);
+				}
 			});
 		}
 	}
@@ -255,10 +284,10 @@ inline void GuiEngine::Render()
 	Gdiplus::Graphics* originalGraphics = Gdiplus::Graphics::FromHWND((HWND)targetWindow->GetHandle());
 	hdc = originalGraphics->GetHDC();
 
-	RECT Client_Rect;
-	GetClientRect((HWND)targetWindow->GetHandle(), &Client_Rect);
-	int win_width = Client_Rect.right - Client_Rect.left;
-	int win_height = Client_Rect.bottom - Client_Rect.top;
+	RECT Content_Rect;
+	GetClientRect((HWND)targetWindow->GetHandle(), &Content_Rect);
+	int win_width = Content_Rect.right - Content_Rect.left;
+	int win_height = Content_Rect.bottom - Content_Rect.top;
 
 	memHDC = CreateCompatibleDC(hdc);
 	memBitmap = CreateCompatibleBitmap(hdc, win_width, win_height);
@@ -275,11 +304,11 @@ inline void GuiEngine::Render()
 		// Control the clipping rect of the children controls
 		RectF rect;
 		if (control->IsChildrenClipEnabled())
-			rect = control->GetClientRect();
+			rect = control->GetContentRect();
 		else
 			rect = RectF(-9999999, -9999999, 9999999, 9999999);
 
-		RectF newClipRect = clipRect.Intersect(rect);
+		RectF newClipRect = RectF::Intersect(clipRect, rect);
 
 		for (Gui* child : control->GetChildren())
 			traverseControls(child, newClipRect);

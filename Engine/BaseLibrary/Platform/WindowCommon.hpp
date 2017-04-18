@@ -40,21 +40,11 @@ enum eWindowMsg
 
 struct WindowEvent
 {
-	WindowEvent(): msg(INVALID_eWindowsMsg), key(INVALID_eKey), mouseDelta(0, 0), mousePos(0, 0) {}
+	WindowEvent(): msg(INVALID_eWindowsMsg), key(INVALID_eKey), mouseDelta(0, 0), clientMousePos(0, 0) {}
 
 	eWindowMsg msg;
 	eKey	   key;
 	eMouseBtn  mouseBtn;
 	Vector2i	   mouseDelta;
-	Vector2i	   mousePos;
-};
-
-// Descriptor of window
-struct WindowDesc
-{
-	WindowDesc() : style(eWindowStyle::DEFAULT), clientSize(0, 0) {}
-
-	std::string	 capText;
-	eWindowStyle style;
-	Vector2u clientSize;
+	Vector2i	   clientMousePos;
 };

@@ -14,6 +14,17 @@
 #undef min
 #undef max
 
+
+struct WindowDesc
+{
+	WindowDesc() : style(eWindowStyle::DEFAULT), clientSize(0, 0) {}
+
+	std::string	 capText;
+	eWindowStyle style;
+	Vector2u	 clientSize;
+	std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> userWndProc;
+};
+
 class Window
 {
 public:
@@ -23,21 +34,22 @@ public:
 	bool PopEvent(WindowEvent& evt_out);
 
 	void Close();
+	void MinimizeSize();
+	void MaximizeSize();
+	void RestoreSize();
 
-	void Clear(const Color& color);
 
-	void SetPos(const Vector2i& pos = Vector2i(0, 0));
+	void SetRect(const Vector2i& pos, const Vector2i& size);
+	void SetPos(const Vector2i& pos);
 	void SetSize(const Vector2u& size);
 
-	void SetClientPixels(const Color* const pixels);
-
 	void SetTitle(const std::wstring& text);
-
-	void SetCursorVisible(bool bVisible);
 
 	// Getters
 	bool IsOpen() const;
 	bool IsFocused() const;
+	bool IsMaximizedSize() const;
+	bool IsMinimizedSize() const;
 
 	size_t GetHandle() const;
 
@@ -51,6 +63,8 @@ public:
 
 	Vector2i GetCenterPos() const;
 
+	const std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)>& GetUserWndProc() const { return userWndProc; }
+
 public:
 	// HEKK
 	Delegate<void()> hekkOnPaint;
@@ -61,13 +75,16 @@ public:
 	Delegate<void(Vector2u&)>		onClientSizeChanged;
 
 protected:
-	eKey	ConvertFromWindowsKey(WPARAM key);
 	friend LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-	void PostEvent(const MSG& msg);
+
+	eKey	ConvertFromWindowsKey(WPARAM key);
+	//void	PostEvent(const MSG& msg);
 
 protected:
 	HWND handle;
 	bool bClosed;
 
-	std::queue<MSG> wndProcMessages;
+	std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> userWndProc;
+
+	//std::queue<MSG> wndProcMessages;
 };

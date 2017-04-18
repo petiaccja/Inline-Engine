@@ -53,7 +53,7 @@ inline void GuiSlider::SlideToNormedPercent(float normedPercent)
 inline void GuiSlider::SlideToCursor()
 {
 	// Ha cursor sliderHalfWidth() - nél van akkor 0, ha GetWidth() - sliderHalfWidth() - nél akkor meg egy
-	float normalizedPercent = (GetClientSpaceCursorPosX() - slider->GetHalfWidth()) / (GetWidth() - slider->GetWidth());
+	float normalizedPercent = (GetContentSpaceCursorPosX() - slider->GetHalfWidth()) / (GetWidth() - slider->GetWidth());
 	normalizedPercent = saturate(normalizedPercent);
 	SlideToNormedPercent(normalizedPercent);
 }
