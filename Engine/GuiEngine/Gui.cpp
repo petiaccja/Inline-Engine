@@ -39,10 +39,15 @@ GuiCollapsable* Gui::AddCollapsable()
 
 float Gui::GetContentSpaceCursorPosX()
 {
-	return guiEngine->GetWindowCursorPosX() - pos.x();
+	return guiEngine->GetCursorPosX() - pos.x();
 }
 
 float Gui::GetContentSpaceCursorPosY()
 {
-	return guiEngine->GetWindowCursorPosY() - pos.y();
+	return guiEngine->GetCursorPosY() - pos.y();
+}
+
+bool Gui::IsCursorInside()
+{
+	return GetRect().IsPointInside(guiEngine->GetCursorPos());
 }

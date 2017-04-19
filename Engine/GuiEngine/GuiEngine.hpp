@@ -22,8 +22,9 @@ public:
 
 	void TraverseGuiControls(const std::function<void(Gui*)>& fn);
 
-	inline int GetWindowCursorPosX() { return targetWindow->GetClientCursorPos().x(); }
-	inline int GetWindowCursorPosY() { return targetWindow->GetClientCursorPos().y(); }
+	inline Vector2i GetCursorPos() { return targetWindow->GetClientCursorPos(); }
+	inline int GetCursorPosX() { return GetCursorPos().x(); }
+	inline int GetCursorPosY() { return GetCursorPos().y(); }
 
 	inline Window* GetTargetWindow() { return targetWindow; }
 
@@ -53,15 +54,10 @@ protected:
 inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow)
 :graphicsEngine(graphicsEngine), targetWindow(targetWindow), hoveredControl(nullptr), activeContextMenu(nullptr), postProcessLayer(CreateLayer())
 {
-	// Initialize GDI+
+	// Initialize GDI+ for gui rendering
 	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 	ULONG_PTR gdiplusToken;
 	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-
-	// I'm sorry but with current GDI+ gui render we need to do the rendering when the window repainting itself
-	//targetWindow->hekkOnPaint += [&]() {
-	//	Render();
-	//};
 
 	// Propagate mousePress
 	thread_local Gui* hoveredControlOnPress = nullptr;

@@ -27,25 +27,29 @@ public:
 	void Run();
 
 	LRESULT WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam);
-	LRESULT HitTestNCA(HWND hWnd, WPARAM wParam, LPARAM lParam);
 
 protected:
-	// Main editor window (win32)
+	Core* core;
+	GuiEngine* guiE;
+	GraphicsEngine* graphicsE;
+
+	bool bWndMaximized;
+
 	Window* wnd;
 	Window* gameWnd;
 
-	// Engine Core
-	Core* core;
+	GuiLayer* mainLayer;
 
-	// Gui Engine
-	GuiEngine* guiE;
-
-	// Graphics Engine
-	GraphicsEngine* graphicsE;
+	Gui* captionBar;
+	GuiButton* minimizeBtn;
+	GuiButton* maximizeBtn;
+	GuiButton* closeBtn;
 };
 
 Editor::Editor()
 {
+	bWndMaximized = false;
+
 	core = new Core();
 
 	// Create main window for Editor
@@ -91,6 +95,8 @@ Editor::Editor()
 Editor::~Editor()
 {
 	delete core;
+
+	wnd->Close();
 	delete wnd;
 	delete gameWnd;
 }
@@ -98,11 +104,11 @@ Editor::~Editor()
 void Editor::InitGui()
 {
 	// New Layer
-	GuiLayer* layer = guiE->AddLayer();
+	mainLayer = guiE->AddLayer();
 
-	layer->SetBorder(1, Color(120));
+	mainLayer->SetBorder(1, Color(120));
 
-	//GuiText* t = layer->AddText();
+	//GuiText* t = mainLayer->AddText();
 	//t->SetText(L"Nem igaz már hogy nem mûködik");
 	//t->SetBgColorForAllStates(Color::RED);
 	//t->SetRect(30, 130, 150, 40);
@@ -121,7 +127,7 @@ void Editor::InitGui()
 	////t2->AlignRight();
 	//// RICSI AlignLeft() nem kéne hogy declineolja a FitChildren - t...
 	//
-	//Gui* container2 = layer->AddGui();
+	//Gui* container2 = mainLayer->AddGui();
 	//container2->SetRect(50, 180, 160, 40);
 	//container2->SetBgColorForAllStates(Color::GREEN);
 	//container2->SetName("Green");
@@ -142,7 +148,7 @@ void Editor::InitGui()
 	//
 	////t2->SetRect(100, 140, 100, 40);
 	//
-	//Gui* container = layer->AddGui();
+	//Gui* container = mainLayer->AddGui();
 	//container->SetRect(0, 100, 500, 200);
 	//container->SetBgColorForAllStates(Color::BLUE);
 	//container->SetName("Blue");
@@ -153,7 +159,7 @@ void Editor::InitGui()
 	////container->AlignFitChildrenHor();
 	////container->Add(t2);
 	//
-	//Gui* container3 = layer->AddGui();
+	//Gui* container3 = mainLayer->AddGui();
 	//container3->SetRect(0, 100, 700, 450);
 	//container3->SetBgColorForAllStates(Color::WHITE);
 	//container3->Add(container);
@@ -166,7 +172,7 @@ void Editor::InitGui()
 	////container3->StretchFitToChildrenHor();
 	//
 	//return;
-	//GuiButton* text = layer->AddButton();
+	//GuiButton* text = mainLayer->AddButton();
 	//text->SetText("LOLMAR_HAT_NEM_IGAZ");
 	//text->SetAutoSize(true);
 	//text->SetBgColorForAllStates(Color::RED);
@@ -174,7 +180,7 @@ void Editor::InitGui()
 	//text->SetRect(100, 100, 10, 10);
 	// Arrange Measure test
 
-	//GuiButton* btn2 = layer->AddButton();
+	//GuiButton* btn2 = mainLayer->AddButton();
 	//btn2->SetText(L"Button");
 	////btn2->SetBgColorForAllStates(Color(0));
 	//btn2->GetTextGui()->SetBgColorForAllStates(Color(50));
@@ -187,7 +193,7 @@ void Editor::InitGui()
 
 	// Arrange Measure test
 
-	//GuiList* list = layer->AddList();
+	//GuiList* list = mainLayer->AddList();
 	//GuiButton* btn = list->AddButton();
 	//btn->SetText("Button1asdasdasd");
 	//btn->SetMargin(5, 5, 5, 5);
@@ -206,7 +212,7 @@ void Editor::InitGui()
 	//return;
 
 
-	//GuiList* list = layer->AddList();
+	//GuiList* list = mainLayer->AddList();
 	//GuiButton* btn0 = list->AddButton();
 	//btn0->SetText("Teszt");
 	//GuiButton* btn1 = list->AddButton();
@@ -216,7 +222,7 @@ void Editor::InitGui()
 	//return;
 
 
-	//GuiList* list = layer->AddList();
+	//GuiList* list = mainLayer->AddList();
 	//GuiButton* btn0 = list->AddButton();
 	//GuiButton* btn1 = list->AddButton();
 	//btn0->SetText(L"First___");
@@ -225,21 +231,21 @@ void Editor::InitGui()
 	//list->SetRect(0, 0, 100, 200);
 	// Gui collapsable
 	//{
-	//	GuiCollapsable* collapsable = layer->AddCollapsable();
+	//	GuiCollapsable* collapsable = mainLayer->AddCollapsable();
 	//	collapsable->SetName("collapsable");
 	//	collapsable->SetCaptionText(L"Collapsable");
 	//	
 	//	collapsable->AddToList<GuiButton>()->SetText("LOL");
 	//	collapsable->AddToList<GuiButton>()->SetText("LOL2");
 	//	collapsable->SetRect(100, 100, 200, 30);
-	//	GuiCollapsable* collapsable2 = layer->AddCollapsable();
+	//	GuiCollapsable* collapsable2 = mainLayer->AddCollapsable();
 	//	collapsable2->SetName("Collapsable2");
 	//	collapsable2->SetCaptionText(L"Collapsable2");
 	//	collapsable2->SetRect(500, 520, 60, 30);
 	//	collapsable2->AddToList<GuiButton>()->SetText("LOL");
 	//	collapsable2->AddToList<GuiButton>()->SetText("LOL2");
 	//	
-	//	GuiCollapsable* collapsableList = layer->AddCollapsable();
+	//	GuiCollapsable* collapsableList = mainLayer->AddCollapsable();
 	//	collapsableList->SetCaptionText(L"CaptionText");
 	//	collapsableList->SetName("CollapsableList");
 	//	collapsableList->AddToList(collapsable);
@@ -257,7 +263,7 @@ void Editor::InitGui()
 
 
 
-	//auto list = layer->AddList();
+	//auto list = mainLayer->AddList();
 	//auto btn0 = list->AddButton();
 	//auto btn1 = list->AddButton();
 	//btn0->SetText(L"short");
@@ -265,7 +271,7 @@ void Editor::InitGui()
 	//list->SetRect(200, 200, 100, 200);
 
 
-	//auto list = layer->AddList();
+	//auto list = mainLayer->AddList();
 	//auto btn0 = list->AddButton();
 	//auto btn1 = list->AddButton();
 	//btn0->SetText(L"LOL");
@@ -283,10 +289,10 @@ void Editor::InitGui()
 	//list->SetRect(200, 200, 300, 300);
 	//return;
 
-	//layer->SetBorder(10, Color(120));
+	//mainLayer->SetBorder(10, Color(120));
 
 	// Caption bar
-	Gui* captionBar = layer->AddGui();
+	captionBar = mainLayer->AddGui();
 	captionBar->SetBgToColor(Color(43), Color(43));
 	captionBar->SetRect(0, 0, 100, 26);
 
@@ -347,34 +353,22 @@ void Editor::InitGui()
 	//};
 
 	// Minimize, Maximize, Close btn
-	GuiList* minMaxCloseList = layer->AddList();
-	GuiButton* minimizeBtn = layer->AddButton();
-	GuiButton* maximizeBtn = layer->AddButton();
-	GuiButton* closeBtn = layer->AddButton();
+	GuiList* minMaxCloseList = mainLayer->AddList();
+	minimizeBtn = mainLayer->AddButton();
+	maximizeBtn = mainLayer->AddButton();
+	closeBtn = mainLayer->AddButton();
 
-	//minimizeBtn->onMouseClicked += [this](CursorEvent& evt) { wnd->MinimizeSize(); };
-	//
-	//static bool bMaximized = wnd->IsMaximizedSize();
-	//auto maximizeMinimizeFn = [=](CursorEvent& evt)
-	//{
-	//	if (bMaximized)
-	//	{
-	//		wnd->RestoreSize();
-	//		maximizeBtn->InitFromImage(L"Resources/maximize.png", L"Resources/maximize_h.png");
-	//	}
-	//	else
-	//	{
-	//		wnd->MaximizeSize();
-	//		maximizeBtn->InitFromImage(L"Resources/restore.png", L"Resources/restore_h.png");
-	//	}
-	//
-	//	bMaximized = !bMaximized;
-	//};
-	//
-	//maximizeBtn->onMouseClicked += maximizeMinimizeFn;
-	//captionBar->onMouseDblClicked += maximizeMinimizeFn;
-	//
-	//closeBtn->onMouseClicked += [this](CursorEvent& evt) { wnd->Close(); };
+	minimizeBtn->onMouseClicked += [this](CursorEvent& evt) { wnd->MinimizeSize(); };
+	
+	maximizeBtn->onMouseClicked += [this](CursorEvent& evt)
+	{
+		if (bWndMaximized)
+			wnd->RestoreSize();
+		else
+			wnd->MaximizeSize();
+	};
+
+	closeBtn->onMouseClicked += [this](CursorEvent& evt) { wnd->Close(); };
 
 	minimizeBtn->InitFromImage(L"Resources/minimize.png", L"Resources/minimize_h.png");
 	maximizeBtn->InitFromImage(L"Resources/maximize.png", L"Resources/maximize_h.png");
@@ -384,11 +378,10 @@ void Editor::InitGui()
 	minMaxCloseList->Add(minimizeBtn);
 	minMaxCloseList->Add(maximizeBtn);
 	minMaxCloseList->Add(closeBtn);
-	//minMaxCloseList->SetPos(0, 0);
 	minMaxCloseList->AlignRight();
 
 	// Editor caption text
-	GuiText* inlineEngineText = layer->AddText();
+	GuiText* inlineEngineText = mainLayer->AddText();
 	inlineEngineText->SetText(L"Inline Editor");
 	inlineEngineText->AlignCenterVer();
 	inlineEngineText->StretchFillParentHor();
@@ -398,18 +391,18 @@ void Editor::InitGui()
 	captionBar->Add(minMaxCloseList);
 	captionBar->StretchFillParentHor();
 	captionBar->SetName(L"CAPTION_BAR");
-	//Gui* image = layer->AddImage(L"Resources/minimize.png", L"Resources/minimize_h.png");
+	//Gui* image = mainLayer->AddImage(L"Resources/minimize.png", L"Resources/minimize_h.png");
 
 	//Gui* minimizeBtn = Gui::FromImage(L"Resources/minimize.png", L"Resources/minimize_h.png");
-	//layer->AddGui(minimizeBtn);
+	//mainLayer->AddGui(minimizeBtn);
 
-	//Gui* minimizeBtn = layer->Add(Gui::FromImage(L"Resources/minimize.png", L"Resources/minimize_h.png"));
+	//Gui* minimizeBtn = mainLayer->Add(Gui::FromImage(L"Resources/minimize.png", L"Resources/minimize_h.png"));
 	//minimizeBtn->SetBgIdleImage(L"Resources/minimize.png");
 	//minimizeBtn->SetBgHoverImage(L"Resources/minimize_h.png");
 	//minimizeBtn->SetSizeFromBgImage();
 	//minimizeBtn->SetRect(100, 100, 50, 50);
 
-	//auto collapse = layer->AddCollapsable();
+	//auto collapse = mainLayer->AddCollapsable();
 	//collapse->SetName("Collapse");
 	//
 	//collapse->SetCaptionText(L"Collapsable Control");
@@ -435,13 +428,13 @@ void Editor::InitGui()
 
 
 
-	//auto button = layer->AddButton();
+	//auto button = mainLayer->AddButton();
 	//button->SetRect(0, 0, 100, 100);
 	//button->SetText("halleluja");
 	//button->SetBgToColor(Color(30), Color(100));
 	// Control List
 	//eTextAlign align = eTextAlign::CENTER;
-	//GuiList* list = layer->AddList();
+	//GuiList* list = mainLayer->AddList();
 	//GuiButton* button = list->AddButton();
 	//button->SetText("File");
 	//button->SetTextAlign(align);
@@ -459,7 +452,7 @@ void Editor::InitGui()
 	//button4->SetTextAlign(align);
 	//list->SetDirection(eGuiListDirection::HORIZONTAL);
 
-	//GuiList* menu = layer->AddList();
+	//GuiList* menu = mainLayer->AddList();
 	//GuiButton* fileBtn = menu->AddButton();
 	//fileBtn->SetText("File");
 	//GuiButton* editBtn = menu->AddButton();
@@ -470,15 +463,15 @@ void Editor::InitGui()
 
 
 
-	//GuiButton* button = layer->AddButton();
-	//GuiButton* button2 = layer->AddButton();
-	//GuiButton* button3 = layer->AddButton();
+	//GuiButton* button = mainLayer->AddButton();
+	//GuiButton* button2 = mainLayer->AddButton();
+	//GuiButton* button3 = mainLayer->AddButton();
 
 	// Menu
 	{
 		// Control List
 		eTextAlign align = eTextAlign::CENTER;
-		GuiList* list = layer->AddList();
+		GuiList* list = mainLayer->AddList();
 		list->SetBorder(1, Color::RED);
 		GuiButton* button = list->AddButton();
 		button->SetText("File");
@@ -505,7 +498,7 @@ void Editor::InitGui()
 		list->SetBgColorForAllStates(Color(0));
 		list->SetRect(0, 0, 0, 0);
 		//{
-		//	auto button = layer->AddButton();
+		//	auto button = mainLayer->AddButton();
 		//	button->SetBgToColor(Color(55, 55, 55), Color(80, 80, 80));
 		//	button->SetRect(0, 0, 60, 22);
 		//	button->SetText("File");
@@ -518,17 +511,17 @@ void Editor::InitGui()
 		////button->onMouseLeave += [](CursorEvent& evt) {MessageBoxA(NULL, "Leave", "Leave", MB_OK); };
 		////button->onMouseHover += [](CursorEvent& evt) {MessageBoxA(NULL, "Hover", "Hover", MB_OK); };
 		//
-		//button2 = layer->AddButton();
+		//button2 = mainLayer->AddButton();
 		//button2->SetBackgroundToColor(Color(55, 55, 55), Color(80, 80, 80));
 		//button2->SetRect(61, 0, 60, 22);
 		//button2->SetText("Edit");
 		//
-		//button3 = layer->AddButton();
+		//button3 = mainLayer->AddButton();
 		//button3->SetBackgroundToColor(Color(55, 55, 55), Color(80, 80, 80));
 		//button3->SetRect(122, 0, 60, 22);
 		//button3->SetText("About");
 		//
-		//button3 = layer->AddButton();
+		//button3 = mainLayer->AddButton();
 		//button3->SetBackgroundToColor(Color(55, 55, 55), Color(80, 80, 80));
 		//button3->SetRect(122, 0, 60, 22);
 		//button3->SetText("About");
@@ -541,7 +534,7 @@ void Editor::InitGui()
 	//int y = 100;
 	//Vector2f pinSize = { 10, 10 };
 	//float pinSpace = 20.f;
-	//button = layer->AddButton();
+	//button = mainLayer->AddButton();
 	//button->SetBgToColor(Color(55), Color(80));
 	//button->SetName("NODE");
 	//button->SetRect(x, y, 60, 60);
@@ -573,7 +566,7 @@ void Editor::InitGui()
 		int y = 100;
 		Vector2f pinSize = { 10, 10 };
 		float pinSpace = 20.f;
-		GuiButton* button = layer->AddButton();
+		GuiButton* button = mainLayer->AddButton();
 		button->DisableClipChildren();
 
 		//button->DisableClip();
@@ -605,7 +598,7 @@ void Editor::InitGui()
 		// Control List
 		eTextAlign align = eTextAlign::LEFT;
 
-		GuiList* list = layer->AddList();
+		GuiList* list = mainLayer->AddList();
 		list->SetBorder(1, Color(0, 0, 255));
 		list->SetDirection(eGuiListDirection::HORIZONTAL);
 
@@ -631,7 +624,7 @@ void Editor::InitGui()
 	{
 		// Control List
 		eTextAlign align = eTextAlign::LEFT;
-		GuiList* list = layer->AddList();
+		GuiList* list = mainLayer->AddList();
 		GuiButton* button = list->AddButton();
 		button->SetText("Disconnect");
 		//button->SetTextAlign(align);
@@ -650,21 +643,21 @@ void Editor::InitGui()
 
 	// Slider o yeah
 	{
-		GuiSlider* slider = layer->AddSlider();
+		GuiSlider* slider = mainLayer->AddSlider();
 		slider->SetRect(200, 500, 100, 15);
 
-		GuiSlider* slider2 = layer->AddSlider();
+		GuiSlider* slider2 = mainLayer->AddSlider();
 		slider2->SetValue(0.7);
 		slider2->SetRect(200, 520, 100, 15);
 
-		GuiSlider* slider3 = layer->AddSlider();
+		GuiSlider* slider3 = mainLayer->AddSlider();
 		slider3->SetValue(0.5);
 		slider3->SetRect(200, 540, 100, 15);
 	}
 
 	////Image test
 	//{
-	//	Gui* p = layer->AddPlane();
+	//	Gui* p = mainLayer->AddPlane();
 	//	//p->SetImageForAllStates(L"c:\\UE4Interface_5.jpg");
 	//	p->SetRect(0, 0, 800, 200);
 	//	Gui* clone = p->Clone();
@@ -710,9 +703,6 @@ void Editor::Run()
 
 LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	BOOL b;
-	HRESULT hr = DwmIsCompositionEnabled(&b);
-
 	LRESULT lRet;
 	bool fCallDWP = !DwmDefWindowProc(handle, msg, wParam, lParam, &lRet);
 
@@ -766,6 +756,25 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 		lRet = 0;
 		break;
 	}
+	case WM_SIZE:
+	{
+		if (maximizeBtn)
+		{
+			if (wParam == SIZE_MAXIMIZED)
+			{
+				maximizeBtn->InitFromImage(L"Resources/restore.png", L"Resources/restore_h.png");
+				bWndMaximized = true;
+			}
+			else if (wParam == SIZE_RESTORED)
+			{
+				maximizeBtn->InitFromImage(L"Resources/maximize.png", L"Resources/maximize_h.png");
+				bWndMaximized = false;
+			}
+		}
+		
+
+		break;
+	}
 	case WM_DESTROY:
 	{
 		PostQuitMessage(WM_QUIT);
@@ -776,10 +785,10 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 		// Calculate new NCCALCSIZE_PARAMS based on custom NCA inset.
 		NCCALCSIZE_PARAMS *pncsp = reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
 
-		pncsp->rgrc[0].left = pncsp->rgrc[0].left + 0;
-		pncsp->rgrc[0].top = pncsp->rgrc[0].top + 0;
-		pncsp->rgrc[0].right = pncsp->rgrc[0].right - 0;
-		pncsp->rgrc[0].bottom = pncsp->rgrc[0].bottom - 0;
+		//pncsp->rgrc[0].left = pncsp->rgrc[0].left + 0;
+		//pncsp->rgrc[0].top = pncsp->rgrc[0].top + 0;
+		//pncsp->rgrc[0].right = pncsp->rgrc[0].right - 0;
+		//pncsp->rgrc[0].bottom = pncsp->rgrc[0].bottom - 0;
 
 		lRet = 0;
 
@@ -789,14 +798,66 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	case WM_NCHITTEST:
-	{
-		return HTCAPTION; // Fasza (Y)
-						  //lRet = HitTestNCA(handle, wParam, lParam);
-	
-		//if (lRet != HTNOWHERE)
-		//{
-		//	fCallDWP = false;
-		//}
+	{	
+		Vector2i cursorPos = guiE->GetCursorPos();
+		
+		bool bLeft =	cursorPos.x() < 8;
+		bool bRight =	cursorPos.x() > mainLayer->GetWidth() - 8;
+		bool bTop =		cursorPos.y() < 8;
+		bool bBottom =	cursorPos.y() > mainLayer->GetHeight() - 8;
+
+		if (bTop && bLeft)
+		{
+			return HTTOPLEFT;
+		}
+		else if (bTop && bRight)
+		{
+			return HTTOPRIGHT;
+		}
+		else if (bBottom && bRight)
+		{
+			return HTBOTTOMRIGHT;
+		}
+		else if (bBottom && bLeft)
+		{
+			return HTBOTTOMLEFT;
+		}
+		else if (bLeft)
+		{
+			return HTLEFT;
+		}
+		else if (bRight)
+		{
+			return HTRIGHT;
+		}
+		else if (bTop)
+		{
+			return HTTOP;
+		}
+		else if (bBottom)
+		{
+			return HTBOTTOM;
+		}
+		else if (closeBtn->IsCursorInside())
+		{
+			// HTNOWHERE
+		}
+		else if (maximizeBtn->IsCursorInside())
+		{
+			// HTNOWHERE
+		}
+		else if (minimizeBtn->IsCursorInside())
+		{
+			// HTNOWHERE
+		}
+		else if (captionBar->IsCursorInside())
+		{
+			return HTCAPTION;
+		}
+		else
+		{
+			return HTCLIENT;
+		}
 	
 		break;
 	}
@@ -804,56 +865,4 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	if (fCallDWP)
 		return DefWindowProc(handle, msg, wParam, lParam);
-}
-
-LRESULT Editor::HitTestNCA(HWND hWnd, WPARAM wParam, LPARAM lParam)
-{
-	// Hit test the frame for resizing and moving.
-
-	// Get the point coordinates for the hit test.
-	POINT ptMouse = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-
-	// Get the window rectangle.
-	RECT rcWindow;
-	GetWindowRect(hWnd, &rcWindow);
-
-	// Get the frame rectangle, adjusted for the style without a caption.
-	RECT rcFrame = { 0 };
-	AdjustWindowRectEx(&rcFrame, WS_OVERLAPPEDWINDOW & ~WS_CAPTION, FALSE, NULL);
-
-	// Determine if the hit test is for resizing. Default middle (1,1).
-	USHORT uRow = 1;
-	USHORT uCol = 1;
-	bool fOnResizeBorder = false;
-
-	// Determine if the point is at the top or bottom of the window.
-	if (ptMouse.y >= rcWindow.top && ptMouse.y < rcWindow.top + 0)
-	{
-		fOnResizeBorder = (ptMouse.y < (rcWindow.top - rcFrame.top));
-		uRow = 0;
-	}
-	else if (ptMouse.y < rcWindow.bottom && ptMouse.y >= rcWindow.bottom - 0)
-	{
-		uRow = 2;
-	}
-
-	// Determine if the point is at the left or right of the window.
-	if (ptMouse.x >= rcWindow.left && ptMouse.x < rcWindow.left + 0)
-	{
-		uCol = 0; // left side
-	}
-	else if (ptMouse.x < rcWindow.right && ptMouse.x >= rcWindow.right - 0)
-	{
-		uCol = 2; // right side
-	}
-
-	// Hit test (HTTOPLEFT, ... HTBOTTOMRIGHT)
-	LRESULT hitTests[3][3] =
-	{
-		{ HTTOPLEFT,    fOnResizeBorder ? HTTOP : HTCAPTION,    HTTOPRIGHT },
-		{ HTLEFT,       HTNOWHERE,     HTRIGHT },
-		{ HTBOTTOMLEFT, HTBOTTOM, HTBOTTOMRIGHT },
-	};
-
-	return hitTests[uRow][uCol];
 }

@@ -269,6 +269,8 @@ public:
 
 	bool IsLayer() { return bLayer; }
 	bool IsChildrenClipEnabled() { return bClipChildren; }
+	bool IsHovered() { return bHovered; }
+	bool IsCursorInside();
 
 	const Color& GetBorderColor() { return borderColor; }
 	RectF GetBorder() { return border; }
@@ -313,6 +315,9 @@ protected:
 
 	// Is clipped by parent content area?
 	bool bClipChildren;
+
+	// Is hovered by cursor?
+	bool bHovered;
 
 	// If true parent rectangle will be exactly aroound childs always
 	//bool bAutoWidth;
@@ -453,6 +458,7 @@ inline Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 	alignVer = eGuiAlignVer::NONE;
 	stretchHor = eGuiStretch::NONE;
 	stretchVer = eGuiStretch::NONE;
+	bHovered = false;
 
 	SetBgActiveColor(bgIdleColor);
 
@@ -460,12 +466,14 @@ inline Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 	{
 		self->SetBgActiveColor(self->GetBgHoverColor());
 		self->SetBgActiveImage(self->GetBgHoverImage());
+		self->bHovered = true;
 	};
 
 	onMouseLeavedClonable += [](Gui* self, CursorEvent& event)
 	{
 		self->SetBgActiveColor(self->GetBgIdleColor());
 		self->SetBgActiveImage(self->GetBgIdleImage());
+		self->bHovered = false;
 	};
 	
 	onChildRemovedClonable += [](Gui* self, Gui* child)

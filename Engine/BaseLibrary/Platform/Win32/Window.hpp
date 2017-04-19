@@ -29,7 +29,6 @@ class Window
 {
 public:
 	Window(const WindowDesc& d);
-	~Window();
 
 	bool PopEvent(WindowEvent& evt_out);
 
@@ -77,14 +76,10 @@ public:
 protected:
 	friend LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-	eKey	ConvertFromWindowsKey(WPARAM key);
-	//void	PostEvent(const MSG& msg);
+	eKey ConvertFromWindowsKey(WPARAM key);
 
 protected:
 	HWND handle;
 	bool bClosed;
-
 	std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> userWndProc;
-
-	//std::queue<MSG> wndProcMessages;
 };

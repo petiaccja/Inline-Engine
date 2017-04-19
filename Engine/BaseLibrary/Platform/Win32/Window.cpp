@@ -106,9 +106,6 @@ Window::Window(const WindowDesc& d)
 		this);
 
 	ShowWindow(handle, SW_SHOW);
-	//UpdateWindow(handle);
-
-	//SetWindowLongPtr(hwnd, GWL_USERDATA, (LONG_PTR)this);
 
 	// Register raw mouse, TODO REMOVE IT
 	const unsigned HID_USAGE_PAGE_GENERIC = 0x01;
@@ -126,16 +123,6 @@ Window::Window(const WindowDesc& d)
 		RegisterRawInputDevices(Rid, 1, sizeof(Rid[0]));
 	}
 }
-
-Window::~Window()
-{
-	Close();
-}
-
-//void Window::PostEvent(const MSG& msg)
-//{
-//	wndProcMessages.push(msg);
-//}
 
 bool Window::PopEvent(WindowEvent& evt_out)
 {
@@ -158,11 +145,6 @@ bool Window::PopEvent(WindowEvent& evt_out)
 		return false;
 	}
 
-	//if (wndProcMessages.size() == 0)
-	//	return false;
-	//
-	//msg = wndProcMessages.front();
-	//wndProcMessages.pop();
 
 	if (msg.message == WM_LBUTTONDOWN)
 	{
