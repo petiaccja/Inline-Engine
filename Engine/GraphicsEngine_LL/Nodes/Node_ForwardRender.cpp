@@ -105,6 +105,10 @@ void ForwardRender::Setup(SetupContext& context) {
 	this->GetInput<7>().Clear();
 	m_csmSplitsTexView = context.CreateSrv(csmSplitsTex, csmSplitsTex.GetFormat(), srvDesc);
 
+	auto lightMVPTex = this->GetInput<8>().Get();
+	this->GetInput<8>().Clear();
+	m_lightMVPTexView = context.CreateSrv(lightMVPTex, lightMVPTex.GetFormat(), srvDesc);
+
 	this->GetOutput<0>().Set(target);
 
 
@@ -240,10 +244,12 @@ void ForwardRender::Execute(RenderContext& context) {
 		commandList.SetResourceState(m_shadowMapTexView.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 		commandList.SetResourceState(m_shadowMXTexView.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 		commandList.SetResourceState(m_csmSplitsTexView.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+		commandList.SetResourceState(m_lightMVPTexView.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 500), m_shadowMapTexView);
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 501), m_shadowMXTexView);
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 502), m_csmSplitsTexView);
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 503), m_lightMVPTexView);
 
 		// Set material parameters
 		std::vector<uint8_t> materialConstants(scenario.constantsSize);
@@ -282,9 +288,11 @@ void ForwardRender::Execute(RenderContext& context) {
 		// Set vertex and light constants
 		VsConstants vsConstants;
 		LightConstants lightConstants;
-		entity->GetTransform().Pack(vsConstants.model);
+		entity->GetTransform().Pack(vsConstants.m);
 		(viewProjection * entity->GetTransform()).Pack(vsConstants.mvp);
 		(view * entity->GetTransform()).Pack(vsConstants.mv);
+		view.Pack(vsConstants.v);
+		projection.Pack(vsConstants.p);
 		lightConstants.direction = sun->GetDirection().Normalized();
 		lightConstants.color = sun->GetColor();
 
@@ -395,11 +403,14 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 	}
 
 	std::string vertexShader =
+		"Texture2D<float4> lightMVPTex : register(t503);"
 		"struct VsConstants \n"
 		"{\n"
 		"	float4x4 MVP;\n"
 		"	float4x4 MV;\n"
-		"	float4x4 worldInvTr;"
+		"	float4x4 M;\n"
+		"	float4x4 V;\n"
+		"	float4x4 P;\n"
 		"};\n"
 		"ConstantBuffer<VsConstants> vsConstants : register(b0);\n"
 
@@ -415,9 +426,17 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"{\n"
 		"	PS_Input result;\n"
 
-		"	float3 worldNormal = normalize(mul(vsConstants.worldInvTr, float4(normal.xyz, 0.0)).xyz);\n"
+		"	float3 worldNormal = normalize(mul(vsConstants.M, float4(normal.xyz, 0.0)).xyz);\n"
 
-		"	result.position = mul(vsConstants.MVP, position);\n"
+		"float4x4 light_mvp;\n"
+		"float cascade = 0;\n"
+		"for (int d = 0; d < 4; ++d)\n"
+		"{\n"
+		"	light_mvp[d] = lightMVPTex.Load(int3(cascade * 4 + d, 0, 0));\n"
+		"}\n"
+
+		//"	result.position = mul(vsConstants.MVP, position);\n"
+		"	result.position = mul(mul(light_mvp, vsConstants.MV), position);\n"
 		"	result.vsPosition = mul(vsConstants.MV, position);\n"
 		"	result.normal = worldNormal;\n"
 		"	result.texCoord = texCoord.xy;\n"
@@ -517,6 +536,13 @@ Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<M
 	csmSplitsBindParamDesc.relativeChangeFrequency = 0;
 	csmSplitsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
+	BindParameterDesc lightMVPBindParamDesc;
+	lightMVPBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 503);
+	lightMVPBindParamDesc.constantSize = 0;
+	lightMVPBindParamDesc.relativeAccessFrequency = 0;
+	lightMVPBindParamDesc.relativeChangeFrequency = 0;
+	lightMVPBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
 	BindParameterDesc vsCbDesc;
 	vsCbDesc.parameter = BindParameter(eBindParameterType::CONSTANT, 0);
 	vsCbDesc.constantSize = sizeof(VsConstants);
@@ -562,6 +588,7 @@ Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<M
 	descs.push_back(shadowMapBindParamDesc);
 	descs.push_back(shadowMXBindParamDesc);
 	descs.push_back(csmSplitsBindParamDesc);
+	descs.push_back(lightMVPBindParamDesc);
 
 	if (cbSize > 0) {
 		descs.push_back(mtlCbDesc);
@@ -607,7 +634,8 @@ std::unique_ptr<gxapi::IPipelineState> ForwardRender::CreatePso(
 	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
 	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
-	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
+	psoDesc.depthStencilState = gxapi::DepthStencilState(false, true);
+	//psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
 	psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::EQUAL;
 	psoDesc.depthStencilState.enableStencilTest = true;
 	psoDesc.depthStencilState.stencilReadMask = 0;

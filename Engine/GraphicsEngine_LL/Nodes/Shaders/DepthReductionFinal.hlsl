@@ -79,9 +79,9 @@ float4x4 ortographic(float left, float right, float bottom, float top, float nea
 	r[1].y = 2.0 / (top - bottom);
 	r[2].z = -2.0 / (far - near);
 	
-	//r[3].x = -((right + left) / (right - left));
-	//r[3].y = -((top + bottom) / (top - bottom));
-	//r[3].z = -((far + near) / (far - near));
+//	r[3].x = -((right + left) / (right - left));
+//	r[3].y = -((top + bottom) / (top - bottom));
+//	r[3].z = -((far + near) / (far - near));
 	r[0].w = -((right + left) / (right - left));
 	r[1].w = -((top + bottom) / (top - bottom));
 	r[2].w = -((far + near) / (far - near));
@@ -114,7 +114,8 @@ float4x4 get_camera_matrix(camera c)
 	m[3] = float4(float3(0.0f, 0.0f, 0.0f), 1);
 	//m = transpose(m);
 
-	return mul(m, create_translation(-c.pos));
+	return mul(create_translation(-c.pos), m);
+	//return mul(m, create_translation(-c.pos));
 }
 
 //heavily based on mjp shadow sample
@@ -135,11 +136,9 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 
 	float3 ws_frustum_corners[8];
 
-	float4x4 inv_viewproj = invVP;
-
 	for (int c = 0; c < 8; ++c)
 	{
-		float4 trans = mul(inv_viewproj, float4(ndc_frustum_corners[c], 1));
+		float4 trans = mul(invVP, float4(ndc_frustum_corners[c], 1));
 		ws_frustum_corners[c] = trans.xyz / trans.w;
 	}
 
@@ -197,7 +196,8 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 
 	camera split_shadow_cam = lookat_func(cam_pos, centroid_center, up);
 
-	return mul(split_ortho_matrix, get_camera_matrix(split_shadow_cam));
+	//return mul(split_ortho_matrix, get_camera_matrix(split_shadow_cam));
+	return split_ortho_matrix;
 	//camera sanity_cam = lookat_func(float3(0,0,1), float3(0,-1,0), float3(0,0,1));
 	//return mul(split_ortho_matrix, get_camera_matrix(sanity_cam));
 	//return ortographic(-100, 100, -100, 100, 0.0f, 100);

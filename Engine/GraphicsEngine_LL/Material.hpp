@@ -252,6 +252,7 @@ inline std::string MaterialGenPixelShader(const MaterialShader& shader) {
 	PSMain << "    g_lightDir = lightCb.direction;\n";
 	PSMain << "    g_lightColor = lightCb.color;\n";
 	PSMain << "    g_lightColor *= get_shadow(psInput.vsPosition);\n";
+	//PSMain << "    g_lightColor = psInput.vsPosition.xyz;\n";
 	PSMain << "    g_normal = psInput.worldNormal;\n";
 	PSMain << "    g_tex0 = float3(psInput.texCoord, 0.0f);\n";
 	for (size_t i = 0; i < params.size(); ++i) {

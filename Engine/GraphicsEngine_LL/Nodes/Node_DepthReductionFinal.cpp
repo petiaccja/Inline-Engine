@@ -175,6 +175,7 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 	//TODO get from somewhere
 	mathfu::Vector4f light_cam_pos = mathfu::Vector4f(0, 0, 0, 1);
 	mathfu::Vector4f light_cam_view_dir = mathfu::Vector4f(sun->GetDirection().Normalized(), 0);//mathfu::Vector4f(1, 1, 1, 0).Normalized();
+	//printf("%f %f %f\n", light_cam_view_dir.x(), light_cam_view_dir.y(), light_cam_view_dir.z());
 	mathfu::Vector4f light_cam_up_vector = mathfu::Vector4f(0, 0, 1, 0);
 
 	auto lookat = [](mathfu::Vector3f eye, mathfu::Vector3f lookat, mathfu::Vector3f up, mathfu::Vector3f* result) -> void

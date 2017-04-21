@@ -1,6 +1,7 @@
 Texture2DArray<float> shadowMapTex : register(t500);
 Texture2D<float4> shadowMXTex : register(t501);
 Texture2D<float2> csmSplitsTex : register(t502);
+Texture2D<float4> lightMVPTex : register(t503);
 SamplerState theSampler : register(s500);
 
 // TODO replace all the hardwired constants that
@@ -64,7 +65,12 @@ float sample_csm(int cascade, float4 vs_pos)
 	shadowMapTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z, levels);
 	float2 scale = 1.0 / float2(inputTexSize.xy);
 
-	return shadow_pcf_3x3(shadow_coord, scale, offset, cascade);
+	float shadow_depth = offset_lookup(shadow_coord, offset, scale, cascade);
+	return shadow_coord.z < shadow_depth;
+	//return shadowMapTex.Sample(theSampler, float3(shadow_coord.xy, 10.0)).x;
+	//return float(inputTexSize.z > 3);
+	//return shadow_depth;
+	//return shadow_pcf_3x3(shadow_coord, scale, offset, cascade);
 }
 
 //vec3 get_shadow(sampler2D tex, vec4 shadow_coord)
@@ -118,7 +124,7 @@ float get_shadow(float4 vs_pos)
 	}
 
 	//return cascade * 0.25;
-	 return shadow_term;
+	return shadow_term;
 	//return float(shadow_coord.z - 0.005 < texture(tex, shadow_coord.xy).x) * shadow_selector / 4.0;
 	//return ls_ndc_pos.z/0.25;
 	//return shadow_coord.xyz;
