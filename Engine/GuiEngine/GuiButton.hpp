@@ -30,6 +30,8 @@ inline GuiButton::GuiButton(GuiEngine* guiEngine)
 	text = AddText();
 	text->StretchFitToChildren();
 	text->AlignCenter();
+
+	text->DisableHover();
 }
 
 inline GuiButton& GuiButton::operator = (const GuiButton& other)

@@ -265,7 +265,7 @@ inline void GuiEngine::Update(float deltaTime)
 	Gui* newHoveredControl = nullptr;
 	TraverseGuiControls([&](Gui* control)
 	{
-		if (!control->IsLayer() && control->GetPaddingRect().IsPointInside(cursorPos))
+		if (!control->IsLayer() && control->IsHoverable() && control->GetPaddingRect().IsPointInside(cursorPos))
 			newHoveredControl = control;
 	});
 
@@ -303,8 +303,8 @@ inline void GuiEngine::Update(float deltaTime)
 			{
 				if (control->GetPaddingRect().IsPointInside(cursorPos))
 				{
-					control->onMouseHovered(eventData);
-					control->onMouseHoveredClonable(control, eventData);
+					control->onMouseHovering(eventData);
+					control->onMouseHoveringClonable(control, eventData);
 				}
 			});
 		}
@@ -319,7 +319,8 @@ inline void GuiEngine::Render()
 	std::function<void(Gui* control, RectF& clipRect)> traverseControls;
 	traverseControls = [&](Gui* control, RectF& clipRect)
 	{
-		control->OnPaint(gdiGraphics, clipRect);
+		control->onPaint(gdiGraphics, clipRect);
+		control->onPaintClonable(control, gdiGraphics, clipRect);
 
 		// Control the clipping rect of the children controls
 		RectF rect;
@@ -345,9 +346,6 @@ inline void GuiEngine::Render()
 
 	// Present
 	BitBlt(hdc, 0, 0, targetWindow->GetClientWidth(), targetWindow->GetClientHeight(), memHDC, 0, 0, SRCCOPY);
-
-	// Clean up
-	
 }
 
 inline void GuiEngine::TraverseGuiControls(const std::function<void(Gui*)>& fn)

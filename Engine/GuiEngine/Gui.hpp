@@ -187,18 +187,6 @@ public:
 	void AlignCenter()					{ SetAlign(eGuiAlignHor::CENTER, eGuiAlignVer::CENTER); }
 	void AlignCenterHor() { SetAlignHor(eGuiAlignHor::CENTER); }
 	void AlignCenterVer() { SetAlignVer(eGuiAlignVer::CENTER); }
-
-	//void StretchNone() { SetStretch(eGuiStretch::NONE); }
-	//void StretchNoneHor() { SetStretchHor(eGuiStretch::NONE); }
-	//void StretchNoneVor() { SetStretchVer(eGuiStretch::NONE); }
-	
-	//void FillParent() { SetStretch(eGuiStretch::FILL_PARENT); }
-	//void FillParentHor() { SetStretchHor(eGuiStretch::FILL_PARENT); }
-	//void FillParentVer() { SetStretchVer(eGuiStretch::FILL_PARENT); }
-	//
-	//void StretchFitToChildren() { SetStretch(eGuiStretch::FIT_TO_CHILDREN); }
-	//void StretchFitToChildrenHor() { SetStretchHor(eGuiStretch::FIT_TO_CHILDREN); }
-	//void StretchFitToChildrenVer() { SetStretchVer(eGuiStretch::FIT_TO_CHILDREN); }
 	
 	void SetBgImageVisibility(bool bVisible) { bBgImageVisible = bVisible; }
 	void SetBgColorVisibility(bool bVisible) { bBgColorVisible = bVisible; }
@@ -208,6 +196,10 @@ public:
 
 	void ShowBgImage() { SetBgImageVisibility(true); }
 	void ShowBgColor() { SetBgColorVisibility(true); }
+
+	void SetHoverable(bool b) { bHoverable = b; }
+	void EnableHover() { SetHoverable(true); }
+	void DisableHover() { SetHoverable(false); }
 
 	template<class T>
 	T* Copy(T* other);
@@ -284,6 +276,7 @@ public:
 	bool IsChildrenClipEnabled() { return bClipChildren; }
 	bool IsHovered() { return bHovered; }
 	bool IsCursorInside();
+	bool IsHoverable() { return bHoverable; }
 
 	const Color& GetBorderColor() { return borderColor; }
 	RectF GetBorder() { return border; }
@@ -311,8 +304,6 @@ protected:
 
 	virtual Vector2f ArrangeChildren(const Vector2f& finalSize);
 
-	virtual void OnPaint(Gdiplus::Graphics* graphics, RectF& clipRect);
-
 protected:
 	// Name it however you want
 	std::wstring name;
@@ -334,6 +325,9 @@ protected:
 
 	// Is hovered by cursor?
 	bool bHovered;
+
+	// Is hover enabled?
+	bool bHoverable;
 
 	// If true parent rectangle will be exactly aroound childs always
 	//bool bAutoWidth;
@@ -416,8 +410,8 @@ public:
 	Delegate<void(CursorEvent& evt)> onMouseLeaved;
 	Delegate<void(Gui* self, CursorEvent& evt)> onMouseLeavedClonable;
 
-	Delegate<void(CursorEvent& evt)> onMouseHovered;
-	Delegate<void(Gui* self, CursorEvent& evt)> onMouseHoveredClonable;
+	Delegate<void(CursorEvent& evt)> onMouseHovering;
+	Delegate<void(Gui* self, CursorEvent& evt)> onMouseHoveringClonable;
 
 	Delegate<void(float deltaTime)> onUpdate;
 	Delegate<void(Gui* self, float deltaTime)> onUpdateClonable;
@@ -445,6 +439,9 @@ public:
 
 	Delegate<void(Gui* child)> onChildRemoved;
 	Delegate<void(Gui* self, Gui* child)> onChildRemovedClonable;
+
+	Delegate<void(Gdiplus::Graphics* graphics, RectF& clipRect)> onPaint;
+	Delegate<void(Gui* self, Gdiplus::Graphics* graphics, RectF& clipRect)> onPaintClonable;
 };
 
 inline Gui::Gui(GuiEngine* guiEngine, bool bLayer)
@@ -477,6 +474,7 @@ inline Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 	stretchHor = eGuiStretch::NONE;
 	stretchVer = eGuiStretch::NONE;
 	bHovered = false;
+	bHoverable = true;
 	bFillParentEnabled = false;
 	bForceFitToChildren = false;
 
@@ -504,6 +502,87 @@ inline Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 	onChildAddedClonable += [](Gui* self, Gui* child)
 	{
 		self->bDirtyLayout = true;
+	};
+
+	onPaintClonable += [](Gui* self, Gdiplus::Graphics* graphics, RectF& clipRect)
+	{
+		if (self->bDirtyLayout)
+			self->RefreshLayout();
+
+		RectF paddingRect = self->GetPaddingRect();
+		RectF borderRect = self->GetBorderRect();
+
+		Gdiplus::Rect gdiBorderRect(borderRect.left, borderRect.top, borderRect.GetWidth(), borderRect.GetHeight());
+		Gdiplus::Rect gdiPaddingRect(paddingRect.left, paddingRect.top, paddingRect.GetWidth(), paddingRect.GetHeight());
+		Gdiplus::Rect gdiClipRect(clipRect.left, clipRect.top, clipRect.GetWidth(), clipRect.GetHeight());
+
+		// Clipping
+		graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeReplace);
+
+		// Draw left border
+		Color borderColor = self->GetBorderColor();
+		RectF border = self->GetBorder();
+
+		Gdiplus::SolidBrush borderBrush(Gdiplus::Color(borderColor.a, borderColor.r, borderColor.g, borderColor.b));
+		if (border.left != 0)
+		{
+			RectF tmp = borderRect;
+
+			// Setup left border
+			tmp.right = tmp.left + border.left;
+
+			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
+			graphics->FillRectangle(&borderBrush, tmpGdi);
+		}
+
+		// Draw right border
+		if (border.right != 0)
+		{
+			RectF tmp = borderRect;
+
+			// Setup right border
+			tmp.left = tmp.right - border.right;
+
+			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
+			graphics->FillRectangle(&borderBrush, tmpGdi);
+		}
+
+		// Draw top border
+		if (border.top != 0)
+		{
+			RectF tmp = borderRect;
+
+			// Setup top border
+			tmp.bottom = tmp.top + border.top;
+
+			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
+			graphics->FillRectangle(&borderBrush, tmpGdi);
+		}
+
+		// Draw bottom border
+		if (border.bottom != 0)
+		{
+			RectF tmp = borderRect;
+
+			// Setup top border
+			tmp.top = tmp.bottom - border.bottom;
+
+			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
+			graphics->FillRectangle(&borderBrush, tmpGdi);
+		}
+
+
+		// Draw Background Image Rectangle
+		if (self->GetBgActiveImage() && self->bBgImageVisible)
+		{
+			graphics->DrawImage(self->GetBgActiveImage(), gdiPaddingRect);
+		}
+		else if (self->bBgColorVisible) // Draw Background Colored Rectangle
+		{
+			Color bgColor = self->GetBgActiveColor();
+			Gdiplus::SolidBrush brush(Gdiplus::Color(bgColor.a, bgColor.r, bgColor.g, bgColor.b));
+			graphics->FillRectangle(&brush, gdiPaddingRect);
+		}
 	};
 }
 
@@ -557,6 +636,11 @@ inline Gui& Gui::operator = (const Gui& other)
 	stretchVer = other.stretchVer;
 	bFillParentEnabled = other.bFillParentEnabled;
 	bForceFitToChildren = other.bForceFitToChildren;
+	eventPropagationPolicy = other.eventPropagationPolicy;
+	bHovered = other.bHovered;
+	bHoverable = other.bHoverable;
+	bBgColorVisible = other.bBgColorVisible;
+	bBgImageVisible = other.bBgImageVisible;
 
 	onMouseClickedClonable = other.onMouseClickedClonable;
 	onMousePressedClonable = other.onMousePressedClonable;
@@ -564,7 +648,7 @@ inline Gui& Gui::operator = (const Gui& other)
 	onMouseMovedClonable = other.onMouseMovedClonable;
 	onMouseEnteredClonable = other.onMouseEnteredClonable;
 	onMouseLeavedClonable = other.onMouseLeavedClonable;
-	onMouseHoveredClonable = other.onMouseHoveredClonable;
+	onMouseHoveringClonable = other.onMouseHoveringClonable;
 	onUpdateClonable = other.onUpdateClonable;
 	onTransformChangedClonable = other.onTransformChangedClonable;
 	onPosChangedClonable = other.onPosChangedClonable;
@@ -574,6 +658,7 @@ inline Gui& Gui::operator = (const Gui& other)
 	onParentChangedClonable = other.onParentChangedClonable;
 	onChildAddedClonable = other.onChildAddedClonable;
 	onChildRemovedClonable = other.onChildRemovedClonable;
+	onPaintClonable = other.onPaintClonable;
 
 	// Background
 	if (other.bgIdleImage)
@@ -713,21 +798,21 @@ T* Gui::Copy(T* other)
 
 inline void Gui::TraverseTowardParents(const std::function<void(Gui*)>& fn)
 {
-	// Terminate recursive call
+	// STOP traverse 
 	if (eventPropagationPolicy == eEventPropagationPolicy::STOP)
 		return;
 
-	// Process fn for this control
+	// PROCESS fn then STOP
 	if (eventPropagationPolicy == eEventPropagationPolicy::PROCESS || eventPropagationPolicy == eEventPropagationPolicy::PROCESS_STOP)
 		fn(this);
 
-	// Continue recursive calls
+	// Continue recursion
 	if (eventPropagationPolicy == eEventPropagationPolicy::PROCESS || eventPropagationPolicy == eEventPropagationPolicy::AVOID)
 	{
 		if (back)
 			back->TraverseTowardParents(fn);
 		else if (parent)
-			fn(parent);// parent->TraverseTowardParents(fn);
+			fn(parent);
 	}
 }
 
@@ -897,44 +982,20 @@ inline void Gui::SetBgImageForAllStates(const std::wstring& filePath)
 inline void Gui::SetMargin(float leftLength, float topLength, float rightLength, float bottomLength)
 {
 	margin = RectF(leftLength, topLength, rightLength, bottomLength);
-
-	//RectF newMargin = RectF(leftLength, topLength, rightLength, bottomLength);
-	//RectF deltaMargin = margin - newMargin;
-	//margin = newMargin;
-	//
-	//RectF newRect = GetRect();
-	//newRect.MoveSidesLocal(-deltaMargin);
-	//
-	//SetRect(newRect);
+	bDirtyLayout = true;
 }
 
 inline void Gui::SetPadding(float leftLength, float topLength, float rightLength, float bottomLength)
 {
 	padding = RectF(leftLength, topLength, rightLength, bottomLength);
-
-	//RectF newPadding = RectF(leftLength, topLength, rightLength, bottomLength);
-	//RectF deltaPadding = padding - newPadding;
-	//padding = newPadding;
-	//
-	//RectF newRect = GetRect();
-	//newRect.MoveSidesLocal(-deltaPadding);
-	//
-	//SetRect(newRect);
+	bDirtyLayout = true;
 }
 
 inline void Gui::SetBorder(float leftLength, float topLength, float rightLength, float bottomLength, const Color& color)
 {
 	border = RectF(leftLength, topLength, rightLength, bottomLength);
 	borderColor = color;
-//RectF newBorder = RectF(leftLength, topLength, rightLength, bottomLength);
-//RectF deltaBorder = border - newBorder;
-//
-//border = newBorder;
-//borderColor = color;
-//
-//RectF newRect = GetRect();
-//newRect.MoveSidesLocal(-deltaBorder);
-//SetRect(newRect);
+	bDirtyLayout = true;
 }
 
 inline void Gui::RefreshLayout()
@@ -997,24 +1058,6 @@ inline Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 
 		// Arrange children's based on our available content size
 		Vector2f sizeUsed = ArrangeChildren(contentSize);
-	
-		//if (name == L"MINMAX")
-		//{
-		//	int asd = 5;
-		//	asd++;
-		//}
-		//
-		//if (name == L"THELIST222")
-		//{
-		//	int asd = 5;
-		//	asd++;
-		//}
-		//
-		//if (name == L"THELIST333")
-		//{
-		//	int asd = 5;
-		//	asd++;
-		//}
 
 		// Convert the sizeUsed from content space to margin space
 		if (bFitToChildrenHor)
@@ -1109,12 +1152,6 @@ inline Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 
 	SetRect(newPos.x(), newPos.y(), newSize.x(), newSize.y(), true, false);
 
-	if (name == L"MINMAX")
-	{
-		int asd = 5;
-		asd++;
-	}
-
 	ArrangeChildren(newSize);
 
 	// Here we have up to date layout, it's not dirty
@@ -1137,84 +1174,6 @@ inline Vector2f Gui::ArrangeChildren(const Vector2f& finalSize)
 	}
 	
 	return size;
-}
-
-inline void Gui::OnPaint(Gdiplus::Graphics* graphics, RectF& clipRect)
-{
-	if (bDirtyLayout)
-		RefreshLayout();
-
-	RectF paddingRect = GetPaddingRect();
-	RectF borderRect = GetBorderRect();
-
-	Gdiplus::Rect gdiBorderRect(borderRect.left, borderRect.top, borderRect.GetWidth(), borderRect.GetHeight());
-	Gdiplus::Rect gdiPaddingRect(paddingRect.left, paddingRect.top, paddingRect.GetWidth(), paddingRect.GetHeight());
-	Gdiplus::Rect gdiClipRect(clipRect.left, clipRect.top, clipRect.GetWidth(), clipRect.GetHeight());
-
-	// Clipping
-	//graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeReplace);
-
-	// Draw left border
-	Gdiplus::SolidBrush borderBrush(Gdiplus::Color(borderColor.a, borderColor.r, borderColor.g, borderColor.b));
-	if (border.left != 0)
-	{
-		RectF tmp = borderRect;
-
-		// Setup left border
-		tmp.right = tmp.left + border.left;
-
-		Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
-		graphics->FillRectangle(&borderBrush, tmpGdi);
-	}
-
-	// Draw right border
-	if (border.right != 0)
-	{
-		RectF tmp = borderRect;
-
-		// Setup right border
-		tmp.left = tmp.right - border.right;
-
-		Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
-		graphics->FillRectangle(&borderBrush, tmpGdi);
-	}
-
-	// Draw top border
-	if (border.top != 0)
-	{
-		RectF tmp = borderRect;
-
-		// Setup top border
-		tmp.bottom = tmp.top + border.top;
-
-		Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
-		graphics->FillRectangle(&borderBrush, tmpGdi);
-	}
-
-	// Draw bottom border
-	if (border.bottom != 0)
-	{
-		RectF tmp = borderRect;
-
-		// Setup top border
-		tmp.top = tmp.bottom - border.bottom;
-
-		Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
-		graphics->FillRectangle(&borderBrush, tmpGdi);
-	}
-
-
-	// Draw Background Image Rectangle
-	if (GetBgActiveImage() && bBgImageVisible)
-	{
-		graphics->DrawImage(GetBgActiveImage(), gdiPaddingRect);
-	}
-	else if (bBgColorVisible) // Draw Background Colored Rectangle
-	{
-		Color bgColor = GetBgActiveColor();
-		Gdiplus::SolidBrush brush(Gdiplus::Color(bgColor.a, bgColor.r, bgColor.g, bgColor.b));
-		graphics->FillRectangle(&brush, gdiPaddingRect);
-	}
 }
 
 inline RectF Gui::GetRect()

@@ -157,48 +157,48 @@ void Editor::InitGui()
 	captionBar->SetPos(0, 1);
 
 	// Menu
-	//{
-	//	// Control List
-	//	eTextAlign align = eTextAlign::CENTER;
-	//	GuiList* list = mainLayer->AddList();
-	//	GuiButton* button = list->AddButton();
-	//	button->SetText("File");
-	//	GuiButton* button1 = list->AddButton();
-	//	button1->SetText("Edit");
-	//	GuiButton* button2 = list->AddButton();
-	//	button2->SetText("Project");
-	//	GuiButton* button3 = list->AddButton();
-	//	button3->SetText("Resources");
-	//	GuiButton* button4 = list->AddButton();
-	//	button4->SetText("Help");
-	//	list->SetDirection(eGuiListDirection::HORIZONTAL);
-	//
-	//	list->SetBgColorForAllStates(Color(0));
-	//	list->SetRect(1, captionBar->GetHeight(), 400, 400);
-	//	list->SetBorder(4, Color::RED);
-	//	list->SetName("THELIST");
-	//
-	//	list->StretchFitToChildren();
-	//	for (Gui* c : list->GetChildren())
-	//	{
-	//		c->StretchFitToChildren();
-	//		c->SetMargin(5);
-	//		c->SetPadding(5);
-	//	}
-	//
-	//	auto secondList = list->Clone();
-	//	secondList->SetName("THELIST222");
-	//	secondList->SetBorder(4, Color::BLUE);
-	//	list->Add(secondList);
-	//	
-	//	auto thirdList = secondList->Clone();
-	//	thirdList->SetName("THELIST333");
-	//	thirdList->SetBorder(4, Color::GREEN);
-	//	secondList->Add(thirdList);
-	//
-	//	int asd = 5;
-	//	asd++;
-	//}
+	{
+		// Control List
+		eTextAlign align = eTextAlign::CENTER;
+		GuiList* list = mainLayer->AddList();
+		GuiButton* button = list->AddButton();
+		button->SetText("File");
+		GuiButton* button1 = list->AddButton();
+		button1->SetText("Edit");
+		GuiButton* button2 = list->AddButton();
+		button2->SetText("Project");
+		GuiButton* button3 = list->AddButton();
+		button3->SetText("Resources");
+		GuiButton* button4 = list->AddButton();
+		button4->SetText("Help");
+		list->SetDirection(eGuiListDirection::HORIZONTAL);
+	
+		list->SetBgColorForAllStates(Color(0));
+		list->SetRect(1, captionBar->GetHeight(), 400, 400);
+		list->SetBorder(4, Color::RED);
+		list->SetName("THELIST");
+	
+		list->StretchFitToChildren();
+		for (Gui* c : list->GetChildren())
+		{
+			c->StretchFitToChildren();
+			c->SetMargin(5);
+			c->SetPadding(5);
+		}
+	
+		auto secondList = list->Clone();
+		secondList->SetName("THELIST222");
+		secondList->SetBorder(4, Color::BLUE);
+		list->Add(secondList);
+		
+		auto thirdList = secondList->Clone();
+		thirdList->SetName("THELIST333");
+		thirdList->SetBorder(4, Color::GREEN);
+		secondList->Add(thirdList);
+	
+		int asd = 5;
+		asd++;
+	}
 
 	//auto btnn = mainLayer->AddButton();
 	//btnn->SetText(L"Loller");
@@ -408,4 +408,6 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	if (fCallDWP)
 		return DefWindowProc(handle, msg, wParam, lParam);
+	
+	return 0;
 }

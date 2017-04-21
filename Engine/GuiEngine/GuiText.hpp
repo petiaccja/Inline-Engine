@@ -27,7 +27,7 @@ public:
 	virtual GuiText* Clone() const { return new GuiText(*this); }
 	GuiText& operator = (const GuiText& other);
 
-	virtual void OnPaint(Gdiplus::Graphics* graphics, RectF& clipRect) override;
+	//virtual void OnPaint(Gdiplus::Graphics* graphics, RectF& clipRect) override;
 
 	void SetFontSize(int size);
 	void SetFontFamily(const std::wstring& text);
@@ -62,6 +62,29 @@ inline GuiText::GuiText(GuiEngine* guiEngine)
 
 	HideBgImage();
 	HideBgColor();
+
+	onPaintClonable += [](Gui* self_, Gdiplus::Graphics* graphics, RectF& clipRect)
+	{
+		GuiText* self = self_->AsText();
+
+		if (self->text.length() == 0)
+			return;
+
+		auto rect = self->GetContentRect();
+
+		Gdiplus::RectF gdiClipRect = Gdiplus::RectF(rect.left, rect.top, rect.GetWidth(), rect.GetHeight());
+
+		// Clipping (INTERSECT MODE)
+		graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeIntersect);
+
+		Color color = self->color;
+		Gdiplus::SolidBrush brush(Gdiplus::Color(color.r, color.g, color.b, color.a));
+
+		Gdiplus::PointF pointF(self->GetPosX(), self->GetPosY());
+
+		graphics->SetTextRenderingHint(Gdiplus::TextRenderingHintSystemDefault);
+		graphics->DrawString(self->text.c_str(), -1, self->font.get(), pointF, &brush);
+	};
 }
 
 inline GuiText& GuiText::operator = (const GuiText& other)
@@ -115,27 +138,5 @@ inline void GuiText::SetText(const std::string& text)
 	// Conversion to wchar_t, TODO replace with utf8 lib
 	SetText(std::wstring(text.begin(), text.end()));
 }
-
-inline void GuiText::OnPaint(Gdiplus::Graphics* graphics, RectF& clipRect)
-{
-	Gui::OnPaint(graphics, clipRect);
-
-	if (text.length() == 0)
-		return;
-
-	auto rect = GetContentRect();
-
-	Gdiplus::RectF gdiClipRect = Gdiplus::RectF(rect.left, rect.top, rect.GetWidth(), rect.GetHeight());
-
-	// Clipping (INTERSECT MODE)
-	//graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeIntersect);
-
-	Gdiplus::SolidBrush brush(Gdiplus::Color(color.r, color.g, color.b, color.a));
-
-	Gdiplus::PointF pointF(GetPosX(), GetPosY());
-
-	graphics->SetTextRenderingHint(Gdiplus::TextRenderingHintSystemDefault);
-	graphics->DrawString(text.c_str(), -1, font.get(), pointF, &brush);
-};
 
 } // namespace inl::gui
