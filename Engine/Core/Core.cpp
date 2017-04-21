@@ -49,6 +49,7 @@ GuiEngine* Core::InitGuiEngine(GraphicsEngine* graphicsEngine, Window* targetWin
 		delete guiEngine;
 
 	guiEngine = new GuiEngine(graphicsEngine, targetWindow);
+
 	return guiEngine;
 }
 

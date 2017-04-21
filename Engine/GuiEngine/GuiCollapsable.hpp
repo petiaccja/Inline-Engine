@@ -38,7 +38,7 @@ protected:
 inline void GuiCollapsable::SetCaptionText(const std::wstring& str)
 {
 	caption->SetText(str);
-	//caption->StretchFillParentHor();
+	//caption->FillParentHor();
 }
 
 inline GuiCollapsable& GuiCollapsable::operator = (const GuiCollapsable& other)

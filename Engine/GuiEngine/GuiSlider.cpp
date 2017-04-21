@@ -38,14 +38,14 @@ GuiSlider::GuiSlider(GuiEngine* guiEngine)
 	};
 
 	// Dragging
-	guiEngine->onMouseMove += [this](CursorEvent& evt)
+	guiEngine->onMouseMoved += [this](CursorEvent& evt)
 	{
 		if (bSliding)
 			SlideToCursor();
 	};
 
 	// Stop draw
-	guiEngine->onMouseRelease += [this](CursorEvent& evt)
+	guiEngine->onMouseReleased += [this](CursorEvent& evt)
 	{
 		bSliding = false;
 	};

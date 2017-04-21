@@ -28,6 +28,8 @@ inline GuiButton::GuiButton(GuiEngine* guiEngine)
 :Gui(guiEngine)
 {
 	text = AddText();
+	text->StretchFitToChildren();
+	text->AlignCenter();
 }
 
 inline GuiButton& GuiButton::operator = (const GuiButton& other)

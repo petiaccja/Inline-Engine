@@ -20,6 +20,8 @@ public:
 	void Update(float deltaTime);
 	void Render();
 
+	void SetResolution(Vector2u& size);
+
 	void TraverseGuiControls(const std::function<void(Gui*)>& fn);
 
 	inline Vector2i GetCursorPos() { return targetWindow->GetClientCursorPos(); }
@@ -27,18 +29,14 @@ public:
 	inline int GetCursorPosY() { return GetCursorPos().y(); }
 
 	inline Window* GetTargetWindow() { return targetWindow; }
+	Gdiplus::Graphics* GetGdiGraphics() { return gdiGraphics; }
+	GuiLayer* GetPostProcessLayer() { return postProcessLayer; }
 
 public:
-	Delegate<void(CursorEvent& evt)> onMouseClick;
-	Delegate<void(CursorEvent& evt)> onMousePress;
-	Delegate<void(CursorEvent& evt)> onMouseRelease;
-	Delegate<void(CursorEvent& evt)> onMouseMove;
-
-	// TODO TEMPORARY GDI+, REMOVE IT OR I KILL MYSELF !!!!
-	Gdiplus::Graphics* graphics;
-	HDC hdc;
-	HDC memHDC;
-	HBITMAP memBitmap;
+	Delegate<void(CursorEvent& evt)> onMouseClicked;
+	Delegate<void(CursorEvent& evt)> onMousePressed;
+	Delegate<void(CursorEvent& evt)> onMouseReleased;
+	Delegate<void(CursorEvent& evt)> onMouseMoved;
 
 protected:
 	GraphicsEngine* graphicsEngine;
@@ -49,15 +47,31 @@ protected:
 
 	Gui* hoveredControl;
 	Gui* activeContextMenu;
+
+	// TODO TEMPORARY GDI+, RATHER MAKE A RENDER INTERFACE AND IMPLEMENT DX12 ETC ABOVE IT
+	Gdiplus::Graphics* gdiGraphics;
+	HDC hdc;
+	HDC memHDC;
+	HBITMAP memBitmap;
 };
 
 inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow)
 :graphicsEngine(graphicsEngine), targetWindow(targetWindow), hoveredControl(nullptr), activeContextMenu(nullptr), postProcessLayer(CreateLayer())
 {
+	gdiGraphics = nullptr;
+	hdc = nullptr;
+	memHDC = nullptr;
+
 	// Initialize GDI+ for gui rendering
 	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
 	ULONG_PTR gdiplusToken;
 	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+
+	SetResolution(targetWindow->GetClientSize());
+	targetWindow->onClientSizeChanged += [this](Vector2u size)
+	{
+		SetResolution(size);
+	};
 
 	// Propagate mousePress
 	thread_local Gui* hoveredControlOnPress = nullptr;
@@ -66,7 +80,7 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 	{
 		CursorEvent eventData;
 		eventData.cursorContentPos = event.clientMousePos;
-		onMousePress(eventData);
+		onMousePressed(eventData);
 
 		mousePosWhenPress = event.clientMousePos;
 
@@ -91,13 +105,13 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 	{
 		CursorEvent eventData;
 		eventData.cursorContentPos = event.clientMousePos;
-		onMouseRelease(eventData);
+		onMouseReleased(eventData);
 
 		// Mouse click
 		bool bClick = mousePosWhenPress == event.clientMousePos;
 
 		if (bClick)
-			onMouseClick(eventData);
+			onMouseClicked(eventData);
 
 		if (activeContextMenu)
 			activeContextMenu->Remove();
@@ -117,7 +131,7 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 			// Control Mouse click
 			if (bClick)
 			{
-				onMouseClick(eventData);
+				onMouseClicked(eventData);
 
 				hoveredControl->TraverseTowardParents([&](Gui* control)
 				{
@@ -160,7 +174,7 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 		eventData.cursorContentPos = event.clientMousePos;
 		eventData.mouseDelta = event.mouseDelta;
 
-		onMouseMove(eventData);
+		onMouseMoved(eventData);
 
 		if (hoveredControl)
 		{
@@ -175,7 +189,7 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 		}
 	};
 
-	targetWindow->onClientSizeChanged += [this](Vector2u& size)
+	targetWindow->onClientSizeChanged += [this](Vector2u size)
 	{
 		Vector2f newSize = Vector2f(size.x(), size.y());
 
@@ -192,6 +206,29 @@ inline GuiEngine::~GuiEngine()
 		delete layer;
 
 	layers.clear();
+
+	DeleteObject(memBitmap);
+	DeleteDC(hdc);
+	DeleteDC(memHDC);
+}
+
+inline void GuiEngine::SetResolution(Vector2u& size)
+{
+	DeleteObject(memBitmap);
+	DeleteDC(hdc);
+	DeleteDC(memHDC);
+
+	Gdiplus::Graphics* graphics = Gdiplus::Graphics::FromHWND((HWND)targetWindow->GetHandle());
+	graphics->SetSmoothingMode(Gdiplus::SmoothingModeDefault);
+
+	hdc = graphics->GetHDC();
+
+	memHDC = CreateCompatibleDC(hdc);
+	memBitmap = CreateCompatibleBitmap(hdc, size.x(), size.y());
+
+	SelectObject(memHDC, memBitmap);
+
+	gdiGraphics = Gdiplus::Graphics::FromHDC(memHDC);
 }
 
 inline GuiLayer* GuiEngine::AddLayer()
@@ -277,25 +314,12 @@ inline void GuiEngine::Update(float deltaTime)
 
 inline void GuiEngine::Render()
 {
-	Gdiplus::Graphics* originalGraphics = Gdiplus::Graphics::FromHWND((HWND)targetWindow->GetHandle());
-	hdc = originalGraphics->GetHDC();
-
-	RECT Content_Rect;
-	GetClientRect((HWND)targetWindow->GetHandle(), &Content_Rect);
-	int win_width = Content_Rect.right - Content_Rect.left;
-	int win_height = Content_Rect.bottom - Content_Rect.top;
-
-	memHDC = CreateCompatibleDC(hdc);
-	memBitmap = CreateCompatibleBitmap(hdc, win_width, win_height);
 	SelectObject(memHDC, memBitmap);
-
-	graphics = Gdiplus::Graphics::FromHDC(memHDC);
-	graphics->SetSmoothingMode(Gdiplus::SmoothingModeDefault);
 
 	std::function<void(Gui* control, RectF& clipRect)> traverseControls;
 	traverseControls = [&](Gui* control, RectF& clipRect)
 	{
-		control->OnPaint(graphics, clipRect);
+		control->OnPaint(gdiGraphics, clipRect);
 
 		// Control the clipping rect of the children controls
 		RectF rect;
@@ -317,20 +341,13 @@ inline void GuiEngine::Render()
 	{
 		RectF clipRect(-9999999, -9999999, 99999999, 99999999);
 		traverseControls(layer, clipRect);
-
-		//for (Gui* rootControl : layer->GetChildren())
-		//{
-		//	
-		//}
 	}
 
 	// Present
 	BitBlt(hdc, 0, 0, targetWindow->GetClientWidth(), targetWindow->GetClientHeight(), memHDC, 0, 0, SRCCOPY);
 
 	// Clean up
-	DeleteObject(memBitmap);
-	DeleteDC(memHDC);
-	DeleteDC(hdc);
+	
 }
 
 inline void GuiEngine::TraverseGuiControls(const std::function<void(Gui*)>& fn)

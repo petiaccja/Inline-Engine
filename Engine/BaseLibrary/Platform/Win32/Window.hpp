@@ -71,7 +71,7 @@ public:
 	Delegate<void(WindowEvent&)>	onMousePressed;
 	Delegate<void(WindowEvent&)>	onMouseReleased;
 	Delegate<void(WindowEvent&)>	onMouseMoved;
-	Delegate<void(Vector2u&)>		onClientSizeChanged;
+	Delegate<void(Vector2u)>		onClientSizeChanged;
 
 protected:
 	friend LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);

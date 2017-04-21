@@ -119,6 +119,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GuiText.cpp" />
     <ClInclude Include="GuiButton.hpp" />
     <ClCompile Include="GuiCollapsable.cpp">
       <FileType>CppHeader</FileType>

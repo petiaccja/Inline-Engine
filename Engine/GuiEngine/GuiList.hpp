@@ -23,9 +23,6 @@ public:
 	eGuiListDirection GetDirection() { return direction; }
 
 protected:
-	//void MeasureContentChilds();
-
-	virtual Vector2f MeasureChildren(const Vector2f& availableSize) override;
 	virtual Vector2f ArrangeChildren(const Vector2f& finalSize) override;
 
 protected:
@@ -41,57 +38,33 @@ inline GuiList::GuiList(GuiEngine* guiEngine)
 inline void GuiList::SetDirection(eGuiListDirection dir)
 {
 	direction = dir;
-}
-
-inline Vector2f GuiList::MeasureChildren(const Vector2f& availableSize)
-{
-	Vector2f finalSize(0, 0);
-	for (Gui* child : GetChildren())
-	{
-		Vector2f childSize = child->Measure(Vector2f(FLT_MAX, FLT_MAX));
-
-		if (direction == eGuiListDirection::VERTICAL)
-		{
-			finalSize.y() += childSize.y();
-			finalSize.x() = std::max(finalSize.x(), childSize.x());
-		}
-		else if (direction == eGuiListDirection::HORIZONTAL)
-		{
-			finalSize.x() += childSize.x();
-			finalSize.y() = std::max(finalSize.y(), childSize.y());
-		}
-	}
-
-	return finalSize;
+	bDirtyLayout = true;
 }
 
 inline Vector2f GuiList::ArrangeChildren(const Vector2f& finalSize)
 {
 	Vector2f pos = GetContentPos();
-	Vector2f size(0, 0);
+	Vector2f selfSize(0, 0);
 	for (Gui* child : GetChildren())
 	{
-		Vector2f desiredSize = child->desiredSize;
-
+		Vector2f desiredSize = child->GetDesiredSize();
 		if (direction == eGuiListDirection::VERTICAL)
 		{
-			child->StretchFillParentHor();
-			child->Arrange(pos.x(), pos.y() + size.y(), desiredSize);
+			Vector2f sizeUsed = child->Arrange(pos.x(), pos.y() + selfSize.y(), desiredSize);
 
-			size.y() += desiredSize.y();
-			size.x() = std::max(size.x(), desiredSize.x());
+			selfSize.y() += sizeUsed.y();
+			selfSize.x() = std::max(selfSize.x(), sizeUsed.x());
 		}
 		else if (direction == eGuiListDirection::HORIZONTAL)
 		{
-			child->StretchFillParentVer();
-			child->Arrange(GetContentPosX() + size.x(), GetContentPosY(), desiredSize);
+			Vector2f sizeUsed = child->Arrange(pos.x() + selfSize.x(), pos.y(), desiredSize);
 
-			size.x() += desiredSize.x();
-			size.y() = std::max(size.y(), desiredSize.y());
+			selfSize.x() += sizeUsed.x();
+			selfSize.y() = std::max(selfSize.y(), sizeUsed.y());
 		}
 	}
 
-	return size;
+	return selfSize;
 }
 
 } // namespace inl::gui

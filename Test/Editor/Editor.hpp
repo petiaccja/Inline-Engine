@@ -70,6 +70,9 @@ Editor::Editor()
 	SetWindowPos(gameHwnd, editorHwnd, 300, 300, 150, 150, 0);
 	SetParent(gameHwnd, editorHwnd);
 	
+	// Resize window, non client area removal made it's size wrong
+	wnd->SetRect({ 0,0 }, { 800, 600 });
+
 	//DWORD style = GetWindowLong(b, GWL_STYLE); //get the b style
 	//style &= ~(WS_POPUP | WS_CAPTION); //reset the "caption" and "popup" bits
 	//style |= WS_CHILD; //set the "child" bit
@@ -87,9 +90,6 @@ Editor::Editor()
 
 	// Init Gui
 	InitGui();
-
-	// Resize window, non client area removal made it's size wrong
-	wnd->SetRect({ 0,0 }, { 800, 600 });
 }
 
 Editor::~Editor()
@@ -106,260 +106,23 @@ void Editor::InitGui()
 	// New Layer
 	mainLayer = guiE->AddLayer();
 
-	mainLayer->SetBorder(1, Color(120));
-
-	//GuiText* t = mainLayer->AddText();
-	//t->SetText(L"Nem igaz már hogy nem mûködik");
-	//t->SetBgColorForAllStates(Color::RED);
-	//t->SetRect(30, 130, 150, 40);
-	////t->AlignFitChildrenHor();
-	//
-	//GuiText* t2 = t->Clone();
-	//GuiText* t3 = t->Clone();
-	//t2->SetRect(50, 180, 150, 40);
-	//t3->SetRect(30, 230, 150, 40);
-	////t2->AlignFillParentHor(); // RICSI NEM MUKODIK akkor ha "container->AlignFitChildren()" meg van hívva
-	//
-	//t2->SetName("T2");
-	//t3->SetName("T3");
-	////t2->AlignFillParentHor();
-	////t3->AlignFillParentHor(); // RICSI NEM MUKODIK akkor ha "container->AlignFitChildren()" meg van hívva
-	////t2->AlignRight();
-	//// RICSI AlignLeft() nem kéne hogy declineolja a FitChildren - t...
-	//
-	//Gui* container2 = mainLayer->AddGui();
-	//container2->SetRect(50, 180, 160, 40);
-	//container2->SetBgColorForAllStates(Color::GREEN);
-	//container2->SetName("Green");
-	//container2->Add(t2);
-	//
-	////container2->AlignFitChildrenHor();
-	////container2->AlignFillParentHor();
-	////t3->AlignFitChildrenHor();
-	//// RICSI !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Ennek nem szabadna a
-	////t3->AlignLeft();
-	////t->AlignCenter();
-	////t->SetAlign(eGuiAlign::CENTER);
-	////GuiText* t2 = t->Clone();
-	//
-	////t->SetAlign(eGuiAlign::STRETCH_H);
-	////t->AlignStretchHorizontal();
-	////t->SetAutoWidth(true);
-	//
-	////t2->SetRect(100, 140, 100, 40);
-	//
-	//Gui* container = mainLayer->AddGui();
-	//container->SetRect(0, 100, 500, 200);
-	//container->SetBgColorForAllStates(Color::BLUE);
-	//container->SetName("Blue");
-	//container->Add(t);
-	//container->Add(container2);
-	//container->Add(t3);
-	////container->AlignFitChildren();
-	////container->AlignFitChildrenHor();
-	////container->Add(t2);
-	//
-	//Gui* container3 = mainLayer->AddGui();
-	//container3->SetRect(0, 100, 700, 450);
-	//container3->SetBgColorForAllStates(Color::WHITE);
-	//container3->Add(container);
-	//
-	////t2->StretchFillParentHor();
-	//t3->StretchFillParentHor();
-	////container2->StretchFillParentHor();
-	//container->StretchFitToChildrenHor();
-	////container->StretchFillParentVer();
-	////container3->StretchFitToChildrenHor();
-	//
-	//return;
-	//GuiButton* text = mainLayer->AddButton();
-	//text->SetText("LOLMAR_HAT_NEM_IGAZ");
-	//text->SetAutoSize(true);
-	//text->SetBgColorForAllStates(Color::RED);
-	////text->SetColor(Color(255)); // TODO !!!
-	//text->SetRect(100, 100, 10, 10);
-	// Arrange Measure test
-
-	//GuiButton* btn2 = mainLayer->AddButton();
-	//btn2->SetText(L"Button");
-	////btn2->SetBgColorForAllStates(Color(0));
-	//btn2->GetTextGui()->SetBgColorForAllStates(Color(50));
-	//btn2->GetTextGui()->SetAlign(eGuiAlign::STRETCH);
-	//btn2->SetBorder(3, Color::RED);
-	//btn2->SetPadding(10);
-	//
-	//btn2->SetRect(0, 0, 100, 200);
-	//btn2->SetContentAlign(eGuiAlign::CENTER);
-
-	// Arrange Measure test
-
-	//GuiList* list = mainLayer->AddList();
-	//GuiButton* btn = list->AddButton();
-	//btn->SetText("Button1asdasdasd");
-	//btn->SetMargin(5, 5, 5, 5);
-	////btn->SetPadding(4);
-	//////btn->SetAutoWidth(true);
-	////btn->SetBorder(1, Color(100));
-	////btn->SetAlign(eGuiAlign::STRETCH_H);
-	////btn->SetSize(btn->GetSize() + Vector2f(20, 20));
-	//GuiButton* btn2 = list->AddButton();
-	//btn2->SetText("Button2");
-	//btn2->SetMargin(0, 0, 0, 0);
-	////btn2->SetPadding(4);
-	////btn2->SetBorder(1, Color(100));
-	//list->SetBgColorForAllStates(Color(150));
-	//list->SetRect(0, 0, 100, 100);
-	//return;
-
-
-	//GuiList* list = mainLayer->AddList();
-	//GuiButton* btn0 = list->AddButton();
-	//btn0->SetText("Teszt");
-	//GuiButton* btn1 = list->AddButton();
-	//btn1->SetText("Teszt2");
-	//
-	//list->SetRect(100, 100, 200, 200);
-	//return;
-
-
-	//GuiList* list = mainLayer->AddList();
-	//GuiButton* btn0 = list->AddButton();
-	//GuiButton* btn1 = list->AddButton();
-	//btn0->SetText(L"First___");
-	//btn1->SetText(L"Second___");
-	//
-	//list->SetRect(0, 0, 100, 200);
-	// Gui collapsable
-	//{
-	//	GuiCollapsable* collapsable = mainLayer->AddCollapsable();
-	//	collapsable->SetName("collapsable");
-	//	collapsable->SetCaptionText(L"Collapsable");
-	//	
-	//	collapsable->AddToList<GuiButton>()->SetText("LOL");
-	//	collapsable->AddToList<GuiButton>()->SetText("LOL2");
-	//	collapsable->SetRect(100, 100, 200, 30);
-	//	GuiCollapsable* collapsable2 = mainLayer->AddCollapsable();
-	//	collapsable2->SetName("Collapsable2");
-	//	collapsable2->SetCaptionText(L"Collapsable2");
-	//	collapsable2->SetRect(500, 520, 60, 30);
-	//	collapsable2->AddToList<GuiButton>()->SetText("LOL");
-	//	collapsable2->AddToList<GuiButton>()->SetText("LOL2");
-	//	
-	//	GuiCollapsable* collapsableList = mainLayer->AddCollapsable();
-	//	collapsableList->SetCaptionText(L"CaptionText");
-	//	collapsableList->SetName("CollapsableList");
-	//	collapsableList->AddToList(collapsable);
-	//	collapsableList->AddToList(collapsable2);
-	//	//collapsableList->SetFitToChildren(true);
-	//	collapsableList->SetRect(200, 200, 10, 10);
-	//	Gui* caption = collapsableList->GetCaption();
-	//	//caption->SetBgIdleColor(Color(20));
-	//	//caption->SetBgHoverColor(Color(0));
-	//
-	//
-	//	int asd = 5;
-	//	asd++;
-	//}
-
-
-
-	//auto list = mainLayer->AddList();
-	//auto btn0 = list->AddButton();
-	//auto btn1 = list->AddButton();
-	//btn0->SetText(L"short");
-	//btn1->SetText(L"long log long long long");
-	//list->SetRect(200, 200, 100, 200);
-
-
-	//auto list = mainLayer->AddList();
-	//auto btn0 = list->AddButton();
-	//auto btn1 = list->AddButton();
-	//btn0->SetText(L"LOL");
-	//btn1->SetText(L"LOL2e12321");
-	//list->SetBorder(1, Color::RED);
-	//btn0->SetBorder(1, Color::GREEN);
-	//btn0->SetName("GREEN");
-	//btn1->SetBorder(1, Color::BLUE);
-	//btn1->SetName("BLUE");
-	//
-	//auto list2 = list->Clone();
-	//
-	//list->Add(list2);
-	//
-	//list->SetRect(200, 200, 300, 300);
-	//return;
-
-	//mainLayer->SetBorder(10, Color(120));
+	// Layer border
+	mainLayer->SetBorder(1, Color(100));
 
 	// Caption bar
 	captionBar = mainLayer->AddGui();
 	captionBar->SetBgToColor(Color(43), Color(43));
 	captionBar->SetRect(0, 0, 100, 26);
 
-	//static bool bDragging = false;
-	//static Vector2i mousePosWhenPressed;
-	//static RECT rectWhenPressed;
-	//
-	//captionBar->onMousePressed += [](CursorEvent& evt)
-	//{
-	//	bDragging = true;
-	//	
-	//	GetWindowRect((HWND)window->GetHandle(), &rectWhenPressed);
-	//
-	//	POINT p;
-	//	p.x = evt.cursorContentPos.x();
-	//	p.y = evt.cursorContentPos.y();
-	//	ClientToScreen((HWND)window->GetHandle(), &p);
-	//	mousePosWhenPressed.x() = p.x;
-	//	mousePosWhenPressed.y() = p.y;
-	//};
-	//
-	//captionBar->onMouseMoved += [](CursorEvent& evt)
-	//{
-	//	
-	//};
-	//
-	//captionBar->onUpdate += [](float deltaTime)
-	//{
-	//	if (GetKeyState(VK_LBUTTON) > 0)
-	//	{
-	//		bDragging = false;
-	//	}
-	//
-	//	if (bDragging)
-	//	{
-	//		//Vector2i mouseDelta = evt.mouseDelta;
-	//
-	//		RECT finalRect = rectWhenPressed;
-	//
-	//		Vector2i mousePos;
-	//		POINT p;
-	//		//p.x = evt.cursorContentPos.x();
-	//		//p.y = evt.cursorContentPos.y();
-	//		//ClientToScreen((HWND)window->GetHandle(), &p);
-	//		GetCursorPos(&p);
-	//		mousePos.x() = p.x;
-	//		mousePos.y() = p.y;
-	//
-	//		finalRect.left += mousePos.x() - mousePosWhenPressed.x();
-	//		finalRect.right += mousePos.x() - mousePosWhenPressed.x();
-	//
-	//		finalRect.top += mousePos.y() - mousePosWhenPressed.y();
-	//		finalRect.bottom += mousePos.y() - mousePosWhenPressed.y();
-	//
-	//		SetWindowPos((HWND)window->GetHandle(), false, finalRect.left, finalRect.top, finalRect.right - finalRect.left, finalRect.bottom - finalRect.top, 0);
-	//		UpdateWindow((HWND)window->GetHandle());
-	//	}
-	//};
-
 	// Minimize, Maximize, Close btn
 	GuiList* minMaxCloseList = mainLayer->AddList();
+	minMaxCloseList->SetName(L"MINMAX");
+	minMaxCloseList->StretchFitToChildren();
 	minimizeBtn = mainLayer->AddButton();
 	maximizeBtn = mainLayer->AddButton();
 	closeBtn = mainLayer->AddButton();
 
 	minimizeBtn->onMouseClicked += [this](CursorEvent& evt) { wnd->MinimizeSize(); };
-	
 	maximizeBtn->onMouseClicked += [this](CursorEvent& evt)
 	{
 		if (bWndMaximized)
@@ -367,7 +130,6 @@ void Editor::InitGui()
 		else
 			wnd->MaximizeSize();
 	};
-
 	closeBtn->onMouseClicked += [this](CursorEvent& evt) { wnd->Close(); };
 
 	minimizeBtn->InitFromImage(L"Resources/minimize.png", L"Resources/minimize_h.png");
@@ -382,290 +144,71 @@ void Editor::InitGui()
 
 	// Editor caption text
 	GuiText* inlineEngineText = mainLayer->AddText();
+	inlineEngineText->SetFontSize(14);
+	inlineEngineText->SetFontStyle(Gdiplus::FontStyle::FontStyleBold);
 	inlineEngineText->SetText(L"Inline Editor");
 	inlineEngineText->AlignCenterVer();
-	inlineEngineText->StretchFillParentHor();
+	inlineEngineText->StretchHorFillParent();
 	inlineEngineText->SetMarginLeft(7);
 
 	captionBar->Add(inlineEngineText);
 	captionBar->Add(minMaxCloseList);
-	captionBar->StretchFillParentHor();
-	captionBar->SetName(L"CAPTION_BAR");
-	//Gui* image = mainLayer->AddImage(L"Resources/minimize.png", L"Resources/minimize_h.png");
-
-	//Gui* minimizeBtn = Gui::FromImage(L"Resources/minimize.png", L"Resources/minimize_h.png");
-	//mainLayer->AddGui(minimizeBtn);
-
-	//Gui* minimizeBtn = mainLayer->Add(Gui::FromImage(L"Resources/minimize.png", L"Resources/minimize_h.png"));
-	//minimizeBtn->SetBgIdleImage(L"Resources/minimize.png");
-	//minimizeBtn->SetBgHoverImage(L"Resources/minimize_h.png");
-	//minimizeBtn->SetSizeFromBgImage();
-	//minimizeBtn->SetRect(100, 100, 50, 50);
-
-	//auto collapse = mainLayer->AddCollapsable();
-	//collapse->SetName("Collapse");
-	//
-	//collapse->SetCaptionText(L"Collapsable Control");
-	//auto btn0 = collapse->AddToList<GuiButton>();
-	//auto btn1 = collapse->AddToList<GuiButton>();
-	//btn0->SetText(L"Short");
-	//btn1->SetText(L"Long long long long");
-	//
-	//auto collapse2 = collapse->Clone();
-	//collapse2->SetName(L"EZAZ");
-	//collapse->AddToList(collapse2);
-	//
-	////btn0->SetBorder(1, Color::WHITE);
-	////btn1->SetBorder(1, Color::BLUE);
-	//collapse2->SetBorder(1, Color::BLUE);
-	//collapse->SetBorder(1, Color::RED);
-	////collapse->AddToList(collapse->Clone());
-	//
-	//collapse->SetRect(200, 200, 200, 200);
-	return;
-
-
-
-
-
-	//auto button = mainLayer->AddButton();
-	//button->SetRect(0, 0, 100, 100);
-	//button->SetText("halleluja");
-	//button->SetBgToColor(Color(30), Color(100));
-	// Control List
-	//eTextAlign align = eTextAlign::CENTER;
-	//GuiList* list = mainLayer->AddList();
-	//GuiButton* button = list->AddButton();
-	//button->SetText("File");
-	//button->SetTextAlign(align);
-	//GuiButton* button1 = list->AddButton();
-	//button1->SetText("Edit");
-	//button1->SetTextAlign(align);
-	//GuiButton* button2 = list->AddButton();
-	//button2->SetText("Project");
-	//button2->SetTextAlign(align);
-	//GuiButton* button3 = list->AddButton();
-	//button3->SetText("Resources");
-	//button3->SetTextAlign(align);
-	//GuiButton* button4 = list->AddButton();
-	//button4->SetText("Help");
-	//button4->SetTextAlign(align);
-	//list->SetDirection(eGuiListDirection::HORIZONTAL);
-
-	//GuiList* menu = mainLayer->AddList();
-	//GuiButton* fileBtn = menu->AddButton();
-	//fileBtn->SetText("File");
-	//GuiButton* editBtn = menu->AddButton();
-	//editBtn->SetText("Edit");
-	//GuiButton* projectBtn = menu->AddButton();
-	//projectBtn->SetText("Projects");
-	//menu->SetRect(0, 0, 200, 30);
-
-
-
-	//GuiButton* button = mainLayer->AddButton();
-	//GuiButton* button2 = mainLayer->AddButton();
-	//GuiButton* button3 = mainLayer->AddButton();
+	captionBar->StretchHorFillParent();
+	captionBar->SetPos(0, 1);
 
 	// Menu
-	{
-		// Control List
-		eTextAlign align = eTextAlign::CENTER;
-		GuiList* list = mainLayer->AddList();
-		list->SetBorder(1, Color::RED);
-		GuiButton* button = list->AddButton();
-		button->SetText("File");
-		//button->SetTextAlign(align);
-		button->SetPadding(4, 4, 4, 4);
-		GuiButton* button1 = list->AddButton();
-		button1->SetText("Edit");
-		//button1->SetTextAlign(align);
-		button1->SetPadding(4, 4, 4, 4);
-		GuiButton* button2 = list->AddButton();
-		button2->SetText("Project");
-		//button2->SetTextAlign(align);
-		button2->SetPadding(4, 4, 4, 4);
-		GuiButton* button3 = list->AddButton();
-		button3->SetText("Resources");
-		//button3->SetTextAlign(align);
-		button3->SetPadding(4, 4, 4, 4);
-		GuiButton* button4 = list->AddButton();
-		button4->SetText("Help");
-		//button4->SetTextAlign(align);
-		button4->SetPadding(4, 4, 4, 4);
-		list->SetDirection(eGuiListDirection::HORIZONTAL);
-
-		list->SetBgColorForAllStates(Color(0));
-		list->SetRect(0, 0, 0, 0);
-		//{
-		//	auto button = mainLayer->AddButton();
-		//	button->SetBgToColor(Color(55, 55, 55), Color(80, 80, 80));
-		//	button->SetRect(0, 0, 60, 22);
-		//	button->SetText("File");
-		//}
-		//
-		////button->onClick += [](CursorEvent& evt) {MessageBoxA(NULL, "Click", "Click", MB_OK); };
-		////button->onPress += [](CursorEvent& evt) {MessageBoxA(NULL, "Press", "Press", MB_OK); };
-		////button->onRelease += [](CursorEvent& evt) {MessageBoxA(NULL, "Release", "Release", MB_OK); };
-		////button->onMouseEnter += [](CursorEvent& evt) {MessageBoxA(NULL, "Enter", "Enter", MB_OK); };
-		////button->onMouseLeave += [](CursorEvent& evt) {MessageBoxA(NULL, "Leave", "Leave", MB_OK); };
-		////button->onMouseHover += [](CursorEvent& evt) {MessageBoxA(NULL, "Hover", "Hover", MB_OK); };
-		//
-		//button2 = mainLayer->AddButton();
-		//button2->SetBackgroundToColor(Color(55, 55, 55), Color(80, 80, 80));
-		//button2->SetRect(61, 0, 60, 22);
-		//button2->SetText("Edit");
-		//
-		//button3 = mainLayer->AddButton();
-		//button3->SetBackgroundToColor(Color(55, 55, 55), Color(80, 80, 80));
-		//button3->SetRect(122, 0, 60, 22);
-		//button3->SetText("About");
-		//
-		//button3 = mainLayer->AddButton();
-		//button3->SetBackgroundToColor(Color(55, 55, 55), Color(80, 80, 80));
-		//button3->SetRect(122, 0, 60, 22);
-		//button3->SetText("About");
-	}
-	//
-	//
-	//// Node1
 	//{
-	//int x = 400;
-	//int y = 100;
-	//Vector2f pinSize = { 10, 10 };
-	//float pinSpace = 20.f;
-	//button = mainLayer->AddButton();
-	//button->SetBgToColor(Color(55), Color(80));
-	//button->SetName("NODE");
-	//button->SetRect(x, y, 60, 60);
-	//button->SetText("Node1");
-	//button->onMouseClick += [](Gui* self, CursorEvent& evt) {MessageBoxA(NULL, "Node1Click", "Node1Click", MB_OK); };
-	//GuiButton* pin0 = button->AddButton();
-	//pin0->SetName("PIN");
-	//pin0->SetBgToColor(Color(255), Color(255));
-	//pin0->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5, pinSize.x, pinSize.y);
-	//pin0->onMouseClick += [](Gui* self, CursorEvent& evt) {MessageBoxA(NULL, "pin0Click", "pin0Click", MB_OK); };
-	//GuiButton* pin1 = button->AddButton();
-	//pin1->SetBgToColor(Color(100), Color(150));
-	//pin1->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace, pinSize.x, pinSize.y);
-	//pin1->onMouseClick += [](Gui* self, CursorEvent& evt) {MessageBoxA(NULL, "pin1Click", "pin1Click", MB_OK); };
-	//GuiButton* pin2 = button->AddButton();
-	//pin2->SetBgToColor(Color(100), Color(150));
-	//pin2->SetRect(x - pinSize.x * 0.5, y + pinSize.y * 0.5 + pinSpace * 2.f, pinSize.x, pinSize.y);
-	//pin2->onMouseClick += [](Gui* self, CursorEvent& evt) {MessageBoxA(NULL, "pin2Click", "pin2Click", MB_OK); };
-	//GuiButton* outputPin = button->AddButton();
-	//outputPin->SetBgToColor(Color(100), Color(150));
-	//outputPin->SetRect(x + 60 - pinSize.x * 0.5, y + 30 - pinSize.y * 0.5, pinSize.x, pinSize.y);
-	//outputPin->onMouseClick += [](Gui* self, CursorEvent& evt) {MessageBoxA(NULL, "outputPin", "outputPin", MB_OK); };
+	//	// Control List
+	//	eTextAlign align = eTextAlign::CENTER;
+	//	GuiList* list = mainLayer->AddList();
+	//	GuiButton* button = list->AddButton();
+	//	button->SetText("File");
+	//	GuiButton* button1 = list->AddButton();
+	//	button1->SetText("Edit");
+	//	GuiButton* button2 = list->AddButton();
+	//	button2->SetText("Project");
+	//	GuiButton* button3 = list->AddButton();
+	//	button3->SetText("Resources");
+	//	GuiButton* button4 = list->AddButton();
+	//	button4->SetText("Help");
+	//	list->SetDirection(eGuiListDirection::HORIZONTAL);
+	//
+	//	list->SetBgColorForAllStates(Color(0));
+	//	list->SetRect(1, captionBar->GetHeight(), 400, 400);
+	//	list->SetBorder(4, Color::RED);
+	//	list->SetName("THELIST");
+	//
+	//	list->StretchFitToChildren();
+	//	for (Gui* c : list->GetChildren())
+	//	{
+	//		c->StretchFitToChildren();
+	//		c->SetMargin(5);
+	//		c->SetPadding(5);
+	//	}
+	//
+	//	auto secondList = list->Clone();
+	//	secondList->SetName("THELIST222");
+	//	secondList->SetBorder(4, Color::BLUE);
+	//	list->Add(secondList);
+	//	
+	//	auto thirdList = secondList->Clone();
+	//	thirdList->SetName("THELIST333");
+	//	thirdList->SetBorder(4, Color::GREEN);
+	//	secondList->Add(thirdList);
+	//
+	//	int asd = 5;
+	//	asd++;
 	//}
 
-	Gui* node2;
-	//Node2
-	{
-		int x = 300;
-		int y = 100;
-		Vector2f pinSize = { 10, 10 };
-		float pinSpace = 20.f;
-		GuiButton* button = mainLayer->AddButton();
-		button->DisableClipChildren();
-
-		//button->DisableClip();
-		button->SetBgToColor(Color(45), Color(50));
-		button->SetRect(x, y, 60, 60);
-		button->SetText("Node2");
-		button->AlignCenter();
-		GuiButton* pin0 = button->AddButton();
-		node2 = pin0;
-		//pin0->DisableClip();
-		pin0->SetBgToColor(Color(120), Color(180));
-		pin0->SetRect(x - pinSize.x() * 0.5, y + pinSize.y() * 0.5, pinSize.x(), pinSize.y());
-		GuiButton* pin1 = button->AddButton();
-		//pin1->DisableClip();
-		pin1->SetBgToColor(Color(120), Color(180));
-		pin1->SetRect(x - pinSize.x() * 0.5, y + pinSize.y() * 0.5 + pinSpace, pinSize.x(), pinSize.y());
-		GuiButton* pin2 = button->AddButton();
-		pin2->SetBgToColor(Color(120), Color(180));
-		pin2->SetRect(x - pinSize.x() * 0.5, y + pinSize.y() * 0.5 + pinSpace * 2.f, pinSize.x(), pinSize.y());
-		//pin2->DisableClip();
-		GuiButton* outputPin = button->AddButton();
-		outputPin->SetBgToColor(Color(120), Color(180));
-		outputPin->SetRect(x + 60 - pinSize.x() * 0.5, y + 30 - pinSize.y() * 0.5, pinSize.x(), pinSize.y());
-		//outputPin->DisableClip();
-	}
-
-
-	{
-		// Control List
-		eTextAlign align = eTextAlign::LEFT;
-
-		GuiList* list = mainLayer->AddList();
-		list->SetBorder(1, Color(0, 0, 255));
-		list->SetDirection(eGuiListDirection::HORIZONTAL);
-
-		GuiButton* button = list->AddButton();
-		button->SetBorder(1, Color(255, 0, 0));
-		button->SetText("Button");
-		//button->SetTextAlign(align);
-
-		GuiButton* button1 = list->AddButton();
-		button1->SetText("Text");
-		//button1->SetTextAlign(align);
-		button1->SetBorder(1, Color(0, 255, 0));
-
-		list->SetRect(0, 70, 60, 600);
-
-		//GuiList* clone = list->Clone();
-		//list->Add(clone);
-		//list->SetRect(50, 200, 60, 600);
-		int asd = 5;
-		asd++;
-	}
-
-	{
-		// Control List
-		eTextAlign align = eTextAlign::LEFT;
-		GuiList* list = mainLayer->AddList();
-		GuiButton* button = list->AddButton();
-		button->SetText("Disconnect");
-		//button->SetTextAlign(align);
-		//button->SetRect(0, 0, 10, 20);
-		GuiButton* button1 = list->AddButton();
-		button1->SetText(L"Amit csak ákársz vaze");
-		//button1->SetTextAlign(align);
-		//button1->SetRect(0, 0, 10, 20);
-		//list->SetStride(25);
-		list->SetRect(0, 70, 150, 600);
-		GuiList* clone = list->Clone();
-		clone->Remove(); // TODO clone policy, without parenting
-		node2->SetContextMenu(clone);
-		list->Remove();
-	}
-
-	// Slider o yeah
-	{
-		GuiSlider* slider = mainLayer->AddSlider();
-		slider->SetRect(200, 500, 100, 15);
-
-		GuiSlider* slider2 = mainLayer->AddSlider();
-		slider2->SetValue(0.7);
-		slider2->SetRect(200, 520, 100, 15);
-
-		GuiSlider* slider3 = mainLayer->AddSlider();
-		slider3->SetValue(0.5);
-		slider3->SetRect(200, 540, 100, 15);
-	}
-
-	////Image test
-	//{
-	//	Gui* p = mainLayer->AddPlane();
-	//	//p->SetImageForAllStates(L"c:\\UE4Interface_5.jpg");
-	//	p->SetRect(0, 0, 800, 200);
-	//	Gui* clone = p->Clone();
-	//	clone->SetRect(0, 200, 800, 200);
-	//	//p->Clone()->SetRect(0, 400, 800, 200);
-	//	//p->Clone()->SetRect(0, 600, 800, 200);
-	//	//p->Clone()->SetRect(0, 800, 800, 200);
-	//}
+	//auto btnn = mainLayer->AddButton();
+	//btnn->SetText(L"Loller");
+	//btnn->SetPos(200, 200);
+	// TESZT
+	//auto btn = mainLayer->AddButton();
+	//btn->SetText("File");
+	//btn->SetName("FileButton");
+	//btn->GetTextGui()->SetName("FileTextGui");
+	//btn->SetRect(100, 100, 100, 100);
 }
 
 void Editor::Run()
@@ -695,7 +238,7 @@ void Editor::Run()
 		// Update engine
 		core->Update(deltaTime);
 
-		//Sleep(200);
+		//Sleep(30);
 	}
 	
 	delete timer;
@@ -838,19 +381,19 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			return HTBOTTOM;
 		}
-		else if (closeBtn->IsCursorInside())
+		else if (closeBtn && closeBtn->IsCursorInside())
 		{
 			// HTNOWHERE
 		}
-		else if (maximizeBtn->IsCursorInside())
+		else if (maximizeBtn && maximizeBtn->IsCursorInside())
 		{
 			// HTNOWHERE
 		}
-		else if (minimizeBtn->IsCursorInside())
+		else if (minimizeBtn && minimizeBtn->IsCursorInside())
 		{
 			// HTNOWHERE
 		}
-		else if (captionBar->IsCursorInside())
+		else if (captionBar && captionBar->IsCursorInside())
 		{
 			return HTCAPTION;
 		}

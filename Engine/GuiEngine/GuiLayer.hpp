@@ -13,25 +13,16 @@ class GuiLayer : public Gui
 public:
 	GuiLayer(GuiEngine* guiEngine);
 
-	virtual Vector2f MeasureChildren(const Vector2f& availableSize);
 	virtual Vector2f ArrangeChildren(const Vector2f& finalSize);
 
 protected:
 	GuiEngine* guiEngine;
 };
 
-inline Vector2f GuiLayer::MeasureChildren(const Vector2f& availableSize)
-{
-	for (Gui* child : GetChildren())
-		child->Measure(child->GetSize());
-
-	return GetSize();
-}
-
 inline Vector2f GuiLayer::ArrangeChildren(const Vector2f& finalSize)
 {
 	for (Gui* child : GetChildren())
-		child->Arrange(child->GetPos(), child->desiredSize);
+		child->Arrange(child->GetPos(), child->GetDesiredSize());
 
 	return GetSize();
 }
