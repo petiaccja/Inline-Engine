@@ -201,9 +201,6 @@
     <ClInclude Include="PipelineTypes.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
-    <ClInclude Include="VolatileViewHeap.hpp">
-      <Filter>Middleware</Filter>
-    </ClInclude>
     <ClInclude Include="RootTableManager.hpp">
       <Filter>Middleware</Filter>
     </ClInclude>
@@ -272,6 +269,9 @@
     </ClInclude>
     <ClInclude Include="Nodes\NodeUtility.hpp">
       <Filter>Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="VolatileViewHeap.hpp">
+      <Filter>MemoryManagement\Descriptors</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -366,9 +366,6 @@
     <ClCompile Include="DirectionalLight.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="VolatileViewHeap.cpp">
-      <Filter>Middleware</Filter>
-    </ClCompile>
     <ClCompile Include="PipelineTypes.cpp">
       <Filter>Pipeline</Filter>
     </ClCompile>
@@ -416,6 +413,9 @@
     </ClCompile>
     <ClCompile Include="Nodes\NodeUtility.cpp">
       <Filter>Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="VolatileViewHeap.cpp">
+      <Filter>MemoryManagement\Descriptors</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

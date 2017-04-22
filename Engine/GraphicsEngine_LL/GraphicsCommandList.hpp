@@ -16,7 +16,9 @@ public:
 	GraphicsCommandList(
 		gxapi::IGraphicsApi* gxApi,
 		CommandAllocatorPool& commandAllocatorPool,
-		ScratchSpacePool& scratchSpacePool);
+		ScratchSpacePool& scratchSpacePool,
+		MemoryManager& memoryManager,
+		VolatileViewHeap& volatileCbvHeap);
 	GraphicsCommandList(const GraphicsCommandList& rhs) = delete;
 	GraphicsCommandList(GraphicsCommandList&& rhs);
 	GraphicsCommandList& operator=(const GraphicsCommandList& rhs) = delete;
@@ -83,7 +85,7 @@ public:
 	void BindGraphics(BindParameter parameter, const TextureView2D& shaderResource);
 	void BindGraphics(BindParameter parameter, const TextureView3D& shaderResource);
 	void BindGraphics(BindParameter parameter, const ConstBufferView& shaderConstant);
-	void BindGraphics(BindParameter parameter, const void* shaderConstant, int size, int offset);
+	void BindGraphics(BindParameter parameter, const void* shaderConstant, int size/*, int offset*/);
 	void BindGraphics(BindParameter parameter, const RWTextureView1D& rwResource);
 	void BindGraphics(BindParameter parameter, const RWTextureView2D& rwResource);
 	void BindGraphics(BindParameter parameter, const RWTextureView3D& rwResource);

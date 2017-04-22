@@ -2,6 +2,11 @@
 
 #include "RootTableManager.hpp"
 #include "ResourceView.hpp"
+#include "MemoryManager.hpp"
+#include "VolatileViewHeap.hpp"
+
+#include <GraphicsApi_LL/IGraphicsApi.hpp>
+
 #include <stdexcept>
 
 
@@ -12,7 +17,7 @@ template <gxapi::eCommandListType Type>
 class BindingManager : protected RootTableManager<Type> {
 public:
 	BindingManager();
-	BindingManager(gxapi::IGraphicsApi* graphicsApi, CommandListT* commandList);
+	BindingManager(gxapi::IGraphicsApi* graphicsApi, CommandListT* commandList, MemoryManager* memoryManager, VolatileViewHeap* volatileCbvHeap);
 
 	using RootTableManager::SetBinder;
 	using RootTableManager::SetDescriptorHeap;
@@ -22,7 +27,10 @@ public:
 	void Bind(BindParameter parameter, const TextureView2D& shaderResource);
 	void Bind(BindParameter parameter, const TextureView3D& shaderResource);
 	void Bind(BindParameter parameter, const ConstBufferView& shaderConstant);
-	void Bind(BindParameter parameter, const void* shaderConstant, int size, int offset);
+
+	//! Offset was removed because:
+	//! When implicitly creating a CBV to accomodate data, previously set bytes cannot be retrieved, thus bytes before offset cannot be defined.
+	void Bind(BindParameter parameter, const void* shaderConstant, int size/*, int offset*/);
 
 	void Bind(BindParameter parameter, const RWTextureView1D& rwResource);
 	void Bind(BindParameter parameter, const RWTextureView2D& rwResource);
@@ -37,6 +45,9 @@ protected:
 private:
 	void BindTexture(BindParameter parameter, gxapi::DescriptorHandle handle);
 	void BindUav(BindParameter parameter, gxapi::DescriptorHandle handle);
+private:
+	MemoryManager* m_memoryManager;
+	VolatileViewHeap* m_volatileCbvHeap;
 };
 
 
@@ -46,8 +57,8 @@ BindingManager<Type>::BindingManager()
 {}
 
 template <gxapi::eCommandListType Type>
-BindingManager<Type>::BindingManager(gxapi::IGraphicsApi* graphicsApi, CommandListT* commandList)
-	: RootTableManager(graphicsApi, commandList)
+BindingManager<Type>::BindingManager(gxapi::IGraphicsApi* graphicsApi, CommandListT* commandList, MemoryManager* memoryManager, VolatileViewHeap* volatileCbvHeap)
+	: RootTableManager(graphicsApi, commandList), m_memoryManager(memoryManager), m_volatileCbvHeap(volatileCbvHeap)
 {}
 
 
@@ -109,7 +120,7 @@ void BindingManager<Type>::Bind(BindParameter parameter, const ConstBufferView& 
 
 
 template <gxapi::eCommandListType Type>
-void BindingManager<Type>::Bind(BindParameter parameter, const void* shaderConstant, int size, int offset) {
+void BindingManager<Type>::Bind(BindParameter parameter, const void* shaderConstant, int size /*, int offset*/) {
 	if (size % 4 != 0) {
 		throw std::invalid_argument("Size must be a multiple of 4.");
 	}
@@ -121,8 +132,22 @@ void BindingManager<Type>::Bind(BindParameter parameter, const void* shaderConst
 	m_binder->Translate(parameter, slot, tableIndex); // may throw out of range
 
 	if (desc.rootParameters[slot].type == gxapi::RootParameterDesc::CONSTANT) {
-		assert(desc.rootParameters[slot].As<gxapi::RootParameterDesc::CONSTANT>().numConstants >= unsigned(size + offset) / 4);
-		SetRootConstants(m_commandList, slot, offset, size / 4, reinterpret_cast<const uint32_t*>(shaderConstant));
+		assert(desc.rootParameters[slot].As<gxapi::RootParameterDesc::CONSTANT>().numConstants >= unsigned(size /*+ offset*/) / 4);
+		SetRootConstants(m_commandList, slot, /*offset*/0, size / 4, reinterpret_cast<const uint32_t*>(shaderConstant));
+	}
+	else if (desc.rootParameters[slot].type == gxapi::RootParameterDesc::CBV) {
+		// we have to create a volatile CB right here, to accomodate immediate arguments which don't fit in root signature
+		VolatileConstBuffer cbuffer = m_memoryManager->CreateVolatileConstBuffer(shaderConstant, size);
+		SetRootConstantBuffer(m_commandList, slot, cbuffer.GetVirtualAddress());
+	}
+	else if (desc.rootParameters[slot].type == gxapi::RootParameterDesc::DESCRIPTOR_TABLE) {
+		// we have to create a CBV, and add it to the descriptor table
+		VolatileConstBuffer cbuffer = m_memoryManager->CreateVolatileConstBuffer(shaderConstant, size);
+		gxapi::DescriptorHandle cbv = m_volatileCbvHeap->Allocate();
+		gxapi::ConstantBufferViewDesc desc;
+		desc.gpuVirtualAddress = cbuffer.GetVirtualAddress();
+		desc.sizeInBytes = size;
+		m_graphicsApi->CreateConstantBufferView(desc, cbv);
 	}
 	else {
 		throw std::invalid_argument("Parameter is not an inline constant.");

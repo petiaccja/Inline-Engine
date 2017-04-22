@@ -1,4 +1,6 @@
 #include "ComputeCommandList.hpp"
+#include "MemoryManager.hpp"
+#include "VolatileViewHeap.hpp"
 
 
 namespace inl {
@@ -11,13 +13,15 @@ namespace gxeng {
 ComputeCommandList::ComputeCommandList(
 	gxapi::IGraphicsApi* gxApi,
 	CommandAllocatorPool& commandAllocatorPool,
-	ScratchSpacePool& scratchSpacePool
+	ScratchSpacePool& scratchSpacePool,
+	MemoryManager& memoryManager,
+	VolatileViewHeap& volatileCbvHeap
 ) :
 	CopyCommandList(gxApi, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::COMPUTE)
 {
 	m_commandList = dynamic_cast<gxapi::IComputeCommandList*>(GetCommandList());
 
-	m_computeBindingManager = BindingManager<gxapi::eCommandListType::COMPUTE>(m_graphicsApi, m_commandList);
+	m_computeBindingManager = BindingManager<gxapi::eCommandListType::COMPUTE>(m_graphicsApi, m_commandList, &memoryManager, &volatileCbvHeap);
 	m_computeBindingManager.SetDescriptorHeap(GetCurrentScratchSpace());
 }
 
@@ -25,13 +29,15 @@ ComputeCommandList::ComputeCommandList(
 	gxapi::IGraphicsApi* gxApi,
 	CommandAllocatorPool& commandAllocatorPool,
 	ScratchSpacePool& scratchSpacePool,
+	MemoryManager& memoryManager,
+	VolatileViewHeap& volatileCbvHeap,
 	gxapi::eCommandListType type
 ) :
 	CopyCommandList(gxApi, commandAllocatorPool, scratchSpacePool, type)
 {
 	m_commandList = dynamic_cast<gxapi::IComputeCommandList*>(GetCommandList());
 
-	m_computeBindingManager = BindingManager<gxapi::eCommandListType::COMPUTE>(m_graphicsApi, m_commandList);
+	m_computeBindingManager = BindingManager<gxapi::eCommandListType::COMPUTE>(m_graphicsApi, m_commandList, &memoryManager, &volatileCbvHeap);
 	m_computeBindingManager.SetDescriptorHeap(GetCurrentScratchSpace());
 }
 
@@ -129,13 +135,13 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const ConstBufferV
 	}
 }
 
-void ComputeCommandList::BindCompute(BindParameter parameter, const void* shaderConstant, int size, int offset) {
+void ComputeCommandList::BindCompute(BindParameter parameter, const void* shaderConstant, int size/*, int offset*/) {
 	try {
-		m_computeBindingManager.Bind(parameter, shaderConstant, size, offset);
+		m_computeBindingManager.Bind(parameter, shaderConstant, size/*, offset*/);
 	}
 	catch (std::bad_alloc&) {
 		NewScratchSpace(1000);
-		m_computeBindingManager.Bind(parameter, shaderConstant, size, offset);
+		m_computeBindingManager.Bind(parameter, shaderConstant, size/*, offset*/);
 	}
 }
 

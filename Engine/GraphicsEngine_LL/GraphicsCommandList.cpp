@@ -1,7 +1,10 @@
 #include "GraphicsCommandList.hpp"
+#include "VolatileViewHeap.hpp"
+#include "MemoryManager.hpp"
 
 namespace inl {
 namespace gxeng {
+
 
 //------------------------------------------------------------------------------
 // Basic stuff
@@ -10,12 +13,14 @@ namespace gxeng {
 GraphicsCommandList::GraphicsCommandList(
 	gxapi::IGraphicsApi* gxApi,
 	CommandAllocatorPool& commandAllocatorPool,
-	ScratchSpacePool& scratchSpacePool
+	ScratchSpacePool& scratchSpacePool,
+	MemoryManager& memoryManager,
+	VolatileViewHeap& volatileCbvHeap
 ) :
-	ComputeCommandList(gxApi, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::GRAPHICS)
+	ComputeCommandList(gxApi, commandAllocatorPool, scratchSpacePool, memoryManager, volatileCbvHeap, gxapi::eCommandListType::GRAPHICS)
 {
 	m_commandList = dynamic_cast<gxapi::IGraphicsCommandList*>(GetCommandList());
-	m_graphicsBindingManager = BindingManager<gxapi::eCommandListType::GRAPHICS>(m_graphicsApi, m_commandList);
+	m_graphicsBindingManager = BindingManager<gxapi::eCommandListType::GRAPHICS>(m_graphicsApi, m_commandList, &memoryManager, &volatileCbvHeap);
 	m_graphicsBindingManager.SetDescriptorHeap(GetCurrentScratchSpace());
 }
 
@@ -228,13 +233,13 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const ConstBuffe
 	}
 }
 
-void GraphicsCommandList::BindGraphics(BindParameter parameter, const void* shaderConstant, int size, int offset) {
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const void* shaderConstant, int size/*, int offset*/) {
 	try {
-		m_graphicsBindingManager.Bind(parameter, shaderConstant, size, offset);
+		m_graphicsBindingManager.Bind(parameter, shaderConstant, size/*, offset*/);
 	}
 	catch (std::bad_alloc&) {
 		NewScratchSpace(1000);
-		m_graphicsBindingManager.Bind(parameter, shaderConstant, size, offset);
+		m_graphicsBindingManager.Bind(parameter, shaderConstant, size/*, offset*/);
 	}
 }
 

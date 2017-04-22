@@ -207,8 +207,8 @@ void DrawSky::Execute(RenderContext & context) {
 
 	camCB.pos = mathfu::Vector4f(perpectiveCamera->GetPosition(), 1);
 
-	commandList.BindGraphics(m_sunCbBindParam, &sunCB, sizeof(sunCB), 0);
-	commandList.BindGraphics(m_camCbBindParam, &camCB, sizeof(camCB), 0);
+	commandList.BindGraphics(m_sunCbBindParam, &sunCB, sizeof(sunCB));
+	commandList.BindGraphics(m_camCbBindParam, &camCB, sizeof(camCB));
 	commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
 	commandList.SetIndexBuffer(&m_fsqIndices, false);
 	commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());

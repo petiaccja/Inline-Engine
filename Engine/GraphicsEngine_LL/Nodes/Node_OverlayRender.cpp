@@ -130,8 +130,8 @@ void OverlayRender::Execute(RenderContext& context) {
 			mathfu::VectorPacked<float, 4> colorCBData;
 			color.Pack(&colorCBData);
 
-			commandList.BindGraphics(m_coloredPipeline.transformParam, transformCBData.data(), sizeof(transformCBData), 0);
-			commandList.BindGraphics(m_coloredPipeline.colorParam, colorCBData.data, sizeof(colorCBData), 0);
+			commandList.BindGraphics(m_coloredPipeline.transformParam, transformCBData.data(), sizeof(transformCBData));
+			commandList.BindGraphics(m_coloredPipeline.colorParam, colorCBData.data, sizeof(colorCBData));
 		}
 		else {
 			assert(renderType == OverlayEntity::TEXTURED);
@@ -139,7 +139,7 @@ void OverlayRender::Execute(RenderContext& context) {
 			commandList.SetGraphicsBinder(&m_texturedPipeline.binder.value());
 
 			commandList.BindGraphics(m_texturedPipeline.textureParam, *entity->GetTexture()->GetSrv());
-			commandList.BindGraphics(m_texturedPipeline.transformParam, transformCBData.data(), sizeof(transformCBData), 0);
+			commandList.BindGraphics(m_texturedPipeline.transformParam, transformCBData.data(), sizeof(transformCBData));
 		}
 
 		ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);

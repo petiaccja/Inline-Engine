@@ -279,7 +279,7 @@ void ForwardRender::Execute(RenderContext& context) {
 			}
 		}
 		if (scenario.constantsSize > 0) {
-			commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 200), materialConstants.data(), (int)materialConstants.size(), 0);
+			commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 200), materialConstants.data(), (int)materialConstants.size());
 		}
 
 		assert(m_directionalLights->Size() == 1);
@@ -296,8 +296,8 @@ void ForwardRender::Execute(RenderContext& context) {
 		lightConstants.direction = sun->GetDirection().Normalized();
 		lightConstants.color = sun->GetColor();
 
-		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 0), &vsConstants, sizeof(vsConstants), 0);
-		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 100), &lightConstants, sizeof(lightConstants), 0);
+		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 0), &vsConstants, sizeof(vsConstants));
+		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 100), &lightConstants, sizeof(lightConstants));
 
 		// Set primitives
 		vertexBuffers.clear(); sizes.clear(); strides.clear();

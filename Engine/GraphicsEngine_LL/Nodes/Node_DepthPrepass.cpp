@@ -195,7 +195,7 @@ void DepthPrepass::Execute(RenderContext & context) {
 		std::array<mathfu::VectorPacked<float, 4>, 4> transformCBData;
 		MVP.Pack(transformCBData.data());
 
-		commandList.BindGraphics(m_transformBindParam, transformCBData.data(), sizeof(transformCBData), 0);
+		commandList.BindGraphics(m_transformBindParam, transformCBData.data(), sizeof(transformCBData));
 
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());

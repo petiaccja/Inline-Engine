@@ -226,7 +226,7 @@ void CSM::Execute(RenderContext & context) {
 
 			uniformsCBData.cascadeIDX = cascadeIdx;
 
-			commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(uniformsCBData), 0);
+			commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(uniformsCBData));
 
 			commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 			commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
