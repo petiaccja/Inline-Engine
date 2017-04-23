@@ -38,14 +38,14 @@ public:
 		NodeIterator(const NodeIterator&) = default;
 		NodeIterator& operator=(const NodeIterator&) = default;
 
-		exc::NodeBase& operator*();
-		exc::NodeBase* operator->();
+		exc::NodeBase& operator*() const;
+		exc::NodeBase* operator->() const;
 
-		bool operator==(const NodeIterator&);
-		bool operator!=(const NodeIterator&);
+		bool operator==(const NodeIterator&) const;
+		bool operator!=(const NodeIterator&) const;
 
 		NodeIterator& operator++();
-		NodeIterator operator++(int);
+		NodeIterator operator++(int) const;
 	private:
 		lemon::ListDigraph::NodeIt m_graphIt;
 		const Pipeline* m_parent;
@@ -58,8 +58,8 @@ public:
 		ConstNodeIterator(const NodeIterator& rhs) : NodeIterator(rhs) {}
 		const exc::NodeBase& operator*() { return NodeIterator::operator*(); }
 		const exc::NodeBase* operator->() { return NodeIterator::operator->(); }
-		using NodeIterator::operator==;
-		using NodeIterator::operator!=;
+		bool operator==(const ConstNodeIterator& rhs) const { return NodeIterator::operator==(rhs); }
+		bool operator!=(const ConstNodeIterator& rhs) const { return NodeIterator::operator!=(rhs); }
 		using NodeIterator::operator++;
 	};
 
@@ -88,6 +88,8 @@ public:
 	NodeIterator end();
 	ConstNodeIterator begin() const;
 	ConstNodeIterator end() const;
+	ConstNodeIterator cbegin() const { return begin(); }
+	ConstNodeIterator cend() const { return end(); }
 
 	const lemon::ListDigraph& GetDependencyGraph() const;
 	const lemon::ListDigraph::NodeMap<std::shared_ptr<exc::NodeBase>>& GetNodeMap() const;

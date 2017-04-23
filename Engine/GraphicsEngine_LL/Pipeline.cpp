@@ -25,22 +25,22 @@ Pipeline::NodeIterator::NodeIterator()
 	: m_graphIt(lemon::INVALID), m_parent(nullptr)
 {}
 
-exc::NodeBase& Pipeline::NodeIterator::operator*() {
+exc::NodeBase& Pipeline::NodeIterator::operator*() const {
 	return *(operator->());
 }
 
-exc::NodeBase* Pipeline::NodeIterator::operator->() {
+exc::NodeBase* Pipeline::NodeIterator::operator->() const {
 	assert(m_parent != nullptr);
 	assert(m_parent->m_dependencyGraph.valid(m_graphIt));
 	return (m_parent->m_nodeMap[m_graphIt]).get();
 }
 
 
-bool Pipeline::NodeIterator::operator==(const NodeIterator& rhs) {
+bool Pipeline::NodeIterator::operator==(const NodeIterator& rhs) const {
 	return (m_parent == rhs.m_parent && m_graphIt == rhs.m_graphIt) || (m_parent == nullptr && rhs.m_parent == nullptr);
 }
 
-bool Pipeline::NodeIterator::operator!=(const NodeIterator& rhs) {
+bool Pipeline::NodeIterator::operator!=(const NodeIterator& rhs) const {
 	return !(*this == rhs);
 }
 
@@ -50,7 +50,7 @@ Pipeline::NodeIterator& Pipeline::NodeIterator::operator++() {
 	return *this;
 }
 
-Pipeline::NodeIterator Pipeline::NodeIterator::operator++(int) {
+Pipeline::NodeIterator Pipeline::NodeIterator::operator++(int) const {
 	return NodeIterator(m_parent, ++lemon::ListDigraph::NodeIt(m_graphIt));
 }
 

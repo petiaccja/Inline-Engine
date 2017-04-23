@@ -151,7 +151,7 @@ void Scheduler::Execute(FrameContext context) {
 
 
 void Scheduler::ReleaseResources() {
-	for (auto node : m_pipeline) {
+	for (exc::NodeBase& node : m_pipeline) {
 		if (GraphicsNode* ptr = dynamic_cast<GraphicsNode*>(&node)) {
 			ptr->Reset();
 		}
