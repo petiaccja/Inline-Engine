@@ -60,6 +60,29 @@ void ForwardRender::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
+void ForwardRender::Reset() {
+	m_rtv = RenderTargetView2D();
+	m_dsv = DepthStencilView2D();
+	m_entities = nullptr;
+	m_camera = nullptr;
+	m_directionalLights = nullptr;
+
+	m_shadowMapTexView = TextureView2D();
+	m_shadowMXTexView = TextureView2D();
+	m_csmSplitsTexView = TextureView2D();
+	m_lightMVPTexView = TextureView2D();
+
+	GetInput<0>().Clear();
+	GetInput<1>().Clear();
+	GetInput<2>().Clear();
+	GetInput<3>().Clear();
+	GetInput<4>().Clear();
+	GetInput<5>().Clear();
+	GetInput<6>().Clear();
+	GetInput<7>().Clear();
+	GetInput<8>().Clear();
+}
+
 
 void ForwardRender::Setup(SetupContext& context) {
 	auto& target = this->GetInput<0>().Get();

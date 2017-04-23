@@ -34,6 +34,16 @@ void DepthReductionFinal::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
+void DepthReductionFinal::Reset() {
+	m_reductionTexSrv = TextureView2D();
+	m_camera = nullptr;
+	m_suns = nullptr;
+
+	GetInput<0>().Clear();
+	GetInput<1>().Clear();
+	GetInput<2>().Clear();
+}
+
 
 void DepthReductionFinal::Setup(SetupContext& context) {
 	InitRenderTarget(context);
@@ -225,8 +235,8 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 
 
 void DepthReductionFinal::InitRenderTarget(SetupContext& context) {
-	if (!m_isInit) {
-		m_isInit = true;
+	if (!m_outputTexturesInited) {
+		m_outputTexturesInited = true;
 
 		using gxapi::eFormat;
 

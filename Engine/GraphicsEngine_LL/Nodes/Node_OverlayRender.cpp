@@ -45,6 +45,17 @@ void OverlayRender::Initialize(EngineContext& context) {
 }
 
 
+void OverlayRender::Reset() {
+	m_target = RenderTargetView2D();
+	m_entities = nullptr;
+	m_camera = nullptr;
+
+	GetInput<0>().Clear();
+	GetInput<1>().Clear();
+	GetInput<2>().Clear();
+}
+
+
 void OverlayRender::Setup(SetupContext& context) {
 	auto& target = this->GetInput<0>().Get();
 	gxapi::RtvTexture2DArray rtvDesc;

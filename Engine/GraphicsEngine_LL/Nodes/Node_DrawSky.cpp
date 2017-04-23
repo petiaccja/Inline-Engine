@@ -16,6 +16,18 @@ void DrawSky::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
+void DrawSky::Reset() {
+	m_rtv = RenderTargetView2D();
+	m_dsv = DepthStencilView2D();
+	m_camera = nullptr;
+	m_suns = nullptr;
+
+	GetInput<0>().Clear();
+	GetInput<1>().Clear();
+	GetInput<2>().Clear();
+	GetInput<3>().Clear();
+}
+
 
 void DrawSky::Setup(SetupContext & context) {
 

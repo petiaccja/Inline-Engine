@@ -26,7 +26,9 @@ public:
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
+
 	void Initialize(EngineContext& context) override;
+	void Reset() override;
 	void Setup(SetupContext& context) override;
 	void Execute(RenderContext& context) override;
 
@@ -49,11 +51,13 @@ protected:
 	BindParameter m_uniformsBindParam;
 	std::unique_ptr<gxapi::IPipelineState> m_CSO;
 
-private: // render context
-	bool m_isInit = false;
+protected: // outputs
+	bool m_outputTexturesInited = false;
 	RWTextureView2D m_light_mvp_uav;
 	RWTextureView2D m_shadow_mx_uav;
 	RWTextureView2D m_csm_splits_uav;
+
+protected: // render context
 	TextureView2D m_reductionTexSrv;
 	const BasicCamera* m_camera;
 	const EntityCollection<DirectionalLight>* m_suns;
