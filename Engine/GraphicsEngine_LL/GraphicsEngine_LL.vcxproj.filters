@@ -261,9 +261,6 @@
     <ClInclude Include="Nodes\Node_TextureProperties.hpp">
       <Filter>Nodes\General</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\ExampleTemplate.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
     <ClInclude Include="NodeContext.hpp">
       <Filter>Pipeline</Filter>
     </ClInclude>
@@ -272,6 +269,9 @@
     </ClInclude>
     <ClInclude Include="VolatileViewHeap.hpp">
       <Filter>MemoryManagement\Descriptors</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\ExampleNode.hpp">
+      <Filter>Nodes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

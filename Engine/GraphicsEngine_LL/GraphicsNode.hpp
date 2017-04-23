@@ -74,6 +74,7 @@ public:
 	GraphicsNode();
 
 	virtual void Initialize(EngineContext& context) = 0;
+	virtual void Reset() = 0;
 
 	const lemon::ListDigraph& GetTaskGraph() const;
 	const lemon::ListDigraph::NodeMap<GraphicsTask*>& GetTaskGraphMapping() const;
