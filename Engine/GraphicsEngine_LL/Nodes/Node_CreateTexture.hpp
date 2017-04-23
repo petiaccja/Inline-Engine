@@ -36,6 +36,10 @@ public:
 		GraphicsNode::SetTaskSingle(this);
 	}
 
+	virtual void Reset() override {
+		m_texture = {};
+	}
+
 	void Setup(SetupContext& context) override {
 		unsigned width = GetInput<0>().Get();
 		unsigned height = GetInput<1>().Get();

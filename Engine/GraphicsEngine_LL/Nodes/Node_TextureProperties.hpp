@@ -28,6 +28,9 @@ public:
 	virtual void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);
 	}
+	void Reset() override {
+		GetInput(0)->Clear();
+	}
 
 	void Setup(SetupContext& context) override {
 		const auto& texture = GetInput<0>().Get();

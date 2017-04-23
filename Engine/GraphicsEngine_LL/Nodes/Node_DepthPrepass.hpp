@@ -30,6 +30,7 @@ public:
 	void Notify(exc::InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override;
+	void Reset() override;
 	void Setup(SetupContext& context) override;
 	void Execute(RenderContext& context) override;
 	

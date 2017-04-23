@@ -57,6 +57,13 @@ void DepthPrepass::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
+void DepthPrepass::Reset() {
+	m_targetDsv = {};
+	GetInput(0)->Clear();
+	GetInput(1)->Clear();
+	GetInput(2)->Clear();
+}
+
 
 void DepthPrepass::Setup(SetupContext & context) {
 	auto& depthStencil = this->GetInput<0>().Get();

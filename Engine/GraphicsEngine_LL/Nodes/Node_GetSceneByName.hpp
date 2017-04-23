@@ -32,6 +32,7 @@ public:
 	void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);
 	}
+	void Reset() override {}
 
 	void Setup(SetupContext& context) {
 		// read scene name from input port

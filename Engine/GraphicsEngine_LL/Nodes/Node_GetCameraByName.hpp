@@ -31,6 +31,7 @@ public:
 	void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);
 	}
+	void Reset() override {}
 
 	void Setup(SetupContext& context) {
 		// read camera name from input port
