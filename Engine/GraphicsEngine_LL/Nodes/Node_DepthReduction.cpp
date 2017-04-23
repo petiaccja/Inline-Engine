@@ -47,6 +47,13 @@ void DepthReduction::Initialize(EngineContext & context) {
 	SetTaskSingle(this);
 }
 
+void DepthReduction::Reset() {
+	m_depthView = {};
+	m_uav = {};
+	m_srv = {};
+	GetInput(0)->Clear();
+}
+
 
 void DepthReduction::Setup(SetupContext& context) {
 	auto& inputDepth = this->GetInput<0>().Get();

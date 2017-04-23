@@ -60,6 +60,14 @@ void CSM::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
+void CSM::Reset() {
+	m_dsvs.clear();
+	m_lightMVPTexSrv = {};
+	GetInput(0)->Clear();
+	GetInput(1)->Clear();
+	GetInput(2)->Clear();
+}
+
 
 void CSM::Setup(SetupContext & context) {
 	Texture2D& renderTarget = this->GetInput<0>().Get();

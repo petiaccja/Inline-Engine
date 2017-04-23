@@ -26,8 +26,14 @@ public:
 	void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);
 	}
+	void Reset() override {
+		m_backBuffer = {};
+	}
 
 	void Setup(SetupContext& context) override {
+		if (!m_backBuffer.HasObject()) {
+			throw std::logic_error("You forgot to set the backbuffer to this node.");
+		}
 		GetOutput<0>().Set(m_backBuffer);
 	}
 

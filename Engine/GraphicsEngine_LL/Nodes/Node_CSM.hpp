@@ -31,6 +31,7 @@ public:
 	void Notify(exc::InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override;
+	void Reset() override;
 	void Setup(SetupContext& context) override;
 	void Execute(RenderContext& context) override;
 
@@ -45,9 +46,6 @@ private: // render context
 	std::vector<DepthStencilView2D> m_dsvs;
 	const EntityCollection<MeshEntity>* m_entities;
 	TextureView2D m_lightMVPTexSrv;
-
-private:
-	void InitRenderTarget(unsigned width, unsigned height);
 };
 
 

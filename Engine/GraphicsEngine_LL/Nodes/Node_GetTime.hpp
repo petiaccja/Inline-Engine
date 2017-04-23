@@ -28,6 +28,7 @@ public:
 	void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);
 	}
+	void Reset() override {}
 
 	void Setup(SetupContext& context) {
 		this->GetOutput<0>().Set(m_absoluteTime);
