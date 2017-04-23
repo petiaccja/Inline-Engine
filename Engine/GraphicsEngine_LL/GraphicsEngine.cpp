@@ -181,6 +181,7 @@ void GraphicsEngine::SetScreenSize(unsigned width, unsigned height) {
 	sp.Wait();
 
 	m_backBufferHeap.reset();
+	m_scheduler.ReleaseResources();
 	m_swapChain->Resize(width, height);
 	m_backBufferHeap = std::make_unique<BackBufferManager>(m_graphicsApi, m_swapChain.get());
 }
@@ -476,20 +477,20 @@ void GraphicsEngine::CreatePipeline() {
 std::vector<GraphicsNode*> GraphicsEngine::SelectSpecialNodes(Pipeline& pipeline) {
 	std::vector<GraphicsNode*> specialNodes;
 
-	for (Pipeline::NodeIterator it = pipeline.Begin(); it != pipeline.End(); ++it) {
+	for (exc::NodeBase& node : pipeline) {
 		// Pipeline disallows linking of its nodes, that's why it only returns const pointers.
 		// We are not changing linking configuration here, so const_cast is justified.
-		if (const nodes::GetSceneByName* ptr = dynamic_cast<const nodes::GetSceneByName*>(&*it)) {
-			specialNodes.push_back(const_cast<nodes::GetSceneByName*>(ptr));
+		if (nodes::GetSceneByName* ptr = dynamic_cast<nodes::GetSceneByName*>(&node)) {
+			specialNodes.push_back(ptr);
 		}
-		else if (const nodes::GetCameraByName* ptr = dynamic_cast<const nodes::GetCameraByName*>(&*it)) {
-			specialNodes.push_back(const_cast<nodes::GetCameraByName*>(ptr));
+		else if (nodes::GetCameraByName* ptr = dynamic_cast<nodes::GetCameraByName*>(&node)) {
+			specialNodes.push_back(ptr);
 		}
-		else if (const nodes::GetBackBuffer* ptr = dynamic_cast<const nodes::GetBackBuffer*>(&*it)) {
-			specialNodes.push_back(const_cast<nodes::GetBackBuffer*>(ptr));
+		else if (nodes::GetBackBuffer* ptr = dynamic_cast<nodes::GetBackBuffer*>(&node)) {
+			specialNodes.push_back(ptr);
 		}
-		else if (const nodes::GetTime* ptr = dynamic_cast<const nodes::GetTime*>(&*it)) {
-			specialNodes.push_back(const_cast<nodes::GetTime*>(ptr));
+		else if (nodes::GetTime* ptr = dynamic_cast<nodes::GetTime*>(&node)) {
+			specialNodes.push_back(ptr);
 		}
 	}
 
@@ -588,16 +589,15 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 	std::map<const exc::NodeBase*, int> nodeIndexMap;
 
 	// Fill node map and parent maps
-	for (auto it = pipeline.Begin(); it != pipeline.End(); ++it) {
-		const exc::NodeBase* node = &*it;
+	for (const exc::NodeBase& node : pipeline) {
 		int nodeIndex = nodeIndexMap.size();
-		nodeIndexMap.insert({ node, nodeIndex });
+		nodeIndexMap.insert({ &node, nodeIndex });
 
-		for (int i = 0; i < node->GetNumInputs(); ++i) {
-			inputParents.insert({ node->GetInput(i), PortMap{node, i} });
+		for (int i = 0; i < node.GetNumInputs(); ++i) {
+			inputParents.insert({ node.GetInput(i), PortMap{&node, i} });
 		}
-		for (int i = 0; i < node->GetNumOutputs(); ++i) {
-			outputParents.insert({ node->GetOutput(i), PortMap{ node, i } });
+		for (int i = 0; i < node.GetNumOutputs(); ++i) {
+			outputParents.insert({ node.GetOutput(i), PortMap{ &node, i } });
 		}
 	}
 

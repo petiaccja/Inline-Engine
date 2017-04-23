@@ -150,6 +150,15 @@ void Scheduler::Execute(FrameContext context) {
 }
 
 
+void Scheduler::ReleaseResources() {
+	for (auto node : m_pipeline) {
+		if (GraphicsNode* ptr = dynamic_cast<GraphicsNode*>(&node)) {
+			ptr->Reset();
+		}
+	}
+}
+
+
 void Scheduler::MakeResident(std::vector<MemoryObject*> usedResources) {
 
 }

@@ -25,6 +25,7 @@ public:
 	const Pipeline& GetPipeline() const;
 	Pipeline ReleasePipeline();
 	void Execute(FrameContext context);
+	void ReleaseResources();
 protected:
 	struct UsedResource {
 		MemoryObject* resource;

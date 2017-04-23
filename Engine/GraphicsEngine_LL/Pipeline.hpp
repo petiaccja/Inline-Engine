@@ -38,8 +38,8 @@ public:
 		NodeIterator(const NodeIterator&) = default;
 		NodeIterator& operator=(const NodeIterator&) = default;
 
-		const exc::NodeBase& operator*();
-		const exc::NodeBase* operator->();
+		exc::NodeBase& operator*();
+		exc::NodeBase* operator->();
 
 		bool operator==(const NodeIterator&);
 		bool operator!=(const NodeIterator&);
@@ -49,6 +49,18 @@ public:
 	private:
 		lemon::ListDigraph::NodeIt m_graphIt;
 		const Pipeline* m_parent;
+	};
+	class ConstNodeIterator : protected NodeIterator {
+		friend class inl::gxeng::Pipeline;
+		ConstNodeIterator(const Pipeline* parent, lemon::ListDigraph::NodeIt graphIt) : NodeIterator(parent, graphIt) {}
+	public:
+		ConstNodeIterator() = default;
+		ConstNodeIterator(const NodeIterator& rhs) : NodeIterator(rhs) {}
+		const exc::NodeBase& operator*() { return NodeIterator::operator*(); }
+		const exc::NodeBase* operator->() { return NodeIterator::operator->(); }
+		using NodeIterator::operator==;
+		using NodeIterator::operator!=;
+		using NodeIterator::operator++;
 	};
 
 	class SimpleNodeTask : public GraphicsTask {
@@ -72,8 +84,10 @@ public:
 	void CreateFromNodesList(const std::vector<std::shared_ptr<exc::NodeBase>> nodes);
 	void Clear();
 
-	NodeIterator Begin() const;
-	NodeIterator End() const;
+	NodeIterator begin();
+	NodeIterator end();
+	ConstNodeIterator begin() const;
+	ConstNodeIterator end() const;
 
 	const lemon::ListDigraph& GetDependencyGraph() const;
 	const lemon::ListDigraph::NodeMap<std::shared_ptr<exc::NodeBase>>& GetNodeMap() const;

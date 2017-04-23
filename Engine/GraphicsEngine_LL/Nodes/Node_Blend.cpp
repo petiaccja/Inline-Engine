@@ -20,6 +20,15 @@ void Blend::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
+void Blend::Reset() {
+	m_fsq = {};
+	m_fsqIndices = {};
+	m_blendDest = {};
+	m_blendSrc = {};
+	GetInput(0)->Clear();
+	GetInput(1)->Clear();
+}
+
 
 void Blend::Setup(SetupContext& context) {
 	auto& target = this->GetInput<0>().Get();

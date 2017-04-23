@@ -25,11 +25,11 @@ Pipeline::NodeIterator::NodeIterator()
 	: m_graphIt(lemon::INVALID), m_parent(nullptr)
 {}
 
-const exc::NodeBase& Pipeline::NodeIterator::operator*() {
+exc::NodeBase& Pipeline::NodeIterator::operator*() {
 	return *(operator->());
 }
 
-const exc::NodeBase* Pipeline::NodeIterator::operator->() {
+exc::NodeBase* Pipeline::NodeIterator::operator->() {
 	assert(m_parent != nullptr);
 	assert(m_parent->m_dependencyGraph.valid(m_graphIt));
 	return (m_parent->m_nodeMap[m_graphIt]).get();
@@ -140,12 +140,22 @@ void Pipeline::Clear() {
 }
 
 
-Pipeline::NodeIterator Pipeline::Begin() const {
+Pipeline::NodeIterator Pipeline::begin() {
 	return{ this, lemon::ListDigraph::NodeIt(m_dependencyGraph) };
 }
 
 
-Pipeline::NodeIterator Pipeline::End() const {
+Pipeline::NodeIterator Pipeline::end() {
+	return{ this, lemon::INVALID };
+}
+
+
+Pipeline::ConstNodeIterator Pipeline::begin() const {
+	return{ this, lemon::ListDigraph::NodeIt(m_dependencyGraph) };
+}
+
+
+Pipeline::ConstNodeIterator Pipeline::end() const {
 	return{ this, lemon::INVALID };
 }
 
