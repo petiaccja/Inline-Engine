@@ -1,9 +1,12 @@
 
 #include "../Sys.hpp"
 
+
+
 #define NOMINMAX
-#define WIN32_LEAN_AND_MEAN
+//#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <WinUser.h>
 
 #include <xlocbuf>
 #include <codecvt>
@@ -11,15 +14,17 @@
 #include <iostream>
 #include <tchar.h>
 
-Sys::DLLHandle Sys::LoadDLL(const wchar_t* path) 
+static HCURSOR cursorHandle = nullptr;
+
+DLLHandle Sys::LoadDLL(const wchar_t* path)
 {
 	auto value = LoadLibraryW(path);
 	return value;
 }
 
-bool Sys::UnLoadDLL(DLLHandle h) 
+bool Sys::UnLoadDLL(DLLHandle dllHandle)
 {
-	return FreeLibrary((HMODULE)h) ? true : false;
+	return FreeLibrary((HMODULE)dllHandle) ? true : false;
 }
 
 void Sys::ShowMsgBox(const std::wstring& msg)
@@ -38,9 +43,9 @@ void Sys::SetCursorVisible(bool b)
 	ShowCursor(b ? SW_SHOW : SW_HIDE);
 }
 
-void* Sys::GetDLLProcAddress(DLLHandle h, const std::string& procName) 
+void* Sys::GetDLLProcAddress(DLLHandle dllHandle, const std::string& procName)
 {
-	return (void*)GetProcAddress((HMODULE)h, procName.c_str());
+	return (void*)GetProcAddress((HMODULE)dllHandle, procName.c_str());
 }
 
 // TODO REMOVE
@@ -75,13 +80,42 @@ std::string	Sys::GetExeDir()
 	return path;
 }
 
-Vector2i Sys::GetCursorPos()
+Vector2f Sys::GetCursorPos()
 {
 	POINT p; ::GetCursorPos(&p);
-	return Vector2i(p.x, p.y);
+	return Vector2f(p.x, p.y);
 }
 
 Vector2u Sys::GetScreenSize()
 {
 	return Vector2u((unsigned)GetSystemMetrics(SM_CXSCREEN), (unsigned)GetSystemMetrics(SM_CYSCREEN));
+}
+
+void Sys::SetCursorVisual(eCursorVisual visual, WindowHandle hwnd /*= nullptr*/)
+{
+	switch (visual)
+	{
+	case eCursorVisual::ARROW:			cursorHandle = LoadCursor(nullptr, IDC_ARROW);			break;
+	case eCursorVisual::IBEAM:			cursorHandle = LoadCursor(nullptr, IDC_IBEAM);			break;
+	case eCursorVisual::WAIT:			cursorHandle = LoadCursor(nullptr, IDC_WAIT);			break;
+	case eCursorVisual::CROSS:			cursorHandle = LoadCursor(nullptr, IDC_CROSS);			break;
+	case eCursorVisual::UPARROW:		cursorHandle = LoadCursor(nullptr, IDC_UPARROW);		break;
+	case eCursorVisual::SIZE:			cursorHandle = LoadCursor(nullptr, IDC_SIZE);			break;
+	case eCursorVisual::ICON:			cursorHandle = LoadCursor(nullptr, IDC_ICON);			break;
+	case eCursorVisual::SIZENWSE:		cursorHandle = LoadCursor(nullptr, IDC_SIZENWSE);		break;
+	case eCursorVisual::SIZENESW:		cursorHandle = LoadCursor(nullptr, IDC_SIZENESW);		break;
+	case eCursorVisual::SIZEWE:			cursorHandle = LoadCursor(nullptr, IDC_SIZEWE);			break;
+	case eCursorVisual::SIZENS:			cursorHandle = LoadCursor(nullptr, IDC_SIZENS);			break;
+	case eCursorVisual::SIZEALL:		cursorHandle = LoadCursor(nullptr, IDC_SIZEALL);		break;
+	case eCursorVisual::NO:				cursorHandle = LoadCursor(nullptr, IDC_NO);				break;
+	case eCursorVisual::HAND:			cursorHandle = LoadCursor(nullptr, IDC_HAND);			break;
+	case eCursorVisual::APPSTARTING:	cursorHandle = LoadCursor(nullptr, IDC_APPSTARTING);	break;
+	case eCursorVisual::HELP:			cursorHandle = LoadCursor(nullptr, IDC_HELP);			break;
+	}
+	assert(cursorHandle);
+
+	if (hwnd)
+		SetClassLong((HWND)hwnd, -12, (DWORD)cursorHandle); // #define GCL_HCURSOR (-12)
+
+	SetCursor(cursorHandle);
 }

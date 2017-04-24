@@ -2,8 +2,9 @@
 #pragma once
 
 #include "Sys.hpp"
-#include <string>
 #include <BaseLibrary/Common_tmp.hpp>
+
+#include <string>
 
 ENUM_CLASS_BITFLAG( eWindowStyle, int )
 {
@@ -42,9 +43,9 @@ struct WindowEvent
 {
 	WindowEvent(): msg(INVALID_eWindowsMsg), key(INVALID_eKey), mouseDelta(0, 0), clientMousePos(0, 0) {}
 
-	eWindowMsg msg;
-	eKey	   key;
-	eMouseBtn  mouseBtn;
-	Vector2i	   mouseDelta;
-	Vector2i	   clientMousePos;
+	eWindowMsg	msg;
+	eKey		key;
+	eMouseBtn	mouseBtn;
+	Vector2f	mouseDelta;
+	Vector2f	clientMousePos;
 };

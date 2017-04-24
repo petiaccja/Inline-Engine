@@ -150,42 +150,42 @@ bool Window::PopEvent(WindowEvent& evt_out)
 	{
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
-		evt_out.clientMousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.clientMousePos = Vector2f(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMousePressed(evt_out);
 	}
 	else if (msg.message == WM_RBUTTONDOWN)
 	{
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::RIGHT;
-		evt_out.clientMousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.clientMousePos = Vector2f(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMousePressed(evt_out);
 	}
 	else if (msg.message == WM_MBUTTONDOWN)
 	{
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::MID;
-		evt_out.clientMousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.clientMousePos = Vector2f(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMousePressed(evt_out);
 	}
 	else if (msg.message == WM_LBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
-		evt_out.clientMousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.clientMousePos = Vector2f(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMouseReleased(evt_out);
 	}
 	else if (msg.message == WM_RBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::RIGHT;
-		evt_out.clientMousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.clientMousePos = Vector2f(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMouseReleased(evt_out);
 	}
 	else if (msg.message == WM_MBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::MID;
-		evt_out.clientMousePos = Vector2i(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.clientMousePos = Vector2f(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMouseReleased(evt_out);
 	}
 	else if (msg.message == WM_KEYDOWN)
@@ -221,12 +221,12 @@ bool Window::PopEvent(WindowEvent& evt_out)
 
 		if (raw->header.dwType == RIM_TYPEMOUSE)
 		{
-			evt_out.mouseDelta = Vector2i(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
+			evt_out.mouseDelta = Vector2f(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
 
 			POINT p;
 			GetCursorPos(&p);
 			ScreenToClient(handle, &p);
-			evt_out.clientMousePos = Vector2i(p.x, p.y);
+			evt_out.clientMousePos = Vector2f(p.x, p.y);
 			evt_out.msg = MOUSE_MOVE;
 
 			onMouseMoved(evt_out);
@@ -321,9 +321,9 @@ bool Window::IsMinimizedSize() const
 	return IsIconic(handle);
 }
 
-size_t Window::GetHandle() const
+WindowHandle Window::GetHandle() const
 {
-	return (size_t)handle;
+	return (WindowHandle)handle;
 }
 
 uint32_t Window::GetClientWidth() const 
@@ -344,15 +344,15 @@ Vector2u Window::GetClientSize() const
 	return Vector2u(rect.right - rect.left, rect.bottom - rect.top);
 }
 
-Vector2i Window::GetClientCursorPos() const
+Vector2f Window::GetClientCursorPos() const
 {
-	Vector2i cursorPos = Sys::GetCursorPos();
+	Vector2f cursorPos = Sys::GetCursorPos();
 	POINT p;
 	p.x = cursorPos.x();
 	p.y = cursorPos.y();
 	ScreenToClient(handle, &p);
 
-	return Vector2i(p.x, p.y);
+	return Vector2f(p.x, p.y);
 }
 
 unsigned Window::GetNumClientPixels() const

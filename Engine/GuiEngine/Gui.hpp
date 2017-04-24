@@ -15,14 +15,6 @@
 
 namespace inl::gui {
 
-class GuiEngine;
-class Gui;
-class GuiText;
-class GuiButton;
-class GuiList;
-class GuiSlider;
-class GuiCollapsable;
-
 enum class eGuiAlignHor
 {
 	NONE,
@@ -46,6 +38,23 @@ enum class eGuiStretch
 	FIT_TO_CHILDREN,
 };
 
+enum class eGuiDirection
+{
+	VERTICAL,
+	HORIZONTAL,
+};
+
+
+
+class GuiEngine;
+class Gui;
+class GuiText;
+class GuiButton;
+class GuiList;
+class GuiSlider;
+class GuiCollapsable;
+class GuiSplitter;
+
 class Gui
 {
 	friend class GuiEngine;
@@ -67,18 +76,23 @@ public:
 	template<class T>
 	T* Add();
 
-	void		Add(Gui* child) { Add(child, true); }
-	Gui*		AddGui();
-	GuiText*	AddText();
-	GuiButton*	AddButton();
-	GuiList*	AddList();
-	GuiSlider*	AddSlider();
+	void			Add(Gui* child) { Add(child, true); }
+
+	Gui*			AddGui();
+	GuiText*		AddText();
+	GuiButton*		AddButton();
+	GuiList*		AddList();
+	GuiSlider*		AddSlider();
 	GuiCollapsable* AddCollapsable();
+	GuiSplitter*	AddSplitter();
 
 	bool Remove(Gui* child) { return Remove(child, true); }
 	bool Remove();
 
 	void TraverseTowardParents(const std::function<void(Gui*)>& fn);
+
+	void RefreshLayout();
+	bool IsLayoutNeedRefresh() { return bLayoutNeedRefresh; }
 
 	void Move(float dx, float dy);
 	void Move(const Vector2f& delta) { Move(delta.x(), delta.y()); }
@@ -95,6 +109,7 @@ public:
 	GuiList*   AsList() { return (GuiList*)this; }
 	GuiSlider* AsSlider() { return (GuiSlider*)this; }
 	GuiCollapsable* AsCollapsable() { return (GuiCollapsable*)this; }
+	GuiSplitter* AsSplitter() { return (GuiSplitter*)this; }
 
 
 	void SetContentRect(float x, float y, float width, float height) { SetContentRect(x, y, width, height, true, true); }
@@ -155,39 +170,62 @@ public:
 	void SetPadding(float leftLength, float topLength, float rightLength, float bottomLength);
 	void SetPadding(float length) { SetPadding(length, length, length, length); }
 
-	void SetStretch(eGuiStretch stretch) { SetStretch(stretch, stretch); }
-	void SetStretch(eGuiStretch horizontalStretch, eGuiStretch verticalStretch) { stretchHor = horizontalStretch; stretchVer = verticalStretch; bDirtyLayout = true; }
-	void SetStretchHor(eGuiStretch stretch) { stretchHor = stretch; bDirtyLayout = true; }
-	void SetStretchVer(eGuiStretch stretch) { stretchVer = stretch; bDirtyLayout = true; }
+	void Stretch(eGuiStretch stretch) { Stretch(stretch, stretch); }
+	void Stretch(eGuiStretch horizontalStretch, eGuiStretch verticalStretch) { stretchHor = horizontalStretch; stretchVer = verticalStretch; bLayoutNeedRefresh = true; }
+	void StretchHor(eGuiStretch stretch) { stretchHor = stretch; bLayoutNeedRefresh = true; }
+	void StretchVer(eGuiStretch stretch) { stretchVer = stretch; bLayoutNeedRefresh = true; }
 
-	void StretchHorFillParent() { SetStretchHor(eGuiStretch::FILL_PARENT); }
-	void StretchHorStretchFitToChildren() { SetStretchHor(eGuiStretch::FIT_TO_CHILDREN); }
-	void StretchHorNone() { SetStretchHor(eGuiStretch::NONE); }
+	void StretchHorFillParent() {StretchHor(eGuiStretch::FILL_PARENT); }
+	void StretchHorFitToChildren() { StretchHor(eGuiStretch::FIT_TO_CHILDREN); }
+	void StretchHorNone() { StretchHor(eGuiStretch::NONE); }
 
-	void StretchVerFillParent() { SetStretchVer(eGuiStretch::FILL_PARENT); }
-	void StretchVerStretchFitToChildren() { SetStretchVer(eGuiStretch::FIT_TO_CHILDREN); }
-	void StretchVerNone() { SetStretchVer(eGuiStretch::NONE); }
+	void StretchVerFillParent() { StretchVer(eGuiStretch::FILL_PARENT); }
+	void StretchVerFitToChildren() { StretchVer(eGuiStretch::FIT_TO_CHILDREN); }
+	void StretchVerNone() { StretchVer(eGuiStretch::NONE); }
 
-	void StretchFillParent() { SetStretch(eGuiStretch::FILL_PARENT); }
-	void StretchFitToChildren() { SetStretch(eGuiStretch::FIT_TO_CHILDREN); }
-	void StretchNone() { SetStretch(eGuiStretch::NONE); }
+	void StretchFillParent(bool bHor, bool bVer)
+	{
+		bool bWasHorFill = stretchHor == eGuiStretch::FILL_PARENT;
+		bool bWasVerFill = stretchVer == eGuiStretch::FILL_PARENT;
 
-	void SetAlign(eGuiAlignHor horizontalAlign, eGuiAlignVer verticalAlign) { alignHor = horizontalAlign; alignVer = verticalAlign; bDirtyLayout = true; }
-	void SetAlignHor(eGuiAlignHor align) { alignHor = align; bDirtyLayout = true; }
-	void SetAlignVer(eGuiAlignVer align) { alignVer = align; bDirtyLayout = true; }
+		eGuiStretch hor = bHor ? eGuiStretch::FILL_PARENT : (bWasHorFill ? eGuiStretch::NONE : stretchHor);
+		eGuiStretch ver = bVer ? eGuiStretch::FILL_PARENT : (bWasVerFill ? eGuiStretch::NONE : stretchVer);
 
-	void AlignLeft()					{ SetAlignHor(eGuiAlignHor::LEFT); }
-	void AlignRight()					{ SetAlignHor(eGuiAlignHor::RIGHT); }
-	void AlignTop()						{ SetAlignVer(eGuiAlignVer::TOP); }
-	void AlignBottom()					{ SetAlignVer(eGuiAlignVer::BOTTOM); }
-	void AlignTopLeft()					{ SetAlign(eGuiAlignHor::LEFT, eGuiAlignVer::TOP); }
-	void AlignTopRight()				{ SetAlign(eGuiAlignHor::RIGHT, eGuiAlignVer::TOP); }
-	void AlignBottomLeft()				{ SetAlign(eGuiAlignHor::LEFT, eGuiAlignVer::BOTTOM); }
-	void AlignBottomRight()				{ SetAlign(eGuiAlignHor::RIGHT, eGuiAlignVer::BOTTOM); }
-	void AlignCenter()					{ SetAlign(eGuiAlignHor::CENTER, eGuiAlignVer::CENTER); }
-	void AlignCenterHor() { SetAlignHor(eGuiAlignHor::CENTER); }
-	void AlignCenterVer() { SetAlignVer(eGuiAlignVer::CENTER); }
-	
+		Stretch(hor, ver);
+	}
+
+	void StretchFitToChildren(bool bHor, bool bVer)
+	{
+		bool bWasHorFitToChildren = stretchHor == eGuiStretch::FIT_TO_CHILDREN;
+		bool bWasVerFitToChildren = stretchVer == eGuiStretch::FIT_TO_CHILDREN;
+
+		eGuiStretch hor = bHor ? eGuiStretch::FIT_TO_CHILDREN : (bWasHorFitToChildren ? eGuiStretch::NONE : stretchHor);
+		eGuiStretch ver = bVer ? eGuiStretch::FIT_TO_CHILDREN : (bWasVerFitToChildren ? eGuiStretch::NONE : stretchVer);
+
+		Stretch(hor, ver);
+	}
+
+
+	void StretchFillParent() { Stretch(eGuiStretch::FILL_PARENT); }
+	void StretchFitToChildren() { Stretch(eGuiStretch::FIT_TO_CHILDREN); }
+	void StretchNone() { Stretch(eGuiStretch::NONE); }
+
+	void Align(eGuiAlignHor horizontalAlign, eGuiAlignVer verticalAlign) { alignHor = horizontalAlign; alignVer = verticalAlign; bLayoutNeedRefresh = true; }
+	void AlignHor(eGuiAlignHor align) { alignHor = align; bLayoutNeedRefresh = true; }
+	void AlignVer(eGuiAlignVer align) { alignVer = align; bLayoutNeedRefresh = true; }
+
+	void AlignLeft() { AlignHor(eGuiAlignHor::LEFT); }
+	void AlignRight() { AlignHor(eGuiAlignHor::RIGHT); }
+	void AlignTop() { AlignVer(eGuiAlignVer::TOP); }
+	void AlignBottom() { AlignVer(eGuiAlignVer::BOTTOM); }
+	void AlignTopLeft() { Align(eGuiAlignHor::LEFT, eGuiAlignVer::TOP); }
+	void AlignTopRight() { Align(eGuiAlignHor::RIGHT, eGuiAlignVer::TOP); }
+	void AlignBottomLeft() { Align(eGuiAlignHor::LEFT, eGuiAlignVer::BOTTOM); }
+	void AlignBottomRight() { Align(eGuiAlignHor::RIGHT, eGuiAlignVer::BOTTOM); }
+	void AlignCenter() { Align(eGuiAlignHor::CENTER, eGuiAlignVer::CENTER); }
+	void AlignCenterHor() { AlignHor(eGuiAlignHor::CENTER); }
+	void AlignCenterVer() { AlignVer(eGuiAlignVer::CENTER); }
+
 	void SetBgImageVisibility(bool bVisible) { bBgImageVisible = bVisible; }
 	void SetBgColorVisibility(bool bVisible) { bBgColorVisible = bVisible; }
 
@@ -204,8 +242,9 @@ public:
 	template<class T>
 	T* Copy(T* other);
 
-	float GetContentSpaceCursorPosX();
-	float GetContentSpaceCursorPosY();
+	float GetCursorPosContentSpaceX();
+	float GetCursorPosContentSpaceY();
+	Vector2f GetCursorPosContentSpace();
 
 	float GetPosX() { return pos.x(); }
 	float GetPosY() { return pos.y(); }
@@ -221,6 +260,11 @@ public:
 	float GetHalfWidth() { return GetWidth() * 0.5f; }
 	float GetHalfHeight() { return GetHeight() * 0.5f; }
 	Vector2f GetHalfSize() { return Vector2f(GetHalfWidth(), GetHalfHeight()); }
+
+	Vector2f GetPosBottomLeft() { return GetPos() + Vector2f(0, GetHeight()); }
+	Vector2f GetPosBottomRight() { return GetPos() + Vector2f(GetWidth(), GetHeight()); }
+	Vector2f GetPosTopLeft() { return GetPos(); }
+	Vector2f GetPosTopRight() { return GetPos() + Vector2f(GetWidth(), 0); }
 
 	const RectF& GetPadding() const { return padding; }
 	const RectF& GetMargin() const { return margin; }
@@ -254,10 +298,25 @@ public:
 	std::vector<Gui*>& GetChildren() { return children; }
 
 	template<class T>
-	T* GetChildByIdx(int index) { return (T*)GetChildren()[index]; }
+	T* GetChild(int index) { return (T*)GetChildren()[index]; }
 
-	Gui* GetChildByIdx(int index) { return GetChildren()[index]; }
+	Gui* GetChild(int index) { return GetChildren()[index]; }
 	int GetIndexInParent() { return indexInParent; }
+
+	bool IsChild(Gui* gui)
+	{
+		int idx = gui->GetIndexInParent();
+
+		if (idx >= 0 && idx < GetChildren().size())
+		{
+			Gui* potentialChild = GetChildren()[idx];
+
+			return potentialChild == gui;
+		}
+
+		return false;
+	}
+
 
 	eEventPropagationPolicy GetEventPropagationPolicy() { return eventPropagationPolicy; }
 
@@ -270,7 +329,7 @@ public:
 	Gdiplus::Bitmap* GetBgHoverImage() { return bgHoverImage; }
 
 
-	bool IsPointInside(Vector2i pt) { return GetRect().IsPointInside(pt); }
+	bool IsPointInside(Vector2f pt) { return GetRect().IsPointInside(pt); }
 
 	bool IsLayer() { return bLayer; }
 	bool IsChildrenClipEnabled() { return bClipChildren; }
@@ -299,8 +358,6 @@ protected:
 
 	void Add(Gui* child, bool bFireEvents);
 	bool Remove(Gui* child, bool bFireEvents);
-
-	void RefreshLayout();
 
 	virtual Vector2f ArrangeChildren(const Vector2f& finalSize);
 
@@ -343,7 +400,7 @@ protected:
 	eEventPropagationPolicy eventPropagationPolicy;
 
 	// If true, RefreshLayout() will be called before render, to ReArrange the layout as necessary
-	bool bDirtyLayout;
+	bool bLayoutNeedRefresh;
 
 	// Layering (Our neighbours in the tree hierarchy)
 	Gui* front;
@@ -383,10 +440,9 @@ protected:
 	bool bFillParentEnabled;
 	bool bForceFitToChildren;
 
-	// Access to god
-	GuiEngine* guiEngine;
-
 public:
+
+	GuiEngine* guiEngine;
 
 	// Public events
 	Delegate<void(CursorEvent& evt)> onMouseClicked;
@@ -444,148 +500,6 @@ public:
 	Delegate<void(Gui* self, Gdiplus::Graphics* graphics, RectF& clipRect)> onPaintClonable;
 };
 
-inline Gui::Gui(GuiEngine* guiEngine, bool bLayer)
-{
-	this->guiEngine = guiEngine;
-	pos = Vector2f(0, 0);
-	eventPropagationPolicy = eEventPropagationPolicy::PROCESS;
-	size = Vector2f(60, 20);
-	indexInParent = -1;
-	this->bLayer = bLayer;
-	parent = nullptr;
-	front = nullptr;
-	back = nullptr;
-	contextMenu = nullptr;
-	bgIdleColor = 45;
-	bgHoverColor = 75;
-	bgActiveImage = nullptr;
-	bgIdleImage = nullptr;
-	bgHoverImage = nullptr;
-	border = RectF(0, 0, 0, 0);
-	borderColor = Color(128);
-	bBgImageVisible = true;
-	bBgColorVisible = true;
-	bClipChildren = true;
-	margin = RectF(0, 0, 0, 0);
-	padding = RectF(0, 0, 0, 0);
-	bDirtyLayout = false;
-	alignHor = eGuiAlignHor::NONE;
-	alignVer = eGuiAlignVer::NONE;
-	stretchHor = eGuiStretch::NONE;
-	stretchVer = eGuiStretch::NONE;
-	bHovered = false;
-	bHoverable = true;
-	bFillParentEnabled = false;
-	bForceFitToChildren = false;
-
-	SetBgActiveColor(bgIdleColor);
-
-	onMouseEnteredClonable += [](Gui* self, CursorEvent& event)
-	{
-		self->SetBgActiveColor(self->GetBgHoverColor());
-		self->SetBgActiveImage(self->GetBgHoverImage());
-		self->bHovered = true;
-	};
-
-	onMouseLeavedClonable += [](Gui* self, CursorEvent& event)
-	{
-		self->SetBgActiveColor(self->GetBgIdleColor());
-		self->SetBgActiveImage(self->GetBgIdleImage());
-		self->bHovered = false;
-	};
-	
-	onChildRemovedClonable += [](Gui* self, Gui* child)
-	{
-		self->bDirtyLayout = true;
-	};
-	
-	onChildAddedClonable += [](Gui* self, Gui* child)
-	{
-		self->bDirtyLayout = true;
-	};
-
-	onPaintClonable += [](Gui* self, Gdiplus::Graphics* graphics, RectF& clipRect)
-	{
-		if (self->bDirtyLayout)
-			self->RefreshLayout();
-
-		RectF paddingRect = self->GetPaddingRect();
-		RectF borderRect = self->GetBorderRect();
-
-		Gdiplus::Rect gdiBorderRect(borderRect.left, borderRect.top, borderRect.GetWidth(), borderRect.GetHeight());
-		Gdiplus::Rect gdiPaddingRect(paddingRect.left, paddingRect.top, paddingRect.GetWidth(), paddingRect.GetHeight());
-		Gdiplus::Rect gdiClipRect(clipRect.left, clipRect.top, clipRect.GetWidth(), clipRect.GetHeight());
-
-		// Clipping
-		graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeReplace);
-
-		// Draw left border
-		Color borderColor = self->GetBorderColor();
-		RectF border = self->GetBorder();
-
-		Gdiplus::SolidBrush borderBrush(Gdiplus::Color(borderColor.a, borderColor.r, borderColor.g, borderColor.b));
-		if (border.left != 0)
-		{
-			RectF tmp = borderRect;
-
-			// Setup left border
-			tmp.right = tmp.left + border.left;
-
-			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
-			graphics->FillRectangle(&borderBrush, tmpGdi);
-		}
-
-		// Draw right border
-		if (border.right != 0)
-		{
-			RectF tmp = borderRect;
-
-			// Setup right border
-			tmp.left = tmp.right - border.right;
-
-			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
-			graphics->FillRectangle(&borderBrush, tmpGdi);
-		}
-
-		// Draw top border
-		if (border.top != 0)
-		{
-			RectF tmp = borderRect;
-
-			// Setup top border
-			tmp.bottom = tmp.top + border.top;
-
-			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
-			graphics->FillRectangle(&borderBrush, tmpGdi);
-		}
-
-		// Draw bottom border
-		if (border.bottom != 0)
-		{
-			RectF tmp = borderRect;
-
-			// Setup top border
-			tmp.top = tmp.bottom - border.bottom;
-
-			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
-			graphics->FillRectangle(&borderBrush, tmpGdi);
-		}
-
-
-		// Draw Background Image Rectangle
-		if (self->GetBgActiveImage() && self->bBgImageVisible)
-		{
-			graphics->DrawImage(self->GetBgActiveImage(), gdiPaddingRect);
-		}
-		else if (self->bBgColorVisible) // Draw Background Colored Rectangle
-		{
-			Color bgColor = self->GetBgActiveColor();
-			Gdiplus::SolidBrush brush(Gdiplus::Color(bgColor.a, bgColor.r, bgColor.g, bgColor.b));
-			graphics->FillRectangle(&brush, gdiPaddingRect);
-		}
-	};
-}
-
 inline Gui::Gui(GuiEngine* guiEngine)
 :Gui(guiEngine, false)
 {
@@ -624,12 +538,11 @@ inline Gui& Gui::operator = (const Gui& other)
 	indexInParent = other.indexInParent;
 	bLayer = other.bLayer;
 	bClipChildren = other.bClipChildren;
-	indexInParent = other.indexInParent;
 	borderColor = other.borderColor;
 	border = other.border;
 	margin = other.margin;
 	padding = other.padding;
-	bDirtyLayout = other.bDirtyLayout;
+	bLayoutNeedRefresh = other.bLayoutNeedRefresh;
 	alignHor = other.alignHor;
 	alignVer = other.alignVer;
 	stretchHor = other.stretchHor;
@@ -793,7 +706,7 @@ T* Gui::Copy(T* other)
 	if (idx == -1)
 		return other->Clone();
 	else
-		return GetChildByIdx<T>(other->GetIndexInParent());
+		return GetChild<T>(other->GetIndexInParent());
 }
 
 inline void Gui::TraverseTowardParents(const std::function<void(Gui*)>& fn)
@@ -823,6 +736,8 @@ inline void Gui::Move(float dx, float dy)
 
 inline void Gui::SetRect(float x, float y, float width, float height, bool bMoveChildren, bool bMakeLayoutDirty)
 {
+	assert(width >= 0 && height >= 0);
+
 	RectF oldRect = GetRect();
 
 	pos.x() = x;
@@ -861,7 +776,7 @@ inline void Gui::SetRect(float x, float y, float width, float height, bool bMove
 		onSizeChanged(rect.GetSize());
 
 		if (bMakeLayoutDirty)
-			bDirtyLayout = true;
+			bLayoutNeedRefresh = true;
 	}
 }
 
@@ -982,20 +897,20 @@ inline void Gui::SetBgImageForAllStates(const std::wstring& filePath)
 inline void Gui::SetMargin(float leftLength, float topLength, float rightLength, float bottomLength)
 {
 	margin = RectF(leftLength, topLength, rightLength, bottomLength);
-	bDirtyLayout = true;
+	bLayoutNeedRefresh = true;
 }
 
 inline void Gui::SetPadding(float leftLength, float topLength, float rightLength, float bottomLength)
 {
 	padding = RectF(leftLength, topLength, rightLength, bottomLength);
-	bDirtyLayout = true;
+	bLayoutNeedRefresh = true;
 }
 
 inline void Gui::SetBorder(float leftLength, float topLength, float rightLength, float bottomLength, const Color& color)
 {
 	border = RectF(leftLength, topLength, rightLength, bottomLength);
 	borderColor = color;
-	bDirtyLayout = true;
+	bLayoutNeedRefresh = true;
 }
 
 inline void Gui::RefreshLayout()
@@ -1155,7 +1070,7 @@ inline Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 	ArrangeChildren(newSize);
 
 	// Here we have up to date layout, it's not dirty
-	bDirtyLayout = false;
+	bLayoutNeedRefresh = false;
 
 	// Arrange should return the total size used by this control so include margin in it !
 	newSize.x() += margin.left + margin.right;

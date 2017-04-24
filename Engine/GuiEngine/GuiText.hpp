@@ -54,7 +54,7 @@ protected:
 
 
 inline GuiText::GuiText(GuiEngine* guiEngine)
-:Gui(guiEngine), color(Color::WHITE)
+:Gui(guiEngine), color(220, 220, 220, 255)
 {
 	SetFontFamily("Helvetica");
 	SetFontSize(12);
@@ -78,7 +78,7 @@ inline GuiText::GuiText(GuiEngine* guiEngine)
 		graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeIntersect);
 
 		Color color = self->color;
-		Gdiplus::SolidBrush brush(Gdiplus::Color(color.r, color.g, color.b, color.a));
+		Gdiplus::SolidBrush brush(Gdiplus::Color(color.a, color.r, color.g, color.b));
 
 		Gdiplus::PointF pointF(self->GetPosX(), self->GetPosY());
 

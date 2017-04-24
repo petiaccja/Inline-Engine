@@ -119,7 +119,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GuiSplitter.cpp" />
     <ClCompile Include="GuiText.cpp" />
+    <ClCompile Include="LayoutedGui.cpp" />
     <ClInclude Include="GuiButton.hpp" />
     <ClCompile Include="GuiCollapsable.cpp">
       <FileType>CppHeader</FileType>
@@ -133,11 +135,15 @@
     </ClCompile>
     <ClInclude Include="GuiLayer.hpp" />
     <ClInclude Include="GuiList.hpp" />
+    <ClInclude Include="GuiMenu.h" />
+    <ClInclude Include="GuiMenuBar.h" />
     <ClInclude Include="GuiSlider.hpp" />
     <ClCompile Include="GuiSlider.cpp">
       <FileType>CppHeader</FileType>
     </ClCompile>
+    <ClInclude Include="GuiSplitter.hpp" />
     <ClInclude Include="GuiText.hpp" />
+    <ClInclude Include="LayoutedGui.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Gui.cpp" />

@@ -2,6 +2,7 @@
 #pragma once
 
 #include <string>
+#include "PlatformDefinitions.h"
 #include "..\Common_tmp.hpp"
 
 enum eKey
@@ -131,25 +132,43 @@ enum eMouseBtn
 	INVALID_eMouseBtn = -1
 };
 
+enum class eCursorVisual
+{
+	ARROW,
+	IBEAM,
+	WAIT,
+	CROSS,
+	UPARROW,
+	SIZE,
+	ICON,
+	SIZENWSE,
+	SIZENESW,
+	SIZEWE,
+	SIZENS,
+	SIZEALL,
+	NO,
+	HAND,
+	APPSTARTING,
+	HELP,
+};
+
 class Sys
 {
 public:
-	typedef void* DLLHandle;
-
 	static DLLHandle	LoadDLL(const wchar_t* path);
-	static bool			UnLoadDLL(DLLHandle h);
+	static bool			UnLoadDLL(DLLHandle dllHandle);
 
 	static void			ShowMsgBox(const std::wstring& msg);
 
 	static void			SetCursorPos(const Vector2i& pos);
 	static void			SetCursorVisible(bool b);
-
-	static void*		GetDLLProcAddress(DLLHandle h, const std::string& procName);
+	static void			SetCursorVisual(eCursorVisual visual, WindowHandle hwnd = nullptr);
+	static void*		GetDLLProcAddress(DLLHandle dllHandle, const std::string& procName);
 
 	// TODO REMOVE
 	static std::wstring	GetExeDirW();
 	static std::string	GetExeDir();
 
-	static Vector2i GetCursorPos();
+	static Vector2f GetCursorPos();
 	static Vector2u GetScreenSize();
 };

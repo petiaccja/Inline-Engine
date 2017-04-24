@@ -50,12 +50,12 @@ public:
 	bool IsMaximizedSize() const;
 	bool IsMinimizedSize() const;
 
-	size_t GetHandle() const;
+	WindowHandle GetHandle() const;
 
 	uint32_t GetClientWidth() const;
 	uint32_t GetClientHeight() const;
 	Vector2u GetClientSize() const;
-	Vector2i GetClientCursorPos() const;
+	Vector2f GetClientCursorPos() const;
 
 	unsigned GetNumClientPixels() const;
 	float GetClientAspectRatio() const;

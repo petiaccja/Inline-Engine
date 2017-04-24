@@ -68,7 +68,7 @@ Editor::Editor()
 	HWND editorHwnd = (HWND)wnd->GetHandle();
 	HWND gameHwnd = (HWND)gameWnd->GetHandle();
 	SetWindowPos(gameHwnd, editorHwnd, 300, 300, 150, 150, 0);
-	SetParent(gameHwnd, editorHwnd);
+	//SetParent(gameHwnd, editorHwnd);
 	
 	// Resize window, non client area removal made it's size wrong
 	wnd->SetRect({ 0,0 }, { 800, 600 });
@@ -111,7 +111,7 @@ void Editor::InitGui()
 
 	// Caption bar
 	captionBar = mainLayer->AddGui();
-	captionBar->SetBgToColor(Color(43), Color(43));
+	captionBar->SetBgToColor(Color(45), Color(45));
 	captionBar->SetRect(0, 0, 100, 26);
 
 	// Minimize, Maximize, Close btn
@@ -136,7 +136,7 @@ void Editor::InitGui()
 	maximizeBtn->InitFromImage(L"Resources/maximize.png", L"Resources/maximize_h.png");
 	closeBtn->InitFromImage(L"Resources/close.png", L"Resources/close_h.png");
 
-	minMaxCloseList->SetDirection(eGuiListDirection::HORIZONTAL);
+	minMaxCloseList->SetDirection(eGuiDirection::HORIZONTAL);
 	minMaxCloseList->Add(minimizeBtn);
 	minMaxCloseList->Add(maximizeBtn);
 	minMaxCloseList->Add(closeBtn);
@@ -156,59 +156,70 @@ void Editor::InitGui()
 	captionBar->StretchHorFillParent();
 	captionBar->SetPos(0, 1);
 
-	// Menu
+	// Main menu bar
+	GuiList* menuBar = mainLayer->AddList();
+	menuBar->SetDirection(eGuiDirection::HORIZONTAL);
+	menuBar->SetBgColorForAllStates(Color(30));
+	menuBar->SetRect(1, captionBar->GetHeight(), 400, 400);
+	menuBar->StretchHorFillParent();
+	menuBar->StretchVerFitToChildren();
 	{
-		// Control List
-		eTextAlign align = eTextAlign::CENTER;
-		GuiList* list = mainLayer->AddList();
-		GuiButton* button = list->AddButton();
-		button->SetText("File");
-		GuiButton* button1 = list->AddButton();
-		button1->SetText("Edit");
-		GuiButton* button2 = list->AddButton();
-		button2->SetText("Project");
-		GuiButton* button3 = list->AddButton();
-		button3->SetText("Resources");
-		GuiButton* button4 = list->AddButton();
-		button4->SetText("Help");
-		list->SetDirection(eGuiListDirection::HORIZONTAL);
-	
-		list->SetBgColorForAllStates(Color(0));
-		list->SetRect(1, captionBar->GetHeight(), 400, 400);
-		list->SetBorder(4, Color::RED);
-		list->SetName("THELIST");
-	
-		list->StretchFitToChildren();
-		for (Gui* c : list->GetChildren())
-		{
-			c->StretchFitToChildren();
-			c->SetMargin(5);
-			c->SetPadding(5);
-		}
-	
-		auto secondList = list->Clone();
-		secondList->SetName("THELIST222");
-		secondList->SetBorder(4, Color::BLUE);
-		list->Add(secondList);
 		
-		auto thirdList = secondList->Clone();
-		thirdList->SetName("THELIST333");
-		thirdList->SetBorder(4, Color::GREEN);
-		secondList->Add(thirdList);
-	
-		int asd = 5;
-		asd++;
+
+		GuiButton* btn = menuBar->AddButton();
+		btn->SetText("File");
+		GuiButton* btn1 = menuBar->AddButton();
+		btn1->SetText("Edit");
+		GuiButton* btn2 = menuBar->AddButton();
+		btn2->SetText("Tools");
+		GuiButton* btn3 = menuBar->AddButton();
+		btn3->SetText("Help");
+
+		for (Gui* c : menuBar->GetChildren())
+		{
+			c->SetBgToColor(Color(30), Color(60));
+			c->StretchFitToChildren();
+			c->SetPadding(4);
+		}
 	}
 
-	//auto btnn = mainLayer->AddButton();
-	//btnn->SetText(L"Loller");
-	//btnn->SetPos(200, 200);
-	// TESZT
-	//auto btn = mainLayer->AddButton();
-	//btn->SetText("File");
-	//btn->SetName("FileButton");
-	//btn->GetTextGui()->SetName("FileTextGui");
-	//btn->SetRect(100, 100, 100, 100);
+
+	GuiSplitter* split0 = mainLayer->AddSplitter(); // split main
+	GuiSplitter* split1 = mainLayer->AddSplitter(); // split main left to top, bottom
+	//GuiSplitter* split2 = mainLayer->AddSplitter(); // split main left-top to left, right
+	split0->SetDirection(eGuiDirection::HORIZONTAL);
+	split1->SetDirection(eGuiDirection::VERTICAL);
+	//split2->SetDirection(eGuiDirection::HORIZONTAL);
+
+	split0->SetSize(400, 400);
+	split1->SetSize(200, 400);
+
+	Gui* area0 = mainLayer->AddButton();
+	Gui* area1 = mainLayer->AddButton();
+	Gui* area2 = mainLayer->AddButton();
+	//Gui* area3 = mainLayer->AddButton();
+	area0->SetSize(100, 100);
+	area0->SetBgToColor(Color(50), Color(70));
+	area0->StretchVerFillParent();
+	area1->SetSize(100, 100);
+	area1->SetBgToColor(Color(90), Color(110));
+	area2->SetSize(100, 100);
+	area2->SetBgToColor(Color(130), Color(150));
+	//area3->SetSize(100, 100);
+	//area3->SetBgToColor(Color(170), Color(190));
+
+
+	// Split main area to left and right
+	menuBar->RefreshLayout();
+	split0->SetPos(menuBar->GetPosBottomLeft());
+	split0->AddItem(split1);
+	split0->AddItem(area0);
+
+	split1->AddItem(area1);
+	split1->AddItem(area2);
+
+	//split2->AddItem(area2);
+	//split2->AddItem(area3);
 }
 
 void Editor::Run()
@@ -251,6 +262,15 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	switch (msg)
 	{
+	case WM_SETCURSOR:
+		if (LOWORD(lParam) == HTCLIENT)
+		{
+			if(!guiE->IsUsingCustomCursor())
+				SetCursor(LoadCursor(nullptr, IDC_ARROW));
+
+			return TRUE;
+		}
+		break;
 	case WM_ACTIVATE:
 	{
 		// Extend the frame into the client area.
@@ -328,10 +348,10 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 		// Calculate new NCCALCSIZE_PARAMS based on custom NCA inset.
 		NCCALCSIZE_PARAMS *pncsp = reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
 
-		//pncsp->rgrc[0].left = pncsp->rgrc[0].left + 0;
-		//pncsp->rgrc[0].top = pncsp->rgrc[0].top + 0;
-		//pncsp->rgrc[0].right = pncsp->rgrc[0].right - 0;
-		//pncsp->rgrc[0].bottom = pncsp->rgrc[0].bottom - 0;
+		pncsp->rgrc[0].left = pncsp->rgrc[0].left + 0;
+		pncsp->rgrc[0].top = pncsp->rgrc[0].top + 0;
+		pncsp->rgrc[0].right = pncsp->rgrc[0].right - 0;
+		pncsp->rgrc[0].bottom = pncsp->rgrc[0].bottom - 0;
 
 		lRet = 0;
 
@@ -342,7 +362,7 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_NCHITTEST:
 	{	
-		Vector2i cursorPos = guiE->GetCursorPos();
+		Vector2f cursorPos = guiE->GetCursorPos();
 		
 		bool bLeft =	cursorPos.x() < 8;
 		bool bRight =	cursorPos.x() > mainLayer->GetWidth() - 8;

@@ -14,12 +14,12 @@ enum class eEventPropagationPolicy
 class CursorEvent
 {
 public:
-	CursorEvent() : cursorContentPos(0, 0), mouseDelta(0,0){}
-	CursorEvent(Vector2i cursorContentPos) : cursorContentPos(cursorContentPos), mouseDelta(0,0) {}
+	CursorEvent() : cursorPos(0, 0), mouseDelta(0,0){}
+	CursorEvent(Vector2f CursorPosContentSpace) : cursorPos(CursorPosContentSpace), mouseDelta(0,0) {}
 
 public:
-	Vector2i cursorContentPos;
-	Vector2i mouseDelta;
+	Vector2f cursorPos;
+	Vector2f mouseDelta;
 };
 
 } //namespace inl::gui

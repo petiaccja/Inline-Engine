@@ -170,7 +170,7 @@ public:
 		return result;
 	}
 
-	bool IsPointInside(Vector2i point) const
+	bool IsPointInside(Vector2f point) const
 	{
 		return	point.x() >= left && point.x() <= right	&&
 				point.y() >= top  && point.y() <= bottom;

@@ -1,16 +1,10 @@
 #pragma once
 #include <BaseLibrary\Common_tmp.hpp>
-#include "Gui.hpp"
+#include "LayoutedGui.hpp"
 
 namespace inl::gui {
 
-enum class eGuiListDirection
-{
-	VERTICAL,
-	HORIZONTAL,
-};
-
-class GuiList : public Gui
+class GuiList : public LayoutedGui
 {
 public:
 	GuiList(GuiEngine* guiEngine);
@@ -19,26 +13,30 @@ public:
 	// Important to implement in derived classes
 	virtual GuiList* Clone() const override { return new GuiList(*this); }
 
-	void SetDirection(eGuiListDirection dir);
-	eGuiListDirection GetDirection() { return direction; }
+	virtual void AddItem(Gui* gui) override { Add(gui); }
+	virtual bool RemoveItem(Gui* gui) override { return Remove(gui); }
+	virtual std::vector<Gui*> GetItems() override { return GetChildren(); };
+
+	void SetDirection(eGuiDirection dir);
+	eGuiDirection GetDirection() { return direction; }
 
 protected:
 	virtual Vector2f ArrangeChildren(const Vector2f& finalSize) override;
 
 protected:
-	eGuiListDirection direction;
+	eGuiDirection direction;
 };
 
 inline GuiList::GuiList(GuiEngine* guiEngine)
-:Gui(guiEngine), direction(eGuiListDirection::VERTICAL)
+:LayoutedGui(guiEngine), direction(eGuiDirection::VERTICAL)
 {
 	SetBgColorForAllStates(GetBgIdleColor());
 }
 
-inline void GuiList::SetDirection(eGuiListDirection dir)
+inline void GuiList::SetDirection(eGuiDirection dir)
 {
 	direction = dir;
-	bDirtyLayout = true;
+	bLayoutNeedRefresh = true;
 }
 
 inline Vector2f GuiList::ArrangeChildren(const Vector2f& finalSize)
@@ -48,14 +46,14 @@ inline Vector2f GuiList::ArrangeChildren(const Vector2f& finalSize)
 	for (Gui* child : GetChildren())
 	{
 		Vector2f desiredSize = child->GetDesiredSize();
-		if (direction == eGuiListDirection::VERTICAL)
+		if (direction == eGuiDirection::VERTICAL)
 		{
 			Vector2f sizeUsed = child->Arrange(pos.x(), pos.y() + selfSize.y(), desiredSize);
 
 			selfSize.y() += sizeUsed.y();
 			selfSize.x() = std::max(selfSize.x(), sizeUsed.x());
 		}
-		else if (direction == eGuiListDirection::HORIZONTAL)
+		else if (direction == eGuiDirection::HORIZONTAL)
 		{
 			Vector2f sizeUsed = child->Arrange(pos.x() + selfSize.x(), pos.y(), desiredSize);
 

@@ -5,3 +5,4 @@
 #include <Windows.h>
 
 typedef HWND WindowHandle;
+typedef void* DLLHandle;
