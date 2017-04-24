@@ -458,8 +458,8 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"	light_mvp[d] = lightMVPTex.Load(int3(cascade * 4 + d, 0, 0));\n"
 		"}\n"
 
-		//"	result.position = mul(vsConstants.MVP, position);\n"
-		"	result.position = mul(mul(light_mvp, vsConstants.MV), position);\n"
+		"	result.position = mul(vsConstants.MVP, position);\n"
+		//"	result.position = mul(mul(light_mvp, vsConstants.MV), position);\n"
 		"	result.vsPosition = mul(vsConstants.MV, position);\n"
 		"	result.normal = worldNormal;\n"
 		"	result.texCoord = texCoord.xy;\n"
@@ -657,8 +657,8 @@ std::unique_ptr<gxapi::IPipelineState> ForwardRender::CreatePso(
 	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
 	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
-	psoDesc.depthStencilState = gxapi::DepthStencilState(false, true);
-	//psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
+	//psoDesc.depthStencilState = gxapi::DepthStencilState(false, true);
+	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
 	psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::EQUAL;
 	psoDesc.depthStencilState.enableStencilTest = true;
 	psoDesc.depthStencilState.stencilReadMask = 0;

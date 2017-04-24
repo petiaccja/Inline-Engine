@@ -103,7 +103,7 @@ float4x4 create_translation(float3 vec)
 		0, 0, 0, 1);
 }
 
-float4x4 get_camera_matrix(camera c)
+/*float4x4 get_camera_matrix(camera c)
 {
 	float3 x = cross(c.view_dir, c.up_vector);
 
@@ -116,6 +116,20 @@ float4x4 get_camera_matrix(camera c)
 
 	return mul(create_translation(-c.pos), m);
 	//return mul(m, create_translation(-c.pos));
+}*/
+
+float4x4 get_camera_matrix(camera c)
+{
+	float3 x = cross(c.view_dir, c.up_vector);
+
+	float4x4 m;
+	m[0] = float4(x, 0);
+	m[1] = float4(c.view_dir, 0);
+	m[2] = float4(c.up_vector, 0);
+	m[3] = float4(float3(0.0f, 0.0f, 0.0f), 1);
+	m = transpose(m);
+
+	return mul(create_translation(-c.pos), m);
 }
 
 //heavily based on mjp shadow sample
@@ -196,8 +210,8 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 
 	camera split_shadow_cam = lookat_func(cam_pos, centroid_center, up);
 
-	//return mul(split_ortho_matrix, get_camera_matrix(split_shadow_cam));
-	return split_ortho_matrix;
+	return mul(split_ortho_matrix, get_camera_matrix(split_shadow_cam));
+	//return split_ortho_matrix;
 	//camera sanity_cam = lookat_func(float3(0,0,1), float3(0,-1,0), float3(0,0,1));
 	//return mul(split_ortho_matrix, get_camera_matrix(sanity_cam));
 	//return ortographic(-100, 100, -100, 100, 0.0f, 100);
