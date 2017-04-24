@@ -210,8 +210,9 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 
 	camera split_shadow_cam = lookat_func(cam_pos, centroid_center, up);
 
-	return mul(split_ortho_matrix, get_camera_matrix(split_shadow_cam));
+	//return mul(split_ortho_matrix, get_camera_matrix(split_shadow_cam));
 	//return split_ortho_matrix;
+	return get_camera_matrix(split_shadow_cam);
 	//camera sanity_cam = lookat_func(float3(0,0,1), float3(0,-1,0), float3(0,0,1));
 	//return mul(split_ortho_matrix, get_camera_matrix(sanity_cam));
 	//return ortographic(-100, 100, -100, 100, 0.0f, 100);
