@@ -9,6 +9,18 @@
 
 using namespace inl::gui;
 
+Gui::Gui(GuiEngine* guiEngine)
+:Gui(guiEngine, false)
+{
+	guiEngine->Register(this);
+}
+
+Gui::Gui()
+:Gui(nullptr, false)
+{
+	guiEngine->Register(this);
+}
+
 Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 {
 	borderColor = Color(128);
@@ -75,7 +87,7 @@ Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 		self->bLayoutNeedRefresh = true;
 	};
 
-	onPaintClonable += [](Gui* self, Gdiplus::Graphics* graphics, RectF& clipRect)
+	onPaintClonable += [](Gui* self, Gdiplus::Graphics* graphics)
 	{
 		if (self->IsLayoutNeedRefresh())
 			self->RefreshLayout();
@@ -85,7 +97,10 @@ Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 
 		Gdiplus::Rect gdiBorderRect(borderRect.left, borderRect.top, borderRect.GetWidth(), borderRect.GetHeight());
 		Gdiplus::Rect gdiPaddingRect(paddingRect.left, paddingRect.top, paddingRect.GetWidth(), paddingRect.GetHeight());
-		Gdiplus::Rect gdiClipRect(clipRect.left, clipRect.top, clipRect.GetWidth(), clipRect.GetHeight());
+
+		// TODO visibleRect
+		auto visibleContentRect = self->GetVisibleRect();
+		Gdiplus::Rect gdiClipRect(visibleContentRect.left, visibleContentRect.top, visibleContentRect.GetWidth(), visibleContentRect.GetHeight());
 
 		// Clipping
 		graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeReplace);

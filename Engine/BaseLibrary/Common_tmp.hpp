@@ -33,6 +33,21 @@ public:
 		return color;
 	}
 
+	static Color Random(bool bRandomAlpha = false)
+	{
+		Color color;
+		color.r = std::rand() % 256;
+		color.g = std::rand() % 256;
+		color.b = std::rand() % 256;
+
+		if (bRandomAlpha)
+			color.a = std::rand() % 256;
+		else
+			color.a = 255;
+
+		return color;
+	}
+
 	inline bool operator == (const Color& color)
 	{
 		return memcmp(this, &color, sizeof(Color)) == 0;

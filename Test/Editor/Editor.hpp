@@ -199,12 +199,12 @@ void Editor::InitGui()
 	Gui* area2 = mainLayer->AddButton();
 	//Gui* area3 = mainLayer->AddButton();
 	area0->SetSize(100, 100);
-	area0->SetBgToColor(Color(50), Color(70));
-	area0->StretchVerFillParent();
+	area0->SetBgToColor(Color::BLUE, Color(70));
+	//area0->StretchVerFillParent();
 	area1->SetSize(100, 100);
-	area1->SetBgToColor(Color(90), Color(110));
+	area1->SetBgToColor(Color::GREEN, Color(110));
 	area2->SetSize(100, 100);
-	area2->SetBgToColor(Color(130), Color(150));
+	area2->SetBgToColor(Color(130, 130, 0, 255), Color(150));
 	//area3->SetSize(100, 100);
 	//area3->SetBgToColor(Color(170), Color(190));
 

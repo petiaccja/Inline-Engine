@@ -63,19 +63,23 @@ inline GuiText::GuiText(GuiEngine* guiEngine)
 	HideBgImage();
 	HideBgColor();
 
-	onPaintClonable += [](Gui* self_, Gdiplus::Graphics* graphics, RectF& clipRect)
+	onPaintClonable += [](Gui* self_, Gdiplus::Graphics* graphics)
 	{
 		GuiText* self = self_->AsText();
 
 		if (self->text.length() == 0)
 			return;
 
-		auto rect = self->GetContentRect();
+		//auto rect = self->GetContentRect();
+		auto visibleContentRect = self->GetVisibleContentRect();
 
-		Gdiplus::RectF gdiClipRect = Gdiplus::RectF(rect.left, rect.top, rect.GetWidth(), rect.GetHeight());
+		// TODO visibleRect
+		//Gdiplus::RectF gdiClipRect = Gdiplus::RectF(rect.left, rect.top, rect.GetWidth(), rect.GetHeight());
+		Gdiplus::RectF gdiClipRect = Gdiplus::RectF(visibleContentRect.left, visibleContentRect.top, visibleContentRect.GetWidth(), visibleContentRect.GetHeight());
 
 		// Clipping (INTERSECT MODE)
-		graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeIntersect);
+		//graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeIntersect);
+		//graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeReplace);
 
 		Color color = self->color;
 		Gdiplus::SolidBrush brush(Gdiplus::Color(color.a, color.r, color.g, color.b));

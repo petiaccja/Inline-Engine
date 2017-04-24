@@ -18,6 +18,7 @@ namespace inl::gui {
 
 class GuiEngine
 {
+	friend class Gui;
 public:
 	GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow);
 	~GuiEngine();
@@ -49,6 +50,11 @@ public:
 	bool IsUsingCustomCursor() { return cursorVisual != eCursorVisual::ARROW; }
 	Gui* GetHoveredGui() { return hoveredGui; }
 
+	std::vector<GuiLayer*> GetLayers();
+
+protected:
+	void Register(Gui* g) { guis.push_back(g); }
+
 public:
 	Delegate<void(CursorEvent& evt)> onMouseClicked;
 	Delegate<void(CursorEvent& evt)> onMousePressed;
@@ -61,6 +67,7 @@ protected:
 
 	std::vector<GuiLayer*> layers; // "layers" rendered first
 	GuiLayer* postProcessLayer; // postProcessLayer renders above "layers"
+	std::vector<Gui*> guis;
 
 	Gui* hoveredGui;
 	Gui* activeContextMenu;
@@ -118,7 +125,7 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 		{
 			hoveredGui->TraverseTowardParents([&](Gui* control)
 			{
-				if (control->GetPaddingRect().IsPointInside(pixelCenterCursorPos))
+				if (control->GetVisibleContentRect().IsPointInside(pixelCenterCursorPos))
 				{
 					control->onMousePressed(eventData);
 					control->onMousePressedClonable(control, eventData);
@@ -153,7 +160,7 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 			// Control Mouse release
 			hoveredGui->TraverseTowardParents([&](Gui* control)
 			{
-				if (control->GetPaddingRect().IsPointInside(pixelCenterCursorPos))
+				if (control->GetVisibleContentRect().IsPointInside(pixelCenterCursorPos))
 				{
 					control->onMouseReleased(eventData);
 					control->onMouseReleasedClonable(control, eventData);
@@ -167,7 +174,7 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 
 				hoveredGui->TraverseTowardParents([&](Gui* control)
 				{
-					if (control->GetPaddingRect().IsPointInside(pixelCenterCursorPos))
+					if (control->GetVisibleContentRect().IsPointInside(pixelCenterCursorPos))
 					{
 						control->onMouseClicked(eventData);
 						control->onMouseClickedClonable(control, eventData);
@@ -213,7 +220,7 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 		{
 			hoveredGui->TraverseTowardParents([&](Gui* control)
 			{
-				if (control->GetPaddingRect().IsPointInside(pixelCenterCursorPos))
+				if (control->GetVisibleContentRect().IsPointInside(pixelCenterCursorPos))
 				{
 					control->onMouseMoved(eventData);
 					control->onMouseMovedClonable(control, eventData);
@@ -235,8 +242,8 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 
 inline GuiEngine::~GuiEngine()
 {
-	for (auto& layer : layers)
-		delete layer;
+	for (Gui* gui : guis)
+		delete gui;
 
 	layers.clear();
 
@@ -284,12 +291,40 @@ inline void GuiEngine::Update(float deltaTime)
 	// Let's hint the window to repaint itself
 	InvalidateRect((HWND)targetWindow->GetHandle(), NULL, true);
 
+	// Calculate clipping rect for all gui controls
+	std::function<void(Gui* control, RectF& clipRect)> traverseControls;
+	traverseControls = [&](Gui* control, RectF& clipRect)
+	{
+		control->SetVisibleRect(clipRect);
+
+		// Control the clipping rect of the children controls
+		RectF rect;
+		if (control->IsChildrenClipEnabled())
+			rect = control->GetContentRect();
+		else
+			rect = RectF(-FLT_MAX * 0.5, -FLT_MAX * 0.5, FLT_MAX, FLT_MAX);
+
+		RectF newClipRect = RectF::Intersect(clipRect, rect);
+
+		for (Gui* child : control->GetChildren())
+			traverseControls(child, newClipRect);
+	};
+
+	for (GuiLayer* layer : GetLayers())
+	{
+		RectF clipRect(-FLT_MAX * 0.5, -FLT_MAX * 0.5, FLT_MAX, FLT_MAX);
+		traverseControls(layer, clipRect);
+	}
+
+
+	// Call Update callback for all gui controls
 	TraverseGuiControls([=](Gui* control)
 	{
 		control->onUpdate(deltaTime);
 		control->onUpdateClonable(control, deltaTime);
 	});
 
+	// Search for hovered control, handle MouseLeaved, MouseEntered, MouseHovering
 	if (!IsHoverFreezed())
 	{
 		Vector2f cursorPos = targetWindow->GetClientCursorPos();
@@ -301,7 +336,7 @@ inline void GuiEngine::Update(float deltaTime)
 		Gui* newHoveredControl = nullptr;
 		TraverseGuiControls([&](Gui* control)
 		{
-			if (!control->IsLayer() && control->IsHoverable() && control->GetPaddingRect().IsPointInside(cursorPos))
+			if (!control->IsLayer() && control->IsHoverable() && control->GetVisibleContentRect().IsPointInside(cursorPos))
 				newHoveredControl = control;
 		});
 
@@ -322,7 +357,7 @@ inline void GuiEngine::Update(float deltaTime)
 			{
 				newHoveredControl->TraverseTowardParents([&](Gui* control)
 				{
-					if (control->GetPaddingRect().IsPointInside(cursorPos))
+					if (control->GetVisibleContentRect().IsPointInside(cursorPos))
 					{
 						control->onMouseEntered(eventData);
 						control->onMouseEnteredClonable(control, eventData);
@@ -337,7 +372,7 @@ inline void GuiEngine::Update(float deltaTime)
 			{
 				hoveredGui->TraverseTowardParents([&](Gui* control)
 				{
-					if (control->GetPaddingRect().IsPointInside(cursorPos))
+					if (control->GetVisibleContentRect().IsPointInside(cursorPos))
 					{
 						control->onMouseHovering(eventData);
 						control->onMouseHoveringClonable(control, eventData);
@@ -353,33 +388,18 @@ inline void GuiEngine::Render()
 {
 	SelectObject(memHDC, memBitmap);
 
-	std::function<void(Gui* control, RectF& clipRect)> traverseControls;
-	traverseControls = [&](Gui* control, RectF& clipRect)
+	std::function<void(Gui* control)> traverseControls;
+	traverseControls = [&](Gui* control)
 	{
-		control->onPaint(gdiGraphics, clipRect);
-		control->onPaintClonable(control, gdiGraphics, clipRect);
-
-		// Control the clipping rect of the children controls
-		RectF rect;
-		if (control->IsChildrenClipEnabled())
-			rect = control->GetContentRect();
-		else
-			rect = RectF(-9999999, -9999999, 9999999, 9999999);
-
-		RectF newClipRect = RectF::Intersect(clipRect, rect);
+		control->onPaint(gdiGraphics);
+		control->onPaintClonable(control, gdiGraphics);
 
 		for (Gui* child : control->GetChildren())
-			traverseControls(child, newClipRect);
+			traverseControls(child);
 	};
 
-	auto allLayers = layers;
-	allLayers.push_back(postProcessLayer);
-
-	for (GuiLayer* layer : allLayers)
-	{
-		RectF clipRect(-9999999, -9999999, 99999999, 99999999);
-		traverseControls(layer, clipRect);
-	}
+	for (GuiLayer* layer : GetLayers())
+		traverseControls(layer);
 
 	// Present
 	BitBlt(hdc, 0, 0, targetWindow->GetClientWidth(), targetWindow->GetClientHeight(), memHDC, 0, 0, SRCCOPY);
@@ -412,6 +432,14 @@ inline void GuiEngine::SetCursorVisual(eCursorVisual cursorVisual)
 {
 	this->cursorVisual = cursorVisual;
 	Sys::SetCursorVisual(cursorVisual, targetWindow->GetHandle());
+}
+
+inline std::vector<GuiLayer*> GuiEngine::GetLayers()
+{
+	std::vector<GuiLayer*> result = layers;
+	result.push_back(postProcessLayer);
+
+	return result;
 }
 
 } //namespace inl::gui

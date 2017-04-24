@@ -82,7 +82,6 @@ void GuiSplitter::AddItem(Gui* gui)
 			}
 		};
 
-		separators.insert(separator);
 		separator->SetSize(6, 0);
 		separator->SetBgToColor(Color(120), Color(255));
 
@@ -92,6 +91,11 @@ void GuiSplitter::AddItem(Gui* gui)
 			separator->StretchFillParent(true, false);
 	}
 
-	Add(gui);
+	// Gui Container wrapping our item, sizing and align policy will work relative to this container :)
+	Gui* container = AddGui();
+	//container->StretchFitToChildren();
+	container->DisableHover();
+	container->Add(gui);
+	container->SetBorder(2, Color::RED);
 	items.insert(gui);
 }

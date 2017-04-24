@@ -288,6 +288,8 @@ public:
 	RectF GetContentRect();
 	RectF GetPaddingRect();
 	RectF GetBorderRect();
+	RectF GetVisibleRect();
+	RectF GetVisibleContentRect();
 	RectF GetChildrenRect();
 
 	eGuiStretch GetStretchVer() { return stretchVer; }
@@ -342,6 +344,8 @@ public:
 	Vector2f GetDesiredSize() { return GetSize() + Vector2f(margin.left + margin.right, margin.top + margin.bottom); }
 
 protected:
+	void SetVisibleRect(const RectF& rect) { visibleRect = rect; }
+
 	void SetContentRect(float x, float y, float width, float height, bool bMoveChildren, bool bMakeLayoutDirty);
 	void SetContentRect(const RectF rect, bool bMoveChildren, bool bMakeLayoutDirty) { SetContentRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), bMoveChildren, bMakeLayoutDirty); }
 
@@ -371,8 +375,27 @@ protected:
 	// Width, Height
 	Vector2f size;
 
+	// Children widgets
+	std::vector<Gui*> children;
+
 	// Parent widget
 	Gui* parent;
+
+	// Alignment & Stretch
+	eGuiAlignHor alignHor;
+	eGuiAlignVer alignVer;
+	eGuiStretch	 stretchHor;
+	eGuiStretch	 stretchVer;
+
+	// Border
+	Color borderColor;
+	RectF border;
+
+	// Margin
+	RectF margin;
+
+	// Padding
+	RectF padding;
 
 	// IsLayer ?
 	bool bLayer;
@@ -386,28 +409,11 @@ protected:
 	// Is hover enabled?
 	bool bHoverable;
 
-	// If true parent rectangle will be exactly aroound childs always
-	//bool bAutoWidth;
-	//bool bAutoHeight;
-
 	// children index in parent
 	int indexInParent;
 
-	// Children widgets
-	std::vector<Gui*> children;
-
 	// What this widget should do with the message it reaches while moving up in hierarchy (toward parents)
 	eEventPropagationPolicy eventPropagationPolicy;
-
-	// If true, RefreshLayout() will be called before render, to ReArrange the layout as necessary
-	bool bLayoutNeedRefresh;
-
-	// Layering (Our neighbours in the tree hierarchy)
-	Gui* front;
-	Gui* back;
-
-	// Attached context menu
-	Gui* contextMenu;
 
 	// Background image and color
 	bool bBgImageVisible;
@@ -420,21 +426,17 @@ protected:
 	Color bgHoverColor;
 	Color bgActiveColor;
 
-	// Border
-	Color borderColor;
-	RectF border;
+	// If true, RefreshLayout() will be called before render, to ReArrange the layout as necessary
+	bool bLayoutNeedRefresh;
 
-	// Margin
-	RectF margin;
+	RectF visibleRect;
 
-	// Padding
-	RectF padding;
+	// Layering (Our neighbours in the tree hierarchy)
+	Gui* front;
+	Gui* back;
 
-	// Alignment & Stretch
-	eGuiAlignHor	alignHor;
-	eGuiAlignVer	alignVer;
-	eGuiStretch		stretchHor;
-	eGuiStretch		stretchVer;
+	// Attached context menu
+	Gui* contextMenu;
 
 	// Very internal stuff, Parent's are only fillable after their size is evaluated, before it shouldn't
 	bool bFillParentEnabled;
@@ -496,21 +498,9 @@ public:
 	Delegate<void(Gui* child)> onChildRemoved;
 	Delegate<void(Gui* self, Gui* child)> onChildRemovedClonable;
 
-	Delegate<void(Gdiplus::Graphics* graphics, RectF& clipRect)> onPaint;
-	Delegate<void(Gui* self, Gdiplus::Graphics* graphics, RectF& clipRect)> onPaintClonable;
+	Delegate<void(Gdiplus::Graphics* graphics)> onPaint;
+	Delegate<void(Gui* self, Gdiplus::Graphics* graphics)> onPaintClonable;
 };
-
-inline Gui::Gui(GuiEngine* guiEngine)
-:Gui(guiEngine, false)
-{
-
-}
-
-inline Gui::Gui()
-:Gui(nullptr, false)
-{
-
-}
 
 inline void Gui::Clear()
 {
@@ -521,8 +511,8 @@ inline void Gui::Clear()
 	parent = nullptr;
 	indexInParent = -1;
 
-	for (Gui* c : children)
-		delete c;
+	//for (Gui* c : children)
+	//	delete c;
 
 	children.clear();
 }
@@ -1094,6 +1084,20 @@ inline Vector2f Gui::ArrangeChildren(const Vector2f& finalSize)
 inline RectF Gui::GetRect()
 {
 	return RectF(pos, size);
+}
+
+inline RectF Gui::GetVisibleRect()
+{
+	return visibleRect;
+}
+
+inline RectF Gui::GetVisibleContentRect()
+{
+	RectF rect = GetVisibleRect();
+
+	rect.Intersect(GetContentRect());
+
+	return rect;
 }
 
 inline RectF Gui::GetContentRect()

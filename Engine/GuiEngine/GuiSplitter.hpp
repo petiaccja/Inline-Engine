@@ -26,7 +26,6 @@ protected:
 
 protected:
 	std::unordered_set<Gui*> items;
-	std::unordered_set<Gui*> separators;
 	eGuiDirection direction;
 };
 
@@ -38,8 +37,10 @@ inline GuiSplitter::GuiSplitter(GuiEngine* guiEngine)
 
 inline bool GuiSplitter::RemoveItem(Gui* gui)
 {
-	bool bGuiIdxInParent = gui->GetIndexInParent();
-	bool bRemoved = gui->Remove();
+	Gui* container = gui->GetParent();
+
+	bool bGuiIdxInParent = container->GetIndexInParent();
+	bool bRemoved = container->Remove();
 
 	std::vector<Gui*>& children = GetChildren();
 
@@ -50,13 +51,11 @@ inline bool GuiSplitter::RemoveItem(Gui* gui)
 		{
 			Gui* separator = children[bGuiIdxInParent];
 			separator->Remove();
-			separators.erase(separator);
 		}
-		else // Non first item, so separators will be left
+		else // Non first item, so separators will be to the left
 		{
 			Gui* separator = children[bGuiIdxInParent - 1];
 			separator->Remove();
-			separators.erase(separator);
 		}
 	}
 
