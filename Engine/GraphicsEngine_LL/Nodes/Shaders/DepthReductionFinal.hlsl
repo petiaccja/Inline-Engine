@@ -75,17 +75,19 @@ float4x4 ortographic(float left, float right, float bottom, float top, float nea
 {
 	float4x4 r = create_identity();
 
-	r[0].x = 2.0 / (right - left);
-	r[1].y = 2.0 / (top - bottom);
-	r[2].z = -2.0 / (far - near);
-	
-//	r[3].x = -((right + left) / (right - left));
-//	r[3].y = -((top + bottom) / (top - bottom));
-//	r[3].z = -((far + near) / (far - near));
-	r[0].w = -((right + left) / (right - left));
-	r[1].w = -((top + bottom) / (top - bottom));
-	r[2].w = -((far + near) / (far - near));
-	
+	// Left handed ortho projection, output interval min [-1, -1, 0] max [1, 1, 1]
+	//2 / w  0    0           0
+	//0    2 / h  0           0
+	//0    0    1 / (zf - zn)   0
+	//0    0    zn / (zn - zf)  1
+
+	float width = right - left;
+	float height = top - bottom;
+
+	r[0].x = 2.0 / width;
+	r[1].y = 2.0 / height;
+	r[2].z = 1.0 / (far - near);
+	r[2].w = near / (near - far);	
 	r[3].w = 1.0;
 
 	return r;
@@ -93,30 +95,11 @@ float4x4 ortographic(float left, float right, float bottom, float top, float nea
 
 float4x4 create_translation(float3 vec)
 {
-//	return float4x4(1, 0, 0, 0,
-//		0, 1, 0, 0,
-//		0, 0, 1, 0,
-//		vec.x, vec.y, vec.z, 1);
 	return float4x4(1, 0, 0, vec.x,
 		0, 1, 0, vec.y,
 		0, 0, 1, vec.z,
 		0, 0, 0, 1);
 }
-
-/*float4x4 get_camera_matrix(camera c)
-{
-	float3 x = cross(c.view_dir, c.up_vector);
-
-	float4x4 m;
-	m[0] = float4(x, 0);
-	m[1] = float4(c.up_vector, 0);
-	m[2] = float4(-c.view_dir, 0);
-	m[3] = float4(float3(0.0f, 0.0f, 0.0f), 1);
-	//m = transpose(m);
-
-	return mul(create_translation(-c.pos), m);
-	//return mul(m, create_translation(-c.pos));
-}*/
 
 float4x4 get_camera_matrix(camera c)
 {
@@ -124,12 +107,14 @@ float4x4 get_camera_matrix(camera c)
 
 	float4x4 m;
 	m[0] = float4(x, 0);
-	m[1] = float4(c.view_dir, 0);
-	m[2] = float4(c.up_vector, 0);
+	m[1] = float4(c.up_vector, 0);
+	m[2] = float4(c.view_dir, 0);
 	m[3] = float4(float3(0.0f, 0.0f, 0.0f), 1);
-	m = transpose(m);
 
-	return mul(create_translation(-c.pos), m);
+	// RICSI ez még lehet hogy kelleni fog kapcsolgasd ki meg be néha :D
+	//m = transpose(m);
+
+	return mul(m, create_translation(-c.pos));
 }
 
 //heavily based on mjp shadow sample
@@ -202,6 +187,10 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 	minExtents *= scale;
 	minExtents.z /= scale;
 
+	// Ricsi 2 lines, min meg max extent is rossz
+	maxExtents = float3(40, 40, 40);
+	minExtents = float3(-40, -40, -40);
+
 	float3 cascadeExtents = maxExtents - minExtents;
 
 	float3 cam_pos = centroid_center + light_cam.view_dir * -abs(minExtents.z);
@@ -210,9 +199,9 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 
 	camera split_shadow_cam = lookat_func(cam_pos, centroid_center, up);
 
-	//return mul(split_ortho_matrix, get_camera_matrix(split_shadow_cam));
+	return mul(split_ortho_matrix, get_camera_matrix(split_shadow_cam));
 	//return split_ortho_matrix;
-	return get_camera_matrix(split_shadow_cam);
+	//return get_camera_matrix(split_shadow_cam);
 	//camera sanity_cam = lookat_func(float3(0,0,1), float3(0,-1,0), float3(0,0,1));
 	//return mul(split_ortho_matrix, get_camera_matrix(sanity_cam));
 	//return ortographic(-100, 100, -100, 100, 0.0f, 100);

@@ -156,10 +156,10 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 
 	vp.Inverse().Pack(uniformsCBData.invVP);
 
-	mathfu::Matrix4x4f  bias_matrix(0.5f, 0, 0, 0,			// column #1
-		0, 0.5f, 0, 0,			// column #2
-		0, 0, 0.5f, 0,			// column #3
-		0.5f, 0.5f, 0.5f, 1);	// column #4
+	mathfu::Matrix4x4f  bias_matrix(	0.5f,	0,		0,		0,			// column #1
+										0,		-0.5f,	0,		0,			// column #2
+										0,		0,		1.0f,	0,			// column #3
+										0.5f,	0.5f,	0.0f,	1);	// column #4
 	bias_matrix.Pack(uniformsCBData.bias_mx);
 
 	view.Inverse().Pack(uniformsCBData.inv_mv);

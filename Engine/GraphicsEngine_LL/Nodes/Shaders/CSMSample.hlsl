@@ -49,7 +49,7 @@ float sample_csm(int cascade, float4 vs_pos)
 	float4 shadow_coord = mul(shadow_mx, vs_pos);
 	shadow_coord /= shadow_coord.w;
 
-	float bias = 0.0075;
+	float bias = 0.0001;
 	shadow_coord.z -= bias;
 
 	float2 offset = fmod(shadow_coord.xy * 0.5, 0.25);
@@ -76,6 +76,8 @@ float sample_csm(int cascade, float4 vs_pos)
 //vec3 get_shadow(sampler2D tex, vec4 shadow_coord)
 float get_shadow(float4 vs_pos)
 {
+	return sample_csm(0, vs_pos);
+
 	int cascade;
 	for (int c = 0; c < 4; ++c)
 	{
