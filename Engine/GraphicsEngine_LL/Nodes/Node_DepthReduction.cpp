@@ -132,6 +132,9 @@ void DepthReduction::Execute(RenderContext & context) {
 	unsigned dispatchW, dispatchH;
 	setWorkgroupSize((unsigned)std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
 
+	commandList.SetResourceState(m_uav.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.SetResourceState(m_depthView.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+
 	commandList.SetPipelineState(m_CSO.get());
 	commandList.SetComputeBinder(&m_binder.value());
 	commandList.BindCompute(m_depthBindParam, m_depthView);

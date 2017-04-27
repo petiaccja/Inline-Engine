@@ -219,6 +219,7 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 	commandList.SetResourceState(m_light_mvp_uav.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
 	commandList.SetResourceState(m_shadow_mx_uav.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
 	commandList.SetResourceState(m_csm_splits_uav.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.SetResourceState(m_reductionTexSrv.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 
 	commandList.SetPipelineState(m_CSO.get());
 	commandList.SetComputeBinder(&m_binder.value());

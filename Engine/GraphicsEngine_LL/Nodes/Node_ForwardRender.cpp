@@ -283,6 +283,7 @@ void ForwardRender::Execute(RenderContext& context) {
 			case eMaterialShaderParamType::BITMAP_VALUE_2D:
 			{
 				BindParameter bindSlot(eBindParameterType::TEXTURE, scenario.offsets[paramIdx]);
+				commandList.SetResourceState(((Image*)param)->GetSrv()->GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 				commandList.BindGraphics(bindSlot, *((Image*)param)->GetSrv());
 				break;
 			}
