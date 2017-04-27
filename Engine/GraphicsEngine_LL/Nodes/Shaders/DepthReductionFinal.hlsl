@@ -88,6 +88,7 @@ float4x4 ortographic(float left, float right, float bottom, float top, float nea
 	r[1].y = 2.0 / height;
 	r[2].z = 1.0 / (far - near);
 	r[2].w = near / (near - far);	
+
 	r[3].w = 1.0;
 
 	return r;
@@ -188,8 +189,8 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 	minExtents.z /= scale;
 
 	// Ricsi 2 lines, min meg max extent is rossz
-	maxExtents = float3(40, 40, 40);
-	minExtents = float3(-40, -40, -40);
+	//maxExtents = float3(40, 40, 40);
+	//minExtents = float3(-40, -40, -40);
 
 	float3 cascadeExtents = maxExtents - minExtents;
 
