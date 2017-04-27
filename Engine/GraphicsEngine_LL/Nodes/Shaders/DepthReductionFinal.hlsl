@@ -7,6 +7,7 @@
  */
 
 Texture2D inputTex : register(t0);
+//RWTexture2D<float2> inputTex : register(u3);
 RWTexture2D<float4> outputTex0 : register(u0);
 RWTexture2D<float4> outputTex1 : register(u1);
 RWTexture2D<float2> outputTex2 : register(u2);
@@ -235,10 +236,13 @@ void init(uint2 dispatchThreadId, uint groupIndex)
 {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
+	//uint2 inputTexSize;
+	//inputTex.GetDimensions(inputTexSize.x, inputTexSize.y);
 	if (any(dispatchThreadId.xy >= inputTexSize.xy))
 		return;
 
 	float2 data = inputTex.Load(int3(dispatchThreadId.xy, 0)).xy;
+	//inputTex[dispatchThreadId.xy] = float2(0.0, 0.0);
 
 	localData[groupIndex].x = min(data.x, localData[groupIndex].x);
 	localData[groupIndex].y = max(data.y, localData[groupIndex].y);
@@ -261,11 +265,14 @@ void CSMain(
 	{ //INIT
 		uint3 inputTexSize;
 		inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
+		//uint2 inputTexSize;
+		//inputTex.GetDimensions(inputTexSize.x, inputTexSize.y);
 
+		//localData[groupIndex] = float2(100.0f, 0.0f);
 		localData[groupIndex] = float2(1.0f, 0.0f);
 
-		for (uint y = groupThreadId.y * (inputTexSize.y / LOCAL_SIZE_Y); y < (groupThreadId.y + 1) * (inputTexSize.y / LOCAL_SIZE_Y); ++y)
-			for (uint x = groupThreadId.x * (inputTexSize.x / LOCAL_SIZE_X); x < (groupThreadId.x + 1) * (inputTexSize.x / LOCAL_SIZE_X); ++x)
+		for (uint y = groupThreadId.y * (inputTexSize.y / float(LOCAL_SIZE_Y)); y < (groupThreadId.y + 1) * (inputTexSize.y / float(LOCAL_SIZE_Y)); ++y)
+			for (uint x = groupThreadId.x * (inputTexSize.x / float(LOCAL_SIZE_X)); x < (groupThreadId.x + 1) * (inputTexSize.x / float(LOCAL_SIZE_X)); ++x)
 			{
 				init(uint2(x, y), groupIndex);
 			}
@@ -298,9 +305,13 @@ void CSMain(
 
 			float linearMinDepth = linearize_depth(minDepth, uniforms.cam_near, uniforms.cam_far);
 			float linearMaxDepth = linearize_depth(maxDepth, uniforms.cam_near, uniforms.cam_far);
+			//float linearMinDepth = minDepth;//linearize_depth(minDepth, uniforms.cam_near, uniforms.cam_far);
+			//float linearMaxDepth = maxDepth;//linearize_depth(maxDepth, uniforms.cam_near, uniforms.cam_far);
 
-			near = linearMinDepth * uniforms.cam_far;
-			far = linearMaxDepth * uniforms.cam_far;
+			//near = linearMinDepth;// *uniforms.cam_far;
+			//far = linearMaxDepth;// *uniforms.cam_far;
+			near = linearMinDepth *uniforms.cam_far;
+			far = linearMaxDepth *uniforms.cam_far;
 		}
 
 		float4x4 light_mvp[4];

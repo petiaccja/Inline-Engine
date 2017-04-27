@@ -7,6 +7,48 @@ SamplerState theSampler : register(s500);
 // TODO replace all the hardwired constants that
 // depend on number of cascades (shadowMapTex array element count)
 
+static const float4 radarColors[14] =
+{
+	{ 0,0.9255,0.9255,1 },   // cyan
+	{ 0,0.62745,0.9647,1 },  // light blue
+	{ 0,0,0.9647,1 },        // blue
+	{ 0,1,0,1 },             // bright green
+	{ 0,0.7843,0,1 },        // green
+	{ 0,0.5647,0,1 },        // dark green
+	{ 1,1,0,1 },             // yellow
+	{ 0.90588,0.75294,0,1 }, // yellow-orange
+	{ 1,0.5647,0,1 },        // orange
+	{ 1,0,0,1 },             // bright red
+	{ 0.8392,0,0,1 },        // red
+	{ 0.75294,0,0,1 },       // dark red
+	{ 1,0,1,1 },             // magenta
+	{ 0.6,0.3333,0.7882,1 }, // purple
+};
+
+float4 num_to_radar_color(int num, int num_max)
+{
+	// black for 0
+	if (num == 0) return float4(0, 0, 0, 1);
+	// light purple for reaching the max
+	else if (num == num_max) return float4(0.847, 0.745, 0.921, 1);
+	// white for going over the max
+	else if (num > num_max) return float4(1, 1, 1, 1);
+	// else use weather radar colors
+	else
+	{
+		// use a log scale to provide more detail when the number of lights is smaller
+
+		// want to find the base b such that the logb of uMaxNumLightsPerTile is 14
+		// (because we have 14 radar colors)
+		float fLogBase = exp2(0.07142857f*log2((float)num_max));
+
+		// change of base
+		// logb(x) = log2(x) / log2(b)
+		int idx = floor(log2((float)num) / log2(fLogBase));
+		return radarColors[idx];
+	}
+}
+
 float3 get_shadow_uv(float2 uv, float cascade_idx)
 {
 	// float2 res = float2(uv.x*0.25, uv.y) + cascade_idx * float2(0.25, 0);
@@ -74,7 +116,7 @@ float sample_csm(int cascade, float4 vs_pos)
 }
 
 //vec3 get_shadow(sampler2D tex, vec4 shadow_coord)
-float get_shadow(float4 vs_pos)
+float3 get_shadow(float4 vs_pos)
 {
 	//return sample_csm(0, vs_pos);
 
@@ -126,7 +168,8 @@ float get_shadow(float4 vs_pos)
 	}
 
 	//return cascade * 0.25;
-	return shadow_term;
+	//return float3(shadow_term, shadow_term, shadow_term);
+	return float3(shadow_term, shadow_term, shadow_term);// *0.5 + num_to_radar_color(cascade, 4).xyz * 0.1;
 	//return float(shadow_coord.z - 0.005 < texture(tex, shadow_coord.xy).x) * shadow_selector / 4.0;
 	//return ls_ndc_pos.z/0.25;
 	//return shadow_coord.xyz;
