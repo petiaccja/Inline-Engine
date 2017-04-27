@@ -45,7 +45,7 @@ CopyCommandList& CopyCommandList::operator=(CopyCommandList&& rhs) {
 
 
 void CopyCommandList::SetResourceState(const MemoryObject& resource, unsigned subresource, gxapi::eResourceState state) {
-	subresource = 0; // until there's no validation on subresources
+	subresource = gxapi::ALL_SUBRESOURCES; // until there's no validation on subresources
 	SubresourceId resId{resource, subresource};
 	auto iter = m_resourceTransitions.find(resId);
 	bool firstTransition = iter == m_resourceTransitions.end();
@@ -76,7 +76,7 @@ void CopyCommandList::SetResourceState(const MemoryObject& resource, unsigned su
 
 
 void CopyCommandList::ExpectResourceState(const MemoryObject& resource, unsigned subresource, gxapi::eResourceState state) {
-	SubresourceId resId{ resource, subresource };
+	SubresourceId resId{ resource, gxapi::ALL_SUBRESOURCES };
 	auto iter = m_resourceTransitions.find(resId);
 	if (iter == m_resourceTransitions.end()) {
 		if (IsDebuggerPresent()) {
