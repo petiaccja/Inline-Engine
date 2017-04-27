@@ -45,6 +45,7 @@ CopyCommandList& CopyCommandList::operator=(CopyCommandList&& rhs) {
 
 
 void CopyCommandList::SetResourceState(const MemoryObject& resource, unsigned subresource, gxapi::eResourceState state) {
+	subresource = 0; // until there's no validation on subresources
 	SubresourceId resId{resource, subresource};
 	auto iter = m_resourceTransitions.find(resId);
 	bool firstTransition = iter == m_resourceTransitions.end();
@@ -70,6 +71,24 @@ void CopyCommandList::SetResourceState(const MemoryObject& resource, unsigned su
 			iter->second.lastState = state;
 			iter->second.multipleStates = true;
 		}
+	}
+}
+
+
+void CopyCommandList::ExpectResourceState(const MemoryObject& resource, unsigned subresource, gxapi::eResourceState state) {
+	SubresourceId resId{ resource, subresource };
+	auto iter = m_resourceTransitions.find(resId);
+	if (iter == m_resourceTransitions.end()) {
+		if (IsDebuggerPresent()) {
+			DebugBreak();
+		}
+		throw std::logic_error("You did not set resource state before using this resource!");
+	}
+	else if (!(iter->second.lastState & state)) {
+		if (IsDebuggerPresent()) {
+			DebugBreak();
+		}
+		throw std::logic_error("You did set resource state, but to the wrong value!");
 	}
 }
 

@@ -117,6 +117,7 @@ public:
 	// barriers
 	void SetResourceState(const MemoryObject& resource, unsigned subresource, gxapi::eResourceState state);
 protected:
+	void ExpectResourceState(const MemoryObject& resource, unsigned subresource, gxapi::eResourceState state);
 	virtual Decomposition Decompose() override;
 private:
 	gxapi::ICopyCommandList* m_commandList;
