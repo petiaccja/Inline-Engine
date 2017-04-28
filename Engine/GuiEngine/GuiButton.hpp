@@ -29,8 +29,8 @@ inline GuiButton::GuiButton(GuiEngine* guiEngine)
 {
 	text = AddText();
 	text->StretchFitToChildren();
-	text->AlignCenter();
-
+	text->AlignLeft();
+	text->AlignTop();
 	text->DisableHover();
 }
 

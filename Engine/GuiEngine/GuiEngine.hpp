@@ -8,6 +8,7 @@
 #include "GuiList.hpp"
 #include "GuiSlider.hpp"
 #include "GuiSplitter.hpp"
+#include "GuiMenu.h"
 
 #include <vector>
 #include <functional>
@@ -231,12 +232,8 @@ inline GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow
 
 	targetWindow->onClientSizeChanged += [this](Vector2u size)
 	{
-		Vector2f newSize = Vector2f(size.x(), size.y());
-
-		for (auto& layer : layers)
-			layer->SetSize(newSize);
-
-		postProcessLayer->SetSize(newSize);
+		for (auto& layer : GetLayers())
+			layer->SetSize(Vector2f(size.x(), size.y()));
 	};
 }
 

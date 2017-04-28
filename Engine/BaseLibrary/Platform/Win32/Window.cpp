@@ -167,7 +167,7 @@ bool Window::PopEvent(WindowEvent& evt_out)
 		evt_out.clientMousePos = Vector2f(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMousePressed(evt_out);
 	}
-	else if (msg.message == WM_LBUTTONUP)
+	if (msg.message == WM_LBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
@@ -295,9 +295,10 @@ void Window::SetSize(const Vector2u& size)
 	SetWindowPos(handle, HWND_TOP, rect.left, rect.bottom, size.x(), size.y(), 0);
 }
 
-void Window::SetTitle(const std::wstring& text)
+void Window::SetTitle(const std::string& text)
 {
-	SetWindowText(handle, text.c_str());
+	std::wstring str(text.begin(), text.end());
+	SetWindowText(handle, str.c_str());
 }
 
 bool Window::IsOpen() const

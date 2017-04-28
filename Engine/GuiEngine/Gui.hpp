@@ -35,6 +35,7 @@ enum class eGuiStretch
 {
 	NONE,
 	FILL_PARENT,
+	FILL_PARENT_POSITIVE_DIR,
 	FIT_TO_CHILDREN,
 };
 
@@ -54,6 +55,7 @@ class GuiList;
 class GuiSlider;
 class GuiCollapsable;
 class GuiSplitter;
+class GuiMenu;
 
 class Gui
 {
@@ -65,6 +67,7 @@ public:
 	Gui(const Gui& other) { *this = other; }
 
 	void InitFromImage(const std::wstring& idleImagePath, const std::wstring& hoverImagePath);
+	void InitFromImage(const std::string& idleImagePath, const std::string& hoverImagePath) { InitFromImage(std::wstring(idleImagePath.begin(), idleImagePath.end()), std::wstring(hoverImagePath.begin(), hoverImagePath.end())); }
 
 	virtual ~Gui() { Clear(); }
 	void Clear();
@@ -82,9 +85,21 @@ public:
 	GuiText*		AddText();
 	GuiButton*		AddButton();
 	GuiList*		AddList();
+	GuiMenu*		AddMenu();
 	GuiSlider*		AddSlider();
 	GuiCollapsable* AddCollapsable();
 	GuiSplitter*	AddSplitter();
+
+	Gui*			CreateGui();
+	GuiText*		CreateText();
+	GuiButton*		CreateButton();
+	GuiList*		CreateList();
+	GuiMenu*		CreateMenu();
+	GuiSlider*		CreateSlider();
+	GuiCollapsable* CreateCollapsable();
+	GuiSplitter*	CreateSplitter();
+
+	void BringToFront();
 
 	bool Remove(Gui* child) { return Remove(child, true); }
 	bool Remove();
@@ -141,6 +156,7 @@ public:
 	void SetClipChildren(bool b) { bClipChildren = b; }
 
 	void SetBgToColor(const Color& idleColor, const Color& hoverColor);
+	void SetBgToColor(const Color& color) { SetBgToColor(color, color);}
 	void SetBgIdleColor(const Color& color);
 	void SetBgHoverColor(const Color& color);
 	void SetBgActiveColor(const Color& color) { bgActiveColor = color; }
@@ -261,6 +277,10 @@ public:
 	float GetHalfHeight() { return GetHeight() * 0.5f; }
 	Vector2f GetHalfSize() { return Vector2f(GetHalfWidth(), GetHalfHeight()); }
 
+	Vector2f GetMinSize() { return Vector2f(1, 1); }
+	float GetMinSizeX() { return GetMinSize().x(); }
+	float GetMinSizeY() { return GetMinSize().y(); }
+
 	Vector2f GetPosBottomLeft() { return GetPos() + Vector2f(0, GetHeight()); }
 	Vector2f GetPosBottomRight() { return GetPos() + Vector2f(GetWidth(), GetHeight()); }
 	Vector2f GetPosTopLeft() { return GetPos(); }
@@ -283,6 +303,11 @@ public:
 	float GetContentHalfWidth() { return GetContentWidth() * 0.5f; }
 	float GetContentHalfHeight() { return GetContentHeight() * 0.5f; }
 	Vector2f GetContentHalfSize() { return GetContentSize() * 0.5f; }
+
+	float GetContentRight() { return GetContentRect().right; }
+	float GetContentLeft() { return GetContentRect().left; }
+	float GetContentBottom() { return GetContentRect().bottom; }
+	float GetContentTop() { return GetContentRect().top; }
 
 	RectF GetRect();
 	RectF GetContentRect();
@@ -726,7 +751,10 @@ inline void Gui::Move(float dx, float dy)
 
 inline void Gui::SetRect(float x, float y, float width, float height, bool bMoveChildren, bool bMakeLayoutDirty)
 {
-	assert(width >= 0 && height >= 0);
+	// In debug tell us if there's a problem with sizing
+	//assert(width >= 0 && height >= 0);
+	width = std::max(width, GetMinSizeX()); // In release solve the issue
+	height = std::max(height, GetMinSizeY());
 
 	RectF oldRect = GetRect();
 
@@ -764,6 +792,7 @@ inline void Gui::SetRect(float x, float y, float width, float height, bool bMove
 	if (rect.GetSize() != oldRect.GetSize())
 	{
 		onSizeChanged(rect.GetSize());
+		onSizeChangedClonable(this, rect.GetSize());
 
 		if (bMakeLayoutDirty)
 			bLayoutNeedRefresh = true;
@@ -922,6 +951,8 @@ inline Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 	bool bFitToChildrenVer = stretchVer == eGuiStretch::FIT_TO_CHILDREN;
 	bool bFillParentHor = stretchHor == eGuiStretch::FILL_PARENT;
 	bool bFillParentVer = stretchVer == eGuiStretch::FILL_PARENT;
+	bool bFillParentPositibeDirHor = stretchHor == eGuiStretch::FILL_PARENT_POSITIVE_DIR;
+	bool bFillParentPositibeDirVer = stretchVer == eGuiStretch::FILL_PARENT_POSITIVE_DIR;
 
 	if (bForceFitToChildren)
 	{
@@ -942,6 +973,7 @@ inline Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 
 	bool bFitToChildren = bFitToChildrenHor | bFitToChildrenVer;
 	bool bFillParent = bFillParentHor || bFillParentVer;
+	bool bFillParentPositiveDir = bFillParentPositibeDirHor || bFillParentPositibeDirVer;
 
 	// Hívodjon akkor is ez ha parent FIT, ez meg FILL
 	if (bFitToChildren)
@@ -973,7 +1005,7 @@ inline Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 			newSize.x() = sizeUsed.x();
 		}
 
-		// FIT_TO_CHILDREN -> FILL_PARENT -> FILL_PARENT, a FILL_PARENT - es éppeni control - nak a minimális méretet kell felvennie mert FIT_TO_CHILDREN erõsebb náluk
+		// FIT_TO_CHILDREN -> FILL_PARENT -> FILL_PARENT, a FILL_PARENT,  parent -> children -> children.... parent will be dominant against "FILL_PARENT" flagged children, so everybody should take the minimal size
 		if (bFitToChildrenVer)
 		{
 			sizeUsed.y() += padding.top + padding.bottom;
@@ -984,11 +1016,14 @@ inline Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 
 		// At this point we should enable children to fill self (eGuiStretch::FILL_PARENT)
 		for (Gui* c : GetChildren())
-			if(c->stretchHor == eGuiStretch::FILL_PARENT || c->stretchVer == eGuiStretch::FILL_PARENT)
+			if (c->stretchHor == eGuiStretch::FILL_PARENT || c->stretchVer == eGuiStretch::FILL_PARENT ||
+				c->stretchHor == eGuiStretch::FILL_PARENT_POSITIVE_DIR || c->stretchVer == eGuiStretch::FILL_PARENT_POSITIVE_DIR)
+			{
 				c->bFillParentEnabled = true;
+			}
 	}
 
-	if (bFillParent)
+	if (bFillParent || bFillParentPositiveDir)
 	{
 		if (bFillParentHor && (parent->stretchHor != eGuiStretch::FIT_TO_CHILDREN || bFillParentEnabled))
 		{
@@ -1000,6 +1035,16 @@ inline Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 		{
 			newSize.y() = parent->GetContentSizeY();
 			newPos.y() = parent->GetContentPosY();
+		}
+
+		if (bFillParentPositibeDirHor && (parent->stretchHor != eGuiStretch::FIT_TO_CHILDREN || bFillParentEnabled))
+		{
+			newSize.x() = parent->GetContentRight() - newPos.x();
+		}
+
+		if (bFillParentPositibeDirVer && (parent->stretchVer != eGuiStretch::FIT_TO_CHILDREN || bFillParentEnabled))
+		{
+			newSize.y() = parent->GetContentBottom() - newPos.y();
 		}
 
 		bFillParentEnabled = false;

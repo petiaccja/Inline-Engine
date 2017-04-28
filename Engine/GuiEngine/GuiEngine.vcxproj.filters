@@ -44,9 +44,6 @@
     <ClInclude Include="GuiSplitter.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GuiMenuBar.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GuiMenu.h">
       <Filter>Header Files</Filter>
     </ClInclude>

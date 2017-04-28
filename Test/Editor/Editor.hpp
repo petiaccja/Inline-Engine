@@ -67,8 +67,8 @@ Editor::Editor()
 
 	HWND editorHwnd = (HWND)wnd->GetHandle();
 	HWND gameHwnd = (HWND)gameWnd->GetHandle();
-	SetWindowPos(gameHwnd, editorHwnd, 300, 300, 150, 150, 0);
-	//SetParent(gameHwnd, editorHwnd);
+	EnableWindow(gameHwnd, false);
+	SetParent(gameHwnd, editorHwnd);
 	
 	// Resize window, non client area removal made it's size wrong
 	wnd->SetRect({ 0,0 }, { 800, 600 });
@@ -90,6 +90,18 @@ Editor::Editor()
 
 	// Init Gui
 	InitGui();
+
+	HANDLE hIcon = LoadImage(0, L"InlineEngineLogo.ico", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
+	if (hIcon)
+	{
+		//Change both icons to the same icon handle.
+		SendMessage((HWND)wnd->GetHandle(), WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+		SendMessage((HWND)wnd->GetHandle(), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+
+		//This will ensure that the application icon gets changed too.
+		SendMessage(GetWindow((HWND)wnd->GetHandle(), GW_OWNER), WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+		SendMessage(GetWindow((HWND)wnd->GetHandle(), GW_OWNER), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+	}
 }
 
 Editor::~Editor()
@@ -109,14 +121,19 @@ void Editor::InitGui()
 	// Layer border
 	mainLayer->SetBorder(1, Color(100));
 
+	// Main layout of the editor is a simple list
+	GuiList* mainLayout = mainLayer->AddList();
+	mainLayout->StretchFillParent(); // Fill the layer
+	mainLayout->SetDirection(eGuiDirection::VERTICAL);
+	mainLayout->SetBgToColor(Color::BLACK);
+
 	// Caption bar
 	captionBar = mainLayer->AddGui();
-	captionBar->SetBgToColor(Color(45), Color(45));
+	captionBar->SetBgToColor(Color(45));
 	captionBar->SetRect(0, 0, 100, 26);
 
 	// Minimize, Maximize, Close btn
 	GuiList* minMaxCloseList = mainLayer->AddList();
-	minMaxCloseList->SetName(L"MINMAX");
 	minMaxCloseList->StretchFitToChildren();
 	minimizeBtn = mainLayer->AddButton();
 	maximizeBtn = mainLayer->AddButton();
@@ -132,9 +149,9 @@ void Editor::InitGui()
 	};
 	closeBtn->onMouseClicked += [this](CursorEvent& evt) { wnd->Close(); };
 
-	minimizeBtn->InitFromImage(L"Resources/minimize.png", L"Resources/minimize_h.png");
-	maximizeBtn->InitFromImage(L"Resources/maximize.png", L"Resources/maximize_h.png");
-	closeBtn->InitFromImage(L"Resources/close.png", L"Resources/close_h.png");
+	minimizeBtn->InitFromImage("Resources/minimize.png","Resources/minimize_h.png");
+	maximizeBtn->InitFromImage("Resources/maximize.png","Resources/maximize_h.png");
+	closeBtn->InitFromImage("Resources/close.png", "Resources/close_h.png");
 
 	minMaxCloseList->SetDirection(eGuiDirection::HORIZONTAL);
 	minMaxCloseList->Add(minimizeBtn);
@@ -146,7 +163,7 @@ void Editor::InitGui()
 	GuiText* inlineEngineText = mainLayer->AddText();
 	inlineEngineText->SetFontSize(14);
 	inlineEngineText->SetFontStyle(Gdiplus::FontStyle::FontStyleBold);
-	inlineEngineText->SetText(L"Inline Editor");
+	inlineEngineText->SetText("Inline Editor");
 	inlineEngineText->AlignCenterVer();
 	inlineEngineText->StretchHorFillParent();
 	inlineEngineText->SetMarginLeft(7);
@@ -155,41 +172,88 @@ void Editor::InitGui()
 	captionBar->Add(minMaxCloseList);
 	captionBar->StretchHorFillParent();
 	captionBar->SetPos(0, 1);
+	//captionBar->SetBorder(0, 0, 0, 1, Color(70));
+
+	mainLayout->Add(captionBar);
 
 	// Main menu bar
-	GuiList* menuBar = mainLayer->AddList();
+	GuiMenu* menuBar = mainLayer->AddMenu();
+	menuBar->SetBorder(0, 0, 0, 1, Color(70));
 	menuBar->SetDirection(eGuiDirection::HORIZONTAL);
-	menuBar->SetBgColorForAllStates(Color(30));
+	menuBar->SetBgColorForAllStates(Color(25));
 	menuBar->SetRect(1, captionBar->GetHeight(), 400, 400);
 	menuBar->StretchHorFillParent();
 	menuBar->StretchVerFitToChildren();
 	{
-		
+		GuiMenu* fileMenu = menuBar->AddItemMenu("File");
+		GuiMenu* buildMenu = menuBar->AddItemMenu("Build");
+		GuiMenu* toolsMenu = menuBar->AddItemMenu("Tools");
+		GuiMenu* helpMenu = menuBar->AddItemMenu("Help");
+		fileMenu->SetBorder(1, Color(70));
+		buildMenu->SetBorder(1, Color(70));
+		toolsMenu->SetBorder(1, Color(70));
+		helpMenu->SetBorder(1, Color(70));
 
-		GuiButton* btn = menuBar->AddButton();
-		btn->SetText("File");
-		GuiButton* btn1 = menuBar->AddButton();
-		btn1->SetText("Edit");
-		GuiButton* btn2 = menuBar->AddButton();
-		btn2->SetText("Tools");
-		GuiButton* btn3 = menuBar->AddButton();
-		btn3->SetText("Help");
+		fileMenu->AddItemButton("New Scene");
+		fileMenu->AddItemButton("Open Scene");
+		Gui* separator0 = fileMenu->AddItemSeparatorHor();
+		separator0->SetBgToColor(Color(70));
+		fileMenu->AddItemButton("Save Scene");
+		fileMenu->AddItemButton("Save Scene as...");
+		Gui* separator1 = fileMenu->AddItemSeparatorHor();
+		separator1->SetBgToColor(Color(70));
+		fileMenu->AddItemButton("New Project...");
+		fileMenu->AddItemButton("Open Project...");
+		fileMenu->AddItemButton("Save Project");
+
+		buildMenu->AddItemButton("Windows...");
+		buildMenu->AddItemButton("Linux...");
+		buildMenu->AddItemButton("Mac...");
+		buildMenu->AddItemButton("XBox One...");
+		buildMenu->AddItemButton("PS4...");
+		buildMenu->AddItemButton("Android");
+		buildMenu->AddItemButton("IOS");
+
+		GuiMenu* menu0 = toolsMenu->AddItemMenu("TESZT - 0");
+		GuiMenu* menu1 = menu0->AddItemMenu("TESZT - 1");
+		GuiMenu* menu2 = menu1->AddItemMenu("TESZT - 2");
+		toolsMenu->AddItemButton("** PUT TOOLS HERE **");
+
+		helpMenu->AddItemButton("About Inline Engine");
+
+		for (auto& child : fileMenu->GetItems()) { child->SetBgToColor(Color(25), Color(65)); }
+		for (auto& child : buildMenu->GetItems()) { child->SetBgToColor(Color(25), Color(65)); }
+		for (auto& child : toolsMenu->GetItems()) { child->SetBgToColor(Color(25), Color(65)); }
+		for (auto& child : helpMenu->GetItems()) { child->SetBgToColor(Color(25), Color(65)); }
+
+		//GuiButton* btn = menuBar->AddButton();
+		//btn->SetText("File");
+		//GuiButton* btn1 = menuBar->AddButton();
+		//btn1->SetText("Edit");
+		//GuiButton* btn2 = menuBar->AddButton();
+		//btn2->SetText("Tools");
+		//GuiButton* btn3 = menuBar->AddButton();
+		//btn3->SetText("Help");
 
 		for (Gui* c : menuBar->GetChildren())
 		{
-			c->SetBgToColor(Color(30), Color(60));
+			c->SetBgToColor(Color(25), Color(65));
 			c->StretchFitToChildren();
 			c->SetPadding(4);
 		}
 	}
-
+	mainLayout->Add(menuBar);
 
 	GuiSplitter* split0 = mainLayer->AddSplitter(); // split main
 	GuiSplitter* split1 = mainLayer->AddSplitter(); // split main left to top, bottom
-	//GuiSplitter* split2 = mainLayer->AddSplitter(); // split main left-top to left, right
+	GuiSplitter* split2 = mainLayer->AddSplitter(); // split main left-top to left, right
+	split0->Stretch(eGuiStretch::FILL_PARENT_POSITIVE_DIR, eGuiStretch::FILL_PARENT_POSITIVE_DIR);
+	split1->StretchFillParent();
+	split2->StretchFillParent();
+	
 	split0->SetDirection(eGuiDirection::HORIZONTAL);
 	split1->SetDirection(eGuiDirection::VERTICAL);
-	//split2->SetDirection(eGuiDirection::HORIZONTAL);
+	split2->SetDirection(eGuiDirection::HORIZONTAL);
 
 	split0->SetSize(400, 400);
 	split1->SetSize(200, 400);
@@ -197,29 +261,51 @@ void Editor::InitGui()
 	Gui* area0 = mainLayer->AddButton();
 	Gui* area1 = mainLayer->AddButton();
 	Gui* area2 = mainLayer->AddButton();
-	//Gui* area3 = mainLayer->AddButton();
+	Gui* area3 = mainLayer->AddButton();
 	area0->SetSize(100, 100);
-	area0->SetBgToColor(Color::BLUE, Color(70));
-	//area0->StretchVerFillParent();
+	area0->SetBgToColor(Color(35));
 	area1->SetSize(100, 100);
-	area1->SetBgToColor(Color::GREEN, Color(110));
+	area1->SetBgToColor(Color(35));
 	area2->SetSize(100, 100);
-	area2->SetBgToColor(Color(130, 130, 0, 255), Color(150));
-	//area3->SetSize(100, 100);
-	//area3->SetBgToColor(Color(170), Color(190));
+	area2->SetBgToColor(Color(35));
+	area3->SetSize(100, 100);
+	area3->SetBgToColor(Color(0));
+	area3->StretchFillParent();
 
+	area3->onSizeChangedClonable += [this](Gui* self, Vector2f size)
+	{
+		HWND gameHwnd = (HWND)gameWnd->GetHandle();
+		HWND editorHwnd = (HWND)this->wnd->GetHandle();
+		SetWindowPos(gameHwnd, NULL, self->GetContentPosX(), self->GetContentPosY(), self->GetContentSizeX(), self->GetContentSizeY(), 0);
+		SetFocus(editorHwnd);
+	};
+
+	area0->StretchFillParent();
+	area1->StretchFillParent();
+	area2->StretchFillParent();
 
 	// Split main area to left and right
 	menuBar->RefreshLayout();
 	split0->SetPos(menuBar->GetPosBottomLeft());
+	
 	split0->AddItem(split1);
 	split0->AddItem(area0);
 
+	//split1->AddItem(area1);
+	split1->AddItem(split2);
 	split1->AddItem(area1);
-	split1->AddItem(area2);
 
-	//split2->AddItem(area2);
-	//split2->AddItem(area3);
+	split2->AddItem(area2);
+	split2->AddItem(area3);
+	mainLayout->Add(split0);
+
+	//GuiList* list = area2->AddList();
+	//auto btn0 = list->AddItemButton("Nesze LOL");
+	//auto btn1 = list->AddItemButton("--Xbox One...");
+	//btn0->StretchHorFillParent();
+	//btn1->StretchHorFillParent();
+	//list->StretchFitToChildren();
+	//list->SetPos(30, 30);
 }
 
 void Editor::Run()
@@ -228,7 +314,7 @@ void Editor::Run()
 	Timer* timer = new Timer();
 	timer->Start();
 
-	wnd->SetTitle(L"Inline Editor");
+	wnd->SetTitle("Inline Editor");
 
 	// Editor main loop
 	while (wnd->IsOpen())
@@ -325,12 +411,12 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			if (wParam == SIZE_MAXIMIZED)
 			{
-				maximizeBtn->InitFromImage(L"Resources/restore.png", L"Resources/restore_h.png");
+				maximizeBtn->InitFromImage("Resources/restore.png", "Resources/restore_h.png");
 				bWndMaximized = true;
 			}
 			else if (wParam == SIZE_RESTORED)
 			{
-				maximizeBtn->InitFromImage(L"Resources/maximize.png", L"Resources/maximize_h.png");
+				maximizeBtn->InitFromImage("Resources/maximize.png", "Resources/maximize_h.png");
 				bWndMaximized = false;
 			}
 		}

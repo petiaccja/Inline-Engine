@@ -19,11 +19,12 @@ public:
 
 	Gui*			AddItemGui();
 	GuiText*		AddItemText();
-	GuiButton*		AddItemButton();
+	GuiButton*		AddItemButton(const std::string& text = "");
 	GuiList*		AddItemList();
 	GuiSlider*		AddItemSlider();
 	GuiCollapsable* AddItemCollapsable();
 	GuiSplitter*	AddItemSplitter();
+	Gui*			AddItemSeparatorHor();
 };
 
 } // namespace inl::gui

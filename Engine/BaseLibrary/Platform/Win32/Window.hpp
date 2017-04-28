@@ -42,7 +42,7 @@ public:
 	void SetPos(const Vector2i& pos);
 	void SetSize(const Vector2u& size);
 
-	void SetTitle(const std::wstring& text);
+	void SetTitle(const std::string& text);
 
 	// Getters
 	bool IsOpen() const;

@@ -27,9 +27,11 @@ GuiText* LayoutedGui::AddItemText()
 	return AddItem<GuiText>();
 }
 
-GuiButton* LayoutedGui::AddItemButton()
+GuiButton* LayoutedGui::AddItemButton(const std::string& text /*= ""*/)
 {
-	return AddItem<GuiButton>();
+	GuiButton* btn = AddItem<GuiButton>();
+	btn->SetText(text);
+	return btn;
 }
 
 GuiList* LayoutedGui::AddItemList()
@@ -50,4 +52,12 @@ GuiCollapsable* LayoutedGui::AddItemCollapsable()
 GuiSplitter* LayoutedGui::AddItemSplitter()
 {
 	return AddItem<GuiSplitter>();
+}
+
+Gui* LayoutedGui::AddItemSeparatorHor()
+{
+	GuiButton* btn = AddItemButton();
+	btn->SetSize(1, 1);
+	btn->StretchHorFillParent();
+	return btn;
 }

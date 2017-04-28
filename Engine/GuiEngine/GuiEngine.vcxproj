@@ -136,7 +136,6 @@
     <ClInclude Include="GuiLayer.hpp" />
     <ClInclude Include="GuiList.hpp" />
     <ClInclude Include="GuiMenu.h" />
-    <ClInclude Include="GuiMenuBar.h" />
     <ClInclude Include="GuiSlider.hpp" />
     <ClCompile Include="GuiSlider.cpp">
       <FileType>CppHeader</FileType>

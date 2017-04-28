@@ -4,7 +4,7 @@
 #include "GuiButton.hpp"
 #include "GuiList.hpp"
 #include "GuiSplitter.hpp"
-
+#include "GuiMenu.h"
 #include "GuiEngine.hpp"
 
 using namespace inl::gui;
@@ -192,6 +192,11 @@ GuiList* Gui::AddList()
 	return Add<GuiList>();
 }
 
+GuiMenu* Gui::AddMenu()
+{
+	return Add<GuiMenu>();
+}
+
 GuiSlider* Gui::AddSlider()
 {
 	return Add<GuiSlider>();
@@ -205,6 +210,47 @@ GuiCollapsable* Gui::AddCollapsable()
 GuiSplitter* Gui::AddSplitter()
 {
 	return Add<GuiSplitter>();
+}
+
+
+Gui* Gui::CreateGui()
+{
+	return new Gui(guiEngine);
+}
+
+GuiText* Gui::CreateText()
+{
+	return new GuiText(guiEngine);
+}
+
+GuiButton* Gui::CreateButton()
+{
+	return new GuiButton(guiEngine);
+}
+
+GuiList* Gui::CreateList()
+{
+	return new GuiList(guiEngine);
+}
+
+GuiMenu* Gui::CreateMenu()
+{
+	return new GuiMenu(guiEngine);
+}
+
+GuiSlider* Gui::CreateSlider()
+{
+	return new GuiSlider(guiEngine);
+}
+
+GuiCollapsable* Gui::CreateCollapsable()
+{
+	return new GuiCollapsable(guiEngine);
+}
+
+GuiSplitter* Gui::CreateSplitter()
+{
+	return new GuiSplitter(guiEngine);
 }
 
 float Gui::GetCursorPosContentSpaceX()
@@ -225,4 +271,10 @@ bool Gui::IsCursorInside()
 Vector2f Gui::GetCursorPosContentSpace()
 {
 	return guiEngine->GetCursorPos() - GetContentPos();
+}
+
+void Gui::BringToFront()
+{
+	Remove(); // Remove from previous layer
+	guiEngine->GetPostProcessLayer()->Add(this); // Add to post process (top most layer)
 }
