@@ -17,8 +17,8 @@ public:
 	virtual bool RemoveItem(Gui* gui) override { return Remove(gui); }
 	virtual std::vector<Gui*> GetItems() override { return GetChildren(); };
 
-	void SetDirection(eGuiDirection dir);
-	eGuiDirection GetDirection() { return direction; }
+	void SetOrientation(eGuiDirection dir);
+	eGuiDirection GetOrientation() { return direction; }
 
 protected:
 	virtual Vector2f ArrangeChildren(const Vector2f& finalSize) override;
@@ -33,7 +33,7 @@ inline GuiList::GuiList(GuiEngine* guiEngine)
 	SetBgColorForAllStates(GetBgIdleColor());
 }
 
-inline void GuiList::SetDirection(eGuiDirection dir)
+inline void GuiList::SetOrientation(eGuiDirection dir)
 {
 	direction = dir;
 	bLayoutNeedRefresh = true;

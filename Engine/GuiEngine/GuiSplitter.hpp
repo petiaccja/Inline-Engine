@@ -18,8 +18,8 @@ public:
 	virtual bool RemoveItem(Gui* gui) override;
 	virtual std::vector<Gui*> GetItems() override;
 
-void SetDirection(eGuiDirection dir);
-eGuiDirection GetDirection() { return direction; }
+void SetOrientation(eGuiDirection dir);
+eGuiDirection GetOrientation() { return direction; }
 
 protected:
 	virtual Vector2f ArrangeChildren(const Vector2f& finalSize) override;
@@ -76,7 +76,7 @@ inline std::vector<Gui*> GuiSplitter::GetItems()
 	return result;
 }
 
-inline void GuiSplitter::SetDirection(eGuiDirection dir)
+inline void GuiSplitter::SetOrientation(eGuiDirection dir)
 {
 	direction = dir;
 	bLayoutNeedRefresh = true;

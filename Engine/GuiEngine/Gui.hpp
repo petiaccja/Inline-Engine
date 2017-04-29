@@ -118,14 +118,18 @@ public:
 	void EnableClipChildren() { SetClipChildren(true); }
 	void DisableClipChildren() { SetClipChildren(false); }
 
-	Gui*  AsPlane() { return (Gui*)this; }
-	GuiText*   AsText() { return (GuiText*)this; }
-	GuiButton* AsButton() { return (GuiButton*)this; }
-	GuiList*   AsList() { return (GuiList*)this; }
-	GuiSlider* AsSlider() { return (GuiSlider*)this; }
-	GuiCollapsable* AsCollapsable() { return (GuiCollapsable*)this; }
-	GuiSplitter* AsSplitter() { return (GuiSplitter*)this; }
+	Gui*			AsPlane() { return (Gui*)this; }
+	GuiText*		AsText() { return (GuiText*)this; }
+	GuiButton*		AsButton() { return (GuiButton*)this; }
+	GuiList*		AsList() { return (GuiList*)this; }
+	GuiSlider*		AsSlider() { return (GuiSlider*)this; }
+	GuiCollapsable*	AsCollapsable() { return (GuiCollapsable*)this; }
+	GuiSplitter*	AsSplitter() { return (GuiSplitter*)this; }
 
+	void SetPrivateData(void* data) { privateData = data; }
+
+	template<class T>
+	T* GetPrivateData() { return (T*)privateData; }
 
 	void SetContentRect(float x, float y, float width, float height) { SetContentRect(x, y, width, height, true, true); }
 	void SetContentRect(const RectF rect) { SetContentRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); }
@@ -330,19 +334,8 @@ public:
 	Gui* GetChild(int index) { return GetChildren()[index]; }
 	int GetIndexInParent() { return indexInParent; }
 
-	bool IsChild(Gui* gui)
-	{
-		int idx = gui->GetIndexInParent();
-
-		if (idx >= 0 && idx < GetChildren().size())
-		{
-			Gui* potentialChild = GetChildren()[idx];
-
-			return potentialChild == gui;
-		}
-
-		return false;
-	}
+	bool IsChild(Gui* gui);
+	bool IsChildNeighbour(Gui* child);
 
 
 	eEventPropagationPolicy GetEventPropagationPolicy() { return eventPropagationPolicy; }
@@ -466,6 +459,8 @@ protected:
 	// Very internal stuff, Parent's are only fillable after their size is evaluated, before it shouldn't
 	bool bFillParentEnabled;
 	bool bForceFitToChildren;
+
+	void* privateData;
 
 public:
 
@@ -1189,6 +1184,34 @@ inline RectF Gui::GetChildrenRect()
 		boundingRect.Union(children[i]->GetRect());
 
 	return boundingRect;
+}
+
+inline bool Gui::IsChild(Gui* gui)
+{
+	int idx = gui->GetIndexInParent();
+
+	if (idx >= 0 && idx < GetChildren().size())
+	{
+		Gui* potentialChild = GetChildren()[idx];
+
+		return potentialChild == gui;
+	}
+
+	return false;
+}
+
+inline bool Gui::IsChildNeighbour(Gui* gui)
+{
+	Gui* parent = GetParent();
+
+	if (!parent)
+		return false;
+
+	for (auto& child : parent->GetChildren())
+		if (child == gui)
+			return true;
+
+	return false;
 }
 
 } // namespace inl::gui

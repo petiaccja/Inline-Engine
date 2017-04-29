@@ -124,7 +124,7 @@ void Editor::InitGui()
 	// Main layout of the editor is a simple list
 	GuiList* mainLayout = mainLayer->AddList();
 	mainLayout->StretchFillParent(); // Fill the layer
-	mainLayout->SetDirection(eGuiDirection::VERTICAL);
+	mainLayout->SetOrientation(eGuiDirection::VERTICAL);
 	mainLayout->SetBgToColor(Color::BLACK);
 
 	// Caption bar
@@ -153,7 +153,7 @@ void Editor::InitGui()
 	maximizeBtn->InitFromImage("Resources/maximize.png","Resources/maximize_h.png");
 	closeBtn->InitFromImage("Resources/close.png", "Resources/close_h.png");
 
-	minMaxCloseList->SetDirection(eGuiDirection::HORIZONTAL);
+	minMaxCloseList->SetOrientation(eGuiDirection::HORIZONTAL);
 	minMaxCloseList->Add(minimizeBtn);
 	minMaxCloseList->Add(maximizeBtn);
 	minMaxCloseList->Add(closeBtn);
@@ -179,7 +179,7 @@ void Editor::InitGui()
 	// Main menu bar
 	GuiMenu* menuBar = mainLayer->AddMenu();
 	menuBar->SetBorder(0, 0, 0, 1, Color(70));
-	menuBar->SetDirection(eGuiDirection::HORIZONTAL);
+	menuBar->SetOrientation(eGuiDirection::HORIZONTAL);
 	menuBar->SetBgColorForAllStates(Color(25));
 	menuBar->SetRect(1, captionBar->GetHeight(), 400, 400);
 	menuBar->StretchHorFillParent();
@@ -251,9 +251,9 @@ void Editor::InitGui()
 	split1->StretchFillParent();
 	split2->StretchFillParent();
 	
-	split0->SetDirection(eGuiDirection::HORIZONTAL);
-	split1->SetDirection(eGuiDirection::VERTICAL);
-	split2->SetDirection(eGuiDirection::HORIZONTAL);
+	split0->SetOrientation(eGuiDirection::HORIZONTAL);
+	split1->SetOrientation(eGuiDirection::VERTICAL);
+	split2->SetOrientation(eGuiDirection::HORIZONTAL);
 
 	split0->SetSize(400, 400);
 	split1->SetSize(200, 400);
