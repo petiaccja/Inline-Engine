@@ -10,9 +10,9 @@ void GuiSplitter::AddItem(Gui* gui)
 		Gui* separator = AddGui();
 
 		// TODO MOVE ELSWHERE
-		if (GetDirection() == eGuiDirection::HORIZONTAL)
+		if (GetOrientation() == eGuiDirection::HORIZONTAL)
 			separator->SetBorder(1, 0, 1, 0, Color(0));
-		if (GetDirection() == eGuiDirection::VERTICAL)
+		if (GetOrientation() == eGuiDirection::VERTICAL)
 			separator->SetBorder(0, 1, 0, 1, Color(0));
 
 		static bool bDragging = false;
@@ -24,9 +24,9 @@ void GuiSplitter::AddItem(Gui* gui)
 		{
 			GuiSplitter* splitter = _self->GetParent()->AsSplitter();
 			separatorr = _self;
-			if (splitter->GetDirection() == eGuiDirection::HORIZONTAL)
+			if (splitter->GetOrientation() == eGuiDirection::HORIZONTAL)
 				splitter->guiEngine->SetCursorVisual(eCursorVisual::SIZEWE);
-			if (splitter->GetDirection() == eGuiDirection::VERTICAL)
+			if (splitter->GetOrientation() == eGuiDirection::VERTICAL)
 				splitter->guiEngine->SetCursorVisual(eCursorVisual::SIZENS);
 		};
 
@@ -65,9 +65,9 @@ void GuiSplitter::AddItem(Gui* gui)
 				Gui* rightItem = splitter->GetChild(separatorr->GetIndexInParent() + 1);
 
 				Vector2f deltaMove;
-				if (splitter->GetDirection() == eGuiDirection::HORIZONTAL)
+				if (splitter->GetOrientation() == eGuiDirection::HORIZONTAL)
 					deltaMove = Vector2f(deltaMouse.x(), 0);
-				else if (splitter->GetDirection() == eGuiDirection::VERTICAL)
+				else if (splitter->GetOrientation() == eGuiDirection::VERTICAL)
 					deltaMove = Vector2f(0, deltaMouse.y());
 				
 				// - TODO cursor goes outside of splitter gui, clamp size increase
