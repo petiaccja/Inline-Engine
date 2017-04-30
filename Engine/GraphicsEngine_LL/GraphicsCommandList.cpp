@@ -101,6 +101,7 @@ void GraphicsCommandList::DrawInstanced(unsigned numVertices,
 //------------------------------------------------------------------------------
 
 void GraphicsCommandList::SetIndexBuffer(const IndexBuffer* resource, bool is32Bit) {
+	ExpectResourceState(*resource, 0, gxapi::eResourceState::INDEX_BUFFER);
 	m_commandList->SetIndexBuffer(resource->GetVirtualAddress(),
 		resource->GetSize(),
 		is32Bit ? gxapi::eFormat::R32_UINT : gxapi::eFormat::R16_UINT);
@@ -121,6 +122,7 @@ void GraphicsCommandList::SetVertexBuffers(unsigned startSlot,
 	auto virtualAddresses = std::make_unique<void*[]>(count);
 
 	for (unsigned i = 0; i < count; ++i) {
+		ExpectResourceState(*(resources[i]), 0, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
 		virtualAddresses[i] = resources[i]->GetVirtualAddress();
 	}
 
@@ -142,10 +144,12 @@ void GraphicsCommandList::SetRenderTargets(unsigned numRenderTargets,
 {
 	auto renderTargetHandles = std::make_unique<gxapi::DescriptorHandle[]>(numRenderTargets);
 	for (unsigned i = 0; i < numRenderTargets; ++i) {
+		ExpectResourceState(renderTargets[i]->GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
 		renderTargetHandles[i] = renderTargets[i]->GetHandle();
 	}
 
 	if (depthStencil) {
+		ExpectResourceState(depthStencil->GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
 		gxapi::DescriptorHandle dsvHandle = depthStencil->GetHandle();
 		m_commandList->SetRenderTargets(numRenderTargets,
 			renderTargetHandles.get(),
@@ -194,6 +198,7 @@ void GraphicsCommandList::SetGraphicsBinder(Binder* binder) {
 
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureView1D& shaderResource) {
+	ExpectResourceState(shaderResource.GetResource(), 0, gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
 	try {
 		m_graphicsBindingManager.Bind(parameter, shaderResource);
 	}
@@ -204,6 +209,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureVie
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureView2D& shaderResource) {
+	ExpectResourceState(shaderResource.GetResource(), 0, gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
 	try {
 		m_graphicsBindingManager.Bind(parameter, shaderResource);
 	}
@@ -214,6 +220,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureVie
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureView3D& shaderResource) {
+	ExpectResourceState(shaderResource.GetResource(), 0, gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
 	try {
 		m_graphicsBindingManager.Bind(parameter, shaderResource);
 	}
@@ -224,6 +231,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureVie
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const ConstBufferView& shaderConstant) {
+	ExpectResourceState(shaderConstant.GetResource(), 0, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
 	try {
 		m_graphicsBindingManager.Bind(parameter, shaderConstant);
 	}
@@ -251,6 +259,7 @@ void GraphicsCommandList::NewScratchSpace(size_t hint) {
 
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWTextureView1D& rwResource) {
+	ExpectResourceState(rwResource.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
 	try {
 		m_graphicsBindingManager.Bind(parameter, rwResource);
 	}
@@ -261,6 +270,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWTextureV
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWTextureView2D& rwResource) {
+	ExpectResourceState(rwResource.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
 	try {
 		m_graphicsBindingManager.Bind(parameter, rwResource);
 	}
@@ -271,6 +281,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWTextureV
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWTextureView3D& rwResource) {
+	ExpectResourceState(rwResource.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
 	try {
 		m_graphicsBindingManager.Bind(parameter, rwResource);
 	}
@@ -281,6 +292,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWTextureV
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWBufferView& rwResource) {
+	ExpectResourceState(rwResource.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
 	{
 		try {
 			m_graphicsBindingManager.Bind(parameter, rwResource);
