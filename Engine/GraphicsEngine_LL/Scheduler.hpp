@@ -4,9 +4,11 @@
 #include "Pipeline.hpp"
 #include "FrameContext.hpp"
 #include "ScratchSpacePool.hpp"
+#include "MemoryObject.hpp"
 
 #include <BaseLibrary/optional.hpp>
 #include <GraphicsApi_LL/IFence.hpp>
+#include <GraphicsApi_LL/Common.hpp>
 #include <memory>
 #include <cstdint>
 #include <vector>
@@ -52,7 +54,7 @@ protected:
 								   const FrameContext& context);
 
 	template <class UsedResourceIter>
-	static std::vector<gxapi::ResourceBarrier> Scheduler::InjectBarriers(UsedResourceIter firstResource, UsedResourceIter lastResource);
+	static std::vector<gxapi::ResourceBarrier> InjectBarriers(UsedResourceIter firstResource, UsedResourceIter lastResource);
 
 	template <class UsedResourceIter1, class UsedResourceIter2>
 	static bool CanExecuteParallel(UsedResourceIter1 first1, UsedResourceIter1 last1, UsedResourceIter2 first2, UsedResourceIter2 last2);
@@ -82,14 +84,23 @@ std::vector<gxapi::ResourceBarrier> Scheduler::InjectBarriers(UsedResourceIter f
 
 	// Collect all necessary barriers.
 	for (UsedResourceIter it = firstResource; it != lastResource; ++it) {
-		auto& resource = it->resource;
+		MemoryObject& resource = it->resource;
 		unsigned subresource = it->subresource;
 		gxapi::eResourceState targetState = it->firstState;
 
-		gxapi::eResourceState sourceState = resource.ReadState(subresource);
-
-		if (sourceState != targetState) {
-			barriers.push_back(gxapi::TransitionBarrier{ resource._GetResourcePtr(), sourceState, targetState, subresource });
+		if (subresource != gxapi::ALL_SUBRESOURCES) {
+			gxapi::eResourceState sourceState = resource.ReadState(subresource);
+			if (sourceState != targetState) {
+				barriers.push_back(gxapi::TransitionBarrier{ resource._GetResourcePtr(), sourceState, targetState, subresource });
+			}
+		}
+		else {
+			for (unsigned subresourceIdx = 0; subresourceIdx < resource.GetNumSubresources(); ++subresourceIdx) {
+				gxapi::eResourceState sourceState = resource.ReadState(subresourceIdx);
+				if (sourceState != targetState) {
+					barriers.push_back(gxapi::TransitionBarrier{ resource._GetResourcePtr(), sourceState, targetState, subresourceIdx });
+				}
+			}
 		}
 	}
 
@@ -130,7 +141,14 @@ bool Scheduler::CanExecuteParallel(UsedResourceIter1 first1, UsedResourceIter1 l
 template <class UsedResourceIter>
 void Scheduler::UpdateResourceStates(UsedResourceIter firstResource, UsedResourceIter lastResource) {
 	for (auto it = firstResource; it != lastResource; ++it) {
-		it->resource.RecordState(it->subresource, it->lastState);
+		if (it->subresource == gxapi::ALL_SUBRESOURCES) {
+			for (unsigned s = 0; s < it->resource.GetNumSubresources(); ++s) {
+				it->resource.RecordState(s, it->lastState);
+			}
+		}
+		else {
+			it->resource.RecordState(it->subresource, it->lastState);
+		}
 	}
 }
 
