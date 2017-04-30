@@ -21,6 +21,7 @@
 #include "Nodes/Node_DepthReductionFinal.hpp"
 #include "Nodes/Node_CSM.hpp"
 #include "Nodes/Node_DrawSky.hpp"
+#include "Nodes/Node_DebugDraw.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -333,6 +334,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::DepthReductionFinal> depthReductionFinal(new nodes::DepthReductionFinal());
 	std::shared_ptr<nodes::CSM> csm(new nodes::CSM());
 	std::shared_ptr<nodes::DrawSky> drawSky(new nodes::DrawSky());
+	std::shared_ptr<nodes::DebugDraw> debugDraw(new nodes::DebugDraw());
 	TextureUsage usage;
 
 
