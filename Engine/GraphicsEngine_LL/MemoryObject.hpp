@@ -72,6 +72,8 @@ public:
 	void RecordState(gxapi::eResourceState newState);
 	/// <summary> Returns the current tracked state. </summary>
 	gxapi::eResourceState ReadState(unsigned subresource) const;
+	/// <summary> Returns the number of subresources. </summary>
+	unsigned GetNumSubresources() const { return (unsigned)m_contents->subresourceStates.size(); }
 
 	void _SetResident(bool value) noexcept;
 	bool _GetResident() const noexcept;

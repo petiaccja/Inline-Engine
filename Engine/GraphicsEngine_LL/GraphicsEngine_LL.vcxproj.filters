@@ -45,6 +45,9 @@
     <Filter Include="Nodes\General">
       <UniqueIdentifier>{3e242522-430d-401c-8b83-5d0c9b29ed5e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Nodes\Debug">
+      <UniqueIdentifier>{28a89b59-deb0-4922-ad83-3bb4faf0cf61}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -274,7 +277,7 @@
       <Filter>Nodes</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_DebugDraw.hpp">
-      <Filter>Nodes\ForwardRenderer</Filter>
+      <Filter>Nodes\Debug</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -421,7 +424,7 @@
       <Filter>MemoryManagement\Descriptors</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_DebugDraw.cpp">
-      <Filter>Nodes\ForwardRenderer</Filter>
+      <Filter>Nodes\Debug</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
