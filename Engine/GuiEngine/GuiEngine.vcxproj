@@ -119,6 +119,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GuiButton.cpp" />
+    <ClCompile Include="GuiEngine.cpp" />
+    <ClCompile Include="GuiList.cpp" />
+    <ClCompile Include="GuiMenu.cpp" />
     <ClCompile Include="GuiSplitter.cpp" />
     <ClCompile Include="GuiText.cpp" />
     <ClCompile Include="LayoutedGui.cpp" />

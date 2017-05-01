@@ -29,21 +29,4 @@ protected:
 	bool bOpened;
 };
 
-inline void GuiCollapsable::SetCaptionText(const std::wstring& str)
-{
-	caption->SetText(str);
-}
-
-inline GuiCollapsable& GuiCollapsable::operator = (const GuiCollapsable& other)
-{
-	Gui::operator = (other);
-
-	caption = Copy(other.caption);
-	list = Copy(other.list);
-
-	bOpened = other.bOpened;
-
-	return *this;
-}
-
 } //namespace inl::gui

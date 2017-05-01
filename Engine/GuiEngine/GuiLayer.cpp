@@ -13,3 +13,11 @@ GuiLayer::GuiLayer(GuiEngine* guiEngine)
 	HideBgColor();
 	SetName("layer");
 }
+
+Vector2f GuiLayer::ArrangeChildren(const Vector2f& finalSize)
+{
+	for (Gui* child : GetChildren())
+		child->Arrange(child->GetPos(), child->GetDesiredSize());
+
+	return GetSize();
+}

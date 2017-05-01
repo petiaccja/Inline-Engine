@@ -15,11 +15,4 @@ protected:
 	GuiEngine* guiEngine;
 };
 
-inline Vector2f GuiLayer::ArrangeChildren(const Vector2f& finalSize)
-{
-	for (Gui* child : GetChildren())
-		child->Arrange(child->GetPos(), child->GetDesiredSize());
-
-	return GetSize();
-}
 } // namespace inl::gui

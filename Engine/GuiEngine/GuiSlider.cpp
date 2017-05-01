@@ -52,3 +52,44 @@ GuiSlider::GuiSlider(GuiEngine* guiEngine)
 
 	SlideToValue();
 }
+
+void GuiSlider::SlideToValue(float value)
+{
+	float normedPercent = value / (maxValue - minValue);
+	SlideToNormedPercent(normedPercent);
+}
+
+void GuiSlider::SlideToNormedPercent(float normedPercent)
+{
+	slider->SetSize(sliderWidth, GetHeight());
+	slider->SetPos(GetPosX() + normedPercent * (GetWidth() - slider->GetWidth()), GetPosY());
+}
+
+void GuiSlider::SlideToCursor()
+{
+	// Ha cursor sliderHalfWidth() - nél van akkor 0, ha GetWidth() - sliderHalfWidth() - nél akkor meg egy
+	float normalizedPercent = (GetCursorPosContentSpaceX() - slider->GetHalfWidth()) / (GetWidth() - slider->GetWidth());
+	normalizedPercent = saturate(normalizedPercent);
+	SlideToNormedPercent(normalizedPercent);
+}
+
+void GuiSlider::SetValue(float val)
+{
+	value = clamp(val, minValue, maxValue);
+	SlideToValue(value);
+	OnValueChanged(this, val);
+}
+
+void GuiSlider::SetMinValue(float val)
+{
+	minValue = val;
+	val = clamp(val, minValue, maxValue);
+	SetValue(val);
+}
+
+void GuiSlider::SetMaxValue(float val)
+{
+	maxValue = val;
+	val = clamp(val, minValue, maxValue);
+	SetValue(val);
+}

@@ -124,7 +124,7 @@ void Editor::InitGui()
 	// Main layout of the editor is a simple list
 	GuiList* mainLayout = mainLayer->AddList();
 	mainLayout->StretchFillParent(); // Fill the layer
-	mainLayout->SetOrientation(eGuiDirection::VERTICAL);
+	mainLayout->SetOrientation(eGuiOrientation::VERTICAL);
 	mainLayout->SetBgToColor(Color::BLACK);
 
 	// Caption bar
@@ -153,7 +153,7 @@ void Editor::InitGui()
 	maximizeBtn->InitFromImage("Resources/maximize.png","Resources/maximize_h.png");
 	closeBtn->InitFromImage("Resources/close.png", "Resources/close_h.png");
 
-	minMaxCloseList->SetOrientation(eGuiDirection::HORIZONTAL);
+	minMaxCloseList->SetOrientation(eGuiOrientation::HORIZONTAL);
 	minMaxCloseList->Add(minimizeBtn);
 	minMaxCloseList->Add(maximizeBtn);
 	minMaxCloseList->Add(closeBtn);
@@ -179,7 +179,7 @@ void Editor::InitGui()
 	// Main menu bar
 	GuiMenu* menuBar = mainLayer->AddMenu();
 	menuBar->SetBorder(0, 0, 0, 1, Color(70));
-	menuBar->SetOrientation(eGuiDirection::HORIZONTAL);
+	menuBar->SetOrientation(eGuiOrientation::HORIZONTAL);
 	menuBar->SetBgColorForAllStates(Color(25));
 	menuBar->SetRect(1, captionBar->GetHeight(), 400, 400);
 	menuBar->StretchHorFillParent();
@@ -189,10 +189,6 @@ void Editor::InitGui()
 		GuiMenu* buildMenu = menuBar->AddItemMenu("Build");
 		GuiMenu* toolsMenu = menuBar->AddItemMenu("Tools");
 		GuiMenu* helpMenu = menuBar->AddItemMenu("Help");
-		fileMenu->SetBorder(1, Color(70));
-		buildMenu->SetBorder(1, Color(70));
-		toolsMenu->SetBorder(1, Color(70));
-		helpMenu->SetBorder(1, Color(70));
 
 		fileMenu->AddItemButton("New Scene");
 		fileMenu->AddItemButton("Open Scene");
@@ -217,23 +213,26 @@ void Editor::InitGui()
 		GuiMenu* menu0 = toolsMenu->AddItemMenu("TESZT - 0");
 		GuiMenu* menu1 = menu0->AddItemMenu("TESZT - 1");
 		GuiMenu* menu2 = menu1->AddItemMenu("TESZT - 2");
+
+		GuiMenu* menu00 = toolsMenu->AddItemMenu("TESZT - 00");
+		GuiMenu* menu01 = menu00->AddItemMenu("TESZT - 01");
+		GuiMenu* menu001 = menu00->AddItemMenu("TESZT - 001");
+		GuiMenu* menu02 = menu01->AddItemMenu("TESZT - 02");
+		GuiMenu* menu002 = menu001->AddItemMenu("TESZT - 002");
 		toolsMenu->AddItemButton("** PUT TOOLS HERE **");
 
 		helpMenu->AddItemButton("About Inline Engine");
 
-		for (auto& child : fileMenu->GetItems()) { child->SetBgToColor(Color(25), Color(65)); }
-		for (auto& child : buildMenu->GetItems()) { child->SetBgToColor(Color(25), Color(65)); }
-		for (auto& child : toolsMenu->GetItems()) { child->SetBgToColor(Color(25), Color(65)); }
-		for (auto& child : helpMenu->GetItems()) { child->SetBgToColor(Color(25), Color(65)); }
 
-		//GuiButton* btn = menuBar->AddButton();
-		//btn->SetText("File");
-		//GuiButton* btn1 = menuBar->AddButton();
-		//btn1->SetText("Edit");
-		//GuiButton* btn2 = menuBar->AddButton();
-		//btn2->SetText("Tools");
-		//GuiButton* btn3 = menuBar->AddButton();
-		//btn3->SetText("Help");
+		for (Gui* c : { fileMenu, buildMenu, toolsMenu, helpMenu, menu0, menu1, menu00, menu01, menu001, menu02, menu002 })
+		{
+			c->SetBorder(1, Color(70));
+			for (Gui* child : c->GetChildrenRecursive<GuiButton>())
+			{
+				child->SetBgToColor(Color(25), Color(65));
+				child->SetPadding(4);
+			}
+		}
 
 		for (Gui* c : menuBar->GetChildren())
 		{
@@ -251,9 +250,9 @@ void Editor::InitGui()
 	split1->StretchFillParent();
 	split2->StretchFillParent();
 	
-	split0->SetOrientation(eGuiDirection::HORIZONTAL);
-	split1->SetOrientation(eGuiDirection::VERTICAL);
-	split2->SetOrientation(eGuiDirection::HORIZONTAL);
+	split0->SetOrientation(eGuiOrientation::HORIZONTAL);
+	split1->SetOrientation(eGuiOrientation::VERTICAL);
+	split2->SetOrientation(eGuiOrientation::HORIZONTAL);
 
 	split0->SetSize(400, 400);
 	split1->SetSize(200, 400);

@@ -9,14 +9,6 @@
 
 using namespace inl::gui;
 
-template<class T>
-T* LayoutedGui::AddItem()
-{
-	T* child = new T(guiEngine);
-	AddItem(child);
-	return child;
-}
-
 Gui* LayoutedGui::AddItemGui()
 {
 	return AddItem<Gui>();

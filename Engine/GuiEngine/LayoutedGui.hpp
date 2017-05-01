@@ -27,4 +27,12 @@ public:
 	Gui*			AddItemSeparatorHor();
 };
 
+template<class T>
+T* LayoutedGui::AddItem()
+{
+	T* child = new T(guiEngine);
+	AddItem(child);
+	return child;
+
+}
 } // namespace inl::gui

@@ -16,46 +16,11 @@ public:
 
 	void SetText(const std::wstring& text);
 	void SetText(const std::string& text);
-	//void SetTextAlign(eTextAlign align);
 
 	GuiText* GetTextGui() { return text; }
 
 public:
 	GuiText* text;
 };
-
-inline GuiButton::GuiButton(GuiEngine* guiEngine)
-:Gui(guiEngine)
-{
-	text = AddText();
-	text->StretchFitToChildren();
-	text->AlignLeft();
-	text->AlignTop();
-	text->DisableHover();
-}
-
-inline GuiButton& GuiButton::operator = (const GuiButton& other)
-{
-	Gui::operator = (other);
-
-	text = Copy(other.text);
-
-	return *this;
-}
-
-inline void GuiButton::SetText(const std::wstring& str)
-{
-	text->SetText(str);
-}
-
-inline void GuiButton::SetText(const std::string& str)
-{
-	text->SetText(str);
-}
-
-//inline void GuiButton::SetTextAlign(eTextAlign align)
-//{
-//	text->SetTextAlign(align);
-//}
 
 } // namespace inl::gui
