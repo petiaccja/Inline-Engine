@@ -176,6 +176,7 @@
     <ClInclude Include="Nodes\Node_Blend.hpp" />
     <ClInclude Include="Nodes\Node_CreateTexture.hpp" />
     <ClInclude Include="Nodes\Node_CSM.hpp" />
+    <ClInclude Include="Nodes\Node_DebugDraw.hpp" />
     <ClInclude Include="Nodes\Node_DepthPrepass.hpp" />
     <ClInclude Include="Nodes\Node_DepthReduction.hpp" />
     <ClInclude Include="Nodes\Node_DepthReductionFinal.hpp" />
@@ -241,6 +242,7 @@
     <ClCompile Include="Nodes\NodeUtility.cpp" />
     <ClCompile Include="Nodes\Node_Blend.cpp" />
     <ClCompile Include="Nodes\Node_CSM.cpp" />
+    <ClCompile Include="Nodes\Node_DebugDraw.cpp" />
     <ClCompile Include="Nodes\Node_DepthPrepass.cpp" />
     <ClCompile Include="Nodes\Node_DepthReduction.cpp" />
     <ClCompile Include="Nodes\Node_DepthReductionFinal.cpp" />

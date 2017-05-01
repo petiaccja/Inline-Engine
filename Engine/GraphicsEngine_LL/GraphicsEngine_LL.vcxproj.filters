@@ -273,6 +273,9 @@
     <ClInclude Include="Nodes\ExampleNode.hpp">
       <Filter>Nodes</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Node_DebugDraw.hpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -416,6 +419,9 @@
     </ClCompile>
     <ClCompile Include="VolatileViewHeap.cpp">
       <Filter>MemoryManagement\Descriptors</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_DebugDraw.cpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
