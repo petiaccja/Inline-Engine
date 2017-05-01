@@ -15,7 +15,7 @@ namespace inl::gxeng::nodes {
 struct Uniforms
 {
 	mathfu::VectorPacked<float, 4> vp[4];
-	uint32_t cascadeIDX;
+	mathfu::VectorPacked<float, 4> color;
 };
 
 static bool CheckMeshFormat(const Mesh& mesh) {
@@ -52,10 +52,6 @@ static void ConvertToSubmittable(
 }
 
 
-
-DebugDraw::DebugDraw() {}
-
-
 void DebugDraw::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
 }
@@ -77,6 +73,7 @@ void DebugDraw::Setup(SetupContext & context) {
 
 	const BasicCamera* cam = this->GetInput<1>().Get();
 	this->GetInput<1>().Clear();
+	m_camera = cam;
 
 	if (!m_binder.has_value()) {
 		this->GetInput<0>().Set({});
@@ -132,6 +129,35 @@ void DebugDraw::Setup(SetupContext & context) {
 		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 		m_TrianglePSO.reset(context.CreatePSO(psoDesc));
 	}
+
+	DebugDrawManager::GetInstance().Update();
+
+	vertexBuffers.resize(DebugDrawManager::GetInstance().GetObjects().size());
+	sizes.resize(DebugDrawManager::GetInstance().GetObjects().size());
+	strides.resize(DebugDrawManager::GetInstance().GetObjects().size());
+	for (int c = 0; c < DebugDrawManager::GetInstance().GetObjects().size(); ++c)
+	{
+		const std::unique_ptr<DebugObject>* o = &DebugDrawManager::GetInstance().GetObjects()[c];
+	
+		//TODO how to check if there's no allocated vertex buffer
+		//if there's no allocated vertex buffer and the object is alive, then allocate and fill vertex buffer
+		if (!vertexBuffers[c].HasObject() && DebugDrawManager::IsAlive(o->get()->GetLife()))
+		{
+			std::vector<mathfu::Vector3f> vertices;
+			std::vector<uint32_t> indices;
+			o->get()->GetMesh(vertices, indices);
+			vertexBuffers[c] = context.CreateVertexBuffer(vertices.data(), vertices.size() * sizeof(mathfu::Vector3f));
+			indexBuffers[c] = context.CreateIndexBuffer(indices.data(), indices.size() * sizeof(uint32_t), indices.size());
+		}
+
+		//if object is dead then delete its vertex & index buffers
+		if (!DebugDrawManager::IsAlive(o->get()->GetLife()))
+		{
+			//delete vertex and index buffer....
+			vertexBuffers[c] = {};
+			indexBuffers[c] = {};
+		}
+	}
 }
 
 
@@ -143,14 +169,11 @@ void DebugDraw::Execute(RenderContext & context) {
 
 	commandList.SetPipelineState(m_LinePSO.get());
 	commandList.SetGraphicsBinder(&m_binder.value());
-	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
-
-	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
-	std::vector<unsigned> sizes;
-	std::vector<unsigned> strides;
+	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::LINELIST);
 
 	RenderTargetView2D rtViews[1] = { m_target };
 
+	commandList.SetResourceState(m_target.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetRenderTargets(1, (const RenderTargetView2D*const*)&rtViews, 0);
 
 	gxapi::Viewport viewport;
@@ -163,12 +186,35 @@ void DebugDraw::Execute(RenderContext & context) {
 	commandList.SetViewports(1, &viewport);
 
 	Uniforms uniformsCBData;
+	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();
+	mathfu::Matrix4x4f projection = m_camera->GetProjectionMatrixRH();
 
-	commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(uniformsCBData));
+	auto viewProjection = projection * view;
 
-	//TODO
-	commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
-	commandList.DrawInstanced(0); 
+	viewProjection.Pack(uniformsCBData.vp);
+
+	for (int c = 0; c < DebugDrawManager::GetInstance().GetObjects().size(); ++c)
+	{
+		if(!DebugDrawManager::IsAlive(DebugDrawManager::GetInstance().GetObjects()[c]->GetLife()))
+		{
+			continue;
+		}
+
+		mathfu::Vector4f(DebugDrawManager::GetInstance().GetObjects()[c]->GetColor(), 1.0f).Pack(&uniformsCBData.color);
+
+		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(uniformsCBData));
+
+		for (int c = 0; c < vertexBuffers.size(); ++c)
+		{
+			//commandList.SetResourceState(vertexBuffers[c], 0, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+		}
+
+		//commandList.SetResourceState(mesh->GetIndexBuffer(), 0, gxapi::eResourceState::INDEX_BUFFER);
+
+		//commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
+		commandList.SetIndexBuffer(&indexBuffers[c], true);
+		commandList.DrawInstanced(indexBuffers[c].GetIndexCount()); 
+	}
 }
 
 
