@@ -21,6 +21,8 @@
 
 #include <BaseLibrary/Logging_All.hpp>
 
+#include <any>
+
 
 namespace inl {
 namespace gxeng {
@@ -104,6 +106,12 @@ public:
 	OverlayEntity* CreateOverlayEntity();
 	PerspectiveCamera* CreatePerspectiveCamera(std::string name);
 	OrthographicCamera* CreateOrthographicCamera(std::string name);
+
+	// Environment variables
+	/// <returns> True if a new variable was created, false if old was overridden. </returns>
+	bool SetEnvVariable(std::string name, std::any obj);
+	bool EnvVariableExists(const std::string& name);
+	std::any GetEnvVariable(const std::string& name);
 private:
 	void CreatePipeline();
 	static std::vector<GraphicsNode*> SelectSpecialNodes(Pipeline& pipeline);
@@ -148,6 +156,9 @@ private:
 	// Misc
 	std::chrono::nanoseconds m_absoluteTime;
 	uint64_t m_frame = 0;
+
+	// Env variables
+	std::unordered_map<std::string, std::any> m_envVariables;
 
 	// Scene
 	std::set<Scene*> m_scenes;

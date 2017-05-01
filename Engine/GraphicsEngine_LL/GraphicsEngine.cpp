@@ -314,6 +314,27 @@ OverlayEntity* GraphicsEngine::CreateOverlayEntity() {
 }
 
 
+bool GraphicsEngine::SetEnvVariable(std::string name, std::any obj) {
+	auto res = m_envVariables.insert_or_assign(name, obj);
+	return res.second;
+}
+
+bool GraphicsEngine::EnvVariableExists(const std::string& name) {
+	return m_envVariables.count(name) > 0;
+}
+
+std::any GraphicsEngine::GetEnvVariable(const std::string& name) {
+	auto it = m_envVariables.find(name);
+	if (it != m_envVariables.end()) {
+		return it->second;
+	}
+	else {
+		return std::any();
+	}
+}
+
+
+
 void GraphicsEngine::CreatePipeline() {
 	auto swapChainDesc = m_swapChain->GetDesc();
 
