@@ -21,7 +21,7 @@
 
 #include <BaseLibrary/Logging_All.hpp>
 
-#include <any>
+#include <BaseLibrary/Any.hpp>
 
 
 namespace inl {
@@ -109,9 +109,9 @@ public:
 
 	// Environment variables
 	/// <returns> True if a new variable was created, false if old was overridden. </returns>
-	bool SetEnvVariable(std::string name, std::any obj);
+	bool SetEnvVariable(std::string name, exc::Any obj);
 	bool EnvVariableExists(const std::string& name);
-	std::any GetEnvVariable(const std::string& name);
+	const exc::Any& GetEnvVariable(const std::string& name);
 private:
 	void CreatePipeline();
 	static std::vector<GraphicsNode*> SelectSpecialNodes(Pipeline& pipeline);
@@ -158,7 +158,7 @@ private:
 	uint64_t m_frame = 0;
 
 	// Env variables
-	std::unordered_map<std::string, std::any> m_envVariables;
+	std::unordered_map<std::string, exc::Any> m_envVariables;
 
 	// Scene
 	std::set<Scene*> m_scenes;

@@ -439,15 +439,15 @@ class DebugDraw :
 	virtual public exc::OutputPortConfig<Texture2D>
 {
 public:
-	DebugDraw() = default;
+	DebugDraw();
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
 
-	void Initialize(EngineContext& context) override {};
-	void Reset() override {};
-	void Setup(SetupContext& context) override {};
-	void Execute(RenderContext& context) override {};
+	void Initialize(EngineContext& context) override;
+	void Reset() override;
+	void Setup(SetupContext& context) override;
+	void Execute(RenderContext& context) override;
 
 protected:
 	std::optional<Binder> m_binder;

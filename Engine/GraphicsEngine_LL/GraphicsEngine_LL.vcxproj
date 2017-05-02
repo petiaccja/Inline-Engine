@@ -184,6 +184,7 @@
     <ClInclude Include="Nodes\Node_ForwardRender.hpp" />
     <ClInclude Include="Nodes\Node_GetBackBuffer.hpp" />
     <ClInclude Include="Nodes\Node_GetCameraByName.hpp" />
+    <ClInclude Include="Nodes\Node_GetEnvVariable.hpp" />
     <ClInclude Include="Nodes\Node_GetSceneByName.hpp" />
     <ClInclude Include="Nodes\Node_GetTime.hpp" />
     <ClInclude Include="Nodes\Node_OverlayRender.hpp" />
