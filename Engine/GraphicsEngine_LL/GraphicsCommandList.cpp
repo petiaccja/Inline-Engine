@@ -149,7 +149,7 @@ void GraphicsCommandList::SetRenderTargets(unsigned numRenderTargets,
 	}
 
 	if (depthStencil) {
-		ExpectResourceState(depthStencil->GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
+		ExpectResourceState(depthStencil->GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
 		gxapi::DescriptorHandle dsvHandle = depthStencil->GetHandle();
 		m_commandList->SetRenderTargets(numRenderTargets,
 			renderTargetHandles.get(),
@@ -231,7 +231,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureVie
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const ConstBufferView& shaderConstant) {
-	ExpectResourceState(shaderConstant.GetResource(), 0, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+	//ExpectResourceState(shaderConstant.GetResource(), 0, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
 	try {
 		m_graphicsBindingManager.Bind(parameter, shaderConstant);
 	}

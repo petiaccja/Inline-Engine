@@ -153,7 +153,7 @@ void DepthPrepass::Execute(RenderContext & context) {
 	}
 
 	auto& commandList = context.AsGraphics();
-
+	commandList.SetResourceState(m_targetDsv.GetResource(), gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::DEPTH_WRITE);
 	commandList.SetRenderTargets(0, nullptr, &m_targetDsv);
 
 	gxapi::Rectangle rect{ 0, (int)m_targetDsv.GetResource().GetHeight(), 0, (int)m_targetDsv.GetResource().GetWidth() };
@@ -203,6 +203,11 @@ void DepthPrepass::Execute(RenderContext & context) {
 		MVP.Pack(transformCBData.data());
 
 		commandList.BindGraphics(m_transformBindParam, transformCBData.data(), sizeof(transformCBData));
+
+		for (auto& vb : vertexBuffers) {
+			commandList.SetResourceState(*vb, gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+		}
+		commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::INDEX_BUFFER);
 
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());

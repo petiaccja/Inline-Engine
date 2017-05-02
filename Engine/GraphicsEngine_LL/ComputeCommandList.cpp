@@ -129,7 +129,7 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const TextureView3
 }
 
 void ComputeCommandList::BindCompute(BindParameter parameter, const ConstBufferView& shaderConstant) {
-	ExpectResourceState(shaderConstant.GetResource(), 0, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+	//ExpectResourceState(shaderConstant.GetResource(), 0, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
 	try {
 		m_computeBindingManager.Bind(parameter, shaderConstant);
 	}

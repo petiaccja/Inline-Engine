@@ -161,7 +161,7 @@ void DrawSky::Execute(RenderContext & context) {
 
 	auto* pRTV = &m_rtv;
 	commandList.SetResourceState(m_rtv.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
-	commandList.SetResourceState(m_dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_READ);
+	commandList.SetResourceState(m_dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
 	commandList.SetRenderTargets(1, &pRTV, &m_dsv);
 
 	gxapi::Rectangle rect{ 0, (int)pRTV->GetResource().GetHeight(), 0, (int)pRTV->GetResource().GetWidth() };
@@ -221,6 +221,8 @@ void DrawSky::Execute(RenderContext & context) {
 
 	commandList.BindGraphics(m_sunCbBindParam, &sunCB, sizeof(sunCB));
 	commandList.BindGraphics(m_camCbBindParam, &camCB, sizeof(camCB));
+	commandList.SetResourceState(*pVertexBuffer, 0, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+	commandList.SetResourceState(m_fsqIndices, 0, gxapi::eResourceState::INDEX_BUFFER);
 	commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
 	commandList.SetIndexBuffer(&m_fsqIndices, false);
 	commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());

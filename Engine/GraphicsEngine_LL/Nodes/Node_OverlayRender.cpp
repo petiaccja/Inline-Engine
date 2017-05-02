@@ -148,12 +148,18 @@ void OverlayRender::Execute(RenderContext& context) {
 			assert(renderType == OverlayEntity::TEXTURED);
 			commandList.SetPipelineState(m_texturedPipeline.pso.get());
 			commandList.SetGraphicsBinder(&m_texturedPipeline.binder.value());
-
+			commandList.SetResourceState(entity->GetTexture()->GetSrv()->GetResource(), 
+										 gxapi::ALL_SUBRESOURCES, 
+										 gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
 			commandList.BindGraphics(m_texturedPipeline.textureParam, *entity->GetTexture()->GetSrv());
 			commandList.BindGraphics(m_texturedPipeline.transformParam, transformCBData.data(), sizeof(transformCBData));
 		}
 
 		ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
+		for (auto& vb : vertexBuffers) {
+			commandList.SetResourceState(*vb, gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+		}
+		commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::INDEX_BUFFER);
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
 		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
