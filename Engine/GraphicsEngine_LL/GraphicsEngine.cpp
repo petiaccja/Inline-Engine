@@ -14,6 +14,8 @@
 #include "Nodes/Node_GetCameraByName.hpp"
 #include "Nodes/Node_GetTime.hpp"
 #include "Nodes/Node_GetEnvVariable.hpp"
+#include "Nodes/Node_VectorComponents.hpp"
+
 
 //forward
 #include "Nodes/Node_ForwardRender.hpp"
@@ -27,6 +29,8 @@
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
 #include "Nodes/Node_Blend.hpp"
+#include "Nodes/Node_ScreenSpaceTransform.hpp"
+#include "Nodes/Node_BlendWithTransform.hpp"
 
 #include "Scene.hpp"
 #include "PerspectiveCamera.hpp"
@@ -346,6 +350,27 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::GetCameraByName> getCamera(new nodes::GetCameraByName());
 	std::shared_ptr<nodes::GetBackBuffer> getBackBuffer(new nodes::GetBackBuffer());
 
+	getWorldScene->GetInput<0>().Set("World");
+	getCamera->GetInput<0>().Set("WorldCam");
+
+	std::shared_ptr<nodes::GetEnvVariable> getWorldRenderPos(new nodes::GetEnvVariable());
+	std::shared_ptr<nodes::GetEnvVariable> getWorldRenderRot(new nodes::GetEnvVariable());
+	std::shared_ptr<nodes::GetEnvVariable> getWorldRenderSize(new nodes::GetEnvVariable());
+	std::shared_ptr<nodes::VectorComponents<2>> worldRenderSizeSplit(new nodes::VectorComponents<2>());
+
+	getWorldRenderPos->SetEnvVariableList(&m_envVariables);
+	getWorldRenderRot->SetEnvVariableList(&m_envVariables);
+	getWorldRenderSize->SetEnvVariableList(&m_envVariables);
+
+	getWorldRenderPos->GetInput<0>().Set("world_render_pos");
+	getWorldRenderRot->GetInput<0>().Set("world_render_rot");
+	getWorldRenderSize->GetInput<0>().Set("world_render_size");
+
+	// TODO set the render buffers size to match "world_render_size"
+	if (!worldRenderSizeSplit->GetInput<0>().Link(getWorldRenderSize->GetOutput(0))) 		{
+		assert(false);
+	}
+
 	std::shared_ptr<nodes::TextureProperties> backBufferProperties(new nodes::TextureProperties());
 	std::shared_ptr<nodes::CreateTexture> createDepthBuffer(new nodes::CreateTexture());
 	std::shared_ptr<nodes::CreateTexture> createHdrRenderTarget(new nodes::CreateTexture());
@@ -359,9 +384,6 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::DebugDraw> debugDraw(new nodes::DebugDraw());
 	TextureUsage usage;
 
-
-	getWorldScene->GetInput<0>().Set("World");
-	getCamera->GetInput<0>().Set("WorldCam");
 
 	backBufferProperties->GetInput<0>().Link(getBackBuffer->GetOutput(0));
 
@@ -428,10 +450,23 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::GetSceneByName> getGuiScene(new nodes::GetSceneByName());
 	std::shared_ptr<nodes::GetCameraByName> getGuiCamera(new nodes::GetCameraByName());
 	std::shared_ptr<nodes::OverlayRender> guiRender(new nodes::OverlayRender());
-	std::shared_ptr<nodes::Blend> alphaBlend(new nodes::Blend());
+	std::shared_ptr<nodes::BlendWithTransform> alphaBlend(new nodes::BlendWithTransform());
+	std::shared_ptr<nodes::ScreenSpaceTransform> createWorldRenderTransform(new nodes::ScreenSpaceTransform());
 
 	getGuiScene->GetInput<0>().Set("Gui");
 	getGuiCamera->GetInput<0>().Set("GuiCamera");
+
+	createWorldRenderTransform->GetInput<0>().Link(backBufferProperties->GetOutput(0));
+	createWorldRenderTransform->GetInput<1>().Link(backBufferProperties->GetOutput(1));
+	createWorldRenderTransform->GetInput<2>().Link(getWorldRenderPos->GetOutput(0));
+	createWorldRenderTransform->GetInput<3>().Link(getWorldRenderRot->GetOutput(0));
+	createWorldRenderTransform->GetInput<4>().Link(getWorldRenderSize->GetOutput(0));
+
+	//createWorldRenderTransform->GetInput<0>().Set(800);
+	//createWorldRenderTransform->GetInput<1>().Set(600);
+	//createWorldRenderTransform->GetInput<2>().Set(mathfu::Vector2f(0.f, 0.f));
+	//createWorldRenderTransform->GetInput<3>().Set(0);
+	//createWorldRenderTransform->GetInput<4>().Set(mathfu::Vector2f(800.f, 600.f));
 
 	guiRender->GetInput<0>().Link(getBackBuffer->GetOutput(0));
 	guiRender->GetInput<1>().Link(getGuiScene->GetOutput(1));
@@ -452,11 +487,18 @@ void GraphicsEngine::CreatePipeline() {
 	alphaBlend->GetInput<0>().Link(guiRender->GetOutput(0));
 	alphaBlend->GetInput<1>().Link(drawSky->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
+	//alphaBlend->GetInput<3>().Set(mathfu::Matrix4x4f::FromScaleVector(mathfu::Vector3f(.5f, 1.f, 1.f)));
+	alphaBlend->GetInput<3>().Link(createWorldRenderTransform->GetOutput(0));
 
 	m_graphicsNodes = {
 		getWorldScene,
 		getCamera,
 		getBackBuffer,
+
+		getWorldRenderPos,
+		getWorldRenderRot,
+		getWorldRenderSize,
+		worldRenderSizeSplit,
 
 		backBufferProperties,
 		createDepthBuffer,
@@ -472,7 +514,8 @@ void GraphicsEngine::CreatePipeline() {
 		getGuiScene,
 		getGuiCamera,
 		guiRender,
-		alphaBlend
+		alphaBlend,
+		createWorldRenderTransform
 	};
 
 

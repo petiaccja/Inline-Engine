@@ -23,7 +23,8 @@ public:
 	template <class T>
 	explicit Any(T&& obj) {
 		struct DataSpec : public Data {
-			DataSpec(T&& obj) : obj(std::forward<T>(obj)) {}
+			DataSpec(const T& obj) : obj(obj) {}
+			DataSpec(std::decay_t<T>&& obj) : obj(std::forward<T>(obj)) {}
 			virtual void* Get() override { return &obj; };
 			virtual const void* Get() const override { return &obj; }
 			virtual size_t Size() const override { return sizeof(T); }
