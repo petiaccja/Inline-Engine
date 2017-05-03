@@ -1,4 +1,4 @@
-#include "Node_DepthReductionFinal.hpp"
+#include "Node_LightCulling.hpp"
 
 #include "NodeUtility.hpp"
 
@@ -9,8 +9,6 @@
 #include "../PerspectiveCamera.hpp"
 #include "../GraphicsCommandList.hpp"
 #include "../EntityCollection.hpp"
-
-#include "DebugDrawManager.hpp"
 
 #include <array>
 
@@ -27,16 +25,16 @@ struct Uniforms
 };
 
 
-DepthReductionFinal::DepthReductionFinal() {
+LightCulling::LightCulling() {
 	this->GetInput<0>().Set({});
 }
 
 
-void DepthReductionFinal::Initialize(EngineContext & context) {
+void LightCulling::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
-void DepthReductionFinal::Reset() {
+void LightCulling::Reset() {
 	m_reductionTexSrv = TextureView2D();
 	m_camera = nullptr;
 	m_suns = nullptr;
@@ -47,7 +45,7 @@ void DepthReductionFinal::Reset() {
 }
 
 
-void DepthReductionFinal::Setup(SetupContext& context) {
+void LightCulling::Setup(SetupContext& context) {
 	InitRenderTarget(context);
 
 
@@ -147,12 +145,10 @@ void DepthReductionFinal::Setup(SetupContext& context) {
 }
 
 
-void DepthReductionFinal::Execute(RenderContext& context) {
+void LightCulling::Execute(RenderContext& context) {
 	ComputeCommandList& commandList = context.AsCompute();
 
 	Uniforms uniformsCBData;
-
-	DebugDrawManager::GetInstance().AddSphere(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1, 1);
 
 	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();
 	mathfu::Matrix4x4f projection = m_camera->GetProjectionMatrixRH();
@@ -239,7 +235,7 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 }
 
 
-void DepthReductionFinal::InitRenderTarget(SetupContext& context) {
+void LightCulling::InitRenderTarget(SetupContext& context) {
 	if (!m_outputTexturesInited) {
 		m_outputTexturesInited = true;
 

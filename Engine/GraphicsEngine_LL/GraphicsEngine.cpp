@@ -468,6 +468,9 @@ void GraphicsEngine::CreatePipeline() {
 	//createWorldRenderTransform->GetInput<3>().Set(0);
 	//createWorldRenderTransform->GetInput<4>().Set(mathfu::Vector2f(800.f, 600.f));
 
+	debugDraw->GetInput<0>().Link(getBackBuffer->GetOutput(0));
+	debugDraw->GetInput<1>().Link(getCamera->GetOutput(0));
+
 	guiRender->GetInput<0>().Link(getBackBuffer->GetOutput(0));
 	guiRender->GetInput<1>().Link(getGuiScene->GetOutput(1));
 	guiRender->GetInput<2>().Link(getGuiCamera->GetOutput(0));
@@ -515,7 +518,9 @@ void GraphicsEngine::CreatePipeline() {
 		getGuiCamera,
 		guiRender,
 		alphaBlend,
-		createWorldRenderTransform
+		createWorldRenderTransform,
+		debugDraw,
+		alphaBlend
 	};
 
 

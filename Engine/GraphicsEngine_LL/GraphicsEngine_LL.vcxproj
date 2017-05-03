@@ -171,6 +171,7 @@
     <ClInclude Include="Binder.hpp" />
     <ClInclude Include="BindingManager.hpp" />
     <ClInclude Include="NodeContext.hpp" />
+    <ClInclude Include="Nodes\DebugDrawManager.hpp" />
     <ClInclude Include="Nodes\ExampleNode.hpp" />
     <ClInclude Include="Nodes\NodeUtility.hpp" />
     <ClInclude Include="Nodes\Node_Blend.hpp" />
@@ -189,6 +190,7 @@
     <ClInclude Include="Nodes\Node_GetEnvVariable.hpp" />
     <ClInclude Include="Nodes\Node_GetSceneByName.hpp" />
     <ClInclude Include="Nodes\Node_GetTime.hpp" />
+    <ClInclude Include="Nodes\Node_LightCulling.hpp" />
     <ClInclude Include="Nodes\Node_OverlayRender.hpp" />
     <ClInclude Include="Nodes\Node_TextureProperties.hpp" />
     <ClInclude Include="Nodes\Node_VectorComponents.hpp" />
@@ -253,6 +255,7 @@
     <ClCompile Include="Nodes\Node_DepthReductionFinal.cpp" />
     <ClCompile Include="Nodes\Node_DrawSky.cpp" />
     <ClCompile Include="Nodes\Node_ForwardRender.cpp" />
+    <ClCompile Include="Nodes\Node_LightCulling.cpp" />
     <ClCompile Include="Nodes\Node_OverlayRender.cpp" />
     <ClCompile Include="OrthographicCamera.cpp" />
     <ClCompile Include="OverlayEntity.cpp" />
