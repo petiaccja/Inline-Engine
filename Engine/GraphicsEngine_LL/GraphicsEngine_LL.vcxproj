@@ -186,6 +186,7 @@
     <ClInclude Include="Nodes\Node_GetCameraByName.hpp" />
     <ClInclude Include="Nodes\Node_GetSceneByName.hpp" />
     <ClInclude Include="Nodes\Node_GetTime.hpp" />
+    <ClInclude Include="Nodes\Node_LightCulling.hpp" />
     <ClInclude Include="Nodes\Node_OverlayRender.hpp" />
     <ClInclude Include="Nodes\Node_TextureProperties.hpp" />
     <ClInclude Include="OrthographicCamera.hpp" />
@@ -248,6 +249,7 @@
     <ClCompile Include="Nodes\Node_DepthReductionFinal.cpp" />
     <ClCompile Include="Nodes\Node_DrawSky.cpp" />
     <ClCompile Include="Nodes\Node_ForwardRender.cpp" />
+    <ClCompile Include="Nodes\Node_LightCulling.cpp" />
     <ClCompile Include="Nodes\Node_OverlayRender.cpp" />
     <ClCompile Include="OrthographicCamera.cpp" />
     <ClCompile Include="OverlayEntity.cpp" />

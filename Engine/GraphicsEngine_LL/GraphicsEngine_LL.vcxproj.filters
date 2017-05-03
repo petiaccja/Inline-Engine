@@ -279,6 +279,9 @@
     <ClInclude Include="Nodes\Node_DebugDraw.hpp">
       <Filter>Nodes\Debug</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Node_LightCulling.hpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -425,6 +428,9 @@
     </ClCompile>
     <ClCompile Include="Nodes\Node_DebugDraw.cpp">
       <Filter>Nodes\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_LightCulling.cpp">
+      <Filter>Nodes\ForwardRenderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
