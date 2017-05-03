@@ -7,252 +7,42 @@
  */
 
 Texture2D inputTex : register(t0);
-//RWTexture2D<float2> inputTex : register(u3);
 RWTexture2D<float4> outputTex0 : register(u0);
-RWTexture2D<float4> outputTex1 : register(u1);
-RWTexture2D<float2> outputTex2 : register(u2);
+
+struct light_data
+{
+	float4 vs_position;
+	float attenuation_end;
+	int index;
+	float2 dummy;
+};
 
 struct Uniforms
 {
-	float4x4 invVP;
-	float4x4 bias_mx, inv_mv;
-	float4 cam_pos, cam_view_dir, cam_up_vector;
-	float4 light_cam_pos, light_cam_view_dir, light_cam_up_vector;
-	float cam_near, cam_far, tex_size;
+	light_data ld[200];
+	float4x4 p;
+	float4 far_plane0, far_plane1;
+	float cam_near, cam_far; 
+	int num_lights;
 	float dummy;
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
+
+float proj_a, proj_b;
 
 #define FLT_MAX 3.402823466e+38
 
 #define LOCAL_SIZE_X 16
 #define LOCAL_SIZE_Y 16
 
-//x: min depth
-//y: max depth
-groupshared float2 localData[LOCAL_SIZE_X * LOCAL_SIZE_Y];
-
-struct camera
-{
-	float3 pos, view_dir, up_vector;
-};
-
-float linearize_depth(float depth, float near, float far)
-{
-	float A = -(far + near) / (far - near);
-	float B = -2 * far * near / (far - near);
-	float zndc = depth * 2 - 1;
-
-	//view space linear z
-	float vs_zrecon = -B / (zndc + A);
-
-	//range: [0...1]
-	return vs_zrecon / -far;
-};
-
-camera lookat_func(float3 eye, float3 lookat, float3 up)
-{
-	camera c;
-	c.view_dir = normalize(lookat - eye);
-	c.up_vector = normalize(up);
-	c.pos = eye;
-	float3 right = normalize(cross(c.view_dir, c.up_vector));
-	c.up_vector = normalize(cross(right, c.view_dir));
-	return c;
-};
-
-float4x4 create_identity()
-{
-	float4x4 r;
-	r[0] = float4(1, 0, 0, 0);
-	r[1] = float4(0, 1, 0, 0);
-	r[2] = float4(0, 0, 1, 0);
-	r[3] = float4(0, 0, 0, 1);
-	return r;
-}
-
-float4x4 ortographic(float left, float right, float bottom, float top, float near, float far)
-{
-	float4x4 r = create_identity();
-
-	// Left handed ortho projection, output interval min [-1, -1, 0] max [1, 1, 1]
-	//2 / w  0    0           0
-	//0    2 / h  0           0
-	//0    0    1 / (zf - zn)   0
-	//0    0    zn / (zn - zf)  1
-
-	float width = right - left;
-	float height = top - bottom;
-
-	r[0].x = 2.0 / width;
-	r[1].y = 2.0 / height;
-	r[2].z = 1.0 / (far - near);
-	r[2].w = near / (near - far);	
-
-	r[3].w = 1.0;
-
-	return r;
-}
-
-float4x4 create_translation(float3 vec)
-{
-	return float4x4(1, 0, 0, vec.x,
-		0, 1, 0, vec.y,
-		0, 0, 1, vec.z,
-		0, 0, 0, 1);
-}
-
-float4x4 get_camera_matrix(camera c)
-{
-	float3 x = cross(c.view_dir, c.up_vector);
-
-	float4x4 m;
-	m[0] = float4(x, 0);
-	m[1] = float4(c.up_vector, 0);
-	m[2] = float4(c.view_dir, 0);
-	m[3] = float4(float3(0.0f, 0.0f, 0.0f), 1);
-
-	// RICSI ez még lehet hogy kelleni fog kapcsolgasd ki meg be néha :D
-	//m = transpose(m);
-
-	return mul(m, create_translation(-c.pos));
-}
-
-//heavily based on mjp shadow sample
-float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_splits[4], camera cam, camera light_cam, float shadow_map_size)
-{
-	//frustum corners in ndc space
-	float3 ndc_frustum_corners[8] =
-	{
-		float3(-1.0f, 1.0f, -1.0f),
-		float3(1.0f, 1.0f, -1.0f),
-		float3(1.0f, -1.0f, -1.0f),
-		float3(-1.0f, -1.0f, -1.0f),
-		float3(-1.0f, 1.0f, 1.0f),
-		float3(1.0f, 1.0f, 1.0f),
-		float3(1.0f, -1.0f, 1.0f),
-		float3(-1.0f, -1.0f, 1.0f),
-	};
-
-	float3 ws_frustum_corners[8];
-
-	for (int c = 0; c < 8; ++c)
-	{
-		float4 trans = mul(invVP, float4(ndc_frustum_corners[c], 1));
-		ws_frustum_corners[c] = trans.xyz / trans.w;
-	}
-
-	//calc this splits frustum corners
-	for (int i = 0; i < 4; ++i)
-	{
-		float3 cornerRay = ws_frustum_corners[i + 4] - ws_frustum_corners[i];
-		float3 nearCornerRay = cornerRay * frustum_splits[idx].x;
-		float3 farCornerRay = cornerRay * frustum_splits[idx].y;
-		ws_frustum_corners[i + 4] = ws_frustum_corners[i] + farCornerRay;
-		ws_frustum_corners[i] = ws_frustum_corners[i] + nearCornerRay;
-	}
-
-	//calc split centroid center
-	float3 centroid_center = float3(0, 0, 0);
-	for (int j = 0; j < 8; ++j)
-	{
-		centroid_center += ws_frustum_corners[j];
-	}
-	centroid_center /= 8.0f;
-
-	float3 up = normalize(cross(cam.view_dir, cam.up_vector));
-
-	float3 light_cam_pos = centroid_center;
-	float3 light_cam_lookat = centroid_center + light_cam.view_dir;
-
-	camera new_light_cam = lookat_func(light_cam_pos, light_cam_lookat, up);
-	float4x4 light_view_mat = get_camera_matrix(new_light_cam);
-
-	float3 mins = float3(FLT_MAX, FLT_MAX, FLT_MAX);
-	float3 maxes = float3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
-	for (int k = 0; k < 8; ++k)
-	{
-		float3 corner = (mul(light_view_mat, float4(ws_frustum_corners[k], 1))).xyz;
-		mins = min(mins, corner);
-		maxes = max(maxes, corner);
-	}
-
-	float3 maxExtents = maxes;
-	float3 minExtents = mins;
-
-	float filter_size = 3;
-	float scale = (shadow_map_size + filter_size) / shadow_map_size;
-
-	maxExtents *= scale;
-	maxExtents.z /= scale;
-	minExtents *= scale;
-	minExtents.z /= scale;
-
-	// Ricsi 2 lines, min meg max extent is rossz
-	//maxExtents = float3(40, 40, 40);
-	//minExtents = float3(-40, -40, -40);
-
-	float3 cascadeExtents = maxExtents - minExtents;
-
-	float3 cam_pos = centroid_center + light_cam.view_dir * -abs(minExtents.z);
-
-	float4x4 split_ortho_matrix = ortographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, cascadeExtents.z);
-
-	camera split_shadow_cam = lookat_func(cam_pos, centroid_center, up);
-
-	return mul(split_ortho_matrix, get_camera_matrix(split_shadow_cam));
-	//return split_ortho_matrix;
-	//return get_camera_matrix(split_shadow_cam);
-	//camera sanity_cam = lookat_func(float3(0,0,1), float3(0,-1,0), float3(0,0,1));
-	//return mul(split_ortho_matrix, get_camera_matrix(sanity_cam));
-	//return ortographic(-100, 100, -100, 100, 0.0f, 100);
-	//return mul(ortographic(-25, 25, -25, 25, 0.0f, 25), light_view_mat);
-}
-
-float log_partition_from_range(uint part, float minz, float maxz)
-{
-	float z = maxz;
-	if (part < 4)
-	{
-		float ratio = maxz / minz;
-		float power = float(part) * 0.25;
-		z = minz * pow(ratio, power);
-	}
-
-	return z;
-}
-
-void calc_frustum_splits(float cam_near, float cam_far, out float2 frustum_splits[4])
-{
-	for (int c = 0; c < 4; ++c)
-	{
-		frustum_splits[c].x = log_partition_from_range(c, cam_near, cam_far);
-		frustum_splits[c].y = log_partition_from_range(c + 1, cam_near, cam_far);
-	}
-}
-
-void init(uint2 dispatchThreadId, uint groupIndex)
-{
-	uint3 inputTexSize;
-	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
-	//uint2 inputTexSize;
-	//inputTex.GetDimensions(inputTexSize.x, inputTexSize.y);
-	if (any(dispatchThreadId.xy >= inputTexSize.xy))
-		return;
-
-	float2 data = inputTex.Load(int3(dispatchThreadId.xy, 0)).xy;
-	//inputTex[dispatchThreadId.xy] = float2(0.0, 0.0);
-
-	localData[groupIndex].x = min(data.x, localData[groupIndex].x);
-	localData[groupIndex].y = max(data.y, localData[groupIndex].y);
-}
-
-void reduce(uint groupIndex, uint idx)
-{
-	localData[groupIndex].x = min(localData[groupIndex].x, localData[groupIndex + idx].x);
-	localData[groupIndex].y = max(localData[groupIndex].y, localData[groupIndex + idx].y);
-}
+groupshared float localFar, localNear;
+groupshared int localNumLightsInput, localNumLightsOutput;
+groupshared float4 localLL, localUR;
+groupshared int localLights[1024];
+groupshared uint localMinDepth;
+groupshared uint localMaxDepth;
+groupshared uint localDepthMask;
 
 [numthreads(LOCAL_SIZE_X, LOCAL_SIZE_Y, 1)]
 void CSMain(
@@ -262,100 +52,197 @@ void CSMain(
 	uint groupIndex : SV_GroupIndex //LocalInvocationIndex
 )
 {
-	{ //INIT
-		uint3 inputTexSize;
-		inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
-		//uint2 inputTexSize;
-		//inputTex.GetDimensions(inputTexSize.x, inputTexSize.y);
+	uint3 inputTexSize;
+	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 
-		//localData[groupIndex] = float2(100.0f, 0.0f);
-		localData[groupIndex] = float2(1.0f, 0.0f);
+	float4 raw_depth = inputTex.Load(int3(dispatchThreadId.xy, 0));
 
-		for (uint y = groupThreadId.y * (inputTexSize.y / float(LOCAL_SIZE_Y)); y < (groupThreadId.y + 1) * (inputTexSize.y / float(LOCAL_SIZE_Y)); ++y)
-			for (uint x = groupThreadId.x * (inputTexSize.x / float(LOCAL_SIZE_X)); x < (groupThreadId.x + 1) * (inputTexSize.x / float(LOCAL_SIZE_X)); ++x)
-			{
-				init(uint2(x, y), groupIndex);
-			}
+	float max_depth = 0;
+	float min_depth = 1;
 
-		GroupMemoryBarrierWithGroupSync();
-	}
-
-	{ //REDUCTION
-		const uint reductionSize = LOCAL_SIZE_X * LOCAL_SIZE_Y;
-		for (uint x = reductionSize / 2; x > 0; x >>= 1)
-		{
-			if (groupIndex < x)
-			{
-				reduce(groupIndex, x);
-			}
-
-			GroupMemoryBarrierWithGroupSync();
-		}
-	}
-
-	//CALC FINAL RESULTS
-	if (!bool(groupIndex))
+	if (groupIndex == 0)
 	{
-		//construct matrix here
-		float near, far;
+		localLL = float4(uniforms.far_plane0.xyz, 1.0);
+		localUR = float4(uniforms.far_plane0.w, uniforms.far_plane1.xy, 1.0);
+		localFar = nearfar.y; 
+		localNear = nearfar.x; 
+		localNumLightsInput = uniforms.num_lights;
 
+		localNumLightsOutput = 0;
+
+		localMaxDepth = 0;
+		localMinDepth = 0x7f7fffff; // max float value
+		localDepthMask = 0;
+	}
+
+	GroupMemoryBarrierWithGroupSync(); //local memory barrier
+
+	float far = localFar;
+	float near = localNear;
+
+	//WARNING: need to linearize the depth in order to make it work...
+	proj_a = -(far + near) / (far - near);
+	proj_b = (-2 * far * near) / (far - near);
+	float linear_depth = -proj_b / (raw_depth.x * 2 - 1 + proj_a);
+	raw_depth.x = linear_depth / -far;
+
+	int num_of_lights = localNumLightsInput;
+	vec3 ll, ur;
+	ll = localLL.xyz;
+	ur = localUR.xyz;
+
+	//check for skybox
+	bool early_rejection = (raw_depth.x > 0.999 || raw_depth.x < 0.001);
+
+	if (!early_rejection)
+	{
+		float tmp_depth = raw_depth.x;
+
+		min_depth = min(min_depth, tmp_depth);
+		max_depth = max(max_depth, tmp_depth);
+
+		if (max_depth >= min_depth)
 		{
-			float minDepth = localData[0].x;
-			float maxDepth = localData[0].y;
+			InterlockedMin(localMinDepth, asuint(min_depth));
+			InterlockedMax(localMaxDepth, asuint(max_depth));
+		}
+	}
 
-			float linearMinDepth = linearize_depth(minDepth, uniforms.cam_near, uniforms.cam_far);
-			float linearMaxDepth = linearize_depth(maxDepth, uniforms.cam_near, uniforms.cam_far);
-			//float linearMinDepth = minDepth;//linearize_depth(minDepth, uniforms.cam_near, uniforms.cam_far);
-			//float linearMaxDepth = maxDepth;//linearize_depth(maxDepth, uniforms.cam_near, uniforms.cam_far);
+	GroupMemoryBarrierWithGroupSync(); //local memory barrier
 
-			//near = linearMinDepth;// *uniforms.cam_far;
-			//far = linearMaxDepth;// *uniforms.cam_far;
-			near = linearMinDepth *uniforms.cam_far;
-			far = linearMaxDepth *uniforms.cam_far;
+	max_depth = asfloat(localMaxDepth);
+	min_depth = asfloat(localMinDepth);
+
+	float2 tile_scale = float2(inputTexSize.x, inputTexSize.y) * recip(LOCAL_SIZE_X + LOCAL_SIZE_Y);
+	float2 tile_bias = tile_scale - float2(groupId.x, groupId.y);
+
+	float proj_11 = uniforms.p[0].x;
+	float proj_22 = uniforms.p[1].y;
+
+	float4 c1 = float4(proj_11 * tile_scale.x, 0.0, -tile_bias.x, 0.0);
+	float4 c2 = float4(0.0, proj_22 * tile_scale.y, -tile_bias.y, 0.0);
+	float4 c4 = float4(0.0, 0.0, -1.0, 0.0);
+
+	float4 frustum_planes[6];
+
+	frustum_planes[0] = c4 - c1;
+	frustum_planes[1] = c4 + c1;
+	frustum_planes[2] = c4 - c2;
+	frustum_planes[3] = c4 + c2;
+	frustum_planes[4] = float4(0.0, 0.0, 1.0, -min_depth * far); 
+	frustum_planes[5] = float4(0.0, 0.0, 1.0, -max_depth * far); 
+
+	frustum_planes[0].xyz = normalize(frustum_planes[0].xyz);
+	frustum_planes[1].xyz = normalize(frustum_planes[1].xyz);
+	frustum_planes[2].xyz = normalize(frustum_planes[2].xyz);
+	frustum_planes[3].xyz = normalize(frustum_planes[3].xyz);
+
+	///TODO TO BE CONTINUED.
+
+	/*
+	* Calculate per tile depth mask for 2.5D light culling
+	*/
+
+	/**/
+	float vs_min_depth = min_depth * -far;
+	float vs_max_depth = max_depth * -far;
+	float vs_depth = raw_depth.x * -far;
+
+	float range = abs(vs_max_depth - vs_min_depth + 0.00001) / 32.0; //depth range in each tile
+
+	vs_depth -= vs_min_depth; //so that min = 0
+	float depth_slot = floor(vs_depth / range);
+
+	//determine the cell for each pixel in the tile
+	if (!early_rejection)
+	{
+		//depth_mask = depth_mask | (1 << depth_slot)
+		atomicOr(local_depth_mask, 1 << uint(depth_slot));
+	}
+
+	barrier();
+	/**/
+
+	for (uint c = workgroup_index; c < num_of_lights; c += local_size.x * local_size.y)
+	{
+		bool in_frustum = true;
+		int index = int(c);
+
+		float att_end = sld.d[index].attenuation_end;
+		vec3 light_pos = sld.d[index].vs_position.xyz;
+		vec4 lp = vec4(light_pos, 1.0);
+
+		/**/
+		//calculate per light bitmask
+		uint light_bitmask = 0;
+
+		float light_z_min = -(light_pos.z + att_end); //light z min [0 ... 1000]
+		float light_z_max = -(light_pos.z - att_end); //light z max [0 ... 1000]
+		light_z_min -= vs_min_depth; //so that min = 0
+		light_z_max -= vs_min_depth; //so that min = 0
+		float depth_slot_min = floor(light_z_min / range);
+		float depth_slot_max = floor(light_z_max / range);
+
+		if (!((depth_slot_max > 31.0 &&
+			depth_slot_min > 31.0) ||
+			(depth_slot_min < 0.0 &&
+				depth_slot_max < 0.0)))
+		{
+			if (depth_slot_max > 30.0)
+				light_bitmask = uint(~0);
+			else
+				light_bitmask = (1 << (uint(depth_slot_max)+1)) - 1;
+
+			if (depth_slot_min > 0.0)
+				light_bitmask -= (1 << uint(depth_slot_min)) - 1;
 		}
 
-		float4x4 light_mvp[4];
-		float4x4 shadow_mat[4];
+		in_frustum = in_frustum && bool(local_depth_mask & light_bitmask);
+		/**/
 
+		//manual unroll
 		{
-			float2 norm_frustum_splits[4];
-
-			{
-				float2 frustum_splits[4];
-				calc_frustum_splits(near, far, frustum_splits);
-
-				for (int c = 0; c < 4; ++c)
-					norm_frustum_splits[c] = (frustum_splits[c] - uniforms.cam_near) / (uniforms.cam_far - uniforms.cam_near);
-
-				//frustum_splits[3].y = uniforms.cam_far;
-				for (uint d = 0; d < 4; ++d)
-					outputTex2[uint2(d,0)] = frustum_splits[d];
-			}
-
-			{
-				camera cam, light_cam;
-				cam.pos = uniforms.cam_pos.xyz;
-				cam.view_dir = uniforms.cam_view_dir.xyz;
-				cam.up_vector = uniforms.cam_up_vector.xyz;
-
-				light_cam.pos = uniforms.light_cam_pos.xyz;
-				light_cam.view_dir = uniforms.light_cam_view_dir.xyz;
-				light_cam.up_vector = uniforms.light_cam_up_vector.xyz;
-				for (int c = 0; c < 4; ++c)
-					light_mvp[c] = efficient_shadow_split_matrix(c, uniforms.invVP, norm_frustum_splits, cam, light_cam, uniforms.tex_size);
-			}
+			float e = dot(frustum_planes[0], lp);
+			in_frustum = in_frustum && (e >= -att_end);
+		}
+		{
+			float e = dot(frustum_planes[1], lp);
+			in_frustum = in_frustum && (e >= -att_end);
+		}
+		{
+			float e = dot(frustum_planes[2], lp);
+			in_frustum = in_frustum && (e >= -att_end);
+		}
+		{
+			float e = dot(frustum_planes[3], lp);
+			in_frustum = in_frustum && (e >= -att_end);
+		}
+		{
+			float e = dot(frustum_planes[4], lp);
+			in_frustum = in_frustum && (e <= att_end);
+		}
+		{
+			float e = dot(frustum_planes[5], lp);
+			in_frustum = in_frustum && (e >= -att_end);
 		}
 
-		for (int c = 0; c < 4; ++c)
-			shadow_mat[c] = mul(uniforms.bias_mx, mul(light_mvp[c], uniforms.inv_mv));
-
-		for (uint d = 0; d < 4; ++d)
+		if (in_frustum)
 		{
-			for (uint e = 0; e < 4; ++e)
-			{
-				outputTex0[uint2(d * 4 + e,0)] = light_mvp[d][e];
-				outputTex1[uint2(d * 4 + e,0)] = shadow_mat[d][e];
-			}
+			int li = atomicAdd(local_num_of_lights, 1);
+			local_lights[li] = int(index);
 		}
+	}
+
+	barrier(); //local memory barrier
+
+	if (workgroup_index == 0)
+	{
+		imageStore(result, int((group_id.x * group_size.y + group_id.y) * 1024), uvec4(local_num_of_lights));
+		//imageStore( result, int((group_id.x * group_size.y + group_id.y) * 1024), uvec4(abs(sld.d[0].spot_direction.z*10)) );
+	}
+
+	for (uint c = workgroup_index; c < local_num_of_lights; c += local_size.x * local_size.y)
+	{
+		imageStore(result, int((group_id.x * group_size.y + group_id.y) * 1024 + c + 1), uvec4(local_lights[c]));
 	}
 }
