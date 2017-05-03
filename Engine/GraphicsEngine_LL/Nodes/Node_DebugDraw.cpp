@@ -8,6 +8,8 @@
 #include "../DirectionalLight.hpp"
 #include "../GraphicsCommandList.hpp"
 
+#include "DebugDrawManager.hpp"
+
 #include <array>
 
 namespace inl::gxeng::nodes {
@@ -51,6 +53,7 @@ static void ConvertToSubmittable(
 	assert(sizes.size() == strides.size());
 }
 
+DebugDraw::DebugDraw() {}
 
 void DebugDraw::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
@@ -76,8 +79,6 @@ void DebugDraw::Setup(SetupContext & context) {
 	m_camera = cam;
 
 	if (!m_binder.has_value()) {
-		this->GetInput<0>().Set({});
-
 		BindParameterDesc uniformsBindParamDesc;
 		m_uniformsBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
 		uniformsBindParamDesc.parameter = m_uniformsBindParam;
@@ -130,9 +131,8 @@ void DebugDraw::Setup(SetupContext & context) {
 		m_TrianglePSO.reset(context.CreatePSO(psoDesc));
 	}
 
-	DebugDrawManager::GetInstance().Update();
-
 	vertexBuffers.resize(DebugDrawManager::GetInstance().GetObjects().size());
+	indexBuffers.resize(DebugDrawManager::GetInstance().GetObjects().size());
 	sizes.resize(DebugDrawManager::GetInstance().GetObjects().size());
 	strides.resize(DebugDrawManager::GetInstance().GetObjects().size());
 	for (int c = 0; c < DebugDrawManager::GetInstance().GetObjects().size(); ++c)
@@ -171,10 +171,11 @@ void DebugDraw::Execute(RenderContext & context) {
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::LINELIST);
 
-	RenderTargetView2D rtViews[1] = { m_target };
+	RenderTargetView2D* rtView = &m_target;
+	const RenderTargetView2D*const* rtViews = { &rtView };
 
 	commandList.SetResourceState(m_target.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
-	commandList.SetRenderTargets(1, (const RenderTargetView2D*const*)&rtViews, 0);
+	commandList.SetRenderTargets(1, rtViews, 0);
 
 	gxapi::Viewport viewport;
 	viewport.height = (float)m_target.GetResource().GetHeight();
@@ -193,28 +194,46 @@ void DebugDraw::Execute(RenderContext & context) {
 
 	viewProjection.Pack(uniformsCBData.vp);
 
+	for (auto& vb : vertexBuffers) {
+		if(vb.HasObject())
+		{ 
+			commandList.SetResourceState(vb, gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+		}
+	}
+	for (auto& ib : indexBuffers) {
+		if (ib.HasObject())
+		{
+			commandList.SetResourceState(ib, gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::INDEX_BUFFER);
+		}
+	}
+
 	for (int c = 0; c < DebugDrawManager::GetInstance().GetObjects().size(); ++c)
 	{
-		if(!DebugDrawManager::IsAlive(DebugDrawManager::GetInstance().GetObjects()[c]->GetLife()))
+		const std::unique_ptr<DebugObject>* o = &DebugDrawManager::GetInstance().GetObjects()[c];
+
+		if (c >= vertexBuffers.size() || !vertexBuffers[c].HasObject())
 		{
 			continue;
 		}
 
-		mathfu::Vector4f(DebugDrawManager::GetInstance().GetObjects()[c]->GetColor(), 1.0f).Pack(&uniformsCBData.color);
+		if(!DebugDrawManager::IsAlive(o->get()->GetLife()))
+		{
+			continue;
+		}
+
+		mathfu::Vector4f(o->get()->GetColor(), 1.0f).Pack(&uniformsCBData.color);
 
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(uniformsCBData));
 
-		for (int c = 0; c < vertexBuffers.size(); ++c)
-		{
-			//commandList.SetResourceState(vertexBuffers[c], 0, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-		}
+		VertexBuffer* vb = &vertexBuffers[c];
+		const VertexBuffer*const* vbs = { &vb };
 
-		//commandList.SetResourceState(mesh->GetIndexBuffer(), 0, gxapi::eResourceState::INDEX_BUFFER);
-
-		//commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
+		commandList.SetVertexBuffers(0, 1, vbs, &sizes[c], &strides[c]);
 		commandList.SetIndexBuffer(&indexBuffers[c], true);
 		commandList.DrawInstanced(indexBuffers[c].GetIndexCount()); 
 	}
+
+	DebugDrawManager::GetInstance().Update();
 }
 
 

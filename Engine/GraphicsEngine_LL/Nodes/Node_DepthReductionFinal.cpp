@@ -10,6 +10,8 @@
 #include "../GraphicsCommandList.hpp"
 #include "../EntityCollection.hpp"
 
+#include "DebugDrawManager.hpp"
+
 #include <array>
 
 namespace inl::gxeng::nodes {
@@ -149,6 +151,8 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 	ComputeCommandList& commandList = context.AsCompute();
 
 	Uniforms uniformsCBData;
+
+	DebugDrawManager::GetInstance().AddSphere(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1, 1);
 
 	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();
 	mathfu::Matrix4x4f projection = m_camera->GetProjectionMatrixRH();

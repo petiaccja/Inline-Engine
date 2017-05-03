@@ -433,6 +433,9 @@ void GraphicsEngine::CreatePipeline() {
 	getGuiScene->GetInput<0>().Set("Gui");
 	getGuiCamera->GetInput<0>().Set("GuiCamera");
 
+	debugDraw->GetInput<0>().Link(getBackBuffer->GetOutput(0));
+	debugDraw->GetInput<1>().Link(getCamera->GetOutput(0));
+
 	guiRender->GetInput<0>().Link(getBackBuffer->GetOutput(0));
 	guiRender->GetInput<1>().Link(getGuiScene->GetOutput(1));
 	guiRender->GetInput<2>().Link(getGuiCamera->GetOutput(0));
@@ -472,6 +475,7 @@ void GraphicsEngine::CreatePipeline() {
 		getGuiScene,
 		getGuiCamera,
 		guiRender,
+		debugDraw,
 		alphaBlend
 	};
 
