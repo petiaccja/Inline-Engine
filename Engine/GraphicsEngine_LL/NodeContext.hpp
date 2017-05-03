@@ -25,6 +25,9 @@ class BasicCommandList;
 class ScratchSpacePool;
 class CommandAllocatorPool;
 
+// Debug draw
+class DebugObject;
+
 
 //------------------------------------------------------------------------------
 // Engine Context
@@ -153,6 +156,9 @@ public:
 	CopyCommandList& AsCopy();
 	gxapi::eCommandListType GetType() const { return m_type; }
 	bool IsListInitialized() const { return (bool)m_commandList; }
+
+	// Debug draw
+	void AddDebugObject(std::vector<DebugObject*> objects);
 
 private:
 	// Memory management stuff

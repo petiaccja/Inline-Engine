@@ -114,6 +114,9 @@
     <ClInclude Include="ArrayView.hpp">
       <Filter>All</Filter>
     </ClInclude>
+    <ClInclude Include="Any.hpp">
+      <Filter>All</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">

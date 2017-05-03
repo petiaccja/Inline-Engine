@@ -164,7 +164,9 @@ void Blend::Execute(RenderContext& context) {
 	commandList.SetResourceState(const_cast<Texture2D&>(m_blendSrc.GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 	commandList.BindGraphics(m_tex0Param, m_blendSrc);
 
+	commandList.SetResourceState(*pVertexBuffer, 0, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
 	commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
+	commandList.SetResourceState(m_fsqIndices, 0, gxapi::eResourceState::INDEX_BUFFER);
 	commandList.SetIndexBuffer(&m_fsqIndices, false);
 	commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
 }

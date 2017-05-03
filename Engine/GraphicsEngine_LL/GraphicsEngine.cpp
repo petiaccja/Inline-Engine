@@ -13,6 +13,7 @@
 #include "Nodes/Node_GetSceneByName.hpp"
 #include "Nodes/Node_GetCameraByName.hpp"
 #include "Nodes/Node_GetTime.hpp"
+#include "Nodes/Node_GetEnvVariable.hpp"
 
 //forward
 #include "Nodes/Node_ForwardRender.hpp"
@@ -314,6 +315,27 @@ OverlayEntity* GraphicsEngine::CreateOverlayEntity() {
 }
 
 
+bool GraphicsEngine::SetEnvVariable(std::string name, exc::Any obj) {
+	auto res = m_envVariables.insert_or_assign(std::move(name), std::move(obj));
+	return res.second;
+}
+
+bool GraphicsEngine::EnvVariableExists(const std::string& name) {
+	return m_envVariables.count(name) > 0;
+}
+
+const exc::Any& GraphicsEngine::GetEnvVariable(const std::string& name) {
+	auto it = m_envVariables.find(name);
+	if (it != m_envVariables.end()) {
+		return it->second;
+	}
+	else {
+		throw std::invalid_argument("Environment variable does not exist.");
+	}
+}
+
+
+
 void GraphicsEngine::CreatePipeline() {
 	auto swapChainDesc = m_swapChain->GetDesc();
 
@@ -494,6 +516,9 @@ std::vector<GraphicsNode*> GraphicsEngine::SelectSpecialNodes(Pipeline& pipeline
 		else if (nodes::GetTime* ptr = dynamic_cast<nodes::GetTime*>(&node)) {
 			specialNodes.push_back(ptr);
 		}
+		else if (nodes::GetEnvVariable* ptr = dynamic_cast<nodes::GetEnvVariable*>(&node)) {
+			specialNodes.push_back(ptr);
+		}
 	}
 
 	return specialNodes;
@@ -526,6 +551,9 @@ void GraphicsEngine::UpdateSpecialNodes() {
 		}
 		else if (auto* getTime = dynamic_cast<nodes::GetTime*>(node)) {
 			getTime->SetAbsoluteTime(m_absoluteTime.count() / 1e9);
+		}
+		else if (auto* getEnv = dynamic_cast<nodes::GetEnvVariable*>(node)) {
+			getEnv->SetEnvVariableList(&m_envVariables);
 		}
 	}
 }

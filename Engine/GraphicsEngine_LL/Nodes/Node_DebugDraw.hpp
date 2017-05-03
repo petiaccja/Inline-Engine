@@ -459,7 +459,7 @@ class DebugDraw :
 	virtual public exc::OutputPortConfig<Texture2D>
 {
 public:
-	DebugDraw() = default;
+	DebugDraw();
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}

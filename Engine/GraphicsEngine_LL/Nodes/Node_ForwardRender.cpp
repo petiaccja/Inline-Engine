@@ -216,6 +216,7 @@ void ForwardRender::Execute(RenderContext& context) {
 	// Set render target
 	auto pRTV = &m_rtv;
 	commandList.SetResourceState(m_rtv.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(m_dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
 	commandList.SetRenderTargets(1, &pRTV, &m_dsv);
 	commandList.ClearRenderTarget(m_rtv, gxapi::ColorRGBA(0, 0, 0, 1));
 
@@ -230,7 +231,6 @@ void ForwardRender::Execute(RenderContext& context) {
 	commandList.SetScissorRects(1, &rect);
 	commandList.SetViewports(1, &viewport);
 
-	commandList.SetResourceState(m_dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
 	commandList.SetStencilRef(1); // background is 0, anything other than that is 1
 
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
@@ -329,7 +329,10 @@ void ForwardRender::Execute(RenderContext& context) {
 			vertexBuffers.push_back(&mesh->GetVertexBuffer(i));
 			sizes.push_back((unsigned)mesh->GetVertexBuffer(i).GetSize());
 			strides.push_back((unsigned)mesh->GetVertexBufferStride(i));
+
+			commandList.SetResourceState(mesh->GetVertexBuffer(i), gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
 		}
+		commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::INDEX_BUFFER);
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
 

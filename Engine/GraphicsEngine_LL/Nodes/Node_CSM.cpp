@@ -199,9 +199,8 @@ void CSM::Execute(RenderContext & context) {
 	std::vector<unsigned> strides;
 
 	for (int cascadeIdx = 0; cascadeIdx < numCascades; ++cascadeIdx) {
-		commandList.SetRenderTargets(0, nullptr, &m_dsvs[cascadeIdx]);
-
 		commandList.SetResourceState(cascadeTextures, cascadeIdx, gxapi::eResourceState::DEPTH_WRITE);
+		commandList.SetRenderTargets(0, nullptr, &m_dsvs[cascadeIdx]);
 		commandList.ClearDepthStencil(m_dsvs[cascadeIdx], 1, 0, 0, nullptr, true, true);
 
 		gxapi::Viewport viewport;
@@ -235,6 +234,11 @@ void CSM::Execute(RenderContext & context) {
 			uniformsCBData.cascadeIDX = cascadeIdx;
 
 			commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(uniformsCBData));
+
+			for (auto& vb : vertexBuffers) {
+				commandList.SetResourceState(*vb, gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+			}
+			commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::INDEX_BUFFER);
 
 			commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 			commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());

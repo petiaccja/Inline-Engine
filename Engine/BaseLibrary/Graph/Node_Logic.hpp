@@ -9,8 +9,8 @@
 namespace exc {
 
 class LogicAny
-	: public InputPortConfig<AnyType, AnyType, AnyType, AnyType, AnyType, AnyType>,
-	public OutputPortConfig<AnyType>
+	: public InputPortConfig<Any, Any, Any, Any, Any, Any>,
+	public OutputPortConfig<Any>
 {
 public:
 	LogicAny() {
@@ -25,7 +25,7 @@ public:
 
 	void Update() override final {
 		if (lastActivated >= 0) {
-			InputPort<AnyType>* port = static_cast<InputPort<AnyType>*>(GetInput(lastActivated));
+			InputPort<Any>* port = static_cast<InputPort<Any>*>(GetInput(lastActivated));
 			GetOutput<0>().Set(port->Get());
 			lastActivated = -1;
 		}
@@ -68,8 +68,8 @@ private:
 
 
 class LogicAll
-	: public InputPortConfig<void, AnyType, AnyType, AnyType, AnyType, AnyType, AnyType>,
-	public OutputPortConfig<AnyType>
+	: public InputPortConfig<void, Any, Any, Any, Any, Any, Any>,
+	public OutputPortConfig<Any>
 {
 public:
 	LogicAll() {
@@ -86,7 +86,7 @@ public:
 
 	void Update() override final {
 		if (lastActivated >= 0 && activationMap == 0b11'1111) {
-			InputPort<AnyType>* port = static_cast<InputPort<AnyType>*>(GetInput(lastActivated + 1));
+			InputPort<Any>* port = static_cast<InputPort<Any>*>(GetInput(lastActivated + 1));
 			GetOutput<0>().Set(port->Get());
 		}
 	}
