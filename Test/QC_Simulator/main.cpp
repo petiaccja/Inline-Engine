@@ -239,9 +239,10 @@ int main(int argc, char* argv[]) {
 	float avgFps = 0;
 
 	while (run) {
-		while (PeekMessage(&msg, hWnd, 0, 0, PM_REMOVE)) {
+		while (PeekMessage(&msg, /*hWnd*/NULL, 0, 0, PM_REMOVE)) {
 			if (msg.message == WM_QUIT) {
 				run = false;
+				break;
 			}
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
