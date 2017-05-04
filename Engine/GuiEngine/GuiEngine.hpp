@@ -13,7 +13,7 @@
 #include <vector>
 #include <functional>
 
-using namespace inl::gxeng;
+using namespace inl;
 
 namespace inl::gui {
 
@@ -21,7 +21,7 @@ class GuiEngine
 {
 	friend class Gui;
 public:
-	GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow);
+	GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow);
 	~GuiEngine();
 
 	GuiLayer* CreateLayer();
@@ -63,7 +63,7 @@ public:
 	Delegate<void(CursorEvent& evt)> onMouseMoved;
 
 protected:
-	GraphicsEngine* graphicsEngine;
+	gxeng::GraphicsEngine* graphicsEngine;
 	Window* targetWindow;
 
 	std::vector<GuiLayer*> layers; // "layers" rendered first

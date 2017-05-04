@@ -7,9 +7,7 @@
 
 #include <BaseLibrary/Platform/Window.hpp>
 
-using namespace inl::gxeng;
-using namespace inl::gxapi_dx12;
-using namespace inl::gxapi;
+using namespace inl;
 using namespace inl::gui;
 
 class Core
@@ -18,15 +16,15 @@ public:
 	Core();
 	~Core();
 
-	GraphicsEngine* InitGraphicsEngine(int width, int height, HWND hwnd);
-	GuiEngine* InitGuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow);
+	gxeng::GraphicsEngine* InitGraphicsEngine(int width, int height, HWND hwnd);
+	GuiEngine* InitGuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow);
 
 	void Update(float deltaTime);
 
 protected:
-	GraphicsEngine* graphicsEngine;
-	GxapiManager* graphicsApiMgr;
-	IGraphicsApi* graphicsApi;
+	gxeng::GraphicsEngine* graphicsEngine;
+	gxapi_dx12::GxapiManager* graphicsApiMgr;
+	gxapi::IGraphicsApi* graphicsApi;
 
 	GuiEngine* guiEngine;
 	exc::Logger logger;

@@ -1,4 +1,5 @@
 #include "Editor.hpp"
+#include "QCWorld.hpp"
 
 Editor::Editor()
 {
@@ -39,6 +40,10 @@ Editor::Editor()
 	// Init Graphics Engine
 	graphicsE = core->InitGraphicsEngine(gameWnd->GetClientWidth(), gameWnd->GetClientHeight(), (HWND)gameWnd->GetHandle());
 
+	// TEMPORARY TODO
+	world = new QCWorld(graphicsE);
+	world->IWantSunsetBitches();
+
 	// Init Gui Engine
 	guiE = core->InitGuiEngine(graphicsE, wnd);
 
@@ -61,10 +66,11 @@ Editor::Editor()
 Editor::~Editor()
 {
 	delete core;
-
+	
 	wnd->Close();
 	delete wnd;
 	delete gameWnd;
+	delete world;
 }
 
 void Editor::InitGui()
@@ -234,6 +240,11 @@ void Editor::InitGui()
 		HWND editorHwnd = (HWND)this->wnd->GetHandle();
 		SetWindowPos(gameHwnd, NULL, self->GetContentPosX(), self->GetContentPosY(), self->GetContentSizeX(), self->GetContentSizeY(), 0);
 		SetFocus(editorHwnd);
+
+		int width = size.x();
+		int height = size.y();
+		graphicsE->SetScreenSize(width, height);
+		world->SetAspectRatio((float)width / (float(height)));
 	};
 
 	area0->StretchFillParent();

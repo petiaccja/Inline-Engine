@@ -1,5 +1,9 @@
 #include "Core.hpp"
 
+using namespace inl::gxeng;
+using namespace inl::gxapi_dx12;
+using namespace inl::gxapi;
+
 Core::Core()
 :guiEngine(nullptr), graphicsEngine(nullptr), graphicsApi(nullptr), graphicsApiMgr(nullptr)
 {
@@ -14,7 +18,7 @@ Core::~Core()
 	delete graphicsApiMgr;
 }
 
-GraphicsEngine* Core::InitGraphicsEngine(int width, int height, HWND hwnd)
+gxeng::GraphicsEngine* Core::InitGraphicsEngine(int width, int height, HWND hwnd)
 {
 	if (graphicsEngine)
 	{

@@ -13,7 +13,7 @@
 
 using namespace std::placeholders;
 using namespace exc;
-using namespace inl::gxeng;
+using namespace inl;
 using namespace inl::gui;
 
 class Editor
@@ -29,9 +29,12 @@ public:
 	LRESULT WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam);
 
 protected:
+	// TODO TEMPORARY
+	class QCWorld* world;
+
 	Core* core;
 	GuiEngine* guiE;
-	GraphicsEngine* graphicsE;
+	gxeng::GraphicsEngine* graphicsE;
 
 	bool bWndMaximized;
 

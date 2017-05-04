@@ -2,7 +2,7 @@
 
 using namespace inl::gui;
 
-GuiEngine::GuiEngine(GraphicsEngine* graphicsEngine, Window* targetWindow)
+GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow)
 {
 	// TEMPORARY
 	gdiGraphics = nullptr;
