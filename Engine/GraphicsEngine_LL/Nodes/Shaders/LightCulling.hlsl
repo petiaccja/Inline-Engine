@@ -27,8 +27,6 @@ struct Uniforms
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
 
-float proj_a, proj_b;
-
 #define FLT_MAX 3.402823466e+38
 
 #define LOCAL_SIZE_X 16
@@ -50,6 +48,8 @@ void CSMain(
 	uint groupIndex : SV_GroupIndex //LocalInvocationIndex
 )
 {
+	float proj_a, proj_b;
+
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 
@@ -62,8 +62,8 @@ void CSMain(
 	{
 		localLL = float4(uniforms.far_plane0.xyz, 1.0);
 		localUR = float4(uniforms.far_plane0.w, uniforms.far_plane1.xy, 1.0);
-		localFar = nearfar.y; 
-		localNear = nearfar.x; 
+		localFar = uniforms.cam_far; 
+		localNear = uniforms.cam_near; 
 		localNumLightsInput = uniforms.num_lights;
 
 		localNumLightsOutput = 0;
@@ -85,7 +85,7 @@ void CSMain(
 	raw_depth.x = linear_depth / -far;
 
 	int num_of_lights = localNumLightsInput;
-	vec3 ll, ur;
+	float3 ll, ur;
 	ll = localLL.xyz;
 	ur = localUR.xyz;
 
@@ -111,7 +111,7 @@ void CSMain(
 	max_depth = asfloat(localMaxDepth);
 	min_depth = asfloat(localMinDepth);
 
-	float2 tile_scale = float2(inputTexSize.x, inputTexSize.y) * recip(LOCAL_SIZE_X + LOCAL_SIZE_Y);
+	float2 tile_scale = float2(inputTexSize.x, inputTexSize.y) * (1.0 / (LOCAL_SIZE_X + LOCAL_SIZE_Y));
 	float2 tile_bias = tile_scale - float2(groupId.x, groupId.y);
 
 	float proj_11 = uniforms.p[0].x;
@@ -153,7 +153,7 @@ void CSMain(
 	if (!early_rejection)
 	{
 		//depth_mask = depth_mask | (1 << depth_slot)
-		InterlockedOr(local_depth_mask, 1 << uint(depth_slot));
+		InterlockedOr(localDepthMask, 1 << uint(depth_slot));
 	}
 
 	GroupMemoryBarrierWithGroupSync(); //local memory barrier
@@ -193,7 +193,7 @@ void CSMain(
 				light_bitmask -= (1 << uint(depth_slot_min)) - 1;
 		}
 
-		in_frustum = in_frustum && bool(local_depth_mask & light_bitmask);
+		in_frustum = in_frustum && bool(localDepthMask & light_bitmask);
 		/**/
 
 		//manual unroll
@@ -224,8 +224,8 @@ void CSMain(
 
 		if (in_frustum)
 		{
-			int li = InterlockedAdd(localNumLightsOutput, 1);
-			localLights[li] = int(index);
+			localLights[localNumLightsOutput] = int(index);
+			InterlockedAdd(localNumLightsOutput, 1);
 		}
 	}
 
@@ -233,11 +233,11 @@ void CSMain(
 
 	if (groupIndex == 0)
 	{
-		outputTex0[int2(groupId.x * group_size.y + groupId.y, 0)] = uint(localNumLightsOutput);
+		outputTex0[int2(groupId.x * LOCAL_SIZE_Y + groupId.y, 0)] = uint(localNumLightsOutput);
 	}
 
 	for (uint c = groupIndex; c < localNumLightsOutput; c += LOCAL_SIZE_X * LOCAL_SIZE_Y)
 	{
-		outputTex0[int2(groupId.x * group_size.y + groupId.y, c + 1)] = uint(localLights[c]);
+		outputTex0[int2(groupId.x * LOCAL_SIZE_Y + groupId.y, c + 1)] = uint(localLights[c]);
 	}
 }
