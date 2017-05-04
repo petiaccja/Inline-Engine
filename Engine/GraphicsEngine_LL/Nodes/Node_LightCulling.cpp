@@ -14,15 +14,46 @@
 
 namespace inl::gxeng::nodes {
 
+struct light_data
+{
+	mathfu::VectorPacked<float, 4> vs_position;
+	float attenuation_end;
+	int index;
+	mathfu::VectorPacked<float, 2> dummy;
+};
+
 struct Uniforms
 {
-	mathfu::VectorPacked<float, 4> invVP[4];
-	mathfu::VectorPacked<float, 4> bias_mx[4], inv_mv[4];
-	mathfu::VectorPacked<float, 4> cam_pos, cam_view_dir, cam_up_vector;
-	mathfu::VectorPacked<float, 4> light_cam_pos, light_cam_view_dir, light_cam_up_vector;
-	float cam_near, cam_far, tex_size;
+	light_data ld[10];
+	mathfu::VectorPacked<float, 4> p[4];
+	mathfu::VectorPacked<float, 4> far_plane0, far_plane1;
+	float cam_near, cam_far;
+	int num_lights;
 	float dummy;
 };
+
+static void setWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsigned groupSizeH, unsigned& dispatchW, unsigned& dispatchH)
+{
+	//set up work group sizes
+	unsigned gw = 0, gh = 0, count = 1;
+
+	while (gw < w)
+	{
+		gw = groupSizeW * count;
+		count++;
+	}
+
+	count = 1;
+
+	while (gh < h)
+	{
+		gh = groupSizeH * count;
+		count++;
+	}
+
+	dispatchW = unsigned(float(gw) / groupSizeW);
+	dispatchH = unsigned(float(gh) / groupSizeH);
+}
 
 
 LightCulling::LightCulling() {
@@ -35,21 +66,24 @@ void LightCulling::Initialize(EngineContext & context) {
 }
 
 void LightCulling::Reset() {
-	m_reductionTexSrv = TextureView2D();
+	m_depthTexSrv = TextureView2D();
 	m_camera = nullptr;
-	m_suns = nullptr;
+	//m_suns = nullptr;
 
 	GetInput<0>().Clear();
 	GetInput<1>().Clear();
-	GetInput<2>().Clear();
+	//GetInput<2>().Clear();
 }
 
 
 void LightCulling::Setup(SetupContext& context) {
-	InitRenderTarget(context);
+	Texture2D depthTex = this->GetInput<0>().Get();
 
-
-	Texture2D reductionTex = this->GetInput<0>().Get();
+	if (depthTex.GetWidth() != m_width || depthTex.GetHeight() != m_height) {
+		m_width = depthTex.GetWidth();
+		m_height = depthTex.GetHeight();
+		InitRenderTarget(context);
+	}
 
 	gxapi::SrvTexture2DArray srvDesc;
 	srvDesc.activeArraySize = 1;
@@ -58,20 +92,16 @@ void LightCulling::Setup(SetupContext& context) {
 	srvDesc.mostDetailedMip = 0;
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
-	m_reductionTexSrv = context.CreateSrv(reductionTex, reductionTex.GetFormat(), srvDesc);
+	m_depthTexSrv = context.CreateSrv(depthTex, depthTex.GetFormat(), srvDesc);
 
 	m_camera = this->GetInput<1>().Get();
-	m_suns = this->GetInput<2>().Get();
-
-	this->GetOutput<0>().Set(m_light_mvp_uav.GetResource());
-	this->GetOutput<1>().Set(m_shadow_mx_uav.GetResource());
-	this->GetOutput<2>().Set(m_csm_splits_uav.GetResource());
+	//m_suns = this->GetInput<2>().Get();
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
 		m_uniformsBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
 		uniformsBindParamDesc.parameter = m_uniformsBindParam;
-		uniformsBindParamDesc.constantSize = sizeof(Uniforms);
+		uniformsBindParamDesc.constantSize = sizeof(Uniforms); //TODO verify?
 		uniformsBindParamDesc.relativeAccessFrequency = 0;
 		uniformsBindParamDesc.relativeChangeFrequency = 0;
 		uniformsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
@@ -84,36 +114,20 @@ void LightCulling::Setup(SetupContext& context) {
 		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 		BindParameterDesc reductionBindParamDesc;
-		m_reductionBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
-		reductionBindParamDesc.parameter = m_reductionBindParam;
+		m_inputBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
+		reductionBindParamDesc.parameter = m_inputBindParam;
 		reductionBindParamDesc.constantSize = 0;
 		reductionBindParamDesc.relativeAccessFrequency = 0;
 		reductionBindParamDesc.relativeChangeFrequency = 0;
 		reductionBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 		BindParameterDesc outputBindParamDesc0;
-		m_outputBindParam0 = BindParameter(eBindParameterType::UNORDERED, 0);
-		outputBindParamDesc0.parameter = m_outputBindParam0;
+		m_outputBindParam = BindParameter(eBindParameterType::UNORDERED, 0);
+		outputBindParamDesc0.parameter = m_outputBindParam;
 		outputBindParamDesc0.constantSize = 0;
 		outputBindParamDesc0.relativeAccessFrequency = 0;
 		outputBindParamDesc0.relativeChangeFrequency = 0;
 		outputBindParamDesc0.shaderVisibility = gxapi::eShaderVisiblity::ALL;
-
-		BindParameterDesc outputBindParamDesc1;
-		m_outputBindParam1 = BindParameter(eBindParameterType::UNORDERED, 1);
-		outputBindParamDesc1.parameter = m_outputBindParam1;
-		outputBindParamDesc1.constantSize = 0;
-		outputBindParamDesc1.relativeAccessFrequency = 0;
-		outputBindParamDesc1.relativeChangeFrequency = 0;
-		outputBindParamDesc1.shaderVisibility = gxapi::eShaderVisiblity::ALL;
-
-		BindParameterDesc outputBindParamDesc2;
-		m_outputBindParam2 = BindParameter(eBindParameterType::UNORDERED, 2);
-		outputBindParamDesc2.parameter = m_outputBindParam2;
-		outputBindParamDesc2.constantSize = 0;
-		outputBindParamDesc2.relativeAccessFrequency = 0;
-		outputBindParamDesc2.relativeChangeFrequency = 0;
-		outputBindParamDesc2.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
@@ -125,16 +139,14 @@ void LightCulling::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, reductionBindParamDesc, outputBindParamDesc0, outputBindParamDesc1, outputBindParamDesc2 },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, reductionBindParamDesc, outputBindParamDesc0 },{ samplerDesc });
 	}
 
 	if (!m_CSO) {
-		InitRenderTarget(context);
-
 		ShaderParts shaderParts;
 		shaderParts.cs = true;
 
-		auto shader = context.CreateShader("DepthReductionFinal", shaderParts, "");
+		auto shader = context.CreateShader("LightCulling", shaderParts, "");
 
 		gxapi::ComputePipelineStateDesc csoDesc;
 		csoDesc.rootSignature = m_binder->GetRootSignature();
@@ -142,6 +154,8 @@ void LightCulling::Setup(SetupContext& context) {
 
 		m_CSO.reset(context.CreatePSO(csoDesc));
 	}
+
+	this->GetOutput<0>().Set(m_lightCullDataUAV.GetResource());
 }
 
 
@@ -150,88 +164,48 @@ void LightCulling::Execute(RenderContext& context) {
 
 	Uniforms uniformsCBData;
 
-	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();
-	mathfu::Matrix4x4f projection = m_camera->GetProjectionMatrixRH();
-	mathfu::Matrix4x4f vp = projection * view;
+	uniformsCBData.cam_near = -m_camera->GetNearPlane();
+	uniformsCBData.cam_far = -m_camera->GetFarPlane();
+	uniformsCBData.num_lights = 1;
+	m_camera->GetProjectionMatrixRH().Pack(uniformsCBData.p);
 
-	vp.Inverse().Pack(uniformsCBData.invVP);
+	mathfu::Matrix4x4f invVP = (m_camera->GetProjectionMatrixRH() * m_camera->GetViewMatrixRH()).Inverse();
 
-	mathfu::Matrix4x4f  bias_matrix(	0.5f,	0,		0,		0,			// column #1
-										0,		-0.5f,	0,		0,			// column #2
-										0,		0,		1.0f,	0,			// column #3
-										0.5f,	0.5f,	0.0f,	1);	// column #4
-	bias_matrix.Pack(uniformsCBData.bias_mx);
-
-	view.Inverse().Pack(uniformsCBData.inv_mv);
-
-	const PerspectiveCamera* perpectiveCamera = dynamic_cast<const PerspectiveCamera*>(m_camera);
-	if (perpectiveCamera == nullptr) {
-		throw std::invalid_argument("Depth reduction only works with perspective camera");
-	}
-
-	mathfu::Vector4f cam_pos(perpectiveCamera->GetPosition(), 1.0f);
-	mathfu::Vector4f cam_view_dir(perpectiveCamera->GetLookDirection(), 0.0f);
-	mathfu::Vector4f cam_up_vector(perpectiveCamera->GetUpVector(), 0.0f);
-
-	cam_pos.Pack(&uniformsCBData.cam_pos);
-	cam_view_dir.Pack(&uniformsCBData.cam_view_dir);
-	cam_up_vector.Pack(&uniformsCBData.cam_up_vector);
-
-	uniformsCBData.cam_near = perpectiveCamera->GetNearPlane();
-	uniformsCBData.cam_far = perpectiveCamera->GetFarPlane();
-
-	assert(m_suns->Size() > 0);
-	auto sun = *m_suns->begin();
-	//TODO get from somewhere
-	mathfu::Vector4f light_cam_pos = mathfu::Vector4f(0, 0, 0, 1);
-	mathfu::Vector4f light_cam_view_dir = mathfu::Vector4f(sun->GetDirection().Normalized(), 0);//mathfu::Vector4f(1, 1, 1, 0).Normalized();
-	//printf("%f %f %f\n", light_cam_view_dir.x(), light_cam_view_dir.y(), light_cam_view_dir.z());
-	mathfu::Vector4f light_cam_up_vector = mathfu::Vector4f(0, 0, 1, 0);
-
-	auto lookat = [](mathfu::Vector3f eye, mathfu::Vector3f lookat, mathfu::Vector3f up, mathfu::Vector3f* result) -> void
+	mathfu::Vector4f ndcCorners[] = 
 	{
-		result[0] = (lookat - eye).Normalized(); //view dir
-		result[1] = up.Normalized();
-		result[2] = eye;
-		mathfu::Vector3f right = mathfu::Vector3f::CrossProduct(result[0], result[1]).Normalized();
-		result[1] = mathfu::Vector3f::CrossProduct(right, result[0]).Normalized();
+		mathfu::Vector4f(-1, -1, -1, 1),
+		mathfu::Vector4f(1, 1, -1, 1),
 	};
 
-	mathfu::Vector3f res[3];
+	//convert to world space frustum corners
+	ndcCorners[0] = invVP * ndcCorners[0];
+	ndcCorners[1] = invVP * ndcCorners[1];
+	ndcCorners[0] /= ndcCorners[0].w();
+	ndcCorners[1] /= ndcCorners[1].w();
 
-	lookat(light_cam_pos.xyz(), light_cam_view_dir.xyz(), light_cam_up_vector.xyz(), res);
+	uniformsCBData.far_plane0 = mathfu::Vector4f(ndcCorners[0].xyz(), ndcCorners[1].x());
+	uniformsCBData.far_plane1 = mathfu::Vector4f(ndcCorners[1].y(), ndcCorners[1].z(), 0, 0);
 
-	light_cam_pos = mathfu::Vector4f(res[2], 1);
-	light_cam_view_dir = mathfu::Vector4f(res[0], 0);
-	light_cam_up_vector = mathfu::Vector4f(res[1], 0);
-
-	light_cam_pos.Pack(&uniformsCBData.light_cam_pos);
-	light_cam_view_dir.Pack(&uniformsCBData.light_cam_view_dir);
-	light_cam_up_vector.Pack(&uniformsCBData.light_cam_up_vector);
-
-	//TODO get from somewhere
-	uniformsCBData.tex_size = 2048;
+	uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrixRH() * mathfu::Vector4f(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1.0f);
+	uniformsCBData.ld[0].index = 0;
+	uniformsCBData.ld[0].attenuation_end = 5.0f;
 
 	//create single-frame only cb
 	gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
 
-	commandList.SetResourceState(m_light_mvp_uav.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
-	commandList.SetResourceState(m_shadow_mx_uav.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
-	commandList.SetResourceState(m_csm_splits_uav.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
-	commandList.SetResourceState(m_reductionTexSrv.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+	commandList.SetResourceState(m_lightCullDataUAV.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.SetResourceState(m_depthTexSrv.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 
 	commandList.SetPipelineState(m_CSO.get());
 	commandList.SetComputeBinder(&m_binder.value());
-	commandList.BindCompute(m_reductionBindParam, m_reductionTexSrv);
-	commandList.BindCompute(m_outputBindParam0, m_light_mvp_uav);
-	commandList.BindCompute(m_outputBindParam1, m_shadow_mx_uav);
-	commandList.BindCompute(m_outputBindParam2, m_csm_splits_uav);
+	commandList.BindCompute(m_inputBindParam, m_depthTexSrv);
+	commandList.BindCompute(m_outputBindParam, m_lightCullDataUAV);
 	commandList.BindCompute(m_uniformsBindParam, cbv);
-	commandList.Dispatch(1, 1, 1);
-	commandList.UAVBarrier(m_light_mvp_uav.GetResource());
-	commandList.UAVBarrier(m_shadow_mx_uav.GetResource());
-	commandList.UAVBarrier(m_csm_splits_uav.GetResource());
+	uint32_t dispatchW, dispatchH;
+	setWorkgroupSize(m_width, m_height, 16, 16, dispatchW, dispatchH);
+	commandList.Dispatch(dispatchW, dispatchH, 1);
+	commandList.UAVBarrier(m_lightCullDataUAV.GetResource());
 }
 
 
@@ -241,9 +215,7 @@ void LightCulling::InitRenderTarget(SetupContext& context) {
 
 		using gxapi::eFormat;
 
-		auto formatLightMVP = eFormat::R32G32B32A32_FLOAT;
-		auto formatShadowMX = eFormat::R32G32B32A32_FLOAT;
-		auto formatCSMSplits = eFormat::R32G32_FLOAT;
+		auto formatLightCullData = eFormat::R32_UINT;
 
 		gxapi::UavTexture2DArray uavDesc;
 		uavDesc.activeArraySize = 1;
@@ -259,18 +231,12 @@ void LightCulling::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
+		uint32_t dispatchW, dispatchH;
+		setWorkgroupSize(m_width, m_height, 16, 16, dispatchW, dispatchH);
+
 		//TODO 1D tex
-		Texture2D light_mvp_tex = context.CreateRWTexture2D(4 * 4, 1, formatLightMVP, 1);
-		m_light_mvp_uav = context.CreateUav(light_mvp_tex, formatLightMVP, uavDesc);
-		//m_light_mvp_srv = context.CreateSrv(light_mvp_tex, formatLightMVP, srvDesc);
-
-		Texture2D shadow_mx_tex = context.CreateRWTexture2D(4 * 4, 1, formatShadowMX, 1);
-		m_shadow_mx_uav = context.CreateUav(shadow_mx_tex, formatShadowMX, uavDesc);
-		//m_shadow_mx_srv = context.CreateSrv(shadow_mx_tex, formatShadowMX, srvDesc);
-
-		Texture2D csm_splits_tex = context.CreateRWTexture2D(4, 1, formatCSMSplits, 1);
-		m_csm_splits_uav = context.CreateUav(csm_splits_tex, formatCSMSplits, uavDesc);
-		//m_csm_splits_srv = context.CreateSrv(csm_splits_tex, formatCSMSplits, srvDesc);
+		Texture2D lightCullDataTex = context.CreateRWTexture2D(dispatchW * dispatchH, 1024, formatLightCullData, 1);
+		m_lightCullDataUAV = context.CreateUav(lightCullDataTex, formatLightCullData, uavDesc);
 	}
 }
 
