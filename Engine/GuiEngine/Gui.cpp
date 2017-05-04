@@ -51,6 +51,7 @@ Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 	stretchVer = eGuiStretch::NONE;
 	bHovered = false;
 	bHoverable = true;
+	bBgFreezed = false;
 	bFillParentEnabled = false;
 	bForceFitToChildren = false;
 	this->guiEngine = guiEngine;
@@ -60,22 +61,24 @@ Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 
 	onMouseEnteredClonable += [](Gui* self, CursorEvent& event)
 	{
-		if (!self->guiEngine->IsHoverFreezed())
+		if (!self->bBgFreezed)
 		{
 			self->SetBgActiveColor(self->GetBgHoverColor());
 			self->SetBgActiveImage(self->GetBgHoverImage());
-			self->bHovered = true;
 		}
+
+		self->bHovered = true;
 	};
 
 	onMouseLeavedClonable += [](Gui* self, CursorEvent& event)
 	{
-		if (!self->guiEngine->IsHoverFreezed())
+		if (!self->bBgFreezed)
 		{
 			self->SetBgActiveColor(self->GetBgIdleColor());
 			self->SetBgActiveImage(self->GetBgIdleImage());
-			self->bHovered = false;
 		}
+
+		self->bHovered = false;
 	};
 
 	onChildRemovedClonable += [](Gui* self, Gui* child)
@@ -421,7 +424,7 @@ void Gui::SetRect(float x, float y, float width, float height, bool bMoveChildre
 
 void Gui::SetContentRect(float x, float y, float width, float height, bool bFireEvents, bool bMoveChildren)
 {
-	RectF resultRect = RectF(x, y, x + width, y + height);
+	RectF resultRect = RectF(x, x + width, y, y + height);
 
 	// Convert length to signed offset
 	RectF padding_ = padding;
@@ -470,8 +473,8 @@ void Gui::SetBgHoverImage(const std::wstring& str)
 
 void Gui::SetBgIdleColor(const Color& color)
 {
-	if (bgIdleColor == GetBgActiveColor())
-		SetBgActiveColor(color);
+	//if (bgIdleColor == GetBgActiveColor())
+	//	SetBgActiveColor(color);
 
 	bgIdleColor = color;
 }
@@ -481,14 +484,19 @@ void Gui::SetBgToColor(const Color& idleColor, const Color& hoverColor)
 	// Disable Image !
 	HideBgImage();
 
-	SetBgHoverColor(hoverColor);
+	if (GetBgIdleColor() == GetBgActiveColor())
+		SetBgActiveColor(idleColor);
+	else if (GetBgHoverColor() == GetBgActiveColor())
+		SetBgActiveColor(hoverColor);
+
 	SetBgIdleColor(idleColor);
+	SetBgHoverColor(hoverColor);
 }
 
 void Gui::SetBgHoverColor(const Color& color)
 {
-	if (bgHoverColor == GetBgActiveColor())
-		SetBgActiveColor(color);
+	//if (bgHoverColor == GetBgActiveColor())
+	//	SetBgActiveColor(color);
 
 	bgHoverColor = color;
 }
@@ -505,8 +513,7 @@ void Gui::SetBgActiveColorToHover()
 
 void Gui::SetBgColorForAllStates(const Color& color)
 {
-	SetBgHoverColor(color);
-	SetBgIdleColor(color);
+	SetBgToColor(color, color);
 }
 
 void Gui::SetBgToImage(const std::wstring& idleImagePath, const std::wstring& hoverImagePath)
@@ -533,20 +540,20 @@ void Gui::SetBgImageForAllStates(const std::wstring& filePath)
 	SetBgHoverImage(filePath);
 }
 
-void Gui::SetMargin(float leftLength, float topLength, float rightLength, float bottomLength)
+void Gui::SetMargin(float leftLength, float rightLength, float topLength, float bottomLength)
 {
-	margin = RectF(leftLength, topLength, rightLength, bottomLength);
+	margin = RectF(leftLength, rightLength, topLength, bottomLength);
 	bLayoutNeedRefresh = true;
 }
 
-void Gui::SetPadding(float leftLength, float topLength, float rightLength, float bottomLength)
+void Gui::SetPadding(float leftLength, float rightLength, float topLength, float bottomLength)
 {
-	padding = RectF(leftLength, topLength, rightLength, bottomLength);
+	padding = RectF(leftLength, rightLength, topLength, bottomLength);
 	bLayoutNeedRefresh = true;
 }
-void Gui::SetBorder(float leftLength, float topLength, float rightLength, float bottomLength, const Color& color)
+void Gui::SetBorder(float leftLength, float rightLength, float topLength, float bottomLength, const Color& color)
 {
-	border = RectF(leftLength, topLength, rightLength, bottomLength);
+	border = RectF(leftLength, rightLength, topLength, bottomLength);
 	borderColor = color;
 	bLayoutNeedRefresh = true;
 }
@@ -742,6 +749,8 @@ Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 	newSize.y() -= margin.top + margin.bottom;
 
 	SetRect(newPos.x(), newPos.y(), newSize.x(), newSize.y(), true, false);
+
+	newSize = GetSize(); // SetRect do std::max(newSize, GetMinSize()); so resulted size might be different
 
 	ArrangeChildren(newSize);
 

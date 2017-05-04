@@ -21,13 +21,24 @@ public:
 	void SetOrientation(eGuiOrientation dir);
 	eGuiOrientation GetOrientation() { return orientation; }
 
+	std::vector<Gui*>& GetSeparators() { return separators; }
+
 protected:
 	virtual Vector2f ArrangeChildren(const Vector2f& finalSize) override;
 
 protected:
 	std::unordered_set<Gui*> items;
+	std::vector<Gui*> separators;
+
 	eGuiOrientation orientation;
 	int separatorLength;
+
+	// For lambda states
+	bool bDragging = false;
+	Vector2f mousePosWhenPressed;
+	Vector2f prevItemOrigSize;
+	Vector2f nextItemOrigSize;
+	Gui* separatorSaved;
 };
 
 } // namespace inl::gui

@@ -216,7 +216,7 @@ void GuiEngine::Update(float deltaTime)
 		if (control->IsChildrenClipEnabled())
 			rect = control->GetPaddingRect();
 		else
-			rect = RectF(-FLT_MAX * 0.5, -FLT_MAX * 0.5, FLT_MAX, FLT_MAX);
+			rect = RectF(-FLT_MAX * 0.5, FLT_MAX, -FLT_MAX * 0.5, FLT_MAX);
 
 		RectF newClipRect = RectF::Intersect(clipRect, rect);
 
@@ -226,7 +226,7 @@ void GuiEngine::Update(float deltaTime)
 
 	for (GuiLayer* layer : GetLayers())
 	{
-		RectF clipRect(-FLT_MAX * 0.5, -FLT_MAX * 0.5, FLT_MAX, FLT_MAX);
+		RectF clipRect(-FLT_MAX * 0.5, FLT_MAX, -FLT_MAX * 0.5, FLT_MAX);
 		traverseControls(layer, clipRect);
 	}
 
@@ -253,6 +253,12 @@ void GuiEngine::Update(float deltaTime)
 			if (!control->IsLayer() && control->IsHoverable() && control->GetVisiblePaddingRect().IsPointInside(cursorPos))
 				newHoveredControl = control;
 		});
+
+		if (newHoveredControl && newHoveredControl->GetName() == L"LIST_LIST")
+		{
+			int asd = 5;
+			asd++;
+		}
 
 		if (newHoveredControl != hoveredGui)
 		{
@@ -286,7 +292,7 @@ void GuiEngine::Update(float deltaTime)
 			{
 				hoveredGui->TraverseTowardParents([&](Gui* control)
 				{
-					if (control->GetVisiblePaddingRect().IsPointInside(cursorPos))
+					if (control->GetVisiblePaddingRect().IsPointInside(cursorPos) && control->IsHoverable())
 					{
 						control->onMouseHovering(eventData);
 						control->onMouseHoveringClonable(control, eventData);

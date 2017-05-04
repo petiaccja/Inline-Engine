@@ -8,7 +8,7 @@ GuiButton::GuiButton(GuiEngine* guiEngine)
 	text = AddText();
 	text->StretchFitToChildren();
 	text->AlignLeft();
-	text->AlignCenterVer();
+	text->AlignVerCenter();
 	text->DisableHover();
 }
 

@@ -20,39 +20,20 @@ bool GuiSplitter::RemoveItem(Gui* gui)
 
 	if (bRemoved && children.size() > 0)
 	{
-		// First item removed, remove separator to the right
-		if (bGuiIdxInParent == 0)
-		{
-			Gui* separator = children[bGuiIdxInParent];
-			separator->RemoveFromParent();
-		}
-		else // Non first item, so separators will be to the left
-		{
-			Gui* separator = children[bGuiIdxInParent - 1];
-			separator->RemoveFromParent();
-		}
+		
+		Gui* separator;
+		if (bGuiIdxInParent == 0)						// First item removed, remove separator to the right
+			separator = children[bGuiIdxInParent];
+		else											// Non first item, so separators will be to the left
+			separator = children[bGuiIdxInParent - 1]; 
+
+		separators.erase(std::find(separators.begin(), separators.end(), separator));
+		separator->RemoveFromParent();
 	}
 
 	items.erase(gui);
 
 	return bRemoved;
-}
-
-std::vector<Gui*> GuiSplitter::GetItems()
-{
-	std::vector<Gui*> result(items.size());
-
-	int idx = 0;
-	for (auto& gui : items)
-		result[idx++] = gui;
-
-	return result;
-}
-
-void GuiSplitter::SetOrientation(eGuiOrientation orientation)
-{
-	this->orientation = orientation;
-	bLayoutNeedRefresh = true;
 }
 
 Vector2f GuiSplitter::ArrangeChildren(const Vector2f& finalSize)
@@ -132,22 +113,14 @@ void GuiSplitter::AddItem(Gui* gui)
 	if (items.size() > 0)
 	{
 		Gui* separator = AddGui();
+		separators.push_back(separator);
 
-		// TODO MOVE ELSWHERE
-		if (GetOrientation() == eGuiOrientation::HORIZONTAL)
-			separator->SetBorder(1, 0, 1, 0, Color(0));
-		if (GetOrientation() == eGuiOrientation::VERTICAL)
-			separator->SetBorder(0, 1, 0, 1, Color(0));
-
-		static bool bDragging = false;
-		static Vector2f mousePosWhenPressed;
-		static Vector2f prevItemOrigSize;
-		static Vector2f nextItemOrigSize;
-		static Gui* separatorr;
 		separator->onMouseEnteredClonable += [](Gui* _self, CursorEvent& evt)
 		{
 			GuiSplitter* splitter = _self->GetParent()->AsSplitter();
-			separatorr = _self;
+
+			splitter->separatorSaved = _self;
+
 			if (splitter->GetOrientation() == eGuiOrientation::HORIZONTAL)
 				splitter->guiEngine->SetCursorVisual(eCursorVisual::SIZEWE);
 			if (splitter->GetOrientation() == eGuiOrientation::VERTICAL)
@@ -156,7 +129,9 @@ void GuiSplitter::AddItem(Gui* gui)
 
 		separator->onMouseLeavedClonable += [](Gui* self, CursorEvent& evt)
 		{
-			if(!bDragging)
+			GuiSplitter* splitter = self->GetParent()->AsSplitter();
+
+			if(!splitter->bDragging)
 				self->guiEngine->SetCursorVisual(eCursorVisual::ARROW);
 		};
 
@@ -165,28 +140,28 @@ void GuiSplitter::AddItem(Gui* gui)
 			GuiSplitter* splitter = separator->GetParent()->AsSplitter();
 
 			// We are starting to drag the separator, save the cursor pos
-			bDragging = true;
-			mousePosWhenPressed = evt.cursorPos;
+			splitter->bDragging = true;
+			splitter->mousePosWhenPressed = evt.cursorPos;
 			
 			Gui* prevItem = splitter->GetChild(separator->GetIndexInParent() - 1);
 			Gui* nextItem = splitter->GetChild(separator->GetIndexInParent() + 1);
 
-			prevItemOrigSize = prevItem->GetSize();
-			nextItemOrigSize = nextItem->GetSize();
+			splitter->prevItemOrigSize = prevItem->GetSize();
+			splitter->nextItemOrigSize = nextItem->GetSize();
 
 			separator->guiEngine->FreezeHover();
 		};
 
-		guiEngine->onMouseMoved += [](CursorEvent& evt)
+		guiEngine->onMouseMoved += [this](CursorEvent& evt)
 		{
 			if (bDragging)
 			{
-				GuiSplitter* splitter = separatorr->GetParent()->AsSplitter();
+				GuiSplitter* splitter = separatorSaved->GetParent()->AsSplitter();
 
 				Vector2f deltaMouse = evt.cursorPos - mousePosWhenPressed;
 				
-				Gui* leftItem = splitter->GetChild(separatorr->GetIndexInParent() - 1);
-				Gui* rightItem = splitter->GetChild(separatorr->GetIndexInParent() + 1);
+				Gui* leftItem = splitter->GetChild(separatorSaved->GetIndexInParent() - 1);
+				Gui* rightItem = splitter->GetChild(separatorSaved->GetIndexInParent() + 1);
 
 				Vector2f deltaMove;
 				if (splitter->GetOrientation() == eGuiOrientation::HORIZONTAL)
@@ -215,7 +190,6 @@ void GuiSplitter::AddItem(Gui* gui)
 			}
 		};
 
-		
 		separator->SetBgToColor(Color(120), Color(255));
 
 		if (orientation == eGuiOrientation::HORIZONTAL)
@@ -235,4 +209,21 @@ void GuiSplitter::AddItem(Gui* gui)
 	container->DisableHover();
 	container->Add(gui);
 	items.insert(gui);
+}
+
+void GuiSplitter::SetOrientation(eGuiOrientation orientation)
+{
+	this->orientation = orientation;
+	bLayoutNeedRefresh = true;
+}
+
+std::vector<Gui*> GuiSplitter::GetItems()
+{
+	std::vector<Gui*> result(items.size());
+
+	int idx = 0;
+	for (auto& gui : items)
+		result[idx++] = gui;
+
+	return result;
 }

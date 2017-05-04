@@ -109,7 +109,7 @@ public:
 	void SetPrivateData(void* data) { privateData = data; }
 
 	template<class T>
-	T* Gui::GetPrivateData() { return (T*)privateData; }
+	T* GetPrivateData() { return (T*)privateData; }
 
 	void SetContentRect(float x, float y, float width, float height) { SetContentRect(x, y, width, height, true, true); }
 	void SetContentRect(const RectF rect) { SetContentRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); }
@@ -119,6 +119,7 @@ public:
 
 	void SetName(const std::wstring& str) { name = str; }
 	void SetName(const std::string& str) { SetName(std::wstring(str.begin(), str.end())); }
+
 	void SetContextMenu(Gui* c) { contextMenu = c; }
 	void SetPos(const Vector2f& p) { SetPos(p.x(), p.y()); }
 	void SetPos(float x, float y) { SetRect(x, y, size.x(), size.y()); }
@@ -159,15 +160,15 @@ public:
 	void SetBorder(float leftLength, float rightLength, float topLength, float bottomLength, const Color& color);
 	void SetBorder(float borderLength, const Color& color) { SetBorder(borderLength, borderLength, borderLength, borderLength, color); }
 
-	void SetMargin(float leftLength, float topLength, float rightLength, float bottomLength);
+	void SetMargin(float leftLength, float rightLength, float topLength, float bottomLength);
 	void SetMargin(float length) { SetMargin(length, length, length, length); }
 
-	void SetMarginLeft(float length)	{ SetMargin(length, margin.top, margin.right, margin.bottom); }
-	void SetMarginRight(float length)	{ SetMargin(margin.left, margin.top, length, margin.bottom); }
-	void SetMarginTop(float length)		{ SetMargin(margin.left, length, margin.right, margin.bottom); }
-	void SetMarginBottom(float length)	{ SetMargin(margin.left, margin.top, margin.right, length); }
+	void SetMarginLeft(float length)	{ SetMargin(length, margin.right, margin.top, margin.bottom); }
+	void SetMarginRight(float length)	{ SetMargin(margin.left, length, margin.top, margin.bottom); }
+	void SetMarginTop(float length)		{ SetMargin(margin.left, margin.right, length, margin.bottom); }
+	void SetMarginBottom(float length)	{ SetMargin(margin.left, margin.right, margin.top, length); }
 
-	void SetPadding(float leftLength, float topLength, float rightLength, float bottomLength);
+	void SetPadding(float leftLength, float rightLength, float topLength, float bottomLength);
 	void SetPadding(float length) { SetPadding(length, length, length, length); }
 
 	void Stretch(eGuiStretch stretch) { Stretch(stretch, stretch); }
@@ -204,8 +205,8 @@ public:
 	void AlignBottomLeft() { Align(eGuiAlignHor::LEFT, eGuiAlignVer::BOTTOM); }
 	void AlignBottomRight() { Align(eGuiAlignHor::RIGHT, eGuiAlignVer::BOTTOM); }
 	void AlignCenter() { Align(eGuiAlignHor::CENTER, eGuiAlignVer::CENTER); }
-	void AlignCenterHor() { AlignHor(eGuiAlignHor::CENTER); }
-	void AlignCenterVer() { AlignVer(eGuiAlignVer::CENTER); }
+	void AlignHorCenter() { AlignHor(eGuiAlignHor::CENTER); }
+	void AlignVerCenter() { AlignVer(eGuiAlignVer::CENTER); }
 
 	void SetBgImageVisibility(bool bVisible) { bBgImageVisible = bVisible; }
 	void SetBgColorVisibility(bool bVisible) { bBgColorVisible = bVisible; }
@@ -217,8 +218,15 @@ public:
 	void ShowBgColor() { SetBgColorVisibility(true); }
 
 	void SetHoverable(bool b) { bHoverable = b; }
-	void EnableHover() { SetHoverable(true); }
-	void DisableHover() { SetHoverable(false); }
+	void EnableHover() { SetHoverable(true); for (auto& c : GetChildren())c->SetHoverable(true); }
+	void DisableHover() { SetHoverable(false); for (auto& c : GetChildren())c->SetHoverable(false);	}
+
+	void SetBgFreeze(bool b) { bBgFreezed = b; }
+	void FreezeBg() { SetBgFreeze(true); }
+	void UnfreezeBg() { SetBgFreeze(false); }
+
+	void SetBgStateToIdle() { bgActiveImage = bgIdleImage; bgActiveColor = bgIdleColor; }
+	void SetBgStateToHover() { bgActiveImage = bgHoverImage; bgActiveColor = bgHoverColor; }
 
 	float GetCursorPosContentSpaceX();
 	float GetCursorPosContentSpaceY();
@@ -244,6 +252,7 @@ public:
 	float GetHalfHeight() { return GetHeight() * 0.5f; }
 	Vector2f GetHalfSize() { return Vector2f(GetHalfWidth(), GetHalfHeight()); }
 
+	// TODO SetMinSize SetMaxSize
 	Vector2f GetMinSize() { return Vector2f(1, 1); }
 	float GetMinSizeX() { return GetMinSize().x(); }
 	float GetMinSizeY() { return GetMinSize().y(); }
@@ -296,40 +305,41 @@ public:
 	std::vector<T*> GetChildrenRecursive();
 
 	template<class T>
-	bool Is();
-
-	template<class T>
 	T* GetChild(int index) { assert(dynamic_cast<T*>(GetChildren()[index])); return (T*)GetChildren()[index]; }
 
 	Gui* GetChild(int index) { return GetChildren()[index]; }
 	int GetIndexInParent() { return indexInParent; }
 
-	bool IsChild(Gui* gui);
-	bool IsSibling(Gui* child);
-
-
 	eEventPropagationPolicy GetEventPropagationPolicy() { return eventPropagationPolicy; }
 
-	Color& GetBgActiveColor() { return bgActiveColor; }
-	Color& GetBgIdleColor() { return bgIdleColor; }
-	Color& GetBgHoverColor() { return bgHoverColor; }
+	const Color& GetBgActiveColor() const { return bgActiveColor; }
+	const Color& GetBgIdleColor() const { return bgIdleColor; }
+	const Color& GetBgHoverColor() const { return bgHoverColor; }
 
 	Gdiplus::Bitmap* GetBgActiveImage() { return bgActiveImage; }
 	Gdiplus::Bitmap* GetBgIdleImage() { return bgIdleImage; }
 	Gdiplus::Bitmap* GetBgHoverImage() { return bgHoverImage; }
 
+	const Color& GetBorderColor() { return borderColor; }
+	RectF GetBorder() { return border; }
+	Vector2f GetDesiredSize() { return GetSize() + Vector2f(margin.left + margin.right, margin.top + margin.bottom); }
+
+	const std::wstring& GetName() { return name; }
+
+	template<class T>
+	bool Is();
 
 	bool IsPointInside(Vector2f pt) { return GetRect().IsPointInside(pt); }
 
 	bool IsLayer() { return bLayer; }
 	bool IsChildrenClipEnabled() { return bClipChildren; }
 	bool IsHovered() { return bHovered; }
+	bool IsBgFreezed() { return bBgFreezed; }
 	bool IsCursorInside();
 	bool IsHoverable() { return bHoverable; }
 
-	const Color& GetBorderColor() { return borderColor; }
-	RectF GetBorder() { return border; }
-	Vector2f GetDesiredSize() { return GetSize() + Vector2f(margin.left + margin.right, margin.top + margin.bottom); }
+	bool IsChild(Gui* gui);
+	bool IsSibling(Gui* child);
 
 protected:
 	void SetVisibleRect(const RectF& rect) { visibleRect = rect; }
@@ -401,6 +411,8 @@ protected:
 
 	// Is hover enabled?
 	bool bHoverable;
+
+	bool bBgFreezed;
 
 	// children index in parent
 	int indexInParent;

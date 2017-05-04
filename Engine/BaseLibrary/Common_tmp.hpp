@@ -23,7 +23,7 @@ public:
 	uint8_t b;
 	uint8_t a;
 
-	inline Color operator + (int val)
+	inline Color operator + (int val) const
 	{
 		Color color;
 		color.r = r + val;
@@ -48,7 +48,7 @@ public:
 		return color;
 	}
 
-	inline bool operator == (const Color& color)
+	inline bool operator == (const Color& color) const
 	{
 		return memcmp(this, &color, sizeof(Color)) == 0;
 	}
@@ -80,7 +80,7 @@ public:
 	: left(pos.x()), right(pos.x() + size.x()), top(pos.y()), bottom(pos.y() + size.y())
 	{}
 
-	inline Rect(const T& left, const T& top, const T& right, const T& bottom)
+	inline Rect(const T& left, const T& right, const T& top, const T& bottom)
 	:left(left), right(right), top(top), bottom(bottom)
 	{}
 	

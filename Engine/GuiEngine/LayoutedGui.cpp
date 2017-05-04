@@ -48,7 +48,7 @@ GuiSplitter* LayoutedGui::AddItemSplitter()
 
 Gui* LayoutedGui::AddItemSeparatorHor()
 {
-	GuiButton* btn = AddItemButton();
+	Gui* btn = AddItemGui();
 	btn->SetSize(1, 1);
 	btn->StretchHorFillParent();
 	return btn;
