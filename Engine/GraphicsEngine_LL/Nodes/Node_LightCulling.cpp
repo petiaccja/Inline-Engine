@@ -92,7 +92,7 @@ void LightCulling::Setup(SetupContext& context) {
 	srvDesc.mostDetailedMip = 0;
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
-	m_depthTexSrv = context.CreateSrv(depthTex, depthTex.GetFormat(), srvDesc);
+	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
 
 	m_camera = this->GetInput<1>().Get();
 	//m_suns = this->GetInput<2>().Get();
