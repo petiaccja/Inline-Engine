@@ -23,6 +23,7 @@
 #include "Nodes/Node_CSM.hpp"
 #include "Nodes/Node_DrawSky.hpp"
 #include "Nodes/Node_DebugDraw.hpp"
+#include "Nodes/Node_LightCulling.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -357,6 +358,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::CSM> csm(new nodes::CSM());
 	std::shared_ptr<nodes::DrawSky> drawSky(new nodes::DrawSky());
 	std::shared_ptr<nodes::DebugDraw> debugDraw(new nodes::DebugDraw());
+	std::shared_ptr<nodes::LightCulling> lightCulling(new nodes::LightCulling());
 	TextureUsage usage;
 
 
@@ -397,6 +399,9 @@ void GraphicsEngine::CreatePipeline() {
 	csm->GetInput<0>().Link(createCsmTextures->GetOutput(0));
 	csm->GetInput<1>().Link(getWorldScene->GetOutput(0));
 	csm->GetInput<2>().Link(depthReductionFinal->GetOutput(0));
+
+	lightCulling->GetInput<0>().Link(depthPrePass->GetOutput(0));
+	lightCulling->GetInput<1>().Link(getCamera->GetOutput(0));
 
 	createHdrRenderTarget->GetInput<0>().Link(backBufferProperties->GetOutput(0));
 	createHdrRenderTarget->GetInput<1>().Link(backBufferProperties->GetOutput(1));
@@ -471,6 +476,7 @@ void GraphicsEngine::CreatePipeline() {
 		depthReductionFinal,
 		csm,
 		drawSky,
+		lightCulling,
 
 		getGuiScene,
 		getGuiCamera,

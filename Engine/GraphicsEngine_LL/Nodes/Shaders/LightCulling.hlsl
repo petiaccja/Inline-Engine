@@ -1,13 +1,11 @@
 /*
- * Depth reduction shader (final pass)
- * Input: reduction texture
- * Output 0: Light MVP matrices for each cascade
- * Output 1: Shadow matrices for each cascade
- * Output 2: CSM splits for each cascade
+ * Light culing shader
+ * Input: depth texture
+ * Output 0: light indices + num of lights
  */
 
 Texture2D inputTex : register(t0);
-RWTexture2D<float4> outputTex0 : register(u0);
+RWTexture2D<uint> outputTex0 : register(u0);
 
 struct light_data
 {
@@ -19,7 +17,7 @@ struct light_data
 
 struct Uniforms
 {
-	light_data ld[200];
+	light_data ld[10];
 	float4x4 p;
 	float4 far_plane0, far_plane1;
 	float cam_near, cam_far; 
@@ -137,8 +135,6 @@ void CSMain(
 	frustum_planes[2].xyz = normalize(frustum_planes[2].xyz);
 	frustum_planes[3].xyz = normalize(frustum_planes[3].xyz);
 
-	///TODO TO BE CONTINUED.
-
 	/*
 	* Calculate per tile depth mask for 2.5D light culling
 	*/
@@ -157,20 +153,20 @@ void CSMain(
 	if (!early_rejection)
 	{
 		//depth_mask = depth_mask | (1 << depth_slot)
-		atomicOr(local_depth_mask, 1 << uint(depth_slot));
+		InterlockedOr(local_depth_mask, 1 << uint(depth_slot));
 	}
 
-	barrier();
+	GroupMemoryBarrierWithGroupSync(); //local memory barrier
 	/**/
 
-	for (uint c = workgroup_index; c < num_of_lights; c += local_size.x * local_size.y)
+	for (uint c = groupIndex; c < num_of_lights; c += LOCAL_SIZE_X * LOCAL_SIZE_Y)
 	{
 		bool in_frustum = true;
 		int index = int(c);
 
-		float att_end = sld.d[index].attenuation_end;
-		vec3 light_pos = sld.d[index].vs_position.xyz;
-		vec4 lp = vec4(light_pos, 1.0);
+		float att_end = uniforms.ld[index].attenuation_end;
+		float3 light_pos = uniforms.ld[index].vs_position.xyz;
+		float4 lp = float4(light_pos, 1.0);
 
 		/**/
 		//calculate per light bitmask
@@ -228,21 +224,20 @@ void CSMain(
 
 		if (in_frustum)
 		{
-			int li = atomicAdd(local_num_of_lights, 1);
-			local_lights[li] = int(index);
+			int li = InterlockedAdd(localNumLightsOutput, 1);
+			localLights[li] = int(index);
 		}
 	}
 
-	barrier(); //local memory barrier
+	GroupMemoryBarrierWithGroupSync(); //local memory barrier
 
-	if (workgroup_index == 0)
+	if (groupIndex == 0)
 	{
-		imageStore(result, int((group_id.x * group_size.y + group_id.y) * 1024), uvec4(local_num_of_lights));
-		//imageStore( result, int((group_id.x * group_size.y + group_id.y) * 1024), uvec4(abs(sld.d[0].spot_direction.z*10)) );
+		outputTex0[int2(groupId.x * group_size.y + groupId.y, 0)] = uint(localNumLightsOutput);
 	}
 
-	for (uint c = workgroup_index; c < local_num_of_lights; c += local_size.x * local_size.y)
+	for (uint c = groupIndex; c < localNumLightsOutput; c += LOCAL_SIZE_X * LOCAL_SIZE_Y)
 	{
-		imageStore(result, int((group_id.x * group_size.y + group_id.y) * 1024 + c + 1), uvec4(local_lights[c]));
+		outputTex0[int2(groupId.x * group_size.y + groupId.y, c + 1)] = uint(localLights[c]);
 	}
 }
