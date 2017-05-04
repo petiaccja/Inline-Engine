@@ -56,6 +56,11 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		for (auto& curr : m_overlayElements) {
 			m_guiScene->GetOverlayEntities().Add(curr.get());
 		}
+
+		// Set world render transform
+		m_graphicsEngine->SetEnvVariable("world_render_pos", exc::Any(mathfu::Vector2f(0.f, 0.f)));
+		m_graphicsEngine->SetEnvVariable("world_render_rot", exc::Any(0.f));
+		m_graphicsEngine->SetEnvVariable("world_render_size", exc::Any(mathfu::Vector2f(width, height)));
 	}
 	
 	// Create scene and camera
@@ -305,6 +310,7 @@ void QCWorld::ScreenSizeChanged(int width, int height) {
 	const float aspect = width / ((float)height);
 	m_camera->SetFOVAspect(75.f / 180.f * 3.1419f, aspect);
 	m_guiCamera->SetBounds(0, width, height, 0, -1, 1);
+	m_graphicsEngine->SetEnvVariable("world_render_size", exc::Any(mathfu::Vector2f(width, height)));
 }
 
 void QCWorld::RenderWorld(float elapsed) {

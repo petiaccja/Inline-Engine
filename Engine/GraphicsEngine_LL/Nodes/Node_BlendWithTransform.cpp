@@ -1,6 +1,4 @@
-#pragma once
-
-#include "Node_Blend.hpp"
+#include "Node_BlendWithTransform.hpp"
 
 #include "../GraphicsNode.hpp"
 
@@ -17,11 +15,11 @@
 namespace inl::gxeng::nodes {
 
 
-void Blend::Initialize(EngineContext & context) {
+void BlendWithTransform::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
-void Blend::Reset() {
+void BlendWithTransform::Reset() {
 	m_fsq = {};
 	m_fsqIndices = {};
 	m_blendDest = {};
@@ -31,7 +29,7 @@ void Blend::Reset() {
 }
 
 
-void Blend::Setup(SetupContext& context) {
+void BlendWithTransform::Setup(SetupContext& context) {
 	auto& target = this->GetInput<0>().Get();
 	gxapi::RtvTexture2DArray rtvDesc;
 	rtvDesc.activeArraySize = 1;
@@ -52,10 +50,20 @@ void Blend::Setup(SetupContext& context) {
 
 	gxapi::RenderTargetBlendState currBlendMode = this->GetInput<2>().Get();
 
+	m_transfrom = GetInput<3>().Get();
+
 	this->GetOutput<0>().Set(target);
 
 
 	if (!m_binder.has_value()) {
+		BindParameterDesc transformParamDesc;
+		m_transformParam = BindParameter(eBindParameterType::CONSTANT, 0);
+		transformParamDesc.parameter = m_transformParam;
+		transformParamDesc.constantSize = 4*4*sizeof(float);
+		transformParamDesc.relativeAccessFrequency = 0;
+		transformParamDesc.relativeChangeFrequency = 0;
+		transformParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
+		
 		BindParameterDesc tex0ParamDesc;
 		m_tex0Param = BindParameter(eBindParameterType::TEXTURE, 0);
 		tex0ParamDesc.parameter = m_tex0Param;
@@ -81,7 +89,7 @@ void Blend::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-		m_binder = context.CreateBinder({ tex0ParamDesc, sampBindParamDesc }, { samplerDesc });
+		m_binder = context.CreateBinder({ transformParamDesc, tex0ParamDesc, sampBindParamDesc }, { samplerDesc });
 	}
 
 	if (!m_fsq.HasObject() || !m_fsqIndices.HasObject()) {
@@ -104,7 +112,7 @@ void Blend::Setup(SetupContext& context) {
 		shaderParts.vs = true;
 		shaderParts.ps = true;
 
-		m_shader = context.CreateShader("Blend", shaderParts, "");
+		m_shader = context.CreateShader("BlendWithTransform", shaderParts, "");
 	}
 
 	if (m_renderTargetFormat != target.GetFormat() || m_blendMode != currBlendMode) {
@@ -126,17 +134,17 @@ void Blend::Setup(SetupContext& context) {
 		psoDesc.blending.alphaToCoverage = false;
 		psoDesc.blending.independentBlending = false;
 		psoDesc.blending.singleTarget = m_blendMode;
-		
+
 		psoDesc.numRenderTargets = 1;
 		psoDesc.renderTargetFormats[0] = m_renderTargetFormat;
 
 		m_PSO.reset(context.CreatePSO(psoDesc));
 	}
-	
+
 }
 
 
-void Blend::Execute(RenderContext& context) {
+void BlendWithTransform::Execute(RenderContext& context) {
 	gxeng::GraphicsCommandList& commandList = context.AsGraphics();
 
 	auto* pRTV = &m_blendDest;
@@ -161,6 +169,12 @@ void Blend::Execute(RenderContext& context) {
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
 	unsigned vbSize = (unsigned)m_fsq.GetSize();
 	unsigned vbStride = 2 * sizeof(float);
+
+	mathfu::VectorPacked<float, 4> transformPacked[4];
+
+	m_transfrom.Pack(transformPacked);
+
+	commandList.BindGraphics(m_transformParam, transformPacked, sizeof(transformPacked));
 
 	commandList.SetResourceState(const_cast<Texture2D&>(m_blendSrc.GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
 	commandList.BindGraphics(m_tex0Param, m_blendSrc);

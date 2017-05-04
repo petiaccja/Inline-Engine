@@ -175,6 +175,8 @@
     <ClInclude Include="Nodes\ExampleNode.hpp" />
     <ClInclude Include="Nodes\NodeUtility.hpp" />
     <ClInclude Include="Nodes\Node_Blend.hpp" />
+    <ClInclude Include="Nodes\Node_BlendWithTransform.hpp" />
+    <ClInclude Include="Nodes\Node_ScreenSpaceTransform.hpp" />
     <ClInclude Include="Nodes\Node_CreateTexture.hpp" />
     <ClInclude Include="Nodes\Node_CSM.hpp" />
     <ClInclude Include="Nodes\Node_DebugDraw.hpp" />
@@ -191,6 +193,7 @@
     <ClInclude Include="Nodes\Node_LightCulling.hpp" />
     <ClInclude Include="Nodes\Node_OverlayRender.hpp" />
     <ClInclude Include="Nodes\Node_TextureProperties.hpp" />
+    <ClInclude Include="Nodes\Node_VectorComponents.hpp" />
     <ClInclude Include="OrthographicCamera.hpp" />
     <ClInclude Include="OverlayEntity.hpp" />
     <ClInclude Include="PerspectiveCamera.hpp" />
@@ -244,6 +247,7 @@
     <ClCompile Include="NodeContext.cpp" />
     <ClCompile Include="Nodes\NodeUtility.cpp" />
     <ClCompile Include="Nodes\Node_Blend.cpp" />
+    <ClCompile Include="Nodes\Node_BlendWithTransform.cpp" />
     <ClCompile Include="Nodes\Node_CSM.cpp" />
     <ClCompile Include="Nodes\Node_DebugDraw.cpp" />
     <ClCompile Include="Nodes\Node_DepthPrepass.cpp" />

@@ -285,6 +285,15 @@
     <ClInclude Include="Nodes\Node_GetEnvVariable.hpp">
       <Filter>Nodes\General</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Node_BlendWithTransform.hpp">
+      <Filter>Nodes\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_ScreenSpaceTransform.hpp">
+      <Filter>Nodes\General</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_VectorComponents.hpp">
+      <Filter>Nodes\General</Filter>
+    </ClInclude>
     <ClInclude Include="Nodes\DebugDrawManager.hpp">
       <Filter>Nodes\Debug</Filter>
     </ClInclude>
@@ -434,6 +443,9 @@
     </ClCompile>
     <ClCompile Include="Nodes\Node_DebugDraw.cpp">
       <Filter>Nodes\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_BlendWithTransform.cpp">
+      <Filter>Nodes\Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_LightCulling.cpp">
       <Filter>Nodes\ForwardRenderer</Filter>
