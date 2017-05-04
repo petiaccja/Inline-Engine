@@ -20,6 +20,7 @@ struct Uniforms
 	mathfu::VectorPacked<float, 4> color;
 };
 
+
 static bool CheckMeshFormat(const Mesh& mesh) {
 	for (size_t i = 0; i < mesh.GetNumStreams(); i++) {
 		auto& elements = mesh.GetLayout()[0];
@@ -62,10 +63,13 @@ void DebugDraw::Initialize(EngineContext & context) {
 void DebugDraw::Reset() {
 	GetInput(0)->Clear();
 	GetInput(1)->Clear();
+
+	m_target = {};
+	m_camera = nullptr;
 }
 
 
-void DebugDraw::Setup(SetupContext & context) {
+void DebugDraw::Setup(SetupContext& context) {
 	Texture2D& renderTarget = this->GetInput<0>().Get();
 	gxapi::RtvTexture2DArray rtvDesc;
 	rtvDesc.activeArraySize = 1;
@@ -77,6 +81,8 @@ void DebugDraw::Setup(SetupContext & context) {
 	const BasicCamera* cam = this->GetInput<1>().Get();
 	this->GetInput<1>().Clear();
 	m_camera = cam;
+
+	this->GetOutput<0>().Set(renderTarget);
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -97,7 +103,7 @@ void DebugDraw::Setup(SetupContext & context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc }, { samplerDesc });
 	}
 
 	if (!m_LinePSO || !m_TrianglePSO) {
@@ -131,39 +137,38 @@ void DebugDraw::Setup(SetupContext & context) {
 		m_TrianglePSO.reset(context.CreatePSO(psoDesc));
 	}
 
-	vertexBuffers.resize(DebugDrawManager::GetInstance().GetObjects().size());
-	indexBuffers.resize(DebugDrawManager::GetInstance().GetObjects().size());
-	sizes.resize(DebugDrawManager::GetInstance().GetObjects().size());
-	strides.resize(DebugDrawManager::GetInstance().GetObjects().size());
-	for (int c = 0; c < DebugDrawManager::GetInstance().GetObjects().size(); ++c)
-	{
-		const std::unique_ptr<DebugObject>* o = &DebugDrawManager::GetInstance().GetObjects()[c];
-	
-		//TODO how to check if there's no allocated vertex buffer
-		//if there's no allocated vertex buffer and the object is alive, then allocate and fill vertex buffer
-		if (!vertexBuffers[c].HasObject() && DebugDrawManager::IsAlive(o->get()->GetLife()))
-		{
-			std::vector<mathfu::Vector3f> vertices;
-			std::vector<uint32_t> indices;
-			o->get()->GetMesh(vertices, indices);
-			vertexBuffers[c] = context.CreateVertexBuffer(vertices.data(), vertices.size() * sizeof(mathfu::Vector3f));
-			indexBuffers[c] = context.CreateIndexBuffer(indices.data(), indices.size() * sizeof(uint32_t), indices.size());
-		}
+	m_objects.resize(DebugDrawManager::GetInstance().GetObjects().size());
 
-		//if object is dead then delete its vertex & index buffers
-		if (!DebugDrawManager::IsAlive(o->get()->GetLife()))
-		{
-			//delete vertex and index buffer....
-			vertexBuffers[c] = {};
-			indexBuffers[c] = {};
+	for (int c = 0; c < DebugDrawManager::GetInstance().GetObjects().size(); ++c) {
+		const std::shared_ptr<DebugObject>& currObject = DebugDrawManager::GetInstance().GetObjects()[c];
+
+		//if there's no allocated vertex buffer and the object is alive, then allocate and fill vertex buffer
+		if (currObject && currObject->IsAlive()) {
+
+			// if the vertex buffer for the current object has not been created yet...
+			if (m_objects[c].first.lock() != currObject) {
+				m_objects[c].first = currObject;
+				std::vector<mathfu::Vector3f> vertices;
+				std::vector<uint32_t> indices;
+				currObject->GetMesh(vertices, indices);
+				m_objects[c].second.vertexBuffer = context.CreateVertexBuffer(vertices.data(), vertices.size() * sizeof(mathfu::Vector3f));
+				m_objects[c].second.indexBuffer = context.CreateIndexBuffer(indices.data(), indices.size() * sizeof(uint32_t), indices.size());
+				m_objects[c].second.size = (unsigned)(m_objects[c].second.vertexBuffer.GetSize());
+				m_objects[c].second.stride = currObject->GetStride();
+			}
+		}
+		else {
+			m_objects[c].first.reset();
+			m_objects[c].second.vertexBuffer = {};
+			m_objects[c].second.indexBuffer = {};
 		}
 	}
 }
 
 
-void DebugDraw::Execute(RenderContext & context) {
+void DebugDraw::Execute(RenderContext& context) {
 	GraphicsCommandList& commandList = context.AsGraphics();
-	
+
 	gxapi::Rectangle rect{ 0, (int)m_target.GetResource().GetHeight(), 0, (int)m_target.GetResource().GetWidth() };
 	commandList.SetScissorRects(1, &rect);
 
@@ -194,43 +199,25 @@ void DebugDraw::Execute(RenderContext & context) {
 
 	viewProjection.Pack(uniformsCBData.vp);
 
-	for (auto& vb : vertexBuffers) {
-		if(vb.HasObject())
-		{ 
-			commandList.SetResourceState(vb, gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-		}
-	}
-	for (auto& ib : indexBuffers) {
-		if (ib.HasObject())
-		{
-			commandList.SetResourceState(ib, gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::INDEX_BUFFER);
-		}
-	}
+	for (auto& currObject : m_objects) {
+		auto& vb = currObject.second.vertexBuffer;
+		auto& ib = currObject.second.indexBuffer;
 
-	for (int c = 0; c < DebugDrawManager::GetInstance().GetObjects().size(); ++c)
-	{
-		const std::unique_ptr<DebugObject>* o = &DebugDrawManager::GetInstance().GetObjects()[c];
-
-		if (c >= vertexBuffers.size() || !vertexBuffers[c].HasObject())
-		{
+		if (currObject.first.expired() || !vb.HasObject() || !ib.HasObject()) {
 			continue;
 		}
 
-		if(!DebugDrawManager::IsAlive(o->get()->GetLife()))
-		{
-			continue;
-		}
+		commandList.SetResourceState(vb, gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+		commandList.SetResourceState(ib, gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::INDEX_BUFFER);
 
-		mathfu::Vector4f(o->get()->GetColor(), 1.0f).Pack(&uniformsCBData.color);
+		mathfu::Vector4f(currObject.first.lock()->GetColor(), 1.0f).Pack(&uniformsCBData.color);
 
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(uniformsCBData));
 
-		VertexBuffer* vb = &vertexBuffers[c];
-		const VertexBuffer*const* vbs = { &vb };
-
-		commandList.SetVertexBuffers(0, 1, vbs, &sizes[c], &strides[c]);
-		commandList.SetIndexBuffer(&indexBuffers[c], true);
-		commandList.DrawInstanced(indexBuffers[c].GetIndexCount()); 
+		VertexBuffer* vbPtr = &vb;
+		commandList.SetVertexBuffers(0, 1, &vbPtr, &currObject.second.size, &currObject.second.stride);
+		commandList.SetIndexBuffer(&currObject.second.indexBuffer, true);
+		commandList.DrawIndexedInstanced(currObject.second.indexBuffer.GetIndexCount());
 	}
 
 	DebugDrawManager::GetInstance().Update();

@@ -8,48 +8,52 @@
 
 namespace inl::gxeng {
 
-class DebugObject
-{
-protected:
-	int life;
-	mathfu::Vector3f color;
 
+class DebugObject {
 public:
-	virtual void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices) = 0;
+	virtual ~DebugObject() = default;
 
-	int GetLife()
-	{
-		return life;
+	virtual void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices) const = 0;
+
+	unsigned GetStride() const {
+		return sizeof(mathfu::Vector3f);
 	}
 
-	void SetLife(int newLife)
-	{
-		life = newLife;
+	int GetLife() const {
+		return m_life;
 	}
 
-	mathfu::Vector3f GetColor()
-	{
-		return color;
+	void SetLife(int life) {
+		m_life = life;
 	}
 
-	void SetColor(mathfu::Vector3f newColor)
-	{
-		color = newColor;
+	bool IsAlive() const {
+		return m_life >= 0;
 	}
+
+	mathfu::Vector3f GetColor() const {
+		return m_color;
+	}
+
+	void SetColor(mathfu::Vector3f newColor) {
+		m_color = newColor;
+	}
+
+protected:
+	int m_life;
+	mathfu::Vector3f m_color;
 };
 
-class DebugSphere : public DebugObject
-{
+
+class DebugSphere : public DebugObject {
 	mathfu::Vector4f d; //w=radius
 
-	static void GetStaticMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices)
-	{
+	static void GetStaticMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices) {
 		static std::vector<mathfu::Vector3f> staticVertices;
 		static std::vector<uint32_t> staticIndices;
 		static bool is_init = false;
 
-		if (!is_init)
-		{
+		if (!is_init) {
 			//LINES
 			const float pi = 3.14159265f;
 
@@ -61,13 +65,11 @@ class DebugSphere : public DebugObject
 
 			float u = 0;
 			float v = 0;
-			for (int u_index = 0; u_index < resolution_u; u_index += 1, u += u_step)
-			{
+			for (int u_index = 0; u_index < resolution_u; u_index += 1, u += u_step) {
 				//0 <= alpha <= pi
 				const float alpha = u * pi;
 
-				for (int v_index = 0; v_index < resolution_v; v_index += 1, v += v_step)
-				{
+				for (int v_index = 0; v_index < resolution_v; v_index += 1, v += v_step) {
 					//0 <= theta <= 2*pi
 					const float theta = v * 2 * pi;
 					staticVertices.push_back(mathfu::Vector3f(cosf(alpha) * cosf(theta), sinf(alpha) * cosf(theta), sinf(theta)));
@@ -75,13 +77,10 @@ class DebugSphere : public DebugObject
 			}
 
 			int curr_index = 0;
-			for (int u_index = 0; u_index < resolution_u; u_index += 1, u += u_step)
-			{
-				for (int v_index = 0; v_index < resolution_v; v_index += 1, v += v_step)
-				{
+			for (int u_index = 0; u_index < resolution_u; u_index += 1, u += u_step) {
+				for (int v_index = 0; v_index < resolution_v; v_index += 1, v += v_step) {
 					//if there is a preceding vertex
-					if (v_index - 1 >= 0)
-					{
+					if (v_index - 1 >= 0) {
 						staticIndices.push_back(curr_index);
 					}
 
@@ -99,46 +98,38 @@ class DebugSphere : public DebugObject
 			is_init = true;
 		}
 
-		vertices.resize(staticVertices.size());
-		indices.resize(staticIndices.size());
-
-		memcpy(vertices.data(), staticVertices.data(), staticVertices.size() * sizeof(mathfu::Vector3f));
-		memcpy(indices.data(), staticIndices.data(), staticIndices.size() * sizeof(int));
+		vertices = staticVertices;
+		indices = staticIndices;
 	}
 
 public:
-	DebugSphere(mathfu::Vector3f pos, float radius, int newLife, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f))
-	{
+	DebugSphere(mathfu::Vector3f pos, float radius, int newLife, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
 		d = mathfu::Vector4f(pos, radius);
-		life = newLife;
-		color = newColor;
+		m_life = newLife;
+		m_color = newColor;
 	}
 
-	void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices)
-	{
+	void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices) const override {
 		GetStaticMesh(vertices, indices);
 
-		for (int c = 0; c < vertices.size(); ++c)
-		{
+		for (int c = 0; c < vertices.size(); ++c) {
 			vertices[c] = vertices[c] * d.w() + d.xyz();
 		}
 	}
 };
 
-class DebugCross : public DebugObject
-{
+
+class DebugCross : public DebugObject {
 	mathfu::Vector4f d; //w=size
 
 public:
-	DebugCross(mathfu::Vector3f pos, float size, int newLife, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f))
-	{
+	DebugCross(mathfu::Vector3f pos, float size, int newLife, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
 		d = mathfu::Vector4f(pos, size);
-		life = newLife;
-		color = newColor;
+		m_life = newLife;
+		m_color = newColor;
 	}
 
-	void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices)
-	{
+	void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices) const override {
 		//LINES
 		vertices.clear();
 		indices.clear();
@@ -165,21 +156,19 @@ public:
 	}
 };
 
-class DebugLine : public DebugObject
-{
+
+class DebugLine : public DebugObject {
 	mathfu::Vector3f s, e;
 
 public:
-	DebugLine(mathfu::Vector3f start, mathfu::Vector3f end, int newLife, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f))
-	{
+	DebugLine(mathfu::Vector3f start, mathfu::Vector3f end, int newLife, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
 		s = start;
 		e = end;
-		life = newLife;
-		color = newColor;
+		m_life = newLife;
+		m_color = newColor;
 	}
 
-	void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices)
-	{
+	void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices) const override {
 		//LINES
 		vertices.clear();
 		indices.clear();
@@ -193,21 +182,19 @@ public:
 	}
 };
 
-class DebugBox : public DebugObject
-{
+
+class DebugBox : public DebugObject{
 	mathfu::Vector3f min, max;
 
 public:
-	DebugBox(mathfu::Vector3f newMin, mathfu::Vector3f newMax, int newLife, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f))
-	{
+	DebugBox(mathfu::Vector3f newMin, mathfu::Vector3f newMax, int newLife, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
 		min = newMin;
 		max = newMax;
-		life = newLife;
-		color = newColor;
+		m_life = newLife;
+		m_color = newColor;
 	}
 
-	void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices)
-	{
+	void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices) const override {
 		//LINES
 		vertices.clear();
 		indices.clear();
@@ -242,32 +229,30 @@ public:
 	}
 };
 
-class DebugFrustum : public DebugObject
-{
+
+class DebugFrustum : public DebugObject{
 	mathfu::Vector3f nearLowerLeft, nearUpperLeft, nearLowerRight, farLowerLeft, farUpperLeft, farLowerRight;
 
 public:
 	DebugFrustum(mathfu::Vector3f newNearLowerLeft,
-				 mathfu::Vector3f newNearUpperLeft,
-				 mathfu::Vector3f newNearLowerRight,
-				 mathfu::Vector3f newFarLowerLeft,
-				 mathfu::Vector3f newFarUpperLeft,
-				 mathfu::Vector3f newFarLowerRight,
-				 int newLife,
-				 mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f))
-	{
+		mathfu::Vector3f newNearUpperLeft,
+		mathfu::Vector3f newNearLowerRight,
+		mathfu::Vector3f newFarLowerLeft,
+		mathfu::Vector3f newFarUpperLeft,
+		mathfu::Vector3f newFarLowerRight,
+		int newLife,
+		mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
 		nearLowerLeft = newNearLowerLeft;
 		nearUpperLeft = newNearUpperLeft;
 		nearLowerRight = newNearLowerRight;
 		farLowerLeft = newFarLowerLeft;
 		farUpperLeft = newFarUpperLeft;
 		farLowerRight = newFarLowerRight;
-		life = newLife;
-		color = newColor;
+		m_life = newLife;
+		m_color = newColor;
 	}
 
-	void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices)
-	{
+	void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices) const override {
 		//LINES
 		vertices.clear();
 		indices.clear();
@@ -288,10 +273,8 @@ public:
 		uint32_t starting_index = 0;
 		uint32_t ending_index = 3;
 		uint32_t curr_index = starting_index;
-		for (int i = 0; i < 2; i += 1)
-		{
-			for (int j = 0; j < 4; j += 1)
-			{
+		for (int i = 0; i < 2; i += 1) {
+			for (int j = 0; j < 4; j += 1) {
 				indices.push_back(curr_index);
 				indices.push_back((curr_index == ending_index) ? starting_index : ++curr_index);
 			}
@@ -300,8 +283,7 @@ public:
 		}
 
 		curr_index = 0;
-		for (int i = 0; i < 4; i += 1)
-		{
+		for (int i = 0; i < 4; i += 1) {
 			indices.push_back(curr_index);
 			indices.push_back(curr_index + 4);
 			curr_index += 1;
@@ -309,107 +291,82 @@ public:
 	}
 };
 
+
+
 /// <summary>
 /// Manages all debug objects
 /// </summary>
-class DebugDrawManager
-{
-	std::vector<std::unique_ptr<DebugObject>> objects;
-
-	DebugDrawManager() {}
-	DebugDrawManager(const DebugDrawManager&);
-	void operator=(const DebugDrawManager&);
-
+class DebugDrawManager {
 public:
-	static DebugDrawManager& GetInstance()
-	{
+	static DebugDrawManager& GetInstance() {
 		static DebugDrawManager ddm;
 		return ddm;
 	}
 
-	void Update()
-	{
-		for (int c = 0; c < objects.size(); ++c)
-		{
-			objects[c]->SetLife((objects[c]->GetLife()) - 1);
+	void Update() {
+		for (int c = 0; c < m_objects.size(); ++c) {
+			m_objects[c]->SetLife((m_objects[c]->GetLife()) - 1);
+			if (!m_objects[c]->IsAlive()) {
+				m_objects[c].reset();
+			}
 		}
 	}
 
-	static bool IsAlive(int life)
-	{
-		return life > 0;
-	}
-
-	void AddSphere(mathfu::Vector3f pos, float radius, int life, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f))
-	{
-		for (int c = 0; c < objects.size(); ++c)
-		{
-			if (!IsAlive(objects[c]->GetLife()))
-			{
-				objects[c] = std::make_unique<DebugSphere>(pos, radius, life + 1, newColor);
+	void AddSphere(mathfu::Vector3f pos, float radius, int life, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
+		for (int c = 0; c < m_objects.size(); ++c) {
+			if (!m_objects[c]) {
+				m_objects[c] = std::make_unique<DebugSphere>(pos, radius, life + 1, newColor);
 				return;
 			}
 		}
 
-		objects.push_back(std::make_unique<DebugSphere>(pos, radius, life + 1, newColor));
+		m_objects.push_back(std::make_unique<DebugSphere>(pos, radius, life + 1, newColor));
 	}
 
-	void AddCross(mathfu::Vector3f pos, float size, int life, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f))
-	{
-		for (int c = 0; c < objects.size(); ++c)
-		{
-			if (!IsAlive(objects[c]->GetLife()))
-			{
-				objects[c] = std::make_unique<DebugCross>(pos, size, life + 1, newColor);
+	void AddCross(mathfu::Vector3f pos, float size, int life, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
+		for (int c = 0; c < m_objects.size(); ++c) {
+			if (!m_objects[c]) {
+				m_objects[c] = std::make_unique<DebugCross>(pos, size, life + 1, newColor);
 				return;
 			}
 		}
 
-		objects.push_back(std::make_unique<DebugCross>(pos, size, life + 1, newColor));
+		m_objects.push_back(std::make_unique<DebugCross>(pos, size, life + 1, newColor));
 	}
 
-	void AddLine(mathfu::Vector3f start, mathfu::Vector3f end, int life, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f))
-	{
-		for (int c = 0; c < objects.size(); ++c)
-		{
-			if (!IsAlive(objects[c]->GetLife()))
-			{
-				objects[c] = std::make_unique<DebugLine>(start, end, life + 1, newColor);
+	void AddLine(mathfu::Vector3f start, mathfu::Vector3f end, int life, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
+		for (int c = 0; c < m_objects.size(); ++c) {
+			if (!m_objects[c]) {
+				m_objects[c] = std::make_unique<DebugLine>(start, end, life + 1, newColor);
 				return;
 			}
 		}
 
-		objects.push_back(std::make_unique<DebugLine>(start, end, life + 1, newColor));
+		m_objects.push_back(std::make_unique<DebugLine>(start, end, life + 1, newColor));
 	}
 
-	void AddBox(mathfu::Vector3f min, mathfu::Vector3f max, int life, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f))
-	{
-		for (int c = 0; c < objects.size(); ++c)
-		{
-			if (!IsAlive(objects[c]->GetLife()))
-			{
-				objects[c] = std::make_unique<DebugBox>(min, max, life + 1, newColor);
+	void AddBox(mathfu::Vector3f min, mathfu::Vector3f max, int life, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
+		for (int c = 0; c < m_objects.size(); ++c) {
+			if (!m_objects[c]) {
+				m_objects[c] = std::make_unique<DebugBox>(min, max, life + 1, newColor);
 				return;
 			}
 		}
 
-		objects.push_back(std::make_unique<DebugBox>(min, max, life + 1, newColor));
+		m_objects.push_back(std::make_unique<DebugBox>(min, max, life + 1, newColor));
 	}
 
 	void AddFrustum(mathfu::Vector3f newNearLowerLeft,
-					mathfu::Vector3f newNearUpperLeft,
-					mathfu::Vector3f newNearLowerRight,
-					mathfu::Vector3f newFarLowerLeft,
-					mathfu::Vector3f newFarUpperLeft,
-					mathfu::Vector3f newFarLowerRight,
-					int life, 
-					mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f))
-	{
-		for (int c = 0; c < objects.size(); ++c)
-		{
-			if (!IsAlive(objects[c]->GetLife()))
-			{
-				objects[c] = std::make_unique<DebugFrustum>(
+		mathfu::Vector3f newNearUpperLeft,
+		mathfu::Vector3f newNearLowerRight,
+		mathfu::Vector3f newFarLowerLeft,
+		mathfu::Vector3f newFarUpperLeft,
+		mathfu::Vector3f newFarLowerRight,
+		int life,
+		mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
+		for (int c = 0; c < m_objects.size(); ++c) {
+			if (!m_objects[c]) {
+				m_objects[c] = std::make_unique<DebugFrustum>(
 					newNearLowerLeft,
 					newNearUpperLeft,
 					newNearLowerRight,
@@ -422,21 +379,28 @@ public:
 			}
 		}
 
-		objects.push_back(std::make_unique<DebugFrustum>(
+		m_objects.push_back(std::make_unique<DebugFrustum>(
 			newNearLowerLeft,
 			newNearUpperLeft,
 			newNearLowerRight,
 			newFarLowerLeft,
 			newFarUpperLeft,
 			newFarLowerRight,
-			life+1,
+			life + 1,
 			newColor));
 	}
 
-	const std::vector<std::unique_ptr<DebugObject>>& GetObjects()
-	{
-		return objects;
+	const std::vector<std::shared_ptr<DebugObject>>& GetObjects() const {
+		return m_objects;
 	}
+
+private:
+	std::vector<std::shared_ptr<DebugObject>> m_objects;
+
+private:
+	DebugDrawManager() {}
+	DebugDrawManager(const DebugDrawManager&);
+	void operator=(const DebugDrawManager&);
 };
 
 

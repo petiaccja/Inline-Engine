@@ -443,6 +443,9 @@ void GraphicsEngine::CreatePipeline() {
 	drawSky->GetInput<2>().Link(getCamera->GetOutput(0));
 	drawSky->GetInput<3>().Link(getWorldScene->GetOutput(2));
 
+	// last step in world render is debug draw
+	debugDraw->GetInput<0>().Link(drawSky->GetOutput(0));
+	debugDraw->GetInput<1>().Link(getCamera->GetOutput(0));
 
 	// -----------------------------
 	// Gui pipeline path
@@ -468,9 +471,6 @@ void GraphicsEngine::CreatePipeline() {
 	//createWorldRenderTransform->GetInput<3>().Set(0);
 	//createWorldRenderTransform->GetInput<4>().Set(mathfu::Vector2f(800.f, 600.f));
 
-	debugDraw->GetInput<0>().Link(getBackBuffer->GetOutput(0));
-	debugDraw->GetInput<1>().Link(getCamera->GetOutput(0));
-
 	guiRender->GetInput<0>().Link(getBackBuffer->GetOutput(0));
 	guiRender->GetInput<1>().Link(getGuiScene->GetOutput(1));
 	guiRender->GetInput<2>().Link(getGuiCamera->GetOutput(0));
@@ -488,7 +488,7 @@ void GraphicsEngine::CreatePipeline() {
 	blending.mask = gxapi::eColorMask::ALL;
 
 	alphaBlend->GetInput<0>().Link(guiRender->GetOutput(0));
-	alphaBlend->GetInput<1>().Link(drawSky->GetOutput(0));
+	alphaBlend->GetInput<1>().Link(debugDraw->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
 	//alphaBlend->GetInput<3>().Set(mathfu::Matrix4x4f::FromScaleVector(mathfu::Vector3f(.5f, 1.f, 1.f)));
 	alphaBlend->GetInput<3>().Link(createWorldRenderTransform->GetOutput(0));

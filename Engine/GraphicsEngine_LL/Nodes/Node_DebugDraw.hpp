@@ -42,11 +42,24 @@ protected:
 	std::unique_ptr<gxapi::IPipelineState> m_LinePSO;
 	std::unique_ptr<gxapi::IPipelineState> m_TrianglePSO;
 
+private:
+	void BuildVertexBuffers();
+
+private:
+	struct MeshData {
+		gxeng::VertexBuffer vertexBuffer;
+		gxeng::IndexBuffer indexBuffer;
+		unsigned size;
+		unsigned stride;
+	};
+
+	std::vector<std::pair<std::weak_ptr<DebugObject>, MeshData>> m_objects;
+	//std::vector<gxeng::VertexBuffer> m_vertexBuffers;
+	//std::vector<gxeng::IndexBuffer> m_indexBuffers;
+	//std::vector<unsigned> m_sizes;
+	//std::vector<unsigned> m_strides;
+
 private: // render context
-	std::vector<gxeng::VertexBuffer> vertexBuffers;
-	std::vector<gxeng::IndexBuffer> indexBuffers;
-	std::vector<unsigned> sizes;
-	std::vector<unsigned> strides;
 	RenderTargetView2D m_target;
 	const BasicCamera* m_camera;
 };
