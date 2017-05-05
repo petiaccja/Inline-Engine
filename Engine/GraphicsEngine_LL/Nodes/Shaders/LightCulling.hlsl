@@ -11,7 +11,6 @@ struct light_data
 {
 	float4 vs_position;
 	float attenuation_end;
-	int index;
 	float2 dummy;
 };
 

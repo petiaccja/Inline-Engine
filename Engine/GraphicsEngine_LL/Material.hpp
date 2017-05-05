@@ -178,7 +178,7 @@ inline std::string MaterialGenPixelShader(const MaterialShader& shader) {
 	std::string structures =
 		"struct PsInput {\n"
 		"    float4 ndcPos : SV_POSITION;\n"
-		"    float3 worldNormal : NO;\n"
+		"    float3 viewNormal : NO;\n"
 		"	 float2 texCoord : TEX_COORD0;\n"
 		"	 float4 vsPosition : TEX_COORD1;\n"
 		"};\n\n"
@@ -196,6 +196,8 @@ inline std::string MaterialGenPixelShader(const MaterialShader& shader) {
 		"static float3 g_lightDir;\n"
 		"static float3 g_lightColor;\n"
 		"static float3 g_normal;\n"
+		"static float4 g_ndcPos;\n"
+		"static float4 g_vsPos;\n"
 		"static float3 g_tex0;\n";
 
 	// add constant buffer, textures and samplers according to shader parameters
@@ -247,13 +249,13 @@ inline std::string MaterialGenPixelShader(const MaterialShader& shader) {
 
 	// main function
 	std::stringstream PSMain;
-	PSMain << "#include \"CSMSample\"\n";
 	PSMain << "float4 PSMain(PsInput psInput) : SV_TARGET {\n";
 	PSMain << "    g_lightDir = lightCb.direction;\n";
 	PSMain << "    g_lightColor = lightCb.color;\n";
 	PSMain << "    g_lightColor *= get_shadow(psInput.vsPosition);\n";
-	//PSMain << "    g_lightColor = psInput.vsPosition.xyz;\n";
-	PSMain << "    g_normal = psInput.worldNormal;\n";
+	PSMain << "    g_normal = psInput.viewNormal;\n";
+	PSMain << "    g_ndcPos = psInput.ndcPos;\n";
+	PSMain << "    g_vsPos = psInput.vsPosition;\n";
 	PSMain << "    g_tex0 = float3(psInput.texCoord, 0.0f);\n";
 	for (size_t i = 0; i < params.size(); ++i) {
 		switch (params[i].type) {
@@ -295,7 +297,10 @@ inline std::string MaterialGenPixelShader(const MaterialShader& shader) {
 	PSMain << "); \n} \n";
 
 	return
-		structures
+		std::string()
+		+"#include \"CSMSample\"\n"
+		+ "#include \"TiledLighting\"\n"
+		+ structures
 		+ "\n//-------------------------------------\n\n"
 		+ globals
 		+ "\n//-------------------------------------\n\n"

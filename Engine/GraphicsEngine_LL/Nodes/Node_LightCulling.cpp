@@ -18,7 +18,6 @@ struct light_data
 {
 	mathfu::VectorPacked<float, 4> vs_position;
 	float attenuation_end;
-	int index;
 	mathfu::VectorPacked<float, 2> dummy;
 };
 
@@ -187,7 +186,6 @@ void LightCulling::Execute(RenderContext& context) {
 	uniformsCBData.far_plane1 = mathfu::Vector4f(ndcCorners[1].y(), ndcCorners[1].z(), 0, 0);
 
 	uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrixRH() * mathfu::Vector4f(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1.0f);
-	uniformsCBData.ld[0].index = 0;
 	uniformsCBData.ld[0].attenuation_end = 5.0f;
 
 	//create single-frame only cb

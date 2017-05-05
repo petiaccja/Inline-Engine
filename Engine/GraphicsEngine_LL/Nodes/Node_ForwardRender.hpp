@@ -30,6 +30,7 @@ class ForwardRender :
 		Texture2D,
 		Texture2D,
 		Texture2D,
+		Texture2D,
 		Texture2D>,
 	virtual public exc::OutputPortConfig<Texture2D>
 {
@@ -89,7 +90,7 @@ private:
 		gxapi::eFormat depthStencilFormat);
 
 protected:
-	std::optional<Binder> m_binder;
+	//std::optional<Binder> m_binder;
 	BindParameter m_transformBindParam;
 	BindParameter m_sunBindParam;
 	BindParameter m_albedoBindParam;
@@ -108,6 +109,7 @@ private:
 	TextureView2D m_shadowMXTexView;
 	TextureView2D m_csmSplitsTexView;
 	TextureView2D m_lightMVPTexView;
+	TextureView2D m_lightCullDataView;
 
 private:
 	struct ElementHash {

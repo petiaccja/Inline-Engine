@@ -442,6 +442,7 @@ void GraphicsEngine::CreatePipeline() {
 	forwardRender->GetInput(6)->Link(depthReductionFinal->GetOutput(1));
 	forwardRender->GetInput(7)->Link(depthReductionFinal->GetOutput(2));
 	forwardRender->GetInput(8)->Link(depthReductionFinal->GetOutput(0));
+	forwardRender->GetInput(9)->Link(lightCulling->GetOutput(0));
 
 	drawSky->GetInput<0>().Link(forwardRender->GetOutput(0));
 	drawSky->GetInput<1>().Link(depthPrePass->GetOutput(0));

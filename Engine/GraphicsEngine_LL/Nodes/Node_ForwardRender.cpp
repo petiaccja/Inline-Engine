@@ -14,7 +14,19 @@
 
 namespace inl::gxeng::nodes {
 
+struct light_data
+{
+	mathfu::VectorPacked<float, 4> diffuse_color;
+	mathfu::VectorPacked<float, 4> vs_position;
+	mathfu::VectorPacked<float, 4> attenuation_end;
+};
 
+struct Uniforms
+{
+	light_data ld[10];
+	mathfu::VectorPacked<float, 4> screen_dimensions;
+	mathfu::VectorPacked<float, 4> dummy;
+};
 
 static bool CheckMeshFormat(const Mesh& mesh) {
 	for (size_t i = 0; i < mesh.GetNumStreams(); i++) {
@@ -132,10 +144,14 @@ void ForwardRender::Setup(SetupContext& context) {
 	this->GetInput<8>().Clear();
 	m_lightMVPTexView = context.CreateSrv(lightMVPTex, lightMVPTex.GetFormat(), srvDesc);
 
+	auto lightCullData = this->GetInput<9>().Get();
+	this->GetInput<9>().Clear();
+	m_lightCullDataView = context.CreateSrv(lightCullData, lightCullData.GetFormat(), srvDesc);
+
 	this->GetOutput<0>().Set(target);
 
 
-	if (!m_binder.has_value()) {
+	/*if (!m_binder.has_value()) {
 		BindParameterDesc transformBindParamDesc;
 		m_transformBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
 		transformBindParamDesc.parameter = m_transformBindParam;
@@ -202,7 +218,7 @@ void ForwardRender::Setup(SetupContext& context) {
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
 		m_binder = context.CreateBinder({ transformBindParamDesc, sunBindParamDesc, albedoBindParamDesc, shadowMapBindParamDesc, shadowMXBindParamDesc, csmSplitsBindParamDesc, sampBindParamDesc },{ samplerDesc });
-	}
+	}*/
 }
 
 
@@ -274,6 +290,10 @@ void ForwardRender::Execute(RenderContext& context) {
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 502), m_csmSplitsTexView);
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 503), m_lightMVPTexView);
 
+		commandList.SetResourceState(m_lightCullDataView.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 600), m_lightCullDataView);
+
 		// Set material parameters
 		std::vector<uint8_t> materialConstants(scenario.constantsSize);
 		for (size_t paramIdx = 0; paramIdx < material->GetParameterCount(); ++paramIdx) {
@@ -322,6 +342,14 @@ void ForwardRender::Execute(RenderContext& context) {
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 0), &vsConstants, sizeof(vsConstants));
 		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 100), &lightConstants, sizeof(lightConstants));
+
+		Uniforms uniformsCBData;
+		uniformsCBData.screen_dimensions = mathfu::Vector4f(m_rtv.GetResource().GetWidth(), m_rtv.GetResource().GetHeight(), 0, 0);
+		uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrixRH() * mathfu::Vector4f(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1.0f);
+		uniformsCBData.ld[0].attenuation_end = mathfu::Vector4f(5.0f, 0, 0, 0);
+		uniformsCBData.ld[0].diffuse_color = mathfu::Vector4f(1, 0, 0, 1);
+
+		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 600), &uniformsCBData, sizeof(uniformsCBData));
 
 		// Set primitives
 		vertexBuffers.clear(); sizes.clear(); strides.clear();
@@ -453,7 +481,7 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"{\n"
 		"	PS_Input result;\n"
 
-		"	float3 worldNormal = normalize(mul(vsConstants.M, float4(normal.xyz, 0.0)).xyz);\n"
+		"	float3 viewNormal = normalize(mul(vsConstants.MV, float4(normal.xyz, 0.0)).xyz);\n"
 
 		"float4x4 light_mvp;\n"
 		"float cascade = 0;\n"
@@ -466,7 +494,7 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		//"	result.position = mul(mul(light_mvp, vsConstants.MV), position);\n"
 		//"	result.position = mul(mul(vsConstants.P, mul(light_mvp, vsConstants.M)), position);\n"
 		"	result.vsPosition = mul(vsConstants.MV, position);\n"
-		"	result.normal = worldNormal;\n"
+		"	result.normal = viewNormal;\n"
 		"	result.texCoord = texCoord.xy;\n"
 
 		"	return result;\n"
@@ -571,6 +599,20 @@ Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<M
 	lightMVPBindParamDesc.relativeChangeFrequency = 0;
 	lightMVPBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+	BindParameterDesc lightCullDataBindParamDesc;
+	lightCullDataBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 600);
+	lightCullDataBindParamDesc.constantSize = 0;
+	lightCullDataBindParamDesc.relativeAccessFrequency = 0;
+	lightCullDataBindParamDesc.relativeChangeFrequency = 0;
+	lightCullDataBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+	BindParameterDesc lightUniformsCbDesc;
+	lightUniformsCbDesc.parameter = BindParameter(eBindParameterType::CONSTANT, 600);
+	lightUniformsCbDesc.constantSize = sizeof(Uniforms);
+	lightUniformsCbDesc.relativeAccessFrequency = 0;
+	lightUniformsCbDesc.relativeChangeFrequency = 0;
+	lightUniformsCbDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
 	BindParameterDesc vsCbDesc;
 	vsCbDesc.parameter = BindParameter(eBindParameterType::CONSTANT, 0);
 	vsCbDesc.constantSize = sizeof(VsConstants);
@@ -611,12 +653,15 @@ Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<M
 
 	descs.push_back(vsCbDesc);
 	descs.push_back(lightCbDesc);
+	descs.push_back(lightUniformsCbDesc);
 
 	descs.push_back(theSamplerDesc);
 	descs.push_back(shadowMapBindParamDesc);
 	descs.push_back(shadowMXBindParamDesc);
 	descs.push_back(csmSplitsBindParamDesc);
 	descs.push_back(lightMVPBindParamDesc);
+
+	descs.push_back(lightCullDataBindParamDesc);
 
 	if (cbSize > 0) {
 		descs.push_back(mtlCbDesc);
