@@ -125,18 +125,20 @@ void MemoryObject::InitResourceStates(gxapi::eResourceState initialState) {
 	switch (desc.type) {
 		case eResourceType::TEXTURE:
 		{
-			switch (desc.textureDesc.dimension) {
-				case eTextueDimension::ONE:
-					numSubresources = desc.textureDesc.depthOrArraySize * desc.textureDesc.mipLevels;
-					break;
-				case eTextueDimension::TWO:
-					numSubresources = desc.textureDesc.depthOrArraySize * desc.textureDesc.mipLevels;
-					break;
-				case eTextueDimension::THREE:
-					numSubresources = desc.textureDesc.mipLevels;
-					break;
-				default: assert(false);
-			}
+			//switch (desc.textureDesc.dimension) {
+			//	case eTextueDimension::ONE:
+			//		numSubresources = desc.textureDesc.depthOrArraySize * desc.textureDesc.mipLevels;
+			//		break;
+			//	case eTextueDimension::TWO:
+			//		numSubresources = desc.textureDesc.depthOrArraySize * desc.textureDesc.mipLevels;
+			//		break;
+			//	case eTextueDimension::THREE:
+			//		numSubresources = desc.textureDesc.mipLevels;
+			//		break;
+			//	default: assert(false);
+			//}
+
+			numSubresources = m_contents->resource->GetNumArrayLevels() * m_contents->resource->GetNumMipLevels() * m_contents->resource->GetNumTexturePlanes();
 			break;
 		}
 		case eResourceType::BUFFER:

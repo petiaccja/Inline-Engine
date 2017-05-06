@@ -93,6 +93,7 @@ std::vector<gxapi::ResourceBarrier> Scheduler::InjectBarriers(UsedResourceIter f
 			if (sourceState != targetState) {
 				barriers.push_back(gxapi::TransitionBarrier{ resource._GetResourcePtr(), sourceState, targetState, subresource });
 			}
+			resource.RecordState(subresource, targetState);
 		}
 		else {
 			for (unsigned subresourceIdx = 0; subresourceIdx < resource.GetNumSubresources(); ++subresourceIdx) {
@@ -100,6 +101,7 @@ std::vector<gxapi::ResourceBarrier> Scheduler::InjectBarriers(UsedResourceIter f
 				if (sourceState != targetState) {
 					barriers.push_back(gxapi::TransitionBarrier{ resource._GetResourcePtr(), sourceState, targetState, subresourceIdx });
 				}
+				resource.RecordState(subresourceIdx, targetState);
 			}
 		}
 	}

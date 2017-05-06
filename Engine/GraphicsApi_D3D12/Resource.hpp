@@ -25,6 +25,10 @@ public:
 	void Unmap(unsigned subresourceIndex, const gxapi::MemoryRange* writtenRange = nullptr) override;
 	void* GetGPUAddress() const override;
 
+	unsigned GetNumMipLevels() override;
+	unsigned GetNumTexturePlanes() override;
+	unsigned GetNumArrayLevels() override;
+
 	void SetName(const char* name) override;
 private:
 	ComPtr<ID3D12Resource> m_native;

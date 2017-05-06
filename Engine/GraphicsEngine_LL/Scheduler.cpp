@@ -123,6 +123,7 @@ void Scheduler::Execute(FrameContext context) {
 			context.backBuffer->GetResource().ReadState(0),
 			gxapi::eResourceState::PRESENT });
 		injectList->Close();
+		context.backBuffer->GetResource().RecordState(gxapi::eResourceState::PRESENT);
 
 		EnqueueCommandList(*context.commandQueue,
 						   std::move(injectList),

@@ -60,6 +60,7 @@ void GraphicsCommandList::ClearDepthStencil(const DepthStencilView2D& resource,
 	bool clearDepth,
 	bool clearStencil)
 {
+	ExpectResourceState(resource.GetResource(), gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::DEPTH_WRITE);
 	m_commandList->ClearDepthStencil(resource.GetHandle(), depth, stencil, numRects, rects, clearDepth, clearStencil);
 }
 
@@ -68,6 +69,7 @@ void GraphicsCommandList::ClearRenderTarget(const RenderTargetView2D& resource,
 	size_t numRects,
 	gxapi::Rectangle* rects)
 {
+	ExpectResourceState(resource.GetResource(), gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::RENDER_TARGET);
 	m_commandList->ClearRenderTarget(resource.GetHandle(), color, numRects, rects);
 }
 

@@ -66,7 +66,9 @@ void DepthPrepass::Reset() {
 
 
 void DepthPrepass::Setup(SetupContext & context) {
-	auto& depthStencil = this->GetInput<0>().Get();
+	Texture2D& depthStencil = this->GetInput<0>().Get();
+	depthStencil._GetResourcePtr()->SetName("Depth prepass DS");// Debug
+
 	const gxapi::eFormat currDepthStencilFormat = FormatAnyToDepthStencil(depthStencil.GetFormat());
 
 	gxapi::DsvTexture2DArray desc;
