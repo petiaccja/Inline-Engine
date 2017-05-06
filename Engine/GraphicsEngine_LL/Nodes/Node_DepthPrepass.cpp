@@ -75,6 +75,7 @@ void DepthPrepass::Setup(SetupContext & context) {
 	desc.firstMipLevel = 0;
 
 	m_targetDsv = context.CreateDsv(depthStencil, currDepthStencilFormat, desc);
+	m_targetDsv.GetResource()._GetResourcePtr()->SetName("Depth prepass depth tex view");
 	
 	m_entities = this->GetInput<1>().Get();
 

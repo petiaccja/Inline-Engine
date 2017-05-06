@@ -64,6 +64,7 @@ void OverlayRender::Setup(SetupContext& context) {
 	rtvDesc.firstMipLevel = 0;
 	rtvDesc.planeIndex = 0;
 	m_target = context.CreateRtv(target, target.GetFormat(), rtvDesc);
+	m_target.GetResource()._GetResourcePtr()->SetName("Overlay render render target view");
 
 	m_entities = this->GetInput<1>().Get();
 
