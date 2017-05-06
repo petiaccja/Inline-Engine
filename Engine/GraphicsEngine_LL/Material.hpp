@@ -298,8 +298,9 @@ inline std::string MaterialGenPixelShader(const MaterialShader& shader) {
 
 	return
 		std::string()
-		+"#include \"CSMSample\"\n"
+		+ "#include \"CSMSample\"\n"
 		+ "#include \"TiledLighting\"\n"
+		+ "#include \"PbrBrdf\"\n"
 		+ structures
 		+ "\n//-------------------------------------\n\n"
 		+ globals
