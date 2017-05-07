@@ -33,7 +33,7 @@ BackBufferManager::BackBufferManager(gxapi::IGraphicsApi* graphicsApi, gxapi::IS
 
 	m_backBuffers.reserve(numBuffers);
 	for (unsigned i = 0; i < numBuffers; i++) {
-		MemoryObjDesc texDesc = MemoryObjDesc(swapChain->GetBuffer(i));
+		MemoryObjDesc texDesc = MemoryObjDesc(swapChain->GetBuffer(i), eResourceHeap::CRITICAL); // CRITICAL is going to be fine for now, consider adding BACKBUFFER
 		gxapi::ResourceDesc resourceDesc = texDesc.resource->GetDesc();
 		gxapi::DescriptorHandle descriptorHandle = m_descriptorHeap->At(i);
 

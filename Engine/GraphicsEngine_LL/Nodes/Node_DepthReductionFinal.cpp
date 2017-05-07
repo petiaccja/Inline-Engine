@@ -223,10 +223,10 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
 	cbv.GetResource()._GetResourcePtr()->SetName("Depth reduction final CBV");
 
-	commandList.SetResourceState(m_light_mvp_uav.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
-	commandList.SetResourceState(m_shadow_mx_uav.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
-	commandList.SetResourceState(m_csm_splits_uav.GetResource(), 0, gxapi::eResourceState::UNORDERED_ACCESS);
-	commandList.SetResourceState(m_reductionTexSrv.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+	commandList.SetResourceState(m_light_mvp_uav.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.SetResourceState(m_shadow_mx_uav.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.SetResourceState(m_csm_splits_uav.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.SetResourceState(m_reductionTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 	commandList.SetPipelineState(m_CSO.get());
 	commandList.SetComputeBinder(&m_binder.value());

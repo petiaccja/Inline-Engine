@@ -86,6 +86,7 @@ BasicCommandList::Decomposition BasicCommandList::Decompose() {
 	decomposition.commandList = std::move(m_commandList);
 	decomposition.scratchSpaces = std::move(m_scratchSpaces);
 	decomposition.usedResources.reserve(m_resourceTransitions.size());
+	decomposition.additionalResources = std::move(m_additionalResources);
 
 	// Copy the elements of state transition map to vector w/ transforming types.
 	for (const auto& v : m_resourceTransitions) {

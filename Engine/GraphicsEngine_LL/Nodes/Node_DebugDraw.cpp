@@ -179,7 +179,7 @@ void DebugDraw::Execute(RenderContext& context) {
 	RenderTargetView2D* rtView = &m_target;
 	const RenderTargetView2D*const* rtViews = { &rtView };
 
-	commandList.SetResourceState(m_target.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(m_target.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetRenderTargets(1, rtViews, 0);
 
 	gxapi::Viewport viewport;
@@ -207,8 +207,8 @@ void DebugDraw::Execute(RenderContext& context) {
 			continue;
 		}
 
-		commandList.SetResourceState(vb, gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-		commandList.SetResourceState(ib, gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::INDEX_BUFFER);
+		commandList.SetResourceState(vb, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+		commandList.SetResourceState(ib, gxapi::eResourceState::INDEX_BUFFER);
 
 		mathfu::Vector4f(currObject.first.lock()->GetColor(), 1.0f).Pack(&uniformsCBData.color);
 

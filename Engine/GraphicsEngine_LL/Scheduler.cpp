@@ -90,11 +90,17 @@ void Scheduler::Execute(FrameContext context) {
 										   context);
 					}
 
+					// Update resource states.
+					UpdateResourceStates(decomposition.usedResources.begin(), decomposition.usedResources.end());
+
 					// Enqueue actual command list.
 					std::vector<MemoryObject> usedResourceList;
 					usedResourceList.reserve(decomposition.usedResources.size());
-					for (const auto& v : decomposition.usedResources) {
-						usedResourceList.push_back(v.resource);
+					for (auto& v : decomposition.usedResources) {
+						usedResourceList.push_back(std::move(v.resource));
+					}
+					for (auto& v : decomposition.additionalResources) {
+						usedResourceList.push_back(std::move(v));
 					}
 
 					decomposition.commandList->Close();
@@ -108,8 +114,7 @@ void Scheduler::Execute(FrameContext context) {
 									   context);
 
 
-					// Update resource states.
-					UpdateResourceStates(decomposition.usedResources.begin(), decomposition.usedResources.end());
+
 				}
 			}
 		}
@@ -302,8 +307,8 @@ void Scheduler::UploadTask::Execute(RenderContext& context) {
 		auto& source = request.source;
 		auto& destination = const_cast<MemoryObject&>(request.destination);
 
-		// Set destination resource state
-		commandList.SetResourceState(destination, 0, gxapi::eResourceState::COPY_DEST);
+		// Set resource states
+		commandList.SetResourceState(destination, gxapi::eResourceState::COPY_DEST);
 
 		auto destType = request.destType;
 

@@ -17,6 +17,8 @@ public:
 	virtual unsigned GetNumMipLevels() = 0;
 	virtual unsigned GetNumTexturePlanes() = 0;
 	virtual unsigned GetNumArrayLevels() = 0;
+	virtual unsigned GetNumSubresources() = 0;
+	virtual unsigned GetSubresourceIndex(unsigned mipLevel, unsigned arrayIdx, unsigned planeIdx) = 0;
 
 	// Debug
 	virtual void SetName(const char* name) = 0;

@@ -140,7 +140,7 @@ void Blend::Execute(RenderContext& context) {
 	gxeng::GraphicsCommandList& commandList = context.AsGraphics();
 
 	auto* pRTV = &m_blendDest;
-	commandList.SetResourceState(pRTV->GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(pRTV->GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetRenderTargets(1, &pRTV);
 
 	gxapi::Rectangle rect{ 0, (int)pRTV->GetResource().GetHeight(), 0, (int)pRTV->GetResource().GetWidth() };
@@ -162,12 +162,12 @@ void Blend::Execute(RenderContext& context) {
 	unsigned vbSize = (unsigned)m_fsq.GetSize();
 	unsigned vbStride = 2 * sizeof(float);
 
-	commandList.SetResourceState(const_cast<Texture2D&>(m_blendSrc.GetResource()), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+	commandList.SetResourceState(const_cast<Texture2D&>(m_blendSrc.GetResource()), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.BindGraphics(m_tex0Param, m_blendSrc);
 
-	commandList.SetResourceState(*pVertexBuffer, 0, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+	commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
 	commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
-	commandList.SetResourceState(m_fsqIndices, 0, gxapi::eResourceState::INDEX_BUFFER);
+	commandList.SetResourceState(m_fsqIndices, gxapi::eResourceState::INDEX_BUFFER);
 	commandList.SetIndexBuffer(&m_fsqIndices, false);
 	commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
 }

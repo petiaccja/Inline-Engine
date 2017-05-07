@@ -53,6 +53,7 @@ public:
 
 	std::future<void> DispatchFrameBegin(uint64_t frameId);
 	std::future<void> DispatchFrameEnd(uint64_t frameId);
+	std::future<void> DispachFrameBeginAwait(uint64_t frameId);
 	std::future<void> DispatchDeviceFrameBegin(SyncPoint deviceEvent, uint64_t frameId);
 	std::future<void> DispatchDeviceFrameEnd(SyncPoint deviceEvent, uint64_t frameId);
 

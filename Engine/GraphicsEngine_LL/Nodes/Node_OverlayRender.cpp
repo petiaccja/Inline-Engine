@@ -86,7 +86,7 @@ void OverlayRender::Execute(RenderContext& context) {
 	GraphicsCommandList& commandList = context.AsGraphics();
 	// Set render target
 	auto pRTV = &m_target;
-	commandList.SetResourceState(m_target.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(m_target.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetRenderTargets(1, &pRTV);
 	commandList.ClearRenderTarget(m_target, gxapi::ColorRGBA(0, 0, 0, 0));
 
@@ -150,7 +150,6 @@ void OverlayRender::Execute(RenderContext& context) {
 			commandList.SetPipelineState(m_texturedPipeline.pso.get());
 			commandList.SetGraphicsBinder(&m_texturedPipeline.binder.value());
 			commandList.SetResourceState(entity->GetTexture()->GetSrv()->GetResource(), 
-										 gxapi::ALL_SUBRESOURCES, 
 										 gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
 			commandList.BindGraphics(m_texturedPipeline.textureParam, *entity->GetTexture()->GetSrv());
 			commandList.BindGraphics(m_texturedPipeline.transformParam, transformCBData.data(), sizeof(transformCBData));
@@ -158,9 +157,9 @@ void OverlayRender::Execute(RenderContext& context) {
 
 		ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
 		for (auto& vb : vertexBuffers) {
-			commandList.SetResourceState(*vb, gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+			commandList.SetResourceState(*vb, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
 		}
-		commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::INDEX_BUFFER);
+		commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::eResourceState::INDEX_BUFFER);
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
 		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());

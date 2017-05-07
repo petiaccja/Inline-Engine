@@ -19,8 +19,6 @@ public:
 private:
 	using UnderlyingT = typename std::underlying_type<EnumT>::type;
 public:
-
-
 	/// <summary> Initializes an empty flag. </summary>
 	BitFlagEnum() : m_value((EnumT)0) {}
 
@@ -29,6 +27,13 @@ public:
 
 	/// <sumamry> Init the flag to the specified value. </summary>
 	BitFlagEnum(const BitFlagEnum& rhs) = default;
+
+	BitFlagEnum(std::initializer_list<EnumT> values) {
+		m_value = (EnumT)0;
+		for (auto v : values) {
+			*this += v;
+		}
+	}
 
 
 	/// <summary> Assign the specified value. </summary>

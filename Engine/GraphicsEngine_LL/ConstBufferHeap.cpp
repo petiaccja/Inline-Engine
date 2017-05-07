@@ -85,6 +85,7 @@ VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(const void* data, u
 	MemoryObjDesc desc;
 	desc.resident = true;
 	desc.resource = MemoryObjDesc::UniqPtr(targetPage->m_representedMemory.get(), [](gxapi::IResource*){});
+	desc.heap = eResourceHeap::CONSTANT;
 
 	return VolatileConstBuffer(std::move(desc), gpuPtr, dataSize, targetSize);
 }
@@ -93,11 +94,12 @@ VolatileConstBuffer ConstantBufferHeap::CreateVolatileBuffer(const void* data, u
 PersistentConstBuffer ConstantBufferHeap::CreatePersistentBuffer(const void* data, uint32_t dataSize) {
 	MemoryObjDesc objDesc = MemoryObjDesc(
 		m_graphicsApi->CreateCommittedResource(
-			gxapi::HeapProperties{gxapi::eHeapType::UPLOAD},
+			gxapi::HeapProperties{ gxapi::eHeapType::UPLOAD },
 			gxapi::eHeapFlags::NONE,
 			gxapi::ResourceDesc::Buffer(dataSize),
 			gxapi::eResourceState::GENERIC_READ
-		)
+		),
+		eResourceHeap::CONSTANT
 	);
 	auto resource = objDesc.resource.get();
 

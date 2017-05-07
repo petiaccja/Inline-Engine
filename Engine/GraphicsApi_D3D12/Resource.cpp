@@ -16,7 +16,37 @@ namespace inl {
 namespace gxapi_dx12 {
 
 Resource::Resource(ComPtr<ID3D12Resource>& native)
-	: m_native{native} {
+	: m_native{native}
+{
+	auto desc = GetDesc();
+
+	// calculate number of mip levels
+	if (desc.type == gxapi::eResourceType::BUFFER) {
+		m_numMipLevels = 1;
+	}
+	else {
+		m_numMipLevels = desc.textureDesc.mipLevels;
+	}
+
+	// calculate number of texture planes
+	if (desc.type == gxapi::eResourceType::BUFFER) {
+		m_numTexturePlanes = 1;
+	}
+	else {
+		DXGI_FORMAT fmt = native_cast(desc.textureDesc.format);
+		ID3D12Device1* device;
+		HRESULT hr = m_native->GetDevice(IID_PPV_ARGS(&device));
+		assert(SUCCEEDED(hr));
+		m_numTexturePlanes = D3D12GetFormatPlaneCount(device, fmt);
+	}
+
+	// calculate number of array levels
+	if (desc.type == gxapi::eResourceType::BUFFER) {
+		m_numArrayLevels = 1;
+	}
+	else {
+		m_numArrayLevels = desc.textureDesc.dimension == gxapi::eTextueDimension::THREE ? 1 : desc.textureDesc.depthOrArraySize;
+	}
 }
 
 ID3D12Resource* Resource::GetNative() {
@@ -67,35 +97,22 @@ void* Resource::GetGPUAddress() const {
 
 
 unsigned Resource::GetNumMipLevels() {
-	auto desc = GetDesc();
-	if (desc.type == gxapi::eResourceType::BUFFER) {
-		return 0;
-	}
-	else {
-		return desc.textureDesc.mipLevels;
-	}
+	return m_numMipLevels;
 }
 unsigned Resource::GetNumTexturePlanes() {
-	auto desc = GetDesc();
-	if (desc.type == gxapi::eResourceType::BUFFER) {
-		return 0;
-	}
-	else {
-		DXGI_FORMAT fmt = native_cast(desc.textureDesc.format);
-		ID3D12Device1* device;
-		HRESULT hr = m_native->GetDevice(IID_PPV_ARGS(&device));
-		assert(SUCCEEDED(hr));
-		D3D12GetFormatPlaneCount(device, fmt);
-	}
+	return m_numTexturePlanes;
 }
 unsigned Resource::GetNumArrayLevels() {
-	auto desc = GetDesc();
-	if (desc.type == gxapi::eResourceType::BUFFER) {
-		return 0;
-	}
-	else {
-		return desc.textureDesc.dimension == gxapi::eTextueDimension::THREE ? 1 : desc.textureDesc.depthOrArraySize;
-	}
+	return m_numArrayLevels;
+}
+
+unsigned Resource::GetNumSubresources() {
+	return m_numMipLevels * m_numTexturePlanes * m_numArrayLevels;
+}
+unsigned Resource::GetSubresourceIndex(unsigned mipIdx, unsigned arrayIdx, unsigned planeIdx) {
+	unsigned index = D3D12CalcSubresource(mipIdx, arrayIdx, planeIdx, GetNumMipLevels(), GetNumArrayLevels());
+	assert(index < GetNumSubresources());
+	return index;
 }
 
 

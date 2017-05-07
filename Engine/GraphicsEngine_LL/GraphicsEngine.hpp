@@ -67,6 +67,9 @@ public:
 	void OnFrameBeginHost(uint64_t frameId) override {
 		m_log->Event(exc::Event{ "Frame begin - HOST", exc::EventParameterInt("frameId", (int)frameId) });
 	}
+	void OnFrameBeginAwait(uint64_t frameId) override {
+		m_log->Event(exc::Event{ "Awaiting frame", exc::EventParameterInt("frameId", (int)frameId) });
+	}
 	void OnFrameCompleteDevice(uint64_t frameId) override {
 		m_log->Event(exc::Event{ "Frame finished - DEVICE", exc::EventParameterInt("frameId", (int)frameId) });
 	}

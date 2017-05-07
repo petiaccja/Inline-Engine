@@ -16,7 +16,10 @@ UploadManager::UploadManager(gxapi::IGraphicsApi* graphicsApi) :
 	std::lock_guard<std::mutex> lock(m_mtx);
 
 	// Add a new queue before any frame starts to handle uploads at initialization.
-	m_uploadQueues.push_back(std::vector<UploadDescription>());
+	//m_uploadQueues.push_back(std::vector<UploadDescription>());
+	//UploadFrame uploadFrame;
+	//uploadFrame.frameId = 0;
+	//m_uploadFrames.push_back(uploadFrame);
 }
 
 
@@ -33,7 +36,8 @@ void UploadManager::Upload(const LinearBuffer& target, size_t offset, const void
 			//NOTE: GENERIC_READ is the required starting state for upload heap resources according to msdn
 			// (also there is no need for resource state transition)
 			gxapi::eResourceState::GENERIC_READ
-		)
+		),
+		eResourceHeap::UPLOAD
 	);
 
 	// DEBUG
@@ -48,7 +52,8 @@ void UploadManager::Upload(const LinearBuffer& target, size_t offset, const void
 	{
 		std::lock_guard<std::mutex> lock(m_mtx);
 
-		auto& currQueue = m_uploadQueues.back();
+		//auto& currQueue = m_uploadQueues.back();
+		std::vector<UploadDescription>& currQueue = m_uploadFrames.back().uploads;
 
 		UploadDescription uploadDesc(
 			LinearBuffer(std::move(uploadObjDesc)),
@@ -95,7 +100,8 @@ void UploadManager::Upload(
 			//NOTE: GENERIC_READ is the required starting state for upload heap resources according to msdn
 			// (also there is no need for resource state transition)
 			gxapi::eResourceState::GENERIC_READ
-		)
+		),
+		eResourceHeap::UPLOAD
 	);
 
 	// DEBUG
@@ -110,7 +116,8 @@ void UploadManager::Upload(
 	{
 		std::lock_guard<std::mutex> lock(m_mtx);
 
-		auto& currQueue = m_uploadQueues.back();
+		//auto& currQueue = m_uploadQueues.back();
+		std::vector<UploadDescription>& currQueue = m_uploadFrames.back().uploads;
 
 		UploadDescription uploadDesc(
 			LinearBuffer(std::move(uploadObjDesc)),
@@ -142,12 +149,19 @@ void UploadManager::OnFrameBeginDevice(uint64_t frameId) {
 
 
 void UploadManager::OnFrameBeginHost(uint64_t frameId) {
-	std::lock_guard<std::mutex> lock(m_mtx);
-	m_uploadQueues.push_back(std::vector<UploadDescription>());
 }
 
 
 void UploadManager::OnFrameCompleteDevice(uint64_t frameId) {
+	std::lock_guard<std::mutex> lock(m_mtx);
+
+	// loop may be removed
+	int framesPopped = 0;
+	while (!m_uploadFrames.empty() && m_uploadFrames.front().frameId <= frameId) {
+		m_uploadFrames.pop_front();
+		++framesPopped;
+	}
+	assert(framesPopped == 1);
 }
 
 
@@ -155,16 +169,22 @@ void UploadManager::OnFrameCompleteHost(uint64_t frameId) {
 }
 
 
-std::vector<UploadManager::UploadDescription> UploadManager::_TakeQueuedUploads() {
-	std::vector<UploadDescription> result;
-	{
-		std::lock_guard<std::mutex> lock(m_mtx);
-		assert(!m_uploadQueues.empty());
-		result = std::move(m_uploadQueues.front());
-		m_uploadQueues.pop_front();
-	}
-	return result;
+void UploadManager::OnFrameBeginAwait(uint64_t frameId) {
+	std::lock_guard<std::mutex> lock(m_mtx);
+
+	UploadFrame uploadFrame;
+	uploadFrame.frameId = frameId;
+	m_uploadFrames.push_back(uploadFrame);
 }
+
+
+const std::vector<UploadManager::UploadDescription>& UploadManager::GetQueuedUploads() const {
+	std::lock_guard<std::mutex> lock(m_mtx);
+
+	assert(m_uploadFrames.size() > 0);
+	return m_uploadFrames.back().uploads;
+}
+
 
 
 size_t UploadManager::SnapUpwrads(size_t value, size_t gridSize) {

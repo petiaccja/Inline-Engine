@@ -239,8 +239,8 @@ void ForwardRender::Execute(RenderContext& context) {
 
 	// Set render target
 	auto pRTV = &m_rtv;
-	commandList.SetResourceState(m_rtv.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
-	commandList.SetResourceState(m_dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
+	commandList.SetResourceState(m_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(m_dsv.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
 	commandList.SetRenderTargets(1, &pRTV, &m_dsv);
 	commandList.ClearRenderTarget(m_rtv, gxapi::ColorRGBA(0, 0, 0, 1));
 
@@ -288,17 +288,17 @@ void ForwardRender::Execute(RenderContext& context) {
 		commandList.SetPipelineState(scenario.pso.get());
 		commandList.SetGraphicsBinder(&scenario.binder);
 
-		commandList.SetResourceState(m_shadowMapTexView.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
-		commandList.SetResourceState(m_shadowMXTexView.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
-		commandList.SetResourceState(m_csmSplitsTexView.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
-		commandList.SetResourceState(m_lightMVPTexView.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+		commandList.SetResourceState(m_shadowMapTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_shadowMXTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_csmSplitsTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_lightMVPTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 500), m_shadowMapTexView);
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 501), m_shadowMXTexView);
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 502), m_csmSplitsTexView);
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 503), m_lightMVPTexView);
 
-		commandList.SetResourceState(m_lightCullDataView.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+		commandList.SetResourceState(m_lightCullDataView.GetResource(), {gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE	});
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 600), m_lightCullDataView);
 
@@ -311,7 +311,7 @@ void ForwardRender::Execute(RenderContext& context) {
 			case eMaterialShaderParamType::BITMAP_VALUE_2D:
 			{
 				BindParameter bindSlot(eBindParameterType::TEXTURE, scenario.offsets[paramIdx]);
-				commandList.SetResourceState(((Image*)param)->GetSrv()->GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+				commandList.SetResourceState(((Image*)param)->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 				commandList.BindGraphics(bindSlot, *((Image*)param)->GetSrv());
 				break;
 			}
@@ -366,9 +366,9 @@ void ForwardRender::Execute(RenderContext& context) {
 			sizes.push_back((unsigned)mesh->GetVertexBuffer(i).GetSize());
 			strides.push_back((unsigned)mesh->GetVertexBufferStride(i));
 
-			commandList.SetResourceState(mesh->GetVertexBuffer(i), gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+			commandList.SetResourceState(mesh->GetVertexBuffer(i), gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
 		}
-		commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::INDEX_BUFFER);
+		commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::eResourceState::INDEX_BUFFER);
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
 

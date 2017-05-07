@@ -28,10 +28,13 @@ public:
 	unsigned GetNumMipLevels() override;
 	unsigned GetNumTexturePlanes() override;
 	unsigned GetNumArrayLevels() override;
+	unsigned GetNumSubresources() override;
+	unsigned GetSubresourceIndex(unsigned mipIdx, unsigned arrayIdx, unsigned planeIdx) override;
 
 	void SetName(const char* name) override;
 private:
 	ComPtr<ID3D12Resource> m_native;
+	unsigned m_numMipLevels, m_numTexturePlanes, m_numArrayLevels;
 };
 
 

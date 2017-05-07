@@ -112,6 +112,10 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	// DELETE THIS
 	m_pipelineEventPrinter.SetLog(&m_logStreamPipeline);
 	m_pipelineEventDispatcher += &m_pipelineEventPrinter;
+
+
+	// Begin awaiting frame #0's Update()
+	m_pipelineEventDispatcher.DispachFrameBeginAwait(0);
 }
 
 
@@ -152,7 +156,7 @@ void GraphicsEngine::Update(float elapsed) {
 	context.scenes = &m_scenes;
 	context.cameras = &m_cameras;
 
-	std::vector<UploadManager::UploadDescription> uploadRequests = m_memoryManager.GetUploadManager()._TakeQueuedUploads();
+	const std::vector<UploadManager::UploadDescription>& uploadRequests = m_memoryManager.GetUploadManager().GetQueuedUploads();
 	context.uploadRequests = &uploadRequests;
 
 	context.residencyQueue = &m_residencyQueue;
@@ -176,6 +180,9 @@ void GraphicsEngine::Update(float elapsed) {
 	// Present frame
 	m_swapChain->Present();
 	++m_frame;
+
+	// Await next frame
+	m_pipelineEventDispatcher.DispachFrameBeginAwait(m_frame).wait(); // m_frame incremented on previous line
 }
 
 

@@ -193,15 +193,15 @@ void CSM::Execute(RenderContext & context) {
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	commandList.SetResourceState(m_lightMVPTexSrv.GetResource(), 0, gxapi::eResourceState::PIXEL_SHADER_RESOURCE);
+	commandList.SetResourceState(m_lightMVPTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.BindGraphics(m_lightMVPBindParam, m_lightMVPTexSrv);
 
 	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
 	std::vector<unsigned> sizes;
 	std::vector<unsigned> strides;
 
+	commandList.SetResourceState(cascadeTextures, gxapi::eResourceState::DEPTH_WRITE, gxapi::ALL_SUBRESOURCES);
 	for (int cascadeIdx = 0; cascadeIdx < numCascades; ++cascadeIdx) {
-		commandList.SetResourceState(cascadeTextures, cascadeIdx, gxapi::eResourceState::DEPTH_WRITE);
 		commandList.SetRenderTargets(0, nullptr, &m_dsvs[cascadeIdx]);
 		commandList.ClearDepthStencil(m_dsvs[cascadeIdx], 1, 0, 0, nullptr, true, true);
 
@@ -238,9 +238,9 @@ void CSM::Execute(RenderContext & context) {
 			commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(uniformsCBData));
 
 			for (auto& vb : vertexBuffers) {
-				commandList.SetResourceState(*vb, gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+				commandList.SetResourceState(*vb, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
 			}
-			commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::ALL_SUBRESOURCES, gxapi::eResourceState::INDEX_BUFFER);
+			commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::eResourceState::INDEX_BUFFER);
 
 			commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 			commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());

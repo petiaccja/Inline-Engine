@@ -18,9 +18,10 @@ using namespace gxapi;
 
 //==================================
 
-MemoryObjDesc::MemoryObjDesc(gxapi::IResource* ptr, bool resident) :
+MemoryObjDesc::MemoryObjDesc(gxapi::IResource* ptr, eResourceHeap heap, bool resident) :
 	resource(ptr, std::default_delete<gxapi::IResource>()),
-	resident(resident)
+	resident(resident),
+	heap(heap)
 {}
 
 
@@ -50,7 +51,7 @@ bool MemoryObject::PtrEqual(const MemoryObject& lhs, const MemoryObject& rhs) {
 
 
 MemoryObject::MemoryObject(MemoryObjDesc&& desc) :
-	m_contents(new Contents{ std::move(desc.resource), desc.resident, {} })
+	m_contents(new Contents{ std::move(desc.resource), desc.resident, desc.heap, {} })
 {
 	//auto deleter = m_contents->resource.get_deleter();
 	//auto* ptr = m_contents->resource.release();

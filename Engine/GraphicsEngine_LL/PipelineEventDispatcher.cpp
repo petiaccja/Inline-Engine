@@ -68,6 +68,14 @@ std::future<void> PipelineEventDispatcher::DispatchFrameEnd(uint64_t frameId) {
 	return ret;
 }
 
+std::future<void> PipelineEventDispatcher::DispachFrameBeginAwait(uint64_t frameId) {
+	EventAction eventAction;
+	eventAction.action = std::bind(&PipelineEventListener::OnFrameBeginAwait, std::placeholders::_1, frameId);
+	auto ret = eventAction.signal.get_future();
+	PushEventAction(state.get(), std::move(eventAction));
+	return ret;
+}
+
 
 std::future<void> PipelineEventDispatcher::DispatchDeviceFrameBegin(SyncPoint deviceEvent, uint64_t frameId) {
 	DeviceEventAction action;
