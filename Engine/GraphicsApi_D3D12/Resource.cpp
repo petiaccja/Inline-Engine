@@ -34,10 +34,10 @@ Resource::Resource(ComPtr<ID3D12Resource>& native)
 	}
 	else {
 		DXGI_FORMAT fmt = native_cast(desc.textureDesc.format);
-		ID3D12Device1* device;
+		ComPtr<ID3D12Device1> device;
 		HRESULT hr = m_native->GetDevice(IID_PPV_ARGS(&device));
 		assert(SUCCEEDED(hr));
-		m_numTexturePlanes = D3D12GetFormatPlaneCount(device, fmt);
+		m_numTexturePlanes = D3D12GetFormatPlaneCount(device.Get(), fmt);
 	}
 
 	// calculate number of array levels

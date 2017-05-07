@@ -121,6 +121,8 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>lemon.lib;dxgi.lib;d3d12.lib;GraphicsEngine_LL.lib;GraphicsApi_D3D12.lib;BaseLibrary.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -161,6 +163,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>lemon.lib;dxgi.lib;d3d12.lib;GraphicsEngine_LL.lib;GraphicsApi_D3D12.lib;BaseLibrary.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -176,6 +180,7 @@
     <ClCompile Include="Test_Pipeline.cpp" />
     <ClCompile Include="Test_RingAllocEngine.cpp" />
     <ClCompile Include="Test_RingBuffer.cpp" />
+    <ClCompile Include="Test_StackTrace.cpp" />
     <ClCompile Include="Test_Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>

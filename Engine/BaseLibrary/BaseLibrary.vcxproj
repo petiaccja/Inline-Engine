@@ -114,6 +114,11 @@
     <Link>
       <SubSystem>Windows</SubSystem>
     </Link>
+    <Lib>
+      <AdditionalDependencies>dbghelp.lib</AdditionalDependencies>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -150,6 +155,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <Lib>
+      <AdditionalDependencies>dbghelp.lib</AdditionalDependencies>
+      <ForceSymbolReferences>
+      </ForceSymbolReferences>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -184,6 +194,7 @@
     <ClInclude Include="Serialization\BinarySerializerExtensions.hpp" />
     <ClInclude Include="Singleton.hpp" />
     <ClInclude Include="SpinMutex.hpp" />
+    <ClInclude Include="StackTrace.hpp" />
     <ClInclude Include="Stream.hpp" />
     <ClInclude Include="TemplateUtil.hpp" />
     <ClInclude Include="ThreadName.hpp" />
@@ -197,6 +208,7 @@
     <ClCompile Include="Logging\LogNode.cpp" />
     <ClCompile Include="Logging\LogPipe.cpp" />
     <ClCompile Include="Logging\LogStream.cpp" />
+    <ClInclude Include="MemoryLeakDetector.hpp" />
     <ClCompile Include="Memory\RingAllocationEngine.cpp" />
     <ClCompile Include="Memory\SlabAllocatorEngine.cpp">
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NoListing</AssemblerOutput>
