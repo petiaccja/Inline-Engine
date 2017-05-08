@@ -115,3 +115,109 @@ float3 getCookTorranceBRDF(float3 albedo,
 	float3 Lo = (kD * c / PI) + (F * Li) * (D * G * NdotL / (4 * NdotV * NdotL + 0.0001));
 	return Lo;
 }
+
+
+
+
+
+
+
+
+
+
+// -------------------------------------------------------------------------------------------------------------------------------------------------
+// - Based on http://www.frostbite.com/wp-content/uploads/2014/11/course_notes_moving_frostbite_to_pbr.pdf + additional research by Richard Nemeth -
+// -------------------------------------------------------------------------------------------------------------------------------------------------
+
+// From http://research.tri-ace.com/Data/DesignReflectanceModel_notes.pdf
+float3 Fresnel(float3 F0, float VoH)
+{
+	float3 minus = sqrt(F0) - 1;
+	float3 plus = sqrt(F0) + 1;
+
+	float3 alpha = sqrt(1 - (minus * minus * (1 - VoH * VoH)) / (plus * plus));
+
+	float3 plusVoH = plus * VoH;
+	float3 minusVoH = minus * VoH;
+	float3 plusAlpha = plus * alpha;
+	float3 minusAlpha = minus * alpha;
+
+	float3 left = (plusVoH + minusAlpha) / (plusVoH - minusAlpha);
+	float3 right = (minusVoH + plusAlpha) / (minusVoH - plusAlpha);
+
+	return 0.5f * (left * left + right * right);
+}
+
+// Fresnel approximation (if F0 is larger than 0.4, then use accurate Fresnel(..) function instead
+float3 FresnelSchlick(in float3 F0, in float VoH)
+{
+	return F0 + (1 - F0) * pow(1.f - VoH, 5.f);
+}
+
+float Vis_SmithGGXCorrelated(float NdotL, float NdotV, float alphaG)
+{
+	// Original formulation of G_SmithGGX Correlated
+	// lambda_v = ( -1 + sqrt ( alphaG2 * (1 - NdotL2 ) / NdotL2 + 1)) * 0.5 f;
+	// lambda_l = ( -1 + sqrt ( alphaG2 * (1 - NdotV2 ) / NdotV2 + 1)) * 0.5 f;
+	// G_SmithGGXCorrelated = 1 / (1 + lambda_v + lambda_l );
+	// V_SmithGGXCorrelated = G_SmithGGXCorrelated / (4.0 f * NdotL * NdotV );
+
+	// This is the optimize version
+	float alphaG2 = alphaG * alphaG;
+
+	// Caution : the " NdotL *" and " NdotV *" are explicitely inversed , this is not a mistake .
+	float Lambda_GGXV = NdotL * sqrt((-NdotV * alphaG2 + NdotV) * NdotV + alphaG2);
+	float Lambda_GGXL = NdotV * sqrt((-NdotL * alphaG2 + NdotL) * NdotL + alphaG2);
+	return 0.5f / (Lambda_GGXV + Lambda_GGXL);
+}
+
+float GGX(float NdotH, float m)
+{
+	float m2 = m * m;
+	float f = (NdotH * m2 - NdotH) * NdotH + 1;
+	return m2 / (f * f) / 3.14159265358979;
+}
+
+// Only used for DiffuseBurleyBRDF
+float3 FresnelSchlick(float3 F0, float F90, float VoH)
+{
+	return F0 + (F90 - F0) * pow(1.f - VoH, 5.f);
+}
+
+// Disney Diffuse (Burley)
+float3 DiffuseBurleyBRDF(float NdotV, float NdotL, float LdotH, float roughness, float3 F0)
+{
+	float linearRoughness = roughness; // TODO
+
+	// Burley
+	float energyBias = lerp(0, 0.5, linearRoughness);
+	float energyFactor = lerp(1.0, 1.0 / 1.51, linearRoughness);
+	float fd90 = energyBias + 2.0 * LdotH * LdotH * linearRoughness;
+	float lightScatter = FresnelSchlick(1.0, fd90, NdotL).r;
+	float viewScatter = FresnelSchlick(1.0, fd90, NdotV).r;
+
+	// Richard's research on how the diffuse will decrease based on surface F0, output is [0,1]
+	float3 diffuseF0Loss = 1 - F0 * (0.530548 * F0 + 0.469452);
+
+	return lightScatter * viewScatter * energyFactor * diffuseF0Loss / 3.14159265358979;
+}
+
+// Traditional specular microfacet brdf extended with indirect micro bounces
+float3 SpecularMicrofacetBRDF(float3 F0, float NoV, float NoL, float NoH, float VoH, float roughness)
+{
+	float3 F = Fresnel(F0, VoH);
+	float Vis = Vis_SmithGGXCorrelated(NoV, NoL, roughness);
+	float D = GGX(NoH, roughness);
+
+	float3 indirectMicroSpecular = 0.0f;// ... Read from 3DLUT(F0, NoL, roughness);
+
+	return D * (F * Vis + indirectMicroSpecular);
+}
+// Standard brdf -> specular + diffuse
+float3 StandardBRDF(float3 F0, float NoV, float NoL, float NoH, float VoH, float roughness)
+{
+	float specular = SpecularMicrofacetBRDF(F0, NoV, NoL, NoH, VoH, roughness);
+	float diffuse = DiffuseBurleyBRDF(NoV, NoL, VoH, roughness, F0);
+
+	return specular + diffuse;
+}
