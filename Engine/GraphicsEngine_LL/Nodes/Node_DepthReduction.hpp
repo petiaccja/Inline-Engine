@@ -44,6 +44,7 @@ protected:
 	std::optional<Binder> m_binder;
 	BindParameter m_depthBindParam;
 	BindParameter m_outputBindParam;
+	ShaderProgram m_shader;
 	std::unique_ptr<gxapi::IPipelineState> m_CSO;
 
 private:

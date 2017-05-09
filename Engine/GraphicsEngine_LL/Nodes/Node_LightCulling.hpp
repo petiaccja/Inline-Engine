@@ -37,6 +37,7 @@ protected:
 	BindParameter m_inputBindParam;
 	BindParameter m_outputBindParam;
 	BindParameter m_uniformsBindParam;
+	ShaderProgram m_shader;
 	std::unique_ptr<gxapi::IPipelineState> m_CSO;
 
 protected: // outputs
@@ -49,7 +50,8 @@ protected: // render context
 	//const EntityCollection<PointLight>* m_lights;
 
 private:
-	uint64_t m_width, m_height;
+	uint64_t m_width = 0;
+	uint64_t m_height = 0;
 	void InitRenderTarget(SetupContext& context);
 };
 

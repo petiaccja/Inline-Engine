@@ -49,6 +49,7 @@ protected:
 	BindParameter m_outputBindParam1;
 	BindParameter m_outputBindParam2;
 	BindParameter m_uniformsBindParam;
+	ShaderProgram m_shader;
 	std::unique_ptr<gxapi::IPipelineState> m_CSO;
 
 protected: // outputs

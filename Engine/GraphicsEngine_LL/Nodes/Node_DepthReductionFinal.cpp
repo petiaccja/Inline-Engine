@@ -137,11 +137,11 @@ void DepthReductionFinal::Setup(SetupContext& context) {
 		ShaderParts shaderParts;
 		shaderParts.cs = true;
 
-		auto shader = context.CreateShader("DepthReductionFinal", shaderParts, "");
+		m_shader = context.CreateShader("DepthReductionFinal", shaderParts, "");
 
 		gxapi::ComputePipelineStateDesc csoDesc;
 		csoDesc.rootSignature = m_binder->GetRootSignature();
-		csoDesc.cs = shader.cs;
+		csoDesc.cs = m_shader.cs;
 
 		m_CSO.reset(context.CreatePSO(csoDesc));
 	}

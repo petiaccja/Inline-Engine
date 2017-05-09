@@ -149,7 +149,7 @@ void CSM::Setup(SetupContext & context) {
 		shaderParts.vs = true;
 		shaderParts.ps = true;
 
-		auto shader = context.CreateShader("CSM", shaderParts, "");
+		m_shader = context.CreateShader("CSM", shaderParts, "");
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
 			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
@@ -161,8 +161,8 @@ void CSM::Setup(SetupContext & context) {
 		psoDesc.inputLayout.elements = inputElementDesc.data();
 		psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
 		psoDesc.rootSignature = m_binder->GetRootSignature();
-		psoDesc.vs = shader.vs;
-		psoDesc.ps = shader.ps;
+		psoDesc.vs = m_shader.vs;
+		psoDesc.ps = m_shader.ps;
 		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
 		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 

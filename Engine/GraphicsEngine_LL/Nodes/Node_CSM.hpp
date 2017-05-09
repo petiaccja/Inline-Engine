@@ -39,6 +39,7 @@ protected:
 	std::optional<Binder> m_binder;
 	BindParameter m_uniformsBindParam;
 	BindParameter m_lightMVPBindParam;
+	ShaderProgram m_shader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 	gxapi::eFormat m_depthStencilFormat;
 
