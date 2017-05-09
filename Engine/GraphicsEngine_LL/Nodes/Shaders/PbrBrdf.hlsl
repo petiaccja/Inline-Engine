@@ -154,7 +154,7 @@ float3 FresnelSchlick(in float3 F0, in float VoH)
 	return F0 + (1 - F0) * pow(1.f - VoH, 5.f);
 }
 
-float Vis_SmithGGXCorrelated(float NdotL, float NdotV, float alphaG)
+float Vis_SmithGGXCorrelated(float NoL, float NoV, float alphaG)
 {
 	// Original formulation of G_SmithGGX Correlated
 	// lambda_v = ( -1 + sqrt ( alphaG2 * (1 - NdotL2 ) / NdotL2 + 1)) * 0.5 f;
@@ -165,9 +165,9 @@ float Vis_SmithGGXCorrelated(float NdotL, float NdotV, float alphaG)
 	// This is the optimize version
 	float alphaG2 = alphaG * alphaG;
 
-	// Caution : the " NdotL *" and " NdotV *" are explicitely inversed , this is not a mistake .
-	float Lambda_GGXV = NdotL * sqrt((-NdotV * alphaG2 + NdotV) * NdotV + alphaG2);
-	float Lambda_GGXL = NdotV * sqrt((-NdotL * alphaG2 + NdotL) * NdotL + alphaG2);
+	// Caution : the " NoL *" and " NdotV *" are explicitely inversed , this is not a mistake .
+	float Lambda_GGXV = NoL * sqrt((-NoV * alphaG2 + NoV) * NoV + alphaG2);
+	float Lambda_GGXL = NoV * sqrt((-NoL * alphaG2 + NoL) * NoL + alphaG2);
 	return 0.5f / (Lambda_GGXV + Lambda_GGXL);
 }
 
@@ -184,22 +184,50 @@ float3 FresnelSchlick(float3 F0, float F90, float VoH)
 	return F0 + (F90 - F0) * pow(1.f - VoH, 5.f);
 }
 
-// Disney Diffuse (Burley)
-float3 DiffuseBurleyBRDF(float NdotV, float NdotL, float LdotH, float roughness, float3 F0)
+// Disney Diffuse (Burley) + Extension
+float3 DiffuseBurleyBRDF(float NoV, float NoL, float VoH, float roughness, float3 F0)
 {
-	float linearRoughness = roughness; // TODO
-
-	// Burley
-	float energyBias = lerp(0, 0.5, linearRoughness);
-	float energyFactor = lerp(1.0, 1.0 / 1.51, linearRoughness);
-	float fd90 = energyBias + 2.0 * LdotH * LdotH * linearRoughness;
-	float lightScatter = FresnelSchlick(1.0, fd90, NdotL).r;
-	float viewScatter = FresnelSchlick(1.0, fd90, NdotV).r;
+	float linearRoughness = sqrt(roughness); // TODO standarize remapping over whole render pipeline
 
 	// Richard's research on how the diffuse will decrease based on surface F0, output is [0,1]
-	float3 diffuseF0Loss = 1 - F0 * (0.530548 * F0 + 0.469452);
+	//float3 diffuseF0Loss = 1 - F0 * (0.530548 * F0 + 0.469452);
 
-	return lightScatter * viewScatter * energyFactor * diffuseF0Loss / 3.14159265358979;
+	// Richard's research
+	// - It will decrease diffuse based on F0
+	// - It will make (burley + specular) integral = 1, diffuse absorption is up to the artist (diffuseTexture)
+	// - input x -> roughness, y -> NoL, z -> F0
+	// - output [0,1]
+	// note 0 - 6% fit error
+	float x = roughness;
+	float y = NoL;
+	float z = F0;
+	float x2 = x * x;
+	float x3 = x2 * x;
+	float x4 = x3 * x;
+	float x5 = x4 * x;
+	float y2 = y * y;
+	float y3 = y2 * y;
+	float y4 = y3 * y;
+	float y5 = y4 * y;
+	float z2 = z * z;
+	float z3 = z2 * z;
+	float z4 = z3 * z;
+	float z5 = z4 * z;
+	float integralCorrection = (2329939 * x5) / 576460752 + (12423 * x4 * y) / 100000 + (13133 * x4 * z) / 50000 - (15207 * x4) / 100000 - (8463 * x3 * y2) / 12500
+		+ (34083 * x3 * y*z) / 50000 + (75425565 * x3 * y) / 1441151880 + (31773 * x3 * z2) / 50000 - (8861 * x3 * z) / 5000 + (13187 * x3) / 25000 - (4219 * x2 * y3) / 25000
+		+ (4701 * x2 * y2 * z) / 25000 + (8937 * x2 * y2) / 5000 + (10513 * x2 * y*z2) / 10000 - (6717 * x2 * y*z) / 2500 - (13603 * x2 * y) / 20000 - (687 * x2 * z3) / 625 - (12511 * x2 * z2) / 50000
+		+ (29259 * x2 * z) / 10000 - (6091 * x2) / 10000 + (10473 * x*y4) / 20000 - (13883 * x*y3 * z) / 20000 - (39719 * x*y3) / 100000 + (16983 * x*y2 * z2) / 20000 + (10001 * x*y2 * z) / 25000
+		- (4593 * x*y2) / 2500 - (15753 * x*y*z3) / 5000 + (10411 * x*y*z2) / 10000 + (2757 * x*y*z) / 1250 + (14559 * x*y) / 10000 - (95639 * x*z4) / 100000 + (23799 * x*z3) / 5000 - (17401 * x*z2) / 5000
+		- (689 * x*z) / 800 - (2789 * x) / 100000 - (33661 * y5) / 100000 - (13423 * y4 * z) / 25000 + (93871 * y4) / 100000 - (65191 * y3 * z2) / 100000 + (2497 * y3 * z) / 1250 - (2677 * y3) / 2500
+		+ (14419 * y2 * z3) / 100000 + (66107 * y2 * z2) / 100000 - (16563 * y2 * z) / 10000 + (16141 * y2) / 25000 - (11263 * y*z4) / 20000 + (29649 * y*z3) / 10000 - (13349 * y*z2) / 5000
+		+ (832427 * y*z) / 18014398 + (194 * y) / 15625 - (82113 * z5) / 100000 + (28727 * z4) / 10000 - (52551 * z3) / 10000 + (35703 * z2) / 10000 - (2797 * z) / 2500 + 85057.0 / 100000.0;
+
+	// Burley
+	float fd90 = 0.5 + 2.0 * VoH * VoH * linearRoughness;
+	float lightScatter = FresnelSchlick(1.0, fd90, NoL).r;
+	float viewScatter = FresnelSchlick(1.0, fd90, NoV).r;
+
+	return lightScatter * viewScatter * integralCorrection / 3.14159265358979;
 }
 
 // Traditional specular microfacet brdf extended with indirect micro bounces
