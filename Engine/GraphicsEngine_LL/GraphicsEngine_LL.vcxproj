@@ -302,6 +302,59 @@
       <FileType>Document</FileType>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Materials\PbrBrdf.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\Blend.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\BlendWithTransform.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\CSM.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\CSMSample.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\DebugDraw.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\DepthPrepass.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\DepthReduction.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\DepthReductionFinal.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\DrawSky.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\ForwardRender.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\GenCSM.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\LightCulling.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\OverlayColored.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\OverlayTextured.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\TiledLighting.hlsl">
+      <FileType>Document</FileType>
+    </None>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

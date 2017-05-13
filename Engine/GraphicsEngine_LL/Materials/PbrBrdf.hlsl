@@ -241,7 +241,8 @@ float3 SpecularMicrofacetBRDF(float3 F0, float NoV, float NoL, float NoH, float 
 
 	return D * (F * Vis + indirectMicroSpecular);
 }
-// Standard brdf -> specular + diffuse
+
+// Standard brdf -> specular + diffuse
 float3 StandardBRDF(float3 F0, float NoV, float NoL, float NoH, float VoH, float roughness)
 {
 	float specular = SpecularMicrofacetBRDF(F0, NoV, NoL, NoH, VoH, roughness);
