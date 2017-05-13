@@ -18,7 +18,7 @@ struct light_data
 {
 	mathfu::VectorPacked<float, 4> vs_position;
 	float attenuation_end;
-	mathfu::VectorPacked<float, 2> dummy;
+	mathfu::VectorPacked<float, 3> dummy;
 };
 
 struct Uniforms
@@ -27,8 +27,8 @@ struct Uniforms
 	mathfu::VectorPacked<float, 4> p[4];
 	mathfu::VectorPacked<float, 4> far_plane0, far_plane1;
 	float cam_near, cam_far;
-	int num_lights;
-	float dummy;
+	uint32_t num_lights, num_workgroups_x, num_workgroups_y;
+	mathfu::VectorPacked<float, 3> dummy;
 };
 
 static void setWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsigned groupSizeH, unsigned& dispatchW, unsigned& dispatchH)
@@ -189,6 +189,12 @@ void LightCulling::Execute(RenderContext& context) {
 	uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrixRH() * mathfu::Vector4f(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1.0f);
 	uniformsCBData.ld[0].attenuation_end = 5.0f;
 
+	uint32_t dispatchW, dispatchH;
+	setWorkgroupSize(m_width, m_height, 16, 16, dispatchW, dispatchH);
+
+	uniformsCBData.num_workgroups_x = dispatchW;
+	uniformsCBData.num_workgroups_y = dispatchH;
+
 	//create single-frame only cb
 	gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb._GetResourcePtr()->SetName("Light culling volatile CB");
@@ -203,8 +209,6 @@ void LightCulling::Execute(RenderContext& context) {
 	commandList.BindCompute(m_inputBindParam, m_depthTexSrv);
 	commandList.BindCompute(m_outputBindParam, m_lightCullDataUAV);
 	commandList.BindCompute(m_uniformsBindParam, cbv);
-	uint32_t dispatchW, dispatchH;
-	setWorkgroupSize(m_width, m_height, 16, 16, dispatchW, dispatchH);
 	commandList.Dispatch(dispatchW, dispatchH, 1);
 	commandList.UAVBarrier(m_lightCullDataUAV.GetResource());
 }

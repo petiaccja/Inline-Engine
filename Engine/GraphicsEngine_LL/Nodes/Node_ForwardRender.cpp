@@ -25,8 +25,32 @@ struct Uniforms
 {
 	light_data ld[10];
 	mathfu::VectorPacked<float, 4> screen_dimensions;
-	mathfu::VectorPacked<float, 4> dummy;
+	int group_size_x, group_size_y;
+	mathfu::VectorPacked<float, 2> dummy;
 };
+
+static void setWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsigned groupSizeH, unsigned& dispatchW, unsigned& dispatchH)
+{
+	//set up work group sizes
+	unsigned gw = 0, gh = 0, count = 1;
+
+	while (gw < w)
+	{
+		gw = groupSizeW * count;
+		count++;
+	}
+
+	count = 1;
+
+	while (gh < h)
+	{
+		gh = groupSizeH * count;
+		count++;
+	}
+
+	dispatchW = unsigned(float(gw) / groupSizeW);
+	dispatchH = unsigned(float(gh) / groupSizeH);
+}
 
 static bool CheckMeshFormat(const Mesh& mesh) {
 	for (size_t i = 0; i < mesh.GetNumStreams(); i++) {
@@ -356,6 +380,12 @@ void ForwardRender::Execute(RenderContext& context) {
 		uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrixRH() * mathfu::Vector4f(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1.0f);
 		uniformsCBData.ld[0].attenuation_end = mathfu::Vector4f(5.0f, 0, 0, 0);
 		uniformsCBData.ld[0].diffuse_color = mathfu::Vector4f(1, 0, 0, 1);
+
+		uint32_t dispatchW, dispatchH;
+		setWorkgroupSize(m_rtv.GetResource().GetWidth(), m_rtv.GetResource().GetHeight(), 16, 16, dispatchW, dispatchH);
+
+		uniformsCBData.group_size_x = dispatchW;
+		uniformsCBData.group_size_y = dispatchH;
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 600), &uniformsCBData, sizeof(uniformsCBData));
 

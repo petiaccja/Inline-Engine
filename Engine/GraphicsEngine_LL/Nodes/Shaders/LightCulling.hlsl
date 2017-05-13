@@ -11,7 +11,7 @@ struct light_data
 {
 	float4 vs_position;
 	float attenuation_end;
-	float2 dummy;
+	float3 dummy;
 };
 
 struct Uniforms
@@ -20,8 +20,8 @@ struct Uniforms
 	float4x4 p;
 	float4 far_plane0, far_plane1;
 	float cam_near, cam_far; 
-	int num_lights;
-	float dummy;
+	uint num_lights, num_workgroups_x, num_workgroups_y;
+	float3 dummy;
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
@@ -228,15 +228,18 @@ void CSMain(
 		}
 	}
 
+	localLights[localNumLightsOutput] = int(0);
+	localNumLightsOutput = 1;
+
 	GroupMemoryBarrierWithGroupSync(); //local memory barrier
 
 	if (groupIndex == 0)
 	{
-		outputTex0[int2(groupId.x * LOCAL_SIZE_Y + groupId.y, 0)] = uint(localNumLightsOutput);
+		outputTex0[int2(groupId.x * uniforms.num_workgroups_y + groupId.y, 0)] = uint(localNumLightsOutput);
 	}
 
 	for (uint c = groupIndex; c < localNumLightsOutput; c += LOCAL_SIZE_X * LOCAL_SIZE_Y)
 	{
-		outputTex0[int2(groupId.x * LOCAL_SIZE_Y + groupId.y, c + 1)] = uint(localLights[c]);
+		outputTex0[int2(groupId.x * uniforms.num_workgroups_y + groupId.y, c + 1)] = uint(localLights[c]);
 	}
 }
