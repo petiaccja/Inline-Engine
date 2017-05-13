@@ -38,8 +38,6 @@ enum class eGuiOrientation
 	HORIZONTAL,
 };
 
-
-
 class GuiEngine;
 class Gui;
 class GuiText;
@@ -49,6 +47,10 @@ class GuiSlider;
 class GuiCollapsable;
 class GuiSplitter;
 class GuiMenu;
+class GuiImage;
+
+
+
 
 class Gui
 {
@@ -58,9 +60,6 @@ public:
 	Gui(GuiEngine* guiEngine);
 	Gui(GuiEngine* guiEngine, bool bLayer);
 	Gui(const Gui& other) { *this = other; }
-
-	void InitFromImage(const std::wstring& idleImagePath, const std::wstring& hoverImagePath);
-	void InitFromImage(const std::string& idleImagePath, const std::string& hoverImagePath) { InitFromImage(std::wstring(idleImagePath.begin(), idleImagePath.end()), std::wstring(hoverImagePath.begin(), hoverImagePath.end())); }
 
 	virtual ~Gui() { Clear(); }
 	void Clear();
@@ -79,6 +78,7 @@ public:
 	GuiSlider*		AddSlider();
 	GuiCollapsable* AddCollapsable();
 	GuiSplitter*	AddSplitter();
+	GuiImage*		AddImage();
 
 	void BringToFront();
 
@@ -208,18 +208,19 @@ public:
 	void AlignHorCenter() { AlignHor(eGuiAlignHor::CENTER); }
 	void AlignVerCenter() { AlignVer(eGuiAlignVer::CENTER); }
 
-	void SetBgImageVisibility(bool bVisible) { bBgImageVisible = bVisible; }
-	void SetBgColorVisibility(bool bVisible) { bBgColorVisible = bVisible; }
+	void SetBgImageVisible(bool bVisible) { bBgImageVisible = bVisible; }
+	void SetBgColorVisible(bool bVisible) { bBgColorVisible = bVisible; }
 
-	void HideBgImage() { SetBgImageVisibility(false); }
-	void HideBgColor() { SetBgColorVisibility(false); }
+	void HideBgImage() { SetBgImageVisible(false); }
+	void HideBgColor() { SetBgColorVisible(false); }
 
-	void ShowBgImage() { SetBgImageVisibility(true); }
-	void ShowBgColor() { SetBgColorVisibility(true); }
+	void ShowBgImage() { SetBgImageVisible(true); }
+	void ShowBgColor() { SetBgColorVisible(true); }
 
 	void SetHoverable(bool b) { bHoverable = b; }
 	void EnableHover() { SetHoverable(true); for (auto& c : GetChildren())c->SetHoverable(true); }
 	void DisableHover() { SetHoverable(false); for (auto& c : GetChildren())c->SetHoverable(false);	}
+	void DisableChildrenHover() { for (auto& child : GetChildren()) child->DisableHover(); }
 
 	void SetBgFreeze(bool b) { bBgFreezed = b; }
 	void FreezeBg() { SetBgFreeze(true); }

@@ -1,52 +1,58 @@
 #pragma once
-#include "LayoutedGui.hpp"
+#include "GuiLayouted.hpp"
 #include "GuiText.hpp"
 #include "GuiButton.hpp"
 #include "GuiList.hpp"
 #include "GuiSlider.hpp"
 #include "GuiCollapsable.hpp"
 #include "GuiSplitter.hpp"
+#include "GuiImage.hpp"
 
 using namespace inl::gui;
 
-Gui* LayoutedGui::AddItemGui()
+Gui* GuiLayouted::AddItemGui()
 {
 	return AddItem<Gui>();
 }
 
-GuiText* LayoutedGui::AddItemText()
+GuiText* GuiLayouted::AddItemText()
 {
 	return AddItem<GuiText>();
 }
 
-GuiButton* LayoutedGui::AddItemButton(const std::string& text /*= ""*/)
+GuiButton* GuiLayouted::AddItemButton(const std::string& text /*= ""*/)
 {
 	GuiButton* btn = AddItem<GuiButton>();
 	btn->SetText(text);
 	return btn;
 }
 
-GuiList* LayoutedGui::AddItemList()
+GuiList* GuiLayouted::AddItemList()
 {
 	return AddItem<GuiList>();
 }
 
-GuiSlider* LayoutedGui::AddItemSlider()
+GuiSlider* GuiLayouted::AddItemSlider()
 {
 	return AddItem<GuiSlider>();
 }
 
-GuiCollapsable* LayoutedGui::AddItemCollapsable()
+GuiCollapsable* GuiLayouted::AddItemCollapsable()
 {
 	return AddItem<GuiCollapsable>();
 }
 
-GuiSplitter* LayoutedGui::AddItemSplitter()
+GuiSplitter* GuiLayouted::AddItemSplitter()
 {
 	return AddItem<GuiSplitter>();
 }
 
-Gui* LayoutedGui::AddItemSeparatorHor()
+GuiImage* GuiLayouted::AddItemImage()
+{
+	return AddItem<GuiImage>();
+}
+
+Gui* GuiLayouted::AddItemSeparatorHor()
 {
 	Gui* btn = AddItemGui();
 	btn->SetSize(1, 1);

@@ -21,6 +21,14 @@ LRESULT CALLBACK WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 		window = reinterpret_cast<Window*>(GetWindowLongPtr(handle, -21));
 	}
 
+	auto userWndProc = window ? window->GetUserWndProc() : nullptr;
+
+	LRESULT res;
+	if (userWndProc)
+		res = window->GetUserWndProc()(handle, msg, wParam, lParam);
+	else
+		res = DefWindowProc(handle, msg, wParam, lParam);
+
 	if (msg == WM_SIZE)
 	{
 		int x = GET_X_LPARAM(lParam);
@@ -31,12 +39,7 @@ LRESULT CALLBACK WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 		window->onClientSizeChanged(Vector2u(clientRect.right - clientRect.left, clientRect.bottom - clientRect.top));
 	}
 
-	auto userWndProc = window ? window->GetUserWndProc() : nullptr;
-
-	if (userWndProc)
-		return window->GetUserWndProc()(handle, msg, wParam, lParam);
-	else
-		return DefWindowProc(handle, msg, wParam, lParam);
+	return res;
 }
 
 Window::Window(const WindowDesc& d)
@@ -283,7 +286,7 @@ void Window::SetPos(const Vector2i& pos)
 	SetWindowPos(handle, HWND_TOP, pos.x(), pos.y(), rect.right - rect.left, rect.bottom - rect.top, 0);
 }
 
-void Window::SetRect(const Vector2i& pos, const Vector2i& size)
+void Window::SetRect(const Vector2i& pos, const Vector2u& size)
 {
 	SetWindowPos(handle, HWND_TOP, pos.x(), pos.y(), size.x(), size.y(), 0);
 }
@@ -299,6 +302,21 @@ void Window::SetTitle(const std::string& text)
 {
 	std::wstring str(text.begin(), text.end());
 	SetWindowText(handle, str.c_str());
+}
+
+void Window::SetIcon(const std::wstring& filePath)
+{
+	HANDLE hIcon = LoadImage(0, filePath.c_str(), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
+	if (hIcon)
+	{
+		//Change both icons to the same icon handle.
+		SendMessage((HWND)GetHandle(), WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+		SendMessage((HWND)GetHandle(), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+
+		//This will ensure that the application icon gets changed too.
+		SendMessage(GetWindow((HWND)GetHandle(), GW_OWNER), WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+		SendMessage(GetWindow((HWND)GetHandle(), GW_OWNER), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+	}
 }
 
 bool Window::IsOpen() const

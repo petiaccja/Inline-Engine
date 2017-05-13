@@ -44,7 +44,7 @@ protected:
 	GuiLayer* mainLayer;
 
 	Gui* captionBar;
-	GuiButton* minimizeBtn;
-	GuiButton* maximizeBtn;
-	GuiButton* closeBtn;
+	GuiImage* minimizeBtn;
+	GuiImage* maximizeBtn;
+	GuiImage* closeBtn;
 };

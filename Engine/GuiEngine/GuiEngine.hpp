@@ -8,6 +8,7 @@
 #include "GuiList.hpp"
 #include "GuiSlider.hpp"
 #include "GuiSplitter.hpp"
+#include "GuiImage.hpp"
 #include "GuiMenu.h"
 
 #include <vector>

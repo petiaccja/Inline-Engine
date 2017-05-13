@@ -10,8 +10,9 @@ GuiText::GuiText(GuiEngine* guiEngine)
 	SetFontSize(12);
 	SetFontStyle(Gdiplus::FontStyle::FontStyleRegular);
 
-	HideBgImage();
-	HideBgColor();
+	SetBgToColor(Color(0, 0, 0, 0));
+	//HideBgImage();
+	//HideBgColor();
 
 	onPaintClonable += [](Gui* self_, Gdiplus::Graphics* graphics)
 	{

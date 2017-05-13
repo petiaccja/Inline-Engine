@@ -38,11 +38,12 @@ public:
 	void RestoreSize();
 
 
-	void SetRect(const Vector2i& pos, const Vector2i& size);
+	void SetRect(const Vector2i& pos, const Vector2u& size);
 	void SetPos(const Vector2i& pos);
 	void SetSize(const Vector2u& size);
 
 	void SetTitle(const std::string& text);
+	void SetIcon(const std::wstring& filePath);
 
 	// Getters
 	bool IsOpen() const;

@@ -261,12 +261,6 @@ Gui& Gui::operator = (const Gui& other)
 	return *this;
 }
 
-void Gui::InitFromImage(const std::wstring& idleImagePath, const std::wstring& hoverImagePath)
-{
-	SetBgToImage(idleImagePath, hoverImagePath);
-	SetSize(Vector2f(GetBgIdleImage()->GetWidth(), GetBgIdleImage()->GetHeight()));
-}
-
 void Gui::Add(Gui* child, bool bFireEvents)
 {
 	if (child->parent)
@@ -447,6 +441,8 @@ void Gui::SetContentRect(float x, float y, float width, float height, bool bFire
 
 void Gui::SetBgIdleImage(const std::wstring& str)
 {
+	assert(std::experimental::filesystem::exists(str)); // File doesn't exists
+
 	Gdiplus::Bitmap* newBitmap = new Gdiplus::Bitmap(str.c_str());
 
 	if (bgIdleImage == GetBgActiveImage())
@@ -922,6 +918,13 @@ GuiCollapsable* Gui::AddCollapsable()
 GuiSplitter* Gui::AddSplitter()
 {
 	GuiSplitter* p = new GuiSplitter(guiEngine);
+	Add(p);
+	return p;
+}
+
+GuiImage* Gui::AddImage()
+{
+	GuiImage* p = new GuiImage(guiEngine);
 	Add(p);
 	return p;
 }

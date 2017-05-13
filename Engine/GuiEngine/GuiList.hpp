@@ -1,10 +1,10 @@
 #pragma once
 #include <BaseLibrary\Common_tmp.hpp>
-#include "LayoutedGui.hpp"
+#include "GuiLayouted.hpp"
 
 namespace inl::gui {
 
-class GuiList : public LayoutedGui
+class GuiList : public GuiLayouted
 {
 public:
 	GuiList(GuiEngine* guiEngine);
@@ -16,6 +16,9 @@ public:
 	virtual void AddItem(Gui* gui) override { Add(gui); }
 	virtual bool RemoveItem(Gui* gui) override { return Remove(gui); }
 	virtual std::vector<Gui*> GetItems() override { return GetChildren(); };
+
+	void MakeVertical() { SetOrientation(eGuiOrientation::VERTICAL); }
+	void MakeHorizontal() { SetOrientation(eGuiOrientation::HORIZONTAL); }
 
 	void SetOrientation(eGuiOrientation dir);
 	eGuiOrientation GetOrientation() { return orientation; }

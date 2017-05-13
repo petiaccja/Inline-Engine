@@ -9,13 +9,13 @@ Editor::Editor()
 
 	// Create main window for Editor
 	WindowDesc d;
-	d.clientSize = Vector2u(800, 600);
+	d.clientSize = Sys::GetScreenSize();
 	d.style = eWindowStyle::DEFAULT;
 	d.userWndProc = std::bind(&Editor::WndProc, this, _1, _2, _3, _4);
 	wnd = new Window(d);
 
 	// Create secondary window for GAME inside Editor
-	d.clientSize = Vector2u(150, 150);
+	d.clientSize = Vector2u(100, 100); // Size doesn't matter, splitter will modify it's size
 	d.style = eWindowStyle::BORDERLESS;
 	d.userWndProc = nullptr;
 	gameWnd = new Window(d);
@@ -26,7 +26,7 @@ Editor::Editor()
 	SetParent(gameHwnd, editorHwnd);
 
 	// Resize window, non client area removal made it's size wrong
-	wnd->SetRect({ 0,0 }, { 800, 600 });
+	wnd->SetRect({ 0,0 }, Sys::GetScreenSize());
 
 	//DWORD style = GetWindowLong(b, GWL_STYLE); //get the b style
 	//style &= ~(WS_POPUP | WS_CAPTION); //reset the "caption" and "popup" bits
@@ -50,27 +50,17 @@ Editor::Editor()
 	// Init Gui
 	InitGui();
 
-	HANDLE hIcon = LoadImage(0, L"InlineEngineLogo.ico", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
-	if (hIcon)
-	{
-		//Change both icons to the same icon handle.
-		SendMessage((HWND)wnd->GetHandle(), WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-		SendMessage((HWND)wnd->GetHandle(), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-
-		//This will ensure that the application icon gets changed too.
-		SendMessage(GetWindow((HWND)wnd->GetHandle(), GW_OWNER), WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-		SendMessage(GetWindow((HWND)wnd->GetHandle(), GW_OWNER), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-	}
+	wnd->SetIcon(L"InlineEngineLogo.ico");
 }
 
 Editor::~Editor()
 {
+	delete world;
 	delete core;
 	
 	wnd->Close();
 	delete wnd;
 	delete gameWnd;
-	delete world;
 }
 
 void Editor::InitGui()
@@ -95,9 +85,9 @@ void Editor::InitGui()
 	// Minimize, Maximize, Close btn
 	GuiList* minMaxCloseList = mainLayer->AddList();
 	minMaxCloseList->StretchFitToChildren();
-	minimizeBtn = mainLayer->AddButton();
-	maximizeBtn = mainLayer->AddButton();
-	closeBtn = mainLayer->AddButton();
+	minimizeBtn = mainLayer->AddImage();
+	maximizeBtn = mainLayer->AddImage();
+	closeBtn = mainLayer->AddImage();
 
 	minimizeBtn->onMouseClicked += [this](CursorEvent& evt) { wnd->MinimizeSize(); };
 	maximizeBtn->onMouseClicked += [this](CursorEvent& evt)
@@ -109,9 +99,9 @@ void Editor::InitGui()
 	};
 	closeBtn->onMouseClicked += [this](CursorEvent& evt) { wnd->Close(); };
 
-	minimizeBtn->InitFromImage("Resources/minimize.png", "Resources/minimize_h.png");
-	maximizeBtn->InitFromImage("Resources/maximize.png", "Resources/maximize_h.png");
-	closeBtn->InitFromImage("Resources/close.png", "Resources/close_h.png");
+	minimizeBtn->SetImages("Resources/minimize.png", "Resources/minimize_h.png");
+	maximizeBtn->SetImages("Resources/maximize.png", "Resources/maximize_h.png");
+	closeBtn->SetImages("Resources/close.png", "Resources/close_h.png");
 
 	minMaxCloseList->SetOrientation(eGuiOrientation::HORIZONTAL);
 	minMaxCloseList->Add(minimizeBtn);
@@ -207,8 +197,8 @@ void Editor::InitGui()
 	mainLayout->Add(menuBar);
 
 	GuiSplitter* split0 = mainLayer->AddSplitter(); // split main
-	GuiSplitter* split1 = mainLayer->AddSplitter(); // split main left to top, bottom
-	GuiSplitter* split2 = mainLayer->AddSplitter(); // split main left-top to left, right
+	GuiSplitter* split1 = mainLayer->AddSplitter(); // split main left to (top, bottom)
+	GuiSplitter* split2 = mainLayer->AddSplitter(); // split main left-top to (left, right)
 	split0->Stretch(eGuiStretch::FILL_PARENT_POSITIVE_DIR, eGuiStretch::FILL_PARENT_POSITIVE_DIR);
 	split1->StretchFillParent();
 	split2->StretchFillParent();
@@ -218,23 +208,24 @@ void Editor::InitGui()
 	split2->SetOrientation(eGuiOrientation::HORIZONTAL);
 
 	split0->SetSize(400, 400);
-	split1->SetSize(200, 400);
+	split1->SetSize(750, 400);
+	split2->SetSize(750, 300);
 
-	Gui* area0 = mainLayer->AddButton();
-	Gui* area1 = mainLayer->AddButton();
-	Gui* area2 = mainLayer->AddButton();
-	Gui* area3 = mainLayer->AddButton();
-	area0->SetSize(100, 100);
-	area0->SetBgToColor(Color(35));
-	area1->SetSize(100, 100);
-	area1->SetBgToColor(Color(35));
-	area2->SetSize(100, 100);
-	area2->SetBgToColor(Color(35));
-	area3->SetSize(100, 100);
-	area3->SetBgToColor(Color(0));
-	area3->StretchFillParent();
+	Gui* rightArea = mainLayer->AddButton();
+	Gui* bottomArea = mainLayer->AddButton();
+	Gui* leftArea = mainLayer->AddButton();
+	Gui* centerRenderArea = mainLayer->AddButton();
+	rightArea->SetSize(150, 100);
+	rightArea->SetBgToColor(Color(35));
+	bottomArea->SetSize(100, 100);
+	bottomArea->SetBgToColor(Color(35));
+	leftArea->SetSize(30, 100);
+	leftArea->SetBgToColor(Color(35));
+	centerRenderArea->SetSize(100, 100);
+	centerRenderArea->SetBgToColor(Color(0));
+	centerRenderArea->StretchFillParent();
 
-	area3->onSizeChangedClonable += [this](Gui* self, Vector2f size)
+	centerRenderArea->onSizeChangedClonable += [this](Gui* self, Vector2f size)
 	{
 		HWND gameHwnd = (HWND)gameWnd->GetHandle();
 		HWND editorHwnd = (HWND)this->wnd->GetHandle();
@@ -247,22 +238,21 @@ void Editor::InitGui()
 		world->SetAspectRatio((float)width / (float(height)));
 	};
 
-	area0->StretchFillParent();
-	area1->StretchFillParent();
-	area2->StretchFillParent();
+	rightArea->StretchFillParent();
+	bottomArea->StretchFillParent();
+	leftArea->StretchFillParent();
 
 	// Split main area to left and right
-	menuBar->RefreshLayout();
 	split0->SetPos(menuBar->GetPosBottomLeft());
 
 	split0->AddItem(split1);
-	split0->AddItem(area0);
+	split0->AddItem(rightArea);
 
 	split1->AddItem(split2);
-	split1->AddItem(area1);
+	split1->AddItem(bottomArea);
 
-	split2->AddItem(area2);
-	split2->AddItem(area3);
+	split2->AddItem(leftArea);
+	split2->AddItem(centerRenderArea);
 	mainLayout->Add(split0);
 
 	for (auto& splitter : { split0, split1, split2 })
@@ -270,10 +260,35 @@ void Editor::InitGui()
 		for (auto& separator : splitter->GetSeparators())
 		{
 			if (splitter->GetOrientation() == eGuiOrientation::HORIZONTAL)
-				separator->SetBorder(1, 0, 1, 0, Color(0));
+				separator->SetBorder(1, 1, 0, 0, Color::BLACK);
 			else
-				separator->SetBorder(0, 1, 0, 1, Color(0));
+				separator->SetBorder(0, 0, 1, 1, Color::BLACK);
 		}
+	}
+
+	GuiList* textureList = bottomArea->AddList();
+	textureList->SetBgToColor(Color(0, 0, 0, 0));
+	textureList->SetOrientation(eGuiOrientation::HORIZONTAL);
+	textureList->StretchFitToChildren();
+
+	for (int i = 0; i < 50; ++i)
+	{
+		GuiList* content = textureList->AddItemList();
+		content->StretchFitToChildren();
+		content->MakeVertical();
+		content->SetSize(70, 100);
+		content->SetBgToColor(Color(0,0,0,0), Color(65));
+		GuiImage* img0 = content->AddItemImage();
+		img0->SetMargin(4, 4, 4, 0);
+		img0->SetImage("Resources/normal.jpg");
+		img0->SetSize(70, 70);
+
+		GuiText* text0 = content->AddText();
+		text0->StretchFitToChildren();
+		text0->AlignHorCenter();
+		text0->SetMargin(4);
+		text0->SetText("normal");
+		content->DisableChildrenHover();
 	}
 }
 
@@ -380,16 +395,16 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			if (wParam == SIZE_MAXIMIZED)
 			{
-				maximizeBtn->InitFromImage("Resources/restore.png", "Resources/restore_h.png");
+				maximizeBtn->SetImages("Resources/restore.png", "Resources/restore_h.png");
 				bWndMaximized = true;
 			}
 			else if (wParam == SIZE_RESTORED)
 			{
-				maximizeBtn->InitFromImage("Resources/maximize.png", "Resources/maximize_h.png");
+				maximizeBtn->SetImages("Resources/maximize.png", "Resources/maximize_h.png");
+				
 				bWndMaximized = false;
 			}
 		}
-
 
 		break;
 	}

@@ -38,13 +38,16 @@
     <ClInclude Include="Gui.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LayoutedGui.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GuiSplitter.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GuiMenu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GuiImage.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GuiLayouted.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -64,9 +67,6 @@
     <ClCompile Include="GuiText.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="LayoutedGui.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GuiSplitter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -80,6 +80,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GuiMenu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GuiImage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GuiLayouted.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -4,7 +4,7 @@
 using namespace inl::gui;
 
 GuiSplitter::GuiSplitter(GuiEngine* guiEngine)
-:LayoutedGui(guiEngine), orientation(eGuiOrientation::HORIZONTAL), separatorLength(8)
+:GuiLayouted(guiEngine), orientation(eGuiOrientation::HORIZONTAL), separatorLength(8)
 {
 	SetBgColorForAllStates(GetBgIdleColor());
 }
@@ -19,8 +19,7 @@ bool GuiSplitter::RemoveItem(Gui* gui)
 	std::vector<Gui*>& children = GetChildren();
 
 	if (bRemoved && children.size() > 0)
-	{
-		
+	{	
 		Gui* separator;
 		if (bGuiIdxInParent == 0)						// First item removed, remove separator to the right
 			separator = children[bGuiIdxInParent];
@@ -108,7 +107,7 @@ Vector2f GuiSplitter::ArrangeChildren(const Vector2f& finalSize)
 	return selfSize;
 }
 
-void GuiSplitter::AddItem(Gui* gui)
+void GuiSplitter::AddItem(Gui* item)
 {
 	if (items.size() > 0)
 	{
@@ -160,8 +159,8 @@ void GuiSplitter::AddItem(Gui* gui)
 
 				Vector2f deltaMouse = evt.cursorPos - mousePosWhenPressed;
 				
-				Gui* leftItem = splitter->GetChild(separatorSaved->GetIndexInParent() - 1);
-				Gui* rightItem = splitter->GetChild(separatorSaved->GetIndexInParent() + 1);
+				Gui* leftContainer = splitter->GetChild(separatorSaved->GetIndexInParent() - 1);
+				Gui* rightContainer = splitter->GetChild(separatorSaved->GetIndexInParent() + 1);
 
 				Vector2f deltaMove;
 				if (splitter->GetOrientation() == eGuiOrientation::HORIZONTAL)
@@ -171,13 +170,11 @@ void GuiSplitter::AddItem(Gui* gui)
 				
 				// - TODO cursor goes outside of splitter gui, clamp size increase
 				// - TODO separator collides with other separator, clamp
+				leftContainer->SetSize(Vector2f::Max(Vector2f(0,0), prevItemOrigSize + deltaMove));
+				rightContainer->SetSize(Vector2f::Max(Vector2f(0, 0), nextItemOrigSize - deltaMove));
 
-				leftItem->SetSize(Vector2f::Max(Vector2f(0,0), prevItemOrigSize + deltaMove));
-				rightItem->SetSize(Vector2f::Max(Vector2f(0, 0), nextItemOrigSize - deltaMove));
-
-				// TODO Enélkül flick meg késés, ez így nem normális TODO !!!!!!!!
-				leftItem->RefreshLayout();
-				rightItem->RefreshLayout();
+				leftContainer->RefreshLayout();
+				rightContainer->RefreshLayout();
 			}
 		};
 
@@ -207,8 +204,9 @@ void GuiSplitter::AddItem(Gui* gui)
 	// Gui Container wrapping our item, sizing and align policy will work relative to this container :)
 	Gui* container = AddGui();
 	container->DisableHover();
-	container->Add(gui);
-	items.insert(gui);
+	container->Add(item);
+	container->SetSize(item->GetSize());
+	items.insert(item);
 }
 
 void GuiSplitter::SetOrientation(eGuiOrientation orientation)
