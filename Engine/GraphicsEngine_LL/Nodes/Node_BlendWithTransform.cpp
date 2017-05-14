@@ -166,10 +166,6 @@ void BlendWithTransform::Execute(RenderContext& context) {
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
-	unsigned vbSize = (unsigned)m_fsq.GetSize();
-	unsigned vbStride = 2 * sizeof(float);
-
 	mathfu::VectorPacked<float, 4> transformPacked[4];
 
 	m_transfrom.Pack(transformPacked);
@@ -178,6 +174,12 @@ void BlendWithTransform::Execute(RenderContext& context) {
 
 	commandList.SetResourceState(const_cast<Texture2D&>(m_blendSrc.GetResource()), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.BindGraphics(m_tex0Param, m_blendSrc);
+
+	assert(m_fsq.HasObject());
+
+	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
+	unsigned vbSize = (unsigned)m_fsq.GetSize();
+	unsigned vbStride = 2 * sizeof(float);
 
 	commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
 	commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
