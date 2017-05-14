@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+This software is distributed under The Unlicense.
+For more information, please refer to <http://unlicense.org/>
+-->
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  
+  <Type Name="mathter::Vector&lt;*&gt;">
+    <DisplayString Condition="$T2==1">[{*data}]</DisplayString>
+    <DisplayString Condition="$T2==2">[{*data}, {*(data+1)}]</DisplayString>
+    <DisplayString Condition="$T2==3">[{*data}, {*(data+1)}, {*(data+2)}]</DisplayString>
+    <DisplayString Condition="$T2==4">[{*data}, {*(data+1)}, {*(data+2)}, {*(data+3)}]</DisplayString>
+    <DisplayString Condition="$T2&gt;4">dim={$T2}  [{*data}, {*(data+1)}, ..., {*(data+$T2-1)}]</DisplayString>
+    <Expand>
+      <Item Name="[dimension]" ExcludeView="simple">$T2</Item>
+      <ArrayItems>
+        <Size>$T2</Size>
+        <ValuePointer>data</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+  
+  <Type Name="mathter::Matrix&lt;*&gt;">
+    <DisplayString>{{rows={$T2}, columns={$T3}}}</DisplayString>
+    <Expand>
+      <Item Name="[rows]" ExcludeView="simple">$T2</Item>
+      <Item Name="[columns]" ExcludeView="simple">$T3</Item>
+      <ArrayItems Condition="$T5==0">
+        <Size>$T2</Size>
+        <ValuePointer>stripes</ValuePointer>
+      </ArrayItems>
+      <ArrayItems Condition="$T5==1">
+        <Size>$T3</Size>
+        <ValuePointer>stripes</ValuePointer>
+      </ArrayItems>
+    </Expand>
+  </Type>
+
+  <Type Name="mathter::Hyperplane&lt;*&gt;">
+    <DisplayString Condition="$T2==3">{normal.x} x + {normal.y} y + {normal.z} z = {scalar}</DisplayString>
+    <DisplayString Condition="$T2==2">{normal.x} x + {normal.y} y = {scalar}</DisplayString>
+    <Expand>
+      <Item Name="[normal]">normal</Item>
+      <Item Name="[scalar]">scalar</Item>
+    </Expand>
+  </Type> 
+  <Type Name="mathter::Line&lt;*&gt;">
+    <DisplayString>[v] = {base} + {direction} t</DisplayString>
+  </Type>
+</AutoVisualizer>
