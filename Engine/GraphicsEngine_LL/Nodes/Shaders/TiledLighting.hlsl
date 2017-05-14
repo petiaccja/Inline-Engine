@@ -11,6 +11,7 @@ struct Uniforms
 {
 	light_data ld[10];
 	float4 screen_dimensions;
+	float4 vs_cam_pos;
 	int group_size_x, group_size_y;
 	float2 dummy;
 };
@@ -64,6 +65,8 @@ float3 get_tiled_lighting(float4 sv_position, //gl_FragCoord
 
 	uint local_num_of_lights = lightCullData.Load(int3(group_id.x * uniforms.group_size_y + group_id.y, 0, 0));
 
+	float vs_view_dir = normalize(uniforms.vs_cam_pos - vs_pos);
+
 	float3 color = float3(0, 0, 0);
 	for (uint c = 0; c < local_num_of_lights; ++c)
 	{
@@ -82,7 +85,16 @@ float3 get_tiled_lighting(float4 sv_position, //gl_FragCoord
 		{
 			float n_dot_l = max(dot(vs_normal, light_dir), 0.0);
 
-			color += (n_dot_l * attenuation) * (diffuse_color.xyz * 10.0 * albedo.xyz); //TODO: shadow
+			//color += (n_dot_l * attenuation) * (diffuse_color.xyz * 10.0 * albedo.xyz); //TODO: shadow
+
+			color += getCookTorranceBRDF(albedo.xyz,
+										 vs_normal,
+										 vs_view_dir,
+									     light_dir,
+										 diffuse_color.xyz * attenuation * 10.0, //TODO: shadow
+										 1.0, //TODO roughness
+										 0.0, //TODO metalness
+										);
 		}
 	}
 

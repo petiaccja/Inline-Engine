@@ -25,6 +25,7 @@ struct Uniforms
 {
 	light_data ld[10];
 	mathfu::VectorPacked<float, 4> screen_dimensions;
+	mathfu::VectorPacked<float, 4> vs_cam_pos;
 	int group_size_x, group_size_y;
 	mathfu::VectorPacked<float, 2> dummy;
 };
@@ -380,6 +381,7 @@ void ForwardRender::Execute(RenderContext& context) {
 		uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrixRH() * mathfu::Vector4f(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1.0f);
 		uniformsCBData.ld[0].attenuation_end = mathfu::Vector4f(5.0f, 0, 0, 0);
 		uniformsCBData.ld[0].diffuse_color = mathfu::Vector4f(1, 0, 0, 1);
+		uniformsCBData.vs_cam_pos = m_camera->GetViewMatrixRH() * mathfu::Vector4f(m_camera->GetPosition(), 1.0f);
 
 		uint32_t dispatchW, dispatchH;
 		setWorkgroupSize(m_rtv.GetResource().GetWidth(), m_rtv.GetResource().GetHeight(), 16, 16, dispatchW, dispatchH);

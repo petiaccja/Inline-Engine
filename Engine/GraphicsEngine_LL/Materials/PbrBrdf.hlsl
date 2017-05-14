@@ -77,7 +77,7 @@ float3 FresnelSchlick(float cosTheta,	//dot product of surface normal and view d
 					)
 {
 	float tmp = 1.0 - cosTheta;
-	float tmp2 = tmp * tmp;
+	float tmp2 = tmp * tmp;  
 	return F0 + (1.0 - F0) * (tmp2 * tmp2 * tmp);
 }
 
