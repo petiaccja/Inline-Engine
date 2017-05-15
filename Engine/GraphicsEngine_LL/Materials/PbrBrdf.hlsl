@@ -250,3 +250,12 @@ float3 StandardBRDF(float3 F0, float NoV, float NoL, float NoH, float VoH, float
 
 	return specular + diffuse;
 }
+
+
+// Ha ezt kitöltitek akkor berakom a materialt
+float4 main(float4 Diffuse, float Roughness, float Metallicity, float AmbientOcclusion)
+{
+    
+
+    return float4(0, 0, 0, 1);
+}
