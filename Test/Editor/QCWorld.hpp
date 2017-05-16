@@ -5,7 +5,7 @@
 #include <GraphicsEngine_LL/Image.hpp>
 #include <GraphicsEngine_LL/MeshEntity.hpp>
 #include <GraphicsEngine_LL/Scene.hpp>
-#include <GraphicsEngine_LL/Camera.hpp>
+#include <GraphicsEngine_LL/PerspectiveCamera.hpp>
 #include <GraphicsEngine_LL/DirectionalLight.hpp>
 
 
@@ -50,6 +50,6 @@ private:
 	inl::gxeng::DirectionalLight m_sun;
 
 	// Scenes
-	std::unique_ptr<inl::gxeng::Camera> m_camera;
+	std::unique_ptr<inl::gxeng::PerspectiveCamera> m_camera;
 	std::unique_ptr<inl::gxeng::Scene> m_worldScene;
 };

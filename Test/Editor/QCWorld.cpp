@@ -21,8 +21,8 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	//m_sun.SetDirection({ 0.8f, -0.7f, -0.15f });
 	m_sun.SetColor({1.0f, 0.9f, 0.85f});
 	m_sun.SetDirection({ 0.8f, -0.7f, -0.9f });
-	m_worldScene->SetSun(&m_sun);
-	m_camera.reset(m_graphicsEngine->CreateCamera("WorldCam"));
+	m_worldScene->GetDirectionalLights().Add(&m_sun);
+	m_camera.reset(m_graphicsEngine->CreatePerspectiveCamera("WorldCam"));
 	m_camera->SetTargeted(true);
 	m_camera->SetTarget({ 0, 0, 0 });
 	m_camera->SetPosition({ 0, -8, 3 });
