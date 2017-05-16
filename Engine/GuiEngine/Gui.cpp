@@ -578,6 +578,9 @@ void Gui::StretchFitToChildren(bool bHor, bool bVer)
 
 void Gui::RefreshLayout()
 {
+	if (!bLayoutNeedRefresh)
+		return;
+
 	Gui* arrangeRoot = this;
 
 	while (arrangeRoot && arrangeRoot->GetParent())

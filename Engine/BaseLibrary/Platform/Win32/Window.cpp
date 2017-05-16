@@ -6,7 +6,6 @@
 #include <windowsx.h>
 #include <objidl.h>
 #include <fstream>
-#pragma comment (lib, "gdiplus.lib")
 
 LRESULT CALLBACK WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 {

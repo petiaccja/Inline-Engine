@@ -234,6 +234,7 @@ void Editor::InitGui()
 
 		int width = size.x();
 		int height = size.y();
+
 		graphicsE->SetScreenSize(width, height);
 		world->SetAspectRatio((float)width / (float(height)));
 	};
