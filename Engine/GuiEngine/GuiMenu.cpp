@@ -1,4 +1,4 @@
-﻿#include "GuiMenu.h"
+﻿#include "GuiMenu.hpp"
 #include "GuiEngine.hpp"
 
 using namespace inl::gui;

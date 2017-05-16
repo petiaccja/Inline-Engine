@@ -1,10 +1,16 @@
 #pragma once
 #include "GuiEvent.h"
-
 #include <BaseLibrary\Common_tmp.hpp>
 #include <BaseLibrary\Platform\Window.hpp>
 
 #include <unordered_map>
+
+// TODO REMOVE it, seperate GDI, DX12 into seperate libs
+#define min(a,b) a < b ? a : b
+#define max(a,b) a > b ? a : b
+#include <gdiplus.h>
+#undef min
+#undef max
 
 namespace inl::gui {
 
@@ -48,7 +54,7 @@ class GuiCollapsable;
 class GuiSplitter;
 class GuiMenu;
 class GuiImage;
-
+class GuiScrollable;
 
 
 
@@ -79,6 +85,7 @@ public:
 	GuiCollapsable* AddCollapsable();
 	GuiSplitter*	AddSplitter();
 	GuiImage*		AddImage();
+	GuiScrollable*	AddScrollable();
 
 	void BringToFront();
 

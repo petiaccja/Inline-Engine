@@ -4,7 +4,8 @@
 #include "GuiButton.hpp"
 #include "GuiList.hpp"
 #include "GuiSplitter.hpp"
-#include "GuiMenu.h"
+#include "GuiMenu.hpp"
+#include "GuiScrollable.hpp"
 #include "GuiEngine.hpp"
 
 using namespace inl::gui;
@@ -928,6 +929,13 @@ GuiSplitter* Gui::AddSplitter()
 GuiImage* Gui::AddImage()
 {
 	GuiImage* p = new GuiImage(guiEngine);
+	Add(p);
+	return p;
+}
+
+GuiScrollable * Gui::AddScrollable()
+{
+	GuiScrollable* p = new GuiScrollable(guiEngine);
 	Add(p);
 	return p;
 }

@@ -84,6 +84,9 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <Lib>
+      <AdditionalDependencies>gdiplus.lib;Dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -118,6 +121,9 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <Lib>
+      <AdditionalDependencies>gdiplus.lib;Dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="GuiButton.cpp" />
@@ -125,6 +131,7 @@
     <ClCompile Include="GuiImage.cpp" />
     <ClCompile Include="GuiList.cpp" />
     <ClCompile Include="GuiMenu.cpp" />
+    <ClCompile Include="GuiScrollable.cpp" />
     <ClCompile Include="GuiSplitter.cpp" />
     <ClCompile Include="GuiText.cpp" />
     <ClCompile Include="GuiLayouted.cpp" />
@@ -142,7 +149,8 @@
     <ClInclude Include="GuiImage.hpp" />
     <ClInclude Include="GuiLayer.hpp" />
     <ClInclude Include="GuiList.hpp" />
-    <ClInclude Include="GuiMenu.h" />
+    <ClInclude Include="GuiMenu.hpp" />
+    <ClInclude Include="GuiScrollable.hpp" />
     <ClInclude Include="GuiSlider.hpp" />
     <ClCompile Include="GuiSlider.cpp">
       <FileType>CppHeader</FileType>

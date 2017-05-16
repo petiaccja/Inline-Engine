@@ -1,6 +1,16 @@
 #pragma once
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
 
+// Temporary, GDI, DX12, etc render implementation should be putted into separate libraries...
+//#define NOMINMAX
+//#include <windows.h>
+
+#define min(a,b) a < b ? a : b
+#define max(a,b) a > b ? a : b
+#include <gdiplus.h>
+#undef min
+#undef max
+
 #include "GuiLayer.hpp"
 #include "GuiButton.hpp"
 #include "GuiText.hpp"
@@ -9,7 +19,8 @@
 #include "GuiSlider.hpp"
 #include "GuiSplitter.hpp"
 #include "GuiImage.hpp"
-#include "GuiMenu.h"
+#include "GuiMenu.hpp"
+#include "GuiScrollable.hpp"
 
 #include <vector>
 #include <functional>

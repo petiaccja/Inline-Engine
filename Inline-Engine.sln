@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.4
+VisualStudioVersion = 15.0.26228.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GraphicsEngine_LL", "Engine\GraphicsEngine_LL\GraphicsEngine_LL.vcxproj", "{040593FA-6149-4526-8754-2E2886759D0E}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -63,9 +63,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GuiEngine", "Engine\GuiEngi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BaseLibrary", "Engine\BaseLibrary\BaseLibrary.vcxproj", "{F55437F4-00C1-49AE-BFFC-4B0A6DC75081}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_NetworkServer", "Test\Test_Network\Test_NetworkServer.csproj", "{D617B3ED-19F4-464F-A089-E6FC81359E56}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetworkEngine", "Engine\NetworkEngine\NetworkEngine.vcxproj", "{805EDCB5-391B-4F92-8568-CF6B691C16FE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Networking", "Engine\Networking\NetworkEngine.vcxproj", "{805EDCB5-391B-4F92-8568-CF6B691C16FE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_NetworkServer", "Test\Test_Network\Test_NetworkServer.csproj", "{D617B3ED-19F4-464F-A089-E6FC81359E56}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -191,6 +191,16 @@ Global
 		{F55437F4-00C1-49AE-BFFC-4B0A6DC75081}.Release|x86.ActiveCfg = Release|Win32
 		{F55437F4-00C1-49AE-BFFC-4B0A6DC75081}.Release|x86.Build.0 = Release|Win32
 		{F55437F4-00C1-49AE-BFFC-4B0A6DC75081}.Release|x86.Deploy.0 = Release|Win32
+		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Debug|x64.ActiveCfg = Debug|x64
+		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Debug|x64.Build.0 = Debug|x64
+		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Debug|x86.ActiveCfg = Debug|Win32
+		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Debug|x86.Build.0 = Debug|Win32
+		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Release|Any CPU.ActiveCfg = Release|Win32
+		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Release|x64.ActiveCfg = Release|x64
+		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Release|x64.Build.0 = Release|x64
+		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Release|x86.ActiveCfg = Release|Win32
+		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Release|x86.Build.0 = Release|Win32
 		{D617B3ED-19F4-464F-A089-E6FC81359E56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D617B3ED-19F4-464F-A089-E6FC81359E56}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D617B3ED-19F4-464F-A089-E6FC81359E56}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -203,16 +213,6 @@ Global
 		{D617B3ED-19F4-464F-A089-E6FC81359E56}.Release|x64.Build.0 = Release|Any CPU
 		{D617B3ED-19F4-464F-A089-E6FC81359E56}.Release|x86.ActiveCfg = Release|Any CPU
 		{D617B3ED-19F4-464F-A089-E6FC81359E56}.Release|x86.Build.0 = Release|Any CPU
-		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Debug|x64.ActiveCfg = Debug|x64
-		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Debug|x64.Build.0 = Debug|x64
-		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Debug|x86.ActiveCfg = Debug|Win32
-		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Debug|x86.Build.0 = Debug|Win32
-		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Release|Any CPU.ActiveCfg = Release|Win32
-		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Release|x64.ActiveCfg = Release|x64
-		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Release|x64.Build.0 = Release|x64
-		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Release|x86.ActiveCfg = Release|Win32
-		{805EDCB5-391B-4F92-8568-CF6B691C16FE}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

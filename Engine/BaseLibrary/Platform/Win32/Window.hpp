@@ -8,13 +8,6 @@
 #include <queue>
 #include <functional>
 
-#define min(a,b) a < b ? a : b
-#define max(a,b) a > b ? a : b
-#include <gdiplus.h>
-#undef min
-#undef max
-
-
 struct WindowDesc
 {
 	WindowDesc() : style(eWindowStyle::DEFAULT), clientSize(0, 0) {}
