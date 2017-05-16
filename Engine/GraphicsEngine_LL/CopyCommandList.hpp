@@ -91,12 +91,12 @@ public:
 	// Resource copy
 	void CopyBuffer(MemoryObject& dst, size_t dstOffset, const MemoryObject& src, size_t srcOffset, size_t numBytes);
 
-	void CopyResource(MemoryObject* dst, MemoryObject* src);
+	void CopyResource(MemoryObject* dst, MemoryObject* src) = delete; // TODO: implement
 
 	void CopyTexture(Texture1D* dst,
 					 Texture1D* src,
 					 SubTexture1D dstPlace = {},
-					 SubTexture1D srcPlace = {});
+					 SubTexture1D srcPlace = {}) = delete; // TODO: implement
 	void CopyTexture(Texture2D& dst,
 					 const Texture2D& src,
 					 SubTexture2D dstPlace,
@@ -111,17 +111,14 @@ public:
 	void CopyTexture(Texture3D* dst,
 					 Texture3D* src,
 					 SubTexture3D dstPlace = {},
-					 SubTexture3D srcPlace = {});
+					 SubTexture3D srcPlace = {}) = delete; // TODO: implement
 
 
 	// barriers
-	void ResourceBarrier(unsigned numBarriers, gxapi::ResourceBarrier* barriers);
-
-	template <class... Barriers>
-	void ResourceBarrier(Barriers&&... barriers);
-
-	void SetResourceState(MemoryObject& resource, unsigned subresource, gxapi::eResourceState state);
+	void SetResourceState(const MemoryObject& resource, gxapi::eResourceState state, unsigned subresource = gxapi::ALL_SUBRESOURCES);
 protected:
+	void ExpectResourceState(const MemoryObject& resource, gxapi::eResourceState state, unsigned subresource = gxapi::ALL_SUBRESOURCES);
+	void ExpectResourceState(const MemoryObject& resource, const std::initializer_list<gxapi::eResourceState>& anyOfStates, unsigned subresource = gxapi::ALL_SUBRESOURCES);
 	virtual Decomposition Decompose() override;
 private:
 	gxapi::ICopyCommandList* m_commandList;

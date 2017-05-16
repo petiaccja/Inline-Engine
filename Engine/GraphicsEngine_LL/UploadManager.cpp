@@ -3,6 +3,8 @@
 #include <GraphicsApi_LL/Common.hpp>
 
 #include <cassert>
+#include <sstream>
+#include <atomic>
 
 namespace inl {
 namespace gxeng {
@@ -14,12 +16,15 @@ UploadManager::UploadManager(gxapi::IGraphicsApi* graphicsApi) :
 	std::lock_guard<std::mutex> lock(m_mtx);
 
 	// Add a new queue before any frame starts to handle uploads at initialization.
-	m_uploadQueues.push_back(std::vector<UploadDescription>()); 
+	//m_uploadQueues.push_back(std::vector<UploadDescription>());
+	//UploadFrame uploadFrame;
+	//uploadFrame.frameId = 0;
+	//m_uploadFrames.push_back(uploadFrame);
 }
 
 
 void UploadManager::Upload(const LinearBuffer& target, size_t offset, const void* data, size_t size) {
-	if (target.GetSize() < (offset+size)) {
+	if (target.GetSize() < (offset + size)) {
 		throw inl::gxapi::InvalidArgument("Target buffer is not large enough for the uploaded data to fit.", "target");
 	}
 
@@ -30,15 +35,26 @@ void UploadManager::Upload(const LinearBuffer& target, size_t offset, const void
 			gxapi::ResourceDesc::Buffer(size),
 			//NOTE: GENERIC_READ is the required starting state for upload heap resources according to msdn
 			// (also there is no need for resource state transition)
-			gxapi::eResourceState::GENERIC_READ 
-		)
+			gxapi::eResourceState::GENERIC_READ
+		),
+		eResourceHeap::UPLOAD
 	);
+
+	// DEBUG
+	static std::atomic_uint64_t counter = 0;
+	std::stringstream ss;
+	ss << "Buffer upload source" << counter++;
+	uploadObjDesc.resource->SetName(ss.str().c_str());
+	// DEBUG
+
 	auto uploadResource = uploadObjDesc.resource.get();
+
 	{
 		std::lock_guard<std::mutex> lock(m_mtx);
 
-		auto& currQueue = m_uploadQueues.back();
-		
+		//auto& currQueue = m_uploadQueues.back();
+		std::vector<UploadDescription>& currQueue = m_uploadFrames.back().uploads;
+
 		UploadDescription uploadDesc(
 			LinearBuffer(std::move(uploadObjDesc)),
 			target,
@@ -48,7 +64,7 @@ void UploadManager::Upload(const LinearBuffer& target, size_t offset, const void
 		currQueue.push_back(std::move(uploadDesc));
 	}
 
-	gxapi::MemoryRange noReadRange{0, 0};
+	gxapi::MemoryRange noReadRange{ 0, 0 };
 	void* stagePtr = uploadResource->Map(0, &noReadRange);
 	memcpy(stagePtr, data, size);
 	// Theres no need to unmap but leaving a resource mapped has a performance hit while debugging
@@ -83,14 +99,25 @@ void UploadManager::Upload(
 			gxapi::ResourceDesc::Buffer(requiredSize),
 			//NOTE: GENERIC_READ is the required starting state for upload heap resources according to msdn
 			// (also there is no need for resource state transition)
-			gxapi::eResourceState::GENERIC_READ 
-		)
+			gxapi::eResourceState::GENERIC_READ
+		),
+		eResourceHeap::UPLOAD
 	);
+
+	// DEBUG
+	static std::atomic_uint64_t counter = 0;
+	std::stringstream ss;
+	ss << "Texture upload source" << counter++;
+	uploadObjDesc.resource->SetName(ss.str().c_str());
+	// DEBUG
+
 	auto uploadResource = uploadObjDesc.resource.get();
+
 	{
 		std::lock_guard<std::mutex> lock(m_mtx);
 
-		auto& currQueue = m_uploadQueues.back();
+		//auto& currQueue = m_uploadQueues.back();
+		std::vector<UploadDescription>& currQueue = m_uploadFrames.back().uploads;
 
 		UploadDescription uploadDesc(
 			LinearBuffer(std::move(uploadObjDesc)),
@@ -106,7 +133,7 @@ void UploadManager::Upload(
 		currQueue.back().source._SetResident(true);
 	}
 
-	gxapi::MemoryRange noReadRange{0, 0};
+	gxapi::MemoryRange noReadRange{ 0, 0 };
 	auto stagePtr = reinterpret_cast<uint8_t*>(uploadResource->Map(0, &noReadRange));
 	auto byteData = reinterpret_cast<const uint8_t*>(data);
 	//copy texture row-by-row
@@ -122,12 +149,19 @@ void UploadManager::OnFrameBeginDevice(uint64_t frameId) {
 
 
 void UploadManager::OnFrameBeginHost(uint64_t frameId) {
-	std::lock_guard<std::mutex> lock(m_mtx);
-	m_uploadQueues.push_back(std::vector<UploadDescription>());
 }
 
 
 void UploadManager::OnFrameCompleteDevice(uint64_t frameId) {
+	std::lock_guard<std::mutex> lock(m_mtx);
+
+	// loop may be removed
+	int framesPopped = 0;
+	while (!m_uploadFrames.empty() && m_uploadFrames.front().frameId <= frameId) {
+		m_uploadFrames.pop_front();
+		++framesPopped;
+	}
+	assert(framesPopped == 1);
 }
 
 
@@ -135,22 +169,28 @@ void UploadManager::OnFrameCompleteHost(uint64_t frameId) {
 }
 
 
-std::vector<UploadManager::UploadDescription> UploadManager::_TakeQueuedUploads() {
-	std::vector<UploadDescription> result;
-	{
-		std::lock_guard<std::mutex> lock(m_mtx);
-		assert(!m_uploadQueues.empty());
-		result = std::move(m_uploadQueues.front());
-		m_uploadQueues.pop_front();
-	}
-	return result;
+void UploadManager::OnFrameBeginAwait(uint64_t frameId) {
+	std::lock_guard<std::mutex> lock(m_mtx);
+
+	UploadFrame uploadFrame;
+	uploadFrame.frameId = frameId;
+	m_uploadFrames.push_back(uploadFrame);
 }
+
+
+const std::vector<UploadManager::UploadDescription>& UploadManager::GetQueuedUploads() const {
+	std::lock_guard<std::mutex> lock(m_mtx);
+
+	assert(m_uploadFrames.size() > 0);
+	return m_uploadFrames.back().uploads;
+}
+
 
 
 size_t UploadManager::SnapUpwrads(size_t value, size_t gridSize) {
 	// alignement should be power of two
-	assert(((gridSize-1) & gridSize) == 0);
-	return (value + (gridSize-1)) & ~(gridSize-1);
+	assert(((gridSize - 1) & gridSize) == 0);
+	return (value + (gridSize - 1)) & ~(gridSize - 1);
 }
 
 

@@ -3,11 +3,15 @@
 #include "GraphicsNode.hpp"
 #include "Pipeline.hpp"
 #include "FrameContext.hpp"
+#include "ScratchSpacePool.hpp"
+#include "MemoryObject.hpp"
 
 #include <BaseLibrary/optional.hpp>
 #include <GraphicsApi_LL/IFence.hpp>
+#include <GraphicsApi_LL/Common.hpp>
 #include <memory>
 #include <cstdint>
+#include <vector>
 
 namespace inl {
 namespace gxeng {
@@ -23,6 +27,7 @@ public:
 	const Pipeline& GetPipeline() const;
 	Pipeline ReleasePipeline();
 	void Execute(FrameContext context);
+	void ReleaseResources();
 protected:
 	struct UsedResource {
 		MemoryObject* resource;
@@ -35,21 +40,21 @@ protected:
 	static void MakeResident(std::vector<MemoryObject*> usedResources);
 	static void Evict(std::vector<MemoryObject*> usedResources);
 
-	static void UploadTask(CopyCommandList& commandList, const std::vector<UploadManager::UploadDescription>& uploads);
 
-	static std::vector<ElementaryTask> MakeSchedule(const lemon::ListDigraph& taskGraph,
-													const lemon::ListDigraph::NodeMap<ElementaryTask>& taskFunctionMap
+	static std::vector<GraphicsTask*> MakeSchedule(const lemon::ListDigraph& taskGraph,
+												   const lemon::ListDigraph::NodeMap<GraphicsTask*>& taskFunctionMap
 													/*std::vector<CommandQueue*> queues*/);
 
 	static void EnqueueCommandList(CommandQueue& commandQueue,
 								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
 								   CmdAllocPtr commandAllocator,
-	                               std::vector<ScratchSpacePtr> scratchSpaces,
+								   std::vector<ScratchSpacePtr> scratchSpaces,
 								   std::vector<MemoryObject> usedResources,
+								   std::unique_ptr<VolatileViewHeap> volatileHeap,
 								   const FrameContext& context);
 
 	template <class UsedResourceIter>
-	static std::vector<gxapi::ResourceBarrier> Scheduler::InjectBarriers(UsedResourceIter firstResource, UsedResourceIter lastResource);
+	static std::vector<gxapi::ResourceBarrier> InjectBarriers(UsedResourceIter firstResource, UsedResourceIter lastResource);
 
 	template <class UsedResourceIter1, class UsedResourceIter2>
 	static bool CanExecuteParallel(UsedResourceIter1 first1, UsedResourceIter1 last1, UsedResourceIter2 first2, UsedResourceIter2 last2);
@@ -60,6 +65,15 @@ protected:
 	static void RenderFailureScreen(FrameContext context);
 private:
 	Pipeline m_pipeline;
+private:
+	class UploadTask : public GraphicsTask {
+	public:
+		UploadTask(const std::vector<UploadManager::UploadDescription>* uploads) : m_uploads(uploads) {}
+		void Setup(SetupContext& context) override;
+		void Execute(RenderContext& context) override;
+	private:
+		const std::vector<UploadManager::UploadDescription>* m_uploads;
+	};
 };
 
 
@@ -70,14 +84,23 @@ std::vector<gxapi::ResourceBarrier> Scheduler::InjectBarriers(UsedResourceIter f
 
 	// Collect all necessary barriers.
 	for (UsedResourceIter it = firstResource; it != lastResource; ++it) {
-		auto& resource = it->resource;
+		MemoryObject& resource = it->resource;
 		unsigned subresource = it->subresource;
 		gxapi::eResourceState targetState = it->firstState;
 
-		gxapi::eResourceState sourceState = resource.ReadState(subresource);
-
-		if (sourceState != targetState) {
-			barriers.push_back(gxapi::TransitionBarrier{ resource._GetResourcePtr(), sourceState, targetState, subresource });
+		if (subresource != gxapi::ALL_SUBRESOURCES) {
+			gxapi::eResourceState sourceState = resource.ReadState(subresource);
+			if (sourceState != targetState) {
+				barriers.push_back(gxapi::TransitionBarrier{ resource._GetResourcePtr(), sourceState, targetState, subresource });
+			}
+		}
+		else {
+			for (unsigned subresourceIdx = 0; subresourceIdx < resource.GetNumSubresources(); ++subresourceIdx) {
+				gxapi::eResourceState sourceState = resource.ReadState(subresourceIdx);
+				if (sourceState != targetState) {
+					barriers.push_back(gxapi::TransitionBarrier{ resource._GetResourcePtr(), sourceState, targetState, subresourceIdx });
+				}
+			}
 		}
 	}
 
@@ -118,7 +141,14 @@ bool Scheduler::CanExecuteParallel(UsedResourceIter1 first1, UsedResourceIter1 l
 template <class UsedResourceIter>
 void Scheduler::UpdateResourceStates(UsedResourceIter firstResource, UsedResourceIter lastResource) {
 	for (auto it = firstResource; it != lastResource; ++it) {
-		it->resource.RecordState(it->subresource, it->lastState);
+		if (it->subresource == gxapi::ALL_SUBRESOURCES) {
+			for (unsigned s = 0; s < it->resource.GetNumSubresources(); ++s) {
+				it->resource.RecordState(s, it->lastState);
+			}
+		}
+		else {
+			it->resource.RecordState(it->subresource, it->lastState);
+		}
 	}
 }
 

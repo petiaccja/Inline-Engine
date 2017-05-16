@@ -44,6 +44,9 @@ struct EventParameter {
 
 	/// <summary> Get the underlying type (Float, Int or Raw). </summary>
 	virtual eEventParameterType Type() const { return eEventParameterType::DEFAULT; }
+
+	/// <summary> Virtual copy constructor. </summary>
+	virtual EventParameter* Clone() const { return new EventParameter{ *this }; }
 };
 
 
@@ -65,6 +68,9 @@ struct EventParameterFloat : public EventParameter {
 
 	/// <summary> Get the underlying type which is Float. </summary>
 	eEventParameterType Type() const override { return eEventParameterType::FLOAT; }
+
+	/// <summary> Virtual copy constructor. </summary>
+	virtual EventParameter* Clone() const { return new EventParameterFloat{ *this }; }
 };
 
 
@@ -86,6 +92,9 @@ struct EventParameterInt : public EventParameter {
 
 	/// <summary> Get the underlying type which is Int. </summary>
 	eEventParameterType Type() const override { return eEventParameterType::INT; }
+
+	/// <summary> Virtual copy constructor. </summary>
+	virtual EventParameter* Clone() const { return new EventParameterInt{ *this }; }
 };
 
 
@@ -107,6 +116,9 @@ struct EventParameterString : public EventParameter {
 
 	/// <summary> Get the underlying type which is Int. </summary>
 	eEventParameterType Type() const override { return eEventParameterType::STRING; }
+
+	/// <summary> Virtual copy constructor. </summary>
+	virtual EventParameter* Clone() const { return new EventParameterString{ *this }; }
 };
 
 
@@ -121,6 +133,9 @@ struct EventParameterRaw : public EventParameter {
 
 	/// <summary> Get the underlying type which is Raw. </summary>
 	eEventParameterType Type() const override { return eEventParameterType::RAW; }
+
+	/// <summary> Virtual copy constructor. </summary>
+	virtual EventParameter* Clone() const { return new EventParameterRaw{ *this }; }
 };
 
 
@@ -134,25 +149,32 @@ public:
 	Event();
 
 	/// <summary> Create an event with specific message. </sumary>
-	Event(const std::string& message);
+	Event(std::string message) : Event(std::move(message), eEventType::UNSPECIFIED) {}
 
 	/// <summary> Create an event with specific message. </sumary>
 	Event(const char* message) : Event(std::string(message)) {}
-
-	/// <summary> Create an event with message and type. </summary>
-	Event(std::string message, eEventType type) : Event(message) { this->type = type; }
+	
+	/// <summary> Construct object with message and a list of parameters. </summary>
+	/// <param name="message"> The message of the event. </param>
+	/// <param name="parameters"> Any number of EventParameters which describe the event's parameters. </param>
+	template <class Head, class... Args, std::enable_if_t<!std::is_same_v<Head, eEventType>, int> = 0>
+	Event(std::string message, Head&& head, Args&&... parameters)
+		: Event(std::move(message), eEventType::UNSPECIFIED, std::forward<Head>(head), std::forward<Args>(parameters)...) {}
 
 	/// <summary> Construct object with message and a list of parameters. </summary>
 	/// <param name="message"> The message of the event. </param>
 	/// <param name="parameters"> Any number of EventParameters which describe the event's parameters. </param>
-	template <class... Args>
-	Event(const std::string& message, Args&&... parameters);
+	template <class Head, class... Args, std::enable_if_t<!std::is_same_v<Head, eEventType>, int> = 0>
+	Event(const char* message, Head&& head, Args&&... parameters) 
+		: Event(std::string(message), eEventType::UNSPECIFIED, std::forward<Head>(head), std::forward<Args>(parameters)...) {}
 
-	template <class... Args> 
-	Event(const std::string& message, eEventType type, Args&&... parameters) : Event(std::string(message), std::forward<Args>(parameters)...) { this->type = type; }
-
+	/// <summary> Construct object with message and a list of parameters and specific event type. </summary>
+	/// <param name="message"> The message of the event. </param>
+	/// <param name="type"> Type of the event. </param>
+	/// <param name="parameters"> Any number of EventParameters which describe the event's parameters. </param>
 	template <class... Args>
-	Event(const char* message, Args&&... parameters) : Event(std::string(message), std::forward<Args>(parameters)...) {}
+	Event(std::string message, eEventType type, Args&&... parameters);
+
 
 	Event(const Event&);
 	Event(Event&&) = default;
@@ -176,7 +198,7 @@ private:
 	/// <summary> Helper function for variadic ctor. </summary>
 	template <size_t Index, class Head, class... Args>
 	void AddVariadicParams(Head&& head, Args&&... args);
-	
+
 	/// <summary> Recursion terminator overload. </summary>
 	template <size_t Index>
 	void AddVariadicParams();
@@ -189,7 +211,7 @@ private:
 
 
 template <class... Args>
-Event::Event(const std::string& message, Args&&... parameters) : message(message) {
+Event::Event(std::string message, eEventType type, Args&&... parameters) : message(std::move(message)), type(type) {
 	this->parameters.reserve(sizeof...(Args));
 	AddVariadicParams<0, Args...>(std::forward<Args>(parameters)...);
 }

@@ -6,6 +6,7 @@
 #include "../GraphicsApi_LL/IResource.hpp"
 
 #include <functional>
+#include <cassert>
 
 namespace inl {
 namespace gxeng {
@@ -15,16 +16,26 @@ class MemoryManager;
 class RenderTargetView2D;
 
 
+enum class eResourceHeap {
+	UPLOAD = 1,
+	CONSTANT,
+	STREAMING,
+	PIPELINE,
+	CRITICAL,
+	INVALID,
+};
+
 
 struct MemoryObjDesc {
 	using Deleter = std::function<void(gxapi::IResource*)>;
 	using UniqPtr = std::unique_ptr<gxapi::IResource, Deleter>;
 
-	MemoryObjDesc() = default;
-	MemoryObjDesc(gxapi::IResource* ptr, bool resident = true);
+	MemoryObjDesc() { heap = eResourceHeap::INVALID; }
+	MemoryObjDesc(gxapi::IResource* ptr, eResourceHeap heap, bool resident = true);
 
 	UniqPtr resource;
 	bool resident;
+	eResourceHeap heap;
 };
 
 // TODO make std hash for memory object
@@ -59,7 +70,10 @@ public:
 		return (bool)m_contents;
 	}
 
-
+	bool HasObject() const {
+		return (bool)m_contents;
+	}
+	
 	void* GetVirtualAddress() const;
 	gxapi::ResourceDesc GetDescription() const;
 
@@ -69,12 +83,15 @@ public:
 	void RecordState(gxapi::eResourceState newState);
 	/// <summary> Returns the current tracked state. </summary>
 	gxapi::eResourceState ReadState(unsigned subresource) const;
+	/// <summary> Returns the number of subresources. </summary>
+	unsigned GetNumSubresources() const { return (unsigned)m_contents->subresourceStates.size(); }
+
+	eResourceHeap GetHeap() const { assert(m_contents->heap != eResourceHeap::INVALID); return m_contents->heap; }
 
 	void _SetResident(bool value) noexcept;
 	bool _GetResident() const noexcept;
 
-	gxapi::IResource* _GetResourcePtr() noexcept;
-	const gxapi::IResource* _GetResourcePtr() const noexcept;
+	gxapi::IResource* _GetResourcePtr() const noexcept;
 
 protected:
 	void InitResourceStates(gxapi::eResourceState initialState);
@@ -83,7 +100,7 @@ private:
 	struct Contents {
 		std::unique_ptr<gxapi::IResource, Deleter> resource;
 		bool resident;
-
+		eResourceHeap heap;
 		std::vector<gxapi::eResourceState> subresourceStates;
 	};
 
@@ -223,4 +240,5 @@ struct hash<inl::gxeng::MemoryObject> {
 		return reinterpret_cast<size_t>(obj.m_contents.get());
 	}
 };
+
 }

@@ -1,4 +1,6 @@
 #include "ComputeCommandList.hpp"
+#include "MemoryManager.hpp"
+#include "VolatileViewHeap.hpp"
 
 
 namespace inl {
@@ -11,13 +13,15 @@ namespace gxeng {
 ComputeCommandList::ComputeCommandList(
 	gxapi::IGraphicsApi* gxApi,
 	CommandAllocatorPool& commandAllocatorPool,
-	ScratchSpacePool& scratchSpacePool
+	ScratchSpacePool& scratchSpacePool,
+	MemoryManager& memoryManager,
+	VolatileViewHeap& volatileCbvHeap
 ) :
 	CopyCommandList(gxApi, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::COMPUTE)
 {
 	m_commandList = dynamic_cast<gxapi::IComputeCommandList*>(GetCommandList());
 
-	m_computeBindingManager = BindingManager<gxapi::eCommandListType::COMPUTE>(m_graphicsApi, m_commandList);
+	m_computeBindingManager = BindingManager<gxapi::eCommandListType::COMPUTE>(m_graphicsApi, m_commandList, &memoryManager, &volatileCbvHeap);
 	m_computeBindingManager.SetDescriptorHeap(GetCurrentScratchSpace());
 }
 
@@ -25,13 +29,15 @@ ComputeCommandList::ComputeCommandList(
 	gxapi::IGraphicsApi* gxApi,
 	CommandAllocatorPool& commandAllocatorPool,
 	ScratchSpacePool& scratchSpacePool,
+	MemoryManager& memoryManager,
+	VolatileViewHeap& volatileCbvHeap,
 	gxapi::eCommandListType type
 ) :
 	CopyCommandList(gxApi, commandAllocatorPool, scratchSpacePool, type)
 {
 	m_commandList = dynamic_cast<gxapi::IComputeCommandList*>(GetCommandList());
 
-	m_computeBindingManager = BindingManager<gxapi::eCommandListType::COMPUTE>(m_graphicsApi, m_commandList);
+	m_computeBindingManager = BindingManager<gxapi::eCommandListType::COMPUTE>(m_graphicsApi, m_commandList, &memoryManager, &volatileCbvHeap);
 	m_computeBindingManager.SetDescriptorHeap(GetCurrentScratchSpace());
 }
 
@@ -90,6 +96,7 @@ void ComputeCommandList::SetComputeBinder(Binder* binder) {
 
 
 void ComputeCommandList::BindCompute(BindParameter parameter, const TextureView1D& shaderResource) {
+	ExpectResourceState(shaderResource.GetResource(), gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
 	try {
 		m_computeBindingManager.Bind(parameter, shaderResource);
 	}
@@ -100,6 +107,7 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const TextureView1
 }
 
 void ComputeCommandList::BindCompute(BindParameter parameter, const TextureView2D& shaderResource) {
+	ExpectResourceState(shaderResource.GetResource(), gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
 	try {
 		m_computeBindingManager.Bind(parameter, shaderResource);
 	}
@@ -110,6 +118,7 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const TextureView2
 }
 
 void ComputeCommandList::BindCompute(BindParameter parameter, const TextureView3D& shaderResource) {
+	ExpectResourceState(shaderResource.GetResource(), gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
 	try {
 		m_computeBindingManager.Bind(parameter, shaderResource);
 	}
@@ -120,6 +129,10 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const TextureView3
 }
 
 void ComputeCommandList::BindCompute(BindParameter parameter, const ConstBufferView& shaderConstant) {
+	if (dynamic_cast<const PersistentConstBuffer*>(&shaderConstant.GetResource())) {
+		m_additionalResources.push_back(shaderConstant.GetResource());
+	}
+
 	try {
 		m_computeBindingManager.Bind(parameter, shaderConstant);
 	}
@@ -129,17 +142,18 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const ConstBufferV
 	}
 }
 
-void ComputeCommandList::BindCompute(BindParameter parameter, const void* shaderConstant, int size, int offset) {
+void ComputeCommandList::BindCompute(BindParameter parameter, const void* shaderConstant, int size/*, int offset*/) {
 	try {
-		m_computeBindingManager.Bind(parameter, shaderConstant, size, offset);
+		m_computeBindingManager.Bind(parameter, shaderConstant, size/*, offset*/);
 	}
 	catch (std::bad_alloc&) {
 		NewScratchSpace(1000);
-		m_computeBindingManager.Bind(parameter, shaderConstant, size, offset);
+		m_computeBindingManager.Bind(parameter, shaderConstant, size/*, offset*/);
 	}
 }
 
 void ComputeCommandList::BindCompute(BindParameter parameter, const RWTextureView1D& rwResource) {
+	ExpectResourceState(rwResource.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	try {
 		m_computeBindingManager.Bind(parameter, rwResource);
 	}
@@ -150,6 +164,7 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const RWTextureVie
 }
 
 void ComputeCommandList::BindCompute(BindParameter parameter, const RWTextureView2D& rwResource) {
+	ExpectResourceState(rwResource.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	try {
 		m_computeBindingManager.Bind(parameter, rwResource);
 	}
@@ -160,6 +175,7 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const RWTextureVie
 }
 
 void ComputeCommandList::BindCompute(BindParameter parameter, const RWTextureView3D& rwResource) {
+	ExpectResourceState(rwResource.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	try {
 		m_computeBindingManager.Bind(parameter, rwResource);
 	}
@@ -170,6 +186,7 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const RWTextureVie
 }
 
 void ComputeCommandList::BindCompute(BindParameter parameter, const RWBufferView& rwResource) {
+	ExpectResourceState(rwResource.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	{
 		try {
 			m_computeBindingManager.Bind(parameter, rwResource);
@@ -191,7 +208,7 @@ void ComputeCommandList::NewScratchSpace(size_t hint) {
 //------------------------------------------------------------------------------
 // UAV barrier
 //------------------------------------------------------------------------------
-void ComputeCommandList::UAVBarrier(MemoryObject& memoryObject) {
+void ComputeCommandList::UAVBarrier(const MemoryObject& memoryObject) {
 	m_commandList->ResourceBarrier(gxapi::UavBarrier(memoryObject._GetResourcePtr()));
 }
 

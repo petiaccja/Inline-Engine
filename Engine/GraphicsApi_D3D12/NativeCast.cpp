@@ -1326,11 +1326,11 @@ D3D12_RENDER_TARGET_BLEND_DESC native_cast(gxapi::RenderTargetBlendState source)
 
 	result.BlendEnable = source.enableBlending;
 	result.LogicOpEnable = source.enableLogicOp;
-	result.SrcBlend = native_cast(source.colorOperand1);
-	result.DestBlend = native_cast(source.colorOperand2);
+	result.SrcBlend = native_cast(source.shaderColorFactor);
+	result.DestBlend = native_cast(source.targetColorFactor);
 	result.BlendOp = native_cast(source.colorOperation);
-	result.SrcBlendAlpha = native_cast(source.alphaOperand1);
-	result.DestBlendAlpha = native_cast(source.alphaOperand2);
+	result.SrcBlendAlpha = native_cast(source.shaderAlphaFactor);
+	result.DestBlendAlpha = native_cast(source.targetAlphaFactor);
 	result.BlendOpAlpha = native_cast(source.alphaOperation);
 	result.LogicOp = native_cast(source.logicOperation);
 	result.RenderTargetWriteMask = native_cast(source.mask);

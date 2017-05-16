@@ -55,6 +55,9 @@ public:
 	bool WritableDepthStencil() const;
 	bool WritableRW() const;
 
+	uint64_t Width() const;
+	uint32_t Height() const;
+
 	// TODO(Artur) Nodes must be able to modify texture state even if reading only
 	// eg. set the texture to pixel shader resource
 	const TextureView2D& QueryRead() const;
@@ -68,6 +71,8 @@ private:
 	template <class ViewHeadT, class... ViewTailT>
 	void AddViews(ViewHeadT&& head, ViewTailT&&... tail);
 	void AddViews() {};
+
+	void GetSize(uint64_t& width, uint32_t& height) const;
 private:
 	TextureView2D m_srv;
 	RenderTargetView2D m_rtv;

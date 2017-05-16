@@ -6,8 +6,7 @@
 #include <mathfu/quaternion.h>
 #include <mathfu/matrix_4x4.h>
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 class Mesh;
@@ -23,8 +22,6 @@ public:
 	Mesh* GetMesh() const;
 	void SetMaterial(Material* material);
 	Material* GetMaterial() const;
-	void SetTexture(Image* texture);
-	Image* GetTexture() const;
 
 	void SetPosition(mathfu::Vector<float, 3> pos);
 	void SetRotation(mathfu::Quaternion<float> rotation);
@@ -39,7 +36,6 @@ public:
 private:
 	Mesh* m_mesh;
 	Material* m_material;
-	Image* m_texture;
 	mathfu::Vector<float, 3> m_position;
 	mathfu::Quaternion<float> m_rotation;
 	mathfu::Vector<float, 3> m_scale;
@@ -47,5 +43,4 @@ private:
 
 
 
-} // namespace gxeng
-} // namespace inl
+} // namespace inl::gxeng

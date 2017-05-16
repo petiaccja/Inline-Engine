@@ -50,6 +50,7 @@ public:
 
 	void OnFrameBeginDevice(uint64_t frameId) override;
 	void OnFrameBeginHost(uint64_t frameId) override;
+	void OnFrameBeginAwait(uint64_t frameId) override {};
 	void OnFrameCompleteDevice(uint64_t frameId) override;
 	void OnFrameCompleteHost(uint64_t frameId) override;
 

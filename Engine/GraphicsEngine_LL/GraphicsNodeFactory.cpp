@@ -1,7 +1,6 @@
 #include "GraphicsNodeFactory.hpp"
 #include "GraphicsNode.hpp"
 
-#include "GraphicsContext.hpp"
 
 exc::NodeBase* inl::gxeng::GraphicsNodeFactory::CreateNode(const std::string & name) {
 	exc::NodeBase* node = NodeFactory::CreateNode(name);
@@ -13,8 +12,7 @@ exc::NodeBase* inl::gxeng::GraphicsNodeFactory::CreateNode(const std::string & n
 	if (graphicsNode != nullptr) {
 		// do some special initialization for graphics nodes
 		// like set graphics engine or...
-		GraphicsContext ctx;
-		graphicsNode->InitGraphics(ctx);
+		assert(false);
 	}
 
 	return node;

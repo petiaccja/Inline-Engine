@@ -165,6 +165,8 @@ int main(int argc, char* argv[]) {
 		int device = 0;
 		if (argc == 3 && argv[1] == std::string("--device") && isdigit(argv[2][0])) {
 			device = argv[2][0] - '0'; // works for single digits, good enough, lol
+			cout << "You may attach debugger now. Press ENTER..." << endl;
+			std::cin.get();
 		}
 		systemLogStream.Event("Creating GraphicsApi...");
 		gxapi.reset(gxapiMgr->CreateGraphicsApi(adapters[device].adapterId));
@@ -237,9 +239,10 @@ int main(int argc, char* argv[]) {
 	float avgFps = 0;
 
 	while (run) {
-		while (PeekMessage(&msg, hWnd, 0, 0, PM_REMOVE)) {
+		while (PeekMessage(&msg, /*hWnd*/NULL, 0, 0, PM_REMOVE)) {
 			if (msg.message == WM_QUIT) {
 				run = false;
+				break;
 			}
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
@@ -327,7 +330,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				unsigned width = clientRect.right - clientRect.top;
 				unsigned height = clientRect.bottom - clientRect.top;
 				pEngine->SetScreenSize(width, height);
-				pQcWorld->SetAspectRatio((float)width / (float(height)));
+				pQcWorld->ScreenSizeChanged(width, height);
 				return 0;
 			}
 			else {

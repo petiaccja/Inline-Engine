@@ -75,6 +75,7 @@ public:
 		std::unique_ptr<gxapi::ICopyCommandList> commandList;
 		std::vector<ScratchSpacePtr> scratchSpaces;
 		std::vector<ResourceUsage> usedResources;
+		std::vector<MemoryObject> additionalResources;
 	};
 public:
 	BasicCommandList(const BasicCommandList& rhs) = delete; // could be, but big perf hit, better not allow user
@@ -93,13 +94,13 @@ protected:
 		ScratchSpacePool& scratchSpacePool,
 		gxapi::eCommandListType type);
 
-	void UseResource(MemoryObject* resource);
 	gxapi::ICommandList* GetCommandList() const { return m_commandList.get(); }
 
 	StackDescHeap* GetCurrentScratchSpace();
 	virtual void NewScratchSpace(size_t sizeHint);
 protected:
 	std::unordered_map<SubresourceId, SubresourceUsageInfo> m_resourceTransitions;
+	std::vector<MemoryObject> m_additionalResources;
 	gxapi::IGraphicsApi* m_graphicsApi;
 private:
 	// Part sources

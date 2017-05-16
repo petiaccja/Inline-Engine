@@ -12,35 +12,53 @@
     <Filter Include="Scene">
       <UniqueIdentifier>{83bdcfe3-d6f4-4fd2-95a0-74e9c68cb2e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Pipeline">
-      <UniqueIdentifier>{13ebcb7a-64e7-4b59-a32d-4593d1c785b9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="MemoryManagement">
-      <UniqueIdentifier>{2fc7a18c-775b-463f-a7b4-2af4d1226d50}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Middleware">
-      <UniqueIdentifier>{ddb0ffd9-91c5-4cda-9bb1-ddf7349b9967}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nodes">
-      <UniqueIdentifier>{278a4320-a644-4688-bad7-0b4475a43003}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="MemoryManagement\Descriptors">
-      <UniqueIdentifier>{4a221379-da82-4348-85fc-f3c634d6d1cb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="MemoryManagement\Heaps">
-      <UniqueIdentifier>{0bc0f2ea-8951-4f9b-aa22-14e074397237}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="MemoryManagement\ObjectManagement">
-      <UniqueIdentifier>{cd72d15e-05c9-4d33-a977-8cb4d1092c69}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nodes\ForwardPipeline">
-      <UniqueIdentifier>{37a2d765-13fa-497f-9c3f-aeb98d5b2e44}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Nodes\Shaders">
-      <UniqueIdentifier>{d804e9f8-c90b-43e0-a9e7-e5ce3e4e0717}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Materials">
       <UniqueIdentifier>{98cd6cfb-25da-4059-bd57-422f8cb974b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Bridge">
+      <UniqueIdentifier>{ddb0ffd9-91c5-4cda-9bb1-ddf7349b9967}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frontend">
+      <UniqueIdentifier>{1f91c4ce-0894-4e8e-b08f-95f015a761e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Backend">
+      <UniqueIdentifier>{13ebcb7a-64e7-4b59-a32d-4593d1c785b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Bridge\CommandLists">
+      <UniqueIdentifier>{4a10c9c6-9742-4eb8-b973-43cdea072094}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frontend\Nodes">
+      <UniqueIdentifier>{c18b293d-9d94-453e-8486-9d3b8b614c34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frontend\Nodes\ForwardRenderer">
+      <UniqueIdentifier>{4eafdf62-4696-4151-af89-d7f190e59dc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frontend\Nodes\Rendering">
+      <UniqueIdentifier>{bf61464b-9a01-400e-b2bf-cfafd24d515a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frontend\Nodes\General">
+      <UniqueIdentifier>{3e242522-430d-401c-8b83-5d0c9b29ed5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frontend\Nodes\Debug">
+      <UniqueIdentifier>{28a89b59-deb0-4922-ad83-3bb4faf0cf61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Backend\MemoryManagement">
+      <UniqueIdentifier>{2fc7a18c-775b-463f-a7b4-2af4d1226d50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Backend\Pipeline">
+      <UniqueIdentifier>{f7c8c9d8-9f32-4a14-a3fb-c430e06fb8f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Backend\MemoryManagement\DescriptorHeaps">
+      <UniqueIdentifier>{4a221379-da82-4348-85fc-f3c634d6d1cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Backend\MemoryManagement\MemoryHeaps">
+      <UniqueIdentifier>{0bc0f2ea-8951-4f9b-aa22-14e074397237}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Backend\Misc">
+      <UniqueIdentifier>{85a41bd1-c16c-405f-b065-5a3ddb50e941}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frontend\Nodes\Shaders">
+      <UniqueIdentifier>{45b0517c-79df-4276-b594-4e0a7747417f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -63,14 +81,8 @@
     <ClInclude Include="MeshEntity.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="GraphicsNode.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="GraphicsNodeFactory.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
     <ClInclude Include="MemoryManager.hpp">
-      <Filter>MemoryManagement</Filter>
+      <Filter>Backend\MemoryManagement</Filter>
     </ClInclude>
     <ClInclude Include="..\GraphicsEngine\ITexture2D.hpp">
       <Filter>Interfaces</Filter>
@@ -99,50 +111,11 @@
     <ClInclude Include="..\GraphicsEngine\ICamera.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
-    <ClInclude Include="Pipeline.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Scheduler.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Task.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
     <ClInclude Include="Binder.hpp">
-      <Filter>Middleware</Filter>
-    </ClInclude>
-    <ClInclude Include="GraphicsCommandList.hpp">
-      <Filter>Middleware</Filter>
-    </ClInclude>
-    <ClInclude Include="ComputeCommandList.hpp">
-      <Filter>Middleware</Filter>
-    </ClInclude>
-    <ClInclude Include="BasicCommandList.hpp">
-      <Filter>Middleware</Filter>
-    </ClInclude>
-    <ClInclude Include="CommandAllocatorPool.hpp">
-      <Filter>Middleware</Filter>
-    </ClInclude>
-    <ClInclude Include="CopyCommandList.hpp">
-      <Filter>Middleware</Filter>
-    </ClInclude>
-    <ClInclude Include="ExecutionContext.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="ExecutionResult.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="FrameContext.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="CommandQueue.hpp">
-      <Filter>Pipeline</Filter>
+      <Filter>Bridge</Filter>
     </ClInclude>
     <ClInclude Include="Vertex.hpp">
       <Filter>Resources</Filter>
-    </ClInclude>
-    <ClInclude Include="ScratchSpacePool.hpp">
-      <Filter>Middleware</Filter>
     </ClInclude>
     <ClInclude Include="VertexElementCompressor.hpp">
       <Filter>Resources</Filter>
@@ -150,113 +123,191 @@
     <ClInclude Include="EntityCollection.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Node_GetBackBuffer.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_FrameColor.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_FrameCounter.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_GetSceneByName.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="SyncPoint.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="ResourceResidencyQueue.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
     <ClInclude Include="MeshBuffer.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
     <ClInclude Include="Mesh.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="PipelineEventDispatcher.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="PipelineEventListener.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_GetTime.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
     <ClInclude Include="Image.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
     <ClInclude Include="HostDescHeap.hpp">
-      <Filter>MemoryManagement\Descriptors</Filter>
+      <Filter>Backend\MemoryManagement\DescriptorHeaps</Filter>
     </ClInclude>
     <ClInclude Include="StackDescHeap.hpp">
-      <Filter>MemoryManagement\Descriptors</Filter>
-    </ClInclude>
-    <ClInclude Include="ResourceView.hpp">
-      <Filter>MemoryManagement\Descriptors</Filter>
-    </ClInclude>
-    <ClInclude Include="UploadManager.hpp">
-      <Filter>MemoryManagement\ObjectManagement</Filter>
+      <Filter>Backend\MemoryManagement\DescriptorHeaps</Filter>
     </ClInclude>
     <ClInclude Include="ConstBufferHeap.hpp">
-      <Filter>MemoryManagement\Heaps</Filter>
-    </ClInclude>
-    <ClInclude Include="BackBufferManager.hpp">
-      <Filter>MemoryManagement\ObjectManagement</Filter>
-    </ClInclude>
-    <ClInclude Include="MemoryObject.hpp">
-      <Filter>MemoryManagement\ObjectManagement</Filter>
+      <Filter>Backend\MemoryManagement\MemoryHeaps</Filter>
     </ClInclude>
     <ClInclude Include="CriticalBufferHeap.hpp">
-      <Filter>MemoryManagement\Heaps</Filter>
+      <Filter>Backend\MemoryManagement\MemoryHeaps</Filter>
     </ClInclude>
     <ClInclude Include="Pixel.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.hpp">
-      <Filter>Scene</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_GetCameraByName.hpp">
-      <Filter>Nodes</Filter>
-    </ClInclude>
-    <ClInclude Include="GraphicsContext.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderManager.hpp">
-      <Filter>Pipeline</Filter>
-    </ClInclude>
     <ClInclude Include="DirectionalLight.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="PipelineTypes.hpp">
-      <Filter>Pipeline</Filter>
+    <ClInclude Include="PerspectiveCamera.hpp">
+      <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="VolatileViewHeap.hpp">
-      <Filter>Middleware</Filter>
+    <ClInclude Include="BasicCamera.hpp">
+      <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="RootTableManager.hpp">
-      <Filter>Middleware</Filter>
+    <ClInclude Include="OrthographicCamera.hpp">
+      <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="BindingManager.hpp">
-      <Filter>Middleware</Filter>
+    <ClInclude Include="OverlayEntity.hpp">
+      <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Node_ForwardRender.hpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_GenCSM.hpp">
-      <Filter>Nodes</Filter>
+    <ClInclude Include="Nodes\Node_CSM.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_DepthPrepass.hpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_RenderToBackBuffer.hpp">
-      <Filter>Nodes</Filter>
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_DepthReduction.hpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_DepthReductionFinal.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_DrawSky.hpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_ForwardRender.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_OverlayRender.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_Blend.hpp">
+      <Filter>Frontend\Nodes\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GetBackBuffer.hpp">
+      <Filter>Frontend\Nodes\General</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GetCameraByName.hpp">
+      <Filter>Frontend\Nodes\General</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GetSceneByName.hpp">
+      <Filter>Frontend\Nodes\General</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GetTime.hpp">
+      <Filter>Frontend\Nodes\General</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_CreateTexture.hpp">
+      <Filter>Frontend\Nodes\General</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_TextureProperties.hpp">
+      <Filter>Frontend\Nodes\General</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\NodeUtility.hpp">
+      <Filter>Frontend\Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="VolatileViewHeap.hpp">
+      <Filter>Backend\MemoryManagement\DescriptorHeaps</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\ExampleNode.hpp">
+      <Filter>Frontend\Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_DebugDraw.hpp">
+      <Filter>Frontend\Nodes\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_LightCulling.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GetEnvVariable.hpp">
+      <Filter>Frontend\Nodes\General</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_BlendWithTransform.hpp">
+      <Filter>Frontend\Nodes\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_ScreenSpaceTransform.hpp">
+      <Filter>Frontend\Nodes\General</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_VectorComponents.hpp">
+      <Filter>Frontend\Nodes\General</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\DebugDrawManager.hpp">
+      <Filter>Frontend\Nodes\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicCommandList.hpp">
+      <Filter>Bridge\CommandLists</Filter>
+    </ClInclude>
+    <ClInclude Include="ComputeCommandList.hpp">
+      <Filter>Bridge\CommandLists</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsCommandList.hpp">
+      <Filter>Bridge\CommandLists</Filter>
+    </ClInclude>
+    <ClInclude Include="CopyCommandList.hpp">
+      <Filter>Bridge\CommandLists</Filter>
+    </ClInclude>
+    <ClInclude Include="RootTableManager.hpp">
+      <Filter>Bridge\CommandLists</Filter>
+    </ClInclude>
+    <ClInclude Include="BindingManager.hpp">
+      <Filter>Bridge\CommandLists</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeContext.hpp">
+      <Filter>Bridge</Filter>
+    </ClInclude>
+    <ClInclude Include="PipelineTypes.hpp">
+      <Filter>Bridge</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsNode.hpp">
+      <Filter>Frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandQueue.hpp">
+      <Filter>Backend\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="FrameContext.hpp">
+      <Filter>Backend\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="Pipeline.hpp">
+      <Filter>Backend\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="PipelineEventListener.hpp">
+      <Filter>Backend\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="PipelineEventDispatcher.hpp">
+      <Filter>Backend\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceResidencyQueue.hpp">
+      <Filter>Backend\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="Scheduler.hpp">
+      <Filter>Backend\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="SyncPoint.hpp">
+      <Filter>Backend\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="BackBufferManager.hpp">
+      <Filter>Backend\MemoryManagement\MemoryHeaps</Filter>
+    </ClInclude>
+    <ClInclude Include="UploadManager.hpp">
+      <Filter>Backend\MemoryManagement\MemoryHeaps</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceView.hpp">
+      <Filter>Backend\MemoryManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryObject.hpp">
+      <Filter>Backend\MemoryManagement</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsNodeFactory.hpp">
+      <Filter>Backend\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderManager.hpp">
+      <Filter>Backend\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandAllocatorPool.hpp">
+      <Filter>Backend\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="ScratchSpacePool.hpp">
+      <Filter>Backend\Pipeline</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -274,49 +325,10 @@
       <Filter>Scene</Filter>
     </ClCompile>
     <ClCompile Include="MemoryManager.cpp">
-      <Filter>MemoryManagement</Filter>
-    </ClCompile>
-    <ClCompile Include="Pipeline.cpp">
-      <Filter>Pipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="Scheduler.cpp">
-      <Filter>Pipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="Task.cpp">
-      <Filter>Pipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="GraphicsNodeFactory.cpp">
-      <Filter>Pipeline</Filter>
+      <Filter>Backend\MemoryManagement</Filter>
     </ClCompile>
     <ClCompile Include="Binder.cpp">
-      <Filter>Middleware</Filter>
-    </ClCompile>
-    <ClCompile Include="ComputeCommandList.cpp">
-      <Filter>Middleware</Filter>
-    </ClCompile>
-    <ClCompile Include="GraphicsCommandList.cpp">
-      <Filter>Middleware</Filter>
-    </ClCompile>
-    <ClCompile Include="BasicCommandList.cpp">
-      <Filter>Middleware</Filter>
-    </ClCompile>
-    <ClCompile Include="CommandAllocatorPool.cpp">
-      <Filter>Middleware</Filter>
-    </ClCompile>
-    <ClCompile Include="CopyCommandList.cpp">
-      <Filter>Middleware</Filter>
-    </ClCompile>
-    <ClCompile Include="ExecutionContext.cpp">
-      <Filter>Pipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="ExecutionResult.cpp">
-      <Filter>Pipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="ScratchSpacePool.cpp">
-      <Filter>Middleware</Filter>
-    </ClCompile>
-    <ClCompile Include="ResourceResidencyQueue.cpp">
-      <Filter>Pipeline</Filter>
+      <Filter>Bridge</Filter>
     </ClCompile>
     <ClCompile Include="MeshBuffer.cpp">
       <Filter>Resources</Filter>
@@ -324,92 +336,134 @@
     <ClCompile Include="Mesh.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
-    <ClCompile Include="PipelineEventDispatcher.cpp">
-      <Filter>Pipeline</Filter>
-    </ClCompile>
     <ClCompile Include="Image.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="HostDescHeap.cpp">
-      <Filter>MemoryManagement\Descriptors</Filter>
+      <Filter>Backend\MemoryManagement\DescriptorHeaps</Filter>
     </ClCompile>
     <ClCompile Include="StackDescHeap.cpp">
-      <Filter>MemoryManagement\Descriptors</Filter>
-    </ClCompile>
-    <ClCompile Include="ResourceView.cpp">
-      <Filter>MemoryManagement\Descriptors</Filter>
-    </ClCompile>
-    <ClCompile Include="UploadManager.cpp">
-      <Filter>MemoryManagement\ObjectManagement</Filter>
+      <Filter>Backend\MemoryManagement\DescriptorHeaps</Filter>
     </ClCompile>
     <ClCompile Include="ConstBufferHeap.cpp">
-      <Filter>MemoryManagement\Heaps</Filter>
-    </ClCompile>
-    <ClCompile Include="BackBufferManager.cpp">
-      <Filter>MemoryManagement\ObjectManagement</Filter>
-    </ClCompile>
-    <ClCompile Include="MemoryObject.cpp">
-      <Filter>MemoryManagement\ObjectManagement</Filter>
+      <Filter>Backend\MemoryManagement\MemoryHeaps</Filter>
     </ClCompile>
     <ClCompile Include="CriticalBufferHeap.cpp">
-      <Filter>MemoryManagement\Heaps</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="GraphicsContext.cpp">
-      <Filter>Pipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="ShaderManager.cpp">
-      <Filter>Pipeline</Filter>
+      <Filter>Backend\MemoryManagement\MemoryHeaps</Filter>
     </ClCompile>
     <ClCompile Include="DirectionalLight.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="VolatileViewHeap.cpp">
-      <Filter>Middleware</Filter>
+    <ClCompile Include="PerspectiveCamera.cpp">
+      <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="PipelineTypes.cpp">
-      <Filter>Pipeline</Filter>
+    <ClCompile Include="BasicCamera.cpp">
+      <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes\Node_ForwardRender.cpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
+    <ClCompile Include="OrthographicCamera.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes\Node_GenCSM.cpp">
-      <Filter>Nodes</Filter>
+    <ClCompile Include="OverlayEntity.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_CSM.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_DepthPrepass.cpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_RenderToBackBuffer.cpp">
-      <Filter>Nodes</Filter>
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_DepthReduction.cpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_DepthReductionFinal.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_DrawSky.cpp">
-      <Filter>Nodes\ForwardPipeline</Filter>
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_ForwardRender.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_OverlayRender.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_Blend.cpp">
+      <Filter>Frontend\Nodes\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\NodeUtility.cpp">
+      <Filter>Frontend\Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="VolatileViewHeap.cpp">
+      <Filter>Backend\MemoryManagement\DescriptorHeaps</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_DebugDraw.cpp">
+      <Filter>Frontend\Nodes\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_BlendWithTransform.cpp">
+      <Filter>Frontend\Nodes\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_LightCulling.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicCommandList.cpp">
+      <Filter>Bridge\CommandLists</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputeCommandList.cpp">
+      <Filter>Bridge\CommandLists</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsCommandList.cpp">
+      <Filter>Bridge\CommandLists</Filter>
+    </ClCompile>
+    <ClCompile Include="CopyCommandList.cpp">
+      <Filter>Bridge\CommandLists</Filter>
+    </ClCompile>
+    <ClCompile Include="NodeContext.cpp">
+      <Filter>Bridge</Filter>
+    </ClCompile>
+    <ClCompile Include="PipelineTypes.cpp">
+      <Filter>Bridge</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsNode.cpp">
+      <Filter>Frontend</Filter>
+    </ClCompile>
+    <ClCompile Include="Pipeline.cpp">
+      <Filter>Backend\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="PipelineEventDispatcher.cpp">
+      <Filter>Backend\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceResidencyQueue.cpp">
+      <Filter>Backend\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="Scheduler.cpp">
+      <Filter>Backend\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="BackBufferManager.cpp">
+      <Filter>Backend\MemoryManagement\MemoryHeaps</Filter>
+    </ClCompile>
+    <ClCompile Include="UploadManager.cpp">
+      <Filter>Backend\MemoryManagement\MemoryHeaps</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceView.cpp">
+      <Filter>Backend\MemoryManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryObject.cpp">
+      <Filter>Backend\MemoryManagement</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsNodeFactory.cpp">
+      <Filter>Backend\Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="ShaderManager.cpp">
+      <Filter>Backend\Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandAllocatorPool.cpp">
+      <Filter>Backend\Pipeline</Filter>
+    </ClCompile>
+    <ClCompile Include="ScratchSpacePool.cpp">
+      <Filter>Backend\Pipeline</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Nodes\Shaders\DrawSky.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\GenCSM.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\DepthPrepass.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\DepthReduction.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\ForwardRender.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
     <None Include="Materials\bitmap_color_2d.mtl.hlsl">
       <Filter>Materials</Filter>
     </None>
@@ -419,12 +473,72 @@
     <None Include="Materials\simple_diffuse.mtl.hlsl">
       <Filter>Materials</Filter>
     </None>
-    <None Include="Nodes\Shaders\ForwardRender.hlsl">
-      <Filter>Nodes\Shaders</Filter>
-    </None>
+    <None Include="Nodes\Shaders\Blend.hlsl" />
+    <None Include="Nodes\Shaders\BlendWithTransform.hlsl" />
+    <None Include="Nodes\Shaders\CSM.hlsl" />
+    <None Include="Nodes\Shaders\CSMSample.hlsl" />
+    <None Include="Nodes\Shaders\DebugDraw.hlsl" />
+    <None Include="Nodes\Shaders\DepthPrepass.hlsl" />
+    <None Include="Nodes\Shaders\DepthReduction.hlsl" />
+    <None Include="Nodes\Shaders\DepthReductionFinal.hlsl" />
+    <None Include="Nodes\Shaders\DrawSky.hlsl" />
     <None Include="Nodes\Shaders\ForwardRender.hlsl" />
-    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
-    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
-    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
+    <None Include="Nodes\Shaders\LightCulling.hlsl" />
+    <None Include="Nodes\Shaders\OverlayColored.hlsl" />
+    <None Include="Nodes\Shaders\OverlayTextured.hlsl" />
+    <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Materials\PbrBrdf.hlsl">
+      <Filter>Materials</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\Blend.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\BlendWithTransform.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\CSM.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\CSMSample.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\DebugDraw.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\DepthPrepass.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\DepthReduction.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\DepthReductionFinal.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\DrawSky.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\ForwardRender.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\GenCSM.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\LightCulling.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\OverlayColored.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\OverlayTextured.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Nodes\Shaders\TiledLighting.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

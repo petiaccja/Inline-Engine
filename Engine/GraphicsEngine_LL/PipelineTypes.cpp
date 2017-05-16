@@ -1,5 +1,4 @@
 #include "PipelineTypes.hpp"
-#include "GraphicsContext.hpp"
 
 
 namespace inl::gxeng::pipeline {
@@ -111,6 +110,42 @@ bool Texture2D::WritableDepthStencil() const {
 }
 bool Texture2D::WritableRW() const {
 	return (bool)m_uav;
+}
+
+
+void Texture2D::GetSize(uint64_t& width, uint32_t& height) const {
+	if (m_srv) {
+		width = m_srv.GetResource().GetWidth();
+		height = (uint32_t)m_srv.GetResource().GetHeight();
+	}
+	else if (m_rtv) {
+		width = m_rtv.GetResource().GetWidth();
+		height = (uint32_t)m_rtv.GetResource().GetHeight();
+	}
+	else if (m_dsv) {
+		width = m_dsv.GetResource().GetWidth();
+		height = (uint32_t)m_dsv.GetResource().GetHeight();
+	}
+	else if (m_uav) {
+		width = m_uav.GetResource().GetWidth();
+		height = (uint32_t)m_uav.GetResource().GetHeight();
+	}
+	else {
+		width = 0;
+		height = 0;
+	}
+}
+uint64_t Texture2D::Width() const {
+	uint64_t w;
+	uint32_t h;
+	GetSize(w, h);
+	return w;
+}
+uint32_t Texture2D::Height() const {
+	uint64_t w;
+	uint32_t h;
+	GetSize(w, h);
+	return h;
 }
 
 

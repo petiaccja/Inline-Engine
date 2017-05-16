@@ -10,27 +10,41 @@ namespace gxeng {
 namespace nodes {
 
 
+/// <summary> 
+/// Obtain timing information about the graphics engine.
+/// Outputs: absolute time since initializing the engine.
+/// </summary>
 class GetTime :
 	virtual public GraphicsNode,
+	public GraphicsTask,
 	public exc::InputPortConfig<>,
 	public exc::OutputPortConfig<double>
 {
 public:
 	GetTime() {}
 
-	virtual void Update() override {}
-	virtual void Notify(exc::InputPortBase* sender) override {}
-	void InitGraphics(const GraphicsContext&) override {}
-
-	virtual Task GetTask() override {
-		return Task({ [this](const ExecutionContext& context)
-		{
-			std::chrono::nanoseconds time = context.GetAbsoluteTime();
-			double dtime = time.count() / 1e9;
-			this->GetOutput<0>().Set(dtime);
-			return ExecutionResult{};
-		} });
+	void Update() override {}
+	void Notify(exc::InputPortBase* sender) override {}
+	void Initialize(EngineContext& context) override {
+		GraphicsNode::SetTaskSingle(this);
 	}
+	void Reset() override {}
+
+	void Setup(SetupContext& context) {
+		this->GetOutput<0>().Set(m_absoluteTime);
+	}
+
+	void Execute(RenderContext& context) {}
+
+
+	void SetAbsoluteTime(double absoluteTime) {
+		m_absoluteTime = absoluteTime;
+	}
+	double GetAbsoluteTime() const {
+		return m_absoluteTime;
+	}
+private:
+	double m_absoluteTime;
 };
 
 

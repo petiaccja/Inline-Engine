@@ -16,7 +16,9 @@ public:
 	GraphicsCommandList(
 		gxapi::IGraphicsApi* gxApi,
 		CommandAllocatorPool& commandAllocatorPool,
-		ScratchSpacePool& scratchSpacePool);
+		ScratchSpacePool& scratchSpacePool,
+		MemoryManager& memoryManager,
+		VolatileViewHeap& volatileCbvHeap);
 	GraphicsCommandList(const GraphicsCommandList& rhs) = delete;
 	GraphicsCommandList(GraphicsCommandList&& rhs);
 	GraphicsCommandList& operator=(const GraphicsCommandList& rhs) = delete;
@@ -24,7 +26,7 @@ public:
 
 public:
 	// Clear shit
-	void ClearDepthStencil(DepthStencilView2D& resource,
+	void ClearDepthStencil(const DepthStencilView2D& resource,
 						   float depth,
 						   uint8_t stencil,
 						   size_t numRects = 0,
@@ -32,7 +34,7 @@ public:
 						   bool clearDepth = true,
 						   bool clearStencil = false);
 
-	void ClearRenderTarget(RenderTargetView2D& resource,
+	void ClearRenderTarget(const RenderTargetView2D& resource,
 						   gxapi::ColorRGBA color,
 						   size_t numRects = 0,
 						   gxapi::Rectangle* rects = nullptr);
@@ -65,8 +67,8 @@ public:
 
 	// output merger
 	void SetRenderTargets(unsigned numRenderTargets,
-						  RenderTargetView2D** renderTargets,
-						  DepthStencilView2D* depthStencil = nullptr);
+						  const RenderTargetView2D* const * renderTargets,
+						  const DepthStencilView2D* depthStencil = nullptr);
 	void SetBlendFactor(float r, float g, float b, float a);
 	void SetStencilRef(unsigned stencilRef);
 
@@ -83,7 +85,7 @@ public:
 	void BindGraphics(BindParameter parameter, const TextureView2D& shaderResource);
 	void BindGraphics(BindParameter parameter, const TextureView3D& shaderResource);
 	void BindGraphics(BindParameter parameter, const ConstBufferView& shaderConstant);
-	void BindGraphics(BindParameter parameter, const void* shaderConstant, int size, int offset);
+	void BindGraphics(BindParameter parameter, const void* shaderConstant, int size/*, int offset*/);
 	void BindGraphics(BindParameter parameter, const RWTextureView1D& rwResource);
 	void BindGraphics(BindParameter parameter, const RWTextureView2D& rwResource);
 	void BindGraphics(BindParameter parameter, const RWTextureView3D& rwResource);

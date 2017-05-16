@@ -1,15 +1,57 @@
 #include "Node_ForwardRender.hpp"
 
+#include "NodeUtility.hpp"
+
 #include "../MeshEntity.hpp"
 #include "../Mesh.hpp"
 #include "../Image.hpp"
 #include "../DirectionalLight.hpp"
-#include "../GraphicsContext.hpp"
+#include "../NodeContext.hpp"
+#include "../GraphicsCommandList.hpp"
+#include "../ResourceView.hpp"
 
 #include <array>
 
 namespace inl::gxeng::nodes {
 
+struct light_data
+{
+	mathfu::VectorPacked<float, 4> diffuse_color;
+	mathfu::VectorPacked<float, 4> vs_position;
+	mathfu::VectorPacked<float, 4> attenuation_end;
+};
+
+struct Uniforms
+{
+	light_data ld[10];
+	mathfu::VectorPacked<float, 4> screen_dimensions;
+	mathfu::VectorPacked<float, 4> vs_cam_pos;
+	int group_size_x, group_size_y;
+	mathfu::VectorPacked<float, 2> dummy;
+};
+
+static void setWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsigned groupSizeH, unsigned& dispatchW, unsigned& dispatchH)
+{
+	//set up work group sizes
+	unsigned gw = 0, gh = 0, count = 1;
+
+	while (gw < w)
+	{
+		gw = groupSizeW * count;
+		count++;
+	}
+
+	count = 1;
+
+	while (gh < h)
+	{
+		gh = groupSizeH * count;
+		count++;
+	}
+
+	dispatchW = unsigned(float(gw) / groupSizeW);
+	dispatchH = unsigned(float(gh) / groupSizeH);
+}
 
 static bool CheckMeshFormat(const Mesh& mesh) {
 	for (size_t i = 0; i < mesh.GetNumStreams(); i++) {
@@ -46,166 +88,185 @@ static void ConvertToSubmittable(
 
 
 
-ForwardRender::ForwardRender(gxapi::IGraphicsApi * graphicsApi) {
+ForwardRender::ForwardRender() {
 	this->GetInput<0>().Set({});
-
-	BindParameterDesc transformBindParamDesc;
-	m_transformBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
-	transformBindParamDesc.parameter = m_transformBindParam;
-	transformBindParamDesc.constantSize = sizeof(float) * 4 * 4 * 2;
-	transformBindParamDesc.relativeAccessFrequency = 0;
-	transformBindParamDesc.relativeChangeFrequency = 0;
-	transformBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
-
-	BindParameterDesc sunBindParamDesc;
-	m_sunBindParam = BindParameter(eBindParameterType::CONSTANT, 1);
-	sunBindParamDesc.parameter = m_sunBindParam;
-	sunBindParamDesc.constantSize = sizeof(float) * 4 * 2;
-	sunBindParamDesc.relativeAccessFrequency = 0;
-	sunBindParamDesc.relativeChangeFrequency = 0;
-	sunBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	BindParameterDesc albedoBindParamDesc;
-	m_albedoBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
-	albedoBindParamDesc.parameter = m_albedoBindParam;
-	albedoBindParamDesc.constantSize = 0;
-	albedoBindParamDesc.relativeAccessFrequency = 0;
-	albedoBindParamDesc.relativeChangeFrequency = 0;
-	albedoBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	BindParameterDesc sampBindParamDesc;
-	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
-	sampBindParamDesc.constantSize = 0;
-	sampBindParamDesc.relativeAccessFrequency = 0;
-	sampBindParamDesc.relativeChangeFrequency = 0;
-	sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	gxapi::StaticSamplerDesc samplerDesc;
-	samplerDesc.shaderRegister = 0;
-	samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
-	samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.mipLevelBias = 0.f;
-	samplerDesc.registerSpace = 0;
-	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	m_binder = Binder{ graphicsApi,{ transformBindParamDesc, sunBindParamDesc, albedoBindParamDesc, sampBindParamDesc },{ samplerDesc } };
 }
 
 
-void ForwardRender::InitGraphics(const GraphicsContext& context) {
-	m_graphicsContext = context;
+void ForwardRender::Initialize(EngineContext & context) {
+	GraphicsNode::SetTaskSingle(this);
+}
 
-	auto swapChainDesc = context.GetSwapChainDesc();
-	InitRenderTarget(swapChainDesc.width, swapChainDesc.height);
+void ForwardRender::Reset() {
+	m_rtv = RenderTargetView2D();
+	m_dsv = DepthStencilView2D();
+	m_entities = nullptr;
+	m_camera = nullptr;
+	m_directionalLights = nullptr;
 
-	ShaderParts shaderParts;
-	shaderParts.vs = true;
-	shaderParts.ps = true;
+	m_shadowMapTexView = TextureView2D();
+	m_shadowMXTexView = TextureView2D();
+	m_csmSplitsTexView = TextureView2D();
+	m_lightMVPTexView = TextureView2D();
 
-	auto shader = m_graphicsContext.CreateShader("ForwardRender", shaderParts, "");
-
-	std::vector<gxapi::InputElementDesc> inputElementDesc = {
-		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
-		gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
-		gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
-	};
-
-	gxapi::GraphicsPipelineStateDesc psoDesc;
-	psoDesc.inputLayout.elements = inputElementDesc.data();
-	psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-	psoDesc.rootSignature = m_binder.GetRootSignature();
-	psoDesc.vs = shader.vs;
-	psoDesc.ps = shader.ps;
-	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
-	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
-
-	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
-	psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::EQUAL;
-	psoDesc.depthStencilState.enableStencilTest = true;
-	psoDesc.depthStencilState.stencilReadMask = 0;
-	psoDesc.depthStencilState.stencilWriteMask = ~uint8_t(0);
-	psoDesc.depthStencilState.ccwFace.stencilFunc = gxapi::eComparisonFunction::ALWAYS;
-	psoDesc.depthStencilState.ccwFace.stencilOpOnStencilFail = gxapi::eStencilOp::KEEP;
-	psoDesc.depthStencilState.ccwFace.stencilOpOnDepthFail = gxapi::eStencilOp::KEEP;
-	psoDesc.depthStencilState.ccwFace.stencilOpOnPass = gxapi::eStencilOp::REPLACE;
-	psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
-	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT_S8X24_UINT;
-
-	psoDesc.numRenderTargets = 1;
-	psoDesc.renderTargetFormats[0] = gxapi::eFormat::R16G16B16A16_FLOAT;
-
-	m_PSO.reset(m_graphicsContext.CreatePSO(psoDesc));
+	GetInput<0>().Clear();
+	GetInput<1>().Clear();
+	GetInput<2>().Clear();
+	GetInput<3>().Clear();
+	GetInput<4>().Clear();
+	GetInput<5>().Clear();
+	GetInput<6>().Clear();
+	GetInput<7>().Clear();
+	GetInput<8>().Clear();
 }
 
 
-Task ForwardRender::GetTask() {
-	return Task({ [this](const ExecutionContext& context) {
-		ExecutionResult result;
-
-		auto depthStencil = this->GetInput<0>().Get();
-		this->GetInput<0>().Clear();
-
-		const EntityCollection<MeshEntity>* entities = this->GetInput<1>().Get();
-		this->GetInput<1>().Clear();
-
-		const Camera* camera = this->GetInput<2>().Get();
-		this->GetInput<2>().Clear();
-
-		const DirectionalLight* sun = this->GetInput<3>().Get();
-		this->GetInput<3>().Clear();
-
-		this->GetOutput<0>().Set(pipeline::Texture2D(m_renderTargetSrv, m_rtv));
-
-		if (entities) {
-			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-
-			DepthStencilView2D dsv = depthStencil.QueryDepthStencil(cmdList, m_graphicsContext);
-
-			RenderScene(dsv, *entities, camera, sun, cmdList);
-			result.AddCommandList(std::move(cmdList));
-		}
-
-		return result;
-	} });
-}
-
-
-void ForwardRender::InitRenderTarget(unsigned width, unsigned height) {
-	auto format = gxapi::eFormat::R16G16B16A16_FLOAT;
-
-	Texture2D tex = m_graphicsContext.CreateRenderTarget2D(width, height, format, true);
-
+void ForwardRender::Setup(SetupContext& context) {
+	auto& target = this->GetInput<0>().Get();
 	gxapi::RtvTexture2DArray rtvDesc;
 	rtvDesc.activeArraySize = 1;
 	rtvDesc.firstArrayElement = 0;
-	rtvDesc.planeIndex = 0;
 	rtvDesc.firstMipLevel = 0;
-	m_rtv = m_graphicsContext.CreateRtv(tex, format, rtvDesc);
+	rtvDesc.planeIndex = 0;
+	m_rtv = context.CreateRtv(target, target.GetFormat(), rtvDesc);
+	m_rtv.GetResource()._GetResourcePtr()->SetName("Forward render render target view");
 
+	auto& depthStencil = this->GetInput<1>().Get();
+	gxapi::DsvTexture2DArray dsvDesc;
+	dsvDesc.activeArraySize = 1;
+	dsvDesc.firstArrayElement = 0;
+	dsvDesc.firstMipLevel = 0;
+	m_dsv = context.CreateDsv(depthStencil, FormatAnyToDepthStencil(depthStencil.GetFormat()), dsvDesc);
+	m_dsv.GetResource()._GetResourcePtr()->SetName("Forward render depth tex view");
+
+	m_entities = this->GetInput<2>().Get();
+
+	m_camera = this->GetInput<3>().Get();
+
+	m_directionalLights = this->GetInput<4>().Get();
+	assert(m_directionalLights->Size() == 1);
+
+	auto shadowMapTex = this->GetInput<5>().Get();
+	this->GetInput<5>().Clear();
 	gxapi::SrvTexture2DArray srvDesc;
-	srvDesc.activeArraySize = 1;
+	srvDesc.activeArraySize = 4;
 	srvDesc.firstArrayElement = 0;
-	srvDesc.numMipLevels = -1;
 	srvDesc.mipLevelClamping = 0;
 	srvDesc.mostDetailedMip = 0;
+	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
-	m_renderTargetSrv = m_graphicsContext.CreateSrv(tex, format, srvDesc);
+	m_shadowMapTexView = context.CreateSrv(shadowMapTex, FormatDepthToColor(shadowMapTex.GetFormat()), srvDesc);
+	m_shadowMapTexView.GetResource()._GetResourcePtr()->SetName("Forward render CSM tex view");
+
+	srvDesc.activeArraySize = 1;
+
+	auto shadowMXTex = this->GetInput<6>().Get();
+	this->GetInput<6>().Clear();
+	m_shadowMXTexView = context.CreateSrv(shadowMXTex, shadowMXTex.GetFormat(), srvDesc);
+	m_shadowMXTexView.GetResource()._GetResourcePtr()->SetName("Forward render shadow MX tex view");
+
+	auto csmSplitsTex = this->GetInput<7>().Get();
+	this->GetInput<7>().Clear();
+	m_csmSplitsTexView = context.CreateSrv(csmSplitsTex, csmSplitsTex.GetFormat(), srvDesc);
+	m_csmSplitsTexView.GetResource()._GetResourcePtr()->SetName("Forward render CSM splits tex view");
+
+	auto lightMVPTex = this->GetInput<8>().Get();
+	this->GetInput<8>().Clear();
+	m_lightMVPTexView = context.CreateSrv(lightMVPTex, lightMVPTex.GetFormat(), srvDesc);
+	m_lightMVPTexView.GetResource()._GetResourcePtr()->SetName("Forward render light MVP tex view");
+
+	auto lightCullData = this->GetInput<9>().Get();
+	this->GetInput<9>().Clear();
+	m_lightCullDataView = context.CreateSrv(lightCullData, lightCullData.GetFormat(), srvDesc);
+	m_lightCullDataView.GetResource()._GetResourcePtr()->SetName("Forward render light cull data tex view");
+
+
+	this->GetOutput<0>().Set(target);
+
+
+	/*if (!m_binder.has_value()) {
+		BindParameterDesc transformBindParamDesc;
+		m_transformBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
+		transformBindParamDesc.parameter = m_transformBindParam;
+		transformBindParamDesc.constantSize = sizeof(float) * 4 * 4 * 2;
+		transformBindParamDesc.relativeAccessFrequency = 0;
+		transformBindParamDesc.relativeChangeFrequency = 0;
+		transformBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
+
+		BindParameterDesc sunBindParamDesc;
+		m_sunBindParam = BindParameter(eBindParameterType::CONSTANT, 1);
+		sunBindParamDesc.parameter = m_sunBindParam;
+		sunBindParamDesc.constantSize = sizeof(float) * 4 * 2;
+		sunBindParamDesc.relativeAccessFrequency = 0;
+		sunBindParamDesc.relativeChangeFrequency = 0;
+		sunBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		BindParameterDesc albedoBindParamDesc;
+		m_albedoBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
+		albedoBindParamDesc.parameter = m_albedoBindParam;
+		albedoBindParamDesc.constantSize = 0;
+		albedoBindParamDesc.relativeAccessFrequency = 0;
+		albedoBindParamDesc.relativeChangeFrequency = 0;
+		albedoBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		BindParameterDesc shadowMapBindParamDesc;
+		m_shadowMapBindParam = BindParameter(eBindParameterType::TEXTURE, 1);
+		shadowMapBindParamDesc.parameter = m_shadowMapBindParam;
+		shadowMapBindParamDesc.constantSize = 0;
+		shadowMapBindParamDesc.relativeAccessFrequency = 0;
+		shadowMapBindParamDesc.relativeChangeFrequency = 0;
+		shadowMapBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		BindParameterDesc shadowMXBindParamDesc;
+		m_shadowMXBindParam = BindParameter(eBindParameterType::TEXTURE, 2);
+		shadowMXBindParamDesc.parameter = m_shadowMXBindParam;
+		shadowMXBindParamDesc.constantSize = 0;
+		shadowMXBindParamDesc.relativeAccessFrequency = 0;
+		shadowMXBindParamDesc.relativeChangeFrequency = 0;
+		shadowMXBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		BindParameterDesc csmSplitsBindParamDesc;
+		m_csmSplitsBindParam = BindParameter(eBindParameterType::TEXTURE, 3);
+		csmSplitsBindParamDesc.parameter = m_csmSplitsBindParam;
+		csmSplitsBindParamDesc.constantSize = 0;
+		csmSplitsBindParamDesc.relativeAccessFrequency = 0;
+		csmSplitsBindParamDesc.relativeChangeFrequency = 0;
+		csmSplitsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		BindParameterDesc sampBindParamDesc;
+		sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
+		sampBindParamDesc.constantSize = 0;
+		sampBindParamDesc.relativeAccessFrequency = 0;
+		sampBindParamDesc.relativeChangeFrequency = 0;
+		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		gxapi::StaticSamplerDesc samplerDesc;
+		samplerDesc.shaderRegister = 0;
+		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
+		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.mipLevelBias = 0.f;
+		samplerDesc.registerSpace = 0;
+		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		m_binder = context.CreateBinder({ transformBindParamDesc, sunBindParamDesc, albedoBindParamDesc, shadowMapBindParamDesc, shadowMXBindParamDesc, csmSplitsBindParamDesc, sampBindParamDesc },{ samplerDesc });
+	}*/
 }
 
 
-void ForwardRender::RenderScene(
-	DepthStencilView2D& dsv,
-	const EntityCollection<MeshEntity>& entities,
-	const Camera* camera,
-	const DirectionalLight* sun,
-	GraphicsCommandList& commandList
-) {
+void ForwardRender::Execute(RenderContext& context) {
+	if (m_entities == nullptr) {
+		return;
+	}
+
+	gxeng::GraphicsCommandList& commandList = context.AsGraphics();
+
 	// Set render target
 	auto pRTV = &m_rtv;
-	commandList.SetResourceState(m_rtv.GetResource(), 0, gxapi::eResourceState::RENDER_TARGET);
-	commandList.SetRenderTargets(1, &pRTV, &dsv);
+	commandList.SetResourceState(m_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(m_dsv.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
+	commandList.SetRenderTargets(1, &pRTV, &m_dsv);
 	commandList.ClearRenderTarget(m_rtv, gxapi::ColorRGBA(0, 0, 0, 1));
 
 	gxapi::Rectangle rect{ 0, (int)m_rtv.GetResource().GetHeight(), 0, (int)m_rtv.GetResource().GetWidth() };
@@ -219,13 +280,12 @@ void ForwardRender::RenderScene(
 	commandList.SetScissorRects(1, &rect);
 	commandList.SetViewports(1, &viewport);
 
-	commandList.SetResourceState(dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
 	commandList.SetStencilRef(1); // background is 0, anything other than that is 1
 
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	mathfu::Matrix4x4f view = camera->GetViewMatrixRH();
-	mathfu::Matrix4x4f projection = camera->GetPerspectiveMatrixRH();
+	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();
+	mathfu::Matrix4x4f projection = m_camera->GetProjectionMatrixRH();
 	auto viewProjection = projection * view;
 
 
@@ -234,121 +294,131 @@ void ForwardRender::RenderScene(
 	std::vector<unsigned> strides;
 
 	// Iterate over all entities
-	for (const MeshEntity* entity : entities) {
+	for (const MeshEntity* entity : *m_entities) {
 		// Get entity parameters
 		Mesh* mesh = entity->GetMesh();
 		Material* material = entity->GetMaterial();
 
-		if (material != nullptr) {
-			// Set pipeline state & binder
-			const Mesh::Layout& layout = mesh->GetLayout();
-			const MaterialShader* materialShader = material->GetShader();
-			assert(materialShader != nullptr);
+		assert(mesh != nullptr);
+		assert(material != nullptr);
 
-			ScenarioData& scenario = GetScenario(layout, *materialShader);
+		// Set pipeline state & binder
+		const Mesh::Layout& layout = mesh->GetLayout();
+		const MaterialShader* materialShader = material->GetShader();
+		assert(materialShader != nullptr);
 
-			commandList.SetPipelineState(scenario.pso.get());
-			commandList.SetGraphicsBinder(&scenario.binder);
+		ScenarioData& scenario = GetScenario(
+			context, layout, *materialShader, m_rtv.GetDescription().format, m_dsv.GetDescription().format);
 
-			// Set material parameters
-			std::vector<uint8_t> materialConstants(scenario.constantsSize);
-			for (size_t paramIdx = 0; paramIdx < material->GetParameterCount(); ++paramIdx) {
-				const Material::Parameter& param = (*material)[paramIdx];
-				switch (param.GetType()) {
-					case eMaterialShaderParamType::BITMAP_COLOR_2D:
-					case eMaterialShaderParamType::BITMAP_VALUE_2D:
-					{
-						BindParameter bindSlot(eBindParameterType::TEXTURE, scenario.offsets[paramIdx]);
-						commandList.BindGraphics(bindSlot, *((Image*)param)->GetSrv());
-						break;
-					}
-					case eMaterialShaderParamType::COLOR:
-					{
-						*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 0) = ((mathfu::Vector4f)param).x();
-						*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 4) = ((mathfu::Vector4f)param).y();
-						*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 8) = ((mathfu::Vector4f)param).z();
-						*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 12) = ((mathfu::Vector4f)param).w();
-						break;
-					}
-					case eMaterialShaderParamType::VALUE:
-					{
-						*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx]) = ((float)param);
-						break;
-					}
-				}
-			}
-			if (scenario.constantsSize > 0) {
-				commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 200), materialConstants.data(), materialConstants.size(), 0);
-			}
+		commandList.SetPipelineState(scenario.pso.get());
+		commandList.SetGraphicsBinder(&scenario.binder);
 
-			// Set vertex and light constants
-			VsConstants vsConstants;
-			LightConstants lightConstants;
-			entity->GetTransform().Pack(vsConstants.model);
-			(viewProjection * entity->GetTransform()).Pack(vsConstants.mvp);
-			lightConstants.direction = sun->GetDirection().Normalized();
-			lightConstants.color = sun->GetColor();
+		commandList.SetResourceState(m_shadowMapTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_shadowMXTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_csmSplitsTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_lightMVPTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
-			commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 0), &vsConstants, sizeof(vsConstants), 0);
-			commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 100), &lightConstants, sizeof(lightConstants), 0);
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 500), m_shadowMapTexView);
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 501), m_shadowMXTexView);
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 502), m_csmSplitsTexView);
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 503), m_lightMVPTexView);
 
-			// Set primitives
-			vertexBuffers.clear(); sizes.clear(); strides.clear();
-			for (size_t i = 0; i < mesh->GetNumStreams(); ++i) {
-				vertexBuffers.push_back(&mesh->GetVertexBuffer(i));
-				sizes.push_back(mesh->GetVertexBuffer(i).GetSize());
-				strides.push_back(mesh->GetVertexBufferStride(i));
-			}
-			commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
-			commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
+		commandList.SetResourceState(m_lightCullDataView.GetResource(), {gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE	});
 
-			// Drawcall
-			commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
-		}
-		else {
-			// THIS PATH IS USED TO BYPASS MATERIAL SYSTEM AND RENDER ENTITIES WITH SIMPLY A TEXTURE
-			// THIS IS DEPRECATED, REMOVE IT ASAP!
-			commandList.SetPipelineState(m_PSO.get());
-			commandList.SetGraphicsBinder(&m_binder);
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 600), m_lightCullDataView);
 
+		// Set material parameters
+		std::vector<uint8_t> materialConstants(scenario.constantsSize);
+		for (size_t paramIdx = 0; paramIdx < material->GetParameterCount(); ++paramIdx) {
+			const Material::Parameter& param = (*material)[paramIdx];
+			switch (param.GetType()) {
+			case eMaterialShaderParamType::BITMAP_COLOR_2D:
+			case eMaterialShaderParamType::BITMAP_VALUE_2D:
 			{
-				std::array<mathfu::VectorPacked<float, 4>, 2> sunCBData;
-				auto sunDir = mathfu::Vector4f(sun->GetDirection(), 0.0);
-				auto sunColor = mathfu::Vector4f(sun->GetColor(), 0.0);
-
-				sunDir.Pack(sunCBData.data());
-				sunColor.Pack(sunCBData.data() + 1);
-				commandList.BindGraphics(m_sunBindParam, sunCBData.data(), sizeof(sunCBData), 0);
+				BindParameter bindSlot(eBindParameterType::TEXTURE, scenario.offsets[paramIdx]);
+				commandList.SetResourceState(((Image*)param)->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+				commandList.BindGraphics(bindSlot, *((Image*)param)->GetSrv());
+				break;
 			}
-
-			// Draw mesh
-			if (!CheckMeshFormat(*mesh)) {
-				continue;
+			case eMaterialShaderParamType::COLOR:
+			{
+				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 0) = ((mathfu::Vector4f)param).x();
+				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 4) = ((mathfu::Vector4f)param).y();
+				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 8) = ((mathfu::Vector4f)param).z();
+				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 12) = ((mathfu::Vector4f)param).w();
+				break;
 			}
-
-			ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
-
-			auto world = entity->GetTransform();
-			auto MVP = viewProjection * world;
-			auto worldInvTr = world.Inverse().Transpose();
-
-			std::array<mathfu::VectorPacked<float, 4>, 8> transformCBData;
-			MVP.Pack(transformCBData.data());
-			worldInvTr.Pack(transformCBData.data() + 4);
-
-			commandList.BindGraphics(m_albedoBindParam, *entity->GetTexture()->GetSrv());
-			commandList.BindGraphics(m_transformBindParam, transformCBData.data(), sizeof(transformCBData), 0);
-
-			commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
-			commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
-			commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
+			case eMaterialShaderParamType::VALUE:
+			{
+				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx]) = ((float)param);
+				break;
+			}
+			}
 		}
+		if (scenario.constantsSize > 0) {
+			commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 200), materialConstants.data(), (int)materialConstants.size());
+		}
+
+		assert(m_directionalLights->Size() == 1);
+		const DirectionalLight* sun = *m_directionalLights->begin();
+
+		// Set vertex and light constants
+		VsConstants vsConstants;
+		LightConstants lightConstants;
+		entity->GetTransform().Pack(vsConstants.m);
+		(viewProjection * entity->GetTransform()).Pack(vsConstants.mvp);
+		(view * entity->GetTransform()).Pack(vsConstants.mv);
+		view.Pack(vsConstants.v);
+		projection.Pack(vsConstants.p);
+		lightConstants.direction = sun->GetDirection().Normalized();
+		lightConstants.color = sun->GetColor();
+
+		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 0), &vsConstants, sizeof(vsConstants));
+		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 100), &lightConstants, sizeof(lightConstants));
+
+		Uniforms uniformsCBData;
+		uniformsCBData.screen_dimensions = mathfu::Vector4f(m_rtv.GetResource().GetWidth(), m_rtv.GetResource().GetHeight(), 0, 0);
+		uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrixRH() * mathfu::Vector4f(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1.0f);
+		uniformsCBData.ld[0].attenuation_end = mathfu::Vector4f(5.0f, 0, 0, 0);
+		uniformsCBData.ld[0].diffuse_color = mathfu::Vector4f(1, 0, 0, 1);
+		uniformsCBData.vs_cam_pos = m_camera->GetViewMatrixRH() * mathfu::Vector4f(m_camera->GetPosition(), 1.0f);
+
+		uint32_t dispatchW, dispatchH;
+		setWorkgroupSize(m_rtv.GetResource().GetWidth(), m_rtv.GetResource().GetHeight(), 16, 16, dispatchW, dispatchH);
+
+		uniformsCBData.group_size_x = dispatchW;
+		uniformsCBData.group_size_y = dispatchH;
+
+		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 600), &uniformsCBData, sizeof(uniformsCBData));
+
+		// Set primitives
+		vertexBuffers.clear(); sizes.clear(); strides.clear();
+		for (size_t i = 0; i < mesh->GetNumStreams(); ++i) {
+			vertexBuffers.push_back(&mesh->GetVertexBuffer(i));
+			sizes.push_back((unsigned)mesh->GetVertexBuffer(i).GetSize());
+			strides.push_back((unsigned)mesh->GetVertexBufferStride(i));
+
+			commandList.SetResourceState(mesh->GetVertexBuffer(i), gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+		}
+		commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::eResourceState::INDEX_BUFFER);
+		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
+		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
+
+		// Drawcall
+		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
+
 	}
 }
 
 
 
-ForwardRender::ScenarioData& ForwardRender::GetScenario(const Mesh::Layout& layout, const MaterialShader& shader) {
+ForwardRender::ScenarioData& ForwardRender::GetScenario(
+	RenderContext& context,
+	const Mesh::Layout& layout,
+	const MaterialShader& shader,
+	gxapi::eFormat renderTargetFormat,
+	gxapi::eFormat depthStencilFormat)
+{
 	std::string shaderCode = shader.GetShaderCode();
 
 	ScenarioDesc key{ layout, shaderCode };
@@ -364,7 +434,7 @@ ForwardRender::ScenarioData& ForwardRender::GetScenario(const Mesh::Layout& layo
 			std::string vsCode = GenerateVertexShader(layout);
 			ShaderParts vsParts;
 			vsParts.vs = true;
-			auto res = m_vertexShaders.insert({ layout, m_graphicsContext.CompileShader(vsCode, vsParts, "") });
+			auto res = m_vertexShaders.insert({ layout, context.CompileShader(vsCode, vsParts, "") });
 			vsIt = res.first;
 		}
 
@@ -373,61 +443,46 @@ ForwardRender::ScenarioData& ForwardRender::GetScenario(const Mesh::Layout& layo
 			std::string psCode = GeneratePixelShader(shader);
 			ShaderParts psParts;
 			psParts.ps = true;
-			auto res = m_materialShaders.insert({ shaderCode, m_graphicsContext.CompileShader(psCode, psParts, "") });
+			auto res = m_materialShaders.insert({ shaderCode, context.CompileShader(psCode, psParts, "") });
 			psIt = res.first;
 		}
 
 		// Create PSO
-		std::vector<gxapi::InputElementDesc> inputElementDesc = {
-			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
-			gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
-			gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
-		};
-
-
 		std::unique_ptr<gxapi::IPipelineState> pso;
 		std::vector<int> offsets;
 		size_t constantsSize;
 		Binder binder;
 
-		binder = GenerateBinder(shader.GetShaderParameters(), offsets, constantsSize);
-
-		gxapi::GraphicsPipelineStateDesc psoDesc;
-		psoDesc.inputLayout.elements = inputElementDesc.data();
-		psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-		psoDesc.rootSignature = binder.GetRootSignature();
-		psoDesc.vs = vsIt->second.vs;
-		psoDesc.ps = psIt->second.ps;
-		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
-		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
-
-		psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
-		psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::EQUAL;
-		psoDesc.depthStencilState.enableStencilTest = true;
-		psoDesc.depthStencilState.stencilReadMask = 0;
-		psoDesc.depthStencilState.stencilWriteMask = ~uint8_t(0);
-		psoDesc.depthStencilState.ccwFace.stencilFunc = gxapi::eComparisonFunction::ALWAYS;
-		psoDesc.depthStencilState.ccwFace.stencilOpOnStencilFail = gxapi::eStencilOp::KEEP;
-		psoDesc.depthStencilState.ccwFace.stencilOpOnDepthFail = gxapi::eStencilOp::KEEP;
-		psoDesc.depthStencilState.ccwFace.stencilOpOnPass = gxapi::eStencilOp::REPLACE;
-		psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
-		psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT_S8X24_UINT;
-
-		psoDesc.numRenderTargets = 1;
-		psoDesc.renderTargetFormats[0] = gxapi::eFormat::R16G16B16A16_FLOAT;
-
-		pso.reset(m_graphicsContext.CreatePSO(psoDesc));
+		binder = GenerateBinder(context, shader.GetShaderParameters(), offsets, constantsSize);
+		pso = CreatePso(context, binder, vsIt->second.vs, psIt->second.ps, renderTargetFormat, depthStencilFormat);
 
 		auto res = m_scenarios.insert({ key, ScenarioData() });
 		scenarioIt = res.first;
 		scenarioIt->second.pso = std::move(pso);
+		scenarioIt->second.renderTargetFormat = renderTargetFormat;
+		scenarioIt->second.depthStencilFormat = depthStencilFormat;
 		scenarioIt->second.offsets = std::move(offsets);
 		scenarioIt->second.binder = std::move(binder);
 		scenarioIt->second.constantsSize = constantsSize;
 	}
+	else if (scenarioIt->second.renderTargetFormat != renderTargetFormat
+		|| scenarioIt->second.depthStencilFormat != depthStencilFormat)
+	{
+		auto& vs = m_vertexShaders.at(layout).vs;
+		auto& ps = m_materialShaders.at(shaderCode).ps;
+
+		auto newPso = CreatePso(context, scenarioIt->second.binder, vs, ps, renderTargetFormat, depthStencilFormat);
+
+		scenarioIt->second.pso = std::move(newPso);
+		scenarioIt->second.renderTargetFormat = renderTargetFormat;
+		scenarioIt->second.depthStencilFormat = depthStencilFormat;
+	}
 
 	return scenarioIt->second;
 }
+
+
+
 
 
 std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
@@ -446,10 +501,14 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 	}
 
 	std::string vertexShader =
+		"Texture2D<float4> lightMVPTex : register(t503);"
 		"struct VsConstants \n"
 		"{\n"
 		"	float4x4 MVP;\n"
-		"	float4x4 worldInvTr;"
+		"	float4x4 MV;\n"
+		"	float4x4 M;\n"
+		"	float4x4 V;\n"
+		"	float4x4 P;\n"
 		"};\n"
 		"ConstantBuffer<VsConstants> vsConstants : register(b0);\n"
 
@@ -457,17 +516,28 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"{\n"
 		"	float4 position : SV_POSITION;\n"
 		"	float3 normal : NO;\n"
-		"	float2 texCoord : TEX_COORD;\n"
+		"	float2 texCoord : TEX_COORD0;\n"
+		"	float4 vsPosition : TEX_COORD1;\n"
 		"};\n"
 
 		"PS_Input VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoord : TEX_COORD)\n"
 		"{\n"
 		"	PS_Input result;\n"
 
-		"	float3 worldNormal = normalize(mul(vsConstants.worldInvTr, float4(normal.xyz, 0.0)).xyz);\n"
+		"	float3 viewNormal = normalize(mul(vsConstants.MV, float4(normal.xyz, 0.0)).xyz);\n"
+
+		"float4x4 light_mvp;\n"
+		"float cascade = 0;\n"
+		"for (int d = 0; d < 4; ++d)\n"
+		"{\n"
+		"	light_mvp[d] = lightMVPTex.Load(int3(cascade * 4 + d, 0, 0));\n"
+		"}\n"
 
 		"	result.position = mul(vsConstants.MVP, position);\n"
-		"	result.normal = worldNormal;\n"
+		//"	result.position = mul(mul(light_mvp, vsConstants.MV), position);\n"
+		//"	result.position = mul(mul(vsConstants.P, mul(light_mvp, vsConstants.M)), position);\n"
+		"	result.vsPosition = mul(vsConstants.MV, position);\n"
+		"	result.normal = viewNormal;\n"
 		"	result.texCoord = texCoord.xy;\n"
 
 		"	return result;\n"
@@ -477,11 +547,161 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 }
 
 std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
-	std::string code = ::inl::gxeng::MaterialGenPixelShader(shader);
-	return code;
+	// get material shading function's HLSL code
+	std::vector<MaterialShaderParameter> params;
+	std::string shadingFunction;
+
+	params = shader.GetShaderParameters();
+	shadingFunction = shader.GetShaderCode();
+
+	// rename "main" to something else
+	std::stringstream renameMain;
+	std::regex renameRegex("main");
+	std::regex_replace(std::ostreambuf_iterator<char>(renameMain), shadingFunction.begin(), shadingFunction.end(), renameRegex, "mtl_shader");
+	shadingFunction = renameMain.str();
+
+	// structures
+	std::string structures =
+		"struct PsInput {\n"
+		"    float4 ndcPos : SV_POSITION;\n"
+		"    float3 viewNormal : NO;\n"
+		"	 float2 texCoord : TEX_COORD0;\n"
+		"	 float4 vsPosition : TEX_COORD1;\n"
+		"};\n\n"
+		"struct MapColor2D {\n"
+		"    Texture2DArray<float4> tex;\n"
+		"    SamplerState samp;\n"
+		"};\n\n"
+		"struct MapValue2D {\n"
+		"    Texture2DArray<float> tex;\n"
+		"    SamplerState samp;\n"
+		"};\n";
+
+	// globals
+	std::string globals =
+		"static float3 g_lightDir;\n"
+		"static float3 g_lightColor;\n"
+		"static float3 g_normal;\n"
+		"static float4 g_ndcPos;\n"
+		"static float4 g_vsPos;\n"
+		"static float3 g_tex0;\n";
+
+	// add constant buffer, textures and samplers according to shader parameters
+	std::stringstream lightConstantBuffer;
+	std::stringstream mtlConstantBuffer;
+	std::stringstream textures;
+
+	lightConstantBuffer << "struct LightConstants {\n"
+		"    float3 direction;\n"
+		"    float3 color;\n"
+		"};\n";
+	lightConstantBuffer << "ConstantBuffer<LightConstants> lightCb: register(b100); \n";
+
+	mtlConstantBuffer << "struct MtlConstants { \n";
+	int numMtlConstants = 0;
+	for (size_t i = 0; i < params.size(); ++i) {
+		switch (params[i].type) {
+			case eMaterialShaderParamType::COLOR:
+			{
+				mtlConstantBuffer << "    float4 param" << i << "; \n";
+				++numMtlConstants;
+				break;
+			}
+			case eMaterialShaderParamType::VALUE:
+			{
+				mtlConstantBuffer << "    float param" << i << "; \n";
+				++numMtlConstants;
+				break;
+			}
+			case eMaterialShaderParamType::BITMAP_COLOR_2D:
+			{
+				textures << "Texture2DArray<float4> tex" << i << " : register(t" << i << "); \n";
+				textures << "SamplerState samp" << i << " : register(s" << i << "); \n";
+				break;
+			}
+			case eMaterialShaderParamType::BITMAP_VALUE_2D:
+			{
+				textures << "Texture2DArray<float> tex" << i << " : register(t" << i << "); \n";
+				textures << "SamplerState samp" << i << " : register(s" << i << "); \n";
+				break;
+			}
+		}
+	}
+	mtlConstantBuffer << "};\n";
+	mtlConstantBuffer << "ConstantBuffer<MtlConstants> mtlCb: register(b200); \n";
+	if (numMtlConstants == 0) {
+		mtlConstantBuffer = std::stringstream();
+	}
+
+	// main function
+	std::stringstream PSMain;
+	PSMain << "float4 PSMain(PsInput psInput) : SV_TARGET {\n";
+	PSMain << "    g_lightDir = lightCb.direction;\n";
+	PSMain << "    g_lightColor = lightCb.color;\n";
+	PSMain << "    g_lightColor *= get_shadow(psInput.vsPosition);\n";
+	PSMain << "    g_normal = psInput.viewNormal;\n";
+	PSMain << "    g_ndcPos = psInput.ndcPos;\n";
+	PSMain << "    g_vsPos = psInput.vsPosition;\n";
+	PSMain << "    g_tex0 = float3(psInput.texCoord, 0.0f);\n";
+	for (size_t i = 0; i < params.size(); ++i) {
+		switch (params[i].type) {
+			case eMaterialShaderParamType::COLOR:
+			{
+				PSMain << "    float4 input" << i << "; \n";
+				PSMain << "    input" << i << " = mtlCb.param" << i << "; \n\n";
+				break;
+			}
+			case eMaterialShaderParamType::VALUE:
+			{
+				PSMain << "    float input" << i << "; \n";
+				PSMain << "    input" << i << " = mtlCb.param" << i << "; \n\n";
+				break;
+			}
+			case eMaterialShaderParamType::BITMAP_COLOR_2D:
+			{
+				PSMain << "    MapColor2D input" << i << "; \n";
+				PSMain << "    input" << i << ".tex = tex" << i << "; \n";
+				PSMain << "    input" << i << ".samp = samp" << i << "; \n\n";
+				break;
+			}
+			case eMaterialShaderParamType::BITMAP_VALUE_2D:
+			{
+				PSMain << "    MapValue2D input" << i << "; \n";
+				PSMain << "    input" << i << ".tex = tex" << i << "; \n";
+				PSMain << "    input" << i << ".samp = samp" << i << "; \n\n";
+				break;
+			}
+		}
+	}
+	PSMain << "    return mtl_shader(";
+	for (intptr_t i = 0; i < (intptr_t)params.size() - 1; ++i) {
+		PSMain << "input" << i << ", ";
+	}
+	if (params.size() > 0) {
+		PSMain << "input" << params.size() - 1;
+	}
+	PSMain << "); \n} \n";
+
+	return
+		std::string()
+		+ "#include \"CSMSample\"\n"
+		+ "#include \"TiledLighting\"\n"
+		+ "#include \"PbrBrdf\"\n"
+		+ structures
+		+ "\n//-------------------------------------\n\n"
+		+ globals
+		+ "\n//-------------------------------------\n\n"
+		+ lightConstantBuffer.str()
+		+ mtlConstantBuffer.str()
+		+ "\n//-------------------------------------\n\n"
+		+ textures.str()
+		+ "\n//-------------------------------------\n\n"
+		+ shadingFunction
+		+ "\n//-------------------------------------\n\n"
+		+ PSMain.str();
 }
 
-Binder ForwardRender::GenerateBinder(const std::vector<MaterialShaderParameter>& mtlParams, std::vector<int>& offsets, size_t& materialCbSize) {
+Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<MaterialShaderParameter>& mtlParams, std::vector<int>& offsets, size_t& materialCbSize) {
 	int textureRegister = 0;
 	int cbSize = 0;
 	std::vector<BindParameterDesc> descs;
@@ -489,43 +709,102 @@ Binder ForwardRender::GenerateBinder(const std::vector<MaterialShaderParameter>&
 
 	for (auto& param : mtlParams) {
 		switch (param.type) {
-			case eMaterialShaderParamType::BITMAP_COLOR_2D:
-			case eMaterialShaderParamType::BITMAP_VALUE_2D:
-			{
-				BindParameterDesc desc;
-				desc.parameter = BindParameter(eBindParameterType::TEXTURE, textureRegister);
-				desc.constantSize = 0;
-				desc.relativeAccessFrequency = 0;
-				desc.relativeChangeFrequency = 0;
-				desc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-				descs.push_back(desc);
+		case eMaterialShaderParamType::BITMAP_COLOR_2D:
+		case eMaterialShaderParamType::BITMAP_VALUE_2D:
+		{
+			BindParameterDesc desc;
+			desc.parameter = BindParameter(eBindParameterType::TEXTURE, textureRegister);
+			desc.constantSize = 0;
+			desc.relativeAccessFrequency = 0;
+			desc.relativeChangeFrequency = 0;
+			desc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+			descs.push_back(desc);
 
-				offsets.push_back(desc.parameter.reg);
+			offsets.push_back(desc.parameter.reg);
 
-				++textureRegister;
+			++textureRegister;
 
-				break;
-			}
-			case eMaterialShaderParamType::COLOR:
-			{
-				cbSize = ((cbSize + 15) / 16) * 16; // correct alignement
-				offsets.push_back(cbSize);
-				cbSize += 16;
+			break;
+		}
+		case eMaterialShaderParamType::COLOR:
+		{
+			cbSize = ((cbSize + 15) / 16) * 16; // correct alignement
+			offsets.push_back(cbSize);
+			cbSize += 16;
 
-				break;
-			}
-			case eMaterialShaderParamType::VALUE:
-			{
-				cbSize = ((cbSize + 3) / 4) * 4; // correct alignement
-				offsets.push_back(cbSize);
-				cbSize += sizeof(float);
+			break;
+		}
+		case eMaterialShaderParamType::VALUE:
+		{
+			cbSize = ((cbSize + 3) / 4) * 4; // correct alignement
+			offsets.push_back(cbSize);
+			cbSize += sizeof(float);
 
-				break;
-			}
-			default:
-				assert(false);;
+			break;
+		}
+		default:
+			assert(false);;
 		}
 	}
+
+	BindParameterDesc theSamplerDesc;
+	theSamplerDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 500);
+	theSamplerDesc.constantSize = 0;
+	theSamplerDesc.relativeAccessFrequency = 0;
+	theSamplerDesc.relativeChangeFrequency = 0;
+	theSamplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	gxapi::StaticSamplerDesc theSamplerParam;
+	theSamplerParam.shaderRegister = 500;
+	theSamplerParam.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
+	theSamplerParam.addressU = gxapi::eTextureAddressMode::WRAP;
+	theSamplerParam.addressV = gxapi::eTextureAddressMode::WRAP;
+	theSamplerParam.addressW = gxapi::eTextureAddressMode::WRAP;
+	theSamplerParam.mipLevelBias = 0.f;
+	theSamplerParam.registerSpace = 0;
+	theSamplerParam.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc shadowMapBindParamDesc;
+	shadowMapBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 500);
+	shadowMapBindParamDesc.constantSize = 0;
+	shadowMapBindParamDesc.relativeAccessFrequency = 0;
+	shadowMapBindParamDesc.relativeChangeFrequency = 0;
+	shadowMapBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc shadowMXBindParamDesc;
+	shadowMXBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 501);
+	shadowMXBindParamDesc.constantSize = 0;
+	shadowMXBindParamDesc.relativeAccessFrequency = 0;
+	shadowMXBindParamDesc.relativeChangeFrequency = 0;
+	shadowMXBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc csmSplitsBindParamDesc;
+	csmSplitsBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 502);
+	csmSplitsBindParamDesc.constantSize = 0;
+	csmSplitsBindParamDesc.relativeAccessFrequency = 0;
+	csmSplitsBindParamDesc.relativeChangeFrequency = 0;
+	csmSplitsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc lightMVPBindParamDesc;
+	lightMVPBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 503);
+	lightMVPBindParamDesc.constantSize = 0;
+	lightMVPBindParamDesc.relativeAccessFrequency = 0;
+	lightMVPBindParamDesc.relativeChangeFrequency = 0;
+	lightMVPBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+	BindParameterDesc lightCullDataBindParamDesc;
+	lightCullDataBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 600);
+	lightCullDataBindParamDesc.constantSize = 0;
+	lightCullDataBindParamDesc.relativeAccessFrequency = 0;
+	lightCullDataBindParamDesc.relativeChangeFrequency = 0;
+	lightCullDataBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+	BindParameterDesc lightUniformsCbDesc;
+	lightUniformsCbDesc.parameter = BindParameter(eBindParameterType::CONSTANT, 600);
+	lightUniformsCbDesc.constantSize = sizeof(Uniforms);
+	lightUniformsCbDesc.relativeAccessFrequency = 0;
+	lightUniformsCbDesc.relativeChangeFrequency = 0;
+	lightUniformsCbDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 	BindParameterDesc vsCbDesc;
 	vsCbDesc.parameter = BindParameter(eBindParameterType::CONSTANT, 0);
@@ -567,6 +846,16 @@ Binder ForwardRender::GenerateBinder(const std::vector<MaterialShaderParameter>&
 
 	descs.push_back(vsCbDesc);
 	descs.push_back(lightCbDesc);
+	descs.push_back(lightUniformsCbDesc);
+
+	descs.push_back(theSamplerDesc);
+	descs.push_back(shadowMapBindParamDesc);
+	descs.push_back(shadowMXBindParamDesc);
+	descs.push_back(csmSplitsBindParamDesc);
+	descs.push_back(lightMVPBindParamDesc);
+
+	descs.push_back(lightCullDataBindParamDesc);
+
 	if (cbSize > 0) {
 		descs.push_back(mtlCbDesc);
 	}
@@ -578,9 +867,58 @@ Binder ForwardRender::GenerateBinder(const std::vector<MaterialShaderParameter>&
 		samplerParams.push_back(samplerParam);
 	}
 
+	samplerParams.push_back(theSamplerParam);
+
 	materialCbSize = cbSize;
 
-	return m_graphicsContext.CreateBinder(descs, samplerParams);
+	return context.CreateBinder(descs, samplerParams);
+}
+
+
+std::unique_ptr<gxapi::IPipelineState> ForwardRender::CreatePso(
+	RenderContext& context,
+	Binder& binder,
+	ShaderStage& vs,
+	ShaderStage & ps,
+	gxapi::eFormat renderTargetFormat,
+	gxapi::eFormat depthStencilFormat)
+{
+	std::unique_ptr<gxapi::IPipelineState> result;
+
+	std::vector<gxapi::InputElementDesc> inputElementDesc = {
+		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
+		gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
+		gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
+	};
+
+	gxapi::GraphicsPipelineStateDesc psoDesc;
+	psoDesc.inputLayout.elements = inputElementDesc.data();
+	psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
+	psoDesc.rootSignature = binder.GetRootSignature();
+	psoDesc.vs = vs;
+	psoDesc.ps = ps;
+	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
+	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+
+	//psoDesc.depthStencilState = gxapi::DepthStencilState(false, true);
+	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
+	psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::EQUAL;
+	psoDesc.depthStencilState.enableStencilTest = true;
+	psoDesc.depthStencilState.stencilReadMask = 0;
+	psoDesc.depthStencilState.stencilWriteMask = ~uint8_t(0);
+	psoDesc.depthStencilState.ccwFace.stencilFunc = gxapi::eComparisonFunction::ALWAYS;
+	psoDesc.depthStencilState.ccwFace.stencilOpOnStencilFail = gxapi::eStencilOp::KEEP;
+	psoDesc.depthStencilState.ccwFace.stencilOpOnDepthFail = gxapi::eStencilOp::KEEP;
+	psoDesc.depthStencilState.ccwFace.stencilOpOnPass = gxapi::eStencilOp::REPLACE;
+	psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
+	psoDesc.depthStencilFormat = depthStencilFormat;
+
+	psoDesc.numRenderTargets = 1;
+	psoDesc.renderTargetFormats[0] = renderTargetFormat;
+
+	result.reset(context.CreatePSO(psoDesc));
+
+	return result;
 }
 
 

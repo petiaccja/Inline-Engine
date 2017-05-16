@@ -14,7 +14,9 @@ public:
 	ComputeCommandList(
 		gxapi::IGraphicsApi* gxApi,
 		CommandAllocatorPool& commandAllocatorPool,
-		ScratchSpacePool& scratchSpacePool);
+		ScratchSpacePool& scratchSpacePool,
+		MemoryManager& memoryManager,
+		VolatileViewHeap& volatileCbvHeap);
 	ComputeCommandList(const ComputeCommandList& rhs) = delete;
 	ComputeCommandList(ComputeCommandList&& rhs);
 	ComputeCommandList& operator=(const ComputeCommandList& rhs) = delete;
@@ -23,6 +25,8 @@ protected:
 	ComputeCommandList(gxapi::IGraphicsApi* gxApi,
 		CommandAllocatorPool& commandAllocatorPool,
 		ScratchSpacePool& scratchSpacePool,
+		MemoryManager& memoryManager,
+		VolatileViewHeap& volatileCbvHeap,
 		gxapi::eCommandListType type);
 
 public:
@@ -40,14 +44,14 @@ public:
 	void BindCompute(BindParameter parameter, const TextureView2D& shaderResource);
 	void BindCompute(BindParameter parameter, const TextureView3D& shaderResource);
 	void BindCompute(BindParameter parameter, const ConstBufferView& shaderConstant);
-	void BindCompute(BindParameter parameter, const void* shaderConstant, int size, int offset);
+	void BindCompute(BindParameter parameter, const void* shaderConstant, int size/*, int offset*/);
 	void BindCompute(BindParameter parameter, const RWTextureView1D& rwResource);
 	void BindCompute(BindParameter parameter, const RWTextureView2D& rwResource);
 	void BindCompute(BindParameter parameter, const RWTextureView3D& rwResource);
 	void BindCompute(BindParameter parameter, const RWBufferView& rwResource);
 
 	// UAV barriers
-	void UAVBarrier(MemoryObject& memoryObject);
+	void UAVBarrier(const MemoryObject& memoryObject);
 protected:
 	virtual Decomposition Decompose() override;
 	virtual void NewScratchSpace(size_t hint) override;

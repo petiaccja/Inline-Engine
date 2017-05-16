@@ -21,7 +21,7 @@ public:
 	const_iterator cend() const;
 
 	bool IsEmpty() const;
-	bool Size() const;
+	size_t Size() const;
 
 	void Add(EntityType* entity);
 	void Remove(EntityType* entity);
@@ -68,7 +68,7 @@ bool EntityCollection<EntityType>::IsEmpty() const {
 }
 
 template <class EntityType>
-bool EntityCollection<EntityType>::Size() const {
+size_t EntityCollection<EntityType>::Size() const {
 	return m_entites.size();
 }
 

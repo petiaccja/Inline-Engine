@@ -120,6 +120,15 @@
     <ClInclude Include="ArrayView.hpp">
       <Filter>All</Filter>
     </ClInclude>
+    <ClInclude Include="Any.hpp">
+      <Filter>All</Filter>
+    </ClInclude>
+    <ClInclude Include="StackTrace.hpp">
+      <Filter>All</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryLeakDetector.hpp">
+      <Filter>All</Filter>
+    </ClInclude>
     <ClInclude Include="Platform\WindowCommon.hpp">
       <Filter>Platform</Filter>
     </ClInclude>

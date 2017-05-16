@@ -25,7 +25,8 @@ MemoryObjDesc CriticalBufferHeap::Allocate(gxapi::ResourceDesc desc, gxapi::Clea
 			desc,
 			gxapi::eResourceState::COMMON,
 			clearValue
-		)
+		),
+		eResourceHeap::CRITICAL
 	);
 
 	return result;

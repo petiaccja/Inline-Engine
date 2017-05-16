@@ -1,9 +1,12 @@
 #include "Node_DepthReduction.hpp"
 
+#include "NodeUtility.hpp"
+
 #include "../MeshEntity.hpp"
 #include "../Mesh.hpp"
 #include "../Image.hpp"
 #include "../DirectionalLight.hpp"
+#include "../GraphicsCommandList.hpp"
 
 #include <array>
 
@@ -33,93 +36,116 @@ static void setWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsign
 }
 
 
-DepthReduction::DepthReduction(gxapi::IGraphicsApi * graphicsApi):
-	m_binder(graphicsApi, {})
+DepthReduction::DepthReduction():
+	m_width(0), m_height(0)
 {
 	this->GetInput<0>().Set({});
-
-	BindParameterDesc sampBindParamDesc;
-	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
-	sampBindParamDesc.constantSize = 0;
-	sampBindParamDesc.relativeAccessFrequency = 0;
-	sampBindParamDesc.relativeChangeFrequency = 0;
-	sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
-
-	BindParameterDesc depthBindParamDesc;
-	m_depthBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
-	depthBindParamDesc.parameter = m_depthBindParam;
-	depthBindParamDesc.constantSize = 0;
-	depthBindParamDesc.relativeAccessFrequency = 0;
-	depthBindParamDesc.relativeChangeFrequency = 0;
-	depthBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
-
-	BindParameterDesc outputBindParamDesc;
-	m_outputBindParam = BindParameter(eBindParameterType::UNORDERED, 0);
-	outputBindParamDesc.parameter = m_outputBindParam;
-	outputBindParamDesc.constantSize = 0;
-	outputBindParamDesc.relativeAccessFrequency = 0;
-	outputBindParamDesc.relativeChangeFrequency = 0;
-	outputBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
-
-	gxapi::StaticSamplerDesc samplerDesc;
-	samplerDesc.shaderRegister = 0;
-	samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
-	samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.mipLevelBias = 0.f;
-	samplerDesc.registerSpace = 0;
-	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
-
-	m_binder = Binder{ graphicsApi,{ sampBindParamDesc, depthBindParamDesc, outputBindParamDesc },{ samplerDesc } };
 }
 
 
-void DepthReduction::InitGraphics(const GraphicsContext& context) {
-	m_graphicsContext = context;
+void DepthReduction::Initialize(EngineContext & context) {
+	SetTaskSingle(this);
+}
 
-	auto swapChainDesc = context.GetSwapChainDesc();
-	m_width = swapChainDesc.width;
-	m_height = swapChainDesc.height;
-	InitRenderTarget();
-
-	ShaderParts shaderParts;
-	shaderParts.cs = true;
-
-	auto shader = m_graphicsContext.CreateShader("DepthReduction", shaderParts, "");
-
-	gxapi::ComputePipelineStateDesc csoDesc;
-	csoDesc.rootSignature = m_binder.GetRootSignature();
-	csoDesc.cs = shader.cs;
-
-	m_CSO.reset(m_graphicsContext.CreatePSO(csoDesc));
+void DepthReduction::Reset() {
+	m_depthView = {};
+	m_uav = {};
+	m_srv = {};
+	GetInput(0)->Clear();
 }
 
 
-Task DepthReduction::GetTask() {
-	return Task({ [this](const ExecutionContext& context) {
-		ExecutionResult result;
+void DepthReduction::Setup(SetupContext& context) {
+	auto& inputDepth = this->GetInput<0>().Get();
+	gxapi::SrvTexture2DArray srvDesc;
+	srvDesc.activeArraySize = 1;
+	srvDesc.firstArrayElement = 0;
+	srvDesc.mipLevelClamping = 0;
+	srvDesc.mostDetailedMip = 0;
+	srvDesc.numMipLevels = 1;
+	srvDesc.planeIndex = 0;
+	m_depthView = context.CreateSrv(inputDepth, FormatDepthToColor(inputDepth.GetFormat()), srvDesc);
+	m_depthView.GetResource()._GetResourcePtr()->SetName("Depth reduction depth tex view");
 
-		gxeng::pipeline::Texture2D depthTex = this->GetInput<0>().Get();
-		this->GetInput<0>().Clear();
+	if (inputDepth.GetWidth() != m_width || inputDepth.GetHeight() != m_height) {
+		m_width = inputDepth.GetWidth();
+		m_height = inputDepth.GetHeight();
+		InitRenderTarget(context);
+	}
 
-		this->GetOutput<0>().Set(pipeline::Texture2D(m_srv));
+	this->GetOutput<0>().Set(m_srv.GetResource());
 
-		this->GetOutput<1>().Set(depthTex);
+	if (!m_binder.has_value()) {
+		BindParameterDesc sampBindParamDesc;
+		sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
+		sampBindParamDesc.constantSize = 0;
+		sampBindParamDesc.relativeAccessFrequency = 0;
+		sampBindParamDesc.relativeChangeFrequency = 0;
+		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		{
-			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
+		BindParameterDesc depthBindParamDesc;
+		m_depthBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
+		depthBindParamDesc.parameter = m_depthBindParam;
+		depthBindParamDesc.constantSize = 0;
+		depthBindParamDesc.relativeAccessFrequency = 0;
+		depthBindParamDesc.relativeChangeFrequency = 0;
+		depthBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-			RenderScene(m_uav, depthTex, cmdList);
-			result.AddCommandList(std::move(cmdList));
-		}
+		BindParameterDesc outputBindParamDesc;
+		m_outputBindParam = BindParameter(eBindParameterType::UNORDERED, 0);
+		outputBindParamDesc.parameter = m_outputBindParam;
+		outputBindParamDesc.constantSize = 0;
+		outputBindParamDesc.relativeAccessFrequency = 0;
+		outputBindParamDesc.relativeChangeFrequency = 0;
+		outputBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		return result;
-	} });
+		gxapi::StaticSamplerDesc samplerDesc;
+		samplerDesc.shaderRegister = 0;
+		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
+		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.mipLevelBias = 0.f;
+		samplerDesc.registerSpace = 0;
+		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		m_binder = context.CreateBinder({ sampBindParamDesc, depthBindParamDesc, outputBindParamDesc }, { samplerDesc });
+	}
+
+	if (m_CSO == nullptr) {
+		ShaderParts shaderParts;
+		shaderParts.cs = true;
+
+		m_shader = context.CreateShader("DepthReduction", shaderParts, "");
+
+		gxapi::ComputePipelineStateDesc csoDesc;
+		csoDesc.rootSignature = m_binder->GetRootSignature();
+		csoDesc.cs = m_shader.cs;
+
+		m_CSO.reset(context.CreatePSO(csoDesc));
+	}
 }
 
 
-void DepthReduction::InitRenderTarget() {
+void DepthReduction::Execute(RenderContext & context) {
+	auto& commandList = context.AsCompute();
+
+	unsigned dispatchW, dispatchH;
+	setWorkgroupSize((unsigned)std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
+
+	commandList.SetResourceState(m_uav.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.SetResourceState(m_depthView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+
+	commandList.SetPipelineState(m_CSO.get());
+	commandList.SetComputeBinder(&m_binder.value());
+	commandList.BindCompute(m_depthBindParam, m_depthView);
+	commandList.BindCompute(m_outputBindParam, m_uav);
+	commandList.Dispatch(dispatchW, dispatchH, 1);
+	commandList.UAVBarrier(m_uav.GetResource());
+}
+
+
+void DepthReduction::InitRenderTarget(SetupContext& context) {
 	using gxapi::eFormat;
 
 	auto formatDepthReductionResult = eFormat::R32G32_FLOAT;
@@ -138,26 +164,15 @@ void DepthReduction::InitRenderTarget() {
 	srvDesc.mostDetailedMip = 0;
 	srvDesc.planeIndex = 0;
 
-	Texture2D tex = m_graphicsContext.CreateRWTexture2D(m_width, m_height, formatDepthReductionResult, 1);
-	m_uav = m_graphicsContext.CreateUav(tex, formatDepthReductionResult, uavDesc);
-	m_srv = m_graphicsContext.CreateSrv(tex, formatDepthReductionResult, srvDesc);
-}
-
-
-void DepthReduction::RenderScene(
-	const gxeng::RWTextureView2D& uav,
-	pipeline::Texture2D& depthTex,
-	GraphicsCommandList& commandList
-) {
 	unsigned dispatchW, dispatchH;
 	setWorkgroupSize((unsigned)std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
 
-	commandList.SetPipelineState(m_CSO.get());
-	commandList.SetComputeBinder(&m_binder);
-	commandList.BindCompute(m_depthBindParam, depthTex.QueryRead());
-	commandList.BindCompute(m_outputBindParam, uav);
-	commandList.Dispatch(dispatchW, dispatchH, 1);
-	commandList.ResourceBarrier(gxapi::UavBarrier{const_cast<gxapi::IResource*>(uav.GetResource()._GetResourcePtr())});
+	Texture2D tex = context.CreateRWTexture2D(dispatchW, dispatchH, formatDepthReductionResult, 1);
+	tex._GetResourcePtr()->SetName("Depth reduction intermediate texture");
+	m_uav = context.CreateUav(tex, formatDepthReductionResult, uavDesc);
+	m_uav.GetResource()._GetResourcePtr()->SetName("Depth reduction intermediate texture UAV");
+	m_srv = context.CreateSrv(tex, formatDepthReductionResult, srvDesc);
+	m_srv.GetResource()._GetResourcePtr()->SetName("Depth reduction intermediate texture SRV");
 }
 
 

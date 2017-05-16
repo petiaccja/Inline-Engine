@@ -18,9 +18,10 @@ using namespace gxapi;
 
 //==================================
 
-MemoryObjDesc::MemoryObjDesc(gxapi::IResource* ptr, bool resident) :
+MemoryObjDesc::MemoryObjDesc(gxapi::IResource* ptr, eResourceHeap heap, bool resident) :
 	resource(ptr, std::default_delete<gxapi::IResource>()),
-	resident(resident)
+	resident(resident),
+	heap(heap)
 {}
 
 
@@ -50,7 +51,7 @@ bool MemoryObject::PtrEqual(const MemoryObject& lhs, const MemoryObject& rhs) {
 
 
 MemoryObject::MemoryObject(MemoryObjDesc&& desc) :
-	m_contents(new Contents{ std::move(desc.resource), desc.resident, {} })
+	m_contents(new Contents{ std::move(desc.resource), desc.resident, desc.heap, {} })
 {
 	//auto deleter = m_contents->resource.get_deleter();
 	//auto* ptr = m_contents->resource.release();
@@ -93,14 +94,7 @@ bool MemoryObject::_GetResident() const noexcept {
 	return m_contents->resident;
 }
 
-
-gxapi::IResource* MemoryObject::_GetResourcePtr() noexcept {
-	assert(m_contents);
-	return m_contents->resource.get();
-}
-
-
-const gxapi::IResource * MemoryObject::_GetResourcePtr() const noexcept {
+gxapi::IResource * MemoryObject::_GetResourcePtr() const noexcept {
 	assert(m_contents);
 	return m_contents->resource.get();
 }
@@ -132,18 +126,20 @@ void MemoryObject::InitResourceStates(gxapi::eResourceState initialState) {
 	switch (desc.type) {
 		case eResourceType::TEXTURE:
 		{
-			switch (desc.textureDesc.dimension) {
-				case eTextueDimension::ONE:
-					numSubresources = desc.textureDesc.depthOrArraySize * desc.textureDesc.mipLevels;
-					break;
-				case eTextueDimension::TWO:
-					numSubresources = desc.textureDesc.depthOrArraySize * desc.textureDesc.mipLevels;
-					break;
-				case eTextueDimension::THREE:
-					numSubresources = desc.textureDesc.mipLevels;
-					break;
-				default: assert(false);
-			}
+			//switch (desc.textureDesc.dimension) {
+			//	case eTextueDimension::ONE:
+			//		numSubresources = desc.textureDesc.depthOrArraySize * desc.textureDesc.mipLevels;
+			//		break;
+			//	case eTextueDimension::TWO:
+			//		numSubresources = desc.textureDesc.depthOrArraySize * desc.textureDesc.mipLevels;
+			//		break;
+			//	case eTextueDimension::THREE:
+			//		numSubresources = desc.textureDesc.mipLevels;
+			//		break;
+			//	default: assert(false);
+			//}
+
+			numSubresources = m_contents->resource->GetNumArrayLevels() * m_contents->resource->GetNumMipLevels() * m_contents->resource->GetNumTexturePlanes();
 			break;
 		}
 		case eResourceType::BUFFER:

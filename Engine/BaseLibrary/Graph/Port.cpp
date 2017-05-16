@@ -7,36 +7,6 @@
 namespace exc {
 
 
-
-//------------------------------------------------------------------------------
-// AnyType
-//------------------------------------------------------------------------------
-
-AnyType::AnyType() {}
-
-AnyType::AnyType(const AnyType& rhs) {
-	m_data = std::unique_ptr<AnyTypeData>(rhs.m_data->Clone());
-}
-
-AnyType::AnyType(AnyType&& rhs) {
-	m_data = std::move(rhs.m_data);
-}
-
-AnyType& AnyType::operator=(const AnyType& rhs) {
-	m_data = std::unique_ptr<AnyTypeData>(rhs.m_data->Clone());
-	return *this;
-}
-
-AnyType& AnyType::operator=(AnyType&& rhs) {
-	m_data = std::move(rhs.m_data);
-	return *this;
-}
-
-AnyType::AnyType(std::unique_ptr<AnyTypeData> data) {
-	m_data = std::move(data);
-}
-
-
 //------------------------------------------------------------------------------
 // InputPortBase
 //------------------------------------------------------------------------------
@@ -117,7 +87,7 @@ bool OutputPortBase::Link(InputPortBase* destination) {
 		return false;
 	}
 
-	if (destination->IsCompatible(GetType()) || GetType() == typeid(AnyType)) {
+	if (destination->IsCompatible(GetType()) || GetType() == typeid(Any)) {
 		links.insert(destination);
 		destination->SetLinkState(this);
 		return true;
@@ -184,8 +154,8 @@ void OutputPort<void>::Set() {
 
 
 // explicit instantiations
-template class InputPort<AnyType>;
-template class OutputPort<AnyType>;
+template class InputPort<Any>;
+template class OutputPort<Any>;
 
 
 } // namespace exc

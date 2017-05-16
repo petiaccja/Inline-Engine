@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.12
+VisualStudioVersion = 15.0.26403.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GraphicsEngine_LL", "Engine\GraphicsEngine_LL\GraphicsEngine_LL.vcxproj", "{040593FA-6149-4526-8754-2E2886759D0E}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -224,6 +224,27 @@ Global
 		{FA6E910E-1105-4A46-A1D3-5579EA99FDB8} = {FAEB17F1-1424-4515-A440-C5A073FCB788}
 		{0D88BF0C-5AE9-4C0F-A02D-EDD7015B7E7C} = {FAEB17F1-1424-4515-A440-C5A073FCB788}
 		{D617B3ED-19F4-464F-A089-E6FC81359E56} = {FAEB17F1-1424-4515-A440-C5A073FCB788}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

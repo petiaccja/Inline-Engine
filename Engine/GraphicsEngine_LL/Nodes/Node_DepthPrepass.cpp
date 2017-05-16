@@ -1,9 +1,12 @@
 #include "Node_DepthPrepass.hpp"
 
+#include "NodeUtility.hpp"
+
 #include "../MeshEntity.hpp"
 #include "../Mesh.hpp"
 #include "../Image.hpp"
 #include "../DirectionalLight.hpp"
+#include "../GraphicsCommandList.hpp"
 
 #include <array>
 
@@ -45,138 +48,118 @@ static void ConvertToSubmittable(
 
 
 
-DepthPrepass::DepthPrepass(gxapi::IGraphicsApi* graphicsApi):
-	m_binder(graphicsApi, {})
-{
+DepthPrepass::DepthPrepass() {
 	this->GetInput<0>().Set({});
-
-	BindParameterDesc transformBindParamDesc;
-	m_transformBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
-	transformBindParamDesc.parameter = m_transformBindParam;
-	transformBindParamDesc.constantSize = sizeof(float) * 4 * 4;
-	transformBindParamDesc.relativeAccessFrequency = 0;
-	transformBindParamDesc.relativeChangeFrequency = 0;
-	transformBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
-
-	BindParameterDesc sampBindParamDesc;
-	sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
-	sampBindParamDesc.constantSize = 0;
-	sampBindParamDesc.relativeAccessFrequency = 0;
-	sampBindParamDesc.relativeChangeFrequency = 0;
-	sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	gxapi::StaticSamplerDesc samplerDesc;
-	samplerDesc.shaderRegister = 0;
-	samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
-	samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
-	samplerDesc.mipLevelBias = 0.f;
-	samplerDesc.registerSpace = 0;
-	samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	m_binder = Binder{ graphicsApi,{ transformBindParamDesc, sampBindParamDesc },{ samplerDesc } };
 }
 
 
-void DepthPrepass::InitGraphics(const GraphicsContext & context) {
-	m_graphicsContext = context;
+void DepthPrepass::Initialize(EngineContext & context) {
+	GraphicsNode::SetTaskSingle(this);
+}
 
-	auto swapChainDesc = context.GetSwapChainDesc();
-	InitRenderTarget(swapChainDesc.width, swapChainDesc.height);
-
-	ShaderParts shaderParts;
-	shaderParts.vs = true;
-	shaderParts.ps = true;
-
-	auto shader = m_graphicsContext.CreateShader("DepthPrepass", shaderParts, "");
-
-	std::vector<gxapi::InputElementDesc> inputElementDesc = {
-		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
-		gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
-		gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
-	};
-
-	gxapi::GraphicsPipelineStateDesc psoDesc;
-	psoDesc.inputLayout.elements = inputElementDesc.data();
-	psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-	psoDesc.rootSignature = m_binder.GetRootSignature();
-	psoDesc.vs = shader.vs;
-	psoDesc.ps = shader.ps;
-	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
-	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
-
-	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
-	psoDesc.depthStencilFormat = gxapi::eFormat::D32_FLOAT_S8X24_UINT;
-
-	psoDesc.numRenderTargets = 0;
-
-	m_PSO.reset(m_graphicsContext.CreatePSO(psoDesc));
+void DepthPrepass::Reset() {
+	m_targetDsv = {};
+	GetInput(0)->Clear();
+	GetInput(1)->Clear();
+	GetInput(2)->Clear();
 }
 
 
-Task DepthPrepass::GetTask() {
-	return Task({ [this](const ExecutionContext& context) {
-		ExecutionResult result;
+void DepthPrepass::Setup(SetupContext & context) {
+	Texture2D& depthStencil = this->GetInput<0>().Get();
+	depthStencil._GetResourcePtr()->SetName("Depth prepass DS");// Debug
 
-		const EntityCollection<MeshEntity>* entities = this->GetInput<0>().Get();
-		this->GetInput<0>().Clear();
+	const gxapi::eFormat currDepthStencilFormat = FormatAnyToDepthStencil(depthStencil.GetFormat());
 
-		const Camera* camera = this->GetInput<1>().Get();
-		this->GetInput<1>().Clear();
+	gxapi::DsvTexture2DArray desc;
+	desc.activeArraySize = 1;
+	desc.firstArrayElement = 0;
+	desc.firstMipLevel = 0;
 
-		this->GetOutput<0>().Set(pipeline::Texture2D(m_depthTargetSrv, m_dsv));
+	m_targetDsv = context.CreateDsv(depthStencil, currDepthStencilFormat, desc);
+	m_targetDsv.GetResource()._GetResourcePtr()->SetName("Depth prepass depth tex view");
+	
+	m_entities = this->GetInput<1>().Get();
 
-		if (entities) {
-			GraphicsCommandList cmdList = context.GetGraphicsCommandList();
-			CopyCommandList cpyCmdList = context.GetCopyCommandList();
+	m_camera = this->GetInput<2>().Get();
 
-			RenderScene(m_dsv, *entities, camera, cmdList);
-			result.AddCommandList(std::move(cmdList));
-		}
+	this->GetOutput<0>().Set(depthStencil);
 
-		return result;
-	} });
+	if (!m_binder.has_value()) {
+		BindParameterDesc transformBindParamDesc;
+		m_transformBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
+		transformBindParamDesc.parameter = m_transformBindParam;
+		transformBindParamDesc.constantSize = sizeof(float) * 4 * 4;
+		transformBindParamDesc.relativeAccessFrequency = 0;
+		transformBindParamDesc.relativeChangeFrequency = 0;
+		transformBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
+
+		BindParameterDesc sampBindParamDesc;
+		sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
+		sampBindParamDesc.constantSize = 0;
+		sampBindParamDesc.relativeAccessFrequency = 0;
+		sampBindParamDesc.relativeChangeFrequency = 0;
+		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		gxapi::StaticSamplerDesc samplerDesc;
+		samplerDesc.shaderRegister = 0;
+		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
+		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.mipLevelBias = 0.f;
+		samplerDesc.registerSpace = 0;
+		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+		m_binder = context.CreateBinder({ transformBindParamDesc, sampBindParamDesc },{ samplerDesc });
+	}
+
+	if (!m_shader.vs || !m_shader.ps) {
+		ShaderParts shaderParts;
+		shaderParts.vs = true;
+		shaderParts.ps = true;
+
+		m_shader = context.CreateShader("DepthPrepass", shaderParts, "");
+	}
+
+	if (m_PSO == nullptr || m_depthStencilFormat != currDepthStencilFormat) {
+		m_depthStencilFormat = currDepthStencilFormat;
+
+		std::vector<gxapi::InputElementDesc> inputElementDesc = {
+			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
+			gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
+			gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
+		};
+
+		gxapi::GraphicsPipelineStateDesc psoDesc;
+		psoDesc.inputLayout.elements = inputElementDesc.data();
+		psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
+		psoDesc.rootSignature = m_binder->GetRootSignature();
+		psoDesc.vs = m_shader.vs;
+		psoDesc.ps = m_shader.ps;
+		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
+		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+
+		psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
+		psoDesc.depthStencilFormat = m_depthStencilFormat;
+
+		psoDesc.numRenderTargets = 0;
+
+		m_PSO.reset(context.CreatePSO(psoDesc));
+	}
 }
 
 
-void DepthPrepass::InitRenderTarget(unsigned width, unsigned height) {
-	using gxapi::eFormat;
+void DepthPrepass::Execute(RenderContext & context) {
+	if (!m_entities) {
+		return;
+	}
 
-	auto formatDepthStencil = eFormat::D32_FLOAT_S8X24_UINT;
-	auto formatColor = eFormat::R32_FLOAT_X8X24_TYPELESS;
-	auto formatTypeless = eFormat::R32G8X24_TYPELESS;
+	auto& commandList = context.AsGraphics();
+	commandList.SetResourceState(m_targetDsv.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
+	commandList.SetRenderTargets(0, nullptr, &m_targetDsv);
 
-	Texture2D tex = m_graphicsContext.CreateDepthStencil2D(width, height, formatTypeless, true);
-
-	gxapi::DsvTexture2DArray dsvDesc;
-	dsvDesc.activeArraySize = 1;
-	dsvDesc.firstArrayElement = 0;
-	dsvDesc.firstMipLevel = 0;
-
-	m_dsv = m_graphicsContext.CreateDsv(tex, formatDepthStencil, dsvDesc);
-
-	gxapi::SrvTexture2DArray srvDesc;
-	srvDesc.activeArraySize = 1;
-	srvDesc.firstArrayElement = 0;
-	srvDesc.numMipLevels = -1;
-	srvDesc.mipLevelClamping = 0;
-	srvDesc.mostDetailedMip = 0;
-	srvDesc.planeIndex = 0;
-
-	m_depthTargetSrv = m_graphicsContext.CreateSrv(tex, formatColor, srvDesc);
-}
-
-
-void DepthPrepass::RenderScene(
-	DepthStencilView2D& dsv,
-	const EntityCollection<MeshEntity>& entities,
-	const Camera* camera,
-	GraphicsCommandList& commandList
-) {
-	commandList.SetRenderTargets(0, nullptr, &dsv);
-
-	gxapi::Rectangle rect{ 0, (int)m_dsv.GetResource().GetHeight(), 0, (int)m_dsv.GetResource().GetWidth() };
+	gxapi::Rectangle rect{ 0, (int)m_targetDsv.GetResource().GetHeight(), 0, (int)m_targetDsv.GetResource().GetWidth() };
 	gxapi::Viewport viewport;
 	viewport.width = (float)rect.right;
 	viewport.height = (float)rect.bottom;
@@ -187,24 +170,24 @@ void DepthPrepass::RenderScene(
 	commandList.SetScissorRects(1, &rect);
 	commandList.SetViewports(1, &viewport);
 
-	commandList.SetResourceState(dsv.GetResource(), 0, gxapi::eResourceState::DEPTH_WRITE);
-	commandList.ClearDepthStencil(dsv, 1, 0, 0, nullptr, true, true);
+	commandList.SetResourceState(m_targetDsv.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
+	commandList.ClearDepthStencil(m_targetDsv, 1, 0, 0, nullptr, true, true);
 
 	commandList.SetPipelineState(m_PSO.get());
-	commandList.SetGraphicsBinder(&m_binder);
+	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	mathfu::Matrix4x4f view = camera->GetViewMatrixRH();
-	mathfu::Matrix4x4f projection = camera->GetPerspectiveMatrixRH();
+	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();
+	mathfu::Matrix4x4f projection = m_camera->GetProjectionMatrixRH();
 
 	auto viewProjection = projection * view;
-	
+
 	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
 	std::vector<unsigned> sizes;
 	std::vector<unsigned> strides;
 
 	// Iterate over all entities
-	for (const MeshEntity* entity : entities) {
+	for (const MeshEntity* entity : *m_entities) {
 		// Get entity parameters
 		Mesh* mesh = entity->GetMesh();
 		auto position = entity->GetPosition();
@@ -222,7 +205,12 @@ void DepthPrepass::RenderScene(
 		std::array<mathfu::VectorPacked<float, 4>, 4> transformCBData;
 		MVP.Pack(transformCBData.data());
 
-		commandList.BindGraphics(m_transformBindParam, transformCBData.data(), sizeof(transformCBData), 0);
+		commandList.BindGraphics(m_transformBindParam, transformCBData.data(), sizeof(transformCBData));
+
+		for (auto& vb : vertexBuffers) {
+			commandList.SetResourceState(*vb, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+		}
+		commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::eResourceState::INDEX_BUFFER);
 
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());

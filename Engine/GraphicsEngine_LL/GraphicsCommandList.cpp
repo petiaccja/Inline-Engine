@@ -1,7 +1,10 @@
 #include "GraphicsCommandList.hpp"
+#include "VolatileViewHeap.hpp"
+#include "MemoryManager.hpp"
 
 namespace inl {
 namespace gxeng {
+
 
 //------------------------------------------------------------------------------
 // Basic stuff
@@ -10,12 +13,14 @@ namespace gxeng {
 GraphicsCommandList::GraphicsCommandList(
 	gxapi::IGraphicsApi* gxApi,
 	CommandAllocatorPool& commandAllocatorPool,
-	ScratchSpacePool& scratchSpacePool
+	ScratchSpacePool& scratchSpacePool,
+	MemoryManager& memoryManager,
+	VolatileViewHeap& volatileCbvHeap
 ) :
-	ComputeCommandList(gxApi, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::GRAPHICS)
+	ComputeCommandList(gxApi, commandAllocatorPool, scratchSpacePool, memoryManager, volatileCbvHeap, gxapi::eCommandListType::GRAPHICS)
 {
 	m_commandList = dynamic_cast<gxapi::IGraphicsCommandList*>(GetCommandList());
-	m_graphicsBindingManager = BindingManager<gxapi::eCommandListType::GRAPHICS>(m_graphicsApi, m_commandList);
+	m_graphicsBindingManager = BindingManager<gxapi::eCommandListType::GRAPHICS>(m_graphicsApi, m_commandList, &memoryManager, &volatileCbvHeap);
 	m_graphicsBindingManager.SetDescriptorHeap(GetCurrentScratchSpace());
 }
 
@@ -47,7 +52,7 @@ BasicCommandList::Decomposition GraphicsCommandList::Decompose() {
 //------------------------------------------------------------------------------
 // Clear buffers
 //------------------------------------------------------------------------------
-void GraphicsCommandList::ClearDepthStencil(DepthStencilView2D& resource,
+void GraphicsCommandList::ClearDepthStencil(const DepthStencilView2D& resource,
 	float depth,
 	uint8_t stencil,
 	size_t numRects,
@@ -55,14 +60,16 @@ void GraphicsCommandList::ClearDepthStencil(DepthStencilView2D& resource,
 	bool clearDepth,
 	bool clearStencil)
 {
+	ExpectResourceState(resource.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
 	m_commandList->ClearDepthStencil(resource.GetHandle(), depth, stencil, numRects, rects, clearDepth, clearStencil);
 }
 
-void GraphicsCommandList::ClearRenderTarget(RenderTargetView2D& resource,
+void GraphicsCommandList::ClearRenderTarget(const RenderTargetView2D& resource,
 	gxapi::ColorRGBA color,
 	size_t numRects,
 	gxapi::Rectangle* rects)
 {
+	ExpectResourceState(resource.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	m_commandList->ClearRenderTarget(resource.GetHandle(), color, numRects, rects);
 }
 
@@ -96,6 +103,7 @@ void GraphicsCommandList::DrawInstanced(unsigned numVertices,
 //------------------------------------------------------------------------------
 
 void GraphicsCommandList::SetIndexBuffer(const IndexBuffer* resource, bool is32Bit) {
+	ExpectResourceState(*resource, gxapi::eResourceState::INDEX_BUFFER);
 	m_commandList->SetIndexBuffer(resource->GetVirtualAddress(),
 		resource->GetSize(),
 		is32Bit ? gxapi::eFormat::R32_UINT : gxapi::eFormat::R16_UINT);
@@ -116,6 +124,7 @@ void GraphicsCommandList::SetVertexBuffers(unsigned startSlot,
 	auto virtualAddresses = std::make_unique<void*[]>(count);
 
 	for (unsigned i = 0; i < count; ++i) {
+		ExpectResourceState(*(resources[i]), gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
 		virtualAddresses[i] = resources[i]->GetVirtualAddress();
 	}
 
@@ -132,15 +141,17 @@ void GraphicsCommandList::SetVertexBuffers(unsigned startSlot,
 //------------------------------------------------------------------------------
 
 void GraphicsCommandList::SetRenderTargets(unsigned numRenderTargets,
-	RenderTargetView2D** renderTargets,
-	DepthStencilView2D* depthStencil)
+	const RenderTargetView2D* const* renderTargets,
+	const DepthStencilView2D* depthStencil)
 {
 	auto renderTargetHandles = std::make_unique<gxapi::DescriptorHandle[]>(numRenderTargets);
 	for (unsigned i = 0; i < numRenderTargets; ++i) {
+		ExpectResourceState(renderTargets[i]->GetResource(), gxapi::eResourceState::RENDER_TARGET);
 		renderTargetHandles[i] = renderTargets[i]->GetHandle();
 	}
 
 	if (depthStencil) {
+		ExpectResourceState(depthStencil->GetResource(), gxapi::eResourceState::DEPTH_WRITE);
 		gxapi::DescriptorHandle dsvHandle = depthStencil->GetHandle();
 		m_commandList->SetRenderTargets(numRenderTargets,
 			renderTargetHandles.get(),
@@ -189,6 +200,7 @@ void GraphicsCommandList::SetGraphicsBinder(Binder* binder) {
 
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureView1D& shaderResource) {
+	ExpectResourceState(shaderResource.GetResource(), gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
 	try {
 		m_graphicsBindingManager.Bind(parameter, shaderResource);
 	}
@@ -199,6 +211,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureVie
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureView2D& shaderResource) {
+	ExpectResourceState(shaderResource.GetResource(), gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
 	try {
 		m_graphicsBindingManager.Bind(parameter, shaderResource);
 	}
@@ -209,6 +222,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureVie
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureView3D& shaderResource) {
+	ExpectResourceState(shaderResource.GetResource(), gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
 	try {
 		m_graphicsBindingManager.Bind(parameter, shaderResource);
 	}
@@ -219,6 +233,10 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureVie
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const ConstBufferView& shaderConstant) {
+	if (dynamic_cast<const PersistentConstBuffer*>(&shaderConstant.GetResource())) {
+		m_additionalResources.push_back(shaderConstant.GetResource());
+	}
+
 	try {
 		m_graphicsBindingManager.Bind(parameter, shaderConstant);
 	}
@@ -228,13 +246,13 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const ConstBuffe
 	}
 }
 
-void GraphicsCommandList::BindGraphics(BindParameter parameter, const void* shaderConstant, int size, int offset) {
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const void* shaderConstant, int size/*, int offset*/) {
 	try {
-		m_graphicsBindingManager.Bind(parameter, shaderConstant, size, offset);
+		m_graphicsBindingManager.Bind(parameter, shaderConstant, size/*, offset*/);
 	}
 	catch (std::bad_alloc&) {
 		NewScratchSpace(1000);
-		m_graphicsBindingManager.Bind(parameter, shaderConstant, size, offset);
+		m_graphicsBindingManager.Bind(parameter, shaderConstant, size/*, offset*/);
 	}
 }
 
@@ -246,6 +264,7 @@ void GraphicsCommandList::NewScratchSpace(size_t hint) {
 
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWTextureView1D& rwResource) {
+	ExpectResourceState(rwResource.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	try {
 		m_graphicsBindingManager.Bind(parameter, rwResource);
 	}
@@ -256,6 +275,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWTextureV
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWTextureView2D& rwResource) {
+	ExpectResourceState(rwResource.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	try {
 		m_graphicsBindingManager.Bind(parameter, rwResource);
 	}
@@ -266,6 +286,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWTextureV
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWTextureView3D& rwResource) {
+	ExpectResourceState(rwResource.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	try {
 		m_graphicsBindingManager.Bind(parameter, rwResource);
 	}
@@ -276,6 +297,7 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWTextureV
 }
 
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWBufferView& rwResource) {
+	ExpectResourceState(rwResource.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	{
 		try {
 			m_graphicsBindingManager.Bind(parameter, rwResource);

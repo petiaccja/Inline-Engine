@@ -2,39 +2,53 @@
 
 #include "../GraphicsNode.hpp"
 #include "../ResourceView.hpp"
+#include "../PipelineTypes.hpp"
 
 #include <cmath>
 
 
-namespace inl {
-namespace gxeng {
-namespace nodes {
+namespace inl::gxeng::nodes {
 
 
+/// <summary>
+/// Return the texture that identifies the current backbuffer.
+/// </sumnmary>
 class GetBackBuffer :
 	virtual public GraphicsNode,
+	public GraphicsTask,
 	public exc::InputPortConfig<>,
-	public exc::OutputPortConfig<RenderTargetView2D>
+	public exc::OutputPortConfig<Texture2D>
 {
 public:
-	GetBackBuffer() {}
-
 	virtual void Update() override {}
 	virtual void Notify(exc::InputPortBase* sender) override {}
-	void InitGraphics(const GraphicsContext&) override {}
 
-	virtual Task GetTask() override {
-		return Task({ [this](const ExecutionContext& context)
-		{
-			auto& swapChainAccessContext = static_cast<const SwapChainAccessContext&>(context);
-			this->GetOutput<0>().Set(*swapChainAccessContext.GetBackBuffer());
-			return ExecutionResult{};
-		} });
+	void Initialize(EngineContext& context) override {
+		GraphicsNode::SetTaskSingle(this);
 	}
+	void Reset() override {
+		m_backBuffer = {};
+	}
+
+	void Setup(SetupContext& context) override {
+		if (!m_backBuffer.HasObject()) {
+			throw std::logic_error("You forgot to set the backbuffer to this node.");
+		}
+		GetOutput<0>().Set(m_backBuffer);
+	}
+
+	void Execute(RenderContext& context) override {}
+
+
+	void SetBuffer(Texture2D backBuffer) {
+		m_backBuffer = std::move(backBuffer);
+	}
+	const Texture2D& GetBuffer() const {
+		return m_backBuffer;
+	}
+private:
+	Texture2D m_backBuffer;
 };
 
 
-
-} // namespace nodes
-} // namespace gxeng
-} // namespace inl
+} // namespace inl::gxeng::nodes

@@ -6,6 +6,7 @@
 #include <utility>
 #include <mutex>
 #include <deque>
+#include <list>
 
 namespace inl {
 namespace gxeng {
@@ -46,6 +47,11 @@ public:
 
 		gxapi::TextureCopyDesc textureBufferDesc;
 	};
+private:
+	struct UploadFrame {
+		std::vector<UploadDescription> uploads;
+		uint64_t frameId;
+	};
 
 public:
 	UploadManager(gxapi::IGraphicsApi* graphicsApi);
@@ -57,18 +63,21 @@ public:
 
 	void OnFrameBeginDevice(uint64_t frameId) override;
 	void OnFrameBeginHost(uint64_t frameId) override;
+	void OnFrameBeginAwait(uint64_t frameId) override;
 	void OnFrameCompleteDevice(uint64_t frameId) override;
 	void OnFrameCompleteHost(uint64_t frameId) override;
 
 	//const std::vector<UploadDescription>& _GetQueuedUploads();
+	const std::vector<UploadDescription>& UploadManager::GetQueuedUploads() const;
 
 	/// <summary>Removes the least recent upload queue, and returns it to the caller.</summary>
 	std::vector<UploadDescription> _TakeQueuedUploads();
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
-	std::deque<std::vector<UploadDescription>> m_uploadQueues;
+	//std::deque<std::vector<UploadDescription>> m_uploadQueues;
+	std::list<UploadFrame> m_uploadFrames;
 
-	std::mutex m_mtx;
+	mutable std::mutex m_mtx;
 
 protected:
 	static constexpr int DUP_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT = 256;
