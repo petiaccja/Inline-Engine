@@ -87,14 +87,34 @@ float3 get_tiled_lighting(float4 sv_position, //gl_FragCoord
 
 			//color += (n_dot_l * attenuation) * (diffuse_color.xyz * 10.0 * albedo.xyz); //TODO: shadow
 
-			color += getCookTorranceBRDF(albedo.xyz,
-										 vs_normal,
-										 vs_view_dir,
-									     light_dir,
-										 diffuse_color.xyz * attenuation * 10.0, //TODO: shadow
-										 1.0, //TODO roughness
-										 0.0 //TODO metalness
-										);
+			//color += getCookTorranceBRDF(albedo.xyz,
+			//							 vs_normal,
+			//							 vs_view_dir,
+			//						     light_dir,
+			//							 diffuse_color.xyz * attenuation * 10.0, //TODO: shadow
+			//							 1.0, //TODO roughness
+			//							 0.0 //TODO metalness
+			//							);
+
+			const float roughness = 0.5;
+			const float metallic = 0.0;
+			const float3 dielectricF0 = 0.04;// float3(0.04, 0.04, 0.04);
+
+			float3 L = light_dir;
+			float3 V = vs_view_dir;
+			float3 H = normalize(L + V);
+			float3 N = vs_normal;
+			
+			float NoV = max(dot(N, V), 0.0);
+			float NoL = max(dot(N, L), 0.0);
+			float NoH = max(dot(N, H), 0.0);
+			float VoH = max(dot(V, H), 0.0);
+			
+			float3 brdfDielectric = StandardBRDF(dielectricF0, NoV, NoL, NoH, VoH, roughness, albedo);
+			float3 brdfMetal = StandardBRDF(albedo, NoV, NoL, NoH, VoH, roughness, float3(0.0, 0.0, 0.0));
+			float3 brdf = metallic * brdfMetal + (1 - metallic) * brdfDielectric;
+			
+			color += n_dot_l * brdf * attenuation;
 		}
 	}
 

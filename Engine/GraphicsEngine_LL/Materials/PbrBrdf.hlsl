@@ -243,12 +243,12 @@ float3 SpecularMicrofacetBRDF(float3 F0, float NoV, float NoL, float NoH, float 
 }
 
 // Standard brdf -> specular + diffuse
-float3 StandardBRDF(float3 F0, float NoV, float NoL, float NoH, float VoH, float roughness)
+float3 StandardBRDF(float3 F0, float NoV, float NoL, float NoH, float VoH, float roughness, float3 diffuseColor)
 {
-	float specular = SpecularMicrofacetBRDF(F0, NoV, NoL, NoH, VoH, roughness);
-	float diffuse = DiffuseBurleyBRDF(NoV, NoL, VoH, roughness, F0);
+	float3 specular = SpecularMicrofacetBRDF(F0, NoV, NoL, NoH, VoH, roughness);
+	float3 diffuse = DiffuseBurleyBRDF(NoV, NoL, VoH, roughness, F0);
 
-	return specular + diffuse;
+	return specular + diffuseColor * diffuse;
 }
 
 
