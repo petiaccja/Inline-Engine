@@ -112,7 +112,7 @@ float3 getCookTorranceBRDF(float3 albedo,
 	float3 c = albedo;
 	float3 Li = radiance;
 
-	float3 Lo = (kD * c / PI) + (F * Li) * (D * G * NdotL / (4 * NdotV * NdotL + 0.0001));
+	float3 Lo = ((kD * c / PI) + (F * (D * G / (4 * NdotV * NdotL + 0.0001)))) * Li * NdotL;
 	return Lo;
 }
 

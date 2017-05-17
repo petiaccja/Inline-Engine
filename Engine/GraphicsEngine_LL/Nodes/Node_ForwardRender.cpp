@@ -524,7 +524,7 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"{\n"
 		"	PS_Input result;\n"
 
-		"	float3 viewNormal = normalize(mul(vsConstants.MV, float4(normal.xyz, 0.0)).xyz);\n"
+		"	float3 viewNormal = mul(vsConstants.MV, float4(normal.xyz, 0.0)).xyz;\n"
 
 		"float4x4 light_mvp;\n"
 		"float cascade = 0;\n"
@@ -639,7 +639,7 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 	PSMain << "    g_lightDir = lightCb.direction;\n";
 	PSMain << "    g_lightColor = lightCb.color;\n";
 	PSMain << "    g_lightColor *= get_shadow(psInput.vsPosition);\n";
-	PSMain << "    g_normal = psInput.viewNormal;\n";
+	PSMain << "    g_normal = normalize(psInput.viewNormal);\n";
 	PSMain << "    g_ndcPos = psInput.ndcPos;\n";
 	PSMain << "    g_vsPos = psInput.vsPosition;\n";
 	PSMain << "    g_tex0 = float3(psInput.texCoord, 0.0f);\n";
@@ -685,8 +685,8 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 	return
 		std::string()
 		+ "#include \"CSMSample\"\n"
-		+ "#include \"TiledLighting\"\n"
 		+ "#include \"PbrBrdf\"\n"
+		+ "#include \"TiledLighting\"\n"
 		+ structures
 		+ "\n//-------------------------------------\n\n"
 		+ globals

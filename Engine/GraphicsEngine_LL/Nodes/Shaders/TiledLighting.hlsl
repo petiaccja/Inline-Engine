@@ -65,7 +65,7 @@ float3 get_tiled_lighting(float4 sv_position, //gl_FragCoord
 
 	uint local_num_of_lights = lightCullData.Load(int3(group_id.x * uniforms.group_size_y + group_id.y, 0, 0));
 
-	float vs_view_dir = normalize(uniforms.vs_cam_pos - vs_pos);
+	float3 vs_view_dir = normalize(uniforms.vs_cam_pos.xyz - vs_pos.xyz);
 
 	float3 color = float3(0, 0, 0);
 	for (uint c = 0; c < local_num_of_lights; ++c)
@@ -93,7 +93,7 @@ float3 get_tiled_lighting(float4 sv_position, //gl_FragCoord
 									     light_dir,
 										 diffuse_color.xyz * attenuation * 10.0, //TODO: shadow
 										 1.0, //TODO roughness
-										 0.0, //TODO metalness
+										 0.0 //TODO metalness
 										);
 		}
 	}
