@@ -65,7 +65,7 @@ float3 get_tiled_lighting(float4 sv_position, //gl_FragCoord
 
 	uint local_num_of_lights = lightCullData.Load(int3(group_id.x * uniforms.group_size_y + group_id.y, 0, 0));
 
-	float vs_view_dir = normalize(uniforms.vs_cam_pos - vs_pos);
+	float3 vs_view_dir = normalize(uniforms.vs_cam_pos.xyz - vs_pos.xyz);
 
 	float3 color = float3(0, 0, 0);
 	for (uint c = 0; c < local_num_of_lights; ++c)
@@ -93,8 +93,28 @@ float3 get_tiled_lighting(float4 sv_position, //gl_FragCoord
 									     light_dir,
 										 diffuse_color.xyz * attenuation * 10.0, //TODO: shadow
 										 1.0, //TODO roughness
-										 0.0, //TODO metalness
+										 0.0 //TODO metalness
 										);
+
+			//const float roughness = 1.0;
+			//const float metallic = 0.0;
+			//const float3 dielectricF0 = 0.04;
+			//
+			//float3 L = light_dir;
+			//float3 V = vs_view_dir;
+			//float3 H = normalize(L + V);
+			//float3 N = vs_normal;
+			//
+			//float NoV = max(dot(N, V), 0.0);
+			//float NoL = max(dot(N, L), 0.0);
+			//float NoH = max(dot(N, H), 0.0);
+			//float VoH = max(dot(V, H), 0.0);
+			//
+			//float3 brdfDielectric = StandardBRDF(dielectricF0, NoV, NoL, NoH, VoH, roughness, albedo);
+			//float3 brdfMetal = StandardBRDF(albedo, NoV, NoL, NoH, VoH, roughness, float3(0.0, 0.0, 0.0));
+			//float3 brdf = metallic * brdfMetal + (1 - metallic) * brdfDielectric;
+			//
+			//color += n_dot_l * brdf * attenuation * diffuse_color;
 		}
 	}
 

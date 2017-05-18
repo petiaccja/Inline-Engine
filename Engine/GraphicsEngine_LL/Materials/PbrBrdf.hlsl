@@ -112,7 +112,7 @@ float3 getCookTorranceBRDF(float3 albedo,
 	float3 c = albedo;
 	float3 Li = radiance;
 
-	float3 Lo = (kD * c / PI) + (F * Li) * (D * G * NdotL / (4 * NdotV * NdotL + 0.0001));
+	float3 Lo = ((kD * c / PI) + (F * (D * G / (4 * NdotV * NdotL + 0.0001)))) * Li * NdotL;
 	return Lo;
 }
 
@@ -237,18 +237,19 @@ float3 SpecularMicrofacetBRDF(float3 F0, float NoV, float NoL, float NoH, float 
 	float Vis = Vis_SmithGGXCorrelated(NoV, NoL, roughness);
 	float D = GGX(NoH, roughness);
 
-	float3 indirectMicroSpecular = 0.0f;// ... Read from 3DLUT(F0, NoL, roughness);
+	float3 directSpecular = D * F * Vis;
+	float3 indirectMicroSpecular = 0.0;//  1.0f / (2.0 * 3.14159265358979 * NoV) * ReadLUT(F0, NoL, roughness).x;
 
-	return D * (F * Vis + indirectMicroSpecular);
+	return directSpecular + indirectMicroSpecular;
 }
 
 // Standard brdf -> specular + diffuse
-float3 StandardBRDF(float3 F0, float NoV, float NoL, float NoH, float VoH, float roughness)
+float3 StandardBRDF(float3 F0, float NoV, float NoL, float NoH, float VoH, float roughness, float3 diffuseColor)
 {
-	float specular = SpecularMicrofacetBRDF(F0, NoV, NoL, NoH, VoH, roughness);
-	float diffuse = DiffuseBurleyBRDF(NoV, NoL, VoH, roughness, F0);
+	float3 specular = SpecularMicrofacetBRDF(F0, NoV, NoL, NoH, VoH, roughness);
+	float3 diffuse = DiffuseBurleyBRDF(NoV, NoL, VoH, roughness, F0);
 
-	return specular + diffuse;
+	return specular + diffuseColor * diffuse;
 }
 
 
