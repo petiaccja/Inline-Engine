@@ -93,18 +93,26 @@ private:
 	std::unique_ptr<inl::gxeng::Image> m_terrainTexture;
 	std::unique_ptr<inl::gxeng::Mesh> m_treeMesh;
 	std::unique_ptr<inl::gxeng::Image> m_treeTexture;
+	std::unique_ptr<inl::gxeng::Mesh> m_sphereMesh;
+	std::unique_ptr<inl::gxeng::Image> m_sphereAlbedoTex;
+	std::unique_ptr<inl::gxeng::Image> m_sphereMetalnessTex;
+	std::unique_ptr<inl::gxeng::Image> m_sphereRoughnessTex;
+	std::unique_ptr<inl::gxeng::Image> m_sphereNormalTex;
+	std::unique_ptr<inl::gxeng::Image> m_sphereAOTex;
 
 	std::unique_ptr<inl::gxeng::Image> m_checkerTexture;
 
 	std::unique_ptr<inl::gxeng::Material> m_treeMaterial;
 	std::unique_ptr<inl::gxeng::Material> m_quadcopterMaterial;
 	std::unique_ptr<inl::gxeng::Material> m_terrainMaterial;
+	std::unique_ptr<inl::gxeng::Material> m_sphereMaterial;
 	std::unique_ptr<inl::gxeng::Material> m_axesMaterial;
 	std::unique_ptr<inl::gxeng::MaterialShaderGraph> m_simpleShader;
 
 	// Entities
 	std::vector<std::unique_ptr<inl::gxeng::MeshEntity>> m_staticEntities;
 	std::unique_ptr<inl::gxeng::MeshEntity> m_terrainEntity;
+	std::unique_ptr<inl::gxeng::MeshEntity> m_sphereEntity;
 	std::unique_ptr<inl::gxeng::MeshEntity> m_quadcopterEntity;
 	std::unique_ptr<inl::gxeng::MeshEntity> m_axesEntity;
 

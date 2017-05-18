@@ -101,6 +101,67 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_terrainTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
 	}
 
+	// Create sphere mesh
+	{
+		inl::asset::Model model("assets\\sphere\\sphere.fbx");
+
+		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0, coordSysLayout);
+		std::vector<unsigned> modelIndices = model.GetIndices(0);
+
+		m_sphereMesh.reset(m_graphicsEngine->CreateMesh());
+		m_sphereMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+	}
+
+	// Create sphere albedo texture
+	{
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\sphere\\rustedIronAlbedo.png");
+
+		m_sphereAlbedoTex.reset(m_graphicsEngine->CreateImage());
+		m_sphereAlbedoTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
+		m_sphereAlbedoTex->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+	}
+
+	// Create sphere normal texture
+	{
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\sphere\\rustedIronNormal.png");
+
+		m_sphereNormalTex.reset(m_graphicsEngine->CreateImage());
+		m_sphereNormalTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
+		m_sphereNormalTex->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+	}
+
+	// Create sphere metalness texture
+	{
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\sphere\\rustedIronMetalness.png");
+
+		m_sphereMetalnessTex.reset(m_graphicsEngine->CreateImage());
+		m_sphereMetalnessTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR);
+		m_sphereMetalnessTex->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+	}
+
+	// Create sphere roughness texture
+	{
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\sphere\\rustedIronRoughness.png");
+
+		m_sphereRoughnessTex.reset(m_graphicsEngine->CreateImage());
+		m_sphereRoughnessTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR);
+		m_sphereRoughnessTex->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+	}
+
+	// Create sphere AO texture
+	{
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\sphere\\rustedIronAO.png");
+
+		m_sphereAOTex.reset(m_graphicsEngine->CreateImage());
+		m_sphereAOTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
+		m_sphereAOTex->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+	}
+
 	// Create QC mesh
 	{
 		inl::asset::Model model("assets\\quadcopter.fbx");
@@ -170,6 +231,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_quadcopterMaterial.reset(m_graphicsEngine->CreateMaterial());
 		m_axesMaterial.reset(m_graphicsEngine->CreateMaterial());
 		m_terrainMaterial.reset(m_graphicsEngine->CreateMaterial());
+		m_sphereMaterial.reset(m_graphicsEngine->CreateMaterial());
 
 		m_simpleShader.reset(m_graphicsEngine->CreateMaterialShaderGraph());
 		std::unique_ptr<inl::gxeng::MaterialShaderEquation> mapShader(m_graphicsEngine->CreateMaterialShaderEquation());
@@ -186,11 +248,13 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_quadcopterMaterial->SetShader(m_simpleShader.get());
 		m_axesMaterial->SetShader(m_simpleShader.get());
 		m_terrainMaterial->SetShader(m_simpleShader.get());
+		m_sphereMaterial->SetShader(m_simpleShader.get());
 
 		(*m_treeMaterial)[0] = m_treeTexture.get();
 		(*m_quadcopterMaterial)[0] = m_quadcopterTexture.get();
 		(*m_axesMaterial)[0] = m_axesTexture.get();
 		(*m_terrainMaterial)[0] = m_terrainTexture.get();
+		(*m_sphereMaterial)[0] = m_sphereAlbedoTex.get();
 	}
 
 	// Create checker texture
@@ -216,6 +280,16 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_terrainEntity->SetRotation({ 1,0,0,0 });
 	m_terrainEntity->SetScale({ 1,1,1 });
 	m_worldScene->GetMeshEntities().Add(m_terrainEntity.get());
+
+	// Set up sphere
+	m_sphereEntity.reset(m_graphicsEngine->CreateMeshEntity());
+	m_sphereEntity->SetMesh(m_sphereMesh.get());
+	m_sphereEntity->SetMaterial(m_sphereMaterial.get());
+	m_sphereEntity->SetPosition({ 0,0,0 });
+	m_sphereEntity->SetRotation({ 1,0,0,0 });
+	m_sphereEntity->SetScale({ 1,1,1 });
+	m_worldScene->GetMeshEntities().Add(m_sphereEntity.get());
+	m_staticEntities.push_back(std::move(m_sphereEntity));
 
 	// Set up copter
 	m_quadcopterEntity.reset(m_graphicsEngine->CreateMeshEntity());
