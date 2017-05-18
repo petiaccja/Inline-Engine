@@ -94,6 +94,7 @@ private:
 	std::unique_ptr<inl::gxeng::Mesh> m_treeMesh;
 	std::unique_ptr<inl::gxeng::Image> m_treeTexture;
 	std::unique_ptr<inl::gxeng::Mesh> m_sphereMesh;
+
 	std::unique_ptr<inl::gxeng::Image> m_sphereAlbedoTex;
 	std::unique_ptr<inl::gxeng::Image> m_sphereMetalnessTex;
 	std::unique_ptr<inl::gxeng::Image> m_sphereRoughnessTex;
