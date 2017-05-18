@@ -127,11 +127,17 @@
   <ItemGroup>
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PIDController.cpp" />
     <ClCompile Include="QCWorld.cpp" />
+    <ClCompile Include="RigidBody.cpp" />
+    <ClCompile Include="Rotor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Editor.hpp" />
+    <ClInclude Include="PIDController.hpp" />
     <ClInclude Include="QCWorld.hpp" />
+    <ClInclude Include="RigidBody.hpp" />
+    <ClInclude Include="Rotor.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

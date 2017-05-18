@@ -236,7 +236,7 @@ void Editor::InitGui()
 		int height = size.y();
 
 		graphicsE->SetScreenSize(width, height);
-		world->SetAspectRatio((float)width / (float(height)));
+		world->ScreenSizeChanged(width, height);
 	};
 
 	rightArea->StretchFillParent();
@@ -319,6 +319,7 @@ void Editor::Run()
 		// Frame delta time
 		float deltaTime = timer->Elapsed();
 
+		world->UpdateWorld(deltaTime);
 		// Update engine
 		core->Update(deltaTime);
 
