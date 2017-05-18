@@ -238,7 +238,7 @@ float3 SpecularMicrofacetBRDF(float3 F0, float NoV, float NoL, float NoH, float 
 	float D = GGX(NoH, roughness);
 
 	float3 directSpecular = D * F * Vis;
-	float3 indirectMicroSpecular = 0.0;//  1.0f / (2.0 * 3.14159265358979 * NoV) * ReadLUT(F0, NoL, roughness).x;
+	float3 indirectMicroSpecular = 0.0;//  1.0f / 3.14159265358979 * ReadLUT(F0, NoL, roughness).x;
 
 	return directSpecular + indirectMicroSpecular;
 }
