@@ -688,7 +688,7 @@ Matrix<U, Rows, Columns, Order1, Layout1, Packed> operator-(
 //------------------------------------------------------------------------------
 
 template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
-class __declspec(empty_bases) Matrix
+class MATHTER_EBCO Matrix
 	: public MatrixData<T, Rows, Columns, Order, Layout, Packed>,
 	public MatrixSquare<T, Rows, Columns, Order, Layout, Packed>::Inherit,
 	public MatrixRotation2D<T, Rows, Columns, Order, Layout, Packed>::Inherit,
@@ -700,6 +700,28 @@ class __declspec(empty_bases) Matrix
 	public MatrixView<T, Rows, Columns, Order, Layout, Packed>::Inherit
 {
 	static_assert(Columns >= 1 && Rows >= 1, "Dimensions must be positive integers.");
+	// Make a call to this function in EVERY constructor of the Matrix class.
+	// These checks must be put in a separate function instead of class scope because the full definition
+	// of the Matrix class is required to determine memory layout.
+	void CheckLayoutContraints() {
+		using Module1 = MatrixSquare<T, Rows, Columns, Order, Layout, Packed>::Inherit;
+		using Module2 = MatrixRotation2D<T, Rows, Columns, Order, Layout, Packed>::Inherit;
+		using Module3 = MatrixRotation3D<T, Rows, Columns, Order, Layout, Packed>::Inherit;
+		using Module4 = MatrixTranslation<T, Rows, Columns, Order, Layout, Packed>::Inherit;
+		using Module5 = MatrixScale<T, Rows, Columns, Order, Layout, Packed>::Inherit;
+		using Module6 = MatrixPerspective<T, Rows, Columns, Order, Layout, Packed>::Inherit;
+		using Module7 = MatrixOrthographic<T, Rows, Columns, Order, Layout, Packed>::Inherit;
+		using Module8 = MatrixView<T, Rows, Columns, Order, Layout, Packed>::Inherit;
+		static_assert(sizeof(Matrix) == sizeof(MatrixData<T, Rows, Columns, Order, Layout, Packed>), "Your compiler did not optimize matrix class' size. Do you have empty base optimization enabled?");
+		static_assert(impl::BasePtrEquals<Module1, Matrix>::value, "Your compiler did not lay out derived class' memory correctly. Empty base class' offset must be zero in derived.");
+		static_assert(impl::BasePtrEquals<Module2, Matrix>::value, "Your compiler did not lay out derived class' memory correctly. Empty base class' offset must be zero in derived.");
+		static_assert(impl::BasePtrEquals<Module3, Matrix>::value, "Your compiler did not lay out derived class' memory correctly. Empty base class' offset must be zero in derived.");
+		static_assert(impl::BasePtrEquals<Module4, Matrix>::value, "Your compiler did not lay out derived class' memory correctly. Empty base class' offset must be zero in derived.");
+		static_assert(impl::BasePtrEquals<Module5, Matrix>::value, "Your compiler did not lay out derived class' memory correctly. Empty base class' offset must be zero in derived.");
+		static_assert(impl::BasePtrEquals<Module6, Matrix>::value, "Your compiler did not lay out derived class' memory correctly. Empty base class' offset must be zero in derived.");
+		static_assert(impl::BasePtrEquals<Module7, Matrix>::value, "Your compiler did not lay out derived class' memory correctly. Empty base class' offset must be zero in derived.");
+		static_assert(impl::BasePtrEquals<Module8, Matrix>::value, "Your compiler did not lay out derived class' memory correctly. Empty base class' offset must be zero in derived.");
+	}
 protected:
 	using MatrixData<T, Rows, Columns, Order, Layout, Packed>::GetElement;
 	using MatrixData::stripes;
@@ -727,10 +749,13 @@ public:
 	// Constructors
 	//--------------------------------------------
 
-	Matrix() = default;
+	Matrix() {
+		CheckLayoutContraints();
+	}
 	
 	template <class T2, eMatrixOrder Order2, eMatrixLayout Layout2>
 	Matrix(const Matrix<T2, Rows, Columns, Order2, Layout2, Packed>& rhs) {
+		CheckLayoutContraints();
 		for (int i = 0; i < RowCount(); ++i) {
 			for (int j = 0; j < ColumnCount(); ++j) {
 				(*this)(i,j) = rhs(i, j); //+++
@@ -740,6 +765,7 @@ public:
 
 	template <class T2, eMatrixOrder Order2, eMatrixLayout Layout2>
 	explicit Matrix(const Matrix<T2, Rows, Columns, Order2, Layout2, !Packed>& rhs) {
+		CheckLayoutContraints();
 		for (int i = 0; i < RowCount(); ++i) {
 			for (int j = 0; j < ColumnCount(); ++j) {
 				(*this)(i, j) = rhs(i, j); //+++
@@ -749,7 +775,7 @@ public:
 
 	template <class H, class... Args, typename std::enable_if<impl::All<impl::IsScalar, H, Args...>::value, int>::type = 0>
 	Matrix(H h, Args... args) {
-		static_assert(sizeof(Matrix) == sizeof(stripes), "Compiler did not optimize matrix size.");
+		CheckLayoutContraints();
 
 		static_assert(1 + sizeof...(Args) == Columns*Rows, "All elements of matrix have to be initialized.");
 		Assign<0, 0>(h, args...);
