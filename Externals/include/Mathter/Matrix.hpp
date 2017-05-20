@@ -274,12 +274,12 @@ public:
 		T tableArgs[sizeof...(Args)] = { (T)std::forward<Args>(args)... };
 		if (Order == eMatrixOrder::FOLLOW_VECTOR) {
 			for (int i = 0; i < sizeof...(Args); ++i) {
-				m(Rows - 1, i) = std::move(tableArgs[i]); //+++
+				m(Rows - 1, i) = std::move(tableArgs[i]);
 			}
 		}
 		else {
 			for (int i = 0; i < sizeof...(Args); ++i) {
-				m(Columns - 1, i) = std::move(tableArgs[i]); //+++
+				m(Columns - 1, i) = std::move(tableArgs[i]);
 			}
 		}
 		return m;
@@ -291,12 +291,12 @@ public:
 		m.SetIdentity();
 		if (Order == eMatrixOrder::FOLLOW_VECTOR) {
 			for (int i = 0; i < translation.Dimension(); ++i) {
-				m(Rows - 1, i) = translation(i); //+++
+				m(Rows - 1, i) = translation(i);
 			}
 		}
 		else {
 			for (int i = 0; i < translation.Dimension(); ++i) {
-				m(i, Columns - 1) = translation(i); //+++
+				m(i, Columns - 1) = translation(i);
 			}
 		}
 		return m;
@@ -753,22 +753,24 @@ public:
 		CheckLayoutContraints();
 	}
 	
-	template <class T2, eMatrixOrder Order2, eMatrixLayout Layout2>
-	Matrix(const Matrix<T2, Rows, Columns, Order2, Layout2, Packed>& rhs) {
+	// From same multiplication order
+	template <class T2, eMatrixLayout Layout2, bool Packed2>
+	Matrix(const Matrix<T2, Rows, Columns, Order, Layout2, Packed2>& rhs) {
 		CheckLayoutContraints();
 		for (int i = 0; i < RowCount(); ++i) {
 			for (int j = 0; j < ColumnCount(); ++j) {
-				(*this)(i,j) = rhs(i, j); //+++
+				(*this)(i, j) = rhs(i, j);
 			}
 		}
 	}
 
-	template <class T2, eMatrixOrder Order2, eMatrixLayout Layout2>
-	explicit Matrix(const Matrix<T2, Rows, Columns, Order2, Layout2, !Packed>& rhs) {
+	// From opposite multiplication order
+	template <class T2, eMatrixLayout Layout2, bool Packed2>
+	Matrix(const Matrix<T2, Columns, Rows, Order == eMatrixOrder::FOLLOW_VECTOR ? eMatrixOrder::PRECEDE_VECTOR : eMatrixOrder::FOLLOW_VECTOR, Layout2, Packed2>& rhs) {
 		CheckLayoutContraints();
 		for (int i = 0; i < RowCount(); ++i) {
 			for (int j = 0; j < ColumnCount(); ++j) {
-				(*this)(i, j) = rhs(i, j); //+++
+				(*this)(i, j) = rhs(j, i); // Transpose argument
 			}
 		}
 	}
@@ -788,7 +790,7 @@ public:
 
 	// General matrix indexing
 	T& operator()(int row, int col) {
-		return GetElement(row, col); //+++
+		return GetElement(row, col);
 	}
 	T operator()(int row, int col) const {
 		return GetElement(row, col);
@@ -797,11 +799,11 @@ public:
 	// Column and row vector simple indexing
 	template <class = typename std::enable_if<(Columns == 1 && Rows > 1) || (Columns > 1 && Rows == 1)>::type>
 	T& operator()(int idx) {
-		return GetElement(Rows == 1 ? 0 : idx, Columns == 1 ? 0 : idx); //+++
+		return GetElement(Rows == 1 ? 0 : idx, Columns == 1 ? 0 : idx);
 	}
 	template <class = typename std::enable_if<(Columns == 1 && Rows > 1) || (Columns > 1 && Rows == 1)>::type>
 	T operator()(int idx) const {
-		return GetElement(Rows == 1 ? 0 : idx, Columns == 1 ? 0 : idx); //+++
+		return GetElement(Rows == 1 ? 0 : idx, Columns == 1 ? 0 : idx);
 	}
 
 	//--------------------------------------------
@@ -928,7 +930,7 @@ public:
 		Matrix<T, Columns, Rows, Order, Layout, Packed> result;
 		for (int i = 0; i < RowCount(); ++i) {
 			for (int j = 0; j < ColumnCount(); ++j) {
-				result(j,i) = (*this)(i,j); //+++
+				result(j,i) = (*this)(i,j);
 			}
 		}
 		return result;
@@ -966,10 +968,10 @@ protected:
 	// Helpers
 	//--------------------------------------------
 
-	template <int i, int j, class Head, class... Args> //+++
+	template <int i, int j, class Head, class... Args>
 	void Assign(Head head, Args... args) { 
-		(*this)(i, j) = head; //+++
-		Assign<((j != Columns - 1) ? i : (i + 1)), ((j + 1) % Columns)>(args...); //+++
+		(*this)(i, j) = head;
+		Assign<((j != Columns - 1) ? i : (i + 1)), ((j + 1) % Columns)>(args...);
 	}
 
 	template <int, int>
@@ -987,7 +989,7 @@ protected:
 // Row-major * Row-major
 #define MATHTER_MATMUL_EXPAND(...) __VA_ARGS__
 
-#define MATHTER_MATMUL_RR_FACTOR(X, Y) rhs.stripes[X] * lhs(Y, X) //+++
+#define MATHTER_MATMUL_RR_FACTOR(X, Y) rhs.stripes[X] * lhs(Y, X)
 
 #define MATHTER_MATMUL_RR_STRIPE_1(Y) MATHTER_MATMUL_RR_FACTOR(0, Y)
 #define MATHTER_MATMUL_RR_STRIPE_2(Y) MATHTER_MATMUL_RR_STRIPE_1(Y) + MATHTER_MATMUL_RR_FACTOR(1, Y)
@@ -1005,7 +1007,7 @@ protected:
 #define MATHTER_MATMUL_RR_UNROLL(MATCH, ROWS1) if (Rows1 == ROWS1 && Match == MATCH ) { MATHTER_MATMUL_RR_ARRAY(MATCH, ROWS1) return result; }
 
 // Column-major * Column-major
-#define MATHTER_MATMUL_CC_FACTOR(X, Y) lhs.stripes[Y] * rhs(Y, X) //+++
+#define MATHTER_MATMUL_CC_FACTOR(X, Y) lhs.stripes[Y] * rhs(Y, X)
 
 #define MATHTER_MATMUL_CC_STRIPE_1(X) MATHTER_MATMUL_CC_FACTOR(X, 0)
 #define MATHTER_MATMUL_CC_STRIPE_2(X) MATHTER_MATMUL_CC_STRIPE_1(X) + MATHTER_MATMUL_CC_FACTOR(X, 1)
@@ -1045,11 +1047,11 @@ auto operator*(const Matrix<T, Rows1, Match, Order1, eMatrixLayout::ROW_MAJOR, P
 
 	// general algorithm
 	for (int i = 0; i < Rows1; ++i) {
-		result.stripes[i] = rhs.stripes[0] * lhs(i, 0); //+++
+		result.stripes[i] = rhs.stripes[0] * lhs(i, 0);
 	}
 	for (int j = 1; j < Match; ++j) {
 		for (int i = 0; i < Rows1; ++i) {
-			result.stripes[i] += rhs.stripes[j] * lhs(i, j); //+++
+			result.stripes[i] += rhs.stripes[j] * lhs(i, j);
 		}
 	}
 
@@ -1450,13 +1452,13 @@ auto MatrixRotation2D<T, Rows, Columns, Order, Layout, Packed>::Rotation(T angle
 	};
 
 	// Indices according to follow vector order
-	elem(0, 0) = C;		elem(0, 1) = S; //+++
+	elem(0, 0) = C;		elem(0, 1) = S;
 	elem(1, 0) = -S;	elem(1, 1) = C;
 
 	// Rest
 	for (int j = 0; j < m.ColumnCount(); ++j) {
 		for (int i = (j < 2 ? 2 : 0); i < m.RowCount(); ++i) {
-			m(i, j) = T(j == i); //+++
+			m(i, j) = T(j == i);
 		}
 	}
 
