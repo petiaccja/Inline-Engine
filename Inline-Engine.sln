@@ -67,7 +67,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_NetworkServer", "Test\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetworkEngine", "Engine\NetworkEngine\NetworkEngine.vcxproj", "{805EDCB5-391B-4F92-8568-CF6B691C16FE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LinuxTest", "Test\LinuxTest\Project1.vcxproj", "{795E3E75-E34E-4BDD-AD58-2F5216EE18B3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LinuxTest", "Test\LinuxTest\LinuxTest.vcxproj", "{795E3E75-E34E-4BDD-AD58-2F5216EE18B3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
