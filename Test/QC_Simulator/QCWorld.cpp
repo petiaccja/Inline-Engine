@@ -287,9 +287,8 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_sphereEntity->SetMaterial(m_sphereMaterial.get());
 	m_sphereEntity->SetPosition({ 0,0,0 });
 	m_sphereEntity->SetRotation({ 1,0,0,0 });
-	m_sphereEntity->SetScale({ 1,1,1 });
+	m_sphereEntity->SetScale({ .01f,.01f,.01f });
 	m_worldScene->GetMeshEntities().Add(m_sphereEntity.get());
-	m_staticEntities.push_back(std::move(m_sphereEntity));
 
 	// Set up copter
 	m_quadcopterEntity.reset(m_graphicsEngine->CreateMeshEntity());
