@@ -4,7 +4,7 @@
 #include "../ResourceView.hpp"
 #include "../PipelineTypes.hpp"
 
-#include <mathfu/mathfu_exc.hpp>
+#include <InlineMath.hpp>
 #include <cmath>
 
 
@@ -50,7 +50,7 @@ public:
 template<>
 class VectorComponents<1> :
 	public impl::VectorComponentBase,
-	public exc::InputPortConfig<mathfu::Vector<float, 1>>,
+	public exc::InputPortConfig<Vector<float, 1>>,
 	public exc::OutputPortConfig<float>
 {
 public:
@@ -65,7 +65,7 @@ public:
 template<>
 class VectorComponents<2> :
 	public impl::VectorComponentBase,
-	public exc::InputPortConfig<mathfu::Vector<float, 2>>,
+	public exc::InputPortConfig<Vec2>,
 	public exc::OutputPortConfig<float, float>
 {
 public:
@@ -81,7 +81,7 @@ public:
 template<>
 class VectorComponents<3> :
 	public impl::VectorComponentBase,
-	public exc::InputPortConfig<mathfu::Vector<float, 3>>,
+	public exc::InputPortConfig<Vec3>,
 	public exc::OutputPortConfig<float, float, float>
 {
 public:
@@ -98,7 +98,7 @@ public:
 template<>
 class VectorComponents<4> :
 	public impl::VectorComponentBase,
-	public exc::InputPortConfig<mathfu::Vector<float, 4>>,
+	public exc::InputPortConfig<Vec4>,
 	public exc::OutputPortConfig<float, float, float, float>
 {
 public:

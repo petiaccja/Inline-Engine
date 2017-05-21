@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Vertex.hpp"
+#include <InlineMath.hpp>
 #include <array>
 
 
@@ -19,19 +20,19 @@ class VertexElementCompressor<eVertexElementSemantic::POSITION> {
 public:
 	static size_t Size() { return 3 * sizeof(float); }
 
-	static std::array<uint8_t, 3 * sizeof(float)> Compress(const mathfu::Vector<float, 3>& input) {
+	static std::array<uint8_t, 3 * sizeof(float)> Compress(const Vec3& input) {
 		std::array<uint8_t, 3 * sizeof(float)> ret;
-		*reinterpret_cast<uint32_t*>(ret.data() + 0) = *reinterpret_cast<const uint32_t*>(&input.x());
-		*reinterpret_cast<uint32_t*>(ret.data() + 4) = *reinterpret_cast<const uint32_t*>(&input.y());
-		*reinterpret_cast<uint32_t*>(ret.data() + 8) = *reinterpret_cast<const uint32_t*>(&input.z());
+		*reinterpret_cast<uint32_t*>(ret.data() + 0) = *reinterpret_cast<const uint32_t*>(&input.x);
+		*reinterpret_cast<uint32_t*>(ret.data() + 4) = *reinterpret_cast<const uint32_t*>(&input.y);
+		*reinterpret_cast<uint32_t*>(ret.data() + 8) = *reinterpret_cast<const uint32_t*>(&input.z);
 		return ret;
 	}
 
-	static mathfu::Vector<float, 3> Decompress(const void* input) {
-		mathfu::Vector<float, 3> ret;
-		ret.x() = *reinterpret_cast<const float*>(input) + 0;
-		ret.y() = *reinterpret_cast<const float*>(input) + 1;
-		ret.z() = *reinterpret_cast<const float*>(input) + 2;
+	static Vec3 Decompress(const void* input) {
+		Vec3 ret;
+		ret.x = *reinterpret_cast<const float*>(input) + 0;
+		ret.y = *reinterpret_cast<const float*>(input) + 1;
+		ret.z = *reinterpret_cast<const float*>(input) + 2;
 		return ret;
 	}
 };
@@ -42,19 +43,19 @@ class VertexElementCompressor<eVertexElementSemantic::NORMAL> {
 public:
 	static size_t Size() { return 3 * sizeof(float); }
 
-	static std::array<uint8_t, 3 * sizeof(float)> Compress(const mathfu::Vector<float, 3>& input) {
+	static std::array<uint8_t, 3 * sizeof(float)> Compress(const Vec3& input) {
 		std::array<uint8_t, 3 * sizeof(float)> ret;
-		*reinterpret_cast<uint32_t*>(ret.data() + 0) = *reinterpret_cast<const uint32_t*>(&input.x());
-		*reinterpret_cast<uint32_t*>(ret.data() + 4) = *reinterpret_cast<const uint32_t*>(&input.y());
-		*reinterpret_cast<uint32_t*>(ret.data() + 8) = *reinterpret_cast<const uint32_t*>(&input.z());
+		*reinterpret_cast<uint32_t*>(ret.data() + 0) = *reinterpret_cast<const uint32_t*>(&input.x);
+		*reinterpret_cast<uint32_t*>(ret.data() + 4) = *reinterpret_cast<const uint32_t*>(&input.y);
+		*reinterpret_cast<uint32_t*>(ret.data() + 8) = *reinterpret_cast<const uint32_t*>(&input.z);
 		return ret;
 	}
 
-	static mathfu::Vector<float, 3> Decompress(const void* input) {
-		mathfu::Vector<float, 3> ret;
-		ret.x() = *reinterpret_cast<const float*>(input) + 0;
-		ret.y() = *reinterpret_cast<const float*>(input) + 1;
-		ret.z() = *reinterpret_cast<const float*>(input) + 2;
+	static Vec3 Decompress(const void* input) {
+		Vec3 ret;
+		ret.x = *reinterpret_cast<const float*>(input) + 0;
+		ret.y = *reinterpret_cast<const float*>(input) + 1;
+		ret.z = *reinterpret_cast<const float*>(input) + 2;
 		return ret;
 	}
 };
@@ -65,17 +66,17 @@ class VertexElementCompressor<eVertexElementSemantic::TEX_COORD> {
 public:
 	static size_t Size() { return 2 * sizeof(float); }
 
-	static std::array<uint8_t, 2 * sizeof(float)> Compress(const mathfu::Vector<float, 2>& input) {
+	static std::array<uint8_t, 2 * sizeof(float)> Compress(const Vec2& input) {
 		std::array<uint8_t, 2 * sizeof(float)> ret;
-		*reinterpret_cast<uint32_t*>(ret.data() + 0) = *reinterpret_cast<const uint32_t*>(&input.x());
-		*reinterpret_cast<uint32_t*>(ret.data() + 4) = *reinterpret_cast<const uint32_t*>(&input.y());
+		*reinterpret_cast<uint32_t*>(ret.data() + 0) = *reinterpret_cast<const uint32_t*>(&input.x);
+		*reinterpret_cast<uint32_t*>(ret.data() + 4) = *reinterpret_cast<const uint32_t*>(&input.y);
 		return ret;
 	}
 
-	static mathfu::Vector<float, 2> Decompress(const void* input) {
-		mathfu::Vector<float, 2> ret;
-		ret.x() = *reinterpret_cast<const float*>(input) + 0;
-		ret.y() = *reinterpret_cast<const float*>(input) + 1;
+	static Vec2 Decompress(const void* input) {
+		Vec2 ret;
+		ret.x = *reinterpret_cast<const float*>(input) + 0;
+		ret.y = *reinterpret_cast<const float*>(input) + 1;
 		return ret;
 	}
 };
@@ -86,19 +87,19 @@ class VertexElementCompressor<eVertexElementSemantic::COLOR> {
 public:
 	static size_t Size() { return 3 * sizeof(float); }
 
-	static std::array<uint8_t, 3 * sizeof(float)> Compress(const mathfu::Vector<float, 3>& input) {
+	static std::array<uint8_t, 3 * sizeof(float)> Compress(const Vec3& input) {
 		std::array<uint8_t, 3 * sizeof(float)> ret;
-		*reinterpret_cast<uint32_t*>(ret.data() + 0) = *reinterpret_cast<const uint32_t*>(&input.x());
-		*reinterpret_cast<uint32_t*>(ret.data() + 4) = *reinterpret_cast<const uint32_t*>(&input.y());
-		*reinterpret_cast<uint32_t*>(ret.data() + 8) = *reinterpret_cast<const uint32_t*>(&input.z());
+		*reinterpret_cast<uint32_t*>(ret.data() + 0) = *reinterpret_cast<const uint32_t*>(&input.x);
+		*reinterpret_cast<uint32_t*>(ret.data() + 4) = *reinterpret_cast<const uint32_t*>(&input.y);
+		*reinterpret_cast<uint32_t*>(ret.data() + 8) = *reinterpret_cast<const uint32_t*>(&input.z);
 		return ret;
 	}
 
-	static mathfu::Vector<float, 3> Decompress(const void* input) {
-		mathfu::Vector<float, 3> ret;
-		ret.x() = *reinterpret_cast<const float*>(input) + 0;
-		ret.y() = *reinterpret_cast<const float*>(input) + 1;
-		ret.z() = *reinterpret_cast<const float*>(input) + 2;
+	static Vec3 Decompress(const void* input) {
+		Vec3 ret;
+		ret.x = *reinterpret_cast<const float*>(input) + 0;
+		ret.y = *reinterpret_cast<const float*>(input) + 1;
+		ret.z = *reinterpret_cast<const float*>(input) + 2;
 		return ret;
 	}
 };

@@ -177,8 +177,8 @@ void DepthPrepass::Execute(RenderContext & context) {
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();
-	mathfu::Matrix4x4f projection = m_camera->GetProjectionMatrixRH();
+	Mat44 view = m_camera->GetViewMatrixRH();
+	Mat44 projection = m_camera->GetProjectionMatrixRH();
 
 	auto viewProjection = projection * view;
 
@@ -202,10 +202,10 @@ void DepthPrepass::Execute(RenderContext & context) {
 
 		auto MVP = viewProjection * entity->GetTransform();
 
-		std::array<mathfu::VectorPacked<float, 4>, 4> transformCBData;
-		MVP.Pack(transformCBData.data());
+		Mat44_Packed transformCBData;
+		transformCBData = MVP;
 
-		commandList.BindGraphics(m_transformBindParam, transformCBData.data(), sizeof(transformCBData));
+		commandList.BindGraphics(m_transformBindParam, &transformCBData, sizeof(transformCBData));
 
 		for (auto& vb : vertexBuffers) {
 			commandList.SetResourceState(*vb, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);

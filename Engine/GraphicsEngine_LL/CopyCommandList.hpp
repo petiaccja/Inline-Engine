@@ -7,7 +7,7 @@
 #include "../GraphicsApi_LL/Common.hpp"
 #include "../GraphicsApi_LL/ICommandList.hpp"
 
-#include <mathfu/vector_2.h>
+#include <InlineMath.hpp>
 #include <type_traits>
 #include <unordered_map>
 
@@ -42,8 +42,8 @@ struct SubTexture1D {
 struct SubTexture2D {
 	SubTexture2D(unsigned mipLevel = 0,
 				 unsigned arrayIndex = 0,
-				 mathfu::Vector<intptr_t, 2> corner1 = { -1, -1 },
-				 mathfu::Vector<intptr_t, 2> corner2 = { -1, -1 })
+				Vector<intptr_t, 2> corner1 = { -1, -1 },
+				Vector<intptr_t, 2> corner2 = { -1, -1 })
 		: mipLevel(mipLevel),
 		arrayIndex(arrayIndex),
 		corner1(corner1),
@@ -51,21 +51,21 @@ struct SubTexture2D {
 
 	unsigned mipLevel;
 	unsigned arrayIndex;
-	mathfu::Vector<intptr_t, 2> corner1;
-	mathfu::Vector<intptr_t, 2> corner2;
+	Vector<intptr_t, 2> corner1;
+	Vector<intptr_t, 2> corner2;
 };
 
 struct SubTexture3D {
 	SubTexture3D(unsigned mipLevel = 0,
-				 mathfu::Vector<intptr_t, 3> corner1 = { -1, -1, -1 },
-				 mathfu::Vector<intptr_t, 3> corner2 = { -1, -1, -1 })
+				 Vector<intptr_t, 3> corner1 = { -1, -1, -1 },
+				 Vector<intptr_t, 3> corner2 = { -1, -1, -1 })
 		: mipLevel(mipLevel),
 		corner1(corner1),
 		corner2(corner2) {}
 
 	unsigned mipLevel;
-	mathfu::Vector<intptr_t, 3> corner1;
-	mathfu::Vector<intptr_t, 3> corner2;
+	Vector<intptr_t, 3> corner1;
+	Vector<intptr_t, 3> corner2;
 };
 
 

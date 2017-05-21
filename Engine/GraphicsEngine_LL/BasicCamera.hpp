@@ -1,6 +1,6 @@
 #pragma once
 
-#include <mathfu/mathfu_exc.hpp>
+#include <InlineMath.hpp>
 
 #include <string>
 
@@ -23,10 +23,10 @@ public:
 	const std::string& GetName() const;
 
 	// Set positional properties.
-	void SetPosition(mathfu::Vector3f position);
-	void SetTarget(mathfu::Vector3f targetPosition);
-	void SetLookDirection(mathfu::Vector3f lookDirection);
-	void SetUpVector(mathfu::Vector3f upVector);
+	void SetPosition(Vec3 position);
+	void SetTarget(Vec3 targetPosition);
+	void SetLookDirection(Vec3 lookDirection);
+	void SetUpVector(Vec3 upVector);
 	void SetTargeted(bool targeted);
 
 	// Set rendering properties.
@@ -37,11 +37,11 @@ public:
 	void SetFarPlane(float zOffset);
 
 	// Get positional properties.
-	mathfu::Vector3f GetPosition() const;
-	mathfu::Vector3f GetLookDirection() const;
-	mathfu::Vector3f GetTarget() const;
+	Vec3 GetPosition() const;
+	Vec3 GetLookDirection() const;
+	Vec3 GetTarget() const;
 	float GetTargetDistance() const;
-	mathfu::Vector3f GetUpVector() const;
+	Vec3 GetUpVector() const;
 
 	// Get rendering properties.
 	float GetFocus() const;
@@ -52,17 +52,17 @@ public:
 
 	virtual float GetAspectRatio() const = 0;
 
-	virtual mathfu::Matrix4x4f GetViewMatrixRH() const = 0;
-	virtual mathfu::Matrix4x4f GetViewMatrixLH() const = 0;
-	virtual mathfu::Matrix4x4f GetProjectionMatrixRH() const = 0;
-	virtual mathfu::Matrix4x4f GetProjectionMatrixLH() const = 0;
+	virtual Mat44 GetViewMatrixRH() const = 0;
+	virtual Mat44 GetViewMatrixLH() const = 0;
+	virtual Mat44 GetProjectionMatrixRH() const = 0;
+	virtual Mat44 GetProjectionMatrixLH() const = 0;
 
 protected:
 	std::string m_name;
 
-	mathfu::Vector3f m_position;
-	mathfu::Vector3f m_upVector;
-	mathfu::Vector3f m_lookdir;
+	Vec3 m_position;
+	Vec3 m_upVector;
+	Vec3 m_lookdir;
 	float m_targetDistance;
 	bool m_targeted = false;
 

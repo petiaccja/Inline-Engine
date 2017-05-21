@@ -32,11 +32,11 @@ static const aiNode* GetFirstFilledNode(const aiNode* node) {
 	return nullptr;
 }
 
-static mathfu::Matrix<float, 4, 4> GetAbsoluteTransform(const aiNode* node) {
+static Mat44 GetAbsoluteTransform(const aiNode* node) {
 	const auto& m = node->mTransformation;
 	// this constructor expects elements to be in column-major order
 	// so no pretty formatting is possible that visualizes how elemnts are in the matrix -_-
-	mathfu::Matrix<float, 4, 4> currTransform{
+	Mat44 currTransform{
 		m.a1, m.a2, m.a3, m.a4, m.b1, m.b2, m.b3, m.b4, m.c1, m.c2, m.c3, m.c4, m.d1, m.d2, m.d3, m.d4
 	};
 	if (node->mParent == nullptr) {
@@ -46,25 +46,25 @@ static mathfu::Matrix<float, 4, 4> GetAbsoluteTransform(const aiNode* node) {
 }
 
 
-mathfu::Vector4f GetAxis(AxisDir dir) {
+Vec4 GetAxis(AxisDir dir) {
 	switch (dir) {
 	case AxisDir::POS_X:
-		return mathfu::Vector4f(+1, 0, 0, 0);
+		return Vec4(+1, 0, 0, 0);
 	case AxisDir::NEG_X:
-		return mathfu::Vector4f(-1, 0, 0, 0);
+		return Vec4(-1, 0, 0, 0);
 	case AxisDir::POS_Y:
-		return mathfu::Vector4f(0, +1, 0, 0);
+		return Vec4(0, +1, 0, 0);
 	case AxisDir::NEG_Y:
-		return mathfu::Vector4f(0, -1, 0, 0);
+		return Vec4(0, -1, 0, 0);
 	case AxisDir::POS_Z:
-		return mathfu::Vector4f(0, 0, +1, 0);
+		return Vec4(0, 0, +1, 0);
 	case AxisDir::NEG_Z:
-		return mathfu::Vector4f(0, 0, -1, 0);
+		return Vec4(0, 0, -1, 0);
 	default:
 		assert(false);
 	}
 
-	return mathfu::Vector4f(0, 0, 0, 0);
+	return Vec4(0, 0, 0, 0);
 }
 
 

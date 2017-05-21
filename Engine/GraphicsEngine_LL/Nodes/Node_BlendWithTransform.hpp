@@ -7,7 +7,7 @@
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
-#include <mathfu/mathfu_exc.hpp>
+#include <InlineMath.hpp>
 
 #include <optional>
 
@@ -21,7 +21,7 @@ namespace inl::gxeng::nodes {
 class BlendWithTransform :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<Texture2D, Texture2D, gxapi::RenderTargetBlendState, mathfu::Matrix4x4f>,
+	virtual public exc::InputPortConfig<Texture2D, Texture2D, gxapi::RenderTargetBlendState, Mat44>,
 	virtual public exc::OutputPortConfig<Texture2D>
 {
 public:
@@ -50,7 +50,7 @@ private: // excute context
 	RenderTargetView2D m_blendDest;
 	TextureView2D m_blendSrc;
 
-	mathfu::Matrix4x4f m_transfrom;
+	Mat44 m_transfrom;
 };
 
 

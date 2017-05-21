@@ -16,22 +16,22 @@ namespace inl::gxeng::nodes {
 
 struct light_data
 {
-	mathfu::VectorPacked<float, 4> vs_position;
+	Vec4_Packed vs_position;
 	float attenuation_end;
-	mathfu::VectorPacked<float, 3> dummy;
+	Vec3_Packed dummy;
 };
 
 struct Uniforms
 {
 	light_data ld[10];
-	mathfu::VectorPacked<float, 4> p[4];
-	mathfu::VectorPacked<float, 4> far_plane0, far_plane1;
+	Mat44_Packed p;
+	Vec4_Packed far_plane0, far_plane1;
 	float cam_near, cam_far;
 	uint32_t num_lights, num_workgroups_x, num_workgroups_y;
-	mathfu::VectorPacked<float, 3> dummy;
+	Vec3_Packed dummy;
 };
 
-static void setWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsigned groupSizeH, unsigned& dispatchW, unsigned& dispatchH)
+static void SetWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsigned groupSizeH, unsigned& dispatchW, unsigned& dispatchH)
 {
 	//set up work group sizes
 	unsigned gw = 0, gh = 0, count = 1;
@@ -167,30 +167,30 @@ void LightCulling::Execute(RenderContext& context) {
 	uniformsCBData.cam_near = -m_camera->GetNearPlane();
 	uniformsCBData.cam_far = -m_camera->GetFarPlane();
 	uniformsCBData.num_lights = 1;
-	m_camera->GetProjectionMatrixRH().Pack(uniformsCBData.p);
+	uniformsCBData.p = m_camera->GetProjectionMatrixRH();
 
-	mathfu::Matrix4x4f invVP = (m_camera->GetProjectionMatrixRH() * m_camera->GetViewMatrixRH()).Inverse();
+	Mat44 invVP = (m_camera->GetProjectionMatrixRH() * m_camera->GetViewMatrixRH()).Inverse();
 
-	mathfu::Vector4f ndcCorners[] = 
+	Vec4 ndcCorners[] = 
 	{
-		mathfu::Vector4f(-1, -1, -1, 1),
-		mathfu::Vector4f(1, 1, -1, 1),
+		Vec4(-1.f, -1.f, -1.f, 1.f),
+		Vec4(1.f, 1.f, -1.f, 1.f),
 	};
 
 	//convert to world space frustum corners
 	ndcCorners[0] = invVP * ndcCorners[0];
 	ndcCorners[1] = invVP * ndcCorners[1];
-	ndcCorners[0] /= ndcCorners[0].w();
-	ndcCorners[1] /= ndcCorners[1].w();
+	ndcCorners[0] /= ndcCorners[0].w;
+	ndcCorners[1] /= ndcCorners[1].w;
 
-	uniformsCBData.far_plane0 = mathfu::Vector4f(ndcCorners[0].xyz(), ndcCorners[1].x());
-	uniformsCBData.far_plane1 = mathfu::Vector4f(ndcCorners[1].y(), ndcCorners[1].z(), 0, 0);
+	uniformsCBData.far_plane0 = Vec4(ndcCorners[0].xyz, ndcCorners[1].x);
+	uniformsCBData.far_plane1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0, 0);
 
-	uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrixRH() * mathfu::Vector4f(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1.0f);
+	uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrixRH() * Vec4(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1.0f);
 	uniformsCBData.ld[0].attenuation_end = 5.0f;
 
 	uint32_t dispatchW, dispatchH;
-	setWorkgroupSize(m_width, m_height, 16, 16, dispatchW, dispatchH);
+	SetWorkgroupSize(m_width, m_height, 16, 16, dispatchW, dispatchH);
 
 	uniformsCBData.num_workgroups_x = dispatchW;
 	uniformsCBData.num_workgroups_y = dispatchH;
@@ -237,7 +237,7 @@ void LightCulling::InitRenderTarget(SetupContext& context) {
 		srvDesc.planeIndex = 0;
 
 		uint32_t dispatchW, dispatchH;
-		setWorkgroupSize(m_width, m_height, 16, 16, dispatchW, dispatchH);
+		SetWorkgroupSize((unsigned)m_width, (unsigned)m_height, 16, 16, dispatchW, dispatchH);
 
 		//TODO 1D tex
 		Texture2D lightCullDataTex = context.CreateRWTexture2D(dispatchW * dispatchH, 1024, formatLightCullData, 1);

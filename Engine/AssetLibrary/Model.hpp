@@ -6,7 +6,7 @@
 #include <assimp/mesh.h>
 #include <assimp/scene.h>
 
-#include <mathfu/mathfu_exc.hpp>
+#include <InlineMath.hpp>
 
 #include <vector>
 #include <memory>
@@ -17,7 +17,7 @@ namespace asset {
 
 enum class AxisDir : uint8_t { POS_X, NEG_X, POS_Y, NEG_Y, POS_Z, NEG_Z };
 
-mathfu::Vector4f GetAxis(AxisDir dir);
+Vec4 GetAxis(AxisDir dir);
 
 struct CoordSysLayout {
 	AxisDir x, y, z;
@@ -31,7 +31,7 @@ public:
 	unsigned SubmeshCount() const;
 
 	template <typename... AttribT>
-	std::vector<gxeng::Vertex<AttribT...>> GetVertices(unsigned submeshID, CoordSysLayout cSysLayout = {AxisDir::POS_X, AxisDir::POS_Y, AxisDir::POS_Z}) const;
+	std::vector<gxeng::Vertex<AttribT...>> GetVertices(unsigned submeshID, CoordSysLayout cSysLayout = { AxisDir::POS_X, AxisDir::POS_Y, AxisDir::POS_Z }) const;
 
 	std::vector<unsigned> GetIndices(unsigned submeshID) const;
 
@@ -39,14 +39,14 @@ protected:
 	// It is cleary stated in the documentation that an imporer instance will keep ownership
 	// of the imported scene. This is fine. But seems like an importer can only store one scene
 	// at a time so an importer instance is inherently attached to a scene instance.
-	std::shared_ptr<Assimp::Importer> m_importer; 
+	std::shared_ptr<Assimp::Importer> m_importer;
 	const aiScene* m_scene;
-	
-	mathfu::Matrix<float, 4, 4> m_transform;
-	mathfu::Matrix<float, 4, 4> m_invTrTransform;
+
+	Mat44 m_transform;
+	Mat44 m_invTrTransform;
 
 private:
-	
+
 	template <typename VertexT, typename... AttribsT>
 	struct VertexAttributeSetter;
 };
@@ -57,16 +57,24 @@ template <typename... AttribT>
 inline std::vector<gxeng::Vertex<AttribT...>> Model::GetVertices(unsigned submeshID, CoordSysLayout csys) const {
 	using VertexT = gxeng::Vertex<AttribT...>;
 	std::vector<VertexT> result;
-	
+
 	assert(submeshID < m_scene->mNumMeshes);
 	const aiMesh* mesh = m_scene->mMeshes[submeshID];
 	result.reserve(mesh->mNumVertices);
 
-	const mathfu::Matrix4x4f posTransform =
+	auto xAxis = GetAxis(csys.x);
+	auto yAxis = GetAxis(csys.y);
+	auto zAxis = GetAxis(csys.z);
+	const Mat44 posTransform =
 		m_transform *
-		(mathfu::Matrix4x4f(GetAxis(csys.x), GetAxis(csys.y), GetAxis(csys.z), mathfu::Vector4f(0, 0, 0, 1)).Transpose());
+		//(Mat44(GetAxis(csys.x), GetAxis(csys.y), GetAxis(csys.z), Vec4(0, 0, 0, 1)).Transpose());
+		Mat44(xAxis.x, xAxis.y, xAxis.z, 0,
+			  yAxis.x, yAxis.y, yAxis.z, 0,
+			  zAxis.x, zAxis.y, zAxis.z, 0,
+			  0, 0, 0, 1);
 
-	const mathfu::Matrix4x4f normalTransform = posTransform.Inverse().Transpose();
+
+	const Mat44 normalTransform = posTransform.Inverse().Transpose();
 
 	for (uint32_t i = 0; i < mesh->mNumVertices; i++) {
 		VertexT newVertex;
@@ -80,7 +88,7 @@ inline std::vector<gxeng::Vertex<AttribT...>> Model::GetVertices(unsigned submes
 
 template <typename VertexT>
 struct Model::VertexAttributeSetter<VertexT> {
-	inline void operator()(VertexT&, const aiMesh*, uint32_t, const mathfu::Matrix4x4f&, const mathfu::Matrix4x4f&) {}
+	inline void operator()(VertexT&, const aiMesh*, uint32_t, const Mat44&, const Mat44&) {}
 };
 
 
@@ -91,15 +99,15 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Position<semanticIndex>, Tai
 		VertexT& target,
 		const aiMesh* mesh,
 		uint32_t vertexIndex,
-		const mathfu::Matrix4x4f& posTr,
-		const mathfu::Matrix4x4f& normTr
-	) {
+		const Mat44& posTr,
+		const Mat44& normTr
+		) {
 		using DataType = gxeng::VertexPart<gxeng::eVertexElementSemantic::POSITION>::DataType;
 		assert(mesh->HasPositions());
 		assert(vertexIndex < mesh->mNumVertices);
 		const aiVector3D& pos = mesh->mVertices[vertexIndex];
 		//target.position = (model->m_transform * mathfu::Vector<float, 4>(pos.x, pos.z, -pos.y, 1)).xyz();
-		target.position = (posTr * mathfu::Vector<float, 4>(pos.x, pos.y, pos.z, 1)).xyz();
+		target.position = (posTr * Vec4(pos.x, pos.y, pos.z, 1)).xyz;
 		//target.position = DataType(pos.x, pos.z, -pos.y);
 
 		VertexAttributeSetter<VertexT, TailAttribT...>()(target, mesh, vertexIndex, posTr, normTr);
@@ -114,9 +122,9 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Normal<semanticIndex>, TailA
 		VertexT& target,
 		const aiMesh* mesh,
 		uint32_t vertexIndex,
-		const mathfu::Matrix4x4f& posTr,
-		const mathfu::Matrix4x4f& normTr
-	) {
+		const Mat44& posTr,
+		const Mat44& normTr
+		) {
 		using DataType = gxeng::VertexPart<gxeng::eVertexElementSemantic::NORMAL>::DataType;
 		if (mesh->HasNormals() == false) {
 			throw std::runtime_error("Vertex array requested with normals but loaded mesh does not have such an attribute.");
@@ -137,9 +145,9 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::TexCoord<semanticIndex>, Tai
 		VertexT& target,
 		const aiMesh* mesh,
 		uint32_t vertexIndex,
-		const mathfu::Matrix4x4f& posTr,
-		const mathfu::Matrix4x4f& normTr
-	) {
+		const Mat44& posTr,
+		const Mat44& normTr
+		) {
 		using DataType = gxeng::VertexPart<gxeng::eVertexElementSemantic::TEX_COORD>::DataType;
 		if (mesh->HasTextureCoords(semanticIndex) == false) {
 			throw std::runtime_error(
@@ -162,9 +170,9 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Color<semanticIndex>, TailAt
 		VertexT& target,
 		const aiMesh* mesh,
 		uint32_t vertexIndex,
-		const mathfu::Matrix4x4f& posTr,
-		const mathfu::Matrix4x4f& normTr
-	) {
+		const Mat44& posTr,
+		const Mat44& normTr
+		) {
 		using DataType = gxeng::VertexPart<gxeng::eVertexElementSemantic::COLOR>::DataType;
 		if (mesh->HasVertexColors(semanticIndex) == false) {
 			throw std::runtime_error(

@@ -12,7 +12,7 @@
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
-#include <mathfu/mathfu_exc.hpp>
+#include <InlineMath.hpp>
 
 namespace inl::gxeng::nodes {
 

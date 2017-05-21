@@ -1,13 +1,13 @@
 #pragma once
 
-#include <Eigen/Dense>
+#include <InlineMath.hpp>
 #include <vector>
 #include <cstdint>
 
 struct Vertex {
-	Eigen::Vector3f position;
-	Eigen::Vector3f normal;
-	Eigen::Vector2f texture;
+	inl::Vec3 position;
+	inl::Vec3 normal;
+	inl::Vec2 texture;
 };
 
 

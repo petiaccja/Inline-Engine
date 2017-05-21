@@ -24,15 +24,15 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_guiCamera->SetBounds(0, width, height, 0, -1, 1);
 
 		std::vector<inl::gxeng::Vertex<Position<0>, TexCoord<0>>> vertices(4);
-		vertices[0].position = mathfu::Vector3f(0, 0, 0);
-		vertices[1].position = mathfu::Vector3f(0, 1, 0);
-		vertices[2].position = mathfu::Vector3f(1, 1, 0);
-		vertices[3].position = mathfu::Vector3f(1, 0, 0);
+		vertices[0].position = inl::Vec3(0, 0, 0);
+		vertices[1].position = inl::Vec3(0, 1, 0);
+		vertices[2].position = inl::Vec3(1, 1, 0);
+		vertices[3].position = inl::Vec3(1, 0, 0);
 
-		vertices[0].texCoord = mathfu::Vector2f(0, 0);
-		vertices[1].texCoord = mathfu::Vector2f(0, 1);
-		vertices[2].texCoord = mathfu::Vector2f(1, 1);
-		vertices[3].texCoord = mathfu::Vector2f(1, 0);
+		vertices[0].texCoord = inl::Vec2(0, 0);
+		vertices[1].texCoord = inl::Vec2(0, 1);
+		vertices[2].texCoord = inl::Vec2(1, 1);
+		vertices[3].texCoord = inl::Vec2(1, 0);
 
 		std::vector<unsigned> indices = { 0, 1, 2, 0, 2, 3 };
 
@@ -58,9 +58,9 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		}
 
 		// Set world render transform
-		m_graphicsEngine->SetEnvVariable("world_render_pos", exc::Any(mathfu::Vector2f(0.f, 0.f)));
+		m_graphicsEngine->SetEnvVariable("world_render_pos", exc::Any(inl::Vec2(0.f, 0.f)));
 		m_graphicsEngine->SetEnvVariable("world_render_rot", exc::Any(0.f));
-		m_graphicsEngine->SetEnvVariable("world_render_size", exc::Any(mathfu::Vector2f(width, height)));
+		m_graphicsEngine->SetEnvVariable("world_render_size", exc::Any(inl::Vec2(width, height)));
 	}
 	
 	// Create scene and camera
@@ -326,7 +326,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	float Ixx = 0.026;
 	float Iyy = 0.024;
 	float Izz = 0.048;
-	mathfu::Matrix3x3f I = {
+	inl::Mat33 I = {
 		Ixx, 0, 0,
 		0, Iyy, 0,
 		0, 0, Izz };
@@ -343,18 +343,18 @@ void QCWorld::UpdateWorld(float elapsed) {
 	// Update simulation
 	bool controller = true;
 	if (!controller) {
-		mathfu::Vector4f rpm = m_rotorInfo.RPM(m_rotor);
-		mathfu::Vector3f force;
-		mathfu::Vector3f torque;
+		inl::Vec4 rpm = m_rotorInfo.RPM(m_rotor);
+		inl::Vec3 force;
+		inl::Vec3 torque;
 		m_rotor.SetRPM(rpm, force, torque);
 		m_rigidBody.Update(elapsed, force, torque);
 	}
 	else {
 		mathfu::Quaternionf orientation = m_rotorInfo.Orientation();
 		mathfu::Quaternionf q = m_rigidBody.GetRotation();
-		mathfu::Vector3f force;
-		mathfu::Vector3f torque;
-		mathfu::Vector4f rpm;
+		inl::Vec3 force;
+		inl::Vec3 torque;
+		inl::Vec4 rpm;
 		float lift = 2.0f * 9.81 + 5.f*((int)m_rotorInfo.ascend - (int)m_rotorInfo.descend);
 		m_controller.Update(orientation, lift, q, m_rigidBody.GetAngularVelocity(), elapsed, force, torque);
 		m_rotor.SetTorque(force, torque, rpm);
@@ -370,20 +370,22 @@ void QCWorld::UpdateWorld(float elapsed) {
 	m_axesEntity->SetRotation(m_rotorInfo.Orientation());
 
 	// Follow copter with camera
-	mathfu::Vector3f frontDir = m_rigidBody.GetRotation() * mathfu::Vector3f{ 0,1,0 };
-	mathfu::Vector3f upDir = m_rigidBody.GetRotation() * mathfu::Vector3f{ 0,0,1 };
-	frontDir.z() = 0;
-	upDir.z() = 0;
-	mathfu::Vector3f viewDir = (5*frontDir.LengthSquared() > upDir.LengthSquared()) ? frontDir.Normalized() : upDir.Normalized();
+	mathfu::Vector<float, 3> tmp1 = m_rigidBody.GetRotation() * mathfu::Vector<float, 3>{ 0, 1, 0};
+	mathfu::Vector<float, 3> tmp2 = m_rigidBody.GetRotation() * mathfu::Vector<float, 3>{ 0, 0, 1 };
+	inl::Vec3 frontDir = { tmp1.x(), tmp1.y(), tmp1.z() };
+	inl::Vec3 upDir = { tmp2.x(), tmp2.y(), tmp2.z() };
+	frontDir.z = 0;
+	upDir.z = 0;
+	inl::Vec3 viewDir = (5*frontDir.LengthSquared() > upDir.LengthSquared()) ? frontDir.Normalized() : upDir.Normalized();
 	m_camera->SetTarget(m_rigidBody.GetPosition());
-	m_camera->SetPosition(m_rigidBody.GetPosition() + (-viewDir * 1.5 + mathfu::Vector3f{ 0,0,-lookTilt }).Normalized() * 1.5f);
+	m_camera->SetPosition(m_rigidBody.GetPosition() + (-viewDir * 1.5 + inl::Vec3{ 0,0,-lookTilt }).Normalized() * 1.5f);
 }
 
 void QCWorld::ScreenSizeChanged(int width, int height) {
 	const float aspect = width / ((float)height);
 	m_camera->SetFOVAspect(75.f / 180.f * 3.1419f, aspect);
 	m_guiCamera->SetBounds(0, width, height, 0, -1, 1);
-	m_graphicsEngine->SetEnvVariable("world_render_size", exc::Any(mathfu::Vector2f(width, height)));
+	m_graphicsEngine->SetEnvVariable("world_render_size", exc::Any(inl::Vec2(width, height)));
 }
 
 void QCWorld::RenderWorld(float elapsed) {
@@ -391,7 +393,7 @@ void QCWorld::RenderWorld(float elapsed) {
 }
 
 
-void QCWorld::AddTree(mathfu::Vector3f position) {
+void QCWorld::AddTree(inl::Vec3 position) {
 	std::unique_ptr<inl::gxeng::MeshEntity> tree;
 
 	static std::mt19937_64 rne;

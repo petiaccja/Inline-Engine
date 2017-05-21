@@ -271,7 +271,7 @@ public:
 
 	template <bool Packed = false>
 	const auto ToVector() const {
-		return Vector<T, sizeof...(Indices), Packed>(*this);
+		return Vector<T, Dim, Packed>(*this);
 	}
 protected:
 	template <int... Rest, class = std::enable_if<sizeof...(Rest)==0>::type>

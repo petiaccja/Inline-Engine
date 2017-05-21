@@ -339,7 +339,7 @@ public:
 	}
 
 	template <class Vt, int Vdim, bool Vpacked>
-	static void Scale(const Vector<Vt, Vdim, Vpacked>& scale) {
+	static MatrixT Scale(const Vector<Vt, Vdim, Vpacked>& scale) {
 		static_assert(Vdim < std::min(Rows, Columns), "Vector dimension must be smaller than or equal to matrix dimension.");
 		MatrixT m;
 		m.SetIdentity();

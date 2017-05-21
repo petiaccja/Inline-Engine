@@ -480,9 +480,9 @@ void GraphicsEngine::CreatePipeline() {
 
 	//createWorldRenderTransform->GetInput<0>().Set(800);
 	//createWorldRenderTransform->GetInput<1>().Set(600);
-	//createWorldRenderTransform->GetInput<2>().Set(mathfu::Vector2f(0.f, 0.f));
+	//createWorldRenderTransform->GetInput<2>().Set(Vec2(0.f, 0.f));
 	//createWorldRenderTransform->GetInput<3>().Set(0);
-	//createWorldRenderTransform->GetInput<4>().Set(mathfu::Vector2f(800.f, 600.f));
+	//createWorldRenderTransform->GetInput<4>().Set(Vec2(800.f, 600.f));
 
 	guiRender->GetInput<0>().Link(getBackBuffer->GetOutput(0));
 	guiRender->GetInput<1>().Link(getGuiScene->GetOutput(1));
@@ -503,7 +503,7 @@ void GraphicsEngine::CreatePipeline() {
 	alphaBlend->GetInput<0>().Link(guiRender->GetOutput(0));
 	alphaBlend->GetInput<1>().Link(debugDraw->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
-	//alphaBlend->GetInput<3>().Set(mathfu::Matrix4x4f::FromScaleVector(mathfu::Vector3f(.5f, 1.f, 1.f)));
+	//alphaBlend->GetInput<3>().Set(Mat44::FromScaleVector(Vec3(.5f, 1.f, 1.f)));
 	alphaBlend->GetInput<3>().Link(createWorldRenderTransform->GetOutput(0));
 
 	m_graphicsNodes = {

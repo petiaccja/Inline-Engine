@@ -318,7 +318,7 @@ void Scheduler::UploadTask::Execute(RenderContext& context) {
 		}
 		else if (destType == UploadManager::DestType::TEXTURE_2D) {
 			auto& dstTexture = static_cast<Texture2D&>(destination);
-			commandList.CopyTexture(dstTexture, source, SubTexture2D(0, 0, mathfu::Vector<intptr_t, 2>((intptr_t)request.dstOffsetX, (intptr_t)request.dstOffsetY)), request.textureBufferDesc);
+			commandList.CopyTexture(dstTexture, source, SubTexture2D(0, 0, Vector<intptr_t, 2>((intptr_t)request.dstOffsetX, (intptr_t)request.dstOffsetY)), request.textureBufferDesc);
 		}
 	}
 }

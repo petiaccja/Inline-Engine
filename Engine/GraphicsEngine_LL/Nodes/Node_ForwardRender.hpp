@@ -48,15 +48,15 @@ private:
 		size_t constantsSize;
 	};
 	struct VsConstants {
-		mathfu::VectorPacked<float, 4> mvp[4];
-		mathfu::VectorPacked<float, 4> mv[4];
-		mathfu::VectorPacked<float, 4> m[4];
-		mathfu::VectorPacked<float, 4> v[4];
-		mathfu::VectorPacked<float, 4> p[4];
+		Mat44_Packed mvp;
+		Mat44_Packed mv;
+		Mat44_Packed m;
+		Mat44_Packed v;
+		Mat44_Packed p;
 	};	
 	struct LightConstants {
-		alignas(16) mathfu::VectorPacked<float, 3> direction;
-		alignas(16) mathfu::VectorPacked<float, 3> color;
+		alignas(16) Vec3_Packed direction;
+		alignas(16) Vec3_Packed color;
 	};
 
 public:

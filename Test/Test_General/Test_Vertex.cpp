@@ -1,10 +1,12 @@
 #include "Test.hpp"
 #include <thread>
 #include <iostream>
+#include <InlineMath.hpp>
 #include "GraphicsEngine_LL/Vertex.hpp"
 #include "BaseLibrary/ArrayView.hpp"
 
 using namespace std::literals::chrono_literals;
+using namespace inl;
 
 using std::cout;
 using std::endl;
@@ -41,13 +43,13 @@ int TestVertex::Run() {
 	using MyVertex1 = Vertex < Position<0>, Position<1>, Normal<0> >;
 
 	MyVertex1 v;
-	v.normal.x() = 6;
+	v.normal.x = 6;
 
 	static_cast<VertexPart<eVertexElementSemantic::POSITION>*>(&v);
 
 	VertexBase* pVertex = &v;
 	auto* positionPart = dynamic_cast<VertexPart<eVertexElementSemantic::POSITION>*>(pVertex);
-	mathfu::Vector<float, 3>& pos0 = positionPart->GetPosition(0);
+	Vec3& pos0 = positionPart->GetPosition(0);
 
 	// create a vertex array view
 	ArrayView<VertexPart<eVertexElementSemantic::POSITION>> view(&v, 1, sizeof(MyVertex1));

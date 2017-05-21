@@ -463,7 +463,7 @@ Material::Parameter& Material::Parameter::operator=(Image* image) {
 	return *this;
 }
 
-Material::Parameter& Material::Parameter::operator=(mathfu::Vector4f color) {
+Material::Parameter& Material::Parameter::operator=(Vec4 color) {
 	if (m_type != eMaterialShaderParamType::COLOR) {
 		throw std::invalid_argument("This parameter is not a color.");
 	}
@@ -494,7 +494,7 @@ Material::Parameter::operator Image*() const {
 	return m_data.image;
 }
 
-Material::Parameter::operator mathfu::Vector4f() const {
+Material::Parameter::operator Vec4() const {
 	if (m_type != eMaterialShaderParamType::COLOR) {
 		throw std::invalid_argument("This parameter is not a color.");
 	}

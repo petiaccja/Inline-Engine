@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Mathter/Vector.hpp"
 #include "Mathter/Matrix.hpp"
 
@@ -12,8 +14,8 @@ using namespace mathter;
 // Global matrix properties
 namespace matrix_props {
 
-constexpr eMatrixLayout layout = eMatrixLayout::ROW_MAJOR;
-constexpr eMatrixOrder order = eMatrixOrder::FOLLOW_VECTOR;
+static constexpr eMatrixLayout layout = eMatrixLayout::ROW_MAJOR;
+static constexpr eMatrixOrder order = eMatrixOrder::FOLLOW_VECTOR;
 
 }
 

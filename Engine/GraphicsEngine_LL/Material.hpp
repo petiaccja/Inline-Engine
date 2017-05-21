@@ -3,7 +3,7 @@
 #include "ShaderManager.hpp"
 
 #include <BaseLibrary/Graph_All.hpp>
-#include <mathfu/mathfu_exc.hpp>
+#include <InlineMath.hpp>
 
 #include <regex>
 #include <sstream>
@@ -122,12 +122,12 @@ public:
 		Parameter(eMaterialShaderParamType type);
 
 		Parameter& operator=(Image*);
-		Parameter& operator=(mathfu::Vector4f);
+		Parameter& operator=(Vec4);
 		Parameter& operator=(float);
 
 		eMaterialShaderParamType GetType() const;
 		operator Image*() const;
-		operator mathfu::Vector4f() const;
+		operator Vec4() const;
 		operator float() const;
 	private:
 		eMaterialShaderParamType m_type;
@@ -136,7 +136,7 @@ public:
 			Data(const Data& rhs) { memcpy(this, &rhs, sizeof(*this)); }
 			Data& operator=(const Data& rhs) { memcpy(this, &rhs, sizeof(*this)); return *this; }
 			Image* image;
-			mathfu::Vector4f color;
+			Vec4 color;
 			float value;
 		} m_data;
 	};

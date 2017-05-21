@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include <mathfu/vector.h>
+#include <InlineMath.hpp>
 
 
 namespace inl {
@@ -211,10 +211,10 @@ public:																						\
 
 
 // Actual definition of vertex parts
-INL_GXENG_VERTEX_PART(eVertexElementSemantic::POSITION, INL_GXENG_SIMPLE_ARG(mathfu::Vector<float, 3>), GetPosition, positions, position);
-INL_GXENG_VERTEX_PART(eVertexElementSemantic::NORMAL, INL_GXENG_SIMPLE_ARG(mathfu::Vector<float, 3>), GetNormal, normals, normal);
-INL_GXENG_VERTEX_PART(eVertexElementSemantic::TEX_COORD, INL_GXENG_SIMPLE_ARG(mathfu::Vector<float, 2>), GetTexCoord, texCoords, texCoord);
-INL_GXENG_VERTEX_PART(eVertexElementSemantic::COLOR, INL_GXENG_SIMPLE_ARG(mathfu::Vector<float, 3>), GetColor, colors, color);
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::POSITION, INL_GXENG_SIMPLE_ARG(Vec3), GetPosition, positions, position);
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::NORMAL, INL_GXENG_SIMPLE_ARG(Vec3), GetNormal, normals, normal);
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::TEX_COORD, INL_GXENG_SIMPLE_ARG(Vec2), GetTexCoord, texCoords, texCoord);
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::COLOR, INL_GXENG_SIMPLE_ARG(Vec3), GetColor, colors, color);
 
 
 
