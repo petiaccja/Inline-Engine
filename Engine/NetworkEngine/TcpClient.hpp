@@ -14,7 +14,10 @@ namespace inl::net::tcp
 		~TcpClient();
 
 		inline void Stop() { stopping = true; }
+		bool Connect(const std::string &ip, int port = DEFAULT_LISTEN_PORT);
 		bool DataAvailable(int &size);
+		bool ReceiveMessage(NetworkMessage &message);
+		bool SendMessage(const NetworkMessage &message);
 
 	public:
 		inline const std::string &GetIP() { return ip; }
@@ -28,7 +31,7 @@ namespace inl::net::tcp
 
 		NetworkBuffer receive_buffer();
 
-		bool send_net_buffer(const NetworkBuffer &net_buffer);
+		bool send_buffer(const NetworkBuffer &net_buffer);
 
 	private:
 		std::string ip;

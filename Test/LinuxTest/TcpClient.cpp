@@ -22,10 +22,36 @@ namespace inl::net::tcp
 		util::Delete(result);
 	}
 
+	bool TcpClient::Connect(const std::string & ip, int port)
+	{
+		initialize(ip, port);
+		if (connected = (connect(soc, result->ai_addr, (int)result->ai_addrlen) == SOCKET_ERROR))
+			closesocket(soc);
+		freeaddrinfo(result);
+		return connected;
+	}
+
 	bool TcpClient::DataAvailable(int &size)
 	{
 		unsigned long ulong;
 		return ioctlsocket(soc, FIONREAD, &ulong) == NO_ERROR && (size = ulong) > 0;
+	}
+
+	bool TcpClient::ReceiveMessage(NetworkMessage & message)
+	{
+		NetworkBuffer buf = receive_buffer();
+		if (buf.Valid)
+		{
+			message = NetworkMessage::DecodeMessage(buf);
+			return true;
+		}
+		return false;
+	}
+
+	bool TcpClient::SendMessage(const NetworkMessage & message)
+	{
+		NetworkBuffer buf = NetworkMessage::EncodeMessage(message);
+		return buf.Valid ? send_buffer(buf) : false;
 	}
 
 	bool TcpClient::initialize(const std::string &ip, int port)
@@ -50,7 +76,8 @@ namespace inl::net::tcp
 			return false;
 		}
 
-		return true;
+		unsigned long nNoBlock = 1;
+		return ioctlsocket(soc, FIONBIO, &nNoBlock) == NO_ERROR;
 	}
 
 	NetworkBuffer TcpClient::receive_buffer()
@@ -83,7 +110,7 @@ namespace inl::net::tcp
 		return buffer;
 	}
 
-	bool TcpClient::send_net_buffer(const NetworkBuffer & net_buffer)
+	bool TcpClient::send_buffer(const NetworkBuffer & net_buffer)
 	{
 		if (!net_buffer.Valid)
 			return false;

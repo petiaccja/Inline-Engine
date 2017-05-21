@@ -24,21 +24,13 @@ typedef int socklen_t;
 	#define NO_ERROR 0
 	#define INVALID_SOCKET NO_ERROR 
 
-	typedef int SOCKET;
-
-	inline void closesocket(SOCKET socket) 
-	{ 
-		close(socket); 
-	}
+	#define SOCKET int
+	#define closesocket close
+	#define ioctlsocket ioctl
 
 	inline int WSAGetLastError()
 	{
 		return 1;
-	}
-
-	inline int ioctlsocket(SOCKET s, long cmd, u_long *argp)
-	{
-		return ioctl(s, cmd, argp);
 	}
 
 #endif

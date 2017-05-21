@@ -6,12 +6,14 @@ namespace inl::net::tcp
 	{
 		initialize(port);
 
-		if (bind(soc, result->ai_addr, (int)result->ai_addrlen) == SOCKET_ERROR)
+		if (bind(soc, result->ai_addr, result->ai_addrlen) == SOCKET_ERROR)
 		{
 			closesocket(soc);
 			return false;
 		}
-		return true;
+
+		unsigned long nNoBlock = 1;
+		return ioctlsocket(soc, FIONBIO, &nNoBlock) == NO_ERROR;
 	}
 
 	bool TcpServer::HasPendingConnections()
