@@ -285,16 +285,16 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_sphereEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_sphereEntity->SetMesh(m_sphereMesh.get());
 	m_sphereEntity->SetMaterial(m_sphereMaterial.get());
-	m_sphereEntity->SetPosition({ 0,0,0 });
+	m_sphereEntity->SetPosition({ 0,3,1 });
 	m_sphereEntity->SetRotation({ 1,0,0,0 });
-	m_sphereEntity->SetScale({ .01f,.01f,.01f });
+	m_sphereEntity->SetScale({ 1.f,1.f,1.f });
 	m_worldScene->GetMeshEntities().Add(m_sphereEntity.get());
 
 	// Set up copter
 	m_quadcopterEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_quadcopterEntity->SetMesh(m_quadcopterMesh.get());
 	m_quadcopterEntity->SetMaterial(m_quadcopterMaterial.get());
-	m_quadcopterEntity->SetPosition({ 0,0,3 });
+	m_quadcopterEntity->SetPosition({ 0,0,-3 });
 	m_quadcopterEntity->SetRotation({ 1,0,0,0 });
 	m_quadcopterEntity->SetScale({ 1,1,1 });
 	m_worldScene->GetMeshEntities().Add(m_quadcopterEntity.get());
