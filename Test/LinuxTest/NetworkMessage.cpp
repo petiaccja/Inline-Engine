@@ -1,6 +1,8 @@
 #include "NetworkMessage.hpp"
 
-#include <string.h>
+#ifndef _MSC_VER
+	#include <string.h>
+#endif
 
 namespace inl::net
 {
@@ -9,11 +11,11 @@ namespace inl::net
 		NetworkBuffer net_buffer;
 		try
 		{
-			char *sender_id = itoa(message.SenderID, new char[0](), 10);
-			char *dist_mode = itoa(message.DistributionMode, new char[0](), 10);
-			char *dest_id = itoa(message.DestinationID, new char[0](), 10);
-			char *tag = itoa(message.Tag, new char[0](), 10);
-			char *subject = itoa(message.Subject, new char[0](), 10);
+			char *sender_id = util::IntToStr(message.SenderID);
+			char *dist_mode = util::IntToStr(message.DistributionMode);
+			char *dest_id = util::IntToStr(message.DestinationID);
+			char *tag = util::IntToStr(message.Tag);
+			char *subject = util::IntToStr(message.Subject);
 
 			net_buffer.BodySize = 20;
 			strcat(net_buffer.Body, sender_id);

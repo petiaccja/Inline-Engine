@@ -2,7 +2,9 @@
 #include "Util.hpp"
 #include "Init.hpp"
 
-#include <string.h>
+#ifndef _MSC_VER
+	#include <string.h>
+#endif
 
 namespace inl::net::tcp
 {
@@ -30,7 +32,7 @@ namespace inl::net::tcp
 		unsigned long ulong;
 		return ioctlsocket(soc, FIONREAD, &ulong) != NO_ERROR && (size = ulong) > 0;
 #endif
-		return false;
+		return false; // needs work
 	}
 
 	bool TcpClient::initialize(const std::string &ip, int port)
@@ -44,7 +46,7 @@ namespace inl::net::tcp
 		hints.ai_socktype = SOCK_STREAM;
 		hints.ai_protocol = IPPROTO_TCP;
 
-		if (getaddrinfo(ip.c_str(), itoa(port, new char[0](), 10), &hints, &result) != 0)
+		if (getaddrinfo(ip.c_str(), util::IntToStr(port), &hints, &result) != 0)
 		{
 			return false;
 		}
@@ -92,8 +94,8 @@ namespace inl::net::tcp
 	{
 		if (!net_buffer.Valid)
 			return false;
-		char *bytes = strcat(itoa(net_buffer.BodySize, new char[0](), 10), net_buffer.Body);
-		int length = (int)strlen(bytes);
+		char *bytes = strcat(util::IntToStr(net_buffer.BodySize), net_buffer.Body);
+		int length = strlen(bytes);
 		int bytes_sent = send(soc, bytes, length, 0);
 		// do some sort of checking and maybe log it somewhere, we need a logger
 		return bytes_sent != SOCKET_ERROR || bytes_sent != length || WSAGetLastError() != 0;

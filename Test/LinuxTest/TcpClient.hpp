@@ -4,8 +4,6 @@
 #include "NetworkBuffer.hpp"
 #include "NetworkMessage.hpp"
 
-#include <string>
-
 namespace inl::net::tcp
 {
 	class TcpClient

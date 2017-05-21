@@ -1,5 +1,9 @@
 #include "TcpServer.hpp"
 
+#ifndef _MSC_VER
+	#include <string.h>
+#endif
+
 bool inl::net::tcp::TcpServer::IsActive()
 {
 	return (soc != INVALID_SOCKET && !stopping);
@@ -18,16 +22,14 @@ bool inl::net::tcp::TcpServer::initialize(int port)
 	hints.ai_protocol = IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE;
 
-	if (getaddrinfo(0, itoa(port, new char[0](), 10), &hints, &result) != 0)
+	if (getaddrinfo(0, util::IntToStr(port), &hints, &result) != 0)
 	{
-		WSACleanup();
 		return false;
 	}
 
 	if ((soc = socket(result->ai_family, result->ai_socktype, result->ai_protocol)) == INVALID_SOCKET)
 	{
 		freeaddrinfo(result);
-		WSACleanup();
 		return false;
 	}
 
@@ -35,7 +37,6 @@ bool inl::net::tcp::TcpServer::initialize(int port)
 	{
 		freeaddrinfo(result);
 		closesocket(soc);
-		WSACleanup();
 		return false;
 	}
 

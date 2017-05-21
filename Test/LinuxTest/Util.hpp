@@ -5,7 +5,8 @@
 
 namespace inl::net::util
 {
-	inline static void Delete(void *ptr)
+	template<class T>
+	inline static void Delete(T *ptr)
 	{
 		delete ptr;
 		ptr = nullptr;
@@ -53,5 +54,12 @@ namespace inl::net::util
 	To CastBytes(From v)
 	{
 		return static_cast<To>(static_cast<void*>(v));
+	}
+
+	inline char *IntToStr(int n)
+	{
+		char *str = new char[sizeof(int)]();
+		snprintf(str, sizeof(int), "%d", n);
+		return str;
 	}
 }
