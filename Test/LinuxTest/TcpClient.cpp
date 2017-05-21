@@ -2,10 +2,6 @@
 #include "Util.hpp"
 #include "Init.hpp"
 
-#ifndef _MSC_VER
-	#include <string.h>
-#endif
-
 namespace inl::net::tcp
 {
 	TcpClient::TcpClient(const std::string &ip, int port) :
@@ -28,11 +24,8 @@ namespace inl::net::tcp
 
 	bool TcpClient::DataAvailable(int &size)
 	{
-#ifdef _MSC_VER
 		unsigned long ulong;
-		return ioctlsocket(soc, FIONREAD, &ulong) != NO_ERROR && (size = ulong) > 0;
-#endif
-		return false; // needs work
+		return ioctlsocket(soc, FIONREAD, &ulong) == NO_ERROR && (size = ulong) > 0;
 	}
 
 	bool TcpClient::initialize(const std::string &ip, int port)

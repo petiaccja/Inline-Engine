@@ -8,8 +8,11 @@ namespace inl::net::util
 	template<class T>
 	inline static void Delete(T *ptr)
 	{
-		delete ptr;
-		ptr = nullptr;
+		if (ptr)
+		{
+			delete ptr;
+			ptr = nullptr;
+		}
 	}
 
 	inline static std::vector<std::string> Split(const std::string &str, const std::string &delimiter)
@@ -61,5 +64,27 @@ namespace inl::net::util
 		char *str = new char[sizeof(int)]();
 		snprintf(str, sizeof(int), "%d", n);
 		return str;
+	}
+
+	inline int StrToInt(char *str)
+	{
+		int res = 0;
+		for (int i = 0; str[i] != '\0'; ++i)
+			res = res * 10 + str[i] - '0';
+		return res;
+	}
+
+	inline char *SubStr(char *str, int start, int count)
+	{
+		char *temp = (char*)malloc(count);
+		char *start_str = str + start;
+		for (int i = 0; i < count; i++)
+		{
+			temp[i] = start_str[i];
+			i++;
+		}
+
+		temp[count] = '\0';
+		return temp;
 	}
 }

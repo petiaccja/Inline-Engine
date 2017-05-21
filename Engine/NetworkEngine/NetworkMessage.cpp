@@ -6,7 +6,7 @@
 
 namespace inl::net
 {
-	NetworkBuffer inl::net::NetworkMessage::EncodeMessage(const NetworkMessage & message)
+	NetworkBuffer NetworkMessage::EncodeMessage(const NetworkMessage & message)
 	{
 		NetworkBuffer net_buffer;
 		try
@@ -39,12 +39,12 @@ namespace inl::net
 		NetworkMessage message;
 		try
 		{
-			message.SenderID = atoi(strncpy(new char[0](), buffer.Body, sizeof(int)));
-			message.DistributionMode = atoi(strncpy(new char[0](), buffer.Body + sizeof(int), sizeof(int)));
-			message.DestinationID = atoi(strncpy(new char[0](), buffer.Body + sizeof(int) * 2, sizeof(int)));
-			message.Tag = atoi(strncpy(new char[0](), buffer.Body + sizeof(int) * 3, sizeof(int)));
-			message.Subject = atoi(strncpy(new char[0](), buffer.Body + sizeof(int) * 4, sizeof(int)));
-			message.Data = static_cast<void*>(strncpy(new char[0](), buffer.Body + sizeof(int) * 5, buffer.BodySize - 20));
+			message.SenderID = util::StrToInt(util::SubStr(buffer.Body, 0, sizeof(int)));
+			message.DistributionMode = util::StrToInt(util::SubStr(buffer.Body, sizeof(int), sizeof(int)));
+			message.DestinationID = util::StrToInt(util::SubStr(buffer.Body, sizeof(int) * 2, sizeof(int)));
+			message.Tag = util::StrToInt(util::SubStr(buffer.Body, sizeof(int) * 3, sizeof(int)));
+			message.Subject = util::StrToInt(util::SubStr(buffer.Body, sizeof(int) * 4, sizeof(int)));
+			message.Data = static_cast<void*>(util::SubStr(buffer.Body, sizeof(int) * 5, buffer.BodySize - 20));
 			message.Valid = true;
 		}
 		catch (std::exception)
