@@ -1506,7 +1506,7 @@ auto MatrixRotation3D<T, Rows, Columns, Order, Layout, Packed>::RotationAxis(T a
 	}
 
 	// Rest
-	for (int j = 3; j < m.ColumnCount(); ++j) {
+	for (int j = 0; j < m.ColumnCount(); ++j) {
 		for (int i = (j < 3 ? 3 : 0); i < m.RowCount(); ++i) {
 			m(i, j) = T(j == i);
 		}
@@ -1590,7 +1590,7 @@ auto MatrixRotation3D<T, Rows, Columns, Order, Layout, Packed>::RotationAxisAngl
 	}
 
 	// Rest
-	for (int j = 3; j < m.Width(); ++j) {
+	for (int j = 0; j < m.Width(); ++j) {
 		for (int i = (j < 3 ? 3 : 0); i < m.Height(); ++i) {
 			m(i, j) = T(j == i);
 		}
