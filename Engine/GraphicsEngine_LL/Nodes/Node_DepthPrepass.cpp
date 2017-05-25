@@ -180,7 +180,7 @@ void DepthPrepass::Execute(RenderContext & context) {
 	Mat44 view = m_camera->GetViewMatrixRH();
 	Mat44 projection = m_camera->GetProjectionMatrixRH();
 
-	auto viewProjection = projection * view;
+	auto viewProjection = view * projection;
 
 	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
 	std::vector<unsigned> sizes;
@@ -200,7 +200,7 @@ void DepthPrepass::Execute(RenderContext & context) {
 
 		ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
 
-		auto MVP = viewProjection * entity->GetTransform();
+		auto MVP = entity->GetTransform() * viewProjection;
 
 		Mat44_Packed transformCBData;
 		transformCBData = MVP;

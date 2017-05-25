@@ -20,7 +20,7 @@ PS_Input VSMain(float4 position : POSITION)
 {
 	PS_Input result;
 
-	result.position = mul(uniforms.vp, position);
+    result.position = mul(position, uniforms.vp);
 
 	return result;
 }

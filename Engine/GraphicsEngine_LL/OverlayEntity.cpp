@@ -94,7 +94,7 @@ Vec2 OverlayEntity::GetScale() const {
 
 Mat44 OverlayEntity::GetTransform() const {
 	auto scale = Mat44::Scale(Vec3(m_scale, 1.f));
-	auto rotate = Mat44::RotationAxisAngle(Vec3(0, 0, -1), m_rotation);
+	auto rotate = Mat44::RotationZ(-m_rotation);
 	auto translate = Mat44::Translation(Vec3(m_position, 0));
 
 	return scale * rotate * translate;

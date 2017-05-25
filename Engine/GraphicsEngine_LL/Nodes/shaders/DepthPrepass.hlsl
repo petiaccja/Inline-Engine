@@ -17,7 +17,7 @@ PS_Input VSMain(float4 position : POSITION)
 {
 	PS_Input result;
 
-	result.position = mul(transform.MVP, position);
+    result.position = mul(position, transform.MVP);
 
 	return result;
 }

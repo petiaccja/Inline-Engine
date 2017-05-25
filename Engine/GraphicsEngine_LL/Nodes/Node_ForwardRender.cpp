@@ -286,7 +286,7 @@ void ForwardRender::Execute(RenderContext& context) {
 
 	Mat44 view = m_camera->GetViewMatrixRH();
 	Mat44 projection = m_camera->GetProjectionMatrixRH();
-	auto viewProjection = projection * view;
+	auto viewProjection = view * projection;
 
 
 	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
@@ -366,8 +366,8 @@ void ForwardRender::Execute(RenderContext& context) {
 		VsConstants vsConstants;
 		LightConstants lightConstants;
 		vsConstants.m = entity->GetTransform();
-		vsConstants.mvp = viewProjection * entity->GetTransform();
-		vsConstants.mv = view * entity->GetTransform();
+		vsConstants.mvp = entity->GetTransform() * viewProjection;
+		vsConstants.mv = entity->GetTransform() * view;
 		vsConstants.v = view;
 		vsConstants.p = projection;
 		lightConstants.direction = sun->GetDirection().Normalized();
@@ -524,7 +524,7 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"{\n"
 		"	PS_Input result;\n"
 
-		"	float3 viewNormal = mul(vsConstants.MV, float4(normal.xyz, 0.0)).xyz;\n"
+		"	float3 viewNormal = mul(normal, (float3x3)vsConstants.MV);\n"
 
 		"float4x4 light_mvp;\n"
 		"float cascade = 0;\n"
@@ -533,10 +533,10 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"	light_mvp[d] = lightMVPTex.Load(int3(cascade * 4 + d, 0, 0));\n"
 		"}\n"
 
-		"	result.position = mul(vsConstants.MVP, position);\n"
+		"	result.position = mul(position, vsConstants.MVP);\n"
 		//"	result.position = mul(mul(light_mvp, vsConstants.MV), position);\n"
 		//"	result.position = mul(mul(vsConstants.P, mul(light_mvp, vsConstants.M)), position);\n"
-		"	result.vsPosition = mul(vsConstants.MV, position);\n"
+		"	result.vsPosition = mul(position, vsConstants.MV);\n"
 		"	result.normal = viewNormal;\n"
 		"	result.texCoord = texCoord.xy;\n"
 

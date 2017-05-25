@@ -87,13 +87,15 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_shaderManager.AddSourceDirectory("../../Engine/GraphicsEngine_LL/Materials");
 	m_shaderManager.AddSourceDirectory("./Shaders");
 	m_shaderManager.AddSourceDirectory("./Materials");
+	gxapi::eShaderCompileFlags shaderFlags;
+	shaderFlags += gxapi::eShaderCompileFlags::ROW_MAJOR_MATRICES;
 #ifdef NDEBUG
-	m_shaderManager.SetShaderCompileFlags(gxapi::eShaderCompileFlags::OPTIMIZATION_HIGH);
+	shaderFlags += gxapi::eShaderCompileFlags::OPTIMIZATION_HIGH;
 #else
-	gxapi::eShaderCompileFlags flags = gxapi::eShaderCompileFlags::NO_OPTIMIZATION;
-	flags += gxapi::eShaderCompileFlags::DEBUG;
-	m_shaderManager.SetShaderCompileFlags(flags);
+	shaderFlags += gxapi::eShaderCompileFlags::NO_OPTIMIZATION;
+	shaderFlags += gxapi::eShaderCompileFlags::DEBUG;
 #endif // NDEBUG
+	m_shaderManager.SetShaderCompileFlags(shaderFlags);
 
 
 	// Do more stuff...
