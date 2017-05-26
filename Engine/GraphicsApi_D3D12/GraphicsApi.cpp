@@ -21,7 +21,7 @@ namespace inl {
 namespace gxapi_dx12 {
 
 
-GraphicsApi::GraphicsApi(Microsoft::WRL::ComPtr<ID3D12Device> device) : m_device(device) {
+GraphicsApi::GraphicsApi(Microsoft::WRL::ComPtr<ID3D12Device1> device) : m_device(device) {
 	m_device->QueryInterface(IID_PPV_ARGS(&m_debugDevice));
 }
 
@@ -105,7 +105,7 @@ gxapi::IResource* GraphicsApi::CreateCommittedResource(gxapi::HeapProperties hea
 
 	ThrowIfFailed(m_device->CreateCommittedResource(&nativeHeapProperties, native_cast(heapFlags), &nativeResourceDesc, native_cast(initialState), pNativeClearValue, IID_PPV_ARGS(&native)));
 
-	return new Resource{ native };
+	return new Resource{ native, m_device };
 }
 
 

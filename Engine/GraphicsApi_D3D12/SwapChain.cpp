@@ -26,7 +26,7 @@ IResource* SwapChain::GetBuffer(unsigned index) {
 	if (FAILED(m_native->GetBuffer(index, IID_PPV_ARGS(&resource)))) {
 		throw OutOfRange("You don't have that many swap buffers. Dumbfuck...");
 	}
-	return new Resource(resource);
+	return new Resource(resource, nullptr);
 }
 
 

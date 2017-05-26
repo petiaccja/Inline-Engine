@@ -97,7 +97,7 @@ std::vector<AdapterInfo> GxapiManager::EnumerateAdapters() {
 		}
 
 		// Exclude if no DX12 support
-		if (FAILED(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device), nullptr))) {
+		if (FAILED(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, _uuidof(ID3D12Device1), nullptr))) {
 			++index;
 			continue;
 		}
@@ -185,7 +185,7 @@ IGraphicsApi* GxapiManager::CreateGraphicsApi(unsigned adapterId) {
 
 
 	// create device w/ adapter
-	ComPtr<ID3D12Device> device;
+	ComPtr<ID3D12Device1> device;
 	switch (D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device))) {
 		case S_OK:
 			break;
