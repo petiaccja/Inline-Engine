@@ -114,11 +114,11 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 	// Create sphere albedo texture
 	{
-		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
 		inl::asset::Image img("assets\\sphere\\rustedIronAlbedo.png");
 
 		m_sphereAlbedoTex.reset(m_graphicsEngine->CreateImage());
-		m_sphereAlbedoTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
+		m_sphereAlbedoTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR);
 		m_sphereAlbedoTex->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
 	}
 
@@ -287,7 +287,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_sphereEntity->SetMaterial(m_sphereMaterial.get());
 	m_sphereEntity->SetPosition({ 0,3,1 });
 	m_sphereEntity->SetRotation({ 1,0,0,0 });
-	m_sphereEntity->SetScale({ 1.f,1.f,1.f });
+	m_sphereEntity->SetScale({ 1,1,1 });
 	m_worldScene->GetMeshEntities().Add(m_sphereEntity.get());
 
 	// Set up copter
