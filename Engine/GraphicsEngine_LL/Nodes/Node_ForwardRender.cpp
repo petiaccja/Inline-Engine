@@ -370,7 +370,8 @@ void ForwardRender::Execute(RenderContext& context) {
 		(view * entity->GetTransform()).Pack(vsConstants.mv);
 		view.Pack(vsConstants.v);
 		projection.Pack(vsConstants.p);
-		lightConstants.direction = sun->GetDirection().Normalized();
+		mathfu::Vector4f vsLightDir = view * mathfu::Vector4f(sun->GetDirection(), 0.0f);
+		lightConstants.direction = vsLightDir.xyz().Normalized();
 		lightConstants.color = sun->GetColor();
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 0), &vsConstants, sizeof(vsConstants));
@@ -380,7 +381,7 @@ void ForwardRender::Execute(RenderContext& context) {
 		uniformsCBData.screen_dimensions = mathfu::Vector4f(m_rtv.GetResource().GetWidth(), m_rtv.GetResource().GetHeight(), 0, 0);
 		uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrixRH() * mathfu::Vector4f(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1.0f);
 		uniformsCBData.ld[0].attenuation_end = mathfu::Vector4f(5.0f, 0, 0, 0);
-		uniformsCBData.ld[0].diffuse_color = mathfu::Vector4f(1, 0, 0, 1);
+		uniformsCBData.ld[0].diffuse_color = mathfu::Vector4f(1, 1, 1, 1);
 		uniformsCBData.vs_cam_pos = m_camera->GetViewMatrixRH() * mathfu::Vector4f(m_camera->GetPosition(), 1.0f);
 
 		uint32_t dispatchW, dispatchH;
@@ -518,6 +519,7 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"	float3 normal : NO;\n"
 		"	float2 texCoord : TEX_COORD0;\n"
 		"	float4 vsPosition : TEX_COORD1;\n"
+		"	float3 wsNormal : TEX_COORD2;\n"
 		"};\n"
 
 		"PS_Input VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoord : TEX_COORD)\n"
@@ -539,6 +541,7 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"	result.vsPosition = mul(vsConstants.MV, position);\n"
 		"	result.normal = viewNormal;\n"
 		"	result.texCoord = texCoord.xy;\n"
+		"	result.wsNormal = normal.xyz;\n"
 
 		"	return result;\n"
 		"}";
@@ -567,6 +570,7 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 		"    float3 viewNormal : NO;\n"
 		"	 float2 texCoord : TEX_COORD0;\n"
 		"	 float4 vsPosition : TEX_COORD1;\n"
+		"	 float3 wsNormal : TEX_COORD2;\n"
 		"};\n\n"
 		"struct MapColor2D {\n"
 		"    Texture2DArray<float4> tex;\n"
@@ -582,6 +586,7 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 		"static float3 g_lightDir;\n"
 		"static float3 g_lightColor;\n"
 		"static float3 g_normal;\n"
+		"static float3 g_wsNormal;\n"
 		"static float4 g_ndcPos;\n"
 		"static float4 g_vsPos;\n"
 		"static float3 g_tex0;\n";
@@ -640,6 +645,7 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 	PSMain << "    g_lightColor = lightCb.color;\n";
 	PSMain << "    g_lightColor *= get_shadow(psInput.vsPosition);\n";
 	PSMain << "    g_normal = normalize(psInput.viewNormal);\n";
+	PSMain << "    g_wsNormal = normalize(psInput.wsNormal);\n";
 	PSMain << "    g_ndcPos = psInput.ndcPos;\n";
 	PSMain << "    g_vsPos = psInput.vsPosition;\n";
 	PSMain << "    g_tex0 = float3(psInput.texCoord, 0.0f);\n";
@@ -684,9 +690,6 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 
 	return
 		std::string()
-		+ "#include \"CSMSample\"\n"
-		+ "#include \"PbrBrdf\"\n"
-		+ "#include \"TiledLighting\"\n"
 		+ structures
 		+ "\n//-------------------------------------\n\n"
 		+ globals
@@ -696,6 +699,9 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 		+ "\n//-------------------------------------\n\n"
 		+ textures.str()
 		+ "\n//-------------------------------------\n\n"
+		+ "#include \"CSMSample\"\n"
+		+ "#include \"PbrBrdf\"\n"
+		+ "#include \"TiledLighting\"\n"
 		+ shadingFunction
 		+ "\n//-------------------------------------\n\n"
 		+ PSMain.str();

@@ -51,10 +51,29 @@ float3 gamma_to_linear(float3 col)
 	return pow(col, float3(2.2, 2.2, 2.2));
 }
 
-float3 get_tiled_lighting(float4 sv_position, //gl_FragCoord
-						  float4 albedo, 
-						  float3 vs_normal,
-						  float4 vs_pos
+float3 get_sky_color()
+{
+	return float3(110, 165, 255) / 255.0;
+}
+
+float3 hemisphere_ambient_lighting(float3 ws_n)
+{
+	//hemisphere ambient term for visualization
+	float4 sky_col = float4(get_sky_color(), 1);
+	float3 sky_dir = float3(0, 0, 1);
+	float4 ground_col = float4(float3(0.25, 0.25, 0.25), 1);
+	float hemi_intensity = 0.7;
+
+	float vec_hemi = dot(ws_n, sky_dir) * 0.5 + 0.5;
+	return hemi_intensity * lerp(ground_col.xyz, sky_col.xyz, vec_hemi);
+}
+
+float3 get_lighting(float4 sv_position, //gl_FragCoord
+					float4 albedo, 
+					float3 vs_normal,
+					float4 vs_pos,
+					float roughness,
+					float metalness
 						)
 {
 	uint2 global_id = uint2(sv_position.xy);
@@ -92,8 +111,8 @@ float3 get_tiled_lighting(float4 sv_position, //gl_FragCoord
 										 vs_view_dir,
 									     light_dir,
 										 diffuse_color.xyz * attenuation * 10.0, //TODO: shadow
-										 1.0, //TODO roughness
-										 0.0 //TODO metalness
+										 roughness, 
+										 metalness 
 										);
 
 			//const float roughness = 1.0;
@@ -118,5 +137,15 @@ float3 get_tiled_lighting(float4 sv_position, //gl_FragCoord
 		}
 	}
 
-	return linear_to_gamma(tonemap(color));
+	color += getCookTorranceBRDF(albedo.xyz,
+								 vs_normal,
+								 vs_view_dir,
+								 -g_lightDir,
+								 g_lightColor.xyz * 10.0,
+								 roughness,
+								 metalness);
+
+	color += hemisphere_ambient_lighting(g_wsNormal.xyz) * 0.1;
+
+	return color;
 }
