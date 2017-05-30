@@ -702,6 +702,7 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 		+ "#include \"CSMSample\"\n"
 		+ "#include \"PbrBrdf\"\n"
 		+ "#include \"TiledLighting\"\n"
+		+ "\n//-------------------------------------\n\n"
 		+ shadingFunction
 		+ "\n//-------------------------------------\n\n"
 		+ PSMain.str();
@@ -869,6 +870,7 @@ Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<M
 	std::vector<gxapi::StaticSamplerDesc> samplerParams;
 	for (int i = 0; i < textureRegister; ++i) {
 		samplerDesc.parameter.reg = i;
+		samplerParam.shaderRegister = i;
 		descs.push_back(samplerDesc);
 		samplerParams.push_back(samplerParam);
 	}
