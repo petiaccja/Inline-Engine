@@ -109,6 +109,7 @@ private:
 	std::unique_ptr<inl::gxeng::Material> m_sphereMaterial;
 	std::unique_ptr<inl::gxeng::Material> m_axesMaterial;
 	std::unique_ptr<inl::gxeng::MaterialShaderGraph> m_simpleShader;
+	std::unique_ptr<inl::gxeng::MaterialShaderGraph> m_pbrShader;
 
 	// Entities
 	std::vector<std::unique_ptr<inl::gxeng::MeshEntity>> m_staticEntities;

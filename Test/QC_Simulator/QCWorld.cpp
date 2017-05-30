@@ -234,27 +234,54 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_sphereMaterial.reset(m_graphicsEngine->CreateMaterial());
 
 		m_simpleShader.reset(m_graphicsEngine->CreateMaterialShaderGraph());
+		m_pbrShader.reset(m_graphicsEngine->CreateMaterialShaderGraph());
 		std::unique_ptr<inl::gxeng::MaterialShaderEquation> mapShader(m_graphicsEngine->CreateMaterialShaderEquation());
+		std::unique_ptr<inl::gxeng::MaterialShaderEquation> map2Shader(m_graphicsEngine->CreateMaterialShaderEquation());
+		std::unique_ptr<inl::gxeng::MaterialShaderEquation> map3Shader(m_graphicsEngine->CreateMaterialShaderEquation());
+		std::unique_ptr<inl::gxeng::MaterialShaderEquation> map4Shader(m_graphicsEngine->CreateMaterialShaderEquation());
 		std::unique_ptr<inl::gxeng::MaterialShaderEquation> diffuseShader(m_graphicsEngine->CreateMaterialShaderEquation());
+		std::unique_ptr<inl::gxeng::MaterialShaderEquation> pbrShader(m_graphicsEngine->CreateMaterialShaderEquation());
 
 		mapShader->SetSourceName("bitmap_color_2d.mtl");
+		map2Shader->SetSourceName("bitmap_color_2d.mtl");
+		map3Shader->SetSourceName("bitmap_roughness_2d.mtl");
+		map4Shader->SetSourceName("bitmap_metalness_2d.mtl");
 		diffuseShader->SetSourceName("simple_diffuse.mtl");
+		pbrShader->SetSourceName("pbr.mtl");
 
 		std::vector<std::unique_ptr<inl::gxeng::MaterialShader>> nodes;
 		nodes.push_back(std::move(mapShader));
 		nodes.push_back(std::move(diffuseShader));
+
+		/*
+		Pass nodes in first argument.
+		Pass links between nodes in second argument.
+		First link element is the source node ID (single output)
+		Second link element is the dest node ID
+		Third link element is the dest node's dest port ID (single output will be connected to this)
+		*/
 		m_simpleShader->SetGraph(std::move(nodes), { {0, 1, 0} });
 		m_treeMaterial->SetShader(m_simpleShader.get());
 		m_quadcopterMaterial->SetShader(m_simpleShader.get());
 		m_axesMaterial->SetShader(m_simpleShader.get());
 		m_terrainMaterial->SetShader(m_simpleShader.get());
-		m_sphereMaterial->SetShader(m_simpleShader.get());
+
+		std::vector<std::unique_ptr<inl::gxeng::MaterialShader>> nodes2;
+		nodes2.push_back(std::move(pbrShader));
+		nodes2.push_back(std::move(map2Shader));
+		nodes2.push_back(std::move(map3Shader));
+		nodes2.push_back(std::move(map4Shader));
+		m_pbrShader->SetGraph(std::move(nodes2), { { 1, 0, 0 }, { 2, 0, 1 }, { 3, 0, 2 } });
+		m_sphereMaterial->SetShader(m_pbrShader.get());
 
 		(*m_treeMaterial)[0] = m_treeTexture.get();
 		(*m_quadcopterMaterial)[0] = m_quadcopterTexture.get();
 		(*m_axesMaterial)[0] = m_axesTexture.get();
 		(*m_terrainMaterial)[0] = m_terrainTexture.get();
+
 		(*m_sphereMaterial)[0] = m_sphereAlbedoTex.get();
+		(*m_sphereMaterial)[1] = m_sphereRoughnessTex.get();
+		(*m_sphereMaterial)[2] = m_sphereMetalnessTex.get();
 	}
 
 	// Create checker texture
