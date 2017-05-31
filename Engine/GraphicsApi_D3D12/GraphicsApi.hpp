@@ -14,7 +14,7 @@ namespace gxapi_dx12 {
 
 class GraphicsApi : public gxapi::IGraphicsApi {
 public:
-	GraphicsApi(Microsoft::WRL::ComPtr<ID3D12Device1> device);
+	GraphicsApi(Microsoft::WRL::ComPtr<ID3D12Device> device);
 	~GraphicsApi();
 
 	// Command submission
@@ -106,7 +106,7 @@ public:
 	void ReportLiveObjects() const override;
 
 protected:
-	Microsoft::WRL::ComPtr<ID3D12Device1> m_device;
+	Microsoft::WRL::ComPtr<ID3D12Device> m_device;
 	Microsoft::WRL::ComPtr<ID3D12DebugDevice1> m_debugDevice;
 };
 

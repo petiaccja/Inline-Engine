@@ -15,11 +15,11 @@
 namespace inl {
 namespace gxapi_dx12 {
 
-Resource::Resource(ComPtr<ID3D12Resource>& native, std::nullptr_t) : Resource(native, ComPtr<ID3D12Device1>(nullptr))
+Resource::Resource(ComPtr<ID3D12Resource>& native, std::nullptr_t) : Resource(native, ComPtr<ID3D12Device>(nullptr))
 {}
 
 
-Resource::Resource(ComPtr<ID3D12Resource>& native, ComPtr<ID3D12Device1> device)
+Resource::Resource(ComPtr<ID3D12Resource>& native, ComPtr<ID3D12Device> device)
 	: m_native{native}
 {
 	auto desc = GetDesc();
