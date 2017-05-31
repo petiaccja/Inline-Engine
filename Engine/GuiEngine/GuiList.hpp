@@ -1,10 +1,10 @@
 #pragma once
 #include <BaseLibrary\Common_tmp.hpp>
-#include "GuiLayouted.hpp"
+#include "GuiLayout.hpp"
 
 namespace inl::gui {
 
-class GuiList : public GuiLayouted
+class GuiList : public GuiLayout
 {
 public:
 	GuiList(GuiEngine* guiEngine);

@@ -623,7 +623,7 @@ Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 	bool bFillParent = bFillParentHor || bFillParentVer;
 	bool bFillParentPositiveDir = bFillParentPositibeDirHor || bFillParentPositibeDirVer;
 
-	// Hívodjon akkor is ez ha parent FIT, ez meg FILL
+	// Even call that when parent FIT_CHILDREN and self FILL_PARENT, see upper code
 	if (bFitToChildren)
 	{
 		// Calculate content size
@@ -637,6 +637,7 @@ Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 		contentSize.x() -= padding.left + padding.right;
 		contentSize.y() -= padding.top + padding.bottom;
 
+		// Order is important ArrangeChildren calls Arrange, and it will use bForceFitToChildren
 		for (Gui* c : GetChildren())
 			if (c->stretchHor == eGuiStretch::FILL_PARENT || c->stretchVer == eGuiStretch::FILL_PARENT)
 				c->bForceFitToChildren = true;

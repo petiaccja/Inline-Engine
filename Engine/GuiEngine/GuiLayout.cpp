@@ -1,5 +1,5 @@
 #pragma once
-#include "GuiLayouted.hpp"
+#include "GuiLayout.hpp"
 #include "GuiText.hpp"
 #include "GuiButton.hpp"
 #include "GuiList.hpp"
@@ -10,49 +10,49 @@
 
 using namespace inl::gui;
 
-Gui* GuiLayouted::AddItemGui()
+Gui* GuiLayout::AddItemGui()
 {
 	return AddItem<Gui>();
 }
 
-GuiText* GuiLayouted::AddItemText()
+GuiText* GuiLayout::AddItemText()
 {
 	return AddItem<GuiText>();
 }
 
-GuiButton* GuiLayouted::AddItemButton(const std::string& text /*= ""*/)
+GuiButton* GuiLayout::AddItemButton(const std::string& text /*= ""*/)
 {
 	GuiButton* btn = AddItem<GuiButton>();
 	btn->SetText(text);
 	return btn;
 }
 
-GuiList* GuiLayouted::AddItemList()
+GuiList* GuiLayout::AddItemList()
 {
 	return AddItem<GuiList>();
 }
 
-GuiSlider* GuiLayouted::AddItemSlider()
+GuiSlider* GuiLayout::AddItemSlider()
 {
 	return AddItem<GuiSlider>();
 }
 
-GuiCollapsable* GuiLayouted::AddItemCollapsable()
+GuiCollapsable* GuiLayout::AddItemCollapsable()
 {
 	return AddItem<GuiCollapsable>();
 }
 
-GuiSplitter* GuiLayouted::AddItemSplitter()
+GuiSplitter* GuiLayout::AddItemSplitter()
 {
 	return AddItem<GuiSplitter>();
 }
 
-GuiImage* GuiLayouted::AddItemImage()
+GuiImage* GuiLayout::AddItemImage()
 {
 	return AddItem<GuiImage>();
 }
 
-Gui* GuiLayouted::AddItemSeparatorHor()
+Gui* GuiLayout::AddItemSeparatorHor()
 {
 	Gui* btn = AddItemGui();
 	btn->SetSize(1, 1);

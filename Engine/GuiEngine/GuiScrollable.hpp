@@ -1,20 +1,20 @@
 #pragma once
 #include <BaseLibrary\Common_tmp.hpp>
-#include "GuiLayouted.hpp"
+#include "GuiGrid.hpp"
 
 namespace inl::gui {
 
-class GuiScrollable : public GuiLayouted
+class GuiScrollable : public GuiGrid
 {
 public:
 	GuiScrollable(GuiEngine* guiEngine);
 	GuiScrollable(const GuiScrollable& other) { *this = other; }
 
-	virtual void AddItem(Gui* gui) {};
-	virtual bool RemoveItem(Gui* gui) { return false; };
-	virtual std::vector<Gui*> GetItems() { return std::vector<Gui*>(); }
+	//virtual void AddItem(Gui* gui) {};
+	//virtual bool RemoveItem(Gui* gui) { return false; };
+	//virtual std::vector<Gui*> GetItems() { return std::vector<Gui*>(); }
 
-	void SetContent(Gui* contentGui);
+	Gui* SetContent(Gui* contentGui);
 
 	// Important to implement in derived classes
 	//virtual GuiScrollable* Clone() const override { return new GuiScrollable(*this); }
@@ -34,10 +34,6 @@ public:
 
 protected:
 	eGuiOrientation orientation;
-
-	Gui* contentGui;
-	GuiList* listHor;
-	GuiList* listVer;
 };
 
 } // namespace inl::gui

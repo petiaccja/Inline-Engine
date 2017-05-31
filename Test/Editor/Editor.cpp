@@ -268,8 +268,10 @@ void Editor::InitGui()
 	}
 
 	GuiScrollable* scrollableBottom = bottomArea->AddScrollable();
+	scrollableBottom->StretchFillParent();
 
-	GuiList* textureList = scrollableBottom->AddList();
+	GuiList* textureList = scrollableBottom->SetContent(new GuiList(scrollableBottom->guiEngine))->AsList();
+	//GuiList* textureList = scrollableBottom->AddList();
 	textureList->SetBgToColor(Color(0, 0, 0, 0));
 	textureList->SetOrientation(eGuiOrientation::HORIZONTAL);
 	textureList->StretchFitToChildren();

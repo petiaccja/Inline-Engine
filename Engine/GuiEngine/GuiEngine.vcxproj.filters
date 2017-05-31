@@ -44,13 +44,16 @@
     <ClInclude Include="GuiImage.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GuiLayouted.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GuiScrollable.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GuiMenu.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GuiGrid.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GuiLayout.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -88,11 +91,14 @@
     <ClCompile Include="GuiImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GuiLayouted.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="GuiScrollable.cpp">
       <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GuiGrid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GuiLayout.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

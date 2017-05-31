@@ -3,7 +3,7 @@
 using namespace inl::gui;
 
 GuiList::GuiList(GuiEngine* guiEngine)
-:GuiLayouted(guiEngine), orientation(eGuiOrientation::VERTICAL)
+:GuiLayout(guiEngine), orientation(eGuiOrientation::VERTICAL)
 {
 	SetBgColorForAllStates(GetBgIdleColor());
 }

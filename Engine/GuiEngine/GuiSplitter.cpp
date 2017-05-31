@@ -4,7 +4,7 @@
 using namespace inl::gui;
 
 GuiSplitter::GuiSplitter(GuiEngine* guiEngine)
-:GuiLayouted(guiEngine), orientation(eGuiOrientation::HORIZONTAL), separatorLength(8)
+:GuiLayout(guiEngine), orientation(eGuiOrientation::HORIZONTAL), separatorLength(8)
 {
 	SetBgColorForAllStates(GetBgIdleColor());
 }

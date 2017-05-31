@@ -1,11 +1,11 @@
 #pragma once
 #include <BaseLibrary\Common_tmp.hpp>
-#include "GuiLayouted.hpp"
+#include "GuiLayout.hpp"
 #include <unordered_set>
 
 namespace inl::gui {
 
-class GuiSplitter : public GuiLayouted
+class GuiSplitter : public GuiLayout
 {
 public:
 	GuiSplitter(GuiEngine* guiEngine);

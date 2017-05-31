@@ -4,11 +4,11 @@
 namespace inl::gui
 {
 
-class GuiLayouted : public Gui
+class GuiLayout : public Gui
 {
 public:
-	GuiLayouted() {}
-	GuiLayouted(GuiEngine* guiEngine) :Gui(guiEngine) {}
+	GuiLayout() {}
+	GuiLayout(GuiEngine* guiEngine) :Gui(guiEngine) {}
 
 	virtual void AddItem(Gui* gui) = 0;
 	virtual bool RemoveItem(Gui* gui) = 0;
@@ -29,7 +29,7 @@ public:
 };
 
 template<class T>
-T* GuiLayouted::AddItem()
+T* GuiLayout::AddItem()
 {
 	T* child = new T(guiEngine);
 	AddItem(child);

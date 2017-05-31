@@ -128,13 +128,14 @@
   <ItemGroup>
     <ClCompile Include="GuiButton.cpp" />
     <ClCompile Include="GuiEngine.cpp" />
+    <ClCompile Include="GuiGrid.cpp" />
     <ClCompile Include="GuiImage.cpp" />
     <ClCompile Include="GuiList.cpp" />
     <ClCompile Include="GuiMenu.cpp" />
     <ClCompile Include="GuiScrollable.cpp" />
     <ClCompile Include="GuiSplitter.cpp" />
     <ClCompile Include="GuiText.cpp" />
-    <ClCompile Include="GuiLayouted.cpp" />
+    <ClCompile Include="GuiLayout.cpp" />
     <ClInclude Include="GuiButton.hpp" />
     <ClCompile Include="GuiCollapsable.cpp">
       <FileType>CppHeader</FileType>
@@ -146,6 +147,7 @@
     <ClCompile Include="GuiLayer.cpp">
       <FileType>CppHeader</FileType>
     </ClCompile>
+    <ClInclude Include="GuiGrid.hpp" />
     <ClInclude Include="GuiImage.hpp" />
     <ClInclude Include="GuiLayer.hpp" />
     <ClInclude Include="GuiList.hpp" />
@@ -157,7 +159,7 @@
     </ClCompile>
     <ClInclude Include="GuiSplitter.hpp" />
     <ClInclude Include="GuiText.hpp" />
-    <ClInclude Include="GuiLayouted.hpp" />
+    <ClInclude Include="GuiLayout.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Gui.cpp" />
