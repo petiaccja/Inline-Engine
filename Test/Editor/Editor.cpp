@@ -130,7 +130,7 @@ void Editor::InitGui()
 	GuiMenu* menuBar = mainLayer->AddMenu();
 	menuBar->SetBorder(0, 0, 0, 1, Color(70));
 	menuBar->SetOrientation(eGuiOrientation::HORIZONTAL);
-	menuBar->SetBgColorForAllStates(Color(25));
+	menuBar->SetBgToColor(Color(25));
 	menuBar->SetRect(1, captionBar->GetHeight(), 400, 400);
 	menuBar->StretchHorFillParent();
 	menuBar->StretchVerFitToChildren();

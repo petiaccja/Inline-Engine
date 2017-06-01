@@ -154,7 +154,6 @@ public:
 	void SetBgActiveColor(const Color& color) { bgActiveColor = color; }
 	void SetBgActiveColorToIdle();
 	void SetBgActiveColorToHover();
-	void SetBgColorForAllStates(const Color& color);
 
 	void SetBgToImage(const std::wstring& idleImagePath, const std::wstring& hoverImagePath);
 	void SetBgIdleImage(const std::wstring& path);
@@ -162,7 +161,6 @@ public:
 	void SetBgActiveImage(Gdiplus::Bitmap* image) { bgActiveImage = image; }
 	void SetBgActiveImageToIdle();
 	void SetBgActiveImageToHover();
-	void SetBgImageForAllStates(const std::wstring& filePath);
 
 	void SetBorder(float leftLength, float rightLength, float topLength, float bottomLength, const Color& color);
 	void SetBorder(float borderLength, const Color& color) { SetBorder(borderLength, borderLength, borderLength, borderLength, color); }
@@ -315,7 +313,7 @@ public:
 	template<class T>
 	T* GetChild(int index) { assert(dynamic_cast<T*>(GetChildren()[index])); return (T*)GetChildren()[index]; }
 
-	Gui* GetChild(int index) { return GetChildren()[index]; }
+	Gui* GetChild(int index) { assert(index >= 0); return (index >= GetChildren().size()) ? nullptr : GetChildren()[index]; }
 	int GetIndexInParent() { return indexInParent; }
 
 	eEventPropagationPolicy GetEventPropagationPolicy() { return eventPropagationPolicy; }
@@ -496,6 +494,9 @@ public:
 
 	Delegate<void(Vector2f size)> onSizeChanged;
 	Delegate<void(Gui* self, Vector2f size)> onSizeChangedClonable;
+
+	Delegate<void(RectF rect)> onRectChanged;
+	Delegate<void(Gui* self, RectF rect)> onRectChangedClonable;
 
 	Delegate<void(RectF& rect)> onParentTransformChanged;
 	Delegate<void(Gui* self, RectF& rect)> onParentTransformChangedClonable;

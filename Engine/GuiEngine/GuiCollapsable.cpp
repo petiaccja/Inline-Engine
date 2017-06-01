@@ -10,7 +10,7 @@ GuiCollapsable::GuiCollapsable(GuiEngine* guiEngine)
 	//SetAutoSize(true);
 
 	list = new GuiList(guiEngine);
-	//list->SetBgColorForAllStates(Color(0, 0, 0, 0));
+	//list->SetBgToColor(Color(0, 0, 0, 0));
 
 	caption = AddButton();
 	//caption->SetAlign(eGuiAlign::STRETCH_H);

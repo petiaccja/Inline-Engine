@@ -6,7 +6,7 @@ using namespace inl::gui;
 GuiSplitter::GuiSplitter(GuiEngine* guiEngine)
 :GuiLayout(guiEngine), orientation(eGuiOrientation::HORIZONTAL), separatorLength(8)
 {
-	SetBgColorForAllStates(GetBgIdleColor());
+	SetBgToColor(GetBgIdleColor());
 }
 
 bool GuiSplitter::RemoveItem(Gui* gui)
@@ -187,7 +187,7 @@ void GuiSplitter::AddItem(Gui* item)
 			}
 		};
 
-		separator->SetBgToColor(Color(120), Color(255));
+		separator->SetBgToColor(Color(120), Color(200));
 
 		if (orientation == eGuiOrientation::HORIZONTAL)
 		{

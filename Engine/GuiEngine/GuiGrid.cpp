@@ -2,10 +2,18 @@
 
 using namespace inl::gui;
 
-GuiGrid::GuiGrid(GuiEngine* guiEngine)
-:GuiLayout(guiEngine)
+GuiGrid::GuiGrid()
+:dimension(0, 0)
 {
-	SetBgColorForAllStates(GetBgIdleColor());
+	SetDimension(1, 1);
+}
+
+GuiGrid::GuiGrid(GuiEngine* guiEngine)
+:GuiLayout(guiEngine), dimension(0,0)
+{
+	SetDimension(1, 1);
+
+	SetBgToColor(GetBgIdleColor());
 }
 
 Vector2f GuiGrid::ArrangeChildren(const Vector2f& finalSize)
@@ -47,14 +55,14 @@ Vector2f GuiGrid::ArrangeChildren(const Vector2f& finalSize)
 			Vector2f size;
 			
 			if (column->GetSizingPolicy() == eGridLineSizing::FIXED)
-				size.x() = cell->GetSizeX();
+				size.x() = column->GetWidth();
 			else if (column->GetSizingPolicy() == eGridLineSizing::FILL_SPACE)
 				size.x() = baseSpaceForFlexibleItem.x() * column->GetSpaceMultiplier();
 			else
 				assert(0);
 
 			if (row->GetSizingPolicy() == eGridLineSizing::FIXED)
-				size.y() = cell->GetSizeY();
+				size.y() = row->GetHeight();
 			else if (row->GetSizingPolicy() == eGridLineSizing::FILL_SPACE)
 				size.y() = baseSpaceForFlexibleItem.y() * row->GetSpaceMultiplier();
 			else

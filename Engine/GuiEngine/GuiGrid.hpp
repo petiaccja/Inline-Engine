@@ -16,6 +16,7 @@ enum class eGridLineSizing
 class GuiGridRow
 {
 public:
+	GuiGridRow() {}
 	GuiGridRow(int idx, GuiGrid* grid);
 
 	void StretchFillSpace(float spaceMultiplier);
@@ -41,6 +42,7 @@ protected:
 class GuiGridColumn
 {
 public:
+	GuiGridColumn() {}
 	GuiGridColumn(int idx, GuiGrid* grid);
 
 	void StretchFillSpace(float spaceMultiplier);
@@ -65,7 +67,7 @@ protected:
 class GuiGrid : public GuiLayout
 {
 public:
-	GuiGrid() {}
+	GuiGrid();
 	GuiGrid(GuiEngine* guiEngine);
 	GuiGrid(const GuiGrid& other) { *this = other; }
 
@@ -75,22 +77,52 @@ public:
 
 	void SetDimension(uint32_t width, uint32_t height)
 	{
-		// TODO remove previous gui elements
-		dimension = Vector2u(width, height);
+		int cellCountDiff = width * height - dimension.x() * dimension.y();
 
-		for (int i = 0; i < width * height; ++i)
+		// Add cells
+		if (cellCountDiff >= 0)
 		{
-			Gui* cell = AddGui();
-			cells.push_back(cell);
+			for (int i = 0; i < cellCountDiff; ++i)
+			{
+				Gui* cell = AddGui();
+				cells.push_back(cell);
+			}
+		}
+		else // Remove cells
+		{
+			for (int i = 0; i < -cellCountDiff; ++i)
+			{
+				Gui* cell = cells[cells.size() - 1 - i];
+				cell->RemoveFromParent();
+			}
+			cells.resize(cells.size() + cellCountDiff);
 		}
 
-		rows.reserve(height);
-		for (int i = 0; i < height; ++i)
-			rows.push_back(GuiGridRow(i, this));
+		Vector2i dimensionDiff = Vector2i(width - dimension.x(), height - dimension.y());
 
-		columns.reserve(width);
-		for (int i = 0; i < width; ++i)
-			columns.push_back(GuiGridColumn(i, this));
+		// Add columns
+		if (dimensionDiff.x() >= 0)
+		{
+			for (int i = 0; i < dimensionDiff.x(); ++i)
+				columns.push_back(GuiGridColumn(i, this));
+		}
+		else // Remove columns
+		{
+			columns.resize(columns.size() + dimensionDiff.x());
+		}
+
+		// Add rows
+		if (dimensionDiff.y() >= 0)
+		{
+			for (int i = 0; i < dimensionDiff.y(); ++i)
+				rows.push_back(GuiGridRow(i, this));
+		}
+		else // Remove rows
+		{
+			rows.resize(rows.size() + dimensionDiff.y());
+		}
+
+		dimension = Vector2u(width, height);
 	}
 
 	Gui* GetCell(int x, int y)

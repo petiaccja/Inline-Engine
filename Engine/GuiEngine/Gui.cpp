@@ -226,6 +226,7 @@ Gui& Gui::operator = (const Gui& other)
 	onTransformChangedClonable = other.onTransformChangedClonable;
 	onPosChangedClonable = other.onPosChangedClonable;
 	onSizeChangedClonable = other.onSizeChangedClonable;
+	onRectChangedClonable = other.onRectChangedClonable;
 	onParentTransformChangedClonable = other.onParentTransformChangedClonable;
 	onChildTransformChangedClonable = other.onChildTransformChangedClonable;
 	onParentChangedClonable = other.onParentChangedClonable;
@@ -382,7 +383,11 @@ void Gui::SetRect(float x, float y, float width, float height, bool bMoveChildre
 	size.y() = height;
 	RectF rect = GetRect();
 
-	if (rect != oldRect)
+	bool bPosChanged = rect.GetPos() != oldRect.GetPos();
+	bool bSizeChanged = rect.GetSize() != oldRect.GetSize();
+	bool bRectChanged = bPosChanged || bSizeChanged;
+
+	if (bRectChanged)
 	{
 		for (Gui* child : children)
 		{
@@ -400,14 +405,17 @@ void Gui::SetRect(float x, float y, float width, float height, bool bMoveChildre
 			parent->onChildTransformChanged(rect);
 			parent->onChildTransformChangedClonable(parent, rect);
 		}
+
+		onRectChanged(rect);
+		onRectChangedClonable(this, rect);
 	}
 
-	if (rect.GetPos() != oldRect.GetPos())
+	if (bPosChanged)
 	{
 		onPosChanged(rect.GetPos());
 	}
 
-	if (rect.GetSize() != oldRect.GetSize())
+	if (bSizeChanged)
 	{
 		onSizeChanged(rect.GetSize());
 		onSizeChangedClonable(this, rect.GetSize());
@@ -508,11 +516,6 @@ void Gui::SetBgActiveColorToHover()
 	SetBgActiveColor(GetBgHoverColor());
 }
 
-void Gui::SetBgColorForAllStates(const Color& color)
-{
-	SetBgToColor(color, color);
-}
-
 void Gui::SetBgToImage(const std::wstring& idleImagePath, const std::wstring& hoverImagePath)
 {
 	HideBgColor();
@@ -529,12 +532,6 @@ void Gui::SetBgActiveImageToIdle()
 void Gui::SetBgActiveImageToHover()
 {
 	SetBgActiveImage(bgHoverImage);
-}
-
-void Gui::SetBgImageForAllStates(const std::wstring& filePath)
-{
-	SetBgIdleImage(filePath);
-	SetBgHoverImage(filePath);
 }
 
 void Gui::SetMargin(float leftLength, float rightLength, float topLength, float bottomLength)

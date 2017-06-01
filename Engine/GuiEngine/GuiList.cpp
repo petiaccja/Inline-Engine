@@ -5,7 +5,7 @@ using namespace inl::gui;
 GuiList::GuiList(GuiEngine* guiEngine)
 :GuiLayout(guiEngine), orientation(eGuiOrientation::VERTICAL)
 {
-	SetBgColorForAllStates(GetBgIdleColor());
+	SetBgToColor(GetBgIdleColor());
 }
 
 void GuiList::SetOrientation(eGuiOrientation orientation)

@@ -191,6 +191,11 @@ public:
 				point.y() >= top  && point.y() <= bottom;
 	}
 
+	bool IsRectInside(const Rect<T>& other)
+	{
+		return	other.left >= left && other.right <= right && other.top >= top && other.bottom <= bottom;
+	}
+
 	Vector2f GetSize() const { return Vector2f(GetWidth(), GetHeight()); }
 	Vector2f GetPos() const { return Vector2f(left, top); }
 	float GetPosX() const { return GetPos().x(); }

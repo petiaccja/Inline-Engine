@@ -4,30 +4,39 @@
 using namespace inl::gui;
 
 GuiScrollable::GuiScrollable(GuiEngine* guiEngine)
-:GuiGrid(guiEngine), orientation(eGuiOrientation::VERTICAL)
+:GuiGrid(guiEngine), bVerScrollBarVisible(false), bHorScrollBarVisible(false)
 {
-	SetDimension(2, 2);
+	Gui* contentCell = GetCell(0, 0);
 
-	// Content
+	//Gui* verticalScrollCell = GetCell(1, 0);
+	//Gui* horizontalScrollCell = GetCell(0, 1);
+	//Gui* emptyCell = GetCell(1, 1);
+	
+	contentCell->SetBgToColor(Color(45));
+	//verticalScrollCell->SetBgToColor(Color(75));
+	//horizontalScrollCell->SetBgToColor(Color(75));
+	//emptyCell->SetBgToColor(Color(75));
+
+	// Content fill the space
 	GetColumn(0)->StretchFillSpace(1.f);
 	GetRow(0)->StretchFillSpace(1.f);
 
-	// Scroll bars
-	GetColumn(1)->SetWidth(12);
-	GetRow(1)->SetHeight(12);
+	// Scroll bars fixed size
+	//GetColumn(1)->SetWidth(16);
+	//GetRow(1)->SetHeight(16);
+	//
+	//// Add scroll bars
+	//GuiButton* btn = horizontalScrollCell->AddButton();
+	//btn->SetMargin(3);
+	//btn->SetBgToColor(Color(120), Color(200));
+	//btn->StretchVerFillParent();
+	//
+	//btn = verticalScrollCell->AddButton();
+	//btn->SetMargin(3);
+	//btn->SetBgToColor(Color(120), Color(200));
+	//btn->StretchHorFillParent();
 
-	Gui* horizontalScrollCell = GetCell(1, 0);
-	Gui* verticalScrollCell = GetCell(0, 1);
-
-	GuiButton* btn = horizontalScrollCell->AddButton();
-	btn->SetBgColorForAllStates(Color::RED);
-	btn->StretchFillParent();
-
-	btn = verticalScrollCell->AddButton();
-	btn->SetBgColorForAllStates(Color::BLUE);
-	btn->StretchFillParent();
-
-	SetBgColorForAllStates(GetBgIdleColor());
+	SetBgToColor(GetBgIdleColor());
 }
 
 //void GuiScrollable::SetOrientation(eGuiOrientation orientation)
@@ -64,11 +73,41 @@ GuiScrollable::GuiScrollable(GuiEngine* guiEngine)
 
 Gui* GuiScrollable::SetContent(Gui* contentGui)
 {
-	//Gui* cell = GetRow(0)->GetCell(0);
-	//if (cell)
-	//	cell->Remove(cell->GetChild(0));
-	//
-	//cell->Add(contentGui);
+	// The content cell we want to fill in
+	Gui* contentCell = GetCell(0, 0);
+
+	// Remove old content
+	Gui* oldContent = contentCell->GetChild(0);
+	if (oldContent)
+		contentCell->Remove(oldContent);
+
+	// Add new content
+	contentCell->Add(contentGui);
+
+	contentGui->onRectChangedClonable += [this, contentCell](Gui* self, RectF rect)
+	{
+		RectF cellRect = contentCell->GetRect();
+
+		// Check if rect
+		bool bShowHorScrollBar = rect.left < cellRect.left || rect.right > cellRect.right;
+		bool bShowVerScrollBar = rect.top < cellRect.top || rect.bottom > cellRect.bottom;
+
+		if (bShowHorScrollBar && bShowVerScrollBar)
+		{
+			SetDimension(2, 2);
+		}
+		else if (bShowHorScrollBar)
+		{
+			SetDimension(1, 2);
+		}
+		else if (bShowVerScrollBar)
+		{
+			SetDimension(2, 1);
+		}
+		
+		bVerScrollBarVisible = bShowVerScrollBar;
+		bHorScrollBarVisible = bShowHorScrollBar;
+	};
 
 	return contentGui;
 }

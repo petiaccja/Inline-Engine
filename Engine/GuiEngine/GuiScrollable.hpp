@@ -33,7 +33,8 @@ public:
 //	virtual Vector2f ArrangeChildren(const Vector2f& finalSize) override;
 
 protected:
-	eGuiOrientation orientation;
+	bool bVerScrollBarVisible;
+	bool bHorScrollBarVisible;
 };
 
 } // namespace inl::gui
