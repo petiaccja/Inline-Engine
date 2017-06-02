@@ -167,9 +167,9 @@ void LightCulling::Execute(RenderContext& context) {
 	uniformsCBData.cam_near = -m_camera->GetNearPlane();
 	uniformsCBData.cam_far = -m_camera->GetFarPlane();
 	uniformsCBData.num_lights = 1;
-	uniformsCBData.p = m_camera->GetProjectionMatrixRH();
+	uniformsCBData.p = m_camera->GetProjectionMatrix();
 
-	Mat44 invVP = (m_camera->GetProjectionMatrixRH() * m_camera->GetViewMatrixRH()).Inverse();
+	Mat44 invVP = (m_camera->GetProjectionMatrix() * m_camera->GetViewMatrix()).Inverse();
 
 	Vec4 ndcCorners[] = 
 	{
@@ -186,7 +186,7 @@ void LightCulling::Execute(RenderContext& context) {
 	uniformsCBData.far_plane0 = Vec4(ndcCorners[0].xyz, ndcCorners[1].x);
 	uniformsCBData.far_plane1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0, 0);
 
-	uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrixRH() * Vec4(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1.0f);
+	uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrix() * Vec4(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1.0f);
 	uniformsCBData.ld[0].attenuation_end = 5.0f;
 
 	uint32_t dispatchW, dispatchH;

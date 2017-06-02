@@ -14,6 +14,7 @@
 #include "RigidBody.hpp"
 #include "Rotor.hpp"
 #include "PIDController.hpp"
+#include <InlineMath.hpp>
 
 
 struct ControlInfo {
@@ -44,10 +45,10 @@ struct ControlInfo {
 		return rpm;
 	}
 
-	mathfu::Quaternionf Orientation() const {
-		auto x = mathfu::Quaternionf::FromAngleAxis(0.35f*(back - front), {1, 0, 0});
-		auto y = mathfu::Quaternionf::FromAngleAxis(0.35f*(right - left), { 0, 1, 0 });
-		auto z = mathfu::Quaternionf::FromAngleAxis(heading, { 0, 0, 1 });
+	inl::Quat Orientation() const {
+		auto x = inl::Quat::AxisAngle(inl::Vec3{ 1, 0, 0 }, 0.35f*(back - front));
+		auto y = inl::Quat::AxisAngle(inl::Vec3{ 0, 1, 0 }, 0.35f*(right - left));
+		auto z = inl::Quat::AxisAngle(inl::Vec3{ 0, 0, 1 }, heading);
 		return z*y*x;
 	}
 };

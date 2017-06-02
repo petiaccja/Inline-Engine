@@ -29,6 +29,10 @@ enum class eAxis {
 	Z = 2,
 };
 
+template <class T, class U>
+using MatMulElemT = decltype(T() * U() + T() + U());
+
+
 //template <eMatrixOrder Order_,
 //	eMatrixLayout Layout_,
 //	class ProjectNear_ = std::ratio<1, 1>,
@@ -244,6 +248,16 @@ public:
 	MatrixT& SetRotationRPY(float x1, float y2, float z3) { self() = RotationRPY(x1, y2, z3); return self(); }
 	template <class U, bool Vpacked>
 	MatrixT& SetRotationAxisAngle(const Vector<U, 3, Vpacked>& axis, T angle) { self() = Rotation(axis, angle); return self(); }
+
+	bool IsRotationMatrix3D() const {
+		Vector<T, 3> rows[3] = {
+			{ self()(0,0), self()(0,1), self()(0,2) },
+			{ self()(1,0), self()(1,1), self()(1,2) },
+			{ self()(2,0), self()(2,1), self()(2,2) },
+		};
+		return (std::abs(Dot(rows[0], rows[1])) + std::abs(Dot(rows[0], rows[2])) + std::abs(Dot(rows[1], rows[2]))) < T(0.0001)
+			&& rows[0].IsNormalized() && rows[1].IsNormalized() && rows[2].IsNormalized();
+	}
 protected:
 	friend class MatrixT;
 	using Inherit = MatrixModule<Enable3DRotation, MatrixRotation3D>;
@@ -382,7 +396,7 @@ class MatrixProjectiveBase {
 protected:
 	using MatrixT = Matrix<T, Dim, Dim, Order, Layout, Packed>;
 public:
-	static MatrixT Perspective(T fovX, Vector<T, Dim-2, Packed> ratios, T nearPlane, T farPlane, T projNearPlane = 0, T projFarPlane = 1) {
+	static MatrixT Perspective(T fovX, const Vector<T, Dim-2, Packed>& ratios, T nearPlane, T farPlane, T projNearPlane = 0, T projFarPlane = 1) {
 		assert((nearPlane < 0 && farPlane < nearPlane) || (0 < nearPlane && nearPlane < farPlane));
 
 		MatrixT m;
@@ -400,11 +414,11 @@ public:
 		T C = nearPlane < 0 ? -1 : 1;
 		T A = C*(f*F - n*N) / (F - N);
 		T B = C*F*N*(n - f) / (F - N);
-		ratios /= ratios(0);
+		Vector<T, Dim-2, Packed> adjRatios = ratios / ratios(0);
 		T w = tan(T(0.5)*fovX);
-		ratios /= w;
-		for (int i = 0; i < ratios.Dimension(); ++i) {
-			m(i, i) = ratios(i);
+		adjRatios /= w;
+		for (int i = 0; i < adjRatios.Dimension(); ++i) {
+			m(i, i) = adjRatios(i);
 		}
 		m(m.RowCount() - 2, m.ColumnCount() - 2) = A;
 		if (Order == eMatrixOrder::FOLLOW_VECTOR) {
@@ -413,6 +427,11 @@ public:
 		m(m.RowCount() - 2, m.ColumnCount() - 1) = B;
 		m(m.RowCount() - 1, m.ColumnCount() - 2) = C;
 		return m;
+	}
+
+	MatrixT& SetPerspective(T fovX, const Vector<T, Dim - 2, Packed>& ratios, T nearPlane, T farPlane, T projNearPlane = 0, T projFarPlane = 1) {
+		self() = Perspective(fovX, ratios, nearPlane, farPlane, projNearPlane, projFarPlane);
+		return self();
 	}
 };
 
@@ -445,6 +464,10 @@ public:
 		return MatrixProjectiveBase<T, 3, Order, Layout, Packed>::Perspective(
 			abs(fov), Vector<T, 1, Packed>{ fov < 0 ? -1 : 1 }, nearPlane, farPlane, projNearPlane, projFarPlane);
 	}
+	MatrixT& SetPerspective(T fov, T nearPlane, T farPlane, T projNearPlane = 0, T projFarPlane = 1) {
+		self() = Perspective(fov, nearPlane, farPlane, projNearPlane, projFarPlane);
+		return self();
+	}
 protected:
 	friend class MatrixT;
 	using Inherit = MatrixPerspective;
@@ -462,6 +485,10 @@ public:
 	static MatrixT Perspective(T fov, T aspectRatio, T nearPlane, T farPlane, T projNearPlane = 0, T projFarPlane = 1) {
 		return MatrixProjectiveBase<T, 4, Order, Layout, Packed>::Perspective(
 			abs(fov), Vector<T, 2, Packed>{ fov < 0 ? -1 : 1, T(1)/aspectRatio}, nearPlane, farPlane, projNearPlane, projFarPlane);
+	}
+	MatrixT& SetPerspective(T fov, T aspectRatio, T nearPlane, T farPlane, T projNearPlane = 0, T projFarPlane = 1) {
+		self() = Perspective(fov, aspectRatio, nearPlane, farPlane, projNearPlane, projFarPlane);
+		return self();
 	}
 protected:
 	friend class MatrixT;
@@ -493,6 +520,8 @@ class MatrixOrthographic {
 										&& SpaceDim >= 1;
 	using MatrixT = Matrix<T, Rows, Columns, Order, Layout, Packed>;
 	using VectorT = Vector<T, SpaceDim, Packed>;
+	MatrixT& self() { return *static_cast<MatrixT*>(this); }
+	const MatrixT& self() const { return *static_cast<const MatrixT*>(this); }
 public:
 	static MatrixT Orthographic(const VectorT& minBounds, const VectorT& maxBounds, T projNearPlane = T(0), T projFarPlane = T(1)) {
 		VectorT volumeSize = maxBounds - minBounds;
@@ -509,6 +538,10 @@ public:
 		}
 
 		return ret;
+	}
+	MatrixT& SetOrthographic(const VectorT& minBounds, const VectorT& maxBounds, T projNearPlane = T(0), T projFarPlane = T(1)) {
+		self() = Orthographic(minBounds, maxBounds, projNearPlane, projFarPlane);
+		return self();
 	}
 protected:
 	friend class MatrixT;
@@ -536,7 +569,7 @@ public:
 		MatrixT matrix;
 		VectorT columns[SpaceDim];
 		std::array<const VectorT*, SpaceDim - 1> crossTable = {};
-		for (int i = 0; i < bases.size(); ++i) {
+		for (int i = 0; i < (int)bases.size(); ++i) {
 			crossTable[i] = &bases[i];
 		}
 		crossTable.back() = &columns[SpaceDim - 1];
@@ -687,7 +720,7 @@ Matrix<U, Rows, Columns, Order1, Layout1, Packed> operator-(
 // Matrix class providing the common interface for all matrices
 //------------------------------------------------------------------------------
 
-template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
+template <class T, int Rows, int Columns, eMatrixOrder Order = eMatrixOrder::FOLLOW_VECTOR, eMatrixLayout Layout = eMatrixLayout::ROW_MAJOR, bool Packed = false>
 class MATHTER_EBCO Matrix
 	: public MatrixData<T, Rows, Columns, Order, Layout, Packed>,
 	public MatrixSquare<T, Rows, Columns, Order, Layout, Packed>::Inherit,
@@ -1148,14 +1181,26 @@ Matrix<T1, Dim, Dim, Order1, Layout1, Packed>& operator*=(Matrix<T1, Dim, Dim, O
 	return lhs;
 }
 
+#define MATHTER_MATADD_SAME_ARRAY_1(OP) result.stripes[0] = lhs.stripes[0] OP rhs.stripes[0];
+#define MATHTER_MATADD_SAME_ARRAY_2(OP) MATHTER_MATADD_SAME_ARRAY_1(OP) result.stripes[1] = lhs.stripes[1] OP rhs.stripes[1];
+#define MATHTER_MATADD_SAME_ARRAY_3(OP) MATHTER_MATADD_SAME_ARRAY_2(OP) result.stripes[2] = lhs.stripes[2] OP rhs.stripes[2];
+#define MATHTER_MATADD_SAME_ARRAY_4(OP) MATHTER_MATADD_SAME_ARRAY_3(OP) result.stripes[3] = lhs.stripes[3] OP rhs.stripes[3];
+#define MATHTER_MATADD_SAME_UNROLL(S, OP) if (result.StripeCount == S) { MATHTER_MATMUL_EXPAND(MATHTER_MATADD_SAME_ARRAY_ ## S)(OP) return result; }
 
-// Same layout
+
+// Add & sub same layout
 template <class T, class U, int Rows, int Columns, eMatrixOrder Order1, eMatrixOrder Order2, eMatrixLayout SameLayout, bool Packed, class V>
 Matrix<U, Rows, Columns, Order1, SameLayout, Packed> operator+(
 	const Matrix<T, Rows, Columns, Order1, SameLayout, Packed>& lhs,
 	const Matrix<U, Rows, Columns, Order2, SameLayout, Packed>& rhs)
 {
 	Matrix<U, Rows, Columns, Order1, SameLayout, Packed> result;
+
+	MATHTER_MATADD_SAME_UNROLL(1, +);
+	MATHTER_MATADD_SAME_UNROLL(2, +);
+	MATHTER_MATADD_SAME_UNROLL(3, +);
+	MATHTER_MATADD_SAME_UNROLL(4, +);
+
 	for (int i = 0; i < result.StripeCount; ++i) {
 		result.stripes[i] = lhs.stripes[i] + rhs.stripes[i];
 	}
@@ -1168,6 +1213,12 @@ Matrix<U, Rows, Columns, Order1, SameLayout, Packed> operator-(
 	const Matrix<U, Rows, Columns, Order2, SameLayout, Packed>& rhs)
 {
 	Matrix<U, Rows, Columns, Order1, SameLayout, Packed> result;
+
+	MATHTER_MATADD_SAME_UNROLL(1, -);
+	MATHTER_MATADD_SAME_UNROLL(2, -);
+	MATHTER_MATADD_SAME_UNROLL(3, -);
+	MATHTER_MATADD_SAME_UNROLL(4, -);
+
 	for (int i = 0; i < result.StripeCount; ++i) {
 		result.stripes[i] = lhs.stripes[i] - rhs.stripes[i];
 	}
@@ -1175,7 +1226,7 @@ Matrix<U, Rows, Columns, Order1, SameLayout, Packed> operator-(
 }
 
 
-// Opposite layout
+// Add & sub opposite layout
 template <class T, class U, int Rows, int Columns, eMatrixOrder Order1, eMatrixOrder Order2, eMatrixLayout Layout1, eMatrixLayout Layout2, bool Packed, class V, class>
 Matrix<U, Rows, Columns, Order1, Layout1, Packed> operator+(
 	const Matrix<T, Rows, Columns, Order1, Layout1, Packed>& lhs,
@@ -1212,15 +1263,13 @@ Matrix<U, Rows, Columns, Order1, Layout1, Packed> operator-(
 
 
 template <class U, class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed, class = typename std::enable_if<impl::IsScalar<U>::value>::type>
-Matrix<T, Rows, Columns, Order, Layout, Packed> operator*(U s, Matrix<T, Rows, Columns, Order, Layout, Packed> mat) {
-	mat *= s;
-	return mat;
+Matrix<T, Rows, Columns, Order, Layout, Packed> operator*(U s, const Matrix<T, Rows, Columns, Order, Layout, Packed>& mat) {
+	return mat * s;
 }
 
 template <class U, class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed, class = typename std::enable_if<impl::IsScalar<U>::value>::type>
-Matrix<T, Rows, Columns, Order, Layout, Packed> operator/(U s, Matrix<T, Rows, Columns, Order, Layout, Packed> mat) {
-	mat /= s;
-	return mat;
+Matrix<T, Rows, Columns, Order, Layout, Packed> operator/(U s, const Matrix<T, Rows, Columns, Order, Layout, Packed>& mat) {
+	return mat / s;
 }
 
 
@@ -1251,10 +1300,29 @@ auto Matrix<T, Rows, Columns,  Order, Layout, Packed>::SetIdentity() ->Matrix<T,
 // Matrix-vector arithmetic
 //------------------------------------------------------------------------------
 
+#define MATHTER_VECMAT_ARRAY_1 result = vec(0) * mat.stripes[0];
+#define MATHTER_VECMAT_ARRAY_2 MATHTER_VECMAT_ARRAY_1 result += vec(1) * mat.stripes[1];
+#define MATHTER_VECMAT_ARRAY_3 MATHTER_VECMAT_ARRAY_2 result += vec(2) * mat.stripes[2];
+#define MATHTER_VECMAT_ARRAY_4 MATHTER_VECMAT_ARRAY_3 result += vec(3) * mat.stripes[3];
+#define MATHTER_VECMAT_UNROLL(S) if (Vd == S) { MATHTER_MATMUL_EXPAND(MATHTER_VECMAT_ARRAY_ ## S) return result; }
+
+#define MATHTER_VECMAT_DOT_ARRAY_1 result(0) = Dot(vec, mat.stripes[0]);
+#define MATHTER_VECMAT_DOT_ARRAY_2 MATHTER_VECMAT_DOT_ARRAY_1 result(1) = Dot(vec, mat.stripes[1]);
+#define MATHTER_VECMAT_DOT_ARRAY_3 MATHTER_VECMAT_DOT_ARRAY_2 result(2) = Dot(vec, mat.stripes[2]);
+#define MATHTER_VECMAT_DOT_ARRAY_4 MATHTER_VECMAT_DOT_ARRAY_3 result(3) = Dot(vec, mat.stripes[3]);
+#define MATHTER_VECMAT_DOT_UNROLL(S) if (Vd == S) { MATHTER_MATMUL_EXPAND(MATHTER_VECMAT_DOT_ARRAY_ ## S) return result; }
+
+
 // v*M
 template <class Vt, class Mt, int Vd, int Mcol, eMatrixOrder Morder, bool Packed, class Rt = MatMulElemT<Vt, Mt>>
 Vector<Rt, Mcol, Packed> operator*(const Vector<Vt, Vd, Packed>& vec, const Matrix<Mt, Vd, Mcol, Morder, eMatrixLayout::ROW_MAJOR, Packed>& mat) {
 	Vector<Rt, Mcol, Packed> result;
+	
+	MATHTER_VECMAT_UNROLL(1);
+	MATHTER_VECMAT_UNROLL(2);
+	MATHTER_VECMAT_UNROLL(3);
+	MATHTER_VECMAT_UNROLL(4);
+
 	result = vec(0) * mat.stripes[0];
 	for (int i = 1; i < Vd; ++i) {
 		result += vec(i) * mat.stripes[i];
@@ -1265,6 +1333,12 @@ Vector<Rt, Mcol, Packed> operator*(const Vector<Vt, Vd, Packed>& vec, const Matr
 template <class Vt, class Mt, int Vd, int Mcol, eMatrixOrder Morder, bool Packed, class Rt = MatMulElemT<Vt, Mt>>
 Vector<Rt, Mcol, Packed> operator*(const Vector<Vt, Vd, Packed>& vec, const Matrix<Mt, Vd, Mcol, Morder, eMatrixLayout::COLUMN_MAJOR, Packed>& mat) {
 	Vector<Rt, Mcol, Packed> result;
+
+	MATHTER_VECMAT_DOT_UNROLL(1);
+	MATHTER_VECMAT_DOT_UNROLL(2);
+	MATHTER_VECMAT_DOT_UNROLL(3);
+	MATHTER_VECMAT_DOT_UNROLL(4);
+
 	for (int i = 0; i < Vd; ++i) {
 		result(i) = Dot(vec, mat.stripes[i]);
 	}
@@ -1274,12 +1348,12 @@ Vector<Rt, Mcol, Packed> operator*(const Vector<Vt, Vd, Packed>& vec, const Matr
 // (v|1)*M
 template <class Vt, class Mt, int Vd, eMatrixLayout Mlayout, eMatrixOrder Morder, bool Packed, class Rt = MatMulElemT<Vt, Mt>>
 Vector<Rt, Vd, Packed> operator*(const Vector<Vt, Vd, Packed>& vec, const Matrix<Mt, Vd+1, Vd, Morder, Mlayout, Packed>& mat) {
-	return (vec | 1)*mat;
+	return (vec | Vt(1))*mat;
 }
 
 template <class Vt, class Mt, int Vd, eMatrixLayout Mlayout, eMatrixOrder Morder, bool Packed, class Rt = MatMulElemT<Vt, Mt>>
 Vector<Rt, Vd, Packed> operator*(const Vector<Vt, Vd, Packed>& vec, const Matrix<Mt, Vd + 1, Vd + 1, Morder, Mlayout, Packed>& mat) {
-	auto res = (vec | 1)*mat;
+	auto res = (vec | Vt(1))*mat;
 	res /= res(res.Dimension() - 1);
 	return (Vector<Rt, Vd, Packed>)res;
 }
@@ -1288,8 +1362,14 @@ Vector<Rt, Vd, Packed> operator*(const Vector<Vt, Vd, Packed>& vec, const Matrix
 template <class Vt, class Mt, int Vd, int Mrow, eMatrixOrder Morder, bool Packed, class Rt = MatMulElemT<Vt, Mt>>
 Vector<Rt, Mrow, Packed> operator*(const Matrix<Mt, Mrow, Vd, Morder, eMatrixLayout::ROW_MAJOR, Packed>& mat, const Vector<Vt, Vd, Packed>& vec) {
 	Vector<Rt, Mrow, Packed> result;
+
+	MATHTER_VECMAT_DOT_UNROLL(1);
+	MATHTER_VECMAT_DOT_UNROLL(2);
+	MATHTER_VECMAT_DOT_UNROLL(3);
+	MATHTER_VECMAT_DOT_UNROLL(4);
+
 	for (int i = 0; i < Mrow; ++i) {
-		result(i) = vec.Dot(vec, mat.stripes[i]);
+		result(i) = Dot(vec, mat.stripes[i]);
 	}
 	return result;
 }
@@ -1297,6 +1377,12 @@ Vector<Rt, Mrow, Packed> operator*(const Matrix<Mt, Mrow, Vd, Morder, eMatrixLay
 template <class Vt, class Mt, int Vd, int Mrow, eMatrixOrder Morder, bool Packed, class Rt = MatMulElemT<Vt, Mt>>
 Vector<Rt, Mrow, Packed> operator*(const Matrix<Mt, Mrow, Vd, Morder, eMatrixLayout::COLUMN_MAJOR, Packed>& mat, const Vector<Vt, Vd, Packed>& vec) {
 	Vector<Rt, Mcol, Packed> result;
+
+	MATHTER_VECMAT_UNROLL(1);
+	MATHTER_VECMAT_UNROLL(2);
+	MATHTER_VECMAT_UNROLL(3);
+	MATHTER_VECMAT_UNROLL(4);
+
 	result = vec(0) * mat.stripes[0];
 	for (int i = 1; i < Vd; ++i) {
 		result += vec(i) * mat.stripes[i];
@@ -1563,6 +1649,7 @@ template <class T, int Rows, int Columns,  eMatrixOrder Order, eMatrixLayout Lay
 template <class U, bool Vpacked>
 auto MatrixRotation3D<T, Rows, Columns, Order, Layout, Packed>::RotationAxisAngle(const Vector<U, 3, Vpacked>& axis, T angle) -> MatrixT
 {
+	assert(axis.IsNormalized());
 	MatrixT m;
 
 	T C = cos(angle);

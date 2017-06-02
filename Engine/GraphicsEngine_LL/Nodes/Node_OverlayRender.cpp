@@ -103,8 +103,8 @@ void OverlayRender::Execute(RenderContext& context) {
 
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	Mat44 view = m_camera->GetViewMatrixRH();
-	Mat44 projection = m_camera->GetProjectionMatrixRH();
+	Mat44 view = m_camera->GetViewMatrix();
+	Mat44 projection = m_camera->GetProjectionMatrix();
 	auto viewProjection = projection * view;
 
 	std::vector<const gxeng::VertexBuffer*> vertexBuffers;

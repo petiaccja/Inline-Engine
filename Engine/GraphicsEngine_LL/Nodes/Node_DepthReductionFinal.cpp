@@ -155,8 +155,8 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 
 	DebugDrawManager::GetInstance().AddSphere(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1, 1);
 
-	Mat44 view = m_camera->GetViewMatrixRH();
-	Mat44 projection = m_camera->GetProjectionMatrixRH();
+	Mat44 view = m_camera->GetViewMatrix();
+	Mat44 projection = m_camera->GetProjectionMatrix();
 	Mat44 vp = projection * view;
 
 	uniformsCBData.invVP = vp.Inverse();

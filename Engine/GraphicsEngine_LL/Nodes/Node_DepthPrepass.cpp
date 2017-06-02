@@ -137,7 +137,7 @@ void DepthPrepass::Setup(SetupContext & context) {
 		psoDesc.rootSignature = m_binder->GetRootSignature();
 		psoDesc.vs = m_shader.vs;
 		psoDesc.ps = m_shader.ps;
-		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
+		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CW);
 		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 		psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
@@ -177,8 +177,8 @@ void DepthPrepass::Execute(RenderContext & context) {
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	Mat44 view = m_camera->GetViewMatrixRH();
-	Mat44 projection = m_camera->GetProjectionMatrixRH();
+	Mat44 view = m_camera->GetViewMatrix();
+	Mat44 projection = m_camera->GetProjectionMatrix();
 
 	auto viewProjection = view * projection;
 

@@ -104,7 +104,7 @@ void MiniWorld::UpdateWorld(float elapsed) {
 
 		currEntity->SetPosition(newPos);
 		auto tmp = currVel.Normalized();
-		currEntity->SetRotation(currEntity->GetRotation() * mathfu::Quaternion<float>::FromAngleAxis(1.5f*elapsed, mathfu::Vector<float, 3>(tmp.x, tmp.y, tmp.z)));
+		currEntity->SetRotation(currEntity->GetRotation() * Quat::AxisAngle(tmp, 1.5f*elapsed));
 	}
 }
 

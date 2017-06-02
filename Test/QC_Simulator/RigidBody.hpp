@@ -1,7 +1,6 @@
 #pragma once
 
 
-#include <mathfu/mathfu_exc.hpp>
 #include <InlineMath.hpp>
 
 
@@ -12,11 +11,11 @@ public:
 	void Update(float timestep, inl::Vec3 F_, inl::Vec3 T_);
 
 	void SetPosition(inl::Vec3 p) { this->p = p; }
-	void SetRotation(mathfu::Quaternionf q) { this->q = q; }
+	void SetRotation(inl::Quat q) { this->q = q; }
 
 	inl::Vec3 GetPosition() const { return p; }
 	inl::Vec3 GetVelocity() const { return v; }
-	mathfu::Quaternionf GetRotation() const { return q; }
+	inl::Quat GetRotation() const { return q; }
 	inl::Vec3 GetAngularVelocity() const { return w; }
 
 	void SetMass(float mass) { m = mass; }
@@ -29,8 +28,8 @@ private:
 	inl::Vec3 p;
 	inl::Vec3 v;
 
-	mathfu::Quaternionf q;
-	mathfu::Quaternionf dq;
+	inl::Quat q;
+	inl::Quat dq;
 	inl::Vec3 w_;
 	inl::Vec3 w;
 

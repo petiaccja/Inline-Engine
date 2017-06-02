@@ -2,6 +2,7 @@
 
 #include "Mathter/Vector.hpp"
 #include "Mathter/Matrix.hpp"
+#include "Mathter/Quaternion.hpp"
 
 
 namespace inl {
@@ -82,6 +83,13 @@ using Mat33d_Packed = Matrix<double, 3, 3, matrix_props::order, matrix_props::la
 using Mat44d_Packed = Matrix<double, 4, 4, matrix_props::order, matrix_props::layout, true>;
 using Mat34d_Packed = Matrix<double, 3, 4, matrix_props::order, matrix_props::layout, true>;
 using Mat43d_Packed = Matrix<double, 4, 3, matrix_props::order, matrix_props::layout, true>;
+
+// Common definitions for quaternions
+using Quat = mathter::Quaternion<float, false>;
+using Quatd = mathter::Quaternion<double, false>;
+using Quat_Packed = mathter::Quaternion<float, true>;
+using Quatd_Packed = mathter::Quaternion<double, true>;
+
 
 
 } // namespace inl

@@ -2,7 +2,6 @@
 
 
 #include <InlineMath.hpp>
-#include <mathfu/quaternion.h>
 
 namespace inl::gxeng {
 
@@ -21,12 +20,12 @@ public:
 	void SetMaterial(Material* material);
 	Material* GetMaterial() const;
 
-	void SetPosition(Vec3 pos);
-	void SetRotation(mathfu::Quaternion<float> rotation);
-	void SetScale(Vec3 scale);
+	void SetPosition(const Vec3& pos);
+	void SetRotation(const Quat& rotation);
+	void SetScale(const Vec3& scale);
 
 	Vec3 GetPosition() const;
-	mathfu::Quaternion<float> GetRotation() const;
+	Quat GetRotation() const;
 	Vec3 GetScale() const;
 
 	Mat44 GetTransform() const;
@@ -35,7 +34,7 @@ private:
 	Mesh* m_mesh;
 	Material* m_material;
 	Vec3 m_position;
-	mathfu::Quaternion<float> m_rotation;
+	Quat m_rotation;
 	Vec3 m_scale;
 };
 

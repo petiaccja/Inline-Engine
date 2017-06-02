@@ -350,8 +350,8 @@ void QCWorld::UpdateWorld(float elapsed) {
 		m_rigidBody.Update(elapsed, force, torque);
 	}
 	else {
-		mathfu::Quaternionf orientation = m_rotorInfo.Orientation();
-		mathfu::Quaternionf q = m_rigidBody.GetRotation();
+		inl::Quat orientation = m_rotorInfo.Orientation();
+		inl::Quat q = m_rigidBody.GetRotation();
 		inl::Vec3 force;
 		inl::Vec3 torque;
 		inl::Vec4 rpm;
@@ -370,15 +370,17 @@ void QCWorld::UpdateWorld(float elapsed) {
 	m_axesEntity->SetRotation(m_rotorInfo.Orientation());
 
 	// Follow copter with camera
-	mathfu::Vector<float, 3> tmp1 = m_rigidBody.GetRotation() * mathfu::Vector<float, 3>{ 0, 1, 0};
-	mathfu::Vector<float, 3> tmp2 = m_rigidBody.GetRotation() * mathfu::Vector<float, 3>{ 0, 0, 1 };
-	inl::Vec3 frontDir = { tmp1.x(), tmp1.y(), tmp1.z() };
-	inl::Vec3 upDir = { tmp2.x(), tmp2.y(), tmp2.z() };
+	inl::Vec3 frontDir = m_rigidBody.GetRotation() * inl::Vec3{ 0, 1, 0 };
+	inl::Vec3 upDir = m_rigidBody.GetRotation() * inl::Vec3{ 0, 0, 1 };
 	frontDir.z = 0;
 	upDir.z = 0;
 	inl::Vec3 viewDir = (5*frontDir.LengthSquared() > upDir.LengthSquared()) ? frontDir.Normalized() : upDir.Normalized();
 	m_camera->SetTarget(m_rigidBody.GetPosition());
 	m_camera->SetPosition(m_rigidBody.GetPosition() + (-viewDir * 1.5 + inl::Vec3{ 0,0,-lookTilt }).Normalized() * 1.5f);
+	m_camera->SetTarget({ 0,0,0 });
+	static float time = 0;
+	time += elapsed / 3;
+	m_camera->SetPosition(inl::Vec3{cos(time), sin(time), 0.5f}*10.f);
 }
 
 void QCWorld::ScreenSizeChanged(int width, int height) {

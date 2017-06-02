@@ -123,7 +123,7 @@ void DebugDraw::Setup(SetupContext& context) {
 		psoDesc.rootSignature = m_binder->GetRootSignature();
 		psoDesc.vs = m_shader.vs;
 		psoDesc.ps = m_shader.ps;
-		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::WIREFRAME, gxapi::eCullMode::DRAW_CCW);
+		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::WIREFRAME, gxapi::eCullMode::DRAW_CW);
 		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::LINE;
 
 		psoDesc.depthStencilState = gxapi::DepthStencilState(false, false);
@@ -192,8 +192,8 @@ void DebugDraw::Execute(RenderContext& context) {
 	commandList.SetViewports(1, &viewport);
 
 	Uniforms uniformsCBData;
-	Mat44 view = m_camera->GetViewMatrixRH();
-	Mat44 projection = m_camera->GetProjectionMatrixRH();
+	Mat44 view = m_camera->GetViewMatrix();
+	Mat44 projection = m_camera->GetProjectionMatrix();
 
 	auto viewProjection = projection * view;
 

@@ -3,7 +3,6 @@
 #include <cmath>
 
 using namespace std;
-using namespace mathfu;
 using namespace inl;
 
 //static ofstream file("control.txt");
@@ -22,16 +21,17 @@ PIDController::PIDController() {
 }
 
 
-void PIDController::Update(mathfu::Quaternionf orientation, float lift, mathfu::Quaternionf q, inl::Vec3 w, float elapsed, inl::Vec3& force, inl::Vec3& torque) {
-	Quaternionf r = orientation;
+void PIDController::Update(inl::Quat orientation, float lift, inl::Quat q, inl::Vec3 w, float elapsed, inl::Vec3& force, inl::Vec3& torque) {
+	Quat r = orientation;
 	float Fz = lift;
 
 	// calculate error, d(error)/dt, I(error)dt
 	e = r*q.Inverse();
 	de = -w;
 	float eangle;
-	mathfu::Vector<float, 3> eaxis;
-	e.ToAngleAxis(&eangle, &eaxis);
+	Vec3 eaxis;
+	eaxis = e.Axis();
+	eangle = e.Angle();
 	ie = eangle > 0.001f ? (elapsed*e)*ie : ie;
 
 	e.Normalize();
@@ -42,34 +42,36 @@ void PIDController::Update(mathfu::Quaternionf orientation, float lift, mathfu::
 
 	// P
 	float pangle;
-	mathfu::Vector<float, 3> paxis;
-	e.ToAngleAxis(&pangle, &paxis);
-	P = pangle > 0.001f ? pangle * Vec3(paxis.x(), paxis.y(), paxis.z()) : Vec3{ 0,0,0 };
+	Vec3 paxis;
+	paxis = e.Axis();
+	pangle = e.Angle();
+	P = pangle > 0.001f ? pangle * paxis : Vec3{ 0,0,0 };
 
 	// I
 	float iangle;
-	mathfu::Vector<float, 3> iaxis;
-	ie.ToAngleAxis(&iangle, &iaxis);
-	I = iangle > 0.001f ? iangle * Vec3(iaxis.x(), iaxis.y(), iaxis.z()) : Vec3{ 0,0,0 };
+	Vec3 iaxis;
+	iaxis = ie.Axis();
+	iangle = ie.Angle();
+	I = iangle > 0.001f ? iangle * iaxis : Vec3{ 0,0,0 };
 
 	// D
 	D = de;
 
 	// output signal
-	mathfu::Vector<float, 3>
-		P_ = q.Inverse()*mathfu::Vector<float, 3>(P.x, P.y, P.z),
-		I_ = q.Inverse()* mathfu::Vector<float, 3>(I.x, I.y, I.z),
-		D_ = q.Inverse()* mathfu::Vector<float, 3>(D.x, D.y, D.z);
-	Vec3 u_ = Kp*Vec3(P_.x(), P_.y(), P_.z()) + Ki*Vec3(I_.x(), I_.y(), I_.z()) + Kd*Vec3(D_.x(), D_.y(), D_.z());
+	Vec3
+		P_ = q.Inverse()*P,
+		I_ = q.Inverse()*I,
+		D_ = q.Inverse()*D;
+	Vec3 u_ = Kp*P_ + Ki*I_ + Kd*D_;
 
 	// calculate torque via exact linearization
-	mathfu::Vector<float, 3> w_tmp = q.Inverse()*mathfu::Vector<float, 3>(w.x, w.y, w.z);
-	Vec3 w_ = { w_tmp.x(), w_tmp.y(), w_tmp.z() };
+	//mathfu::Vector<float, 3> w_tmp = q.Inverse()*mathfu::Vector<float, 3>(w.x, w.y, w.z);
+	//Vec3 w_ = { w_tmp.x(), w_tmp.y(), w_tmp.z() };
+	Vec3 w_ = q.Inverse()*w;
 	torque = inertia*u_ + Cross(w_, inertia*w_);
 
 	// calculate force to produce just enough Z-lift in tilted position
-	auto force_tmp = q*mathfu::Vector<float, 3>{ 0, 0, 1 };
-	force = { force_tmp.x(), force_tmp.y(), force_tmp.z() };
+	force = q*Vec3{ 0, 0, 1 };
 	if (force.z > 0.5) {
 		force.z = lift / force.z;
 	}

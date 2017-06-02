@@ -207,10 +207,10 @@ void DrawSky::Execute(RenderContext & context) {
 	assert(m_suns->Size() > 0);
 	auto sun = *m_suns->begin();
 
-	Mat44 viewInv = m_camera->GetViewMatrixRH().Inverse();
+	Mat44 viewInv = m_camera->GetViewMatrix().Inverse();
 	Vec4 sunViewDir = Vec4(sun->GetDirection(), 0.0f) * viewInv;
 	Vec4 sunColor = Vec4(sun->GetColor(), 1.0f);
-	Mat44 invViewProj = (m_camera->GetViewMatrixRH() * m_camera->GetProjectionMatrixRH()).Inverse();
+	Mat44 invViewProj = (m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix()).Inverse();
 
 	sunCB.dir = Vec4(sun->GetDirection(), 0.0);
 	sunCB.color = sunColor;

@@ -25,9 +25,9 @@ public:
 	float GetAspectRatio() const override;
 
 	// Matrices
-	Mat44 GetViewMatrixRH() const override;
+	Mat44 GetViewMatrix() const override;
 	Mat44 GetViewMatrixLH() const override;
-	Mat44 GetProjectionMatrixRH() const override;
+	Mat44 GetProjectionMatrix() const override;
 	Mat44 GetProjectionMatrixLH() const override;
 
 protected:

@@ -29,17 +29,17 @@ Material* MeshEntity::GetMaterial() const {
 }
 
 
-void MeshEntity::SetPosition(Vec3 pos) {
+void MeshEntity::SetPosition(const Vec3& pos) {
 	m_position = pos;
 }
 
 
-void MeshEntity::SetRotation(mathfu::Quaternion<float> rotation) {
+void MeshEntity::SetRotation(const Quat& rotation) {
 	m_rotation = rotation;
 }
 
 
-void MeshEntity::SetScale(Vec3 scale) {
+void MeshEntity::SetScale(const Vec3& scale) {
 	m_scale = scale;
 }
 
@@ -49,7 +49,7 @@ Vec3 MeshEntity::GetPosition() const {
 }
 
 
-mathfu::Quaternion<float> MeshEntity::GetRotation() const {
+Quat MeshEntity::GetRotation() const {
 	return m_rotation;
 }
 
@@ -60,10 +60,7 @@ Vec3 MeshEntity::GetScale() const {
 
 
 Mat44 MeshEntity::GetTransform() const {
-	mathfu::Vector<float, 3> axis;
-	float angle;
-	m_rotation.ToAngleAxis(&angle, &axis);
-	return  Mat44::Scale(m_scale) * Mat44::RotationAxisAngle(Vec3{ axis.x(), axis.y(), axis.z() }, angle) * Mat44::Translation(m_position);
+	return  Mat44::Scale(m_scale) * Mat44(m_rotation) * Mat44::Translation(m_position);
 }
 
 

@@ -284,8 +284,8 @@ void ForwardRender::Execute(RenderContext& context) {
 
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	Mat44 view = m_camera->GetViewMatrixRH();
-	Mat44 projection = m_camera->GetProjectionMatrixRH();
+	Mat44 view = m_camera->GetViewMatrix();
+	Mat44 projection = m_camera->GetProjectionMatrix();
 	auto viewProjection = view * projection;
 
 
@@ -378,10 +378,10 @@ void ForwardRender::Execute(RenderContext& context) {
 
 		Uniforms uniformsCBData;
 		uniformsCBData.screen_dimensions = Vec4(m_rtv.GetResource().GetWidth(), m_rtv.GetResource().GetHeight(), 0.f, 0.f);
-		uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrixRH() * Vec4(m_camera->GetPosition() + m_camera->GetLookDirection() * 5.f, 1.0f);
+		uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrix() * Vec4(m_camera->GetPosition() + m_camera->GetLookDirection() * 5.f, 1.0f);
 		uniformsCBData.ld[0].attenuation_end = Vec4(5.0f, 0.f, 0.f, 0.f);
 		uniformsCBData.ld[0].diffuse_color = Vec4(1.f, 0.f, 0.f, 1.f);
-		uniformsCBData.vs_cam_pos = m_camera->GetViewMatrixRH() * Vec4(m_camera->GetPosition(), 1.0f);
+		uniformsCBData.vs_cam_pos = m_camera->GetViewMatrix() * Vec4(m_camera->GetPosition(), 1.0f);
 
 		uint32_t dispatchW, dispatchH;
 		SetWorkgroupSize(m_rtv.GetResource().GetWidth(), m_rtv.GetResource().GetHeight(), 16, 16, dispatchW, dispatchH);
@@ -638,7 +638,7 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 	PSMain << "float4 PSMain(PsInput psInput) : SV_TARGET {\n";
 	PSMain << "    g_lightDir = lightCb.direction;\n";
 	PSMain << "    g_lightColor = lightCb.color;\n";
-	PSMain << "    g_lightColor *= get_shadow(psInput.vsPosition);\n";
+	PSMain << "    //g_lightColor *= get_shadow(psInput.vsPosition);\n";
 	PSMain << "    g_normal = normalize(psInput.viewNormal);\n";
 	PSMain << "    g_ndcPos = psInput.ndcPos;\n";
 	PSMain << "    g_vsPos = psInput.vsPosition;\n";
@@ -897,7 +897,7 @@ std::unique_ptr<gxapi::IPipelineState> ForwardRender::CreatePso(
 	psoDesc.rootSignature = binder.GetRootSignature();
 	psoDesc.vs = vs;
 	psoDesc.ps = ps;
-	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
+	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CW);
 	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 	//psoDesc.depthStencilState = gxapi::DepthStencilState(false, true);
