@@ -157,14 +157,14 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 
 	Mat44 view = m_camera->GetViewMatrix();
 	Mat44 projection = m_camera->GetProjectionMatrix();
-	Mat44 vp = projection * view;
+	Mat44 vp = view * projection;
 
 	uniformsCBData.invVP = vp.Inverse();
 
-	Mat44  bias_matrix(	0.5f,	0,		0,		0,			// column #1
-										0,		-0.5f,	0,		0,			// column #2
-										0,		0,		1.0f,	0,			// column #3
-										0.5f,	0.5f,	0.0f,	1);	// column #4
+	Mat44  bias_matrix(	0.5f,	0,		0,		0,
+						0,		-0.5f,	0,		0,
+						0,		0,		1.0f,	0,
+						0.5f,	0.5f,	0.0f,	1);
 	uniformsCBData.bias_mx = bias_matrix;
 
 	uniformsCBData.inv_mv = view.Inverse();

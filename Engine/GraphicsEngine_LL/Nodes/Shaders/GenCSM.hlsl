@@ -21,7 +21,7 @@ PS_Input VSMain(float4 position : POSITION, float4 texCoord : TEX_COORD)
 {
 	PS_Input result;
 
-	result.position = mul(cb.MVP, position);
+    result.position = mul(position, cb.MVP);
 	result.texCoord = texCoord.xy;
 
 	return result;
