@@ -524,7 +524,7 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"{\n"
 		"	PS_Input result;\n"
 
-		"	float3 viewNormal = mul(normal, (float3x3)vsConstants.MV);\n"
+		"	float3 viewNormal = mul(normal, (float3x3)vsConstants.M);\n"
 
 		"float4x4 light_mvp;\n"
 		"float cascade = 0;\n"
@@ -638,7 +638,7 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 	PSMain << "float4 PSMain(PsInput psInput) : SV_TARGET {\n";
 	PSMain << "    g_lightDir = lightCb.direction;\n";
 	PSMain << "    g_lightColor = lightCb.color;\n";
-	PSMain << "    //g_lightColor *= get_shadow(psInput.vsPosition);\n";
+	PSMain << "    g_lightColor *= get_shadow(psInput.vsPosition);\n";
 	PSMain << "    g_normal = normalize(psInput.viewNormal);\n";
 	PSMain << "    g_ndcPos = psInput.ndcPos;\n";
 	PSMain << "    g_vsPos = psInput.vsPosition;\n";
@@ -897,7 +897,7 @@ std::unique_ptr<gxapi::IPipelineState> ForwardRender::CreatePso(
 	psoDesc.rootSignature = binder.GetRootSignature();
 	psoDesc.vs = vs;
 	psoDesc.ps = ps;
-	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CW);
+	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
 	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 	//psoDesc.depthStencilState = gxapi::DepthStencilState(false, true);

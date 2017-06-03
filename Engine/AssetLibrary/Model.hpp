@@ -68,9 +68,9 @@ inline std::vector<gxeng::Vertex<AttribT...>> Model::GetVertices(unsigned submes
 	const Mat44 posTransform =
 		m_transform *
 		//(Mat44(GetAxis(csys.x), GetAxis(csys.y), GetAxis(csys.z), Vec4(0, 0, 0, 1)).Transpose());
-		Mat44(xAxis.x, xAxis.y, xAxis.z, 0,
-			  yAxis.x, yAxis.y, yAxis.z, 0,
-			  zAxis.x, zAxis.y, zAxis.z, 0,
+		Mat44(xAxis.x, yAxis.x, zAxis.x, 0,
+			  xAxis.y, yAxis.y, zAxis.y, 0,
+			  xAxis.z, yAxis.z, zAxis.z, 0,
 			  0, 0, 0, 1);
 
 

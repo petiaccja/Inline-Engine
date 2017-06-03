@@ -414,7 +414,7 @@ public:
 		T C = nearPlane < 0 ? -1 : 1;
 		T A = C*(f*F - n*N) / (F - N);
 		T B = C*F*N*(n - f) / (F - N);
-		Vector<T, Dim-2, Packed> adjRatios = ratios / ratios(0);
+		Vector<T, Dim-2, Packed> adjRatios = ratios(0) / ratios;
 		T w = tan(T(0.5)*fovX);
 		adjRatios /= w;
 		for (int i = 0; i < adjRatios.Dimension(); ++i) {
@@ -1304,13 +1304,13 @@ auto Matrix<T, Rows, Columns,  Order, Layout, Packed>::SetIdentity() ->Matrix<T,
 #define MATHTER_VECMAT_ARRAY_2 MATHTER_VECMAT_ARRAY_1 result += vec(1) * mat.stripes[1];
 #define MATHTER_VECMAT_ARRAY_3 MATHTER_VECMAT_ARRAY_2 result += vec(2) * mat.stripes[2];
 #define MATHTER_VECMAT_ARRAY_4 MATHTER_VECMAT_ARRAY_3 result += vec(3) * mat.stripes[3];
-#define MATHTER_VECMAT_UNROLL(S) if (Vd == S) { MATHTER_MATMUL_EXPAND(MATHTER_VECMAT_ARRAY_ ## S) return result; }
+#define MATHTER_VECMAT_UNROLL(S) if (result.Dimension() == S) { MATHTER_MATMUL_EXPAND(MATHTER_VECMAT_ARRAY_ ## S) return result; }
 
 #define MATHTER_VECMAT_DOT_ARRAY_1 result(0) = Dot(vec, mat.stripes[0]);
 #define MATHTER_VECMAT_DOT_ARRAY_2 MATHTER_VECMAT_DOT_ARRAY_1 result(1) = Dot(vec, mat.stripes[1]);
 #define MATHTER_VECMAT_DOT_ARRAY_3 MATHTER_VECMAT_DOT_ARRAY_2 result(2) = Dot(vec, mat.stripes[2]);
 #define MATHTER_VECMAT_DOT_ARRAY_4 MATHTER_VECMAT_DOT_ARRAY_3 result(3) = Dot(vec, mat.stripes[3]);
-#define MATHTER_VECMAT_DOT_UNROLL(S) if (Vd == S) { MATHTER_MATMUL_EXPAND(MATHTER_VECMAT_DOT_ARRAY_ ## S) return result; }
+#define MATHTER_VECMAT_DOT_UNROLL(S) if (result.Dimension() == S) { MATHTER_MATMUL_EXPAND(MATHTER_VECMAT_DOT_ARRAY_ ## S) return result; }
 
 
 // v*M

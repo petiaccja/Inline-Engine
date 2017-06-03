@@ -163,7 +163,7 @@ void CSM::Setup(SetupContext & context) {
 		psoDesc.rootSignature = m_binder->GetRootSignature();
 		psoDesc.vs = m_shader.vs;
 		psoDesc.ps = m_shader.ps;
-		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CW);
+		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
 		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 		psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);

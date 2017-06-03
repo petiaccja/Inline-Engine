@@ -123,7 +123,7 @@ void DebugDraw::Setup(SetupContext& context) {
 		psoDesc.rootSignature = m_binder->GetRootSignature();
 		psoDesc.vs = m_shader.vs;
 		psoDesc.ps = m_shader.ps;
-		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::WIREFRAME, gxapi::eCullMode::DRAW_CW);
+		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::WIREFRAME, gxapi::eCullMode::DRAW_CCW);
 		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::LINE;
 
 		psoDesc.depthStencilState = gxapi::DepthStencilState(false, false);

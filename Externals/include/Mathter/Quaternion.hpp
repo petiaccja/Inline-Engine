@@ -412,3 +412,15 @@ inline Quaternion<long double> operator "" _k(long double arg) {
 
 
 } // namespace mathter
+
+
+
+template <class T, bool Packed>
+std::ostream& operator<<(std::ostream& os, const mathter::Quaternion<T, Packed>& q) {
+	os << "["
+		<< q.Angle() * T(180.0) / T(3.1415926535897932384626)
+		<< " deg @ "
+		<< q.Axis()
+		<< "]";
+	return os;
+}
