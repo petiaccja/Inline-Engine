@@ -26,6 +26,7 @@
 #include "Nodes/Node_DrawSky.hpp"
 #include "Nodes/Node_DebugDraw.hpp"
 #include "Nodes/Node_LightCulling.hpp"
+#include "Nodes/Node_BrightLumPass.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -391,6 +392,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::DrawSky> drawSky(new nodes::DrawSky());
 	std::shared_ptr<nodes::DebugDraw> debugDraw(new nodes::DebugDraw());
 	std::shared_ptr<nodes::LightCulling> lightCulling(new nodes::LightCulling());
+	std::shared_ptr<nodes::BrightLumPass> brightLumPass(new nodes::BrightLumPass());
 	TextureUsage usage;
 
 
@@ -455,6 +457,8 @@ void GraphicsEngine::CreatePipeline() {
 	drawSky->GetInput<1>().Link(depthPrePass->GetOutput(0));
 	drawSky->GetInput<2>().Link(getCamera->GetOutput(0));
 	drawSky->GetInput<3>().Link(getWorldScene->GetOutput(2));
+
+	brightLumPass->GetInput<0>().Link(drawSky->GetOutput(0));
 
 	// last step in world render is debug draw
 	debugDraw->GetInput<0>().Link(drawSky->GetOutput(0));
@@ -527,6 +531,7 @@ void GraphicsEngine::CreatePipeline() {
 		csm,
 		drawSky,
 		lightCulling,
+		brightLumPass,
 
 		getGuiScene,
 		getGuiCamera,

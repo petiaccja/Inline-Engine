@@ -176,6 +176,7 @@
     <ClInclude Include="Nodes\NodeUtility.hpp" />
     <ClInclude Include="Nodes\Node_Blend.hpp" />
     <ClInclude Include="Nodes\Node_BlendWithTransform.hpp" />
+    <ClInclude Include="Nodes\Node_BrightLumPass.hpp" />
     <ClInclude Include="Nodes\Node_ScreenSpaceTransform.hpp" />
     <ClInclude Include="Nodes\Node_CreateTexture.hpp" />
     <ClInclude Include="Nodes\Node_CSM.hpp" />
@@ -248,6 +249,7 @@
     <ClCompile Include="Nodes\NodeUtility.cpp" />
     <ClCompile Include="Nodes\Node_Blend.cpp" />
     <ClCompile Include="Nodes\Node_BlendWithTransform.cpp" />
+    <ClCompile Include="Nodes\Node_BrightLumPass.cpp" />
     <ClCompile Include="Nodes\Node_CSM.cpp" />
     <ClCompile Include="Nodes\Node_DebugDraw.cpp" />
     <ClCompile Include="Nodes\Node_DepthPrepass.cpp" />
