@@ -153,7 +153,7 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 
 	Uniforms uniformsCBData;
 
-	DebugDrawManager::GetInstance().AddSphere(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1, 1);
+	//DebugDrawManager::GetInstance().AddSphere(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1, 1);
 
 	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();
 	mathfu::Matrix4x4f projection = m_camera->GetProjectionMatrixRH();

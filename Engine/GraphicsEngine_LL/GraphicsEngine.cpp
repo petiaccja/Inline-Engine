@@ -27,6 +27,9 @@
 #include "Nodes/Node_DebugDraw.hpp"
 #include "Nodes/Node_LightCulling.hpp"
 #include "Nodes/Node_BrightLumPass.hpp"
+#include "Nodes/Node_LuminanceReduction.hpp"
+#include "Nodes/Node_LuminanceReductionFinal.hpp"
+#include "Nodes/Node_HDRCombine.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -393,6 +396,9 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::DebugDraw> debugDraw(new nodes::DebugDraw());
 	std::shared_ptr<nodes::LightCulling> lightCulling(new nodes::LightCulling());
 	std::shared_ptr<nodes::BrightLumPass> brightLumPass(new nodes::BrightLumPass());
+	std::shared_ptr<nodes::LuminanceReduction> luminanceReduction(new nodes::LuminanceReduction());
+	std::shared_ptr<nodes::LuminanceReductionFinal> luminanceReductionFinal(new nodes::LuminanceReductionFinal());
+	std::shared_ptr<nodes::HDRCombine> hdrCombine(new nodes::HDRCombine());
 	TextureUsage usage;
 
 
@@ -460,8 +466,16 @@ void GraphicsEngine::CreatePipeline() {
 
 	brightLumPass->GetInput<0>().Link(drawSky->GetOutput(0));
 
+	luminanceReduction->GetInput<0>().Link(brightLumPass->GetOutput(1));
+
+	luminanceReductionFinal->GetInput<0>().Link(luminanceReduction->GetOutput(0));
+
+	hdrCombine->GetInput<0>().Link(drawSky->GetOutput(0));
+	hdrCombine->GetInput<1>().Link(luminanceReductionFinal->GetOutput(0));
+
 	// last step in world render is debug draw
-	debugDraw->GetInput<0>().Link(drawSky->GetOutput(0));
+	//debugDraw->GetInput<0>().Link(drawSky->GetOutput(0));
+	debugDraw->GetInput<0>().Link(hdrCombine->GetOutput(0));
 	debugDraw->GetInput<1>().Link(getCamera->GetOutput(0));
 
 	// -----------------------------
@@ -532,6 +546,9 @@ void GraphicsEngine::CreatePipeline() {
 		drawSky,
 		lightCulling,
 		brightLumPass,
+		luminanceReduction,
+		luminanceReductionFinal,
+		hdrCombine,
 
 		getGuiScene,
 		getGuiCamera,

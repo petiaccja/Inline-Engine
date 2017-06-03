@@ -177,6 +177,9 @@
     <ClInclude Include="Nodes\Node_Blend.hpp" />
     <ClInclude Include="Nodes\Node_BlendWithTransform.hpp" />
     <ClInclude Include="Nodes\Node_BrightLumPass.hpp" />
+    <ClInclude Include="Nodes\Node_HDRCombine.hpp" />
+    <ClInclude Include="Nodes\Node_LuminanceReduction.hpp" />
+    <ClInclude Include="Nodes\Node_LuminanceReductionFinal.hpp" />
     <ClInclude Include="Nodes\Node_ScreenSpaceTransform.hpp" />
     <ClInclude Include="Nodes\Node_CreateTexture.hpp" />
     <ClInclude Include="Nodes\Node_CSM.hpp" />
@@ -257,7 +260,10 @@
     <ClCompile Include="Nodes\Node_DepthReductionFinal.cpp" />
     <ClCompile Include="Nodes\Node_DrawSky.cpp" />
     <ClCompile Include="Nodes\Node_ForwardRender.cpp" />
+    <ClCompile Include="Nodes\Node_HDRCombine.cpp" />
     <ClCompile Include="Nodes\Node_LightCulling.cpp" />
+    <ClCompile Include="Nodes\Node_LuminanceReduction.cpp" />
+    <ClCompile Include="Nodes\Node_LuminanceReductionFinal.cpp" />
     <ClCompile Include="Nodes\Node_OverlayRender.cpp" />
     <ClCompile Include="OrthographicCamera.cpp" />
     <ClCompile Include="OverlayEntity.cpp" />
