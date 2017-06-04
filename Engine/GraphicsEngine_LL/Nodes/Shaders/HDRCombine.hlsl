@@ -7,13 +7,14 @@
 
 struct Uniforms
 {
-	float exposure;
+	float exposure, bloom_weight;
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
 
 Texture2D inputTex : register(t0); //HDR texture
 Texture2D luminanceTex : register(t1);
+Texture2D bloomTex : register(t2);
 SamplerState samp0 : register(s0);
 
 struct PS_Input
@@ -69,6 +70,9 @@ float3 gamma_to_linear(float3 col)
 float4 PSMain(PS_Input input) : SV_TARGET
 {
 	float4 inputData = inputTex.Sample(samp0, input.texcoord);
+	float4 bloomData = bloomTex.Sample(samp0, input.texcoord);
+
+	inputData += bloomData * uniforms.bloom_weight;
 	
 	float3 hdrColor = max(inputData, float4(0, 0, 0, 0)).xyz;
 	float avg_lum = luminanceTex.Sample(samp0, input.texcoord);

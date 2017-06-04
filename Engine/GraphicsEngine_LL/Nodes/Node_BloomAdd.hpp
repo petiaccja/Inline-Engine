@@ -15,14 +15,14 @@
 namespace inl::gxeng::nodes {
 
 
-class HDRCombine :
+class BloomAdd :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<Texture2D, Texture2D, Texture2D>,
+	virtual public exc::InputPortConfig<Texture2D, Texture2D>, //half size, normal size
 	virtual public exc::OutputPortConfig<Texture2D>
 {
 public:
-	HDRCombine();
+	BloomAdd();
 
 	void Update() override {}
 	void Notify(exc::InputPortBase* sender) override {}
@@ -33,27 +33,16 @@ public:
 	void Execute(RenderContext& context) override;
 
 protected:
-	//gxeng::RWTextureView2D m_light_mvp_uav;
-	//gxeng::TextureView2D m_light_mvp_srv;
-	//
-	//gxeng::RWTextureView2D m_shadow_mx_uav;
-	//gxeng::TextureView2D m_shadow_mx_srv;
-	//
-	//gxeng::RWTextureView2D m_csm_splits_uav;
-	//gxeng::TextureView2D m_csm_splits_srv;
-
-protected:
 	std::optional<Binder> m_binder;
-	BindParameter m_inputTexBindParam;
-	BindParameter m_luminanceTexBindParam;
-	BindParameter m_bloomTexBindParam;
+	BindParameter m_input0TexBindParam;
+	BindParameter m_input1TexBindParam;
 	BindParameter m_uniformsBindParam;
 	ShaderProgram m_shader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 protected: // outputs
 	bool m_outputTexturesInited = false;
-	RenderTargetView2D m_combine_rtv;
+	RenderTargetView2D m_output_rtv;
 
 	VertexBuffer m_fsq;
 	IndexBuffer m_fsqIndices;
@@ -61,9 +50,8 @@ protected: // outputs
 
 
 protected: // render context
-	TextureView2D m_inputTexSrv;
-	TextureView2D m_luminanceTexSrv;
-	TextureView2D m_bloomTexSrv;
+	TextureView2D m_input0TexSrv;
+	TextureView2D m_input1TexSrv;
 
 private:
 	void InitRenderTarget(SetupContext& context);

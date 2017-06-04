@@ -30,6 +30,9 @@
 #include "Nodes/Node_LuminanceReduction.hpp"
 #include "Nodes/Node_LuminanceReductionFinal.hpp"
 #include "Nodes/Node_HDRCombine.hpp"
+#include "Nodes/Node_BloomDownsample.hpp"
+#include "Nodes/Node_BloomBlur.hpp"
+#include "Nodes/Node_BloomAdd.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -399,6 +402,25 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::LuminanceReduction> luminanceReduction(new nodes::LuminanceReduction());
 	std::shared_ptr<nodes::LuminanceReductionFinal> luminanceReductionFinal(new nodes::LuminanceReductionFinal());
 	std::shared_ptr<nodes::HDRCombine> hdrCombine(new nodes::HDRCombine());
+	std::shared_ptr<nodes::BloomDownsample> bloomDownsample2(new nodes::BloomDownsample());
+	std::shared_ptr<nodes::BloomDownsample> bloomDownsample4(new nodes::BloomDownsample());
+	std::shared_ptr<nodes::BloomDownsample> bloomDownsample8(new nodes::BloomDownsample());
+	std::shared_ptr<nodes::BloomDownsample> bloomDownsample16(new nodes::BloomDownsample());
+	std::shared_ptr<nodes::BloomDownsample> bloomDownsample32(new nodes::BloomDownsample());
+	std::shared_ptr<nodes::BloomBlur> bloomBlurVertical32(new nodes::BloomBlur());
+	std::shared_ptr<nodes::BloomBlur> bloomBlurVertical16(new nodes::BloomBlur());
+	std::shared_ptr<nodes::BloomBlur> bloomBlurVertical8(new nodes::BloomBlur());
+	std::shared_ptr<nodes::BloomBlur> bloomBlurVertical4(new nodes::BloomBlur());
+	std::shared_ptr<nodes::BloomBlur> bloomBlurVertical2(new nodes::BloomBlur());
+	std::shared_ptr<nodes::BloomBlur> bloomBlurHorizontal32(new nodes::BloomBlur());
+	std::shared_ptr<nodes::BloomBlur> bloomBlurHorizontal16(new nodes::BloomBlur());
+	std::shared_ptr<nodes::BloomBlur> bloomBlurHorizontal8(new nodes::BloomBlur());
+	std::shared_ptr<nodes::BloomBlur> bloomBlurHorizontal4(new nodes::BloomBlur());
+	std::shared_ptr<nodes::BloomBlur> bloomBlurHorizontal2(new nodes::BloomBlur());
+	std::shared_ptr<nodes::BloomAdd> bloomAdd3216(new nodes::BloomAdd());
+	std::shared_ptr<nodes::BloomAdd> bloomAdd168(new nodes::BloomAdd());
+	std::shared_ptr<nodes::BloomAdd> bloomAdd84(new nodes::BloomAdd());
+	std::shared_ptr<nodes::BloomAdd> bloomAdd42(new nodes::BloomAdd());
 	TextureUsage usage;
 
 
@@ -465,6 +487,45 @@ void GraphicsEngine::CreatePipeline() {
 	drawSky->GetInput<3>().Link(getWorldScene->GetOutput(2));
 
 	brightLumPass->GetInput<0>().Link(drawSky->GetOutput(0));
+	
+	bloomDownsample2->GetInput<0>().Link(brightLumPass->GetOutput(0));
+	bloomDownsample4->GetInput<0>().Link(bloomDownsample2->GetOutput(0));
+	bloomDownsample8->GetInput<0>().Link(bloomDownsample4->GetOutput(0));
+	bloomDownsample16->GetInput<0>().Link(bloomDownsample8->GetOutput(0));
+	bloomDownsample32->GetInput<0>().Link(bloomDownsample16->GetOutput(0));
+
+	bloomBlurVertical32->GetInput<0>().Link(bloomDownsample32->GetOutput(0));
+	bloomBlurVertical32->GetInput<1>().Set(mathfu::Vector2f(0, 1));
+	bloomBlurHorizontal32->GetInput<0>().Link(bloomBlurVertical32->GetOutput(0));
+	bloomBlurHorizontal32->GetInput<1>().Set(mathfu::Vector2f(1, 0));
+	bloomAdd3216->GetInput<0>().Link(bloomBlurHorizontal32->GetOutput(0));
+	bloomAdd3216->GetInput<1>().Link(bloomDownsample16->GetOutput(0));
+
+	bloomBlurVertical16->GetInput<0>().Link(bloomAdd3216->GetOutput(0));
+	bloomBlurVertical16->GetInput<1>().Set(mathfu::Vector2f(0, 1));
+	bloomBlurHorizontal16->GetInput<0>().Link(bloomBlurVertical16->GetOutput(0));
+	bloomBlurHorizontal16->GetInput<1>().Set(mathfu::Vector2f(1, 0));
+	bloomAdd168->GetInput<0>().Link(bloomBlurHorizontal16->GetOutput(0));
+	bloomAdd168->GetInput<1>().Link(bloomDownsample8->GetOutput(0));
+
+	bloomBlurVertical8->GetInput<0>().Link(bloomAdd168->GetOutput(0));
+	bloomBlurVertical8->GetInput<1>().Set(mathfu::Vector2f(0, 1));
+	bloomBlurHorizontal8->GetInput<0>().Link(bloomBlurVertical8->GetOutput(0));
+	bloomBlurHorizontal8->GetInput<1>().Set(mathfu::Vector2f(1, 0));
+	bloomAdd84->GetInput<0>().Link(bloomBlurHorizontal8->GetOutput(0));
+	bloomAdd84->GetInput<1>().Link(bloomDownsample4->GetOutput(0));
+
+	bloomBlurVertical4->GetInput<0>().Link(bloomAdd84->GetOutput(0));
+	bloomBlurVertical4->GetInput<1>().Set(mathfu::Vector2f(0, 1));
+	bloomBlurHorizontal4->GetInput<0>().Link(bloomBlurVertical4->GetOutput(0));
+	bloomBlurHorizontal4->GetInput<1>().Set(mathfu::Vector2f(1, 0));
+	bloomAdd42->GetInput<0>().Link(bloomBlurHorizontal4->GetOutput(0));
+	bloomAdd42->GetInput<1>().Link(bloomDownsample2->GetOutput(0));
+
+	bloomBlurVertical2->GetInput<0>().Link(bloomAdd42->GetOutput(0));
+	bloomBlurVertical2->GetInput<1>().Set(mathfu::Vector2f(0, 1));
+	bloomBlurHorizontal2->GetInput<0>().Link(bloomBlurVertical2->GetOutput(0));
+	bloomBlurHorizontal2->GetInput<1>().Set(mathfu::Vector2f(1, 0));
 
 	luminanceReduction->GetInput<0>().Link(brightLumPass->GetOutput(1));
 
@@ -472,6 +533,7 @@ void GraphicsEngine::CreatePipeline() {
 
 	hdrCombine->GetInput<0>().Link(drawSky->GetOutput(0));
 	hdrCombine->GetInput<1>().Link(luminanceReductionFinal->GetOutput(0));
+	hdrCombine->GetInput<2>().Link(bloomBlurHorizontal2->GetOutput(0));
 
 	// last step in world render is debug draw
 	//debugDraw->GetInput<0>().Link(drawSky->GetOutput(0));
@@ -548,6 +610,25 @@ void GraphicsEngine::CreatePipeline() {
 		brightLumPass,
 		luminanceReduction,
 		luminanceReductionFinal,
+		bloomDownsample2,
+		bloomDownsample4,
+		bloomDownsample8,
+		bloomDownsample16,
+		bloomDownsample32,
+		bloomBlurVertical32,
+		bloomBlurHorizontal32,
+		bloomAdd3216,
+		bloomBlurVertical16,
+		bloomBlurHorizontal16,
+		bloomAdd168,
+		bloomBlurVertical8,
+		bloomBlurHorizontal8,
+		bloomAdd84,
+		bloomBlurVertical4,
+		bloomBlurHorizontal4,
+		bloomAdd42,
+		bloomBlurVertical2,		
+		bloomBlurHorizontal2,
 		hdrCombine,
 
 		getGuiScene,

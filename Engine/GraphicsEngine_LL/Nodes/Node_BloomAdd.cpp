@@ -1,4 +1,4 @@
-#include "Node_HDRCombine.hpp"
+#include "Node_BloomAdd.hpp"
 
 #include "NodeUtility.hpp"
 
@@ -18,33 +18,29 @@ namespace inl::gxeng::nodes {
 
 struct Uniforms
 {
-	float exposure, bloom_weight;
 };
 
 
-HDRCombine::HDRCombine() {
+BloomAdd::BloomAdd() {
 	this->GetInput<0>().Set({});
 	this->GetInput<1>().Set({});
-	this->GetInput<2>().Set({});
 }
 
 
-void HDRCombine::Initialize(EngineContext & context) {
+void BloomAdd::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
-void HDRCombine::Reset() {
-	m_inputTexSrv = TextureView2D();
-	m_luminanceTexSrv = TextureView2D();
-	m_bloomTexSrv = TextureView2D();
+void BloomAdd::Reset() {
+	m_input0TexSrv = TextureView2D();
+	m_input1TexSrv = TextureView2D();
 
 	GetInput<0>().Clear();
 	GetInput<1>().Clear();
-	GetInput<2>().Clear();
 }
 
 
-void HDRCombine::Setup(SetupContext& context) {
+void BloomAdd::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;
 	srvDesc.activeArraySize = 1;
 	srvDesc.firstArrayElement = 0;
@@ -53,17 +49,13 @@ void HDRCombine::Setup(SetupContext& context) {
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
 
-	Texture2D inputTex = this->GetInput<0>().Get();
-	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("HDR Combine input tex SRV");
+	Texture2D input0Tex = this->GetInput<0>().Get();
+	m_input0TexSrv = context.CreateSrv(input0Tex, input0Tex.GetFormat(), srvDesc);
+	m_input0TexSrv.GetResource()._GetResourcePtr()->SetName("Bloom add input0 tex SRV");
 
-	Texture2D luminanceTex = this->GetInput<1>().Get();
-	m_luminanceTexSrv = context.CreateSrv(luminanceTex, luminanceTex.GetFormat(), srvDesc);
-	m_luminanceTexSrv.GetResource()._GetResourcePtr()->SetName("HDR Combine luminance tex SRV");
-
-	Texture2D bloomTex = this->GetInput<2>().Get();
-	m_bloomTexSrv = context.CreateSrv(bloomTex, bloomTex.GetFormat(), srvDesc);
-	m_bloomTexSrv.GetResource()._GetResourcePtr()->SetName("HDR Combine bloom tex SRV");
+	Texture2D input1Tex = this->GetInput<1>().Get();
+	m_input1TexSrv = context.CreateSrv(input1Tex, input1Tex.GetFormat(), srvDesc);
+	m_input1TexSrv.GetResource()._GetResourcePtr()->SetName("Bloom add input1 tex SRV");
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -81,29 +73,21 @@ void HDRCombine::Setup(SetupContext& context) {
 		sampBindParamDesc.relativeChangeFrequency = 0;
 		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		BindParameterDesc inputBindParamDesc;
-		m_inputTexBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
-		inputBindParamDesc.parameter = m_inputTexBindParam;
-		inputBindParamDesc.constantSize = 0;
-		inputBindParamDesc.relativeAccessFrequency = 0;
-		inputBindParamDesc.relativeChangeFrequency = 0;
-		inputBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+		BindParameterDesc input0BindParamDesc;
+		m_input0TexBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
+		input0BindParamDesc.parameter = m_input0TexBindParam;
+		input0BindParamDesc.constantSize = 0;
+		input0BindParamDesc.relativeAccessFrequency = 0;
+		input0BindParamDesc.relativeChangeFrequency = 0;
+		input0BindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		BindParameterDesc luminanceBindParamDesc;
-		m_luminanceTexBindParam = BindParameter(eBindParameterType::TEXTURE, 1);
-		luminanceBindParamDesc.parameter = m_luminanceTexBindParam;
-		luminanceBindParamDesc.constantSize = 0;
-		luminanceBindParamDesc.relativeAccessFrequency = 0;
-		luminanceBindParamDesc.relativeChangeFrequency = 0;
-		luminanceBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
-
-		BindParameterDesc bloomBindParamDesc;
-		m_bloomTexBindParam = BindParameter(eBindParameterType::TEXTURE, 2);
-		bloomBindParamDesc.parameter = m_bloomTexBindParam;
-		bloomBindParamDesc.constantSize = 0;
-		bloomBindParamDesc.relativeAccessFrequency = 0;
-		bloomBindParamDesc.relativeChangeFrequency = 0;
-		bloomBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+		BindParameterDesc input1BindParamDesc;
+		m_input1TexBindParam = BindParameter(eBindParameterType::TEXTURE, 1);
+		input1BindParamDesc.parameter = m_input1TexBindParam;
+		input1BindParamDesc.constantSize = 0;
+		input1BindParamDesc.relativeAccessFrequency = 0;
+		input1BindParamDesc.relativeChangeFrequency = 0;
+		input1BindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
@@ -115,7 +99,7 @@ void HDRCombine::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, luminanceBindParamDesc, bloomBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, input0BindParamDesc, input1BindParamDesc },{ samplerDesc });
 	}
 
 	if (!m_fsq.HasObject()) {
@@ -130,9 +114,9 @@ void HDRCombine::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("HDR Combine full screen quad vertex buffer");
+		m_fsq._GetResourcePtr()->SetName("Bloom add full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("HDR Combine pass full screen quad index buffer");
+		m_fsqIndices._GetResourcePtr()->SetName("Bloom add full screen quad index buffer");
 	}
 
 	if (!m_PSO) {
@@ -142,7 +126,7 @@ void HDRCombine::Setup(SetupContext& context) {
 		shaderParts.vs = true;
 		shaderParts.ps = true;
 
-		m_shader = context.CreateShader("HDRCombine", shaderParts, "");
+		m_shader = context.CreateShader("BloomAdd", shaderParts, "");
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
 			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
@@ -164,25 +148,21 @@ void HDRCombine::Setup(SetupContext& context) {
 		psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
 
 		psoDesc.numRenderTargets = 1;
-		psoDesc.renderTargetFormats[0] = m_combine_rtv.GetResource().GetFormat();
+		psoDesc.renderTargetFormats[0] = m_output_rtv.GetResource().GetFormat();
 
 		m_PSO.reset(context.CreatePSO(psoDesc));
 	}
 
-	this->GetOutput<0>().Set(m_combine_rtv.GetResource());
+	this->GetOutput<0>().Set(m_output_rtv.GetResource());
 }
 
 
-void HDRCombine::Execute(RenderContext& context) {
+void BloomAdd::Execute(RenderContext& context) {
 	GraphicsCommandList& commandList = context.AsGraphics();
 
 	Uniforms uniformsCBData;
 
 	//DebugDrawManager::GetInstance().AddSphere(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1, 1);
-
-	//TODO get from somewhere
-	uniformsCBData.exposure = 0.0f;
-	uniformsCBData.bloom_weight = 1.0f;
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
@@ -190,15 +170,14 @@ void HDRCombine::Execute(RenderContext& context) {
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
 	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
 
-	commandList.SetResourceState(m_combine_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
-	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-	commandList.SetResourceState(m_luminanceTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-	commandList.SetResourceState(m_bloomTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_output_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(m_input0TexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_input1TexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
-	RenderTargetView2D* pRTV = &m_combine_rtv;
+	RenderTargetView2D* pRTV = &m_output_rtv;
 	commandList.SetRenderTargets(1, &pRTV, 0);
 
-	gxapi::Rectangle rect{ 0, (int)m_combine_rtv.GetResource().GetHeight(), 0, (int)m_combine_rtv.GetResource().GetWidth() };
+	gxapi::Rectangle rect{ 0, (int)m_output_rtv.GetResource().GetHeight(), 0, (int)m_output_rtv.GetResource().GetWidth() };
 	gxapi::Viewport viewport;
 	viewport.width = (float)rect.right;
 	viewport.height = (float)rect.bottom;
@@ -215,10 +194,9 @@ void HDRCombine::Execute(RenderContext& context) {
 
 	commandList.SetPipelineState(m_PSO.get());
 	commandList.SetGraphicsBinder(&m_binder.value());
-	commandList.BindGraphics(m_inputTexBindParam, m_inputTexSrv);
-	commandList.BindGraphics(m_luminanceTexBindParam, m_luminanceTexSrv);
-	commandList.BindGraphics(m_bloomTexBindParam, m_bloomTexSrv);
-	commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
+	commandList.BindGraphics(m_input0TexBindParam, m_input0TexSrv);
+	commandList.BindGraphics(m_input1TexBindParam, m_input1TexSrv);
+	//commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
 	unsigned vbSize = (unsigned)m_fsq.GetSize();
@@ -232,13 +210,13 @@ void HDRCombine::Execute(RenderContext& context) {
 }
 
 
-void HDRCombine::InitRenderTarget(SetupContext& context) {
+void BloomAdd::InitRenderTarget(SetupContext& context) {
 	if (!m_outputTexturesInited) {
 		m_outputTexturesInited = true;
 
 		using gxapi::eFormat;
 
-		auto formatHDRCombine = eFormat::R8G8B8A8_UNORM;
+		auto formatAdd = eFormat::R16G16B16A16_FLOAT;
 
 		gxapi::RtvTexture2DArray rtvDesc;
 		rtvDesc.activeArraySize = 1;
@@ -254,10 +232,10 @@ void HDRCombine::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D combine_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatHDRCombine, {1, 1, 0, 0});
-		combine_tex._GetResourcePtr()->SetName("HDR Combine tex");
-		m_combine_rtv = context.CreateRtv(combine_tex, formatHDRCombine, rtvDesc);
-		m_combine_rtv.GetResource()._GetResourcePtr()->SetName("HDR Combine RTV");
+		Texture2D output_tex = context.CreateTexture2D(m_input1TexSrv.GetResource().GetWidth(), m_input1TexSrv.GetResource().GetHeight(), formatAdd, {1, 1, 0, 0});
+		output_tex._GetResourcePtr()->SetName("Bloom add tex");
+		m_output_rtv = context.CreateRtv(output_tex, formatAdd, rtvDesc);
+		m_output_rtv.GetResource()._GetResourcePtr()->SetName("Bloom add RTV");
 	}
 }
 
