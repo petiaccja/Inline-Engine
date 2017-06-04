@@ -12,7 +12,7 @@ GuiCollapsable::GuiCollapsable(GuiEngine* guiEngine)
 	list = new GuiList(guiEngine);
 	//list->SetBgToColor(Color(0, 0, 0, 0));
 
-	caption = AddButton();
+	caption = AddGuiButton();
 	//caption->SetAlign(eGuiAlign::STRETCH_H);
 
 	caption->onMousePressedClonable += [](Gui* _self, CursorEvent& evt)
@@ -20,9 +20,9 @@ GuiCollapsable::GuiCollapsable(GuiEngine* guiEngine)
 		GuiCollapsable* c = _self->GetParent()->AsCollapsable();
 
 		if (c->bOpened)
-			c->Remove(c->list);
+			c->RemoveGui(c->list);
 		else
-			c->Add(c->list);
+			c->AddGui(c->list);
 
 		c->bOpened = !c->bOpened;
 	};

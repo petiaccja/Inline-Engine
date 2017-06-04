@@ -46,7 +46,7 @@ GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
 		if (subMenu->GetChildren().size() == 0)
 		{
 			Gui* arrow = subMenu->GetPrivateData<Gui>();
-			item->Remove(arrow);
+			item->RemoveGui(arrow);
 		}
 	};
 

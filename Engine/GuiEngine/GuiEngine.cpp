@@ -108,7 +108,7 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 
 									if (activeContextMenu)
 									{
-										postProcessLayer->Add(activeContextMenu);
+										postProcessLayer->AddGui(activeContextMenu);
 
 										RectF rect = activeContextMenu->GetRect();
 										rect.left = event.clientMousePos.x();

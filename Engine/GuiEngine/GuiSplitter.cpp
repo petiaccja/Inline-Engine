@@ -204,7 +204,7 @@ void GuiSplitter::AddItem(Gui* item)
 	// Gui Container wrapping our item, sizing and align policy will work relative to this container :)
 	Gui* container = AddGui();
 	container->DisableHover();
-	container->Add(item);
+	container->AddGui(item);
 	container->SetSize(item->GetSize());
 	items.insert(item);
 }

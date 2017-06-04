@@ -5,7 +5,7 @@ using namespace inl::gui;
 GuiButton::GuiButton(GuiEngine* guiEngine)
 :Gui(guiEngine)
 {
-	text = AddText();
+	text = AddGuiText();
 	text->StretchFitToChildren();
 	text->AlignLeft();
 	text->AlignVerCenter();

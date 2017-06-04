@@ -18,7 +18,7 @@ Vector2f GuiList::ArrangeChildren(const Vector2f& finalSize)
 {
 	Vector2f pos = GetContentPos();
 	Vector2f selfSize(0, 0);
-	for (Gui* child : GetChildren())
+	for (Gui* child : GetItems())
 	{
 		Vector2f desiredSize = child->GetDesiredSize();
 		if (orientation == eGuiOrientation::VERTICAL)

@@ -91,13 +91,13 @@
     <ClCompile Include="GuiImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GuiScrollable.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="GuiGrid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GuiLayout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GuiScrollable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

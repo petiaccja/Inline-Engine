@@ -72,7 +72,7 @@ void Editor::InitGui()
 	mainLayer->SetBorder(1, Color(100));
 
 	// Main layout of the editor is a simple list
-	GuiList* mainLayout = mainLayer->AddList();
+	GuiList* mainLayout = mainLayer->AddGuiList();
 	mainLayout->StretchFillParent(); // Fill the layer
 	mainLayout->SetOrientation(eGuiOrientation::VERTICAL);
 	mainLayout->SetBgToColor(Color::BLACK);
@@ -83,11 +83,11 @@ void Editor::InitGui()
 	captionBar->SetRect(0, 0, 100, 26);
 
 	// Minimize, Maximize, Close btn
-	GuiList* minMaxCloseList = mainLayer->AddList();
+	GuiList* minMaxCloseList = mainLayer->AddGuiList();
 	minMaxCloseList->StretchFitToChildren();
-	minimizeBtn = mainLayer->AddImage();
-	maximizeBtn = mainLayer->AddImage();
-	closeBtn = mainLayer->AddImage();
+	minimizeBtn = mainLayer->AddGuiImage();
+	maximizeBtn = mainLayer->AddGuiImage();
+	closeBtn = mainLayer->AddGuiImage();
 
 	minimizeBtn->onMouseClicked += [this](CursorEvent& evt) { wnd->MinimizeSize(); };
 	maximizeBtn->onMouseClicked += [this](CursorEvent& evt)
@@ -104,13 +104,13 @@ void Editor::InitGui()
 	closeBtn->SetImages("Resources/close.png", "Resources/close_h.png");
 
 	minMaxCloseList->SetOrientation(eGuiOrientation::HORIZONTAL);
-	minMaxCloseList->Add(minimizeBtn);
-	minMaxCloseList->Add(maximizeBtn);
-	minMaxCloseList->Add(closeBtn);
+	minMaxCloseList->AddItem(minimizeBtn);
+	minMaxCloseList->AddItem(maximizeBtn);
+	minMaxCloseList->AddItem(closeBtn);
 	minMaxCloseList->AlignRight();
 
 	// Editor caption text
-	GuiText* inlineEngineText = mainLayer->AddText();
+	GuiText* inlineEngineText = mainLayer->AddGuiText();
 	inlineEngineText->SetFontSize(14);
 	inlineEngineText->SetFontStyle(Gdiplus::FontStyle::FontStyleBold);
 	inlineEngineText->SetText("Inline Editor");
@@ -118,20 +118,17 @@ void Editor::InitGui()
 	inlineEngineText->StretchHorFillParent();
 	inlineEngineText->SetMarginLeft(7);
 
-	captionBar->Add(inlineEngineText);
-	captionBar->Add(minMaxCloseList);
+	captionBar->AddGui(inlineEngineText);
+	captionBar->AddGui(minMaxCloseList);
 	captionBar->StretchHorFillParent();
-	captionBar->SetPos(0, 1);
-	//captionBar->SetBorder(0, 0, 0, 1, Color(70));
 
-	mainLayout->Add(captionBar);
+	mainLayout->AddItem(captionBar);
 
 	// Main menu bar
-	GuiMenu* menuBar = mainLayer->AddMenu();
+	GuiMenu* menuBar = mainLayer->AddGuiMenu();
 	menuBar->SetBorder(0, 0, 0, 1, Color(70));
 	menuBar->SetOrientation(eGuiOrientation::HORIZONTAL);
 	menuBar->SetBgToColor(Color(25));
-	menuBar->SetRect(1, captionBar->GetHeight(), 400, 400);
 	menuBar->StretchHorFillParent();
 	menuBar->StretchVerFitToChildren();
 	{
@@ -194,11 +191,11 @@ void Editor::InitGui()
 			c->AlignCenter();
 		}
 	}
-	mainLayout->Add(menuBar);
+	mainLayout->AddItem(menuBar);
 
-	GuiSplitter* split0 = mainLayer->AddSplitter(); // split main
-	GuiSplitter* split1 = mainLayer->AddSplitter(); // split main left to (top, bottom)
-	GuiSplitter* split2 = mainLayer->AddSplitter(); // split main left-top to (left, right)
+	GuiSplitter* split0 = mainLayer->AddGuiSplitter(); // split main
+	GuiSplitter* split1 = mainLayer->AddGuiSplitter(); // split main left to (top, bottom)
+	GuiSplitter* split2 = mainLayer->AddGuiSplitter(); // split main left-top to (left, right)
 	split0->Stretch(eGuiStretch::FILL_PARENT_POSITIVE_DIR, eGuiStretch::FILL_PARENT_POSITIVE_DIR);
 	split1->StretchFillParent();
 	split2->StretchFillParent();
@@ -207,14 +204,14 @@ void Editor::InitGui()
 	split1->SetOrientation(eGuiOrientation::VERTICAL);
 	split2->SetOrientation(eGuiOrientation::HORIZONTAL);
 
-	split0->SetSize(400, 400);
+	//split0->SetSize(400, 400);
 	split1->SetSize(750, 400);
 	split2->SetSize(750, 300);
 
-	Gui* rightArea = mainLayer->AddButton();
-	Gui* bottomArea = mainLayer->AddButton();
-	Gui* leftArea = mainLayer->AddButton();
-	Gui* centerRenderArea = mainLayer->AddButton();
+	Gui* rightArea = mainLayer->AddGuiButton();
+	Gui* bottomArea = mainLayer->AddGuiButton();
+	Gui* leftArea = mainLayer->AddGuiButton();
+	Gui* centerRenderArea = mainLayer->AddGuiButton();
 	rightArea->SetSize(150, 100);
 	rightArea->SetBgToColor(Color(35));
 	bottomArea->SetSize(100, 100);
@@ -243,9 +240,6 @@ void Editor::InitGui()
 	bottomArea->StretchFillParent();
 	leftArea->StretchFillParent();
 
-	// Split main area to left and right
-	split0->SetPos(menuBar->GetPosBottomLeft());
-
 	split0->AddItem(split1);
 	split0->AddItem(rightArea);
 
@@ -254,7 +248,7 @@ void Editor::InitGui()
 
 	split2->AddItem(leftArea);
 	split2->AddItem(centerRenderArea);
-	mainLayout->Add(split0);
+	mainLayout->AddItem(split0);
 
 	for (auto& splitter : { split0, split1, split2 })
 	{
@@ -267,11 +261,10 @@ void Editor::InitGui()
 		}
 	}
 
-	GuiScrollable* scrollableBottom = bottomArea->AddScrollable();
+	GuiScrollable* scrollableBottom = bottomArea->AddGuiScrollable();
 	scrollableBottom->StretchFillParent();
 
 	GuiList* textureList = scrollableBottom->SetContent(new GuiList(scrollableBottom->guiEngine))->AsList();
-	//GuiList* textureList = scrollableBottom->AddList();
 	textureList->SetBgToColor(Color(0, 0, 0, 0));
 	textureList->SetOrientation(eGuiOrientation::HORIZONTAL);
 	textureList->StretchFitToChildren();
@@ -282,13 +275,13 @@ void Editor::InitGui()
 		content->StretchFitToChildren();
 		content->MakeVertical();
 		content->SetSize(70, 100);
-		content->SetBgToColor(Color(0,0,0,0), Color(65));
+		content->SetBgToColor(Color(0,0,0,0), Color(20));
 		GuiImage* img0 = content->AddItemImage();
 		img0->SetMargin(4, 4, 4, 0);
 		img0->SetImage("Resources/normal.jpg");
 		img0->SetSize(70, 70);
 
-		GuiText* text0 = content->AddText();
+		GuiText* text0 = content->AddGuiText();
 		text0->StretchFitToChildren();
 		text0->AlignHorCenter();
 		text0->SetMargin(4);
@@ -321,11 +314,11 @@ void Editor::Run()
 		// Frame delta time
 		float deltaTime = timer->Elapsed();
 
+		// Update game world
 		world->UpdateWorld(deltaTime);
+
 		// Update engine
 		core->Update(deltaTime);
-
-		//Sleep(30);
 	}
 
 	delete timer;

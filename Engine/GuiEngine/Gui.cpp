@@ -254,19 +254,19 @@ Gui& Gui::operator = (const Gui& other)
 	contextMenu = Copy(other.contextMenu);
 
 	for (Gui* child : other.children)
-		Add(child->Clone(), false);
+		AddGui(child->Clone(), false);
 
 	// We are root, so attach to other's parent..
 	if (other.parent && other.parent->IsLayer())
-		other.parent->Add(this, false);
+		other.parent->AddGui(this, false);
 
 	return *this;
 }
 
-void Gui::Add(Gui* child, bool bFireEvents)
+void Gui::AddGui(Gui* child, bool bFireEvents)
 {
 	if (child->parent)
-		child->parent->Remove(child, bFireEvents);
+		child->parent->RemoveGui(child, bFireEvents);
 
 	child->parent = this;
 
@@ -290,7 +290,7 @@ void Gui::Add(Gui* child, bool bFireEvents)
 	}
 }
 
-bool Gui::Remove(Gui* child, bool bFireEvents)
+bool Gui::RemoveGui(Gui* child, bool bFireEvents)
 {
 	int potentialIndex = child->indexInParent;
 	std::vector<Gui*>& children = GetChildren();
@@ -338,7 +338,7 @@ bool Gui::Remove(Gui* child, bool bFireEvents)
 bool Gui::RemoveFromParent()
 {
 	if (parent)
-		return parent->Remove(this);
+		return parent->RemoveGui(this);
 
 	return false;
 }
@@ -871,70 +871,70 @@ bool Gui::IsSibling(Gui* gui)
 Gui* Gui::AddGui()
 {
 	Gui* p = new Gui(guiEngine);
-	Add(p);
+	AddGui(p);
 	return p;
 }
 
-GuiText* Gui::AddText()
+GuiText* Gui::AddGuiText()
 {
 	GuiText* p = new GuiText(guiEngine);
-	Add(p);
+	AddGui(p);
 	return p;
 }
 
-GuiButton* Gui::AddButton()
+GuiButton* Gui::AddGuiButton()
 {
 	GuiButton* p = new GuiButton(guiEngine);
-	Add(p);
+	AddGui(p);
 	return p;
 }
 
-GuiList* Gui::AddList()
+GuiList* Gui::AddGuiList()
 {
 	GuiList* p = new GuiList(guiEngine);
-	Add(p);
+	AddGui(p);
 	return p;
 }
 
-GuiMenu* Gui::AddMenu()
+GuiMenu* Gui::AddGuiMenu()
 {
 	GuiMenu* p = new GuiMenu(guiEngine);
-	Add(p);
+	AddGui(p);
 	return p;
 }
 
-GuiSlider* Gui::AddSlider()
+GuiSlider* Gui::AddGuiSlider()
 {
 	GuiSlider* p = new GuiSlider(guiEngine);
-	Add(p);
+	AddGui(p);
 	return p;
 }
 
-GuiCollapsable* Gui::AddCollapsable()
+GuiCollapsable* Gui::AddGuiCollapsable()
 {
 	GuiCollapsable* p = new GuiCollapsable(guiEngine);
-	Add(p);
+	AddGui(p);
 	return p;
 }
 
-GuiSplitter* Gui::AddSplitter()
+GuiSplitter* Gui::AddGuiSplitter()
 {
 	GuiSplitter* p = new GuiSplitter(guiEngine);
-	Add(p);
+	AddGui(p);
 	return p;
 }
 
-GuiImage* Gui::AddImage()
+GuiImage* Gui::AddGuiImage()
 {
 	GuiImage* p = new GuiImage(guiEngine);
-	Add(p);
+	AddGui(p);
 	return p;
 }
 
-GuiScrollable * Gui::AddScrollable()
+GuiScrollable * Gui::AddGuiScrollable()
 {
 	GuiScrollable* p = new GuiScrollable(guiEngine);
-	Add(p);
+	AddGui(p);
 	return p;
 }
 
@@ -961,7 +961,7 @@ Vector2f Gui::GetCursorPosContentSpace()
 void Gui::BringToFront()
 {
 	RemoveFromParent(); // Remove from previous layer
-	guiEngine->GetPostProcessLayer()->Add(this); // Add to post process (top most layer)
+	guiEngine->GetPostProcessLayer()->AddGui(this); // Add to post process (top most layer)
 }
 
 Gui* Gui::AsPlane() 

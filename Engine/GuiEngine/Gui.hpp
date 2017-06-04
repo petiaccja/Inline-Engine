@@ -74,22 +74,22 @@ public:
 	virtual Gui* Clone() const { return new Gui(*this); }
 	Gui& operator = (const Gui& other);
 
-	void			Add(Gui* child) { Add(child, true); }
+	void			AddGui(Gui* child) { AddGui(child, true); }
 
 	Gui*			AddGui();
-	GuiText*		AddText();
-	GuiButton*		AddButton();
-	GuiList*		AddList();
-	GuiMenu*		AddMenu();
-	GuiSlider*		AddSlider();
-	GuiCollapsable* AddCollapsable();
-	GuiSplitter*	AddSplitter();
-	GuiImage*		AddImage();
-	GuiScrollable*	AddScrollable();
+	GuiText*		AddGuiText();
+	GuiButton*		AddGuiButton();
+	GuiList*		AddGuiList();
+	GuiMenu*		AddGuiMenu();
+	GuiSlider*		AddGuiSlider();
+	GuiCollapsable* AddGuiCollapsable();
+	GuiSplitter*	AddGuiSplitter();
+	GuiImage*		AddGuiImage();
+	GuiScrollable*	AddGuiScrollable();
 
 	void BringToFront();
 
-	bool Remove(Gui* child) { return Remove(child, true); }
+	bool RemoveGui(Gui* child) { return RemoveGui(child, true); }
 	bool RemoveFromParent();
 
 	void RefreshLayout();
@@ -364,8 +364,8 @@ protected:
 
 	void SetActiveImage(Gdiplus::Bitmap* image) { bgActiveImage = image; }
 
-	void Add(Gui* child, bool bFireEvents);
-	bool Remove(Gui* child, bool bFireEvents);
+	void AddGui(Gui* child, bool bFireEvents);
+	bool RemoveGui(Gui* child, bool bFireEvents);
 
 	template<class T>
 	T* Copy(T* other);

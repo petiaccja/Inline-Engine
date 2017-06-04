@@ -13,8 +13,8 @@ public:
 	// Important to implement in derived classes
 	virtual GuiList* Clone() const override { return new GuiList(*this); }
 
-	virtual void AddItem(Gui* gui) override { Add(gui); }
-	virtual bool RemoveItem(Gui* gui) override { return Remove(gui); }
+	virtual void AddItem(Gui* gui) override { AddGui(gui); }
+	virtual bool RemoveItem(Gui* gui) override { return RemoveGui(gui); }
 	virtual std::vector<Gui*> GetItems() override { return GetChildren(); };
 
 	void MakeVertical() { SetOrientation(eGuiOrientation::VERTICAL); }
