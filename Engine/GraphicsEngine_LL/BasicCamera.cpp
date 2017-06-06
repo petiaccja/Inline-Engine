@@ -11,6 +11,9 @@ BasicCamera::BasicCamera():
 	m_position(0, -1, 0),
 	m_upVector(0, 0, 1),
 	m_lookdir(0, 1, 0),
+	m_prevPosition(m_position),
+	m_prevUpVector(m_upVector),
+	m_prevLookdir(m_lookdir),
 	m_targetDistance(1),
 	m_focus(1.f),
 	m_nearPlane(0.1f),
@@ -29,6 +32,10 @@ const std::string & BasicCamera::GetName() const {
 
 // Set positional properties.
 void BasicCamera::SetPosition(mathfu::Vector3f position) {
+	m_prevPosition = m_position;
+	m_prevLookdir = m_lookdir;
+	//m_prevUpVector = m_upVector;
+
 	if (!m_targeted) {
 		m_position = position;
 	}
@@ -41,14 +48,26 @@ void BasicCamera::SetPosition(mathfu::Vector3f position) {
 	}
 }
 void BasicCamera::SetTarget(mathfu::Vector3f targetPosition) {
+	m_prevPosition = m_position;
+	m_prevLookdir = m_lookdir;
+	//m_prevUpVector = m_upVector;
+
 	m_lookdir = targetPosition - m_position;
 	m_targetDistance = m_lookdir.Length();
 	m_lookdir.Normalize();
 }
 void BasicCamera::SetLookDirection(mathfu::Vector3f lookDirection) {
+	//m_prevPosition = m_position;
+	m_prevLookdir = m_lookdir;
+	//m_prevUpVector = m_upVector;
+
 	m_lookdir = lookDirection.Normalized();
 }
 void BasicCamera::SetUpVector(mathfu::Vector3f upVector) {
+	//m_prevPosition = m_position;
+	//m_prevLookdir = m_lookdir;
+	m_prevUpVector = m_upVector;
+
 	m_upVector = upVector.Normalized();
 }
 void BasicCamera::SetTargeted(bool targeted) {

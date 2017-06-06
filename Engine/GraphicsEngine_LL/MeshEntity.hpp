@@ -23,6 +23,10 @@ public:
 	void SetMaterial(Material* material);
 	Material* GetMaterial() const;
 
+	void InitPosition(mathfu::Vector<float, 3> pos);
+	void InitRotation(mathfu::Quaternion<float> rotation);
+	void InitScale(mathfu::Vector<float, 3> scale);
+
 	void SetPosition(mathfu::Vector<float, 3> pos);
 	void SetRotation(mathfu::Quaternion<float> rotation);
 	void SetScale(mathfu::Vector<float, 3> scale);
@@ -31,7 +35,13 @@ public:
 	mathfu::Quaternion<float> GetRotation() const;
 	mathfu::Vector<float, 3> GetScale() const;
 
+	mathfu::Vector<float, 3> GetPrevPosition() const;
+	mathfu::Quaternion<float> GetPrevRotation() const;
+	mathfu::Vector<float, 3> GetPrevScale() const;
+
 	mathfu::Matrix<float, 4, 4> GetTransform() const;
+
+	mathfu::Matrix<float, 4, 4> GetPrevTransform() const;
 
 private:
 	Mesh* m_mesh;
@@ -39,6 +49,10 @@ private:
 	mathfu::Vector<float, 3> m_position;
 	mathfu::Quaternion<float> m_rotation;
 	mathfu::Vector<float, 3> m_scale;
+
+	mathfu::Vector<float, 3> m_prevPosition;
+	mathfu::Quaternion<float> m_prevRotation;
+	mathfu::Vector<float, 3> m_prevScale;
 };
 
 

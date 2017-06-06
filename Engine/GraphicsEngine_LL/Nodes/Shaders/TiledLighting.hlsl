@@ -13,7 +13,8 @@ struct Uniforms
 	float4 screen_dimensions;
 	float4 vs_cam_pos;
 	int group_size_x, group_size_y;
-	float2 dummy;
+	float halfExposureFramerate, //0.5 * exposure time (% of time exposure is open -> 0.75?) * frame rate (s? or fps?)
+		  maxMotionBlurRadius; //pixels
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b600);

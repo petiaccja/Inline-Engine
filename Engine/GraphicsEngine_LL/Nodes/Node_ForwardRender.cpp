@@ -27,7 +27,8 @@ struct Uniforms
 	mathfu::VectorPacked<float, 4> screen_dimensions;
 	mathfu::VectorPacked<float, 4> vs_cam_pos;
 	int group_size_x, group_size_y;
-	mathfu::VectorPacked<float, 2> dummy;
+	float halfExposureFramerate, //0.5 * exposure time (% of time exposure is open -> 0.75?) * frame rate (s? or fps?)
+		  maxMotionBlurRadius; //pixels
 };
 
 static void setWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsigned groupSizeH, unsigned& dispatchW, unsigned& dispatchH)
@@ -99,6 +100,7 @@ void ForwardRender::Initialize(EngineContext & context) {
 
 void ForwardRender::Reset() {
 	m_rtv = RenderTargetView2D();
+	m_velocity_rtv = RenderTargetView2D();
 	m_dsv = DepthStencilView2D();
 	m_entities = nullptr;
 	m_camera = nullptr;
@@ -180,8 +182,34 @@ void ForwardRender::Setup(SetupContext& context) {
 	m_lightCullDataView = context.CreateSrv(lightCullData, lightCullData.GetFormat(), srvDesc);
 	m_lightCullDataView.GetResource()._GetResourcePtr()->SetName("Forward render light cull data tex view");
 
+	if (!m_velocity_rtv)
+	{
+		using gxapi::eFormat;
+
+		auto formatVelocity = eFormat::R8G8_UNORM;
+
+		gxapi::RtvTexture2DArray rtvDesc;
+		rtvDesc.activeArraySize = 1;
+		rtvDesc.firstArrayElement = 0;
+		rtvDesc.firstMipLevel = 0;
+		rtvDesc.planeIndex = 0;
+
+		gxapi::SrvTexture2DArray srvDesc;
+		srvDesc.activeArraySize = 1;
+		srvDesc.firstArrayElement = 0;
+		srvDesc.numMipLevels = -1;
+		srvDesc.mipLevelClamping = 0;
+		srvDesc.mostDetailedMip = 0;
+		srvDesc.planeIndex = 0;
+
+		Texture2D velocity_tex = context.CreateTexture2D(target.GetWidth(), target.GetHeight(), formatVelocity, { 1, 1, 0, 0 });
+		velocity_tex._GetResourcePtr()->SetName("Forward render Velocity tex");
+		m_velocity_rtv = context.CreateRtv(velocity_tex, formatVelocity, rtvDesc);
+		m_velocity_rtv.GetResource()._GetResourcePtr()->SetName("Forward render Velocity RTV");
+	}
 
 	this->GetOutput<0>().Set(target);
+	this->GetOutput<1>().Set(m_velocity_rtv.GetResource());
 
 
 	/*if (!m_binder.has_value()) {
@@ -263,10 +291,11 @@ void ForwardRender::Execute(RenderContext& context) {
 	gxeng::GraphicsCommandList& commandList = context.AsGraphics();
 
 	// Set render target
-	auto pRTV = &m_rtv;
+	inl::gxeng::RenderTargetView2D* pRTV[] = { &m_rtv, &m_velocity_rtv };
+	commandList.SetResourceState(m_velocity_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_dsv.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
-	commandList.SetRenderTargets(1, &pRTV, &m_dsv);
+	commandList.SetRenderTargets(2, pRTV, &m_dsv);
 	commandList.ClearRenderTarget(m_rtv, gxapi::ColorRGBA(0, 0, 0, 1));
 
 	gxapi::Rectangle rect{ 0, (int)m_rtv.GetResource().GetHeight(), 0, (int)m_rtv.GetResource().GetWidth() };
@@ -286,7 +315,9 @@ void ForwardRender::Execute(RenderContext& context) {
 
 	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();
 	mathfu::Matrix4x4f projection = m_camera->GetProjectionMatrixRH();
+	mathfu::Matrix4x4f prevView = m_camera->GetPrevViewMatrixRH();
 	auto viewProjection = projection * view;
+	auto prevViewProjection = projection * prevView;
 
 
 	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
@@ -370,6 +401,7 @@ void ForwardRender::Execute(RenderContext& context) {
 		(view * entity->GetTransform()).Pack(vsConstants.mv);
 		view.Pack(vsConstants.v);
 		projection.Pack(vsConstants.p);
+		(prevViewProjection * entity->GetPrevTransform()).Pack(vsConstants.prevMVP);
 		mathfu::Vector4f vsLightDir = view * mathfu::Vector4f(sun->GetDirection(), 0.0f);
 		lightConstants.direction = vsLightDir.xyz().Normalized();
 		lightConstants.color = sun->GetColor();
@@ -389,6 +421,9 @@ void ForwardRender::Execute(RenderContext& context) {
 
 		uniformsCBData.group_size_x = dispatchW;
 		uniformsCBData.group_size_y = dispatchH;
+
+		uniformsCBData.halfExposureFramerate = 0.5 * 0.75 * 60;
+		uniformsCBData.maxMotionBlurRadius = 20;
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 600), &uniformsCBData, sizeof(uniformsCBData));
 
@@ -506,6 +541,7 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"struct VsConstants \n"
 		"{\n"
 		"	float4x4 MVP;\n"
+		"	float4x4 prevMVP;\n"
 		"	float4x4 MV;\n"
 		"	float4x4 M;\n"
 		"	float4x4 V;\n"
@@ -520,6 +556,8 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"	float2 texCoord : TEX_COORD0;\n"
 		"	float4 vsPosition : TEX_COORD1;\n"
 		"	float3 wsNormal : TEX_COORD2;\n"
+		"	float4 prevPosition : TEX_COORD3;\n"
+		"	float4 currPosition : TEX_COORD4;\n"
 		"};\n"
 
 		"PS_Input VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoord : TEX_COORD)\n"
@@ -536,6 +574,8 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"}\n"
 
 		"	result.position = mul(vsConstants.MVP, position);\n"
+		"	result.prevPosition = mul(vsConstants.prevMVP, position);\n"
+		"	result.currPosition = result.position;\n"
 		//"	result.position = mul(mul(light_mvp, vsConstants.MV), position);\n"
 		//"	result.position = mul(mul(vsConstants.P, mul(light_mvp, vsConstants.M)), position);\n"
 		"	result.vsPosition = mul(vsConstants.MV, position);\n"
@@ -571,6 +611,8 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 		"	 float2 texCoord : TEX_COORD0;\n"
 		"	 float4 vsPosition : TEX_COORD1;\n"
 		"	 float3 wsNormal : TEX_COORD2;\n"
+		"	 float4 prevPosition : TEX_COORD3;\n"
+		"	 float4 currPosition : TEX_COORD4;\n"
 		"};\n\n"
 		"struct MapColor2D {\n"
 		"    Texture2DArray<float4> tex;\n"
@@ -640,7 +682,9 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 
 	// main function
 	std::stringstream PSMain;
-	PSMain << "float4 PSMain(PsInput psInput) : SV_TARGET {\n";
+	PSMain << "struct PS_OUTPUT	{ float4 litColor : SV_Target0;	float2 velocity : SV_Target1; };\n";
+	PSMain << "PS_OUTPUT PSMain(PsInput psInput) : SV_TARGET {\n";
+	PSMain << "	   PS_OUTPUT result;\n";
 	PSMain << "    g_lightDir = lightCb.direction;\n";
 	PSMain << "    g_lightColor = lightCb.color;\n";
 	PSMain << "    g_lightColor *= get_shadow(psInput.vsPosition);\n";
@@ -649,6 +693,7 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 	PSMain << "    g_ndcPos = psInput.ndcPos;\n";
 	PSMain << "    g_vsPos = psInput.vsPosition;\n";
 	PSMain << "    g_tex0 = float3(psInput.texCoord, 0.0f);\n";
+	PSMain << "    result.velocity = encodeVelocity(psInput.currPosition, psInput.prevPosition);\n";
 	for (size_t i = 0; i < params.size(); ++i) {
 		switch (params[i].type) {
 			case eMaterialShaderParamType::COLOR:
@@ -679,14 +724,14 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 			}
 		}
 	}
-	PSMain << "    return mtl_shader(";
+	PSMain << "    result.litColor = mtl_shader(";
 	for (intptr_t i = 0; i < (intptr_t)params.size() - 1; ++i) {
 		PSMain << "input" << i << ", ";
 	}
 	if (params.size() > 0) {
 		PSMain << "input" << params.size() - 1;
 	}
-	PSMain << "); \n} \n";
+	PSMain << "); return result; \n} \n";
 
 	return
 		std::string()
@@ -702,6 +747,7 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 		+ "#include \"CSMSample\"\n"
 		+ "#include \"PbrBrdf\"\n"
 		+ "#include \"TiledLighting\"\n"
+		+ "#include \"EncodeVelocity\"\n"
 		+ "\n//-------------------------------------\n\n"
 		+ shadingFunction
 		+ "\n//-------------------------------------\n\n"
@@ -921,8 +967,9 @@ std::unique_ptr<gxapi::IPipelineState> ForwardRender::CreatePso(
 	psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
 	psoDesc.depthStencilFormat = depthStencilFormat;
 
-	psoDesc.numRenderTargets = 1;
+	psoDesc.numRenderTargets = 2;
 	psoDesc.renderTargetFormats[0] = renderTargetFormat;
+	psoDesc.renderTargetFormats[1] = m_velocity_rtv.GetResource().GetFormat();
 
 	result.reset(context.CreatePSO(psoDesc));
 

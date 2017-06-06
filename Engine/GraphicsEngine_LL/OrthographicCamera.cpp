@@ -50,6 +50,14 @@ mathfu::Matrix4x4f OrthographicCamera::GetViewMatrixLH() const {
 	return mathfu::Matrix4x4f::LookAt(m_position + m_lookdir, m_position, m_upVector, -1.0f);
 }
 
+mathfu::Matrix4x4f OrthographicCamera::GetPrevViewMatrixRH() const {
+	return mathfu::Matrix4x4f::LookAt(m_prevPosition + m_prevLookdir, m_prevPosition, m_prevUpVector, +1.0f);
+}
+
+mathfu::Matrix4x4f OrthographicCamera::GetPrevViewMatrixLH() const {
+	return mathfu::Matrix4x4f::LookAt(m_prevPosition + m_prevLookdir, m_prevPosition, m_prevUpVector, -1.0f);
+}
+
 mathfu::Matrix4x4f OrthographicCamera::GetProjectionMatrixRH() const {
 	const float widthHalf = m_width*0.5f;
 	const float heightHalf = m_height*0.5f;

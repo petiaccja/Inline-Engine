@@ -54,6 +54,8 @@ public:
 
 	virtual mathfu::Matrix4x4f GetViewMatrixRH() const = 0;
 	virtual mathfu::Matrix4x4f GetViewMatrixLH() const = 0;
+	virtual mathfu::Matrix4x4f GetPrevViewMatrixRH() const = 0;
+	virtual mathfu::Matrix4x4f GetPrevViewMatrixLH() const = 0;
 	virtual mathfu::Matrix4x4f GetProjectionMatrixRH() const = 0;
 	virtual mathfu::Matrix4x4f GetProjectionMatrixLH() const = 0;
 
@@ -63,6 +65,11 @@ protected:
 	mathfu::Vector3f m_position;
 	mathfu::Vector3f m_upVector;
 	mathfu::Vector3f m_lookdir;
+
+	mathfu::Vector3f m_prevPosition;
+	mathfu::Vector3f m_prevUpVector;
+	mathfu::Vector3f m_prevLookdir;
+
 	float m_targetDistance;
 	bool m_targeted = false;
 

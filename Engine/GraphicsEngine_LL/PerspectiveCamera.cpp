@@ -39,6 +39,14 @@ mathfu::Matrix4x4f PerspectiveCamera::GetViewMatrixRH() const {
 mathfu::Matrix4x4f PerspectiveCamera::GetViewMatrixLH() const {
 	return mathfu::Matrix4x4f::LookAt(m_position + m_lookdir, m_position, m_upVector, -1.0f);
 }
+
+mathfu::Matrix4x4f PerspectiveCamera::GetPrevViewMatrixRH() const {
+	return mathfu::Matrix4x4f::LookAt(m_prevPosition + m_prevLookdir, m_prevPosition, m_prevUpVector, +1.0f);
+}
+mathfu::Matrix4x4f PerspectiveCamera::GetPrevViewMatrixLH() const {
+	return mathfu::Matrix4x4f::LookAt(m_prevPosition + m_prevLookdir, m_prevPosition, m_prevUpVector, -1.0f);
+}
+
 mathfu::Matrix4x4f PerspectiveCamera::GetProjectionMatrixRH() const {
 	return mathfu::Matrix4x4f::Perspective(m_fovV, m_fovH / m_fovV, m_nearPlane, m_farPlane, +1.0f);
 }

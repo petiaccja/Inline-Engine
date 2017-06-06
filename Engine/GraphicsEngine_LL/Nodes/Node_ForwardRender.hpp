@@ -32,7 +32,7 @@ class ForwardRender :
 		Texture2D,
 		Texture2D,
 		Texture2D>,
-	virtual public exc::OutputPortConfig<Texture2D>
+	virtual public exc::OutputPortConfig<Texture2D, Texture2D>
 {
 private:
 	struct ScenarioDesc {
@@ -49,6 +49,7 @@ private:
 	};
 	struct VsConstants {
 		mathfu::VectorPacked<float, 4> mvp[4];
+		mathfu::VectorPacked<float, 4> prevMVP[4];
 		mathfu::VectorPacked<float, 4> mv[4];
 		mathfu::VectorPacked<float, 4> m[4];
 		mathfu::VectorPacked<float, 4> v[4];
@@ -100,6 +101,7 @@ protected:
 
 private:
 	RenderTargetView2D m_rtv;
+	RenderTargetView2D m_velocity_rtv;
 	DepthStencilView2D m_dsv;
 	const EntityCollection<MeshEntity>* m_entities;
 	const BasicCamera* m_camera;

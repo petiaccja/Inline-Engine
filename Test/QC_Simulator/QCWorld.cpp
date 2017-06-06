@@ -303,36 +303,36 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_terrainEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_terrainEntity->SetMesh(m_terrainMesh.get());
 	m_terrainEntity->SetMaterial(m_terrainMaterial.get());
-	m_terrainEntity->SetPosition({ 0,0,0 });
-	m_terrainEntity->SetRotation({ 1,0,0,0 });
-	m_terrainEntity->SetScale({ 1,1,1 });
+	m_terrainEntity->InitPosition({ 0,0,0 });
+	m_terrainEntity->InitRotation({ 1,0,0,0 });
+	m_terrainEntity->InitScale({ 1,1,1 });
 	m_worldScene->GetMeshEntities().Add(m_terrainEntity.get());
 
 	// Set up sphere
 	m_sphereEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_sphereEntity->SetMesh(m_sphereMesh.get());
 	m_sphereEntity->SetMaterial(m_sphereMaterial.get());
-	m_sphereEntity->SetPosition({ 0,3,1 });
-	m_sphereEntity->SetRotation({ 1,0,0,0 });
-	m_sphereEntity->SetScale({ 1,1,1 });
+	m_sphereEntity->InitPosition({ 0,3,1 });
+	m_sphereEntity->InitRotation({ 1,0,0,0 });
+	m_sphereEntity->InitScale({ 1,1,1 });
 	m_worldScene->GetMeshEntities().Add(m_sphereEntity.get());
 
 	// Set up copter
 	m_quadcopterEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_quadcopterEntity->SetMesh(m_quadcopterMesh.get());
 	m_quadcopterEntity->SetMaterial(m_quadcopterMaterial.get());
-	m_quadcopterEntity->SetPosition({ 0,0,-3 });
-	m_quadcopterEntity->SetRotation({ 1,0,0,0 });
-	m_quadcopterEntity->SetScale({ 1,1,1 });
+	m_quadcopterEntity->InitPosition({ 0,0,-3 });
+	m_quadcopterEntity->InitRotation({ 1,0,0,0 });
+	m_quadcopterEntity->InitScale({ 1,1,1 });
 	m_worldScene->GetMeshEntities().Add(m_quadcopterEntity.get());
 
 	// Set up axes
 	m_axesEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_axesEntity->SetMesh(m_axesMesh.get());
 	m_axesEntity->SetMaterial(m_axesMaterial.get());
-	m_axesEntity->SetPosition({ 0,0,3 });
-	m_axesEntity->SetRotation({ 1,0,0,0 });
-	m_axesEntity->SetScale({ 1,1,1 });
+	m_axesEntity->InitPosition({ 0,0,3 });
+	m_axesEntity->InitRotation({ 1,0,0,0 });
+	m_axesEntity->InitScale({ 1,1,1 });
 	//m_worldScene->GetMeshEntities().Add(m_axesEntity.get());
 
 	// Set up trees
@@ -428,9 +428,9 @@ void QCWorld::AddTree(mathfu::Vector3f position) {
 	tree.reset(m_graphicsEngine->CreateMeshEntity());
 	tree->SetMesh(m_treeMesh.get());
 	tree->SetMaterial(m_treeMaterial.get());
-	tree->SetPosition(position);
-	tree->SetRotation({ 1,0,0,0 });
-	tree->SetScale({ s,s,s });
+	tree->InitPosition(position);
+	tree->InitRotation({ 1,0,0,0 });
+	tree->InitScale({ s,s,s });
 	m_worldScene->GetMeshEntities().Add(tree.get());
 	m_staticEntities.push_back(std::move(tree));
 }

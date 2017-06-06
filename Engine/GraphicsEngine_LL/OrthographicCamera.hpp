@@ -34,6 +34,8 @@ public:
 	// Matrices
 	mathfu::Matrix4x4f GetViewMatrixRH() const override;
 	mathfu::Matrix4x4f GetViewMatrixLH() const override;
+	mathfu::Matrix4x4f GetPrevViewMatrixRH() const override;
+	mathfu::Matrix4x4f GetPrevViewMatrixLH() const override;
 	mathfu::Matrix4x4f GetProjectionMatrixRH() const override;
 	mathfu::Matrix4x4f GetProjectionMatrixLH() const override;
 
