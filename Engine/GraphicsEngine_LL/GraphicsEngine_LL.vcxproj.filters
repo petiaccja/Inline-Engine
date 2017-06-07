@@ -330,6 +330,9 @@
     <ClInclude Include="Nodes\Node_BloomBlur.hpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Node_TileMax.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -502,6 +505,9 @@
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_BloomBlur.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_TileMax.cpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
   </ItemGroup>

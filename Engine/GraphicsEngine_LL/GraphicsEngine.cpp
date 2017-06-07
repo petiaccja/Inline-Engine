@@ -33,6 +33,8 @@
 #include "Nodes/Node_BloomDownsample.hpp"
 #include "Nodes/Node_BloomBlur.hpp"
 #include "Nodes/Node_BloomAdd.hpp"
+#include "Nodes/Node_TileMax.hpp"
+#include "Nodes/Node_NeighborMax.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -421,6 +423,8 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::BloomAdd> bloomAdd168(new nodes::BloomAdd());
 	std::shared_ptr<nodes::BloomAdd> bloomAdd84(new nodes::BloomAdd());
 	std::shared_ptr<nodes::BloomAdd> bloomAdd42(new nodes::BloomAdd());
+	std::shared_ptr<nodes::TileMax> tileMax(new nodes::TileMax());
+	std::shared_ptr<nodes::NeighborMax> neighborMax(new nodes::NeighborMax());
 	TextureUsage usage;
 
 
@@ -485,6 +489,10 @@ void GraphicsEngine::CreatePipeline() {
 	drawSky->GetInput<1>().Link(depthPrePass->GetOutput(0));
 	drawSky->GetInput<2>().Link(getCamera->GetOutput(0));
 	drawSky->GetInput<3>().Link(getWorldScene->GetOutput(2));
+
+	tileMax->GetInput<0>().Link(forwardRender->GetOutput(1));
+	
+	neighborMax->GetInput<0>().Link(tileMax->GetOutput(0));
 
 	brightLumPass->GetInput<0>().Link(drawSky->GetOutput(0));
 	
@@ -627,9 +635,11 @@ void GraphicsEngine::CreatePipeline() {
 		bloomBlurVertical4,
 		bloomBlurHorizontal4,
 		bloomAdd42,
-		bloomBlurVertical2,		
+		bloomBlurVertical2,
 		bloomBlurHorizontal2,
 		hdrCombine,
+		tileMax,
+		neighborMax,
 
 		getGuiScene,
 		getGuiCamera,
