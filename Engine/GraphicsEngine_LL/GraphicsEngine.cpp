@@ -35,6 +35,7 @@
 #include "Nodes/Node_BloomAdd.hpp"
 #include "Nodes/Node_TileMax.hpp"
 #include "Nodes/Node_NeighborMax.hpp"
+#include "Nodes/Node_MotionBlur.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -425,6 +426,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::BloomAdd> bloomAdd42(new nodes::BloomAdd());
 	std::shared_ptr<nodes::TileMax> tileMax(new nodes::TileMax());
 	std::shared_ptr<nodes::NeighborMax> neighborMax(new nodes::NeighborMax());
+	std::shared_ptr<nodes::MotionBlur> motionBlur(new nodes::MotionBlur());
 	TextureUsage usage;
 
 
@@ -494,7 +496,12 @@ void GraphicsEngine::CreatePipeline() {
 	
 	neighborMax->GetInput<0>().Link(tileMax->GetOutput(0));
 
-	brightLumPass->GetInput<0>().Link(drawSky->GetOutput(0));
+	motionBlur->GetInput<0>().Link(drawSky->GetOutput(0));
+	motionBlur->GetInput<1>().Link(forwardRender->GetOutput(1));
+	motionBlur->GetInput<2>().Link(neighborMax->GetOutput(0));
+	motionBlur->GetInput<3>().Link(depthPrePass->GetOutput(0));
+
+	brightLumPass->GetInput<0>().Link(motionBlur->GetOutput(0));
 	
 	bloomDownsample2->GetInput<0>().Link(brightLumPass->GetOutput(0));
 	bloomDownsample4->GetInput<0>().Link(bloomDownsample2->GetOutput(0));
@@ -539,7 +546,7 @@ void GraphicsEngine::CreatePipeline() {
 
 	luminanceReductionFinal->GetInput<0>().Link(luminanceReduction->GetOutput(0));
 
-	hdrCombine->GetInput<0>().Link(drawSky->GetOutput(0));
+	hdrCombine->GetInput<0>().Link(motionBlur->GetOutput(0));
 	hdrCombine->GetInput<1>().Link(luminanceReductionFinal->GetOutput(0));
 	hdrCombine->GetInput<2>().Link(bloomBlurHorizontal2->GetOutput(0));
 
@@ -640,6 +647,7 @@ void GraphicsEngine::CreatePipeline() {
 		hdrCombine,
 		tileMax,
 		neighborMax,
+		motionBlur,
 
 		getGuiScene,
 		getGuiCamera,

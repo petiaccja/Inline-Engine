@@ -183,6 +183,8 @@
     <ClInclude Include="Nodes\Node_HDRCombine.hpp" />
     <ClInclude Include="Nodes\Node_LuminanceReduction.hpp" />
     <ClInclude Include="Nodes\Node_LuminanceReductionFinal.hpp" />
+    <ClInclude Include="Nodes\Node_MotionBlur.hpp" />
+    <ClInclude Include="Nodes\Node_NeighborMax.hpp" />
     <ClInclude Include="Nodes\Node_ScreenSpaceTransform.hpp" />
     <ClInclude Include="Nodes\Node_CreateTexture.hpp" />
     <ClInclude Include="Nodes\Node_CSM.hpp" />
@@ -271,6 +273,8 @@
     <ClCompile Include="Nodes\Node_LightCulling.cpp" />
     <ClCompile Include="Nodes\Node_LuminanceReduction.cpp" />
     <ClCompile Include="Nodes\Node_LuminanceReductionFinal.cpp" />
+    <ClCompile Include="Nodes\Node_MotionBlur.cpp" />
+    <ClCompile Include="Nodes\Node_NeighborMax.cpp" />
     <ClCompile Include="Nodes\Node_OverlayRender.cpp" />
     <ClCompile Include="Nodes\Node_TileMax.cpp" />
     <ClCompile Include="OrthographicCamera.cpp" />
