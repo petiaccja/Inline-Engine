@@ -20,7 +20,7 @@ struct Uniforms
 {
 	float maxMotionBlurRadius;
 	float reconstructionFilterTaps;
-	float halfExposureFramerate;
+	float halfExposure;
 	float maxSampleTapDistance;
 };
 
@@ -205,8 +205,8 @@ void MotionBlur::Execute(RenderContext& context) {
 	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
 
 	uniformsCBData.maxMotionBlurRadius = 20.0;
-	uniformsCBData.reconstructionFilterTaps = 15;
-	uniformsCBData.halfExposureFramerate = 0.5 * 0.75 * 60;
+	uniformsCBData.reconstructionFilterTaps = 15; //make sure it's an odd number
+	uniformsCBData.halfExposure = 0.5 * 0.75;
 	uniformsCBData.maxSampleTapDistance = 6; 
 
 	commandList.SetResourceState(m_motionblur_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);

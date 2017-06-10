@@ -8,7 +8,7 @@ struct Uniforms
 {
 	float maxMotionBlurRadius;
 	float reconstructionFilterTaps;
-	float halfExposureFramerate;
+	float halfExposure;
 	float maxSampleTapDistance;
 };
 
@@ -110,7 +110,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float lenDomVel = length(dominantVelocity);
 
 	// Weighting, correcting and clamping half-velocity
-	float tempDomVel = lenDomVel * uniforms.halfExposureFramerate;
+	float tempDomVel = lenDomVel * uniforms.halfExposure;
 	bool flag = (tempDomVel >= 0.01);
 	tempDomVel = clamp(tempDomVel, 0.1, uniforms.maxMotionBlurRadius);
 
@@ -134,7 +134,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float lenVel = length(velocity);
 
 	// Weighting, correcting and clamping half-velocity
-	float tempVel = lenVel * uniforms.halfExposureFramerate;
+	float tempVel = lenVel * uniforms.halfExposure;
 	bool flag2 = (tempVel >= 0.01);
 	tempVel = clamp(tempVel, 0.1, uniforms.maxMotionBlurRadius);
 	if (flag2)
@@ -200,7 +200,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		float lenVelSampleY = length(velSampleY);
 
 		// Weighting, correcting and clamping half-velocity
-		float templVelSampleY = lenVelSampleY * uniforms.halfExposureFramerate;
+		float templVelSampleY = lenVelSampleY * uniforms.halfExposure;
 		bool flag3 = (templVelSampleY >= 0.01);
 		templVelSampleY = clamp(templVelSampleY, 0.1, uniforms.maxMotionBlurRadius);
 		if (flag3)
@@ -220,9 +220,9 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 		// Applying to weight and weighted sum
 		weight += alphaY;
-		sum += (/*alphaY * */inputTex.Load(int3(ySamplePos, 0)).xyz);
+		sum += (alphaY * inputTex.Load(int3(ySamplePos, 0)).xyz);
 	}
 
-	//return float4(sum/* / weight*/, 1.0);
-	return max(float4(sum / weight, 1.0), float4(0, 0, 0, 0));
+	return float4(sum / weight, 1.0);
+	//return max(float4(sum / weight, 1.0), float4(0, 0, 0, 0));
 }

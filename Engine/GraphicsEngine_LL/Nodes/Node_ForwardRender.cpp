@@ -423,7 +423,7 @@ void ForwardRender::Execute(RenderContext& context) {
 		uniformsCBData.group_size_x = dispatchW;
 		uniformsCBData.group_size_y = dispatchH;
 
-		uniformsCBData.halfExposureFramerate = 0.5 * 0.75 * 60;
+		uniformsCBData.halfExposureFramerate = 0.5 * 0.75 * 150; //TODO add measured FPS (or target)
 		uniformsCBData.maxMotionBlurRadius = 20;
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 600), &uniformsCBData, sizeof(uniformsCBData));
