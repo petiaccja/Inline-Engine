@@ -69,7 +69,7 @@ float3 gamma_to_linear(float3 col)
 
 float4 PSMain(PS_Input input) : SV_TARGET
 {
-	float4 inputData = inputTex.Load(int3(input.position.xy, 0));
+	float4 inputData = max(inputTex.Load(int3(input.position.xy, 0)), float4(0,0,0,0));
 	float4 bloomData = bloomTex.Sample(samp0, input.texcoord);
 
 	inputData += bloomData * uniforms.bloom_weight;

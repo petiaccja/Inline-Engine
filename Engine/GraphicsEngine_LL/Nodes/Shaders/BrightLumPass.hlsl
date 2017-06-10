@@ -41,7 +41,7 @@ PS_OUTPUT PSMain(PS_Input input) : SV_TARGET
 {
 	PS_OUTPUT outputData;
 
-	float4 inputData = inputTex.Sample(samp0, input.texcoord);
+	float4 inputData = max(inputTex.Sample(samp0, input.texcoord), float4(0,0,0,0));
 	float4 threshold = float4(uniforms.bright_pass_threshold, uniforms.bright_pass_threshold, uniforms.bright_pass_threshold, uniforms.bright_pass_threshold);
 
 	outputData.brightPassResult = max(inputData - threshold, float4(0, 0, 0, 0));
