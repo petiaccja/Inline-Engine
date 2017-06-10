@@ -54,6 +54,21 @@ float softDepthCompare(float za, float zb)
 }
 ///////////////////////////
 
+float linearize_depth(float depth)
+{
+	float near = 0.1;
+	float far = 100.0;
+	float A = -(far + near) / (far - near);
+	float B = -2 * far * near / (far - near);
+	float zndc = depth * 2 - 1;
+
+	//view space linear z
+	float vs_zrecon = -B / (zndc + A);
+
+	//range: [0...1]
+	return vs_zrecon * far / -1.0;//far;
+};
+
 float rand(float2 n) {
 	return frac(sin(dot(n, float2(12.9898, 4.1414))) * 43758.5453);
 }
@@ -87,6 +102,8 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	// C[X] (sample from color buffer at X)
 	float4 currColor = inputTex.Load(int3(currPixelPos, 0));
 
+	//return currColor;
+
 	// VN = NeighborMax[X/k] (sample from NeighborMax buffer; holds dominant
 	// half-velocity for the current fragment's neighborhood tile)
 	float2 dominantVelocity = undoVelocityBiasScale(neighborMaxTex.Load(int3(currPixelPos / (int)uniforms.maxMotionBlurRadius,0)).xy);
@@ -110,6 +127,8 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		lenDomVel = length(dominantVelocity);
 	}
 
+	//return max(float4(dominantVelocity, 0, 0), float4(0, 0, 0, 0));
+
 	// V[X] (sample from half-velocity buffer at X)
 	float2 velocity = undoVelocityBiasScale(velocityTex.Load(int3(currPixelPos, 0)).xy);
 	float lenVel = length(velocity);
@@ -124,15 +143,23 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		lenVel = length(velocity);
 	}
 
+	//return max(float4(velocity, 0, 0), float4(0, 0, 0, 0));
+
 	// Random value in [-0.5, 0.5]
-	float random = pseudoRandom(currPixelPos);
+	float random = pseudoRandom(currPixelPos) - 0.5;
+
+	//return float4(random, 0, 0, 1);
 
 	// Z[X] (depth value at X)
-	float currDepth = depthTex.Load(int3(currPixelPos, 0));
+	float currDepth = -linearize_depth(depthTex.Load(int3(currPixelPos, 0)));
+
+	//return float4(-currDepth, 0, 0, 1);
 
 	// If V[X] (for current fragment) is too small,
 	// then we use VN (for current tile)
 	float2 correctedVel = (lenVel < 1.5) ? normalize(dominantVelocity) : normalize(velocity);
+
+	//return max(float4(correctedVel, 0, 0), float4(0, 0, 0, 0));
 
 	// Weight value (suggested by the article authors' implementation)
 	float weight = uniforms.reconstructionFilterTaps / 60.0 / tempVel;
@@ -141,8 +168,13 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	// since we skip it in the loop)
 	float3 sum = currColor.xyz * weight;
 
+	//return float4(sum, 1.0);
+	//return max(float4(sum, 1.0), float4(0, 0, 0, 0));
+
 	// Index for same fragment
 	int selfIndex = (int(uniforms.reconstructionFilterTaps) - 1) / 2;
+
+	//return float4(float(selfIndex), 0, 0, 1);
 
 	// Iterate once for reconstruction sample tap
 	for (int i = 0; i < int(uniforms.reconstructionFilterTaps); ++i)
@@ -169,16 +201,16 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 		// Weighting, correcting and clamping half-velocity
 		float templVelSampleY = lenVelSampleY * uniforms.halfExposureFramerate;
-		bool flag = (templVelSampleY >= 0.01);
-		flag = clamp(templVelSampleY, 0.1, uniforms.maxMotionBlurRadius);
-		if (flag)
+		bool flag3 = (templVelSampleY >= 0.01);
+		templVelSampleY = clamp(templVelSampleY, 0.1, uniforms.maxMotionBlurRadius);
+		if (flag3)
 		{
 			velSampleY *= (templVelSampleY / lenVelSampleY);
 			lenVelSampleY = length(velSampleY);
 		}
 
 		// Z[Y] (depth value at Y)
-		float depthSampleY = depthTex.Load(int3(ySamplePos, 0));
+		float depthSampleY = -linearize_depth(depthTex.Load(int3(ySamplePos, 0)));
 
 		// alpha = foreground contribution + background contribution + 
 		//         blur of both foreground and background
@@ -188,8 +220,9 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 		// Applying to weight and weighted sum
 		weight += alphaY;
-		sum += (alphaY * inputTex.Load(int3(ySamplePos, 0)).xyz);
+		sum += (/*alphaY * */inputTex.Load(int3(ySamplePos, 0)).xyz);
 	}
 
-	return float4(sum / weight, 1.0);
+	//return float4(sum/* / weight*/, 1.0);
+	return max(float4(sum / weight, 1.0), float4(0, 0, 0, 0));
 }

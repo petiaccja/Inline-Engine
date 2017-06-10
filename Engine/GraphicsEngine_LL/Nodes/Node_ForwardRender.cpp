@@ -297,6 +297,7 @@ void ForwardRender::Execute(RenderContext& context) {
 	commandList.SetResourceState(m_dsv.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
 	commandList.SetRenderTargets(2, pRTV, &m_dsv);
 	commandList.ClearRenderTarget(m_rtv, gxapi::ColorRGBA(0, 0, 0, 1));
+	commandList.ClearRenderTarget(m_velocity_rtv, gxapi::ColorRGBA(0.5, 0.5, 0, 1));
 
 	gxapi::Rectangle rect{ 0, (int)m_rtv.GetResource().GetHeight(), 0, (int)m_rtv.GetResource().GetWidth() };
 	gxapi::Viewport viewport;
@@ -809,10 +810,10 @@ Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<M
 
 	gxapi::StaticSamplerDesc theSamplerParam;
 	theSamplerParam.shaderRegister = 500;
-	theSamplerParam.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
-	theSamplerParam.addressU = gxapi::eTextureAddressMode::WRAP;
-	theSamplerParam.addressV = gxapi::eTextureAddressMode::WRAP;
-	theSamplerParam.addressW = gxapi::eTextureAddressMode::WRAP;
+	theSamplerParam.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
+	theSamplerParam.addressU = gxapi::eTextureAddressMode::CLAMP;
+	theSamplerParam.addressV = gxapi::eTextureAddressMode::CLAMP;
+	theSamplerParam.addressW = gxapi::eTextureAddressMode::CLAMP;
 	theSamplerParam.mipLevelBias = 0.f;
 	theSamplerParam.registerSpace = 0;
 	theSamplerParam.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
@@ -890,9 +891,9 @@ Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<M
 	gxapi::StaticSamplerDesc samplerParam;
 	samplerParam.shaderRegister = 0;
 	samplerParam.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
-	samplerParam.addressU = gxapi::eTextureAddressMode::WRAP;
-	samplerParam.addressV = gxapi::eTextureAddressMode::WRAP;
-	samplerParam.addressW = gxapi::eTextureAddressMode::WRAP;
+	samplerParam.addressU = gxapi::eTextureAddressMode::CLAMP;
+	samplerParam.addressV = gxapi::eTextureAddressMode::CLAMP;
+	samplerParam.addressW = gxapi::eTextureAddressMode::CLAMP;
 	samplerParam.mipLevelBias = 0.f;
 	samplerParam.registerSpace = 0;
 	samplerParam.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
