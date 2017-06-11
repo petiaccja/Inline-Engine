@@ -339,6 +339,9 @@
     <ClInclude Include="Nodes\Node_MotionBlur.hpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Node_LensFlare.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -520,6 +523,9 @@
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_MotionBlur.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_LensFlare.cpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
   </ItemGroup>

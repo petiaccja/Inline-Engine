@@ -36,6 +36,7 @@
 #include "Nodes/Node_TileMax.hpp"
 #include "Nodes/Node_NeighborMax.hpp"
 #include "Nodes/Node_MotionBlur.hpp"
+#include "Nodes/Node_LensFlare.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -367,7 +368,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::GetSceneByName> getWorldScene(new nodes::GetSceneByName());
 	std::shared_ptr<nodes::GetCameraByName> getCamera(new nodes::GetCameraByName());
 	std::shared_ptr<nodes::GetBackBuffer> getBackBuffer(new nodes::GetBackBuffer());
-
+	
 	getWorldScene->GetInput<0>().Set("World");
 	getCamera->GetInput<0>().Set("WorldCam");
 
@@ -427,6 +428,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::TileMax> tileMax(new nodes::TileMax());
 	std::shared_ptr<nodes::NeighborMax> neighborMax(new nodes::NeighborMax());
 	std::shared_ptr<nodes::MotionBlur> motionBlur(new nodes::MotionBlur());
+	std::shared_ptr<nodes::LensFlare> lensFlare(new nodes::LensFlare());
 	TextureUsage usage;
 
 
@@ -542,6 +544,9 @@ void GraphicsEngine::CreatePipeline() {
 	bloomBlurHorizontal2->GetInput<0>().Link(bloomBlurVertical2->GetOutput(0));
 	bloomBlurHorizontal2->GetInput<1>().Set(mathfu::Vector2f(1, 0));
 
+	lensFlare->GetInput<0>().Link(bloomDownsample4->GetOutput(0));
+	lensFlare->GetInput<1>().Set(this->CreateImage());
+
 	luminanceReduction->GetInput<0>().Link(brightLumPass->GetOutput(1));
 
 	luminanceReductionFinal->GetInput<0>().Link(luminanceReduction->GetOutput(0));
@@ -648,11 +653,12 @@ void GraphicsEngine::CreatePipeline() {
 		tileMax,
 		neighborMax,
 		motionBlur,
+		//lensFlare,
 
 		getGuiScene,
 		getGuiCamera,
 		guiRender,
-		alphaBlend,
+		//alphaBlend,
 		createWorldRenderTransform,
 		debugDraw,
 		alphaBlend

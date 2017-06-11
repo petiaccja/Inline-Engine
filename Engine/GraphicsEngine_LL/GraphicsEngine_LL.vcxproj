@@ -181,6 +181,7 @@
     <ClInclude Include="Nodes\Node_BloomDownsample.hpp" />
     <ClInclude Include="Nodes\Node_BrightLumPass.hpp" />
     <ClInclude Include="Nodes\Node_HDRCombine.hpp" />
+    <ClInclude Include="Nodes\Node_LensFlare.hpp" />
     <ClInclude Include="Nodes\Node_LuminanceReduction.hpp" />
     <ClInclude Include="Nodes\Node_LuminanceReductionFinal.hpp" />
     <ClInclude Include="Nodes\Node_MotionBlur.hpp" />
@@ -270,6 +271,7 @@
     <ClCompile Include="Nodes\Node_DrawSky.cpp" />
     <ClCompile Include="Nodes\Node_ForwardRender.cpp" />
     <ClCompile Include="Nodes\Node_HDRCombine.cpp" />
+    <ClCompile Include="Nodes\Node_LensFlare.cpp" />
     <ClCompile Include="Nodes\Node_LightCulling.cpp" />
     <ClCompile Include="Nodes\Node_LuminanceReduction.cpp" />
     <ClCompile Include="Nodes\Node_LuminanceReductionFinal.cpp" />
