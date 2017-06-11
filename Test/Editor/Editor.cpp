@@ -137,6 +137,11 @@ void Editor::InitGui()
 		GuiMenu* toolsMenu = menuBar->AddItemMenu("Tools");
 		GuiMenu* helpMenu = menuBar->AddItemMenu("Help");
 
+		//fileMenu->GetGuiButtonText()->SetFontSize(18);
+		//buildMenu->GetGuiButtonText()->SetFontSize(18);
+		//toolsMenu->GetGuiButtonText()->SetFontSize(18);
+		//helpMenu->GetGuiButtonText()->SetFontSize(18);
+
 		fileMenu->AddItemButton("New Scene");
 		fileMenu->AddItemButton("Open Scene");
 		Gui* separator0 = fileMenu->AddItemSeparatorHor();
@@ -192,6 +197,11 @@ void Editor::InitGui()
 		}
 	}
 	mainLayout->AddItem(menuBar);
+
+	//Gui* toolBar = mainLayer->AddGui();
+	//toolBar->StretchHorFillParent();
+	//toolBar->SetBgToColor(Color(25));
+	//mainLayout->AddItem(toolBar);
 
 	GuiSplitter* split0 = mainLayer->AddGuiSplitter(); // split main
 	GuiSplitter* split1 = mainLayer->AddGuiSplitter(); // split main left to (top, bottom)

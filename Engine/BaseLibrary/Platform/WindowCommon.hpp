@@ -5,6 +5,7 @@
 #include <BaseLibrary/Common_tmp.hpp>
 
 #include <string>
+#include <functional>
 
 ENUM_CLASS_BITFLAG( eWindowStyle, int )
 {
@@ -48,4 +49,14 @@ struct WindowEvent
 	eMouseBtn	mouseBtn;
 	Vector2f	mouseDelta;
 	Vector2f	clientMousePos;
+};
+
+struct WindowDesc
+{
+	WindowDesc() : style(eWindowStyle::DEFAULT), clientSize(0, 0) {}
+
+	std::string	 capText;
+	eWindowStyle style;
+	Vector2u	 clientSize;
+	std::function<LRESULT(WindowHandle, unsigned int, long long, long long)> userWndProc;
 };

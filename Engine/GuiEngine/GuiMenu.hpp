@@ -8,18 +8,25 @@ namespace inl::gui {
 class GuiMenu : public GuiList
 {
 public:
-	GuiMenu(GuiEngine* guiEngine):GuiList(guiEngine)
-	{
-		StretchFitToChildren();
-	}
+	GuiMenu(GuiEngine* guiEngine);
 
 	virtual void AddItem(Gui* gui);
 
 	GuiMenu* AddItemMenu(const std::wstring& text);
 	GuiMenu* AddItemMenu(const std::string& text) { return AddItemMenu(std::wstring(text.begin(), text.end())); }
 
+	GuiButton* GetGuiArrow() { return guiArrow; }
+	GuiText* GetGuiButtonText() { return guiButton->GetGuiText(); }
+	GuiButton* GetGuiButton() { return guiButton; }
+	
+protected:
+	void SetGuiArrow(GuiButton* arrow) { guiArrow = arrow; }
+	void SetGuiButton(GuiButton* btn) { guiButton = btn; }
+
 protected:
 	std::unordered_map<Gui*, GuiMenu*> subMenus;
+	GuiButton* guiArrow;
+	GuiButton* guiButton;
 };
 
 } // namespace inl::gui

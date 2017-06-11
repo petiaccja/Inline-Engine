@@ -9,15 +9,42 @@
 
 LRESULT CALLBACK WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	Window* window;
-	if (msg == WM_NCCREATE)
+	Window* window = nullptr;
+	if (msg == WM_CREATE)
 	{
 		window = static_cast<Window*>(reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams);
 		SetWindowLongPtr(handle, -21, reinterpret_cast<LONG_PTR>(window));
+
+		DragAcceptFiles(handle, true);
+
+		// TODO later we will need this for fully functional Drag&Drop
+		// Do not forget to call OleInitialize(0) on main thread init
+		//HRESULT res = RegisterDragDrop(handle, &window->dropTarget);
+		//assert(res == S_OK);
 	}
 	else
 	{
 		window = reinterpret_cast<Window*>(GetWindowLongPtr(handle, -21));
+	}
+
+	if (msg == WM_DROPFILES)
+	{
+		HDROP hDropInfo = (HDROP)wParam;
+	
+		UINT fileCount = DragQueryFile(hDropInfo, (UINT)-1, NULL, 0);
+		
+		std::vector<std::wstring> fileNames(fileCount);
+		for (int i = 0; i < fileCount; i++)
+		{
+			TCHAR szFileName[1024];
+			DragQueryFile(hDropInfo, i, szFileName, _MAX_PATH);
+			fileNames[i] = szFileName;
+		}
+	
+		DragFinish(hDropInfo);
+
+		if (window->onDrop)
+			window->onDrop(std::move(fileNames));
 	}
 
 	auto userWndProc = window ? window->GetUserWndProc() : nullptr;

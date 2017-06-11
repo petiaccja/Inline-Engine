@@ -17,7 +17,7 @@ public:
 	void SetText(const std::wstring& text);
 	void SetText(const std::string& text);
 
-	GuiText* GetTextGui() { return text; }
+	GuiText* GetGuiText() { return text; }
 
 public:
 	GuiText* text;

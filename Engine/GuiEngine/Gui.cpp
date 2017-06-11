@@ -56,7 +56,6 @@ Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 	bFillParentEnabled = false;
 	bForceFitToChildren = false;
 	this->guiEngine = guiEngine;
-	privateData = nullptr;
 
 	SetBgActiveColor(bgIdleColor);
 

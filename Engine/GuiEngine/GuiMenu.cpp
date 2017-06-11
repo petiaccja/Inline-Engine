@@ -3,6 +3,12 @@
 
 using namespace inl::gui;
 
+GuiMenu::GuiMenu(GuiEngine* guiEngine)
+: GuiList(guiEngine), guiArrow(nullptr), guiButton(nullptr)
+{
+	StretchFitToChildren();
+}
+
 GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
 {
 	// The item we will hover on
@@ -20,7 +26,7 @@ GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
 	item->AddItem(btn);
 
 	GuiMenu* subMenu = new GuiMenu(guiEngine);
-
+	subMenu->SetGuiButton(btn);
 	
 	subMenu->onChildAdded += [this, item, subMenu](Gui* child)
 	{
@@ -33,11 +39,11 @@ GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
 			arrow->DisableHover();
 			arrow->AlignRight();
 			arrow->StretchFitToChildren();
-			arrow->GetTextGui()->SetFontSize(8);
+			arrow->GetGuiText()->SetFontSize(8);
 			arrow->AlignVerCenter();
 
 			item->AddItem(arrow);
-			subMenu->SetPrivateData(arrow);
+			subMenu->SetGuiArrow(arrow);
 		}
 	};
 
@@ -45,7 +51,7 @@ GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
 	{
 		if (subMenu->GetChildren().size() == 0)
 		{
-			Gui* arrow = subMenu->GetPrivateData<Gui>();
+			Gui* arrow = subMenu->GetGuiArrow();
 			item->RemoveGui(arrow);
 		}
 	};

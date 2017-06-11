@@ -113,11 +113,6 @@ public:
 	GuiSplitter*	AsSplitter();
 	GuiMenu*		AsMenu();
 
-	void SetPrivateData(void* data) { privateData = data; }
-
-	template<class T>
-	T* GetPrivateData() { return (T*)privateData; }
-
 	void SetContentRect(float x, float y, float width, float height) { SetContentRect(x, y, width, height, true, true); }
 	void SetContentRect(const RectF rect) { SetContentRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); }
 
@@ -452,8 +447,6 @@ protected:
 	// Very internal stuff, Parent's are only fillable after their size is evaluated, before it shouldn't
 	bool bFillParentEnabled;
 	bool bForceFitToChildren;
-
-	void* privateData;
 public:
 
 	GuiEngine* guiEngine;

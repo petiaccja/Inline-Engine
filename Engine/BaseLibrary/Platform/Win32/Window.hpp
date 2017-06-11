@@ -8,15 +8,66 @@
 #include <queue>
 #include <functional>
 
-struct WindowDesc
-{
-	WindowDesc() : style(eWindowStyle::DEFAULT), clientSize(0, 0) {}
-
-	std::string	 capText;
-	eWindowStyle style;
-	Vector2u	 clientSize;
-	std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> userWndProc;
-};
+// TODO later we will need this for fully functional Drag&Drop
+//class WindowDropTarget : public IDropTarget
+//{
+//public:
+//	WindowDropTarget() : m_cRef(1) { }
+//	~WindowDropTarget() { }
+//
+//	// *** IUnknown ***
+//	STDMETHODIMP QueryInterface(REFIID riid, void **ppv)
+//	{
+//		if (riid == IID_IUnknown || riid == IID_IDropTarget) {
+//			*ppv = static_cast<IUnknown*>(this);
+//			AddRef();
+//			return S_OK;
+//		}
+//		*ppv = NULL;
+//		return E_NOINTERFACE;
+//	}
+//
+//	STDMETHODIMP_(ULONG) AddRef()
+//	{
+//		return InterlockedIncrement(&m_cRef);
+//	}
+//
+//	STDMETHODIMP_(ULONG) Release()
+//	{
+//		LONG cRef = InterlockedDecrement(&m_cRef);
+//		if (cRef == 0) delete this;
+//		return cRef;
+//	}
+//	//Next come the methods of IDropTarget, none of which are particularly interesting.We just say that we are going to copy the data.
+//
+//		// *** IDropTarget ***
+//	STDMETHODIMP DragEnter(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect)
+//	{
+//		*pdwEffect &= DROPEFFECT_COPY;
+//		return S_OK;
+//	}
+//
+//	STDMETHODIMP DragOver(DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect)
+//	{
+//		*pdwEffect &= DROPEFFECT_COPY;
+//		return S_OK;
+//	}
+//
+//	STDMETHODIMP DragLeave()
+//	{
+//		return S_OK;
+//	}
+//
+//	STDMETHODIMP Drop(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect)
+//	{
+//		
+//		*pdwEffect &= DROPEFFECT_COPY;
+//		return S_OK;
+//	}
+//
+//private:
+//	long m_cRef;
+//};
 
 class Window
 {
@@ -66,6 +117,7 @@ public:
 	Delegate<void(WindowEvent&)>	onMouseReleased;
 	Delegate<void(WindowEvent&)>	onMouseMoved;
 	Delegate<void(Vector2u)>		onClientSizeChanged;
+	Delegate<void(std::vector<std::wstring>&)> onDrop;
 
 protected:
 	friend LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -76,4 +128,5 @@ protected:
 	HWND handle;
 	bool bClosed;
 	std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> userWndProc;
+	//WindowDropTarget dropTarget; // TODO later we will need this for fully functional Drag&Drop
 };
