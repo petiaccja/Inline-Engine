@@ -33,10 +33,11 @@ float3 compareWithNeighbor(int2 tileCorner, int s, int t, float3 result)
 {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
-	inputTexSize -= uint3(1, 1, 0);
+	int2 texSize = int3(inputTexSize).xy - int2(1, 1);
+
 
 	int2 offset = int2(s, t);
-	float2 velocity = undoVelocityBiasScale(inputTex.Load(int3(clamp(tileCorner + offset, int2(0, 0), inputTexSize.xy), 0)).xy);
+	float2 velocity = undoVelocityBiasScale(inputTex.Load(int3(clamp(tileCorner + offset, int2(0, 0), texSize), 0)).xy);
 
 	float lenSqr = dot(velocity, velocity);
 
@@ -67,7 +68,7 @@ PS_Input VSMain(float4 position : POSITION, float4 texcoord : TEX_COORD)
 
 float2 PSMain(PS_Input input) : SV_TARGET
 {
-	uint2 tileCorner = uint2(input.position.xy);
+	int2 tileCorner = int2(input.position.xy);
 
 	float3 result = float3(0.5, 0.5, 0.0);
 
