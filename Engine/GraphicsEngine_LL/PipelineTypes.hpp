@@ -5,6 +5,9 @@
 #include <memory>
 #include <atomic>
 
+// THIS FILE IS OBSOLETE
+// ITS NOT USED ANYWHERE, CHECKED REFERENCES
+
 
 namespace inl::gxeng {
 class CopyCommandList;

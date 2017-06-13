@@ -42,14 +42,5 @@ Mat44 PerspectiveCamera::GetProjectionMatrix() const {
 }
 
 
-// obsolete:
-Mat44 PerspectiveCamera::GetViewMatrixLH() const {
-	return Mat44::LookAt(m_position, m_position + m_lookdir, m_upVector, true, false, false);
-}
-Mat44 PerspectiveCamera::GetProjectionMatrixLH() const {
-	return Mat44::Perspective(m_fovH, m_fovH / m_fovV, m_nearPlane, m_farPlane, 0, 1);
-}
-
-
 
 } // namespace inl::gxeng

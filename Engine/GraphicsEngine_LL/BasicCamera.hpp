@@ -53,9 +53,7 @@ public:
 	virtual float GetAspectRatio() const = 0;
 
 	virtual Mat44 GetViewMatrix() const = 0;
-	virtual Mat44 GetViewMatrixLH() const = 0;
 	virtual Mat44 GetProjectionMatrix() const = 0;
-	virtual Mat44 GetProjectionMatrixLH() const = 0;
 
 protected:
 	std::string m_name;

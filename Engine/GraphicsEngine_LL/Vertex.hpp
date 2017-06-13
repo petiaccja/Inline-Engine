@@ -24,9 +24,80 @@ namespace gxeng {
 /// </remarks>
 enum class eVertexElementSemantic {
 	POSITION,
+	POSITION2D,
+	POSITION4D,
 	NORMAL,
 	TEX_COORD,
 	COLOR,
+	TANGENT,
+	BITANGENT,
+
+	// TODO: consider adding generic attributes for plus user data
+	/*
+	GENERIC_UINT8_1,
+	GENERIC_UINT8_2,
+	GENERIC_UINT8_3,
+	GENERIC_UINT8_4,
+
+	GENERIC_UINT16_1,
+	GENERIC_UINT16_2,
+	GENERIC_UINT16_3,
+	GENERIC_UINT16_4,
+
+	GENERIC_UINT32_1,
+	GENERIC_UINT32_2,
+	GENERIC_UINT32_3,
+	GENERIC_UINT32_4,
+
+
+	GENERIC_INT8_1,
+	GENERIC_INT8_2,
+	GENERIC_INT8_3,
+	GENERIC_INT8_4,
+
+	GENERIC_INT16_1,
+	GENERIC_INT16_2,
+	GENERIC_INT16_3,
+	GENERIC_INT16_4,
+
+	GENERIC_INT32_1,
+	GENERIC_INT32_2,
+	GENERIC_INT32_3,
+	GENERIC_INT32_4,
+
+
+	GENERIC_FLOAT16_1,
+	GENERIC_FLOAT16_2,
+	GENERIC_FLOAT16_3,
+	GENERIC_FLOAT16_4,
+
+	GENERIC_FLOAT32_1,
+	GENERIC_FLOAT32_2,
+	GENERIC_FLOAT32_3,
+	GENERIC_FLOAT32_4,
+
+
+	GENERIC_NORM8_1,
+	GENERIC_NORM8_2,
+	GENERIC_NORM8_3,
+	GENERIC_NORM8_4,
+
+	GENERIC_NORM16_1,
+	GENERIC_NORM16_2,
+	GENERIC_NORM16_3,
+	GENERIC_NORM16_4,
+
+
+	GENERIC_UNORM8_1,
+	GENERIC_UNORM8_2,
+	GENERIC_UNORM8_3,
+	GENERIC_UNORM8_4,
+
+	GENERIC_UNORM16_1,
+	GENERIC_UNORM16_2,
+	GENERIC_UNORM16_3,
+	GENERIC_UNORM16_4,
+	*/
 };
 
 
@@ -50,6 +121,12 @@ template <int Index>
 using Position = VertexElement<eVertexElementSemantic::POSITION, Index>;
 
 template <int Index>
+using Position2D = VertexElement<eVertexElementSemantic::POSITION2D, Index>;
+
+template <int Index>
+using Position4D = VertexElement<eVertexElementSemantic::POSITION4D, Index>;
+
+template <int Index>
 using Normal = VertexElement<eVertexElementSemantic::NORMAL, Index>;
 
 template <int Index>
@@ -57,6 +134,12 @@ using TexCoord = VertexElement<eVertexElementSemantic::TEX_COORD, Index>;
 
 template <int Index>
 using Color = VertexElement<eVertexElementSemantic::COLOR, Index>;
+
+template <int Index>
+using Tangent = VertexElement<eVertexElementSemantic::TANGENT, Index>;
+
+template <int Index>
+using Bitangent = VertexElement<eVertexElementSemantic::BITANGENT, Index>;
 
 
 namespace impl {
@@ -196,25 +279,17 @@ public:																						\
 	DataType& SINGLE_NAME = MULTI_NAME[Index];												\
 }		
 
-//#define INL_GXENG_VERTEX_PART(SEMANTIC, DATA_TYPE, GET_NAME, MULTI_NAME, SINGLE_NAME)		\
-//template <int... Indices>																	\
-//class VertexPartImpl<SEMANTIC, Indices...> {												\
-//public:																						\
-//	using DataType = DATA_TYPE;																\
-//	DataType& GET_NAME(int index) { return MULTI_NAME[index]; }					\
-//	const DataType& GET_NAME(int index) const { return MULTI_NAME[index]; }		\
-//	union {																					\
-//		impl::VertexPartData<DataType, Indices...> MULTI_NAME;									\
-//		DataType SINGLE_NAME;																\
-//	};																						\
-//};
 
 
 // Actual definition of vertex parts
 INL_GXENG_VERTEX_PART(eVertexElementSemantic::POSITION, INL_GXENG_SIMPLE_ARG(Vec3), GetPosition, positions, position);
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::POSITION2D, INL_GXENG_SIMPLE_ARG(Vec2), GetPosition2D, position2ds, position2d);
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::POSITION4D, INL_GXENG_SIMPLE_ARG(Vec4), GetPosition4D, position4ds, position4d);
 INL_GXENG_VERTEX_PART(eVertexElementSemantic::NORMAL, INL_GXENG_SIMPLE_ARG(Vec3), GetNormal, normals, normal);
 INL_GXENG_VERTEX_PART(eVertexElementSemantic::TEX_COORD, INL_GXENG_SIMPLE_ARG(Vec2), GetTexCoord, texCoords, texCoord);
 INL_GXENG_VERTEX_PART(eVertexElementSemantic::COLOR, INL_GXENG_SIMPLE_ARG(Vec3), GetColor, colors, color);
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::TANGENT, INL_GXENG_SIMPLE_ARG(Vec3), GetTangent, tangents, tangent);
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::BITANGENT, INL_GXENG_SIMPLE_ARG(Vec3), GetBitangent, bitangents, bitangent);
 
 
 

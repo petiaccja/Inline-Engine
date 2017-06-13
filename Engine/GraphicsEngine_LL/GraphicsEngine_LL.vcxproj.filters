@@ -360,9 +360,6 @@
     <ClCompile Include="BasicCamera.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="OrthographicCamera.cpp">
-      <Filter>Resources</Filter>
-    </ClCompile>
     <ClCompile Include="OverlayEntity.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
@@ -462,6 +459,9 @@
     <ClCompile Include="ScratchSpacePool.cpp">
       <Filter>Backend\Pipeline</Filter>
     </ClCompile>
+    <ClCompile Include="OrthographicCamera.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Materials\bitmap_color_2d.mtl.hlsl">
@@ -487,58 +487,8 @@
     <None Include="Nodes\Shaders\OverlayColored.hlsl" />
     <None Include="Nodes\Shaders\OverlayTextured.hlsl" />
     <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Materials\PbrBrdf.hlsl">
-      <Filter>Materials</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\Blend.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\BlendWithTransform.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\CSM.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\CSMSample.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DebugDraw.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DepthPrepass.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DepthReduction.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DepthReductionFinal.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DrawSky.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\ForwardRender.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\GenCSM.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\LightCulling.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\OverlayColored.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\OverlayTextured.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\TiledLighting.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
+    <None Include="Materials\PbrBrdf.hlsl" />
+    <None Include="Nodes\Shaders\GenCSM.hlsl" />
+    <None Include="Nodes\Shaders\TiledLighting.hlsl" />
   </ItemGroup>
 </Project>
