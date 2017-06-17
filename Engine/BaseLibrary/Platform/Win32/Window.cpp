@@ -7,6 +7,16 @@
 #include <objidl.h>
 #include <fstream>
 
+// Drag and drop need OLE initialization this class globally initialize and deinitialize it
+class OleManager
+{
+public:
+	OleManager() { OleInitialize(NULL); }
+	~OleManager() { OleUninitialize(); }
+} OleManager;
+
+
+// Internal message handler for window
 LRESULT CALLBACK WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	Window* window = nullptr;
@@ -14,47 +24,16 @@ LRESULT CALLBACK WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 	{
 		window = static_cast<Window*>(reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams);
 		SetWindowLongPtr(handle, -21, reinterpret_cast<LONG_PTR>(window));
-
-		DragAcceptFiles(handle, true);
-
-		// TODO later we will need this for fully functional Drag&Drop
-		// Do not forget to call OleInitialize(0) on main thread init
-		//HRESULT res = RegisterDragDrop(handle, &window->dropTarget);
-		//assert(res == S_OK);
 	}
 	else
 	{
 		window = reinterpret_cast<Window*>(GetWindowLongPtr(handle, -21));
 	}
 
-	if (msg == WM_DROPFILES)
+	if (msg == WM_COPYDATA)
 	{
-		HDROP hDropInfo = (HDROP)wParam;
-	
-		UINT fileCount = DragQueryFile(hDropInfo, (UINT)-1, NULL, 0);
-		
-		std::vector<std::wstring> fileNames(fileCount);
-		for (int i = 0; i < fileCount; i++)
-		{
-			TCHAR szFileName[1024];
-			DragQueryFile(hDropInfo, i, szFileName, _MAX_PATH);
-			fileNames[i] = szFileName;
-		}
-	
-		DragFinish(hDropInfo);
-
-		if (window->onDrop)
-			window->onDrop(std::move(fileNames));
+		return TRUE;
 	}
-
-	auto userWndProc = window ? window->GetUserWndProc() : nullptr;
-
-	LRESULT res;
-	if (userWndProc)
-		res = window->GetUserWndProc()(handle, msg, wParam, lParam);
-	else
-		res = DefWindowProc(handle, msg, wParam, lParam);
-
 	if (msg == WM_SIZE)
 	{
 		int x = GET_X_LPARAM(lParam);
@@ -65,12 +44,22 @@ LRESULT CALLBACK WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 		window->onClientSizeChanged(Vector2u(clientRect.right - clientRect.left, clientRect.bottom - clientRect.top));
 	}
 
+	auto userWndProc = window ? window->GetUserWndProc() : nullptr;
+
+	LRESULT res;
+	if (userWndProc)
+		res = window->GetUserWndProc()(handle, msg, wParam, lParam);
+	else
+		res = DefWindowProc(handle, msg, wParam, lParam);
+
 	return res;
 }
 
 Window::Window(const WindowDesc& d)
 :userWndProc(nullptr)
 {
+	dropTarget.Init(this);
+
 	bClosed = false;
 	userWndProc = d.userWndProc;
 
@@ -121,6 +110,7 @@ Window::Window(const WindowDesc& d)
 
 	std::wstring captionText(d.capText.begin(), d.capText.end());
 
+	// Create win32 api window
 	handle = CreateWindowExW(0,
 		L"windowclass",
 		captionText.c_str(),
@@ -133,8 +123,17 @@ Window::Window(const WindowDesc& d)
 		0,
 		appID,
 		this);
-
+	
+	// Show window
 	ShowWindow(handle, SW_SHOW);
+
+	// Enable drag & drop
+	ChangeWindowMessageFilterEx(handle, WM_DROPFILES, MSGFLT_ALLOW, nullptr);
+	ChangeWindowMessageFilterEx(handle, WM_COPYDATA, MSGFLT_ALLOW, nullptr);
+	ChangeWindowMessageFilterEx(handle, 0x0049, MSGFLT_ALLOW, nullptr);
+	DragAcceptFiles(handle, true);
+	HRESULT res = RegisterDragDrop(handle, &dropTarget);
+	assert(res == S_OK);
 
 	// Register raw mouse, TODO REMOVE IT
 	const unsigned HID_USAGE_PAGE_GENERIC = 0x01;
@@ -153,6 +152,11 @@ Window::Window(const WindowDesc& d)
 	}
 }
 
+Window::~Window()
+{
+	RevokeDragDrop(handle);
+}
+
 bool Window::PopEvent(WindowEvent& evt_out)
 {
 	evt_out.mouseDelta.x() = 0;
@@ -164,7 +168,7 @@ bool Window::PopEvent(WindowEvent& evt_out)
 	evt_out.clientMousePos.y() = 0;
 
 	MSG msg;
-	if (PeekMessage(&msg, handle, 0, 0, PM_REMOVE))
+	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
@@ -286,6 +290,7 @@ bool Window::PopEvent(WindowEvent& evt_out)
 
 void Window::Close()
 {
+	RevokeDragDrop(handle);
 	CloseWindow(handle);
 	bClosed = true;
 }

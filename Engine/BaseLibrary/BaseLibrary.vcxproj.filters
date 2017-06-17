@@ -157,6 +157,9 @@
     <ClInclude Include="Platform\PlatformUtils.h">
       <Filter>Platform</Filter>
     </ClInclude>
+    <ClInclude Include="Platform\Win32\WindowDropTarget.hpp">
+      <Filter>Platform\Win32</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">
@@ -207,6 +210,9 @@
     <ClCompile Include="Common_tmp.cpp" />
     <ClCompile Include="Timer.cpp">
       <Filter>All</Filter>
+    </ClCompile>
+    <ClCompile Include="Platform\Win32\WindowDropTarget.cpp">
+      <Filter>Platform\Win32</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

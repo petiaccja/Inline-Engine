@@ -99,9 +99,9 @@ void Editor::InitGui()
 	};
 	closeBtn->onMouseClicked += [this](CursorEvent& evt) { wnd->Close(); };
 
-	minimizeBtn->SetImages("Resources/minimize.png", "Resources/minimize_h.png");
-	maximizeBtn->SetImages("Resources/maximize.png", "Resources/maximize_h.png");
-	closeBtn->SetImages("Resources/close.png", "Resources/close_h.png");
+	minimizeBtn->SetImages(L"Resources/minimize.png", L"Resources/minimize_h.png");
+	maximizeBtn->SetImages(L"Resources/maximize.png", L"Resources/maximize_h.png");
+	closeBtn->SetImages(L"Resources/close.png", L"Resources/close_h.png");
 
 	minMaxCloseList->SetOrientation(eGuiOrientation::HORIZONTAL);
 	minMaxCloseList->AddItem(minimizeBtn);
@@ -279,25 +279,39 @@ void Editor::InitGui()
 	textureList->SetOrientation(eGuiOrientation::HORIZONTAL);
 	textureList->StretchFitToChildren();
 
-	for (int i = 0; i < 50; ++i)
+	wnd->onDrop += [this, textureList](DropData& data)
 	{
-		GuiList* content = textureList->AddItemList();
-		content->StretchFitToChildren();
-		content->MakeVertical();
-		content->SetSize(70, 100);
-		content->SetBgToColor(Color(0,0,0,0), Color(20));
-		GuiImage* img0 = content->AddItemImage();
-		img0->SetMargin(4, 4, 4, 0);
-		img0->SetImage("Resources/normal.jpg");
-		img0->SetSize(70, 70);
+		std::vector<path> filesPaths = data.filesPaths;
+		std::wstring text = data.text;
 
-		GuiText* text0 = content->AddGuiText();
-		text0->StretchFitToChildren();
-		text0->AlignHorCenter();
-		text0->SetMargin(4);
-		text0->SetText("normal");
-		content->DisableChildrenHover();
-	}
+		for (int i = 0; i < filesPaths.size(); ++i)
+		{
+			path filePath = filesPaths[i];
+
+			GuiList* content = textureList->AddItemList();
+			content->StretchFitToChildren();
+			content->MakeVertical();
+			content->SetSize(70, 100);
+			content->SetBgToColor(Color(0, 0, 0, 0), Color(20));
+			GuiImage* img0 = content->AddItemImage();
+			img0->AlignHorCenter();
+			img0->SetMargin(4, 4, 4, 0);
+			img0->SetImage(filePath.c_str(), 70, 70);
+			img0->SetSize(70, 70);
+
+			filePath.replace_extension("");
+			std::wstring nameWithoutExt = filePath.filename();
+
+			GuiText* text0 = content->AddGuiText();
+			text0->StretchFitToChildren();
+			text0->AlignHorCenter();
+			text0->SetMargin(4);
+			text0->SetText(nameWithoutExt);
+			content->DisableChildrenHover();
+		}
+
+		SetFocus((HWND)wnd->GetHandle());
+	};
 }
 
 void Editor::Run()
@@ -404,12 +418,12 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			if (wParam == SIZE_MAXIMIZED)
 			{
-				maximizeBtn->SetImages("Resources/restore.png", "Resources/restore_h.png");
+				maximizeBtn->SetImages(L"Resources/restore.png", L"Resources/restore_h.png");
 				bWndMaximized = true;
 			}
 			else if (wParam == SIZE_RESTORED)
 			{
-				maximizeBtn->SetImages("Resources/maximize.png", "Resources/maximize_h.png");
+				maximizeBtn->SetImages(L"Resources/maximize.png", L"Resources/maximize_h.png");
 				
 				bWndMaximized = false;
 			}

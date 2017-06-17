@@ -138,7 +138,7 @@ public:
 	void SetContentSize(float width, float height) { SetContentRect(GetContentRect().left, GetContentRect().top, width, height, true, true); }
 	void SetContentSize(const Vector2f& s) { SetContentSize(s.x(), s.y()); }
 
-	void SetEventPropagationPolicy(eEventPropagationPolicy e) { eventPropagationPolicy = e; }
+	//void SetEventPropagationPolicy(eEventPropagationPolicy e) { eventPropagationPolicy = e; }
 
 	void SetClipChildren(bool b) { bClipChildren = b; }
 
@@ -150,9 +150,9 @@ public:
 	void SetBgActiveColorToIdle();
 	void SetBgActiveColorToHover();
 
-	void SetBgToImage(const std::wstring& idleImagePath, const std::wstring& hoverImagePath);
-	void SetBgIdleImage(const std::wstring& path);
-	void SetBgHoverImage(const std::wstring& path);
+	void SetBgToImage(const std::wstring& idleImagePath, const std::wstring& hoverImagePath, int width = 0, int height = 0);
+	void SetBgIdleImage(const std::wstring& path, int width = 0, int height = 0);
+	void SetBgHoverImage(const std::wstring& path, int width = 0, int height = 0);
 	void SetBgActiveImage(Gdiplus::Bitmap* image) { bgActiveImage = image; }
 	void SetBgActiveImageToIdle();
 	void SetBgActiveImageToHover();
@@ -311,7 +311,7 @@ public:
 	Gui* GetChild(int index) { assert(index >= 0); return (index >= GetChildren().size()) ? nullptr : GetChildren()[index]; }
 	int GetIndexInParent() { return indexInParent; }
 
-	eEventPropagationPolicy GetEventPropagationPolicy() { return eventPropagationPolicy; }
+	//eEventPropagationPolicy GetEventPropagationPolicy() { return eventPropagationPolicy; }
 
 	const Color& GetBgActiveColor() const { return bgActiveColor; }
 	const Color& GetBgIdleColor() const { return bgIdleColor; }
@@ -419,7 +419,7 @@ protected:
 	int indexInParent;
 
 	// What this widget should do with the message it reaches while moving up in hierarchy (toward parents)
-	eEventPropagationPolicy eventPropagationPolicy;
+	//eEventPropagationPolicy eventPropagationPolicy;
 
 	// Background image and color
 	bool bBgImageVisible;

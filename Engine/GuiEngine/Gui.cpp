@@ -30,7 +30,7 @@ Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 	bgHoverColor = Color(75);
 	border = RectF(0, 0, 0, 0);
 	pos = Vector2f(0, 0);
-	eventPropagationPolicy = eEventPropagationPolicy::PROCESS;
+	//eventPropagationPolicy = eEventPropagationPolicy::PROCESS;
 	indexInParent = -1;
 	this->bLayer = bLayer;
 	parent = nullptr;
@@ -208,7 +208,7 @@ Gui& Gui::operator = (const Gui& other)
 	stretchVer = other.stretchVer;
 	bFillParentEnabled = other.bFillParentEnabled;
 	bForceFitToChildren = other.bForceFitToChildren;
-	eventPropagationPolicy = other.eventPropagationPolicy;
+	//eventPropagationPolicy = other.eventPropagationPolicy;
 	bHovered = other.bHovered;
 	bHoverable = other.bHoverable;
 	bBgColorVisible = other.bBgColorVisible;
@@ -345,21 +345,21 @@ bool Gui::RemoveFromParent()
 void Gui::TraverseTowardParents(const std::function<void(Gui*)>& fn)
 {
 	// STOP traverse 
-	if (eventPropagationPolicy == eEventPropagationPolicy::STOP)
-		return;
-
-	// PROCESS fn then STOP
-	if (eventPropagationPolicy == eEventPropagationPolicy::PROCESS || eventPropagationPolicy == eEventPropagationPolicy::PROCESS_STOP)
+	//if (eventPropagationPolicy == eEventPropagationPolicy::STOP)
+	//	return;
+	//
+	//// PROCESS fn then STOP
+	//if (eventPropagationPolicy == eEventPropagationPolicy::PROCESS || eventPropagationPolicy == eEventPropagationPolicy::PROCESS_STOP)
 		fn(this);
-
-	// Continue recursion
-	if (eventPropagationPolicy == eEventPropagationPolicy::PROCESS || eventPropagationPolicy == eEventPropagationPolicy::AVOID)
-	{
+	//
+	//// Continue recursion
+	//if (eventPropagationPolicy == eEventPropagationPolicy::PROCESS || eventPropagationPolicy == eEventPropagationPolicy::AVOID)
+	//{
 		if (back)
 			back->TraverseTowardParents(fn);
 		else if (parent)
 			fn(parent);
-	}
+	//}
 }
 
 void Gui::Move(float dx, float dy)
@@ -447,32 +447,62 @@ void Gui::SetContentRect(float x, float y, float width, float height, bool bFire
 	SetRect(resultRect, bFireEvents, bMoveChildren);
 }
 
-void Gui::SetBgIdleImage(const std::wstring& str)
+void Gui::SetBgIdleImage(const std::wstring& str, int width /*= 0*/, int height /*= 0*/)
 {
 	assert(std::experimental::filesystem::exists(str)); // File doesn't exists
 
-	Gdiplus::Bitmap* newBitmap = new Gdiplus::Bitmap(str.c_str());
+	Gdiplus::Bitmap* resultBitmap;
 
+	if (width == 0 && height == 0)
+	{
+		resultBitmap = new Gdiplus::Bitmap(str.c_str());
+	}
+	else
+	{
+		Gdiplus::Bitmap* fullResBitmap = new Gdiplus::Bitmap(str.c_str());
+
+		resultBitmap = new Gdiplus::Bitmap(width, height, fullResBitmap->GetPixelFormat());
+		Gdiplus::Graphics graphics(resultBitmap);
+		graphics.DrawImage(fullResBitmap, 0, 0, width, height);
+
+		delete fullResBitmap;
+	}
+	
 	if (bgIdleImage == GetBgActiveImage())
-		SetBgActiveImage(newBitmap);
+		SetBgActiveImage(resultBitmap);
 
 	if (bgIdleImage)
 		delete bgIdleImage;
 
-	bgIdleImage = newBitmap;
+	bgIdleImage = resultBitmap;
 }
 
-void Gui::SetBgHoverImage(const std::wstring& str)
+void Gui::SetBgHoverImage(const std::wstring& str, int width /*= 0*/, int height /*= 0*/)
 {
-	Gdiplus::Bitmap* newBitmap = new Gdiplus::Bitmap(str.c_str());
+	Gdiplus::Bitmap* resultBitmap;
+
+	if (width == 0 && height == 0)
+	{
+		resultBitmap = new Gdiplus::Bitmap(str.c_str());
+	}
+	else
+	{
+		Gdiplus::Bitmap* fullResBitmap = new Gdiplus::Bitmap(str.c_str());
+
+		resultBitmap = new Gdiplus::Bitmap(width, height, fullResBitmap->GetPixelFormat());
+		Gdiplus::Graphics graphics(resultBitmap);
+		graphics.DrawImage(fullResBitmap, 0, 0, width, height);
+
+		delete fullResBitmap;
+	}
 
 	if (bgHoverImage == GetBgActiveImage())
-		SetBgActiveImage(newBitmap);
+		SetBgActiveImage(resultBitmap);
 
 	if (bgHoverImage)
 		delete bgHoverImage;
 
-	bgHoverImage = newBitmap;
+	bgHoverImage = resultBitmap;
 }
 
 void Gui::SetBgIdleColor(const Color& color)
@@ -515,12 +545,12 @@ void Gui::SetBgActiveColorToHover()
 	SetBgActiveColor(GetBgHoverColor());
 }
 
-void Gui::SetBgToImage(const std::wstring& idleImagePath, const std::wstring& hoverImagePath)
+void Gui::SetBgToImage(const std::wstring& idleImagePath, const std::wstring& hoverImagePath, int width /*= 0*/, int height /*= 0*/)
 {
 	HideBgColor();
 
-	SetBgIdleImage(idleImagePath);
-	SetBgHoverImage(hoverImagePath);
+	SetBgIdleImage(idleImagePath, width, height);
+	SetBgHoverImage(hoverImagePath, width, height);
 }
 
 void Gui::SetBgActiveImageToIdle()

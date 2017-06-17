@@ -14,11 +14,9 @@ public:
 	//virtual GuiImage* Clone() const override { return new GuiImage(*this); }
 	//GuiImage& operator = (const GuiImage& other);
 
-	void SetImage(const std::wstring& imagePath) { SetImages(imagePath, imagePath); }
-	void SetImage(const std::string& imagePath) { SetImages(imagePath, imagePath); }
+	void SetImage(const std::wstring& imagePath, int width = 0, int height = 0) { SetImages(imagePath, imagePath, width, height); }
 
-	void SetImages(const std::wstring& idleImagePath, const std::wstring& hoverImagePath);
-	void SetImages(const std::string& idleImagePath, const std::string& hoverImagePath) { SetImages(std::wstring(idleImagePath.begin(), idleImagePath.end()), std::wstring(hoverImagePath.begin(), hoverImagePath.end())); }
+	void SetImages(const std::wstring& idleImagePath, const std::wstring& hoverImagePath, int width = 0, int height = 0);
 };
 
 } // namespace inl::gui

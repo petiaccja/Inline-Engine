@@ -203,7 +203,7 @@ void GuiEngine::Update(float deltaTime)
 		return;
 
 	// Let's hint the window to repaint itself
-	InvalidateRect((HWND)targetWindow->GetHandle(), NULL, true);
+	InvalidateRect((HWND)targetWindow->GetHandle(), NULL, false);
 
 	// Calculate clipping rect for all gui controls
 	std::function<void(Gui* control, RectF& clipRect)> traverseControls;

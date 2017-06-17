@@ -6,6 +6,10 @@
 
 #include <string>
 #include <functional>
+#include <vector>
+#include <filesystem>
+
+using namespace std::experimental::filesystem;
 
 ENUM_CLASS_BITFLAG( eWindowStyle, int )
 {
@@ -59,4 +63,10 @@ struct WindowDesc
 	eWindowStyle style;
 	Vector2u	 clientSize;
 	std::function<LRESULT(WindowHandle, unsigned int, long long, long long)> userWndProc;
+};
+
+struct DropData
+{
+	std::wstring text;
+	std::vector<path> filesPaths;
 };

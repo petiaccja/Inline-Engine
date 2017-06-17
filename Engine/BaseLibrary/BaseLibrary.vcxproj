@@ -166,6 +166,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Any.hpp" />
+    <ClCompile Include="Platform\Win32\WindowDropTarget.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClInclude Include="ArrayView.hpp" />
     <ClInclude Include="BitflagEnum.hpp" />
@@ -191,6 +192,7 @@
     <ClInclude Include="Platform\Win32\PlatformDefinitions.h" />
     <ClInclude Include="Platform\Win32\PlatformUtils.h" />
     <ClInclude Include="Platform\Win32\Window.hpp" />
+    <ClInclude Include="Platform\Win32\WindowDropTarget.hpp" />
     <ClInclude Include="Platform\Window.hpp" />
     <ClInclude Include="Platform\WindowCommon.hpp" />
     <ClInclude Include="Range.hpp" />
