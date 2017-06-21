@@ -1,8 +1,11 @@
-// Window implementation on [Windows OS]
+// Window drag & drop implementation [Windows OS]
 #pragma once
+
+#include "../WindowCommon.hpp"
 
 #define NOMINMAX
 #include <windows.h>
+#include <functional>
 
 class Window;
 
@@ -28,4 +31,6 @@ public:
 private:
 	long m_cRef;
 	Window* wnd;
+
+	DragData dragData; // The data currently being dragged by user in the Operating System
 };

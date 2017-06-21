@@ -27,6 +27,9 @@ public:
 	void Pause();
 
 	/// <summary> Stops the timer and sets the counter to zero. </summary>
+	void Stop();
+
+	/// <summary> Sets the counter to zero. </summary>
 	void Reset();
 
 	/// <summary> How fast time goes. Set to 0.2 to record 1 second when real-world time advances by 5 seconds. </summary>

@@ -76,8 +76,11 @@ protected:
 	Gui* activeContextMenu;
 
 	bool bHoverFreezed;
+	bool bOperSysDragging;
+	DragData dragData;
 
 	eCursorVisual cursorVisual;
+
 	// TODO TEMPORARY GDI+, RATHER MAKE A RENDER INTERFACE AND IMPLEMENT DX12 ETC ABOVE IT
 	Gdiplus::Graphics* gdiGraphics;
 	HDC hdc;

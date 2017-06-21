@@ -44,40 +44,22 @@ STDMETHODIMP_(ULONG) WindowDropTarget::Release()
 
 STDMETHODIMP WindowDropTarget::DragEnter(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect)
 {
-	*pdwEffect &= DROPEFFECT_COPY;
-	return S_OK;
-}
-
-STDMETHODIMP WindowDropTarget::DragOver(DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect)
-{
-	*pdwEffect &= DROPEFFECT_COPY;
-	return S_OK;
-}
-
-STDMETHODIMP WindowDropTarget::DragLeave()
-{
-	return S_OK;
-}
-
-STDMETHODIMP WindowDropTarget::Drop(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect)
-{
+	dragData.Reset();
+	
 	FORMATETC textFormat = { CF_UNICODETEXT, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };;
 	FORMATETC fileFormat = { CF_HDROP, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
 
 	STGMEDIUM medium;
 
 	// Drop text data
-
 	if (pdto->GetData(&textFormat, &medium) == S_OK)
 	{
 		// We need to lock the HGLOBAL handle because we can't be sure if this is GMEM_FIXED (i.e. normal heap) data or not
-		wchar_t* str = (wchar_t*)GlobalLock(medium.hGlobal);
+		wchar_t* text = (wchar_t*)GlobalLock(medium.hGlobal);
 
-		DropData data;
-		data.text = str;
+		dragData.text = text;
 
-		if (wnd->onDrop)
-			wnd->onDrop(std::move(data));
+		wnd->onDragEntered(dragData);
 
 		GlobalUnlock(medium.hGlobal);
 		ReleaseStgMedium(&medium);
@@ -95,14 +77,35 @@ STDMETHODIMP WindowDropTarget::Drop(IDataObject *pdto, DWORD grfKeyState, POINTL
 			filePaths.push_back(fileName);
 		}
 
-		DropData data;
-		data.filesPaths = std::move(filePaths);
+		dragData.filesPaths = std::move(filePaths);
 
-		if (wnd->onDrop)
-			wnd->onDrop(std::move(data));
+		wnd->onDragEntered(dragData);
 
 		ReleaseStgMedium(&medium);
 	}
+
+	*pdwEffect &= DROPEFFECT_COPY;
+	return S_OK;
+}
+
+STDMETHODIMP WindowDropTarget::DragOver(DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect)
+{
+	wnd->onDragHovering(dragData);
+
+	*pdwEffect &= DROPEFFECT_COPY;
+	return S_OK;
+}
+
+STDMETHODIMP WindowDropTarget::DragLeave()
+{
+	wnd->onDragLeaved(dragData);
+
+	return S_OK;
+}
+
+STDMETHODIMP WindowDropTarget::Drop(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect)
+{
+	wnd->onDropped(dragData);
 
 	*pdwEffect &= DROPEFFECT_COPY;
 	return S_OK;

@@ -36,9 +36,14 @@ void Timer::Pause() {
 	}
 }
 
-void Timer::Reset() {
+void Timer::Stop() {
 	m_accumulator = 0.0;
 	m_state = STOPPED;
+}
+
+void Timer::Reset() {
+	m_accumulator = 0.0;
+	Start();
 }
 
 void Timer::SetSpeed(double speed) {

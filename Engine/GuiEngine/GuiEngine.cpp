@@ -9,6 +9,7 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 	hdc = nullptr;
 	memHDC = nullptr;
 
+	bOperSysDragging = false;
 	this->targetWindow = targetWindow;
 	this->graphicsEngine = graphicsEngine;
 	bHoverFreezed = false;
@@ -147,6 +148,40 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 		}
 	};
 
+	targetWindow->onDragEntered += [this](DragData& data)
+	{
+		bOperSysDragging = true;
+		dragData = data;
+
+		Gui* hoveredGui = GetHoveredGui();
+
+		if (hoveredGui)
+			hoveredGui->onOperSysDragEntered(data);
+	};
+
+	targetWindow->onDragLeaved += [this](DragData& data)
+	{
+		bOperSysDragging = false;
+	};
+
+	targetWindow->onDropped += [this](DragData& data)
+	{
+		Gui* hoveredGui = GetHoveredGui();
+
+		if(hoveredGui)
+			hoveredGui->onOperSysDropped(data);
+
+		bOperSysDragging = false;
+	};
+
+	//targetWindow->onDragHovering += [this](DragData& data)
+	//{
+	//	Gui* hoveredGui = GetHoveredGui();
+	//
+	//	if (hoveredGui)
+	//		hoveredGui->onOperSysDragHovering(data);
+	//};
+
 	targetWindow->onClientSizeChanged += [this](Vector2u size)
 	{
 		for (auto& layer : GetLayers())
@@ -199,8 +234,8 @@ GuiLayer* GuiEngine::CreateLayer()
 
 void GuiEngine::Update(float deltaTime)
 {
-	if (!targetWindow->IsFocused())
-		return;
+	//if (!targetWindow->IsFocused())
+	//	return;
 
 	// Let's hint the window to repaint itself
 	InvalidateRect((HWND)targetWindow->GetHandle(), NULL, false);
@@ -254,12 +289,6 @@ void GuiEngine::Update(float deltaTime)
 				newHoveredControl = control;
 		});
 
-		if (newHoveredControl && newHoveredControl->GetName() == L"LIST_LIST")
-		{
-			int asd = 5;
-			asd++;
-		}
-
 		if (newHoveredControl != hoveredGui)
 		{
 			// Cursor Leave
@@ -301,6 +330,14 @@ void GuiEngine::Update(float deltaTime)
 			}
 		}
 		hoveredGui = newHoveredControl;
+	}
+
+	if (bOperSysDragging)
+	{
+		Gui* hoveredGui = GetHoveredGui();
+		
+		if (hoveredGui)
+			hoveredGui->onOperSysDragHovering(dragData);
 	}
 }
 

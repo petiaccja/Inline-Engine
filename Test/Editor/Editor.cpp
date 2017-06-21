@@ -1,6 +1,13 @@
 #include "Editor.hpp"
 #include "QCWorld.hpp"
 
+class TimeCore
+{
+public:
+	float deltaTime = 0.f;
+} Time;
+
+
 Editor::Editor()
 {
 	bWndMaximized = false;
@@ -278,9 +285,39 @@ void Editor::InitGui()
 	textureList->SetBgToColor(Color(0, 0, 0, 0));
 	textureList->SetOrientation(eGuiOrientation::HORIZONTAL);
 	textureList->StretchFitToChildren();
+	textureList->SetName(L"TEXTURE_LIST");
 
-	wnd->onDrop += [this, textureList](DropData& data)
+
+
+	Gui* contentCell = scrollableBottom->GetCell(0, 0);
+	thread_local float colorDiff = 0;
+	thread_local float time = 0;
+	contentCell->onOperSysDragEntered += [contentCell](DragData& data)
 	{
+		time = 0;
+		// Show tooltip about what will happen if user Drops it
+	};
+
+	contentCell->onOperSysDragLeaved += [contentCell](DragData& data)
+	{
+		// Remove the highlight
+		contentCell->SetBgActiveColor(contentCell->GetBgIdleColor());
+		
+		// Hide tooltip
+	};
+
+	contentCell->onOperSysDragHovering += [contentCell](DragData& data)
+	{
+		const float maxColorDifference = 40;
+
+		time += Time.deltaTime * 5;
+		contentCell->SetBgActiveColor(contentCell->GetBgIdleColor() + (int)(sin(time) * maxColorDifference));
+	};
+
+	contentCell->onOperSysDropped += [this, textureList, contentCell](DragData& data)
+	{
+		contentCell->SetBgActiveColor(contentCell->GetBgIdleColor());
+
 		std::vector<path> filesPaths = data.filesPaths;
 		std::wstring text = data.text;
 
@@ -336,13 +373,14 @@ void Editor::Run()
 		//Input.Update();
 
 		// Frame delta time
-		float deltaTime = timer->Elapsed();
+		Time.deltaTime = timer->Elapsed();
+		timer->Reset();
 
 		// Update game world
-		world->UpdateWorld(deltaTime);
+		world->UpdateWorld(Time.deltaTime);
 
 		// Update engine
-		core->Update(deltaTime);
+		core->Update(Time.deltaTime);
 	}
 
 	delete timer;

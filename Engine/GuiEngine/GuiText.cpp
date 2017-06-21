@@ -4,15 +4,13 @@
 using namespace inl::gui;
 
 GuiText::GuiText(GuiEngine* guiEngine)
-:Gui(guiEngine), color(220, 220, 220, 255)
+:Gui(guiEngine), color(235, 235, 235, 255)
 {
 	SetFontFamily("Helvetica");
 	SetFontSize(12);
 	SetFontStyle(Gdiplus::FontStyle::FontStyleRegular);
 
 	SetBgToColor(Color(0, 0, 0, 0));
-	//HideBgImage();
-	//HideBgColor();
 
 	onPaintClonable += [](Gui* self_, Gdiplus::Graphics* graphics)
 	{
@@ -21,16 +19,9 @@ GuiText::GuiText(GuiEngine* guiEngine)
 		if (self->text.length() == 0)
 			return;
 
-		//auto rect = self->GetContentRect();
 		auto visibleContentRect = self->GetVisibleContentRect();
 
-		// TODO visibleRect
-		//Gdiplus::RectF gdiClipRect = Gdiplus::RectF(rect.left, rect.top, rect.GetWidth(), rect.GetHeight());
 		Gdiplus::RectF gdiClipRect = Gdiplus::RectF(visibleContentRect.left, visibleContentRect.top, visibleContentRect.GetWidth(), visibleContentRect.GetHeight());
-
-		// Clipping (INTERSECT MODE)
-		//graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeIntersect);
-		//graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeReplace);
 
 		Color color = self->color;
 		Gdiplus::SolidBrush brush(Gdiplus::Color(color.a, color.r, color.g, color.b));

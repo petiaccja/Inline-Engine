@@ -75,55 +75,7 @@ public:
 	virtual bool RemoveItem(Gui* gui) { return false; };
 	virtual std::vector<Gui*> GetItems() { return std::vector<Gui*>(); }
 
-	void SetDimension(uint32_t width, uint32_t height)
-	{
-		int cellCountDiff = width * height - dimension.x() * dimension.y();
-
-		// Add cells
-		if (cellCountDiff >= 0)
-		{
-			for (int i = 0; i < cellCountDiff; ++i)
-			{
-				Gui* cell = AddGui();
-				cells.push_back(cell);
-			}
-		}
-		else // Remove cells
-		{
-			for (int i = 0; i < -cellCountDiff; ++i)
-			{
-				Gui* cell = cells[cells.size() - 1 - i];
-				cell->RemoveFromParent();
-			}
-			cells.resize(cells.size() + cellCountDiff);
-		}
-
-		Vector2i dimensionDiff = Vector2i(width - dimension.x(), height - dimension.y());
-
-		// Add columns
-		if (dimensionDiff.x() >= 0)
-		{
-			for (int i = 0; i < dimensionDiff.x(); ++i)
-				columns.push_back(GuiGridColumn(i, this));
-		}
-		else // Remove columns
-		{
-			columns.resize(columns.size() + dimensionDiff.x());
-		}
-
-		// Add rows
-		if (dimensionDiff.y() >= 0)
-		{
-			for (int i = 0; i < dimensionDiff.y(); ++i)
-				rows.push_back(GuiGridRow(i, this));
-		}
-		else // Remove rows
-		{
-			rows.resize(rows.size() + dimensionDiff.y());
-		}
-
-		dimension = Vector2u(width, height);
-	}
+	void SetDimension(uint32_t width, uint32_t height);
 
 	Gui* GetCell(int x, int y)
 	{

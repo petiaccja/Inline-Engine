@@ -476,6 +476,11 @@ public:
 	Delegate<void(CursorEvent& evt)> onMouseHovering;
 	Delegate<void(Gui* self, CursorEvent& evt)> onMouseHoveringClonable;
 
+	Delegate<void(DragData& data)> onOperSysDragEntered;
+	Delegate<void(DragData& data)> onOperSysDragLeaved;
+	Delegate<void(DragData& data)> onOperSysDragHovering;
+	Delegate<void(DragData& data)> onOperSysDropped;
+
 	Delegate<void(float deltaTime)> onUpdate;
 	Delegate<void(Gui* self, float deltaTime)> onUpdateClonable;
 
@@ -517,6 +522,7 @@ T* Gui::Copy(T* other)
 		return nullptr;
 
 	int idx = other->GetIndexInParent();
+
 	if (idx == -1)
 		return other->Clone();
 	else

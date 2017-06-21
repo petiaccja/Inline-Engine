@@ -65,8 +65,14 @@ struct WindowDesc
 	std::function<LRESULT(WindowHandle, unsigned int, long long, long long)> userWndProc;
 };
 
-struct DropData
+struct DragData
 {
 	std::wstring text;
 	std::vector<path> filesPaths;
+
+	void Reset()
+	{
+		text = L"";
+		filesPaths.clear();
+	}
 };

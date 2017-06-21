@@ -4,7 +4,7 @@
 using namespace inl::gui;
 
 GuiSplitter::GuiSplitter(GuiEngine* guiEngine)
-:GuiLayout(guiEngine), orientation(eGuiOrientation::HORIZONTAL), separatorLength(8)
+:GuiLayout(guiEngine), orientation(eGuiOrientation::HORIZONTAL), separatorLength(10)
 {
 	SetBgToColor(GetBgIdleColor());
 }
@@ -187,7 +187,7 @@ void GuiSplitter::AddItem(Gui* item)
 			}
 		};
 
-		separator->SetBgToColor(Color(120), Color(200));
+		separator->SetBgToColor(Color(135), Color(220));
 
 		if (orientation == eGuiOrientation::HORIZONTAL)
 		{

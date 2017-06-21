@@ -59,7 +59,11 @@ public:
 	Delegate<void(WindowEvent&)>	onMouseReleased;
 	Delegate<void(WindowEvent&)>	onMouseMoved;
 	Delegate<void(Vector2u)>		onClientSizeChanged;
-	Delegate<void(DropData)> onDrop;
+	Delegate<void(DragData&)>		onDropped;
+	Delegate<void(DragData&)>		onDragEntered;
+	Delegate<void(DragData&)>		onDragLeaved;
+	Delegate<void(DragData&)>		onDragHovering;
+	
 
 protected:
 	friend LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
