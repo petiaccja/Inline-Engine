@@ -114,9 +114,6 @@
     <ClInclude Include="Binder.hpp">
       <Filter>Bridge</Filter>
     </ClInclude>
-    <ClInclude Include="VertexElementCompressor.hpp">
-      <Filter>Resources</Filter>
-    </ClInclude>
     <ClInclude Include="EntityCollection.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
@@ -305,9 +302,6 @@
     </ClInclude>
     <ClInclude Include="ScratchSpacePool.hpp">
       <Filter>Backend\Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="Vertex_old.hpp">
-      <Filter>Resources</Filter>
     </ClInclude>
     <ClInclude Include="Vertex.hpp">
       <Filter>Resources</Filter>

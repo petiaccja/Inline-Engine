@@ -239,9 +239,7 @@
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="UploadManager.hpp" />
     <ClInclude Include="VertexCompressor.hpp" />
-    <ClInclude Include="Vertex_old.hpp" />
     <ClInclude Include="Vertex.hpp" />
-    <ClInclude Include="VertexElementCompressor.hpp" />
     <ClInclude Include="VolatileViewHeap.hpp" />
   </ItemGroup>
   <ItemGroup>

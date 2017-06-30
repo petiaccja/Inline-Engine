@@ -434,6 +434,17 @@ protected:
 } // namespace impl
 //------------------------------------------------------------------------------
 
+
+
+/// <summary>
+/// Passed to the Mesh so that it can understand the vertex content.
+/// </summary>
+/// <remarks>
+/// Automatically generated for templated vertices, and can be accessed through
+/// Vertex::GetReader.
+/// For custom vertices, implement this interface, but keep in mind that the underlying
+/// type of vertex parts cannot be changed.
+/// </remarks>
 class IVertexReader {
 public:
 	struct Element {
@@ -530,6 +541,11 @@ const std::vector<IVertexReader::Element> VertexReader<VertexElement<Semantics, 
 };
 
 
+/// <summary>
+/// Procedural vertex class. Specify the vertex structure's contents by the template parameters.
+/// The specified contents are accessible as member variables.
+/// Pass an array of vertices along with corresponding reader to the <see cref="Mesh"/> class.
+/// </summary>
 template <eVertexElementSemantic... Semantics, int... Indices>
 class Vertex<VertexElement<Semantics, Indices>...> 
 	: public VertexBase,

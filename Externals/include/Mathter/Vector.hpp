@@ -34,6 +34,7 @@
 #include <iostream>
 #include <array>
 #include <cstdint>
+#include <algorithm>
 
 #include "Simd.hpp"
 
@@ -662,10 +663,10 @@ class MATHTER_EBCO Vector
 public:
 	static void DumpLayout(std::ostream& os) {
 		Vector* ptr = reinterpret_cast<Vector*>(1000);
-		os << "VectorData:       " << (intptr_t)static_cast<VectorData<float, 4, false>*>(ptr) - 1000 << " -> " << sizeof(VectorData<float, 4, false>) << endl;
-		os << "VectorOps:        " << (intptr_t)static_cast<VectorOps<float, 4, false>*>(ptr) - 1000 << " -> " << sizeof(VectorOps<float, 4, false>) << endl;
-		os << "VectorSpecialOps: " << (intptr_t)static_cast<VectorSpecialOps<float, 4, false>*>(ptr) - 1000 << " -> " << sizeof(VectorSpecialOps<float, 4, false>) << endl;
-		os << "Vector:           " << (intptr_t)static_cast<Vector<float, 4, false>*>(ptr) - 1000 << " -> " << sizeof(Vector<float, 4, false>) << endl;
+		os << "VectorData:       " << (intptr_t)static_cast<VectorData<T, 4, false>*>(ptr) - 1000 << " -> " << sizeof(VectorData<T, 4, false>) << endl;
+		os << "VectorOps:        " << (intptr_t)static_cast<VectorOps<T, 4, false>*>(ptr) - 1000 << " -> " << sizeof(VectorOps<T, 4, false>) << endl;
+		os << "VectorSpecialOps: " << (intptr_t)static_cast<VectorSpecialOps<T, 4, false>*>(ptr) - 1000 << " -> " << sizeof(VectorSpecialOps<T, 4, false>) << endl;
+		os << "Vector:           " << (intptr_t)static_cast<Vector<T, 4, false>*>(ptr) - 1000 << " -> " << sizeof(Vector<T, 4, false>) << endl;
 	}
 
 	//--------------------------------------------
@@ -955,6 +956,19 @@ public:
 		return sqrt(LengthSquared());
 	}
 
+	static Vector Min(const Vector& lhs, const Vector& rhs) {
+		Vector res;
+		for (int i = 0; i < Dimension(); ++i) {
+			res[i] = std::min(lhs[i], rhs[i]);
+		}
+	}
+	static Vector Max(const Vector& lhs, const Vector& rhs) {
+		Vector res;
+		for (int i = 0; i < Dimension(); ++i) {
+			res[i] = std::max(lhs[i], rhs[i]);
+		}
+	}
+
 protected:
 	//--------------------------------------------
 	// Helpers
@@ -1064,6 +1078,14 @@ auto Normalized(const Vector<T, Dim, Packed>& arg) {
 	return arg.Normalized();
 }
 
+template <class T, int Dim, int Packed>
+auto Min(const Vector<T, Dim, Packed>& lhs, const Vector<T, Dim, Packed>& rhs) {
+	return Vector<T, Dim, Packed>::Min(lhs, rhs);
+}
+template <class T, int Dim, int Packed>
+auto Max(const Vector<T, Dim, Packed>& lhs, const Vector<T, Dim, Packed>& rhs) {
+	return Vector<T, Dim, Packed>::Max(lhs, rhs);
+}
 
 
 //------------------------------------------------------------------------------
