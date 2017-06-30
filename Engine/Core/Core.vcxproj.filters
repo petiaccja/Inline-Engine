@@ -110,5 +110,8 @@
     <ClCompile Include="WorldComponent.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Actor.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

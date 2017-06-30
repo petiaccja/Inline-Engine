@@ -39,6 +39,7 @@
     <ClInclude Include="WorldComponent.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Actor.cpp" />
     <ClCompile Include="ActorScript.cpp" />
     <ClCompile Include="Behavior.cpp" />
     <ClCompile Include="EngineCore.cpp" />
