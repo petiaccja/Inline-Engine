@@ -97,6 +97,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -110,6 +111,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -126,6 +128,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -144,6 +147,7 @@
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -234,6 +238,8 @@
     <ClInclude Include="MemoryObject.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="UploadManager.hpp" />
+    <ClInclude Include="VertexCompressor.hpp" />
+    <ClInclude Include="Vertex_old.hpp" />
     <ClInclude Include="Vertex.hpp" />
     <ClInclude Include="VertexElementCompressor.hpp" />
     <ClInclude Include="VolatileViewHeap.hpp" />
@@ -289,6 +295,7 @@
     <ClCompile Include="MemoryObject.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="UploadManager.cpp" />
+    <ClCompile Include="VertexCompressor.cpp" />
     <ClCompile Include="VolatileViewHeap.cpp" />
   </ItemGroup>
   <ItemGroup>

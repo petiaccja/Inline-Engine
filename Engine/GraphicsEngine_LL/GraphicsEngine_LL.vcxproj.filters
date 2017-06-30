@@ -114,9 +114,6 @@
     <ClInclude Include="Binder.hpp">
       <Filter>Bridge</Filter>
     </ClInclude>
-    <ClInclude Include="Vertex.hpp">
-      <Filter>Resources</Filter>
-    </ClInclude>
     <ClInclude Include="VertexElementCompressor.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
@@ -309,6 +306,15 @@
     <ClInclude Include="ScratchSpacePool.hpp">
       <Filter>Backend\Pipeline</Filter>
     </ClInclude>
+    <ClInclude Include="Vertex_old.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexCompressor.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -462,6 +468,9 @@
     <ClCompile Include="OrthographicCamera.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="VertexCompressor.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Materials\bitmap_color_2d.mtl.hlsl">
@@ -473,22 +482,56 @@
     <None Include="Materials\simple_diffuse.mtl.hlsl">
       <Filter>Materials</Filter>
     </None>
-    <None Include="Nodes\Shaders\Blend.hlsl" />
-    <None Include="Nodes\Shaders\BlendWithTransform.hlsl" />
-    <None Include="Nodes\Shaders\CSM.hlsl" />
-    <None Include="Nodes\Shaders\CSMSample.hlsl" />
-    <None Include="Nodes\Shaders\DebugDraw.hlsl" />
-    <None Include="Nodes\Shaders\DepthPrepass.hlsl" />
-    <None Include="Nodes\Shaders\DepthReduction.hlsl" />
-    <None Include="Nodes\Shaders\DepthReductionFinal.hlsl" />
-    <None Include="Nodes\Shaders\DrawSky.hlsl" />
-    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
-    <None Include="Nodes\Shaders\LightCulling.hlsl" />
-    <None Include="Nodes\Shaders\OverlayColored.hlsl" />
-    <None Include="Nodes\Shaders\OverlayTextured.hlsl" />
-    <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl" />
-    <None Include="Materials\PbrBrdf.hlsl" />
-    <None Include="Nodes\Shaders\GenCSM.hlsl" />
-    <None Include="Nodes\Shaders\TiledLighting.hlsl" />
+    <None Include="Nodes\Shaders\Blend.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\BlendWithTransform.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\CSM.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\CSMSample.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\DebugDraw.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\DepthPrepass.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\DepthReduction.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\DepthReductionFinal.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\DrawSky.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\ForwardRender.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\GenCSM.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\LightCulling.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\OverlayColored.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\OverlayTextured.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
+    <None Include="Materials\PbrBrdf.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
+    <None Include="Nodes\Shaders\TiledLighting.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

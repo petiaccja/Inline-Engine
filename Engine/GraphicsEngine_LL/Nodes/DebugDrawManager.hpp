@@ -136,14 +136,14 @@ public:
 		vertices.reserve(4);
 		indices.reserve(4);
 
-		vertices.push_back(d.xyz.ToVector() - Vec3(1, 0, 0) * d.w);
-		vertices.push_back(d.xyz.ToVector() + Vec3(1, 0, 0) * d.w);
+		vertices.push_back(d.xyz.ToVector() - Vec3(1.f, 0.f, 0.f) * d.w);
+		vertices.push_back(d.xyz.ToVector() + Vec3(1.f, 0.f, 0.f) * d.w);
 
-		vertices.push_back(d.xyz.ToVector() - Vec3(0, 1, 0) * d.w);
-		vertices.push_back(d.xyz.ToVector() + Vec3(0, 1, 0) * d.w);
+		vertices.push_back(d.xyz.ToVector() - Vec3(0.f, 1.f, 0.f) * d.w);
+		vertices.push_back(d.xyz.ToVector() + Vec3(0.f, 1.f, 0.f) * d.w);
 
-		vertices.push_back(d.xyz.ToVector() - Vec3(0, 0, 1) * d.w);
-		vertices.push_back(d.xyz.ToVector() + Vec3(0, 0, 1) * d.w);
+		vertices.push_back(d.xyz.ToVector() - Vec3(0.f, 0.f, 1.f) * d.w);
+		vertices.push_back(d.xyz.ToVector() + Vec3(0.f, 0.f, 1.f) * d.w);
 
 		indices.push_back(0);
 		indices.push_back(1);

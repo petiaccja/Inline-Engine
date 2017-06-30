@@ -377,14 +377,14 @@ void ForwardRender::Execute(RenderContext& context) {
 		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 100), &lightConstants, sizeof(lightConstants));
 
 		Uniforms uniformsCBData;
-		uniformsCBData.screen_dimensions = Vec4(m_rtv.GetResource().GetWidth(), m_rtv.GetResource().GetHeight(), 0.f, 0.f);
+		uniformsCBData.screen_dimensions = Vec4((float)m_rtv.GetResource().GetWidth(), (float)m_rtv.GetResource().GetHeight(), 0.f, 0.f);
 		uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrix() * Vec4(m_camera->GetPosition() + m_camera->GetLookDirection() * 5.f, 1.0f);
 		uniformsCBData.ld[0].attenuation_end = Vec4(5.0f, 0.f, 0.f, 0.f);
 		uniformsCBData.ld[0].diffuse_color = Vec4(1.f, 0.f, 0.f, 1.f);
 		uniformsCBData.vs_cam_pos = m_camera->GetViewMatrix() * Vec4(m_camera->GetPosition(), 1.0f);
 
 		uint32_t dispatchW, dispatchH;
-		SetWorkgroupSize(m_rtv.GetResource().GetWidth(), m_rtv.GetResource().GetHeight(), 16, 16, dispatchW, dispatchH);
+		SetWorkgroupSize((unsigned)m_rtv.GetResource().GetWidth(), (unsigned)m_rtv.GetResource().GetHeight(), 16, 16, dispatchW, dispatchH);
 
 		uniformsCBData.group_size_x = dispatchW;
 		uniformsCBData.group_size_y = dispatchH;

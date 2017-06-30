@@ -37,7 +37,7 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
 
 		m_cubeMesh.reset(m_graphicsEngine->CreateMesh());
-		m_cubeMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+		m_cubeMesh->Set(modelVertices.data(), &modelVertices[0].GetReader(), modelVertices.size(), modelIndices.data(), modelIndices.size());
 	}
 
 	{

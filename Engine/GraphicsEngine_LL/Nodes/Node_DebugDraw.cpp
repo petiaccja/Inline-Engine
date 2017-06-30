@@ -217,7 +217,7 @@ void DebugDraw::Execute(RenderContext& context) {
 		VertexBuffer* vbPtr = &vb;
 		commandList.SetVertexBuffers(0, 1, &vbPtr, &currObject.second.size, &currObject.second.stride);
 		commandList.SetIndexBuffer(&currObject.second.indexBuffer, true);
-		commandList.DrawIndexedInstanced(currObject.second.indexBuffer.GetIndexCount());
+		commandList.DrawIndexedInstanced((unsigned)currObject.second.indexBuffer.GetIndexCount());
 	}
 
 	DebugDrawManager::GetInstance().Update();

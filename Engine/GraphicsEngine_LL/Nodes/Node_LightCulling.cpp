@@ -184,13 +184,13 @@ void LightCulling::Execute(RenderContext& context) {
 	ndcCorners[1] /= ndcCorners[1].w;
 
 	uniformsCBData.far_plane0 = Vec4(ndcCorners[0].xyz, ndcCorners[1].x);
-	uniformsCBData.far_plane1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0, 0);
+	uniformsCBData.far_plane1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0.0f, 0.0f);
 
 	uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrix() * Vec4(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1.0f);
 	uniformsCBData.ld[0].attenuation_end = 5.0f;
 
 	uint32_t dispatchW, dispatchH;
-	SetWorkgroupSize(m_width, m_height, 16, 16, dispatchW, dispatchH);
+	SetWorkgroupSize((unsigned)m_width, (unsigned)m_height, 16, 16, dispatchW, dispatchH);
 
 	uniformsCBData.num_workgroups_x = dispatchW;
 	uniformsCBData.num_workgroups_y = dispatchH;

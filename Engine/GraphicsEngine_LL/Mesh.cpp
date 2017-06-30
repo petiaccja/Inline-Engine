@@ -1,5 +1,6 @@
 #include "Mesh.hpp"
-#include "VertexElementCompressor.hpp"
+//#include "VertexElementCompressor.hpp"
+#include "VertexCompressor.hpp"
 #include <BaseLibrary/ArrayView.hpp>
 
 using exc::ArrayView;
@@ -9,7 +10,7 @@ namespace inl {
 namespace gxeng {
 
 
-
+/*
 void Mesh::Set(const VertexBase* vertices, size_t numVertices, const unsigned* indices, size_t numIndices) {
 	// Create constants
 	auto& elements = vertices[0].GetElements();
@@ -48,8 +49,40 @@ void Mesh::Set(const VertexBase* vertices, size_t numVertices, const unsigned* i
 	// Calculate hashes
 	m_layout = Layout(layout);
 }
+*/
 
 
+void Mesh::Set(const VertexBase* vertices, const IVertexReader* vertexReader, size_t numVertices, const unsigned* indices, size_t numIndices) {
+	// Create constants
+	auto& elements = vertexReader->GetElements();
+	std::vector<bool> elementMap(elements.size(), true);
+
+	// Compress vertices
+	VertexCompressor compressor{ vertexReader, elementMap };
+	std::vector<uint8_t> compressedData = compressor.GetCompressedStream(vertices, numVertices);
+	auto offsets = compressor.GetCompressedOffsets();
+
+	// Set data
+	VertexStream stream;
+	stream.stride = compressor.GetCompressedStride();
+	stream.count = numVertices;
+	stream.data = compressedData.data();
+	MeshBuffer::Set(&stream, &stream + 1, indices, indices + numIndices);
+
+	// Set stream elements.
+	std::vector<std::vector<Element>> layout;
+	layout.clear();
+	std::vector<Element> streamElements;
+	for (size_t i = 0; i < elements.size(); ++i) {
+		streamElements.push_back(Element{ elements[i].semantic, elements[i].index, offsets[i] });
+	}
+	layout.push_back(streamElements);
+
+	// Calculate hashes
+	m_layout = Layout(layout);
+}
+
+/*
 void Mesh::Update(const VertexBase* vertices, size_t numVertices, size_t offsetInVertices) {
 	// Create constants
 	auto& elements = vertices[0].GetElements();
@@ -70,6 +103,22 @@ void Mesh::Update(const VertexBase* vertices, size_t numVertices, size_t offsetI
 
 	// Update data
 	MeshBuffer::Update(0, compressedData.get(), numVertices, offsetInVertices);
+}
+*/
+
+
+void Mesh::Update(const VertexBase* vertices, const IVertexReader* vertexReader, size_t numVertices, size_t offsetInVertices) {
+	// Create constants
+	auto& elements = vertexReader->GetElements();
+	std::vector<bool> elementMap(elements.size(), true);
+
+	// Compress vertices
+	VertexCompressor compressor{ vertexReader, elementMap };
+	std::vector<uint8_t> compressedData = compressor.GetCompressedStream(vertices, numVertices);
+	auto offsets = compressor.GetCompressedOffsets();
+
+	// Update data
+	MeshBuffer::Update(0, compressedData.data(), numVertices, offsetInVertices);
 }
 
 

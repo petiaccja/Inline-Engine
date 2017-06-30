@@ -1,16 +1,14 @@
 #pragma once
 
-
 #include <type_traits>
-#include <stdexcept>
+#include <typeindex>
+#include <cstdint>
 #include <vector>
-
+#include <array>
 #include <InlineMath.hpp>
 
 
-namespace inl {
-namespace gxeng {
-
+namespace inl::gxeng {
 
 
 /// <summary>
@@ -31,73 +29,6 @@ enum class eVertexElementSemantic {
 	COLOR,
 	TANGENT,
 	BITANGENT,
-
-	// TODO: consider adding generic attributes for plus user data
-	/*
-	GENERIC_UINT8_1,
-	GENERIC_UINT8_2,
-	GENERIC_UINT8_3,
-	GENERIC_UINT8_4,
-
-	GENERIC_UINT16_1,
-	GENERIC_UINT16_2,
-	GENERIC_UINT16_3,
-	GENERIC_UINT16_4,
-
-	GENERIC_UINT32_1,
-	GENERIC_UINT32_2,
-	GENERIC_UINT32_3,
-	GENERIC_UINT32_4,
-
-
-	GENERIC_INT8_1,
-	GENERIC_INT8_2,
-	GENERIC_INT8_3,
-	GENERIC_INT8_4,
-
-	GENERIC_INT16_1,
-	GENERIC_INT16_2,
-	GENERIC_INT16_3,
-	GENERIC_INT16_4,
-
-	GENERIC_INT32_1,
-	GENERIC_INT32_2,
-	GENERIC_INT32_3,
-	GENERIC_INT32_4,
-
-
-	GENERIC_FLOAT16_1,
-	GENERIC_FLOAT16_2,
-	GENERIC_FLOAT16_3,
-	GENERIC_FLOAT16_4,
-
-	GENERIC_FLOAT32_1,
-	GENERIC_FLOAT32_2,
-	GENERIC_FLOAT32_3,
-	GENERIC_FLOAT32_4,
-
-
-	GENERIC_NORM8_1,
-	GENERIC_NORM8_2,
-	GENERIC_NORM8_3,
-	GENERIC_NORM8_4,
-
-	GENERIC_NORM16_1,
-	GENERIC_NORM16_2,
-	GENERIC_NORM16_3,
-	GENERIC_NORM16_4,
-
-
-	GENERIC_UNORM8_1,
-	GENERIC_UNORM8_2,
-	GENERIC_UNORM8_3,
-	GENERIC_UNORM8_4,
-
-	GENERIC_UNORM16_1,
-	GENERIC_UNORM16_2,
-	GENERIC_UNORM16_3,
-	GENERIC_UNORM16_4,
-	*/
 };
 
 
@@ -142,249 +73,476 @@ template <int Index>
 using Bitangent = VertexElement<eVertexElementSemantic::BITANGENT, Index>;
 
 
+
+
+//------------------------------------------------------------------------------
 namespace impl {
 
-	// Stores values related to a certain semantic. The type of the values and list of indices is specified.
-	// TODO: optimize for Indices... that form a sequence [0,1,2,3 ...]
-	// TODO: implement binary search for indices that don't form a sequence
-	template <class T, int... Indices>
-	class VertexPartData {
-	private:
-		static constexpr int count = sizeof...(Indices);
-		static constexpr int table[count] = { Indices... };
-	protected:
-		T values[count]; //
-	public:
-		T& operator[](int index) {
-			for (int lookupIdx = 0; lookupIdx < count; ++lookupIdx) {
-				if (table[lookupIdx] == index) {
-					return values[lookupIdx];
-				}
-			}
-			throw std::invalid_argument("Index not found.");
-		}
-		const T& operator[](int index) const {
-			for (int lookupIdx = 0; lookupIdx < count; ++lookupIdx) {
-				if (table[lookupIdx] == index) {
-					return values[lookupIdx];
-				}
-			}
-			throw std::invalid_argument("Index not found.");
-		}
-	};
-	// Just the definition of statics members
-	template <class T, int... Indices>
-	constexpr int VertexPartData<T, Indices...>::table[count];
 
-
-
-	// List of semantics.
-	template <eVertexElementSemantic... Semantics>
-	class SemanticList {};
-
-	template <class T, class U>
-	class ConcatSemanticList;
-
-	template <eVertexElementSemantic... Semantics1, eVertexElementSemantic... Semantics2>
-	class ConcatSemanticList<SemanticList<Semantics1...>, SemanticList<Semantics2...>> {
-	public:
-		using type = SemanticList<Semantics1..., Semantics2...>;
-	};
-
-
-
-	// Decides if a SemanticList contains a given Semantic.
-	template <eVertexElementSemantic Semantic, class List>
-	class ContainsSemantic;
-
-	template <eVertexElementSemantic Semantic, eVertexElementSemantic... List>
-	class ContainsSemanticHelper;
-
-	template <eVertexElementSemantic Semantic, eVertexElementSemantic Head, eVertexElementSemantic... List>
-	class ContainsSemanticHelper<Semantic, Head, List...> {
-	public:
-		static constexpr bool value = (Semantic == Head) || ContainsSemanticHelper<Semantic, List...>::value;
-	};
-
-	template <eVertexElementSemantic Semantic>
-	class ContainsSemanticHelper<Semantic> {
-	public:
-		static constexpr bool value = false;
-	};
-
-	template <eVertexElementSemantic Semantic, eVertexElementSemantic... List>
-	class ContainsSemantic<Semantic, SemanticList<List...>> {
-	public:
-		static constexpr bool value = ContainsSemanticHelper<Semantic, List...>::value;
-	};
-
-
-
-	// Used to conditionally inherit from.
-	class EmptyClass {};
-
-
-
-	// Represents a list of arbitrary types.
-	template <class... Types>
-	class TypeList {};
-
-	template <class T, class U>
-	class ConcatTypeList;
-
-	template <class... Types1, class... Types2>
-	class ConcatTypeList<TypeList<Types1...>, TypeList<Types2...>> {
-	public:
-		using type = TypeList<Types1..., Types2...>;
-	};
-
-} // namespace impl
-
-
-// Vertex parts
-template <eVertexElementSemantic Semantic>
-class VertexPart {
+// Stores values related to a certain semantic. The type of the values and list of indices is specified.
+// TODO: optimize for Indices... that form a sequence [0,1,2,3 ...]
+// TODO: implement binary search for indices that don't form a sequence
+template <class T, int... Indices>
+class VertexPartData {
+private:
+	static constexpr int count = sizeof...(Indices);
+	static constexpr int table[count] = { Indices... };
+protected:
+	T values[count]; //
 public:
-	virtual ~VertexPart() = default;
+	T& operator[](int index) {
+		for (int lookupIdx = 0; lookupIdx < count; ++lookupIdx) {
+			if (table[lookupIdx] == index) {
+				return values[lookupIdx];
+			}
+		}
+		throw std::invalid_argument("Index not found.");
+	}
+	const T& operator[](int index) const {
+		for (int lookupIdx = 0; lookupIdx < count; ++lookupIdx) {
+			if (table[lookupIdx] == index) {
+				return values[lookupIdx];
+			}
+		}
+		throw std::invalid_argument("Index not found.");
+	}
+};
+// Just the definition of statics members
+template <class T, int... Indices>
+constexpr int VertexPartData<T, Indices...>::table[count];
+
+
+
+// List of semantics.
+template <eVertexElementSemantic... Semantics>
+class SemanticList {};
+
+template <class T, class U>
+class ConcatSemanticList;
+
+template <eVertexElementSemantic... Semantics1, eVertexElementSemantic... Semantics2>
+class ConcatSemanticList<SemanticList<Semantics1...>, SemanticList<Semantics2...>> {
+public:
+	using type = SemanticList<Semantics1..., Semantics2...>;
 };
 
+
+
+// Decides if a SemanticList contains a given Semantic.
+template <eVertexElementSemantic Semantic, class List>
+class ContainsSemantic;
+
+template <eVertexElementSemantic Semantic, eVertexElementSemantic First, eVertexElementSemantic... Rest>
+class ContainsSemantic<Semantic, SemanticList<First, Rest...>> {
+public:
+	static constexpr bool value = Semantic == First || ContainsSemantic<Semantic, SemanticList<Rest...>>::value;
+};
+
+template <eVertexElementSemantic Semantic>
+class ContainsSemantic<Semantic, SemanticList<>> {
+public:
+	static constexpr bool value = false;
+};
+
+
+
+// Represents a list of arbitrary types.
+template <class... Types>
+class TypeList {};
+
+template <class T, class U>
+class ConcatTypeList;
+
+template <class... Types1, class... Types2>
+class ConcatTypeList<TypeList<Types1...>, TypeList<Types2...>> {
+public:
+	using type = TypeList<Types1..., Types2...>;
+};
+
+
+// Used to conditionally inherit from.
+class EmptyClass {};
+
+} // namespace impl
+//------------------------------------------------------------------------------
+
+
+
+
+class VertexBase;
+
 template <eVertexElementSemantic Semantic, int... Indices>
-class VertexPartImpl;
+class VertexPart;
+
+class VertexPartReaderBase {
+public:
+	virtual std::type_index GetType() const = 0;
+	virtual const std::vector<int>& GetIndices() const = 0;
+	virtual size_t GetSize() const = 0;
+	virtual void* GetPointer(VertexBase& obj, int index) const = 0;
+	virtual const void* GetPointer(const VertexBase& obj, int index) const = 0;
+};
+
+template <eVertexElementSemantic Semantic>
+class VertexPartReader;
+
+template <eVertexElementSemantic Semantic, int... Indices>
+class VertexPartReaderImpl;
+
 
 #define INL_GXENG_SIMPLE_ARG(...) __VA_ARGS__
 #define INL_GXENG_VERTEX_PART(SEMANTIC, DATA_TYPE, GET_NAME, MULTI_NAME, SINGLE_NAME)		\
-template <>																					\
-class VertexPart<SEMANTIC> {																\
+template <int Index1, int Index2, int... Indices>											\
+class VertexPart<SEMANTIC, Index1, Index2, Indices...> {									\
 public:																						\
-	virtual ~VertexPart() = default;														\
 	using DataType = DATA_TYPE;																\
-	virtual DataType& GET_NAME (int index) = 0;												\
-	virtual const DataType& GET_NAME (int index) const = 0;									\
+	impl::VertexPartData<DataType, Index1, Index2, Indices...> MULTI_NAME;					\
 };																							\
 																							\
-template <int Index, int... Indices>														\
-class VertexPartImpl<SEMANTIC, Index, Indices...> : public VertexPart<SEMANTIC> {			\
+template <int Index1>																		\
+class VertexPart<SEMANTIC, Index1> {														\
 public:																						\
-	DataType& GET_NAME(int index) override { return MULTI_NAME[index]; }					\
-	const DataType& GET_NAME(int index) const override { return MULTI_NAME[index]; }		\
-	impl::VertexPartData<DataType, Index, Indices...> MULTI_NAME;							\
+	using DataType = DATA_TYPE;																\
+	VertexPart() : SINGLE_NAME() {}															\
+	VertexPart(const VertexPart& rhs) : SINGLE_NAME(rhs.SINGLE_NAME) {}						\
+	VertexPart& operator=(const VertexPart& rhs) {SINGLE_NAME = rhs.SINGLE_NAME; return *this;}	\
+	~VertexPart() { SINGLE_NAME.~DATA_TYPE(); }												\
+	union {																					\
+		impl::VertexPartData<DataType, Index1> MULTI_NAME;									\
+		DataType SINGLE_NAME;																\
+	};																						\
 };																							\
 																							\
-template <int Index>																		\
-class VertexPartImpl<SEMANTIC, Index> : public VertexPart<SEMANTIC> {						\
+template <>																					\
+class VertexPartReader<SEMANTIC> : public VertexPartReaderBase {							\
 public:																						\
-	DataType& GET_NAME(int index) override { return MULTI_NAME[index]; }					\
-	const DataType& GET_NAME(int index) const override { return MULTI_NAME[index]; }		\
-	impl::VertexPartData<DataType, Index> MULTI_NAME;										\
-	DataType& SINGLE_NAME = MULTI_NAME[Index];												\
-}		
+	virtual ~VertexPartReader() {}															\
+	using DataType = DATA_TYPE;																\
+	virtual DataType& GET_NAME(VertexBase&, int index) const = 0;							\
+	virtual const DataType& GET_NAME(const VertexBase&, int index) const = 0;				\
+};																							\
+																							\
+template <int... Indices>																	\
+class VertexPartReaderImpl<SEMANTIC, Indices...> : public VertexPartReader<SEMANTIC> {		\
+	intptr_t offset;																		\
+	static const std::vector<int> indices;													\
+	inline VertexPart<SEMANTIC, Indices...>& Cast(VertexBase& obj) const {					\
+		return *(VertexPart<SEMANTIC, Indices...>*)((intptr_t)&obj + offset);				\
+	}																						\
+	inline const VertexPart<SEMANTIC, Indices...>& Cast(const VertexBase& obj) const {		\
+		return *(const VertexPart<SEMANTIC, Indices...>*)((intptr_t)&obj + offset);			\
+	}																						\
+public:																						\
+	VertexPartReaderImpl(intptr_t offset) : offset(offset) {}								\
+	DataType& GET_NAME(VertexBase& obj, int index) const override { return Cast(obj).MULTI_NAME[index]; }					\
+	const DataType& GET_NAME(const VertexBase& obj, int index) const override { return Cast(obj).MULTI_NAME[index]; }		\
+	const std::vector<int>& GET_NAME##Indices() const { return indices; }					\
+	virtual std::type_index GetType() const override { return typeid(DataType); }			\
+	virtual const std::vector<int>& GetIndices() const override { return indices; }			\
+	virtual size_t GetSize() const override { return sizeof(DataType); }					\
+	virtual void* GetPointer(VertexBase& obj, int index) const override {					\
+		return & GET_NAME (obj, index);														\
+	}																						\
+	virtual const void* GetPointer(const VertexBase& obj, int index) const override {		\
+		return &GET_NAME(obj, index);														\
+	}																						\
+};																							\
+template <int... Indices>																	\
+const std::vector<int> VertexPartReaderImpl<SEMANTIC, Indices...>::indices = { Indices... };
+
 
 
 
 // Actual definition of vertex parts
-INL_GXENG_VERTEX_PART(eVertexElementSemantic::POSITION, INL_GXENG_SIMPLE_ARG(Vec3), GetPosition, positions, position);
-INL_GXENG_VERTEX_PART(eVertexElementSemantic::POSITION2D, INL_GXENG_SIMPLE_ARG(Vec2), GetPosition2D, position2ds, position2d);
-INL_GXENG_VERTEX_PART(eVertexElementSemantic::POSITION4D, INL_GXENG_SIMPLE_ARG(Vec4), GetPosition4D, position4ds, position4d);
-INL_GXENG_VERTEX_PART(eVertexElementSemantic::NORMAL, INL_GXENG_SIMPLE_ARG(Vec3), GetNormal, normals, normal);
-INL_GXENG_VERTEX_PART(eVertexElementSemantic::TEX_COORD, INL_GXENG_SIMPLE_ARG(Vec2), GetTexCoord, texCoords, texCoord);
-INL_GXENG_VERTEX_PART(eVertexElementSemantic::COLOR, INL_GXENG_SIMPLE_ARG(Vec3), GetColor, colors, color);
-INL_GXENG_VERTEX_PART(eVertexElementSemantic::TANGENT, INL_GXENG_SIMPLE_ARG(Vec3), GetTangent, tangents, tangent);
-INL_GXENG_VERTEX_PART(eVertexElementSemantic::BITANGENT, INL_GXENG_SIMPLE_ARG(Vec3), GetBitangent, bitangents, bitangent);
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::POSITION, INL_GXENG_SIMPLE_ARG(Vec3_Packed), GetPosition, positions, position)
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::POSITION2D, INL_GXENG_SIMPLE_ARG(Vec2_Packed), GetPosition2D, position2ds, position2d)
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::POSITION4D, INL_GXENG_SIMPLE_ARG(Vec4_Packed), GetPosition4D, position4ds, position4d)
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::NORMAL, INL_GXENG_SIMPLE_ARG(Vec3_Packed), GetNormal, normals, normal)
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::TEX_COORD, INL_GXENG_SIMPLE_ARG(Vec2_Packed), GetTexCoord, texCoords, texCoord)
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::COLOR, INL_GXENG_SIMPLE_ARG(Vec3_Packed), GetColor, colors, color)
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::TANGENT, INL_GXENG_SIMPLE_ARG(Vec3_Packed), GetTangent, tangents, tangent)
+INL_GXENG_VERTEX_PART(eVertexElementSemantic::BITANGENT, INL_GXENG_SIMPLE_ARG(Vec3_Packed), GetBitangent, bitangents, bitangent)
 
 
 
+
+//------------------------------------------------------------------------------
 namespace impl {
 
-	// Given a Semantic and a list of VertexElements, filters out VertexElements that have the specified Semantic.
-	// Inherits from the VertexPart which implements the filter Semantic
-	template <class TypeListOfChosenElements, eVertexElementSemantic Filter, class... RemainingElements>
-	class ElementFilterHelper;
 
-	template <class TypeListOfChosenElements, eVertexElementSemantic Filter, class HeadElement, class... RemainingElements>
-	class ElementFilterHelper<TypeListOfChosenElements, Filter, HeadElement, RemainingElements...>
-		: public ElementFilterHelper<
-		typename std::conditional<HeadElement::semantic == Filter,
-		typename ConcatTypeList<TypeListOfChosenElements, TypeList<HeadElement>>::type,
-		TypeListOfChosenElements>::type,
-		Filter,
-		RemainingElements...>
-	{};
+// get a list of unique semantics from a big list of semantics (== remove duplicates)
+template <class Accumulator, class InputList>
+class UniqueSemanticAccumulator;
 
-	// Extracts Elements from TypeList of VertexElements.
-	// Inherits from implementor of corresponding vertex part.
-	template <class... Elements, eVertexElementSemantic Semantic>
-	class ElementFilterHelper<TypeList<Elements...>, Semantic>
-		: public VertexPartImpl<Semantic, Elements::index...>
-	{};
+template <eVertexElementSemantic... AccSems, eVertexElementSemantic InSem1, eVertexElementSemantic... InSems>
+class UniqueSemanticAccumulator<SemanticList<AccSems...>, SemanticList<InSem1, InSems...>> {
+	using AccType = SemanticList<AccSems...>;
+public:
+	using type = typename std::conditional<ContainsSemantic<InSem1, AccType>::value,
+		typename UniqueSemanticAccumulator<AccType, SemanticList<InSems...>>::type,
+		typename UniqueSemanticAccumulator<typename ConcatSemanticList<AccType, typename SemanticList<InSem1>>::type, SemanticList<InSems...>>::type>::type;
+};
 
-	template <eVertexElementSemantic Filter, class... Elements>
-	class ElementFilter;
+template <eVertexElementSemantic... AccSems>
+class UniqueSemanticAccumulator<SemanticList<AccSems...>, SemanticList<>> {
+public:
+	using type = SemanticList<AccSems...>;
+};
+	
+template <eVertexElementSemantic... Semantics>
+class UniqueSemantics {
+public:
+	using type = typename UniqueSemanticAccumulator<SemanticList<>, SemanticList<Semantics...>>::type;
+	static const std::vector<eVertexElementSemantic> list;
+};
 
-	template <eVertexElementSemantic Filter, eVertexElementSemantic... ElementSemantics, int... ElementIndices>
-	class ElementFilter<Filter, VertexElement<ElementSemantics, ElementIndices>...>
-		: public ElementFilterHelper<TypeList<>, Filter, VertexElement<ElementSemantics, ElementIndices>...>
-	{};
+template <eVertexElementSemantic... Semantics>
+const std::vector<eVertexElementSemantic> UniqueSemantics<Semantics...>::list = { Semantics... };
+
+
+// get a list of vertex elements with given semantic from a big list of elements
+template <eVertexElementSemantic Semantic, class... Elements>
+class FilterElements;
+
+template <eVertexElementSemantic Semantic, class Element1, class... Elements>
+class FilterElements<Semantic, Element1, Elements...> {
+public:
+	using type = typename std::conditional<Element1::semantic == Semantic,
+		typename ConcatTypeList<TypeList<Element1>, typename FilterElements<Semantic, Elements...>::type>::type,
+		typename FilterElements<Semantic, Elements...>::type>::type;
+
+};
+
+template <eVertexElementSemantic Semantic>
+class FilterElements<Semantic> {
+public:
+	using type = TypeList<>;
+};
+
+
+// inherit from a vertex part corresponding to multiple elements (of the same semantic)
+template <class... FilteredElements>
+class VertexPartRealization;
+
+template <eVertexElementSemantic Semantic1, int Index1>
+class VertexPartRealization<VertexElement<Semantic1, Index1>>
+	: public VertexPart<Semantic1, Index1>
+{};
+
+template <eVertexElementSemantic Semantic1, int Index1, int... Indices>
+class VertexPartRealization<VertexElement<Semantic1, Index1>, VertexElement<Semantic1, Indices>...>
+	: public VertexPart<Semantic1, Index1, Indices...>
+{};
+
+
+// helper class to translate typelist to elements...
+template <class T>
+class VertexPartRealizationDemuxer;
+
+template <class... Elements>
+class VertexPartRealizationDemuxer<TypeList<Elements...>> : public VertexPartRealization<Elements...> {};
+
+
+// go over all unique semantics, and inherit corresponding semantic's vertex part
+template <class Uniques, class... Elements>
+class VertexPartAccumulator;
+
+template <eVertexElementSemantic FirstUnique, eVertexElementSemantic... Uniques, class... Elements>
+class VertexPartAccumulator<SemanticList<FirstUnique, Uniques...>, Elements...>
+	: public VertexPartRealizationDemuxer<typename FilterElements<FirstUnique, Elements...>::type>,
+	public VertexPartAccumulator<SemanticList<Uniques...>, Elements...>
+{};
+
+template <class... Elements>
+class VertexPartAccumulator<SemanticList<>, Elements...>
+{};
 
 
 
-	// Helper class to form a vertex.
-	// Groups vertex elements by semantic, then inherits from the container for that semantic.
-	template <class UsedSemantics, class... Elements>
-	class VertexHelper;
+// inherit from a vertex part READER corresponding to multiple elements (of the same semantic)
+template <class VertexT, class... FilteredElements>
+class VertexPartReaderRealization;
 
-	template <class UsedSemantics, eVertexElementSemantic FirstSemantic, int FirstIndex>
-	class VertexHelper<UsedSemantics, VertexElement<FirstSemantic, FirstIndex>>
-		: virtual public std::conditional<ContainsSemantic<FirstSemantic, UsedSemantics>::value,
-		EmptyClass,
-		ElementFilter<FirstSemantic, VertexElement<FirstSemantic, FirstIndex>>>::type
-	{};
+template <class VertexT, eVertexElementSemantic Semantic1, int Index1>
+class VertexPartReaderRealization<VertexT, VertexElement<Semantic1, Index1>>
+	: public VertexPartReaderImpl<Semantic1, Index1>
+{
+public:
+	VertexPartReaderRealization() 
+		: VertexPartReaderImpl<Semantic1, Index1>((intptr_t)static_cast<VertexPart<Semantic1, Index1>*>((VertexT*)1000) - 1000) {}
+protected:
+	const VertexPartReaderBase* GetPartReaderBase() const {
+		return static_cast<const VertexPartReader<Semantic1>*>(this);
+	}
+};
 
-	template <class UsedSemantics, eVertexElementSemantic FirstSemantic, int FirstIndex, eVertexElementSemantic... Semantics, int... Indices>
-	class VertexHelper<UsedSemantics, VertexElement<FirstSemantic, FirstIndex>, VertexElement<Semantics, Indices>...>
-		: virtual public std::conditional<ContainsSemantic<FirstSemantic, UsedSemantics>::value,
-		EmptyClass,
-		ElementFilter<FirstSemantic, VertexElement<FirstSemantic, FirstIndex>, VertexElement<Semantics, Indices>...>>::type,
-		public VertexHelper<typename ConcatSemanticList<UsedSemantics, SemanticList<FirstSemantic>>::type, VertexElement<Semantics, Indices>...>
-	{};
+template <class VertexT, eVertexElementSemantic Semantic1, int Index1, int... Indices>
+class VertexPartReaderRealization<VertexT, VertexElement<Semantic1, Index1>, VertexElement<Semantic1, Indices>...>
+	: public VertexPartReaderImpl<Semantic1, Index1, Indices...>
+{
+public:
+	VertexPartReaderRealization() 
+		: VertexPartReaderImpl<Semantic1, Index1, Indices...>((intptr_t)static_cast<VertexPart<Semantic1, Index1, Indices...>*>((VertexT*)1000) - 1000) {}
+protected:
+	const VertexPartReaderBase* GetPartReaderBase() const {
+		return static_cast<const VertexPartReader<Semantic1>*>(this);
+	}
+};
+
+
+template <class VertexT, class T>
+class VertexPartReaderRealizationDemuxer;
+
+template <class VertexT, class... Elements>
+class VertexPartReaderRealizationDemuxer<VertexT, TypeList<Elements...>> : public VertexPartReaderRealization<VertexT, Elements...> {
+protected:
+	using VertexPartReaderRealization<VertexT, Elements...>::GetPartReaderBase;
+};
+
+
+template <class VertexT, class Uniques, class... Elements>
+class VertexPartReaderAccumulator;
+
+template <class VertexT, eVertexElementSemantic FirstUnique, eVertexElementSemantic... Uniques, class... Elements>
+class VertexPartReaderAccumulator<VertexT, SemanticList<FirstUnique, Uniques...>, Elements...>
+	: public VertexPartReaderRealizationDemuxer<VertexT, typename FilterElements<FirstUnique, Elements...>::type>,
+	public VertexPartReaderAccumulator<VertexT, SemanticList<Uniques...>, Elements...>
+{
+protected:
+	const VertexPartReaderBase* GetPartReaderBase(eVertexElementSemantic semantic) const {
+		if (FirstUnique == semantic) {
+			return VertexPartReaderRealizationDemuxer<VertexT, typename FilterElements<FirstUnique, Elements...>::type>::GetPartReaderBase();
+		}
+		else {
+			return VertexPartReaderAccumulator<VertexT, SemanticList<Uniques...>, Elements...>::GetPartReaderBase(semantic);
+		}
+	}
+};
+
+template <class VertexT, class... Elements>
+class VertexPartReaderAccumulator<VertexT, SemanticList<>, Elements...>
+{
+protected:
+	const VertexPartReaderBase* GetPartReaderBase(eVertexElementSemantic semantic) const {
+		return nullptr;
+	}
+};
+
+
+
 
 } // namespace impl
+//------------------------------------------------------------------------------
 
-
-class VertexBase {
+class IVertexReader {
 public:
 	struct Element {
 		eVertexElementSemantic semantic;
 		int index;
 	};
-public:
+
+	template <eVertexElementSemantic Semantic>
+	const VertexPartReader<Semantic>* GetPartReader() const {
+		return dynamic_cast<const VertexPartReader<Semantic>*>(GetPartReaderBase(Semantic));
+	}
+
+	virtual const std::vector<eVertexElementSemantic>& GetSemantics() const = 0;
+	virtual int GetStride() const = 0;
+
+	const std::vector<int>& GetIndices(eVertexElementSemantic semantic) const {
+		const VertexPartReaderBase* reader = GetPartReaderBase(semantic);
+		assert(reader != nullptr);
+		return reader->GetIndices();
+	}
+
+	void* GetPointer(VertexBase& vertex, eVertexElementSemantic semantic, int index) const {
+		const VertexPartReaderBase* reader = GetPartReaderBase(semantic);
+		assert(reader != nullptr);
+		return reader->GetPointer(vertex, index);
+	}
+
+	const void* GetPointer(const VertexBase& vertex, eVertexElementSemantic semantic, int index) const {
+		const VertexPartReaderBase* reader = GetPartReaderBase(semantic);
+		assert(reader != nullptr);
+		return reader->GetPointer(vertex, index);
+	}
+
+	std::type_index GetType(eVertexElementSemantic semantic) const {
+		const VertexPartReaderBase* reader = GetPartReaderBase(semantic);
+		assert(reader != nullptr);
+		return reader->GetType();
+	}
+
+	std::size_t GetSize(eVertexElementSemantic semantic) const {
+		const VertexPartReaderBase* reader = GetPartReaderBase(semantic);
+		assert(reader != nullptr);
+		return reader->GetSize();
+	}
+
 	virtual const std::vector<Element>& GetElements() const = 0;
-	virtual size_t StructureSize() const = 0;
-	virtual ~VertexBase() {}
+protected:
+	virtual const VertexPartReaderBase* GetPartReaderBase(eVertexElementSemantic semantic) const = 0;
 };
 
 
-// Actual vertex class
 template <class... Elements>
-class Vertex : public VertexBase, public impl::VertexHelper<impl::SemanticList<>, Elements...>
+class VertexReader;
+
+
+class VertexBase
+{};
+
+template <class... Elements>
+class Vertex;
+
+
+
+template <eVertexElementSemantic... Semantics, int... Indices>
+class VertexReader<VertexElement<Semantics, Indices>...>
+	: public IVertexReader,
+	public impl::VertexPartReaderAccumulator<Vertex<VertexElement<Semantics, Indices>...>, typename impl::UniqueSemantics<Semantics...>::type, VertexElement<Semantics, Indices>...>
 {
 public:
+	const std::vector<eVertexElementSemantic>& GetSemantics() const override {
+		return semantics;
+	}
+	int GetStride() const override {
+		return (int)sizeof(Vertex<VertexElement<Semantics, Indices>...>);
+	}
 	const std::vector<Element>& GetElements() const override {
 		return elements;
 	}
-	size_t StructureSize() const override {
-		return sizeof(Vertex);
+protected:
+	const VertexPartReaderBase* GetPartReaderBase(eVertexElementSemantic semantic) const override {
+		return impl::VertexPartReaderAccumulator<Vertex<VertexElement<Semantics, Indices>...>, typename impl::UniqueSemantics<Semantics...>::type, VertexElement<Semantics, Indices>...>::GetPartReaderBase(semantic);
 	}
 private:
-	static std::vector<Element> elements;
+	static const std::vector<eVertexElementSemantic> semantics;
+	static const std::vector<Element> elements;
+};
+
+template <eVertexElementSemantic... Semantics, int... Indices>
+const std::vector<eVertexElementSemantic> VertexReader<VertexElement<Semantics, Indices>...>::semantics = impl::UniqueSemantics<Semantics...>::list;
+
+template <eVertexElementSemantic... Semantics, int... Indices>
+const std::vector<IVertexReader::Element> VertexReader<VertexElement<Semantics, Indices>...>::elements = {
+	{ Semantics, Indices }...
 };
 
 
-template <class... Elements>
-std::vector<VertexBase::Element> Vertex<Elements...>::elements = {
-	{Elements::semantic, Elements::index}...
+template <eVertexElementSemantic... Semantics, int... Indices>
+class Vertex<VertexElement<Semantics, Indices>...> 
+	: public VertexBase,
+	public impl::VertexPartAccumulator<typename impl::UniqueSemantics<Semantics...>::type, VertexElement<Semantics, Indices>...>
+{
+public:
+	static VertexReader<VertexElement<Semantics, Indices>...>& GetReader() {
+		static VertexReader<VertexElement<Semantics, Indices>...> reader;
+		return reader;
+	}
 };
 
 
 
-} // namespace gxeng
-} // namespace inl
+
+} // namespace inl::gxeng

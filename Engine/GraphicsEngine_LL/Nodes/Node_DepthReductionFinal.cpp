@@ -188,7 +188,7 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 	assert(m_suns->Size() > 0);
 	auto sun = *m_suns->begin();
 	//TODO get from somewhere
-	Vec4 light_cam_pos = Vec4(0, 0, 0, 1);
+	Vec4 light_cam_pos = Vec4(0.f, 0.f, 0.f, 1.f);
 	Vec4 light_cam_view_dir = Vec4(sun->GetDirection().Normalized(), 0);//Vec4(1, 1, 1, 0).Normalized();
 	//printf("%f %f %f\n", light_cam_view_dir.x, light_cam_view_dir.y, light_cam_view_dir.z);
 	Vec4 light_cam_up_vector = Vec4(0, 0, 1, 0);

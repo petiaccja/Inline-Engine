@@ -336,7 +336,7 @@ class MatrixScale {
 	MatrixT& self() { return *static_cast<MatrixT*>(this); }
 	const MatrixT& self() const { return *static_cast<const MatrixT*>(this); }
 public:
-	template <class... Args, typename std::enable_if<(impl::All<impl::IsScalar, Args...>::value), int>::type = 0>
+	template <class... Args, typename std::enable_if<(impl::All<impl::IsScalar, typename std::decay<Args>::type...>::value), int>::type = 0>
 	static MatrixT Scale(Args&&... args) {
 		static_assert(sizeof...(Args) <= std::min(Rows, Columns), "You must provide scales for dimensions equal to matrix dimension");
 		MatrixT m;
@@ -411,7 +411,7 @@ public:
 		T F = farPlane;
 		T n = projNearPlane;
 		T f = projFarPlane;
-		T C = nearPlane < 0 ? -1 : 1;
+		T C = nearPlane < T(0) ? T(-1) : T(1);
 		T A = C*(f*F - n*N) / (F - N);
 		T B = C*F*N*(n - f) / (F - N);
 		Vector<T, Dim-2, Packed> adjRatios = ratios(0) / ratios;
@@ -526,7 +526,7 @@ public:
 	static MatrixT Orthographic(const VectorT& minBounds, const VectorT& maxBounds, T projNearPlane = T(0), T projFarPlane = T(1)) {
 		VectorT volumeSize = maxBounds - minBounds;
 		VectorT scale = T(2) / volumeSize;
-		scale[scale.Dimension() - 1] *= 0.5*(projFarPlane - projNearPlane);
+		scale[scale.Dimension() - 1] *= T(0.5)*(projFarPlane - projNearPlane);
 		VectorT offset = -(maxBounds + minBounds) / 2 * scale;
 		offset[offset.Dimension() - 1] += (projFarPlane + projNearPlane) / 2;
 
@@ -1003,7 +1003,7 @@ protected:
 
 	template <int i, int j, class Head, class... Args>
 	void Assign(Head head, Args... args) { 
-		(*this)(i, j) = head;
+		(*this)(i, j) = (T)head;
 		Assign<((j != Columns - 1) ? i : (i + 1)), ((j + 1) % Columns)>(args...);
 	}
 
@@ -1393,12 +1393,12 @@ Vector<Rt, Mrow, Packed> operator*(const Matrix<Mt, Mrow, Vd, Morder, eMatrixLay
 // M*(v|1)
 template <class Vt, class Mt, int Vd, eMatrixLayout Mlayout, eMatrixOrder Morder, bool Packed, class Rt = MatMulElemT<Vt, Mt>>
 Vector<Rt, Vd, Packed> operator*(const Matrix<Mt, Vd, Vd + 1, Morder, Mlayout, Packed>& mat, const Vector<Vt, Vd, Packed>& vec) {
-	return mat*(vec | 1);
+	return mat*(vec | Vt(1));
 }
 
 template <class Vt, class Mt, int Vd, eMatrixLayout Mlayout, eMatrixOrder Morder, bool Packed, class Rt = MatMulElemT<Vt, Mt>>
 Vector<Rt, Vd, Packed> operator*(const Matrix<Mt, Vd + 1, Vd + 1, Morder, Mlayout, Packed>& mat, const Vector<Vt, Vd, Packed>& vec) {
-	auto res = (vec | 1)*mat;
+	auto res = (vec | Vt(1))*mat;
 	res /= res(res.Dimension() - 1);
 	return (Vector<Rt, Vd, Packed>)res;
 }

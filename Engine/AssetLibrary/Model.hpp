@@ -102,7 +102,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Position<semanticIndex>, Tai
 		const Mat44& posTr,
 		const Mat44& normTr
 		) {
-		using DataType = gxeng::VertexPart<gxeng::eVertexElementSemantic::POSITION>::DataType;
+		using DataType = gxeng::VertexPartReader<gxeng::eVertexElementSemantic::POSITION>::DataType;
 		assert(mesh->HasPositions());
 		assert(vertexIndex < mesh->mNumVertices);
 		const aiVector3D& pos = mesh->mVertices[vertexIndex];
@@ -125,13 +125,13 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Normal<semanticIndex>, TailA
 		const Mat44& posTr,
 		const Mat44& normTr
 		) {
-		using DataType = gxeng::VertexPart<gxeng::eVertexElementSemantic::NORMAL>::DataType;
+		using DataType = gxeng::VertexPartReader<gxeng::eVertexElementSemantic::NORMAL>::DataType;
 		if (mesh->HasNormals() == false) {
 			throw std::runtime_error("Vertex array requested with normals but loaded mesh does not have such an attribute.");
 		}
 		assert(vertexIndex < mesh->mNumVertices);
 		const aiVector3D& normal = mesh->mNormals[vertexIndex];
-		target.normal = normTr * DataType(normal.x, normal.y, normal.z);
+		target.normal = normTr * (Vec3)DataType(normal.x, normal.y, normal.z);
 		//target.normal = DataType(normal.x, normal.y, normal.z);
 
 		VertexAttributeSetter<VertexT, TailAttribT...>()(target, mesh, vertexIndex, posTr, normTr);
@@ -148,7 +148,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::TexCoord<semanticIndex>, Tai
 		const Mat44& posTr,
 		const Mat44& normTr
 		) {
-		using DataType = gxeng::VertexPart<gxeng::eVertexElementSemantic::TEX_COORD>::DataType;
+		using DataType = gxeng::VertexPartReader<gxeng::eVertexElementSemantic::TEX_COORD>::DataType;
 		if (mesh->HasTextureCoords(semanticIndex) == false) {
 			throw std::runtime_error(
 				"Vertex array requested with texture coords of semantic index "
@@ -173,7 +173,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Color<semanticIndex>, TailAt
 		const Mat44& posTr,
 		const Mat44& normTr
 		) {
-		using DataType = gxeng::VertexPart<gxeng::eVertexElementSemantic::COLOR>::DataType;
+		using DataType = gxeng::VertexPartReader<gxeng::eVertexElementSemantic::COLOR>::DataType;
 		if (mesh->HasVertexColors(semanticIndex) == false) {
 			throw std::runtime_error(
 				"Vertex array requested with vertex colors of semantic index "

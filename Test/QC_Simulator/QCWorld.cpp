@@ -37,7 +37,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		std::vector<unsigned> indices = { 0, 1, 2, 0, 2, 3 };
 
 		m_overlayQuadMesh.reset(m_graphicsEngine->CreateMesh());
-		m_overlayQuadMesh->Set(vertices.data(), vertices.size(), indices.data(), indices.size());
+		m_overlayQuadMesh->Set(vertices.data(), &vertices[0].GetReader(), vertices.size(), indices.data(), indices.size());
 
 		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
 		inl::asset::Image img("assets\\overlay.png");
@@ -88,7 +88,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
 
 		m_terrainMesh.reset(m_graphicsEngine->CreateMesh());
-		m_terrainMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+		m_terrainMesh->Set(modelVertices.data(), &modelVertices[0].GetReader(), modelVertices.size(), modelIndices.data(), modelIndices.size());
 	}
 
 	// Create terrain texture
@@ -109,7 +109,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
 
 		m_sphereMesh.reset(m_graphicsEngine->CreateMesh());
-		m_sphereMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+		m_sphereMesh->Set(modelVertices.data(), &modelVertices[0].GetReader(), modelVertices.size(), modelIndices.data(), modelIndices.size());
 	}
 
 	// Create sphere albedo texture
@@ -170,7 +170,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
 
 		m_quadcopterMesh.reset(m_graphicsEngine->CreateMesh());
-		m_quadcopterMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+		m_quadcopterMesh->Set(modelVertices.data(), &modelVertices[0].GetReader(), modelVertices.size(), modelIndices.data(), modelIndices.size());
 	}
 
 	// Create QC texture
@@ -191,7 +191,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
 
 		m_axesMesh.reset(m_graphicsEngine->CreateMesh());
-		m_axesMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+		m_axesMesh->Set(modelVertices.data(), &modelVertices[0].GetReader(), modelVertices.size(), modelIndices.data(), modelIndices.size());
 	}
 
 	// Create axes texture
@@ -212,7 +212,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
 
 		m_treeMesh.reset(m_graphicsEngine->CreateMesh());
-		m_treeMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+		m_treeMesh->Set(modelVertices.data(), &modelVertices[0].GetReader(), modelVertices.size(), modelIndices.data(), modelIndices.size());
 	}
 
 	// Create tree texture
