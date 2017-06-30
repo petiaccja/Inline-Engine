@@ -74,7 +74,7 @@
     <LibraryPath>$(SolutionDir)\Externals\lib64;$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(SolutionDir)\Externals\include\Bullet;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\Externals\libd64;$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

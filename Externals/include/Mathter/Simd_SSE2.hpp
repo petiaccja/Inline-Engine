@@ -12,7 +12,9 @@
 template <>
 union alignas(16) Simd<float, 4> {
 	__m128 reg;
+	__m128i regi;
 	float v[4];
+
 
 	static inline Simd mul(const Simd& lhs, const Simd& rhs) {
 		Simd res;
@@ -93,6 +95,13 @@ union alignas(16) Simd<float, 4> {
 			sum += m.v[i];
 		}
 		return sum;
+	}
+
+	template <int i0, int i1, int i2, int i3>
+	static inline Simd shuffle(Simd arg) {
+		Simd ret;
+		ret.regi = _mm_shuffle_epi32(arg.regi, _MM_SHUFFLE(i0, i1, i2, i3));
+		return ret;
 	}
 };
 
@@ -204,5 +213,20 @@ union alignas(16) Simd<float, 8> {
 		sum = reg1.m128_f32[0] + reg1.m128_f32[1] + reg1.m128_f32[2] + reg1.m128_f32[3];
 
 		return sum;
+	}
+
+
+	template <int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7>
+	static inline Simd shuffle() {
+		Simd ret;
+		ret.v[0] = v[i0];
+		ret.v[1] = v[i1];
+		ret.v[2] = v[i2];
+		ret.v[3] = v[i3];
+		ret.v[4] = v[i4];
+		ret.v[5] = v[i5];
+		ret.v[6] = v[i6];
+		ret.v[7] = v[i7];
+		return ret;
 	}
 };

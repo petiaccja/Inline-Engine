@@ -18,6 +18,43 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Actor.hpp" />
+    <ClInclude Include="ActorScript.hpp" />
+    <ClInclude Include="Behavior.hpp" />
+    <ClInclude Include="Common.hpp" />
+    <ClInclude Include="EngineCore.hpp" />
+    <ClInclude Include="GameWorld.hpp" />
+    <ClInclude Include="GraphicsCore.hpp" />
+    <ClInclude Include="InputCore.hpp" />
+    <ClInclude Include="MeshComponent.hpp" />
+    <ClInclude Include="NetworkCore.hpp" />
+    <ClInclude Include="PerspectiveCameraComponent.hpp" />
+    <ClInclude Include="PhysicsCore.hpp" />
+    <ClInclude Include="RigidBodyComponent.hpp" />
+    <ClInclude Include="Script.hpp" />
+    <ClInclude Include="SoftBodyComponent.hpp" />
+    <ClInclude Include="SoundCore.hpp" />
+    <ClInclude Include="Transform3DComponent.hpp" />
+    <ClInclude Include="WorldComponent.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ActorScript.cpp" />
+    <ClCompile Include="Behavior.cpp" />
+    <ClCompile Include="EngineCore.cpp" />
+    <ClCompile Include="GameWorld.cpp" />
+    <ClCompile Include="GraphicsCore.cpp" />
+    <ClCompile Include="InputCore.cpp" />
+    <ClCompile Include="MeshComponent.cpp" />
+    <ClCompile Include="NetworkCore.cpp" />
+    <ClCompile Include="PerspectiveCameraComponent.cpp" />
+    <ClCompile Include="PhysicsCore.cpp" />
+    <ClCompile Include="RigidBodyComponent.cpp" />
+    <ClCompile Include="Script.cpp" />
+    <ClCompile Include="SoftBodyComponent.cpp" />
+    <ClCompile Include="SoundCore.cpp" />
+    <ClCompile Include="WorldComponent.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{26702DEE-D2F6-47CC-908E-0D07DB1DD51F}</ProjectGuid>
@@ -70,7 +107,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(SolutionDir)\Externals\include\Bullet;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\Externals\libd64\;$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -85,7 +122,7 @@
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>GraphicsEngine_LL.lib;GuiEngine.lib;AssetLibrary.lib;lemon.lib;FreeImaged.lib;FreeImagePlusd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>GraphicsEngine_LL.lib;GuiEngine.lib;AssetLibrary.lib;lemon.lib;FreeImaged.lib;FreeImagePlusd.lib;PhysicsEngineBullet.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
     </Lib>
@@ -127,14 +164,6 @@
       <AdditionalDependencies>GraphicsEngine_LL.lib;GuiEngine.lib;AssetLibrary.lib;lemon.lib;FreeImage.lib;FreeImagePlus.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="Core.hpp" />
-    <ClInclude Include="InputCore.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Core.cpp" />
-    <ClCompile Include="InputCore.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

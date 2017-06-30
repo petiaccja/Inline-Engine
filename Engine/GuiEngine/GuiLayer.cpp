@@ -7,14 +7,14 @@ using namespace inl::gui;
 GuiLayer::GuiLayer(GuiEngine* guiEngine)
 :Gui(guiEngine, true)
 {
-	Vector2u windowContentArea = guiEngine->GetTargetWindow()->GetClientSize();
-	SetSize(Vector2f(windowContentArea.x(), windowContentArea.y()));
+	Vec2u windowContentArea = guiEngine->GetTargetWindow()->GetClientSize();
+	SetSize(Vec2(windowContentArea.x, windowContentArea.y));
 
 	HideBgColor();
 	SetName("layer");
 }
 
-Vector2f GuiLayer::ArrangeChildren(const Vector2f& finalSize)
+Vec2 GuiLayer::ArrangeChildren(const Vec2& finalSize)
 {
 	for (Gui* child : GetChildren())
 		child->Arrange(child->GetPos(), child->GetDesiredSize());

@@ -24,9 +24,9 @@ public:
 	void RestoreSize();
 
 
-	void SetRect(const Vector2i& pos, const Vector2u& size);
-	void SetPos(const Vector2i& pos);
-	void SetSize(const Vector2u& size);
+	void SetRect(const Vec2i& pos, const Vec2u& size);
+	void SetPos(const Vec2i& pos);
+	void SetSize(const Vec2u& size);
 
 	void SetTitle(const std::string& text);
 	void SetIcon(const std::wstring& filePath);
@@ -41,13 +41,13 @@ public:
 
 	uint32_t GetClientWidth() const;
 	uint32_t GetClientHeight() const;
-	Vector2u GetClientSize() const;
-	Vector2f GetClientCursorPos() const;
+	Vec2u GetClientSize() const;
+	Vec2 GetClientCursorPos() const;
 
 	unsigned GetNumClientPixels() const;
 	float GetClientAspectRatio() const;
 
-	Vector2i GetCenterPos() const;
+	Vec2i GetCenterPos() const;
 
 	const std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)>& GetUserWndProc() const { return userWndProc; }
 
@@ -58,7 +58,7 @@ public:
 	Delegate<void(WindowEvent&)>	onMousePressed;
 	Delegate<void(WindowEvent&)>	onMouseReleased;
 	Delegate<void(WindowEvent&)>	onMouseMoved;
-	Delegate<void(Vector2u)>		onClientSizeChanged;
+	Delegate<void(Vec2u)>		onClientSizeChanged;
 	Delegate<void(DragData&)>		onDropped;
 	Delegate<void(DragData&)>		onDragEntered;
 	Delegate<void(DragData&)>		onDragLeaved;

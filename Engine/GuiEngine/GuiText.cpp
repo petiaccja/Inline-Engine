@@ -47,14 +47,14 @@ GuiText& GuiText::operator = (const GuiText& other)
 	return *this;
 }
 
-Vector2f GuiText::ArrangeChildren(const Vector2f& finalSize)
+Vec2 GuiText::ArrangeChildren(const Vec2& finalSize)
 {
 	Gdiplus::RectF gdiRect(-FLT_MAX * 0.5, -FLT_MAX * 0.5, FLT_MAX, FLT_MAX);
 
 	Gdiplus::RectF textRect;
 	guiEngine->GetGdiGraphics()->MeasureString(text.c_str(), text.size(), font.get(), gdiRect, &textRect);
 
-	return Vector2f(round(textRect.Width), round(textRect.Height));
+	return Vec2(round(textRect.Width), round(textRect.Height));
 }
 
 void GuiText::SetFontSize(int size)

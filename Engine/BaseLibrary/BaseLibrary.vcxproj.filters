@@ -141,7 +141,6 @@
     <ClInclude Include="Platform\Win32\Window.hpp">
       <Filter>Platform\Win32</Filter>
     </ClInclude>
-    <ClInclude Include="Common_tmp.hpp" />
     <ClInclude Include="Timer.hpp">
       <Filter>All</Filter>
     </ClInclude>
@@ -160,6 +159,8 @@
     <ClInclude Include="Platform\Win32\WindowDropTarget.hpp">
       <Filter>Platform\Win32</Filter>
     </ClInclude>
+    <ClInclude Include="Common.hpp" />
+    <ClInclude Include="Transform3D.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">
@@ -207,12 +208,13 @@
     <ClCompile Include="Platform\Win32\Window.cpp">
       <Filter>Platform\Win32</Filter>
     </ClCompile>
-    <ClCompile Include="Common_tmp.cpp" />
     <ClCompile Include="Timer.cpp">
       <Filter>All</Filter>
     </ClCompile>
     <ClCompile Include="Platform\Win32\WindowDropTarget.cpp">
       <Filter>Platform\Win32</Filter>
     </ClCompile>
+    <ClCompile Include="Transform3D.cpp" />
+    <ClCompile Include="Common.cpp" />
   </ItemGroup>
 </Project>

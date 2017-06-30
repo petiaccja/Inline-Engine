@@ -78,9 +78,9 @@ public:
 	float Look() const { return lookTilt; }
 
 	void IWantSunsetBitches();
-private:
+
 	void AddTree(mathfu::Vector3f position);
-private:
+
 	// Engine
 	inl::gxeng::GraphicsEngine* m_graphicsEngine;
 

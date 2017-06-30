@@ -16,66 +16,66 @@ GuiGrid::GuiGrid(GuiEngine* guiEngine)
 	SetBgToColor(GetBgIdleColor());
 }
 
-Vector2f GuiGrid::ArrangeChildren(const Vector2f& finalSize)
+Vec2 GuiGrid::ArrangeChildren(const Vec2& finalSize)
 {
 	// TODO sum up all columns fixed width & height
-	Vector2f allFixedSpace(0, 0);
+	Vec2 allFixedSpace(0, 0);
 	for (GuiGridColumn& column : columns)
 		if (column.GetSizingPolicy() == eGridLineSizing::FIXED)
-			allFixedSpace.x() += column.GetWidth();
+			allFixedSpace.x += column.GetWidth();
 
 	for (GuiGridRow& row : rows)
 		if (row.GetSizingPolicy() == eGridLineSizing::FIXED)
-			allFixedSpace.y() += row.GetHeight();
+			allFixedSpace.y += row.GetHeight();
 
-	Vector2f spaceMultiplierSum(0, 0);
+	Vec2 spaceMultiplierSum(0, 0);
 	for (GuiGridColumn& column : columns)
 		if (column.GetSizingPolicy() == eGridLineSizing::FILL_SPACE)
-			spaceMultiplierSum.x() += column.GetSpaceMultiplier();
+			spaceMultiplierSum.x += column.GetSpaceMultiplier();
 
 	for (GuiGridRow& row : rows)
 		if (row.GetSizingPolicy() == eGridLineSizing::FILL_SPACE)
-			spaceMultiplierSum.y() += row.GetSpaceMultiplier();
+			spaceMultiplierSum.y += row.GetSpaceMultiplier();
 
-	Vector2f baseSpaceForFlexibleItem = (GetContentSize() - allFixedSpace) / spaceMultiplierSum;
+	Vec2 baseSpaceForFlexibleItem = (GetContentSize() - allFixedSpace) / spaceMultiplierSum;
 
 	// Grid cell arrangement
-	Vector2f pos = GetContentPos();
-	for (uint32_t i = 0; i < dimension.y(); ++i)
+	Vec2 pos = GetContentPos();
+	for (uint32_t i = 0; i < dimension.y; ++i)
 	{
 		GuiGridRow* row = GetRow(i);
 
 		float maxHeight = 0.0;
-		for (uint32_t j = 0; j < dimension.x(); ++j)
+		for (uint32_t j = 0; j < dimension.x; ++j)
 		{
 			Gui* cell = GetCell(j, i);
 			GuiGridColumn* column = GetColumn(j);
 
 			// Determine the size of the cell
-			Vector2f size;
+			Vec2 size;
 			
 			if (column->GetSizingPolicy() == eGridLineSizing::FIXED)
-				size.x() = column->GetWidth();
+				size.x = column->GetWidth();
 			else if (column->GetSizingPolicy() == eGridLineSizing::FILL_SPACE)
-				size.x() = baseSpaceForFlexibleItem.x() * column->GetSpaceMultiplier();
+				size.x = baseSpaceForFlexibleItem.x * column->GetSpaceMultiplier();
 			else
 				assert(0);
 
 			if (row->GetSizingPolicy() == eGridLineSizing::FIXED)
-				size.y() = row->GetHeight();
+				size.y = row->GetHeight();
 			else if (row->GetSizingPolicy() == eGridLineSizing::FILL_SPACE)
-				size.y() = baseSpaceForFlexibleItem.y() * row->GetSpaceMultiplier();
+				size.y = baseSpaceForFlexibleItem.y * row->GetSpaceMultiplier();
 			else
 				assert(0);
 
 			cell->Arrange(pos, size);
 	
-			pos.x() += size.x();
-			maxHeight = std::max(maxHeight, size.y());
+			pos.x += size.x;
+			maxHeight = std::max(maxHeight, size.y);
 		}
 	
-		pos.x() = GetContentPosX();
-		pos.y() += maxHeight;
+		pos.x = GetContentPosX();
+		pos.y += maxHeight;
 	}
 
 	return finalSize;
@@ -83,7 +83,7 @@ Vector2f GuiGrid::ArrangeChildren(const Vector2f& finalSize)
 
 void GuiGrid::SetDimension(uint32_t width, uint32_t height)
 {
-	int cellCountDiff = width * height - dimension.x() * dimension.y();
+	int cellCountDiff = width * height - dimension.x * dimension.y;
 
 	// Add cells
 	if (cellCountDiff >= 0)
@@ -104,31 +104,31 @@ void GuiGrid::SetDimension(uint32_t width, uint32_t height)
 		cells.resize(cells.size() + cellCountDiff);
 	}
 
-	Vector2i dimensionDiff = Vector2i(width - dimension.x(), height - dimension.y());
+	Vec2i dimensionDiff = Vec2i(width - dimension.x, height - dimension.y);
 
 	// Add columns
-	if (dimensionDiff.x() >= 0)
+	if (dimensionDiff.x >= 0)
 	{
-		for (int i = 0; i < dimensionDiff.x(); ++i)
+		for (int i = 0; i < dimensionDiff.x; ++i)
 			columns.push_back(GuiGridColumn(i, this));
 	}
 	else // Remove columns
 	{
-		columns.resize(columns.size() + dimensionDiff.x());
+		columns.resize(columns.size() + dimensionDiff.x);
 	}
 
 	// Add rows
-	if (dimensionDiff.y() >= 0)
+	if (dimensionDiff.y >= 0)
 	{
-		for (int i = 0; i < dimensionDiff.y(); ++i)
+		for (int i = 0; i < dimensionDiff.y; ++i)
 			rows.push_back(GuiGridRow(i, this));
 	}
 	else // Remove rows
 	{
-		rows.resize(rows.size() + dimensionDiff.y());
+		rows.resize(rows.size() + dimensionDiff.y);
 	}
 
-	dimension = Vector2u(width, height);
+	dimension = Vec2u(width, height);
 }
 
 

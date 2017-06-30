@@ -41,7 +41,7 @@ LRESULT CALLBACK WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		RECT clientRect;
 		GetClientRect(handle, &clientRect);
-		window->onClientSizeChanged(Vector2u(clientRect.right - clientRect.left, clientRect.bottom - clientRect.top));
+		window->onClientSizeChanged(Vec2u(clientRect.right - clientRect.left, clientRect.bottom - clientRect.top));
 	}
 
 	auto userWndProc = window ? window->GetUserWndProc() : nullptr;
@@ -98,15 +98,15 @@ Window::Window(const WindowDesc& d)
 	RECT adjustedsize = { 0 };
 	AdjustWindowRect(&adjustedsize, (int)interpretedStyle, 0);
 
-	unsigned width = d.clientSize.x() - adjustedsize.left + adjustedsize.right;
-	unsigned height = d.clientSize.y() - adjustedsize.top + adjustedsize.bottom;
+	unsigned width = d.clientSize.x - adjustedsize.left + adjustedsize.right;
+	unsigned height = d.clientSize.y - adjustedsize.top + adjustedsize.bottom;
 
-	Vector2u screenSize = Sys::GetScreenSize();
-	if(width > screenSize.x())
-		width = screenSize.x();
+	Vec2u screenSize = Sys::GetScreenSize();
+	if(width > screenSize.x)
+		width = screenSize.x;
 
-	if(height > screenSize.y())
-		height = screenSize.y();
+	if(height > screenSize.y)
+		height = screenSize.y;
 
 	std::wstring captionText(d.capText.begin(), d.capText.end());
 
@@ -159,13 +159,13 @@ Window::~Window()
 
 bool Window::PopEvent(WindowEvent& evt_out)
 {
-	evt_out.mouseDelta.x() = 0;
-	evt_out.mouseDelta.y() = 0;
+	evt_out.mouseDelta.x = 0;
+	evt_out.mouseDelta.y = 0;
 	evt_out.key = INVALID_eKey;
 	evt_out.mouseBtn = INVALID_eMouseBtn;
 	evt_out.msg = INVALID_eWindowsMsg;
-	evt_out.clientMousePos.x() = 0;
-	evt_out.clientMousePos.y() = 0;
+	evt_out.clientMousePos.x = 0;
+	evt_out.clientMousePos.y = 0;
 
 	MSG msg;
 	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -183,42 +183,42 @@ bool Window::PopEvent(WindowEvent& evt_out)
 	{
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
-		evt_out.clientMousePos = Vector2f(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.clientMousePos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMousePressed(evt_out);
 	}
 	else if (msg.message == WM_RBUTTONDOWN)
 	{
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::RIGHT;
-		evt_out.clientMousePos = Vector2f(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.clientMousePos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMousePressed(evt_out);
 	}
 	else if (msg.message == WM_MBUTTONDOWN)
 	{
 		evt_out.msg = MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::MID;
-		evt_out.clientMousePos = Vector2f(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.clientMousePos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMousePressed(evt_out);
 	}
 	if (msg.message == WM_LBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
-		evt_out.clientMousePos = Vector2f(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.clientMousePos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMouseReleased(evt_out);
 	}
 	else if (msg.message == WM_RBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::RIGHT;
-		evt_out.clientMousePos = Vector2f(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.clientMousePos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMouseReleased(evt_out);
 	}
 	else if (msg.message == WM_MBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::MID;
-		evt_out.clientMousePos = Vector2f(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.clientMousePos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMouseReleased(evt_out);
 	}
 	else if (msg.message == WM_KEYDOWN)
@@ -254,12 +254,12 @@ bool Window::PopEvent(WindowEvent& evt_out)
 
 		if (raw->header.dwType == RIM_TYPEMOUSE)
 		{
-			evt_out.mouseDelta = Vector2f(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
+			evt_out.mouseDelta = Vec2(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
 
 			POINT p;
 			GetCursorPos(&p);
 			ScreenToClient(handle, &p);
-			evt_out.clientMousePos = Vector2f(p.x, p.y);
+			evt_out.clientMousePos = Vec2(p.x, p.y);
 			evt_out.msg = MOUSE_MOVE;
 
 			onMouseMoved(evt_out);
@@ -310,23 +310,23 @@ void Window::RestoreSize()
 	ShowWindow(handle, SW_RESTORE);
 }
 
-void Window::SetPos(const Vector2i& pos)
+void Window::SetPos(const Vec2i& pos)
 {
 	RECT rect;
 	GetWindowRect(handle, &rect);
-	SetWindowPos(handle, HWND_TOP, pos.x(), pos.y(), rect.right - rect.left, rect.bottom - rect.top, 0);
+	SetWindowPos(handle, HWND_TOP, pos.x, pos.y, rect.right - rect.left, rect.bottom - rect.top, 0);
 }
 
-void Window::SetRect(const Vector2i& pos, const Vector2u& size)
+void Window::SetRect(const Vec2i& pos, const Vec2u& size)
 {
-	SetWindowPos(handle, HWND_TOP, pos.x(), pos.y(), size.x(), size.y(), 0);
+	SetWindowPos(handle, HWND_TOP, pos.x, pos.y, size.x, size.y, 0);
 }
 
-void Window::SetSize(const Vector2u& size)
+void Window::SetSize(const Vec2u& size)
 {
 	RECT rect;
 	GetWindowRect(handle, &rect);
-	SetWindowPos(handle, HWND_TOP, rect.left, rect.bottom, size.x(), size.y(), 0);
+	SetWindowPos(handle, HWND_TOP, rect.left, rect.bottom, size.x, size.y, 0);
 }
 
 void Window::SetTitle(const std::string& text)
@@ -388,21 +388,21 @@ uint32_t Window::GetClientHeight() const
 	return (uint32_t)(rect.bottom - rect.top);
 }
 
-Vector2u Window::GetClientSize() const
+Vec2u Window::GetClientSize() const
 {
 	RECT rect; GetClientRect(handle, &rect);
-	return Vector2u(rect.right - rect.left, rect.bottom - rect.top);
+	return Vec2u(rect.right - rect.left, rect.bottom - rect.top);
 }
 
-Vector2f Window::GetClientCursorPos() const
+Vec2 Window::GetClientCursorPos() const
 {
-	Vector2f cursorPos = Sys::GetCursorPos();
+	Vec2 cursorPos = Sys::GetCursorPos();
 	POINT p;
-	p.x = cursorPos.x();
-	p.y = cursorPos.y();
+	p.x = cursorPos.x;
+	p.y = cursorPos.y;
 	ScreenToClient(handle, &p);
 
-	return Vector2f(p.x, p.y);
+	return Vec2(p.x, p.y);
 }
 
 unsigned Window::GetNumClientPixels() const
@@ -415,12 +415,12 @@ float Window::GetClientAspectRatio() const
 	return (float)GetClientWidth() * GetClientHeight();
 }
 
-Vector2i Window::GetCenterPos() const
+Vec2i Window::GetCenterPos() const
 {
 	WINDOWINFO info;
 	assert(GetWindowInfo(handle, &info));
 
-	return Vector2i((int)((info.rcWindow.right - info.rcWindow.left) * 0.5f), (int)((info.rcWindow.bottom - info.rcWindow.right) * 0.5f));
+	return Vec2i((int)((info.rcWindow.right - info.rcWindow.left) * 0.5f), (int)((info.rcWindow.bottom - info.rcWindow.right) * 0.5f));
 }
 
 eKey Window::ConvertFromWindowsKey(WPARAM key)

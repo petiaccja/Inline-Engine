@@ -1,6 +1,7 @@
 #pragma once
-#include <BaseLibrary\Common_tmp.hpp>
+#include "BaseLibrary\Common.hpp"
 #include "GuiLayout.hpp"
+
 #include <unordered_set>
 
 namespace inl::gui {
@@ -24,7 +25,7 @@ public:
 	std::vector<Gui*>& GetSeparators() { return separators; }
 
 protected:
-	virtual Vector2f ArrangeChildren(const Vector2f& finalSize) override;
+	virtual Vec2 ArrangeChildren(const Vec2& finalSize) override;
 
 protected:
 	std::unordered_set<Gui*> items;
@@ -35,9 +36,9 @@ protected:
 
 	// For lambda states
 	bool bDragging = false;
-	Vector2f mousePosWhenPressed;
-	Vector2f prevItemOrigSize;
-	Vector2f nextItemOrigSize;
+	Vec2 mousePosWhenPressed;
+	Vec2 prevItemOrigSize;
+	Vec2 nextItemOrigSize;
 	Gui* separatorSaved;
 };
 

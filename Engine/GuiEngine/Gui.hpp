@@ -1,7 +1,7 @@
 #pragma once
-#include "GuiEvent.h"
-#include <BaseLibrary\Common_tmp.hpp>
-#include <BaseLibrary\Platform\Window.hpp>
+#include "GuiEvent.hpp"
+#include "BaseLibrary\Common.hpp"
+#include "BaseLibrary\Platform\Window.hpp"
 
 #include <unordered_map>
 
@@ -96,10 +96,10 @@ public:
 	bool IsLayoutNeedRefresh() { return bLayoutNeedRefresh; }
 
 	void Move(float dx, float dy);
-	void Move(const Vector2f& delta) { Move(delta.x(), delta.y()); }
+	void Move(const Vec2& delta) { Move(delta.x, delta.y); }
 
-	Vector2f Arrange(const Vector2f& pos, const Vector2f& size);
-	Vector2f Arrange(float posX, float posY, const Vector2f& size) { return Arrange(Vector2f(posX, posY), size); }	
+	Vec2 Arrange(const Vec2& pos, const Vec2& size);
+	Vec2 Arrange(float posX, float posY, const Vec2& size) { return Arrange(Vec2(posX, posY), size); }	
 
 	void EnableClipChildren() { SetClipChildren(true); }
 	void DisableClipChildren() { SetClipChildren(false); }
@@ -123,20 +123,20 @@ public:
 	void SetName(const std::string& str) { SetName(std::wstring(str.begin(), str.end())); }
 
 	void SetContextMenu(Gui* c) { contextMenu = c; }
-	void SetPos(const Vector2f& p) { SetPos(p.x(), p.y()); }
-	void SetPos(float x, float y) { SetRect(x, y, size.x(), size.y()); }
+	void SetPos(const Vec2& p) { SetPos(p.x, p.y); }
+	void SetPos(float x, float y) { SetRect(x, y, size.x, size.y); }
 	void SetCenterPos(float x, float y) { SetPos(x - GetHalfWidth(), y + GetHalfHeight()); }
-	void SetPosX(float x) { SetRect(x, pos.y(), size.x(), size.y()); }
-	void SetPosY(float y) { SetRect(pos.x(), y, size.x(), size.y()); }
+	void SetPosX(float x) { SetRect(x, pos.y, size.x, size.y); }
+	void SetPosY(float y) { SetRect(pos.x, y, size.x, size.y); }
 
-	void SetWidth(float w) { SetSize(Vector2f(w, size.y())); }
-	void SetHeight(float h) { SetSize(Vector2f(size.x(), h)); }
+	void SetWidth(float w) { SetSize(Vec2(w, size.y)); }
+	void SetHeight(float h) { SetSize(Vec2(size.x, h)); }
 
-	void SetSize(const Vector2f& s) { SetSize(s.x(), s.y()); }
-	void SetSize(float width, float height) { SetRect(pos.x(), pos.y(), width, height, true, true); }
+	void SetSize(const Vec2& s) { SetSize(s.x, s.y); }
+	void SetSize(float width, float height) { SetRect(pos.x, pos.y, width, height, true, true); }
 
 	void SetContentSize(float width, float height) { SetContentRect(GetContentRect().left, GetContentRect().top, width, height, true, true); }
-	void SetContentSize(const Vector2f& s) { SetContentSize(s.x(), s.y()); }
+	void SetContentSize(const Vec2& s) { SetContentSize(s.x, s.y); }
 
 	//void SetEventPropagationPolicy(eEventPropagationPolicy e) { eventPropagationPolicy = e; }
 
@@ -231,55 +231,55 @@ public:
 
 	float GetCursorPosContentSpaceX();
 	float GetCursorPosContentSpaceY();
-	Vector2f GetCursorPosContentSpace();
+	Vec2 GetCursorPosContentSpace();
 
 	float GetPosRight()	 { return GetPosX() + GetWidth(); }
 	float GetPosLeft()	 { return GetPosX(); }
 	float GetPosTop()	 { return GetPosY(); }
 	float GetPosBottom() { return GetPosY() + GetHeight(); }
 
-	float GetPosX() { return pos.x(); }
-	float GetPosY() { return pos.y(); }
-	const Vector2f& GetPos() { return pos; }
-	float GetCenterPosX() { return pos.x() + GetHalfWidth(); }
-	float GetCenterPosY() { return pos.y() + GetHalfHeight(); }
-	Vector2f GetCenterPos() { return pos + GetHalfSize(); }
-	const Vector2f& GetSize() { return size; }
-	float GetSizeX() { return size.x(); }
-	float GetSizeY() { return size.y(); }
-	float GetWidth() { return size.x(); }
-	float GetHeight() { return size.y(); }
+	float GetPosX() { return pos.x; }
+	float GetPosY() { return pos.y; }
+	const Vec2& GetPos() { return pos; }
+	float GetCenterPosX() { return pos.x + GetHalfWidth(); }
+	float GetCenterPosY() { return pos.y + GetHalfHeight(); }
+	Vec2 GetCenterPos() { return pos + GetHalfSize(); }
+	const Vec2& GetSize() { return size; }
+	float GetSizeX() { return size.x; }
+	float GetSizeY() { return size.y; }
+	float GetWidth() { return size.x; }
+	float GetHeight() { return size.y; }
 	float GetHalfWidth() { return GetWidth() * 0.5f; }
 	float GetHalfHeight() { return GetHeight() * 0.5f; }
-	Vector2f GetHalfSize() { return Vector2f(GetHalfWidth(), GetHalfHeight()); }
+	Vec2 GetHalfSize() { return Vec2(GetHalfWidth(), GetHalfHeight()); }
 
 	// TODO SetMinSize SetMaxSize
-	Vector2f GetMinSize() { return Vector2f(1, 1); }
-	float GetMinSizeX() { return GetMinSize().x(); }
-	float GetMinSizeY() { return GetMinSize().y(); }
+	Vec2 GetMinSize() { return Vec2(1, 1); }
+	float GetMinSizeX() { return GetMinSize().x; }
+	float GetMinSizeY() { return GetMinSize().y; }
 
-	Vector2f GetPosBottomLeft() { return GetPos() + Vector2f(0, GetHeight()); }
-	Vector2f GetPosBottomRight() { return GetPos() + Vector2f(GetWidth(), GetHeight()); }
-	Vector2f GetPosTopLeft() { return GetPos(); }
-	Vector2f GetPosTopRight() { return GetPos() + Vector2f(GetWidth(), 0); }
+	Vec2 GetPosBottomLeft() { return GetPos() + Vec2(0, GetHeight()); }
+	Vec2 GetPosBottomRight() { return GetPos() + Vec2(GetWidth(), GetHeight()); }
+	Vec2 GetPosTopLeft() { return GetPos(); }
+	Vec2 GetPosTopRight() { return GetPos() + Vec2(GetWidth(), 0); }
 
 	const RectF& GetPadding() const { return padding; }
 	const RectF& GetMargin() const { return margin; }
 
-	float GetContentPosX() { return GetContentPos().x(); }
-	float GetContentPosY() { return GetContentPos().y(); }
-	Vector2f GetContentPos() { return GetContentRect().GetPos(); }
+	float GetContentPosX() { return GetContentPos().x; }
+	float GetContentPosY() { return GetContentPos().y; }
+	Vec2 GetContentPos() { return GetContentRect().GetPos(); }
 	float GetContentCenterPosY() { return GetContentPosY() + GetContentHalfHeight(); }
 	float GetContentCenterPosX() { return GetContentPosX() + GetContentHalfWidth(); }
-	Vector2f GetContentCenterPos() { return GetContentPos() + GetContentHalfSize(); }
-	Vector2f GetContentSize() { return GetContentRect().GetSize(); }
-	float GetContentSizeX() { return GetContentSize().x(); }
-	float GetContentSizeY() { return GetContentSize().y(); }
+	Vec2 GetContentCenterPos() { return GetContentPos() + GetContentHalfSize(); }
+	Vec2 GetContentSize() { return GetContentRect().GetSize(); }
+	float GetContentSizeX() { return GetContentSize().x; }
+	float GetContentSizeY() { return GetContentSize().y; }
 	float GetContentWidth() { return GetContentRect().GetWidth(); }
 	float GetContentHeight() { return GetContentRect().GetHeight(); }
 	float GetContentHalfWidth() { return GetContentWidth() * 0.5f; }
 	float GetContentHalfHeight() { return GetContentHeight() * 0.5f; }
-	Vector2f GetContentHalfSize() { return GetContentSize() * 0.5f; }
+	Vec2 GetContentHalfSize() { return GetContentSize() * 0.5f; }
 
 	float GetContentRight() { return GetContentRect().right; }
 	float GetContentLeft() { return GetContentRect().left; }
@@ -323,14 +323,14 @@ public:
 
 	const Color& GetBorderColor() { return borderColor; }
 	RectF GetBorder() { return border; }
-	Vector2f GetDesiredSize() { return GetSize() + Vector2f(margin.left + margin.right, margin.top + margin.bottom); }
+	Vec2 GetDesiredSize() { return GetSize() + Vec2(margin.left + margin.right, margin.top + margin.bottom); }
 
 	const std::wstring& GetName() { return name; }
 
 	template<class T>
 	bool Is();
 
-	bool IsPointInside(Vector2f pt) { return GetRect().IsPointInside(pt); }
+	bool IsPointInside(Vec2 pt) { return GetRect().IsPointInside(pt); }
 
 	bool IsLayer() { return bLayer; }
 	bool IsChildrenClipEnabled() { return bClipChildren; }
@@ -352,10 +352,10 @@ protected:
 	void SetRect(const RectF& rect, bool bMoveChildren, bool bMakeLayoutDirty) { SetRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), bMoveChildren, bMakeLayoutDirty); }
 	
 	void SetContentSize(float width, float height, bool bMakeLayoutDirty) { SetContentRect(GetContentRect().left, GetContentRect().top, width, height, false, bMakeLayoutDirty); }
-	void SetContentSize(const Vector2f& s, bool bMakeLayoutDirty) { SetContentSize(s.x(), s.y(), bMakeLayoutDirty); }
+	void SetContentSize(const Vec2& s, bool bMakeLayoutDirty) { SetContentSize(s.x, s.y, bMakeLayoutDirty); }
 
-	void SetSize(const Vector2f& s, bool bMakeLayoutDirty) { SetSize(s.x(), s.y(), bMakeLayoutDirty); }
-	void SetSize(float width, float height, bool bMakeLayoutDirty) { SetRect(pos.x(), pos.y(), width, height, false, bMakeLayoutDirty); }
+	void SetSize(const Vec2& s, bool bMakeLayoutDirty) { SetSize(s.x, s.y, bMakeLayoutDirty); }
+	void SetSize(float width, float height, bool bMakeLayoutDirty) { SetRect(pos.x, pos.y, width, height, false, bMakeLayoutDirty); }
 
 	void SetActiveImage(Gdiplus::Bitmap* image) { bgActiveImage = image; }
 
@@ -367,17 +367,17 @@ protected:
 
 	void TraverseTowardParents(const std::function<void(Gui*)>& fn);
 
-	virtual Vector2f ArrangeChildren(const Vector2f& finalSize);
+	virtual Vec2 ArrangeChildren(const Vec2& finalSize);
 
 protected:
 	// Name it however you want
 	std::wstring name;
 
 	// Position
-	Vector2f pos;
+	Vec2 pos;
 
 	// Width, Height
-	Vector2f size;
+	Vec2 size;
 
 	// Children widgets
 	std::vector<Gui*> children;
@@ -487,11 +487,11 @@ public:
 	Delegate<void(RectF& rect)> onTransformChanged;
 	Delegate<void(Gui* self, RectF& rect)> onTransformChangedClonable;
 
-	Delegate<void(Vector2f pos)> onPosChanged;
-	Delegate<void(Gui* self, Vector2f pos)> onPosChangedClonable;
+	Delegate<void(Vec2 pos)> onPosChanged;
+	Delegate<void(Gui* self, Vec2 pos)> onPosChangedClonable;
 
-	Delegate<void(Vector2f size)> onSizeChanged;
-	Delegate<void(Gui* self, Vector2f size)> onSizeChangedClonable;
+	Delegate<void(Vec2 size)> onSizeChanged;
+	Delegate<void(Gui* self, Vec2 size)> onSizeChangedClonable;
 
 	Delegate<void(RectF rect)> onRectChanged;
 	Delegate<void(Gui* self, RectF rect)> onRectChangedClonable;

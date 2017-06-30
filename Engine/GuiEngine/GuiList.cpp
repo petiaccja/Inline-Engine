@@ -14,26 +14,26 @@ void GuiList::SetOrientation(eGuiOrientation orientation)
 	bLayoutNeedRefresh = true;
 }
 
-Vector2f GuiList::ArrangeChildren(const Vector2f& finalSize)
+Vec2 GuiList::ArrangeChildren(const Vec2& finalSize)
 {
-	Vector2f pos = GetContentPos();
-	Vector2f selfSize(0, 0);
+	Vec2 pos = GetContentPos();
+	Vec2 selfSize(0, 0);
 	for (Gui* child : GetItems())
 	{
-		Vector2f desiredSize = child->GetDesiredSize();
+		Vec2 desiredSize = child->GetDesiredSize();
 		if (orientation == eGuiOrientation::VERTICAL)
 		{
-			Vector2f sizeUsed = child->Arrange(pos.x(), pos.y() + selfSize.y(), desiredSize);
+			Vec2 sizeUsed = child->Arrange(pos.x, pos.y + selfSize.y, desiredSize);
 
-			selfSize.y() += sizeUsed.y();
-			selfSize.x() = std::max(selfSize.x(), sizeUsed.x());
+			selfSize.y += sizeUsed.y;
+			selfSize.x = std::max(selfSize.x, sizeUsed.x);
 		}
 		else if (orientation == eGuiOrientation::HORIZONTAL)
 		{
-			Vector2f sizeUsed = child->Arrange(pos.x() + selfSize.x(), pos.y(), desiredSize);
+			Vec2 sizeUsed = child->Arrange(pos.x + selfSize.x, pos.y, desiredSize);
 
-			selfSize.x() += sizeUsed.x();
-			selfSize.y() = std::max(selfSize.y(), sizeUsed.y());
+			selfSize.x += sizeUsed.x;
+			selfSize.y = std::max(selfSize.y, sizeUsed.y);
 		}
 	}
 

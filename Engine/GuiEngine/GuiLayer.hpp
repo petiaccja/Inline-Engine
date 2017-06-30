@@ -9,7 +9,7 @@ class GuiLayer : public Gui
 public:
 	GuiLayer(GuiEngine* guiEngine);
 
-	virtual Vector2f ArrangeChildren(const Vector2f& finalSize);
+	virtual Vec2 ArrangeChildren(const Vec2& finalSize);
 
 protected:
 	GuiEngine* guiEngine;

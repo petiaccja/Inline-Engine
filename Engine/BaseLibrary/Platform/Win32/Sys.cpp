@@ -33,9 +33,9 @@ void Sys::ShowMsgBox(const std::wstring& msg)
 
 }
 
-void Sys::SetCursorPos(const Vector2i& pos)
+void Sys::SetCursorPos(const Vec2i& pos)
 {
-	::SetCursorPos(pos.x(), pos.y());
+	::SetCursorPos(pos.x, pos.y);
 }
 
 void Sys::SetCursorVisible(bool b)
@@ -80,15 +80,15 @@ std::string	Sys::GetExeDir()
 	return path;
 }
 
-Vector2f Sys::GetCursorPos()
+Vec2 Sys::GetCursorPos()
 {
 	POINT p; ::GetCursorPos(&p);
-	return Vector2f(p.x, p.y);
+	return Vec2(p.x, p.y);
 }
 
-Vector2u Sys::GetScreenSize()
+Vec2u Sys::GetScreenSize()
 {
-	return Vector2u((unsigned)GetSystemMetrics(SM_CXSCREEN), (unsigned)GetSystemMetrics(SM_CYSCREEN));
+	return Vec2u((unsigned)GetSystemMetrics(SM_CXSCREEN), (unsigned)GetSystemMetrics(SM_CYSCREEN));
 }
 
 void Sys::SetCursorVisual(eCursorVisual visual, WindowHandle hwnd /*= nullptr*/)

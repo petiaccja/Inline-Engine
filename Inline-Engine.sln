@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.6
+VisualStudioVersion = 15.0.26228.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GraphicsEngine_LL", "Engine\GraphicsEngine_LL\GraphicsEngine_LL.vcxproj", "{040593FA-6149-4526-8754-2E2886759D0E}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -49,6 +49,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QC_Simulator", "Test\QC_Sim
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "Engine\Core\Core.vcxproj", "{26702DEE-D2F6-47CC-908E-0D07DB1DD51F}"
 	ProjectSection(ProjectDependencies) = postProject
+		{13ED7F26-15E5-47A3-BE13-D3D15695F412} = {13ED7F26-15E5-47A3-BE13-D3D15695F412}
 		{DC434FE3-0F5C-49D7-926D-5C16121BD3FD} = {DC434FE3-0F5C-49D7-926D-5C16121BD3FD}
 		{F86D82F2-5F25-4928-996E-8025257DF358} = {F86D82F2-5F25-4928-996E-8025257DF358}
 		{040593FA-6149-4526-8754-2E2886759D0E} = {040593FA-6149-4526-8754-2E2886759D0E}
@@ -68,6 +69,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NetworkEngine", "Engine\NetworkEngine\NetworkEngine.vcxproj", "{805EDCB5-391B-4F92-8568-CF6B691C16FE}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LinuxTest", "Test\LinuxTest\LinuxTest.vcxproj", "{795E3E75-E34E-4BDD-AD58-2F5216EE18B3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PhysicsEngineBullet", "Engine\PhysicsEngine\PhysicsEngineBullet.vcxproj", "{13ED7F26-15E5-47A3-BE13-D3D15695F412}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -263,6 +266,18 @@ Global
 		{795E3E75-E34E-4BDD-AD58-2F5216EE18B3}.Release|x64.Build.0 = Release|x64
 		{795E3E75-E34E-4BDD-AD58-2F5216EE18B3}.Release|x86.ActiveCfg = Release|x86
 		{795E3E75-E34E-4BDD-AD58-2F5216EE18B3}.Release|x86.Build.0 = Release|x86
+		{13ED7F26-15E5-47A3-BE13-D3D15695F412}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{13ED7F26-15E5-47A3-BE13-D3D15695F412}.Debug|ARM.ActiveCfg = Debug|Win32
+		{13ED7F26-15E5-47A3-BE13-D3D15695F412}.Debug|x64.ActiveCfg = Debug|x64
+		{13ED7F26-15E5-47A3-BE13-D3D15695F412}.Debug|x64.Build.0 = Debug|x64
+		{13ED7F26-15E5-47A3-BE13-D3D15695F412}.Debug|x86.ActiveCfg = Debug|Win32
+		{13ED7F26-15E5-47A3-BE13-D3D15695F412}.Debug|x86.Build.0 = Debug|Win32
+		{13ED7F26-15E5-47A3-BE13-D3D15695F412}.Release|Any CPU.ActiveCfg = Release|Win32
+		{13ED7F26-15E5-47A3-BE13-D3D15695F412}.Release|ARM.ActiveCfg = Release|Win32
+		{13ED7F26-15E5-47A3-BE13-D3D15695F412}.Release|x64.ActiveCfg = Release|x64
+		{13ED7F26-15E5-47A3-BE13-D3D15695F412}.Release|x64.Build.0 = Release|x64
+		{13ED7F26-15E5-47A3-BE13-D3D15695F412}.Release|x86.ActiveCfg = Release|Win32
+		{13ED7F26-15E5-47A3-BE13-D3D15695F412}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -165,16 +165,17 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Transform3D.cpp" />
     <ClInclude Include="Any.hpp" />
     <ClCompile Include="Platform\Win32\WindowDropTarget.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClInclude Include="ArrayView.hpp" />
     <ClInclude Include="BitflagEnum.hpp" />
     <ClInclude Include="BitOperations.hpp" />
-    <ClCompile Include="Common_tmp.cpp">
+    <ClCompile Include="Common.cpp">
       <FileType>CppHeader</FileType>
     </ClCompile>
-    <ClInclude Include="Common_tmp.hpp" />
+    <ClInclude Include="Common.hpp" />
     <ClInclude Include="Graph\Node.hpp" />
     <ClInclude Include="Graph\NodeFactory.hpp" />
     <ClInclude Include="Graph\NodeLibrary.hpp" />
@@ -214,6 +215,7 @@
     <ClInclude Include="TemplateUtil.hpp" />
     <ClInclude Include="ThreadName.hpp" />
     <ClInclude Include="Timer.hpp" />
+    <ClInclude Include="Transform3D.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Graph\NodeFactory.cpp" />

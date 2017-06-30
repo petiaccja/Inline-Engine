@@ -1,5 +1,5 @@
 #pragma once
-#include <BaseLibrary\Common_tmp.hpp>
+#include "BaseLibrary\Common.hpp"
 #include "GuiGrid.hpp"
 
 namespace inl::gui {
@@ -30,7 +30,7 @@ public:
 	//eGuiOrientation GetOrientation() { return orientation; }
 
 //protected:
-//	virtual Vector2f ArrangeChildren(const Vector2f& finalSize) override;
+//	virtual Vec2 ArrangeChildren(const Vec2& finalSize) override;
 
 protected:
 	bool bVerScrollBarVisible;

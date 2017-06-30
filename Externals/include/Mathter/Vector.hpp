@@ -5,7 +5,7 @@
 
 #pragma once
 
-// Remove goddamn fucking bullshit crapware winapi macros.
+// To remove goddamn fucking bullshit crapware winapi macros.
 #if _MSC_VER && defined(min)
 #pragma push_macro("min")
 #pragma push_macro("max")
@@ -14,9 +14,26 @@
 #define MATHTER_MINMAX
 #endif
 
+// To enable Empty Base Class Optimization (EBCO) in MSVC.
+// Why the fuck do I even have to manually enable it???
+#ifdef _MSC_VER
+#define MATHTER_EBCO __declspec(empty_bases)
+#endif
+
+// No, we don't support older compilers.
+#if _MSC_VER < 1900
+#error Visual Studio 2015 Update 2 or later version are supported.
+#endif
+
+// The rest of the code is free from obscene comments, as far as I remember.
+// No guarantees.
+
+
+
 #include <type_traits>
 #include <iostream>
 #include <array>
+#include <cstdint>
 
 #include "Simd.hpp"
 
@@ -28,13 +45,14 @@ namespace mathter {
 //------------------------------------------------------------------------------
 
 // Vector
-
-template <class T, int Dim, bool Packed = false>
+template <class T, int Dim, bool Packed>
 class Vector;
 
+// Swizzle
+template <class T, int... Indices>
+class Swizzle;
 
 // Matrix
-
 enum class eMatrixOrder {
 	PRECEDE_VECTOR,
 	FOLLOW_VECTOR,
@@ -45,13 +63,12 @@ enum class eMatrixLayout {
 	COLUMN_MAJOR,
 };
 
-
-template <class T, class U>
-using MatMulElemT = decltype(T() * U() + T() + U());
-
-template <class T, int Columns, int Rows, eMatrixOrder Order = eMatrixOrder::FOLLOW_VECTOR, eMatrixLayout Layout = eMatrixLayout::ROW_MAJOR, bool Packed = false>
+template <class T, int Columns, int Rows, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
 class Matrix;
 
+// Quaternion
+template <class T, bool Packed>
+class Quaternion;
 
 
 //------------------------------------------------------------------------------
@@ -120,24 +137,54 @@ struct NotVector {
 	static constexpr bool value = !IsVector<Arg>::value;
 };
 
+template <class Arg>
+struct IsSwizzle {
+	static constexpr bool value = false;
+};
+template <class T, int... Indices>
+struct IsSwizzle<Swizzle<T, Indices...>> {
+	static constexpr bool value = true;
+};
+template <class Arg>
+struct NotSwizzle {
+	static constexpr bool value = !IsSwizzle<Arg>::value;
+};
+
+template <class Arg>
+struct IsVectorOrSwizzle {
+	static constexpr bool value = IsVector<Arg>::value || IsSwizzle<Arg>::value;
+};
+
 template <class T>
 struct IsMatrix {
 	static constexpr bool value = false;
 };
-
 template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
 struct IsMatrix<Matrix<T, Rows, Columns, Order, Layout, Packed>> {
 	static constexpr bool value = true;
 };
-
 template <class T>
 struct NotMatrix {
 	static constexpr bool value = !IsMatrix<T>::value;
 };
 
+template <class Arg>
+struct IsQuaternion {
+	static constexpr bool value = false;
+};
+template <class T, bool Packed>
+struct IsQuaternion<Quaternion<T, Packed>> {
+	static constexpr bool value = true;
+};
+template <class Arg>
+struct NotQuaternion {
+	static constexpr bool value = !IsQuaternion<Arg>::value;
+};
+
+
 template <class T>
 struct IsScalar {
-	static constexpr bool value = !IsMatrix<T>::value && !IsVector<T>::value;
+	static constexpr bool value = !IsMatrix<T>::value && !IsVector<T>::value && !IsSwizzle<T>::value && !IsQuaternion<T>::value;
 };
 
 // Dimension of an argument (add dynamically sized vectors later)
@@ -148,6 +195,10 @@ struct DimensionOf {
 template <class T, int Dim, bool Packed>
 struct DimensionOf<Vector<T, Dim, Packed>, 0> {
 	static constexpr int value = Dim;
+};
+template <class T, int... Indices>
+struct DimensionOf<Swizzle<T, Indices...>> {
+	static constexpr int value = sizeof...(Indices);
 };
 
 // Sum dimensions of arguments
@@ -182,6 +233,25 @@ bool AlmostEqual(T d1, T d2) {
 }
 
 
+// Check if base class's pointer equals that of derived when static_casted
+template <class Base, class Derived>
+class BasePtrEquals {
+#if _MSC_VER > 1910
+	static Derived instance;
+	static constexpr void* base = static_cast<void*>(static_cast<Base*>(&instance));
+public:
+	static constexpr bool value = base == static_cast<void*>(&instance);
+#else
+public:
+	static constexpr bool value = true;
+#endif
+};
+
+#if _MSC_VER > 1910
+template <class Base, class Derived>
+Derived BasePtrEquals<Base, Derived>::instance;
+#endif
+
 } // namespace impl
 
 
@@ -190,7 +260,48 @@ bool AlmostEqual(T d1, T d2) {
 // Vector data containers
 //------------------------------------------------------------------------------
 
-// Function they must have:
+template <class T, int... Indices>
+class Swizzle {
+	static constexpr int IndexTable[] = { Indices... };
+	static constexpr int Dim = sizeof...(Indices);
+	T* data() { return reinterpret_cast<T*>(this); }
+	const T* data() const { return reinterpret_cast<const T*>(this); }
+public:
+	operator Vector<T, sizeof...(Indices), false>() const;
+	operator Vector<T, sizeof...(Indices), true>() const;
+
+	Swizzle& operator=(const Vector<T, sizeof...(Indices), false>& rhs);
+	Swizzle& operator=(const Vector<T, sizeof...(Indices), true>& rhs);
+
+	template <class T2, int... Indices2, typename std::enable_if<sizeof...(Indices) == sizeof...(Indices2), int>::type = 0>
+	Swizzle& operator=(const Swizzle<T2, Indices2...>& rhs) {
+		*this = Vector<T, sizeof...(Indices2), false>(rhs);
+		return *this;
+	}
+
+	T& operator[](int idx) {
+		return data()[IndexTable[idx]];
+	}
+	T operator[](int idx) const {
+		return data()[IndexTable[idx]];
+	}
+
+	template <bool Packed = false>
+	const auto ToVector() const {
+		return Vector<T, Dim, Packed>(*this);
+	}
+protected:
+	template <int... Rest, class = std::enable_if<sizeof...(Rest)==0>::type>
+	void Assign(const T*) {}
+
+	template <int Index, int... Rest>
+	void Assign(const T* rhs) {
+		data()[Index] = *rhs;
+		return Assign<Rest...>(rhs + 1);
+	}
+};
+
+// Functions they must have:
 // mul, div, add, sub | vec x vec
 // mul, div, add, sub | vec x scalar
 // spread
@@ -207,28 +318,34 @@ public:
 // Small vectors with x,y,z,w members
 template <class T, bool Packed>
 class VectorData<T, 2, Packed> {
+	using ST = T;
 public:
 	union {
 		struct { T x, y; };
 		T data[2];
+#include "Swizzle/Swizzle_2.inc.hpp"
 	};
 };
 
 template <class T, bool Packed>
 class VectorData<T, 3, Packed> {
+	using ST = T;
 public:
 	union {
 		struct { T x, y, z; };
 		T data[3];
+#include "Swizzle/Swizzle_3.inc.hpp"
 	};
 };
 
 template <class T, bool Packed>
 class VectorData<T, 4, Packed> {
+	using ST = T;
 public:
 	union {
 		struct { T x, y, z, w; };
 		T data[4];
+#include "Swizzle/Swizzle_4.inc.hpp"
 	};
 };
 
@@ -236,31 +353,37 @@ public:
 // Small SIMD fp32 vectors
 template <>
 class VectorData<float, 2, false> {
+	using ST = float;
 public:
 	union {
 		Simd<float, 2> simd;
 		struct { float x, y; };
 		float data[2];
+#include "Swizzle/Swizzle_2.inc.hpp"
 	};
 };
 
 template <>
 class VectorData<float, 3, false> {
+	using ST = float;
 public:
 	union {
 		Simd<float, 4> simd;
 		struct { float x, y, z; };
 		float data[3];
+#include "Swizzle/Swizzle_3.inc.hpp"
 	};
 };
 
 template <>
 class VectorData<float, 4, false> {
+	using ST = float;
 public:
 	union {
 		Simd<float, 4> simd;
 		struct { float x, y, z, w; };
 		float data[4];
+#include "Swizzle/Swizzle_4.inc.hpp"
 	};
 };
 
@@ -277,31 +400,37 @@ public:
 // Small SIMD fp64 vectors
 template <>
 class VectorData<double, 2, false> {
+	using ST = double;
 public:
 	union {
 		Simd<double, 2> simd;
 		struct { double x, y; };
 		double data[2];
+#include "Swizzle/Swizzle_2.inc.hpp"
 	};
 };
 
 template <>
 class VectorData<double, 3, false> {
+	using ST = double;
 public:
 	union {
 		Simd<double, 4> simd;
 		struct { double x, y, z; };
 		double data[3];
+#include "Swizzle/Swizzle_3.inc.hpp"
 	};
 };
 
 template <>
 class VectorData<double, 4, false> {
+	using ST = double;
 public:
 	union {
 		Simd<double, 4> simd;
 		struct { double x, y, z, w; };
 		double data[4];
+#include "Swizzle/Swizzle_4.inc.hpp"
 	};
 };
 
@@ -465,8 +594,12 @@ protected:
 // Vector special operations
 //------------------------------------------------------------------------------
 
+// Note: VectorSpecialOps inherits from VectorOps instead of making
+// Vector directly inherit from both because MSVC sucks hard with EBCO, and bloats
+// Vector with useless bullshit twice the size it should be.
+
 template <class T, int Dim, bool Packed>
-class VectorSpecialOps {
+class VectorSpecialOps : public VectorOps<T, Dim, Packed> {
 	using VectorT = Vector<T, Dim, Packed>;
 public:
 	template <class... Args>
@@ -476,7 +609,7 @@ public:
 };
 
 template <class T, bool Packed>
-class VectorSpecialOps<T, 2, Packed> {
+class VectorSpecialOps<T, 2, Packed> : public VectorOps<T, 2, Packed> {
 	using VectorT = Vector<T, 2, Packed>;
 public:
 	static VectorT Cross(const VectorT& arg) {
@@ -490,7 +623,7 @@ public:
 };
 
 template <class T, bool Packed>
-class VectorSpecialOps<T, 3, Packed> {
+class VectorSpecialOps<T, 3, Packed> : public VectorOps<T, 3, Packed> {
 	using VectorT = Vector<T, 3, Packed>;
 public:
 	static VectorT Cross(const VectorT& lhs, const VectorT& rhs) {
@@ -510,13 +643,22 @@ public:
 // General Vector class - no specializations needed
 //------------------------------------------------------------------------------
 
-template <class T, int Dim, bool Packed>
-class __declspec(empty_bases) Vector
-	: public VectorData<T, Dim, Packed>,
-	public VectorOps<T, Dim, Packed>, 
-	public VectorSpecialOps<T, Dim, Packed>
+template <class T, int Dim, bool Packed = false>
+class MATHTER_EBCO Vector
+	: public VectorSpecialOps<T, Dim, Packed>,
+	public VectorData<T, Dim, Packed>
 {
 	static_assert(Dim >= 1, "Dimension must be positive integer.");
+
+	// Make a call to this function in EVERY constructor of the Vector class.
+	// These checks must be put in a separate function instead of class scope because the full definition
+	// of the Vector class is required to determine memory layout.
+	void CheckLayoutContraints() {
+		static_assert(sizeof(Vector<T, Dim, Packed>) == sizeof(VectorData<T, Dim, Packed>), "Your compiler did not optimize vector class' size. Do you have empty base optimization enabled?");
+		static_assert(impl::BasePtrEquals<VectorData<T, Dim, Packed>, Vector>::value, "Your compiler did not lay out derived class' memory correctly. Empty base class' offset must be zero in derived.");
+		static_assert(impl::BasePtrEquals<VectorOps<T, Dim, Packed>, Vector>::value, "Your compiler did not lay out derived class' memory correctly. Empty base class' offset must be zero in derived.");
+		static_assert(impl::BasePtrEquals<VectorSpecialOps<T, Dim, Packed>, Vector>::value, "Your compiler did not lay out derived class' memory correctly. Empty base class' offset must be zero in derived.");
+	}
 public:
 	static void DumpLayout(std::ostream& os) {
 		Vector* ptr = reinterpret_cast<Vector*>(1000);
@@ -531,10 +673,13 @@ public:
 	//--------------------------------------------
 
 	// Default ctor
-	Vector() = default;
+	Vector() { 
+		CheckLayoutContraints(); 
+	}
 
-	Vector(const Vector& rhs) :	VectorData<T, Dim, Packed>(rhs)
-	{}
+	Vector(const Vector& rhs) :	VectorData<T, Dim, Packed>(rhs)	{ 
+		CheckLayoutContraints();
+	}
 
 	Vector& operator=(const Vector& rhs) {
 		VectorData<T, Dim, Packed>::operator=(rhs);
@@ -544,12 +689,14 @@ public:
 
 	// All element same ctor
 	explicit Vector(T all) {
+		CheckLayoutContraints();
 		VectorOps<T, Dim, Packed>::spread(*this, all);
 	}
 
 	// T array ctor
 	template <class U>
 	explicit Vector(const U* data) {
+		CheckLayoutContraints();
 		for (int i = 0; i < Dim; ++i) {
 			this->data[i] = data[i];
 		}
@@ -576,14 +723,14 @@ public:
 	// Scalar concat constructor
 	template <class H1, class H2, class... Scalars, typename std::enable_if<impl::All<impl::IsScalar, H1, H2, Scalars...>::value && impl::SumDimensions<H1, H2, Scalars...>::value == Dim, int>::type = 0>
 	Vector(H1 h1, H2 h2, Scalars... scalars) {
-		//static_assert(impl::SumDimensions<H1, H2, Scalars...>::value == Dim, "Arguments must match vector dimension.");
+		CheckLayoutContraints();
 		Assign(0, h1, h2, scalars...);
 	}
 
 	// Generalized concat constructor
-	template <class H1, class... Mixed, typename std::enable_if<impl::Any<impl::IsVector, H1, Mixed...>::value && impl::SumDimensions<H1, Mixed...>::value == Dim, int>::type = 0>
+	template <class H1, class... Mixed, typename std::enable_if<impl::Any<impl::IsVectorOrSwizzle, H1, Mixed...>::value && impl::SumDimensions<H1, Mixed...>::value == Dim, int>::type = 0>
 	Vector(const H1& h1, const Mixed&... mixed) {
-		//static_assert(impl::SumDimensions<H1, Mixed...>::value == Dim, "Arguments must match vector dimension.");
+		CheckLayoutContraints();
 		Assign(0, h1, mixed...);
 	}
 
@@ -596,7 +743,7 @@ public:
 	}
 
 	// Generalized concat set
-	template <class... Mixed, typename std::enable_if<(sizeof...(Mixed) > 0) && impl::Any<impl::IsVector, Mixed...>::value, int>::type = 0>
+	template <class... Mixed, typename std::enable_if<(sizeof...(Mixed) > 0) && impl::Any<impl::IsVectorOrSwizzle, Mixed...>::value, int>::type = 0>
 	Vector& Set(const Mixed&... mixed) {
 		static_assert(impl::SumDimensions<Mixed...>::value == Dim, "Arguments must match vector dimension.");
 		Assign(0, mixed...);
@@ -761,7 +908,7 @@ public:
 	inline Vector operator+(T rhs) const { return Vector(*this) += rhs; }
 	inline Vector operator-(T rhs) const { return Vector(*this) -= rhs; }
 
-	static inline Vector MultiplyAdd(Vector a, Vector b, Vector c) {
+	static inline Vector MultiplyAdd(const Vector& a, const Vector& b, const Vector& c) {
 		return fma(a, b, c);
 	}
 
@@ -781,13 +928,18 @@ public:
 		return v;
 	}
 
+	bool IsNormalized() const {
+		T n = LengthSquared();
+		return T(0.9999) <= n && n <= T(1.0001);
+	}
+
 
 	static T Dot(const Vector& lhs, const Vector& rhs) {
 		return dot(lhs, rhs);
 	}
 
-	template <class U, typename std::enable_if<!std::is_same<T, U>::value, int>::type = 0>
-	static auto Dot(const Vector& lhs, const Vector<U, Dim>& rhs) {
+	template <class T2, bool Packed2, typename std::enable_if<!std::is_same<T, T2>::value, int>::type = 0>
+	static auto Dot(const Vector& lhs, const Vector<T2, Dim, Packed2>& rhs) {
 		auto s = lhs.data[0] * rhs.data[0];
 		for (int i = 1; i < Dim; ++i) {
 			s = lhs.data[i] * rhs.data[i] + s;
@@ -813,9 +965,13 @@ protected:
 	struct GetVectorElement {
 		static U Get(const U& u, int idx) { return u; }
 	};
-	template <class U, int E>
-	struct GetVectorElement<Vector<U, E>> {
-		static U Get(const Vector<U, E>& u, int idx) { return u.data[idx]; }
+	template <class U, int E, bool Packed>
+	struct GetVectorElement<Vector<U, E, Packed>> {
+		static U Get(const Vector<U, E, Packed>& u, int idx) { return u.data[idx]; }
+	};
+	template <class U, int... Indices>
+	struct GetVectorElement<Swizzle<U, Indices...>> {
+		static U Get(const Swizzle<T, Indices...>& u, int idx) { return u[idx]; }
 	};
 
 	// Assign
@@ -827,7 +983,7 @@ protected:
 	}
 
 	// Generalized concat assign
-	template <class Head, class... Mixed, typename std::enable_if<impl::Any<impl::IsVector, Head, Mixed...>::value, int>::type = 0>
+	template <class Head, class... Mixed, typename std::enable_if<impl::Any<impl::IsVectorOrSwizzle, Head, Mixed...>::value, int>::type = 0>
 	void Assign(int idx, const Head& head, const Mixed&... mixed) {
 		for (int i = 0; i < impl::DimensionOf<Head>::value; ++i) {
 			data[idx] = GetVectorElement<Head>::Get(head, i);
@@ -945,6 +1101,27 @@ mathter::Vector<T, Dim + 1, Packed> operator|(U lhs, const mathter::Vector<T, Di
 	return ret;
 }
 
+template <class T1, int... Indices1, class T2, int... Indices2>
+Vector<T1, sizeof...(Indices2)+sizeof...(Indices2), false> operator|(const Swizzle<T1, Indices1...>& lhs, const Swizzle<T2, Indices2...>& rhs) {
+	return Vector<T1, sizeof...(Indices1), false>(lhs) | Vector<T1, sizeof...(Indices2), false>(rhs);
+}
+template <class T1, int... Indices1, class T2, int Dim, bool Packed>
+Vector<T1, sizeof...(Indices1)+Dim, Packed> operator|(const Swizzle<T1, Indices1...>& lhs, const Vector<T2, Dim, Packed>& rhs) {
+	return Vector<T1, sizeof...(Indices1), Packed>(lhs) | rhs;
+}
+template <class T1, int... Indices1, class T2, int Dim, bool Packed>
+Vector<T1, sizeof...(Indices1)+Dim, Packed> operator|(const Vector<T2, Dim, Packed>& lhs, const Swizzle<T1, Indices1...>& rhs) {
+	return lhs | Vector<T1, sizeof...(Indices1), false>(rhs);
+}
+template <class T1, int... Indices1, class U>
+Vector<T1, sizeof...(Indices1)+1, false> operator|(const Swizzle<T1, Indices1...>& lhs, U rhs) {
+	return Vector<T1, sizeof...(Indices1), false>(lhs) | rhs;
+}
+template <class T1, int... Indices1, class U>
+Vector<T1, sizeof...(Indices1)+1, false> operator|(U lhs, const Swizzle<T1, Indices1...>& rhs) {
+	return lhs | Vector<T1, sizeof...(Indices1), false>(rhs);
+}
+
 
 
 } // namespace mathter
@@ -995,6 +1172,44 @@ auto VectorSpecialOps<T, Dim, Packed>::Cross(const VectorT& head, Args&&... args
 }
 
 
+
+//------------------------------------------------------------------------------
+// Swizzle
+//------------------------------------------------------------------------------
+template <class T, int... Indices>
+Swizzle<T, Indices...>::operator Vector<T, sizeof...(Indices), false>() const {
+	return Vector<T, sizeof...(Indices), false>(data()[Indices]...);
+}
+template <class T, int... Indices>
+Swizzle<T, Indices...>::operator Vector<T, sizeof...(Indices), true>() const {
+	return Vector<T, sizeof...(Indices), true>(data()[Indices]...);
+}
+
+template <class T, int... Indices>
+Swizzle<T, Indices...>& Swizzle<T, Indices...>::operator=(const Vector<T, sizeof...(Indices), false>& rhs) {
+	if (data() != rhs.data) {
+		Assign<Indices...>(rhs.data);
+	}
+	else {
+		Vector<T, sizeof...(Indices), false> tmp = rhs;
+		*this = tmp;
+	}
+	return *this;
+}
+template <class T, int... Indices>
+Swizzle<T, Indices...>& Swizzle<T, Indices...>::operator=(const Vector<T, sizeof...(Indices), true>& rhs) {
+	if (data() != rhs.data) {
+		Assign<Indices...>(rhs.data);
+	}
+	else {
+		Vector<T, sizeof...(Indices), false> tmp = rhs;
+		*this = tmp;
+	}
+	return *this;
+}
+
+
+
 } // namespace mathter
 
 
@@ -1004,8 +1219,8 @@ auto VectorSpecialOps<T, Dim, Packed>::Cross(const VectorT& head, Args&&... args
 // IO
 //------------------------------------------------------------------------------
 
-template <class T, int Dim>
-std::ostream& operator<<(std::ostream& os, const mathter::Vector<T, Dim>& v) {
+template <class T, int Dim, bool Packed>
+std::ostream& operator<<(std::ostream& os, const mathter::Vector<T, Dim, Packed>& v) {
 	os << "[";
 	for (int x = 0; x < Dim; ++x) {
 		os << v(x) << (x == Dim - 1 ? "" : "\t");

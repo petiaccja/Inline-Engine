@@ -1,5 +1,5 @@
 #pragma once
-#include <BaseLibrary\Common_tmp.hpp>
+#include "BaseLibrary\Common.hpp"
 #include "GuiLayout.hpp"
 
 namespace inl::gui {
@@ -79,7 +79,7 @@ public:
 
 	Gui* GetCell(int x, int y)
 	{
-		return cells[x + y * dimension.x()];
+		return cells[x + y * dimension.x];
 	}
 
 	GuiGridColumn* GetColumn(int idx)
@@ -92,19 +92,19 @@ public:
 		return &rows[idx];
 	}
 
-	uint32_t GetWidth() { return dimension.x(); }
-	uint32_t GetHeight() { return dimension.y(); }
-	const Vector2u& GetDimension() { return dimension; }
+	uint32_t GetWidth() { return dimension.x; }
+	uint32_t GetHeight() { return dimension.y; }
+	const Vec2u& GetDimension() { return dimension; }
 
 protected:
-	virtual Vector2f ArrangeChildren(const Vector2f& finalSize) override;
+	virtual Vec2 ArrangeChildren(const Vec2& finalSize) override;
 
 protected:
 	// For now I don't care about the performance, later we will use 2D arrays
 	std::vector<Gui*> cells;
 	std::vector<GuiGridRow> rows;
 	std::vector<GuiGridColumn> columns;
-	Vector2u dimension;
+	Vec2u dimension;
 };
 
 

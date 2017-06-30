@@ -7,12 +7,19 @@ public:
 	float deltaTime = 0.f;
 } Time;
 
+#include "AssetLibrary/Model.hpp"
+#include "AssetLibrary/Image.hpp"
+#include "GraphicsEngine_LL/Pixel.hpp"
+
+using namespace inl;
+using namespace inl::asset;
+
 
 Editor::Editor()
 {
 	bWndMaximized = false;
 
-	core = new Core();
+	core = new EngineCore();
 
 	// Create main window for Editor
 	WindowDesc d;
@@ -22,7 +29,7 @@ Editor::Editor()
 	wnd = new Window(d);
 
 	// Create secondary window for GAME inside Editor
-	d.clientSize = Vector2u(100, 100); // Size doesn't matter, splitter will modify it's size
+	d.clientSize = Vec2u(100, 100); // Size doesn't matter, splitter will modify it's size
 	d.style = eWindowStyle::BORDERLESS;
 	d.userWndProc = nullptr;
 	gameWnd = new Window(d);
@@ -239,15 +246,15 @@ void Editor::InitGui()
 	centerRenderArea->SetBgToColor(Color(0));
 	centerRenderArea->StretchFillParent();
 
-	centerRenderArea->onSizeChangedClonable += [this](Gui* self, Vector2f size)
+	centerRenderArea->onSizeChangedClonable += [this](Gui* self, Vec2 size)
 	{
 		HWND gameHwnd = (HWND)gameWnd->GetHandle();
 		HWND editorHwnd = (HWND)this->wnd->GetHandle();
 		SetWindowPos(gameHwnd, NULL, self->GetContentPosX(), self->GetContentPosY(), self->GetContentSizeX(), self->GetContentSizeY(), 0);
 		SetFocus(editorHwnd);
 
-		int width = size.x();
-		int height = size.y();
+		int width = size.x;
+		int height = size.y;
 
 		graphicsE->SetScreenSize(width, height);
 		world->ScreenSizeChanged(width, height);
@@ -325,6 +332,7 @@ void Editor::InitGui()
 		{
 			path filePath = filesPaths[i];
 
+			// Texture image
 			GuiList* content = textureList->AddItemList();
 			content->StretchFitToChildren();
 			content->MakeVertical();
@@ -336,9 +344,65 @@ void Editor::InitGui()
 			img0->SetImage(filePath.c_str(), 70, 70);
 			img0->SetSize(70, 70);
 
+			content->onMouseClicked += [filePath, this](CursorEvent& evt)
+			{
+				if (filePath.extension() == L".fbx")
+				{
+					std::wstring path = filePath;
+					Model* model = new Model(std::string(path.begin(), path.end()));
+
+					inl::asset::CoordSysLayout coordSysLayout = { AxisDir::POS_X,   AxisDir::POS_Z , AxisDir::NEG_Y};
+
+					auto modelVertices = model->GetVertices<gxeng::Position<0>, gxeng::Normal<0>, gxeng::TexCoord<0>>(0, coordSysLayout);
+					std::vector<unsigned> modelIndices = model->GetIndices(0);
+
+					gxeng::Mesh* mesh = graphicsE->CreateMesh();
+					mesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+
+					gxeng::MeshEntity* entity = new gxeng::MeshEntity();
+					entity->SetMesh(mesh);
+					entity->SetPosition({ 0,4,1 });
+
+					// Create material
+					gxeng::Material* material = graphicsE->CreateMaterial();
+					
+					gxeng::MaterialShaderGraph* graph = graphicsE->CreateMaterialShaderGraph();
+					
+					std::unique_ptr<inl::gxeng::MaterialShaderEquation> mapShader(graphicsE->CreateMaterialShaderEquation());
+					std::unique_ptr<inl::gxeng::MaterialShaderEquation> diffuseShader(graphicsE->CreateMaterialShaderEquation());
+
+					mapShader->SetSourceName("bitmap_color_2d.mtl");
+					diffuseShader->SetSourceName("simple_diffuse.mtl");
+
+					std::vector<std::unique_ptr<inl::gxeng::MaterialShader>> nodes;
+					nodes.push_back(std::move(mapShader));
+					nodes.push_back(std::move(diffuseShader));
+					graph->SetGraph(std::move(nodes), { { 0, 1, 0 } });
+					material->SetShader(graph);
+
+					// Create texture
+					{
+						using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR>;
+						static inl::asset::Image img("assets\\pine_tree.jpg");
+
+						gxeng::Image* texture = graphicsE->CreateImage();
+
+						texture->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR);
+						texture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR>::Reader());
+
+						(*material)[0] = texture;
+					}
+
+					entity->SetMaterial(material);
+
+					world->m_worldScene->GetMeshEntities().Add(entity);
+				}
+			};
+			
 			filePath.replace_extension("");
 			std::wstring nameWithoutExt = filePath.filename();
 
+			// Texture text
 			GuiText* text0 = content->AddGuiText();
 			text0->StretchFitToChildren();
 			text0->AlignHorCenter();
@@ -351,7 +415,7 @@ void Editor::InitGui()
 	};
 }
 
-void Editor::Run()
+void Editor::Start()
 {
 	// Create timer, delta time -> engine
 	Timer* timer = new Timer();
@@ -493,12 +557,12 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_NCHITTEST:
 	{
-		Vector2f cursorPos = guiE->GetCursorPos();
+		Vec2 cursorPos = guiE->GetCursorPos();
 
-		bool bLeft = cursorPos.x() < 8;
-		bool bRight = cursorPos.x() > mainLayer->GetWidth() - 8;
-		bool bTop = cursorPos.y() < 8;
-		bool bBottom = cursorPos.y() > mainLayer->GetHeight() - 8;
+		bool bLeft = cursorPos.x < 8;
+		bool bRight = cursorPos.x > mainLayer->GetWidth() - 8;
+		bool bTop = cursorPos.y < 8;
+		bool bBottom = cursorPos.y > mainLayer->GetHeight() - 8;
 
 		if (bTop && bLeft)
 		{

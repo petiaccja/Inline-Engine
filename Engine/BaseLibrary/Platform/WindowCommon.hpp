@@ -2,7 +2,7 @@
 #pragma once
 
 #include "Sys.hpp"
-#include <BaseLibrary/Common_tmp.hpp>
+#include <BaseLibrary/Common.hpp>
 
 #include <string>
 #include <functional>
@@ -51,8 +51,8 @@ struct WindowEvent
 	eWindowMsg	msg;
 	eKey		key;
 	eMouseBtn	mouseBtn;
-	Vector2f	mouseDelta;
-	Vector2f	clientMousePos;
+	Vec2	mouseDelta;
+	Vec2	clientMousePos;
 };
 
 struct WindowDesc
@@ -61,7 +61,7 @@ struct WindowDesc
 
 	std::string	 capText;
 	eWindowStyle style;
-	Vector2u	 clientSize;
+	Vec2u	 clientSize;
 	std::function<LRESULT(WindowHandle, unsigned int, long long, long long)> userWndProc;
 };
 

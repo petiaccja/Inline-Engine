@@ -3,7 +3,7 @@
 
 #include <string>
 #include "PlatformDefinitions.h"
-#include "..\Common_tmp.hpp"
+#include "..\Common.hpp"
 
 enum eKey
 {
@@ -160,7 +160,7 @@ public:
 
 	static void			ShowMsgBox(const std::wstring& msg);
 
-	static void			SetCursorPos(const Vector2i& pos);
+	static void			SetCursorPos(const Vec2i& pos);
 	static void			SetCursorVisible(bool b);
 	static void			SetCursorVisual(eCursorVisual visual, WindowHandle hwnd = nullptr);
 	static void*		GetDLLProcAddress(DLLHandle dllHandle, const std::string& procName);
@@ -169,6 +169,6 @@ public:
 	static std::wstring	GetExeDirW();
 	static std::string	GetExeDir();
 
-	static Vector2f GetCursorPos();
-	static Vector2u GetScreenSize();
+	static Vec2 GetCursorPos();
+	static Vec2u GetScreenSize();
 };

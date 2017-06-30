@@ -1,11 +1,11 @@
 #pragma once
 // The engine editor woaah
 
-#include <Core\Core.hpp>
-#include <GraphicsEngine_LL\GraphicsEngine.hpp>
-#include <GuiEngine\GuiEngine.hpp>
-#include <BaseLibrary\Platform\Window.hpp>
-#include <BaseLibrary\Timer.hpp>
+#include "Core\EngineCore.hpp"
+#include "GraphicsEngine_LL\GraphicsEngine.hpp"
+#include "GuiEngine\GuiEngine.hpp"
+#include "BaseLibrary\Platform\Window.hpp"
+#include "BaseLibrary\Timer.hpp"
 
 // Win32 specific window headers
 #include <dwmapi.h>
@@ -24,7 +24,7 @@ public:
 
 	void InitGui();
 
-	void Run();
+	void Start();
 
 	LRESULT WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -32,7 +32,7 @@ protected:
 	// TODO TEMPORARY
 	class QCWorld* world;
 
-	Core* core;
+	EngineCore* core;
 	GuiEngine* guiE;
 	gxeng::GraphicsEngine* graphicsE;
 

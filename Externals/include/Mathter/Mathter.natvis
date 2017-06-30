@@ -35,6 +35,10 @@ For more information, please refer to <http://unlicense.org/>
       </ArrayItems>
     </Expand>
   </Type>
+  
+    <Type Name="mathter::Quaternion&lt;*&gt;">
+    <DisplayString>[{w} + {i} i + {j} j + {k} k]</DisplayString>
+  </Type>
 
   <Type Name="mathter::Hyperplane&lt;*&gt;">
     <DisplayString Condition="$T2==3">{normal.x} x + {normal.y} y + {normal.z} z = {scalar}</DisplayString>
@@ -44,6 +48,7 @@ For more information, please refer to <http://unlicense.org/>
       <Item Name="[scalar]">scalar</Item>
     </Expand>
   </Type> 
+  
   <Type Name="mathter::Line&lt;*&gt;">
     <DisplayString>[v] = {base} + {direction} t</DisplayString>
   </Type>

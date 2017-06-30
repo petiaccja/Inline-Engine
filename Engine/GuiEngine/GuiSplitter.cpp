@@ -35,7 +35,7 @@ bool GuiSplitter::RemoveItem(Gui* gui)
 	return bRemoved;
 }
 
-Vector2f GuiSplitter::ArrangeChildren(const Vector2f& finalSize)
+Vec2 GuiSplitter::ArrangeChildren(const Vec2& finalSize)
 {
 	// The logic of the splitter arrangement is:
 	// separators should always fill the whole area of splitter with preserving percentage !
@@ -73,34 +73,34 @@ Vector2f GuiSplitter::ArrangeChildren(const Vector2f& finalSize)
 		Gui* container = items[i]->GetParent();
 
 		// each item container know it's percentage [0,1] inside parent, so give them space proportionally
-		Vector2f itemNormedSpacePercent = container->GetSize() / itemsLength;
-		Vector2f itemFreeSpace = itemNormedSpacePercent * freeSpace;
+		Vec2 itemNormedSpacePercent = container->GetSize() / itemsLength;
+		Vec2 itemFreeSpace = itemNormedSpacePercent * freeSpace;
 
 		if (bVertical)
-			container->SetSize(GetContentSizeX(), container->GetSizeY() + itemFreeSpace.y());
+			container->SetSize(GetContentSizeX(), container->GetSizeY() + itemFreeSpace.y);
 		else
-			container->SetSize(container->GetSizeX() + itemFreeSpace.x(), GetContentSizeY());
+			container->SetSize(container->GetSizeX() + itemFreeSpace.x, GetContentSizeY());
 	}
 
 	// At this point all of our items are sized so they will proportionally fill the splitter control :)
-	Vector2f pos = GetContentPos();
-	Vector2f selfSize(0, 0);
+	Vec2 pos = GetContentPos();
+	Vec2 selfSize(0, 0);
 	for (Gui* child : GetChildren())
 	{
-		Vector2f desiredSize = child->GetDesiredSize();
+		Vec2 desiredSize = child->GetDesiredSize();
 		if (bVertical)
 		{
-			Vector2f sizeUsed = child->Arrange(pos.x(), pos.y() + selfSize.y(), desiredSize);
+			Vec2 sizeUsed = child->Arrange(pos.x, pos.y + selfSize.y, desiredSize);
 
-			selfSize.y() += sizeUsed.y();
-			selfSize.x() = std::max(selfSize.x(), sizeUsed.x());
+			selfSize.y += sizeUsed.y;
+			selfSize.x = std::max(selfSize.x, sizeUsed.x);
 		}
 		else
 		{
-			Vector2f sizeUsed = child->Arrange(pos.x() + selfSize.x(), pos.y(), desiredSize);
+			Vec2 sizeUsed = child->Arrange(pos.x + selfSize.x, pos.y, desiredSize);
 
-			selfSize.x() += sizeUsed.x();
-			selfSize.y() = std::max(selfSize.y(), sizeUsed.y());
+			selfSize.x += sizeUsed.x;
+			selfSize.y = std::max(selfSize.y, sizeUsed.y);
 		}
 	}
 
@@ -157,21 +157,23 @@ void GuiSplitter::AddItem(Gui* item)
 			{
 				GuiSplitter* splitter = separatorSaved->GetParent()->AsSplitter();
 
-				Vector2f deltaMouse = evt.cursorPos - mousePosWhenPressed;
+				Vec2 deltaMouse = evt.cursorPos - mousePosWhenPressed;
 				
 				Gui* leftContainer = splitter->GetChild(separatorSaved->GetIndexInParent() - 1);
 				Gui* rightContainer = splitter->GetChild(separatorSaved->GetIndexInParent() + 1);
 
-				Vector2f deltaMove;
+				Vec2 deltaMove;
 				if (splitter->GetOrientation() == eGuiOrientation::HORIZONTAL)
-					deltaMove = Vector2f(deltaMouse.x(), 0);
+					deltaMove = Vec2(deltaMouse.x, 0);
 				else if (splitter->GetOrientation() == eGuiOrientation::VERTICAL)
-					deltaMove = Vector2f(0, deltaMouse.y());
+					deltaMove = Vec2(0, deltaMouse.y);
 				
 				// - TODO cursor goes outside of splitter gui, clamp size increase
 				// - TODO separator collides with other separator, clamp
-				leftContainer->SetSize(Vector2f::Max(Vector2f(0,0), prevItemOrigSize + deltaMove));
-				rightContainer->SetSize(Vector2f::Max(Vector2f(0, 0), nextItemOrigSize - deltaMove));
+				Vec2 tmp0 = prevItemOrigSize + deltaMove;
+				Vec2 tmp1 = nextItemOrigSize - deltaMove;
+				leftContainer->SetSize(Vec2(std::max(0.f, tmp0.x), std::max(0.f, tmp0.y)));
+				rightContainer->SetSize(Vec2(std::max(0.f, tmp1.x), std::max(0.f, tmp1.y)));
 
 				leftContainer->RefreshLayout();
 				rightContainer->RefreshLayout();

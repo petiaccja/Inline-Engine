@@ -25,11 +25,11 @@ Gui::Gui()
 Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 {
 	borderColor = Color(128);
-	size = Vector2f(60, 20);
+	size = Vec2(60, 20);
 	bgIdleColor = Color(45);
 	bgHoverColor = Color(75);
 	border = RectF(0, 0, 0, 0);
-	pos = Vector2f(0, 0);
+	pos = Vec2(0, 0);
 	//eventPropagationPolicy = eEventPropagationPolicy::PROCESS;
 	indexInParent = -1;
 	this->bLayer = bLayer;
@@ -364,7 +364,7 @@ void Gui::TraverseTowardParents(const std::function<void(Gui*)>& fn)
 
 void Gui::Move(float dx, float dy)
 {
-	SetPos(pos.x() + dx, pos.y() + dy);
+	SetPos(pos.x + dx, pos.y + dy);
 }
 
 void Gui::SetRect(float x, float y, float width, float height, bool bMoveChildren, bool bMakeLayoutDirty)
@@ -376,10 +376,10 @@ void Gui::SetRect(float x, float y, float width, float height, bool bMoveChildre
 
 	RectF oldRect = GetRect();
 
-	pos.x() = x;
-	pos.y() = y;
-	size.x() = width;
-	size.y() = height;
+	pos.x = x;
+	pos.y = y;
+	size.x = width;
+	size.y = height;
 	RectF rect = GetRect();
 
 	bool bPosChanged = rect.GetPos() != oldRect.GetPos();
@@ -616,10 +616,10 @@ void Gui::RefreshLayout()
 	arrangeRoot->Arrange(arrangeRoot->GetPos(), arrangeRoot->GetSize());
 }
 
-Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
+Vec2 Gui::Arrange(const Vec2& pos, const Vec2& size)
 {
-	Vector2f newPos = pos;
-	Vector2f newSize = size;
+	Vec2 newPos = pos;
+	Vec2 newSize = size;
 
 	bool bFitToChildrenHor = stretchHor == eGuiStretch::FIT_TO_CHILDREN;
 	bool bFitToChildrenVer = stretchVer == eGuiStretch::FIT_TO_CHILDREN;
@@ -653,15 +653,15 @@ Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 	if (bFitToChildren)
 	{
 		// Calculate content size
-		Vector2f contentSize = newSize;
-		contentSize.x() -= margin.left + margin.right;
-		contentSize.y() -= margin.top + margin.bottom;
+		Vec2 contentSize = newSize;
+		contentSize.x -= margin.left + margin.right;
+		contentSize.y -= margin.top + margin.bottom;
 
-		contentSize.x() -= border.left + border.right;
-		contentSize.y() -= border.top + border.bottom;
+		contentSize.x -= border.left + border.right;
+		contentSize.y -= border.top + border.bottom;
 
-		contentSize.x() -= padding.left + padding.right;
-		contentSize.y() -= padding.top + padding.bottom;
+		contentSize.x -= padding.left + padding.right;
+		contentSize.y -= padding.top + padding.bottom;
 
 		// Order is important ArrangeChildren calls Arrange, and it will use bForceFitToChildren
 		for (Gui* c : GetChildren())
@@ -669,24 +669,24 @@ Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 				c->bForceFitToChildren = true;
 
 		// Arrange children's based on our available content size
-		Vector2f sizeUsed = ArrangeChildren(contentSize);
+		Vec2 sizeUsed = ArrangeChildren(contentSize);
 
 		// Convert the sizeUsed from content space to margin space
 		if (bFitToChildrenHor)
 		{
-			sizeUsed.x() += padding.left + padding.right;
-			sizeUsed.x() += border.left + border.right;
-			sizeUsed.x() += margin.left + margin.right;
-			newSize.x() = sizeUsed.x();
+			sizeUsed.x += padding.left + padding.right;
+			sizeUsed.x += border.left + border.right;
+			sizeUsed.x += margin.left + margin.right;
+			newSize.x = sizeUsed.x;
 		}
 
 		// FIT_TO_CHILDREN -> FILL_PARENT -> FILL_PARENT, a FILL_PARENT,  parent -> children -> children.... parent will be dominant against "FILL_PARENT" flagged children, so everybody should take the minimal size
 		if (bFitToChildrenVer)
 		{
-			sizeUsed.y() += padding.top + padding.bottom;
-			sizeUsed.y() += border.top + border.bottom;
-			sizeUsed.y() += margin.top + margin.bottom;
-			newSize.y() = sizeUsed.y();
+			sizeUsed.y += padding.top + padding.bottom;
+			sizeUsed.y += border.top + border.bottom;
+			sizeUsed.y += margin.top + margin.bottom;
+			newSize.y = sizeUsed.y;
 		}
 
 		// At this point we should enable children to fill self (eGuiStretch::FILL_PARENT)
@@ -702,24 +702,24 @@ Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 	{
 		if (bFillParentHor && (parent->stretchHor != eGuiStretch::FIT_TO_CHILDREN || bFillParentEnabled))
 		{
-			newSize.x() = parent->GetContentSizeX();
-			newPos.x() = parent->GetContentPosX();
+			newSize.x = parent->GetContentSizeX();
+			newPos.x = parent->GetContentPosX();
 		}
 
 		if (bFillParentVer && (parent->stretchVer != eGuiStretch::FIT_TO_CHILDREN || bFillParentEnabled))
 		{
-			newSize.y() = parent->GetContentSizeY();
-			newPos.y() = parent->GetContentPosY();
+			newSize.y = parent->GetContentSizeY();
+			newPos.y = parent->GetContentPosY();
 		}
 
 		if (bFillParentPositibeDirHor && (parent->stretchHor != eGuiStretch::FIT_TO_CHILDREN || bFillParentEnabled))
 		{
-			newSize.x() = parent->GetContentRight() - newPos.x();
+			newSize.x = parent->GetContentRight() - newPos.x;
 		}
 
 		if (bFillParentPositibeDirVer && (parent->stretchVer != eGuiStretch::FIT_TO_CHILDREN || bFillParentEnabled))
 		{
-			newSize.y() = parent->GetContentBottom() - newPos.y();
+			newSize.y = parent->GetContentBottom() - newPos.y;
 		}
 
 		bFillParentEnabled = false;
@@ -729,20 +729,20 @@ Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 	{
 	case eGuiAlignVer::TOP:
 	{
-		newPos.y() = parent->GetContentPosY();
+		newPos.y = parent->GetContentPosY();
 		break;
 	}
 	case eGuiAlignVer::CENTER:
 	{
 		if (parent)
 		{
-			newPos.y() = parent->GetContentCenterPosY() - newSize.y() * 0.5;
+			newPos.y = parent->GetContentCenterPosY() - newSize.y * 0.5;
 		}
 		break;
 	}
 	case eGuiAlignVer::BOTTOM:
 	{
-		newPos.y() = parent->GetContentRect().bottom - newSize.y();
+		newPos.y = parent->GetContentRect().bottom - newSize.y;
 		break;
 	}
 	}
@@ -751,31 +751,31 @@ Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 	{
 	case eGuiAlignHor::LEFT:
 	{
-		newPos.x() = parent->GetContentPosX();
+		newPos.x = parent->GetContentPosX();
 		break;
 	}
 	case eGuiAlignHor::CENTER:
 	{
 		if (parent)
 		{
-			newPos.x() = parent->GetContentCenterPosX() - newSize.x() * 0.5;
+			newPos.x = parent->GetContentCenterPosX() - newSize.x * 0.5;
 		}
 		break;
 	}
 	case eGuiAlignHor::RIGHT:
 	{
-		newPos.x() = parent->GetContentPosX() + parent->GetContentWidth() - newSize.x();
+		newPos.x = parent->GetContentPosX() + parent->GetContentWidth() - newSize.x;
 		break;
 	}
 	}
 
 	// Pos and size containing the margin, subtract it
-	newPos.x() += margin.left;
-	newPos.y() += margin.right;
-	newSize.x() -= margin.left + margin.right;
-	newSize.y() -= margin.top + margin.bottom;
+	newPos.x += margin.left;
+	newPos.y += margin.right;
+	newSize.x -= margin.left + margin.right;
+	newSize.y -= margin.top + margin.bottom;
 
-	SetRect(newPos.x(), newPos.y(), newSize.x(), newSize.y(), true, false);
+	SetRect(newPos.x, newPos.y, newSize.x, newSize.y, true, false);
 
 	newSize = GetSize(); // SetRect do std::max(newSize, GetMinSize()); so resulted size might be different
 
@@ -785,19 +785,19 @@ Vector2f Gui::Arrange(const Vector2f& pos, const Vector2f& size)
 	bLayoutNeedRefresh = false;
 
 	// Arrange should return the total size used by this control so include margin in it !
-	newSize.x() += margin.left + margin.right;
-	newSize.y() += margin.top + margin.bottom;
+	newSize.x += margin.left + margin.right;
+	newSize.y += margin.top + margin.bottom;
 
 	return newSize;
 }
 
-Vector2f Gui::ArrangeChildren(const Vector2f& finalSize)
+Vec2 Gui::ArrangeChildren(const Vec2& finalSize)
 {
-	Vector2f size(0, 0);
+	Vec2 size(0, 0);
 	for (Gui* child : GetChildren())
 	{
-		Vector2f sizeUsed = child->Arrange(child->GetPos(), child->GetDesiredSize());
-		size = Vector2f::Max(size, sizeUsed);
+		Vec2 sizeUsed = child->Arrange(child->GetPos(), child->GetDesiredSize());
+		size = Vec2(std::max(size.x, sizeUsed.x), std::max(size.y, sizeUsed.y));
 	}
 
 	return size;
@@ -969,12 +969,12 @@ GuiScrollable * Gui::AddGuiScrollable()
 
 float Gui::GetCursorPosContentSpaceX()
 {
-	return guiEngine->GetCursorPosX() - pos.x();
+	return guiEngine->GetCursorPosX() - pos.x;
 }
 
 float Gui::GetCursorPosContentSpaceY()
 {
-	return guiEngine->GetCursorPosY() - pos.y();
+	return guiEngine->GetCursorPosY() - pos.y;
 }
 
 bool Gui::IsCursorInside()
@@ -982,7 +982,7 @@ bool Gui::IsCursorInside()
 	return GetRect().IsPointInside(guiEngine->GetCursorPos());
 }
 
-Vector2f Gui::GetCursorPosContentSpace()
+Vec2 Gui::GetCursorPosContentSpace()
 {
 	return guiEngine->GetCursorPos() - GetContentPos();
 }

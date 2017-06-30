@@ -1,5 +1,5 @@
 #pragma once
-#include <GraphicsEngine_LL/GraphicsEngine.hpp>
+#include "GraphicsEngine_LL/GraphicsEngine.hpp"
 
 #include "GuiLayer.hpp"
 #include "GuiButton.hpp"
@@ -37,13 +37,13 @@ public:
 	void FreezeHover() { bHoverFreezed = true; }
 	void DefreezeHover() { bHoverFreezed = false; }
 
-	void SetResolution(Vector2u& size);
+	void SetResolution(Vec2u& size);
 
 	void TraverseGuiControls(const std::function<void(Gui*)>& fn);
 
-	inline Vector2f GetCursorPos() { return targetWindow->GetClientCursorPos(); }
-	inline float GetCursorPosX() { return GetCursorPos().x(); }
-	inline float GetCursorPosY() { return GetCursorPos().y(); }
+	inline Vec2 GetCursorPos() { return targetWindow->GetClientCursorPos(); }
+	inline float GetCursorPosX() { return GetCursorPos().x; }
+	inline float GetCursorPosY() { return GetCursorPos().y; }
 
 	inline Window* GetTargetWindow() { return targetWindow; }
 	Gdiplus::Graphics* GetGdiGraphics() { return gdiGraphics; }
@@ -89,7 +89,7 @@ protected:
 
 	// Global variables for lambdas
 	Gui* hoveredGuiOnPress = nullptr;
-	Vector2f mousePosWhenPress = Vector2f(-1, -1);
+	Vec2 mousePosWhenPress = Vec2(-1, -1);
 };
 
 } //namespace inl::gui
