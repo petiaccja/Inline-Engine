@@ -140,6 +140,52 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Normal<semanticIndex>, TailA
 
 
 template <typename VertexT, int semanticIndex, typename... TailAttribT>
+struct Model::VertexAttributeSetter<VertexT, gxeng::Tangent<semanticIndex>, TailAttribT...> {
+	static_assert(semanticIndex == 0, "There is only one \"tangent vector\" attribute inside a model.");
+	inline void operator()(
+		VertexT& target,
+		const aiMesh* mesh,
+		uint32_t vertexIndex,
+		const Mat44& posTr,
+		const Mat44& normTr
+		) {
+		using DataType = gxeng::VertexPart<gxeng::eVertexElementSemantic::NORMAL>::DataType;
+		if (mesh->HasTangentsAndBitangents() == false) {
+			throw std::runtime_error("Vertex array requested with tangents but loaded mesh does not have such an attribute.");
+		}
+		assert(vertexIndex < mesh->mNumVertices);
+		const aiVector3D& tangent = mesh->mTangents[vertexIndex];
+		target.tangent = normTr * DataType(tangent.x, tangent.y, tangent.z);
+
+		VertexAttributeSetter<VertexT, TailAttribT...>()(target, mesh, vertexIndex, posTr, normTr);
+	}
+};
+
+
+template <typename VertexT, int semanticIndex, typename... TailAttribT>
+struct Model::VertexAttributeSetter<VertexT, gxeng::Bitangent<semanticIndex>, TailAttribT...> {
+	static_assert(semanticIndex == 0, "There is only one \"bitangent vector\" attribute inside a model.");
+	inline void operator()(
+		VertexT& target,
+		const aiMesh* mesh,
+		uint32_t vertexIndex,
+		const Mat44& posTr,
+		const Mat44& normTr
+		) {
+		using DataType = gxeng::VertexPart<gxeng::eVertexElementSemantic::NORMAL>::DataType;
+		if (mesh->HasTangentsAndBitangents() == false) {
+			throw std::runtime_error("Vertex array requested with bitangents but loaded mesh does not have such an attribute.");
+		}
+		assert(vertexIndex < mesh->mNumVertices);
+		const aiVector3D& bitangent = mesh->mBitangents[vertexIndex];
+		target.bitangent = normTr * DataType(bitangent.x, bitangent.y, bitangent.z);
+
+		VertexAttributeSetter<VertexT, TailAttribT...>()(target, mesh, vertexIndex, posTr, normTr);
+	}
+};
+
+
+template <typename VertexT, int semanticIndex, typename... TailAttribT>
 struct Model::VertexAttributeSetter<VertexT, gxeng::TexCoord<semanticIndex>, TailAttribT...> {
 	inline void operator()(
 		VertexT& target,
