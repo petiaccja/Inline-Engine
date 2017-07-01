@@ -6,6 +6,7 @@
 #include <string>
 #include <cstddef>
 #include <ostream>
+#include <memory>
 
 
 namespace inl {
@@ -22,10 +23,10 @@ public:
 	Exception(nullptr_t, std::string subject);
 	virtual ~Exception() {}
 
-	Exception(const Exception& rhs);
-	Exception(Exception&& rhs);
-	Exception& operator=(const Exception& rhs);
-	Exception& operator=(Exception&& rhs);
+	Exception(const Exception& rhs) noexcept;
+	Exception(Exception&& rhs) noexcept;
+	Exception& operator=(const Exception& rhs) noexcept;
+	Exception& operator=(Exception&& rhs) noexcept;
 
 	const char* what() const noexcept override;
 
@@ -38,10 +39,12 @@ protected:
 	void CalculateStackTrace();
 
 protected:
-	std::string m_message;
-	std::string m_subject;
-	std::string m_what;
-	std::vector<StackFrame> m_stackTrace;
+	std::shared_ptr<std::string> m_message;
+	std::shared_ptr<std::string> m_subject;
+	std::shared_ptr<std::string> m_what;
+	std::shared_ptr<std::vector<StackFrame>> m_stackTrace;
+	static const std::string emptyString;
+	static const std::vector<StackFrame> emptyStackTrace;
 };
 
 
