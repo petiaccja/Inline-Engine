@@ -13,7 +13,7 @@
 #include <GraphicsApi_LL/Common.hpp>
 #include <GraphicsApi_LL/IResource.hpp>
 
-namespace exc{
+namespace inl{
 class LogStream;
 }
 
@@ -33,7 +33,7 @@ struct IndexBufferView {
 
 class PicoEngine {
 public:
-	PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int height, exc::LogStream* logStream = nullptr);
+	PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int height, inl::LogStream* logStream = nullptr);
 	~PicoEngine();
 
 	void Update();
@@ -84,5 +84,5 @@ private:
 	std::unique_ptr<inl::gxapi::IResource> m_texture;
 
 	// Logging
-	exc::LogStream* m_logStream;
+	inl::LogStream* m_logStream;
 };

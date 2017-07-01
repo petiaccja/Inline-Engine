@@ -16,12 +16,12 @@ namespace inl::gxeng::nodes {
 class GetBackBuffer :
 	virtual public GraphicsNode,
 	public GraphicsTask,
-	public exc::InputPortConfig<>,
-	public exc::OutputPortConfig<Texture2D>
+	public InputPortConfig<>,
+	public OutputPortConfig<Texture2D>
 {
 public:
 	virtual void Update() override {}
-	virtual void Notify(exc::InputPortBase* sender) override {}
+	virtual void Notify(InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);

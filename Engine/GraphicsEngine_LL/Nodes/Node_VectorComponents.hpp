@@ -19,7 +19,7 @@ class VectorComponentBase :
 public:
 	virtual void Update() override {}
 
-	virtual void Notify(exc::InputPortBase* sender) override {}
+	virtual void Notify(InputPortBase* sender) override {}
 
 	virtual void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);
@@ -50,8 +50,8 @@ public:
 template<>
 class VectorComponents<1> :
 	public impl::VectorComponentBase,
-	public exc::InputPortConfig<Vector<float, 1>>,
-	public exc::OutputPortConfig<float>
+	public InputPortConfig<Vector<float, 1>>,
+	public OutputPortConfig<float>
 {
 public:
 	void Setup(SetupContext& context) override {
@@ -65,8 +65,8 @@ public:
 template<>
 class VectorComponents<2> :
 	public impl::VectorComponentBase,
-	public exc::InputPortConfig<Vec2>,
-	public exc::OutputPortConfig<float, float>
+	public InputPortConfig<Vec2>,
+	public OutputPortConfig<float, float>
 {
 public:
 	void Setup(SetupContext& context) override {
@@ -81,8 +81,8 @@ public:
 template<>
 class VectorComponents<3> :
 	public impl::VectorComponentBase,
-	public exc::InputPortConfig<Vec3>,
-	public exc::OutputPortConfig<float, float, float>
+	public InputPortConfig<Vec3>,
+	public OutputPortConfig<float, float, float>
 {
 public:
 	void Setup(SetupContext& context) override {
@@ -98,8 +98,8 @@ public:
 template<>
 class VectorComponents<4> :
 	public impl::VectorComponentBase,
-	public exc::InputPortConfig<Vec4>,
-	public exc::OutputPortConfig<float, float, float, float>
+	public InputPortConfig<Vec4>,
+	public OutputPortConfig<float, float, float, float>
 {
 public:
 	void Setup(SetupContext& context) override {

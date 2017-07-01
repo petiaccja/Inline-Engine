@@ -17,7 +17,7 @@ namespace inl {
 class Exception : public std::exception {
 public:
 	Exception();
-	Exception(std::string message) noexcept;
+	Exception(std::string message);
 	Exception(std::string message, std::string subject);
 	Exception(nullptr_t, std::string subject);
 	virtual ~Exception() {}
@@ -29,9 +29,10 @@ public:
 
 	const char* what() const noexcept override;
 
-	const std::string& Message() const;
-	const std::string& Subject() const;
-	const std::vector<StackFrame>& StackTrace() const;
+	const std::string& Message() const noexcept;
+	const std::string& Subject() const noexcept;
+	const std::vector<StackFrame>& StackTrace() const noexcept;
+	const std::string StackTraceStr() const;
 	void PrintStackTrace(std::ostream& os) const;
 protected:
 	void CalculateStackTrace();

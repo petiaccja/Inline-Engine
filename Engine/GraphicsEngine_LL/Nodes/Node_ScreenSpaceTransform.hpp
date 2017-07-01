@@ -17,13 +17,13 @@ namespace inl::gxeng::nodes {
 class ScreenSpaceTransform :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<unsigned, unsigned, Vec2, float, Vec2>,
-	virtual public exc::OutputPortConfig<Mat44>
+	virtual public InputPortConfig<unsigned, unsigned, Vec2, float, Vec2>,
+	virtual public OutputPortConfig<Mat44>
 {
 public:
 	virtual void Update() override {}
 
-	virtual void Notify(exc::InputPortBase* sender) override {}
+	virtual void Notify(InputPortBase* sender) override {}
 
 	virtual void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);

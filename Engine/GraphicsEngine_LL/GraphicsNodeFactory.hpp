@@ -11,9 +11,9 @@ namespace gxeng {
 class GraphicsEngine;
 
 
-class GraphicsNodeFactory : public exc::NodeFactory {
+class GraphicsNodeFactory : public NodeFactory {
 public:
-	virtual exc::NodeBase* CreateNode(const std::string& name) override;
+	virtual NodeBase* CreateNode(const std::string& name) override;
 
 private:
 	GraphicsEngine* m_engine;

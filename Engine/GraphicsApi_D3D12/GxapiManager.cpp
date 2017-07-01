@@ -31,7 +31,7 @@ namespace gxapi_dx12 {
 
 class D3DStreamInclude : public ID3DInclude {
 public:
-	D3DStreamInclude(const std::unordered_map<std::string, exc::Stream*>& streams) : streams(streams) {}
+	D3DStreamInclude(const std::unordered_map<std::string, Stream*>& streams) : streams(streams) {}
 
 	HRESULT __stdcall Open(D3D_INCLUDE_TYPE IncludeType,
 						   LPCSTR pFileName,
@@ -45,9 +45,7 @@ public:
 				return E_FAIL;
 			}
 
-			exc::Stream& stream = *it->second;
-
-
+			Stream& stream = *it->second;
 		}
 		catch (std::exception ex) {
 
@@ -59,7 +57,7 @@ public:
 
 	}
 private:
-	const std::unordered_map<std::string, exc::Stream*>& streams;
+	const std::unordered_map<std::string, Stream*>& streams;
 };
 
 

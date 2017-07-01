@@ -6,7 +6,7 @@
 #include <iostream>
 
 
-namespace exc {
+namespace inl {
 
 
 spin_mutex::spin_mutex() {
@@ -46,4 +46,4 @@ void spin_mutex::unlock() {
 }
 
 
-} // namespace exc
+} // namespace inl

@@ -37,7 +37,7 @@ private:
 
 int TestVertex::Run() {
 	using namespace inl::gxeng;
-	using exc::ArrayView;
+	using inl::ArrayView;
 
 	// create a vertex
 	using MyVertex1 = Vertex < Position<0>, Position<1>, Normal<0> >;

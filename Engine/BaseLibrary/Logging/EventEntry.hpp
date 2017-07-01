@@ -6,7 +6,7 @@
 #include <deque>
 
 
-namespace exc {
+namespace inl {
 
 /// <summary> Contains an event and its timestamp. </summary>
 struct EventEntry {

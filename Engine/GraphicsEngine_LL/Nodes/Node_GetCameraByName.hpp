@@ -19,14 +19,14 @@ namespace inl::gxeng::nodes {
 class GetCameraByName :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<std::string>,
-	virtual public exc::OutputPortConfig<const BasicCamera*>
+	virtual public InputPortConfig<std::string>,
+	virtual public OutputPortConfig<const BasicCamera*>
 {
 public:
 	GetCameraByName() {}
 
 	void Update() override {}
-	void Notify(exc::InputPortBase* sender) override {}
+	void Notify(InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);

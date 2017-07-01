@@ -56,7 +56,7 @@ bool ColorCompressor::IsSupported(eVertexElementSemantic semantic) const {
 
 
 void PassthroughCompressor::Setup(eVertexElementSemantic semantic, const IVertexReader* reader) {
-	m_stride = reader->GetSize(semantic);
+	m_stride = (int)reader->GetSize(semantic);
 }
 void PassthroughCompressor::Compress(const void* input, void* output) const {
 	memcpy(output, input, m_stride);
@@ -149,7 +149,7 @@ std::vector<uint8_t> VertexCompressor::GetCompressedStream(const VertexBase* ver
 
 	size_t offset = 0;
 	size_t numElements = m_elementsToCompress.size();
-	exc::ArrayView<const VertexBase> inputArray{ vertices, vertexCount, (size_t)m_reader->GetStride() };
+	ArrayView<const VertexBase> inputArray{ vertices, vertexCount, (size_t)m_reader->GetStride() };
 	for (size_t vertex = 0; vertex < vertexCount; ++vertex) {
 		for (size_t element = 0; element < numElements; ++element) {
 			eVertexElementSemantic semantic = m_elementsToCompress[element].sourceElement.semantic;

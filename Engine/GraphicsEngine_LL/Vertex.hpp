@@ -6,6 +6,7 @@
 #include <vector>
 #include <array>
 #include <InlineMath.hpp>
+#include <BaseLibrary/Exception/Exception.hpp>
 
 
 namespace inl::gxeng {

@@ -2,7 +2,7 @@
 
 #include "Node.hpp"
 
-namespace exc {
+namespace inl {
 
 template <typename OperandT, typename OperatorT, const char* name, const char* op1desc, const char* op2desc, const char* resdesc>
 class ComparsionNode
@@ -156,4 +156,4 @@ using IntLess = LessNode<int>;
 using IntGreater = GreaterNode<int>;
 
 
-} // namespace exc
+} // namespace inl

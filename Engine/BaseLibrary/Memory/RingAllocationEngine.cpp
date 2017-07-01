@@ -4,7 +4,7 @@
 
 #include <cassert>
 
-namespace exc {
+namespace inl {
 
 RingAllocationEngine::CellContainer::CellContainer(size_t size) :
 	m_bitset(size*CELL_SIZE)
@@ -164,4 +164,4 @@ size_t RingAllocationEngine::Size() const {
 }
 
 
-} // namespace exc
+} // namespace inl

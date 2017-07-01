@@ -2,7 +2,7 @@
 
 #include <new>
 
-namespace exc {
+namespace inl {
 
 NodeBase* NodeFactory::CreateNode(const std::string& name) {
 	auto it = registeredClasses.find(name);
@@ -40,4 +40,4 @@ auto NodeFactory::EnumerateNodes() -> std::vector<NodeInfo> {
 }
 
 
-} // namespace exc
+} // namespace inl

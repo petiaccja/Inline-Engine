@@ -12,7 +12,7 @@
 extern volatile int calldepth;
 
 
-namespace exc {
+namespace inl {
 
 
 class Logger;
@@ -46,12 +46,12 @@ public:
 	/// <summary> Log an event. </summary>
 	/// <param name="displayMode"> Optionally display event immediatly to stdout or stderr. 
 	///		Event is still logged. </param>
-	void Event(const exc::Event& e, eEventDisplayMode displayMode = eEventDisplayMode::DONT_DISPLAY);
+	void Event(const inl::Event& e, eEventDisplayMode displayMode = eEventDisplayMode::DONT_DISPLAY);
 
 	/// <summary> Log an event. </summary>
 	/// <param name="displayMode"> Optionally display event immediatly to stdout or stderr. 
 	///		Event is still logged. </param>
-	void Event(exc::Event&& e, eEventDisplayMode displayMode = eEventDisplayMode::DONT_DISPLAY);
+	void Event(inl::Event&& e, eEventDisplayMode displayMode = eEventDisplayMode::DONT_DISPLAY);
 private:
 	std::shared_ptr<LogPipe> pipe; // log goes through this pipe
 };
@@ -71,4 +71,4 @@ private:
 
 
 
-} // namespace exc
+} // namespace inl

@@ -30,6 +30,8 @@ std::ostream& operator<<(std::ostream& os, const StackFrameT<Allocator>& frame) 
 
 #if defined(_WIN32) && defined(_M_AMD64)
 
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
 #include <Windows.h>
 #include <Dbghelp.h>
 
@@ -122,6 +124,10 @@ std::vector<StackFrameT<Allocator>, Allocator<StackFrameT<Allocator>>> GetStackT
 		{
 			break;
 		}
+	}
+
+	if (frames.size() > 0) {
+		frames = decltype(frames)(frames.begin() + 1, frames.end());
 	}
 
 	return frames;

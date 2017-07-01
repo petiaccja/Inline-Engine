@@ -110,7 +110,7 @@ void MaterialShaderGraph::AssembleShaderCode() {
 	}
 
 	// create output port LUT
-	std::unordered_map<exc::OutputPortBase*, size_t> outputLut;
+	std::unordered_map<OutputPortBase*, size_t> outputLut;
 	for (size_t i = 0; i < shaderNodes.size(); ++i) {
 		outputLut.insert({ shaderNodes[i].GetOutput(0), i });
 	}
@@ -155,7 +155,7 @@ void MaterialShaderGraph::AssembleShaderCode() {
 			else {
 				std::stringstream ss;
 				ss << m_nodes[node]->GetName() << "__" << shaderNodeParams[node][i].name;
-				static_cast<exc::InputPort<std::string>*>(input)->Set(ss.str());
+				static_cast<InputPort<std::string>*>(input)->Set(ss.str());
 				freeParams.push_back({ node, (size_t)i, ss.str() });
 			}
 		}
@@ -169,7 +169,7 @@ void MaterialShaderGraph::AssembleShaderCode() {
 	};
 
 	// attach final input port to sink node, and update according to topological order
-	exc::InputPort<std::string> finalCodePort;
+	InputPort<std::string> finalCodePort;
 	shaderNodes[sinkNodeIdx].GetOutput(0)->Link(&finalCodePort);
 	VisitNode(sinkNodeIdx, VisitNode);
 	for (auto idx : topologicalOrder) {
@@ -396,11 +396,11 @@ size_t MaterialShaderGraph::ShaderNode::GetNumInputs() const {
 	return m_inputs.size();
 }
 
-exc::InputPortBase* MaterialShaderGraph::ShaderNode::GetInput(size_t index) {
+InputPortBase* MaterialShaderGraph::ShaderNode::GetInput(size_t index) {
 	return &m_inputs[index];
 }
 
-const exc::InputPortBase* MaterialShaderGraph::ShaderNode::GetInput(size_t index) const {
+const InputPortBase* MaterialShaderGraph::ShaderNode::GetInput(size_t index) const {
 	return &m_inputs[index];
 }
 
@@ -418,7 +418,7 @@ void MaterialShaderGraph::ShaderNode::Update() {
 	GetOutput<0>().Set(resultName);
 }
 
-void MaterialShaderGraph::ShaderNode::Notify(exc::InputPortBase* sender) {
+void MaterialShaderGraph::ShaderNode::Notify(InputPortBase* sender) {
 	return; // nothing to do here
 }
 

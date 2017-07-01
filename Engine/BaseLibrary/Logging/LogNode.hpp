@@ -6,7 +6,7 @@
 #include <vector>
 #include <chrono>
 
-namespace exc {
+namespace inl {
 
 /// <summary>
 /// The LogNode groups together a list of LogPipes.
@@ -52,4 +52,4 @@ private:
 };
 
 
-} // namespace exc
+} // namespace inl

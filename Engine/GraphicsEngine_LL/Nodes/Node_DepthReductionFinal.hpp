@@ -18,14 +18,14 @@ namespace inl::gxeng::nodes {
 class DepthReductionFinal :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<Texture2D, const BasicCamera*, const EntityCollection<DirectionalLight>*>,
-	virtual public exc::OutputPortConfig<Texture2D, Texture2D, Texture2D>
+	virtual public InputPortConfig<Texture2D, const BasicCamera*, const EntityCollection<DirectionalLight>*>,
+	virtual public OutputPortConfig<Texture2D, Texture2D, Texture2D>
 {
 public:
 	DepthReductionFinal();
 
 	void Update() override {}
-	void Notify(exc::InputPortBase* sender) override {}
+	void Notify(InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override;
 	void Reset() override;

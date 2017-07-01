@@ -19,15 +19,15 @@ namespace inl::gxeng::nodes {
 class GetSceneByName :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<std::string>,
-	virtual public exc::OutputPortConfig<const EntityCollection<MeshEntity>*, const EntityCollection<OverlayEntity>*, const EntityCollection<DirectionalLight>*>
+	virtual public InputPortConfig<std::string>,
+	virtual public OutputPortConfig<const EntityCollection<MeshEntity>*, const EntityCollection<OverlayEntity>*, const EntityCollection<DirectionalLight>*>
 {
 public:
 	GetSceneByName() {}
 
 	void Update() override {}
 
-	void Notify(exc::InputPortBase* sender) override {}
+	void Notify(InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);

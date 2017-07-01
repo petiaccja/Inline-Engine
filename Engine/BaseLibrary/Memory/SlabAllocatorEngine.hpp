@@ -4,7 +4,7 @@
 #include <vector>
 
 
-namespace exc {
+namespace inl {
 
 
 /// <summary>
@@ -76,4 +76,4 @@ private:
 };
 
 
-} // namespace exc
+} // namespace inl

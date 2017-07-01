@@ -21,7 +21,7 @@ class ForwardRender :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
 	
-	virtual public exc::InputPortConfig<
+	virtual public InputPortConfig<
 		Texture2D,
 		Texture2D,
 		const EntityCollection<MeshEntity>*,
@@ -32,7 +32,7 @@ class ForwardRender :
 		Texture2D,
 		Texture2D,
 		Texture2D>,
-	virtual public exc::OutputPortConfig<Texture2D>
+	virtual public OutputPortConfig<Texture2D>
 {
 private:
 	struct ScenarioDesc {
@@ -63,7 +63,7 @@ public:
 	ForwardRender();
 
 	void Update() override {}
-	void Notify(exc::InputPortBase* sender) override {}
+	void Notify(InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override;
 	void Reset() override;

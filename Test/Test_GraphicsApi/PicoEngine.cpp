@@ -13,7 +13,7 @@
 using namespace inl::gxapi;
 
 
-PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int height, exc::LogStream* logStream) :
+PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int height, inl::LogStream* logStream) :
 	m_scissorRect{0, height, 0, width}
 {
 	// Set vars
@@ -52,11 +52,11 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 		throw inl::RuntimeException("No available devices.");
 	}
 	m_graphicsApi.reset(m_gxapiManager->CreateGraphicsApi(adapters[0].adapterId));
-	Log(exc::Event{
+	Log(inl::Event{
 			"Device created for first adapter.",
-			exc::eEventType::INFO,
-			exc::EventParameterInt("adapter_id", adapters[0].adapterId),
-			exc::EventParameterString("adapter_name", adapters[0].name)
+			inl::eEventType::INFO,
+			inl::EventParameterInt("adapter_id", adapters[0].adapterId),
+			inl::EventParameterString("adapter_name", adapters[0].name)
 	});
 
 	// Create command queue

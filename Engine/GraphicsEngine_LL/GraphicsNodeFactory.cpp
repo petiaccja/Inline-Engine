@@ -2,8 +2,8 @@
 #include "GraphicsNode.hpp"
 
 
-exc::NodeBase* inl::gxeng::GraphicsNodeFactory::CreateNode(const std::string & name) {
-	exc::NodeBase* node = NodeFactory::CreateNode(name);
+NodeBase* inl::gxeng::GraphicsNodeFactory::CreateNode(const std::string & name) {
+	NodeBase* node = NodeFactory::CreateNode(name);
 	if (node == nullptr) {
 		return nullptr;
 	}

@@ -20,12 +20,12 @@ namespace inl::gxeng::nodes {
 class OverlayRender :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<Texture2D, const EntityCollection<OverlayEntity>*, const BasicCamera*>,
-	virtual public exc::OutputPortConfig<Texture2D>
+	virtual public InputPortConfig<Texture2D, const EntityCollection<OverlayEntity>*, const BasicCamera*>,
+	virtual public OutputPortConfig<Texture2D>
 {
 public:
 	void Update() override {}
-	void Notify(exc::InputPortBase* sender) override {}
+	void Notify(InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override;
 	void Reset() override;

@@ -79,21 +79,21 @@ public:
 		int sinkNode, sinkPort;
 	};
 private:
-	class ShaderNode : virtual public exc::NodeBase, public exc::OutputPortConfig<std::string> {
+	class ShaderNode : virtual public NodeBase, public OutputPortConfig<std::string> {
 	public:
 		size_t GetNumInputs() const override;
-		exc::InputPortBase* GetInput(size_t index) override;
-		const exc::InputPortBase* GetInput(size_t index) const override;
+		InputPortBase* GetInput(size_t index) override;
+		const InputPortBase* GetInput(size_t index) const override;
 
 		void Update() override;
-		void Notify(exc::InputPortBase* sender) override;
+		void Notify(InputPortBase* sender) override;
 
 		void SetFunctionName(std::string functionName);
 		void SetFunctionReturn(std::string returnType);
 		void SetNumInputs(size_t count);
 		std::string GetPreamble() const;
 	private:
-		std::vector<exc::InputPort<std::string>> m_inputs;
+		std::vector<InputPort<std::string>> m_inputs;
 		std::string m_functionName;
 		std::string m_returnType;
 		std::string m_preamble;

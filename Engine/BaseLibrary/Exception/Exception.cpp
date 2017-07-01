@@ -1,4 +1,5 @@
 #include "Exception.hpp"
+#include <sstream>
 
 namespace inl {
 
@@ -48,6 +49,7 @@ Exception& Exception::operator=(const Exception& rhs) {
 	m_subject = rhs.m_subject;
 	m_what = rhs.m_what;
 	CalculateStackTrace();
+	return *this;
 }
 
 Exception& Exception::operator=(Exception&& rhs) {
@@ -55,25 +57,32 @@ Exception& Exception::operator=(Exception&& rhs) {
 	m_subject = std::move(rhs.m_subject);
 	m_what = std::move(rhs.m_what);
 	CalculateStackTrace();
+	return *this;
 }
 
 
 
-const char* Exception::what() const {
+const char* Exception::what() const noexcept {
 	return m_what.c_str();
 }
 
-const std::string& Exception::Message() const {
+const std::string& Exception::Message() const noexcept {
 	return m_message;
 }
 
-const std::string& Exception::Subject() const {
+const std::string& Exception::Subject() const noexcept {
 	return m_subject;
 }
 
 
-const std::vector<StackFrame>& Exception::StackTrace() const {
+const std::vector<StackFrame>& Exception::StackTrace() const noexcept {
 	return m_stackTrace;
+}
+
+const std::string Exception::StackTraceStr() const {
+	std::stringstream trace;
+	PrintStackTrace(trace);
+	return trace.str();
 }
 
 void Exception::PrintStackTrace(std::ostream& os) const {

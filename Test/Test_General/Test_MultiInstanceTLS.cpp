@@ -71,7 +71,7 @@ public:
 	~TestUser() {
 		cout << "user: dtor" << endl;
 	}
-	exc::mi_tls<TestData> value;
+	inl::mi_tls<TestData> value;
 };
 
 

@@ -10,7 +10,7 @@
 #include <typeindex>
 
 
-namespace exc {
+namespace inl {
 
 class NodeFactory {
 public:
@@ -142,4 +142,4 @@ bool NodeFactory::RegisterNodeClass(const std::string& group) {
 
 
 
-} // namespace exc
+} // namespace inl

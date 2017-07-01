@@ -7,7 +7,7 @@
 #include <unordered_map>
 
 
-namespace exc {
+namespace inl {
 class Stream;
 };
 

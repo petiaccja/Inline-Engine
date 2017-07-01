@@ -58,9 +58,9 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		}
 
 		// Set world render transform
-		m_graphicsEngine->SetEnvVariable("world_render_pos", exc::Any(inl::Vec2(0.f, 0.f)));
-		m_graphicsEngine->SetEnvVariable("world_render_rot", exc::Any(0.f));
-		m_graphicsEngine->SetEnvVariable("world_render_size", exc::Any(inl::Vec2(width, height)));
+		m_graphicsEngine->SetEnvVariable("world_render_pos", inl::Any(inl::Vec2(0.f, 0.f)));
+		m_graphicsEngine->SetEnvVariable("world_render_rot", inl::Any(0.f));
+		m_graphicsEngine->SetEnvVariable("world_render_size", inl::Any(inl::Vec2(width, height)));
 	}
 	
 	// Create scene and camera
@@ -387,7 +387,7 @@ void QCWorld::ScreenSizeChanged(int width, int height) {
 	const float aspect = width / ((float)height);
 	m_camera->SetFOVAspect(75.f / 180.f * 3.1419f, aspect);
 	m_guiCamera->SetBounds(0, width, height, 0, -1, 1);
-	m_graphicsEngine->SetEnvVariable("world_render_size", exc::Any(inl::Vec2(width, height)));
+	m_graphicsEngine->SetEnvVariable("world_render_size", inl::Any(inl::Vec2(width, height)));
 }
 
 void QCWorld::RenderWorld(float elapsed) {

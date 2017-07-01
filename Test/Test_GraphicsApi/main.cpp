@@ -17,9 +17,9 @@ using std::endl;
 // Globals
 
 bool isEngineInit = false;
-exc::Logger logger;
-exc::LogStream systemLogStream = logger.CreateLogStream("system");
-exc::LogStream graphicsLogStream = logger.CreateLogStream("graphics");
+inl::Logger logger;
+inl::LogStream systemLogStream = logger.CreateLogStream("system");
+inl::LogStream graphicsLogStream = logger.CreateLogStream("graphics");
 
 
 // -----------------------------------------------------------------------------
@@ -97,7 +97,7 @@ int main() {
 		
 		logger.Flush();
 	}
-	catch (inl::gxapi::Exception& ex) {
+	catch (inl::Exception& ex) {
 		isEngineInit = false;
 
 		systemLogStream.Event("Error creating PicoEngine: " + ex.Message());

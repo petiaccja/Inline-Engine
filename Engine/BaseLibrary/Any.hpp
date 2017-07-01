@@ -6,7 +6,7 @@
 #include "Exception/Exception.hpp"
 using namespace inl;
 
-namespace exc {
+namespace inl {
 
 
 class Any {
@@ -93,4 +93,4 @@ private:
 
 
 
-} // namespace exc
+} // namespace inl

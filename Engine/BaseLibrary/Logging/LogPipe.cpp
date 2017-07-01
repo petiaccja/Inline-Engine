@@ -4,7 +4,7 @@
 #include <thread>
 #include <iostream>
 
-namespace exc {
+namespace inl {
 
 
 LogPipe::LogPipe(std::shared_ptr<LogNode> node) {
@@ -67,4 +67,4 @@ std::shared_ptr<LogNode> LogPipe::GetNode() {
 }
 
 
-} // namespace exc
+} // namespace inl

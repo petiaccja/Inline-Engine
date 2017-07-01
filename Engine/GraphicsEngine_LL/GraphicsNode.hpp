@@ -69,7 +69,7 @@ public:
 /// graphics tasks in the nodes graph. This is useful when the node wants to parallelize its work,
 /// in which case it create parallel graphics tasks within itself.
 /// </remarks>
-class GraphicsNode : virtual public exc::NodeBase {
+class GraphicsNode : virtual public NodeBase {
 public:
 	GraphicsNode();
 

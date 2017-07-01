@@ -11,7 +11,7 @@
 #include "../Any.hpp"
 
 
-namespace exc {
+namespace inl {
 
 class InputPortBase;
 class OutputPortBase;
@@ -543,4 +543,4 @@ void InputPortBase::SetConvert(const U& u) {
 extern template class InputPort<Any, NullPortConverter>;
 extern template class OutputPort<Any>;
 
-} // namespace exc
+} // namespace inl
