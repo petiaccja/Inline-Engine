@@ -70,24 +70,32 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib\wxwidgets;$(SolutionDir)\Externals\lib;$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib\wxwidgets;$(SolutionDir)\Externals\lib;$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib;$(SolutionDir)\Externals\lib\wxwidgets;$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib;$(SolutionDir)\Externals\lib\wxwidgets;$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -102,6 +110,12 @@
     <Link>
       <SubSystem>Windows</SubSystem>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Externals\bin_$(PlatformShortName)_$(Configuration)\*" "$(OutputPath)"</Command>
+    </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>dbghelp.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -121,6 +135,9 @@
       <ForceSymbolReferences>
       </ForceSymbolReferences>
     </Lib>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Externals\bin_$(PlatformShortName)_$(Configuration)\*" "$(OutputPath)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -140,6 +157,12 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Externals\bin_$(PlatformShortName)_$(Configuration)\*" "$(OutputPath)"</Command>
+    </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>dbghelp.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -164,6 +187,9 @@
       <ForceSymbolReferences>
       </ForceSymbolReferences>
     </Lib>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Externals\bin_$(PlatformShortName)_$(Configuration)\*" "$(OutputPath)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
