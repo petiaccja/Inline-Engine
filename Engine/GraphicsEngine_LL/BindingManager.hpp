@@ -6,6 +6,7 @@
 #include "VolatileViewHeap.hpp"
 
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
+#include <BaseLibrary/Exception/Exception.hpp>
 
 #include <stdexcept>
 
@@ -93,7 +94,7 @@ void BindingManager<Type>::BindTexture(BindParameter parameter, gxapi::Descripto
 		UpdateBinding(handle, slot, tableIndex);
 	}
 	else {
-		throw std::invalid_argument("Parameter is not an SRV.");
+		throw InvalidArgumentException("Parameter is not an SRV.");
 	}
 }
 
@@ -114,7 +115,7 @@ void BindingManager<Type>::Bind(BindParameter parameter, const ConstBufferView& 
 		UpdateBinding(shaderConstant.GetHandle(), slot, tableIndex);
 	}
 	else {
-		throw std::invalid_argument("Parameter is not a CBV.");
+		throw InvalidArgumentException("Parameter is not a CBV.");
 	}
 }
 
@@ -122,7 +123,7 @@ void BindingManager<Type>::Bind(BindParameter parameter, const ConstBufferView& 
 template <gxapi::eCommandListType Type>
 void BindingManager<Type>::Bind(BindParameter parameter, const void* shaderConstant, int size /*, int offset*/) {
 	if (size % 4 != 0) {
-		throw std::invalid_argument("Size must be a multiple of 4.");
+		throw InvalidArgumentException("Size must be a multiple of 4.");
 	}
 	assert(m_binder != nullptr);
 
@@ -150,7 +151,7 @@ void BindingManager<Type>::Bind(BindParameter parameter, const void* shaderConst
 		m_graphicsApi->CreateConstantBufferView(desc, cbv);
 	}
 	else {
-		throw std::invalid_argument("Parameter is not an inline constant.");
+		throw InvalidArgumentException("Parameter is not an inline constant.");
 	}
 }
 
@@ -169,7 +170,7 @@ void BindingManager<Type>::BindUav(BindParameter parameter, gxapi::DescriptorHan
 		UpdateBinding(handle, slot, tableIndex);
 	}
 	else {
-		throw std::invalid_argument("Parameter is not an UAV.");
+		throw InvalidArgumentException("Parameter is not an UAV.");
 	}
 }
 

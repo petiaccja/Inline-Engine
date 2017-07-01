@@ -47,7 +47,7 @@ public:
 
 		// throw an error if scene is not found
 		if (match == nullptr) {
-			throw std::invalid_argument("[GetCameraByName] The camera called \"" + cameraName + "\" does not exist.");
+			throw InvalidArgumentException("Specified camera does not exist.", cameraName);
 		}
 
 		// set scene parameters to output ports

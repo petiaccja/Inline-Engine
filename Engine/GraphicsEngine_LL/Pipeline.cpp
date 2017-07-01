@@ -5,6 +5,8 @@
 #include "GraphicsNodeFactory.hpp"
 #include "GraphicsNode.hpp"
 
+#include <BaseLibrary/Exception/Exception.hpp>
+
 #include <rapidjson/rapidjson.h>
 #include <cassert>
 
@@ -101,7 +103,7 @@ Pipeline::~Pipeline() {
 
 
 void Pipeline::CreateFromDescription(const std::string& jsonDescription, GraphicsNodeFactory& factory) {
-	throw std::logic_error("not implemented yet");
+	throw NotImplementedException();
 }
 
 
@@ -126,7 +128,7 @@ void Pipeline::CreateFromNodesList(const std::vector<std::shared_ptr<exc::NodeBa
 	// note: if task graph is a DAG => dep. graph must be a DAG
 	bool isTaskGraphDAG = lemon::dag(m_taskGraph);
 	if (!isTaskGraphDAG) {
-		throw std::invalid_argument("Supplied nodes do not make a directed acyclic graph.");
+		throw InvalidArgumentException("Supplied nodes do not make a directed acyclic graph.");
 	}
 }
 
@@ -192,7 +194,7 @@ void Pipeline::CalculateTaskGraph() {
 			// Copy nodes
 			int numSubtasks = lemon::countNodes(subtaskNodes);
 			if (numSubtasks == 0) {
-				throw std::logic_error("Task has zero subtasks.");
+				throw InvalidArgumentException("Task has zero subtasks.");
 			}
 			lemon::ListDigraph::NodeMap<decltype(m_taskGraph)::Node> taskNodesToTaskGraphNodes(subtaskNodes); // maps Task's nodes to m_taskGraph's nodes
 			for (lemon::ListDigraph::NodeIt taskNode(subtaskNodes); taskNode != lemon::INVALID; ++taskNode) {
@@ -232,7 +234,7 @@ void Pipeline::CalculateTaskGraph() {
 				for (lemon::ListDigraph::ArcIt arc(subtaskNodes); arc != lemon::INVALID; ++arc) {
 					ss << subtaskNodes.id(subtaskNodes.source(arc)) << " -> " << subtaskNodes.id(subtaskNodes.target(arc)) << std::endl;
 				}
-				throw std::logic_error("Task graph of node has neither sources nor sinks.\n" + ss.str()); // TODO: which node, which task, which what?
+				throw InvalidArgumentException("Task graph of node has neither sources nor sinks. The graph must not contain circles.", ss.str()); // TODO: which node, which task, which what?
 			}
 			// If there are multiple sources, reduce them to one
 			if (sources.size() > 1) {

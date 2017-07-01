@@ -218,7 +218,7 @@ void DrawSky::Execute(RenderContext & context) {
 
 	const PerspectiveCamera* perpectiveCamera = dynamic_cast<const PerspectiveCamera*>(m_camera);
 	if (perpectiveCamera == nullptr) {
-		throw std::invalid_argument("Sky drawing only works with perspective camera");
+		throw InvalidArgumentException("Sky drawing only works with perspective camera");
 	}
 
 	camCB.pos = Vec4(perpectiveCamera->GetPosition(), 1);

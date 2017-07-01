@@ -46,7 +46,7 @@ CopyCommandList& CopyCommandList::operator=(CopyCommandList&& rhs) {
 
 void CopyCommandList::SetResourceState(const MemoryObject& resource, gxapi::eResourceState state, unsigned subresource) {
 	if (resource.GetHeap() == eResourceHeap::CONSTANT || resource.GetHeap() == eResourceHeap::UPLOAD) {
-		throw std::invalid_argument("You must not set resource state of upload staging buffers and VOLATILE constant buffers. They are GENERIC_READ.");
+		throw InvalidArgumentException("You must not set resource state of UPLOAD staging buffers and VOLATILE CONSTANT buffers. They are GENERIC_READ.");
 	}
 
 	// Call recursively when ALL subresources are requested.
@@ -112,7 +112,7 @@ void CopyCommandList::ExpectResourceState(const MemoryObject& resource, const st
 			if (IsDebuggerPresent()) {
 				DebugBreak();
 			}
-			throw std::logic_error("You did not set resource state before using this resource!");
+			throw InvalidStateException("You did not set resource state before using this resource!");
 		}
 		else {
 			gxapi::eResourceState currentState = iter->second.lastState;
@@ -124,7 +124,7 @@ void CopyCommandList::ExpectResourceState(const MemoryObject& resource, const st
 				if (IsDebuggerPresent()) {
 					DebugBreak();
 				}
-				throw std::logic_error("You did set resource state, but to the wrong value!");
+				throw InvalidStateException("You did set resource state, but to the wrong value!");
 			}
 		}
 	}

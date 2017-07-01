@@ -7,7 +7,7 @@
 
 
 template <template <class> class Allocator = std::allocator>
-struct StackFrame {
+struct StackFrameT {
 	int frame;
 	void* instructionAddress;
 	void* stackAddress;
@@ -18,8 +18,11 @@ struct StackFrame {
 };
 
 
+using StackFrame = StackFrameT<>;
+
+
 template <template <class> class Allocator = std::allocator>
-std::ostream& operator<<(std::ostream& os, const StackFrame<Allocator>& frame) {
+std::ostream& operator<<(std::ostream& os, const StackFrameT<Allocator>& frame) {
 	os << frame.instructionAddress << " " << frame.symbol << " (" << frame.sourceFile << ":" << frame.sourceLine << ")";
 	return os;
 }
@@ -31,7 +34,7 @@ std::ostream& operator<<(std::ostream& os, const StackFrame<Allocator>& frame) {
 #include <Dbghelp.h>
 
 template <template <class> class Allocator = std::allocator>
-std::vector<StackFrame<Allocator>, Allocator<StackFrame<Allocator>>> GetStackTrace() {
+std::vector<StackFrameT<Allocator>, Allocator<StackFrameT<Allocator>>> GetStackTrace() {
 	// Initialize sym stuff
 	static bool isInitalized = [] {
 		SymInitialize(GetCurrentProcess(), NULL, TRUE);
@@ -69,7 +72,7 @@ std::vector<StackFrame<Allocator>, Allocator<StackFrame<Allocator>>> GetStackTra
 	stack.AddrFrame.Mode = AddrModeFlat;
 
 	// Iterate over stack frames
-	std::vector<StackFrame<Allocator>, Allocator<StackFrame<Allocator>>> frames;
+	std::vector<StackFrameT<Allocator>, Allocator<StackFrameT<Allocator>>> frames;
 	for (int frame = 0; ; frame++) {
 		BOOL result;
 		result = StackWalk64(IMAGE_FILE_MACHINE_AMD64,
@@ -105,7 +108,7 @@ std::vector<StackFrame<Allocator>, Allocator<StackFrame<Allocator>>> GetStackTra
 		SymGetLineFromAddr64(process, stack.AddrPC.Offset, &displacement, &lineInfo);
 
 
-		StackFrame<Allocator> currentFrame;
+		StackFrameT<Allocator> currentFrame;
 		currentFrame.frame = frame;
 		currentFrame.frameAddress = (void*)stack.AddrFrame.Offset;
 		currentFrame.instructionAddress = (void*)stack.AddrPC.Offset;
@@ -127,8 +130,8 @@ std::vector<StackFrame<Allocator>, Allocator<StackFrame<Allocator>>> GetStackTra
 #else
 
 template <template <class> class Allocator = std::allocator>
-std::vector<StackFrame, Allocator> GetStackTrace() {
-	StackFrame currentFrame;
+std::vector<StackFrameT, Allocator> GetStackTrace() {
+	StackFrameT<Allocator> currentFrame;
 	currentFrame.frame = 0;
 	currentFrame.frameAddress = (void*)0;
 	currentFrame.instructionAddress = (void*)0;

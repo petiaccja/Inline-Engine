@@ -48,7 +48,7 @@ public:
 
 		// throw an error if scene is not found
 		if (match == nullptr) {
-			throw std::invalid_argument("[GetSceneByName] The scene called \"" + sceneName + "\" does not exist.");
+			throw InvalidArgumentException("Specified scene does not exist.", sceneName);
 		}
 
 		// set scene parameters to output ports

@@ -344,7 +344,7 @@ const exc::Any& GraphicsEngine::GetEnvVariable(const std::string& name) {
 		return it->second;
 	}
 	else {
-		throw std::invalid_argument("Environment variable does not exist.");
+		throw InvalidArgumentException("Environment variable does not exist.");
 	}
 }
 

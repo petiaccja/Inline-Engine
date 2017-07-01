@@ -173,6 +173,8 @@
     <ClInclude Include="ArrayView.hpp" />
     <ClInclude Include="BitflagEnum.hpp" />
     <ClInclude Include="BitOperations.hpp" />
+    <ClInclude Include="Exception\Exception.hpp" />
+    <ClInclude Include="Exception\IOException.hpp" />
     <ClInclude Include="Graph\Node.hpp" />
     <ClInclude Include="Graph\NodeFactory.hpp" />
     <ClInclude Include="Graph\NodeLibrary.hpp" />
@@ -204,6 +206,7 @@
     <ClInclude Include="ThreadName.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Exception\Exception.cpp" />
     <ClCompile Include="Graph\NodeFactory.cpp" />
     <ClCompile Include="Graph\NodeLibrary.cpp" />
     <ClCompile Include="Graph\Port.cpp" />

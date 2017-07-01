@@ -488,7 +488,7 @@ ForwardRender::ScenarioData& ForwardRender::GetScenario(
 std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 	// there's only a single vertex format supported for now
 	if (layout.GetStreamCount() <= 0) {
-		throw std::invalid_argument("Meshes must have a single interleaved buffer.");
+		throw InvalidArgumentException("Meshes must have a single interleaved buffer.");
 	}
 
 	auto& elements = layout[0];
@@ -497,7 +497,7 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		|| elements[1].semantic != eVertexElementSemantic::NORMAL
 		|| elements[2].semantic != eVertexElementSemantic::TEX_COORD)
 	{
-		throw std::invalid_argument("Mesh must have 3 attributes: position, normal, texcoord.");
+		throw InvalidArgumentException("Mesh must have 3 attributes: position, normal, texcoord.");
 	}
 
 	std::string vertexShader =

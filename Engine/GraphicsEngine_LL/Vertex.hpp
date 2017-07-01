@@ -96,7 +96,7 @@ public:
 				return values[lookupIdx];
 			}
 		}
-		throw std::invalid_argument("Index not found.");
+		throw OutOfRangeException("Index not found.");
 	}
 	const T& operator[](int index) const {
 		for (int lookupIdx = 0; lookupIdx < count; ++lookupIdx) {
@@ -104,7 +104,7 @@ public:
 				return values[lookupIdx];
 			}
 		}
-		throw std::invalid_argument("Index not found.");
+		throw OutOfRangeException("Index not found.");
 	}
 };
 // Just the definition of statics members

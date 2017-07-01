@@ -1,6 +1,7 @@
 #include "PicoEngine.hpp"
 #include "Geometry.hpp"
 #include <BaseLibrary/Logging_All.hpp>
+#include <BaseLibrary/Exception/Exception.hpp>
 
 #include <GraphicsApi_LL/Exception.hpp>
 
@@ -48,7 +49,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 
 	// Create device
 	if (adapters.size() == 0) {
-		throw std::runtime_error("No available devices.");
+		throw inl::RuntimeException("No available devices.");
 	}
 	m_graphicsApi.reset(m_gxapiManager->CreateGraphicsApi(adapters[0].adapterId));
 	Log(exc::Event{

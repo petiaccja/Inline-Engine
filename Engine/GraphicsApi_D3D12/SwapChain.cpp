@@ -24,7 +24,7 @@ SwapChain::SwapChain(Microsoft::WRL::ComPtr<IDXGISwapChain3> native) {
 IResource* SwapChain::GetBuffer(unsigned index) {
 	ComPtr<ID3D12Resource> resource;
 	if (FAILED(m_native->GetBuffer(index, IID_PPV_ARGS(&resource)))) {
-		throw OutOfRange("You don't have that many swap buffers. Dumbfuck...");
+		throw OutOfRangeException("You don't have that many swap buffers. Dumbfuck...");
 	}
 	return new Resource(resource, nullptr);
 }
@@ -54,13 +54,13 @@ void SwapChain::SetFullScreen(bool isFullScreen) {
 		case S_OK:
 			return;
 		case DXGI_ERROR_NOT_CURRENTLY_AVAILABLE:
-			throw Exception("Cannot switch to fullscreen mode now. Try again later.");
+			throw RuntimeException("Cannot switch to fullscreen mode now. Try again later.");
 		case DXGI_STATUS_MODE_CHANGE_IN_PROGRESS:
-			throw InvalidState("Already transitioning to fullscreen or windowed.");
+			throw InvalidStateException("Already transitioning to fullscreen or windowed.");
 		case E_OUTOFMEMORY: 
-			throw OutOfMemory("Not enough memory for swap chain.");
+			throw OutOfMemoryException("Not enough memory for swap chain.");
 		default:
-			throw Exception("Unknown error.");
+			throw Exception();
 	}
 }
 
@@ -71,7 +71,7 @@ void SwapChain::Resize(unsigned width, unsigned height, unsigned bufferCount, eF
 		case S_OK:
 			return;
 		case E_OUTOFMEMORY:
-			throw OutOfMemory("Not enough memory to resize swap chain");
+			throw OutOfMemoryException("Not enough memory to resize swap chain");
 		default:
 			throw Exception("Unkown error.");
 	}

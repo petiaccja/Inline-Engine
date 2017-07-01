@@ -76,7 +76,7 @@ template <class EntityType>
 void EntityCollection<EntityType>::Add(EntityType* entity) {
 	auto result = m_entites.insert(entity);
 	if (result.second == false) {
-		throw std::invalid_argument("Entity already member of this collection.");
+		throw InvalidArgumentException("Entity already member of this collection.");
 	}
 }
 

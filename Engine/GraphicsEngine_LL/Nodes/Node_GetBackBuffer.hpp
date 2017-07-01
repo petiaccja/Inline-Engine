@@ -32,7 +32,7 @@ public:
 
 	void Setup(SetupContext& context) override {
 		if (!m_backBuffer.HasObject()) {
-			throw std::logic_error("You forgot to set the backbuffer to this node.");
+			throw InvalidStateException("You forgot to set the backbuffer to this node.");
 		}
 		GetOutput<0>().Set(m_backBuffer);
 	}

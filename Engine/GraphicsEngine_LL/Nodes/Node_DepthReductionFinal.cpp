@@ -171,7 +171,7 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 
 	const PerspectiveCamera* perpectiveCamera = dynamic_cast<const PerspectiveCamera*>(m_camera);
 	if (perpectiveCamera == nullptr) {
-		throw std::invalid_argument("Depth reduction only works with perspective camera");
+		throw InvalidArgumentException("Depth reduction only works with perspective camera");
 	}
 
 	Vec4 cam_pos(perpectiveCamera->GetPosition(), 1.0f);

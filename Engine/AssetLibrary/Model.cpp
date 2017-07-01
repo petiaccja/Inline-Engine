@@ -1,5 +1,7 @@
 #include "Model.hpp"
 
+#include <BaseLibrary/Exception/Exception.hpp>
+
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 #include <assimp/mesh.h>
@@ -81,15 +83,15 @@ Model::Model(const std::string & filename) {
 
 	if (m_scene == nullptr) {
 		const std::string msg(m_importer->GetErrorString());
-		throw std::runtime_error("Could not load model \"" + filename + "\". Importer message:\n" + msg);
+		throw RuntimeException("Could not load model \"" + filename + "\".",  msg);
 	}
 
 	if (!m_scene->HasMeshes()) {
-		throw std::runtime_error("Model was loaded successfully but it does not contain any meshes!");
+		throw InvalidArgumentException("Model was loaded successfully but it does not contain any meshes!");
 	}
 
 	if (FilledNodeCount(m_scene->mRootNode) > 1) {
-		throw std::runtime_error("Model contains more than one mesh containing nodes. Only single noded models are supported at this time.");
+		throw InvalidArgumentException("Model contains more than one mesh containing nodes. Only single noded models are supported at this time.");
 	}
 	// Find the single node that contains meshes.
 	const aiNode* node = GetFirstFilledNode(m_scene->mRootNode);

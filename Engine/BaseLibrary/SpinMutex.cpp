@@ -1,4 +1,5 @@
 #include "SpinMutex.hpp"
+#include "Exception/Exception.hpp"
 
 #include <cassert>
 #include <stdexcept>
@@ -40,7 +41,7 @@ void spin_mutex::unlock() {
 		flag.compare_exchange_strong(expected, false);
 	}
 	else {
-		throw std::logic_error("Unlock must be called from the locking thread.");
+		throw InvalidCallException("Unlock must be called from the locking thread.");
 	}
 }
 

@@ -1,5 +1,7 @@
 #include "RingAllocationEngine.hpp"
 
+#include "../Exception/Exception.hpp"
+
 #include <cassert>
 
 namespace exc {
@@ -57,7 +59,7 @@ size_t RingAllocationEngine::Allocate(size_t allocationSize) {
 		throw std::bad_alloc();
 	}
 	if (allocationSize == 0) {
-		throw std::invalid_argument("Allocation size should be non-zero.");
+		throw InvalidArgumentException("Allocation size should be non-zero.");
 	}
 
 	size_t allocStartIndex = m_nextIndex;
@@ -93,7 +95,7 @@ size_t RingAllocationEngine::Allocate(size_t allocationSize) {
 
 void RingAllocationEngine::Deallocate(size_t index) {
 	if (index >= m_container.Size()) {
-		throw std::out_of_range("Given index is greater than the highest index in the pool");
+		throw OutOfRangeException("Given index is greater than the highest index in the pool");
 	}
 
 	static_assert(std::is_unsigned<size_t>::value, "Utilizing underflow. Size type should be unsigned.");

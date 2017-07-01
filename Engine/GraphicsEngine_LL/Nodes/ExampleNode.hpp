@@ -69,7 +69,7 @@ private:
 				// You are allowed to throw an exception with a meaningful message as to what went wrong.
 				// [NOT YET IMPLEMENTED - you should still throw, nonetheless] The scheduler will display 
 				// a graph of the pipeline, highlighting the wrong node, and displaying the error message.
-				throw std::invalid_argument("Tone-mapping key must not be negative!");
+				throw InvalidArgumentException("Tone-mapping key must not be negative!");
 			}
 
 			// When frame's initialization is done, set outputs.

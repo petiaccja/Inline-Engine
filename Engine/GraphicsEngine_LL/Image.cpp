@@ -22,7 +22,7 @@ void Image::SetLayout(size_t width, size_t height, ePixelChannelType channelType
 	gxapi::eFormat format;
 	int resultChCnt = 0;
 	if (!ConvertFormat(channelType, channelCount, pixelClass, format, resultChCnt)) {
-		throw std::invalid_argument("Unsupported texture format.");
+		throw InvalidArgumentException("Unsupported texture format.");
 	}
 
 	try {
@@ -48,11 +48,11 @@ void Image::SetLayout(size_t width, size_t height, ePixelChannelType channelType
 
 void Image::Update(size_t x, size_t y, size_t width, size_t height, const void* pixels, const IPixelReader& reader, size_t bytesPerRow) {
 	if (!m_resource) {
-		throw std::logic_error("Must create image first.");
+		throw InvalidStateException("Must create image first.");
 	}
 
 	if (x + width > GetWidth() || y + height > GetHeight()) {
-		throw std::out_of_range("Destination region out of bounds.");
+		throw OutOfRangeException("Destination region out of bounds.");
 	}
 
 	if (GetChannelCount() != 4 && reader.GetChannelCount() == 3) {
@@ -60,7 +60,7 @@ void Image::Update(size_t x, size_t y, size_t width, size_t height, const void* 
 			|| reader.GetPixelClass() != GetPixelClass()
 			|| reader.GetChannelType() != GetChannelType())
 		{
-			throw std::invalid_argument("Pixel types mismatch, conversion is not supported yet (but will be).");
+			throw NotImplementedException("Pixel types mismatch, conversion is not supported yet (but will be).");
 		}
 	}
 

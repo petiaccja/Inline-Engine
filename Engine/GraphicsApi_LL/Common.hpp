@@ -1866,61 +1866,61 @@ inline RootParameterDesc RootParameterDesc::DescriptorTable(eShaderVisiblity sha
 
 template <>
 inline const RootConstant& RootParameterDesc::As<RootParameterDesc::eType::CONSTANT>() const {
-	if (m_type != eType::CONSTANT) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::CONSTANT) throw InvalidCastException("Object has different type than requested.");
 	return constant;
 }
 
 template <>
 inline const RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::CBV>() const {
-	if (m_type != eType::CBV) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::CBV) throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline const RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::SRV>() const {
-	if (m_type != eType::SRV) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::SRV) throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline const RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::UAV>() const {
-	if (m_type != eType::UAV) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::UAV) throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline const RootDescriptorTable& RootParameterDesc::As<RootParameterDesc::eType::DESCRIPTOR_TABLE>() const {
-	if (m_type != eType::DESCRIPTOR_TABLE) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::DESCRIPTOR_TABLE) throw InvalidCastException("Object has different type than requested.");
 	return descriptorTable;
 }
 
 template <>
 inline RootConstant& RootParameterDesc::As<RootParameterDesc::eType::CONSTANT>() {
-	if (m_type != eType::CONSTANT) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::CONSTANT) throw InvalidCastException("Object has different type than requested.");
 	return constant;
 }
 
 template <>
 inline RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::CBV>() {
-	if (m_type != eType::CBV) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::CBV) throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::SRV>() {
-	if (m_type != eType::SRV) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::SRV) throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::UAV>() {
-	if (m_type != eType::UAV) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::UAV) throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline RootDescriptorTable& RootParameterDesc::As<RootParameterDesc::eType::DESCRIPTOR_TABLE>() {
-	if (m_type != eType::DESCRIPTOR_TABLE) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::DESCRIPTOR_TABLE) throw InvalidCastException("Object has different type than requested.");
 	return descriptorTable;
 }
 

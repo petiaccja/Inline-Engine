@@ -106,7 +106,7 @@ const ShaderProgram& ShaderManager::CreateShader(const std::string& name, Shader
 		program = CompileShaderInternal(shaderSource.c_str(), partsToCompile, macros.c_str());
 	}
 	catch (gxapi::ShaderCompilationError& ex) {
-		throw gxapi::ShaderCompilationError("Error while compiling shader '" + shaderPath + "'. Compiler message: " + ex.what());
+		throw gxapi::ShaderCompilationError("Error while compiling shader \"" + shaderPath + "\"", ex.Subject());
 	}
 
 	shader->parts = shader->parts.SetUnion(partsToCompile);
@@ -175,7 +175,7 @@ std::pair<std::string, std::string> ShaderManager::FindShaderCode(const std::str
 		}
 	}
 
-	throw std::runtime_error("Shader was not found.");
+	throw FileNotFoundException("Shader was not found.", keyName + "(" + name + " as requested)");
 }
 
 ShaderProgram ShaderManager::CompileShaderInternal(const std::string& sourceCode, ShaderParts parts, const std::string& macros) {

@@ -47,7 +47,7 @@ public:
 				return;
 			}
 		}
-		throw std::invalid_argument("Environment variable name \"" + varName + "\" not found.");		
+		throw InvalidArgumentException("Environment variable does not exist.", varName);		
 	}
 
 	void Execute(RenderContext& context) {}

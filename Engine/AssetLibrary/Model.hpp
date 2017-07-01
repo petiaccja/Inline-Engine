@@ -127,7 +127,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Normal<semanticIndex>, TailA
 		) {
 		using DataType = gxeng::VertexPartReader<gxeng::eVertexElementSemantic::NORMAL>::DataType;
 		if (mesh->HasNormals() == false) {
-			throw std::runtime_error("Vertex array requested with normals but loaded mesh does not have such an attribute.");
+			throw InvalidCallException("Vertex array requested with normals but loaded mesh does not have such an attribute.");
 		}
 		assert(vertexIndex < mesh->mNumVertices);
 		const aiVector3D& normal = mesh->mNormals[vertexIndex];
@@ -151,7 +151,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Tangent<semanticIndex>, Tail
 		) {
 		using DataType = gxeng::VertexPart<gxeng::eVertexElementSemantic::NORMAL>::DataType;
 		if (mesh->HasTangentsAndBitangents() == false) {
-			throw std::runtime_error("Vertex array requested with tangents but loaded mesh does not have such an attribute.");
+			throw InvalidCallException("Vertex array requested with tangents but loaded mesh does not have such an attribute.");
 		}
 		assert(vertexIndex < mesh->mNumVertices);
 		const aiVector3D& tangent = mesh->mTangents[vertexIndex];
@@ -174,7 +174,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Bitangent<semanticIndex>, Ta
 		) {
 		using DataType = gxeng::VertexPart<gxeng::eVertexElementSemantic::NORMAL>::DataType;
 		if (mesh->HasTangentsAndBitangents() == false) {
-			throw std::runtime_error("Vertex array requested with bitangents but loaded mesh does not have such an attribute.");
+			throw InvalidCallException("Vertex array requested with bitangents but loaded mesh does not have such an attribute.");
 		}
 		assert(vertexIndex < mesh->mNumVertices);
 		const aiVector3D& bitangent = mesh->mBitangents[vertexIndex];
@@ -196,7 +196,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::TexCoord<semanticIndex>, Tai
 		) {
 		using DataType = gxeng::VertexPartReader<gxeng::eVertexElementSemantic::TEX_COORD>::DataType;
 		if (mesh->HasTextureCoords(semanticIndex) == false) {
-			throw std::runtime_error(
+			throw InvalidCallException(
 				"Vertex array requested with texture coords of semantic index "
 				+ std::to_string(semanticIndex)
 				+ " but loaded mesh does not have such an attribute with that semantic index.");
@@ -221,7 +221,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Color<semanticIndex>, TailAt
 		) {
 		using DataType = gxeng::VertexPartReader<gxeng::eVertexElementSemantic::COLOR>::DataType;
 		if (mesh->HasVertexColors(semanticIndex) == false) {
-			throw std::runtime_error(
+			throw InvalidCallException(
 				"Vertex array requested with vertex colors of semantic index "
 				+ std::to_string(semanticIndex)
 				+ " but loaded mesh does not have such an attribute with that semantic index.");
