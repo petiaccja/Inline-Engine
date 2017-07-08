@@ -43,17 +43,17 @@ float OrthographicCamera::GetAspectRatio() const {
 }
 
 Mat44 OrthographicCamera::GetViewMatrix() const {
-	return Mat44::LookAt(m_position + m_lookdir, m_position, m_upVector, false, false);
+	return Mat44::LookAt(m_position, m_position + m_lookdir, m_upVector, true, false, false);
 }
 
 Mat44 OrthographicCamera::GetPrevViewMatrix() const {
-	return Mat44::LookAt(m_prevPosition + m_prevLookdir, m_prevPosition, m_prevUpVector, -1.0f);
+	return Mat44::LookAt(m_prevPosition, m_prevPosition + m_prevLookdir, m_prevUpVector, true, false, false);
 }
 
 Mat44 OrthographicCamera::GetProjectionMatrix() const {
 	const float widthHalf = m_width*0.5f;
 	const float heightHalf = m_height*0.5f;
-	return Mat44::Orthographic({ -widthHalf, -heightHalf, -m_nearPlane }, { widthHalf, heightHalf, -m_farPlane }, 0, 1);
+	return Mat44::Orthographic({ -widthHalf, -heightHalf, m_nearPlane }, { widthHalf, heightHalf, m_farPlane }, 0, 1);
 }
 
 
