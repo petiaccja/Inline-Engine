@@ -18,7 +18,7 @@ namespace inl::gxeng::nodes {
 
 struct Uniforms
 {
-	mathfu::VectorPacked<float, 2> direction;
+	Vec2 direction;
 	float kernelScale;
 };
 
@@ -35,7 +35,7 @@ void BloomBlur::Initialize(EngineContext & context) {
 
 void BloomBlur::Reset() {
 	m_inputTexSrv = TextureView2D();
-	m_dir = mathfu::Vector2f();
+	m_dir = Vec2();
 
 	GetInput<0>().Clear();
 	GetInput<1>().Clear();
@@ -163,7 +163,7 @@ void BloomBlur::Execute(RenderContext& context) {
 	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
 
 	uniformsCBData.kernelScale = 1.0;
-	m_dir.Pack(&uniformsCBData.direction);
+	uniformsCBData.direction = m_dir;
 
 	commandList.SetResourceState(m_blur_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });

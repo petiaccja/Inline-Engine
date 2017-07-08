@@ -32,7 +32,7 @@ class ForwardRender :
 		Texture2D,
 		Texture2D,
 		Texture2D>,
-	virtual public exc::OutputPortConfig<Texture2D, Texture2D>
+	virtual public OutputPortConfig<Texture2D, Texture2D>
 {
 private:
 	struct ScenarioDesc {
@@ -49,7 +49,7 @@ private:
 	};
 	struct VsConstants {
 		Mat44_Packed mvp;
-		mathfu::VectorPacked<float, 4> prevMVP[4];
+		Mat44_Packed prevMVP;
 		Mat44_Packed mv;
 		Mat44_Packed m;
 		Mat44_Packed v;

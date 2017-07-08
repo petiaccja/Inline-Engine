@@ -515,37 +515,37 @@ void GraphicsEngine::CreatePipeline() {
 	bloomDownsample32->GetInput<0>().Link(bloomDownsample16->GetOutput(0));
 
 	bloomBlurVertical32->GetInput<0>().Link(bloomDownsample32->GetOutput(0));
-	bloomBlurVertical32->GetInput<1>().Set(mathfu::Vector2f(0, 1));
+	bloomBlurVertical32->GetInput<1>().Set(Vec2(0, 1));
 	bloomBlurHorizontal32->GetInput<0>().Link(bloomBlurVertical32->GetOutput(0));
-	bloomBlurHorizontal32->GetInput<1>().Set(mathfu::Vector2f(1, 0));
+	bloomBlurHorizontal32->GetInput<1>().Set(Vec2(1, 0));
 	bloomAdd3216->GetInput<0>().Link(bloomBlurHorizontal32->GetOutput(0));
 	bloomAdd3216->GetInput<1>().Link(bloomDownsample16->GetOutput(0));
 
 	bloomBlurVertical16->GetInput<0>().Link(bloomAdd3216->GetOutput(0));
-	bloomBlurVertical16->GetInput<1>().Set(mathfu::Vector2f(0, 1));
+	bloomBlurVertical16->GetInput<1>().Set(Vec2(0, 1));
 	bloomBlurHorizontal16->GetInput<0>().Link(bloomBlurVertical16->GetOutput(0));
-	bloomBlurHorizontal16->GetInput<1>().Set(mathfu::Vector2f(1, 0));
+	bloomBlurHorizontal16->GetInput<1>().Set(Vec2(1, 0));
 	bloomAdd168->GetInput<0>().Link(bloomBlurHorizontal16->GetOutput(0));
 	bloomAdd168->GetInput<1>().Link(bloomDownsample8->GetOutput(0));
 
 	bloomBlurVertical8->GetInput<0>().Link(bloomAdd168->GetOutput(0));
-	bloomBlurVertical8->GetInput<1>().Set(mathfu::Vector2f(0, 1));
+	bloomBlurVertical8->GetInput<1>().Set(Vec2(0, 1));
 	bloomBlurHorizontal8->GetInput<0>().Link(bloomBlurVertical8->GetOutput(0));
-	bloomBlurHorizontal8->GetInput<1>().Set(mathfu::Vector2f(1, 0));
+	bloomBlurHorizontal8->GetInput<1>().Set(Vec2(1, 0));
 	bloomAdd84->GetInput<0>().Link(bloomBlurHorizontal8->GetOutput(0));
 	bloomAdd84->GetInput<1>().Link(bloomDownsample4->GetOutput(0));
 
 	bloomBlurVertical4->GetInput<0>().Link(bloomAdd84->GetOutput(0));
-	bloomBlurVertical4->GetInput<1>().Set(mathfu::Vector2f(0, 1));
+	bloomBlurVertical4->GetInput<1>().Set(Vec2(0, 1));
 	bloomBlurHorizontal4->GetInput<0>().Link(bloomBlurVertical4->GetOutput(0));
-	bloomBlurHorizontal4->GetInput<1>().Set(mathfu::Vector2f(1, 0));
+	bloomBlurHorizontal4->GetInput<1>().Set(Vec2(1, 0));
 	bloomAdd42->GetInput<0>().Link(bloomBlurHorizontal4->GetOutput(0));
 	bloomAdd42->GetInput<1>().Link(bloomDownsample2->GetOutput(0));
 
 	bloomBlurVertical2->GetInput<0>().Link(bloomAdd42->GetOutput(0));
-	bloomBlurVertical2->GetInput<1>().Set(mathfu::Vector2f(0, 1));
+	bloomBlurVertical2->GetInput<1>().Set(Vec2(0, 1));
 	bloomBlurHorizontal2->GetInput<0>().Link(bloomBlurVertical2->GetOutput(0));
-	bloomBlurHorizontal2->GetInput<1>().Set(mathfu::Vector2f(1, 0));
+	bloomBlurHorizontal2->GetInput<1>().Set(Vec2(1, 0));
 
 	lensFlare->GetInput<0>().Link(bloomDownsample4->GetOutput(0));
 	lensFlare->GetInput<1>().Set(this->CreateImage());

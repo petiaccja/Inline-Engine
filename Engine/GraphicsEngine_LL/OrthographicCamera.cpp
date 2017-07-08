@@ -46,8 +46,8 @@ Mat44 OrthographicCamera::GetViewMatrix() const {
 	return Mat44::LookAt(m_position + m_lookdir, m_position, m_upVector, false, false);
 }
 
-mathfu::Matrix4x4f OrthographicCamera::GetPrevViewMatrixLH() const {
-	return mathfu::Matrix4x4f::LookAt(m_prevPosition + m_prevLookdir, m_prevPosition, m_prevUpVector, -1.0f);
+Mat44 OrthographicCamera::GetPrevViewMatrix() const {
+	return Mat44::LookAt(m_prevPosition + m_prevLookdir, m_prevPosition, m_prevUpVector, -1.0f);
 }
 
 Mat44 OrthographicCamera::GetProjectionMatrix() const {

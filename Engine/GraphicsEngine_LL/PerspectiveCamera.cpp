@@ -40,8 +40,8 @@ Mat44 PerspectiveCamera::GetProjectionMatrix() const {
 	return Mat44::Perspective(m_fovH, m_fovH / m_fovV, m_nearPlane, m_farPlane, 0, 1);
 	//return Mat44::Orthographic({-10, -10, 0}, {10, 10, 100}, 0, 1);
 }
-mathfu::Matrix4x4f PerspectiveCamera::GetPrevViewMatrixLH() const {
-	return mathfu::Matrix4x4f::LookAt(m_prevPosition + m_prevLookdir, m_prevPosition, m_prevUpVector, -1.0f);
+Mat44 PerspectiveCamera::GetPrevViewMatrix() const {
+	return Mat44::LookAt(m_prevPosition + m_prevLookdir, m_prevPosition, m_prevUpVector, -1.0f);
 }
 
 

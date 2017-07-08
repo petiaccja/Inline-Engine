@@ -317,7 +317,7 @@ void ForwardRender::Execute(RenderContext& context) {
 	Mat44 view = m_camera->GetViewMatrix();
 	Mat44 projection = m_camera->GetProjectionMatrix();
 	auto viewProjection = view * projection;
-	mathfu::Matrix4x4f prevView = m_camera->GetPrevViewMatrixRH();
+	Mat44 prevView = m_camera->GetPrevViewMatrix();
 	auto prevViewProjection = projection * prevView;
 
 
@@ -402,9 +402,9 @@ void ForwardRender::Execute(RenderContext& context) {
 		vsConstants.mv = entity->GetTransform() * view;
 		vsConstants.v = view;
 		vsConstants.p = projection;
-		(prevViewProjection * entity->GetPrevTransform()).Pack(vsConstants.prevMVP);
-		mathfu::Vector4f vsLightDir = view * mathfu::Vector4f(sun->GetDirection(), 0.0f);
-		lightConstants.direction = vsLightDir.xyz().Normalized();
+		vsConstants.prevMVP = prevViewProjection * entity->GetPrevTransform();
+		Vec4 vsLightDir = view * Vec4(sun->GetDirection(), 0.0f);
+		lightConstants.direction = Vec3(vsLightDir.xyz).Normalized();
 		lightConstants.color = sun->GetColor();
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 0), &vsConstants, sizeof(vsConstants));

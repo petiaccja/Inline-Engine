@@ -18,14 +18,14 @@ namespace inl::gxeng::nodes {
 class BloomDownsample :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<Texture2D>,
-	virtual public exc::OutputPortConfig<Texture2D>
+	virtual public InputPortConfig<Texture2D>,
+	virtual public OutputPortConfig<Texture2D>
 {
 public:
 	BloomDownsample();
 
 	void Update() override {}
-	void Notify(exc::InputPortBase* sender) override {}
+	void Notify(InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override;
 	void Reset() override;

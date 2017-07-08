@@ -18,14 +18,14 @@ namespace inl::gxeng::nodes {
 class BloomAdd :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<Texture2D, Texture2D>, //half size, normal size
-	virtual public exc::OutputPortConfig<Texture2D>
+	virtual public InputPortConfig<Texture2D, Texture2D>, //half size, normal size
+	virtual public OutputPortConfig<Texture2D>
 {
 public:
 	BloomAdd();
 
 	void Update() override {}
-	void Notify(exc::InputPortBase* sender) override {}
+	void Notify(InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override;
 	void Reset() override;

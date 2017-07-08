@@ -18,14 +18,14 @@ namespace inl::gxeng::nodes {
 class BloomBlur :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<Texture2D, mathfu::Vector2f>,
-	virtual public exc::OutputPortConfig<Texture2D>
+	virtual public InputPortConfig<Texture2D, Vec2>,
+	virtual public OutputPortConfig<Texture2D>
 {
 public:
 	BloomBlur();
 
 	void Update() override {}
-	void Notify(exc::InputPortBase* sender) override {}
+	void Notify(InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override;
 	void Reset() override;
@@ -50,7 +50,7 @@ protected: // outputs
 
 protected: // render context
 	TextureView2D m_inputTexSrv;
-	mathfu::Vector2f m_dir;
+	Vec2 m_dir;
 
 private:
 	void InitRenderTarget(SetupContext& context);

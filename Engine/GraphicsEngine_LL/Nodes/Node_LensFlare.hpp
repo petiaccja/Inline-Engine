@@ -19,14 +19,14 @@ namespace inl::gxeng::nodes {
 class LensFlare :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<Texture2D, inl::gxeng::Image*>,
-	virtual public exc::OutputPortConfig<Texture2D>
+	virtual public InputPortConfig<Texture2D, inl::gxeng::Image*>,
+	virtual public OutputPortConfig<Texture2D>
 {
 public:
 	LensFlare();
 
 	void Update() override {}
-	void Notify(exc::InputPortBase* sender) override {}
+	void Notify(InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override;
 	void Reset() override;

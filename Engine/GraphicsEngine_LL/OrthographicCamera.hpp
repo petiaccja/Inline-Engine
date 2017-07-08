@@ -34,7 +34,7 @@ public:
 	// Matrices
 	Mat44 GetViewMatrix() const override;
 	Mat44 GetProjectionMatrix() const override;
-	mathfu::Matrix4x4f GetPrevViewMatrixLH() const override;
+	Mat44 GetPrevViewMatrix() const override;
 
 private:
 	float m_width;

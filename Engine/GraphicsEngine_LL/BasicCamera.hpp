@@ -54,7 +54,7 @@ public:
 
 	virtual Mat44 GetViewMatrix() const = 0;
 	virtual Mat44 GetProjectionMatrix() const = 0;
-	virtual mathfu::Matrix4x4f GetPrevViewMatrixLH() const = 0;
+	virtual Mat44 GetPrevViewMatrix() const = 0;
 
 protected:
 	std::string m_name;
@@ -62,9 +62,9 @@ protected:
 	Vec3 m_position;
 	Vec3 m_upVector;
 	Vec3 m_lookdir;
-	mathfu::Vector3f m_prevPosition;
-	mathfu::Vector3f m_prevUpVector;
-	mathfu::Vector3f m_prevLookdir;
+	Vec3 m_prevPosition;
+	Vec3 m_prevUpVector;
+	Vec3 m_prevLookdir;
 
 	float m_targetDistance;
 	bool m_targeted = false;
