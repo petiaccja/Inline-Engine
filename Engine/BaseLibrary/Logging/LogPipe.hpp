@@ -6,14 +6,14 @@
 #include <memory>
 
 
-namespace exc {
+namespace inl {
 
 class Logger;
 class LogNode;
 
 class LogPipe {
-	friend class exc::Logger;
-	friend class exc::LogNode;
+	friend class inl::Logger;
+	friend class inl::LogNode;
 private:
 	/// <summary> Private to allow only Logger to create a pipe. </summary>
 	LogPipe(std::shared_ptr<LogNode> node);
@@ -36,4 +36,4 @@ private:
 };
 
 
-} // namespace exc
+} // namespace inl

@@ -38,8 +38,8 @@ public:
 		NodeIterator(const NodeIterator&) = default;
 		NodeIterator& operator=(const NodeIterator&) = default;
 
-		exc::NodeBase& operator*() const;
-		exc::NodeBase* operator->() const;
+		NodeBase& operator*() const;
+		NodeBase* operator->() const;
 
 		bool operator==(const NodeIterator&) const;
 		bool operator!=(const NodeIterator&) const;
@@ -56,8 +56,8 @@ public:
 	public:
 		ConstNodeIterator() = default;
 		ConstNodeIterator(const NodeIterator& rhs) : NodeIterator(rhs) {}
-		const exc::NodeBase& operator*() { return NodeIterator::operator*(); }
-		const exc::NodeBase* operator->() { return NodeIterator::operator->(); }
+		const NodeBase& operator*() { return NodeIterator::operator*(); }
+		const NodeBase* operator->() { return NodeIterator::operator->(); }
 		bool operator==(const ConstNodeIterator& rhs) const { return NodeIterator::operator==(rhs); }
 		bool operator!=(const ConstNodeIterator& rhs) const { return NodeIterator::operator!=(rhs); }
 		using NodeIterator::operator++;
@@ -65,11 +65,11 @@ public:
 
 	class SimpleNodeTask : public GraphicsTask {
 	public:
-		SimpleNodeTask(exc::NodeBase* subject) : m_subject(subject) {}
+		SimpleNodeTask(NodeBase* subject) : m_subject(subject) {}
 		void Setup(SetupContext& context) override { m_subject->Update(); }
 		void Execute(RenderContext& context) override {}
 	private:
-		exc::NodeBase* m_subject;
+		NodeBase* m_subject;
 	};
 
 public:
@@ -81,7 +81,7 @@ public:
 	~Pipeline();
 
 	void CreateFromDescription(const std::string& jsonDescription, GraphicsNodeFactory& factory);
-	void CreateFromNodesList(const std::vector<std::shared_ptr<exc::NodeBase>> nodes);
+	void CreateFromNodesList(const std::vector<std::shared_ptr<NodeBase>> nodes);
 	void Clear();
 
 	NodeIterator begin();
@@ -92,7 +92,7 @@ public:
 	ConstNodeIterator cend() const { return end(); }
 
 	const lemon::ListDigraph& GetDependencyGraph() const;
-	const lemon::ListDigraph::NodeMap<std::shared_ptr<exc::NodeBase>>& GetNodeMap() const;
+	const lemon::ListDigraph::NodeMap<std::shared_ptr<NodeBase>>& GetNodeMap() const;
 	const lemon::ListDigraph& GetTaskGraph() const;
 	const lemon::ListDigraph::NodeMap<GraphicsTask*>& GetTaskFunctionMap() const;
 	const lemon::ListDigraph::NodeMap<lemon::ListDigraph::NodeIt>& GetTaskParentMap() const;
@@ -104,10 +104,10 @@ public:
 private:
 	void CalculateTaskGraph();
 	void CalculateDependencyGraph();
-	bool IsLinked(exc::NodeBase* srcNode, exc::NodeBase* dstNode);
+	bool IsLinked(NodeBase* srcNode, NodeBase* dstNode);
 
 	lemon::ListDigraph m_dependencyGraph;
-	lemon::ListDigraph::NodeMap<std::shared_ptr<exc::NodeBase>> m_nodeMap;
+	lemon::ListDigraph::NodeMap<std::shared_ptr<NodeBase>> m_nodeMap;
 	lemon::ListDigraph m_taskGraph;
 	lemon::ListDigraph::NodeMap<GraphicsTask*> m_taskFunctionMap;
 	lemon::ListDigraph::NodeMap<lemon::ListDigraph::NodeIt> m_taskParentMap;

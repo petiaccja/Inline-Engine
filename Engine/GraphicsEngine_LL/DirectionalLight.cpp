@@ -3,29 +3,29 @@
 namespace inl::gxeng {
 
 
-DirectionalLight::DirectionalLight(mathfu::Vector3f direction, mathfu::Vector3f color
+DirectionalLight::DirectionalLight(Vec3 direction, Vec3 color
 ):
 	m_direction(direction.Normalized()),
 	m_color(color)
 {}
 
 
-void DirectionalLight::SetDirection(const mathfu::Vector3f& dir) {
+void DirectionalLight::SetDirection(const Vec3& dir) {
 	m_direction = dir.Normalized();
 }
 
 
-void DirectionalLight::SetColor(const mathfu::Vector3f& color) {
+void DirectionalLight::SetColor(const Vec3& color) {
 	m_color = color;
 }
 
 
-mathfu::Vector3f DirectionalLight::GetDirection() const {
+Vec3 DirectionalLight::GetDirection() const {
 	return m_direction;
 }
 
 
-mathfu::Vector3f DirectionalLight::GetColor() const {
+Vec3 DirectionalLight::GetColor() const {
 	return m_color;
 }
 

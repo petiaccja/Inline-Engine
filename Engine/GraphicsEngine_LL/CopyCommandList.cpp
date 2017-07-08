@@ -46,7 +46,7 @@ CopyCommandList& CopyCommandList::operator=(CopyCommandList&& rhs) {
 
 void CopyCommandList::SetResourceState(const MemoryObject& resource, gxapi::eResourceState state, unsigned subresource) {
 	if (resource.GetHeap() == eResourceHeap::CONSTANT || resource.GetHeap() == eResourceHeap::UPLOAD) {
-		throw std::invalid_argument("You must not set resource state of upload staging buffers and VOLATILE constant buffers. They are GENERIC_READ.");
+		throw InvalidArgumentException("You must not set resource state of UPLOAD staging buffers and VOLATILE CONSTANT buffers. They are GENERIC_READ.");
 	}
 
 	// Call recursively when ALL subresources are requested.
@@ -112,7 +112,7 @@ void CopyCommandList::ExpectResourceState(const MemoryObject& resource, const st
 			if (IsDebuggerPresent()) {
 				DebugBreak();
 			}
-			throw std::logic_error("You did not set resource state before using this resource!");
+			throw InvalidStateException("You did not set resource state before using this resource!");
 		}
 		else {
 			gxapi::eResourceState currentState = iter->second.lastState;
@@ -124,7 +124,7 @@ void CopyCommandList::ExpectResourceState(const MemoryObject& resource, const st
 				if (IsDebuggerPresent()) {
 					DebugBreak();
 				}
-				throw std::logic_error("You did set resource state, but to the wrong value!");
+				throw InvalidStateException("You did set resource state, but to the wrong value!");
 			}
 		}
 	}
@@ -155,15 +155,15 @@ void CopyCommandList::CopyTexture(Texture2D& dst, const Texture2D& src, SubTextu
 	gxapi::TextureCopyDesc srcDesc =
 		gxapi::TextureCopyDesc::Texture(src.GetSubresourceIndex(srcPlace.arrayIndex, srcPlace.mipLevel));
 
-	auto top = std::max(intptr_t(0), srcPlace.corner1.y());
-	auto bottom = srcPlace.corner2.y() < 0 ? src.GetHeight() : srcPlace.corner2.y();
-	auto left = std::max(intptr_t(0), srcPlace.corner1.x());
-	auto right = srcPlace.corner2.x() < 0 ? src.GetWidth() : srcPlace.corner2.x();
+	auto top = std::max(intptr_t(0), srcPlace.corner1.y);
+	auto bottom = srcPlace.corner2.y < 0 ? src.GetHeight() : srcPlace.corner2.y;
+	auto left = std::max(intptr_t(0), srcPlace.corner1.x);
+	auto right = srcPlace.corner2.x < 0 ? src.GetWidth() : srcPlace.corner2.x;
 
 	gxapi::Cube srcRegion((int)top, (int)bottom, (int)left, (int)right, 0, 1);
 
-	auto offsetX = std::max(intptr_t(0), dstPlace.corner1.x());
-	auto offsetY = std::max(intptr_t(0), dstPlace.corner1.y());
+	auto offsetX = std::max(intptr_t(0), dstPlace.corner1.x);
+	auto offsetY = std::max(intptr_t(0), dstPlace.corner1.y);
 
 	m_commandList->CopyTexture(
 		dst._GetResourcePtr(),
@@ -185,8 +185,8 @@ void CopyCommandList::CopyTexture(Texture2D& dst, const Texture2D& src, SubTextu
 
 	gxapi::TextureCopyDesc srcDesc = gxapi::TextureCopyDesc::Texture(0);
 
-	auto offsetX = std::max(intptr_t(0), dstPlace.corner1.x());
-	auto offsetY = std::max(intptr_t(0), dstPlace.corner1.y());
+	auto offsetX = std::max(intptr_t(0), dstPlace.corner1.x);
+	auto offsetY = std::max(intptr_t(0), dstPlace.corner1.y);
 
 	m_commandList->CopyTexture(
 		dst._GetResourcePtr(),
@@ -208,7 +208,7 @@ void CopyCommandList::CopyTexture(Texture2D& dst, const LinearBuffer& src, SubTe
 	m_commandList->CopyTexture(
 		dst._GetResourcePtr(),
 		dstDesc,
-		(int)dstPlace.corner1.x(), (int)dstPlace.corner1.y(), 0,
+		(int)dstPlace.corner1.x, (int)dstPlace.corner1.y, 0,
 		const_cast<gxapi::IResource*>(src._GetResourcePtr()),
 		bufferDesc
 	);

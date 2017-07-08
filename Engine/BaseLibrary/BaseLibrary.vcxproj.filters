@@ -16,6 +16,9 @@
     <Filter Include="Memory">
       <UniqueIdentifier>{6cb7db5d-87d3-441b-94cf-ee6be9df0f0e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Exception">
+      <UniqueIdentifier>{da3e121c-c6a6-414d-86eb-1c93d82eb315}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -123,6 +126,12 @@
     <ClInclude Include="MemoryLeakDetector.hpp">
       <Filter>All</Filter>
     </ClInclude>
+    <ClInclude Include="Exception\Exception.hpp">
+      <Filter>Exception</Filter>
+    </ClInclude>
+    <ClInclude Include="Exception\IOException.hpp">
+      <Filter>Exception</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">
@@ -163,6 +172,9 @@
     </ClCompile>
     <ClCompile Include="Memory\RingAllocationEngine.cpp">
       <Filter>Memory</Filter>
+    </ClCompile>
+    <ClCompile Include="Exception\Exception.cpp">
+      <Filter>Exception</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

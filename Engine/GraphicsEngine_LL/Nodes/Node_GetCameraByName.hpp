@@ -19,14 +19,14 @@ namespace inl::gxeng::nodes {
 class GetCameraByName :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<std::string>,
-	virtual public exc::OutputPortConfig<const BasicCamera*>
+	virtual public InputPortConfig<std::string>,
+	virtual public OutputPortConfig<const BasicCamera*>
 {
 public:
 	GetCameraByName() {}
 
 	void Update() override {}
-	void Notify(exc::InputPortBase* sender) override {}
+	void Notify(InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);
@@ -47,7 +47,7 @@ public:
 
 		// throw an error if scene is not found
 		if (match == nullptr) {
-			throw std::invalid_argument("[GetCameraByName] The camera called \"" + cameraName + "\" does not exist.");
+			throw InvalidArgumentException("Specified camera does not exist.", cameraName);
 		}
 
 		// set scene parameters to output ports

@@ -16,12 +16,12 @@ namespace inl::gxeng::nodes {
 class GetBackBuffer :
 	virtual public GraphicsNode,
 	public GraphicsTask,
-	public exc::InputPortConfig<>,
-	public exc::OutputPortConfig<Texture2D>
+	public InputPortConfig<>,
+	public OutputPortConfig<Texture2D>
 {
 public:
 	virtual void Update() override {}
-	virtual void Notify(exc::InputPortBase* sender) override {}
+	virtual void Notify(InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);
@@ -32,7 +32,7 @@ public:
 
 	void Setup(SetupContext& context) override {
 		if (!m_backBuffer.HasObject()) {
-			throw std::logic_error("You forgot to set the backbuffer to this node.");
+			throw InvalidStateException("You forgot to set the backbuffer to this node.");
 		}
 		GetOutput<0>().Set(m_backBuffer);
 	}

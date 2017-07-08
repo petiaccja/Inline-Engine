@@ -6,7 +6,7 @@
 #include <iostream>
 
 
-namespace exc {
+namespace inl {
 
 
 LogNode::LogNode() {
@@ -147,4 +147,4 @@ void LogNode::SetOutputStream(std::ostream* outputStream) {
 }
 
 
-} // namespace exc
+} // namespace inl

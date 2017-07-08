@@ -3,7 +3,7 @@
 #include <list>
 #include <cassert>
 
-namespace exc {
+namespace inl {
 
 
 template <typename T, typename ContainerT = std::list<T>>
@@ -246,5 +246,5 @@ typename RingBuffer<T, C>::ConstIterator cend(const RingBuffer<T, C>& buffer) {
 }
 
 
-} // namespace exc
+} // namespace inl
 

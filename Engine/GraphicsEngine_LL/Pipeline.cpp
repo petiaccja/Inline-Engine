@@ -5,6 +5,8 @@
 #include "GraphicsNodeFactory.hpp"
 #include "GraphicsNode.hpp"
 
+#include <BaseLibrary/Exception/Exception.hpp>
+
 #include <rapidjson/rapidjson.h>
 #include <cassert>
 
@@ -25,11 +27,11 @@ Pipeline::NodeIterator::NodeIterator()
 	: m_graphIt(lemon::INVALID), m_parent(nullptr)
 {}
 
-exc::NodeBase& Pipeline::NodeIterator::operator*() const {
+NodeBase& Pipeline::NodeIterator::operator*() const {
 	return *(operator->());
 }
 
-exc::NodeBase* Pipeline::NodeIterator::operator->() const {
+NodeBase* Pipeline::NodeIterator::operator->() const {
 	assert(m_parent != nullptr);
 	assert(m_parent->m_dependencyGraph.valid(m_graphIt));
 	return (m_parent->m_nodeMap[m_graphIt]).get();
@@ -101,11 +103,11 @@ Pipeline::~Pipeline() {
 
 
 void Pipeline::CreateFromDescription(const std::string& jsonDescription, GraphicsNodeFactory& factory) {
-	throw std::logic_error("not implemented yet");
+	throw NotImplementedException();
 }
 
 
-void Pipeline::CreateFromNodesList(const std::vector<std::shared_ptr<exc::NodeBase>> nodes) {
+void Pipeline::CreateFromNodesList(const std::vector<std::shared_ptr<NodeBase>> nodes) {
 	// assign pipeline nodes to graph nodes
 	for (auto pipelineNode : nodes) {
 		lemon::ListDigraph::Node graphNode = m_dependencyGraph.addNode();
@@ -126,7 +128,7 @@ void Pipeline::CreateFromNodesList(const std::vector<std::shared_ptr<exc::NodeBa
 	// note: if task graph is a DAG => dep. graph must be a DAG
 	bool isTaskGraphDAG = lemon::dag(m_taskGraph);
 	if (!isTaskGraphDAG) {
-		throw std::invalid_argument("Supplied nodes do not make a directed acyclic graph.");
+		throw InvalidArgumentException("Supplied nodes do not make a directed acyclic graph.");
 	}
 }
 
@@ -180,7 +182,7 @@ void Pipeline::CalculateTaskGraph() {
 	// Iterate over each node in dependency graph
 	for (lemon::ListDigraph::NodeIt depNode(m_dependencyGraph); depNode != lemon::INVALID; ++depNode) {
 		// Get pipeline node of this graph node
-		exc::NodeBase* pipelineNode = m_nodeMap[depNode].get();
+		NodeBase* pipelineNode = m_nodeMap[depNode].get();
 		assert(pipelineNode != nullptr); // each graph node must have a pipeline node assigned
 
 		// Merge subgraph of graphics pipeline node into expanded task graph
@@ -192,7 +194,7 @@ void Pipeline::CalculateTaskGraph() {
 			// Copy nodes
 			int numSubtasks = lemon::countNodes(subtaskNodes);
 			if (numSubtasks == 0) {
-				throw std::logic_error("Task has zero subtasks.");
+				throw InvalidArgumentException("Task has zero subtasks.");
 			}
 			lemon::ListDigraph::NodeMap<decltype(m_taskGraph)::Node> taskNodesToTaskGraphNodes(subtaskNodes); // maps Task's nodes to m_taskGraph's nodes
 			for (lemon::ListDigraph::NodeIt taskNode(subtaskNodes); taskNode != lemon::INVALID; ++taskNode) {
@@ -232,7 +234,7 @@ void Pipeline::CalculateTaskGraph() {
 				for (lemon::ListDigraph::ArcIt arc(subtaskNodes); arc != lemon::INVALID; ++arc) {
 					ss << subtaskNodes.id(subtaskNodes.source(arc)) << " -> " << subtaskNodes.id(subtaskNodes.target(arc)) << std::endl;
 				}
-				throw std::logic_error("Task graph of node has neither sources nor sinks.\n" + ss.str()); // TODO: which node, which task, which what?
+				throw InvalidArgumentException("Task graph of node has neither sources nor sinks. The graph must not contain circles.", ss.str()); // TODO: which node, which task, which what?
 			}
 			// If there are multiple sources, reduce them to one
 			if (sources.size() > 1) {
@@ -300,8 +302,8 @@ void Pipeline::CalculateDependencyGraph() {
 	// sidenote: the algorithm will not create duplicate arcs in the graph
 	for (lemon::ListDigraph::NodeIt outerIt(m_dependencyGraph); outerIt != lemon::INVALID; ++outerIt) {
 		for (auto innerIt = ++lemon::ListDigraph::NodeIt(outerIt); innerIt != lemon::INVALID; ++innerIt) {
-			exc::NodeBase* srcNode = m_nodeMap[outerIt].get();
-			exc::NodeBase* dstNode = m_nodeMap[innerIt].get();
+			NodeBase* srcNode = m_nodeMap[outerIt].get();
+			NodeBase* dstNode = m_nodeMap[innerIt].get();
 
 			// Check if there's ANY link going in ANY direction b/w above nodes
 			// FIRST direction
@@ -320,9 +322,9 @@ void Pipeline::CalculateDependencyGraph() {
 }
 
 
-bool Pipeline::IsLinked(exc::NodeBase* srcNode, exc::NodeBase* dstNode) {
+bool Pipeline::IsLinked(NodeBase* srcNode, NodeBase* dstNode) {
 	for (size_t dstIn = 0; dstIn < dstNode->GetNumInputs(); dstIn++) {
-		exc::OutputPortBase* linked = dstNode->GetInput(dstIn)->GetLink();
+		OutputPortBase* linked = dstNode->GetInput(dstIn)->GetLink();
 		for (size_t srcOut = 0; srcOut < srcNode->GetNumOutputs(); srcOut++) {
 			if (linked == srcNode->GetOutput(srcOut)) {
 				// a link from srcNode to dstNode was found!
@@ -338,7 +340,7 @@ bool Pipeline::IsLinked(exc::NodeBase* srcNode, exc::NodeBase* dstNode) {
 const lemon::ListDigraph& Pipeline::GetDependencyGraph() const {
 	return m_dependencyGraph;
 }
-const lemon::ListDigraph::NodeMap<std::shared_ptr<exc::NodeBase>>& Pipeline::GetNodeMap() const {
+const lemon::ListDigraph::NodeMap<std::shared_ptr<NodeBase>>& Pipeline::GetNodeMap() const {
 	return m_nodeMap;
 }
 

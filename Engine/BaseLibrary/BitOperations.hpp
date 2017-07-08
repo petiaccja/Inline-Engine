@@ -9,7 +9,7 @@
 #endif
 
 
-namespace exc {
+namespace inl {
 
 
 //------------------------------------------------------------------------------
@@ -147,4 +147,4 @@ inline bool BitTestAndSet(uint64_t& arg, unsigned bit) {
 
 
 
-} // namespace exc
+} // namespace inl

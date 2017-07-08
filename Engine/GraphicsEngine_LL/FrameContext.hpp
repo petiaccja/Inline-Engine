@@ -26,7 +26,7 @@ class RenderTargetView2D;
 struct FrameContext {
 	std::chrono::nanoseconds frameTime;
 	std::chrono::nanoseconds absoluteTime;
-	exc::LogStream* log = nullptr;
+	LogStream* log = nullptr;
 
 	gxapi::IGraphicsApi* gxApi = nullptr;
 	CommandAllocatorPool* commandAllocatorPool = nullptr;

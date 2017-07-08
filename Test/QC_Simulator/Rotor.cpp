@@ -41,14 +41,14 @@ Rotor::Rotor() {
 }
 
 
-void Rotor::SetRPM(mathfu::Vector4f rpm, mathfu::Vector3f& force, mathfu::Vector3f& torque) const {
-	mathfu::Vector4f lifts = {
+void Rotor::SetRPM(inl::Vec4 rpm, inl::Vec3& force, inl::Vec3& torque) const {
+	inl::Vec4 lifts = {
 		Lift(rpm[0], diameter, elevation, clift, airdensity),
 		Lift(rpm[1], diameter, elevation, clift, airdensity),
 		Lift(rpm[2], diameter, elevation, clift, airdensity),
 		Lift(rpm[3], diameter, elevation, clift, airdensity)
 	};
-	mathfu::Vector4f drags = {
+	inl::Vec4 drags = {
 		Drag(rpm[0], diameter, elevation, cdrag, airdensity),
 		Drag(rpm[1], diameter, elevation, cdrag, airdensity),
 		Drag(rpm[2], diameter, elevation, cdrag, airdensity),
@@ -65,18 +65,18 @@ void Rotor::SetRPM(mathfu::Vector4f rpm, mathfu::Vector3f& force, mathfu::Vector
 }
 
 
-void Rotor::SetTorque(mathfu::Vector3f force, mathfu::Vector3f torque, mathfu::Vector4f& rpm) const {
+void Rotor::SetTorque(inl::Vec3 force, inl::Vec3 torque, inl::Vec4& rpm) const {
 	float cl = LiftCoeff(diameter, elevation, cdrag, airdensity);
 	float cd = DragCoeff(diameter, elevation, cdrag, airdensity);
 	float c = cd / cl;
 	float a = arm/sqrt(2);
 
-	mathfu::Vector4f lifts;
+	inl::Vec4 lifts;
 	do {
-		lifts[0] = (c*(force.z() + torque.x() / a + torque.y() / a) + torque.z()) / (4 * c);
-		lifts[1] = (c*(force.z() + torque.x() / a - torque.y() / a) - torque.z()) / (4 * c);
-		lifts[2] = (c*(force.z() - torque.x() / a + torque.y() / a) - torque.z()) / (4 * c);
-		lifts[3] = (c*(force.z() - torque.x() / a - torque.y() / a) + torque.z()) / (4 * c);
+		lifts[0] = (c*(force.z + torque.x / a + torque.y / a) + torque.z) / (4 * c);
+		lifts[1] = (c*(force.z + torque.x / a - torque.y / a) - torque.z) / (4 * c);
+		lifts[2] = (c*(force.z - torque.x / a + torque.y / a) - torque.z) / (4 * c);
+		lifts[3] = (c*(force.z - torque.x / a - torque.y / a) + torque.z) / (4 * c);
 
 		// lift = cl * rpm^2 / 3600
 		// rpm^2 = lift/cl*3600
@@ -88,7 +88,7 @@ void Rotor::SetTorque(mathfu::Vector3f force, mathfu::Vector3f torque, mathfu::V
 	} while (lifts[0] <= 0 || lifts[1] <= 0 || lifts[2] <= 0 || lifts[3] <= 0
 		|| rpm[0] <= 1000 || rpm[1] <= 1000 || rpm[2] <= 1000 || rpm[3] <= 1000);
 
-	if (isnan(rpm.x()) || isnan(rpm.y()) || isnan(rpm.z()) || isnan(rpm.w())) {
+	if (isnan(rpm.x) || isnan(rpm.y) || isnan(rpm.z) || isnan(rpm.w)) {
 		__debugbreak();
 	}
 }

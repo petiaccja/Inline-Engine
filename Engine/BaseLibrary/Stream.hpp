@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <string>
 
-namespace exc {
+namespace inl {
 	
 
 class InputStream {
@@ -36,4 +36,4 @@ public:
 
 
 
-} // namespace exc
+} // namespace inl

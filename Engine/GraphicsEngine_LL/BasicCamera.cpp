@@ -31,7 +31,7 @@ const std::string & BasicCamera::GetName() const {
 
 
 // Set positional properties.
-void BasicCamera::SetPosition(mathfu::Vector3f position) {
+void BasicCamera::SetPosition(Vec3 position) {
 	m_prevPosition = m_position;
 	m_prevLookdir = m_lookdir;
 	//m_prevUpVector = m_upVector;
@@ -40,30 +40,30 @@ void BasicCamera::SetPosition(mathfu::Vector3f position) {
 		m_position = position;
 	}
 	else {
-		mathfu::Vector3f target = GetTarget();
+		Vec3 target = GetTarget();
 		m_position = position;
 		m_lookdir = target - m_position;
 		m_targetDistance = m_lookdir.Length();
 		m_lookdir.Normalize();
 	}
 }
-void BasicCamera::SetTarget(mathfu::Vector3f targetPosition) {
+void BasicCamera::SetTarget(Vec3 targetPosition) {
 	m_prevPosition = m_position;
 	m_prevLookdir = m_lookdir;
-	//m_prevUpVector = m_upVector;
 
+	//m_prevUpVector = m_upVector;
 	m_lookdir = targetPosition - m_position;
 	m_targetDistance = m_lookdir.Length();
 	m_lookdir.Normalize();
 }
-void BasicCamera::SetLookDirection(mathfu::Vector3f lookDirection) {
+void BasicCamera::SetLookDirection(Vec3 lookDirection) {
 	//m_prevPosition = m_position;
 	m_prevLookdir = m_lookdir;
 	//m_prevUpVector = m_upVector;
 
 	m_lookdir = lookDirection.Normalized();
 }
-void BasicCamera::SetUpVector(mathfu::Vector3f upVector) {
+void BasicCamera::SetUpVector(Vec3 upVector) {
 	//m_prevPosition = m_position;
 	//m_prevLookdir = m_lookdir;
 	m_prevUpVector = m_upVector;
@@ -89,19 +89,19 @@ void BasicCamera::SetFarPlane(float zOffset) {
 }
 
 // Get positional properties.
-mathfu::Vector3f BasicCamera::GetPosition() const {
+Vec3 BasicCamera::GetPosition() const {
 	return m_position;
 }
-mathfu::Vector3f BasicCamera::GetLookDirection() const {
+Vec3 BasicCamera::GetLookDirection() const {
 	return m_lookdir;
 }
-mathfu::Vector3f BasicCamera::GetTarget() const {
+Vec3 BasicCamera::GetTarget() const {
 	return m_position + m_lookdir * m_targetDistance;
 }
 float BasicCamera::GetTargetDistance() const {
 	return m_targetDistance;
 }
-mathfu::Vector3f BasicCamera::GetUpVector() const {
+Vec3 BasicCamera::GetUpVector() const {
 	return m_upVector;
 }
 

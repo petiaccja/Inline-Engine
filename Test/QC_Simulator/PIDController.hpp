@@ -1,19 +1,19 @@
 #pragma once
 
-#include <mathfu/mathfu_exc.hpp>
+#include <InlineMath.hpp>
 
 
 class PIDController {
 public:
 	PIDController();
-	void Update(mathfu::Quaternionf r, float lift, mathfu::Quaternionf q, mathfu::Vector3f w, float elapsed, mathfu::Vector3f& force, mathfu::Vector3f& torque);
-	void SetInertia(mathfu::Matrix3x3f inertia) { this->inertia = inertia; }
+	void Update(inl::Quat r, float lift, inl::Quat q, inl::Vec3 w, float elapsed, inl::Vec3& force, inl::Vec3& torque);
+	void SetInertia(inl::Mat33 inertia) { this->inertia = inertia; }
 private:
-	mathfu::Matrix3x3f inertia;
+	inl::Mat33 inertia;
 
-	mathfu::Quaternionf e; // P
-	mathfu::Quaternionf ie; // I
-	mathfu::Vector3f de; // D
+	inl::Quat e; // P
+	inl::Quat ie; // I
+	inl::Vec3 de; // D
 
-	mathfu::Vector3f Kp, Ki, Kd;
+	inl::Vec3 Kp, Ki, Kd;
 };

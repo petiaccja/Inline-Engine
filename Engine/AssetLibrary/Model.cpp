@@ -1,5 +1,7 @@
 #include "Model.hpp"
 
+#include <BaseLibrary/Exception/Exception.hpp>
+
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 #include <assimp/mesh.h>
@@ -32,11 +34,11 @@ static const aiNode* GetFirstFilledNode(const aiNode* node) {
 	return nullptr;
 }
 
-static mathfu::Matrix<float, 4, 4> GetAbsoluteTransform(const aiNode* node) {
+static Mat44 GetAbsoluteTransform(const aiNode* node) {
 	const auto& m = node->mTransformation;
 	// this constructor expects elements to be in column-major order
 	// so no pretty formatting is possible that visualizes how elemnts are in the matrix -_-
-	mathfu::Matrix<float, 4, 4> currTransform{
+	Mat44 currTransform{
 		m.a1, m.a2, m.a3, m.a4, m.b1, m.b2, m.b3, m.b4, m.c1, m.c2, m.c3, m.c4, m.d1, m.d2, m.d3, m.d4
 	};
 	if (node->mParent == nullptr) {
@@ -46,25 +48,25 @@ static mathfu::Matrix<float, 4, 4> GetAbsoluteTransform(const aiNode* node) {
 }
 
 
-mathfu::Vector4f GetAxis(AxisDir dir) {
+Vec4 GetAxis(AxisDir dir) {
 	switch (dir) {
 	case AxisDir::POS_X:
-		return mathfu::Vector4f(+1, 0, 0, 0);
+		return Vec4(+1, 0, 0, 0);
 	case AxisDir::NEG_X:
-		return mathfu::Vector4f(-1, 0, 0, 0);
+		return Vec4(-1, 0, 0, 0);
 	case AxisDir::POS_Y:
-		return mathfu::Vector4f(0, +1, 0, 0);
+		return Vec4(0, +1, 0, 0);
 	case AxisDir::NEG_Y:
-		return mathfu::Vector4f(0, -1, 0, 0);
+		return Vec4(0, -1, 0, 0);
 	case AxisDir::POS_Z:
-		return mathfu::Vector4f(0, 0, +1, 0);
+		return Vec4(0, 0, +1, 0);
 	case AxisDir::NEG_Z:
-		return mathfu::Vector4f(0, 0, -1, 0);
+		return Vec4(0, 0, -1, 0);
 	default:
 		assert(false);
 	}
 
-	return mathfu::Vector4f(0, 0, 0, 0);
+	return Vec4(0, 0, 0, 0);
 }
 
 
@@ -81,15 +83,15 @@ Model::Model(const std::string & filename) {
 
 	if (m_scene == nullptr) {
 		const std::string msg(m_importer->GetErrorString());
-		throw std::runtime_error("Could not load model \"" + filename + "\". Importer message:\n" + msg);
+		throw RuntimeException("Could not load model \"" + filename + "\".",  msg);
 	}
 
 	if (!m_scene->HasMeshes()) {
-		throw std::runtime_error("Model was loaded successfully but it does not contain any meshes!");
+		throw InvalidArgumentException("Model was loaded successfully but it does not contain any meshes!");
 	}
 
 	if (FilledNodeCount(m_scene->mRootNode) > 1) {
-		throw std::runtime_error("Model contains more than one mesh containing nodes. Only single noded models are supported at this time.");
+		throw InvalidArgumentException("Model contains more than one mesh containing nodes. Only single noded models are supported at this time.");
 	}
 	// Find the single node that contains meshes.
 	const aiNode* node = GetFirstFilledNode(m_scene->mRootNode);

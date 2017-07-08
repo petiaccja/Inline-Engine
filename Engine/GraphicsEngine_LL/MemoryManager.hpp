@@ -100,7 +100,7 @@ void MemoryManager::LockResident(IterT begin, IterT end) {
 		try {
 			m_graphicsApi->MakeResident(lowLevelTargets);
 		}
-		catch (gxapi::OutOfMemory&) {
+		catch (OutOfMemoryException&) {
 			std::vector<gxapi::IResource*> toEvict;
 			toEvict.reserve(m_evictables.size());
 			for (auto& curr : m_evictables) {

@@ -14,7 +14,7 @@ namespace inl::gxeng::nodes {
 
 struct Uniforms
 {
-	mathfu::VectorPacked<float, 4> model[4];
+	Mat44_Packed model;
 	uint32_t cascadeIDX;
 };
 
@@ -228,10 +228,10 @@ void CSM::Execute(RenderContext & context) {
 
 			ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
 
-			mathfu::Matrix4x4f model = entity->GetTransform();
+			Mat44 model = entity->GetTransform();
 
 			Uniforms uniformsCBData;
-			model.Pack(uniformsCBData.model);
+			uniformsCBData.model = model;
 
 			uniformsCBData.cascadeIDX = cascadeIdx;
 

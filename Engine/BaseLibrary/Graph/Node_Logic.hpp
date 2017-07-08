@@ -6,7 +6,7 @@
 #include <cstdint>
 
 
-namespace exc {
+namespace inl {
 
 class LogicAny
 	: public InputPortConfig<Any, Any, Any, Any, Any, Any>,
@@ -135,4 +135,4 @@ private:
 };
 
 
-} // namespace exc
+} // namespace inl

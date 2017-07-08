@@ -40,7 +40,7 @@ int TestAllocator::Run() {
 	// create a pool
 	constexpr int PoolSize = 100'000;
 
-	exc::SlabAllocatorEngine engine(1);
+	inl::SlabAllocatorEngine engine(1);
 
 	int idx = engine.Allocate();
 	engine.Deallocate(idx);

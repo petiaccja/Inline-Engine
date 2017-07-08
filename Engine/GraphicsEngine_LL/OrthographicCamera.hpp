@@ -3,7 +3,7 @@
 #include "BasicCamera.hpp"
 
 #include <string>
-#include <mathfu/mathfu_exc.hpp>
+#include <InlineMath.hpp>
 
 
 namespace inl::gxeng {
@@ -32,12 +32,9 @@ public:
 	float GetAspectRatio() const override;
 
 	// Matrices
-	mathfu::Matrix4x4f GetViewMatrixRH() const override;
-	mathfu::Matrix4x4f GetViewMatrixLH() const override;
-	mathfu::Matrix4x4f GetPrevViewMatrixRH() const override;
+	Mat44 GetViewMatrix() const override;
+	Mat44 GetProjectionMatrix() const override;
 	mathfu::Matrix4x4f GetPrevViewMatrixLH() const override;
-	mathfu::Matrix4x4f GetProjectionMatrixRH() const override;
-	mathfu::Matrix4x4f GetProjectionMatrixLH() const override;
 
 private:
 	float m_width;

@@ -18,7 +18,7 @@ PS_Input VSMain(float4 position : POSITION)
 {
 	PS_Input result;
 
-	result.position = mul(transform.t, float4(position.xy, 0, 1));
+    result.position = mul(float4(position.xy, 0, 1), transform.t);
 	result.texCoord = position.xy*0.5 + 0.5;
 
 	return result;

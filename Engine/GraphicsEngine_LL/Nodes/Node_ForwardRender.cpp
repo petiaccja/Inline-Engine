@@ -16,22 +16,22 @@ namespace inl::gxeng::nodes {
 
 struct light_data
 {
-	mathfu::VectorPacked<float, 4> diffuse_color;
-	mathfu::VectorPacked<float, 4> vs_position;
-	mathfu::VectorPacked<float, 4> attenuation_end;
+	Vec4_Packed diffuse_color;
+	Vec4_Packed vs_position;
+	Vec4_Packed attenuation_end;
 };
 
 struct Uniforms
 {
 	light_data ld[10];
-	mathfu::VectorPacked<float, 4> screen_dimensions;
-	mathfu::VectorPacked<float, 4> vs_cam_pos;
+	Vec4_Packed screen_dimensions;
+	Vec4_Packed vs_cam_pos;
 	int group_size_x, group_size_y;
 	float halfExposureFramerate, //0.5 * exposure time (% of time exposure is open -> 0.75?) * frame rate (s? or fps?)
 		  maxMotionBlurRadius; //pixels
 };
 
-static void setWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsigned groupSizeH, unsigned& dispatchW, unsigned& dispatchH)
+static void SetWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsigned groupSizeH, unsigned& dispatchW, unsigned& dispatchH)
 {
 	//set up work group sizes
 	unsigned gw = 0, gh = 0, count = 1;
@@ -314,10 +314,10 @@ void ForwardRender::Execute(RenderContext& context) {
 
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();
-	mathfu::Matrix4x4f projection = m_camera->GetProjectionMatrixRH();
+	Mat44 view = m_camera->GetViewMatrix();
+	Mat44 projection = m_camera->GetProjectionMatrix();
+	auto viewProjection = view * projection;
 	mathfu::Matrix4x4f prevView = m_camera->GetPrevViewMatrixRH();
-	auto viewProjection = projection * view;
 	auto prevViewProjection = projection * prevView;
 
 
@@ -374,10 +374,10 @@ void ForwardRender::Execute(RenderContext& context) {
 			}
 			case eMaterialShaderParamType::COLOR:
 			{
-				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 0) = ((mathfu::Vector4f)param).x();
-				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 4) = ((mathfu::Vector4f)param).y();
-				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 8) = ((mathfu::Vector4f)param).z();
-				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 12) = ((mathfu::Vector4f)param).w();
+				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 0) = ((Vec4)param).x;
+				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 4) = ((Vec4)param).y;
+				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 8) = ((Vec4)param).z;
+				*reinterpret_cast<float*>(materialConstants.data() + scenario.offsets[paramIdx] + 12) = ((Vec4)param).w;
 				break;
 			}
 			case eMaterialShaderParamType::VALUE:
@@ -397,11 +397,11 @@ void ForwardRender::Execute(RenderContext& context) {
 		// Set vertex and light constants
 		VsConstants vsConstants;
 		LightConstants lightConstants;
-		entity->GetTransform().Pack(vsConstants.m);
-		(viewProjection * entity->GetTransform()).Pack(vsConstants.mvp);
-		(view * entity->GetTransform()).Pack(vsConstants.mv);
-		view.Pack(vsConstants.v);
-		projection.Pack(vsConstants.p);
+		vsConstants.m = entity->GetTransform();
+		vsConstants.mvp = entity->GetTransform() * viewProjection;
+		vsConstants.mv = entity->GetTransform() * view;
+		vsConstants.v = view;
+		vsConstants.p = projection;
 		(prevViewProjection * entity->GetPrevTransform()).Pack(vsConstants.prevMVP);
 		mathfu::Vector4f vsLightDir = view * mathfu::Vector4f(sun->GetDirection(), 0.0f);
 		lightConstants.direction = vsLightDir.xyz().Normalized();
@@ -411,14 +411,14 @@ void ForwardRender::Execute(RenderContext& context) {
 		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 100), &lightConstants, sizeof(lightConstants));
 
 		Uniforms uniformsCBData;
-		uniformsCBData.screen_dimensions = mathfu::Vector4f(m_rtv.GetResource().GetWidth(), m_rtv.GetResource().GetHeight(), 0, 0);
-		uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrixRH() * mathfu::Vector4f(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1.0f);
-		uniformsCBData.ld[0].attenuation_end = mathfu::Vector4f(5.0f, 0, 0, 0);
-		uniformsCBData.ld[0].diffuse_color = mathfu::Vector4f(1, 1, 1, 1);
-		uniformsCBData.vs_cam_pos = m_camera->GetViewMatrixRH() * mathfu::Vector4f(m_camera->GetPosition(), 1.0f);
+		uniformsCBData.screen_dimensions = Vec4((float)m_rtv.GetResource().GetWidth(), (float)m_rtv.GetResource().GetHeight(), 0.f, 0.f);
+		uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrix() * Vec4(m_camera->GetPosition() + m_camera->GetLookDirection() * 5.f, 1.0f);
+		uniformsCBData.ld[0].attenuation_end = Vec4(5.0f, 0.f, 0.f, 0.f);
+		uniformsCBData.ld[0].diffuse_color = Vec4(1.f, 0.f, 0.f, 1.f);
+		uniformsCBData.vs_cam_pos = m_camera->GetViewMatrix() * Vec4(m_camera->GetPosition(), 1.0f);
 
 		uint32_t dispatchW, dispatchH;
-		setWorkgroupSize(m_rtv.GetResource().GetWidth(), m_rtv.GetResource().GetHeight(), 16, 16, dispatchW, dispatchH);
+		SetWorkgroupSize((unsigned)m_rtv.GetResource().GetWidth(), (unsigned)m_rtv.GetResource().GetHeight(), 16, 16, dispatchW, dispatchH);
 
 		uniformsCBData.group_size_x = dispatchW;
 		uniformsCBData.group_size_y = dispatchH;
@@ -525,7 +525,7 @@ ForwardRender::ScenarioData& ForwardRender::GetScenario(
 std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 	// there's only a single vertex format supported for now
 	if (layout.GetStreamCount() <= 0) {
-		throw std::invalid_argument("Meshes must have a single interleaved buffer.");
+		throw InvalidArgumentException("Meshes must have a single interleaved buffer.");
 	}
 
 	auto& elements = layout[0];
@@ -534,7 +534,7 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		|| elements[1].semantic != eVertexElementSemantic::NORMAL
 		|| elements[2].semantic != eVertexElementSemantic::TEX_COORD)
 	{
-		throw std::invalid_argument("Mesh must have 3 attributes: position, normal, texcoord.");
+		throw InvalidArgumentException("Mesh must have 3 attributes: position, normal, texcoord.");
 	}
 
 	std::string vertexShader =
@@ -565,7 +565,7 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"{\n"
 		"	PS_Input result;\n"
 
-		"	float3 viewNormal = mul(vsConstants.MV, float4(normal.xyz, 0.0)).xyz;\n"
+		"	float3 viewNormal = mul(normal, (float3x3)vsConstants.M);\n"
 
 		"float4x4 light_mvp;\n"
 		"float cascade = 0;\n"
@@ -574,12 +574,12 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"	light_mvp[d] = lightMVPTex.Load(int3(cascade * 4 + d, 0, 0));\n"
 		"}\n"
 
-		"	result.position = mul(vsConstants.MVP, position);\n"
+		"	result.position = mul(position, vsConstants.MVP);\n"
 		"	result.prevPosition = mul(vsConstants.prevMVP, position);\n"
 		"	result.currPosition = result.position;\n"
 		//"	result.position = mul(mul(light_mvp, vsConstants.MV), position);\n"
 		//"	result.position = mul(mul(vsConstants.P, mul(light_mvp, vsConstants.M)), position);\n"
-		"	result.vsPosition = mul(vsConstants.MV, position);\n"
+		"	result.vsPosition = mul(position, vsConstants.MV);\n"
 		"	result.normal = viewNormal;\n"
 		"	result.texCoord = texCoord.xy;\n"
 		"	result.wsNormal = normal.xyz;\n"

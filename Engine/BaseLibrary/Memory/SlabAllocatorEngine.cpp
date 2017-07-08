@@ -4,7 +4,7 @@
 #include <cassert>
 
 
-namespace exc {
+namespace inl {
 
 SlabAllocatorEngine::SlabAllocatorEngine() : m_poolSize(0), m_blocks(), m_first(nullptr) {
 
@@ -164,4 +164,4 @@ void SlabAllocatorEngine::Reset() {
 }
 
 
-} // namespace exc
+} // namespace inl

@@ -33,25 +33,15 @@ float PerspectiveCamera::GetAspectRatio() const {
 
 
 // Matrices
-mathfu::Matrix4x4f PerspectiveCamera::GetViewMatrixRH() const {
-	return mathfu::Matrix4x4f::LookAt(m_position + m_lookdir, m_position, m_upVector, +1.0f);
+Mat44 PerspectiveCamera::GetViewMatrix() const {
+	return Mat44::LookAt(m_position, m_position + m_lookdir, m_upVector, true, false, false);
 }
-mathfu::Matrix4x4f PerspectiveCamera::GetViewMatrixLH() const {
-	return mathfu::Matrix4x4f::LookAt(m_position + m_lookdir, m_position, m_upVector, -1.0f);
-}
-
-mathfu::Matrix4x4f PerspectiveCamera::GetPrevViewMatrixRH() const {
-	return mathfu::Matrix4x4f::LookAt(m_prevPosition + m_prevLookdir, m_prevPosition, m_prevUpVector, +1.0f);
+Mat44 PerspectiveCamera::GetProjectionMatrix() const {
+	return Mat44::Perspective(m_fovH, m_fovH / m_fovV, m_nearPlane, m_farPlane, 0, 1);
+	//return Mat44::Orthographic({-10, -10, 0}, {10, 10, 100}, 0, 1);
 }
 mathfu::Matrix4x4f PerspectiveCamera::GetPrevViewMatrixLH() const {
 	return mathfu::Matrix4x4f::LookAt(m_prevPosition + m_prevLookdir, m_prevPosition, m_prevUpVector, -1.0f);
-}
-
-mathfu::Matrix4x4f PerspectiveCamera::GetProjectionMatrixRH() const {
-	return mathfu::Matrix4x4f::Perspective(m_fovV, m_fovH / m_fovV, m_nearPlane, m_farPlane, +1.0f);
-}
-mathfu::Matrix4x4f PerspectiveCamera::GetProjectionMatrixLH() const {
-	return mathfu::Matrix4x4f::Perspective(m_fovV, m_fovH / m_fovV, m_nearPlane, m_farPlane, -1.0f);
 }
 
 

@@ -18,14 +18,14 @@ namespace inl::gxeng::nodes {
 class LightCulling :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<Texture2D, const BasicCamera*>,// const EntityCollection<PointLight>*>,
-	virtual public exc::OutputPortConfig<Texture2D>
+	virtual public InputPortConfig<Texture2D, const BasicCamera*>,// const EntityCollection<PointLight>*>,
+	virtual public OutputPortConfig<Texture2D>
 {
 public:
 	LightCulling();
 
 	void Update() override {}
-	void Notify(exc::InputPortBase* sender) override {}
+	void Notify(InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override;
 	void Reset() override;

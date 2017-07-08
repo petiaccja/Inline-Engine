@@ -2,7 +2,7 @@
 
 #include <type_traits>
 
-namespace exc {
+namespace inl {
 
 
 template<typename ...AnyT>
@@ -15,4 +15,4 @@ template<typename HeadT, typename ...TailT>
 struct all<HeadT, TailT...> : public std::integral_constant<bool, HeadT::value && all<TailT...>::value> {};
 
 
-} // namespace exc
+} // namespace inl

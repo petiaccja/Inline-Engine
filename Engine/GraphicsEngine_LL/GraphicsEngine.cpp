@@ -98,13 +98,15 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_shaderManager.AddSourceDirectory("../../Engine/GraphicsEngine_LL/Materials");
 	m_shaderManager.AddSourceDirectory("./Shaders");
 	m_shaderManager.AddSourceDirectory("./Materials");
+	gxapi::eShaderCompileFlags shaderFlags;
+	shaderFlags += gxapi::eShaderCompileFlags::ROW_MAJOR_MATRICES;
 #ifdef NDEBUG
-	m_shaderManager.SetShaderCompileFlags(gxapi::eShaderCompileFlags::OPTIMIZATION_HIGH);
+	shaderFlags += gxapi::eShaderCompileFlags::OPTIMIZATION_HIGH;
 #else
-	gxapi::eShaderCompileFlags flags = gxapi::eShaderCompileFlags::NO_OPTIMIZATION;
-	flags += gxapi::eShaderCompileFlags::DEBUG;
-	m_shaderManager.SetShaderCompileFlags(flags);
+	shaderFlags += gxapi::eShaderCompileFlags::NO_OPTIMIZATION;
+	shaderFlags += gxapi::eShaderCompileFlags::DEBUG;
 #endif // NDEBUG
+	m_shaderManager.SetShaderCompileFlags(shaderFlags);
 
 
 	// Do more stuff...
@@ -123,6 +125,7 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	// DELETE THIS
 	m_pipelineEventPrinter.SetLog(&m_logStreamPipeline);
 	m_pipelineEventDispatcher += &m_pipelineEventPrinter;
+
 
 
 	// Begin awaiting frame #0's Update()
@@ -338,7 +341,7 @@ OverlayEntity* GraphicsEngine::CreateOverlayEntity() {
 }
 
 
-bool GraphicsEngine::SetEnvVariable(std::string name, exc::Any obj) {
+bool GraphicsEngine::SetEnvVariable(std::string name, Any obj) {
 	auto res = m_envVariables.insert_or_assign(std::move(name), std::move(obj));
 	return res.second;
 }
@@ -347,13 +350,13 @@ bool GraphicsEngine::EnvVariableExists(const std::string& name) {
 	return m_envVariables.count(name) > 0;
 }
 
-const exc::Any& GraphicsEngine::GetEnvVariable(const std::string& name) {
+const Any& GraphicsEngine::GetEnvVariable(const std::string& name) {
 	auto it = m_envVariables.find(name);
 	if (it != m_envVariables.end()) {
 		return it->second;
 	}
 	else {
-		throw std::invalid_argument("Environment variable does not exist.");
+		throw InvalidArgumentException("Environment variable does not exist.");
 	}
 }
 
@@ -580,9 +583,9 @@ void GraphicsEngine::CreatePipeline() {
 
 	//createWorldRenderTransform->GetInput<0>().Set(800);
 	//createWorldRenderTransform->GetInput<1>().Set(600);
-	//createWorldRenderTransform->GetInput<2>().Set(mathfu::Vector2f(0.f, 0.f));
+	//createWorldRenderTransform->GetInput<2>().Set(Vec2(0.f, 0.f));
 	//createWorldRenderTransform->GetInput<3>().Set(0);
-	//createWorldRenderTransform->GetInput<4>().Set(mathfu::Vector2f(800.f, 600.f));
+	//createWorldRenderTransform->GetInput<4>().Set(Vec2(800.f, 600.f));
 
 	guiRender->GetInput<0>().Link(getBackBuffer->GetOutput(0));
 	guiRender->GetInput<1>().Link(getGuiScene->GetOutput(1));
@@ -603,7 +606,7 @@ void GraphicsEngine::CreatePipeline() {
 	alphaBlend->GetInput<0>().Link(guiRender->GetOutput(0));
 	alphaBlend->GetInput<1>().Link(debugDraw->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
-	//alphaBlend->GetInput<3>().Set(mathfu::Matrix4x4f::FromScaleVector(mathfu::Vector3f(.5f, 1.f, 1.f)));
+	//alphaBlend->GetInput<3>().Set(Mat44::FromScaleVector(Vec3(.5f, 1.f, 1.f)));
 	alphaBlend->GetInput<3>().Link(createWorldRenderTransform->GetOutput(0));
 
 	m_graphicsNodes = {
@@ -665,7 +668,7 @@ void GraphicsEngine::CreatePipeline() {
 	};
 
 
-	std::vector<std::shared_ptr<exc::NodeBase>> nodeList;
+	std::vector<std::shared_ptr<NodeBase>> nodeList;
 	nodeList.reserve(m_graphicsNodes.size());
 	for (auto curr : m_graphicsNodes) {
 		nodeList.push_back(curr);
@@ -690,7 +693,7 @@ void GraphicsEngine::CreatePipeline() {
 std::vector<GraphicsNode*> GraphicsEngine::SelectSpecialNodes(Pipeline& pipeline) {
 	std::vector<GraphicsNode*> specialNodes;
 
-	for (exc::NodeBase& node : pipeline) {
+	for (NodeBase& node : pipeline) {
 		// Pipeline disallows linking of its nodes, that's why it only returns const pointers.
 		// We are not changing linking configuration here, so const_cast is justified.
 		if (nodes::GetSceneByName* ptr = dynamic_cast<nodes::GetSceneByName*>(&node)) {
@@ -799,16 +802,16 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 	std::stringstream dot; // graphviz dot file
 
 	struct PortMap {
-		const exc::NodeBase* parent;
+		const NodeBase* parent;
 		int portIndex;
 	};
 
-	std::map<const exc::InputPortBase*, PortMap> inputParents;
-	std::map<const exc::OutputPortBase*, PortMap> outputParents;
-	std::map<const exc::NodeBase*, int> nodeIndexMap;
+	std::map<const InputPortBase*, PortMap> inputParents;
+	std::map<const OutputPortBase*, PortMap> outputParents;
+	std::map<const NodeBase*, int> nodeIndexMap;
 
 	// Fill node map and parent maps
-	for (const exc::NodeBase& node : pipeline) {
+	for (const NodeBase& node : pipeline) {
 		int nodeIndex = nodeIndexMap.size();
 		nodeIndexMap.insert({ &node, nodeIndex });
 
@@ -835,7 +838,7 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 		// Inputs
 		dot << "{";
 		for (int i = 0; i < v.first->GetNumInputs(); ++i) {
-			const exc::InputPortBase* port = v.first->GetInput(i);
+			const InputPortBase* port = v.first->GetInput(i);
 			dot << "<in" << i << "> ";
 			dot << TidyTypeName(port->GetType().name());
 			if (i < (int)v.first->GetNumInputs() - 1) {
@@ -846,7 +849,7 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 		// Outputs
 		dot << "{";
 		for (int i = 0; i < v.first->GetNumOutputs(); ++i) {
-			const exc::OutputPortBase* port = v.first->GetOutput(i);
+			const OutputPortBase* port = v.first->GetOutput(i);
 			dot << "<out" << i << "> ";
 			dot << TidyTypeName(port->GetType().name());
 			if (i < (int)v.first->GetNumOutputs() - 1) {
@@ -864,8 +867,8 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 	for (const auto& v : nodeIndexMap) {
 		// Inputs
 		for (int i = 0; i < v.first->GetNumInputs(); ++i) {
-			const exc::InputPortBase* target = v.first->GetInput(i);
-			exc::OutputPortBase* source = target->GetLink();
+			const InputPortBase* target = v.first->GetInput(i);
+			OutputPortBase* source = target->GetLink();
 			if (source && outputParents.count(source) > 0) {
 				auto srcNode = outputParents[source];
 				auto tarNode = inputParents[target];
@@ -885,7 +888,7 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 
 	// Write ranks
 	/*
-	std::map<exc::NodeBase*, int> nodeRankMap;
+	std::map<NodeBase*, int> nodeRankMap;
 	lemon::Bfs<lemon::ListDigraph> bfs{ pipeline.GetDependencyGraph() };
 	bfs.init();
 	for (lemon::ListDigraph::NodeIt it(pipeline.GetDependencyGraph()); it != lemon::INVALID; ++it) {
@@ -901,7 +904,7 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 		}
 	}
 
-	std::vector<std::pair<exc::NodeBase*, int>> nodeRanks;
+	std::vector<std::pair<NodeBase*, int>> nodeRanks;
 	for (auto& v : nodeRankMap) {
 		nodeRanks.push_back({ v.first, v.second });
 	}

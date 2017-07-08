@@ -4,7 +4,7 @@
 #include "../Singleton.hpp"
 
 
-namespace exc {
+namespace inl {
 
 /// <summary> 
 /// System-wide logging facility.

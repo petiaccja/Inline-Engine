@@ -5,7 +5,7 @@
 #include <mathfu/quaternion.h>
 #include <mathfu/matrix_4x4.h>
 
-#include <mathfu/mathfu_exc.hpp>
+#include <InlineMath.hpp>
 
 #include <variant>
 
@@ -31,29 +31,29 @@ public:
 
 	SurfaceType GetSurfaceType() const;
 
-	void SetColor(mathfu::Vector4f color);
-	mathfu::Vector4f GetColor() const;
+	void SetColor(Vec4 color);
+	Vec4 GetColor() const;
 	void SetTexture(Image* texture);
 	Image* GetTexture() const;
 
-	void SetPosition(mathfu::Vector<float, 2> pos);
+	void SetPosition(Vec2 pos);
 	void SetRotation(float rotation);
-	void SetScale(mathfu::Vector<float, 2> scale);
+	void SetScale(Vec2 scale);
 
-	mathfu::Vector<float, 2> GetPosition() const;
-	mathfu::Vector<float, 2> GetScale() const;
+	Vec2 GetPosition() const;
+	Vec2 GetScale() const;
 	float GetRotation() const;
 
-	mathfu::Matrix<float, 4, 4> GetTransform() const;
+	Mat44 GetTransform() const;
 
 private:
 	Mesh* m_mesh;
 
 	bool m_visible;
-	std::variant<Image*, mathfu::Vector4f> m_color;
+	std::variant<Image*, Vec4> m_color;
 
-	mathfu::Vector<float, 2> m_position;
-	mathfu::Vector<float, 2> m_scale;
+	Vec2 m_position;
+	Vec2 m_scale;
 	float m_rotation;
 };
 

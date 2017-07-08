@@ -31,7 +31,7 @@ namespace gxapi_dx12 {
 
 class D3DStreamInclude : public ID3DInclude {
 public:
-	D3DStreamInclude(const std::unordered_map<std::string, exc::Stream*>& streams) : streams(streams) {}
+	D3DStreamInclude(const std::unordered_map<std::string, Stream*>& streams) : streams(streams) {}
 
 	HRESULT __stdcall Open(D3D_INCLUDE_TYPE IncludeType,
 						   LPCSTR pFileName,
@@ -45,9 +45,7 @@ public:
 				return E_FAIL;
 			}
 
-			exc::Stream& stream = *it->second;
-
-
+			Stream& stream = *it->second;
 		}
 		catch (std::exception ex) {
 
@@ -59,7 +57,7 @@ public:
 
 	}
 private:
-	const std::unordered_map<std::string, exc::Stream*>& streams;
+	const std::unordered_map<std::string, Stream*>& streams;
 };
 
 
@@ -67,7 +65,7 @@ GxapiManager::GxapiManager() {
 	// create a dxgi factory
 	if (FAILED(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&m_factory)))) {
 		// it is not supposed to fail unless you call it from a dll main
-		throw Exception("Are you calling this from a DllMain...? See, that's the problem.");
+		throw InvalidCallException("Are you calling this from a DllMain...? See, that's the problem.");
 	}
 
 	// Enable debug layer
@@ -155,16 +153,16 @@ ISwapChain* GxapiManager::CreateSwapChain(SwapChainDesc desc, ICommandQueue* flu
 		case S_OK:
 			break;
 		case E_OUTOFMEMORY:
-			throw OutOfMemory("Not enough memory for swapchain.");
+			throw OutOfMemoryException("Not enough memory for swapchain.");
 		case DXGI_STATUS_OCCLUDED:
-			throw Exception("Full screen mode not available.");
+			throw RuntimeException("Full screen mode not available.");
 		default:
-			throw Exception("Unknown error.");
+			throw Exception();
 	}
 
 	ComPtr<IDXGISwapChain3> swapChain3;
 	if (FAILED(swapChain.As(&swapChain3))) {
-		throw Exception("Could not make IDXGISwapChain3 from IDXGISwapChain.");
+		throw RuntimeException("Could not make IDXGISwapChain3 from IDXGISwapChain.");
 	}
 
 	return new SwapChain(swapChain3);
@@ -176,11 +174,11 @@ IGraphicsApi* GxapiManager::CreateGraphicsApi(unsigned adapterId) {
 	ComPtr<IDXGIAdapter1> adapter;
 	if (adapterId == m_numHardwareAdapters) {
 		if (FAILED(m_factory->EnumWarpAdapter(IID_PPV_ARGS(&adapter)))) {
-			throw InvalidArgument("Could not acquire WARP adapter.");
+			throw InvalidArgumentException("Could not acquire WARP adapter.");
 		}
 	}
 	else if (DXGI_ERROR_NOT_FOUND == m_factory->EnumAdapters1(adapterId, &adapter)) {
-		throw OutOfRange("This adapter does not exist. Dumbfuck...");
+		throw OutOfRangeException("This adapter does not exist. Dumbfuck...");
 	}
 
 
@@ -190,7 +188,7 @@ IGraphicsApi* GxapiManager::CreateGraphicsApi(unsigned adapterId) {
 		case S_OK:
 			break;
 		default:
-			throw Exception("Failed to create D3D12 device.");
+			throw RuntimeException("Failed to create D3D12 device.");
 	}
 
 	return new GraphicsApi(device);
@@ -244,7 +242,7 @@ static std::vector<Macro> ParseMacros(const char* macros) {
 			if (state == NAME)
 				state = VALUE;
 			else
-				throw gxapi::InvalidArgument("invalid = sign at character " + std::to_string(i));
+				throw InvalidArgumentException("invalid = sign at character " + std::to_string(i));
 		}
 		else if (isspace(c) && !quote) {
 			// finish off current record on space
@@ -362,8 +360,7 @@ gxapi::ShaderProgramBinary GxapiManager::CompileShader(
 
 			errorStr = std::regex_replace(errorStr, std::regex(R"([[:alnum:]@/_\-\:\\]+(\([0-9\-,]+\):))"), "\\1", std::regex_constants::format_sed);
 
-			ShaderCompilationError ex(std::string("Shader compilation failed:\n") + errorStr);
-			throw ex;
+			throw ShaderCompilationError("Shader compilation failed.", errorStr);
 		}
 		throw ShaderCompilationError("Failed to compile that crap, but did not get error msg.");
 	}
@@ -451,7 +448,7 @@ gxapi::ShaderProgramBinary GxapiManager::ConvertShaderOutput(HRESULT hr, ID3DBlo
 		if (code) {
 			code->Release();
 		}
-		throw gxapi::ShaderCompilationError("Error while compiling shader:\n" + errorMsg);
+		throw gxapi::ShaderCompilationError("Error while compiling shader.", errorMsg);
 	}
 
 	return shaderOut;

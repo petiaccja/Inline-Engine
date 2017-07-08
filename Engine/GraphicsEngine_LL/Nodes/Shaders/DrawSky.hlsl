@@ -28,7 +28,7 @@ PS_Input VSMain(float3 position : POSITION)
 	PS_Input result;
 
 	result.position = float4(position, 1);
-	result.worldPos = mul(cam.invViewProj, float4(position, 1));
+    result.worldPos = mul(float4(position, 1), cam.invViewProj);
 	result.worldPos /= result.worldPos.w;
 
 	return result;

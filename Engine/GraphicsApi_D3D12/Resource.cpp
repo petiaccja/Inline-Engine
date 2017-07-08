@@ -15,7 +15,11 @@
 namespace inl {
 namespace gxapi_dx12 {
 
-Resource::Resource(ComPtr<ID3D12Resource>& native)
+Resource::Resource(ComPtr<ID3D12Resource>& native, std::nullptr_t) : Resource(native, ComPtr<ID3D12Device>(nullptr))
+{}
+
+
+Resource::Resource(ComPtr<ID3D12Resource>& native, ComPtr<ID3D12Device> device)
 	: m_native{native}
 {
 	auto desc = GetDesc();
@@ -32,12 +36,15 @@ Resource::Resource(ComPtr<ID3D12Resource>& native)
 	if (desc.type == gxapi::eResourceType::BUFFER) {
 		m_numTexturePlanes = 1;
 	}
-	else {
+	else if (device.Get() != nullptr) {
 		DXGI_FORMAT fmt = native_cast(desc.textureDesc.format);
-		ComPtr<ID3D12Device1> device;
-		HRESULT hr = m_native->GetDevice(IID_PPV_ARGS(&device));
-		assert(SUCCEEDED(hr));
+		//ComPtr<ID3D12Device1> device;
+		//HRESULT hr = m_native->GetDevice(IID_PPV_ARGS(&device));
+		//assert(SUCCEEDED(hr));
 		m_numTexturePlanes = D3D12GetFormatPlaneCount(device.Get(), fmt);
+	}
+	else {
+		m_numTexturePlanes = 1;
 	}
 
 	// calculate number of array levels

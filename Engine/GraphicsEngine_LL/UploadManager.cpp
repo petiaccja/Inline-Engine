@@ -1,6 +1,7 @@
 #include "UploadManager.hpp"
 
 #include <GraphicsApi_LL/Common.hpp>
+#include <BaseLibrary/Exception/Exception.hpp>
 
 #include <cassert>
 #include <sstream>
@@ -25,7 +26,7 @@ UploadManager::UploadManager(gxapi::IGraphicsApi* graphicsApi) :
 
 void UploadManager::Upload(const LinearBuffer& target, size_t offset, const void* data, size_t size) {
 	if (target.GetSize() < (offset + size)) {
-		throw inl::gxapi::InvalidArgument("Target buffer is not large enough for the uploaded data to fit.", "target");
+		throw InvalidArgumentException("Target buffer is not large enough for the uploaded data to fit.", "target");
 	}
 
 	MemoryObjDesc uploadObjDesc(
@@ -84,7 +85,7 @@ void UploadManager::Upload(
 	size_t bytesPerRow
 ) {
 	if (target.GetWidth() < (offsetX + width) || target.GetHeight() < (offsetY + height)) {
-		throw inl::gxapi::InvalidArgument("Uploaded data does not fit inside target texture. (Uploaded size or offset is too large)", "target");
+		throw InvalidArgumentException("Uploaded data does not fit inside target texture. (Uploaded size or offset is too large)", "target");
 	}
 
 	auto pixelSize = gxapi::GetFormatSizeInBytes(format);

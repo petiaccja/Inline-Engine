@@ -64,12 +64,11 @@ camera lookat_func(float3 eye, float3 lookat, float3 up)
 
 float4x4 create_identity()
 {
-	float4x4 r;
-	r[0] = float4(1, 0, 0, 0);
-	r[1] = float4(0, 1, 0, 0);
-	r[2] = float4(0, 0, 1, 0);
-	r[3] = float4(0, 0, 0, 1);
-	return r;
+	return float4x4(
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1);
 }
 
 float4x4 ortographic(float left, float right, float bottom, float top, float near, float far)
@@ -77,30 +76,31 @@ float4x4 ortographic(float left, float right, float bottom, float top, float nea
 	float4x4 r = create_identity();
 
 	// Left handed ortho projection, output interval min [-1, -1, 0] max [1, 1, 1]
-	//2 / w  0    0           0
-	//0    2 / h  0           0
-	//0    0    1 / (zf - zn)   0
-	//0    0    zn / (zn - zf)  1
+	//2 / w     0       0               0
+	//0         2 / h   0               0
+	//0         0       1 / (zf - zn)   zn / (zn - zf)
+	//0         0       0               1
 
 	float width = right - left;
 	float height = top - bottom;
 
-	r[0].x = 2.0 / width;
-	r[1].y = 2.0 / height;
-	r[2].z = 1.0 / (far - near);
-	r[2].w = near / (near - far);	
+	r[0, 0] = 2.0 / width;
+	r[1, 1] = 2.0 / height;
+	r[2, 2] = 1.0 / (far - near);
+	r[2, 3] = near / (near - far);	
 
-	r[3].w = 1.0;
+	r[3, 3] = 1.0;
 
 	return r;
 }
 
 float4x4 create_translation(float3 vec)
 {
-	return float4x4(1, 0, 0, vec.x,
-		0, 1, 0, vec.y,
-		0, 0, 1, vec.z,
-		0, 0, 0, 1);
+	return float4x4(
+        1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		vec.x, vec.y, vec.z, 1);
 }
 
 float4x4 get_camera_matrix(camera c)

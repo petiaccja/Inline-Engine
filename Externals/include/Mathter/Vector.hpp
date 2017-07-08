@@ -34,6 +34,7 @@
 #include <iostream>
 #include <array>
 #include <cstdint>
+#include <algorithm>
 
 #include "Simd.hpp"
 
@@ -45,17 +46,14 @@ namespace mathter {
 //------------------------------------------------------------------------------
 
 // Vector
-
-template <class T, int Dim, bool Packed = false>
+template <class T, int Dim, bool Packed>
 class Vector;
 
 // Swizzle
 template <class T, int... Indices>
 class Swizzle;
 
-
 // Matrix
-
 enum class eMatrixOrder {
 	PRECEDE_VECTOR,
 	FOLLOW_VECTOR,
@@ -66,13 +64,12 @@ enum class eMatrixLayout {
 	COLUMN_MAJOR,
 };
 
-
-template <class T, class U>
-using MatMulElemT = decltype(T() * U() + T() + U());
-
-template <class T, int Columns, int Rows, eMatrixOrder Order = eMatrixOrder::FOLLOW_VECTOR, eMatrixLayout Layout = eMatrixLayout::ROW_MAJOR, bool Packed = false>
+template <class T, int Columns, int Rows, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
 class Matrix;
 
+// Quaternion
+template <class T, bool Packed>
+class Quaternion;
 
 
 //------------------------------------------------------------------------------
@@ -172,9 +169,23 @@ struct NotMatrix {
 	static constexpr bool value = !IsMatrix<T>::value;
 };
 
+template <class Arg>
+struct IsQuaternion {
+	static constexpr bool value = false;
+};
+template <class T, bool Packed>
+struct IsQuaternion<Quaternion<T, Packed>> {
+	static constexpr bool value = true;
+};
+template <class Arg>
+struct NotQuaternion {
+	static constexpr bool value = !IsQuaternion<Arg>::value;
+};
+
+
 template <class T>
 struct IsScalar {
-	static constexpr bool value = !IsMatrix<T>::value && !IsVector<T>::value && !IsSwizzle<T>::value;
+	static constexpr bool value = !IsMatrix<T>::value && !IsVector<T>::value && !IsSwizzle<T>::value && !IsQuaternion<T>::value;
 };
 
 // Dimension of an argument (add dynamically sized vectors later)
@@ -226,14 +237,21 @@ bool AlmostEqual(T d1, T d2) {
 // Check if base class's pointer equals that of derived when static_casted
 template <class Base, class Derived>
 class BasePtrEquals {
+#if _MSC_VER > 1910
 	static Derived instance;
 	static constexpr void* base = static_cast<void*>(static_cast<Base*>(&instance));
 public:
 	static constexpr bool value = base == static_cast<void*>(&instance);
+#else
+public:
+	static constexpr bool value = true;
+#endif
 };
+
+#if _MSC_VER > 1910
 template <class Base, class Derived>
 Derived BasePtrEquals<Base, Derived>::instance;
-
+#endif
 
 } // namespace impl
 
@@ -271,7 +289,7 @@ public:
 
 	template <bool Packed = false>
 	const auto ToVector() const {
-		return Vector<T, sizeof...(Indices), Packed>(*this);
+		return Vector<T, Dim, Packed>(*this);
 	}
 protected:
 	template <int... Rest, class = std::enable_if<sizeof...(Rest)==0>::type>
@@ -626,7 +644,7 @@ public:
 // General Vector class - no specializations needed
 //------------------------------------------------------------------------------
 
-template <class T, int Dim, bool Packed>
+template <class T, int Dim, bool Packed = false>
 class MATHTER_EBCO Vector
 	: public VectorSpecialOps<T, Dim, Packed>,
 	public VectorData<T, Dim, Packed>
@@ -645,10 +663,10 @@ class MATHTER_EBCO Vector
 public:
 	static void DumpLayout(std::ostream& os) {
 		Vector* ptr = reinterpret_cast<Vector*>(1000);
-		os << "VectorData:       " << (intptr_t)static_cast<VectorData<float, 4, false>*>(ptr) - 1000 << " -> " << sizeof(VectorData<float, 4, false>) << endl;
-		os << "VectorOps:        " << (intptr_t)static_cast<VectorOps<float, 4, false>*>(ptr) - 1000 << " -> " << sizeof(VectorOps<float, 4, false>) << endl;
-		os << "VectorSpecialOps: " << (intptr_t)static_cast<VectorSpecialOps<float, 4, false>*>(ptr) - 1000 << " -> " << sizeof(VectorSpecialOps<float, 4, false>) << endl;
-		os << "Vector:           " << (intptr_t)static_cast<Vector<float, 4, false>*>(ptr) - 1000 << " -> " << sizeof(Vector<float, 4, false>) << endl;
+		os << "VectorData:       " << (intptr_t)static_cast<VectorData<T, 4, false>*>(ptr) - 1000 << " -> " << sizeof(VectorData<T, 4, false>) << endl;
+		os << "VectorOps:        " << (intptr_t)static_cast<VectorOps<T, 4, false>*>(ptr) - 1000 << " -> " << sizeof(VectorOps<T, 4, false>) << endl;
+		os << "VectorSpecialOps: " << (intptr_t)static_cast<VectorSpecialOps<T, 4, false>*>(ptr) - 1000 << " -> " << sizeof(VectorSpecialOps<T, 4, false>) << endl;
+		os << "Vector:           " << (intptr_t)static_cast<Vector<T, 4, false>*>(ptr) - 1000 << " -> " << sizeof(Vector<T, 4, false>) << endl;
 	}
 
 	//--------------------------------------------
@@ -891,7 +909,7 @@ public:
 	inline Vector operator+(T rhs) const { return Vector(*this) += rhs; }
 	inline Vector operator-(T rhs) const { return Vector(*this) -= rhs; }
 
-	static inline Vector MultiplyAdd(Vector a, Vector b, Vector c) {
+	static inline Vector MultiplyAdd(const Vector& a, const Vector& b, const Vector& c) {
 		return fma(a, b, c);
 	}
 
@@ -911,13 +929,18 @@ public:
 		return v;
 	}
 
+	bool IsNormalized() const {
+		T n = LengthSquared();
+		return T(0.9999) <= n && n <= T(1.0001);
+	}
+
 
 	static T Dot(const Vector& lhs, const Vector& rhs) {
 		return dot(lhs, rhs);
 	}
 
-	template <class U, typename std::enable_if<!std::is_same<T, U>::value, int>::type = 0>
-	static auto Dot(const Vector& lhs, const Vector<U, Dim>& rhs) {
+	template <class T2, bool Packed2, typename std::enable_if<!std::is_same<T, T2>::value, int>::type = 0>
+	static auto Dot(const Vector& lhs, const Vector<T2, Dim, Packed2>& rhs) {
 		auto s = lhs.data[0] * rhs.data[0];
 		for (int i = 1; i < Dim; ++i) {
 			s = lhs.data[i] * rhs.data[i] + s;
@@ -931,6 +954,19 @@ public:
 
 	T Length() const {
 		return sqrt(LengthSquared());
+	}
+
+	static Vector Min(const Vector& lhs, const Vector& rhs) {
+		Vector res;
+		for (int i = 0; i < Dimension(); ++i) {
+			res[i] = std::min(lhs[i], rhs[i]);
+		}
+	}
+	static Vector Max(const Vector& lhs, const Vector& rhs) {
+		Vector res;
+		for (int i = 0; i < Dimension(); ++i) {
+			res[i] = std::max(lhs[i], rhs[i]);
+		}
 	}
 
 protected:
@@ -956,7 +992,7 @@ protected:
 	// Scalar concat assign
 	template <class Head, class... Scalars, typename std::enable_if<impl::All<impl::IsScalar, Head, Scalars...>::value, int>::type = 0>
 	void Assign(int idx, Head head, Scalars... scalars) {
-		data[idx] = head;
+		data[idx] = (T)head;
 		Assign(idx + 1, scalars...);
 	}
 
@@ -1042,6 +1078,14 @@ auto Normalized(const Vector<T, Dim, Packed>& arg) {
 	return arg.Normalized();
 }
 
+template <class T, int Dim, int Packed>
+auto Min(const Vector<T, Dim, Packed>& lhs, const Vector<T, Dim, Packed>& rhs) {
+	return Vector<T, Dim, Packed>::Min(lhs, rhs);
+}
+template <class T, int Dim, int Packed>
+auto Max(const Vector<T, Dim, Packed>& lhs, const Vector<T, Dim, Packed>& rhs) {
+	return Vector<T, Dim, Packed>::Max(lhs, rhs);
+}
 
 
 //------------------------------------------------------------------------------
@@ -1197,8 +1241,8 @@ Swizzle<T, Indices...>& Swizzle<T, Indices...>::operator=(const Vector<T, sizeof
 // IO
 //------------------------------------------------------------------------------
 
-template <class T, int Dim>
-std::ostream& operator<<(std::ostream& os, const mathter::Vector<T, Dim>& v) {
+template <class T, int Dim, bool Packed>
+std::ostream& operator<<(std::ostream& os, const mathter::Vector<T, Dim, Packed>& v) {
 	os << "[";
 	for (int x = 0; x < Dim; ++x) {
 		os << v(x) << (x == Dim - 1 ? "" : "\t");

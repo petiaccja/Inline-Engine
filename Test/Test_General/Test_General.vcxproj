@@ -71,27 +71,35 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\libd;$(OutDir);$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\libd64;$(OutDir);$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib;$(OutDir);$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib64;$(OutDir);$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -101,11 +109,12 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lemon.lib;dxgi.lib;d3d12.lib;GraphicsEngine_LL.lib;GraphicsApi_D3D12.lib;BaseLibrary.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>BaseLibrary.lib;AssetLibrary.lib;GraphicsApi_D3D12.lib;GraphicsEngine_LL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -116,13 +125,14 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lemon.lib;dxgi.lib;d3d12.lib;GraphicsEngine_LL.lib;GraphicsApi_D3D12.lib;BaseLibrary.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
+      <AdditionalDependencies>BaseLibrary.lib;AssetLibrary.lib;GraphicsApi_D3D12.lib;GraphicsEngine_LL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -136,13 +146,14 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lemon.lib;dxgi.lib;d3d12.lib;GraphicsEngine_LL.lib;GraphicsApi_D3D12.lib;BaseLibrary.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>BaseLibrary.lib;AssetLibrary.lib;GraphicsApi_D3D12.lib;GraphicsEngine_LL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -156,15 +167,16 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>lemon.lib;dxgi.lib;d3d12.lib;GraphicsEngine_LL.lib;GraphicsApi_D3D12.lib;BaseLibrary.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
+      <AdditionalDependencies>BaseLibrary.lib;AssetLibrary.lib;GraphicsApi_D3D12.lib;GraphicsEngine_LL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

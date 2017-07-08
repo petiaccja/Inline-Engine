@@ -1,40 +1,40 @@
 #pragma once
 
 
-#include <mathfu/mathfu_exc.hpp>
+#include <InlineMath.hpp>
 
 
 class RigidBody {
 public:
 	RigidBody();
 
-	void Update(float timestep, mathfu::Vector3f F_, mathfu::Vector3f T_);
+	void Update(float timestep, inl::Vec3 F_, inl::Vec3 T_);
 
-	void SetPosition(mathfu::Vector3f p) { this->p = p; }
-	void SetRotation(mathfu::Quaternionf q) { this->q = q; }
+	void SetPosition(inl::Vec3 p) { this->p = p; }
+	void SetRotation(inl::Quat q) { this->q = q; }
 
-	mathfu::Vector3f GetPosition() const { return p; }
-	mathfu::Vector3f GetVelocity() const { return v; }
-	mathfu::Quaternionf GetRotation() const { return q; }
-	mathfu::Vector3f GetAngularVelocity() const { return w; }
+	inl::Vec3 GetPosition() const { return p; }
+	inl::Vec3 GetVelocity() const { return v; }
+	inl::Quat GetRotation() const { return q; }
+	inl::Vec3 GetAngularVelocity() const { return w; }
 
 	void SetMass(float mass) { m = mass; }
-	void SetInertia(mathfu::Matrix3x3f inertia) { I = inertia; }
+	void SetInertia(inl::Mat33 inertia) { I = inertia; }
 
-	void SetGravity(mathfu::Vector3f gravity) { G = gravity; }
+	void SetGravity(inl::Vec3 gravity) { G = gravity; }
 
 	void StopMotion();
 private:
-	mathfu::Vector3f p;
-	mathfu::Vector3f v;
+	inl::Vec3 p;
+	inl::Vec3 v;
 
-	mathfu::Quaternionf q;
-	mathfu::Quaternionf dq;
-	mathfu::Vector3f w_;
-	mathfu::Vector3f w;
+	inl::Quat q;
+	inl::Quat dq;
+	inl::Vec3 w_;
+	inl::Vec3 w;
 
 	float m;
-	mathfu::Matrix3x3f I;
-	float Cd = 0.6;
-	mathfu::Vector3f G;
+	inl::Mat33 I;
+	float Cd = 0.6f;
+	inl::Vec3 G;
 };

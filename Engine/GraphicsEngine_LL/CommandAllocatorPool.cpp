@@ -51,13 +51,13 @@ gxapi::IGraphicsApi* CommandAllocatorPool::GetGraphicsApi() const {
 
 
 
-void CommandAllocatorPool::SetLogStream(exc::LogStream* logStream){
+void CommandAllocatorPool::SetLogStream(LogStream* logStream){
 	m_cpPool.SetLogStream(logStream);
 	m_cuPool.SetLogStream(logStream);
 	m_gxPool.SetLogStream(logStream);
 }
 
-exc::LogStream* CommandAllocatorPool::GetLogStream() const {
+LogStream* CommandAllocatorPool::GetLogStream() const {
 	return m_gxPool.GetLogStream();
 }
 

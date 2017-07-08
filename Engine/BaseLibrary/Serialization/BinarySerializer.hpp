@@ -7,7 +7,7 @@
 #include <type_traits>
 
 
-namespace exc {
+namespace inl {
 
 
 /// <summary>
@@ -527,4 +527,4 @@ uint64_t DoubleToIEEE754(double v);
 double IEEE754ToDouble(uint64_t b);
 
 
-} // !namespace exc!
+} // !namespace inl!

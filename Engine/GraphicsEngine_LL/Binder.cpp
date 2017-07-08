@@ -20,7 +20,7 @@ Binder::Binder(inl::gxapi::IGraphicsApi* gxApi, const std::vector<BindParameterD
 void Binder::Translate(BindParameter parameter, int & rootParamIndex, int & rootTableIndex) const {
 	auto result = FindMapping(parameter);
 	if (result.second != true) {
-		throw std::out_of_range("Parameter was not found.");
+		throw OutOfRangeException("Parameter was not found.");
 	}
 	rootParamIndex = result.first->rootParamIndex;
 	rootTableIndex = result.first->rootTableIndex;

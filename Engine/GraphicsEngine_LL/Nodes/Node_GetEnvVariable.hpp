@@ -22,15 +22,15 @@ namespace inl::gxeng::nodes {
 class GetEnvVariable :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<std::string>,
-	virtual public exc::OutputPortConfig<exc::Any>
+	virtual public InputPortConfig<std::string>,
+	virtual public OutputPortConfig<Any>
 {
 public:
 	GetEnvVariable() {}
 
 	void Update() override {}
 
-	void Notify(exc::InputPortBase* sender) override {}
+	void Notify(InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);
@@ -47,20 +47,20 @@ public:
 				return;
 			}
 		}
-		throw std::invalid_argument("Environment variable name \"" + varName + "\" not found.");		
+		throw InvalidArgumentException("Environment variable does not exist.", varName);		
 	}
 
 	void Execute(RenderContext& context) {}
 
 
-	void SetEnvVariableList(const std::unordered_map<std::string, exc::Any>* envVars) {
+	void SetEnvVariableList(const std::unordered_map<std::string, Any>* envVars) {
 		m_envVariables = envVars;
 	}
-	const std::unordered_map<std::string, exc::Any>* SetEnvVariableList() const {
+	const std::unordered_map<std::string, Any>* SetEnvVariableList() const {
 		return m_envVariables;
 	}
 private:
-	const std::unordered_map<std::string, exc::Any>* m_envVariables;
+	const std::unordered_map<std::string, Any>* m_envVariables;
 };
 
 

@@ -2,7 +2,7 @@
 #include <iterator>
 
 
-namespace exc {
+namespace inl {
 
 
 template <class ViewT>
@@ -247,4 +247,4 @@ private:
 };
 
 
-} // namespace exc
+} // namespace inl

@@ -36,7 +36,7 @@ bool operator!=(const MallocAllocator<T>&, const MallocAllocator<U>&) {
 
 
 struct AllocationInfo {
-	std::vector<StackFrame<MallocAllocator>, MallocAllocator<StackFrame<MallocAllocator>>> stackTrace;
+	std::vector<StackFrameT<MallocAllocator>, MallocAllocator<StackFrameT<MallocAllocator>>> stackTrace;
 };
 
 

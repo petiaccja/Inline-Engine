@@ -23,7 +23,7 @@ class Fence : public gxapi::IFence {
 		EventHelper() {
 			evt = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 			if (evt == NULL) {
-				throw inl::gxapi::Exception("Failed to create internal Win32 event.");
+				throw RuntimeException("Failed to create internal Win32 event.");
 			}
 		}
 		~EventHelper() {

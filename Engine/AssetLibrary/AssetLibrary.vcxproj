@@ -70,12 +70,28 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)/Engine;$(SolutionDir)/Externals/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)/Externals/libd64;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)/Engine;$(SolutionDir)/Externals/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)/Externals/lib64;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -84,18 +100,21 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
     </Link>
     <Lib>
-      <AdditionalDependencies>assimp-vc140-mt.lib</AdditionalDependencies>
+      <AdditionalDependencies>assimp-vc140-mt.lib;FreeImage.lib;FreeImagePlus.lib</AdditionalDependencies>
     </Lib>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)Externals\bin_d\*" "$(OutputPath)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copy dlls to correct directory</Message>
+      <Message>
+      </Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -105,10 +124,14 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
     </Link>
+    <Lib>
+      <AdditionalDependencies>assimp-vc140-mt.lib;FreeImage.lib;FreeImagePlus.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -119,12 +142,16 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <Lib>
+      <AdditionalDependencies>assimp-vc140-mt.lib;FreeImage.lib;FreeImagePlus.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -135,6 +162,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -142,10 +170,11 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>assimp-vc140-mt.lib</AdditionalDependencies>
+      <AdditionalDependencies>assimp-vc140-mt.lib;FreeImage.lib;FreeImagePlus.lib</AdditionalDependencies>
     </Lib>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)Externals\bin\*" "$(OutputPath)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

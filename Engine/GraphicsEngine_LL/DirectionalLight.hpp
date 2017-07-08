@@ -1,23 +1,23 @@
 #pragma once
 
-#include <mathfu/mathfu_exc.hpp>
+#include <InlineMath.hpp>
 
 namespace inl::gxeng {
 
 class DirectionalLight {
 public:
 	DirectionalLight() = default;
-	DirectionalLight(mathfu::Vector3f direction, mathfu::Vector3f color);
+	DirectionalLight(Vec3 direction, Vec3 color);
 
-	void SetDirection(const mathfu::Vector3f& dir);
-	void SetColor(const mathfu::Vector3f& color);
+	void SetDirection(const Vec3& dir);
+	void SetColor(const Vec3& color);
 
-	mathfu::Vector3f GetDirection() const;
-	mathfu::Vector3f GetColor() const;
+	Vec3 GetDirection() const;
+	Vec3 GetColor() const;
 
 protected:
-	mathfu::Vector3f m_direction;
-	mathfu::Vector3f m_color;
+	Vec3 m_direction;
+	Vec3 m_color;
 };
 
 } // namespace inl::gxeng

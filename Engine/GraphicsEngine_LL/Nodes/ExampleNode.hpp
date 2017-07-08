@@ -9,23 +9,23 @@
 
 namespace inl::gxeng::nodes {
 
-// To create a node, you generally have to inherit from exc::NodeBase, and you are all set.
+// To create a node, you generally have to inherit from NodeBase, and you are all set.
 // To enable graphics engine specific things, such as creating resources or access to drawing commands, 
 // you must inherit from GraphicsNode instead.
 //
 // To declare input ports and output, inherit from the InputPortConfig and OutputPortConfig
 // helper classes. This is not mandatory, you can roll you own implementation by implementing
-// NodeBase's interface manually. Refer to exc::InputPort<T> and exc::OutputPort<T>.
+// NodeBase's interface manually. Refer to InputPort<T> and OutputPort<T>.
 //
 // You should use virtual inheritence because of the way these helpers are implemented.
 class ExampleNode 
 	: virtual public GraphicsNode,
 	// Comment the names of the input, to let others know:
 	// Input HDR color texture | tone-mapping key
-	virtual public exc::InputPortConfig<Texture2D, float>,
+	virtual public InputPortConfig<Texture2D, float>,
 	// Same for outputs:
 	// Blurred output
-	virtual public exc::OutputPortConfig<Texture2D>
+	virtual public OutputPortConfig<Texture2D>
 {
 private:
 	// [Graphics nodes only]
@@ -69,7 +69,7 @@ private:
 				// You are allowed to throw an exception with a meaningful message as to what went wrong.
 				// [NOT YET IMPLEMENTED - you should still throw, nonetheless] The scheduler will display 
 				// a graph of the pipeline, highlighting the wrong node, and displaying the error message.
-				throw std::invalid_argument("Tone-mapping key must not be negative!");
+				throw InvalidArgumentException("Tone-mapping key must not be negative!");
 			}
 
 			// When frame's initialization is done, set outputs.
@@ -119,7 +119,7 @@ public:
 
 	// This function is part of NodeBase. The graphics pipeline does not use it, you should leave
 	// it blank, and not rely on it.
-	void Notify(exc::InputPortBase* sender) override {}
+	void Notify(InputPortBase* sender) override {}
 	
 
 	// Called just after the pipeline is created. This is the place where the Node has access

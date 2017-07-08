@@ -18,10 +18,10 @@ namespace inl::gxeng::nodes {
 
 struct Uniforms
 {
-	mathfu::VectorPacked<float, 4> invVP[4];
-	mathfu::VectorPacked<float, 4> bias_mx[4], inv_mv[4];
-	mathfu::VectorPacked<float, 4> cam_pos, cam_view_dir, cam_up_vector;
-	mathfu::VectorPacked<float, 4> light_cam_pos, light_cam_view_dir, light_cam_up_vector;
+	Mat44_Packed invVP;
+	Mat44_Packed bias_mx, inv_mv;
+	Vec4_Packed cam_pos, cam_view_dir, cam_up_vector;
+	Vec4_Packed light_cam_pos, light_cam_view_dir, light_cam_up_vector;
 	float cam_near, cam_far, tex_size;
 	float dummy;
 };
@@ -155,32 +155,32 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 
 	//DebugDrawManager::GetInstance().AddSphere(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1, 1);
 
-	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();
-	mathfu::Matrix4x4f projection = m_camera->GetProjectionMatrixRH();
-	mathfu::Matrix4x4f vp = projection * view;
+	Mat44 view = m_camera->GetViewMatrix();
+	Mat44 projection = m_camera->GetProjectionMatrix();
+	Mat44 vp = view * projection;
 
-	vp.Inverse().Pack(uniformsCBData.invVP);
+	uniformsCBData.invVP = vp.Inverse();
 
-	mathfu::Matrix4x4f  bias_matrix(	0.5f,	0,		0,		0,			// column #1
-										0,		-0.5f,	0,		0,			// column #2
-										0,		0,		1.0f,	0,			// column #3
-										0.5f,	0.5f,	0.0f,	1);	// column #4
-	bias_matrix.Pack(uniformsCBData.bias_mx);
+	Mat44  bias_matrix(	0.5f,	0,		0,		0,
+						0,		-0.5f,	0,		0,
+						0,		0,		1.0f,	0,
+						0.5f,	0.5f,	0.0f,	1);
+	uniformsCBData.bias_mx = bias_matrix;
 
-	view.Inverse().Pack(uniformsCBData.inv_mv);
+	uniformsCBData.inv_mv = view.Inverse();
 
 	const PerspectiveCamera* perpectiveCamera = dynamic_cast<const PerspectiveCamera*>(m_camera);
 	if (perpectiveCamera == nullptr) {
-		throw std::invalid_argument("Depth reduction only works with perspective camera");
+		throw InvalidArgumentException("Depth reduction only works with perspective camera");
 	}
 
-	mathfu::Vector4f cam_pos(perpectiveCamera->GetPosition(), 1.0f);
-	mathfu::Vector4f cam_view_dir(perpectiveCamera->GetLookDirection(), 0.0f);
-	mathfu::Vector4f cam_up_vector(perpectiveCamera->GetUpVector(), 0.0f);
+	Vec4 cam_pos(perpectiveCamera->GetPosition(), 1.0f);
+	Vec4 cam_view_dir(perpectiveCamera->GetLookDirection(), 0.0f);
+	Vec4 cam_up_vector(perpectiveCamera->GetUpVector(), 0.0f);
 
-	cam_pos.Pack(&uniformsCBData.cam_pos);
-	cam_view_dir.Pack(&uniformsCBData.cam_view_dir);
-	cam_up_vector.Pack(&uniformsCBData.cam_up_vector);
+	uniformsCBData.cam_pos = cam_pos;
+	uniformsCBData.cam_view_dir = cam_view_dir;
+	uniformsCBData.cam_up_vector = cam_up_vector;
 
 	uniformsCBData.cam_near = perpectiveCamera->GetNearPlane();
 	uniformsCBData.cam_far = perpectiveCamera->GetFarPlane();
@@ -188,31 +188,31 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 	assert(m_suns->Size() > 0);
 	auto sun = *m_suns->begin();
 	//TODO get from somewhere
-	mathfu::Vector4f light_cam_pos = mathfu::Vector4f(0, 0, 0, 1);
-	mathfu::Vector4f light_cam_view_dir = mathfu::Vector4f(sun->GetDirection().Normalized(), 0);//mathfu::Vector4f(1, 1, 1, 0).Normalized();
-	//printf("%f %f %f\n", light_cam_view_dir.x(), light_cam_view_dir.y(), light_cam_view_dir.z());
-	mathfu::Vector4f light_cam_up_vector = mathfu::Vector4f(0, 0, 1, 0);
+	Vec4 light_cam_pos = Vec4(0.f, 0.f, 0.f, 1.f);
+	Vec4 light_cam_view_dir = Vec4(sun->GetDirection().Normalized(), 0);//Vec4(1, 1, 1, 0).Normalized();
+	//printf("%f %f %f\n", light_cam_view_dir.x, light_cam_view_dir.y, light_cam_view_dir.z);
+	Vec4 light_cam_up_vector = Vec4(0, 0, 1, 0);
 
-	auto lookat = [](mathfu::Vector3f eye, mathfu::Vector3f lookat, mathfu::Vector3f up, mathfu::Vector3f* result) -> void
+	auto lookat = [](Vec3 eye, Vec3 lookat, Vec3 up, Vec3* result) -> void
 	{
 		result[0] = (lookat - eye).Normalized(); //view dir
 		result[1] = up.Normalized();
 		result[2] = eye;
-		mathfu::Vector3f right = mathfu::Vector3f::CrossProduct(result[0], result[1]).Normalized();
-		result[1] = mathfu::Vector3f::CrossProduct(right, result[0]).Normalized();
+		Vec3 right = Cross(result[0], result[1]).Normalized();
+		result[1] = Cross(right, result[0]).Normalized();
 	};
 
-	mathfu::Vector3f res[3];
+	Vec3 res[3];
 
-	lookat(light_cam_pos.xyz(), light_cam_view_dir.xyz(), light_cam_up_vector.xyz(), res);
+	lookat(light_cam_pos.xyz, light_cam_view_dir.xyz, light_cam_up_vector.xyz, res);
 
-	light_cam_pos = mathfu::Vector4f(res[2], 1);
-	light_cam_view_dir = mathfu::Vector4f(res[0], 0);
-	light_cam_up_vector = mathfu::Vector4f(res[1], 0);
+	light_cam_pos = Vec4(res[2], 1);
+	light_cam_view_dir = Vec4(res[0], 0);
+	light_cam_up_vector = Vec4(res[1], 0);
 
-	light_cam_pos.Pack(&uniformsCBData.light_cam_pos);
-	light_cam_view_dir.Pack(&uniformsCBData.light_cam_view_dir);
-	light_cam_up_vector.Pack(&uniformsCBData.light_cam_up_vector);
+	uniformsCBData.light_cam_pos = light_cam_pos;
+	uniformsCBData.light_cam_view_dir = light_cam_view_dir;
+	uniformsCBData.light_cam_up_vector = light_cam_up_vector;
 
 	//TODO get from somewhere
 	uniformsCBData.tex_size = 2048;

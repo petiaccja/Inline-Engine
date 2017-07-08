@@ -70,24 +70,32 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib\wxwidgets;$(SolutionDir)\Externals\lib;$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib\wxwidgets;$(SolutionDir)\Externals\lib;$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib;$(SolutionDir)\Externals\lib\wxwidgets;$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib;$(SolutionDir)\Externals\lib\wxwidgets;$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -97,10 +105,17 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Externals\bin_$(PlatformShortName)_$(Configuration)\*" "$(OutputPath)"</Command>
+    </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>dbghelp.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -110,6 +125,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -119,6 +135,9 @@
       <ForceSymbolReferences>
       </ForceSymbolReferences>
     </Lib>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Externals\bin_$(PlatformShortName)_$(Configuration)\*" "$(OutputPath)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -131,12 +150,19 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Externals\bin_$(PlatformShortName)_$(Configuration)\*" "$(OutputPath)"</Command>
+    </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>dbghelp.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -149,6 +175,7 @@
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -160,6 +187,9 @@
       <ForceSymbolReferences>
       </ForceSymbolReferences>
     </Lib>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Externals\bin_$(PlatformShortName)_$(Configuration)\*" "$(OutputPath)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -169,6 +199,8 @@
     <ClInclude Include="ArrayView.hpp" />
     <ClInclude Include="BitflagEnum.hpp" />
     <ClInclude Include="BitOperations.hpp" />
+    <ClInclude Include="Exception\Exception.hpp" />
+    <ClInclude Include="Exception\IOException.hpp" />
     <ClInclude Include="Graph\Node.hpp" />
     <ClInclude Include="Graph\NodeFactory.hpp" />
     <ClInclude Include="Graph\NodeLibrary.hpp" />
@@ -200,6 +232,7 @@
     <ClInclude Include="ThreadName.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Exception\Exception.cpp" />
     <ClCompile Include="Graph\NodeFactory.cpp" />
     <ClCompile Include="Graph\NodeLibrary.cpp" />
     <ClCompile Include="Graph\Port.cpp" />

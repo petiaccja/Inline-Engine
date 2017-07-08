@@ -1,7 +1,7 @@
 #include <type_traits>
 
 
-namespace exc {
+namespace inl {
 
 /// <summary> Helper class to wrap enums into bitflags. </summary>
 /// <remarks>
@@ -102,4 +102,4 @@ private:
 };
 
 
-} // namespace exc
+} // namespace inl
