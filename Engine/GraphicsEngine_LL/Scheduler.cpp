@@ -45,7 +45,24 @@ void Scheduler::Execute(FrameContext context) {
 				task->Setup(setupContext);
 			}
 		}
+	}
+	catch (std::exception& ex) {
+		// One of the pipeline Nodes (Tasks) threw an exception.
+		// Scene cannot be rendered, but we should draw an error message on the screen for the devs.
 
+		// Log error.
+		context.log->Event(std::string("Fatal pipeline Setup error: ") + ex.what());
+
+		// Draw a red blinking background to signal error.
+		try {
+			RenderFailureScreen(context);
+		}
+		catch (std::exception& ex) {
+			context.log->Event(std::string("Fatal pipeline Setup error, could not render error screen: ") + ex.what());
+		}
+	}
+
+	try {
 		// PHASE II.: Execute() tasks in correct
 		for (auto& task : tasks) {
 			VolatileViewHeap volatileHeap(context.gxApi);
@@ -143,14 +160,14 @@ void Scheduler::Execute(FrameContext context) {
 		// Scene cannot be rendered, but we should draw an error message on the screen for the devs.
 
 		// Log error.
-		context.log->Event(std::string("Fatal pipeline error: ") + ex.what());
+		context.log->Event(std::string("Fatal pipeline Execute error: ") + ex.what());
 
 		// Draw a red blinking background to signal error.
 		try {
 			RenderFailureScreen(context);
 		}
 		catch (std::exception& ex) {
-			context.log->Event(std::string("Fatal pipeline error, could not render error screen: ") + ex.what());
+			context.log->Event(std::string("Fatal pipeline Execute error, could not render error screen: ") + ex.what());
 		}
 	}
 }

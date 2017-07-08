@@ -241,11 +241,11 @@ void LensFlare::InitRenderTarget(SetupContext& context) {
 
 		// Create lens color texture
 		{
-			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
+			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
 			inl::asset::Image img("assets\\lensFlare\\lens_color.png");
 
 			m_lensColorTexture.reset(m_image);
-			m_lensColorTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
+			m_lensColorTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR);
 			m_lensColorTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
 		}
 	}
