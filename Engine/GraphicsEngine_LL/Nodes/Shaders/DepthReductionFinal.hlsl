@@ -40,15 +40,15 @@ struct camera
 
 float linearize_depth(float depth, float near, float far)
 {
-	float A = -(far + near) / (far - near);
-	float B = -2 * far * near / (far - near);
-	float zndc = depth * 2 - 1;
+	float A = far / (far - near);
+	float B = -far * near / (far - near);
+	float zndc = depth;
 
 	//view space linear z
-	float vs_zrecon = -B / (zndc + A);
+	float vs_zrecon = B / (zndc - A);
 
 	//range: [0...1]
-	return vs_zrecon / -far;
+	return vs_zrecon / far;
 };
 
 camera lookat_func(float3 eye, float3 lookat, float3 up)
@@ -125,10 +125,10 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 	//frustum corners in ndc space
 	float3 ndc_frustum_corners[8] =
 	{
-		float3(-1.0f, 1.0f, -1.0f),
-		float3(1.0f, 1.0f, -1.0f),
-		float3(1.0f, -1.0f, -1.0f),
-		float3(-1.0f, -1.0f, -1.0f),
+		float3(-1.0f, 1.0f, 0.0f),
+		float3(1.0f, 1.0f, 0.0f),
+		float3(1.0f, -1.0f, 0.0f),
+		float3(-1.0f, -1.0f, 0.0f),
 		float3(-1.0f, 1.0f, 1.0f),
 		float3(1.0f, 1.0f, 1.0f),
 		float3(1.0f, -1.0f, 1.0f),
@@ -139,7 +139,7 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 
 	for (int c = 0; c < 8; ++c)
 	{
-		float4 trans = mul(invVP, float4(ndc_frustum_corners[c], 1));
+		float4 trans = mul(float4(ndc_frustum_corners[c], 1), invVP);
 		ws_frustum_corners[c] = trans.xyz / trans.w;
 	}
 
@@ -173,7 +173,7 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 	float3 maxes = float3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 	for (int k = 0; k < 8; ++k)
 	{
-		float3 corner = (mul(light_view_mat, float4(ws_frustum_corners[k], 1))).xyz;
+		float3 corner = (mul(float4(ws_frustum_corners[k], 1), light_view_mat)).xyz;
 		mins = min(mins, corner);
 		maxes = max(maxes, corner);
 	}
@@ -201,7 +201,7 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 
 	camera split_shadow_cam = lookat_func(cam_pos, centroid_center, up);
 
-	return mul(split_ortho_matrix, get_camera_matrix(split_shadow_cam));
+	return mul(get_camera_matrix(split_shadow_cam), split_ortho_matrix);
 	//return split_ortho_matrix;
 	//return get_camera_matrix(split_shadow_cam);
 	//camera sanity_cam = lookat_func(float3(0,0,1), float3(0,-1,0), float3(0,0,1));
@@ -347,7 +347,8 @@ void CSMain(
 		}
 
 		for (int c = 0; c < 4; ++c)
-			shadow_mat[c] = mul(uniforms.bias_mx, mul(light_mvp[c], uniforms.inv_mv));
+			//shadow_mat[c] = mul(mul(uniforms.inv_mv, light_mvp[c]), uniforms.bias_mx);
+			shadow_mat[c] = mul(uniforms.inv_mv, light_mvp[c]);
 
 		for (uint d = 0; d < 4; ++d)
 		{

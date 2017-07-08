@@ -41,7 +41,7 @@ Mat44 PerspectiveCamera::GetProjectionMatrix() const {
 	//return Mat44::Orthographic({-10, -10, 0}, {10, 10, 100}, 0, 1);
 }
 Mat44 PerspectiveCamera::GetPrevViewMatrix() const {
-	return Mat44::LookAt(m_prevPosition + m_prevLookdir, m_prevPosition, m_prevUpVector, -1.0f);
+	return Mat44::LookAt(m_prevPosition, m_prevPosition + m_prevLookdir, m_prevUpVector, true, false, false);
 }
 
 

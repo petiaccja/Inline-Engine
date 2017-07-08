@@ -559,8 +559,9 @@ void GraphicsEngine::CreatePipeline() {
 	hdrCombine->GetInput<2>().Link(bloomBlurHorizontal2->GetOutput(0));
 
 	// last step in world render is debug draw
-	//debugDraw->GetInput<0>().Link(drawSky->GetOutput(0));
-	debugDraw->GetInput<0>().Link(hdrCombine->GetOutput(0));
+	debugDraw->GetInput<0>().Link(drawSky->GetOutput(0));
+	//debugDraw->GetInput<0>().Link(forwardRender->GetOutput(1));
+	//debugDraw->GetInput<0>().Link(hdrCombine->GetOutput(0));
 	debugDraw->GetInput<1>().Link(getCamera->GetOutput(0));
 
 	// -----------------------------

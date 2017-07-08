@@ -318,7 +318,7 @@ void ForwardRender::Execute(RenderContext& context) {
 	Mat44 projection = m_camera->GetProjectionMatrix();
 	auto viewProjection = view * projection;
 	Mat44 prevView = m_camera->GetPrevViewMatrix();
-	auto prevViewProjection = projection * prevView;
+	auto prevViewProjection = prevView * projection;
 
 
 	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
@@ -402,7 +402,7 @@ void ForwardRender::Execute(RenderContext& context) {
 		vsConstants.mv = entity->GetTransform() * view;
 		vsConstants.v = view;
 		vsConstants.p = projection;
-		vsConstants.prevMVP = prevViewProjection * entity->GetPrevTransform();
+		vsConstants.prevMVP = entity->GetPrevTransform() * prevViewProjection;
 		Vec4 vsLightDir = view * Vec4(sun->GetDirection(), 0.0f);
 		lightConstants.direction = Vec3(vsLightDir.xyz).Normalized();
 		lightConstants.color = sun->GetColor();
@@ -575,7 +575,7 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"}\n"
 
 		"	result.position = mul(position, vsConstants.MVP);\n"
-		"	result.prevPosition = mul(vsConstants.prevMVP, position);\n"
+		"	result.prevPosition = mul(position, vsConstants.prevMVP);\n"
 		"	result.currPosition = result.position;\n"
 		//"	result.position = mul(mul(light_mvp, vsConstants.MV), position);\n"
 		//"	result.position = mul(mul(vsConstants.P, mul(light_mvp, vsConstants.M)), position);\n"

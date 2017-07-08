@@ -88,7 +88,7 @@ float sample_csm(int cascade, float4 vs_pos)
 	{
 		shadow_mx[d] = shadowMXTex.Load(int3(cascade * 4 + d, 0, 0));
 	}
-	float4 shadow_coord = mul(shadow_mx, vs_pos);
+	float4 shadow_coord = mul(vs_pos, shadow_mx);
 	shadow_coord /= shadow_coord.w;
 
 	float bias = 0.0075;
@@ -167,9 +167,9 @@ float3 get_shadow(float4 vs_pos)
 		}*/
 	}
 
-	//return cascade * 0.25;
+	return cascade * 0.25;
 	//return float3(shadow_term, shadow_term, shadow_term);
-	return float3(shadow_term, shadow_term, shadow_term);// *0.5 + num_to_radar_color(cascade, 4).xyz * 0.1;
+	//return float3(shadow_term, shadow_term, shadow_term);// *0.5 + num_to_radar_color(cascade, 4).xyz * 0.1;
 	//return float(shadow_coord.z - 0.005 < texture(tex, shadow_coord.xy).x) * shadow_selector / 4.0;
 	//return ls_ndc_pos.z/0.25;
 	//return shadow_coord.xyz;

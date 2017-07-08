@@ -126,5 +126,6 @@ float3 get_lighting(float4 sv_position, //gl_FragCoord
 
 	//color += hemisphere_ambient_lighting(g_wsNormal.xyz) * 0.1;
 
-	return color;
+	//return color;
+	return g_lightColor.xyz;
 }

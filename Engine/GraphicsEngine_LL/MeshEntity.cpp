@@ -97,11 +97,11 @@ Vec3 MeshEntity::GetPrevScale() const {
 }
 
 Mat44 MeshEntity::GetTransform() const {
-	return  Mat44::Scale(m_scale) * Mat44(m_rotation) * Mat44::Translation(m_position);
+	return Mat44::Scale(m_scale) * Mat44(m_rotation) * Mat44::Translation(m_position);
 }
 
 Mat44 MeshEntity::GetPrevTransform() const {
-	return Mat44::Translation(m_prevPosition) * Mat44(m_prevRotation) * Mat44::Scale(m_prevScale);
+	return Mat44::Scale(m_prevScale) * Mat44(m_prevRotation) * Mat44::Translation(m_prevPosition);
 }
 
 }
