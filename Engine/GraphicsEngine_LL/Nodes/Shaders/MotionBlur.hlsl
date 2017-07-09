@@ -58,15 +58,15 @@ float linearize_depth(float depth)
 {
 	float near = 0.1;
 	float far = 100.0;
-	float A = -(far + near) / (far - near);
-	float B = -2 * far * near / (far - near);
-	float zndc = depth * 2 - 1;
+	float A = far / (far - near);
+	float B = -far * near / (far - near);
+	float zndc = depth;
 
 	//view space linear z
-	float vs_zrecon = -B / (zndc + A);
+	float vs_zrecon = B / (zndc - A);
 
 	//range: [0...1]
-	return vs_zrecon * far / -1.0;//far;
+	return vs_zrecon / far;
 };
 
 float rand(float2 n) {

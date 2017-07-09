@@ -549,6 +549,7 @@ void GraphicsEngine::CreatePipeline() {
 	bloomBlurHorizontal2->GetInput<0>().Link(bloomBlurVertical2->GetOutput(0));
 	bloomBlurHorizontal2->GetInput<1>().Set(Vec2(1, 0));
 
+	//TODO
 	lensFlare->GetInput<0>().Link(bloomDownsample4->GetOutput(0));
 	lensFlare->GetInput<1>().Set(this->CreateImage());
 
