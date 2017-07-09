@@ -195,7 +195,7 @@ void DebugDraw::Execute(RenderContext& context) {
 	Mat44 view = m_camera->GetViewMatrix();
 	Mat44 projection = m_camera->GetProjectionMatrix();
 
-	auto viewProjection = projection * view;
+	auto viewProjection = view * projection;
 
 	uniformsCBData.vp = viewProjection;
 
