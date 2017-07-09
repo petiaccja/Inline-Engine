@@ -39,6 +39,19 @@ groupshared uint localMinDepth;
 groupshared uint localMaxDepth;
 groupshared uint localDepthMask;
 
+float linearize_depth(float depth, float near, float far)
+{
+	float A = far / (far - near);
+	float B = -far * near / (far - near);
+	float zndc = depth;
+
+	//view space linear z
+	float vs_zrecon = B / (zndc - A);
+
+	//range: [0...1]
+	return vs_zrecon / far;
+};
+
 [numthreads(LOCAL_SIZE_X, LOCAL_SIZE_Y, 1)]
 void CSMain(
 	uint3 groupId : SV_GroupID, //WorkGroupId
@@ -47,13 +60,16 @@ void CSMain(
 	uint groupIndex : SV_GroupIndex //LocalInvocationIndex
 )
 {
-	float proj_a, proj_b;
-
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 
+	//per-pixel depth
 	float4 raw_depth = inputTex.Load(int3(dispatchThreadId.xy, 0));
+	
+	//outputTex0[dispatchThreadId.xy] = asuint(linearize_depth(raw_depth.x, uniforms.cam_near, uniforms.cam_far));
+	//return;
 
+	//min/max depth in tile
 	float max_depth = 0;
 	float min_depth = 1;
 
@@ -78,10 +94,7 @@ void CSMain(
 	float near = localNear;
 
 	//WARNING: need to linearize the depth in order to make it work...
-	proj_a = -(far + near) / (far - near);
-	proj_b = (-2 * far * near) / (far - near);
-	float linear_depth = -proj_b / (raw_depth.x * 2 - 1 + proj_a);
-	raw_depth.x = linear_depth / -far;
+	raw_depth.x = linearize_depth(raw_depth.x, near, far);
 
 	int num_of_lights = localNumLightsInput;
 	float3 ll, ur;
@@ -116,9 +129,9 @@ void CSMain(
 	float proj_11 = uniforms.p[0].x;
 	float proj_22 = uniforms.p[1].y;
 
-	float4 c1 = float4(proj_11 * tile_scale.x, 0.0, -tile_bias.x, 0.0);
-	float4 c2 = float4(0.0, proj_22 * tile_scale.y, -tile_bias.y, 0.0);
-	float4 c4 = float4(0.0, 0.0, -1.0, 0.0);
+	float4 c1 = float4(proj_11 * tile_scale.x, 0.0, tile_bias.x, 0.0);
+	float4 c2 = float4(0.0, -proj_22 * tile_scale.y, tile_bias.y, 0.0);
+	float4 c4 = float4(0.0, 0.0, 1.0, 0.0);
 
 	float4 frustum_planes[6];
 
@@ -126,8 +139,8 @@ void CSMain(
 	frustum_planes[1] = c4 + c1;
 	frustum_planes[2] = c4 - c2;
 	frustum_planes[3] = c4 + c2;
-	frustum_planes[4] = float4(0.0, 0.0, 1.0, -min_depth * far); 
-	frustum_planes[5] = float4(0.0, 0.0, 1.0, -max_depth * far); 
+	frustum_planes[4] = float4(0.0, 0.0, 1.0, min_depth * far); 
+	frustum_planes[5] = float4(0.0, 0.0, 1.0, max_depth * far); 
 
 	frustum_planes[0].xyz = normalize(frustum_planes[0].xyz);
 	frustum_planes[1].xyz = normalize(frustum_planes[1].xyz);
@@ -138,10 +151,10 @@ void CSMain(
 	* Calculate per tile depth mask for 2.5D light culling
 	*/
 
-	/**/
-	float vs_min_depth = min_depth * -far;
-	float vs_max_depth = max_depth * -far;
-	float vs_depth = raw_depth.x * -far;
+	/** //TODO
+	float vs_min_depth = min_depth * far;
+	float vs_max_depth = max_depth * far;
+	float vs_depth = raw_depth.x * far;
 
 	float range = abs(vs_max_depth - vs_min_depth + 0.00001) / 32.0; //depth range in each tile
 
@@ -167,12 +180,12 @@ void CSMain(
 		float3 light_pos = uniforms.ld[index].vs_position.xyz;
 		float4 lp = float4(light_pos, 1.0);
 
-		/**/
+		/** //TODO
 		//calculate per light bitmask
 		uint light_bitmask = 0;
 
-		float light_z_min = -(light_pos.z + att_end); //light z min [0 ... 1000]
-		float light_z_max = -(light_pos.z - att_end); //light z max [0 ... 1000]
+		float light_z_min = light_pos.z + att_end; //light z min [0 ... 1000]
+		float light_z_max = light_pos.z - att_end; //light z max [0 ... 1000]
 		light_z_min -= vs_min_depth; //so that min = 0
 		light_z_max -= vs_min_depth; //so that min = 0
 		float depth_slot_min = floor(light_z_min / range);
@@ -214,7 +227,7 @@ void CSMain(
 		}
 		{
 			float e = dot(frustum_planes[4], lp);
-			in_frustum = in_frustum && (e <= att_end);
+			in_frustum = in_frustum && (e >= -att_end);
 		}
 		{
 			float e = dot(frustum_planes[5], lp);
@@ -228,8 +241,8 @@ void CSMain(
 		}
 	}
 
-	localLights[localNumLightsOutput] = int(0);
-	localNumLightsOutput = 1;
+	//localLights[localNumLightsOutput] = int(0);
+	//localNumLightsOutput = 1;
 
 	GroupMemoryBarrierWithGroupSync(); //local memory barrier
 

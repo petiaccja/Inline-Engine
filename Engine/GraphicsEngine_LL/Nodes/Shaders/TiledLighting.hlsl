@@ -62,6 +62,10 @@ float3 get_lighting(float4 sv_position, //gl_FragCoord
 	float2 texel = global_id / global_size;
 
 	uint local_num_of_lights = lightCullData.Load(int3(group_id.x * uniforms.group_size_y + group_id.y, 0, 0));
+	//uint local_num_of_lights = lightCullData.Load(int3(global_id, 0));
+	
+	//return float3(asfloat(local_num_of_lights), 0, 0);
+	//return float3(float(local_num_of_lights), 0, 0);
 
 	float3 vs_view_dir = normalize(uniforms.vs_cam_pos.xyz - vs_pos.xyz);
 
@@ -126,6 +130,6 @@ float3 get_lighting(float4 sv_position, //gl_FragCoord
 
 	//color += hemisphere_ambient_lighting(g_wsNormal.xyz) * 0.1;
 
-	//return color;
-	return g_lightColor.xyz;
+	return color;
+	//return g_lightColor.xyz;
 }

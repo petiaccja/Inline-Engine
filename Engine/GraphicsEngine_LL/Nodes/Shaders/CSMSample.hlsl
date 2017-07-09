@@ -167,7 +167,8 @@ float3 get_shadow(float4 vs_pos)
 		}*/
 	}
 
-	return cascade * 0.25;
+	return float3(1,1,1);
+	//return cascade * 0.25;
 	//return float3(shadow_term, shadow_term, shadow_term);
 	//return float3(shadow_term, shadow_term, shadow_term);// *0.5 + num_to_radar_color(cascade, 4).xyz * 0.1;
 	//return float(shadow_coord.z - 0.005 < texture(tex, shadow_coord.xy).x) * shadow_selector / 4.0;

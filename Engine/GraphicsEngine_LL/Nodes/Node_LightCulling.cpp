@@ -10,6 +10,8 @@
 #include "../GraphicsCommandList.hpp"
 #include "../EntityCollection.hpp"
 
+#include "DebugDrawManager.hpp"
+
 #include <array>
 
 namespace inl::gxeng::nodes {
@@ -164,30 +166,33 @@ void LightCulling::Execute(RenderContext& context) {
 
 	Uniforms uniformsCBData;
 
-	uniformsCBData.cam_near = -m_camera->GetNearPlane();
-	uniformsCBData.cam_far = -m_camera->GetFarPlane();
+	uniformsCBData.cam_near = m_camera->GetNearPlane();
+	uniformsCBData.cam_far = m_camera->GetFarPlane();
 	uniformsCBData.num_lights = 1;
 	uniformsCBData.p = m_camera->GetProjectionMatrix();
 
-	Mat44 invVP = (m_camera->GetProjectionMatrix() * m_camera->GetViewMatrix()).Inverse();
+	Mat44 invVP = (m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix()).Inverse();
 
+	//near ndc corners
 	Vec4 ndcCorners[] = 
 	{
-		Vec4(-1.f, -1.f, -1.f, 1.f),
-		Vec4(1.f, 1.f, -1.f, 1.f),
+		Vec4(-1.f, -1.f, 0.f, 1.f),
+		Vec4(1.f, 1.f, 0.f, 1.f),
 	};
 
 	//convert to world space frustum corners
-	ndcCorners[0] = invVP * ndcCorners[0];
-	ndcCorners[1] = invVP * ndcCorners[1];
+	ndcCorners[0] = ndcCorners[0] * invVP;
+	ndcCorners[1] = ndcCorners[1] * invVP;
 	ndcCorners[0] /= ndcCorners[0].w;
 	ndcCorners[1] /= ndcCorners[1].w;
 
 	uniformsCBData.far_plane0 = Vec4(ndcCorners[0].xyz, ndcCorners[1].x);
 	uniformsCBData.far_plane1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0.0f, 0.0f);
 
-	uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrix() * Vec4(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1.0f);
+	uniformsCBData.ld[0].vs_position = Vec4(Vec3(0, 0, 1), 1.0f) * m_camera->GetViewMatrix();
 	uniformsCBData.ld[0].attenuation_end = 5.0f;
+
+	DebugDrawManager::GetInstance().AddSphere(Vec3(0, 0, 1), 5.0f, 1);
 
 	uint32_t dispatchW, dispatchH;
 	SetWorkgroupSize((unsigned)m_width, (unsigned)m_height, 16, 16, dispatchW, dispatchH);
