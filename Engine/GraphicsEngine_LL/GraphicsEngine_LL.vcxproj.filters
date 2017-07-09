@@ -72,9 +72,6 @@
     <ClInclude Include="Material.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
-    <ClInclude Include="Texture2D.hpp">
-      <Filter>Resources</Filter>
-    </ClInclude>
     <ClInclude Include="Scene.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
@@ -304,12 +301,27 @@
       <Filter>Backend\Pipeline</Filter>
     </ClInclude>
     <ClInclude Include="Vertex.hpp">
-    </ClInclude>
       <Filter>Resources</Filter>
+    </ClInclude>
     <ClInclude Include="VertexCompressor.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Node_BloomAdd.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_BloomBlur.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_BloomDownsample.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
     <ClInclude Include="Nodes\Node_BrightLumPass.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_HDRCombine.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_LensFlare.hpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_LuminanceReduction.hpp">
@@ -318,36 +330,18 @@
     <ClInclude Include="Nodes\Node_LuminanceReductionFinal.hpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Node_HDRCombine.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_BloomDownsample.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_BloomAdd.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_BloomBlur.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_TileMax.hpp">
+    <ClInclude Include="Nodes\Node_MotionBlur.hpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_NeighborMax.hpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Node_MotionBlur.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_LensFlare.hpp">
+    <ClInclude Include="Nodes\Node_TileMax.hpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
-    <ClCompile Include="Texture2D.cpp">
-      <Filter>Resources</Filter>
-    </ClCompile>
     <ClCompile Include="Material.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
@@ -498,7 +492,22 @@
     <ClCompile Include="VertexCompressor.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
+    <ClCompile Include="Nodes\Node_BloomAdd.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_BloomBlur.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_BloomDownsample.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
     <ClCompile Include="Nodes\Node_BrightLumPass.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_HDRCombine.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_LensFlare.cpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_LuminanceReduction.cpp">
@@ -507,28 +516,13 @@
     <ClCompile Include="Nodes\Node_LuminanceReductionFinal.cpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes\Node_HDRCombine.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_BloomDownsample.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_BloomAdd.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_BloomBlur.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_TileMax.cpp">
+    <ClCompile Include="Nodes\Node_MotionBlur.cpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_NeighborMax.cpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes\Node_MotionBlur.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_LensFlare.cpp">
+    <ClCompile Include="Nodes\Node_TileMax.cpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
   </ItemGroup>
@@ -593,23 +587,5 @@
     <None Include="Nodes\Shaders\TiledLighting.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
     </None>
-  </ItemGroup>
-    <None Include="Nodes\Shaders\Blend.hlsl" />
-    <None Include="Nodes\Shaders\BlendWithTransform.hlsl" />
-    <None Include="Nodes\Shaders\CSM.hlsl" />
-    <None Include="Nodes\Shaders\CSMSample.hlsl" />
-    <None Include="Nodes\Shaders\DebugDraw.hlsl" />
-    <None Include="Nodes\Shaders\DepthPrepass.hlsl" />
-    <None Include="Nodes\Shaders\DepthReduction.hlsl" />
-    <None Include="Nodes\Shaders\DepthReductionFinal.hlsl" />
-    <None Include="Nodes\Shaders\DrawSky.hlsl" />
-    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
-    <None Include="Nodes\Shaders\LightCulling.hlsl" />
-    <None Include="Nodes\Shaders\OverlayColored.hlsl" />
-    <None Include="Nodes\Shaders\OverlayTextured.hlsl" />
-    <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl" />
-    <None Include="Materials\PbrBrdf.hlsl" />
-    <None Include="Nodes\Shaders\GenCSM.hlsl" />
-    <None Include="Nodes\Shaders\TiledLighting.hlsl" />
   </ItemGroup>
 </Project>

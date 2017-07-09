@@ -143,6 +143,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -165,6 +166,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -265,7 +267,6 @@
     <ClInclude Include="Scheduler.hpp" />
     <ClInclude Include="ScratchSpacePool.hpp" />
     <ClInclude Include="SyncPoint.hpp" />
-    <ClInclude Include="Texture2D.hpp" />
     <ClInclude Include="MemoryObject.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="UploadManager.hpp" />
@@ -331,7 +332,6 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Scheduler.cpp" />
     <ClCompile Include="ScratchSpacePool.cpp" />
-    <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="MemoryObject.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="UploadManager.cpp" />
