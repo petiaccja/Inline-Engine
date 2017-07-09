@@ -403,7 +403,7 @@ void ForwardRender::Execute(RenderContext& context) {
 		vsConstants.v = view;
 		vsConstants.p = projection;
 		vsConstants.prevMVP = entity->GetPrevTransform() * prevViewProjection;
-		Vec4 vsLightDir = view * Vec4(sun->GetDirection(), 0.0f);
+		Vec4 vsLightDir = Vec4(sun->GetDirection(), 0.0f) * view;
 		lightConstants.direction = Vec3(vsLightDir.xyz).Normalized();
 		lightConstants.color = sun->GetColor();
 
@@ -412,10 +412,11 @@ void ForwardRender::Execute(RenderContext& context) {
 
 		Uniforms uniformsCBData;
 		uniformsCBData.screen_dimensions = Vec4((float)m_rtv.GetResource().GetWidth(), (float)m_rtv.GetResource().GetHeight(), 0.f, 0.f);
-		uniformsCBData.ld[0].vs_position = m_camera->GetViewMatrix() * Vec4(m_camera->GetPosition() + m_camera->GetLookDirection() * 5.f, 1.0f);
+		//uniformsCBData.ld[0].vs_position = Vec4(m_camera->GetPosition() + m_camera->GetLookDirection() * 5.f, 1.0f) * m_camera->GetViewMatrix();
+		uniformsCBData.ld[0].vs_position = Vec4(Vec3(0, 0, 1), 1.0f) * m_camera->GetViewMatrix();
 		uniformsCBData.ld[0].attenuation_end = Vec4(5.0f, 0.f, 0.f, 0.f);
 		uniformsCBData.ld[0].diffuse_color = Vec4(1.f, 0.f, 0.f, 1.f);
-		uniformsCBData.vs_cam_pos = m_camera->GetViewMatrix() * Vec4(m_camera->GetPosition(), 1.0f);
+		uniformsCBData.vs_cam_pos = Vec4(m_camera->GetPosition(), 1.0f) * m_camera->GetViewMatrix();
 
 		uint32_t dispatchW, dispatchH;
 		SetWorkgroupSize((unsigned)m_rtv.GetResource().GetWidth(), (unsigned)m_rtv.GetResource().GetHeight(), 16, 16, dispatchW, dispatchH);
@@ -564,8 +565,8 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		"PS_Input VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoord : TEX_COORD)\n"
 		"{\n"
 		"	PS_Input result;\n"
-
-		"	float3 viewNormal = mul(normal, (float3x3)vsConstants.M);\n"
+		//"	normal.xyz = normalize(normal.xyz);\n"
+		"	float3 viewNormal = mul(normal.xyz, (float3x3)vsConstants.MV);\n"
 
 		"float4x4 light_mvp;\n"
 		"float cascade = 0;\n"

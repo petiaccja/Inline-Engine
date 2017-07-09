@@ -190,6 +190,7 @@ void LightCulling::Execute(RenderContext& context) {
 	uniformsCBData.far_plane1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0.0f, 0.0f);
 
 	uniformsCBData.ld[0].vs_position = Vec4(Vec3(0, 0, 1), 1.0f) * m_camera->GetViewMatrix();
+	//uniformsCBData.ld[0].vs_position = Vec4(m_camera->GetPosition() + m_camera->GetLookDirection() * 5.f, 1.0f) * m_camera->GetViewMatrix();
 	uniformsCBData.ld[0].attenuation_end = 5.0f;
 
 	DebugDrawManager::GetInstance().AddSphere(Vec3(0, 0, 1), 5.0f, 1);

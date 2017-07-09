@@ -471,6 +471,7 @@ void GraphicsEngine::CreatePipeline() {
 	csm->GetInput<1>().Link(getWorldScene->GetOutput(0));
 	csm->GetInput<2>().Link(depthReductionFinal->GetOutput(0));
 
+	//TODO (2.5D light culling + verify)
 	lightCulling->GetInput<0>().Link(depthPrePass->GetOutput(0));
 	lightCulling->GetInput<1>().Link(getCamera->GetOutput(0));
 
