@@ -22,7 +22,7 @@
     <ProjectGuid>{FA8D6870-7E63-484D-9405-E804EF4EF4F7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Test_GraphicsApi</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
