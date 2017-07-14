@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-namespace exc {
+namespace inl {
 
 /// <summary>
 /// Utility class for high resolution timing.

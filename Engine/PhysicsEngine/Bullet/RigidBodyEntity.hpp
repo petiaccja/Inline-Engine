@@ -44,7 +44,7 @@ public:
 	Vec3 GetVelocity() const override;
 	void* GetUserPointer() override;
 
-	std::vector<ContactPoint> GetContactPoints() const override;
+	std::vector<Contact> GetContacts() const override;
 
 	bool IsTrigger()		const override;
 	bool IsStatic()		const override;

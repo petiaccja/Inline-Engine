@@ -4,6 +4,8 @@
 #include <functional>
 #include <queue>
 
+namespace inl::core {
+
 class InputCore
 {
 public:
@@ -93,3 +95,5 @@ protected:
 	std::vector<std::function<void(const Vec2i& clientMousePos)>> onMouseMidDownCallbacks;
 	std::vector<std::function<void(const Vec2i& mouseDelta, const Vec2i& clientMousePos)>> onMouseMoveCallbacks;
 };
+
+} // namespace inl::core

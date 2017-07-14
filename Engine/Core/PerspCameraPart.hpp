@@ -1,15 +1,19 @@
 #pragma once
-
-#include "WorldComponent.hpp"
+#include "Part.hpp"
 #include <GraphicsEngine_LL\PerspectiveCamera.hpp>
+#include <InlineMath.hpp>
 
-class PerspectiveCameraComponent : public WorldComponent
+namespace inl::core {
+
+using namespace inl;
+
+class PerspCameraPart : virtual public Part
 {
 public:
-	static const eWorldComponentType TYPE = CAMERA;
+	static const ePartType TYPE = CAMERA;
 
 public:
-	PerspectiveCameraComponent(gxeng::PerspectiveCamera* cam);
+	PerspCameraPart(gxeng::PerspectiveCamera* cam);
 
 	void SetDirNormed(const Vec3& dir);
 
@@ -31,3 +35,5 @@ public:
 protected:
 	gxeng::PerspectiveCamera* cam;
 };
+
+} // namespace inl::core

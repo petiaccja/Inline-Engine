@@ -3,15 +3,15 @@
 #include <Bullet/LinearMath/btIDebugDraw.h>
 #include <vector>
 
-class PhysicsEngineBulletDebugGatherer : btIDebugDraw
+namespace inl::physics::bullet {
+
+class BulletDebugDraw: btIDebugDraw
 {
 public:
-	PhysicsEngineBulletDebugGatherer(): nLines(0)
+	BulletDebugDraw(): nLines(0)
 	{
 		linesFromNonUniqPoints.resize(4000000);
 	}
-
-	~PhysicsEngineBulletDebugGatherer(){}
 
 	void ClearFrameData()
 	{
@@ -60,3 +60,5 @@ protected:
 	size_t nLines;
 	int debugMode;
 };
+
+}

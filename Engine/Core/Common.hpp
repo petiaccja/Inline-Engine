@@ -1,13 +1,15 @@
 #pragma once
-#include "SoftBodyComponent.hpp"
-#include "RigidBodyComponent.hpp"
-//#include "SoundEngine/ISoundData.h"
-//#include "SoundEngine/IEmitter.h"
+#include <PhysicsEngine\Common.hpp>
 #include <functional>
-
+#include <vector>
+#include <InlineMath.hpp>
 
 namespace inl::core {
 
+
+class Actor;
+class RigidBodyPart;
+class SoftBodyPart;
 //struct MonoSound
 //{
 //	sound::ISoundData* soundData;
@@ -20,22 +22,24 @@ struct Task
 	float timeLeft;
 };
 
-struct ComponentCollision
+struct PartCollision
 {
+	// TODO make base class from RigidBody and SoftBody
+
 	// self RigidBody colliding, otherwise nullptr
-	RigidBodyComponent* rigidBodyA;
+	RigidBodyPart* rigidBodyA;
 
 	// other RigidBody colliding, otherwise nullptr
-	RigidBodyComponent* rigidBodyB;
+	RigidBodyPart* rigidBodyB;
 
 	// self SoftBody colliding, otherwise nullptr
-	SoftBodyComponent* softBodyA;
+	SoftBodyPart* softBodyA;
 
 	// other SoftBody colliding, otherwise nullptr
-	SoftBodyComponent* softBodyB;
+	SoftBodyPart* softBodyB;
 
 	// Contact points generated between bodyA and bodyB
-	std::vector<physics::ContactPoint> contacts;
+	std::vector<physics::Contact> contacts;
 };
 
 struct Collision
@@ -44,27 +48,7 @@ struct Collision
 	Actor*  actorB;
 
 	// All collisions between actorA and actorB in that frame, it contains "Current bodyA bodyB collision" too
-	std::vector<ComponentCollision> collisions;
-
-	// self RigidBody colliding, otherwise nullptr
-	RigidBodyComponent* rigidBodyA;
-
-	// other RigidBody colliding, otherwise nullptr
-	RigidBodyComponent* rigidBodyB;
-
-	// self SoftBody colliding, otherwise nullptr
-	SoftBodyComponent* softBodyA;
-
-	// other SoftBody colliding, otherwise nullptr
-	SoftBodyComponent* softBodyB;
-
-	// Contact points generated between bodyA and bodyB
-	std::vector<physics::ContactPoint> contacts;
-};
-
-struct ContactPoint : public inl::physics::ContactPoint
-{
-
+	std::vector<PartCollision> partCollisions;
 };
 
 struct PhysicsTraceResult
@@ -79,4 +63,4 @@ struct PhysicsTraceParams : public physics::TraceParams
 {
 };
 
-} // namespace inl
+} // namespace inl::core

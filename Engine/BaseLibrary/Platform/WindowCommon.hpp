@@ -2,7 +2,6 @@
 #pragma once
 
 #include "Sys.hpp"
-#include <BaseLibrary/Common.hpp>
 
 #include <string>
 #include <functional>
@@ -61,7 +60,7 @@ struct WindowDesc
 
 	std::string	 capText;
 	eWindowStyle style;
-	Vec2u	 clientSize;
+	Vec2u		 clientSize;
 	std::function<LRESULT(WindowHandle, unsigned int, long long, long long)> userWndProc;
 };
 

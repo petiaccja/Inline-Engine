@@ -21,12 +21,14 @@
   <ItemGroup>
     <ClCompile Include="Bullet\PhysicsEngineBullet.cpp" />
     <ClCompile Include="Bullet\RigidBodyEntity.cpp" />
+    <ClCompile Include="Bullet\Scene.cpp" />
     <ClCompile Include="Bullet\SoftBodyEntity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bullet\PhysicsEngineBullet.hpp" />
-    <ClInclude Include="Bullet\PhysicsEngineBulletDebugGatherer.hpp" />
+    <ClInclude Include="Bullet\BulletDebugDraw.hpp" />
     <ClInclude Include="Bullet\RigidBodyEntity.hpp" />
+    <ClInclude Include="Bullet\Scene.hpp" />
     <ClInclude Include="Bullet\SoftBodyEntity.hpp" />
     <ClInclude Include="Common.hpp" />
     <ClInclude Include="IPhysicsEngine.hpp" />

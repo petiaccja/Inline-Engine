@@ -226,9 +226,9 @@ void* RigidBodyEntity::GetUserPointer()
 	return userPointer;
 }
 
-std::vector<ContactPoint> RigidBodyEntity::GetContactPoints() const
+std::vector<Contact> RigidBodyEntity::GetContacts() const
 {
-	std::vector<ContactPoint> tmp;
+	std::vector<Contact> tmp;
 	return tmp;
 }
 

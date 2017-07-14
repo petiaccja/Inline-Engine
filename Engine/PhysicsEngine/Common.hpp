@@ -9,7 +9,7 @@ namespace inl::physics {
 class IRigidBodyEntity;
 class ISoftBodyEntity;
 
-struct ContactPoint
+struct Contact
 {
 	Vec3 normalA;
 	Vec3 normalB;
@@ -25,7 +25,7 @@ struct Collision
 	ISoftBodyEntity* softBodyA;
 	ISoftBodyEntity* softBodyB;
 
-	std::vector<ContactPoint> contacts;
+	std::vector<Contact> contacts;
 };
 
 struct TraceResult
@@ -38,12 +38,12 @@ struct TraceResult
 
 struct TraceParams
 {
-	void AddIgnoreCollisionLayer(size_t collisionLayerID) 
+	void AddIgnoreCollisionLayer(uint64_t collisionLayerID) 
 	{ 
 		ignoredCollisionLayers.push_back(collisionLayerID);
 	}
 	
-	std::vector<size_t> ignoredCollisionLayers;
+	std::vector<uint64_t> ignoredCollisionLayers;
 };
 
 } // namespace inl::physics

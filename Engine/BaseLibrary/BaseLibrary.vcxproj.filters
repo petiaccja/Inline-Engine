@@ -161,6 +161,8 @@
     </ClInclude>
     <ClInclude Include="Common.hpp" />
     <ClInclude Include="Transform3D.hpp" />
+    <ClInclude Include="VisualCpuProfiler.h" />
+    <ClInclude Include="Delegate.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">
@@ -216,5 +218,6 @@
     </ClCompile>
     <ClCompile Include="Transform3D.cpp" />
     <ClCompile Include="Common.cpp" />
+    <ClCompile Include="VisualCpuProfiler.cpp" />
   </ItemGroup>
 </Project>

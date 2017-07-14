@@ -20,41 +20,34 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.hpp" />
+    <ClInclude Include="ActorAndPartBase.hpp" />
     <ClInclude Include="ActorScript.hpp" />
-    <ClInclude Include="Behavior.hpp" />
+    <ClInclude Include="ActorBehavior.hpp" />
     <ClInclude Include="Common.hpp" />
-    <ClInclude Include="EngineCore.hpp" />
-    <ClInclude Include="GameWorld.hpp" />
-    <ClInclude Include="GraphicsCore.hpp" />
+    <ClInclude Include="Core.hpp" />
+    <ClInclude Include="Actors.hpp" />
+    <ClInclude Include="Scene.hpp" />
     <ClInclude Include="InputCore.hpp" />
-    <ClInclude Include="MeshComponent.hpp" />
-    <ClInclude Include="NetworkCore.hpp" />
-    <ClInclude Include="PerspectiveCameraComponent.hpp" />
-    <ClInclude Include="PhysicsCore.hpp" />
-    <ClInclude Include="RigidBodyComponent.hpp" />
-    <ClInclude Include="Script.hpp" />
-    <ClInclude Include="SoftBodyComponent.hpp" />
-    <ClInclude Include="SoundCore.hpp" />
-    <ClInclude Include="Transform3DComponent.hpp" />
-    <ClInclude Include="WorldComponent.hpp" />
+    <ClInclude Include="MeshPart.hpp" />
+    <ClInclude Include="PerspCameraPart.hpp" />
+    <ClInclude Include="RigidBodyPart.hpp" />
+    <ClInclude Include="SceneScript.hpp" />
+    <ClInclude Include="SoftBodyPart.hpp" />
+    <ClInclude Include="Part.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="ActorScript.cpp" />
-    <ClCompile Include="Behavior.cpp" />
-    <ClCompile Include="EngineCore.cpp" />
-    <ClCompile Include="GameWorld.cpp" />
-    <ClCompile Include="GraphicsCore.cpp" />
+    <ClCompile Include="ActorBehavior.cpp" />
+    <ClCompile Include="Core.cpp" />
+    <ClCompile Include="Scene.cpp" />
     <ClCompile Include="InputCore.cpp" />
-    <ClCompile Include="MeshComponent.cpp" />
-    <ClCompile Include="NetworkCore.cpp" />
-    <ClCompile Include="PerspectiveCameraComponent.cpp" />
-    <ClCompile Include="PhysicsCore.cpp" />
-    <ClCompile Include="RigidBodyComponent.cpp" />
-    <ClCompile Include="Script.cpp" />
-    <ClCompile Include="SoftBodyComponent.cpp" />
-    <ClCompile Include="SoundCore.cpp" />
-    <ClCompile Include="WorldComponent.cpp" />
+    <ClCompile Include="MeshPart.cpp" />
+    <ClCompile Include="PerspCameraPart.cpp" />
+    <ClCompile Include="RigidBodyPart.cpp" />
+    <ClCompile Include="SceneScript.cpp" />
+    <ClCompile Include="SoftBodyPart.cpp" />
+    <ClCompile Include="Part.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

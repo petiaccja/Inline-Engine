@@ -4,10 +4,12 @@
 #include "../WindowCommon.hpp"
 #include "WindowDropTarget.hpp"
 
-#define NOMINMAX
-#include <windows.h>
+#include <BaseLibrary/Delegate.hpp>
 #include <queue>
 #include <functional>
+
+#define NOMINMAX
+#include <windows.h>
 
 // The Win32 api Window class
 class Window

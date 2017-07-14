@@ -1,6 +1,6 @@
 #include "Timer.hpp"
 
-namespace exc {
+namespace inl {
 
 
 Timer::Timer() {

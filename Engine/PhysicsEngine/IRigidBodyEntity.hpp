@@ -35,7 +35,7 @@ public:
 	virtual Vec3 GetVelocity() const = 0;
 	virtual void* GetUserPointer() = 0;
 
-	virtual std::vector<ContactPoint> GetContactPoints() const = 0;
+	virtual std::vector<Contact> GetContacts() const = 0;
 
 	virtual bool IsTrigger() const = 0;
 	virtual bool IsStatic() const = 0;

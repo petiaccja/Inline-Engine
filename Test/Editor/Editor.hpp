@@ -1,7 +1,7 @@
 #pragma once
 // The engine editor woaah
 
-#include "Core\EngineCore.hpp"
+#include "Core\Core.hpp"
 #include "GraphicsEngine_LL\GraphicsEngine.hpp"
 #include "GuiEngine\GuiEngine.hpp"
 #include "BaseLibrary\Platform\Window.hpp"
@@ -13,7 +13,7 @@
 
 using namespace std::placeholders;
 using namespace exc;
-using namespace inl;
+using namespace inl::core;
 using namespace inl::gui;
 
 class Editor
@@ -32,7 +32,7 @@ protected:
 	// TODO TEMPORARY
 	class QCWorld* world;
 
-	EngineCore* core;
+	Core* core;
 	GuiEngine* guiE;
 	gxeng::GraphicsEngine* graphicsE;
 

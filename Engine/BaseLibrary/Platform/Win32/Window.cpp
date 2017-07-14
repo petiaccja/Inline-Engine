@@ -164,8 +164,8 @@ bool Window::PopEvent(WindowEvent& evt_out)
 	evt_out.key = INVALID_eKey;
 	evt_out.mouseBtn = INVALID_eMouseBtn;
 	evt_out.msg = INVALID_eWindowsMsg;
-	evt_out.clientMousePos.x = 0;
-	evt_out.clientMousePos.y = 0;
+	evt_out.clientMousePos.x = -1;
+	evt_out.clientMousePos.y = -1;
 
 	MSG msg;
 	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -200,7 +200,7 @@ bool Window::PopEvent(WindowEvent& evt_out)
 		evt_out.clientMousePos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMousePressed(evt_out);
 	}
-	if (msg.message == WM_LBUTTONUP)
+	else if (msg.message == WM_LBUTTONUP)
 	{
 		evt_out.msg = MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
@@ -283,6 +283,20 @@ bool Window::PopEvent(WindowEvent& evt_out)
 	else
 	{
 		evt_out.msg = INVALID_eWindowsMsg;
+	}
+
+	// msg.hwnd != handle happens when this window receive message from it's children window 
+	// TODO (Can be removed when we no longer using window as children because of GDI gui render)
+	if (msg.hwnd != handle && evt_out.clientMousePos.x != -1)
+	{
+		POINT p;
+		p.x = evt_out.clientMousePos.x;
+		p.y = evt_out.clientMousePos.y;
+		ClientToScreen(msg.hwnd, &p);
+		ScreenToClient(handle, &p);
+
+		evt_out.clientMousePos.x = p.x;
+		evt_out.clientMousePos.y = p.y;
 	}
 
 	return true;

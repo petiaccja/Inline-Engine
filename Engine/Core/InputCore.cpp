@@ -1,5 +1,7 @@
 #include "InputCore.hpp"
 
+using namespace inl::core;
+
 InputCore::InputCore()
 {
 	//for(auto& keyDownInfo : keyDownArray)

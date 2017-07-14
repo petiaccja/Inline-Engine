@@ -19,7 +19,7 @@ Editor::Editor()
 {
 	bWndMaximized = false;
 
-	core = new EngineCore();
+	core = new Core();
 
 	// Create main window for Editor
 	WindowDesc d;
@@ -36,7 +36,7 @@ Editor::Editor()
 
 	HWND editorHwnd = (HWND)wnd->GetHandle();
 	HWND gameHwnd = (HWND)gameWnd->GetHandle();
-	EnableWindow(gameHwnd, false);
+	EnableWindow(gameHwnd, true);
 	SetParent(gameHwnd, editorHwnd);
 
 	// Resize window, non client area removal made it's size wrong
@@ -427,14 +427,56 @@ void Editor::Start()
 	while (wnd->IsOpen())
 	{
 		// Prepare for input processing
-		//Input.ClearFrameData();
+		gInput.ClearFrameData();
 
 		WindowEvent evt;
-		while (wnd->PopEvent(evt));
+		while (wnd->PopEvent(evt))
+		{
+			switch (evt.msg)
+			{
+				case KEY_PRESS:
+				{
+					if (evt.key != INVALID_eKey)
+						gInput.KeyPress(evt.key);
+				} break;
+
+				case KEY_RELEASE:
+				{
+					if (evt.key != INVALID_eKey)
+						gInput.KeyRelease(evt.key);
+				} break;
+
+				case MOUSE_MOVE:
+				{
+					gInput.MouseMove(Vec2i(evt.mouseDelta.x, evt.mouseDelta.x), evt.clientMousePos);
+				} break;
+
+				case MOUSE_PRESS:
+				{
+					switch (evt.mouseBtn)
+					{
+					case LEFT:	gInput.MouseLeftPress();	break;
+					case RIGHT:	gInput.MouseRightPress();	break;
+					case MID:	gInput.MouseMidPress();		break;
+					}
+				} break;
+
+				case MOUSE_RELEASE:
+				{
+					switch (evt.mouseBtn)
+					{
+					case LEFT:	gInput.MouseLeftRelease();	break;
+					case RIGHT: gInput.MouseRightRelease();	break;
+					case MID:	gInput.MouseMidRelease();	break;
+					}
+				} break;
+			}
+		}
+
 		while (gameWnd->PopEvent(evt));
 
 		// Dispatch Inputs
-		//Input.Update();
+		gInput.Update();
 
 		// Frame delta time
 		Time.deltaTime = timer->Elapsed();

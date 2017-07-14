@@ -1,13 +1,5 @@
 #pragma once
 // The purpose of this class is to take the most minimal input from the user to (startup, use) the engine
-
-#include "ActorScript.hpp"
-#include "MeshComponent.hpp"
-#include "RigidBodyComponent.hpp"
-#include "PerspectiveCameraComponent.hpp"
-#include "Transform3DComponent.hpp"
-#include "Common.hpp"
-
 #include <GuiEngine/GuiEngine.hpp>
 #include <GraphicsApi_D3D12/GxapiManager.hpp>
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
@@ -18,52 +10,60 @@
 #include <BaseLibrary/Platform/Window.hpp>
 #include <PhysicsEngine/Bullet/PhysicsEngineBullet.hpp>
 
+#include "InputCore.hpp"
+#include "ActorScript.hpp"
+#include "MeshPart.hpp"
+#include "RigidBodyPart.hpp"
+#include "PerspCameraPart.hpp"
+#include "Common.hpp"
+#include "Scene.hpp"
+
 #include <unordered_map>
 #include <vector>
 #include <functional>
 
-class Script;
+namespace inl::core {
 
-using namespace inl::core;
+class SceneScript;
+
+using namespace inl;
 using namespace inl::gui;
-using namespace inl::physics;
 using namespace inl::physics::bullet;
-//using namespace inl::gxeng;
 using namespace inl::gxapi;
 using namespace inl::gxapi_dx12;
 
-class EngineCore
+class Core
 {
 public:
-	EngineCore();
-	~EngineCore();
+	Core();
+	~Core();
 
-	gxeng::GraphicsEngine* InitGraphicsEngine(int width, int height, HWND hwnd);
-	IPhysicsEngine* InitPhysicsEngineBullet(const PhysicsEngineBulletDesc& d = PhysicsEngineBulletDesc());
-	GuiEngine*		InitGuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow);
+	gxeng::GraphicsEngine*	InitGraphicsEngine(int width, int height, HWND hwnd);
+	IPhysicsEngine*			InitPhysicsEngineBullet();
+	GuiEngine*				InitGuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow);
 
-	bool TraceClosestPoint_Physics(const Vec3& from, const Vec3& to, PhysicsTraceResult& traceResult_out, const PhysicsTraceParams& params = PhysicsTraceParams());
+	//bool TraceClosestPoint_Physics(const Vec3& from, const Vec3& to, core::PhysicsTraceResult& traceResult_out, const core::PhysicsTraceParams& params = core::PhysicsTraceParams());
 
 	// Todo
 	//bool TraceClosestPoint_Graphics(const Vec3& from, const Vec3& to, TraceResult& traceInfo_out);
 	
 	//sound::IEmitter* CreateMonoSound(const std::string& filePath, float volumeNormedPercent = 1, bool bLoop = false);
 	
-	Actor* AddActor();
-	Actor* AddActor(const std::string& modelFilePath, float mass = 0);
-	Actor* AddActor(WorldComponent* rootComp);
-	Actor* AddActor_Mesh(const std::string& modelFilePath);
-	Actor* AddActor_RigidBody(const std::string& modelFilePath, float mass);
-	Actor* AddActor_RigidBodyCapsule(float height, float radius, float mass = 0);
-	Actor* AddActor_Camera();
-	
-	void RemoveActor(Actor* a);
-	void RemoveComponent(WorldComponent* c);
+	//Actor* AddActor();
+	//Actor* AddActor(const std::string& modelFilePath, float mass = 0);
+	//Actor* AddActor(Part* rootComp);
+	//Actor* AddActor_Mesh(const std::string& modelFilePath);
+	//Actor* AddActor_RigidBody(const std::string& modelFilePath, float mass);
+	//Actor* AddActor_RigidBodyCapsule(float height, float radius, float mass = 0);
+	//Actor* AddActor_Camera();
+	//
+	//void RemoveActor(Actor* a);
+	//void RemovePart(Part* c);
 
 	void AddTask(const std::function<void()>& callb, float timeToProceed);
 	
 	template<class ScriptClass>
-	Script* AddScript()
+	SceneScript* AddScript()
 	{
 		ScriptClass* p = new ScriptClass();
 		scripts.push_back(p);
@@ -74,25 +74,10 @@ public:
 	ActorScript* AddActorScript()
 	{
 		ActorScriptClass* p = new ActorScriptClass();
-		p->SetEntity(Core.AddEntity());
+		p->SetActor(Core.AddEntity());
 	
-		entityScripts.push_back(p);
+		actorScripts.push_back(p);
 		return p;
-	}
-	
-	MeshComponent*			AddComponent_Mesh(const std::string& modelAssetPath);
-	RigidBodyComponent*		AddComponent_RigidBody(const std::string& modelAssetPath, float mass);
-	RigidBodyComponent*		AddComponent_RigidBodyCapsule(float height, float radius, float mass = 0);
-	PerspectiveCameraComponent*		AddComponent_Camera();
-	Transform3DComponent*	AddComponent_Transform3D();
-	
-	void SetLayerCollision(size_t ID0, size_t ID1, bool bEnableCollision);
-	
-	void SetCam(PerspectiveCameraComponent* c)
-	{ 
-		assert(0);
-		//assert(defaultGraphicsScene); 
-		//defaultGraphicsScene->SetCamera(c->GetCam()); 
 	}
 	
 	void Update(float deltaTime);
@@ -103,13 +88,13 @@ public:
 		return nullptr;// graphicsEngine->GetTargetWindow();
 	}
 	
-	inline gxeng::GraphicsEngine*	 GetGraphicsEngine() const { return graphicsEngine; }
-	inline IPhysicsEngine*	 GetPhysicsEngine() const { return physicsEngine; }
+	gxeng::GraphicsEngine*	 GetGraphicsEngine() const { return graphicsEngine; }
+	IPhysicsEngine*	 GetPhysicsEngine() const { return physicsEngine; }
 	//inline INetworkEngine*	 GetNetworkEngine() const { return networkEngine; }
 	//inline ISoundEngine*	 GetSoundEngine() const { return soundEngine; }
 
-	inline std::vector<WorldComponent*> GetWorldComponents(eWorldComponentType type);
-	inline std::vector<WorldComponent*> GetWorldComponents();
+	std::vector<Part*> GetParts(ePartType type);
+	std::vector<Part*> GetParts();
 
 protected:
 	IPhysicsEngine*	physicsEngine;
@@ -117,7 +102,7 @@ protected:
 	//ISoundEngine*		soundEngine;
 
 	// Scripts
-	std::vector<Script*> scripts;
+	std::vector<SceneScript*> scripts;
 
 	// Actors
 	std::vector<Actor*> actors;
@@ -127,11 +112,12 @@ protected:
 	//std::unordered_map<Actor*, core::Collision> curFrameActorCollideList;
 	//std::unordered_map<Actor*, core::Collision> prevFrameActorCollideList;
 
-	// Entity scripts
-	std::vector<ActorScript*> entityScripts;
+	// Actor scripts
+	std::vector<ActorScript*> actorScripts;
 
 	// World components
-	std::vector<WorldComponent*> worldComponents;
+	std::vector<Part*> parts;
+	std::vector<Part*> partsToDestroy;
 
 	// Tasks
 	std::vector<Task> tasks;
@@ -164,25 +150,8 @@ protected:
 	exc::Logger logger;
 };
 
-extern EngineCore Core;
+extern Core gCore;
+extern Scene gScene;
+extern InputCore gInput;
 
-std::vector<WorldComponent*> EngineCore::GetWorldComponents()
-{
-	return worldComponents;
-}
-
-std::vector<WorldComponent*> EngineCore::GetWorldComponents(eWorldComponentType type)
-{
-	std::vector<WorldComponent*> result;
-	//result.clear();
-
-	for (WorldComponent* c : GetWorldComponents())
-	{
-		if (c->GetType() == type)
-		{
-			result.push_back(c);
-		}
-	}
-
-	return result;
-}
+} // namespace inl::core

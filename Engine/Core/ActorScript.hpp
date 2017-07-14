@@ -1,8 +1,8 @@
 #pragma once
 
-namespace inl::core { class Actor; }
+namespace inl::core {
 
-using namespace inl::core;
+class Actor;
 
 class ActorScript
 {
@@ -19,3 +19,5 @@ public:
 protected:
 	Actor* actor;
 };
+
+}

@@ -1,15 +1,19 @@
 #pragma once
-#include "WorldComponent.hpp"
+#include "Part.hpp"
+#include <PhysicsEngine/IRigidBodyEntity.hpp>
 
-#include "PhysicsEngine/IRigidBodyEntity.hpp"
+namespace inl::core {
 
-class RigidBodyComponent : public WorldComponent
+using namespace inl;
+using physics::Contact;
+
+class RigidBodyPart : virtual public Part
 {
 public:
-	static const eWorldComponentType TYPE = RIGID_BODY;
+	static const ePartType TYPE = RIGID_BODY;
 
 public:
-	RigidBodyComponent(physics::IRigidBodyEntity* a);
+	RigidBodyPart(physics::IRigidBodyEntity* a);
 
 	void AddForce(const Vec3& force, const Vec3& relPos = { 0, 0, 0 });
 
@@ -34,8 +38,10 @@ public:
 
 	physics::IRigidBodyEntity* GetEntity();
 
-	std::vector<physics::ContactPoint> GetContactPoints() const;
+	std::vector<Contact> GetContacts() const;
 
 protected:
 	physics::IRigidBodyEntity* entity;
 };
+
+}

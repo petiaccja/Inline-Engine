@@ -1,117 +1,95 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Headers">
-      <UniqueIdentifier>{b50f40cf-b25e-4c1d-86af-1225e94548f2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source">
-      <UniqueIdentifier>{6ee7744f-2cfa-49de-9379-6e1257e90dce}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="Core.hpp" />
+    <ClInclude Include="InputCore.hpp" />
     <ClInclude Include="Actor.hpp">
-      <Filter>Headers</Filter>
+      <Filter>Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="ActorBehavior.hpp">
+      <Filter>Script</Filter>
     </ClInclude>
     <ClInclude Include="ActorScript.hpp">
-      <Filter>Headers</Filter>
+      <Filter>Script</Filter>
     </ClInclude>
-    <ClInclude Include="Behavior.hpp">
-      <Filter>Headers</Filter>
+    <ClInclude Include="MeshPart.hpp">
+      <Filter>Part</Filter>
+    </ClInclude>
+    <ClInclude Include="Part.hpp">
+      <Filter>Part</Filter>
+    </ClInclude>
+    <ClInclude Include="RigidBodyPart.hpp">
+      <Filter>Part</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneScript.hpp">
+      <Filter>Script</Filter>
+    </ClInclude>
+    <ClInclude Include="SoftBodyPart.hpp">
+      <Filter>Part</Filter>
     </ClInclude>
     <ClInclude Include="Common.hpp">
-      <Filter>Headers</Filter>
+      <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="EngineCore.hpp">
-      <Filter>Headers</Filter>
+    <ClInclude Include="Scene.hpp">
+      <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="GameWorld.hpp">
-      <Filter>Headers</Filter>
+    <ClInclude Include="ActorAndPartBase.hpp" />
+    <ClInclude Include="Actors.hpp">
+      <Filter>Actor</Filter>
     </ClInclude>
-    <ClInclude Include="GraphicsCore.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="InputCore.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="MeshComponent.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="NetworkCore.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="PerspectiveCameraComponent.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="PhysicsCore.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="RigidBodyComponent.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Script.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="SoftBodyComponent.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="SoundCore.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Transform3DComponent.hpp">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="WorldComponent.hpp">
-      <Filter>Headers</Filter>
+    <ClInclude Include="PerspCameraPart.hpp">
+      <Filter>Part</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ActorScript.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Behavior.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="EngineCore.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="GameWorld.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="GraphicsCore.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="InputCore.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshComponent.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="NetworkCore.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="PerspectiveCameraComponent.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="PhysicsCore.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="RigidBodyComponent.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Script.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="SoftBodyComponent.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="SoundCore.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="WorldComponent.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
+    <ClCompile Include="Core.cpp" />
+    <ClCompile Include="InputCore.cpp" />
     <ClCompile Include="Actor.cpp">
-      <Filter>Source</Filter>
+      <Filter>Actor</Filter>
     </ClCompile>
+    <ClCompile Include="ActorBehavior.cpp">
+      <Filter>Script</Filter>
+    </ClCompile>
+    <ClCompile Include="ActorScript.cpp">
+      <Filter>Script</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshPart.cpp">
+      <Filter>Part</Filter>
+    </ClCompile>
+    <ClCompile Include="Part.cpp">
+      <Filter>Part</Filter>
+    </ClCompile>
+    <ClCompile Include="RigidBodyPart.cpp">
+      <Filter>Part</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneScript.cpp">
+      <Filter>Script</Filter>
+    </ClCompile>
+    <ClCompile Include="SoftBodyPart.cpp">
+      <Filter>Part</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="PerspCameraPart.cpp">
+      <Filter>Part</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Actor">
+      <UniqueIdentifier>{0d709232-1bda-45b7-9644-6c03ca5ef6ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Script">
+      <UniqueIdentifier>{da09b895-96d5-4f61-8899-9f748e290de5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Part">
+      <UniqueIdentifier>{5503533b-62bf-4c99-b1c0-8d4d5fd5298a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{8fa6ecab-3bbd-4a11-ae62-f6f82a2824d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{563eef32-ef2d-40f7-a57b-2b59e108970a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

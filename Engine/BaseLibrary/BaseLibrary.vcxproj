@@ -166,6 +166,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Transform3D.cpp" />
+    <ClCompile Include="VisualCpuProfiler.cpp" />
     <ClInclude Include="Any.hpp" />
     <ClCompile Include="Platform\Win32\WindowDropTarget.cpp" />
     <ClCompile Include="Timer.cpp" />
@@ -176,6 +177,7 @@
       <FileType>CppHeader</FileType>
     </ClCompile>
     <ClInclude Include="Common.hpp" />
+    <ClInclude Include="Delegate.hpp" />
     <ClInclude Include="Graph\Node.hpp" />
     <ClInclude Include="Graph\NodeFactory.hpp" />
     <ClInclude Include="Graph\NodeLibrary.hpp" />
@@ -216,6 +218,7 @@
     <ClInclude Include="ThreadName.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transform3D.hpp" />
+    <ClInclude Include="VisualCpuProfiler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Graph\NodeFactory.cpp" />

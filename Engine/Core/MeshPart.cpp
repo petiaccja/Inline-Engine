@@ -1,7 +1,19 @@
-#include "MeshComponent.hpp"
-#include "EngineCore.hpp"
+#include "MeshPart.hpp"
+#include "Core.hpp"
 
-void MeshComponent::SetTextureNormal(const std::string& contentPath)
+namespace inl::core {
+
+MeshPart::MeshPart(gxeng::MeshEntity* e)
+: Part(TYPE), entity(e)
+{
+}
+
+gxeng::MeshEntity* MeshPart::GetEntity()
+{
+	return entity;
+}
+
+void MeshPart::SetTextureNormal(const std::string& contentPath)
 {
 	assert(0);
 	//graphics::ITexture* texture = Core.GetGraphicsEngine()->CreateTexture();
@@ -20,7 +32,7 @@ void MeshComponent::SetTextureNormal(const std::string& contentPath)
 	//}
 }
 
-void MeshComponent::SetTextureBaseColor(const std::string& contentPath)
+void MeshPart::SetTextureBaseColor(const std::string& contentPath)
 {
 	assert(0);
 
@@ -40,7 +52,7 @@ void MeshComponent::SetTextureBaseColor(const std::string& contentPath)
 	//}
 }
 
-void MeshComponent::SetTextureAO(const std::string& contentPath)
+void MeshPart::SetTextureAO(const std::string& contentPath)
 {
 	assert(0);
 	//graphics::ITexture* texture = Core.GetGraphicsEngine()->CreateTexture();
@@ -58,3 +70,5 @@ void MeshComponent::SetTextureAO(const std::string& contentPath)
 	//	subMaterial.t_ao = texture;
 	//}
 }
+
+} // namespace inl::core

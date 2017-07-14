@@ -1,48 +1,54 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="TestGame_QC">
+      <UniqueIdentifier>{8ac82322-d920-436b-85e1-a544bdcf9f3d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    <Filter Include="TestGame_ExcessiveStrike">
+      <UniqueIdentifier>{73038bac-2218-43cb-a61e-50fb51a1be48}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Editor.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="TestLevelScript.cpp">
+      <Filter>TestGame_ExcessiveStrike</Filter>
     </ClCompile>
-    <ClCompile Include="QCWorld.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="PlayerScript.cpp">
+      <Filter>TestGame_ExcessiveStrike</Filter>
     </ClCompile>
     <ClCompile Include="PIDController.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>TestGame_QC</Filter>
+    </ClCompile>
+    <ClCompile Include="QCWorld.cpp">
+      <Filter>TestGame_QC</Filter>
     </ClCompile>
     <ClCompile Include="RigidBody.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>TestGame_QC</Filter>
     </ClCompile>
     <ClCompile Include="Rotor.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>TestGame_QC</Filter>
     </ClCompile>
+    <ClCompile Include="Editor.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Editor.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="QCWorld.hpp">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="Rotor.hpp">
+      <Filter>TestGame_QC</Filter>
     </ClInclude>
     <ClInclude Include="PIDController.hpp">
-      <Filter>Source Files</Filter>
+      <Filter>TestGame_QC</Filter>
+    </ClInclude>
+    <ClInclude Include="QCWorld.hpp">
+      <Filter>TestGame_QC</Filter>
     </ClInclude>
     <ClInclude Include="RigidBody.hpp">
-      <Filter>Source Files</Filter>
+      <Filter>TestGame_QC</Filter>
     </ClInclude>
-    <ClInclude Include="Rotor.hpp">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="Editor.hpp" />
+    <ClInclude Include="PlayerScript.hpp">
+      <Filter>TestGame_ExcessiveStrike</Filter>
+    </ClInclude>
+    <ClInclude Include="TestLevelScript.hpp">
+      <Filter>TestGame_ExcessiveStrike</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

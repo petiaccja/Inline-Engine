@@ -107,7 +107,7 @@
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Core.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Core.lib;GraphicsEngine_LL.lib;BaseLibrary.lib;PhysicsEngineBullet.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>NotSet</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -128,16 +128,20 @@
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PIDController.cpp" />
+    <ClCompile Include="PlayerScript.cpp" />
     <ClCompile Include="QCWorld.cpp" />
     <ClCompile Include="RigidBody.cpp" />
     <ClCompile Include="Rotor.cpp" />
+    <ClCompile Include="TestLevelScript.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Editor.hpp" />
     <ClInclude Include="PIDController.hpp" />
+    <ClInclude Include="PlayerScript.hpp" />
     <ClInclude Include="QCWorld.hpp" />
     <ClInclude Include="RigidBody.hpp" />
     <ClInclude Include="Rotor.hpp" />
+    <ClInclude Include="TestLevelScript.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
