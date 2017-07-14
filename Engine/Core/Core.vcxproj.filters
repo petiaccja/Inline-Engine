@@ -33,7 +33,6 @@
     <ClInclude Include="Scene.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="ActorAndPartBase.hpp" />
     <ClInclude Include="Actors.hpp">
       <Filter>Actor</Filter>
     </ClInclude>

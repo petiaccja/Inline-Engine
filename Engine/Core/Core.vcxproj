@@ -20,7 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.hpp" />
-    <ClInclude Include="ActorAndPartBase.hpp" />
     <ClInclude Include="ActorScript.hpp" />
     <ClInclude Include="ActorBehavior.hpp" />
     <ClInclude Include="Common.hpp" />
