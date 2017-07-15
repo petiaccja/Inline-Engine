@@ -451,7 +451,6 @@ void GraphicsEngine::CreatePipeline() {
 
 	depthReduction->GetInput<0>().Link(depthPrePass->GetOutput(0));
 
-	//TODO
 	depthReductionFinal->GetInput<0>().Link(depthReduction->GetOutput(0));
 	depthReductionFinal->GetInput<1>().Link(getCamera->GetOutput(0));
 	depthReductionFinal->GetInput<2>().Link(getWorldScene->GetOutput(2));
@@ -660,7 +659,7 @@ void GraphicsEngine::CreatePipeline() {
 		tileMax,
 		neighborMax,
 		motionBlur,
-		//lensFlare,
+		lensFlare,
 
 		getGuiScene,
 		getGuiCamera,

@@ -45,7 +45,7 @@ void Scheduler::Execute(FrameContext context) {
 				task->Setup(setupContext);
 			}
 		}
-	}
+	/*}
 	catch (std::exception& ex) {
 		// One of the pipeline Nodes (Tasks) threw an exception.
 		// Scene cannot be rendered, but we should draw an error message on the screen for the devs.
@@ -62,7 +62,7 @@ void Scheduler::Execute(FrameContext context) {
 		}
 	}
 
-	try {
+	try {*/
 		// PHASE II.: Execute() tasks in correct
 		for (auto& task : tasks) {
 			VolatileViewHeap volatileHeap(context.gxApi);
