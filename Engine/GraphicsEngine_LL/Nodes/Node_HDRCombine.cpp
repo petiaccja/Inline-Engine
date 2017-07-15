@@ -9,6 +9,7 @@
 #include "../PerspectiveCamera.hpp"
 #include "../GraphicsCommandList.hpp"
 #include "../EntityCollection.hpp"
+#include "AssetLibrary/Image.hpp"
 
 #include "DebugDrawManager.hpp"
 
@@ -37,10 +38,12 @@ void HDRCombine::Reset() {
 	m_inputTexSrv = TextureView2D();
 	m_luminanceTexSrv = TextureView2D();
 	m_bloomTexSrv = TextureView2D();
+	m_image = nullptr;
 
 	GetInput<0>().Clear();
 	GetInput<1>().Clear();
 	GetInput<2>().Clear();
+	GetInput<3>().Clear();
 }
 
 
@@ -64,6 +67,8 @@ void HDRCombine::Setup(SetupContext& context) {
 	Texture2D bloomTex = this->GetInput<2>().Get();
 	m_bloomTexSrv = context.CreateSrv(bloomTex, bloomTex.GetFormat(), srvDesc);
 	m_bloomTexSrv.GetResource()._GetResourcePtr()->SetName("HDR Combine bloom tex SRV");
+
+	m_image = this->GetInput<3>().Get();
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -105,6 +110,14 @@ void HDRCombine::Setup(SetupContext& context) {
 		bloomBindParamDesc.relativeChangeFrequency = 0;
 		bloomBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+		BindParameterDesc colorGradingBindParamDesc;
+		m_colorGradingTexBindParam = BindParameter(eBindParameterType::TEXTURE, 3);
+		colorGradingBindParamDesc.parameter = m_colorGradingTexBindParam;
+		colorGradingBindParamDesc.constantSize = 0;
+		colorGradingBindParamDesc.relativeAccessFrequency = 0;
+		colorGradingBindParamDesc.relativeChangeFrequency = 0;
+		colorGradingBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
 		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
@@ -115,7 +128,7 @@ void HDRCombine::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, luminanceBindParamDesc, bloomBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, luminanceBindParamDesc, bloomBindParamDesc, colorGradingBindParamDesc },{ samplerDesc });
 	}
 
 	if (!m_fsq.HasObject()) {
@@ -194,6 +207,7 @@ void HDRCombine::Execute(RenderContext& context) {
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_luminanceTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_bloomTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_colorGradingLutTexture->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 	RenderTargetView2D* pRTV = &m_combine_rtv;
 	commandList.SetRenderTargets(1, &pRTV, 0);
@@ -218,6 +232,7 @@ void HDRCombine::Execute(RenderContext& context) {
 	commandList.BindGraphics(m_inputTexBindParam, m_inputTexSrv);
 	commandList.BindGraphics(m_luminanceTexBindParam, m_luminanceTexSrv);
 	commandList.BindGraphics(m_bloomTexBindParam, m_bloomTexSrv);
+	commandList.BindGraphics(m_colorGradingTexBindParam, *m_colorGradingLutTexture->GetSrv().get());
 	commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
@@ -258,6 +273,19 @@ void HDRCombine::InitRenderTarget(SetupContext& context) {
 		combine_tex._GetResourcePtr()->SetName("HDR Combine tex");
 		m_combine_rtv = context.CreateRtv(combine_tex, formatHDRCombine, rtvDesc);
 		m_combine_rtv.GetResource()._GetResourcePtr()->SetName("HDR Combine RTV");
+
+		// Create color grading texture
+		{
+			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
+			inl::asset::Image img("assets\\colorGrading\\default_lut_table.png");
+
+			m_colorGradingLutTexture.reset(m_image);
+			m_colorGradingLutTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
+			m_colorGradingLutTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+
+			//TODO
+			//create cube texture
+		}
 	}
 }
 

@@ -15,6 +15,7 @@ ConstantBuffer<Uniforms> uniforms : register(b0);
 Texture2D inputTex : register(t0); //HDR texture
 Texture2D luminanceTex : register(t1);
 Texture2D bloomTex : register(t2);
+TextureCube colorGradingTex : register(t3);
 SamplerState samp0 : register(s0);
 
 struct PS_Input
@@ -67,19 +68,61 @@ float3 gamma_to_linear(float3 col)
 	return pow(col, float3(2.2, 2.2, 2.2));
 }
 
+float3 color_grading(float3 col)
+{
+	uint2 colorGradingTexSize;
+	colorGradingTex.GetDimensions(colorGradingTexSize.x, colorGradingTexSize.y);
+
+	float sizeMinusOne = colorGradingTexSize.x - 1.0;
+	float sizeTwo = 2.0 * colorGradingTexSize.x;
+
+	float3 scale = float3(sizeMinusOne, sizeMinusOne, sizeMinusOne) / colorGradingTexSize.x;
+	float3 offset = 1.0 / float3(sizeTwo, sizeTwo, sizeTwo);
+
+	float3 coord = scale * col + offset;
+
+	col = colorGradingTex.Sample(samp0, coord).xyz;
+
+	return col;
+}
+
+float3 blue_shift(float3 col, float night_factor)
+{
+	//blue shift, experimental
+	const float3 blue_shift = float3(1.05, 0.97, 1.27);
+	const float3 lumCoeff = float3(0.2126, 0.7152, 0.0722);
+	float3 night_color = dot(col, lumCoeff) * blue_shift;
+	float blue_shift_coeff = night_factor;
+	return lerp(col, night_color, blue_shift_coeff);
+}
+
+float3 vignette(float2 texcoord, float3 col)
+{
+	float vignette_size = 0.5, vignette_amount = 0.5;
+	float dist = distance(texcoord, float2(0.5, 0.5));
+
+	return col * smoothstep(0.8, vignette_size * 0.799, dist * (vignette_amount + vignette_size));
+}
+
 float4 PSMain(PS_Input input) : SV_TARGET
 {
 	float4 inputData = max(inputTex.Load(int3(input.position.xy, 0)), float4(0,0,0,0));
 	float4 bloomData = bloomTex.Sample(samp0, input.texcoord);
+
+	inputData.xyz = vignette(input.texcoord, inputData.xyz);
 
 	inputData += bloomData * uniforms.bloom_weight;
 	
 	float3 hdrColor = max(inputData, float4(0, 0, 0, 0)).xyz;
 	float avg_lum = luminanceTex.Sample(samp0, input.texcoord);
 
+	//hdrColor = blue_shift(hdrColor, 1.0);
+
 	float3 ldr = tonemap(hdrColor * avg_lum * (uniforms.exposure + 1.0));
 
 	ldr = linear_to_gamma(ldr);
+
+	//ldr = color_grading(ldr);
 
 	return float4(ldr, 1.0);
 }

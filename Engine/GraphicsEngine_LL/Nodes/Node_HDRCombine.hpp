@@ -9,6 +9,7 @@
 #include "../PipelineTypes.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
+#include "../Image.hpp"
 
 #include <optional>
 
@@ -18,7 +19,7 @@ namespace inl::gxeng::nodes {
 class HDRCombine :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<Texture2D, Texture2D, Texture2D>,
+	virtual public InputPortConfig<Texture2D, Texture2D, Texture2D, inl::gxeng::Image*>,
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
@@ -48,6 +49,7 @@ protected:
 	BindParameter m_luminanceTexBindParam;
 	BindParameter m_bloomTexBindParam;
 	BindParameter m_uniformsBindParam;
+	BindParameter m_colorGradingTexBindParam;
 	ShaderProgram m_shader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
@@ -65,6 +67,8 @@ protected: // render context
 	TextureView2D m_luminanceTexSrv;
 	TextureView2D m_bloomTexSrv;
 
+	inl::gxeng::Image* m_image;
+	std::unique_ptr<inl::gxeng::Image> m_colorGradingLutTexture;
 private:
 	void InitRenderTarget(SetupContext& context);
 };
