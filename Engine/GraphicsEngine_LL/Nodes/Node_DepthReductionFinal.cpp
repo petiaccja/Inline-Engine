@@ -175,8 +175,8 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 	}
 
 	Vec4 cam_pos(perpectiveCamera->GetPosition(), 1.0f);
-	Vec4 cam_view_dir(perpectiveCamera->GetLookDirection(), 0.0f);
-	Vec4 cam_up_vector(perpectiveCamera->GetUpVector(), 0.0f);
+	Vec4 cam_view_dir(perpectiveCamera->GetLookDirection().Normalized(), 0.0f);
+	Vec4 cam_up_vector(perpectiveCamera->GetUpVector().Normalized(), 0.0f);
 
 	uniformsCBData.cam_pos = cam_pos;
 	uniformsCBData.cam_view_dir = cam_view_dir;

@@ -107,9 +107,12 @@ float sample_csm(int cascade, float4 vs_pos)
 	shadowMapTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z, levels);
 	float2 scale = 1.0 / float2(inputTexSize.xy);
 
+	//shadow_coord.xy = shadow_coord.xy * float2(0.5, -0.5) + 0.5;
+
 	float shadow_depth = offset_lookup(shadow_coord, offset, scale, cascade);
+	//return float3(shadow_coord.x < 0.0, shadow_coord.y < 0.0, shadow_coord.z < 0.0);
 	return shadow_coord.z < shadow_depth;
-	//return shadowMapTex.Sample(theSampler, float3(shadow_coord.xy, 10.0)).x;
+	//return shadowMapTex.Sample(theSampler, float3(shadow_coord.xy * 0.5 + 0.5, 1.0)).x;
 	//return float(inputTexSize.z > 3);
 	//return shadow_depth;
 	//return shadow_pcf_3x3(shadow_coord, scale, offset, cascade);
@@ -125,7 +128,7 @@ float3 get_shadow(float4 vs_pos)
 	{
 		float2 split = csmSplitsTex.Load(int3(c, 0, 0)).xy;
 
-		if (-vs_pos.z >= split.x && -vs_pos.z < split.y)
+		if (vs_pos.z >= split.x && vs_pos.z < split.y)
 		{
 			cascade = c;
 			break;
@@ -140,7 +143,7 @@ float3 get_shadow(float4 vs_pos)
 		float prevSplit = split.x;
 		float nextSplit = split.y;
 		float splitSize = nextSplit - prevSplit;
-		float splitDistPrev = (-vs_pos.z - prevSplit) / splitSize;
+		float splitDistPrev = (vs_pos.z - prevSplit) / splitSize;
 		float splitDistNext = (nextSplit + vs_pos.z) / splitSize;
 
 		//method 1
@@ -167,9 +170,11 @@ float3 get_shadow(float4 vs_pos)
 		}*/
 	}
 
-	return float3(1,1,1);
+	//return float3(1,1,1);
 	//return cascade * 0.25;
-	//return float3(shadow_term, shadow_term, shadow_term);
+	//return shadow_term;
+	return float3(shadow_term, shadow_term, shadow_term);
+	//return num_to_radar_color(cascade, 4).xyz;
 	//return float3(shadow_term, shadow_term, shadow_term);// *0.5 + num_to_radar_color(cascade, 4).xyz * 0.1;
 	//return float(shadow_coord.z - 0.005 < texture(tex, shadow_coord.xy).x) * shadow_selector / 4.0;
 	//return ls_ndc_pos.z/0.25;

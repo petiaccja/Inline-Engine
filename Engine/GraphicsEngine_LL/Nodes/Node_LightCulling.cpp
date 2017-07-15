@@ -193,7 +193,7 @@ void LightCulling::Execute(RenderContext& context) {
 	//uniformsCBData.ld[0].vs_position = Vec4(m_camera->GetPosition() + m_camera->GetLookDirection() * 5.f, 1.0f) * m_camera->GetViewMatrix();
 	uniformsCBData.ld[0].attenuation_end = 5.0f;
 
-	DebugDrawManager::GetInstance().AddSphere(Vec3(0, 0, 1), 5.0f, 1);
+	DebugDrawManager::GetInstance().AddSphere(Vec3(0, 0, 1), 5.0f, 0);
 
 	uint32_t dispatchW, dispatchH;
 	SetWorkgroupSize((unsigned)m_width, (unsigned)m_height, 16, 16, dispatchW, dispatchH);
