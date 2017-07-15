@@ -19,6 +19,9 @@
     <Filter Include="Exception">
       <UniqueIdentifier>{da3e121c-c6a6-414d-86eb-1c93d82eb315}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GraphEditor">
+      <UniqueIdentifier>{aef43a53-f87f-447e-840b-ee7866cd1e32}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -131,6 +134,12 @@
     </ClInclude>
     <ClInclude Include="Exception\IOException.hpp">
       <Filter>Exception</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphEditor\IGraph.hpp">
+      <Filter>GraphEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphEditor\INode.hpp">
+      <Filter>GraphEditor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
