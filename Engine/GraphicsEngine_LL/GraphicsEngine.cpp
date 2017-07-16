@@ -135,8 +135,10 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 
 
 GraphicsEngine::~GraphicsEngine() {
+	std::cout << "Graphics engine shutting down..." << std::endl;
 	SyncPoint lastSync = m_masterCommandQueue.Signal();
 	lastSync.Wait();
+	std::cout << "Graphics engine deleting..." << std::endl;
 }
 
 

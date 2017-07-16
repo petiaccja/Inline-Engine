@@ -114,8 +114,8 @@ void SlabAllocatorEngine::Resize(size_t newPoolSize) {
 		// lock last slots of the NEW last block
 		{
 			auto last = &newBlocks[newBlocks.size() - 1];
-			int numLastSlots = (newPoolSize % SlotsPerBlock);
-			last->slotOccupancy |= ~size_t(0) << numLastSlots;
+			int numLastSlots = newPoolSize % SlotsPerBlock;
+			last->slotOccupancy |= numLastSlots > 0 ? (~size_t(0) << numLastSlots) : 0;
 		}
 
 		// create free blocks chain
