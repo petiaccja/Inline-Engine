@@ -14,11 +14,7 @@ Image::Image(MemoryManager* memoryManager, CbvSrvUavHeap* descriptorHeap) {
 
 
 Image::~Image() {
-	std::cout << "Image deleting..." << std::endl;
-	std::vector<StackFrame> stackTrace = GetStackTrace();
-	for (auto& v : stackTrace) {
-		std::cout << "    " << v.symbol << std::endl;
-	}
+
 }
 
 
