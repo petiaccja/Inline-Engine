@@ -228,6 +228,7 @@
     <ClInclude Include="Nodes\Node_GetTime.hpp" />
     <ClInclude Include="Nodes\Node_LightCulling.hpp" />
     <ClInclude Include="Nodes\Node_OverlayRender.hpp" />
+    <ClInclude Include="Nodes\Node_SMAA.hpp" />
     <ClInclude Include="Nodes\Node_TextureProperties.hpp" />
     <ClInclude Include="Nodes\Node_TileMax.hpp" />
     <ClInclude Include="Nodes\Node_VectorComponents.hpp" />
@@ -303,6 +304,7 @@
     <ClCompile Include="Nodes\Node_MotionBlur.cpp" />
     <ClCompile Include="Nodes\Node_NeighborMax.cpp" />
     <ClCompile Include="Nodes\Node_OverlayRender.cpp" />
+    <ClCompile Include="Nodes\Node_SMAA.cpp" />
     <ClCompile Include="Nodes\Node_TileMax.cpp" />
     <ClCompile Include="OrthographicCamera.cpp" />
     <ClCompile Include="OverlayEntity.cpp" />

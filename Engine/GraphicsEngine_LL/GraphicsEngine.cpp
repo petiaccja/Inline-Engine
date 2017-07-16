@@ -37,6 +37,7 @@
 #include "Nodes/Node_NeighborMax.hpp"
 #include "Nodes/Node_MotionBlur.hpp"
 #include "Nodes/Node_LensFlare.hpp"
+#include "Nodes/Node_SMAA.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -432,6 +433,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::NeighborMax> neighborMax(new nodes::NeighborMax());
 	std::shared_ptr<nodes::MotionBlur> motionBlur(new nodes::MotionBlur());
 	std::shared_ptr<nodes::LensFlare> lensFlare(new nodes::LensFlare());
+	std::shared_ptr<nodes::SMAA> smaa(new nodes::SMAA());
 	TextureUsage usage;
 
 
@@ -567,6 +569,9 @@ void GraphicsEngine::CreatePipeline() {
 	debugDraw->GetInput<0>().Link(hdrCombine->GetOutput(0));
 	debugDraw->GetInput<1>().Link(getCamera->GetOutput(0));
 
+	smaa->GetInput<0>().Link(debugDraw->GetOutput(0));
+	smaa->GetInput<1>().Set(this->CreateImage());
+
 	// -----------------------------
 	// Gui pipeline path
 	// -----------------------------
@@ -608,7 +613,8 @@ void GraphicsEngine::CreatePipeline() {
 	blending.mask = gxapi::eColorMask::ALL;
 
 	alphaBlend->GetInput<0>().Link(guiRender->GetOutput(0));
-	alphaBlend->GetInput<1>().Link(debugDraw->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(debugDraw->GetOutput(0));
+	alphaBlend->GetInput<1>().Link(smaa->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
 	//alphaBlend->GetInput<3>().Set(Mat44::FromScaleVector(Vec3(.5f, 1.f, 1.f)));
 	alphaBlend->GetInput<3>().Link(createWorldRenderTransform->GetOutput(0));
@@ -660,7 +666,8 @@ void GraphicsEngine::CreatePipeline() {
 		tileMax,
 		neighborMax,
 		motionBlur,
-		lensFlare,
+		//lensFlare,
+		smaa,
 
 		getGuiScene,
 		getGuiCamera,
