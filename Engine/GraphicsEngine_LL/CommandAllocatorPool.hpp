@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../BaseLibrary/Memory/SlabAllocatorEngine.hpp"
-#include "../GraphicsApi_LL/ICommandAllocator.hpp"
-#include "../GraphicsApi_LL/IGraphicsApi.hpp"
+#include <BaseLibrary/Memory/SlabAllocatorEngine.hpp>
+#include <GraphicsApi_LL/ICommandAllocator.hpp>
+#include <GraphicsApi_LL/IGraphicsApi.hpp>
 
 #include <vector>
 #include <mutex>
@@ -11,7 +11,7 @@
 #include <cassert>
 
 #include <iostream> // only for debug
-#include "BaseLibrary/Logging/LogStream.hpp"
+#include <BaseLibrary/Logging/LogStream.hpp>
 
 
 namespace inl {

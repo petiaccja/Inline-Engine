@@ -60,6 +60,9 @@
     <Filter Include="Frontend\Nodes\Shaders">
       <UniqueIdentifier>{45b0517c-79df-4276-b594-4e0a7747417f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Backend\Pipeline\ResourcePools">
+      <UniqueIdentifier>{8e627d0d-764e-47ea-8b35-7ae8d429f37b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -294,12 +297,6 @@
     <ClInclude Include="ShaderManager.hpp">
       <Filter>Backend\Misc</Filter>
     </ClInclude>
-    <ClInclude Include="CommandAllocatorPool.hpp">
-      <Filter>Backend\Pipeline</Filter>
-    </ClInclude>
-    <ClInclude Include="ScratchSpacePool.hpp">
-      <Filter>Backend\Pipeline</Filter>
-    </ClInclude>
     <ClInclude Include="Vertex.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
@@ -344,6 +341,15 @@
     </ClInclude>
     <ClInclude Include="GraphEditor.hpp">
       <Filter>Backend\Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandAllocatorPool.hpp">
+      <Filter>Backend\Pipeline\ResourcePools</Filter>
+    </ClInclude>
+    <ClInclude Include="ScratchSpacePool.hpp">
+      <Filter>Backend\Pipeline\ResourcePools</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandListPool.hpp">
+      <Filter>Backend\Pipeline\ResourcePools</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -486,12 +492,6 @@
     <ClCompile Include="ShaderManager.cpp">
       <Filter>Backend\Misc</Filter>
     </ClCompile>
-    <ClCompile Include="CommandAllocatorPool.cpp">
-      <Filter>Backend\Pipeline</Filter>
-    </ClCompile>
-    <ClCompile Include="ScratchSpacePool.cpp">
-      <Filter>Backend\Pipeline</Filter>
-    </ClCompile>
     <ClCompile Include="OrthographicCamera.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
@@ -533,6 +533,15 @@
     </ClCompile>
     <ClCompile Include="GraphEditor.cpp">
       <Filter>Backend\Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandAllocatorPool.cpp">
+      <Filter>Backend\Pipeline\ResourcePools</Filter>
+    </ClCompile>
+    <ClCompile Include="ScratchSpacePool.cpp">
+      <Filter>Backend\Pipeline\ResourcePools</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandListPool.cpp">
+      <Filter>Backend\Pipeline\ResourcePools</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_SMAA.cpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
