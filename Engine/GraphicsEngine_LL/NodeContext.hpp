@@ -89,6 +89,7 @@ public:
 
 	// Create views
 	TextureView2D CreateSrv(Texture2D& texture, gxapi::eFormat format, gxapi::SrvTexture2DArray desc = {}) const;
+	TextureViewCube CreateSrv(Texture2D& texture, gxapi::eFormat format, gxapi::SrvTextureCubeArray desc) const;
 	RenderTargetView2D CreateRtv(Texture2D& renderTarget, gxapi::eFormat format, gxapi::RtvTexture2DArray desc) const;
 	DepthStencilView2D CreateDsv(Texture2D& depthStencilView, gxapi::eFormat format, gxapi::DsvTexture2DArray desc) const;
 	RWTextureView2D CreateUav(Texture2D& rwTexture, gxapi::eFormat format, gxapi::UavTexture2DArray desc) const;

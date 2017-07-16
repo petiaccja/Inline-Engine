@@ -98,14 +98,14 @@ Texture3D MemoryManager::CreateTexture3D(eResourceHeapType heap, uint64_t width,
 	return result;
 }
 
-
-TextureCube MemoryManager::CreateTextureCube(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, gxapi::eResourceFlags flags) {
-	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::CubeMap(width, height, format));
+/*
+TextureCube MemoryManager::CreateTextureCube(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, gxapi::eResourceFlags flags, uint16_t arraySize) {
+	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::CubeMapArray(width, height, format, arraySize));
 
 	TextureCube result(std::move(desc));
 	return result;
 }
-
+*/
 
 MemoryObjDesc MemoryManager::AllocateResource(eResourceHeapType heap, const gxapi::ResourceDesc& desc) {
 

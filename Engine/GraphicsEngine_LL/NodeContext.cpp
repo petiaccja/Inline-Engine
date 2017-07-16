@@ -108,6 +108,12 @@ TextureView2D SetupContext::CreateSrv(Texture2D& texture, gxapi::eFormat format,
 	return TextureView2D{ texture, *m_srvHeap, format, desc };
 }
 
+TextureViewCube SetupContext::CreateSrv(Texture2D & texture, gxapi::eFormat format, gxapi::SrvTextureCubeArray desc) const {
+	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create srv without srv/cbv/uav heap.");
+
+	return TextureViewCube{ texture, *m_srvHeap, format, desc };
+}
+
 
 RenderTargetView2D SetupContext::CreateRtv(Texture2D& texture, gxapi::eFormat format, gxapi::RtvTexture2DArray desc) const {
 	if (m_rtvHeap == nullptr) throw InvalidStateException("Cannot create rtv without rtv heap.");

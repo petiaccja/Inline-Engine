@@ -337,12 +337,12 @@ const gxapi::SrvTexture3D& TextureView3D::GetDescription() const {
 	return m_srvDesc;
 }
 
-
+/*
 TextureViewCube::TextureViewCube(
 	const TextureCube& resource,
 	CbvSrvUavHeap& heap,
 	gxapi::eFormat format,
-	gxapi::SrvTextureCube srvDesc
+	gxapi::SrvTextureCubeArray srvDesc
 ) :
 	ResourceViewBase(resource, &heap),
 	m_format(format),
@@ -350,8 +350,8 @@ TextureViewCube::TextureViewCube(
 {
 	gxapi::ShaderResourceViewDesc fullSrvDesc;
 	fullSrvDesc.format = format;
-	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURECUBE;
-	fullSrvDesc.texCube = srvDesc;
+	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURECUBEARRAY;
+	fullSrvDesc.texCubeArray = srvDesc;
 
 	heap.CreateSRV(GetResource(), fullSrvDesc, GetHandle());
 }
@@ -361,7 +361,7 @@ TextureViewCube::TextureViewCube(
 	gxapi::DescriptorHandle handle,
 	gxapi::IGraphicsApi * gxapi,
 	gxapi::eFormat format,
-	gxapi::SrvTextureCube srvDesc
+	gxapi::SrvTextureCubeArray srvDesc
 ) :
 	ResourceViewBase(resource, handle),
 	m_format(format),
@@ -369,8 +369,8 @@ TextureViewCube::TextureViewCube(
 {
 	gxapi::ShaderResourceViewDesc fullSrvDesc;
 	fullSrvDesc.format = format;
-	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURECUBE;
-	fullSrvDesc.texCube = srvDesc;
+	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURECUBEARRAY;
+	fullSrvDesc.texCubeArray = srvDesc;
 
 	gxapi->CreateShaderResourceView(GetResource()._GetResourcePtr(), fullSrvDesc, GetHandle());
 }
@@ -381,9 +381,69 @@ gxapi::eFormat TextureViewCube::GetFormat() {
 }
 
 
-const gxapi::SrvTextureCube & TextureViewCube::GetDescription() const {
+const gxapi::SrvTextureCubeArray & TextureViewCube::GetDescription() const {
 	return m_srvDesc;
 }
+*/
+
+
+
+TextureViewCube::TextureViewCube(
+	const Texture2D& resource,
+	CbvSrvUavHeap& heap,
+	gxapi::eFormat format,
+	gxapi::SrvTextureCubeArray srvDesc
+) :
+	ResourceViewBase(resource, &heap),
+	m_format(format),
+	m_srvDesc(srvDesc)
+{
+	if (resource.GetArrayCount() != 6 * srvDesc.numCubes) {
+		throw InvalidArgumentException("Input texture must have array dimension 6*numCubes.");
+	}
+
+	gxapi::ShaderResourceViewDesc fullSrvDesc;
+	fullSrvDesc.format = format;
+	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURECUBEARRAY;
+	fullSrvDesc.texCubeArray = srvDesc;
+
+	heap.CreateSRV(GetResource(), fullSrvDesc, GetHandle());
+}
+
+TextureViewCube::TextureViewCube(
+	const Texture2D& resource,
+	gxapi::DescriptorHandle handle,
+	gxapi::IGraphicsApi * gxapi,
+	gxapi::eFormat format,
+	gxapi::SrvTextureCubeArray srvDesc
+) :
+	ResourceViewBase(resource, handle),
+	m_format(format),
+	m_srvDesc(srvDesc)
+{
+	if (resource.GetArrayCount() != 6 * srvDesc.numCubes) {
+		throw InvalidArgumentException("Input texture must have array dimension 6*numCubes.");
+	}
+
+	gxapi::ShaderResourceViewDesc fullSrvDesc;
+	fullSrvDesc.format = format;
+	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURECUBEARRAY;
+	fullSrvDesc.texCubeArray = srvDesc;
+
+	gxapi->CreateShaderResourceView(GetResource()._GetResourcePtr(), fullSrvDesc, GetHandle());
+}
+
+
+gxapi::eFormat TextureViewCube::GetFormat() {
+	return m_format;
+}
+
+
+const gxapi::SrvTextureCubeArray & TextureViewCube::GetDescription() const {
+	return m_srvDesc;
+}
+
+
 
 
 //------------------------------------------------------------------------------

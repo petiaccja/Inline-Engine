@@ -11,6 +11,7 @@
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
 #include <memory>
 #include <vector>
+#include <cassert>
 #include "Exception.hpp"
 
 namespace inl {
@@ -772,6 +773,11 @@ struct ResourceDesc {
 		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
 
 	static inline ResourceDesc CubeMap(uint64_t width, uint32_t height, eFormat format,
+		eResourceFlags flags = eResourceFlags::NONE,
+		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+
+	static inline ResourceDesc CubeMapArray(uint64_t width, uint32_t height, eFormat format, uint16_t arraySize,
 		eResourceFlags flags = eResourceFlags::NONE,
 		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
 		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
@@ -1780,6 +1786,30 @@ inline ResourceDesc ResourceDesc::CubeMap(uint64_t width, uint32_t height, eForm
 	desc.textureDesc.width = width;
 	desc.textureDesc.height = height;
 	desc.textureDesc.depthOrArraySize = 6;
+
+	desc.textureDesc.flags = flags;
+	desc.textureDesc.mipLevels = mipLevels;
+	desc.textureDesc.multisampleCount = multisampleCount;
+	desc.textureDesc.multisampleQuality = multisampleQuality;
+	desc.textureDesc.alignment = alignment;
+	desc.textureDesc.layout = layout;
+
+	return desc;
+}
+inline ResourceDesc ResourceDesc::CubeMapArray(uint64_t width, uint32_t height, eFormat format, uint16_t arraySize,
+	eResourceFlags flags,
+	uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+	uint64_t alignment, eTextureLayout layout)
+{
+	assert(arraySize <= 65535 / 6);
+	ResourceDesc desc;
+	desc.type = eResourceType::TEXTURE;
+
+	desc.textureDesc.dimension = eTextueDimension::TWO;
+	desc.textureDesc.format = format;
+	desc.textureDesc.width = width;
+	desc.textureDesc.height = height;
+	desc.textureDesc.depthOrArraySize = 6 * arraySize;
 
 	desc.textureDesc.flags = flags;
 	desc.textureDesc.mipLevels = mipLevels;
