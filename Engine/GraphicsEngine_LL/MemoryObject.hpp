@@ -217,16 +217,17 @@ public:
 	gxapi::eFormat GetFormat() const;
 };
 
-
+/*
 class TextureCube : public MemoryObject {
 public:
 	using MemoryObject::MemoryObject;
 
 	uint64_t GetWidth() const;
 	uint64_t GetHeight() const;
+	uint16_t GetArrayCount() const;
 	gxapi::eFormat GetFormat() const;
 };
-
+*/
 
 //==================================
 

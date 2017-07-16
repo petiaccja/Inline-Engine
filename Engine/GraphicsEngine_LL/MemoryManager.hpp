@@ -52,7 +52,7 @@ public:
 	Texture1D CreateTexture1D(eResourceHeapType heap, uint64_t width, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE, uint16_t arraySize = 1);
 	Texture2D CreateTexture2D(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE, uint16_t arraySize = 1);
 	Texture3D CreateTexture3D(eResourceHeapType heap, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE);
-	TextureCube CreateTextureCube(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE);
+	//TextureCube CreateTextureCube(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE, uint16_t arraySize = 1);
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;

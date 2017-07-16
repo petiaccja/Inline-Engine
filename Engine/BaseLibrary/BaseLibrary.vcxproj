@@ -203,6 +203,8 @@
     <ClInclude Include="BitOperations.hpp" />
     <ClInclude Include="Exception\Exception.hpp" />
     <ClInclude Include="Exception\IOException.hpp" />
+    <ClInclude Include="GraphEditor\IGraph.hpp" />
+    <ClInclude Include="GraphEditor\INode.hpp" />
     <ClInclude Include="Graph\Node.hpp" />
     <ClInclude Include="Graph\NodeFactory.hpp" />
     <ClInclude Include="Graph\NodeLibrary.hpp" />

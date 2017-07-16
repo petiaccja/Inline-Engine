@@ -342,6 +342,9 @@
     <ClInclude Include="Nodes\Node_SMAA.hpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClInclude>
+    <ClInclude Include="GraphEditor.hpp">
+      <Filter>Backend\Misc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -527,6 +530,9 @@
     </ClCompile>
     <ClCompile Include="Nodes\Node_TileMax.cpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphEditor.cpp">
+      <Filter>Backend\Misc</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_SMAA.cpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
