@@ -573,6 +573,7 @@ void GraphicsEngine::CreatePipeline() {
 
 	smaa->GetInput<0>().Link(debugDraw->GetOutput(0));
 	smaa->GetInput<1>().Set(this->CreateImage());
+	smaa->GetInput<2>().Set(this->CreateImage());
 
 	// -----------------------------
 	// Gui pipeline path

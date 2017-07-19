@@ -15,6 +15,7 @@ ConstantBuffer<Uniforms> uniforms : register(b0);
 Texture2D inputTex : register(t0); //LDR texture
 Texture2D blendingWeightsTex : register(t3); //Blending weights texture
 SamplerState samp0 : register(s0);
+SamplerState samp1 : register(s1);
 
 struct PS_Input
 {

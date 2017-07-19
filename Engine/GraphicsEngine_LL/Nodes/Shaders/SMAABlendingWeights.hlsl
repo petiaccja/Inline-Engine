@@ -17,6 +17,7 @@ Texture2D edgesTex : register(t0); //Edges texture
 Texture2D areaTex : register(t1); //Area texture
 Texture2D searchTex : register(t2); //Search texture
 SamplerState samp0 : register(s0);
+SamplerState samp1 : register(s1);
 
 struct PS_Input
 {

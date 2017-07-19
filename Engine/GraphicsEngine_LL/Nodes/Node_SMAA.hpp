@@ -19,7 +19,7 @@ namespace inl::gxeng::nodes {
 class SMAA :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<Texture2D, inl::gxeng::Image*>,
+	virtual public InputPortConfig<Texture2D, inl::gxeng::Image*, inl::gxeng::Image*>,
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
@@ -64,7 +64,7 @@ protected: // outputs
 protected: // render context
 	TextureView2D m_inputTexSrv;
 
-	inl::gxeng::Image* m_image;
+	inl::gxeng::Image* m_areaImage, *m_searchImage;
 	std::unique_ptr<inl::gxeng::Image> m_areaTexture;
 	std::unique_ptr<inl::gxeng::Image> m_searchTexture;
 private:

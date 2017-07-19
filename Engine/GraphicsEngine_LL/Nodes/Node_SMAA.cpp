@@ -28,6 +28,7 @@ struct Uniforms
 SMAA::SMAA() {
 	this->GetInput<0>().Set({});
 	this->GetInput<1>().Set({});
+	this->GetInput<2>().Set({});
 }
 
 
@@ -37,10 +38,12 @@ void SMAA::Initialize(EngineContext & context) {
 
 void SMAA::Reset() {
 	m_inputTexSrv = TextureView2D();
-	m_image = nullptr;
+	m_areaImage = nullptr;
+	m_searchImage = nullptr;
 
 	GetInput<0>().Clear();
 	GetInput<1>().Clear();
+	GetInput<2>().Clear();
 }
 
 
@@ -57,7 +60,8 @@ void SMAA::Setup(SetupContext& context) {
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
 	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("SMAA input tex SRV");
 
-	m_image = this->GetInput<1>().Get();
+	m_areaImage = this->GetInput<1>().Get();
+	m_searchImage = this->GetInput<2>().Get();
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -74,6 +78,13 @@ void SMAA::Setup(SetupContext& context) {
 		sampBindParamDesc.relativeAccessFrequency = 0;
 		sampBindParamDesc.relativeChangeFrequency = 0;
 		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc sampBindParamDesc2;
+		sampBindParamDesc2.parameter = BindParameter(eBindParameterType::SAMPLER, 1);
+		sampBindParamDesc2.constantSize = 0;
+		sampBindParamDesc2.relativeAccessFrequency = 0;
+		sampBindParamDesc2.relativeChangeFrequency = 0;
+		sampBindParamDesc2.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 		BindParameterDesc inputBindParamDesc;
 		m_inputTexBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
@@ -117,7 +128,17 @@ void SMAA::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, areaBindParamDesc, searchBindParamDesc, blendBindParamDesc }, { samplerDesc });
+		gxapi::StaticSamplerDesc samplerDesc2;
+		samplerDesc2.shaderRegister = 1;
+		samplerDesc2.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
+		samplerDesc2.addressU = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc2.addressV = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc2.addressW = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc2.mipLevelBias = 0.f;
+		samplerDesc2.registerSpace = 0;
+		samplerDesc2.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, sampBindParamDesc2, inputBindParamDesc, areaBindParamDesc, searchBindParamDesc, blendBindParamDesc }, { samplerDesc, samplerDesc2 });
 	}
 
 	if (!m_fsq.HasObject()) {
@@ -238,6 +259,8 @@ void SMAA::Setup(SetupContext& context) {
 	}
 
 	this->GetOutput<0>().Set(m_neighborhoodBlendingRTV.GetResource());
+	//this->GetOutput<0>().Set(m_blendingWeightsRTV.GetResource());
+	//this->GetOutput<0>().Set(m_edgeDetectionRTV.GetResource());
 }
 
 
@@ -275,6 +298,8 @@ void SMAA::Execute(RenderContext& context) {
 
 		RenderTargetView2D* pRTV = &m_edgeDetectionRTV;
 		commandList.SetRenderTargets(1, &pRTV, 0);
+
+		commandList.ClearRenderTarget(m_edgeDetectionRTV, gxapi::ColorRGBA(0, 0, 0, 0));
 		
 		commandList.SetScissorRects(1, &rect);
 		commandList.SetViewports(1, &viewport);
@@ -300,6 +325,8 @@ void SMAA::Execute(RenderContext& context) {
 
 		RenderTargetView2D* pRTV = &m_blendingWeightsRTV;
 		commandList.SetRenderTargets(1, &pRTV, 0);
+
+		commandList.ClearRenderTarget(m_blendingWeightsRTV, gxapi::ColorRGBA(0, 0, 0, 0));
 
 		commandList.SetScissorRects(1, &rect);
 		commandList.SetViewports(1, &viewport);
@@ -392,7 +419,7 @@ void SMAA::InitRenderTarget(SetupContext& context) {
 		{ // Create search texture
 			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR>;
 
-			m_searchTexture.reset(m_image);
+			m_searchTexture.reset(m_searchImage);
 			m_searchTexture->SetLayout(SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR);
 			m_searchTexture->Update(0, 0, SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, searchTexBytes, PixelT::Reader());
 		}
@@ -400,7 +427,7 @@ void SMAA::InitRenderTarget(SetupContext& context) {
 		{ // Create area texture
 			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 2, ePixelClass::LINEAR>;
 
-			m_areaTexture.reset(m_image);
+			m_areaTexture.reset(m_areaImage);
 			m_areaTexture->SetLayout(AREATEX_WIDTH, AREATEX_HEIGHT, ePixelChannelType::INT8_NORM, 2, ePixelClass::LINEAR);
 			m_areaTexture->Update(0, 0, AREATEX_WIDTH, AREATEX_HEIGHT, areaTexBytes, PixelT::Reader());
 		}
