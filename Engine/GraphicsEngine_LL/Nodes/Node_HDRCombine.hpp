@@ -19,7 +19,7 @@ namespace inl::gxeng::nodes {
 class HDRCombine :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<Texture2D, Texture2D, Texture2D, inl::gxeng::Image*>,
+	virtual public InputPortConfig<Texture2D, Texture2D, Texture2D, Texture2D, inl::gxeng::Image*, inl::gxeng::Image*, inl::gxeng::Image*, const BasicCamera*>,
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
@@ -50,6 +50,9 @@ protected:
 	BindParameter m_bloomTexBindParam;
 	BindParameter m_uniformsBindParam;
 	BindParameter m_colorGradingTexBindParam;
+	BindParameter m_lensFlareTexBindParam;
+	BindParameter m_lensFlareDirtTexBindParam;
+	BindParameter m_lensFlareStarTexBindParam;
 	ShaderProgram m_shader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
@@ -66,9 +69,12 @@ protected: // render context
 	TextureView2D m_inputTexSrv;
 	TextureView2D m_luminanceTexSrv;
 	TextureView2D m_bloomTexSrv;
+	TextureView2D m_lensFlareTexSrv;
 
-	inl::gxeng::Image* m_image;
-	std::unique_ptr<inl::gxeng::Image> m_colorGradingLutTexture;
+	const BasicCamera* m_camera;
+
+	inl::gxeng::Image* m_colorGradingImage, *m_lensFlareDirtImage, *m_lensFlareStarImage;
+	std::unique_ptr<inl::gxeng::Image> m_colorGradingLutTexture, m_lensFlareDirtTexture, m_lensFlareStarTexture;
 private:
 	void InitRenderTarget(SetupContext& context);
 };

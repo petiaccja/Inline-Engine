@@ -19,6 +19,7 @@ namespace inl::gxeng::nodes {
 
 struct Uniforms
 {
+	Mat44_Packed lensStarMx;
 	float exposure, bloom_weight;
 };
 
@@ -27,6 +28,11 @@ HDRCombine::HDRCombine() {
 	this->GetInput<0>().Set({});
 	this->GetInput<1>().Set({});
 	this->GetInput<2>().Set({});
+	this->GetInput<3>().Set({});
+	this->GetInput<4>().Set({});
+	this->GetInput<5>().Set({});
+	this->GetInput<6>().Set({});
+	this->GetInput<7>().Set({});
 }
 
 
@@ -38,12 +44,20 @@ void HDRCombine::Reset() {
 	m_inputTexSrv = TextureView2D();
 	m_luminanceTexSrv = TextureView2D();
 	m_bloomTexSrv = TextureView2D();
-	m_image = nullptr;
+	m_lensFlareTexSrv = TextureView2D();
+	m_colorGradingImage = nullptr;
+	m_lensFlareDirtImage = nullptr;
+	m_lensFlareStarImage = nullptr;
+	m_camera = nullptr;
 
 	GetInput<0>().Clear();
 	GetInput<1>().Clear();
 	GetInput<2>().Clear();
 	GetInput<3>().Clear();
+	GetInput<4>().Clear();
+	GetInput<5>().Clear();
+	GetInput<6>().Clear();
+	GetInput<7>().Clear();
 }
 
 
@@ -68,7 +82,15 @@ void HDRCombine::Setup(SetupContext& context) {
 	m_bloomTexSrv = context.CreateSrv(bloomTex, bloomTex.GetFormat(), srvDesc);
 	m_bloomTexSrv.GetResource()._GetResourcePtr()->SetName("HDR Combine bloom tex SRV");
 
-	m_image = this->GetInput<3>().Get();
+	Texture2D lensFlareTex = this->GetInput<3>().Get();
+	m_lensFlareTexSrv = context.CreateSrv(lensFlareTex, lensFlareTex.GetFormat(), srvDesc);
+	m_lensFlareTexSrv.GetResource()._GetResourcePtr()->SetName("HDR Combine lens flare tex SRV");
+
+	m_colorGradingImage = this->GetInput<4>().Get();
+	m_lensFlareDirtImage = this->GetInput<5>().Get();
+	m_lensFlareStarImage = this->GetInput<6>().Get();
+
+	m_camera = this->GetInput<7>().Get();
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -118,6 +140,30 @@ void HDRCombine::Setup(SetupContext& context) {
 		colorGradingBindParamDesc.relativeChangeFrequency = 0;
 		colorGradingBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+		BindParameterDesc lensFlareBindParamDesc;
+		m_lensFlareTexBindParam = BindParameter(eBindParameterType::TEXTURE, 4);
+		lensFlareBindParamDesc.parameter = m_lensFlareTexBindParam;
+		lensFlareBindParamDesc.constantSize = 0;
+		lensFlareBindParamDesc.relativeAccessFrequency = 0;
+		lensFlareBindParamDesc.relativeChangeFrequency = 0;
+		lensFlareBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc lensFlareDirtBindParamDesc;
+		m_lensFlareDirtTexBindParam = BindParameter(eBindParameterType::TEXTURE, 5);
+		lensFlareDirtBindParamDesc.parameter = m_lensFlareDirtTexBindParam;
+		lensFlareDirtBindParamDesc.constantSize = 0;
+		lensFlareDirtBindParamDesc.relativeAccessFrequency = 0;
+		lensFlareDirtBindParamDesc.relativeChangeFrequency = 0;
+		lensFlareDirtBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc lensFlareStarBindParamDesc;
+		m_lensFlareStarTexBindParam = BindParameter(eBindParameterType::TEXTURE, 6);
+		lensFlareStarBindParamDesc.parameter = m_lensFlareStarTexBindParam;
+		lensFlareStarBindParamDesc.constantSize = 0;
+		lensFlareStarBindParamDesc.relativeAccessFrequency = 0;
+		lensFlareStarBindParamDesc.relativeChangeFrequency = 0;
+		lensFlareStarBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
 		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
@@ -128,7 +174,7 @@ void HDRCombine::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, luminanceBindParamDesc, bloomBindParamDesc, colorGradingBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, luminanceBindParamDesc, bloomBindParamDesc, colorGradingBindParamDesc, lensFlareBindParamDesc, lensFlareDirtBindParamDesc, lensFlareStarBindParamDesc },{ samplerDesc });
 	}
 
 	if (!m_fsq.HasObject()) {
@@ -193,6 +239,33 @@ void HDRCombine::Execute(RenderContext& context) {
 
 	//DebugDrawManager::GetInstance().AddSphere(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1, 1);
 
+	Vec3 up = m_camera->GetUpVector();
+	Vec3 view = m_camera->GetLookDirection();
+	Vec3 right = Cross(view, up).Normalized();
+
+	float camrot = Dot(-right, Vec3(0, 0, 1)) + Dot(view, Vec3(0, 1, 0));
+
+	Mat44 scale_bias1(
+		2.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 2.0f, 0.0f, 0.0f,
+		-1.0f, -1.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	);
+	Mat44 rotation(
+		cos(camrot), sin(camrot), 0.0f, 0.0f, 
+		-sin(camrot), cos(camrot), 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	);
+	Mat44 scale_bias2(
+		0.5f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.5f, 0.0f, 0.0f,
+		0.5f, 0.5f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f
+	);
+
+	uniformsCBData.lensStarMx = scale_bias1 * rotation * scale_bias2;
+
 	//TODO get from somewhere
 	uniformsCBData.exposure = 0.0f;
 	uniformsCBData.bloom_weight = 1.0f;
@@ -208,6 +281,9 @@ void HDRCombine::Execute(RenderContext& context) {
 	commandList.SetResourceState(m_luminanceTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_bloomTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_colorGradingLutTexture->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_lensFlareTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_lensFlareDirtTexture->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_lensFlareStarTexture->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 	RenderTargetView2D* pRTV = &m_combine_rtv;
 	commandList.SetRenderTargets(1, &pRTV, 0);
@@ -233,6 +309,9 @@ void HDRCombine::Execute(RenderContext& context) {
 	commandList.BindGraphics(m_luminanceTexBindParam, m_luminanceTexSrv);
 	commandList.BindGraphics(m_bloomTexBindParam, m_bloomTexSrv);
 	commandList.BindGraphics(m_colorGradingTexBindParam, *m_colorGradingLutTexture->GetSrv().get());
+	commandList.BindGraphics(m_lensFlareTexBindParam, m_lensFlareTexSrv);
+	commandList.BindGraphics(m_lensFlareDirtTexBindParam, *m_lensFlareDirtTexture->GetSrv().get());
+	commandList.BindGraphics(m_lensFlareStarTexBindParam, *m_lensFlareStarTexture->GetSrv().get());
 	commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
@@ -279,12 +358,30 @@ void HDRCombine::InitRenderTarget(SetupContext& context) {
 			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
 			inl::asset::Image img("assets\\colorGrading\\default_lut_table.png");
 
-			m_colorGradingLutTexture.reset(m_image);
+			m_colorGradingLutTexture.reset(m_colorGradingImage);
 			m_colorGradingLutTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
 			m_colorGradingLutTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
 
 			//TODO
 			//create cube texture
+		}
+
+		{
+			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
+			inl::asset::Image img("assets\\lensFlare\\lens_dirt.png");
+
+			m_lensFlareDirtTexture.reset(m_lensFlareDirtImage);
+			m_lensFlareDirtTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR);
+			m_lensFlareDirtTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		}
+
+		{
+			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
+			inl::asset::Image img("assets\\lensFlare\\lens_star.png");
+
+			m_lensFlareStarTexture.reset(m_lensFlareStarImage);
+			m_lensFlareStarTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR);
+			m_lensFlareStarTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
 		}
 	}
 }

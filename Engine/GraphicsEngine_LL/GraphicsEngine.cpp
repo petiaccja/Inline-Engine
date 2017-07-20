@@ -435,6 +435,8 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::NeighborMax> neighborMax(new nodes::NeighborMax());
 	std::shared_ptr<nodes::MotionBlur> motionBlur(new nodes::MotionBlur());
 	std::shared_ptr<nodes::LensFlare> lensFlare(new nodes::LensFlare());
+	std::shared_ptr<nodes::BloomBlur> lensFlareBlurHorizontal(new nodes::BloomBlur());
+	std::shared_ptr<nodes::BloomBlur> lensFlareBlurVertical(new nodes::BloomBlur());
 	std::shared_ptr<nodes::SMAA> smaa(new nodes::SMAA());
 	TextureUsage usage;
 
@@ -552,9 +554,13 @@ void GraphicsEngine::CreatePipeline() {
 	bloomBlurHorizontal2->GetInput<0>().Link(bloomBlurVertical2->GetOutput(0));
 	bloomBlurHorizontal2->GetInput<1>().Set(Vec2(1, 0));
 
-	//TODO
 	lensFlare->GetInput<0>().Link(bloomDownsample4->GetOutput(0));
 	lensFlare->GetInput<1>().Set(this->CreateImage());
+
+	lensFlareBlurVertical->GetInput<0>().Link(lensFlare->GetOutput(0));
+	lensFlareBlurVertical->GetInput<1>().Set(Vec2(0, 1));
+	lensFlareBlurHorizontal->GetInput<0>().Link(lensFlareBlurVertical->GetOutput(0));
+	lensFlareBlurHorizontal->GetInput<1>().Set(Vec2(1, 0));
 
 	luminanceReduction->GetInput<0>().Link(brightLumPass->GetOutput(1));
 
@@ -563,7 +569,11 @@ void GraphicsEngine::CreatePipeline() {
 	hdrCombine->GetInput<0>().Link(motionBlur->GetOutput(0));
 	hdrCombine->GetInput<1>().Link(luminanceReductionFinal->GetOutput(0));
 	hdrCombine->GetInput<2>().Link(bloomBlurHorizontal2->GetOutput(0));
-	hdrCombine->GetInput<3>().Set(this->CreateImage());
+	hdrCombine->GetInput<3>().Link(lensFlareBlurHorizontal->GetOutput(0));
+	hdrCombine->GetInput<4>().Set(this->CreateImage());
+	hdrCombine->GetInput<5>().Set(this->CreateImage());
+	hdrCombine->GetInput<6>().Set(this->CreateImage());
+	hdrCombine->GetInput<7>().Link(getCamera->GetOutput(0));
 
 	// last step in world render is debug draw
 	//debugDraw->GetInput<0>().Link(drawSky->GetOutput(0));
@@ -669,7 +679,9 @@ void GraphicsEngine::CreatePipeline() {
 		tileMax,
 		neighborMax,
 		motionBlur,
-		//lensFlare,
+		lensFlare,
+		lensFlareBlurHorizontal,
+		lensFlareBlurVertical,
 		smaa,
 
 		getGuiScene,

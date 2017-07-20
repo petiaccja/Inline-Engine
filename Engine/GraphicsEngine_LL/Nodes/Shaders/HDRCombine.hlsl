@@ -7,6 +7,7 @@
 
 struct Uniforms
 {
+	float4x4 lensStarMx;
 	float exposure, bloom_weight;
 };
 
@@ -16,6 +17,9 @@ Texture2D inputTex : register(t0); //HDR texture
 Texture2D luminanceTex : register(t1);
 Texture2D bloomTex : register(t2);
 TextureCube colorGradingTex : register(t3);
+Texture2D lensFlareTex : register(t4);
+Texture2D lensFlareDirtTex : register(t5);
+Texture2D lensFlareStarTex : register(t6);
 SamplerState samp0 : register(s0);
 
 struct PS_Input
@@ -104,14 +108,29 @@ float3 vignette(float2 texcoord, float3 col)
 	return col * smoothstep(0.8, vignette_size * 0.799, dist * (vignette_amount + vignette_size));
 }
 
+float3 lens_flare(float2 texcoord)
+{
+	float3 lens_mod = gamma_to_linear(lensFlareDirtTex.Sample(samp0, texcoord));
+	float2 lens_star_tex_coord = mul(float4(texcoord, 1, 0), uniforms.lensStarMx).xy;
+	//return gamma_to_linear(lens_mod.xyz);
+	//return gamma_to_linear(lensFlareStarTex.Sample(samp0, lens_star_tex_coord));
+	lens_mod += gamma_to_linear(lensFlareStarTex.Sample(samp0, lens_star_tex_coord));
+
+	float4 input_tex = lensFlareTex.Sample(samp0, texcoord);
+
+	return max(input_tex.xyz * lens_mod.xyz, 0) * 100;
+}
+
 float4 PSMain(PS_Input input) : SV_TARGET
 {
 	float4 inputData = max(inputTex.Load(int3(input.position.xy, 0)), float4(0,0,0,0));
+	//float4 inputData = max(lensFlareTex.Load(int3(input.position.xy, 0)), float4(0,0,0,0));
 	float4 bloomData = bloomTex.Sample(samp0, input.texcoord);
 
 	inputData.xyz = vignette(input.texcoord, inputData.xyz);
 
 	inputData += bloomData * uniforms.bloom_weight;
+	inputData.xyz += lens_flare(input.texcoord);
 	
 	float3 hdrColor = max(inputData, float4(0, 0, 0, 0)).xyz;
 	float avg_lum = luminanceTex.Sample(samp0, input.texcoord);
