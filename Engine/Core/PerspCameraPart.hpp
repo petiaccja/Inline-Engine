@@ -14,11 +14,15 @@ public:
 
 public:
 	PerspCameraPart(gxeng::PerspectiveCamera* cam);
+	~PerspCameraPart();
+
+	void UpdateEntityTransform() override;
 
 	void SetDirNormed(const Vec3& dir);
 
-	void SetHorizontalFOV(float angleRad);
-	void SetVerticalFOV(float angleRad);
+	void SetAspectRatio(float ratio);
+	void SetFOV(float fov);
+
 	void SetNearPlane(float val);
 	void SetFarPlane(float val);
 	void SetTarget(const Vec3& p);
@@ -30,10 +34,10 @@ public:
 	Vec3 GetRightDir();
 	Vec3 GetLeftDir();
 
-	gxeng::PerspectiveCamera* GetCam();
-
 protected:
 	gxeng::PerspectiveCamera* cam;
+
+	float aspectRatio;
 };
 
 } // namespace inl::core

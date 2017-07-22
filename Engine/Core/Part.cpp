@@ -52,16 +52,14 @@ ePartType Part::GetType()
 
 PerspCameraPart* Part::AddPart_Camera()
 {
-	PerspCameraPart* c = scene->AddPart_Camera();
+	PerspCameraPart* c = scene->CreatePart_Camera();
 	Attach(c);
-
 	return c;
 }
 
 MeshPart* Part::AddPart_Mesh(const std::string& modelPath)
 {
-	MeshPart* c = scene->AddPart_Mesh(modelPath);
+	MeshPart* c = scene->CreatePart_Mesh(modelPath);
 	Attach(c);
-
 	return c;
 }

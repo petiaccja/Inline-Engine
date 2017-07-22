@@ -9,12 +9,8 @@ PhysicsEngineBullet::PhysicsEngineBullet()
 
 PhysicsEngineBullet::~PhysicsEngineBullet()
 {
-
-}
-
-void PhysicsEngineBullet::Release()
-{
-	delete this;
+	for (Scene* a : scenes)
+		delete a;
 }
 
 void PhysicsEngineBullet::Update(float deltaTime)
@@ -25,7 +21,7 @@ void PhysicsEngineBullet::Update(float deltaTime)
 	}
 }
 
-Scene* PhysicsEngineBullet::AddScene()
+Scene* PhysicsEngineBullet::CreateScene()
 {
 	Scene* p = new Scene();
 	scenes.push_back(p);

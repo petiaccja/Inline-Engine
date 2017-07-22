@@ -1,25 +1,14 @@
 #include "Editor.hpp"
-#include "QCWorld.hpp"
+#include <Core\TimeCore.hpp>
 
-class TimeCore
-{
-public:
-	float deltaTime = 0.f;
-} Time;
-
-#include "AssetLibrary/Model.hpp"
-#include "AssetLibrary/Image.hpp"
-#include "GraphicsEngine_LL/Pixel.hpp"
-
-using namespace inl;
-using namespace inl::asset;
-
+namespace inl {
 
 Editor::Editor()
 {
 	bWndMaximized = false;
 
 	core = new Core();
+	inputCore = new InputCore();
 
 	// Create main window for Editor
 	WindowDesc d;
@@ -42,34 +31,26 @@ Editor::Editor()
 	// Resize window, non client area removal made it's size wrong
 	wnd->SetRect({ 0,0 }, Sys::GetScreenSize());
 
-	//DWORD style = GetWindowLong(b, GWL_STYLE); //get the b style
-	//style &= ~(WS_POPUP | WS_CAPTION); //reset the "caption" and "popup" bits
-	//style |= WS_CHILD; //set the "child" bit
-	//SetWindowLong(b, GWL_STYLE, style); //set the new style of b
-	//RECT rc; //temporary rectangle
-	////GetClientRect(a, &rc); //the "inside border" rectangle for a
-	////MoveWindow(b, rc.left, rc.top, rc.right - rc.left, rc.bottom - rc.top, true); //place b at (x,y,w,h) in a
-	//UpdateWindow(a);
-
 	// Init Graphics Engine
-	graphicsE = core->InitGraphicsEngine(gameWnd->GetClientWidth(), gameWnd->GetClientHeight(), (HWND)gameWnd->GetHandle());
+	graphicsEngine = core->InitGraphicsEngine(gameWnd->GetClientWidth(), gameWnd->GetClientHeight(), (HWND)gameWnd->GetHandle());
 
-	// TEMPORARY TODO
-	world = new QCWorld(graphicsE);
-	world->IWantSunsetBitches();
+	// Init Physics Engine
+	physicsEngine = core->InitPhysicsEngineBullet();
 
 	// Init Gui Engine
-	guiE = core->InitGuiEngine(graphicsE, wnd);
+	guiEngine = core->InitGuiEngine(graphicsEngine, wnd);
 
-	// Init Gui
+	// Init Editor Gui
 	InitGui();
 
+	InitScene();
+
+	// Set icon for the editor window
 	wnd->SetIcon(L"InlineEngineLogo.ico");
 }
 
 Editor::~Editor()
 {
-	delete world;
 	delete core;
 	
 	wnd->Close();
@@ -77,10 +58,21 @@ Editor::~Editor()
 	delete gameWnd;
 }
 
+void Editor::InitScene()
+{
+	// Create scene for editor
+	scene = core->CreateScene();
+
+	cam = scene->AddActor_PerspCamera();
+
+	cam->SetNearPlane(0.1);
+	cam->SetFarPlane(2000.0);
+}
+
 void Editor::InitGui()
 {
 	// New Layer
-	mainLayer = guiE->AddLayer();
+	mainLayer = guiEngine->AddLayer();
 
 	// Layer border
 	mainLayer->SetBorder(1, Color(100));
@@ -256,8 +248,13 @@ void Editor::InitGui()
 		int width = size.x;
 		int height = size.y;
 
-		graphicsE->SetScreenSize(width, height);
-		world->ScreenSizeChanged(width, height);
+		float aspectRatio = (float)width / height;
+
+		graphicsEngine->SetScreenSize(width, height);
+		graphicsEngine->SetEnvVariable("world_render_size", exc::Any(mathfu::Vector2f(width, height)));
+		
+		cam->SetAspectRatio(aspectRatio);
+		cam->SetFOV(60.f / 180.f * 3.14159265);
 	};
 
 	rightArea->StretchFillParent();
@@ -348,54 +345,7 @@ void Editor::InitGui()
 			{
 				if (filePath.extension() == L".fbx")
 				{
-					std::wstring path = filePath;
-					Model* model = new Model(std::string(path.begin(), path.end()));
-
-					inl::asset::CoordSysLayout coordSysLayout = { AxisDir::POS_X,   AxisDir::POS_Z , AxisDir::NEG_Y};
-
-					auto modelVertices = model->GetVertices<gxeng::Position<0>, gxeng::Normal<0>, gxeng::TexCoord<0>>(0, coordSysLayout);
-					std::vector<unsigned> modelIndices = model->GetIndices(0);
-
-					gxeng::Mesh* mesh = graphicsE->CreateMesh();
-					mesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
-
-					gxeng::MeshEntity* entity = new gxeng::MeshEntity();
-					entity->SetMesh(mesh);
-					entity->SetPosition({ 0,4,1 });
-
-					// Create material
-					gxeng::Material* material = graphicsE->CreateMaterial();
-					
-					gxeng::MaterialShaderGraph* graph = graphicsE->CreateMaterialShaderGraph();
-					
-					std::unique_ptr<inl::gxeng::MaterialShaderEquation> mapShader(graphicsE->CreateMaterialShaderEquation());
-					std::unique_ptr<inl::gxeng::MaterialShaderEquation> diffuseShader(graphicsE->CreateMaterialShaderEquation());
-
-					mapShader->SetSourceName("bitmap_color_2d.mtl");
-					diffuseShader->SetSourceName("simple_diffuse.mtl");
-
-					std::vector<std::unique_ptr<inl::gxeng::MaterialShader>> nodes;
-					nodes.push_back(std::move(mapShader));
-					nodes.push_back(std::move(diffuseShader));
-					graph->SetGraph(std::move(nodes), { { 0, 1, 0 } });
-					material->SetShader(graph);
-
-					// Create texture
-					{
-						using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR>;
-						static inl::asset::Image img("assets\\pine_tree.jpg");
-
-						gxeng::Image* texture = graphicsE->CreateImage();
-
-						texture->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR);
-						texture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR>::Reader());
-
-						(*material)[0] = texture;
-					}
-
-					entity->SetMaterial(material);
-
-					world->m_worldScene->GetMeshEntities().Add(entity);
+					scene->AddActor_Mesh(filePath);
 				}
 			};
 			
@@ -415,7 +365,7 @@ void Editor::InitGui()
 	};
 }
 
-void Editor::Start()
+void Editor::StartMainLoop()
 {
 	// Create timer, delta time -> engine
 	Timer* timer = new Timer();
@@ -427,7 +377,7 @@ void Editor::Start()
 	while (wnd->IsOpen())
 	{
 		// Prepare for input processing
-		gInput.ClearFrameData();
+		inputCore->ClearFrameData();
 
 		WindowEvent evt;
 		while (wnd->PopEvent(evt))
@@ -437,27 +387,27 @@ void Editor::Start()
 				case KEY_PRESS:
 				{
 					if (evt.key != INVALID_eKey)
-						gInput.KeyPress(evt.key);
+						inputCore->KeyPress(evt.key);
 				} break;
 
 				case KEY_RELEASE:
 				{
 					if (evt.key != INVALID_eKey)
-						gInput.KeyRelease(evt.key);
+						inputCore->KeyRelease(evt.key);
 				} break;
 
 				case MOUSE_MOVE:
 				{
-					gInput.MouseMove(Vec2i(evt.mouseDelta.x, evt.mouseDelta.x), evt.clientMousePos);
+					inputCore->MouseMove(Vec2i(evt.mouseDelta.x, evt.mouseDelta.x), evt.clientMousePos);
 				} break;
 
 				case MOUSE_PRESS:
 				{
 					switch (evt.mouseBtn)
 					{
-					case LEFT:	gInput.MouseLeftPress();	break;
-					case RIGHT:	gInput.MouseRightPress();	break;
-					case MID:	gInput.MouseMidPress();		break;
+					case LEFT:	inputCore->MouseLeftPress();	break;
+					case RIGHT:	inputCore->MouseRightPress();	break;
+					case MID:	inputCore->MouseMidPress();		break;
 					}
 				} break;
 
@@ -465,9 +415,9 @@ void Editor::Start()
 				{
 					switch (evt.mouseBtn)
 					{
-					case LEFT:	gInput.MouseLeftRelease();	break;
-					case RIGHT: gInput.MouseRightRelease();	break;
-					case MID:	gInput.MouseMidRelease();	break;
+					case LEFT:	inputCore->MouseLeftRelease();	break;
+					case RIGHT: inputCore->MouseRightRelease();	break;
+					case MID:	inputCore->MouseMidRelease();	break;
 					}
 				} break;
 			}
@@ -476,14 +426,14 @@ void Editor::Start()
 		while (gameWnd->PopEvent(evt));
 
 		// Dispatch Inputs
-		gInput.Update();
+		inputCore->Update();
 
 		// Frame delta time
 		Time.deltaTime = timer->Elapsed();
 		timer->Reset();
 
 		// Update game world
-		world->UpdateWorld(Time.deltaTime);
+		//world->UpdateWorld(Time.deltaTime);
 
 		// Update engine
 		core->Update(Time.deltaTime);
@@ -502,7 +452,7 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 	case WM_SETCURSOR:
 		if (LOWORD(lParam) == HTCLIENT)
 		{
-			if (!guiE->IsUsingCustomCursor())
+			if (!guiEngine->IsUsingCustomCursor())
 				SetCursor(LoadCursor(nullptr, IDC_ARROW));
 
 			return TRUE;
@@ -548,8 +498,8 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 		PAINTSTRUCT ps;
 		BeginPaint(handle, &ps);
 
-		if (guiE)
-			guiE->Render();
+		if (guiEngine)
+			guiEngine->Render();
 
 		EndPaint(handle, &ps);
 		fCallDWP = true;
@@ -599,7 +549,7 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_NCHITTEST:
 	{
-		Vec2 cursorPos = guiE->GetCursorPos();
+		Vec2 cursorPos = guiEngine->GetCursorPos();
 
 		bool bLeft = cursorPos.x < 8;
 		bool bRight = cursorPos.x > mainLayer->GetWidth() - 8;
@@ -668,3 +618,5 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	return 0;
 }
+
+} // namespace inl

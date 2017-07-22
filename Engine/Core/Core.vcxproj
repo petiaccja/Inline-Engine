@@ -25,6 +25,7 @@
     <ClInclude Include="Common.hpp" />
     <ClInclude Include="Core.hpp" />
     <ClInclude Include="Actors.hpp" />
+    <ClInclude Include="DirectionalLightPart.hpp" />
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="InputCore.hpp" />
     <ClInclude Include="MeshPart.hpp" />
@@ -33,12 +34,14 @@
     <ClInclude Include="SceneScript.hpp" />
     <ClInclude Include="SoftBodyPart.hpp" />
     <ClInclude Include="Part.hpp" />
+    <ClInclude Include="TimeCore.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="ActorScript.cpp" />
     <ClCompile Include="ActorBehavior.cpp" />
     <ClCompile Include="Core.cpp" />
+    <ClCompile Include="DirectionalLightPart.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="InputCore.cpp" />
     <ClCompile Include="MeshPart.cpp" />

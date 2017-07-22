@@ -1,18 +1,16 @@
 #pragma once
-// The engine editor woaah
+#include <Core\Core.hpp>
+#include <GraphicsEngine_LL\GraphicsEngine.hpp>
+#include <GuiEngine\GuiEngine.hpp>
+#include <BaseLibrary\Platform\Window.hpp>
+#include <BaseLibrary\Timer.hpp>
 
-#include "Core\Core.hpp"
-#include "GraphicsEngine_LL\GraphicsEngine.hpp"
-#include "GuiEngine\GuiEngine.hpp"
-#include "BaseLibrary\Platform\Window.hpp"
-#include "BaseLibrary\Timer.hpp"
-
-// Win32 specific window headers
 #include <dwmapi.h>
 #include <Windowsx.h>
 
+namespace inl {
+
 using namespace std::placeholders;
-using namespace exc;
 using namespace inl::core;
 using namespace inl::gui;
 
@@ -23,18 +21,23 @@ public:
 	~Editor();
 
 	void InitGui();
+	void InitScene();
 
-	void Start();
+	void StartMainLoop();
 
 	LRESULT WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam);
 
 protected:
-	// TODO TEMPORARY
-	class QCWorld* world;
+	inl::core::Scene* scene;
+	PerspCameraActor* cam;
 
 	Core* core;
-	GuiEngine* guiE;
-	gxeng::GraphicsEngine* graphicsE;
+	InputCore* inputCore;
+	
+
+	GuiEngine* guiEngine;
+	gxeng::GraphicsEngine* graphicsEngine;
+	physics::bullet::PhysicsEngineBullet* physicsEngine;
 
 	bool bWndMaximized;
 
@@ -48,3 +51,5 @@ protected:
 	GuiImage* maximizeBtn;
 	GuiImage* closeBtn;
 };
+
+} // namespace inl

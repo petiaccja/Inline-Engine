@@ -11,7 +11,7 @@ namespace inl::physics {
 class IRigidBodyEntity
 {
 public:
-	virtual void AddForce(const Vec3& force, const Vec3& relPos = {0,0,0}) = 0;
+	virtual void ApplyForce(const Vec3& force, const Vec3& relPos = {0,0,0}) = 0;
 
 	virtual void SetUserPointer(void* ptr) = 0;
 	virtual void SetGravityScale(float s) = 0;

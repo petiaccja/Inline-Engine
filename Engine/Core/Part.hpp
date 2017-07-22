@@ -20,6 +20,7 @@ class MeshPart;
 enum ePartType
 {
 	CAMERA,
+	DIRECTIONAL_LIGHT,
 	RIGID_BODY,
 	SOFT_BODY,
 	MESH,
@@ -30,11 +31,13 @@ class Part
 {
 public:
 	Part(ePartType type);
-	~Part();
+	virtual ~Part();
 
 public:
-	virtual PerspCameraPart*	AddPart_Camera();
-	MeshPart*				AddPart_Mesh(const std::string& modelPath);
+	virtual void UpdateEntityTransform() = 0;
+
+	PerspCameraPart* AddPart_Camera();
+	MeshPart*		 AddPart_Mesh(const std::string& modelPath);
 
 	void Kill() { bKilled = true; }
 	bool IsKilled() { return bKilled; }
@@ -293,7 +296,7 @@ public:
 
 	void Scale(const Vec3& v)
 	{
-		// TODO NOT LOCAL SCLAE !!!!!
+		// TODO NOT LOCAL SCLAE !!
 		SetScale(GetScale() * v);
 	}
 

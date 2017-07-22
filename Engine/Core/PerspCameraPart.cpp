@@ -3,9 +3,29 @@
 namespace inl::core {
 
 PerspCameraPart::PerspCameraPart(gxeng::PerspectiveCamera* cam)
-:Part(TYPE), cam(cam)
+:Part(TYPE), cam(cam), aspectRatio(1.f)
 {
+	cam->SetTargeted(true);
+}
 
+PerspCameraPart::~PerspCameraPart()
+{
+	delete cam;
+}
+
+void PerspCameraPart::UpdateEntityTransform()
+{
+	auto pos = GetPos();
+	auto rot = GetRot();
+	Vec3 upVec = rot * Vec3(0, 0, 1);
+	Vec3 frontVec = rot * Vec3(0, 1, 0);
+
+	// Update camera Entity position
+	cam->SetPosition(mathfu::Vector3f(pos.x, pos.y, pos.z));
+	
+	// Update camera Entity Rotation
+	cam->SetUpVector(mathfu::Vector3f(upVec.x, upVec.y, upVec.z));
+	cam->SetTarget(cam->GetPosition() + mathfu::Vector3f(frontVec.x, frontVec.y, frontVec.z));
 }
 
 void PerspCameraPart::SetDirNormed(const Vec3& dir)
@@ -24,14 +44,15 @@ void PerspCameraPart::SetDirNormed(const Vec3& dir)
 	SetRot(camRot);
 }
 
-void PerspCameraPart::SetHorizontalFOV(float angleRad)
+void PerspCameraPart::SetAspectRatio(float ratio)
 {
-	cam->SetFOVAxis(angleRad, cam->GetFOVVertical());
+	aspectRatio = ratio;
+	cam->SetFOVAxis(cam->GetFOVVertical() * ratio, cam->GetFOVVertical());
 }
 
-void PerspCameraPart::SetVerticalFOV(float angleRad)
+void PerspCameraPart::SetFOV(float fov)
 {
-	cam->SetFOVAxis(cam->GetFOVHorizontal(), angleRad);
+	cam->SetFOVAxis(fov * aspectRatio, fov);
 }
 
 void PerspCameraPart::SetNearPlane(float val)
@@ -77,11 +98,6 @@ Vec3 PerspCameraPart::GetRightDir()
 Vec3 PerspCameraPart::GetLeftDir()
 {
 	return GetRot() * Vec3(-1, 0, 0);
-}
-
-gxeng::PerspectiveCamera* PerspCameraPart::GetCam()
-{
-	return cam;
 }
 
 } // namespace inl::core

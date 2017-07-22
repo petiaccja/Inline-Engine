@@ -19,7 +19,7 @@ class RigidBodyEntity : public inl::physics::IRigidBodyEntity
 public:
 	RigidBodyEntity(btRigidBody* body, btCollisionWorld* world);
 
-	void AddForce(const Vec3& force, const Vec3& relPos = { 0, 0, 0 }) override;
+	void ApplyForce(const Vec3& force, const Vec3& relPos = { 0, 0, 0 }) override;
 
 	void SetUserPointer(void* p) override;
 

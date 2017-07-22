@@ -15,7 +15,7 @@ RigidBodyEntity::RigidBodyEntity(btRigidBody* body, btCollisionWorld* world)
 	//asd.getMeshInterface()->getLockedVertexIndexBase
 }
 
-void RigidBodyEntity::AddForce(const Vec3& force, const Vec3& relPos /*= {0,0,0}*/)
+void RigidBodyEntity::ApplyForce(const Vec3& force, const Vec3& relPos /*= {0,0,0}*/)
 {
 	body->applyForce({ force.x, force.y, force.z }, { relPos.x, relPos.y, relPos.z });
 	body->activate();

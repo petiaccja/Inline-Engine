@@ -15,7 +15,7 @@ public:
 public:
 	RigidBodyPart(physics::IRigidBodyEntity* a);
 
-	void AddForce(const Vec3& force, const Vec3& relPos = { 0, 0, 0 });
+	void ApplyForce(const Vec3& force, const Vec3& relPos = { 0, 0, 0 });
 
 	void SetUserPointer(void* p);
 
@@ -35,8 +35,6 @@ public:
 	bool IsStatic() const;
 	bool IsDynamic() const;
 	bool IsKinematic() const;
-
-	physics::IRigidBodyEntity* GetEntity();
 
 	std::vector<Contact> GetContacts() const;
 

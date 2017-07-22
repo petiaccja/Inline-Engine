@@ -8,33 +8,43 @@
 #include <GraphicsEngine_LL\Scene.hpp>
 #include <PhysicsEngine\Bullet\Scene.hpp>
 
+// TMP !!
+#include <GraphicsEngine_LL\DirectionalLight.hpp>
+#include <filesystem>
+
+
 namespace inl::core {
 
 using namespace inl;
+using namespace std::experimental::filesystem;
 
 class MeshPart;
 class RigidBodyPart;
 class PerspCameraPart;
-
+class Core;
 class Scene
 {
 public:
+	Scene(Core* core);
 	~Scene();
+
+	void Update();
 
 	template<class T>
 	SceneScript* AddScript() {return return Core.AddScript<T>();}
 
-	Actor*				AddActor();
-	Actor*				AddActor(const std::string& modelFilePath, float mass = 0);
-	Actor*				AddActor_Mesh(const std::string& modelFilePath);
-	Actor*				AddActor_RigidBody(const std::string& modelFilePath, float mass = 0);
-	RigidBodyActor*		AddActor_RigidBodyCapsule(float height, float radius, float mass = 0);
-	PerspCameraActor*	AddActor_PerspCamera();
+	Actor*					AddActor();
+	Actor*					AddActor(const path& modelPath, float mass = 0);
+	MeshActor*				AddActor_Mesh(const path& modelPath);
+	Actor*					AddActor_RigidBody(const path& modelPath, float mass = 0);
+	RigidBodyActor*			AddActor_RigidBodyCapsule(float height, float radius, float mass = 0);
+	PerspCameraActor*		AddActor_PerspCamera();
+	DirectionalLightActor*	AddActor_DirectionalLight();
 
-	MeshPart*			AddPart_Mesh(const std::string& modelFilePath);
-	RigidBodyPart*		AddPart_RigidBody(const std::string& modelFilePath, float mass = 0);
-	RigidBodyPart*		AddPart_RigidBodyCapsule(float height, float radius, float mass = 0);
-	PerspCameraPart*	AddPart_Camera();
+	MeshPart*			CreatePart_Mesh(const std::string& modelFilePath);
+	RigidBodyPart*		CreatePart_RigidBody(const std::string& modelFilePath, float mass = 0);
+	RigidBodyPart*		CreatePart_RigidBodyCapsule(float height, float radius, float mass = 0);
+	PerspCameraPart*	CreatePart_Camera();
 
 	void SetLayerCollision(uint64_t ID0, uint64_t ID1, bool bEnableCollision);
 
@@ -42,22 +52,27 @@ public:
 	void SetCam(PerspCameraPart* c);
 
 	inline void RemoveActor(Actor* a);
-	inline void RemovePart(Part* c);
+	inline void DestroyPart(Part* c);
 
 	bool TraceClosestPoint_Physics(const Vec3& from, const Vec3& to, PhysicsTraceResult& traceInfo_out);
 
 protected:
+	// Core
+	Core* core;
+
 	// Graphics scene
-	gxeng::GraphicsEngine* graphicsEngine;
 	gxeng::Scene* graphicsScene;
 
-	// Physics scene (TODO Interface for physics scene)
+	// Physics scene
 	physics::bullet::Scene* physicsScene;
-
-	// Sound scene
 
 	// Actors
 	std::vector<Actor*> actors;
+
+	std::vector<Part*> parts;
+
+	// TMP REMOVE
+	inl::gxeng::DirectionalLight* sun;
 };
 
 } // namespace inl::core

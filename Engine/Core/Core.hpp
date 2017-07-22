@@ -6,7 +6,6 @@
 #include <GraphicsEngine/Definitions.hpp>
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
-#include <PhysicsEngine/IPhysicsEngine.hpp>
 #include <BaseLibrary/Platform/Window.hpp>
 #include <PhysicsEngine/Bullet/PhysicsEngineBullet.hpp>
 
@@ -38,30 +37,14 @@ public:
 	Core();
 	~Core();
 
-	gxeng::GraphicsEngine*	InitGraphicsEngine(int width, int height, HWND hwnd);
-	IPhysicsEngine*			InitPhysicsEngineBullet();
-	GuiEngine*				InitGuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow);
-
-	//bool TraceClosestPoint_Physics(const Vec3& from, const Vec3& to, core::PhysicsTraceResult& traceResult_out, const core::PhysicsTraceParams& params = core::PhysicsTraceParams());
-
-	// Todo
-	//bool TraceClosestPoint_Graphics(const Vec3& from, const Vec3& to, TraceResult& traceInfo_out);
-	
-	//sound::IEmitter* CreateMonoSound(const std::string& filePath, float volumeNormedPercent = 1, bool bLoop = false);
-	
-	//Actor* AddActor();
-	//Actor* AddActor(const std::string& modelFilePath, float mass = 0);
-	//Actor* AddActor(Part* rootComp);
-	//Actor* AddActor_Mesh(const std::string& modelFilePath);
-	//Actor* AddActor_RigidBody(const std::string& modelFilePath, float mass);
-	//Actor* AddActor_RigidBodyCapsule(float height, float radius, float mass = 0);
-	//Actor* AddActor_Camera();
-	//
-	//void RemoveActor(Actor* a);
-	//void RemovePart(Part* c);
+	gxeng::GraphicsEngine*					InitGraphicsEngine(int width, int height, HWND hwnd);
+	physics::bullet::PhysicsEngineBullet*	InitPhysicsEngineBullet();
+	GuiEngine*								InitGuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow);
 
 	void AddTask(const std::function<void()>& callb, float timeToProceed);
 	
+	Scene* CreateScene();
+
 	template<class ScriptClass>
 	SceneScript* AddScript()
 	{
@@ -89,35 +72,43 @@ public:
 	}
 	
 	gxeng::GraphicsEngine*	 GetGraphicsEngine() const { return graphicsEngine; }
-	IPhysicsEngine*	 GetPhysicsEngine() const { return physicsEngine; }
+	physics::bullet::PhysicsEngineBullet*	 GetPhysicsEngine() const { return physicsEngine; }
 	//inline INetworkEngine*	 GetNetworkEngine() const { return networkEngine; }
 	//inline ISoundEngine*	 GetSoundEngine() const { return soundEngine; }
 
-	std::vector<Part*> GetParts(ePartType type);
-	std::vector<Part*> GetParts();
+	//std::vector<Part*> GetParts(ePartType type);
+	//std::vector<Part*> GetParts();
 
 protected:
-	IPhysicsEngine*	physicsEngine;
-	//INetworkEngine*	networkEngine;
-	//ISoundEngine*		soundEngine;
+	// Physics engine
+	physics::bullet::PhysicsEngineBullet*	physicsEngine;
 
-	// Scripts
-	std::vector<SceneScript*> scripts;
+	// Graphics engine
+	gxeng::GraphicsEngine* graphicsEngine;
+
+	// guiEngine
+	GuiEngine* guiEngine;
+
+	std::vector<Scene*> scenes;
+
+	// Scripts operating on scenes
+	std::vector<SceneScript*> sceneScripts;
+
+	// Scripts operating on actors
+	std::vector<ActorScript*> actorScripts;
 
 	// Actors
 	std::vector<Actor*> actors;
-	std::vector<Actor*> actorsToDestroy;
+	//std::vector<Actor*> actorsToDestroy;
+
+	std::vector<Part*> parts;
+	//std::vector<Part*> partsToDestroy;
 
 	// Prev and cur frame actors associated collision data
 	//std::unordered_map<Actor*, core::Collision> curFrameActorCollideList;
 	//std::unordered_map<Actor*, core::Collision> prevFrameActorCollideList;
 
-	// Actor scripts
-	std::vector<ActorScript*> actorScripts;
-
-	// World components
-	std::vector<Part*> parts;
-	std::vector<Part*> partsToDestroy;
+	
 
 	// Tasks
 	std::vector<Task> tasks;
@@ -137,21 +128,12 @@ protected:
 	// The default soundScene Core created for us to spawn sound things into
 	//sound::IScene* defaultSoundScene;
 
-	// Error diffuse texture for failed texture loads
-	gxeng::Texture2D* texError;
+	// Texture applied to meshes which have no associated texture
+	gxeng::Texture2D* errorTexture;
 
-
-// Inline Engine specific things
-	gxeng::GraphicsEngine* graphicsEngine;
 	gxapi_dx12::GxapiManager* graphicsApiMgr;
 	gxapi::IGraphicsApi* graphicsApi;
-
-	GuiEngine* guiEngine;
 	exc::Logger logger;
 };
-
-extern Core gCore;
-extern Scene gScene;
-extern InputCore gInput;
 
 } // namespace inl::core

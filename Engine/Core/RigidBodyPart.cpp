@@ -30,9 +30,9 @@ RigidBodyPart::RigidBodyPart(physics::IRigidBodyEntity* a)
 
 }
 
-void RigidBodyPart::AddForce(const Vec3& force, const Vec3& relPos /*= { 0, 0, 0 }*/)
+void RigidBodyPart::ApplyForce(const Vec3& force, const Vec3& relPos /*= { 0, 0, 0 }*/)
 {
-	entity->AddForce(force, relPos);
+	entity->ApplyForce(force, relPos);
 }
 
 void RigidBodyPart::SetUserPointer(void* p)
@@ -103,11 +103,6 @@ bool RigidBodyPart::IsDynamic() const
 bool RigidBodyPart::IsKinematic() const
 {
 	return entity->IsKinematic();
-}
-
-physics::IRigidBodyEntity* RigidBodyPart::GetEntity()
-{
-	return entity;
 }
 
 std::vector<Contact> RigidBodyPart::GetContacts() const

@@ -7,10 +7,6 @@
 
 namespace inl::core {
 
-Core gCore;
-Scene gScene;
-InputCore gInput;
-
 Core::Core()
 :graphicsEngine(0), physicsEngine(0)/*, soundEngine(0), networkEngine(0)*/
 {
@@ -19,17 +15,19 @@ Core::Core()
 
 Core::~Core()
 {
-
-	for (auto& a : scripts)
+	for (SceneScript* a : sceneScripts)
 		delete a;
 
-	for (auto& a : parts)
+	for (ActorScript* a : actorScripts)
 		delete a;
 
-	for (auto& a : actorScripts)
-		delete a;
+	//for (Part* a : parts)
+	//	delete a;
+	//
+	//for (Actor* a : actors)
+	//	delete a;
 
-	for (auto& a : actors)
+	for (Scene* a : scenes)
 		delete a;
 
 	//for (auto& a : importedModels)
@@ -39,10 +37,10 @@ Core::~Core()
 	//	a.second->Release();
 
 	//if (graphicsEngine)	graphicsEngine->Release();
-	if (physicsEngine)	physicsEngine->Release();
 	//if (networkEngine)	networkEngine->Release();
 	//if (soundEngine)	soundEngine->Release();
 
+	delete physicsEngine;
 	delete guiEngine;
 	delete graphicsEngine;
 	delete graphicsApi;
@@ -75,6 +73,12 @@ gxeng::GraphicsEngine* Core::InitGraphicsEngine(int width, int height, HWND hwnd
 
 	graphicsEngine = new gxeng::GraphicsEngine(desc);
 
+	graphicsEngine->CreateScene("Gui");
+	graphicsEngine->CreateOrthographicCamera("GuiCamera");
+	graphicsEngine->SetEnvVariable("world_render_pos", exc::Any(mathfu::Vector2f(0.f, 0.f)));
+	graphicsEngine->SetEnvVariable("world_render_rot", exc::Any(0.f));
+	graphicsEngine->SetEnvVariable("world_render_size", exc::Any(mathfu::Vector2f(width, height)));
+
 	return graphicsEngine;
 }
 
@@ -88,13 +92,20 @@ GuiEngine* Core::InitGuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* ta
 	return guiEngine;
 }
 
-IPhysicsEngine* Core::InitPhysicsEngineBullet()
+physics::bullet::PhysicsEngineBullet* Core::InitPhysicsEngineBullet()
 {
 	if (physicsEngine)
-		physicsEngine->Release();
+		delete physicsEngine;
 
-	bullet::PhysicsEngineBullet* engine = new bullet::PhysicsEngineBullet();
-	return engine;
+	physicsEngine = new bullet::PhysicsEngineBullet();
+	return physicsEngine;
+}
+
+Scene* Core::CreateScene()
+{
+	Scene* scene = new Scene(this);
+	scenes.push_back(scene);
+	return scene;
 }
 
 //INetworkEngine* Core::InitNetworkEngineRakNet(const rNetworkEngine& d /*= rNetworkEngine()*/)
@@ -498,156 +509,159 @@ IPhysicsEngine* Core::InitPhysicsEngineBullet()
 
 void Core::Update(float deltaTime)
 {
-	{
-		PROFILE_SCOPE("Game Logic");
-
-		// Scripts
-		{
-			PROFILE_SCOPE("Scripts");
-			for (auto& s : scripts)
-				s->Update(deltaTime);
-		}
-
-
-		//Entity Scripts
-		{
-			PROFILE_SCOPE("Entity Scripts");
-			for (auto& s : actorScripts)
-				s->Update(deltaTime);
-		}
-
-
-		// ActorLambda onUpdate
-		{
-			PROFILE_SCOPE("ActorLambda onUpdate");
-			for (auto& a : actors)
-				if (!a->IsKilled())
-					a->Update(deltaTime);
-		}
-
-		// TODO optimize
-		// Process Tasks if time passed, and remove after dispatch
-		{
-			PROFILE_SCOPE("AddTask Dispatch");
-
-			static std::vector<size_t> indicesToDelete;
-			indicesToDelete.clear();
-
-			size_t oldSize = tasks.size(); // Cuz you can AddTask in AddTask ^^, tasks.size() can change in loop body
-			for (size_t i = 0; i < oldSize; i++)
-			{
-				tasks[i].timeLeft -= deltaTime;
-
-				if (tasks[i].timeLeft <= 0)
-				{
-					tasks[i].callb();
-					indicesToDelete.push_back(i);
-				}
-			}
-
-			// Remove dispatched taks
-			for (size_t i = 0; i < indicesToDelete.size(); ++i)
-				tasks.erase(tasks.begin() + indicesToDelete[i] - i);
-		}
-	}
-
-	// Destroy actors queued for destroying
 	//{
-	//	PROFILE_SCOPE("Destroying Actors");
-	//	for (auto& a : actorsToDestroy)
+	//	PROFILE_SCOPE("Game Logic");
+	//
+	//	// Scripts
 	//	{
-	//		// Remove from actors
-	//		auto it = std::find(actors.begin(), actors.end(), a);
-	//		if (it != actors.end())
-	//			actors.erase(it);
-	//
-	//		for (auto& Part : a->GetParts())
-	//			RemovePart(Part);
-	//
-	//		delete a;
+	//		PROFILE_SCOPE("Scene Scripts");
+	//		for (auto& s : sceneScripts)
+	//			s->Update(deltaTime);
 	//	}
-	//	actorsToDestroy.clear();
 	//
-	//	PROFILE_SCOPE("Destroying Parts");
-	//	for (auto& p : partsToDestroy)
+	//
+	//	//Entity Scripts
 	//	{
-	//		RemovePart(p);
-	//		delete p;
+	//		PROFILE_SCOPE("Entity Scripts");
+	//		for (auto& s : actorScripts)
+	//			s->Update(deltaTime);
 	//	}
-	//	partsToDestroy.clear();
-	//}
-
-	//(RigidBody) Entity -> Part transform update
-	//{
-	//	PROFILE_SCOPE("(RigidBody) Entity -> Part transform update");
 	//
-	//	for (Part* part : GetParts(RIGID_BODY))
+	//
+	//	// ActorLambda onUpdate
 	//	{
-	//		physics::IRigidBodyEntity* entity = ((RigidBodyPart*)part)->GetEntity();
-	//		entity->SetPos(part->GetPos());
-	//		entity->SetRot(part->GetRot());
-	//		entity->SetScale(part->GetScale());
+	//		PROFILE_SCOPE("ActorLambda onUpdate");
+	//		for (auto& a : actors)
+	//			if (!a->IsKilled())
+	//				a->Update(deltaTime);
+	//	}
+	//
+	//	// TODO optimize
+	//	// Process Tasks if time passed, and remove after dispatch
+	//	{
+	//		PROFILE_SCOPE("AddTask Dispatch");
+	//
+	//		static std::vector<size_t> indicesToDelete;
+	//		indicesToDelete.clear();
+	//
+	//		size_t oldSize = tasks.size(); // Cuz you can AddTask in AddTask ^^, tasks.size() can change in loop body
+	//		for (size_t i = 0; i < oldSize; i++)
+	//		{
+	//			tasks[i].timeLeft -= deltaTime;
+	//
+	//			if (tasks[i].timeLeft <= 0)
+	//			{
+	//				tasks[i].callb();
+	//				indicesToDelete.push_back(i);
+	//			}
+	//		}
+	//
+	//		// Remove dispatched taks
+	//		for (size_t i = 0; i < indicesToDelete.size(); ++i)
+	//			tasks.erase(tasks.begin() + indicesToDelete[i] - i);
 	//	}
 	//}
 	//
-	//// (Mesh) Entity -> Part transform update
-	//{
-	//	PROFILE_SCOPE("(Mesh) Entity -> Part transform update");
+	//// Destroy actors queued for destroying
+	////{
+	////	PROFILE_SCOPE("Destroying Actors");
+	////	for (auto& a : actorsToDestroy)
+	////	{
+	////		// Remove from actors
+	////		auto it = std::find(actors.begin(), actors.end(), a);
+	////		if (it != actors.end())
+	////			actors.erase(it);
+	////
+	////		for (auto& Part : a->GetParts())
+	////			RemovePart(Part);
+	////
+	////		delete a;
+	////	}
+	////	actorsToDestroy.clear();
+	////
+	////	PROFILE_SCOPE("Destroying Parts");
+	////	for (auto& p : partsToDestroy)
+	////	{
+	////		RemovePart(p);
+	////		delete p;
+	////	}
+	////	partsToDestroy.clear();
+	////}
 	//
-	//	for (Part* part : GetParts(MESH))
-	//	{
-	//		gxeng::MeshEntity* entity = ((MeshPart*)part)->GetEntity();
-	//		auto pos = part->GetPos();
-	//		auto rot = part->GetRot();
-	//		auto scale = part->GetScale();
-	//		entity->SetPosition(mathfu::Vector3f(pos.x, pos.y, pos.z));
-	//		entity->SetRotation(mathfu::Quaternionf(rot.x, rot.y, rot.z, rot.w));
-	//		entity->SetScale(mathfu::Vector3f(scale.x, scale.y, scale.z));
-	//		//entity->SetSkew(c->GetSkew());
-	//	}
+	////(RigidBody) Entity -> Part transform update
+	////{
+	////	PROFILE_SCOPE("(RigidBody) Entity -> Part transform update");
+	////
+	////	for (Part* part : GetParts(RIGID_BODY))
+	////	{
+	////		physics::IRigidBodyEntity* entity = ((RigidBodyPart*)part)->GetEntity();
+	////		entity->SetPos(part->GetPos());
+	////		entity->SetRot(part->GetRot());
+	////		entity->SetScale(part->GetScale());
+	////	}
+	////}
+	////
+	////// (Mesh) Entity -> Part transform update
+	////{
+	////	PROFILE_SCOPE("(Mesh) Entity -> Part transform update");
+	////
+	////	for (Part* part : GetParts(MESH))
+	////	{
+	////		gxeng::MeshEntity* entity = ((MeshPart*)part)->GetEntity();
+	////		auto pos = part->GetPos();
+	////		auto rot = part->GetRot();
+	////		auto scale = part->GetScale();
+	////		entity->SetPosition(mathfu::Vector3f(pos.x, pos.y, pos.z));
+	////		entity->SetRotation(mathfu::Quaternionf(rot.x, rot.y, rot.z, rot.w));
+	////		entity->SetScale(mathfu::Vector3f(scale.x, scale.y, scale.z));
+	////		//entity->SetSkew(c->GetSkew());
+	////	}
+	////}
+	////
+	////// (Camera) Entity -> Part transform update
+	////{
+	////	PROFILE_SCOPE("(Camera) Entity -> Part transform update");
+	////
+	////	for (Part* part : GetParts(CAMERA))
+	////	{
+	////		gxeng::PerspectiveCamera* cam = ((PerspCameraPart*)part)->GetCam();
+	////
+	////		// Position
+	////		auto pos = part->GetPos();
+	////		cam->SetPosition(mathfu::Vector3f(pos.x, pos.y, pos.z));
+	////		
+	////		// Rotation
+	////		auto front = part->GetFrontDir();
+	////		auto up = part->GetUpDir();
+	////		cam->SetLookDirection(mathfu::Vector3f(front.x, front.y, front.z));
+	////		cam->SetUpVector(mathfu::Vector3f(up.x, up.y, up.z));
+	////		cam->SetTarget(mathfu::Vector3f(pos.x + front.x, pos.y + front.y, pos.z + front.z));
+	////	}
+	////}
+	//
+	//// Update physics
+	//if (physicsEngine)
+	//{
+	//	PROFILE_SCOPE("Physics");
+	//	physicsEngine->Update(deltaTime);
 	//}
 	//
-	//// (Camera) Entity -> Part transform update
+	////Update rigid body components, from rigid body entity
 	//{
-	//	PROFILE_SCOPE("(Camera) Entity -> Part transform update");
+	//	PROFILE_SCOPE("Update rigid body components, from rigid body entity");
 	//
-	//	for (Part* part : GetParts(CAMERA))
+	//	for (Part* c : GetParts(RIGID_BODY))
 	//	{
-	//		gxeng::PerspectiveCamera* cam = ((PerspCameraPart*)part)->GetCam();
-	//
-	//		// Position
-	//		auto pos = part->GetPos();
-	//		cam->SetPosition(mathfu::Vector3f(pos.x, pos.y, pos.z));
-	//		
-	//		// Rotation
-	//		auto front = part->GetFrontDir();
-	//		auto up = part->GetUpDir();
-	//		cam->SetLookDirection(mathfu::Vector3f(front.x, front.y, front.z));
-	//		cam->SetUpVector(mathfu::Vector3f(up.x, up.y, up.z));
-	//		cam->SetTarget(mathfu::Vector3f(pos.x + front.x, pos.y + front.y, pos.z + front.z));
+	//		physics::IRigidBodyEntity* entity = c->As<RigidBodyPart>()->GetEntity();
+	//		c->SetPos(entity->GetPos());
+	//		c->SetRot(entity->GetRot());
+	//		c->SetScale(entity->GetScale());
 	//	}
 	//}
-
-	// Update physics
-	if (physicsEngine)
-	{
-		PROFILE_SCOPE("Physics");
-		physicsEngine->Update(deltaTime);
-	}
-
-	//Update rigid body components, from rigid body entity
-	{
-		PROFILE_SCOPE("Update rigid body components, from rigid body entity");
 	
-		for (Part* c : GetParts(RIGID_BODY))
-		{
-			physics::IRigidBodyEntity* entity = c->As<RigidBodyPart>()->GetEntity();
-			c->SetPos(entity->GetPos());
-			c->SetRot(entity->GetRot());
-			c->SetScale(entity->GetScale());
-		}
-	}
-	
+
+	for (Scene* scene : scenes)
+		scene->Update();
 
 	// Update graphics
 	if (graphicsEngine)
@@ -686,20 +700,20 @@ void Core::Update(float deltaTime)
 #endif
 }
 
-std::vector<Part*> Core::GetParts()
-{
-	return parts;
-}
-
-std::vector<Part*> Core::GetParts(ePartType type)
-{
-	std::vector<Part*> result;
-
-	for (Part* c : GetParts())
-		if (c->GetType() == type)
-			result.push_back(c);
-
-	return result;
-}
+//std::vector<Part*> Core::GetParts()
+//{
+//	return parts;
+//}
+//
+//std::vector<Part*> Core::GetParts(ePartType type)
+//{
+//	std::vector<Part*> result;
+//
+//	for (Part* c : GetParts())
+//		if (c->GetType() == type)
+//			result.push_back(c);
+//
+//	return result;
+//}
 
 } // namespace inl::core

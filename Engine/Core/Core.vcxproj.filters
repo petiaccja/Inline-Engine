@@ -39,6 +39,10 @@
     <ClInclude Include="PerspCameraPart.hpp">
       <Filter>Part</Filter>
     </ClInclude>
+    <ClInclude Include="TimeCore.hpp" />
+    <ClInclude Include="DirectionalLightPart.hpp">
+      <Filter>Part</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp" />
@@ -71,6 +75,9 @@
       <Filter>Scene</Filter>
     </ClCompile>
     <ClCompile Include="PerspCameraPart.cpp">
+      <Filter>Part</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectionalLightPart.cpp">
       <Filter>Part</Filter>
     </ClCompile>
   </ItemGroup>

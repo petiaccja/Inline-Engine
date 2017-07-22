@@ -8,16 +8,16 @@ using namespace inl::physics::bullet;
 
 namespace inl::physics::bullet {
 
-class PhysicsEngineBullet : public IPhysicsEngine
+class PhysicsEngineBullet
 {
 public:
 	PhysicsEngineBullet();
 	~PhysicsEngineBullet();
 
-	void Release() override;
-	void Update(float deltaTime) override;
+	void Update(float deltaTime);
 
-	Scene* AddScene();
+	Scene* CreateScene();
+
 	bool RemoveScene(Scene* scene);
 
 protected:

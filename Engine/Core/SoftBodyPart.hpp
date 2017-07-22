@@ -8,7 +8,7 @@ namespace inl::core {
 using namespace inl::physics;
 
 
-class SoftBodyPart : public Part
+class SoftBodyPart : virtual public Part
 {
 public:
 	static const ePartType TYPE = SOFT_BODY;
@@ -16,10 +16,8 @@ public:
 public:
 	SoftBodyPart(ISoftBodyEntity* e);
 
-	ISoftBodyEntity* GetEntity();
-
 protected:
 	ISoftBodyEntity* entity;
 };
 
-}
+} // namespace inl::core
