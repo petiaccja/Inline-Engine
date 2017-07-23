@@ -351,6 +351,9 @@
     <ClInclude Include="CommandListPool.hpp">
       <Filter>Backend\Pipeline\ResourcePools</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Node_DOFPrepare.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -544,6 +547,9 @@
       <Filter>Backend\Pipeline\ResourcePools</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_SMAA.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_DOFPrepare.cpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
   </ItemGroup>
