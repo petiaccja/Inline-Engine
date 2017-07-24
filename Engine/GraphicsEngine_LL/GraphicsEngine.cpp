@@ -38,6 +38,7 @@
 #include "Nodes/Node_MotionBlur.hpp"
 #include "Nodes/Node_LensFlare.hpp"
 #include "Nodes/Node_SMAA.hpp"
+#include "Nodes/Node_DOFPrepare.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -438,6 +439,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::BloomBlur> lensFlareBlurHorizontal(new nodes::BloomBlur());
 	std::shared_ptr<nodes::BloomBlur> lensFlareBlurVertical(new nodes::BloomBlur());
 	std::shared_ptr<nodes::SMAA> smaa(new nodes::SMAA());
+	std::shared_ptr<nodes::DOFPrepare> dofPrepare(new nodes::DOFPrepare());
 	TextureUsage usage;
 
 
@@ -512,6 +514,10 @@ void GraphicsEngine::CreatePipeline() {
 	motionBlur->GetInput<1>().Link(forwardRender->GetOutput(1));
 	motionBlur->GetInput<2>().Link(neighborMax->GetOutput(0));
 	motionBlur->GetInput<3>().Link(depthPrePass->GetOutput(0));
+
+	dofPrepare->GetInput<0>().Link(motionBlur->GetOutput(0));
+	dofPrepare->GetInput<1>().Link(depthPrePass->GetOutput(0));
+	dofPrepare->GetInput<2>().Link(getCamera->GetOutput(0));
 
 	brightLumPass->GetInput<0>().Link(motionBlur->GetOutput(0));
 	
@@ -628,6 +634,7 @@ void GraphicsEngine::CreatePipeline() {
 	alphaBlend->GetInput<0>().Link(guiRender->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(debugDraw->GetOutput(0));
 	alphaBlend->GetInput<1>().Link(smaa->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(dofPrepare->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
 	//alphaBlend->GetInput<3>().Set(Mat44::FromScaleVector(Vec3(.5f, 1.f, 1.f)));
 	alphaBlend->GetInput<3>().Link(createWorldRenderTransform->GetOutput(0));
@@ -683,6 +690,7 @@ void GraphicsEngine::CreatePipeline() {
 		lensFlareBlurHorizontal,
 		lensFlareBlurVertical,
 		smaa,
+		dofPrepare,
 
 		getGuiScene,
 		getGuiCamera,

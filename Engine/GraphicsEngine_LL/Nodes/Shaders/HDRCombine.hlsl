@@ -100,12 +100,40 @@ float3 blue_shift(float3 col, float night_factor)
 	return lerp(col, night_color, blue_shift_coeff);
 }
 
-float3 vignette(float2 texcoord, float3 col)
+/*float3 vignette(float2 texcoord, float3 col)
 {
 	float vignette_size = 0.5, vignette_amount = 0.5;
 	float dist = distance(texcoord, float2(0.5, 0.5));
 
 	return col * smoothstep(0.8, vignette_size * 0.799, dist * (vignette_amount + vignette_size));
+}*/
+
+float3 vignette(float2 texcoord, float3 col)
+{
+	float aperture_diameter = 2.8 * 0.001;
+	float lens_to_sensor_dist = 20 * 0.001;
+	float aspect_ratio = 16.0 / 9;
+	float sensor_width = 35 * 0.001;
+	float sensor_height = sensor_width / aspect_ratio;
+
+	float3 aperture_corner_ll = float3(sensor_width * 0.5, sensor_height * 0.5, lens_to_sensor_dist) - float3(aperture_diameter * 0.5, aperture_diameter * 0.5, 0.0);
+	float3 aperture_corner_ur = float3(sensor_width * 0.5, sensor_height * 0.5, lens_to_sensor_dist) + float3(aperture_diameter * 0.5, aperture_diameter * 0.5, 0.0);
+	float3 aperture_vector = aperture_corner_ur - aperture_corner_ll;
+
+	float3 sensor_corner_ll = float3(0, 0, 0);
+	float3 sensor_corner_ur = float3(sensor_width, sensor_height, 0);
+	float3 sensor_vector = sensor_corner_ur - sensor_corner_ll;
+
+	float3 point_on_aperture = aperture_corner_ll + float3(aperture_vector.xy * texcoord, 0);
+	float3 point_on_sensor = sensor_corner_ll + float3(sensor_vector.xy * texcoord, 0);
+
+	float3 angle_vector = normalize(point_on_aperture - point_on_sensor);
+	float3 compare_vector = float3(0, 0, 1);
+	
+	float angle = dot(angle_vector, compare_vector);
+	float angle_sqr = angle * angle;
+	return col * angle_sqr * angle_sqr; //(cos(x))^4
+	//return col;
 }
 
 float3 lens_flare(float2 texcoord)
