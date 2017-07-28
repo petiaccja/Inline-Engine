@@ -72,9 +72,9 @@ protected: // render context
 
 	const BasicCamera* m_camera;
 
-#error Csak a csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
+#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
 	inl::gxeng::Image* m_colorGradingImage, *m_lensFlareDirtImage, *m_lensFlareStarImage;
-#error Csak a csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
+#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
 	std::unique_ptr<inl::gxeng::Image> m_colorGradingLutTexture, m_lensFlareDirtTexture, m_lensFlareStarTexture;
 private:
 	void InitRenderTarget(SetupContext& context);

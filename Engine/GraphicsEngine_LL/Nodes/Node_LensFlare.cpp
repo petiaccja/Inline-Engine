@@ -238,7 +238,7 @@ void LensFlare::InitRenderTarget(SetupContext& context) {
 
 		// Create lens color texture
 		{
-#error Csak a csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
+#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
 			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
 			inl::asset::Image img("assets\\lensFlare\\lens_color.png");
 

@@ -354,7 +354,7 @@ void HDRCombine::InitRenderTarget(SetupContext& context) {
 
 		// Create color grading texture
 		{
-#error Csak a csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
+#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
 #error Nem használsz asseteket node-ban.
 			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
 			inl::asset::Image img("assets\\colorGrading\\default_lut_table.png");
@@ -368,7 +368,7 @@ void HDRCombine::InitRenderTarget(SetupContext& context) {
 		}
 
 		{
-#error Csak a csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
+#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
 #error Nem használsz asseteket node-ban.
 			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
 			inl::asset::Image img("assets\\lensFlare\\lens_dirt.png");
@@ -379,7 +379,7 @@ void HDRCombine::InitRenderTarget(SetupContext& context) {
 		}
 
 		{
-#error Csak a csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
+#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
 #error Nem használsz asseteket node-ban.
 			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
 			inl::asset::Image img("assets\\lensFlare\\lens_star.png");
