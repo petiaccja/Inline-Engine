@@ -18,6 +18,7 @@ namespace gxeng {
 
 
 class CommandAllocatorPool;
+class CommandListPool;
 class ScratchSpacePool;
 class Scene;
 class PerspectiveCamera;
@@ -30,6 +31,7 @@ struct FrameContext {
 
 	gxapi::IGraphicsApi* gxApi = nullptr;
 	CommandAllocatorPool* commandAllocatorPool = nullptr;
+	CommandListPool* commandListPool = nullptr;
 	ScratchSpacePool* scratchSpacePool = nullptr;
 	MemoryManager* memoryManager = nullptr;
 	CbvSrvUavHeap* textureSpace = nullptr;

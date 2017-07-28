@@ -6,10 +6,11 @@ namespace gxeng {
 
 CopyCommandList::CopyCommandList(
 	gxapi::IGraphicsApi* gxApi,
+	CommandListPool& commandListPool,
 	CommandAllocatorPool& commandAllocatorPool,
 	ScratchSpacePool& scratchSpacePool
 ) :
-	BasicCommandList(gxApi, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::COPY)
+	BasicCommandList(gxApi, commandListPool, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::COPY)
 {
 	m_commandList = dynamic_cast<gxapi::ICopyCommandList*>(GetCommandList());
 }
@@ -17,11 +18,12 @@ CopyCommandList::CopyCommandList(
 
 CopyCommandList::CopyCommandList(
 	gxapi::IGraphicsApi* gxApi,
+	CommandListPool& commandListPool,
 	CommandAllocatorPool& commandAllocatorPool,
 	ScratchSpacePool& scratchSpacePool,
 	gxapi::eCommandListType type
 ) :
-	BasicCommandList(gxApi, commandAllocatorPool, scratchSpacePool, type)
+	BasicCommandList(gxApi, commandListPool, commandAllocatorPool, scratchSpacePool, type)
 {
 	m_commandList = dynamic_cast<gxapi::ICopyCommandList*>(GetCommandList());
 }

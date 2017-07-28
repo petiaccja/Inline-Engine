@@ -31,6 +31,7 @@ public:
 	virtual IGraphicsCommandList* CreateGraphicsCommandList(CommandListDesc desc) = 0;
 	virtual IComputeCommandList* CreateComputeCommandList(CommandListDesc desc) = 0;
 	virtual ICopyCommandList* CreateCopyCommandList(CommandListDesc desc) = 0;
+	virtual ICommandList* CreateCommandList(eCommandListType type, CommandListDesc desc) = 0;
 
 	// Resources
 	virtual IResource* CreateCommittedResource(HeapProperties heapProperties,

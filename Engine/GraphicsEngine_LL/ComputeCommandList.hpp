@@ -11,23 +11,24 @@ namespace gxeng {
 
 class ComputeCommandList : public CopyCommandList {
 public:
-	ComputeCommandList(
-		gxapi::IGraphicsApi* gxApi,
-		CommandAllocatorPool& commandAllocatorPool,
-		ScratchSpacePool& scratchSpacePool,
-		MemoryManager& memoryManager,
-		VolatileViewHeap& volatileCbvHeap);
+	ComputeCommandList(gxapi::IGraphicsApi* gxApi,
+					   CommandListPool& commandListPool,
+					   CommandAllocatorPool& commandAllocatorPool,
+					   ScratchSpacePool& scratchSpacePool,
+					   MemoryManager& memoryManager,
+					   VolatileViewHeap& volatileCbvHeap);
 	ComputeCommandList(const ComputeCommandList& rhs) = delete;
 	ComputeCommandList(ComputeCommandList&& rhs);
 	ComputeCommandList& operator=(const ComputeCommandList& rhs) = delete;
 	ComputeCommandList& operator=(ComputeCommandList&& rhs);
 protected:
 	ComputeCommandList(gxapi::IGraphicsApi* gxApi,
-		CommandAllocatorPool& commandAllocatorPool,
-		ScratchSpacePool& scratchSpacePool,
-		MemoryManager& memoryManager,
-		VolatileViewHeap& volatileCbvHeap,
-		gxapi::eCommandListType type);
+					   CommandListPool& commandListPool,
+					   CommandAllocatorPool& commandAllocatorPool,
+					   ScratchSpacePool& scratchSpacePool,
+					   MemoryManager& memoryManager,
+					   VolatileViewHeap& volatileCbvHeap,
+					   gxapi::eCommandListType type);
 
 public:
 	// Draw

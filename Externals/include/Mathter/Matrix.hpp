@@ -560,7 +560,7 @@ public:
 //--------------------------------------
 template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
 class MatrixView {
-	static constexpr int SpaceDim = Rows != Columns ? std::min(Rows, Columns) : Rows - 1;
+	static constexpr int SpaceDim = std::max(0, Rows != Columns ? std::min(Rows, Columns) : Rows - 1);
 	static constexpr bool EnableView = (Rows == Columns
 										|| (Order == eMatrixOrder::FOLLOW_VECTOR && Rows - Columns == 1)
 										|| (Order == eMatrixOrder::PRECEDE_VECTOR && Columns - Rows == 1))
@@ -569,7 +569,7 @@ class MatrixView {
 	using VectorT = Vector<T, SpaceDim, Packed>;
 public:
 	// General function
-	static MatrixT LookAt(const VectorT& eye, const VectorT& target, const std::array<VectorT, std::max(0, SpaceDim - 2)>& bases, const std::array<bool, SpaceDim>& flipAxes) {
+	static MatrixT LookAt(const VectorT& eye, const VectorT& target, const std::array<VectorT, SpaceDim - 2>& bases, const std::array<bool, SpaceDim>& flipAxes) {
 		MatrixT matrix;
 		VectorT columns[SpaceDim];
 		std::array<const VectorT*, SpaceDim - 1> crossTable = {};

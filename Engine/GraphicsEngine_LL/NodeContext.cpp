@@ -191,6 +191,7 @@ RenderContext::RenderContext(MemoryManager* memoryManager,
 							 VolatileViewHeap* volatileViewHeap,
 							 ShaderManager* shaderManager,
 							 gxapi::IGraphicsApi* graphicsApi,
+							 CommandListPool* commandListPool,
 							 CommandAllocatorPool* commandAllocatorPool,
 							 ScratchSpacePool* scratchSpacePool)
 	: m_memoryManager(memoryManager),
@@ -198,6 +199,7 @@ RenderContext::RenderContext(MemoryManager* memoryManager,
 	m_volatileViewHeap(volatileViewHeap),
 	m_shaderManager(shaderManager),
 	m_graphicsApi(graphicsApi),
+	m_commandListPool(commandListPool),
 	m_commandAllocatorPool(commandAllocatorPool),
 	m_scratchSpacePool(scratchSpacePool)
 {}
@@ -242,7 +244,7 @@ Binder RenderContext::CreateBinder(const std::vector<BindParameterDesc>& paramet
 // Query command list
 GraphicsCommandList& RenderContext::AsGraphics() {
 	if (!m_commandList) {
-		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap));
+		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap));
 		m_type = gxapi::eCommandListType::GRAPHICS;
 		return *dynamic_cast<GraphicsCommandList*>(m_commandList.get());
 	}
@@ -255,7 +257,7 @@ GraphicsCommandList& RenderContext::AsGraphics() {
 }
 ComputeCommandList& RenderContext::AsCompute() {
 	if (!m_commandList) {
-		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap)); // only graphics queues now
+		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap)); // only graphics queues now
 		m_type = gxapi::eCommandListType::COMPUTE;
 		return *dynamic_cast<ComputeCommandList*>(m_commandList.get());
 	}
@@ -268,7 +270,7 @@ ComputeCommandList& RenderContext::AsCompute() {
 }
 CopyCommandList& RenderContext::AsCopy() {
 	if (!m_commandList) {
-		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap)); // only graphics queues now
+		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap)); // only graphics queues now
 		m_type = gxapi::eCommandListType::COPY;
 		return *dynamic_cast<CopyCommandList*>(m_commandList.get());
 	}

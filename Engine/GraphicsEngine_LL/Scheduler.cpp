@@ -45,28 +45,19 @@ void Scheduler::Execute(FrameContext context) {
 				task->Setup(setupContext);
 			}
 		}
-	/*}
-	catch (std::exception& ex) {
-		// One of the pipeline Nodes (Tasks) threw an exception.
-		// Scene cannot be rendered, but we should draw an error message on the screen for the devs.
 
-		// Log error.
-		context.log->Event(std::string("Fatal pipeline Setup error: ") + ex.what());
 
-		// Draw a red blinking background to signal error.
-		try {
-			RenderFailureScreen(context);
-		}
-		catch (std::exception& ex) {
-			context.log->Event(std::string("Fatal pipeline Setup error, could not render error screen: ") + ex.what());
-		}
-	}
-
-	try {*/
 		// PHASE II.: Execute() tasks in correct
 		for (auto& task : tasks) {
 			VolatileViewHeap volatileHeap(context.gxApi);
-			RenderContext renderContext(context.memoryManager, context.textureSpace, &volatileHeap, context.shaderManager, context.gxApi, context.commandAllocatorPool, context.scratchSpacePool);
+			RenderContext renderContext(context.memoryManager,
+										context.textureSpace,
+										&volatileHeap,
+										context.shaderManager,
+										context.gxApi,
+										context.commandListPool,
+										context.commandAllocatorPool,
+										context.scratchSpacePool);
 
 			// Execute the task on the CPU.
 			if (task != nullptr) {
@@ -93,7 +84,7 @@ void Scheduler::Execute(FrameContext context) {
 					auto barriers = InjectBarriers(decomposition.usedResources.begin(), decomposition.usedResources.end());
 					if (barriers.size() > 0) {
 						CmdAllocPtr injectAlloc = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
-						std::unique_ptr<gxapi::ICopyCommandList> injectList(context.gxApi->CreateGraphicsCommandList({ injectAlloc.get() }));
+						GraphicsCmdListPtr injectList = context.commandListPool->RequestGraphicsList(injectAlloc.get());
 
 						injectList->ResourceBarrier((unsigned)barriers.size(), barriers.data());
 						injectList->Close();
@@ -120,7 +111,7 @@ void Scheduler::Execute(FrameContext context) {
 						usedResourceList.push_back(std::move(v));
 					}
 
-					decomposition.commandList->Close();
+					dynamic_cast<gxapi::ICopyCommandList*>(decomposition.commandList.get())->Close();
 
 					EnqueueCommandList(*context.commandQueue,
 									   std::move(decomposition.commandList),
@@ -138,7 +129,7 @@ void Scheduler::Execute(FrameContext context) {
 
 		// Set backBuffer to PRESENT state.
 		CmdAllocPtr injectAlloc = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
-		std::unique_ptr<gxapi::ICopyCommandList> injectList(context.gxApi->CreateGraphicsCommandList({ injectAlloc.get() }));
+		GraphicsCmdListPtr injectList = context.commandListPool->RequestGraphicsList(injectAlloc.get());
 
 		injectList->ResourceBarrier(gxapi::TransitionBarrier{
 			context.backBuffer->GetResource()._GetResourcePtr(),
@@ -222,7 +213,7 @@ std::vector<GraphicsTask*> Scheduler::MakeSchedule(const lemon::ListDigraph& tas
 
 
 void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
-								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
+								   CmdListPtr commandList,
 								   CmdAllocPtr commandAllocator,
 								   std::vector<ScratchSpacePtr> scratchSpaces,
 								   std::vector<MemoryObject> usedResources,
@@ -253,7 +244,7 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 
 	// Create command allocator & list.
 	auto commandAllocator = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
-	std::unique_ptr<gxapi::IGraphicsCommandList> commandList(context.gxApi->CreateGraphicsCommandList(gxapi::CommandListDesc{ commandAllocator.get() }));
+	auto commandList = context.commandListPool->RequestGraphicsList(commandAllocator.get());
 
 	gxapi::DescriptorHandle rtvHandle = context.backBuffer->GetHandle();
 

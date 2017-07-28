@@ -74,6 +74,7 @@ class CopyCommandList : public BasicCommandList {
 public:
 	CopyCommandList(
 		gxapi::IGraphicsApi* gxApi,
+		CommandListPool& commandListPool,
 		CommandAllocatorPool& commandAllocatorPool,
 		ScratchSpacePool& scratchSpacePool);
 	CopyCommandList(const CopyCommandList& rhs) = delete;
@@ -83,6 +84,7 @@ public:
 protected:
 	CopyCommandList(
 		gxapi::IGraphicsApi* gxApi,
+		CommandListPool& commandListPool,
 		CommandAllocatorPool& commandAllocatorPool,
 		ScratchSpacePool& scratchSpacePool,
 		gxapi::eCommandListType type);

@@ -36,9 +36,12 @@ public:
 		CommandListPoolBase* m_container;
 	};
 	using UniquePtr = std::unique_ptr<gxapi::ICommandList, Deleter>;
+	using GraphicsUniquePtr = std::unique_ptr<gxapi::IGraphicsCommandList, Deleter>;
+	using ComputeUniquePtr = std::unique_ptr<gxapi::IComputeCommandList, Deleter>;
+	using CopyUniquePtr = std::unique_ptr<gxapi::ICopyCommandList, Deleter>;
 public:
 	virtual ~CommandListPoolBase() {}
-	virtual UniquePtr RequestList() = 0;
+	virtual UniquePtr RequestList(gxapi::ICommandAllocator*) = 0;
 	virtual void RecycleList(gxapi::ICommandList*) = 0;
 };
 
@@ -55,8 +58,8 @@ public:
 	CommandListPool& operator=(CommandListPool&& rhs);
 
 
-	UniquePtr RequestList() override;
-	void RecycleList(gxapi::ICommandAllocator* allocator) override;
+	UniquePtr RequestList(gxapi::ICommandAllocator* allocator) override;
+	void RecycleList(gxapi::ICommandList* list) override;
 	void Reset(size_t initialSize = 1);
 
 	gxapi::IGraphicsApi* GetGraphicsApi() const { return m_gxApi; }
@@ -64,10 +67,10 @@ public:
 	void SetLogStream(LogStream* logStream) { m_logStream = logStream; }
 	LogStream* GetLogStream() const { return m_logStream; }
 private:
-	std::vector<std::unique_ptr<gxapi::ICommandAllocator>> m_pool;
+	std::vector<std::unique_ptr<gxapi::ICommandList>> m_pool;
 	SlabAllocatorEngine m_allocator;
 	gxapi::IGraphicsApi* m_gxApi;
-	std::map<gxapi::ICommandAllocator*, size_t> m_addressToIndex;
+	std::map<gxapi::ICommandList*, size_t> m_addressToIndex;
 	LogStream* m_logStream = nullptr;
 
 	std::mutex m_mtx;
@@ -76,19 +79,19 @@ private:
 
 
 template <gxapi::eCommandListType TYPE>
-CommandAllocatorPool<TYPE>::CommandAllocatorPool(gxapi::IGraphicsApi* gxApi, size_t initialSize)
+CommandListPool<TYPE>::CommandListPool(gxapi::IGraphicsApi* gxApi, size_t initialSize)
 	: m_pool(initialSize), m_allocator(initialSize), m_gxApi(gxApi)
 {}
 
 
 template <gxapi::eCommandListType TYPE>
-CommandAllocatorPool<TYPE>::CommandAllocatorPool(CommandAllocatorPool&& rhs)
+CommandListPool<TYPE>::CommandListPool(CommandListPool&& rhs)
 	: m_pool(std::move(rhs.m_pool)), m_allocator(std::move(rhs.m_allocator)), m_gxApi(rhs.m_gxApi)
 {}
 
 
 template <gxapi::eCommandListType TYPE>
-CommandAllocatorPool<TYPE>& CommandAllocatorPool<TYPE>::operator=(CommandAllocatorPool&& rhs) {
+CommandListPool<TYPE>& CommandListPool<TYPE>::operator=(CommandListPool&& rhs) {
 	m_pool = std::move(rhs.m_pool);
 	m_allocator = std::move(rhs.m_allocator);
 	m_gxApi = rhs.m_gxApi;
@@ -98,7 +101,7 @@ CommandAllocatorPool<TYPE>& CommandAllocatorPool<TYPE>::operator=(CommandAllocat
 
 
 template <gxapi::eCommandListType TYPE>
-auto CommandAllocatorPool<TYPE>::RequestAllocator() -> UniquePtr {
+auto CommandListPool<TYPE>::RequestList(gxapi::ICommandAllocator* allocator) -> UniquePtr {
 	std::lock_guard<std::mutex> lkg(m_mtx);
 
 	size_t index;
@@ -115,30 +118,34 @@ auto CommandAllocatorPool<TYPE>::RequestAllocator() -> UniquePtr {
 	}
 
 	if (m_pool[index] != nullptr) {
+		dynamic_cast<gxapi::ICopyCommandList*>(m_pool[index].get())->Reset(allocator, nullptr);
 		return UniquePtr{ m_pool[index].get(), Deleter{ this } };
 	}
 	else {
-		std::unique_ptr<gxapi::ICommandAllocator> ptr(m_gxApi->CreateCommandAllocator(TYPE));
+		gxapi::CommandListDesc desc;
+		desc.allocator = allocator;
+		desc.initialState = nullptr;
+		std::unique_ptr<gxapi::ICommandList> ptr(m_gxApi->CreateCommandList(TYPE, desc));
 		m_addressToIndex[ptr.get()] = index;
 		m_pool[index] = std::move(ptr);
+	
 		return UniquePtr{ m_pool[index].get(), Deleter{ this } };
 	}
 }
 
 
 template <gxapi::eCommandListType TYPE>
-void CommandAllocatorPool<TYPE>::RecycleAllocator(gxapi::ICommandAllocator* allocator) {
+void CommandListPool<TYPE>::RecycleList(gxapi::ICommandList* list) {
 	std::lock_guard<std::mutex> lkg(m_mtx);
 
-	allocator->Reset();
-	assert(m_addressToIndex.count(allocator) > 0);
-	size_t index = m_addressToIndex[allocator];
+	assert(m_addressToIndex.count(list) > 0);
+	size_t index = m_addressToIndex[list];
 	m_allocator.Deallocate(index);
 }
 
 
 template <gxapi::eCommandListType TYPE>
-void CommandAllocatorPool<TYPE>::Reset(size_t initialSize) {
+void CommandListPool<TYPE>::Reset(size_t initialSize) {
 	m_pool.clear();
 	m_allocator.Reset();
 	m_pool.resize(initialSize);
@@ -150,7 +157,35 @@ void CommandAllocatorPool<TYPE>::Reset(size_t initialSize) {
 } // namespace impl
 
 
+using CmdListPtr = impl::CommandListPoolBase::UniquePtr;
+using GraphicsCmdListPtr = impl::CommandListPoolBase::GraphicsUniquePtr;
+using ComputeCmdListPtr = impl::CommandListPoolBase::ComputeUniquePtr;
+using CopyCmdListPtr = impl::CommandListPoolBase::CopyUniquePtr;
 
+class CommandListPool {
+public:
+public:
+	explicit CommandListPool(gxapi::IGraphicsApi* gxApi);
+	CommandListPool(const CommandListPool&) = delete;
+	CommandListPool(CommandListPool&& rhs) = default;
+	CommandListPool& operator=(const CommandListPool&) = delete;
+	CommandListPool& operator=(CommandListPool&& rhs) = default;
+
+	CmdListPtr RequestList(gxapi::eCommandListType type, gxapi::ICommandAllocator* allocator);
+	GraphicsCmdListPtr RequestGraphicsList(gxapi::ICommandAllocator* allocator);
+	ComputeCmdListPtr RequestComputeList(gxapi::ICommandAllocator* allocator);
+	CopyCmdListPtr RequestCopyList(gxapi::ICommandAllocator* allocator);
+	void RecycleList(gxapi::ICommandList* list);
+
+	gxapi::IGraphicsApi* GetGraphicsApi() const;
+
+	void SetLogStream(LogStream* logStream);
+	LogStream* GetLogStream() const;
+private:
+	impl::CommandListPool<gxapi::eCommandListType::GRAPHICS> m_gxPool;
+	impl::CommandListPool<gxapi::eCommandListType::COMPUTE> m_cuPool;
+	impl::CommandListPool<gxapi::eCommandListType::COPY> m_cpPool;
+};
 
 
 
