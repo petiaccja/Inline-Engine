@@ -4,12 +4,10 @@
 
 #include "../Scene.hpp"
 #include "../BasicCamera.hpp"
-#include "../Mesh.hpp"
 #include "../ConstBufferHeap.hpp"
 #include "../PipelineTypes.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
-#include "../Image.hpp"
 
 #include <optional>
 
@@ -64,8 +62,11 @@ protected: // outputs
 protected: // render context
 	TextureView2D m_inputTexSrv;
 
+#error Csak a csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
 	inl::gxeng::Image* m_areaImage, *m_searchImage;
+#error Csak a csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
 	std::unique_ptr<inl::gxeng::Image> m_areaTexture;
+#error Csak a csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
 	std::unique_ptr<inl::gxeng::Image> m_searchTexture;
 private:
 	void InitRenderTarget(SetupContext& context);
