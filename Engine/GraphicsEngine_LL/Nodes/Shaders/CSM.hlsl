@@ -30,7 +30,7 @@ PS_Input VSMain(float4 position : POSITION)
 		light_mvp[d] = inputTex.Load(int3(uniforms.cascadeIDX * 4 + d, 0, 0));
 	}
 
-	result.position = mul(mul(light_mvp, uniforms.model), position);
+    result.position = mul(position, mul(uniforms.model, light_mvp));
 
 	return result;
 }

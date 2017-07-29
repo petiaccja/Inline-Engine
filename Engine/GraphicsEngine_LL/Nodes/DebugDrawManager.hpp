@@ -13,10 +13,10 @@ class DebugObject {
 public:
 	virtual ~DebugObject() = default;
 
-	virtual void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices) const = 0;
+	virtual void GetMesh(std::vector<Vec3>& vertices, std::vector<uint32_t>& indices) const = 0;
 
 	unsigned GetStride() const {
-		return sizeof(mathfu::Vector3f);
+		return sizeof(Vec3);
 	}
 
 	int GetLife() const {
@@ -31,25 +31,25 @@ public:
 		return m_life >= 0;
 	}
 
-	mathfu::Vector3f GetColor() const {
+	Vec3 GetColor() const {
 		return m_color;
 	}
 
-	void SetColor(mathfu::Vector3f newColor) {
+	void SetColor(Vec3 newColor) {
 		m_color = newColor;
 	}
 
 protected:
 	int m_life;
-	mathfu::Vector3f m_color;
+	Vec3 m_color;
 };
 
 
 class DebugSphere : public DebugObject {
-	mathfu::Vector4f d; //w=radius
+	Vec4 d; //w=radius
 
-	static void GetStaticMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices) {
-		static std::vector<mathfu::Vector3f> staticVertices;
+	static void GetStaticMesh(std::vector<Vec3>& vertices, std::vector<uint32_t>& indices) {
+		static std::vector<Vec3> staticVertices;
 		static std::vector<uint32_t> staticIndices;
 		static bool is_init = false;
 
@@ -72,7 +72,7 @@ class DebugSphere : public DebugObject {
 				for (int v_index = 0; v_index < resolution_v; v_index += 1, v += v_step) {
 					//0 <= theta <= 2*pi
 					const float theta = v * 2 * pi;
-					staticVertices.push_back(mathfu::Vector3f(cosf(alpha) * cosf(theta), sinf(alpha) * cosf(theta), sinf(theta)));
+					staticVertices.push_back(Vec3(cosf(alpha) * cosf(theta), sinf(alpha) * cosf(theta), sinf(theta)));
 				}
 			}
 
@@ -103,47 +103,47 @@ class DebugSphere : public DebugObject {
 	}
 
 public:
-	DebugSphere(mathfu::Vector3f pos, float radius, int newLife, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
-		d = mathfu::Vector4f(pos, radius);
+	DebugSphere(Vec3 pos, float radius, int newLife, Vec3 newColor = Vec3(1.0f, 1.0f, 1.0f)) {
+		d = Vec4(pos, radius);
 		m_life = newLife;
 		m_color = newColor;
 	}
 
-	void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices) const override {
+	void GetMesh(std::vector<Vec3>& vertices, std::vector<uint32_t>& indices) const override {
 		GetStaticMesh(vertices, indices);
 
 		for (int c = 0; c < vertices.size(); ++c) {
-			vertices[c] = vertices[c] * d.w() + d.xyz();
+			vertices[c] = vertices[c] * d.w + d.xyz;
 		}
 	}
 };
 
 
 class DebugCross : public DebugObject {
-	mathfu::Vector4f d; //w=size
+	Vec4 d; //w=size
 
 public:
-	DebugCross(mathfu::Vector3f pos, float size, int newLife, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
-		d = mathfu::Vector4f(pos, size);
+	DebugCross(Vec3 pos, float size, int newLife, Vec3 newColor = Vec3(1.0f, 1.0f, 1.0f)) {
+		d = Vec4(pos, size);
 		m_life = newLife;
 		m_color = newColor;
 	}
 
-	void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices) const override {
+	void GetMesh(std::vector<Vec3>& vertices, std::vector<uint32_t>& indices) const override {
 		//LINES
 		vertices.clear();
 		indices.clear();
 		vertices.reserve(4);
 		indices.reserve(4);
 
-		vertices.push_back(d.xyz() - mathfu::Vector3f(1, 0, 0) * d.w());
-		vertices.push_back(d.xyz() + mathfu::Vector3f(1, 0, 0) * d.w());
+		vertices.push_back(d.xyz.ToVector() - Vec3(1.f, 0.f, 0.f) * d.w);
+		vertices.push_back(d.xyz.ToVector() + Vec3(1.f, 0.f, 0.f) * d.w);
 
-		vertices.push_back(d.xyz() - mathfu::Vector3f(0, 1, 0) * d.w());
-		vertices.push_back(d.xyz() + mathfu::Vector3f(0, 1, 0) * d.w());
+		vertices.push_back(d.xyz.ToVector() - Vec3(0.f, 1.f, 0.f) * d.w);
+		vertices.push_back(d.xyz.ToVector() + Vec3(0.f, 1.f, 0.f) * d.w);
 
-		vertices.push_back(d.xyz() - mathfu::Vector3f(0, 0, 1) * d.w());
-		vertices.push_back(d.xyz() + mathfu::Vector3f(0, 0, 1) * d.w());
+		vertices.push_back(d.xyz.ToVector() - Vec3(0.f, 0.f, 1.f) * d.w);
+		vertices.push_back(d.xyz.ToVector() + Vec3(0.f, 0.f, 1.f) * d.w);
 
 		indices.push_back(0);
 		indices.push_back(1);
@@ -158,17 +158,17 @@ public:
 
 
 class DebugLine : public DebugObject {
-	mathfu::Vector3f s, e;
+	Vec3 s, e;
 
 public:
-	DebugLine(mathfu::Vector3f start, mathfu::Vector3f end, int newLife, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
+	DebugLine(Vec3 start, Vec3 end, int newLife, Vec3 newColor = Vec3(1.0f, 1.0f, 1.0f)) {
 		s = start;
 		e = end;
 		m_life = newLife;
 		m_color = newColor;
 	}
 
-	void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices) const override {
+	void GetMesh(std::vector<Vec3>& vertices, std::vector<uint32_t>& indices) const override {
 		//LINES
 		vertices.clear();
 		indices.clear();
@@ -184,35 +184,35 @@ public:
 
 
 class DebugBox : public DebugObject{
-	mathfu::Vector3f min, max;
+	Vec3 min, max;
 
 public:
-	DebugBox(mathfu::Vector3f newMin, mathfu::Vector3f newMax, int newLife, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
+	DebugBox(Vec3 newMin, Vec3 newMax, int newLife, Vec3 newColor = Vec3(1.0f, 1.0f, 1.0f)) {
 		min = newMin;
 		max = newMax;
 		m_life = newLife;
 		m_color = newColor;
 	}
 
-	void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices) const override {
+	void GetMesh(std::vector<Vec3>& vertices, std::vector<uint32_t>& indices) const override {
 		//LINES
 		vertices.clear();
 		indices.clear();
 		vertices.reserve(8);
 		indices.reserve(24);
 
-		std::vector<mathfu::Vector3f> min_max;
+		std::vector<Vec3> min_max;
 		min_max.push_back(min);
 		min_max.push_back(max);
 
-		vertices.push_back(mathfu::Vector3f(min_max[0].x(), min_max[0].y(), min_max[0].z()));
-		vertices.push_back(mathfu::Vector3f(min_max[0].x(), min_max[0].y(), min_max[1].z()));
-		vertices.push_back(mathfu::Vector3f(min_max[0].x(), min_max[1].y(), min_max[0].z()));
-		vertices.push_back(mathfu::Vector3f(min_max[0].x(), min_max[1].y(), min_max[1].z()));
-		vertices.push_back(mathfu::Vector3f(min_max[1].x(), min_max[0].y(), min_max[0].z()));
-		vertices.push_back(mathfu::Vector3f(min_max[1].x(), min_max[0].y(), min_max[1].z()));
-		vertices.push_back(mathfu::Vector3f(min_max[1].x(), min_max[1].y(), min_max[0].z()));
-		vertices.push_back(mathfu::Vector3f(min_max[1].x(), min_max[1].y(), min_max[1].z()));
+		vertices.push_back(Vec3(min_max[0].x, min_max[0].y, min_max[0].z));
+		vertices.push_back(Vec3(min_max[0].x, min_max[0].y, min_max[1].z));
+		vertices.push_back(Vec3(min_max[0].x, min_max[1].y, min_max[0].z));
+		vertices.push_back(Vec3(min_max[0].x, min_max[1].y, min_max[1].z));
+		vertices.push_back(Vec3(min_max[1].x, min_max[0].y, min_max[0].z));
+		vertices.push_back(Vec3(min_max[1].x, min_max[0].y, min_max[1].z));
+		vertices.push_back(Vec3(min_max[1].x, min_max[1].y, min_max[0].z));
+		vertices.push_back(Vec3(min_max[1].x, min_max[1].y, min_max[1].z));
 
 		indices.push_back(0); indices.push_back(1);
 		indices.push_back(0); indices.push_back(2);
@@ -231,17 +231,17 @@ public:
 
 
 class DebugFrustum : public DebugObject{
-	mathfu::Vector3f nearLowerLeft, nearUpperLeft, nearLowerRight, farLowerLeft, farUpperLeft, farLowerRight;
+	Vec3 nearLowerLeft, nearUpperLeft, nearLowerRight, farLowerLeft, farUpperLeft, farLowerRight;
 
 public:
-	DebugFrustum(mathfu::Vector3f newNearLowerLeft,
-		mathfu::Vector3f newNearUpperLeft,
-		mathfu::Vector3f newNearLowerRight,
-		mathfu::Vector3f newFarLowerLeft,
-		mathfu::Vector3f newFarUpperLeft,
-		mathfu::Vector3f newFarLowerRight,
+	DebugFrustum(Vec3 newNearLowerLeft,
+		Vec3 newNearUpperLeft,
+		Vec3 newNearLowerRight,
+		Vec3 newFarLowerLeft,
+		Vec3 newFarUpperLeft,
+		Vec3 newFarLowerRight,
 		int newLife,
-		mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
+		Vec3 newColor = Vec3(1.0f, 1.0f, 1.0f)) {
 		nearLowerLeft = newNearLowerLeft;
 		nearUpperLeft = newNearUpperLeft;
 		nearLowerRight = newNearLowerRight;
@@ -252,7 +252,7 @@ public:
 		m_color = newColor;
 	}
 
-	void GetMesh(std::vector<mathfu::Vector3f>& vertices, std::vector<uint32_t>& indices) const override {
+	void GetMesh(std::vector<Vec3>& vertices, std::vector<uint32_t>& indices) const override {
 		//LINES
 		vertices.clear();
 		indices.clear();
@@ -312,7 +312,7 @@ public:
 		}
 	}
 
-	void AddSphere(mathfu::Vector3f pos, float radius, int life, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
+	void AddSphere(Vec3 pos, float radius, int life, Vec3 newColor = Vec3(1.0f, 1.0f, 1.0f)) {
 		for (int c = 0; c < m_objects.size(); ++c) {
 			if (!m_objects[c]) {
 				m_objects[c] = std::make_unique<DebugSphere>(pos, radius, life + 1, newColor);
@@ -323,7 +323,7 @@ public:
 		m_objects.push_back(std::make_unique<DebugSphere>(pos, radius, life + 1, newColor));
 	}
 
-	void AddCross(mathfu::Vector3f pos, float size, int life, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
+	void AddCross(Vec3 pos, float size, int life, Vec3 newColor = Vec3(1.0f, 1.0f, 1.0f)) {
 		for (int c = 0; c < m_objects.size(); ++c) {
 			if (!m_objects[c]) {
 				m_objects[c] = std::make_unique<DebugCross>(pos, size, life + 1, newColor);
@@ -334,7 +334,7 @@ public:
 		m_objects.push_back(std::make_unique<DebugCross>(pos, size, life + 1, newColor));
 	}
 
-	void AddLine(mathfu::Vector3f start, mathfu::Vector3f end, int life, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
+	void AddLine(Vec3 start, Vec3 end, int life, Vec3 newColor = Vec3(1.0f, 1.0f, 1.0f)) {
 		for (int c = 0; c < m_objects.size(); ++c) {
 			if (!m_objects[c]) {
 				m_objects[c] = std::make_unique<DebugLine>(start, end, life + 1, newColor);
@@ -345,7 +345,7 @@ public:
 		m_objects.push_back(std::make_unique<DebugLine>(start, end, life + 1, newColor));
 	}
 
-	void AddBox(mathfu::Vector3f min, mathfu::Vector3f max, int life, mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
+	void AddBox(Vec3 min, Vec3 max, int life, Vec3 newColor = Vec3(1.0f, 1.0f, 1.0f)) {
 		for (int c = 0; c < m_objects.size(); ++c) {
 			if (!m_objects[c]) {
 				m_objects[c] = std::make_unique<DebugBox>(min, max, life + 1, newColor);
@@ -356,14 +356,14 @@ public:
 		m_objects.push_back(std::make_unique<DebugBox>(min, max, life + 1, newColor));
 	}
 
-	void AddFrustum(mathfu::Vector3f newNearLowerLeft,
-		mathfu::Vector3f newNearUpperLeft,
-		mathfu::Vector3f newNearLowerRight,
-		mathfu::Vector3f newFarLowerLeft,
-		mathfu::Vector3f newFarUpperLeft,
-		mathfu::Vector3f newFarLowerRight,
+	void AddFrustum(Vec3 newNearLowerLeft,
+		Vec3 newNearUpperLeft,
+		Vec3 newNearLowerRight,
+		Vec3 newFarLowerLeft,
+		Vec3 newFarUpperLeft,
+		Vec3 newFarLowerRight,
 		int life,
-		mathfu::Vector3f newColor = mathfu::Vector3f(1.0f, 1.0f, 1.0f)) {
+		Vec3 newColor = Vec3(1.0f, 1.0f, 1.0f)) {
 		for (int c = 0; c < m_objects.size(); ++c) {
 			if (!m_objects[c]) {
 				m_objects[c] = std::make_unique<DebugFrustum>(

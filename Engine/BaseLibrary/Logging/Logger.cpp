@@ -5,7 +5,7 @@
 #include <cassert>
 
 
-namespace exc {
+namespace inl {
 
 
 Logger::Logger() {
@@ -55,4 +55,4 @@ void Logger::Flush() {
 
 
 
-} // namespace exc
+} // namespace inl

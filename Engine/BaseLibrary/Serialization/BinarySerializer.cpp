@@ -1,7 +1,7 @@
 #include "BinarySerializer.hpp"
 
 
-namespace exc {
+namespace inl {
 
 
 void BinarySerializer::Insert(const_iterator where, uint8_t value) {
@@ -246,4 +246,4 @@ BinarySerializer& operator >> (double v, BinarySerializer& s) {
 }
 
 
-} // namespace exc
+} // namespace inl

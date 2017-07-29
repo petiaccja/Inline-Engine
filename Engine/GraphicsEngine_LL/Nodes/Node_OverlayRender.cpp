@@ -103,8 +103,8 @@ void OverlayRender::Execute(RenderContext& context) {
 
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();
-	mathfu::Matrix4x4f projection = m_camera->GetProjectionMatrixRH();
+	Mat44 view = m_camera->GetViewMatrix();
+	Mat44 projection = m_camera->GetProjectionMatrix();
 	auto viewProjection = projection * view;
 
 	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
@@ -126,23 +126,21 @@ void OverlayRender::Execute(RenderContext& context) {
 		auto world = entity->GetTransform();
 		auto MVP = viewProjection * world;
 
-		std::array<mathfu::VectorPacked<float, 4>, 4> transformCBData;
-		MVP.Pack(transformCBData.data());
+		Mat44_Packed transformCBData = MVP;
 
 		auto renderType = entity->GetSurfaceType();
 		if (renderType == OverlayEntity::COLORED) {
 			auto color = entity->GetColor();
-			if (color.w() == 0.f) {
+			if (color.w == 0.f) {
 				continue;
 			}
 
 			commandList.SetPipelineState(m_coloredPipeline.pso.get());
 			commandList.SetGraphicsBinder(&m_coloredPipeline.binder.value());
 
-			mathfu::VectorPacked<float, 4> colorCBData;
-			color.Pack(&colorCBData);
+			Vec4_Packed colorCBData = color;
 
-			commandList.BindGraphics(m_coloredPipeline.transformParam, transformCBData.data(), sizeof(transformCBData));
+			commandList.BindGraphics(m_coloredPipeline.transformParam, &transformCBData, sizeof(transformCBData));
 			commandList.BindGraphics(m_coloredPipeline.colorParam, colorCBData.data, sizeof(colorCBData));
 		}
 		else {
@@ -152,7 +150,7 @@ void OverlayRender::Execute(RenderContext& context) {
 			commandList.SetResourceState(entity->GetTexture()->GetSrv()->GetResource(), 
 										 gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
 			commandList.BindGraphics(m_texturedPipeline.textureParam, *entity->GetTexture()->GetSrv());
-			commandList.BindGraphics(m_texturedPipeline.transformParam, transformCBData.data(), sizeof(transformCBData));
+			commandList.BindGraphics(m_texturedPipeline.transformParam, &transformCBData, sizeof(transformCBData));
 		}
 
 		ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
@@ -220,9 +218,9 @@ void OverlayRender::InitTexturedBindings(SetupContext& context) {
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
 		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
-		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
-		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
-		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressU = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc.addressV = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc.addressW = gxapi::eTextureAddressMode::CLAMP;
 		samplerDesc.mipLevelBias = 0.f;
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;

@@ -9,8 +9,8 @@
 #include <array>
 
 using namespace std;
-using namespace exc::prefix;
-using exc::RingBuffer;
+using namespace inl::prefix;
+using inl::RingBuffer;
 using std::chrono::high_resolution_clock;
 
 template <typename T>

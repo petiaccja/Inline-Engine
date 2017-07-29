@@ -32,7 +32,7 @@ eMaterialShaderParamType MaterialShader::GetShaderOutputType() const {
 
 void MaterialShader::SetName(std::string name) {
 	if (name.find("__") != name.npos) {
-		throw std::invalid_argument("Name cannot contain double-underscores.");
+		throw InvalidArgumentException("Name cannot contain double-underscores.");
 	}
 	m_name = name;
 }
@@ -89,7 +89,7 @@ void MaterialShaderGraph::AssembleShaderCode() {
 
 		for (auto p : shaderNodeParams[i]) {
 			if (p.type == eMaterialShaderParamType::UNKNOWN) {
-				throw std::runtime_error("Parameter of unknown type.");
+				throw InvalidArgumentException("Parameter of unknown type.");
 			}
 		}
 
@@ -101,16 +101,16 @@ void MaterialShaderGraph::AssembleShaderCode() {
 		ShaderNode& source = shaderNodes[link.sourceNode];
 		ShaderNode& sink = shaderNodes[link.sinkNode];
 		if (sink.GetNumInputs() <= link.sinkPort) {
-			throw std::runtime_error("Invalid link: port does not have that many inputs.");
+			throw InvalidArgumentException("Invalid link: port does not have that many inputs.");
 		}
 		bool isLinked = source.GetOutput(0)->Link(sink.GetInput(link.sinkPort));
 		if (!isLinked) {
-			throw std::runtime_error("Invalid link: duplicate input to a single port.");
+			throw InvalidArgumentException("Invalid link: duplicate input to a single port.");
 		}
 	}
 
 	// create output port LUT
-	std::unordered_map<exc::OutputPortBase*, size_t> outputLut;
+	std::unordered_map<OutputPortBase*, size_t> outputLut;
 	for (size_t i = 0; i < shaderNodes.size(); ++i) {
 		outputLut.insert({ shaderNodes[i].GetOutput(0), i });
 	}
@@ -120,13 +120,13 @@ void MaterialShaderGraph::AssembleShaderCode() {
 	for (size_t i = 0; i < shaderNodes.size(); ++i) {
 		if (shaderNodes[i].GetOutput(0)->begin() == shaderNodes[i].GetOutput(0)->end()) {
 			if (sinkNodeIdx != -1) {
-				throw std::runtime_error("Invalid graph: multiple sink nodes.");
+				throw InvalidArgumentException("Invalid graph: multiple sink nodes.");
 			}
 			sinkNodeIdx = i;
 		}
 	}
 	if (sinkNodeIdx == -1) {
-		throw std::runtime_error("Invalid graph: no sink nodes, contains circle.");
+		throw InvalidArgumentException("Invalid graph: no sink nodes, contains circle.");
 	}
 
 	// run backwards DFS from sink node
@@ -155,7 +155,7 @@ void MaterialShaderGraph::AssembleShaderCode() {
 			else {
 				std::stringstream ss;
 				ss << m_nodes[node]->GetName() << "__" << shaderNodeParams[node][i].name;
-				static_cast<exc::InputPort<std::string>*>(input)->Set(ss.str());
+				static_cast<InputPort<std::string>*>(input)->Set(ss.str());
 				freeParams.push_back({ node, (size_t)i, ss.str() });
 			}
 		}
@@ -169,7 +169,7 @@ void MaterialShaderGraph::AssembleShaderCode() {
 	};
 
 	// attach final input port to sink node, and update according to topological order
-	exc::InputPort<std::string> finalCodePort;
+	InputPort<std::string> finalCodePort;
 	shaderNodes[sinkNodeIdx].GetOutput(0)->Link(&finalCodePort);
 	VisitNode(sinkNodeIdx, VisitNode);
 	for (auto idx : topologicalOrder) {
@@ -254,7 +254,7 @@ std::string MaterialShader::FindFunctionSignature(std::string code, const std::s
 	// find matches
 	std::smatch matches;
 	if (!std::regex_search(code, matches, signaturePattern)) {
-		throw std::invalid_argument("No main function found in material shader.");
+		throw InvalidArgumentException("No main function found in material shader.");
 	}
 
 	// march back towards return type over whitespaces
@@ -273,7 +273,7 @@ std::string MaterialShader::FindFunctionSignature(std::string code, const std::s
 
 	// return type spans across range [returnIdx, matchIdx], it being empty range means failure
 	if (matchIdx == returnIdx) {
-		throw std::invalid_argument("Main function has no return type.");
+		throw InvalidArgumentException("Main function has no return type.");
 	}
 
 	// walk back from match's end until ')'
@@ -297,7 +297,7 @@ void MaterialShader::SplitFunctionSignature(std::string signature, std::string& 
 	std::string param;
 	while (getline(paramString, param, ',')) {
 		if (param.size() == 0) {
-			throw std::invalid_argument("Parameter of main has zero characters.");
+			throw InvalidArgumentException("Parameter of main has zero characters.");
 		}
 		// trim leading and trailing whitespaces
 		intptr_t firstChar = 0;
@@ -309,7 +309,7 @@ void MaterialShader::SplitFunctionSignature(std::string signature, std::string& 
 			--lastChar;
 		}
 		if (firstChar >= lastChar) {
-			throw std::invalid_argument("Parameter of main has no type specifier or declaration name.");
+			throw InvalidArgumentException("Parameter of main has no type specifier or declaration name.");
 		}
 		param = param.substr(firstChar, lastChar-firstChar+1);
 
@@ -396,11 +396,11 @@ size_t MaterialShaderGraph::ShaderNode::GetNumInputs() const {
 	return m_inputs.size();
 }
 
-exc::InputPortBase* MaterialShaderGraph::ShaderNode::GetInput(size_t index) {
+InputPortBase* MaterialShaderGraph::ShaderNode::GetInput(size_t index) {
 	return &m_inputs[index];
 }
 
-const exc::InputPortBase* MaterialShaderGraph::ShaderNode::GetInput(size_t index) const {
+const InputPortBase* MaterialShaderGraph::ShaderNode::GetInput(size_t index) const {
 	return &m_inputs[index];
 }
 
@@ -418,7 +418,7 @@ void MaterialShaderGraph::ShaderNode::Update() {
 	GetOutput<0>().Set(resultName);
 }
 
-void MaterialShaderGraph::ShaderNode::Notify(exc::InputPortBase* sender) {
+void MaterialShaderGraph::ShaderNode::Notify(InputPortBase* sender) {
 	return; // nothing to do here
 }
 
@@ -456,16 +456,16 @@ Material::Parameter::Parameter(eMaterialShaderParamType type) {
 
 Material::Parameter& Material::Parameter::operator=(Image* image) {
 	if (m_type != eMaterialShaderParamType::BITMAP_COLOR_2D && m_type != eMaterialShaderParamType::BITMAP_VALUE_2D) {
-		throw std::invalid_argument("This parameter is not an image.");
+		throw InvalidArgumentException("This parameter is not an image.");
 	}
 
 	m_data.image = image;
 	return *this;
 }
 
-Material::Parameter& Material::Parameter::operator=(mathfu::Vector4f color) {
+Material::Parameter& Material::Parameter::operator=(Vec4 color) {
 	if (m_type != eMaterialShaderParamType::COLOR) {
-		throw std::invalid_argument("This parameter is not a color.");
+		throw InvalidArgumentException("This parameter is not a color.");
 	}
 
 	m_data.color = color;
@@ -474,7 +474,7 @@ Material::Parameter& Material::Parameter::operator=(mathfu::Vector4f color) {
 
 Material::Parameter& Material::Parameter::operator=(float value) {
 	if (m_type != eMaterialShaderParamType::VALUE) {
-		throw std::invalid_argument("This parameter is not a value.");
+		throw InvalidArgumentException("This parameter is not a value.");
 	}
 
 	m_data.value = value;
@@ -489,21 +489,21 @@ eMaterialShaderParamType Material::Parameter::GetType() const {
 
 Material::Parameter::operator Image*() const {
 	if (m_type != eMaterialShaderParamType::BITMAP_COLOR_2D && m_type != eMaterialShaderParamType::BITMAP_VALUE_2D) {
-		throw std::invalid_argument("This parameter is not an image.");
+		throw InvalidArgumentException("This parameter is not an image.");
 	}
 	return m_data.image;
 }
 
-Material::Parameter::operator mathfu::Vector4f() const {
+Material::Parameter::operator Vec4() const {
 	if (m_type != eMaterialShaderParamType::COLOR) {
-		throw std::invalid_argument("This parameter is not a color.");
+		throw InvalidArgumentException("This parameter is not a color.");
 	}
 	return m_data.color;
 }
 
 Material::Parameter::operator float() const {
 	if (m_type != eMaterialShaderParamType::VALUE) {
-		throw std::invalid_argument("This parameter is not a value.");
+		throw InvalidArgumentException("This parameter is not a value.");
 	}
 	return m_data.value;
 }

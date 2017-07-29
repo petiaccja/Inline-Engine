@@ -18,6 +18,7 @@
 using std::cout;
 using std::endl;
 
+using namespace inl;
 using namespace inl::gxeng;
 using namespace inl::gxapi;
 using inl::gxapi_dx12::GxapiManager;
@@ -28,9 +29,9 @@ using namespace std::chrono_literals;
 
 bool isEngineInit = false;
 std::ofstream logFile;
-exc::Logger logger;
-exc::LogStream systemLogStream = logger.CreateLogStream("system");
-exc::LogStream graphicsLogStream = logger.CreateLogStream("graphics");
+Logger logger;
+LogStream systemLogStream = logger.CreateLogStream("system");
+LogStream graphicsLogStream = logger.CreateLogStream("graphics");
 std::experimental::filesystem::path logFilePath;
 GraphicsEngine* pEngine = nullptr;
 MiniWorld* pMiniWorld = nullptr;
@@ -186,10 +187,10 @@ int main() {
 
 		logger.Flush();
 	}
-	catch (inl::gxapi::Exception& ex) {
+	catch (Exception& ex) {
 		pEngine = nullptr;
 		isEngineInit = false;
-		errorMessage = "Error creating GraphicsEngine: " + ex.Message();
+		errorMessage = std::string("Error creating GraphicsEngine: ") + ex.what();
 		systemLogStream.Event(errorMessage);
 		logger.Flush();
 	}

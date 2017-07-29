@@ -52,61 +52,60 @@ void Scene::AddActor(Actor* a)
 MeshActor* Scene::AddActor_Mesh(const path& modelPath)
 {
 	gxeng::GraphicsEngine* graphicsEngine = core->GetGraphicsEngine();
-
+	
 	auto str = modelPath.generic_string();
 	std::wstring path = modelPath;
 	Model* model = new Model(std::string(path.begin(), path.end()));
-
+	
 	inl::asset::CoordSysLayout coordSysLayout = { AxisDir::POS_X,   AxisDir::NEG_Z , AxisDir::NEG_Y };
-
+	
 	auto modelVertices = model->GetVertices<gxeng::Position<0>, gxeng::Normal<0>, gxeng::TexCoord<0>>(0, coordSysLayout);
 	std::vector<unsigned> modelIndices = model->GetIndices(0);
-
+	
 	gxeng::Mesh* mesh = graphicsEngine->CreateMesh();
-	mesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
-
+	mesh->Set(modelVertices.data(), &modelVertices[0].GetReader(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+	
 	gxeng::MeshEntity* entity = new gxeng::MeshEntity();
 	entity->SetMesh(mesh);
 	
 	// Create material
 	gxeng::Material* material = graphicsEngine->CreateMaterial();
-
+	
 	gxeng::MaterialShaderGraph* graph = graphicsEngine->CreateMaterialShaderGraph();
-
+	
 	std::unique_ptr<inl::gxeng::MaterialShaderEquation> mapShader(graphicsEngine->CreateMaterialShaderEquation());
 	std::unique_ptr<inl::gxeng::MaterialShaderEquation> diffuseShader(graphicsEngine->CreateMaterialShaderEquation());
-
+	
 	mapShader->SetSourceName("bitmap_color_2d.mtl");
 	diffuseShader->SetSourceName("simple_diffuse.mtl");
-
+	
 	std::vector<std::unique_ptr<inl::gxeng::MaterialShader>> nodes;
 	nodes.push_back(std::move(mapShader));
 	nodes.push_back(std::move(diffuseShader));
 	graph->SetGraph(std::move(nodes), { { 0, 1, 0 } });
 	material->SetShader(graph);
-
+	
 	// Create texture
 	{
 		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR>;
 		static inl::asset::Image img("assets\\pine_tree.jpg");
-
+	
 		gxeng::Image* texture = graphicsEngine->CreateImage();
-
+	
 		texture->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR);
 		texture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR>::Reader());
-
+	
 		(*material)[0] = texture;
 	}
-
+	
 	entity->SetMaterial(material);
-
+	
 	graphicsScene->GetMeshEntities().Add(entity);
-
+	
 	MeshActor* a = new MeshActor(entity);
 	actors.push_back(a);
 	parts.push_back(a);
-
-	return nullptr;
+	return a;
 }
 
 Actor* Scene::AddActor(const path& modelPath, float mass /*= 0*/)

@@ -1,6 +1,6 @@
 #include "InputCore.hpp"
 
-using namespace inl::core;
+namespace inl::core {
 
 InputCore::InputCore()
 {
@@ -219,3 +219,5 @@ bool InputCore::IsMouseClicked(eMouseBtn eButton)
 {
 	return IsMouseReleased(eButton) && cursorLastClickStartPos[(int)eButton] == clientCursorPos;
 }
+
+} // namespace inl::core

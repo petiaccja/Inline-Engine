@@ -1,6 +1,8 @@
 #include "Image.hpp"
 #include <cassert>
 
+#include <BaseLibrary/Exception/Exception.hpp>
+
 
 namespace inl {
 namespace asset {
@@ -49,7 +51,7 @@ Pixel<type, count>& Image::At(size_t x, size_t y) {
 	assert(y < GetHeight());
 
 	if (type != GetType() && count != GetCount()) {
-		throw std::logic_error("the image does not contain this pixel type");
+		throw InvalidCastException("The image does not contain this pixel type.");
 	}
 
 	return *(x + reinterpret_cast<Pixel<type, count>*>(m_image.getScanLine(y)));
@@ -60,7 +62,7 @@ const Pixel<type, count>& Image::At(size_t x, size_t y) {
 	assert(y < GetHeight());
 
 	if (type != GetType() && count != GetCount()) {
-		throw std::logic_error("the image does not contain this pixel type");
+		throw InvalidCastException("The image does not contain this pixel type.");
 	}
 
 	return *(x + reinterpret_cast<Pixel<type, count>*>(m_image.getScanLine(y)));
@@ -79,13 +81,13 @@ void Image::Create(size_t width, size_t height, eChannelType type, int channelCo
 			case 1: fiType = FIT_UINT16; break;
 			case 3: fiType = FIT_RGB16; break;
 			case 4: fiType = FIT_RGBA16; break;
-			default: throw std::invalid_argument("unsupported pixel type");
+			default: throw InvalidArgumentException("Unsupported pixel type.");
 		}
 	}
 	else if (type == eChannelType::INT32) {
 		switch (channelCount) {
 			case 1: fiType = FIT_UINT32; break;
-			default: throw std::invalid_argument("unsupported pixel type");
+			default: throw InvalidArgumentException("Unsupported pixel type.");
 		}
 	}
 	else if (type == eChannelType::FLOAT) {
@@ -93,22 +95,22 @@ void Image::Create(size_t width, size_t height, eChannelType type, int channelCo
 			case 1: fiType = FIT_FLOAT; break;
 			case 3: fiType = FIT_RGBF; break;
 			case 4: fiType = FIT_RGBAF; break;
-			default: throw std::invalid_argument("unsupported pixel type");
+			default: throw InvalidArgumentException("Unsupported pixel type.");
 		}
 	}
 	else {
-		throw std::invalid_argument("unsupported pixel type");
+		throw InvalidArgumentException("Unsupported pixel type");
 	}
 
 	BOOL isImageOk = m_image.setSize(fiType, (unsigned)width, (unsigned)height, bpp, 0xFF00'0000, 0x00FF'0000, 0x0000'FF00);
 	if (!isImageOk) {
-		throw std::runtime_error("fájled to create image");
+		throw RuntimeException("Failed to create internal image.");
 	}
 }
 
 void Image::Load(const std::string& file) {
 	if (!m_image.load(file.c_str())) {
-		throw std::runtime_error("failed to load image");
+		throw RuntimeException("Failed to load image.");
 	}
 }
 
@@ -124,7 +126,7 @@ void Image::TranslateImageType(eChannelType& typeOut, size_t& countOut) const {
 			case 16: typeOut = eChannelType::INT8; countOut = 2; break;
 			case 24: typeOut = eChannelType::INT8; countOut = 3; break;
 			case 32: typeOut = eChannelType::INT8; countOut = 4; break;
-			default: throw std::out_of_range("no matching type");
+			default: throw OutOfRangeException("No matching type.");
 		}
 	}
 	else if (type == FIT_UINT16) {
@@ -156,7 +158,7 @@ void Image::TranslateImageType(eChannelType& typeOut, size_t& countOut) const {
 		countOut = 4;
 	}
 	else {
-		throw std::out_of_range("no matching type");
+		throw OutOfRangeException("No matching type.");
 	}
 }
 

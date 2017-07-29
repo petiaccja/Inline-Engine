@@ -5,6 +5,8 @@
 #include "PlatformDefinitions.h"
 #include "..\Common.hpp"
 
+namespace inl {
+
 enum class eKey
 {
 	A,				///< The A key
@@ -176,3 +178,5 @@ public:
 	static Vec2 GetCursorPos();
 	static Vec2u GetScreenSize();
 };
+
+} // namespace inl

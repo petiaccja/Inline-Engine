@@ -1,6 +1,6 @@
 #pragma once
 
-namespace exc {
+namespace inl {
 
 template <class T>
 struct Range {

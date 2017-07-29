@@ -1,6 +1,8 @@
 
 #include "StackDescHeap.hpp"
 
+#include <BaseLibrary/Exception/Exception.hpp>
+
 #include <cassert>
 
 namespace inl {
@@ -14,11 +16,11 @@ DescriptorArrayRef::DescriptorArrayRef() :
 
 gxapi::DescriptorHandle DescriptorArrayRef::Get(uint32_t position) {
 	if (!IsValid()) {
-		throw gxapi::InvalidState("Descriptor being dereferenced is INVALID!");
+		throw InvalidStateException("Descriptor being dereferenced is INVALID!");
 	}
 
 	if (position >= m_allocationSize) {
-		throw gxapi::OutOfRange("Requested scratch space descriptor is out of allocation range!");
+		throw OutOfRangeException("Requested scratch space descriptor is out of allocation range!");
 	}
 
 	return m_home->m_heap->At(m_pos + position);

@@ -6,7 +6,7 @@
 #include <iostream>
 
 
-namespace exc {
+namespace inl {
 
 
 LogStream::LogStream(std::shared_ptr<LogPipe> pipe) {
@@ -40,7 +40,7 @@ LogStream& LogStream::operator=(LogStream&& rhs) {
 }
 
 
-void LogStream::Event(const exc::Event& e, eEventDisplayMode displayMode) {
+void LogStream::Event(const inl::Event& e, eEventDisplayMode displayMode) {
 	//uint64_t start = __rdtsc();
 	if (pipe) {
 		pipe->PutEvent(e);
@@ -49,7 +49,7 @@ void LogStream::Event(const exc::Event& e, eEventDisplayMode displayMode) {
 	//std::cout << "Event(const &): " << (end - start) << " cycles\n";
 }
 
-void LogStream::Event(exc::Event&& e, eEventDisplayMode displayMode) {
+void LogStream::Event(inl::Event&& e, eEventDisplayMode displayMode) {
 	//uint64_t start = __rdtsc();
 	if (pipe) {
 		pipe->PutEvent(std::move(e));
@@ -60,4 +60,4 @@ void LogStream::Event(exc::Event&& e, eEventDisplayMode displayMode) {
 
 
 
-} // namespace exc
+} // namespace inl

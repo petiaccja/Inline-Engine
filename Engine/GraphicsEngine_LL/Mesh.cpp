@@ -1,8 +1,8 @@
 #include "Mesh.hpp"
-#include "VertexElementCompressor.hpp"
+//#include "VertexElementCompressor.hpp"
+#include "VertexCompressor.hpp"
 #include <BaseLibrary/ArrayView.hpp>
 
-using exc::ArrayView;
 
 
 namespace inl {
@@ -10,38 +10,29 @@ namespace gxeng {
 
 
 
-void Mesh::Set(const VertexBase* vertices, size_t numVertices, const unsigned* indices, size_t numIndices) {
+void Mesh::Set(const VertexBase* vertices, const IVertexReader* vertexReader, size_t numVertices, const unsigned* indices, size_t numIndices) {
 	// Create constants
-	auto& elements = vertices[0].GetElements();
+	auto& elements = vertexReader->GetElements();
 	std::vector<bool> elementMap(elements.size(), true);
-	uint32_t compressedStride = (uint32_t)VertexCompressor::Size(*vertices, elementMap);
 
-	// Create a view to iterate over vertices
-	ArrayView<const VertexBase> inputArrayView{ vertices, numVertices, vertices->StructureSize() };
-
-	// Create buffer for compressed vertices of stream
-	std::unique_ptr<uint8_t[]> compressedData = std::make_unique<uint8_t[]>(compressedStride * numVertices);
-
-	// Fill stream
-	ArrayView<VertexBase> outputArrayView{ reinterpret_cast<VertexBase*>(compressedData.get()), numVertices, compressedStride };
-	std::vector<VertexCompressor::Element> compressedElements;
-	for (size_t i = 0; i < numVertices; i++) {
-		compressedElements = VertexCompressor::Compress(inputArrayView[i], elementMap, &outputArrayView[i]);
-	}
+	// Compress vertices
+	VertexCompressor compressor{ vertexReader, elementMap };
+	std::vector<uint8_t> compressedData = compressor.GetCompressedStream(vertices, numVertices);
+	auto offsets = compressor.GetCompressedOffsets();
 
 	// Set data
 	VertexStream stream;
-	stream.stride = compressedStride;
+	stream.stride = compressor.GetCompressedStride();
 	stream.count = numVertices;
-	stream.data = compressedData.get();
+	stream.data = compressedData.data();
 	MeshBuffer::Set(&stream, &stream + 1, indices, indices + numIndices);
 
 	// Set stream elements.
 	std::vector<std::vector<Element>> layout;
 	layout.clear();
 	std::vector<Element> streamElements;
-	for (const auto& e : compressedElements) {
-		streamElements.push_back({ e.semantic, e.index, e.offset });
+	for (size_t i = 0; i < elements.size(); ++i) {
+		streamElements.push_back(Element{ elements[i].semantic, elements[i].index, offsets[i] });
 	}
 	layout.push_back(streamElements);
 
@@ -50,26 +41,18 @@ void Mesh::Set(const VertexBase* vertices, size_t numVertices, const unsigned* i
 }
 
 
-void Mesh::Update(const VertexBase* vertices, size_t numVertices, size_t offsetInVertices) {
+void Mesh::Update(const VertexBase* vertices, const IVertexReader* vertexReader, size_t numVertices, size_t offsetInVertices) {
 	// Create constants
-	auto& elements = vertices[0].GetElements();
+	auto& elements = vertexReader->GetElements();
 	std::vector<bool> elementMap(elements.size(), true);
-	size_t compressedStride = VertexCompressor::Size(*vertices, elementMap);
 
-	// Create a view to iterate over vertices
-	ArrayView<const VertexBase> inputArrayView{ vertices, numVertices, vertices->StructureSize() };
-
-	// Create a stream
-	std::unique_ptr<uint8_t[]> compressedData = std::make_unique<uint8_t[]>(compressedStride * numVertices);
-
-	// Fill stream
-	ArrayView<VertexBase> outputArrayView{ reinterpret_cast<VertexBase*>(compressedData.get()), numVertices, compressedStride };
-	for (size_t i = 0; i < numVertices; i++) {
-		VertexCompressor::Compress(inputArrayView[i], elementMap, &outputArrayView[i]);
-	}
+	// Compress vertices
+	VertexCompressor compressor{ vertexReader, elementMap };
+	std::vector<uint8_t> compressedData = compressor.GetCompressedStream(vertices, numVertices);
+	auto offsets = compressor.GetCompressedOffsets();
 
 	// Update data
-	MeshBuffer::Update(0, compressedData.get(), numVertices, offsetInVertices);
+	MeshBuffer::Update(0, compressedData.data(), numVertices, offsetInVertices);
 }
 
 

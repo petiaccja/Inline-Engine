@@ -5,6 +5,7 @@
 
 #include "MemoryObject.hpp"
 #include "CommandAllocatorPool.hpp"
+#include "CommandListPool.hpp"
 #include "ScratchSpacePool.hpp"
 #include "HostDescHeap.hpp"
 
@@ -72,7 +73,7 @@ public:
 
 	struct Decomposition {
 		CmdAllocPtr commandAllocator;
-		std::unique_ptr<gxapi::ICopyCommandList> commandList;
+		CmdListPtr commandList;
 		std::vector<ScratchSpacePtr> scratchSpaces;
 		std::vector<ResourceUsage> usedResources;
 		std::vector<MemoryObject> additionalResources;
@@ -90,6 +91,7 @@ public:
 protected:
 	BasicCommandList(
 		gxapi::IGraphicsApi* gxApi,
+		CommandListPool& commandListPool,
 		CommandAllocatorPool& commandAllocatorPool,
 		ScratchSpacePool& scratchSpacePool,
 		gxapi::eCommandListType type);
@@ -107,7 +109,7 @@ private:
 	ScratchSpacePool* m_scratchSpacePool;
 	// Parts
 	CmdAllocPtr m_commandAllocator;
-	std::unique_ptr<gxapi::ICopyCommandList> m_commandList;
+	CmdListPtr m_commandList;
 	std::vector<ScratchSpacePtr> m_scratchSpaces;
 	StackDescHeap* m_currentScratchSpace;
 };

@@ -4,7 +4,7 @@
 #include <cassert>
 
 
-namespace exc {
+namespace inl {
 
 
 //------------------------------------------------------------------------------
@@ -158,4 +158,4 @@ template class InputPort<Any>;
 template class OutputPort<Any>;
 
 
-} // namespace exc
+} // namespace inl

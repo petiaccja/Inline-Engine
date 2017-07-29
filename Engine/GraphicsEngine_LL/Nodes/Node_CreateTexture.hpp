@@ -24,13 +24,13 @@ namespace inl::gxeng::nodes {
 class CreateTexture :
 	virtual public GraphicsNode,
 	public GraphicsTask,
-	public exc::InputPortConfig<unsigned, unsigned, gxapi::eFormat, uint16_t, TextureUsage>,
-	public exc::OutputPortConfig<gxeng::Texture2D>
+	public InputPortConfig<unsigned, unsigned, gxapi::eFormat, uint16_t, TextureUsage>,
+	public OutputPortConfig<gxeng::Texture2D>
 {
 public:
 	virtual void Update() override {}
 
-	virtual void Notify(exc::InputPortBase* sender) override {}
+	virtual void Notify(InputPortBase* sender) override {}
 
 	virtual void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);

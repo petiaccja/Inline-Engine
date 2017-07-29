@@ -2,7 +2,7 @@
 
 #include <memory>
 
-namespace exc {
+namespace inl {
 
 template <class T>
 class Singleton : public T {

@@ -46,10 +46,18 @@ void Scheduler::Execute(FrameContext context) {
 			}
 		}
 
+
 		// PHASE II.: Execute() tasks in correct
 		for (auto& task : tasks) {
 			VolatileViewHeap volatileHeap(context.gxApi);
-			RenderContext renderContext(context.memoryManager, context.textureSpace, &volatileHeap, context.shaderManager, context.gxApi, context.commandAllocatorPool, context.scratchSpacePool);
+			RenderContext renderContext(context.memoryManager,
+										context.textureSpace,
+										&volatileHeap,
+										context.shaderManager,
+										context.gxApi,
+										context.commandListPool,
+										context.commandAllocatorPool,
+										context.scratchSpacePool);
 
 			// Execute the task on the CPU.
 			if (task != nullptr) {
@@ -76,7 +84,7 @@ void Scheduler::Execute(FrameContext context) {
 					auto barriers = InjectBarriers(decomposition.usedResources.begin(), decomposition.usedResources.end());
 					if (barriers.size() > 0) {
 						CmdAllocPtr injectAlloc = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
-						std::unique_ptr<gxapi::ICopyCommandList> injectList(context.gxApi->CreateGraphicsCommandList({ injectAlloc.get() }));
+						GraphicsCmdListPtr injectList = context.commandListPool->RequestGraphicsList(injectAlloc.get());
 
 						injectList->ResourceBarrier((unsigned)barriers.size(), barriers.data());
 						injectList->Close();
@@ -103,7 +111,7 @@ void Scheduler::Execute(FrameContext context) {
 						usedResourceList.push_back(std::move(v));
 					}
 
-					decomposition.commandList->Close();
+					dynamic_cast<gxapi::ICopyCommandList*>(decomposition.commandList.get())->Close();
 
 					EnqueueCommandList(*context.commandQueue,
 									   std::move(decomposition.commandList),
@@ -121,7 +129,7 @@ void Scheduler::Execute(FrameContext context) {
 
 		// Set backBuffer to PRESENT state.
 		CmdAllocPtr injectAlloc = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
-		std::unique_ptr<gxapi::ICopyCommandList> injectList(context.gxApi->CreateGraphicsCommandList({ injectAlloc.get() }));
+		GraphicsCmdListPtr injectList = context.commandListPool->RequestGraphicsList(injectAlloc.get());
 
 		injectList->ResourceBarrier(gxapi::TransitionBarrier{
 			context.backBuffer->GetResource()._GetResourcePtr(),
@@ -143,21 +151,21 @@ void Scheduler::Execute(FrameContext context) {
 		// Scene cannot be rendered, but we should draw an error message on the screen for the devs.
 
 		// Log error.
-		context.log->Event(std::string("Fatal pipeline error: ") + ex.what());
+		context.log->Event(std::string("Fatal pipeline Execute error: ") + ex.what());
 
 		// Draw a red blinking background to signal error.
 		try {
 			RenderFailureScreen(context);
 		}
 		catch (std::exception& ex) {
-			context.log->Event(std::string("Fatal pipeline error, could not render error screen: ") + ex.what());
+			context.log->Event(std::string("Fatal pipeline Execute error, could not render error screen: ") + ex.what());
 		}
 	}
 }
 
 
 void Scheduler::ReleaseResources() {
-	for (exc::NodeBase& node : m_pipeline) {
+	for (NodeBase& node : m_pipeline) {
 		if (GraphicsNode* ptr = dynamic_cast<GraphicsNode*>(&node)) {
 			ptr->Reset();
 		}
@@ -205,7 +213,7 @@ std::vector<GraphicsTask*> Scheduler::MakeSchedule(const lemon::ListDigraph& tas
 
 
 void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
-								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
+								   CmdListPtr commandList,
 								   CmdAllocPtr commandAllocator,
 								   std::vector<ScratchSpacePtr> scratchSpaces,
 								   std::vector<MemoryObject> usedResources,
@@ -236,7 +244,7 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 
 	// Create command allocator & list.
 	auto commandAllocator = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
-	std::unique_ptr<gxapi::IGraphicsCommandList> commandList(context.gxApi->CreateGraphicsCommandList(gxapi::CommandListDesc{ commandAllocator.get() }));
+	auto commandList = context.commandListPool->RequestGraphicsList(commandAllocator.get());
 
 	gxapi::DescriptorHandle rtvHandle = context.backBuffer->GetHandle();
 
@@ -318,7 +326,7 @@ void Scheduler::UploadTask::Execute(RenderContext& context) {
 		}
 		else if (destType == UploadManager::DestType::TEXTURE_2D) {
 			auto& dstTexture = static_cast<Texture2D&>(destination);
-			commandList.CopyTexture(dstTexture, source, SubTexture2D(0, 0, mathfu::Vector<intptr_t, 2>((intptr_t)request.dstOffsetX, (intptr_t)request.dstOffsetY)), request.textureBufferDesc);
+			commandList.CopyTexture(dstTexture, source, SubTexture2D(0, 0, Vector<intptr_t, 2>((intptr_t)request.dstOffsetX, (intptr_t)request.dstOffsetY)), request.textureBufferDesc);
 		}
 	}
 }

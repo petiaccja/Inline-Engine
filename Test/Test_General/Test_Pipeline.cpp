@@ -11,7 +11,7 @@
 
 using namespace std;
 using namespace inl::gxeng;
-using namespace exc;
+using namespace inl;
 
 
 //------------------------------------------------------------------------------

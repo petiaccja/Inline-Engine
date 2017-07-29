@@ -4,6 +4,7 @@
 #include "Pipeline.hpp"
 #include "FrameContext.hpp"
 #include "ScratchSpacePool.hpp"
+#include "CommandListPool.hpp"
 #include "MemoryObject.hpp"
 
 #include <BaseLibrary/optional.hpp>
@@ -46,7 +47,7 @@ protected:
 													/*std::vector<CommandQueue*> queues*/);
 
 	static void EnqueueCommandList(CommandQueue& commandQueue,
-								   std::unique_ptr<gxapi::ICopyCommandList> commandList,
+								   CmdListPtr commandList,
 								   CmdAllocPtr commandAllocator,
 								   std::vector<ScratchSpacePtr> scratchSpaces,
 								   std::vector<MemoryObject> usedResources,

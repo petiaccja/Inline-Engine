@@ -85,9 +85,9 @@ void DrawSky::Setup(SetupContext & context) {
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
 		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_LINEAR_MIP_POINT;
-		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
-		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
-		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressU = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc.addressV = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc.addressW = gxapi::eTextureAddressMode::CLAMP;
 		samplerDesc.mipLevelBias = 0.f;
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
@@ -189,14 +189,14 @@ void DrawSky::Execute(RenderContext & context) {
 	unsigned vbStride = 3 * sizeof(float);
 
 	struct Sun {
-		mathfu::VectorPacked<float, 4> dir;
-		mathfu::VectorPacked<float, 4> color;
+		Vec4_Packed dir;
+		Vec4_Packed color;
 
 	};
 
 	struct Cam {
-		mathfu::VectorPacked<float, 4> invViewProj[4];
-		mathfu::VectorPacked<float, 4> pos;
+		Mat44 invViewProj;
+		Vec4_Packed pos;
 	};
 
 	Sun sunCB;
@@ -207,21 +207,21 @@ void DrawSky::Execute(RenderContext & context) {
 	assert(m_suns->Size() > 0);
 	auto sun = *m_suns->begin();
 
-	mathfu::Matrix4x4f viewInvTr = m_camera->GetViewMatrixRH().Inverse().Transpose();
-	mathfu::Vector4f sunViewDir = viewInvTr * mathfu::Vector4f(sun->GetDirection(), 0.0f);
-	mathfu::Vector4f sunColor = mathfu::Vector4f(sun->GetColor(), 1.0f);
-	mathfu::Matrix4x4f invViewProj = (m_camera->GetProjectionMatrixRH() * m_camera->GetViewMatrixRH()).Inverse();
+	Mat44 viewInv = m_camera->GetViewMatrix().Inverse();
+	Vec4 sunViewDir = Vec4(sun->GetDirection(), 0.0f) * viewInv;
+	Vec4 sunColor = Vec4(sun->GetColor(), 1.0f);
+	Mat44 invViewProj = (m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix()).Inverse();
 
-	sunCB.dir = mathfu::Vector4f(sun->GetDirection(), 0.0);
+	sunCB.dir = Vec4(sun->GetDirection(), 0.0);
 	sunCB.color = sunColor;
-	invViewProj.Pack(camCB.invViewProj);
+	camCB.invViewProj = invViewProj;
 
 	const PerspectiveCamera* perpectiveCamera = dynamic_cast<const PerspectiveCamera*>(m_camera);
 	if (perpectiveCamera == nullptr) {
-		throw std::invalid_argument("Sky drawing only works with perspective camera");
+		throw InvalidArgumentException("Sky drawing only works with perspective camera");
 	}
 
-	camCB.pos = mathfu::Vector4f(perpectiveCamera->GetPosition(), 1);
+	camCB.pos = Vec4(perpectiveCamera->GetPosition(), 1);
 
 	commandList.BindGraphics(m_sunCbBindParam, &sunCB, sizeof(sunCB));
 	commandList.BindGraphics(m_camCbBindParam, &camCB, sizeof(camCB));

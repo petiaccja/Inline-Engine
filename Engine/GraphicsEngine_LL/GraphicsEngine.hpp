@@ -3,6 +3,7 @@
 #include "Pipeline.hpp"
 #include "Scheduler.hpp"
 #include "CommandAllocatorPool.hpp"
+#include "CommandListPool.hpp"
 #include "ScratchSpacePool.hpp"
 #include "ResourceResidencyQueue.hpp"
 #include "PipelineEventDispatcher.hpp"
@@ -50,34 +51,35 @@ struct GraphicsEngineDesc {
 	bool fullScreen;
 	int width;
 	int height;
-	exc::Logger* logger;
+	Logger* logger;
 };
 
 
 // Temporary, delete this!!!!44négy
+// Peti wuz here '17.07.28 - surprisingly, I actually understood why this is temporary, but I'm not gonna write it down
 class PipelineEventPrinter : public PipelineEventListener {
 public:
 	PipelineEventPrinter() : m_log(nullptr) {}
 
-	void SetLog(exc::LogStream* log) { m_log = log; }
+	void SetLog(LogStream* log) { m_log = log; }
 
 	void OnFrameBeginDevice(uint64_t frameId) override {
-		m_log->Event(exc::Event{ "Frame begin - DEVICE", exc::EventParameterInt("frameId", (int)frameId) });
+		m_log->Event(Event{ "Frame begin - DEVICE", EventParameterInt("frameId", (int)frameId) });
 	}
 	void OnFrameBeginHost(uint64_t frameId) override {
-		m_log->Event(exc::Event{ "Frame begin - HOST", exc::EventParameterInt("frameId", (int)frameId) });
+		m_log->Event(Event{ "Frame begin - HOST", EventParameterInt("frameId", (int)frameId) });
 	}
 	void OnFrameBeginAwait(uint64_t frameId) override {
-		m_log->Event(exc::Event{ "Awaiting frame", exc::EventParameterInt("frameId", (int)frameId) });
+		m_log->Event(Event{ "Awaiting frame", EventParameterInt("frameId", (int)frameId) });
 	}
 	void OnFrameCompleteDevice(uint64_t frameId) override {
-		m_log->Event(exc::Event{ "Frame finished - DEVICE", exc::EventParameterInt("frameId", (int)frameId) });
+		m_log->Event(Event{ "Frame finished - DEVICE", EventParameterInt("frameId", (int)frameId) });
 	}
 	void OnFrameCompleteHost(uint64_t frameId) override {
-		m_log->Event(exc::Event{ "Frame finished - HOST", exc::EventParameterInt("frameId", (int)frameId) });
+		m_log->Event(Event{ "Frame finished - HOST", EventParameterInt("frameId", (int)frameId) });
 	}
 private:
-	exc::LogStream* m_log;
+	LogStream* m_log;
 };
 
 
@@ -112,9 +114,9 @@ public:
 
 	// Environment variables
 	/// <returns> True if a new variable was created, false if old was overridden. </returns>
-	bool SetEnvVariable(std::string name, exc::Any obj);
+	bool SetEnvVariable(std::string name, Any obj);
 	bool EnvVariableExists(const std::string& name);
-	const exc::Any& GetEnvVariable(const std::string& name);
+	const Any& GetEnvVariable(const std::string& name);
 private:
 	void CreatePipeline();
 	static std::vector<GraphicsNode*> SelectSpecialNodes(Pipeline& pipeline);
@@ -136,6 +138,7 @@ private:
 
 	// Pipeline Facilities
 	CommandAllocatorPool m_commandAllocatorPool;
+	CommandListPool m_commandListPool;
 	ScratchSpacePool m_scratchSpacePool; // Creates CBV_SRV_UAV type scratch spaces
 	CbvSrvUavHeap m_textureSpace;
 	Pipeline m_pipeline;
@@ -152,16 +155,16 @@ private:
 	PipelineEventPrinter m_pipelineEventPrinter; // ONLY FOR TEST PURPOSES
 
 	// Logging
-	exc::Logger* m_logger;
-	exc::LogStream m_logStreamGeneral;
-	exc::LogStream m_logStreamPipeline;
+	Logger* m_logger;
+	LogStream m_logStreamGeneral;
+	LogStream m_logStreamPipeline;
 
 	// Misc
 	std::chrono::nanoseconds m_absoluteTime;
 	uint64_t m_frame = 0;
 
 	// Env variables
-	std::unordered_map<std::string, exc::Any> m_envVariables;
+	std::unordered_map<std::string, Any> m_envVariables;
 
 	// Scene
 	std::set<Scene*> m_scenes;

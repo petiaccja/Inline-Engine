@@ -12,7 +12,7 @@
 
 namespace inl::gxeng::nodes {
 
-static void setWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsigned groupSizeH, unsigned& dispatchW, unsigned& dispatchH)
+static void SetWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsigned groupSizeH, unsigned& dispatchW, unsigned& dispatchH)
 {
 	//set up work group sizes
 	unsigned gw = 0, gh = 0, count = 1;
@@ -101,10 +101,10 @@ void DepthReduction::Setup(SetupContext& context) {
 
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
-		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
-		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
-		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
-		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
+		samplerDesc.addressU = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc.addressV = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc.addressW = gxapi::eTextureAddressMode::CLAMP;
 		samplerDesc.mipLevelBias = 0.f;
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
@@ -131,7 +131,7 @@ void DepthReduction::Execute(RenderContext & context) {
 	auto& commandList = context.AsCompute();
 
 	unsigned dispatchW, dispatchH;
-	setWorkgroupSize((unsigned)std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
+	SetWorkgroupSize((unsigned)std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
 
 	commandList.SetResourceState(m_uav.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	commandList.SetResourceState(m_depthView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
@@ -165,7 +165,7 @@ void DepthReduction::InitRenderTarget(SetupContext& context) {
 	srvDesc.planeIndex = 0;
 
 	unsigned dispatchW, dispatchH;
-	setWorkgroupSize((unsigned)std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
+	SetWorkgroupSize((unsigned)std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
 
 	Texture2D tex = context.CreateRWTexture2D(dispatchW, dispatchH, formatDepthReductionResult, 1);
 	tex._GetResourcePtr()->SetName("Depth reduction intermediate texture");

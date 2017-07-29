@@ -3,7 +3,7 @@
 
 #include "Node.hpp"
 
-namespace exc {
+namespace inl {
 
 
 template <class ArithmeticT, class Operator, const char* name, const char* op1desc, const char* op2desc, const char* resdesc>
@@ -251,4 +251,4 @@ using FloatModulo = ModuloNode<long long>;
 
 
 
-} // namespace exc
+} // namespace inl

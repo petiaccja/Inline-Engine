@@ -5,7 +5,7 @@
 #include <vector>
 #include <memory>
 
-namespace exc {
+namespace inl {
 
 /// <summary> Denotes the type of polimorphic EventParameters. </summary>
 enum class eEventParameterType {
@@ -231,4 +231,4 @@ void Event::AddVariadicParams() {
 
 
 
-} // namespace exc
+} // namespace inl

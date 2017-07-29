@@ -133,7 +133,7 @@ protected:
 
 	gxapi_dx12::GxapiManager* graphicsApiMgr;
 	gxapi::IGraphicsApi* graphicsApi;
-	exc::Logger logger;
+	inl::Logger logger;
 };
 
 } // namespace inl::core

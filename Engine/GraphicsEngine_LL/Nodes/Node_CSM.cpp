@@ -14,7 +14,7 @@ namespace inl::gxeng::nodes {
 
 struct Uniforms
 {
-	mathfu::VectorPacked<float, 4> model[4];
+	Mat44_Packed model;
 	uint32_t cascadeIDX;
 };
 
@@ -127,10 +127,10 @@ void CSM::Setup(SetupContext & context) {
 
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
-		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
-		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
-		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
-		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
+		samplerDesc.addressU = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc.addressV = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc.addressW = gxapi::eTextureAddressMode::CLAMP;
 		samplerDesc.mipLevelBias = 0.f;
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
@@ -228,10 +228,10 @@ void CSM::Execute(RenderContext & context) {
 
 			ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
 
-			mathfu::Matrix4x4f model = entity->GetTransform();
+			Mat44 model = entity->GetTransform();
 
 			Uniforms uniformsCBData;
-			model.Pack(uniformsCBData.model);
+			uniformsCBData.model = model;
 
 			uniformsCBData.cascadeIDX = cascadeIdx;
 

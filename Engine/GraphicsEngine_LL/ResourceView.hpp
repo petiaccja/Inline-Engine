@@ -174,18 +174,33 @@ protected:
 	gxapi::SrvTexture3D m_srvDesc;
 };
 
-
+/*
 class TextureViewCube : public ResourceViewBase<TextureCube> {
 public:
-	TextureViewCube(const TextureCube& resource, CbvSrvUavHeap& heap, gxapi::eFormat format, gxapi::SrvTextureCube desc);
-	TextureViewCube(const TextureCube& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::SrvTextureCube desc);
+	TextureViewCube() = default;
+	TextureViewCube(const TextureCube& resource, CbvSrvUavHeap& heap, gxapi::eFormat format, gxapi::SrvTextureCubeArray desc);
+	TextureViewCube(const TextureCube& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::SrvTextureCubeArray desc);
 
 	gxapi::eFormat GetFormat();
-	const gxapi::SrvTextureCube& GetDescription() const;
+	const gxapi::SrvTextureCubeArray& GetDescription() const;
 
 protected:
 	gxapi::eFormat m_format;
-	gxapi::SrvTextureCube m_srvDesc;
+	gxapi::SrvTextureCubeArray m_srvDesc;
+};
+*/
+class TextureViewCube : public ResourceViewBase<Texture2D> {
+public:
+	TextureViewCube() = default;
+	TextureViewCube(const Texture2D& resource, CbvSrvUavHeap& heap, gxapi::eFormat format, gxapi::SrvTextureCubeArray desc);
+	TextureViewCube(const Texture2D& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::SrvTextureCubeArray desc);
+
+	gxapi::eFormat GetFormat();
+	const gxapi::SrvTextureCubeArray& GetDescription() const;
+
+protected:
+	gxapi::eFormat m_format;
+	gxapi::SrvTextureCubeArray m_srvDesc;
 };
 
 

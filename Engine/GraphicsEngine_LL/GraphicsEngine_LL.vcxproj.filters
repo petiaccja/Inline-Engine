@@ -60,6 +60,9 @@
     <Filter Include="Frontend\Nodes\Shaders">
       <UniqueIdentifier>{45b0517c-79df-4276-b594-4e0a7747417f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Backend\Pipeline\ResourcePools">
+      <UniqueIdentifier>{8e627d0d-764e-47ea-8b35-7ae8d429f37b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -70,9 +73,6 @@
     </ClInclude>
     <ClInclude Include="GraphicsEngine.hpp" />
     <ClInclude Include="Material.hpp">
-      <Filter>Resources</Filter>
-    </ClInclude>
-    <ClInclude Include="Texture2D.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
     <ClInclude Include="Scene.hpp">
@@ -113,12 +113,6 @@
     </ClInclude>
     <ClInclude Include="Binder.hpp">
       <Filter>Bridge</Filter>
-    </ClInclude>
-    <ClInclude Include="Vertex.hpp">
-      <Filter>Resources</Filter>
-    </ClInclude>
-    <ClInclude Include="VertexElementCompressor.hpp">
-      <Filter>Resources</Filter>
     </ClInclude>
     <ClInclude Include="EntityCollection.hpp">
       <Filter>Scene</Filter>
@@ -303,18 +297,72 @@
     <ClInclude Include="ShaderManager.hpp">
       <Filter>Backend\Misc</Filter>
     </ClInclude>
+    <ClInclude Include="Vertex.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexCompressor.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_BloomAdd.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_BloomBlur.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_BloomDownsample.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_BrightLumPass.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_HDRCombine.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_LensFlare.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_LuminanceReduction.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_LuminanceReductionFinal.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_MotionBlur.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_NeighborMax.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_TileMax.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_SMAA.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphEditor.hpp">
+      <Filter>Backend\Misc</Filter>
+    </ClInclude>
     <ClInclude Include="CommandAllocatorPool.hpp">
-      <Filter>Backend\Pipeline</Filter>
+      <Filter>Backend\Pipeline\ResourcePools</Filter>
     </ClInclude>
     <ClInclude Include="ScratchSpacePool.hpp">
-      <Filter>Backend\Pipeline</Filter>
+      <Filter>Backend\Pipeline\ResourcePools</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandListPool.hpp">
+      <Filter>Backend\Pipeline\ResourcePools</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_DOFPrepare.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_DOFNeighborMax.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_DOFTileMax.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
-    <ClCompile Include="Texture2D.cpp">
-      <Filter>Resources</Filter>
-    </ClCompile>
     <ClCompile Include="Material.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
@@ -359,9 +407,6 @@
     </ClCompile>
     <ClCompile Include="BasicCamera.cpp">
       <Filter>Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="OrthographicCamera.cpp">
-      <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="OverlayEntity.cpp">
       <Filter>Scene</Filter>
@@ -456,11 +501,68 @@
     <ClCompile Include="ShaderManager.cpp">
       <Filter>Backend\Misc</Filter>
     </ClCompile>
+    <ClCompile Include="OrthographicCamera.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexCompressor.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_BloomAdd.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_BloomBlur.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_BloomDownsample.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_BrightLumPass.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_HDRCombine.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_LensFlare.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_LuminanceReduction.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_LuminanceReductionFinal.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_MotionBlur.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_NeighborMax.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_TileMax.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphEditor.cpp">
+      <Filter>Backend\Misc</Filter>
+    </ClCompile>
     <ClCompile Include="CommandAllocatorPool.cpp">
-      <Filter>Backend\Pipeline</Filter>
+      <Filter>Backend\Pipeline\ResourcePools</Filter>
     </ClCompile>
     <ClCompile Include="ScratchSpacePool.cpp">
-      <Filter>Backend\Pipeline</Filter>
+      <Filter>Backend\Pipeline\ResourcePools</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandListPool.cpp">
+      <Filter>Backend\Pipeline\ResourcePools</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_SMAA.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_DOFPrepare.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_DOFNeighborMax.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_DOFTileMax.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -473,72 +575,56 @@
     <None Include="Materials\simple_diffuse.mtl.hlsl">
       <Filter>Materials</Filter>
     </None>
-    <None Include="Nodes\Shaders\Blend.hlsl" />
-    <None Include="Nodes\Shaders\BlendWithTransform.hlsl" />
-    <None Include="Nodes\Shaders\CSM.hlsl" />
-    <None Include="Nodes\Shaders\CSMSample.hlsl" />
-    <None Include="Nodes\Shaders\DebugDraw.hlsl" />
-    <None Include="Nodes\Shaders\DepthPrepass.hlsl" />
-    <None Include="Nodes\Shaders\DepthReduction.hlsl" />
-    <None Include="Nodes\Shaders\DepthReductionFinal.hlsl" />
-    <None Include="Nodes\Shaders\DrawSky.hlsl" />
-    <None Include="Nodes\Shaders\ForwardRender.hlsl" />
-    <None Include="Nodes\Shaders\LightCulling.hlsl" />
-    <None Include="Nodes\Shaders\OverlayColored.hlsl" />
-    <None Include="Nodes\Shaders\OverlayTextured.hlsl" />
-    <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Materials\PbrBrdf.hlsl">
-      <Filter>Materials</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\Blend.hlsl">
+    <None Include="Nodes\Shaders\Blend.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\BlendWithTransform.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\BlendWithTransform.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\CSM.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\CSM.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\CSMSample.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\CSMSample.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DebugDraw.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DebugDraw.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DepthPrepass.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DepthPrepass.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DepthReduction.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DepthReduction.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DepthReductionFinal.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DepthReductionFinal.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DrawSky.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DrawSky.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\ForwardRender.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\ForwardRender.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\GenCSM.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\GenCSM.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\LightCulling.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\LightCulling.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\OverlayColored.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\OverlayColored.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\OverlayTextured.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\OverlayTextured.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
+    </None>
+    <None Include="Materials\PbrBrdf.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\TiledLighting.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
+    </None>
+    <None Include="Nodes\Shaders\TiledLighting.hlsl">
+      <Filter>Frontend\Nodes\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

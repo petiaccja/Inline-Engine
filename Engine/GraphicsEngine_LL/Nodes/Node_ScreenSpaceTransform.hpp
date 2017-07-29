@@ -5,7 +5,7 @@
 //#include "GraphicsApi_LL/IPipelineState.hpp"
 //#include "GraphicsApi_LL/IGxapiManager.hpp"
 
-#include <mathfu/mathfu_exc.hpp>
+#include <InlineMath.hpp>
 
 namespace inl::gxeng::nodes {
 
@@ -17,13 +17,13 @@ namespace inl::gxeng::nodes {
 class ScreenSpaceTransform :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public exc::InputPortConfig<unsigned, unsigned, mathfu::Vector2f, float, mathfu::Vector2f>,
-	virtual public exc::OutputPortConfig<mathfu::Matrix4x4f>
+	virtual public InputPortConfig<unsigned, unsigned, Vec2, float, Vec2>,
+	virtual public OutputPortConfig<Mat44>
 {
 public:
 	virtual void Update() override {}
 
-	virtual void Notify(exc::InputPortBase* sender) override {}
+	virtual void Notify(InputPortBase* sender) override {}
 
 	virtual void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);
@@ -35,21 +35,21 @@ public:
 	void Setup(SetupContext& context) override {
 		unsigned width = GetInput<0>().Get();
 		unsigned height = GetInput<1>().Get();
-		mathfu::Vector2f pos = GetInput<2>().Get();
+		Vec2 pos = GetInput<2>().Get();
 		float rot = GetInput<3>().Get();
-		mathfu::Vector2f size = GetInput<4>().Get();
+		Vec2 size = GetInput<4>().Get();
 
 		// Move fsq so that its top left corner is on the origo
-		mathfu::Matrix4x4f result = mathfu::Matrix4x4f::FromTranslationVector(mathfu::Vector3f(1.f, -1.f, 0.f));
+		Mat44 result = Mat44::Translation(Vec3(1.f, -1.f, 0.f));
 
-		const float scaleX = size.x() / width;
-		const float scaleY = size.y() / height;
-		result = mathfu::Matrix4x4f::FromScaleVector(mathfu::Vector3f(scaleX, scaleY, 1.f)) * result;
-		result = mathfu::Matrix4x4f::FromRotationMatrix(mathfu::Matrix4x4f::RotationZ(rot)) * result;
+		const float scaleX = size.x / width;
+		const float scaleY = size.y / height;
+		result = Mat44::Scale(Vec3(scaleX, scaleY, 1.f)) * result;
+		result = Mat44::RotationZ(rot) * result;
 
-		const float posX = (pos.x() / width)*2.f - 1.f;
-		const float posY = (-pos.y() / height)*2.f + 1.f;
-		result = mathfu::Matrix4x4f::FromTranslationVector(mathfu::Vector3f(posX, posY, 0.f)) * result;
+		const float posX = (pos.x / width)*2.f - 1.f;
+		const float posY = (-pos.y / height)*2.f + 1.f;
+		result = Mat44::Translation(Vec3(posX, posY, 0.f)) * result;
 
 		GetOutput<0>().Set(result);
 	}

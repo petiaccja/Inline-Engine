@@ -14,7 +14,7 @@
 namespace inl {
 namespace gxeng {
 
-using namespace exc::prefix;
+using namespace inl::prefix;
 
 class MemoryManager;
 
@@ -57,8 +57,8 @@ public:
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
 
-	exc::RingBuffer<ConstBufferPage> m_largePages;
-	exc::RingBuffer<ConstBufferPage> m_pages;
+	RingBuffer<ConstBufferPage> m_largePages;
+	RingBuffer<ConstBufferPage> m_pages;
 	std::mutex m_mutex;
 
 	uint64_t m_currFrameID = 1;

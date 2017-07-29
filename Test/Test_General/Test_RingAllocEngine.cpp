@@ -20,7 +20,7 @@ static void TestAssertFunc(bool val, const char* expression) {
 #define TestAssert(x) TestAssertFunc(x, #x)
 
 
-static void ExpectAllocationFail(exc::RingAllocationEngine& allocator) {
+static void ExpectAllocationFail(inl::RingAllocationEngine& allocator) {
 	try {
 		allocator.Allocate();
 		throw std::runtime_error("Expected allocation error!");
@@ -45,7 +45,7 @@ public:
 	virtual int Run() override {
 		try {
 			{
-				exc::RingAllocationEngine allocator(5);
+				inl::RingAllocationEngine allocator(5);
 				allocator.Allocate(1);
 				try {
 					allocator.Allocate(5);
@@ -54,7 +54,7 @@ public:
 				catch (const std::bad_alloc&) {}
 			}
 			{
-				exc::RingAllocationEngine allocator(50);
+				inl::RingAllocationEngine allocator(50);
 				for (int i = 0; i < 2000; i++) {
 					size_t pos = allocator.Allocate(1);
 					allocator.Deallocate(pos);
@@ -80,7 +80,7 @@ public:
 			}
 
 			constexpr int size = 53;
-			exc::RingAllocationEngine allocator(size);
+			inl::RingAllocationEngine allocator(size);
 
 			TestAssert(allocator.Size() == size);
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../BaseLibrary/Memory/SlabAllocatorEngine.hpp"
-#include "../GraphicsApi_LL/ICommandAllocator.hpp"
-#include "../GraphicsApi_LL/IGraphicsApi.hpp"
+#include <BaseLibrary/Memory/SlabAllocatorEngine.hpp>
+#include <GraphicsApi_LL/ICommandAllocator.hpp>
+#include <GraphicsApi_LL/IGraphicsApi.hpp>
 
 #include <vector>
 #include <mutex>
@@ -11,7 +11,7 @@
 #include <cassert>
 
 #include <iostream> // only for debug
-#include "BaseLibrary/Logging/LogStream.hpp"
+#include <BaseLibrary/Logging/LogStream.hpp>
 
 
 namespace inl {
@@ -63,14 +63,14 @@ namespace impl {
 
 		gxapi::IGraphicsApi* GetGraphicsApi() const { return m_gxApi; }
 
-		void SetLogStream(exc::LogStream* logStream) { m_logStream = logStream; }
-		exc::LogStream* GetLogStream() const { return m_logStream; }
+		void SetLogStream(LogStream* logStream) { m_logStream = logStream; }
+		LogStream* GetLogStream() const { return m_logStream; }
 	private:
 		std::vector<std::unique_ptr<gxapi::ICommandAllocator>> m_pool;
-		exc::SlabAllocatorEngine m_allocator;
+		SlabAllocatorEngine m_allocator;
 		gxapi::IGraphicsApi* m_gxApi;
 		std::map<gxapi::ICommandAllocator*, size_t> m_addressToIndex;
-		exc::LogStream* m_logStream = nullptr;
+		LogStream* m_logStream = nullptr;
 
 		std::mutex m_mtx;
 	};
@@ -166,8 +166,8 @@ public:
 
 	gxapi::IGraphicsApi* GetGraphicsApi() const;
 
-	void SetLogStream(exc::LogStream* logStream);
-	exc::LogStream* GetLogStream() const;
+	void SetLogStream(LogStream* logStream);
+	LogStream* GetLogStream() const;
 private:
 	impl::CommandAllocatorPool<gxapi::eCommandListType::GRAPHICS> m_gxPool;
 	impl::CommandAllocatorPool<gxapi::eCommandListType::COMPUTE> m_cuPool;

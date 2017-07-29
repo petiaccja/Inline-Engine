@@ -23,6 +23,7 @@ class CopyCommandList;
 class BasicCommandList;
 
 class ScratchSpacePool;
+class CommandListPool;
 class CommandAllocatorPool;
 
 // Debug draw
@@ -89,6 +90,7 @@ public:
 
 	// Create views
 	TextureView2D CreateSrv(Texture2D& texture, gxapi::eFormat format, gxapi::SrvTexture2DArray desc = {}) const;
+	TextureViewCube CreateSrv(Texture2D& texture, gxapi::eFormat format, gxapi::SrvTextureCubeArray desc) const;
 	RenderTargetView2D CreateRtv(Texture2D& renderTarget, gxapi::eFormat format, gxapi::RtvTexture2DArray desc) const;
 	DepthStencilView2D CreateDsv(Texture2D& depthStencilView, gxapi::eFormat format, gxapi::DsvTexture2DArray desc) const;
 	RWTextureView2D CreateUav(Texture2D& rwTexture, gxapi::eFormat format, gxapi::UavTexture2DArray desc) const;
@@ -129,6 +131,7 @@ public:
 				  VolatileViewHeap* volatileViewHeap = nullptr,
 				  ShaderManager* shaderManager = nullptr,
 				  gxapi::IGraphicsApi* graphicsApi = nullptr,
+				  CommandListPool* commandListPool = nullptr,
 				  CommandAllocatorPool* commandAllocatorPool = nullptr,
 				  ScratchSpacePool* scratchSpacePool = nullptr);
 	RenderContext(RenderContext&&) = delete;
@@ -171,6 +174,7 @@ private:
 	gxapi::IGraphicsApi* m_graphicsApi;
 
 	// Command list
+	CommandListPool* m_commandListPool;
 	CommandAllocatorPool* m_commandAllocatorPool;
 	ScratchSpacePool* m_scratchSpacePool;
 	std::unique_ptr<BasicCommandList> m_commandList;

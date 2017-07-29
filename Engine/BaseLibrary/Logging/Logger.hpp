@@ -8,7 +8,7 @@
 #include <fstream>
 #include <memory>
 
-namespace exc {
+namespace inl {
 
 /// <summary>
 /// <para> Event log facility with file/stream output. </para>
@@ -45,4 +45,4 @@ private:
 };
 
 
-} // namespace exc
+} // namespace inl

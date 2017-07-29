@@ -39,7 +39,7 @@ public:
 private:
 	std::vector<std::unique_ptr<StackDescHeap>> m_pool;
 	gxapi::eDescriptorHeapType m_type;
-	exc::SlabAllocatorEngine m_allocator;
+	SlabAllocatorEngine m_allocator;
 	gxapi::IGraphicsApi* m_gxApi;
 	std::map<StackDescHeap*, size_t> m_addressToIndex;
 

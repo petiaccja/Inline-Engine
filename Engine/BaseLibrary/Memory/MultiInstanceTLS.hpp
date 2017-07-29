@@ -23,7 +23,7 @@
 
 #include <optional>
 
-namespace exc {
+namespace inl {
 
 
 template <class T>
@@ -183,4 +183,4 @@ SlabAllocatorEngine mi_tls<T>::indexAllocator(10);
 
 
 
-} // namespace exc
+} // namespace inl

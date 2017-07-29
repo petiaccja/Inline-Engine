@@ -46,8 +46,8 @@ public:
 public:
 	Mesh(MemoryManager* memoryManager) : MeshBuffer(memoryManager) {}
 
-	void Set(const VertexBase* vertices, size_t numVertices, const unsigned* indices, size_t numIndices);
-	void Update(const VertexBase* vertices, size_t numVertices, size_t offsetInVertices);
+	void Set(const VertexBase* vertices, const IVertexReader* vertexReader, size_t numVertices, const unsigned* indices, size_t numIndices);
+	void Update(const VertexBase* vertices, const IVertexReader* vertexReader, size_t numVertices, size_t offsetInVertices);
 	void Clear();
 
 	using MeshBuffer::GetNumStreams;

@@ -1,10 +1,7 @@
 #pragma once
 
 
-#include <mathfu/vector.h>
-#include <mathfu/vector_3.h>
-#include <mathfu/quaternion.h>
-#include <mathfu/matrix_4x4.h>
+#include <InlineMath.hpp>
 
 namespace inl::gxeng {
 
@@ -23,22 +20,33 @@ public:
 	void SetMaterial(Material* material);
 	Material* GetMaterial() const;
 
-	void SetPosition(mathfu::Vector<float, 3> pos);
-	void SetRotation(mathfu::Quaternion<float> rotation);
-	void SetScale(mathfu::Vector<float, 3> scale);
+	void SetPosition(const Vec3& pos);
+	void SetRotation(const Quat& rotation);
+	void SetScale(const Vec3& scale);
+	void InitScale(Vec3 scale);
+	void InitRotation(Quat rotation);
+	void InitPosition(Vec3 pos);
 
-	mathfu::Vector<float, 3> GetPosition() const;
-	mathfu::Quaternion<float> GetRotation() const;
-	mathfu::Vector<float, 3> GetScale() const;
+	Vec3 GetPosition() const;
+	Quat GetRotation() const;
+	Vec3 GetScale() const;
 
-	mathfu::Matrix<float, 4, 4> GetTransform() const;
+	Mat44 GetTransform() const;
+	Vec3 GetPrevPosition() const;
+	Quat GetPrevRotation() const;
+	Vec3 GetPrevScale() const;
+
+	Mat44 GetPrevTransform() const;
 
 private:
 	Mesh* m_mesh;
 	Material* m_material;
-	mathfu::Vector<float, 3> m_position;
-	mathfu::Quaternion<float> m_rotation;
-	mathfu::Vector<float, 3> m_scale;
+	Vec3 m_position;
+	Quat m_rotation;
+	Vec3 m_scale;
+	Vec3 m_prevPosition;
+	Quat m_prevRotation;
+	Vec3 m_prevScale;
 };
 
 

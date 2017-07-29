@@ -40,15 +40,15 @@ struct camera
 
 float linearize_depth(float depth, float near, float far)
 {
-	float A = -(far + near) / (far - near);
-	float B = -2 * far * near / (far - near);
-	float zndc = depth * 2 - 1;
+	float A = far / (far - near);
+	float B = -far * near / (far - near);
+	float zndc = depth;
 
 	//view space linear z
-	float vs_zrecon = -B / (zndc + A);
+	float vs_zrecon = B / (zndc - A);
 
 	//range: [0...1]
-	return vs_zrecon / -far;
+	return vs_zrecon / far;
 };
 
 camera lookat_func(float3 eye, float3 lookat, float3 up)
@@ -64,12 +64,11 @@ camera lookat_func(float3 eye, float3 lookat, float3 up)
 
 float4x4 create_identity()
 {
-	float4x4 r;
-	r[0] = float4(1, 0, 0, 0);
-	r[1] = float4(0, 1, 0, 0);
-	r[2] = float4(0, 0, 1, 0);
-	r[3] = float4(0, 0, 0, 1);
-	return r;
+	return float4x4(
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1);
 }
 
 float4x4 ortographic(float left, float right, float bottom, float top, float near, float far)
@@ -77,30 +76,32 @@ float4x4 ortographic(float left, float right, float bottom, float top, float nea
 	float4x4 r = create_identity();
 
 	// Left handed ortho projection, output interval min [-1, -1, 0] max [1, 1, 1]
-	//2 / w  0    0           0
-	//0    2 / h  0           0
-	//0    0    1 / (zf - zn)   0
-	//0    0    zn / (zn - zf)  1
+	//2 / w     0       0               0
+	//0         2 / h   0               0
+	//0         0       1 / (zf - zn)   0
+	//0         0       zn / (zn - zf)  1
 
 	float width = right - left;
 	float height = top - bottom;
 
-	r[0].x = 2.0 / width;
-	r[1].y = 2.0 / height;
-	r[2].z = 1.0 / (far - near);
-	r[2].w = near / (near - far);	
+	r._m00 = 2.0 / width;
+	r._m11 = 2.0 / height;
+	r._m22 = 1.0 / (far - near);
+	//r._m23 = near / (near - far);	
+	r._m32 = near / (near - far);
 
-	r[3].w = 1.0;
+	r._m33 = 1.0;
 
 	return r;
 }
 
 float4x4 create_translation(float3 vec)
 {
-	return float4x4(1, 0, 0, vec.x,
-		0, 1, 0, vec.y,
-		0, 0, 1, vec.z,
-		0, 0, 0, 1);
+	return float4x4(
+        1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		vec.x, vec.y, vec.z, 1);
 }
 
 float4x4 get_camera_matrix(camera c)
@@ -113,10 +114,9 @@ float4x4 get_camera_matrix(camera c)
 	m[2] = float4(c.view_dir, 0);
 	m[3] = float4(float3(0.0f, 0.0f, 0.0f), 1);
 
-	// RICSI ez még lehet hogy kelleni fog kapcsolgasd ki meg be néha :D
-	//m = transpose(m);
+	m = transpose(m);
 
-	return mul(m, create_translation(-c.pos));
+	return mul(create_translation(-c.pos), m);
 }
 
 //heavily based on mjp shadow sample
@@ -125,10 +125,10 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 	//frustum corners in ndc space
 	float3 ndc_frustum_corners[8] =
 	{
-		float3(-1.0f, 1.0f, -1.0f),
-		float3(1.0f, 1.0f, -1.0f),
-		float3(1.0f, -1.0f, -1.0f),
-		float3(-1.0f, -1.0f, -1.0f),
+		float3(-1.0f, 1.0f, 0.0f),
+		float3(1.0f, 1.0f, 0.0f),
+		float3(1.0f, -1.0f, 0.0f),
+		float3(-1.0f, -1.0f, 0.0f),
 		float3(-1.0f, 1.0f, 1.0f),
 		float3(1.0f, 1.0f, 1.0f),
 		float3(1.0f, -1.0f, 1.0f),
@@ -137,13 +137,17 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 
 	float3 ws_frustum_corners[8];
 
+	//calculate world space frustum corners
 	for (int c = 0; c < 8; ++c)
 	{
-		float4 trans = mul(invVP, float4(ndc_frustum_corners[c], 1));
+		float4 trans = mul(float4(ndc_frustum_corners[c], 1), invVP);
 		ws_frustum_corners[c] = trans.xyz / trans.w;
 	}
 
 	//calc this splits frustum corners
+	//each split is made up of 4 near + 4 far corners
+	//calc ray between near-far ws corners, scale by split dist
+	//add scaled to near corner
 	for (int i = 0; i < 4; ++i)
 	{
 		float3 cornerRay = ws_frustum_corners[i + 4] - ws_frustum_corners[i];
@@ -173,7 +177,7 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 	float3 maxes = float3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 	for (int k = 0; k < 8; ++k)
 	{
-		float3 corner = (mul(light_view_mat, float4(ws_frustum_corners[k], 1))).xyz;
+		float3 corner = (mul(float4(ws_frustum_corners[k], 1), light_view_mat)).xyz;
 		mins = min(mins, corner);
 		maxes = max(maxes, corner);
 	}
@@ -189,10 +193,6 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 	minExtents *= scale;
 	minExtents.z /= scale;
 
-	// Ricsi 2 lines, min meg max extent is rossz
-	//maxExtents = float3(40, 40, 40);
-	//minExtents = float3(-40, -40, -40);
-
 	float3 cascadeExtents = maxExtents - minExtents;
 
 	float3 cam_pos = centroid_center + light_cam.view_dir * -abs(minExtents.z);
@@ -201,13 +201,7 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 
 	camera split_shadow_cam = lookat_func(cam_pos, centroid_center, up);
 
-	return mul(split_ortho_matrix, get_camera_matrix(split_shadow_cam));
-	//return split_ortho_matrix;
-	//return get_camera_matrix(split_shadow_cam);
-	//camera sanity_cam = lookat_func(float3(0,0,1), float3(0,-1,0), float3(0,0,1));
-	//return mul(split_ortho_matrix, get_camera_matrix(sanity_cam));
-	//return ortographic(-100, 100, -100, 100, 0.0f, 100);
-	//return mul(ortographic(-25, 25, -25, 25, 0.0f, 25), light_view_mat);
+	return mul(get_camera_matrix(split_shadow_cam), split_ortho_matrix);
 }
 
 float log_partition_from_range(uint part, float minz, float maxz)
@@ -236,13 +230,10 @@ void init(uint2 dispatchThreadId, uint groupIndex)
 {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
-	//uint2 inputTexSize;
-	//inputTex.GetDimensions(inputTexSize.x, inputTexSize.y);
 	if (any(dispatchThreadId.xy >= inputTexSize.xy))
 		return;
 
 	float2 data = inputTex.Load(int3(dispatchThreadId.xy, 0)).xy;
-	//inputTex[dispatchThreadId.xy] = float2(0.0, 0.0);
 
 	localData[groupIndex].x = min(data.x, localData[groupIndex].x);
 	localData[groupIndex].y = max(data.y, localData[groupIndex].y);
@@ -265,10 +256,7 @@ void CSMain(
 	{ //INIT
 		uint3 inputTexSize;
 		inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
-		//uint2 inputTexSize;
-		//inputTex.GetDimensions(inputTexSize.x, inputTexSize.y);
 
-		//localData[groupIndex] = float2(100.0f, 0.0f);
 		localData[groupIndex] = float2(1.0f, 0.0f);
 
 		for (uint y = groupThreadId.y * (inputTexSize.y / float(LOCAL_SIZE_Y)); y < (groupThreadId.y + 1) * (inputTexSize.y / float(LOCAL_SIZE_Y)); ++y)
@@ -305,13 +293,9 @@ void CSMain(
 
 			float linearMinDepth = linearize_depth(minDepth, uniforms.cam_near, uniforms.cam_far);
 			float linearMaxDepth = linearize_depth(maxDepth, uniforms.cam_near, uniforms.cam_far);
-			//float linearMinDepth = minDepth;//linearize_depth(minDepth, uniforms.cam_near, uniforms.cam_far);
-			//float linearMaxDepth = maxDepth;//linearize_depth(maxDepth, uniforms.cam_near, uniforms.cam_far);
-
-			//near = linearMinDepth;// *uniforms.cam_far;
-			//far = linearMaxDepth;// *uniforms.cam_far;
-			near = linearMinDepth *uniforms.cam_far;
-			far = linearMaxDepth *uniforms.cam_far;
+			
+			near = linearMinDepth * uniforms.cam_far;
+			far = linearMaxDepth * uniforms.cam_far;
 		}
 
 		float4x4 light_mvp[4];
@@ -327,7 +311,6 @@ void CSMain(
 				for (int c = 0; c < 4; ++c)
 					norm_frustum_splits[c] = (frustum_splits[c] - uniforms.cam_near) / (uniforms.cam_far - uniforms.cam_near);
 
-				//frustum_splits[3].y = uniforms.cam_far;
 				for (uint d = 0; d < 4; ++d)
 					outputTex2[uint2(d,0)] = frustum_splits[d];
 			}
@@ -347,7 +330,7 @@ void CSMain(
 		}
 
 		for (int c = 0; c < 4; ++c)
-			shadow_mat[c] = mul(uniforms.bias_mx, mul(light_mvp[c], uniforms.inv_mv));
+			shadow_mat[c] = mul(mul(uniforms.inv_mv, light_mvp[c]), uniforms.bias_mx);
 
 		for (uint d = 0; d < 4; ++d)
 		{

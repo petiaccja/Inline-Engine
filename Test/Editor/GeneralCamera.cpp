@@ -1,5 +1,6 @@
 #include "GeneralCamera.hpp"
 #include <Core/Scene.hpp>
+#include <BaseLibrary\Platform\Sys.hpp>
 
 namespace inl {
 

@@ -21,7 +21,7 @@ class ForwardRender :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
 	
-	virtual public exc::InputPortConfig<
+	virtual public InputPortConfig<
 		Texture2D,
 		Texture2D,
 		const EntityCollection<MeshEntity>*,
@@ -32,7 +32,7 @@ class ForwardRender :
 		Texture2D,
 		Texture2D,
 		Texture2D>,
-	virtual public exc::OutputPortConfig<Texture2D>
+	virtual public OutputPortConfig<Texture2D, Texture2D>
 {
 private:
 	struct ScenarioDesc {
@@ -48,22 +48,23 @@ private:
 		size_t constantsSize;
 	};
 	struct VsConstants {
-		mathfu::VectorPacked<float, 4> mvp[4];
-		mathfu::VectorPacked<float, 4> mv[4];
-		mathfu::VectorPacked<float, 4> m[4];
-		mathfu::VectorPacked<float, 4> v[4];
-		mathfu::VectorPacked<float, 4> p[4];
+		Mat44_Packed mvp;
+		Mat44_Packed prevMVP;
+		Mat44_Packed mv;
+		Mat44_Packed m;
+		Mat44_Packed v;
+		Mat44_Packed p;
 	};	
 	struct LightConstants {
-		alignas(16) mathfu::VectorPacked<float, 3> direction;
-		alignas(16) mathfu::VectorPacked<float, 3> color;
+		alignas(16) Vec3_Packed direction;
+		alignas(16) Vec3_Packed color;
 	};
 
 public:
 	ForwardRender();
 
 	void Update() override {}
-	void Notify(exc::InputPortBase* sender) override {}
+	void Notify(InputPortBase* sender) override {}
 
 	void Initialize(EngineContext& context) override;
 	void Reset() override;
@@ -100,6 +101,7 @@ protected:
 
 private:
 	RenderTargetView2D m_rtv;
+	RenderTargetView2D m_velocity_rtv;
 	DepthStencilView2D m_dsv;
 	const EntityCollection<MeshEntity>* m_entities;
 	const BasicCamera* m_camera;

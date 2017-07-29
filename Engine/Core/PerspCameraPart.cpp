@@ -7,11 +7,8 @@ PerspCameraPart::PerspCameraPart(gxeng::PerspectiveCamera* cam)
 {
 	cam->SetTargeted(true);
 
-	auto pos = cam->GetPosition();
-	auto target = cam->GetTarget();
-
-	SetPos(Vec3(pos.x(), pos.y(), pos.z()));
-	SetTarget(Vec3(target.x(), target.y(), target.z()));
+	SetPos(cam->GetPosition());
+	SetTarget(cam->GetTarget());
 }
 
 PerspCameraPart::~PerspCameraPart()
@@ -21,17 +18,16 @@ PerspCameraPart::~PerspCameraPart()
 
 void PerspCameraPart::UpdateEntityTransform()
 {
-	auto pos = GetPos();
-	auto rot = GetRot();
+	const Quat& rot = GetRot();
 	Vec3 upVec = rot * Vec3(0, 0, 1);
 	Vec3 frontVec = rot * Vec3(0, 1, 0);
 
 	// Update camera Entity position
-	cam->SetPosition(mathfu::Vector3f(pos.x, pos.y, pos.z));
+	cam->SetPosition(GetPos());
 	
 	// Update camera Entity Rotation
-	cam->SetUpVector(mathfu::Vector3f(upVec.x, upVec.y, upVec.z));
-	cam->SetTarget(cam->GetPosition() + mathfu::Vector3f(frontVec.x, frontVec.y, frontVec.z));
+	cam->SetUpVector(upVec);
+	cam->SetTarget(cam->GetPosition() + frontVec);
 }
 
 void PerspCameraPart::SetDirNormed(const Vec3& dir)
@@ -39,27 +35,29 @@ void PerspCameraPart::SetDirNormed(const Vec3& dir)
 	// TODO do not change the distance between camera position and camera target, save the length of it and reuse it !
 	//cam->SetTarget(cam->GetTarget() + mathfu::Vector3f(dir.x, dir.y, dir.z));
 
-	mathfu::Vector3f frontDir = cam->GetLookDirection();
-	mathfu::Vector3f upVec = cam->GetUpVector();
-	mathfu::Vector3f rightVec = mathfu::Vector3f::CrossProduct(frontDir, upVec).Normalized();
+	assert(0);
 
-	// TODO generate camera rotation from {front, up, right} dirs
-	Mat33 mat;
-	mat(0, 0) = rightVec.x();
-	mat(0, 1) = rightVec.y();
-	mat(0, 2) = rightVec.z();
-
-	mat(1, 0) = upVec.x();
-	mat(1, 1) = upVec.y();
-	mat(1, 2) = upVec.z();
-
-	mat(2, 0) = frontDir.x();
-	mat(2, 1) = frontDir.y();
-	mat(2, 2) = frontDir.z();
-
-	Quat camRot = (Quat)mat;
-
-	SetRot(camRot);
+	//mathfu::Vector3f frontDir = cam->GetLookDirection();
+	//mathfu::Vector3f upVec = cam->GetUpVector();
+	//mathfu::Vector3f rightVec = mathfu::Vector3f::CrossProduct(frontDir, upVec).Normalized();
+	//
+	//// TODO generate camera rotation from {front, up, right} dirs
+	//Mat33 mat;
+	//mat(0, 0) = rightVec.x();
+	//mat(0, 1) = rightVec.y();
+	//mat(0, 2) = rightVec.z();
+	//
+	//mat(1, 0) = upVec.x();
+	//mat(1, 1) = upVec.y();
+	//mat(1, 2) = upVec.z();
+	//
+	//mat(2, 0) = frontDir.x();
+	//mat(2, 1) = frontDir.y();
+	//mat(2, 2) = frontDir.z();
+	//
+	//Quat camRot = (Quat)mat;
+	//
+	//SetRot(camRot);
 }
 
 void PerspCameraPart::SetAspectRatio(float ratio)

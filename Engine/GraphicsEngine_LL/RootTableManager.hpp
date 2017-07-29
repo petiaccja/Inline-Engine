@@ -191,10 +191,10 @@ void RootTableManager<Type>::InitRootTables() {
 				continue;
 			}
 
-			// if first range is NOT a sampler, non of the ranges are
-			// dynamic samplers are not supported, thus the exception
+			// If first range is NOT a sampler, non of the ranges are.
+			// Dynamic samplers are not supported, thus the exception.
 			if (ranges[0].type == gxapi::DescriptorRange::eType::SAMPLER) {
-				throw std::runtime_error("Dynamic Samplers are not supported yet.");
+				throw NotImplementedException("Dynamic Samplers are not supported yet.");
 			}
 
 			// check if ranges are contiguous and not unbounded

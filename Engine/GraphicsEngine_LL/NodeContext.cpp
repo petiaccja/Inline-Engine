@@ -62,7 +62,7 @@ Texture2D SetupContext::CreateTexture2D(uint64_t width, uint32_t height, gxapi::
 }
 
 Texture2D SetupContext::CreateShaderResource2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize) const {
-	if (m_memoryManager == nullptr) throw std::logic_error("Cannot create texture without memory manager.");
+	if (m_memoryManager == nullptr) throw InvalidStateException("Cannot create texture without memory manager.");
 
 	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, format, gxapi::eResourceFlags::NONE, arraySize);
 	return texture;
@@ -70,7 +70,7 @@ Texture2D SetupContext::CreateShaderResource2D(uint64_t width, uint32_t height, 
 
 
 Texture2D SetupContext::CreateRenderTarget2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize) const {
-	if (m_memoryManager == nullptr) throw std::logic_error("Cannot create texture without memory manager.");
+	if (m_memoryManager == nullptr) throw InvalidStateException("Cannot create texture without memory manager.");
 
 	gxapi::eResourceFlags flags = gxapi::eResourceFlags::ALLOW_RENDER_TARGET;
 
@@ -80,7 +80,7 @@ Texture2D SetupContext::CreateRenderTarget2D(uint64_t width, uint32_t height, gx
 
 
 Texture2D SetupContext::CreateDepthStencil2D(uint64_t width, uint32_t height, gxapi::eFormat format, bool shaderResource, uint16_t arraySize) const {
-	if (m_memoryManager == nullptr) throw std::logic_error("Cannot create texture without memory manager.");
+	if (m_memoryManager == nullptr) throw InvalidStateException("Cannot create texture without memory manager.");
 
 	gxapi::eResourceFlags flags = gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL;
 	if (!shaderResource) {
@@ -92,7 +92,7 @@ Texture2D SetupContext::CreateDepthStencil2D(uint64_t width, uint32_t height, gx
 
 
 Texture2D SetupContext::CreateRWTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, bool renderTarget, uint16_t arraySize) const {
-	if (m_memoryManager == nullptr) throw std::logic_error("Cannot create texture without memory manager.");
+	if (m_memoryManager == nullptr) throw InvalidStateException("Cannot create texture without memory manager.");
 
 	gxapi::eResourceFlags flags = gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS;
 	if (renderTarget) { flags += gxapi::eResourceFlags::ALLOW_RENDER_TARGET; }
@@ -103,28 +103,34 @@ Texture2D SetupContext::CreateRWTexture2D(uint64_t width, uint32_t height, gxapi
 
 
 TextureView2D SetupContext::CreateSrv(Texture2D& texture, gxapi::eFormat format, gxapi::SrvTexture2DArray desc) const {
-	if (m_srvHeap == nullptr) throw std::logic_error("Cannot create srv without srv/cbv/uav heap.");
+	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create srv without srv/cbv/uav heap.");
 
 	return TextureView2D{ texture, *m_srvHeap, format, desc };
 }
 
+TextureViewCube SetupContext::CreateSrv(Texture2D & texture, gxapi::eFormat format, gxapi::SrvTextureCubeArray desc) const {
+	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create srv without srv/cbv/uav heap.");
+
+	return TextureViewCube{ texture, *m_srvHeap, format, desc };
+}
+
 
 RenderTargetView2D SetupContext::CreateRtv(Texture2D& texture, gxapi::eFormat format, gxapi::RtvTexture2DArray desc) const {
-	if (m_rtvHeap == nullptr) throw std::logic_error("Cannot create rtv without rtv heap.");
+	if (m_rtvHeap == nullptr) throw InvalidStateException("Cannot create rtv without rtv heap.");
 
 	return RenderTargetView2D{ texture, *m_rtvHeap, format, desc };
 }
 
 
 DepthStencilView2D SetupContext::CreateDsv(Texture2D& texture, gxapi::eFormat format, gxapi::DsvTexture2DArray desc) const {
-	if (m_dsvHeap == nullptr) throw std::logic_error("Cannot create dsv without dsv heap.");
+	if (m_dsvHeap == nullptr) throw InvalidStateException("Cannot create dsv without dsv heap.");
 
 	return DepthStencilView2D{ texture, *m_dsvHeap, format, desc };
 }
 
 
 RWTextureView2D SetupContext::CreateUav(Texture2D& rwTexture, gxapi::eFormat format, gxapi::UavTexture2DArray desc) const {
-	if (m_srvHeap == nullptr) throw std::logic_error("Cannot create uav wihtout srv/cbv/uav heap.");
+	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create uav wihtout srv/cbv/uav heap.");
 
 	return RWTextureView2D{ rwTexture, *m_srvHeap, format, desc };
 }
@@ -185,6 +191,7 @@ RenderContext::RenderContext(MemoryManager* memoryManager,
 							 VolatileViewHeap* volatileViewHeap,
 							 ShaderManager* shaderManager,
 							 gxapi::IGraphicsApi* graphicsApi,
+							 CommandListPool* commandListPool,
 							 CommandAllocatorPool* commandAllocatorPool,
 							 ScratchSpacePool* scratchSpacePool)
 	: m_memoryManager(memoryManager),
@@ -192,6 +199,7 @@ RenderContext::RenderContext(MemoryManager* memoryManager,
 	m_volatileViewHeap(volatileViewHeap),
 	m_shaderManager(shaderManager),
 	m_graphicsApi(graphicsApi),
+	m_commandListPool(commandListPool),
 	m_commandAllocatorPool(commandAllocatorPool),
 	m_scratchSpacePool(scratchSpacePool)
 {}
@@ -236,7 +244,7 @@ Binder RenderContext::CreateBinder(const std::vector<BindParameterDesc>& paramet
 // Query command list
 GraphicsCommandList& RenderContext::AsGraphics() {
 	if (!m_commandList) {
-		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap));
+		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap));
 		m_type = gxapi::eCommandListType::GRAPHICS;
 		return *dynamic_cast<GraphicsCommandList*>(m_commandList.get());
 	}
@@ -249,7 +257,7 @@ GraphicsCommandList& RenderContext::AsGraphics() {
 }
 ComputeCommandList& RenderContext::AsCompute() {
 	if (!m_commandList) {
-		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap)); // only graphics queues now
+		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap)); // only graphics queues now
 		m_type = gxapi::eCommandListType::COMPUTE;
 		return *dynamic_cast<ComputeCommandList*>(m_commandList.get());
 	}
@@ -262,7 +270,7 @@ ComputeCommandList& RenderContext::AsCompute() {
 }
 CopyCommandList& RenderContext::AsCopy() {
 	if (!m_commandList) {
-		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap)); // only graphics queues now
+		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap)); // only graphics queues now
 		m_type = gxapi::eCommandListType::COPY;
 		return *dynamic_cast<CopyCommandList*>(m_commandList.get());
 	}

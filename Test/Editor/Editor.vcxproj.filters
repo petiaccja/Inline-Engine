@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="TestGame_QC">
-      <UniqueIdentifier>{8ac82322-d920-436b-85e1-a544bdcf9f3d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="TestGame_ExcessiveStrike">
       <UniqueIdentifier>{73038bac-2218-43cb-a61e-50fb51a1be48}</UniqueIdentifier>
     </Filter>
@@ -16,34 +13,10 @@
     <ClCompile Include="PlayerScript.cpp">
       <Filter>TestGame_ExcessiveStrike</Filter>
     </ClCompile>
-    <ClCompile Include="PIDController.cpp">
-      <Filter>TestGame_QC</Filter>
-    </ClCompile>
-    <ClCompile Include="QCWorld.cpp">
-      <Filter>TestGame_QC</Filter>
-    </ClCompile>
-    <ClCompile Include="RigidBody.cpp">
-      <Filter>TestGame_QC</Filter>
-    </ClCompile>
-    <ClCompile Include="Rotor.cpp">
-      <Filter>TestGame_QC</Filter>
-    </ClCompile>
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="GeneralCamera.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Rotor.hpp">
-      <Filter>TestGame_QC</Filter>
-    </ClInclude>
-    <ClInclude Include="PIDController.hpp">
-      <Filter>TestGame_QC</Filter>
-    </ClInclude>
-    <ClInclude Include="QCWorld.hpp">
-      <Filter>TestGame_QC</Filter>
-    </ClInclude>
-    <ClInclude Include="RigidBody.hpp">
-      <Filter>TestGame_QC</Filter>
-    </ClInclude>
     <ClInclude Include="Editor.hpp" />
     <ClInclude Include="PlayerScript.hpp">
       <Filter>TestGame_ExcessiveStrike</Filter>

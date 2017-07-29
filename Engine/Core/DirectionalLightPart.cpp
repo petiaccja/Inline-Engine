@@ -22,12 +22,12 @@ void DirectionalLightPart::UpdateEntityTransform()
 
 void DirectionalLightPart::SetDirection(const Vec3& direction)
 {
-	light->SetDirection(mathfu::Vector3f(direction.x, direction.y, direction.z));
+	light->SetDirection(direction);
 }
 
 void DirectionalLightPart::SetColor(const Vec3& color)
 {
-	light->SetColor(mathfu::Vector3f(color.x, color.y, color.z));
+	light->SetColor(color);
 }
 
 } // namespace inl::core

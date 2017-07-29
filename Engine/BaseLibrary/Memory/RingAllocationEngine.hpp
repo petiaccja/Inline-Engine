@@ -7,7 +7,7 @@
 #include <vector>
 
 
-namespace exc {
+namespace inl {
 
 //extern std::atomic<bool> flag;
 
@@ -80,5 +80,5 @@ protected:
 };
 
 
-} // namespace exc
+} // namespace inl
 

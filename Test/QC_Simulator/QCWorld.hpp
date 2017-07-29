@@ -14,6 +14,7 @@
 #include "RigidBody.hpp"
 #include "Rotor.hpp"
 #include "PIDController.hpp"
+#include <InlineMath.hpp>
 
 
 struct ControlInfo {
@@ -31,23 +32,23 @@ struct ControlInfo {
 	//             /   \
 	//           3       4
 	//           >       <
-	mathfu::Vector4f RPM(const Rotor& rotor) const {
-		mathfu::Vector3f force, torque;
+	inl::Vec4 RPM(const Rotor& rotor) const {
+		inl::Vec3 force, torque;
 		force = { 0, 0, weight + (int)ascend - (int)descend };
 		torque = {
 			0.05f*((int)back - (int)front),
 			0.05f*((int)right - (int)left),
 			0.2f*((int)rotateLeft - (int)rotateRight)
 		};
-		mathfu::Vector4f rpm;
+		inl::Vec4 rpm;
 		rotor.SetTorque(force, torque, rpm);
 		return rpm;
 	}
 
-	mathfu::Quaternionf Orientation() const {
-		auto x = mathfu::Quaternionf::FromAngleAxis(0.35f*(back - front), {1, 0, 0});
-		auto y = mathfu::Quaternionf::FromAngleAxis(0.35f*(right - left), { 0, 1, 0 });
-		auto z = mathfu::Quaternionf::FromAngleAxis(heading, { 0, 0, 1 });
+	inl::Quat Orientation() const {
+		auto x = inl::Quat::AxisAngle(inl::Vec3{ 1, 0, 0 }, 0.35f*(back - front));
+		auto y = inl::Quat::AxisAngle(inl::Vec3{ 0, 1, 0 }, 0.35f*(right - left));
+		auto z = inl::Quat::AxisAngle(inl::Vec3{ 0, 0, 1 }, heading);
 		return z*y*x;
 	}
 };
@@ -79,7 +80,8 @@ public:
 
 	void IWantSunsetBitches();
 private:
-	void AddTree(mathfu::Vector3f position);
+	void AddTree(inl::Vec3 position);
+	void CreatePipelineResources();
 private:
 	// Engine
 	inl::gxeng::GraphicsEngine* m_graphicsEngine;
@@ -93,18 +95,34 @@ private:
 	std::unique_ptr<inl::gxeng::Image> m_terrainTexture;
 	std::unique_ptr<inl::gxeng::Mesh> m_treeMesh;
 	std::unique_ptr<inl::gxeng::Image> m_treeTexture;
+	std::unique_ptr<inl::gxeng::Mesh> m_sphereMesh;
+
+	std::unique_ptr<inl::gxeng::Image> m_sphereAlbedoTex;
+	std::unique_ptr<inl::gxeng::Image> m_sphereMetalnessTex;
+	std::unique_ptr<inl::gxeng::Image> m_sphereRoughnessTex;
+	std::unique_ptr<inl::gxeng::Image> m_sphereNormalTex;
+	std::unique_ptr<inl::gxeng::Image> m_sphereAOTex;
+
 
 	std::unique_ptr<inl::gxeng::Image> m_checkerTexture;
 
 	std::unique_ptr<inl::gxeng::Material> m_treeMaterial;
 	std::unique_ptr<inl::gxeng::Material> m_quadcopterMaterial;
 	std::unique_ptr<inl::gxeng::Material> m_terrainMaterial;
+	std::unique_ptr<inl::gxeng::Material> m_sphereMaterial;
 	std::unique_ptr<inl::gxeng::Material> m_axesMaterial;
 	std::unique_ptr<inl::gxeng::MaterialShaderGraph> m_simpleShader;
+	std::unique_ptr<inl::gxeng::MaterialShaderGraph> m_pbrShader;
+
+	// Pipeline resources
+	std::unique_ptr<inl::gxeng::Image> m_areaImage, m_searchImage;
+	std::unique_ptr<inl::gxeng::Image> m_lensFlareColorImage;
+	std::unique_ptr<inl::gxeng::Image> m_colorGradingLutImage, m_lensFlareDirtImage, m_lensFlareStarImage;
 
 	// Entities
 	std::vector<std::unique_ptr<inl::gxeng::MeshEntity>> m_staticEntities;
 	std::unique_ptr<inl::gxeng::MeshEntity> m_terrainEntity;
+	std::unique_ptr<inl::gxeng::MeshEntity> m_sphereEntity;
 	std::unique_ptr<inl::gxeng::MeshEntity> m_quadcopterEntity;
 	std::unique_ptr<inl::gxeng::MeshEntity> m_axesEntity;
 

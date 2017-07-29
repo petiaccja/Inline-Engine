@@ -3,6 +3,9 @@
 #include <AssetLibrary/Model.hpp>
 #include "AssetLibrary/Image.hpp"
 
+#include "AreaTex.h"
+#include "SearchTex.h"
+
 #include <array>
 #include <random>
 
@@ -24,20 +27,20 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_guiCamera->SetBounds(0, width, height, 0, -1, 1);
 
 		std::vector<inl::gxeng::Vertex<Position<0>, TexCoord<0>>> vertices(4);
-		vertices[0].position = mathfu::Vector3f(0, 0, 0);
-		vertices[1].position = mathfu::Vector3f(0, 1, 0);
-		vertices[2].position = mathfu::Vector3f(1, 1, 0);
-		vertices[3].position = mathfu::Vector3f(1, 0, 0);
+		vertices[0].position = inl::Vec3(0, 0, 0);
+		vertices[1].position = inl::Vec3(0, 1, 0);
+		vertices[2].position = inl::Vec3(1, 1, 0);
+		vertices[3].position = inl::Vec3(1, 0, 0);
 
-		vertices[0].texCoord = mathfu::Vector2f(0, 0);
-		vertices[1].texCoord = mathfu::Vector2f(0, 1);
-		vertices[2].texCoord = mathfu::Vector2f(1, 1);
-		vertices[3].texCoord = mathfu::Vector2f(1, 0);
+		vertices[0].texCoord = inl::Vec2(0, 0);
+		vertices[1].texCoord = inl::Vec2(0, 1);
+		vertices[2].texCoord = inl::Vec2(1, 1);
+		vertices[3].texCoord = inl::Vec2(1, 0);
 
 		std::vector<unsigned> indices = { 0, 1, 2, 0, 2, 3 };
 
 		m_overlayQuadMesh.reset(m_graphicsEngine->CreateMesh());
-		m_overlayQuadMesh->Set(vertices.data(), vertices.size(), indices.data(), indices.size());
+		m_overlayQuadMesh->Set(vertices.data(), &vertices[0].GetReader(), vertices.size(), indices.data(), indices.size());
 
 		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
 		inl::asset::Image img("assets\\overlay.png");
@@ -58,9 +61,9 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		}
 
 		// Set world render transform
-		m_graphicsEngine->SetEnvVariable("world_render_pos", exc::Any(mathfu::Vector2f(0.f, 0.f)));
-		m_graphicsEngine->SetEnvVariable("world_render_rot", exc::Any(0.f));
-		m_graphicsEngine->SetEnvVariable("world_render_size", exc::Any(mathfu::Vector2f(width, height)));
+		m_graphicsEngine->SetEnvVariable("world_render_pos", inl::Any(inl::Vec2(0.f, 0.f)));
+		m_graphicsEngine->SetEnvVariable("world_render_rot", inl::Any(0.f));
+		m_graphicsEngine->SetEnvVariable("world_render_size", inl::Any(inl::Vec2(width, height)));
 	}
 	
 	// Create scene and camera
@@ -88,7 +91,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
 
 		m_terrainMesh.reset(m_graphicsEngine->CreateMesh());
-		m_terrainMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+		m_terrainMesh->Set(modelVertices.data(), &modelVertices[0].GetReader(), modelVertices.size(), modelIndices.data(), modelIndices.size());
 	}
 
 	// Create terrain texture
@@ -101,6 +104,67 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_terrainTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
 	}
 
+	// Create sphere mesh
+	{
+		inl::asset::Model model("assets\\sphere\\sphere.fbx");
+
+		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0, coordSysLayout);
+		std::vector<unsigned> modelIndices = model.GetIndices(0);
+
+		m_sphereMesh.reset(m_graphicsEngine->CreateMesh());
+		m_sphereMesh->Set(modelVertices.data(), &modelVertices[0].GetReader(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+	}
+
+	// Create sphere albedo texture
+	{
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\sphere\\rustedIronAlbedo.png");
+
+		m_sphereAlbedoTex.reset(m_graphicsEngine->CreateImage());
+		m_sphereAlbedoTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR);
+		m_sphereAlbedoTex->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+	}
+
+	// Create sphere normal texture
+	{
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\sphere\\rustedIronNormal.png");
+
+		m_sphereNormalTex.reset(m_graphicsEngine->CreateImage());
+		m_sphereNormalTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
+		m_sphereNormalTex->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+	}
+
+	// Create sphere metalness texture
+	{
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\sphere\\rustedIronMetalness.png");
+
+		m_sphereMetalnessTex.reset(m_graphicsEngine->CreateImage());
+		m_sphereMetalnessTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR);
+		m_sphereMetalnessTex->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+	}
+
+	// Create sphere roughness texture
+	{
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\sphere\\rustedIronRoughness.png");
+
+		m_sphereRoughnessTex.reset(m_graphicsEngine->CreateImage());
+		m_sphereRoughnessTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR);
+		m_sphereRoughnessTex->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+	}
+
+	// Create sphere AO texture
+	{
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\sphere\\rustedIronAO.png");
+
+		m_sphereAOTex.reset(m_graphicsEngine->CreateImage());
+		m_sphereAOTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
+		m_sphereAOTex->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+	}
+
 	// Create QC mesh
 	{
 		inl::asset::Model model("assets\\quadcopter.fbx");
@@ -109,7 +173,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
 
 		m_quadcopterMesh.reset(m_graphicsEngine->CreateMesh());
-		m_quadcopterMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+		m_quadcopterMesh->Set(modelVertices.data(), &modelVertices[0].GetReader(), modelVertices.size(), modelIndices.data(), modelIndices.size());
 	}
 
 	// Create QC texture
@@ -130,7 +194,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
 
 		m_axesMesh.reset(m_graphicsEngine->CreateMesh());
-		m_axesMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+		m_axesMesh->Set(modelVertices.data(), &modelVertices[0].GetReader(), modelVertices.size(), modelIndices.data(), modelIndices.size());
 	}
 
 	// Create axes texture
@@ -151,7 +215,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
 
 		m_treeMesh.reset(m_graphicsEngine->CreateMesh());
-		m_treeMesh->Set(modelVertices.data(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+		m_treeMesh->Set(modelVertices.data(), &modelVertices[0].GetReader(), modelVertices.size(), modelIndices.data(), modelIndices.size());
 	}
 
 	// Create tree texture
@@ -170,27 +234,57 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_quadcopterMaterial.reset(m_graphicsEngine->CreateMaterial());
 		m_axesMaterial.reset(m_graphicsEngine->CreateMaterial());
 		m_terrainMaterial.reset(m_graphicsEngine->CreateMaterial());
+		m_sphereMaterial.reset(m_graphicsEngine->CreateMaterial());
 
 		m_simpleShader.reset(m_graphicsEngine->CreateMaterialShaderGraph());
+		m_pbrShader.reset(m_graphicsEngine->CreateMaterialShaderGraph());
 		std::unique_ptr<inl::gxeng::MaterialShaderEquation> mapShader(m_graphicsEngine->CreateMaterialShaderEquation());
+		std::unique_ptr<inl::gxeng::MaterialShaderEquation> map2Shader(m_graphicsEngine->CreateMaterialShaderEquation());
+		std::unique_ptr<inl::gxeng::MaterialShaderEquation> map3Shader(m_graphicsEngine->CreateMaterialShaderEquation());
+		std::unique_ptr<inl::gxeng::MaterialShaderEquation> map4Shader(m_graphicsEngine->CreateMaterialShaderEquation());
 		std::unique_ptr<inl::gxeng::MaterialShaderEquation> diffuseShader(m_graphicsEngine->CreateMaterialShaderEquation());
+		std::unique_ptr<inl::gxeng::MaterialShaderEquation> pbrShader(m_graphicsEngine->CreateMaterialShaderEquation());
 
 		mapShader->SetSourceName("bitmap_color_2d.mtl");
+		map2Shader->SetSourceName("bitmap_color_2d.mtl");
+		map3Shader->SetSourceName("bitmap_roughness_2d.mtl");
+		map4Shader->SetSourceName("bitmap_metalness_2d.mtl");
 		diffuseShader->SetSourceName("simple_diffuse.mtl");
+		pbrShader->SetSourceName("pbr.mtl");
 
 		std::vector<std::unique_ptr<inl::gxeng::MaterialShader>> nodes;
 		nodes.push_back(std::move(mapShader));
 		nodes.push_back(std::move(diffuseShader));
+
+		/*
+		Pass nodes in first argument.
+		Pass links between nodes in second argument.
+		First link element is the source node ID (single output)
+		Second link element is the dest node ID
+		Third link element is the dest node's dest port ID (single output will be connected to this)
+		*/
 		m_simpleShader->SetGraph(std::move(nodes), { {0, 1, 0} });
 		m_treeMaterial->SetShader(m_simpleShader.get());
 		m_quadcopterMaterial->SetShader(m_simpleShader.get());
 		m_axesMaterial->SetShader(m_simpleShader.get());
 		m_terrainMaterial->SetShader(m_simpleShader.get());
 
+		std::vector<std::unique_ptr<inl::gxeng::MaterialShader>> nodes2;
+		nodes2.push_back(std::move(pbrShader));
+		nodes2.push_back(std::move(map2Shader));
+		nodes2.push_back(std::move(map3Shader));
+		nodes2.push_back(std::move(map4Shader));
+		m_pbrShader->SetGraph(std::move(nodes2), { { 1, 0, 0 }, { 2, 0, 1 }, { 3, 0, 2 } });
+		m_sphereMaterial->SetShader(m_pbrShader.get());
+
 		(*m_treeMaterial)[0] = m_treeTexture.get();
 		(*m_quadcopterMaterial)[0] = m_quadcopterTexture.get();
 		(*m_axesMaterial)[0] = m_axesTexture.get();
 		(*m_terrainMaterial)[0] = m_terrainTexture.get();
+
+		(*m_sphereMaterial)[0] = m_sphereAlbedoTex.get();
+		(*m_sphereMaterial)[1] = m_sphereRoughnessTex.get();
+		(*m_sphereMaterial)[2] = m_sphereMetalnessTex.get();
 	}
 
 	// Create checker texture
@@ -212,27 +306,36 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_terrainEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_terrainEntity->SetMesh(m_terrainMesh.get());
 	m_terrainEntity->SetMaterial(m_terrainMaterial.get());
-	m_terrainEntity->SetPosition({ 0,0,0 });
-	m_terrainEntity->SetRotation({ 1,0,0,0 });
-	m_terrainEntity->SetScale({ 1,1,1 });
+	m_terrainEntity->InitPosition({ 0,0,0 });
+	m_terrainEntity->InitRotation({ 1,0,0,0 });
+	m_terrainEntity->InitScale({ 1,1,1 });
 	m_worldScene->GetMeshEntities().Add(m_terrainEntity.get());
+
+	// Set up sphere
+	m_sphereEntity.reset(m_graphicsEngine->CreateMeshEntity());
+	m_sphereEntity->SetMesh(m_sphereMesh.get());
+	m_sphereEntity->SetMaterial(m_sphereMaterial.get());
+	m_sphereEntity->InitPosition({ 0,3,1 });
+	m_sphereEntity->InitRotation({ 1,0,0,0 });
+	m_sphereEntity->InitScale({ 1,1,1 });
+	m_worldScene->GetMeshEntities().Add(m_sphereEntity.get());
 
 	// Set up copter
 	m_quadcopterEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_quadcopterEntity->SetMesh(m_quadcopterMesh.get());
 	m_quadcopterEntity->SetMaterial(m_quadcopterMaterial.get());
-	m_quadcopterEntity->SetPosition({ 0,0,3 });
-	m_quadcopterEntity->SetRotation({ 1,0,0,0 });
-	m_quadcopterEntity->SetScale({ 1,1,1 });
+	m_quadcopterEntity->InitPosition({ 0,0,-3 });
+	m_quadcopterEntity->InitRotation({ 1,0,0,0 });
+	m_quadcopterEntity->InitScale({ 1,1,1 });
 	m_worldScene->GetMeshEntities().Add(m_quadcopterEntity.get());
 
 	// Set up axes
 	m_axesEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_axesEntity->SetMesh(m_axesMesh.get());
 	m_axesEntity->SetMaterial(m_axesMaterial.get());
-	m_axesEntity->SetPosition({ 0,0,3 });
-	m_axesEntity->SetRotation({ 1,0,0,0 });
-	m_axesEntity->SetScale({ 1,1,1 });
+	m_axesEntity->InitPosition({ 0,0,3 });
+	m_axesEntity->InitRotation({ 1,0,0,0 });
+	m_axesEntity->InitScale({ 1,1,1 });
 	//m_worldScene->GetMeshEntities().Add(m_axesEntity.get());
 
 	// Set up trees
@@ -253,7 +356,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	float Ixx = 0.026;
 	float Iyy = 0.024;
 	float Izz = 0.048;
-	mathfu::Matrix3x3f I = {
+	inl::Mat33 I = {
 		Ixx, 0, 0,
 		0, Iyy, 0,
 		0, 0, Izz };
@@ -261,6 +364,8 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_rigidBody.SetInertia(I);
 	m_rigidBody.SetGravity({ 0, 0, -9.81f });
 	m_controller.SetInertia(I);
+
+	CreatePipelineResources();
 }
 
 void QCWorld::UpdateWorld(float elapsed) {
@@ -270,18 +375,18 @@ void QCWorld::UpdateWorld(float elapsed) {
 	// Update simulation
 	bool controller = true;
 	if (!controller) {
-		mathfu::Vector4f rpm = m_rotorInfo.RPM(m_rotor);
-		mathfu::Vector3f force;
-		mathfu::Vector3f torque;
+		inl::Vec4 rpm = m_rotorInfo.RPM(m_rotor);
+		inl::Vec3 force;
+		inl::Vec3 torque;
 		m_rotor.SetRPM(rpm, force, torque);
 		m_rigidBody.Update(elapsed, force, torque);
 	}
 	else {
-		mathfu::Quaternionf orientation = m_rotorInfo.Orientation();
-		mathfu::Quaternionf q = m_rigidBody.GetRotation();
-		mathfu::Vector3f force;
-		mathfu::Vector3f torque;
-		mathfu::Vector4f rpm;
+		inl::Quat orientation = m_rotorInfo.Orientation();
+		inl::Quat q = m_rigidBody.GetRotation();
+		inl::Vec3 force;
+		inl::Vec3 torque;
+		inl::Vec4 rpm;
 		float lift = 2.0f * 9.81 + 5.f*((int)m_rotorInfo.ascend - (int)m_rotorInfo.descend);
 		m_controller.Update(orientation, lift, q, m_rigidBody.GetAngularVelocity(), elapsed, force, torque);
 		m_rotor.SetTorque(force, torque, rpm);
@@ -297,20 +402,24 @@ void QCWorld::UpdateWorld(float elapsed) {
 	m_axesEntity->SetRotation(m_rotorInfo.Orientation());
 
 	// Follow copter with camera
-	mathfu::Vector3f frontDir = m_rigidBody.GetRotation() * mathfu::Vector3f{ 0,1,0 };
-	mathfu::Vector3f upDir = m_rigidBody.GetRotation() * mathfu::Vector3f{ 0,0,1 };
-	frontDir.z() = 0;
-	upDir.z() = 0;
-	mathfu::Vector3f viewDir = (5*frontDir.LengthSquared() > upDir.LengthSquared()) ? frontDir.Normalized() : upDir.Normalized();
+	inl::Vec3 frontDir = m_rigidBody.GetRotation() * inl::Vec3{ 0, 1, 0 };
+	inl::Vec3 upDir = m_rigidBody.GetRotation() * inl::Vec3{ 0, 0, 1 };
+	frontDir.z = 0;
+	upDir.z = 0;
+	inl::Vec3 viewDir = (5*frontDir.LengthSquared() > upDir.LengthSquared()) ? frontDir.Normalized() : upDir.Normalized();
 	m_camera->SetTarget(m_rigidBody.GetPosition());
-	m_camera->SetPosition(m_rigidBody.GetPosition() + (-viewDir * 1.5 + mathfu::Vector3f{ 0,0,-lookTilt }).Normalized() * 1.5f);
+	m_camera->SetPosition(m_rigidBody.GetPosition() + (-viewDir * 1.5 + inl::Vec3{ 0,0,-lookTilt }).Normalized() * 1.5f);
+	//m_camera->SetTarget({ 0,0,0 });
+	//static float time = 0;
+	//time += elapsed / 3;
+	//m_camera->SetPosition(inl::Vec3{cos(time), sin(time), 0.5f}*10.f);
 }
 
 void QCWorld::ScreenSizeChanged(int width, int height) {
 	const float aspect = width / ((float)height);
 	m_camera->SetFOVAspect(75.f / 180.f * 3.1419f, aspect);
 	m_guiCamera->SetBounds(0, width, height, 0, -1, 1);
-	m_graphicsEngine->SetEnvVariable("world_render_size", exc::Any(mathfu::Vector2f(width, height)));
+	m_graphicsEngine->SetEnvVariable("world_render_size", inl::Any(inl::Vec2(width, height)));
 }
 
 void QCWorld::RenderWorld(float elapsed) {
@@ -318,7 +427,7 @@ void QCWorld::RenderWorld(float elapsed) {
 }
 
 
-void QCWorld::AddTree(mathfu::Vector3f position) {
+void QCWorld::AddTree(inl::Vec3 position) {
 	std::unique_ptr<inl::gxeng::MeshEntity> tree;
 
 	static std::mt19937_64 rne;
@@ -328,9 +437,9 @@ void QCWorld::AddTree(mathfu::Vector3f position) {
 	tree.reset(m_graphicsEngine->CreateMeshEntity());
 	tree->SetMesh(m_treeMesh.get());
 	tree->SetMaterial(m_treeMaterial.get());
-	tree->SetPosition(position);
-	tree->SetRotation({ 1,0,0,0 });
-	tree->SetScale({ s,s,s });
+	tree->InitPosition(position);
+	tree->InitRotation({ 1,0,0,0 });
+	tree->InitScale({ s,s,s });
 	m_worldScene->GetMeshEntities().Add(tree.get());
 	m_staticEntities.push_back(std::move(tree));
 }
@@ -379,4 +488,74 @@ float QCWorld::Heading() const {
 void QCWorld::IWantSunsetBitches() {
 	m_sun.SetColor({1.0f, 0.65f, 0.25f});
 	m_sun.SetDirection({ 0.8f, -0.7f, -0.15f });
+}
+
+void QCWorld::CreatePipelineResources()
+{
+	// Create pipeline resources
+	using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 2, gxeng::ePixelClass::LINEAR>;
+
+	{
+		m_areaImage.reset(this->m_graphicsEngine->CreateImage());
+		m_areaImage->SetLayout(AREATEX_WIDTH, AREATEX_HEIGHT, gxeng::ePixelChannelType::INT8_NORM, 2, gxeng::ePixelClass::LINEAR);
+		m_areaImage->Update(0, 0, AREATEX_WIDTH, AREATEX_HEIGHT, areaTexBytes, PixelT::Reader());
+
+		this->m_graphicsEngine->SetEnvVariable("SMAA_areaTex", inl::Any{ m_areaImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 1, gxeng::ePixelClass::LINEAR>;
+		m_searchImage.reset(this->m_graphicsEngine->CreateImage());
+		m_searchImage->SetLayout(SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, gxeng::ePixelChannelType::INT8_NORM, 1, gxeng::ePixelClass::LINEAR);
+		m_searchImage->Update(0, 0, SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, searchTexBytes, PixelT::Reader());
+
+		this->m_graphicsEngine->SetEnvVariable("SMAA_searchTex", inl::Any{ m_searchImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\lensFlare\\lens_color.png");
+
+		m_lensFlareColorImage.reset(this->m_graphicsEngine->CreateImage());
+		m_lensFlareColorImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
+		m_lensFlareColorImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+
+		this->m_graphicsEngine->SetEnvVariable("LensFlare_ColorTex", inl::Any{ m_lensFlareColorImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\colorGrading\\default_lut_table.png");
+
+		m_colorGradingLutImage.reset(this->m_graphicsEngine->CreateImage());
+		m_colorGradingLutImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR);
+		m_colorGradingLutImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+
+		//TODO
+		//create cube texture
+
+		this->m_graphicsEngine->SetEnvVariable("HDRCombine_colorGradingTex", inl::Any{ m_colorGradingLutImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\lensFlare\\lens_dirt.png");
+
+		m_lensFlareDirtImage.reset(this->m_graphicsEngine->CreateImage());
+		m_lensFlareDirtImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
+		m_lensFlareDirtImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+
+		this->m_graphicsEngine->SetEnvVariable("HDRCombine_lensFlareDirtTex", inl::Any{ m_lensFlareDirtImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\lensFlare\\lens_star.png");
+
+		m_lensFlareStarImage.reset(this->m_graphicsEngine->CreateImage());
+		m_lensFlareStarImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
+		m_lensFlareStarImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+
+		this->m_graphicsEngine->SetEnvVariable("HDRCombine_lensFlareStarTex", inl::Any{ m_lensFlareStarImage.get() });
+	}
 }

@@ -11,6 +11,7 @@
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
 #include <memory>
 #include <vector>
+#include <cassert>
 #include "Exception.hpp"
 
 namespace inl {
@@ -601,12 +602,12 @@ struct eDsvFlags_Base {
 
 } // namespace bitflag_enum_impl
 
-using eHeapFlags = exc::BitFlagEnum<bitflag_enum_impl::eHeapFlags_Base, bitflag_enum_impl::eHeapFlags_Base::eHeapFlags>;
-using eResourceState = exc::BitFlagEnum<bitflag_enum_impl::eResourceState_Base, bitflag_enum_impl::eResourceState_Base::eResourceState>;
-using eResourceFlags = exc::BitFlagEnum<bitflag_enum_impl::eResourceFlags_Base, bitflag_enum_impl::eResourceFlags_Base::eResourceFlags>;
-using eColorMask = exc::BitFlagEnum<bitflag_enum_impl::eColorMask_Base, bitflag_enum_impl::eColorMask_Base::eColorMask>;
-using eDsvFlags = exc::BitFlagEnum<bitflag_enum_impl::eDsvFlags_Base, bitflag_enum_impl::eDsvFlags_Base::eDsvFlags>;
-using eShaderCompileFlags = exc::BitFlagEnum<bitflag_enum_impl::eShaderCompileFlags_Base, bitflag_enum_impl::eShaderCompileFlags_Base::eShaderCompileFlags>;
+using eHeapFlags = BitFlagEnum<bitflag_enum_impl::eHeapFlags_Base, bitflag_enum_impl::eHeapFlags_Base::eHeapFlags>;
+using eResourceState = BitFlagEnum<bitflag_enum_impl::eResourceState_Base, bitflag_enum_impl::eResourceState_Base::eResourceState>;
+using eResourceFlags = BitFlagEnum<bitflag_enum_impl::eResourceFlags_Base, bitflag_enum_impl::eResourceFlags_Base::eResourceFlags>;
+using eColorMask = BitFlagEnum<bitflag_enum_impl::eColorMask_Base, bitflag_enum_impl::eColorMask_Base::eColorMask>;
+using eDsvFlags = BitFlagEnum<bitflag_enum_impl::eDsvFlags_Base, bitflag_enum_impl::eDsvFlags_Base::eDsvFlags>;
+using eShaderCompileFlags = BitFlagEnum<bitflag_enum_impl::eShaderCompileFlags_Base, bitflag_enum_impl::eShaderCompileFlags_Base::eShaderCompileFlags>;
 
 
 
@@ -772,6 +773,11 @@ struct ResourceDesc {
 		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
 
 	static inline ResourceDesc CubeMap(uint64_t width, uint32_t height, eFormat format,
+		eResourceFlags flags = eResourceFlags::NONE,
+		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+
+	static inline ResourceDesc CubeMapArray(uint64_t width, uint32_t height, eFormat format, uint16_t arraySize,
 		eResourceFlags flags = eResourceFlags::NONE,
 		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
 		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
@@ -1790,6 +1796,30 @@ inline ResourceDesc ResourceDesc::CubeMap(uint64_t width, uint32_t height, eForm
 
 	return desc;
 }
+inline ResourceDesc ResourceDesc::CubeMapArray(uint64_t width, uint32_t height, eFormat format, uint16_t arraySize,
+	eResourceFlags flags,
+	uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+	uint64_t alignment, eTextureLayout layout)
+{
+	assert(arraySize <= 65535 / 6);
+	ResourceDesc desc;
+	desc.type = eResourceType::TEXTURE;
+
+	desc.textureDesc.dimension = eTextueDimension::TWO;
+	desc.textureDesc.format = format;
+	desc.textureDesc.width = width;
+	desc.textureDesc.height = height;
+	desc.textureDesc.depthOrArraySize = 6 * arraySize;
+
+	desc.textureDesc.flags = flags;
+	desc.textureDesc.mipLevels = mipLevels;
+	desc.textureDesc.multisampleCount = multisampleCount;
+	desc.textureDesc.multisampleQuality = multisampleQuality;
+	desc.textureDesc.alignment = alignment;
+	desc.textureDesc.layout = layout;
+
+	return desc;
+}
 
 
 inline RootParameterDesc RootParameterDesc::Constant(unsigned numConstants, unsigned shaderRegister, unsigned registerSpace, eShaderVisiblity shaderVisibility) {
@@ -1866,61 +1896,61 @@ inline RootParameterDesc RootParameterDesc::DescriptorTable(eShaderVisiblity sha
 
 template <>
 inline const RootConstant& RootParameterDesc::As<RootParameterDesc::eType::CONSTANT>() const {
-	if (m_type != eType::CONSTANT) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::CONSTANT) throw InvalidCastException("Object has different type than requested.");
 	return constant;
 }
 
 template <>
 inline const RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::CBV>() const {
-	if (m_type != eType::CBV) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::CBV) throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline const RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::SRV>() const {
-	if (m_type != eType::SRV) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::SRV) throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline const RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::UAV>() const {
-	if (m_type != eType::UAV) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::UAV) throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline const RootDescriptorTable& RootParameterDesc::As<RootParameterDesc::eType::DESCRIPTOR_TABLE>() const {
-	if (m_type != eType::DESCRIPTOR_TABLE) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::DESCRIPTOR_TABLE) throw InvalidCastException("Object has different type than requested.");
 	return descriptorTable;
 }
 
 template <>
 inline RootConstant& RootParameterDesc::As<RootParameterDesc::eType::CONSTANT>() {
-	if (m_type != eType::CONSTANT) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::CONSTANT) throw InvalidCastException("Object has different type than requested.");
 	return constant;
 }
 
 template <>
 inline RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::CBV>() {
-	if (m_type != eType::CBV) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::CBV) throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::SRV>() {
-	if (m_type != eType::SRV) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::SRV) throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::UAV>() {
-	if (m_type != eType::UAV) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::UAV) throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline RootDescriptorTable& RootParameterDesc::As<RootParameterDesc::eType::DESCRIPTOR_TABLE>() {
-	if (m_type != eType::DESCRIPTOR_TABLE) throw InvalidCast("Object has different type than requested.");
+	if (m_type != eType::DESCRIPTOR_TABLE) throw InvalidCastException("Object has different type than requested.");
 	return descriptorTable;
 }
 

@@ -5,7 +5,7 @@
 
 #include "NodeFactory.hpp"
 
-namespace exc {
+namespace inl {
 
 // Explicit instantiations, let them compile.
 
@@ -279,4 +279,4 @@ const char MathFunctionNames::Floor[] = "Floor:The nearest integer not greater t
 const char MathFunctionNames::Round[] = "Round:The nearest integer";
 
 
-} // namespace exc
+} // namespace inl

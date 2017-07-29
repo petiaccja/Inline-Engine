@@ -2,7 +2,7 @@
 #include <thread>
 
 
-namespace exc {
+namespace inl {
 
 
 class spin_mutex {
@@ -23,4 +23,4 @@ private:
 };
 
 
-} // namespace exc
+} // namespace inl

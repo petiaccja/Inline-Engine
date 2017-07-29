@@ -17,14 +17,14 @@ namespace nodes {
 class GetTime :
 	virtual public GraphicsNode,
 	public GraphicsTask,
-	public exc::InputPortConfig<>,
-	public exc::OutputPortConfig<double>
+	public InputPortConfig<>,
+	public OutputPortConfig<double>
 {
 public:
 	GetTime() {}
 
 	void Update() override {}
-	void Notify(exc::InputPortBase* sender) override {}
+	void Notify(InputPortBase* sender) override {}
 	void Initialize(EngineContext& context) override {
 		GraphicsNode::SetTaskSingle(this);
 	}

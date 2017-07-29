@@ -68,13 +68,13 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 	eValidationResult valid = Validate(firstStream, lastStream, firstIndex, lastIndex);
 	switch (valid) {
 	case eValidationResult::VERTEX_COUNT_MISMATCH:
-		throw std::invalid_argument("All streams must have the same number of vertices.");
+		throw InvalidArgumentException("All streams must have the same number of vertices.");
 		break;
 	case eValidationResult::INDEX_TOO_LARGE:
-		throw std::invalid_argument("Indices over-index the vertex buffers.");
+		throw InvalidArgumentException("Indices over-index the vertex buffers.");
 		break;
 	case eValidationResult::NOT_TRIANGLE:
-		throw std::invalid_argument("Index count not divisible by 3. Must be triangles.");
+		throw InvalidArgumentException("Index count not divisible by 3. Must be triangles.");
 		break;
 	case eValidationResult::OK:
 		break;
@@ -88,7 +88,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 		const VertexStream& stream = *streamIt;
 		size_t streamSizeBytes = stream.stride * stream.count;
 		if (streamSizeBytes == 0) {
-			throw std::invalid_argument("Stream cannot have 0 stride or 0 vertices.");
+			throw InvalidArgumentException("Stream cannot have 0 stride or 0 vertices.");
 		}
 		VertexBuffer buffer(m_memoryManager->CreateVertexBuffer(eResourceHeapType::CRITICAL, streamSizeBytes));
 		newVertexBuffers.push_back(std::move(buffer));

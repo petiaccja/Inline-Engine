@@ -14,6 +14,8 @@
 #include <iostream>
 #include <tchar.h>
 
+namespace inl {
+
 static HCURSOR cursorHandle = nullptr;
 
 DLLHandle Sys::LoadDLL(const wchar_t* path)
@@ -119,3 +121,5 @@ void Sys::SetCursorVisual(eCursorVisual visual, WindowHandle hwnd /*= nullptr*/)
 
 	SetCursor(cursorHandle);
 }
+
+} // namespace inl

@@ -18,7 +18,7 @@
 
 
 
-namespace exc {
+namespace inl {
 
 
 class InputPortBase;
@@ -307,4 +307,4 @@ public:
 };
 
 
-} // namespace exc
+} // namespace inl

@@ -255,7 +255,7 @@ void Editor::InitGui()
 		float aspectRatio = (float)width / height;
 
 		graphicsEngine->SetScreenSize(width, height);
-		graphicsEngine->SetEnvVariable("world_render_size", exc::Any(mathfu::Vector2f(width, height)));
+		graphicsEngine->SetEnvVariable("world_render_size", inl::Any(Vec2(width, height)));
 		
 		cam->SetAspectRatio(aspectRatio);
 		cam->SetFOV(60.f / 180.f * 3.14159265);

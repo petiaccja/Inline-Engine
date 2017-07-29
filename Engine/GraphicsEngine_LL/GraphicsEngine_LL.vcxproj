@@ -70,24 +70,32 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\libd;$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib;$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\libd64\;$(OutDir);$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib64\;$(OutDir);$(LibraryPath)</LibraryPath>
     <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(OutDir);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -97,10 +105,14 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
     </Link>
+    <Lib>
+      <AdditionalDependencies>lemon.lib;</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -110,12 +122,13 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
     </Link>
     <Lib>
-      <AdditionalDependencies>GraphicsApi_D3D12.lib;BaseLibrary.lib</AdditionalDependencies>
+      <AdditionalDependencies>lemon.lib;</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -129,12 +142,17 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <Lib>
+      <AdditionalDependencies>lemon.lib;</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -147,6 +165,8 @@
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -154,7 +174,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>GraphicsApi_D3D12.lib;BaseLibrary.lib</AdditionalDependencies>
+      <AdditionalDependencies>lemon.lib;</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -176,12 +196,27 @@
     <ClInclude Include="BasicCommandList.hpp" />
     <ClInclude Include="Binder.hpp" />
     <ClInclude Include="BindingManager.hpp" />
+    <ClInclude Include="CommandListPool.hpp" />
+    <ClInclude Include="GraphEditor.hpp" />
     <ClInclude Include="NodeContext.hpp" />
     <ClInclude Include="Nodes\DebugDrawManager.hpp" />
     <ClInclude Include="Nodes\ExampleNode.hpp" />
     <ClInclude Include="Nodes\NodeUtility.hpp" />
     <ClInclude Include="Nodes\Node_Blend.hpp" />
     <ClInclude Include="Nodes\Node_BlendWithTransform.hpp" />
+    <ClInclude Include="Nodes\Node_BloomAdd.hpp" />
+    <ClInclude Include="Nodes\Node_BloomBlur.hpp" />
+    <ClInclude Include="Nodes\Node_BloomDownsample.hpp" />
+    <ClInclude Include="Nodes\Node_BrightLumPass.hpp" />
+    <ClInclude Include="Nodes\Node_DOFNeighborMax.hpp" />
+    <ClInclude Include="Nodes\Node_DOFPrepare.hpp" />
+    <ClInclude Include="Nodes\Node_DOFTileMax.hpp" />
+    <ClInclude Include="Nodes\Node_HDRCombine.hpp" />
+    <ClInclude Include="Nodes\Node_LensFlare.hpp" />
+    <ClInclude Include="Nodes\Node_LuminanceReduction.hpp" />
+    <ClInclude Include="Nodes\Node_LuminanceReductionFinal.hpp" />
+    <ClInclude Include="Nodes\Node_MotionBlur.hpp" />
+    <ClInclude Include="Nodes\Node_NeighborMax.hpp" />
     <ClInclude Include="Nodes\Node_ScreenSpaceTransform.hpp" />
     <ClInclude Include="Nodes\Node_CreateTexture.hpp" />
     <ClInclude Include="Nodes\Node_CSM.hpp" />
@@ -198,7 +233,9 @@
     <ClInclude Include="Nodes\Node_GetTime.hpp" />
     <ClInclude Include="Nodes\Node_LightCulling.hpp" />
     <ClInclude Include="Nodes\Node_OverlayRender.hpp" />
+    <ClInclude Include="Nodes\Node_SMAA.hpp" />
     <ClInclude Include="Nodes\Node_TextureProperties.hpp" />
+    <ClInclude Include="Nodes\Node_TileMax.hpp" />
     <ClInclude Include="Nodes\Node_VectorComponents.hpp" />
     <ClInclude Include="OrthographicCamera.hpp" />
     <ClInclude Include="OverlayEntity.hpp" />
@@ -236,12 +273,11 @@
     <ClInclude Include="Scheduler.hpp" />
     <ClInclude Include="ScratchSpacePool.hpp" />
     <ClInclude Include="SyncPoint.hpp" />
-    <ClInclude Include="Texture2D.hpp" />
     <ClInclude Include="MemoryObject.hpp" />
     <ClInclude Include="Mesh.hpp" />
     <ClInclude Include="UploadManager.hpp" />
+    <ClInclude Include="VertexCompressor.hpp" />
     <ClInclude Include="Vertex.hpp" />
-    <ClInclude Include="VertexElementCompressor.hpp" />
     <ClInclude Include="VolatileViewHeap.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -249,20 +285,37 @@
     <ClCompile Include="BasicCommandList.cpp" />
     <ClCompile Include="Binder.cpp" />
     <ClCompile Include="BasicCamera.cpp" />
+    <ClCompile Include="CommandListPool.cpp" />
+    <ClCompile Include="GraphEditor.cpp" />
     <ClCompile Include="GraphicsNode.cpp" />
     <ClCompile Include="NodeContext.cpp" />
     <ClCompile Include="Nodes\NodeUtility.cpp" />
     <ClCompile Include="Nodes\Node_Blend.cpp" />
     <ClCompile Include="Nodes\Node_BlendWithTransform.cpp" />
+    <ClCompile Include="Nodes\Node_BloomAdd.cpp" />
+    <ClCompile Include="Nodes\Node_BloomBlur.cpp" />
+    <ClCompile Include="Nodes\Node_BloomDownsample.cpp" />
+    <ClCompile Include="Nodes\Node_BrightLumPass.cpp" />
     <ClCompile Include="Nodes\Node_CSM.cpp" />
     <ClCompile Include="Nodes\Node_DebugDraw.cpp" />
     <ClCompile Include="Nodes\Node_DepthPrepass.cpp" />
     <ClCompile Include="Nodes\Node_DepthReduction.cpp" />
     <ClCompile Include="Nodes\Node_DepthReductionFinal.cpp" />
+    <ClCompile Include="Nodes\Node_DOFNeighborMax.cpp" />
+    <ClCompile Include="Nodes\Node_DOFPrepare.cpp" />
+    <ClCompile Include="Nodes\Node_DOFTileMax.cpp" />
     <ClCompile Include="Nodes\Node_DrawSky.cpp" />
     <ClCompile Include="Nodes\Node_ForwardRender.cpp" />
+    <ClCompile Include="Nodes\Node_HDRCombine.cpp" />
+    <ClCompile Include="Nodes\Node_LensFlare.cpp" />
     <ClCompile Include="Nodes\Node_LightCulling.cpp" />
+    <ClCompile Include="Nodes\Node_LuminanceReduction.cpp" />
+    <ClCompile Include="Nodes\Node_LuminanceReductionFinal.cpp" />
+    <ClCompile Include="Nodes\Node_MotionBlur.cpp" />
+    <ClCompile Include="Nodes\Node_NeighborMax.cpp" />
     <ClCompile Include="Nodes\Node_OverlayRender.cpp" />
+    <ClCompile Include="Nodes\Node_SMAA.cpp" />
+    <ClCompile Include="Nodes\Node_TileMax.cpp" />
     <ClCompile Include="OrthographicCamera.cpp" />
     <ClCompile Include="OverlayEntity.cpp" />
     <ClCompile Include="PerspectiveCamera.cpp" />
@@ -291,10 +344,10 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="Scheduler.cpp" />
     <ClCompile Include="ScratchSpacePool.cpp" />
-    <ClCompile Include="Texture2D.cpp" />
     <ClCompile Include="MemoryObject.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="UploadManager.cpp" />
+    <ClCompile Include="VertexCompressor.cpp" />
     <ClCompile Include="VolatileViewHeap.cpp" />
   </ItemGroup>
   <ItemGroup>

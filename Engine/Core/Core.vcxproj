@@ -103,12 +103,16 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(SolutionDir)\Externals\include\Bullet;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\libd64\;$(OutDir);$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(SolutionDir)\Externals\include\Bullet;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(SolutionDir)\Bin\$(Configuration)_$(Platform)\;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)\Externals\lib64\;$(OutDir);$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -118,7 +122,7 @@
       <AdditionalOptions>/std:c++latest</AdditionalOptions>
     </ClCompile>
     <Lib>
-      <AdditionalDependencies>GraphicsEngine_LL.lib;GuiEngine.lib;AssetLibrary.lib;lemon.lib;FreeImaged.lib;FreeImagePlusd.lib;PhysicsEngineBullet.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>GraphicsEngine_LL.lib;GuiEngine.lib;AssetLibrary.lib;lemon.lib;FreeImage.lib;FreeImagePlus.lib;PhysicsEngineBullet.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
     </Lib>

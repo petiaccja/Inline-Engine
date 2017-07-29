@@ -10,7 +10,7 @@
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
-#include <mathfu/mathfu_exc.hpp>
+#include <InlineMath.hpp>
 
 namespace inl::gxeng::nodes {
 
@@ -82,9 +82,9 @@ void BlendWithTransform::Setup(SetupContext& context) {
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
 		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_LINEAR_MIP_POINT;
-		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
-		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
-		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressU = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc.addressV = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc.addressW = gxapi::eTextureAddressMode::CLAMP;
 		samplerDesc.mipLevelBias = 0.f;
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
@@ -166,11 +166,11 @@ void BlendWithTransform::Execute(RenderContext& context) {
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	mathfu::VectorPacked<float, 4> transformPacked[4];
+	Mat44_Packed transformPacked;
 
-	m_transfrom.Pack(transformPacked);
+	transformPacked = m_transfrom;
 
-	commandList.BindGraphics(m_transformParam, transformPacked, sizeof(transformPacked));
+	commandList.BindGraphics(m_transformParam, &transformPacked, sizeof(transformPacked));
 
 	commandList.SetResourceState(const_cast<Texture2D&>(m_blendSrc.GetResource()), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.BindGraphics(m_tex0Param, m_blendSrc);

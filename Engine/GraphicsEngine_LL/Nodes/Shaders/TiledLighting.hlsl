@@ -13,32 +13,11 @@ struct Uniforms
 	float4 screen_dimensions;
 	float4 vs_cam_pos;
 	int group_size_x, group_size_y;
-	float2 dummy;
+	float halfExposureFramerate, //0.5 * exposure time (% of time exposure is open -> 0.75?) * frame rate (s? or fps?)
+		  maxMotionBlurRadius; //pixels
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b600);
-
-float3 tonemap_func(float3 x, float a, float b, float c, float d, float e, float f)
-{
-	return ((x * (a * x + c * b) + d * e) / (x * (a * x + b) + d * f)) - e / f;
-}
-
-float3 tonemap(float3 col)
-{
-	//vec3 x = max( vec3(0), col - vec3(0.004));
-	//return ( x * (6.2 * x + 0.5) ) / ( x * ( 6.2 * x + 1.7 ) + 0.06 );
-
-	float a = 0.22; //Shoulder Strength
-	float b = 0.30; //Linear Strength
-	float c = 0.10; //Linear Angle
-	float d = 0.20; //Toe Strength
-	float e = 0.01; //Toe Numerator
-	float f = 0.30; //Toe Denominator
-	float linear_white = 11.2; //Linear White Point Value (11.2)
-							   //Note: E/F = Toe Angle
-
-	return tonemap_func(col, a, b, c, d, e, f) / tonemap_func(float3(linear_white, linear_white, linear_white), a, b, c, d, e, f);
-}
 
 //NOTE: actually, just use SRGB, it's got better quality!
 float3 linear_to_gamma(float3 col)
@@ -51,10 +30,29 @@ float3 gamma_to_linear(float3 col)
 	return pow(col, float3(2.2, 2.2, 2.2));
 }
 
-float3 get_tiled_lighting(float4 sv_position, //gl_FragCoord
-						  float4 albedo, 
-						  float3 vs_normal,
-						  float4 vs_pos
+float3 get_sky_color()
+{
+	return float3(110, 165, 255) / 255.0;
+}
+
+float3 hemisphere_ambient_lighting(float3 ws_n)
+{
+	//hemisphere ambient term for visualization
+	float4 sky_col = float4(get_sky_color(), 1);
+	float3 sky_dir = float3(0, 0, 1);
+	float4 ground_col = float4(float3(0.25, 0.25, 0.25), 1);
+	float hemi_intensity = 0.7;
+
+	float vec_hemi = dot(ws_n, sky_dir) * 0.5 + 0.5;
+	return hemi_intensity * lerp(ground_col.xyz, sky_col.xyz, vec_hemi);
+}
+
+float3 get_lighting(float4 sv_position, //gl_FragCoord
+					float4 albedo, 
+					float3 vs_normal,
+					float4 vs_pos,
+					float roughness,
+					float metalness
 						)
 {
 	uint2 global_id = uint2(sv_position.xy);
@@ -64,6 +62,10 @@ float3 get_tiled_lighting(float4 sv_position, //gl_FragCoord
 	float2 texel = global_id / global_size;
 
 	uint local_num_of_lights = lightCullData.Load(int3(group_id.x * uniforms.group_size_y + group_id.y, 0, 0));
+	//uint local_num_of_lights = lightCullData.Load(int3(global_id, 0));
+	
+	//return float3(asfloat(local_num_of_lights), 0, 0);
+	//return float3(float(local_num_of_lights), 0, 0);
 
 	float3 vs_view_dir = normalize(uniforms.vs_cam_pos.xyz - vs_pos.xyz);
 
@@ -92,8 +94,8 @@ float3 get_tiled_lighting(float4 sv_position, //gl_FragCoord
 										 vs_view_dir,
 									     light_dir,
 										 diffuse_color.xyz * attenuation * 10.0, //TODO: shadow
-										 1.0, //TODO roughness
-										 0.0 //TODO metalness
+										 roughness, 
+										 metalness 
 										);
 
 			//const float roughness = 1.0;
@@ -118,5 +120,18 @@ float3 get_tiled_lighting(float4 sv_position, //gl_FragCoord
 		}
 	}
 
-	return linear_to_gamma(tonemap(color));
+	color += getCookTorranceBRDF(albedo.xyz,
+								 vs_normal,
+								 vs_view_dir,
+								 -g_lightDir,
+								 g_lightColor.xyz * 10.0,
+								 roughness,
+								 metalness);
+
+	//color += hemisphere_ambient_lighting(g_wsNormal.xyz) * 0.1;
+
+	return color;
+	//return g_normal.xyz;
+	//return g_ndcPos.xyz;
+	//return g_lightColor.xyz;
 }

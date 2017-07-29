@@ -61,7 +61,7 @@ private:
 	size_t m_descriptorCount;
 
 	std::mutex m_allocMutex;
-	exc::SlabAllocatorEngine m_allocEngine;
+	SlabAllocatorEngine m_allocEngine;
 
 	const size_t heapDim;
 };

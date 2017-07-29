@@ -75,9 +75,9 @@ gxeng::GraphicsEngine* Core::InitGraphicsEngine(int width, int height, HWND hwnd
 
 	graphicsEngine->CreateScene("Gui");
 	graphicsEngine->CreateOrthographicCamera("GuiCamera");
-	graphicsEngine->SetEnvVariable("world_render_pos", exc::Any(mathfu::Vector2f(0.f, 0.f)));
-	graphicsEngine->SetEnvVariable("world_render_rot", exc::Any(0.f));
-	graphicsEngine->SetEnvVariable("world_render_size", exc::Any(mathfu::Vector2f(width, height)));
+	graphicsEngine->SetEnvVariable("world_render_pos", inl::Any(Vec2(0.f, 0.f)));
+	graphicsEngine->SetEnvVariable("world_render_rot", inl::Any(0.f));
+	graphicsEngine->SetEnvVariable("world_render_size", inl::Any(Vec2(width, height)));
 
 	return graphicsEngine;
 }

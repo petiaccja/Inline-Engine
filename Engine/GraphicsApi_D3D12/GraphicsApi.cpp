@@ -85,6 +85,26 @@ gxapi::ICopyCommandList* GraphicsApi::CreateCopyCommandList(gxapi::CommandListDe
 }
 
 
+gxapi::ICommandList* GraphicsApi::CreateCommandList(gxapi::eCommandListType type, gxapi::CommandListDesc desc) {
+	ComPtr<ID3D12GraphicsCommandList> native;
+
+	ThrowIfFailed(m_device->CreateCommandList(0, native_cast(type), native_cast(desc.allocator), native_cast(desc.initialState), IID_PPV_ARGS(&native)));
+	switch (type)
+	{
+	case inl::gxapi::eCommandListType::COPY:
+		return new CopyCommandList(native);
+	case inl::gxapi::eCommandListType::COMPUTE:
+		return new ComputeCommandList(native);
+	case inl::gxapi::eCommandListType::GRAPHICS:
+		return new GraphicsCommandList(native);
+	case inl::gxapi::eCommandListType::BUNDLE:
+		throw InvalidArgumentException("Bundles are not supported.");
+	default:
+		assert(false);
+	}
+}
+
+
 gxapi::IResource* GraphicsApi::CreateCommittedResource(gxapi::HeapProperties heapProperties,
 													   gxapi::eHeapFlags heapFlags,
 													   gxapi::ResourceDesc desc,
@@ -105,7 +125,7 @@ gxapi::IResource* GraphicsApi::CreateCommittedResource(gxapi::HeapProperties hea
 
 	ThrowIfFailed(m_device->CreateCommittedResource(&nativeHeapProperties, native_cast(heapFlags), &nativeResourceDesc, native_cast(initialState), pNativeClearValue, IID_PPV_ARGS(&native)));
 
-	return new Resource{ native };
+	return new Resource{ native, m_device };
 }
 
 
@@ -184,7 +204,7 @@ gxapi::IRootSignature* GraphicsApi::CreateRootSignature(gxapi::RootSignatureDesc
 		for (unsigned i = 0; i < error->GetBufferSize(); i++) {
 			errorStr += static_cast<char*>(error->GetBufferPointer())[i];
 		}
-		throw gxapi::Exception("Could not create root signature, error while serializing signature: " + errorStr);
+		throw InvalidArgumentException("Could not create root signature, error while serializing signature: " + errorStr);
 	}
 
 	ThrowIfFailed(m_device->CreateRootSignature(0, serializedSignature->GetBufferPointer(), serializedSignature->GetBufferSize(), IID_PPV_ARGS(&native)));

@@ -16,8 +16,8 @@ namespace inl::gxeng::nodes {
 
 struct Uniforms
 {
-	mathfu::VectorPacked<float, 4> vp[4];
-	mathfu::VectorPacked<float, 4> color;
+	Mat44_Packed vp;
+	Vec4_Packed color;
 };
 
 
@@ -148,10 +148,10 @@ void DebugDraw::Setup(SetupContext& context) {
 			// if the vertex buffer for the current object has not been created yet...
 			if (m_objects[c].first.lock() != currObject) {
 				m_objects[c].first = currObject;
-				std::vector<mathfu::Vector3f> vertices;
+				std::vector<Vec3> vertices;
 				std::vector<uint32_t> indices;
 				currObject->GetMesh(vertices, indices);
-				m_objects[c].second.vertexBuffer = context.CreateVertexBuffer(vertices.data(), vertices.size() * sizeof(mathfu::Vector3f));
+				m_objects[c].second.vertexBuffer = context.CreateVertexBuffer(vertices.data(), vertices.size() * sizeof(Vec3));
 				m_objects[c].second.indexBuffer = context.CreateIndexBuffer(indices.data(), indices.size() * sizeof(uint32_t), indices.size());
 				m_objects[c].second.size = (unsigned)(m_objects[c].second.vertexBuffer.GetSize());
 				m_objects[c].second.stride = currObject->GetStride();
@@ -192,12 +192,12 @@ void DebugDraw::Execute(RenderContext& context) {
 	commandList.SetViewports(1, &viewport);
 
 	Uniforms uniformsCBData;
-	mathfu::Matrix4x4f view = m_camera->GetViewMatrixRH();
-	mathfu::Matrix4x4f projection = m_camera->GetProjectionMatrixRH();
+	Mat44 view = m_camera->GetViewMatrix();
+	Mat44 projection = m_camera->GetProjectionMatrix();
 
-	auto viewProjection = projection * view;
+	auto viewProjection = view * projection;
 
-	viewProjection.Pack(uniformsCBData.vp);
+	uniformsCBData.vp = viewProjection;
 
 	for (auto& currObject : m_objects) {
 		auto& vb = currObject.second.vertexBuffer;
@@ -210,14 +210,14 @@ void DebugDraw::Execute(RenderContext& context) {
 		commandList.SetResourceState(vb, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
 		commandList.SetResourceState(ib, gxapi::eResourceState::INDEX_BUFFER);
 
-		mathfu::Vector4f(currObject.first.lock()->GetColor(), 1.0f).Pack(&uniformsCBData.color);
+		uniformsCBData.color = Vec4(currObject.first.lock()->GetColor(), 1.0f);
 
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(uniformsCBData));
 
 		VertexBuffer* vbPtr = &vb;
 		commandList.SetVertexBuffers(0, 1, &vbPtr, &currObject.second.size, &currObject.second.stride);
 		commandList.SetIndexBuffer(&currObject.second.indexBuffer, true);
-		commandList.DrawIndexedInstanced(currObject.second.indexBuffer.GetIndexCount());
+		commandList.DrawIndexedInstanced((unsigned)currObject.second.indexBuffer.GetIndexCount());
 	}
 
 	DebugDrawManager::GetInstance().Update();

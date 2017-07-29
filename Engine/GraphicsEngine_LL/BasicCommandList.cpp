@@ -7,6 +7,7 @@ namespace gxeng {
 
 
 BasicCommandList::BasicCommandList(gxapi::IGraphicsApi* gxApi,
+								   CommandListPool& commandListPool,
 								   CommandAllocatorPool& commandAllocatorPool,
 								   ScratchSpacePool& scratchSpacePool,
 								   gxapi::eCommandListType type
@@ -21,12 +22,7 @@ BasicCommandList::BasicCommandList(gxapi::IGraphicsApi* gxApi,
 
 	// Create command list
 	gxapi::CommandListDesc desc{ m_commandAllocator.get(), nullptr };
-	switch (type) {
-		case gxapi::eCommandListType::COPY: m_commandList.reset(gxApi->CreateCopyCommandList(desc)); break;
-		case gxapi::eCommandListType::COMPUTE: m_commandList.reset(gxApi->CreateComputeCommandList(desc)); break;
-		case gxapi::eCommandListType::GRAPHICS: m_commandList.reset(gxApi->CreateGraphicsCommandList(desc)); break;
-		default: assert(false);
-	}
+	m_commandList = commandListPool.RequestList(type, m_commandAllocator.get());
 
 	// Create scratch space
 	if (type == gxapi::eCommandListType::COMPUTE || type == gxapi::eCommandListType::GRAPHICS) {

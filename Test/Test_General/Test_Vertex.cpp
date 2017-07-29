@@ -1,10 +1,12 @@
 #include "Test.hpp"
 #include <thread>
 #include <iostream>
+#include <InlineMath.hpp>
 #include "GraphicsEngine_LL/Vertex.hpp"
 #include "BaseLibrary/ArrayView.hpp"
 
 using namespace std::literals::chrono_literals;
+using namespace inl;
 
 using std::cout;
 using std::endl;
@@ -35,19 +37,37 @@ private:
 
 int TestVertex::Run() {
 	using namespace inl::gxeng;
-	using exc::ArrayView;
+	using inl::ArrayView;
 
 	// create a vertex
 	using MyVertex1 = Vertex < Position<0>, Position<1>, Normal<0> >;
 
 	MyVertex1 v;
-	v.normal.x() = 6;
+	v.positions[0] = { 1,2,3 };
+	v.normals[0] = { 0.7071f, 0.f, 0.7071f };
+	
+	auto* p1 = static_cast<inl::gxeng::impl::VertexPartRealization<Normal<0>>*>(&v);
+	auto* p2 = static_cast<inl::gxeng::VertexPart<eVertexElementSemantic::NORMAL, 0>*>(&v);
 
-	static_cast<VertexPart<eVertexElementSemantic::POSITION>*>(&v);
+	auto reader = decltype(v)::GetReader();
+	const VertexPartReader<eVertexElementSemantic::POSITION>* posReader = reader.GetPartReader<eVertexElementSemantic::POSITION>();
+	const VertexPartReader<eVertexElementSemantic::NORMAL>* normReader = reader.GetPartReader<eVertexElementSemantic::NORMAL>();
 
+	auto positions = posReader->GetIndices();
+	auto normals = normReader->GetIndices();
+
+	Vec3 pos0 = posReader->GetPosition(v, 0);
+	Vec3 pos1 = posReader->GetPosition(v, 1);
+	Vec3 norm0 = normReader->GetNormal(v, 0);
+
+
+
+	//static_cast<VertexPart<eVertexElementSemantic::POSITION>*>(&v);
+
+	/*
 	VertexBase* pVertex = &v;
 	auto* positionPart = dynamic_cast<VertexPart<eVertexElementSemantic::POSITION>*>(pVertex);
-	mathfu::Vector<float, 3>& pos0 = positionPart->GetPosition(0);
+	Vec3& pos0 = positionPart->GetPosition(0);
 
 	// create a vertex array view
 	ArrayView<VertexPart<eVertexElementSemantic::POSITION>> view(&v, 1, sizeof(MyVertex1));
@@ -69,6 +89,7 @@ int TestVertex::Run() {
 	decltype(viewToConstFromConst)::const_iterator it1 = viewToConstFromConst.begin();
 	auto it3 = viewToConstFromConst.begin();
 	decltype(view)::iterator it2 = view.begin();
+	*/
 
 
 	return 0;

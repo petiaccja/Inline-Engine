@@ -1,6 +1,6 @@
 #include "Event.hpp"
 
-namespace exc {
+namespace inl {
 
 
 Event::Event() : type(eEventType::UNSPECIFIED) {}
@@ -44,4 +44,4 @@ const EventParameter& Event::operator[](size_t index) const {
 	return *parameters[index];
 }
 
-} // namespace exc
+} // namespace inl

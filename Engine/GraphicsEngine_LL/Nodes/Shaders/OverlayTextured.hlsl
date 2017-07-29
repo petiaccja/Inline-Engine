@@ -22,7 +22,7 @@ PS_Input VSMain(float2 position : POSITION, float2 texCoord : TEX_COORD)
 	PS_Input result;
 
 	float4 pos = {position.x, position.y, 0, 1};
-	result.position = mul(transform.MVP, pos);
+    result.position = mul(pos, transform.MVP);
 	result.texCoord = texCoord;
 
 	return result;

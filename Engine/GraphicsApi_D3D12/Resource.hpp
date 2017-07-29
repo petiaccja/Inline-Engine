@@ -15,7 +15,9 @@ using Microsoft::WRL::ComPtr;
 
 class Resource : public gxapi::IResource {
 public:
-	Resource(ComPtr<ID3D12Resource>& native);
+	Resource(ComPtr<ID3D12Resource>& native, std::nullptr_t);
+	// passing device only because renderdoc crashes... fuck that... use GetDevice instead
+	Resource(ComPtr<ID3D12Resource>& native, ComPtr<ID3D12Device> device);
 
 	ID3D12Resource* GetNative();
 	const ID3D12Resource* GetNative() const;

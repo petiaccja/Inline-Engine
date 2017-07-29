@@ -12,12 +12,13 @@ namespace gxeng {
 
 GraphicsCommandList::GraphicsCommandList(
 	gxapi::IGraphicsApi* gxApi,
+	CommandListPool& commandListPool,
 	CommandAllocatorPool& commandAllocatorPool,
 	ScratchSpacePool& scratchSpacePool,
 	MemoryManager& memoryManager,
 	VolatileViewHeap& volatileCbvHeap
 ) :
-	ComputeCommandList(gxApi, commandAllocatorPool, scratchSpacePool, memoryManager, volatileCbvHeap, gxapi::eCommandListType::GRAPHICS)
+	ComputeCommandList(gxApi, commandListPool, commandAllocatorPool, scratchSpacePool, memoryManager, volatileCbvHeap, gxapi::eCommandListType::GRAPHICS)
 {
 	m_commandList = dynamic_cast<gxapi::IGraphicsCommandList*>(GetCommandList());
 	m_graphicsBindingManager = BindingManager<gxapi::eCommandListType::GRAPHICS>(m_graphicsApi, m_commandList, &memoryManager, &volatileCbvHeap);

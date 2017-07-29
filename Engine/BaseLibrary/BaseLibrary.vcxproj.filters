@@ -16,11 +16,17 @@
     <Filter Include="Memory">
       <UniqueIdentifier>{6cb7db5d-87d3-441b-94cf-ee6be9df0f0e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Exception">
+      <UniqueIdentifier>{da3e121c-c6a6-414d-86eb-1c93d82eb315}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GraphEditor">
+      <UniqueIdentifier>{aef43a53-f87f-447e-840b-ee7866cd1e32}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Platform">
-      <UniqueIdentifier>{06bb74bb-70ab-4e2e-a83d-cae6e8b18edf}</UniqueIdentifier>
+      <UniqueIdentifier>{56d37ef3-d7dc-4076-ae0d-fb295b2f79bc}</UniqueIdentifier>
     </Filter>
     <Filter Include="Platform\Win32">
-      <UniqueIdentifier>{97a6f889-39e8-4462-8594-1ff05db4c592}</UniqueIdentifier>
+      <UniqueIdentifier>{a1032b41-cc0a-4bd8-8af7-e2e0525ab1a7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -129,20 +135,40 @@
     <ClInclude Include="MemoryLeakDetector.hpp">
       <Filter>All</Filter>
     </ClInclude>
-    <ClInclude Include="Platform\WindowCommon.hpp">
+    <ClInclude Include="Exception\Exception.hpp">
+      <Filter>Exception</Filter>
+    </ClInclude>
+    <ClInclude Include="Exception\IOException.hpp">
+      <Filter>Exception</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphEditor\IGraph.hpp">
+      <Filter>GraphEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphEditor\INode.hpp">
+      <Filter>GraphEditor</Filter>
+    </ClInclude>
+    <ClInclude Include="SmartPtrCast.hpp">
+      <Filter>All</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.hpp" />
+    <ClInclude Include="Delegate.hpp" />
+    <ClInclude Include="Timer.hpp" />
+    <ClInclude Include="Transform3D.hpp" />
+    <ClInclude Include="VisualCpuProfiler.h" />
+    <ClInclude Include="Platform\PlatformDefinitions.h">
       <Filter>Platform</Filter>
     </ClInclude>
-    <ClInclude Include="Platform\Window.hpp">
+    <ClInclude Include="Platform\PlatformUtils.h">
       <Filter>Platform</Filter>
     </ClInclude>
     <ClInclude Include="Platform\Sys.hpp">
       <Filter>Platform</Filter>
     </ClInclude>
-    <ClInclude Include="Platform\Win32\Window.hpp">
-      <Filter>Platform\Win32</Filter>
+    <ClInclude Include="Platform\Window.hpp">
+      <Filter>Platform</Filter>
     </ClInclude>
-    <ClInclude Include="Timer.hpp">
-      <Filter>All</Filter>
+    <ClInclude Include="Platform\WindowCommon.hpp">
+      <Filter>Platform</Filter>
     </ClInclude>
     <ClInclude Include="Platform\Win32\PlatformDefinitions.h">
       <Filter>Platform\Win32</Filter>
@@ -150,19 +176,12 @@
     <ClInclude Include="Platform\Win32\PlatformUtils.h">
       <Filter>Platform\Win32</Filter>
     </ClInclude>
-    <ClInclude Include="Platform\PlatformDefinitions.h">
-      <Filter>Platform</Filter>
-    </ClInclude>
-    <ClInclude Include="Platform\PlatformUtils.h">
-      <Filter>Platform</Filter>
+    <ClInclude Include="Platform\Win32\Window.hpp">
+      <Filter>Platform\Win32</Filter>
     </ClInclude>
     <ClInclude Include="Platform\Win32\WindowDropTarget.hpp">
       <Filter>Platform\Win32</Filter>
     </ClInclude>
-    <ClInclude Include="Common.hpp" />
-    <ClInclude Include="Transform3D.hpp" />
-    <ClInclude Include="VisualCpuProfiler.h" />
-    <ClInclude Include="Delegate.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">
@@ -204,20 +223,21 @@
     <ClCompile Include="Memory\RingAllocationEngine.cpp">
       <Filter>Memory</Filter>
     </ClCompile>
+    <ClCompile Include="Exception\Exception.cpp">
+      <Filter>Exception</Filter>
+    </ClCompile>
+    <ClCompile Include="Common.cpp" />
+    <ClCompile Include="Timer.cpp" />
+    <ClCompile Include="Transform3D.cpp" />
+    <ClCompile Include="VisualCpuProfiler.cpp" />
     <ClCompile Include="Platform\Win32\Sys.cpp">
       <Filter>Platform\Win32</Filter>
     </ClCompile>
     <ClCompile Include="Platform\Win32\Window.cpp">
       <Filter>Platform\Win32</Filter>
     </ClCompile>
-    <ClCompile Include="Timer.cpp">
-      <Filter>All</Filter>
-    </ClCompile>
     <ClCompile Include="Platform\Win32\WindowDropTarget.cpp">
       <Filter>Platform\Win32</Filter>
     </ClCompile>
-    <ClCompile Include="Transform3D.cpp" />
-    <ClCompile Include="Common.cpp" />
-    <ClCompile Include="VisualCpuProfiler.cpp" />
   </ItemGroup>
 </Project>

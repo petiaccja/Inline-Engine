@@ -5,7 +5,7 @@
 
 #include <cmath>
 
-namespace exc {
+namespace inl {
 
 
 template <class ArithmeticT, ArithmeticT(*Function)(ArithmeticT), const char* name>
@@ -121,4 +121,4 @@ using FloatFloor = MathFunctionNode<float, std::floor, MathFunctionNames::Floor>
 using FloatRound = MathFunctionNode<float, std::round, MathFunctionNames::Round>;
 
 
-} // namespace exc
+} // namespace inl

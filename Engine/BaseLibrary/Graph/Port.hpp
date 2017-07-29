@@ -11,7 +11,7 @@
 #include "../Any.hpp"
 
 
-namespace exc {
+namespace inl {
 
 class InputPortBase;
 class OutputPortBase;
@@ -40,7 +40,7 @@ class PortConverter {
 public:
 	using Functor = void(*)(const void*, void*);
 	Functor operator[](std::type_index type) const {
-		throw std::out_of_range("Cannot find a converter for this type.");
+		throw OutOfRangeException("Cannot find a converter for type.", type.name());
 	}
 	bool CanConvert(std::type_index type) const {
 		return false;
@@ -67,7 +67,7 @@ public:
 			return it->second;
 		}
 		else {
-			throw std::out_of_range("Cannot find a converter for this type.");
+			throw OutOfRangeException("Cannot find a converter for this type.", sourceType.name());
 		}
 	}
 
@@ -460,7 +460,7 @@ public:
 	}
 protected:
 	void SetConvert(const void* object, std::type_index type) override {
-		throw std::invalid_argument("Any-type ports cannot convert anything.");
+		throw InvalidCallException("Any-type ports cannot convert anything.");
 	}
 private:
 	Any data;
@@ -543,4 +543,4 @@ void InputPortBase::SetConvert(const U& u) {
 extern template class InputPort<Any, NullPortConverter>;
 extern template class OutputPort<Any>;
 
-} // namespace exc
+} // namespace inl

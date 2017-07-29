@@ -268,7 +268,7 @@ gxapi::eFormat Texture3D::GetFormat() const {
 	return GetDescription().textureDesc.format;
 }
 
-
+/*
 uint64_t TextureCube::GetWidth() const {
 	return GetDescription().textureDesc.width;
 }
@@ -278,10 +278,15 @@ uint64_t TextureCube::GetHeight() const {
 	return GetDescription().textureDesc.height;
 }
 
+uint16_t TextureCube::GetArrayCount() const {
+	return GetDescription().textureDesc.depthOrArraySize / 6;
+}
+
 
 gxapi::eFormat TextureCube::GetFormat() const {
 	return GetDescription().textureDesc.format;
 }
+*/
 
 
 } // namespace gxeng

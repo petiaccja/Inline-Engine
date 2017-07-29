@@ -3,9 +3,10 @@
 #include <stdexcept>
 #include <typeindex>
 #include <memory>
+#include "Exception/Exception.hpp"
+using namespace inl;
 
-
-namespace exc {
+namespace inl {
 
 
 class Any {
@@ -54,7 +55,7 @@ public:
 	template <class T>
 	T& Get() {
 		if (!m_data) {
-			throw std::logic_error("Object is empty.");
+			throw InvalidStateException("Object is empty.");
 		}
 		if (typeid(T) != m_data->Type()) {
 			throw std::bad_cast("Types don't match.");
@@ -65,7 +66,7 @@ public:
 	template <class T>
 	const T& Get() const {
 		if (!m_data) {
-			throw std::logic_error("Object is empty.");
+			throw InvalidStateException("Object is empty.");
 		}
 		if (typeid(T) != m_data->Type()) {
 			throw std::bad_cast("Types don't match.");
@@ -75,14 +76,14 @@ public:
 
 	const void* Raw() const {
 		if (!m_data) {
-			throw std::logic_error("Object is empty.");
+			throw InvalidStateException("Object is empty.");
 		}
 		return m_data->Get();
 	}
 
 	std::type_index Type() const {
 		if (!m_data) {
-			throw std::logic_error("Object is empty.");
+			throw InvalidStateException("Object is empty.");
 		}
 		return m_data->Type();
 	}
@@ -92,4 +93,4 @@ private:
 
 
 
-} // namespace exc
+} // namespace inl

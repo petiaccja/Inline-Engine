@@ -25,10 +25,10 @@ MeshBuffer::MeshBuffer(MemoryManager* memoryManager)
 
 void MeshBuffer::Update(uint32_t streamIndex, const void* vertexData, size_t vertexCount, size_t offsetInVertex) {
 	if (streamIndex > m_vertexBuffers.size()) {
-		throw std::out_of_range("Stream index is out of range.");
+		throw OutOfRangeException("Stream index is out of range.");
 	}
 	if (m_vertexStrides[streamIndex] * (vertexCount + offsetInVertex) > m_vertexBuffers[streamIndex].GetSize()) {
-		throw std::out_of_range("Data doesn't fit in given vertex buffer.");
+		throw OutOfRangeException("Data doesn't fit in given vertex buffer.");
 	}
 
 	// Overwrite vertex buffer
