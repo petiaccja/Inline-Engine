@@ -23,9 +23,14 @@ public:
 	void SetAspectRatio(float ratio);
 	void SetFOV(float fov);
 
-	void SetNearPlane(float val);
-	void SetFarPlane(float val);
+	void SetNearPlaneDist(float val);
+	void SetFarPlaneDist(float val);
 	void SetTarget(const Vec3& p);
+
+	float GetNearPlaneDist();
+	float GetFarPlaneDist();
+
+	Vec3 GetTarget();
 
 	Vec3 GetFrontDir();
 	Vec3 GetBackDir();
@@ -38,6 +43,7 @@ protected:
 	gxeng::PerspectiveCamera* cam;
 
 	float aspectRatio;
+	Vec3 target;
 };
 
 } // namespace inl::core

@@ -18,7 +18,7 @@ class SoftBodyPart;
 
 struct Task
 {
-	std::function<void()> callb;
+	std::function<void()> function;
 	float timeLeft;
 };
 

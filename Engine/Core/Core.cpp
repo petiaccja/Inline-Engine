@@ -274,10 +274,10 @@ Scene* Core::CreateScene()
 //	return AddActor(AddPart_Camera());
 //}
 //
-//void Core::AddTask(const std::function<void()>& callb, float timeToProceed)
+//void Core::AddTask(const std::function<void()>& function, float timeToProceed)
 //{
 //	Task task;
-//	task.callb = callb;
+//	task.function = function;
 //	task.timeLeft = timeToProceed;
 //	tasks.push_back(task); // TODO slow
 //}
@@ -551,7 +551,7 @@ void Core::Update(float deltaTime)
 	//
 	//			if (tasks[i].timeLeft <= 0)
 	//			{
-	//				tasks[i].callb();
+	//				tasks[i].function();
 	//				indicesToDelete.push_back(i);
 	//			}
 	//		}

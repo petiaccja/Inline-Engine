@@ -43,6 +43,12 @@ Actor* Scene::AddActor()
 	return nullptr;// Core.AddActor();
 }
 
+void Scene::AddActor(Actor* a)
+{
+	actors.push_back(a);
+	parts.push_back(a);
+}
+
 MeshActor* Scene::AddActor_Mesh(const path& modelPath)
 {
 	gxeng::GraphicsEngine* graphicsEngine = core->GetGraphicsEngine();
@@ -178,6 +184,11 @@ void Scene::SetCam(PerspCameraPart* c)
 }
 
 bool Scene::TraceClosestPoint_Physics(const Vec3& from, const Vec3& to, PhysicsTraceResult& traceInfo_out)
+{
+	return false;// Core.TraceClosestPoint_Physics(from, to, traceInfo_out);
+}
+
+bool Scene::TraceClosestPoint_Physics(PhysicsTraceResult& traceInfo_out)
 {
 	return false;// Core.TraceClosestPoint_Physics(from, to, traceInfo_out);
 }

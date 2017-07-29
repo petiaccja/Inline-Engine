@@ -4,6 +4,8 @@
 #include <functional>
 #include <queue>
 
+#include <BaseLibrary/Delegate.hpp>
+
 namespace inl::core {
 
 class InputCore
@@ -12,32 +14,21 @@ public:
 	InputCore();
 
 public:
-	void KeyPress(eKey key);
-	void KeyRelease(eKey key);
+	void SimulateKeyPress(eKey key);
+	void SimulateKeyRelease(eKey key);
 
-	void MouseRightPress();
-	void MouseRightRelease();
-	void MouseLeftPress();
-	void MouseLeftRelease();
-	void MouseMidPress();
-	void MouseMidRelease();
-	
-	void MouseMove(const Vec2i& mouseDelta, const Vec2i& clientMousePos);
+	void SimulateMouseBtnPress(eMouseBtn button);
+	void SimulateMouseBtnRelease(eMouseBtn button);
+	void SimulateMouseMove(const Vec2i& mouseDelta, const Vec2i& clientCursorPos);
 
-	void RegOnKeyDown(eKey key, const std::function<void()> callb);
-	void RegOnKeyPressed(eKey key, const std::function<void()> callb);
-	void RegOnKeyReleased(eKey key, const std::function<void()> callb);
+	void BindKeyDown(eKey key, const std::function<void()>& function);
+	void BindKeyPress(eKey key, const std::function<void()>& function);
+	void BindKeyRelease(eKey key, const std::function<void()>& function);
 
-	void RegOnMouseRightPressed(  const std::function<void(const Vec2i& clientMousePos)> callb);
-	void RegOnMouseRightReleased( const std::function<void(const Vec2i& clientMousePos)> callb);
-	void RegOnMouseRightDown(	  const std::function<void(const Vec2i& clientMousePos)> callb);
-	void RegOnMouseLeftPressed(	  const std::function<void(const Vec2i& clientMousePos)> callb);
-	void RegOnMouseLeftReleased(  const std::function<void(const Vec2i& clientMousePos)> callb);
-	void RegOnMouseLeftDown(	  const std::function<void(const Vec2i& clientMousePos)> callb);
-	void RegOnMouseMidPressed(	  const std::function<void(const Vec2i& clientMousePos)> callb);
-	void RegOnMouseMidReleased(	  const std::function<void(const Vec2i& clientMousePos)> callb);
-	void RegOnMouseMidDown(		  const std::function<void(const Vec2i& clientMousePos)> callb);
-	void RegOnMouseMove(		  const std::function<void(const Vec2i& mouseDelta, const Vec2i& clientMousePos)> callb);
+	void BindMousePress(eMouseBtn button, const std::function<void(const Vec2i& clientCursorPos)>& function);
+	void BindMouseRelease(eMouseBtn button, const std::function<void(const Vec2i& clientCursorPos)>& function);
+	void BindMouseDown(eMouseBtn button, const std::function<void(const Vec2i& clientCursorPos)>& function);
+	void BindMouseMove(const std::function<void(const Vec2i& mouseDelta, const Vec2i& clientCursorPos)>& function);
 
 	void ClearFrameData();
 	void Update();
@@ -46,54 +37,42 @@ public:
 	bool IsKeyPressed(eKey key);
 	bool IsKeyReleased(eKey key);
 
-	bool IsRightMouseBtnPressed();
-	bool IsRightMouseBtnReleased();
-	bool IsRightMouseBtnDown();
-	bool IsLeftMouseBtnPressed();
-	bool IsLeftMouseBtnReleased();
-	bool IsLeftMouseBtnDown();
-	bool IsMidMouseBtnPressed();
-	bool IsMidMouseBtnReleased();
-	bool IsMidMouseBtnDown();
-	
-	bool IsMouseMove(Vec2i& mouseDelta_out);
+	bool IsMousePressed(eMouseBtn eButton);
+	bool IsMouseReleased(eMouseBtn eButton);
+	bool IsMouseDown(eMouseBtn eButton);
+	bool IsMouseClicked(eMouseBtn eButton);
+
+	Vec2i GetCursorPos() { return clientCursorPos; }
+	Vec2i GetCursorDeltaMove() { return mouseDelta; }
 
 protected:
 	struct KeyInfo
 	{
 		std::queue<bool> keyDownQueue;
-		bool bStateDown;
-	};
+		bool bStateDown = false;
+	}; 
 
 	// Storing key downs (current, previous) frame
-	std::array<KeyInfo, (size_t)COUNT_eKey> keyDownArray;
+	KeyInfo keyDown[(int)eKey::COUNT];
 
 	// Mouse inputs
-	bool bMouseRightDownCurFrame;
-	bool bMouseRightDownPrevFrame;
-	bool bMouseLeftDownCurFrame;
-	bool bMouseLeftDownPrevFrame;
-	bool bMouseMidDownCurFrame;
-	bool bMouseMidDownPrevFrame;
+	bool bMouseDownCurFrame[(int)eMouseBtn::COUNT];
+	bool bMouseDownPrevFrame[(int)eMouseBtn::COUNT];
+	Vec2i cursorLastClickStartPos[(int)eMouseBtn::COUNT];
+
 	Vec2i mouseDelta;
-	Vec2i clientMousePos;
+	Vec2i clientCursorPos;
 
-	// Registered keyboard callbacks
-	std::vector<std::pair<eKey, std::function<void()>>> onKeyDownCallbacks;
-	std::vector<std::pair<eKey, std::function<void()>>> onKeyPressedCallbacks;
-	std::vector<std::pair<eKey, std::function<void()>>> onKeyReleasedCallbacks;
+	// Keyboard delegates
+	Delegate<void()> onKeyDown[(int)eKey::COUNT];
+	Delegate<void()> onKeyPressed[(int)eKey::COUNT];
+	Delegate<void()> onKeyReleased[(int)eKey::COUNT];
 
-	// Registered mouse callbacks
-	std::vector<std::function<void(const Vec2i& clientMousePos)>> onMouseRightPressedCallbacks;
-	std::vector<std::function<void(const Vec2i& clientMousePos)>> onMouseRightReleasedCallbacks;
-	std::vector<std::function<void(const Vec2i& clientMousePos)>> onMouseRightDownCallbacks;
-	std::vector<std::function<void(const Vec2i& clientMousePos)>> onMouseLeftPressedCallbacks;
-	std::vector<std::function<void(const Vec2i& clientMousePos)>> onMouseLeftReleasedCallbacks;
-	std::vector<std::function<void(const Vec2i& clientMousePos)>> onMouseLeftDownCallbacks;
-	std::vector<std::function<void(const Vec2i& clientMousePos)>> onMouseMidPressedCallbacks;
-	std::vector<std::function<void(const Vec2i& clientMousePos)>> onMouseMidReleasedCallbacks;
-	std::vector<std::function<void(const Vec2i& clientMousePos)>> onMouseMidDownCallbacks;
-	std::vector<std::function<void(const Vec2i& mouseDelta, const Vec2i& clientMousePos)>> onMouseMoveCallbacks;
+	// Mouse delegates
+	Delegate<void(const Vec2i& clientCursorPos)> onMousePressed[(int)eMouseBtn::COUNT];
+	Delegate<void(const Vec2i& clientCursorPos)> onMouseReleased[(int)eMouseBtn::COUNT];
+	Delegate<void(const Vec2i& clientCursorPos)> onMouseDown[(int)eMouseBtn::COUNT];
+	Delegate<void(const Vec2i& mouseDelta, const Vec2i& clientCursorPos)> onMouseMove;
 };
 
 } // namespace inl::core

@@ -29,6 +29,7 @@
       <Filter>TestGame_QC</Filter>
     </ClCompile>
     <ClCompile Include="Editor.cpp" />
+    <ClCompile Include="GeneralCamera.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Rotor.hpp">
@@ -50,5 +51,6 @@
     <ClInclude Include="TestLevelScript.hpp">
       <Filter>TestGame_ExcessiveStrike</Filter>
     </ClInclude>
+    <ClInclude Include="GeneralCamera.hpp" />
   </ItemGroup>
 </Project>

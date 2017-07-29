@@ -125,6 +125,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GeneralCamera.cpp" />
     <ClCompile Include="Editor.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PIDController.cpp" />
@@ -135,6 +136,7 @@
     <ClCompile Include="TestLevelScript.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GeneralCamera.hpp" />
     <ClInclude Include="Editor.hpp" />
     <ClInclude Include="PIDController.hpp" />
     <ClInclude Include="PlayerScript.hpp" />

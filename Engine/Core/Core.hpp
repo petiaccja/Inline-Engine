@@ -41,7 +41,7 @@ public:
 	physics::bullet::PhysicsEngineBullet*	InitPhysicsEngineBullet();
 	GuiEngine*								InitGuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow);
 
-	void AddTask(const std::function<void()>& callb, float timeToProceed);
+	void AddTask(const std::function<void()>& function, float timeToProceed);
 	
 	Scene* CreateScene();
 

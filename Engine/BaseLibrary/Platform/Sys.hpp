@@ -5,7 +5,7 @@
 #include "PlatformDefinitions.h"
 #include "..\Common.hpp"
 
-enum eKey
+enum class eKey
 {
 	A,				///< The A key
 	B,				///< The B key
@@ -44,13 +44,13 @@ enum eKey
 	NUM8,			///< The 8 key
 	NUM9,			///< The 9 key
 	ESC,			///< The Escape key
-	LCTRL,			///< The left Control key
+	LEFT_CONTROL,			///< The left Control key
 	LSHIFT,			///< The left Shift key
-	LALT,			///< The left Alt key
+	LEFT_ALT,			///< The left Alt key
 	LSYS,			///< The left OS specific key: window (Windows and Linux), apple (MacOS X), ...
-	RCTRL,			///< The right Control key
+	RIGHT_CONTROL,			///< The right Control key
 	RSHIFT,			///< The right Shift key
-	RALT,			///< The right Alt key
+	RIGHT_ALT,			///< The right Alt key
 	RSYS,			///< The right OS specific key: window (Windows and Linux), apple (MacOS X), ...
 	MENU,			///< The Menu key
 	LBRACKET,		///< The [ key
@@ -117,19 +117,21 @@ enum eKey
 	F23,			///< The F23 key
 	F24,			///< The F24 key
 	PAUSE,			///< The Pause key
-	COUNT_eKey,			///< Keep last -- the total number of keyboard keys
-	INVALID_eKey = -1,	///< Unhandled key
+
+	COUNT,			///< Keep last -- the total number of keyboard keys
+	INVALID = -1,	///< Unhandled key
 };
 
-enum eMouseBtn 
+enum class eMouseBtn 
 {
 	LEFT,		///< The left mouse button
 	RIGHT,		///< The right mouse button
-	MID,		///< The middle (wheel) mouse button
+	MIDDLE,		///< The middle (wheel) mouse button
 	EXTRA1,		///< The first extra mouse button
 	EXTRA2,		///< The second extra mouse button
-	COUNT_eMouseBtn,
-	INVALID_eMouseBtn = -1
+
+	COUNT,
+	INVALID = -1
 };
 
 enum class eCursorVisual
@@ -150,6 +152,8 @@ enum class eCursorVisual
 	HAND,
 	APPSTARTING,
 	HELP,
+
+	COUNT,
 };
 
 class Sys

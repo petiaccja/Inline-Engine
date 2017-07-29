@@ -6,6 +6,12 @@ PerspCameraPart::PerspCameraPart(gxeng::PerspectiveCamera* cam)
 :Part(TYPE), cam(cam), aspectRatio(1.f)
 {
 	cam->SetTargeted(true);
+
+	auto pos = cam->GetPosition();
+	auto target = cam->GetTarget();
+
+	SetPos(Vec3(pos.x(), pos.y(), pos.z()));
+	SetTarget(Vec3(target.x(), target.y(), target.z()));
 }
 
 PerspCameraPart::~PerspCameraPart()
@@ -31,15 +37,27 @@ void PerspCameraPart::UpdateEntityTransform()
 void PerspCameraPart::SetDirNormed(const Vec3& dir)
 {
 	// TODO do not change the distance between camera position and camera target, save the length of it and reuse it !
-	cam->SetTarget(cam->GetTarget() + mathfu::Vector3f(dir.x, dir.y, dir.z));
+	//cam->SetTarget(cam->GetTarget() + mathfu::Vector3f(dir.x, dir.y, dir.z));
 
 	mathfu::Vector3f frontDir = cam->GetLookDirection();
 	mathfu::Vector3f upVec = cam->GetUpVector();
 	mathfu::Vector3f rightVec = mathfu::Vector3f::CrossProduct(frontDir, upVec).Normalized();
 
-	// TODO generate camera rotation from front up and right dirs
-	Quat camRot;
-	assert(0);
+	// TODO generate camera rotation from {front, up, right} dirs
+	Mat33 mat;
+	mat(0, 0) = rightVec.x();
+	mat(0, 1) = rightVec.y();
+	mat(0, 2) = rightVec.z();
+
+	mat(1, 0) = upVec.x();
+	mat(1, 1) = upVec.y();
+	mat(1, 2) = upVec.z();
+
+	mat(2, 0) = frontDir.x();
+	mat(2, 1) = frontDir.y();
+	mat(2, 2) = frontDir.z();
+
+	Quat camRot = (Quat)mat;
 
 	SetRot(camRot);
 }
@@ -55,19 +73,40 @@ void PerspCameraPart::SetFOV(float fov)
 	cam->SetFOVAxis(fov * aspectRatio, fov);
 }
 
-void PerspCameraPart::SetNearPlane(float val)
+void PerspCameraPart::SetNearPlaneDist(float val)
 {
 	cam->SetNearPlane(val);
 }
 
-void PerspCameraPart::SetFarPlane(float val)
+void PerspCameraPart::SetFarPlaneDist(float val)
 {
 	cam->SetFarPlane(val);
 }
 
 void PerspCameraPart::SetTarget(const Vec3& p)
 {
-	cam->SetTarget(mathfu::Vector3f(p.x, p.y, p.z));
+	target = p;
+
+	// Update rotation
+	SetDirNormed(target - GetPos());
+}
+
+Vec3 PerspCameraPart::GetTarget()
+{
+	return target;
+	//mathfu::Vector3f target = cam->GetTarget();
+	//
+	//return Vec3(target.x(), target.y(), target.z());
+}
+
+float PerspCameraPart::GetNearPlaneDist()
+{
+	return cam->GetNearPlane();
+}
+
+float PerspCameraPart::GetFarPlaneDist()
+{
+	return cam->GetFarPlane();
 }
 
 Vec3 PerspCameraPart::GetFrontDir()

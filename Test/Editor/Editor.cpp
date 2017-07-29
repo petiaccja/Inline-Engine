@@ -63,10 +63,14 @@ void Editor::InitScene()
 	// Create scene for editor
 	scene = core->CreateScene();
 
-	cam = scene->AddActor_PerspCamera();
+	//camActor = scene->AddActor_PerspCamera();
+	//camActor->SetNearPlaneDist(0.1);
+	//camActor->SetFarPlaneDist(2000.0);
 
-	cam->SetNearPlane(0.1);
-	cam->SetFarPlane(2000.0);
+	cam = new GeneralCamera(inputCore, core->GetGraphicsEngine()->CreatePerspectiveCamera("WorldCam"));
+	cam->SetNearPlaneDist(0.1);
+	cam->SetFarPlaneDist(2000.0);
+	scene->AddActor(cam);
 }
 
 void Editor::InitGui()
@@ -365,7 +369,7 @@ void Editor::InitGui()
 	};
 }
 
-void Editor::StartMainLoop()
+void Editor::Update()
 {
 	// Create timer, delta time -> engine
 	Timer* timer = new Timer();
@@ -384,41 +388,31 @@ void Editor::StartMainLoop()
 		{
 			switch (evt.msg)
 			{
-				case KEY_PRESS:
+				case eWindowMsg::KEY_PRESS:
 				{
-					if (evt.key != INVALID_eKey)
-						inputCore->KeyPress(evt.key);
+					if (evt.key != eKey::INVALID)
+						inputCore->SimulateKeyPress(evt.key);
 				} break;
 
-				case KEY_RELEASE:
+				case eWindowMsg::KEY_RELEASE:
 				{
-					if (evt.key != INVALID_eKey)
-						inputCore->KeyRelease(evt.key);
+					if (evt.key != eKey::INVALID)
+						inputCore->SimulateKeyRelease(evt.key);
 				} break;
 
-				case MOUSE_MOVE:
+				case eWindowMsg::MOUSE_MOVE:
 				{
-					inputCore->MouseMove(Vec2i(evt.mouseDelta.x, evt.mouseDelta.x), evt.clientMousePos);
+					inputCore->SimulateMouseMove(Vec2i(evt.mouseDelta.x, evt.mouseDelta.y), evt.clientCursorPos);
 				} break;
 
-				case MOUSE_PRESS:
+				case eWindowMsg::MOUSE_PRESS:
 				{
-					switch (evt.mouseBtn)
-					{
-					case LEFT:	inputCore->MouseLeftPress();	break;
-					case RIGHT:	inputCore->MouseRightPress();	break;
-					case MID:	inputCore->MouseMidPress();		break;
-					}
+					inputCore->SimulateMouseBtnPress(evt.mouseBtn);
 				} break;
 
-				case MOUSE_RELEASE:
+				case eWindowMsg::MOUSE_RELEASE:
 				{
-					switch (evt.mouseBtn)
-					{
-					case LEFT:	inputCore->MouseLeftRelease();	break;
-					case RIGHT: inputCore->MouseRightRelease();	break;
-					case MID:	inputCore->MouseMidRelease();	break;
-					}
+					inputCore->SimulateMouseBtnRelease(evt.mouseBtn);
 				} break;
 			}
 		}
@@ -431,6 +425,9 @@ void Editor::StartMainLoop()
 		// Frame delta time
 		Time.deltaTime = timer->Elapsed();
 		timer->Reset();
+
+		// Update editor camera
+		cam->Update(Time.deltaTime);
 
 		// Update game world
 		//world->UpdateWorld(Time.deltaTime);

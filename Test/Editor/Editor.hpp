@@ -4,7 +4,7 @@
 #include <GuiEngine\GuiEngine.hpp>
 #include <BaseLibrary\Platform\Window.hpp>
 #include <BaseLibrary\Timer.hpp>
-
+#include "GeneralCamera.hpp"
 #include <dwmapi.h>
 #include <Windowsx.h>
 
@@ -23,13 +23,14 @@ public:
 	void InitGui();
 	void InitScene();
 
-	void StartMainLoop();
+	void Update();
 
 	LRESULT WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam);
 
 protected:
 	inl::core::Scene* scene;
-	PerspCameraActor* cam;
+	//PerspCameraActor* camActor;
+	//PerspCameraActor* cam;
 
 	Core* core;
 	InputCore* inputCore;
@@ -50,6 +51,8 @@ protected:
 	GuiImage* minimizeBtn;
 	GuiImage* maximizeBtn;
 	GuiImage* closeBtn;
+
+	GeneralCamera* cam;
 };
 
 } // namespace inl

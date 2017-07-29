@@ -5,8 +5,6 @@
 #include "DirectionalLightPart.hpp"
 #include "MeshPart.hpp"
 
-#include <GraphicsEngine_LL\Scene.hpp>
-
 namespace inl::core {
 
 class RigidBodyActor : public Actor, public RigidBodyPart

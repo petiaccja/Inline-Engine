@@ -5,6 +5,6 @@
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE pInstance, LPSTR str, int showCmd)
 {
 	Editor editor;
-	editor.StartMainLoop();
+	editor.Update();
 	return 0;
 }

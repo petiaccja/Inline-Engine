@@ -147,13 +147,13 @@
 //	}
 //
 //	// Squat
-//	if (!bSquatting && gInput.IsKeyPressed(LCTRL))
+//	if (!bSquatting && gInput.IsKeyPressed(LEFT_CONTROL))
 //	{
 //		camComp->MoveRel(Vec3(0, -0.8f, 0));
 //		bSquatting = true;
 //		playerMoveSpeed /= 2;
 //	}
-//	else if (bSquatting && gInput.IsKeyReleased(LCTRL))
+//	else if (bSquatting && gInput.IsKeyReleased(LEFT_CONTROL))
 //	{
 //		camComp->MoveRel(Vec3(0, 0.8f, 0));
 //		bSquatting = false;

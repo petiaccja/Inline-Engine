@@ -161,11 +161,11 @@ bool Window::PopEvent(WindowEvent& evt_out)
 {
 	evt_out.mouseDelta.x = 0;
 	evt_out.mouseDelta.y = 0;
-	evt_out.key = INVALID_eKey;
-	evt_out.mouseBtn = INVALID_eMouseBtn;
-	evt_out.msg = INVALID_eWindowsMsg;
-	evt_out.clientMousePos.x = -1;
-	evt_out.clientMousePos.y = -1;
+	evt_out.key = eKey::INVALID;
+	evt_out.mouseBtn = eMouseBtn::INVALID;
+	evt_out.msg = eWindowMsg::INVALID;
+	evt_out.clientCursorPos.x = -1;
+	evt_out.clientCursorPos.y = -1;
 
 	MSG msg;
 	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -181,50 +181,50 @@ bool Window::PopEvent(WindowEvent& evt_out)
 
 	if (msg.message == WM_LBUTTONDOWN)
 	{
-		evt_out.msg = MOUSE_PRESS;
+		evt_out.msg = eWindowMsg::MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
-		evt_out.clientMousePos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMousePressed(evt_out);
 	}
 	else if (msg.message == WM_RBUTTONDOWN)
 	{
-		evt_out.msg = MOUSE_PRESS;
+		evt_out.msg = eWindowMsg::MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::RIGHT;
-		evt_out.clientMousePos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMousePressed(evt_out);
 	}
 	else if (msg.message == WM_MBUTTONDOWN)
 	{
-		evt_out.msg = MOUSE_PRESS;
-		evt_out.mouseBtn = eMouseBtn::MID;
-		evt_out.clientMousePos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.msg = eWindowMsg::MOUSE_PRESS;
+		evt_out.mouseBtn = eMouseBtn::MIDDLE;
+		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMousePressed(evt_out);
 	}
 	else if (msg.message == WM_LBUTTONUP)
 	{
-		evt_out.msg = MOUSE_RELEASE;
+		evt_out.msg = eWindowMsg::MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
-		evt_out.clientMousePos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMouseReleased(evt_out);
 	}
 	else if (msg.message == WM_RBUTTONUP)
 	{
-		evt_out.msg = MOUSE_RELEASE;
+		evt_out.msg = eWindowMsg::MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::RIGHT;
-		evt_out.clientMousePos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMouseReleased(evt_out);
 	}
 	else if (msg.message == WM_MBUTTONUP)
 	{
-		evt_out.msg = MOUSE_RELEASE;
-		evt_out.mouseBtn = eMouseBtn::MID;
-		evt_out.clientMousePos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		evt_out.msg = eWindowMsg::MOUSE_RELEASE;
+		evt_out.mouseBtn = eMouseBtn::MIDDLE;
+		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
 		onMouseReleased(evt_out);
 	}
 	else if (msg.message == WM_KEYDOWN)
 	{
 		evt_out.key = ConvertFromWindowsKey(msg.wParam);
-		evt_out.msg = KEY_PRESS;
+		evt_out.msg = eWindowMsg::KEY_PRESS;
 	}
 	else if (msg.message == WM_SYSKEYDOWN)
 	{
@@ -234,12 +234,12 @@ bool Window::PopEvent(WindowEvent& evt_out)
 	else if (msg.message == WM_KEYUP)
 	{
 		evt_out.key = ConvertFromWindowsKey(msg.wParam);
-		evt_out.msg = KEY_RELEASE;
+		evt_out.msg = eWindowMsg::KEY_RELEASE;
 	}
 	else if (msg.message == WM_SYSKEYUP)
 	{
 		evt_out.key = ConvertFromWindowsKey(msg.wParam);
-		evt_out.msg = KEY_RELEASE;
+		evt_out.msg = eWindowMsg::KEY_RELEASE;
 	}
 	else if(msg.message == WM_INPUT)
 	{
@@ -259,20 +259,20 @@ bool Window::PopEvent(WindowEvent& evt_out)
 			POINT p;
 			GetCursorPos(&p);
 			ScreenToClient(handle, &p);
-			evt_out.clientMousePos = Vec2(p.x, p.y);
-			evt_out.msg = MOUSE_MOVE;
+			evt_out.clientCursorPos = Vec2(p.x, p.y);
+			evt_out.msg = eWindowMsg::MOUSE_MOVE;
 
 			onMouseMoved(evt_out);
 		}
 	}
 	else if (msg.message == WM_CLOSE)
 	{
-		evt_out.msg = CLOSE;
+		evt_out.msg = eWindowMsg::CLOSE;
 		Close();
 	}
 	else if (msg.message == WM_QUIT)
 	{
-		evt_out.msg = CLOSE;
+		evt_out.msg = eWindowMsg::CLOSE;
 		Close();
 	}
 	else if (msg.message == WM_SIZING)
@@ -282,21 +282,21 @@ bool Window::PopEvent(WindowEvent& evt_out)
 	}
 	else
 	{
-		evt_out.msg = INVALID_eWindowsMsg;
+		evt_out.msg = eWindowMsg::INVALID;
 	}
 
 	// msg.hwnd != handle happens when this window receive message from it's children window 
 	// TODO (Can be removed when we no longer using window as children because of GDI gui render)
-	if (msg.hwnd != handle && evt_out.clientMousePos.x != -1)
+	if (msg.hwnd != handle && evt_out.clientCursorPos.x != -1)
 	{
 		POINT p;
-		p.x = evt_out.clientMousePos.x;
-		p.y = evt_out.clientMousePos.y;
+		p.x = evt_out.clientCursorPos.x;
+		p.y = evt_out.clientCursorPos.y;
 		ClientToScreen(msg.hwnd, &p);
 		ScreenToClient(handle, &p);
 
-		evt_out.clientMousePos.x = p.x;
-		evt_out.clientMousePos.y = p.y;
+		evt_out.clientCursorPos.x = p.x;
+		evt_out.clientCursorPos.y = p.y;
 	}
 
 	return true;
@@ -478,15 +478,15 @@ eKey Window::ConvertFromWindowsKey(WPARAM key)
 	case VK_NUMPAD8:	return eKey::NUM8;
 	case VK_NUMPAD9:	return eKey::NUM9;
 	case VK_ESCAPE:		return eKey::ESC;
-	case VK_LCONTROL:	return eKey::LCTRL;
+	case VK_LCONTROL:	return eKey::LEFT_CONTROL;
 	case VK_LSHIFT:		return eKey::LSHIFT;
-	case VK_LMENU:		return eKey::LALT;
+	case VK_LMENU:		return eKey::LEFT_ALT;
 	case VK_LWIN:		return eKey::LSYS;
-	case VK_RCONTROL:	return eKey::RCTRL;
+	case VK_RCONTROL:	return eKey::RIGHT_CONTROL;
 	case VK_RSHIFT:		return eKey::RSHIFT;
-	case VK_RMENU:		return eKey::RALT;
+	case VK_RMENU:		return eKey::RIGHT_ALT;
 	case VK_RWIN:		return eKey::RSYS;
-	case VK_MENU:		return eKey::LALT;
+	case VK_MENU:		return eKey::LEFT_ALT;
 	// TODO
 	//case sf::Keyboard::LBracket:	return eKey::LBRACKET;
 	//case sf::Keyboard::RBracket:	return eKey::RBRACKET;
@@ -544,5 +544,5 @@ eKey Window::ConvertFromWindowsKey(WPARAM key)
 	case VK_PAUSE:					return eKey::PAUSE;
 	}
 
-	return INVALID_eKey;
+	return eKey::INVALID;
 }

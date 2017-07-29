@@ -34,6 +34,7 @@ public:
 	SceneScript* AddScript() {return return Core.AddScript<T>();}
 
 	Actor*					AddActor();
+	void					AddActor(Actor* a);
 	Actor*					AddActor(const path& modelPath, float mass = 0);
 	MeshActor*				AddActor_Mesh(const path& modelPath);
 	Actor*					AddActor_RigidBody(const path& modelPath, float mass = 0);
@@ -55,6 +56,7 @@ public:
 	inline void DestroyPart(Part* c);
 
 	bool TraceClosestPoint_Physics(const Vec3& from, const Vec3& to, PhysicsTraceResult& traceInfo_out);
+	bool TraceClosestPoint_Physics(PhysicsTraceResult& traceInfo_out);
 
 protected:
 	// Core

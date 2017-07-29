@@ -46,6 +46,8 @@ public:
 
 	const std::string& GetName() { return name; }
 
+	Scene* GetScene() { return scene; }
+
 	void Attach(Part* c)
 	{
 		c->AttachTo(this);

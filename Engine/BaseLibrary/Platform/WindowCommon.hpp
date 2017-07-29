@@ -19,7 +19,7 @@ ENUM_CLASS_BITFLAG( eWindowStyle, int )
 	TITLE_CLOSEABLE = 16
 };
 
-enum eWindowMsg 
+enum class eWindowMsg 
 {
 	CLOSE,						///< The window requested to be closed (no data)
 	RESIZE,						///< The window was resized (data in event.size)
@@ -39,19 +39,20 @@ enum eWindowMsg
 	JOYSTICK_MOVE,				///< The joystick moved along an axis (data in event.joystickMove)
 	JOYSTICK_CONNECT,			///< A joystick was connected (data in event.joystickConnect)
 	JOYSTICK_DISCONNECT,		///< A joystick was disconnected (data in event.joystickConnect)
-	COUNT_eWindowsMsg,			///< Keep last -- the total number of event types
-	INVALID_eWindowsMsg = -1,
+
+	COUNT,						///< Keep last -- the total number of event types
+	INVALID = -1,
 };
 
 struct WindowEvent
 {
-	WindowEvent(): msg(INVALID_eWindowsMsg), key(INVALID_eKey), mouseDelta(0, 0), clientMousePos(0, 0) {}
+	WindowEvent(): msg(eWindowMsg::INVALID), key(eKey::INVALID), mouseDelta(0, 0), clientCursorPos(0, 0) {}
 
 	eWindowMsg	msg;
 	eKey		key;
 	eMouseBtn	mouseBtn;
 	Vec2	mouseDelta;
-	Vec2	clientMousePos;
+	Vec2	clientCursorPos;
 };
 
 struct WindowDesc
