@@ -3,6 +3,7 @@
 #include "Pipeline.hpp"
 #include "Scheduler.hpp"
 #include "CommandAllocatorPool.hpp"
+#include "CommandListPool.hpp"
 #include "ScratchSpacePool.hpp"
 #include "ResourceResidencyQueue.hpp"
 #include "PipelineEventDispatcher.hpp"
@@ -55,6 +56,7 @@ struct GraphicsEngineDesc {
 
 
 // Temporary, delete this!!!!44négy
+// Peti wuz here '17.07.28 - surprisingly, I actually understood why this is temporary, but I'm not gonna write it down
 class PipelineEventPrinter : public PipelineEventListener {
 public:
 	PipelineEventPrinter() : m_log(nullptr) {}
@@ -136,6 +138,7 @@ private:
 
 	// Pipeline Facilities
 	CommandAllocatorPool m_commandAllocatorPool;
+	CommandListPool m_commandListPool;
 	ScratchSpacePool m_scratchSpacePool; // Creates CBV_SRV_UAV type scratch spaces
 	CbvSrvUavHeap m_textureSpace;
 	Pipeline m_pipeline;

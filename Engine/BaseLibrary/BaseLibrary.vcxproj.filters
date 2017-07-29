@@ -141,6 +141,9 @@
     <ClInclude Include="GraphEditor\INode.hpp">
       <Filter>GraphEditor</Filter>
     </ClInclude>
+    <ClInclude Include="SmartPtrCast.hpp">
+      <Filter>All</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">

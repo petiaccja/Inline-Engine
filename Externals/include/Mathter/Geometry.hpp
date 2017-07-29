@@ -63,7 +63,7 @@ public:
 	VectorT End() const { return point2; }
 	VectorT Interpol(T t) const { return t*point2 + (T(1) - t)*point1; }
 
-	Line<T, Dim> Line() const {
+	mathter::Line<T, Dim> Line() const {
 		return mathter::Line<T, Dim>{point1, Direction()};
 	}
 private:
@@ -136,13 +136,14 @@ auto Intersect(const T& t, const U& u) {
 // Plane-line intersection
 template <class T, int Dim>
 class Intersection<Hyperplane<T, Dim>, Line<T, Dim>> {
+protected:
 	using PlaneT = Hyperplane<T, Dim>;
 	using LineT = Line<T, Dim>;
 	using VectorT = Vector<T, Dim>;
 public:
 	Intersection(const PlaneT& plane, const LineT& line);
 
-	bool Intersecting() const { return !isinf(param); }
+	bool Intersecting() const { return !std::isinf(param); }
 	VectorT Point() const { return line.PointAt(param); }
 	T LineParameter() const { return param; }
 private:
@@ -152,6 +153,8 @@ private:
 
 template <class T, int Dim>
 class Intersection<Line<T, Dim>, Hyperplane<T, Dim>> : public Intersection<Hyperplane<T, Dim>, Line<T, Dim>> {
+	using PlaneT = Hyperplane<T, Dim>;
+	using LineT = Line<T, Dim>;
 public:
 	Intersection(const LineT& line, const PlaneT& plane) : Intersection<Hyperplane<T, Dim>, Line<T, Dim>>(plane, line) {}
 };
@@ -182,6 +185,8 @@ private:
 
 template <class T, int Dim>
 class Intersection<LineSegment<T, Dim>, Hyperplane<T, Dim>> : public Intersection<Hyperplane<T, Dim>, LineSegment<T, Dim>> {
+	using PlaneT = Hyperplane<T, Dim>;
+	using LineT = LineSegment<T, Dim>;
 public:
 	Intersection(const LineT& line, const PlaneT& plane) : Intersection<Hyperplane<T, Dim>, LineSegment<T, Dim>>(plane, line) {}
 };
@@ -229,10 +234,10 @@ public:
 		line2 = l2;
 		auto intersection = Intersect(Hyperplane<T, 2>(l1), l2);
 		param2 = intersection.LineParameter();
-		param1 = isinf(param2) ? std::numeric_limits<T>::infinity() : (intersection.Point() - l1.Base()).Length();
+		param1 = std::isinf(param2) ? std::numeric_limits<T>::infinity() : (intersection.Point() - l1.Base()).Length();
 	}
 
-	bool Intersecting() const { return !isinf(param1); }
+	bool Intersecting() const { return !std::isinf(param1); }
 	T LineParameter1() const { return param1; }
 	T LineParameter2() const { return param2; }
 	Vector<T, 2> Point() const { return line2.PointAt(param2); }

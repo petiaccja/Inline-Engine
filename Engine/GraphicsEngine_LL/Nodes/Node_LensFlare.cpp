@@ -3,13 +3,10 @@
 #include "NodeUtility.hpp"
 
 #include "../MeshEntity.hpp"
-#include "../Mesh.hpp"
-#include "../Image.hpp"
 #include "../DirectionalLight.hpp"
 #include "../PerspectiveCamera.hpp"
 #include "../GraphicsCommandList.hpp"
 #include "../EntityCollection.hpp"
-#include "AssetLibrary/Image.hpp"
 
 #include "DebugDrawManager.hpp"
 
@@ -241,6 +238,7 @@ void LensFlare::InitRenderTarget(SetupContext& context) {
 
 		// Create lens color texture
 		{
+#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
 			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
 			inl::asset::Image img("assets\\lensFlare\\lens_color.png");
 

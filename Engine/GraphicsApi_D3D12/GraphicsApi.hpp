@@ -25,6 +25,7 @@ public:
 	gxapi::IGraphicsCommandList* CreateGraphicsCommandList(gxapi::CommandListDesc desc) override;
 	gxapi::IComputeCommandList* CreateComputeCommandList(gxapi::CommandListDesc desc) override;
 	gxapi::ICopyCommandList* CreateCopyCommandList(gxapi::CommandListDesc desc) override;
+	gxapi::ICommandList* CreateCommandList(gxapi::eCommandListType type, gxapi::CommandListDesc desc) override;
 
 	// Resources
 	gxapi::IResource* CreateCommittedResource(gxapi::HeapProperties heapProperties,

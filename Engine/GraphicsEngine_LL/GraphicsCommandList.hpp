@@ -15,6 +15,7 @@ class GraphicsCommandList : public ComputeCommandList {
 public:
 	GraphicsCommandList(
 		gxapi::IGraphicsApi* gxApi,
+		CommandListPool& commandListPool,
 		CommandAllocatorPool& commandAllocatorPool,
 		ScratchSpacePool& scratchSpacePool,
 		MemoryManager& memoryManager,

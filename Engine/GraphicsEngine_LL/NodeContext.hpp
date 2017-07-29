@@ -23,6 +23,7 @@ class CopyCommandList;
 class BasicCommandList;
 
 class ScratchSpacePool;
+class CommandListPool;
 class CommandAllocatorPool;
 
 // Debug draw
@@ -130,6 +131,7 @@ public:
 				  VolatileViewHeap* volatileViewHeap = nullptr,
 				  ShaderManager* shaderManager = nullptr,
 				  gxapi::IGraphicsApi* graphicsApi = nullptr,
+				  CommandListPool* commandListPool = nullptr,
 				  CommandAllocatorPool* commandAllocatorPool = nullptr,
 				  ScratchSpacePool* scratchSpacePool = nullptr);
 	RenderContext(RenderContext&&) = delete;
@@ -172,6 +174,7 @@ private:
 	gxapi::IGraphicsApi* m_graphicsApi;
 
 	// Command list
+	CommandListPool* m_commandListPool;
 	CommandAllocatorPool* m_commandAllocatorPool;
 	ScratchSpacePool* m_scratchSpacePool;
 	std::unique_ptr<BasicCommandList> m_commandList;

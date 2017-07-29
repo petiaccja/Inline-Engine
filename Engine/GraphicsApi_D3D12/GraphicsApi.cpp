@@ -85,6 +85,26 @@ gxapi::ICopyCommandList* GraphicsApi::CreateCopyCommandList(gxapi::CommandListDe
 }
 
 
+gxapi::ICommandList* GraphicsApi::CreateCommandList(gxapi::eCommandListType type, gxapi::CommandListDesc desc) {
+	ComPtr<ID3D12GraphicsCommandList> native;
+
+	ThrowIfFailed(m_device->CreateCommandList(0, native_cast(type), native_cast(desc.allocator), native_cast(desc.initialState), IID_PPV_ARGS(&native)));
+	switch (type)
+	{
+	case inl::gxapi::eCommandListType::COPY:
+		return new CopyCommandList(native);
+	case inl::gxapi::eCommandListType::COMPUTE:
+		return new ComputeCommandList(native);
+	case inl::gxapi::eCommandListType::GRAPHICS:
+		return new GraphicsCommandList(native);
+	case inl::gxapi::eCommandListType::BUNDLE:
+		throw InvalidArgumentException("Bundles are not supported.");
+	default:
+		assert(false);
+	}
+}
+
+
 gxapi::IResource* GraphicsApi::CreateCommittedResource(gxapi::HeapProperties heapProperties,
 													   gxapi::eHeapFlags heapFlags,
 													   gxapi::ResourceDesc desc,

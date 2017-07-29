@@ -229,6 +229,7 @@
     <ClInclude Include="Serialization\BinarySerializer.hpp" />
     <ClInclude Include="Serialization\BinarySerializerExtensions.hpp" />
     <ClInclude Include="Singleton.hpp" />
+    <ClInclude Include="SmartPtrCast.hpp" />
     <ClInclude Include="SpinMutex.hpp" />
     <ClInclude Include="StackTrace.hpp" />
     <ClInclude Include="Stream.hpp" />

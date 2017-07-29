@@ -67,6 +67,7 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	: m_gxapiManager(desc.gxapiManager),
 	m_graphicsApi(desc.graphicsApi),
 	m_commandAllocatorPool(desc.graphicsApi),
+	m_commandListPool(desc.graphicsApi),
 	m_scratchSpacePool(desc.graphicsApi, gxapi::eDescriptorHeapType::CBV_SRV_UAV),
 	m_textureSpace(desc.graphicsApi),
 	m_masterCommandQueue(desc.graphicsApi->CreateCommandQueue(CommandQueueDesc{ eCommandListType::GRAPHICS }), desc.graphicsApi->CreateFence(0)),
@@ -162,6 +163,7 @@ void GraphicsEngine::Update(float elapsed) {
 
 	context.gxApi = m_graphicsApi;
 	context.commandAllocatorPool = &m_commandAllocatorPool;
+	context.commandListPool = &m_commandListPool;
 	context.scratchSpacePool = &m_scratchSpacePool;
 	context.memoryManager = &m_memoryManager;
 	context.textureSpace = &m_textureSpace;
