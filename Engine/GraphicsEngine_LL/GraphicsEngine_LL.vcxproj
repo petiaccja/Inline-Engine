@@ -208,7 +208,9 @@
     <ClInclude Include="Nodes\Node_BloomBlur.hpp" />
     <ClInclude Include="Nodes\Node_BloomDownsample.hpp" />
     <ClInclude Include="Nodes\Node_BrightLumPass.hpp" />
+    <ClInclude Include="Nodes\Node_DOFNeighborMax.hpp" />
     <ClInclude Include="Nodes\Node_DOFPrepare.hpp" />
+    <ClInclude Include="Nodes\Node_DOFTileMax.hpp" />
     <ClInclude Include="Nodes\Node_HDRCombine.hpp" />
     <ClInclude Include="Nodes\Node_LensFlare.hpp" />
     <ClInclude Include="Nodes\Node_LuminanceReduction.hpp" />
@@ -299,7 +301,9 @@
     <ClCompile Include="Nodes\Node_DepthPrepass.cpp" />
     <ClCompile Include="Nodes\Node_DepthReduction.cpp" />
     <ClCompile Include="Nodes\Node_DepthReductionFinal.cpp" />
+    <ClCompile Include="Nodes\Node_DOFNeighborMax.cpp" />
     <ClCompile Include="Nodes\Node_DOFPrepare.cpp" />
+    <ClCompile Include="Nodes\Node_DOFTileMax.cpp" />
     <ClCompile Include="Nodes\Node_DrawSky.cpp" />
     <ClCompile Include="Nodes\Node_ForwardRender.cpp" />
     <ClCompile Include="Nodes\Node_HDRCombine.cpp" />

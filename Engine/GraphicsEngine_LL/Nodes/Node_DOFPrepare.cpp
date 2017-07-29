@@ -225,7 +225,7 @@ void DOFPrepare::InitRenderTarget(SetupContext& context) {
 
 		using gxapi::eFormat;
 
-		auto format = eFormat::R16G16B16A16_FLOAT;
+		auto format = eFormat::R16_FLOAT;
 
 		gxapi::RtvTexture2DArray rtvDesc;
 		rtvDesc.activeArraySize = 1;

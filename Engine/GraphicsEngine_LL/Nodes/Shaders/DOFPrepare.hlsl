@@ -55,7 +55,7 @@ PS_Input VSMain(float4 position : POSITION, float4 texcoord : TEX_COORD)
 	return result;
 }
 
-float4 PSMain(PS_Input input) : SV_TARGET
+float PSMain(PS_Input input) : SV_TARGET
 {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
@@ -63,7 +63,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float focal_length = 55; //millimeters
 	float f_stops = 2.8; //millimeters
 	float subject_distance = 1;
-	float max_blur_radius = 1; //pixels
+	float max_blur_radius = 28; //pixels
 	//calculate coc at far plane
 	//calculate multiplier for max blur (which should be at far plane)
 	float coc_multiplier = max_blur_radius / calculate_coc(55 * 0.001, subject_distance, 2.8 * 0.001, 100);
