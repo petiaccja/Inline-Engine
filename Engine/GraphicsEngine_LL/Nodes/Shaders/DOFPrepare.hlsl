@@ -71,6 +71,6 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float coc_multiplier = max_blur_radius / calculate_coc(55 * 0.001, subject_distance, 2.8 * 0.001, 100);
 
 	//return inputTex.Sample(samp0, input.texcoord);
-	return float4(inputData.xyz, 1) * min(calculate_coc(focal_length * 0.001, subject_distance, f_stops * 0.001, linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100)) * coc_multiplier, max_blur_radius);
+	return float4(inputData.xyz, min(calculate_coc(focal_length * 0.001, subject_distance, f_stops * 0.001, linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100)) * coc_multiplier, max_blur_radius) );
 	//return linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100);
 }
