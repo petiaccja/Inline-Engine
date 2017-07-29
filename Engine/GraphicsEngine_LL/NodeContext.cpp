@@ -137,6 +137,7 @@ RWTextureView2D SetupContext::CreateUav(Texture2D& rwTexture, gxapi::eFormat for
 
 
 VertexBuffer SetupContext::CreateVertexBuffer(const void* data, size_t size) const {
+#pragma message("This is not good, context uploads should NOT go through upload manager but through node's command list, immediately.")
 	VertexBuffer result = m_memoryManager->CreateVertexBuffer(eResourceHeapType::CRITICAL, size);
 	m_memoryManager->GetUploadManager().Upload(result, 0, data, size);
 	return result;
@@ -144,6 +145,7 @@ VertexBuffer SetupContext::CreateVertexBuffer(const void* data, size_t size) con
 
 
 IndexBuffer SetupContext::CreateIndexBuffer(const void* data, size_t size, size_t indexCount) const {
+#pragma message("This is not good, context uploads should NOT go through upload manager but through node's command list, immediately.")
 	IndexBuffer result = m_memoryManager->CreateIndexBuffer(eResourceHeapType::CRITICAL, size, indexCount);
 	m_memoryManager->GetUploadManager().Upload(result, 0, data, size);
 	return result;
