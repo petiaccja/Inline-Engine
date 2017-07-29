@@ -44,9 +44,6 @@ void HDRCombine::Reset() {
 	m_luminanceTexSrv = TextureView2D();
 	m_bloomTexSrv = TextureView2D();
 	m_lensFlareTexSrv = TextureView2D();
-	m_colorGradingImage = nullptr;
-	m_lensFlareDirtImage = nullptr;
-	m_lensFlareStarImage = nullptr;
 	m_camera = nullptr;
 
 	GetInput<0>().Clear();
@@ -85,9 +82,30 @@ void HDRCombine::Setup(SetupContext& context) {
 	m_lensFlareTexSrv = context.CreateSrv(lensFlareTex, lensFlareTex.GetFormat(), srvDesc);
 	m_lensFlareTexSrv.GetResource()._GetResourcePtr()->SetName("HDR Combine lens flare tex SRV");
 
-	m_colorGradingImage = this->GetInput<4>().Get();
-	m_lensFlareDirtImage = this->GetInput<5>().Get();
-	m_lensFlareStarImage = this->GetInput<6>().Get();
+	auto colorGradingImage = this->GetInput<4>().Get();
+	auto lensFlareDirtImage = this->GetInput<5>().Get();
+	auto lensFlareStarImage = this->GetInput<6>().Get();
+
+	if (colorGradingImage == nullptr) {
+		throw InvalidArgumentException("Adjál rendes texturát!");
+		if (!colorGradingImage->GetSrv()->operator bool()) {
+			throw InvalidArgumentException("Given texture was empty.");
+		}
+	}
+	
+	if (lensFlareDirtImage == nullptr) {
+		throw InvalidArgumentException("Adjál rendes texturát!");
+		if (!lensFlareDirtImage->GetSrv()->operator bool()) {
+			throw InvalidArgumentException("Given texture was empty.");
+		}
+	}
+
+	if (lensFlareStarImage == nullptr) {
+		throw InvalidArgumentException("Adjál rendes texturát!");
+		if (!lensFlareStarImage->GetSrv()->operator bool()) {
+			throw InvalidArgumentException("Given texture was empty.");
+		}
+	}
 
 	m_camera = this->GetInput<7>().Get();
 
@@ -275,14 +293,18 @@ void HDRCombine::Execute(RenderContext& context) {
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
 	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
 
+	auto colorGradingImage = this->GetInput<4>().Get();
+	auto lensFlareDirtImage = this->GetInput<5>().Get();
+	auto lensFlareStarImage = this->GetInput<6>().Get();
+
 	commandList.SetResourceState(m_combine_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_luminanceTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_bloomTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-	commandList.SetResourceState(m_colorGradingLutTexture->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(colorGradingImage->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_lensFlareTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-	commandList.SetResourceState(m_lensFlareDirtTexture->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-	commandList.SetResourceState(m_lensFlareStarTexture->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(lensFlareDirtImage->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(lensFlareStarImage->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 	RenderTargetView2D* pRTV = &m_combine_rtv;
 	commandList.SetRenderTargets(1, &pRTV, 0);
@@ -307,10 +329,10 @@ void HDRCombine::Execute(RenderContext& context) {
 	commandList.BindGraphics(m_inputTexBindParam, m_inputTexSrv);
 	commandList.BindGraphics(m_luminanceTexBindParam, m_luminanceTexSrv);
 	commandList.BindGraphics(m_bloomTexBindParam, m_bloomTexSrv);
-	commandList.BindGraphics(m_colorGradingTexBindParam, *m_colorGradingLutTexture->GetSrv().get());
+	commandList.BindGraphics(m_colorGradingTexBindParam, *colorGradingImage->GetSrv());
 	commandList.BindGraphics(m_lensFlareTexBindParam, m_lensFlareTexSrv);
-	commandList.BindGraphics(m_lensFlareDirtTexBindParam, *m_lensFlareDirtTexture->GetSrv().get());
-	commandList.BindGraphics(m_lensFlareStarTexBindParam, *m_lensFlareStarTexture->GetSrv().get());
+	commandList.BindGraphics(m_lensFlareDirtTexBindParam, *lensFlareDirtImage->GetSrv());
+	commandList.BindGraphics(m_lensFlareStarTexBindParam, *lensFlareStarImage->GetSrv());
 	commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
@@ -351,43 +373,6 @@ void HDRCombine::InitRenderTarget(SetupContext& context) {
 		combine_tex._GetResourcePtr()->SetName("HDR Combine tex");
 		m_combine_rtv = context.CreateRtv(combine_tex, formatHDRCombine, rtvDesc);
 		m_combine_rtv.GetResource()._GetResourcePtr()->SetName("HDR Combine RTV");
-
-		// Create color grading texture
-		{
-#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
-#error Nem használsz asseteket node-ban.
-			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
-			inl::asset::Image img("assets\\colorGrading\\default_lut_table.png");
-
-			m_colorGradingLutTexture.reset(m_colorGradingImage);
-			m_colorGradingLutTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
-			m_colorGradingLutTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
-
-			//TODO
-			//create cube texture
-		}
-
-		{
-#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
-#error Nem használsz asseteket node-ban.
-			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
-			inl::asset::Image img("assets\\lensFlare\\lens_dirt.png");
-
-			m_lensFlareDirtTexture.reset(m_lensFlareDirtImage);
-			m_lensFlareDirtTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR);
-			m_lensFlareDirtTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
-		}
-
-		{
-#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
-#error Nem használsz asseteket node-ban.
-			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
-			inl::asset::Image img("assets\\lensFlare\\lens_star.png");
-
-			m_lensFlareStarTexture.reset(m_lensFlareStarImage);
-			m_lensFlareStarTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR);
-			m_lensFlareStarTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
-		}
 	}
 }
 

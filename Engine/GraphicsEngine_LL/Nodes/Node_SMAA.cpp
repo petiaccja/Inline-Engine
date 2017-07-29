@@ -9,9 +9,6 @@
 #include "../PerspectiveCamera.hpp"
 #include "../GraphicsCommandList.hpp"
 #include "../EntityCollection.hpp"
-#include "AssetLibrary/Image.hpp"
-#include "AreaTex.h"
-#include "SearchTex.h"
 
 #include "DebugDrawManager.hpp"
 
@@ -38,8 +35,6 @@ void SMAA::Initialize(EngineContext & context) {
 
 void SMAA::Reset() {
 	m_inputTexSrv = TextureView2D();
-	m_areaImage = nullptr;
-	m_searchImage = nullptr;
 
 	GetInput<0>().Clear();
 	GetInput<1>().Clear();
@@ -60,8 +55,23 @@ void SMAA::Setup(SetupContext& context) {
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
 	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("SMAA input tex SRV");
 
-	m_areaImage = this->GetInput<1>().Get();
-	m_searchImage = this->GetInput<2>().Get();
+	auto areaImage = this->GetInput<1>().Get();
+	auto searchImage = this->GetInput<2>().Get();
+
+	if (areaImage == nullptr) {
+		throw InvalidArgumentException("Adjál rendes texturát!");
+		if (!areaImage->GetSrv()->operator bool()) {
+			throw InvalidArgumentException("Given texture was empty.");
+		}
+	}
+
+	if (searchImage == nullptr) {
+		throw InvalidArgumentException("Adjál rendes texturát!");
+		if (!searchImage->GetSrv()->operator bool()) {
+			throw InvalidArgumentException("Given texture was empty.");
+		}
+	}
+	
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -318,10 +328,13 @@ void SMAA::Execute(RenderContext& context) {
 	}
 
 	{ //blending weights
+		auto areaImage = this->GetInput<1>().Get();
+		auto searchImage = this->GetInput<2>().Get();
+
 		commandList.SetResourceState(m_blendingWeightsRTV.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 		commandList.SetResourceState(m_edgeDetectionSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_areaTexture->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_searchTexture->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(areaImage->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(searchImage->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 		RenderTargetView2D* pRTV = &m_blendingWeightsRTV;
 		commandList.SetRenderTargets(1, &pRTV, 0);
@@ -335,8 +348,8 @@ void SMAA::Execute(RenderContext& context) {
 		commandList.SetGraphicsBinder(&m_binder.value());
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 		commandList.BindGraphics(m_inputTexBindParam, m_edgeDetectionSRV);
-		commandList.BindGraphics(m_areaTexBindParam, *m_areaTexture.get()->GetSrv());
-		commandList.BindGraphics(m_searchTexBindParam, *m_searchTexture.get()->GetSrv());
+		commandList.BindGraphics(m_areaTexBindParam, *areaImage->GetSrv());
+		commandList.BindGraphics(m_searchTexBindParam, *searchImage->GetSrv());
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 		commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
@@ -414,23 +427,6 @@ void SMAA::InitRenderTarget(SetupContext& context) {
 		m_neighborhoodBlendingRTV.GetResource()._GetResourcePtr()->SetName("SMAA neighborhood blending RTV");
 		m_neighborhoodBlendingSRV = context.CreateSrv(neighborhoodBlendingTex, format, srvDesc);
 		m_neighborhoodBlendingSRV.GetResource()._GetResourcePtr()->SetName("SMAA neighborhood blending SRV");
-
-		
-		{ // Create search texture
-			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR>;
-
-			m_searchTexture.reset(m_searchImage);
-			m_searchTexture->SetLayout(SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR);
-			m_searchTexture->Update(0, 0, SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, searchTexBytes, PixelT::Reader());
-		}
-
-		{ // Create area texture
-			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 2, ePixelClass::LINEAR>;
-
-			m_areaTexture.reset(m_areaImage);
-			m_areaTexture->SetLayout(AREATEX_WIDTH, AREATEX_HEIGHT, ePixelChannelType::INT8_NORM, 2, ePixelClass::LINEAR);
-			m_areaTexture->Update(0, 0, AREATEX_WIDTH, AREATEX_HEIGHT, areaTexBytes, PixelT::Reader());
-		}
 	}
 }
 

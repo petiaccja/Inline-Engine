@@ -55,10 +55,12 @@ PS_Input VSMain(float4 position : POSITION, float4 texcoord : TEX_COORD)
 	return result;
 }
 
-float PSMain(PS_Input input) : SV_TARGET
+float4 PSMain(PS_Input input) : SV_TARGET
 {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
+
+	float4 inputData = inputTex.Sample(samp0, input.texcoord);
 
 	float focal_length = 55; //millimeters
 	float f_stops = 2.8; //millimeters
@@ -69,6 +71,6 @@ float PSMain(PS_Input input) : SV_TARGET
 	float coc_multiplier = max_blur_radius / calculate_coc(55 * 0.001, subject_distance, 2.8 * 0.001, 100);
 
 	//return inputTex.Sample(samp0, input.texcoord);
-	return min(calculate_coc(focal_length * 0.001, subject_distance, f_stops * 0.001, linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100)) * coc_multiplier, max_blur_radius);
+	return float4(inputData.xyz, 1) * min(calculate_coc(focal_length * 0.001, subject_distance, f_stops * 0.001, linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100)) * coc_multiplier, max_blur_radius);
 	//return linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100);
 }

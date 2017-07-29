@@ -32,7 +32,6 @@ void LensFlare::Initialize(EngineContext & context) {
 
 void LensFlare::Reset() {
 	m_inputTexSrv = TextureView2D();
-	m_image = nullptr;
 
 	GetInput<0>().Clear();
 	GetInput<1>().Clear();
@@ -52,7 +51,13 @@ void LensFlare::Setup(SetupContext& context) {
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
 	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("Lens flare input tex SRV");
 
-	m_image = this->GetInput<1>().Get();
+	auto colorImage = this->GetInput<1>().Get();
+	if (colorImage == nullptr) {
+		throw InvalidArgumentException("Adjál rendes texturát!");
+		if (!colorImage->GetSrv()->operator bool()) {
+			throw InvalidArgumentException("Given texture was empty.");
+		}
+	}
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -169,9 +174,11 @@ void LensFlare::Execute(RenderContext& context) {
 
 	uniformsCBData.scale = 1.0;
 
+	auto colorImage = this->GetInput<1>().Get();
+
 	commandList.SetResourceState(m_lens_flare_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-	commandList.SetResourceState(m_lensColorTexture->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(colorImage->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 	RenderTargetView2D* pRTV = &m_lens_flare_rtv;
 	commandList.SetRenderTargets(1, &pRTV, 0);
@@ -194,7 +201,7 @@ void LensFlare::Execute(RenderContext& context) {
 	commandList.SetPipelineState(m_PSO.get());
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.BindGraphics(m_inputTexBindParam, m_inputTexSrv);
-	commandList.BindGraphics(m_lensColorTexBindParam, *m_lensColorTexture->GetSrv().get());
+	commandList.BindGraphics(m_lensColorTexBindParam, *colorImage->GetSrv());
 	commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
@@ -235,17 +242,6 @@ void LensFlare::InitRenderTarget(SetupContext& context) {
 		lens_flare_tex._GetResourcePtr()->SetName("Lens flare tex");
 		m_lens_flare_rtv = context.CreateRtv(lens_flare_tex, formatLensFlare, rtvDesc);
 		m_lens_flare_rtv.GetResource()._GetResourcePtr()->SetName("Lens flare RTV");
-
-		// Create lens color texture
-		{
-#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
-			using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
-			inl::asset::Image img("assets\\lensFlare\\lens_color.png");
-
-			m_lensColorTexture.reset(m_image);
-			m_lensColorTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR);
-			m_lensColorTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
-		}
 	}
 }
 

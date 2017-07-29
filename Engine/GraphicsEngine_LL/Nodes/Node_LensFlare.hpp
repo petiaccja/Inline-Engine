@@ -19,7 +19,6 @@ namespace inl::gxeng::nodes {
 class LensFlare :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
 	virtual public InputPortConfig<Texture2D, inl::gxeng::Image*>,
 	virtual public OutputPortConfig<Texture2D>
 {
@@ -53,11 +52,6 @@ protected: // outputs
 
 protected: // render context
 	TextureView2D m_inputTexSrv;
-
-#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
-	inl::gxeng::Image* m_image;
-#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed. Fõleg nem unique_ptr-rel, wat?
-	std::unique_ptr<inl::gxeng::Image> m_lensColorTexture;
 
 private:
 	void InitRenderTarget(SetupContext& context);

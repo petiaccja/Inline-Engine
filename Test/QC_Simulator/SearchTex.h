@@ -26,12 +26,10 @@
  * SOFTWARE.
  */
 
+#pragma once
 
-#ifndef SEARCHTEX_H
-#define SEARCHTEX_H
-
-#define SEARCHTEX_WIDTH 64
-#define SEARCHTEX_HEIGHT 16
+constexpr int SEARCHTEX_WIDTH = 64;
+constexpr int SEARCHTEX_HEIGHT = 16;
 #define SEARCHTEX_PITCH SEARCHTEX_WIDTH
 #define SEARCHTEX_SIZE (SEARCHTEX_HEIGHT * SEARCHTEX_PITCH)
 
@@ -129,4 +127,3 @@ static const unsigned char searchTexBytes[] = {
     0x00, 0x00, 0x00, 0x00,
 };
 
-#endif

@@ -3,6 +3,9 @@
 #include <AssetLibrary/Model.hpp>
 #include "AssetLibrary/Image.hpp"
 
+#include "AreaTex.h"
+#include "SearchTex.h"
+
 #include <array>
 #include <random>
 
@@ -361,6 +364,8 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_rigidBody.SetInertia(I);
 	m_rigidBody.SetGravity({ 0, 0, -9.81f });
 	m_controller.SetInertia(I);
+
+	CreatePipelineResources();
 }
 
 void QCWorld::UpdateWorld(float elapsed) {
@@ -483,4 +488,74 @@ float QCWorld::Heading() const {
 void QCWorld::IWantSunsetBitches() {
 	m_sun.SetColor({1.0f, 0.65f, 0.25f});
 	m_sun.SetDirection({ 0.8f, -0.7f, -0.15f });
+}
+
+void QCWorld::CreatePipelineResources()
+{
+	// Create pipeline resources
+	using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 2, gxeng::ePixelClass::LINEAR>;
+
+	{
+		m_areaImage.reset(this->m_graphicsEngine->CreateImage());
+		m_areaImage->SetLayout(AREATEX_WIDTH, AREATEX_HEIGHT, gxeng::ePixelChannelType::INT8_NORM, 2, gxeng::ePixelClass::LINEAR);
+		m_areaImage->Update(0, 0, AREATEX_WIDTH, AREATEX_HEIGHT, areaTexBytes, PixelT::Reader());
+
+		this->m_graphicsEngine->SetEnvVariable("SMAA_areaTex", inl::Any{ m_areaImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 1, gxeng::ePixelClass::LINEAR>;
+		m_searchImage.reset(this->m_graphicsEngine->CreateImage());
+		m_searchImage->SetLayout(SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, gxeng::ePixelChannelType::INT8_NORM, 1, gxeng::ePixelClass::LINEAR);
+		m_searchImage->Update(0, 0, SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, searchTexBytes, PixelT::Reader());
+
+		this->m_graphicsEngine->SetEnvVariable("SMAA_searchTex", inl::Any{ m_searchImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\lensFlare\\lens_color.png");
+
+		m_lensFlareColorImage.reset(this->m_graphicsEngine->CreateImage());
+		m_lensFlareColorImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
+		m_lensFlareColorImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+
+		this->m_graphicsEngine->SetEnvVariable("LensFlare_ColorTex", inl::Any{ m_lensFlareColorImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\colorGrading\\default_lut_table.png");
+
+		m_colorGradingLutImage.reset(this->m_graphicsEngine->CreateImage());
+		m_colorGradingLutImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR);
+		m_colorGradingLutImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+
+		//TODO
+		//create cube texture
+
+		this->m_graphicsEngine->SetEnvVariable("HDRCombine_colorGradingTex", inl::Any{ m_colorGradingLutImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\lensFlare\\lens_dirt.png");
+
+		m_lensFlareDirtImage.reset(this->m_graphicsEngine->CreateImage());
+		m_lensFlareDirtImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
+		m_lensFlareDirtImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+
+		this->m_graphicsEngine->SetEnvVariable("HDRCombine_lensFlareDirtTex", inl::Any{ m_lensFlareDirtImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\lensFlare\\lens_star.png");
+
+		m_lensFlareStarImage.reset(this->m_graphicsEngine->CreateImage());
+		m_lensFlareStarImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
+		m_lensFlareStarImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+
+		this->m_graphicsEngine->SetEnvVariable("HDRCombine_lensFlareStarTex", inl::Any{ m_lensFlareStarImage.get() });
+	}
 }

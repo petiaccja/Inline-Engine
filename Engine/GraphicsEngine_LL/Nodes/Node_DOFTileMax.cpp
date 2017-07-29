@@ -82,6 +82,15 @@ void DOFTileMax::Setup(SetupContext& context) {
 		inputBindParamDesc.relativeChangeFrequency = 0;
 		inputBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+		BindParameterDesc depthBindParamDesc;
+		m_depthTexBindParam = BindParameter(eBindParameterType::TEXTURE, 1);
+		depthBindParamDesc.parameter = m_depthTexBindParam;
+		depthBindParamDesc.constantSize = 0;
+		depthBindParamDesc.relativeAccessFrequency = 0;
+		depthBindParamDesc.relativeChangeFrequency = 0;
+		depthBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
 		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
@@ -92,7 +101,7 @@ void DOFTileMax::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, depthBindParamDesc },{ samplerDesc });
 	}
 
 	if (!m_fsq.HasObject()) {
@@ -163,10 +172,11 @@ void DOFTileMax::Execute(RenderContext& context) {
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
 	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
 
-	uniformsCBData.maxMotionBlurRadius = 20.0;
+	uniformsCBData.maxBlurRadius = 28.0;
 
 	commandList.SetResourceState(m_tilemax_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_depthTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 	RenderTargetView2D* pRTV = &m_tilemax_rtv;
 	commandList.SetRenderTargets(1, &pRTV, 0);
@@ -189,6 +199,7 @@ void DOFTileMax::Execute(RenderContext& context) {
 	commandList.SetPipelineState(m_PSO.get());
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.BindGraphics(m_inputTexBindParam, m_inputTexSrv);
+	commandList.BindGraphics(m_depthTexBindParam, m_depthTexSrv);
 	commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
@@ -211,7 +222,7 @@ void DOFTileMax::InitRenderTarget(SetupContext& context) {
 
 		auto formatTileMax = eFormat::R16G16_FLOAT;
 
-		const uint64_t maxBlurRadius = 20;
+		const uint64_t maxBlurRadius = 28;
 
 		gxapi::RtvTexture2DArray rtvDesc;
 		rtvDesc.activeArraySize = 1;

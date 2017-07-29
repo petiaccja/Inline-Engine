@@ -81,6 +81,7 @@ public:
 	void IWantSunsetBitches();
 private:
 	void AddTree(inl::Vec3 position);
+	void CreatePipelineResources();
 private:
 	// Engine
 	inl::gxeng::GraphicsEngine* m_graphicsEngine;
@@ -102,6 +103,7 @@ private:
 	std::unique_ptr<inl::gxeng::Image> m_sphereNormalTex;
 	std::unique_ptr<inl::gxeng::Image> m_sphereAOTex;
 
+
 	std::unique_ptr<inl::gxeng::Image> m_checkerTexture;
 
 	std::unique_ptr<inl::gxeng::Material> m_treeMaterial;
@@ -111,6 +113,11 @@ private:
 	std::unique_ptr<inl::gxeng::Material> m_axesMaterial;
 	std::unique_ptr<inl::gxeng::MaterialShaderGraph> m_simpleShader;
 	std::unique_ptr<inl::gxeng::MaterialShaderGraph> m_pbrShader;
+
+	// Pipeline resources
+	std::unique_ptr<inl::gxeng::Image> m_areaImage, m_searchImage;
+	std::unique_ptr<inl::gxeng::Image> m_lensFlareColorImage;
+	std::unique_ptr<inl::gxeng::Image> m_colorGradingLutImage, m_lensFlareDirtImage, m_lensFlareStarImage;
 
 	// Entities
 	std::vector<std::unique_ptr<inl::gxeng::MeshEntity>> m_staticEntities;

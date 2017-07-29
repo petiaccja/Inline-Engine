@@ -442,6 +442,12 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::LensFlare> lensFlare(new nodes::LensFlare());
 	std::shared_ptr<nodes::BloomBlur> lensFlareBlurHorizontal(new nodes::BloomBlur());
 	std::shared_ptr<nodes::BloomBlur> lensFlareBlurVertical(new nodes::BloomBlur());
+	auto smaaAreaEnv = std::make_shared<nodes::GetEnvVariable>();
+	auto smaaSearchEnv = std::make_shared<nodes::GetEnvVariable>();
+	auto lensFlareColorEnv = std::make_shared<nodes::GetEnvVariable>();
+	auto colorGradingEnv = std::make_shared<nodes::GetEnvVariable>();
+	auto lensFlareDirtEnv = std::make_shared<nodes::GetEnvVariable>();
+	auto lensFlareStarEnv = std::make_shared<nodes::GetEnvVariable>();
 	std::shared_ptr<nodes::SMAA> smaa(new nodes::SMAA());
 	std::shared_ptr<nodes::DOFPrepare> dofPrepare(new nodes::DOFPrepare());
 	std::shared_ptr<nodes::DOFTileMax> dofTileMax(new nodes::DOFTileMax());
@@ -571,8 +577,9 @@ void GraphicsEngine::CreatePipeline() {
 	bloomBlurHorizontal2->GetInput<0>().Link(bloomBlurVertical2->GetOutput(0));
 	bloomBlurHorizontal2->GetInput<1>().Set(Vec2(1, 0));
 
+	lensFlareColorEnv->GetInput<0>().Set("LensFlare_ColorTex");
 	lensFlare->GetInput<0>().Link(bloomDownsample4->GetOutput(0));
-	lensFlare->GetInput<1>().Set(this->CreateImage());
+	lensFlare->GetInput<1>().Link(lensFlareColorEnv->GetOutput(0));
 
 	lensFlareBlurVertical->GetInput<0>().Link(lensFlare->GetOutput(0));
 	lensFlareBlurVertical->GetInput<1>().Set(Vec2(0, 1));
@@ -583,13 +590,16 @@ void GraphicsEngine::CreatePipeline() {
 
 	luminanceReductionFinal->GetInput<0>().Link(luminanceReduction->GetOutput(0));
 
+	colorGradingEnv->GetInput<0>().Set("HDRCombine_colorGradingTex");
+	lensFlareDirtEnv->GetInput<0>().Set("HDRCombine_lensFlareDirtTex");
+	lensFlareStarEnv->GetInput<0>().Set("HDRCombine_lensFlareStarTex");
 	hdrCombine->GetInput<0>().Link(motionBlur->GetOutput(0));
 	hdrCombine->GetInput<1>().Link(luminanceReductionFinal->GetOutput(0));
 	hdrCombine->GetInput<2>().Link(bloomBlurHorizontal2->GetOutput(0));
 	hdrCombine->GetInput<3>().Link(lensFlareBlurHorizontal->GetOutput(0));
-	hdrCombine->GetInput<4>().Set(this->CreateImage());
-	hdrCombine->GetInput<5>().Set(this->CreateImage());
-	hdrCombine->GetInput<6>().Set(this->CreateImage());
+	hdrCombine->GetInput<4>().Link(colorGradingEnv->GetOutput(0));
+	hdrCombine->GetInput<5>().Link(lensFlareDirtEnv->GetOutput(0));
+	hdrCombine->GetInput<6>().Link(lensFlareStarEnv->GetOutput(0));
 	hdrCombine->GetInput<7>().Link(getCamera->GetOutput(0));
 
 	// last step in world render is debug draw
@@ -598,9 +608,12 @@ void GraphicsEngine::CreatePipeline() {
 	debugDraw->GetInput<0>().Link(hdrCombine->GetOutput(0));
 	debugDraw->GetInput<1>().Link(getCamera->GetOutput(0));
 
+	smaaAreaEnv->GetInput<0>().Set("SMAA_areaTex");
+	smaaSearchEnv->GetInput<0>().Set("SMAA_searchTex");
 	smaa->GetInput<0>().Link(debugDraw->GetOutput(0));
-	smaa->GetInput<1>().Set(this->CreateImage());
-	smaa->GetInput<2>().Set(this->CreateImage());
+	smaa->GetInput(1)->Link(smaaAreaEnv->GetOutput(0));
+	smaa->GetInput<2>().Link(smaaSearchEnv->GetOutput(0));
+
 
 	// -----------------------------
 	// Gui pipeline path
@@ -644,8 +657,8 @@ void GraphicsEngine::CreatePipeline() {
 
 	alphaBlend->GetInput<0>().Link(guiRender->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(debugDraw->GetOutput(0));
-	//alphaBlend->GetInput<1>().Link(smaa->GetOutput(0));
-	alphaBlend->GetInput<1>().Link(dofPrepare->GetOutput(0));
+	alphaBlend->GetInput<1>().Link(smaa->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(dofPrepare->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
 	//alphaBlend->GetInput<3>().Set(Mat44::FromScaleVector(Vec3(.5f, 1.f, 1.f)));
 	alphaBlend->GetInput<3>().Link(createWorldRenderTransform->GetOutput(0));
@@ -704,6 +717,13 @@ void GraphicsEngine::CreatePipeline() {
 		dofPrepare,
 		dofTileMax,
 		dofNeighborMax,
+		smaaAreaEnv,
+		smaaSearchEnv,
+		lensFlareColorEnv,
+		colorGradingEnv,
+		lensFlareDirtEnv,
+		lensFlareStarEnv,
+
 
 		getGuiScene,
 		getGuiCamera,

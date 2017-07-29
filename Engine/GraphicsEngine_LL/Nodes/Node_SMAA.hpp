@@ -8,6 +8,7 @@
 #include "../PipelineTypes.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
+#include "GraphicsEngine_LL/Image.hpp"
 
 #include <optional>
 
@@ -62,12 +63,6 @@ protected: // outputs
 protected: // render context
 	TextureView2D m_inputTexSrv;
 
-#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
-	inl::gxeng::Image* m_areaImage, *m_searchImage;
-#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
-	std::unique_ptr<inl::gxeng::Image> m_areaTexture;
-#error Nem csinálsz high level resourceokat node-ban. Mész és átgondolod az életed.
-	std::unique_ptr<inl::gxeng::Image> m_searchTexture;
 private:
 	void InitRenderTarget(SetupContext& context);
 };
