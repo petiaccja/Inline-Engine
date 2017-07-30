@@ -25,5 +25,7 @@
       <Filter>TestGame_ExcessiveStrike</Filter>
     </ClInclude>
     <ClInclude Include="GeneralCamera.hpp" />
+    <ClInclude Include="AreaTex.h" />
+    <ClInclude Include="SearchTex.h" />
   </ItemGroup>
 </Project>

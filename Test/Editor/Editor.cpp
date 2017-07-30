@@ -1,5 +1,9 @@
 #include "Editor.hpp"
 #include <Core\TimeCore.hpp>
+#include <GraphicsEngine_LL\Pixel.hpp>
+#include <AssetLibrary\Image.hpp>
+#include "AreaTex.h"
+#include "SearchTex.h"
 
 namespace inl {
 
@@ -33,6 +37,8 @@ Editor::Editor()
 
 	// Init Graphics Engine
 	graphicsEngine = core->InitGraphicsEngine(gameWnd->GetClientWidth(), gameWnd->GetClientHeight(), (HWND)gameWnd->GetHandle());
+
+	InitGraphicsEngine();
 
 	// Init Physics Engine
 	physicsEngine = core->InitPhysicsEngineBullet();
@@ -71,6 +77,81 @@ void Editor::InitScene()
 	cam->SetNearPlaneDist(0.1);
 	cam->SetFarPlaneDist(2000.0);
 	scene->AddActor(cam);
+}
+
+void Editor::InitGraphicsEngine()
+{
+	graphicsEngine->CreateScene("Gui");
+	graphicsEngine->CreateOrthographicCamera("GuiCamera");
+	graphicsEngine->SetEnvVariable("world_render_pos", inl::Any(Vec2(0.f, 0.f)));
+	graphicsEngine->SetEnvVariable("world_render_rot", inl::Any(0.f));
+
+	// Create pipeline resources
+	using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 2, gxeng::ePixelClass::LINEAR>;
+
+	{
+		m_areaImage.reset(graphicsEngine->CreateImage());
+		m_areaImage->SetLayout(AREATEX_WIDTH, AREATEX_HEIGHT, gxeng::ePixelChannelType::INT8_NORM, 2, gxeng::ePixelClass::LINEAR);
+		m_areaImage->Update(0, 0, AREATEX_WIDTH, AREATEX_HEIGHT, areaTexBytes, PixelT::Reader());
+
+		graphicsEngine->SetEnvVariable("SMAA_areaTex", inl::Any{ m_areaImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 1, gxeng::ePixelClass::LINEAR>;
+		m_searchImage.reset(graphicsEngine->CreateImage());
+		m_searchImage->SetLayout(SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, gxeng::ePixelChannelType::INT8_NORM, 1, gxeng::ePixelClass::LINEAR);
+		m_searchImage->Update(0, 0, SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, searchTexBytes, PixelT::Reader());
+
+		graphicsEngine->SetEnvVariable("SMAA_searchTex", inl::Any{ m_searchImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\lensFlare\\lens_color.png");
+
+		m_lensFlareColorImage.reset(graphicsEngine->CreateImage());
+		m_lensFlareColorImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
+		m_lensFlareColorImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+
+		graphicsEngine->SetEnvVariable("LensFlare_ColorTex", inl::Any{ m_lensFlareColorImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\colorGrading\\default_lut_table.png");
+
+		m_colorGradingLutImage.reset(graphicsEngine->CreateImage());
+		m_colorGradingLutImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR);
+		m_colorGradingLutImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+
+		//TODO
+		//create cube texture
+
+		graphicsEngine->SetEnvVariable("HDRCombine_colorGradingTex", inl::Any{ m_colorGradingLutImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\lensFlare\\lens_dirt.png");
+
+		m_lensFlareDirtImage.reset(graphicsEngine->CreateImage());
+		m_lensFlareDirtImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
+		m_lensFlareDirtImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+
+		graphicsEngine->SetEnvVariable("HDRCombine_lensFlareDirtTex", inl::Any{ m_lensFlareDirtImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\lensFlare\\lens_star.png");
+
+		m_lensFlareStarImage.reset(graphicsEngine->CreateImage());
+		m_lensFlareStarImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
+		m_lensFlareStarImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+
+		graphicsEngine->SetEnvVariable("HDRCombine_lensFlareStarTex", inl::Any{ m_lensFlareStarImage.get() });
+	}
 }
 
 void Editor::InitGui()

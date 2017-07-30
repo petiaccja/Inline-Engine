@@ -136,9 +136,11 @@
     <ClCompile Include="TestLevelScript.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AreaTex.h" />
     <ClInclude Include="GeneralCamera.hpp" />
     <ClInclude Include="Editor.hpp" />
     <ClInclude Include="PlayerScript.hpp" />
+    <ClInclude Include="SearchTex.h" />
     <ClInclude Include="TestLevelScript.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

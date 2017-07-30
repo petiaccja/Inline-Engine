@@ -19,8 +19,9 @@ Scene::Scene(Core* core)
 	physicsScene = core->GetPhysicsEngine()->CreateScene();
 
 	DirectionalLightActor* sun = AddActor_DirectionalLight();
-	sun->SetColor({ 1.0f, 0.65f, 0.25f });
-	sun->SetDirection({ 0.8f, -0.7f, -0.15f });
+
+	sun->SetColor({ 1.0f, 0.9f, 0.85f });
+	sun->SetDirection({ 0.8f, -0.7f, -0.9f });
 }
 
 void Scene::Update()

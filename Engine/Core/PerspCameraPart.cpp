@@ -35,7 +35,7 @@ void PerspCameraPart::SetDirNormed(const Vec3& dir)
 	// TODO do not change the distance between camera position and camera target, save the length of it and reuse it !
 	//cam->SetTarget(cam->GetTarget() + mathfu::Vector3f(dir.x, dir.y, dir.z));
 
-	assert(0);
+	//assert(0);
 
 	//mathfu::Vector3f frontDir = cam->GetLookDirection();
 	//mathfu::Vector3f upVec = cam->GetUpVector();

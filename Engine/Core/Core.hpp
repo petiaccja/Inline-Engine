@@ -129,7 +129,7 @@ protected:
 	//sound::IScene* defaultSoundScene;
 
 	// Texture applied to meshes which have no associated texture
-	gxeng::Texture2D* errorTexture;
+	//gxeng::Texture2D* errorTexture;
 
 	gxapi_dx12::GxapiManager* graphicsApiMgr;
 	gxapi::IGraphicsApi* graphicsApi;
