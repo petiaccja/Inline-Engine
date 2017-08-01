@@ -18,7 +18,7 @@ public:
 
 	void UpdateEntityTransform() override;
 
-	void SetDirNormed(const Vec3& dir);
+	void SetDir(const Vec3& dir);
 
 	void SetAspectRatio(float ratio);
 	void SetFOV(float fov);

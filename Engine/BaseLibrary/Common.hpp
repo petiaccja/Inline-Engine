@@ -318,7 +318,7 @@ enum class enumClass : enumType
 
 
 template<class T>
-T saturate(const T& val)
+T Clamp01(const T& val)
 {
 	T result = val;
 
@@ -332,7 +332,7 @@ T saturate(const T& val)
 }
 
 template<class T>
-T clamp(const T& val, const T& minVal, const T& maxVal)
+T Clamp(const T& val, const T& minVal, const T& maxVal)
 {
 	T result = val;
 

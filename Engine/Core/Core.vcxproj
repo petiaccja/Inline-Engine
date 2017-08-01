@@ -109,8 +109,8 @@
     <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)\Externals\include;$(SolutionDir)\Engine\;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)\Externals\lib64\;$(OutDir);$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(SolutionDir)\Externals\include\Bullet;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)Externals\lib_$(PlatformShortName)_$(Configuration);$(SolutionDir)\Bin\$(Configuration)_$(Platform)\;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
   </PropertyGroup>

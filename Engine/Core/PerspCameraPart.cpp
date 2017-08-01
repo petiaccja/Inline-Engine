@@ -18,46 +18,35 @@ PerspCameraPart::~PerspCameraPart()
 
 void PerspCameraPart::UpdateEntityTransform()
 {
-	const Quat& rot = GetRot();
-	Vec3 upVec = rot * Vec3(0, 0, 1);
-	Vec3 frontVec = rot * Vec3(0, 1, 0);
-
 	// Update camera Entity position
 	cam->SetPosition(GetPos());
-	
+
 	// Update camera Entity Rotation
-	cam->SetUpVector(upVec);
-	cam->SetTarget(cam->GetPosition() + frontVec);
+	cam->SetUpVector(GetUpDir());
+	cam->SetTarget(GetTarget());
 }
 
-void PerspCameraPart::SetDirNormed(const Vec3& dir)
+void PerspCameraPart::SetDir(const Vec3& dir)
 {
-	// TODO do not change the distance between camera position and camera target, save the length of it and reuse it !
-	//cam->SetTarget(cam->GetTarget() + mathfu::Vector3f(dir.x, dir.y, dir.z));
+	Vec3 frontDir = dir.Normalized();
+	Vec3 upDir(0, 0, 1);
+	Vec3 rightDir = Cross(frontDir, upDir).Normalized();
+	upDir = Cross(rightDir, frontDir);
 
-	//assert(0);
+	Mat33 mat;
+	mat(0, 0) = rightDir.x;
+	mat(0, 1) = rightDir.y;
+	mat(0, 2) = rightDir.z;
 
-	//mathfu::Vector3f frontDir = cam->GetLookDirection();
-	//mathfu::Vector3f upVec = cam->GetUpVector();
-	//mathfu::Vector3f rightVec = mathfu::Vector3f::CrossProduct(frontDir, upVec).Normalized();
-	//
-	//// TODO generate camera rotation from {front, up, right} dirs
-	//Mat33 mat;
-	//mat(0, 0) = rightVec.x();
-	//mat(0, 1) = rightVec.y();
-	//mat(0, 2) = rightVec.z();
-	//
-	//mat(1, 0) = upVec.x();
-	//mat(1, 1) = upVec.y();
-	//mat(1, 2) = upVec.z();
-	//
-	//mat(2, 0) = frontDir.x();
-	//mat(2, 1) = frontDir.y();
-	//mat(2, 2) = frontDir.z();
-	//
-	//Quat camRot = (Quat)mat;
-	//
-	//SetRot(camRot);
+	mat(1, 0) = frontDir.x;
+	mat(1, 1) = frontDir.y;
+	mat(1, 2) = frontDir.z;
+
+	mat(2, 0) = upDir.x;
+	mat(2, 1) = upDir.y;
+	mat(2, 2) = upDir.z;
+
+	SetRot((Quat)mat);
 }
 
 void PerspCameraPart::SetAspectRatio(float ratio)
@@ -86,7 +75,7 @@ void PerspCameraPart::SetTarget(const Vec3& p)
 	target = p;
 
 	// Update rotation
-	SetDirNormed(target - GetPos());
+	SetDir(target - GetPos());
 }
 
 Vec3 PerspCameraPart::GetTarget()

@@ -77,6 +77,9 @@ void Editor::InitScene()
 	cam->SetNearPlaneDist(0.1);
 	cam->SetFarPlaneDist(2000.0);
 	scene->AddActor(cam);
+
+	cam->SetPos({ 2, -10, 9 });
+	cam->SetTarget({ 1, 1, 10 });
 }
 
 void Editor::InitGraphicsEngine()

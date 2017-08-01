@@ -24,10 +24,13 @@ Scene::Scene(Core* core)
 	sun->SetDirection({ 0.8f, -0.7f, -0.9f });
 }
 
-void Scene::Update()
+void Scene::Update(float deltaTime)
 {
 	for (Part* part : parts)
 		part->UpdateEntityTransform();
+
+	if (physicsScene)
+		physicsScene->Update(deltaTime);
 }
 
 Scene::~Scene()

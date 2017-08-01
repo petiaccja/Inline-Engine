@@ -69,13 +69,13 @@ void GuiSlider::SlideToCursor()
 {
 	// Ha cursor sliderHalfWidth() - nél van akkor 0, ha GetWidth() - sliderHalfWidth() - nél akkor meg egy
 	float normalizedPercent = (GetCursorPosContentSpaceX() - slider->GetHalfWidth()) / (GetWidth() - slider->GetWidth());
-	normalizedPercent = saturate(normalizedPercent);
+	normalizedPercent = Clamp01(normalizedPercent);
 	SlideToNormedPercent(normalizedPercent);
 }
 
 void GuiSlider::SetValue(float val)
 {
-	value = clamp(val, minValue, maxValue);
+	value = Clamp(val, minValue, maxValue);
 	SlideToValue(value);
 	OnValueChanged(this, val);
 }
@@ -83,13 +83,13 @@ void GuiSlider::SetValue(float val)
 void GuiSlider::SetMinValue(float val)
 {
 	minValue = val;
-	val = clamp(val, minValue, maxValue);
+	val = Clamp(val, minValue, maxValue);
 	SetValue(val);
 }
 
 void GuiSlider::SetMaxValue(float val)
 {
 	maxValue = val;
-	val = clamp(val, minValue, maxValue);
+	val = Clamp(val, minValue, maxValue);
 	SetValue(val);
 }

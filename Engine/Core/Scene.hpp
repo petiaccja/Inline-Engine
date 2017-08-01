@@ -28,7 +28,7 @@ public:
 	Scene(Core* core);
 	~Scene();
 
-	void Update();
+	void Update(float deltaTime);
 
 	template<class T>
 	SceneScript* AddScript() {return return Core.AddScript<T>();}

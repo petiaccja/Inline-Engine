@@ -657,16 +657,12 @@ void Core::Update(float deltaTime)
 	
 
 	for (Scene* scene : scenes)
-		scene->Update();
+		scene->Update(deltaTime);
 
 	// Update graphics
 	if (graphicsEngine)
 	{
 		PROFILE_SCOPE("Graphics");
-
-//#ifdef PROFILE_ENGINE
-//		graphicsEngine->GetGapi()->ResetStatesToDefault(); // Jesus the profiler also uses OpenGL temporarily, and mess up the binds etc...
-//#endif
 		graphicsEngine->Update(deltaTime);
 	}
 
@@ -691,9 +687,9 @@ void Core::Update(float deltaTime)
 	//}
 
 	// Profiling engine
-#ifdef PROFILE_ENGINE
-	VisualCpuProfiler::UpdateAndPresent();
-#endif
+//#ifdef PROFILE_ENGINE
+	//	VisualCpuProfiler::UpdateAndPresent();
+//#endif
 }
 
 //std::vector<Part*> Core::GetParts()

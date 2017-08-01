@@ -26,7 +26,7 @@ GeneralCamera::GeneralCamera(InputCore* inputCore, gxeng::PerspectiveCamera* cam
 	m_bPickIntersect = false;
 	m_bLookingAround = false;
 	m_bForwardIntersect = false;
-	m_fSpeed = 320;
+	m_fSpeed = 100;
 	m_fSmoothness = 1.0;
 	//m_hPanCursor = LoadCursor(0, IDC_HAND);
 	//m_hArrowCursor = LoadCursor(0, IDC_ARROW);
@@ -146,12 +146,12 @@ void GeneralCamera::UpdateKeyActions(float deltaTime)
 	{
 		if(inputCore->IsKeyDown(eKey::E))
 		{
-			vMoveVector -= vUp;
+			vMoveVector += vUp;
 		}
 
 		if(inputCore->IsKeyDown(eKey::Q))
 		{
-			vMoveVector += vUp;
+			vMoveVector -= vUp;
 		}
 	}
 
@@ -176,9 +176,9 @@ void GeneralCamera::UpdateKeyActions(float deltaTime)
 	// Manual move smoothness calc, we can't separate from smooth rotation with baseclass without that
 	m_vRemainingDeltaMove += vMoveVector;
 	//float fW = CMathLib::CalcSmoothUpdateWeight((double)fSmooth, (double)deltaTime);
-	Vec3 vDeltaMove = m_vRemainingDeltaMove * 0.5;
+	Vec3 vDeltaMove = m_vRemainingDeltaMove * Clamp01(10.0 * deltaTime);
 
-	SetPos(GetPos() + vDeltaMove);		
+	SetPos(GetPos() + vDeltaMove);
 	SetTarget(GetTarget() + vDeltaMove);
 
 	m_vRemainingDeltaMove -= vDeltaMove;
@@ -258,7 +258,8 @@ void GeneralCamera::UpdateMouseMove()
 		m_vRecenterCursorPos = Sys::GetCursorPos();// inputCore->GetCursorPos();// CMainCore::GetInstance()->GetMouse()->GetCursorPos();
 
 		// Hide cursor
-		SetCursor( 0 );
+		ShowCursor(false);
+		//SetCursor( 0 );
 
 		vRecenterCorrection.x = 0;
 		vRecenterCorrection.y = 0;
@@ -274,6 +275,7 @@ void GeneralCamera::UpdateMouseMove()
 		// Show cursor
 		SetCursor( m_hArrowCursor );
 
+		ShowCursor(true);
 		m_bLookingAround = false;
 	}
 
@@ -289,7 +291,7 @@ void GeneralCamera::UpdateMouseMove()
 		Sys::SetCursorPos(m_vRecenterCursorPos);
 		//CMainCore::GetInstance()->GetMouse()->SetCursorPos( m_vRecenterCursorPos );
 
-		Vec3 vLookDir = targetLookAt - targetEye;
+		Vec3 vLookDir = GetTarget() - GetPos();// targetLookAt - targetEye;
 
 		//D3DXMATRIX matViewTranspose;
 		//D3DXMatrixTranspose( &matViewTranspose, &m_cCameraParams.m_matView );
@@ -322,9 +324,9 @@ void GeneralCamera::UpdateMouseMove()
 		//D3DXMatrixRotationAxis( &matAroundUp, &vUp, vCursorMove.x );
 		//D3DXVec3TransformNormal( &vLookDir, &vLookDir, &matAroundUp );
 
-		targetLookAt = targetEye + vLookDir;
+		//targetLookAt = targetEye + vLookDir;
 
-		SetTarget(targetLookAt);
+		SetTarget(GetPos() + vLookDir);
 	}
 
 	///////////////////////////////////////////////////////////////
