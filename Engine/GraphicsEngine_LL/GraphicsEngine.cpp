@@ -41,6 +41,7 @@
 #include "Nodes/Node_DOFPrepare.hpp"
 #include "Nodes/Node_DOFTileMax.hpp"
 #include "Nodes/Node_DOFNeighborMax.hpp"
+#include "Nodes/Node_DOFMain.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -452,6 +453,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::DOFPrepare> dofPrepare(new nodes::DOFPrepare());
 	std::shared_ptr<nodes::DOFTileMax> dofTileMax(new nodes::DOFTileMax());
 	std::shared_ptr<nodes::DOFNeighborMax> dofNeighborMax(new nodes::DOFNeighborMax());
+	std::shared_ptr<nodes::DOFMain> dofMain(new nodes::DOFMain());
 	TextureUsage usage;
 
 
@@ -535,6 +537,11 @@ void GraphicsEngine::CreatePipeline() {
 	dofTileMax->GetInput<1>().Link(depthPrePass->GetOutput(0));
 
 	dofNeighborMax->GetInput<0>().Link(dofTileMax->GetOutput(0));
+
+	dofMain->GetInput<0>().Link(dofPrepare->GetOutput(0));
+	dofMain->GetInput<1>().Link(depthPrePass->GetOutput(0));
+	dofMain->GetInput<2>().Link(dofNeighborMax->GetOutput(0));
+	dofMain->GetInput<3>().Link(getCamera->GetOutput(0));
 
 	brightLumPass->GetInput<0>().Link(motionBlur->GetOutput(0));
 	
@@ -657,8 +664,8 @@ void GraphicsEngine::CreatePipeline() {
 
 	alphaBlend->GetInput<0>().Link(guiRender->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(debugDraw->GetOutput(0));
-	alphaBlend->GetInput<1>().Link(smaa->GetOutput(0));
-	//alphaBlend->GetInput<1>().Link(dofPrepare->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(smaa->GetOutput(0));
+	alphaBlend->GetInput<1>().Link(dofMain->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
 	//alphaBlend->GetInput<3>().Set(Mat44::FromScaleVector(Vec3(.5f, 1.f, 1.f)));
 	alphaBlend->GetInput<3>().Link(createWorldRenderTransform->GetOutput(0));
@@ -723,6 +730,7 @@ void GraphicsEngine::CreatePipeline() {
 		colorGradingEnv,
 		lensFlareDirtEnv,
 		lensFlareStarEnv,
+		dofMain,
 
 
 		getGuiScene,
