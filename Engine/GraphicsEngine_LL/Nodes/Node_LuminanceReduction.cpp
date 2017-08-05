@@ -67,7 +67,7 @@ void LuminanceReduction::Setup(SetupContext& context) {
 	m_luminanceView = context.CreateSrv(inputLuminance, inputLuminance.GetFormat(), srvDesc);
 	m_luminanceView.GetResource()._GetResourcePtr()->SetName("Luminance reduction luminance tex view");
 
-	if (inputLuminance.GetWidth() != m_width || inputLuminance.GetHeight() != m_height) {
+	if (inputLuminance.GetWidth() != m_width || inputLuminance.GetHeight() != m_height || !m_srv) {
 		m_width = inputLuminance.GetWidth();
 		m_height = inputLuminance.GetHeight();
 		InitRenderTarget(context);

@@ -83,7 +83,7 @@ void SlabAllocatorEngine::Deallocate(size_t index) {
 	bool correct = BitTestAndClear(block->slotOccupancy, inBlockIndex);
 	assert(correct);
 	if (prevMask == ~size_t(0) && block != m_first) {
-		block->nextBlockIndex = m_first != nullptr ? IndexOf(m_first) : m_blocks.size();
+		block->nextBlockIndex = (m_first != nullptr ? IndexOf(m_first) : std::numeric_limits<intptr_t>::max());
 		m_first = block;
 	}
 }
@@ -124,6 +124,9 @@ void SlabAllocatorEngine::Resize(size_t newPoolSize) {
 			if (newBlocks[i].slotOccupancy < ~size_t(0)) {
 				newBlocks[i].nextBlockIndex = prevFree;
 				prevFree = i;
+			}
+			else {
+				newBlocks[i].nextBlockIndex = std::numeric_limits<intptr_t>::max();
 			}
 		}
 
