@@ -7,9 +7,10 @@
 
 struct Uniforms
 {
+	float maxBlurDiameter;
 };
 
-//ConstantBuffer<Uniforms> uniforms : register(b0);
+ConstantBuffer<Uniforms> uniforms : register(b0);
 
 Texture2D inputTex : register(t0); //HDR texture
 Texture2D depthTex : register(t1); //
@@ -65,12 +66,11 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float focal_length = 55; //millimeters
 	float f_stops = 2.8; //millimeters
 	float subject_distance = 1;
-	float max_blur_radius = 28; //pixels
 	//calculate coc at far plane
 	//calculate multiplier for max blur (which should be at far plane)
-	float coc_multiplier = max_blur_radius / calculate_coc(55 * 0.001, subject_distance, 2.8 * 0.001, 100);
+	float coc_multiplier = uniforms.maxBlurDiameter / calculate_coc(55 * 0.001, subject_distance, 2.8 * 0.001, 100);
 
 	//return inputTex.Sample(samp0, input.texcoord);
-	return float4(inputData.xyz, min(calculate_coc(focal_length * 0.001, subject_distance, f_stops * 0.001, linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100)) * coc_multiplier, max_blur_radius) );
+	return float4(inputData.xyz, min(calculate_coc(focal_length * 0.001, subject_distance, f_stops * 0.001, linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100)) * coc_multiplier, uniforms.maxBlurDiameter) );
 	//return linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100);
 }

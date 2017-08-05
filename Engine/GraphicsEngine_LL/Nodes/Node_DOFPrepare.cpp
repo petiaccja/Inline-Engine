@@ -18,7 +18,7 @@ namespace inl::gxeng::nodes {
 
 struct Uniforms
 {
-	
+	float maxBlurDiameter;
 };
 
 
@@ -176,6 +176,8 @@ void DOFPrepare::Execute(RenderContext& context) {
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
 	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
 
+	uniformsCBData.maxBlurDiameter = 28.0;
+
 	commandList.SetResourceState(m_prepare_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_depthTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
@@ -205,7 +207,7 @@ void DOFPrepare::Execute(RenderContext& context) {
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.BindGraphics(m_inputTexBindParam, m_inputTexSrv);
 	commandList.BindGraphics(m_depthTexBindParam, m_depthTexSrv);
-	//commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
+	commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
 	unsigned vbSize = (unsigned)m_fsq.GetSize();

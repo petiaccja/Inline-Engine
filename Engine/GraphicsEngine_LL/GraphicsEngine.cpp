@@ -600,7 +600,8 @@ void GraphicsEngine::CreatePipeline() {
 	colorGradingEnv->GetInput<0>().Set("HDRCombine_colorGradingTex");
 	lensFlareDirtEnv->GetInput<0>().Set("HDRCombine_lensFlareDirtTex");
 	lensFlareStarEnv->GetInput<0>().Set("HDRCombine_lensFlareStarTex");
-	hdrCombine->GetInput<0>().Link(motionBlur->GetOutput(0));
+	//hdrCombine->GetInput<0>().Link(motionBlur->GetOutput(0));
+	hdrCombine->GetInput<0>().Link(dofMain->GetOutput(0));
 	hdrCombine->GetInput<1>().Link(luminanceReductionFinal->GetOutput(0));
 	hdrCombine->GetInput<2>().Link(bloomBlurHorizontal2->GetOutput(0));
 	hdrCombine->GetInput<3>().Link(lensFlareBlurHorizontal->GetOutput(0));
@@ -664,8 +665,8 @@ void GraphicsEngine::CreatePipeline() {
 
 	alphaBlend->GetInput<0>().Link(guiRender->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(debugDraw->GetOutput(0));
-	//alphaBlend->GetInput<1>().Link(smaa->GetOutput(0));
-	alphaBlend->GetInput<1>().Link(dofMain->GetOutput(0));
+	alphaBlend->GetInput<1>().Link(smaa->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(dofMain->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
 	//alphaBlend->GetInput<3>().Set(Mat44::FromScaleVector(Vec3(.5f, 1.f, 1.f)));
 	alphaBlend->GetInput<3>().Link(createWorldRenderTransform->GetOutput(0));
