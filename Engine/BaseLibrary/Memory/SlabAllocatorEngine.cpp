@@ -149,6 +149,9 @@ void SlabAllocatorEngine::Reset() {
 		m_blocks[idx].nextBlockIndex = idx + 1;
 		m_blocks[idx].slotOccupancy = 0;
 	}
+	if (!m_blocks.empty()) {
+		m_blocks.back().nextBlockIndex = std::numeric_limits<intptr_t>::max();
+	}
 
 	// get first and last blocks
 	if (m_blocks.size() > 0) {
