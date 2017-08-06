@@ -134,12 +134,18 @@ float weight(float2 uv, float alpha)
 static const int numBins = 16;
 int binFunc(float linearDepth)
 {
-	return int(log2(linearDepth * 1000))-1;
+	float d2 = linearDepth * linearDepth;
+	float d4 = d2 * d2;
+	float d6 = d4 * d2;
+	return int(log2(d6)*0.5) - 1;
 }
 
 float binFuncContinuous(float linearDepth)
 {
-	return (log2(linearDepth * 1000)) - 1;
+	float d2 = linearDepth * linearDepth;
+	float d4 = d2 * d2;
+	float d6 = d4 * d2;
+	return log2(d6)*0.5 - 1;
 }
 
 float4 groundTruth(float2 uv, float2 resolution)
@@ -215,8 +221,9 @@ float4 groundTruth(float2 uv, float2 resolution)
 	//float4 source = float4(colorBin[bin].rgb / clamp(colorBin[bin].a, 1e-4, 5e4), revealageBin[bin]);
 	//return source * saturate(1 - source.a);
 
-	//float depth = linearize_depth(depthTex.Sample(samp0, uv), 0.1, 100);
-	//int bin = binFuncContinuous(depth);
+	float depth = linearize_depth(depthTex.Sample(samp0, uv), 0.1, 100);
+	//float bin = binFuncContinuous(depth);
+	int bin = binFunc(depth);
 	//return bin / 16.0;
 
 	return blendResult;
