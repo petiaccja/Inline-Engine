@@ -153,7 +153,7 @@ void BrightLumPass::Execute(RenderContext& context) {
 	//DebugDrawManager::GetInstance().AddSphere(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1, 1);
 
 	//TODO get from somewhere
-	uniformsCBData.bright_pass_threshold = 0.5f;
+	uniformsCBData.bright_pass_threshold = 0.8f;
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
