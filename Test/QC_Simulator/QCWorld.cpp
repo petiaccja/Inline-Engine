@@ -312,13 +312,18 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_worldScene->GetMeshEntities().Add(m_terrainEntity.get());
 
 	// Set up sphere
-	m_sphereEntity.reset(m_graphicsEngine->CreateMeshEntity());
-	m_sphereEntity->SetMesh(m_sphereMesh.get());
-	m_sphereEntity->SetMaterial(m_sphereMaterial.get());
-	m_sphereEntity->InitPosition({ 0,3,1 });
-	m_sphereEntity->InitRotation({ 1,0,0,0 });
-	m_sphereEntity->InitScale({ 1,1,1 });
-	m_worldScene->GetMeshEntities().Add(m_sphereEntity.get());
+	for (int c = 0; c < 20; ++c)
+	{
+		std::unique_ptr<inl::gxeng::MeshEntity> sphere;
+		sphere.reset(m_graphicsEngine->CreateMeshEntity());
+		sphere->SetMesh(m_sphereMesh.get());
+		sphere->SetMaterial(m_sphereMaterial.get());
+		sphere->InitPosition({ 0.95,c*2-10-1.5,0.5 });
+		sphere->InitRotation({ 1,0,0,0 });
+		sphere->InitScale({ 1,1,1 });
+		m_worldScene->GetMeshEntities().Add(sphere.get());
+		m_staticEntities.push_back(std::move(sphere));
+	}
 
 	// Set up copter
 	m_quadcopterEntity.reset(m_graphicsEngine->CreateMeshEntity());
