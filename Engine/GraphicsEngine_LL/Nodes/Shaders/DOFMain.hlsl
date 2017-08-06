@@ -128,7 +128,13 @@ float weight(float2 uv, float alpha)
 	float depth = depthTex.Sample(samp0, uv).x;
 	float oneMinusDepth = 1 - depth;
 	float oneMinusDepth3 = oneMinusDepth * oneMinusDepth * oneMinusDepth;
-	return alpha * max(0.01, 1000 * oneMinusDepth3);
+	return alpha * max(0.01, 3*1000 * oneMinusDepth3);
+}
+
+static const int numBins = 16;
+int binFunc(float linearDepth)
+{
+	return int(log2(linearDepth * 1000));
 }
 
 float4 groundTruth(float2 uv, float2 resolution)
@@ -140,6 +146,15 @@ float4 groundTruth(float2 uv, float2 resolution)
 	float revealage = 1;
 
 	float pi = 3.14159265;
+
+	float4 colorBin[numBins];
+	float revealageBin[numBins];
+
+	for (int c = 0; c < numBins; ++c)
+	{
+		colorBin[c] = float4(0, 0, 0, 0);
+		revealageBin[c] = 1;
+	}
 
 	for (float y = -uniforms.maxBlurDiameter * 0.5; y <= uniforms.maxBlurDiameter * 0.5; ++y)
 	{
@@ -158,28 +173,43 @@ float4 groundTruth(float2 uv, float2 resolution)
 
 			if (tapCoc * 0.5 > tapDist)
 			{
+				float depth = linearize_depth(depthTex.Sample(samp0, sampleUV), 0.1, 100);
+				int bin = binFunc(depth);
+
 				float alpha = (4 * pi) / (tapCoc*tapCoc*pi*0.25);
-				result += float4(data.xyz * alpha, alpha) * weight(sampleUV, alpha);
-				//result += float4(data.xyz * alpha, alpha);
+				//result += float4(data.xyz * alpha, alpha) * weight(sampleUV, alpha);
+
+				colorBin[bin] += float4(data.xyz * alpha, alpha);
+
 				samples++;
 				if (revealage > 0.001) //float underflow fix
 				{
-					revealage *= (1.0 - alpha);
+					//revealage *= (1.0 - alpha);
+				}
+
+				if (revealageBin[bin] > 0.001) //float underflow fix
+				{
+					revealageBin[bin] *= (1.0 - alpha);
 				}
 			}
 		}
 	}
 
 	//saturate for float overflow fix
-	return float4((result.rgb / clamp(result.a, 1e-4, 5e4)) * saturate(1.0 - revealage), 1);
-	//return float4(result.rgb, 1);
-	//return float4(result.rgb / clamp(result.a, 1e-4, 5e4), 1);
-	//float isOverFlow = float(isinf(result.r * (1.0 - revealage)) || isnan(result.r * (1.0 - revealage)));
-	//return float4(result.rg, isOverFlow, isOverFlow);
-	//float revealage1 = saturate(1 - revealage);
-	//return float4(revealage1, revealage1, revealage1, revealage1)*0.1;
+	//return float4((result.rgb / clamp(result.a, 1e-4, 5e4)) * saturate(1.0 - revealage), 1);
 
-	//return result / result.w;
+	for (int d = numBins-1; d >= 0; --d)
+	{
+		//rRGBA = sRGBA*(1-sA) + dRGBA*sA;
+		float4 source = float4(colorBin[d].rgb / clamp(colorBin[d].a, 1e-4, 5e4), revealageBin[d]);
+		result = source * saturate(1 - source.a) + result * saturate(source.a);
+	}
+
+	//float depth = linearize_depth(depthTex.Sample(samp0, uv), 0.1, 100);
+	//int bin = binFunc(depth);
+	//return bin / 16.0;
+
+	return result;
 }
 
 PS_Input VSMain(float4 position : POSITION, float4 texcoord : TEX_COORD)
