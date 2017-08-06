@@ -134,7 +134,7 @@ float weight(float2 uv, float alpha)
 static const int numBins = 16;
 int binFunc(float linearDepth)
 {
-	return int(log2(linearDepth * 1000));
+	return int(log2(linearDepth * 1000))-1;
 }
 
 float4 groundTruth(float2 uv, float2 resolution)
@@ -174,7 +174,7 @@ float4 groundTruth(float2 uv, float2 resolution)
 			if (tapCoc * 0.5 > tapDist)
 			{
 				float depth = linearize_depth(depthTex.Sample(samp0, sampleUV), 0.1, 100);
-				int bin = binFunc(depth);
+				int bin = clamp(binFunc(depth), 0, numBins-1);
 
 				float alpha = (4 * pi) / (tapCoc*tapCoc*pi*0.25);
 				//result += float4(data.xyz * alpha, alpha) * weight(sampleUV, alpha);
@@ -195,15 +195,19 @@ float4 groundTruth(float2 uv, float2 resolution)
 		}
 	}
 
-	//saturate for float overflow fix
-	//return float4((result.rgb / clamp(result.a, 1e-4, 5e4)) * saturate(1.0 - revealage), 1);
-
-	for (int d = numBins-1; d >= 0; --d)
+	for (int d = numBins - 1; d >= 0; --d)
 	{
 		//rRGBA = sRGBA*(1-sA) + dRGBA*sA;
 		float4 source = float4(colorBin[d].rgb / clamp(colorBin[d].a, 1e-4, 5e4), revealageBin[d]);
 		result = source * saturate(1 - source.a) + result * saturate(source.a);
 	}
+
+	//saturate for float overflow fix
+	//return float4((result.rgb / clamp(result.a, 1e-4, 5e4)) * saturate(1.0 - revealage), 1);
+
+	//int bin = 15;
+	//float4 source = float4(colorBin[bin].rgb / clamp(colorBin[bin].a, 1e-4, 5e4), revealageBin[bin]);
+	//return source * saturate(1 - source.a);
 
 	//float depth = linearize_depth(depthTex.Sample(samp0, uv), 0.1, 100);
 	//int bin = binFunc(depth);
