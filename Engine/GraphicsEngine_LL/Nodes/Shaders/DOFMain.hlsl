@@ -97,6 +97,36 @@ float rand(float2 co) {
 	return frac(sin(dot(co.xy, float2(12.9898, 78.233))) * 43758.5453);
 }
 
+float bokehShape(float2 center, float2 uv, float radius)
+{
+	float2 pos = center;
+	float radiusSqr = radius * radius;
+
+	float2 diff = pos - uv;
+	float diffSqr = dot(diff, diff);
+
+	if (diffSqr <= radiusSqr)
+	{
+		float linearValue = (radiusSqr - diffSqr) / radiusSqr;
+		float cosValue = cos(linearValue);
+		float cosSqr = cosValue * cosValue;
+		float cos4 = cosSqr * cosSqr;
+		if ((1.0 - linearValue)>0.8)
+		{
+			float invLinear = linearValue / 0.2;
+			return invLinear * invLinear;
+		}
+		else
+		{
+			return cos4 / 0.8;
+		}
+	}
+	else
+	{
+		return 0.0;
+	}
+}
+
 /* McGuire2012 OIT method to blend samples
 //c: color (premultiplied)
 //a: coverage (alpha)
@@ -188,7 +218,9 @@ float4 groundTruth(float2 uv, float2 resolution)
 				int bin = clamp(binFunc(depth), 0, numBins-1);
 
 				float alpha = (4 * pi) / (tapCoc*tapCoc*pi*0.25);
+				//result += float4(data.xyz * bokehShape(uv*resolution + float2(x, y), uv*resolution, tapCoc * 0.5) * alpha, alpha) * weight(sampleUV, alpha);
 				result += float4(data.xyz * alpha, alpha) * weight(sampleUV, alpha);
+				//result += float4(data.xyz * alpha, 1);// *weight(sampleUV, alpha);
 
 				colorBin[bin] += float4(data.xyz * alpha, alpha);
 
@@ -216,6 +248,9 @@ float4 groundTruth(float2 uv, float2 resolution)
 
 	//saturate for float overflow fix
 	//return float4((result.rgb / clamp(result.a, 1e-4, 5e4)) * saturate(1.0 - revealage), 1);
+
+	//return float4(result.rgb / clamp(result.a, 1e-4, 5e4), 1);
+	//return float4(result.rgb, 1);
 
 	//int bin = 15;
 	//float4 source = float4(colorBin[bin].rgb / clamp(colorBin[bin].a, 1e-4, 5e4), revealageBin[bin]);

@@ -41,8 +41,19 @@ float calculate_coc(float focal_length, float subject_distance, float opening_di
 {
 	//return focal_length * (focal_length / subject_distance) * abs(scene_depth - subject_distance) /
 	//	((focal_length / opening_diameter) * (subject_distance + (scene_depth < subject_distance ? -1 : 1) * abs(scene_depth - subject_distance)));
-
+	
+	//based on wikipedia
 	return opening_diameter * (focal_length / subject_distance) * abs(scene_depth - subject_distance) / scene_depth;
+
+	//based on gpu gems
+	//return opening_diameter * (focal_length / scene_depth) * abs(scene_depth - subject_distance) / abs(subject_distance - focal_length);
+
+	//gpu gems, optimized math
+	//gpu
+	//CoC = abs(z * CoCScale + CoCBias) 
+	//cpu
+	//CoCScale = (aperture * focallength * planeinfocus * (zfar - znear)) / ((planeinfocus - focallength) * znear * zfar)
+	//CoCBias = (aperture * focallength * (znear - planeinfocus)) /	((planeinfocus * focallength) * znear)
 }
 
 
@@ -63,14 +74,21 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 	float4 inputData = inputTex.Sample(samp0, input.texcoord);
 
-	float focal_length = 55; //millimeters
-	float f_stops = 2.8; //millimeters
-	float subject_distance = 1;
+	float sensor_width = 0.035; //35mm full frame sensor
+
+	float focal_length_multiplier = 1.5; //1.0 for full frame
+	float focal_length = 16 * focal_length_multiplier; //millimeters
+	float f_stops = 5.6; //millimeters
+	float subject_distance = 0.5; //meters
 	//calculate coc at far plane
 	//calculate multiplier for max blur (which should be at far plane)
-	float coc_multiplier = uniforms.maxBlurDiameter / calculate_coc(55 * 0.001, subject_distance, 2.8 * 0.001, 100);
+	//float coc_multiplier = uniforms.maxBlurDiameter / calculate_coc(focal_length * 0.001, subject_distance, f_stops * 0.001, 100);
 
+	float coc = calculate_coc(focal_length * 0.001, subject_distance, f_stops * 0.001, linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100)); //in meters
+	float pixel_coc = inputTexSize.x * coc / sensor_width;
+
+	return float4(inputData.xyz, min(pixel_coc, uniforms.maxBlurDiameter));
 	//return inputTex.Sample(samp0, input.texcoord);
-	return float4(inputData.xyz, min(calculate_coc(focal_length * 0.001, subject_distance, f_stops * 0.001, linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100)) * coc_multiplier, uniforms.maxBlurDiameter) );
+	//return float4(inputData.xyz, min(coc * coc_multiplier, uniforms.maxBlurDiameter) );
 	//return linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100);
 }
