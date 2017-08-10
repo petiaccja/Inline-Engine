@@ -312,15 +312,15 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_worldScene->GetMeshEntities().Add(m_terrainEntity.get());
 
 	// Set up sphere
-	for (int c = 0; c < 50; ++c)
+	for (int c = 0; c < 30; ++c)
 	{
 		std::unique_ptr<inl::gxeng::MeshEntity> sphere;
 		sphere.reset(m_graphicsEngine->CreateMeshEntity());
 		sphere->SetMesh(m_sphereMesh.get());
 		sphere->SetMaterial(m_sphereMaterial.get());
-		sphere->InitPosition({ 1.15,c*2-10-1.5,0.5 });
+		sphere->InitPosition({ 0.1-c*0.01, -1.44+0.1+c*0.1, 1.38 });
 		sphere->InitRotation({ 1,0,0,0 });
-		sphere->InitScale({ 1,1,1 });
+		sphere->InitScale({ 0.05,0.01,0.1 });
 		m_worldScene->GetMeshEntities().Add(sphere.get());
 		m_staticEntities.push_back(std::move(sphere));
 	}

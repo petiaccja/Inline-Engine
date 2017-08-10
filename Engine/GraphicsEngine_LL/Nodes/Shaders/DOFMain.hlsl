@@ -219,8 +219,8 @@ float4 groundTruth(float2 uv, float2 resolution)
 
 				float alpha = (4 * pi) / (tapCoc*tapCoc*pi*0.25);
 				//result += float4(data.xyz * bokehShape(uv*resolution + float2(x, y), uv*resolution, tapCoc * 0.5) * alpha, alpha) * weight(sampleUV, alpha);
-				result += float4(data.xyz * alpha, alpha) * weight(sampleUV, alpha);
-				//result += float4(data.xyz * alpha, 1);// *weight(sampleUV, alpha);
+				//result += float4(data.xyz * alpha, alpha) * weight(sampleUV, alpha);
+				result += float4(data.xyz * alpha, alpha);// *weight(sampleUV, alpha);
 
 				colorBin[bin] += float4(data.xyz * alpha, alpha);
 
@@ -249,7 +249,7 @@ float4 groundTruth(float2 uv, float2 resolution)
 	//saturate for float overflow fix
 	//return float4((result.rgb / clamp(result.a, 1e-4, 5e4)) * saturate(1.0 - revealage), 1);
 
-	//return float4(result.rgb / clamp(result.a, 1e-4, 5e4), 1);
+	return float4(result.rgb / clamp(result.a, 1e-4, 5e4), 1);
 	//return float4(result.rgb, 1);
 
 	//int bin = 15;
