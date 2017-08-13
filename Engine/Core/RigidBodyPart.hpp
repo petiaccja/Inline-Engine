@@ -13,7 +13,7 @@ public:
 	static const ePartType TYPE = RIGID_BODY;
 
 public:
-	RigidBodyPart(physics::IRigidBodyEntity* a);
+	RigidBodyPart(Scene* scene, physics::IRigidBodyEntity* a);
 
 	void ApplyForce(const Vec3& force, const Vec3& relPos = { 0, 0, 0 });
 

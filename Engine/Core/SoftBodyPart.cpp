@@ -2,7 +2,8 @@
 
 using namespace inl::core;
 
-SoftBodyPart::SoftBodyPart(ISoftBodyEntity* e)
-:Part(TYPE), entity(e)
+SoftBodyPart::SoftBodyPart(Scene* scene, ISoftBodyEntity* e)
+:Part(scene, TYPE), entity(e)
 {
+
 }

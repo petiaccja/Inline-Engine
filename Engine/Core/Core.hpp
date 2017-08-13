@@ -27,7 +27,6 @@ class SceneScript;
 
 using namespace inl;
 using namespace inl::gui;
-using namespace inl::physics::bullet;
 using namespace inl::gxapi;
 using namespace inl::gxapi_dx12;
 

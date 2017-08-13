@@ -14,7 +14,7 @@ public:
 	static const ePartType TYPE = SOFT_BODY;
 
 public:
-	SoftBodyPart(ISoftBodyEntity* e);
+	SoftBodyPart(Scene* scene, ISoftBodyEntity* e);
 
 protected:
 	ISoftBodyEntity* entity;

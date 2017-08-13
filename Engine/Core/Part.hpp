@@ -30,11 +30,11 @@ enum ePartType
 class Part
 {
 public:
-	Part(ePartType type);
+	Part(Scene* scene, ePartType type);
 	virtual ~Part();
 
 public:
-	virtual void UpdateEntityTransform() = 0;
+	virtual void UpdateEntityTransform() {};
 
 	PerspCameraPart* AddPart_Camera();
 	MeshPart*		 AddPart_Mesh(const std::string& modelPath);

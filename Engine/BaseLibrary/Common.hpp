@@ -13,6 +13,12 @@
 #include <InlineMath.hpp>
 using namespace inl;
 
+struct Ray
+{
+	Vec3 origin;
+	Vec3 direction;
+};
+
 class Color
 {
 public:

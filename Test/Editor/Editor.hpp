@@ -36,7 +36,7 @@ protected:
 	//PerspCameraActor* cam;
 
 	Core* core;
-	InputCore* inputCore;
+	InputCore* input;
 	
 
 	GuiEngine* guiEngine;
@@ -50,6 +50,7 @@ protected:
 
 	GuiLayer* mainLayer;
 
+	Gui* centerRenderArea;
 	Gui* captionBar;
 	GuiImage* minimizeBtn;
 	GuiImage* maximizeBtn;

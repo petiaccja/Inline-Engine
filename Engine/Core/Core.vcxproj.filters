@@ -43,6 +43,9 @@
     <ClInclude Include="DirectionalLightPart.hpp">
       <Filter>Part</Filter>
     </ClInclude>
+    <ClInclude Include="TransformPart.hpp">
+      <Filter>Part</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp" />
@@ -78,6 +81,9 @@
       <Filter>Part</Filter>
     </ClCompile>
     <ClCompile Include="DirectionalLightPart.cpp">
+      <Filter>Part</Filter>
+    </ClCompile>
+    <ClCompile Include="TransformPart.cpp">
       <Filter>Part</Filter>
     </ClCompile>
   </ItemGroup>

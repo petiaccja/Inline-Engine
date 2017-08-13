@@ -3,8 +3,8 @@
 
 namespace inl::core {
 
-MeshPart::MeshPart(gxeng::MeshEntity* e)
-: Part(TYPE), entity(e)
+MeshPart::MeshPart(Scene* scene, gxeng::MeshEntity* e)
+:Part(scene, TYPE), entity(e)
 {
 }
 

@@ -2,16 +2,16 @@
 
 namespace inl::core {
 
-DirectionalLightPart::DirectionalLightPart(gxeng::Scene* scene)
-:Part(TYPE), scene(scene)
+DirectionalLightPart::DirectionalLightPart(Scene* scene, gxeng::Scene* graphicsScene)
+:Part(scene, TYPE), graphicsScene(graphicsScene)
 {
 	light = new gxeng::DirectionalLight();
-	scene->GetDirectionalLights().Add(light);
+	graphicsScene->GetDirectionalLights().Add(light);
 }
 
 DirectionalLightPart::~DirectionalLightPart()
 {
-	scene->GetDirectionalLights().Remove(light);
+	graphicsScene->GetDirectionalLights().Remove(light);
 	delete light;
 }
 

@@ -17,8 +17,8 @@ static const float fNotSmooth = 999999.0f;
 
 using namespace mathter;
 
-GeneralCamera::GeneralCamera(InputCore* inputCore, gxeng::PerspectiveCamera* cam)
-:PerspCameraActor(cam), Part(ePartType::CAMERA)
+GeneralCamera::GeneralCamera(core::Scene* scene, InputCore* inputCore, gxeng::PerspectiveCamera* cam, Gui* viewportGui)
+:PerspCameraActor(scene, cam), Part(scene, ePartType::CAMERA), viewportGui(viewportGui)
 {
 	//this->camActor = camActor;
 	this->inputCore = inputCore,
@@ -199,8 +199,8 @@ void GeneralCamera::UpdateMouseMove()
 		bool bIntersect;
 
 		Scene* scene = GetScene();
-		PhysicsTraceResult intersect;
-		bIntersect = scene->TraceClosestPoint_Physics(intersect);
+		TraceResult intersect;
+		bIntersect = scene->TraceGraphicsRay(ScreenPointToRay(viewportGui->GetCursorPosContentSpace()), intersect);
 
 		//SIntersectParams Params;
 		//SIntersectResult Intersect;

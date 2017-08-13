@@ -24,8 +24,8 @@ using namespace inl::core;
 //	//entity->SetSkew(transform.GetSkew());
 //}
 
-RigidBodyPart::RigidBodyPart(physics::IRigidBodyEntity* a)
-:Part(TYPE), entity(a)
+RigidBodyPart::RigidBodyPart(Scene* scene, physics::IRigidBodyEntity* a)
+:Part(scene, TYPE), entity(a)
 {
 
 }

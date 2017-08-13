@@ -1,9 +1,10 @@
 #include "PerspCameraPart.hpp"
+#include "Scene.hpp"
 
 namespace inl::core {
 
-PerspCameraPart::PerspCameraPart(gxeng::PerspectiveCamera* cam)
-:Part(TYPE), cam(cam), aspectRatio(1.f)
+PerspCameraPart::PerspCameraPart(Scene* scene, gxeng::PerspectiveCamera* cam)
+:Part(scene, TYPE), cam(cam), aspectRatio(1.f), bActive(false)
 {
 	cam->SetTargeted(true);
 
@@ -16,6 +17,16 @@ PerspCameraPart::~PerspCameraPart()
 	delete cam;
 }
 
+void PerspCameraPart::SetViewportRect(RectF rect)
+{
+	viewportRect = rect;
+}
+
+void PerspCameraPart::SetActive(bool bActive)
+{
+	this->bActive = bActive;
+}
+
 void PerspCameraPart::UpdateEntityTransform()
 {
 	// Update camera Entity position
@@ -24,6 +35,31 @@ void PerspCameraPart::UpdateEntityTransform()
 	// Update camera Entity Rotation
 	cam->SetUpVector(GetUpDir());
 	cam->SetTarget(GetTarget());
+}
+
+Ray PerspCameraPart::ScreenPointToRay(const Vec2& screenPoint)
+{
+	Ray result;
+	
+	float nearPlaneWidth = tan(cam->GetFOVHorizontal()) * GetNearPlaneDist() * 2.0;
+	float nearPlaneHeight = tan(cam->GetFOVVertical()) * GetNearPlaneDist() * 2.0;
+
+	float x = screenPoint.x / viewportRect.GetWidth();
+	float y = screenPoint.y / viewportRect.GetHeight();
+
+	// Make x and y relative to screen center [-0.5, 0.5]
+	x = x * 2 - 1;
+	y = y * 2 - 1;
+
+	// Convert x and y to world space
+	x *= nearPlaneWidth;
+	y *= nearPlaneHeight;
+
+	Vec3 pointOnNearPlane = GetPos() + GetFrontDir() * GetNearPlaneDist() + GetRightDir() * x + GetUpDir() * y;
+
+	result.origin = pointOnNearPlane;
+	result.direction = (pointOnNearPlane - GetPos()).Normalized();
+	return result;
 }
 
 void PerspCameraPart::SetDir(const Vec3& dir)
@@ -82,7 +118,7 @@ Vec3 PerspCameraPart::GetTarget()
 {
 	return target;
 	//mathfu::Vector3f target = cam->GetTarget();
-	//
+	
 	//return Vec3(target.x(), target.y(), target.z());
 }
 

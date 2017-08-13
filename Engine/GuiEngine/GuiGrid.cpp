@@ -74,7 +74,7 @@ Vec2 GuiGrid::ArrangeChildren(const Vec2& finalSize)
 			maxHeight = std::max(maxHeight, size.y);
 		}
 	
-		pos.x = GetContentPosX();
+		pos.x = GetContentPos().x;
 		pos.y += maxHeight;
 	}
 

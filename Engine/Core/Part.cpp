@@ -13,8 +13,8 @@ float Radians(float deg)
 	return deg / 180 * 3.14159265358979;
 }
 
-Part::Part(ePartType type)
-:parent(0), bDirtyRelativeTransform(false), bDirtyTransform(false), type(type), bKilled(false)
+Part::Part(Scene* scene, ePartType type)
+:scene(scene), parent(0), bDirtyRelativeTransform(false), bDirtyTransform(false), type(type), bKilled(false)
 {
 }
 

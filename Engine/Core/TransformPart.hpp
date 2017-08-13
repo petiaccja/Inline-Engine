@@ -4,18 +4,15 @@
 
 namespace inl::core {
 
-class MeshPart : virtual public Part
+class TransformPart : virtual public Part
 {
 public:
-	static const ePartType TYPE = MESH;
+	static const ePartType TYPE = TRANSFORM;
 
 public:
-	MeshPart(Scene* scene, gxeng::MeshEntity* e);
+	TransformPart(Scene* scene);
 
 	void UpdateEntityTransform() override;
-
-protected:
-	gxeng::MeshEntity* entity;
 };
 
 } // namespace inl::core

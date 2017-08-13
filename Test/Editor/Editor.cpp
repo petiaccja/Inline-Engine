@@ -12,7 +12,7 @@ Editor::Editor()
 	bWndMaximized = false;
 
 	core = new Core();
-	inputCore = new InputCore();
+	input = new InputCore();
 
 	// Create main window for Editor
 	WindowDesc d;
@@ -73,13 +73,17 @@ void Editor::InitScene()
 	//camActor->SetNearPlaneDist(0.1);
 	//camActor->SetFarPlaneDist(2000.0);
 
-	cam = new GeneralCamera(inputCore, core->GetGraphicsEngine()->CreatePerspectiveCamera("WorldCam"));
+	cam = new GeneralCamera(scene, input, core->GetGraphicsEngine()->CreatePerspectiveCamera("WorldCam"), centerRenderArea);
 	cam->SetNearPlaneDist(0.1);
 	cam->SetFarPlaneDist(2000.0);
 	scene->AddActor(cam);
 
+	// TODO
 	cam->SetPos({ 2, -10, 9 });
 	cam->SetTarget({ 1, 1, 10 });
+
+	//cam->SetPos({ 0,0,0 });
+	//cam->SetTarget({ 0,1,0});
 }
 
 void Editor::InitGraphicsEngine()
@@ -315,7 +319,7 @@ void Editor::InitGui()
 	Gui* rightArea = mainLayer->AddGuiButton();
 	Gui* bottomArea = mainLayer->AddGuiButton();
 	Gui* leftArea = mainLayer->AddGuiButton();
-	Gui* centerRenderArea = mainLayer->AddGuiButton();
+	centerRenderArea = mainLayer->AddGuiButton();
 	rightArea->SetSize(150, 100);
 	rightArea->SetBgToColor(Color(35));
 	bottomArea->SetSize(100, 100);
@@ -326,11 +330,31 @@ void Editor::InitGui()
 	centerRenderArea->SetBgToColor(Color(0));
 	centerRenderArea->StretchFillParent();
 
+	centerRenderArea->onMouseClickedClonable += [this](Gui* self, CursorEvent& evt)
+	{
+		Ray ray = cam->ScreenPointToRay(input->GetCursorPos());
+		TraceResult traceResult;
+
+		Vec3 spawnPos;
+		if (scene->TraceGraphicsRay(ray, traceResult))
+		{
+			spawnPos = traceResult.pos;
+		}
+		else
+		{
+			spawnPos = cam->GetPos() + cam->GetFrontDir() * 3;
+		}
+
+		// Spawn something at that position
+		MeshActor* actor = scene->AddActor_Mesh("D:/sphere.fbx");
+		actor->SetPos(spawnPos);
+	};
+
 	centerRenderArea->onSizeChangedClonable += [this](Gui* self, Vec2 size)
 	{
 		HWND gameHwnd = (HWND)gameWnd->GetHandle();
 		HWND editorHwnd = (HWND)this->wnd->GetHandle();
-		SetWindowPos(gameHwnd, NULL, self->GetContentPosX(), self->GetContentPosY(), self->GetContentSizeX(), self->GetContentSizeY(), 0);
+		SetWindowPos(gameHwnd, NULL, self->GetContentPos().x, self->GetContentPos().y, self->GetContentSize().x, self->GetContentSize().y, 0);
 		SetFocus(editorHwnd);
 
 		int width = size.x;
@@ -343,6 +367,7 @@ void Editor::InitGui()
 		
 		cam->SetAspectRatio(aspectRatio);
 		cam->SetFOV(60.f / 180.f * 3.14159265);
+		cam->SetViewportRect(RectF(0, width, 0, height));
 	};
 
 	rightArea->StretchFillParent();
@@ -465,7 +490,7 @@ void Editor::Update()
 	while (wnd->IsOpen())
 	{
 		// Prepare for input processing
-		inputCore->ClearFrameData();
+		input->ClearFrameData();
 
 		WindowEvent evt;
 		while (wnd->PopEvent(evt))
@@ -475,28 +500,28 @@ void Editor::Update()
 				case eWindowMsg::KEY_PRESS:
 				{
 					if (evt.key != eKey::INVALID)
-						inputCore->SimulateKeyPress(evt.key);
+						input->SimulateKeyPress(evt.key);
 				} break;
 
 				case eWindowMsg::KEY_RELEASE:
 				{
 					if (evt.key != eKey::INVALID)
-						inputCore->SimulateKeyRelease(evt.key);
+						input->SimulateKeyRelease(evt.key);
 				} break;
 
 				case eWindowMsg::MOUSE_MOVE:
 				{
-					inputCore->SimulateMouseMove(Vec2i(evt.mouseDelta.x, evt.mouseDelta.y), evt.clientCursorPos);
+					input->SimulateMouseMove(Vec2i(evt.mouseDelta.x, evt.mouseDelta.y), evt.clientCursorPos);
 				} break;
 
 				case eWindowMsg::MOUSE_PRESS:
 				{
-					inputCore->SimulateMouseBtnPress(evt.mouseBtn);
+					input->SimulateMouseBtnPress(evt.mouseBtn);
 				} break;
 
 				case eWindowMsg::MOUSE_RELEASE:
 				{
-					inputCore->SimulateMouseBtnRelease(evt.mouseBtn);
+					input->SimulateMouseBtnRelease(evt.mouseBtn);
 				} break;
 			}
 		}
@@ -504,14 +529,15 @@ void Editor::Update()
 		while (gameWnd->PopEvent(evt));
 
 		// Dispatch Inputs
-		inputCore->Update();
+		input->Update();
 
 		// Frame delta time
 		Time.deltaTime = timer->Elapsed();
 		timer->Reset();
 
 		// Update editor camera
-		cam->Update(Time.deltaTime);
+		if(centerRenderArea->IsCursorInside())
+			cam->Update(Time.deltaTime);
 
 		// Update game world
 		//world->UpdateWorld(Time.deltaTime);

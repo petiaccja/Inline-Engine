@@ -12,8 +12,8 @@ namespace inl::core {
 class Actor : virtual public Part
 {
 public:
-	Actor();
-	Actor(ePartType type);
+	Actor(Scene* scene);
+	Actor(Scene* scene, ePartType type);
 
 public:
 	void Update(float deltaTime);

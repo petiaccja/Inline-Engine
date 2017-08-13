@@ -14,7 +14,7 @@ public:
 	static const ePartType TYPE = DIRECTIONAL_LIGHT;
 
 public:
-	DirectionalLightPart(gxeng::Scene* scene);
+	DirectionalLightPart(Scene* scene, gxeng::Scene* graphicsScene);
 	~DirectionalLightPart();
 
 	void UpdateEntityTransform() override;
@@ -24,7 +24,7 @@ public:
 
 protected:
 	gxeng::DirectionalLight* light;
-	gxeng::Scene* scene;
+	gxeng::Scene* graphicsScene;
 };
 
 } // namespace inl::core

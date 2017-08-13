@@ -35,6 +35,7 @@
     <ClInclude Include="SoftBodyPart.hpp" />
     <ClInclude Include="Part.hpp" />
     <ClInclude Include="TimeCore.hpp" />
+    <ClInclude Include="TransformPart.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
@@ -50,6 +51,7 @@
     <ClCompile Include="SceneScript.cpp" />
     <ClCompile Include="SoftBodyPart.cpp" />
     <ClCompile Include="Part.cpp" />
+    <ClCompile Include="TransformPart.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

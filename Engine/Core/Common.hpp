@@ -51,7 +51,7 @@ struct Collision
 	std::vector<PartCollision> partCollisions;
 };
 
-struct PhysicsTraceResult
+struct TraceResult
 {
 	Actor* actor;
 

@@ -2,6 +2,7 @@
 #include "Part.hpp"
 #include <GraphicsEngine_LL\PerspectiveCamera.hpp>
 #include <InlineMath.hpp>
+#include <BaseLibrary\Common.hpp>
 
 namespace inl::core {
 
@@ -13,8 +14,13 @@ public:
 	static const ePartType TYPE = CAMERA;
 
 public:
-	PerspCameraPart(gxeng::PerspectiveCamera* cam);
+	PerspCameraPart(Scene* scene, gxeng::PerspectiveCamera* cam);
 	~PerspCameraPart();
+
+	void SetViewportRect(RectF rect);
+	void SetActive(bool active);
+
+	Ray ScreenPointToRay(const Vec2& screenPoint);
 
 	void UpdateEntityTransform() override;
 
@@ -44,6 +50,9 @@ protected:
 
 	float aspectRatio;
 	Vec3 target;
+	
+	RectF viewportRect;
+	bool bActive;
 };
 
 } // namespace inl::core

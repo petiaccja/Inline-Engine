@@ -33,6 +33,28 @@ void Scene::Update(float deltaTime)
 		physicsScene->Update(deltaTime);
 }
 
+bool Scene::TraceGraphicsRay(const Ray& ray, TraceResult& traceResult_out)
+{
+	// Temporarily graphics tracing is solved with physics
+	physics::TraceResult result;
+	if (physicsScene->TraceRay(ray, result))
+	{
+		traceResult_out.pos = result.pos;
+		traceResult_out.normal = result.normal;
+		
+		RigidBodyEntity* entity = (RigidBodyEntity*)result.userPointer;
+		
+		if (entity)
+			traceResult_out.actor = (Actor*)entity->GetUserPointer();
+		else
+			traceResult_out.actor = nullptr;
+		
+		return true;
+	}
+
+	return false;
+}
+
 Scene::~Scene()
 {
 	for (Part* a : parts)
@@ -42,9 +64,13 @@ Scene::~Scene()
 	actors.clear();
 }
 
-Actor* Scene::AddActor()
+EmptyActor* Scene::AddActor()
 {
-	return nullptr;// Core.AddActor();
+	EmptyActor* a = new EmptyActor(this);
+
+	actors.push_back(a);
+	parts.push_back(a);
+	return a;
 }
 
 void Scene::AddActor(Actor* a)
@@ -106,15 +132,10 @@ MeshActor* Scene::AddActor_Mesh(const path& modelPath)
 	
 	graphicsScene->GetMeshEntities().Add(entity);
 	
-	MeshActor* a = new MeshActor(entity);
+	MeshActor* a = new MeshActor(this, entity);
 	actors.push_back(a);
 	parts.push_back(a);
 	return a;
-}
-
-Actor* Scene::AddActor(const path& modelPath, float mass /*= 0*/)
-{
-	return nullptr;//return Core.AddActor(modelFilePath, mass);
 }
 
 Actor* Scene::AddActor_RigidBody(const path& modelPath, float mass /*= 0*/)
@@ -130,7 +151,7 @@ RigidBodyActor* Scene::AddActor_RigidBodyCapsule(float height, float radius, flo
 PerspCameraActor* Scene::AddActor_PerspCamera()
 {
 	gxeng::PerspectiveCamera* cam = core->GetGraphicsEngine()->CreatePerspectiveCamera("WorldCam");
-	PerspCameraActor* a = new PerspCameraActor(cam);
+	PerspCameraActor* a = new PerspCameraActor(this, cam);
 	actors.push_back(a);
 	parts.push_back(a);
 	return a;
@@ -138,7 +159,7 @@ PerspCameraActor* Scene::AddActor_PerspCamera()
 
 DirectionalLightActor * Scene::AddActor_DirectionalLight()
 {
-	DirectionalLightActor* a = new DirectionalLightActor(graphicsScene);
+	DirectionalLightActor* a = new DirectionalLightActor(this, graphicsScene);
 	actors.push_back(a);
 	parts.push_back(a);
 	return a;
@@ -184,16 +205,6 @@ void Scene::SetCam(PerspCameraPart* c)
 	assert(0);
 	//assert(defaultGraphicsScene);
 	//defaultGraphicsScene->SetCamera(c->GetCam());
-}
-
-bool Scene::TraceClosestPoint_Physics(const Vec3& from, const Vec3& to, PhysicsTraceResult& traceInfo_out)
-{
-	return false;// Core.TraceClosestPoint_Physics(from, to, traceInfo_out);
-}
-
-bool Scene::TraceClosestPoint_Physics(PhysicsTraceResult& traceInfo_out)
-{
-	return false;// Core.TraceClosestPoint_Physics(from, to, traceInfo_out);
 }
 
 void Scene::SetLayerCollision(uint64_t ID0, uint64_t ID1, bool bEnableCollision)

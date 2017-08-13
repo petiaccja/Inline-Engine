@@ -30,12 +30,13 @@ public:
 
 	void Update(float deltaTime);
 
+	bool TraceGraphicsRay(const Ray& ray, TraceResult& traceResult_out);
+
 	template<class T>
 	SceneScript* AddScript() {return return Core.AddScript<T>();}
 
-	Actor*					AddActor();
+	EmptyActor*				AddActor();
 	void					AddActor(Actor* a);
-	Actor*					AddActor(const path& modelPath, float mass = 0);
 	MeshActor*				AddActor_Mesh(const path& modelPath);
 	Actor*					AddActor_RigidBody(const path& modelPath, float mass = 0);
 	RigidBodyActor*			AddActor_RigidBodyCapsule(float height, float radius, float mass = 0);
@@ -55,8 +56,8 @@ public:
 	inline void RemoveActor(Actor* a);
 	inline void DestroyPart(Part* c);
 
-	bool TraceClosestPoint_Physics(const Vec3& from, const Vec3& to, PhysicsTraceResult& traceInfo_out);
-	bool TraceClosestPoint_Physics(PhysicsTraceResult& traceInfo_out);
+	//bool TracePhysicsRay(const Vec3& from, const Vec3& to, PhysicsTraceResult& traceInfo_out);
+	//bool TraceClosestPoint_Physics(PhysicsTraceResult& traceInfo_out);
 
 protected:
 	// Core

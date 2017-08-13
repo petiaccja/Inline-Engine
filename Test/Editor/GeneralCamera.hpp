@@ -1,18 +1,22 @@
 #pragma once
 
-//#include "CameraBase.hpp"
-#include <InlineMath.hpp>
 #include <Core/InputCore.hpp>
 #include <Core/Actors.hpp>
+#include <Core/Scene.hpp>
+
+#include <InlineMath.hpp>
+
+#include <GuiEngine\Gui.hpp>
 
 namespace inl {
 
 using namespace inl::core;
+using namespace inl::gui;
 
 class GeneralCamera : public PerspCameraActor
 {
 public:
-	GeneralCamera(InputCore* input, gxeng::PerspectiveCamera* cam);
+	GeneralCamera(Scene* scene, InputCore* input, gxeng::PerspectiveCamera* cam, Gui* viewportGui);
 
 	void Update(float deltaTime);
 
@@ -58,7 +62,8 @@ protected:
 
 	//PerspCameraActor* camActor;
 	InputCore* inputCore;
+
+	Gui* viewportGui;
 };
 
 } // inl::editor
-

@@ -9,8 +9,10 @@
 #include <Bullet/BulletCollision/CollisionDispatch/btCollisionWorld.h>
 #include <Bullet/BulletCollision/CollisionShapes/btCollisionShape.h>
 
+#include <BaseLibrary/Common.hpp>
 #include <InlineMath.hpp>
 #include <vector>
+
 
 class btDiscreteDynamicsWorld;
 
@@ -24,7 +26,7 @@ public:
 
 	void Update(float deltaTime);
 
-	bool TraceClosestPoint(const Vec3& from, const Vec3& to, physics::TraceResult& traceResult_out, const physics::TraceParams& params = physics::TraceParams());
+	bool TraceRay(const Ray& ray, physics::TraceResult& traceResult_out, float maxDistance = std::numeric_limits<float>::max(), const physics::TraceParams& params = physics::TraceParams());
 
 	// Create, Add DYNAMIC rigid body to physics world
 	physics::IRigidBodyEntity* AddEntityRigidDynamic(Vec3* vertices, uint32_t nVertices, float mass = 1);
@@ -105,8 +107,8 @@ protected:
 
 struct ClosestRayCallback : public btCollisionWorld::ClosestRayResultCallback
 {
-	ClosestRayCallback(const btVector3& rayFromWorld, const btVector3& rayToWorld, const std::vector<size_t>& ignoredCollisionLayers)
-		:btCollisionWorld::ClosestRayResultCallback(rayFromWorld, rayToWorld), ignoredCollisionLayers(ignoredCollisionLayers)
+	ClosestRayCallback(const btVector3& rayStart, const btVector3& rayEnd, const std::vector<size_t>& ignoredCollisionLayers)
+	:btCollisionWorld::ClosestRayResultCallback(rayStart, rayEnd), ignoredCollisionLayers(ignoredCollisionLayers)
 	{
 	}
 

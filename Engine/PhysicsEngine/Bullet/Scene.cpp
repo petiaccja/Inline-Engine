@@ -156,17 +156,19 @@ void Scene::Update(float deltaTime)
 	}
 }
 
-bool Scene::TraceClosestPoint(const Vec3& from, const Vec3& to, physics::TraceResult& traceInfo_out, const physics::TraceParams& params /*= physics::TraceParams()*/)
+bool Scene::TraceRay(const Ray& ray, physics::TraceResult& traceResult_out, float maxDistance /*= std::numeric_limits<float>::max()*/, const physics::TraceParams& params /*= physics::TraceParams()*/)
 {
-	ClosestRayCallback function({ from.x, from.y, from.z }, { to.x, to.y, to.z }, params.ignoredCollisionLayers);
+	btVector3 rayStart = btVector3(ray.origin.x, ray.origin.y, ray.origin.z);
+	btVector3 rayEnd = rayStart + btVector3(ray.direction.x, ray.direction.y, ray.direction.z) * maxDistance;
+	ClosestRayCallback function(rayStart, rayEnd, params.ignoredCollisionLayers);
 
-	world->rayTest({ from.x, from.y, from.z }, { to.x, to.y, to.z }, function);
+	world->rayTest(rayStart, rayEnd, function);
 
 	if (function.hasHit())
 	{
-		traceInfo_out.normal = Vec3(function.m_hitNormalWorld.x(), function.m_hitNormalWorld.y(), function.m_hitNormalWorld.z());
-		traceInfo_out.pos = Vec3(function.m_hitPointWorld.x(), function.m_hitPointWorld.y(), function.m_hitPointWorld.z());
-		traceInfo_out.userPointer = function.m_collisionObject->getUserPointer();
+		traceResult_out.normal = Vec3(function.m_hitNormalWorld.x(), function.m_hitNormalWorld.y(), function.m_hitNormalWorld.z());
+		traceResult_out.pos = Vec3(function.m_hitPointWorld.x(), function.m_hitPointWorld.y(), function.m_hitPointWorld.z());
+		traceResult_out.userPointer = function.m_collisionObject->getUserPointer();
 		return true;
 	}
 	else

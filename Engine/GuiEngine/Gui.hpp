@@ -255,8 +255,8 @@ public:
 
 	// TODO SetMinSize SetMaxSize
 	Vec2 GetMinSize() { return Vec2(1, 1); }
-	float GetMinSizeX() { return GetMinSize().x; }
-	float GetMinSizeY() { return GetMinSize().y; }
+	//float GetMinSizeX() { return GetMinSize().x; }
+	//float GetMinSizeY() { return GetMinSize().y; }
 
 	Vec2 GetPosBottomLeft() { return GetPos() + Vec2(0, GetHeight()); }
 	Vec2 GetPosBottomRight() { return GetPos() + Vec2(GetWidth(), GetHeight()); }
@@ -266,25 +266,25 @@ public:
 	const RectF& GetPadding() const { return padding; }
 	const RectF& GetMargin() const { return margin; }
 
-	float GetContentPosX() { return GetContentPos().x; }
-	float GetContentPosY() { return GetContentPos().y; }
+	//float GetContentPosX() { return GetContentPos().x; }
+	//float GetContentPosY() { return GetContentPos().y; }
 	Vec2 GetContentPos() { return GetContentRect().GetPos(); }
-	float GetContentCenterPosY() { return GetContentPosY() + GetContentHalfHeight(); }
-	float GetContentCenterPosX() { return GetContentPosX() + GetContentHalfWidth(); }
-	Vec2 GetContentCenterPos() { return GetContentPos() + GetContentHalfSize(); }
+	//float GetContentCenterPosY() { return GetContentPos().y + GetContentSize().y * 0.5; }
+	//float GetContentCenterPosX() { return GetContentPos().x + GetContentSize().x * 0.5; }
+	Vec2 GetContentCenterPos() { return GetContentPos() + GetContentSize() * 0.5; }
 	Vec2 GetContentSize() { return GetContentRect().GetSize(); }
-	float GetContentSizeX() { return GetContentSize().x; }
-	float GetContentSizeY() { return GetContentSize().y; }
-	float GetContentWidth() { return GetContentRect().GetWidth(); }
-	float GetContentHeight() { return GetContentRect().GetHeight(); }
-	float GetContentHalfWidth() { return GetContentWidth() * 0.5f; }
-	float GetContentHalfHeight() { return GetContentHeight() * 0.5f; }
-	Vec2 GetContentHalfSize() { return GetContentSize() * 0.5f; }
+	//float GetContentSizeX() { return GetContentSize().x; }
+	//float GetContentSizeY() { return GetContentSize().y; }
+	//float GetContentWidth() { return GetContentRect().GetWidth(); }
+	//float GetContentHeight() { return GetContentRect().GetHeight(); }
+	//float GetContentHalfWidth() { return GetContentWidth() * 0.5f; }
+	//float GetContentHalfHeight() { return GetContentHeight() * 0.5f; }
+	//Vec2 GetContentHalfSize() { return GetContentSize() * 0.5f; }
 
-	float GetContentRight() { return GetContentRect().right; }
-	float GetContentLeft() { return GetContentRect().left; }
-	float GetContentBottom() { return GetContentRect().bottom; }
-	float GetContentTop() { return GetContentRect().top; }
+	//float GetContentRight() { return GetContentRect().right; }
+	//float GetContentLeft() { return GetContentRect().left; }
+	//float GetContentBottom() { return GetContentRect().bottom; }
+	//float GetContentTop() { return GetContentRect().top; }
 
 	RectF GetRect();
 	RectF GetContentRect();

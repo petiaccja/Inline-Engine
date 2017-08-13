@@ -371,8 +371,8 @@ void Gui::SetRect(float x, float y, float width, float height, bool bMoveChildre
 {
 	// In debug tell us if there's a problem with sizing
 	//assert(width >= 0 && height >= 0);
-	width = std::max(width, GetMinSizeX()); // In release solve the issue
-	height = std::max(height, GetMinSizeY());
+	width = std::max(width, GetMinSize().x); // In release solve the issue
+	height = std::max(height, GetMinSize().y);
 
 	RectF oldRect = GetRect();
 
@@ -702,24 +702,24 @@ Vec2 Gui::Arrange(const Vec2& pos, const Vec2& size)
 	{
 		if (bFillParentHor && (parent->stretchHor != eGuiStretch::FIT_TO_CHILDREN || bFillParentEnabled))
 		{
-			newSize.x = parent->GetContentSizeX();
-			newPos.x = parent->GetContentPosX();
+			newSize.x = parent->GetContentSize().x;
+			newPos.x = parent->GetContentPos().x;
 		}
 
 		if (bFillParentVer && (parent->stretchVer != eGuiStretch::FIT_TO_CHILDREN || bFillParentEnabled))
 		{
-			newSize.y = parent->GetContentSizeY();
-			newPos.y = parent->GetContentPosY();
+			newSize.y = parent->GetContentSize().y;
+			newPos.y = parent->GetContentPos().y;
 		}
 
 		if (bFillParentPositibeDirHor && (parent->stretchHor != eGuiStretch::FIT_TO_CHILDREN || bFillParentEnabled))
 		{
-			newSize.x = parent->GetContentRight() - newPos.x;
+			newSize.x = parent->GetContentRect().right - newPos.x;
 		}
 
 		if (bFillParentPositibeDirVer && (parent->stretchVer != eGuiStretch::FIT_TO_CHILDREN || bFillParentEnabled))
 		{
-			newSize.y = parent->GetContentBottom() - newPos.y;
+			newSize.y = parent->GetContentRect().bottom - newPos.y;
 		}
 
 		bFillParentEnabled = false;
@@ -729,14 +729,14 @@ Vec2 Gui::Arrange(const Vec2& pos, const Vec2& size)
 	{
 	case eGuiAlignVer::TOP:
 	{
-		newPos.y = parent->GetContentPosY();
+		newPos.y = parent->GetContentPos().y;
 		break;
 	}
 	case eGuiAlignVer::CENTER:
 	{
 		if (parent)
 		{
-			newPos.y = parent->GetContentCenterPosY() - newSize.y * 0.5;
+			newPos.y = parent->GetContentCenterPos().y - newSize.y * 0.5;
 		}
 		break;
 	}
@@ -751,20 +751,20 @@ Vec2 Gui::Arrange(const Vec2& pos, const Vec2& size)
 	{
 	case eGuiAlignHor::LEFT:
 	{
-		newPos.x = parent->GetContentPosX();
+		newPos.x = parent->GetContentPos().x;
 		break;
 	}
 	case eGuiAlignHor::CENTER:
 	{
 		if (parent)
 		{
-			newPos.x = parent->GetContentCenterPosX() - newSize.x * 0.5;
+			newPos.x = parent->GetContentCenterPos().x - newSize.x * 0.5;
 		}
 		break;
 	}
 	case eGuiAlignHor::RIGHT:
 	{
-		newPos.x = parent->GetContentPosX() + parent->GetContentWidth() - newSize.x;
+		newPos.x = parent->GetContentPos().x + parent->GetContentRect().GetWidth() - newSize.x;
 		break;
 	}
 	}

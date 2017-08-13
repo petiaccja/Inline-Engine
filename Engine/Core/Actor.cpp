@@ -4,13 +4,13 @@
 
 using namespace inl::core;
 
-Actor::Actor()
-:Actor(TRANSFORM)
+Actor::Actor(Scene* scene)
+:Actor(scene, TRANSFORM)
 {
 }
 
-Actor::Actor(ePartType type)
-:Part(type)
+Actor::Actor(Scene* scene, ePartType type)
+:Part(scene, type)
 {
 
 }

@@ -63,9 +63,9 @@ Vec2 GuiSplitter::ArrangeChildren(const Vec2& finalSize)
 
 	float freeSpace; // This value can be negative !
 	if (bVertical)
-		freeSpace = GetContentSizeY() - childrenLength;
+		freeSpace = GetContentSize().y - childrenLength;
 	else
-		freeSpace = GetContentSizeX() - childrenLength;
+		freeSpace = GetContentSize().x - childrenLength;
 
 
 	for (int i = 0; i < items.size(); ++i)
@@ -77,9 +77,9 @@ Vec2 GuiSplitter::ArrangeChildren(const Vec2& finalSize)
 		Vec2 itemFreeSpace = itemNormedSpacePercent * freeSpace;
 
 		if (bVertical)
-			container->SetSize(GetContentSizeX(), container->GetSizeY() + itemFreeSpace.y);
+			container->SetSize(GetContentSize().x, container->GetSize().y + itemFreeSpace.y);
 		else
-			container->SetSize(container->GetSizeX() + itemFreeSpace.x, GetContentSizeY());
+			container->SetSize(container->GetSize().x + itemFreeSpace.x, GetContentSize().y);
 	}
 
 	// At this point all of our items are sized so they will proportionally fill the splitter control :)
