@@ -39,6 +39,16 @@ float linearize_depth(float depth, float near, float far)
 	return vs_zrecon;
 };
 
+//warning: result [0...1]
+float toDepth(float depth, float near, float far)
+{
+	float A = far / (far - near);
+	float B = -far * near / (far - near);
+	
+	float zndc = B / depth + A;
+	return zndc;
+}
+
 float4 circle_filter(float2 uv, float2 dist, float maxCocScaled, float currentCocScaled, const int taps)
 {
 	const float pi = 3.14159265;
@@ -118,7 +128,7 @@ float bokehShape(float2 center, float2 uv, float radius)
 		}
 		else
 		{
-			return cos4 / 0.8;
+			return lerp(0.35, 1.0, cos4 / 0.8);
 		}
 	}
 	else
@@ -155,27 +165,24 @@ gl_FragColor = vec4(accum.rgb / clamp(accum.a, 1e-4, 5e4), r);
 
 float weight(float2 uv, float alpha)
 {
+	float subject_distance = toDepth(0.3, 0.1, 100);
 	float depth = depthTex.Sample(samp0, uv).x;
-	float oneMinusDepth = 1 - depth;
-	float oneMinusDepth3 = oneMinusDepth * oneMinusDepth * oneMinusDepth;
-	return alpha * max(0.01, 3*1000 * oneMinusDepth3);
-}
+	float toSubjectDist = abs(depthTex.Sample(samp0, uv).x - subject_distance);
 
-static const int numBins = 16;
-int binFunc(float linearDepth)
-{
-	float d2 = linearDepth * linearDepth;
-	float d4 = d2 * d2;
-	float d6 = d4 * d2;
-	return int(log2(d6)*0.5) - 1;
-}
-
-float binFuncContinuous(float linearDepth)
-{
-	float d2 = linearDepth * linearDepth;
-	float d4 = d2 * d2;
-	float d6 = d4 * d2;
-	return log2(d6)*0.5 - 1;
+	if (depth > subject_distance)
+	{
+		float dist = toSubjectDist;
+		float oneMinusDepth = 1 - dist;
+		float oneMinusDepth3 = oneMinusDepth * oneMinusDepth * oneMinusDepth;
+		return alpha * max(0.01, 200 * oneMinusDepth3);
+	}
+	else
+	{
+		float dist = depth;
+		float oneMinusDepth = 1 - dist;
+		float oneMinusDepth3 = oneMinusDepth * oneMinusDepth * oneMinusDepth;
+		return alpha * max(0.01, 200 * oneMinusDepth3);
+	}
 }
 
 float4 groundTruth(float2 uv, float2 resolution)
@@ -183,27 +190,17 @@ float4 groundTruth(float2 uv, float2 resolution)
 	float2 pixStep = 1.0 / resolution;
 
 	float4 result = float4(0, 0, 0, 0);
-	float samples = 0;
 	float revealage = 1;
 
 	float pi = 3.14159265;
-
-	float4 colorBin[numBins];
-	float revealageBin[numBins];
-
-	for (int c = 0; c < numBins; ++c)
-	{
-		colorBin[c] = float4(0, 0, 0, 0);
-		revealageBin[c] = 1;
-	}
 
 	for (float y = -uniforms.maxBlurDiameter * 0.5; y <= uniforms.maxBlurDiameter * 0.5; ++y)
 	{
 		for (float x = -uniforms.maxBlurDiameter * 0.5; x <= uniforms.maxBlurDiameter * 0.5; ++x)
 		{
-			float tapDist = length(float2(x, y));
+			float tapDistSqr = dot(float2(x, y), float2(x,y));
 			
-			if (tapDist > uniforms.maxBlurDiameter * 0.5)
+			if (tapDistSqr > uniforms.maxBlurDiameter * uniforms.maxBlurDiameter * 0.25)
 			{
 				continue; 
 			}
@@ -212,56 +209,28 @@ float4 groundTruth(float2 uv, float2 resolution)
 			float4 data = inputTex.Sample(samp0, sampleUV);
 			float tapCoc = max(data.w, 1.0);
 
-			if (tapCoc * 0.5 > tapDist)
+			if (tapCoc * tapCoc * 0.25 > tapDistSqr)
 			{
-				float depth = linearize_depth(depthTex.Sample(samp0, sampleUV), 0.1, 100);
-				int bin = clamp(binFunc(depth), 0, numBins-1);
-
 				float alpha = (4 * pi) / (tapCoc*tapCoc*pi*0.25);
-				//result += float4(data.xyz * bokehShape(uv*resolution + float2(x, y), uv*resolution, tapCoc * 0.5) * alpha, alpha) * weight(sampleUV, alpha);
-				//result += float4(data.xyz * alpha, alpha) * weight(sampleUV, alpha);
-				result += float4(data.xyz * alpha, alpha);// *weight(sampleUV, alpha);
+				float bokeh = bokehShape(uv*resolution + float2(x, y), uv*resolution, tapCoc * 0.5);
 
-				colorBin[bin] += float4(data.xyz * alpha, alpha);
+				if (tapCoc > 15)
+				{
+					data.xyz *= bokeh;
+				}
 
-				samples++;
+				result += float4(data.xyz * alpha, alpha) * weight(sampleUV, alpha);
+
 				if (revealage > 0.001) //float underflow fix
 				{
 					revealage *= (1.0 - alpha);
-				}
-
-				if (revealageBin[bin] > 0.001) //float underflow fix
-				{
-					revealageBin[bin] *= (1.0 - alpha);
 				}
 			}
 		}
 	}
 
-	float4 blendResult = float4(0, 0, 0, 0);
-	for (int d = numBins - 1; d >= 0; --d)
-	{
-		//rRGBA = sRGBA*(1-sA) + dRGBA*sA;
-		float4 source = float4(colorBin[d].rgb / clamp(colorBin[d].a, 1e-4, 5e4), revealageBin[d]);
-		blendResult = source * saturate(1 - source.a) + blendResult * saturate(source.a);
-	}
-
 	//saturate for float overflow fix
-	//return float4((result.rgb / clamp(result.a, 1e-4, 5e4)) * saturate(1.0 - revealage), 1);
-
-	return float4(result.rgb / clamp(result.a, 1e-4, 5e4), 1);
-	//return float4(result.rgb, 1);
-
-	//int bin = 15;
-	//float4 source = float4(colorBin[bin].rgb / clamp(colorBin[bin].a, 1e-4, 5e4), revealageBin[bin]);
-	//return source * saturate(1 - source.a);
-
-	float depth = linearize_depth(depthTex.Sample(samp0, uv), 0.1, 100);
-	//float bin = binFuncContinuous(depth);
-	int bin = binFunc(depth);
-	//return bin / 16.0;
-
-	return blendResult;
+	return float4((result.rgb / clamp(result.a, 1e-4, 5e4)) * saturate(1.0 - revealage), 1);
 }
 
 PS_Input VSMain(float4 position : POSITION, float4 texcoord : TEX_COORD)

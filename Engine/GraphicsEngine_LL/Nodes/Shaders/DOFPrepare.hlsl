@@ -77,9 +77,9 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float sensor_width = 0.035; //35mm full frame sensor
 
 	float focal_length_multiplier = 1.5; //1.0 for full frame
-	float focal_length = 16 * focal_length_multiplier; //millimeters
+	float focal_length = 50 * focal_length_multiplier; //millimeters
 	float f_stops = 5.6; //millimeters
-	float subject_distance = 0.5; //meters
+	float subject_distance = 0.3; //meters
 	//calculate coc at far plane
 	//calculate multiplier for max blur (which should be at far plane)
 	//float coc_multiplier = uniforms.maxBlurDiameter / calculate_coc(focal_length * 0.001, subject_distance, f_stops * 0.001, 100);
