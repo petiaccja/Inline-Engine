@@ -178,12 +178,12 @@ bool Window::PopEvent(WindowEvent& evt_out)
 		return false;
 	}
 
-
 	if (msg.message == WM_LBUTTONDOWN)
 	{
 		evt_out.msg = eWindowMsg::MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
 		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		hekk(evt_out.clientCursorPos);
 		onMousePressed(evt_out);
 	}
 	else if (msg.message == WM_RBUTTONDOWN)
@@ -191,6 +191,7 @@ bool Window::PopEvent(WindowEvent& evt_out)
 		evt_out.msg = eWindowMsg::MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::RIGHT;
 		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		hekk(evt_out.clientCursorPos);
 		onMousePressed(evt_out);
 	}
 	else if (msg.message == WM_MBUTTONDOWN)
@@ -198,6 +199,7 @@ bool Window::PopEvent(WindowEvent& evt_out)
 		evt_out.msg = eWindowMsg::MOUSE_PRESS;
 		evt_out.mouseBtn = eMouseBtn::MIDDLE;
 		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		hekk(evt_out.clientCursorPos);
 		onMousePressed(evt_out);
 	}
 	else if (msg.message == WM_LBUTTONUP)
@@ -205,6 +207,7 @@ bool Window::PopEvent(WindowEvent& evt_out)
 		evt_out.msg = eWindowMsg::MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::LEFT;
 		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		hekk(evt_out.clientCursorPos);
 		onMouseReleased(evt_out);
 	}
 	else if (msg.message == WM_RBUTTONUP)
@@ -212,6 +215,7 @@ bool Window::PopEvent(WindowEvent& evt_out)
 		evt_out.msg = eWindowMsg::MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::RIGHT;
 		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		hekk(evt_out.clientCursorPos);
 		onMouseReleased(evt_out);
 	}
 	else if (msg.message == WM_MBUTTONUP)
@@ -219,6 +223,7 @@ bool Window::PopEvent(WindowEvent& evt_out)
 		evt_out.msg = eWindowMsg::MOUSE_RELEASE;
 		evt_out.mouseBtn = eMouseBtn::MIDDLE;
 		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+		hekk(evt_out.clientCursorPos);
 		onMouseReleased(evt_out);
 	}
 	else if (msg.message == WM_KEYDOWN)
@@ -262,6 +267,7 @@ bool Window::PopEvent(WindowEvent& evt_out)
 			evt_out.clientCursorPos = Vec2(p.x, p.y);
 			evt_out.msg = eWindowMsg::MOUSE_MOVE;
 
+			hekk(evt_out.clientCursorPos);
 			onMouseMoved(evt_out);
 		}
 	}
@@ -283,20 +289,6 @@ bool Window::PopEvent(WindowEvent& evt_out)
 	else
 	{
 		evt_out.msg = eWindowMsg::INVALID;
-	}
-
-	// msg.hwnd != handle happens when this window receive message from it's children window 
-	// TODO (Can be removed when we no longer using window as children because of GDI gui render)
-	if (msg.hwnd != handle && evt_out.clientCursorPos.x != -1)
-	{
-		POINT p;
-		p.x = evt_out.clientCursorPos.x;
-		p.y = evt_out.clientCursorPos.y;
-		ClientToScreen(msg.hwnd, &p);
-		ScreenToClient(handle, &p);
-
-		evt_out.clientCursorPos.x = p.x;
-		evt_out.clientCursorPos.y = p.y;
 	}
 
 	return true;

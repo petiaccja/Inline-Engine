@@ -29,7 +29,6 @@ Editor::Editor()
 
 	HWND editorHwnd = (HWND)wnd->GetHandle();
 	HWND gameHwnd = (HWND)gameWnd->GetHandle();
-	EnableWindow(gameHwnd, true);
 	SetParent(gameHwnd, editorHwnd);
 
 	// Resize window, non client area removal made it's size wrong
@@ -79,11 +78,11 @@ void Editor::InitScene()
 	scene->AddActor(cam);
 
 	// TODO
-	cam->SetPos({ 2, -10, 9 });
-	cam->SetTarget({ 1, 1, 10 });
+	//cam->SetPos({ 2, -10, 9 });
+	//cam->SetTarget({ 1, 1, 10 });
 
-	//cam->SetPos({ 0,0,0 });
-	//cam->SetTarget({ 0,1,0});
+	cam->SetPos({ 0,0,10 });
+	cam->SetTarget({ 0,1,10});
 }
 
 void Editor::InitGraphicsEngine()
@@ -342,11 +341,11 @@ void Editor::InitGui()
 		}
 		else
 		{
-			spawnPos = cam->GetPos() + cam->GetFrontDir() * 3;
+			spawnPos = cam->GetPos() + cam->GetFrontDir() * 200;
 		}
 
 		// Spawn something at that position
-		MeshActor* actor = scene->AddActor_Mesh("D:/sphere.fbx");
+		MeshActor* actor = scene->AddActor_Mesh("D:/sphere2.fbx");
 		actor->SetPos(spawnPos);
 	};
 
@@ -493,8 +492,28 @@ void Editor::Update()
 		input->ClearFrameData();
 
 		WindowEvent evt;
-		while (wnd->PopEvent(evt))
+
+		// TODO TEMPORARY TILL GDI REMOVAL
+		Delegate<void(Vec2&)> doHekk;
+		doHekk += [this](Vec2& pos)
 		{
+			if (centerRenderArea->IsCursorInside())
+			{
+				POINT p;
+				p.x = pos.x;
+				p.y = pos.y;
+				ClientToScreen((HWND)gameWnd->GetHandle(), &p);
+				ScreenToClient((HWND)wnd->GetHandle(), &p);
+
+				pos = Vec2(p.x, p.y);
+			}
+		};
+		wnd->SetHekkTillGdiNotRemoved(doHekk);
+
+		while(wnd->PopEvent(evt))
+		{
+			
+
 			switch (evt.msg)
 			{
 				case eWindowMsg::KEY_PRESS:
@@ -526,7 +545,7 @@ void Editor::Update()
 			}
 		}
 
-		while (gameWnd->PopEvent(evt));
+		//while (gameWnd->PopEvent(evt));
 
 		// Dispatch Inputs
 		input->Update();

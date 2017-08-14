@@ -26,6 +26,8 @@ public:
 	void RestoreSize();
 
 
+	void SetHekkTillGdiNotRemoved(const Delegate<void(Vec2& pos)>& hekk) { this->hekk = hekk; }
+
 	void SetRect(const Vec2i& pos, const Vec2u& size);
 	void SetPos(const Vec2i& pos);
 	void SetSize(const Vec2u& size);
@@ -69,7 +71,6 @@ public:
 
 protected:
 	friend LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
 	eKey ConvertFromWindowsKey(WPARAM key);
 
 protected:
@@ -77,4 +78,6 @@ protected:
 	bool bClosed;
 	std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> userWndProc;
 	WindowDropTarget dropTarget; // TODO later we will need this for fully functional Drag&Drop
+
+	Delegate<void(Vec2&)> hekk;
 };

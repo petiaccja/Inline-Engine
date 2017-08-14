@@ -48,11 +48,11 @@ struct WindowEvent
 {
 	WindowEvent(): msg(eWindowMsg::INVALID), key(eKey::INVALID), mouseDelta(0, 0), clientCursorPos(0, 0) {}
 
-	eWindowMsg	msg;
-	eKey		key;
-	eMouseBtn	mouseBtn;
-	Vec2	mouseDelta;
-	Vec2	clientCursorPos;
+	eWindowMsg		msg;
+	eKey			key;
+	eMouseBtn		mouseBtn;
+	Vec2			mouseDelta;
+	Vec2			clientCursorPos;
 };
 
 struct WindowDesc
