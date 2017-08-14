@@ -185,6 +185,8 @@ float weight(float2 uv, float alpha)
 	}
 }
 
+/**/
+//no bins
 float4 groundTruth(float2 uv, float2 resolution)
 {
 	float2 pixStep = 1.0 / resolution;
@@ -232,6 +234,122 @@ float4 groundTruth(float2 uv, float2 resolution)
 	//saturate for float overflow fix
 	return float4((result.rgb / clamp(result.a, 1e-4, 5e4)) * saturate(1.0 - revealage), 1);
 }
+/**/
+
+/**
+//TODO fix this
+//MLAB binning
+
+static const int numBins = 8;
+
+void MLAB(float t, float z, float4 c, inout float transmittanceBin[numBins], inout float depthBin[numBins], inout float4 colorBin[numBins])
+{
+	float4 colorTemp, colorMerge;
+	float transmittanceTemp, transmittanceMerge;
+	float depthTemp, depthMerge;
+	for (int d = 0; d < numBins; ++d)
+	{
+		if (z <= depthBin[d])
+		{
+			colorTemp = colorBin[d];
+			transmittanceTemp = transmittanceBin[d];
+			depthTemp = depthBin[d];
+
+			colorBin[d] = c;
+			transmittanceBin[d] = t;
+			depthBin[d] = z;
+
+			c = colorTemp;
+			t = transmittanceTemp;
+			z = depthTemp;
+		}
+	}
+
+	colorMerge = colorBin[numBins - 2] + colorBin[numBins - 1] * transmittanceBin[numBins - 2];
+	transmittanceMerge = transmittanceBin[numBins - 2] * transmittanceBin[numBins - 1];
+	depthMerge = depthBin[numBins - 2];
+
+	depthBin[numBins - 2] = depthMerge;
+	transmittanceBin[numBins - 2] = transmittanceMerge;
+	colorBin[numBins - 2] = colorMerge;
+}
+
+float4 groundTruth(float2 uv, float2 resolution)
+{
+	float2 pixStep = 1.0 / resolution;
+
+	float4 colorBin[numBins];
+	float transmittanceBin[numBins];
+	float depthBin[numBins]; 
+
+	for (int c = 0; c < numBins; ++c)
+	{
+		transmittanceBin[c] = 1;
+		colorBin[c] = float4(0, 0, 0, 0);
+		depthBin[c] = 1;
+	}
+
+	float pi = 3.14159265;
+
+	for (float y = -uniforms.maxBlurDiameter * 0.5; y <= uniforms.maxBlurDiameter * 0.5; ++y)
+	{
+		for (float x = -uniforms.maxBlurDiameter * 0.5; x <= uniforms.maxBlurDiameter * 0.5; ++x)
+		{
+			float tapDistSqr = dot(float2(x, y), float2(x, y));
+
+			if (tapDistSqr > uniforms.maxBlurDiameter * uniforms.maxBlurDiameter * 0.25)
+			{
+				continue;
+			}
+
+			float2 sampleUV = uv + float2(x, y) * pixStep;
+			float4 data = inputTex.Sample(samp0, sampleUV);
+			float tapCoc = max(data.w, 1.0);
+
+			if (tapCoc * tapCoc * 0.25 > tapDistSqr)
+			{
+				float alpha = (4 * pi) / (tapCoc*tapCoc*pi*0.25);
+				//float bokeh = bokehShape(uv*resolution + float2(x, y), uv*resolution, tapCoc * 0.5);
+
+				if (tapCoc > 15)
+				{
+					//data.xyz *= bokeh;
+				}
+
+				float depth = depthTex.Sample(samp0, sampleUV);
+
+				MLAB(alpha, depth, float4(data.xyz, 1) * alpha, transmittanceBin, depthBin, colorBin);
+
+				//result += float4(data.xyz * alpha, alpha) * weight(sampleUV, alpha);
+
+				
+
+				//if (revealage > 0.001) //float underflow fix
+				{
+					//revealage *= (1.0 - alpha);
+				}
+			}
+		}
+	}
+
+	float4 blendResult = float4(0, 0, 0, 1);
+	for (int d = numBins - 1; d >= 0; --d)
+	{
+		//rRGBA = sRGBA*(1-sA) + dRGBA*sA;
+		//float4 source = float4(colorBin[d].rgb / clamp(colorBin[d].a, 1e-4, 5e4), transmittanceBin[d]);
+		//float4 source = float4(colorBin[d].rgb / clamp(colorBin[d].a, 1e-4, 5e4), transmittanceBin[d]);
+		//blendResult = source * saturate(1 - source.a) + blendResult * saturate(source.a);
+		blendResult.rgb += colorBin[d].rgb;
+		blendResult.a *= transmittanceBin[d];
+	}
+
+	return float4(blendResult.rgb,1) * blendResult.a;
+
+	//return colorBin[7] * transmittanceBin[7];
+
+	return blendResult;
+}
+/**/
 
 PS_Input VSMain(float4 position : POSITION, float4 texcoord : TEX_COORD)
 {
