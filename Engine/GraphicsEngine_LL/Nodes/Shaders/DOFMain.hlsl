@@ -185,7 +185,7 @@ float weight(float2 uv, float alpha)
 	}
 }
 
-/**/
+/**
 //no bins
 float4 groundTruth(float2 uv, float2 resolution)
 {
@@ -318,7 +318,7 @@ float4 groundTruth(float2 uv, float2 resolution)
 
 				float depth = depthTex.Sample(samp0, sampleUV);
 
-				MLAB(alpha, depth, float4(data.xyz, 1) * alpha, transmittanceBin, depthBin, colorBin);
+				MLAB(1-alpha, depth, float4(data.xyz, 1) * alpha, transmittanceBin, depthBin, colorBin);
 
 				//result += float4(data.xyz * alpha, alpha) * weight(sampleUV, alpha);
 
@@ -336,14 +336,13 @@ float4 groundTruth(float2 uv, float2 resolution)
 	for (int d = numBins - 1; d >= 0; --d)
 	{
 		//rRGBA = sRGBA*(1-sA) + dRGBA*sA;
-		//float4 source = float4(colorBin[d].rgb / clamp(colorBin[d].a, 1e-4, 5e4), transmittanceBin[d]);
-		//float4 source = float4(colorBin[d].rgb / clamp(colorBin[d].a, 1e-4, 5e4), transmittanceBin[d]);
-		//blendResult = source * saturate(1 - source.a) + blendResult * saturate(source.a);
-		blendResult.rgb += colorBin[d].rgb;
-		blendResult.a *= transmittanceBin[d];
+		float4 source = float4(colorBin[d].rgb / clamp(colorBin[d].a, 1e-4, 5e4), transmittanceBin[d]);
+		blendResult = source * saturate(1 - source.a) + blendResult * saturate(source.a);
+		//blendResult.rgb += colorBin[d].rgb;
+		//blendResult.a *= transmittanceBin[d];
 	}
 
-	return float4(blendResult.rgb,1) * blendResult.a;
+	//return float4(blendResult.rgb,1) * blendResult.a;
 
 	//return colorBin[7] * transmittanceBin[7];
 
