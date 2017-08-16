@@ -49,60 +49,6 @@ float toDepth(float depth, float near, float far)
 	return zndc;
 }
 
-float4 circle_filter(float2 uv, float2 dist, float maxCocScaled, float currentCocScaled, const int taps)
-{
-	const float pi = 3.14159265;
-	float ftaps = 1.0 / float(taps);
-	float4 result = float4(0,0,0,0);
-	for (int c = 0; c < taps; ++c)
-	{
-		float xx = cos(2.0 * pi * float(c) * ftaps);
-		float yy = sin(2.0 * pi * float(c) * ftaps);
-		float4 data = inputTex.Sample(samp0, uv + float2(xx, yy)* dist);
-		float compareCoc = ((c & 1) == 1) ? currentCocScaled : maxCocScaled; 
-		//TODO is this correct?
-		if (data.w > compareCoc)
-		{
-			result.xyz += data.xyz;
-			result.w++;
-		}
-	}
-	return result;
-}
-
-float4 filterFuncTier1(float2 uv, float2 resolution, float4 center_tap, float coc)
-{
-	float2 dist = coc / resolution; //28
-
-	float4 result = float4(center_tap.xyz, 1.0)
-		+ circle_filter(uv, 0.333 * dist, 0.333 * coc, 0.333 * center_tap.w, 8)
-		+ circle_filter(uv, 0.666 * dist, 0.666 * coc, 0.666 * center_tap.w, 16)
-		+ circle_filter(uv, 0.999 * dist, 0.999 * coc, 0.999 * center_tap.w, 24);
-
-	return result / result.w;
-}
-
-float4 filterFuncTier2(float2 uv, float2 resolution, float4 center_tap, float coc)
-{
-	float2 dist = coc / resolution; //19
-
-	float4 result = float4(center_tap.xyz, 1.0)
-		+ circle_filter(uv, 0.5 * dist, 0.5 * coc, 0.5 * center_tap.w, 8)
-		+ circle_filter(uv, 0.999 * dist, 0.999 * coc, 0.999 * center_tap.w, 16);
-
-	return result / result.w;
-}
-
-float4 filterFuncTier3(float2 uv, float2 resolution, float4 center_tap, float coc)
-{
-	float2 dist = coc / resolution; //9
-
-	float4 result = float4(center_tap.xyz, 1.0)
-		+ circle_filter(uv, 0.999 * dist, 0.999 * coc, 0.999 * center_tap.w, 8);
-
-	return result / result.w;
-}
-
 float rand(float2 co) {
 	return frac(sin(dot(co.xy, float2(12.9898, 78.233))) * 43758.5453);
 }
@@ -165,7 +111,7 @@ gl_FragColor = vec4(accum.rgb / clamp(accum.a, 1e-4, 5e4), r);
 
 float weight(float2 uv, float alpha)
 {
-	float subject_distance = toDepth(0.3, 0.1, 100);
+	float subject_distance = toDepth(0.3, 0.1, 100); //0.667
 	float depth = depthTex.Sample(samp0, uv).x;
 	float toSubjectDist = abs(depthTex.Sample(samp0, uv).x - subject_distance);
 
@@ -185,7 +131,136 @@ float weight(float2 uv, float alpha)
 	}
 }
 
-/**
+float4 circle_filter(float2 uv, float2 dist, float2 resolution, const int taps, out float4 result, out float revealage)
+{
+	const float pi = 3.14159265;
+	float ftaps = 1.0 / float(taps);
+	
+	result = float4(0,0,0,0);
+	revealage = 1;
+	
+	for (int c = 0; c < taps; ++c)
+	{
+		float xx = cos(2.0 * pi * float(c) * ftaps);
+		float yy = sin(2.0 * pi * float(c) * ftaps);
+		float tapDistSqr = dist * dist;
+
+		float2 sampleUV = uv + float2(xx, yy) * dist;
+
+		float4 data = inputTex.Sample(samp0, sampleUV);
+		float tapCoc = data.w;
+
+		float bokeh = bokehShape(uv*resolution + float2(xx, yy), uv*resolution, tapCoc * 0.5);
+
+		if (tapCoc > 15)
+		{
+			data.xyz *= bokeh;
+		}
+		
+		if (tapCoc * tapCoc * 0.25 > tapDistSqr)
+		{
+			float alpha = (4 * pi) / (tapCoc*tapCoc*pi*0.25);
+			result += float4(data.xyz * alpha, alpha) * weight(sampleUV, alpha);
+			if (revealage > 0.001) //float underflow fix
+			{
+				revealage *= (1.0 - alpha);
+			}
+		}
+	}
+	return result;
+}
+
+float4 filterFuncTier1(float2 uv, float2 resolution, float4 center_tap, float coc)
+{
+	const float pi = 3.14159265;
+
+	float2 dist = coc * 0.5 / resolution; //28
+
+	float4 result[3];
+	float revealage[3];
+
+	circle_filter(uv, 0.333 * dist, resolution, 8, result[0], revealage[0]);
+	circle_filter(uv, 0.666 * dist, resolution, 16, result[1], revealage[1]);
+	circle_filter(uv, 0.999 * dist, resolution, 24, result[2], revealage[2]);
+
+	float center_coc = center_tap.w;
+	float center_alpha = (4 * pi) / (center_coc*center_coc*pi*0.25);
+
+	float4 resultAccum = float4(center_tap.xyz * center_alpha, center_alpha) * weight(uv, center_alpha) + result[0] + result[1] + result[2];
+	float revealageAccum = (1 - center_alpha);
+
+	for (int c = 0; c < 3; ++c)
+	{
+		if (revealageAccum > 0.001)
+		{
+			revealageAccum *= revealage[0];
+		}
+	}
+
+	//saturate for float overflow fix
+	return float4((resultAccum.rgb / clamp(resultAccum.a, 1e-4, 5e4)) * saturate(1.0 - revealageAccum), 1);
+}
+
+float4 filterFuncTier2(float2 uv, float2 resolution, float4 center_tap, float coc)
+{
+	const float pi = 3.14159265;
+
+	float2 dist = coc * 0.5 / resolution; //19
+
+	float4 result[2];
+	float revealage[2];
+
+	circle_filter(uv, 0.5 * dist, 8, resolution, result[0], revealage[0]);
+	circle_filter(uv, 0.999 * dist, 16, resolution, result[1], revealage[1]);
+
+	float center_coc = center_tap.w;
+	float center_alpha = (4 * pi) / (center_coc*center_coc*pi*0.25);
+
+	float4 resultAccum = float4(center_tap.xyz * center_alpha, center_alpha) * weight(uv, center_alpha) + result[0] + result[1];
+	float revealageAccum = (1 - center_alpha);
+
+	for (int c = 0; c < 2; ++c)
+	{
+		if (revealageAccum > 0.001)
+		{
+			revealageAccum *= revealage[0];
+		}
+	}
+
+	//saturate for float overflow fix
+	return float4((resultAccum.rgb / clamp(resultAccum.a, 1e-4, 5e4)) * saturate(1.0 - revealageAccum), 1);
+}
+
+float4 filterFuncTier3(float2 uv, float2 resolution, float4 center_tap, float coc)
+{
+	const float pi = 3.14159265;
+
+	float2 dist = coc * 0.5 / resolution; //9
+
+	float4 result[1];
+	float revealage[1];
+
+	circle_filter(uv, 0.999 * dist, resolution, 8, result[0], revealage[0]);
+
+	float center_coc = center_tap.w;
+	float center_alpha = (4 * pi) / (center_coc*center_coc*pi*0.25);
+
+	float4 resultAccum = float4(center_tap.xyz * center_alpha, center_alpha) * weight(uv, center_alpha) + result[0];
+	float revealageAccum = (1 - center_alpha);
+
+	for (int c = 0; c < 1; ++c)
+	{
+		if (revealageAccum > 0.001)
+		{
+			revealageAccum *= revealage[0];
+		}
+	}
+
+	//saturate for float overflow fix
+	return float4((resultAccum.rgb / clamp(resultAccum.a, 1e-4, 5e4)) * saturate(1.0 - revealageAccum), 1);
+}
+
+/**/
 //no bins
 float4 groundTruth(float2 uv, float2 resolution)
 {
@@ -412,9 +487,9 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 	float4 result = float4(0, 0, 0, 0);
 
-	result = groundTruth(input.texcoord, float2(inputTexSize.xy));
+	//result = groundTruth(input.texcoord, float2(inputTexSize.xy));
 
-	//result = filterFuncTier1(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc);
+	result = filterFuncTier1(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc);
 
 	//return float4(rand(input.texcoord), 0, 0, 1);
 
