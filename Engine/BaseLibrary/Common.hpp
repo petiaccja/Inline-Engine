@@ -7,77 +7,10 @@
 #include <utility>
 #include <vector>
 
-//#include <mathfu/mathfu_exc.hpp>
-//using namespace mathfu;
-
 #include <InlineMath.hpp>
 using namespace inl;
 
-struct Ray
-{
-	Vec3 origin;
-	Vec3 direction;
-};
-
-class Color
-{
-public:
-	inline Color() {}
-	inline Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a): r(r), g(g), b(b), a(a) {}
-	inline Color(uint8_t r, uint8_t g, uint8_t b): Color(r, g, b, 255) {}
-	inline Color(uint8_t greyscale) : Color(greyscale, greyscale, greyscale, 255) {}
-
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
-	uint8_t a;
-
-	inline Color operator + (int val) const
-	{
-		Color color;
-		color.r = r + val;
-		color.g = g + val;
-		color.b = b + val;
-
-		return color;
-	}
-
-	static Color Random(bool bRandomAlpha = false)
-	{
-		Color color;
-		color.r = std::rand() % 256;
-		color.g = std::rand() % 256;
-		color.b = std::rand() % 256;
-
-		if (bRandomAlpha)
-			color.a = std::rand() % 256;
-		else
-			color.a = 255;
-
-		return color;
-	}
-
-	inline bool operator == (const Color& color) const
-	{
-		return memcmp(this, &color, sizeof(Color)) == 0;
-	}
-
-public:
-	static Color BLACK;
-	static Color WHITE;
-	static Color RED;
-	static Color GREEN;
-	static Color BLUE;
-};
-
-struct RectNormed
-{
-	RectNormed() :bottomLeftPercentNormed(0, 0), topRightPercentNormed(1, 1) {}
-
-	Vec2 bottomLeftPercentNormed;
-	Vec2 topRightPercentNormed;
-};
-
+/*
 template<class T>
 class Rect
 {
@@ -262,7 +195,7 @@ public:
 
 typedef Rect<float> RectF;
 
-
+*/
 
 
 
@@ -322,7 +255,7 @@ enum class enumClass : enumType
 
 
 
-
+/*
 template<class T>
 T Clamp01(const T& val)
 {
@@ -350,3 +283,4 @@ T Clamp(const T& val, const T& minVal, const T& maxVal)
 
 	return result;
 }
+*/

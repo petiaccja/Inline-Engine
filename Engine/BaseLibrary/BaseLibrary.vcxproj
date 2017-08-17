@@ -22,7 +22,7 @@
     <ProjectGuid>{F55437F4-00C1-49AE-BFFC-4B0A6DC75081}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>BaseLibrary</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -194,15 +194,13 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="Any.hpp" />
     <ClInclude Include="ArrayView.hpp" />
     <ClInclude Include="BitflagEnum.hpp" />
     <ClInclude Include="BitOperations.hpp" />
     <ClInclude Include="Common.hpp" />
     <ClInclude Include="Delegate.hpp" />
+    <ClInclude Include="Event.hpp" />
     <ClInclude Include="Exception\Exception.hpp" />
     <ClInclude Include="Exception\IOException.hpp" />
     <ClInclude Include="GraphEditor\IGraph.hpp" />
@@ -228,6 +226,7 @@
     <ClInclude Include="Platform\Window.hpp" />
     <ClInclude Include="Platform\WindowCommon.hpp" />
     <ClInclude Include="Range.hpp" />
+    <ClInclude Include="Rect.hpp" />
     <ClInclude Include="ScalarLiterals.hpp" />
     <ClInclude Include="Logging\Event.hpp" />
     <ClInclude Include="Logging\EventEntry.hpp" />
@@ -248,10 +247,8 @@
     <ClInclude Include="ThreadName.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transform3D.hpp" />
-    <ClInclude Include="VisualCpuProfiler.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Common.cpp" />
     <ClCompile Include="Exception\Exception.cpp" />
     <ClCompile Include="Graph\NodeFactory.cpp" />
     <ClCompile Include="Graph\NodeLibrary.cpp" />
@@ -266,7 +263,6 @@
     <ClCompile Include="Platform\Win32\WindowDropTarget.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform3D.cpp" />
-    <ClCompile Include="VisualCpuProfiler.cpp" />
     <ClInclude Include="MemoryLeakDetector.hpp" />
     <ClCompile Include="Memory\RingAllocationEngine.cpp" />
     <ClCompile Include="Memory\SlabAllocatorEngine.cpp">

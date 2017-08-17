@@ -185,6 +185,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Test_Allocator.cpp" />
     <ClCompile Include="Test_Binder.cpp" />
+    <ClCompile Include="Test_Event.cpp" />
     <ClCompile Include="Test_GapiSync.cpp" />
     <ClCompile Include="Test_MaterialShader.cpp" />
     <ClCompile Include="Test_MultiInstanceTLS.cpp">

@@ -30,9 +30,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="Stream.hpp">
       <Filter>All</Filter>
     </ClInclude>
@@ -154,7 +151,6 @@
     <ClInclude Include="Delegate.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transform3D.hpp" />
-    <ClInclude Include="VisualCpuProfiler.h" />
     <ClInclude Include="Platform\PlatformDefinitions.h">
       <Filter>Platform</Filter>
     </ClInclude>
@@ -182,6 +178,8 @@
     <ClInclude Include="Platform\Win32\WindowDropTarget.hpp">
       <Filter>Platform\Win32</Filter>
     </ClInclude>
+    <ClInclude Include="Rect.hpp" />
+    <ClInclude Include="Event.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">
@@ -226,10 +224,8 @@
     <ClCompile Include="Exception\Exception.cpp">
       <Filter>Exception</Filter>
     </ClCompile>
-    <ClCompile Include="Common.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform3D.cpp" />
-    <ClCompile Include="VisualCpuProfiler.cpp" />
     <ClCompile Include="Platform\Win32\Sys.cpp">
       <Filter>Platform\Win32</Filter>
     </ClCompile>
