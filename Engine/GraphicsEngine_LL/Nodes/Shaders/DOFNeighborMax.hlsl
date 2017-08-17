@@ -58,9 +58,11 @@ float2 PSMain(PS_Input input) : SV_TARGET
 
 	float2 result = float2(0.0, 1.0);
 
-	for (int x = -1; x <= 1; ++x)
+	int searchRadius = 2;
+
+	for (int x = -searchRadius; x <= searchRadius; ++x)
 	{
-		for (int y = -1; y <= 1; ++y)
+		for (int y = -searchRadius; y <= searchRadius; ++y)
 		{
 			result = compareWithNeighbor(tileCorner, x, y, result);
 		}

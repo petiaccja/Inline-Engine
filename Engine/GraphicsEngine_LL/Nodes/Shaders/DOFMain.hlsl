@@ -131,30 +131,31 @@ float weight(float2 uv, float alpha)
 	}
 }
 
-float4 circle_filter(float2 uv, float2 dist, float2 resolution, const int taps, out float4 result, out float revealage)
+float4 circle_filter(float2 uv, float dist, float2 resolution, const int taps, out float4 result, out float revealage)
 {
 	const float pi = 3.14159265;
 	float ftaps = 1.0 / float(taps);
+	float2 pixelSize = 1.0 / resolution;
 	
 	result = float4(0,0,0,0);
 	revealage = 1;
 	
 	for (int c = 0; c < taps; ++c)
 	{
-		float xx = cos(2.0 * pi * float(c) * ftaps);
-		float yy = sin(2.0 * pi * float(c) * ftaps);
-		float tapDistSqr = dist * dist;
+		float xx = cos(2.0 * pi * float(c) * ftaps) * dist;
+		float yy = sin(2.0 * pi * float(c) * ftaps) * dist;
 
-		float2 sampleUV = uv + float2(xx, yy) * dist;
+		float2 sampleUV = uv + float2(xx, yy) * pixelSize;
+		float tapDistSqr = dot(float2(xx, yy), float2(xx, yy));
 
 		float4 data = inputTex.Sample(samp0, sampleUV);
 		float tapCoc = data.w;
 
-		float bokeh = bokehShape(uv*resolution + float2(xx, yy), uv*resolution, tapCoc * 0.5);
+		//float bokeh = bokehShape(uv*resolution + float2(xx, yy), uv*resolution, tapCoc * 0.5);
 
 		if (tapCoc > 15)
 		{
-			data.xyz *= bokeh;
+			//data.xyz *= bokeh;
 		}
 		
 		if (tapCoc * tapCoc * 0.25 > tapDistSqr)
@@ -174,14 +175,14 @@ float4 filterFuncTier1(float2 uv, float2 resolution, float4 center_tap, float co
 {
 	const float pi = 3.14159265;
 
-	float2 dist = coc * 0.5 / resolution; //28
+	float dist = coc * 0.5; //28
 
 	float4 result[3];
 	float revealage[3];
 
 	circle_filter(uv, 0.333 * dist, resolution, 8, result[0], revealage[0]);
 	circle_filter(uv, 0.666 * dist, resolution, 16, result[1], revealage[1]);
-	circle_filter(uv, 0.999 * dist, resolution, 24, result[2], revealage[2]);
+	circle_filter(uv, 1.0 * dist, resolution, 24, result[2], revealage[2]);
 
 	float center_coc = center_tap.w;
 	float center_alpha = (4 * pi) / (center_coc*center_coc*pi*0.25);
@@ -205,13 +206,13 @@ float4 filterFuncTier2(float2 uv, float2 resolution, float4 center_tap, float co
 {
 	const float pi = 3.14159265;
 
-	float2 dist = coc * 0.5 / resolution; //19
+	float2 dist = coc * 0.5; //19
 
 	float4 result[2];
 	float revealage[2];
 
-	circle_filter(uv, 0.5 * dist, 8, resolution, result[0], revealage[0]);
-	circle_filter(uv, 0.999 * dist, 16, resolution, result[1], revealage[1]);
+	circle_filter(uv, 0.5 * dist, resolution, 8, result[0], revealage[0]);
+	circle_filter(uv, 1.0 * dist, resolution, 16, result[1], revealage[1]);
 
 	float center_coc = center_tap.w;
 	float center_alpha = (4 * pi) / (center_coc*center_coc*pi*0.25);
@@ -235,12 +236,12 @@ float4 filterFuncTier3(float2 uv, float2 resolution, float4 center_tap, float co
 {
 	const float pi = 3.14159265;
 
-	float2 dist = coc * 0.5 / resolution; //9
+	float2 dist = coc * 0.5; //9
 
 	float4 result[1];
 	float revealage[1];
 
-	circle_filter(uv, 0.999 * dist, resolution, 8, result[0], revealage[0]);
+	circle_filter(uv, 1.0 * dist, resolution, 8, result[0], revealage[0]);
 
 	float center_coc = center_tap.w;
 	float center_alpha = (4 * pi) / (center_coc*center_coc*pi*0.25);
@@ -289,11 +290,11 @@ float4 groundTruth(float2 uv, float2 resolution)
 			if (tapCoc * tapCoc * 0.25 > tapDistSqr)
 			{
 				float alpha = (4 * pi) / (tapCoc*tapCoc*pi*0.25);
-				float bokeh = bokehShape(uv*resolution + float2(x, y), uv*resolution, tapCoc * 0.5);
+				//float bokeh = bokehShape(uv*resolution + float2(x, y), uv*resolution, tapCoc * 0.5);
 
 				if (tapCoc > 15)
 				{
-					data.xyz *= bokeh;
+					//data.xyz *= bokeh;
 				}
 
 				result += float4(data.xyz * alpha, alpha) * weight(sampleUV, alpha);
@@ -489,11 +490,11 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 	//result = groundTruth(input.texcoord, float2(inputTexSize.xy));
 
-	result = filterFuncTier1(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc);
+	//result = filterFuncTier1(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc);
 
 	//return float4(rand(input.texcoord), 0, 0, 1);
 
-	/*if (tileMaxCoc > 19.0)
+	if (tileMaxCoc > 19.0)
 	{
 		result = filterFuncTier1(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc);
 	}
@@ -504,7 +505,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	else
 	{
 		result = filterFuncTier3(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc);
-	}*/
+	}
 
 	return result;
 
