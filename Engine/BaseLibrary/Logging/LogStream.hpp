@@ -46,12 +46,12 @@ public:
 	/// <summary> Log an event. </summary>
 	/// <param name="displayMode"> Optionally display event immediatly to stdout or stderr. 
 	///		Event is still logged. </param>
-	void Event(const inl::Event& e, eEventDisplayMode displayMode = eEventDisplayMode::DONT_DISPLAY);
+	void Event(const inl::LogEvent& e, eEventDisplayMode displayMode = eEventDisplayMode::DONT_DISPLAY);
 
 	/// <summary> Log an event. </summary>
 	/// <param name="displayMode"> Optionally display event immediatly to stdout or stderr. 
 	///		Event is still logged. </param>
-	void Event(inl::Event&& e, eEventDisplayMode displayMode = eEventDisplayMode::DONT_DISPLAY);
+	void Event(inl::LogEvent&& e, eEventDisplayMode displayMode = eEventDisplayMode::DONT_DISPLAY);
 private:
 	std::shared_ptr<LogPipe> pipe; // log goes through this pipe
 };

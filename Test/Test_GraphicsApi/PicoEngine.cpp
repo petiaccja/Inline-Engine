@@ -52,7 +52,7 @@ PicoEngine::PicoEngine(inl::gxapi::NativeWindowHandle hWnd, int width, int heigh
 		throw inl::RuntimeException("No available devices.");
 	}
 	m_graphicsApi.reset(m_gxapiManager->CreateGraphicsApi(adapters[0].adapterId));
-	Log(inl::Event{
+	Log(inl::LogEvent{
 			"Device created for first adapter.",
 			inl::eEventType::INFO,
 			inl::EventParameterInt("adapter_id", adapters[0].adapterId),

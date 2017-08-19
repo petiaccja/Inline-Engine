@@ -40,6 +40,7 @@
 #include <cmath>
 
 #include "Simd.hpp"
+#include "Utility.hpp"
 
 
 namespace mathter {
@@ -1121,12 +1122,14 @@ public:
 
 	/// <summary> Makes a unit vector, but keeps direction. </summary> 
 	void Normalize() {
+		assert(!IsNullvector());
 		T l = Length();
 		operator/=(l);
 	}
 
 	/// <summary> Returns the unit vector having the same direction, without modifying the object. </summary>
 	Vector Normalized() const {
+		assert(!IsNullvector());
 		Vector v = *this;
 		v.Normalize();
 		return v;
@@ -1136,6 +1139,32 @@ public:
 	bool IsNormalized() const {
 		T n = LengthSquared();
 		return T(0.9999) <= n && n <= T(1.0001);
+	}
+
+	/// <summary> Makes a unit vector, but keeps direction. Leans towards (1,0,0...) for nullvectors, costs more. </summary>
+	void SafeNormalize() {
+		T sgnx = (*this)(0) >= T(0.0) ? T(1.0) : T(-1.0);
+		static constexpr T epsilon = T(1) / impl::ConstexprExp10<T>(impl::ConstexprAbs(std::numeric_limits<T>::min_exponent10) / 2);
+		(*this)(0) += sgnx * epsilon;
+		T l = Length();
+		operator/=(l);
+	}
+
+	/// <summary> Returns the unit vector having the same direction, without modifying the object. Leans towards (1,0,0...) for nullvectors, costs more. </summary>
+	Vector SafeNormalized() const {
+		Vector v = *this;
+		v.SafeNormalize();
+		return v;
+	}
+
+
+	/// <summary> Returns true if the vector's length is too small for precise calculations (i.e. normalization). </summary>
+	/// <remarks> "Too small" means smaller the square root of the smallest number representable by the underlying scalar. 
+	///			This value is ~10^-18 for floats and ~10^-154 for doubles. </remarks>
+	bool IsNullvector() const {
+		static constexpr T epsilon = T(1) / impl::ConstexprExp10<T>(impl::ConstexprAbs(std::numeric_limits<T>::min_exponent10) / 2);
+		T length = Length();
+		return length < epsilon;
 	}
 
 

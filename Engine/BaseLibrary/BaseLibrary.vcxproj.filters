@@ -180,6 +180,7 @@
     </ClInclude>
     <ClInclude Include="Rect.hpp" />
     <ClInclude Include="Event.hpp" />
+    <ClInclude Include="Color.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">

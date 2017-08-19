@@ -144,41 +144,41 @@ struct EventParameterRaw : public EventParameter {
 /// An event contains a message and can have
 /// any number of parameters associated with it.
 /// </summary>
-class Event {
+class LogEvent {
 public:
-	Event();
+	LogEvent();
 
 	/// <summary> Create an event with specific message. </sumary>
-	Event(std::string message) : Event(std::move(message), eEventType::UNSPECIFIED) {}
+	LogEvent(std::string message) : LogEvent(std::move(message), eEventType::UNSPECIFIED) {}
 
 	/// <summary> Create an event with specific message. </sumary>
-	Event(const char* message) : Event(std::string(message)) {}
+	LogEvent(const char* message) : LogEvent(std::string(message)) {}
 	
 	/// <summary> Construct object with message and a list of parameters. </summary>
 	/// <param name="message"> The message of the event. </param>
 	/// <param name="parameters"> Any number of EventParameters which describe the event's parameters. </param>
 	template <class Head, class... Args, std::enable_if_t<!std::is_same_v<Head, eEventType>, int> = 0>
-	Event(std::string message, Head&& head, Args&&... parameters)
-		: Event(std::move(message), eEventType::UNSPECIFIED, std::forward<Head>(head), std::forward<Args>(parameters)...) {}
+	LogEvent(std::string message, Head&& head, Args&&... parameters)
+		: LogEvent(std::move(message), eEventType::UNSPECIFIED, std::forward<Head>(head), std::forward<Args>(parameters)...) {}
 
 	/// <summary> Construct object with message and a list of parameters. </summary>
 	/// <param name="message"> The message of the event. </param>
 	/// <param name="parameters"> Any number of EventParameters which describe the event's parameters. </param>
 	template <class Head, class... Args, std::enable_if_t<!std::is_same_v<Head, eEventType>, int> = 0>
-	Event(const char* message, Head&& head, Args&&... parameters) 
-		: Event(std::string(message), eEventType::UNSPECIFIED, std::forward<Head>(head), std::forward<Args>(parameters)...) {}
+	LogEvent(const char* message, Head&& head, Args&&... parameters) 
+		: LogEvent(std::string(message), eEventType::UNSPECIFIED, std::forward<Head>(head), std::forward<Args>(parameters)...) {}
 
 	/// <summary> Construct object with message and a list of parameters and specific event type. </summary>
 	/// <param name="message"> The message of the event. </param>
 	/// <param name="type"> Type of the event. </param>
 	/// <param name="parameters"> Any number of EventParameters which describe the event's parameters. </param>
 	template <class... Args>
-	Event(std::string message, eEventType type, Args&&... parameters);
+	LogEvent(std::string message, eEventType type, Args&&... parameters);
 
 
-	Event(const Event&);
-	Event(Event&&) = default;
-	~Event() = default;
+	LogEvent(const LogEvent&);
+	LogEvent(LogEvent&&) = default;
+	~LogEvent() = default;
 
 	/// <summary> Set message of the event. </summary>
 	void SetMessage(const std::string& message);
@@ -211,21 +211,21 @@ private:
 
 
 template <class... Args>
-Event::Event(std::string message, eEventType type, Args&&... parameters) : message(std::move(message)), type(type) {
+LogEvent::LogEvent(std::string message, eEventType type, Args&&... parameters) : message(std::move(message)), type(type) {
 	this->parameters.reserve(sizeof...(Args));
 	AddVariadicParams<0, Args...>(std::forward<Args>(parameters)...);
 }
 
 
 template <size_t Index, class Head, class... Args>
-void Event::AddVariadicParams(Head&& head, Args&&... args) {
+void LogEvent::AddVariadicParams(Head&& head, Args&&... args) {
 	static_assert(std::is_base_of<EventParameter, Head>::value, "Only EventParameters can be given as argument.");
 	PutParameter(head);
 	AddVariadicParams<Index + 1, Args...>(std::forward<Args>(args)...);
 }
 
 template <size_t Index>
-void Event::AddVariadicParams() {
+void LogEvent::AddVariadicParams() {
 	// empty
 }
 

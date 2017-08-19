@@ -198,6 +198,7 @@
     <ClInclude Include="ArrayView.hpp" />
     <ClInclude Include="BitflagEnum.hpp" />
     <ClInclude Include="BitOperations.hpp" />
+    <ClInclude Include="Color.hpp" />
     <ClInclude Include="Common.hpp" />
     <ClInclude Include="Delegate.hpp" />
     <ClInclude Include="Event.hpp" />

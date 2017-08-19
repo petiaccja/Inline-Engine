@@ -3,6 +3,7 @@
 #include "Mathter/Vector.hpp"
 #include "Mathter/Matrix.hpp"
 #include "Mathter/Quaternion.hpp"
+#include "Mathter/Utility.hpp"
 
 
 namespace inl {

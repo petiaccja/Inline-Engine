@@ -174,6 +174,11 @@ public:
 		memcpy(m_callablePlaceholder, rhs.m_callablePlaceholder, sizeof(m_callablePlaceholder));
 		m_callable = reinterpret_cast<impl::Callable<void, ArgsT...>*>(m_callablePlaceholder + ((size_t)rhs.m_callable - (size_t)rhs.m_callablePlaceholder));
 	}
+	Delegate& operator=(const Delegate& rhs) {
+		memcpy(m_callablePlaceholder, rhs.m_callablePlaceholder, sizeof(m_callablePlaceholder));
+		m_callable = reinterpret_cast<impl::Callable<void, ArgsT...>*>(m_callablePlaceholder + ((size_t)rhs.m_callable - (size_t)rhs.m_callablePlaceholder));
+		return *this;
+	}
 
 	template <class ReturnT>
 	Delegate(const Delegate<ReturnT, ArgsT...>& rhs) {

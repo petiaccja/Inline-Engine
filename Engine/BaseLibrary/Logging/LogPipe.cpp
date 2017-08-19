@@ -13,7 +13,7 @@ LogPipe::LogPipe(std::shared_ptr<LogNode> node) {
 
 LogPipe::~LogPipe() {}
 
-void LogPipe::PutEvent(const Event& evt) {
+void LogPipe::PutEvent(const LogEvent& evt) {
 	if (!node) {
 		return;
 	}
@@ -37,7 +37,7 @@ void LogPipe::PutEvent(const Event& evt) {
 	node->NotifyNewEvent();
 }
 
-void LogPipe::PutEvent(Event&& evt) {
+void LogPipe::PutEvent(LogEvent&& evt) {
 	if (!node) {
 		return;
 	}

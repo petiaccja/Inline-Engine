@@ -11,7 +11,7 @@ namespace inl {
 /// <summary> Contains an event and its timestamp. </summary>
 struct EventEntry {
 	std::chrono::high_resolution_clock::time_point timestamp;
-	Event event;
+	LogEvent event;
 };
 
 

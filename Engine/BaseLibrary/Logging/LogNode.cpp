@@ -84,7 +84,7 @@ void LogNode::Flush() {
 			}
 		}
 		if (oldestBuffer) {
-			Event& evt = (*oldestBuffer)[0].event;
+			LogEvent& evt = (*oldestBuffer)[0].event;
 
 			// write event to file
 			if (outputStream && outputStream->good()) {

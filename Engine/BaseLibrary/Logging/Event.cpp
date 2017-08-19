@@ -3,13 +3,13 @@
 namespace inl {
 
 
-Event::Event() : type(eEventType::UNSPECIFIED) {}
+LogEvent::LogEvent() : type(eEventType::UNSPECIFIED) {}
 
-//Event::Event(std::string message, eEventType type) 
+//LogEvent::LogEvent(std::string message, eEventType type) 
 //	: message(std::move(message)), type(type)
 //{}
 
-Event::Event(const Event& other) {
+LogEvent::LogEvent(const LogEvent& other) {
 	message = other.message;
 	type = other.type;
 	for (size_t i = 0; i < other.GetNumParameters(); i++) {
@@ -18,29 +18,29 @@ Event::Event(const Event& other) {
 }
 
 
-void Event::SetMessage(const std::string& message) {
+void LogEvent::SetMessage(const std::string& message) {
 	this->message = message;
 }
 
-const std::string& Event::GetMessage() const {
+const std::string& LogEvent::GetMessage() const {
 	return message;
 }
 
 
-void Event::PutParameter(const EventParameter& parameter) {
+void LogEvent::PutParameter(const EventParameter& parameter) {
 	this->parameters.push_back(std::unique_ptr<EventParameter>(parameter.Clone()));
 }
 
-size_t Event::GetNumParameters() const {
+size_t LogEvent::GetNumParameters() const {
 	return parameters.size();
 }
 
 
-EventParameter& Event::operator[](size_t index) {
+EventParameter& LogEvent::operator[](size_t index) {
 	return *parameters[index];
 }
 
-const EventParameter& Event::operator[](size_t index) const {
+const EventParameter& LogEvent::operator[](size_t index) const {
 	return *parameters[index];
 }
 

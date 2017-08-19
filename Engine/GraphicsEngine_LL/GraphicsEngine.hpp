@@ -64,19 +64,19 @@ public:
 	void SetLog(LogStream* log) { m_log = log; }
 
 	void OnFrameBeginDevice(uint64_t frameId) override {
-		m_log->Event(Event{ "Frame begin - DEVICE", EventParameterInt("frameId", (int)frameId) });
+		m_log->Event(LogEvent{ "Frame begin - DEVICE", EventParameterInt("frameId", (int)frameId) });
 	}
 	void OnFrameBeginHost(uint64_t frameId) override {
-		m_log->Event(Event{ "Frame begin - HOST", EventParameterInt("frameId", (int)frameId) });
+		m_log->Event(LogEvent{ "Frame begin - HOST", EventParameterInt("frameId", (int)frameId) });
 	}
 	void OnFrameBeginAwait(uint64_t frameId) override {
-		m_log->Event(Event{ "Awaiting frame", EventParameterInt("frameId", (int)frameId) });
+		m_log->Event(LogEvent{ "Awaiting frame", EventParameterInt("frameId", (int)frameId) });
 	}
 	void OnFrameCompleteDevice(uint64_t frameId) override {
-		m_log->Event(Event{ "Frame finished - DEVICE", EventParameterInt("frameId", (int)frameId) });
+		m_log->Event(LogEvent{ "Frame finished - DEVICE", EventParameterInt("frameId", (int)frameId) });
 	}
 	void OnFrameCompleteHost(uint64_t frameId) override {
-		m_log->Event(Event{ "Frame finished - HOST", EventParameterInt("frameId", (int)frameId) });
+		m_log->Event(LogEvent{ "Frame finished - HOST", EventParameterInt("frameId", (int)frameId) });
 	}
 private:
 	LogStream* m_log;

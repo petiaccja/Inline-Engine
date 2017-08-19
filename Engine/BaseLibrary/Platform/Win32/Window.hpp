@@ -26,7 +26,7 @@ public:
 	void RestoreSize();
 
 
-	void SetHekkTillGdiNotRemoved(const Delegate<void(Vec2& pos)>& hekk) { this->hekk = hekk; }
+	void SetHekkTillGdiNotRemoved(const Delegate<void(Vec2&)>& hekk) { this->hekk = hekk; }
 
 	void SetRect(const Vec2i& pos, const Vec2u& size);
 	void SetPos(const Vec2i& pos);

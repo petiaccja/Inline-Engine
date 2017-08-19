@@ -23,9 +23,9 @@ public:
 	~LogPipe();
 
 	/// <summary> Add a new event for logging. </summary>
-	void PutEvent(const Event& evt);
+	void PutEvent(const LogEvent& evt);
 	/// <summary> Add a new event for logging. </summary>
-	void PutEvent(Event&& evt);
+	void PutEvent(LogEvent&& evt);
 
 	/// <summary> Get attached log node. </summary>
 	std::shared_ptr<LogNode> GetNode();
