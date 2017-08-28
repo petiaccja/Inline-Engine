@@ -18,6 +18,7 @@ Texture2D inputTex : register(t0); //HDR texture
 Texture2D depthTex : register(t1); //
 Texture2D neighborhoodMaxTex : register(t2); //
 SamplerState samp0 : register(s0);
+SamplerState samp1 : register(s1);
 
 struct PS_Input
 {
@@ -142,8 +143,8 @@ float4 circle_filter(float2 uv, float dist, float2 resolution, const int taps, o
 	
 	for (int c = 0; c < taps; ++c)
 	{
-		float xx = cos(2.0 * pi * float(c) * ftaps) * dist;
-		float yy = sin(2.0 * pi * float(c) * ftaps) * dist;
+		float xx = (cos(2.0 * pi * float(c) * ftaps) + rand(uv)*-0.25) * dist;
+		float yy = (sin(2.0 * pi * float(c) * ftaps) + rand(uv+1)*-0.25) * dist;
 
 		float2 sampleUV = uv + float2(xx, yy) * pixelSize;
 		float tapDistSqr = dot(float2(xx, yy), float2(xx, yy));

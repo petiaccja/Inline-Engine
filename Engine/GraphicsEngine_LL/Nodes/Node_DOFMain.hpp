@@ -38,12 +38,16 @@ protected:
 	BindParameter m_depthTexBindParam;
 	BindParameter m_neighborhoodMaxTexBindParam;
 	BindParameter m_uniformsBindParam;
+	ShaderProgram m_postfilter_shader;
 	ShaderProgram m_shader;
+	std::unique_ptr<gxapi::IPipelineState> m_postfilter_PSO;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 protected: // outputs
 	bool m_outputTexturesInited = false;
+	RenderTargetView2D m_postfilter_rtv;
 	RenderTargetView2D m_main_rtv;
+	TextureView2D m_main_srv;
 
 	VertexBuffer m_fsq;
 	IndexBuffer m_fsqIndices;

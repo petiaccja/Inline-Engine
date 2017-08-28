@@ -79,6 +79,13 @@ void DOFPrepare::Setup(SetupContext& context) {
 		sampBindParamDesc.relativeChangeFrequency = 0;
 		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+		BindParameterDesc sampBindParamDesc2;
+		sampBindParamDesc2.parameter = BindParameter(eBindParameterType::SAMPLER, 1);
+		sampBindParamDesc2.constantSize = 0;
+		sampBindParamDesc2.relativeAccessFrequency = 0;
+		sampBindParamDesc2.relativeChangeFrequency = 0;
+		sampBindParamDesc2.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
 		BindParameterDesc inputBindParamDesc;
 		m_inputTexBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
 		inputBindParamDesc.parameter = m_inputTexBindParam;
@@ -105,7 +112,18 @@ void DOFPrepare::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, depthBindParamDesc },{ samplerDesc });
+		gxapi::StaticSamplerDesc samplerDesc2;
+		samplerDesc2.shaderRegister = 1;
+		samplerDesc2.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
+		samplerDesc2.addressU = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc2.addressV = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc2.addressW = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc2.mipLevelBias = 0.f;
+		samplerDesc2.registerSpace = 0;
+		samplerDesc2.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, sampBindParamDesc2, inputBindParamDesc, depthBindParamDesc },{ samplerDesc, samplerDesc2 });
 	}
 
 	if (!m_fsq.HasObject()) {
@@ -176,7 +194,7 @@ void DOFPrepare::Execute(RenderContext& context) {
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
 	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
 
-	uniformsCBData.maxBlurDiameter = 28.0;
+	uniformsCBData.maxBlurDiameter = 20.0;
 
 	commandList.SetResourceState(m_prepare_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });

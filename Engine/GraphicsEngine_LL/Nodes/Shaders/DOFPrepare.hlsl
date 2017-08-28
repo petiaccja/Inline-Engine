@@ -15,6 +15,7 @@ ConstantBuffer<Uniforms> uniforms : register(b0);
 Texture2D inputTex : register(t0); //HDR texture
 Texture2D depthTex : register(t1); //
 SamplerState samp0 : register(s0);
+SamplerState samp1 : register(s1);
 
 struct PS_Input
 {
@@ -35,6 +36,56 @@ float linearize_depth(float depth, float near, float far)
 	//range: [0...far]
 	return vs_zrecon;
 };
+
+//warning: result [0...1]
+float toDepth(float depth, float near, float far)
+{
+	float A = far / (far - near);
+	float B = -far * near / (far - near);
+
+	float zndc = B / depth + A;
+	return zndc;
+}
+
+float rand(float2 co) {
+	return frac(sin(dot(co.xy, float2(12.9898, 78.233))) * 43758.5453);
+}
+
+float4 filterFuncTier3(float2 uv, float2 resolution, float4 center_tap, float center_depth)
+{
+	const float pi = 3.14159265;
+	int taps = 8;
+	const float threshold = 0.3;
+
+	float center_coc = center_tap.w;
+	float2 dist = max(center_coc * 0.5, 1.0); //9
+
+	float4 result = center_tap;
+	float samples = 1;
+	float ftaps = 1.0 / float(taps);
+	float2 pixelSize = 1.0 / resolution;
+
+	for (int c = 0; c < taps; ++c)
+	{
+		float xx = cos(2.0 * pi * float(c) * ftaps) * dist;
+		float yy = sin(2.0 * pi * float(c) * ftaps) * dist;
+
+		float2 sampleUV = uv + float2(xx, yy) * pixelSize;
+
+		float4 data = inputTex.Sample(samp1, sampleUV); //bilinear tap
+		float4 depthGather = depthTex.Gather(samp0, sampleUV);
+		float depthMin = linearize_depth(min(depthGather.x, min(depthGather.y, min(depthGather.z, depthGather.w))), 0.1, 100);
+
+
+		if (abs(depthMin - center_depth) < threshold)
+		{
+			result += data;
+			samples++;
+		}
+	}
+
+	return float4(result.xyz / samples, center_tap.w);
+}
 
 //all in metres (scene unit)
 float calculate_coc(float focal_length, float subject_distance, float opening_diameter, float scene_depth)
@@ -73,6 +124,9 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 
 	float4 inputData = inputTex.Sample(samp0, input.texcoord);
+	float4 inputDepth = depthTex.Sample(samp0, input.texcoord);
+
+	float4 prefilteredColor = filterFuncTier3(input.texcoord, inputTexSize.xy, inputData, inputDepth);
 
 	float sensor_width = 0.035; //35mm full frame sensor
 
@@ -86,8 +140,9 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 	float coc = calculate_coc(focal_length * 0.001, subject_distance, f_stops * 0.001, linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100)); //in meters
 	float pixel_coc = inputTexSize.x * coc / sensor_width;
+	float final_coc = min(pixel_coc, uniforms.maxBlurDiameter);
 
-	return float4(inputData.xyz, min(pixel_coc, uniforms.maxBlurDiameter));
+	return float4(prefilteredColor.xyz, final_coc);
 	//return inputTex.Sample(samp0, input.texcoord);
 	//return float4(inputData.xyz, min(coc * coc_multiplier, uniforms.maxBlurDiameter) );
 	//return linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100);

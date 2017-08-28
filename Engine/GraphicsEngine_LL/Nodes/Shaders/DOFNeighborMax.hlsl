@@ -58,7 +58,7 @@ float2 PSMain(PS_Input input) : SV_TARGET
 
 	float2 result = float2(0.0, 1.0);
 
-	int searchRadius = 2;
+	int searchRadius = 1;
 
 	for (int x = -searchRadius; x <= searchRadius; ++x)
 	{
