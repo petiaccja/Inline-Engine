@@ -55,10 +55,15 @@ float4 filterFuncTier3(float2 uv, float2 resolution, float4 center_tap, float ce
 {
 	const float pi = 3.14159265;
 	int taps = 8;
-	const float threshold = 0.3;
+	const float threshold = 0.1;
 
 	float center_coc = center_tap.w;
-	float2 dist = max(center_coc * 0.5, 1.0); //9
+	float dist = max(center_coc * 0.5 * 0.333, 1.0); //9
+
+	if (center_coc <= 1.0)
+	{
+		return center_tap;
+	}
 
 	float4 result = center_tap;
 	float samples = 1;
@@ -126,8 +131,6 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float4 inputData = inputTex.Sample(samp0, input.texcoord);
 	float4 inputDepth = depthTex.Sample(samp0, input.texcoord);
 
-	float4 prefilteredColor = filterFuncTier3(input.texcoord, inputTexSize.xy, inputData, inputDepth);
-
 	float sensor_width = 0.035; //35mm full frame sensor
 
 	float focal_length_multiplier = 1.5; //1.0 for full frame
@@ -141,6 +144,9 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float coc = calculate_coc(focal_length * 0.001, subject_distance, f_stops * 0.001, linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100)); //in meters
 	float pixel_coc = inputTexSize.x * coc / sensor_width;
 	float final_coc = min(pixel_coc, uniforms.maxBlurDiameter);
+
+	//float4 prefilteredColor = filterFuncTier3(input.texcoord, inputTexSize.xy, inputData, inputDepth);
+	float4 prefilteredColor = filterFuncTier3(input.texcoord, inputTexSize.xy, float4(inputData.xyz, final_coc), inputDepth);
 
 	return float4(prefilteredColor.xyz, final_coc);
 	//return inputTex.Sample(samp0, input.texcoord);

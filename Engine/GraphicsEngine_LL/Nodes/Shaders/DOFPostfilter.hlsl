@@ -52,7 +52,10 @@ float4 medianFilter(int2 uv, int2 resolution)
 
 	float4 temp;
 
-	//return v[1];
+	if (v[4].w <= 1.0)
+	{
+		return v[4];
+	}
 
 	// Starting with a subset of size 6, remove the min and max each time
 	mnmx6(v[0], v[1], v[2], v[3], v[4], v[5]);

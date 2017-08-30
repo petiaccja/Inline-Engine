@@ -143,8 +143,8 @@ float4 circle_filter(float2 uv, float dist, float2 resolution, const int taps, o
 	
 	for (int c = 0; c < taps; ++c)
 	{
-		float xx = (cos(2.0 * pi * float(c) * ftaps) + rand(uv)*-0.25) * dist;
-		float yy = (sin(2.0 * pi * float(c) * ftaps) + rand(uv+1)*-0.25) * dist;
+		float xx = (cos(2.0 * pi * float(c) * ftaps + 0.464)) * dist;
+		float yy = (sin(2.0 * pi * float(c) * ftaps + 0.464)) * dist;
 
 		float2 sampleUV = uv + float2(xx, yy) * pixelSize;
 		float tapDistSqr = dot(float2(xx, yy), float2(xx, yy));
@@ -491,11 +491,11 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 	//result = groundTruth(input.texcoord, float2(inputTexSize.xy));
 
-	//result = filterFuncTier1(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc);
+	result = filterFuncTier1(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc);
 
 	//return float4(rand(input.texcoord), 0, 0, 1);
 
-	if (tileMaxCoc > 19.0)
+	/*if (tileMaxCoc > 19.0)
 	{
 		result = filterFuncTier1(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc);
 	}
@@ -506,9 +506,9 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	else
 	{
 		result = filterFuncTier3(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc);
-	}
+	}*/
 
-	return result;
+	return float4(result.xyz, currentColor.w);
 
 	//return float4(tileMaxCoc, tileMaxCoc, tileMaxCoc, tileMaxCoc)/uniforms.maxBlurDiameter;
 	//return float4(tileClosestDepth, tileClosestDepth, tileClosestDepth, tileClosestDepth)*0.01;

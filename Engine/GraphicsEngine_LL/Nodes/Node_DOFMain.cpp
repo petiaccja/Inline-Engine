@@ -235,7 +235,7 @@ void DOFMain::Execute(RenderContext& context) {
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
 	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
 
-	uniformsCBData.maxBlurDiameter = 20.0;
+	uniformsCBData.maxBlurDiameter = 13.0;
 	uniformsCBData.tileSize = 20.0;
 
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
