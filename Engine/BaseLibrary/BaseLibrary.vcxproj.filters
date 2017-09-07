@@ -28,6 +28,12 @@
     <Filter Include="Platform\Win32">
       <UniqueIdentifier>{a1032b41-cc0a-4bd8-8af7-e2e0525ab1a7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Platform2">
+      <UniqueIdentifier>{160dda99-d5a8-4cca-a58d-fdc87233b906}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Platform2\Win32">
+      <UniqueIdentifier>{6c7d3749-9a67-40d9-851f-c0156f6f954e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Stream.hpp">
@@ -169,9 +175,6 @@
     <ClInclude Include="Platform\Win32\PlatformDefinitions.h">
       <Filter>Platform\Win32</Filter>
     </ClInclude>
-    <ClInclude Include="Platform\Win32\PlatformUtils.h">
-      <Filter>Platform\Win32</Filter>
-    </ClInclude>
     <ClInclude Include="Platform\Win32\Window.hpp">
       <Filter>Platform\Win32</Filter>
     </ClInclude>
@@ -181,6 +184,15 @@
     <ClInclude Include="Rect.hpp" />
     <ClInclude Include="Event.hpp" />
     <ClInclude Include="Color.hpp" />
+    <ClInclude Include="Platform2\InputEvents.hpp">
+      <Filter>Platform2</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform2\System.hpp">
+      <Filter>Platform2</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform2\Input.hpp">
+      <Filter>Platform2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">
@@ -235,6 +247,9 @@
     </ClCompile>
     <ClCompile Include="Platform\Win32\WindowDropTarget.cpp">
       <Filter>Platform\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Platform2\Input.cpp">
+      <Filter>Platform2</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -12,7 +12,7 @@ namespace inl {
 template <class... ArgsT>
 class Event {
 public:
-	void operator()(ArgsT&&... args) {
+	void operator()(ArgsT... args) {
 		for (auto& del : m_delegates) {
 			del(args...);
 		}

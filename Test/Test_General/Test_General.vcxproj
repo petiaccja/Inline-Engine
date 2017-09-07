@@ -187,6 +187,7 @@
     <ClCompile Include="Test_Binder.cpp" />
     <ClCompile Include="Test_Event.cpp" />
     <ClCompile Include="Test_GapiSync.cpp" />
+    <ClCompile Include="Test_Input.cpp" />
     <ClCompile Include="Test_MaterialShader.cpp" />
     <ClCompile Include="Test_MultiInstanceTLS.cpp">
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NoListing</AssemblerOutput>
