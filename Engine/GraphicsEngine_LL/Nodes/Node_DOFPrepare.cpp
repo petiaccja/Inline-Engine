@@ -171,13 +171,15 @@ void DOFPrepare::Setup(SetupContext& context) {
 		psoDesc.depthStencilState.enableStencilTest = false;
 		psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
 
-		psoDesc.numRenderTargets = 1;
+		psoDesc.numRenderTargets = 2;
 		psoDesc.renderTargetFormats[0] = m_prepare_rtv.GetResource().GetFormat();
+		psoDesc.renderTargetFormats[1] = m_depth_rtv.GetResource().GetFormat();
 
 		m_PSO.reset(context.CreatePSO(psoDesc));
 	}
 
 	this->GetOutput<0>().Set(m_prepare_rtv.GetResource());
+	this->GetOutput<1>().Set(m_depth_rtv.GetResource());
 }
 
 
@@ -194,17 +196,18 @@ void DOFPrepare::Execute(RenderContext& context) {
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
 	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
 
-	uniformsCBData.maxBlurDiameter = 13.0;
+	uniformsCBData.maxBlurDiameter = 33.0;
 
 	commandList.SetResourceState(m_prepare_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(m_depth_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_depthTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 	float fnear = m_camera->GetNearPlane();
 	float ffar = m_camera->GetFarPlane();
 
-	RenderTargetView2D* pRTV = &m_prepare_rtv;
-	commandList.SetRenderTargets(1, &pRTV, 0);
+	RenderTargetView2D* pRTV[2] = { &m_prepare_rtv, &m_depth_rtv };
+	commandList.SetRenderTargets(2, pRTV, 0);
 
 	gxapi::Rectangle rect{ 0, (int)m_prepare_rtv.GetResource().GetHeight(), 0, (int)m_prepare_rtv.GetResource().GetWidth() };
 	gxapi::Viewport viewport;
@@ -246,6 +249,7 @@ void DOFPrepare::InitRenderTarget(SetupContext& context) {
 		using gxapi::eFormat;
 
 		auto format = eFormat::R16G16B16A16_FLOAT;
+		auto depthFormat = eFormat::R32_FLOAT;
 
 		gxapi::RtvTexture2DArray rtvDesc;
 		rtvDesc.activeArraySize = 1;
@@ -261,10 +265,17 @@ void DOFPrepare::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D prepare_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), format, {1, 1, 0, 0});
+		//Texture2D prepare_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth()/2, m_inputTexSrv.GetResource().GetHeight()/2, format, {1, 1, 0, 0});
+		Texture2D prepare_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), format, { 1, 1, 0, 0 });
 		prepare_tex._GetResourcePtr()->SetName("DOF prepare tex");
 		m_prepare_rtv = context.CreateRtv(prepare_tex, format, rtvDesc);
 		m_prepare_rtv.GetResource()._GetResourcePtr()->SetName("DOF prepare RTV");
+
+		//Texture2D depth_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth() / 2, m_inputTexSrv.GetResource().GetHeight() / 2, depthFormat, { 1, 1, 0, 0 });
+		Texture2D depth_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), depthFormat, { 1, 1, 0, 0 });
+		depth_tex._GetResourcePtr()->SetName("DOF depth tex");
+		m_depth_rtv = context.CreateRtv(depth_tex, depthFormat, rtvDesc);
+		m_depth_rtv.GetResource()._GetResourcePtr()->SetName("DOF depth RTV");
 	}
 }
 

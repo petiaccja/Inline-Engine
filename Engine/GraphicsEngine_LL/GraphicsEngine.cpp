@@ -534,14 +534,17 @@ void GraphicsEngine::CreatePipeline() {
 	dofPrepare->GetInput<2>().Link(getCamera->GetOutput(0));
 
 	dofTileMax->GetInput<0>().Link(dofPrepare->GetOutput(0));
-	dofTileMax->GetInput<1>().Link(depthPrePass->GetOutput(0));
+	//dofTileMax->GetInput<1>().Link(depthPrePass->GetOutput(0));
+	dofTileMax->GetInput<1>().Link(dofPrepare->GetOutput(1));
 
 	dofNeighborMax->GetInput<0>().Link(dofTileMax->GetOutput(0));
 
 	dofMain->GetInput<0>().Link(dofPrepare->GetOutput(0));
-	dofMain->GetInput<1>().Link(depthPrePass->GetOutput(0));
+	dofMain->GetInput<1>().Link(dofPrepare->GetOutput(1));
 	dofMain->GetInput<2>().Link(dofNeighborMax->GetOutput(0));
 	dofMain->GetInput<3>().Link(getCamera->GetOutput(0));
+	dofMain->GetInput<4>().Link(motionBlur->GetOutput(0));
+	dofMain->GetInput<5>().Link(depthPrePass->GetOutput(0));
 
 	brightLumPass->GetInput<0>().Link(motionBlur->GetOutput(0));
 	

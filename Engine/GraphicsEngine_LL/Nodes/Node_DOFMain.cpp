@@ -28,6 +28,8 @@ DOFMain::DOFMain() {
 	this->GetInput<1>().Set({});
 	this->GetInput<2>().Set({});
 	this->GetInput<3>().Set({});
+	this->GetInput<4>().Set({});
+	this->GetInput<5>().Set({});
 }
 
 
@@ -37,14 +39,18 @@ void DOFMain::Initialize(EngineContext & context) {
 
 void DOFMain::Reset() {
 	m_inputTexSrv = TextureView2D();
-	m_depthTexSrv = TextureView2D();
+	m_halfDepthTexSrv = TextureView2D();
 	m_neighborhoodMaxTexSrv = TextureView2D();
+	m_originalTexSrv = TextureView2D();
+	m_depthTexSrv = TextureView2D();
 	m_camera = nullptr;
 
 	GetInput<0>().Clear();
 	GetInput<1>().Clear();
 	GetInput<2>().Clear();
 	GetInput<3>().Clear();
+	GetInput<4>().Clear();
+	GetInput<5>().Clear();
 }
 
 
@@ -61,13 +67,21 @@ void DOFMain::Setup(SetupContext& context) {
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
 	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("DOF input tex SRV");
 
-	Texture2D depthTex = this->GetInput<1>().Get();
-	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
-	m_depthTexSrv.GetResource()._GetResourcePtr()->SetName("DOF depth tex SRV");
+	Texture2D halfDepthTex = this->GetInput<1>().Get();
+	m_halfDepthTexSrv = context.CreateSrv(halfDepthTex, FormatDepthToColor(halfDepthTex.GetFormat()), srvDesc);
+	m_halfDepthTexSrv.GetResource()._GetResourcePtr()->SetName("DOF half depth tex SRV");
 
 	Texture2D neighborhoodMaxTex = this->GetInput<2>().Get();
 	m_neighborhoodMaxTexSrv = context.CreateSrv(neighborhoodMaxTex, neighborhoodMaxTex.GetFormat(), srvDesc);
 	m_neighborhoodMaxTexSrv.GetResource()._GetResourcePtr()->SetName("DOF neighborhood max tex SRV");
+
+	Texture2D originalTex = this->GetInput<4>().Get();
+	m_originalTexSrv = context.CreateSrv(originalTex, originalTex.GetFormat(), srvDesc);
+	m_originalTexSrv.GetResource()._GetResourcePtr()->SetName("DOF original tex SRV");
+
+	Texture2D depthTex = this->GetInput<5>().Get();
+	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
+	m_depthTexSrv.GetResource()._GetResourcePtr()->SetName("DOF depth tex SRV");
 
 	m_camera = this->GetInput<3>().Get();
 
@@ -158,7 +172,7 @@ void DOFMain::Setup(SetupContext& context) {
 		m_fsqIndices._GetResourcePtr()->SetName("DOF full screen quad index buffer");
 	}
 
-	if (!m_PSO) {
+	if (!m_main_PSO) {
 		InitRenderTarget(context);
 
 		ShaderParts shaderParts;
@@ -171,14 +185,14 @@ void DOFMain::Setup(SetupContext& context) {
 		};
 
 		{
-			m_shader = context.CreateShader("DOFMain", shaderParts, "");
+			m_main_shader = context.CreateShader("DOFMain", shaderParts, "");
 
 			gxapi::GraphicsPipelineStateDesc psoDesc;
 			psoDesc.inputLayout.elements = inputElementDesc.data();
 			psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
 			psoDesc.rootSignature = m_binder->GetRootSignature();
-			psoDesc.vs = m_shader.vs;
-			psoDesc.ps = m_shader.ps;
+			psoDesc.vs = m_main_shader.vs;
+			psoDesc.ps = m_main_shader.ps;
 			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
@@ -190,7 +204,7 @@ void DOFMain::Setup(SetupContext& context) {
 			psoDesc.numRenderTargets = 1;
 			psoDesc.renderTargetFormats[0] = m_main_rtv.GetResource().GetFormat();
 
-			m_PSO.reset(context.CreatePSO(psoDesc));
+			m_main_PSO.reset(context.CreatePSO(psoDesc));
 		}
 
 		{
@@ -215,8 +229,32 @@ void DOFMain::Setup(SetupContext& context) {
 
 			m_postfilter_PSO.reset(context.CreatePSO(psoDesc));
 		}
+
+		{
+			m_upsample_shader = context.CreateShader("DOFUpsample", shaderParts, "");
+
+			gxapi::GraphicsPipelineStateDesc psoDesc;
+			psoDesc.inputLayout.elements = inputElementDesc.data();
+			psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
+			psoDesc.rootSignature = m_binder->GetRootSignature();
+			psoDesc.vs = m_upsample_shader.vs;
+			psoDesc.ps = m_upsample_shader.ps;
+			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+
+			psoDesc.depthStencilState.enableDepthTest = false;
+			psoDesc.depthStencilState.enableDepthStencilWrite = false;
+			psoDesc.depthStencilState.enableStencilTest = false;
+			psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
+
+			psoDesc.numRenderTargets = 1;
+			psoDesc.renderTargetFormats[0] = m_upsample_rtv.GetResource().GetFormat();
+
+			m_upsample_PSO.reset(context.CreatePSO(psoDesc));
+		}
 	}
 
+	//this->GetOutput<0>().Set(m_upsample_rtv.GetResource());
 	this->GetOutput<0>().Set(m_postfilter_rtv.GetResource());
 	//this->GetOutput<0>().Set(m_main_rtv.GetResource());
 }
@@ -235,11 +273,11 @@ void DOFMain::Execute(RenderContext& context) {
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
 	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
 
-	uniformsCBData.maxBlurDiameter = 13.0;
+	uniformsCBData.maxBlurDiameter = 33.0;
 	uniformsCBData.tileSize = 20.0;
 
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-	commandList.SetResourceState(m_depthTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_halfDepthTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_neighborhoodMaxTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 	float fnear = m_camera->GetNearPlane();
@@ -269,12 +307,12 @@ void DOFMain::Execute(RenderContext& context) {
 		commandList.SetScissorRects(1, &rect);
 		commandList.SetViewports(1, &viewport);
 
-		commandList.SetPipelineState(m_PSO.get());
+		commandList.SetPipelineState(m_main_PSO.get());
 		commandList.SetGraphicsBinder(&m_binder.value());
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
 		commandList.BindGraphics(m_inputTexBindParam, m_inputTexSrv);
-		commandList.BindGraphics(m_depthTexBindParam, m_depthTexSrv);
+		commandList.BindGraphics(m_depthTexBindParam, m_halfDepthTexSrv);
 		commandList.BindGraphics(m_neighborhoodMaxTexBindParam, m_neighborhoodMaxTexSrv);
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
@@ -288,6 +326,7 @@ void DOFMain::Execute(RenderContext& context) {
 	{ //postfilter
 		commandList.SetResourceState(m_postfilter_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 		commandList.SetResourceState(m_main_srv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_originalTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 		RenderTargetView2D* pRTV = &m_postfilter_rtv;
 		commandList.SetRenderTargets(1, &pRTV, 0);
@@ -300,8 +339,8 @@ void DOFMain::Execute(RenderContext& context) {
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
 		commandList.BindGraphics(m_inputTexBindParam, m_main_srv);
-		commandList.BindGraphics(m_depthTexBindParam, m_depthTexSrv);
-		commandList.BindGraphics(m_neighborhoodMaxTexBindParam, m_neighborhoodMaxTexSrv);
+		commandList.BindGraphics(m_depthTexBindParam, m_halfDepthTexSrv);
+		commandList.BindGraphics(m_neighborhoodMaxTexBindParam, m_originalTexSrv);
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 		commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
@@ -309,6 +348,43 @@ void DOFMain::Execute(RenderContext& context) {
 		commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
 		commandList.SetIndexBuffer(&m_fsqIndices, false);
 		commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
+	}
+
+	{ //upsample
+		/*commandList.SetResourceState(m_upsample_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+		commandList.SetResourceState(m_postfilter_srv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_originalTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_depthTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+
+		RenderTargetView2D* pRTV = &m_upsample_rtv;
+		commandList.SetRenderTargets(1, &pRTV, 0);
+
+		gxapi::Rectangle fullrect{ 0, (int)m_upsample_rtv.GetResource().GetHeight(), 0, (int)m_upsample_rtv.GetResource().GetWidth() };
+		gxapi::Viewport fullviewport;
+		fullviewport.width = (float)fullrect.right;
+		fullviewport.height = (float)fullrect.bottom;
+		fullviewport.topLeftX = 0;
+		fullviewport.topLeftY = 0;
+		fullviewport.minDepth = 0.0f;
+		fullviewport.maxDepth = 1.0f;
+
+		commandList.SetScissorRects(1, &fullrect);
+		commandList.SetViewports(1, &fullviewport);
+
+		commandList.SetPipelineState(m_upsample_PSO.get());
+		commandList.SetGraphicsBinder(&m_binder.value());
+		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
+
+		commandList.BindGraphics(m_inputTexBindParam, m_postfilter_srv);
+		commandList.BindGraphics(m_depthTexBindParam, m_depthTexSrv);
+		commandList.BindGraphics(m_neighborhoodMaxTexBindParam, m_originalTexSrv);
+		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
+
+		commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+		commandList.SetResourceState(m_fsqIndices, gxapi::eResourceState::INDEX_BUFFER);
+		commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
+		commandList.SetIndexBuffer(&m_fsqIndices, false);
+		commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());*/
 	}
 }
 
@@ -346,6 +422,13 @@ void DOFMain::InitRenderTarget(SetupContext& context) {
 		postfilter_tex._GetResourcePtr()->SetName("DOF postfilter tex");
 		m_postfilter_rtv = context.CreateRtv(postfilter_tex, format, rtvDesc);
 		m_postfilter_rtv.GetResource()._GetResourcePtr()->SetName("DOF postfilter RTV");
+		m_postfilter_srv = context.CreateSrv(postfilter_tex, format, srvDesc);
+		m_postfilter_srv.GetResource()._GetResourcePtr()->SetName("DOF postfilter SRV");
+
+		Texture2D upsample_tex = context.CreateTexture2D(m_originalTexSrv.GetResource().GetWidth(), m_originalTexSrv.GetResource().GetHeight(), format, { 1, 1, 0, 0 });
+		upsample_tex._GetResourcePtr()->SetName("DOF upsample tex");
+		m_upsample_rtv = context.CreateRtv(upsample_tex, format, rtvDesc);
+		m_upsample_rtv.GetResource()._GetResourcePtr()->SetName("DOF upsample RTV");
 	}
 }
 
