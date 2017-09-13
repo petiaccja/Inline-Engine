@@ -238,6 +238,7 @@
     <ClInclude Include="Nodes\Node_TextureProperties.hpp" />
     <ClInclude Include="Nodes\Node_TileMax.hpp" />
     <ClInclude Include="Nodes\Node_VectorComponents.hpp" />
+    <ClInclude Include="Nodes\Node_Voxelization.hpp" />
     <ClInclude Include="OrthographicCamera.hpp" />
     <ClInclude Include="OverlayEntity.hpp" />
     <ClInclude Include="PerspectiveCamera.hpp" />
@@ -318,6 +319,7 @@
     <ClCompile Include="Nodes\Node_OverlayRender.cpp" />
     <ClCompile Include="Nodes\Node_SMAA.cpp" />
     <ClCompile Include="Nodes\Node_TileMax.cpp" />
+    <ClCompile Include="Nodes\Node_Voxelization.cpp" />
     <ClCompile Include="OrthographicCamera.cpp" />
     <ClCompile Include="OverlayEntity.cpp" />
     <ClCompile Include="PerspectiveCamera.cpp" />
