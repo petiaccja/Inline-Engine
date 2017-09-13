@@ -155,10 +155,10 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//float4 inputData = max(lensFlareTex.Load(int3(input.position.xy, 0)), float4(0,0,0,0));
 	float4 bloomData = bloomTex.Sample(samp0, input.texcoord);
 
-	//inputData.xyz = vignette(input.texcoord, inputData.xyz);
+	inputData.xyz = vignette(input.texcoord, inputData.xyz);
 
-	//inputData += bloomData * uniforms.bloom_weight;
-	//inputData.xyz += lens_flare(input.texcoord);
+	inputData += bloomData * uniforms.bloom_weight;
+	inputData.xyz += lens_flare(input.texcoord);
 	
 	float3 hdrColor = max(inputData, float4(0, 0, 0, 0)).xyz;
 	float avg_lum = luminanceTex.Sample(samp0, input.texcoord);
