@@ -81,6 +81,7 @@ public:
 
 	// Create resources
 	Texture2D CreateTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, TextureUsage usage, uint16_t arraySize = 1) const;
+	Texture3D CreateTexture3D(uint64_t width, uint32_t height, uint32_t depth, gxapi::eFormat format, TextureUsage usage) const;
 	Texture2D CreateShaderResource2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1) const;
 	Texture2D CreateRenderTarget2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1) const;
 	Texture2D CreateDepthStencil2D(uint64_t width, uint32_t height, gxapi::eFormat format, bool shaderResource, uint16_t arraySize = 1) const;
@@ -91,9 +92,11 @@ public:
 	// Create views
 	TextureView2D CreateSrv(Texture2D& texture, gxapi::eFormat format, gxapi::SrvTexture2DArray desc = {}) const;
 	TextureViewCube CreateSrv(Texture2D& texture, gxapi::eFormat format, gxapi::SrvTextureCubeArray desc) const;
+	TextureView3D CreateSrv(Texture3D& texture, gxapi::eFormat format, gxapi::SrvTexture3D desc) const;
 	RenderTargetView2D CreateRtv(Texture2D& renderTarget, gxapi::eFormat format, gxapi::RtvTexture2DArray desc) const;
 	DepthStencilView2D CreateDsv(Texture2D& depthStencilView, gxapi::eFormat format, gxapi::DsvTexture2DArray desc) const;
 	RWTextureView2D CreateUav(Texture2D& rwTexture, gxapi::eFormat format, gxapi::UavTexture2DArray desc) const;
+	RWTextureView3D CreateUav(Texture3D& rwTexture, gxapi::eFormat format, gxapi::UavTexture3D desc) const;
 	ConstBufferView CreateCbv(VolatileConstBuffer& buffer, size_t offset, size_t size, VolatileViewHeap& viewHeap) const;
 
 
