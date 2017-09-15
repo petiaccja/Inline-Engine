@@ -92,7 +92,7 @@ Texture2D MemoryManager::CreateTexture2D(eResourceHeapType heap, uint64_t width,
 
 
 Texture3D MemoryManager::CreateTexture3D(eResourceHeapType heap, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format, gxapi::eResourceFlags flags) {
-	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::Texture3D(width, height, depth, format));
+	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::Texture3D(width, height, depth, format, flags));
 
 	Texture3D result(std::move(desc));
 	return result;
