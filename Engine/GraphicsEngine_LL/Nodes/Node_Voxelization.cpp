@@ -317,7 +317,7 @@ void Voxelization::InitRenderTarget(SetupContext& context) {
 		auto formatVoxel = eFormat::R16G16B16A16_FLOAT;
 
 		gxapi::UavTexture3D uavDesc;
-		uavDesc.depthSize = 1;
+		uavDesc.depthSize = voxelDimension;
 		uavDesc.firstDepthLayer = 0;
 		uavDesc.mipLevel = 0;
 
