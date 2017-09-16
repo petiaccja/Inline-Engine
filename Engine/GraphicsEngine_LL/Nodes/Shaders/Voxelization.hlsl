@@ -94,14 +94,9 @@ void PSMain(PS_Input input)
 	float4 albedo = float4(input.texcoord, 0.0, 1.0);
 
 	uint3 target = floor(input.voxelPos);
-	//target.z = clamp(target.z, 0, uint(uniforms.voxelDimension));
 	
 	//TODO write out normal, etc
 	//TODO atomic average to avoid flicker...
 
 	voxelTex[target.xyz] = albedo;
-	//voxelTex[uint3(target.xy, 0)] = albedo;
-	//voxelTex[target.xyz] = float4(1.0, 1.0, 1.0, 1.0);
-	//voxelTex[target.xyz] = float4(float3(target.xyz), 1.0);
-	//voxelTex[uint3(128,128,0)] = float4(target, 1);
 }

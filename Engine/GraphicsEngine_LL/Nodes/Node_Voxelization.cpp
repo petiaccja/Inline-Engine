@@ -13,7 +13,7 @@
 namespace inl::gxeng::nodes {
 
 const int voxelDimension = 256; //units
-const float voxelSize = 0.2f; //meters
+const float voxelSize = 0.1f; //meters
 const Vec3 voxelOrigin = Vec3(voxelDimension * voxelSize * -0.5);
 const Vec3 voxelCenter = Vec3(0.0f);
 
@@ -252,6 +252,11 @@ void Voxelization::Execute(RenderContext & context) {
 		// Get entity parameters
 		Mesh* mesh = entity->GetMesh();
 		auto position = entity->GetPosition();
+
+		if (mesh->GetIndexBuffer().GetIndexCount() == 3600)
+		{
+			continue; //skip quadcopter for visualization purposes (obscures camera...)
+		}
 
 		// Draw mesh
 		if (!CheckMeshFormat(*mesh)) {
