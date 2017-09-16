@@ -21,8 +21,8 @@ namespace inl::gxeng::nodes {
 class Voxelization :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<const EntityCollection<MeshEntity>*, const BasicCamera*>,
-	virtual public OutputPortConfig<Texture3D>
+	virtual public InputPortConfig<const EntityCollection<MeshEntity>*, const BasicCamera*, Texture2D, Texture2D>,
+	virtual public OutputPortConfig<Texture3D, Texture2D, Texture2D>
 {
 public:
 	Voxelization();
@@ -38,13 +38,18 @@ public:
 protected:
 	std::optional<Binder> m_binder;
 	BindParameter m_uniformsBindParam;
+	BindParameter m_voxelTexBindParam;
 	ShaderProgram m_shader;
+	ShaderProgram m_visualizerShader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
+	std::unique_ptr<gxapi::IPipelineState> m_visualizerPSO;
 
 	bool m_outputTexturesInited = false;
 	RWTextureView3D m_voxelTexUAV;
 	TextureView3D m_voxelTexSRV;
 
+	RenderTargetView2D m_visualizationTexRTV;
+	DepthStencilView2D m_visualizationDSV;
 
 private: // execution context
 	const EntityCollection<MeshEntity>* m_entities;
