@@ -12,14 +12,14 @@ RWTexture3D<float4> voxelTex : register(u0);
 struct GS_Input
 {
 	float4 position	: SV_POSITION;
-	float2 texcoord	: TEXCOORD;
+	float2 texcoord	: TEXCOORD0;
 };
 
 struct PS_Input
 {
 	float4 position	: SV_POSITION;
-	float3 voxelPos	: POSITION3D;
-	float2 texcoord	: TEXCOORD;
+	float3 voxelPos	: TEXCOORD0;
+	float2 texcoord	: TEXCOORD1;
 };
 
 
