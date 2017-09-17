@@ -62,7 +62,7 @@ void GSMain(triangle GS_Input input[3], inout TriangleStream<PS_Input> OutputStr
 	for (uint i = 0; i<3; i++)
 	{
 		//voxel space [-1...1]
-		float3 voxelPos = (input[i].position.xyz - uniforms.voxelCenter) / (uniforms.voxelSize * uniforms.voxelDimension);
+		float3 voxelPos = (input[i].position.xyz - uniforms.voxelCenter) / (uniforms.voxelSize * uniforms.voxelDimension * 0.5);
 
 		//target voxel coords [0...255]
 		float3 insertionPos = (voxelPos * 0.5 + 0.5) * uniforms.voxelDimension;
@@ -93,7 +93,7 @@ void PSMain(PS_Input input)
 	//TODO sample texture here
 	float4 albedo = float4(input.texcoord, 0.0, 1.0);
 
-	uint3 target = floor(input.voxelPos);
+	uint3 target = input.voxelPos;
 	
 	//TODO write out normal, etc
 	//TODO atomic average to avoid flicker...

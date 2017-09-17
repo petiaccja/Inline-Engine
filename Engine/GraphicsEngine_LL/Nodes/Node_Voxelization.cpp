@@ -13,7 +13,7 @@
 namespace inl::gxeng::nodes {
 
 const int voxelDimension = 256; //units
-const float voxelSize = 0.1f; //meters
+const float voxelSize = 0.16f; //meters
 const Vec3 voxelOrigin = Vec3(voxelDimension * voxelSize * -0.5);
 const Vec3 voxelCenter = Vec3(0.0f);
 

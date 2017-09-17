@@ -38,7 +38,7 @@ GS_Input VSMain(uint id : SV_VertexID)
 
 	float4 voxel = voxelTex.Load(pos);
 
-	float3 realPos = ((float3(pos)/float(uniforms.voxelDimension)) * 2.0 - 1.0)*float(uniforms.voxelDimension)*size;
+	float3 realPos = ((float3(pos)/float(uniforms.voxelDimension)) * 2.0 - 1.0)*float(uniforms.voxelDimension)*size*0.5;
 	result.position = float4(realPos, 1);
 
 	result.voxel = voxel;
@@ -57,9 +57,9 @@ void GSMain(point GS_Input input[1], inout TriangleStream<PS_Input> OutputStream
 		return; // skip
 	}
 
-	float4 normalX = float4(uniforms.voxelSize, 0, 0, 0)*2.0;
-	float4 normalY = float4(0, uniforms.voxelSize, 0, 0)*2.0;
-	float4 normalZ = float4(0, 0, uniforms.voxelSize, 0)*2.0;
+	float4 normalX = float4(uniforms.voxelSize, 0, 0, 0);
+	float4 normalY = float4(0, uniforms.voxelSize, 0, 0);
+	float4 normalZ = float4(0, 0, uniforms.voxelSize, 0);
 
 	float4 pos = input[0].position;
 
