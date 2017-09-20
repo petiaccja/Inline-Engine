@@ -21,7 +21,7 @@ namespace inl::gxeng::nodes {
 class Voxelization :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<const EntityCollection<MeshEntity>*, const BasicCamera*, Texture2D, Texture2D>,
+	virtual public InputPortConfig<const EntityCollection<MeshEntity>*, const BasicCamera*, Texture2D, Texture2D, Texture2D, Texture2D>,
 	virtual public OutputPortConfig<Texture3D, Texture2D, Texture2D>
 {
 public:
@@ -39,17 +39,31 @@ protected:
 	std::optional<Binder> m_binder;
 	BindParameter m_uniformsBindParam;
 	BindParameter m_voxelTexBindParam;
+	BindParameter m_voxelLightTexBindParam;
+	BindParameter m_shadowCSMTexBindParam;
+	BindParameter m_shadowCSMExtentsTexBindParam;
 	ShaderProgram m_shader;
 	ShaderProgram m_visualizerShader;
+	ShaderProgram m_lightInjectionCSMShader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 	std::unique_ptr<gxapi::IPipelineState> m_visualizerPSO;
+	std::unique_ptr<gxapi::IPipelineState> m_lightInjectionCSMPSO;
 
 	bool m_outputTexturesInited = false;
 	RWTextureView3D m_voxelTexUAV;
 	TextureView3D m_voxelTexSRV;
+	RWTextureView3D m_voxelLightTexUAV;
+	TextureView3D m_voxelLightTexSRV;
+
+	TextureView2D m_shadowCSMTexSrv;
+	TextureView2D m_shadowCSMExtentsTexSrv;
 
 	RenderTargetView2D m_visualizationTexRTV;
 	DepthStencilView2D m_visualizationDSV;
+
+	VertexBuffer m_fsq;
+	IndexBuffer m_fsqIndices;
+	bool fsqInited;
 
 private: // execution context
 	const EntityCollection<MeshEntity>* m_entities;

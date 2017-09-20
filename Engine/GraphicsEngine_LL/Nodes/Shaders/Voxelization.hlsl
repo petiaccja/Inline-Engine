@@ -1,3 +1,9 @@
+/*
+* Voxelization shader
+* Input: Mesh + model matrix
+* Output: voxels inserted into R32U 3D voxel texture UAV
+*/
+
 struct Uniforms
 {
 	float4x4 model, viewProj;
@@ -7,7 +13,7 @@ struct Uniforms
 
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
-RWTexture3D<float4> voxelTex : register(u0);
+RWTexture3D<uint> voxelTex : register(u0);
 
 struct GS_Input
 {
@@ -22,6 +28,22 @@ struct PS_Input
 	float2 texcoord	: TEXCOORD1;
 };
 
+//encodes rgba8 color [0...255] into uint
+uint encodeColor(float4 color)
+{
+	return uint(color.x) | uint(color.y) << 8 | uint(color.z) << 16 | uint(color.w) << 24;
+}
+
+//decode rgba8 color [0...1] from uint
+float4 decodeColor(uint color)
+{
+	return float4(
+		float(color & 0x000000ff) / 255.0,
+		float((color >> 8) & 0x000000ff) / 255.0,
+		float((color >> 16) & 0x000000ff) / 255.0,
+		float((color >> 24) & 0x000000ff) / 255.0
+		);
+}
 
 GS_Input VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCoord : TEX_COORD)
 {
@@ -88,6 +110,31 @@ void GSMain(triangle GS_Input input[3], inout TriangleStream<PS_Input> OutputStr
 	OutputStream.RestartStrip();
 }
 
+//doesnt work (driver reset)
+void atomicAvg(float4 color, uint3 target)
+{
+	color *= 255.0;
+	uint newVal = encodeColor(color);
+	uint prevStoredVal = 0; uint curStoredVal;
+	// Loop as long as destination value gets changed by other threads
+	[allow_uav_condition]
+	while (true)
+	{
+		InterlockedCompareExchange(voxelTex[target.xyz], prevStoredVal, newVal, curStoredVal);
+		if (curStoredVal == prevStoredVal)
+		{
+			break;
+		}
+
+		prevStoredVal = curStoredVal;
+		float4 rval = decodeColor(curStoredVal);
+		rval.xyz = (rval.xyz* rval.w); // Denormalize
+		float4 curValF = rval + color; // Add new value
+		curValF.xyz /= (curValF.w); // Renormalize
+		newVal = encodeColor(curValF);
+	}
+}
+
 void PSMain(PS_Input input)
 {
 	//TODO sample texture here
@@ -95,8 +142,8 @@ void PSMain(PS_Input input)
 
 	uint3 target = input.voxelPos;
 	
-	//TODO write out normal, etc
-	//TODO atomic average to avoid flicker...
+	//TODO write out texture color, normal, opacity, material?
 
-	voxelTex[target.xyz] = albedo;
+	InterlockedMax(voxelTex[target.xyz], encodeColor(albedo*255.0));
+	//atomicAvg(albedo, target);
 }

@@ -521,6 +521,8 @@ void GraphicsEngine::CreatePipeline() {
 	voxelization->GetInput(1)->Link(getCamera->GetOutput(0));
 	voxelization->GetInput(2)->Link(forwardRender->GetOutput(0)); //only for visualization
 	voxelization->GetInput(3)->Link(depthPrePass->GetOutput(0));
+	voxelization->GetInput(4)->Link(csm->GetOutput(0));
+	voxelization->GetInput(5)->Link(depthReductionFinal->GetOutput(3));
 
 	drawSky->GetInput<0>().Link(forwardRender->GetOutput(0));
 	drawSky->GetInput<1>().Link(depthPrePass->GetOutput(0));

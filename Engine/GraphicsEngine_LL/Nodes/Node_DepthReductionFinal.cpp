@@ -69,6 +69,7 @@ void DepthReductionFinal::Setup(SetupContext& context) {
 	this->GetOutput<0>().Set(m_light_mvp_uav.GetResource());
 	this->GetOutput<1>().Set(m_shadow_mx_uav.GetResource());
 	this->GetOutput<2>().Set(m_csm_splits_uav.GetResource());
+	this->GetOutput<3>().Set(m_csm_extents_uav.GetResource());
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -118,6 +119,14 @@ void DepthReductionFinal::Setup(SetupContext& context) {
 		outputBindParamDesc2.relativeChangeFrequency = 0;
 		outputBindParamDesc2.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+		BindParameterDesc outputBindParamDesc3;
+		m_outputBindParam3 = BindParameter(eBindParameterType::UNORDERED, 3);
+		outputBindParamDesc3.parameter = m_outputBindParam3;
+		outputBindParamDesc3.constantSize = 0;
+		outputBindParamDesc3.relativeAccessFrequency = 0;
+		outputBindParamDesc3.relativeChangeFrequency = 0;
+		outputBindParamDesc3.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
 		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
@@ -128,7 +137,7 @@ void DepthReductionFinal::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, reductionBindParamDesc, outputBindParamDesc0, outputBindParamDesc1, outputBindParamDesc2 },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, reductionBindParamDesc, outputBindParamDesc0, outputBindParamDesc1, outputBindParamDesc2, outputBindParamDesc3 },{ samplerDesc });
 	}
 
 	if (!m_CSO) {
@@ -226,6 +235,7 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 	commandList.SetResourceState(m_light_mvp_uav.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	commandList.SetResourceState(m_shadow_mx_uav.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	commandList.SetResourceState(m_csm_splits_uav.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.SetResourceState(m_csm_extents_uav.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	commandList.SetResourceState(m_reductionTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 	commandList.SetPipelineState(m_CSO.get());
@@ -234,11 +244,13 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 	commandList.BindCompute(m_outputBindParam0, m_light_mvp_uav);
 	commandList.BindCompute(m_outputBindParam1, m_shadow_mx_uav);
 	commandList.BindCompute(m_outputBindParam2, m_csm_splits_uav);
+	commandList.BindCompute(m_outputBindParam3, m_csm_extents_uav);
 	commandList.BindCompute(m_uniformsBindParam, cbv);
 	commandList.Dispatch(1, 1, 1);
 	commandList.UAVBarrier(m_light_mvp_uav.GetResource());
 	commandList.UAVBarrier(m_shadow_mx_uav.GetResource());
 	commandList.UAVBarrier(m_csm_splits_uav.GetResource());
+	commandList.UAVBarrier(m_csm_extents_uav.GetResource());
 }
 
 
@@ -251,6 +263,7 @@ void DepthReductionFinal::InitRenderTarget(SetupContext& context) {
 		auto formatLightMVP = eFormat::R32G32B32A32_FLOAT;
 		auto formatShadowMX = eFormat::R32G32B32A32_FLOAT;
 		auto formatCSMSplits = eFormat::R32G32_FLOAT;
+		auto formatCSMExtents = eFormat::R32G32B32A32_FLOAT;
 
 		gxapi::UavTexture2DArray uavDesc;
 		uavDesc.activeArraySize = 1;
@@ -271,7 +284,6 @@ void DepthReductionFinal::InitRenderTarget(SetupContext& context) {
 		light_mvp_tex._GetResourcePtr()->SetName("Depth reduction final light MVP tex");
 		m_light_mvp_uav = context.CreateUav(light_mvp_tex, formatLightMVP, uavDesc);
 		m_light_mvp_uav.GetResource()._GetResourcePtr()->SetName("Depth reduction final light MVP UAV");
-		
 
 		Texture2D shadow_mx_tex = context.CreateRWTexture2D(4 * 4, 1, formatShadowMX, 1);
 		shadow_mx_tex._GetResourcePtr()->SetName("Depth reduction final shadow MX tex");
@@ -282,6 +294,11 @@ void DepthReductionFinal::InitRenderTarget(SetupContext& context) {
 		csm_splits_tex._GetResourcePtr()->SetName("Depth reduction final csm splits tex");
 		m_csm_splits_uav = context.CreateUav(csm_splits_tex, formatCSMSplits, uavDesc);
 		m_csm_splits_uav.GetResource()._GetResourcePtr()->SetName("Depth reduction final csm splits UAV");
+
+		Texture2D csm_extents_tex = context.CreateRWTexture2D(3*4, 1, formatCSMExtents, 1);
+		csm_extents_tex._GetResourcePtr()->SetName("Depth reduction final csm extents tex");
+		m_csm_extents_uav = context.CreateUav(csm_extents_tex, formatCSMExtents, uavDesc);
+		m_csm_extents_uav.GetResource()._GetResourcePtr()->SetName("Depth reduction final csm extents UAV");
 	}
 }
 

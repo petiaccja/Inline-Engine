@@ -220,6 +220,11 @@ void CSM::Execute(RenderContext & context) {
 			Mesh* mesh = entity->GetMesh();
 			auto position = entity->GetPosition();
 
+			if (mesh->GetIndexBuffer().GetIndexCount() == 3600)
+			{
+				continue; //skip quadcopter for visualization purposes (obscures camera...)
+			}
+
 			// Draw mesh
 			if (!CheckMeshFormat(*mesh)) {
 				assert(false);

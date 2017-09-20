@@ -64,6 +64,8 @@ Voxelization::Voxelization() {
 	this->GetInput<0>().Set({});
 	this->GetInput<1>().Set({});
 	this->GetInput<2>().Set({});
+	this->GetInput<3>().Set({});
+	this->GetInput<4>().Set({});
 }
 
 
@@ -76,10 +78,12 @@ void Voxelization::Reset() {
 	m_voxelTexSRV = TextureView3D();
 	m_visualizationDSV = DepthStencilView2D();
 	m_visualizationTexRTV = RenderTargetView2D();
+	m_shadowCSMTexSrv = TextureView2D();
 	GetInput(0)->Clear();
 	GetInput(1)->Clear();
 	GetInput(2)->Clear();
 	GetInput(3)->Clear();
+	GetInput(4)->Clear();
 }
 
 
@@ -105,6 +109,24 @@ void Voxelization::Setup(SetupContext & context) {
 	m_visualizationDSV = context.CreateDsv(depthStencil, FormatAnyToDepthStencil(depthStencil.GetFormat()), dsvDesc);
 	m_visualizationDSV.GetResource()._GetResourcePtr()->SetName("Voxelization Visualization depth tex view");
 
+	gxapi::SrvTexture2DArray srvDesc;
+	srvDesc.activeArraySize = 4;
+	srvDesc.firstArrayElement = 0;
+	srvDesc.mipLevelClamping = 0;
+	srvDesc.mostDetailedMip = 0;
+	srvDesc.numMipLevels = 1;
+	srvDesc.planeIndex = 0;
+
+	Texture2D shadowCSMTex = this->GetInput<4>().Get();
+	m_shadowCSMTexSrv = context.CreateSrv(shadowCSMTex, FormatDepthToColor(shadowCSMTex.GetFormat()), srvDesc);
+	m_shadowCSMTexSrv.GetResource()._GetResourcePtr()->SetName("Shadow CSM tex SRV");
+
+	srvDesc.activeArraySize = 1;
+
+	Texture2D shadowCSMExtentsTex = this->GetInput<5>().Get();
+	m_shadowCSMExtentsTexSrv = context.CreateSrv(shadowCSMExtentsTex, FormatDepthToColor(shadowCSMExtentsTex.GetFormat()), srvDesc);
+	m_shadowCSMExtentsTexSrv.GetResource()._GetResourcePtr()->SetName("Shadow CSM extents tex SRV");
+
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
 		m_uniformsBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
@@ -129,9 +151,33 @@ void Voxelization::Setup(SetupContext & context) {
 		voxelTexBindParamDesc.relativeChangeFrequency = 0;
 		voxelTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+		BindParameterDesc voxelLightTexBindParamDesc;
+		m_voxelLightTexBindParam = BindParameter(eBindParameterType::UNORDERED, 1);
+		voxelLightTexBindParamDesc.parameter = m_voxelLightTexBindParam;
+		voxelLightTexBindParamDesc.constantSize = 0;
+		voxelLightTexBindParamDesc.relativeAccessFrequency = 0;
+		voxelLightTexBindParamDesc.relativeChangeFrequency = 0;
+		voxelLightTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc shadowCSMTexBindParamDesc;
+		m_shadowCSMTexBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
+		shadowCSMTexBindParamDesc.parameter = m_shadowCSMTexBindParam;
+		shadowCSMTexBindParamDesc.constantSize = 0;
+		shadowCSMTexBindParamDesc.relativeAccessFrequency = 0;
+		shadowCSMTexBindParamDesc.relativeChangeFrequency = 0;
+		shadowCSMTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc shadowCSMExtentsTexBindParamDesc;
+		m_shadowCSMExtentsTexBindParam = BindParameter(eBindParameterType::TEXTURE, 1);
+		shadowCSMExtentsTexBindParamDesc.parameter = m_shadowCSMExtentsTexBindParam;
+		shadowCSMExtentsTexBindParamDesc.constantSize = 0;
+		shadowCSMExtentsTexBindParamDesc.relativeAccessFrequency = 0;
+		shadowCSMExtentsTexBindParamDesc.relativeChangeFrequency = 0;
+		shadowCSMExtentsTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
-		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
+		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
 		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
 		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
 		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
@@ -139,7 +185,7 @@ void Voxelization::Setup(SetupContext & context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, voxelTexBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, voxelTexBindParamDesc, shadowCSMTexBindParamDesc, voxelLightTexBindParamDesc, shadowCSMExtentsTexBindParamDesc },{ samplerDesc });
 	}
 
 	if (!m_shader.vs || !m_shader.gs || !m_shader.ps) {
@@ -151,18 +197,38 @@ void Voxelization::Setup(SetupContext & context) {
 		m_shader = context.CreateShader("Voxelization", shaderParts, "");
 
 		m_visualizerShader = context.CreateShader("VoxelVisualizer", shaderParts, "");
+
+		shaderParts.gs = false;
+		m_lightInjectionCSMShader = context.CreateShader("VoxelLightInjectionCSM", shaderParts, "");
+	}
+
+	if (!m_fsq.HasObject()) {
+		std::vector<float> vertices = {
+			-1, -1, 0,  0, +1,
+			+1, -1, 0, +1, +1,
+			+1, +1, 0, +1,  0,
+			-1, +1, 0,  0,  0
+		};
+		std::vector<uint16_t> indices = {
+			0, 1, 2,
+			0, 2, 3
+		};
+		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
+		m_fsq._GetResourcePtr()->SetName("Voxelization full screen quad vertex buffer");
+		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
+		m_fsqIndices._GetResourcePtr()->SetName("Voxelization full screen quad index buffer");
 	}
 
 	if (m_PSO == nullptr) {
 		InitRenderTarget(context);
 
-		std::vector<gxapi::InputElementDesc> inputElementDesc = {
-			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
-			gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
-			gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
-		};
-
 		{
+			std::vector<gxapi::InputElementDesc> inputElementDesc = {
+				gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
+				gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
+				gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
+			};
+
 			gxapi::GraphicsPipelineStateDesc psoDesc;
 			psoDesc.inputLayout.elements = inputElementDesc.data();
 			psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
@@ -183,7 +249,31 @@ void Voxelization::Setup(SetupContext & context) {
 			m_PSO.reset(context.CreatePSO(psoDesc));
 		}
 
-		{
+		{ //light injection from a cascaded shadow map
+			std::vector<gxapi::InputElementDesc> inputElementDesc2 = {
+				gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
+				gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12)
+			};
+
+			gxapi::GraphicsPipelineStateDesc psoDesc;
+			psoDesc.inputLayout.elements = inputElementDesc2.data();
+			psoDesc.inputLayout.numElements = (unsigned)inputElementDesc2.size();
+			psoDesc.rootSignature = m_binder->GetRootSignature();
+			psoDesc.vs = m_lightInjectionCSMShader.vs;
+			psoDesc.ps = m_lightInjectionCSMShader.ps;
+			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
+			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+			psoDesc.depthStencilState.enableDepthStencilWrite = false;
+			psoDesc.depthStencilState.enableDepthTest = false;
+			psoDesc.depthStencilState.enableStencilTest = false;
+			psoDesc.blending.singleTarget.mask = {};
+
+			psoDesc.numRenderTargets = 0;
+
+			m_lightInjectionCSMPSO.reset(context.CreatePSO(psoDesc));
+		}
+
+		{ //visualizer shader
 			gxapi::GraphicsPipelineStateDesc psoDesc;
 			psoDesc.inputLayout.elements = {};
 			psoDesc.inputLayout.numElements = 0;
@@ -278,10 +368,50 @@ void Voxelization::Execute(RenderContext & context) {
 		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
 		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
 		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
-		commandList.UAVBarrier(m_voxelTexUAV.GetResource()); //TODO is this needed?
+		commandList.UAVBarrier(m_voxelTexUAV.GetResource()); 
 	}
 
-	//TODO mipmap generation
+	{ //light injection
+		gxapi::Rectangle rect{ 0, (int)m_shadowCSMTexSrv.GetResource().GetHeight(), 0, (int)m_shadowCSMTexSrv.GetResource().GetWidth() };
+		gxapi::Viewport viewport;
+		viewport.width = (float)rect.right;
+		viewport.height = (float)rect.bottom;
+		viewport.topLeftX = 0;
+		viewport.topLeftY = 0;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		commandList.SetScissorRects(1, &rect);
+		commandList.SetViewports(1, &viewport);
+
+		commandList.SetResourceState(m_shadowCSMTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_shadowCSMExtentsTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+
+		commandList.SetPipelineState(m_lightInjectionCSMPSO.get());
+		commandList.SetGraphicsBinder(&m_binder.value());
+		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
+
+		commandList.SetResourceState(m_voxelLightTexUAV.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+		commandList.BindGraphics(m_voxelLightTexBindParam, m_voxelLightTexUAV);
+		commandList.BindGraphics(m_voxelTexBindParam, m_voxelTexUAV);
+		commandList.BindGraphics(m_shadowCSMTexBindParam, m_shadowCSMTexSrv);
+		commandList.BindGraphics(m_shadowCSMExtentsTexBindParam, m_shadowCSMExtentsTexSrv);
+		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
+
+		gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
+		unsigned vbSize = (unsigned)m_fsq.GetSize();
+		unsigned vbStride = 5 * sizeof(float);
+
+		commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+		commandList.SetResourceState(m_fsqIndices, gxapi::eResourceState::INDEX_BUFFER);
+		commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
+		commandList.SetIndexBuffer(&m_fsqIndices, false);
+		commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
+		commandList.UAVBarrier(m_voxelLightTexUAV.GetResource()); 
+	}
+
+	{ //TODO light voxel mipmap generation
+		
+	}
 
 	{ //visualization
 		gxapi::Rectangle rect{ 0, (int)m_visualizationTexRTV.GetResource().GetHeight(), 0, (int)m_visualizationTexRTV.GetResource().GetWidth() };
@@ -305,7 +435,8 @@ void Voxelization::Execute(RenderContext & context) {
 		commandList.SetGraphicsBinder(&m_binder.value());
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::POINTLIST);
 
-		commandList.BindGraphics(m_voxelTexBindParam, m_voxelTexUAV);
+		//commandList.BindGraphics(m_voxelTexBindParam, m_voxelTexUAV);
+		commandList.BindGraphics(m_voxelTexBindParam, m_voxelLightTexUAV);
 
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 		commandList.DrawInstanced(voxelDimension * voxelDimension * voxelDimension); //draw points, expand in geometry shader
@@ -319,7 +450,8 @@ void Voxelization::InitRenderTarget(SetupContext& context) {
 		using gxapi::eFormat;
 
 		//auto formatVoxel = eFormat::R8G8B8A8_UNORM;
-		auto formatVoxel = eFormat::R16G16B16A16_FLOAT;
+		//auto formatVoxel = eFormat::R16G16B16A16_FLOAT;
+		auto formatVoxel = eFormat::R32_UINT;
 
 		gxapi::UavTexture3D uavDesc;
 		uavDesc.depthSize = voxelDimension;
@@ -338,6 +470,13 @@ void Voxelization::InitRenderTarget(SetupContext& context) {
 		m_voxelTexUAV.GetResource()._GetResourcePtr()->SetName("Voxelization voxel UAV");
 		m_voxelTexSRV = context.CreateSrv(voxel_tex, formatVoxel, srvDesc);
 		m_voxelTexSRV.GetResource()._GetResourcePtr()->SetName("Voxelization voxel SRV");
+
+		Texture3D voxelLightTex = context.CreateTexture3D(voxelDimension, voxelDimension, voxelDimension, formatVoxel, { 1, 0, 0, 1 });
+		voxelLightTex._GetResourcePtr()->SetName("Voxelization voxel tex");
+		m_voxelLightTexUAV = context.CreateUav(voxelLightTex, formatVoxel, uavDesc);
+		m_voxelLightTexUAV.GetResource()._GetResourcePtr()->SetName("Voxelization light voxel UAV");
+		m_voxelLightTexSRV = context.CreateSrv(voxelLightTex, formatVoxel, srvDesc);
+		m_voxelLightTexSRV.GetResource()._GetResourcePtr()->SetName("Voxelization light voxel SRV");
 	}
 }
 

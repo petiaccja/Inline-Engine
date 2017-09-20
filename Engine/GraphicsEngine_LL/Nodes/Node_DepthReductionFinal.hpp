@@ -19,7 +19,7 @@ class DepthReductionFinal :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
 	virtual public InputPortConfig<Texture2D, const BasicCamera*, const EntityCollection<DirectionalLight>*>,
-	virtual public OutputPortConfig<Texture2D, Texture2D, Texture2D>
+	virtual public OutputPortConfig<Texture2D, Texture2D, Texture2D, Texture2D>
 {
 public:
 	DepthReductionFinal();
@@ -48,6 +48,7 @@ protected:
 	BindParameter m_outputBindParam0;
 	BindParameter m_outputBindParam1;
 	BindParameter m_outputBindParam2;
+	BindParameter m_outputBindParam3;
 	BindParameter m_uniformsBindParam;
 	ShaderProgram m_shader;
 	std::unique_ptr<gxapi::IPipelineState> m_CSO;
@@ -57,6 +58,7 @@ protected: // outputs
 	RWTextureView2D m_light_mvp_uav;
 	RWTextureView2D m_shadow_mx_uav;
 	RWTextureView2D m_csm_splits_uav;
+	RWTextureView2D m_csm_extents_uav;
 
 protected: // render context
 	TextureView2D m_reductionTexSrv;
