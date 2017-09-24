@@ -74,7 +74,7 @@ void GSMain(point GS_Input input[1], inout TriangleStream<PS_Input> OutputStream
 	PS_Input output = (PS_Input)0;
 
 	//if empty voxel
-	if (input[0].voxel.w < 0.1)
+	if (input[0].voxel.w < 0.0001)
 	{
 		return; // skip
 	}

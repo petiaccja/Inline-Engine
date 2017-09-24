@@ -103,6 +103,20 @@ void PSMain(PS_Input input)
 		//target voxel coords [0...255]
 		uint3 insertionPos = (voxelPos * 0.5 + 0.5) * uniforms.voxelDimension;
 
-		voxelLightTex[insertionPos] = encodeColor(float4(wsPos*0.05, 1.0)*255.0);
+		float4 albedo = decodeColor(voxelTex[insertionPos]);
+
+		if (albedo.w < 0.001)
+		{
+			continue;
+		}
+
+		//directional light
+		//TODO sample this!
+		float3 normal = float3(0, 0, 1); //up
+		float3 lightDir = camViewDir;
+		float nDotl = max(dot(normal, -lightDir), 0.0);
+
+		InterlockedMax(voxelLightTex[insertionPos], encodeColor(float4(albedo.xyz * nDotl, 1.0)*255.0));
+		//InterlockedMax(voxelLightTex[insertionPos], encodeColor(float4(wsPos * 0.05, 1.0)*255.0));
 	}
 }

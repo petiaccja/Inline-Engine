@@ -7,6 +7,7 @@
 #include "../Mesh.hpp"
 #include "../ConstBufferHeap.hpp"
 #include "../PipelineTypes.hpp"
+#include "../Material.hpp"
 #include "GraphicsApi_LL/IPipelineState.hpp"
 #include "GraphicsApi_LL/IGxapiManager.hpp"
 
@@ -38,6 +39,7 @@ public:
 protected:
 	std::optional<Binder> m_binder;
 	BindParameter m_uniformsBindParam;
+	BindParameter m_albedoTexBindParam;
 	BindParameter m_voxelTexBindParam;
 	BindParameter m_voxelLightTexBindParam;
 	BindParameter m_shadowCSMTexBindParam;

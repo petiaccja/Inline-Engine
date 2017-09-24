@@ -14,6 +14,8 @@ struct Uniforms
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
 RWTexture3D<uint> voxelTex : register(u0);
+Texture2D<float4> albedoTex : register(t2);
+SamplerState samp0 : register(s0);
 
 struct GS_Input
 {
@@ -137,12 +139,13 @@ void atomicAvg(float4 color, uint3 target)
 
 void PSMain(PS_Input input)
 {
-	//TODO sample texture here
-	float4 albedo = float4(input.texcoord, 0.0, 1.0);
+	//float4 albedo = float4(input.texcoord, 0.0, 1.0);
+	float4 albedo = albedoTex.Sample(samp0, input.texcoord);
+	albedo.w = 1;
 
 	uint3 target = input.voxelPos;
 	
-	//TODO write out texture color, normal, opacity, material?
+	//TODO write out texture color, opacity, normal, roughness metalness
 
 	InterlockedMax(voxelTex[target.xyz], encodeColor(albedo*255.0));
 	//atomicAvg(albedo, target);
