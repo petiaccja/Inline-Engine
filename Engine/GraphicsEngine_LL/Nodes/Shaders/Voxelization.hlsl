@@ -112,16 +112,42 @@ void GSMain(triangle GS_Input input[3], inout TriangleStream<PS_Input> OutputStr
 	OutputStream.RestartStrip();
 }
 
-//doesnt work (driver reset)
+void atomicAdd(float val, uint3 target)
+{
+	uint newVal = asuint(val);
+	uint prevVal = 0; uint curVal;
+	// Loop as long as destination value gets changed by other threads
+	[allow_uav_condition]
+	while (true)
+	{
+		InterlockedCompareExchange(voxelTex[target.xyz], prevVal, newVal, curVal);
+		if (curVal == prevVal)
+		{
+			break;
+		}
+
+		prevVal = curVal;
+		newVal = asuint(val + asfloat(curVal));
+	}
+}
+
 void atomicAvg(float4 color, uint3 target)
 {
-	color *= 255.0;
+	//w channel is used for atomic moving average
+	//so keep it 1
+	color.w = 1;
+
+	color.rgb *= 255.0;
 	uint newVal = encodeColor(color);
 	uint prevStoredVal = 0; uint curStoredVal;
 	// Loop as long as destination value gets changed by other threads
 	[allow_uav_condition]
 	while (true)
 	{
+		//Atomically compares the destination with the comparison value. 
+		//If they are identical, the destination is overwritten with the input value. 
+		//The original value is set to the destination's original value.
+		//                          dest                  compare        input      original
 		InterlockedCompareExchange(voxelTex[target.xyz], prevStoredVal, newVal, curStoredVal);
 		if (curStoredVal == prevStoredVal)
 		{
@@ -145,8 +171,10 @@ void PSMain(PS_Input input)
 
 	uint3 target = input.voxelPos;
 	
+	//TODO flicker for small objects
+
 	//TODO write out texture color, opacity, normal, roughness metalness
 
-	InterlockedMax(voxelTex[target.xyz], encodeColor(albedo*255.0));
-	//atomicAvg(albedo, target);
+	//InterlockedMax(voxelTex[target.xyz], encodeColor(albedo*255.0));
+	atomicAvg(albedo, target);
 }
