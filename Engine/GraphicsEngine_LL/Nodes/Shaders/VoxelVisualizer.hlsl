@@ -13,7 +13,8 @@ struct Uniforms
 
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
-RWTexture3D<uint> voxelTex : register(u0);
+//RWTexture3D<uint> voxelTex : register(u0);
+RWTexture3D<float4> voxelTex : register(u0);
 
 struct GS_Input
 {
@@ -58,7 +59,8 @@ GS_Input VSMain(uint id : SV_VertexID)
 	pos.y = id / (dim * dim);
 	pos.z = (id / dim) % dim;
 
-	float4 voxel = decodeColor(voxelTex.Load(pos));
+	//float4 voxel = decodeColor(voxelTex.Load(pos));
+	float4 voxel = voxelTex.Load(pos);
 
 	float3 realPos = ((float3(pos)/float(uniforms.voxelDimension)) * 2.0 - 1.0)*float(uniforms.voxelDimension)*size*0.5;
 	result.position = float4(realPos, 1);

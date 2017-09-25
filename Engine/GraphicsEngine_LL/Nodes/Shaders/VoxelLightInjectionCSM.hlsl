@@ -12,7 +12,8 @@ struct Uniforms
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
-RWTexture3D<uint> voxelTex : register(u0);
+//RWTexture3D<uint> voxelTex : register(u0);
+RWTexture3D<float4> voxelTex : register(u0);
 RWTexture3D<uint> voxelLightTex : register(u1);
 Texture2DArray<float> shadowCSMTex : register(t0);
 Texture2D<float4> shadowCSMExtentsTex : register(t1);
@@ -103,7 +104,8 @@ void PSMain(PS_Input input)
 		//target voxel coords [0...255]
 		uint3 insertionPos = (voxelPos * 0.5 + 0.5) * uniforms.voxelDimension;
 
-		float4 albedo = decodeColor(voxelTex[insertionPos]);
+		//float4 albedo = decodeColor(voxelTex[insertionPos]);
+		float4 albedo = voxelTex[insertionPos];
 
 		if (albedo.w < 0.001)
 		{

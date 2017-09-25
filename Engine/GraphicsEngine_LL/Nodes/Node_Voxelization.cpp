@@ -351,52 +351,59 @@ void Voxelization::Execute(RenderContext & context) {
 	commandList.BindGraphics(m_shadowCSMTexBindParam, m_shadowCSMTexSrv);
 	commandList.BindGraphics(m_shadowCSMExtentsTexBindParam, m_shadowCSMExtentsTexSrv);
 
-	// scene voxelization
-	for (const MeshEntity* entity : *m_entities) {
-		// Get entity parameters
-		Mesh* mesh = entity->GetMesh();
-		Material* material = entity->GetMaterial();
-		auto position = entity->GetPosition();
+	static bool sceneVoxelized = false;
 
-		if (mesh->GetIndexBuffer().GetIndexCount() == 3600)
-		{
-			continue; //skip quadcopter for visualization purposes (obscures camera...)
-		}
+	if (!sceneVoxelized)
+	{
+		// scene voxelization
+		for (const MeshEntity* entity : *m_entities) {
+			// Get entity parameters
+			Mesh* mesh = entity->GetMesh();
+			Material* material = entity->GetMaterial();
+			auto position = entity->GetPosition();
 
-		// Draw mesh
-		if (!CheckMeshFormat(*mesh)) {
-			assert(false);
-			continue;
-		}
-
-		ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
-
-		uniformsCBData.model = entity->GetTransform();
-
-		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
-
-		for (size_t paramIdx = 0; paramIdx < material->GetParameterCount(); ++paramIdx) {
-			const Material::Parameter& param = (*material)[paramIdx];
-			if(param.GetType() == eMaterialShaderParamType::BITMAP_COLOR_2D || 
-				param.GetType() == eMaterialShaderParamType::BITMAP_VALUE_2D)
+			if (mesh->GetIndexBuffer().GetIndexCount() == 3600)
 			{
-				commandList.SetResourceState(((Image*)param)->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-				commandList.BindGraphics(m_albedoTexBindParam, *((Image*)param)->GetSrv());
-				break;
+				continue; //skip quadcopter for visualization purposes (obscures camera...)
 			}
+
+			// Draw mesh
+			if (!CheckMeshFormat(*mesh)) {
+				assert(false);
+				continue;
+			}
+
+			ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
+
+			uniformsCBData.model = entity->GetTransform();
+
+			commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
+
+			for (size_t paramIdx = 0; paramIdx < material->GetParameterCount(); ++paramIdx) {
+				const Material::Parameter& param = (*material)[paramIdx];
+				if (param.GetType() == eMaterialShaderParamType::BITMAP_COLOR_2D ||
+					param.GetType() == eMaterialShaderParamType::BITMAP_VALUE_2D)
+				{
+					commandList.SetResourceState(((Image*)param)->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+					commandList.BindGraphics(m_albedoTexBindParam, *((Image*)param)->GetSrv());
+					break;
+				}
+			}
+
+			for (auto& vb : vertexBuffers) {
+				commandList.SetResourceState(*vb, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+			}
+
+			commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::eResourceState::INDEX_BUFFER);
+			commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
+			commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
+			commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
 		}
 
-		for (auto& vb : vertexBuffers) {
-			commandList.SetResourceState(*vb, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-		}
-
-		commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::eResourceState::INDEX_BUFFER);
-		commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
-		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
-		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
+		commandList.UAVBarrier(m_voxelTexUAV.GetResource());
+		
+		sceneVoxelized = true;
 	}
-
-	commandList.UAVBarrier(m_voxelTexUAV.GetResource());
 
 	{ //light injection
 		gxapi::Rectangle rect{ 0, (int)m_shadowCSMTexSrv.GetResource().GetHeight(), 0, (int)m_shadowCSMTexSrv.GetResource().GetWidth() };
@@ -472,9 +479,9 @@ void Voxelization::InitRenderTarget(SetupContext& context) {
 
 		using gxapi::eFormat;
 
-		//auto formatVoxel = eFormat::R8G8B8A8_UNORM;
+		auto formatVoxel = eFormat::R8G8B8A8_UNORM;
 		//auto formatVoxel = eFormat::R16G16B16A16_FLOAT;
-		auto formatVoxel = eFormat::R32_UINT;
+		//auto formatVoxel = eFormat::R32_UINT;
 
 		gxapi::UavTexture3D uavDesc;
 		uavDesc.depthSize = voxelDimension;
