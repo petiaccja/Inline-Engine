@@ -43,6 +43,7 @@
 #include "Nodes/Node_DOFNeighborMax.hpp"
 #include "Nodes/Node_DOFMain.hpp"
 #include "Nodes/Node_Voxelization.hpp"
+#include "Nodes/Node_VolumetricLighting.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -456,6 +457,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::DOFNeighborMax> dofNeighborMax(new nodes::DOFNeighborMax());
 	std::shared_ptr<nodes::DOFMain> dofMain(new nodes::DOFMain());
 	std::shared_ptr<nodes::Voxelization> voxelization(new nodes::Voxelization());
+	std::shared_ptr<nodes::VolumetricLighting> volumetricLighting(new nodes::VolumetricLighting());
 	TextureUsage usage;
 
 
@@ -516,6 +518,10 @@ void GraphicsEngine::CreatePipeline() {
 	forwardRender->GetInput(7)->Link(depthReductionFinal->GetOutput(2));
 	forwardRender->GetInput(8)->Link(depthReductionFinal->GetOutput(0));
 	forwardRender->GetInput(9)->Link(lightCulling->GetOutput(0));
+
+	volumetricLighting->GetInput(0)->Link(depthPrePass->GetOutput(0));
+	volumetricLighting->GetInput(1)->Link(forwardRender->GetOutput(0));
+	volumetricLighting->GetInput(2)->Link(getCamera->GetOutput(0));
 
 	voxelization->GetInput(0)->Link(getWorldScene->GetOutput(0));
 	voxelization->GetInput(1)->Link(getCamera->GetOutput(0));
@@ -679,7 +685,8 @@ void GraphicsEngine::CreatePipeline() {
 	alphaBlend->GetInput<0>().Link(guiRender->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(debugDraw->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(smaa->GetOutput(0));
-	alphaBlend->GetInput<1>().Link(voxelization->GetOutput(1));
+	//alphaBlend->GetInput<1>().Link(voxelization->GetOutput(1));
+	alphaBlend->GetInput<1>().Link(volumetricLighting->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(dofMain->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
 	//alphaBlend->GetInput<3>().Set(Mat44::FromScaleVector(Vec3(.5f, 1.f, 1.f)));
@@ -747,6 +754,7 @@ void GraphicsEngine::CreatePipeline() {
 		lensFlareStarEnv,
 		dofMain,
 		voxelization,
+		volumetricLighting,
 
 
 		getGuiScene,
