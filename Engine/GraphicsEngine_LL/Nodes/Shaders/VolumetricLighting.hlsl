@@ -128,7 +128,7 @@ void CSMain(
 
 		float3 vsEvalPos = mul(float4(evalPos, 1.0), uniforms.v).xyz;
 
-		if(t > maxDist)
+		if(t > maxDist || transmittance < 0.0001)
 		{
 			break;
 		}
