@@ -443,7 +443,7 @@ void Voxelization::Execute(RenderContext & context) {
 		
 	}
 
-	{ //visualization
+	/*{ //visualization
 		gxapi::Rectangle rect{ 0, (int)m_visualizationTexRTV.GetResource().GetHeight(), 0, (int)m_visualizationTexRTV.GetResource().GetWidth() };
 		gxapi::Viewport viewport;
 		viewport.width = (float)rect.right;
@@ -465,12 +465,12 @@ void Voxelization::Execute(RenderContext & context) {
 		commandList.SetGraphicsBinder(&m_binder.value());
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::POINTLIST);
 
-		//commandList.BindGraphics(m_voxelTexBindParam, m_voxelTexUAV);
-		commandList.BindGraphics(m_voxelTexBindParam, m_voxelLightTexUAV);
+		commandList.BindGraphics(m_voxelTexBindParam, m_voxelTexUAV);
+		//commandList.BindGraphics(m_voxelTexBindParam, m_voxelLightTexUAV);
 
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 		commandList.DrawInstanced(voxelDimension * voxelDimension * voxelDimension); //draw points, expand in geometry shader
-	}
+	}*/
 }
 
 void Voxelization::InitRenderTarget(SetupContext& context) {
