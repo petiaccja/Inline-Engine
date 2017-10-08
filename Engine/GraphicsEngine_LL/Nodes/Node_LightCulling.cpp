@@ -173,11 +173,11 @@ void LightCulling::Execute(RenderContext& context) {
 
 	Mat44 invVP = (m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix()).Inverse();
 
-	//near ndc corners
+	//far ndc corners
 	Vec4 ndcCorners[] = 
 	{
-		Vec4(-1.f, -1.f, 0.f, 1.f),
-		Vec4(1.f, 1.f, 0.f, 1.f),
+		Vec4(-1.f, -1.f, 1.f, 1.f),
+		Vec4(1.f, 1.f, 1.f, 1.f),
 	};
 
 	//convert to world space frustum corners

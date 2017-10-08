@@ -16,14 +16,25 @@ struct sdf_data
 	float3 dummy;
 };
 
+struct light_data
+{
+	float4 diffuseLightColor;
+	float4 vs_position;
+	float attenuation_end;
+	float3 dummy;
+};
+
 struct Uniforms
 {
 	sdf_data sd[10];
+	light_data ld[10];
 	float4x4 p;
-	float4 far_plane0, far_plane1;
-	float cam_near, cam_far; 
-	uint num_sdfs, num_workgroups_x, num_workgroups_y;
-	float3 dummy;
+	float4x4 invVP;
+	float cam_near, cam_far, dummy1, dummy2;
+	uint num_sdfs, num_workgroups_x, num_workgroups_y; float dummy;
+	float4 sun_direction;
+	float4 sun_color;
+	float4 cam_pos;
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
