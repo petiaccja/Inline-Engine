@@ -18,7 +18,7 @@ namespace inl::gxeng::nodes {
 class VolumetricLighting :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<Texture2D, Texture2D, Texture2D, const BasicCamera*>,
+	virtual public InputPortConfig<Texture2D, Texture2D, Texture2D, const BasicCamera*, Texture2D, Texture2D, Texture2D>,
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
@@ -41,6 +41,10 @@ protected:
 	BindParameter m_cullRoBindParam;
 	BindParameter m_lightCullBindParam;
 	BindParameter m_uniformsBindParam;
+	BindParameter m_csmTexBindParam;
+	BindParameter m_shadowMxTexBindParam;
+	BindParameter m_csmSplitsTexBindParam;
+	BindParameter m_lightMvpTexBindParam;
 	ShaderProgram m_sdfCullingShader;
 	ShaderProgram m_volumetricLightingShader;
 	std::unique_ptr<gxapi::IPipelineState> m_sdfCullingCSO;
@@ -52,6 +56,9 @@ protected: // outputs
 	TextureView2D m_sdfCullDataSRV;
 	TextureView2D m_lightCullDataSRV;
 	TextureView2D m_colorTexSRV;
+	TextureView2D m_shadowMXTexSRV;
+	TextureView2D m_csmSplitsTexSRV;
+	TextureView2D m_csmTexSRV;
 	RWTextureView2D m_dstTexUAV;
 
 protected: // render context

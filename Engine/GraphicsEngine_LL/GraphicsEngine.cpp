@@ -523,6 +523,9 @@ void GraphicsEngine::CreatePipeline() {
 	volumetricLighting->GetInput(1)->Link(forwardRender->GetOutput(0));
 	volumetricLighting->GetInput(2)->Link(lightCulling->GetOutput(0));
 	volumetricLighting->GetInput(3)->Link(getCamera->GetOutput(0));
+	volumetricLighting->GetInput(4)->Link(csm->GetOutput(0));
+	volumetricLighting->GetInput(5)->Link(depthReductionFinal->GetOutput(1));
+	volumetricLighting->GetInput(6)->Link(depthReductionFinal->GetOutput(2));
 
 	voxelization->GetInput(0)->Link(getWorldScene->GetOutput(0));
 	voxelization->GetInput(1)->Link(getCamera->GetOutput(0));

@@ -28,7 +28,7 @@ struct Uniforms
 {
 	sdf_data sd[10];
 	light_data ld[10];
-	float4x4 p;
+	float4x4 v, p;
 	float4x4 invVP;
 	float cam_near, cam_far, dummy1, dummy2;
 	uint num_sdfs, num_workgroups_x, num_workgroups_y; float dummy;

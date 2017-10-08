@@ -62,7 +62,7 @@ float offset_lookup(float4 loc, float2 offset, float2 scale, float cascade)
 {
 	//return shadowMapTex.SampleCmp(shadowSampler, get_shadow_uv(loc.xy, cascade), loc.z, int2(offset)).x;
 	//return shadowMapTex.Sample(theSampler, get_shadow_uv(loc.xy, cascade), int2(offset)).x;
-	return shadowMapTex.Sample(theSampler, get_shadow_uv(loc.xy, cascade)).x;
+	return shadowMapTex.SampleLevel(theSampler, get_shadow_uv(loc.xy, cascade), 0.0).x;
 }
 
 float shadow_pcf_3x3(float4 shadow_coord, float2 scale, float2 offset, float cascade)

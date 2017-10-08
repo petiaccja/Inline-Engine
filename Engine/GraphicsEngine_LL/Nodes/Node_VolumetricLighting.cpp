@@ -35,7 +35,7 @@ struct Uniforms
 {
 	sdf_data sd[10]; //320
 	light_data ld[10]; //480
-	Mat44_Packed p; //64
+	Mat44_Packed v, p; //64
 	Mat44_Packed invVP; //64
 	float cam_near, cam_far, dummy1, dummy2; //16
 	uint32_t num_sdfs, num_workgroups_x, num_workgroups_y; float dummy; //16
@@ -120,6 +120,22 @@ void VolumetricLighting::Setup(SetupContext& context) {
 
 	m_camera = this->GetInput<3>().Get();
 
+	srvDesc.activeArraySize = 4;
+
+	Texture2D csmTex = this->GetInput<4>().Get();
+	m_csmTexSRV = context.CreateSrv(csmTex, FormatDepthToColor(csmTex.GetFormat()), srvDesc);
+	m_csmTexSRV.GetResource()._GetResourcePtr()->SetName("SDF culling csm tex srv");
+
+	srvDesc.activeArraySize = 1;
+
+	Texture2D shadowMXTex = this->GetInput<5>().Get();
+	m_shadowMXTexSRV = context.CreateSrv(shadowMXTex, shadowMXTex.GetFormat(), srvDesc);
+	m_shadowMXTexSRV.GetResource()._GetResourcePtr()->SetName("SDF culling shadow mx tex srv");
+
+	Texture2D csmSplitsTex = this->GetInput<6>().Get();
+	m_csmSplitsTexSRV = context.CreateSrv(csmSplitsTex, csmSplitsTex.GetFormat(), srvDesc);
+	m_csmSplitsTexSRV.GetResource()._GetResourcePtr()->SetName("SDF culling csm splits tex srv");
+
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
 		m_uniformsBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
@@ -168,6 +184,55 @@ void VolumetricLighting::Setup(SetupContext& context) {
 		lightCullBindParamDesc.relativeChangeFrequency = 0;
 		lightCullBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+		BindParameterDesc csmTexBindParamDesc;
+		m_csmTexBindParam = BindParameter(eBindParameterType::TEXTURE, 500);
+		csmTexBindParamDesc.parameter = m_csmTexBindParam;
+		csmTexBindParamDesc.constantSize = 0;
+		csmTexBindParamDesc.relativeAccessFrequency = 0;
+		csmTexBindParamDesc.relativeChangeFrequency = 0;
+		csmTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc shadowMXTexBindParamDesc;
+		m_shadowMxTexBindParam = BindParameter(eBindParameterType::TEXTURE, 501);
+		shadowMXTexBindParamDesc.parameter = m_shadowMxTexBindParam;
+		shadowMXTexBindParamDesc.constantSize = 0;
+		shadowMXTexBindParamDesc.relativeAccessFrequency = 0;
+		shadowMXTexBindParamDesc.relativeChangeFrequency = 0;
+		shadowMXTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc csmSplitsTexBindParamDesc;
+		m_csmSplitsTexBindParam = BindParameter(eBindParameterType::TEXTURE, 502);
+		csmSplitsTexBindParamDesc.parameter = m_csmSplitsTexBindParam;
+		csmSplitsTexBindParamDesc.constantSize = 0;
+		csmSplitsTexBindParamDesc.relativeAccessFrequency = 0;
+		csmSplitsTexBindParamDesc.relativeChangeFrequency = 0;
+		csmSplitsTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc lightMvpTexBindParamDesc;
+		m_lightMvpTexBindParam = BindParameter(eBindParameterType::TEXTURE, 503);
+		lightMvpTexBindParamDesc.parameter = m_lightMvpTexBindParam;
+		lightMvpTexBindParamDesc.constantSize = 0;
+		lightMvpTexBindParamDesc.relativeAccessFrequency = 0;
+		lightMvpTexBindParamDesc.relativeChangeFrequency = 0;
+		lightMvpTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc shadowSampBindParamDesc;
+		shadowSampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 500);
+		shadowSampBindParamDesc.constantSize = 0;
+		shadowSampBindParamDesc.relativeAccessFrequency = 0;
+		shadowSampBindParamDesc.relativeChangeFrequency = 0;
+		shadowSampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		gxapi::StaticSamplerDesc theSamplerParam;
+		theSamplerParam.shaderRegister = 500;
+		theSamplerParam.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
+		theSamplerParam.addressU = gxapi::eTextureAddressMode::CLAMP;
+		theSamplerParam.addressV = gxapi::eTextureAddressMode::CLAMP;
+		theSamplerParam.addressW = gxapi::eTextureAddressMode::CLAMP;
+		theSamplerParam.mipLevelBias = 0.f;
+		theSamplerParam.registerSpace = 0;
+		theSamplerParam.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
 		BindParameterDesc dstBindParamDesc;
 		m_dstBindParam = BindParameter(eBindParameterType::UNORDERED, 0);
 		dstBindParamDesc.parameter = m_dstBindParam;
@@ -194,7 +259,7 @@ void VolumetricLighting::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, depthTexBindParamDesc, colorBindParamDesc, cullBindParamDesc, dstBindParamDesc, cullRoBindParamDesc, lightCullBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, depthTexBindParamDesc, colorBindParamDesc, cullBindParamDesc, dstBindParamDesc, cullRoBindParamDesc, lightCullBindParamDesc, csmTexBindParamDesc, shadowMXTexBindParamDesc, csmSplitsTexBindParamDesc, lightMvpTexBindParamDesc, shadowSampBindParamDesc },{ samplerDesc, theSamplerParam });
 	}
 
 	if (!m_sdfCullingCSO) {
@@ -236,6 +301,7 @@ void VolumetricLighting::Execute(RenderContext& context) {
 	uniformsCBData.cam_near = m_camera->GetNearPlane();
 	uniformsCBData.cam_far = m_camera->GetFarPlane();
 	uniformsCBData.num_sdfs = 1;
+	uniformsCBData.v = m_camera->GetViewMatrix();
 	uniformsCBData.p = m_camera->GetProjectionMatrix();
 
 	uniformsCBData.cam_pos = Vec4(m_camera->GetPosition(), 1);
@@ -330,9 +396,15 @@ void VolumetricLighting::Execute(RenderContext& context) {
 		commandList.SetResourceState(m_colorTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_sdfCullDataSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_lightCullDataSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_csmTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_shadowMXTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_csmSplitsTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 		commandList.SetPipelineState(m_volumetricLightingCSO.get());
 		commandList.SetComputeBinder(&m_binder.value());
+		commandList.BindCompute(m_csmTexBindParam, m_csmTexSRV);
+		commandList.BindCompute(m_shadowMxTexBindParam, m_shadowMXTexSRV);
+		commandList.BindCompute(m_csmSplitsTexBindParam, m_csmSplitsTexSRV);
 		commandList.BindCompute(m_inputColorBindParam, m_colorTexSRV);
 		commandList.BindCompute(m_cullRoBindParam, m_sdfCullDataSRV);
 		commandList.BindCompute(m_lightCullBindParam, m_lightCullDataSRV);

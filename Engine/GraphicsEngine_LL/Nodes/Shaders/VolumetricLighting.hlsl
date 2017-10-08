@@ -10,6 +10,8 @@ Texture2D<uint> sdfCullTex : register(t2);
 Texture2D<uint> lightCullTex : register(t3);
 RWTexture2D<float4> dstTex : register(u0);
 
+#include "CSMSample"
+
 struct sdf_data
 {
 	float4 vs_position;
@@ -29,7 +31,7 @@ struct Uniforms
 {
 	sdf_data sd[10];
 	light_data ld[10];
-	float4x4 p;
+	float4x4 v, p;
 	float4x4 invVP;
 	float cam_near, cam_far, dummy1, dummy2;
 	uint num_sdfs, num_workgroups_x, num_workgroups_y; float dummy;
@@ -124,6 +126,8 @@ void CSMain(
 	{
 		float3 evalPos = rayOri + rayDir * t;
 
+		float3 vsEvalPos = mul(float4(evalPos, 1.0), uniforms.v).xyz;
+
 		if(t > maxDist)
 		{
 			break;
@@ -154,7 +158,7 @@ void CSMain(
 		}
 
 		//constant world fog
-		muS += 0.02;
+		muS += 0.2;
 		phase += phaseFunction();
 		phaseCounter++;
 
@@ -189,7 +193,9 @@ void CSMain(
 		//TODO sample shadow map
 		lighting += uniforms.sun_color * 10.0;
 
-		float3 S = lighting * muS * phase; //TODO: volumetric shadow maps
+		float shadow = get_shadow(float4(vsEvalPos, 1.0)).x;
+
+		float3 S = lighting * shadow * muS * phase; //TODO: volumetric shadow maps
 		float3 Sint = (S - S * exp(-muE * stepSize)) / muE; // integrate along the current step segment
 		scatteredLight += transmittance * Sint; // accumulate and also take into account the transmittance from previous steps
 
