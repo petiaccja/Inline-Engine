@@ -1,4 +1,5 @@
 #include "Test.hpp"
+#include <csignal>
 #include <iostream>
 #include <BaseLibrary/Platform2/Input.hpp>
 
@@ -31,6 +32,12 @@ private:
 // Test definition
 //------------------------------------------------------------------------------
 
+
+static volatile bool run = true;
+
+void SignalHandler(int) {
+	run = false;
+}
 
 int TestInput::Run() {
 	auto devices = Input::GetDeviceList();
@@ -65,10 +72,19 @@ int TestInput::Run() {
 
 	Input inputMouse(mouseId);
 	Input inputKeyboard(keyboardId);
+
+	inputMouse.SetQueueMode(eInputQueueMode::QUEUED);
+
 	inputMouse.OnMouseButton += { &TestInput::OnClick, this };
 	inputKeyboard.OnKeyboard += { &TestInput::OnKey, this };
 
-	this_thread::sleep_for(chrono::milliseconds(100000));
+	cout << "Press Control-C to quit." << endl;
+	signal(SIGINT, SignalHandler);
+
+	while (run) {
+		this_thread::sleep_for(chrono::milliseconds(50));
+		inputMouse.CallEvents();
+	}
 
 
 	return 0;

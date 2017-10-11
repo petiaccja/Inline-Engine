@@ -10,7 +10,7 @@ namespace inl {
 enum class eKeyState {
 	DOWN,
 	UP,
-	PRESS,
+	DOUBLE,
 };
 
 
@@ -165,7 +165,6 @@ enum class eKey : unsigned {
 struct KeyboardEvent {
 	eKeyState state;
 	eKey key;
-	bool shift, alt, control;
 };
 
 
@@ -211,9 +210,16 @@ enum class eInputEventType {
 	KEYBOARD,
 	JOYSTICK_BUTTON,
 	JOYSTICK_MOVE,
+	INVALID,
 };
 
 struct InputEvent {
+	InputEvent() : type(eInputEventType::INVALID) {}
+	explicit InputEvent(const MouseButtonEvent& evt) : type(eInputEventType::MOUSE_BUTTON), mouseButton(evt) {}
+	explicit InputEvent(const MouseMoveEvent& evt) : type(eInputEventType::MOUSE_MOVE), mouseMove(evt) {}
+	explicit InputEvent(const KeyboardEvent& evt) : type(eInputEventType::KEYBOARD), keyboard(evt) {}
+	explicit InputEvent(const JoystickButtonEvent& evt) : type(eInputEventType::JOYSTICK_BUTTON), joystickButton(evt) {}
+	explicit InputEvent(const JoystickMoveEvent& evt) : type(eInputEventType::JOYSTICK_MOVE), joystickMove(evt) {}
 	eInputEventType type;
 	union {
 		MouseButtonEvent mouseButton;

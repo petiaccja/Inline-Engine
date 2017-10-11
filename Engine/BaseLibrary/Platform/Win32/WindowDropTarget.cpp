@@ -71,10 +71,10 @@ STDMETHODIMP WindowDropTarget::DragEnter(IDataObject *pdto, DWORD grfKeyState, P
 		std::vector<path> filePaths;
 		for (int i = 0; i < fileCount; ++i)
 		{
-			int FileNameLength = DragQueryFile((HDROP)medium.hGlobal, i, nullptr, 0);
-			wchar_t* fileName = (wchar_t*)alloca(sizeof(wchar_t) * (FileNameLength + 1));
-			DragQueryFile((HDROP)medium.hGlobal, i, fileName, FileNameLength + 1);
-			filePaths.push_back(fileName);
+			int FileNameLength = DragQueryFileA((HDROP)medium.hGlobal, i, nullptr, 0);
+			std::vector<char> fileName(FileNameLength + 1);
+			DragQueryFileA((HDROP)medium.hGlobal, i, fileName.data(), FileNameLength + 1);
+			filePaths.push_back(fileName.data());
 		}
 
 		dragData.filesPaths = std::move(filePaths);

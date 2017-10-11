@@ -193,6 +193,9 @@
     <ClInclude Include="Platform2\Input.hpp">
       <Filter>Platform2</Filter>
     </ClInclude>
+    <ClInclude Include="Platform2\Window.hpp">
+      <Filter>Platform2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">
@@ -249,6 +252,9 @@
       <Filter>Platform\Win32</Filter>
     </ClCompile>
     <ClCompile Include="Platform2\Input.cpp">
+      <Filter>Platform2</Filter>
+    </ClCompile>
+    <ClCompile Include="Platform2\Window.cpp">
       <Filter>Platform2</Filter>
     </ClCompile>
   </ItemGroup>

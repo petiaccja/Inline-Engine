@@ -7,6 +7,7 @@
 #include <map>
 #include <set>
 #include <mutex>
+#include <queue>
 #include "../Singleton.hpp"
 
 
@@ -23,6 +24,12 @@ enum class eInputSourceType {
 	MOUSE,
 	KEYBOARD,
 	JOYSTICK,
+};
+
+
+enum class eInputQueueMode {
+	IMMEDIATE,
+	QUEUED,
 };
 
 
@@ -43,18 +50,25 @@ public:
 	~Input();
 
 
-	/// <summary> Hints the size of the event queue for polling. </summary>
+	/// <summary> Tells how many events should be queued at maximum. Only applies to queued mode. </summary>
 	void SetQueueSizeHint(size_t queueSize);
 
-	/// <summary> Returns whether events were dropped due to not fitting into polling queue. </summary>
-	bool GetEventDropped();
+	/// <summary> Sets event calling mode: in immediate mode, events are called 
+	///		asynchonously from another thread; in queued mode, events are stored
+	///		and you have to call <see cref="CallEvents"> manually to call all queued 
+	///		events on the caller's thread. </summary>
+	void SetQueueMode(eInputQueueMode mode);
 
-	/// <summary> Pop an event from the polling queue. </summary>
-	/// <returns> True if there was an event to pop, false if queue is empty. </returns>
-	bool PopEvent(InputEvent& out);
+	/// <summary> Returns the currently set queueing mode. </summary>
+	eInputQueueMode GetQueueMode() const;
 
+	/// <summary> Calls all queued events synchronously on the caller's thread. </summary>
+	/// <returns> False if some events were dropped due to too small queue size. </returns>
+	bool CallEvents();
 
+	/// <summary> Returns the list of available input devices that you can listen to. </summary>
 	static std::vector<InputDevice> GetDeviceList();
+
 public:
 	Event<MouseButtonEvent> OnMouseButton;
 	Event<MouseMoveEvent> OnMouseMove;
@@ -65,6 +79,12 @@ public:
 private:
 	static constexpr size_t InvalidDeviceId = -1;
 	size_t m_deviceId;
+
+	volatile eInputQueueMode m_queueMode;
+	volatile size_t m_queueSize;
+	volatile bool m_eventDropped;
+	std::queue<InputEvent> m_eventQueue;
+	std::mutex m_queueMtx;
 
 private:
 	class RawInputSourceBase {
@@ -79,7 +99,6 @@ private:
 		static LRESULT __stdcall WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 		void ProcessInput(const RAWINPUT& rawInput);
 		void MessageLoopThreadFunc();
-		static eKey TranslateKey(unsigned vkey);
 
 		template <class EventArg>
 		void CallEvents(size_t device, Event<EventArg> Input::*eventMember, const EventArg& evt) const;
@@ -99,9 +118,29 @@ void Input::RawInputSourceBase::CallEvents(size_t device, Event<EventArg> Input:
 	auto group = m_sources.find(device);
 	if (group != m_sources.end()) {
 		for (auto it = group->second.begin(); it != group->second.end(); ++it) {
-			((*it)->*eventMember)(evt);
+			Input& input = **it;
+			eInputQueueMode queueMode = input.GetQueueMode();
+			if (queueMode == eInputQueueMode::IMMEDIATE) {
+				(input.*eventMember)(evt);
+			}
+			else {
+				std::lock_guard<decltype(Input::m_queueMtx)> lkg(input.m_queueMtx);
+				size_t queueSize = input.m_queueSize;
+				input.m_eventQueue.push(InputEvent(evt));
+				if (input.m_eventQueue.size() > queueSize) {
+					input.m_eventDropped = true;
+				}
+				while (input.m_eventQueue.size() > queueSize) {
+					input.m_eventQueue.pop();
+				}
+			}
 		}
 	}
+}
+
+
+namespace impl {
+eKey TranslateKey(unsigned vkey);
 }
 
 

@@ -33,7 +33,7 @@ public:
 	void SetSize(const Vec2u& size);
 
 	void SetTitle(const std::string& text);
-	void SetIcon(const std::wstring& filePath);
+	void SetIcon(const std::string& filePath);
 
 	// Getters
 	bool IsOpen() const;

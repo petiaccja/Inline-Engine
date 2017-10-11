@@ -7,14 +7,69 @@ namespace inl {
 
 Input::Input() {
 	m_deviceId = InvalidDeviceId;
+	m_queueMode = eInputQueueMode::IMMEDIATE;
+	m_queueSize = 10000;
 }
 
 Input::Input(size_t deviceId) {
+	m_queueMode = eInputQueueMode::IMMEDIATE;
+	m_queueSize = 10000;
 	RawInputSource::GetInstance()->AddInput(this, deviceId);
 }
 
 Input::~Input() {
 	RawInputSource::GetInstance()->RemoveInput(this);
+}
+
+
+void Input::SetQueueSizeHint(size_t queueSize) {
+	m_queueSize = queueSize;
+}
+
+
+void Input::SetQueueMode(eInputQueueMode mode) {
+	m_queueMode = mode;
+}
+
+
+bool Input::CallEvents() {
+	std::unique_lock<decltype(m_queueMtx)> lk(m_queueMtx);
+
+	bool eventDropped = m_eventDropped;
+	m_eventDropped = false;
+	std::queue<InputEvent> eventQueue = std::move(m_eventQueue);
+
+	lk.unlock();
+
+	while (!eventQueue.empty()) {
+		InputEvent evt = eventQueue.front();
+		eventQueue.pop();
+		switch (evt.type) {
+			case eInputEventType::MOUSE_BUTTON: 
+				OnMouseButton(evt.mouseButton);
+				break;
+			case eInputEventType::MOUSE_MOVE:
+				OnMouseMove(evt.mouseMove);
+				break;
+			case eInputEventType::KEYBOARD:
+				OnKeyboard(evt.keyboard);
+				break;
+			case eInputEventType::JOYSTICK_BUTTON: 
+				OnJoystickButton(evt.joystickButton);
+				break;
+			case eInputEventType::JOYSTICK_MOVE:
+				OnJoystickMove(evt.joystickMove);
+				break;
+			default:;
+		}
+	}
+
+	return eventDropped;
+}
+
+
+eInputQueueMode Input::GetQueueMode() const {
+	return m_queueMode;
 }
 
 
@@ -137,7 +192,7 @@ void Input::RawInputSourceBase::ProcessInput(const RAWINPUT& rawInput) {
 
 			// Movement events.
 			if ((mouse.usFlags & MOUSE_MOVE_RELATIVE)
-				&& (mouse.lLastX != 0 || mouse.lLastY != 0)) 
+				&& (mouse.lLastX != 0 || mouse.lLastY != 0))
 			{
 				MouseMoveEvent evt;
 				evt.relx = mouse.lLastX;
@@ -182,7 +237,7 @@ void Input::RawInputSourceBase::ProcessInput(const RAWINPUT& rawInput) {
 		}
 		case RIM_TYPEKEYBOARD: {
 			KeyboardEvent evt;
-			evt.key = TranslateKey(rawInput.data.keyboard.VKey);
+			evt.key = impl::TranslateKey(rawInput.data.keyboard.VKey);
 			evt.state = rawInput.data.keyboard.Flags & RI_KEY_BREAK ? eKeyState::UP : eKeyState::DOWN;
 
 			CallEvents(deviceId, &Input::OnKeyboard, evt);
@@ -204,6 +259,10 @@ void Input::RawInputSourceBase::MessageLoopThreadFunc() {
 	wc.lpfnWndProc = &WndProc;
 
 	ATOM cres = RegisterClassA(&wc);
+	if (cres == 0) {
+		DWORD error = GetLastError();
+		throw RuntimeException("Could not register window class for raw input.", std::to_string(error));
+	}
 
 	HWND hwnd = CreateWindowA("INL_INPUT_CAPTURE",
 		"Inl input capture",
@@ -248,7 +307,8 @@ void Input::RawInputSourceBase::MessageLoopThreadFunc() {
 }
 
 
-eKey Input::RawInputSourceBase::TranslateKey(unsigned vkey) {
+namespace impl {
+eKey TranslateKey(unsigned vkey) {
 	switch (vkey) {
 		case VK_BACK: return eKey::BACKSPACE;
 		case VK_TAB: return eKey::TAB;
@@ -278,7 +338,7 @@ eKey Input::RawInputSourceBase::TranslateKey(unsigned vkey) {
 		case VK_RWIN: return eKey::WINKEY_RIGHT;
 		case VK_SLEEP: return eKey::SLEEP;
 
-		// numpad
+			// numpad
 		case VK_MULTIPLY: return eKey::MULTIPLY;
 		case VK_ADD: return eKey::ADD;
 		case VK_SEPARATOR: return eKey::SPEPARATOR;
@@ -286,7 +346,7 @@ eKey Input::RawInputSourceBase::TranslateKey(unsigned vkey) {
 		case VK_DECIMAL: return eKey::DECIMAL;
 		case VK_DIVIDE: return eKey::DIVIDE;
 
-		// misc
+			// misc
 		case VK_NUMLOCK: return eKey::NUM_LOCK;
 		case VK_SCROLL: return eKey::SCROLL_LOCK; // scroll lock
 
@@ -327,6 +387,7 @@ eKey Input::RawInputSourceBase::TranslateKey(unsigned vkey) {
 	}
 
 	return eKey::UNKNOWN;
+}
 }
 
 

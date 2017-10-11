@@ -88,7 +88,7 @@ Window::Window(const WindowDesc& d)
 	wC.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	wC.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
 	wC.hIconSm = nullptr;
-	wC.lpszClassName = L"windowclass";
+	wC.lpszClassName = "windowclass";
 	wC.lpszMenuName = nullptr;
 	wC.hInstance = appID;
 	wC.lpfnWndProc = WndProc;
@@ -337,11 +337,10 @@ void Window::SetSize(const Vec2u& size)
 
 void Window::SetTitle(const std::string& text)
 {
-	std::wstring str(text.begin(), text.end());
-	SetWindowText(handle, str.c_str());
+	SetWindowTextA(handle, text.c_str());
 }
 
-void Window::SetIcon(const std::wstring& filePath)
+void Window::SetIcon(const std::string& filePath)
 {
 	HANDLE hIcon = LoadImage(0, filePath.c_str(), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
 	if (hIcon)
