@@ -27,6 +27,7 @@ public:
 	void OnClose() {
 		closed = true;
 	}
+	void OnDropped(DragDropEvent evt);
 private:
 	static int a;
 	volatile bool closed = false;
@@ -47,6 +48,7 @@ int TestWindow::Run() {
 		//window.OnKeyboard += {&TestWindow::OnKey, this};
 		window.OnCharacter += {&TestWindow::OnChar, this};
 		window.OnClose += {&TestWindow::OnClose, this};
+		window.OnDropped += {&TestWindow::OnDropped, this};
 
 		while (!closed) {
 			this_thread::sleep_for(chrono::milliseconds(50));
@@ -90,4 +92,11 @@ void TestWindow::OnKey(KeyboardEvent evt) {
 
 void TestWindow::OnChar(char32_t evt) {
 	cout << (char)evt;
+}
+
+
+void TestWindow::OnDropped(DragDropEvent evt) {
+	for (auto& f : evt.filePaths) {
+		cout << f << endl;
+	}
 }

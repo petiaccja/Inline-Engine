@@ -2,6 +2,9 @@
 #include "BaseLibrary/Exception/Exception.hpp"
 #include <future>
 #include <Windowsx.h>
+#include "shellapi.h"
+#undef UNKNOWN
+
 #undef IsMaximized
 #undef IsMinimized
 
@@ -67,13 +70,26 @@ Window::Window(const std::string& title,
 			GetModuleHandle(NULL),
 			(void*)this);
 
-		if (hwnd == NULL) {
-			try {
+		try {
+			if (hwnd == NULL) {
 				DWORD error = GetLastError();
 				throw RuntimeException("Failed to create window.", std::to_string(error));
 			}
-			catch (...) {
-				creationPromise.set_exception(std::current_exception());
+
+			HRESULT res;
+			res = OleInitialize(nullptr);
+			if (res != S_OK) {
+				throw RuntimeException("Could not initialize OLE on thread.");
+			}
+			res = RegisterDragDrop(hwnd, this);
+			if (res != S_OK) {
+				throw RuntimeException("Failed to set drag'n'drop for window.");
+			}
+		}
+		catch (...) {
+			creationPromise.set_exception(std::current_exception());
+			if (hwnd) {
+				DestroyWindow(hwnd);
 			}
 			return;
 		}
@@ -200,7 +216,7 @@ void Window::SetSize(const Vec2& size) {
 
 
 Vec2 Window::GetSize() const {
-	if (IsClosed()) { return {0,0}; }
+	if (IsClosed()) { return { 0,0 }; }
 	RECT rc;
 	GetWindowRect(m_handle, &rc);
 	return { rc.right - rc.left, rc.bottom - rc.top };
@@ -208,7 +224,7 @@ Vec2 Window::GetSize() const {
 
 
 Vec2 Window::GetClientSize() const {
-	if (IsClosed()) { return {0,0}; }
+	if (IsClosed()) { return { 0,0 }; }
 	RECT rc;
 	GetClientRect(m_handle, &rc);
 	return { rc.right - rc.left, rc.bottom - rc.top };
@@ -222,7 +238,7 @@ void Window::SetPosition(const Vec2& position) {
 
 
 Vec2 Window::GetPosition() const {
-	if (IsClosed()) { return {0,0}; }
+	if (IsClosed()) { return { 0,0 }; }
 	RECT rc;
 	GetWindowRect(m_handle, &rc);
 	return { rc.left, rc.top };
@@ -271,7 +287,7 @@ void Window::SetIcon(const std::string& imageFilePath) {
 	if (IsClosed()) { return; }
 
 	HANDLE hIcon = LoadImageA(0, imageFilePath.c_str(), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
-	if (hIcon)	{
+	if (hIcon) {
 		if (m_icon) {
 			DestroyIcon((HICON)m_icon);
 		}
@@ -449,6 +465,92 @@ void Window::MessageLoop() {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
+}
+
+
+// crap'n'drop
+HRESULT __stdcall Window::QueryInterface(REFIID riid, void **ppv) {
+	if (riid == IID_IUnknown || riid == IID_IDropTarget) {
+		*ppv = static_cast<IUnknown*>(this);
+		AddRef();
+		return S_OK;
+	}
+	*ppv = NULL;
+	return E_NOINTERFACE;
+}
+
+ULONG __stdcall Window::AddRef() {
+	return ++m_refCount;
+}
+
+ULONG __stdcall Window::Release() {
+	LONG c = --m_refCount;
+	assert(false); // you should never release this object
+	return c;
+}
+
+HRESULT __stdcall Window::DragEnter(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) {
+	m_currentDragDropEvent = {};
+
+	FORMATETC textFormat = { CF_UNICODETEXT, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };;
+	FORMATETC fileFormat = { CF_HDROP, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
+
+	STGMEDIUM medium;
+
+	// Drop text data
+	if (pdto->GetData(&textFormat, &medium) == S_OK)
+	{
+		// We need to lock the HGLOBAL handle because we can't be sure if this is GMEM_FIXED (i.e. normal heap) data or not
+		wchar_t* text = (wchar_t*)GlobalLock(medium.hGlobal);
+
+		m_currentDragDropEvent.text = std::string(text, text + wcslen(text));
+
+		CallEvent(OnDropEntered, m_currentDragDropEvent);
+
+		GlobalUnlock(medium.hGlobal);
+		ReleaseStgMedium(&medium);
+	}
+	else if (pdto->GetData(&fileFormat, &medium) == S_OK)
+	{
+		int fileCount = DragQueryFile((HDROP)medium.hGlobal, 0xFFFFFFFF, nullptr, 0);
+
+		std::vector<std::experimental::filesystem::path> filePaths;
+		for (int i = 0; i < fileCount; ++i)
+		{
+			int FileNameLength = DragQueryFileA((HDROP)medium.hGlobal, i, nullptr, 0);
+			std::vector<char> fileName(FileNameLength + 1);
+			DragQueryFileA((HDROP)medium.hGlobal, i, fileName.data(), FileNameLength + 1);
+			filePaths.push_back(fileName.data());
+		}
+
+		m_currentDragDropEvent.filePaths = std::move(filePaths);
+
+		CallEvent(OnDropEntered, m_currentDragDropEvent);
+
+		ReleaseStgMedium(&medium);
+	}
+
+	*pdwEffect &= DROPEFFECT_COPY;
+	return S_OK;
+}
+
+HRESULT __stdcall Window::DragOver(DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) {
+	CallEvent(OnDropHovering, m_currentDragDropEvent);
+
+	*pdwEffect &= DROPEFFECT_COPY;
+	return S_OK;
+}
+
+HRESULT __stdcall Window::DragLeave() {
+	CallEvent(OnDropLeft, m_currentDragDropEvent);
+	return S_OK;
+}
+
+HRESULT __stdcall Window::Drop(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) {
+	CallEvent(OnDropped, m_currentDragDropEvent);
+
+	*pdwEffect &= DROPEFFECT_COPY;
+	return S_OK;
 }
 
 

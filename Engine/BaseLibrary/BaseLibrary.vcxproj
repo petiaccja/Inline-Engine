@@ -267,6 +267,7 @@
     <ClCompile Include="Platform\Win32\Sys.cpp" />
     <ClCompile Include="Platform\Win32\Window.cpp" />
     <ClCompile Include="Platform\Win32\WindowDropTarget.cpp" />
+    <ClCompile Include="System.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform3D.cpp" />
     <ClInclude Include="MemoryLeakDetector.hpp" />

@@ -15,7 +15,6 @@
 #define NOMINMAX
 #include <Windows.h>
 #include "oleidl.h"
-#include "BaseLibrary/Platform/Win32/WindowDropTarget.hpp"
 #undef DELETE
 
 
@@ -97,6 +96,10 @@ public:
 	Event<char32_t> OnCharacter;
 	Event<> OnClose;
 	Event<> OnFocus;
+	Event<DragDropEvent> OnDropped;
+	Event<DragDropEvent> OnDropEntered;
+	Event<DragDropEvent> OnDropLeft;
+	Event<DragDropEvent> OnDropHovering;
 
 private:
 	static LRESULT __stdcall WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -112,6 +115,8 @@ private:
 	HRESULT __stdcall DragOver(DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) override;
 	HRESULT __stdcall DragLeave() override;
 	HRESULT __stdcall Drop(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) override;
+	std::atomic<ULONG> m_refCount;
+	DragDropEvent m_currentDragDropEvent;
 		
 private:
 	WindowHandle m_handle = NULL;
