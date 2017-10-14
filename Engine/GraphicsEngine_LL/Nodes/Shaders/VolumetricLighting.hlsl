@@ -138,7 +138,7 @@ void CSMain(
 	float transmittance = 1.0;
 	float3 scatteredLight = float3(0, 0, 0);
 
-	float maxSteps = 128.0;
+	float maxSteps = 64.0;
 	float initialSkip = 0.1;
 	//float stepSize = getNextStepSize(0, maxSteps, initialSkip, initialSkip, maxDist);
 	float stepSize = maxDist / maxSteps;
@@ -239,7 +239,7 @@ void CSMain(
 	//outColor = float4(local_num_of_sdfs, 0, 0, 1);
 	//outColor = float4(linear_depth, linear_depth, linear_depth, linear_depth);
 
-	float blendFactor = 0.8;
+	float blendFactor = 0.05;
 	float4 result;
 	//result = lerp(volDstTex1[dispatchThreadId.xy], float4(scatteredLight, transmittance), blendFactor);
 	int2 reprojCoord = (float2(reprojPos.x, -reprojPos.y) * 0.5 + 0.5) * float2(inputTexSize.xy);
@@ -248,7 +248,7 @@ void CSMain(
 	{
 		float4 prevResult = volDstTex1[reprojCoord];
 		//lerp: x*(1-s) + y*s
-		float4 blendedResult = lerp(float4(scatteredLight, transmittance), prevResult, blendFactor);
+		float4 blendedResult = lerp(prevResult, float4(scatteredLight, transmittance), blendFactor);
 		result = lerp(float4(scatteredLight, transmittance), blendedResult, exp(-8.0*prevResult.w));
 		//result = blendedResult;
 	}
