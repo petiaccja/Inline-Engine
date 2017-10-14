@@ -85,6 +85,16 @@ float phaseFunction()
 	return 1.0 / (4.0*3.14);
 }
 
+float getNextStepSize(float currStep, float maxSteps, float currPos, float minz, float maxz)
+{
+	float z = maxz;
+	float ratio = maxz / minz;
+	float power = currStep / maxSteps;
+	z = minz * pow(ratio, power);
+
+	return z - currPos;
+}
+
 [numthreads(LOCAL_SIZE_X, LOCAL_SIZE_Y, 1)]
 void CSMain(
 	uint3 groupId : SV_GroupID, //WorkGroupId
@@ -123,18 +133,20 @@ void CSMain(
 	reprojPos /= reprojPos.w;
 
 	float t = 0;
-	float maxDist = min(linear_depth - 0.1, 64.0);
+	float maxDist = min(linear_depth - 0.1, 32.0);
 
 	float transmittance = 1.0;
 	float3 scatteredLight = float3(0, 0, 0);
 
 	float maxSteps = 128.0;
+	float initialSkip = 0.1;
+	//float stepSize = getNextStepSize(0, maxSteps, initialSkip, initialSkip, maxDist);
 	float stepSize = maxDist / maxSteps;
 
 	//initial step
-	t += 0.1;
+	t += initialSkip;
 
-	//2x2 initial jitter pattern
+	//2x2 initial jitter pattern 
 	float jitter = (dispatchThreadId.x + dispatchThreadId.y) % 2 ? stepSize*0.5 : 0.0;
 
 	t += jitter;
@@ -220,12 +232,14 @@ void CSMain(
 		transmittance *= exp(-muE * stepSize);
 
 		t += stepSize;
+
+		//stepSize = getNextStepSize(d+1, maxSteps, t, initialSkip, maxDist);
 	}
 
 	//outColor = float4(local_num_of_sdfs, 0, 0, 1);
 	//outColor = float4(linear_depth, linear_depth, linear_depth, linear_depth);
 
-	float blendFactor = 0.1;
+	float blendFactor = 0.8;
 	float4 result;
 	//result = lerp(volDstTex1[dispatchThreadId.xy], float4(scatteredLight, transmittance), blendFactor);
 	int2 reprojCoord = (float2(reprojPos.x, -reprojPos.y) * 0.5 + 0.5) * float2(inputTexSize.xy);
@@ -234,7 +248,9 @@ void CSMain(
 	{
 		float4 prevResult = volDstTex1[reprojCoord];
 		//lerp: x*(1-s) + y*s
-		result = lerp(float4(scatteredLight, transmittance), prevResult, blendFactor);
+		float4 blendedResult = lerp(float4(scatteredLight, transmittance), prevResult, blendFactor);
+		result = lerp(float4(scatteredLight, transmittance), blendedResult, exp(-8.0*prevResult.w));
+		//result = blendedResult;
 	}
 	else
 	{
