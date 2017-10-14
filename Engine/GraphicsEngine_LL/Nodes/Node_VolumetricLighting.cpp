@@ -36,13 +36,13 @@ struct Uniforms
 	sdf_data sd[10]; //320
 	light_data ld[10]; //480
 	Mat44_Packed v, p; //64
-	Mat44_Packed invVP; //64
+	Mat44_Packed invVP, oldVP; //128
 	float cam_near, cam_far, dummy1, dummy2; //16
-	uint32_t num_sdfs, num_workgroups_x, num_workgroups_y; float dummy; //16
+	uint32_t num_sdfs, num_workgroups_x, num_workgroups_y; float haltonFactor; //16
 	Vec4_Packed sun_direction; //16
 	Vec4_Packed sun_color; //16
 	Vec4_Packed cam_pos; //16
-}; //1008
+}; //1072
 
 static void SetWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsigned groupSizeH, unsigned& dispatchW, unsigned& dispatchH)
 {
@@ -67,6 +67,20 @@ static void SetWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsign
 	dispatchH = unsigned(float(gh) / groupSizeH);
 }
 
+static float getHalton(uint32_t i, uint32_t b)
+{
+	float f = 1.0;
+	float r = 0.0;
+
+	while (i > 0u)
+	{
+		f = f / float(b);
+		r = r + f * float(i % b);
+		i = i / b;
+	}
+
+	return r;
+}
 
 VolumetricLighting::VolumetricLighting() {
 	this->GetInput<0>().Set({});
@@ -82,6 +96,10 @@ void VolumetricLighting::Reset() {
 	m_depthTexSrv = TextureView2D();
 	m_sdfCullDataUAV = RWTextureView2D();
 	m_colorTexSRV = TextureView2D();
+	for (int c = 0; c < 2; ++c)
+	{
+		m_volDstTexUAV[c] = RWTextureView2D();
+	}
 	m_dstTexUAV = RWTextureView2D();
 	m_camera = nullptr;
 
@@ -233,8 +251,24 @@ void VolumetricLighting::Setup(SetupContext& context) {
 		theSamplerParam.registerSpace = 0;
 		theSamplerParam.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+		BindParameterDesc volDst0BindParamDesc;
+		m_volDst0BindParam = BindParameter(eBindParameterType::UNORDERED, 0);
+		volDst0BindParamDesc.parameter = m_volDst0BindParam;
+		volDst0BindParamDesc.constantSize = 0;
+		volDst0BindParamDesc.relativeAccessFrequency = 0;
+		volDst0BindParamDesc.relativeChangeFrequency = 0;
+		volDst0BindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc volDst1BindParamDesc;
+		m_volDst1BindParam = BindParameter(eBindParameterType::UNORDERED, 1);
+		volDst1BindParamDesc.parameter = m_volDst1BindParam;
+		volDst1BindParamDesc.constantSize = 0;
+		volDst1BindParamDesc.relativeAccessFrequency = 0;
+		volDst1BindParamDesc.relativeChangeFrequency = 0;
+		volDst1BindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
 		BindParameterDesc dstBindParamDesc;
-		m_dstBindParam = BindParameter(eBindParameterType::UNORDERED, 0);
+		m_dstBindParam = BindParameter(eBindParameterType::UNORDERED, 2);
 		dstBindParamDesc.parameter = m_dstBindParam;
 		dstBindParamDesc.constantSize = 0;
 		dstBindParamDesc.relativeAccessFrequency = 0;
@@ -242,7 +276,7 @@ void VolumetricLighting::Setup(SetupContext& context) {
 		dstBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 		BindParameterDesc cullBindParamDesc;
-		m_cullBindParam = BindParameter(eBindParameterType::UNORDERED, 1);
+		m_cullBindParam = BindParameter(eBindParameterType::UNORDERED, 3);
 		cullBindParamDesc.parameter = m_cullBindParam;
 		cullBindParamDesc.constantSize = 0;
 		cullBindParamDesc.relativeAccessFrequency = 0;
@@ -259,7 +293,7 @@ void VolumetricLighting::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, depthTexBindParamDesc, colorBindParamDesc, cullBindParamDesc, dstBindParamDesc, cullRoBindParamDesc, lightCullBindParamDesc, csmTexBindParamDesc, shadowMXTexBindParamDesc, csmSplitsTexBindParamDesc, lightMvpTexBindParamDesc, shadowSampBindParamDesc },{ samplerDesc, theSamplerParam });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, depthTexBindParamDesc, colorBindParamDesc, cullBindParamDesc, volDst0BindParamDesc, dstBindParamDesc, volDst1BindParamDesc, cullRoBindParamDesc, lightCullBindParamDesc, csmTexBindParamDesc, shadowMXTexBindParamDesc, csmSplitsTexBindParamDesc, lightMvpTexBindParamDesc, shadowSampBindParamDesc },{ samplerDesc, theSamplerParam });
 	}
 
 	if (!m_sdfCullingCSO) {
@@ -296,6 +330,11 @@ void VolumetricLighting::Setup(SetupContext& context) {
 void VolumetricLighting::Execute(RenderContext& context) {
 	ComputeCommandList& commandList = context.AsCompute();
 
+	//swap dest textures 
+	auto tmp = m_volDstTexUAV[0];
+	m_volDstTexUAV[0] = m_volDstTexUAV[1];
+	m_volDstTexUAV[1] = tmp;
+
 	Uniforms uniformsCBData;
 
 	uniformsCBData.cam_near = m_camera->GetNearPlane();
@@ -304,12 +343,21 @@ void VolumetricLighting::Execute(RenderContext& context) {
 	uniformsCBData.v = m_camera->GetViewMatrix();
 	uniformsCBData.p = m_camera->GetProjectionMatrix();
 
+	static uint32_t haltonIndex = 0;
+	const uint32_t haltonBase = 2;
+	uniformsCBData.haltonFactor = getHalton(haltonIndex++, haltonBase);
+
 	uniformsCBData.cam_pos = Vec4(m_camera->GetPosition(), 1);
 
 	uniformsCBData.sun_direction = Vec4( 0.8f, -0.7f, -0.9f, 0.0f );
 	uniformsCBData.sun_color = Vec4( 1.0f, 0.9f, 0.85f, 1.0f );
 
-	Mat44 invVP = (m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix()).Inverse();
+	Mat44 VP = m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix();
+	Mat44 invVP = VP.Inverse();
+
+	//worldVec: ndcVec * invVP
+	//reprojNdcVec: worldVec * oldVP
+	uniformsCBData.oldVP = m_prevVP;
 
 	uniformsCBData.invVP = invVP;
 
@@ -359,8 +407,10 @@ void VolumetricLighting::Execute(RenderContext& context) {
 		gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
 		cbv.GetResource()._GetResourcePtr()->SetName("SDF culling CBV");
 
-		commandList.SetResourceState(m_sdfCullDataUAV.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 		commandList.SetResourceState(m_dstTexUAV.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+		commandList.SetResourceState(m_sdfCullDataUAV.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+		commandList.SetResourceState(m_volDstTexUAV[0].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+		commandList.SetResourceState(m_volDstTexUAV[1].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 		commandList.SetResourceState(m_depthTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_colorTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
@@ -369,11 +419,13 @@ void VolumetricLighting::Execute(RenderContext& context) {
 		commandList.BindCompute(m_inputColorBindParam, m_colorTexSRV);
 		commandList.BindCompute(m_cullBindParam, m_sdfCullDataUAV);
 		commandList.BindCompute(m_dstBindParam, m_dstTexUAV);
+		commandList.BindCompute(m_volDst0BindParam, m_volDstTexUAV[0]);
+		commandList.BindCompute(m_volDst1BindParam, m_volDstTexUAV[1]);
 		commandList.BindCompute(m_depthBindParam, m_depthTexSrv);
 		commandList.BindCompute(m_uniformsBindParam, cbv);
 		commandList.Dispatch(dispatchW, dispatchH, 1);
 		commandList.UAVBarrier(m_sdfCullDataUAV.GetResource());
-		commandList.UAVBarrier(m_dstTexUAV.GetResource());
+		commandList.UAVBarrier(m_volDstTexUAV[0].GetResource());
 	}
 
 	{ //do volumetric lighting
@@ -392,6 +444,8 @@ void VolumetricLighting::Execute(RenderContext& context) {
 		cbv.GetResource()._GetResourcePtr()->SetName("SDF culling CBV");
 
 		commandList.SetResourceState(m_dstTexUAV.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+		commandList.SetResourceState(m_volDstTexUAV[0].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+		commandList.SetResourceState(m_volDstTexUAV[1].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 		commandList.SetResourceState(m_depthTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });		
 		commandList.SetResourceState(m_colorTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_sdfCullDataSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
@@ -409,11 +463,15 @@ void VolumetricLighting::Execute(RenderContext& context) {
 		commandList.BindCompute(m_cullRoBindParam, m_sdfCullDataSRV);
 		commandList.BindCompute(m_lightCullBindParam, m_lightCullDataSRV);
 		commandList.BindCompute(m_dstBindParam, m_dstTexUAV);
+		commandList.BindCompute(m_volDst0BindParam, m_volDstTexUAV[0]);
+		commandList.BindCompute(m_volDst1BindParam, m_volDstTexUAV[1]);
 		commandList.BindCompute(m_depthBindParam, m_depthTexSrv);
 		commandList.BindCompute(m_uniformsBindParam, cbv);
 		commandList.Dispatch(dispatchW, dispatchH, 1);
-		commandList.UAVBarrier(m_dstTexUAV.GetResource());
+		commandList.UAVBarrier(m_volDstTexUAV[0].GetResource());
 	}
+
+	m_prevVP = VP;
 }
 
 
@@ -447,9 +505,17 @@ void VolumetricLighting::InitRenderTarget(SetupContext& context) {
 		Texture2D sdfCullDataTex = context.CreateRWTexture2D(dispatchW * dispatchH, 1024, formatSDFCullData, 1);
 		sdfCullDataTex._GetResourcePtr()->SetName("SDF culling sdf cull data tex");
 		m_sdfCullDataUAV = context.CreateUav(sdfCullDataTex, formatSDFCullData, uavDesc);
-		m_sdfCullDataUAV.GetResource()._GetResourcePtr()->SetName("SDF culling sdf cull data UAV");
+		m_sdfCullDataUAV.GetResource()._GetResourcePtr()->SetName("SDF culling sdf cull data UAV"); 
 		m_sdfCullDataSRV = context.CreateSrv(sdfCullDataTex, formatSDFCullData, srvDesc);
 		m_sdfCullDataSRV.GetResource()._GetResourcePtr()->SetName("SDF culling sdf cull data SRV");
+
+		for (int c = 0; c < 2; ++c)
+		{
+			Texture2D dstTex = context.CreateRWTexture2D(m_depthTexSrv.GetResource().GetWidth(), m_depthTexSrv.GetResource().GetHeight(), formatDst, 1);
+			sdfCullDataTex._GetResourcePtr()->SetName("SDF culling dst tex");
+			m_volDstTexUAV[c] = context.CreateUav(dstTex, formatDst, uavDesc);
+			m_volDstTexUAV[c].GetResource()._GetResourcePtr()->SetName((std::string("SDF culling vol dst UAV") + std::to_string(c)).c_str());
+		}
 
 		Texture2D dstTex = context.CreateRWTexture2D(m_depthTexSrv.GetResource().GetWidth(), m_depthTexSrv.GetResource().GetHeight(), formatDst, 1);
 		sdfCullDataTex._GetResourcePtr()->SetName("SDF culling dst tex");

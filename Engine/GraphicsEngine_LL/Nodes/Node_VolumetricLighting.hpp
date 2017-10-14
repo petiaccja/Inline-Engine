@@ -36,6 +36,8 @@ protected:
 	std::optional<Binder> m_binder;
 	BindParameter m_inputColorBindParam;
 	BindParameter m_dstBindParam;
+	BindParameter m_volDst0BindParam;
+	BindParameter m_volDst1BindParam;
 	BindParameter m_depthBindParam;
 	BindParameter m_cullBindParam;
 	BindParameter m_cullRoBindParam;
@@ -59,11 +61,13 @@ protected: // outputs
 	TextureView2D m_shadowMXTexSRV;
 	TextureView2D m_csmSplitsTexSRV;
 	TextureView2D m_csmTexSRV;
+	RWTextureView2D m_volDstTexUAV[2];
 	RWTextureView2D m_dstTexUAV;
 
 protected: // render context
 	TextureView2D m_depthTexSrv;
 	const BasicCamera* m_camera;
+	Mat44 m_prevVP;
 	//const EntityCollection<PointLight>* m_lights;
 
 private:

@@ -6,8 +6,10 @@
 
 Texture2D depthTex : register(t0);
 Texture2D<float4> inputColorTex : register(t1);
-RWTexture2D<float4> dstTex : register(u0);
-RWTexture2D<uint> cullTex : register(u1);
+RWTexture2D<float4> volDstTex0 : register(u0);
+RWTexture2D<float4> volDstTex1 : register(u1);
+RWTexture2D<float4> dstTex : register(u2);
+RWTexture2D<uint> cullTex : register(u3);
 
 struct sdf_data
 {
@@ -29,9 +31,9 @@ struct Uniforms
 	sdf_data sd[10];
 	light_data ld[10];
 	float4x4 v, p;
-	float4x4 invVP;
+	float4x4 invVP, oldVP;
 	float cam_near, cam_far, dummy1, dummy2;
-	uint num_sdfs, num_workgroups_x, num_workgroups_y; float dummy;
+	uint num_sdfs, num_workgroups_x, num_workgroups_y; float haltonFactor;
 	float4 sun_direction;
 	float4 sun_color;
 	float4 cam_pos;
