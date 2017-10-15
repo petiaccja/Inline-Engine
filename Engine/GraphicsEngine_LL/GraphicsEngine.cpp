@@ -44,6 +44,7 @@
 #include "Nodes/Node_DOFMain.hpp"
 #include "Nodes/Node_Voxelization.hpp"
 #include "Nodes/Node_VolumetricLighting.hpp"
+#include "Nodes/Node_ShadowMapGen.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -458,6 +459,8 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::DOFMain> dofMain(new nodes::DOFMain());
 	std::shared_ptr<nodes::Voxelization> voxelization(new nodes::Voxelization());
 	std::shared_ptr<nodes::VolumetricLighting> volumetricLighting(new nodes::VolumetricLighting());
+	std::shared_ptr<nodes::ShadowMapGen> shadowMapGen(new nodes::ShadowMapGen());
+	std::shared_ptr<nodes::CreateTexture> createShadowmapTextures(new nodes::CreateTexture());
 	TextureUsage usage;
 
 
@@ -491,10 +494,21 @@ void GraphicsEngine::CreatePipeline() {
 	usage = TextureUsage();
 	usage.depthStencil = true;
 	createCsmTextures->GetInput<4>().Set(usage);
+	createCsmTextures->GetInput<5>().Set(false);
 
 	csm->GetInput<0>().Link(createCsmTextures->GetOutput(0));
 	csm->GetInput<1>().Link(getWorldScene->GetOutput(0));
 	csm->GetInput<2>().Link(depthReductionFinal->GetOutput(0));
+
+	createShadowmapTextures->GetInput<0>().Set(1024);
+	createShadowmapTextures->GetInput<1>().Set(1024);
+	createShadowmapTextures->GetInput<2>().Set(gxapi::eFormat::R32_TYPELESS);
+	createShadowmapTextures->GetInput<3>().Set(1);
+	createShadowmapTextures->GetInput<4>().Set(usage);
+	createShadowmapTextures->GetInput<5>().Set(true);
+
+	shadowMapGen->GetInput(0)->Link(createShadowmapTextures->GetOutput(0));
+	shadowMapGen->GetInput(1)->Link(getWorldScene->GetOutput(0));
 
 	//TODO (2.5D light culling + verify)
 	lightCulling->GetInput<0>().Link(depthPrePass->GetOutput(0));
@@ -759,6 +773,7 @@ void GraphicsEngine::CreatePipeline() {
 		dofMain,
 		voxelization,
 		volumetricLighting,
+		//shadowMapGen,
 
 
 		getGuiScene,

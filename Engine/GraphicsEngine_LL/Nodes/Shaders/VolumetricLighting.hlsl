@@ -239,6 +239,7 @@ void CSMain(
 	//outColor = float4(local_num_of_sdfs, 0, 0, 1);
 	//outColor = float4(linear_depth, linear_depth, linear_depth, linear_depth);
 
+	//blend 5% of current result into accumulated
 	float blendFactor = 0.05;
 	float4 result;
 	//result = lerp(volDstTex1[dispatchThreadId.xy], float4(scatteredLight, transmittance), blendFactor);
@@ -249,6 +250,7 @@ void CSMain(
 		float4 prevResult = volDstTex1[reprojCoord];
 		//lerp: x*(1-s) + y*s
 		float4 blendedResult = lerp(prevResult, float4(scatteredLight, transmittance), blendFactor);
+		//if there's no history available (because opaque occluded area) then just use current
 		result = lerp(float4(scatteredLight, transmittance), blendedResult, exp(-8.0*prevResult.w));
 		//result = blendedResult;
 	}
