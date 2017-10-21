@@ -45,6 +45,7 @@
 #include "Nodes/Node_Voxelization.hpp"
 #include "Nodes/Node_VolumetricLighting.hpp"
 #include "Nodes/Node_ShadowMapGen.hpp"
+#include "Nodes/Node_ScreenSpaceShadow.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -461,6 +462,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::VolumetricLighting> volumetricLighting(new nodes::VolumetricLighting());
 	std::shared_ptr<nodes::ShadowMapGen> shadowMapGen(new nodes::ShadowMapGen());
 	std::shared_ptr<nodes::CreateTexture> createShadowmapTextures(new nodes::CreateTexture());
+	std::shared_ptr<nodes::ScreenSpaceShadow> screenSpaceShadow(new nodes::ScreenSpaceShadow());
 	TextureUsage usage;
 
 
@@ -509,6 +511,9 @@ void GraphicsEngine::CreatePipeline() {
 
 	shadowMapGen->GetInput(0)->Link(createShadowmapTextures->GetOutput(0));
 	shadowMapGen->GetInput(1)->Link(getWorldScene->GetOutput(0));
+
+	screenSpaceShadow->GetInput(0)->Link(depthPrePass->GetOutput(0));
+	screenSpaceShadow->GetInput(1)->Link(getCamera->GetOutput(0));
 
 	//TODO (2.5D light culling + verify)
 	lightCulling->GetInput<0>().Link(depthPrePass->GetOutput(0));
@@ -704,7 +709,8 @@ void GraphicsEngine::CreatePipeline() {
 	//alphaBlend->GetInput<1>().Link(debugDraw->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(smaa->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(voxelization->GetOutput(1));
-	alphaBlend->GetInput<1>().Link(volumetricLighting->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(volumetricLighting->GetOutput(0));
+	alphaBlend->GetInput<1>().Link(screenSpaceShadow->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(dofMain->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
 	//alphaBlend->GetInput<3>().Set(Mat44::FromScaleVector(Vec3(.5f, 1.f, 1.f)));
@@ -774,6 +780,7 @@ void GraphicsEngine::CreatePipeline() {
 		voxelization,
 		volumetricLighting,
 		//shadowMapGen,
+		screenSpaceShadow,
 
 
 		getGuiScene,
