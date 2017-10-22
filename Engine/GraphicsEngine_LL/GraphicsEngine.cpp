@@ -46,6 +46,8 @@
 #include "Nodes/Node_VolumetricLighting.hpp"
 #include "Nodes/Node_ShadowMapGen.hpp"
 #include "Nodes/Node_ScreenSpaceShadow.hpp"
+#include "Nodes/Node_ScreenSpaceReflection.hpp"
+#include "Nodes/Node_TextRender.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -463,6 +465,10 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::ShadowMapGen> shadowMapGen(new nodes::ShadowMapGen());
 	std::shared_ptr<nodes::CreateTexture> createShadowmapTextures(new nodes::CreateTexture());
 	std::shared_ptr<nodes::ScreenSpaceShadow> screenSpaceShadow(new nodes::ScreenSpaceShadow());
+	std::shared_ptr<nodes::ScreenSpaceReflection> screenSpaceReflection(new nodes::ScreenSpaceReflection());
+	std::shared_ptr<nodes::TextRender> textRender(new nodes::TextRender());
+	auto fontTexEnv = std::make_shared<nodes::GetEnvVariable>();
+	auto fontBinaryEnv = std::make_shared<nodes::GetEnvVariable>();
 	TextureUsage usage;
 
 
@@ -557,6 +563,10 @@ void GraphicsEngine::CreatePipeline() {
 	drawSky->GetInput<1>().Link(depthPrePass->GetOutput(0));
 	drawSky->GetInput<2>().Link(getCamera->GetOutput(0));
 	drawSky->GetInput<3>().Link(getWorldScene->GetOutput(2));
+
+	screenSpaceReflection->GetInput(0)->Link(drawSky->GetOutput(0));
+	screenSpaceReflection->GetInput(1)->Link(depthPrePass->GetOutput(0));
+	screenSpaceReflection->GetInput(2)->Link(getCamera->GetOutput(0));
 
 	tileMax->GetInput<0>().Link(forwardRender->GetOutput(1));
 	
@@ -664,6 +674,12 @@ void GraphicsEngine::CreatePipeline() {
 	smaa->GetInput(1)->Link(smaaAreaEnv->GetOutput(0));
 	smaa->GetInput<2>().Link(smaaSearchEnv->GetOutput(0));
 
+	fontTexEnv->GetInput<0>().Set("TextRender_fontTex");
+	fontBinaryEnv->GetInput<0>().Set("TextRender_fontBinary");
+	textRender->GetInput<0>().Link(smaa->GetOutput(0));
+	textRender->GetInput<1>().Link(fontTexEnv->GetOutput(0));
+	textRender->GetInput<2>().Link(fontBinaryEnv->GetOutput(0));
+
 
 	// -----------------------------
 	// Gui pipeline path
@@ -710,7 +726,9 @@ void GraphicsEngine::CreatePipeline() {
 	//alphaBlend->GetInput<1>().Link(smaa->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(voxelization->GetOutput(1));
 	//alphaBlend->GetInput<1>().Link(volumetricLighting->GetOutput(0));
-	alphaBlend->GetInput<1>().Link(screenSpaceShadow->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(screenSpaceShadow->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(screenSpaceReflection->GetOutput(0));
+	alphaBlend->GetInput<1>().Link(textRender->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(dofMain->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
 	//alphaBlend->GetInput<3>().Set(Mat44::FromScaleVector(Vec3(.5f, 1.f, 1.f)));
@@ -781,7 +799,10 @@ void GraphicsEngine::CreatePipeline() {
 		volumetricLighting,
 		//shadowMapGen,
 		screenSpaceShadow,
-
+		screenSpaceReflection,
+		textRender,
+		fontTexEnv,
+		fontBinaryEnv,
 
 		getGuiScene,
 		getGuiCamera,

@@ -1,13 +1,13 @@
 /*
-* Screen space shadow shader
-* Input: depth texture
-* Output: shadow texture
+* Screen space reflection shader
+* Input: hdr color, depth texture
+* Output: reflection texture
 */
 
 struct Uniforms
 {
 	float4x4 projSS;
-	float4 vsSunDirection;
+	float4 vsCamPos;
 	float nearPlane, farPlane, stride, jitter;
 	float4 farPlaneData0, farPlaneData1;
 	float maxDistance;
@@ -16,6 +16,7 @@ struct Uniforms
 ConstantBuffer<Uniforms> uniforms : register(b0);
 
 Texture2D inputTex : register(t0);
+Texture2D depthTex : register(t1);
 SamplerState samp0 : register(s0);
 
 struct PS_Input
@@ -23,6 +24,69 @@ struct PS_Input
 	float4 position : SV_POSITION;
 	float2 texcoord : TEX_COORD0;
 };
+
+static const float pi = 3.14159265;
+
+//white noise
+//[0...1]
+float rand(inout float seed)
+{
+	return frac(sin(seed++) * 43758.5453123);
+}
+
+//TODO: supply this from uniform/texture
+float getHalton(uint i, uint b)
+{
+	float f = 1.0;
+	float r = 0.0;
+
+	while (i > 0)
+	{
+		f = f / float(b);
+		r = r + f * float(i % b);
+		i = i / b;
+	}
+
+	return r;
+}
+
+//transforms a direction into the coordinate system
+//defined by the normal vector
+float3 trans_normal(float3 n, float3 d)
+{
+	float3 a, b;
+
+	if (abs(n.x) < 0.5)
+	{
+		a = normalize(cross(n, float3(1, 0, 0)));
+	}
+	else
+	{
+		a = normalize(cross(n, float3(0, 1, 0)));
+	}
+
+	b = normalize(cross(n, a));
+
+	return a * d.x + b * d.y + n * d.z;
+}
+
+float3 sphericalToCartesian(float2 v)
+{
+	return float3(sin(v.x)*cos(v.y), sin(v.x)*sin(v.y), cos(v.x));
+}
+
+//a: roughness^2
+//xi: 2D random pos [0...1]
+float2 importance_sample_ggx(float2 xi, float a)
+{
+	float phi = 2.0 * pi * xi.x;
+	float theta = acos(
+		sqrt(
+		(1.0 - xi.y) / ((a*a - 1.0) * xi.y + 1.0)
+		)
+	);
+	return float2(phi, theta);
+}
 
 float linearize_depth(float depth, float near, float far)
 {
@@ -145,7 +209,7 @@ float traceScreenSpaceRay1(
 		hitPixel = permute ? P.yx : P;
 		// You may need hitPixel.y = csZBufferSize.y - hitPixel.y; here if your vertical axis
 		// is different than ours in screen space
-		float depth = inputTex.Load(int3(hitPixel, 0)).x;
+		float depth = depthTex.Load(int3(hitPixel, 0)).x;
 		sceneZMax = linearize_depth(depth, uniforms.nearPlane, uniforms.farPlane);
 		rayZ = Q.z / k;
 
@@ -158,7 +222,7 @@ float traceScreenSpaceRay1(
 	// Advance Q based on the number of steps
 	Q.xy += dQ.xy * stepCount;
 	hitPoint = Q * (1.0 / k);
-	bool res = (sceneZMax < rayZ - zThickness) && (hitPixel.x > 0.0 && hitPixel.y > 0.0 && hitPixel.x < csZBufferSize.x && hitPixel.y < csZBufferSize.y) && (abs(sceneZMax - rayZ) < 3.0);
+	bool res = !(hitPixel.x >= 0.0 && hitPixel.y >= 0.0 && hitPixel.x < csZBufferSize.x && hitPixel.y < csZBufferSize.y);//&& (sceneZMax < rayZ - zThickness) && (abs(sceneZMax - rayZ) < 3.0);
 	return !res;
 }
 
@@ -172,17 +236,19 @@ PS_Input VSMain(float4 position : POSITION, float4 texcoord : TEX_COORD)
 	return result;
 }
 
-float PSMain(PS_Input input) : SV_TARGET
+float4 PSMain(PS_Input input) : SV_TARGET
 {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 
+	float seed = input.position.x * inputTexSize.y + input.position.y;
+
 	//[0...1]
-	float ndcDepth = inputTex.Sample(samp0, input.texcoord).x;
+	float ndcDepth = depthTex.Sample(samp0, input.texcoord).x;
 
 	if (ndcDepth > 0.9999)
 	{
-		return 1.0;
+		return 0.0;
 	}
 
 	//[0...far]
@@ -193,10 +259,68 @@ float PSMain(PS_Input input) : SV_TARGET
 
 	float2 uv = float2(input.texcoord.x, 1 - input.texcoord.y);
 	float3 vsPos = float3(lerp(farPlaneLL.xy, farPlaneUR.xy, uv) / uniforms.farPlane, 1.0) * linearDepth;
-	
+
+	float3 vsViewDir = normalize(vsPos - uniforms.vsCamPos.xyz);
+
+	//TODO replace with proper normals
+	float3 vsDepthNormal = -normalize(cross(ddy(vsPos.xyz), ddx(vsPos.xyz)));
+
+	float3 perfectReflectionDir = reflect(vsViewDir, vsDepthNormal);
+
+
+	float4 result = float4(0, 0, 0, 0);
+
+	for (int c = 0; c < 10; ++c)
+	{
+		float3 sampleDir = float3(0, 0, 0);
+		bool found = false;
+		int counter = 0;
+		while (!found && counter < 5)
+		{
+			//float2 randomFactor = float2(getHalton(input.position.x * inputTexSize.y + input.position.y, 2), getHalton(input.position.x * inputTexSize.y + input.position.y, 3));
+			float2 randomFactor = float2(rand(seed), rand(seed));
+			//TODO: replace with proper roughness
+			float roughness = 0.2;
+			float3 ggxDir = normalize(sphericalToCartesian(importance_sample_ggx(randomFactor, roughness * roughness)));
+			sampleDir = normalize(trans_normal(perfectReflectionDir, ggxDir));
+			found = dot(sampleDir, vsDepthNormal) > 0.0;
+			++counter;
+		}
+
+		if (found)
+		{
+			float3 hitPoint;
+			float2 hitPixel;
+			float res = traceScreenSpaceRay1(vsPos, sampleDir, uniforms.projSS, inputTexSize.xy, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 1000, 100.0, hitPixel, hitPoint);
+
+			result += res * float4(inputTex.Load(int3(hitPixel, 0)).xyz, 1.0);
+		}
+	}
+
+	/*float3 sampleDir = float3(0, 0, 0);
+	bool found = false;
+	int counter = 0;
+	while (!found && counter < 10)
+	{
+		float2 randomFactor = float2(rand(seed), rand(seed));
+		float roughness = 0.5;
+		float3 ggxDir = normalize(sphericalToCartesian(importance_sample_ggx(randomFactor, roughness * roughness)));
+		sampleDir = normalize(trans_normal(perfectReflectionDir, ggxDir));
+		found = dot(sampleDir, vsDepthNormal) > 0.0;
+		++counter;
+	}
 	float3 hitPoint;
 	float2 hitPixel;
-	float res = traceScreenSpaceRay1(vsPos, uniforms.vsSunDirection.xyz, uniforms.projSS, inputTexSize.xy, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 10, 0.1, hitPixel, hitPoint);
+	float res = traceScreenSpaceRay1(vsPos, sampleDir, uniforms.projSS, inputTexSize.xy, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 1000, 100.0, hitPixel, hitPoint);
+	result = res * float4(inputTex.Load(int3(hitPixel, 0)).xyz, 1.0);*/
 
-	return res;
+	return float4(result.w > 0.0 ? result.xyz / result.w : float3(0,0,0), 1.0);
+	//return float4(perfectReflectionDir, 1.0);
+	//return float4(sampleDir, 1.0);
+	//return float4(ggxDir, 1.0);
+	//return res * inputTex.Load(int3(hitPixel, 0));
+	//return float4(haltonFactor, 0, 1);
+	//return float4(float2(rand(seed), rand(seed)), 0, 1);
+	//return ndcDepth * 0.5 * res;
+	//return float4(vsDepthNormal, 1.0);
 }

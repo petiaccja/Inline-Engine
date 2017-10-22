@@ -580,4 +580,31 @@ void QCWorld::CreatePipelineResources()
 
 		this->m_graphicsEngine->SetEnvVariable("HDRCombine_lensFlareStarTex", inl::Any{ m_lensFlareStarImage.get() });
 	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\font\\courier_new_0.png");
+
+		m_fontImage.reset(this->m_graphicsEngine->CreateImage());
+		m_fontImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
+		m_fontImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+
+		this->m_graphicsEngine->SetEnvVariable("TextRender_fontTex", inl::Any{ m_fontImage.get() });
+	}
+
+	{
+		std::fstream f;
+		f.open("assets\\font\\courier_new.fnt", std::ios::in | std::ios::binary | std::ios::ate);
+		if (f.is_open())
+		{
+			size_t size = f.tellg();
+			m_fontBinary.reset(new std::vector<char>);
+			m_fontBinary->resize(size);
+			f.seekg(0, std::ios::beg);
+			f.read(m_fontBinary->data(), size);
+			f.close();
+		}
+
+		this->m_graphicsEngine->SetEnvVariable("TextRender_fontBinary", inl::Any{ m_fontBinary.get() });
+	}
 }

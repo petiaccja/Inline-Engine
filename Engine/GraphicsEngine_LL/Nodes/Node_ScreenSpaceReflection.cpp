@@ -1,4 +1,4 @@
-#include "Node_ScreenSpaceShadow.hpp"
+#include "Node_ScreenSpaceReflection.hpp"
 
 #include "NodeUtility.hpp"
 
@@ -19,30 +19,30 @@ namespace inl::gxeng::nodes {
 struct Uniforms
 {
 	Mat44_Packed projSS;
-	Vec4_Packed vsSunDirection;
+	Vec4_Packed vsCamPos;
 	float nearPlane, farPlane, stride, jitter;
 	Vec4_Packed farPlaneData0, farPlaneData1;
 	float maxDistance;
 };
 
 
-ScreenSpaceShadow::ScreenSpaceShadow() {
+ScreenSpaceReflection::ScreenSpaceReflection() {
 	this->GetInput<0>().Set({});
 }
 
 
-void ScreenSpaceShadow::Initialize(EngineContext & context) {
+void ScreenSpaceReflection::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
-void ScreenSpaceShadow::Reset() {
+void ScreenSpaceReflection::Reset() {
 	m_inputTexSrv = TextureView2D();
 
 	GetInput<0>().Clear();
 }
 
 
-void ScreenSpaceShadow::Setup(SetupContext& context) {
+void ScreenSpaceReflection::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;
 	srvDesc.activeArraySize = 1;
 	srvDesc.firstArrayElement = 0;
@@ -52,10 +52,14 @@ void ScreenSpaceShadow::Setup(SetupContext& context) {
 	srvDesc.planeIndex = 0;
 
 	Texture2D inputTex = this->GetInput<0>().Get();
-	m_inputTexSrv = context.CreateSrv(inputTex, FormatDepthToColor(inputTex.GetFormat()), srvDesc);
-	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("Screen space shadow input tex SRV");
+	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
+	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("Screen space reflection input tex SRV");
 
-	m_camera = this->GetInput<1>().Get();
+	Texture2D depthTex = this->GetInput<1>().Get();
+	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
+	m_depthTexSrv.GetResource()._GetResourcePtr()->SetName("Screen space reflection depth tex SRV");
+
+	m_camera = this->GetInput<2>().Get();
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -81,6 +85,14 @@ void ScreenSpaceShadow::Setup(SetupContext& context) {
 		inputBindParamDesc.relativeChangeFrequency = 0;
 		inputBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+		BindParameterDesc dethBindParamDesc;
+		m_depthTexBindParam = BindParameter(eBindParameterType::TEXTURE, 1);
+		dethBindParamDesc.parameter = m_depthTexBindParam;
+		dethBindParamDesc.constantSize = 0;
+		dethBindParamDesc.relativeAccessFrequency = 0;
+		dethBindParamDesc.relativeChangeFrequency = 0;
+		dethBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
 		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
@@ -91,7 +103,7 @@ void ScreenSpaceShadow::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, dethBindParamDesc },{ samplerDesc });
 	}
 
 	if (!m_fsq.HasObject()) {
@@ -106,9 +118,9 @@ void ScreenSpaceShadow::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("Screen space shadow full screen quad vertex buffer");
+		m_fsq._GetResourcePtr()->SetName("Screen space reflection full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("Screen space shadow full screen quad index buffer");
+		m_fsqIndices._GetResourcePtr()->SetName("Screen space reflection full screen quad index buffer");
 	}
 
 	if (!m_PSO) {
@@ -118,7 +130,7 @@ void ScreenSpaceShadow::Setup(SetupContext& context) {
 		shaderParts.vs = true;
 		shaderParts.ps = true;
 
-		m_shader = context.CreateShader("ScreenSpaceShadow", shaderParts, "");
+		m_shader = context.CreateShader("ScreenSpaceReflection", shaderParts, "");
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
 			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
@@ -140,16 +152,16 @@ void ScreenSpaceShadow::Setup(SetupContext& context) {
 		psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
 
 		psoDesc.numRenderTargets = 1;
-		psoDesc.renderTargetFormats[0] = m_sss_rtv.GetResource().GetFormat();
+		psoDesc.renderTargetFormats[0] = m_ssr_rtv.GetResource().GetFormat();
 
 		m_PSO.reset(context.CreatePSO(psoDesc));
 	}
 
-	this->GetOutput<0>().Set(m_sss_rtv.GetResource());
+	this->GetOutput<0>().Set(m_ssr_rtv.GetResource());
 }
 
 
-void ScreenSpaceShadow::Execute(RenderContext& context) {
+void ScreenSpaceReflection::Execute(RenderContext& context) {
 	GraphicsCommandList& commandList = context.AsGraphics();
 
 	Uniforms uniformsCBData;
@@ -185,15 +197,14 @@ void ScreenSpaceShadow::Execute(RenderContext& context) {
 		0, 0, 1, 0,
 		0, 0, 0, 1
 	};
-	uniformsCBData.projSS = p *mulHalf * addHalf * mulSS;
+	uniformsCBData.projSS = p * mulHalf * addHalf * mulSS;
 	uniformsCBData.nearPlane = m_camera->GetNearPlane();
 	uniformsCBData.farPlane = m_camera->GetFarPlane();
 	uniformsCBData.stride = 1;
 	uniformsCBData.jitter = 0;
 	uniformsCBData.maxDistance = 1000.0;
 
-	Vec3 sunDir = -Vec3(0.8f, -0.7f, -0.9f).Normalized();
-	uniformsCBData.vsSunDirection = Vec4(sunDir, 0.0f) * v;
+	uniformsCBData.vsCamPos = Vec4(m_camera->GetPosition(), 1.0) * v;
 
 	//far ndc corners
 	Vec4 ndcCorners[] =
@@ -211,13 +222,14 @@ void ScreenSpaceShadow::Execute(RenderContext& context) {
 	uniformsCBData.farPlaneData0 = Vec4(ndcCorners[0].xyz, ndcCorners[1].x);
 	uniformsCBData.farPlaneData1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0.0f, 0.0f);
 
-	commandList.SetResourceState(m_sss_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(m_ssr_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_depthTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
-	RenderTargetView2D* pRTV = &m_sss_rtv;
+	RenderTargetView2D* pRTV = &m_ssr_rtv;
 	commandList.SetRenderTargets(1, &pRTV, 0);
 
-	gxapi::Rectangle rect{ 0, (int)m_sss_rtv.GetResource().GetHeight(), 0, (int)m_sss_rtv.GetResource().GetWidth() };
+	gxapi::Rectangle rect{ 0, (int)m_ssr_rtv.GetResource().GetHeight(), 0, (int)m_ssr_rtv.GetResource().GetWidth() };
 	gxapi::Viewport viewport;
 	viewport.width = (float)rect.right;
 	viewport.height = (float)rect.bottom;
@@ -235,6 +247,7 @@ void ScreenSpaceShadow::Execute(RenderContext& context) {
 	commandList.SetPipelineState(m_PSO.get());
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.BindGraphics(m_inputTexBindParam, m_inputTexSrv);
+	commandList.BindGraphics(m_depthTexBindParam, m_depthTexSrv);
 	commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
@@ -249,13 +262,13 @@ void ScreenSpaceShadow::Execute(RenderContext& context) {
 }
 
 
-void ScreenSpaceShadow::InitRenderTarget(SetupContext& context) {
+void ScreenSpaceReflection::InitRenderTarget(SetupContext& context) {
 	if (!m_outputTexturesInited) {
 		m_outputTexturesInited = true;
 
 		using gxapi::eFormat;
 
-		auto formatSSS = eFormat::R8_UNORM;
+		auto formatSSR = eFormat::R16G16B16A16_FLOAT;
 
 		gxapi::RtvTexture2DArray rtvDesc;
 		rtvDesc.activeArraySize = 1;
@@ -271,10 +284,10 @@ void ScreenSpaceShadow::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D sss_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatSSS, {1, 1, 0, 0});
-		sss_tex._GetResourcePtr()->SetName("Screen space shadow tex");
-		m_sss_rtv = context.CreateRtv(sss_tex, formatSSS, rtvDesc);
-		m_sss_rtv.GetResource()._GetResourcePtr()->SetName("Screen space shadow RTV");
+		Texture2D ssr_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatSSR, {1, 1, 0, 0});
+		ssr_tex._GetResourcePtr()->SetName("Screen space reflection tex");
+		m_ssr_rtv = context.CreateRtv(ssr_tex, formatSSR, rtvDesc);
+		m_ssr_rtv.GetResource()._GetResourcePtr()->SetName("Screen space reflection RTV");
 	}
 }
 

@@ -218,6 +218,7 @@
     <ClInclude Include="Nodes\Node_LuminanceReductionFinal.hpp" />
     <ClInclude Include="Nodes\Node_MotionBlur.hpp" />
     <ClInclude Include="Nodes\Node_NeighborMax.hpp" />
+    <ClInclude Include="Nodes\Node_ScreenSpaceReflection.hpp" />
     <ClInclude Include="Nodes\Node_ScreenSpaceShadow.hpp" />
     <ClInclude Include="Nodes\Node_ScreenSpaceTransform.hpp" />
     <ClInclude Include="Nodes\Node_CreateTexture.hpp" />
@@ -237,6 +238,7 @@
     <ClInclude Include="Nodes\Node_OverlayRender.hpp" />
     <ClInclude Include="Nodes\Node_ShadowMapGen.hpp" />
     <ClInclude Include="Nodes\Node_SMAA.hpp" />
+    <ClInclude Include="Nodes\Node_TextRender.hpp" />
     <ClInclude Include="Nodes\Node_TextureProperties.hpp" />
     <ClInclude Include="Nodes\Node_TileMax.hpp" />
     <ClInclude Include="Nodes\Node_VectorComponents.hpp" />
@@ -320,9 +322,11 @@
     <ClCompile Include="Nodes\Node_MotionBlur.cpp" />
     <ClCompile Include="Nodes\Node_NeighborMax.cpp" />
     <ClCompile Include="Nodes\Node_OverlayRender.cpp" />
+    <ClCompile Include="Nodes\Node_ScreenSpaceReflection.cpp" />
     <ClCompile Include="Nodes\Node_ScreenSpaceShadow.cpp" />
     <ClCompile Include="Nodes\Node_ShadowMapGen.cpp" />
     <ClCompile Include="Nodes\Node_SMAA.cpp" />
+    <ClCompile Include="Nodes\Node_TextRender.cpp" />
     <ClCompile Include="Nodes\Node_TileMax.cpp" />
     <ClCompile Include="Nodes\Node_VolumetricLighting.cpp" />
     <ClCompile Include="Nodes\Node_Voxelization.cpp" />
