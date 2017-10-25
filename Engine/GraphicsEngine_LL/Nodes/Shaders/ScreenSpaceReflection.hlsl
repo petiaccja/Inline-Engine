@@ -275,9 +275,9 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 	float4 result = float4(0, 0, 0, 0);
 
-	for (int c = 0; c < 4; ++c, ++seed)
+	for (int c = 0; c < 10; ++c)
 	{
-		float2 randomFactor = float2(getHalton(seed, 2), getHalton(seed, 3));
+		float2 randomFactor = float2(getHalton(seed*10+c, 2), getHalton(seed*10+c, 3));
 		//float2 randomFactor = float2(rand(seed), rand(seed));
 		//TODO: replace with proper roughness
 		float roughness = 0.1;
