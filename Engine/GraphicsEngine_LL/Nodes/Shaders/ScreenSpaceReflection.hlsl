@@ -7,6 +7,8 @@
 struct Uniforms
 {
 	float4x4 projSS;
+	float4x4 v;
+	float4x4 invV;
 	float4 vsCamPos;
 	float nearPlane, farPlane, stride, jitter;
 	float4 farPlaneData0, farPlaneData1;
@@ -56,13 +58,13 @@ float3 trans_normal(float3 n, float3 d)
 {
 	float3 a, b;
 
-	if (abs(n.x) < 0.5)
+	if (abs(n.z) < 1.0)
 	{
-		a = normalize(cross(n, float3(1, 0, 0)));
+		a = normalize(cross(float3(0, 0, 1), n));
 	}
 	else
 	{
-		a = normalize(cross(n, float3(0, 1, 0)));
+		a = normalize(cross(float3(1, 0, 0), n));
 	}
 
 	b = normalize(cross(n, a));
@@ -70,22 +72,24 @@ float3 trans_normal(float3 n, float3 d)
 	return a * d.x + b * d.y + n * d.z;
 }
 
-float3 sphericalToCartesian(float2 v)
-{
-	return float3(sin(v.x)*cos(v.y), sin(v.x)*sin(v.y), cos(v.x));
-}
-
 //a: roughness^2
 //xi: 2D random pos [0...1]
-float2 importance_sample_ggx(float2 xi, float a)
+float4 importance_sample_ggx(float2 xi, float a)
 {
 	float phi = 2.0 * pi * xi.x;
-	float theta = acos(
-		sqrt(
+	float cosTheta = sqrt(
 		(1.0 - xi.y) / ((a*a - 1.0) * xi.y + 1.0)
-		)
 	);
-	return float2(phi, theta);
+	float sinTheta = sqrt(max(1e-5, 1.0 - cosTheta * cosTheta));
+
+	//perfect reflection vector is the Z axis
+	float3 v = float3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);
+
+	float d = (cosTheta * a*a - cosTheta) * cosTheta + 1;
+	float D = a*a / max(1e-5, pi * d * d);
+	float pdf = D * cosTheta;
+
+	return float4(v, pdf);
 }
 
 float linearize_depth(float depth, float near, float far)
@@ -119,6 +123,8 @@ float traceScreenSpaceRay1(
 	float2 csZBufferSize,
 	// Camera space thickness to ascribe to each pixel in the depth buffer
 	float zThickness,
+	// Camera space diff between sample Z and ray Z
+	float zDiff,
 	// (Negative number)
 	float nearPlaneZ,
 	// Step in horizontal or vertical pixels between samples. This is a float
@@ -213,7 +219,7 @@ float traceScreenSpaceRay1(
 		sceneZMax = linearize_depth(depth, uniforms.nearPlane, uniforms.farPlane);
 		rayZ = Q.z / k;
 
-		if (sceneZMax < rayZ - zThickness)
+		if (sceneZMax < rayZ - zThickness && abs(sceneZMax - rayZ) < zDiff)
 		{
 			break;
 		}
@@ -267,52 +273,53 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 	float3 perfectReflectionDir = reflect(vsViewDir, vsDepthNormal);
 
-
 	float4 result = float4(0, 0, 0, 0);
 
-	for (int c = 0; c < 10; ++c)
+	for (int c = 0; c < 4; ++c, ++seed)
 	{
-		float3 sampleDir = float3(0, 0, 0);
-		bool found = false;
-		int counter = 0;
-		while (!found && counter < 5)
+		float2 randomFactor = float2(getHalton(seed, 2), getHalton(seed, 3));
+		//float2 randomFactor = float2(rand(seed), rand(seed));
+		//TODO: replace with proper roughness
+		float roughness = 0.1;
+		float3 vsReflectionDir;
+
+		if (roughness >= 0.01)
 		{
-			//float2 randomFactor = float2(getHalton(input.position.x * inputTexSize.y + input.position.y, 2), getHalton(input.position.x * inputTexSize.y + input.position.y, 3));
-			float2 randomFactor = float2(rand(seed), rand(seed));
-			//TODO: replace with proper roughness
-			float roughness = 0.2;
-			float3 ggxDir = normalize(sphericalToCartesian(importance_sample_ggx(randomFactor, roughness * roughness)));
-			sampleDir = normalize(trans_normal(perfectReflectionDir, ggxDir));
-			found = dot(sampleDir, vsDepthNormal) > 0.0;
-			++counter;
+			float4 ggxRes = importance_sample_ggx(randomFactor, roughness * roughness);
+			float3 vsSampleDir = normalize(trans_normal(vsDepthNormal, ggxRes.xyz));
+			vsReflectionDir = reflect(vsViewDir, vsSampleDir);
+		}
+		else
+		{
+			vsReflectionDir = perfectReflectionDir;
 		}
 
-		if (found)
+
+		float directionality = dot(vsReflectionDir, vsDepthNormal);
+
+		bool validDir = directionality > 0.0 && directionality < 0.7;
+
+		if (validDir)
 		{
 			float3 hitPoint;
 			float2 hitPixel;
-			float res = traceScreenSpaceRay1(vsPos, sampleDir, uniforms.projSS, inputTexSize.xy, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 1000, 100.0, hitPixel, hitPoint);
+			float res = traceScreenSpaceRay1(vsPos, vsReflectionDir, uniforms.projSS, inputTexSize.xy, 0.001, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 1000, 100.0, hitPixel, hitPoint);
 
 			result += res * float4(inputTex.Load(int3(hitPixel, 0)).xyz, 1.0);
 		}
+
 	}
 
-	/*float3 sampleDir = float3(0, 0, 0);
-	bool found = false;
-	int counter = 0;
-	while (!found && counter < 10)
-	{
-		float2 randomFactor = float2(rand(seed), rand(seed));
-		float roughness = 0.5;
-		float3 ggxDir = normalize(sphericalToCartesian(importance_sample_ggx(randomFactor, roughness * roughness)));
-		sampleDir = normalize(trans_normal(perfectReflectionDir, ggxDir));
-		found = dot(sampleDir, vsDepthNormal) > 0.0;
-		++counter;
-	}
-	float3 hitPoint;
-	float2 hitPixel;
-	float res = traceScreenSpaceRay1(vsPos, sampleDir, uniforms.projSS, inputTexSize.xy, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 1000, 100.0, hitPixel, hitPoint);
-	result = res * float4(inputTex.Load(int3(hitPixel, 0)).xyz, 1.0);*/
+	/*{
+		float3 hitPoint;
+		float2 hitPixel;
+		float res = traceScreenSpaceRay1(vsPos, perfectReflectionDir, uniforms.projSS, inputTexSize.xy, 0.001, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 1000, 100.0, hitPixel, hitPoint);
+
+		float directionality = dot(perfectReflectionDir, vsDepthNormal);
+		float validDir = directionality > 0.0 && directionality < 0.7;
+
+		result += validDir * res * float4(inputTex.Load(int3(hitPixel, 0)).xyz, 1.0);
+	}*/
 
 	return float4(result.w > 0.0 ? result.xyz / result.w : float3(0,0,0), 1.0);
 	//return float4(perfectReflectionDir, 1.0);

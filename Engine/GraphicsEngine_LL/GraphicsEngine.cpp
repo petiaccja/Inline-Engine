@@ -727,8 +727,8 @@ void GraphicsEngine::CreatePipeline() {
 	//alphaBlend->GetInput<1>().Link(voxelization->GetOutput(1));
 	//alphaBlend->GetInput<1>().Link(volumetricLighting->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(screenSpaceShadow->GetOutput(0));
-	//alphaBlend->GetInput<1>().Link(screenSpaceReflection->GetOutput(0));
-	alphaBlend->GetInput<1>().Link(textRender->GetOutput(0));
+	alphaBlend->GetInput<1>().Link(screenSpaceReflection->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(textRender->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(dofMain->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
 	//alphaBlend->GetInput<3>().Set(Mat44::FromScaleVector(Vec3(.5f, 1.f, 1.f)));

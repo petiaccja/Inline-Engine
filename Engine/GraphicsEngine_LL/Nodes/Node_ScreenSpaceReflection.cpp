@@ -19,6 +19,8 @@ namespace inl::gxeng::nodes {
 struct Uniforms
 {
 	Mat44_Packed projSS;
+	Mat44_Packed v;
+	Mat44_Packed invV;
 	Vec4_Packed vsCamPos;
 	float nearPlane, farPlane, stride, jitter;
 	Vec4_Packed farPlaneData0, farPlaneData1;
@@ -205,6 +207,9 @@ void ScreenSpaceReflection::Execute(RenderContext& context) {
 	uniformsCBData.maxDistance = 1000.0;
 
 	uniformsCBData.vsCamPos = Vec4(m_camera->GetPosition(), 1.0) * v;
+
+	uniformsCBData.v = v;
+	uniformsCBData.invV = v.Inverse();
 
 	//far ndc corners
 	Vec4 ndcCorners[] =
