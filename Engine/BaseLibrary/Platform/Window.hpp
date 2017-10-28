@@ -1,7 +1,8 @@
 #pragma once
 
-// TODO
-//#ifdef win32...
+
+#ifdef _WIN32
 #include "Win32/Window.hpp"
-// elif linux...
-// elif mac...
+#else
+static_assert(false, "Window system is not implemented on this platform.");
+#endif

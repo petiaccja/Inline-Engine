@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="All">
-      <UniqueIdentifier>{ae249531-8411-4f5f-ac13-4eef00c62d3e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Logging">
       <UniqueIdentifier>{daa741cb-9a57-44ce-8b3b-e723fe07734f}</UniqueIdentifier>
     </Filter>
@@ -28,23 +25,8 @@
     <Filter Include="Platform\Win32">
       <UniqueIdentifier>{a1032b41-cc0a-4bd8-8af7-e2e0525ab1a7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Platform2">
-      <UniqueIdentifier>{160dda99-d5a8-4cca-a58d-fdc87233b906}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Platform2\Win32">
-      <UniqueIdentifier>{6c7d3749-9a67-40d9-851f-c0156f6f954e}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Stream.hpp">
-      <Filter>All</Filter>
-    </ClInclude>
-    <ClInclude Include="Singleton.hpp">
-      <Filter>All</Filter>
-    </ClInclude>
-    <ClInclude Include="BitflagEnum.hpp">
-      <Filter>All</Filter>
-    </ClInclude>
     <ClInclude Include="Serialization\BinarySerializer.hpp">
       <Filter>Serialization</Filter>
     </ClInclude>
@@ -96,47 +78,14 @@
     <ClInclude Include="Logging\LogStream.hpp">
       <Filter>Logging</Filter>
     </ClInclude>
-    <ClInclude Include="RingBuffer.hpp">
-      <Filter>All</Filter>
-    </ClInclude>
-    <ClInclude Include="ScalarLiterals.hpp">
-      <Filter>All</Filter>
-    </ClInclude>
-    <ClInclude Include="BitOperations.hpp">
-      <Filter>All</Filter>
-    </ClInclude>
-    <ClInclude Include="SpinMutex.hpp">
-      <Filter>All</Filter>
-    </ClInclude>
     <ClInclude Include="Memory\SlabAllocatorEngine.hpp">
       <Filter>Memory</Filter>
     </ClInclude>
     <ClInclude Include="Memory\MultiInstanceTLS.hpp">
       <Filter>Memory</Filter>
     </ClInclude>
-    <ClInclude Include="Range.hpp">
-      <Filter>All</Filter>
-    </ClInclude>
     <ClInclude Include="Memory\RingAllocationEngine.hpp">
       <Filter>Memory</Filter>
-    </ClInclude>
-    <ClInclude Include="TemplateUtil.hpp">
-      <Filter>All</Filter>
-    </ClInclude>
-    <ClInclude Include="ThreadName.hpp">
-      <Filter>All</Filter>
-    </ClInclude>
-    <ClInclude Include="ArrayView.hpp">
-      <Filter>All</Filter>
-    </ClInclude>
-    <ClInclude Include="Any.hpp">
-      <Filter>All</Filter>
-    </ClInclude>
-    <ClInclude Include="StackTrace.hpp">
-      <Filter>All</Filter>
-    </ClInclude>
-    <ClInclude Include="MemoryLeakDetector.hpp">
-      <Filter>All</Filter>
     </ClInclude>
     <ClInclude Include="Exception\Exception.hpp">
       <Filter>Exception</Filter>
@@ -150,51 +99,50 @@
     <ClInclude Include="GraphEditor\INode.hpp">
       <Filter>GraphEditor</Filter>
     </ClInclude>
-    <ClInclude Include="SmartPtrCast.hpp">
-      <Filter>All</Filter>
-    </ClInclude>
     <ClInclude Include="Common.hpp" />
     <ClInclude Include="Delegate.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transform3D.hpp" />
-    <ClInclude Include="Platform\PlatformDefinitions.h">
+    <ClInclude Include="Rect.hpp" />
+    <ClInclude Include="Event.hpp" />
+    <ClInclude Include="Color.hpp" />
+    <ClInclude Include="Platform\Input.hpp">
       <Filter>Platform</Filter>
     </ClInclude>
-    <ClInclude Include="Platform\PlatformUtils.h">
-      <Filter>Platform</Filter>
-    </ClInclude>
-    <ClInclude Include="Platform\Sys.hpp">
+    <ClInclude Include="Platform\System.hpp">
       <Filter>Platform</Filter>
     </ClInclude>
     <ClInclude Include="Platform\Window.hpp">
       <Filter>Platform</Filter>
     </ClInclude>
-    <ClInclude Include="Platform\WindowCommon.hpp">
-      <Filter>Platform</Filter>
+    <ClInclude Include="Platform\Win32\Input.hpp">
+      <Filter>Platform\Win32</Filter>
     </ClInclude>
-    <ClInclude Include="Platform\Win32\PlatformDefinitions.h">
+    <ClInclude Include="Platform\Win32\InputEvents.hpp">
+      <Filter>Platform\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform\Win32\System.hpp">
       <Filter>Platform\Win32</Filter>
     </ClInclude>
     <ClInclude Include="Platform\Win32\Window.hpp">
       <Filter>Platform\Win32</Filter>
     </ClInclude>
-    <ClInclude Include="Platform\Win32\WindowDropTarget.hpp">
-      <Filter>Platform\Win32</Filter>
-    </ClInclude>
-    <ClInclude Include="Rect.hpp" />
-    <ClInclude Include="Event.hpp" />
-    <ClInclude Include="Color.hpp" />
-    <ClInclude Include="Platform2\InputEvents.hpp">
-      <Filter>Platform2</Filter>
-    </ClInclude>
-    <ClInclude Include="Platform2\System.hpp">
-      <Filter>Platform2</Filter>
-    </ClInclude>
-    <ClInclude Include="Platform2\Input.hpp">
-      <Filter>Platform2</Filter>
-    </ClInclude>
-    <ClInclude Include="Platform2\Window.hpp">
-      <Filter>Platform2</Filter>
+    <ClInclude Include="Any.hpp" />
+    <ClInclude Include="ArrayView.hpp" />
+    <ClInclude Include="BitflagEnum.hpp" />
+    <ClInclude Include="BitOperations.hpp" />
+    <ClInclude Include="MemoryLeakDetector.hpp" />
+    <ClInclude Include="Range.hpp" />
+    <ClInclude Include="ScalarLiterals.hpp" />
+    <ClInclude Include="Singleton.hpp" />
+    <ClInclude Include="SmartPtrCast.hpp" />
+    <ClInclude Include="SpinMutex.hpp" />
+    <ClInclude Include="StackTrace.hpp" />
+    <ClInclude Include="Stream.hpp" />
+    <ClInclude Include="TemplateUtil.hpp" />
+    <ClInclude Include="ThreadName.hpp" />
+    <ClInclude Include="RingBuffer.hpp">
+      <Filter>Memory</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -228,9 +176,6 @@
     <ClCompile Include="Logging\LogStream.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
-    <ClCompile Include="SpinMutex.cpp">
-      <Filter>All</Filter>
-    </ClCompile>
     <ClCompile Include="Memory\SlabAllocatorEngine.cpp">
       <Filter>Memory</Filter>
     </ClCompile>
@@ -242,23 +187,12 @@
     </ClCompile>
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform3D.cpp" />
-    <ClCompile Include="Platform\Win32\Sys.cpp">
+    <ClCompile Include="Platform\Win32\Input.cpp">
       <Filter>Platform\Win32</Filter>
     </ClCompile>
     <ClCompile Include="Platform\Win32\Window.cpp">
       <Filter>Platform\Win32</Filter>
     </ClCompile>
-    <ClCompile Include="Platform\Win32\WindowDropTarget.cpp">
-      <Filter>Platform\Win32</Filter>
-    </ClCompile>
-    <ClCompile Include="Platform2\Input.cpp">
-      <Filter>Platform2</Filter>
-    </ClCompile>
-    <ClCompile Include="Platform2\Window.cpp">
-      <Filter>Platform2</Filter>
-    </ClCompile>
-    <ClCompile Include="System.cpp">
-      <Filter>Platform2</Filter>
-    </ClCompile>
+    <ClCompile Include="SpinMutex.cpp" />
   </ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
 #include "Test.hpp"
 #include <csignal>
 #include <iostream>
-#include <BaseLibrary/Platform2/Window.hpp>
+#include <BaseLibrary/Platform/Window.hpp>
 
 
 using namespace std;

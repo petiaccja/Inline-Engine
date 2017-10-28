@@ -1,5 +1,5 @@
 #include "Input.hpp"
-#include "../Exception/Exception.hpp"
+#include "../../Exception/Exception.hpp"
 
 
 namespace inl {

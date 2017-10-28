@@ -85,8 +85,12 @@ enum class eMatrixLayout {
 	COLUMN_MAJOR,
 };
 
-template <class T, int Columns, int Rows, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
+template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
 class Matrix;
+
+template <class MatrixT, int SRows, int SColumns>
+class Submatrix;
+
 
 // Quaternion
 template <class T, bool Packed>
@@ -195,6 +199,19 @@ struct NotMatrix {
 	static constexpr bool value = !IsMatrix<T>::value;
 };
 
+template <class T>
+struct IsSubmatrix {
+	static constexpr bool value = false;
+};
+template <class M, int Rows, int Columns>
+struct IsSubmatrix<Submatrix<M, Rows, Columns>> {
+	static constexpr bool value = true;
+};
+template <class T>
+struct NotSubmatrix {
+	static constexpr bool value = !IsSubmatrix<T>::value;
+};
+
 template <class Arg>
 struct IsQuaternion {
 	static constexpr bool value = false;
@@ -211,7 +228,7 @@ struct NotQuaternion {
 
 template <class T>
 struct IsScalar {
-	static constexpr bool value = !IsMatrix<T>::value && !IsVector<T>::value && !IsSwizzle<T>::value && !IsQuaternion<T>::value;
+	static constexpr bool value = !IsMatrix<T>::value && !IsVector<T>::value && !IsSwizzle<T>::value && !IsQuaternion<T>::value && !IsSubmatrix<T>::value;
 };
 
 // Dimension of an argument (add dynamically sized vectors later).

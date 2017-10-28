@@ -1,14 +1,14 @@
 #pragma once
 
 #include "InputEvents.hpp"
-#include "../Event.hpp"
+#include "../../Event.hpp"
 #include <thread>
 #include <atomic>
 #include <map>
 #include <set>
 #include <mutex>
 #include <queue>
-#include "../Singleton.hpp"
+#include "../../Singleton.hpp"
 
 
 #define WIN32_LEAN_AND_MEAN

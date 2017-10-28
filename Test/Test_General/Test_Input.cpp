@@ -1,7 +1,7 @@
 #include "Test.hpp"
 #include <csignal>
 #include <iostream>
-#include <BaseLibrary/Platform2/Input.hpp>
+#include <BaseLibrary/Platform/Input.hpp>
 
 
 using namespace std;
