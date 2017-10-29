@@ -48,6 +48,7 @@
 #include "Nodes/Node_ScreenSpaceShadow.hpp"
 #include "Nodes/Node_ScreenSpaceReflection.hpp"
 #include "Nodes/Node_TextRender.hpp"
+#include "Nodes/Node_ScreenSpaceAmbientOcclusion.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -469,6 +470,7 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::TextRender> textRender(new nodes::TextRender());
 	auto fontTexEnv = std::make_shared<nodes::GetEnvVariable>();
 	auto fontBinaryEnv = std::make_shared<nodes::GetEnvVariable>();
+	std::shared_ptr<nodes::ScreenSpaceAmbientOcclusion> screenSpaceAmbientOcclusion(new nodes::ScreenSpaceAmbientOcclusion());
 	TextureUsage usage;
 
 
@@ -543,6 +545,9 @@ void GraphicsEngine::CreatePipeline() {
 	forwardRender->GetInput(7)->Link(depthReductionFinal->GetOutput(2));
 	forwardRender->GetInput(8)->Link(depthReductionFinal->GetOutput(0));
 	forwardRender->GetInput(9)->Link(lightCulling->GetOutput(0));
+
+	screenSpaceAmbientOcclusion->GetInput(0)->Link(depthPrePass->GetOutput(0));
+	screenSpaceAmbientOcclusion->GetInput(1)->Link(getCamera->GetOutput(0));
 
 	volumetricLighting->GetInput(0)->Link(depthPrePass->GetOutput(0));
 	volumetricLighting->GetInput(1)->Link(forwardRender->GetOutput(0));
@@ -727,7 +732,8 @@ void GraphicsEngine::CreatePipeline() {
 	//alphaBlend->GetInput<1>().Link(voxelization->GetOutput(1));
 	//alphaBlend->GetInput<1>().Link(volumetricLighting->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(screenSpaceShadow->GetOutput(0));
-	alphaBlend->GetInput<1>().Link(screenSpaceReflection->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(screenSpaceReflection->GetOutput(0));
+	alphaBlend->GetInput<1>().Link(screenSpaceAmbientOcclusion->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(textRender->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(dofMain->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
@@ -803,6 +809,7 @@ void GraphicsEngine::CreatePipeline() {
 		textRender,
 		fontTexEnv,
 		fontBinaryEnv,
+		screenSpaceAmbientOcclusion,
 
 		getGuiScene,
 		getGuiCamera,

@@ -381,6 +381,9 @@
     <ClInclude Include="Nodes\Node_TextRender.hpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Node_ScreenSpaceAmbientOcclusion.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -604,6 +607,9 @@
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_TextRender.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_ScreenSpaceAmbientOcclusion.cpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
   </ItemGroup>
