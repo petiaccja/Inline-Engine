@@ -275,51 +275,49 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 	float4 result = float4(0, 0, 0, 0);
 
-	for (int c = 0; c < 10; ++c)
-	{
-		float2 randomFactor = float2(getHalton(seed*10+c, 2), getHalton(seed*10+c, 3));
-		//float2 randomFactor = float2(rand(seed), rand(seed));
-		//TODO: replace with proper roughness
-		float roughness = 0.1;
-		float3 vsReflectionDir;
+	float roughness = 0.1;
 
-		if (roughness >= 0.01)
+	if (roughness >= 0.01)
+	{
+		for (int c = 0; c < 1; ++c)
 		{
+			float2 randomFactor = float2(getHalton(seed*10+c, 2), getHalton(seed*10+c, 3));
+			//float2 randomFactor = float2(rand(seed), rand(seed));
+			//TODO: replace with proper roughness
+			float3 vsReflectionDir;
+
 			float4 ggxRes = importance_sample_ggx(randomFactor, roughness * roughness);
 			float3 vsSampleDir = normalize(trans_normal(vsDepthNormal, ggxRes.xyz));
 			vsReflectionDir = reflect(vsViewDir, vsSampleDir);
+
+			float directionality = dot(vsReflectionDir, vsDepthNormal);
+
+			bool validDir = directionality > 0.0 && directionality < 0.7;
+
+			if (validDir)
+			{
+				float3 hitPoint;
+				float2 hitPixel;
+				float res = traceScreenSpaceRay1(vsPos, vsReflectionDir, uniforms.projSS, inputTexSize.xy, 0.001, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 1000, 100.0, hitPixel, hitPoint);
+				result += res * float4(inputTex.Load(int3(hitPixel, 0)).xyz, 1.0);
+			}
+
 		}
-		else
-		{
-			vsReflectionDir = perfectReflectionDir;
-		}
-
-
-		float directionality = dot(vsReflectionDir, vsDepthNormal);
-
-		bool validDir = directionality > 0.0 && directionality < 0.7;
-
-		if (validDir)
-		{
-			float3 hitPoint;
-			float2 hitPixel;
-			float res = traceScreenSpaceRay1(vsPos, vsReflectionDir, uniforms.projSS, inputTexSize.xy, 0.001, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 1000, 100.0, hitPixel, hitPoint);
-
-			result += res * float4(inputTex.Load(int3(hitPixel, 0)).xyz, 1.0);
-		}
-
 	}
-
-	/*{
+	else
+	{
 		float3 hitPoint;
 		float2 hitPixel;
-		float res = traceScreenSpaceRay1(vsPos, perfectReflectionDir, uniforms.projSS, inputTexSize.xy, 0.001, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 1000, 100.0, hitPixel, hitPoint);
 
 		float directionality = dot(perfectReflectionDir, vsDepthNormal);
 		float validDir = directionality > 0.0 && directionality < 0.7;
 
-		result += validDir * res * float4(inputTex.Load(int3(hitPixel, 0)).xyz, 1.0);
-	}*/
+		if (validDir)
+		{
+			float res = traceScreenSpaceRay1(vsPos, perfectReflectionDir, uniforms.projSS, inputTexSize.xy, 0.001, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 1000, 100.0, hitPixel, hitPoint);
+			result += validDir * res * float4(inputTex.Load(int3(hitPixel, 0)).xyz, 1.0);
+		}
+	}
 
 	return float4(result.w > 0.0 ? result.xyz / result.w : float3(0,0,0), 1.0);
 	//return float4(perfectReflectionDir, 1.0);
