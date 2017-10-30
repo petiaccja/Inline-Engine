@@ -165,7 +165,7 @@ void ScreenSpaceAmbientOcclusion::Execute(RenderContext& context) {
 	uniformsCBData.nearPlane = m_camera->GetNearPlane();
 	uniformsCBData.farPlane = m_camera->GetFarPlane();
 
-	uniformsCBData.wsRadius = 2.0;
+	uniformsCBData.wsRadius = 0.5;
 	uniformsCBData.scaleFactor = 0.5 * (m_depthTexSrv.GetResource().GetHeight() / (2.0*p(0,0)));
 
 	//far ndc corners
