@@ -118,7 +118,9 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//TODO replace with proper normals
 	float3 vsDepthNormal = -normalize(cross(ddy(vsPos.xyz), ddx(vsPos.xyz)));
 
-	float ssRadius = min(uniforms.wsRadius * uniforms.scaleFactor / vsPos.z, 8);
+	float ssRadius = min(uniforms.wsRadius * uniforms.scaleFactor / vsPos.z, 100.0);
+
+	//return float4(vsPos, 1.0);
 
 	float ao = 0.0;
 
@@ -132,6 +134,9 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 		float2 ssPos = uv - 0.5 * ssRadius * ssDir;
 
+		//return float4(ssDir, 0, 1);
+		//return float4(ssPos, 0, 1);
+
 		//theta1 and theta2
 		float2 horizons = float2(-1.0, -1.0);
 
@@ -140,9 +145,13 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		{
 			float2 currSSPos = ssPos + (c / numSteps) * ssDir * ssRadius;
 
+			//return float4(currSSPos, 0, 1);
+
 			float currDepth = depthTex.Sample(samp0, float2(currSSPos.x, 1.0 - currSSPos.y)).x;
 			float currLinearDepth = linearize_depth(currDepth, uniforms.nearPlane, uniforms.farPlane);
 			float3 currVsPos = float3(lerp(farPlaneLL.xy, farPlaneUR.xy, currSSPos) / uniforms.farPlane, 1.0) * currLinearDepth;
+
+			return float4(currVsPos, 1.0);
 
 			float3 vsCurrDir = normalize(currVsPos - vsPos);
 
@@ -184,7 +193,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//return float4(haltonFactor, 0, 1);
 	//return float4(float2(rand(seed), rand(seed)), 0, 1);
 	//return float4(vsDepthNormal, 1.0);
-	//return ssRadius*0.01;
+	//return ssRadius*0.1;
 	//return float4(vsViewDir, 1.0);
 	return ao;
 }
