@@ -127,11 +127,6 @@ private:
 };
 
 
-template<class ...Barriers>
-void CopyCommandList::ResourceBarrier(Barriers && ...barriers) {
-	m_commandList->ResourceBarrier(barriers...);
-}
-
 
 } // namespace gxeng
 } // namespace inl

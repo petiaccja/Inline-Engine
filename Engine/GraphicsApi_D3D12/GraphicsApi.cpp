@@ -101,6 +101,7 @@ gxapi::ICommandList* GraphicsApi::CreateCommandList(gxapi::eCommandListType type
 		throw InvalidArgumentException("Bundles are not supported.");
 	default:
 		assert(false);
+		throw InvalidArgumentException("What memory garbage did you even specify dumbass?", std::to_string((long long)type));
 	}
 }
 
