@@ -18,7 +18,7 @@ namespace inl::gxeng::nodes {
 
 struct Uniforms
 {
-	float maxBlurRadius;
+	float tileSize;
 };
 
 
@@ -172,7 +172,7 @@ void DOFTileMax::Execute(RenderContext& context) {
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
 	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
 
-	uniformsCBData.maxBlurRadius = 28.0;
+	uniformsCBData.tileSize = 20.0;
 
 	commandList.SetResourceState(m_tilemax_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
@@ -222,8 +222,6 @@ void DOFTileMax::InitRenderTarget(SetupContext& context) {
 
 		auto formatTileMax = eFormat::R16G16_FLOAT;
 
-		const uint64_t maxBlurRadius = 28;
-
 		gxapi::RtvTexture2DArray rtvDesc;
 		rtvDesc.activeArraySize = 1;
 		rtvDesc.firstArrayElement = 0;
@@ -238,7 +236,9 @@ void DOFTileMax::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D tilemax_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth() / maxBlurRadius, m_inputTexSrv.GetResource().GetHeight() / maxBlurRadius, formatTileMax, {1, 1, 0, 0});
+		int tileSize = 20;
+
+		Texture2D tilemax_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth() / tileSize, m_inputTexSrv.GetResource().GetHeight() / tileSize, formatTileMax, {1, 1, 0, 0});
 		tilemax_tex._GetResourcePtr()->SetName("DOF tilemax tex");
 		m_tilemax_rtv = context.CreateRtv(tilemax_tex, formatTileMax, rtvDesc);
 		m_tilemax_rtv.GetResource()._GetResourcePtr()->SetName("DOF tilemax RTV");

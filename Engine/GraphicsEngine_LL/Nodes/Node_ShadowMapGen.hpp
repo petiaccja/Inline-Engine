@@ -3,7 +3,7 @@
 #include "../GraphicsNode.hpp"
 
 #include "../Scene.hpp"
-#include "../BasicCamera.hpp"
+#include "../PerspectiveCamera.hpp"
 #include "../Mesh.hpp"
 #include "../ConstBufferHeap.hpp"
 #include "../PipelineTypes.hpp"
@@ -14,15 +14,18 @@
 
 namespace inl::gxeng::nodes {
 
-
-class DOFPrepare :
+/// <summary>
+/// Inputs: render target, scene objects, light cascade MVP transform matrices in a texture
+/// Output: render target
+/// </summary>
+class ShadowMapGen :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<Texture2D, Texture2D, const BasicCamera*>,
-	virtual public OutputPortConfig<Texture2D, Texture2D>
+	virtual public InputPortConfig<Texture2D, const EntityCollection<MeshEntity>*>,
+	virtual public OutputPortConfig<Texture2D>
 {
 public:
-	DOFPrepare();
+	ShadowMapGen();
 
 	void Update() override {}
 	void Notify(InputPortBase* sender) override {}
@@ -34,29 +37,14 @@ public:
 
 protected:
 	std::optional<Binder> m_binder;
-	BindParameter m_inputTexBindParam;
-	BindParameter m_depthTexBindParam;
 	BindParameter m_uniformsBindParam;
 	ShaderProgram m_shader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
+	gxapi::eFormat m_depthStencilFormat;
 
-protected: // outputs
-	bool m_outputTexturesInited = false;
-	RenderTargetView2D m_prepare_rtv;
-	RenderTargetView2D m_depth_rtv;
-
-	VertexBuffer m_fsq;
-	IndexBuffer m_fsqIndices;
-	bool fsqInited;
-
-
-protected: // render context
-	TextureView2D m_inputTexSrv;
-	TextureView2D m_depthTexSrv;
-	const BasicCamera* m_camera;
-
-private:
-	void InitRenderTarget(SetupContext& context);
+private: // render context
+	std::vector<DepthStencilView2D> m_dsvs;
+	const EntityCollection<MeshEntity>* m_entities;
 };
 
 

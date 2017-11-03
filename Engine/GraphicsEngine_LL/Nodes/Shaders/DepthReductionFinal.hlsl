@@ -11,6 +11,7 @@ Texture2D inputTex : register(t0);
 RWTexture2D<float4> outputTex0 : register(u0);
 RWTexture2D<float4> outputTex1 : register(u1);
 RWTexture2D<float2> outputTex2 : register(u2);
+RWTexture2D<float4> outputTex3 : register(u3);
 
 struct Uniforms
 {
@@ -200,6 +201,10 @@ float4x4 efficient_shadow_split_matrix(int idx, float4x4 invVP, float2 frustum_s
 	float4x4 split_ortho_matrix = ortographic(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, cascadeExtents.z);
 
 	camera split_shadow_cam = lookat_func(cam_pos, centroid_center, up);
+
+	outputTex3[uint2(idx * 3 + 0, 0)] = float4(cam_pos, cascadeExtents.x);
+	outputTex3[uint2(idx * 3 + 1, 0)] = float4(light_cam.view_dir, cascadeExtents.y);
+	outputTex3[uint2(idx * 3 + 2, 0)] = float4(split_shadow_cam.up_vector, cascadeExtents.z);
 
 	return mul(get_camera_matrix(split_shadow_cam), split_ortho_matrix);
 }

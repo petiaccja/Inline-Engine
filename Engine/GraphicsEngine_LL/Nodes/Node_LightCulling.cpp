@@ -173,11 +173,11 @@ void LightCulling::Execute(RenderContext& context) {
 
 	Mat44 invVP = (m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix()).Inverse();
 
-	//near ndc corners
+	//far ndc corners
 	Vec4 ndcCorners[] = 
 	{
-		Vec4(-1.f, -1.f, 0.f, 1.f),
-		Vec4(1.f, 1.f, 0.f, 1.f),
+		Vec4(-1.f, -1.f, 1.f, 1.f),
+		Vec4(1.f, 1.f, 1.f, 1.f),
 	};
 
 	//convert to world space frustum corners
@@ -193,7 +193,7 @@ void LightCulling::Execute(RenderContext& context) {
 	//uniformsCBData.ld[0].vs_position = Vec4(m_camera->GetPosition() + m_camera->GetLookDirection() * 5.f, 1.0f) * m_camera->GetViewMatrix();
 	uniformsCBData.ld[0].attenuation_end = 5.0f;
 
-	DebugDrawManager::GetInstance().AddSphere(Vec3(0, 0, 1), 5.0f, 0);
+	//DebugDrawManager::GetInstance().AddSphere(Vec3(0, 0, 1), 5.0f, 0);
 
 	uint32_t dispatchW, dispatchH;
 	SetWorkgroupSize((unsigned)m_width, (unsigned)m_height, 16, 16, dispatchW, dispatchH);

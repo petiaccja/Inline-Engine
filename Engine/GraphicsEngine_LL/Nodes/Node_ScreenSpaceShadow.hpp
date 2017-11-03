@@ -15,14 +15,14 @@
 namespace inl::gxeng::nodes {
 
 
-class DepthReductionFinal :
+class ScreenSpaceShadow :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<Texture2D, const BasicCamera*, const EntityCollection<DirectionalLight>*>,
-	virtual public OutputPortConfig<Texture2D, Texture2D, Texture2D, Texture2D>
+	virtual public InputPortConfig<Texture2D, const BasicCamera*>,
+	virtual public OutputPortConfig<Texture2D>
 {
 public:
-	DepthReductionFinal();
+	ScreenSpaceShadow();
 
 	void Update() override {}
 	void Notify(InputPortBase* sender) override {}
@@ -33,37 +33,24 @@ public:
 	void Execute(RenderContext& context) override;
 
 protected:
-	//gxeng::RWTextureView2D m_light_mvp_uav;
-	//gxeng::TextureView2D m_light_mvp_srv;
-	//
-	//gxeng::RWTextureView2D m_shadow_mx_uav;
-	//gxeng::TextureView2D m_shadow_mx_srv;
-	//
-	//gxeng::RWTextureView2D m_csm_splits_uav;
-	//gxeng::TextureView2D m_csm_splits_srv;
-
-protected:
 	std::optional<Binder> m_binder;
-	BindParameter m_reductionBindParam;
-	BindParameter m_outputBindParam0;
-	BindParameter m_outputBindParam1;
-	BindParameter m_outputBindParam2;
-	BindParameter m_outputBindParam3;
+	BindParameter m_inputTexBindParam;
 	BindParameter m_uniformsBindParam;
 	ShaderProgram m_shader;
-	std::unique_ptr<gxapi::IPipelineState> m_CSO;
+	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 protected: // outputs
 	bool m_outputTexturesInited = false;
-	RWTextureView2D m_light_mvp_uav;
-	RWTextureView2D m_shadow_mx_uav;
-	RWTextureView2D m_csm_splits_uav;
-	RWTextureView2D m_csm_extents_uav;
+	RenderTargetView2D m_sss_rtv;
+
+	VertexBuffer m_fsq;
+	IndexBuffer m_fsqIndices;
+	bool fsqInited;
+
 
 protected: // render context
-	TextureView2D m_reductionTexSrv;
+	TextureView2D m_inputTexSrv;
 	const BasicCamera* m_camera;
-	const EntityCollection<DirectionalLight>* m_suns;
 
 private:
 	void InitRenderTarget(SetupContext& context);

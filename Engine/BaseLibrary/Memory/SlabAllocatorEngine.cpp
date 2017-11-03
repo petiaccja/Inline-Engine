@@ -2,6 +2,7 @@
 #include "../BitOperations.hpp"
 
 #include <cassert>
+#include <algorithm>
 
 
 namespace inl {
@@ -58,15 +59,16 @@ size_t SlabAllocatorEngine::Allocate() {
 		mask = ~mask;
 		int index = CountTrailingZeros(mask);
 
-		if (index >= 0) {
-			bool correct = !BitTestAndSet(m_first->slotOccupancy, index);
-			assert(correct);
-			return IndexOf(m_first) * SlotsPerBlock + index;
-		}
-		else {
+		assert(index >= 0);
+
+		bool correct = !BitTestAndSet(m_first->slotOccupancy, index);
+		assert(correct);
+
+		size_t allocatedIdx = IndexOf(m_first) * SlotsPerBlock + index;
+		if (m_first->slotOccupancy == ~size_t(0)) {
 			m_first = m_first->nextBlockIndex < m_blocks.size() ? &m_blocks[m_first->nextBlockIndex] : nullptr;
-			return Allocate();
 		}
+		return allocatedIdx;
 	}
 	else {
 		throw std::bad_alloc();
@@ -148,6 +150,9 @@ void SlabAllocatorEngine::Reset() {
 	for (size_t idx = 0; idx < m_blocks.size(); ++idx) {
 		m_blocks[idx].nextBlockIndex = idx + 1;
 		m_blocks[idx].slotOccupancy = 0;
+	}
+	if (!m_blocks.empty()) {
+		m_blocks.back().nextBlockIndex = std::numeric_limits<intptr_t>::max();
 	}
 
 	// get first and last blocks

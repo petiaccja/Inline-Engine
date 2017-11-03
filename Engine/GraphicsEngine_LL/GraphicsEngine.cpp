@@ -42,6 +42,13 @@
 #include "Nodes/Node_DOFTileMax.hpp"
 #include "Nodes/Node_DOFNeighborMax.hpp"
 #include "Nodes/Node_DOFMain.hpp"
+#include "Nodes/Node_Voxelization.hpp"
+#include "Nodes/Node_VolumetricLighting.hpp"
+#include "Nodes/Node_ShadowMapGen.hpp"
+#include "Nodes/Node_ScreenSpaceShadow.hpp"
+#include "Nodes/Node_ScreenSpaceReflection.hpp"
+#include "Nodes/Node_TextRender.hpp"
+#include "Nodes/Node_ScreenSpaceAmbientOcclusion.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -454,6 +461,16 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::DOFTileMax> dofTileMax(new nodes::DOFTileMax());
 	std::shared_ptr<nodes::DOFNeighborMax> dofNeighborMax(new nodes::DOFNeighborMax());
 	std::shared_ptr<nodes::DOFMain> dofMain(new nodes::DOFMain());
+	std::shared_ptr<nodes::Voxelization> voxelization(new nodes::Voxelization());
+	std::shared_ptr<nodes::VolumetricLighting> volumetricLighting(new nodes::VolumetricLighting());
+	std::shared_ptr<nodes::ShadowMapGen> shadowMapGen(new nodes::ShadowMapGen());
+	std::shared_ptr<nodes::CreateTexture> createShadowmapTextures(new nodes::CreateTexture());
+	std::shared_ptr<nodes::ScreenSpaceShadow> screenSpaceShadow(new nodes::ScreenSpaceShadow());
+	std::shared_ptr<nodes::ScreenSpaceReflection> screenSpaceReflection(new nodes::ScreenSpaceReflection());
+	std::shared_ptr<nodes::TextRender> textRender(new nodes::TextRender());
+	auto fontTexEnv = std::make_shared<nodes::GetEnvVariable>();
+	auto fontBinaryEnv = std::make_shared<nodes::GetEnvVariable>();
+	std::shared_ptr<nodes::ScreenSpaceAmbientOcclusion> screenSpaceAmbientOcclusion(new nodes::ScreenSpaceAmbientOcclusion());
 	TextureUsage usage;
 
 
@@ -487,10 +504,24 @@ void GraphicsEngine::CreatePipeline() {
 	usage = TextureUsage();
 	usage.depthStencil = true;
 	createCsmTextures->GetInput<4>().Set(usage);
+	createCsmTextures->GetInput<5>().Set(false);
 
 	csm->GetInput<0>().Link(createCsmTextures->GetOutput(0));
 	csm->GetInput<1>().Link(getWorldScene->GetOutput(0));
 	csm->GetInput<2>().Link(depthReductionFinal->GetOutput(0));
+
+	createShadowmapTextures->GetInput<0>().Set(1024);
+	createShadowmapTextures->GetInput<1>().Set(1024);
+	createShadowmapTextures->GetInput<2>().Set(gxapi::eFormat::R32_TYPELESS);
+	createShadowmapTextures->GetInput<3>().Set(1);
+	createShadowmapTextures->GetInput<4>().Set(usage);
+	createShadowmapTextures->GetInput<5>().Set(true);
+
+	shadowMapGen->GetInput(0)->Link(createShadowmapTextures->GetOutput(0));
+	shadowMapGen->GetInput(1)->Link(getWorldScene->GetOutput(0));
+
+	screenSpaceShadow->GetInput(0)->Link(depthPrePass->GetOutput(0));
+	screenSpaceShadow->GetInput(1)->Link(getCamera->GetOutput(0));
 
 	//TODO (2.5D light culling + verify)
 	lightCulling->GetInput<0>().Link(depthPrePass->GetOutput(0));
@@ -515,10 +546,32 @@ void GraphicsEngine::CreatePipeline() {
 	forwardRender->GetInput(8)->Link(depthReductionFinal->GetOutput(0));
 	forwardRender->GetInput(9)->Link(lightCulling->GetOutput(0));
 
+	screenSpaceAmbientOcclusion->GetInput(0)->Link(depthPrePass->GetOutput(0));
+	screenSpaceAmbientOcclusion->GetInput(1)->Link(getCamera->GetOutput(0));
+
+	volumetricLighting->GetInput(0)->Link(depthPrePass->GetOutput(0));
+	volumetricLighting->GetInput(1)->Link(forwardRender->GetOutput(0));
+	volumetricLighting->GetInput(2)->Link(lightCulling->GetOutput(0));
+	volumetricLighting->GetInput(3)->Link(getCamera->GetOutput(0));
+	volumetricLighting->GetInput(4)->Link(csm->GetOutput(0));
+	volumetricLighting->GetInput(5)->Link(depthReductionFinal->GetOutput(1));
+	volumetricLighting->GetInput(6)->Link(depthReductionFinal->GetOutput(2));
+
+	voxelization->GetInput(0)->Link(getWorldScene->GetOutput(0));
+	voxelization->GetInput(1)->Link(getCamera->GetOutput(0));
+	voxelization->GetInput(2)->Link(forwardRender->GetOutput(0)); //only for visualization
+	voxelization->GetInput(3)->Link(depthPrePass->GetOutput(0));
+	voxelization->GetInput(4)->Link(csm->GetOutput(0));
+	voxelization->GetInput(5)->Link(depthReductionFinal->GetOutput(3));
+
 	drawSky->GetInput<0>().Link(forwardRender->GetOutput(0));
 	drawSky->GetInput<1>().Link(depthPrePass->GetOutput(0));
 	drawSky->GetInput<2>().Link(getCamera->GetOutput(0));
 	drawSky->GetInput<3>().Link(getWorldScene->GetOutput(2));
+
+	screenSpaceReflection->GetInput(0)->Link(drawSky->GetOutput(0));
+	screenSpaceReflection->GetInput(1)->Link(depthPrePass->GetOutput(0));
+	screenSpaceReflection->GetInput(2)->Link(getCamera->GetOutput(0));
 
 	tileMax->GetInput<0>().Link(forwardRender->GetOutput(1));
 	
@@ -534,14 +587,17 @@ void GraphicsEngine::CreatePipeline() {
 	dofPrepare->GetInput<2>().Link(getCamera->GetOutput(0));
 
 	dofTileMax->GetInput<0>().Link(dofPrepare->GetOutput(0));
-	dofTileMax->GetInput<1>().Link(depthPrePass->GetOutput(0));
+	//dofTileMax->GetInput<1>().Link(depthPrePass->GetOutput(0));
+	dofTileMax->GetInput<1>().Link(dofPrepare->GetOutput(1));
 
 	dofNeighborMax->GetInput<0>().Link(dofTileMax->GetOutput(0));
 
 	dofMain->GetInput<0>().Link(dofPrepare->GetOutput(0));
-	dofMain->GetInput<1>().Link(depthPrePass->GetOutput(0));
+	dofMain->GetInput<1>().Link(dofPrepare->GetOutput(1));
 	dofMain->GetInput<2>().Link(dofNeighborMax->GetOutput(0));
 	dofMain->GetInput<3>().Link(getCamera->GetOutput(0));
+	dofMain->GetInput<4>().Link(motionBlur->GetOutput(0));
+	dofMain->GetInput<5>().Link(depthPrePass->GetOutput(0));
 
 	brightLumPass->GetInput<0>().Link(motionBlur->GetOutput(0));
 	
@@ -600,7 +656,9 @@ void GraphicsEngine::CreatePipeline() {
 	colorGradingEnv->GetInput<0>().Set("HDRCombine_colorGradingTex");
 	lensFlareDirtEnv->GetInput<0>().Set("HDRCombine_lensFlareDirtTex");
 	lensFlareStarEnv->GetInput<0>().Set("HDRCombine_lensFlareStarTex");
-	hdrCombine->GetInput<0>().Link(motionBlur->GetOutput(0));
+	//hdrCombine->GetInput<0>().Link(motionBlur->GetOutput(0));
+	//hdrCombine->GetInput<0>().Link(dofMain->GetOutput(0));
+	hdrCombine->GetInput<0>().Link(drawSky->GetOutput(0));
 	hdrCombine->GetInput<1>().Link(luminanceReductionFinal->GetOutput(0));
 	hdrCombine->GetInput<2>().Link(bloomBlurHorizontal2->GetOutput(0));
 	hdrCombine->GetInput<3>().Link(lensFlareBlurHorizontal->GetOutput(0));
@@ -620,6 +678,12 @@ void GraphicsEngine::CreatePipeline() {
 	smaa->GetInput<0>().Link(debugDraw->GetOutput(0));
 	smaa->GetInput(1)->Link(smaaAreaEnv->GetOutput(0));
 	smaa->GetInput<2>().Link(smaaSearchEnv->GetOutput(0));
+
+	fontTexEnv->GetInput<0>().Set("TextRender_fontTex");
+	fontBinaryEnv->GetInput<0>().Set("TextRender_fontBinary");
+	textRender->GetInput<0>().Link(smaa->GetOutput(0));
+	textRender->GetInput<1>().Link(fontTexEnv->GetOutput(0));
+	textRender->GetInput<2>().Link(fontBinaryEnv->GetOutput(0));
 
 
 	// -----------------------------
@@ -665,7 +729,13 @@ void GraphicsEngine::CreatePipeline() {
 	alphaBlend->GetInput<0>().Link(guiRender->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(debugDraw->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(smaa->GetOutput(0));
-	alphaBlend->GetInput<1>().Link(dofMain->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(voxelization->GetOutput(1));
+	//alphaBlend->GetInput<1>().Link(volumetricLighting->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(screenSpaceShadow->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(screenSpaceReflection->GetOutput(0));
+	alphaBlend->GetInput<1>().Link(screenSpaceAmbientOcclusion->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(textRender->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(dofMain->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
 	//alphaBlend->GetInput<3>().Set(Mat44::FromScaleVector(Vec3(.5f, 1.f, 1.f)));
 	alphaBlend->GetInput<3>().Link(createWorldRenderTransform->GetOutput(0));
@@ -731,7 +801,15 @@ void GraphicsEngine::CreatePipeline() {
 		lensFlareDirtEnv,
 		lensFlareStarEnv,
 		dofMain,
-
+		voxelization,
+		volumetricLighting,
+		//shadowMapGen,
+		screenSpaceShadow,
+		screenSpaceReflection,
+		textRender,
+		fontTexEnv,
+		fontBinaryEnv,
+		screenSpaceAmbientOcclusion,
 
 		getGuiScene,
 		getGuiCamera,

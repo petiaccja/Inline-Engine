@@ -311,14 +311,96 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_terrainEntity->InitScale({ 1,1,1 });
 	m_worldScene->GetMeshEntities().Add(m_terrainEntity.get());
 
+	/**
 	// Set up sphere
-	m_sphereEntity.reset(m_graphicsEngine->CreateMeshEntity());
-	m_sphereEntity->SetMesh(m_sphereMesh.get());
-	m_sphereEntity->SetMaterial(m_sphereMaterial.get());
-	m_sphereEntity->InitPosition({ 0,3,1 });
-	m_sphereEntity->InitRotation({ 1,0,0,0 });
-	m_sphereEntity->InitScale({ 1,1,1 });
-	m_worldScene->GetMeshEntities().Add(m_sphereEntity.get());
+	for (int c = 0; c < 30; ++c)
+	{
+		std::unique_ptr<inl::gxeng::MeshEntity> sphere;
+		sphere.reset(m_graphicsEngine->CreateMeshEntity());
+		sphere->SetMesh(m_sphereMesh.get());
+		sphere->SetMaterial(m_sphereMaterial.get());
+		sphere->InitPosition({ 0.1-c*0.01, -1.44+0.1+c*0.1, 1.38 });
+		sphere->InitRotation({ 1,0,0,0 });
+		sphere->InitScale({ 0.05,0.01,0.1 });
+		m_worldScene->GetMeshEntities().Add(sphere.get());
+		m_staticEntities.push_back(std::move(sphere));
+	}
+	/**/
+
+	/**/
+	{
+		//single test sphere for tile dof
+		std::unique_ptr<inl::gxeng::MeshEntity> sphere;
+		sphere.reset(m_graphicsEngine->CreateMeshEntity());
+		sphere->SetMesh(m_sphereMesh.get());
+		sphere->SetMaterial(m_sphereMaterial.get());
+		sphere->InitPosition({ 0.1, -1.44 + 3.3, 0.0 });
+		sphere->InitRotation({ 1,0,0,0 });
+		sphere->InitScale({ 0.5,0.5,0.5 });
+		m_worldScene->GetMeshEntities().Add(sphere.get());
+		m_staticEntities.push_back(std::move(sphere));
+	}
+	{
+		//single test sphere for tile dof
+		std::unique_ptr<inl::gxeng::MeshEntity> sphere;
+		sphere.reset(m_graphicsEngine->CreateMeshEntity());
+		sphere->SetMesh(m_sphereMesh.get());
+		sphere->SetMaterial(m_sphereMaterial.get());
+		sphere->InitPosition({ 0.1+1.0, -1.44 + 3.3, 0.0 });
+		sphere->InitRotation({ 1,0,0,0 });
+		sphere->InitScale({ 0.5,0.5,0.5 });
+		m_worldScene->GetMeshEntities().Add(sphere.get());
+		m_staticEntities.push_back(std::move(sphere));
+	}
+	{
+		//single test sphere for tile dof
+		std::unique_ptr<inl::gxeng::MeshEntity> sphere;
+		sphere.reset(m_graphicsEngine->CreateMeshEntity());
+		sphere->SetMesh(m_sphereMesh.get());
+		sphere->SetMaterial(m_sphereMaterial.get());
+		sphere->InitPosition({ 0.1 - 1.0, -1.44 + 3.3, 0.0 });
+		sphere->InitRotation({ 1,0,0,0 });
+		sphere->InitScale({ 0.5,0.5,0.5 });
+		m_worldScene->GetMeshEntities().Add(sphere.get());
+		m_staticEntities.push_back(std::move(sphere));
+	}
+	{
+		//single test sphere for tile dof
+		std::unique_ptr<inl::gxeng::MeshEntity> sphere;
+		sphere.reset(m_graphicsEngine->CreateMeshEntity());
+		sphere->SetMesh(m_sphereMesh.get());
+		sphere->SetMaterial(m_sphereMaterial.get());
+		sphere->InitPosition({ 0.1 + 0.5, -1.44 + 3.3, 0.0 + 0.75 });
+		sphere->InitRotation({ 1,0,0,0 });
+		sphere->InitScale({ 0.5,0.5,0.5 });
+		m_worldScene->GetMeshEntities().Add(sphere.get());
+		m_staticEntities.push_back(std::move(sphere));
+	}
+	{
+		//single test sphere for tile dof
+		std::unique_ptr<inl::gxeng::MeshEntity> sphere;
+		sphere.reset(m_graphicsEngine->CreateMeshEntity());
+		sphere->SetMesh(m_sphereMesh.get());
+		sphere->SetMaterial(m_sphereMaterial.get());
+		sphere->InitPosition({ 0.1 - 0.5, -1.44 + 3.3, 0.0 + 0.75 });
+		sphere->InitRotation({ 1,0,0,0 });
+		sphere->InitScale({ 0.5,0.5,0.5 });
+		m_worldScene->GetMeshEntities().Add(sphere.get());
+		m_staticEntities.push_back(std::move(sphere));
+	}
+	{
+		//single test sphere for tile dof
+		std::unique_ptr<inl::gxeng::MeshEntity> sphere;
+		sphere.reset(m_graphicsEngine->CreateMeshEntity());
+		sphere->SetMesh(m_sphereMesh.get());
+		sphere->SetMaterial(m_sphereMaterial.get());
+		sphere->InitPosition({ 0.1, -1.44 + 3.3, 0.0 + 1.5 });
+		sphere->InitRotation({ 1,0,0,0 });
+		sphere->InitScale({ 0.5,0.5,0.5 });
+		m_worldScene->GetMeshEntities().Add(sphere.get());
+		m_staticEntities.push_back(std::move(sphere));
+	}
+	/**/
 
 	// Set up copter
 	m_quadcopterEntity.reset(m_graphicsEngine->CreateMeshEntity());
@@ -557,5 +639,32 @@ void QCWorld::CreatePipelineResources()
 		m_lensFlareStarImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
 
 		this->m_graphicsEngine->SetEnvVariable("HDRCombine_lensFlareStarTex", inl::Any{ m_lensFlareStarImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\font\\courier_new_0.png");
+
+		m_fontImage.reset(this->m_graphicsEngine->CreateImage());
+		m_fontImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
+		m_fontImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+
+		this->m_graphicsEngine->SetEnvVariable("TextRender_fontTex", inl::Any{ m_fontImage.get() });
+	}
+
+	{
+		std::fstream f;
+		f.open("assets\\font\\courier_new.fnt", std::ios::in | std::ios::binary | std::ios::ate);
+		if (f.is_open())
+		{
+			size_t size = f.tellg();
+			m_fontBinary.reset(new std::vector<char>);
+			m_fontBinary->resize(size);
+			f.seekg(0, std::ios::beg);
+			f.read(m_fontBinary->data(), size);
+			f.close();
+		}
+
+		this->m_graphicsEngine->SetEnvVariable("TextRender_fontBinary", inl::Any{ m_fontBinary.get() });
 	}
 }

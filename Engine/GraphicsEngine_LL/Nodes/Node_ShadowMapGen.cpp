@@ -1,4 +1,4 @@
-#include "Node_CSM.hpp"
+#include "Node_ShadowMapGen.hpp"
 
 #include "NodeUtility.hpp"
 
@@ -15,7 +15,6 @@ namespace inl::gxeng::nodes {
 struct Uniforms
 {
 	Mat44_Packed model;
-	uint32_t cascadeIDX;
 };
 
 static bool CheckMeshFormat(const Mesh& mesh) {
@@ -53,23 +52,22 @@ static void ConvertToSubmittable(
 
 
 
-CSM::CSM() {}
+ShadowMapGen::ShadowMapGen() {}
 
 
-void CSM::Initialize(EngineContext & context) {
+void ShadowMapGen::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
-void CSM::Reset() {
+void ShadowMapGen::Reset() {
 	m_dsvs.clear();
-	m_lightMVPTexSrv = {};
 	GetInput(0)->Clear();
 	GetInput(1)->Clear();
 	GetInput(2)->Clear();
 }
 
 
-void CSM::Setup(SetupContext & context) {
+void ShadowMapGen::Setup(SetupContext & context) {
 	Texture2D& renderTarget = this->GetInput<0>().Get();
 	const gxapi::eFormat currDepthStencil = FormatAnyToDepthStencil(renderTarget.GetFormat());
 	gxapi::DsvTexture2DArray dsvDesc;
@@ -85,17 +83,6 @@ void CSM::Setup(SetupContext & context) {
 	m_entities = this->GetInput<1>().Get();
 	this->GetInput<1>().Clear();
 
-	Texture2D& lightMVPTex = this->GetInput<2>().Get();
-	gxapi::SrvTexture2DArray srvDesc;
-	srvDesc.activeArraySize = 1;
-	srvDesc.firstArrayElement = 0;
-	srvDesc.mipLevelClamping = 0;
-	srvDesc.mostDetailedMip = 0;
-	srvDesc.numMipLevels = 1;
-	srvDesc.planeIndex = 0;
-	m_lightMVPTexSrv = context.CreateSrv(lightMVPTex, lightMVPTex.GetFormat(), srvDesc);
-	m_lightMVPTexSrv.GetResource()._GetResourcePtr()->SetName("CSM light MVP tex SRV");
-
 	this->GetOutput<0>().Set(renderTarget);
 
 
@@ -109,14 +96,6 @@ void CSM::Setup(SetupContext & context) {
 		uniformsBindParamDesc.relativeAccessFrequency = 0;
 		uniformsBindParamDesc.relativeChangeFrequency = 0;
 		uniformsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
-
-		BindParameterDesc lightMVPBindParamDesc;
-		m_lightMVPBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
-		lightMVPBindParamDesc.parameter = m_lightMVPBindParam;
-		lightMVPBindParamDesc.constantSize = 0;
-		lightMVPBindParamDesc.relativeAccessFrequency = 0;
-		lightMVPBindParamDesc.relativeChangeFrequency = 0;
-		lightMVPBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
 
 		BindParameterDesc sampBindParamDesc;
 		sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
@@ -135,7 +114,7 @@ void CSM::Setup(SetupContext & context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, lightMVPBindParamDesc, sampBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc },{ samplerDesc });
 	}
 
 	if (!m_PSO || currDepthStencil != m_depthStencilFormat) {
@@ -176,7 +155,7 @@ void CSM::Setup(SetupContext & context) {
 }
 
 
-void CSM::Execute(RenderContext & context) {
+void ShadowMapGen::Execute(RenderContext & context) {
 	GraphicsCommandList& commandList = context.AsGraphics();
 
 	assert(m_dsvs.size() > 0);
@@ -192,9 +171,6 @@ void CSM::Execute(RenderContext & context) {
 	commandList.SetPipelineState(m_PSO.get());
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
-
-	commandList.SetResourceState(m_lightMVPTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-	commandList.BindGraphics(m_lightMVPBindParam, m_lightMVPTexSrv);
 
 	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
 	std::vector<unsigned> sizes;
@@ -237,8 +213,6 @@ void CSM::Execute(RenderContext & context) {
 
 			Uniforms uniformsCBData;
 			uniformsCBData.model = model;
-
-			uniformsCBData.cascadeIDX = cascadeIdx;
 
 			commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(uniformsCBData));
 

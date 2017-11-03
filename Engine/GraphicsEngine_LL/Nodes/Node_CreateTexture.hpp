@@ -13,7 +13,7 @@ namespace inl::gxeng::nodes {
 
 /// <summary>
 /// Creates a texture with the given parameters.
-/// Inputs: width, height, format, texture array element count.
+/// Inputs: width, height, format, texture array element count, usage, iscubemap.
 /// Output: a new texture.
 /// </summary>
 /// <remarks>
@@ -24,7 +24,7 @@ namespace inl::gxeng::nodes {
 class CreateTexture :
 	virtual public GraphicsNode,
 	public GraphicsTask,
-	public InputPortConfig<unsigned, unsigned, gxapi::eFormat, uint16_t, TextureUsage>,
+	public InputPortConfig<unsigned, unsigned, gxapi::eFormat, uint16_t, TextureUsage, bool>,
 	public OutputPortConfig<gxeng::Texture2D>
 {
 public:
@@ -46,6 +46,7 @@ public:
 		gxapi::eFormat format = GetInput<2>().Get();
 		uint16_t arrayCount = GetInput<3>().Get();
 		TextureUsage usage = GetInput<4>().Get();
+		bool isCubemap = GetInput<5>().Get();
 
 		auto UsageToFlags = [](TextureUsage usage) {
 			gxapi::eResourceFlags flags;
@@ -70,7 +71,14 @@ public:
 			|| m_texture.GetArrayCount() != arrayCount
 			|| (m_texture.GetDescription().textureDesc.flags & flagMask) != requestedFlags)
 		{
-			m_texture = context.CreateTexture2D(width, height, format, usage, arrayCount);
+			if (!isCubemap)
+			{
+				m_texture = context.CreateTexture2D(width, height, format, usage, arrayCount);
+			}
+			else
+			{
+				//m_texture = context.CreateTextureCubemap(width, height, format, usage, arrayCount);
+			}
 		}
 
 		GetOutput<0>().Set(m_texture);

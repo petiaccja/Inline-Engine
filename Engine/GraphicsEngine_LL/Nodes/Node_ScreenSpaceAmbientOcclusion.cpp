@@ -1,4 +1,4 @@
-#include "Node_BrightLumPass.hpp"
+#include "Node_ScreenSpaceAmbientOcclusion.hpp"
 
 #include "NodeUtility.hpp"
 
@@ -18,29 +18,28 @@ namespace inl::gxeng::nodes {
 
 struct Uniforms
 {
-	float bright_pass_threshold;
+	Vec4_Packed farPlaneData0, farPlaneData1;
+	float nearPlane, farPlane, wsRadius, scaleFactor;
 };
 
 
-BrightLumPass::BrightLumPass() {
+ScreenSpaceAmbientOcclusion::ScreenSpaceAmbientOcclusion() {
 	this->GetInput<0>().Set({});
 }
 
 
-void BrightLumPass::Initialize(EngineContext & context) {
+void ScreenSpaceAmbientOcclusion::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
-void BrightLumPass::Reset() {
-	m_inputTexSrv = TextureView2D();
+void ScreenSpaceAmbientOcclusion::Reset() {
+	m_depthTexSrv = TextureView2D();
 
 	GetInput<0>().Clear();
 }
 
 
-void BrightLumPass::Setup(SetupContext& context) {
-	Texture2D inputTex = this->GetInput<0>().Get();
-
+void ScreenSpaceAmbientOcclusion::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;
 	srvDesc.activeArraySize = 1;
 	srvDesc.firstArrayElement = 0;
@@ -48,8 +47,12 @@ void BrightLumPass::Setup(SetupContext& context) {
 	srvDesc.mostDetailedMip = 0;
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
-	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass input tex SRV");
+
+	Texture2D depthTex = this->GetInput<0>().Get();
+	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
+	m_depthTexSrv.GetResource()._GetResourcePtr()->SetName("Screen space ambient occlusion depth tex SRV");
+
+	m_camera = this->GetInput<1>().Get();
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -67,13 +70,13 @@ void BrightLumPass::Setup(SetupContext& context) {
 		sampBindParamDesc.relativeChangeFrequency = 0;
 		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		BindParameterDesc inputBindParamDesc;
-		m_inputTexBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
-		inputBindParamDesc.parameter = m_inputTexBindParam;
-		inputBindParamDesc.constantSize = 0;
-		inputBindParamDesc.relativeAccessFrequency = 0;
-		inputBindParamDesc.relativeChangeFrequency = 0;
-		inputBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+		BindParameterDesc dethBindParamDesc;
+		m_depthTexBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
+		dethBindParamDesc.parameter = m_depthTexBindParam;
+		dethBindParamDesc.constantSize = 0;
+		dethBindParamDesc.relativeAccessFrequency = 0;
+		dethBindParamDesc.relativeChangeFrequency = 0;
+		dethBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
@@ -85,7 +88,7 @@ void BrightLumPass::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, dethBindParamDesc },{ samplerDesc });
 	}
 
 	if (!m_fsq.HasObject()) {
@@ -100,9 +103,9 @@ void BrightLumPass::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("Bright Lum pass full screen quad vertex buffer");
+		m_fsq._GetResourcePtr()->SetName("Screen space ambient occlusion full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("Bright Lum pass full screen quad index buffer");
+		m_fsqIndices._GetResourcePtr()->SetName("Screen space ambient occlusion full screen quad index buffer");
 	}
 
 	if (!m_PSO) {
@@ -112,7 +115,7 @@ void BrightLumPass::Setup(SetupContext& context) {
 		shaderParts.vs = true;
 		shaderParts.ps = true;
 
-		m_shader = context.CreateShader("BrightLumPass", shaderParts, "");
+		m_shader = context.CreateShader("ScreenSpaceAmbientOcclusion", shaderParts, "");
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
 			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
@@ -133,27 +136,22 @@ void BrightLumPass::Setup(SetupContext& context) {
 		psoDesc.depthStencilState.enableStencilTest = false;
 		psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
 
-		psoDesc.numRenderTargets = 2;
-		psoDesc.renderTargetFormats[0] = m_bright_pass_rtv.GetResource().GetFormat();
-		psoDesc.renderTargetFormats[1] = m_luminance_rtv.GetResource().GetFormat();
+		psoDesc.numRenderTargets = 1;
+		psoDesc.renderTargetFormats[0] = m_ssao_rtv.GetResource().GetFormat();
 
 		m_PSO.reset(context.CreatePSO(psoDesc));
 	}
 
-	this->GetOutput<0>().Set(m_bright_pass_rtv.GetResource());
-	this->GetOutput<1>().Set(m_luminance_rtv.GetResource());
+	this->GetOutput<0>().Set(m_ssao_rtv.GetResource());
 }
 
 
-void BrightLumPass::Execute(RenderContext& context) {
+void ScreenSpaceAmbientOcclusion::Execute(RenderContext& context) {
 	GraphicsCommandList& commandList = context.AsGraphics();
 
 	Uniforms uniformsCBData;
 
 	//DebugDrawManager::GetInstance().AddSphere(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1, 1);
-
-	//TODO get from somewhere
-	uniformsCBData.bright_pass_threshold = 0.8f;
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
@@ -161,14 +159,38 @@ void BrightLumPass::Execute(RenderContext& context) {
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
 	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
 
-	commandList.SetResourceState(m_bright_pass_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
-	commandList.SetResourceState(m_luminance_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
-	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	Mat44 v = m_camera->GetViewMatrix();
+	Mat44 p = m_camera->GetProjectionMatrix();
+	Mat44 invP = p.Inverse();
+	uniformsCBData.nearPlane = m_camera->GetNearPlane();
+	uniformsCBData.farPlane = m_camera->GetFarPlane();
 
-	RenderTargetView2D* pRTV[] = { &m_bright_pass_rtv, &m_luminance_rtv };
-	commandList.SetRenderTargets(2, pRTV, 0);
+	uniformsCBData.wsRadius = 0.5;
+	uniformsCBData.scaleFactor = 0.5 * (m_depthTexSrv.GetResource().GetHeight() / (2.0*p(0,0)));
 
-	gxapi::Rectangle rect{ 0, (int)m_bright_pass_rtv.GetResource().GetHeight(), 0, (int)m_bright_pass_rtv.GetResource().GetWidth() };
+	//far ndc corners
+	Vec4 ndcCorners[] =
+	{
+		Vec4(-1.f, -1.f, 1.f, 1.f),
+		Vec4(1.f, 1.f, 1.f, 1.f),
+	};
+
+	//convert to world space frustum corners
+	ndcCorners[0] = ndcCorners[0] * invP;
+	ndcCorners[1] = ndcCorners[1] * invP;
+	ndcCorners[0] /= ndcCorners[0].w;
+	ndcCorners[1] /= ndcCorners[1].w;
+
+	uniformsCBData.farPlaneData0 = Vec4(ndcCorners[0].xyz, ndcCorners[1].x);
+	uniformsCBData.farPlaneData1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0.0f, 0.0f);
+
+	commandList.SetResourceState(m_ssao_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(m_depthTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+
+	RenderTargetView2D* pRTV = &m_ssao_rtv;
+	commandList.SetRenderTargets(1, &pRTV, 0);
+
+	gxapi::Rectangle rect{ 0, (int)m_ssao_rtv.GetResource().GetHeight(), 0, (int)m_ssao_rtv.GetResource().GetWidth() };
 	gxapi::Viewport viewport;
 	viewport.width = (float)rect.right;
 	viewport.height = (float)rect.bottom;
@@ -185,7 +207,7 @@ void BrightLumPass::Execute(RenderContext& context) {
 
 	commandList.SetPipelineState(m_PSO.get());
 	commandList.SetGraphicsBinder(&m_binder.value());
-	commandList.BindGraphics(m_inputTexBindParam, m_inputTexSrv);
+	commandList.BindGraphics(m_depthTexBindParam, m_depthTexSrv);
 	commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
@@ -200,14 +222,13 @@ void BrightLumPass::Execute(RenderContext& context) {
 }
 
 
-void BrightLumPass::InitRenderTarget(SetupContext& context) {
+void ScreenSpaceAmbientOcclusion::InitRenderTarget(SetupContext& context) {
 	if (!m_outputTexturesInited) {
 		m_outputTexturesInited = true;
 
 		using gxapi::eFormat;
 
-		auto formatBrightPass = eFormat::R16G16B16A16_FLOAT;
-		auto formatLuminance = eFormat::R16_FLOAT;
+		auto formatSSAO = eFormat::R16G16B16A16_FLOAT;
 
 		gxapi::RtvTexture2DArray rtvDesc;
 		rtvDesc.activeArraySize = 1;
@@ -223,15 +244,10 @@ void BrightLumPass::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D bright_pass_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatBrightPass, {1, 1, 0, 0});
-		bright_pass_tex._GetResourcePtr()->SetName("Bright pass tex");
-		m_bright_pass_rtv = context.CreateRtv(bright_pass_tex, formatBrightPass, rtvDesc);
-		m_bright_pass_rtv.GetResource()._GetResourcePtr()->SetName("Bright pass RTV");
-		
-		Texture2D luminance_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatLuminance, { 1, 1, 0, 0 });
-		luminance_tex._GetResourcePtr()->SetName("Luminance tex");
-		m_luminance_rtv = context.CreateRtv(luminance_tex, formatLuminance, rtvDesc);
-		m_luminance_rtv.GetResource()._GetResourcePtr()->SetName("Luminance RTV");
+		Texture2D ssao_tex = context.CreateTexture2D(m_depthTexSrv.GetResource().GetWidth(), m_depthTexSrv.GetResource().GetHeight(), formatSSAO, {1, 1, 0, 0});
+		ssao_tex._GetResourcePtr()->SetName("Screen space ambient occlusion tex");
+		m_ssao_rtv = context.CreateRtv(ssao_tex, formatSSAO, rtvDesc);
+		m_ssao_rtv.GetResource()._GetResourcePtr()->SetName("Screen space ambient occlusion RTV");
 	}
 }
 

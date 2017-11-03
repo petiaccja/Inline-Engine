@@ -1,4 +1,4 @@
-#include "Node_BrightLumPass.hpp"
+#include "Node_ScreenSpaceShadow.hpp"
 
 #include "NodeUtility.hpp"
 
@@ -18,29 +18,31 @@ namespace inl::gxeng::nodes {
 
 struct Uniforms
 {
-	float bright_pass_threshold;
+	Mat44_Packed projSS;
+	Vec4_Packed vsSunDirection;
+	float nearPlane, farPlane, stride, jitter;
+	Vec4_Packed farPlaneData0, farPlaneData1;
+	float maxDistance;
 };
 
 
-BrightLumPass::BrightLumPass() {
+ScreenSpaceShadow::ScreenSpaceShadow() {
 	this->GetInput<0>().Set({});
 }
 
 
-void BrightLumPass::Initialize(EngineContext & context) {
+void ScreenSpaceShadow::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
-void BrightLumPass::Reset() {
+void ScreenSpaceShadow::Reset() {
 	m_inputTexSrv = TextureView2D();
 
 	GetInput<0>().Clear();
 }
 
 
-void BrightLumPass::Setup(SetupContext& context) {
-	Texture2D inputTex = this->GetInput<0>().Get();
-
+void ScreenSpaceShadow::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;
 	srvDesc.activeArraySize = 1;
 	srvDesc.firstArrayElement = 0;
@@ -48,8 +50,12 @@ void BrightLumPass::Setup(SetupContext& context) {
 	srvDesc.mostDetailedMip = 0;
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
-	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass input tex SRV");
+
+	Texture2D inputTex = this->GetInput<0>().Get();
+	m_inputTexSrv = context.CreateSrv(inputTex, FormatDepthToColor(inputTex.GetFormat()), srvDesc);
+	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("Screen space shadow input tex SRV");
+
+	m_camera = this->GetInput<1>().Get();
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -100,9 +106,9 @@ void BrightLumPass::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("Bright Lum pass full screen quad vertex buffer");
+		m_fsq._GetResourcePtr()->SetName("Screen space shadow full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("Bright Lum pass full screen quad index buffer");
+		m_fsqIndices._GetResourcePtr()->SetName("Screen space shadow full screen quad index buffer");
 	}
 
 	if (!m_PSO) {
@@ -112,7 +118,7 @@ void BrightLumPass::Setup(SetupContext& context) {
 		shaderParts.vs = true;
 		shaderParts.ps = true;
 
-		m_shader = context.CreateShader("BrightLumPass", shaderParts, "");
+		m_shader = context.CreateShader("ScreenSpaceShadow", shaderParts, "");
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
 			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
@@ -133,27 +139,22 @@ void BrightLumPass::Setup(SetupContext& context) {
 		psoDesc.depthStencilState.enableStencilTest = false;
 		psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
 
-		psoDesc.numRenderTargets = 2;
-		psoDesc.renderTargetFormats[0] = m_bright_pass_rtv.GetResource().GetFormat();
-		psoDesc.renderTargetFormats[1] = m_luminance_rtv.GetResource().GetFormat();
+		psoDesc.numRenderTargets = 1;
+		psoDesc.renderTargetFormats[0] = m_sss_rtv.GetResource().GetFormat();
 
 		m_PSO.reset(context.CreatePSO(psoDesc));
 	}
 
-	this->GetOutput<0>().Set(m_bright_pass_rtv.GetResource());
-	this->GetOutput<1>().Set(m_luminance_rtv.GetResource());
+	this->GetOutput<0>().Set(m_sss_rtv.GetResource());
 }
 
 
-void BrightLumPass::Execute(RenderContext& context) {
+void ScreenSpaceShadow::Execute(RenderContext& context) {
 	GraphicsCommandList& commandList = context.AsGraphics();
 
 	Uniforms uniformsCBData;
 
 	//DebugDrawManager::GetInstance().AddSphere(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1, 1);
-
-	//TODO get from somewhere
-	uniformsCBData.bright_pass_threshold = 0.8f;
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
@@ -161,14 +162,62 @@ void BrightLumPass::Execute(RenderContext& context) {
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
 	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
 
-	commandList.SetResourceState(m_bright_pass_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
-	commandList.SetResourceState(m_luminance_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+	Mat44 v = m_camera->GetViewMatrix();
+	Mat44 p = m_camera->GetProjectionMatrix();
+	Mat44 vp = v * p;
+	Mat44 invVP = vp.Inverse();
+	Mat44 invP = p.Inverse();
+	Mat44 mulHalf = {
+	0.5, 0, 0, 0,
+	0, -0.5, 0, 0,
+	0, 0, 1, 0,
+	0, 0, 0, 1
+	};
+	Mat44 addHalf = {
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0.5, 0.5, 0, 1
+	};
+	Mat44 mulSS = {
+		m_inputTexSrv.GetResource().GetWidth(), 0, 0, 0,
+		0, m_inputTexSrv.GetResource().GetHeight(), 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1
+	};
+	uniformsCBData.projSS = p *mulHalf * addHalf * mulSS;
+	uniformsCBData.nearPlane = m_camera->GetNearPlane();
+	uniformsCBData.farPlane = m_camera->GetFarPlane();
+	uniformsCBData.stride = 1;
+	uniformsCBData.jitter = 0;
+	uniformsCBData.maxDistance = 1000.0;
+
+	Vec3 sunDir = -Vec3(0.8f, -0.7f, -0.9f).Normalized();
+	uniformsCBData.vsSunDirection = Vec4(sunDir, 0.0f) * v;
+
+	//far ndc corners
+	Vec4 ndcCorners[] =
+	{
+		Vec4(-1.f, -1.f, 1.f, 1.f),
+		Vec4(1.f, 1.f, 1.f, 1.f),
+	};
+
+	//convert to world space frustum corners
+	ndcCorners[0] = ndcCorners[0] * invP;
+	ndcCorners[1] = ndcCorners[1] * invP;
+	ndcCorners[0] /= ndcCorners[0].w;
+	ndcCorners[1] /= ndcCorners[1].w;
+
+	uniformsCBData.farPlaneData0 = Vec4(ndcCorners[0].xyz, ndcCorners[1].x);
+	uniformsCBData.farPlaneData1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0.0f, 0.0f);
+
+	commandList.SetResourceState(m_sss_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
-	RenderTargetView2D* pRTV[] = { &m_bright_pass_rtv, &m_luminance_rtv };
-	commandList.SetRenderTargets(2, pRTV, 0);
+	RenderTargetView2D* pRTV = &m_sss_rtv;
+	commandList.SetRenderTargets(1, &pRTV, 0);
 
-	gxapi::Rectangle rect{ 0, (int)m_bright_pass_rtv.GetResource().GetHeight(), 0, (int)m_bright_pass_rtv.GetResource().GetWidth() };
+	gxapi::Rectangle rect{ 0, (int)m_sss_rtv.GetResource().GetHeight(), 0, (int)m_sss_rtv.GetResource().GetWidth() };
 	gxapi::Viewport viewport;
 	viewport.width = (float)rect.right;
 	viewport.height = (float)rect.bottom;
@@ -200,14 +249,13 @@ void BrightLumPass::Execute(RenderContext& context) {
 }
 
 
-void BrightLumPass::InitRenderTarget(SetupContext& context) {
+void ScreenSpaceShadow::InitRenderTarget(SetupContext& context) {
 	if (!m_outputTexturesInited) {
 		m_outputTexturesInited = true;
 
 		using gxapi::eFormat;
 
-		auto formatBrightPass = eFormat::R16G16B16A16_FLOAT;
-		auto formatLuminance = eFormat::R16_FLOAT;
+		auto formatSSS = eFormat::R8_UNORM;
 
 		gxapi::RtvTexture2DArray rtvDesc;
 		rtvDesc.activeArraySize = 1;
@@ -223,15 +271,10 @@ void BrightLumPass::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D bright_pass_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatBrightPass, {1, 1, 0, 0});
-		bright_pass_tex._GetResourcePtr()->SetName("Bright pass tex");
-		m_bright_pass_rtv = context.CreateRtv(bright_pass_tex, formatBrightPass, rtvDesc);
-		m_bright_pass_rtv.GetResource()._GetResourcePtr()->SetName("Bright pass RTV");
-		
-		Texture2D luminance_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatLuminance, { 1, 1, 0, 0 });
-		luminance_tex._GetResourcePtr()->SetName("Luminance tex");
-		m_luminance_rtv = context.CreateRtv(luminance_tex, formatLuminance, rtvDesc);
-		m_luminance_rtv.GetResource()._GetResourcePtr()->SetName("Luminance RTV");
+		Texture2D sss_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatSSS, {1, 1, 0, 0});
+		sss_tex._GetResourcePtr()->SetName("Screen space shadow tex");
+		m_sss_rtv = context.CreateRtv(sss_tex, formatSSS, rtvDesc);
+		m_sss_rtv.GetResource()._GetResourcePtr()->SetName("Screen space shadow RTV");
 	}
 }
 
