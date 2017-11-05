@@ -28,6 +28,7 @@ class CreateTexture :
 	public OutputPortConfig<gxeng::Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "CreateTexture"; }
 	virtual void Update() override {}
 
 	virtual void Notify(InputPortBase* sender) override {}

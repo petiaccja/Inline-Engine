@@ -23,6 +23,7 @@ class GetCameraByName :
 	virtual public OutputPortConfig<const BasicCamera*>
 {
 public:
+	static const char* Info_GetName() { return "GetCameraByName"; }
 	GetCameraByName() {}
 
 	void Update() override {}

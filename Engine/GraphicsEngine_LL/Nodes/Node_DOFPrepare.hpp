@@ -22,6 +22,7 @@ class DOFPrepare :
 	virtual public OutputPortConfig<Texture2D, Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "DOSPrepare"; }
 	DOFPrepare();
 
 	void Update() override {}

@@ -4,6 +4,7 @@
 #include "Mathter/Matrix.hpp"
 #include "Mathter/Quaternion.hpp"
 #include "Mathter/Utility.hpp"
+#include "Mathter/Geometry.hpp"
 
 
 namespace inl {
@@ -90,6 +91,27 @@ using Quat = mathter::Quaternion<float, false>;
 using Quatd = mathter::Quaternion<double, false>;
 using Quat_Packed = mathter::Quaternion<float, true>;
 using Quatd_Packed = mathter::Quaternion<double, true>;
+
+
+// Misc stuff
+using Plane = mathter::Hyperplane<float, 3>;
+using Planed = mathter::Hyperplane<double, 3>;
+
+using Ray2D = mathter::Ray<float, 2>;
+using Ray2Dd = mathter::Ray<double, 2>;
+using Ray3D = mathter::Ray<float, 3>;
+using Ray3Dd = mathter::Ray<double, 3>;
+
+using Line2D = mathter::Line<float, 2>;
+using Line2Dd = mathter::Line<double, 2>;
+using Line3D = mathter::Line<float, 3>;
+using Line3Dd = mathter::Line<double, 3>;
+
+using LineSegment2D = mathter::LineSegment<float, 2>;
+using LineSegment2Dd = mathter::LineSegment<double, 2>;
+using LineSegment3D = mathter::LineSegment<float, 3>;
+using LineSegment3Dd = mathter::LineSegment<double, 3>;
+
 
 
 

@@ -22,6 +22,7 @@ class LuminanceReductionFinal :
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "LuminanceReductionFinal"; }
 	LuminanceReductionFinal();
 
 	void Update() override {}

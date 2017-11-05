@@ -36,8 +36,8 @@ class System {
 public:
 	// Dll
 	static ModuleHandle LoadModule(const char* path);
-	static void UnloadModule(ModuleHandle handle);
-	static void* GetModuleSymbolAddress(ModuleHandle handle, const char* symbolName);
+	static void UnloadModule(ModuleHandle handle) noexcept;
+	static void* GetModuleSymbolAddress(ModuleHandle handle, const char* symbolName) noexcept;
 
 	// Cursor
 	static Vec2 GetCursorPosition();

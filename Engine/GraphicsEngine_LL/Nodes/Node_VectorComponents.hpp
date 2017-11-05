@@ -34,12 +34,12 @@ public:
 
 
 
-template<int ComponentCount>
 /// <summary>
 /// Gets the separate components in a vector.
 /// Input: the vector
 /// Outputs: the components of the vector in the order of storage (x, y, z, w)
 /// </summary>
+template<int ComponentCount>
 class VectorComponents {
 public:
 	static_assert(ComponentCount > 0 && ComponentCount <= 4, "invalid number of components");
@@ -54,6 +54,7 @@ class VectorComponents<1> :
 	public OutputPortConfig<float>
 {
 public:
+	static const char* Info_GetName() { return "Vector1Components"; }
 	void Setup(SetupContext& context) override {
 		const auto& vector = GetInput<0>().Get();
 
@@ -69,6 +70,7 @@ class VectorComponents<2> :
 	public OutputPortConfig<float, float>
 {
 public:
+	static const char* Info_GetName() { return "Vector2Components"; }
 	void Setup(SetupContext& context) override {
 		const auto& vector = GetInput<0>().Get();
 
@@ -85,6 +87,7 @@ class VectorComponents<3> :
 	public OutputPortConfig<float, float, float>
 {
 public:
+	static const char* Info_GetName() { return "Vector3Components"; }
 	void Setup(SetupContext& context) override {
 		const auto& vector = GetInput<0>().Get();
 
@@ -102,6 +105,7 @@ class VectorComponents<4> :
 	public OutputPortConfig<float, float, float, float>
 {
 public:
+	static const char* Info_GetName() { return "Vector4Components"; }
 	void Setup(SetupContext& context) override {
 		const auto& vector = GetInput<0>().Get();
 

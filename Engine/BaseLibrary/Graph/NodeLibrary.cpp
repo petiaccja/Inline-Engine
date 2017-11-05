@@ -25,17 +25,17 @@ template IntDivide;
 template IntModulo;
 
 #ifdef ENABLE_HIGH_PRECISION_NODES
-template FloatAdd;
-template FloatSub;
-template FloatMultiply;
-template FloatDivide;
-template FloatModulo;
+template DoubleAdd;
+template DoubleSub;
+template DoubleMultiply;
+template DoubleDivide;
+template DoubleModulo;
 
-template FloatAdd;
-template FloatSub;
-template FloatMultiply;
-template FloatDivide;
-template FloatModulo;
+template LongAdd;
+template LongSub;
+template LongMultiply;
+template LongDivide;
+template LongModulo;
 #endif
 
 // Comparison

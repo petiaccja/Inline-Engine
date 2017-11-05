@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#undef DELETE // hogy a faszomat húzzam bele a winapiba
 
 
 namespace inl {

@@ -4,14 +4,19 @@
 #include <GraphicsApi_D3D12/GxapiManager.hpp>
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
 
+#include <BaseLibrary/Platform/System.hpp>
+
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include <string>
 
 #define _WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
 #include <tchar.h>
+#undef DELETE
+
 #include "QCWorld.hpp"
 
 
@@ -193,6 +198,17 @@ int main(int argc, char* argv[]) {
 
 		engine.reset(new GraphicsEngine(desc));
 		pEngine = engine.get();
+
+		// Load graphics pipeline
+		// This is just a dummy pipeline now and it does not to anything blablabla
+		std::string exeDir = System::GetExecutableDir();
+		std::ifstream pipelineFile(exeDir + "\\pipeline.json");
+		if (!pipelineFile.is_open()) {
+			throw FileNotFoundException("Failed to open pipeline JSON.");
+		}
+		std::string pipelineDesc((std::istreambuf_iterator<char>(pipelineFile)), std::istreambuf_iterator<char>());
+		engine->LoadPipeline(pipelineDesc);
+
 
 		// Create mini world
 		qcWorld.reset(new QCWorld(engine.get()));

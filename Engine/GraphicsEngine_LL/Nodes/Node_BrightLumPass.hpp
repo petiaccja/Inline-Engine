@@ -22,6 +22,7 @@ class BrightLumPass :
 	virtual public OutputPortConfig<Texture2D, Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "BrightLumPass"; }
 	BrightLumPass();
 
 	void Update() override {}

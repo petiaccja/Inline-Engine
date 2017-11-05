@@ -8,6 +8,7 @@
 #include <string>
 #include <typeinfo>
 #include <typeindex>
+#include <cassert>
 
 
 namespace inl {
@@ -47,7 +48,7 @@ public:
 	/// Register a node class. Registered classes can be instantiated later.
 	/// </summary>
 	template <class T>
-	bool RegisterNodeClass(const std::string& group);
+	bool RegisterNodeClass(const std::string& group = "");
 
 	/// <summary> Instantiate node class by name. </summary>
 	virtual NodeBase* CreateNode(const std::string& name);
@@ -74,6 +75,7 @@ bool NodeFactory::RegisterNodeClass(const std::string& group) {
 	std::string strGroup = group;
 	std::string strName = T::Info_GetName();
 	if (strName.find('/') != std::string::npos) {
+		assert(false); // Node's name cannot contain slashes
 		return false;
 	}
 	auto descriptionBegins = strName.find(':');
@@ -95,12 +97,12 @@ bool NodeFactory::RegisterNodeClass(const std::string& group) {
 	NodeCreator creator;
 	creator.info.name = T::Info_GetName();
 	creator.info.group = strGroup;
-	creator.info.numInputPorts = T::Info_GetNumInputs();
-	creator.info.numOutputPorts = T::Info_GetNumOutputs();
-	creator.info.inputTypes = T::Info_GetInputTypes();
-	creator.info.outputTypes = T::Info_GetOutputTypes();
-	creator.info.inputNames = T::Info_GetInputNames();
-	creator.info.outputNames = T::Info_GetOutputNames();
+	//creator.info.numInputPorts = T::Info_GetNumInputs();
+	//creator.info.numOutputPorts = T::Info_GetNumOutputs();
+	//creator.info.inputTypes = T::Info_GetInputTypes();
+	//creator.info.outputTypes = T::Info_GetOutputTypes();
+	//creator.info.inputNames = T::Info_GetInputNames();
+	//creator.info.outputNames = T::Info_GetOutputNames();
 	creator.creator = []() -> NodeBase* {return new T();};
 
 	// insert class to registered classes' map

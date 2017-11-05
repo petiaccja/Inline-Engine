@@ -25,6 +25,7 @@ class DrawSky :
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "DrawSky"; }
 	void Update() override {}
 	void Notify(InputPortBase* sender) override {}
 	

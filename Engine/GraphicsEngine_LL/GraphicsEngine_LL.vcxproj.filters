@@ -674,5 +674,6 @@
     <None Include="Nodes\Shaders\TiledLighting.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
     </None>
+    <None Include="pipeline.json" />
   </ItemGroup>
 </Project>

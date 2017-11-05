@@ -38,7 +38,7 @@ public:
 	VectorT Direction() const { return direction; }
 	VectorT Base() const { return base; }
 	VectorT PointAt(T param) const { return base + param*direction; }
-private:
+public:
 	VectorT direction, base;
 };
 
@@ -66,8 +66,26 @@ public:
 	mathter::Line<T, Dim> Line() const {
 		return mathter::Line<T, Dim>{point1, Direction()};
 	}
-private:
+public:
 	VectorT point1, point2;
+};
+
+
+template <class T, int Dim>
+class Ray : protected Line<T, Dim> {
+public:
+	// Inhreitance is protected to deny casting.
+	// Casting is bad 'cause we don't want to implicit cast a Ray to a Line and Intersect() it with a plane.
+	using Line::Line;
+	using Line::Through;
+	using Line::Direction;
+	using Line::Base;
+	using Line::PointAt;
+	using Line::direction;
+	using Line::base;
+	mathter::Line<T, Dim> Line() const {
+		return static_cast<mathter::Line<T, Dim>>(*this);
+	}
 };
 
 

@@ -21,6 +21,7 @@ class ScreenSpaceTransform :
 	virtual public OutputPortConfig<Mat44>
 {
 public:
+	static const char* Info_GetName() { return "ScreenSpaceTransform"; }
 	virtual void Update() override {}
 
 	virtual void Notify(InputPortBase* sender) override {}

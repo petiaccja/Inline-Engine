@@ -214,6 +214,7 @@
     <ClInclude Include="Graph\Node_Logic.hpp" />
     <ClInclude Include="Graph\Node_MathFunctions.hpp" />
     <ClInclude Include="Graph\Port.hpp" />
+    <ClInclude Include="Graph\PortConverters.hpp" />
     <ClInclude Include="Memory\MultiInstanceTLS.hpp" />
     <ClInclude Include="Memory\RingAllocationEngine.hpp" />
     <ClInclude Include="Memory\SlabAllocatorEngine.hpp" />
@@ -249,6 +250,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Exception\Exception.cpp" />
+    <ClCompile Include="Graph\Node.cpp" />
     <ClCompile Include="Graph\NodeFactory.cpp" />
     <ClCompile Include="Graph\NodeLibrary.cpp" />
     <ClCompile Include="Graph\Port.cpp" />
@@ -258,6 +260,7 @@
     <ClCompile Include="Logging\LogPipe.cpp" />
     <ClCompile Include="Logging\LogStream.cpp" />
     <ClCompile Include="Platform\Win32\Input.cpp" />
+    <ClCompile Include="Platform\Win32\System.cpp" />
     <ClCompile Include="Platform\Win32\Window.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform3D.cpp" />

@@ -22,6 +22,7 @@ class ScreenSpaceShadow :
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "ScreenSpaceShadow"; }
 	ScreenSpaceShadow();
 
 	void Update() override {}

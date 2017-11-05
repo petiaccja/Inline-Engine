@@ -26,6 +26,7 @@ class GetEnvVariable :
 	virtual public OutputPortConfig<Any>
 {
 public:
+	static const char* Info_GetName() { return "GetEnvVariable"; }
 	GetEnvVariable() {}
 
 	void Update() override {}

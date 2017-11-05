@@ -28,19 +28,23 @@ public:
 	static std::string Info_GetName() {
 		return name;
 	}
+	std::string GetClassName(bool simplify = false, const std::vector<std::string>& stripNamespaces = {}) const override {
+		auto s = Info_GetName();
+		return s.substr(0, s.find_first_of(':'));
+	}
 
-	static const std::vector<std::string>& Info_GetInputNames() {
+	const std::string& GetInputName(size_t idx) const override {
 		static std::vector<std::string> names = {
 			op1desc,
 			op2desc
 		};
-		return names;
+		return names[idx];
 	}
-	static const std::vector<std::string>& Info_GetOutputNames() {
+	const std::string& GetOutputName(size_t idx) const override {
 		static std::vector<std::string> names = {
 			resdesc
 		};
-		return names;
+		return names[idx];
 	}
 };
 

@@ -22,6 +22,7 @@ class DepthReductionFinal :
 	virtual public OutputPortConfig<Texture2D, Texture2D, Texture2D, Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "DepthReductionFinal"; }
 	DepthReductionFinal();
 
 	void Update() override {}

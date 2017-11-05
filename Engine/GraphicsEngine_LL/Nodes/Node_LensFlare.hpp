@@ -23,6 +23,7 @@ class LensFlare :
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "LensBlur"; }
 	LensFlare();
 
 	void Update() override {}

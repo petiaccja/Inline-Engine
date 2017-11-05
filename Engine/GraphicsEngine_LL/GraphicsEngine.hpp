@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GraphicsNodeFactory.hpp"
 #include "Pipeline.hpp"
 #include "Scheduler.hpp"
 #include "CommandAllocatorPool.hpp"
@@ -57,6 +58,7 @@ struct GraphicsEngineDesc {
 
 // Temporary, delete this!!!!44négy
 // Peti wuz here '17.07.28 - surprisingly, I actually understood why this is temporary, but I'm not gonna write it down
+// Yeah, I still understand and this is really not important '17.11.07
 class PipelineEventPrinter : public PipelineEventListener {
 public:
 	PipelineEventPrinter() : m_log(nullptr) {}
@@ -91,12 +93,14 @@ public:
 	GraphicsEngine& operator=(const GraphicsEngine&) = delete;
 	~GraphicsEngine();
 
+
 	// Update scene
 	void Update(float elapsed);
 	void SetScreenSize(unsigned width, unsigned height);
 	void GetScreenSize(unsigned& width, unsigned& height);
 	void SetFullScreen(bool enable);
 	bool GetFullScreen() const;
+
 
 	// Resources
 	Mesh* CreateMesh();
@@ -105,6 +109,7 @@ public:
 	MaterialShaderEquation* CreateMaterialShaderEquation();
 	MaterialShaderGraph* CreateMaterialShaderGraph();
 
+
 	// Scene
 	Scene* CreateScene(std::string name);
 	MeshEntity* CreateMeshEntity();
@@ -112,13 +117,27 @@ public:
 	PerspectiveCamera* CreatePerspectiveCamera(std::string name);
 	OrthographicCamera* CreateOrthographicCamera(std::string name);
 
-	// Environment variables
+
+	// Pipeline and environment variables
+
+	/// <summary> Creates or sets an environment variable to the given value. </summary>
 	/// <returns> True if a new variable was created, false if old was overridden. </returns>
+	/// <remarks> Environment variables can be accessed in the graphics pipeline graph by the special
+	///		<see cref="nodes::GetEnvVariable"/> node. You can use it to slightly 
+	///		alter pipeline behavriourfrom outside. </remarks>
 	bool SetEnvVariable(std::string name, Any obj);
+
+	/// <summary> Returns true if env var with given name exists. </summary>
 	bool EnvVariableExists(const std::string& name);
+
+	/// <summary> Return the env var with given name or throws <see cref="InvalidArgumentException"/>. </summary>
 	const Any& GetEnvVariable(const std::string& name);
+
+	/// <summary> Load the pipeline from the JSON node graph description. </summary>
+	void LoadPipeline(const std::string& nodes);
 private:
 	void CreatePipeline();
+	void RegisterPipelineClasses();
 	static std::vector<GraphicsNode*> SelectSpecialNodes(Pipeline& pipeline);
 	void UpdateSpecialNodes();
 	static void DumpPipelineGraph(const Pipeline& pipeline, std::string file);
@@ -137,6 +156,7 @@ private:
 	std::vector<WindowResizeListener*> m_windowResizeListeners;
 
 	// Pipeline Facilities
+	GraphicsNodeFactory m_nodeFactory;
 	CommandAllocatorPool m_commandAllocatorPool;
 	CommandListPool m_commandListPool;
 	ScratchSpacePool m_scratchSpacePool; // Creates CBV_SRV_UAV type scratch spaces

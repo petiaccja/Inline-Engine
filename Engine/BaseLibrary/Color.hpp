@@ -13,7 +13,6 @@ public:
 		struct {
 			Scalar r, g, b, a;
 		};
-	protected:
 		Vector<Scalar, 4, false> v;
 	};
 
@@ -61,6 +60,7 @@ public:
 			long double minval = std::numeric_limits<Scalar>::min();
 			long double maxval = std::numeric_limits<Scalar>::max();
 			long double range = maxval - minval;
+			assert(false); // this is simply wrong but im too lazy
 			transition *= range;
 			transition -= minval;
 			transition += 0.5;
@@ -127,7 +127,7 @@ public:
 	}
 
 	Scalar Greyscale() const {
-		return Dot(v, Color(Color<float>(0.2126f, 0.7152f, 0.0722f, 0.0f));
+		return Dot(v, Color(Color<float>(0.2126f, 0.7152f, 0.0722f, 0.0f)).v);
 	}
 };
 

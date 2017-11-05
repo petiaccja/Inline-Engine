@@ -156,9 +156,9 @@ void Scene::Update(float deltaTime)
 	}
 }
 
-bool Scene::TraceRay(const Ray& ray, physics::TraceResult& traceResult_out, float maxDistance /*= std::numeric_limits<float>::max()*/, const physics::TraceParams& params /*= physics::TraceParams()*/)
+bool Scene::TraceRay(const Ray3D& ray, physics::TraceResult& traceResult_out, float maxDistance /*= std::numeric_limits<float>::max()*/, const physics::TraceParams& params /*= physics::TraceParams()*/)
 {
-	btVector3 rayStart = btVector3(ray.origin.x, ray.origin.y, ray.origin.z);
+	btVector3 rayStart = btVector3(ray.base.x, ray.base.y, ray.base.z);
 	btVector3 rayEnd = rayStart + btVector3(ray.direction.x, ray.direction.y, ray.direction.z) * maxDistance;
 	ClosestRayCallback function(rayStart, rayEnd, params.ignoredCollisionLayers);
 

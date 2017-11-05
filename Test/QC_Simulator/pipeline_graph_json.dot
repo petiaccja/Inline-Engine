@@ -1,0 +1,13 @@
+digraph structs {
+rankdir=LR;
+ranksep="0.8";
+node [shape=record];
+
+node0 [shape=record, label="Adder : Add | {{<in0> float | <in1> float} | {<out0> float}}"];
+node1 [shape=record, label="Node #2 : Cos | {{<in0> float} | {<out0> float}}"];
+node2 [shape=record, label="Node #1 : Sin | {{<in0> float} | {<out0> float}}"];
+
+node2:out0 -> node0:in0;
+node1:out0 -> node0:in1;
+
+}

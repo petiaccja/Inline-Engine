@@ -144,6 +144,9 @@
     <ClInclude Include="RingBuffer.hpp">
       <Filter>Memory</Filter>
     </ClInclude>
+    <ClInclude Include="Graph\PortConverters.hpp">
+      <Filter>Graph</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">
@@ -194,5 +197,11 @@
       <Filter>Platform\Win32</Filter>
     </ClCompile>
     <ClCompile Include="SpinMutex.cpp" />
+    <ClCompile Include="Platform\Win32\System.cpp">
+      <Filter>Platform\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="Graph\Node.cpp">
+      <Filter>Graph</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

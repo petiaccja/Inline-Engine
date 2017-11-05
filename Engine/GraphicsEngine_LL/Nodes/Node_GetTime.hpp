@@ -21,6 +21,7 @@ class GetTime :
 	public OutputPortConfig<double>
 {
 public:
+	static const char* Info_GetName() { return "GetTime"; }
 	GetTime() {}
 
 	void Update() override {}

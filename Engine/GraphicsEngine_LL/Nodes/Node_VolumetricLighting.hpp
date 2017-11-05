@@ -22,6 +22,7 @@ class VolumetricLighting :
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "VolumetricLighting"; }
 	VolumetricLighting();
 
 	void Update() override {}

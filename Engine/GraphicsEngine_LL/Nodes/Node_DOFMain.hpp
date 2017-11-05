@@ -22,6 +22,7 @@ class DOFMain :
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "DOFMain"; }
 	DOFMain();
 
 	void Update() override {}

@@ -13,7 +13,7 @@ class GraphicsEngine;
 
 class GraphicsNodeFactory : public NodeFactory {
 public:
-	virtual NodeBase* CreateNode(const std::string& name) override;
+	NodeBase* CreateNode(const std::string& name) override;
 
 private:
 	GraphicsEngine* m_engine;

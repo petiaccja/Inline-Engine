@@ -22,6 +22,7 @@ class LightCulling :
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "LightCulling"; }
 	LightCulling();
 
 	void Update() override {}

@@ -113,6 +113,9 @@
     <Lib>
       <AdditionalDependencies>lemon.lib;</AdditionalDependencies>
     </Lib>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline.json" "$(OutputPath)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -130,6 +133,9 @@
     <Lib>
       <AdditionalDependencies>lemon.lib;</AdditionalDependencies>
     </Lib>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline.json" "$(OutputPath)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -153,6 +159,9 @@
     <Lib>
       <AdditionalDependencies>lemon.lib;</AdditionalDependencies>
     </Lib>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline.json" "$(OutputPath)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -176,6 +185,9 @@
     <Lib>
       <AdditionalDependencies>lemon.lib;</AdditionalDependencies>
     </Lib>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline.json" "$(OutputPath)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -376,6 +388,9 @@
     <None Include="Materials\simple_diffuse.mtl.hlsl">
       <FileType>Document</FileType>
     </None>
+    <Text Include="pipeline.json">
+      <FileType>Document</FileType>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="Materials\PbrBrdf.hlsl">

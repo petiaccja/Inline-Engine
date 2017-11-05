@@ -78,7 +78,7 @@ Rect<T> Rect<T>::FromSize(Vec2T bottomLeft, Vec2T size) {
 }
 
 template <class T>
-Rect<T>::Vec2T Rect<T>::GetSize() const {
+typename Rect<T>::Vec2T Rect<T>::GetSize() const {
 	return { right - left, top - bottom };
 }
 
@@ -99,46 +99,46 @@ T Rect<T>::GetArea() const {
 }
 
 template <class T>
-Rect<T>::Vec2T Rect<T>::GetBottomLeft() const {
+typename Rect<T>::Vec2T Rect<T>::GetBottomLeft() const {
 	return { left, bottom };
 }
 
 template <class T>
-Rect<T>::Vec2T Rect<T>::GetTopLeft() const {
+typename Rect<T>::Vec2T Rect<T>::GetTopLeft() const {
 	return { left, top };
 }
 
 template <class T>
-Rect<T>::Vec2T Rect<T>::GetBottomRight() const {
+typename Rect<T>::Vec2T Rect<T>::GetBottomRight() const {
 	return { right, bottom };
 }
 
 template <class T>
-Rect<T>::Vec2T Rect<T>::GetTopRight() const {
+typename Rect<T>::Vec2T Rect<T>::GetTopRight() const {
 	return { right, top };
 }
 
 template <class T>
-Rect<T>::Vec2T Rect<T>::GetCenter() const {
+typename Rect<T>::Vec2T Rect<T>::GetCenter() const {
 	return (GetBottomLeft() + GetTopRight()) * T(0.5);
 }
 
 
 template <class T>
-void Rect<T>::SetSize(Vec2T newSize, Vec2T origin = { 0.5f, 0.5f }) {
+void Rect<T>::SetSize(Vec2T newSize, Vec2T origin) {
 	SetWidth(newSize.x, origin.x);
 	SetHeight(newSize.y, origin.y);
 }
 
 template <class T>
-void Rect<T>::SetWidth(T newWidth, T origin = 0.5f) {
+void Rect<T>::SetWidth(T newWidth, T origin) {
 	T p = (T(1) - origin)*left + origin*right;
 	left = p + (T(1) - origin)*newWidth;
 	right = p + origin*newWidth;
 }
 
 template <class T>
-void Rect<T>::SetHeight(T newHeight, T origin = 0.5f) {
+void Rect<T>::SetHeight(T newHeight, T origin) {
 	T p = (T(1) - origin)*bottom + origin*top;
 	bottom  = p + (T(1) - origin)*newHeight;
 	top = p + origin*newHeight;

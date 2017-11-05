@@ -51,6 +51,13 @@ namespace impl {
 
 	template <class MatrixT>
 	class MatrixProperties : public MatrixPropertiesHelper<typename std::decay<MatrixT>::type> {};
+
+
+	template <eMatrixLayout Layout>
+	class OppositeLayout {
+	public:
+		static constexpr eMatrixLayout value = (Layout == eMatrixLayout::ROW_MAJOR ? eMatrixLayout::COLUMN_MAJOR : eMatrixLayout::ROW_MAJOR);
+	};
 }
 
 
@@ -132,6 +139,19 @@ public:
 		return ret;
 	}
 
+	template <class U, bool Packed, class = typename std::enable_if<std::min(SRows, SColumns) == 1>::type>
+	operator Vector<U, std::max(SRows, SColumns), Packed>() const {
+		Vector<U, std::max(SRows, SColumns), Packed> v;
+		int k = 0;
+		for (int i = 0; i < SRows; ++i) {
+			for (int j = 0; j < SColumns; ++j) {
+				v(k) = (*this)(i, j);
+				++k;
+			}
+		}
+		return v;
+	}
+
 
 	template <class U, eMatrixOrder UOrder, eMatrixLayout ULayout, bool UPacked>
 	Submatrix& operator=(const Matrix<U, SRows, SColumns, UOrder, ULayout, UPacked>& rhs) {
@@ -145,6 +165,23 @@ public:
 		}
 		return *this;
 	}
+
+
+	// From vector if applicable (for 1*N and N*1 submatrices)
+	template <class U, bool Packed, class = typename std::enable_if<std::min(SRows, SColumns) == 1>::type>
+	Submatrix& operator=(const Vector<U, std::max(SRows, SColumns), Packed>& v) {
+		static_assert(!std::is_const<MatrixT>::value, "Cannot assign to submatrix of const matrix.");
+
+		int k = 0;
+		for (int i = 0; i < SRows; ++i) {
+			for (int j = 0; j < SColumns; ++j) {
+				mat(row + i, col + j) = v(k);
+				++k;
+			}
+		}
+		return *this;
+	}
+
 	
 	template <class MatrixU>
 	Submatrix& operator=(const Submatrix<MatrixU, SRows, SColumns>& rhs) {
@@ -905,6 +942,14 @@ public:
 		Assign<0, 0>(h, args...);
 	}
 
+	// From vector if applicable (for 1*N and N*1 matrices)
+	template <class U, bool Packed, class = typename std::enable_if<std::min(Rows, Columns) == 1>::type>
+	explicit Matrix(const Vector<U, std::max(Rows, Columns), Packed>& v){
+		for (int i = 0; i < v.Dimension(); ++i) {
+			(*this)(i) = v(i);
+		}
+	}
+
 
 	//--------------------------------------------
 	// Accessors
@@ -943,6 +988,33 @@ public:
 		assert(Subcolumns + colIdx <= Columns);
 
 		return mathter::Submatrix<const Matrix, Subrows, Subcolumns>(*this, rowIdx, colIdx);
+	}
+
+	auto Column(int colIdx) {
+		return Submatrix<Rows, 1>(0, colIdx);
+	}
+	auto Row(int rowIdx) {
+		return Submatrix<1, Columns>(rowIdx, 0);
+	}
+	auto Column(int colIdx) const {
+		return Submatrix<Rows, 1>(0, colIdx);
+	}
+	auto Row(int rowIdx) const {
+		return Submatrix<1, Columns>(rowIdx, 0);
+	}
+
+	// Conversion to vector if applicable
+	template <class U, bool Packed, class = typename std::enable_if<std::min(Rows, Columns) == 1>::type>
+	explicit operator Vector<U, std::max(Rows, Columns), Packed>() const {
+		Vector<U, std::max(Rows, Columns), Packed> v;
+		int k = 0;
+		for (int i = 0; i < Rows; ++i) {
+			for (int j = 0; j < Columns; ++j) {
+				v(k) = (*this)(i, j);
+				++k;
+			}
+		}
+		return v;
 	}
 
 	//--------------------------------------------
@@ -1062,6 +1134,44 @@ public:
 	}
 
 
+	// Elementwise multiply and divide
+	template <class T2, eMatrixOrder Order2>
+	inline Matrix& MulElementwise(const Matrix<T2, Rows, Columns, Order2, Layout, Packed>& rhs) {
+		for (int i = 0; i < StripeCount; ++i) {
+			stripes[i] = stripes[i] * rhs.stripes[i];
+		}
+		return *this;
+	}
+
+	template <class T2, eMatrixOrder Order2>
+	inline Matrix& MulElementwise(const Matrix<T2, Rows, Columns, Order2, impl::OppositeLayout<Layout>::value, Packed>& rhs) {
+		for (int i = 0; i < RowCount(); ++i) {
+			for (int j = 0; j < ColumnCount(); ++j) {
+				(*this)(i, j) *= rhs(i, j);
+			}
+		}
+		return *this;
+	}
+
+	template <class T2, eMatrixOrder Order2>
+	inline Matrix& DivElementwise(const Matrix<T2, Rows, Columns, Order2, Layout, Packed>& rhs) {
+		for (int i = 0; i < StripeCount; ++i) {
+			stripes[i] = stripes[i] / rhs.stripes[i];
+		}
+		return *this;
+	}
+
+	template <class T2, eMatrixOrder Order2>
+	inline Matrix& DivElementwise(const Matrix<T2, Rows, Columns, Order2, impl::OppositeLayout<Layout>::value, Packed>& rhs) {
+		for (int i = 0; i < RowCount(); ++i) {
+			for (int j = 0; j < ColumnCount(); ++j) {
+				(*this)(i, j) /= rhs(i, j);
+			}
+		}
+		return *this;
+	}
+
+
 	//--------------------------------------------
 	// Matrix functions
 	//--------------------------------------------
@@ -1090,6 +1200,15 @@ public:
 
 	static Matrix Identity();
 	Matrix& SetIdentity();
+
+	T Norm() const {
+		T sum = T(0);
+		for (auto& stripe : stripes) {
+			sum += stripe.LengthSquared();
+		}
+		sum /= (RowCount() * ColumnCount());
+		return sqrt(sum);
+	}
 
 
 	//--------------------------------------------
@@ -1872,6 +1991,25 @@ bool DecompositionLU<T, Dim, Order, Layout, Packed>::Solve(Vector<float, Dim, Pa
 	}
 
 	return true;
+}
+
+
+template <class T1, class T2, int Rows, int Columns, eMatrixOrder O1, eMatrixOrder O2, eMatrixLayout L1, eMatrixLayout L2, bool Packed>
+Matrix<T1, Rows, Columns, O1, L1, Packed> MulElementwise(
+	const Matrix<T1, Rows, Columns, O1, L1, Packed>& lhs,
+	const Matrix<T1, Rows, Columns, O1, L1, Packed>& rhs) 
+{
+	Matrix<T1, Rows, Columns, O1, L1, Packed> ret = lhs;
+	return ret.MulElementwise(rhs);
+}
+
+template <class T1, class T2, int Rows, int Columns, eMatrixOrder O1, eMatrixOrder O2, eMatrixLayout L1, eMatrixLayout L2, bool Packed>
+Matrix<T1, Rows, Columns, O1, L1, Packed> DivElementwise(
+	const Matrix<T1, Rows, Columns, O1, L1, Packed>& lhs,
+	const Matrix<T1, Rows, Columns, O1, L1, Packed>& rhs)
+{
+	Matrix<T1, Rows, Columns, O1, L1, Packed> ret = lhs;
+	return ret.DivElementwise(rhs);
 }
 
 

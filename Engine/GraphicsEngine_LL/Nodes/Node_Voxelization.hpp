@@ -26,6 +26,7 @@ class Voxelization :
 	virtual public OutputPortConfig<Texture3D, Texture2D, Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "Voxelization"; }
 	Voxelization();
 
 	void Update() override {}

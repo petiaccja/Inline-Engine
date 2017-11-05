@@ -1,8 +1,8 @@
 #pragma once
 #include "Part.hpp"
-#include <GraphicsEngine_LL\PerspectiveCamera.hpp>
+#include <GraphicsEngine_LL/PerspectiveCamera.hpp>
 #include <InlineMath.hpp>
-#include <BaseLibrary\Common.hpp>
+#include <BaseLibrary/Rect.hpp>
 
 namespace inl::core {
 
@@ -20,7 +20,7 @@ public:
 	void SetViewportRect(RectF rect);
 	void SetActive(bool active);
 
-	Ray ScreenPointToRay(const Vec2& screenPoint);
+	Ray3D ScreenPointToRay(const Vec2& screenPoint);
 
 	void UpdateEntityTransform() override;
 

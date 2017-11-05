@@ -1,7 +1,9 @@
 #pragma once
 #include "GuiEvent.hpp"
-#include "BaseLibrary\Common.hpp"
-#include "BaseLibrary\Platform\Window.hpp"
+#include <BaseLibrary/Common.hpp>
+#include <BaseLibrary/Platform/Window.hpp>
+#include <BaseLibrary/Rect.hpp>
+#include <BaseLibrary/Color.hpp>
 
 #include <unordered_map>
 
@@ -142,11 +144,11 @@ public:
 
 	void SetClipChildren(bool b) { bClipChildren = b; }
 
-	void SetBgToColor(const Color& idleColor, const Color& hoverColor);
-	void SetBgToColor(const Color& color) { SetBgToColor(color, color);}
-	void SetBgIdleColor(const Color& color);
-	void SetBgHoverColor(const Color& color);
-	void SetBgActiveColor(const Color& color) { bgActiveColor = color; }
+	void SetBgToColor(const ColorF& idleColor, const ColorF& hoverColor);
+	void SetBgToColor(const ColorF& color) { SetBgToColor(color, color);}
+	void SetBgIdleColor(const ColorF& color);
+	void SetBgHoverColor(const ColorF& color);
+	void SetBgActiveColor(const ColorF& color) { bgActiveColor = color; }
 	void SetBgActiveColorToIdle();
 	void SetBgActiveColorToHover();
 
@@ -157,8 +159,8 @@ public:
 	void SetBgActiveImageToIdle();
 	void SetBgActiveImageToHover();
 
-	void SetBorder(float leftLength, float rightLength, float topLength, float bottomLength, const Color& color);
-	void SetBorder(float borderLength, const Color& color) { SetBorder(borderLength, borderLength, borderLength, borderLength, color); }
+	void SetBorder(float leftLength, float rightLength, float topLength, float bottomLength, const ColorF& color);
+	void SetBorder(float borderLength, const ColorF& color) { SetBorder(borderLength, borderLength, borderLength, borderLength, color); }
 
 	void SetMargin(float leftLength, float rightLength, float topLength, float bottomLength);
 	void SetMargin(float length) { SetMargin(length, length, length, length); }
@@ -313,15 +315,15 @@ public:
 
 	//eEventPropagationPolicy GetEventPropagationPolicy() { return eventPropagationPolicy; }
 
-	const Color& GetBgActiveColor() const { return bgActiveColor; }
-	const Color& GetBgIdleColor() const { return bgIdleColor; }
-	const Color& GetBgHoverColor() const { return bgHoverColor; }
+	const ColorF& GetBgActiveColor() const { return bgActiveColor; }
+	const ColorF& GetBgIdleColor() const { return bgIdleColor; }
+	const ColorF& GetBgHoverColor() const { return bgHoverColor; }
 
 	Gdiplus::Bitmap* GetBgActiveImage() { return bgActiveImage; }
 	Gdiplus::Bitmap* GetBgIdleImage() { return bgIdleImage; }
 	Gdiplus::Bitmap* GetBgHoverImage() { return bgHoverImage; }
 
-	const Color& GetBorderColor() { return borderColor; }
+	const ColorF& GetBorderColor() { return borderColor; }
 	RectF GetBorder() { return border; }
 	Vec2 GetDesiredSize() { return GetSize() + Vec2(margin.left + margin.right, margin.top + margin.bottom); }
 
@@ -392,7 +394,7 @@ protected:
 	eGuiStretch	 stretchVer;
 
 	// Border
-	Color borderColor;
+	ColorF borderColor;
 	RectF border;
 
 	// Margin
@@ -428,9 +430,9 @@ protected:
 	Gdiplus::Bitmap* bgHoverImage;
 	Gdiplus::Bitmap* bgActiveImage;
 
-	Color bgIdleColor;
-	Color bgHoverColor;
-	Color bgActiveColor;
+	ColorF bgIdleColor;
+	ColorF bgHoverColor;
+	ColorF bgActiveColor;
 
 	// If true, RefreshLayout() will be called before render, to ReArrange the layout as necessary
 	bool bLayoutNeedRefresh;

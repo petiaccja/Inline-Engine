@@ -26,7 +26,7 @@ public:
 
 	void Update(float deltaTime);
 
-	bool TraceRay(const Ray& ray, physics::TraceResult& traceResult_out, float maxDistance = std::numeric_limits<float>::max(), const physics::TraceParams& params = physics::TraceParams());
+	bool TraceRay(const Ray3D& ray, physics::TraceResult& traceResult_out, float maxDistance = std::numeric_limits<float>::max(), const physics::TraceParams& params = physics::TraceParams());
 
 	// Create, Add DYNAMIC rigid body to physics world
 	physics::IRigidBodyEntity* AddEntityRigidDynamic(Vec3* vertices, uint32_t nVertices, float mass = 1);

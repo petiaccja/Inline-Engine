@@ -1,11 +1,14 @@
 #include "GraphicsEngine.hpp"
 #include "GraphicsNode.hpp"
 
-#include "../BaseLibrary/Graph/Node.hpp"
+#include <BaseLibrary/Graph/Node.hpp>
+#include <BaseLibrary/Graph/NodeLibrary.hpp>
 
 #include <iostream> // only for debugging
 #include <regex> // as well...
 #include <lemon/bfs.h> // as well...
+#include <rapidjson/document.h>
+#include <optional>
 
 #include "Nodes/Node_GetBackBuffer.hpp"
 #include "Nodes/Node_TextureProperties.hpp"
@@ -121,6 +124,8 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 #endif // NDEBUG
 	m_shaderManager.SetShaderCompileFlags(shaderFlags);
 
+	// Register nodes
+	RegisterPipelineClasses();
 
 	// Do more stuff...
 	CreatePipeline();
@@ -374,6 +379,253 @@ const Any& GraphicsEngine::GetEnvVariable(const std::string& name) {
 	else {
 		throw InvalidArgumentException("Environment variable does not exist.");
 	}
+}
+
+
+void GraphicsEngine::LoadPipeline(const std::string& graphDesc) {
+	using namespace rapidjson;
+
+	// Helper functions and structures.
+	struct NodeCreationInfo {
+		std::optional<int> id;
+		std::optional<std::string> name;
+		std::string cl;
+		std::vector<std::optional<std::string>> inputs;
+	};
+
+	struct LinkCreationInfo {
+		std::optional<int> srcid, dstid;
+		std::optional<std::string> srcname, dstname;
+		std::optional<int> srcpidx, dstpidx;
+		std::optional<std::string> srcpname, dstpname;
+	};
+
+	auto AssertThrow = [](bool value, const std::string& text) {
+		if (!value) {
+			throw InvalidArgumentException(text);
+		}
+	};
+
+	auto ParseNode = [&AssertThrow](const GenericValue<UTF8<>>& obj) {
+		NodeCreationInfo info;
+		if (obj.HasMember("id")) {
+			AssertThrow(obj["id"].IsInt(), "Node's id member must be an integer.");
+			info.id = obj["id"].GetInt();
+		}
+		if (obj.HasMember("name")) {
+			AssertThrow(obj["name"].IsString(), "Node's name member must be a string.");
+			info.name = obj["name"].GetString();
+		}
+		AssertThrow(info.id || info.name, "Node must have either id or name.");
+		AssertThrow(obj.HasMember("class") && obj["class"].IsString(), "Node must have a class.");
+		info.cl = obj["class"].GetString();
+
+		if (obj.HasMember("inputs")) {
+			AssertThrow(obj["inputs"].IsArray(), "Default inputs must be specified in an array, undefined inputs as {}.");
+			auto& inputs = obj["inputs"];
+			for (SizeType i = 0; i < inputs.Size(); ++i) {
+				if (inputs[i].IsObject() && inputs[i].ObjectEmpty()) {
+					info.inputs.push_back({});
+				}
+				else if (inputs[i].IsString()) {
+					info.inputs.push_back(inputs[i].GetString());
+				}
+				else if (inputs[i].IsInt64()) {
+					info.inputs.push_back(std::to_string(inputs[i].GetInt64()));
+				}
+				else if (inputs[i].IsDouble()) {
+					info.inputs.push_back(std::to_string(inputs[i].GetDouble()));
+				}
+				else {
+					assert(false);
+				}
+			}
+		}
+		return info;
+	};
+
+	auto ParseLink = [&AssertThrow](const GenericValue<UTF8<>>& obj) {
+		LinkCreationInfo info;
+
+		AssertThrow(obj.HasMember("src")
+			&& obj.HasMember("dst")
+			&& obj.HasMember("srcp")
+			&& obj.HasMember("dstp"),
+			"Link must have members src, dst, srcp and dstp.");
+
+		if (obj["src"].IsString()) {
+			info.srcname = obj["src"].GetString();
+		}
+		else if (obj["src"].IsInt()) {
+			info.srcid = obj["src"].GetInt();
+		}
+		else {
+			AssertThrow(false, "Link src must be string (name) or int (id) of the node.");
+		}
+
+		if (obj["dst"].IsString()) {
+			info.dstname = obj["dst"].GetString();
+		}
+		else if (obj["dst"].IsInt()) {
+			info.dstid = obj["dst"].GetInt();
+		}
+		else {
+			AssertThrow(false, "Link dst must be string (name) or int (id) of the node.");
+		}
+
+		if (obj["srcp"].IsString()) {
+			info.srcpname = obj["srcp"].GetString();
+		}
+		else if (obj["srcp"].IsInt()) {
+			info.srcpidx = obj["srcp"].GetInt();
+		}
+		else {
+			AssertThrow(false, "Link srcp must be string (name) or int (index) of the port.");
+		}
+
+		if (obj["dstp"].IsString()) {
+			info.dstpname = obj["dstp"].GetString();
+		}
+		else if (obj["dstp"].IsInt()) {
+			info.dstpidx = obj["dstp"].GetInt();
+		}
+		else {
+			AssertThrow(false, "Link dstp must be string (name) or int (index) of the port.");
+		}
+
+		return info;
+	};
+
+
+	// Parse the JSON file.
+	Document doc;
+	doc.Parse(graphDesc.c_str());
+	ParseErrorCode ec = doc.GetParseError();
+	if (ec != ParseErrorCode::kParseErrorNone) {
+		int ch = doc.GetErrorOffset();
+		int chi = 0;
+		int chsum = 0;
+		int line = 0;
+		while (chi < ch && chi < graphDesc.size()) {
+			if (graphDesc[chi] == '\n') { ++line; chsum = 0; }
+			++ch;
+			++chsum;
+		}
+		throw InvalidArgumentException("JSON descripion has syntax errors.", "Check line " + std::to_string(line) + ":" + std::to_string(chsum));
+	}
+
+	AssertThrow(doc.IsObject(), "JSON root must be an object with member arrays \"nodes\" and \"links\".");
+	AssertThrow(doc.HasMember("nodes") && doc["nodes"].IsArray(), "JSON root must have \"nodes\" member array.");
+	AssertThrow(doc.HasMember("links") && doc["links"].IsArray(), "JSON root must have \"links\" member array.");
+
+	auto& nodes = doc["nodes"];
+	auto& links = doc["links"];
+	std::vector<NodeCreationInfo> nodeCreationInfos;
+	std::vector<LinkCreationInfo> linkCreationInfos;
+
+	for (SizeType i = 0; i < nodes.Size(); ++i) {
+		NodeCreationInfo info = ParseNode(nodes[i]);
+		nodeCreationInfos.push_back(info);
+	}
+
+	for (SizeType i = 0; i < links.Size(); ++i) {
+		LinkCreationInfo info = ParseLink(links[i]);
+		linkCreationInfos.push_back(info);
+	}
+
+	// Create lookup dictionary of nodes by name and by id.
+	// {name/id of node, index of node in vector}
+	std::unordered_map<int, size_t> idBook;
+	std::unordered_map<std::string, size_t> nameBook;
+	for (size_t i = 0; i < nodeCreationInfos.size(); ++i) {
+		if (nodeCreationInfos[i].name) {
+			auto ins = nameBook.insert({ nodeCreationInfos[i].name.value(), i });
+			AssertThrow(ins.second == true, "Node names must be unique.");
+		}
+		if (nodeCreationInfos[i].id) {
+			auto ins = idBook.insert({ nodeCreationInfos[i].id.value(), i });
+			AssertThrow(ins.second == true, "Node ids must be unique.");
+		}
+	}
+
+	// Create nodes with initial values.
+	std::vector<std::shared_ptr<NodeBase>> nodeObjects;
+	for (auto& info : nodeCreationInfos) {
+		std::shared_ptr<NodeBase> nodeObject(m_nodeFactory.CreateNode(info.cl));
+		if (info.name) {
+			nodeObject->SetDisplayName(info.name.value());
+		}
+
+		for (int i = 0; i < nodeObject->GetNumInputs() && i < info.inputs.size(); ++i) {
+			if (info.inputs.size()) {
+				nodeObject->GetInput(i)->SetConvert(info.inputs[i].value());
+			}
+		}
+
+		nodeObjects.push_back(std::move(nodeObject));
+	}
+
+	// Link nodes above.
+	for (auto& info : linkCreationInfos) {
+		NodeBase *src, *dst;
+		OutputPortBase* srcp;
+		InputPortBase* dstp;
+
+		// Find src and dst nodes
+		if (info.srcname) {
+			auto it = nameBook.find(info.srcname.value());
+			AssertThrow(it != nameBook.end(), "Node requested to link named " + info.srcname.value() + " not found.");
+			src = nodeObjects[it->second].get();
+		}
+		else {
+			auto it = idBook.find(info.srcid.value());
+			AssertThrow(it != idBook.end(), "Node requested to link id=" + std::to_string(info.srcid.value()) + " not found.");
+			src = nodeObjects[it->second].get();
+		}
+		if (info.dstname) {
+			auto it = nameBook.find(info.dstname.value());
+			AssertThrow(it != nameBook.end(), "Node requested to link named " + info.dstname.value() + " not found.");
+			dst = nodeObjects[it->second].get();
+		}
+		else {
+			auto it = idBook.find(info.dstid.value());
+			AssertThrow(it != idBook.end(), "Node requested to link id=" + std::to_string(info.dstid.value()) + " not found.");
+			dst = nodeObjects[it->second].get();
+		}
+		// Find src and dst ports
+		if (info.srcpname) {
+			for (int i = 0; i < src->GetNumOutputs(); ++i) {
+				if (info.srcpname.value() == src->GetOutputName(i)) {
+					srcp = src->GetOutput(i);
+					break;
+				}
+			}
+		}
+		else {
+			srcp = src->GetOutput(info.srcpidx.value());
+		}
+		if (info.dstpname) {
+			for (int i = 0; i < dst->GetNumInputs(); ++i) {
+				if (info.dstpname.value() == dst->GetInputName(i)) {
+					dstp = dst->GetInput(i);
+					break;
+				}
+			}
+		}
+		else {
+			dstp = dst->GetInput(info.dstpidx.value());
+		}
+		// Link said ports
+		bool linked = srcp->Link(dstp);
+		AssertThrow(linked, "Ports not compatible.");
+	}
+
+
+	// Finish off by creating the actual pipeline.
+	Pipeline pipeline;
+	pipeline.CreateFromNodesList(nodeObjects);
+
+	DumpPipelineGraph(pipeline, "pipeline_graph_json.dot");
 }
 
 
@@ -904,9 +1156,69 @@ void GraphicsEngine::UpdateSpecialNodes() {
 }
 
 
+void GraphicsEngine::RegisterPipelineClasses() {
+	RegisterIntegerArithmeticNodes(&m_nodeFactory, "Integer");
+	RegisterIntegerComparisonNodes(&m_nodeFactory, "Integer");
+	RegisterFloatArithmeticNodes(&m_nodeFactory, "Float");
+	RegisterFloatComparisonNodes(&m_nodeFactory, "Float");
+	RegisterFloatMathNodes(&m_nodeFactory, "Float");
+	RegisterLogicNodes(&m_nodeFactory, "Logic");
+
+
+	m_nodeFactory.RegisterNodeClass<nodes::GetBackBuffer>("Pipeline/System");
+	m_nodeFactory.RegisterNodeClass<nodes::GetSceneByName>("Pipeline/System");
+	m_nodeFactory.RegisterNodeClass<nodes::GetCameraByName>("Pipeline/System");
+	m_nodeFactory.RegisterNodeClass<nodes::GetTime>("Pipeline/System");
+	m_nodeFactory.RegisterNodeClass<nodes::GetEnvVariable>("Pipeline/System");
+
+	m_nodeFactory.RegisterNodeClass<nodes::TextureProperties>("Pipeline/Utility");
+	m_nodeFactory.RegisterNodeClass<nodes::CreateTexture>("Pipeline/Utility");
+	m_nodeFactory.RegisterNodeClass<nodes::VectorComponents<1>>("Pipeline/Utility");
+
+	m_nodeFactory.RegisterNodeClass<nodes::ForwardRender>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DepthPrepass>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DepthReduction>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DepthReductionFinal>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::CSM>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DrawSky>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DebugDraw>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::LightCulling>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::BrightLumPass>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::LuminanceReduction>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::LuminanceReductionFinal>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::HDRCombine>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::BloomDownsample>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::BloomBlur>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::BloomAdd>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::TileMax>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::NeighborMax>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::MotionBlur>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::LensFlare>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::SMAA>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DOFPrepare>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DOFTileMax>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DOFNeighborMax>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DOFMain>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::Voxelization>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::VolumetricLighting>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::ShadowMapGen>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceShadow>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceReflection>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::TextRender>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceAmbientOcclusion>("Pipeline/Render");
+
+	m_nodeFactory.RegisterNodeClass<nodes::OverlayRender>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::Blend>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceTransform>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::BlendWithTransform>("Pipeline/Render");
+}
+
+
+
 std::string TidyTypeName(std::string name) {
 	std::string s2;
 
+	// Replace <> with &lt; and &gt; escapes
 	int inTemplate = 0;
 	for (auto c : name) {
 		if (c == '<') {
@@ -921,31 +1233,6 @@ std::string TidyTypeName(std::string name) {
 			s2 += c;
 		}
 	}
-
-	std::regex classFilter(R"(\s*class\s*)");
-	s2 = std::regex_replace(s2, classFilter, "");
-
-	std::regex structFilter(R"(\s*struct\s*)");
-	s2 = std::regex_replace(s2, structFilter, "");
-
-	std::regex enumFilter(R"(\s*enum\s*)");
-	s2 = std::regex_replace(s2, enumFilter, "");
-
-	std::regex ptrFilter(R"(\s*__ptr64\s*)");
-	s2 = std::regex_replace(s2, ptrFilter, "");
-
-	std::regex constFilter(R"(\s*const\s*)");
-	s2 = std::regex_replace(s2, constFilter, "");
-
-	std::regex namespaceFilter1(R"(\s*inl::gxeng::\s*)");
-	s2 = std::regex_replace(s2, namespaceFilter1, "");
-
-	std::regex namespaceFilter2(R"(\s*inl::\s*)");
-	s2 = std::regex_replace(s2, namespaceFilter2, "");
-
-	std::regex stringFilter(R"(\s*std::basic_string.*)");
-	s2 = std::regex_replace(s2, stringFilter, "std::string");
-
 
 	return s2;
 }
@@ -986,7 +1273,8 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 	// Write out nodes
 	for (const auto& v : nodeIndexMap) {
 		dot << "node" << v.second << " [shape=record, label=\"";
-		dot << "&lt;&lt;&lt; " << TidyTypeName(typeid(*v.first).name()) << " &gt;&gt;&gt;";
+		//dot << "&lt;&lt;&lt; " << TidyTypeName(typeid(*v.first).name()) << " &gt;&gt;&gt;";
+		dot << v.first->GetDisplayName() << " : " << TidyTypeName(v.first->GetClassName(true, {"inl::gxeng::", "inl::"}));
 		dot << " | {";
 		// Inputs
 		dot << "{";
@@ -1038,49 +1326,6 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 	}
 
 	dot << std::endl;
-
-	// Write ranks
-	/*
-	std::map<NodeBase*, int> nodeRankMap;
-	lemon::Bfs<lemon::ListDigraph> bfs{ pipeline.GetDependencyGraph() };
-	bfs.init();
-	for (lemon::ListDigraph::NodeIt it(pipeline.GetDependencyGraph()); it != lemon::INVALID; ++it) {
-		if (lemon::countInArcs(pipeline.GetDependencyGraph(), it) == 0) {
-			bfs.run(it);
-
-			for (lemon::ListDigraph::NodeIt nit(pipeline.GetDependencyGraph()); nit != lemon::INVALID; ++nit) {
-				auto* node = pipeline.GetNodeMap()[nit].get();
-				int currentDist = bfs.reached(nit) ? bfs.dist(nit) : -1;
-				int oldDist = nodeRankMap.count(node) > 0 ? nodeRankMap[node] : -1;
-				nodeRankMap[node] =  std::max(currentDist, oldDist);
-			}
-		}
-	}
-
-	std::vector<std::pair<NodeBase*, int>> nodeRanks;
-	for (auto& v : nodeRankMap) {
-		nodeRanks.push_back({ v.first, v.second });
-	}
-
-	std::sort(nodeRanks.begin(), nodeRanks.end(), [](const auto& a, const auto& b) {
-		return a.second < b.second;
-	});
-
-	int prevRank = -5;
-	for (int i = 0; i < nodeRanks.size(); ++i) {
-		if (prevRank != nodeRanks[i].second) {
-			if (prevRank != -5) {
-				dot << "}" << std::endl;
-			}
-			dot << "{rank=same;";
-		}
-		dot << " node" << nodeIndexMap[nodeRanks[i].first];
-		prevRank = nodeRanks[i].second;
-	}
-	if (nodeRanks.size()) {
-		dot << "}" << std::endl;
-	}
-	*/
 
 	// Write closing
 	dot << "}" << std::endl;

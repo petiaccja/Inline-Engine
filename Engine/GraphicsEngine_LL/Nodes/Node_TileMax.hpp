@@ -22,6 +22,7 @@ class TileMax :
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "TileMax"; }
 	TileMax();
 
 	void Update() override {}

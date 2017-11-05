@@ -25,6 +25,7 @@ class ShadowMapGen :
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "ShadowMapGen"; }
 	ShadowMapGen();
 
 	void Update() override {}
