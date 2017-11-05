@@ -1234,6 +1234,41 @@ std::string TidyTypeName(std::string name) {
 		}
 	}
 
+	std::vector<std::string> stripNamespaces = {
+		"inl::gxeng::",
+		"inl::",
+		"mathter::",
+		"nodes::",
+	};
+
+	// Remove class, struct and enum specifiers.
+	std::regex classFilter(R"(\s*class\s*)");
+	s2 = std::regex_replace(s2, classFilter, "");
+
+	std::regex structFilter(R"(\s*struct\s*)");
+	s2 = std::regex_replace(s2, structFilter, "");
+
+	std::regex enumFilter(R"(\s*enum\s*)");
+	s2 = std::regex_replace(s2, enumFilter, "");
+
+	// MSVC specific things.
+	std::regex ptrFilter(R"(\s*__ptr64\s*)");
+	s2 = std::regex_replace(s2, ptrFilter, "");
+
+	// Transform common templates to readable format
+	std::regex stringFilter(R"(\s*std::basic_string.*)");
+	s2 = std::regex_replace(s2, stringFilter, "std::string");
+
+	// Remove consts.
+	std::regex constFilter(R"(\s*const\s*)");
+	s2 = std::regex_replace(s2, constFilter, "");
+
+	// Remove requested s2spaces.
+	for (auto& ns : stripNamespaces) {
+		std::regex s2spaceFilter1(R"(\s*)" + ns + R"(\s*)");
+		s2 = std::regex_replace(s2, s2spaceFilter1, "");
+	}
+
 	return s2;
 }
 
