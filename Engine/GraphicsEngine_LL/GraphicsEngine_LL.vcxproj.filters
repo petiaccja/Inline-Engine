@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+    <Text Include="pipeline.json" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GraphicsEngine\IGraphicsEngine.hpp">
@@ -674,6 +675,6 @@
     <None Include="Nodes\Shaders\TiledLighting.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
     </None>
-    <None Include="pipeline.json" />
+    <None Include="pipeline_example.json" />
   </ItemGroup>
 </Project>

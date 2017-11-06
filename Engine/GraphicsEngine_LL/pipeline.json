@@ -1,35 +1,43 @@
 {
   "nodes": [
     {
-      "id": 1,
-      "name": "Node #1",
-      "class": "Float/Sin",
-      "inputs": [ 2.2 ]
+      "name": "OverlayScene",
+      "class": "Pipeline/System/GetSceneByName",
+      "inputs": [ "Gui" ]
     },
     {
-      "id": 2,
-      "name": "Node #2",
-      "class": "Float/Cos",
-      "inputs": [ 3.14 ]
+      "name": "OverlayCamera",
+      "class": "Pipeline/System/GetCameraByName",
+      "inputs": [ "GuiCamera" ]
     },
     {
-      "name": "Adder",
-      "class": "Float/Add"
+      "name": "BackBuffer",
+      "class": "Pipeline/System/GetBackBuffer"
+    },
+    {
+      "name": "OverlayRender",
+      "class": "Pipeline/Render/OverlayRender"
     }
   ],
 
   "links": [
     {
-      "src": "Node #1",
-      "dst": "Adder",
+      "src": "BackBuffer",
+      "dst": "OverlayRender",
       "srcp": 0,
-      "dstp": "A"
+      "dstp": 0
     },
     {
-      "src": 2,
-      "dst": "Adder",
-      "srcp": 0,
+      "src": "OverlayScene",
+      "dst": "OverlayRender",
+      "srcp": 1,
       "dstp": 1
+    },
+    {
+      "src": "OverlayCamera",
+      "dst": "OverlayRender",
+      "srcp": 0,
+      "dstp": 2
     }
   ]
 }

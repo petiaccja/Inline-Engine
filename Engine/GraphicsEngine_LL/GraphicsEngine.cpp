@@ -508,7 +508,7 @@ void GraphicsEngine::LoadPipeline(const std::string& graphDesc) {
 		int line = 0;
 		while (chi < ch && chi < graphDesc.size()) {
 			if (graphDesc[chi] == '\n') { ++line; chsum = 0; }
-			++ch;
+			++chi;
 			++chsum;
 		}
 		throw InvalidArgumentException("JSON descripion has syntax errors.", "Check line " + std::to_string(line) + ":" + std::to_string(chsum));
@@ -622,6 +622,13 @@ void GraphicsEngine::LoadPipeline(const std::string& graphDesc) {
 
 
 	// Finish off by creating the actual pipeline.
+	EngineContext engineContext(1, 1);
+	for (auto& node : nodeObjects) {
+		if (auto graphicsNode = dynamic_cast<GraphicsNode*>(node.get())) {
+			graphicsNode->Initialize(engineContext);
+		}
+	}
+
 	Pipeline pipeline;
 	pipeline.CreateFromNodesList(nodeObjects);
 

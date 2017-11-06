@@ -388,6 +388,7 @@
     <None Include="Materials\simple_diffuse.mtl.hlsl">
       <FileType>Document</FileType>
     </None>
+    <None Include="pipeline_example.json" />
     <Text Include="pipeline.json">
       <FileType>Document</FileType>
     </Text>
