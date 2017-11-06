@@ -99,7 +99,7 @@ void Voxelization::Setup(SetupContext & context) {
 	rtvDesc.firstMipLevel = 0;
 	rtvDesc.planeIndex = 0;
 	m_visualizationTexRTV = context.CreateRtv(target, target.GetFormat(), rtvDesc);
-	m_visualizationTexRTV.GetResource()._GetResourcePtr()->SetName("Voxelization visualization render target view");
+	m_visualizationTexRTV.GetResource().SetName("Voxelization visualization render target view");
 
 	auto& depthStencil = this->GetInput<3>().Get();
 	gxapi::DsvTexture2DArray dsvDesc;
@@ -107,7 +107,7 @@ void Voxelization::Setup(SetupContext & context) {
 	dsvDesc.firstArrayElement = 0;
 	dsvDesc.firstMipLevel = 0;
 	m_visualizationDSV = context.CreateDsv(depthStencil, FormatAnyToDepthStencil(depthStencil.GetFormat()), dsvDesc);
-	m_visualizationDSV.GetResource()._GetResourcePtr()->SetName("Voxelization Visualization depth tex view");
+	m_visualizationDSV.GetResource().SetName("Voxelization Visualization depth tex view");
 
 	gxapi::SrvTexture2DArray srvDesc;
 	srvDesc.activeArraySize = 4;
@@ -119,13 +119,13 @@ void Voxelization::Setup(SetupContext & context) {
 
 	Texture2D shadowCSMTex = this->GetInput<4>().Get();
 	m_shadowCSMTexSrv = context.CreateSrv(shadowCSMTex, FormatDepthToColor(shadowCSMTex.GetFormat()), srvDesc);
-	m_shadowCSMTexSrv.GetResource()._GetResourcePtr()->SetName("Shadow CSM tex SRV");
+	m_shadowCSMTexSrv.GetResource().SetName("Shadow CSM tex SRV");
 
 	srvDesc.activeArraySize = 1;
 
 	Texture2D shadowCSMExtentsTex = this->GetInput<5>().Get();
 	m_shadowCSMExtentsTexSrv = context.CreateSrv(shadowCSMExtentsTex, FormatDepthToColor(shadowCSMExtentsTex.GetFormat()), srvDesc);
-	m_shadowCSMExtentsTexSrv.GetResource()._GetResourcePtr()->SetName("Shadow CSM extents tex SRV");
+	m_shadowCSMExtentsTexSrv.GetResource().SetName("Shadow CSM extents tex SRV");
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -222,9 +222,9 @@ void Voxelization::Setup(SetupContext & context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("Voxelization full screen quad vertex buffer");
+		m_fsq.SetName("Voxelization full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("Voxelization full screen quad index buffer");
+		m_fsqIndices.SetName("Voxelization full screen quad index buffer");
 	}
 
 	if (m_PSO == nullptr) {
@@ -495,18 +495,18 @@ void Voxelization::InitRenderTarget(SetupContext& context) {
 
 		//TODO init to 0
 		Texture3D voxel_tex = context.CreateTexture3D({ (uint64_t)voxelDimension, (uint32_t)voxelDimension, (uint16_t)voxelDimension, formatVoxel }, { true, false, false, true });
-		voxel_tex._GetResourcePtr()->SetName("Voxelization voxel tex");
+		voxel_tex.SetName("Voxelization voxel tex");
 		m_voxelTexUAV = context.CreateUav(voxel_tex, formatVoxel, uavDesc);
-		m_voxelTexUAV.GetResource()._GetResourcePtr()->SetName("Voxelization voxel UAV");
+		m_voxelTexUAV.GetResource().SetName("Voxelization voxel UAV");
 		m_voxelTexSRV = context.CreateSrv(voxel_tex, formatVoxel, srvDesc);
-		m_voxelTexSRV.GetResource()._GetResourcePtr()->SetName("Voxelization voxel SRV");
+		m_voxelTexSRV.GetResource().SetName("Voxelization voxel SRV");
 
 		Texture3D voxelLightTex = context.CreateTexture3D({ (uint64_t)voxelDimension, (uint32_t)voxelDimension, (uint16_t)voxelDimension, formatVoxel }, { true, false, false, true });
-		voxelLightTex._GetResourcePtr()->SetName("Voxelization voxel tex");
+		voxelLightTex.SetName("Voxelization voxel tex");
 		m_voxelLightTexUAV = context.CreateUav(voxelLightTex, formatVoxel, uavDesc);
-		m_voxelLightTexUAV.GetResource()._GetResourcePtr()->SetName("Voxelization light voxel UAV");
+		m_voxelLightTexUAV.GetResource().SetName("Voxelization light voxel UAV");
 		m_voxelLightTexSRV = context.CreateSrv(voxelLightTex, formatVoxel, srvDesc);
-		m_voxelLightTexSRV.GetResource()._GetResourcePtr()->SetName("Voxelization light voxel SRV");
+		m_voxelLightTexSRV.GetResource().SetName("Voxelization light voxel SRV");
 	}
 }
 

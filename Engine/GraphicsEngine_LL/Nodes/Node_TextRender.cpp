@@ -112,9 +112,9 @@ void TextRender::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("Text render quad vertex buffer");
+		m_fsq.SetName("Text render quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("Text render quad index buffer");
+		m_fsqIndices.SetName("Text render quad index buffer");
 	}
 
 	if (!m_PSO) {
@@ -179,9 +179,9 @@ void TextRender::Execute(RenderContext& context) {
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
-	cb._GetResourcePtr()->SetName("Bright Lum pass volatile CB");
+	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
+	cbv.GetResource().SetName("Bright Lum pass CBV");*/
 
 	//uniformsCBData.scale = 1.0;
 

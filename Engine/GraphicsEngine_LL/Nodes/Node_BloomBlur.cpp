@@ -53,7 +53,7 @@ void BloomBlur::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("Bloom blur input tex SRV");
+	m_inputTexSrv.GetResource().SetName("Bloom blur input tex SRV");
 
 	m_dir = this->GetInput<1>().Get();
 
@@ -106,9 +106,9 @@ void BloomBlur::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("Bloom blur full screen quad vertex buffer");
+		m_fsq.SetName("Bloom blur full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("Bloom blur full screen quad index buffer");
+		m_fsqIndices.SetName("Bloom blur full screen quad index buffer");
 	}
 
 	if (!m_PSO) {
@@ -158,9 +158,9 @@ void BloomBlur::Execute(RenderContext& context) {
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
-	cb._GetResourcePtr()->SetName("Bright Lum pass volatile CB");
+	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
+	cbv.GetResource().SetName("Bright Lum pass CBV");*/
 
 	uniformsCBData.kernelScale = 1.0;
 	uniformsCBData.direction = m_dir;
@@ -232,9 +232,9 @@ void BloomBlur::InitRenderTarget(SetupContext& context) {
 		};
 
 		Texture2D blur_tex = context.CreateTexture2D(desc, { true, true, false, false });
-		blur_tex._GetResourcePtr()->SetName("Bloom blur tex");
+		blur_tex.SetName("Bloom blur tex");
 		m_blur_rtv = context.CreateRtv(blur_tex, formatBlur, rtvDesc);
-		m_blur_rtv.GetResource()._GetResourcePtr()->SetName("Bloom blur RTV");
+		m_blur_rtv.GetResource().SetName("Bloom blur RTV");
 	}
 }
 

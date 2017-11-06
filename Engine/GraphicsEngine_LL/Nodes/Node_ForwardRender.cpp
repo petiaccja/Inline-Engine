@@ -131,7 +131,7 @@ void ForwardRender::Setup(SetupContext& context) {
 	rtvDesc.firstMipLevel = 0;
 	rtvDesc.planeIndex = 0;
 	m_rtv = context.CreateRtv(target, target.GetFormat(), rtvDesc);
-	m_rtv.GetResource()._GetResourcePtr()->SetName("Forward render render target view");
+	m_rtv.GetResource().SetName("Forward render render target view");
 
 	auto& depthStencil = this->GetInput<1>().Get();
 	gxapi::DsvTexture2DArray dsvDesc;
@@ -139,7 +139,7 @@ void ForwardRender::Setup(SetupContext& context) {
 	dsvDesc.firstArrayElement = 0;
 	dsvDesc.firstMipLevel = 0;
 	m_dsv = context.CreateDsv(depthStencil, FormatAnyToDepthStencil(depthStencil.GetFormat()), dsvDesc);
-	m_dsv.GetResource()._GetResourcePtr()->SetName("Forward render depth tex view");
+	m_dsv.GetResource().SetName("Forward render depth tex view");
 
 	m_entities = this->GetInput<2>().Get();
 
@@ -158,29 +158,29 @@ void ForwardRender::Setup(SetupContext& context) {
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
 	m_shadowMapTexView = context.CreateSrv(shadowMapTex, FormatDepthToColor(shadowMapTex.GetFormat()), srvDesc);
-	m_shadowMapTexView.GetResource()._GetResourcePtr()->SetName("Forward render CSM tex view");
+	m_shadowMapTexView.GetResource().SetName("Forward render CSM tex view");
 
 	srvDesc.activeArraySize = 1;
 
 	auto shadowMXTex = this->GetInput<6>().Get();
 	this->GetInput<6>().Clear();
 	m_shadowMXTexView = context.CreateSrv(shadowMXTex, shadowMXTex.GetFormat(), srvDesc);
-	m_shadowMXTexView.GetResource()._GetResourcePtr()->SetName("Forward render shadow MX tex view");
+	m_shadowMXTexView.GetResource().SetName("Forward render shadow MX tex view");
 
 	auto csmSplitsTex = this->GetInput<7>().Get();
 	this->GetInput<7>().Clear();
 	m_csmSplitsTexView = context.CreateSrv(csmSplitsTex, csmSplitsTex.GetFormat(), srvDesc);
-	m_csmSplitsTexView.GetResource()._GetResourcePtr()->SetName("Forward render CSM splits tex view");
+	m_csmSplitsTexView.GetResource().SetName("Forward render CSM splits tex view");
 
 	auto lightMVPTex = this->GetInput<8>().Get();
 	this->GetInput<8>().Clear();
 	m_lightMVPTexView = context.CreateSrv(lightMVPTex, lightMVPTex.GetFormat(), srvDesc);
-	m_lightMVPTexView.GetResource()._GetResourcePtr()->SetName("Forward render light MVP tex view");
+	m_lightMVPTexView.GetResource().SetName("Forward render light MVP tex view");
 
 	auto lightCullData = this->GetInput<9>().Get();
 	this->GetInput<9>().Clear();
 	m_lightCullDataView = context.CreateSrv(lightCullData, lightCullData.GetFormat(), srvDesc);
-	m_lightCullDataView.GetResource()._GetResourcePtr()->SetName("Forward render light cull data tex view");
+	m_lightCullDataView.GetResource().SetName("Forward render light cull data tex view");
 
 	if (!m_velocity_rtv)
 	{
@@ -207,9 +207,9 @@ void ForwardRender::Setup(SetupContext& context) {
 		};
 
 		Texture2D velocity_tex = context.CreateTexture2D(desc, { true, true, false, false });
-		velocity_tex._GetResourcePtr()->SetName("Forward render Velocity tex");
+		velocity_tex.SetName("Forward render Velocity tex");
 		m_velocity_rtv = context.CreateRtv(velocity_tex, formatVelocity, rtvDesc);
-		m_velocity_rtv.GetResource()._GetResourcePtr()->SetName("Forward render Velocity RTV");
+		m_velocity_rtv.GetResource().SetName("Forward render Velocity RTV");
 	}
 
 	this->GetOutput<0>().Set(target);

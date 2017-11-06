@@ -48,7 +48,7 @@ void DOFNeighborMax::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("DOF neighbormax input tex SRV");
+	m_inputTexSrv.GetResource().SetName("DOF neighbormax input tex SRV");
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -99,9 +99,9 @@ void DOFNeighborMax::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("DOF neighbormax full screen quad vertex buffer");
+		m_fsq.SetName("DOF neighbormax full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("DOF neighbormax full screen quad index buffer");
+		m_fsqIndices.SetName("DOF neighbormax full screen quad index buffer");
 	}
 
 	if (!m_PSO) {
@@ -151,9 +151,9 @@ void DOFNeighborMax::Execute(RenderContext& context) {
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
-	cb._GetResourcePtr()->SetName("Bright Lum pass volatile CB");
+	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
+	cbv.GetResource().SetName("Bright Lum pass CBV");*/
 
 	commandList.SetResourceState(m_neighbormax_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
@@ -222,9 +222,9 @@ void DOFNeighborMax::InitRenderTarget(SetupContext& context) {
 		};
 
 		Texture2D neighbormax_tex = context.CreateTexture2D(desc, {true, true, false, false});
-		neighbormax_tex._GetResourcePtr()->SetName("DOF neighbormax tex");
+		neighbormax_tex.SetName("DOF neighbormax tex");
 		m_neighbormax_rtv = context.CreateRtv(neighbormax_tex, formatNeighborMax, rtvDesc);
-		m_neighbormax_rtv.GetResource()._GetResourcePtr()->SetName("DOF neighbormax RTV");
+		m_neighbormax_rtv.GetResource().SetName("DOF neighbormax RTV");
 	}
 }
 

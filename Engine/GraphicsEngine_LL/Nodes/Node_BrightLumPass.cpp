@@ -49,7 +49,7 @@ void BrightLumPass::Setup(SetupContext& context) {
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass input tex SRV");
+	m_inputTexSrv.GetResource().SetName("Bright Lum pass input tex SRV");
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -100,9 +100,9 @@ void BrightLumPass::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("Bright Lum pass full screen quad vertex buffer");
+		m_fsq.SetName("Bright Lum pass full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("Bright Lum pass full screen quad index buffer");
+		m_fsqIndices.SetName("Bright Lum pass full screen quad index buffer");
 	}
 
 	if (!m_PSO) {
@@ -157,9 +157,9 @@ void BrightLumPass::Execute(RenderContext& context) {
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
-	cb._GetResourcePtr()->SetName("Bright Lum pass volatile CB");
+	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
+	cbv.GetResource().SetName("Bright Lum pass CBV");*/
 
 	commandList.SetResourceState(m_bright_pass_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_luminance_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
@@ -230,16 +230,16 @@ void BrightLumPass::InitRenderTarget(SetupContext& context) {
 		};
 
 		Texture2D bright_pass_tex = context.CreateTexture2D(desc, { true, true, false, false });
-		bright_pass_tex._GetResourcePtr()->SetName("Bright pass tex");
+		bright_pass_tex.SetName("Bright pass tex");
 		m_bright_pass_rtv = context.CreateRtv(bright_pass_tex, formatBrightPass, rtvDesc);
-		m_bright_pass_rtv.GetResource()._GetResourcePtr()->SetName("Bright pass RTV");
+		m_bright_pass_rtv.GetResource().SetName("Bright pass RTV");
 		
 		desc.format = formatLuminance;
 
 		Texture2D luminance_tex = context.CreateTexture2D(desc, { true, true, false, false });
-		luminance_tex._GetResourcePtr()->SetName("Luminance tex");
+		luminance_tex.SetName("Luminance tex");
 		m_luminance_rtv = context.CreateRtv(luminance_tex, formatLuminance, rtvDesc);
-		m_luminance_rtv.GetResource()._GetResourcePtr()->SetName("Luminance RTV");
+		m_luminance_rtv.GetResource().SetName("Luminance RTV");
 	}
 }
 

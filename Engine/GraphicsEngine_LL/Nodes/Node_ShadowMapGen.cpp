@@ -77,7 +77,7 @@ void ShadowMapGen::Setup(SetupContext & context) {
 	for (int i = 0; i < m_dsvs.size(); i++) {
 		dsvDesc.firstArrayElement = i;
 		m_dsvs[i] = context.CreateDsv(renderTarget, currDepthStencil, dsvDesc);
-		m_dsvs[i].GetResource()._GetResourcePtr()->SetName((std::string("CSM cascade depth tex view #") + std::to_string(i)).c_str());
+		m_dsvs[i].GetResource().SetName((std::string("CSM cascade depth tex view #") + std::to_string(i)).c_str());
 	}
 
 	m_entities = this->GetInput<1>().Get();

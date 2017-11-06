@@ -52,11 +52,11 @@ void DOFTileMax::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("DOF tilemax input tex SRV");
+	m_inputTexSrv.GetResource().SetName("DOF tilemax input tex SRV");
 
 	Texture2D depthTex = this->GetInput<1>().Get();
 	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
-	m_depthTexSrv.GetResource()._GetResourcePtr()->SetName("DOF tilemax depth tex SRV");
+	m_depthTexSrv.GetResource().SetName("DOF tilemax depth tex SRV");
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -116,9 +116,9 @@ void DOFTileMax::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("DOF tilemax full screen quad vertex buffer");
+		m_fsq.SetName("DOF tilemax full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("DOF tilemax full screen quad index buffer");
+		m_fsqIndices.SetName("DOF tilemax full screen quad index buffer");
 	}
 
 	if (!m_PSO) {
@@ -168,9 +168,9 @@ void DOFTileMax::Execute(RenderContext& context) {
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
-	cb._GetResourcePtr()->SetName("Bright Lum pass volatile CB");
+	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
+	cbv.GetResource().SetName("Bright Lum pass CBV");*/
 
 	uniformsCBData.tileSize = 20.0;
 
@@ -245,9 +245,9 @@ void DOFTileMax::InitRenderTarget(SetupContext& context) {
 		};
 
 		Texture2D tilemax_tex = context.CreateTexture2D(desc, {true, true, false, false});
-		tilemax_tex._GetResourcePtr()->SetName("DOF tilemax tex");
+		tilemax_tex.SetName("DOF tilemax tex");
 		m_tilemax_rtv = context.CreateRtv(tilemax_tex, formatTileMax, rtvDesc);
-		m_tilemax_rtv.GetResource()._GetResourcePtr()->SetName("DOF tilemax RTV");
+		m_tilemax_rtv.GetResource().SetName("DOF tilemax RTV");
 	}
 }
 

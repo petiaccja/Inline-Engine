@@ -41,7 +41,7 @@ void DrawSky::Setup(SetupContext & context) {
 	rtvDesc.firstMipLevel = 0;
 	rtvDesc.planeIndex = 0;
 	m_rtv = context.CreateRtv(renderTarget, renderTarget.GetFormat(), rtvDesc);
-	m_rtv.GetResource()._GetResourcePtr()->SetName("Draw sky render target view");
+	m_rtv.GetResource().SetName("Draw sky render target view");
 
 	auto depthStencil = this->GetInput<1>().Get();
 	const gxapi::eFormat currDepthStencilFormat = FormatAnyToDepthStencil(depthStencil.GetFormat());
@@ -50,7 +50,7 @@ void DrawSky::Setup(SetupContext & context) {
 	dsvDesc.firstArrayElement = 0;
 	dsvDesc.firstMipLevel = 0;
 	m_dsv = context.CreateDsv(depthStencil, currDepthStencilFormat, dsvDesc);
-	m_dsv.GetResource()._GetResourcePtr()->SetName("Draw sky depth tex view");
+	m_dsv.GetResource().SetName("Draw sky depth tex view");
 
 	m_camera = this->GetInput<2>().Get();
 	m_suns = this->GetInput<3>().Get();
@@ -110,9 +110,9 @@ void DrawSky::Setup(SetupContext & context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("Draw sky full screen quad vertex buffer");
+		m_fsq.SetName("Draw sky full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("Draw sky full screen quad index buffer");
+		m_fsqIndices.SetName("Draw sky full screen quad index buffer");
 	}
 
 	if (!m_shader.ps || !m_shader.vs) {

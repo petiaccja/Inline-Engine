@@ -49,7 +49,7 @@ void LensFlare::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("Lens flare input tex SRV");
+	m_inputTexSrv.GetResource().SetName("Lens flare input tex SRV");
 
 	auto colorImage = this->GetInput<1>().Get();
 	if (colorImage == nullptr) {
@@ -116,9 +116,9 @@ void LensFlare::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("Lens flare full screen quad vertex buffer");
+		m_fsq.SetName("Lens flare full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("Lens flare full screen quad index buffer");
+		m_fsqIndices.SetName("Lens flare full screen quad index buffer");
 	}
 
 	if (!m_PSO) {
@@ -168,9 +168,9 @@ void LensFlare::Execute(RenderContext& context) {
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
-	cb._GetResourcePtr()->SetName("Bright Lum pass volatile CB");
+	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
+	cbv.GetResource().SetName("Bright Lum pass CBV");*/
 
 	uniformsCBData.scale = 1.0;
 
@@ -245,9 +245,9 @@ void LensFlare::InitRenderTarget(SetupContext& context) {
 		};
 
 		Texture2D lens_flare_tex = context.CreateTexture2D(desc, { true, true, false, false });
-		lens_flare_tex._GetResourcePtr()->SetName("Lens flare tex");
+		lens_flare_tex.SetName("Lens flare tex");
 		m_lens_flare_rtv = context.CreateRtv(lens_flare_tex, formatLensFlare, rtvDesc);
-		m_lens_flare_rtv.GetResource()._GetResourcePtr()->SetName("Lens flare RTV");
+		m_lens_flare_rtv.GetResource().SetName("Lens flare RTV");
 	}
 }
 

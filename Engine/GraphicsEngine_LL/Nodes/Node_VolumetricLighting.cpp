@@ -120,7 +120,7 @@ void VolumetricLighting::Setup(SetupContext& context) {
 
 	Texture2D depthTex = this->GetInput<0>().Get();
 	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
-	m_depthTexSrv.GetResource()._GetResourcePtr()->SetName("SDF culling depth tex view");
+	m_depthTexSrv.GetResource().SetName("SDF culling depth tex view");
 
 	gxapi::UavTexture2DArray uavDesc;
 	uavDesc.activeArraySize = 1;
@@ -130,11 +130,11 @@ void VolumetricLighting::Setup(SetupContext& context) {
 
 	Texture2D colorTex = this->GetInput<1>().Get();
 	m_colorTexSRV = context.CreateSrv(colorTex, colorTex.GetFormat(), srvDesc);
-	m_colorTexSRV.GetResource()._GetResourcePtr()->SetName("SDF culling color tex srv");
+	m_colorTexSRV.GetResource().SetName("SDF culling color tex srv");
 
 	Texture2D lightCullTex = this->GetInput<2>().Get();
 	m_lightCullDataSRV = context.CreateSrv(lightCullTex, lightCullTex.GetFormat(), srvDesc);
-	m_lightCullDataSRV.GetResource()._GetResourcePtr()->SetName("SDF culling light cull tex srv");
+	m_lightCullDataSRV.GetResource().SetName("SDF culling light cull tex srv");
 
 	m_camera = this->GetInput<3>().Get();
 
@@ -142,17 +142,17 @@ void VolumetricLighting::Setup(SetupContext& context) {
 
 	Texture2D csmTex = this->GetInput<4>().Get();
 	m_csmTexSRV = context.CreateSrv(csmTex, FormatDepthToColor(csmTex.GetFormat()), srvDesc);
-	m_csmTexSRV.GetResource()._GetResourcePtr()->SetName("SDF culling csm tex srv");
+	m_csmTexSRV.GetResource().SetName("SDF culling csm tex srv");
 
 	srvDesc.activeArraySize = 1;
 
 	Texture2D shadowMXTex = this->GetInput<5>().Get();
 	m_shadowMXTexSRV = context.CreateSrv(shadowMXTex, shadowMXTex.GetFormat(), srvDesc);
-	m_shadowMXTexSRV.GetResource()._GetResourcePtr()->SetName("SDF culling shadow mx tex srv");
+	m_shadowMXTexSRV.GetResource().SetName("SDF culling shadow mx tex srv");
 
 	Texture2D csmSplitsTex = this->GetInput<6>().Get();
 	m_csmSplitsTexSRV = context.CreateSrv(csmSplitsTex, csmSplitsTex.GetFormat(), srvDesc);
-	m_csmSplitsTexSRV.GetResource()._GetResourcePtr()->SetName("SDF culling csm splits tex srv");
+	m_csmSplitsTexSRV.GetResource().SetName("SDF culling csm splits tex srv");
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -403,9 +403,9 @@ void VolumetricLighting::Execute(RenderContext& context) {
 
 		//create single-frame only cb
 		gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
-		cb._GetResourcePtr()->SetName("SDF culling volatile CB");
+		cb.SetName("SDF culling volatile CB");
 		gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-		cbv.GetResource()._GetResourcePtr()->SetName("SDF culling CBV");
+		cbv.GetResource().SetName("SDF culling CBV");
 
 		commandList.SetResourceState(m_dstTexUAV.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 		commandList.SetResourceState(m_sdfCullDataUAV.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
@@ -439,9 +439,9 @@ void VolumetricLighting::Execute(RenderContext& context) {
 
 		//create single-frame only cb
 		gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
-		cb._GetResourcePtr()->SetName("SDF culling volatile CB");
+		cb.SetName("SDF culling volatile CB");
 		gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-		cbv.GetResource()._GetResourcePtr()->SetName("SDF culling CBV");
+		cbv.GetResource().SetName("SDF culling CBV");
 
 		commandList.SetResourceState(m_dstTexUAV.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 		commandList.SetResourceState(m_volDstTexUAV[0].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
@@ -509,11 +509,11 @@ void VolumetricLighting::InitRenderTarget(SetupContext& context) {
 		TextureUsage uavusage{ true, true, false, true };
 
 		Texture2D sdfCullDataTex = context.CreateTexture2D(desc, uavusage);
-		sdfCullDataTex._GetResourcePtr()->SetName("SDF culling sdf cull data tex");
+		sdfCullDataTex.SetName("SDF culling sdf cull data tex");
 		m_sdfCullDataUAV = context.CreateUav(sdfCullDataTex, formatSDFCullData, uavDesc);
-		m_sdfCullDataUAV.GetResource()._GetResourcePtr()->SetName("SDF culling sdf cull data UAV"); 
+		m_sdfCullDataUAV.GetResource().SetName("SDF culling sdf cull data UAV"); 
 		m_sdfCullDataSRV = context.CreateSrv(sdfCullDataTex, formatSDFCullData, srvDesc);
-		m_sdfCullDataSRV.GetResource()._GetResourcePtr()->SetName("SDF culling sdf cull data SRV");
+		m_sdfCullDataSRV.GetResource().SetName("SDF culling sdf cull data SRV");
 
 		for (int c = 0; c < 2; ++c)
 		{
@@ -522,9 +522,9 @@ void VolumetricLighting::InitRenderTarget(SetupContext& context) {
 			desc.format = formatDst;
 
 			Texture2D dstTex = context.CreateTexture2D(desc, uavusage);
-			sdfCullDataTex._GetResourcePtr()->SetName("SDF culling dst tex");
+			sdfCullDataTex.SetName("SDF culling dst tex");
 			m_volDstTexUAV[c] = context.CreateUav(dstTex, formatDst, uavDesc);
-			m_volDstTexUAV[c].GetResource()._GetResourcePtr()->SetName((std::string("SDF culling vol dst UAV") + std::to_string(c)).c_str());
+			m_volDstTexUAV[c].GetResource().SetName((std::string("SDF culling vol dst UAV") + std::to_string(c)).c_str());
 		}
 
 		desc.width = m_depthTexSrv.GetResource().GetWidth();
@@ -532,9 +532,9 @@ void VolumetricLighting::InitRenderTarget(SetupContext& context) {
 		desc.format = formatDst;
 
 		Texture2D dstTex = context.CreateTexture2D(desc, uavusage);
-		sdfCullDataTex._GetResourcePtr()->SetName("SDF culling dst tex");
+		sdfCullDataTex.SetName("SDF culling dst tex");
 		m_dstTexUAV = context.CreateUav(dstTex, formatDst, uavDesc);
-		m_dstTexUAV.GetResource()._GetResourcePtr()->SetName("SDF culling dst UAV");
+		m_dstTexUAV.GetResource().SetName("SDF culling dst UAV");
 	}
 }
 

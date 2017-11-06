@@ -61,7 +61,7 @@ void DepthReductionFinal::Setup(SetupContext& context) {
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
 	m_reductionTexSrv = context.CreateSrv(reductionTex, reductionTex.GetFormat(), srvDesc);
-	m_reductionTexSrv.GetResource()._GetResourcePtr()->SetName("Depth reduction final reduction tex SRV");
+	m_reductionTexSrv.GetResource().SetName("Depth reduction final reduction tex SRV");
 
 	m_camera = this->GetInput<1>().Get();
 	m_suns = this->GetInput<2>().Get();
@@ -228,9 +228,9 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 
 	//create single-frame only cb
 	gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
-	cb._GetResourcePtr()->SetName("Depth reduction final volatile CB");
+	cb.SetName("Depth reduction final volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource()._GetResourcePtr()->SetName("Depth reduction final CBV");
+	cbv.GetResource().SetName("Depth reduction final CBV");
 
 	commandList.SetResourceState(m_light_mvp_uav.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	commandList.SetResourceState(m_shadow_mx_uav.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
@@ -281,24 +281,24 @@ void DepthReductionFinal::InitRenderTarget(SetupContext& context) {
 
 		//TODO 1D tex
 		Texture2D light_mvp_tex = context.CreateTexture2D({ 4 * 4, 1, formatLightMVP }, { true, true, false, true });
-		light_mvp_tex._GetResourcePtr()->SetName("Depth reduction final light MVP tex");
+		light_mvp_tex.SetName("Depth reduction final light MVP tex");
 		m_light_mvp_uav = context.CreateUav(light_mvp_tex, formatLightMVP, uavDesc);
-		m_light_mvp_uav.GetResource()._GetResourcePtr()->SetName("Depth reduction final light MVP UAV");
+		m_light_mvp_uav.GetResource().SetName("Depth reduction final light MVP UAV");
 
 		Texture2D shadow_mx_tex = context.CreateTexture2D({ 4 * 4, 1, formatShadowMX }, { true, true, false, true });
-		shadow_mx_tex._GetResourcePtr()->SetName("Depth reduction final shadow MX tex");
+		shadow_mx_tex.SetName("Depth reduction final shadow MX tex");
 		m_shadow_mx_uav = context.CreateUav(shadow_mx_tex, formatShadowMX, uavDesc);
-		m_shadow_mx_uav.GetResource()._GetResourcePtr()->SetName("Depth reduction final shadow MX UAV");
+		m_shadow_mx_uav.GetResource().SetName("Depth reduction final shadow MX UAV");
 
 		Texture2D csm_splits_tex = context.CreateTexture2D({ 4, 1, formatCSMSplits }, { true, true, false, true });
-		csm_splits_tex._GetResourcePtr()->SetName("Depth reduction final csm splits tex");
+		csm_splits_tex.SetName("Depth reduction final csm splits tex");
 		m_csm_splits_uav = context.CreateUav(csm_splits_tex, formatCSMSplits, uavDesc);
-		m_csm_splits_uav.GetResource()._GetResourcePtr()->SetName("Depth reduction final csm splits UAV");
+		m_csm_splits_uav.GetResource().SetName("Depth reduction final csm splits UAV");
 
 		Texture2D csm_extents_tex = context.CreateTexture2D({ 3 * 4, 1, formatCSMExtents }, { true, true, false, true });
-		csm_extents_tex._GetResourcePtr()->SetName("Depth reduction final csm extents tex");
+		csm_extents_tex.SetName("Depth reduction final csm extents tex");
 		m_csm_extents_uav = context.CreateUav(csm_extents_tex, formatCSMExtents, uavDesc);
-		m_csm_extents_uav.GetResource()._GetResourcePtr()->SetName("Depth reduction final csm extents UAV");
+		m_csm_extents_uav.GetResource().SetName("Depth reduction final csm extents UAV");
 	}
 }
 

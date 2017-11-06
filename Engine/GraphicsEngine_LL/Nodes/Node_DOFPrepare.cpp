@@ -55,11 +55,11 @@ void DOFPrepare::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("DOF input tex SRV");
+	m_inputTexSrv.GetResource().SetName("DOF input tex SRV");
 
 	Texture2D depthTex = this->GetInput<1>().Get();
 	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
-	m_depthTexSrv.GetResource()._GetResourcePtr()->SetName("DOF depth tex SRV");
+	m_depthTexSrv.GetResource().SetName("DOF depth tex SRV");
 
 	m_camera = this->GetInput<2>().Get();
 
@@ -138,9 +138,9 @@ void DOFPrepare::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("DOF full screen quad vertex buffer");
+		m_fsq.SetName("DOF full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("DOF full screen quad index buffer");
+		m_fsqIndices.SetName("DOF full screen quad index buffer");
 	}
 
 	if (!m_PSO) {
@@ -192,9 +192,9 @@ void DOFPrepare::Execute(RenderContext& context) {
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
-	cb._GetResourcePtr()->SetName("Bright Lum pass volatile CB");
+	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
+	cbv.GetResource().SetName("Bright Lum pass CBV");*/
 
 	uniformsCBData.maxBlurDiameter = 33.0;
 
@@ -273,16 +273,16 @@ void DOFPrepare::InitRenderTarget(SetupContext& context) {
 
 		//Texture2D prepare_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth()/2, m_inputTexSrv.GetResource().GetHeight()/2, format, {1, 1, 0, 0});
 		Texture2D prepare_tex = context.CreateTexture2D(desc, { true, true, false });
-		prepare_tex._GetResourcePtr()->SetName("DOF prepare tex");
+		prepare_tex.SetName("DOF prepare tex");
 		m_prepare_rtv = context.CreateRtv(prepare_tex, format, rtvDesc);
-		m_prepare_rtv.GetResource()._GetResourcePtr()->SetName("DOF prepare RTV");
+		m_prepare_rtv.GetResource().SetName("DOF prepare RTV");
 
 		//Texture2D depth_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth() / 2, m_inputTexSrv.GetResource().GetHeight() / 2, depthFormat, { 1, 1, 0, 0 });
 		desc.format = depthFormat;
 		Texture2D depth_tex = context.CreateTexture2D(desc, { true, true, false, false });
-		depth_tex._GetResourcePtr()->SetName("DOF depth tex");
+		depth_tex.SetName("DOF depth tex");
 		m_depth_rtv = context.CreateRtv(depth_tex, depthFormat, rtvDesc);
-		m_depth_rtv.GetResource()._GetResourcePtr()->SetName("DOF depth RTV");
+		m_depth_rtv.GetResource().SetName("DOF depth RTV");
 	}
 }
 

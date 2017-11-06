@@ -53,7 +53,7 @@ void SMAA::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("SMAA input tex SRV");
+	m_inputTexSrv.GetResource().SetName("SMAA input tex SRV");
 
 	auto areaImage = this->GetInput<1>().Get();
 	auto searchImage = this->GetInput<2>().Get();
@@ -163,9 +163,9 @@ void SMAA::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("SMAA full screen quad vertex buffer");
+		m_fsq.SetName("SMAA full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("SMAA full screen quad index buffer");
+		m_fsqIndices.SetName("SMAA full screen quad index buffer");
 	}
 
 	if (!m_edgeDetectionPSO || !m_blendingWeightsPSO || !m_neighborhoodBlendingPSO) {
@@ -283,9 +283,9 @@ void SMAA::Execute(RenderContext& context) {
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
-	cb._GetResourcePtr()->SetName("Bright Lum pass volatile CB");
+	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
+	cbv.GetResource().SetName("Bright Lum pass CBV");*/
 
 	uniformsCBData.pixelSize = Vec4(1.0f / Vec2(m_edgeDetectionRTV.GetResource().GetWidth(), m_edgeDetectionRTV.GetResource().GetHeight()), Vec2(m_edgeDetectionRTV.GetResource().GetWidth(), m_edgeDetectionRTV.GetResource().GetHeight()));
 
@@ -417,25 +417,25 @@ void SMAA::InitRenderTarget(SetupContext& context) {
 		};
 
 		Texture2D edgeDetectionTex = context.CreateTexture2D(desc, usage);
-		edgeDetectionTex._GetResourcePtr()->SetName("SMAA edge detection tex");
+		edgeDetectionTex.SetName("SMAA edge detection tex");
 		m_edgeDetectionRTV = context.CreateRtv(edgeDetectionTex, format, rtvDesc);
-		m_edgeDetectionRTV.GetResource()._GetResourcePtr()->SetName("SMAA edge detection RTV");
+		m_edgeDetectionRTV.GetResource().SetName("SMAA edge detection RTV");
 		m_edgeDetectionSRV = context.CreateSrv(edgeDetectionTex, format, srvDesc);
-		m_edgeDetectionSRV.GetResource()._GetResourcePtr()->SetName("SMAA edge detection SRV");
+		m_edgeDetectionSRV.GetResource().SetName("SMAA edge detection SRV");
 
 		Texture2D blendingWeightsTex = context.CreateTexture2D(desc, usage);
-		blendingWeightsTex._GetResourcePtr()->SetName("SMAA blending weights tex");
+		blendingWeightsTex.SetName("SMAA blending weights tex");
 		m_blendingWeightsRTV = context.CreateRtv(blendingWeightsTex, format, rtvDesc);
-		m_blendingWeightsRTV.GetResource()._GetResourcePtr()->SetName("SMAA blending weights RTV");
+		m_blendingWeightsRTV.GetResource().SetName("SMAA blending weights RTV");
 		m_blendingWeightsSRV = context.CreateSrv(blendingWeightsTex, format, srvDesc);
-		m_blendingWeightsSRV.GetResource()._GetResourcePtr()->SetName("SMAA blending weights SRV");
+		m_blendingWeightsSRV.GetResource().SetName("SMAA blending weights SRV");
 
 		Texture2D neighborhoodBlendingTex = context.CreateTexture2D(desc, usage);
-		neighborhoodBlendingTex._GetResourcePtr()->SetName("SMAA neighborhood blending tex");
+		neighborhoodBlendingTex.SetName("SMAA neighborhood blending tex");
 		m_neighborhoodBlendingRTV = context.CreateRtv(neighborhoodBlendingTex, format, rtvDesc);
-		m_neighborhoodBlendingRTV.GetResource()._GetResourcePtr()->SetName("SMAA neighborhood blending RTV");
+		m_neighborhoodBlendingRTV.GetResource().SetName("SMAA neighborhood blending RTV");
 		m_neighborhoodBlendingSRV = context.CreateSrv(neighborhoodBlendingTex, format, srvDesc);
-		m_neighborhoodBlendingSRV.GetResource()._GetResourcePtr()->SetName("SMAA neighborhood blending SRV");
+		m_neighborhoodBlendingSRV.GetResource().SetName("SMAA neighborhood blending SRV");
 	}
 }
 
