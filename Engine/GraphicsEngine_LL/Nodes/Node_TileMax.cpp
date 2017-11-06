@@ -220,7 +220,13 @@ void TileMax::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D tilemax_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth() / maxMotionBlurRadius, m_inputTexSrv.GetResource().GetHeight() / maxMotionBlurRadius, formatTileMax, {1, 1, 0, 0});
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth() / maxMotionBlurRadius,
+			uint32_t(m_inputTexSrv.GetResource().GetHeight() / maxMotionBlurRadius),
+			formatTileMax
+		};
+
+		Texture2D tilemax_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		tilemax_tex._GetResourcePtr()->SetName("Motion blur tilemax tex");
 		m_tilemax_rtv = context.CreateRtv(tilemax_tex, formatTileMax, rtvDesc);
 		m_tilemax_rtv.GetResource()._GetResourcePtr()->SetName("motion blur tilemax RTV");

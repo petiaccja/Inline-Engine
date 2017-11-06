@@ -223,12 +223,20 @@ void BrightLumPass::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D bright_pass_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatBrightPass, {1, 1, 0, 0});
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth(),
+			m_inputTexSrv.GetResource().GetHeight(),
+			formatBrightPass
+		};
+
+		Texture2D bright_pass_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		bright_pass_tex._GetResourcePtr()->SetName("Bright pass tex");
 		m_bright_pass_rtv = context.CreateRtv(bright_pass_tex, formatBrightPass, rtvDesc);
 		m_bright_pass_rtv.GetResource()._GetResourcePtr()->SetName("Bright pass RTV");
 		
-		Texture2D luminance_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatLuminance, { 1, 1, 0, 0 });
+		desc.format = formatLuminance;
+
+		Texture2D luminance_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		luminance_tex._GetResourcePtr()->SetName("Luminance tex");
 		m_luminance_rtv = context.CreateRtv(luminance_tex, formatLuminance, rtvDesc);
 		m_luminance_rtv.GetResource()._GetResourcePtr()->SetName("Luminance RTV");

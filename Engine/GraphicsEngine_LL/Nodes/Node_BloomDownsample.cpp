@@ -215,7 +215,13 @@ void BloomDownsample::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D downsample_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth() / 2, m_inputTexSrv.GetResource().GetHeight() / 2, formatDownsample, {1, 1, 0, 0});
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth() / 2,
+			m_inputTexSrv.GetResource().GetHeight() / 2,
+			formatDownsample
+		};
+
+		Texture2D downsample_tex = context.CreateTexture2D(desc, {1, 1, 0, 0});
 		downsample_tex._GetResourcePtr()->SetName("Bloom Downsample tex");
 		m_downsample_rtv = context.CreateRtv(downsample_tex, formatDownsample, rtvDesc);
 		m_downsample_rtv.GetResource()._GetResourcePtr()->SetName("Bloom Downsample RTV");

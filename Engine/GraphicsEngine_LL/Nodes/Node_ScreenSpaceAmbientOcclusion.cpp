@@ -244,7 +244,13 @@ void ScreenSpaceAmbientOcclusion::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D ssao_tex = context.CreateTexture2D(m_depthTexSrv.GetResource().GetWidth(), m_depthTexSrv.GetResource().GetHeight(), formatSSAO, {1, 1, 0, 0});
+		Texture2DDesc desc{
+			m_depthTexSrv.GetResource().GetWidth(),
+			m_depthTexSrv.GetResource().GetHeight(),
+			formatSSAO
+		};
+
+		Texture2D ssao_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		ssao_tex._GetResourcePtr()->SetName("Screen space ambient occlusion tex");
 		m_ssao_rtv = context.CreateRtv(ssao_tex, formatSSAO, rtvDesc);
 		m_ssao_rtv.GetResource()._GetResourcePtr()->SetName("Screen space ambient occlusion RTV");

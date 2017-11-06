@@ -133,7 +133,7 @@ void MotionBlur::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, velocityBindParamDesc, neighborMaxBindParamDesc, depthBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, velocityBindParamDesc, neighborMaxBindParamDesc, depthBindParamDesc }, { samplerDesc });
 	}
 
 	if (!m_fsq.HasObject()) {
@@ -207,7 +207,7 @@ void MotionBlur::Execute(RenderContext& context) {
 	uniformsCBData.maxMotionBlurRadius = 20.0;
 	uniformsCBData.reconstructionFilterTaps = 15; //make sure it's an odd number
 	uniformsCBData.halfExposure = 0.5 * 0.75;
-	uniformsCBData.maxSampleTapDistance = 6; 
+	uniformsCBData.maxSampleTapDistance = 6;
 
 	commandList.SetResourceState(m_motionblur_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
@@ -275,7 +275,13 @@ void MotionBlur::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D motionblur_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatMotionBlur, {1, 1, 0, 0});
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth(),
+			m_inputTexSrv.GetResource().GetHeight(),
+			formatMotionBlur
+		};
+
+		Texture2D motionblur_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		motionblur_tex._GetResourcePtr()->SetName("Motion blur tex");
 		m_motionblur_rtv = context.CreateRtv(motionblur_tex, formatMotionBlur, rtvDesc);
 		m_motionblur_rtv.GetResource()._GetResourcePtr()->SetName("motion blur RTV");

@@ -232,7 +232,13 @@ void BloomAdd::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D output_tex = context.CreateTexture2D(m_input1TexSrv.GetResource().GetWidth(), m_input1TexSrv.GetResource().GetHeight(), formatAdd, {1, 1, 0, 0});
+		Texture2DDesc desc{
+			m_input1TexSrv.GetResource().GetWidth(),
+			m_input1TexSrv.GetResource().GetHeight(),
+			formatAdd
+		};
+
+		Texture2D output_tex = context.CreateTexture2D(desc, {1, 1, 0, 0});
 		output_tex._GetResourcePtr()->SetName("Bloom add tex");
 		m_output_rtv = context.CreateRtv(output_tex, formatAdd, rtvDesc);
 		m_output_rtv.GetResource()._GetResourcePtr()->SetName("Bloom add RTV");

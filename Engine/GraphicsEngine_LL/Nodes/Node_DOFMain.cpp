@@ -152,7 +152,7 @@ void DOFMain::Setup(SetupContext& context) {
 		samplerDesc2.registerSpace = 0;
 		samplerDesc2.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, sampBindParamDesc2, inputBindParamDesc, depthBindParamDesc, neighborhoodMaxBindParamDesc },{ samplerDesc, samplerDesc2 });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, sampBindParamDesc2, inputBindParamDesc, depthBindParamDesc, neighborhoodMaxBindParamDesc }, { samplerDesc, samplerDesc2 });
 	}
 
 	if (!m_fsq.HasObject()) {
@@ -411,21 +411,35 @@ void DOFMain::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D main_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), format, {1, 1, 0, 0});
+		Texture2DDesc desc;
+
+		desc = {
+			m_inputTexSrv.GetResource().GetWidth(),
+			m_inputTexSrv.GetResource().GetHeight(),
+			format,
+		};
+
+		Texture2D main_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		main_tex._GetResourcePtr()->SetName("DOF main tex");
 		m_main_rtv = context.CreateRtv(main_tex, format, rtvDesc);
 		m_main_rtv.GetResource()._GetResourcePtr()->SetName("DOF main RTV");
 		m_main_srv = context.CreateSrv(main_tex, format, srvDesc);
 		m_main_srv.GetResource()._GetResourcePtr()->SetName("DOF main SRV");
 
-		Texture2D postfilter_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), format, { 1, 1, 0, 0 });
+		Texture2D postfilter_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		postfilter_tex._GetResourcePtr()->SetName("DOF postfilter tex");
 		m_postfilter_rtv = context.CreateRtv(postfilter_tex, format, rtvDesc);
 		m_postfilter_rtv.GetResource()._GetResourcePtr()->SetName("DOF postfilter RTV");
 		m_postfilter_srv = context.CreateSrv(postfilter_tex, format, srvDesc);
 		m_postfilter_srv.GetResource()._GetResourcePtr()->SetName("DOF postfilter SRV");
 
-		Texture2D upsample_tex = context.CreateTexture2D(m_originalTexSrv.GetResource().GetWidth(), m_originalTexSrv.GetResource().GetHeight(), format, { 1, 1, 0, 0 });
+		desc = {
+			m_originalTexSrv.GetResource().GetWidth(),
+			m_originalTexSrv.GetResource().GetHeight(), 
+			format
+		};
+
+		Texture2D upsample_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		upsample_tex._GetResourcePtr()->SetName("DOF upsample tex");
 		m_upsample_rtv = context.CreateRtv(upsample_tex, format, rtvDesc);
 		m_upsample_rtv.GetResource()._GetResourcePtr()->SetName("DOF upsample RTV");

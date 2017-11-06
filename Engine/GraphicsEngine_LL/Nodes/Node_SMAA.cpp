@@ -407,21 +407,30 @@ void SMAA::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D edgeDetectionTex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), format, {1, 1, 0, 0});
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth(),
+			m_inputTexSrv.GetResource().GetHeight(),
+			format
+		};
+		TextureUsage usage{
+			true, true, false, false
+		};
+
+		Texture2D edgeDetectionTex = context.CreateTexture2D(desc, usage);
 		edgeDetectionTex._GetResourcePtr()->SetName("SMAA edge detection tex");
 		m_edgeDetectionRTV = context.CreateRtv(edgeDetectionTex, format, rtvDesc);
 		m_edgeDetectionRTV.GetResource()._GetResourcePtr()->SetName("SMAA edge detection RTV");
 		m_edgeDetectionSRV = context.CreateSrv(edgeDetectionTex, format, srvDesc);
 		m_edgeDetectionSRV.GetResource()._GetResourcePtr()->SetName("SMAA edge detection SRV");
 
-		Texture2D blendingWeightsTex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), format, { 1, 1, 0, 0 });
+		Texture2D blendingWeightsTex = context.CreateTexture2D(desc, usage);
 		blendingWeightsTex._GetResourcePtr()->SetName("SMAA blending weights tex");
 		m_blendingWeightsRTV = context.CreateRtv(blendingWeightsTex, format, rtvDesc);
 		m_blendingWeightsRTV.GetResource()._GetResourcePtr()->SetName("SMAA blending weights RTV");
 		m_blendingWeightsSRV = context.CreateSrv(blendingWeightsTex, format, srvDesc);
 		m_blendingWeightsSRV.GetResource()._GetResourcePtr()->SetName("SMAA blending weights SRV");
 
-		Texture2D neighborhoodBlendingTex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), format, { 1, 1, 0, 0 });
+		Texture2D neighborhoodBlendingTex = context.CreateTexture2D(desc, usage);
 		neighborhoodBlendingTex._GetResourcePtr()->SetName("SMAA neighborhood blending tex");
 		m_neighborhoodBlendingRTV = context.CreateRtv(neighborhoodBlendingTex, format, rtvDesc);
 		m_neighborhoodBlendingRTV.GetResource()._GetResourcePtr()->SetName("SMAA neighborhood blending RTV");

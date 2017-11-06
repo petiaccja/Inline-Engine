@@ -26,15 +26,16 @@ void Image::SetLayout(size_t width, size_t height, ePixelChannelType channelType
 	}
 
 	try {
-		Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, (uint32_t)height, format);
-		gxapi::SrvTexture2DArray desc;
-		desc.activeArraySize = 1;
-		desc.firstArrayElement = 0;
-		desc.mipLevelClamping = 0;
-		desc.mostDetailedMip = 0;
-		desc.numMipLevels = -1;
-		desc.planeIndex = 0;
-		m_resource.reset(new TextureView2D(texture, *m_descriptorHeap, texture.GetFormat(), desc));
+		Texture2DDesc resdesc(width, height, format, 0, 1);
+		Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, resdesc);
+		gxapi::SrvTexture2DArray srvdesc;
+		srvdesc.activeArraySize = 1;
+		srvdesc.firstArrayElement = 0;
+		srvdesc.mipLevelClamping = 0;
+		srvdesc.mostDetailedMip = 0;
+		srvdesc.numMipLevels = -1;
+		srvdesc.planeIndex = 0;
+		m_resource.reset(new TextureView2D(texture, *m_descriptorHeap, texture.GetFormat(), srvdesc));
 
 		m_channelCount = channelCount;
 		m_channelType = channelType;

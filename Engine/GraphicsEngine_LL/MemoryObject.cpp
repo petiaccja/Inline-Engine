@@ -83,6 +83,16 @@ gxapi::ResourceDesc MemoryObject::GetDescription() const {
 }
 
 
+void MemoryObject::SetName(const std::string& name) {
+	SetName(name.c_str());
+}
+void MemoryObject::SetName(const char* name) {
+	if (m_contents) {
+		m_contents->resource->SetName(name);
+	}
+}
+
+
 void MemoryObject::_SetResident(bool value) noexcept {
 	assert(m_contents);
 	m_contents->resident = value;
@@ -229,7 +239,7 @@ uint64_t Texture2D::GetWidth() const {
 }
 
 
-uint64_t Texture2D::GetHeight() const {
+uint32_t Texture2D::GetHeight() const {
 	return GetDescription().textureDesc.height;
 }
 

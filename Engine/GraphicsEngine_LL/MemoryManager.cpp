@@ -67,6 +67,7 @@ IndexBuffer MemoryManager::CreateIndexBuffer(eResourceHeapType heap, size_t size
 }
 
 
+/*
 Texture1D MemoryManager::CreateTexture1D(eResourceHeapType heap, uint64_t width, gxapi::eFormat format, gxapi::eResourceFlags flags, uint16_t arraySize) {
 	if (arraySize < 1) {
 		throw InvalidArgumentException("Array must have dimension greater than 0.", "arraySize");
@@ -95,6 +96,39 @@ Texture3D MemoryManager::CreateTexture3D(eResourceHeapType heap, uint64_t width,
 	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::Texture3D(width, height, depth, format, flags));
 
 	Texture3D result(std::move(desc));
+	return result;
+}
+*/
+
+
+Texture1D MemoryManager::CreateTexture1D(eResourceHeapType heap, const Texture1DDesc& desc, gxapi::eResourceFlags flags) {
+	if (desc.arraySize < 1) {
+		throw InvalidArgumentException("Array must have dimension greater than 0.", "arraySize");
+	}
+
+	MemoryObjDesc objdesc = AllocateResource(heap, gxapi::ResourceDesc::Texture1DArray(desc.width, desc.format, desc.arraySize, flags, desc.mipLevels));
+
+	Texture1D result(std::move(objdesc));
+	return result;
+}
+
+
+Texture2D MemoryManager::CreateTexture2D(eResourceHeapType heap, const Texture2DDesc& desc, gxapi::eResourceFlags flags) {
+	if (desc.arraySize < 1) {
+		throw InvalidArgumentException("Array must have dimension greater than 0.", "arraySize");
+	}
+
+	MemoryObjDesc objdesc = AllocateResource(heap, gxapi::ResourceDesc::Texture2DArray(desc.width, desc.height, desc.format, desc.arraySize, flags, desc.mipLevels));
+
+	Texture2D result(std::move(objdesc));
+	return result;
+}
+
+
+Texture3D MemoryManager::CreateTexture3D(eResourceHeapType heap, const Texture3DDesc& desc, gxapi::eResourceFlags flags) {
+	MemoryObjDesc objdesc = AllocateResource(heap, gxapi::ResourceDesc::Texture3D(desc.width, desc.height, desc.depth, desc.format, flags, desc.mipLevels));
+
+	Texture3D result(std::move(objdesc));
 	return result;
 }
 

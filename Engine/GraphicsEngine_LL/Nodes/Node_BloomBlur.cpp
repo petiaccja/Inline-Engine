@@ -225,7 +225,13 @@ void BloomBlur::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D blur_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatBlur, {1, 1, 0, 0});
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth(),
+			m_inputTexSrv.GetResource().GetHeight(),
+			formatBlur
+		};
+
+		Texture2D blur_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		blur_tex._GetResourcePtr()->SetName("Bloom blur tex");
 		m_blur_rtv = context.CreateRtv(blur_tex, formatBlur, rtvDesc);
 		m_blur_rtv.GetResource()._GetResourcePtr()->SetName("Bloom blur RTV");

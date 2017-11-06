@@ -289,7 +289,13 @@ void ScreenSpaceReflection::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D ssr_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatSSR, {1, 1, 0, 0});
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth(),
+			m_inputTexSrv.GetResource().GetHeight(),
+			formatSSR
+		};
+
+		Texture2D ssr_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		ssr_tex._GetResourcePtr()->SetName("Screen space reflection tex");
 		m_ssr_rtv = context.CreateRtv(ssr_tex, formatSSR, rtvDesc);
 		m_ssr_rtv.GetResource()._GetResourcePtr()->SetName("Screen space reflection RTV");

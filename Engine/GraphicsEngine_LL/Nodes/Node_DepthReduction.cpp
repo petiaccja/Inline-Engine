@@ -167,7 +167,7 @@ void DepthReduction::InitRenderTarget(SetupContext& context) {
 	unsigned dispatchW, dispatchH;
 	SetWorkgroupSize((unsigned)std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
 
-	Texture2D tex = context.CreateRWTexture2D(dispatchW, dispatchH, formatDepthReductionResult, 1);
+	Texture2D tex = context.CreateTexture2D({ dispatchW, dispatchH, formatDepthReductionResult }, { true, true, false, true });
 	tex._GetResourcePtr()->SetName("Depth reduction intermediate texture");
 	m_uav = context.CreateUav(tex, formatDepthReductionResult, uavDesc);
 	m_uav.GetResource()._GetResourcePtr()->SetName("Depth reduction intermediate texture UAV");

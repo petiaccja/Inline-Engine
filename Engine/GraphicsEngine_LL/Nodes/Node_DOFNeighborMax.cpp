@@ -215,7 +215,13 @@ void DOFNeighborMax::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D neighbormax_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatNeighborMax, {1, 1, 0, 0});
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth(),
+			m_inputTexSrv.GetResource().GetHeight(),
+			formatNeighborMax
+		};
+
+		Texture2D neighbormax_tex = context.CreateTexture2D(desc, {true, true, false, false});
 		neighbormax_tex._GetResourcePtr()->SetName("DOF neighbormax tex");
 		m_neighbormax_rtv = context.CreateRtv(neighbormax_tex, formatNeighborMax, rtvDesc);
 		m_neighbormax_rtv.GetResource()._GetResourcePtr()->SetName("DOF neighbormax RTV");

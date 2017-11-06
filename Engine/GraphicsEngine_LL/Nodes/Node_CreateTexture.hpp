@@ -74,7 +74,7 @@ public:
 		{
 			if (!isCubemap)
 			{
-				m_texture = context.CreateTexture2D(width, height, format, usage, arrayCount);
+				m_texture = context.CreateTexture2D({ width, height, format, 1, arrayCount }, usage);
 			}
 			else
 			{

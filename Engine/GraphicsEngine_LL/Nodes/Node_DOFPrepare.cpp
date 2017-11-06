@@ -265,14 +265,21 @@ void DOFPrepare::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth(), 
+			m_inputTexSrv.GetResource().GetHeight(),
+			format
+		};
+
 		//Texture2D prepare_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth()/2, m_inputTexSrv.GetResource().GetHeight()/2, format, {1, 1, 0, 0});
-		Texture2D prepare_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), format, { 1, 1, 0, 0 });
+		Texture2D prepare_tex = context.CreateTexture2D(desc, { true, true, false });
 		prepare_tex._GetResourcePtr()->SetName("DOF prepare tex");
 		m_prepare_rtv = context.CreateRtv(prepare_tex, format, rtvDesc);
 		m_prepare_rtv.GetResource()._GetResourcePtr()->SetName("DOF prepare RTV");
 
 		//Texture2D depth_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth() / 2, m_inputTexSrv.GetResource().GetHeight() / 2, depthFormat, { 1, 1, 0, 0 });
-		Texture2D depth_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), depthFormat, { 1, 1, 0, 0 });
+		desc.format = depthFormat;
+		Texture2D depth_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		depth_tex._GetResourcePtr()->SetName("DOF depth tex");
 		m_depth_rtv = context.CreateRtv(depth_tex, depthFormat, rtvDesc);
 		m_depth_rtv.GetResource()._GetResourcePtr()->SetName("DOF depth RTV");

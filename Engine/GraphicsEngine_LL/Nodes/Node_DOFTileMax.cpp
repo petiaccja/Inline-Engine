@@ -238,7 +238,13 @@ void DOFTileMax::InitRenderTarget(SetupContext& context) {
 
 		int tileSize = 20;
 
-		Texture2D tilemax_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth() / tileSize, m_inputTexSrv.GetResource().GetHeight() / tileSize, formatTileMax, {1, 1, 0, 0});
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth() / tileSize,
+			m_inputTexSrv.GetResource().GetHeight() / tileSize,
+			formatTileMax
+		};
+
+		Texture2D tilemax_tex = context.CreateTexture2D(desc, {true, true, false, false});
 		tilemax_tex._GetResourcePtr()->SetName("DOF tilemax tex");
 		m_tilemax_rtv = context.CreateRtv(tilemax_tex, formatTileMax, rtvDesc);
 		m_tilemax_rtv.GetResource()._GetResourcePtr()->SetName("DOF tilemax RTV");

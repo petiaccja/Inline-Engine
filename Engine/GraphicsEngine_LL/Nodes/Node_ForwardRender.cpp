@@ -202,7 +202,11 @@ void ForwardRender::Setup(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D velocity_tex = context.CreateTexture2D(target.GetWidth(), target.GetHeight(), formatVelocity, { 1, 1, 0, 0 });
+		Texture2DDesc desc{
+			target.GetWidth(), target.GetHeight(), formatVelocity
+		};
+
+		Texture2D velocity_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		velocity_tex._GetResourcePtr()->SetName("Forward render Velocity tex");
 		m_velocity_rtv = context.CreateRtv(velocity_tex, formatVelocity, rtvDesc);
 		m_velocity_rtv.GetResource()._GetResourcePtr()->SetName("Forward render Velocity RTV");

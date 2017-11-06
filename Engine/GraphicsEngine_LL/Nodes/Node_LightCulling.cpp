@@ -246,7 +246,7 @@ void LightCulling::InitRenderTarget(SetupContext& context) {
 		SetWorkgroupSize((unsigned)m_width, (unsigned)m_height, 16, 16, dispatchW, dispatchH);
 
 		//TODO 1D tex
-		Texture2D lightCullDataTex = context.CreateRWTexture2D(dispatchW * dispatchH, 1024, formatLightCullData, 1);
+		Texture2D lightCullDataTex = context.CreateTexture2D({ dispatchW * dispatchH, 1024, formatLightCullData }, { true, true, false, true });
 		lightCullDataTex._GetResourcePtr()->SetName("Light culling light cull data tex");
 		m_lightCullDataUAV = context.CreateUav(lightCullDataTex, formatLightCullData, uavDesc);
 		m_lightCullDataUAV.GetResource()._GetResourcePtr()->SetName("Light culling light cull data UAV");

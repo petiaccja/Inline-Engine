@@ -502,7 +502,13 @@ void VolumetricLighting::InitRenderTarget(SetupContext& context) {
 		SetWorkgroupSize((unsigned)m_depthTexSrv.GetResource().GetWidth(), (unsigned)m_depthTexSrv.GetResource().GetHeight(), 16, 16, dispatchW, dispatchH);
 
 		//TODO 1D tex
-		Texture2D sdfCullDataTex = context.CreateRWTexture2D(dispatchW * dispatchH, 1024, formatSDFCullData, 1);
+		Texture2DDesc desc;
+		desc.width = dispatchW * dispatchH;
+		desc.height = 1024;
+		desc.format = formatSDFCullData;
+		TextureUsage uavusage{ true, true, false, true };
+
+		Texture2D sdfCullDataTex = context.CreateTexture2D(desc, uavusage);
 		sdfCullDataTex._GetResourcePtr()->SetName("SDF culling sdf cull data tex");
 		m_sdfCullDataUAV = context.CreateUav(sdfCullDataTex, formatSDFCullData, uavDesc);
 		m_sdfCullDataUAV.GetResource()._GetResourcePtr()->SetName("SDF culling sdf cull data UAV"); 
@@ -511,13 +517,21 @@ void VolumetricLighting::InitRenderTarget(SetupContext& context) {
 
 		for (int c = 0; c < 2; ++c)
 		{
-			Texture2D dstTex = context.CreateRWTexture2D(m_depthTexSrv.GetResource().GetWidth(), m_depthTexSrv.GetResource().GetHeight(), formatDst, 1);
+			desc.width = m_depthTexSrv.GetResource().GetWidth();
+			desc.height = m_depthTexSrv.GetResource().GetHeight();
+			desc.format = formatDst;
+
+			Texture2D dstTex = context.CreateTexture2D(desc, uavusage);
 			sdfCullDataTex._GetResourcePtr()->SetName("SDF culling dst tex");
 			m_volDstTexUAV[c] = context.CreateUav(dstTex, formatDst, uavDesc);
 			m_volDstTexUAV[c].GetResource()._GetResourcePtr()->SetName((std::string("SDF culling vol dst UAV") + std::to_string(c)).c_str());
 		}
 
-		Texture2D dstTex = context.CreateRWTexture2D(m_depthTexSrv.GetResource().GetWidth(), m_depthTexSrv.GetResource().GetHeight(), formatDst, 1);
+		desc.width = m_depthTexSrv.GetResource().GetWidth();
+		desc.height = m_depthTexSrv.GetResource().GetHeight();
+		desc.format = formatDst;
+
+		Texture2D dstTex = context.CreateTexture2D(desc, uavusage);
 		sdfCullDataTex._GetResourcePtr()->SetName("SDF culling dst tex");
 		m_dstTexUAV = context.CreateUav(dstTex, formatDst, uavDesc);
 		m_dstTexUAV.GetResource()._GetResourcePtr()->SetName("SDF culling dst UAV");

@@ -170,7 +170,7 @@ void LuminanceReductionFinal::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D avg_lum_tex = context.CreateRWTexture2D(1, 1, formatAvgLum, 1);
+		Texture2D avg_lum_tex = context.CreateTexture2D({ 1, 1, formatAvgLum }, { true, true, false, true });
 		avg_lum_tex._GetResourcePtr()->SetName("Luminance reduction final tex");
 		m_avg_lum_uav = context.CreateUav(avg_lum_tex, formatAvgLum, uavDesc);
 		m_avg_lum_uav.GetResource()._GetResourcePtr()->SetName("Luminance reduction final UAV");

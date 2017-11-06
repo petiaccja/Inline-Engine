@@ -494,14 +494,14 @@ void Voxelization::InitRenderTarget(SetupContext& context) {
 		srvDesc.numMipLevels = -1;
 
 		//TODO init to 0
-		Texture3D voxel_tex = context.CreateTexture3D(voxelDimension, voxelDimension, voxelDimension, formatVoxel, { 1, 0, 0, 1 });
+		Texture3D voxel_tex = context.CreateTexture3D({ (uint64_t)voxelDimension, (uint32_t)voxelDimension, (uint16_t)voxelDimension, formatVoxel }, { true, false, false, true });
 		voxel_tex._GetResourcePtr()->SetName("Voxelization voxel tex");
 		m_voxelTexUAV = context.CreateUav(voxel_tex, formatVoxel, uavDesc);
 		m_voxelTexUAV.GetResource()._GetResourcePtr()->SetName("Voxelization voxel UAV");
 		m_voxelTexSRV = context.CreateSrv(voxel_tex, formatVoxel, srvDesc);
 		m_voxelTexSRV.GetResource()._GetResourcePtr()->SetName("Voxelization voxel SRV");
 
-		Texture3D voxelLightTex = context.CreateTexture3D(voxelDimension, voxelDimension, voxelDimension, formatVoxel, { 1, 0, 0, 1 });
+		Texture3D voxelLightTex = context.CreateTexture3D({ (uint64_t)voxelDimension, (uint32_t)voxelDimension, (uint16_t)voxelDimension, formatVoxel }, { true, false, false, true });
 		voxelLightTex._GetResourcePtr()->SetName("Voxelization voxel tex");
 		m_voxelLightTexUAV = context.CreateUav(voxelLightTex, formatVoxel, uavDesc);
 		m_voxelLightTexUAV.GetResource()._GetResourcePtr()->SetName("Voxelization light voxel UAV");

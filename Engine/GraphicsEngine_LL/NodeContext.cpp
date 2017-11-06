@@ -49,6 +49,7 @@ SetupContext::SetupContext(MemoryManager* memoryManager,
 {}
 
 
+/*
 Texture2D SetupContext::CreateTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, TextureUsage usage, uint16_t arraySize) const {
 	gxapi::eResourceFlags flags;
 
@@ -72,7 +73,34 @@ Texture3D SetupContext::CreateTexture3D(uint64_t width, uint32_t height, uint32_
 	Texture3D texture = m_memoryManager->CreateTexture3D(eResourceHeapType::CRITICAL, width, height, depth, format, flags);
 	return texture;
 }
+*/
 
+Texture2D SetupContext::CreateTexture2D(const Texture2DDesc& desc, const TextureUsage& usage) const {
+	gxapi::eResourceFlags flags;
+
+	if (!usage.shaderResource) flags += gxapi::eResourceFlags::DENY_SHADER_RESOURCE;
+	if (usage.renderTarget) flags += gxapi::eResourceFlags::ALLOW_RENDER_TARGET;
+	if (usage.depthStencil) flags += gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL;
+	if (usage.randomAccess) flags += gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS;
+
+	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, desc, flags);
+	return texture;
+}
+
+Texture3D SetupContext::CreateTexture3D(const Texture3DDesc& desc, const TextureUsage& usage) const {
+	gxapi::eResourceFlags flags;
+
+	if (!usage.shaderResource) flags += gxapi::eResourceFlags::DENY_SHADER_RESOURCE;
+	if (usage.renderTarget) flags += gxapi::eResourceFlags::ALLOW_RENDER_TARGET;
+	if (usage.depthStencil) flags += gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL;
+	if (usage.randomAccess) flags += gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS;
+
+	Texture3D texture = m_memoryManager->CreateTexture3D(eResourceHeapType::CRITICAL, desc, flags);
+	return texture;
+}
+
+
+/*
 Texture2D SetupContext::CreateShaderResource2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize) const {
 	if (m_memoryManager == nullptr) throw InvalidStateException("Cannot create texture without memory manager.");
 
@@ -112,6 +140,7 @@ Texture2D SetupContext::CreateRWTexture2D(uint64_t width, uint32_t height, gxapi
 	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, format, flags, arraySize);
 	return texture;
 }
+*/
 
 
 TextureView2D SetupContext::CreateSrv(Texture2D& texture, gxapi::eFormat format, gxapi::SrvTexture2DArray desc) const {

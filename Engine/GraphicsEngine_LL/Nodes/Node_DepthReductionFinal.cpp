@@ -280,22 +280,22 @@ void DepthReductionFinal::InitRenderTarget(SetupContext& context) {
 		srvDesc.planeIndex = 0;
 
 		//TODO 1D tex
-		Texture2D light_mvp_tex = context.CreateRWTexture2D(4 * 4, 1, formatLightMVP, 1);
+		Texture2D light_mvp_tex = context.CreateTexture2D({ 4 * 4, 1, formatLightMVP }, { true, true, false, true });
 		light_mvp_tex._GetResourcePtr()->SetName("Depth reduction final light MVP tex");
 		m_light_mvp_uav = context.CreateUav(light_mvp_tex, formatLightMVP, uavDesc);
 		m_light_mvp_uav.GetResource()._GetResourcePtr()->SetName("Depth reduction final light MVP UAV");
 
-		Texture2D shadow_mx_tex = context.CreateRWTexture2D(4 * 4, 1, formatShadowMX, 1);
+		Texture2D shadow_mx_tex = context.CreateTexture2D({ 4 * 4, 1, formatShadowMX }, { true, true, false, true });
 		shadow_mx_tex._GetResourcePtr()->SetName("Depth reduction final shadow MX tex");
 		m_shadow_mx_uav = context.CreateUav(shadow_mx_tex, formatShadowMX, uavDesc);
 		m_shadow_mx_uav.GetResource()._GetResourcePtr()->SetName("Depth reduction final shadow MX UAV");
 
-		Texture2D csm_splits_tex = context.CreateRWTexture2D(4, 1, formatCSMSplits, 1);
+		Texture2D csm_splits_tex = context.CreateTexture2D({ 4, 1, formatCSMSplits }, { true, true, false, true });
 		csm_splits_tex._GetResourcePtr()->SetName("Depth reduction final csm splits tex");
 		m_csm_splits_uav = context.CreateUav(csm_splits_tex, formatCSMSplits, uavDesc);
 		m_csm_splits_uav.GetResource()._GetResourcePtr()->SetName("Depth reduction final csm splits UAV");
 
-		Texture2D csm_extents_tex = context.CreateRWTexture2D(3*4, 1, formatCSMExtents, 1);
+		Texture2D csm_extents_tex = context.CreateTexture2D({ 3 * 4, 1, formatCSMExtents }, { true, true, false, true });
 		csm_extents_tex._GetResourcePtr()->SetName("Depth reduction final csm extents tex");
 		m_csm_extents_uav = context.CreateUav(csm_extents_tex, formatCSMExtents, uavDesc);
 		m_csm_extents_uav.GetResource()._GetResourcePtr()->SetName("Depth reduction final csm extents UAV");

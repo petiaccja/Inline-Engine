@@ -271,7 +271,13 @@ void ScreenSpaceShadow::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D sss_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatSSS, {1, 1, 0, 0});
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth(),
+			m_inputTexSrv.GetResource().GetHeight(),
+			formatSSS
+		};
+
+		Texture2D sss_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		sss_tex._GetResourcePtr()->SetName("Screen space shadow tex");
 		m_sss_rtv = context.CreateRtv(sss_tex, formatSSS, rtvDesc);
 		m_sss_rtv.GetResource()._GetResourcePtr()->SetName("Screen space shadow RTV");

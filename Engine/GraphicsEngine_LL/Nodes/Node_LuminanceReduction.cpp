@@ -167,7 +167,7 @@ void LuminanceReduction::InitRenderTarget(SetupContext& context) {
 	unsigned dispatchW, dispatchH;
 	setWorkgroupSize((unsigned)std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
 
-	Texture2D tex = context.CreateRWTexture2D(dispatchW, dispatchH, formatLuminanceReductionResult, 1);
+	Texture2D tex = context.CreateTexture2D({ dispatchW, dispatchH, formatLuminanceReductionResult }, { true, true, false, true });
 	tex._GetResourcePtr()->SetName("Luminance reduction intermediate texture");
 	m_uav = context.CreateUav(tex, formatLuminanceReductionResult, uavDesc);
 	m_uav.GetResource()._GetResourcePtr()->SetName("Luminance reduction intermediate texture UAV");

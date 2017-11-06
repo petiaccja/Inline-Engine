@@ -238,7 +238,13 @@ void LensFlare::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D lens_flare_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatLensFlare, {1, 1, 0, 0});
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth(),
+			m_inputTexSrv.GetResource().GetHeight(), 
+			formatLensFlare
+		};
+
+		Texture2D lens_flare_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		lens_flare_tex._GetResourcePtr()->SetName("Lens flare tex");
 		m_lens_flare_rtv = context.CreateRtv(lens_flare_tex, formatLensFlare, rtvDesc);
 		m_lens_flare_rtv.GetResource()._GetResourcePtr()->SetName("Lens flare RTV");
