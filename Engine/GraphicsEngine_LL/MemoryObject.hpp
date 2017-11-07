@@ -100,15 +100,12 @@ public:
 protected:
 	void InitResourceStates(gxapi::eResourceState initialState);
 
-private:
 	struct Contents {
 		std::unique_ptr<gxapi::IResource, Deleter> resource;
 		bool resident;
 		eResourceHeap heap;
 		std::vector<gxapi::eResourceState> subresourceStates;
 	};
-
-private:
 	std::shared_ptr<Contents> m_contents;
 };
 
@@ -195,6 +192,7 @@ public:
 
 	uint64_t GetWidth() const;
 	uint16_t GetArrayCount() const;
+	uint32_t GetSubresourceIndex(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIndex) const;
 	gxapi::eFormat GetFormat() const;
 };
 
@@ -206,7 +204,7 @@ public:
 	uint64_t GetWidth() const;
 	uint32_t GetHeight() const;
 	uint16_t GetArrayCount() const;
-	uint32_t GetSubresourceIndex(uint32_t arrayIndex, uint32_t mipLevel) const;
+	uint32_t GetSubresourceIndex(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIndex) const;
 	gxapi::eFormat GetFormat() const;
 };
 
@@ -218,6 +216,7 @@ public:
 	uint64_t GetWidth() const;
 	uint64_t GetHeight() const;
 	uint16_t GetDepth() const;
+	uint32_t GetSubresourceIndex(uint32_t mipLevel, uint32_t planeIndex) const;
 	gxapi::eFormat GetFormat() const;
 };
 

@@ -65,6 +65,13 @@ struct TextureUsage {
 	bool randomAccess = false;
 };
 
+enum class eResourceUsage {
+	RENDERING,
+	STATIC,
+	UPLOAD,
+	DOWNLOAD
+};
+
 
 class SetupContext {
 public:
@@ -81,14 +88,8 @@ public:
 
 
 	// Create resources
-	//Texture2D CreateTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, TextureUsage usage, uint16_t arraySize = 1) const;
-	//Texture3D CreateTexture3D(uint64_t width, uint32_t height, uint32_t depth, gxapi::eFormat format, TextureUsage usage) const;
 	Texture2D CreateTexture2D(const Texture2DDesc& desc, const TextureUsage& usage) const;
 	Texture3D CreateTexture3D(const Texture3DDesc& desc, const TextureUsage& usage) const;
-	//Texture2D CreateShaderResource2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1) const;
-	//Texture2D CreateRenderTarget2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize = 1) const;
-	//Texture2D CreateDepthStencil2D(uint64_t width, uint32_t height, gxapi::eFormat format, bool shaderResource, uint16_t arraySize = 1) const;
-	//Texture2D CreateRWTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, bool renderTarget, uint16_t arraySize = 1) const;
 	VertexBuffer CreateVertexBuffer(const void* data, size_t size) const;
 	IndexBuffer CreateIndexBuffer(const void* data, size_t size, size_t indexCount) const;
 

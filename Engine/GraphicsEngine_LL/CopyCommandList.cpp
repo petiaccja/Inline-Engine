@@ -152,10 +152,10 @@ void CopyCommandList::CopyTexture(Texture2D& dst, const Texture2D& src, SubTextu
 	ExpectResourceState(src, gxapi::eResourceState::COPY_SOURCE);
 
 	gxapi::TextureCopyDesc dstDesc =
-		gxapi::TextureCopyDesc::Texture(dst.GetSubresourceIndex(dstPlace.arrayIndex, dstPlace.mipLevel));
+		gxapi::TextureCopyDesc::Texture(dstPlace.subresource);
 
 	gxapi::TextureCopyDesc srcDesc =
-		gxapi::TextureCopyDesc::Texture(src.GetSubresourceIndex(srcPlace.arrayIndex, srcPlace.mipLevel));
+		gxapi::TextureCopyDesc::Texture(dstPlace.subresource);
 
 	auto top = std::max(intptr_t(0), srcPlace.corner1.y);
 	auto bottom = srcPlace.corner2.y < 0 ? src.GetHeight() : srcPlace.corner2.y;
@@ -183,7 +183,7 @@ void CopyCommandList::CopyTexture(Texture2D& dst, const Texture2D& src, SubTextu
 	ExpectResourceState(src, gxapi::eResourceState::COPY_SOURCE);
 
 	gxapi::TextureCopyDesc dstDesc =
-		gxapi::TextureCopyDesc::Texture(dst.GetSubresourceIndex(dstPlace.arrayIndex, dstPlace.mipLevel));
+		gxapi::TextureCopyDesc::Texture(dstPlace.subresource);
 
 	gxapi::TextureCopyDesc srcDesc = gxapi::TextureCopyDesc::Texture(0);
 
@@ -205,7 +205,7 @@ void CopyCommandList::CopyTexture(Texture2D& dst, const LinearBuffer& src, SubTe
 	ExpectResourceState(src, gxapi::eResourceState::COPY_SOURCE);
 
 	gxapi::TextureCopyDesc dstDesc =
-		gxapi::TextureCopyDesc::Texture(dst.GetSubresourceIndex(dstPlace.arrayIndex, dstPlace.mipLevel));
+		gxapi::TextureCopyDesc::Texture(dstPlace.subresource);
 
 	m_commandList->CopyTexture(
 		dst._GetResourcePtr(),

@@ -209,6 +209,7 @@
     <ClInclude Include="Binder.hpp" />
     <ClInclude Include="BindingManager.hpp" />
     <ClInclude Include="CommandListPool.hpp" />
+    <ClInclude Include="Cubemap.hpp" />
     <ClInclude Include="GraphEditor.hpp" />
     <ClInclude Include="NodeContext.hpp" />
     <ClInclude Include="Nodes\DebugDrawManager.hpp" />
@@ -306,6 +307,7 @@
     <ClCompile Include="Binder.cpp" />
     <ClCompile Include="BasicCamera.cpp" />
     <ClCompile Include="CommandListPool.cpp" />
+    <ClCompile Include="Cubemap.cpp" />
     <ClCompile Include="GraphEditor.cpp" />
     <ClCompile Include="GraphicsNode.cpp" />
     <ClCompile Include="NodeContext.cpp" />

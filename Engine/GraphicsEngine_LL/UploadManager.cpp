@@ -78,6 +78,7 @@ void UploadManager::Upload(
 	const Texture2D& target,
 	uint32_t offsetX,
 	uint32_t offsetY,
+	uint32_t subresource,
 	const void* data,
 	uint64_t width,
 	uint32_t height,
@@ -123,6 +124,7 @@ void UploadManager::Upload(
 		UploadDescription uploadDesc(
 			LinearBuffer(std::move(uploadObjDesc)),
 			target,
+			subresource,
 			offsetX,
 			offsetY,
 			0,
