@@ -48,7 +48,7 @@ void BloomDownsample::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource().SetName("Bloom downsample input tex SRV");
+	
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -153,7 +153,7 @@ void BloomDownsample::Execute(RenderContext& context) {
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource().SetName("Bright Lum pass CBV");*/
+	*/
 
 	commandList.SetResourceState(m_downsample_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
@@ -224,7 +224,7 @@ void BloomDownsample::InitRenderTarget(SetupContext& context) {
 		Texture2D downsample_tex = context.CreateTexture2D(desc, {1, 1, 0, 0});
 		downsample_tex.SetName("Bloom Downsample tex");
 		m_downsample_rtv = context.CreateRtv(downsample_tex, formatDownsample, rtvDesc);
-		m_downsample_rtv.GetResource().SetName("Bloom Downsample RTV");
+		
 	}
 }
 

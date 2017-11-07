@@ -94,7 +94,7 @@ void LightCulling::Setup(SetupContext& context) {
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
 	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
-	m_depthTexSrv.GetResource().SetName("Light culling depth tex view");
+	
 
 	m_camera = this->GetInput<1>().Get();
 	//m_suns = this->GetInput<2>().Get();
@@ -205,7 +205,7 @@ void LightCulling::Execute(RenderContext& context) {
 	gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb.SetName("Light culling volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource().SetName("Light culling CBV");
+	
 
 	commandList.SetResourceState(m_lightCullDataUAV.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	commandList.SetResourceState(m_depthTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
@@ -249,7 +249,7 @@ void LightCulling::InitRenderTarget(SetupContext& context) {
 		Texture2D lightCullDataTex = context.CreateTexture2D({ dispatchW * dispatchH, 1024, formatLightCullData }, { true, true, false, true });
 		lightCullDataTex.SetName("Light culling light cull data tex");
 		m_lightCullDataUAV = context.CreateUav(lightCullDataTex, formatLightCullData, uavDesc);
-		m_lightCullDataUAV.GetResource().SetName("Light culling light cull data UAV");
+		
 	}
 }
 

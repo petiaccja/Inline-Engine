@@ -53,7 +53,7 @@ void BloomBlur::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource().SetName("Bloom blur input tex SRV");
+	
 
 	m_dir = this->GetInput<1>().Get();
 
@@ -160,7 +160,7 @@ void BloomBlur::Execute(RenderContext& context) {
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource().SetName("Bright Lum pass CBV");*/
+	*/
 
 	uniformsCBData.kernelScale = 1.0;
 	uniformsCBData.direction = m_dir;
@@ -234,7 +234,7 @@ void BloomBlur::InitRenderTarget(SetupContext& context) {
 		Texture2D blur_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		blur_tex.SetName("Bloom blur tex");
 		m_blur_rtv = context.CreateRtv(blur_tex, formatBlur, rtvDesc);
-		m_blur_rtv.GetResource().SetName("Bloom blur RTV");
+		
 	}
 }
 

@@ -55,11 +55,11 @@ void DOFPrepare::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource().SetName("DOF input tex SRV");
+	
 
 	Texture2D depthTex = this->GetInput<1>().Get();
 	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
-	m_depthTexSrv.GetResource().SetName("DOF depth tex SRV");
+	
 
 	m_camera = this->GetInput<2>().Get();
 
@@ -194,7 +194,7 @@ void DOFPrepare::Execute(RenderContext& context) {
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource().SetName("Bright Lum pass CBV");*/
+	*/
 
 	uniformsCBData.maxBlurDiameter = 33.0;
 
@@ -275,14 +275,14 @@ void DOFPrepare::InitRenderTarget(SetupContext& context) {
 		Texture2D prepare_tex = context.CreateTexture2D(desc, { true, true, false });
 		prepare_tex.SetName("DOF prepare tex");
 		m_prepare_rtv = context.CreateRtv(prepare_tex, format, rtvDesc);
-		m_prepare_rtv.GetResource().SetName("DOF prepare RTV");
+		
 
 		//Texture2D depth_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth() / 2, m_inputTexSrv.GetResource().GetHeight() / 2, depthFormat, { 1, 1, 0, 0 });
 		desc.format = depthFormat;
 		Texture2D depth_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		depth_tex.SetName("DOF depth tex");
 		m_depth_rtv = context.CreateRtv(depth_tex, depthFormat, rtvDesc);
-		m_depth_rtv.GetResource().SetName("DOF depth RTV");
+		
 	}
 }
 

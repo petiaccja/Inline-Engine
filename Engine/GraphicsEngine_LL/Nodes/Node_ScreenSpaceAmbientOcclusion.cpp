@@ -50,7 +50,7 @@ void ScreenSpaceAmbientOcclusion::Setup(SetupContext& context) {
 
 	Texture2D depthTex = this->GetInput<0>().Get();
 	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
-	m_depthTexSrv.GetResource().SetName("Screen space ambient occlusion depth tex SRV");
+	
 
 	m_camera = this->GetInput<1>().Get();
 
@@ -157,7 +157,7 @@ void ScreenSpaceAmbientOcclusion::Execute(RenderContext& context) {
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource().SetName("Bright Lum pass CBV");*/
+	*/
 
 	Mat44 v = m_camera->GetViewMatrix();
 	Mat44 p = m_camera->GetProjectionMatrix();
@@ -253,7 +253,7 @@ void ScreenSpaceAmbientOcclusion::InitRenderTarget(SetupContext& context) {
 		Texture2D ssao_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		ssao_tex.SetName("Screen space ambient occlusion tex");
 		m_ssao_rtv = context.CreateRtv(ssao_tex, formatSSAO, rtvDesc);
-		m_ssao_rtv.GetResource().SetName("Screen space ambient occlusion RTV");
+		
 	}
 }
 

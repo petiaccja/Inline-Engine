@@ -53,7 +53,7 @@ void SMAA::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource().SetName("SMAA input tex SRV");
+	
 
 	auto areaImage = this->GetInput<1>().Get();
 	auto searchImage = this->GetInput<2>().Get();
@@ -285,7 +285,7 @@ void SMAA::Execute(RenderContext& context) {
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource().SetName("Bright Lum pass CBV");*/
+	*/
 
 	uniformsCBData.pixelSize = Vec4(1.0f / Vec2(m_edgeDetectionRTV.GetResource().GetWidth(), m_edgeDetectionRTV.GetResource().GetHeight()), Vec2(m_edgeDetectionRTV.GetResource().GetWidth(), m_edgeDetectionRTV.GetResource().GetHeight()));
 
@@ -419,23 +419,23 @@ void SMAA::InitRenderTarget(SetupContext& context) {
 		Texture2D edgeDetectionTex = context.CreateTexture2D(desc, usage);
 		edgeDetectionTex.SetName("SMAA edge detection tex");
 		m_edgeDetectionRTV = context.CreateRtv(edgeDetectionTex, format, rtvDesc);
-		m_edgeDetectionRTV.GetResource().SetName("SMAA edge detection RTV");
+		
 		m_edgeDetectionSRV = context.CreateSrv(edgeDetectionTex, format, srvDesc);
-		m_edgeDetectionSRV.GetResource().SetName("SMAA edge detection SRV");
+		
 
 		Texture2D blendingWeightsTex = context.CreateTexture2D(desc, usage);
 		blendingWeightsTex.SetName("SMAA blending weights tex");
 		m_blendingWeightsRTV = context.CreateRtv(blendingWeightsTex, format, rtvDesc);
-		m_blendingWeightsRTV.GetResource().SetName("SMAA blending weights RTV");
+		
 		m_blendingWeightsSRV = context.CreateSrv(blendingWeightsTex, format, srvDesc);
-		m_blendingWeightsSRV.GetResource().SetName("SMAA blending weights SRV");
+		
 
 		Texture2D neighborhoodBlendingTex = context.CreateTexture2D(desc, usage);
 		neighborhoodBlendingTex.SetName("SMAA neighborhood blending tex");
 		m_neighborhoodBlendingRTV = context.CreateRtv(neighborhoodBlendingTex, format, rtvDesc);
-		m_neighborhoodBlendingRTV.GetResource().SetName("SMAA neighborhood blending RTV");
+		
 		m_neighborhoodBlendingSRV = context.CreateSrv(neighborhoodBlendingTex, format, srvDesc);
-		m_neighborhoodBlendingSRV.GetResource().SetName("SMAA neighborhood blending SRV");
+		
 	}
 }
 

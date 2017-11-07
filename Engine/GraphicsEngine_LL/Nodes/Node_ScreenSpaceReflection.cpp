@@ -55,11 +55,11 @@ void ScreenSpaceReflection::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource().SetName("Screen space reflection input tex SRV");
+	
 
 	Texture2D depthTex = this->GetInput<1>().Get();
 	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
-	m_depthTexSrv.GetResource().SetName("Screen space reflection depth tex SRV");
+	
 
 	m_camera = this->GetInput<2>().Get();
 
@@ -174,7 +174,7 @@ void ScreenSpaceReflection::Execute(RenderContext& context) {
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource().SetName("Bright Lum pass CBV");*/
+	*/
 
 	Mat44 v = m_camera->GetViewMatrix();
 	Mat44 p = m_camera->GetProjectionMatrix();
@@ -298,7 +298,7 @@ void ScreenSpaceReflection::InitRenderTarget(SetupContext& context) {
 		Texture2D ssr_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		ssr_tex.SetName("Screen space reflection tex");
 		m_ssr_rtv = context.CreateRtv(ssr_tex, formatSSR, rtvDesc);
-		m_ssr_rtv.GetResource().SetName("Screen space reflection RTV");
+		
 	}
 }
 

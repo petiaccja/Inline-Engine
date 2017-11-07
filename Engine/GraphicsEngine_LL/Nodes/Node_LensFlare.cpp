@@ -49,7 +49,7 @@ void LensFlare::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource().SetName("Lens flare input tex SRV");
+	
 
 	auto colorImage = this->GetInput<1>().Get();
 	if (colorImage == nullptr) {
@@ -170,7 +170,7 @@ void LensFlare::Execute(RenderContext& context) {
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource().SetName("Bright Lum pass CBV");*/
+	*/
 
 	uniformsCBData.scale = 1.0;
 
@@ -247,7 +247,7 @@ void LensFlare::InitRenderTarget(SetupContext& context) {
 		Texture2D lens_flare_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		lens_flare_tex.SetName("Lens flare tex");
 		m_lens_flare_rtv = context.CreateRtv(lens_flare_tex, formatLensFlare, rtvDesc);
-		m_lens_flare_rtv.GetResource().SetName("Lens flare RTV");
+		
 	}
 }
 

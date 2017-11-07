@@ -94,7 +94,7 @@ void CSM::Setup(SetupContext & context) {
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
 	m_lightMVPTexSrv = context.CreateSrv(lightMVPTex, lightMVPTex.GetFormat(), srvDesc);
-	m_lightMVPTexSrv.GetResource().SetName("CSM light MVP tex SRV");
+	
 
 	this->GetOutput<0>().Set(renderTarget);
 

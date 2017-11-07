@@ -53,7 +53,7 @@ void ScreenSpaceShadow::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, FormatDepthToColor(inputTex.GetFormat()), srvDesc);
-	m_inputTexSrv.GetResource().SetName("Screen space shadow input tex SRV");
+	
 
 	m_camera = this->GetInput<1>().Get();
 
@@ -160,7 +160,7 @@ void ScreenSpaceShadow::Execute(RenderContext& context) {
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource().SetName("Bright Lum pass CBV");*/
+	*/
 
 	Mat44 v = m_camera->GetViewMatrix();
 	Mat44 p = m_camera->GetProjectionMatrix();
@@ -280,7 +280,7 @@ void ScreenSpaceShadow::InitRenderTarget(SetupContext& context) {
 		Texture2D sss_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		sss_tex.SetName("Screen space shadow tex");
 		m_sss_rtv = context.CreateRtv(sss_tex, formatSSS, rtvDesc);
-		m_sss_rtv.GetResource().SetName("Screen space shadow RTV");
+		
 	}
 }
 

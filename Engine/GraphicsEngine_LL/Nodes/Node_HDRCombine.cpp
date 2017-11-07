@@ -68,19 +68,19 @@ void HDRCombine::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource().SetName("HDR Combine input tex SRV");
+	
 
 	Texture2D luminanceTex = this->GetInput<1>().Get();
 	m_luminanceTexSrv = context.CreateSrv(luminanceTex, luminanceTex.GetFormat(), srvDesc);
-	m_luminanceTexSrv.GetResource().SetName("HDR Combine luminance tex SRV");
+	
 
 	Texture2D bloomTex = this->GetInput<2>().Get();
 	m_bloomTexSrv = context.CreateSrv(bloomTex, bloomTex.GetFormat(), srvDesc);
-	m_bloomTexSrv.GetResource().SetName("HDR Combine bloom tex SRV");
+	
 
 	Texture2D lensFlareTex = this->GetInput<3>().Get();
 	m_lensFlareTexSrv = context.CreateSrv(lensFlareTex, lensFlareTex.GetFormat(), srvDesc);
-	m_lensFlareTexSrv.GetResource().SetName("HDR Combine lens flare tex SRV");
+	
 
 	auto colorGradingImage = this->GetInput<4>().Get();
 	auto lensFlareDirtImage = this->GetInput<5>().Get();
@@ -291,7 +291,7 @@ void HDRCombine::Execute(RenderContext& context) {
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource().SetName("Bright Lum pass CBV");*/
+	*/
 
 	auto colorGradingImage = this->GetInput<4>().Get();
 	auto lensFlareDirtImage = this->GetInput<5>().Get();
@@ -378,7 +378,7 @@ void HDRCombine::InitRenderTarget(SetupContext& context) {
 		Texture2D combine_tex = context.CreateTexture2D(desc, {true, true, false, false});
 		combine_tex.SetName("HDR Combine tex");
 		m_combine_rtv = context.CreateRtv(combine_tex, formatHDRCombine, rtvDesc);
-		m_combine_rtv.GetResource().SetName("HDR Combine RTV");
+		
 	}
 }
 

@@ -65,23 +65,23 @@ void DOFMain::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource().SetName("DOF input tex SRV");
+	
 
 	Texture2D halfDepthTex = this->GetInput<1>().Get();
 	m_halfDepthTexSrv = context.CreateSrv(halfDepthTex, FormatDepthToColor(halfDepthTex.GetFormat()), srvDesc);
-	m_halfDepthTexSrv.GetResource().SetName("DOF half depth tex SRV");
+	
 
 	Texture2D neighborhoodMaxTex = this->GetInput<2>().Get();
 	m_neighborhoodMaxTexSrv = context.CreateSrv(neighborhoodMaxTex, neighborhoodMaxTex.GetFormat(), srvDesc);
-	m_neighborhoodMaxTexSrv.GetResource().SetName("DOF neighborhood max tex SRV");
+	
 
 	Texture2D originalTex = this->GetInput<4>().Get();
 	m_originalTexSrv = context.CreateSrv(originalTex, originalTex.GetFormat(), srvDesc);
-	m_originalTexSrv.GetResource().SetName("DOF original tex SRV");
+	
 
 	Texture2D depthTex = this->GetInput<5>().Get();
 	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
-	m_depthTexSrv.GetResource().SetName("DOF depth tex SRV");
+	
 
 	m_camera = this->GetInput<3>().Get();
 
@@ -271,7 +271,7 @@ void DOFMain::Execute(RenderContext& context) {
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource().SetName("Bright Lum pass CBV");*/
+	*/
 
 	uniformsCBData.maxBlurDiameter = 33.0;
 	uniformsCBData.tileSize = 20.0;
@@ -422,16 +422,16 @@ void DOFMain::InitRenderTarget(SetupContext& context) {
 		Texture2D main_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		main_tex.SetName("DOF main tex");
 		m_main_rtv = context.CreateRtv(main_tex, format, rtvDesc);
-		m_main_rtv.GetResource().SetName("DOF main RTV");
+		
 		m_main_srv = context.CreateSrv(main_tex, format, srvDesc);
-		m_main_srv.GetResource().SetName("DOF main SRV");
+		
 
 		Texture2D postfilter_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		postfilter_tex.SetName("DOF postfilter tex");
 		m_postfilter_rtv = context.CreateRtv(postfilter_tex, format, rtvDesc);
-		m_postfilter_rtv.GetResource().SetName("DOF postfilter RTV");
+		
 		m_postfilter_srv = context.CreateSrv(postfilter_tex, format, srvDesc);
-		m_postfilter_srv.GetResource().SetName("DOF postfilter SRV");
+		
 
 		desc = {
 			m_originalTexSrv.GetResource().GetWidth(),
@@ -442,7 +442,7 @@ void DOFMain::InitRenderTarget(SetupContext& context) {
 		Texture2D upsample_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		upsample_tex.SetName("DOF upsample tex");
 		m_upsample_rtv = context.CreateRtv(upsample_tex, format, rtvDesc);
-		m_upsample_rtv.GetResource().SetName("DOF upsample RTV");
+		
 	}
 }
 

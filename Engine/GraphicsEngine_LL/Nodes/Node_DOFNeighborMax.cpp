@@ -48,7 +48,7 @@ void DOFNeighborMax::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource().SetName("DOF neighbormax input tex SRV");
+	
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -153,7 +153,7 @@ void DOFNeighborMax::Execute(RenderContext& context) {
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource().SetName("Bright Lum pass CBV");*/
+	*/
 
 	commandList.SetResourceState(m_neighbormax_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
@@ -224,7 +224,7 @@ void DOFNeighborMax::InitRenderTarget(SetupContext& context) {
 		Texture2D neighbormax_tex = context.CreateTexture2D(desc, {true, true, false, false});
 		neighbormax_tex.SetName("DOF neighbormax tex");
 		m_neighbormax_rtv = context.CreateRtv(neighbormax_tex, formatNeighborMax, rtvDesc);
-		m_neighbormax_rtv.GetResource().SetName("DOF neighbormax RTV");
+		
 	}
 }
 

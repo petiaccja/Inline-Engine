@@ -52,7 +52,7 @@ void LuminanceReductionFinal::Setup(SetupContext& context) {
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
 	m_reductionTexSrv = context.CreateSrv(reductionTex, reductionTex.GetFormat(), srvDesc);
-	m_reductionTexSrv.GetResource().SetName("Luminance reduction final reduction tex SRV");
+	
 
 	this->GetOutput<0>().Set(m_avg_lum_uav.GetResource());
 
@@ -133,7 +133,7 @@ void LuminanceReductionFinal::Execute(RenderContext& context) {
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb.SetName("Depth reduction final volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource().SetName("Depth reduction final CBV");*/
+	*/
 
 	commandList.SetResourceState(m_avg_lum_uav.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	commandList.SetResourceState(m_reductionTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
@@ -173,7 +173,7 @@ void LuminanceReductionFinal::InitRenderTarget(SetupContext& context) {
 		Texture2D avg_lum_tex = context.CreateTexture2D({ 1, 1, formatAvgLum }, { true, true, false, true });
 		avg_lum_tex.SetName("Luminance reduction final tex");
 		m_avg_lum_uav = context.CreateUav(avg_lum_tex, formatAvgLum, uavDesc);
-		m_avg_lum_uav.GetResource().SetName("Luminance reduction final UAV");
+		
 	}
 }
 

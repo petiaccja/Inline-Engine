@@ -52,11 +52,11 @@ void DOFTileMax::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource().SetName("DOF tilemax input tex SRV");
+	
 
 	Texture2D depthTex = this->GetInput<1>().Get();
 	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
-	m_depthTexSrv.GetResource().SetName("DOF tilemax depth tex SRV");
+	
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -170,7 +170,7 @@ void DOFTileMax::Execute(RenderContext& context) {
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource().SetName("Bright Lum pass CBV");*/
+	*/
 
 	uniformsCBData.tileSize = 20.0;
 
@@ -247,7 +247,7 @@ void DOFTileMax::InitRenderTarget(SetupContext& context) {
 		Texture2D tilemax_tex = context.CreateTexture2D(desc, {true, true, false, false});
 		tilemax_tex.SetName("DOF tilemax tex");
 		m_tilemax_rtv = context.CreateRtv(tilemax_tex, formatTileMax, rtvDesc);
-		m_tilemax_rtv.GetResource().SetName("DOF tilemax RTV");
+		
 	}
 }
 

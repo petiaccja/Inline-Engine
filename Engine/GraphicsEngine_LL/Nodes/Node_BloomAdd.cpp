@@ -51,11 +51,11 @@ void BloomAdd::Setup(SetupContext& context) {
 
 	Texture2D input0Tex = this->GetInput<0>().Get();
 	m_input0TexSrv = context.CreateSrv(input0Tex, input0Tex.GetFormat(), srvDesc);
-	m_input0TexSrv.GetResource().SetName("Bloom add input0 tex SRV");
+	
 
 	Texture2D input1Tex = this->GetInput<1>().Get();
 	m_input1TexSrv = context.CreateSrv(input1Tex, input1Tex.GetFormat(), srvDesc);
-	m_input1TexSrv.GetResource().SetName("Bloom add input1 tex SRV");
+	
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -168,7 +168,7 @@ void BloomAdd::Execute(RenderContext& context) {
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource().SetName("Bright Lum pass CBV");*/
+	*/
 
 	commandList.SetResourceState(m_output_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_input0TexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
@@ -241,7 +241,7 @@ void BloomAdd::InitRenderTarget(SetupContext& context) {
 		Texture2D output_tex = context.CreateTexture2D(desc, {1, 1, 0, 0});
 		output_tex.SetName("Bloom add tex");
 		m_output_rtv = context.CreateRtv(output_tex, formatAdd, rtvDesc);
-		m_output_rtv.GetResource().SetName("Bloom add RTV");
+		
 	}
 }
 

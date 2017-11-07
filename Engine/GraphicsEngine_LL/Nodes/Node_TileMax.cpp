@@ -49,7 +49,7 @@ void TileMax::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource().SetName("Motion blur tilemax input tex SRV");
+	
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -154,7 +154,7 @@ void TileMax::Execute(RenderContext& context) {
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
 	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource().SetName("Bright Lum pass CBV");*/
+	*/
 
 	uniformsCBData.maxMotionBlurRadius = 20.0;
 
@@ -229,7 +229,7 @@ void TileMax::InitRenderTarget(SetupContext& context) {
 		Texture2D tilemax_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		tilemax_tex.SetName("Motion blur tilemax tex");
 		m_tilemax_rtv = context.CreateRtv(tilemax_tex, formatTileMax, rtvDesc);
-		m_tilemax_rtv.GetResource().SetName("motion blur tilemax RTV");
+		
 	}
 }
 
