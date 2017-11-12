@@ -30,6 +30,7 @@ public:
 						  gxapi::TextureCopyDesc textureBufferDesc) :
 			source(std::move(source)),
 			destination(destination),
+			dstSubresource(dstSubresource),
 			destType(DestType::TEXTURE_2D),
 			dstOffsetX(dstOffsetX), dstOffsetY(dstOffsetY), dstOffsetZ(dstOffsetZ),
 			textureBufferDesc(textureBufferDesc) {}
