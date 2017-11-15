@@ -88,21 +88,21 @@ void HDRCombine::Setup(SetupContext& context) {
 
 	if (colorGradingImage == nullptr) {
 		throw InvalidArgumentException("Adjál rendes texturát!");
-		if (!colorGradingImage->GetSrv()->operator bool()) {
+		if (!colorGradingImage->GetSrv()) {
 			throw InvalidArgumentException("Given texture was empty.");
 		}
 	}
 	
 	if (lensFlareDirtImage == nullptr) {
 		throw InvalidArgumentException("Adjál rendes texturát!");
-		if (!lensFlareDirtImage->GetSrv()->operator bool()) {
+		if (!lensFlareDirtImage->GetSrv()) {
 			throw InvalidArgumentException("Given texture was empty.");
 		}
 	}
 
 	if (lensFlareStarImage == nullptr) {
 		throw InvalidArgumentException("Adjál rendes texturát!");
-		if (!lensFlareStarImage->GetSrv()->operator bool()) {
+		if (!lensFlareStarImage->GetSrv()) {
 			throw InvalidArgumentException("Given texture was empty.");
 		}
 	}
@@ -301,10 +301,10 @@ void HDRCombine::Execute(RenderContext& context) {
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_luminanceTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_bloomTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-	commandList.SetResourceState(colorGradingImage->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(colorGradingImage->GetSrv().GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_lensFlareTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-	commandList.SetResourceState(lensFlareDirtImage->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-	commandList.SetResourceState(lensFlareStarImage->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(lensFlareDirtImage->GetSrv().GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(lensFlareStarImage->GetSrv().GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 	RenderTargetView2D* pRTV = &m_combine_rtv;
 	commandList.SetRenderTargets(1, &pRTV, 0);
@@ -329,10 +329,10 @@ void HDRCombine::Execute(RenderContext& context) {
 	commandList.BindGraphics(m_inputTexBindParam, m_inputTexSrv);
 	commandList.BindGraphics(m_luminanceTexBindParam, m_luminanceTexSrv);
 	commandList.BindGraphics(m_bloomTexBindParam, m_bloomTexSrv);
-	commandList.BindGraphics(m_colorGradingTexBindParam, *colorGradingImage->GetSrv());
+	commandList.BindGraphics(m_colorGradingTexBindParam, colorGradingImage->GetSrv());
 	commandList.BindGraphics(m_lensFlareTexBindParam, m_lensFlareTexSrv);
-	commandList.BindGraphics(m_lensFlareDirtTexBindParam, *lensFlareDirtImage->GetSrv());
-	commandList.BindGraphics(m_lensFlareStarTexBindParam, *lensFlareStarImage->GetSrv());
+	commandList.BindGraphics(m_lensFlareDirtTexBindParam, lensFlareDirtImage->GetSrv());
+	commandList.BindGraphics(m_lensFlareStarTexBindParam, lensFlareStarImage->GetSrv());
 	commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;

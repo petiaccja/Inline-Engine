@@ -46,7 +46,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		inl::asset::Image img("assets\\overlay.png");
 		m_overlayTexture.reset(m_graphicsEngine->CreateImage());
 		m_overlayTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR);
-		m_overlayTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_overlayTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 
 		std::unique_ptr<inl::gxeng::OverlayEntity> element;
 
@@ -101,7 +101,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 		m_terrainTexture.reset(m_graphicsEngine->CreateImage());
 		m_terrainTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
-		m_terrainTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_terrainTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 	}
 
 	// Create sphere mesh
@@ -122,7 +122,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 		m_sphereAlbedoTex.reset(m_graphicsEngine->CreateImage());
 		m_sphereAlbedoTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR);
-		m_sphereAlbedoTex->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_sphereAlbedoTex->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 	}
 
 	// Create sphere normal texture
@@ -132,7 +132,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 		m_sphereNormalTex.reset(m_graphicsEngine->CreateImage());
 		m_sphereNormalTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
-		m_sphereNormalTex->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_sphereNormalTex->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 	}
 
 	// Create sphere metalness texture
@@ -142,7 +142,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 		m_sphereMetalnessTex.reset(m_graphicsEngine->CreateImage());
 		m_sphereMetalnessTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR);
-		m_sphereMetalnessTex->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_sphereMetalnessTex->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 	}
 
 	// Create sphere roughness texture
@@ -152,7 +152,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 		m_sphereRoughnessTex.reset(m_graphicsEngine->CreateImage());
 		m_sphereRoughnessTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR);
-		m_sphereRoughnessTex->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_sphereRoughnessTex->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 	}
 
 	// Create sphere AO texture
@@ -162,7 +162,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 		m_sphereAOTex.reset(m_graphicsEngine->CreateImage());
 		m_sphereAOTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
-		m_sphereAOTex->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_sphereAOTex->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 	}
 
 	// Create QC mesh
@@ -183,7 +183,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 		m_axesTexture.reset(m_graphicsEngine->CreateImage());
 		m_axesTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
-		m_axesTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_axesTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 	}
 
 	// Create axes mesh
@@ -204,7 +204,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 		m_quadcopterTexture.reset(m_graphicsEngine->CreateImage());
 		m_quadcopterTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
-		m_quadcopterTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_quadcopterTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 	}
 
 	// Create tree mesh
@@ -225,7 +225,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 		m_treeTexture.reset(m_graphicsEngine->CreateImage());
 		m_treeTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
-		m_treeTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_treeTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 	}
 
 	// Create materials
@@ -299,7 +299,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 		m_checkerTexture.reset(m_graphicsEngine->CreateImage());
 		m_checkerTexture->SetLayout(2, 2, ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR);
-		m_checkerTexture->Update(0, 0, 2, 2, imgData.data(), PixelT::Reader());
+		m_checkerTexture->Update(0, 0, 2, 2, 0, imgData.data(), PixelT::Reader());
 	}
 
 	// Set up terrain
@@ -580,7 +580,7 @@ void QCWorld::CreatePipelineResources()
 	{
 		m_areaImage.reset(this->m_graphicsEngine->CreateImage());
 		m_areaImage->SetLayout(AREATEX_WIDTH, AREATEX_HEIGHT, gxeng::ePixelChannelType::INT8_NORM, 2, gxeng::ePixelClass::LINEAR);
-		m_areaImage->Update(0, 0, AREATEX_WIDTH, AREATEX_HEIGHT, areaTexBytes, PixelT::Reader());
+		m_areaImage->Update(0, 0, AREATEX_WIDTH, AREATEX_HEIGHT, 0, areaTexBytes, PixelT::Reader());
 
 		this->m_graphicsEngine->SetEnvVariable("SMAA_areaTex", inl::Any{ m_areaImage.get() });
 	}
@@ -589,7 +589,7 @@ void QCWorld::CreatePipelineResources()
 		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 1, gxeng::ePixelClass::LINEAR>;
 		m_searchImage.reset(this->m_graphicsEngine->CreateImage());
 		m_searchImage->SetLayout(SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, gxeng::ePixelChannelType::INT8_NORM, 1, gxeng::ePixelClass::LINEAR);
-		m_searchImage->Update(0, 0, SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, searchTexBytes, PixelT::Reader());
+		m_searchImage->Update(0, 0, SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, 0, searchTexBytes, PixelT::Reader());
 
 		this->m_graphicsEngine->SetEnvVariable("SMAA_searchTex", inl::Any{ m_searchImage.get() });
 	}
@@ -600,7 +600,7 @@ void QCWorld::CreatePipelineResources()
 
 		m_lensFlareColorImage.reset(this->m_graphicsEngine->CreateImage());
 		m_lensFlareColorImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
-		m_lensFlareColorImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_lensFlareColorImage->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 
 		this->m_graphicsEngine->SetEnvVariable("LensFlare_ColorTex", inl::Any{ m_lensFlareColorImage.get() });
 	}
@@ -611,7 +611,7 @@ void QCWorld::CreatePipelineResources()
 
 		m_colorGradingLutImage.reset(this->m_graphicsEngine->CreateImage());
 		m_colorGradingLutImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR);
-		m_colorGradingLutImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_colorGradingLutImage->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 
 		//TODO
 		//create cube texture
@@ -625,7 +625,7 @@ void QCWorld::CreatePipelineResources()
 
 		m_lensFlareDirtImage.reset(this->m_graphicsEngine->CreateImage());
 		m_lensFlareDirtImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
-		m_lensFlareDirtImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_lensFlareDirtImage->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 
 		this->m_graphicsEngine->SetEnvVariable("HDRCombine_lensFlareDirtTex", inl::Any{ m_lensFlareDirtImage.get() });
 	}
@@ -636,7 +636,7 @@ void QCWorld::CreatePipelineResources()
 
 		m_lensFlareStarImage.reset(this->m_graphicsEngine->CreateImage());
 		m_lensFlareStarImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
-		m_lensFlareStarImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_lensFlareStarImage->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 
 		this->m_graphicsEngine->SetEnvVariable("HDRCombine_lensFlareStarTex", inl::Any{ m_lensFlareStarImage.get() });
 	}
@@ -647,7 +647,7 @@ void QCWorld::CreatePipelineResources()
 
 		m_fontImage.reset(this->m_graphicsEngine->CreateImage());
 		m_fontImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
-		m_fontImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_fontImage->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 
 		this->m_graphicsEngine->SetEnvVariable("TextRender_fontTex", inl::Any{ m_fontImage.get() });
 	}

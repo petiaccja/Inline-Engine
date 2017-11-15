@@ -384,8 +384,8 @@ void Voxelization::Execute(RenderContext & context) {
 				if (param.GetType() == eMaterialShaderParamType::BITMAP_COLOR_2D ||
 					param.GetType() == eMaterialShaderParamType::BITMAP_VALUE_2D)
 				{
-					commandList.SetResourceState(((Image*)param)->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-					commandList.BindGraphics(m_albedoTexBindParam, *((Image*)param)->GetSrv());
+					commandList.SetResourceState(((Image*)param)->GetSrv().GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+					commandList.BindGraphics(m_albedoTexBindParam, ((Image*)param)->GetSrv());
 					break;
 				}
 			}

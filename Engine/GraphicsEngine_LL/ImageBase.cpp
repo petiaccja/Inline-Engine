@@ -30,7 +30,7 @@ void ImageBase::SetLayout(size_t width, size_t height, ePixelChannelType channel
 	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, resdesc);
 
 	// In case this throws an exception changes will be unrolled.
-	CreateResourceView();
+	CreateResourceView(texture);
 
 	m_resource = std::move(texture);
 	m_channelCount = channelCount;

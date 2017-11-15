@@ -9,7 +9,7 @@ void Cubemap::SetLayout(size_t width, size_t height, ePixelChannelType channelTy
 }
 
 
-void Cubemap::Update(size_t x, size_t y, size_t width, size_t height, int mipLevel, Face face, const void* pixels, const IPixelReader& reader, size_t bytesPerRow = 0) {
+void Cubemap::Update(size_t x, size_t y, size_t width, size_t height, int mipLevel, Face face, const void* pixels, const IPixelReader& reader, size_t bytesPerRow) {
 	ImageBase::Update(x, y, width, height, mipLevel, GetFaceIndex(face.facePosition), pixels, reader, bytesPerRow);
 }
 

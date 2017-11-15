@@ -54,7 +54,7 @@ void LensFlare::Setup(SetupContext& context) {
 	auto colorImage = this->GetInput<1>().Get();
 	if (colorImage == nullptr) {
 		throw InvalidArgumentException("Adjál rendes texturát!");
-		if (!colorImage->GetSrv()->operator bool()) {
+		if (!colorImage->GetSrv()) {
 			throw InvalidArgumentException("Given texture was empty.");
 		}
 	}
@@ -178,7 +178,7 @@ void LensFlare::Execute(RenderContext& context) {
 
 	commandList.SetResourceState(m_lens_flare_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-	commandList.SetResourceState(colorImage->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(colorImage->GetSrv().GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 	RenderTargetView2D* pRTV = &m_lens_flare_rtv;
 	commandList.SetRenderTargets(1, &pRTV, 0);
@@ -201,7 +201,7 @@ void LensFlare::Execute(RenderContext& context) {
 	commandList.SetPipelineState(m_PSO.get());
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.BindGraphics(m_inputTexBindParam, m_inputTexSrv);
-	commandList.BindGraphics(m_lensColorTexBindParam, *colorImage->GetSrv());
+	commandList.BindGraphics(m_lensColorTexBindParam, colorImage->GetSrv());
 	commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;

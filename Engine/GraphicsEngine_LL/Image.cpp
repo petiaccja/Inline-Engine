@@ -8,7 +8,7 @@ void Image::SetLayout(size_t width, size_t height, ePixelChannelType channelType
 	ImageBase::SetLayout(width, height, channelType, channelCount, pixelClass, 1);
 }
 
-void Image::Update(size_t x, size_t y, size_t width, size_t height, int mipLevel, const void* pixels, const IPixelReader& reader, size_t bytesPerRow = 0) {
+void Image::Update(size_t x, size_t y, size_t width, size_t height, int mipLevel, const void* pixels, const IPixelReader& reader, size_t bytesPerRow) {
 	ImageBase::Update(x, y, width, height, mipLevel, 0, pixels, reader, bytesPerRow);
 }
 

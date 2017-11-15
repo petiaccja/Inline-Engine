@@ -60,14 +60,14 @@ void SMAA::Setup(SetupContext& context) {
 
 	if (areaImage == nullptr) {
 		throw InvalidArgumentException("Adjál rendes texturát!");
-		if (!areaImage->GetSrv()->operator bool()) {
+		if (!areaImage->GetSrv()) {
 			throw InvalidArgumentException("Given texture was empty.");
 		}
 	}
 
 	if (searchImage == nullptr) {
 		throw InvalidArgumentException("Adjál rendes texturát!");
-		if (!searchImage->GetSrv()->operator bool()) {
+		if (!searchImage->GetSrv()) {
 			throw InvalidArgumentException("Given texture was empty.");
 		}
 	}
@@ -333,8 +333,8 @@ void SMAA::Execute(RenderContext& context) {
 
 		commandList.SetResourceState(m_blendingWeightsRTV.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 		commandList.SetResourceState(m_edgeDetectionSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(areaImage->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(searchImage->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(areaImage->GetSrv().GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(searchImage->GetSrv().GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 		RenderTargetView2D* pRTV = &m_blendingWeightsRTV;
 		commandList.SetRenderTargets(1, &pRTV, 0);
@@ -348,8 +348,8 @@ void SMAA::Execute(RenderContext& context) {
 		commandList.SetGraphicsBinder(&m_binder.value());
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 		commandList.BindGraphics(m_inputTexBindParam, m_edgeDetectionSRV);
-		commandList.BindGraphics(m_areaTexBindParam, *areaImage->GetSrv());
-		commandList.BindGraphics(m_searchTexBindParam, *searchImage->GetSrv());
+		commandList.BindGraphics(m_areaTexBindParam, areaImage->GetSrv());
+		commandList.BindGraphics(m_searchTexBindParam, searchImage->GetSrv());
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 		commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
