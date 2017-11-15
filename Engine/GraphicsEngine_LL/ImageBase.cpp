@@ -1,36 +1,10 @@
-#include "Image.hpp"
+#include "ImageBase.hpp"
 
 namespace inl {
 namespace gxeng {
 
 
-void Image::SetLayout(size_t width, size_t height, ePixelChannelType channelType, int channelCount, ePixelClass pixelClass) {
-	ImageBase::SetLayout(width, height, channelType, channelCount, pixelClass, 1);
-}
-
-void Image::Update(size_t x, size_t y, size_t width, size_t height, int mipLevel, const void* pixels, const IPixelReader& reader, size_t bytesPerRow = 0) {
-	ImageBase::Update(x, y, width, height, mipLevel, 0, pixels, reader, bytesPerRow);
-}
-
-const TextureView2D& Image::GetSrv() {
-	return m_resourceView;
-}
-
-
-void Image::CreateResourceView(const Texture2D& texture) {
-	gxapi::SrvTexture2DArray srvdesc;
-	srvdesc.activeArraySize = 1;
-	srvdesc.firstArrayElement = 0;
-	srvdesc.mipLevelClamping = 0;
-	srvdesc.mostDetailedMip = 0;
-	srvdesc.numMipLevels = -1;
-	srvdesc.planeIndex = 0;
-	m_resourceView = TextureView2D(texture, *m_descriptorHeap, texture.GetFormat(), srvdesc);
-}
-
-
-/* OLD CODE, REMOVE IF NEW WORKS
-Image::Image(MemoryManager* memoryManager, CbvSrvUavHeap* descriptorHeap) {
+ImageBase::ImageBase(MemoryManager* memoryManager, CbvSrvUavHeap* descriptorHeap) {
 	assert(memoryManager != nullptr);
 	m_memoryManager = memoryManager;
 	m_descriptorHeap = descriptorHeap;
@@ -39,41 +13,33 @@ Image::Image(MemoryManager* memoryManager, CbvSrvUavHeap* descriptorHeap) {
 }
 
 
-Image::~Image() {
+ImageBase::~ImageBase() {
 
 }
 
 
-void Image::SetLayout(size_t width, size_t height, ePixelChannelType channelType, int channelCount, ePixelClass pixelClass) {
+void ImageBase::SetLayout(size_t width, size_t height, ePixelChannelType channelType, int channelCount, ePixelClass pixelClass, int arraySize) {
 	gxapi::eFormat format;
 	int resultChCnt = 0;
 	if (!ConvertFormat(channelType, channelCount, pixelClass, format, resultChCnt)) {
 		throw InvalidArgumentException("Unsupported texture format.");
 	}
 
-	try {
-		Texture2DDesc resdesc(width, height, format, 0, 1);
-		Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, resdesc);
-		gxapi::SrvTexture2DArray srvdesc;
-		srvdesc.activeArraySize = 1;
-		srvdesc.firstArrayElement = 0;
-		srvdesc.mipLevelClamping = 0;
-		srvdesc.mostDetailedMip = 0;
-		srvdesc.numMipLevels = -1;
-		srvdesc.planeIndex = 0;
-		m_resource.reset(new TextureView2D(texture, *m_descriptorHeap, texture.GetFormat(), srvdesc));
 
-		m_channelCount = channelCount;
-		m_channelType = channelType;
-		m_pixelClass = pixelClass;
-	}
-	catch (...) {
-		// might be able to do something useful
-		throw;
-	}
+	Texture2DDesc resdesc(width, height, format, 0, arraySize);
+	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, resdesc);
+
+	// In case this throws an exception changes will be unrolled.
+	CreateResourceView();
+
+	m_resource = std::move(texture);
+	m_channelCount = channelCount;
+	m_channelType = channelType;
+	m_pixelClass = pixelClass;
 }
 
-void Image::Update(size_t x, size_t y, size_t width, size_t height, const void* pixels, const IPixelReader& reader, size_t bytesPerRow) {
+
+void ImageBase::Update(size_t x, size_t y, size_t width, size_t height, int mipLevel, int arrayIndex, const void* pixels, const IPixelReader& reader, size_t bytesPerRow) {
 	if (!m_resource) {
 		throw InvalidStateException("Must create image first.");
 	}
@@ -91,7 +57,7 @@ void Image::Update(size_t x, size_t y, size_t width, size_t height, const void* 
 		}
 	}
 
-	// convert 3 channel pixels to 4 channels
+	// Convert 3 channel pixels to 4 channels.
 	std::unique_ptr<uint8_t> pixels4;
 	if (reader.GetChannelCount() == 3) {
 		size_t structureSize = reader.StructureSize();
@@ -110,48 +76,56 @@ void Image::Update(size_t x, size_t y, size_t width, size_t height, const void* 
 		pixels = pixels4.get();
 	}
 
-	// upload data to gpu
-	m_memoryManager->GetUploadManager().Upload(m_resource->GetResource(), (uint32_t)x, (uint32_t)y, 0, pixels, width, (uint32_t)height, m_resource->GetFormat(), bytesPerRow);
+	// Upload data to gpu.
+	m_memoryManager->GetUploadManager().Upload(
+		m_resource,
+		(uint32_t)x,
+		(uint32_t)y,
+		m_resource.GetSubresourceIndex(mipLevel, arrayIndex, 0),
+		pixels,
+		width,
+		(uint32_t)height,
+		m_resource.GetFormat(),
+		bytesPerRow);
 }
 
 
-size_t Image::GetWidth() {
+size_t ImageBase::GetWidth() {
 	if (m_resource) {
-		return m_resource->GetResource().GetWidth();
+		return m_resource.GetWidth();
 	}
 	else {
 		return 0;
 	}
 }
 
-size_t Image::GetHeight() {
+
+size_t ImageBase::GetHeight() {
 	if (m_resource) {
-		return m_resource->GetResource().GetHeight();
+		return m_resource.GetHeight();
 	}
 	else {
 		return 0;
 	}
 }
 
-ePixelChannelType Image::GetChannelType() const {
+
+ePixelChannelType ImageBase::GetChannelType() const {
 	return m_channelType;
 }
 
-int Image::GetChannelCount() const {
+
+int ImageBase::GetChannelCount() const {
 	return m_channelCount;
 }
 
-ePixelClass Image::GetPixelClass() const {
+
+ePixelClass ImageBase::GetPixelClass() const {
 	return m_pixelClass;
 }
 
 
-std::shared_ptr<const TextureView2D> Image::GetSrv() {
-	return m_resource;
-}
-
-
-bool Image::ConvertFormat(ePixelChannelType channelType, int channelCount, ePixelClass pixelClass, gxapi::eFormat& fmt, int& resultingChannelCount) {
+bool ImageBase::ConvertFormat(ePixelChannelType channelType, int channelCount, ePixelClass pixelClass, gxapi::eFormat& fmt, int& resultingChannelCount) {
 	using gxapi::eFormat;
 
 	switch (channelType) {
@@ -187,7 +161,6 @@ bool Image::ConvertFormat(ePixelChannelType channelType, int channelCount, ePixe
 
 	return false;
 }
-*/
 
 
 

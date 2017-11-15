@@ -388,6 +388,9 @@
     <ClInclude Include="Cubemap.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
+    <ClInclude Include="ImageBase.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -617,6 +620,9 @@
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
     <ClCompile Include="Cubemap.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageBase.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
   </ItemGroup>

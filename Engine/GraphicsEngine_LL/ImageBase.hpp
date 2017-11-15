@@ -1,0 +1,75 @@
+#pragma once
+
+#include <memory>
+#include "MemoryObject.hpp"
+#include "Pixel.hpp"
+#include "MemoryManager.hpp"
+#include "ResourceView.hpp"
+
+
+namespace inl::gxeng {
+
+
+
+class ImageBase {
+public:
+	ImageBase(MemoryManager* memoryManager, CbvSrvUavHeap* descriptorHeap);
+	~ImageBase();
+
+	/// <summary> Returns the width of the image in pixels. </summary>
+	size_t GetWidth();
+
+	/// <summary> Returns the height of the image in pixels. </summary>
+	size_t GetHeight();
+
+	/// <summary> Return the numeric representation type of a pixel. See <see cref="ePixelChannelType/>. </summary>
+	ePixelChannelType GetChannelType() const;
+
+	/// <summary> Returns the number of channels per pixel, i.e RGBA counts as 4. </summary>
+	int GetChannelCount() const;
+
+	/// <summary> Return the way pixels are interpreted. See <see cref="ePixelClass"/>. </summary>
+	ePixelClass GetPixelClass() const;
+
+protected:
+	/// <summary> Allocates the underlying GPU-resident texture. </summary>
+	/// <param name="width"> Width of the texture in pixels. </param>
+	/// <param name="height"> Height of the texture in pixels. </param>
+	/// <param name="channelType"> The numeric representation of a pixel channel. See <see cref="ePixelChannelType/>. </param>
+	/// <param name="channelCount"> Number of channels per pixel. </param>
+	/// <param name="pixelClass"> How pixels are interpreted. See <see cref="ePixelClass"/>. </param>
+	/// <param name="arraySize"> Specify 1 for simple images and 6 for cubemaps. </param>
+	void SetLayout(size_t width, size_t height, ePixelChannelType channelType, int channelCount, ePixelClass pixelClass, int arraySize);
+
+	/// <summary> Upload pixels as byte array to the GPU. </summary>
+	/// <param name="x"> Where to insert the block of uploaded pixels. Top-left corner. </param>
+	/// <param name="y"> Where to insert the block of uploaded pixels. Top-left corner. </param>
+	/// <param name="width"> Width of the uploaded pixel block. </param>
+	/// <param name="height"> Height of the uploaded pixel block. </param>
+	/// <param name="mipLevel"> Target mip level of the texture. </param>
+	/// <param name="arrayIdx"> Target array element of the texture. </param>
+	/// <param name="pixels"> A pointer to the bytes representing the pixels. Use <see cref="Pixel"/> as helper. </param>
+	/// <param name="reader"> Interprets byte stream. Implement <see cref="IPixelReader"/> or use <see cref="Pixel::Reader"/>. </param>
+	/// <param name="bytesPerRow"> How many bytes to skip in <paramref name="pixels"/> for each row. Leave as 0 for no row padding. </param>
+	/// <remarks> As you can't create multi-planed textures, uploading to specific plane is not supported. </remarks>
+	void Update(size_t x, size_t y, size_t width, size_t height, int mipLevel, int arrayIdx, const void* pixels, const IPixelReader& reader, size_t bytesPerRow = 0);
+
+	/// <summary> Converts simplified pixel format to GraphicsAPI format. </summary>
+	static bool ConvertFormat(ePixelChannelType channelType, int channelCount, ePixelClass pixelClass, gxapi::eFormat& fmt, int& resultingChannelCount);
+	
+	/// <summary> This method is called whenever a new view needs to be created. </summary>
+	/// <remarks> This must be implemented until the bottom-most subclass. </remarks>
+	virtual void CreateResourceView(const Texture2D& texture) = 0;
+
+protected:
+	CbvSrvUavHeap* m_descriptorHeap;
+private:
+	Texture2D m_resource;
+	ePixelChannelType m_channelType;
+	int m_channelCount;
+	ePixelClass m_pixelClass;
+	MemoryManager* m_memoryManager;
+};
+
+
+} // namespace inl::gxeng
