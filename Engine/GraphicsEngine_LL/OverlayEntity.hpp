@@ -1,10 +1,5 @@
 #pragma once
 
-#include <mathfu/vector.h>
-#include <mathfu/vector_3.h>
-#include <mathfu/quaternion.h>
-#include <mathfu/matrix_4x4.h>
-
 #include <InlineMath.hpp>
 
 #include <variant>

@@ -240,7 +240,6 @@ uint16_t Texture2D::GetArrayCount() const {
 }
 
 uint32_t Texture2D::GetSubresourceIndex(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIndex) const {
-	assert(false);
 	return m_contents->resource->GetSubresourceIndex(mipLevel, arrayIndex, planeIndex);
 }
 

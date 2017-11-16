@@ -1215,6 +1215,7 @@ public:
 		for (int i = 0; i < lhs.Dimension(); ++i) {
 			res[i] = std::min(lhs[i], rhs[i]);
 		}
+		return res;
 	}
 	/// <summary> Returns the element-wise maximum of arguments </summary>
 	static Vector Max(const Vector& lhs, const Vector& rhs) {
@@ -1222,6 +1223,7 @@ public:
 		for (int i = 0; i < lhs.Dimension(); ++i) {
 			res[i] = std::max(lhs[i], rhs[i]);
 		}
+		return res;
 	}
 
 protected:

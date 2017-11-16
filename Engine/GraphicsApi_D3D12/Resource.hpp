@@ -27,11 +27,12 @@ public:
 	void Unmap(unsigned subresourceIndex, const gxapi::MemoryRange* writtenRange = nullptr) override;
 	void* GetGPUAddress() const override;
 
-	unsigned GetNumMipLevels() override;
-	unsigned GetNumTexturePlanes() override;
-	unsigned GetNumArrayLevels() override;
-	unsigned GetNumSubresources() override;
-	unsigned GetSubresourceIndex(unsigned mipIdx, unsigned arrayIdx, unsigned planeIdx) override;
+	unsigned GetNumMipLevels() const override;
+	unsigned GetNumTexturePlanes() const override;
+	unsigned GetNumArrayLevels() const override;
+	unsigned GetNumSubresources() const override;
+	unsigned GetSubresourceIndex(unsigned mipIdx, unsigned arrayIdx, unsigned planeIdx) const override;
+	Vec3u64 GetSize(int mipLevel = 0) const override;
 
 	void SetName(const char* name) override;
 private:
