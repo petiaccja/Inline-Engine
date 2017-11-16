@@ -313,6 +313,12 @@ void Voxelization::Execute(RenderContext & context) {
 		return;
 	}
 
+	bool peti = true;
+	if (peti)
+	{
+		return;
+	}
+
 	Uniforms uniformsCBData;
 
 	uniformsCBData.voxelDimension = voxelDimension;

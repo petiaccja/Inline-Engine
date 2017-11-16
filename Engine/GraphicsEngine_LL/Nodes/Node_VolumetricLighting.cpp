@@ -328,6 +328,12 @@ void VolumetricLighting::Setup(SetupContext& context) {
 
 
 void VolumetricLighting::Execute(RenderContext& context) {
+	bool peti = true;
+	if (peti)
+	{
+		return;
+	}
+
 	ComputeCommandList& commandList = context.AsCompute();
 
 	//swap dest textures 
