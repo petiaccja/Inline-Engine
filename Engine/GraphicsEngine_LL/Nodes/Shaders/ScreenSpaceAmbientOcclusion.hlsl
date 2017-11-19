@@ -113,11 +113,14 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float2 uv = float2(input.texcoord.x, 1 - input.texcoord.y);
 	float3 vsPos = float3(lerp(farPlaneLL.xy, farPlaneUR.xy, uv) / uniforms.farPlane, 1.0) * linearDepth;
 
+	//return float4(vsPos, 1.0);
+
 	float3 vsViewDir = normalize(-vsPos);
 
 	//TODO replace with proper normals
 	float3 vsDepthNormal = -normalize(cross(ddy(vsPos.xyz), ddx(vsPos.xyz)));
 
+	//float ssRadius = 10.0;// min(uniforms.wsRadius * uniforms.scaleFactor / vsPos.z, 100.0);
 	float ssRadius = min(uniforms.wsRadius * uniforms.scaleFactor / vsPos.z, 100.0);
 
 	//return float4(vsPos, 1.0);
@@ -130,9 +133,15 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		float2 randomFactor = float2(getHalton(seed*numDirs + d, 2), getHalton(seed*numDirs + d, 3));
 		//float2 randomFactor = float2(rand(seed*numDirs + d), rand(seed*numDirs + d));
 
-		float2 ssDir = float2(cos(randomFactor.x*pi*2.0), sin(randomFactor.x*pi*2.0)) / inputTexSize.xy;
+		//return float4(randomFactor, 0, 1);
 
-		float2 ssPos = uv - 0.5 * ssRadius * ssDir;
+		float2 ssDirN = float2(cos(randomFactor.x*pi), sin(randomFactor.x*pi));
+		//float2 ssDirN = float2(cos(d / numDirs*pi), sin(d / numDirs*pi));
+		float2 ssDir = ssDirN / inputTexSize.xy;
+
+		//return float4(ssDir, 0, 1);
+
+		float2 ssPos = uv - ssRadius * ssDir;
 
 		//return float4(ssDir, 0, 1);
 		//return float4(ssPos, 0, 1);
@@ -141,36 +150,58 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		float2 horizons = float2(-1.0, -1.0);
 
 		const float numSteps = 8.0;
-		for (float c = 0; c < numSteps; ++c)
+		for (float c = 0; c < numSteps*0.5; ++c)
 		{
-			float2 currSSPos = ssPos + (c / numSteps) * ssDir * ssRadius;
+			float2 currSSPos = ssPos + (c / numSteps) * ssDir * ssRadius * 2.0;
 
 			//return float4(currSSPos, 0, 1);
+
+			//return float4(float2(currSSPos.x, 1.0 - currSSPos.y), 0, 1);
+
+			float currDepth = depthTex.Sample(samp0, float2(currSSPos.x, 1.0 - currSSPos.y)).x;
+			float currLinearDepth = linearize_depth(currDepth, uniforms.nearPlane, uniforms.farPlane);
+
+			//return currLinearDepth*0.01;
+
+			float3 currVsPos = float3(lerp(farPlaneLL.xy, farPlaneUR.xy, currSSPos) / uniforms.farPlane, 1.0) * currLinearDepth;
+
+			//return float4(currVsPos, 1.0);
+
+			float3 vsCurrDir = normalize(currVsPos - vsPos);
+
+			//return float4(vsCurrDir, 1.0);
+			//return float4(vsViewDir, 1.0);
+
+			float cosAngle = dot(vsCurrDir, vsViewDir);
+
+			//return cosAngle;
+
+			horizons.x = max(horizons.x, cosAngle);
+		}
+
+		for (float c = numSteps*0.5 + 1.0; c <= numSteps; ++c)
+		{
+			float2 currSSPos = ssPos + (c / numSteps) * ssDir * ssRadius * 2.0;
 
 			float currDepth = depthTex.Sample(samp0, float2(currSSPos.x, 1.0 - currSSPos.y)).x;
 			float currLinearDepth = linearize_depth(currDepth, uniforms.nearPlane, uniforms.farPlane);
 			float3 currVsPos = float3(lerp(farPlaneLL.xy, farPlaneUR.xy, currSSPos) / uniforms.farPlane, 1.0) * currLinearDepth;
-
-			return float4(currVsPos, 1.0);
-
+			
 			float3 vsCurrDir = normalize(currVsPos - vsPos);
 
 			float cosAngle = dot(vsCurrDir, vsViewDir);
 
-			if (c < numSteps * 0.5)
-			{
-				horizons.x = max(horizons.x, cosAngle);
-			}
-			else
-			{
-				horizons.y = max(horizons.y, cosAngle);
-			}
+			horizons.y = max(horizons.y, cosAngle);
 		}
+
+		//return float4(horizons, 0, 1);
 
 		horizons = acos(horizons);
 
+		//return float4(horizons, 0, 1);
+
 		//TODO revise this...
-		float3 bitangent = normalize(cross(float3(ssDir, 0.0), vsViewDir));
+		float3 bitangent = normalize(cross(float3(ssDirN, 0.0), vsViewDir));
 		float3 tangent = cross(vsViewDir, bitangent);
 		float3 nx = vsDepthNormal - bitangent * dot(vsDepthNormal, bitangent);
 		float nxLength = length(nx);
@@ -180,7 +211,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		float sinGamma2 = -2.0 * cosXi;
 
 		horizons.x = gamma + max(-horizons.x - gamma, -pi*0.5);
-		horizons.y = gamma + min(horizons.y - gamma, -pi*0.5);
+		horizons.y = gamma + min(horizons.y - gamma, pi*0.5);
 
 		ao += nxLength * 0.25 * (
 			(-cos(2.0*horizons.x - gamma) + cosGamma + horizons.x * sinGamma2) +
