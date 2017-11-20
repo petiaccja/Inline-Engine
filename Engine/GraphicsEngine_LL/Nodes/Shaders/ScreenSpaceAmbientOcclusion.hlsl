@@ -120,14 +120,14 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//TODO replace with proper normals
 	float3 vsDepthNormal = -normalize(cross(ddy(vsPos.xyz), ddx(vsPos.xyz)));
 
-	//float ssRadius = 10.0;// min(uniforms.wsRadius * uniforms.scaleFactor / vsPos.z, 100.0);
-	float ssRadius = min(uniforms.wsRadius * uniforms.scaleFactor / vsPos.z, 100.0);
+	float ssRadius = 50.0;// min(uniforms.wsRadius * uniforms.scaleFactor / vsPos.z, 100.0);
+	//float ssRadius = min(uniforms.wsRadius * uniforms.scaleFactor / vsPos.z, 100.0);
 
 	//return float4(vsPos, 1.0);
 
 	float ao = 0.0;
 
-	const float numDirs = 20;
+	const float numDirs = 40;
 	for (float d = 0; d < numDirs; ++d)
 	{
 		float2 randomFactor = float2(getHalton(seed*numDirs + d, 2), getHalton(seed*numDirs + d, 3));
@@ -154,29 +154,15 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		{
 			float2 currSSPos = ssPos + (c / numSteps) * ssDir * ssRadius * 2.0;
 
-			//return float4(currSSPos, 0, 1);
-
-			//return float4(float2(currSSPos.x, 1.0 - currSSPos.y), 0, 1);
-
 			float currDepth = depthTex.Sample(samp0, float2(currSSPos.x, 1.0 - currSSPos.y)).x;
 			float currLinearDepth = linearize_depth(currDepth, uniforms.nearPlane, uniforms.farPlane);
-
-			//return currLinearDepth*0.01;
-
 			float3 currVsPos = float3(lerp(farPlaneLL.xy, farPlaneUR.xy, currSSPos) / uniforms.farPlane, 1.0) * currLinearDepth;
-
-			//return float4(currVsPos, 1.0);
 
 			float3 vsCurrDir = normalize(currVsPos - vsPos);
 
-			//return float4(vsCurrDir, 1.0);
-			//return float4(vsViewDir, 1.0);
-
 			float cosAngle = dot(vsCurrDir, vsViewDir);
 
-			//return cosAngle;
-
-			horizons.x = max(horizons.x, cosAngle);
+			horizons.y = max(horizons.y, cosAngle);
 		}
 
 		for (float c = numSteps*0.5 + 1.0; c <= numSteps; ++c)
@@ -191,7 +177,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 			float cosAngle = dot(vsCurrDir, vsViewDir);
 
-			horizons.y = max(horizons.y, cosAngle);
+			horizons.x = max(horizons.x, cosAngle);
 		}
 
 		//return float4(horizons, 0, 1);
