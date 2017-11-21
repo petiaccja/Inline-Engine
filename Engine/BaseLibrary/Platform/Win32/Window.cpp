@@ -1,540 +1,567 @@
 #include "Window.hpp"
+#include "BaseLibrary/Exception/Exception.hpp"
+#include <future>
+#include <Windowsx.h>
+#include "shellapi.h"
+#undef UNKNOWN
 
-#include <cassert>
-#include <limits>
-#include <assert.h>
-#include <windowsx.h>
-#include <objidl.h>
-#include <fstream>
+#undef IsMaximized
+#undef IsMinimized
 
-// Drag and drop need OLE initialization this class globally initialize and deinitialize it
-class OleManager
+
+namespace inl {
+
+
+
+Window::Window(const std::string& title,
+	Vec2 size,
+	bool borderless,
+	bool resizable,
+	bool hiddenInitially)
 {
-public:
-	OleManager() { OleInitialize(NULL); }
-	~OleManager() { OleUninitialize(); }
-} OleManager;
+	// Lazy-register window class.
+	static bool isWcRegistered = [] {
+		WNDCLASSEXA wc;
+		wc.cbClsExtra = 0;
+		wc.cbSize = sizeof(wc);
+		wc.cbWndExtra = 0;
+		wc.hCursor = NULL;
+		wc.hIcon = NULL;
+		wc.hIconSm = NULL;
+		wc.hInstance = GetModuleHandle(NULL);
+		wc.hbrBackground = NULL;
+		wc.lpfnWndProc = &Window::WndProc;
+		wc.lpszClassName = "INL_SIMPLE_WINDOW_CLASS";
+		wc.lpszMenuName = nullptr;
+		wc.style = CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS;
+
+		ATOM cres = RegisterClassExA(&wc);
+		if (cres == 0) {
+			DWORD error = GetLastError();
+			throw RuntimeException("Failed to register inline engine window class.", std::to_string(error));
+		}
+		return true;
+	}();
 
 
-// Internal message handler for window
-LRESULT CALLBACK WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-	Window* window = nullptr;
-	if (msg == WM_CREATE)
-	{
-		window = static_cast<Window*>(reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams);
-		SetWindowLongPtr(handle, -21, reinterpret_cast<LONG_PTR>(window));
-	}
-	else
-	{
-		window = reinterpret_cast<Window*>(GetWindowLongPtr(handle, -21));
-	}
-
-	if (msg == WM_COPYDATA)
-	{
-		return TRUE;
-	}
-	if (msg == WM_SIZE)
-	{
-		int x = GET_X_LPARAM(lParam);
-		int y = GET_Y_LPARAM(lParam);
-
-		RECT clientRect;
-		GetClientRect(handle, &clientRect);
-		window->onClientSizeChanged(Vec2u(clientRect.right - clientRect.left, clientRect.bottom - clientRect.top));
+	if (!isWcRegistered) {
+		throw RuntimeException("Window class is not registered.");
 	}
 
-	auto userWndProc = window ? window->GetUserWndProc() : nullptr;
+	// Message loop runs in another thread.
+	// If the thread is finished setting up the window the promise is signaled.
+	std::promise<void> creationPromise;
+	std::future<void> creationResult = creationPromise.get_future();
 
-	LRESULT res;
-	if (userWndProc)
-		res = window->GetUserWndProc()(handle, msg, wParam, lParam);
-	else
-		res = DefWindowProc(handle, msg, wParam, lParam);
+	// The message loop thread.
+	m_messageThread = std::thread(
+		[
+			this,
+			creationPromise = std::move(creationPromise),
+			title, size, borderless, resizable, hiddenInitially
+		]() mutable {
 
-	return res;
-}
+		HWND hwnd = NULL;
+		try {
+			// Create the WINAPI window itself.
+			hwnd = CreateWindowExA(
+				0,
+				"INL_SIMPLE_WINDOW_CLASS",
+				title.c_str(),
+				WS_OVERLAPPEDWINDOW,
+				CW_USEDEFAULT,
+				CW_USEDEFAULT,
+				size.x,
+				size.y,
+				NULL,
+				NULL,
+				GetModuleHandle(NULL),
+				(void*)this);
 
-Window::Window(const WindowDesc& d)
-:userWndProc(nullptr)
-{
-	dropTarget.Init(this);
+			if (hwnd == NULL) {
+				DWORD error = GetLastError();
+				throw RuntimeException("Failed to create window.", std::to_string(error));
+			}
 
-	bClosed = false;
-	userWndProc = d.userWndProc;
+			// Init OLE and drag and drop for this thread.
+			HRESULT res;
+			res = OleInitialize(nullptr);
+			if (res != S_OK) {
+				throw RuntimeException("Could not initialize OLE on thread.");
+			}
+			res = RegisterDragDrop(hwnd, this);
+			if (res != S_OK) {
+				throw RuntimeException("Failed to set drag'n'drop for window.");
+			}
+		}
+		catch (...) {
+			creationPromise.set_exception(std::current_exception());
+			if (hwnd) {
+				DestroyWindow(hwnd);
+			}
+			return;
+		}
+		creationPromise.set_value();
 
-	int interpretedStyle;
-	if (d.style == eWindowStyle::BORDERLESS)
-	{
-		interpretedStyle = WS_POPUP;
+		// Show and update the newly created window.
+		m_handle = hwnd;
+		if (!hiddenInitially) {
+			ShowWindow(m_handle, SW_SHOW);
+		}
+		UpdateWindow(m_handle);
+
+		// Start running the WINAPI message loop.
+		MessageLoop();
+	});
+
+	try {
+		creationResult.get();
 	}
-	else
-	{
-		interpretedStyle = WS_OVERLAPPEDWINDOW;
-	}
-
-	int interpretedBrush = BLACK_BRUSH;
-
-	// Application ID for window class registration, and window creation
-	HINSTANCE appID = GetModuleHandle(nullptr);
-
-	// Register our new window class
-	WNDCLASSEX wC;
-	memset(&wC, 0, sizeof(WNDCLASSEX));
-	wC.cbSize = sizeof(WNDCLASSEX);
-	wC.cbClsExtra = 0;
-	wC.cbWndExtra = 0;
-	wC.hbrBackground = NULL;// (HBRUSH)GetStockObject((int)interpretedBrush);
-	wC.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wC.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
-	wC.hIconSm = nullptr;
-	wC.lpszClassName = L"windowclass";
-	wC.lpszMenuName = nullptr;
-	wC.hInstance = appID;
-	wC.lpfnWndProc = WndProc;
-	wC.style = CS_HREDRAW | CS_VREDRAW;
-	RegisterClassEx(&wC);
-
-	RECT adjustedsize = { 0 };
-	AdjustWindowRect(&adjustedsize, (int)interpretedStyle, 0);
-
-	unsigned width = d.clientSize.x - adjustedsize.left + adjustedsize.right;
-	unsigned height = d.clientSize.y - adjustedsize.top + adjustedsize.bottom;
-
-	Vec2u screenSize = Sys::GetScreenSize();
-	if(width > screenSize.x)
-		width = screenSize.x;
-
-	if(height > screenSize.y)
-		height = screenSize.y;
-
-	std::wstring captionText(d.capText.begin(), d.capText.end());
-
-	// Create win32 api window
-	handle = CreateWindowExW(0,
-		L"windowclass",
-		captionText.c_str(),
-		(int)interpretedStyle,
-		0,
-		0,
-		width,
-		height,
-		GetDesktopWindow(),
-		0,
-		appID,
-		this);
-	
-	// Show window
-	ShowWindow(handle, SW_SHOW);
-
-	// Enable drag & drop
-	ChangeWindowMessageFilterEx(handle, WM_DROPFILES, MSGFLT_ALLOW, nullptr);
-	ChangeWindowMessageFilterEx(handle, WM_COPYDATA, MSGFLT_ALLOW, nullptr);
-	ChangeWindowMessageFilterEx(handle, 0x0049, MSGFLT_ALLOW, nullptr);
-	DragAcceptFiles(handle, true);
-	HRESULT res = RegisterDragDrop(handle, &dropTarget);
-	assert(res == S_OK);
-
-	// Register raw mouse, TODO REMOVE IT
-	const unsigned HID_USAGE_PAGE_GENERIC = 0x01;
-	const unsigned HID_USAGE_GENERIC_MOUSE = 0x02;
-	static bool bInited = false;
-	if (!bInited)
-	{
-		bInited = true;
-
-		RAWINPUTDEVICE Rid[1];
-		Rid[0].usUsagePage = HID_USAGE_PAGE_GENERIC;
-		Rid[0].usUsage = HID_USAGE_GENERIC_MOUSE;
-		Rid[0].dwFlags = RIDEV_INPUTSINK;
-		Rid[0].hwndTarget = handle;
-		RegisterRawInputDevices(Rid, 1, sizeof(Rid[0]));
+	catch (...) {
+		m_messageThread.join();
+		throw;
 	}
 }
 
-Window::~Window()
-{
-	RevokeDragDrop(handle);
+
+Window::Window(Window&& rhs) noexcept {
+	m_handle = rhs.m_handle;
+	m_messageThread = std::move(rhs.m_messageThread);
+
+	rhs.m_handle = NULL;
 }
 
-bool Window::PopEvent(WindowEvent& evt_out)
-{
-	evt_out.mouseDelta.x = 0;
-	evt_out.mouseDelta.y = 0;
-	evt_out.key = eKey::INVALID;
-	evt_out.mouseBtn = eMouseBtn::INVALID;
-	evt_out.msg = eWindowMsg::INVALID;
-	evt_out.clientCursorPos.x = -1;
-	evt_out.clientCursorPos.y = -1;
 
+Window& Window::operator=(Window&& rhs) noexcept {
+	m_handle = rhs.m_handle;
+	m_messageThread = std::move(rhs.m_messageThread);
+
+	rhs.m_handle = NULL;
+
+	return *this;
+}
+
+
+Window::~Window() {
+	if (m_handle != 0) {
+		DestroyWindow(m_handle);
+	}
+	if (m_messageThread.joinable()) {
+		m_messageThread.join();
+	}
+	if (m_icon) {
+		DestroyIcon((HICON)m_icon);
+	}
+}
+
+
+
+bool Window::IsClosed() const {
+	return m_handle == NULL;
+}
+
+
+void Window::Show() {
+	if (IsClosed()) {
+		return;
+	}
+	ShowWindow(m_handle, SW_SHOW);
+	UpdateWindow(m_handle);
+}
+
+
+void Window::Hide() {
+	if (IsClosed()) {
+		return;
+	}
+	ShowWindow(m_handle, SW_HIDE);
+}
+
+
+bool Window::IsFocused() const {
+	return GetFocus() == m_handle;
+}
+
+
+WindowHandle Window::GetNativeHandle() const {
+	return m_handle;
+}
+
+
+void Window::Maximize() {
+	if (IsClosed()) {
+		return;
+	}
+	ShowWindow(m_handle, SW_MAXIMIZE);
+}
+
+
+void Window::Minize() {
+	if (IsClosed()) {
+		return;
+	}
+	ShowWindow(m_handle, SW_MINIMIZE);
+}
+
+
+void Window::Restore() {
+	if (IsClosed()) { return; }
+	ShowWindow(m_handle, SW_RESTORE);
+}
+
+
+bool Window::IsMaximized() const {
+	if (IsClosed()) { return false; }
+	return IsZoomed(m_handle);
+}
+bool Window::IsMinimized() const {
+	if (IsClosed()) { return false; }
+	return IsIconic(m_handle);
+}
+
+void Window::SetSize(const Vec2& size) {
+	if (IsClosed()) { return; }
+	SetWindowPos(m_handle, NULL, 0, 0, size.x, size.y, SWP_NOMOVE);
+}
+
+
+Vec2 Window::GetSize() const {
+	if (IsClosed()) { return { 0,0 }; }
+	RECT rc;
+	GetWindowRect(m_handle, &rc);
+	return { rc.right - rc.left, rc.bottom - rc.top };
+}
+
+
+Vec2 Window::GetClientSize() const {
+	if (IsClosed()) { return { 0,0 }; }
+	RECT rc;
+	GetClientRect(m_handle, &rc);
+	return { rc.right - rc.left, rc.bottom - rc.top };
+}
+
+
+void Window::SetPosition(const Vec2& position) {
+	if (IsClosed()) { return; }
+	SetWindowPos(m_handle, NULL, position.x, position.y, 0, 0, SWP_NOMOVE);
+}
+
+
+Vec2 Window::GetPosition() const {
+	if (IsClosed()) { return { 0,0 }; }
+	RECT rc;
+	GetWindowRect(m_handle, &rc);
+	return { rc.left, rc.top };
+}
+
+
+void Window::SetResizable(bool enabled) {
+	throw NotImplementedException();
+	if (IsClosed()) { return; }
+}
+
+
+bool Window::GetResizable() const {
+	throw NotImplementedException();
+	if (IsClosed()) { return false; }
+}
+
+
+void Window::SetBorderless(bool enabled) {
+	throw NotImplementedException();
+	if (IsClosed()) { return; }
+}
+
+
+bool Window::GetBorderless() const {
+	throw NotImplementedException();
+	if (IsClosed()) { return false; }
+}
+
+
+void Window::SetTitle(const std::string& text) {
+	if (IsClosed()) { return; }
+	SetWindowTextA(m_handle, text.c_str());
+}
+
+
+std::string Window::GetTitle() const {
+	if (IsClosed()) { return nullptr; }
+	char data[256];
+	GetWindowTextA(m_handle, data, sizeof(data));
+	return data;
+}
+
+
+void Window::SetIcon(const std::string& imageFilePath) {
+	if (IsClosed()) { return; }
+
+	HANDLE hIcon = LoadImageA(0, imageFilePath.c_str(), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
+	if (hIcon) {
+		if (m_icon) {
+			DestroyIcon((HICON)m_icon);
+		}
+		m_icon = hIcon;
+
+		// Change both icons to the same icon handle.
+		PostMessage(m_handle, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+		PostMessage(m_handle, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+
+		// This will ensure that the application icon gets changed too.
+		PostMessage(GetWindow(m_handle, GW_OWNER), WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+		PostMessage(GetWindow(m_handle, GW_OWNER), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+	}
+}
+
+
+void Window::SetQueueSizeHint(size_t queueSize) {
+	m_queueSize = queueSize;
+}
+
+
+void Window::SetQueueMode(eInputQueueMode mode) {
+	m_queueMode = mode;
+}
+
+
+bool Window::CallEvents() {
+	std::unique_lock<decltype(m_queueMtx)> lk(m_queueMtx);
+
+	bool eventDropped = m_eventDropped;
+	m_eventDropped = false;
+	std::queue<std::function<void()>> eventQueue = std::move(m_eventQueue);
+
+	lk.unlock();
+
+	while (!eventQueue.empty()) {
+		auto functor = eventQueue.front();
+		eventQueue.pop();
+		functor();
+	}
+
+	return eventDropped;
+}
+
+
+eInputQueueMode Window::GetQueueMode() const {
+	return m_queueMode;
+}
+
+
+LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	Window& instance = *reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+
+	auto CallClickEvent = [&instance, lParam](eMouseButton btn, eKeyState state) {
+		MouseButtonEvent evt;
+
+		evt.x = LOWORD(lParam);
+		evt.y = HIWORD(lParam);
+		evt.state = state;
+		evt.button = btn;
+		instance.CallEvent(instance.OnMouseButton, evt);
+	};
+
+	switch (msg) {
+		case WM_CLOSE:
+			DestroyWindow(hwnd);
+			return 0;
+		case WM_DESTROY:
+			instance.CallEvent(instance.OnClose);
+			PostQuitMessage(0);
+			return 0;
+		case WM_CHAR:
+			instance.CallEvent(instance.OnCharacter, (char32_t)wParam);
+			return 0;
+		case WM_KEYDOWN: {
+			KeyboardEvent evt;
+			evt.key = impl::TranslateKey(wParam);
+			evt.state = eKeyState::DOWN;
+			if (evt.key != eKey::UNKNOWN) {
+				instance.CallEvent(instance.OnKeyboard, evt);
+			}
+			return 0;
+		}
+		case WM_KEYUP: {
+			KeyboardEvent evt;
+			evt.key = impl::TranslateKey(wParam);
+			evt.state = eKeyState::UP;
+			if (evt.key != eKey::UNKNOWN) {
+				instance.CallEvent(instance.OnKeyboard, evt);
+			}
+			return 0;
+		}
+		case WM_LBUTTONDOWN: {
+			CallClickEvent(eMouseButton::LEFT, eKeyState::DOWN);
+			return 0;
+		}
+		case WM_LBUTTONUP: {
+			CallClickEvent(eMouseButton::LEFT, eKeyState::UP);
+			return 0;
+		}
+		case WM_LBUTTONDBLCLK: {
+			CallClickEvent(eMouseButton::LEFT, eKeyState::DOUBLE);
+			return 0;
+		}
+		case WM_RBUTTONDOWN: {
+			CallClickEvent(eMouseButton::RIGHT, eKeyState::DOWN);
+			return 0;
+		}
+		case WM_RBUTTONUP: {
+			CallClickEvent(eMouseButton::RIGHT, eKeyState::UP);
+			return 0;
+		}
+		case WM_RBUTTONDBLCLK: {
+			CallClickEvent(eMouseButton::RIGHT, eKeyState::DOUBLE);
+			return 0;
+		}
+		case WM_MBUTTONDOWN: {
+			CallClickEvent(eMouseButton::MIDDLE, eKeyState::DOWN);
+			return 0;
+		}
+		case WM_MBUTTONUP: {
+			CallClickEvent(eMouseButton::MIDDLE, eKeyState::UP);
+			return 0;
+		}
+		case WM_MBUTTONDBLCLK: {
+			CallClickEvent(eMouseButton::MIDDLE, eKeyState::DOUBLE);
+			return 0;
+		}
+		case WM_XBUTTONDOWN: {
+			eMouseButton btn = HIWORD(wParam) == 1 ? eMouseButton::EXTRA1 : eMouseButton::EXTRA2;
+			CallClickEvent(btn, eKeyState::DOWN);
+		}
+		case WM_XBUTTONUP: {
+			eMouseButton btn = HIWORD(wParam) == 1 ? eMouseButton::EXTRA1 : eMouseButton::EXTRA2;
+			CallClickEvent(btn, eKeyState::UP);
+		}
+		case WM_XBUTTONDBLCLK: {
+			eMouseButton btn = HIWORD(wParam) == 1 ? eMouseButton::EXTRA1 : eMouseButton::EXTRA2;
+			CallClickEvent(btn, eKeyState::DOUBLE);
+		}
+		case WM_MOUSEMOVE: {
+			MouseMoveEvent evt;
+			evt.absx = GET_X_LPARAM(lParam);
+			evt.absy = GET_Y_LPARAM(lParam);
+			evt.relx = evt.rely = 0;
+			instance.CallEvent(instance.OnMouseMove, evt);
+			return 0;
+		}
+		case WM_MOUSEWHEEL: {
+			short rot = static_cast<short>(HIWORD(wParam));
+			MouseButtonEvent evt;
+			// nahh this does not work
+			return 0;
+		}
+		case WM_ACTIVATE: {
+			instance.CallEvent(instance.OnFocus);
+			return 0;
+		}
+		case WM_SIZE: {
+			instance.CallEvent(instance.OnResize, instance.GetSize(), instance.GetClientSize());
+			return 0;
+		}
+		case WM_NCCREATE:
+			SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)((CREATESTRUCT*)lParam)->lpCreateParams);
+			return DefWindowProc(hwnd, msg, wParam, lParam);
+		default:
+			return DefWindowProc(hwnd, msg, wParam, lParam);
+	}
+}
+
+
+void Window::MessageLoop() {
 	MSG msg;
-	if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-	{
+	while (GetMessage(&msg, NULL, 0, 0)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
-	else
-	{
-		return false;
-	}
+}
 
-	if (msg.message == WM_LBUTTONDOWN)
-	{
-		evt_out.msg = eWindowMsg::MOUSE_PRESS;
-		evt_out.mouseBtn = eMouseBtn::LEFT;
-		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		hekk(evt_out.clientCursorPos);
-		onMousePressed(evt_out);
-	}
-	else if (msg.message == WM_RBUTTONDOWN)
-	{
-		evt_out.msg = eWindowMsg::MOUSE_PRESS;
-		evt_out.mouseBtn = eMouseBtn::RIGHT;
-		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		hekk(evt_out.clientCursorPos);
-		onMousePressed(evt_out);
-	}
-	else if (msg.message == WM_MBUTTONDOWN)
-	{
-		evt_out.msg = eWindowMsg::MOUSE_PRESS;
-		evt_out.mouseBtn = eMouseBtn::MIDDLE;
-		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		hekk(evt_out.clientCursorPos);
-		onMousePressed(evt_out);
-	}
-	else if (msg.message == WM_LBUTTONUP)
-	{
-		evt_out.msg = eWindowMsg::MOUSE_RELEASE;
-		evt_out.mouseBtn = eMouseBtn::LEFT;
-		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		hekk(evt_out.clientCursorPos);
-		onMouseReleased(evt_out);
-	}
-	else if (msg.message == WM_RBUTTONUP)
-	{
-		evt_out.msg = eWindowMsg::MOUSE_RELEASE;
-		evt_out.mouseBtn = eMouseBtn::RIGHT;
-		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		hekk(evt_out.clientCursorPos);
-		onMouseReleased(evt_out);
-	}
-	else if (msg.message == WM_MBUTTONUP)
-	{
-		evt_out.msg = eWindowMsg::MOUSE_RELEASE;
-		evt_out.mouseBtn = eMouseBtn::MIDDLE;
-		evt_out.clientCursorPos = Vec2(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
-		hekk(evt_out.clientCursorPos);
-		onMouseReleased(evt_out);
-	}
-	else if (msg.message == WM_KEYDOWN)
-	{
-		evt_out.key = ConvertFromWindowsKey(msg.wParam);
-		evt_out.msg = eWindowMsg::KEY_PRESS;
-	}
-	else if (msg.message == WM_SYSKEYDOWN)
-	{
-		//evt_out.key = ConvertFromWindowsKey(msg.wParam);
-		//evt_out.msg = KEY_PRESS;
-	}
-	else if (msg.message == WM_KEYUP)
-	{
-		evt_out.key = ConvertFromWindowsKey(msg.wParam);
-		evt_out.msg = eWindowMsg::KEY_RELEASE;
-	}
-	else if (msg.message == WM_SYSKEYUP)
-	{
-		evt_out.key = ConvertFromWindowsKey(msg.wParam);
-		evt_out.msg = eWindowMsg::KEY_RELEASE;
-	}
-	else if(msg.message == WM_INPUT)
-	{
-		UINT dwSize;
-		GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
 
-		BYTE* data = (BYTE*)alloca(dwSize);
+// crap'n'drop
+HRESULT __stdcall Window::QueryInterface(REFIID riid, void **ppv) {
+	if (riid == IID_IUnknown || riid == IID_IDropTarget) {
+		*ppv = static_cast<IUnknown*>(this);
+		AddRef();
+		return S_OK;
+	}
+	*ppv = NULL;
+	return E_NOINTERFACE;
+}
 
-		GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, data, &dwSize, sizeof(RAWINPUTHEADER));
-		
-		RAWINPUT* raw = (RAWINPUT*)data;
+ULONG __stdcall Window::AddRef() {
+	return ++m_refCount;
+}
 
-		if (raw->header.dwType == RIM_TYPEMOUSE)
+ULONG __stdcall Window::Release() {
+	LONG c = --m_refCount;
+	assert(false); // you should never release this object
+	return c;
+}
+
+HRESULT __stdcall Window::DragEnter(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) {
+	m_currentDragDropEvent = {};
+
+	FORMATETC textFormat = { CF_UNICODETEXT, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };;
+	FORMATETC fileFormat = { CF_HDROP, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
+
+	STGMEDIUM medium;
+
+	// Drop text data
+	if (pdto->GetData(&textFormat, &medium) == S_OK)
+	{
+		// We need to lock the HGLOBAL handle because we can't be sure if this is GMEM_FIXED (i.e. normal heap) data or not
+		wchar_t* text = (wchar_t*)GlobalLock(medium.hGlobal);
+
+		m_currentDragDropEvent.text = std::string(text, text + wcslen(text));
+
+		CallEvent(OnDropEntered, m_currentDragDropEvent);
+
+		GlobalUnlock(medium.hGlobal);
+		ReleaseStgMedium(&medium);
+	}
+	else if (pdto->GetData(&fileFormat, &medium) == S_OK)
+	{
+		int fileCount = DragQueryFile((HDROP)medium.hGlobal, 0xFFFFFFFF, nullptr, 0);
+
+		std::vector<std::experimental::filesystem::path> filePaths;
+		for (int i = 0; i < fileCount; ++i)
 		{
-			evt_out.mouseDelta = Vec2(raw->data.mouse.lLastX, raw->data.mouse.lLastY);
-
-			POINT p;
-			GetCursorPos(&p);
-			ScreenToClient(handle, &p);
-			evt_out.clientCursorPos = Vec2(p.x, p.y);
-			evt_out.msg = eWindowMsg::MOUSE_MOVE;
-
-			hekk(evt_out.clientCursorPos);
-			onMouseMoved(evt_out);
+			int FileNameLength = DragQueryFileA((HDROP)medium.hGlobal, i, nullptr, 0);
+			std::vector<char> fileName(FileNameLength + 1);
+			DragQueryFileA((HDROP)medium.hGlobal, i, fileName.data(), FileNameLength + 1);
+			filePaths.push_back(fileName.data());
 		}
-	}
-	else if (msg.message == WM_CLOSE)
-	{
-		evt_out.msg = eWindowMsg::CLOSE;
-		Close();
-	}
-	else if (msg.message == WM_QUIT)
-	{
-		evt_out.msg = eWindowMsg::CLOSE;
-		Close();
-	}
-	else if (msg.message == WM_SIZING)
-	{
-		int x = GET_X_LPARAM(msg.lParam);
-		int y = GET_Y_LPARAM(msg.lParam);
-	}
-	else
-	{
-		evt_out.msg = eWindowMsg::INVALID;
+
+		m_currentDragDropEvent.filePaths = std::move(filePaths);
+
+		CallEvent(OnDropEntered, m_currentDragDropEvent);
+
+		ReleaseStgMedium(&medium);
 	}
 
-	return true;
+	*pdwEffect &= DROPEFFECT_COPY;
+	return S_OK;
 }
 
-void Window::Close()
-{
-	RevokeDragDrop(handle);
-	CloseWindow(handle);
-	bClosed = true;
+HRESULT __stdcall Window::DragOver(DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) {
+	CallEvent(OnDropHovering, m_currentDragDropEvent);
+
+	*pdwEffect &= DROPEFFECT_COPY;
+	return S_OK;
 }
 
-void Window::MinimizeSize()
-{
-	ShowWindow(handle, SW_MINIMIZE);
+HRESULT __stdcall Window::DragLeave() {
+	CallEvent(OnDropLeft, m_currentDragDropEvent);
+	return S_OK;
 }
 
-void Window::MaximizeSize()
-{
-	ShowWindow(handle, SW_MAXIMIZE);
+HRESULT __stdcall Window::Drop(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) {
+	CallEvent(OnDropped, m_currentDragDropEvent);
+
+	*pdwEffect &= DROPEFFECT_COPY;
+	return S_OK;
 }
 
-void Window::RestoreSize()
-{
-	ShowWindow(handle, SW_RESTORE);
-}
 
-void Window::SetPos(const Vec2i& pos)
-{
-	RECT rect;
-	GetWindowRect(handle, &rect);
-	SetWindowPos(handle, HWND_TOP, pos.x, pos.y, rect.right - rect.left, rect.bottom - rect.top, 0);
-}
-
-void Window::SetRect(const Vec2i& pos, const Vec2u& size)
-{
-	SetWindowPos(handle, HWND_TOP, pos.x, pos.y, size.x, size.y, 0);
-}
-
-void Window::SetSize(const Vec2u& size)
-{
-	RECT rect;
-	GetWindowRect(handle, &rect);
-	SetWindowPos(handle, HWND_TOP, rect.left, rect.bottom, size.x, size.y, 0);
-}
-
-void Window::SetTitle(const std::string& text)
-{
-	std::wstring str(text.begin(), text.end());
-	SetWindowText(handle, str.c_str());
-}
-
-void Window::SetIcon(const std::wstring& filePath)
-{
-	HANDLE hIcon = LoadImage(0, filePath.c_str(), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
-	if (hIcon)
-	{
-		//Change both icons to the same icon handle.
-		SendMessage((HWND)GetHandle(), WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-		SendMessage((HWND)GetHandle(), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-
-		//This will ensure that the application icon gets changed too.
-		SendMessage(GetWindow((HWND)GetHandle(), GW_OWNER), WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
-		SendMessage(GetWindow((HWND)GetHandle(), GW_OWNER), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-	}
-}
-
-bool Window::IsOpen() const
-{
-	return !bClosed;
-}
-
-bool Window::IsFocused() const
-{
-	return GetFocus() == handle;
-}
-
-bool Window::IsMaximizedSize() const
-{
-	return IsZoomed(handle);
-	
-}
-
-bool Window::IsMinimizedSize() const
-{
-	return IsIconic(handle);
-}
-
-WindowHandle Window::GetHandle() const
-{
-	return (WindowHandle)handle;
-}
-
-uint32_t Window::GetClientWidth() const 
-{
-	RECT rect; GetClientRect(handle, &rect);
-	return (uint32_t)(rect.right - rect.left);
-}
-
-uint32_t Window::GetClientHeight() const
-{
-	RECT rect; GetClientRect(handle, &rect);
-	return (uint32_t)(rect.bottom - rect.top);
-}
-
-Vec2u Window::GetClientSize() const
-{
-	RECT rect; GetClientRect(handle, &rect);
-	return Vec2u(rect.right - rect.left, rect.bottom - rect.top);
-}
-
-Vec2 Window::GetClientCursorPos() const
-{
-	Vec2 cursorPos = Sys::GetCursorPos();
-	POINT p;
-	p.x = cursorPos.x;
-	p.y = cursorPos.y;
-	ScreenToClient(handle, &p);
-
-	return Vec2(p.x, p.y);
-}
-
-unsigned Window::GetNumClientPixels() const
-{
-	return GetClientWidth() * GetClientHeight();
-}
-
-float Window::GetClientAspectRatio() const 
-{
-	return (float)GetClientWidth() * GetClientHeight();
-}
-
-Vec2i Window::GetCenterPos() const
-{
-	WINDOWINFO info;
-	assert(GetWindowInfo(handle, &info));
-
-	return Vec2i((int)((info.rcWindow.right - info.rcWindow.left) * 0.5f), (int)((info.rcWindow.bottom - info.rcWindow.right) * 0.5f));
-}
-
-eKey Window::ConvertFromWindowsKey(WPARAM key)
-{
-	switch (key)
-	{
-	case 0x41:			return eKey::A;
-	case 0x42:			return eKey::B;
-	case 0x43:			return eKey::C;
-	case 0x44:			return eKey::D;
-	case 0x45:			return eKey::E;
-	case 0x46:			return eKey::F;
-	case 0x47:			return eKey::G;
-	case 0x48:			return eKey::H;
-	case 0x49:			return eKey::I;
-	case 0x4A:			return eKey::J;
-	case 0x4B:			return eKey::K;
-	case 0x4C:			return eKey::L;
-	case 0x4D:			return eKey::M;
-	case 0x4E:			return eKey::N;
-	case 0x4F:			return eKey::O;
-	case 0x50:			return eKey::P;
-	case 0x51:			return eKey::Q;
-	case 0x52:			return eKey::R;
-	case 0x53:			return eKey::S;
-	case 0x54:			return eKey::T;
-	case 0x55:			return eKey::U;
-	case 0x56:			return eKey::V;
-	case 0x57:			return eKey::W;
-	case 0x58:			return eKey::X;
-	case 0x59:			return eKey::Y;
-	case 0x5A:			return eKey::Z;
-	case VK_NUMPAD0:	return eKey::NUM0;
-	case VK_NUMPAD1:	return eKey::NUM1;
-	case VK_NUMPAD2:	return eKey::NUM2;
-	case VK_NUMPAD3:	return eKey::NUM3;
-	case VK_NUMPAD4:	return eKey::NUM4;
-	case VK_NUMPAD5:	return eKey::NUM5;
-	case VK_NUMPAD6:	return eKey::NUM6;
-	case VK_NUMPAD7:	return eKey::NUM7;
-	case VK_NUMPAD8:	return eKey::NUM8;
-	case VK_NUMPAD9:	return eKey::NUM9;
-	case VK_ESCAPE:		return eKey::ESC;
-	case VK_LCONTROL:	return eKey::LEFT_CONTROL;
-	case VK_LSHIFT:		return eKey::LSHIFT;
-	case VK_LMENU:		return eKey::LEFT_ALT;
-	case VK_LWIN:		return eKey::LSYS;
-	case VK_RCONTROL:	return eKey::RIGHT_CONTROL;
-	case VK_RSHIFT:		return eKey::RSHIFT;
-	case VK_RMENU:		return eKey::RIGHT_ALT;
-	case VK_RWIN:		return eKey::RSYS;
-	case VK_MENU:		return eKey::LEFT_ALT;
-	// TODO
-	//case sf::Keyboard::LBracket:	return eKey::LBRACKET;
-	//case sf::Keyboard::RBracket:	return eKey::RBRACKET;
-	//case sf::Keyboard::SemiColon:	return eKey::SEMICOLON;
-	//case sf::Keyboard::Comma:		return eKey::COMMA;
-	//case sf::Keyboard::Period:		return eKey::PERIOD;
-	//case sf::Keyboard::Quote:		return eKey::QUOTE;
-	//case sf::Keyboard::Slash:		return eKey::SLASH;
-	//case sf::Keyboard::BackSlash:	return eKey::BACKSLASH;
-	//case sf::Keyboard::Tilde:		return eKey::TILDE;
-	//case sf::Keyboard::Equal:		return eKey::EQUAL;
-	//case sf::Keyboard::Dash:		return eKey::DASH;
-	case VK_SPACE:					return eKey::SPACE;
-	case VK_RETURN:					return eKey::ENTER;
-	case VK_BACK:					return eKey::BACKSPACE;
-	case VK_TAB:					return eKey::TAB;
-	//case sf::Keyboard::PageUp:		return eKey::PAGEUP;
-	//case sf::Keyboard::PageDown:	return eKey::PAGEDDOWN;
-	case VK_END:					return eKey::END;
-	case VK_HOME:					return eKey::HOME;
-	case VK_INSERT:					return eKey::INS;
-	case VK_DELETE:					return eKey::DEL;
-	case VK_ADD:					return eKey::ADD;
-	case VK_SUBTRACT:				return eKey::SUB;
-	case VK_MULTIPLY:				return eKey::MUL;
-	case VK_DIVIDE:					return eKey::DIV;
-	case VK_LEFT:					return eKey::LEFT_ARROW;
-	case VK_RIGHT:					return eKey::RIGHT_ARROW;
-	case VK_UP:						return eKey::UP;
-	case VK_DOWN:					return eKey::DOWN;
-	case VK_F1:						return eKey::F1;
-	case VK_F2:						return eKey::F2;
-	case VK_F3:						return eKey::F3;
-	case VK_F4:						return eKey::F4;
-	case VK_F5:						return eKey::F5;
-	case VK_F6:						return eKey::F6;
-	case VK_F7:						return eKey::F7;
-	case VK_F8:						return eKey::F8;
-	case VK_F9:						return eKey::F9;
-	case VK_F10:					return eKey::F10;
-	case VK_F11:					return eKey::F11;
-	case VK_F12:					return eKey::F12;
-	case VK_F13:					return eKey::F13;
-	case VK_F14:					return eKey::F14;
-	case VK_F15:					return eKey::F15;
-	case VK_F16:					return eKey::F16;
-	case VK_F17:					return eKey::F17;
-	case VK_F18:					return eKey::F18;
-	case VK_F19:					return eKey::F19;
-	case VK_F20:					return eKey::F20;
-	case VK_F21:					return eKey::F21;
-	case VK_F22:					return eKey::F22;
-	case VK_F23:					return eKey::F23;
-	case VK_F24:					return eKey::F24;
-	case VK_PAUSE:					return eKey::PAUSE;
-	}
-
-	return eKey::INVALID;
-}
+} // namespace inl

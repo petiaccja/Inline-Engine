@@ -77,6 +77,10 @@ public:
 	void* GetVirtualAddress() const;
 	gxapi::ResourceDesc GetDescription() const;
 
+	/// <summary> Sets the name of the resource. Only for debug purposes. </summary>
+	void SetName(const std::string& name);
+	void SetName(const char* name);
+
 	/// <summary> Records the current state of the resource. Does not change resource state, only used for tracking it. </summary>
 	void RecordState(unsigned subresource, gxapi::eResourceState newState);
 	/// <summary> Records the state of all subresources. Does not change resource state, only used for tracking it. </summary>
@@ -96,15 +100,12 @@ public:
 protected:
 	void InitResourceStates(gxapi::eResourceState initialState);
 
-private:
 	struct Contents {
 		std::unique_ptr<gxapi::IResource, Deleter> resource;
 		bool resident;
 		eResourceHeap heap;
 		std::vector<gxapi::eResourceState> subresourceStates;
 	};
-
-private:
 	std::shared_ptr<Contents> m_contents;
 };
 
@@ -191,6 +192,7 @@ public:
 
 	uint64_t GetWidth() const;
 	uint16_t GetArrayCount() const;
+	uint32_t GetSubresourceIndex(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIndex) const;
 	gxapi::eFormat GetFormat() const;
 };
 
@@ -200,9 +202,9 @@ public:
 	using MemoryObject::MemoryObject;
 
 	uint64_t GetWidth() const;
-	uint64_t GetHeight() const;
+	uint32_t GetHeight() const;
 	uint16_t GetArrayCount() const;
-	uint32_t GetSubresourceIndex(uint32_t arrayIndex, uint32_t mipLevel) const;
+	uint32_t GetSubresourceIndex(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIndex) const;
 	gxapi::eFormat GetFormat() const;
 };
 
@@ -214,6 +216,7 @@ public:
 	uint64_t GetWidth() const;
 	uint64_t GetHeight() const;
 	uint16_t GetDepth() const;
+	uint32_t GetSubresourceIndex(uint32_t mipLevel, uint32_t planeIndex) const;
 	gxapi::eFormat GetFormat() const;
 };
 

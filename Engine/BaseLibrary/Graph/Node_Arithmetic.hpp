@@ -30,19 +30,23 @@ public:
 	static std::string Info_GetName() {
 		return name;
 	}
+	std::string GetClassName(bool simplify = false, const std::vector<std::string>& stripNamespaces = {}) const override {
+		auto s = Info_GetName();
+		return s.substr(0, s.find_first_of(':'));
+	}
 
-	static const std::vector<std::string>& Info_GetInputNames() {
+	const std::string& GetInputName(size_t idx) const override {
 		static std::vector<std::string> names = {
 			op1desc,
 			op2desc
 		};
-		return names;
+		return names[idx];
 	}
-	static const std::vector<std::string>& Info_GetOutputNames() {
+	const std::string& GetOutputName(size_t idx) const override {
 		static std::vector<std::string> names = {
 			resdesc
 		};
-		return names;
+		return names[idx];
 	}
 };
 
@@ -236,17 +240,17 @@ using IntDivide = DivideNode<int>;
 using IntModulo = ModuloNode<int>;
 
 #ifdef ENABLE_HIGH_PRECISION_NODES
-using FloatAdd = AddNode<double>;
-using FloatSub = SubtractNode<double>;
-using FloatMultiply = MultiplyNode<double>;
-using FloatDivide = DivideNode<double>;
-using FloatModulo = ModuloNode<double>;
+using DoubleAdd = AddNode<double>;
+using DoubleSub = SubtractNode<double>;
+using DoubleMultiply = MultiplyNode<double>;
+using DoubleDivide = DivideNode<double>;
+using DoubleModulo = ModuloNode<double>;
 
-using FloatAdd = AddNode<long long>;
-using FloatSub = SubtractNode<long long>;
-using FloatMultiply = MultiplyNode<long long>;
-using FloatDivide = DivideNode<long long>;
-using FloatModulo = ModuloNode<long long>;
+using LongAdd = AddNode<long long>;
+using LongSub = SubtractNode<long long>;
+using LongMultiply = MultiplyNode<long long>;
+using LongDivide = DivideNode<long long>;
+using LongModulo = ModuloNode<long long>;
 #endif
 
 

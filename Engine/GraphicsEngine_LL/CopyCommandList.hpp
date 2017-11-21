@@ -25,45 +25,39 @@ namespace gxeng {
 class CommandAllocatorPool;
 
 struct SubTexture1D {
-	SubTexture1D(unsigned mipLevel = 0,
-				 unsigned arrayIndex = 0,
+	SubTexture1D(unsigned subresource = 0,
 				 intptr_t firstPixel = -1,
 				 intptr_t lastPixel = -1)
-		: mipLevel(mipLevel),
-		arrayIndex(arrayIndex),
+		: subresource(subresource),
 		firstPixel(firstPixel),
 		lastPixel(lastPixel) {}
 
-	unsigned mipLevel;
-	unsigned arrayIndex;
+	unsigned subresource;
 	intptr_t firstPixel, lastPixel;
 };
 
 struct SubTexture2D {
-	SubTexture2D(unsigned mipLevel = 0,
-				 unsigned arrayIndex = 0,
+	SubTexture2D(unsigned subresource = 0,
 				Vector<intptr_t, 2> corner1 = { -1, -1 },
 				Vector<intptr_t, 2> corner2 = { -1, -1 })
-		: mipLevel(mipLevel),
-		arrayIndex(arrayIndex),
+		: subresource(subresource),
 		corner1(corner1),
 		corner2(corner2) {}
 
-	unsigned mipLevel;
-	unsigned arrayIndex;
+	unsigned subresource;
 	Vector<intptr_t, 2> corner1;
 	Vector<intptr_t, 2> corner2;
 };
 
 struct SubTexture3D {
-	SubTexture3D(unsigned mipLevel = 0,
+	SubTexture3D(unsigned subresource = 0,
 				 Vector<intptr_t, 3> corner1 = { -1, -1, -1 },
 				 Vector<intptr_t, 3> corner2 = { -1, -1, -1 })
-		: mipLevel(mipLevel),
+		: subresource(subresource),
 		corner1(corner1),
 		corner2(corner2) {}
 
-	unsigned mipLevel;
+	unsigned subresource;
 	Vector<intptr_t, 3> corner1;
 	Vector<intptr_t, 3> corner2;
 };
@@ -126,11 +120,6 @@ private:
 	gxapi::ICopyCommandList* m_commandList;
 };
 
-
-template<class ...Barriers>
-void CopyCommandList::ResourceBarrier(Barriers && ...barriers) {
-	m_commandList->ResourceBarrier(barriers...);
-}
 
 
 } // namespace gxeng

@@ -49,7 +49,7 @@ SetupContext::SetupContext(MemoryManager* memoryManager,
 {}
 
 
-Texture2D SetupContext::CreateTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, TextureUsage usage, uint16_t arraySize) const {
+Texture2D SetupContext::CreateTexture2D(const Texture2DDesc& desc, const TextureUsage& usage) const {
 	gxapi::eResourceFlags flags;
 
 	if (!usage.shaderResource) flags += gxapi::eResourceFlags::DENY_SHADER_RESOURCE;
@@ -57,47 +57,19 @@ Texture2D SetupContext::CreateTexture2D(uint64_t width, uint32_t height, gxapi::
 	if (usage.depthStencil) flags += gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL;
 	if (usage.randomAccess) flags += gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS;
 
-	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, format, flags, arraySize);
+	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, desc, flags);
 	return texture;
 }
 
-Texture2D SetupContext::CreateShaderResource2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize) const {
-	if (m_memoryManager == nullptr) throw InvalidStateException("Cannot create texture without memory manager.");
+Texture3D SetupContext::CreateTexture3D(const Texture3DDesc& desc, const TextureUsage& usage) const {
+	gxapi::eResourceFlags flags;
 
-	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, format, gxapi::eResourceFlags::NONE, arraySize);
-	return texture;
-}
+	if (!usage.shaderResource) flags += gxapi::eResourceFlags::DENY_SHADER_RESOURCE;
+	if (usage.renderTarget) flags += gxapi::eResourceFlags::ALLOW_RENDER_TARGET;
+	if (usage.depthStencil) flags += gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL;
+	if (usage.randomAccess) flags += gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS;
 
-
-Texture2D SetupContext::CreateRenderTarget2D(uint64_t width, uint32_t height, gxapi::eFormat format, uint16_t arraySize) const {
-	if (m_memoryManager == nullptr) throw InvalidStateException("Cannot create texture without memory manager.");
-
-	gxapi::eResourceFlags flags = gxapi::eResourceFlags::ALLOW_RENDER_TARGET;
-
-	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, format, flags, arraySize);
-	return texture;
-}
-
-
-Texture2D SetupContext::CreateDepthStencil2D(uint64_t width, uint32_t height, gxapi::eFormat format, bool shaderResource, uint16_t arraySize) const {
-	if (m_memoryManager == nullptr) throw InvalidStateException("Cannot create texture without memory manager.");
-
-	gxapi::eResourceFlags flags = gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL;
-	if (!shaderResource) {
-		flags += gxapi::eResourceFlags::DENY_SHADER_RESOURCE;
-	}
-	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, format, flags, arraySize);
-	return texture;
-}
-
-
-Texture2D SetupContext::CreateRWTexture2D(uint64_t width, uint32_t height, gxapi::eFormat format, bool renderTarget, uint16_t arraySize) const {
-	if (m_memoryManager == nullptr) throw InvalidStateException("Cannot create texture without memory manager.");
-
-	gxapi::eResourceFlags flags = gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS;
-	if (renderTarget) { flags += gxapi::eResourceFlags::ALLOW_RENDER_TARGET; }
-
-	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, width, height, format, flags, arraySize);
+	Texture3D texture = m_memoryManager->CreateTexture3D(eResourceHeapType::CRITICAL, desc, flags);
 	return texture;
 }
 
@@ -114,6 +86,11 @@ TextureViewCube SetupContext::CreateSrv(Texture2D & texture, gxapi::eFormat form
 	return TextureViewCube{ texture, *m_srvHeap, format, desc };
 }
 
+TextureView3D SetupContext::CreateSrv(Texture3D & texture, gxapi::eFormat format, gxapi::SrvTexture3D desc) const {
+	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create srv without srv/cbv/uav heap.");
+
+	return TextureView3D{ texture, *m_srvHeap, format, desc };
+}
 
 RenderTargetView2D SetupContext::CreateRtv(Texture2D& texture, gxapi::eFormat format, gxapi::RtvTexture2DArray desc) const {
 	if (m_rtvHeap == nullptr) throw InvalidStateException("Cannot create rtv without rtv heap.");
@@ -133,6 +110,12 @@ RWTextureView2D SetupContext::CreateUav(Texture2D& rwTexture, gxapi::eFormat for
 	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create uav wihtout srv/cbv/uav heap.");
 
 	return RWTextureView2D{ rwTexture, *m_srvHeap, format, desc };
+}
+
+RWTextureView3D SetupContext::CreateUav(Texture3D& rwTexture, gxapi::eFormat format, gxapi::UavTexture3D desc) const {
+	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create uav wihtout srv/cbv/uav heap.");
+
+	return RWTextureView3D{ rwTexture, *m_srvHeap, format, desc };
 }
 
 

@@ -64,7 +64,7 @@ void OverlayRender::Setup(SetupContext& context) {
 	rtvDesc.firstMipLevel = 0;
 	rtvDesc.planeIndex = 0;
 	m_target = context.CreateRtv(target, target.GetFormat(), rtvDesc);
-	m_target.GetResource()._GetResourcePtr()->SetName("Overlay render render target view");
+	
 
 	m_entities = this->GetInput<1>().Get();
 
@@ -147,9 +147,9 @@ void OverlayRender::Execute(RenderContext& context) {
 			assert(renderType == OverlayEntity::TEXTURED);
 			commandList.SetPipelineState(m_texturedPipeline.pso.get());
 			commandList.SetGraphicsBinder(&m_texturedPipeline.binder.value());
-			commandList.SetResourceState(entity->GetTexture()->GetSrv()->GetResource(), 
+			commandList.SetResourceState(entity->GetTexture()->GetSrv().GetResource(), 
 										 gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
-			commandList.BindGraphics(m_texturedPipeline.textureParam, *entity->GetTexture()->GetSrv());
+			commandList.BindGraphics(m_texturedPipeline.textureParam, entity->GetTexture()->GetSrv());
 			commandList.BindGraphics(m_texturedPipeline.transformParam, &transformCBData, sizeof(transformCBData));
 		}
 

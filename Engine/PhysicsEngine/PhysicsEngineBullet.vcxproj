@@ -39,7 +39,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{13ED7F26-15E5-47A3-BE13-D3D15695F412}</ProjectGuid>
     <RootNamespace>Gui</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
     <ProjectName>PhysicsEngineBullet</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -60,14 +60,14 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -104,7 +104,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>Bullet3Dynamics-d.lib;Bullet3Common-d.lib;Bullet3Collision-d.lib;Bullet3Geometry-d.lib;BulletCollision-d.lib;BulletDynamics-d.lib;BulletSoftBody-d.lib;LinearMath-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -115,6 +116,8 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <AdditionalOptions>/bigobj</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -124,6 +127,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <AdditionalOptions>/bigobj</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -137,7 +142,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj</AdditionalOptions>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

@@ -139,6 +139,22 @@ public:
 		return Quaternion(cos(angle), axis * sin(angle));
 	}
 
+	/// <summary> Sets the quaternion's elements to represent a rotation of <paramref name="angle"/> radians around <paramref name="axis"/> </summary>
+	template <bool VPacked>
+	Quaternion& SetAxisAngle(const Vector<T, 3, VPacked>& axis, T angle) {
+		return *this = AxisAngle(axis, angle);
+	}
+
+	/// <summary> Creates an identity quaternion that causes no rotation. </summary>
+	static Quaternion Identity() {
+		return Quaternion(1, 0, 0, 0);
+	}
+
+	/// <summary> Sets this to an identity quaternion that causes no rotation. </summary>
+	Quaternion& SetIdentity() {
+		return *this = Identity();
+	}
+
 
 	//-----------------------------------------------
 	// Arithmetic

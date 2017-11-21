@@ -25,11 +25,12 @@ public:
 			dstOffsetX(bufferOffset) {}
 
 		UploadDescription(LinearBuffer&& source,
-						  const Texture2D& destination,
+						  const Texture2D& destination, unsigned dstSubresource,
 						  size_t dstOffsetX, uint32_t dstOffsetY, uint32_t dstOffsetZ,
 						  gxapi::TextureCopyDesc textureBufferDesc) :
 			source(std::move(source)),
 			destination(destination),
+			dstSubresource(dstSubresource),
 			destType(DestType::TEXTURE_2D),
 			dstOffsetX(dstOffsetX), dstOffsetY(dstOffsetY), dstOffsetZ(dstOffsetZ),
 			textureBufferDesc(textureBufferDesc) {}
@@ -44,6 +45,7 @@ public:
 		size_t dstOffsetX; // also offset in linear buffer
 		uint32_t dstOffsetY;
 		uint32_t dstOffsetZ;
+		unsigned dstSubresource;
 
 		gxapi::TextureCopyDesc textureBufferDesc;
 	};
@@ -59,7 +61,7 @@ public:
 	void Upload(const LinearBuffer& target, size_t offset, const void* data, size_t size);
 
 	// The pixels from the source image must be in row-major order inside memory.
-	void Upload(const Texture2D& target, uint32_t offsetX, uint32_t offsetY, const void* data, uint64_t width, uint32_t height, gxapi::eFormat format, size_t bytesPerRow = 0);
+	void Upload(const Texture2D& target, uint32_t offsetX, uint32_t offsetY, uint32_t subresource, const void* data, uint64_t width, uint32_t height, gxapi::eFormat format, size_t bytesPerRow = 0);
 
 	void OnFrameBeginDevice(uint64_t frameId) override;
 	void OnFrameBeginHost(uint64_t frameId) override;
@@ -67,14 +69,9 @@ public:
 	void OnFrameCompleteDevice(uint64_t frameId) override;
 	void OnFrameCompleteHost(uint64_t frameId) override;
 
-	//const std::vector<UploadDescription>& _GetQueuedUploads();
 	const std::vector<UploadDescription>& UploadManager::GetQueuedUploads() const;
-
-	/// <summary>Removes the least recent upload queue, and returns it to the caller.</summary>
-	std::vector<UploadDescription> _TakeQueuedUploads();
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
-	//std::deque<std::vector<UploadDescription>> m_uploadQueues;
 	std::list<UploadFrame> m_uploadFrames;
 
 	mutable std::mutex m_mtx;

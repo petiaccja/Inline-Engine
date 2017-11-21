@@ -32,9 +32,9 @@ Scene::Scene(const Vec3& gravity /*= { 0, 0, -9.81 }*/)
 	//world->setDebugDrawer(debugDrawer);
 
 	// Populate collisionMatrix with true values, everything can collide with everything by default
-	nLayerCollisionMatrixRows = 16; // Start with 16x16 matrix
-	layeCollisionMatrix.resize(nLayerCollisionMatrixRows * nLayerCollisionMatrixRows);
-	memset(layeCollisionMatrix.data(), 1, nLayerCollisionMatrixRows * nLayerCollisionMatrixRows);
+	nLayeCollisionMatrixRows = 16; // Start with 16x16 matrix
+	layeCollisionMatrix.resize(nLayeCollisionMatrixRows * nLayeCollisionMatrixRows);
+	memset(layeCollisionMatrix.data(), 1, nLayeCollisionMatrixRows * nLayeCollisionMatrixRows);
 }
 
 Scene::~Scene()
@@ -156,9 +156,9 @@ void Scene::Update(float deltaTime)
 	}
 }
 
-bool Scene::TraceRay(const Ray& ray, physics::TraceResult& traceResult_out, float maxDistance /*= 9999999.f*/, const physics::TraceParams& params /*= physics::TraceParams()*/)
+bool Scene::TraceRay(const Ray3D& ray, physics::TraceResult& traceResult_out, float maxDistance /*= std::numeric_limits<float>::max()*/, const physics::TraceParams& params /*= physics::TraceParams()*/)
 {
-	btVector3 rayStart = btVector3(ray.origin.x, ray.origin.y, ray.origin.z);
+	btVector3 rayStart = btVector3(ray.base.x, ray.base.y, ray.base.z);
 	btVector3 rayEnd = rayStart + btVector3(ray.direction.x, ray.direction.y, ray.direction.z) * maxDistance;
 	ClosestRayCallback function(rayStart, rayEnd, params.ignoredCollisionLayers);
 
@@ -179,7 +179,8 @@ bool Scene::TraceRay(const Ray& ray, physics::TraceResult& traceResult_out, floa
 
 physics::IRigidBodyEntity* Scene::AddEntityRigidDynamic(Vec3* vertices, uint32_t nVertices, float mass /*= 1*/)
 {
-	//assert(mass != 0);
+	// You should call PhysicsEngineBullet::CreateEntityRigidStatic
+	assert(mass != 0);
 
 	// Create collision shape for rigid body, based on it's vertices and mass
 	btConvexHullShape* colShape = new btConvexHullShape((btScalar*)vertices, nVertices, sizeof(Vec3));
@@ -197,7 +198,6 @@ physics::IRigidBodyEntity* Scene::AddEntityRigidDynamic(Vec3* vertices, uint32_t
 		body->setCcdMotionThreshold(0.001);
 		body->setCcdSweptSphereRadius(0.001);
 	}
-
 	body->setFriction(0.9f);
 	body->setRestitution(0.0f);
 
@@ -283,7 +283,7 @@ bool Scene::RemoveEntity(physics::IRigidBodyEntity* e)
 
 void Scene::SetLayerCollision(uint64_t ID0, uint64_t ID1, bool bEnableCollision)
 {
-	if (ID0 > nLayerCollisionMatrixRows - 1 || ID1 > nLayerCollisionMatrixRows - 1)
+	if (ID0 > nLayeCollisionMatrixRows - 1 || ID1 > nLayeCollisionMatrixRows - 1)
 	{
 		// Reallocate larger matrix
 		uint64_t nRows = std::max(ID0, ID1) + 1;
@@ -291,11 +291,11 @@ void Scene::SetLayerCollision(uint64_t ID0, uint64_t ID1, bool bEnableCollision)
 
 		// Move old datas to correct places
 		// i = 0 will not run, cuz 0th will remain good in memory
-		for (uint64_t i = nLayerCollisionMatrixRows - 1; i > 0; i--)
+		for (uint64_t i = nLayeCollisionMatrixRows - 1; i > 0; i--)
 		{
-			uint8_t* src = i * nLayerCollisionMatrixRows + (uint8_t*)layeCollisionMatrix.data();
-			uint8_t* dst = src + i * (nRows - nLayerCollisionMatrixRows);
-			memmove(dst, src, nLayerCollisionMatrixRows);
+			uint8_t* src = i * nLayeCollisionMatrixRows + (uint8_t*)layeCollisionMatrix.data();
+			uint8_t* dst = src + i * (nRows - nLayeCollisionMatrixRows);
+			memmove(dst, src, nLayeCollisionMatrixRows);
 
 			// Set newly allocated bytes to 1 (part0)
 			// [src, dst[ set 1 these byte are the newly allocated ones, ID0 can collide with everything, and ID1 also
@@ -303,14 +303,14 @@ void Scene::SetLayerCollision(uint64_t ID0, uint64_t ID1, bool bEnableCollision)
 		}
 
 		// Set newly allocated bytes to 1 (part1)
-		uint64_t asd = nRows + (nRows - nLayerCollisionMatrixRows);
+		uint64_t asd = nRows + (nRows - nLayeCollisionMatrixRows);
 		memset((uint8_t*)layeCollisionMatrix.data() + (nRows *  nRows) - asd, 1, asd);
 
-		nLayerCollisionMatrixRows = nRows;
+		nLayeCollisionMatrixRows = nRows;
 	}
 
-	layeCollisionMatrix[ID0 + nLayerCollisionMatrixRows * ID1] = bEnableCollision;
-	layeCollisionMatrix[ID1 + nLayerCollisionMatrixRows * ID0] = bEnableCollision;
+	layeCollisionMatrix[ID0 + nLayeCollisionMatrixRows * ID1] = bEnableCollision;
+	layeCollisionMatrix[ID1 + nLayeCollisionMatrixRows * ID0] = bEnableCollision;
 }
 
 bool Scene::GetDebugData(Vec3*& linesFromNonUniqPoints_out, size_t& nLines_out) const

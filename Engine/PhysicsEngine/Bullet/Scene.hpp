@@ -26,7 +26,7 @@ public:
 
 	void Update(float deltaTime);
 
-	bool TraceRay(const Ray& ray, physics::TraceResult& traceResult_out, float maxDistance = 9999999.f, const physics::TraceParams& params = physics::TraceParams());
+	bool TraceRay(const Ray3D& ray, physics::TraceResult& traceResult_out, float maxDistance = std::numeric_limits<float>::max(), const physics::TraceParams& params = physics::TraceParams());
 
 	// Create, Add DYNAMIC rigid body to physics world
 	physics::IRigidBodyEntity* AddEntityRigidDynamic(Vec3* vertices, uint32_t nVertices, float mass = 1);
@@ -37,7 +37,7 @@ public:
 	// Create, Add capsule rigid body to physics world
 	physics::IRigidBodyEntity* AddEntityRigidCapsule(float height, float radius, float mass);
 
-	bool RemoveEntity(physics::IRigidBodyEntity* e);	
+	bool RemoveEntity(physics::IRigidBodyEntity* e);
 
 	void SetLayerCollision(uint64_t ID0, uint64_t ID1, bool bEnableCollision);
 
@@ -46,7 +46,7 @@ public:
 		assert(ID0 < sqrt(layeCollisionMatrix.size()));
 		assert(ID1 < sqrt(layeCollisionMatrix.size()));
 
-		return layeCollisionMatrix[ID0 + ID1 * nLayerCollisionMatrixRows] > 0;
+		return layeCollisionMatrix[ID0 + ID1 * nLayeCollisionMatrixRows] > 0;
 	}
 
 	std::vector<physics::Collision>& GetCollisionList() { return contactList; }
@@ -62,7 +62,7 @@ protected:
 
 	// byte bool array bitch pls
 	std::vector<uint8_t> layeCollisionMatrix;
-	size_t nLayerCollisionMatrixRows;
+	size_t nLayeCollisionMatrixRows;
 };
 
 

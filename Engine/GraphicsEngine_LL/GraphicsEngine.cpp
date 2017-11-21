@@ -1,11 +1,14 @@
 #include "GraphicsEngine.hpp"
 #include "GraphicsNode.hpp"
 
-#include "../BaseLibrary/Graph/Node.hpp"
+#include <BaseLibrary/Graph/Node.hpp>
+#include <BaseLibrary/Graph/NodeLibrary.hpp>
 
 #include <iostream> // only for debugging
 #include <regex> // as well...
 #include <lemon/bfs.h> // as well...
+#include <rapidjson/document.h>
+#include <optional>
 
 #include "Nodes/Node_GetBackBuffer.hpp"
 #include "Nodes/Node_TextureProperties.hpp"
@@ -42,6 +45,13 @@
 #include "Nodes/Node_DOFTileMax.hpp"
 #include "Nodes/Node_DOFNeighborMax.hpp"
 #include "Nodes/Node_DOFMain.hpp"
+#include "Nodes/Node_Voxelization.hpp"
+#include "Nodes/Node_VolumetricLighting.hpp"
+#include "Nodes/Node_ShadowMapGen.hpp"
+#include "Nodes/Node_ScreenSpaceShadow.hpp"
+#include "Nodes/Node_ScreenSpaceReflection.hpp"
+#include "Nodes/Node_TextRender.hpp"
+#include "Nodes/Node_ScreenSpaceAmbientOcclusion.hpp"
 
 //Gui
 #include "Nodes/Node_OverlayRender.hpp"
@@ -114,6 +124,8 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 #endif // NDEBUG
 	m_shaderManager.SetShaderCompileFlags(shaderFlags);
 
+	// Register nodes
+	RegisterPipelineClasses();
 
 	// Do more stuff...
 	CreatePipeline();
@@ -370,6 +382,260 @@ const Any& GraphicsEngine::GetEnvVariable(const std::string& name) {
 }
 
 
+void GraphicsEngine::LoadPipeline(const std::string& graphDesc) {
+	using namespace rapidjson;
+
+	// Helper functions and structures.
+	struct NodeCreationInfo {
+		std::optional<int> id;
+		std::optional<std::string> name;
+		std::string cl;
+		std::vector<std::optional<std::string>> inputs;
+	};
+
+	struct LinkCreationInfo {
+		std::optional<int> srcid, dstid;
+		std::optional<std::string> srcname, dstname;
+		std::optional<int> srcpidx, dstpidx;
+		std::optional<std::string> srcpname, dstpname;
+	};
+
+	auto AssertThrow = [](bool value, const std::string& text) {
+		if (!value) {
+			throw InvalidArgumentException(text);
+		}
+	};
+
+	auto ParseNode = [&AssertThrow](const GenericValue<UTF8<>>& obj) {
+		NodeCreationInfo info;
+		if (obj.HasMember("id")) {
+			AssertThrow(obj["id"].IsInt(), "Node's id member must be an integer.");
+			info.id = obj["id"].GetInt();
+		}
+		if (obj.HasMember("name")) {
+			AssertThrow(obj["name"].IsString(), "Node's name member must be a string.");
+			info.name = obj["name"].GetString();
+		}
+		AssertThrow(info.id || info.name, "Node must have either id or name.");
+		AssertThrow(obj.HasMember("class") && obj["class"].IsString(), "Node must have a class.");
+		info.cl = obj["class"].GetString();
+
+		if (obj.HasMember("inputs")) {
+			AssertThrow(obj["inputs"].IsArray(), "Default inputs must be specified in an array, undefined inputs as {}.");
+			auto& inputs = obj["inputs"];
+			for (SizeType i = 0; i < inputs.Size(); ++i) {
+				if (inputs[i].IsObject() && inputs[i].ObjectEmpty()) {
+					info.inputs.push_back({});
+				}
+				else if (inputs[i].IsString()) {
+					info.inputs.push_back(inputs[i].GetString());
+				}
+				else if (inputs[i].IsInt64()) {
+					info.inputs.push_back(std::to_string(inputs[i].GetInt64()));
+				}
+				else if (inputs[i].IsDouble()) {
+					info.inputs.push_back(std::to_string(inputs[i].GetDouble()));
+				}
+				else {
+					assert(false);
+				}
+			}
+		}
+		return info;
+	};
+
+	auto ParseLink = [&AssertThrow](const GenericValue<UTF8<>>& obj) {
+		LinkCreationInfo info;
+
+		AssertThrow(obj.HasMember("src")
+			&& obj.HasMember("dst")
+			&& obj.HasMember("srcp")
+			&& obj.HasMember("dstp"),
+			"Link must have members src, dst, srcp and dstp.");
+
+		if (obj["src"].IsString()) {
+			info.srcname = obj["src"].GetString();
+		}
+		else if (obj["src"].IsInt()) {
+			info.srcid = obj["src"].GetInt();
+		}
+		else {
+			AssertThrow(false, "Link src must be string (name) or int (id) of the node.");
+		}
+
+		if (obj["dst"].IsString()) {
+			info.dstname = obj["dst"].GetString();
+		}
+		else if (obj["dst"].IsInt()) {
+			info.dstid = obj["dst"].GetInt();
+		}
+		else {
+			AssertThrow(false, "Link dst must be string (name) or int (id) of the node.");
+		}
+
+		if (obj["srcp"].IsString()) {
+			info.srcpname = obj["srcp"].GetString();
+		}
+		else if (obj["srcp"].IsInt()) {
+			info.srcpidx = obj["srcp"].GetInt();
+		}
+		else {
+			AssertThrow(false, "Link srcp must be string (name) or int (index) of the port.");
+		}
+
+		if (obj["dstp"].IsString()) {
+			info.dstpname = obj["dstp"].GetString();
+		}
+		else if (obj["dstp"].IsInt()) {
+			info.dstpidx = obj["dstp"].GetInt();
+		}
+		else {
+			AssertThrow(false, "Link dstp must be string (name) or int (index) of the port.");
+		}
+
+		return info;
+	};
+
+
+	// Parse the JSON file.
+	Document doc;
+	doc.Parse(graphDesc.c_str());
+	ParseErrorCode ec = doc.GetParseError();
+	if (ec != ParseErrorCode::kParseErrorNone) {
+		int ch = doc.GetErrorOffset();
+		int chi = 0;
+		int chsum = 0;
+		int line = 0;
+		while (chi < ch && chi < graphDesc.size()) {
+			if (graphDesc[chi] == '\n') { ++line; chsum = 0; }
+			++chi;
+			++chsum;
+		}
+		throw InvalidArgumentException("JSON descripion has syntax errors.", "Check line " + std::to_string(line) + ":" + std::to_string(chsum));
+	}
+
+	AssertThrow(doc.IsObject(), "JSON root must be an object with member arrays \"nodes\" and \"links\".");
+	AssertThrow(doc.HasMember("nodes") && doc["nodes"].IsArray(), "JSON root must have \"nodes\" member array.");
+	AssertThrow(doc.HasMember("links") && doc["links"].IsArray(), "JSON root must have \"links\" member array.");
+
+	auto& nodes = doc["nodes"];
+	auto& links = doc["links"];
+	std::vector<NodeCreationInfo> nodeCreationInfos;
+	std::vector<LinkCreationInfo> linkCreationInfos;
+
+	for (SizeType i = 0; i < nodes.Size(); ++i) {
+		NodeCreationInfo info = ParseNode(nodes[i]);
+		nodeCreationInfos.push_back(info);
+	}
+
+	for (SizeType i = 0; i < links.Size(); ++i) {
+		LinkCreationInfo info = ParseLink(links[i]);
+		linkCreationInfos.push_back(info);
+	}
+
+	// Create lookup dictionary of nodes by name and by id.
+	// {name/id of node, index of node in vector}
+	std::unordered_map<int, size_t> idBook;
+	std::unordered_map<std::string, size_t> nameBook;
+	for (size_t i = 0; i < nodeCreationInfos.size(); ++i) {
+		if (nodeCreationInfos[i].name) {
+			auto ins = nameBook.insert({ nodeCreationInfos[i].name.value(), i });
+			AssertThrow(ins.second == true, "Node names must be unique.");
+		}
+		if (nodeCreationInfos[i].id) {
+			auto ins = idBook.insert({ nodeCreationInfos[i].id.value(), i });
+			AssertThrow(ins.second == true, "Node ids must be unique.");
+		}
+	}
+
+	// Create nodes with initial values.
+	std::vector<std::shared_ptr<NodeBase>> nodeObjects;
+	for (auto& info : nodeCreationInfos) {
+		std::shared_ptr<NodeBase> nodeObject(m_nodeFactory.CreateNode(info.cl));
+		if (info.name) {
+			nodeObject->SetDisplayName(info.name.value());
+		}
+
+		for (int i = 0; i < nodeObject->GetNumInputs() && i < info.inputs.size(); ++i) {
+			if (info.inputs.size()) {
+				nodeObject->GetInput(i)->SetConvert(info.inputs[i].value());
+			}
+		}
+
+		nodeObjects.push_back(std::move(nodeObject));
+	}
+
+	// Link nodes above.
+	for (auto& info : linkCreationInfos) {
+		NodeBase *src, *dst;
+		OutputPortBase* srcp;
+		InputPortBase* dstp;
+
+		// Find src and dst nodes
+		if (info.srcname) {
+			auto it = nameBook.find(info.srcname.value());
+			AssertThrow(it != nameBook.end(), "Node requested to link named " + info.srcname.value() + " not found.");
+			src = nodeObjects[it->second].get();
+		}
+		else {
+			auto it = idBook.find(info.srcid.value());
+			AssertThrow(it != idBook.end(), "Node requested to link id=" + std::to_string(info.srcid.value()) + " not found.");
+			src = nodeObjects[it->second].get();
+		}
+		if (info.dstname) {
+			auto it = nameBook.find(info.dstname.value());
+			AssertThrow(it != nameBook.end(), "Node requested to link named " + info.dstname.value() + " not found.");
+			dst = nodeObjects[it->second].get();
+		}
+		else {
+			auto it = idBook.find(info.dstid.value());
+			AssertThrow(it != idBook.end(), "Node requested to link id=" + std::to_string(info.dstid.value()) + " not found.");
+			dst = nodeObjects[it->second].get();
+		}
+		// Find src and dst ports
+		if (info.srcpname) {
+			for (int i = 0; i < src->GetNumOutputs(); ++i) {
+				if (info.srcpname.value() == src->GetOutputName(i)) {
+					srcp = src->GetOutput(i);
+					break;
+				}
+			}
+		}
+		else {
+			srcp = src->GetOutput(info.srcpidx.value());
+		}
+		if (info.dstpname) {
+			for (int i = 0; i < dst->GetNumInputs(); ++i) {
+				if (info.dstpname.value() == dst->GetInputName(i)) {
+					dstp = dst->GetInput(i);
+					break;
+				}
+			}
+		}
+		else {
+			dstp = dst->GetInput(info.dstpidx.value());
+		}
+		// Link said ports
+		bool linked = srcp->Link(dstp);
+		AssertThrow(linked, "Ports not compatible.");
+	}
+
+
+	// Finish off by creating the actual pipeline.
+	EngineContext engineContext(1, 1);
+	for (auto& node : nodeObjects) {
+		if (auto graphicsNode = dynamic_cast<GraphicsNode*>(node.get())) {
+			graphicsNode->Initialize(engineContext);
+		}
+	}
+
+	Pipeline pipeline;
+	pipeline.CreateFromNodesList(nodeObjects);
+
+	DumpPipelineGraph(pipeline, "pipeline_graph_json.dot");
+}
+
+
 
 void GraphicsEngine::CreatePipeline() {
 	auto swapChainDesc = m_swapChain->GetDesc();
@@ -454,7 +720,79 @@ void GraphicsEngine::CreatePipeline() {
 	std::shared_ptr<nodes::DOFTileMax> dofTileMax(new nodes::DOFTileMax());
 	std::shared_ptr<nodes::DOFNeighborMax> dofNeighborMax(new nodes::DOFNeighborMax());
 	std::shared_ptr<nodes::DOFMain> dofMain(new nodes::DOFMain());
+	std::shared_ptr<nodes::Voxelization> voxelization(new nodes::Voxelization());
+	std::shared_ptr<nodes::VolumetricLighting> volumetricLighting(new nodes::VolumetricLighting());
+	std::shared_ptr<nodes::ShadowMapGen> shadowMapGen(new nodes::ShadowMapGen());
+	std::shared_ptr<nodes::CreateTexture> createShadowmapTextures(new nodes::CreateTexture());
+	std::shared_ptr<nodes::ScreenSpaceShadow> screenSpaceShadow(new nodes::ScreenSpaceShadow());
+	std::shared_ptr<nodes::ScreenSpaceReflection> screenSpaceReflection(new nodes::ScreenSpaceReflection());
+	std::shared_ptr<nodes::TextRender> textRender(new nodes::TextRender());
+	auto fontTexEnv = std::make_shared<nodes::GetEnvVariable>();
+	auto fontBinaryEnv = std::make_shared<nodes::GetEnvVariable>();
+	std::shared_ptr<nodes::ScreenSpaceAmbientOcclusion> screenSpaceAmbientOcclusion(new nodes::ScreenSpaceAmbientOcclusion());
 	TextureUsage usage;
+
+	backBufferProperties->SetDisplayName("backBufferProperties");
+	createDepthBuffer->SetDisplayName("createDepthBuffer");
+	createHdrRenderTarget->SetDisplayName("createHdrRenderTarget");
+	forwardRender->SetDisplayName("forwardRender");
+	depthPrePass->SetDisplayName("depthPrePass");
+	depthReduction->SetDisplayName("depthReduction");
+	depthReductionFinal->SetDisplayName("depthReductionFinal");
+	csm->SetDisplayName("csm");
+	drawSky->SetDisplayName("drawSky");
+	debugDraw->SetDisplayName("debugDraw");
+	lightCulling->SetDisplayName("lightCulling");
+	brightLumPass->SetDisplayName("brightLumPass");
+	luminanceReduction->SetDisplayName("luminanceReduction");
+	luminanceReductionFinal->SetDisplayName("luminanceReductionFinal");
+	hdrCombine->SetDisplayName("hdrCombine");
+	bloomDownsample2->SetDisplayName("bloomDownsample2");
+	bloomDownsample4->SetDisplayName("bloomDownsample4");
+	bloomDownsample8->SetDisplayName("bloomDownsample8");
+	bloomDownsample16->SetDisplayName("bloomDownsample16");
+	bloomDownsample32->SetDisplayName("bloomDownsample32");
+	bloomBlurVertical32->SetDisplayName("bloomBlurVertical32");
+	bloomBlurVertical16->SetDisplayName("bloomBlurVertical16");
+	bloomBlurVertical8->SetDisplayName("bloomBlurVertical8");
+	bloomBlurVertical4->SetDisplayName("bloomBlurVertical4");
+	bloomBlurVertical2->SetDisplayName("bloomBlurVertical2");
+	bloomBlurHorizontal32->SetDisplayName("bloomBlurHorizontal32");
+	bloomBlurHorizontal16->SetDisplayName("bloomBlurHorizontal16");
+	bloomBlurHorizontal8->SetDisplayName("bloomBlurHorizontal8");
+	bloomBlurHorizontal4->SetDisplayName("bloomBlurHorizontal4");
+	bloomBlurHorizontal2->SetDisplayName("bloomBlurHorizontal2");
+	bloomAdd3216->SetDisplayName("bloomAdd3216");
+	bloomAdd168->SetDisplayName("bloomAdd168");
+	bloomAdd84->SetDisplayName("bloomAdd84");
+	bloomAdd42->SetDisplayName("bloomAdd42");
+	tileMax->SetDisplayName("tileMax");
+	neighborMax->SetDisplayName("neighborMax");
+	motionBlur->SetDisplayName("motionBlur");
+	lensFlare->SetDisplayName("lensFlare");
+	lensFlareBlurHorizontal->SetDisplayName("lensFlareBlurHorizontal");
+	lensFlareBlurVertical->SetDisplayName("lensFlareBlurVertical");
+	smaaAreaEnv->SetDisplayName("smaaAreaEnv");
+	smaaSearchEnv->SetDisplayName("smaaSearchEnv");
+	lensFlareColorEnv->SetDisplayName("lensFlareColorEnv");
+	colorGradingEnv->SetDisplayName("colorGradingEnv");
+	lensFlareDirtEnv->SetDisplayName("lensFlareDirtEnv");
+	lensFlareStarEnv->SetDisplayName("lensFlareStarEnv");
+	smaa->SetDisplayName("smaa");
+	dofPrepare->SetDisplayName("dofPrepare");
+	dofTileMax->SetDisplayName("dofTileMax");
+	dofNeighborMax->SetDisplayName("dofNeighborMax");
+	dofMain->SetDisplayName("dofMain");
+	voxelization->SetDisplayName("voxelization");
+	volumetricLighting->SetDisplayName("volumetricLighting");
+	shadowMapGen->SetDisplayName("shadowMapGen");
+	createShadowmapTextures->SetDisplayName("createShadowmapTextures");
+	screenSpaceShadow->SetDisplayName("screenSpaceShadow");
+	screenSpaceReflection->SetDisplayName("screenSpaceReflection");
+	textRender->SetDisplayName("textRender");
+	fontTexEnv->SetDisplayName("fontTexEnv");
+	fontBinaryEnv->SetDisplayName("fontBinaryEnv");
+	screenSpaceAmbientOcclusion->SetDisplayName("screenSpaceAmbientOcclusion");
 
 
 	backBufferProperties->GetInput<0>().Link(getBackBuffer->GetOutput(0));
@@ -487,10 +825,24 @@ void GraphicsEngine::CreatePipeline() {
 	usage = TextureUsage();
 	usage.depthStencil = true;
 	createCsmTextures->GetInput<4>().Set(usage);
+	createCsmTextures->GetInput<5>().Set(false);
 
 	csm->GetInput<0>().Link(createCsmTextures->GetOutput(0));
 	csm->GetInput<1>().Link(getWorldScene->GetOutput(0));
 	csm->GetInput<2>().Link(depthReductionFinal->GetOutput(0));
+
+	createShadowmapTextures->GetInput<0>().Set(1024);
+	createShadowmapTextures->GetInput<1>().Set(1024);
+	createShadowmapTextures->GetInput<2>().Set(gxapi::eFormat::R32_TYPELESS);
+	createShadowmapTextures->GetInput<3>().Set(1);
+	createShadowmapTextures->GetInput<4>().Set(usage);
+	createShadowmapTextures->GetInput<5>().Set(true);
+
+	shadowMapGen->GetInput(0)->Link(createShadowmapTextures->GetOutput(0));
+	shadowMapGen->GetInput(1)->Link(getWorldScene->GetOutput(0));
+
+	screenSpaceShadow->GetInput(0)->Link(depthPrePass->GetOutput(0));
+	screenSpaceShadow->GetInput(1)->Link(getCamera->GetOutput(0));
 
 	//TODO (2.5D light culling + verify)
 	lightCulling->GetInput<0>().Link(depthPrePass->GetOutput(0));
@@ -515,10 +867,32 @@ void GraphicsEngine::CreatePipeline() {
 	forwardRender->GetInput(8)->Link(depthReductionFinal->GetOutput(0));
 	forwardRender->GetInput(9)->Link(lightCulling->GetOutput(0));
 
+	screenSpaceAmbientOcclusion->GetInput(0)->Link(depthPrePass->GetOutput(0));
+	screenSpaceAmbientOcclusion->GetInput(1)->Link(getCamera->GetOutput(0));
+
+	volumetricLighting->GetInput(0)->Link(depthPrePass->GetOutput(0));
+	volumetricLighting->GetInput(1)->Link(forwardRender->GetOutput(0));
+	volumetricLighting->GetInput(2)->Link(lightCulling->GetOutput(0));
+	volumetricLighting->GetInput(3)->Link(getCamera->GetOutput(0));
+	volumetricLighting->GetInput(4)->Link(csm->GetOutput(0));
+	volumetricLighting->GetInput(5)->Link(depthReductionFinal->GetOutput(1));
+	volumetricLighting->GetInput(6)->Link(depthReductionFinal->GetOutput(2));
+
+	voxelization->GetInput(0)->Link(getWorldScene->GetOutput(0));
+	voxelization->GetInput(1)->Link(getCamera->GetOutput(0));
+	voxelization->GetInput(2)->Link(forwardRender->GetOutput(0)); //only for visualization
+	voxelization->GetInput(3)->Link(depthPrePass->GetOutput(0));
+	voxelization->GetInput(4)->Link(csm->GetOutput(0));
+	voxelization->GetInput(5)->Link(depthReductionFinal->GetOutput(3));
+
 	drawSky->GetInput<0>().Link(forwardRender->GetOutput(0));
 	drawSky->GetInput<1>().Link(depthPrePass->GetOutput(0));
 	drawSky->GetInput<2>().Link(getCamera->GetOutput(0));
 	drawSky->GetInput<3>().Link(getWorldScene->GetOutput(2));
+
+	screenSpaceReflection->GetInput(0)->Link(drawSky->GetOutput(0));
+	screenSpaceReflection->GetInput(1)->Link(depthPrePass->GetOutput(0));
+	screenSpaceReflection->GetInput(2)->Link(getCamera->GetOutput(0));
 
 	tileMax->GetInput<0>().Link(forwardRender->GetOutput(1));
 	
@@ -534,14 +908,17 @@ void GraphicsEngine::CreatePipeline() {
 	dofPrepare->GetInput<2>().Link(getCamera->GetOutput(0));
 
 	dofTileMax->GetInput<0>().Link(dofPrepare->GetOutput(0));
-	dofTileMax->GetInput<1>().Link(depthPrePass->GetOutput(0));
+	//dofTileMax->GetInput<1>().Link(depthPrePass->GetOutput(0));
+	dofTileMax->GetInput<1>().Link(dofPrepare->GetOutput(1));
 
 	dofNeighborMax->GetInput<0>().Link(dofTileMax->GetOutput(0));
 
 	dofMain->GetInput<0>().Link(dofPrepare->GetOutput(0));
-	dofMain->GetInput<1>().Link(depthPrePass->GetOutput(0));
+	dofMain->GetInput<1>().Link(dofPrepare->GetOutput(1));
 	dofMain->GetInput<2>().Link(dofNeighborMax->GetOutput(0));
 	dofMain->GetInput<3>().Link(getCamera->GetOutput(0));
+	dofMain->GetInput<4>().Link(motionBlur->GetOutput(0));
+	dofMain->GetInput<5>().Link(depthPrePass->GetOutput(0));
 
 	brightLumPass->GetInput<0>().Link(motionBlur->GetOutput(0));
 	
@@ -600,7 +977,9 @@ void GraphicsEngine::CreatePipeline() {
 	colorGradingEnv->GetInput<0>().Set("HDRCombine_colorGradingTex");
 	lensFlareDirtEnv->GetInput<0>().Set("HDRCombine_lensFlareDirtTex");
 	lensFlareStarEnv->GetInput<0>().Set("HDRCombine_lensFlareStarTex");
-	hdrCombine->GetInput<0>().Link(motionBlur->GetOutput(0));
+	//hdrCombine->GetInput<0>().Link(motionBlur->GetOutput(0));
+	//hdrCombine->GetInput<0>().Link(dofMain->GetOutput(0));
+	hdrCombine->GetInput<0>().Link(drawSky->GetOutput(0));
 	hdrCombine->GetInput<1>().Link(luminanceReductionFinal->GetOutput(0));
 	hdrCombine->GetInput<2>().Link(bloomBlurHorizontal2->GetOutput(0));
 	hdrCombine->GetInput<3>().Link(lensFlareBlurHorizontal->GetOutput(0));
@@ -620,6 +999,12 @@ void GraphicsEngine::CreatePipeline() {
 	smaa->GetInput<0>().Link(debugDraw->GetOutput(0));
 	smaa->GetInput(1)->Link(smaaAreaEnv->GetOutput(0));
 	smaa->GetInput<2>().Link(smaaSearchEnv->GetOutput(0));
+
+	fontTexEnv->GetInput<0>().Set("TextRender_fontTex");
+	fontBinaryEnv->GetInput<0>().Set("TextRender_fontBinary");
+	textRender->GetInput<0>().Link(smaa->GetOutput(0));
+	textRender->GetInput<1>().Link(fontTexEnv->GetOutput(0));
+	textRender->GetInput<2>().Link(fontBinaryEnv->GetOutput(0));
 
 
 	// -----------------------------
@@ -665,7 +1050,13 @@ void GraphicsEngine::CreatePipeline() {
 	alphaBlend->GetInput<0>().Link(guiRender->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(debugDraw->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(smaa->GetOutput(0));
-	alphaBlend->GetInput<1>().Link(dofMain->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(voxelization->GetOutput(1));
+	//alphaBlend->GetInput<1>().Link(volumetricLighting->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(screenSpaceShadow->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(screenSpaceReflection->GetOutput(0));
+	alphaBlend->GetInput<1>().Link(screenSpaceAmbientOcclusion->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(textRender->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(dofMain->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
 	//alphaBlend->GetInput<3>().Set(Mat44::FromScaleVector(Vec3(.5f, 1.f, 1.f)));
 	alphaBlend->GetInput<3>().Link(createWorldRenderTransform->GetOutput(0));
@@ -731,7 +1122,15 @@ void GraphicsEngine::CreatePipeline() {
 		lensFlareDirtEnv,
 		lensFlareStarEnv,
 		dofMain,
-
+		voxelization,
+		volumetricLighting,
+		//shadowMapGen,
+		screenSpaceShadow,
+		screenSpaceReflection,
+		textRender,
+		fontTexEnv,
+		fontBinaryEnv,
+		screenSpaceAmbientOcclusion,
 
 		getGuiScene,
 		getGuiCamera,
@@ -826,9 +1225,69 @@ void GraphicsEngine::UpdateSpecialNodes() {
 }
 
 
+void GraphicsEngine::RegisterPipelineClasses() {
+	RegisterIntegerArithmeticNodes(&m_nodeFactory, "Integer");
+	RegisterIntegerComparisonNodes(&m_nodeFactory, "Integer");
+	RegisterFloatArithmeticNodes(&m_nodeFactory, "Float");
+	RegisterFloatComparisonNodes(&m_nodeFactory, "Float");
+	RegisterFloatMathNodes(&m_nodeFactory, "Float");
+	RegisterLogicNodes(&m_nodeFactory, "Logic");
+
+
+	m_nodeFactory.RegisterNodeClass<nodes::GetBackBuffer>("Pipeline/System");
+	m_nodeFactory.RegisterNodeClass<nodes::GetSceneByName>("Pipeline/System");
+	m_nodeFactory.RegisterNodeClass<nodes::GetCameraByName>("Pipeline/System");
+	m_nodeFactory.RegisterNodeClass<nodes::GetTime>("Pipeline/System");
+	m_nodeFactory.RegisterNodeClass<nodes::GetEnvVariable>("Pipeline/System");
+
+	m_nodeFactory.RegisterNodeClass<nodes::TextureProperties>("Pipeline/Utility");
+	m_nodeFactory.RegisterNodeClass<nodes::CreateTexture>("Pipeline/Utility");
+	m_nodeFactory.RegisterNodeClass<nodes::VectorComponents<1>>("Pipeline/Utility");
+
+	m_nodeFactory.RegisterNodeClass<nodes::ForwardRender>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DepthPrepass>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DepthReduction>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DepthReductionFinal>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::CSM>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DrawSky>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DebugDraw>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::LightCulling>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::BrightLumPass>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::LuminanceReduction>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::LuminanceReductionFinal>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::HDRCombine>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::BloomDownsample>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::BloomBlur>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::BloomAdd>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::TileMax>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::NeighborMax>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::MotionBlur>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::LensFlare>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::SMAA>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DOFPrepare>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DOFTileMax>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DOFNeighborMax>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::DOFMain>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::Voxelization>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::VolumetricLighting>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::ShadowMapGen>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceShadow>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceReflection>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::TextRender>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceAmbientOcclusion>("Pipeline/Render");
+
+	m_nodeFactory.RegisterNodeClass<nodes::OverlayRender>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::Blend>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceTransform>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::BlendWithTransform>("Pipeline/Render");
+}
+
+
+
 std::string TidyTypeName(std::string name) {
 	std::string s2;
 
+	// Replace <> with &lt; and &gt; escapes
 	int inTemplate = 0;
 	for (auto c : name) {
 		if (c == '<') {
@@ -844,6 +1303,14 @@ std::string TidyTypeName(std::string name) {
 		}
 	}
 
+	std::vector<std::string> stripNamespaces = {
+		"inl::gxeng::",
+		"inl::",
+		"mathter::",
+		"nodes::",
+	};
+
+	// Remove class, struct and enum specifiers.
 	std::regex classFilter(R"(\s*class\s*)");
 	s2 = std::regex_replace(s2, classFilter, "");
 
@@ -853,21 +1320,23 @@ std::string TidyTypeName(std::string name) {
 	std::regex enumFilter(R"(\s*enum\s*)");
 	s2 = std::regex_replace(s2, enumFilter, "");
 
+	// MSVC specific things.
 	std::regex ptrFilter(R"(\s*__ptr64\s*)");
 	s2 = std::regex_replace(s2, ptrFilter, "");
 
-	std::regex constFilter(R"(\s*const\s*)");
-	s2 = std::regex_replace(s2, constFilter, "");
-
-	std::regex namespaceFilter1(R"(\s*inl::gxeng::\s*)");
-	s2 = std::regex_replace(s2, namespaceFilter1, "");
-
-	std::regex namespaceFilter2(R"(\s*inl::\s*)");
-	s2 = std::regex_replace(s2, namespaceFilter2, "");
-
+	// Transform common templates to readable format
 	std::regex stringFilter(R"(\s*std::basic_string.*)");
 	s2 = std::regex_replace(s2, stringFilter, "std::string");
 
+	// Remove consts.
+	std::regex constFilter(R"(\s*const\s*)");
+	s2 = std::regex_replace(s2, constFilter, "");
+
+	// Remove requested s2spaces.
+	for (auto& ns : stripNamespaces) {
+		std::regex s2spaceFilter1(R"(\s*)" + ns + R"(\s*)");
+		s2 = std::regex_replace(s2, s2spaceFilter1, "");
+	}
 
 	return s2;
 }
@@ -908,7 +1377,8 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 	// Write out nodes
 	for (const auto& v : nodeIndexMap) {
 		dot << "node" << v.second << " [shape=record, label=\"";
-		dot << "&lt;&lt;&lt; " << TidyTypeName(typeid(*v.first).name()) << " &gt;&gt;&gt;";
+		//dot << "&lt;&lt;&lt; " << TidyTypeName(typeid(*v.first).name()) << " &gt;&gt;&gt;";
+		dot << v.first->GetDisplayName() << " : " << TidyTypeName(v.first->GetClassName(true, {"inl::gxeng::", "inl::"}));
 		dot << " | {";
 		// Inputs
 		dot << "{";
@@ -960,49 +1430,6 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 	}
 
 	dot << std::endl;
-
-	// Write ranks
-	/*
-	std::map<NodeBase*, int> nodeRankMap;
-	lemon::Bfs<lemon::ListDigraph> bfs{ pipeline.GetDependencyGraph() };
-	bfs.init();
-	for (lemon::ListDigraph::NodeIt it(pipeline.GetDependencyGraph()); it != lemon::INVALID; ++it) {
-		if (lemon::countInArcs(pipeline.GetDependencyGraph(), it) == 0) {
-			bfs.run(it);
-
-			for (lemon::ListDigraph::NodeIt nit(pipeline.GetDependencyGraph()); nit != lemon::INVALID; ++nit) {
-				auto* node = pipeline.GetNodeMap()[nit].get();
-				int currentDist = bfs.reached(nit) ? bfs.dist(nit) : -1;
-				int oldDist = nodeRankMap.count(node) > 0 ? nodeRankMap[node] : -1;
-				nodeRankMap[node] =  std::max(currentDist, oldDist);
-			}
-		}
-	}
-
-	std::vector<std::pair<NodeBase*, int>> nodeRanks;
-	for (auto& v : nodeRankMap) {
-		nodeRanks.push_back({ v.first, v.second });
-	}
-
-	std::sort(nodeRanks.begin(), nodeRanks.end(), [](const auto& a, const auto& b) {
-		return a.second < b.second;
-	});
-
-	int prevRank = -5;
-	for (int i = 0; i < nodeRanks.size(); ++i) {
-		if (prevRank != nodeRanks[i].second) {
-			if (prevRank != -5) {
-				dot << "}" << std::endl;
-			}
-			dot << "{rank=same;";
-		}
-		dot << " node" << nodeIndexMap[nodeRanks[i].first];
-		prevRank = nodeRanks[i].second;
-	}
-	if (nodeRanks.size()) {
-		dot << "}" << std::endl;
-	}
-	*/
 
 	// Write closing
 	dot << "}" << std::endl;

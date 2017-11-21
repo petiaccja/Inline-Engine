@@ -65,7 +65,7 @@ void DepthReduction::Setup(SetupContext& context) {
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
 	m_depthView = context.CreateSrv(inputDepth, FormatDepthToColor(inputDepth.GetFormat()), srvDesc);
-	m_depthView.GetResource()._GetResourcePtr()->SetName("Depth reduction depth tex view");
+	
 
 	if (inputDepth.GetWidth() != m_width || inputDepth.GetHeight() != m_height) {
 		m_width = inputDepth.GetWidth();
@@ -167,12 +167,12 @@ void DepthReduction::InitRenderTarget(SetupContext& context) {
 	unsigned dispatchW, dispatchH;
 	SetWorkgroupSize((unsigned)std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
 
-	Texture2D tex = context.CreateRWTexture2D(dispatchW, dispatchH, formatDepthReductionResult, 1);
-	tex._GetResourcePtr()->SetName("Depth reduction intermediate texture");
+	Texture2D tex = context.CreateTexture2D({ dispatchW, dispatchH, formatDepthReductionResult }, { true, true, false, true });
+	tex.SetName("Depth reduction intermediate texture");
 	m_uav = context.CreateUav(tex, formatDepthReductionResult, uavDesc);
-	m_uav.GetResource()._GetResourcePtr()->SetName("Depth reduction intermediate texture UAV");
+	
 	m_srv = context.CreateSrv(tex, formatDepthReductionResult, srvDesc);
-	m_srv.GetResource()._GetResourcePtr()->SetName("Depth reduction intermediate texture SRV");
+	
 }
 
 

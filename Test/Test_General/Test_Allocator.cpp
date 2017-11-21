@@ -6,6 +6,7 @@
 #include <random>
 #include <algorithm>
 #include <mutex>
+#include <unordered_set>
 
 using std::cout;
 using std::endl;
@@ -40,10 +41,26 @@ int TestAllocator::Run() {
 	// create a pool
 	constexpr int PoolSize = 100'000;
 
-	inl::SlabAllocatorEngine engine(1);
+	inl::SlabAllocatorEngine engine;
 
-	int idx = engine.Allocate();
-	engine.Deallocate(idx);
+	std::unordered_set<int> indices;
+	for (int i = 0; i < 300; ++i) {
+		int idx = -1;
+		try {
+			idx = engine.Allocate();
+		}
+		catch (std::bad_alloc&) {
+			engine.Resize(engine.Size() * 1.1f + 1);
+			idx = engine.Allocate();
+		}
+		indices.insert(idx);
+
+		if (i % 2 == 1) {
+			engine.Deallocate(*indices.begin());
+			indices.erase(indices.begin());
+		}
+	}
+
 
 	std::mutex coutLock;
 	std::thread threads[1];

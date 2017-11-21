@@ -65,7 +65,7 @@ void LuminanceReduction::Setup(SetupContext& context) {
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
 	m_luminanceView = context.CreateSrv(inputLuminance, inputLuminance.GetFormat(), srvDesc);
-	m_luminanceView.GetResource()._GetResourcePtr()->SetName("Luminance reduction luminance tex view");
+	
 
 	if (inputLuminance.GetWidth() != m_width || inputLuminance.GetHeight() != m_height || !m_srv) {
 		m_width = inputLuminance.GetWidth();
@@ -167,12 +167,12 @@ void LuminanceReduction::InitRenderTarget(SetupContext& context) {
 	unsigned dispatchW, dispatchH;
 	setWorkgroupSize((unsigned)std::ceil(m_width * 0.5f), m_height, 16, 16, dispatchW, dispatchH);
 
-	Texture2D tex = context.CreateRWTexture2D(dispatchW, dispatchH, formatLuminanceReductionResult, 1);
-	tex._GetResourcePtr()->SetName("Luminance reduction intermediate texture");
+	Texture2D tex = context.CreateTexture2D({ dispatchW, dispatchH, formatLuminanceReductionResult }, { true, true, false, true });
+	tex.SetName("Luminance reduction intermediate texture");
 	m_uav = context.CreateUav(tex, formatLuminanceReductionResult, uavDesc);
-	m_uav.GetResource()._GetResourcePtr()->SetName("Luminance reduction intermediate texture UAV");
+	
 	m_srv = context.CreateSrv(tex, formatLuminanceReductionResult, srvDesc);
-	m_srv.GetResource()._GetResourcePtr()->SetName("Luminance reduction intermediate texture SRV");
+	
 }
 
 

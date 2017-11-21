@@ -22,34 +22,34 @@
     <ProjectGuid>{F55437F4-00C1-49AE-BFFC-4B0A6DC75081}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>BaseLibrary</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -104,7 +104,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -124,7 +124,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -149,7 +149,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -175,7 +175,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -194,15 +194,14 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="Any.hpp" />
     <ClInclude Include="ArrayView.hpp" />
     <ClInclude Include="BitflagEnum.hpp" />
     <ClInclude Include="BitOperations.hpp" />
+    <ClInclude Include="Color.hpp" />
     <ClInclude Include="Common.hpp" />
     <ClInclude Include="Delegate.hpp" />
+    <ClInclude Include="Event.hpp" />
     <ClInclude Include="Exception\Exception.hpp" />
     <ClInclude Include="Exception\IOException.hpp" />
     <ClInclude Include="GraphEditor\IGraph.hpp" />
@@ -215,19 +214,19 @@
     <ClInclude Include="Graph\Node_Logic.hpp" />
     <ClInclude Include="Graph\Node_MathFunctions.hpp" />
     <ClInclude Include="Graph\Port.hpp" />
+    <ClInclude Include="Graph\PortConverters.hpp" />
     <ClInclude Include="Memory\MultiInstanceTLS.hpp" />
     <ClInclude Include="Memory\RingAllocationEngine.hpp" />
     <ClInclude Include="Memory\SlabAllocatorEngine.hpp" />
-    <ClInclude Include="Platform\PlatformDefinitions.h" />
-    <ClInclude Include="Platform\PlatformUtils.h" />
-    <ClInclude Include="Platform\Sys.hpp" />
-    <ClInclude Include="Platform\Win32\PlatformDefinitions.h" />
-    <ClInclude Include="Platform\Win32\PlatformUtils.h" />
+    <ClInclude Include="Platform\Input.hpp" />
+    <ClInclude Include="Platform\System.hpp" />
+    <ClInclude Include="Platform\Win32\Input.hpp" />
+    <ClInclude Include="Platform\Win32\InputEvents.hpp" />
+    <ClInclude Include="Platform\Win32\System.hpp" />
     <ClInclude Include="Platform\Win32\Window.hpp" />
-    <ClInclude Include="Platform\Win32\WindowDropTarget.hpp" />
     <ClInclude Include="Platform\Window.hpp" />
-    <ClInclude Include="Platform\WindowCommon.hpp" />
     <ClInclude Include="Range.hpp" />
+    <ClInclude Include="Rect.hpp" />
     <ClInclude Include="ScalarLiterals.hpp" />
     <ClInclude Include="Logging\Event.hpp" />
     <ClInclude Include="Logging\EventEntry.hpp" />
@@ -248,11 +247,10 @@
     <ClInclude Include="ThreadName.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transform3D.hpp" />
-    <ClInclude Include="VisualCpuProfiler.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Common.cpp" />
     <ClCompile Include="Exception\Exception.cpp" />
+    <ClCompile Include="Graph\Node.cpp" />
     <ClCompile Include="Graph\NodeFactory.cpp" />
     <ClCompile Include="Graph\NodeLibrary.cpp" />
     <ClCompile Include="Graph\Port.cpp" />
@@ -261,12 +259,11 @@
     <ClCompile Include="Logging\LogNode.cpp" />
     <ClCompile Include="Logging\LogPipe.cpp" />
     <ClCompile Include="Logging\LogStream.cpp" />
-    <ClCompile Include="Platform\Win32\Sys.cpp" />
+    <ClCompile Include="Platform\Win32\Input.cpp" />
+    <ClCompile Include="Platform\Win32\System.cpp" />
     <ClCompile Include="Platform\Win32\Window.cpp" />
-    <ClCompile Include="Platform\Win32\WindowDropTarget.cpp" />
     <ClCompile Include="Timer.cpp" />
     <ClCompile Include="Transform3D.cpp" />
-    <ClCompile Include="VisualCpuProfiler.cpp" />
     <ClInclude Include="MemoryLeakDetector.hpp" />
     <ClCompile Include="Memory\RingAllocationEngine.cpp" />
     <ClCompile Include="Memory\SlabAllocatorEngine.cpp">

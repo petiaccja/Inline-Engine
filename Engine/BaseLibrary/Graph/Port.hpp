@@ -86,7 +86,7 @@ private:
 	void RegisterFunction(T(*function)(SourceT)) {
 		auto convfunc = [function](const void* src, void* dst)
 		{
-			*reinterpret_cast<T*>(dst) = function(*reinterpret_cast<const SourceT*>(src));
+			*reinterpret_cast<T*>(dst) = function(*reinterpret_cast<const std::remove_reference_t<SourceT>*>(src));
 		};
 		m_converters.insert({
 			typeid(SourceT),
@@ -544,3 +544,10 @@ extern template class InputPort<Any, NullPortConverter>;
 extern template class OutputPort<Any>;
 
 } // namespace inl
+
+
+
+// Now we include the port converters so that they are available if someone includes this files.
+// It needs to be included down here though cause it also includes this file causing a cross-reference.
+// For the cross-ref to be okay, the definition of ports must be available at the point the converters are included.
+#include "PortConverters.hpp"

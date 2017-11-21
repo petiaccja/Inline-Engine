@@ -18,6 +18,7 @@
 
 
 
+
 namespace inl {
 
 
@@ -68,6 +69,23 @@ public:
 	virtual void Update() = 0;
 	/// <summary> Called by the input ports of the node to notify new data. </summary>
 	virtual void Notify(InputPortBase* sender) = 0;
+
+	/// <summary> Returns the name of the input port. This is optionally specified for the node class. </summary>
+	virtual const std::string& GetInputName(size_t index) const { static const std::string n = ""; return n; }
+	/// <summary> Returns the name of the output port. This is optionally specified for the node class. </summary>
+	virtual const std::string& GetOutputName(size_t index) const { static const std::string n = ""; return n; }
+
+	/// <summary> Sets a name for the node so that a graph drawing is more readable. </summary>
+	void SetDisplayName(std::string name) { m_displayName = name; }
+	/// <summary> Gets the drawing name of the node. </summary>
+	const std::string& GetDisplayName() const { return m_displayName; }
+
+	/// <summary> Gets the class name of the node. </summary>
+	/// <remarks> By default, this function returns the C++ class name of the node.
+	///		Override this function if you don't like the C++ class name. </remarks>
+	virtual std::string GetClassName(bool simplify = false, const std::vector<std::string>& stripNamespaces = {}) const;
+protected:
+	std::string m_displayName;
 };
 
 
@@ -305,6 +323,7 @@ public:
 		return 0;
 	}
 };
+
 
 
 } // namespace inl

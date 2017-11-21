@@ -250,3 +250,7 @@ _Pvt_Extensions
 /Inline-Engine.sln.db
 /Inline-Engine.sln.db-shm
 /Inline-Engine.sln.db-wal
+
+Test/QC_Simulator/pipeline_graph_json\.dot
+
+Tools/pipeline_graph_json\.svg

@@ -61,6 +61,7 @@ private:
 	};
 
 public:
+	static const char* Info_GetName() { return "ForwardRender"; }
 	ForwardRender();
 
 	void Update() override {}

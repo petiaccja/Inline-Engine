@@ -102,7 +102,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	// C[X] (sample from color buffer at X)
 	float4 currColor = inputTex.Load(int3(currPixelPos, 0));
 
-	//return currColor;
+	return currColor;
 
 	// VN = NeighborMax[X/k] (sample from NeighborMax buffer; holds dominant
 	// half-velocity for the current fragment's neighborhood tile)

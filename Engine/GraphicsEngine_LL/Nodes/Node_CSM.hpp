@@ -25,6 +25,7 @@ class CSM :
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "CSM"; }
 	CSM();
 
 	void Update() override {}

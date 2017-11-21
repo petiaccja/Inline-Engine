@@ -1,83 +1,153 @@
-// Window implementation on [Windows OS]
 #pragma once
 
-#include "../WindowCommon.hpp"
-#include "WindowDropTarget.hpp"
+#include <InlineMath.hpp>
+#include <string>
+#include <thread>
+#include <mutex>
+#include <atomic>
+#include "../../Event.hpp"
+#include "InputEvents.hpp"
+#include "Input.hpp"
+#include <filesystem>
+#include <vector>
 
-#include <BaseLibrary/Delegate.hpp>
-#include <queue>
-#include <functional>
-
+#define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#include <windows.h>
+#include <Windows.h>
+#include "oleidl.h"
+#undef DELETE
 
-// The Win32 api Window class
-class Window
-{
+
+namespace inl {
+
+
+using WindowHandle = HWND;
+
+struct DragDropEvent {
+	std::string text;
+	std::vector<std::experimental::filesystem::path> filePaths;
+};
+
+
+class Window : private IDropTarget {
 public:
-	Window(const WindowDesc& d);
+	Window(const std::string& title = "Untitled",
+		Vec2 size = { 640, 480 },
+		bool borderless = false, 
+		bool resizable = true,
+		bool hiddenInitially = false);
+	Window(const Window&) = delete;
+	Window(Window&& rhs) noexcept;
+	Window& operator=(const Window&) = delete;
+	Window& operator=(Window&& rhs) noexcept;
 	~Window();
 
-	bool PopEvent(WindowEvent& evt_out);
-
-	void Close();
-	void MinimizeSize();
-	void MaximizeSize();
-	void RestoreSize();
-
-
-	void SetHekkTillGdiNotRemoved(const Delegate<void(Vec2& pos)>& hekk) { this->hekk = hekk; }
-
-	void SetRect(const Vec2i& pos, const Vec2u& size);
-	void SetPos(const Vec2i& pos);
-	void SetSize(const Vec2u& size);
-
-	void SetTitle(const std::string& text);
-	void SetIcon(const std::wstring& filePath);
-
-	// Getters
-	bool IsOpen() const;
+	// Common
+	bool IsClosed() const;
+	void Show();
+	void Hide();
 	bool IsFocused() const;
-	bool IsMaximizedSize() const;
-	bool IsMinimizedSize() const;
+	WindowHandle GetNativeHandle() const;
 
-	WindowHandle GetHandle() const;
+	// Sizing
+	void Maximize();
+	void Minize();
+	void Restore();
+	bool IsMaximized() const;
+	bool IsMinimized() const;
 
-	uint32_t GetClientWidth() const;
-	uint32_t GetClientHeight() const;
-	Vec2u GetClientSize() const;
-	Vec2 GetClientCursorPos() const;
+	void SetSize(const Vec2& size);
+	Vec2 GetSize() const;
+	void SetPosition(const Vec2& position);
+	Vec2 GetPosition() const;
+	Vec2 GetClientSize() const;
 
-	unsigned GetNumClientPixels() const;
-	float GetClientAspectRatio() const;
+	// Text & style
+	void SetResizable(bool enabled);
+	bool GetResizable() const;
+	void SetBorderless(bool enabled);
+	bool GetBorderless() const;
+	void SetTitle(const std::string& text);
+	std::string GetTitle() const;
+	void SetIcon(const std::string& imageFilePath);
 
-	Vec2i GetCenterPos() const;
 
-	const std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)>& GetUserWndProc() const { return userWndProc; }
+	/// <summary> Tells how many events should be queued at maximum. Only applies to queued mode. </summary>
+	void SetQueueSizeHint(size_t queueSize);
 
-public:
-	// HEKK
-	Delegate<void()> hekkOnPaint;
+	/// <summary> Sets event calling mode: in immediate mode, events are called 
+	///		asynchonously from another thread; in queued mode, events are stored
+	///		and you have to call <see cref="CallEvents"> manually to call all queued 
+	///		events on the caller's thread. </summary>
+	void SetQueueMode(eInputQueueMode mode);
 
-	Delegate<void(WindowEvent&)>	onMousePressed;
-	Delegate<void(WindowEvent&)>	onMouseReleased;
-	Delegate<void(WindowEvent&)>	onMouseMoved;
-	Delegate<void(Vec2u)>		onClientSizeChanged;
-	Delegate<void(DragData&)>		onDropped;
-	Delegate<void(DragData&)>		onDragEntered;
-	Delegate<void(DragData&)>		onDragLeaved;
-	Delegate<void(DragData&)>		onDragHovering;
+	/// <summary> Returns the currently set queueing mode. </summary>
+	eInputQueueMode GetQueueMode() const;
+
+	/// <summary> Calls all queued events synchronously on the caller's thread. </summary>
+	/// <returns> False if some events were dropped due to too small queue size. </returns>
+	bool CallEvents();
 	
+public:
+	Event<MouseButtonEvent> OnMouseButton;
+	Event<MouseMoveEvent> OnMouseMove;
+	Event<KeyboardEvent> OnKeyboard;
+	Event<Vec2, Vec2> OnResize; /// <summary> Parameters: window size, client area size. </summary>
+	Event<char32_t> OnCharacter;
+	Event<> OnClose;
+	Event<> OnFocus;
+	Event<DragDropEvent> OnDropped;
+	Event<DragDropEvent> OnDropEntered;
+	Event<DragDropEvent> OnDropLeft;
+	Event<DragDropEvent> OnDropHovering;
 
-protected:
-	friend LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-	eKey ConvertFromWindowsKey(WPARAM key);
+private:
+	static LRESULT __stdcall WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	void MessageLoop();
+	template <class... EventArgs>
+	void CallEvent(Event<EventArgs...>& evt, EventArgs... args);
 
-protected:
-	HWND handle;
-	bool bClosed;
-	std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> userWndProc;
-	WindowDropTarget dropTarget; // TODO later we will need this for fully functional Drag&Drop
+	// drag'n'drop
+	HRESULT __stdcall QueryInterface(const IID& riid, void **ppv) override;
+	ULONG __stdcall AddRef() override;
+	ULONG __stdcall Release() override;
+	HRESULT __stdcall DragEnter(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) override;
+	HRESULT __stdcall DragOver(DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) override;
+	HRESULT __stdcall DragLeave() override;
+	HRESULT __stdcall Drop(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) override;
+	std::atomic<ULONG> m_refCount;
+	DragDropEvent m_currentDragDropEvent;
+		
+private:
+	WindowHandle m_handle = NULL;
+	HANDLE m_icon = NULL;
+	std::thread m_messageThread;
 
-	Delegate<void(Vec2&)> hekk;
+	volatile eInputQueueMode m_queueMode = eInputQueueMode::IMMEDIATE;
+	volatile size_t m_queueSize = 10000;
+	volatile bool m_eventDropped = false;
+	std::queue<std::function<void()>> m_eventQueue;
+	std::mutex m_queueMtx;
 };
+
+
+template <class... EventArgs>
+void Window::CallEvent(Event<EventArgs...>& evt, EventArgs... args) {
+	if (m_queueMode == eInputQueueMode::IMMEDIATE) {
+		evt(args...);
+	}
+	else {
+		std::lock_guard<decltype(m_queueMtx)> lkg(m_queueMtx);
+		m_eventQueue.push([&evt, args...](){ evt(args...); });
+		if (m_eventQueue.size() > m_queueSize) {
+			m_eventDropped = true;
+		}
+		while (m_eventQueue.size() > m_queueSize) {
+			m_eventQueue.pop();
+		}
+	}
+}
+
+
+
+} // namespace inl

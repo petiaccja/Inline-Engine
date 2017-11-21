@@ -22,6 +22,7 @@ class BloomDownsample :
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "BloomDownsample"; }
 	BloomDownsample();
 
 	void Update() override {}

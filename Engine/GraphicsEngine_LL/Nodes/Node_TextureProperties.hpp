@@ -21,6 +21,7 @@ class TextureProperties :
 	public OutputPortConfig<unsigned, unsigned, gxapi::eFormat, uint16_t>
 {
 public:
+	static const char* Info_GetName() { return "TextureProperties"; }
 	virtual void Update() override {}
 
 	virtual void Notify(InputPortBase* sender) override {}

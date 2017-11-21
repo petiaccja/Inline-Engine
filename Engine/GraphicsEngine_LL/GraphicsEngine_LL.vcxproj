@@ -22,34 +22,34 @@
     <ProjectGuid>{040593FA-6149-4526-8754-2E2886759D0E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GraphicsEngine_LL</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -104,7 +104,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -113,6 +113,9 @@
     <Lib>
       <AdditionalDependencies>lemon.lib;</AdditionalDependencies>
     </Lib>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline.json" "$(OutputPath)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -121,7 +124,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -130,6 +133,9 @@
     <Lib>
       <AdditionalDependencies>lemon.lib;</AdditionalDependencies>
     </Lib>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline.json" "$(OutputPath)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -141,7 +147,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -153,6 +159,9 @@
     <Lib>
       <AdditionalDependencies>lemon.lib;</AdditionalDependencies>
     </Lib>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline.json" "$(OutputPath)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -164,7 +173,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalOptions>/std:c++latest %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -176,6 +185,9 @@
     <Lib>
       <AdditionalDependencies>lemon.lib;</AdditionalDependencies>
     </Lib>
+    <PostBuildEvent>
+      <Command>copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline.json" "$(OutputPath)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -197,7 +209,9 @@
     <ClInclude Include="Binder.hpp" />
     <ClInclude Include="BindingManager.hpp" />
     <ClInclude Include="CommandListPool.hpp" />
+    <ClInclude Include="Cubemap.hpp" />
     <ClInclude Include="GraphEditor.hpp" />
+    <ClInclude Include="ImageBase.hpp" />
     <ClInclude Include="NodeContext.hpp" />
     <ClInclude Include="Nodes\DebugDrawManager.hpp" />
     <ClInclude Include="Nodes\ExampleNode.hpp" />
@@ -218,6 +232,9 @@
     <ClInclude Include="Nodes\Node_LuminanceReductionFinal.hpp" />
     <ClInclude Include="Nodes\Node_MotionBlur.hpp" />
     <ClInclude Include="Nodes\Node_NeighborMax.hpp" />
+    <ClInclude Include="Nodes\Node_ScreenSpaceAmbientOcclusion.hpp" />
+    <ClInclude Include="Nodes\Node_ScreenSpaceReflection.hpp" />
+    <ClInclude Include="Nodes\Node_ScreenSpaceShadow.hpp" />
     <ClInclude Include="Nodes\Node_ScreenSpaceTransform.hpp" />
     <ClInclude Include="Nodes\Node_CreateTexture.hpp" />
     <ClInclude Include="Nodes\Node_CSM.hpp" />
@@ -234,10 +251,14 @@
     <ClInclude Include="Nodes\Node_GetTime.hpp" />
     <ClInclude Include="Nodes\Node_LightCulling.hpp" />
     <ClInclude Include="Nodes\Node_OverlayRender.hpp" />
+    <ClInclude Include="Nodes\Node_ShadowMapGen.hpp" />
     <ClInclude Include="Nodes\Node_SMAA.hpp" />
+    <ClInclude Include="Nodes\Node_TextRender.hpp" />
     <ClInclude Include="Nodes\Node_TextureProperties.hpp" />
     <ClInclude Include="Nodes\Node_TileMax.hpp" />
     <ClInclude Include="Nodes\Node_VectorComponents.hpp" />
+    <ClInclude Include="Nodes\Node_VolumetricLighting.hpp" />
+    <ClInclude Include="Nodes\Node_Voxelization.hpp" />
     <ClInclude Include="OrthographicCamera.hpp" />
     <ClInclude Include="OverlayEntity.hpp" />
     <ClInclude Include="PerspectiveCamera.hpp" />
@@ -287,8 +308,10 @@
     <ClCompile Include="Binder.cpp" />
     <ClCompile Include="BasicCamera.cpp" />
     <ClCompile Include="CommandListPool.cpp" />
+    <ClCompile Include="Cubemap.cpp" />
     <ClCompile Include="GraphEditor.cpp" />
     <ClCompile Include="GraphicsNode.cpp" />
+    <ClCompile Include="ImageBase.cpp" />
     <ClCompile Include="NodeContext.cpp" />
     <ClCompile Include="Nodes\NodeUtility.cpp" />
     <ClCompile Include="Nodes\Node_Blend.cpp" />
@@ -316,8 +339,15 @@
     <ClCompile Include="Nodes\Node_MotionBlur.cpp" />
     <ClCompile Include="Nodes\Node_NeighborMax.cpp" />
     <ClCompile Include="Nodes\Node_OverlayRender.cpp" />
+    <ClCompile Include="Nodes\Node_ScreenSpaceAmbientOcclusion.cpp" />
+    <ClCompile Include="Nodes\Node_ScreenSpaceReflection.cpp" />
+    <ClCompile Include="Nodes\Node_ScreenSpaceShadow.cpp" />
+    <ClCompile Include="Nodes\Node_ShadowMapGen.cpp" />
     <ClCompile Include="Nodes\Node_SMAA.cpp" />
+    <ClCompile Include="Nodes\Node_TextRender.cpp" />
     <ClCompile Include="Nodes\Node_TileMax.cpp" />
+    <ClCompile Include="Nodes\Node_VolumetricLighting.cpp" />
+    <ClCompile Include="Nodes\Node_Voxelization.cpp" />
     <ClCompile Include="OrthographicCamera.cpp" />
     <ClCompile Include="OverlayEntity.cpp" />
     <ClCompile Include="PerspectiveCamera.cpp" />
@@ -362,6 +392,10 @@
     <None Include="Materials\simple_diffuse.mtl.hlsl">
       <FileType>Document</FileType>
     </None>
+    <None Include="pipeline_example.json" />
+    <Text Include="pipeline.json">
+      <FileType>Document</FileType>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="Materials\PbrBrdf.hlsl">

@@ -40,6 +40,7 @@
 #include <cmath>
 
 #include "Simd.hpp"
+#include "Utility.hpp"
 
 
 namespace mathter {
@@ -84,8 +85,12 @@ enum class eMatrixLayout {
 	COLUMN_MAJOR,
 };
 
-template <class T, int Columns, int Rows, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
+template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
 class Matrix;
+
+template <class MatrixT, int SRows, int SColumns>
+class Submatrix;
+
 
 // Quaternion
 template <class T, bool Packed>
@@ -194,6 +199,19 @@ struct NotMatrix {
 	static constexpr bool value = !IsMatrix<T>::value;
 };
 
+template <class T>
+struct IsSubmatrix {
+	static constexpr bool value = false;
+};
+template <class M, int Rows, int Columns>
+struct IsSubmatrix<Submatrix<M, Rows, Columns>> {
+	static constexpr bool value = true;
+};
+template <class T>
+struct NotSubmatrix {
+	static constexpr bool value = !IsSubmatrix<T>::value;
+};
+
 template <class Arg>
 struct IsQuaternion {
 	static constexpr bool value = false;
@@ -210,7 +228,7 @@ struct NotQuaternion {
 
 template <class T>
 struct IsScalar {
-	static constexpr bool value = !IsMatrix<T>::value && !IsVector<T>::value && !IsSwizzle<T>::value && !IsQuaternion<T>::value;
+	static constexpr bool value = !IsMatrix<T>::value && !IsVector<T>::value && !IsSwizzle<T>::value && !IsQuaternion<T>::value && !IsSubmatrix<T>::value;
 };
 
 // Dimension of an argument (add dynamically sized vectors later).
@@ -1121,12 +1139,14 @@ public:
 
 	/// <summary> Makes a unit vector, but keeps direction. </summary> 
 	void Normalize() {
+		assert(!IsNullvector());
 		T l = Length();
 		operator/=(l);
 	}
 
 	/// <summary> Returns the unit vector having the same direction, without modifying the object. </summary>
 	Vector Normalized() const {
+		assert(!IsNullvector());
 		Vector v = *this;
 		v.Normalize();
 		return v;
@@ -1136,6 +1156,32 @@ public:
 	bool IsNormalized() const {
 		T n = LengthSquared();
 		return T(0.9999) <= n && n <= T(1.0001);
+	}
+
+	/// <summary> Makes a unit vector, but keeps direction. Leans towards (1,0,0...) for nullvectors, costs more. </summary>
+	void SafeNormalize() {
+		T sgnx = (*this)(0) >= T(0.0) ? T(1.0) : T(-1.0);
+		static constexpr T epsilon = T(1) / impl::ConstexprExp10<T>(impl::ConstexprAbs(std::numeric_limits<T>::min_exponent10) / 2);
+		(*this)(0) += sgnx * epsilon;
+		T l = Length();
+		operator/=(l);
+	}
+
+	/// <summary> Returns the unit vector having the same direction, without modifying the object. Leans towards (1,0,0...) for nullvectors, costs more. </summary>
+	Vector SafeNormalized() const {
+		Vector v = *this;
+		v.SafeNormalize();
+		return v;
+	}
+
+
+	/// <summary> Returns true if the vector's length is too small for precise calculations (i.e. normalization). </summary>
+	/// <remarks> "Too small" means smaller the square root of the smallest number representable by the underlying scalar. 
+	///			This value is ~10^-18 for floats and ~10^-154 for doubles. </remarks>
+	bool IsNullvector() const {
+		static constexpr T epsilon = T(1) / impl::ConstexprExp10<T>(impl::ConstexprAbs(std::numeric_limits<T>::min_exponent10) / 2);
+		T length = Length();
+		return length < epsilon;
 	}
 
 
@@ -1169,6 +1215,7 @@ public:
 		for (int i = 0; i < lhs.Dimension(); ++i) {
 			res[i] = std::min(lhs[i], rhs[i]);
 		}
+		return res;
 	}
 	/// <summary> Returns the element-wise maximum of arguments </summary>
 	static Vector Max(const Vector& lhs, const Vector& rhs) {
@@ -1176,6 +1223,7 @@ public:
 		for (int i = 0; i < lhs.Dimension(); ++i) {
 			res[i] = std::max(lhs[i], rhs[i]);
 		}
+		return res;
 	}
 
 protected:

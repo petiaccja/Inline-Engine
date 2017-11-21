@@ -7,7 +7,7 @@
 
 struct Uniforms
 {
-	float maxBlurRadius;
+	float tileSize;
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
@@ -34,7 +34,7 @@ PS_Input VSMain(float4 position : POSITION, float4 texcoord : TEX_COORD)
 
 float2 PSMain(PS_Input input) : SV_TARGET
 {
-	int2 tileCorner = int2(input.position.xy) * uniforms.maxBlurRadius;
+	int2 tileCorner = int2(input.position.xy) * uniforms.tileSize;
 
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
@@ -43,9 +43,9 @@ float2 PSMain(PS_Input input) : SV_TARGET
 	float closestDepth = 1.0;
 	float maxCoc = 0.0;
 
-	for (int s = 0; s < uniforms.maxBlurRadius; ++s)
+	for (int s = 0; s < uniforms.tileSize; ++s)
 	{
-		for (int t = 0; t < uniforms.maxBlurRadius; ++t)
+		for (int t = 0; t < uniforms.tileSize; ++t)
 		{
 			float coc = inputTex.Load(int3(clamp(tileCorner + int2(s,t), int2(0,0), texSize),0)).w;
 			float depth = depthTex.Load(int3(clamp(tileCorner + int2(s, t), int2(0, 0), texSize), 0)).x;

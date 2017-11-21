@@ -4,6 +4,7 @@
 #include "Node.hpp"
 
 #include <cmath>
+#include <cassert>
 
 namespace inl {
 
@@ -30,18 +31,20 @@ public:
 	static std::string Info_GetName() {
 		return name;
 	}
-
-	static const std::vector<std::string>& Info_GetInputNames() {
-		static std::vector<std::string> names = {
-			"A"
-		};
-		return names;
+	std::string GetClassName(bool simplify = false, const std::vector<std::string>& stripNamespaces = {}) const override {
+		auto s = Info_GetName();
+		return s.substr(0, s.find_first_of(':'));;
 	}
-	static const std::vector<std::string>& Info_GetOutputNames() {
-		static std::vector<std::string> names = {
-			"R"
-		};
-		return names;
+
+	const std::string& GetInputName(size_t idx) const override {
+		assert(idx == 0);
+		static const std::string name = "A";
+		return name;
+	}
+	const std::string& GetOutputName(size_t idx) const override {
+		assert(idx == 0);
+		static const std::string name = "R";
+		return name;
 	}
 };
 

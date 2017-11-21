@@ -21,6 +21,48 @@ namespace gxeng {
 
 enum class eResourceHeapType { CRITICAL };
 
+
+struct Texture1DDesc {
+	Texture1DDesc(uint64_t width = 0,
+		gxapi::eFormat format = gxapi::eFormat::UNKNOWN,
+		uint16_t mipLevels = 1,
+		uint16_t arraySize = 1)
+		: width(width), format(format), mipLevels(mipLevels), arraySize(arraySize) {}
+	uint64_t width;
+	uint16_t arraySize;
+	uint16_t mipLevels; /// <summary> Use 0 for all mip levels. </summary>
+	gxapi::eFormat format;
+};
+
+struct Texture2DDesc {
+	Texture2DDesc(uint64_t width = 0,
+		uint32_t height = 0,
+		gxapi::eFormat format = gxapi::eFormat::UNKNOWN,
+		uint16_t mipLevels = 1,
+		uint16_t arraySize = 1)
+		: width(width), height(height), format(format), mipLevels(mipLevels), arraySize(arraySize) {}
+	uint64_t width;
+	uint32_t height;
+	uint16_t arraySize;
+	uint16_t mipLevels; /// <summary> Use 0 for all mip levels. </summary>
+	gxapi::eFormat format;
+};
+
+struct Texture3DDesc {
+	Texture3DDesc(uint64_t width = 0,
+		uint32_t height = 0,
+		uint16_t depth = 0,
+		gxapi::eFormat format = gxapi::eFormat::UNKNOWN,
+		uint16_t mipLevels = 1)
+		: width(width), height(height), depth(depth), mipLevels(mipLevels), format(format) {}
+	uint64_t width;
+	uint32_t height;
+	uint16_t depth;
+	uint16_t mipLevels; /// <summary> Use 0 for all mip levels. </summary>
+	gxapi::eFormat format;
+};
+
+
 class MemoryManager {
 public:
 	MemoryManager(gxapi::IGraphicsApi* graphicsApi);
@@ -49,9 +91,14 @@ public:
 
 	VertexBuffer CreateVertexBuffer(eResourceHeapType heap, size_t size);
 	IndexBuffer CreateIndexBuffer(eResourceHeapType heap, size_t size, size_t indexCount);
+	/*
 	Texture1D CreateTexture1D(eResourceHeapType heap, uint64_t width, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE, uint16_t arraySize = 1);
 	Texture2D CreateTexture2D(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE, uint16_t arraySize = 1);
 	Texture3D CreateTexture3D(eResourceHeapType heap, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE);
+	*/
+	Texture1D CreateTexture1D(eResourceHeapType heap, const Texture1DDesc& desc, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE);
+	Texture2D CreateTexture2D(eResourceHeapType heap, const Texture2DDesc& desc, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE);
+	Texture3D CreateTexture3D(eResourceHeapType heap, const Texture3DDesc& desc, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE);
 	//TextureCube CreateTextureCube(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE, uint16_t arraySize = 1);
 
 protected:

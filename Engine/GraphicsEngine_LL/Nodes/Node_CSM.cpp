@@ -79,7 +79,7 @@ void CSM::Setup(SetupContext & context) {
 	for (int i = 0; i < m_dsvs.size(); i++) {
 		dsvDesc.firstArrayElement = i;
 		m_dsvs[i] = context.CreateDsv(renderTarget, currDepthStencil, dsvDesc);
-		m_dsvs[i].GetResource()._GetResourcePtr()->SetName((std::string("CSM cascade depth tex view #") + std::to_string(i)).c_str());
+		m_dsvs[i].GetResource().SetName((std::string("CSM cascade depth tex view #") + std::to_string(i)).c_str());
 	}
 
 	m_entities = this->GetInput<1>().Get();
@@ -94,7 +94,7 @@ void CSM::Setup(SetupContext & context) {
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
 	m_lightMVPTexSrv = context.CreateSrv(lightMVPTex, lightMVPTex.GetFormat(), srvDesc);
-	m_lightMVPTexSrv.GetResource()._GetResourcePtr()->SetName("CSM light MVP tex SRV");
+	
 
 	this->GetOutput<0>().Set(renderTarget);
 
@@ -219,6 +219,11 @@ void CSM::Execute(RenderContext & context) {
 			// Get entity parameters
 			Mesh* mesh = entity->GetMesh();
 			auto position = entity->GetPosition();
+
+			if (mesh->GetIndexBuffer().GetIndexCount() == 3600)
+			{
+				continue; //skip quadcopter for visualization purposes (obscures camera...)
+			}
 
 			// Draw mesh
 			if (!CheckMeshFormat(*mesh)) {

@@ -49,7 +49,7 @@ void TileMax::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("Motion blur tilemax input tex SRV");
+	
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -100,9 +100,9 @@ void TileMax::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("Motion blur tilemax full screen quad vertex buffer");
+		m_fsq.SetName("Motion blur tilemax full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("Motion blur tilemax full screen quad index buffer");
+		m_fsqIndices.SetName("Motion blur tilemax full screen quad index buffer");
 	}
 
 	if (!m_PSO) {
@@ -152,9 +152,9 @@ void TileMax::Execute(RenderContext& context) {
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
-	cb._GetResourcePtr()->SetName("Bright Lum pass volatile CB");
+	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
+	*/
 
 	uniformsCBData.maxMotionBlurRadius = 20.0;
 
@@ -220,10 +220,16 @@ void TileMax::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D tilemax_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth() / maxMotionBlurRadius, m_inputTexSrv.GetResource().GetHeight() / maxMotionBlurRadius, formatTileMax, {1, 1, 0, 0});
-		tilemax_tex._GetResourcePtr()->SetName("Motion blur tilemax tex");
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth() / maxMotionBlurRadius,
+			uint32_t(m_inputTexSrv.GetResource().GetHeight() / maxMotionBlurRadius),
+			formatTileMax
+		};
+
+		Texture2D tilemax_tex = context.CreateTexture2D(desc, { true, true, false, false });
+		tilemax_tex.SetName("Motion blur tilemax tex");
 		m_tilemax_rtv = context.CreateRtv(tilemax_tex, formatTileMax, rtvDesc);
-		m_tilemax_rtv.GetResource()._GetResourcePtr()->SetName("motion blur tilemax RTV");
+		
 	}
 }
 

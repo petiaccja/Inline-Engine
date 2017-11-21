@@ -49,12 +49,12 @@ void LensFlare::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("Lens flare input tex SRV");
+	
 
 	auto colorImage = this->GetInput<1>().Get();
 	if (colorImage == nullptr) {
 		throw InvalidArgumentException("Adjál rendes texturát!");
-		if (!colorImage->GetSrv()->operator bool()) {
+		if (!colorImage->GetSrv()) {
 			throw InvalidArgumentException("Given texture was empty.");
 		}
 	}
@@ -116,9 +116,9 @@ void LensFlare::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("Lens flare full screen quad vertex buffer");
+		m_fsq.SetName("Lens flare full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("Lens flare full screen quad index buffer");
+		m_fsqIndices.SetName("Lens flare full screen quad index buffer");
 	}
 
 	if (!m_PSO) {
@@ -168,9 +168,9 @@ void LensFlare::Execute(RenderContext& context) {
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
-	cb._GetResourcePtr()->SetName("Bright Lum pass volatile CB");
+	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
+	*/
 
 	uniformsCBData.scale = 1.0;
 
@@ -178,7 +178,7 @@ void LensFlare::Execute(RenderContext& context) {
 
 	commandList.SetResourceState(m_lens_flare_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-	commandList.SetResourceState(colorImage->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(colorImage->GetSrv().GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 	RenderTargetView2D* pRTV = &m_lens_flare_rtv;
 	commandList.SetRenderTargets(1, &pRTV, 0);
@@ -201,7 +201,7 @@ void LensFlare::Execute(RenderContext& context) {
 	commandList.SetPipelineState(m_PSO.get());
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.BindGraphics(m_inputTexBindParam, m_inputTexSrv);
-	commandList.BindGraphics(m_lensColorTexBindParam, *colorImage->GetSrv());
+	commandList.BindGraphics(m_lensColorTexBindParam, colorImage->GetSrv());
 	commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
@@ -238,10 +238,16 @@ void LensFlare::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D lens_flare_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatLensFlare, {1, 1, 0, 0});
-		lens_flare_tex._GetResourcePtr()->SetName("Lens flare tex");
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth(),
+			m_inputTexSrv.GetResource().GetHeight(), 
+			formatLensFlare
+		};
+
+		Texture2D lens_flare_tex = context.CreateTexture2D(desc, { true, true, false, false });
+		lens_flare_tex.SetName("Lens flare tex");
 		m_lens_flare_rtv = context.CreateRtv(lens_flare_tex, formatLensFlare, rtvDesc);
-		m_lens_flare_rtv.GetResource()._GetResourcePtr()->SetName("Lens flare RTV");
+		
 	}
 }
 

@@ -22,6 +22,7 @@ class SMAA :
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "SMAA"; }
 	SMAA();
 
 	void Update() override {}

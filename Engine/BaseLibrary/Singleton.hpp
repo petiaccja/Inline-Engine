@@ -8,7 +8,7 @@ template <class T>
 class Singleton : public T {
 public:
 	static Singleton* GetInstance() {
-		static unique_ptr<Singleton> instance(new Singleton());
+		static std::unique_ptr<Singleton> instance(new Singleton());
 		return instance.get();
 	}
 };

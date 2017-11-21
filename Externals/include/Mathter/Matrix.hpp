@@ -29,31 +29,36 @@ enum class eAxis {
 	Z = 2,
 };
 
-template <class T, class U>
-using MatMulElemT = decltype(T() * U() + T() + U());
 
 
-//template <eMatrixOrder Order_,
-//	eMatrixLayout Layout_,
-//	class ProjectNear_ = std::ratio<1, 1>,
-//	class ProjectFar_ = std::ratio<1, 1>,
-//	eAxis EulerFirst_ = eAxis::Z,
-//	eAxis EulerSecond_ = eAxis::X,
-//	eAxis RPYFirst_ = eAxis::Z,
-//	eAxis RPYSecond_ = eAxis::Y>
-//class MatrixProperties {
-//public:
-//	static constexpr eMatrixLayout Layout = Layout_;
-//	static constexpr double ProjectNear = (double)ProjectNear_::num / (double)ProjectNear_::den;
-//	static constexpr double ProjectFar = (double)ProjectFar_::num / (double)ProjectFar_::den;
-//	static constexpr eAxis EulerFirst = EulerFirst_;
-//	static constexpr eAxis EulerSecond = EulerSecond_;
-//	static constexpr eAxis RPYFirst = RPYFirst_;
-//	static constexpr eAxis RPYSecond = RPYSecond_;
-//	using ProjectNearT = ProjectNear_;
-//	using ProjectFarT = ProjectFar_;
-//};
+namespace impl {
+	template <class T, class U>
+	using MatMulElemT = decltype(T() * U() + T() + U());
 
+	template <class MatrixT>
+	class MatrixPropertiesHelper {};
+
+	template <class T_, int Rows_, int Columns_, eMatrixOrder Order_, eMatrixLayout Layout_, bool Packed_>
+	class MatrixPropertiesHelper<Matrix<T_, Rows_, Columns_, Order_, Layout_, Packed_>> {
+	public:
+		using Type = T_;
+		static constexpr int Rows = Rows_;
+		static constexpr int Columns = Columns_;
+		static constexpr eMatrixOrder Order = Order_;
+		static constexpr eMatrixLayout Layout = Layout_;
+		static constexpr bool Packed = Packed_;
+	};
+
+	template <class MatrixT>
+	class MatrixProperties : public MatrixPropertiesHelper<typename std::decay<MatrixT>::type> {};
+
+
+	template <eMatrixLayout Layout>
+	class OppositeLayout {
+	public:
+		static constexpr eMatrixLayout value = (Layout == eMatrixLayout::ROW_MAJOR ? eMatrixLayout::COLUMN_MAJOR : eMatrixLayout::ROW_MAJOR);
+	};
+}
 
 
 //------------------------------------------------------------------------------
@@ -103,6 +108,119 @@ private:
 		return stripes[col][row];
 	}
 };
+
+
+//------------------------------------------------------------------------------
+// Submatrix helper
+//------------------------------------------------------------------------------
+
+template <class MatrixT, int SRows, int SColumns>
+class Submatrix {
+	friend MatrixT;
+	using Props = impl::MatrixProperties<MatrixT>;
+	template <class, int, int>
+	friend class Submatrix;
+protected:
+	Submatrix(MatrixT& mat, int row, int col) : mat(mat), row(row), col(col) {}
+
+public:
+	Submatrix(const Submatrix& rhs) = delete;
+	Submatrix(Submatrix&& rhs) : mat(rhs.mat), row(rhs.row), col(rhs.col) {}
+
+
+	template <class U, eMatrixOrder UOrder, eMatrixLayout ULayout, bool UPacked>
+	operator Matrix<U, SRows, SColumns, UOrder, ULayout, UPacked>() const {
+		Matrix<U, SRows, SColumns, UOrder, ULayout, UPacked> ret;
+		for (int i = 0; i < SRows; ++i) {
+			for (int j = 0; j < SColumns; ++j) {
+				ret(i, j) = (*this)(i, j);
+			}
+		}
+		return ret;
+	}
+
+	template <class U, bool Packed, class = typename std::enable_if<std::min(SRows, SColumns) == 1>::type>
+	operator Vector<U, std::max(SRows, SColumns), Packed>() const {
+		Vector<U, std::max(SRows, SColumns), Packed> v;
+		int k = 0;
+		for (int i = 0; i < SRows; ++i) {
+			for (int j = 0; j < SColumns; ++j) {
+				v(k) = (*this)(i, j);
+				++k;
+			}
+		}
+		return v;
+	}
+
+
+	template <class U, eMatrixOrder UOrder, eMatrixLayout ULayout, bool UPacked>
+	Submatrix& operator=(const Matrix<U, SRows, SColumns, UOrder, ULayout, UPacked>& rhs) {
+		static_assert(!std::is_const<MatrixT>::value, "Cannot assign to submatrix of const matrix.");
+
+		// If aliasing happens, the same matrix is copied to itself with no side-effects.
+		for (int i = 0; i < SRows; ++i) {
+			for (int j = 0; j < SColumns; ++j) {
+				mat(row + i, col + j) = rhs(i, j);
+			}
+		}
+		return *this;
+	}
+
+
+	// From vector if applicable (for 1*N and N*1 submatrices)
+	template <class U, bool Packed, class = typename std::enable_if<std::min(SRows, SColumns) == 1>::type>
+	Submatrix& operator=(const Vector<U, std::max(SRows, SColumns), Packed>& v) {
+		static_assert(!std::is_const<MatrixT>::value, "Cannot assign to submatrix of const matrix.");
+
+		int k = 0;
+		for (int i = 0; i < SRows; ++i) {
+			for (int j = 0; j < SColumns; ++j) {
+				mat(row + i, col + j) = v(k);
+				++k;
+			}
+		}
+		return *this;
+	}
+
+	
+	template <class MatrixU>
+	Submatrix& operator=(const Submatrix<MatrixU, SRows, SColumns>& rhs) {
+		static_assert(!std::is_const<MatrixT>::value, "Cannot assign to submatrix of const matrix.");
+
+		// If *this and rhs reference the same matrix, aliasing must be resolved.
+		if ((void*)&mat == (void*)&rhs.mat) {
+			Matrix<typename impl::MatrixProperties<MatrixU>::Type, SRows, SColumns> tmpmat;
+			tmpmat = rhs;
+			operator=(tmpmat);
+		}
+		else {
+			for (int i = 0; i < SRows; ++i) {
+				for (int j = 0; j < SColumns; ++j) {
+					mat(row + i, col + j) = rhs(i, j);
+				}
+			}
+		}
+		return *this;
+	}
+	Submatrix& operator=(const Submatrix& rhs) {
+		static_assert(!std::is_const<MatrixT>::value, "Cannot assign to submatrix of const matrix.");
+		return operator=<MatrixT>(rhs);
+	}
+	
+	typename Props::Type& operator()(int row, int col) {
+		return mat(this->row + row, this->col + col);
+	}
+
+	typename Props::Type operator()(int row, int col) const {
+		return mat(this->row + row, this->col + col);
+	}
+private:
+	MatrixT& mat;
+	int row = -1, col = -1;
+};
+
+
+
 
 
 //------------------------------------------------------------------------------
@@ -275,11 +393,11 @@ class MatrixTranslation {
 	MatrixT& self() { return *static_cast<MatrixT*>(this); }
 	const MatrixT& self() const { return *static_cast<const MatrixT*>(this); }
 protected:
+	static constexpr int TranslationDim = Rows == Columns ? Rows - 1 : std::min(Rows, Columns);
 	static constexpr bool EnableTranslation =
-		(Rows < Columns ? Rows : Columns) > 0 &&
+		TranslationDim > 0 &&
 		((Order == eMatrixOrder::FOLLOW_VECTOR && Rows - 1 <= Columns && Columns <= Rows)
 		|| (Order == eMatrixOrder::PRECEDE_VECTOR && Columns - 1 <= Rows && Rows <= Columns));
-	static constexpr int TranslationDim = Rows == Columns ? Rows - 1 : std::min(Rows, Columns);
 public:
 	template <class... Args, typename std::enable_if<(impl::All<impl::IsScalar, typename std::decay<Args>::type...>::value), int>::type = 0>
 	static MatrixT Translation(Args&&... args) {
@@ -824,6 +942,14 @@ public:
 		Assign<0, 0>(h, args...);
 	}
 
+	// From vector if applicable (for 1*N and N*1 matrices)
+	template <class U, bool Packed, class = typename std::enable_if<std::min(Rows, Columns) == 1>::type>
+	explicit Matrix(const Vector<U, std::max(Rows, Columns), Packed>& v){
+		for (int i = 0; i < v.Dimension(); ++i) {
+			(*this)(i) = v(i);
+		}
+	}
+
 
 	//--------------------------------------------
 	// Accessors
@@ -845,6 +971,50 @@ public:
 	template <class Q = T>
 	inline typename std::enable_if<(Columns == 1 && Rows > 1) || (Columns > 1 && Rows == 1), Q>::type operator()(int idx) const {
 		return GetElement(Rows == 1 ? 0 : idx, Columns == 1 ? 0 : idx);
+	}
+
+	// Submatrices
+	template <int Subrows, int Subcolumns> 
+	mathter::Submatrix<Matrix, Subrows, Subcolumns> Submatrix(int rowIdx, int colIdx) {
+		assert(Subrows + rowIdx <= Rows);
+		assert(Subcolumns + colIdx <= Columns);
+
+		return mathter::Submatrix<Matrix, Subrows, Subcolumns>(*this, rowIdx, colIdx);
+	}
+
+	template <int Subrows, int Subcolumns>
+	mathter::Submatrix<const Matrix, Subrows, Subcolumns> Submatrix(int rowIdx, int colIdx) const {
+		assert(Subrows + rowIdx <= Rows);
+		assert(Subcolumns + colIdx <= Columns);
+
+		return mathter::Submatrix<const Matrix, Subrows, Subcolumns>(*this, rowIdx, colIdx);
+	}
+
+	auto Column(int colIdx) {
+		return Submatrix<Rows, 1>(0, colIdx);
+	}
+	auto Row(int rowIdx) {
+		return Submatrix<1, Columns>(rowIdx, 0);
+	}
+	auto Column(int colIdx) const {
+		return Submatrix<Rows, 1>(0, colIdx);
+	}
+	auto Row(int rowIdx) const {
+		return Submatrix<1, Columns>(rowIdx, 0);
+	}
+
+	// Conversion to vector if applicable
+	template <class U, bool Packed, class = typename std::enable_if<std::min(Rows, Columns) == 1>::type>
+	explicit operator Vector<U, std::max(Rows, Columns), Packed>() const {
+		Vector<U, std::max(Rows, Columns), Packed> v;
+		int k = 0;
+		for (int i = 0; i < Rows; ++i) {
+			for (int j = 0; j < Columns; ++j) {
+				v(k) = (*this)(i, j);
+				++k;
+			}
+		}
+		return v;
 	}
 
 	//--------------------------------------------
@@ -964,6 +1134,44 @@ public:
 	}
 
 
+	// Elementwise multiply and divide
+	template <class T2, eMatrixOrder Order2>
+	inline Matrix& MulElementwise(const Matrix<T2, Rows, Columns, Order2, Layout, Packed>& rhs) {
+		for (int i = 0; i < StripeCount; ++i) {
+			stripes[i] = stripes[i] * rhs.stripes[i];
+		}
+		return *this;
+	}
+
+	template <class T2, eMatrixOrder Order2>
+	inline Matrix& MulElementwise(const Matrix<T2, Rows, Columns, Order2, impl::OppositeLayout<Layout>::value, Packed>& rhs) {
+		for (int i = 0; i < RowCount(); ++i) {
+			for (int j = 0; j < ColumnCount(); ++j) {
+				(*this)(i, j) *= rhs(i, j);
+			}
+		}
+		return *this;
+	}
+
+	template <class T2, eMatrixOrder Order2>
+	inline Matrix& DivElementwise(const Matrix<T2, Rows, Columns, Order2, Layout, Packed>& rhs) {
+		for (int i = 0; i < StripeCount; ++i) {
+			stripes[i] = stripes[i] / rhs.stripes[i];
+		}
+		return *this;
+	}
+
+	template <class T2, eMatrixOrder Order2>
+	inline Matrix& DivElementwise(const Matrix<T2, Rows, Columns, Order2, impl::OppositeLayout<Layout>::value, Packed>& rhs) {
+		for (int i = 0; i < RowCount(); ++i) {
+			for (int j = 0; j < ColumnCount(); ++j) {
+				(*this)(i, j) /= rhs(i, j);
+			}
+		}
+		return *this;
+	}
+
+
 	//--------------------------------------------
 	// Matrix functions
 	//--------------------------------------------
@@ -992,6 +1200,15 @@ public:
 
 	static Matrix Identity();
 	Matrix& SetIdentity();
+
+	T Norm() const {
+		T sum = T(0);
+		for (auto& stripe : stripes) {
+			sum += stripe.LengthSquared();
+		}
+		sum /= (RowCount() * ColumnCount());
+		return sqrt(sum);
+	}
 
 
 	//--------------------------------------------
@@ -1185,9 +1402,9 @@ inline auto operator*(const Matrix<T, Rows1, Match, Order1, eMatrixLayout::COLUM
 template <class T1, class T2, int Rows1, int Match, int Columns2, eMatrixOrder Order1, eMatrixOrder Order2, eMatrixLayout Layout1, eMatrixLayout Layout2, bool PackedA>
 inline auto operator*(const Matrix<T1, Rows1, Match, Order1, Layout1, PackedA>& lhs,
 	const Matrix<T2, Match, Columns2, Order2, Layout2, PackedA>& rhs)
-	->Matrix<MatMulElemT<T1, T2>, Rows1, Columns2, Order1, Layout1, PackedA>
+	->Matrix<impl::MatMulElemT<T1, T2>, Rows1, Columns2, Order1, Layout1, PackedA>
 {
-	return mathter::operator*<T1, T2, Rows1, Match, Columns2, Order1, Order2, PackedA, MatMulElemT<T1, T2>>(lhs, rhs);
+	return mathter::operator*<T1, T2, Rows1, Match, Columns2, Order1, Order2, PackedA, impl::MatMulElemT<T1, T2>>(lhs, rhs);
 }
 
 
@@ -1363,19 +1580,19 @@ inline Vector<Rt, Mcol, Packed> operator*(const Vector<Vt, Vd, Packed>& vec, con
 }
 
 template <class Vt, class Mt, int Vd, int Mcol, eMatrixOrder Morder, eMatrixLayout Mlayout, bool Packed>
-inline Vector<MatMulElemT<Vt, Mt>, Mcol, Packed> operator*(const Vector<Vt, Vd, Packed>& vec, const Matrix<Mt, Vd, Mcol, Morder, Mlayout, Packed>& mat) {
-	using Rt = MatMulElemT<Vt, Mt>;
+inline Vector<impl::MatMulElemT<Vt, Mt>, Mcol, Packed> operator*(const Vector<Vt, Vd, Packed>& vec, const Matrix<Mt, Vd, Mcol, Morder, Mlayout, Packed>& mat) {
+	using Rt = impl::MatMulElemT<Vt, Mt>;
 	return operator*<Vt, Mt, Vd, Mcol, Morder, Packed, Rt>(vec, mat);
 }
 
 
 // (v|1)*M
-template <class Vt, class Mt, int Vd, eMatrixLayout Mlayout, eMatrixOrder Morder, bool Packed, class Rt = MatMulElemT<Vt, Mt>>
+template <class Vt, class Mt, int Vd, eMatrixLayout Mlayout, eMatrixOrder Morder, bool Packed, class Rt = impl::MatMulElemT<Vt, Mt>>
 Vector<Rt, Vd, Packed> operator*(const Vector<Vt, Vd, Packed>& vec, const Matrix<Mt, Vd + 1, Vd, Morder, Mlayout, Packed>& mat) {
 	return (vec | Vt(1))*mat;
 }
 
-template <class Vt, class Mt, int Vd, eMatrixLayout Mlayout, eMatrixOrder Morder, bool Packed, class Rt = MatMulElemT<Vt, Mt>>
+template <class Vt, class Mt, int Vd, eMatrixLayout Mlayout, eMatrixOrder Morder, bool Packed, class Rt = impl::MatMulElemT<Vt, Mt>>
 Vector<Rt, Vd, Packed> operator*(const Vector<Vt, Vd, Packed>& vec, const Matrix<Mt, Vd + 1, Vd + 1, Morder, Mlayout, Packed>& mat) {
 	auto res = (vec | Vt(1))*mat;
 	res /= res(res.Dimension() - 1);
@@ -1415,20 +1632,20 @@ inline Vector<Rt, Mrow, Packed> operator*(const Matrix<Mt, Mrow, Vd, Morder, eMa
 }
 
 template <class Vt, class Mt, int Vd, int Mrow, eMatrixOrder Morder, eMatrixLayout Mlayout, bool Packed>
-Vector<MatMulElemT<Vt, Mt>, Mrow, Packed> operator*(const Matrix<Mt, Mrow, Vd, Morder, Mlayout, Packed>& mat, const Vector<Vt, Vd, Packed>& vec) {
-	using Rt = MatMulElemT<Vt, Mt>;
+Vector<impl::MatMulElemT<Vt, Mt>, Mrow, Packed> operator*(const Matrix<Mt, Mrow, Vd, Morder, Mlayout, Packed>& mat, const Vector<Vt, Vd, Packed>& vec) {
+	using Rt = impl::MatMulElemT<Vt, Mt>;
 	return operator*<Vt, Mt, Vd, Mrow, Morder, Packed, Rt>(mat, vec);
 }
 
 
 
 // M*(v|1)
-template <class Vt, class Mt, int Vd, eMatrixLayout Mlayout, eMatrixOrder Morder, bool Packed, class Rt = MatMulElemT<Vt, Mt>>
+template <class Vt, class Mt, int Vd, eMatrixLayout Mlayout, eMatrixOrder Morder, bool Packed, class Rt = impl::MatMulElemT<Vt, Mt>>
 Vector<Rt, Vd, Packed> operator*(const Matrix<Mt, Vd, Vd + 1, Morder, Mlayout, Packed>& mat, const Vector<Vt, Vd, Packed>& vec) {
 	return mat*(vec | Vt(1));
 }
 
-template <class Vt, class Mt, int Vd, eMatrixLayout Mlayout, eMatrixOrder Morder, bool Packed, class Rt = MatMulElemT<Vt, Mt>>
+template <class Vt, class Mt, int Vd, eMatrixLayout Mlayout, eMatrixOrder Morder, bool Packed, class Rt = impl::MatMulElemT<Vt, Mt>>
 Vector<Rt, Vd, Packed> operator*(const Matrix<Mt, Vd + 1, Vd + 1, Morder, Mlayout, Packed>& mat, const Vector<Vt, Vd, Packed>& vec) {
 	auto res = (vec | Vt(1))*mat;
 	res /= res(res.Dimension() - 1);
@@ -1774,6 +1991,25 @@ bool DecompositionLU<T, Dim, Order, Layout, Packed>::Solve(Vector<float, Dim, Pa
 	}
 
 	return true;
+}
+
+
+template <class T1, class T2, int Rows, int Columns, eMatrixOrder O1, eMatrixOrder O2, eMatrixLayout L1, eMatrixLayout L2, bool Packed>
+Matrix<T1, Rows, Columns, O1, L1, Packed> MulElementwise(
+	const Matrix<T1, Rows, Columns, O1, L1, Packed>& lhs,
+	const Matrix<T1, Rows, Columns, O1, L1, Packed>& rhs) 
+{
+	Matrix<T1, Rows, Columns, O1, L1, Packed> ret = lhs;
+	return ret.MulElementwise(rhs);
+}
+
+template <class T1, class T2, int Rows, int Columns, eMatrixOrder O1, eMatrixOrder O2, eMatrixLayout L1, eMatrixLayout L2, bool Packed>
+Matrix<T1, Rows, Columns, O1, L1, Packed> DivElementwise(
+	const Matrix<T1, Rows, Columns, O1, L1, Packed>& lhs,
+	const Matrix<T1, Rows, Columns, O1, L1, Packed>& rhs)
+{
+	Matrix<T1, Rows, Columns, O1, L1, Packed> ret = lhs;
+	return ret.DivElementwise(rhs);
 }
 
 

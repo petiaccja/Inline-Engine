@@ -27,6 +27,7 @@ double Timer::Elapsed() {
 	else if (m_state == PAUSED) {
 		return m_accumulator;
 	}
+	return 0.0;
 }
 
 void Timer::Pause() {

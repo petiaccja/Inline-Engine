@@ -31,6 +31,14 @@ constexpr long double operator "" _nano(unsigned long long x) {
 }
 
 
+constexpr long double operator "" _pico(long double x) {
+	return x * 0.001_nano;
+}
+constexpr long double operator "" _pico(unsigned long long x) {
+	return x * 0.001_nano;
+}
+
+
 
 
 constexpr long long operator "" _kilo(unsigned long long x) {

@@ -83,6 +83,16 @@ gxapi::ResourceDesc MemoryObject::GetDescription() const {
 }
 
 
+void MemoryObject::SetName(const std::string& name) {
+	SetName(name.c_str());
+}
+void MemoryObject::SetName(const char* name) {
+	if (m_contents) {
+		m_contents->resource->SetName(name);
+	}
+}
+
+
 void MemoryObject::_SetResident(bool value) noexcept {
 	assert(m_contents);
 	m_contents->resident = value;
@@ -126,19 +136,6 @@ void MemoryObject::InitResourceStates(gxapi::eResourceState initialState) {
 	switch (desc.type) {
 		case eResourceType::TEXTURE:
 		{
-			//switch (desc.textureDesc.dimension) {
-			//	case eTextueDimension::ONE:
-			//		numSubresources = desc.textureDesc.depthOrArraySize * desc.textureDesc.mipLevels;
-			//		break;
-			//	case eTextueDimension::TWO:
-			//		numSubresources = desc.textureDesc.depthOrArraySize * desc.textureDesc.mipLevels;
-			//		break;
-			//	case eTextueDimension::THREE:
-			//		numSubresources = desc.textureDesc.mipLevels;
-			//		break;
-			//	default: assert(false);
-			//}
-
 			numSubresources = m_contents->resource->GetNumArrayLevels() * m_contents->resource->GetNumMipLevels() * m_contents->resource->GetNumTexturePlanes();
 			break;
 		}
@@ -218,6 +215,10 @@ uint16_t Texture1D::GetArrayCount() const {
 	return GetDescription().textureDesc.depthOrArraySize;
 }
 
+uint32_t Texture1D::GetSubresourceIndex(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIndex) const {
+	assert(false);
+	return m_contents->resource->GetSubresourceIndex(mipLevel, arrayIndex, planeIndex);
+}
 
 gxapi::eFormat Texture1D::GetFormat() const {
 	return GetDescription().textureDesc.format;
@@ -229,7 +230,7 @@ uint64_t Texture2D::GetWidth() const {
 }
 
 
-uint64_t Texture2D::GetHeight() const {
+uint32_t Texture2D::GetHeight() const {
 	return GetDescription().textureDesc.height;
 }
 
@@ -238,9 +239,8 @@ uint16_t Texture2D::GetArrayCount() const {
 	return GetDescription().textureDesc.depthOrArraySize;
 }
 
-
-uint32_t Texture2D::GetSubresourceIndex(uint32_t arrayIndex, uint32_t mipLevel) const {
-	return arrayIndex*GetDescription().textureDesc.mipLevels + mipLevel;
+uint32_t Texture2D::GetSubresourceIndex(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIndex) const {
+	return m_contents->resource->GetSubresourceIndex(mipLevel, arrayIndex, planeIndex);
 }
 
 
@@ -263,6 +263,10 @@ uint16_t Texture3D::GetDepth() const {
 	return GetDescription().textureDesc.depthOrArraySize;
 }
 
+uint32_t Texture3D::GetSubresourceIndex(uint32_t mipLevel, uint32_t planeIndex) const {
+	assert(false);
+	return m_contents->resource->GetSubresourceIndex(mipLevel, 0, planeIndex);
+}
 
 gxapi::eFormat Texture3D::GetFormat() const {
 	return GetDescription().textureDesc.format;

@@ -18,7 +18,7 @@ namespace inl::gxeng::nodes {
 
 struct Uniforms
 {
-	float maxBlurRadius;
+	float tileSize;
 };
 
 
@@ -52,11 +52,11 @@ void DOFTileMax::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("DOF tilemax input tex SRV");
+	
 
 	Texture2D depthTex = this->GetInput<1>().Get();
 	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
-	m_depthTexSrv.GetResource()._GetResourcePtr()->SetName("DOF tilemax depth tex SRV");
+	
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -116,9 +116,9 @@ void DOFTileMax::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("DOF tilemax full screen quad vertex buffer");
+		m_fsq.SetName("DOF tilemax full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("DOF tilemax full screen quad index buffer");
+		m_fsqIndices.SetName("DOF tilemax full screen quad index buffer");
 	}
 
 	if (!m_PSO) {
@@ -168,11 +168,11 @@ void DOFTileMax::Execute(RenderContext& context) {
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
-	cb._GetResourcePtr()->SetName("Bright Lum pass volatile CB");
+	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
+	*/
 
-	uniformsCBData.maxBlurRadius = 28.0;
+	uniformsCBData.tileSize = 20.0;
 
 	commandList.SetResourceState(m_tilemax_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
@@ -222,8 +222,6 @@ void DOFTileMax::InitRenderTarget(SetupContext& context) {
 
 		auto formatTileMax = eFormat::R16G16_FLOAT;
 
-		const uint64_t maxBlurRadius = 28;
-
 		gxapi::RtvTexture2DArray rtvDesc;
 		rtvDesc.activeArraySize = 1;
 		rtvDesc.firstArrayElement = 0;
@@ -238,10 +236,18 @@ void DOFTileMax::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D tilemax_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth() / maxBlurRadius, m_inputTexSrv.GetResource().GetHeight() / maxBlurRadius, formatTileMax, {1, 1, 0, 0});
-		tilemax_tex._GetResourcePtr()->SetName("DOF tilemax tex");
+		int tileSize = 20;
+
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth() / tileSize,
+			m_inputTexSrv.GetResource().GetHeight() / tileSize,
+			formatTileMax
+		};
+
+		Texture2D tilemax_tex = context.CreateTexture2D(desc, {true, true, false, false});
+		tilemax_tex.SetName("DOF tilemax tex");
 		m_tilemax_rtv = context.CreateRtv(tilemax_tex, formatTileMax, rtvDesc);
-		m_tilemax_rtv.GetResource()._GetResourcePtr()->SetName("DOF tilemax RTV");
+		
 	}
 }
 

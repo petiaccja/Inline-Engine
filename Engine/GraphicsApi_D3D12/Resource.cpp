@@ -20,7 +20,7 @@ Resource::Resource(ComPtr<ID3D12Resource>& native, std::nullptr_t) : Resource(na
 
 
 Resource::Resource(ComPtr<ID3D12Resource>& native, ComPtr<ID3D12Device> device)
-	: m_native{native}
+	: m_native{ native }
 {
 	auto desc = GetDesc();
 
@@ -103,23 +103,55 @@ void* Resource::GetGPUAddress() const {
 }
 
 
-unsigned Resource::GetNumMipLevels() {
+unsigned Resource::GetNumMipLevels() const {
 	return m_numMipLevels;
 }
-unsigned Resource::GetNumTexturePlanes() {
+unsigned Resource::GetNumTexturePlanes() const {
 	return m_numTexturePlanes;
 }
-unsigned Resource::GetNumArrayLevels() {
+unsigned Resource::GetNumArrayLevels() const {
 	return m_numArrayLevels;
 }
 
-unsigned Resource::GetNumSubresources() {
+unsigned Resource::GetNumSubresources() const {
 	return m_numMipLevels * m_numTexturePlanes * m_numArrayLevels;
 }
-unsigned Resource::GetSubresourceIndex(unsigned mipIdx, unsigned arrayIdx, unsigned planeIdx) {
+unsigned Resource::GetSubresourceIndex(unsigned mipIdx, unsigned arrayIdx, unsigned planeIdx) const {
 	unsigned index = D3D12CalcSubresource(mipIdx, arrayIdx, planeIdx, GetNumMipLevels(), GetNumArrayLevels());
 	assert(index < GetNumSubresources());
 	return index;
+}
+
+Vec3u64 Resource::GetSize(int mipLevel) const {
+	auto desc = GetDesc();
+
+	if (mipLevel >= GetNumMipLevels()) {
+		throw OutOfRangeException("Texture does not have that many mip levels.");
+	}
+
+	if (desc.type == gxapi::eResourceType::BUFFER) {
+		return { desc.bufferDesc.sizeInBytes, 0, 0 };
+	}
+
+	Vec3u64 topLevelSize;
+	switch (desc.textureDesc.dimension) {
+		case gxapi::eTextueDimension::ONE:
+			topLevelSize = { desc.textureDesc.width, 1, 1 };
+			break;
+		case gxapi::eTextueDimension::TWO:
+			topLevelSize = { desc.textureDesc.width, desc.textureDesc.height, 1 };
+			break;
+		case gxapi::eTextueDimension::THREE:
+			topLevelSize = { desc.textureDesc.width, desc.textureDesc.height, desc.textureDesc.depthOrArraySize };
+			break;
+	}
+
+	for (int i = 1; i < mipLevel; ++i) {
+		topLevelSize /= 2;
+		topLevelSize = Vec3u64::Max(topLevelSize, { 1,1,1 });
+	}
+
+	return topLevelSize;
 }
 
 

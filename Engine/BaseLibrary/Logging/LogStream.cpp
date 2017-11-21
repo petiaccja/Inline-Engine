@@ -40,7 +40,7 @@ LogStream& LogStream::operator=(LogStream&& rhs) {
 }
 
 
-void LogStream::Event(const inl::Event& e, eEventDisplayMode displayMode) {
+void LogStream::Event(const inl::LogEvent& e, eEventDisplayMode displayMode) {
 	//uint64_t start = __rdtsc();
 	if (pipe) {
 		pipe->PutEvent(e);
@@ -49,7 +49,7 @@ void LogStream::Event(const inl::Event& e, eEventDisplayMode displayMode) {
 	//std::cout << "Event(const &): " << (end - start) << " cycles\n";
 }
 
-void LogStream::Event(inl::Event&& e, eEventDisplayMode displayMode) {
+void LogStream::Event(inl::LogEvent&& e, eEventDisplayMode displayMode) {
 	//uint64_t start = __rdtsc();
 	if (pipe) {
 		pipe->PutEvent(std::move(e));

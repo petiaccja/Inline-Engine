@@ -53,21 +53,21 @@ void SMAA::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("SMAA input tex SRV");
+	
 
 	auto areaImage = this->GetInput<1>().Get();
 	auto searchImage = this->GetInput<2>().Get();
 
 	if (areaImage == nullptr) {
 		throw InvalidArgumentException("Adjál rendes texturát!");
-		if (!areaImage->GetSrv()->operator bool()) {
+		if (!areaImage->GetSrv()) {
 			throw InvalidArgumentException("Given texture was empty.");
 		}
 	}
 
 	if (searchImage == nullptr) {
 		throw InvalidArgumentException("Adjál rendes texturát!");
-		if (!searchImage->GetSrv()->operator bool()) {
+		if (!searchImage->GetSrv()) {
 			throw InvalidArgumentException("Given texture was empty.");
 		}
 	}
@@ -163,9 +163,9 @@ void SMAA::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("SMAA full screen quad vertex buffer");
+		m_fsq.SetName("SMAA full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("SMAA full screen quad index buffer");
+		m_fsqIndices.SetName("SMAA full screen quad index buffer");
 	}
 
 	if (!m_edgeDetectionPSO || !m_blendingWeightsPSO || !m_neighborhoodBlendingPSO) {
@@ -283,9 +283,9 @@ void SMAA::Execute(RenderContext& context) {
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
-	cb._GetResourcePtr()->SetName("Bright Lum pass volatile CB");
+	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
+	*/
 
 	uniformsCBData.pixelSize = Vec4(1.0f / Vec2(m_edgeDetectionRTV.GetResource().GetWidth(), m_edgeDetectionRTV.GetResource().GetHeight()), Vec2(m_edgeDetectionRTV.GetResource().GetWidth(), m_edgeDetectionRTV.GetResource().GetHeight()));
 
@@ -333,8 +333,8 @@ void SMAA::Execute(RenderContext& context) {
 
 		commandList.SetResourceState(m_blendingWeightsRTV.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 		commandList.SetResourceState(m_edgeDetectionSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(areaImage->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(searchImage->GetSrv()->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(areaImage->GetSrv().GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(searchImage->GetSrv().GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 		RenderTargetView2D* pRTV = &m_blendingWeightsRTV;
 		commandList.SetRenderTargets(1, &pRTV, 0);
@@ -348,8 +348,8 @@ void SMAA::Execute(RenderContext& context) {
 		commandList.SetGraphicsBinder(&m_binder.value());
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 		commandList.BindGraphics(m_inputTexBindParam, m_edgeDetectionSRV);
-		commandList.BindGraphics(m_areaTexBindParam, *areaImage->GetSrv());
-		commandList.BindGraphics(m_searchTexBindParam, *searchImage->GetSrv());
+		commandList.BindGraphics(m_areaTexBindParam, areaImage->GetSrv());
+		commandList.BindGraphics(m_searchTexBindParam, searchImage->GetSrv());
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 		commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
@@ -407,26 +407,35 @@ void SMAA::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D edgeDetectionTex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), format, {1, 1, 0, 0});
-		edgeDetectionTex._GetResourcePtr()->SetName("SMAA edge detection tex");
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth(),
+			m_inputTexSrv.GetResource().GetHeight(),
+			format
+		};
+		TextureUsage usage{
+			true, true, false, false
+		};
+
+		Texture2D edgeDetectionTex = context.CreateTexture2D(desc, usage);
+		edgeDetectionTex.SetName("SMAA edge detection tex");
 		m_edgeDetectionRTV = context.CreateRtv(edgeDetectionTex, format, rtvDesc);
-		m_edgeDetectionRTV.GetResource()._GetResourcePtr()->SetName("SMAA edge detection RTV");
+		
 		m_edgeDetectionSRV = context.CreateSrv(edgeDetectionTex, format, srvDesc);
-		m_edgeDetectionSRV.GetResource()._GetResourcePtr()->SetName("SMAA edge detection SRV");
+		
 
-		Texture2D blendingWeightsTex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), format, { 1, 1, 0, 0 });
-		blendingWeightsTex._GetResourcePtr()->SetName("SMAA blending weights tex");
+		Texture2D blendingWeightsTex = context.CreateTexture2D(desc, usage);
+		blendingWeightsTex.SetName("SMAA blending weights tex");
 		m_blendingWeightsRTV = context.CreateRtv(blendingWeightsTex, format, rtvDesc);
-		m_blendingWeightsRTV.GetResource()._GetResourcePtr()->SetName("SMAA blending weights RTV");
+		
 		m_blendingWeightsSRV = context.CreateSrv(blendingWeightsTex, format, srvDesc);
-		m_blendingWeightsSRV.GetResource()._GetResourcePtr()->SetName("SMAA blending weights SRV");
+		
 
-		Texture2D neighborhoodBlendingTex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), format, { 1, 1, 0, 0 });
-		neighborhoodBlendingTex._GetResourcePtr()->SetName("SMAA neighborhood blending tex");
+		Texture2D neighborhoodBlendingTex = context.CreateTexture2D(desc, usage);
+		neighborhoodBlendingTex.SetName("SMAA neighborhood blending tex");
 		m_neighborhoodBlendingRTV = context.CreateRtv(neighborhoodBlendingTex, format, rtvDesc);
-		m_neighborhoodBlendingRTV.GetResource()._GetResourcePtr()->SetName("SMAA neighborhood blending RTV");
+		
 		m_neighborhoodBlendingSRV = context.CreateSrv(neighborhoodBlendingTex, format, srvDesc);
-		m_neighborhoodBlendingSRV.GetResource()._GetResourcePtr()->SetName("SMAA neighborhood blending SRV");
+		
 	}
 }
 

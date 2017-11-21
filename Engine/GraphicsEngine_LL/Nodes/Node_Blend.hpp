@@ -25,6 +25,7 @@ class Blend :
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "Blend"; }
 	void Update() override {}
 	void Notify(InputPortBase* sender) override {}
 	void Initialize(EngineContext& context) override;

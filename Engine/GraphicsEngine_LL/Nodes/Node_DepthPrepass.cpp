@@ -67,7 +67,7 @@ void DepthPrepass::Reset() {
 
 void DepthPrepass::Setup(SetupContext & context) {
 	Texture2D& depthStencil = this->GetInput<0>().Get();
-	depthStencil._GetResourcePtr()->SetName("Depth prepass DS");// Debug
+	depthStencil.SetName("Depth prepass DS");// Debug
 
 	const gxapi::eFormat currDepthStencilFormat = FormatAnyToDepthStencil(depthStencil.GetFormat());
 
@@ -77,7 +77,7 @@ void DepthPrepass::Setup(SetupContext & context) {
 	desc.firstMipLevel = 0;
 
 	m_targetDsv = context.CreateDsv(depthStencil, currDepthStencilFormat, desc);
-	m_targetDsv.GetResource()._GetResourcePtr()->SetName("Depth prepass depth tex view");
+	
 	
 	m_entities = this->GetInput<1>().Get();
 

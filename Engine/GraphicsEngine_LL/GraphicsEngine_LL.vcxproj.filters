@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+    <Text Include="pipeline.json" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GraphicsEngine\IGraphicsEngine.hpp">
@@ -363,6 +364,33 @@
     <ClInclude Include="Nodes\Node_DOFMain.hpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Node_Voxelization.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_VolumetricLighting.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_ShadowMapGen.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_ScreenSpaceShadow.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_ScreenSpaceReflection.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_TextRender.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_ScreenSpaceAmbientOcclusion.hpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Cubemap.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageBase.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -570,6 +598,33 @@
     <ClCompile Include="Nodes\Node_DOFMain.cpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
+    <ClCompile Include="Nodes\Node_Voxelization.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_VolumetricLighting.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_ShadowMapGen.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_ScreenSpaceShadow.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_ScreenSpaceReflection.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_TextRender.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_ScreenSpaceAmbientOcclusion.cpp">
+      <Filter>Frontend\Nodes\ForwardRenderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Cubemap.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageBase.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Materials\bitmap_color_2d.mtl.hlsl">
@@ -632,5 +687,6 @@
     <None Include="Nodes\Shaders\TiledLighting.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
     </None>
+    <None Include="pipeline_example.json" />
   </ItemGroup>
 </Project>

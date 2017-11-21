@@ -19,9 +19,10 @@ class DOFPrepare :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
 	virtual public InputPortConfig<Texture2D, Texture2D, const BasicCamera*>,
-	virtual public OutputPortConfig<Texture2D>
+	virtual public OutputPortConfig<Texture2D, Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "DOSPrepare"; }
 	DOFPrepare();
 
 	void Update() override {}
@@ -43,6 +44,7 @@ protected:
 protected: // outputs
 	bool m_outputTexturesInited = false;
 	RenderTargetView2D m_prepare_rtv;
+	RenderTargetView2D m_depth_rtv;
 
 	VertexBuffer m_fsq;
 	IndexBuffer m_fsqIndices;

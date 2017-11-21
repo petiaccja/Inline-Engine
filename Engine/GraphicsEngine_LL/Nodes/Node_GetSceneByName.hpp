@@ -23,6 +23,8 @@ class GetSceneByName :
 	virtual public OutputPortConfig<const EntityCollection<MeshEntity>*, const EntityCollection<OverlayEntity>*, const EntityCollection<DirectionalLight>*>
 {
 public:
+	static const char* Info_GetName() { return "GetSceneByName"; }
+
 	GetSceneByName() {}
 
 	void Update() override {}

@@ -61,19 +61,19 @@ void MotionBlur::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	m_inputTexSrv.GetResource()._GetResourcePtr()->SetName("Motion blur input tex SRV");
+	
 
 	Texture2D velocityTex = this->GetInput<1>().Get();
 	m_velocityTexSrv = context.CreateSrv(velocityTex, velocityTex.GetFormat(), srvDesc);
-	m_velocityTexSrv.GetResource()._GetResourcePtr()->SetName("Motion blur velocity tex SRV");
+	
 
 	Texture2D neighborMaxTex = this->GetInput<2>().Get();
 	m_neighborMaxTexSrv = context.CreateSrv(neighborMaxTex, neighborMaxTex.GetFormat(), srvDesc);
-	m_neighborMaxTexSrv.GetResource()._GetResourcePtr()->SetName("Motion blur neighbormax tex SRV");
+	
 
 	Texture2D depthTex = this->GetInput<3>().Get();
 	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
-	m_depthTexSrv.GetResource()._GetResourcePtr()->SetName("Motion blur depth tex SRV");
+	
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -133,7 +133,7 @@ void MotionBlur::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, velocityBindParamDesc, neighborMaxBindParamDesc, depthBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, velocityBindParamDesc, neighborMaxBindParamDesc, depthBindParamDesc }, { samplerDesc });
 	}
 
 	if (!m_fsq.HasObject()) {
@@ -148,9 +148,9 @@ void MotionBlur::Setup(SetupContext& context) {
 			0, 2, 3
 		};
 		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq._GetResourcePtr()->SetName("Motion blur full screen quad vertex buffer");
+		m_fsq.SetName("Motion blur full screen quad vertex buffer");
 		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices._GetResourcePtr()->SetName("Motion blur full screen quad index buffer");
+		m_fsqIndices.SetName("Motion blur full screen quad index buffer");
 	}
 
 	if (!m_PSO) {
@@ -200,14 +200,14 @@ void MotionBlur::Execute(RenderContext& context) {
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));
-	cb._GetResourcePtr()->SetName("Bright Lum pass volatile CB");
+	cb.SetName("Bright Lum pass volatile CB");
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
-	cbv.GetResource()._GetResourcePtr()->SetName("Bright Lum pass CBV");*/
+	*/
 
 	uniformsCBData.maxMotionBlurRadius = 20.0;
 	uniformsCBData.reconstructionFilterTaps = 15; //make sure it's an odd number
 	uniformsCBData.halfExposure = 0.5 * 0.75;
-	uniformsCBData.maxSampleTapDistance = 6; 
+	uniformsCBData.maxSampleTapDistance = 6;
 
 	commandList.SetResourceState(m_motionblur_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
@@ -275,10 +275,16 @@ void MotionBlur::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
-		Texture2D motionblur_tex = context.CreateTexture2D(m_inputTexSrv.GetResource().GetWidth(), m_inputTexSrv.GetResource().GetHeight(), formatMotionBlur, {1, 1, 0, 0});
-		motionblur_tex._GetResourcePtr()->SetName("Motion blur tex");
+		Texture2DDesc desc{
+			m_inputTexSrv.GetResource().GetWidth(),
+			m_inputTexSrv.GetResource().GetHeight(),
+			formatMotionBlur
+		};
+
+		Texture2D motionblur_tex = context.CreateTexture2D(desc, { true, true, false, false });
+		motionblur_tex.SetName("Motion blur tex");
 		m_motionblur_rtv = context.CreateRtv(motionblur_tex, formatMotionBlur, rtvDesc);
-		m_motionblur_rtv.GetResource()._GetResourcePtr()->SetName("motion blur RTV");
+		
 	}
 }
 

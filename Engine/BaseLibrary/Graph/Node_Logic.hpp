@@ -43,8 +43,12 @@ public:
 	static std::string Info_GetName() {
 		return "Any:Forward any input to the output";
 	}
+	std::string GetClassName(bool simplify = false, const std::vector<std::string>& stripNamespaces = {}) const override {
+		auto s = Info_GetName();
+		return s.substr(0, s.find_first_of(':'));
+	}
 
-	static const std::vector<std::string>& Info_GetInputNames() {
+	const std::string& GetInputName(size_t idx) const override {
 		static std::vector<std::string> names = {
 			"In1",
 			"In2",
@@ -53,13 +57,13 @@ public:
 			"In5",
 			"In6"
 		};
-		return names;
+		return names[idx];
 	}
-	static const std::vector<std::string>& Info_GetOutputNames() {
+	const std::string& GetOutputName(size_t idx) const override {
 		static std::vector<std::string> names = {
 			"Out"
 		};
-		return names;
+		return names[idx];
 	}
 private:
 	intptr_t lastActivated;
@@ -110,8 +114,12 @@ public:
 	static std::string Info_GetName() {
 		return "All:Forward last input when all inputs were triggered at least once";
 	}
+	std::string GetClassName(bool simplify = false, const std::vector<std::string>& stripNamespaces = {}) const override {
+		auto s = Info_GetName();
+		return s.substr(0, s.find_first_of(':'));
+	}
 
-	static const std::vector<std::string>& Info_GetInputNames() {
+	const std::string& GetInputName(size_t idx) const override {
 		static std::vector<std::string> names = {
 			"Reset",
 			"In1",
@@ -121,13 +129,13 @@ public:
 			"In5",
 			"In6"
 		};
-		return names;
+		return names[idx];
 	}
-	static const std::vector<std::string>& Info_GetOutputNames() {
+	const std::string& GetOutputName(size_t idx) const override {
 		static std::vector<std::string> names = {
 			"Out"
 		};
-		return names;
+		return names[idx];
 	}
 private:
 	intptr_t lastActivated;

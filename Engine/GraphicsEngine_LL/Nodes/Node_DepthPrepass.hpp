@@ -24,6 +24,7 @@ class DepthPrepass :
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "DepthPrepass"; }
 	DepthPrepass();
 
 	void Update() override {}

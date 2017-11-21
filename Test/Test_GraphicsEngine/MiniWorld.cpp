@@ -47,7 +47,7 @@ MiniWorld::MiniWorld(inl::gxeng::GraphicsEngine * graphicsEngine) {
 
 		m_texture.reset(m_graphicsEngine->CreateImage());
 		m_texture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
-		m_texture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_texture->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 	}
 
 	srand(time(nullptr));

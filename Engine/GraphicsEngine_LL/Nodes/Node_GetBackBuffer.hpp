@@ -20,6 +20,8 @@ class GetBackBuffer :
 	public OutputPortConfig<Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "GetBackBuffer"; }
+
 	virtual void Update() override {}
 	virtual void Notify(InputPortBase* sender) override {}
 

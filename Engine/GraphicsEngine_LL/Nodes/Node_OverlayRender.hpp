@@ -24,6 +24,7 @@ class OverlayRender :
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
+	static const char* Info_GetName() { return "OverlayRender"; }
 	void Update() override {}
 	void Notify(InputPortBase* sender) override {}
 
