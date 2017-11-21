@@ -331,22 +331,28 @@ void Editor::InitGui()
 
 	centerRenderArea->onMouseClickedClonable += [this](Gui* self, CursorEvent& evt)
 	{
-		Ray ray = cam->ScreenPointToRay(input->GetCursorPos());
-		TraceResult traceResult;
-
-		Vec3 spawnPos;
-		if (scene->TraceGraphicsRay(ray, traceResult))
+		if (evt.mouseButton == eMouseBtn::LEFT)
 		{
-			spawnPos = traceResult.pos;
-		}
-		else
-		{
-			spawnPos = cam->GetPos() + cam->GetFrontDir() * 200;
-		}
+			Ray ray = cam->ScreenPointToRay(centerRenderArea->GetCursorPosContentSpace());
+			TraceResult traceResult;
 
-		// Spawn something at that position
-		MeshActor* actor = scene->AddActor_Mesh("D:/sphere2.fbx");
-		actor->SetPos(spawnPos);
+			Vec3 spawnPos;
+			if (scene->TraceGraphicsRay(ray, traceResult))
+			{
+				spawnPos = traceResult.pos;
+			}
+			else
+			{
+				spawnPos = cam->GetPos() + cam->GetFrontDir() * 200;
+			}
+
+			// Spawn something at that position
+			RigidBodyActor* actor = scene->AddActor_RigidBody("D:/sphere2.fbx", 0);
+			MeshActor* childActor = actor->AddActor_Mesh("D:/sphere2.fbx");
+
+			actor->SetPos(spawnPos);
+		}
+		
 	};
 
 	centerRenderArea->onSizeChangedClonable += [this](Gui* self, Vec2 size)

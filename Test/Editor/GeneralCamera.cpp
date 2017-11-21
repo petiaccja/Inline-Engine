@@ -28,8 +28,8 @@ GeneralCamera::GeneralCamera(core::Scene* scene, InputCore* inputCore, gxeng::Pe
 	m_bForwardIntersect = false;
 	m_fSpeed = 100;
 	m_fSmoothness = 1.0;
-	//m_hPanCursor = LoadCursor(0, IDC_HAND);
-	//m_hArrowCursor = LoadCursor(0, IDC_ARROW);
+	m_hPanCursor = LoadCursor(0, IDC_HAND);
+	m_hArrowCursor = LoadCursor(0, IDC_ARROW);
 
 	vRecenterCorrection = Vec2(0, 0);
 	m_fScrollPosPls = 0.0f;
@@ -188,7 +188,7 @@ void GeneralCamera::UpdateMouseMove()
 {
 	bool bLeftBtnDblPress = inputCore->IsMousePressed(eMouseBtn::LEFT);
 	bool bMiddleBtnClick = inputCore->IsMouseClicked(eMouseBtn::MIDDLE);
-	if( bLeftBtnDblPress || bMiddleBtnClick )
+	if(bLeftBtnDblPress || bMiddleBtnClick)
 	{
 		//if( bLeftBtnDblPress )
 		//{
@@ -207,7 +207,7 @@ void GeneralCamera::UpdateMouseMove()
 		//Params.InitAtCursor( EIntersect::CLOSEST | EIntersect::ONLY_VISIBLE );
 		//bIntersect = GetEngine().IntersectGraphicsWorld( Params, &Intersect );
 
-		if( bIntersect )
+		if(bIntersect)
 		{
 			targetLookAt = intersect.pos;
 		}
@@ -215,7 +215,7 @@ void GeneralCamera::UpdateMouseMove()
 
 	bool bOldStyleZooming = false;
 	bool bOldStyleMoving = false;
-	if( inputCore->IsMouseDown(eMouseBtn::LEFT) && inputCore->IsKeyDown(eKey::LEFT_ALT))
+	if(inputCore->IsMouseDown(eMouseBtn::LEFT) && inputCore->IsKeyDown(eKey::LEFT_ALT))
 	{
 		if(inputCore->IsKeyDown(eKey::LEFT_CONTROL))
 		{
@@ -248,7 +248,7 @@ void GeneralCamera::UpdateMouseMove()
 	//	bStartLookingAround = false;
 	//}
 
-	if( bStartLookingAround )
+	if(bStartLookingAround)
 	{
 		m_bLookingAround = true;
 
@@ -265,7 +265,7 @@ void GeneralCamera::UpdateMouseMove()
 		vRecenterCorrection.y = 0;
 	}
 
-	if( m_bLookingAround && inputCore->IsMouseReleased( eMouseBtn::RIGHT ) )
+	if(m_bLookingAround && inputCore->IsMouseReleased(eMouseBtn::RIGHT))
 	{
 		// Recenter cursor
 		Sys::SetCursorPos(m_vRecenterCursorPos);
@@ -283,48 +283,35 @@ void GeneralCamera::UpdateMouseMove()
 	{
 		m_fSmoothness = fNotSmooth;
 
-		Vec2 vCursorPos = Sys::GetCursorPos();// CMainCore::GetInstance()->GetMouse()->GetCursorPos();
+		Vec2 vCursorPos = Sys::GetCursorPos();
 
 		vRecenterCorrection = vCursorPos - m_vRecenterCursorPos;
 
 		// Recenter cursor
 		Sys::SetCursorPos(m_vRecenterCursorPos);
-		//CMainCore::GetInstance()->GetMouse()->SetCursorPos( m_vRecenterCursorPos );
 
-		Vec3 vLookDir = GetTarget() - GetPos();// targetLookAt - targetEye;
+		Vec3 vLookDir = GetTarget() - GetPos();
 
-		//D3DXMATRIX matViewTranspose;
-		//D3DXMatrixTranspose( &matViewTranspose, &m_cCameraParams.m_matView );
 		Vec3 vRight = GetRightDir();
 
 		Vec3 vSavedLookDir = vLookDir;
 
 		// Next call of GetCursorDeltaMove will give me additonal -(vCursor - m_vSavedCursorPos), compensate it
-		Vec2 vCursorMove = inputCore->GetCursorDeltaMove();// pMouse->GetCursorDeltaMoveInScreenSpace() + vRecenterCorrection;
+		Vec2 vCursorMove = inputCore->GetCursorDeltaMove() + vRecenterCorrection;
 		vCursorMove *= MOUSE_ANGLERAD_PER_PIXEL;
 
-		//D3DXMATRIX matAroundRight;
-		//D3DXMatrixRotationAxis( &matAroundRight, &vRight, vCursorMove.y );
-		//D3DXVec3TransformNormal( &vLookDir, &vLookDir, &matAroundRight );
-
-		Quat rot = Quat::AxisAngle(vRight, -vCursorMove.y);
-
+		float xRotAngle = -vCursorMove.y;
+		Quat rot = Quat::AxisAngle(vRight, xRotAngle);
 		vLookDir *= rot;
-		//float fLen = vLookDir.Length();
-		//if( abs( vLookDir.z / (fLen + 0.0001f) ) > 0.99 )
-		//{
-		//	vLookDir = vSavedLookDir;
-		//}
+		
+
+		if (abs(asin(vLookDir.z) + xRotAngle) > 3.0 * 0.5)
+		{
+			vLookDir = vSavedLookDir;
+		}
 
 		Quat rot2 = Quat::AxisAngle(Vec3(0, 0, 1), -vCursorMove.x);
 		vLookDir *= rot2;
-
-		//Vec3 vUp( 0, 0, 1 );
-		//D3DXMATRIX matAroundUp;
-		//D3DXMatrixRotationAxis( &matAroundUp, &vUp, vCursorMove.x );
-		//D3DXVec3TransformNormal( &vLookDir, &vLookDir, &matAroundUp );
-
-		//targetLookAt = targetEye + vLookDir;
 
 		SetTarget(GetPos() + vLookDir);
 	}

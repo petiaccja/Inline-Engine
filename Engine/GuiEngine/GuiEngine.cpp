@@ -61,6 +61,7 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 	{
 		CursorEvent eventData;
 		eventData.cursorPos = event.clientCursorPos;
+		eventData.mouseButton = event.mouseBtn;
 		onMouseReleased(eventData);
 
 		// Mouse click

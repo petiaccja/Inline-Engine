@@ -38,7 +38,7 @@ public:
 	EmptyActor*				AddActor();
 	void					AddActor(Actor* a);
 	MeshActor*				AddActor_Mesh(const path& modelPath);
-	Actor*					AddActor_RigidBody(const path& modelPath, float mass = 0);
+	RigidBodyActor*			AddActor_RigidBody(const path& modelPath, float mass = 0);
 	RigidBodyActor*			AddActor_RigidBodyCapsule(float height, float radius, float mass = 0);
 	PerspCameraActor*		AddActor_PerspCamera();
 	DirectionalLightActor*	AddActor_DirectionalLight();

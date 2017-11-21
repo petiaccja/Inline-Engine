@@ -2,7 +2,7 @@
 #include "SceneScript.hpp"
 #include "Scene.hpp"
 
-using namespace inl::core;
+namespace inl::core {
 
 Actor::Actor(Scene* scene)
 :Actor(scene, TRANSFORM)
@@ -23,4 +23,13 @@ void Actor::Update(float deltaTime)
 void Actor::AddBehavior(ActorBehavior* b)
 {
 	behaviors.push_back(b);
+}
+
+MeshActor* Actor::AddActor_Mesh(const path& modelPath)
+{
+	MeshActor* childActor = scene->AddActor_Mesh(modelPath);
+	Attach(childActor);
+	return childActor;
+}
+
 }

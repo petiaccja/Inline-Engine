@@ -41,22 +41,23 @@ Ray PerspCameraPart::ScreenPointToRay(const Vec2& screenPoint)
 {
 	Ray result;
 	
-	float nearPlaneWidth = tan(cam->GetFOVHorizontal()) * GetNearPlaneDist() * 2.0;
-	float nearPlaneHeight = tan(cam->GetFOVVertical()) * GetNearPlaneDist() * 2.0;
+	float nearPlaneHalfWidth = abs(tan(cam->GetFOVHorizontal() * 0.5)) * GetNearPlaneDist();
+	float nearPlaneHalfHeight = abs(tan(cam->GetFOVVertical() * 0.5)) * GetNearPlaneDist();
 
 	float x = screenPoint.x / viewportRect.GetWidth();
 	float y = screenPoint.y / viewportRect.GetHeight();
 
-	// Make x and y relative to screen center [-0.5, 0.5]
+	// Make x and y relative to screen center
 	x = x * 2 - 1;
-	y = y * 2 - 1;
+	y = y * -2 + 1;
 
 	// Convert x and y to world space
-	x *= nearPlaneWidth;
-	y *= nearPlaneHeight;
+	x *= nearPlaneHalfWidth;
+	y *= nearPlaneHalfHeight;
 
 	Vec3 pointOnNearPlane = GetPos() + GetFrontDir() * GetNearPlaneDist() + GetRightDir() * x + GetUpDir() * y;
 
+	Vec3 pos = GetPos();
 	result.origin = pointOnNearPlane;
 	result.direction = (pointOnNearPlane - GetPos()).Normalized();
 	return result;

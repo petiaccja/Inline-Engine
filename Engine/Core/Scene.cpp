@@ -35,6 +35,14 @@ void Scene::Update(float deltaTime)
 
 bool Scene::TraceGraphicsRay(const Ray& ray, TraceResult& traceResult_out)
 {
+	for (int i = 0; i < 10; ++i)
+	{
+		MeshActor* mesh = this->AddActor_Mesh("D:/sphere2.fbx");
+		mesh->SetScale({ 0.01, 0.01, 0.01 });
+	
+		mesh->SetPos(ray.origin + i * ray.direction * 15.0f);
+	}
+	
 	// Temporarily graphics tracing is solved with physics
 	physics::TraceResult result;
 	if (physicsScene->TraceRay(ray, result))
@@ -138,9 +146,46 @@ MeshActor* Scene::AddActor_Mesh(const path& modelPath)
 	return a;
 }
 
-Actor* Scene::AddActor_RigidBody(const path& modelPath, float mass /*= 0*/)
+RigidBodyActor* Scene::AddActor_RigidBody(const path& modelPath, float mass /*= 0*/)
 {
-	return nullptr;//return Core.AddActor_RigidBody(modelFilePath, mass);
+	// Load model
+	Model model(modelPath.generic_string());
+
+	inl::asset::CoordSysLayout coordSysLayout = { AxisDir::POS_X,   AxisDir::NEG_Z , AxisDir::NEG_Y };
+	
+	auto modelVertices = model.GetVertices<gxeng::Position<0>, gxeng::Normal<0>, gxeng::TexCoord<0>>(0, coordSysLayout);
+	std::vector<unsigned> modelIndices = model.GetIndices(0);
+	
+	
+	physics::IRigidBodyEntity* rigidBodyEntity = nullptr;
+	
+	std::vector<unsigned> tmp = modelIndices;
+	
+	unsigned* indices = tmp.data();
+	int vertexCount  = modelVertices.size();
+	int indexCount = tmp.size();
+	int indexSize = sizeof(unsigned);
+	
+	Vec3* vertices = new Vec3[vertexCount];
+	
+	for (int i = 0; i < vertexCount; ++i)
+	{
+		auto& vertex = modelVertices[i];
+		vertices[i] = vertex.position;
+	}
+	
+	//if (mass != 0)
+	//	rigidBodyEntity = physicsScene->AddEntityRigidStatic(vertices, vertexCount, indices, indexSize, indexCount);
+	//else
+	rigidBodyEntity = physicsScene->AddEntityRigidDynamic(vertices, vertexCount, mass);
+	
+	delete vertices;
+	
+	RigidBodyActor* actor = new RigidBodyActor(this, rigidBodyEntity);
+	parts.push_back(actor);
+	actors.push_back(actor);
+
+	return actor;
 }
 
 RigidBodyActor* Scene::AddActor_RigidBodyCapsule(float height, float radius, float mass /*= 0*/)

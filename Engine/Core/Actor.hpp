@@ -5,9 +5,13 @@
 #include "Common.hpp"
 #include <BaseLibrary\Delegate.hpp>
 #include <functional>
+#include <filesystem>
 
 namespace inl::core {
 
+using namespace std::experimental::filesystem;
+
+class MeshActor;
 
 class Actor : virtual public Part
 {
@@ -18,6 +22,8 @@ public:
 public:
 	void Update(float deltaTime);
 	void AddBehavior(ActorBehavior* b);
+
+	MeshActor* AddActor_Mesh(const path& assetPath);
 
 public:
 	Delegate<void(float deltaSeconds)> onUpdate;
