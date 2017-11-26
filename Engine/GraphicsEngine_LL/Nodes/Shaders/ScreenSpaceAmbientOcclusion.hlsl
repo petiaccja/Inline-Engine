@@ -66,6 +66,15 @@ float3 trans_normal(float3 n, float3 d)
 	return a * d.x + b * d.y + n * d.z;
 }
 
+float falloffFunc(float distSqr)
+{
+	float falloffStart = 0.4;
+	float falloffEnd = 2.0;
+	float falloffStartSqr = falloffStart*falloffStart;
+	float falloffEndSqr = falloffEnd*falloffEnd;
+	return 2.0 * clamp((distSqr - falloffStartSqr) / (falloffEndSqr - falloffStartSqr), 0.0, 1.0);
+}
+
 float linearize_depth(float depth, float near, float far)
 {
 	float A = far / (far - near);
@@ -158,11 +167,14 @@ float4 PSMain(PS_Input input) : SV_TARGET
 			float currLinearDepth = linearize_depth(currDepth, uniforms.nearPlane, uniforms.farPlane);
 			float3 currVsPos = float3(lerp(farPlaneLL.xy, farPlaneUR.xy, currSSPos) / uniforms.farPlane, 1.0) * currLinearDepth;
 
-			float3 vsCurrDir = normalize(currVsPos - vsPos);
+			float3 diff = currVsPos - vsPos;
+			float diffLengthSqr = dot(diff, diff);
+			float3 vsCurrDir = normalize(diff);
 
 			float cosAngle = dot(vsCurrDir, vsViewDir);
 
-			horizons.y = max(horizons.y, cosAngle);
+			float falloff = falloffFunc(diffLengthSqr);
+			horizons.y = max(horizons.y, cosAngle-falloff);
 		}
 
 		for (float c = numSteps*0.5 + 1.0; c <= numSteps; ++c)
@@ -173,11 +185,14 @@ float4 PSMain(PS_Input input) : SV_TARGET
 			float currLinearDepth = linearize_depth(currDepth, uniforms.nearPlane, uniforms.farPlane);
 			float3 currVsPos = float3(lerp(farPlaneLL.xy, farPlaneUR.xy, currSSPos) / uniforms.farPlane, 1.0) * currLinearDepth;
 			
-			float3 vsCurrDir = normalize(currVsPos - vsPos);
+			float3 diff = currVsPos - vsPos;
+			float diffLengthSqr = dot(diff, diff);
+			float3 vsCurrDir = normalize(diff);
 
 			float cosAngle = dot(vsCurrDir, vsViewDir);
 
-			horizons.x = max(horizons.x, cosAngle);
+			float falloff = falloffFunc(diffLengthSqr);
+			horizons.x = max(horizons.x, cosAngle- falloff);
 		}
 
 		//return float4(horizons, 0, 1);
