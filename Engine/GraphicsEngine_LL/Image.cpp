@@ -23,7 +23,7 @@ void Image::CreateResourceView(const Texture2D& texture) {
 	srvdesc.firstArrayElement = 0;
 	srvdesc.mipLevelClamping = 0;
 	srvdesc.mostDetailedMip = 0;
-	srvdesc.numMipLevels = -1;
+	srvdesc.numMipLevels = 1; // change this back to -1
 	srvdesc.planeIndex = 0;
 	m_resourceView = TextureView2D(texture, *m_descriptorHeap, texture.GetFormat(), srvdesc);
 }
