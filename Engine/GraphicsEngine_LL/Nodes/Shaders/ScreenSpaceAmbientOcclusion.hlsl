@@ -6,14 +6,17 @@
 
 struct Uniforms
 {
+	float4x4 invVP, oldVP;
 	float4 farPlaneData0, farPlaneData1;
 	float nearPlane, farPlane, wsRadius, scaleFactor;
+	float temporalIndex;
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
 
 Texture2D depthTex : register(t0);
 SamplerState samp0 : register(s0);
+SamplerState samp1 : register(s1);
 
 struct PS_Input
 {
@@ -73,6 +76,15 @@ float falloffFunc(float distSqr)
 	float falloffStartSqr = falloffStart*falloffStart;
 	float falloffEndSqr = falloffEnd*falloffEnd;
 	return 2.0 * clamp((distSqr - falloffStartSqr) / (falloffEndSqr - falloffStartSqr), 0.0, 1.0);
+}
+
+float3 multiBounce(float ao, float3 albedo)
+{
+	float3 a = 2.0404 * albedo - 0.3324;
+	float3 b = -4.7951 * albedo + 0.6417;
+	float3 c = 2.7552 * albedo + 0.6903;
+
+	return max(ao, ((ao * a + b) * ao + c) * ao);
 }
 
 float linearize_depth(float depth, float near, float far)
@@ -136,10 +148,21 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 	float ao = 0.0;
 
-	const float numDirs = 40;
-	for (float d = 0; d < numDirs; ++d)
+	float2 spatialSamples = fmod(input.position.xy, 4);
+	float2 spatialSamples2 = fmod(input.position.xy, 2);
+	float spatialIndex = spatialSamples.x * 4 + spatialSamples.y;
+	float spatialIndex2 = spatialSamples2.x * 2 + spatialSamples2.y;
+	float numTemporalSamples = 6;
+	float numSpatialSamples = 16;
+	float numSpatialSamples2 = 4;
+	float numEffectiveSamples = numTemporalSamples * numSpatialSamples;
+
+	//const float numDirs = 40;
+	//for (float d = 0; d < numDirs; ++d)
 	{
-		float2 randomFactor = float2(getHalton(seed*numDirs + d, 2), getHalton(seed*numDirs + d, 3));
+		float2 randomFactor = float2(getHalton(spatialIndex + uniforms.temporalIndex * numSpatialSamples, 2), getHalton(spatialIndex + uniforms.temporalIndex * numSpatialSamples, 3));
+		//float2 randomFactor = float2(getHalton(100.0+spatialIndex, 2), getHalton(100.0 + spatialIndex, 3));
+		//float2 randomFactor = float2(getHalton(seed*numDirs + d, 2), getHalton(seed*numDirs + d, 3));
 		//float2 randomFactor = float2(rand(seed*numDirs + d), rand(seed*numDirs + d));
 
 		//return float4(randomFactor, 0, 1);
@@ -158,10 +181,10 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		//theta1 and theta2
 		float2 horizons = float2(-1.0, -1.0);
 
-		const float numSteps = 8.0;
-		for (float c = 0; c < numSteps*0.5; ++c)
+		const float numSteps = 4.0;
+		for (float c = 0; c < numSteps; ++c)
 		{
-			float2 currSSPos = ssPos + (c / numSteps) * ssDir * ssRadius * 2.0;
+			float2 currSSPos = ssPos + (c / numSteps) * ssDir * ssRadius;
 
 			float currDepth = depthTex.Sample(samp0, float2(currSSPos.x, 1.0 - currSSPos.y)).x;
 			float currLinearDepth = linearize_depth(currDepth, uniforms.nearPlane, uniforms.farPlane);
@@ -177,9 +200,11 @@ float4 PSMain(PS_Input input) : SV_TARGET
 			horizons.y = max(horizons.y, cosAngle-falloff);
 		}
 
-		for (float c = numSteps*0.5 + 1.0; c <= numSteps; ++c)
+		ssPos = uv;
+
+		for (float e = 1; e <= numSteps; ++e)
 		{
-			float2 currSSPos = ssPos + (c / numSteps) * ssDir * ssRadius * 2.0;
+			float2 currSSPos = ssPos + (e / numSteps) * ssDir * ssRadius;
 
 			float currDepth = depthTex.Sample(samp0, float2(currSSPos.x, 1.0 - currSSPos.y)).x;
 			float currLinearDepth = linearize_depth(currDepth, uniforms.nearPlane, uniforms.farPlane);
@@ -220,12 +245,15 @@ float4 PSMain(PS_Input input) : SV_TARGET
 			);
 	}
 
-	ao = ao / numDirs;
+	//ao = ao / numDirs;
+
+	//TODO sample real albedo
+	return float4(multiBounce(ao, float3(1, 1, 1)), 1.0);
+	//return ao;
 
 	//return float4(haltonFactor, 0, 1);
 	//return float4(float2(rand(seed), rand(seed)), 0, 1);
 	//return float4(vsDepthNormal, 1.0);
 	//return ssRadius*0.1;
 	//return float4(vsViewDir, 1.0);
-	return ao;
 }

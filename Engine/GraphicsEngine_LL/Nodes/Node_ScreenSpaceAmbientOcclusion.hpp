@@ -36,13 +36,29 @@ public:
 protected:
 	std::optional<Binder> m_binder;
 	BindParameter m_depthTexBindParam;
+	BindParameter m_inputTexBindParam;
+	BindParameter m_temporalTexBindParam;
 	BindParameter m_uniformsBindParam;
 	ShaderProgram m_shader;
+	ShaderProgram m_horizontalShader;
+	ShaderProgram m_verticalShader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
+	std::unique_ptr<gxapi::IPipelineState> m_horizontalPSO;
+	std::unique_ptr<gxapi::IPipelineState> m_vertical0PSO;
+	std::unique_ptr<gxapi::IPipelineState> m_vertical1PSO;
 
 protected: // outputs
 	bool m_outputTexturesInited = false;
 	RenderTargetView2D m_ssao_rtv;
+	RenderTargetView2D m_blur_horizontal_rtv;
+	RenderTargetView2D m_blur_vertical0_rtv;
+	RenderTargetView2D m_blur_vertical1_rtv;
+	TextureView2D m_ssao_srv;
+	TextureView2D m_blur_horizontal_srv;
+	TextureView2D m_blur_vertical0_srv;
+	TextureView2D m_blur_vertical1_srv;
+
+	Mat44 m_prevVP;
 
 	VertexBuffer m_fsq;
 	IndexBuffer m_fsqIndices;
