@@ -157,12 +157,12 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float numSpatialSamples2 = 4;
 	float numEffectiveSamples = numTemporalSamples * numSpatialSamples;
 
-	//const float numDirs = 40;
+	//const float numDirs = 70;
 	//for (float d = 0; d < numDirs; ++d)
 	{
 		float2 randomFactor = float2(getHalton(spatialIndex + uniforms.temporalIndex * numSpatialSamples, 2), getHalton(spatialIndex + uniforms.temporalIndex * numSpatialSamples, 3));
 		//float2 randomFactor = float2(getHalton(100.0+spatialIndex, 2), getHalton(100.0 + spatialIndex, 3));
-		//float2 randomFactor = float2(getHalton(seed*numDirs + d, 2), getHalton(seed*numDirs + d, 3));
+		//float2 randomFactor = float2(getHalton(seed + d, 2), getHalton(seed + d, 3));
 		//float2 randomFactor = float2(rand(seed*numDirs + d), rand(seed*numDirs + d));
 
 		//return float4(randomFactor, 0, 1);
