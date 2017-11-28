@@ -39,12 +39,12 @@ public:
 protected:
 	std::optional<Binder> m_binder;
 	BindParameter m_uniformsBindParam;
-	ShaderProgram m_shader;
-	std::unique_ptr<gxapi::IPipelineState> m_PSO;
+	ShaderProgram m_shadowGenShader;
+	std::unique_ptr<gxapi::IPipelineState> m_shadowGenPSO;
 	gxapi::eFormat m_depthStencilFormat;
 
 private: // render context
-	std::vector<DepthStencilView2D> m_dsvs;
+	std::vector<DepthStencilView2D> m_pointLightDsvs;
 	const EntityCollection<MeshEntity>* m_entities;
 };
 

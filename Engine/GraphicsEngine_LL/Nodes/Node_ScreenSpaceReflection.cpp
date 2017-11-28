@@ -255,6 +255,12 @@ void ScreenSpaceReflection::Execute(RenderContext& context) {
 
 	Uniforms uniformsCBData;
 
+	bool peti = true;
+	if (peti)
+	{
+		return;
+	}
+
 	//DebugDrawManager::GetInstance().AddSphere(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1, 1);
 
 	//create single-frame only cb

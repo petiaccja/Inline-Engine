@@ -14,7 +14,7 @@ namespace inl::gxeng::nodes {
 
 struct Uniforms
 {
-	Mat44_Packed model;
+	Mat44_Packed mvp;
 };
 
 static bool CheckMeshFormat(const Mesh& mesh) {
@@ -60,7 +60,7 @@ void ShadowMapGen::Initialize(EngineContext & context) {
 }
 
 void ShadowMapGen::Reset() {
-	m_dsvs.clear();
+	m_pointLightDsvs.clear();
 	GetInput(0)->Clear();
 	GetInput(1)->Clear();
 	GetInput(2)->Clear();
@@ -68,23 +68,22 @@ void ShadowMapGen::Reset() {
 
 
 void ShadowMapGen::Setup(SetupContext & context) {
-	Texture2D& renderTarget = this->GetInput<0>().Get();
-	const gxapi::eFormat currDepthStencil = FormatAnyToDepthStencil(renderTarget.GetFormat());
+	Texture2D& pointLightCubemaps = this->GetInput<0>().Get();
+	const gxapi::eFormat pointLightDepthStencilFormat = FormatAnyToDepthStencil(pointLightCubemaps.GetFormat());
 	gxapi::DsvTexture2DArray dsvDesc;
 	dsvDesc.activeArraySize = 1;
 	dsvDesc.firstMipLevel = 0;
-	m_dsvs.resize(renderTarget.GetArrayCount());
-	for (int i = 0; i < m_dsvs.size(); i++) {
+	m_pointLightDsvs.resize(pointLightCubemaps.GetArrayCount());
+	for (int i = 0; i < m_pointLightDsvs.size(); i++) {
 		dsvDesc.firstArrayElement = i;
-		m_dsvs[i] = context.CreateDsv(renderTarget, currDepthStencil, dsvDesc);
-		m_dsvs[i].GetResource().SetName((std::string("CSM cascade depth tex view #") + std::to_string(i)).c_str());
+		m_pointLightDsvs[i] = context.CreateDsv(pointLightCubemaps, pointLightDepthStencilFormat, dsvDesc);
+		m_pointLightDsvs[i].GetResource().SetName((std::string("Point Light shadow map depth tex view #") + std::to_string(i)).c_str());
 	}
 
 	m_entities = this->GetInput<1>().Get();
 	this->GetInput<1>().Clear();
 
-	this->GetOutput<0>().Set(renderTarget);
-
+	this->GetOutput<0>().Set(pointLightCubemaps);
 
 	if (!m_binder.has_value()) {
 		this->GetInput<0>().Set({});
@@ -117,8 +116,8 @@ void ShadowMapGen::Setup(SetupContext & context) {
 		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc },{ samplerDesc });
 	}
 
-	if (!m_PSO || currDepthStencil != m_depthStencilFormat) {
-		m_depthStencilFormat = currDepthStencil;
+	if (!m_shadowGenPSO || pointLightDepthStencilFormat != m_depthStencilFormat) {
+		m_depthStencilFormat = pointLightDepthStencilFormat;
 
 		//TODO
 		constexpr unsigned cascadeSize = 1024;
@@ -128,29 +127,31 @@ void ShadowMapGen::Setup(SetupContext & context) {
 		shaderParts.vs = true;
 		shaderParts.ps = true;
 
-		m_shader = context.CreateShader("CSM", shaderParts, "");
-
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
 			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
 			gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
 			gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
 		};
 
-		gxapi::GraphicsPipelineStateDesc psoDesc;
-		psoDesc.inputLayout.elements = inputElementDesc.data();
-		psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-		psoDesc.rootSignature = m_binder->GetRootSignature();
-		psoDesc.vs = m_shader.vs;
-		psoDesc.ps = m_shader.ps;
-		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
-		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+		{
+			m_shadowGenShader = context.CreateShader("ShadowGen", shaderParts, "");
 
-		psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
-		psoDesc.depthStencilFormat = m_depthStencilFormat;
+			gxapi::GraphicsPipelineStateDesc psoDesc;
+			psoDesc.inputLayout.elements = inputElementDesc.data();
+			psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
+			psoDesc.rootSignature = m_binder->GetRootSignature();
+			psoDesc.vs = m_shadowGenShader.vs;
+			psoDesc.ps = m_shadowGenShader.ps;
+			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
+			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
-		psoDesc.numRenderTargets = 0;
+			psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
+			psoDesc.depthStencilFormat = m_depthStencilFormat;
 
-		m_PSO.reset(context.CreatePSO(psoDesc));
+			psoDesc.numRenderTargets = 0;
+
+			m_shadowGenPSO.reset(context.CreatePSO(psoDesc));
+		}
 	}
 }
 
@@ -158,75 +159,120 @@ void ShadowMapGen::Setup(SetupContext & context) {
 void ShadowMapGen::Execute(RenderContext & context) {
 	GraphicsCommandList& commandList = context.AsGraphics();
 
-	assert(m_dsvs.size() > 0);
+	Mat44 pointLightViewMatrices[6];
 
-	Texture2D cascadeTextures = m_dsvs[0].GetResource();
-	const uint16_t numCascades = m_dsvs.size();
-	const uint64_t cascadeWidth = cascadeTextures.GetWidth();
-	const uint64_t cascadeHeight = cascadeTextures.GetHeight();
+	//right
+	pointLightViewMatrices[0] = Mat44(0,  1, 0, 0,
+									 -1,  0, 0, 0,
+									  0,  0, 1, 0,
+									  0,  0, 0, 1);
+	//left
+	pointLightViewMatrices[1] = Mat44(0, -1, 0, 0,
+									  1,  0, 0, 0,
+									  0,  0, 1, 0,
+									  0,  0, 0, 1);
+	//forward
+	pointLightViewMatrices[2] = Mat44(1, 0, 0, 0,
+									  0, 1, 0, 0,
+									  0, 0, 1, 0,
+									  0, 0, 0, 1);
+	//backward
+	pointLightViewMatrices[3] = Mat44(-1,  0, 0, 0,
+									   0, -1, 0, 0,
+									   0,  0, 1, 0,
+									   0,  0, 0, 1);
+	//up
+	pointLightViewMatrices[4] = Mat44(1, 0,  0, 0,
+									  0, 0, -1, 0,
+									  0, 1,  0, 0,
+									  0, 0,  0, 1);
+	//down
+	pointLightViewMatrices[5] = Mat44(-1,  0,  0, 0,
+									   0,  0, -1, 0,
+									   0, -1,  0, 0,
+									   0,  0,  0, 1);
 
-	gxapi::Rectangle rect{ 0, (int)cascadeTextures.GetHeight(), 0, (int)cascadeTextures.GetWidth() };
-	commandList.SetScissorRects(1, &rect);
+	Mat44 pointLightProjMatrix = Mat44::Perspective(90.0f / 180.f*3.14159f, 1.0f, 0.1f, 100.0f);
 
-	commandList.SetPipelineState(m_PSO.get());
-	commandList.SetGraphicsBinder(&m_binder.value());
-	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
+	Mat44 pointLightModelMatrix = Mat44::Translation(Vec3(0, 0, 1));
 
-	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
-	std::vector<unsigned> sizes;
-	std::vector<unsigned> strides;
+	Mat44 pointLightMVPs[6];
+	for (int c = 0; c < 6; ++c)
+	{
+		pointLightMVPs[c] = pointLightModelMatrix * pointLightViewMatrices[c] * pointLightProjMatrix;
+	}
 
-	commandList.SetResourceState(cascadeTextures, gxapi::eResourceState::DEPTH_WRITE, gxapi::ALL_SUBRESOURCES);
-	for (int cascadeIdx = 0; cascadeIdx < numCascades; ++cascadeIdx) {
-		commandList.SetRenderTargets(0, nullptr, &m_dsvs[cascadeIdx]);
-		commandList.ClearDepthStencil(m_dsvs[cascadeIdx], 1, 0, 0, nullptr, true, true);
 
-		gxapi::Viewport viewport;
-		viewport.height = (float)cascadeHeight;
-		viewport.width = (float)cascadeWidth;
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-		viewport.topLeftY = 0;
-		viewport.topLeftX = 0;
-		commandList.SetViewports(1, &viewport);
+	{ //render point light shadow maps
+		assert(m_pointLightDsvs.size() > 0);
 
-		// Iterate over all entities
-		for (const MeshEntity* entity : *m_entities) {
-			// Get entity parameters
-			Mesh* mesh = entity->GetMesh();
-			auto position = entity->GetPosition();
+		Texture2D pointLightShadowMaps = m_pointLightDsvs[0].GetResource();
+		const uint16_t numShadowMaps = m_pointLightDsvs.size();
+		const uint64_t shadowMapWidth = pointLightShadowMaps.GetWidth();
+		const uint64_t shadowMapHeight = pointLightShadowMaps.GetHeight();
 
-			if (mesh->GetIndexBuffer().GetIndexCount() == 3600)
-			{
-				continue; //skip quadcopter for visualization purposes (obscures camera...)
+		gxapi::Rectangle rect{ 0, (int)pointLightShadowMaps.GetHeight(), 0, (int)pointLightShadowMaps.GetWidth() };
+		commandList.SetScissorRects(1, &rect);
+
+		commandList.SetPipelineState(m_shadowGenPSO.get());
+		commandList.SetGraphicsBinder(&m_binder.value());
+		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
+
+		std::vector<const gxeng::VertexBuffer*> vertexBuffers;
+		std::vector<unsigned> sizes;
+		std::vector<unsigned> strides;
+
+		commandList.SetResourceState(pointLightShadowMaps, gxapi::eResourceState::DEPTH_WRITE, gxapi::ALL_SUBRESOURCES);
+		for (int shadowMapIdx = 0; shadowMapIdx < numShadowMaps; ++shadowMapIdx) {
+			commandList.SetRenderTargets(0, nullptr, &m_pointLightDsvs[shadowMapIdx]);
+			commandList.ClearDepthStencil(m_pointLightDsvs[shadowMapIdx], 1, 0, 0, nullptr, true, true);
+
+			gxapi::Viewport viewport;
+			viewport.height = (float)shadowMapWidth;
+			viewport.width = (float)shadowMapHeight;
+			viewport.minDepth = 0.0f;
+			viewport.maxDepth = 1.0f;
+			viewport.topLeftY = 0;
+			viewport.topLeftX = 0;
+			commandList.SetViewports(1, &viewport);
+
+			// Iterate over all entities
+			for (const MeshEntity* entity : *m_entities) {
+				// Get entity parameters
+				Mesh* mesh = entity->GetMesh();
+				auto position = entity->GetPosition();
+
+				if (mesh->GetIndexBuffer().GetIndexCount() == 3600)
+				{
+					continue; //skip quadcopter for visualization purposes (obscures camera...)
+				}
+
+				// Draw mesh
+				if (!CheckMeshFormat(*mesh)) {
+					assert(false);
+					continue;
+				}
+
+				ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
+
+				Mat44 model = entity->GetTransform();
+
+				Uniforms uniformsCBData;
+				uniformsCBData.mvp = model * pointLightMVPs[shadowMapIdx % 6];
+
+				commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(uniformsCBData));
+
+				for (auto& vb : vertexBuffers) {
+					commandList.SetResourceState(*vb, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+				}
+				commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::eResourceState::INDEX_BUFFER);
+
+				commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
+				commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
+				commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
 			}
-
-			// Draw mesh
-			if (!CheckMeshFormat(*mesh)) {
-				assert(false);
-				continue;
-			}
-
-			ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
-
-			Mat44 model = entity->GetTransform();
-
-			Uniforms uniformsCBData;
-			uniformsCBData.model = model;
-
-			commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(uniformsCBData));
-
-			for (auto& vb : vertexBuffers) {
-				commandList.SetResourceState(*vb, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-			}
-			commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::eResourceState::INDEX_BUFFER);
-
-			commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
-			commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
-			commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
 		}
 	}
 }
-
 
 } // namespace inl::gxeng::nodes

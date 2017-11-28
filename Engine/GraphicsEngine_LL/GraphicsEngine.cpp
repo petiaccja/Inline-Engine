@@ -833,7 +833,9 @@ void GraphicsEngine::CreatePipeline() {
 	createShadowmapTextures->GetInput<0>().Set(1024);
 	createShadowmapTextures->GetInput<1>().Set(1024);
 	createShadowmapTextures->GetInput<2>().Set(gxapi::eFormat::R32_TYPELESS);
-	createShadowmapTextures->GetInput<3>().Set(1);
+	createShadowmapTextures->GetInput<3>().Set(6);
+	usage = TextureUsage();
+	usage.depthStencil = true;
 	createShadowmapTextures->GetInput<4>().Set(usage);
 	createShadowmapTextures->GetInput<5>().Set(true);
 
@@ -1048,12 +1050,12 @@ void GraphicsEngine::CreatePipeline() {
 	blending.mask = gxapi::eColorMask::ALL;
 
 	alphaBlend->GetInput<0>().Link(guiRender->GetOutput(0));
-	//alphaBlend->GetInput<1>().Link(debugDraw->GetOutput(0));
+	alphaBlend->GetInput<1>().Link(debugDraw->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(smaa->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(voxelization->GetOutput(1));
 	//alphaBlend->GetInput<1>().Link(volumetricLighting->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(screenSpaceShadow->GetOutput(0));
-	alphaBlend->GetInput<1>().Link(screenSpaceReflection->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(screenSpaceReflection->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(screenSpaceAmbientOcclusion->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(textRender->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(dofMain->GetOutput(0));
@@ -1122,9 +1124,10 @@ void GraphicsEngine::CreatePipeline() {
 		lensFlareDirtEnv,
 		lensFlareStarEnv,
 		dofMain,
-		voxelization,
-		volumetricLighting,
-		//shadowMapGen,
+		//voxelization,
+		//volumetricLighting,
+		shadowMapGen,
+		createShadowmapTextures,
 		screenSpaceShadow,
 		screenSpaceReflection,
 		textRender,
