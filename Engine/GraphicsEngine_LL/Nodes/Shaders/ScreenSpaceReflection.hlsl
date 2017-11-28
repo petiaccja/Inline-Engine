@@ -12,7 +12,7 @@ struct Uniforms
 	float4 vsCamPos;
 	float nearPlane, farPlane, stride, jitter;
 	float4 farPlaneData0, farPlaneData1;
-	float maxDistance;
+	float2 direction; float maxDistance;
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
@@ -275,7 +275,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 	float4 result = float4(0, 0, 0, 0);
 
-	float roughness = 0.1;
+	float roughness = 0.2;
 
 	if (roughness >= 0.01)
 	{

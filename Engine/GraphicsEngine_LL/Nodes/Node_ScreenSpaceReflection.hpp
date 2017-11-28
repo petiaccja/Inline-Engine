@@ -39,7 +39,12 @@ protected:
 	BindParameter m_depthTexBindParam;
 	BindParameter m_uniformsBindParam;
 	ShaderProgram m_shader;
+	ShaderProgram m_downsampleShader;
+	ShaderProgram m_blurShader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
+	std::vector<std::unique_ptr<gxapi::IPipelineState> > m_downsamplePSO;
+	std::vector<std::unique_ptr<gxapi::IPipelineState> > m_blurHorizontalPSO;
+	std::vector<std::unique_ptr<gxapi::IPipelineState> > m_blurVerticalPSO;
 
 protected: // outputs
 	bool m_outputTexturesInited = false;
@@ -52,6 +57,10 @@ protected: // outputs
 
 protected: // render context
 	TextureView2D m_inputTexSrv;
+	std::vector<RenderTargetView2D> m_input_rtv;
+	std::vector<TextureView2D> m_input_srv;
+	std::vector<RenderTargetView2D> m_blur_rtv;
+	std::vector<TextureView2D> m_blur_srv;
 	TextureView2D m_depthTexSrv;
 	const BasicCamera* m_camera;
 
