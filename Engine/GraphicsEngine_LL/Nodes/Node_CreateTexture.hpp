@@ -24,12 +24,17 @@ namespace inl::gxeng::nodes {
 class CreateTexture :
 	virtual public GraphicsNode,
 	public GraphicsTask,
-	public InputPortConfig<unsigned, unsigned, gxapi::eFormat, uint16_t, TextureUsage, bool>,
+	public InputPortConfig<unsigned, unsigned, gxapi::eFormat, uint16_t, TextureUsage, bool, bool>,
 	public OutputPortConfig<gxeng::Texture2D>
 {
 public:
 	static const char* Info_GetName() { return "CreateTexture"; }
 	virtual void Update() override {}
+
+	static int getNumMips(int w, int h, int d)
+	{
+		return 1 + std::floor(std::log2(std::max(std::max(w, h), d)));
+	}
 
 	virtual void Notify(InputPortBase* sender) override {}
 
@@ -48,6 +53,7 @@ public:
 		uint16_t arrayCount = GetInput<3>().Get();
 		TextureUsage usage = GetInput<4>().Get();
 		bool isCubemap = GetInput<5>().Get();
+		bool mipchainNeeded = GetInput<6>().Get();
 
 		auto UsageToFlags = [](TextureUsage usage) {
 			gxapi::eResourceFlags flags;
@@ -74,7 +80,7 @@ public:
 		{
 			if (!isCubemap)
 			{
-				m_texture = context.CreateTexture2D({ width, height, format, 1, arrayCount }, usage);
+				m_texture = context.CreateTexture2D({ width, height, format, uint16_t(mipchainNeeded ? getNumMips(width, height, 1) : 1), arrayCount }, usage);
 			}
 			else
 			{

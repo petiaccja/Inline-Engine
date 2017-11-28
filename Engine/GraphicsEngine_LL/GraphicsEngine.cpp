@@ -75,7 +75,6 @@ namespace gxeng {
 using namespace gxapi;
 
 
-
 GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	: m_gxapiManager(desc.gxapiManager),
 	m_graphicsApi(desc.graphicsApi),
@@ -855,6 +854,7 @@ void GraphicsEngine::CreatePipeline() {
 	usage = TextureUsage();
 	usage.renderTarget = true;
 	createHdrRenderTarget->GetInput<4>().Set(usage);
+	createHdrRenderTarget->GetInput<6>().Set(true);
 
 	forwardRender->GetInput(0)->Link(createHdrRenderTarget->GetOutput(0));
 	forwardRender->GetInput(1)->Link(depthPrePass->GetOutput(0));
@@ -1053,8 +1053,8 @@ void GraphicsEngine::CreatePipeline() {
 	//alphaBlend->GetInput<1>().Link(voxelization->GetOutput(1));
 	//alphaBlend->GetInput<1>().Link(volumetricLighting->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(screenSpaceShadow->GetOutput(0));
-	//alphaBlend->GetInput<1>().Link(screenSpaceReflection->GetOutput(0));
-	alphaBlend->GetInput<1>().Link(screenSpaceAmbientOcclusion->GetOutput(0));
+	alphaBlend->GetInput<1>().Link(screenSpaceReflection->GetOutput(0));
+	//alphaBlend->GetInput<1>().Link(screenSpaceAmbientOcclusion->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(textRender->GetOutput(0));
 	//alphaBlend->GetInput<1>().Link(dofMain->GetOutput(0));
 	alphaBlend->GetInput<2>().Set(blending);
