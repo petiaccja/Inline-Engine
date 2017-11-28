@@ -162,39 +162,44 @@ void ShadowMapGen::Execute(RenderContext & context) {
 	Mat44 pointLightViewMatrices[6];
 
 	//right
-	pointLightViewMatrices[0] = Mat44(0,  1, 0, 0,
+	pointLightViewMatrices[0] = Mat44(0,  0, 1, 0,
 									 -1,  0, 0, 0,
-									  0,  0, 1, 0,
+									  0,  1, 0, 0,
 									  0,  0, 0, 1);
 	//left
-	pointLightViewMatrices[1] = Mat44(0, -1, 0, 0,
-									  1,  0, 0, 0,
-									  0,  0, 1, 0,
-									  0,  0, 0, 1);
-	//forward
-	pointLightViewMatrices[2] = Mat44(1, 0, 0, 0,
-									  0, 1, 0, 0,
-									  0, 0, 1, 0,
-									  0, 0, 0, 1);
-	//backward
-	pointLightViewMatrices[3] = Mat44(-1,  0, 0, 0,
-									   0, -1, 0, 0,
-									   0,  0, 1, 0,
-									   0,  0, 0, 1);
-	//up
-	pointLightViewMatrices[4] = Mat44(1, 0,  0, 0,
-									  0, 0, -1, 0,
+	pointLightViewMatrices[1] = Mat44(0, 0, -1, 0,
+									  1, 0,  0, 0,
 									  0, 1,  0, 0,
 									  0, 0,  0, 1);
-	//down
+	//forward
+	pointLightViewMatrices[2] = Mat44(1, 0, 0, 0,
+									  0, 0, 1, 0,
+									  0, 1, 0, 0,
+									  0, 0, 0, 1);
+	//backward
+	pointLightViewMatrices[3] = Mat44(-1, 0,  0, 0,
+									   0, 0, -1, 0,
+									   0, 1,  0, 0,
+									   0, 0,  0, 1);
+	//up
+	pointLightViewMatrices[4] = Mat44(1,  0, 0, 0,
+									  0, -1, 0, 0,
+									  0,  0, 1, 0,
+									  0,  0, 0, 1);
+	//down 
 	pointLightViewMatrices[5] = Mat44(-1,  0,  0, 0,
-									   0,  0, -1, 0,
 									   0, -1,  0, 0,
+									   0,  0, -1, 0,
 									   0,  0,  0, 1);
 
 	Mat44 pointLightProjMatrix = Mat44::Perspective(90.0f / 180.f*3.14159f, 1.0f, 0.1f, 100.0f);
 
-	Mat44 pointLightModelMatrix = Mat44::Translation(Vec3(0, 0, 1));
+
+	//TODO wtf??????????
+	Mat44 pointLightModelMatrix = Mat44(1, 0,  0, 0,
+										0, 1,  0, 0,
+										0, 0,  1, 0,
+										0, 0, -1, 1);
 
 	Mat44 pointLightMVPs[6];
 	for (int c = 0; c < 6; ++c)
