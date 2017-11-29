@@ -254,3 +254,4 @@ _Pvt_Extensions
 Test/QC_Simulator/pipeline_graph_json\.dot
 
 Tools/pipeline_graph_json\.svg
+*.stackdump
