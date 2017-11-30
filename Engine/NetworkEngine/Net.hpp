@@ -7,26 +7,24 @@
 #undef SendMessage
 #undef SetPort
 
-typedef int socklen_t;
-
 #else
 	#include <stdio.h>
 	#include <unistd.h>
 	#include <sys/types.h>
-	#include <sys/socket.h>
+	#include <sys/Im_socketket.h>
 	#include <netinet/in.h>
 	#include <arpa/inet.h>
 	#include <netdb.h>
 	#include <sys/ioctl.h>
 	#include <string.h>
 
-	#define SOCKET_ERROR -1
+	#define m_socketKET_ERROR -1
 	#define NO_ERROR 0
-	#define INVALID_SOCKET NO_ERROR 
+	#define INVALID_Im_socketket NO_ERROR 
 
-	#define SOCKET int
-	#define closesocket close
-	#define ioctlsocket ioctl
+	#define m_socketKET int
+	#define closem_socketket close
+	#define ioctlm_socketket ioctl
 
 	inline int WSAGetLastError()
 	{
@@ -35,4 +33,4 @@ typedef int socklen_t;
 
 #endif
 
-#define DEFAULT_LISTEN_PORT 61250
+#define DEFAULT_SERVER_PORT 61250

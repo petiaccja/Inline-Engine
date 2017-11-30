@@ -21,34 +21,22 @@
     <ClInclude Include="Util.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Definitions.hpp">
+    <ClInclude Include="Socket.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TcpServer.hpp">
+    <ClInclude Include="ISocket.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TcpClient.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="NetworkBuffer.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="NetworkMessage.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Enums.hpp">
+    <ClInclude Include="Net.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="TcpClient.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="NetworkMessage.cpp">
+    <ClCompile Include="ISocket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TcpServer.cpp">
+    <ClCompile Include="Socket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

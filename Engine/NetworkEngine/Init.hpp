@@ -3,22 +3,25 @@
 #ifdef _MSC_VER
 
 	#define WIN32_LEAN_AND_MEAN
-	#include <winsock2.h>
+	#include <winm_socketk2.h>
 	#include <windows.h>
 
-	namespace inl::net::win32
+	namespace inl::net
 	{
-		static WSADATA WsaData;
-		static bool Initialized;
+		namespace priv
+		{
+			static WSADATA WsaData;
+			static bool Initialized;
+		}
 
 		inline static bool Initialize()
 		{
-			return (Initialized = WSAStartup(MAKEWORD(2, 2), &WsaData)) != 0;
+			return (priv::Initialized = WSAStartup(MAKEWORD(2, 2), &priv::WsaData)) != 0;
 		}
 
 		inline static void Cleanup()
 		{
-			if (Initialized)
+			if (priv::Initialized)
 			{
 				WSACleanup();
 				Initialized = false;
@@ -28,10 +31,8 @@
 
 #else
 
-	namespace inl::net::win32
+	namespace inl::net
 	{
-		static bool Initialized = true;
-
 		inline static bool Initialize() { return true; }
 		inline static void Cleanup() { }
 	}
