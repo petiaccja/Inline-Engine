@@ -48,14 +48,14 @@ bool Socket::Listen()
 }
 
 
-bool Socket::HasPendingConnection(bool& hasPendingConnection)
+bool Socket::WaitForPendingConnection(bool& hasPendingConnection, std::chrono::milliseconds t)
 {
 	bool hasSucceeded = false;
 	hasPendingConnection = false;
 
 	if (HasState(SocketParam::HasError) == SocketReturn::No)
 	{
-		SocketReturn state = HasState(SocketParam::CanRead);
+		SocketReturn state = HasState(SocketParam::CanRead, t);
 
 		hasSucceeded = state != SocketReturn::EncounteredError;
 		hasPendingConnection = state == SocketReturn::Yes;
@@ -88,24 +88,6 @@ ISocket* Socket::Accept()
 	if (newSocket != INVALID_SOCKET)
 	{
 		return new Socket(newSocket, m_socketType);
-	}
-
-	return nullptr;
-}
-
-
-ISocket* Socket::Accept(std::string& outAddr)
-{
-	socklen_t SizeOf = sizeof(sockaddr_in);
-	struct sockaddr_in addr;
-	memset(&addr, 0, sizeof(sockaddr_in));
-	SOCKET NewSocket = accept(m_socket, (sockaddr*)&addr, &SizeOf);
-	outAddr = inet_ntoa(addr.sin_addr);
-	outAddr += ntohs(addr.sin_port);
-
-	if (NewSocket != INVALID_SOCKET)
-	{
-		return new Socket(NewSocket, m_socketType);
 	}
 
 	return nullptr;

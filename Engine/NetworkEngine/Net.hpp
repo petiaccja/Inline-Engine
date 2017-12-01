@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 #ifdef _MSC_VER
 #pragma comment(lib, "ws2_32.lib")
 #include <winsock2.h>

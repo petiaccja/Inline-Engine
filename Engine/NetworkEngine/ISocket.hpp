@@ -42,7 +42,7 @@ protected:
 public:
 	inline ISocket() :
 		m_socketType(SOCKTYPE_Unknown)
-	{ 
+	{
 	}
 
 	inline ISocket(SocketType InSocketType) :
@@ -58,10 +58,9 @@ public:
 	virtual bool Bind(int16_t port = DEFAULT_SERVER_PORT) = 0;
 	virtual bool Connect(const std::string& addrStr) = 0;
 	virtual bool Listen() = 0;
-	virtual bool HasPendingConnection(bool& hasPendingConnection) = 0;
+	virtual bool WaitForPendingConnection(bool& hasPendingConnection, std::chrono::milliseconds t) = 0;
 	virtual bool HasPendingData(uint32_t& pendingDataSize) = 0;
 	virtual class ISocket* Accept() = 0;
-	virtual class ISocket* Accept(std::string& outAddr) = 0;
 	virtual bool SendTo(const uint8_t* data, int32_t count, int32_t& sent, const std::string& addrDest);
 	virtual bool Send(const uint8_t* data, int32_t count, int32_t& sent);
 	virtual bool RecvFrom(uint8_t* data, int32_t size, int32_t& read, std::string& srcAddr, SocketReceiveFlags flags = SocketReceiveFlags::None);

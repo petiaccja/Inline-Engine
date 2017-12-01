@@ -112,10 +112,9 @@ public:
 	virtual bool Bind(int16_t port = DEFAULT_SERVER_PORT) override;
 	virtual bool Connect(const std::string& addrStr) override;
 	virtual bool Listen() override;
-	virtual bool HasPendingConnection(bool& hasPendingConnection) override;
+	virtual bool WaitForPendingConnection(bool& hasPendingConnection, std::chrono::milliseconds t) override;
 	virtual bool HasPendingData(uint32_t& pendingDataSize) override;
 	virtual class ISocket* Accept() override;
-	virtual class ISocket* Accept(std::string& outAddr) override;
 	virtual bool SendTo(const uint8_t* data, int32_t count, int32_t& sent, const std::string& addrDest);
 	virtual bool Send(const uint8_t* data, int32_t count, int32_t& sent);
 	virtual bool RecvFrom(uint8_t* data, int32_t size, int32_t& read, std::string& srcAddr, SocketReceiveFlags flags = SocketReceiveFlags::None);

@@ -1,15 +1,11 @@
 #include "Util.hpp"
+#include "TcpListener.hpp"
 
 #include <iostream>
 
-using namespace inl::net;
-using namespace inl::net::util;
-
 int main()
 {
-	/*char *buffer = new char[0]();
-	itoa(0xa5a5, buffer, 16);
-	std::cout << strlen(buffer) << std::endl;*/
+	TcpListener listener(DEFAULT_SERVER_PORT);
 	getchar();
 	return 0;
 }
