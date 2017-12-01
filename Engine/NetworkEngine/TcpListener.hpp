@@ -30,17 +30,7 @@ public:
 
 	~TcpListener()
 	{
-		if (Thread != nullptr)
-		{
-			Thread->Kill(true);
-			delete Thread;
-		}
-
-		if (m_deleteSocket && (m_socket != nullptr))
-		{
-			delete m_socket;
-			m_socket = nullptr;
-		}
+		Stop();
 	}
 
 public:
