@@ -16,7 +16,6 @@ public:
 		, m_socket(nullptr)
 		, m_stopping(false)
 	{
-		//Thread = FRunnableThread::Create(this, TEXT("FTcpListener"), 8 * 1024, TPri_Normal);
 	}
 
 	TcpListener(Socket *InSocket, std::chrono::milliseconds inSleepTime = std::chrono::milliseconds(1))
@@ -25,7 +24,6 @@ public:
 		, m_socket(InSocket)
 		, m_stopping(false)
 	{
-		//Thread = FRunnableThread::Create(this, TEXT("FTcpListener"), 8 * 1024, TPri_Normal);
 	}
 
 	~TcpListener()
@@ -46,10 +44,10 @@ public:
 
 	void Start()
 	{
-		std::thread acceptor_thread(TcpListener::AcceptClients, this);
+		std::thread acceptor_thread(&TcpListener::AcceptClients, this);
 		m_acceptor_thread.swap(acceptor_thread);
 
-		std::thread receiver_thread(TcpListener::HandleClients, this);
+		std::thread receiver_thread(&TcpListener::HandleClients, this);
 		m_receiver_thread.swap(receiver_thread);
 	}
 
@@ -58,34 +56,34 @@ public:
 		m_dispatcher = dispatcher;
 	}
 
-public:
-	static void AcceptClients(TcpListener *listener)
+private:
+	void AcceptClients()
 	{
-		if (listener->m_socket == nullptr)
+		if (m_socket == nullptr)
 		{
-			listener->m_socket = TcpSocketBuilder().AsReusable().BoundToPort(listener->m_port).Listening().WithSendBufferSize(64);
+			m_socket = TcpSocketBuilder().AsReusable().BoundToPort(m_port).Listening().WithSendBufferSize(64);
 		}
 
-		if (listener->m_socket != nullptr)
+		if (m_socket != nullptr)
 			return;
 
 		std::string remoteAddress;
 
-		const bool hasZeroSleepTime = (listener->m_sleepTime == std::chrono::milliseconds(0));
+		const bool hasZeroSleepTime = (m_sleepTime == std::chrono::milliseconds(0));
 
-		while (!listener->m_stopping)
+		while (!m_stopping)
 		{
 			bool pending = false;
 
-			if (listener->m_socket->WaitForPendingConnection(pending, listener->m_sleepTime))
+			if (m_socket->WaitForPendingConnection(pending, m_sleepTime))
 			{
 				if (pending)
 				{
-					Socket* connectionSocket = (Socket*)listener->m_socket->Accept();
+					Socket* connectionSocket = (Socket*)m_socket->Accept();
 
 					if (connectionSocket != nullptr)
 					{
-						listener->m_connections.emplace_back(connectionSocket);
+						m_connections.emplace_back(connectionSocket);
 					}
 				}
 				else if (hasZeroSleepTime)
@@ -95,26 +93,26 @@ public:
 			}
 			else
 			{
-				std::this_thread::sleep_for(std::chrono::milliseconds(listener->m_sleepTime));
+				std::this_thread::sleep_for(std::chrono::milliseconds(m_sleepTime));
 			}
 		}
 	}
 
-	static void HandleClients(TcpListener *listener)
+	void HandleClients()
 	{
-		if (!listener->m_dispatcher)
+		if (!m_dispatcher)
 		{
 			exit(0);
 		}
 
-		while (!listener->m_stopping)
+		while (!m_stopping)
 		{
-			if (!(listener->m_connections.size() > 0))
+			if (!(m_connections.size() > 0))
 				continue;
 
-			for (int i = 0; i < listener->m_connections.size(); i++)
+			for (int i = 0; i < m_connections.size(); i++)
 			{
-				Socket *currentConnection = listener->m_connections.at(i);
+				Socket *currentConnection = m_connections.at(i);
 
 				uint32_t dataSize;
 				if (currentConnection->HasPendingData(dataSize))
@@ -123,19 +121,20 @@ public:
 					int32_t read;
 					if (currentConnection->Recv(data, dataSize, read))
 					{
-						listener->m_dispatcher->Enqueue(std::string((char*)data, read));
+						m_dispatcher->Enqueue(std::string((char*)data, read));
 					}
 				}
+
+				std::this_thread::sleep_for(std::chrono::milliseconds(m_sleepTime));
 			}
 		}
 	}
 
+public:
 	virtual void Stop()
 	{
 		m_stopping = true;
 	}
-
-	virtual void Exit() { }
 
 private:
 
