@@ -102,6 +102,23 @@ class Quaternion;
 constexpr int DYNAMIC = -1;
 
 
+namespace impl {
+	template <class VectorT>
+	class VectorPropertiesHelper {};
+
+	template <class T_, int Dim_, bool Packed_>
+	class VectorPropertiesHelper<Vector<T_, Dim_, Packed_>> {
+	public:
+		using Type = T_;
+		static constexpr int Dim = Dim_;
+		static constexpr bool Packed = Packed_;
+	};
+
+	template <class VectorT>
+	class VectorProperties : public VectorPropertiesHelper<typename std::decay<VectorT>::type> {};
+}
+
+
 //------------------------------------------------------------------------------
 // Template magic helper classes.
 //------------------------------------------------------------------------------
@@ -936,6 +953,7 @@ public:
 
 	/// <summary> Strips the last element of the vector. </summary>
 	/// <remarks> Use it to switch between homogeneous and simple coordinates. </remarks>
+	template <class T = Vector<T, Dim - 1, Packed>, class = typename std::enable_if<(Dim > 1), Vector<T, Dim-1, Packed>>::type>
 	explicit operator Vector<T, Dim - 1, Packed>() {
 		return Vector<T, Dim - 1, Packed>(this->data);
 	}
@@ -1508,28 +1526,137 @@ Swizzle<T, Indices...>& Swizzle<T, Indices...>::operator=(const Vector<T, sizeof
 
 
 
-} // namespace mathter
-
-
-
-
 //------------------------------------------------------------------------------
 // IO
 //------------------------------------------------------------------------------
+
+enum class eEnclosingBracket {
+	NONE,
+	PARANTHESE,
+	BRACKET,
+	BRACE,
+};
 
 /// <summary> Prints the vector like [1,2,3]. </summary>
 template <class T, int Dim, bool Packed>
 std::ostream& operator<<(std::ostream& os, const mathter::Vector<T, Dim, Packed>& v) {
 	os << "[";
 	for (int x = 0; x < Dim; ++x) {
-		os << v(x) << (x == Dim - 1 ? "" : "\t");
+		os << v(x) << (x == Dim - 1 ? "" : ", ");
 	}
 	os << "]";
 	return os;
 }
 
 
-// Remove goddamn fucking bullshit crapware winapi macros.
+namespace impl {
+	template <class T>
+	struct dependent_false {
+		static constexpr bool value = false;
+	};
+	template <class T>
+	constexpr bool dependent_false_v = dependent_false<T>::value;
+
+	template <class AritT, typename std::enable_if<std::is_integral<AritT>::value && std::is_signed<AritT>::value, int>::type = 0>
+	AritT strtonum(const char* str, const char** end) {
+		AritT value;
+		value = (AritT)strtoll(str, (char**)end, 10);
+		return value;
+	}
+	template <class AritT, typename std::enable_if<std::is_integral<AritT>::value && !std::is_signed<AritT>::value, int>::type = 0>
+	AritT strtonum(const char* str, const char** end) {
+		AritT value;
+		value = (AritT)strtoull(str, (char**)end, 10);
+		return value;
+	}
+	template <class AritT, typename std::enable_if<std::is_floating_point<AritT>::value, int>::type = 0>
+	AritT strtonum(const char* str, const char** end) {
+		AritT value;
+		value = (AritT)strtold(str, (char**)end);
+		return value;
+	}
+
+	inline const char* StripSpaces(const char* str) {
+		while (*str != '\0' && isspace(*str))
+			++str;
+		return str;
+	};
+
+} // namespace impl
+
+/// <summary> Parses a vector from a string. </summary>
+template <class T, int Dim, bool Packed>
+Vector<T, Dim, Packed> strtovec(const char* str, const char** end) {
+	Vector<T, Dim, Packed> ret;
+
+	const char* strproc = str;
+
+	// parse initial bracket if any
+	strproc = impl::StripSpaces(strproc);
+	if (*strproc == '\0') {
+		*end = str;
+		return ret;
+	}
+
+	char startBracket = *strproc;
+	char endBracket;
+	bool hasBrackets = false;
+	switch (startBracket) {
+		case '(': endBracket = ')'; hasBrackets = true; ++strproc; break;
+		case '[': endBracket = ']'; hasBrackets = true; ++strproc; break;
+		case '{': endBracket = '}'; hasBrackets = true; ++strproc; break;
+	}
+
+	// parse elements
+	for (int i = 0; i < Dim; ++i) {
+		const char* elemend;
+		T elem = impl::strtonum<T>(strproc, &elemend);
+		if (elemend == strproc) {
+			*end = str;
+			return ret;
+		}
+		else {
+			ret[i] = elem;
+			strproc = elemend;
+		}
+		strproc = impl::StripSpaces(strproc);
+		if (*strproc == ',') {
+			++strproc;
+		}
+	}
+
+	// parse ending bracket corresponding to initial bracket
+	if (hasBrackets) {
+		strproc = impl::StripSpaces(strproc);
+		if (*strproc != endBracket) {
+			*end = str;
+			return ret;
+		}
+		++strproc;
+	}
+
+	*end = strproc;
+	return ret;
+}
+
+template <class VectorT>
+VectorT strtovec(const char* str, const char** end) {
+	static_assert(impl::IsVector<VectorT>::value, "This type if not a Vector, dumbass.");
+
+	return strtovec<
+		typename impl::VectorProperties<VectorT>::Type,
+		impl::VectorProperties<VectorT>::Dim,
+		impl::VectorProperties<VectorT>::Packed>
+		(str, end);
+}
+
+
+} // namespace mathter
+
+
+
+
+  // Remove goddamn fucking bullshit crapware winapi macros.
 #if defined(MATHTER_MINMAX)
 #pragma pop_macro("min")
 #pragma pop_macro("max")

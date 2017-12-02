@@ -65,7 +65,7 @@ void Scheduler::Execute(FrameContext context) {
 
 				// Enqueue all command lists on the GPU.
 				if (renderContext.IsListInitialized()) {
-					BasicCommandList* commandList;
+					BasicCommandList* commandList = nullptr;
 					switch (renderContext.GetType()) {
 						case gxapi::eCommandListType::GRAPHICS: commandList = &renderContext.AsGraphics(); break;
 						case gxapi::eCommandListType::COMPUTE: commandList = &renderContext.AsCompute(); break;

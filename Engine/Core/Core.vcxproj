@@ -123,6 +123,8 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>/bigobj</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MinimalRebuild>false</MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>GraphicsEngine_LL.lib;GuiEngine.lib;AssetLibrary.lib;lemon.lib;FreeImage.lib;FreeImagePlus.lib;PhysicsEngineBullet.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -137,6 +139,8 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>/bigobj</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MinimalRebuild>false</MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -148,6 +152,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>/bigobj</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -163,6 +168,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>/bigobj</AdditionalOptions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

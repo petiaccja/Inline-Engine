@@ -1,0 +1,50 @@
+{
+    "nodes": [
+        {
+            "class": "Pipeline/Render/OverlayRender",
+            "id": 0,
+            "name": "OverlayRender"
+        },
+        {
+            "class": "Pipeline/System/GetBackBuffer",
+            "id": 1,
+            "name": "BackBuffer"
+        },
+        {
+            "class": "Pipeline/System/GetCameraByName",
+            "id": 2,
+            "name": "OverlayCamera",
+            "inputs": [
+                "GuiCamera"
+            ]
+        },
+        {
+            "class": "Pipeline/System/GetSceneByName",
+            "id": 3,
+            "name": "OverlayScene",
+            "inputs": [
+                "Gui"
+            ]
+        }
+    ],
+    "links": [
+        {
+            "src": "BackBuffer",
+            "dst": "OverlayRender",
+            "srcpidx": 0,
+            "dstpidx": 0
+        },
+        {
+            "src": "OverlayScene",
+            "dst": "OverlayRender",
+            "srcpidx": 1,
+            "dstpidx": 1
+        },
+        {
+            "src": "OverlayCamera",
+            "dst": "OverlayRender",
+            "srcpidx": 0,
+            "dstpidx": 2
+        }
+    ]
+}

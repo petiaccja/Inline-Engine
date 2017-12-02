@@ -7,12 +7,51 @@
 
 #include <BaseLibrary/Exception/Exception.hpp>
 
-#include <rapidjson/rapidjson.h>
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
 #include <cassert>
+#include <optional>
+#include <typeinfo>
 
 
 namespace inl {
 namespace gxeng {
+
+
+//------------------------------------------------------------------------------
+// Helper structures and functions
+//------------------------------------------------------------------------------
+
+static struct NodeCreationInfo {
+	std::optional<int> id;
+	std::optional<std::string> name;
+	std::string cl;
+	std::vector<std::optional<std::string>> inputs;
+};
+
+static struct LinkCreationInfo {
+	std::optional<int> srcid, dstid;
+	std::optional<std::string> srcname, dstname;
+	std::optional<int> srcpidx, dstpidx;
+	std::optional<std::string> srcpname, dstpname;
+};
+
+struct StringErrorPosition {
+	int lineNumber;
+	int characterNumber;
+	std::string line;
+};
+
+
+static void AssertThrow(bool condition, const std::string& message);
+static NodeCreationInfo ParseNode(const rapidjson::GenericValue<rapidjson::UTF8<>>& jsonObj);
+static LinkCreationInfo ParseLink(const rapidjson::GenericValue<rapidjson::UTF8<>>& jsonObj);
+static StringErrorPosition GetStringErrorPosition(const std::string& str, int errorCharacter);
+
+static std::string SerializeNodesAndLinks(const std::vector<NodeCreationInfo>& nodes, const std::vector<LinkCreationInfo>& links);
+static std::optional<std::string> GetInputPortValue(const InputPortBase* port);
+
 
 
 //------------------------------------------------------------------------------
@@ -103,7 +142,134 @@ Pipeline::~Pipeline() {
 
 
 void Pipeline::CreateFromDescription(const std::string& jsonDescription, GraphicsNodeFactory& factory) {
-	throw NotImplementedException();
+	using namespace rapidjson;
+
+	// Parse the JSON file.
+	Document doc;
+	doc.Parse(jsonDescription.c_str());
+	ParseErrorCode ec = doc.GetParseError();
+	if (ec != ParseErrorCode::kParseErrorNone) {
+		int errorCharacter = doc.GetErrorOffset();
+		auto [lineNumber, characterNumber, line] = GetStringErrorPosition(jsonDescription, errorCharacter);
+		throw InvalidArgumentException("JSON descripion has syntax errors.", "Check line " + std::to_string(lineNumber) + ":" + std::to_string(characterNumber));
+	}
+
+	AssertThrow(doc.IsObject(), "JSON root must be an object with member arrays \"nodes\" and \"links\".");
+	AssertThrow(doc.HasMember("nodes") && doc["nodes"].IsArray(), "JSON root must have \"nodes\" member array.");
+	AssertThrow(doc.HasMember("links") && doc["links"].IsArray(), "JSON root must have \"links\" member array.");
+
+	auto& nodes = doc["nodes"];
+	auto& links = doc["links"];
+	std::vector<NodeCreationInfo> nodeCreationInfos;
+	std::vector<LinkCreationInfo> linkCreationInfos;
+
+	for (SizeType i = 0; i < nodes.Size(); ++i) {
+		NodeCreationInfo info = ParseNode(nodes[i]);
+		nodeCreationInfos.push_back(info);
+	}
+
+	for (SizeType i = 0; i < links.Size(); ++i) {
+		LinkCreationInfo info = ParseLink(links[i]);
+		linkCreationInfos.push_back(info);
+	}
+
+	// Create lookup dictionary of nodes by name and by id.
+	// {name/id of node, index of node in vector}
+	std::unordered_map<int, size_t> idBook;
+	std::unordered_map<std::string, size_t> nameBook;
+	for (size_t i = 0; i < nodeCreationInfos.size(); ++i) {
+		if (nodeCreationInfos[i].name) {
+			auto ins = nameBook.insert({ nodeCreationInfos[i].name.value(), i });
+			AssertThrow(ins.second == true, "Node names must be unique.");
+		}
+		if (nodeCreationInfos[i].id) {
+			auto ins = idBook.insert({ nodeCreationInfos[i].id.value(), i });
+			AssertThrow(ins.second == true, "Node ids must be unique.");
+		}
+	}
+
+	// Create nodes with initial values.
+	std::vector<std::shared_ptr<NodeBase>> nodeObjects;
+	for (auto& info : nodeCreationInfos) {
+		std::shared_ptr<NodeBase> nodeObject(factory.CreateNode(info.cl));
+		if (info.name) {
+			nodeObject->SetDisplayName(info.name.value());
+		}
+
+		for (int i = 0; i < nodeObject->GetNumInputs() && i < info.inputs.size(); ++i) {
+			if (info.inputs.size()) {
+				nodeObject->GetInput(i)->SetConvert(info.inputs[i].value());
+			}
+		}
+
+		nodeObjects.push_back(std::move(nodeObject));
+	}
+
+	// Link nodes above.
+	for (auto& info : linkCreationInfos) {
+		NodeBase *src, *dst;
+		OutputPortBase* srcp = nullptr;
+		InputPortBase* dstp = nullptr;
+
+		// Find src and dst nodes
+		if (info.srcname) {
+			auto it = nameBook.find(info.srcname.value());
+			AssertThrow(it != nameBook.end(), "Node requested to link named " + info.srcname.value() + " not found.");
+			src = nodeObjects[it->second].get();
+		}
+		else {
+			auto it = idBook.find(info.srcid.value());
+			AssertThrow(it != idBook.end(), "Node requested to link id=" + std::to_string(info.srcid.value()) + " not found.");
+			src = nodeObjects[it->second].get();
+		}
+		if (info.dstname) {
+			auto it = nameBook.find(info.dstname.value());
+			AssertThrow(it != nameBook.end(), "Node requested to link named " + info.dstname.value() + " not found.");
+			dst = nodeObjects[it->second].get();
+		}
+		else {
+			auto it = idBook.find(info.dstid.value());
+			AssertThrow(it != idBook.end(), "Node requested to link id=" + std::to_string(info.dstid.value()) + " not found.");
+			dst = nodeObjects[it->second].get();
+		}
+		// Find src and dst ports
+		if (info.srcpname) {
+			for (int i = 0; i < src->GetNumOutputs(); ++i) {
+				if (info.srcpname.value() == src->GetOutputName(i)) {
+					srcp = src->GetOutput(i);
+					break;
+				}
+			}
+		}
+		else {
+			srcp = src->GetOutput(info.srcpidx.value());
+		}
+		if (info.dstpname) {
+			for (int i = 0; i < dst->GetNumInputs(); ++i) {
+				if (info.dstpname.value() == dst->GetInputName(i)) {
+					dstp = dst->GetInput(i);
+					break;
+				}
+			}
+		}
+		else {
+			dstp = dst->GetInput(info.dstpidx.value());
+		}
+		// Link said ports
+		bool linked = srcp->Link(dstp);
+		AssertThrow(linked, "Ports not compatible.");
+	}
+
+
+	// Finish by creating the actual pipeline.
+	EngineContext engineContext(1, 1);
+	for (auto& node : nodeObjects) {
+		if (auto graphicsNode = dynamic_cast<GraphicsNode*>(node.get())) {
+			graphicsNode->Initialize(engineContext);
+		}
+	}
+
+	CreateFromNodesList(nodeObjects);
 }
 
 
@@ -130,6 +296,81 @@ void Pipeline::CreateFromNodesList(const std::vector<std::shared_ptr<NodeBase>> 
 	if (!isTaskGraphDAG) {
 		throw InvalidArgumentException("Supplied nodes do not make a directed acyclic graph.");
 	}
+}
+
+
+std::string Pipeline::SerializeToJSON(const NodeFactory& factory) const {
+	using namespace rapidjson;
+
+	std::unordered_map<OutputPortBase*, std::tuple<NodeBase*, int>> outputLookup;
+	std::unordered_map<NodeBase*, NodeCreationInfo> nodeCreation;
+	std::vector<LinkCreationInfo> linkCreation;
+	int nodeId = 0;
+
+	for (lemon::ListDigraph::NodeIt it(m_dependencyGraph); it != lemon::INVALID; ++it) {
+		NodeBase* node = m_nodeMap[it].get();
+		for (int i = 0; i < node->GetNumOutputs(); ++i) {
+			outputLookup[node->GetOutput(i)] = { node, i };
+		}
+
+		NodeCreationInfo info;
+		auto [group, className] = factory.GetFullName(typeid(*node));
+		info.cl = group + "/" + className;
+		info.id = nodeId++;
+		if (!node->GetDisplayName().empty()) {
+			info.name = node->GetDisplayName();
+		}
+		nodeCreation.insert({ node, info });
+	}
+
+	for (lemon::ListDigraph::NodeIt it(m_dependencyGraph); it != lemon::INVALID; ++it) {
+		NodeBase* dst = m_nodeMap[it].get();
+		for (int i = 0; i < dst->GetNumInputs(); ++i) {
+			InputPortBase* input = dst->GetInput(i);
+			OutputPortBase* output = input->GetLink();
+			if (output != nullptr) {
+				NodeBase* src;
+				auto nit = outputLookup.find(output);
+				assert(nit != outputLookup.end());
+				const auto [ src, srcpidx ] = nit->second;
+
+				LinkCreationInfo info;
+				if (!src->GetDisplayName().empty()) {
+					info.srcname = src->GetDisplayName();
+				}
+				else {
+					info.srcid = nodeCreation[src].id;
+				}
+				if (!dst->GetDisplayName().empty()) {
+					info.dstname = dst->GetDisplayName();
+				}
+				else {
+					info.dstid = nodeCreation[dst].id;
+				}
+
+				info.srcpidx = srcpidx;
+				info.dstpidx = i;
+
+				linkCreation.push_back(info);
+			}
+			else {
+				// save default input value
+				std::optional<std::string> value = GetInputPortValue(input);
+				auto& nodeInfo = nodeCreation[dst];
+				if (nodeInfo.inputs.size() < i + 1) {
+					nodeInfo.inputs.resize(i + 1);
+				}
+				nodeInfo.inputs[i] = value;
+			}
+		}
+	}
+
+	std::vector<NodeCreationInfo> nodeCreationVec;
+	for (auto& v : nodeCreation) {
+		nodeCreationVec.push_back(v.second);
+	}
+
+	return SerializeNodesAndLinks(nodeCreationVec, linkCreation);
 }
 
 
@@ -353,6 +594,241 @@ const lemon::ListDigraph::NodeMap<GraphicsTask*>& Pipeline::GetTaskFunctionMap()
 
 const lemon::ListDigraph::NodeMap<lemon::ListDigraph::NodeIt>& Pipeline::GetTaskParentMap() const {
 	return m_taskParentMap;
+}
+
+
+
+
+//------------------------------------------------------------------------------
+// Helper functions
+//------------------------------------------------------------------------------
+
+void AssertThrow(bool condition, const std::string& text) {
+	if (!condition) {
+		throw InvalidArgumentException(text);
+	}
+};
+
+
+NodeCreationInfo ParseNode(const rapidjson::GenericValue<rapidjson::UTF8<>>& obj) {
+	using namespace rapidjson;
+
+	NodeCreationInfo info;
+	if (obj.HasMember("id")) {
+		AssertThrow(obj["id"].IsInt(), "Node's id member must be an integer.");
+		info.id = obj["id"].GetInt();
+	}
+	if (obj.HasMember("name")) {
+		AssertThrow(obj["name"].IsString(), "Node's name member must be a string.");
+		info.name = obj["name"].GetString();
+	}
+	AssertThrow(info.id || info.name, "Node must have either id or name.");
+	AssertThrow(obj.HasMember("class") && obj["class"].IsString(), "Node must have a class.");
+	info.cl = obj["class"].GetString();
+
+	if (obj.HasMember("inputs")) {
+		AssertThrow(obj["inputs"].IsArray(), "Default inputs must be specified in an array, undefined inputs as {}.");
+		auto& inputs = obj["inputs"];
+		for (SizeType i = 0; i < inputs.Size(); ++i) {
+			if (inputs[i].IsObject() && inputs[i].ObjectEmpty()) {
+				info.inputs.push_back({});
+			}
+			else if (inputs[i].IsString()) {
+				info.inputs.push_back(inputs[i].GetString());
+			}
+			else if (inputs[i].IsInt64()) {
+				info.inputs.push_back(std::to_string(inputs[i].GetInt64()));
+			}
+			else if (inputs[i].IsDouble()) {
+				info.inputs.push_back(std::to_string(inputs[i].GetDouble()));
+			}
+			else {
+				assert(false);
+			}
+		}
+	}
+	return info;
+};
+
+
+LinkCreationInfo ParseLink(const rapidjson::GenericValue<rapidjson::UTF8<>>& obj) {
+	LinkCreationInfo info;
+
+	AssertThrow(obj.HasMember("src")
+		&& obj.HasMember("dst")
+		&& obj.HasMember("srcp")
+		&& obj.HasMember("dstp"),
+		"Link must have members src, dst, srcp and dstp.");
+
+	if (obj["src"].IsString()) {
+		info.srcname = obj["src"].GetString();
+	}
+	else if (obj["src"].IsInt()) {
+		info.srcid = obj["src"].GetInt();
+	}
+	else {
+		AssertThrow(false, "Link src must be string (name) or int (id) of the node.");
+	}
+
+	if (obj["dst"].IsString()) {
+		info.dstname = obj["dst"].GetString();
+	}
+	else if (obj["dst"].IsInt()) {
+		info.dstid = obj["dst"].GetInt();
+	}
+	else {
+		AssertThrow(false, "Link dst must be string (name) or int (id) of the node.");
+	}
+
+	if (obj["srcp"].IsString()) {
+		info.srcpname = obj["srcp"].GetString();
+	}
+	else if (obj["srcp"].IsInt()) {
+		info.srcpidx = obj["srcp"].GetInt();
+	}
+	else {
+		AssertThrow(false, "Link srcp must be string (name) or int (index) of the port.");
+	}
+
+	if (obj["dstp"].IsString()) {
+		info.dstpname = obj["dstp"].GetString();
+	}
+	else if (obj["dstp"].IsInt()) {
+		info.dstpidx = obj["dstp"].GetInt();
+	}
+	else {
+		AssertThrow(false, "Link dstp must be string (name) or int (index) of the port.");
+	}
+
+	return info;
+};
+
+
+static StringErrorPosition GetStringErrorPosition(const std::string& str, int errorCharacter) {
+	int currentCharacter = 0;
+	int characterNumber = 0;
+	int lineNumber = 0;
+	while (currentCharacter < errorCharacter && currentCharacter < str.size()) {
+		if (str[currentCharacter] == '\n') {
+			++lineNumber;
+			characterNumber = 0;
+		}
+		++currentCharacter;
+		++characterNumber;
+	}
+	
+	size_t lineBegIdx = str.rfind('\n', errorCharacter);
+	size_t lineEndIdx = str.find('\n', errorCharacter);
+
+	if (lineBegIdx = str.npos) {
+		lineBegIdx = 0;
+	}
+	else {
+		++lineBegIdx; // we don't want to keep the '\n'
+	}
+	if (lineEndIdx != str.npos && lineEndIdx > 0) {
+		--lineEndIdx; // we don't want to keep the '\n'
+	}
+
+	return { lineNumber, characterNumber, str.substr(lineBegIdx, lineEndIdx) };
+}
+
+
+static std::string SerializeNodesAndLinks(const std::vector<NodeCreationInfo>& nodes, const std::vector<LinkCreationInfo>& links) {
+	using namespace rapidjson;
+	Document doc;
+	auto& alloc = doc.GetAllocator();
+	doc.SetObject();
+
+	doc.AddMember("nodes", kArrayType, alloc);
+	doc.AddMember("links", kArrayType, alloc);
+	auto& docNodes = doc["nodes"];
+	auto& docLinks = doc["links"];
+
+	// Add nodes to doc
+	for (auto& node : nodes) {
+		Value v;
+		v.SetObject();
+		v.AddMember("class", Value().SetString(node.cl.c_str(), alloc), alloc);
+		if (node.id) {
+			v.AddMember("id", node.id.value(), alloc);
+		}
+		if (node.name) {
+			v.AddMember("name", Value().SetString(node.name.value().c_str(), alloc), alloc);
+		}
+		if (!node.inputs.empty()) {
+			v.AddMember("inputs", kArrayType, alloc);
+			for (const auto& input : node.inputs) {
+				if (input) {
+					v["inputs"].PushBack(Value().SetString(input.value().c_str(), alloc), alloc);
+				}
+				else {
+					v["inputs"].PushBack(Value().SetObject(), alloc);
+				}
+			}
+		}
+		docNodes.PushBack(v, alloc);
+	}
+
+	// Add links to doc
+	auto AddLinkMember = [&alloc](Value& v, const char* member, std::optional<int> num, std::optional<std::string> str) {
+		if (num) {
+			v.AddMember(GenericStringRef<char>(member), num.value(), alloc);
+		}
+		else {
+			assert(str);
+			v.AddMember(GenericStringRef<char>(member), Value().SetString(str.value().c_str(), alloc), alloc);
+		}
+	};
+
+	for (auto& link : links) {
+		Value v;
+		v.SetObject();
+		AddLinkMember(v, "src", link.srcid, link.srcname);
+		AddLinkMember(v, "dst", link.dstid, link.dstname);
+		AddLinkMember(v, "srcpidx", link.srcpidx, link.srcpname);
+		AddLinkMember(v, "dstpidx", link.dstpidx, link.dstpname);
+		docLinks.PushBack(v, alloc);
+	}
+
+	// Convert JSON doc to sring
+	StringBuffer buffer;
+	PrettyWriter<StringBuffer> writer(buffer);
+	doc.Accept(writer);
+
+	return buffer.GetString();
+}
+
+
+template <class T>
+std::string GetInputPortValueHelper(const InputPortBase* port) {
+	return std::to_string(dynamic_cast<const InputPort<T>*>(port)->Get());
+}
+
+static std::optional<std::string> GetInputPortValue(const InputPortBase* port) {
+	// This function is ugly, use some polymorphism or sth
+
+	std::type_index type = port->GetType();
+	if (port->GetType() == typeid(std::string)) {
+		return dynamic_cast<const InputPort<std::string>*>(port)->Get();
+	}
+	if (port->GetType() == typeid(float)) {
+		return GetInputPortValueHelper<float>(port);
+	}
+	if (port->GetType() == typeid(int)) {
+		return GetInputPortValueHelper<int>(port);
+	}
+	if (port->GetType() == typeid(short)) {
+		return GetInputPortValueHelper<short>(port);
+	}
+	if (port->GetType() == typeid(unsigned)) {
+		return GetInputPortValueHelper<unsigned>(port);
+	}
+	if (port->GetType() == typeid(unsigned short)) {
+		return GetInputPortValueHelper<unsigned short>(port);
+	}
+
+	return {};
 }
 
 

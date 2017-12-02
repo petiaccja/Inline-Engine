@@ -2013,22 +2013,106 @@ Matrix<T1, Rows, Columns, O1, L1, Packed> DivElementwise(
 }
 
 
-} // namespace mathter
+
+//------------------------------------------------------------------------------
+// IO
+//------------------------------------------------------------------------------
 
 
-
-
-template <class T, int Rows, int Columns, mathter::eMatrixOrder Order, mathter::eMatrixLayout Layout, bool Packed>
-std::ostream& operator<<(std::ostream& os, const mathter::Matrix<T, Rows, Columns, Order, Layout, Packed>& mat) {
+template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
+std::ostream& operator<<(std::ostream& os, const Matrix<T, Rows, Columns, Order, Layout, Packed>& mat) {
+	os << "[";
 	for (int i = 0; i < mat.Height(); ++i) {
-		os << "[";
 		for (int j = 0; j < mat.Width(); ++j) {
-			os << mat(i, j) << (j == mat.Width() - 1 ? "" : "\t");
+			os << mat(i, j) << (j == mat.Width() - 1 ? "" : ", ");
 		}
-		os << "]\n";
+		if (i < Rows - 1) {
+			os << "; ";
+		}
 	}
+	os << "]";
 	return os;
 }
+
+
+template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
+Matrix<T, Rows, Columns, Order, Layout, Packed> strtomat(const char* str, const char** end) {
+	using MatrixT = Matrix<T, Rows, Columns, Order, Layout, Packed>;
+	using VectorT = Vector<T, Columns, Packed>;
+	MatrixT ret;
+
+	const char* strproc = str;
+
+	// parse initial bracket if any
+	strproc = impl::StripSpaces(strproc);
+	if (*strproc == '\0') {
+		*end = str;
+		return ret;
+	}
+
+	char startBracket = *strproc;
+	char endBracket;
+	bool hasBrackets = false;
+	switch (startBracket) {
+		case '(': endBracket = ')'; hasBrackets = true; ++strproc; break;
+		case '[': endBracket = ']'; hasBrackets = true; ++strproc; break;
+		case '{': endBracket = '}'; hasBrackets = true; ++strproc; break;
+	}
+
+	// parse rows
+	for (int i = 0; i < Rows; ++i) {
+		const char* rowend;
+		VectorT row = strtovec<T, Columns, Packed>(strproc, &rowend);
+		if (rowend == strproc) {
+			*end = str;
+			return ret;
+		}
+		else {
+			ret.Row(i) = row;
+			strproc = rowend;
+		}
+		strproc = impl::StripSpaces(strproc);
+		if (i < Rows - 1) {
+			if (*strproc == ';') {
+				++strproc;
+			}
+			else {
+				*end = str;
+				return ret;
+			}
+		}
+	}
+
+	// parse ending bracket corresponding to initial bracket
+	if (hasBrackets) {
+		strproc = impl::StripSpaces(strproc);
+		if (*strproc != endBracket) {
+			*end = str;
+			return ret;
+		}
+		++strproc;
+	}
+
+	*end = strproc;
+	return ret;
+}
+
+template <class MatrixT>
+MatrixT strtomat(const char* str, const char** end) {
+	static_assert(impl::IsMatrix<MatrixT>::value, "This type if not a matrix, dumbass.");
+	
+	return strtomat<
+		typename impl::MatrixProperties<MatrixT>::Type,
+		impl::MatrixProperties<MatrixT>::Rows,
+		impl::MatrixProperties<MatrixT>::Columns,
+		impl::MatrixProperties<MatrixT>::Order,
+		impl::MatrixProperties<MatrixT>::Layout,
+		impl::MatrixProperties<MatrixT>::Packed>
+		(str, end);
+}
+
+
+} // namespace mathter
 
 
 

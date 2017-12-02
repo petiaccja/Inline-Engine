@@ -4,9 +4,21 @@
 #include <type_traits>
 #include <cstdlib>
 #include <string>
+#include <InlineMath.hpp>
 
 
 namespace inl {
+
+namespace impl {
+
+template <class T>
+struct dependent_false {
+	static constexpr bool value = false;
+};
+template <class T>
+constexpr bool dependent_false_v = dependent_false<T>::value;
+
+}
 
 
 
@@ -39,46 +51,68 @@ protected:
 	}
 
 
-	static long long FromStringHelper(const std::string& str, std::true_type, std::true_type) {
-		if (str.empty()) {
-			throw InvalidCastException("Cannot convert empty string to artihmetic.");
-		}
-		char* pend;
-		long long value = strtoll(str.c_str(), &pend, 10);
-		if (*pend != '\0') {
-			throw InvalidCastException("Invalid number format.");
-		}
-		return value;
-	}
+	//static long long FromStringHelper(const std::string& str, std::true_type, std::true_type) {
+	//	if (str.empty()) {
+	//		throw InvalidCastException("Cannot convert empty string to artihmetic.");
+	//	}
+	//	char* pend;
+	//	long long value = strtoll(str.c_str(), &pend, 10);
+	//	if (*pend != '\0') {
+	//		throw InvalidCastException("Invalid number format.");
+	//	}
+	//	return value;
+	//}
 
-	static unsigned long long FromStringHelper(const std::string& str, std::true_type, std::false_type) {
-		if (str.empty()) {
-			throw InvalidCastException("Cannot convert empty string to artihmetic.");
-		}
-		char* pend;
-		unsigned long long value = strtoull(str.c_str(), &pend, 10);
-		if (*pend != '\0') {
-			throw InvalidCastException("Invalid number format.");
-		}
-		return value;
-	}
-	static long double FromStringHelper(const std::string& str, std::false_type, std::true_type) {
-		if (str.empty()) {
-			throw InvalidCastException("Cannot convert empty string to artihmetic.");
-		}
-		char* pend;
-		long double value = strtold(str.c_str(), &pend);
-		if (*pend != '\0') {
-			throw InvalidCastException("Invalid number format.");
-		}
-		return value;
-	}
+	//static unsigned long long FromStringHelper(const std::string& str, std::true_type, std::false_type) {
+	//	if (str.empty()) {
+	//		throw InvalidCastException("Cannot convert empty string to artihmetic.");
+	//	}
+	//	char* pend;
+	//	unsigned long long value = strtoull(str.c_str(), &pend, 10);
+	//	if (*pend != '\0') {
+	//		throw InvalidCastException("Invalid number format.");
+	//	}
+	//	return value;
+	//}
+	//static long double FromStringHelper(const std::string& str, std::false_type, std::true_type) {
+	//	if (str.empty()) {
+	//		throw InvalidCastException("Cannot convert empty string to artihmetic.");
+	//	}
+	//	char* pend;
+	//	long double value = strtold(str.c_str(), &pend);
+	//	if (*pend != '\0') {
+	//		throw InvalidCastException("Invalid number format.");
+	//	}
+	//	return value;
+	//}
 
 	static AritT FromString(const std::string& str) {
-		return (AritT)FromStringHelper(
-			str,
-			std::integral_constant<bool, std::is_integral<AritT>::value>(),
-			std::integral_constant<bool, std::is_signed<AritT>::value>());
+		if (str.empty()) {
+			throw InvalidCastException("Cannot convert empty string to artihmetic.");
+		}
+		char* pend;
+		AritT value;
+		if constexpr (std::is_integral_v<AritT> && std::is_signed_v<AritT>) {
+			value = (AritT)strtoll(str.c_str(), &pend, 10);
+		}
+		else if (std::is_integral_v<AritT> && !std::is_signed_v<AritT>) {
+			value = (AritT)strtoull(str.c_str(), &pend, 10);
+		}
+		else if (std::is_floating_point_v<AritT>) {
+			value = (AritT)strtold(str.c_str(), &pend);
+		}
+		else {
+			//static_assert(impl::dependent_false_v<AritT>, "Do not know how to convert non-arithmetic type.");
+		}
+		if (*pend != '\0') {
+			throw InvalidCastException("Invalid number format.");
+		}
+		return value;
+
+		//return (AritT)FromStringHelper(
+		//	str,
+		//	std::integral_constant<bool, std::is_integral<AritT>::value>(),
+		//	std::integral_constant<bool, std::is_signed<AritT>::value>());
 	}
 };
 
@@ -125,6 +159,63 @@ class PortConverter<double> : public PortConverterArithmetic<double>
 template <>
 class PortConverter<long double> : public PortConverterArithmetic<long double>
 {};
+
+
+
+template <class T, int Dim, bool Packed>
+class PortConverter<Vector<T, Dim, Packed>> : public PortConverterCollection<Vector<T, Dim, Packed>> {
+	using VectorT = Vector<T, Dim, Packed>;
+public:
+	PortConverter() : PortConverterCollection<Vector<T, Dim, Packed>>(
+		&FromVector<char, true>,
+		&FromVector<unsigned char, true>,
+		&FromVector<signed char, true>,
+		&FromVector<short, true>,
+		&FromVector<unsigned short, true>,
+		&FromVector<int, true>,
+		&FromVector<unsigned int, true>,
+		&FromVector<long, true>,
+		&FromVector<unsigned long, true>,
+		&FromVector<long long, true>,
+		&FromVector<unsigned long long, true>,
+		&FromVector<float, true>,
+		&FromVector<double, true>,
+		&FromVector<long double, true>,
+
+		&FromVector<char, false>,
+		&FromVector<unsigned char, false>,
+		&FromVector<signed char, false>,
+		&FromVector<short, false>,
+		&FromVector<unsigned short, false>,
+		&FromVector<int, false>,
+		&FromVector<unsigned int, false>,
+		&FromVector<long, false>,
+		&FromVector<unsigned long, false>,
+		&FromVector<long long, false>,
+		&FromVector<unsigned long long, false>,
+		&FromVector<float, false>,
+		&FromVector<double, false>,
+		&FromVector<long double, false>,
+
+		&FromString)
+	{}
+
+protected:
+	template <class T2, bool Packed2>
+	static VectorT FromVector(const Vector<T2, Dim, Packed2>& src) {
+		src.Length();
+		return VectorT(src);
+	}
+
+	static VectorT FromString(const std::string& str) {
+		const char* end;
+		auto v = strtovec<VectorT>(str.c_str(), &end);
+		if (str.c_str() == end) {
+			throw InvalidCastException("Invalid vector format.");
+		}
+		return v;
+	}
+};
 
 
 

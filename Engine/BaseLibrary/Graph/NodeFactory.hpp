@@ -34,7 +34,7 @@ private:
 		NodeCreator(const NodeCreator&) = default;
 		NodeCreator(NodeCreator&&) = default;
 		NodeInfo info;
-		NodeBase* Create() {
+		NodeBase* Create() const {
 			return creator ? creator() : nullptr;
 		}
 		std::function<NodeBase*()> creator;
@@ -51,18 +51,22 @@ public:
 	bool RegisterNodeClass(const std::string& group = "");
 
 	/// <summary> Instantiate node class by name. </summary>
-	virtual NodeBase* CreateNode(const std::string& name);
+	virtual NodeBase* CreateNode(const std::string& name) const;
 
 	/// <summary> Get information about a node by name. </summary>
-	const NodeInfo* GetNodeInfo(const std::string& name);
+	const NodeInfo* GetNodeInfo(const std::string& name) const;
 
 	/// <summary> Get list of all registered nodes. </summary>
-	std::vector<NodeInfo> EnumerateNodes();
+	std::vector<NodeInfo> EnumerateNodes() const;
+
+	/// <summary> Get path and class name for given node type. </summary>
+	std::tuple<std::string, std::string> GetFullName(std::type_index classType) const;
 
 	/// <summary> Get singleton instance. </summary>
 	static NodeFactory* GetInstance();
 private:
 	RegistryMapT registeredClasses; // Maps group/name entries to creators.
+	std::unordered_map<std::type_index, std::tuple<std::string, std::string>> typeLookup;
 };
 
 
@@ -107,6 +111,8 @@ bool NodeFactory::RegisterNodeClass(const std::string& group) {
 
 	// insert class to registered classes' map
 	registeredClasses.insert({ strGroup + (strGroup.size() > 0 ? "/" : "") + strName, std::move(creator) });
+	typeLookup.insert({ typeid(T), { strGroup, strName } });
+
 
 	return true;
 }

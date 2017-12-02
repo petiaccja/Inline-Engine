@@ -3,7 +3,8 @@
 #include <string>
 #include <vector>
 #include <iterator>
-#include "../BaseLibrary/Graph/Node.hpp"
+#include <BaseLibrary/Graph/Node.hpp>
+#include <BaseLibrary/Graph/NodeFactory.hpp>
 
 #include "GraphicsNode.hpp"
 
@@ -82,6 +83,7 @@ public:
 
 	void CreateFromDescription(const std::string& jsonDescription, GraphicsNodeFactory& factory);
 	void CreateFromNodesList(const std::vector<std::shared_ptr<NodeBase>> nodes);
+	std::string SerializeToJSON(const NodeFactory& factory) const;
 	void Clear();
 
 	NodeIterator begin();
@@ -101,10 +103,12 @@ public:
 	void AddNodeMetaData() = delete;
 	template <class T>
 	void AddArcMetaData() = delete;
+
 private:
 	void CalculateTaskGraph();
 	void CalculateDependencyGraph();
 	bool IsLinked(NodeBase* srcNode, NodeBase* dstNode);
+
 
 	lemon::ListDigraph m_dependencyGraph;
 	lemon::ListDigraph::NodeMap<std::shared_ptr<NodeBase>> m_nodeMap;

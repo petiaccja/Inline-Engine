@@ -7,6 +7,7 @@
 #include <iostream> // only for debugging
 #include <regex> // as well...
 #include <lemon/bfs.h> // as well...
+
 #include <rapidjson/document.h>
 #include <optional>
 
@@ -382,256 +383,13 @@ const Any& GraphicsEngine::GetEnvVariable(const std::string& name) {
 
 
 void GraphicsEngine::LoadPipeline(const std::string& graphDesc) {
-	using namespace rapidjson;
-
-	// Helper functions and structures.
-	struct NodeCreationInfo {
-		std::optional<int> id;
-		std::optional<std::string> name;
-		std::string cl;
-		std::vector<std::optional<std::string>> inputs;
-	};
-
-	struct LinkCreationInfo {
-		std::optional<int> srcid, dstid;
-		std::optional<std::string> srcname, dstname;
-		std::optional<int> srcpidx, dstpidx;
-		std::optional<std::string> srcpname, dstpname;
-	};
-
-	auto AssertThrow = [](bool value, const std::string& text) {
-		if (!value) {
-			throw InvalidArgumentException(text);
-		}
-	};
-
-	auto ParseNode = [&AssertThrow](const GenericValue<UTF8<>>& obj) {
-		NodeCreationInfo info;
-		if (obj.HasMember("id")) {
-			AssertThrow(obj["id"].IsInt(), "Node's id member must be an integer.");
-			info.id = obj["id"].GetInt();
-		}
-		if (obj.HasMember("name")) {
-			AssertThrow(obj["name"].IsString(), "Node's name member must be a string.");
-			info.name = obj["name"].GetString();
-		}
-		AssertThrow(info.id || info.name, "Node must have either id or name.");
-		AssertThrow(obj.HasMember("class") && obj["class"].IsString(), "Node must have a class.");
-		info.cl = obj["class"].GetString();
-
-		if (obj.HasMember("inputs")) {
-			AssertThrow(obj["inputs"].IsArray(), "Default inputs must be specified in an array, undefined inputs as {}.");
-			auto& inputs = obj["inputs"];
-			for (SizeType i = 0; i < inputs.Size(); ++i) {
-				if (inputs[i].IsObject() && inputs[i].ObjectEmpty()) {
-					info.inputs.push_back({});
-				}
-				else if (inputs[i].IsString()) {
-					info.inputs.push_back(inputs[i].GetString());
-				}
-				else if (inputs[i].IsInt64()) {
-					info.inputs.push_back(std::to_string(inputs[i].GetInt64()));
-				}
-				else if (inputs[i].IsDouble()) {
-					info.inputs.push_back(std::to_string(inputs[i].GetDouble()));
-				}
-				else {
-					assert(false);
-				}
-			}
-		}
-		return info;
-	};
-
-	auto ParseLink = [&AssertThrow](const GenericValue<UTF8<>>& obj) {
-		LinkCreationInfo info;
-
-		AssertThrow(obj.HasMember("src")
-			&& obj.HasMember("dst")
-			&& obj.HasMember("srcp")
-			&& obj.HasMember("dstp"),
-			"Link must have members src, dst, srcp and dstp.");
-
-		if (obj["src"].IsString()) {
-			info.srcname = obj["src"].GetString();
-		}
-		else if (obj["src"].IsInt()) {
-			info.srcid = obj["src"].GetInt();
-		}
-		else {
-			AssertThrow(false, "Link src must be string (name) or int (id) of the node.");
-		}
-
-		if (obj["dst"].IsString()) {
-			info.dstname = obj["dst"].GetString();
-		}
-		else if (obj["dst"].IsInt()) {
-			info.dstid = obj["dst"].GetInt();
-		}
-		else {
-			AssertThrow(false, "Link dst must be string (name) or int (id) of the node.");
-		}
-
-		if (obj["srcp"].IsString()) {
-			info.srcpname = obj["srcp"].GetString();
-		}
-		else if (obj["srcp"].IsInt()) {
-			info.srcpidx = obj["srcp"].GetInt();
-		}
-		else {
-			AssertThrow(false, "Link srcp must be string (name) or int (index) of the port.");
-		}
-
-		if (obj["dstp"].IsString()) {
-			info.dstpname = obj["dstp"].GetString();
-		}
-		else if (obj["dstp"].IsInt()) {
-			info.dstpidx = obj["dstp"].GetInt();
-		}
-		else {
-			AssertThrow(false, "Link dstp must be string (name) or int (index) of the port.");
-		}
-
-		return info;
-	};
-
-
-	// Parse the JSON file.
-	Document doc;
-	doc.Parse(graphDesc.c_str());
-	ParseErrorCode ec = doc.GetParseError();
-	if (ec != ParseErrorCode::kParseErrorNone) {
-		int ch = doc.GetErrorOffset();
-		int chi = 0;
-		int chsum = 0;
-		int line = 0;
-		while (chi < ch && chi < graphDesc.size()) {
-			if (graphDesc[chi] == '\n') { ++line; chsum = 0; }
-			++chi;
-			++chsum;
-		}
-		throw InvalidArgumentException("JSON descripion has syntax errors.", "Check line " + std::to_string(line) + ":" + std::to_string(chsum));
-	}
-
-	AssertThrow(doc.IsObject(), "JSON root must be an object with member arrays \"nodes\" and \"links\".");
-	AssertThrow(doc.HasMember("nodes") && doc["nodes"].IsArray(), "JSON root must have \"nodes\" member array.");
-	AssertThrow(doc.HasMember("links") && doc["links"].IsArray(), "JSON root must have \"links\" member array.");
-
-	auto& nodes = doc["nodes"];
-	auto& links = doc["links"];
-	std::vector<NodeCreationInfo> nodeCreationInfos;
-	std::vector<LinkCreationInfo> linkCreationInfos;
-
-	for (SizeType i = 0; i < nodes.Size(); ++i) {
-		NodeCreationInfo info = ParseNode(nodes[i]);
-		nodeCreationInfos.push_back(info);
-	}
-
-	for (SizeType i = 0; i < links.Size(); ++i) {
-		LinkCreationInfo info = ParseLink(links[i]);
-		linkCreationInfos.push_back(info);
-	}
-
-	// Create lookup dictionary of nodes by name and by id.
-	// {name/id of node, index of node in vector}
-	std::unordered_map<int, size_t> idBook;
-	std::unordered_map<std::string, size_t> nameBook;
-	for (size_t i = 0; i < nodeCreationInfos.size(); ++i) {
-		if (nodeCreationInfos[i].name) {
-			auto ins = nameBook.insert({ nodeCreationInfos[i].name.value(), i });
-			AssertThrow(ins.second == true, "Node names must be unique.");
-		}
-		if (nodeCreationInfos[i].id) {
-			auto ins = idBook.insert({ nodeCreationInfos[i].id.value(), i });
-			AssertThrow(ins.second == true, "Node ids must be unique.");
-		}
-	}
-
-	// Create nodes with initial values.
-	std::vector<std::shared_ptr<NodeBase>> nodeObjects;
-	for (auto& info : nodeCreationInfos) {
-		std::shared_ptr<NodeBase> nodeObject(m_nodeFactory.CreateNode(info.cl));
-		if (info.name) {
-			nodeObject->SetDisplayName(info.name.value());
-		}
-
-		for (int i = 0; i < nodeObject->GetNumInputs() && i < info.inputs.size(); ++i) {
-			if (info.inputs.size()) {
-				nodeObject->GetInput(i)->SetConvert(info.inputs[i].value());
-			}
-		}
-
-		nodeObjects.push_back(std::move(nodeObject));
-	}
-
-	// Link nodes above.
-	for (auto& info : linkCreationInfos) {
-		NodeBase *src, *dst;
-		OutputPortBase* srcp;
-		InputPortBase* dstp;
-
-		// Find src and dst nodes
-		if (info.srcname) {
-			auto it = nameBook.find(info.srcname.value());
-			AssertThrow(it != nameBook.end(), "Node requested to link named " + info.srcname.value() + " not found.");
-			src = nodeObjects[it->second].get();
-		}
-		else {
-			auto it = idBook.find(info.srcid.value());
-			AssertThrow(it != idBook.end(), "Node requested to link id=" + std::to_string(info.srcid.value()) + " not found.");
-			src = nodeObjects[it->second].get();
-		}
-		if (info.dstname) {
-			auto it = nameBook.find(info.dstname.value());
-			AssertThrow(it != nameBook.end(), "Node requested to link named " + info.dstname.value() + " not found.");
-			dst = nodeObjects[it->second].get();
-		}
-		else {
-			auto it = idBook.find(info.dstid.value());
-			AssertThrow(it != idBook.end(), "Node requested to link id=" + std::to_string(info.dstid.value()) + " not found.");
-			dst = nodeObjects[it->second].get();
-		}
-		// Find src and dst ports
-		if (info.srcpname) {
-			for (int i = 0; i < src->GetNumOutputs(); ++i) {
-				if (info.srcpname.value() == src->GetOutputName(i)) {
-					srcp = src->GetOutput(i);
-					break;
-				}
-			}
-		}
-		else {
-			srcp = src->GetOutput(info.srcpidx.value());
-		}
-		if (info.dstpname) {
-			for (int i = 0; i < dst->GetNumInputs(); ++i) {
-				if (info.dstpname.value() == dst->GetInputName(i)) {
-					dstp = dst->GetInput(i);
-					break;
-				}
-			}
-		}
-		else {
-			dstp = dst->GetInput(info.dstpidx.value());
-		}
-		// Link said ports
-		bool linked = srcp->Link(dstp);
-		AssertThrow(linked, "Ports not compatible.");
-	}
-
-
-	// Finish off by creating the actual pipeline.
-	EngineContext engineContext(1, 1);
-	for (auto& node : nodeObjects) {
-		if (auto graphicsNode = dynamic_cast<GraphicsNode*>(node.get())) {
-			graphicsNode->Initialize(engineContext);
-		}
-	}
-
 	Pipeline pipeline;
-	pipeline.CreateFromNodesList(nodeObjects);
+	pipeline.CreateFromDescription(graphDesc, m_nodeFactory);
 
 	DumpPipelineGraph(pipeline, "pipeline_graph_json.dot");
+	std::string s = pipeline.SerializeToJSON(m_nodeFactory);
+	std::ofstream of("pipeline_out_json.json", std::ios::trunc);
+	of << s;
 }
 
 
@@ -1161,6 +919,9 @@ void GraphicsEngine::CreatePipeline() {
 	m_pipeline.CreateFromNodesList(nodeList);
 
 	DumpPipelineGraph(m_pipeline, "pipeline_graph.dot");
+	std::string s = m_pipeline.SerializeToJSON(m_nodeFactory);
+	std::ofstream of("pipeline_out.json", std::ios::trunc);
+	of << s;
 
 	m_specialNodes = SelectSpecialNodes(m_pipeline);
 }
@@ -1246,6 +1007,9 @@ void GraphicsEngine::RegisterPipelineClasses() {
 	m_nodeFactory.RegisterNodeClass<nodes::TextureProperties>("Pipeline/Utility");
 	m_nodeFactory.RegisterNodeClass<nodes::CreateTexture>("Pipeline/Utility");
 	m_nodeFactory.RegisterNodeClass<nodes::VectorComponents<1>>("Pipeline/Utility");
+	m_nodeFactory.RegisterNodeClass<nodes::VectorComponents<2>>("Pipeline/Utility");
+	m_nodeFactory.RegisterNodeClass<nodes::VectorComponents<3>>("Pipeline/Utility");
+	m_nodeFactory.RegisterNodeClass<nodes::VectorComponents<4>>("Pipeline/Utility");
 
 	m_nodeFactory.RegisterNodeClass<nodes::ForwardRender>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::DepthPrepass>("Pipeline/Render");
