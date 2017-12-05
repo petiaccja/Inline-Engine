@@ -233,7 +233,7 @@ ShaderProgram ShaderManager::CompileShaderInternal(const std::string& sourceCode
 			&includeProvider,
 			macros.c_str());
 
-		ShaderStage* dest;
+		ShaderStage* dest = nullptr;
 		switch (type) {
 		case gxapi::eShaderType::VERTEX: dest = &ret.vs; break;
 			case gxapi::eShaderType::HULL: dest = &ret.hs; break;

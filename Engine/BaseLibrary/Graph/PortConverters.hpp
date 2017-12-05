@@ -9,18 +9,6 @@
 
 namespace inl {
 
-namespace impl {
-
-template <class T>
-struct dependent_false {
-	static constexpr bool value = false;
-};
-template <class T>
-constexpr bool dependent_false_v = dependent_false<T>::value;
-
-}
-
-
 
 template <class AritT>
 class PortConverterArithmetic : public PortConverterCollection<AritT> {
@@ -51,41 +39,6 @@ protected:
 	}
 
 
-	//static long long FromStringHelper(const std::string& str, std::true_type, std::true_type) {
-	//	if (str.empty()) {
-	//		throw InvalidCastException("Cannot convert empty string to artihmetic.");
-	//	}
-	//	char* pend;
-	//	long long value = strtoll(str.c_str(), &pend, 10);
-	//	if (*pend != '\0') {
-	//		throw InvalidCastException("Invalid number format.");
-	//	}
-	//	return value;
-	//}
-
-	//static unsigned long long FromStringHelper(const std::string& str, std::true_type, std::false_type) {
-	//	if (str.empty()) {
-	//		throw InvalidCastException("Cannot convert empty string to artihmetic.");
-	//	}
-	//	char* pend;
-	//	unsigned long long value = strtoull(str.c_str(), &pend, 10);
-	//	if (*pend != '\0') {
-	//		throw InvalidCastException("Invalid number format.");
-	//	}
-	//	return value;
-	//}
-	//static long double FromStringHelper(const std::string& str, std::false_type, std::true_type) {
-	//	if (str.empty()) {
-	//		throw InvalidCastException("Cannot convert empty string to artihmetic.");
-	//	}
-	//	char* pend;
-	//	long double value = strtold(str.c_str(), &pend);
-	//	if (*pend != '\0') {
-	//		throw InvalidCastException("Invalid number format.");
-	//	}
-	//	return value;
-	//}
-
 	static AritT FromString(const std::string& str) {
 		if (str.empty()) {
 			throw InvalidCastException("Cannot convert empty string to artihmetic.");
@@ -108,11 +61,6 @@ protected:
 			throw InvalidCastException("Invalid number format.");
 		}
 		return value;
-
-		//return (AritT)FromStringHelper(
-		//	str,
-		//	std::integral_constant<bool, std::is_integral<AritT>::value>(),
-		//	std::integral_constant<bool, std::is_signed<AritT>::value>());
 	}
 };
 

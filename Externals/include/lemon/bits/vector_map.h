@@ -91,7 +91,9 @@ namespace lemon {
     // It adds all the items of the graph to the map.
     VectorMap(const GraphType& graph) {
       Parent::attach(graph.notifier(Item()));
-      container.resize(Parent::notifier()->maxId() + 1);
+	  int maxId = Parent::notifier()->maxId();
+	  int newSize = maxId + 1;
+      container.resize(newSize);
     }
 
     // \brief Constructor uses given value to initialize the map.

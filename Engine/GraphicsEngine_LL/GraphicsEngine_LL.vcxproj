@@ -219,6 +219,7 @@
     <ClInclude Include="CommandListPool.hpp" />
     <ClInclude Include="Cubemap.hpp" />
     <ClInclude Include="GraphEditor.hpp" />
+    <ClInclude Include="GraphicsPortConverters.hpp" />
     <ClInclude Include="ImageBase.hpp" />
     <ClInclude Include="NodeContext.hpp" />
     <ClInclude Include="Nodes\DebugDrawManager.hpp" />
@@ -319,6 +320,7 @@
     <ClCompile Include="Cubemap.cpp" />
     <ClCompile Include="GraphEditor.cpp" />
     <ClCompile Include="GraphicsNode.cpp" />
+    <ClCompile Include="GraphicsPortConverters.cpp" />
     <ClCompile Include="ImageBase.cpp" />
     <ClCompile Include="NodeContext.cpp" />
     <ClCompile Include="Nodes\NodeUtility.cpp" />

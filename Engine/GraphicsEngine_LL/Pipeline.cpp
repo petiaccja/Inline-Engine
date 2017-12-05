@@ -50,7 +50,6 @@ static LinkCreationInfo ParseLink(const rapidjson::GenericValue<rapidjson::UTF8<
 static StringErrorPosition GetStringErrorPosition(const std::string& str, int errorCharacter);
 
 static std::string SerializeNodesAndLinks(const std::vector<NodeCreationInfo>& nodes, const std::vector<LinkCreationInfo>& links);
-static std::optional<std::string> GetInputPortValue(const InputPortBase* port);
 
 
 
@@ -102,7 +101,9 @@ Pipeline::NodeIterator Pipeline::NodeIterator::operator++(int) const {
 
 
 Pipeline::Pipeline()
-	: m_nodeMap(m_dependencyGraph), m_taskFunctionMap(m_taskGraph), m_taskParentMap(m_taskGraph, lemon::INVALID)
+	: m_nodeMap(m_dependencyGraph),
+	m_taskFunctionMap(m_taskGraph),
+	m_taskParentMap(m_taskGraph, lemon::INVALID)
 {}
 
 
@@ -355,12 +356,18 @@ std::string Pipeline::SerializeToJSON(const NodeFactory& factory) const {
 			}
 			else {
 				// save default input value
-				std::optional<std::string> value = GetInputPortValue(input);
-				auto& nodeInfo = nodeCreation[dst];
-				if (nodeInfo.inputs.size() < i + 1) {
-					nodeInfo.inputs.resize(i + 1);
+				try {
+					std::optional<std::string> value = input->ToString();
+
+					auto& nodeInfo = nodeCreation[dst];
+					if (nodeInfo.inputs.size() < i + 1) {
+						nodeInfo.inputs.resize(i + 1);
+					}
+					nodeInfo.inputs[i] = value;
 				}
-				nodeInfo.inputs[i] = value;
+				catch (InvalidCallException& ex) {
+					std::cout << "Conversion failed for " << input->GetType().name() << std::endl;
+				}
 			}
 		}
 	}
@@ -803,32 +810,6 @@ static std::string SerializeNodesAndLinks(const std::vector<NodeCreationInfo>& n
 template <class T>
 std::string GetInputPortValueHelper(const InputPortBase* port) {
 	return std::to_string(dynamic_cast<const InputPort<T>*>(port)->Get());
-}
-
-static std::optional<std::string> GetInputPortValue(const InputPortBase* port) {
-	// This function is ugly, use some polymorphism or sth
-
-	std::type_index type = port->GetType();
-	if (port->GetType() == typeid(std::string)) {
-		return dynamic_cast<const InputPort<std::string>*>(port)->Get();
-	}
-	if (port->GetType() == typeid(float)) {
-		return GetInputPortValueHelper<float>(port);
-	}
-	if (port->GetType() == typeid(int)) {
-		return GetInputPortValueHelper<int>(port);
-	}
-	if (port->GetType() == typeid(short)) {
-		return GetInputPortValueHelper<short>(port);
-	}
-	if (port->GetType() == typeid(unsigned)) {
-		return GetInputPortValueHelper<unsigned>(port);
-	}
-	if (port->GetType() == typeid(unsigned short)) {
-		return GetInputPortValueHelper<unsigned short>(port);
-	}
-
-	return {};
 }
 
 

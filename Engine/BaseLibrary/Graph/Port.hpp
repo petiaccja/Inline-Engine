@@ -8,7 +8,9 @@
 #include <iterator>
 #include <memory>
 #include <unordered_map>
+#include <sstream>
 #include "../Any.hpp"
+#include "../TemplateUtil.hpp"
 
 
 namespace inl {
@@ -24,28 +26,6 @@ template <class T, class C>
 class InputPort;
 
 
-
-/// <summary>
-/// Converts types when passed between output->input ports.
-/// <para> To implement converters for a certain type, specialize
-///		this class for the type. The specialization must have an operator[]
-///		taking an std::type_index, and returning a (const void*, void) functor.
-///		The functor should convert the source type (defined by the type_index param)
-///		to the destination type (defined by the specialization). </para>
-/// <para> If the conversion is not possible or not implemented, the operator[]
-///		method should throw an std::out_of_range. </para>
-/// </summary>
-template <class T>
-class PortConverter {
-public:
-	using Functor = void(*)(const void*, void*);
-	Functor operator[](std::type_index type) const {
-		throw OutOfRangeException("Cannot find a converter for type.", type.name());
-	}
-	bool CanConvert(std::type_index type) const {
-		return false;
-	}
-};
 
 
 /// <summary> Use this as a helper to implement <see cref="PortConverter"/> specializations.
@@ -74,6 +54,17 @@ public:
 	bool CanConvert(std::type_index type) const {
 		return m_converters.count(type) > 0;
 	}
+
+	virtual std::string ToString(const T& arg) const {
+		if constexpr (templ::is_printable<T, std::stringstream>::value) {
+			std::stringstream ss;
+			ss << arg;
+			return ss.str();
+		}
+		else {
+			throw InvalidCallException("This type cannot be converted to string.");
+		}
+	}
 private:
 	template <class Head, class... Functions>
 	void RegisterFunctions(Head head, Functions... functions) {
@@ -95,6 +86,34 @@ private:
 	}
 private:
 	std::unordered_map<std::type_index, std::function<void(const void*, void*)>> m_converters;
+};
+
+template <>
+class PortConverterCollection<void> {
+public:
+	using Functor = void(*)(const void*, void*);
+	Functor operator[](std::type_index type) const {
+		throw OutOfRangeException("Cannot find a converter for type.", type.name());
+	}
+	bool CanConvert(std::type_index type) const {
+		return false;
+	}
+};
+
+
+
+/// <summary>
+/// Converts types when passed between output->input ports.
+/// <para> To implement converters for a certain type, specialize
+///		this class for the type. The specialization must have an operator[]
+///		taking an std::type_index, and returning a (const void*, void) functor.
+///		The functor should convert the source type (defined by the type_index param)
+///		to the destination type (defined by the specialization). </para>
+/// <para> If the conversion is not possible or not implemented, the operator[]
+///		method should throw an std::out_of_range. </para>
+/// </summary>
+template <class T>
+class PortConverter : public PortConverterCollection<T> {
 };
 
 
@@ -144,6 +163,10 @@ public:
 	/// <summary> Set type that is to be converted automatically. </summary>
 	template <class U>
 	void SetConvert(const U& u);
+
+	/// <summary> Converts underlying data to string using it's &lt;&lt; operator </summary>
+	/// <exception cref="InvalidCallException"> If no ostream operator available. </summary> 
+	virtual std::string ToString() const = 0;
 protected:
 	OutputPortBase* link;
 	void NotifyAll();
@@ -264,6 +287,10 @@ public:
 		return typeid(T);
 	}
 
+	std::string ToString() const override {
+		return converter.ToString(data);
+	}
+
 	virtual bool IsCompatible(std::type_index type) const override;
 protected:
 	virtual void SetConvert(const void* object, std::type_index type) override;
@@ -369,6 +396,10 @@ public:
 	bool IsCompatible(std::type_index type) const override {
 		return true;
 	}
+
+	std::string ToString() const override {
+		throw InvalidCallException("Void ports cannot be converted to a string.");
+	}
 protected:
 	void SetConvert(const void* object, std::type_index type) override {
 		// conversion does nothing
@@ -457,6 +488,10 @@ public:
 
 	bool IsCompatible(std::type_index type) const override {
 		return type != typeid(void);
+	}
+
+	std::string ToString() const override {
+		throw InvalidCallException("Any ports cannot be converted to string.");
 	}
 protected:
 	void SetConvert(const void* object, std::type_index type) override {

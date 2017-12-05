@@ -2,6 +2,7 @@
 
 
 #include "../BaseLibrary/Graph/Node.hpp"
+#include "GraphicsPortConverters.hpp"
 #include "NodeContext.hpp"
 
 

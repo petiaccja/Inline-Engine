@@ -58,7 +58,7 @@ public:
 
 	template <class... Barriers>
 	std::enable_if_t<
-		all<std::is_base_of<ResourceBarrierTag, std::remove_reference_t<Barriers>>...>::value,
+		templ::all<std::is_base_of<ResourceBarrierTag, std::remove_reference_t<Barriers>>...>::value,
 		void
 	>
 	ResourceBarrier(Barriers&&... barriers) {
