@@ -15,7 +15,7 @@
 namespace inl::gxeng::nodes {
 
 /// <summary>
-/// Inputs: target, depth stencil, entities, camera, directional lights, shadow map, shadowMX, csmSplits, lightMVP
+/// Inputs: target, depth stencil, entities, camera, directional lights, shadow map, shadowMX, csmSplits, lightMVP, point light shadow map
 /// </summary>
 class ForwardRender :
 	virtual public GraphicsNode,
@@ -27,6 +27,7 @@ class ForwardRender :
 		const EntityCollection<MeshEntity>*,
 		const BasicCamera*,
 		const EntityCollection<DirectionalLight>*,
+		Texture2D,
 		Texture2D,
 		Texture2D,
 		Texture2D,
@@ -108,7 +109,8 @@ private:
 	const BasicCamera* m_camera;
 	const EntityCollection<DirectionalLight>* m_directionalLights;
 
-	TextureView2D m_shadowMapTexView;
+	TextureViewCube m_pointLightShadowMapTexView;
+	TextureView2D m_cascadedShadowMapTexView;
 	TextureView2D m_shadowMXTexView;
 	TextureView2D m_csmSplitsTexView;
 	TextureView2D m_lightMVPTexView;

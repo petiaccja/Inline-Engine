@@ -106,7 +106,7 @@ void ForwardRender::Reset() {
 	m_camera = nullptr;
 	m_directionalLights = nullptr;
 
-	m_shadowMapTexView = TextureView2D();
+	m_cascadedShadowMapTexView = TextureView2D();
 	m_shadowMXTexView = TextureView2D();
 	m_csmSplitsTexView = TextureView2D();
 	m_lightMVPTexView = TextureView2D();
@@ -148,7 +148,7 @@ void ForwardRender::Setup(SetupContext& context) {
 	m_directionalLights = this->GetInput<4>().Get();
 	assert(m_directionalLights->Size() == 1);
 
-	auto shadowMapTex = this->GetInput<5>().Get();
+	auto cascadedShadowMapTex = this->GetInput<5>().Get();
 	this->GetInput<5>().Clear();
 	gxapi::SrvTexture2DArray srvDesc;
 	srvDesc.activeArraySize = 4;
@@ -157,7 +157,17 @@ void ForwardRender::Setup(SetupContext& context) {
 	srvDesc.mostDetailedMip = 0;
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
-	m_shadowMapTexView = context.CreateSrv(shadowMapTex, FormatDepthToColor(shadowMapTex.GetFormat()), srvDesc);
+	m_cascadedShadowMapTexView = context.CreateSrv(cascadedShadowMapTex, FormatDepthToColor(cascadedShadowMapTex.GetFormat()), srvDesc);
+
+	auto pointLightShadowMapTex = this->GetInput<10>().Get();
+	this->GetInput<5>().Clear();
+	gxapi::SrvTextureCubeArray cubeSrvDesc;
+	cubeSrvDesc.indexOfFirst2DTex = 0;
+	cubeSrvDesc.mipLevelClamping = 0;
+	cubeSrvDesc.mostDetailedMip = 0;
+	cubeSrvDesc.numMipLevels = 1;
+	cubeSrvDesc.numCubes = 1;
+	m_pointLightShadowMapTexView = context.CreateSrv(cascadedShadowMapTex, FormatDepthToColor(cascadedShadowMapTex.GetFormat()), cubeSrvDesc);
 	
 
 	srvDesc.activeArraySize = 1;
@@ -349,12 +359,12 @@ void ForwardRender::Execute(RenderContext& context) {
 		commandList.SetPipelineState(scenario.pso.get());
 		commandList.SetGraphicsBinder(&scenario.binder);
 
-		commandList.SetResourceState(m_shadowMapTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_cascadedShadowMapTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_shadowMXTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_csmSplitsTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_lightMVPTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
-		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 500), m_shadowMapTexView);
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 500), m_cascadedShadowMapTexView);
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 501), m_shadowMXTexView);
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 502), m_csmSplitsTexView);
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 503), m_lightMVPTexView);

@@ -626,6 +626,7 @@ void GraphicsEngine::CreatePipeline() {
 	forwardRender->GetInput(7)->Link(depthReductionFinal->GetOutput(2));
 	forwardRender->GetInput(8)->Link(depthReductionFinal->GetOutput(0));
 	forwardRender->GetInput(9)->Link(lightCulling->GetOutput(0));
+	forwardRender->GetInput(10)->Link(shadowMapGen->GetOutput(0));
 
 	screenSpaceAmbientOcclusion->GetInput(0)->Link(depthPrePass->GetOutput(0));
 	screenSpaceAmbientOcclusion->GetInput(1)->Link(getCamera->GetOutput(0));
