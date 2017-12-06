@@ -136,7 +136,7 @@ void MemoryObject::InitResourceStates(gxapi::eResourceState initialState) {
 	switch (desc.type) {
 		case eResourceType::TEXTURE:
 		{
-			numSubresources = m_contents->resource->GetNumArrayLevels() * m_contents->resource->GetNumMipLevels() * m_contents->resource->GetNumTexturePlanes();
+			numSubresources = m_contents->resource->GetNumSubresources();
 			break;
 		}
 		case eResourceType::BUFFER:

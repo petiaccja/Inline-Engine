@@ -16,13 +16,14 @@ protected:
 	// template iterator to minimize code duplication for iterator and const iterator
 
 	template <typename IterContainerT, typename IterContainerIterT>
-	class TemplateIterator :
-		public std::iterator <
-			std::bidirectional_iterator_tag,
-			typename IterContainerIterT::value_type
-		>
-	{
+	class TemplateIterator {
 	public:
+		using iterator_category = std::bidirectional_iterator_tag;
+		using value_type = typename std::remove_const<T>::type;
+		using difference_type = typename IterContainerIterT::difference_type;
+		using pointer = typename IterContainerIterT::pointer;
+		using reference = typename IterContainerIterT::reference;
+
 		friend class RingBuffer;
 
 		value_type& operator*() {

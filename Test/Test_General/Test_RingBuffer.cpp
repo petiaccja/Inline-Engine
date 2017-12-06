@@ -47,7 +47,7 @@ public:
 		try {
 			constexpr int count = int(1_mega);
 
-			string containerName{typeid(container_type<void>).name()};
+			string containerName{typeid(container_type<int>).name()};
 			containerName = containerName.substr(0, containerName.find('<'));
 			cout << "Testing RingBuffer with container type: " << containerName << endl << endl;
 

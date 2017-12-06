@@ -87,8 +87,10 @@ public:
 	void RecordState(gxapi::eResourceState newState);
 	/// <summary> Returns the current tracked state. </summary>
 	gxapi::eResourceState ReadState(unsigned subresource) const;
-	/// <summary> Returns the number of subresources. </summary>
-	unsigned GetNumSubresources() const { return (unsigned)m_contents->subresourceStates.size(); }
+
+	unsigned GetNumSubresources() const { return (unsigned)m_contents->resource->GetNumSubresources(); }
+	unsigned GetNumMiplevels() const { return (unsigned)m_contents->resource->GetNumMipLevels(); }
+
 
 	eResourceHeap GetHeap() const { assert(m_contents->heap != eResourceHeap::INVALID); return m_contents->heap; }
 

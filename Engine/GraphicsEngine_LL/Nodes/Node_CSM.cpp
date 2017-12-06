@@ -182,9 +182,9 @@ void CSM::Execute(RenderContext & context) {
 	assert(m_dsvs.size() > 0);
 
 	Texture2D cascadeTextures = m_dsvs[0].GetResource();
-	const uint16_t numCascades = m_dsvs.size();
+	const uint16_t numCascades = (uint16_t)m_dsvs.size();
 	const uint64_t cascadeWidth = cascadeTextures.GetWidth();
-	const uint64_t cascadeHeight = cascadeTextures.GetHeight();
+	const uint32_t cascadeHeight = cascadeTextures.GetHeight();
 
 	gxapi::Rectangle rect{ 0, (int)cascadeTextures.GetHeight(), 0, (int)cascadeTextures.GetWidth() };
 	commandList.SetScissorRects(1, &rect);

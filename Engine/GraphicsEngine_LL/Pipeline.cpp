@@ -23,14 +23,14 @@ namespace gxeng {
 // Helper structures and functions
 //------------------------------------------------------------------------------
 
-static struct NodeCreationInfo {
+struct NodeCreationInfo {
 	std::optional<int> id;
 	std::optional<std::string> name;
 	std::string cl;
 	std::vector<std::optional<std::string>> inputs;
 };
 
-static struct LinkCreationInfo {
+struct LinkCreationInfo {
 	std::optional<int> srcid, dstid;
 	std::optional<std::string> srcname, dstname;
 	std::optional<int> srcpidx, dstpidx;
@@ -47,7 +47,7 @@ struct StringErrorPosition {
 static void AssertThrow(bool condition, const std::string& message);
 static NodeCreationInfo ParseNode(const rapidjson::GenericValue<rapidjson::UTF8<>>& jsonObj);
 static LinkCreationInfo ParseLink(const rapidjson::GenericValue<rapidjson::UTF8<>>& jsonObj);
-static StringErrorPosition GetStringErrorPosition(const std::string& str, int errorCharacter);
+static StringErrorPosition GetStringErrorPosition(const std::string& str, size_t errorCharacter);
 
 static std::string SerializeNodesAndLinks(const std::vector<NodeCreationInfo>& nodes, const std::vector<LinkCreationInfo>& links);
 
@@ -150,7 +150,7 @@ void Pipeline::CreateFromDescription(const std::string& jsonDescription, Graphic
 	doc.Parse(jsonDescription.c_str());
 	ParseErrorCode ec = doc.GetParseError();
 	if (ec != ParseErrorCode::kParseErrorNone) {
-		int errorCharacter = doc.GetErrorOffset();
+		size_t errorCharacter = doc.GetErrorOffset();
 		auto [lineNumber, characterNumber, line] = GetStringErrorPosition(jsonDescription, errorCharacter);
 		throw InvalidArgumentException("JSON descripion has syntax errors.", "Check line " + std::to_string(lineNumber) + ":" + std::to_string(characterNumber));
 	}
@@ -330,7 +330,6 @@ std::string Pipeline::SerializeToJSON(const NodeFactory& factory) const {
 			InputPortBase* input = dst->GetInput(i);
 			OutputPortBase* output = input->GetLink();
 			if (output != nullptr) {
-				NodeBase* src;
 				auto nit = outputLookup.find(output);
 				assert(nit != outputLookup.end());
 				const auto [ src, srcpidx ] = nit->second;
@@ -365,7 +364,7 @@ std::string Pipeline::SerializeToJSON(const NodeFactory& factory) const {
 					}
 					nodeInfo.inputs[i] = value;
 				}
-				catch (InvalidCallException& ex) {
+				catch (InvalidCallException&) {
 					std::cout << "Conversion failed for " << input->GetType().name() << std::endl;
 				}
 			}
@@ -711,7 +710,7 @@ LinkCreationInfo ParseLink(const rapidjson::GenericValue<rapidjson::UTF8<>>& obj
 };
 
 
-static StringErrorPosition GetStringErrorPosition(const std::string& str, int errorCharacter) {
+static StringErrorPosition GetStringErrorPosition(const std::string& str, size_t errorCharacter) {
 	int currentCharacter = 0;
 	int characterNumber = 0;
 	int lineNumber = 0;

@@ -21,12 +21,12 @@ void* System::GetModuleSymbolAddress(ModuleHandle handle, const char* symbolName
 }
 
 // Cursor
-Vec2 System::GetCursorPosition() {
+Vec2i System::GetCursorPosition() {
 	POINT p;
 	GetCursorPos(&p);
 	return { p.x, p.y };
 }
-void System::SetCursorPosition(const Vec2& pos) {
+void System::SetCursorPosition(const Vec2i& pos) {
 	SetCursorPos(pos.x, pos.y);
 }
 void System::SetCursorVisual(eCursorVisual visual) {

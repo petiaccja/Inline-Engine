@@ -18,11 +18,11 @@
 
 
 struct ControlInfo {
-	float weight = 19.62; // weight!=mass is in newtowns, not kg!
-	float offsetRpm = 100;
-	float ascend = 0, descend = 0;
-	float front = 0, back = 0, left = 0, right = 0;
-	float rotateLeft = 0, rotateRight = 0;
+	float weight = 19.62f; // weight!=mass is in newtowns, not kg!
+	float offsetRpm = 100.f;
+	float ascend = 0.f, descend = 0.f;
+	float front = 0.f, back = 0.f, left = 0.f, right = 0.f;
+	float rotateLeft = 0.f, rotateRight = 0.f;
 	float heading = 0.0f;
 
 	//           >   y   <

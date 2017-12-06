@@ -40,8 +40,8 @@ public:
 	static void* GetModuleSymbolAddress(ModuleHandle handle, const char* symbolName) noexcept;
 
 	// Cursor
-	static Vec2 GetCursorPosition();
-	static void SetCursorPosition(const Vec2& pos);
+	static Vec2i GetCursorPosition();
+	static void SetCursorPosition(const Vec2i& pos);
 	static void SetCursorVisual(eCursorVisual visual);
 	static void SetCursorVisible(bool visible);
 

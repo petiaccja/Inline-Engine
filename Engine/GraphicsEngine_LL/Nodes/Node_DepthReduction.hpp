@@ -35,8 +35,8 @@ public:
 protected:
 	TextureView2D m_depthView;
 
-	unsigned m_width;
-	unsigned m_height;
+	uint64_t m_width;
+	uint32_t m_height;
 
 	gxeng::RWTextureView2D m_uav;
 	gxeng::TextureView2D m_srv;

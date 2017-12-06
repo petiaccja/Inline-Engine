@@ -582,7 +582,7 @@ protected:
 
 	// Misc
 	static inline T dot(const VectorT& lhs, const VectorT& rhs) {
-		T sum = 0.0f;
+		T sum = (T)0.0f;
 		for (int i = 0; i < Dim; ++i) {
 			sum += lhs.data[i] * rhs.data[i];
 		}
@@ -1224,7 +1224,7 @@ public:
 
 	/// <summary> Returns the length of the vector. </summary> 
 	T Length() const {
-		return sqrt(LengthSquared());
+		return (T)sqrt(LengthSquared());
 	}
 
 	/// <summary> Returns the element-wise minimum of arguments </summary>
@@ -1275,7 +1275,7 @@ protected:
 	template <class Head, class... Mixed, typename std::enable_if<impl::Any<impl::IsVectorOrSwizzle, Head, Mixed...>::value, int>::type = 0>
 	void Assign(int idx, const Head& head, const Mixed&... mixed) {
 		for (int i = 0; i < impl::DimensionOf<Head>::value; ++i) {
-			data[idx] = GetVectorElement<Head>::Get(head, i);
+			data[idx] = (T)GetVectorElement<Head>::Get(head, i);
 			++idx;
 		}
 		Assign(idx, mixed...);

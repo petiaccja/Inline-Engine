@@ -32,7 +32,7 @@ public:
 	unsigned GetNumArrayLevels() const override;
 	unsigned GetNumSubresources() const override;
 	unsigned GetSubresourceIndex(unsigned mipIdx, unsigned arrayIdx, unsigned planeIdx) const override;
-	Vec3u64 GetSize(int mipLevel = 0) const override;
+	Vec3u64 GetSize(unsigned mipLevel = 0) const override;
 
 	void SetName(const char* name) override;
 private:

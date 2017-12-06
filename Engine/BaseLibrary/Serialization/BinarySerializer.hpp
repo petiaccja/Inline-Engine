@@ -25,8 +25,14 @@ private:
 	/// Parametrize template with 'uint8_t' and 'const uint8_t' to get mutable and const iterators.
 	/// </summary>
 	template <class T>
-	class iterator_base : public std::iterator<std::random_access_iterator_tag, T> {
+	class iterator_base {
 	public:
+		using iterator_category = std::random_access_iterator_tag;
+		using value_type = typename std::remove_const<T>::type;
+		using difference_type = ptrdiff_t;
+		using pointer = T*;
+		using reference = T&;
+
 		friend class BinarySerializer;
 
 		iterator_base() {

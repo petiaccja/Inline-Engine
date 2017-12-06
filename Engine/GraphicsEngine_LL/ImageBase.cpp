@@ -18,7 +18,7 @@ ImageBase::~ImageBase() {
 }
 
 
-void ImageBase::SetLayout(size_t width, size_t height, ePixelChannelType channelType, int channelCount, ePixelClass pixelClass, int arraySize) {
+void ImageBase::SetLayout(uint64_t width, uint32_t height, ePixelChannelType channelType, unsigned channelCount, ePixelClass pixelClass, unsigned arraySize) {
 	gxapi::eFormat format;
 	int resultChCnt = 0;
 	if (!ConvertFormat(channelType, channelCount, pixelClass, format, resultChCnt)) {
@@ -39,7 +39,7 @@ void ImageBase::SetLayout(size_t width, size_t height, ePixelChannelType channel
 }
 
 
-void ImageBase::Update(size_t x, size_t y, size_t width, size_t height, int mipLevel, int arrayIndex, const void* pixels, const IPixelReader& reader, size_t bytesPerRow) {
+void ImageBase::Update(uint64_t x, uint32_t y, uint64_t width, uint32_t height, unsigned mipLevel, unsigned arrayIndex, const void* pixels, const IPixelReader& reader, size_t bytesPerRow) {
 	if (!m_resource) {
 		throw InvalidStateException("Must create image first.");
 	}

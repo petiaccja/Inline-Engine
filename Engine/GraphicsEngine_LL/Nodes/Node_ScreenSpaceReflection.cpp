@@ -16,8 +16,7 @@
 
 namespace inl::gxeng::nodes {
 
-struct Uniforms
-{
+struct Uniforms {
 	Mat44_Packed projSS;
 	Mat44_Packed v;
 	Mat44_Packed invV;
@@ -27,10 +26,6 @@ struct Uniforms
 	Vec2_Packed direction;  float maxDistance;
 };
 
-static int getNumMips(int w, int h, int d)
-{
-	return 1 + std::floor(std::log2(std::max(std::max(w, h), d)));
-}
 
 ScreenSpaceReflection::ScreenSpaceReflection() {
 	this->GetInput<0>().Set({});
@@ -59,11 +54,11 @@ void ScreenSpaceReflection::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	
+
 
 	Texture2D depthTex = this->GetInput<1>().Get();
 	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
-	
+
 
 	m_camera = this->GetInput<2>().Get();
 
@@ -126,7 +121,7 @@ void ScreenSpaceReflection::Setup(SetupContext& context) {
 		samplerDesc1.registerSpace = 0;
 		samplerDesc1.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc0, sampBindParamDesc1, inputBindParamDesc, dethBindParamDesc },{ samplerDesc0, samplerDesc1 });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc0, sampBindParamDesc1, inputBindParamDesc, dethBindParamDesc }, { samplerDesc0, samplerDesc1 });
 	}
 
 	if (!m_fsq.HasObject()) {
@@ -200,11 +195,11 @@ void ScreenSpaceReflection::Setup(SetupContext& context) {
 
 			psoDesc.numRenderTargets = 1;
 
-			int numMips = getNumMips(m_ssr_rtv.GetResource().GetWidth(), m_ssr_rtv.GetResource().GetHeight(), 1);
+			unsigned numMips = m_ssr_rtv.GetResource().GetNumMiplevels();
 
 			m_downsamplePSO.resize(numMips);
 
-			for (int c = 0; c < numMips; ++c)
+			for (unsigned c = 0; c < numMips; ++c)
 			{
 				psoDesc.renderTargetFormats[0] = m_input_rtv[c].GetResource().GetFormat();
 				m_downsamplePSO[c].reset(context.CreatePSO(psoDesc));
@@ -230,12 +225,12 @@ void ScreenSpaceReflection::Setup(SetupContext& context) {
 
 			psoDesc.numRenderTargets = 1;
 
-			int numMips = getNumMips(m_ssr_rtv.GetResource().GetWidth(), m_ssr_rtv.GetResource().GetHeight(), 1);
+			unsigned numMips = m_ssr_rtv.GetResource().GetNumMiplevels();
 
 			m_blurHorizontalPSO.resize(numMips);
 			m_blurVerticalPSO.resize(numMips);
 
-			for (int c = 0; c < numMips; ++c)
+			for (unsigned c = 0; c < numMips; ++c)
 			{
 				psoDesc.renderTargetFormats[0] = m_blur_rtv[c].GetResource().GetFormat();
 				m_blurHorizontalPSO[c].reset(context.CreatePSO(psoDesc));
@@ -325,23 +320,23 @@ void ScreenSpaceReflection::Execute(RenderContext& context) {
 	uniformsCBData.farPlaneData1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0.0f, 0.0f);
 
 	{ //fill mip chain
-		int numMips = getNumMips(m_ssr_rtv.GetResource().GetWidth(), m_ssr_rtv.GetResource().GetHeight(), 1);
+		unsigned numMips = m_ssr_rtv.GetResource().GetNumMiplevels();
 
-		int w = m_inputTexSrv.GetResource().GetWidth();
-		int h = m_inputTexSrv.GetResource().GetHeight();
+		uint64_t w = m_inputTexSrv.GetResource().GetWidth();
+		uint32_t h = m_inputTexSrv.GetResource().GetHeight();
 
-		for (int c = 1; c < numMips; ++c)
+		for (unsigned c = 1; c < numMips; ++c)
 		{
 			w /= 2;
 			h /= 2;
 
 			commandList.SetResourceState(m_input_rtv[c].GetResource(), gxapi::eResourceState::RENDER_TARGET, c);
-			commandList.SetResourceState(m_input_srv[c-1].GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+			commandList.SetResourceState(m_input_srv[c - 1].GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 			RenderTargetView2D* pRTV = &m_input_rtv[c];
 			commandList.SetRenderTargets(1, &pRTV, 0);
 
-			gxapi::Rectangle rect{ 0, w, 0, h };
+			gxapi::Rectangle rect{ 0, (int)w, 0, (int)h };
 			gxapi::Viewport viewport;
 			viewport.width = (float)rect.right;
 			viewport.height = (float)rect.bottom;
@@ -438,7 +433,7 @@ void ScreenSpaceReflection::InitRenderTarget(SetupContext& context) {
 		m_ssr_rtv = context.CreateRtv(ssr_tex, formatSSR, rtvDesc);
 
 
-		int numMips = getNumMips(m_ssr_rtv.GetResource().GetWidth(), m_ssr_rtv.GetResource().GetHeight(), 1);
+		unsigned numMips = m_ssr_rtv.GetResource().GetNumMiplevels();
 
 		Texture2DDesc mipDesc;
 		mipDesc.arraySize = 1;
@@ -449,8 +444,7 @@ void ScreenSpaceReflection::InitRenderTarget(SetupContext& context) {
 		Texture2D blur_tex = context.CreateTexture2D(mipDesc, { true, true, false, false });
 		blur_tex.SetName("Screen space reflection blur tex");
 
-		for (int c = 0; c < numMips; ++c)
-		{
+		for (unsigned c = 0; c < numMips; ++c) {
 			gxapi::RtvTexture2DArray rtvMipDesc;
 			rtvMipDesc.activeArraySize = 1;
 			rtvMipDesc.firstArrayElement = 0;

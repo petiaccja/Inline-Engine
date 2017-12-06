@@ -14,7 +14,7 @@ namespace inl {
 
 
 Window::Window(const std::string& title,
-	Vec2 size,
+	Vec2i size,
 	bool borderless,
 	bool resizable,
 	bool hiddenInitially)
@@ -219,13 +219,13 @@ bool Window::IsMinimized() const {
 	return IsIconic(m_handle);
 }
 
-void Window::SetSize(const Vec2& size) {
+void Window::SetSize(const Vec2i& size) {
 	if (IsClosed()) { return; }
 	SetWindowPos(m_handle, NULL, 0, 0, size.x, size.y, SWP_NOMOVE);
 }
 
 
-Vec2 Window::GetSize() const {
+Vec2i Window::GetSize() const {
 	if (IsClosed()) { return { 0,0 }; }
 	RECT rc;
 	GetWindowRect(m_handle, &rc);
@@ -233,7 +233,7 @@ Vec2 Window::GetSize() const {
 }
 
 
-Vec2 Window::GetClientSize() const {
+Vec2i Window::GetClientSize() const {
 	if (IsClosed()) { return { 0,0 }; }
 	RECT rc;
 	GetClientRect(m_handle, &rc);
@@ -241,13 +241,13 @@ Vec2 Window::GetClientSize() const {
 }
 
 
-void Window::SetPosition(const Vec2& position) {
+void Window::SetPosition(const Vec2i& position) {
 	if (IsClosed()) { return; }
 	SetWindowPos(m_handle, NULL, position.x, position.y, 0, 0, SWP_NOMOVE);
 }
 
 
-Vec2 Window::GetPosition() const {
+Vec2i Window::GetPosition() const {
 	if (IsClosed()) { return { 0,0 }; }
 	RECT rc;
 	GetWindowRect(m_handle, &rc);
@@ -374,7 +374,7 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 			return 0;
 		case WM_KEYDOWN: {
 			KeyboardEvent evt;
-			evt.key = impl::TranslateKey(wParam);
+			evt.key = impl::TranslateKey((unsigned)wParam);
 			evt.state = eKeyState::DOWN;
 			if (evt.key != eKey::UNKNOWN) {
 				instance.CallEvent(instance.OnKeyboard, evt);
@@ -383,7 +383,7 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 		}
 		case WM_KEYUP: {
 			KeyboardEvent evt;
-			evt.key = impl::TranslateKey(wParam);
+			evt.key = impl::TranslateKey((unsigned)wParam);
 			evt.state = eKeyState::UP;
 			if (evt.key != eKey::UNKNOWN) {
 				instance.CallEvent(instance.OnKeyboard, evt);

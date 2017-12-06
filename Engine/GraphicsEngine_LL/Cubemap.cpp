@@ -4,12 +4,12 @@ namespace inl::gxeng {
 
 
 
-void Cubemap::SetLayout(size_t width, size_t height, ePixelChannelType channelType, int channelCount, ePixelClass pixelClass) {
+void Cubemap::SetLayout(uint64_t width, uint32_t height, ePixelChannelType channelType, unsigned channelCount, ePixelClass pixelClass) {
 	ImageBase::SetLayout(width, height, channelType, channelCount, pixelClass, 6);
 }
 
 
-void Cubemap::Update(size_t x, size_t y, size_t width, size_t height, int mipLevel, Face face, const void* pixels, const IPixelReader& reader, size_t bytesPerRow) {
+void Cubemap::Update(uint64_t x, uint32_t y, uint64_t width, uint32_t height, unsigned mipLevel, Face face, const void* pixels, const IPixelReader& reader, size_t bytesPerRow) {
 	ImageBase::Update(x, y, width, height, mipLevel, GetFaceIndex(face.facePosition), pixels, reader, bytesPerRow);
 }
 

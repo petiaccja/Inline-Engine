@@ -145,22 +145,22 @@ void PortConverter<gxapi::eFormat>::GetMaps(const std::unordered_set<const Recor
 
 
 std::string PortConverter<gxapi::RenderTargetBlendState>::ToString(const gxapi::RenderTargetBlendState& fmt) const {
-	throw NotImplementedException("No, peter, you're gonna have to implement this. Boring... /cry");
+	//throw NotImplementedException("No, peter, you're gonna have to implement this. Boring... /cry");
 	return "yay";
 }
 gxapi::RenderTargetBlendState PortConverter<gxapi::RenderTargetBlendState>::FromString(const std::string&) {
-	throw NotImplementedException("No, peter, you're gonna have to implement this. Boring... /cry");
+	//throw NotImplementedException("No, peter, you're gonna have to implement this. Boring... /cry");
 	return {};
 }
 
 
 
 std::string PortConverter<gxeng::TextureUsage>::ToString(const gxeng::TextureUsage& fmt) const {
-	throw NotImplementedException("No, peter, you're gonna have to implement this. Boring... /cry");
+	//throw NotImplementedException("No, peter, you're gonna have to implement this. Boring... /cry");
 	return "yay";
 }
 gxeng::TextureUsage PortConverter<gxeng::TextureUsage>::FromString(const std::string&) {
-	throw NotImplementedException("No, peter, you're gonna have to implement this. Boring... /cry");
+	//throw NotImplementedException("No, peter, you're gonna have to implement this. Boring... /cry");
 	return {};
 }
 

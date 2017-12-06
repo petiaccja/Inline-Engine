@@ -126,8 +126,8 @@ void LuminanceReductionFinal::Execute(RenderContext& context) {
 	//DebugDrawManager::GetInstance().AddSphere(m_camera->GetPosition() + m_camera->GetLookDirection() * 5, 1, 1);
 
 	//TODO get from somewhere
-	uniformsCBData.middle_grey = 0.1842; //https://www.wikiwand.com/en/Middle_gray
-	uniformsCBData.delta_time = 0.16; //seconds
+	uniformsCBData.middle_grey = 0.1842f; //https://www.wikiwand.com/en/Middle_gray
+	uniformsCBData.delta_time = 0.16f; //seconds
 
 	//create single-frame only cb
 	/*gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));

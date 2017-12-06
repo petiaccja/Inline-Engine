@@ -39,7 +39,7 @@ protected:
 	/// <param name="channelCount"> Number of channels per pixel. </param>
 	/// <param name="pixelClass"> How pixels are interpreted. See <see cref="ePixelClass"/>. </param>
 	/// <param name="arraySize"> Specify 1 for simple images and 6 for cubemaps. </param>
-	void SetLayout(size_t width, size_t height, ePixelChannelType channelType, int channelCount, ePixelClass pixelClass, int arraySize);
+	void SetLayout(uint64_t width, uint32_t height, ePixelChannelType channelType, unsigned channelCount, ePixelClass pixelClass, unsigned arraySize);
 
 	/// <summary> Upload pixels as byte array to the GPU. </summary>
 	/// <param name="x"> Where to insert the block of uploaded pixels. Top-left corner. </param>
@@ -52,7 +52,7 @@ protected:
 	/// <param name="reader"> Interprets byte stream. Implement <see cref="IPixelReader"/> or use <see cref="Pixel::Reader"/>. </param>
 	/// <param name="bytesPerRow"> How many bytes to skip in <paramref name="pixels"/> for each row. Leave as 0 for no row padding. </param>
 	/// <remarks> As you can't create multi-planed textures, uploading to specific plane is not supported. </remarks>
-	void Update(size_t x, size_t y, size_t width, size_t height, int mipLevel, int arrayIdx, const void* pixels, const IPixelReader& reader, size_t bytesPerRow = 0);
+	void Update(uint64_t x, uint32_t y, uint64_t width, uint32_t height, unsigned mipLevel, unsigned arrayIdx, const void* pixels, const IPixelReader& reader, size_t bytesPerRow = 0);
 
 	/// <summary> Converts simplified pixel format to GraphicsAPI format. </summary>
 	static bool ConvertFormat(ePixelChannelType channelType, int channelCount, ePixelClass pixelClass, gxapi::eFormat& fmt, int& resultingChannelCount);

@@ -212,7 +212,7 @@ void ShadowMapGen::Execute(RenderContext & context) {
 		assert(m_pointLightDsvs.size() > 0);
 
 		Texture2D pointLightShadowMaps = m_pointLightDsvs[0].GetResource();
-		const uint16_t numShadowMaps = m_pointLightDsvs.size();
+		const uint16_t numShadowMaps = (uint16_t)m_pointLightDsvs.size();
 		const uint64_t shadowMapWidth = pointLightShadowMaps.GetWidth();
 		const uint64_t shadowMapHeight = pointLightShadowMaps.GetHeight();
 

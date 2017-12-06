@@ -366,7 +366,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		}
 		case WM_KEYDOWN:
 		{
-			if (ProcessControls(wParam, true)) {
+			if (ProcessControls((int)wParam, true)) {
 				return 0;
 			}
 			return DefWindowProc(hWnd, msg, wParam, lParam);

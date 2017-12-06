@@ -101,7 +101,7 @@ void CopyCommandList::ExpectResourceState(const MemoryObject& resource, const st
 
 
 	if (subresource == gxapi::ALL_SUBRESOURCES) {
-		for (int s = 0; s < resource._GetResourcePtr()->GetNumSubresources(); ++s) {
+		for (unsigned s = 0; s < resource._GetResourcePtr()->GetNumSubresources(); ++s) {
 			ExpectResourceState(resource, anyOfStates, s);
 		}
 	}

@@ -1119,11 +1119,11 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 
 	std::map<const InputPortBase*, PortMap> inputParents;
 	std::map<const OutputPortBase*, PortMap> outputParents;
-	std::map<const NodeBase*, int> nodeIndexMap;
+	std::map<const NodeBase*, size_t> nodeIndexMap;
 
 	// Fill node map and parent maps
 	for (const NodeBase& node : pipeline) {
-		int nodeIndex = nodeIndexMap.size();
+		size_t nodeIndex = nodeIndexMap.size();
 		nodeIndexMap.insert({ &node, nodeIndex });
 
 		for (int i = 0; i < node.GetNumInputs(); ++i) {

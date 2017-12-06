@@ -97,7 +97,7 @@ void TextRender::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, fontBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, fontBindParamDesc }, { samplerDesc });
 	}
 
 	if (!m_fsq.HasObject()) {
@@ -225,8 +225,8 @@ void TextRender::Execute(RenderContext& context) {
 	uint32_t currPosX = 0;
 	uint32_t currPosY = 0;
 
-	float stepW = 1.0 / m_text_render_rtv.GetResource().GetWidth();
-	float stepH = 1.0 / m_text_render_rtv.GetResource().GetHeight();
+	float stepW = 1.0f / m_text_render_rtv.GetResource().GetWidth();
+	float stepH = 1.0f / m_text_render_rtv.GetResource().GetHeight();
 
 
 	for (int c = 0; c < text.size(); ++c)
@@ -237,7 +237,7 @@ void TextRender::Execute(RenderContext& context) {
 		uniformsCBData.w = characters[idx].w;
 		uniformsCBData.h = characters[idx].h;
 
-		Mat44 mulHalfAddHalf = 
+		Mat44 mulHalfAddHalf =
 		{
 			0.5, 0, 0, 0,
 			0, -0.5, 0, 0,
@@ -253,7 +253,7 @@ void TextRender::Execute(RenderContext& context) {
 			-1, -1, 0, 1
 		};
 
-		Mat44 scale = 
+		Mat44 scale =
 		{
 			stepW * characters[idx].w, 0, 0, 0,
 			0, stepH * characters[idx].h, 0, 0,
@@ -263,7 +263,7 @@ void TextRender::Execute(RenderContext& context) {
 
 		float xTrans = stepW * (currPosX + characters[idx].xoff);
 		float yTrans = stepH * (currPosY + characters[idx].yoff);
-		Mat44 translate = 
+		Mat44 translate =
 		{
 			1, 0, 0, 0,
 			0, 1, 0, 0,
@@ -308,53 +308,50 @@ void TextRender::InitRenderTarget(SetupContext& context) {
 
 			//go over font binary info block-by-block
 			int bytePtr = 4;
-			while (bytePtr < fontBinary.size())
-			{
+			while (bytePtr < fontBinary.size()) {
 				char blockType = fontBinary[bytePtr++];
-				int blockSize = *(int*)&fontBinary[bytePtr];
+				unsigned blockSize = *(uint32_t*)&fontBinary[bytePtr];
 				bytePtr += 4; //block starts here
 
-				switch (blockType)
-				{
-				case 1:
-				{ //info
-					//ignored
-					break;
-				}
-				case 2:
-				{ //common
-					//This is the distance in pixels between each line of text.
-					m_lineHeight = *(uint16_t*)&fontBinary[bytePtr + 0];
-					//The number of pixels from the absolute top of the line to the base of the characters.
-					m_base = *(uint16_t*)&fontBinary[bytePtr + 2];
-					//texture size
-					m_texSizeW = *(uint16_t*)&fontBinary[bytePtr + 4];
-					m_texSizeH = *(uint16_t*)&fontBinary[bytePtr + 6];
-					break;
-				}
-				case 3:
-				{ //pages
-					//ignored, we are only going to support 1 texture page fonts
-					break;
-				}
-				case 4:
-				{ //chars
-					m_numChars = blockSize / 20;
-
-					for (int c = 0; c < m_numChars; ++c)
-					{
-						//The character id.
-						uint32_t id = *(uint32_t*)&fontBinary[bytePtr + c * 20 + 0];
-						characters[id] = *(character*)&fontBinary[bytePtr + c * 20 + 4];
+				switch (blockType) {
+					case 1: {
+						//info
+						//ignored
+						break;
 					}
-					break;
-				}
-				case 5:
-				{ //kerning pairs
-					//ignored
-					break;
-				}
-				default: break;
+					case 2: {
+						//common
+						//This is the distance in pixels between each line of text.
+						m_lineHeight = *(uint16_t*)&fontBinary[bytePtr + 0];
+						//The number of pixels from the absolute top of the line to the base of the characters.
+						m_base = *(uint16_t*)&fontBinary[bytePtr + 2];
+						//texture size
+						m_texSizeW = *(uint16_t*)&fontBinary[bytePtr + 4];
+						m_texSizeH = *(uint16_t*)&fontBinary[bytePtr + 6];
+						break;
+					}
+					case 3: {
+						//pages
+						//ignored, we are only going to support 1 texture page fonts
+						break;
+					}
+					case 4: {
+						//chars
+						m_numChars = blockSize / 20;
+
+						for (unsigned c = 0; c < m_numChars; ++c) {
+							//The character id.
+							uint32_t id = *(uint32_t*)&fontBinary[bytePtr + c * 20 + 0];
+							characters[id] = *(character*)&fontBinary[bytePtr + c * 20 + 4];
+						}
+						break;
+					}
+					case 5: {
+						//kerning pairs
+						//ignored
+						break;
+					}
+					default: break;
 				}
 
 

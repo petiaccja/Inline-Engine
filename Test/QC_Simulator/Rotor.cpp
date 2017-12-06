@@ -16,7 +16,7 @@ float LiftCoeff(float diameter, float elevation, float clift, float airdensity) 
 }
 
 float DragCoeff(float diameter, float elevation, float cdrag, float airdensity) {
-	return cdrag * airdensity * 0.37 * pow(diameter / 2, 5);
+	return cdrag * airdensity * 0.37f * pow(diameter / 2.f, 5.f);
 }
 
 float Lift(float rpm, float diam, float elev, float c, float airdensity) {
@@ -57,8 +57,8 @@ void Rotor::SetRPM(inl::Vec4 rpm, inl::Vec3& force, inl::Vec3& torque) const {
 
 	force = { 0, 0, lifts[0] + lifts[1] + lifts[2] + lifts[3] };
 
-	float Tx = arm/sqrt(2) * ((lifts[0] + lifts[1]) - (lifts[2] + lifts[3]));
-	float Ty = arm/sqrt(2) * ((lifts[0] + lifts[2]) - (lifts[1] + lifts[3]));
+	float Tx = arm/sqrt(2.f) * ((lifts[0] + lifts[1]) - (lifts[2] + lifts[3]));
+	float Ty = arm/sqrt(2.f) * ((lifts[0] + lifts[2]) - (lifts[1] + lifts[3]));
 	float Tz = drags[0] - drags[1] + drags[3] - drags[2];
 
 	torque = { Tx, Ty, Tz };
@@ -69,7 +69,7 @@ void Rotor::SetTorque(inl::Vec3 force, inl::Vec3 torque, inl::Vec4& rpm) const {
 	float cl = LiftCoeff(diameter, elevation, cdrag, airdensity);
 	float cd = DragCoeff(diameter, elevation, cdrag, airdensity);
 	float c = cd / cl;
-	float a = arm/sqrt(2);
+	float a = arm/sqrt(2.f);
 
 	inl::Vec4 lifts;
 	do {

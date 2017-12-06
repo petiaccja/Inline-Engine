@@ -4,11 +4,11 @@ namespace inl {
 namespace gxeng {
 
 
-void Image::SetLayout(size_t width, size_t height, ePixelChannelType channelType, int channelCount, ePixelClass pixelClass) {
+void Image::SetLayout(uint64_t width, uint32_t height, ePixelChannelType channelType, int channelCount, ePixelClass pixelClass) {
 	ImageBase::SetLayout(width, height, channelType, channelCount, pixelClass, 1);
 }
 
-void Image::Update(size_t x, size_t y, size_t width, size_t height, int mipLevel, const void* pixels, const IPixelReader& reader, size_t bytesPerRow) {
+void Image::Update(uint64_t x, uint32_t y, uint64_t width, uint32_t height, int mipLevel, const void* pixels, const IPixelReader& reader, size_t bytesPerRow) {
 	ImageBase::Update(x, y, width, height, mipLevel, 0, pixels, reader, bytesPerRow);
 }
 

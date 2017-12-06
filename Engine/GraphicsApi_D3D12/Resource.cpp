@@ -122,7 +122,7 @@ unsigned Resource::GetSubresourceIndex(unsigned mipIdx, unsigned arrayIdx, unsig
 	return index;
 }
 
-Vec3u64 Resource::GetSize(int mipLevel) const {
+Vec3u64 Resource::GetSize(unsigned mipLevel) const {
 	auto desc = GetDesc();
 
 	if (mipLevel >= GetNumMipLevels()) {
@@ -146,7 +146,7 @@ Vec3u64 Resource::GetSize(int mipLevel) const {
 			break;
 	}
 
-	for (int i = 1; i < mipLevel; ++i) {
+	for (unsigned i = 1; i < mipLevel; ++i) {
 		topLevelSize /= 2;
 		topLevelSize = Vec3u64::Max(topLevelSize, { 1,1,1 });
 	}

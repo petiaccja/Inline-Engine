@@ -119,7 +119,9 @@ template <eVertexElementSemantic... Semantics>
 class SemanticList {};
 
 template <class T, class U>
-class ConcatSemanticList;
+class ConcatSemanticList {
+	static_assert("This specialization is obviously inactive.");
+};
 
 template <eVertexElementSemantic... Semantics1, eVertexElementSemantic... Semantics2>
 class ConcatSemanticList<SemanticList<Semantics1...>, SemanticList<Semantics2...>> {
@@ -281,7 +283,7 @@ class UniqueSemanticAccumulator<SemanticList<AccSems...>, SemanticList<InSem1, I
 public:
 	using type = typename std::conditional<ContainsSemantic<InSem1, AccType>::value,
 		typename UniqueSemanticAccumulator<AccType, SemanticList<InSems...>>::type,
-		typename UniqueSemanticAccumulator<typename ConcatSemanticList<AccType, typename SemanticList<InSem1>>::type, SemanticList<InSems...>>::type>::type;
+		typename UniqueSemanticAccumulator<typename impl::ConcatSemanticList<AccType, SemanticList<InSem1>>::type, SemanticList<InSems...>>::type>::type;
 };
 
 template <eVertexElementSemantic... AccSems>
