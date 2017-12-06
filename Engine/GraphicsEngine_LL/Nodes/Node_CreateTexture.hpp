@@ -78,14 +78,7 @@ public:
 			|| m_texture.GetArrayCount() != arrayCount
 			|| (m_texture.GetDescription().textureDesc.flags & flagMask) != requestedFlags)
 		{
-			//if (!isCubemap)
-			{
-				m_texture = context.CreateTexture2D({ width, height, format, uint16_t(mipchainNeeded ? getNumMips(width, height, 1) : 1), arrayCount }, usage);
-			}
-			//else
-			{
-				//m_texture = context.CreateTextureCubemap(width, height, format, usage, arrayCount);
-			}
+			m_texture = context.CreateTexture2D(Texture2DDesc{ width, height, format, uint16_t(mipchainNeeded ? getNumMips(width, height, 1) : 1), arrayCount }, usage);
 		}
 
 		GetOutput<0>().Set(m_texture);

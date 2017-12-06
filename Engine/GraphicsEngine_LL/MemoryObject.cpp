@@ -226,17 +226,20 @@ gxapi::eFormat Texture1D::GetFormat() const {
 
 
 uint64_t Texture2D::GetWidth() const {
-	return GetDescription().textureDesc.width;
+	return m_contents->resource->GetSize().x;
+	// return GetDescription().textureDesc.width; old
 }
 
 
 uint32_t Texture2D::GetHeight() const {
-	return GetDescription().textureDesc.height;
+	return (uint32_t)m_contents->resource->GetSize().y;
+	// return GetDescription().textureDesc.height; old
 }
 
 
 uint16_t Texture2D::GetArrayCount() const {
-	return GetDescription().textureDesc.depthOrArraySize;
+	return m_contents->resource->GetNumArrayLevels();
+	// return GetDescription().textureDesc.depthOrArraySize; old
 }
 
 uint32_t Texture2D::GetSubresourceIndex(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIndex) const {
