@@ -84,7 +84,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>/bigobj</AdditionalOptions>
-      <PreprocessorDefinitions>_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WINSOCK_DEPRECATED_NO_WARNINGS;_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -140,6 +140,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Enums.hpp" />
+    <ClInclude Include="IPAddress.hpp" />
     <ClInclude Include="Net.hpp" />
     <ClInclude Include="Init.hpp" />
     <ClInclude Include="NetworkDispatcher.hpp" />
@@ -150,6 +152,7 @@
     <ClInclude Include="Util.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="IPAddress.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ISocket.cpp" />
     <ClCompile Include="Socket.cpp" />

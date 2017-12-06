@@ -1,21 +1,21 @@
 #include "ISocket.hpp"
 
-bool ISocket::SendTo(const uint8_t* data, int32_t count, int32_t& sent, const std::string& addrDest)
+bool ISocket::SendTo(const uint8_t* data, int32_t count, int32_t& sent, const IPAddress& addrDest)
 {
-	return true;
+	throw std::exception("Not implemented");
 }
 
 bool ISocket::Send(const uint8_t* data, int32_t count, int32_t& sent)
 {
-	return true;
+	throw std::exception("Not implemented");
 }
 
-bool ISocket::RecvFrom(uint8_t* data, int32_t size, int32_t& read, std::string& srcAddr, SocketReceiveFlags flags)
+bool ISocket::RecvFrom(uint8_t* data, int32_t size, int32_t& read, IPAddress& srcAddr, SocketReceiveFlags flags)
 {
-	return true;
+	throw std::exception("Not implemented");
 }
 
 bool ISocket::Recv(uint8_t* data, int32_t size, int32_t& read, SocketReceiveFlags flags)
 {
-	return true;
+	throw std::exception("Not implemented");
 }

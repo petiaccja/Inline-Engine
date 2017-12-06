@@ -39,6 +39,12 @@
     <ClInclude Include="NetworkDispatcher.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Enums.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IPAddress.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -46,6 +52,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Socket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IPAddress.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

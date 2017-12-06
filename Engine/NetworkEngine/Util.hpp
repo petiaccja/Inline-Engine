@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Net.hpp"
 #include <vector>
 #include <sstream>
 
@@ -20,5 +21,16 @@ namespace inl::net::util
 			pos = str.find_first_of(delimiter, lastPos);
 		}
 		return splited;
+	}
+
+	inline static sockaddr_in CreateAddress(uint32_t address, uint16_t port)
+	{
+		sockaddr_in addr;
+		std::memset(&addr, 0, sizeof(addr));
+		addr.sin_addr.s_addr = htonl(address);
+		addr.sin_family = AF_INET;
+		addr.sin_port = htons(port);
+
+		return addr;
 	}
 }

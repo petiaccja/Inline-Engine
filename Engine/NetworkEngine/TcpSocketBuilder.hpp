@@ -16,7 +16,8 @@ public:
 		, m_receiveBufferSize(0)
 		, m_reusable(false)
 		, m_sendBufferSize(0)
-	{ }
+	{ 
+	}
 
 public:
 	TcpSocketBuilder AsBlocking()
@@ -77,6 +78,13 @@ public:
 		return *this;
 	}
 
+	TcpSocketBuilder Protocol(SocketProtocol prot)
+	{
+		m_socketProtocol = prot;
+
+		return *this;
+	}
+
 public:
 	operator Socket*() const
 	{
@@ -85,8 +93,7 @@ public:
 
 	Socket* Build() const
 	{
-		Socket* socket = nullptr;
-		socket = new Socket(SOCKTYPE_Streaming);
+		Socket* socket = new Socket(SocketType::Streaming, m_socketProtocol);
 
 		if (socket != nullptr)
 		{
@@ -127,6 +134,7 @@ public:
 			{
 				delete socket;
 				socket = nullptr;
+				throw std::exception("Couldnt create socket");
 			}
 		}
 
@@ -143,4 +151,6 @@ private:
 	int32_t m_receiveBufferSize;
 	bool m_reusable;
 	int32_t m_sendBufferSize;
+
+	SocketProtocol m_socketProtocol;
 };

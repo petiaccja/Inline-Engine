@@ -1,6 +1,36 @@
 #include "Socket.hpp"
 #include "Util.hpp"
 
+#include "IPAddress.hpp"
+
+void Socket::create()
+{
+	if (GetSocketType() == SocketType::Unknown)
+		throw std::exception("Unknown socket type");
+	m_socket = socket(AF_INET, (int)GetSocketType(), (int)GetSocketProtocol());
+
+	if (m_socket == INVALID_SOCKET)
+		throw std::exception("Couldnt create socket");
+
+	if (GetSocketType() == SocketType::Streaming)
+	{
+		int yes = 1;
+		// Disable the Nagle algorithm (i.e. removes buffering of TCP packets)
+		setsockopt(m_socket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<char*>(&yes), sizeof(yes));
+
+		// On Mac OS X, disable the SIGPIPE signal on disconnection
+#if defined(__APPLE__) && defined(__MACH__)
+		setsockopt(m_socket, SOL_SOCKET, SO_NOSIGPIPE, reinterpret_cast<char*>(&yes), sizeof(yes));
+#endif
+	}
+	else
+	{
+		// Enable broadcast by default for UDP sockets
+		int yes = 1;
+		setsockopt(m_socket, SOL_SOCKET, SO_BROADCAST, reinterpret_cast<char*>(&yes), sizeof(yes));
+	}
+}
+
 bool Socket::Close(void)
 {
 	if (m_socket != INVALID_SOCKET)
@@ -13,32 +43,23 @@ bool Socket::Close(void)
 }
 
 
-bool Socket::Bind(int16_t port)
+bool Socket::Bind(uint16_t port)
 {
-	struct sockaddr_in addr;
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(port);
-	return bind(m_socket, (sockaddr*)&addr, sizeof(sockaddr_in)) == 0;
+	sockaddr_in addr_in = inl::net::util::CreateAddress(IPAddress::Any.ToInteger(), port);
+	return bind(m_socket, (sockaddr*)&addr_in, sizeof(sockaddr_in)) == 0;
 }
 
 
-bool Socket::Connect(const std::string& addrStr)
+bool Socket::Connect(const IPAddress& addr)
 {
-	std::vector<std::string> splitted = inl::net::util::Split(addrStr, ":");
+	sockaddr_in addr_in = inl::net::util::CreateAddress(addr.ToInteger(), addr.GetPort());
 
-	struct sockaddr_in addr;
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = inet_addr(splitted[0].c_str());
-	addr.sin_port = htons(atoi(splitted[1].c_str()));
-
-	int32_t Return = connect(m_socket, (sockaddr*)&addr, sizeof(sockaddr_in));
+	int32_t Return = connect(m_socket, (sockaddr*)&addr_in, sizeof(sockaddr_in));
 
 	SocketErrors Error = TranslateErrorCode(Return);
 
 	// "would block" is not an error
-	return ((Error == SE_NO_ERROR) || (Error == SE_EWOULDBLOCK));
+	return ((Error == SocketErrors::SE_NO_ERROR) || (Error == SocketErrors::SE_EWOULDBLOCK));
 }
 
 
@@ -94,15 +115,10 @@ ISocket* Socket::Accept()
 }
 
 
-bool Socket::SendTo(const uint8_t* data, int32_t count, int32_t& sent, const std::string& addrDest)
+bool Socket::SendTo(const uint8_t* data, int32_t count, int32_t& sent, const IPAddress& addrDest)
 {
-	std::vector<std::string> splitted = inl::net::util::Split(addrDest, ":");
+	sockaddr_in addr = inl::net::util::CreateAddress(addrDest.ToInteger(), addrDest.GetPort());
 
-	struct sockaddr_in addr;
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = inet_addr(splitted[0].c_str());
-	addr.sin_port = htons(atoi(splitted[1].c_str()));
 	sent = sendto(m_socket, (const char*)data, count, 0, (sockaddr*)&addr, sizeof(sockaddr_in));
 
 	bool result = sent >= 0;
@@ -127,23 +143,17 @@ bool Socket::Send(const uint8_t* data, int32_t count, int32_t& sent)
 }
 
 
-bool Socket::RecvFrom(uint8_t* data, int32_t size, int32_t& read, std::string& srcAddr, SocketReceiveFlags flags)
+bool Socket::RecvFrom(uint8_t* data, int32_t size, int32_t& read, IPAddress& srcAddr, SocketReceiveFlags flags)
 {
 	socklen_t len = sizeof(sockaddr_in);
 
-	std::vector<std::string> splitted = inl::net::util::Split(srcAddr, ":");
-
-	struct sockaddr_in addr;
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = inet_addr(splitted[0].c_str());
-	addr.sin_port = htons(atoi(splitted[1].c_str()));
+	sockaddr_in addr = inl::net::util::CreateAddress(srcAddr.ToInteger(), srcAddr.GetPort());
 
 	const int translatedFlags = TranslateFlags(flags);
 
 	read = recvfrom(m_socket, (char*)data, size, translatedFlags, (sockaddr*)&addr, &len);
 
-	if (read < 0 && TranslateErrorCode(read) == SE_EWOULDBLOCK)
+	if (read < 0 && TranslateErrorCode(read) == SocketErrors::SE_EWOULDBLOCK)
 	{
 		read = 0;
 	}
@@ -164,7 +174,7 @@ bool Socket::Recv(uint8_t* data, int32_t size, int32_t& read, SocketReceiveFlags
 	const int translatedFlags = TranslateFlags(flags);
 	read = recv(m_socket, (char*)data, size, translatedFlags);
 
-	if (read < 0 && TranslateErrorCode(read) == SE_EWOULDBLOCK)
+	if (read < 0 && TranslateErrorCode(read) == SocketErrors::SE_EWOULDBLOCK)
 	{
 		read = 0;
 	}
@@ -204,7 +214,7 @@ bool Socket::Wait(SocketWaitConditions cond, std::chrono::milliseconds t)
 
 SocketConnectionState Socket::GetConnectionState()
 {
-	SocketConnectionState currentState = SCS_ConnectionError;
+	SocketConnectionState currentState = SocketConnectionState::ConnectionError;
 
 	if (HasState(SocketParam::HasError) == SocketReturn::No)
 	{
@@ -215,17 +225,17 @@ SocketConnectionState Socket::GetConnectionState()
 
 			if (writeState == SocketReturn::Yes || readState == SocketReturn::Yes)
 			{
-				currentState = SCS_Connected;
+				currentState = SocketConnectionState::Connected;
 				m_lastActivityTime = std::chrono::system_clock::now().time_since_epoch().count();
 			}
 			else if (writeState == SocketReturn::No && readState == SocketReturn::No)
 			{
-				currentState = SCS_NotConnected;
+				currentState = SocketConnectionState::NotConnected;
 			}
 		}
 		else
 		{
-			currentState = SCS_Connected;
+			currentState = SocketConnectionState::Connected;
 		}
 	}
 
@@ -233,7 +243,7 @@ SocketConnectionState Socket::GetConnectionState()
 }
 
 
-void Socket::GetAddress(std::string& outAddr)
+void Socket::GetAddress(IPAddress& outAddr)
 {
 	struct sockaddr_in addr;
 	socklen_t Size = sizeof(sockaddr_in);
@@ -245,12 +255,11 @@ void Socket::GetAddress(std::string& outAddr)
 		return;
 	}
 
-	outAddr = inet_ntoa(addr.sin_addr);
-	outAddr += ntohs(addr.sin_port);
+	outAddr = IPAddress(inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
 }
 
 
-bool Socket::GetPeerAddress(std::string& outAddr)
+bool Socket::GetPeerAddress(IPAddress& outAddr)
 {
 	struct sockaddr_in addr;
 	socklen_t size = sizeof(sockaddr_in);
@@ -262,8 +271,7 @@ bool Socket::GetPeerAddress(std::string& outAddr)
 		return false;
 	}
 
-	outAddr = inet_ntoa(addr.sin_addr);
-	outAddr += ntohs(addr.sin_port);
+	outAddr = IPAddress(inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
 
 	return result == 0;
 }
@@ -295,17 +303,11 @@ bool Socket::SetBroadcast(bool allowBroadcast)
 }
 
 
-bool Socket::JoinMulticastGroup(const std::string& addrStr)
+bool Socket::JoinMulticastGroup(const IPAddress& addrStr)
 {
 	ip_mreq imr;
 
-	std::vector<std::string> splitted = inl::net::util::Split(addrStr, ":");
-
-	struct sockaddr_in addr;
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = inet_addr(splitted[0].c_str());
-	addr.sin_port = htons(atoi(splitted[1].c_str()));
+	sockaddr_in addr = inl::net::util::CreateAddress(addrStr.ToInteger(), addrStr.GetPort());
 
 	imr.imr_interface.s_addr = INADDR_ANY;
 	imr.imr_multiaddr = addr.sin_addr;
@@ -314,17 +316,11 @@ bool Socket::JoinMulticastGroup(const std::string& addrStr)
 }
 
 
-bool Socket::LeaveMulticastGroup(const std::string& addrStr)
+bool Socket::LeaveMulticastGroup(const IPAddress& addrStr)
 {
 	ip_mreq imr;
 
-	std::vector<std::string> splitted = inl::net::util::Split(addrStr, ":");
-
-	struct sockaddr_in addr;
-	memset(&addr, 0, sizeof(addr));
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = inet_addr(splitted[0].c_str());
-	addr.sin_port = htons(atoi(splitted[1].c_str()));
+	sockaddr_in addr = inl::net::util::CreateAddress(addrStr.ToInteger(), addrStr.GetPort());
 
 	imr.imr_interface.s_addr = INADDR_ANY;
 	imr.imr_multiaddr = addr.sin_addr;
@@ -443,52 +439,52 @@ SocketErrors Socket::TranslateErrorCode(int32_t code)
 
 	switch (code)
 	{
-	case 0: return SE_NO_ERROR;
-	case EINTR: return SE_EINTR;
-	case EBADF: return SE_EBADF;
-	case EACCES: return SE_EACCES;
-	case EFAULT: return SE_EFAULT;
-	case EINVAL: return SE_EINVAL;
-	case EMFILE: return SE_EMFILE;
-	case EWOULDBLOCK: return SE_EWOULDBLOCK;
-	case EINPROGRESS: return SE_EINPROGRESS;
-	case EALREADY: return SE_EALREADY;
-	case ENOTSOCK: return SE_ENOTSOCK;
-	case EDESTADDRREQ: return SE_EDESTADDRREQ;
-	case EMSGSIZE: return SE_EMSGSIZE;
-	case EPROTOTYPE: return SE_EPROTOTYPE;
-	case ENOPROTOOPT: return SE_ENOPROTOOPT;
-	case EPROTONOSUPPORT: return SE_EPROTONOSUPPORT;
-	case ESOCKTNOSUPPORT: return SE_ESOCKTNOSUPPORT;
-	case EOPNOTSUPP: return SE_EOPNOTSUPP;
-	case EPFNOSUPPORT: return SE_EPFNOSUPPORT;
-	case EAFNOSUPPORT: return SE_EAFNOSUPPORT;
-	case EADDRINUSE: return SE_EADDRINUSE;
-	case EADDRNOTAVAIL: return SE_EADDRNOTAVAIL;
-	case ENETDOWN: return SE_ENETDOWN;
-	case ENETUNREACH: return SE_ENETUNREACH;
-	case ENETRESET: return SE_ENETRESET;
-	case ECONNABORTED: return SE_ECONNABORTED;
-	case ECONNRESET: return SE_ECONNRESET;
-	case ENOBUFS: return SE_ENOBUFS;
-	case EISCONN: return SE_EISCONN;
-	case ENOTCONN: return SE_ENOTCONN;
-	case ESHUTDOWN: return SE_ESHUTDOWN;
-	case ETOOMANYREFS: return SE_ETOOMANYREFS;
-	case ETIMEDOUT: return SE_ETIMEDOUT;
-	case ECONNREFUSED: return SE_ECONNREFUSED;
-	case ELOOP: return SE_ELOOP;
-	case ENAMETOOLONG: return SE_ENAMETOOLONG;
-	case EHOSTDOWN: return SE_EHOSTDOWN;
-	case EHOSTUNREACH: return SE_EHOSTUNREACH;
-	case ENOTEMPTY: return SE_ENOTEMPTY;
-	case EUSERS: return SE_EUSERS;
-	case EDQUOT: return SE_EDQUOT;
-	case ESTALE: return SE_ESTALE;
-	case EREMOTE: return SE_EREMOTE;
-	case ENODEV: return SE_NODEV;
+	case 0: return SocketErrors::SE_NO_ERROR;
+	case EINTR: return SocketErrors::SE_EINTR;
+	case EBADF: return SocketErrors::SE_EBADF;
+	case EACCES: return SocketErrors::SE_EACCES;
+	case EFAULT: return SocketErrors::SE_EFAULT;
+	case EINVAL: return SocketErrors::SE_EINVAL;
+	case EMFILE: return SocketErrors::SE_EMFILE;
+	case EWOULDBLOCK: return SocketErrors::SE_EWOULDBLOCK;
+	case EINPROGRESS: return SocketErrors::SE_EINPROGRESS;
+	case EALREADY: return SocketErrors::SE_EALREADY;
+	case ENOTSOCK: return SocketErrors::SE_ENOTSOCK;
+	case EDESTADDRREQ: return SocketErrors::SE_EDESTADDRREQ;
+	case EMSGSIZE: return SocketErrors::SE_EMSGSIZE;
+	case EPROTOTYPE: return SocketErrors::SE_EPROTOTYPE;
+	case ENOPROTOOPT: return SocketErrors::SE_ENOPROTOOPT;
+	case EPROTONOSUPPORT: return SocketErrors::SE_EPROTONOSUPPORT;
+	case ESOCKTNOSUPPORT: return SocketErrors::SE_ESOCKTNOSUPPORT;
+	case EOPNOTSUPP: return SocketErrors::SE_EOPNOTSUPP;
+	case EPFNOSUPPORT: return SocketErrors::SE_EPFNOSUPPORT;
+	case EAFNOSUPPORT: return SocketErrors::SE_EAFNOSUPPORT;
+	case EADDRINUSE: return SocketErrors::SE_EADDRINUSE;
+	case EADDRNOTAVAIL: return SocketErrors::SE_EADDRNOTAVAIL;
+	case ENETDOWN: return SocketErrors::SE_ENETDOWN;
+	case ENETUNREACH: return SocketErrors::SE_ENETUNREACH;
+	case ENETRESET: return SocketErrors::SE_ENETRESET;
+	case ECONNABORTED: return SocketErrors::SE_ECONNABORTED;
+	case ECONNRESET: return SocketErrors::SE_ECONNRESET;
+	case ENOBUFS: return SocketErrors::SE_ENOBUFS;
+	case EISCONN: return SocketErrors::SE_EISCONN;
+	case ENOTCONN: return SocketErrors::SE_ENOTCONN;
+	case ESHUTDOWN: return SocketErrors::SE_ESHUTDOWN;
+	case ETOOMANYREFS: return SocketErrors::SE_ETOOMANYREFS;
+	case ETIMEDOUT: return SocketErrors::SE_ETIMEDOUT;
+	case ECONNREFUSED: return SocketErrors::SE_ECONNREFUSED;
+	case ELOOP: return SocketErrors::SE_ELOOP;
+	case ENAMETOOLONG: return SocketErrors::SE_ENAMETOOLONG;
+	case EHOSTDOWN: return SocketErrors::SE_EHOSTDOWN;
+	case EHOSTUNREACH: return SocketErrors::SE_EHOSTUNREACH;
+	case ENOTEMPTY: return SocketErrors::SE_ENOTEMPTY;
+	case EUSERS: return SocketErrors::SE_EUSERS;
+	case EDQUOT: return SocketErrors::SE_EDQUOT;
+	case ESTALE: return SocketErrors::SE_ESTALE;
+	case EREMOTE: return SocketErrors::SE_EREMOTE;
+	case ENODEV: return SocketErrors::SE_NODEV;
 #if !PLATFORM_HAS_NO_EPROCLIM
-	case EPROCLIM: return SE_EPROCLIM;
+	case EPROCLIM: return SocketErrors::SE_EPROCLIM;
 #endif
 		// 	case EDISCON: return SE_EDISCON;
 		// 	case SYSNOTREADY: return SE_SYSNOTREADY;
@@ -496,82 +492,82 @@ SocketErrors Socket::TranslateErrorCode(int32_t code)
 		// 	case NOTINITIALISED: return SE_NOTINITIALISED;
 
 #if PLATFORM_HAS_BSD_SOCKET_FEATURE_GETHOSTNAME
-	case HOST_NOT_FOUND: return SE_HOST_NOT_FOUND;
-	case TRY_AGAIN: return SE_TRY_AGAIN;
-	case NO_RECOVERY: return SE_NO_RECOVERY;
+	case HOST_NOT_FOUND: return SocketErrors::SE_HOST_NOT_FOUND;
+	case TRY_AGAIN: return SocketErrors::SE_TRY_AGAIN;
+	case NO_RECOVERY: return SocketErrors::SE_NO_RECOVERY;
 #endif
 
 		//	case NO_DATA: return SE_NO_DATA;
 		// case : return SE_UDP_ERR_PORT_UNREACH; //@TODO Find it's replacement
 	}
 
-	return SE_EINVAL;
+	return SocketErrors::SE_EINVAL;
 #else
 	// handle the generic -1 error
 	if (code == SOCKET_ERROR)
 	{
-		return SE_SOCKET_ERROR;
+		return SocketErrors::SE_SOCKET_ERROR;
 	}
 
 	switch (code)
 	{
-	case 0: return SE_NO_ERROR;
-	case ERROR_INVALID_HANDLE: return SE_ECONNRESET; // invalid socket handle catch
-	case WSAEINTR: return SE_EINTR;
-	case WSAEBADF: return SE_EBADF;
-	case WSAEACCES: return SE_EACCES;
-	case WSAEFAULT: return SE_EFAULT;
-	case WSAEINVAL: return SE_EINVAL;
-	case WSAEMFILE: return SE_EMFILE;
-	case WSAEWOULDBLOCK: return SE_EWOULDBLOCK;
-	case WSAEINPROGRESS: return SE_EINPROGRESS;
-	case WSAEALREADY: return SE_EALREADY;
-	case WSAENOTSOCK: return SE_ENOTSOCK;
-	case WSAEDESTADDRREQ: return SE_EDESTADDRREQ;
-	case WSAEMSGSIZE: return SE_EMSGSIZE;
-	case WSAEPROTOTYPE: return SE_EPROTOTYPE;
-	case WSAENOPROTOOPT: return SE_ENOPROTOOPT;
-	case WSAEPROTONOSUPPORT: return SE_EPROTONOSUPPORT;
-	case WSAESOCKTNOSUPPORT: return SE_ESOCKTNOSUPPORT;
-	case WSAEOPNOTSUPP: return SE_EOPNOTSUPP;
-	case WSAEPFNOSUPPORT: return SE_EPFNOSUPPORT;
-	case WSAEAFNOSUPPORT: return SE_EAFNOSUPPORT;
-	case WSAEADDRINUSE: return SE_EADDRINUSE;
-	case WSAEADDRNOTAVAIL: return SE_EADDRNOTAVAIL;
-	case WSAENETDOWN: return SE_ENETDOWN;
-	case WSAENETUNREACH: return SE_ENETUNREACH;
-	case WSAENETRESET: return SE_ENETRESET;
-	case WSAECONNABORTED: return SE_ECONNABORTED;
-	case WSAECONNRESET: return SE_ECONNRESET;
-	case WSAENOBUFS: return SE_ENOBUFS;
-	case WSAEISCONN: return SE_EISCONN;
-	case WSAENOTCONN: return SE_ENOTCONN;
-	case WSAESHUTDOWN: return SE_ESHUTDOWN;
-	case WSAETOOMANYREFS: return SE_ETOOMANYREFS;
-	case WSAETIMEDOUT: return SE_ETIMEDOUT;
-	case WSAECONNREFUSED: return SE_ECONNREFUSED;
-	case WSAELOOP: return SE_ELOOP;
-	case WSAENAMETOOLONG: return SE_ENAMETOOLONG;
-	case WSAEHOSTDOWN: return SE_EHOSTDOWN;
-	case WSAEHOSTUNREACH: return SE_EHOSTUNREACH;
-	case WSAENOTEMPTY: return SE_ENOTEMPTY;
-	case WSAEPROCLIM: return SE_EPROCLIM;
-	case WSAEUSERS: return SE_EUSERS;
-	case WSAEDQUOT: return SE_EDQUOT;
-	case WSAESTALE: return SE_ESTALE;
-	case WSAEREMOTE: return SE_EREMOTE;
-	case WSAEDISCON: return SE_EDISCON;
-	case WSASYSNOTREADY: return SE_SYSNOTREADY;
-	case WSAVERNOTSUPPORTED: return SE_VERNOTSUPPORTED;
-	case WSANOTINITIALISED: return SE_NOTINITIALISED;
-	case WSAHOST_NOT_FOUND: return SE_HOST_NOT_FOUND;
-	case WSATRY_AGAIN: return SE_TRY_AGAIN;
-	case WSANO_RECOVERY: return SE_NO_RECOVERY;
-	case WSANO_DATA: return SE_NO_DATA;
+	case 0: return SocketErrors::SE_NO_ERROR;
+	case ERROR_INVALID_HANDLE: return SocketErrors::SE_ECONNRESET; // invalid socket handle catch
+	case WSAEINTR: return SocketErrors::SE_EINTR;
+	case WSAEBADF: return SocketErrors::SE_EBADF;
+	case WSAEACCES: return SocketErrors::SE_EACCES;
+	case WSAEFAULT: return SocketErrors::SE_EFAULT;
+	case WSAEINVAL: return SocketErrors::SE_EINVAL;
+	case WSAEMFILE: return SocketErrors::SE_EMFILE;
+	case WSAEWOULDBLOCK: return SocketErrors::SE_EWOULDBLOCK;
+	case WSAEINPROGRESS: return SocketErrors::SE_EINPROGRESS;
+	case WSAEALREADY: return SocketErrors::SE_EALREADY;
+	case WSAENOTSOCK: return SocketErrors::SE_ENOTSOCK;
+	case WSAEDESTADDRREQ: return SocketErrors::SE_EDESTADDRREQ;
+	case WSAEMSGSIZE: return SocketErrors::SE_EMSGSIZE;
+	case WSAEPROTOTYPE: return SocketErrors::SE_EPROTOTYPE;
+	case WSAENOPROTOOPT: return SocketErrors::SE_ENOPROTOOPT;
+	case WSAEPROTONOSUPPORT: return SocketErrors::SE_EPROTONOSUPPORT;
+	case WSAESOCKTNOSUPPORT: return SocketErrors::SE_ESOCKTNOSUPPORT;
+	case WSAEOPNOTSUPP: return SocketErrors::SE_EOPNOTSUPP;
+	case WSAEPFNOSUPPORT: return SocketErrors::SE_EPFNOSUPPORT;
+	case WSAEAFNOSUPPORT: return SocketErrors::SE_EAFNOSUPPORT;
+	case WSAEADDRINUSE: return SocketErrors::SE_EADDRINUSE;
+	case WSAEADDRNOTAVAIL: return SocketErrors::SE_EADDRNOTAVAIL;
+	case WSAENETDOWN: return SocketErrors::SE_ENETDOWN;
+	case WSAENETUNREACH: return SocketErrors::SE_ENETUNREACH;
+	case WSAENETRESET: return SocketErrors::SE_ENETRESET;
+	case WSAECONNABORTED: return SocketErrors::SE_ECONNABORTED;
+	case WSAECONNRESET: return SocketErrors::SE_ECONNRESET;
+	case WSAENOBUFS: return SocketErrors::SE_ENOBUFS;
+	case WSAEISCONN: return SocketErrors::SE_EISCONN;
+	case WSAENOTCONN: return SocketErrors::SE_ENOTCONN;
+	case WSAESHUTDOWN: return SocketErrors::SE_ESHUTDOWN;
+	case WSAETOOMANYREFS: return SocketErrors::SE_ETOOMANYREFS;
+	case WSAETIMEDOUT: return SocketErrors::SE_ETIMEDOUT;
+	case WSAECONNREFUSED: return SocketErrors::SE_ECONNREFUSED;
+	case WSAELOOP: return SocketErrors::SE_ELOOP;
+	case WSAENAMETOOLONG: return SocketErrors::SE_ENAMETOOLONG;
+	case WSAEHOSTDOWN: return SocketErrors::SE_EHOSTDOWN;
+	case WSAEHOSTUNREACH: return SocketErrors::SE_EHOSTUNREACH;
+	case WSAENOTEMPTY: return SocketErrors::SE_ENOTEMPTY;
+	case WSAEPROCLIM: return SocketErrors::SE_EPROCLIM;
+	case WSAEUSERS: return SocketErrors::SE_EUSERS;
+	case WSAEDQUOT: return SocketErrors::SE_EDQUOT;
+	case WSAESTALE: return SocketErrors::SE_ESTALE;
+	case WSAEREMOTE: return SocketErrors::SE_EREMOTE;
+	case WSAEDISCON: return SocketErrors::SE_EDISCON;
+	case WSASYSNOTREADY: return SocketErrors::SE_SYSNOTREADY;
+	case WSAVERNOTSUPPORTED: return SocketErrors::SE_VERNOTSUPPORTED;
+	case WSANOTINITIALISED: return SocketErrors::SE_NOTINITIALISED;
+	case WSAHOST_NOT_FOUND: return SocketErrors::SE_HOST_NOT_FOUND;
+	case WSATRY_AGAIN: return SocketErrors::SE_TRY_AGAIN;
+	case WSANO_RECOVERY: return SocketErrors::SE_NO_RECOVERY;
+	case WSANO_DATA: return SocketErrors::SE_NO_DATA;
 		// case : return SE_UDP_ERR_PORT_UNREACH;
 	}
 
-	return SE_NO_ERROR;
+	return SocketErrors::SE_NO_ERROR;
 #endif
 }
 
@@ -579,7 +575,7 @@ int Socket::TranslateFlags(SocketReceiveFlags flags)
 {
 	int translatedFlags = 0;
 
-	if (flags & SocketReceiveFlags::Peek)
+	if ((int)flags & (int)SocketReceiveFlags::Peek)
 	{
 		translatedFlags |= MSG_PEEK;
 #if !_WIN32
@@ -587,7 +583,7 @@ int Socket::TranslateFlags(SocketReceiveFlags flags)
 #endif
 	}
 
-	if (flags & SocketReceiveFlags::WaitAll)
+	if ((int)flags & (int)SocketReceiveFlags::WaitAll)
 	{
 		translatedFlags |= MSG_WAITALL;
 	}

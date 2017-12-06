@@ -10,19 +10,12 @@ class TcpListener
 {
 public:
 	TcpListener(int16_t port, std::chrono::milliseconds inSleepTime = std::chrono::milliseconds(1))
-		: m_port(port)
-		, m_deleteSocket(true)
-		, m_sleepTime(inSleepTime)
-		, m_socket(nullptr)
-		, m_stopping(false)
+		: m_port(port), m_sleepTime(inSleepTime), m_socket(nullptr), m_stopping(false)
 	{
 	}
 
 	TcpListener(Socket *InSocket, std::chrono::milliseconds inSleepTime = std::chrono::milliseconds(1))
-		: m_deleteSocket(false)
-		, m_sleepTime(inSleepTime)
-		, m_socket(InSocket)
-		, m_stopping(false)
+		: m_sleepTime(inSleepTime), m_socket(InSocket), m_stopping(false)
 	{
 	}
 
@@ -46,14 +39,6 @@ public:
 	{
 		std::thread acceptor_thread(&TcpListener::AcceptClients, this);
 		m_acceptor_thread.swap(acceptor_thread);
-
-		std::thread receiver_thread(&TcpListener::HandleClients, this);
-		m_receiver_thread.swap(receiver_thread);
-	}
-
-	void SetDispatcher(NetworkDispatcher *dispatcher)
-	{
-		m_dispatcher = dispatcher;
 	}
 
 private:
@@ -83,7 +68,7 @@ private:
 
 					if (connectionSocket != nullptr)
 					{
-						m_connections.emplace_back(connectionSocket);
+						//m_connections.emplace_back(connectionSocket);
 					}
 				}
 				else if (hasZeroSleepTime)
@@ -98,38 +83,6 @@ private:
 		}
 	}
 
-	void HandleClients()
-	{
-		if (!m_dispatcher)
-		{
-			exit(0);
-		}
-
-		while (!m_stopping)
-		{
-			if (!(m_connections.size() > 0))
-				continue;
-
-			for (int i = 0; i < m_connections.size(); i++)
-			{
-				Socket *currentConnection = m_connections.at(i);
-
-				uint32_t dataSize;
-				if (currentConnection->HasPendingData(dataSize))
-				{
-					uint8_t *data;
-					int32_t read;
-					if (currentConnection->Recv(data, dataSize, read))
-					{
-						m_dispatcher->Enqueue(std::string((char*)data, read));
-					}
-				}
-
-				std::this_thread::sleep_for(std::chrono::milliseconds(m_sleepTime));
-			}
-		}
-	}
-
 public:
 	virtual void Stop()
 	{
@@ -137,17 +90,13 @@ public:
 	}
 
 private:
-
-	std::vector<Socket*> m_connections;
-
-	bool m_deleteSocket;
 	std::chrono::milliseconds m_sleepTime;
 	Socket* m_socket;
 	bool m_stopping;
 	int16_t m_port;
-	
-	NetworkDispatcher *m_dispatcher;
 
 	std::thread m_acceptor_thread;
 	std::thread m_receiver_thread;
+
+	std::function<void(Socket*)> new_connection_event;
 };
