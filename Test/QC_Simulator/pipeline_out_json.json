@@ -1,6 +1,14 @@
 {
     "nodes": [
         {
+            "class": "Pipeline/System/GetCameraByName",
+            "id": 2,
+            "name": "OverlayCamera",
+            "inputs": [
+                "GuiCamera"
+            ]
+        },
+        {
             "class": "Pipeline/Render/OverlayRender",
             "id": 0,
             "name": "OverlayRender"
@@ -9,14 +17,6 @@
             "class": "Pipeline/System/GetBackBuffer",
             "id": 1,
             "name": "BackBuffer"
-        },
-        {
-            "class": "Pipeline/System/GetCameraByName",
-            "id": 2,
-            "name": "OverlayCamera",
-            "inputs": [
-                "GuiCamera"
-            ]
         },
         {
             "class": "Pipeline/System/GetSceneByName",

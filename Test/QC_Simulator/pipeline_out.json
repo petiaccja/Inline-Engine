@@ -1,9 +1,18 @@
 {
     "nodes": [
         {
-            "class": "Pipeline/Render/SMAA",
-            "id": 24,
-            "name": "smaa"
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 41,
+            "name": "bloomBlurHorizontal16",
+            "inputs": [
+                {},
+                "[1, 0]"
+            ]
+        },
+        {
+            "class": "Pipeline/Render/DebugDraw",
+            "id": 1,
+            "name": "debugDraw"
         },
         {
             "class": "Pipeline/Render/BlendWithTransform",
@@ -15,36 +24,12 @@
             ]
         },
         {
-            "class": "Pipeline/Utility/TextureProperties",
-            "id": 64,
-            "name": "backBufferProperties"
-        },
-        {
-            "class": "Pipeline/Render/DebugDraw",
-            "id": 1,
-            "name": "debugDraw"
-        },
-        {
-            "class": "Pipeline/System/GetEnvVariable",
-            "id": 20,
-            "name": "smaaAreaEnv",
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 36,
+            "name": "bloomBlurVertical4",
             "inputs": [
-                "SMAA_areaTex"
-            ]
-        },
-        {
-            "class": "Pipeline/System/GetEnvVariable",
-            "id": 8,
-            "name": "fontTexEnv",
-            "inputs": [
-                "TextRender_fontTex"
-            ]
-        },
-        {
-            "class": "Pipeline/System/GetEnvVariable",
-            "id": 68,
-            "inputs": [
-                "world_render_pos"
+                {},
+                "[0, 1]"
             ]
         },
         {
@@ -71,11 +56,21 @@
         },
         {
             "class": "Pipeline/System/GetEnvVariable",
-            "id": 15,
-            "name": "lensFlareStarEnv",
+            "id": 8,
+            "name": "fontTexEnv",
             "inputs": [
-                "HDRCombine_lensFlareStarTex"
+                "TextRender_fontTex"
             ]
+        },
+        {
+            "class": "Pipeline/Render/ScreenSpaceAmbientOcclusion",
+            "id": 6,
+            "name": "screenSpaceAmbientOcclusion"
+        },
+        {
+            "class": "Pipeline/Render/SMAA",
+            "id": 24,
+            "name": "smaa"
         },
         {
             "class": "Pipeline/System/GetEnvVariable",
@@ -86,27 +81,9 @@
             ]
         },
         {
-            "class": "Pipeline/System/GetEnvVariable",
-            "id": 18,
-            "name": "lensFlareColorEnv",
-            "inputs": [
-                "LensFlare_ColorTex"
-            ]
-        },
-        {
-            "class": "Pipeline/Render/LightCulling",
-            "id": 54,
-            "name": "lightCulling"
-        },
-        {
-            "class": "Pipeline/Render/BloomAdd",
-            "id": 43,
-            "name": "bloomAdd3216"
-        },
-        {
-            "class": "Pipeline/Render/ScreenSpaceAmbientOcclusion",
-            "id": 6,
-            "name": "screenSpaceAmbientOcclusion"
+            "class": "Pipeline/Render/DOFTileMax",
+            "id": 22,
+            "name": "dofTileMax"
         },
         {
             "class": "Pipeline/Render/TextRender",
@@ -119,14 +96,45 @@
             "name": "screenSpaceReflection"
         },
         {
+            "class": "Pipeline/Render/DepthPrepass",
+            "id": 59,
+            "name": "depthPrePass"
+        },
+        {
+            "class": "Pipeline/Render/LightCulling",
+            "id": 54,
+            "name": "lightCulling"
+        },
+        {
+            "class": "Pipeline/Render/DOSPrepare",
+            "id": 23,
+            "name": "dofPrepare"
+        },
+        {
             "class": "Pipeline/Render/ScreenSpaceShadow",
             "id": 11,
             "name": "screenSpaceShadow"
         },
         {
-            "class": "Pipeline/Render/BloomAdd",
-            "id": 40,
-            "name": "bloomAdd168"
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 26,
+            "name": "lensFlareBlurHorizontal",
+            "inputs": [
+                {},
+                "[1, 0]"
+            ]
+        },
+        {
+            "class": "Pipeline/System/GetEnvVariable",
+            "id": 17,
+            "name": "colorGradingEnv",
+            "inputs": [
+                "HDRCombine_colorGradingTex"
+            ]
+        },
+        {
+            "class": "Pipeline/System/GetBackBuffer",
+            "id": 69
         },
         {
             "class": "Pipeline/Utility/CreateTexture",
@@ -143,15 +151,6 @@
             ]
         },
         {
-            "class": "Pipeline/Render/BloomBlur",
-            "id": 45,
-            "name": "bloomBlurVertical32",
-            "inputs": [
-                {},
-                "[0, 1]"
-            ]
-        },
-        {
             "class": "Pipeline/Render/ShadowMapGen",
             "id": 13,
             "name": "shadowMapGen"
@@ -162,9 +161,12 @@
             "name": "dofMain"
         },
         {
-            "class": "Pipeline/Render/LensBlur",
-            "id": 27,
-            "name": "lensFlare"
+            "class": "Pipeline/System/GetEnvVariable",
+            "id": 15,
+            "name": "lensFlareStarEnv",
+            "inputs": [
+                "HDRCombine_lensFlareStarTex"
+            ]
         },
         {
             "class": "Pipeline/System/GetEnvVariable",
@@ -175,29 +177,11 @@
             ]
         },
         {
-            "class": "Pipeline/Render/BloomBlur",
-            "id": 32,
-            "name": "bloomBlurHorizontal2",
-            "inputs": [
-                {},
-                "[1, 0]"
-            ]
-        },
-        {
             "class": "Pipeline/System/GetEnvVariable",
-            "id": 17,
-            "name": "colorGradingEnv",
+            "id": 18,
+            "name": "lensFlareColorEnv",
             "inputs": [
-                "HDRCombine_colorGradingTex"
-            ]
-        },
-        {
-            "class": "Pipeline/Render/BloomBlur",
-            "id": 26,
-            "name": "lensFlareBlurHorizontal",
-            "inputs": [
-                {},
-                "[1, 0]"
+                "LensFlare_ColorTex"
             ]
         },
         {
@@ -209,33 +193,17 @@
             ]
         },
         {
-            "class": "Pipeline/Render/BloomBlur",
-            "id": 33,
-            "name": "bloomBlurVertical2",
+            "class": "Pipeline/System/GetEnvVariable",
+            "id": 20,
+            "name": "smaaAreaEnv",
             "inputs": [
-                {},
-                "[0, 1]"
+                "SMAA_areaTex"
             ]
         },
         {
             "class": "Pipeline/Render/DofNeighborMax",
             "id": 21,
             "name": "dofNeighborMax"
-        },
-        {
-            "class": "Pipeline/Render/DOFTileMax",
-            "id": 22,
-            "name": "dofTileMax"
-        },
-        {
-            "class": "Pipeline/Render/DepthReduction",
-            "id": 58,
-            "name": "depthReduction"
-        },
-        {
-            "class": "Pipeline/Render/DOSPrepare",
-            "id": 23,
-            "name": "dofPrepare"
         },
         {
             "class": "Pipeline/Render/BloomBlur",
@@ -247,41 +215,39 @@
             ]
         },
         {
-            "class": "Pipeline/Render/MotionBlur",
-            "id": 28,
-            "name": "motionBlur"
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 42,
+            "name": "bloomBlurVertical16",
+            "inputs": [
+                {},
+                "[0, 1]"
+            ]
+        },
+        {
+            "class": "Pipeline/System/GetSceneByName",
+            "id": 71,
+            "inputs": [
+                "World"
+            ]
+        },
+        {
+            "class": "Pipeline/Render/LensBlur",
+            "id": 27,
+            "name": "lensFlare"
+        },
+        {
+            "class": "Pipeline/Render/CSM",
+            "id": 56,
+            "name": "csm"
         },
         {
             "class": "Pipeline/Render/BloomBlur",
-            "id": 44,
-            "name": "bloomBlurHorizontal32",
+            "id": 39,
+            "name": "bloomBlurVertical8",
             "inputs": [
                 {},
-                "[1, 0]"
+                "[0, 1]"
             ]
-        },
-        {
-            "class": "Pipeline/Utility/CreateTexture",
-            "id": 61,
-            "inputs": [
-                "1024",
-                "1024",
-                "R32_TYPELESS",
-                "4",
-                "yay",
-                "0",
-                "0"
-            ]
-        },
-        {
-            "class": "Pipeline/Render/BloomDownsample",
-            "id": 46,
-            "name": "bloomDownsample32"
-        },
-        {
-            "class": "Pipeline/Render/NeightborMax",
-            "id": 29,
-            "name": "neighborMax"
         },
         {
             "class": "Pipeline/Render/TileMax",
@@ -289,9 +255,14 @@
             "name": "tileMax"
         },
         {
-            "class": "Pipeline/Render/BloomAdd",
-            "id": 37,
-            "name": "bloomAdd84"
+            "class": "Pipeline/Render/MotionBlur",
+            "id": 28,
+            "name": "motionBlur"
+        },
+        {
+            "class": "Pipeline/Render/NeightborMax",
+            "id": 29,
+            "name": "neighborMax"
         },
         {
             "class": "Pipeline/Render/HDRCombine",
@@ -299,9 +270,32 @@
             "name": "hdrCombine"
         },
         {
-            "class": "Pipeline/Render/ForwardRender",
-            "id": 60,
-            "name": "forwardRender"
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 32,
+            "name": "bloomBlurHorizontal2",
+            "inputs": [
+                {},
+                "[1, 0]"
+            ]
+        },
+        {
+            "class": "Pipeline/Render/LuminanceReductionFinal",
+            "id": 51,
+            "name": "luminanceReductionFinal"
+        },
+        {
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 33,
+            "name": "bloomBlurVertical2",
+            "inputs": [
+                {},
+                "[0, 1]"
+            ]
+        },
+        {
+            "class": "Pipeline/Render/BloomAdd",
+            "id": 43,
+            "name": "bloomAdd3216"
         },
         {
             "class": "Pipeline/Render/BloomAdd",
@@ -318,13 +312,14 @@
             ]
         },
         {
-            "class": "Pipeline/Render/BloomBlur",
-            "id": 36,
-            "name": "bloomBlurVertical4",
-            "inputs": [
-                {},
-                "[0, 1]"
-            ]
+            "class": "Pipeline/Utility/TextureProperties",
+            "id": 64,
+            "name": "backBufferProperties"
+        },
+        {
+            "class": "Pipeline/Render/BloomAdd",
+            "id": 37,
+            "name": "bloomAdd84"
         },
         {
             "class": "Pipeline/Render/BloomBlur",
@@ -336,23 +331,32 @@
             ]
         },
         {
-            "class": "Pipeline/Render/CSM",
-            "id": 56,
-            "name": "csm"
-        },
-        {
-            "class": "Pipeline/Render/BrightLumPass",
-            "id": 53,
-            "name": "brightLumPass"
+            "class": "Pipeline/Render/BloomAdd",
+            "id": 40,
+            "name": "bloomAdd168"
         },
         {
             "class": "Pipeline/Render/BloomBlur",
-            "id": 39,
-            "name": "bloomBlurVertical8",
+            "id": 44,
+            "name": "bloomBlurHorizontal32",
+            "inputs": [
+                {},
+                "[1, 0]"
+            ]
+        },
+        {
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 45,
+            "name": "bloomBlurVertical32",
             "inputs": [
                 {},
                 "[0, 1]"
             ]
+        },
+        {
+            "class": "Pipeline/Render/BloomDownsample",
+            "id": 46,
+            "name": "bloomDownsample32"
         },
         {
             "class": "Pipeline/Utility/CreateTexture",
@@ -369,32 +373,9 @@
             ]
         },
         {
-            "class": "Pipeline/Render/BloomBlur",
-            "id": 41,
-            "name": "bloomBlurHorizontal16",
-            "inputs": [
-                {},
-                "[1, 0]"
-            ]
-        },
-        {
-            "class": "Pipeline/Render/BloomBlur",
-            "id": 42,
-            "name": "bloomBlurVertical16",
-            "inputs": [
-                {},
-                "[0, 1]"
-            ]
-        },
-        {
             "class": "Pipeline/Render/BloomDownsample",
             "id": 47,
             "name": "bloomDownsample16"
-        },
-        {
-            "class": "Pipeline/Render/DepthPrepass",
-            "id": 59,
-            "name": "depthPrePass"
         },
         {
             "class": "Pipeline/Render/BloomDownsample",
@@ -412,14 +393,18 @@
             "name": "bloomDownsample2"
         },
         {
-            "class": "Pipeline/Render/LuminanceReductionFinal",
-            "id": 51,
-            "name": "luminanceReductionFinal"
-        },
-        {
             "class": "Pipeline/Render/LuminanceReduction",
             "id": 52,
             "name": "luminanceReduction"
+        },
+        {
+            "class": "Pipeline/Render/BrightLumPass",
+            "id": 53,
+            "name": "brightLumPass"
+        },
+        {
+            "class": "Pipeline/Utility/Vector2Components",
+            "id": 65
         },
         {
             "class": "Pipeline/Render/DrawSky",
@@ -427,9 +412,32 @@
             "name": "drawSky"
         },
         {
+            "class": "Pipeline/Render/DepthReduction",
+            "id": 58,
+            "name": "depthReduction"
+        },
+        {
             "class": "Pipeline/Render/DepthReductionFinal",
             "id": 57,
             "name": "depthReductionFinal"
+        },
+        {
+            "class": "Pipeline/Render/ForwardRender",
+            "id": 60,
+            "name": "forwardRender"
+        },
+        {
+            "class": "Pipeline/Utility/CreateTexture",
+            "id": 61,
+            "inputs": [
+                "1024",
+                "1024",
+                "R32_TYPELESS",
+                "4",
+                "yay",
+                "0",
+                "0"
+            ]
         },
         {
             "class": "Pipeline/Utility/CreateTexture",
@@ -446,10 +454,6 @@
             ]
         },
         {
-            "class": "Pipeline/Utility/Vector2Components",
-            "id": 65
-        },
-        {
             "class": "Pipeline/System/GetEnvVariable",
             "id": 66,
             "inputs": [
@@ -464,21 +468,17 @@
             ]
         },
         {
-            "class": "Pipeline/System/GetBackBuffer",
-            "id": 69
+            "class": "Pipeline/System/GetEnvVariable",
+            "id": 68,
+            "inputs": [
+                "world_render_pos"
+            ]
         },
         {
             "class": "Pipeline/System/GetCameraByName",
             "id": 70,
             "inputs": [
                 "WorldCam"
-            ]
-        },
-        {
-            "class": "Pipeline/System/GetSceneByName",
-            "id": 71,
-            "inputs": [
-                "World"
             ]
         }
     ],

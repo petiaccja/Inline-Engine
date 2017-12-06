@@ -160,14 +160,14 @@ void ForwardRender::Setup(SetupContext& context) {
 	m_cascadedShadowMapTexView = context.CreateSrv(cascadedShadowMapTex, FormatDepthToColor(cascadedShadowMapTex.GetFormat()), srvDesc);
 
 	auto pointLightShadowMapTex = this->GetInput<10>().Get();
-	this->GetInput<5>().Clear();
+	this->GetInput<10>().Clear();
 	gxapi::SrvTextureCubeArray cubeSrvDesc;
 	cubeSrvDesc.indexOfFirst2DTex = 0;
 	cubeSrvDesc.mipLevelClamping = 0;
 	cubeSrvDesc.mostDetailedMip = 0;
 	cubeSrvDesc.numMipLevels = 1;
 	cubeSrvDesc.numCubes = 1;
-	m_pointLightShadowMapTexView = context.CreateSrv(cascadedShadowMapTex, FormatDepthToColor(cascadedShadowMapTex.GetFormat()), cubeSrvDesc);
+	m_pointLightShadowMapTexView = context.CreateSrv(pointLightShadowMapTex, FormatDepthToColor(pointLightShadowMapTex.GetFormat()), cubeSrvDesc);
 	
 
 	srvDesc.activeArraySize = 1;
