@@ -6,6 +6,8 @@ taskgraph.dot
 depgraph.dot
 pipeline_graph.svg
 pipeline_graph.dot
+pipeline_out_json.json
+pipeline_out.json
 
 
 ##------------------------------------------------------------------------------
