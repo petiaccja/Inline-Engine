@@ -204,7 +204,7 @@
   <ItemGroup>
     <ClInclude Include="Any.hpp" />
     <ClInclude Include="ArrayView.hpp" />
-    <ClInclude Include="BitflagEnum.hpp" />
+    <ClInclude Include="EnumFlag.hpp" />
     <ClInclude Include="BitOperations.hpp" />
     <ClInclude Include="Color.hpp" />
     <ClInclude Include="Common.hpp" />

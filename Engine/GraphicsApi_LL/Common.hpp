@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../BaseLibrary/BitflagEnum.hpp"
+#include <BaseLibrary/EnumFlag.hpp>
 
 #include "Native.hpp"
 
@@ -517,7 +517,7 @@ namespace bitflag_enum_impl {
 
 
 struct eShaderCompileFlags_Base {
-	enum eShaderCompileFlags {
+	enum EnumT {
 		DEBUG = (1 << 0),
 		NO_OPTIMIZATION = (1 << 1),
 		ROW_MAJOR_MATRICES = (1 << 2),
@@ -532,7 +532,7 @@ struct eShaderCompileFlags_Base {
 
 
 struct eHeapFlags_Base {
-	enum eHeapFlags {
+	enum EnumT {
 		NONE = 0,
 		SHARED = 0x1,
 		DENY_BUFFERS = 0x4,
@@ -548,7 +548,7 @@ struct eHeapFlags_Base {
 };
 
 struct eResourceState_Base {
-	enum eResourceState {
+	enum EnumT {
 		COMMON = 0,
 		VERTEX_AND_CONSTANT_BUFFER = 0x1,
 		INDEX_BUFFER = 0x2,
@@ -571,7 +571,7 @@ struct eResourceState_Base {
 };
 
 struct eResourceFlags_Base {
-	enum eResourceFlags {
+	enum EnumT {
 		NONE = 0,
 		ALLOW_RENDER_TARGET = 0x1,
 		ALLOW_DEPTH_STENCIL = 0x2,
@@ -583,7 +583,7 @@ struct eResourceFlags_Base {
 };
 
 struct eColorMask_Base {
-	enum eColorMask {
+	enum EnumT {
 		RED = 1,
 		GREEN = 2,
 		BLUE = 4,
@@ -593,7 +593,7 @@ struct eColorMask_Base {
 };
 
 struct eDsvFlags_Base {
-	enum eDsvFlags {
+	enum EnumT {
 		NONE = 0,
 		READ_ONLY_DEPTH = 0x1,
 		READ_ONLY_STENCIL = 0x2,
@@ -602,12 +602,26 @@ struct eDsvFlags_Base {
 
 } // namespace bitflag_enum_impl
 
-using eHeapFlags = BitFlagEnum<bitflag_enum_impl::eHeapFlags_Base, bitflag_enum_impl::eHeapFlags_Base::eHeapFlags>;
-using eResourceState = BitFlagEnum<bitflag_enum_impl::eResourceState_Base, bitflag_enum_impl::eResourceState_Base::eResourceState>;
-using eResourceFlags = BitFlagEnum<bitflag_enum_impl::eResourceFlags_Base, bitflag_enum_impl::eResourceFlags_Base::eResourceFlags>;
-using eColorMask = BitFlagEnum<bitflag_enum_impl::eColorMask_Base, bitflag_enum_impl::eColorMask_Base::eColorMask>;
-using eDsvFlags = BitFlagEnum<bitflag_enum_impl::eDsvFlags_Base, bitflag_enum_impl::eDsvFlags_Base::eDsvFlags>;
-using eShaderCompileFlags = BitFlagEnum<bitflag_enum_impl::eShaderCompileFlags_Base, bitflag_enum_impl::eShaderCompileFlags_Base::eShaderCompileFlags>;
+//using eHeapFlags = BitFlagEnum<bitflag_enum_impl::eHeapFlags_Base, bitflag_enum_impl::eHeapFlags_Base::eHeapFlags>;
+//using eResourceState = BitFlagEnum<bitflag_enum_impl::eResourceState_Base, bitflag_enum_impl::eResourceState_Base::eResourceState>;
+//using eResourceFlags = BitFlagEnum<bitflag_enum_impl::eResourceFlags_Base, bitflag_enum_impl::eResourceFlags_Base::eResourceFlags>;
+//using eColorMask = BitFlagEnum<bitflag_enum_impl::eColorMask_Base, bitflag_enum_impl::eColorMask_Base::eColorMask>;
+//using eDsvFlags = BitFlagEnum<bitflag_enum_impl::eDsvFlags_Base, bitflag_enum_impl::eDsvFlags_Base::eDsvFlags>;
+//using eShaderCompileFlags = BitFlagEnum<bitflag_enum_impl::eShaderCompileFlags_Base, bitflag_enum_impl::eShaderCompileFlags_Base::eShaderCompileFlags>;
+
+using eHeapFlags = EnumFlag_Helper<bitflag_enum_impl::eHeapFlags_Base>;
+using eResourceState = EnumFlag_Helper<bitflag_enum_impl::eResourceState_Base>;
+using eResourceFlags = EnumFlag_Helper<bitflag_enum_impl::eResourceFlags_Base>;
+using eColorMask = EnumFlag_Helper<bitflag_enum_impl::eColorMask_Base>;
+using eDsvFlags = EnumFlag_Helper<bitflag_enum_impl::eDsvFlags_Base>;
+using eShaderCompileFlags = EnumFlag_Helper<bitflag_enum_impl::eShaderCompileFlags_Base>;
+
+//INL_ENUM_FLAG(eHeapFlags, bitflag_enum_impl::eHeapFlags_Base)
+//INL_ENUM_FLAG(eResourceState, bitflag_enum_impl::eResourceState_Base)
+//INL_ENUM_FLAG(eResourceFlags, bitflag_enum_impl::eResourceFlags_Base)
+//INL_ENUM_FLAG(eColorMask, bitflag_enum_impl::eColorMask_Base)
+//INL_ENUM_FLAG(eDsvFlags, bitflag_enum_impl::eDsvFlags_Base)
+//INL_ENUM_FLAG(eShaderCompileFlags, bitflag_enum_impl::eShaderCompileFlags_Base)
 
 
 
