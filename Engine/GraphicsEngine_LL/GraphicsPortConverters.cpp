@@ -199,20 +199,20 @@ gxapi::RenderTargetBlendState PortConverter<gxapi::RenderTargetBlendState>::From
 
 
 std::string PortConverter<gxeng::TextureUsage>::ToString(const gxeng::TextureUsage& arg) const {
-	//std::string str;
-	//if (arg & gxapi::eColorMask::RED) {
-	//	str += (str.empty() ? "RED" : "|RED");
-	//}
-	//if (arg & gxapi::eColorMask::GREEN) {
-	//	str += (str.empty() ? "GREEN" : "|GREEN");
-	//}
-	//if (arg & gxapi::eColorMask::BLUE) {
-	//	str += (str.empty() ? "BLUE" : "|BLUE");
-	//}
-	//if (arg & gxapi::eColorMask::ALPHA) {
-	//	str += (str.empty() ? "ALPHA" : "|ALPHA");
-	//}
-	return "yay";
+	std::string str;
+	if (arg.depthStencil) {
+		str += (str.empty() ? "DS" : "|DS");
+	}
+	if (arg.randomAccess) {
+		str += (str.empty() ? "RW" : "|RW");
+	}
+	if (arg.renderTarget) {
+		str += (str.empty() ? "RT" : "|RT");
+	}
+	if (arg.shaderResource) {
+		str += (str.empty() ? "SR" : "|SR");
+	}
+	return str;
 }
 gxeng::TextureUsage PortConverter<gxeng::TextureUsage>::FromString(const std::string&) {
 	throw NotImplementedException("No, peter, you're gonna have to implement this. Boring... /cry");
