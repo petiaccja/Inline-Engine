@@ -602,12 +602,6 @@ struct eDsvFlags_Base {
 
 } // namespace bitflag_enum_impl
 
-//using eHeapFlags = BitFlagEnum<bitflag_enum_impl::eHeapFlags_Base, bitflag_enum_impl::eHeapFlags_Base::eHeapFlags>;
-//using eResourceState = BitFlagEnum<bitflag_enum_impl::eResourceState_Base, bitflag_enum_impl::eResourceState_Base::eResourceState>;
-//using eResourceFlags = BitFlagEnum<bitflag_enum_impl::eResourceFlags_Base, bitflag_enum_impl::eResourceFlags_Base::eResourceFlags>;
-//using eColorMask = BitFlagEnum<bitflag_enum_impl::eColorMask_Base, bitflag_enum_impl::eColorMask_Base::eColorMask>;
-//using eDsvFlags = BitFlagEnum<bitflag_enum_impl::eDsvFlags_Base, bitflag_enum_impl::eDsvFlags_Base::eDsvFlags>;
-//using eShaderCompileFlags = BitFlagEnum<bitflag_enum_impl::eShaderCompileFlags_Base, bitflag_enum_impl::eShaderCompileFlags_Base::eShaderCompileFlags>;
 
 using eHeapFlags = EnumFlag_Helper<bitflag_enum_impl::eHeapFlags_Base>;
 using eResourceState = EnumFlag_Helper<bitflag_enum_impl::eResourceState_Base>;
@@ -615,14 +609,6 @@ using eResourceFlags = EnumFlag_Helper<bitflag_enum_impl::eResourceFlags_Base>;
 using eColorMask = EnumFlag_Helper<bitflag_enum_impl::eColorMask_Base>;
 using eDsvFlags = EnumFlag_Helper<bitflag_enum_impl::eDsvFlags_Base>;
 using eShaderCompileFlags = EnumFlag_Helper<bitflag_enum_impl::eShaderCompileFlags_Base>;
-
-//INL_ENUM_FLAG(eHeapFlags, bitflag_enum_impl::eHeapFlags_Base)
-//INL_ENUM_FLAG(eResourceState, bitflag_enum_impl::eResourceState_Base)
-//INL_ENUM_FLAG(eResourceFlags, bitflag_enum_impl::eResourceFlags_Base)
-//INL_ENUM_FLAG(eColorMask, bitflag_enum_impl::eColorMask_Base)
-//INL_ENUM_FLAG(eDsvFlags, bitflag_enum_impl::eDsvFlags_Base)
-//INL_ENUM_FLAG(eShaderCompileFlags, bitflag_enum_impl::eShaderCompileFlags_Base)
-
 
 
 

@@ -5,8 +5,26 @@
 namespace inl {
 
 
+namespace impl {
+
+template <class T>
+struct IsEnumFlagSuitable {
+private:
+	template <class U = decltype(T::EnumT())>
+	static constexpr bool has(int) { return true; }
+
+	template <class U>
+	static constexpr bool has(...) { return false; }
+public:
+	static constexpr bool value = has<int>(0) && std::is_enum_v<T::EnumT>;
+};
+
+}
+
+
 template <typename EnumFlagData>
 struct EnumFlag_Helper : public EnumFlagData {
+	static_assert(impl::IsEnumFlagSuitable<EnumFlagData>::value, "Enum flag data must be a struct containing a plain enum called EnumT");
 public:
 	using EnumT = typename EnumFlagData::EnumT;
 	using UnderlyingT = typename std::underlying_type<EnumT>::type;
@@ -92,63 +110,6 @@ public:
 private:
 	EnumT m_value;
 };
-
-
-namespace impl {
-
-template <class T>
-struct IsEnumFlagSuitable {
-private:
-	template <class U = decltype(T::EnumT())>
-	static constexpr bool has(int) { return true; }
-
-	template <class U>
-	static constexpr bool has(...) { return false; }
-public:
-	static constexpr bool value = has<int>(0) && std::is_enum_v<T::EnumT>;
-};
-
-}
-
-
-#if 0
-#define INL_ENUM_FLAG(NAME, DATA)												\
-static_assert(impl::IsEnumFlagSuitable<DATA>::value,							\
-	"Enum flag data must be a struct containing a plain enum called EnumT");	\
-																				\
-using NAME = EnumFlag_Helper<DATA>;												\
-																				\
-inline NAME operator+(NAME::EnumT lhs, NAME::EnumT rhs) {						\
-	return NAME(lhs) + rhs;														\
-}																				\
-																				\
-inline NAME operator-(NAME::EnumT lhs, NAME::EnumT rhs) {						\
-	return NAME(lhs) - rhs;														\
-}																				\
-																				\
-inline NAME operator&(NAME::EnumT lhs, NAME::EnumT rhs) {						\
-	return NAME(lhs) & rhs;														\
-}
-#endif
-
-
-#if 0
-struct eEnumFlag_Data {
-	enum EnumT {
-		FOO,
-		BAR,
-	};
-};
-INL_ENUM_FLAG(eEnumFlag, eEnumFlag_Data);
-
-
-
-
-void foo() {
-	eEnumFlag::BAR;
-	eEnumFlag flag = eEnumFlag::BAR + eEnumFlag::FOO;
-};
-#endif
 
 
 }
