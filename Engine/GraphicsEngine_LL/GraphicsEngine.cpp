@@ -128,8 +128,8 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	RegisterPipelineClasses();
 
 	// Do more stuff...
-	CreatePipeline();
-	m_scheduler.SetPipeline(std::move(m_pipeline));
+	//CreatePipeline();
+	//m_scheduler.SetPipeline(std::move(m_pipeline));
 
 	// Init logger
 	m_logStreamGeneral = m_logger->CreateLogStream("General");
@@ -386,15 +386,34 @@ void GraphicsEngine::LoadPipeline(const std::string& graphDesc) {
 	Pipeline pipeline;
 	pipeline.CreateFromDescription(graphDesc, m_nodeFactory);
 
-	DumpPipelineGraph(pipeline, "pipeline_graph_json.dot");
-	std::string s = pipeline.SerializeToJSON(m_nodeFactory);
-	std::ofstream of("pipeline_out_json.json", std::ios::trunc);
-	of << s;
+	EngineContext engineContext(1, 1);
+	for (auto& node : pipeline) {
+		if (auto graphicsNode = dynamic_cast<GraphicsNode*>(&node)) {
+			graphicsNode->Initialize(engineContext);
+		}
+	}
+
+	auto specialNodes = SelectSpecialNodes(pipeline);
+
+	m_specialNodes = specialNodes;
+	m_pipeline = std::move(pipeline);
+	m_scheduler.SetPipeline(std::move(m_pipeline));
+
+	DumpPipelineGraph(pipeline, "pipeline_graph.dot");
+
+	// This code piece was used to debug the pipeline loading.
+	// Leave it here for a while but throw it out later.
+	//std::string s = pipeline.SerializeToJSON(m_nodeFactory);
+	//std::ofstream of("pipeline_json2json.json", std::ios::trunc);
+	//of << s;
 }
 
 
-
+// DEPRECATED
+// It's about time to get rid of thuis abomination
+/*
 void GraphicsEngine::CreatePipeline() {
+	return;
 	auto swapChainDesc = m_swapChain->GetDesc();
 
 	// -----------------------------
@@ -921,11 +940,12 @@ void GraphicsEngine::CreatePipeline() {
 
 	DumpPipelineGraph(m_pipeline, "pipeline_graph.dot");
 	std::string s = m_pipeline.SerializeToJSON(m_nodeFactory);
-	std::ofstream of("pipeline_out.json", std::ios::trunc);
+	std::ofstream of("pipeline_cpp2json.json", std::ios::trunc);
 	of << s;
 
 	m_specialNodes = SelectSpecialNodes(m_pipeline);
 }
+*/
 
 
 

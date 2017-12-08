@@ -1,88 +1,98 @@
-#include <type_traits>
+#pragma once
 
+#include <type_traits>
 
 namespace inl {
 
-/// <summary> Helper class to wrap enums into bitflags. </summary>
-/// <remarks>
-///	<para> Contains operators for common operations on bitflags
-///		such as union (+), set difference (-) and intersection (&). </para>
-/// <para> The first template parameter is a struct containing the definition
-///		of a non-scoped enum, the second parameter is the enum itself. The class
-///		inherits from the struct. Unfortunately, C++ does not support inheriting
-///		from enum classes. </para>		
-/// </remarks>
-template <class HoldingStruct, class InnerEnum>
-class BitFlagEnum : public HoldingStruct {
-public:
-	using EnumT = InnerEnum;
+
+namespace impl {
+
+template <class T>
+struct IsEnumFlagSuitable {
 private:
-	using UnderlyingT = typename std::underlying_type<EnumT>::type;
+	template <class U = decltype(T::EnumT())>
+	static constexpr bool has(int) { return true; }
+
+	template <class U>
+	static constexpr bool has(...) { return false; }
 public:
+	static constexpr bool value = has<int>(0) && std::is_enum_v<T::EnumT>;
+};
+
+}
+
+
+template <typename EnumFlagData>
+struct EnumFlag_Helper : public EnumFlagData {
+	static_assert(impl::IsEnumFlagSuitable<EnumFlagData>::value, "Enum flag data must be a struct containing a plain enum called EnumT");
+public:
+	using EnumT = typename EnumFlagData::EnumT;
+	using UnderlyingT = typename std::underlying_type<EnumT>::type;
+
 	/// <summary> Initializes an empty flag. </summary>
-	BitFlagEnum() : m_value((EnumT)0) {}
+	EnumFlag_Helper() : m_value((EnumT)0) {}
 
 	/// <sumamry> Init the flag to the specified value. </summary>
-	BitFlagEnum(EnumT value) : m_value(value) {}
+	EnumFlag_Helper(EnumT value) : m_value(value) {}
 
 	/// <sumamry> Init the flag to the specified value. </summary>
-	BitFlagEnum(const BitFlagEnum& rhs) = default;
+	EnumFlag_Helper(const EnumFlag_Helper& rhs) = default;
 
-	BitFlagEnum(std::initializer_list<EnumT> values) {
+
+	EnumFlag_Helper(std::initializer_list<EnumT> values) {
 		m_value = (EnumT)0;
 		for (auto v : values) {
 			*this += v;
 		}
 	}
 
-
 	/// <summary> Assign the specified value. </summary>
-	BitFlagEnum& operator=(const BitFlagEnum& rhs) = default;
+	EnumFlag_Helper& operator=(const EnumFlag_Helper& rhs) = default;
 
 
 	/// <summary> Check if the two contain EXACTLY the same flags.
-	bool operator==(BitFlagEnum rhs) const {
+	bool operator==(EnumFlag_Helper rhs) const {
 		return m_value == rhs.m_value;
 	}
 	/// <summary> Check if the two has ANY difference. </summary>
-	bool operator!=(BitFlagEnum rhs) const {
+	bool operator!=(EnumFlag_Helper rhs) const {
 		return m_value != rhs.m_value;
 	}
 
 	/// <summary> Assign the union of the two to the left side. </summary>
-	BitFlagEnum& operator+=(BitFlagEnum flag) {
+	EnumFlag_Helper& operator+=(EnumFlag_Helper flag) {
 		(UnderlyingT&)m_value |= (UnderlyingT)flag.m_value;
 		return *this;
 	}
 	/// <summary> Create the union of the two flags. </summary>
-	BitFlagEnum operator+(BitFlagEnum flag) const {
-		BitFlagEnum copy(*this);
+	EnumFlag_Helper operator+(EnumFlag_Helper flag) const {
+		EnumFlag_Helper copy(*this);
 		copy += flag;
 		return copy;
 	}
 
 
 	/// <summary> Unset all flags in the left side that are set in the right side, that is, difference of sets. </summary>
-	BitFlagEnum& operator-=(BitFlagEnum flag) {
+	EnumFlag_Helper& operator-=(EnumFlag_Helper flag) {
 		(UnderlyingT&)m_value &= (UnderlyingT)(~flag.m_value);
 		return *this;
 	}
 	/// <summary> Return the set difference LEFT \ RIGHT. </summary>
-	BitFlagEnum operator-(BitFlagEnum flag) const {
-		BitFlagEnum copy(*this);
+	EnumFlag_Helper operator-(EnumFlag_Helper flag) const {
+		EnumFlag_Helper copy(*this);
 		copy -= flag;
 		return copy;
 	}
 
 
 	/// <summary> Set only flags that are also set in the right side, that is, intersection of sets. </summary>
-	BitFlagEnum& operator&=(BitFlagEnum rhs) {
+	EnumFlag_Helper& operator&=(EnumFlag_Helper rhs) {
 		(UnderlyingT&)m_value &= (UnderlyingT)rhs.m_value;
 		return *this;
 	}
 	/// <summary> Return the intersection of the two sets. </summary>
-	BitFlagEnum operator&(BitFlagEnum flag) const {
-		BitFlagEnum copy(*this);
+	EnumFlag_Helper operator&(EnumFlag_Helper flag) const {
+		EnumFlag_Helper copy(*this);
 		copy &= flag;
 		return copy;
 	}
@@ -102,4 +112,4 @@ private:
 };
 
 
-} // namespace inl
+}

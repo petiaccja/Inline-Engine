@@ -129,7 +129,6 @@
     </ClInclude>
     <ClInclude Include="Any.hpp" />
     <ClInclude Include="ArrayView.hpp" />
-    <ClInclude Include="BitflagEnum.hpp" />
     <ClInclude Include="BitOperations.hpp" />
     <ClInclude Include="MemoryLeakDetector.hpp" />
     <ClInclude Include="Range.hpp" />
@@ -147,6 +146,7 @@
     <ClInclude Include="Graph\PortConverters.hpp">
       <Filter>Graph</Filter>
     </ClInclude>
+    <ClInclude Include="EnumFlag.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">

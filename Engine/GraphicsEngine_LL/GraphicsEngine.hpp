@@ -136,7 +136,7 @@ public:
 	/// <summary> Load the pipeline from the JSON node graph description. </summary>
 	void LoadPipeline(const std::string& nodes);
 private:
-	void CreatePipeline();
+	//void CreatePipeline();
 	void RegisterPipelineClasses();
 	static std::vector<GraphicsNode*> SelectSpecialNodes(Pipeline& pipeline);
 	void UpdateSpecialNodes();

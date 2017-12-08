@@ -200,7 +200,6 @@ int main(int argc, char* argv[]) {
 		pEngine = engine.get();
 
 		// Load graphics pipeline
-		// This is just a dummy pipeline now and it does not to anything blablabla
 		std::string exeDir = System::GetExecutableDir();
 		std::ifstream pipelineFile(exeDir + "\\pipeline.json");
 		if (!pipelineFile.is_open()) {
