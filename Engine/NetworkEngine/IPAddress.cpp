@@ -6,54 +6,12 @@ const IPAddress IPAddress::Any(0, 0, 0, 0);
 const IPAddress IPAddress::LocalHost(127, 0, 0, 1);
 const IPAddress IPAddress::Broadcast(255, 255, 255, 255);
 
-IPAddress::IPAddress() 
-	: m_address(0), m_valid(false), m_port (DEFAULT_SERVER_PORT)
-{
-}
-
-IPAddress::IPAddress(const std::string& address, uint16_t port) 
-	: m_address(0), m_valid(false), m_port(port)
-{
-    Resolve(address);
-}
-
-IPAddress::IPAddress(const char* address, uint16_t port) 
-	: m_address(0), m_valid(false), m_port(port)
-{
-    Resolve(address);
-}
-
-IPAddress::IPAddress(uint8_t byte0, uint8_t byte1, uint8_t byte2, uint8_t byte3, uint16_t port) 
-	: m_address(htonl((byte0 << 24) | (byte1 << 16) | (byte2 << 8) | byte3)), m_valid(true), m_port(port)
-{
-}
-
-IPAddress::IPAddress(uint32_t address, uint16_t port) 
-	: m_address(htonl(address)), m_valid(true), m_port(port)
-{
-}
-
 std::string IPAddress::ToString() const
 {
     in_addr address;
     address.s_addr = m_address;
 
     return inet_ntoa(address);
-}
-
-uint32_t IPAddress::ToInteger() const
-{
-    return ntohl(m_address);
-}
-
-uint16_t IPAddress::GetPort() const
-{
-	return m_port;
-}
-
-IPAddress IPAddress::GetPublicAddress(std::chrono::milliseconds timeout)
-{
-    return IPAddress();
 }
 
 void IPAddress::Resolve(const std::string& address)
@@ -99,48 +57,4 @@ void IPAddress::Resolve(const std::string& address)
             }
         }
     }
-}
-
-bool operator ==(const IPAddress& left, const IPAddress& right)
-{
-    return !(left < right) && !(right < left);
-}
-
-bool operator !=(const IPAddress& left, const IPAddress& right)
-{
-    return !(left == right);
-}
-
-bool operator <(const IPAddress& left, const IPAddress& right)
-{
-    return std::make_pair(left.m_valid, left.m_address) < std::make_pair(right.m_valid, right.m_address);
-}
-
-bool operator >(const IPAddress& left, const IPAddress& right)
-{
-    return right < left;
-}
-
-bool operator <=(const IPAddress& left, const IPAddress& right)
-{
-    return !(right < left);
-}
-
-bool operator >=(const IPAddress& left, const IPAddress& right)
-{
-    return !(left < right);
-}
-
-std::istream& operator >>(std::istream& stream, IPAddress& address)
-{
-    std::string str;
-    stream >> str;
-    address = IPAddress(str);
-
-    return stream;
-}
-
-std::ostream& operator <<(std::ostream& stream, const IPAddress& address)
-{
-    return stream << address.ToString();
 }

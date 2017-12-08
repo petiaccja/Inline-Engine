@@ -62,13 +62,6 @@ bool Socket::Connect(const IPAddress& addr)
 	return ((Error == SocketErrors::SE_NO_ERROR) || (Error == SocketErrors::SE_EWOULDBLOCK));
 }
 
-
-bool Socket::Listen()
-{
-	return listen(m_socket, SOMAXCONN) == 0;
-}
-
-
 bool Socket::WaitForPendingConnection(bool& hasPendingConnection, std::chrono::milliseconds t)
 {
 	bool hasSucceeded = false;
@@ -108,7 +101,7 @@ ISocket* Socket::Accept()
 
 	if (newSocket != INVALID_SOCKET)
 	{
-		return new Socket(newSocket, m_socketType);
+		return new Socket(newSocket, GetSocketType());
 	}
 
 	return nullptr;
@@ -295,14 +288,6 @@ bool Socket::SetNonBlocking(bool isNonBlocking)
 #endif 
 }
 
-
-bool Socket::SetBroadcast(bool allowBroadcast)
-{
-	int param = allowBroadcast ? 1 : 0;
-	return setsockopt(m_socket, SOL_SOCKET, SO_BROADCAST, (char*)&param, sizeof(param)) == 0;
-}
-
-
 bool Socket::JoinMulticastGroup(const IPAddress& addrStr)
 {
 	ip_mreq imr;
@@ -327,26 +312,6 @@ bool Socket::LeaveMulticastGroup(const IPAddress& addrStr)
 
 	return (setsockopt(m_socket, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char*)&imr, sizeof(imr)) == 0);
 }
-
-
-bool Socket::SetMulticastLoopback(bool loopback)
-{
-	return (setsockopt(m_socket, IPPROTO_IP, IP_MULTICAST_LOOP, (char*)&loopback, sizeof(loopback)) == 0);
-}
-
-
-bool Socket::SetMulticastTtl(uint8_t timeToLive)
-{
-	return (setsockopt(m_socket, IPPROTO_IP, IP_MULTICAST_TTL, (char*)&timeToLive, sizeof(timeToLive)) == 0);
-}
-
-
-bool Socket::SetReuseAddr(bool allowReuse)
-{
-	int param = allowReuse ? 1 : 0;
-	return setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (char*)&param, sizeof(param)) == 0;
-}
-
 
 bool Socket::SetLinger(bool shouldLinger, int32_t t)
 {

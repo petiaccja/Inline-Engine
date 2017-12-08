@@ -9,10 +9,6 @@
 
 class ISocket
 {
-protected:
-	const SocketType m_socketType;
-	const SocketProtocol m_protocol;
-
 public:
 	inline ISocket() :
 		m_socketType(SocketType::Unknown),
@@ -37,10 +33,10 @@ public:
 	virtual bool WaitForPendingConnection(bool& hasPendingConnection, std::chrono::milliseconds t) = 0;
 	virtual bool HasPendingData(uint32_t& pendingDataSize) = 0;
 	virtual class ISocket* Accept() = 0;
-	virtual bool SendTo(const uint8_t* data, int32_t count, int32_t& sent, const IPAddress& addrDest);
-	virtual bool Send(const uint8_t* data, int32_t count, int32_t& sent);
-	virtual bool RecvFrom(uint8_t* data, int32_t size, int32_t& read, IPAddress& srcAddr, SocketReceiveFlags flags = SocketReceiveFlags::None);
-	virtual bool Recv(uint8_t* data, int32_t size, int32_t& read, SocketReceiveFlags flags = SocketReceiveFlags::None);
+	virtual bool SendTo(const uint8_t* data, int32_t count, int32_t& sent, const IPAddress& addrDest) = 0;
+	virtual bool Send(const uint8_t* data, int32_t count, int32_t& sent) = 0;
+	virtual bool RecvFrom(uint8_t* data, int32_t size, int32_t& read, IPAddress& srcAddr, SocketReceiveFlags flags = SocketReceiveFlags::None) = 0;
+	virtual bool Recv(uint8_t* data, int32_t size, int32_t& read, SocketReceiveFlags flags = SocketReceiveFlags::None) = 0;
 	virtual bool Wait(SocketWaitConditions cond, std::chrono::milliseconds t) = 0;
 	virtual SocketConnectionState GetConnectionState() = 0;
 	virtual void GetAddress(IPAddress& outAddr) = 0;
@@ -66,4 +62,8 @@ public:
 	{
 		return m_protocol;
 	}
+
+private:
+	const SocketType m_socketType;
+	const SocketProtocol m_protocol;
 };
