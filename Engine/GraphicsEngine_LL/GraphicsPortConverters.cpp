@@ -191,9 +191,74 @@ std::string PortConverter<gxapi::RenderTargetBlendState>::ToString(const gxapi::
 
 	return ss.str();
 }
-gxapi::RenderTargetBlendState PortConverter<gxapi::RenderTargetBlendState>::FromString(const std::string&) {
-	throw NotImplementedException("No, peter, you're gonna have to implement this. Boring... /cry");
-	return {};
+gxapi::RenderTargetBlendState PortConverter<gxapi::RenderTargetBlendState>::FromString(const std::string& arg) {
+	// Remove spaces
+	std::string str;
+	for (const auto& c : arg) {
+		if (!isspace(c))
+			str += c;
+	}
+
+	// Remove curly braces
+	if (str.size() < 3 || str.front() != '{' || str.back() != '}') {
+		throw InvalidArgumentException("Object must be serialized as specified by ToString.");
+	}
+	str = str.substr(1, str.size() - 2);
+
+	// Tokenize by commas
+	std::vector<std::string> tokens;
+	for (const auto& c : str) {
+		if (c == ',' || tokens.empty())
+			tokens.push_back({});
+		if (c != ',')
+			tokens.back() += c;
+	}
+
+	if (tokens.size() != 10) {
+		throw InvalidArgumentException("Object must contain 10 comma-separated fields.");
+	}
+
+	// Parse helper
+	auto FromString = [](std::string in, auto& out) -> void {
+		out =  EnumConverter<std::decay_t<decltype(out)>, impl::ParseTableGenerator<std::decay_t<decltype(out)>>>::FromString(in);
+	};
+
+	// Parse tokens one-by-one
+	gxapi::RenderTargetBlendState obj;
+	if (tokens[0] == "enabled") obj.enableBlending = true;
+	else if (tokens[0] == "disabled") obj.enableBlending = false;
+	else throw InvalidArgumentException("Field 0 must be 'enabled' or 'disabled'.");
+
+	if (tokens[1] == "enabled") obj.enableLogicOp = true;
+	else if (tokens[1] == "disabled") obj.enableLogicOp = false;
+	else throw InvalidArgumentException("Field 1 must be 'enabled' or 'disabled'.");
+
+	FromString(tokens[2], obj.shaderColorFactor);
+	FromString(tokens[3], obj.targetColorFactor);
+	FromString(tokens[4], obj.colorOperation);
+	FromString(tokens[5], obj.shaderAlphaFactor);
+	FromString(tokens[6], obj.targetAlphaFactor);
+	FromString(tokens[7], obj.alphaOperation);
+
+	std::vector<std::string> maskTokens;
+	for (const auto& c : tokens[8]) {
+		if (c == '|' || maskTokens.empty())
+			maskTokens.push_back({});
+		if (c != '|')
+			maskTokens.back() += c;
+	}
+	for (const auto& mtoken : maskTokens) {
+		if (mtoken == "RED") obj.mask += gxapi::eColorMask::RED;
+		else if (mtoken == "GREEN") obj.mask += gxapi::eColorMask::GREEN;
+		else if (mtoken == "BLUE") obj.mask += gxapi::eColorMask::BLUE;
+		else if (mtoken == "ALPHA") obj.mask += gxapi::eColorMask::ALPHA;
+		else throw InvalidArgumentException("Colormask (param 9) must be RED, GREEN, BLUE, ALPHA, or a | combination of them.");
+	}
+
+	FromString(tokens[9], obj.logicOperation);
+
+
+	return obj;
 }
 
 
@@ -214,9 +279,25 @@ std::string PortConverter<gxeng::TextureUsage>::ToString(const gxeng::TextureUsa
 	}
 	return str;
 }
-gxeng::TextureUsage PortConverter<gxeng::TextureUsage>::FromString(const std::string&) {
-	throw NotImplementedException("No, peter, you're gonna have to implement this. Boring... /cry");
-	return {};
+gxeng::TextureUsage PortConverter<gxeng::TextureUsage>::FromString(const std::string& arg) {
+	gxeng::TextureUsage obj{ false, false, false, false };
+
+	std::vector<std::string> tokens;
+	for (const auto& c : arg) {
+		if (c == '|' || tokens.empty())
+			tokens.push_back({});
+		if (c != '|')
+			tokens.back() += c;
+	}
+	for (const auto& tk : tokens) {
+		if (tk == "DS") obj.depthStencil = true;
+		else if (tk == "RW") obj.randomAccess = true;
+		else if (tk == "RT") obj.renderTarget = true;
+		else if (tk == "SR") obj.shaderResource = true;
+		else throw InvalidArgumentException("Usage must be DS, RW, RT, SR, or a | combination of them.");
+	}
+
+	return obj;
 }
 
 

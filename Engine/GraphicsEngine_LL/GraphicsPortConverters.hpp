@@ -65,7 +65,7 @@ inline EnumT EnumConverter<EnumT, Generator>::FromString(const std::string & arg
 
 	GetMaps(&byFmt, &byStr);
 
-	Record key{ gxapi::eFormat::UNKNOWN, arg };
+	Record key{ {}, arg };
 	auto it = byStr->find(&key);
 	if (it != byStr->end()) {
 		return (*it)->first;

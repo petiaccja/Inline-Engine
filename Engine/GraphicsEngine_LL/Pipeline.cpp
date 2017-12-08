@@ -49,7 +49,7 @@ static NodeCreationInfo ParseNode(const rapidjson::GenericValue<rapidjson::UTF8<
 static LinkCreationInfo ParseLink(const rapidjson::GenericValue<rapidjson::UTF8<>>& jsonObj);
 static StringErrorPosition GetStringErrorPosition(const std::string& str, size_t errorCharacter);
 
-static std::string SerializeNodesAndLinks(const std::vector<NodeCreationInfo>& nodes, const std::vector<LinkCreationInfo>& links);
+static std::string SerializeNodesAndLinks(std::vector<NodeCreationInfo> nodes, std::vector<LinkCreationInfo> links);
 
 
 
@@ -198,7 +198,7 @@ void Pipeline::CreateFromDescription(const std::string& jsonDescription, Graphic
 		}
 
 		for (int i = 0; i < nodeObject->GetNumInputs() && i < info.inputs.size(); ++i) {
-			if (info.inputs.size()) {
+			if (info.inputs[i]) {
 				nodeObject->GetInput(i)->SetConvert(info.inputs[i].value());
 			}
 		}
@@ -740,7 +740,21 @@ static StringErrorPosition GetStringErrorPosition(const std::string& str, size_t
 }
 
 
-static std::string SerializeNodesAndLinks(const std::vector<NodeCreationInfo>& nodes, const std::vector<LinkCreationInfo>& links) {
+static std::string SerializeNodesAndLinks(std::vector<NodeCreationInfo> nodes, std::vector<LinkCreationInfo> links) {
+	std::stable_sort(nodes.begin(), nodes.end(), [](const NodeCreationInfo& lhs, const NodeCreationInfo& rhs) {
+		return lhs.cl < rhs.cl;
+	});
+	std::stable_sort(nodes.begin(), nodes.end(), [](const NodeCreationInfo& lhs, const NodeCreationInfo& rhs) {
+		return lhs.name < rhs.name;
+	});
+
+	std::stable_sort(links.begin(), links.end(), [](const LinkCreationInfo& lhs, const LinkCreationInfo& rhs) {
+		return lhs.srcname < rhs.srcname;
+	});
+	std::stable_sort(links.begin(), links.end(), [](const LinkCreationInfo& lhs, const LinkCreationInfo& rhs) {
+		return lhs.dstname < rhs.dstname;
+	});
+
 	using namespace rapidjson;
 	Document doc;
 	auto& alloc = doc.GetAllocator();
@@ -792,8 +806,8 @@ static std::string SerializeNodesAndLinks(const std::vector<NodeCreationInfo>& n
 		v.SetObject();
 		AddLinkMember(v, "src", link.srcid, link.srcname);
 		AddLinkMember(v, "dst", link.dstid, link.dstname);
-		AddLinkMember(v, "srcpidx", link.srcpidx, link.srcpname);
-		AddLinkMember(v, "dstpidx", link.dstpidx, link.dstpname);
+		AddLinkMember(v, "srcp", link.srcpidx, link.srcpname);
+		AddLinkMember(v, "dstp", link.dstpidx, link.dstpname);
 		docLinks.PushBack(v, alloc);
 	}
 

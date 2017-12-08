@@ -128,23 +128,27 @@ void Scheduler::Execute(FrameContext context) {
 		}
 
 		// Set backBuffer to PRESENT state.
-		CmdAllocPtr injectAlloc = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
-		GraphicsCmdListPtr injectList = context.commandListPool->RequestGraphicsList(injectAlloc.get());
+		gxapi::eResourceState bbState = context.backBuffer->GetResource().ReadState(0);
 
-		injectList->ResourceBarrier(gxapi::TransitionBarrier{
-			context.backBuffer->GetResource()._GetResourcePtr(),
-			context.backBuffer->GetResource().ReadState(0),
-			gxapi::eResourceState::PRESENT });
-		injectList->Close();
-		context.backBuffer->GetResource().RecordState(gxapi::eResourceState::PRESENT);
+		if (bbState != gxapi::eResourceState::PRESENT) {
+			CmdAllocPtr injectAlloc = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
+			GraphicsCmdListPtr injectList = context.commandListPool->RequestGraphicsList(injectAlloc.get());
 
-		EnqueueCommandList(*context.commandQueue,
-						   std::move(injectList),
-						   std::move(injectAlloc),
-						   {},
-						   {},
-						   {},
-						   context);
+			injectList->ResourceBarrier(gxapi::TransitionBarrier{
+				context.backBuffer->GetResource()._GetResourcePtr(),
+				context.backBuffer->GetResource().ReadState(0),
+				gxapi::eResourceState::PRESENT });
+			injectList->Close();
+			context.backBuffer->GetResource().RecordState(gxapi::eResourceState::PRESENT);
+
+			EnqueueCommandList(*context.commandQueue,
+				std::move(injectList),
+				std::move(injectAlloc),
+				{},
+				{},
+				{},
+				context);
+		}
 	}
 	catch (std::exception& ex) {
 		// One of the pipeline Nodes (Tasks) threw an exception.

@@ -167,4 +167,28 @@ protected:
 
 
 
+template <>
+class PortConverter<bool> : public PortConverterCollection<bool> {
+public:
+	PortConverter() : PortConverterCollection<bool>(&FromString) {}
+
+	std::string ToString(const bool& arg) const override {
+		return arg ? "true" : "false";
+	}
+protected:
+	static bool FromString(const std::string& arg) {
+		if (arg == "true" || arg == "enabled") {
+			return true;
+		}
+		else if (arg == "false" || arg == "disabled") {
+			return false;
+		}
+		else {
+			throw InvalidArgumentException("Bool must be either 'true' or 'false' in string form.");
+		}
+	}
+};
+
+
+
 } // namespace inl
