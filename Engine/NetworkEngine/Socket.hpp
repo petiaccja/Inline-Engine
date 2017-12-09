@@ -6,17 +6,17 @@
 class Socket : public ISocket
 {
 public:
-	inline Socket(SocketType socketType, SocketProtocol protocol = SocketProtocol::IPv4) :
-		ISocket(socketType, protocol)
+	inline Socket(SocketType socketType, SocketProtocol protocol = SocketProtocol::IPv4) 
+		: ISocket(socketType, protocol)
 	{
-		create();
+		init();
 	}
 
-	inline Socket(SOCKET newSocket, SocketType socketType, SocketProtocol protocol = SocketProtocol::IPv4) :
-		ISocket(socketType, protocol),
-		m_socket(newSocket)
+	inline Socket(SOCKET newSocket, SocketType socketType, SocketProtocol protocol = SocketProtocol::IPv4) 
+		: ISocket(socketType, protocol)
+		, m_socket(newSocket)
 	{
-		create();
+		init();
 	}
 
 	virtual ~Socket() { Close(); }
@@ -59,7 +59,7 @@ public:
 
 private:
 	SOCKET getNativeSocket() { return m_socket; }
-	void create();
+	void init();
 
 	virtual SocketReturn HasState(SocketParam state, std::chrono::milliseconds t = std::chrono::milliseconds(0));
 	virtual SocketErrors TranslateErrorCode(int32_t code);
@@ -71,7 +71,7 @@ private:
 	}
 
 private:
-	SOCKET m_socket;
+	SOCKET m_socket = INVALID_SOCKET;
 
 	long long m_lastActivityTime;
 };

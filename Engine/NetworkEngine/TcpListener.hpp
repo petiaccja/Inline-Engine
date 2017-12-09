@@ -45,8 +45,7 @@ private:
 	bool m_stopping;
 	int16_t m_port;
 
-	std::thread m_acceptor_thread;
-	std::thread m_receiver_thread;
+	std::thread m_thread;
 
 	std::function<void(Socket*)> new_connection_event;
 };

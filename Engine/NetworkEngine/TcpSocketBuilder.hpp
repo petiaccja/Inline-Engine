@@ -6,8 +6,8 @@
 class TcpSocketBuilder
 {
 public:
-	TcpSocketBuilder() :
-		m_blocking(false)
+	TcpSocketBuilder() 
+		: m_blocking(false)
 		, m_bound(false)
 		, m_boundAddr(IPAddress::Any)
 		, m_linger(false)

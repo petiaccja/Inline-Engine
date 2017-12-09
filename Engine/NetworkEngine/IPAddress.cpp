@@ -1,5 +1,4 @@
 #include "IPAddress.hpp"
-#include "Util.hpp"
 
 const IPAddress IPAddress::None;
 const IPAddress IPAddress::Any(0, 0, 0, 0);

@@ -152,7 +152,6 @@
     <ClInclude Include="TcpListener.hpp" />
     <ClInclude Include="TcpSocketBuilder.hpp" />
     <ClInclude Include="UdpSocket.hpp" />
-    <ClInclude Include="Util.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IPAddress.cpp" />

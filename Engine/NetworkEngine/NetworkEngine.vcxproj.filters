@@ -21,9 +21,6 @@
     <ClInclude Include="Init.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Util.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Socket.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>

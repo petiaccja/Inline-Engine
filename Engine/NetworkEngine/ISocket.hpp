@@ -10,15 +10,15 @@
 class ISocket
 {
 public:
-	inline ISocket() :
-		m_socketType(SocketType::Unknown),
-		m_protocol(SocketProtocol::IPv4)
+	inline ISocket() 
+		: m_socketType(SocketType::Unknown)
+		, m_protocol(SocketProtocol::IPv4)
 	{
 	}
 
-	inline ISocket(SocketType InSocketType, SocketProtocol protocol = SocketProtocol::IPv4) :
-		m_socketType(InSocketType),
-		m_protocol(protocol)
+	inline ISocket(SocketType InSocketType, SocketProtocol protocol = SocketProtocol::IPv4) 
+		: m_socketType(InSocketType)
+		, m_protocol(protocol)
 	{ 
 	}
 

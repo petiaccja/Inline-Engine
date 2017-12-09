@@ -2,8 +2,8 @@
 
 void TcpListener::Start()
 {
-	std::thread acceptor_thread(&TcpListener::AcceptClients, this);
-	m_acceptor_thread.swap(acceptor_thread);
+	std::thread thread(&TcpListener::AcceptClients, this);
+	m_thread.swap(thread);
 }
 
 void TcpListener::AcceptClients()

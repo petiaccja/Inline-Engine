@@ -24,7 +24,7 @@
 	#define NO_ERROR 0
 	#define INVALID_SOCKET NO_ERROR 
 
-	#define m_socketKET int
+	#define SOCKET int
 	#define closesocket close
 	#define ioctlsocket ioctl
 
