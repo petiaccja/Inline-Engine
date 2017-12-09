@@ -43,9 +43,9 @@ bool Socket::Close(void)
 }
 
 
-bool Socket::Bind(uint16_t port)
+bool Socket::Bind(const IPAddress &addr)
 {
-	sockaddr_in addr_in = inl::net::util::CreateAddress(IPAddress::Any.ToInteger(), port);
+	sockaddr_in addr_in = inl::net::util::CreateAddress(addr.ToInteger(), addr.GetPort());
 	return bind(m_socket, (sockaddr*)&addr_in, sizeof(sockaddr_in)) == 0;
 }
 

@@ -27,7 +27,7 @@ public:
 	}
 
 	virtual bool Close() = 0;
-	virtual bool Bind(uint16_t port = DEFAULT_SERVER_PORT) = 0;
+	virtual bool Bind(const IPAddress &addr) = 0;
 	virtual bool Connect(const IPAddress& addr) = 0;
 	virtual bool Listen() = 0;
 	virtual bool WaitForPendingConnection(bool& hasPendingConnection, std::chrono::milliseconds t) = 0;

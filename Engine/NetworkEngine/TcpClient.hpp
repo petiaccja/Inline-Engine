@@ -5,8 +5,8 @@
 class TcpClient
 {
 public:
-	inline TcpClient() 
-		: m_socket(TcpSocketBuilder().AsNonBlocking().AsReusable().Build())
+	inline TcpClient(SocketProtocol protocol = SocketProtocol::IPv4) 
+		: m_socket(TcpSocketBuilder().AsNonBlocking().AsReusable().Protocol(protocol).Build())
 	{
 	}
 

@@ -9,7 +9,7 @@ public:
 	TcpSocketBuilder() :
 		m_blocking(false)
 		, m_bound(false)
-		, m_boundPort(0)
+		, m_boundAddr(IPAddress::Any)
 		, m_linger(false)
 		, m_lingerTimeout(0)
 		, m_listen(false)
@@ -41,9 +41,9 @@ public:
 		return *this;
 	}
 
-	TcpSocketBuilder BoundToPort(int32_t Port)
+	TcpSocketBuilder Bind(const IPAddress &addr)
 	{
-		m_boundPort = Port;
+		m_boundAddr = addr;
 		m_bound = true;
 
 		return *this;
@@ -96,7 +96,7 @@ public:
 private:
 	bool m_blocking;
 	bool m_bound;
-	int32_t m_boundPort;
+	IPAddress m_boundAddr;
 	bool m_linger;
 	int32_t m_lingerTimeout;
 	bool m_listen;

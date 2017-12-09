@@ -24,9 +24,9 @@ public:
 public:
 
 	// ISocket overrides
-
+	
 	virtual bool Close() override;
-	virtual bool Bind(uint16_t port = DEFAULT_SERVER_PORT) override;
+	virtual bool Bind(const IPAddress &addr) override;
 	virtual bool Connect(const IPAddress& addrStr) override;
 	inline virtual bool Listen() override { return listen(m_socket, SOMAXCONN) == 0; }
 	virtual bool WaitForPendingConnection(bool& hasPendingConnection, std::chrono::milliseconds t) override;

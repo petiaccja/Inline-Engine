@@ -1,48 +1,33 @@
 #pragma once
 
+#include "SpinLock.hpp"
+
 #include <queue>
-#include <mutex>
-#include <atomic>
 
-class SpinLock {
-	std::atomic_flag locked = ATOMIC_FLAG_INIT;
-public:
-	void lock() 
-	{
-		while (locked.test_and_set(std::memory_order_acquire)) 
-		{ 
-			; 
-		}
-	}
-	void unlock() 
-	{
-		locked.clear(std::memory_order_release);
-	}
-};
-
+template<typename T>
 class NetworkDispatcher
 {
 public:
-	NetworkDispatcher()
+	inline NetworkDispatcher()
 	{
 	}
 
-	void Enqueue(std::string &job)
+	inline void Enqueue(T &job)
 	{
 		m_lock.lock();
 		m_jobs.push(job);
 		m_lock.unlock();
 	}
 
-	std::string &Dequeue()
+	inline T &Dequeue()
 	{
 		m_lock.lock();
-		std::string job = m_jobs.front();
+		T job = m_jobs.front();
 		m_jobs.pop();
 		m_lock.unlock();
 		return job;
 	}
 private:
-	std::queue<std::string> m_jobs;
+	std::queue<T> m_jobs;
 	SpinLock m_lock;
 };

@@ -10,7 +10,7 @@ void TcpListener::AcceptClients()
 {
 	if (m_socket == nullptr)
 	{
-		m_socket = TcpSocketBuilder().AsReusable().BoundToPort(m_port).Listening().WithSendBufferSize(64);
+		m_socket = TcpSocketBuilder().AsReusable().Bind(IPAddress(0, 0, 0, 0, m_port)).Listening().WithSendBufferSize(64);
 	}
 
 	if (m_socket != nullptr)

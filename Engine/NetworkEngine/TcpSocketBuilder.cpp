@@ -11,7 +11,7 @@ Socket * TcpSocketBuilder::Build() const
 
 		if (!Error)
 		{
-			Error = m_bound && !socket->Bind(m_boundPort);
+			Error = m_bound && !socket->Bind(m_boundAddr);
 		}
 
 		if (!Error)

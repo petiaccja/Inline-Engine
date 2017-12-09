@@ -147,9 +147,11 @@
     <ClInclude Include="NetworkDispatcher.hpp" />
     <ClInclude Include="Socket.hpp" />
     <ClInclude Include="ISocket.hpp" />
+    <ClInclude Include="SpinLock.hpp" />
     <ClInclude Include="TcpClient.hpp" />
     <ClInclude Include="TcpListener.hpp" />
     <ClInclude Include="TcpSocketBuilder.hpp" />
+    <ClInclude Include="UdpSocket.hpp" />
     <ClInclude Include="Util.hpp" />
   </ItemGroup>
   <ItemGroup>

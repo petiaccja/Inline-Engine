@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Base">
+      <UniqueIdentifier>{8ba6225c-4d2a-489a-8825-a60bbb050a5c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Init.hpp">
@@ -46,6 +49,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TcpClient.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SpinLock.hpp">
+      <Filter>Header Files\Base</Filter>
+    </ClInclude>
+    <ClInclude Include="UdpSocket.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
