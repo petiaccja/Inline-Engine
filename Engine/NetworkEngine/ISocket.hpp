@@ -42,7 +42,6 @@ public:
 	virtual void GetAddress(IPAddress& outAddr) = 0;
 	virtual bool GetPeerAddress(IPAddress& outAddr) = 0;
 	virtual bool SetNonBlocking(bool isNonBlocking = true) = 0;
-	virtual bool SetBroadcast(bool allowBroadcast = true) = 0;
 	virtual bool JoinMulticastGroup(const IPAddress& addrStr) = 0;
 	virtual bool LeaveMulticastGroup(const IPAddress& addrStr) = 0;
 	virtual bool SetMulticastLoopback(bool loopback) = 0;

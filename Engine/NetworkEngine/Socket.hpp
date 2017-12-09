@@ -41,11 +41,6 @@ public:
 	virtual void GetAddress(IPAddress& outAddr) override;
 	virtual bool GetPeerAddress(IPAddress& outAddr) override;
 	virtual bool SetNonBlocking(bool isNonBlocking = true) override;
-	inline virtual bool SetBroadcast(bool allowBroadcast = true) override
-	{
-		int param = allowBroadcast ? 1 : 0;
-		return setsockopt(m_socket, SOL_SOCKET, SO_BROADCAST, (char*)&param, sizeof(param)) == 0;
-	}
 
 	virtual bool JoinMulticastGroup(const IPAddress& addrStr) override;
 	virtual bool LeaveMulticastGroup(const IPAddress& addrStr) override;

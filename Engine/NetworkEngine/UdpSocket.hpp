@@ -16,7 +16,6 @@ public:
 	inline bool RecvFrom(uint8_t* data, int32_t size, int32_t& read, IPAddress& srcAddr, SocketReceiveFlags flags = SocketReceiveFlags::None) { return m_socket->RecvFrom(data, size, read, srcAddr, flags); }
 	inline bool Wait(SocketWaitConditions cond, std::chrono::milliseconds t) { return m_socket->Wait(cond, t); } // can i have this here?
 	inline bool GetPeerAddress(IPAddress& outAddr) { return m_socket->GetPeerAddress(outAddr); }
-	inline bool SetBroadcast(bool allowBroadcast = true) { return m_socket->SetBroadcast(allowBroadcast); }
 	inline bool JoinMulticastGroup(const IPAddress& addrStr) { return m_socket->JoinMulticastGroup(addrStr); }
 	inline bool LeaveMulticastGroup(const IPAddress& addrStr) { return m_socket->LeaveMulticastGroup(addrStr); }
 	inline bool SetMulticastLoopback(bool loopback) { return m_socket->SetMulticastLoopback(loopback); }
