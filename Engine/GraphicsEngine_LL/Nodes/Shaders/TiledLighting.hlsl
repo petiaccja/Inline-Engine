@@ -70,8 +70,6 @@ float3 get_lighting(float4 sv_position, //gl_FragCoord
 
 			//color += (n_dot_l * attenuation) * (diffuse_color.xyz * 10.0 * albedo.xyz); //TODO: shadow
 
-			return getPointLightShadow(-light_dir, distance);
-
 			color += getCookTorranceBRDF(albedo.xyz,
 										 vs_normal,
 										 vs_view_dir,

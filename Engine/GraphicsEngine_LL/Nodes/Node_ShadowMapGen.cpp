@@ -162,33 +162,33 @@ void ShadowMapGen::Execute(RenderContext & context) {
 	Mat44 pointLightViewMatrices[6];
 
 	//right
-	pointLightViewMatrices[0] = Mat44(0,  0, 1, 0,
-									 -1,  0, 0, 0,
-									  0,  1, 0, 0,
-									  0,  0, 0, 1);
+	pointLightViewMatrices[0] = Mat44( 0, 0, 1, 0,
+									   0, 1, 0, 0,
+									  -1, 0, 0, 0,
+									   0, 0, 0, 1);
 	//left
-	pointLightViewMatrices[1] = Mat44(0, 0, -1, 0,
-									  1, 0,  0, 0,
-									  0, 1,  0, 0,
-									  0, 0,  0, 1);
-	//forward
-	pointLightViewMatrices[2] = Mat44(1, 0, 0, 0,
-									  0, 0, 1, 0,
-									  0, 1, 0, 0,
-									  0, 0, 0, 1);
-	//backward
-	pointLightViewMatrices[3] = Mat44(-1, 0,  0, 0,
-									   0, 0, -1, 0,
+	pointLightViewMatrices[1] = Mat44( 0, 0, -1, 0,
 									   0, 1,  0, 0,
+									  -1, 0,  0, 0,
 									   0, 0,  0, 1);
+	//forward
+	pointLightViewMatrices[2] = Mat44(1,  0, 0, 0,
+									  0,  0, 1, 0,
+									  0, -1, 0, 0,
+									  0,  0, 0, 1);
+	//backward
+	pointLightViewMatrices[3] = Mat44(-1,  0,  0, 0,
+									   0,  0, -1, 0,
+									   0, -1,  0, 0,
+									   0,  0,  0, 1);
 	//up
 	pointLightViewMatrices[4] = Mat44(1,  0, 0, 0,
-									  0, -1, 0, 0,
+									  0,  1, 0, 0,
 									  0,  0, 1, 0,
 									  0,  0, 0, 1);
 	//down 
 	pointLightViewMatrices[5] = Mat44(-1,  0,  0, 0,
-									   0, -1,  0, 0,
+									   0,  1,  0, 0,
 									   0,  0, -1, 0,
 									   0,  0,  0, 1);
 

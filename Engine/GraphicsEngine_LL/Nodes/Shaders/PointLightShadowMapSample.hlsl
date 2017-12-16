@@ -17,11 +17,11 @@ float3 getPointLightShadow(float3 dir, float dist)
 {
 	float3 ws_dir = mul(float4(dir, 0.0), uniforms.invV).xyz;
 	float depth = pointLightShadowMapTex.SampleLevel(theSampler, ws_dir, 0.0).x;
-	//float depth = pointLightShadowMapTex.SampleLevel(theSampler, float3(ws_dir.xy, 1.0), 0.0).x;
 	float linearDepth = linearize_depth(depth, 0.1, 100);
-	float shadowTerm = float(linearDepth < dist);
-	//return float3(shadowTerm, shadowTerm, shadowTerm);
-	return float3(linearDepth, linearDepth, linearDepth)*0.01;
+	float bias = 0.05;
+	float shadowTerm = float(linearDepth > dist - bias);
+	return float3(shadowTerm, shadowTerm, shadowTerm);
+	//return float3(linearDepth, linearDepth, linearDepth)*0.01;
 	//return float3(depth, depth, depth);
 	//return float3(dist, dist, dist);
 	//return ws_dir;
