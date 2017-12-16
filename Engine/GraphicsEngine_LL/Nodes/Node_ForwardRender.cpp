@@ -23,6 +23,7 @@ struct light_data
 
 struct Uniforms
 {
+	Mat44_Packed invV;
 	light_data ld[10];
 	Vec4_Packed screen_dimensions;
 	Vec4_Packed vs_cam_pos;
@@ -434,6 +435,7 @@ void ForwardRender::Execute(RenderContext& context) {
 		uniformsCBData.ld[0].attenuation_end = Vec4(5.0f, 0.f, 0.f, 0.f);
 		uniformsCBData.ld[0].diffuse_color = Vec4(1.f, 0.f, 0.f, 1.f);
 		uniformsCBData.vs_cam_pos = Vec4(m_camera->GetPosition(), 1.0f) * m_camera->GetViewMatrix();
+		uniformsCBData.invV = m_camera->GetViewMatrix().Inverse();
 
 		uint32_t dispatchW, dispatchH;
 		SetWorkgroupSize((unsigned)m_rtv.GetResource().GetWidth(), (unsigned)m_rtv.GetResource().GetHeight(), 16, 16, dispatchW, dispatchH);
@@ -763,6 +765,7 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 		+ "\n//-------------------------------------\n\n"
 		+ textures.str()
 		+ "\n//-------------------------------------\n\n"
+		+ "#include \"LightingUniforms\"\n"
 		+ "#include \"CSMSample\"\n"
 		+ "#include \"PointLightShadowMapSample\"\n"
 		+ "#include \"PbrBrdf\"\n"

@@ -1,24 +1,5 @@
 Texture2D<uint> lightCullData : register(t600);
 
-struct light_data
-{
-	float4 diffuse_color;
-	float4 vs_position;
-	float4 attenuation_end;
-};
-
-struct Uniforms
-{
-	light_data ld[10];
-	float4 screen_dimensions;
-	float4 vs_cam_pos;
-	int group_size_x, group_size_y;
-	float halfExposureFramerate, //0.5 * exposure time (% of time exposure is open -> 0.75?) * frame rate (s? or fps?)
-		  maxMotionBlurRadius; //pixels
-};
-
-ConstantBuffer<Uniforms> uniforms : register(b600);
-
 //NOTE: actually, just use SRGB, it's got better quality!
 float3 linear_to_gamma(float3 col)
 {
@@ -89,11 +70,13 @@ float3 get_lighting(float4 sv_position, //gl_FragCoord
 
 			//color += (n_dot_l * attenuation) * (diffuse_color.xyz * 10.0 * albedo.xyz); //TODO: shadow
 
+			return getPointLightShadow(-light_dir, distance);
+
 			color += getCookTorranceBRDF(albedo.xyz,
 										 vs_normal,
 										 vs_view_dir,
 									     light_dir,
-										 diffuse_color.xyz * attenuation * 10.0 * getPointLightShadow(g_vsPos), //TODO: shadowmap id!
+										 diffuse_color.xyz * attenuation * 10.0 * getPointLightShadow(-light_dir, distance), //TODO: shadowmap id!
 										 roughness, 
 										 metalness 
 										);
