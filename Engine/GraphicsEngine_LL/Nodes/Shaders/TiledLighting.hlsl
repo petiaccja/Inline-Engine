@@ -93,7 +93,7 @@ float3 get_lighting(float4 sv_position, //gl_FragCoord
 										 vs_normal,
 										 vs_view_dir,
 									     light_dir,
-										 diffuse_color.xyz * attenuation * 10.0, //TODO: shadow
+										 diffuse_color.xyz * attenuation * 10.0 * getPointLightShadow(g_vsPos), //TODO: shadowmap id!
 										 roughness, 
 										 metalness 
 										);
@@ -124,7 +124,7 @@ float3 get_lighting(float4 sv_position, //gl_FragCoord
 								 vs_normal,
 								 vs_view_dir,
 								 -g_lightDir,
-								 g_lightColor.xyz * 10.0,
+								 g_lightColor.xyz * 10.0 * get_csm_shadow(g_vsPos),
 								 roughness,
 								 metalness);
 

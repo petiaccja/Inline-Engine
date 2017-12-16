@@ -119,7 +119,7 @@ float sample_csm(int cascade, float4 vs_pos)
 }
 
 //vec3 get_shadow(sampler2D tex, vec4 shadow_coord)
-float3 get_shadow(float4 vs_pos)
+float3 get_csm_shadow(float4 vs_pos)
 {
 	//return sample_csm(0, vs_pos);
 
