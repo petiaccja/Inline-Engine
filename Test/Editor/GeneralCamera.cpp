@@ -117,7 +117,7 @@ void GeneralCamera::UpdateKeyActions(float deltaTime)
 	b_E_Q_Enabled = true;// GetEditorView().IsCursorInside() && pMouseParams->IsAnyBtnDown();//( pMouseParams->IsBtnDown( BTN_MIDDLE ) || pMouseParams->IsBtnDown( BTN_RIGHT ) || pMouseParams->IsBtnDown() );
 
 	
-	if(inputCore->IsMouseDown(eMouseBtn::RIGHT))
+	if(inputCore->IsMouseDown(eMouseButton::RIGHT))
 	{
 		if(inputCore->IsKeyDown(eKey::A))
 		{
@@ -186,8 +186,8 @@ void GeneralCamera::UpdateKeyActions(float deltaTime)
 
 void GeneralCamera::UpdateMouseMove()
 {
-	bool bLeftBtnDblPress = inputCore->IsMousePressed(eMouseBtn::LEFT);
-	bool bMiddleBtnClick = inputCore->IsMouseClicked(eMouseBtn::MIDDLE);
+	bool bLeftBtnDblPress = inputCore->IsMousePressed(eMouseButton::LEFT);
+	bool bMiddleBtnClick = inputCore->IsMouseClicked(eMouseButton::MIDDLE);
 	if(bLeftBtnDblPress || bMiddleBtnClick)
 	{
 		//if( bLeftBtnDblPress )
@@ -215,7 +215,7 @@ void GeneralCamera::UpdateMouseMove()
 
 	bool bOldStyleZooming = false;
 	bool bOldStyleMoving = false;
-	if(inputCore->IsMouseDown(eMouseBtn::LEFT) && inputCore->IsKeyDown(eKey::LEFT_ALT))
+	if(inputCore->IsMouseDown(eMouseButton::LEFT) && inputCore->IsKeyDown(eKey::LEFT_ALT))
 	{
 		if(inputCore->IsKeyDown(eKey::LEFT_CONTROL))
 		{
@@ -240,7 +240,7 @@ void GeneralCamera::UpdateMouseMove()
 
 	
 
-	bool bStartLookingAround = inputCore->IsMousePressed(eMouseBtn::RIGHT);
+	bool bStartLookingAround = inputCore->IsMousePressed(eMouseButton::RIGHT);
 
 	// NEWTODO
 	//if( !GetEditorView().IsCursorInside() )
@@ -265,7 +265,7 @@ void GeneralCamera::UpdateMouseMove()
 		vRecenterCorrection.y = 0;
 	}
 
-	if(m_bLookingAround && inputCore->IsMouseReleased(eMouseBtn::RIGHT))
+	if(m_bLookingAround && inputCore->IsMouseReleased(eMouseButton::RIGHT))
 	{
 		// Recenter cursor
 		Sys::SetCursorPos(m_vRecenterCursorPos);

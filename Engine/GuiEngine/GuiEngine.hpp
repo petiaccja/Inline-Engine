@@ -12,6 +12,7 @@
 #include "GuiMenu.hpp"
 #include "GuiScrollable.hpp"
 
+#include <BaseLibrary/Platform/System.hpp>
 #include <vector>
 #include <functional>
 
@@ -59,10 +60,10 @@ protected:
 	void Register(Gui* g) { guis.push_back(g); }
 
 public:
-	Delegate<void(CursorEvent& evt)> onMouseClicked;
-	Delegate<void(CursorEvent& evt)> onMousePressed;
-	Delegate<void(CursorEvent& evt)> onMouseReleased;
-	Delegate<void(CursorEvent& evt)> onMouseMoved;
+	Event<CursorEvent&> OnCursorClicked;
+	Event<CursorEvent&> OnCursorPressed;
+	Event<CursorEvent&> OnCursorReleased;
+	Event<CursorEvent&> OnCursorMoved;
 
 protected:
 	gxeng::GraphicsEngine* graphicsEngine;
@@ -77,7 +78,7 @@ protected:
 
 	bool bHoverFreezed;
 	bool bOperSysDragging;
-	DragData dragData;
+	DragDropEvent lastDropEvent;
 
 	eCursorVisual cursorVisual;
 

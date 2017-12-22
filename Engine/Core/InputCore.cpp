@@ -4,7 +4,7 @@ namespace inl::core {
 
 InputCore::InputCore()
 {
-	for (int i = 0; i < (int)eMouseBtn::COUNT; ++i)
+	for (int i = 0; i < (int)eMouseButton::COUNT; ++i)
 	{
 		bMouseDownCurFrame[i] = false;
 		bMouseDownPrevFrame[i] = false;
@@ -57,7 +57,7 @@ void InputCore::SimulateKeyRelease(eKey key)
 	onKeyReleased[(int)key]();
 }
 
-void InputCore::SimulateMouseBtnPress(eMouseBtn eButton)
+void InputCore::SimulateMouseBtnPress(eMouseButton eButton)
 {
 	bMouseDownCurFrame[(int)eButton] = true;
 	bMouseDownPrevFrame[(int)eButton] = false;
@@ -68,7 +68,7 @@ void InputCore::SimulateMouseBtnPress(eMouseBtn eButton)
 	onMousePressed[(int)eButton](clientCursorPos);
 }
 
-void InputCore::SimulateMouseBtnRelease(eMouseBtn eButton)
+void InputCore::SimulateMouseBtnRelease(eMouseButton eButton)
 {
 	bMouseDownCurFrame[(int)eButton] = false;
 	bMouseDownPrevFrame[(int)eButton] = true;
@@ -102,17 +102,17 @@ void InputCore::BindKeyRelease(eKey key, const std::function<void()>& function)
 	onKeyReleased[(int)key] += function;
 }
 
-void InputCore::BindMousePress(eMouseBtn button, const std::function<void(const Vec2i& mousePos)>& function)
+void InputCore::BindMousePress(eMouseButton button, const std::function<void(const Vec2i& mousePos)>& function)
 {
 	onMousePressed[(int)button] += function;
 }
 
-void InputCore::BindMouseDown(eMouseBtn button, const std::function<void(const Vec2i& mousePos)>& function)
+void InputCore::BindMouseDown(eMouseButton button, const std::function<void(const Vec2i& mousePos)>& function)
 {
 	onMouseDown[(int)button] += function;
 }
 
-void InputCore::BindMouseRelease(eMouseBtn button, const std::function<void(const Vec2i& mousePos)>& function)
+void InputCore::BindMouseRelease(eMouseButton button, const std::function<void(const Vec2i& mousePos)>& function)
 {
 	onMouseReleased[(int)button] += function;
 }
@@ -140,7 +140,7 @@ void InputCore::ClearFrameData()
 	//	keyDownInfo.bDownPrevFrame = keyDownInfo.bDownCurFrame | (keyDownInfo.bDownPrevFrame & keyDownInfo.bDownCurFrame);
 	//
 	//// Updating mouse downs with general equation
-	for(int i = 0; i < (int)eMouseBtn::COUNT; ++i)
+	for(int i = 0; i < (int)eMouseButton::COUNT; ++i)
 		bMouseDownPrevFrame[i] = bMouseDownCurFrame[i] | (bMouseDownPrevFrame[i] & bMouseDownCurFrame[i]);
 	
 	// Consume keyboard key queue
@@ -168,7 +168,7 @@ void InputCore::Update()
 			onKeyDown[i]();
 	}
 	
-	for (int i = 0; i < (int)eMouseBtn::COUNT; ++i)
+	for (int i = 0; i < (int)eMouseButton::COUNT; ++i)
 	{
 		if (bMouseDownCurFrame[i])
 			onMouseDown[i](clientCursorPos);
@@ -200,22 +200,22 @@ bool InputCore::IsKeyReleased(eKey key)
 	return ! keyQueue.front();
 }
 
-bool InputCore::IsMousePressed(eMouseBtn eButton)
+bool InputCore::IsMousePressed(eMouseButton eButton)
 {
 	return bMouseDownCurFrame[(int)eButton] && !bMouseDownPrevFrame[(int)eButton];
 }
 
-bool InputCore::IsMouseReleased(eMouseBtn eButton)
+bool InputCore::IsMouseReleased(eMouseButton eButton)
 {
 	return bMouseDownPrevFrame[(int)eButton] && !bMouseDownCurFrame[(int)eButton];
 }
 
-bool InputCore::IsMouseDown(eMouseBtn eButton)
+bool InputCore::IsMouseDown(eMouseButton eButton)
 {
 	return bMouseDownCurFrame[(int)eButton];
 }
 
-bool InputCore::IsMouseClicked(eMouseBtn eButton)
+bool InputCore::IsMouseClicked(eMouseButton eButton)
 {
 	return IsMouseReleased(eButton) && cursorLastClickStartPos[(int)eButton] == clientCursorPos;
 }

@@ -32,7 +32,7 @@ struct DragDropEvent {
 class Window : private IDropTarget {
 public:
 	Window(const std::string& title = "Untitled",
-		Vec2i size = { 640, 480 },
+		Vec2u size = { 640, 480 },
 		bool borderless = false, 
 		bool resizable = true,
 		bool hiddenInitially = false);
@@ -56,11 +56,12 @@ public:
 	bool IsMaximized() const;
 	bool IsMinimized() const;
 
-	void SetSize(const Vec2i& size);
-	Vec2i GetSize() const;
+	void SetSize(const Vec2u& size);
+	Vec2u GetSize() const;
 	void SetPosition(const Vec2i& position);
 	Vec2i GetPosition() const;
-	Vec2i GetClientSize() const;
+	Vec2u GetClientSize() const;
+	Vec2i GetClientCursorPos() const;
 
 	// Text & style
 	void SetResizable(bool enabled);
@@ -92,7 +93,7 @@ public:
 	Event<MouseButtonEvent> OnMouseButton;
 	Event<MouseMoveEvent> OnMouseMove;
 	Event<KeyboardEvent> OnKeyboard;
-	Event<Vec2i, Vec2i> OnResize; /// <summary> Parameters: window size, client area size. </summary>
+	Event<Vec2u, Vec2u> OnResize; /// <summary> Parameters: window size, client area size. </summary>
 	Event<char32_t> OnCharacter;
 	Event<> OnClose;
 	Event<> OnFocus;

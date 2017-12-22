@@ -87,10 +87,11 @@ namespace mathter {
 
 template <class T, int Dim, bool Packed>
 Vector<T, Dim, Packed> Clamp(const Vector<T, Dim, Packed>& arg, T lower, T upper) {
-	decltype(arg) ret;
+	Vector<T, Dim, Packed> ret;
 	for (int i = 0; i < arg.Dimension(); ++i) {
 		ret(i) = Clamp(arg(i), lower, upper);
 	}
+	return ret;
 }
 
 template <class T, int Dim, bool Packed>

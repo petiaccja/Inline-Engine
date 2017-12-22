@@ -14,10 +14,10 @@ GuiScrollable::GuiScrollable(GuiEngine* guiEngine)
 	Gui* horizontalScrollCell = GetCell(0, 1);
 	//Gui* emptyCell = GetCell(1, 1);
 	
-	contentCell->SetBgToColor(Color(45));
-	//verticalScrollCell->SetBgToColor(Color(75));
-	horizontalScrollCell->SetBgToColor(Color(75));
-	//emptyCell->SetBgToColor(Color(75));
+	contentCell->SetBgToColor(ColorI(45, 45, 45, 255));
+	//verticalScrollCell->SetBgToColor(ColorI(75));
+	horizontalScrollCell->SetBgToColor(ColorI(75, 75, 75, 255));
+	//emptyCell->SetBgToColor(ColorI(75));
 
 	// Content fill the space
 	GetColumn(0)->StretchFillSpace(1.f);
@@ -30,12 +30,12 @@ GuiScrollable::GuiScrollable(GuiEngine* guiEngine)
 	// Add scroll bars
 	GuiButton* btn = horizontalScrollCell->AddGuiButton();
 	btn->SetMargin(3);
-	btn->SetBgToColor(Color(120), Color(200));
+	btn->SetBgToColor(ColorI(120, 120, 120, 255), ColorI(200, 200, 200, 255));
 	btn->StretchVerFillParent();
 	btn->SetWidth(250);
 	//btn = verticalScrollCell->AddGuiButton();
 	//btn->SetMargin(3);
-	//btn->SetBgToColor(Color(120), Color(200));
+	//btn->SetBgToColor(ColorI(120), ColorI(200));
 	//btn->StretchHorFillParent();
 
 	SetBgToColor(GetBgIdleColor());
@@ -86,7 +86,7 @@ Gui* GuiScrollable::SetContent(Gui* contentGui)
 	// Add new content
 	contentCell->AddGui(contentGui);
 
-	//contentGui->onRectChangedClonable += [this, contentCell](Gui* self, RectF rect)
+	//contentGui->onRectChanged += [this, contentCell](Gui* self, RectF rect)
 	//{
 	//	RectF cellRect = contentCell->GetRect();
 	//

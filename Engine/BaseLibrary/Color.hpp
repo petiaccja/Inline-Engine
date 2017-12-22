@@ -84,11 +84,13 @@ public:
 
 	Color& operator=(const Color& rhs) {
 		v = rhs.v;
+		return *this;
 	}
 
 	template <class S2>
 	Color& operator=(const Color<S2>& rhs) {
 		*this = Color(rhs);
+		return *this;
 	}
 
 
@@ -122,6 +124,10 @@ public:
 		return Color(*this) -= rhs;
 	}
 
+	bool operator ==(const Color& rhs) const {
+		return v == rhs.v;
+	}
+
 	static Scalar Dot(const Color& lhs, const Color& rhs) {
 		return Dot(lhs.v, rhs.v);
 	}
@@ -133,11 +139,8 @@ public:
 
 
 using ColorF = Color<float>;
-using ColorU8 = Color<uint8_t>;
-using ColorS8 = Color<int8_t>;
-using ColorU16 = Color<uint16_t>;
-using ColorS16 = Color<int16_t>;
-
-
+using ColorI = Color<uint8_t>;
+using ColorI16 = Color<uint16_t>;
+using ColorI32 = Color<uint32_t>;
 
 } // namespace inl

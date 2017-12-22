@@ -159,4 +159,3 @@ public:
 		return 0;
 	}
 };
-

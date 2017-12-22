@@ -186,15 +186,15 @@ void Editor::InitGui()
 	maximizeBtn = mainLayer->AddGuiImage();
 	closeBtn = mainLayer->AddGuiImage();
 
-	minimizeBtn->onMouseClicked += [this](CursorEvent& evt) { wnd->MinimizeSize(); };
-	maximizeBtn->onMouseClicked += [this](CursorEvent& evt)
+	minimizeBtn->OnMouseClicked += [this](CursorEvent& evt) { wnd->MinimizeSize(); };
+	maximizeBtn->OnMouseClicked += [this](CursorEvent& evt)
 	{
 		if (bWndMaximized)
 			wnd->RestoreSize();
 		else
 			wnd->MaximizeSize();
 	};
-	closeBtn->onMouseClicked += [this](CursorEvent& evt) { wnd->Close(); };
+	closeBtn->OnMouseClicked += [this](CursorEvent& evt) { wnd->Close(); };
 
 	minimizeBtn->SetImages(L"Resources/minimize.png", L"Resources/minimize_h.png");
 	maximizeBtn->SetImages(L"Resources/maximize.png", L"Resources/maximize_h.png");
@@ -329,9 +329,9 @@ void Editor::InitGui()
 	centerRenderArea->SetBgToColor(Color(0));
 	centerRenderArea->StretchFillParent();
 
-	centerRenderArea->onMouseClickedClonable += [this](Gui* self, CursorEvent& evt)
+	centerRenderArea->OnMouseClicked += [this](Gui* self, CursorEvent& evt)
 	{
-		if (evt.mouseButton == eMouseBtn::LEFT)
+		if (evt.mouseButton == eMouseButton::LEFT)
 		{
 			Ray ray = cam->ScreenPointToRay(centerRenderArea->GetCursorPosContentSpace());
 			TraceResult traceResult;
@@ -355,7 +355,7 @@ void Editor::InitGui()
 		
 	};
 
-	centerRenderArea->onSizeChangedClonable += [this](Gui* self, Vec2 size)
+	centerRenderArea->OnSizeChanged += [this](Gui* self, Vec2 size)
 	{
 		HWND gameHwnd = (HWND)gameWnd->GetHandle();
 		HWND editorHwnd = (HWND)this->wnd->GetHandle();
@@ -414,13 +414,13 @@ void Editor::InitGui()
 	Gui* contentCell = scrollableBottom->GetCell(0, 0);
 	thread_local float colorDiff = 0;
 	thread_local float time = 0;
-	contentCell->onOperSysDragEntered += [contentCell](DragData& data)
+	contentCell->onOperSysDragEntered += [contentCell](DragDropEvent& data)
 	{
 		time = 0;
 		// Show tooltip about what will happen if user Drops it
 	};
 
-	contentCell->onOperSysDragLeaved += [contentCell](DragData& data)
+	contentCell->onOperSysDragLeaved += [contentCell](DragDropEvent& data)
 	{
 		// Remove the highlight
 		contentCell->SetBgActiveColor(contentCell->GetBgIdleColor());
@@ -428,7 +428,7 @@ void Editor::InitGui()
 		// Hide tooltip
 	};
 
-	contentCell->onOperSysDragHovering += [contentCell](DragData& data)
+	contentCell->onOperSysDragHovering += [contentCell](DragDropEvent& data)
 	{
 		const float maxColorDifference = 40;
 
@@ -436,7 +436,7 @@ void Editor::InitGui()
 		contentCell->SetBgActiveColor(contentCell->GetBgIdleColor() + (int)(sin(time) * maxColorDifference));
 	};
 
-	contentCell->onOperSysDropped += [this, textureList, contentCell](DragData& data)
+	contentCell->onOperSysDropped += [this, textureList, contentCell](DragDropEvent& data)
 	{
 		contentCell->SetBgActiveColor(contentCell->GetBgIdleColor());
 

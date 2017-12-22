@@ -40,7 +40,7 @@ public:
 	static Rect Union(const Rect& lhs, const Rect& rhs);
 	static Rect Intersection(const Rect& lhs, const Rect& rhs);
 	void Union(const Rect& rhs) { *this = Union(*this, rhs); }
-	void Interect(const Rect& rhs) { *this = Intersection(*this, rhs); }
+	void Intersect(const Rect& rhs) { *this = Intersection(*this, rhs); }
 
 	bool IsPointInside(const Vec2T& arg) const;
 	bool IsRectInside(const Rect& arg) const;

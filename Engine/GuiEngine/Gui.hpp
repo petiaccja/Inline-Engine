@@ -1,18 +1,18 @@
 #pragma once
-#include "GuiEvent.hpp"
 #include <BaseLibrary/Common.hpp>
 #include <BaseLibrary/Platform/Window.hpp>
 #include <BaseLibrary/Rect.hpp>
 #include <BaseLibrary/Color.hpp>
-
 #include <unordered_map>
 
+#include "GuiEvent.hpp"
+
 // TODO REMOVE it, seperate GDI, DX12 into seperate libs
-#define min(a,b) a < b ? a : b
-#define max(a,b) a > b ? a : b
-#include <gdiplus.h>
-#undef min
-#undef max
+//#define min(a,b) a < b ? a : b
+//#define max(a,b) a > b ? a : b
+//#include <gdiplus.h>
+//#undef min
+//#undef max
 
 namespace inl::gui {
 
@@ -144,11 +144,11 @@ public:
 
 	void SetClipChildren(bool b) { bClipChildren = b; }
 
-	void SetBgToColor(const ColorF& idleColor, const ColorF& hoverColor);
-	void SetBgToColor(const ColorF& color) { SetBgToColor(color, color);}
-	void SetBgIdleColor(const ColorF& color);
-	void SetBgHoverColor(const ColorF& color);
-	void SetBgActiveColor(const ColorF& color) { bgActiveColor = color; }
+	void SetBgToColor(const ColorI& idleColor, const ColorI& hoverColor);
+	void SetBgToColor(const ColorI& color) { SetBgToColor(color, color);}
+	void SetBgIdleColor(const ColorI& color);
+	void SetBgHoverColor(const ColorI& color);
+	void SetBgActiveColor(const ColorI& color) { bgActiveColor = color; }
 	void SetBgActiveColorToIdle();
 	void SetBgActiveColorToHover();
 
@@ -159,8 +159,8 @@ public:
 	void SetBgActiveImageToIdle();
 	void SetBgActiveImageToHover();
 
-	void SetBorder(float leftLength, float rightLength, float topLength, float bottomLength, const ColorF& color);
-	void SetBorder(float borderLength, const ColorF& color) { SetBorder(borderLength, borderLength, borderLength, borderLength, color); }
+	void SetBorder(float leftLength, float rightLength, float topLength, float bottomLength, const ColorI& color);
+	void SetBorder(float borderLength, const ColorI& color) { SetBorder(borderLength, borderLength, borderLength, borderLength, color); }
 
 	void SetMargin(float leftLength, float rightLength, float topLength, float bottomLength);
 	void SetMargin(float length) { SetMargin(length, length, length, length); }
@@ -270,7 +270,7 @@ public:
 
 	//float GetContentPosX() { return GetContentPos().x; }
 	//float GetContentPosY() { return GetContentPos().y; }
-	Vec2 GetContentPos() { return GetContentRect().GetPos(); }
+	Vec2 GetContentPos() { return GetContentRect().GetTopLeft(); }
 	//float GetContentCenterPosY() { return GetContentPos().y + GetContentSize().y * 0.5; }
 	//float GetContentCenterPosX() { return GetContentPos().x + GetContentSize().x * 0.5; }
 	Vec2 GetContentCenterPos() { return GetContentPos() + GetContentSize() * 0.5; }
@@ -315,15 +315,15 @@ public:
 
 	//eEventPropagationPolicy GetEventPropagationPolicy() { return eventPropagationPolicy; }
 
-	const ColorF& GetBgActiveColor() const { return bgActiveColor; }
-	const ColorF& GetBgIdleColor() const { return bgIdleColor; }
-	const ColorF& GetBgHoverColor() const { return bgHoverColor; }
+	const ColorI& GetBgActiveColor() const { return bgActiveColor; }
+	const ColorI& GetBgIdleColor() const { return bgIdleColor; }
+	const ColorI& GetBgHoverColor() const { return bgHoverColor; }
 
 	Gdiplus::Bitmap* GetBgActiveImage() { return bgActiveImage; }
 	Gdiplus::Bitmap* GetBgIdleImage() { return bgIdleImage; }
 	Gdiplus::Bitmap* GetBgHoverImage() { return bgHoverImage; }
 
-	const ColorF& GetBorderColor() { return borderColor; }
+	const ColorI& GetBorderColor() { return borderColor; }
 	RectF GetBorder() { return border; }
 	Vec2 GetDesiredSize() { return GetSize() + Vec2(margin.left + margin.right, margin.top + margin.bottom); }
 
@@ -394,7 +394,7 @@ protected:
 	eGuiStretch	 stretchVer;
 
 	// Border
-	ColorF borderColor;
+	ColorI borderColor;
 	RectF border;
 
 	// Margin
@@ -430,9 +430,9 @@ protected:
 	Gdiplus::Bitmap* bgHoverImage;
 	Gdiplus::Bitmap* bgActiveImage;
 
-	ColorF bgIdleColor;
-	ColorF bgHoverColor;
-	ColorF bgActiveColor;
+	ColorI bgIdleColor;
+	ColorI bgHoverColor;
+	ColorI bgActiveColor;
 
 	// If true, RefreshLayout() will be called before render, to ReArrange the layout as necessary
 	bool bLayoutNeedRefresh;
@@ -454,67 +454,29 @@ public:
 	GuiEngine* guiEngine;
 
 	// Public events
-	Delegate<void(CursorEvent& evt)> onMouseClicked;
-	Delegate<void(Gui* self, CursorEvent& evt)> onMouseClickedClonable;
+	Event<Gui*, CursorEvent&> OnCursorClicked;
+	Event<Gui*, CursorEvent&> OnCursorDblClicked;
+	Event<Gui*, CursorEvent&> OnCursorPressed;
+	Event<Gui*, CursorEvent&> OnCursorReleased;
+	Event<Gui*, CursorEvent&> OnCursorMoved;
+	Event<Gui*, CursorEvent&> OnCursorEntered;
+	Event<Gui*, CursorEvent&> OnCursorLeft;
+	Event<Gui*, CursorEvent&> OnCursorHovering;
+	Event<Gui*, DragDropEvent&> OnOperSysDragEntered;
+	Event<Gui*, DragDropEvent&> OnOperSysDragLeaved;
+	Event<Gui*, DragDropEvent&> OnOperSysDragHovering;
+	Event<Gui*, DragDropEvent&> OnOperSysDropped;
 
-	Delegate<void(CursorEvent& evt)> onMouseDblClicked;
-	Delegate<void(Gui* self, CursorEvent& evt)> onMouseDblClickedClonable;
-	
-	Delegate<void(CursorEvent& evt)> onMousePressed;
-	Delegate<void(Gui* self, CursorEvent& evt)> onMousePressedClonable;
-
-	Delegate<void(CursorEvent& evt)> onMouseReleased;
-	Delegate<void(Gui* self, CursorEvent& evt)> onMouseReleasedClonable;
-
-	Delegate<void(CursorEvent& evt)> onMouseMoved;
-	Delegate<void(Gui* self, CursorEvent& evt)> onMouseMovedClonable;
-
-	Delegate<void(CursorEvent& evt)> onMouseEntered;
-	Delegate<void(Gui* self, CursorEvent& evt)> onMouseEnteredClonable;
-
-	Delegate<void(CursorEvent& evt)> onMouseLeaved;
-	Delegate<void(Gui* self, CursorEvent& evt)> onMouseLeavedClonable;
-
-	Delegate<void(CursorEvent& evt)> onMouseHovering;
-	Delegate<void(Gui* self, CursorEvent& evt)> onMouseHoveringClonable;
-
-	Delegate<void(DragData& data)> onOperSysDragEntered;
-	Delegate<void(DragData& data)> onOperSysDragLeaved;
-	Delegate<void(DragData& data)> onOperSysDragHovering;
-	Delegate<void(DragData& data)> onOperSysDropped;
-
-	Delegate<void(float deltaTime)> onUpdate;
-	Delegate<void(Gui* self, float deltaTime)> onUpdateClonable;
-
-	Delegate<void(RectF& rect)> onTransformChanged;
-	Delegate<void(Gui* self, RectF& rect)> onTransformChangedClonable;
-
-	Delegate<void(Vec2 pos)> onPosChanged;
-	Delegate<void(Gui* self, Vec2 pos)> onPosChangedClonable;
-
-	Delegate<void(Vec2 size)> onSizeChanged;
-	Delegate<void(Gui* self, Vec2 size)> onSizeChangedClonable;
-
-	Delegate<void(RectF rect)> onRectChanged;
-	Delegate<void(Gui* self, RectF rect)> onRectChangedClonable;
-
-	Delegate<void(RectF& rect)> onParentTransformChanged;
-	Delegate<void(Gui* self, RectF& rect)> onParentTransformChangedClonable;
-
-	Delegate<void(RectF& rect)> onChildTransformChanged;
-	Delegate<void(Gui* self, RectF& rect)> onChildTransformChangedClonable;
-
-	Delegate<void(Gui* parent)> onParentChanged;
-	Delegate<void(Gui* self, Gui* parent)> onParentChangedClonable;
-
-	Delegate<void(Gui* child)> onChildAdded;
-	Delegate<void(Gui* self, Gui* child)> onChildAddedClonable;
-
-	Delegate<void(Gui* child)> onChildRemoved;
-	Delegate<void(Gui* self, Gui* child)> onChildRemovedClonable;
-
-	Delegate<void(Gdiplus::Graphics* graphics)> onPaint;
-	Delegate<void(Gui* self, Gdiplus::Graphics* graphics)> onPaintClonable;
+	Event<Gui*, UpdateEvent&> OnUpdate;
+	Event<Gui*, TransformEvent&> OnTransformChanged;
+	//Event<Gui*, PositionEvent&> OnPosChanged;
+	//Event<Gui*, SizeEvent&> OnSizeChanged;
+	Event<Gui*, TransformEvent&> OnParentTransformChanged;
+	Event<Gui*, TransformEvent&> OnChildTransformChanged;
+	Event<Gui*, ParentEvent&> OnParentChanged;
+	Event<Gui*, ChildEvent&> OnChildAdded;
+	Event<Gui*, ChildEvent&> OnChildRemoved;
+	Event<Gui*, PaintEvent&> OnPaint;
 };
 
 template<class T>

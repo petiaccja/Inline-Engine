@@ -17,17 +17,17 @@ public:
 	void SimulateKeyPress(eKey key);
 	void SimulateKeyRelease(eKey key);
 
-	void SimulateMouseBtnPress(eMouseBtn button);
-	void SimulateMouseBtnRelease(eMouseBtn button);
+	void SimulateMouseBtnPress(eMouseButton button);
+	void SimulateMouseBtnRelease(eMouseButton button);
 	void SimulateMouseMove(const Vec2i& mouseDelta, const Vec2i& clientCursorPos);
 
 	void BindKeyDown(eKey key, const std::function<void()>& function);
 	void BindKeyPress(eKey key, const std::function<void()>& function);
 	void BindKeyRelease(eKey key, const std::function<void()>& function);
 
-	void BindMousePress(eMouseBtn button, const std::function<void(const Vec2i& clientCursorPos)>& function);
-	void BindMouseRelease(eMouseBtn button, const std::function<void(const Vec2i& clientCursorPos)>& function);
-	void BindMouseDown(eMouseBtn button, const std::function<void(const Vec2i& clientCursorPos)>& function);
+	void BindMousePress(eMouseButton button, const std::function<void(const Vec2i& clientCursorPos)>& function);
+	void BindMouseRelease(eMouseButton button, const std::function<void(const Vec2i& clientCursorPos)>& function);
+	void BindMouseDown(eMouseButton button, const std::function<void(const Vec2i& clientCursorPos)>& function);
 	void BindMouseMove(const std::function<void(const Vec2i& mouseDelta, const Vec2i& clientCursorPos)>& function);
 
 	void ClearFrameData();
@@ -37,10 +37,10 @@ public:
 	bool IsKeyPressed(eKey key);
 	bool IsKeyReleased(eKey key);
 
-	bool IsMousePressed(eMouseBtn eButton);
-	bool IsMouseReleased(eMouseBtn eButton);
-	bool IsMouseDown(eMouseBtn eButton);
-	bool IsMouseClicked(eMouseBtn eButton);
+	bool IsMousePressed(eMouseButton eButton);
+	bool IsMouseReleased(eMouseButton eButton);
+	bool IsMouseDown(eMouseButton eButton);
+	bool IsMouseClicked(eMouseButton eButton);
 
 	Vec2i GetCursorPos() { return clientCursorPos; }
 	Vec2i GetCursorDeltaMove() { return mouseDelta; }
@@ -56,9 +56,9 @@ protected:
 	KeyInfo keyDown[(int)eKey::COUNT];
 
 	// Mouse inputs
-	bool bMouseDownCurFrame[(int)eMouseBtn::COUNT];
-	bool bMouseDownPrevFrame[(int)eMouseBtn::COUNT];
-	Vec2i cursorLastClickStartPos[(int)eMouseBtn::COUNT];
+	bool bMouseDownCurFrame[(int)eMouseButton::COUNT];
+	bool bMouseDownPrevFrame[(int)eMouseButton::COUNT];
+	Vec2i cursorLastClickStartPos[(int)eMouseButton::COUNT];
 
 	Vec2i mouseDelta;
 	Vec2i clientCursorPos;
@@ -69,9 +69,9 @@ protected:
 	Delegate<void()> onKeyReleased[(int)eKey::COUNT];
 
 	// Mouse delegates
-	Delegate<void(const Vec2i& clientCursorPos)> onMousePressed[(int)eMouseBtn::COUNT];
-	Delegate<void(const Vec2i& clientCursorPos)> onMouseReleased[(int)eMouseBtn::COUNT];
-	Delegate<void(const Vec2i& clientCursorPos)> onMouseDown[(int)eMouseBtn::COUNT];
+	Delegate<void(const Vec2i& clientCursorPos)> onMousePressed[(int)eMouseButton::COUNT];
+	Delegate<void(const Vec2i& clientCursorPos)> onMouseReleased[(int)eMouseButton::COUNT];
+	Delegate<void(const Vec2i& clientCursorPos)> onMouseDown[(int)eMouseButton::COUNT];
 	Delegate<void(const Vec2i& mouseDelta, const Vec2i& clientCursorPos)> onMouseMove;
 };
 

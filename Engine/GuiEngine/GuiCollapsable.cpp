@@ -15,9 +15,9 @@ GuiCollapsable::GuiCollapsable(GuiEngine* guiEngine)
 	caption = AddGuiButton();
 	//caption->SetAlign(eGuiAlign::STRETCH_H);
 
-	caption->onMousePressedClonable += [](Gui* _self, CursorEvent& evt)
+	caption->OnCursorPressed += [](Gui* self_, CursorEvent& evt)
 	{
-		GuiCollapsable* c = _self->GetParent()->AsCollapsable();
+		GuiCollapsable* c = self_->GetParent()->AsCollapsable();
 
 		if (c->bOpened)
 			c->RemoveGui(c->list);

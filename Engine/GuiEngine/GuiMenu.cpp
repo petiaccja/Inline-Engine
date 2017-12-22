@@ -14,7 +14,7 @@ GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
 	// The item we will hover on
 	GuiList* item = new GuiList(guiEngine);
 	item->SetOrientation(eGuiOrientation::HORIZONTAL);
-	item->SetBgToColor(Color(25), Color(65));
+	item->SetBgToColor(ColorI(25, 25, 25, 255), ColorI(65,65,65, 255));
 
 	// Add button
 	GuiButton* btn = new GuiButton(guiEngine);
@@ -28,7 +28,7 @@ GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
 	GuiMenu* subMenu = new GuiMenu(guiEngine);
 	subMenu->SetGuiButton(btn);
 	
-	subMenu->onChildAdded += [this, item, subMenu](Gui* child)
+	subMenu->OnChildAdded += [this, item, subMenu](Gui* self, ChildEvent& e)
 	{
 		// Add Arrow when we got submenu
 		if (GetOrientation() == eGuiOrientation::VERTICAL && subMenu->GetChildren().size() == 1)
@@ -47,7 +47,7 @@ GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
 		}
 	};
 
-	subMenu->onChildRemoved += [this, item, subMenu](Gui* child)
+	subMenu->OnChildRemoved += [this, item, subMenu](Gui* self, ChildEvent& e)
 	{
 		if (subMenu->GetChildren().size() == 0)
 		{
@@ -88,7 +88,7 @@ void GuiMenu::AddItem(Gui* menuItem)
 	};
 
 	thread_local std::vector<MenuTreeNode> activeMenuTree; // Here thread_local will not cause any problems
-	menuItem->onMouseEnteredClonable += [menu](Gui* self, CursorEvent& evt)
+	menuItem->OnCursorEntered += [menu](Gui* self, CursorEvent& evt)
 	{
 		// Case 1. It's menu ->		 close menus behind this AND open that one
 		// case 2. It's not a menu-> close menus behind this
@@ -151,7 +151,7 @@ void GuiMenu::AddItem(Gui* menuItem)
 		}
 	};
 
-	guiEngine->onMousePressed += [this](CursorEvent& evt)
+	guiEngine->OnCursorPressed += [this](CursorEvent& evt)
 	{
 		bool bMenuHovered = false;
 

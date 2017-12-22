@@ -10,7 +10,7 @@ namespace inl {
 
 
 using ModuleHandle = HMODULE;
-
+using WindowHandle = HWND;
 
 enum class eCursorVisual {
 	ARROW,
@@ -42,7 +42,7 @@ public:
 	// Cursor
 	static Vec2i GetCursorPosition();
 	static void SetCursorPosition(const Vec2i& pos);
-	static void SetCursorVisual(eCursorVisual visual);
+	static void SetCursorVisual(eCursorVisual visual, WindowHandle windowHandle);
 	static void SetCursorVisible(bool visible);
 
 	// File paths

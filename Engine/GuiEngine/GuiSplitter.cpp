@@ -114,11 +114,11 @@ void GuiSplitter::AddItem(Gui* item)
 		Gui* separator = AddGui();
 		separators.push_back(separator);
 
-		separator->onMouseEnteredClonable += [](Gui* _self, CursorEvent& evt)
+		separator->OnCursorEntered += [](Gui* self_, CursorEvent& evt)
 		{
-			GuiSplitter* splitter = _self->GetParent()->AsSplitter();
+			GuiSplitter* splitter = self_->GetParent()->AsSplitter();
 
-			splitter->separatorSaved = _self;
+			splitter->separatorSaved = self_;
 
 			if (splitter->GetOrientation() == eGuiOrientation::HORIZONTAL)
 				splitter->guiEngine->SetCursorVisual(eCursorVisual::SIZEWE);
@@ -126,7 +126,7 @@ void GuiSplitter::AddItem(Gui* item)
 				splitter->guiEngine->SetCursorVisual(eCursorVisual::SIZENS);
 		};
 
-		separator->onMouseLeavedClonable += [](Gui* self, CursorEvent& evt)
+		separator->OnCursorLeft += [](Gui* self, CursorEvent& evt)
 		{
 			GuiSplitter* splitter = self->GetParent()->AsSplitter();
 
@@ -134,7 +134,7 @@ void GuiSplitter::AddItem(Gui* item)
 				self->guiEngine->SetCursorVisual(eCursorVisual::ARROW);
 		};
 
-		separator->onMousePressedClonable += [](Gui* separator, CursorEvent& evt)
+		separator->OnCursorPressed += [](Gui* separator, CursorEvent& evt)
 		{
 			GuiSplitter* splitter = separator->GetParent()->AsSplitter();
 
@@ -151,7 +151,7 @@ void GuiSplitter::AddItem(Gui* item)
 			separator->guiEngine->FreezeHover();
 		};
 
-		guiEngine->onMouseMoved += [this](CursorEvent& evt)
+		guiEngine->OnCursorMoved += [this](CursorEvent& evt)
 		{
 			if (bDragging)
 			{
@@ -180,7 +180,7 @@ void GuiSplitter::AddItem(Gui* item)
 			}
 		};
 
-		guiEngine->onMouseReleased += [this](CursorEvent& evt)
+		guiEngine->OnCursorReleased += [this](CursorEvent& evt)
 		{
 			if (bDragging)
 			{
@@ -189,7 +189,7 @@ void GuiSplitter::AddItem(Gui* item)
 			}
 		};
 
-		separator->SetBgToColor(Color(135), Color(220));
+		separator->SetBgToColor(ColorI(135, 135, 135, 255), ColorI(220, 220, 220, 255));
 
 		if (orientation == eGuiOrientation::HORIZONTAL)
 		{
