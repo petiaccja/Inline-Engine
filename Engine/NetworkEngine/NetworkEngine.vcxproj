@@ -144,7 +144,6 @@
     <ClInclude Include="IPAddress.hpp" />
     <ClInclude Include="Net.hpp" />
     <ClInclude Include="Init.hpp" />
-    <ClInclude Include="NetworkDispatcher.hpp" />
     <ClInclude Include="Socket.hpp" />
     <ClInclude Include="ISocket.hpp" />
     <ClInclude Include="SpinLock.hpp" />
@@ -152,6 +151,7 @@
     <ClInclude Include="TcpListener.hpp" />
     <ClInclude Include="TcpSocketBuilder.hpp" />
     <ClInclude Include="UdpSocket.hpp" />
+    <ClInclude Include="Util.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IPAddress.cpp" />
