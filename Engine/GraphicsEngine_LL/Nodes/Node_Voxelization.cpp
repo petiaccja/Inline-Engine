@@ -540,8 +540,32 @@ void Voxelization::Execute(RenderContext & context) {
 		commandList.UAVBarrier(m_voxelLightTexUAV[0].GetResource()); 
 	}
 
-	{ //TODO light voxel mipmap generation
-		
+	{ //light voxel mipmap generation
+		int numMips = getNumMips(voxelDimension, voxelDimension, voxelDimension);
+		int currDim = voxelDimension / 2;
+		for (int c = 1; c < numMips; ++c)
+		{
+			unsigned dispatchW, dispatchH, dispatchD;
+			SetWorkgroupSize(currDim, currDim, currDim, 8, 8, 8, dispatchW, dispatchH, dispatchD);
+
+			uniformsCBData.inputMipLevel = c - 1;
+			uniformsCBData.outputMipLevel = c;
+
+			commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
+
+			//TODO: set the resource but wrong value???
+			commandList.SetResourceState(m_voxelLightTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, c);
+			commandList.SetResourceState(m_voxelLightTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+
+			commandList.SetPipelineState(m_mipmapCSO.get());
+			commandList.SetComputeBinder(&m_binder.value());
+			commandList.BindGraphics(m_voxelTexBindParam, m_voxelLightTexUAV[c]);
+			commandList.BindGraphics(m_shadowCSMTexBindParam, m_voxelLightTexSRV);
+			commandList.Dispatch(dispatchW, dispatchH, dispatchD);
+			commandList.UAVBarrier(m_voxelLightTexUAV[c].GetResource());
+
+			currDim = currDim / 2;
+		}
 	}
 
 	{ //visualization
