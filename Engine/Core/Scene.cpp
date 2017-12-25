@@ -33,14 +33,14 @@ void Scene::Update(float deltaTime)
 		physicsScene->Update(deltaTime);
 }
 
-bool Scene::TraceGraphicsRay(const Ray& ray, TraceResult& traceResult_out)
+bool Scene::TraceGraphicsRay(const Ray3D& ray, TraceResult& traceResult_out)
 {
 	for (int i = 0; i < 10; ++i)
 	{
 		MeshActor* mesh = this->AddActor_Mesh("D:/sphere2.fbx");
 		mesh->SetScale({ 0.01, 0.01, 0.01 });
 	
-		mesh->SetPos(ray.origin + i * ray.direction * 15.0f);
+		mesh->SetPos(ray.base + i * ray.direction * 15.0f);
 	}
 	
 	// Temporarily graphics tracing is solved with physics
@@ -131,7 +131,8 @@ MeshActor* Scene::AddActor_Mesh(const path& modelPath)
 		gxeng::Image* texture = graphicsEngine->CreateImage();
 	
 		texture->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR);
-		texture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR>::Reader());
+		assert(0); //TODO
+		//texture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR>::Reader());
 	
 		(*material)[0] = texture;
 	}

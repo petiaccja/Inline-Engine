@@ -21,8 +21,8 @@ enum class eTextAlign
 class GuiText : public Gui
 {
 public:
-	GuiText(GuiEngine* guiEngine);
-	GuiText(const GuiText& other) { *this = other; }
+	GuiText(GuiEngine& guiEngine);
+	GuiText(const GuiText& other):Gui(other.guiEngine) { *this = other; }
 
 	virtual GuiText* Clone() const { return new GuiText(*this); }
 	GuiText& operator = (const GuiText& other);
@@ -53,7 +53,7 @@ protected:
 
 
 
-inline GuiText::GuiText(GuiEngine* guiEngine)
+inline GuiText::GuiText(GuiEngine& guiEngine)
 :Gui(guiEngine), color(220, 220, 220, 255)
 {
 	SetFontFamily("Helvetica");
@@ -63,15 +63,15 @@ inline GuiText::GuiText(GuiEngine* guiEngine)
 	HideBgImage();
 	HideBgColor();
 
-	OnPaint += [](Gui* self_, PaintEvent& e)
+	OnPaint += [](Gui& self_, PaintEvent& e)
 	{
-		GuiText* self = self_->AsText();
+		GuiText& self = self_.As<GuiText>();
 
-		if (self->text.length() == 0)
+		if (self.text.length() == 0)
 			return;
 
-		//auto rect = self->GetContentRect();
-		auto visibleContentRect = self->GetVisibleContentRect();
+		//auto rect = self.GetContentRect();
+		auto visibleContentRect = self.GetVisibleContentRect();
 
 		// TODO visibleRect
 		//Gdiplus::RectF gdiClipRect = Gdiplus::RectF(rect.left, rect.top, rect.GetWidth(), rect.GetHeight());
@@ -81,13 +81,13 @@ inline GuiText::GuiText(GuiEngine* guiEngine)
 		//graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeIntersect);
 		//graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeReplace);
 
-		ColorI color = self->color;
+		ColorI color = self.color;
 		Gdiplus::SolidBrush brush(Gdiplus::Color(color.a, color.r, color.g, color.b));
 
-		Gdiplus::PointF pointF(self->GetPosX(), self->GetPosY());
+		Gdiplus::PointF pointF(self.GetPos().x, self.GetPos().y);
 
 		e.graphics->SetTextRenderingHint(Gdiplus::TextRenderingHintSystemDefault);
-		e.graphics->DrawString(self->text.c_str(), -1, self->font.get(), pointF, &brush);
+		e.graphics->DrawString(self.text.c_str(), -1, self.font.get(), pointF, &brush);
 	};
 }
 

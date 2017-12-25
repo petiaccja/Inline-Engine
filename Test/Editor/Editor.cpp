@@ -15,27 +15,20 @@ Editor::Editor()
 	input = new InputCore();
 
 	// Create main window for Editor
-	WindowDesc d;
-	d.clientSize = Sys::GetScreenSize();
-	d.style = eWindowStyle::DEFAULT;
-	d.userWndProc = std::bind(&Editor::WndProc, this, _1, _2, _3, _4);
-	wnd = new Window(d);
+	wnd = new Window("Inline Engine", Vec2u(800, 600), false, true, false);
 
 	// Create secondary window for GAME inside Editor
-	d.clientSize = Vec2u(100, 100); // Size doesn't matter, splitter will modify it's size
-	d.style = eWindowStyle::BORDERLESS;
-	d.userWndProc = nullptr;
-	gameWnd = new Window(d);
+	//gameWnd = new Window("Inline Engine", Vec2u(100, 100), true, true);
 
-	HWND editorHwnd = (HWND)wnd->GetHandle();
-	HWND gameHwnd = (HWND)gameWnd->GetHandle();
-	SetParent(gameHwnd, editorHwnd);
+	//HWND editorHwnd = (HWND)wnd->GetNativeHandle();
+	//HWND gameHwnd = (HWND)gameWnd->GetNativeHandle();
+	//SetParent(gameHwnd, editorHwnd);
 
 	// Resize window, non client area removal made it's size wrong
-	wnd->SetRect({ 0,0 }, Sys::GetScreenSize());
+	//wnd->SetRect({ 0,0 }, Sys::GetScreenSize());
 
 	// Init Graphics Engine
-	graphicsEngine = core->InitGraphicsEngine(gameWnd->GetClientWidth(), gameWnd->GetClientHeight(), (HWND)gameWnd->GetHandle());
+	graphicsEngine = core->InitGraphicsEngine(wnd->GetClientSize().x, wnd->GetClientSize().y, (HWND)wnd->GetNativeHandle());
 
 	InitGraphicsEngine();
 
@@ -45,22 +38,20 @@ Editor::Editor()
 	// Init Gui Engine
 	guiEngine = core->InitGuiEngine(graphicsEngine, wnd);
 
+	InitScene();
+
 	// Init Editor Gui
 	InitGui();
 
-	InitScene();
-
 	// Set icon for the editor window
-	wnd->SetIcon(L"InlineEngineLogo.ico");
+	wnd->SetIcon("InlineEngineLogo.ico");
 }
 
 Editor::~Editor()
 {
-	delete core;
-	
-	wnd->Close();
+	//delete core;
 	delete wnd;
-	delete gameWnd;
+	//delete gameWnd;
 }
 
 void Editor::InitScene()
@@ -98,7 +89,7 @@ void Editor::InitGraphicsEngine()
 	{
 		m_areaImage.reset(graphicsEngine->CreateImage());
 		m_areaImage->SetLayout(AREATEX_WIDTH, AREATEX_HEIGHT, gxeng::ePixelChannelType::INT8_NORM, 2, gxeng::ePixelClass::LINEAR);
-		m_areaImage->Update(0, 0, AREATEX_WIDTH, AREATEX_HEIGHT, areaTexBytes, PixelT::Reader());
+		m_areaImage->Update(0, 0, AREATEX_WIDTH, AREATEX_HEIGHT, 0, areaTexBytes, PixelT::Reader());
 
 		graphicsEngine->SetEnvVariable("SMAA_areaTex", inl::Any{ m_areaImage.get() });
 	}
@@ -107,7 +98,7 @@ void Editor::InitGraphicsEngine()
 		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 1, gxeng::ePixelClass::LINEAR>;
 		m_searchImage.reset(graphicsEngine->CreateImage());
 		m_searchImage->SetLayout(SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, gxeng::ePixelChannelType::INT8_NORM, 1, gxeng::ePixelClass::LINEAR);
-		m_searchImage->Update(0, 0, SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, searchTexBytes, PixelT::Reader());
+		m_searchImage->Update(0, 0, SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, 0, searchTexBytes, PixelT::Reader());
 
 		graphicsEngine->SetEnvVariable("SMAA_searchTex", inl::Any{ m_searchImage.get() });
 	}
@@ -118,7 +109,7 @@ void Editor::InitGraphicsEngine()
 
 		m_lensFlareColorImage.reset(graphicsEngine->CreateImage());
 		m_lensFlareColorImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
-		m_lensFlareColorImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_lensFlareColorImage->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 
 		graphicsEngine->SetEnvVariable("LensFlare_ColorTex", inl::Any{ m_lensFlareColorImage.get() });
 	}
@@ -129,7 +120,7 @@ void Editor::InitGraphicsEngine()
 
 		m_colorGradingLutImage.reset(graphicsEngine->CreateImage());
 		m_colorGradingLutImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR);
-		m_colorGradingLutImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_colorGradingLutImage->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 
 		//TODO
 		//create cube texture
@@ -143,7 +134,7 @@ void Editor::InitGraphicsEngine()
 
 		m_lensFlareDirtImage.reset(graphicsEngine->CreateImage());
 		m_lensFlareDirtImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
-		m_lensFlareDirtImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_lensFlareDirtImage->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 
 		graphicsEngine->SetEnvVariable("HDRCombine_lensFlareDirtTex", inl::Any{ m_lensFlareDirtImage.get() });
 	}
@@ -154,9 +145,36 @@ void Editor::InitGraphicsEngine()
 
 		m_lensFlareStarImage.reset(graphicsEngine->CreateImage());
 		m_lensFlareStarImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
-		m_lensFlareStarImage->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), PixelT::Reader());
+		m_lensFlareStarImage->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 
 		graphicsEngine->SetEnvVariable("HDRCombine_lensFlareStarTex", inl::Any{ m_lensFlareStarImage.get() });
+	}
+
+	{
+		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR>;
+		inl::asset::Image img("assets\\font\\courier_new_0.png");
+
+		m_fontImage.reset(graphicsEngine->CreateImage());
+		m_fontImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
+		m_fontImage->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
+
+		graphicsEngine->SetEnvVariable("TextRender_fontTex", inl::Any{ m_fontImage.get() });
+	}
+
+	{
+		std::fstream f;
+		f.open("assets\\font\\courier_new.fnt", std::ios::in | std::ios::binary | std::ios::ate);
+		if (f.is_open())
+		{
+			size_t size = f.tellg();
+			m_fontBinary.reset(new std::vector<char>);
+			m_fontBinary->resize(size);
+			f.seekg(0, std::ios::beg);
+			f.read(m_fontBinary->data(), size);
+			f.close();
+		}
+
+		graphicsEngine->SetEnvVariable("TextRender_fontBinary", inl::Any{ m_fontBinary.get() });
 	}
 }
 
@@ -166,35 +184,35 @@ void Editor::InitGui()
 	mainLayer = guiEngine->AddLayer();
 
 	// Layer border
-	mainLayer->SetBorder(1, Color(100));
+	mainLayer->SetBorder(1, ColorI(100, 100, 100, 255));
 
 	// Main layout of the editor is a simple list
-	GuiList* mainLayout = mainLayer->AddGuiList();
+	GuiList* mainLayout = mainLayer->AddGui<GuiList>();
 	mainLayout->StretchFillParent(); // Fill the layer
 	mainLayout->SetOrientation(eGuiOrientation::VERTICAL);
-	mainLayout->SetBgToColor(Color::BLACK);
+	mainLayout->SetBgToColor(ColorI(0,0,0,255));
 
 	// Caption bar
 	captionBar = mainLayer->AddGui();
-	captionBar->SetBgToColor(Color(45));
+	captionBar->SetBgToColor(ColorI(45, 45, 45, 255));
 	captionBar->SetRect(0, 0, 100, 26);
 
 	// Minimize, Maximize, Close btn
-	GuiList* minMaxCloseList = mainLayer->AddGuiList();
+	GuiList* minMaxCloseList = mainLayer->AddGui<GuiList>();
 	minMaxCloseList->StretchFitToChildren();
-	minimizeBtn = mainLayer->AddGuiImage();
-	maximizeBtn = mainLayer->AddGuiImage();
-	closeBtn = mainLayer->AddGuiImage();
+	minimizeBtn = mainLayer->AddGui<GuiImage>();
+	maximizeBtn = mainLayer->AddGui<GuiImage>();
+	closeBtn = mainLayer->AddGui<GuiImage>();
 
-	minimizeBtn->OnMouseClicked += [this](CursorEvent& evt) { wnd->MinimizeSize(); };
-	maximizeBtn->OnMouseClicked += [this](CursorEvent& evt)
+	minimizeBtn->OnCursorClicked += [this](Gui& self, CursorEvent& evt) { wnd->Minize(); };
+	maximizeBtn->OnCursorClicked += [this](Gui& self, CursorEvent& evt)
 	{
 		if (bWndMaximized)
-			wnd->RestoreSize();
+			wnd->Restore();
 		else
-			wnd->MaximizeSize();
+			wnd->Maximize();
 	};
-	closeBtn->OnMouseClicked += [this](CursorEvent& evt) { wnd->Close(); };
+	closeBtn->OnCursorClicked += [this](Gui& self, CursorEvent& evt) { /*wnd->Close(); TODO*/ };
 
 	minimizeBtn->SetImages(L"Resources/minimize.png", L"Resources/minimize_h.png");
 	maximizeBtn->SetImages(L"Resources/maximize.png", L"Resources/maximize_h.png");
@@ -207,7 +225,7 @@ void Editor::InitGui()
 	minMaxCloseList->AlignRight();
 
 	// Editor caption text
-	GuiText* inlineEngineText = mainLayer->AddGuiText();
+	GuiText* inlineEngineText = mainLayer->AddGui<GuiText>();
 	inlineEngineText->SetFontSize(14);
 	inlineEngineText->SetFontStyle(Gdiplus::FontStyle::FontStyleBold);
 	inlineEngineText->SetText("Inline Editor");
@@ -222,10 +240,10 @@ void Editor::InitGui()
 	mainLayout->AddItem(captionBar);
 
 	// Main menu bar
-	GuiMenu* menuBar = mainLayer->AddGuiMenu();
-	menuBar->SetBorder(0, 0, 0, 1, Color(70));
+	GuiMenu* menuBar = mainLayer->AddGui<GuiMenu>();
+	menuBar->SetBorder(0, 0, 0, 1, ColorI(70, 70, 70, 255));
 	menuBar->SetOrientation(eGuiOrientation::HORIZONTAL);
-	menuBar->SetBgToColor(Color(25));
+	menuBar->SetBgToColor(ColorI(25, 25, 25, 255));
 	menuBar->StretchHorFillParent();
 	menuBar->StretchVerFitToChildren();
 	{
@@ -242,12 +260,12 @@ void Editor::InitGui()
 		fileMenu->AddItemButton("New Scene");
 		fileMenu->AddItemButton("Open Scene");
 		Gui* separator0 = fileMenu->AddItemSeparatorHor();
-		separator0->SetBgToColor(Color(80));
+		separator0->SetBgToColor(ColorI(80, 80, 80, 255));
 		separator0->DisableHover();
 		fileMenu->AddItemButton("Save Scene");
 		fileMenu->AddItemButton("Save Scene as...");
 		Gui* separator1 = fileMenu->AddItemSeparatorHor();
-		separator1->SetBgToColor(Color(80));
+		separator1->SetBgToColor(ColorI(80, 80, 80, 255));
 		separator1->DisableHover();
 		fileMenu->AddItemButton("New Project...");
 		fileMenu->AddItemButton("Open Project...");
@@ -277,17 +295,17 @@ void Editor::InitGui()
 
 		for (Gui* c : { fileMenu, buildMenu, toolsMenu, helpMenu, menu0, menu1, menu00, menu01, menu001, menu02, menu002 })
 		{
-			c->SetBorder(1, Color(70));
+			c->SetBorder(1, ColorI(70, 70, 70, 255));
 			for (Gui* child : c->GetChildrenRecursive<GuiButton>())
 			{
-				child->SetBgToColor(Color(25), Color(65));
+				child->SetBgToColor(ColorI(25, 25, 25, 255), ColorI(65, 65, 65, 255));
 				child->SetPadding(2, 2, 4, 4);
 			}
 		}
 
 		for (Gui* c : menuBar->GetChildrenRecursive<GuiButton>())
 		{
-			c->SetBgToColor(Color(25), Color(65));
+			c->SetBgToColor(ColorI(25, 25, 25, 255), ColorI(65, 65, 65, 255));
 			c->StretchFitToChildren();
 			c->SetPadding(4, 4, 2, 2);
 			c->AlignCenter();
@@ -297,12 +315,12 @@ void Editor::InitGui()
 
 	//Gui* toolBar = mainLayer->AddGui();
 	//toolBar->StretchHorFillParent();
-	//toolBar->SetBgToColor(Color(25));
+	//toolBar->SetBgToColor(ColorI(25));
 	//mainLayout->AddItem(toolBar);
 
-	GuiSplitter* split0 = mainLayer->AddGuiSplitter(); // split main
-	GuiSplitter* split1 = mainLayer->AddGuiSplitter(); // split main left to (top, bottom)
-	GuiSplitter* split2 = mainLayer->AddGuiSplitter(); // split main left-top to (left, right)
+	GuiSplitter* split0 = mainLayer->AddGui<GuiSplitter>(); // split main
+	GuiSplitter* split1 = mainLayer->AddGui<GuiSplitter>(); // split main left to (top, bottom)
+	GuiSplitter* split2 = mainLayer->AddGui<GuiSplitter>(); // split main left-top to (left, right)
 	split0->Stretch(eGuiStretch::FILL_PARENT_POSITIVE_DIR, eGuiStretch::FILL_PARENT_POSITIVE_DIR);
 	split1->StretchFillParent();
 	split2->StretchFillParent();
@@ -315,25 +333,25 @@ void Editor::InitGui()
 	split1->SetSize(750, 400);
 	split2->SetSize(750, 300);
 
-	Gui* rightArea = mainLayer->AddGuiButton();
-	Gui* bottomArea = mainLayer->AddGuiButton();
-	Gui* leftArea = mainLayer->AddGuiButton();
-	centerRenderArea = mainLayer->AddGuiButton();
+	Gui* rightArea = mainLayer->AddGui<GuiButton>();
+	Gui* bottomArea = mainLayer->AddGui<GuiButton>();
+	Gui* leftArea = mainLayer->AddGui<GuiButton>();
+	centerRenderArea = mainLayer->AddGui<GuiButton>();
 	rightArea->SetSize(150, 100);
-	rightArea->SetBgToColor(Color(35));
+	rightArea->SetBgToColor(ColorI(35, 35, 35, 255));
 	bottomArea->SetSize(100, 100);
-	bottomArea->SetBgToColor(Color(35));
+	bottomArea->SetBgToColor(ColorI(35, 35, 35, 255));
 	leftArea->SetSize(30, 100);
-	leftArea->SetBgToColor(Color(35));
+	leftArea->SetBgToColor(ColorI(35, 35, 35, 255));
 	centerRenderArea->SetSize(100, 100);
-	centerRenderArea->SetBgToColor(Color(0));
+	centerRenderArea->SetBgToColor(ColorI(0, 0, 0, 255));
 	centerRenderArea->StretchFillParent();
 
-	centerRenderArea->OnMouseClicked += [this](Gui* self, CursorEvent& evt)
+	centerRenderArea->OnCursorClicked += [this](Gui& self, CursorEvent& evt)
 	{
 		if (evt.mouseButton == eMouseButton::LEFT)
 		{
-			Ray ray = cam->ScreenPointToRay(centerRenderArea->GetCursorPosContentSpace());
+			Ray3D ray = cam->ScreenPointToRay(centerRenderArea->GetCursorPosContentSpace());
 			TraceResult traceResult;
 
 			Vec3 spawnPos;
@@ -355,15 +373,15 @@ void Editor::InitGui()
 		
 	};
 
-	centerRenderArea->OnSizeChanged += [this](Gui* self, Vec2 size)
+	centerRenderArea->OnTransformChanged += [this](Gui& self, TransformEvent& e)
 	{
-		HWND gameHwnd = (HWND)gameWnd->GetHandle();
-		HWND editorHwnd = (HWND)this->wnd->GetHandle();
-		SetWindowPos(gameHwnd, NULL, self->GetContentPos().x, self->GetContentPos().y, self->GetContentSize().x, self->GetContentSize().y, 0);
-		SetFocus(editorHwnd);
+		//HWND gameHwnd = (HWND)gameWnd->GetNativeHandle();
+		//HWND editorHwnd = (HWND)this->wnd->GetNativeHandle();
+		//SetWindowPos(gameHwnd, NULL, self.GetContentPos().x, self.GetContentPos().y, self.GetContentSize().x, self.GetContentSize().y, 0);
+		//SetFocus(editorHwnd);
 
-		int width = size.x;
-		int height = size.y;
+		int width = e.rect.GetWidth();
+		int height = e.rect.GetHeight();
 
 		float aspectRatio = (float)width / height;
 
@@ -394,17 +412,20 @@ void Editor::InitGui()
 		for (auto& separator : splitter->GetSeparators())
 		{
 			if (splitter->GetOrientation() == eGuiOrientation::HORIZONTAL)
-				separator->SetBorder(1, 1, 0, 0, Color::BLACK);
+				separator->SetBorder(1, 1, 0, 0, ColorI(0,0,0,255));
 			else
-				separator->SetBorder(0, 0, 1, 1, Color::BLACK);
+				separator->SetBorder(0, 0, 1, 1, ColorI(0,0,0,255));
 		}
 	}
 
-	GuiScrollable* scrollableBottom = bottomArea->AddGuiScrollable();
+	GuiScrollable* scrollableBottom = bottomArea->AddGui<GuiScrollable>();
 	scrollableBottom->StretchFillParent();
 
-	GuiList* textureList = scrollableBottom->SetContent(new GuiList(scrollableBottom->guiEngine))->AsList();
-	textureList->SetBgToColor(Color(0, 0, 0, 0));
+
+	GuiList* textureList = new GuiList(scrollableBottom->guiEngine);
+	scrollableBottom->SetContent(textureList);
+
+	textureList->SetBgToColor(ColorI(0, 0, 0, 0));
 	textureList->SetOrientation(eGuiOrientation::HORIZONTAL);
 	textureList->StretchFitToChildren();
 	textureList->SetName(L"TEXTURE_LIST");
@@ -414,13 +435,13 @@ void Editor::InitGui()
 	Gui* contentCell = scrollableBottom->GetCell(0, 0);
 	thread_local float colorDiff = 0;
 	thread_local float time = 0;
-	contentCell->onOperSysDragEntered += [contentCell](DragDropEvent& data)
+	contentCell->OnOperSysDragEntered += [contentCell](Gui& self, DragDropEvent& data)
 	{
 		time = 0;
 		// Show tooltip about what will happen if user Drops it
 	};
 
-	contentCell->onOperSysDragLeaved += [contentCell](DragDropEvent& data)
+	contentCell->OnOperSysDragLeaved += [contentCell](Gui& self, DragDropEvent& data)
 	{
 		// Remove the highlight
 		contentCell->SetBgActiveColor(contentCell->GetBgIdleColor());
@@ -428,38 +449,39 @@ void Editor::InitGui()
 		// Hide tooltip
 	};
 
-	contentCell->onOperSysDragHovering += [contentCell](DragDropEvent& data)
+	contentCell->OnOperSysDragHovering += [contentCell](Gui& self, DragDropEvent& data)
 	{
 		const float maxColorDifference = 40;
 
 		time += Time.deltaTime * 5;
-		contentCell->SetBgActiveColor(contentCell->GetBgIdleColor() + (int)(sin(time) * maxColorDifference));
+		int color = (int)(sin(time) * maxColorDifference);
+		contentCell->SetBgActiveColor(contentCell->GetBgIdleColor() + ColorI(color, color, color, 255));
 	};
 
-	contentCell->onOperSysDropped += [this, textureList, contentCell](DragDropEvent& data)
+	contentCell->OnOperSysDropped += [this, textureList, contentCell](Gui& self, DragDropEvent& e)
 	{
 		contentCell->SetBgActiveColor(contentCell->GetBgIdleColor());
 
-		std::vector<path> filesPaths = data.filesPaths;
-		std::wstring text = data.text;
+		std::vector<path> filesPaths = e.filePaths;
+		std::string text = e.text;
 
 		for (int i = 0; i < filesPaths.size(); ++i)
 		{
 			path filePath = filesPaths[i];
 
 			// Texture image
-			GuiList* content = textureList->AddItemList();
-			content->StretchFitToChildren();
-			content->MakeVertical();
-			content->SetSize(70, 100);
-			content->SetBgToColor(Color(0, 0, 0, 0), Color(20));
-			GuiImage* img0 = content->AddItemImage();
+			GuiList* listItem = textureList->AddItem<GuiList>();
+			listItem->StretchFitToChildren();
+			listItem->MakeVertical();
+			listItem->SetSize(70, 100);
+			listItem->SetBgToColor(ColorI(0, 0, 0, 0), ColorI(20, 20, 20, 255));
+			GuiImage* img0 = listItem->AddItem<GuiImage>();
 			img0->AlignHorCenter();
 			img0->SetMargin(4, 4, 4, 0);
 			img0->SetImage(filePath.c_str(), 70, 70);
 			img0->SetSize(70, 70);
 
-			content->onMouseClicked += [filePath, this](CursorEvent& evt)
+			listItem->OnCursorClicked += [filePath, this](Gui& self, CursorEvent& evt)
 			{
 				if (filePath.extension() == L".fbx")
 				{
@@ -471,15 +493,15 @@ void Editor::InitGui()
 			std::wstring nameWithoutExt = filePath.filename();
 
 			// Texture text
-			GuiText* text0 = content->AddGuiText();
+			GuiText* text0 = listItem->AddGui<GuiText>();
 			text0->StretchFitToChildren();
 			text0->AlignHorCenter();
 			text0->SetMargin(4);
 			text0->SetText(nameWithoutExt);
-			content->DisableChildrenHover();
+			listItem->DisableChildrenHover();
 		}
 
-		SetFocus((HWND)wnd->GetHandle());
+		SetFocus((HWND)wnd->GetNativeHandle());
 	};
 }
 
@@ -491,82 +513,84 @@ void Editor::Update()
 
 	wnd->SetTitle("Inline Editor");
 
-	// Editor main loop
-	while (wnd->IsOpen())
+	wnd->SetQueueMode(eInputQueueMode::QUEUED);
+	while (!wnd->IsClosed())
 	{
 		// Prepare for input processing
 		input->ClearFrameData();
+	
+		wnd->CallEvents();
 
-		WindowEvent evt;
-
-		// TODO TEMPORARY TILL GDI REMOVAL
-		Delegate<void(Vec2&)> doHekk;
-		doHekk += [this](Vec2& pos)
-		{
-			if (centerRenderArea->IsCursorInside())
-			{
-				POINT p;
-				p.x = pos.x;
-				p.y = pos.y;
-				ClientToScreen((HWND)gameWnd->GetHandle(), &p);
-				ScreenToClient((HWND)wnd->GetHandle(), &p);
-
-				pos = Vec2(p.x, p.y);
-			}
-		};
-		wnd->SetHekkTillGdiNotRemoved(doHekk);
-
-		while(wnd->PopEvent(evt))
-		{
-			
-
-			switch (evt.msg)
-			{
-				case eWindowMsg::KEY_PRESS:
-				{
-					if (evt.key != eKey::INVALID)
-						input->SimulateKeyPress(evt.key);
-				} break;
-
-				case eWindowMsg::KEY_RELEASE:
-				{
-					if (evt.key != eKey::INVALID)
-						input->SimulateKeyRelease(evt.key);
-				} break;
-
-				case eWindowMsg::MOUSE_MOVE:
-				{
-					input->SimulateMouseMove(Vec2i(evt.mouseDelta.x, evt.mouseDelta.y), evt.clientCursorPos);
-				} break;
-
-				case eWindowMsg::MOUSE_PRESS:
-				{
-					input->SimulateMouseBtnPress(evt.mouseBtn);
-				} break;
-
-				case eWindowMsg::MOUSE_RELEASE:
-				{
-					input->SimulateMouseBtnRelease(evt.mouseBtn);
-				} break;
-			}
-		}
-
+		//WindowEvent evt;
+		//
+		//// TODO TEMPORARY TILL GDI REMOVAL
+		//Delegate<void(Vec2&)> doHekk;
+		//doHekk += [this](Vec2& pos)
+		//{
+		//	if (centerRenderArea->IsCursorInside())
+		//	{
+		//		POINT p;
+		//		p.x = pos.x;
+		//		p.y = pos.y;
+		//		ClientToScreen((HWND)gameWnd->GetHandle(), &p);
+		//		ScreenToClient((HWND)wnd->GetHandle(), &p);
+		//
+		//		pos = Vec2(p.x, p.y);
+		//	}
+		//};
+		//wnd->SetHekkTillGdiNotRemoved(doHekk);
+		//
+		//while(wnd->PopEvent(evt))
+		//{
+		//	
+		//
+		//	switch (evt.msg)
+		//	{
+		//		case eWindowMsg::KEY_PRESS:
+		//		{
+		//			if (evt.key != eKey::INVALID)
+		//				input->SimulateKeyPress(evt.key);
+		//		} break;
+		//
+		//		case eWindowMsg::KEY_RELEASE:
+		//		{
+		//			if (evt.key != eKey::INVALID)
+		//				input->SimulateKeyRelease(evt.key);
+		//		} break;
+		//
+		//		case eWindowMsg::MOUSE_MOVE:
+		//		{
+		//			input->SimulateMouseMove(Vec2i(evt.mouseDelta.x, evt.mouseDelta.y), evt.clientCursorPos);
+		//		} break;
+		//
+		//		case eWindowMsg::MOUSE_PRESS:
+		//		{
+		//			input->SimulateMouseBtnPress(evt.mouseBtn);
+		//		} break;
+		//
+		//		case eWindowMsg::MOUSE_RELEASE:
+		//		{
+		//			input->SimulateMouseBtnRelease(evt.mouseBtn);
+		//		} break;
+		//	}
+		//}
+	
 		//while (gameWnd->PopEvent(evt));
-
+	
 		// Dispatch Inputs
 		input->Update();
-
+	
 		// Frame delta time
 		Time.deltaTime = timer->Elapsed();
 		timer->Reset();
-
+	
 		// Update editor camera
 		if(centerRenderArea->IsCursorInside())
 			cam->Update(Time.deltaTime);
-
+	
 		// Update game world
 		//world->UpdateWorld(Time.deltaTime);
-
+	
 		// Update engine
 		core->Update(Time.deltaTime);
 	}

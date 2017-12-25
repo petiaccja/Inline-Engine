@@ -30,7 +30,7 @@ public:
 
 	void Update(float deltaTime);
 
-	bool TraceGraphicsRay(const Ray& ray, TraceResult& traceResult_out);
+	bool TraceGraphicsRay(const Ray3D& ray, TraceResult& traceResult_out);
 
 	template<class T>
 	SceneScript* AddScript() {return return Core.AddScript<T>();}

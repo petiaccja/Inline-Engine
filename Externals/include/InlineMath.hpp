@@ -120,7 +120,7 @@ using Ray3D = mathter::Ray<float, 3>;
 using Ray3Dd = mathter::Ray<double, 3>;
 
 using Line2D = mathter::Line<float, 2>;
-using Line2Dd = mathter::Line<double, 2>;
+using Line2Dd = mathter::Line<double, 2>; 
 using Line3D = mathter::Line<float, 3>;
 using Line3Dd = mathter::Line<double, 3>;
 

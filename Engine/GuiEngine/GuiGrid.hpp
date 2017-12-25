@@ -67,9 +67,8 @@ protected:
 class GuiGrid : public GuiLayout
 {
 public:
-	GuiGrid();
-	GuiGrid(GuiEngine* guiEngine);
-	GuiGrid(const GuiGrid& other) { *this = other; }
+	GuiGrid(GuiEngine& guiEngine);
+	GuiGrid(const GuiGrid& other):GuiLayout(other.guiEngine) { *this = other; }
 
 	virtual void AddItem(Gui* gui) {};
 	virtual bool RemoveItem(Gui* gui) { return false; };

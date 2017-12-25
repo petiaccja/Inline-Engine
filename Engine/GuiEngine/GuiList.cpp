@@ -2,7 +2,7 @@
 
 using namespace inl::gui;
 
-GuiList::GuiList(GuiEngine* guiEngine)
+GuiList::GuiList(GuiEngine& guiEngine)
 :GuiLayout(guiEngine), orientation(eGuiOrientation::VERTICAL)
 {
 	SetBgToColor(GetBgIdleColor());
