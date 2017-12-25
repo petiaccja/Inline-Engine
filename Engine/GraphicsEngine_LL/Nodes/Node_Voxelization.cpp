@@ -476,7 +476,7 @@ void Voxelization::Execute(RenderContext & context) {
 		}
 
 		{ //scene mipmap gen
-			int numMips = getNumMips(voxelDimension, voxelDimension, voxelDimension);
+			int numMips = m_voxelTexSRV.GetResource().GetNumMiplevels();
 			int currDim = voxelDimension / 2;
 			for (int c = 1; c < numMips; ++c)
 			{
@@ -489,7 +489,7 @@ void Voxelization::Execute(RenderContext & context) {
 				commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 				//TODO: set the resource but wrong value???
-				commandList.SetResourceState(m_voxelTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, c);
+				commandList.SetResourceState(m_voxelTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, m_voxelTexSRV.GetResource().GetSubresourceIndex(c, 0));
 				commandList.SetResourceState(m_voxelTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 				commandList.SetPipelineState(m_mipmapCSO.get());
@@ -541,7 +541,7 @@ void Voxelization::Execute(RenderContext & context) {
 	}
 
 	{ //light voxel mipmap generation
-		int numMips = getNumMips(voxelDimension, voxelDimension, voxelDimension);
+		int numMips = m_voxelLightTexSRV.GetResource().GetNumMiplevels();
 		int currDim = voxelDimension / 2;
 		for (int c = 1; c < numMips; ++c)
 		{
@@ -554,7 +554,7 @@ void Voxelization::Execute(RenderContext & context) {
 			commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 			//TODO: set the resource but wrong value???
-			commandList.SetResourceState(m_voxelLightTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, c);
+			commandList.SetResourceState(m_voxelLightTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, m_voxelLightTexSRV.GetResource().GetSubresourceIndex(c, 0));
 			commandList.SetResourceState(m_voxelLightTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 			commandList.SetPipelineState(m_mipmapCSO.get());
