@@ -48,14 +48,16 @@ protected:
 	ShaderProgram m_shader;
 	ShaderProgram m_visualizerShader;
 	ShaderProgram m_lightInjectionCSMShader;
+	ShaderProgram m_mipmapShader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 	std::unique_ptr<gxapi::IPipelineState> m_visualizerPSO;
 	std::unique_ptr<gxapi::IPipelineState> m_lightInjectionCSMPSO;
+	std::unique_ptr<gxapi::IPipelineState> m_mipmapCSO;
 
 	bool m_outputTexturesInited = false;
-	RWTextureView3D m_voxelTexUAV;
+	std::vector<RWTextureView3D> m_voxelTexUAV;
 	TextureView3D m_voxelTexSRV;
-	RWTextureView3D m_voxelLightTexUAV;
+	std::vector<RWTextureView3D> m_voxelLightTexUAV;
 	TextureView3D m_voxelLightTexSRV;
 
 	TextureView2D m_shadowCSMTexSrv;

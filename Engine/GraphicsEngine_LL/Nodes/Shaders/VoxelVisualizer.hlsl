@@ -8,8 +8,9 @@ struct Uniforms
 {
 	float4x4 model, viewProj;
 	float3 voxelCenter; float voxelSize;
-	int voxelDimension;
+	int voxelDimension; int inputMipLevel; int outputMipLevel;
 };
+
 
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
