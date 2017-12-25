@@ -22,7 +22,7 @@
     <ProjectGuid>{FA6E910E-1105-4A46-A1D3-5579EA99FDB8}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>QC_Simulator</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
