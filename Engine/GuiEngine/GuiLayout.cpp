@@ -10,16 +10,6 @@
 
 using namespace inl::gui;
 
-Gui* GuiLayout::AddItemGui()
-{
-	return AddItem<Gui>();
-}
-
-GuiText* GuiLayout::AddItemText()
-{
-	return AddItem<GuiText>();
-}
-
 GuiButton* GuiLayout::AddItemButton(const std::string& text /*= ""*/)
 {
 	GuiButton* btn = AddItem<GuiButton>();
@@ -27,34 +17,9 @@ GuiButton* GuiLayout::AddItemButton(const std::string& text /*= ""*/)
 	return btn;
 }
 
-GuiList* GuiLayout::AddItemList()
-{
-	return AddItem<GuiList>();
-}
-
-GuiSlider* GuiLayout::AddItemSlider()
-{
-	return AddItem<GuiSlider>();
-}
-
-GuiCollapsable* GuiLayout::AddItemCollapsable()
-{
-	return AddItem<GuiCollapsable>();
-}
-
-GuiSplitter* GuiLayout::AddItemSplitter()
-{
-	return AddItem<GuiSplitter>();
-}
-
-GuiImage* GuiLayout::AddItemImage()
-{
-	return AddItem<GuiImage>();
-}
-
 Gui* GuiLayout::AddItemSeparatorHor()
 {
-	Gui* btn = AddItemGui();
+	Gui* btn = AddItem<Gui>();
 	btn->SetSize(1, 1);
 	btn->StretchHorFillParent();
 	return btn;

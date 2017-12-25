@@ -3,7 +3,7 @@
 
 #include <PhysicsEngine/Common.hpp>
 #include <array>
-#include <BaseLibrary\VisualCpuProfiler.h>
+//#include <BaseLibrary\VisualCpuProfiler.h>
 
 namespace inl::core {
 
@@ -662,13 +662,13 @@ void Core::Update(float deltaTime)
 	// Update graphics
 	if (graphicsEngine)
 	{
-		PROFILE_SCOPE("Graphics");
+		//PROFILE_SCOPE("Graphics");
 		graphicsEngine->Update(deltaTime);
 	}
 
 	if(guiEngine)
 	{
-		PROFILE_SCOPE("GUI");
+		//PROFILE_SCOPE("GUI");
 		guiEngine->Update(deltaTime);
 	}
 

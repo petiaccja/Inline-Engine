@@ -7,14 +7,15 @@ namespace inl::gui {
 class GuiScrollable : public GuiGrid
 {
 public:
-	GuiScrollable(GuiEngine* guiEngine);
-	GuiScrollable(const GuiScrollable& other) { *this = other; }
+	GuiScrollable(GuiEngine& guiEngine);
+	GuiScrollable(const GuiScrollable& other):GuiGrid(other.guiEngine) { *this = other; }
 
 	//virtual void AddItem(Gui* gui) {};
 	//virtual bool RemoveItem(Gui* gui) { return false; };
 	//virtual std::vector<Gui*> GetItems() { return std::vector<Gui*>(); }
 
-	Gui* SetContent(Gui* contentGui);
+	void SetContent(Gui* contentGui);
+
 
 	// Important to implement in derived classes
 	//virtual GuiScrollable* Clone() const override { return new GuiScrollable(*this); }

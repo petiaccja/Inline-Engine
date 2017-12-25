@@ -3,7 +3,7 @@
 
 using namespace inl::gui;
 
-GuiScrollable::GuiScrollable(GuiEngine* guiEngine)
+GuiScrollable::GuiScrollable(GuiEngine& guiEngine)
 :GuiGrid(guiEngine), bVerScrollBarVisible(false), bHorScrollBarVisible(false)
 {
 	SetDimension(1, 2);
@@ -28,7 +28,7 @@ GuiScrollable::GuiScrollable(GuiEngine* guiEngine)
 	GetRow(1)->SetHeight(16);
 	
 	// Add scroll bars
-	GuiButton* btn = horizontalScrollCell->AddGuiButton();
+	GuiButton* btn = horizontalScrollCell->AddGui<GuiButton>();
 	btn->SetMargin(3);
 	btn->SetBgToColor(ColorI(120, 120, 120, 255), ColorI(200, 200, 200, 255));
 	btn->StretchVerFillParent();
@@ -73,7 +73,7 @@ GuiScrollable::GuiScrollable(GuiEngine* guiEngine)
 //	return selfSize;
 //}
 
-Gui* GuiScrollable::SetContent(Gui* contentGui)
+void GuiScrollable::SetContent(Gui* contentGui)
 {
 	// The content cell we want to fill in
 	Gui* contentCell = GetCell(0, 0);
@@ -86,7 +86,7 @@ Gui* GuiScrollable::SetContent(Gui* contentGui)
 	// Add new content
 	contentCell->AddGui(contentGui);
 
-	//contentGui->onRectChanged += [this, contentCell](Gui* self, RectF rect)
+	//contentGui->onRectChanged += [this, contentCell](Gui& self, RectF rect)
 	//{
 	//	RectF cellRect = contentCell->GetRect();
 	//
@@ -110,6 +110,4 @@ Gui* GuiScrollable::SetContent(Gui* contentGui)
 	//	bVerScrollBarVisible = bShowVerScrollBar;
 	//	bHorScrollBarVisible = bShowHorScrollBar;
 	//};
-
-	return contentGui;
 }

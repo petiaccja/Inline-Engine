@@ -2,13 +2,7 @@
 
 using namespace inl::gui;
 
-GuiGrid::GuiGrid()
-:dimension(0, 0)
-{
-	SetDimension(1, 1);
-}
-
-GuiGrid::GuiGrid(GuiEngine* guiEngine)
+GuiGrid::GuiGrid(GuiEngine& guiEngine)
 :GuiLayout(guiEngine), dimension(0,0)
 {
 	SetDimension(1, 1);

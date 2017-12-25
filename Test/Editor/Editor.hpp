@@ -64,6 +64,8 @@ protected:
 	std::unique_ptr<inl::gxeng::Image> m_areaImage, m_searchImage;
 	std::unique_ptr<inl::gxeng::Image> m_lensFlareColorImage;
 	std::unique_ptr<inl::gxeng::Image> m_colorGradingLutImage, m_lensFlareDirtImage, m_lensFlareStarImage;
+	std::unique_ptr<inl::gxeng::Image> m_fontImage;
+	std::unique_ptr<std::vector<char> > m_fontBinary;
 };
 
 } // namespace inl

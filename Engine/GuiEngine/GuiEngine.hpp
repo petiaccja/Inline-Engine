@@ -40,7 +40,7 @@ public:
 
 	void SetResolution(Vec2u& size);
 
-	void TraverseGuiControls(const std::function<void(Gui*)>& fn);
+	void TraverseGuiControls(const std::function<void(Gui&)>& fn);
 
 	inline Vec2 GetCursorPos() { return targetWindow->GetClientCursorPos(); }
 	inline float GetCursorPosX() { return GetCursorPos().x; }

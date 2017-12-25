@@ -47,12 +47,10 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 
 			if (hoveredGui)
 			{
-				hoveredGui->TraverseTowardParents([&](Gui* control)
+				hoveredGui->TraverseTowardParents([&](Gui& control)
 				{
-					if (control->GetVisiblePaddingRect().IsPointInside(pixelCenterCursorPos))
-					{
-						control->OnCursorPressed(control, eventData);
-					}
+					if (control.GetVisiblePaddingRect().IsPointInside(pixelCenterCursorPos))
+						control.OnCursorPressed(control, eventData);
 				});
 			}
 
@@ -86,29 +84,29 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 			if (hoveredGui)
 			{
 				// Control Mouse release
-				hoveredGui->TraverseTowardParents([&](Gui* control)
+				hoveredGui->TraverseTowardParents([&](Gui& control)
 				{
-					if (control->GetVisiblePaddingRect().IsPointInside(pixelCenterCursorPos))
-						control->OnCursorReleased(control, eventData);
+					if (control.GetVisiblePaddingRect().IsPointInside(pixelCenterCursorPos))
+						control.OnCursorReleased(control, eventData);
 				});
 
 				// Control Mouse click
 				if (bClick)
 				{
-					hoveredGui->TraverseTowardParents([&](Gui* control)
+					hoveredGui->TraverseTowardParents([&](Gui& control)
 					{
-						if (control->GetVisiblePaddingRect().IsPointInside(pixelCenterCursorPos))
+						if (control.GetVisiblePaddingRect().IsPointInside(pixelCenterCursorPos))
 						{
-							control->OnCursorClicked(control, eventData);
+							control.OnCursorClicked(control, eventData);
 
 							if (e.button == eMouseButton::RIGHT)
 							{
-								if (control->GetContextMenu())
+								if (control.GetContextMenu())
 								{
 									// Add to the top most layer
 									if (layers.size() > 0)
 									{
-										activeContextMenu = control->GetContextMenu();
+										activeContextMenu = control.GetContextMenu();
 
 										if (activeContextMenu)
 										{
@@ -142,11 +140,11 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 		Vec2 pixelCenterCursorPos = eventData.cursorPos + Vec2(0.5, 0.5); // Important, make cursorPos pointing to the center of the pixel ! Making children gui - s non overlappable at edges
 		if (hoveredGui)
 		{
-			hoveredGui->TraverseTowardParents([&](Gui* control)
+			hoveredGui->TraverseTowardParents([&](Gui& control)
 			{
-				if (control->GetVisiblePaddingRect().IsPointInside(pixelCenterCursorPos))
+				if (control.GetVisiblePaddingRect().IsPointInside(pixelCenterCursorPos))
 				{
-					control->OnCursorMoved(control, eventData);
+					control.OnCursorMoved(control, eventData);
 				}
 			});
 		}
@@ -161,7 +159,7 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 		Gui* hoveredGui = GetHoveredGui();
 
 		if (hoveredGui)
-			hoveredGui->OnOperSysDragEntered(hoveredGui, e);
+			hoveredGui->OnOperSysDragEntered(*hoveredGui, e);
 	};
 
 	targetWindow->OnDropLeft += [this](DragDropEvent e)
@@ -176,7 +174,7 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 		Gui* hoveredGui = GetHoveredGui();
 
 		if(hoveredGui)
-			hoveredGui->OnOperSysDropped(hoveredGui, e);
+			hoveredGui->OnOperSysDropped(*hoveredGui, e);
 	};
 }
 
@@ -220,7 +218,7 @@ GuiLayer* GuiEngine::AddLayer()
 
 GuiLayer* GuiEngine::CreateLayer()
 {
-	return new GuiLayer(this);
+	return new GuiLayer(*this);
 }
 
 void GuiEngine::Update(float deltaTime)
@@ -255,11 +253,11 @@ void GuiEngine::Update(float deltaTime)
 
 
 	// Call Update callback for all gui controls
-	TraverseGuiControls([=](Gui* control)
+	TraverseGuiControls([=](Gui& control)
 	{
 		UpdateEvent updateEvent;
 		updateEvent.deltaTime = deltaTime;
-		control->OnUpdate(control, updateEvent);
+		control.OnUpdate(control, updateEvent);
 	});
 
 	// Search for hovered control, handle MouseLeaved, MouseEntered, MouseHovering
@@ -272,10 +270,10 @@ void GuiEngine::Update(float deltaTime)
 		// Search hovered control to fire event on them
 		cursorPos += Vec2(0.5f, 0.5f); // Important, make cursorPos pointing to the center of the pixel ! Making children gui - s non overlappable at edges
 		Gui* newHoveredControl = nullptr;
-		TraverseGuiControls([&](Gui* control)
+		TraverseGuiControls([&](Gui& control)
 		{
-			if (!control->IsLayer() && control->IsHoverable() && control->GetVisiblePaddingRect().IsPointInside(cursorPos))
-				newHoveredControl = control;
+			if (!control.IsLayer() && control.IsHoverable() && control.GetVisiblePaddingRect().IsPointInside(cursorPos))
+				newHoveredControl = &control;
 		});
 
 		if (newHoveredControl != hoveredGui)
@@ -283,19 +281,19 @@ void GuiEngine::Update(float deltaTime)
 			// Cursor Leave
 			if (hoveredGui)
 			{
-				hoveredGui->TraverseTowardParents([&](Gui* control)
+				hoveredGui->TraverseTowardParents([&](Gui& control)
 				{
-					control->OnCursorLeft(control, cursorEvent);
+					control.OnCursorLeft(control, cursorEvent);
 				});
 			}
 
 			// Cursor Enter
 			if (newHoveredControl)
 			{
-				newHoveredControl->TraverseTowardParents([&](Gui* control)
+				newHoveredControl->TraverseTowardParents([&](Gui& control)
 				{
-					if (control->GetVisiblePaddingRect().IsPointInside(cursorPos))
-						control->OnCursorEntered(control, cursorEvent);
+					if (control.GetVisiblePaddingRect().IsPointInside(cursorPos))
+						control.OnCursorEntered(control, cursorEvent);
 				});
 			}
 		}
@@ -304,11 +302,11 @@ void GuiEngine::Update(float deltaTime)
 			// Cursor Hover
 			if (hoveredGui)
 			{
-				hoveredGui->TraverseTowardParents([&](Gui* control)
+				hoveredGui->TraverseTowardParents([&](Gui& control)
 				{
-					if (control->GetVisiblePaddingRect().IsPointInside(cursorPos) && control->IsHoverable())
+					if (control.GetVisiblePaddingRect().IsPointInside(cursorPos) && control.IsHoverable())
 					{
-						control->OnCursorHovering(control, cursorEvent);
+						control.OnCursorHovering(control, cursorEvent);
 					}
 				});
 			}
@@ -321,7 +319,7 @@ void GuiEngine::Update(float deltaTime)
 		Gui* hoveredGui = GetHoveredGui();
 		
 		if (hoveredGui)
-			hoveredGui->OnOperSysDragHovering(hoveredGui, lastDropEvent);
+			hoveredGui->OnOperSysDragHovering(*hoveredGui, lastDropEvent);
 	}
 }
 
@@ -329,33 +327,33 @@ void GuiEngine::Render()
 {
 	SelectObject(memHDC, memBitmap);
 
-	std::function<void(Gui* control)> traverseControls;
-	traverseControls = [&](Gui* control)
+	std::function<void(Gui& control)> traverseControls;
+	traverseControls = [&](Gui& control)
 	{
 		PaintEvent paintEvent;
 		paintEvent.graphics = gdiGraphics;
-		control->OnPaint(control, paintEvent);
+		control.OnPaint(control, paintEvent);
 
-		for (Gui* child : control->GetChildren())
-			traverseControls(child);
+		for (Gui* child : control.GetChildren())
+			traverseControls(*child);
 	};
 
 	for (GuiLayer* layer : GetLayers())
-		traverseControls(layer);
+		traverseControls(*layer);
 
 	// Present
 	BitBlt(hdc, 0, 0, targetWindow->GetClientSize().x, targetWindow->GetClientSize().y, memHDC, 0, 0, SRCCOPY);
 }
 
-void GuiEngine::TraverseGuiControls(const std::function<void(Gui*)>& fn)
+void GuiEngine::TraverseGuiControls(const std::function<void(Gui&)>& fn)
 {
-	std::function<void(Gui* control, const std::function<void(Gui* control)>& fn)> traverseControls;
-	traverseControls = [&](Gui* control, const std::function<void(Gui* control)>& fn)
+	std::function<void(Gui& control, const std::function<void(Gui& control)>& fn)> traverseControls;
+	traverseControls = [&](Gui& control, const std::function<void(Gui& control)>& fn)
 	{
 		fn(control);
 
-		for (Gui* child : control->GetChildren())
-			traverseControls(child, fn);
+		for (Gui* child : control.GetChildren())
+			traverseControls(*child, fn);
 	};
 
 	auto allLayers = layers;
@@ -363,7 +361,7 @@ void GuiEngine::TraverseGuiControls(const std::function<void(Gui*)>& fn)
 
 	for (GuiLayer* layer : allLayers)
 	{
-		traverseControls(layer, [&](Gui* control)
+		traverseControls(*layer, [&](Gui& control)
 		{
 			fn(control);
 		});

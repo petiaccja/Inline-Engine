@@ -34,7 +34,7 @@ void InputCore::SimulateKeyPress(eKey key)
 	keyDown[(int)key].keyDownQueue.push(true);
 	
 	// Dispatch registered callbacks binded to that key
-	onKeyPressed[(int)key]();
+	OnKeyPressed[(int)key]();
 }
 
 void InputCore::SimulateKeyRelease(eKey key)
@@ -54,7 +54,7 @@ void InputCore::SimulateKeyRelease(eKey key)
 	keyDown[(size_t)key].keyDownQueue.push(false);
 
 	// Dispatch registered callbacks binded to that key
-	onKeyReleased[(int)key]();
+	OnKeyReleased[(int)key]();
 }
 
 void InputCore::SimulateMouseBtnPress(eMouseButton eButton)
@@ -65,7 +65,7 @@ void InputCore::SimulateMouseBtnPress(eMouseButton eButton)
 	cursorLastClickStartPos[(int)eButton] = clientCursorPos;
 
 	// Dispatch callbacks binded to right mouse press
-	onMousePressed[(int)eButton](clientCursorPos);
+	OnMousePressed[(int)eButton](clientCursorPos);
 }
 
 void InputCore::SimulateMouseBtnRelease(eMouseButton eButton)
@@ -75,7 +75,7 @@ void InputCore::SimulateMouseBtnRelease(eMouseButton eButton)
 
 	
 	// Dispatch callbacks binded to right mouse release
-	onMouseReleased[(int)eButton](clientCursorPos);
+	OnMouseReleased[(int)eButton](clientCursorPos);
 }
 
 void InputCore::SimulateMouseMove(const Vec2i& mouseDelta, const Vec2i& clientCursorPos)
@@ -84,42 +84,42 @@ void InputCore::SimulateMouseMove(const Vec2i& mouseDelta, const Vec2i& clientCu
 	this->clientCursorPos = clientCursorPos;
 	
 	// Dispatch registered mouseMove callbacks
-	onMouseMove(mouseDelta, clientCursorPos);
+	OnMouseMove(mouseDelta, clientCursorPos);
 }
 
 void InputCore::BindKeyDown(eKey key, const std::function<void()>& function)
 {
-	onKeyDown[(int)key] += function;
+	OnKeyDown[(int)key] += function;
 }
 
 void InputCore::BindKeyPress(eKey key, const std::function<void()>& function)
 {
-	onKeyPressed[(int)key] += function;
+	OnKeyPressed[(int)key] += function;
 }
 
 void InputCore::BindKeyRelease(eKey key, const std::function<void()>& function)
 {
-	onKeyReleased[(int)key] += function;
+	OnKeyReleased[(int)key] += function;
 }
 
 void InputCore::BindMousePress(eMouseButton button, const std::function<void(const Vec2i& mousePos)>& function)
 {
-	onMousePressed[(int)button] += function;
+	OnMousePressed[(int)button] += function;
 }
 
 void InputCore::BindMouseDown(eMouseButton button, const std::function<void(const Vec2i& mousePos)>& function)
 {
-	onMouseDown[(int)button] += function;
+	OnMouseDown[(int)button] += function;
 }
 
 void InputCore::BindMouseRelease(eMouseButton button, const std::function<void(const Vec2i& mousePos)>& function)
 {
-	onMouseReleased[(int)button] += function;
+	OnMouseReleased[(int)button] += function;
 }
 
 void InputCore::BindMouseMove(const std::function<void(const Vec2i& mouseDelta, const Vec2i& clientCursorPos)>& function)
 {
-	onMouseMove += function;
+	OnMouseMove += function;
 }
 
 void InputCore::ClearFrameData()
@@ -165,13 +165,13 @@ void InputCore::Update()
 			keyDown[i].bStateDown = keyDownQueue.front();
 
 		if (keyDown[i].bStateDown)
-			onKeyDown[i]();
+			OnKeyDown[i]();
 	}
 	
 	for (int i = 0; i < (int)eMouseButton::COUNT; ++i)
 	{
 		if (bMouseDownCurFrame[i])
-			onMouseDown[i](clientCursorPos);
+			OnMouseDown[i](clientCursorPos);
 	}
 }
 

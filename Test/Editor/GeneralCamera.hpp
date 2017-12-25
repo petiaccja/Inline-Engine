@@ -37,8 +37,8 @@ protected:
 protected:
 	float m_fSpeed;
 	HCURSOR m_hPanCursor;
-	Vec2 m_vRecenterCursorPos;
-	Vec2 vRecenterCorrection;
+	Vec2i m_vRecenterCursorPos;
+	Vec2i vRecenterCorrection;
 	HCURSOR m_hArrowCursor;
 	float m_fScrollPosPls;
 

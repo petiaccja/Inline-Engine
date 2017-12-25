@@ -64,10 +64,10 @@ class Gui
 {
 	friend class GuiEngine;
 public:
-	Gui();
-	Gui(GuiEngine* guiEngine);
-	Gui(GuiEngine* guiEngine, bool bLayer);
-	Gui(const Gui& other) { *this = other; }
+	//Gui();
+	Gui(GuiEngine& guiEngine);
+	Gui(GuiEngine& guiEngine, bool bLayer);
+	Gui(const Gui& other):guiEngine(other.guiEngine) { *this = other; }
 
 	virtual ~Gui() { Clear(); }
 	void Clear();
@@ -76,18 +76,16 @@ public:
 	virtual Gui* Clone() const { return new Gui(*this); }
 	Gui& operator = (const Gui& other);
 
-	void			AddGui(Gui* child) { AddGui(child, true); }
+	Gui* AddGui() { return AddGui<Gui>(); }
+	void AddGui(Gui* child) { AddGui(child, true); }
 
-	Gui*			AddGui();
-	GuiText*		AddGuiText();
-	GuiButton*		AddGuiButton();
-	GuiList*		AddGuiList();
-	GuiMenu*		AddGuiMenu();
-	GuiSlider*		AddGuiSlider();
-	GuiCollapsable* AddGuiCollapsable();
-	GuiSplitter*	AddGuiSplitter();
-	GuiImage*		AddGuiImage();
-	GuiScrollable*	AddGuiScrollable();
+	template<class T>
+	T* AddGui()
+	{
+		T* p = new T(guiEngine);
+		AddGui(p);
+		return p;
+	}
 
 	void BringToFront();
 
@@ -106,14 +104,8 @@ public:
 	void EnableClipChildren() { SetClipChildren(true); }
 	void DisableClipChildren() { SetClipChildren(false); }
 
-	Gui*			AsPlane();
-	GuiText*		AsText();
-	GuiButton*		AsButton();
-	GuiList*		AsList();
-	GuiSlider*		AsSlider();
-	GuiCollapsable*	AsCollapsable();
-	GuiSplitter*	AsSplitter();
-	GuiMenu*		AsMenu();
+	template<class T>
+	T& As() { assert(Is<T>());  return *(T*)this; }
 
 	void SetContentRect(float x, float y, float width, float height) { SetContentRect(x, y, width, height, true, true); }
 	void SetContentRect(const RectF rect) { SetContentRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); }
@@ -235,11 +227,6 @@ public:
 	float GetCursorPosContentSpaceY();
 	Vec2 GetCursorPosContentSpace();
 
-	float GetPosRight()	 { return GetPosX() + GetWidth(); }
-	float GetPosLeft()	 { return GetPosX(); }
-	float GetPosTop()	 { return GetPosY(); }
-	float GetPosBottom() { return GetPosY() + GetHeight(); }
-
 	float GetPosX() { return pos.x; }
 	float GetPosY() { return pos.y; }
 	const Vec2& GetPos() { return pos; }
@@ -341,8 +328,8 @@ public:
 	bool IsCursorInside();
 	bool IsHoverable() { return bHoverable; }
 
-	bool IsChild(Gui* gui);
-	bool IsSibling(Gui* child);
+	bool IsChild(Gui& gui);
+	bool IsSibling(Gui& child);
 
 protected:
 	void SetVisibleRect(const RectF& rect) { visibleRect = rect; }
@@ -367,7 +354,7 @@ protected:
 	template<class T>
 	T* Copy(T* other);
 
-	void TraverseTowardParents(const std::function<void(Gui*)>& fn);
+	void TraverseTowardParents(const std::function<void(Gui&)>& fn);
 
 	virtual Vec2 ArrangeChildren(const Vec2& finalSize);
 
@@ -451,39 +438,35 @@ protected:
 	bool bForceFitToChildren;
 public:
 
-	GuiEngine* guiEngine;
+	GuiEngine& guiEngine;
 
 	// Public events
-	Event<Gui*, CursorEvent&> OnCursorClicked;
-	Event<Gui*, CursorEvent&> OnCursorDblClicked;
-	Event<Gui*, CursorEvent&> OnCursorPressed;
-	Event<Gui*, CursorEvent&> OnCursorReleased;
-	Event<Gui*, CursorEvent&> OnCursorMoved;
-	Event<Gui*, CursorEvent&> OnCursorEntered;
-	Event<Gui*, CursorEvent&> OnCursorLeft;
-	Event<Gui*, CursorEvent&> OnCursorHovering;
-	Event<Gui*, DragDropEvent&> OnOperSysDragEntered;
-	Event<Gui*, DragDropEvent&> OnOperSysDragLeaved;
-	Event<Gui*, DragDropEvent&> OnOperSysDragHovering;
-	Event<Gui*, DragDropEvent&> OnOperSysDropped;
-
-	Event<Gui*, UpdateEvent&> OnUpdate;
-	Event<Gui*, TransformEvent&> OnTransformChanged;
-	//Event<Gui*, PositionEvent&> OnPosChanged;
-	//Event<Gui*, SizeEvent&> OnSizeChanged;
-	Event<Gui*, TransformEvent&> OnParentTransformChanged;
-	Event<Gui*, TransformEvent&> OnChildTransformChanged;
-	Event<Gui*, ParentEvent&> OnParentChanged;
-	Event<Gui*, ChildEvent&> OnChildAdded;
-	Event<Gui*, ChildEvent&> OnChildRemoved;
-	Event<Gui*, PaintEvent&> OnPaint;
+	Event<Gui& /*self*/, CursorEvent&> OnCursorClicked;
+	Event<Gui& /*self*/, CursorEvent&> OnCursorDblClicked;
+	Event<Gui& /*self*/, CursorEvent&> OnCursorPressed;
+	Event<Gui& /*self*/, CursorEvent&> OnCursorReleased;
+	Event<Gui& /*self*/, CursorEvent&> OnCursorMoved;
+	Event<Gui& /*self*/, CursorEvent&> OnCursorEntered;
+	Event<Gui& /*self*/, CursorEvent&> OnCursorLeft;
+	Event<Gui& /*self*/, CursorEvent&> OnCursorHovering;
+	Event<Gui& /*self*/, DragDropEvent&> OnOperSysDragEntered;
+	Event<Gui& /*self*/, DragDropEvent&> OnOperSysDragLeaved;
+	Event<Gui& /*self*/, DragDropEvent&> OnOperSysDragHovering;
+	Event<Gui& /*self*/, DragDropEvent&> OnOperSysDropped;
+	Event<Gui& /*self*/, UpdateEvent&> OnUpdate;
+	Event<Gui& /*self*/, TransformEvent&> OnTransformChanged;
+	Event<Gui& /*self*/, TransformEvent&> OnParentTransformChanged;
+	Event<Gui& /*self*/, TransformEvent&> OnChildTransformChanged;
+	Event<Gui& /*self*/, ParentEvent&> OnParentChanged;
+	Event<Gui& /*self*/, ChildEvent&> OnChildAdded;
+	Event<Gui& /*self*/, ChildEvent&> OnChildRemoved;
+	Event<Gui& /*self*/, PaintEvent&> OnPaint;
 };
 
 template<class T>
 T* Gui::Copy(T* other)
 {
-	if (!other)
-		return nullptr;
+	assert(other);
 
 	int idx = other->GetIndexInParent();
 

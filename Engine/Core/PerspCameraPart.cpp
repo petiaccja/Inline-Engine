@@ -37,9 +37,9 @@ void PerspCameraPart::UpdateEntityTransform()
 	cam->SetTarget(GetTarget());
 }
 
-Ray PerspCameraPart::ScreenPointToRay(const Vec2& screenPoint)
+Ray3D PerspCameraPart::ScreenPointToRay(const Vec2& screenPoint)
 {
-	Ray result;
+	Ray3D result;
 	
 	float nearPlaneHalfWidth = abs(tan(cam->GetFOVHorizontal() * 0.5)) * GetNearPlaneDist();
 	float nearPlaneHalfHeight = abs(tan(cam->GetFOVVertical() * 0.5)) * GetNearPlaneDist();
@@ -58,7 +58,7 @@ Ray PerspCameraPart::ScreenPointToRay(const Vec2& screenPoint)
 	Vec3 pointOnNearPlane = GetPos() + GetFrontDir() * GetNearPlaneDist() + GetRightDir() * x + GetUpDir() * y;
 
 	Vec3 pos = GetPos();
-	result.origin = pointOnNearPlane;
+	result.base = pointOnNearPlane;
 	result.direction = (pointOnNearPlane - GetPos()).Normalized();
 	return result;
 }

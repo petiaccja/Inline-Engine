@@ -9,8 +9,8 @@ namespace inl::gui {
 class GuiSplitter : public GuiLayout
 {
 public:
-	GuiSplitter(GuiEngine* guiEngine);
-	GuiSplitter(const GuiSplitter& other) { *this = other; }
+	GuiSplitter(GuiEngine& guiEngine);
+	GuiSplitter(const GuiSplitter& other):GuiLayout(other.guiEngine) { *this = other; }
 
 	// Important to implement in derived classes
 	virtual GuiSplitter* Clone() const override { return new GuiSplitter(*this); }
