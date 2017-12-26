@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <limits>
 #include <iterator>
+#include <vector>
 #include <type_traits>
 
 
@@ -227,6 +228,16 @@ public:
 
 	/// <summary> Check if the stream is empty. </summary>
 	bool Empty() const { return buffer.empty(); }
+
+	/// <summary> Returns the bytes currently in the stream. </summary>
+	std::vector<uint8_t> GetBytes() const { 
+		std::vector<uint8_t> ret;
+		ret.reserve(Size());
+		for (auto v : *this) {
+			ret.push_back(v);
+		}
+		return ret;
+	}
 
 
 	// element access

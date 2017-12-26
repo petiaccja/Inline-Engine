@@ -41,6 +41,31 @@ public:
 };
 
 
+// can be compared with == 
+template <class T>
+struct is_equality_comparable {
+private:
+	template <class U = decltype(bool(*(const T*)nullptr == *(const T*)nullptr))>
+	static constexpr bool check(int) { return true; }
+
+	static constexpr bool check(...) { return false; }
+public:
+	static constexpr bool value = check(1);
+};
+
+
+// can be compared with <
+template <class T>
+struct is_less_comparable {
+private:
+	template <class U = decltype(bool(*(const T*)nullptr < *(const T*)nullptr))>
+	static constexpr bool check(int) { return true; }
+
+	static constexpr bool check(...) { return false; }
+public:
+	static constexpr bool value = check(1);
+};
+
 
 
 

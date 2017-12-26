@@ -332,6 +332,5 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			}
 	}
 
-	if(m_userWndProc != nullptr)
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }

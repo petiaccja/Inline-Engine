@@ -69,15 +69,15 @@ int TestEvent::Run() {
 
 	src.Evt += OnEventGlobal1;
 	src.Evt += OnEventGlobal2;
-	src.Evt += {&Subscriber::OnEvent1, &sub};
-	src.Evt += {&Subscriber::OnEvent2, &sub};
+	src.Evt += Delegate<void(float, float)>{&Subscriber::OnEvent1, &sub};
+	src.Evt += Delegate<void(float, float)>{&Subscriber::OnEvent2, &sub};
 
 	cout << "--- all events ---" << endl;
 	src.DoEvent();
 
 	cout << "--- only 2 events ---" << endl;
 	src.Evt -= OnEventGlobal2;
-	src.Evt -= {&Subscriber::OnEvent2, &sub};
+	src.Evt -= Delegate<void(float, float)>{&Subscriber::OnEvent2, &sub};
 	src.DoEvent();
 
 

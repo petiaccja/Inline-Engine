@@ -25,6 +25,7 @@ class ResourceViewBase {
 		IHostDescHeap* heap;
 		size_t place;
 		gxapi::DescriptorHandle handle;
+		std::vector<uint32_t> subresourceList;
 		SharedState() : resource{}, heap(nullptr), place(-1) {}
 		SharedState(ResourceT resource, IHostDescHeap* heap, size_t place) : resource(std::move(resource)), heap(heap), place(place) {}
 		SharedState(ResourceT resource, gxapi::DescriptorHandle handle) : resource(std::move(resource)), handle(handle), heap(nullptr), place(-1) {}
@@ -37,19 +38,31 @@ class ResourceViewBase {
 public:
 	ResourceViewBase() = default;
 	
+	/// <summary> Returns the underlying resource. </summary>
 	ResourceT& GetResource() {
 		assert(operator bool());
 		return m_state->resource;
 	}
+	/// <summary> Returns the underlying resource. </summary>
 	const ResourceT& GetResource() const {
 		assert(operator bool());
 		return m_state->resource;
 	}
+
+	/// <summary> Returns the handle to the descriptor in the view's descriptor heap. </summary>
 	gxapi::DescriptorHandle GetHandle() const {
 		assert(operator bool());
 		return m_state->handle;
 	}
 
+	/// <summary> Returns the list of subresources that this view references. </summary>
+	const std::vector<uint32_t>& GetSubresourceList() const {
+		assert(operator bool());
+		assert(!m_state->subresourceList.empty()); // it means Peti forgot to call SetSubresourceList in of the view subclass ctors - pls add it yourself
+		return m_state->subresourceList;
+	}
+
+	/// <summary> Check if this view has associated <see cref="MemoryObject"/> and descriptor. </summary>
 	explicit operator bool() const {
 		return (bool)m_state;
 	}
@@ -61,6 +74,10 @@ protected:
 	ResourceViewBase(const ResourceT& resource, gxapi::DescriptorHandle handle) {
 		m_state = std::make_shared<SharedState>(resource, handle);
 	}
+
+	void SetSubresourceList(std::vector<uint32_t> list) {
+		m_state->subresourceList = std::move(list);
+	}
 private:
 	std::shared_ptr<SharedState> m_state;
 };
@@ -71,6 +88,11 @@ public:
 	VertexBufferView(const VertexBuffer& resource, uint32_t stride, uint32_t size);
 
 	const VertexBuffer& GetResource();
+
+	const std::vector<uint32_t>& GetSubresourceList() const { 
+		static const std::vector<uint32_t> list = std::initializer_list<uint32_t>{ gxapi::ALL_SUBRESOURCES };
+		return list;
+	}
 
 protected:
 	VertexBuffer m_resource;

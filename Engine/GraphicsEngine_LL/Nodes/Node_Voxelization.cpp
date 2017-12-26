@@ -24,11 +24,6 @@ struct Uniforms
 	int voxelDimension; int inputMipLevel; int outputMipLevel;
 };
 
-static int getNumMips(int w, int h, int d)
-{
-	return 1 + std::floor(std::log2(std::max(std::max(w, h), d)));
-}
-
 static void SetWorkgroupSize(unsigned w, unsigned h, unsigned d, unsigned groupSizeW, unsigned groupSizeH, unsigned groupSizeD, unsigned& dispatchW, unsigned& dispatchH, unsigned& dispatchD)
 {
 	//set up work group sizes
@@ -617,25 +612,25 @@ void Voxelization::InitRenderTarget(SetupContext& context) {
 		srvDesc.mipLevelClamping = 0;
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.numMipLevels = -1;
-
-		int numMips = getNumMips(voxelDimension, voxelDimension, voxelDimension);
-
-		m_voxelTexUAV.resize(numMips);
-		m_voxelLightTexUAV.resize(numMips);
+		
 
 		gxeng::Texture3DDesc texDesc;
 		texDesc.width = (uint64_t)voxelDimension;
 		texDesc.height = (uint64_t)voxelDimension;
 		texDesc.depth = (uint64_t)voxelDimension;
 		texDesc.format = formatVoxel;
-		texDesc.mipLevels = numMips;
+		texDesc.mipLevels = 0;
 
 		//TODO init to 0
 		Texture3D voxel_tex = context.CreateTexture3D(texDesc, { true, false, false, true });
-		voxel_tex.SetName("Voxelization voxel tex");		
+		voxel_tex.SetName("Voxelization voxel tex");	
+
+		m_voxelTexUAV.resize(voxel_tex.GetNumMiplevels());
+		m_voxelLightTexUAV.resize(voxel_tex.GetNumMiplevels());
+
 		m_voxelTexSRV = context.CreateSrv(voxel_tex, formatVoxel, srvDesc);
 		uavDesc.depthSize = voxelDimension;
-		for (int c = 0; c < numMips; ++c)
+		for (int c = 0; c < voxel_tex.GetNumMiplevels(); ++c)
 		{
 			uavDesc.mipLevel = c;
 			m_voxelTexUAV[c] = context.CreateUav(voxel_tex, formatVoxel, uavDesc);
@@ -647,7 +642,7 @@ void Voxelization::InitRenderTarget(SetupContext& context) {
 		voxelLightTex.SetName("Voxelization voxel tex");		
 		m_voxelLightTexSRV = context.CreateSrv(voxelLightTex, formatVoxel, srvDesc);
 		uavDesc.depthSize = voxelDimension;
-		for (int c = 0; c < numMips; ++c)
+		for (int c = 0; c < voxel_tex.GetNumMiplevels(); ++c)
 		{
 			uavDesc.mipLevel = c;
 			m_voxelLightTexUAV[c] = context.CreateUav(voxelLightTex, formatVoxel, uavDesc);
