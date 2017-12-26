@@ -394,6 +394,9 @@
     <ClInclude Include="GraphicsPortConverters.hpp">
       <Filter>Frontend</Filter>
     </ClInclude>
+    <ClInclude Include="Font.hpp">
+      <Filter>Resources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -630,6 +633,9 @@
     </ClCompile>
     <ClCompile Include="GraphicsPortConverters.cpp">
       <Filter>Frontend</Filter>
+    </ClCompile>
+    <ClCompile Include="Font.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

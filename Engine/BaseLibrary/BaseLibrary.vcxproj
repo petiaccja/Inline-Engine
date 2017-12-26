@@ -255,6 +255,7 @@
     <ClInclude Include="ThreadName.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transform3D.hpp" />
+    <ClInclude Include="Transformable.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Exception\Exception.cpp" />

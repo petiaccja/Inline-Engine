@@ -20,6 +20,13 @@ public:
 	void SetMaterial(Material* material);
 	Material* GetMaterial() const;
 
+	//void SetTransform(const Mat44& transform);
+	//const Mat44& GetTransform() const;
+
+	//void SetTransformMotion(const Mat44& motion);
+	//const Mat44& GetTransformMotion() const;
+
+
 	void SetPosition(const Vec3& pos);
 	void SetRotation(const Quat& rotation);
 	void SetScale(const Vec3& scale);

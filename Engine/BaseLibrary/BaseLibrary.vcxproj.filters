@@ -147,6 +147,7 @@
       <Filter>Graph</Filter>
     </ClInclude>
     <ClInclude Include="EnumFlag.hpp" />
+    <ClInclude Include="Transformable.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Serialization\BinarySerializer.cpp">

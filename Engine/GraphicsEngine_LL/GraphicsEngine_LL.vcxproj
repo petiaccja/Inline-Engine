@@ -218,6 +218,7 @@
     <ClInclude Include="BindingManager.hpp" />
     <ClInclude Include="CommandListPool.hpp" />
     <ClInclude Include="Cubemap.hpp" />
+    <ClInclude Include="Font.hpp" />
     <ClInclude Include="GraphEditor.hpp" />
     <ClInclude Include="GraphicsPortConverters.hpp" />
     <ClInclude Include="ImageBase.hpp" />
@@ -318,6 +319,7 @@
     <ClCompile Include="BasicCamera.cpp" />
     <ClCompile Include="CommandListPool.cpp" />
     <ClCompile Include="Cubemap.cpp" />
+    <ClCompile Include="Font.cpp" />
     <ClCompile Include="GraphEditor.cpp" />
     <ClCompile Include="GraphicsNode.cpp" />
     <ClCompile Include="GraphicsPortConverters.cpp" />
