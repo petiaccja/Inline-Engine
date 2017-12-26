@@ -1,16 +1,18 @@
 #include "Socket.hpp"
-#include "Util.hpp"
-
 #include "IPAddress.hpp"
 
-void Socket::create()
+void Socket::init()
 {
 	if (GetSocketType() == SocketType::Unknown)
 		throw std::exception("Unknown socket type");
-	m_socket = socket(AF_INET, (int)GetSocketType(), (int)GetSocketProtocol());
 
 	if (m_socket == INVALID_SOCKET)
-		throw std::exception("Couldnt create socket");
+	{
+		m_socket = socket(AF_INET, (int)GetSocketType(), (int)GetSocketProtocol());
+
+		if (m_socket == INVALID_SOCKET)
+			throw std::exception("Couldnt create socket");
+	}
 
 	if (GetSocketType() == SocketType::Streaming)
 	{
@@ -42,17 +44,15 @@ bool Socket::Close(void)
 	return false;
 }
 
-
-bool Socket::Bind(uint16_t port)
+bool Socket::Bind(const IPAddress &addr)
 {
-	sockaddr_in addr_in = inl::net::util::CreateAddress(IPAddress::Any.ToInteger(), port);
+	sockaddr_in addr_in = addr.ToCAddr();
 	return bind(m_socket, (sockaddr*)&addr_in, sizeof(sockaddr_in)) == 0;
 }
 
-
 bool Socket::Connect(const IPAddress& addr)
 {
-	sockaddr_in addr_in = inl::net::util::CreateAddress(addr.ToInteger(), addr.GetPort());
+	sockaddr_in addr_in = addr.ToCAddr();
 
 	int32_t Return = connect(m_socket, (sockaddr*)&addr_in, sizeof(sockaddr_in));
 
@@ -61,13 +61,6 @@ bool Socket::Connect(const IPAddress& addr)
 	// "would block" is not an error
 	return ((Error == SocketErrors::SE_NO_ERROR) || (Error == SocketErrors::SE_EWOULDBLOCK));
 }
-
-
-bool Socket::Listen()
-{
-	return listen(m_socket, SOMAXCONN) == 0;
-}
-
 
 bool Socket::WaitForPendingConnection(bool& hasPendingConnection, std::chrono::milliseconds t)
 {
@@ -85,7 +78,6 @@ bool Socket::WaitForPendingConnection(bool& hasPendingConnection, std::chrono::m
 	return hasSucceeded;
 }
 
-
 bool Socket::HasPendingData(uint32_t& pendingDataSize)
 {
 	pendingDataSize = 0;
@@ -101,23 +93,21 @@ bool Socket::HasPendingData(uint32_t& pendingDataSize)
 	return false;
 }
 
-
 ISocket* Socket::Accept()
 {
 	SOCKET newSocket = accept(m_socket, nullptr, nullptr);
 
 	if (newSocket != INVALID_SOCKET)
 	{
-		return new Socket(newSocket, m_socketType);
+		return new Socket(newSocket, GetSocketType());
 	}
 
 	return nullptr;
 }
 
-
 bool Socket::SendTo(const uint8_t* data, int32_t count, int32_t& sent, const IPAddress& addrDest)
 {
-	sockaddr_in addr = inl::net::util::CreateAddress(addrDest.ToInteger(), addrDest.GetPort());
+	sockaddr_in addr = addrDest.ToCAddr();
 
 	sent = sendto(m_socket, (const char*)data, count, 0, (sockaddr*)&addr, sizeof(sockaddr_in));
 
@@ -128,7 +118,6 @@ bool Socket::SendTo(const uint8_t* data, int32_t count, int32_t& sent, const IPA
 	}
 	return result;
 }
-
 
 bool Socket::Send(const uint8_t* data, int32_t count, int32_t& sent)
 {
@@ -142,12 +131,11 @@ bool Socket::Send(const uint8_t* data, int32_t count, int32_t& sent)
 	return result;
 }
 
-
 bool Socket::RecvFrom(uint8_t* data, int32_t size, int32_t& read, IPAddress& srcAddr, SocketReceiveFlags flags)
 {
 	socklen_t len = sizeof(sockaddr_in);
 
-	sockaddr_in addr = inl::net::util::CreateAddress(srcAddr.ToInteger(), srcAddr.GetPort());
+	sockaddr_in addr = srcAddr.ToCAddr();
 
 	const int translatedFlags = TranslateFlags(flags);
 
@@ -167,7 +155,6 @@ bool Socket::RecvFrom(uint8_t* data, int32_t size, int32_t& read, IPAddress& src
 
 	return true;
 }
-
 
 bool Socket::Recv(uint8_t* data, int32_t size, int32_t& read, SocketReceiveFlags flags)
 {
@@ -189,7 +176,6 @@ bool Socket::Recv(uint8_t* data, int32_t size, int32_t& read, SocketReceiveFlags
 	return true;
 }
 
-
 bool Socket::Wait(SocketWaitConditions cond, std::chrono::milliseconds t)
 {
 	if ((cond == SocketWaitConditions::WaitForRead) || (cond == SocketWaitConditions::WaitForReadOrWrite))
@@ -210,7 +196,6 @@ bool Socket::Wait(SocketWaitConditions cond, std::chrono::milliseconds t)
 
 	return false;
 }
-
 
 SocketConnectionState Socket::GetConnectionState()
 {
@@ -242,7 +227,6 @@ SocketConnectionState Socket::GetConnectionState()
 	return currentState;
 }
 
-
 void Socket::GetAddress(IPAddress& outAddr)
 {
 	struct sockaddr_in addr;
@@ -257,7 +241,6 @@ void Socket::GetAddress(IPAddress& outAddr)
 
 	outAddr = IPAddress(inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
 }
-
 
 bool Socket::GetPeerAddress(IPAddress& outAddr)
 {
@@ -278,9 +261,9 @@ bool Socket::GetPeerAddress(IPAddress& outAddr)
 
 bool Socket::SetNonBlocking(bool isNonBlocking)
 {
-#if PLATFORM_HTML5
-	ensureMsgf(isNonBlocking, TEXT("Can't have blocking sockets on HTML5"));
-	return true;
+#if PLATFORM_HTML5 // if we have more platforms later (html5, android, ios) later we need to do some changes to networking
+	throw std::exception("Can't have blocking sockets on HTML5");
+	return false;
 #else 
 
 #if _WIN32
@@ -295,19 +278,11 @@ bool Socket::SetNonBlocking(bool isNonBlocking)
 #endif 
 }
 
-
-bool Socket::SetBroadcast(bool allowBroadcast)
-{
-	int param = allowBroadcast ? 1 : 0;
-	return setsockopt(m_socket, SOL_SOCKET, SO_BROADCAST, (char*)&param, sizeof(param)) == 0;
-}
-
-
 bool Socket::JoinMulticastGroup(const IPAddress& addrStr)
 {
 	ip_mreq imr;
 
-	sockaddr_in addr = inl::net::util::CreateAddress(addrStr.ToInteger(), addrStr.GetPort());
+	sockaddr_in addr = addrStr.ToCAddr();
 
 	imr.imr_interface.s_addr = INADDR_ANY;
 	imr.imr_multiaddr = addr.sin_addr;
@@ -315,38 +290,17 @@ bool Socket::JoinMulticastGroup(const IPAddress& addrStr)
 	return (setsockopt(m_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char*)&imr, sizeof(imr)) == 0);
 }
 
-
 bool Socket::LeaveMulticastGroup(const IPAddress& addrStr)
 {
 	ip_mreq imr;
 
-	sockaddr_in addr = inl::net::util::CreateAddress(addrStr.ToInteger(), addrStr.GetPort());
+	sockaddr_in addr = addrStr.ToCAddr();
 
 	imr.imr_interface.s_addr = INADDR_ANY;
 	imr.imr_multiaddr = addr.sin_addr;
 
 	return (setsockopt(m_socket, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char*)&imr, sizeof(imr)) == 0);
 }
-
-
-bool Socket::SetMulticastLoopback(bool loopback)
-{
-	return (setsockopt(m_socket, IPPROTO_IP, IP_MULTICAST_LOOP, (char*)&loopback, sizeof(loopback)) == 0);
-}
-
-
-bool Socket::SetMulticastTtl(uint8_t timeToLive)
-{
-	return (setsockopt(m_socket, IPPROTO_IP, IP_MULTICAST_TTL, (char*)&timeToLive, sizeof(timeToLive)) == 0);
-}
-
-
-bool Socket::SetReuseAddr(bool allowReuse)
-{
-	int param = allowReuse ? 1 : 0;
-	return setsockopt(m_socket, SOL_SOCKET, SO_REUSEADDR, (char*)&param, sizeof(param)) == 0;
-}
-
 
 bool Socket::SetLinger(bool shouldLinger, int32_t t)
 {
@@ -358,7 +312,6 @@ bool Socket::SetLinger(bool shouldLinger, int32_t t)
 	return setsockopt(m_socket, SOL_SOCKET, SO_LINGER, (char*)&ling, sizeof(ling)) == 0;
 }
 
-
 bool Socket::SetSendBufferSize(int32_t size, int32_t& newSize)
 {
 	socklen_t len = sizeof(int32_t);
@@ -369,7 +322,6 @@ bool Socket::SetSendBufferSize(int32_t size, int32_t& newSize)
 	return success;
 }
 
-
 bool Socket::SetReceiveBufferSize(int32_t size, int32_t& newSize)
 {
 	socklen_t len = sizeof(int32_t);
@@ -379,7 +331,6 @@ bool Socket::SetReceiveBufferSize(int32_t size, int32_t& newSize)
 
 	return bOk;
 }
-
 
 int32_t Socket::GetPortNo()
 {

@@ -3,7 +3,7 @@
 
 using namespace inl::gui;
 
-GuiSplitter::GuiSplitter(GuiEngine* guiEngine)
+GuiSplitter::GuiSplitter(GuiEngine& guiEngine)
 :GuiLayout(guiEngine), orientation(eGuiOrientation::HORIZONTAL), separatorLength(10)
 {
 	SetBgToColor(GetBgIdleColor());
@@ -53,9 +53,9 @@ Vec2 GuiSplitter::ArrangeChildren(const Vec2& finalSize)
 		Gui* container = child->GetParent();
 
 		if (bVertical)
-			itemsLength += container->GetSizeY();
+			itemsLength += container->GetSize().y;
 		else
-			itemsLength += container->GetSizeX();
+			itemsLength += container->GetSize().x;
 	}
 
 	int separatorCount = items.size() - 1;
@@ -114,58 +114,58 @@ void GuiSplitter::AddItem(Gui* item)
 		Gui* separator = AddGui();
 		separators.push_back(separator);
 
-		separator->onMouseEnteredClonable += [](Gui* _self, CursorEvent& evt)
+		separator->OnCursorEntered += [](Gui& self_, CursorEvent& evt)
 		{
-			GuiSplitter* splitter = _self->GetParent()->AsSplitter();
+			GuiSplitter& splitter = self_.GetParent()->As<GuiSplitter>();
 
-			splitter->separatorSaved = _self;
+			splitter.separatorSaved = &self_;
 
-			if (splitter->GetOrientation() == eGuiOrientation::HORIZONTAL)
-				splitter->guiEngine->SetCursorVisual(eCursorVisual::SIZEWE);
-			if (splitter->GetOrientation() == eGuiOrientation::VERTICAL)
-				splitter->guiEngine->SetCursorVisual(eCursorVisual::SIZENS);
+			if (splitter.GetOrientation() == eGuiOrientation::HORIZONTAL)
+				splitter.guiEngine.SetCursorVisual(eCursorVisual::SIZEWE);
+			if (splitter.GetOrientation() == eGuiOrientation::VERTICAL)
+				splitter.guiEngine.SetCursorVisual(eCursorVisual::SIZENS);
 		};
 
-		separator->onMouseLeavedClonable += [](Gui* self, CursorEvent& evt)
+		separator->OnCursorLeft += [](Gui& self, CursorEvent& evt)
 		{
-			GuiSplitter* splitter = self->GetParent()->AsSplitter();
+			GuiSplitter& splitter = self.GetParent()->As<GuiSplitter>();
 
-			if(!splitter->bDragging)
-				self->guiEngine->SetCursorVisual(eCursorVisual::ARROW);
+			if(!splitter.bDragging)
+				self.guiEngine.SetCursorVisual(eCursorVisual::ARROW);
 		};
 
-		separator->onMousePressedClonable += [](Gui* separator, CursorEvent& evt)
+		separator->OnCursorPressed += [](Gui& separator, CursorEvent& evt)
 		{
-			GuiSplitter* splitter = separator->GetParent()->AsSplitter();
+			GuiSplitter& splitter = separator.GetParent()->As<GuiSplitter>();
 
 			// We are starting to drag the separator, save the cursor pos
-			splitter->bDragging = true;
-			splitter->mousePosWhenPressed = evt.cursorPos;
+			splitter.bDragging = true;
+			splitter.mousePosWhenPressed = evt.cursorPos;
 			
-			Gui* prevItem = splitter->GetChild(separator->GetIndexInParent() - 1);
-			Gui* nextItem = splitter->GetChild(separator->GetIndexInParent() + 1);
+			Gui* prevItem = splitter.GetChild(separator.GetIndexInParent() - 1);
+			Gui* nextItem = splitter.GetChild(separator.GetIndexInParent() + 1);
 
-			splitter->prevItemOrigSize = prevItem->GetSize();
-			splitter->nextItemOrigSize = nextItem->GetSize();
+			splitter.prevItemOrigSize = prevItem->GetSize();
+			splitter.nextItemOrigSize = nextItem->GetSize();
 
-			separator->guiEngine->FreezeHover();
+			separator.guiEngine.FreezeHover();
 		};
 
-		guiEngine->onMouseMoved += [this](CursorEvent& evt)
+		guiEngine.OnCursorMoved += [this](CursorEvent& evt)
 		{
 			if (bDragging)
 			{
-				GuiSplitter* splitter = separatorSaved->GetParent()->AsSplitter();
+				GuiSplitter& splitter = separatorSaved->GetParent()->As<GuiSplitter>();
 
 				Vec2 deltaMouse = evt.cursorPos - mousePosWhenPressed;
 				
-				Gui* leftContainer = splitter->GetChild(separatorSaved->GetIndexInParent() - 1);
-				Gui* rightContainer = splitter->GetChild(separatorSaved->GetIndexInParent() + 1);
+				Gui* leftContainer = splitter.GetChild(separatorSaved->GetIndexInParent() - 1);
+				Gui* rightContainer = splitter.GetChild(separatorSaved->GetIndexInParent() + 1);
 
 				Vec2 deltaMove;
-				if (splitter->GetOrientation() == eGuiOrientation::HORIZONTAL)
+				if (splitter.GetOrientation() == eGuiOrientation::HORIZONTAL)
 					deltaMove = Vec2(deltaMouse.x, 0);
-				else if (splitter->GetOrientation() == eGuiOrientation::VERTICAL)
+				else if (splitter.GetOrientation() == eGuiOrientation::VERTICAL)
 					deltaMove = Vec2(0, deltaMouse.y);
 				
 				// - TODO cursor goes outside of splitter gui, clamp size increase
@@ -180,16 +180,16 @@ void GuiSplitter::AddItem(Gui* item)
 			}
 		};
 
-		guiEngine->onMouseReleased += [this](CursorEvent& evt)
+		guiEngine.OnCursorReleased += [this](CursorEvent& evt)
 		{
 			if (bDragging)
 			{
 				bDragging = false;
-				guiEngine->DefreezeHover();
+				guiEngine.DefreezeHover();
 			}
 		};
 
-		separator->SetBgToColor(Color(135), Color(220));
+		separator->SetBgToColor(ColorI(135, 135, 135, 255), ColorI(220, 220, 220, 255));
 
 		if (orientation == eGuiOrientation::HORIZONTAL)
 		{

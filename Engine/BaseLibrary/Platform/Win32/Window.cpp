@@ -14,7 +14,7 @@ namespace inl {
 
 
 Window::Window(const std::string& title,
-	Vec2i size,
+	Vec2u size,
 	bool borderless,
 	bool resizable,
 	bool hiddenInitially)
@@ -219,13 +219,13 @@ bool Window::IsMinimized() const {
 	return IsIconic(m_handle);
 }
 
-void Window::SetSize(const Vec2i& size) {
+void Window::SetSize(const Vec2u& size) {
 	if (IsClosed()) { return; }
 	SetWindowPos(m_handle, NULL, 0, 0, size.x, size.y, SWP_NOMOVE);
 }
 
 
-Vec2i Window::GetSize() const {
+Vec2u Window::GetSize() const {
 	if (IsClosed()) { return { 0,0 }; }
 	RECT rc;
 	GetWindowRect(m_handle, &rc);
@@ -233,7 +233,7 @@ Vec2i Window::GetSize() const {
 }
 
 
-Vec2i Window::GetClientSize() const {
+Vec2u Window::GetClientSize() const {
 	if (IsClosed()) { return { 0,0 }; }
 	RECT rc;
 	GetClientRect(m_handle, &rc);
@@ -254,6 +254,13 @@ Vec2i Window::GetPosition() const {
 	return { rc.left, rc.top };
 }
 
+Vec2i Window::GetClientCursorPos() const
+{
+	POINT p;
+	GetCursorPos(&p);
+	ScreenToClient(m_handle, &p);
+	return Vec2i(p.x, p.y);
+}
 
 void Window::SetResizable(bool enabled) {
 	throw NotImplementedException();
@@ -368,6 +375,7 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 		case WM_DESTROY:
 			instance.CallEvent(instance.OnClose);
 			PostQuitMessage(0);
+			instance.m_handle = nullptr;
 			return 0;
 		case WM_CHAR:
 			instance.CallEvent(instance.OnCharacter, (char32_t)wParam);

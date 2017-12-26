@@ -267,7 +267,7 @@ uint16_t Texture3D::GetDepth() const {
 }
 
 uint32_t Texture3D::GetSubresourceIndex(uint32_t mipLevel, uint32_t planeIndex) const {
-	assert(false);
+	//assert(false);
 	return m_contents->resource->GetSubresourceIndex(mipLevel, 0, planeIndex);
 }
 

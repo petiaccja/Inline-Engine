@@ -1,6 +1,6 @@
 #include "GeneralCamera.hpp"
 #include <Core/Scene.hpp>
-#include <BaseLibrary\Platform\Sys.hpp>
+#include <BaseLibrary\Platform\System.hpp>
 
 namespace inl {
 
@@ -117,7 +117,7 @@ void GeneralCamera::UpdateKeyActions(float deltaTime)
 	b_E_Q_Enabled = true;// GetEditorView().IsCursorInside() && pMouseParams->IsAnyBtnDown();//( pMouseParams->IsBtnDown( BTN_MIDDLE ) || pMouseParams->IsBtnDown( BTN_RIGHT ) || pMouseParams->IsBtnDown() );
 
 	
-	if(inputCore->IsMouseDown(eMouseBtn::RIGHT))
+	if(inputCore->IsMouseDown(eMouseButton::RIGHT))
 	{
 		if(inputCore->IsKeyDown(eKey::A))
 		{
@@ -186,8 +186,8 @@ void GeneralCamera::UpdateKeyActions(float deltaTime)
 
 void GeneralCamera::UpdateMouseMove()
 {
-	bool bLeftBtnDblPress = inputCore->IsMousePressed(eMouseBtn::LEFT);
-	bool bMiddleBtnClick = inputCore->IsMouseClicked(eMouseBtn::MIDDLE);
+	bool bLeftBtnDblPress = inputCore->IsMousePressed(eMouseButton::LEFT);
+	bool bMiddleBtnClick = inputCore->IsMouseClicked(eMouseButton::MIDDLE);
 	if(bLeftBtnDblPress || bMiddleBtnClick)
 	{
 		//if( bLeftBtnDblPress )
@@ -215,9 +215,9 @@ void GeneralCamera::UpdateMouseMove()
 
 	bool bOldStyleZooming = false;
 	bool bOldStyleMoving = false;
-	if(inputCore->IsMouseDown(eMouseBtn::LEFT) && inputCore->IsKeyDown(eKey::LEFT_ALT))
+	if(inputCore->IsMouseDown(eMouseButton::LEFT) && inputCore->IsKeyDown(eKey::ALT_LEFT))
 	{
-		if(inputCore->IsKeyDown(eKey::LEFT_CONTROL))
+		if(inputCore->IsKeyDown(eKey::CONTROL_LEFT))
 		{
 			Vec2 vCursorMove = inputCore->GetCursorDeltaMove();
 			//Move( vCursorMove.y * MOUSE_MOVE_SPEED );
@@ -240,7 +240,7 @@ void GeneralCamera::UpdateMouseMove()
 
 	
 
-	bool bStartLookingAround = inputCore->IsMousePressed(eMouseBtn::RIGHT);
+	bool bStartLookingAround = inputCore->IsMousePressed(eMouseButton::RIGHT);
 
 	// NEWTODO
 	//if( !GetEditorView().IsCursorInside() )
@@ -255,7 +255,7 @@ void GeneralCamera::UpdateMouseMove()
 		//StopSmoothedMoving();
 
 		// Save cursor pos
-		m_vRecenterCursorPos = Sys::GetCursorPos();// inputCore->GetCursorPos();// CMainCore::GetInstance()->GetMouse()->GetCursorPos();
+		m_vRecenterCursorPos = System::GetCursorPosition();// inputCore->GetCursorPos();// CMainCore::GetInstance()->GetMouse()->GetCursorPos();
 
 		// Hide cursor
 		ShowCursor(false);
@@ -265,10 +265,10 @@ void GeneralCamera::UpdateMouseMove()
 		vRecenterCorrection.y = 0;
 	}
 
-	if(m_bLookingAround && inputCore->IsMouseReleased(eMouseBtn::RIGHT))
+	if(m_bLookingAround && inputCore->IsMouseReleased(eMouseButton::RIGHT))
 	{
 		// Recenter cursor
-		Sys::SetCursorPos(m_vRecenterCursorPos);
+		System::SetCursorPosition(m_vRecenterCursorPos);
 		//CMainCore::GetInstance()->GetMouse()->SetCursorPos( m_vRecenterCursorPos );
 
 		// NEWTODO use Sys::
@@ -283,12 +283,12 @@ void GeneralCamera::UpdateMouseMove()
 	{
 		m_fSmoothness = fNotSmooth;
 
-		Vec2 vCursorPos = Sys::GetCursorPos();
+		Vec2 vCursorPos = System::GetCursorPosition();
 
 		vRecenterCorrection = vCursorPos - m_vRecenterCursorPos;
 
 		// Recenter cursor
-		Sys::SetCursorPos(m_vRecenterCursorPos);
+		System::SetCursorPosition(m_vRecenterCursorPos);
 
 		Vec3 vLookDir = GetTarget() - GetPos();
 

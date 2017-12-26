@@ -4,48 +4,48 @@
 
 using namespace inl::gui;
 
-GuiSlider::GuiSlider(GuiEngine* guiEngine)
+GuiSlider::GuiSlider(GuiEngine& guiEngine)
 :Gui(guiEngine), value(0), minValue(0), maxValue(1), sliderWidth(5), bSliding(false)
 {
 	slider = AddGui();
-	slider->SetBgIdleColor(Color(130));
+	slider->SetBgIdleColor(ColorI(130, 130, 130, 255));
 	slider->SetBgHoverColor(slider->GetBgIdleColor());
 
-	onTransformChangedClonable += [](Gui* _self, RectF& rect)
+	OnTransformChanged += [](Gui& self_, TransformEvent& e)
 	{
-		GuiSlider* self = _self->AsSlider();
-		self->SlideToValue();
+		GuiSlider& self = self_.As<GuiSlider>();
+		self.SlideToValue();
 	};
 
-	onMouseEnteredClonable += [](Gui* _self, CursorEvent& evt)
+	OnCursorEntered += [](Gui& self_, CursorEvent& evt)
 	{
-		GuiSlider* self = _self->AsSlider();
-		self->slider->SetBgActiveColor(self->slider->GetBgIdleColor() + 65);
+		GuiSlider& self = self_.As<GuiSlider>();
+		self.slider->SetBgActiveColor(self.slider->GetBgIdleColor() + ColorI(65, 65, 65, 0));
 	};
 
-	onMouseLeavedClonable += [](Gui* _self, CursorEvent& evt)
+	OnCursorLeft += [](Gui& self_, CursorEvent& evt)
 	{
-		GuiSlider* self = _self->AsSlider();
-		self->slider->SetBgActiveColorToIdle();
+		GuiSlider& self = self_.As<GuiSlider>();
+		self.slider->SetBgActiveColorToIdle();
 	};
 
 	// Start drag
-	onMousePressedClonable += [](Gui* _self, CursorEvent& evt)
+	OnCursorPressed += [](Gui& self_, CursorEvent& evt)
 	{
-		GuiSlider* self = _self->AsSlider();
-		self->bSliding = true;
-		self->SlideToCursor();
+		GuiSlider& self = self_.As<GuiSlider>();
+		self.bSliding = true;
+		self.SlideToCursor();
 	};
 
 	// Dragging
-	guiEngine->onMouseMoved += [this](CursorEvent& evt)
+	guiEngine.OnCursorMoved += [this](CursorEvent& evt)
 	{
 		if (bSliding)
 			SlideToCursor();
 	};
 
 	// Stop draw
-	guiEngine->onMouseReleased += [this](CursorEvent& evt)
+	guiEngine.OnCursorReleased += [this](CursorEvent& evt)
 	{
 		bSliding = false;
 	};
@@ -61,7 +61,7 @@ void GuiSlider::SlideToValue(float value)
 
 void GuiSlider::SlideToNormedPercent(float normedPercent)
 {
-	slider->SetSize(sliderWidth, GetHeight());
+	slider->SetSize(sliderWidth, GetSize().y);
 	slider->SetPos(GetPosX() + normedPercent * (GetWidth() - slider->GetWidth()), GetPosY());
 }
 
@@ -77,7 +77,7 @@ void GuiSlider::SetValue(float val)
 {
 	value = Clamp(val, minValue, maxValue);
 	SlideToValue(value);
-	OnValueChanged(this, val);
+	OnValueChanged(*this, val);
 }
 
 void GuiSlider::SetMinValue(float val)

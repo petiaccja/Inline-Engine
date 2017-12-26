@@ -8,7 +8,7 @@ namespace inl::gui {
 class GuiMenu : public GuiList
 {
 public:
-	GuiMenu(GuiEngine* guiEngine);
+	GuiMenu(GuiEngine& guiEngine);
 
 	virtual void AddItem(Gui* gui);
 

@@ -32,7 +32,7 @@
 //	playerCapsule->SetCollisionGroup(eES_CollisionGroup::PLAYER);
 //
 //
-//	playerCapsule->onCollisionEnter += ([&](const core::Collision& col)
+//	playerCapsule->OnCollisionEnter += ([&](const core::Collision& col)
 //	{
 //		if (col.actorB && col.actorB->GetName() == "ground")
 //		{

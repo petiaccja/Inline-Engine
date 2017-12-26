@@ -23,6 +23,7 @@ struct light_data
 
 struct Uniforms
 {
+	Mat44_Packed invV;
 	light_data ld[10];
 	Vec4_Packed screen_dimensions;
 	Vec4_Packed vs_cam_pos;
@@ -359,10 +360,13 @@ void ForwardRender::Execute(RenderContext& context) {
 		commandList.SetPipelineState(scenario.pso.get());
 		commandList.SetGraphicsBinder(&scenario.binder);
 
+		commandList.SetResourceState(m_pointLightShadowMapTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_cascadedShadowMapTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_shadowMXTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_csmSplitsTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_lightMVPTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 400), m_pointLightShadowMapTexView);
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 500), m_cascadedShadowMapTexView);
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 501), m_shadowMXTexView);
@@ -431,6 +435,7 @@ void ForwardRender::Execute(RenderContext& context) {
 		uniformsCBData.ld[0].attenuation_end = Vec4(5.0f, 0.f, 0.f, 0.f);
 		uniformsCBData.ld[0].diffuse_color = Vec4(1.f, 0.f, 0.f, 1.f);
 		uniformsCBData.vs_cam_pos = Vec4(m_camera->GetPosition(), 1.0f) * m_camera->GetViewMatrix();
+		uniformsCBData.invV = m_camera->GetViewMatrix().Inverse();
 
 		uint32_t dispatchW, dispatchH;
 		SetWorkgroupSize((unsigned)m_rtv.GetResource().GetWidth(), (unsigned)m_rtv.GetResource().GetHeight(), 16, 16, dispatchW, dispatchH);
@@ -703,7 +708,7 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 	PSMain << "	   PS_OUTPUT result;\n";
 	PSMain << "    g_lightDir = lightCb.direction;\n";
 	PSMain << "    g_lightColor = lightCb.color;\n";
-	PSMain << "    g_lightColor *= get_shadow(psInput.vsPosition);\n";
+	//PSMain << "    g_lightColor *= get_shadow(psInput.vsPosition);\n";
 	PSMain << "    g_normal = normalize(psInput.viewNormal);\n";
 	PSMain << "    g_wsNormal = normalize(psInput.wsNormal);\n";
 	PSMain << "    g_ndcPos = psInput.ndcPos;\n";
@@ -760,7 +765,9 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 		+ "\n//-------------------------------------\n\n"
 		+ textures.str()
 		+ "\n//-------------------------------------\n\n"
+		+ "#include \"LightingUniforms\"\n"
 		+ "#include \"CSMSample\"\n"
+		+ "#include \"PointLightShadowMapSample\"\n"
 		+ "#include \"PbrBrdf\"\n"
 		+ "#include \"TiledLighting\"\n"
 		+ "#include \"EncodeVelocity\"\n"
@@ -832,6 +839,13 @@ Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<M
 	theSamplerParam.mipLevelBias = 0.f;
 	theSamplerParam.registerSpace = 0;
 	theSamplerParam.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+
+	BindParameterDesc shadowMapBindParamDesc2;
+	shadowMapBindParamDesc2.parameter = BindParameter(eBindParameterType::TEXTURE, 400);
+	shadowMapBindParamDesc2.constantSize = 0;
+	shadowMapBindParamDesc2.relativeAccessFrequency = 0;
+	shadowMapBindParamDesc2.relativeChangeFrequency = 0;
+	shadowMapBindParamDesc2.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
 	BindParameterDesc shadowMapBindParamDesc;
 	shadowMapBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 500);
@@ -919,6 +933,7 @@ Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<M
 
 	descs.push_back(theSamplerDesc);
 	descs.push_back(shadowMapBindParamDesc);
+	descs.push_back(shadowMapBindParamDesc2);
 	descs.push_back(shadowMXBindParamDesc);
 	descs.push_back(csmSplitsBindParamDesc);
 	descs.push_back(lightMVPBindParamDesc);

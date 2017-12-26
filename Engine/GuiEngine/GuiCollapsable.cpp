@@ -3,7 +3,7 @@
 
 using namespace inl::gui;
 
-GuiCollapsable::GuiCollapsable(GuiEngine* guiEngine)
+GuiCollapsable::GuiCollapsable(GuiEngine& guiEngine)
 :GuiList(guiEngine), bOpened(false)
 {
 	//StretchFitToChildren();
@@ -12,19 +12,19 @@ GuiCollapsable::GuiCollapsable(GuiEngine* guiEngine)
 	list = new GuiList(guiEngine);
 	//list->SetBgToColor(Color(0, 0, 0, 0));
 
-	caption = AddGuiButton();
+	caption = AddGui<GuiButton>();
 	//caption->SetAlign(eGuiAlign::STRETCH_H);
 
-	caption->onMousePressedClonable += [](Gui* _self, CursorEvent& evt)
+	caption->OnCursorPressed += [](Gui& self, CursorEvent& e)
 	{
-		GuiCollapsable* c = _self->GetParent()->AsCollapsable();
+		GuiCollapsable& c = self.GetParent()->As<GuiCollapsable>();
 
-		if (c->bOpened)
-			c->RemoveGui(c->list);
+		if (c.bOpened)
+			c.RemoveGui(c.list);
 		else
-			c->AddGui(c->list);
+			c.AddGui(c.list);
 
-		c->bOpened = !c->bOpened;
+		c.bOpened = !c.bOpened;
 	};
 }
 

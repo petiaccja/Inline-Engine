@@ -1,6 +1,12 @@
 #pragma once
-#include "BaseLibrary\Common.hpp"
-#include "BaseLibrary\Platform\Sys.hpp"
+#include "BaseLibrary/Common.hpp"
+#include "BaseLibrary/Platform/Input.hpp"
+
+#define min(a,b) a < b ? a : b
+#define max(a,b) a > b ? a : b
+#include <gdiplus.h>
+#undef min
+#undef max
 
 namespace inl::gui {
 
@@ -15,13 +21,48 @@ enum class eEventPropagationPolicy
 class CursorEvent
 {
 public:
-	CursorEvent() : cursorPos(0, 0), mouseDelta(0,0), mouseButton(eMouseBtn::INVALID){}
-	CursorEvent(Vec2 CursorPosContentSpace) : cursorPos(CursorPosContentSpace), mouseDelta(0,0) {}
+	CursorEvent() : cursorPos(0, 0), cursorDelta(0,0), mouseButton((eMouseButton)0){}
+	CursorEvent(Vec2 CursorPosContentSpace) : cursorPos(CursorPosContentSpace), cursorDelta(0,0) {}
 
 public:
 	Vec2 cursorPos;
-	Vec2 mouseDelta;
-	eMouseBtn mouseButton;
+	Vec2 cursorDelta;
+	eMouseButton mouseButton;
+};
+
+struct UpdateEvent
+{
+	float deltaTime;
+};
+
+struct TransformEvent
+{
+	RectF rect;
+};
+
+struct PositionEvent
+{
+	Vec2 pos;
+};
+
+struct SizeEvent
+{
+	Vec2 size;
+};
+
+struct ParentEvent
+{
+	class Gui* parent;
+};
+
+struct ChildEvent
+{
+	class Gui* child;
+};
+
+struct PaintEvent
+{
+	Gdiplus::Graphics* graphics;
 };
 
 } //namespace inl::gui

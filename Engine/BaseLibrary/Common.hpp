@@ -6,6 +6,8 @@
 #include <utility>
 #include <vector>
 
+#include "Color.hpp"
+#include "Event.hpp"
 #include <InlineMath.hpp>
 using namespace inl;
 
@@ -62,3 +64,17 @@ inline enumClass& operator ^= (enumClass& a, enumClass b)\
 	return a; \
 }\
 enum class enumClass : enumType
+
+template<class T>
+T Clamp01(T val)
+{
+	T result = val;
+
+	if (result > (T)1)
+		result = (T)1;
+
+	if (result < (T)0)
+		result = (T)0;
+
+	return result;
+}

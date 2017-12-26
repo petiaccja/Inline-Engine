@@ -7,8 +7,8 @@ namespace inl::gui {
 class GuiCollapsable : public GuiList
 {
 public:
-	GuiCollapsable(GuiEngine* guiEngine);
-	GuiCollapsable(const GuiCollapsable& other):GuiList(nullptr) { *this = other; }
+	GuiCollapsable(GuiEngine& guiEngine);
+	GuiCollapsable(const GuiCollapsable& other):GuiList(other.guiEngine) { *this = other; }
 
 	// Important to implement in derived classes
 	virtual GuiCollapsable* Clone() const override { return new GuiCollapsable(*this); }

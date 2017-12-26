@@ -22,8 +22,8 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{805EDCB5-391B-4F92-8568-CF6B691C16FE}</ProjectGuid>
     <RootNamespace>NetworkEngine</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <ProjectName>NetworkEngine</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -40,7 +40,7 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
@@ -144,18 +144,19 @@
     <ClInclude Include="IPAddress.hpp" />
     <ClInclude Include="Net.hpp" />
     <ClInclude Include="Init.hpp" />
-    <ClInclude Include="NetworkDispatcher.hpp" />
     <ClInclude Include="Socket.hpp" />
     <ClInclude Include="ISocket.hpp" />
+    <ClInclude Include="SpinLock.hpp" />
+    <ClInclude Include="TcpClient.hpp" />
     <ClInclude Include="TcpListener.hpp" />
     <ClInclude Include="TcpSocketBuilder.hpp" />
+    <ClInclude Include="UdpSocket.hpp" />
     <ClInclude Include="Util.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IPAddress.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="ISocket.cpp" />
     <ClCompile Include="Socket.cpp" />
+    <ClCompile Include="TcpListener.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

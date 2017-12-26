@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Net.hpp"
+
 #include <vector>
 #include <sstream>
 
@@ -23,7 +24,7 @@ namespace inl::net::util
 		return splited;
 	}
 
-	inline static sockaddr_in CreateAddress(uint32_t address, uint16_t port)
+	sockaddr_in CreateAddress(uint32_t address, uint16_t port)
 	{
 		sockaddr_in addr;
 		std::memset(&addr, 0, sizeof(addr));

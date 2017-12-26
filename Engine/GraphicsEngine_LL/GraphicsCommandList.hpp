@@ -5,6 +5,7 @@
 #include "PipelineEventListener.hpp"
 #include "StackDescHeap.hpp"
 #include "BindingManager.hpp"
+#include "Cubemap.hpp"
 
 namespace inl {
 namespace gxeng {
@@ -85,6 +86,7 @@ public:
 	void BindGraphics(BindParameter parameter, const TextureView1D& shaderResource);
 	void BindGraphics(BindParameter parameter, const TextureView2D& shaderResource);
 	void BindGraphics(BindParameter parameter, const TextureView3D& shaderResource);
+	void BindGraphics(BindParameter parameter, const TextureViewCube& shaderResource);
 	void BindGraphics(BindParameter parameter, const ConstBufferView& shaderConstant);
 	void BindGraphics(BindParameter parameter, const void* shaderConstant, int size/*, int offset*/);
 	void BindGraphics(BindParameter parameter, const RWTextureView1D& rwResource);

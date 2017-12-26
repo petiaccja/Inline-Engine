@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{DC434FE3-0F5C-49D7-926D-5C16121BD3FD}</ProjectGuid>
     <RootNamespace>Gui</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -156,6 +156,7 @@
     <ClCompile Include="GuiSplitter.cpp" />
     <ClCompile Include="GuiText.cpp" />
     <ClCompile Include="GuiLayout.cpp" />
+    <ClInclude Include="Events.hpp" />
     <ClInclude Include="GuiButton.hpp" />
     <ClCompile Include="GuiCollapsable.cpp">
       <FileType>CppHeader</FileType>

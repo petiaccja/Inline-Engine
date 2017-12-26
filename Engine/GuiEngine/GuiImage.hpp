@@ -7,7 +7,7 @@ namespace inl::gui {
 class GuiImage : public Gui
 {
 public:
-	GuiImage(GuiEngine* guiEngine);
+	GuiImage(GuiEngine& guiEngine);
 	//GuiImage(const GuiImage& other) { *this = other; }
 
 	// Important to implement in derived classes

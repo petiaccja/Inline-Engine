@@ -27,6 +27,7 @@ public:
 	void Bind(BindParameter parameter, const TextureView1D& shaderResource);
 	void Bind(BindParameter parameter, const TextureView2D& shaderResource);
 	void Bind(BindParameter parameter, const TextureView3D& shaderResource);
+	void Bind(BindParameter parameter, const TextureViewCube& shaderResource);
 	void Bind(BindParameter parameter, const ConstBufferView& shaderConstant);
 
 	//! Offset was removed because:
@@ -77,6 +78,11 @@ void BindingManager<Type>::Bind(BindParameter parameter, const TextureView2D& sh
 
 template <gxapi::eCommandListType Type>
 void BindingManager<Type>::Bind(BindParameter parameter, const TextureView3D& shaderResource) {
+	return BindTexture(parameter, shaderResource.GetHandle());
+}
+
+template <gxapi::eCommandListType Type>
+void BindingManager<Type>::Bind(BindParameter parameter, const TextureViewCube& shaderResource) {
 	return BindTexture(parameter, shaderResource.GetHandle());
 }
 

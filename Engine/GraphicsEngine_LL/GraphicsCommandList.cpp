@@ -233,6 +233,17 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureVie
 	}
 }
 
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const TextureViewCube& shaderResource) {
+	ExpectResourceState(shaderResource.GetResource(), gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
+	try {
+		m_graphicsBindingManager.Bind(parameter, shaderResource);
+	}
+	catch (std::bad_alloc&) {
+		NewScratchSpace(1000);
+		m_graphicsBindingManager.Bind(parameter, shaderResource);
+	}
+}
+
 void GraphicsCommandList::BindGraphics(BindParameter parameter, const ConstBufferView& shaderConstant) {
 	if (dynamic_cast<const PersistentConstBuffer*>(&shaderConstant.GetResource())) {
 		m_additionalResources.push_back(shaderConstant.GetResource());

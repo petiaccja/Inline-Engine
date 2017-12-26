@@ -10,24 +10,25 @@
 
 using namespace inl::gui;
 
-Gui::Gui(GuiEngine* guiEngine)
+Gui::Gui(GuiEngine& guiEngine)
 :Gui(guiEngine, false)
 {
-	guiEngine->Register(this);
+	guiEngine.Register(this);
 }
 
-Gui::Gui()
-:Gui(nullptr, false)
-{
-	guiEngine->Register(this);
-}
+//Gui::Gui()
+//:Gui(nullptr, false)
+//{
+//	guiEngine.Register(this);
+//}
 
-Gui::Gui(GuiEngine* guiEngine, bool bLayer)
+Gui::Gui(GuiEngine& guiEngine, bool bLayer)
+:guiEngine(guiEngine)
 {
-	borderColor = Color(128);
+	borderColor = ColorI(128, 128, 128, 255);
 	size = Vec2(60, 20);
-	bgIdleColor = Color(45);
-	bgHoverColor = Color(75);
+	bgIdleColor = ColorI(45, 45, 45, 255);
+	bgHoverColor = ColorI(75, 75, 75, 255);
 	border = RectF(0, 0, 0, 0);
 	pos = Vec2(0, 0);
 	//eventPropagationPolicy = eEventPropagationPolicy::PROCESS;
@@ -59,59 +60,59 @@ Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 
 	SetBgActiveColor(bgIdleColor);
 
-	onMouseEnteredClonable += [](Gui* self, CursorEvent& event)
+	OnCursorEntered += [](Gui& self, CursorEvent& e)
 	{
-		if (!self->bBgFreezed)
+		if (!self.bBgFreezed)
 		{
-			self->SetBgActiveColor(self->GetBgHoverColor());
-			self->SetBgActiveImage(self->GetBgHoverImage());
+			self.SetBgActiveColor(self.GetBgHoverColor());
+			self.SetBgActiveImage(self.GetBgHoverImage());
 		}
 
-		self->bHovered = true;
+		self.bHovered = true;
 	};
 
-	onMouseLeavedClonable += [](Gui* self, CursorEvent& event)
+	OnCursorLeft += [](Gui& self, CursorEvent& e)
 	{
-		if (!self->bBgFreezed)
+		if (!self.bBgFreezed)
 		{
-			self->SetBgActiveColor(self->GetBgIdleColor());
-			self->SetBgActiveImage(self->GetBgIdleImage());
+			self.SetBgActiveColor(self.GetBgIdleColor());
+			self.SetBgActiveImage(self.GetBgIdleImage());
 		}
 
-		self->bHovered = false;
+		self.bHovered = false;
 	};
 
-	onChildRemovedClonable += [](Gui* self, Gui* child)
+	OnChildRemoved += [](Gui& self, ChildEvent& e)
 	{
-		self->bLayoutNeedRefresh = true;
+		self.bLayoutNeedRefresh = true;
 	};
 
-	onChildAddedClonable += [](Gui* self, Gui* child)
+	OnChildAdded += [](Gui& self, ChildEvent& e)
 	{
-		self->bLayoutNeedRefresh = true;
+		self.bLayoutNeedRefresh = true;
 	};
 
-	onPaintClonable += [](Gui* self, Gdiplus::Graphics* graphics)
+	OnPaint += [](Gui& self, PaintEvent& e)
 	{
-		if (self->IsLayoutNeedRefresh())
-			self->RefreshLayout();
+		if (self.IsLayoutNeedRefresh())
+			self.RefreshLayout();
 
-		RectF paddingRect = self->GetPaddingRect();
-		RectF borderRect = self->GetBorderRect();
+		RectF paddingRect = self.GetPaddingRect();
+		RectF borderRect = self.GetBorderRect();
 
 		Gdiplus::Rect gdiBorderRect(borderRect.left, borderRect.top, borderRect.GetWidth(), borderRect.GetHeight());
 		Gdiplus::Rect gdiPaddingRect(paddingRect.left, paddingRect.top, paddingRect.GetWidth(), paddingRect.GetHeight());
 
 		// TODO visibleRect
-		auto visibleContentRect = self->GetVisibleRect();
+		auto visibleContentRect = self.GetVisibleRect();
 		Gdiplus::Rect gdiClipRect(visibleContentRect.left, visibleContentRect.top, visibleContentRect.GetWidth(), visibleContentRect.GetHeight());
 
 		// Clipping
-		graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeReplace);
+		e.graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeReplace);
 
 		// Draw left border
-		Color borderColor = self->GetBorderColor();
-		RectF border = self->GetBorder();
+		ColorI borderColor = self.GetBorderColor();
+		RectF border = self.GetBorder();
 
 		Gdiplus::SolidBrush borderBrush(Gdiplus::Color(borderColor.a, borderColor.r, borderColor.g, borderColor.b));
 		if (border.left != 0)
@@ -122,7 +123,7 @@ Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 			tmp.right = tmp.left + border.left;
 
 			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
-			graphics->FillRectangle(&borderBrush, tmpGdi);
+			e.graphics->FillRectangle(&borderBrush, tmpGdi);
 		}
 
 		// Draw right border
@@ -134,7 +135,7 @@ Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 			tmp.left = tmp.right - border.right;
 
 			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
-			graphics->FillRectangle(&borderBrush, tmpGdi);
+			e.graphics->FillRectangle(&borderBrush, tmpGdi);
 		}
 
 		// Draw top border
@@ -146,7 +147,7 @@ Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 			tmp.bottom = tmp.top + border.top;
 
 			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
-			graphics->FillRectangle(&borderBrush, tmpGdi);
+			e.graphics->FillRectangle(&borderBrush, tmpGdi);
 		}
 
 		// Draw bottom border
@@ -158,20 +159,20 @@ Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 			tmp.top = tmp.bottom - border.bottom;
 
 			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
-			graphics->FillRectangle(&borderBrush, tmpGdi);
+			e.graphics->FillRectangle(&borderBrush, tmpGdi);
 		}
 
 
 		// Draw Background Image Rectangle
-		if (self->GetBgActiveImage() && self->bBgImageVisible)
+		if (self.GetBgActiveImage() && self.bBgImageVisible)
 		{
-			graphics->DrawImage(self->GetBgActiveImage(), gdiPaddingRect);
+			e.graphics->DrawImage(self.GetBgActiveImage(), gdiPaddingRect);
 		}
-		else if (self->bBgColorVisible) // Draw Background Colored Rectangle
+		else if (self.bBgColorVisible) // Draw Background Colored Rectangle
 		{
-			Color bgColor = self->GetBgActiveColor();
+			ColorI bgColor = self.GetBgActiveColor();
 			Gdiplus::SolidBrush brush(Gdiplus::Color(bgColor.a, bgColor.r, bgColor.g, bgColor.b));
-			graphics->FillRectangle(&brush, gdiPaddingRect);
+			e.graphics->FillRectangle(&brush, gdiPaddingRect);
 		}
 	};
 }
@@ -214,24 +215,21 @@ Gui& Gui::operator = (const Gui& other)
 	bBgColorVisible = other.bBgColorVisible;
 	bBgImageVisible = other.bBgImageVisible;
 
-	onMouseClickedClonable = other.onMouseClickedClonable;
-	onMousePressedClonable = other.onMousePressedClonable;
-	onMouseReleasedClonable = other.onMouseReleasedClonable;
-	onMouseMovedClonable = other.onMouseMovedClonable;
-	onMouseEnteredClonable = other.onMouseEnteredClonable;
-	onMouseLeavedClonable = other.onMouseLeavedClonable;
-	onMouseHoveringClonable = other.onMouseHoveringClonable;
-	onUpdateClonable = other.onUpdateClonable;
-	onTransformChangedClonable = other.onTransformChangedClonable;
-	onPosChangedClonable = other.onPosChangedClonable;
-	onSizeChangedClonable = other.onSizeChangedClonable;
-	onRectChangedClonable = other.onRectChangedClonable;
-	onParentTransformChangedClonable = other.onParentTransformChangedClonable;
-	onChildTransformChangedClonable = other.onChildTransformChangedClonable;
-	onParentChangedClonable = other.onParentChangedClonable;
-	onChildAddedClonable = other.onChildAddedClonable;
-	onChildRemovedClonable = other.onChildRemovedClonable;
-	onPaintClonable = other.onPaintClonable;
+	OnCursorClicked = other.OnCursorClicked;
+	OnCursorPressed = other.OnCursorPressed;
+	OnCursorReleased = other.OnCursorReleased;
+	OnCursorMoved = other.OnCursorMoved;
+	OnCursorEntered = other.OnCursorEntered;
+	OnCursorLeft = other.OnCursorLeft;
+	OnCursorHovering = other.OnCursorHovering;
+	OnUpdate = other.OnUpdate;
+	OnTransformChanged = other.OnTransformChanged;
+	OnParentTransformChanged = other.OnParentTransformChanged;
+	OnChildTransformChanged = other.OnChildTransformChanged;
+	OnParentChanged = other.OnParentChanged;
+	OnChildAdded = other.OnChildAdded;
+	OnChildRemoved = other.OnChildRemoved;
+	OnPaint = other.OnPaint;
 
 	// Background
 	if (other.bgIdleImage)
@@ -281,11 +279,13 @@ void Gui::AddGui(Gui* child, bool bFireEvents)
 
 	if (bFireEvents)
 	{
-		child->onParentChanged(this);
-		child->onParentChangedClonable(child, this);
+		ParentEvent parentEvent;
+		parentEvent.parent = this;
+		child->OnParentChanged(*child, parentEvent);
 
-		onChildAdded(child);
-		onChildAddedClonable(this, child);
+		ChildEvent childEvent;
+		childEvent.child = child;
+		OnChildAdded(*this, childEvent);
 	}
 }
 
@@ -321,11 +321,13 @@ bool Gui::RemoveGui(Gui* child, bool bFireEvents)
 
 			if (bFireEvents)
 			{
-				onChildRemoved(child);
-				onChildRemovedClonable(this, child);
+				ChildEvent childEvent;
+				childEvent.child = child;
+				OnChildRemoved(*this, childEvent);
 
-				child->onParentChanged(nullptr);
-				child->onParentChangedClonable(child, nullptr);
+				ParentEvent parentEvent;
+				parentEvent.parent = nullptr;
+				child->OnParentChanged(*child, parentEvent);
 			}
 
 			return true;
@@ -342,7 +344,7 @@ bool Gui::RemoveFromParent()
 	return false;
 }
 
-void Gui::TraverseTowardParents(const std::function<void(Gui*)>& fn)
+void Gui::TraverseTowardParents(const std::function<void(Gui&)>& fn)
 {
 	// STOP traverse 
 	//if (eventPropagationPolicy == eEventPropagationPolicy::STOP)
@@ -350,7 +352,7 @@ void Gui::TraverseTowardParents(const std::function<void(Gui*)>& fn)
 	//
 	//// PROCESS fn then STOP
 	//if (eventPropagationPolicy == eEventPropagationPolicy::PROCESS || eventPropagationPolicy == eEventPropagationPolicy::PROCESS_STOP)
-		fn(this);
+		fn(*this);
 	//
 	//// Continue recursion
 	//if (eventPropagationPolicy == eEventPropagationPolicy::PROCESS || eventPropagationPolicy == eEventPropagationPolicy::AVOID)
@@ -358,7 +360,7 @@ void Gui::TraverseTowardParents(const std::function<void(Gui*)>& fn)
 		if (back)
 			back->TraverseTowardParents(fn);
 		else if (parent)
-			fn(parent);
+			fn(*parent);
 	//}
 }
 
@@ -382,45 +384,33 @@ void Gui::SetRect(float x, float y, float width, float height, bool bMoveChildre
 	size.y = height;
 	RectF rect = GetRect();
 
-	bool bPosChanged = rect.GetPos() != oldRect.GetPos();
+	TransformEvent transformEvent;
+	transformEvent.rect = rect;
+
 	bool bSizeChanged = rect.GetSize() != oldRect.GetSize();
-	bool bRectChanged = bPosChanged || bSizeChanged;
+	bool bRectChanged = rect != oldRect;
 
 	if (bRectChanged)
 	{
 		for (Gui* child : children)
 		{
 			if (bMoveChildren)
-				child->Move(rect.GetPos() - oldRect.GetPos());
+				child->Move(rect.GetTopLeft() - oldRect.GetTopLeft());
 
-			child->onParentTransformChanged(rect);
-			child->onParentTransformChangedClonable(child, rect);
+			child->OnParentTransformChanged(*child, transformEvent);
 		}
 
-		onTransformChanged(rect);
+		
+		OnTransformChanged(*this, transformEvent);
 
 		if (parent)
+			parent->OnChildTransformChanged(*parent, transformEvent);
+
+		if (bSizeChanged)
 		{
-			parent->onChildTransformChanged(rect);
-			parent->onChildTransformChangedClonable(parent, rect);
+			if (bMakeLayoutDirty)
+				bLayoutNeedRefresh = true;
 		}
-
-		onRectChanged(rect);
-		onRectChangedClonable(this, rect);
-	}
-
-	if (bPosChanged)
-	{
-		onPosChanged(rect.GetPos());
-	}
-
-	if (bSizeChanged)
-	{
-		onSizeChanged(rect.GetSize());
-		onSizeChangedClonable(this, rect.GetSize());
-
-		if (bMakeLayoutDirty)
-			bLayoutNeedRefresh = true;
 	}
 }
 
@@ -505,7 +495,7 @@ void Gui::SetBgHoverImage(const std::wstring& str, int width /*= 0*/, int height
 	bgHoverImage = resultBitmap;
 }
 
-void Gui::SetBgIdleColor(const Color& color)
+void Gui::SetBgIdleColor(const ColorI& color)
 {
 	//if (bgIdleColor == GetBgActiveColor())
 	//	SetBgActiveColor(color);
@@ -513,7 +503,7 @@ void Gui::SetBgIdleColor(const Color& color)
 	bgIdleColor = color;
 }
 
-void Gui::SetBgToColor(const Color& idleColor, const Color& hoverColor)
+void Gui::SetBgToColor(const ColorI& idleColor, const ColorI& hoverColor)
 {
 	// Disable Image !
 	HideBgImage();
@@ -527,7 +517,7 @@ void Gui::SetBgToColor(const Color& idleColor, const Color& hoverColor)
 	SetBgHoverColor(hoverColor);
 }
 
-void Gui::SetBgHoverColor(const Color& color)
+void Gui::SetBgHoverColor(const ColorI& color)
 {
 	//if (bgHoverColor == GetBgActiveColor())
 	//	SetBgActiveColor(color);
@@ -574,7 +564,7 @@ void Gui::SetPadding(float leftLength, float rightLength, float topLength, float
 	padding = RectF(leftLength, rightLength, topLength, bottomLength);
 	bLayoutNeedRefresh = true;
 }
-void Gui::SetBorder(float leftLength, float rightLength, float topLength, float bottomLength, const Color& color)
+void Gui::SetBorder(float leftLength, float rightLength, float topLength, float bottomLength, const ColorI& color)
 {
 	border = RectF(leftLength, rightLength, topLength, bottomLength);
 	borderColor = color;
@@ -835,8 +825,15 @@ RectF Gui::GetContentRect()
 {
 	RectF result = GetRect();
 
-	result.MoveSidesLocal(-border);
-	result.MoveSidesLocal(-padding);
+	result.top += border.top;
+	result.bottom -= border.bottom;
+	result.left += border.left;
+	result.right -= border.right;
+
+	result.top += padding.top;
+	result.bottom -= padding.bottom;
+	result.left += padding.left;
+	result.right -= padding.right;
 
 	return result;
 }
@@ -845,7 +842,10 @@ RectF Gui::GetPaddingRect()
 {
 	RectF result = GetRect();
 
-	result.MoveSidesLocal(-border);
+	result.top += border.top;
+	result.bottom -= border.bottom;
+	result.left += border.left;
+	result.right -= border.right;
 
 	return result;
 }
@@ -854,7 +854,10 @@ RectF Gui::GetBorderRect()
 {
 	RectF result = GetRect();
 
-	result.MoveSidesLocal(-margin);
+	result.top += margin.top;
+	result.bottom -= margin.bottom;
+	result.left += margin.left;
+	result.right -= margin.right;
 
 	return result;
 }
@@ -875,168 +878,50 @@ RectF Gui::GetChildrenRect()
 	return boundingRect;
 }
 
-bool Gui::IsChild(Gui* gui)
+bool Gui::IsChild(Gui& gui)
 {
-	int idx = gui->GetIndexInParent();
+	int idx = gui.GetIndexInParent();
 
 	if (idx >= 0 && idx < GetChildren().size())
 	{
 		Gui* potentialChild = GetChildren()[idx];
 
-		return potentialChild == gui;
+		return potentialChild == &gui;
 	}
 
 	return false;
 }
 
-bool Gui::IsSibling(Gui* gui)
+bool Gui::IsSibling(Gui& gui)
 {
 	Gui* parent0 = GetParent();
-	Gui* parent1 = gui->GetParent();
+	Gui* parent1 = gui.GetParent();
 
 	return (parent0 == parent1) && parent0; // Important if parent0 and parent1 are nullptrs they are not siblings !!
 }
 
-Gui* Gui::AddGui()
-{
-	Gui* p = new Gui(guiEngine);
-	AddGui(p);
-	return p;
-}
-
-GuiText* Gui::AddGuiText()
-{
-	GuiText* p = new GuiText(guiEngine);
-	AddGui(p);
-	return p;
-}
-
-GuiButton* Gui::AddGuiButton()
-{
-	GuiButton* p = new GuiButton(guiEngine);
-	AddGui(p);
-	return p;
-}
-
-GuiList* Gui::AddGuiList()
-{
-	GuiList* p = new GuiList(guiEngine);
-	AddGui(p);
-	return p;
-}
-
-GuiMenu* Gui::AddGuiMenu()
-{
-	GuiMenu* p = new GuiMenu(guiEngine);
-	AddGui(p);
-	return p;
-}
-
-GuiSlider* Gui::AddGuiSlider()
-{
-	GuiSlider* p = new GuiSlider(guiEngine);
-	AddGui(p);
-	return p;
-}
-
-GuiCollapsable* Gui::AddGuiCollapsable()
-{
-	GuiCollapsable* p = new GuiCollapsable(guiEngine);
-	AddGui(p);
-	return p;
-}
-
-GuiSplitter* Gui::AddGuiSplitter()
-{
-	GuiSplitter* p = new GuiSplitter(guiEngine);
-	AddGui(p);
-	return p;
-}
-
-GuiImage* Gui::AddGuiImage()
-{
-	GuiImage* p = new GuiImage(guiEngine);
-	AddGui(p);
-	return p;
-}
-
-GuiScrollable * Gui::AddGuiScrollable()
-{
-	GuiScrollable* p = new GuiScrollable(guiEngine);
-	AddGui(p);
-	return p;
-}
-
 float Gui::GetCursorPosContentSpaceX()
 {
-	return guiEngine->GetCursorPosX() - pos.x;
+	return guiEngine.GetCursorPosX() - pos.x;
 }
 
 float Gui::GetCursorPosContentSpaceY()
 {
-	return guiEngine->GetCursorPosY() - pos.y;
+	return guiEngine.GetCursorPosY() - pos.y;
 }
 
 bool Gui::IsCursorInside()
 {
-	return GetRect().IsPointInside(guiEngine->GetCursorPos());
+	return GetRect().IsPointInside(guiEngine.GetCursorPos());
 }
 
 Vec2 Gui::GetCursorPosContentSpace()
 {
-	return guiEngine->GetCursorPos() - GetContentPos();
+	return guiEngine.GetCursorPos() - GetContentPos();
 }
 
 void Gui::BringToFront()
 {
 	RemoveFromParent(); // Remove from previous layer
-	guiEngine->GetPostProcessLayer()->AddGui(this); // Add to post process (top most layer)
-}
-
-Gui* Gui::AsPlane() 
-{ 
-	assert(Is<Gui>());
-	return (Gui*)this;
-}
-
-GuiText* Gui::AsText() 
-{ 
-	assert(Is<GuiText>());
-	return (GuiText*)this; 
-}
-
-GuiButton* Gui::AsButton() 
-{ 
-	assert(Is<GuiButton>());
-	return (GuiButton*)this;
-}
-
-GuiList* Gui::AsList() 
-{ 
-	assert(Is<GuiList>());
-	return (GuiList*)this;
-}
-
-GuiSlider* Gui::AsSlider()
-{ 
-	assert(Is<GuiSlider>());
-	return (GuiSlider*)this;
-}
-
-GuiCollapsable* Gui::AsCollapsable() 
-{ 
-	assert(Is<GuiCollapsable>());
-	return (GuiCollapsable*)this;
-}
-
-GuiSplitter* Gui::AsSplitter() 
-{ 
-	assert(Is<GuiSplitter>());
-	return (GuiSplitter*)this;
-}
-
-GuiMenu* Gui::AsMenu()
-{ 
-	assert(Is<GuiMenu>());
-	return (GuiMenu*)this;
+	guiEngine.GetPostProcessLayer()->AddGui(this); // Add to post process (top most layer)
 }
