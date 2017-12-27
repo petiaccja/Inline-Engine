@@ -21,9 +21,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SpinLock.hpp">
-      <Filter>Base</Filter>
-    </ClInclude>
     <ClInclude Include="Enums.hpp">
       <Filter>Interfaces</Filter>
     </ClInclude>
@@ -66,6 +63,9 @@
       <Filter>Sockets</Filter>
     </ClCompile>
     <ClCompile Include="TcpListener.cpp">
+      <Filter>Tcp</Filter>
+    </ClCompile>
+    <ClCompile Include="TcpSocketBuilder.cpp">
       <Filter>Tcp</Filter>
     </ClCompile>
   </ItemGroup>

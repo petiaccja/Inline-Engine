@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Net.hpp"
-
 #include <vector>
 #include <sstream>
+
+#include "Net.hpp"
 
 namespace inl::net::util
 {

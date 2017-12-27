@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Chat">
+      <UniqueIdentifier>{418ab88c-99f7-4ed0-89c0-9add98c1cefe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Chat\Client">
+      <UniqueIdentifier>{98d9e8b0-2416-468a-9750-8c29650b8033}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Chat\Server">
+      <UniqueIdentifier>{06c9bc53-c909-4fba-ab56-a298b1fcab78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Chat\Common">
+      <UniqueIdentifier>{6992b5df-6894-4a41-b077-04688a329356}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="TcpServer.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="TcpServer.hpp" />
+    <ClInclude Include="NewConnectionEvent.hpp" />
+    <ClInclude Include="DisconnectedEvent.hpp" />
+    <ClInclude Include="ServerConnectionHandler.hpp" />
+    <ClInclude Include="ServerConnection.hpp" />
+  </ItemGroup>
+</Project>

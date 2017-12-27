@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{805EDCB5-391B-4F92-8568-CF6B691C16FE}</ProjectGuid>
     <RootNamespace>NetworkEngine</RootNamespace>
-    <ProjectName>NetworkEngine</ProjectName>
+    <ProjectName>NetworkEngine_LL</ProjectName>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -88,6 +88,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalIncludeDirectories>E:\Inline-Engine\Engine\BaseLibrary</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
@@ -146,7 +147,6 @@
     <ClInclude Include="Init.hpp" />
     <ClInclude Include="Socket.hpp" />
     <ClInclude Include="ISocket.hpp" />
-    <ClInclude Include="SpinLock.hpp" />
     <ClInclude Include="TcpClient.hpp" />
     <ClInclude Include="TcpListener.hpp" />
     <ClInclude Include="TcpSocketBuilder.hpp" />
@@ -157,6 +157,12 @@
     <ClCompile Include="IPAddress.cpp" />
     <ClCompile Include="Socket.cpp" />
     <ClCompile Include="TcpListener.cpp" />
+    <ClCompile Include="TcpSocketBuilder.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BaseLibrary\BaseLibrary.vcxproj">
+      <Project>{f55437f4-00c1-49ae-bffc-4b0a6dc75081}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

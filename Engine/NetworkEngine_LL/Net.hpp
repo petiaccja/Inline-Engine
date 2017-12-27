@@ -5,20 +5,19 @@
 #ifdef _MSC_VER
 #pragma comment(lib, "ws2_32.lib")
 #include <winsock2.h>
-#include <WS2tcpip.h>
+#include <ws2tcpip.h>
 #undef SendMessage
 #undef SetPort
 
 #else
-	#include <stdio.h>
 	#include <unistd.h>
+	#include <stdio.h>
 	#include <sys/types.h>
-	#include <sys/Im_socketket.h>
+	#include <sys/socket.h>
 	#include <netinet/in.h>
 	#include <arpa/inet.h>
 	#include <netdb.h>
 	#include <sys/ioctl.h>
-	#include <string.h>
 
 	#define SOCKET_ERROR -1
 	#define NO_ERROR 0

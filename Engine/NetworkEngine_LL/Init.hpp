@@ -2,9 +2,8 @@
 
 #ifdef _MSC_VER
 
-	#define WIN32_LEAN_AND_MEAN
 	#include <winsock2.h>
-	#include <windows.h>
+	#include <ws2tcpip.h>
 
 	namespace inl::net
 	{
