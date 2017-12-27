@@ -27,7 +27,7 @@ public:
 	virtual GuiText* Clone() const { return new GuiText(*this); }
 	GuiText& operator = (const GuiText& other);
 
-	//virtual void OnPaint(Gdiplus::Graphics* graphics, RectF& clipRect) override;
+	//virtual void OnPaint(Gdiplus::Graphics* graphics, GuiRectF& clipRect) override;
 
 	void SetFontSize(int size);
 	void SetFontFamily(const std::wstring& text);
@@ -66,26 +66,26 @@ inline GuiText::GuiText(GuiEngine& guiEngine)
 	OnPaint += [](Gui& self_, PaintEvent& e)
 	{
 		GuiText& self = self_.As<GuiText>();
-
+	
 		if (self.text.length() == 0)
 			return;
-
+	
 		//auto rect = self.GetContentRect();
 		auto visibleContentRect = self.GetVisibleContentRect();
-
+	
 		// TODO visibleRect
 		//Gdiplus::RectF gdiClipRect = Gdiplus::RectF(rect.left, rect.top, rect.GetWidth(), rect.GetHeight());
 		Gdiplus::RectF gdiClipRect = Gdiplus::RectF(visibleContentRect.left, visibleContentRect.top, visibleContentRect.GetWidth(), visibleContentRect.GetHeight());
-
+	
 		// Clipping (INTERSECT MODE)
 		//graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeIntersect);
 		//graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeReplace);
-
+	
 		ColorI color = self.color;
 		Gdiplus::SolidBrush brush(Gdiplus::Color(color.a, color.r, color.g, color.b));
-
+	
 		Gdiplus::PointF pointF(self.GetPos().x, self.GetPos().y);
-
+	
 		e.graphics->SetTextRenderingHint(Gdiplus::TextRenderingHintSystemDefault);
 		e.graphics->DrawString(self.text.c_str(), -1, self.font.get(), pointF, &brush);
 	};

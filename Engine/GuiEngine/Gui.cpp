@@ -29,7 +29,7 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 	size = Vec2(60, 20);
 	bgIdleColor = ColorI(45, 45, 45, 255);
 	bgHoverColor = ColorI(75, 75, 75, 255);
-	border = RectF(0, 0, 0, 0);
+	border = GuiRectF(0, 0, 0, 0);
 	pos = Vec2(0, 0);
 	//eventPropagationPolicy = eEventPropagationPolicy::PROCESS;
 	indexInParent = -1;
@@ -44,8 +44,8 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 	bBgImageVisible = true;
 	bBgColorVisible = true;
 	bClipChildren = true;
-	margin = RectF(0, 0, 0, 0);
-	padding = RectF(0, 0, 0, 0);
+	margin = GuiRectF(0, 0, 0, 0);
+	padding = GuiRectF(0, 0, 0, 0);
 	bLayoutNeedRefresh = false;
 	alignHor = eGuiAlignHor::NONE;
 	alignVer = eGuiAlignVer::NONE;
@@ -97,8 +97,8 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 		if (self.IsLayoutNeedRefresh())
 			self.RefreshLayout();
 
-		RectF paddingRect = self.GetPaddingRect();
-		RectF borderRect = self.GetBorderRect();
+		GuiRectF paddingRect = self.GetPaddingRect();
+		GuiRectF borderRect = self.GetBorderRect();
 
 		Gdiplus::Rect gdiBorderRect(borderRect.left, borderRect.top, borderRect.GetWidth(), borderRect.GetHeight());
 		Gdiplus::Rect gdiPaddingRect(paddingRect.left, paddingRect.top, paddingRect.GetWidth(), paddingRect.GetHeight());
@@ -108,16 +108,16 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 		Gdiplus::Rect gdiClipRect(visibleContentRect.left, visibleContentRect.top, visibleContentRect.GetWidth(), visibleContentRect.GetHeight());
 
 		// Clipping
-		e.graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeReplace);
+		//e.graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeReplace);
 
 		// Draw left border
 		ColorI borderColor = self.GetBorderColor();
-		RectF border = self.GetBorder();
+		GuiRectF border = self.GetBorder();
 
 		Gdiplus::SolidBrush borderBrush(Gdiplus::Color(borderColor.a, borderColor.r, borderColor.g, borderColor.b));
 		if (border.left != 0)
 		{
-			RectF tmp = borderRect;
+			GuiRectF tmp = borderRect;
 
 			// Setup left border
 			tmp.right = tmp.left + border.left;
@@ -129,7 +129,7 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 		// Draw right border
 		if (border.right != 0)
 		{
-			RectF tmp = borderRect;
+			GuiRectF tmp = borderRect;
 
 			// Setup right border
 			tmp.left = tmp.right - border.right;
@@ -141,7 +141,7 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 		// Draw top border
 		if (border.top != 0)
 		{
-			RectF tmp = borderRect;
+			GuiRectF tmp = borderRect;
 
 			// Setup top border
 			tmp.bottom = tmp.top + border.top;
@@ -153,7 +153,7 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 		// Draw bottom border
 		if (border.bottom != 0)
 		{
-			RectF tmp = borderRect;
+			GuiRectF tmp = borderRect;
 
 			// Setup top border
 			tmp.top = tmp.bottom - border.bottom;
@@ -376,13 +376,13 @@ void Gui::SetRect(float x, float y, float width, float height, bool bMoveChildre
 	width = std::max(width, GetMinSize().x); // In release solve the issue
 	height = std::max(height, GetMinSize().y);
 
-	RectF oldRect = GetRect();
+	GuiRectF oldRect = GetRect();
 
 	pos.x = x;
 	pos.y = y;
 	size.x = width;
 	size.y = height;
-	RectF rect = GetRect();
+	GuiRectF rect = GetRect();
 
 	TransformEvent transformEvent;
 	transformEvent.rect = rect;
@@ -416,12 +416,12 @@ void Gui::SetRect(float x, float y, float width, float height, bool bMoveChildre
 
 void Gui::SetContentRect(float x, float y, float width, float height, bool bFireEvents, bool bMoveChildren)
 {
-	RectF resultRect = RectF(x, x + width, y, y + height);
+	GuiRectF resultRect = GuiRectF(x, x + width, y + height, y);
 
 	// Convert length to signed offset
-	RectF padding_ = padding;
-	RectF border_ = border;
-	//RectF margin_ = margin;
+	GuiRectF padding_ = padding;
+	GuiRectF border_ = border;
+	//GuiRectF margin_ = margin;
 	padding_.left *= -1;
 	padding_.top *= -1;
 	border_.left *= -1;
@@ -555,18 +555,18 @@ void Gui::SetBgActiveImageToHover()
 
 void Gui::SetMargin(float leftLength, float rightLength, float topLength, float bottomLength)
 {
-	margin = RectF(leftLength, rightLength, topLength, bottomLength);
+	margin = GuiRectF(leftLength, rightLength, bottomLength, topLength);
 	bLayoutNeedRefresh = true;
 }
 
 void Gui::SetPadding(float leftLength, float rightLength, float topLength, float bottomLength)
 {
-	padding = RectF(leftLength, rightLength, topLength, bottomLength);
+	padding = GuiRectF(leftLength, rightLength, bottomLength, topLength);
 	bLayoutNeedRefresh = true;
 }
 void Gui::SetBorder(float leftLength, float rightLength, float topLength, float bottomLength, const ColorI& color)
 {
-	border = RectF(leftLength, rightLength, topLength, bottomLength);
+	border = GuiRectF(leftLength, rightLength, bottomLength, topLength);
 	borderColor = color;
 	bLayoutNeedRefresh = true;
 }
@@ -793,37 +793,37 @@ Vec2 Gui::ArrangeChildren(const Vec2& finalSize)
 	return size;
 }
 
-RectF Gui::GetRect()
+GuiRectF Gui::GetRect()
 {
-	return RectF(pos, size);
+	return GuiRectF(pos.x, pos.x + size.x, pos.y + size.y, pos.y);
 }
 
-RectF Gui::GetVisibleRect()
+GuiRectF Gui::GetVisibleRect()
 {
 	return visibleRect;
 }
 
-RectF Gui::GetVisibleContentRect()
+GuiRectF Gui::GetVisibleContentRect()
 {
-	RectF rect = GetVisibleRect();
+	GuiRectF rect = GetVisibleRect();
 
 	rect.Intersect(GetContentRect());
 
 	return rect;
 }
 
-RectF Gui::GetVisiblePaddingRect()
+GuiRectF Gui::GetVisiblePaddingRect()
 {
-	RectF rect = GetVisibleRect();
+	GuiRectF rect = GetVisibleRect();
 
 	rect.Intersect(GetPaddingRect());
 
 	return rect;
 }
 
-RectF Gui::GetContentRect()
+GuiRectF Gui::GetContentRect()
 {
-	RectF result = GetRect();
+	GuiRectF result = GetRect();
 
 	result.top += border.top;
 	result.bottom -= border.bottom;
@@ -838,9 +838,9 @@ RectF Gui::GetContentRect()
 	return result;
 }
 
-RectF Gui::GetPaddingRect()
+GuiRectF Gui::GetPaddingRect()
 {
-	RectF result = GetRect();
+	GuiRectF result = GetRect();
 
 	result.top += border.top;
 	result.bottom -= border.bottom;
@@ -850,9 +850,9 @@ RectF Gui::GetPaddingRect()
 	return result;
 }
 
-RectF Gui::GetBorderRect()
+GuiRectF Gui::GetBorderRect()
 {
-	RectF result = GetRect();
+	GuiRectF result = GetRect();
 
 	result.top += margin.top;
 	result.bottom -= margin.bottom;
@@ -862,15 +862,15 @@ RectF Gui::GetBorderRect()
 	return result;
 }
 
-RectF Gui::GetChildrenRect()
+GuiRectF Gui::GetChildrenRect()
 {
 	auto& children = GetChildren();
 
 	if (children.size() == 0)
-		return RectF(0, 0, 0, 0);
+		return GuiRectF(0, 0, 0, 0);
 
 	// TODO slow performance.. Collect child boundingbox when onChildAdded, onChildRemoved, onChildTransformChanged..
-	RectF boundingRect = children[0]->GetRect();
+	GuiRectF boundingRect = children[0]->GetRect();
 
 	for (int i = 1; i < children.size(); ++i)
 		boundingRect.Union(children[i]->GetRect());

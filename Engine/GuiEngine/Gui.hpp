@@ -1,18 +1,11 @@
 #pragma once
 #include <BaseLibrary/Common.hpp>
 #include <BaseLibrary/Platform/Window.hpp>
-#include <BaseLibrary/Rect.hpp>
 #include <BaseLibrary/Color.hpp>
 #include <unordered_map>
 
 #include "GuiEvent.hpp"
-
-// TODO REMOVE it, seperate GDI, DX12 into seperate libs
-//#define min(a,b) a < b ? a : b
-//#define max(a,b) a > b ? a : b
-//#include <gdiplus.h>
-//#undef min
-//#undef max
+#include "GuiRect.hpp"
 
 namespace inl::gui {
 
@@ -108,10 +101,10 @@ public:
 	T& As() { assert(Is<T>());  return *(T*)this; }
 
 	void SetContentRect(float x, float y, float width, float height) { SetContentRect(x, y, width, height, true, true); }
-	void SetContentRect(const RectF rect) { SetContentRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); }
+	void SetContentRect(const GuiRectF rect) { SetContentRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); }
 
 	void SetRect(float x, float y, float width, float height) { SetRect(x, y, width, height, true, true); }
-	void SetRect(const RectF& rect) { SetRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); }
+	void SetRect(const GuiRectF& rect) { SetRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight()); }
 
 	void SetName(const std::wstring& str) { name = str; }
 	void SetName(const std::string& str) { SetName(std::wstring(str.begin(), str.end())); }
@@ -252,8 +245,8 @@ public:
 	Vec2 GetPosTopLeft() { return GetPos(); }
 	Vec2 GetPosTopRight() { return GetPos() + Vec2(GetWidth(), 0); }
 
-	const RectF& GetPadding() const { return padding; }
-	const RectF& GetMargin() const { return margin; }
+	const GuiRectF& GetPadding() const { return padding; }
+	const GuiRectF& GetMargin() const { return margin; }
 
 	//float GetContentPosX() { return GetContentPos().x; }
 	//float GetContentPosY() { return GetContentPos().y; }
@@ -275,14 +268,14 @@ public:
 	//float GetContentBottom() { return GetContentRect().bottom; }
 	//float GetContentTop() { return GetContentRect().top; }
 
-	RectF GetRect();
-	RectF GetContentRect();
-	RectF GetPaddingRect();
-	RectF GetBorderRect();
-	RectF GetVisibleRect();
-	RectF GetVisibleContentRect();
-	RectF GetVisiblePaddingRect();
-	RectF GetChildrenRect();
+	GuiRectF GetRect();
+	GuiRectF GetContentRect();
+	GuiRectF GetPaddingRect();
+	GuiRectF GetBorderRect();
+	GuiRectF GetVisibleRect();
+	GuiRectF GetVisibleContentRect();
+	GuiRectF GetVisiblePaddingRect();
+	GuiRectF GetChildrenRect();
 
 	eGuiStretch GetStretchVer() { return stretchVer; }
 	eGuiStretch GetStretchHor() { return stretchHor; }
@@ -311,7 +304,7 @@ public:
 	Gdiplus::Bitmap* GetBgHoverImage() { return bgHoverImage; }
 
 	const ColorI& GetBorderColor() { return borderColor; }
-	RectF GetBorder() { return border; }
+	GuiRectF GetBorder() { return border; }
 	Vec2 GetDesiredSize() { return GetSize() + Vec2(margin.left + margin.right, margin.top + margin.bottom); }
 
 	const std::wstring& GetName() { return name; }
@@ -332,13 +325,13 @@ public:
 	bool IsSibling(Gui& child);
 
 protected:
-	void SetVisibleRect(const RectF& rect) { visibleRect = rect; }
+	void SetVisibleRect(const GuiRectF& rect) { visibleRect = rect; }
 
 	void SetContentRect(float x, float y, float width, float height, bool bMoveChildren, bool bMakeLayoutDirty);
-	void SetContentRect(const RectF rect, bool bMoveChildren, bool bMakeLayoutDirty) { SetContentRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), bMoveChildren, bMakeLayoutDirty); }
+	void SetContentRect(const GuiRectF rect, bool bMoveChildren, bool bMakeLayoutDirty) { SetContentRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), bMoveChildren, bMakeLayoutDirty); }
 
 	void SetRect(float x, float y, float width, float height, bool bMoveChildren, bool bMakeLayoutDirty);
-	void SetRect(const RectF& rect, bool bMoveChildren, bool bMakeLayoutDirty) { SetRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), bMoveChildren, bMakeLayoutDirty); }
+	void SetRect(const GuiRectF& rect, bool bMoveChildren, bool bMakeLayoutDirty) { SetRect(rect.left, rect.top, rect.GetWidth(), rect.GetHeight(), bMoveChildren, bMakeLayoutDirty); }
 	
 	void SetContentSize(float width, float height, bool bMakeLayoutDirty) { SetContentRect(GetContentRect().left, GetContentRect().top, width, height, false, bMakeLayoutDirty); }
 	void SetContentSize(const Vec2& s, bool bMakeLayoutDirty) { SetContentSize(s.x, s.y, bMakeLayoutDirty); }
@@ -382,13 +375,13 @@ protected:
 
 	// Border
 	ColorI borderColor;
-	RectF border;
+	GuiRectF border;
 
 	// Margin
-	RectF margin;
+	GuiRectF margin;
 
 	// Padding
-	RectF padding;
+	GuiRectF padding;
 
 	// IsLayer ?
 	bool bLayer;
@@ -424,7 +417,7 @@ protected:
 	// If true, RefreshLayout() will be called before render, to ReArrange the layout as necessary
 	bool bLayoutNeedRefresh;
 
-	RectF visibleRect;
+	GuiRectF visibleRect;
 
 	// Layering (Our neighbours in the tree hierarchy)
 	Gui* front;

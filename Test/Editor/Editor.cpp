@@ -17,6 +17,12 @@ Editor::Editor()
 	// Create main window for Editor
 	wnd = new Window("Inline Engine", Vec2u(800, 600), false, true, false);
 
+	wnd->OnPaint += [this]()
+	{
+		if (guiEngine)
+			guiEngine->Render();
+	};
+
 	// Create secondary window for GAME inside Editor
 	//gameWnd = new Window("Inline Engine", Vec2u(100, 100), true, true);
 
@@ -513,7 +519,7 @@ void Editor::Update()
 
 	wnd->SetTitle("Inline Editor");
 
-	wnd->SetQueueMode(eInputQueueMode::QUEUED);
+	wnd->SetQueueMode(eInputQueueMode::IMMEDIATE);
 	while (!wnd->IsClosed())
 	{
 		// Prepare for input processing
@@ -575,10 +581,8 @@ void Editor::Update()
 		//	}
 		//}
 	
-		//while (gameWnd->PopEvent(evt));
-	
 		// Dispatch Inputs
-		input->Update();
+		//input->Update();
 	
 		// Frame delta time
 		Time.deltaTime = timer->Elapsed();

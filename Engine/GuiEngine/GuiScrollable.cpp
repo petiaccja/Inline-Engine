@@ -86,9 +86,9 @@ void GuiScrollable::SetContent(Gui* contentGui)
 	// Add new content
 	contentCell->AddGui(contentGui);
 
-	//contentGui->onRectChanged += [this, contentCell](Gui& self, RectF rect)
+	//contentGui->onRectChanged += [this, contentCell](Gui& self, GuiRectF rect)
 	//{
-	//	RectF cellRect = contentCell->GetRect();
+	//	GuiRectF cellRect = contentCell->GetRect();
 	//
 	//	// Check if rect
 	//	bool bShowHorScrollBar = rect.left < cellRect.left || rect.right > cellRect.right;

@@ -468,6 +468,16 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 			instance.CallEvent(instance.OnResize, instance.GetSize(), instance.GetClientSize());
 			return 0;
 		}
+		case WM_PAINT:
+		{
+			PAINTSTRUCT ps;
+			BeginPaint(instance.m_handle, &ps);
+			
+			instance.CallEvent(instance.OnPaint);
+			
+			EndPaint(instance.m_handle, &ps);
+			return DefWindowProc(hwnd, msg, wParam, lParam);
+		}
 		case WM_NCCREATE:
 			SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)((CREATESTRUCT*)lParam)->lpCreateParams);
 			return DefWindowProc(hwnd, msg, wParam, lParam);

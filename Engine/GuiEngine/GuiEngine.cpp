@@ -112,7 +112,7 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 										{
 											postProcessLayer->AddGui(activeContextMenu);
 
-											RectF rect = activeContextMenu->GetRect();
+											GuiRectF rect = activeContextMenu->GetRect();
 											rect.left = eventData.cursorPos.x;
 											rect.top = eventData.cursorPos.x;
 											activeContextMenu->SetRect(rect);
@@ -227,19 +227,19 @@ void GuiEngine::Update(float deltaTime)
 	InvalidateRect((HWND)targetWindow->GetNativeHandle(), NULL, false);
 
 	// Calculate clipping rect for all gui controls
-	std::function<void(Gui* control, RectF& clipRect)> traverseControls;
-	traverseControls = [&](Gui* control, RectF& clipRect)
+	std::function<void(Gui* control, GuiRectF& clipRect)> traverseControls;
+	traverseControls = [&](Gui* control, GuiRectF& clipRect)
 	{
 		control->SetVisibleRect(clipRect);
 
 		// Control the clipping rect of the children controls
-		RectF rect;
+		GuiRectF rect;
 		if (control->IsChildrenClipEnabled())
 			rect = control->GetPaddingRect();
 		else
-			rect = RectF(-FLT_MAX * 0.5, FLT_MAX, -FLT_MAX * 0.5, FLT_MAX);
+			rect = GuiRectF(std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max(), std::numeric_limits<int16_t>::max(), std::numeric_limits<int16_t>::min());
 
-		RectF newClipRect = RectF::Intersection(clipRect, rect);
+		GuiRectF newClipRect = GuiRectF::Intersection(clipRect, rect);
 
 		for (Gui* child : control->GetChildren())
 			traverseControls(child, newClipRect);
@@ -247,7 +247,7 @@ void GuiEngine::Update(float deltaTime)
 
 	for (GuiLayer* layer : GetLayers())
 	{
-		RectF clipRect(-FLT_MAX * 0.5, FLT_MAX, -FLT_MAX * 0.5, FLT_MAX);
+		GuiRectF clipRect(std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max(), std::numeric_limits<int16_t>::max(), std::numeric_limits<int16_t>::min());
 		traverseControls(layer, clipRect);
 	}
 
@@ -327,20 +327,25 @@ void GuiEngine::Render()
 {
 	SelectObject(memHDC, memBitmap);
 
+	//RECT clientRect;
+	//GetClientRect((HWND)targetWindow->GetNativeHandle(), &clientRect);
+	//FillRect(memHDC, &clientRect, CreateSolidBrush(RGB(64, 96, 192)));
+	//DrawTextA(memHDC, "Ez egy szoveg akar lenni remeljuk kirajzolodik", -1, &clientRect, DT_CENTER | DT_VCENTER);
+
 	std::function<void(Gui& control)> traverseControls;
 	traverseControls = [&](Gui& control)
 	{
 		PaintEvent paintEvent;
 		paintEvent.graphics = gdiGraphics;
 		control.OnPaint(control, paintEvent);
-
+	
 		for (Gui* child : control.GetChildren())
 			traverseControls(*child);
 	};
-
+	
 	for (GuiLayer* layer : GetLayers())
 		traverseControls(*layer);
-
+	
 	// Present
 	BitBlt(hdc, 0, 0, targetWindow->GetClientSize().x, targetWindow->GetClientSize().y, memHDC, 0, 0, SRCCOPY);
 }

@@ -97,6 +97,7 @@ public:
 	Event<char32_t> OnCharacter;
 	Event<> OnClose;
 	Event<> OnFocus;
+	Event<> OnPaint;
 	Event<DragDropEvent> OnDropped;
 	Event<DragDropEvent> OnDropEntered;
 	Event<DragDropEvent> OnDropLeft;

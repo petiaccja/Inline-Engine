@@ -660,11 +660,11 @@ void Core::Update(float deltaTime)
 		scene->Update(deltaTime);
 
 	// Update graphics
-	if (graphicsEngine)
-	{
-		//PROFILE_SCOPE("Graphics");
-		graphicsEngine->Update(deltaTime);
-	}
+	//if (graphicsEngine)
+	//{
+	//	//PROFILE_SCOPE("Graphics");
+	//	graphicsEngine->Update(deltaTime);
+	//}
 
 	if(guiEngine)
 	{

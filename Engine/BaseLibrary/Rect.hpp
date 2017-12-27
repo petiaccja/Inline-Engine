@@ -1,12 +1,12 @@
 #pragma once
 
 #include <InlineMath.hpp>
-
+#include <algorithm>
 
 namespace inl {
 
 
-template <class T>
+template <class T, bool InvertHorizontal, bool InvertVertical>
 class Rect {
 public:
 	using Vec2T = Vector<T, 2, false>;
@@ -53,108 +53,188 @@ public:
 };
 
 
-template <class T>
-Rect<T>::Rect(Vec2T anchorPoint1, Vec2T anchorPoint2) {
-	Vec2T minp = Min(anchorPoint1, anchorPoint2);
-	Vec2T maxp = Max(anchorPoint1, anchorPoint2);
-	left = minp.x;
-	right = maxp.x;
-	bottom = minp.y;
-	top = maxp.y;
+template <class T, bool InvertHorizontal, bool InvertVertical>
+Rect<T, InvertHorizontal,InvertVertical>::Rect(Vec2T anchorPoint1, Vec2T anchorPoint2) {
+	Vec2T minp = std::min(anchorPoint1, anchorPoint2);
+	Vec2T maxp = std::max(anchorPoint1, anchorPoint2);
+
+	if constexpr (!InvertHorizontal) {
+		left = minp.x;
+		right = maxp.x;
+	}
+	else {
+		right = minp.x;
+		left = maxp.x;
+	}
+
+	if constexpr (!InvertVertical) {
+		bottom = minp.y;
+		top = maxp.y;
+	}
+	else {
+		top = minp.y;
+		bottom = maxp.y;
+	}
 }
 
-template <class T>
-Rect<T> Rect<T>::FromSize(T bottom, T left, T width, T height) {
+template <class T, bool InvertHorizontal, bool InvertVertical>
+Rect<T, InvertHorizontal, InvertVertical> Rect<T, InvertHorizontal, InvertVertical>::FromSize(T bottom, T left, T width, T height) {
 	return FromSize({ left, bottom }, { width, height });
 }
 
-template <class T>
-Rect<T> Rect<T>::FromSize(Vec2T bottomLeft, Vec2T size) {
-	size += bottomLeft;
+template <class T, bool InvertHorizontal, bool InvertVertical>
+Rect<T, InvertHorizontal, InvertVertical> Rect<T, InvertHorizontal, InvertVertical>::FromSize(Vec2T bottomLeft, Vec2T size) {
+	
 	left = bottomLeft.x;
 	bottom = bottomLeft.y;
-	right = size.x;
-	top = size.y;
+
+	if constexpr (!InvertHorizontal) {
+		right = bottomLeft.x + size.x;
+		
+	}
+	else {
+		right = bottomLeft.x - size.x;
+	}
+
+	if constexpr (!InvertVertical) {
+		top = bottomLeft.y + size.y;
+	}
+	else {		
+		top = bottomLeft.y - size.y;
+	}
 }
 
-template <class T>
-typename Rect<T>::Vec2T Rect<T>::GetSize() const {
-	return { right - left, top - bottom };
+template <class T, bool InvertHorizontal, bool InvertVertical>
+typename Rect<T, InvertHorizontal, InvertVertical>::Vec2T Rect<T, InvertHorizontal, InvertVertical>::GetSize() const {
+	T width;
+	T height;
+
+	if constexpr (!InvertHorizontal) {
+		width = right - left;
+	}
+	else {
+		width = left - right;
+	}
+
+	if constexpr (!InvertVertical) {
+		height = top - bottom;
+	}
+	else {
+		height = bottom - top;
+	}
+
+	return { width, height };
 }
 
-template <class T>
-T Rect<T>::GetWidth() const {
-	return right - left;
+template <class T, bool InvertHorizontal, bool InvertVertical>
+T Rect<T, InvertHorizontal, InvertVertical>::GetWidth() const {
+
+	if constexpr (!InvertHorizontal) {
+		return right - left;
+	}
+	else {
+		return left - right;
+	}
 }
 
-template <class T>
-T Rect<T>::GetHeight() const {
-	return top - bottom;
+template <class T, bool InvertHorizontal, bool InvertVertical>
+T Rect<T, InvertHorizontal, InvertVertical>::GetHeight() const {
+	if constexpr (!InvertVertical) {
+		return top - bottom;
+	}
+	else {
+		return bottom - top;
+	}
 }
 
-template <class T>
-T Rect<T>::GetArea() const {
+template <class T, bool InvertHorizontal, bool InvertVertical>
+T Rect<T, InvertHorizontal, InvertVertical>::GetArea() const {
 	auto s = GetSize();
 	return s.x * s.y;
 }
 
-template <class T>
-typename Rect<T>::Vec2T Rect<T>::GetBottomLeft() const {
+template <class T, bool InvertHorizontal, bool InvertVertical>
+typename Rect<T, InvertHorizontal, InvertVertical>::Vec2T Rect<T, InvertHorizontal, InvertVertical>::GetBottomLeft() const {
 	return { left, bottom };
 }
 
-template <class T>
-typename Rect<T>::Vec2T Rect<T>::GetTopLeft() const {
+template <class T, bool InvertHorizontal, bool InvertVertical>
+typename Rect<T, InvertHorizontal, InvertVertical>::Vec2T Rect<T, InvertHorizontal, InvertVertical>::GetTopLeft() const {
 	return { left, top };
 }
 
-template <class T>
-typename Rect<T>::Vec2T Rect<T>::GetBottomRight() const {
+template <class T, bool InvertHorizontal, bool InvertVertical>
+typename Rect<T, InvertHorizontal, InvertVertical>::Vec2T Rect<T, InvertHorizontal, InvertVertical>::GetBottomRight() const {
 	return { right, bottom };
 }
 
-template <class T>
-typename Rect<T>::Vec2T Rect<T>::GetTopRight() const {
+template <class T, bool InvertHorizontal, bool InvertVertical>
+typename Rect<T, InvertHorizontal, InvertVertical>::Vec2T Rect<T, InvertHorizontal, InvertVertical>::GetTopRight() const {
 	return { right, top };
 }
 
-template <class T>
-typename Rect<T>::Vec2T Rect<T>::GetCenter() const {
-	return (GetBottomLeft() + GetTopRight()) * T(0.5);
+template <class T, bool InvertHorizontal, bool InvertVertical>
+typename Rect<T, InvertHorizontal, InvertVertical>::Vec2T Rect<T, InvertHorizontal, InvertVertical>::GetCenter() const {
+
+	if constexpr (std::is_integral<T>::value) {
+		if constexpr (sizeof(T) < 8) {
+			return (GetBottomLeft() + GetTopRight()) * 0.5f;
+		}
+		else {
+			return (GetBottomLeft() + GetTopRight()) * 0.5;
+		}
+	}
+	else {
+		return (GetBottomLeft() + GetTopRight()) * T(0.5);
+	}
 }
 
-
-template <class T>
-void Rect<T>::SetSize(Vec2T newSize, Vec2T origin) {
+template <class T, bool InvertHorizontal, bool InvertVertical>
+void Rect<T, InvertHorizontal, InvertVertical>::SetSize(Vec2T newSize, Vec2T origin) {
 	SetWidth(newSize.x, origin.x);
 	SetHeight(newSize.y, origin.y);
 }
 
-template <class T>
-void Rect<T>::SetWidth(T newWidth, T origin) {
+template <class T, bool InvertHorizontal, bool InvertVertical>
+void Rect<T, InvertHorizontal, InvertVertical>::SetWidth(T newWidth, T origin) {
 	T p = (T(1) - origin)*left + origin*right;
-	left = p + (T(1) - origin)*newWidth;
-	right = p + origin*newWidth;
+
+	if constexpr (!InvertHorizontal) {
+		left = p - origin * newWidth;
+		right = p + (T(1) - origin) * newWidth;
+	}
+	else {
+		left = p + origin * newWidth;
+		right = p - (T(1) - origin) * newWidth;
+	}
 }
 
-template <class T>
-void Rect<T>::SetHeight(T newHeight, T origin) {
+template <class T, bool InvertHorizontal, bool InvertVertical>
+void Rect<T, InvertHorizontal, InvertVertical>::SetHeight(T newHeight, T origin) {
 	T p = (T(1) - origin)*bottom + origin*top;
-	bottom  = p + (T(1) - origin)*newHeight;
-	top = p + origin*newHeight;
+	
+
+	if constexpr (!InvertVertical) {
+		bottom = p - origin * newHeight;
+		top = p + (T(1) - origin) * newHeight;
+	}
+	else {
+		bottom = p + origin * newHeight;
+		top = p - (T(1) - origin) * newHeight;
+	}
 }
 
 
-template <class T>
-void Rect<T>::Move(const Vec2T& offset) {
+template <class T, bool InvertHorizontal, bool InvertVertical>
+void Rect<T, InvertHorizontal, InvertVertical>::Move(const Vec2T& offset) {
 	left += offset.x;
 	right += offset.x;
 	bottom += offset.y;
 	top += offset.y;
 }
 
-template <class T>
-void Rect<T>::MoveSides(const Rect& offset) {
+template <class T, bool InvertHorizontal, bool InvertVertical>
+void Rect<T, InvertHorizontal, InvertVertical>::MoveSides(const Rect& offset) {
 	left += offset.left;
 	right += offset.right;
 	bottom += offset.bottom;
@@ -162,68 +242,137 @@ void Rect<T>::MoveSides(const Rect& offset) {
 }
 
 
-template <class T>
-Rect<T> Rect<T>::Union(const Rect& lhs, const Rect& rhs) {
-	Vec2T min1 = Min(lhs.GetBottomLeft(), lhs.GetTopRight());
-	Vec2T max1 = Max(lhs.GetBottomLeft(), lhs.GetTopRight());
-	Vec2T min2 = Min(rhs.GetBottomLeft(), rhs.GetTopRight());
-	Vec2T max2 = Max(rhs.GetBottomLeft(), rhs.GetTopRight());
-	
-	Vec2T minp = Min(min1, min2);
-	Vec2T maxp = Max(max1, max2);
+template <class T, bool InvertHorizontal, bool InvertVertical>
+Rect<T, InvertHorizontal, InvertVertical> Rect<T, InvertHorizontal, InvertVertical>::Union(const Rect& lhs, const Rect& rhs) {
+	T left;
+	T right;
+	T bottom;
+	T top;
 
-	return Rect(minp, maxp);
-}
-
-template <class T>
-Rect<T> Rect<T>::Intersection(const Rect& lhs, const Rect& rhs) {
-	Vec2T min1 = Min(lhs.GetBottomLeft(), lhs.GetTopRight());
-	Vec2T max1 = Max(lhs.GetBottomLeft(), lhs.GetTopRight());
-	Vec2T min2 = Min(rhs.GetBottomLeft(), rhs.GetTopRight());
-	Vec2T max2 = Max(rhs.GetBottomLeft(), rhs.GetTopRight());
-
-	Vec2T minp = Max(min1, min2);
-	Vec2T maxp = Min(max1, max2);
-
-	if (minp.x > maxp.x || minp.y > maxp.y) {
-		return Rect(0, 0, 0, 0);
+	if constexpr (!InvertHorizontal) {
+		left = std::min(lhs.left, rhs.left);
+		right = std::max(lhs.right, rhs.right);
+	}
+	else {
+		left = std::max(lhs.left, rhs.left);
+		right = std::min(lhs.right, rhs.right);
 	}
 
-	return Rect(minp, maxp);
+	if constexpr (!InvertVertical) {
+		bottom = std::min(lhs.bottom, rhs.bottom);
+		top = std::max(lhs.top, rhs.top);
+	}
+	else {
+		bottom = std::max(lhs.bottom, rhs.bottom);
+		top = std::min(lhs.top, rhs.top);
+	}
+
+	return Rect(left, right, bottom, top);
 }
 
+template <class T, bool InvertHorizontal, bool InvertVertical>
+Rect<T, InvertHorizontal, InvertVertical> Rect<T, InvertHorizontal, InvertVertical>::Intersection(const Rect& lhs, const Rect& rhs) {
+	T left;
+	T right;
+	T bottom;
+	T top;
 
-template <class T>
-bool Rect<T>::IsPointInside(const Vec2T& arg) const {
-	return	arg.x >= left && arg.x <= right	&&
-		arg.y >= top  && arg.y <= bottom;
+	if constexpr (!InvertHorizontal) {
+		left = std::max(lhs.left, rhs.left);
+		right = std::min(lhs.right, rhs.right);
+
+		if (left > right)
+			return Rect(0, 0, 0, 0);
+	}
+	else {
+		left = std::min(lhs.left, rhs.left);
+		right = std::max(lhs.right, rhs.right);
+
+		if (right > left)
+			return Rect(0, 0, 0, 0);
+	}
+
+	if constexpr (!InvertVertical) {
+		bottom = std::max(lhs.bottom, rhs.bottom);
+		top = std::min(lhs.top, rhs.top);
+
+		if (bottom > top)
+			return Rect(0, 0, 0, 0);
+	}
+	else {
+		bottom = std::min(lhs.bottom, rhs.bottom);
+		top = std::max(lhs.top, rhs.top);
+
+		if (top > bottom)
+			return Rect(0, 0, 0, 0);
+	}
+
+	return Rect(left, right, bottom, top);
 }
 
-template <class T>
-bool Rect<T>::IsRectInside(const Rect& arg) const {
-	return	arg.left >= left && arg.right <= right && arg.top >= top && arg.bottom <= bottom;
+template <class T, bool InvertHorizontal, bool InvertVertical>
+bool Rect<T, InvertHorizontal, InvertVertical>::IsPointInside(const Vec2T& arg) const {
+	bool bVerticalInside;
+	bool bHorizontalInside;
+
+	if constexpr (!InvertHorizontal) {
+		bHorizontalInside = arg.x >= left && arg.x <= right;
+	}
+	else {
+		bHorizontalInside = arg.x <= left && arg.x >= right;
+	}
+
+	if constexpr (!InvertVertical) {
+		bVerticalInside = arg.y >= bottom && arg.y <= top;
+	}
+	else {
+		bVerticalInside = arg.y <= bottom && arg.y >= top;
+	}
+
+	return bVerticalInside && bHorizontalInside;
 }
 
-template <class T>
-bool Rect<T>::IsIntersecting(const Rect& arg) const {
+template <class T, bool InvertHorizontal, bool InvertVertical>
+bool Rect<T, InvertHorizontal, InvertVertical>::IsRectInside(const Rect& arg) const {
+	bool bVerticalInside;
+	bool bHorizontalInside;
+
+	if constexpr (!InvertHorizontal) {
+		bHorizontalInside = arg.left >= left && arg.right <= right
+	}
+	else {
+		bHorizontalInside = arg.left <= left && arg.right >= right
+	}
+
+	if constexpr (!InvertVertical) {
+		bVerticalInside = arg.top <= top && arg.bottom >= bottom;
+	}
+	else {
+		bVerticalInside = arg.top >= top && arg.bottom <= bottom;
+	}
+
+	return bVerticalInside && bHorizontalInside;
+}
+
+template <class T, bool InvertHorizontal, bool InvertVertical>
+bool Rect<T, InvertHorizontal, InvertVertical>::IsIntersecting(const Rect& arg) const {
 	Rect intersection = Intersection(*this, arg);
-	return intersection.GetArea() != 0;
+	return intersection != Rect(0, 0, 0, 0);
 }
 
-
-template <class T>
-bool Rect<T>::operator==(const Rect& rhs) const {
+template <class T, bool InvertHorizontal, bool InvertVertical>
+bool Rect<T, InvertHorizontal, InvertVertical>::operator==(const Rect& rhs) const {
 	return left == rhs.left && right == rhs.right && top == rhs.top && bottom == rhs.bottom;
 }
 
-template <class T>
-bool Rect<T>::operator!=(const Rect& rhs) const {
+template <class T, bool InvertHorizontal, bool InvertVertical>
+bool Rect<T, InvertHorizontal, InvertVertical>::operator!=(const Rect& rhs) const {
 	return !(*this == rhs);
 }
 
 
-using RectF = Rect<float>;
-using RectI = Rect<int>;
+using RectF = Rect<float, false, false>;
+using RectI = Rect<int, false, false>;
 
 
 

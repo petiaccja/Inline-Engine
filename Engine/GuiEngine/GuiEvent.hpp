@@ -8,6 +8,8 @@
 #undef min
 #undef max
 
+#include "GuiRect.hpp"
+
 namespace inl::gui {
 
 enum class eEventPropagationPolicy
@@ -37,7 +39,7 @@ struct UpdateEvent
 
 struct TransformEvent
 {
-	RectF rect;
+	GuiRectF rect;
 };
 
 struct PositionEvent

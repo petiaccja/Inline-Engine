@@ -185,6 +185,7 @@
     <ClInclude Include="GuiLayer.hpp" />
     <ClInclude Include="GuiList.hpp" />
     <ClInclude Include="GuiMenu.hpp" />
+    <ClInclude Include="GuiRect.hpp" />
     <ClInclude Include="GuiScrollable.hpp" />
     <ClInclude Include="GuiSlider.hpp" />
     <ClCompile Include="GuiSlider.cpp">
