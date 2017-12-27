@@ -96,11 +96,6 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-<<<<<<< HEAD:Engine/NetworkEngine_LL/NetworkEngine_LL.vcxproj
-      <AdditionalIncludeDirectories>E:\Inline-Engine\Engine\BaseLibrary</AdditionalIncludeDirectories>
-=======
-      <DisableSpecificWarnings>4180</DisableSpecificWarnings>
->>>>>>> 71535158f08325c42e852cb1709105c5bdde37e5:Engine/NetworkEngine/NetworkEngine.vcxproj
     </ClCompile>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
