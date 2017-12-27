@@ -75,8 +75,8 @@ int TestInput::Run() {
 
 	inputMouse.SetQueueMode(eInputQueueMode::QUEUED);
 
-	inputMouse.OnMouseButton += { &TestInput::OnClick, this };
-	inputKeyboard.OnKeyboard += { &TestInput::OnKey, this };
+	inputMouse.OnMouseButton += Delegate<void(MouseButtonEvent)>{ &TestInput::OnClick, this };
+	inputKeyboard.OnKeyboard += Delegate<void(KeyboardEvent)>{ &TestInput::OnKey, this };
 
 	cout << "Press Control-C to quit." << endl;
 	signal(SIGINT, SignalHandler);

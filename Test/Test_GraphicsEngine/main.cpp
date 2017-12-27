@@ -279,6 +279,7 @@ int main() {
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+
 	switch (msg) {
 		case WM_CLOSE:
 			PostQuitMessage(0);
@@ -296,9 +297,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				EndPaint(hWnd, &paintStruct);
 				return 0;
 			}
-			else {
-				return DefWindowProc(hWnd, msg, wParam, lParam);
-			}
 		}
 		case WM_SIZE:
 		{
@@ -310,9 +308,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				pEngine->SetScreenSize(width, height);
 				pMiniWorld->SetAspectRatio((float)width / (float(height)));
 				return 0;
-			}
-			else {
-				return DefWindowProc(hWnd, msg, wParam, lParam);
 			}
 		}
 		case WM_KEYUP:
@@ -335,8 +330,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				}
 				return 0;
 			}
-			return DefWindowProc(hWnd, msg, wParam, lParam);
-		default:
-			return DefWindowProc(hWnd, msg, wParam, lParam);
 	}
+
+	return DefWindowProc(hWnd, msg, wParam, lParam);
 }

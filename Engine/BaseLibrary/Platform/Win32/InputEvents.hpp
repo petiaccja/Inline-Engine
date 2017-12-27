@@ -22,6 +22,7 @@ enum class eMouseButton {
 	RIGHT,
 	EXTRA1,
 	EXTRA2,
+	COUNT,
 };
 
 struct MouseButtonEvent {
@@ -161,6 +162,7 @@ enum class eKey : unsigned {
 	ALT_RIGHT,
 
 	UNKNOWN,
+	COUNT,
 };
 
 struct KeyboardEvent {

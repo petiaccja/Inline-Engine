@@ -113,8 +113,10 @@ public:
 	// barriers
 	void SetResourceState(const MemoryObject& resource, gxapi::eResourceState state, unsigned subresource = gxapi::ALL_SUBRESOURCES);
 protected:
-	void ExpectResourceState(const MemoryObject& resource, gxapi::eResourceState state, unsigned subresource = gxapi::ALL_SUBRESOURCES);
-	void ExpectResourceState(const MemoryObject& resource, const std::initializer_list<gxapi::eResourceState>& anyOfStates, unsigned subresource = gxapi::ALL_SUBRESOURCES);
+	void ExpectResourceState(const MemoryObject& resource, gxapi::eResourceState state, const std::vector<uint32_t>& subresources);
+	void ExpectResourceState(const MemoryObject& resource, const std::initializer_list<gxapi::eResourceState>& anyOfStates, const std::vector<uint32_t>& subresources);
+	//void ExpectResourceState(const MemoryObject& resource, gxapi::eResourceState state, unsigned subresource = gxapi::ALL_SUBRESOURCES);
+	//void ExpectResourceState(const MemoryObject& resource, const std::initializer_list<gxapi::eResourceState>& anyOfStates, unsigned subresource = gxapi::ALL_SUBRESOURCES);
 	virtual Decomposition Decompose() override;
 private:
 	gxapi::ICopyCommandList* m_commandList;

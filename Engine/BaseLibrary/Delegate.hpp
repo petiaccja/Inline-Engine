@@ -192,8 +192,8 @@ public:
 		m_callable = reinterpret_cast<impl::Callable<ReturnT, ArgsT...>*>(m_callablePlaceholder + ((size_t)rhs.m_callable - (size_t)rhs.m_callablePlaceholder));
 		return *this;
 	}
-	Delegate(Delegate&&) = delete;
-	Delegate& operator=(Delegate&&) = delete;
+	Delegate(Delegate&& rhs) : Delegate((const Delegate&)rhs) {}
+	Delegate& operator=(Delegate&& rhs) { return *this = (const Delegate& rhs); }
 
 	template <class ReturnT>
 	Delegate(ReturnT(*func)(ArgsT...)) {

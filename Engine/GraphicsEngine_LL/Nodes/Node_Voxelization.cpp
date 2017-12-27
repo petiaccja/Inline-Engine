@@ -21,9 +21,40 @@ struct Uniforms
 {
 	Mat44_Packed model, viewProj;
 	Vec3_Packed voxelCenter; float voxelSize;
-	int voxelDimension;
+	int voxelDimension; int inputMipLevel; int outputMipLevel;
 };
 
+static void SetWorkgroupSize(unsigned w, unsigned h, unsigned d, unsigned groupSizeW, unsigned groupSizeH, unsigned groupSizeD, unsigned& dispatchW, unsigned& dispatchH, unsigned& dispatchD)
+{
+	//set up work group sizes
+	unsigned gw = 0, gh = 0, gd = 0, count = 1;
+
+	while (gw < w)
+	{
+		gw = groupSizeW * count;
+		count++;
+	}
+
+	count = 1;
+
+	while (gh < h)
+	{
+		gh = groupSizeH * count;
+		count++;
+	}
+
+	count = 1;
+
+	while (gd < d)
+	{
+		gd = groupSizeD * count;
+		count++;
+	}
+
+	dispatchW = unsigned(float(gw) / groupSizeW);
+	dispatchH = unsigned(float(gh) / groupSizeH);
+	dispatchD = unsigned(float(gd) / groupSizeD);
+}
 
 static bool CheckMeshFormat(const Mesh& mesh) {
 	for (size_t i = 0; i < mesh.GetNumStreams(); i++) {
@@ -74,7 +105,6 @@ void Voxelization::Initialize(EngineContext & context) {
 }
 
 void Voxelization::Reset() {
-	m_voxelTexUAV = RWTextureView3D();
 	m_voxelTexSRV = TextureView3D();
 	m_visualizationDSV = DepthStencilView2D();
 	m_visualizationTexRTV = RenderTargetView2D();
@@ -141,7 +171,14 @@ void Voxelization::Setup(SetupContext & context) {
 		sampBindParamDesc.constantSize = 0;
 		sampBindParamDesc.relativeAccessFrequency = 0;
 		sampBindParamDesc.relativeChangeFrequency = 0;
-		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc sampBindParamDesc1;
+		sampBindParamDesc1.parameter = BindParameter(eBindParameterType::SAMPLER, 1);
+		sampBindParamDesc1.constantSize = 0;
+		sampBindParamDesc1.relativeAccessFrequency = 0;
+		sampBindParamDesc1.relativeChangeFrequency = 0;
+		sampBindParamDesc1.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 		BindParameterDesc voxelTexBindParamDesc;
 		m_voxelTexBindParam = BindParameter(eBindParameterType::UNORDERED, 0);
@@ -186,14 +223,24 @@ void Voxelization::Setup(SetupContext & context) {
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
 		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
-		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
-		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
-		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
+		samplerDesc.addressU = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc.addressV = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc.addressW = gxapi::eTextureAddressMode::CLAMP;
 		samplerDesc.mipLevelBias = 0.f;
 		samplerDesc.registerSpace = 0;
-		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, voxelTexBindParamDesc, shadowCSMTexBindParamDesc, voxelLightTexBindParamDesc, shadowCSMExtentsTexBindParamDesc, albedoTexBindParamDesc },{ samplerDesc });
+		gxapi::StaticSamplerDesc samplerDesc1;
+		samplerDesc1.shaderRegister = 1;
+		samplerDesc1.filter = gxapi::eTextureFilterMode::MIN_MAG_LINEAR_MIP_POINT;
+		samplerDesc1.addressU = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc1.addressV = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc1.addressW = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc1.mipLevelBias = 0.f;
+		samplerDesc1.registerSpace = 0;
+		samplerDesc1.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, sampBindParamDesc1, voxelTexBindParamDesc, shadowCSMTexBindParamDesc, voxelLightTexBindParamDesc, shadowCSMExtentsTexBindParamDesc, albedoTexBindParamDesc },{ samplerDesc, samplerDesc1 });
 	}
 
 	if (!m_shader.vs || !m_shader.gs || !m_shader.ps) {
@@ -208,6 +255,12 @@ void Voxelization::Setup(SetupContext & context) {
 
 		shaderParts.gs = false;
 		m_lightInjectionCSMShader = context.CreateShader("VoxelLightInjectionCSM", shaderParts, "");
+
+		shaderParts.cs = true;
+		shaderParts.vs = false;
+		shaderParts.ps = false;
+		shaderParts.gs = false;
+		m_mipmapShader = context.CreateShader("VoxelMipmap", shaderParts, "");
 	}
 
 	if (!m_fsq.HasObject()) {
@@ -300,9 +353,17 @@ void Voxelization::Setup(SetupContext & context) {
 
 			m_visualizerPSO.reset(context.CreatePSO(psoDesc));
 		}
+
+		{ //mipmap gen shader
+			gxapi::ComputePipelineStateDesc csoDesc;
+			csoDesc.rootSignature = m_binder->GetRootSignature();
+			csoDesc.cs = m_mipmapShader.cs;
+
+			m_mipmapCSO.reset(context.CreatePSO(csoDesc));
+		}
 	}
 
-	this->GetOutput<0>().Set(m_voxelTexUAV.GetResource());
+	this->GetOutput<0>().Set(m_voxelTexUAV[0].GetResource());
 	this->GetOutput<1>().Set(m_visualizationTexRTV.GetResource());
 	this->GetOutput<2>().Set(m_visualizationDSV.GetResource());
 }
@@ -313,7 +374,7 @@ void Voxelization::Execute(RenderContext & context) {
 		return;
 	}
 
-	bool peti = true;
+	bool peti = false;
 	if (peti)
 	{
 		return;
@@ -329,7 +390,7 @@ void Voxelization::Execute(RenderContext & context) {
 
 	auto& commandList = context.AsGraphics();
 
-	gxapi::Rectangle rect{ 0, (int)m_voxelTexUAV.GetResource().GetHeight(), 0, (int)m_voxelTexUAV.GetResource().GetWidth() };
+	gxapi::Rectangle rect{ 0, (int)m_voxelTexUAV[0].GetResource().GetHeight(), 0, (int)m_voxelTexUAV[0].GetResource().GetWidth() };
 	gxapi::Viewport viewport;
 	viewport.width = (float)rect.right;
 	viewport.height = (float)rect.bottom;
@@ -350,63 +411,92 @@ void Voxelization::Execute(RenderContext & context) {
 
 	commandList.SetResourceState(m_shadowCSMTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_shadowCSMExtentsTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-	commandList.SetResourceState(m_voxelLightTexUAV.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
-	commandList.SetResourceState(m_voxelTexUAV.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
-	commandList.BindGraphics(m_voxelTexBindParam, m_voxelTexUAV);
-	commandList.BindGraphics(m_voxelLightTexBindParam, m_voxelLightTexUAV);
+	commandList.SetResourceState(m_voxelLightTexUAV[0].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.SetResourceState(m_voxelTexUAV[0].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.BindGraphics(m_voxelTexBindParam, m_voxelTexUAV[0]);
+	commandList.BindGraphics(m_voxelLightTexBindParam, m_voxelLightTexUAV[0]);
 	commandList.BindGraphics(m_shadowCSMTexBindParam, m_shadowCSMTexSrv);
 	commandList.BindGraphics(m_shadowCSMExtentsTexBindParam, m_shadowCSMExtentsTexSrv);
 
 	static bool sceneVoxelized = false;
 
-	if (!sceneVoxelized)
+	//if (!sceneVoxelized)
 	{
-		// scene voxelization
-		for (const MeshEntity* entity : *m_entities) {
-			// Get entity parameters
-			Mesh* mesh = entity->GetMesh();
-			Material* material = entity->GetMaterial();
-			auto position = entity->GetPosition();
+		{ // scene voxelization
+			for (const MeshEntity* entity : *m_entities) {
+				// Get entity parameters
+				Mesh* mesh = entity->GetMesh();
+				Material* material = entity->GetMaterial();
+				auto position = entity->GetPosition();
 
-			if (mesh->GetIndexBuffer().GetIndexCount() == 3600)
-			{
-				continue; //skip quadcopter for visualization purposes (obscures camera...)
-			}
-
-			// Draw mesh
-			if (!CheckMeshFormat(*mesh)) {
-				assert(false);
-				continue;
-			}
-
-			ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
-
-			uniformsCBData.model = entity->GetTransform();
-
-			commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
-
-			for (size_t paramIdx = 0; paramIdx < material->GetParameterCount(); ++paramIdx) {
-				const Material::Parameter& param = (*material)[paramIdx];
-				if (param.GetType() == eMaterialShaderParamType::BITMAP_COLOR_2D ||
-					param.GetType() == eMaterialShaderParamType::BITMAP_VALUE_2D)
+				if (mesh->GetIndexBuffer().GetIndexCount() == 3600)
 				{
-					commandList.SetResourceState(((Image*)param)->GetSrv().GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-					commandList.BindGraphics(m_albedoTexBindParam, ((Image*)param)->GetSrv());
-					break;
+					continue; //skip quadcopter for visualization purposes (obscures camera...)
 				}
+
+				// Draw mesh
+				if (!CheckMeshFormat(*mesh)) {
+					assert(false);
+					continue;
+				}
+
+				ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
+
+				uniformsCBData.model = entity->GetTransform();
+
+				commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
+
+				for (size_t paramIdx = 0; paramIdx < material->GetParameterCount(); ++paramIdx) {
+					const Material::Parameter& param = (*material)[paramIdx];
+					if (param.GetType() == eMaterialShaderParamType::BITMAP_COLOR_2D ||
+						param.GetType() == eMaterialShaderParamType::BITMAP_VALUE_2D)
+					{
+						commandList.SetResourceState(((Image*)param)->GetSrv().GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+						commandList.BindGraphics(m_albedoTexBindParam, ((Image*)param)->GetSrv());
+						break;
+					}
+				}
+
+				for (auto& vb : vertexBuffers) {
+					commandList.SetResourceState(*vb, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+				}
+
+				commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::eResourceState::INDEX_BUFFER);
+				commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
+				commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
+				commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
 			}
 
-			for (auto& vb : vertexBuffers) {
-				commandList.SetResourceState(*vb, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-			}
-
-			commandList.SetResourceState(mesh->GetIndexBuffer(), gxapi::eResourceState::INDEX_BUFFER);
-			commandList.SetVertexBuffers(0, (unsigned)vertexBuffers.size(), vertexBuffers.data(), sizes.data(), strides.data());
-			commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
-			commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
+			commandList.UAVBarrier(m_voxelTexUAV[0].GetResource());
 		}
 
-		commandList.UAVBarrier(m_voxelTexUAV.GetResource());
+		{ //scene mipmap gen
+			int numMips = m_voxelTexSRV.GetResource().GetNumMiplevels();
+			int currDim = voxelDimension / 2;
+			for (int c = 1; c < numMips; ++c)
+			{
+				unsigned dispatchW, dispatchH, dispatchD;
+				SetWorkgroupSize(currDim, currDim, currDim, 8, 8, 8, dispatchW, dispatchH, dispatchD);
+
+				uniformsCBData.inputMipLevel = c - 1;
+				uniformsCBData.outputMipLevel = c;
+
+				commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
+
+				//TODO: set the resource but wrong value???
+				commandList.SetResourceState(m_voxelTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, m_voxelTexSRV.GetResource().GetSubresourceIndex(c, 0));
+				commandList.SetResourceState(m_voxelTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE }, m_voxelTexSRV.GetResource().GetSubresourceIndex(c - 1, 0));
+
+				commandList.SetPipelineState(m_mipmapCSO.get());
+				commandList.SetComputeBinder(&m_binder.value());
+				commandList.BindGraphics(m_voxelTexBindParam, m_voxelTexUAV[c]);
+				commandList.BindGraphics(m_shadowCSMTexBindParam, m_voxelTexSRV);
+				commandList.Dispatch(dispatchW, dispatchH, dispatchD);
+				commandList.UAVBarrier(m_voxelTexUAV[c].GetResource());
+
+				currDim = currDim / 2;
+			}
+		}
 		
 		sceneVoxelized = true;
 	}
@@ -428,8 +518,8 @@ void Voxelization::Execute(RenderContext & context) {
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
-		commandList.BindGraphics(m_voxelTexBindParam, m_voxelTexUAV);
-		commandList.BindGraphics(m_voxelLightTexBindParam, m_voxelLightTexUAV);
+		commandList.BindGraphics(m_voxelTexBindParam, m_voxelTexUAV[0]);
+		commandList.BindGraphics(m_voxelLightTexBindParam, m_voxelLightTexUAV[0]);
 		commandList.BindGraphics(m_shadowCSMTexBindParam, m_shadowCSMTexSrv);
 		commandList.BindGraphics(m_shadowCSMExtentsTexBindParam, m_shadowCSMExtentsTexSrv);
 
@@ -442,14 +532,38 @@ void Voxelization::Execute(RenderContext & context) {
 		commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
 		commandList.SetIndexBuffer(&m_fsqIndices, false);
 		commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
-		commandList.UAVBarrier(m_voxelLightTexUAV.GetResource()); 
+		commandList.UAVBarrier(m_voxelLightTexUAV[0].GetResource()); 
 	}
 
-	{ //TODO light voxel mipmap generation
-		
+	{ //light voxel mipmap generation
+		int numMips = m_voxelLightTexSRV.GetResource().GetNumMiplevels();
+		int currDim = voxelDimension / 2;
+		for (int c = 1; c < numMips; ++c)
+		{
+			unsigned dispatchW, dispatchH, dispatchD;
+			SetWorkgroupSize(currDim, currDim, currDim, 8, 8, 8, dispatchW, dispatchH, dispatchD);
+
+			uniformsCBData.inputMipLevel = c - 1;
+			uniformsCBData.outputMipLevel = c;
+
+			commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
+
+			//TODO: set the resource but wrong value???
+			commandList.SetResourceState(m_voxelLightTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, m_voxelLightTexSRV.GetResource().GetSubresourceIndex(c, 0));
+			commandList.SetResourceState(m_voxelLightTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE }, m_voxelLightTexSRV.GetResource().GetSubresourceIndex(c - 1, 0));
+
+			commandList.SetPipelineState(m_mipmapCSO.get());
+			commandList.SetComputeBinder(&m_binder.value());
+			commandList.BindGraphics(m_voxelTexBindParam, m_voxelLightTexUAV[c]);
+			commandList.BindGraphics(m_shadowCSMTexBindParam, m_voxelLightTexSRV);
+			commandList.Dispatch(dispatchW, dispatchH, dispatchD);
+			commandList.UAVBarrier(m_voxelLightTexUAV[c].GetResource());
+
+			currDim = currDim / 2;
+		}
 	}
 
-	/*{ //visualization
+	{ //visualization
 		gxapi::Rectangle rect{ 0, (int)m_visualizationTexRTV.GetResource().GetHeight(), 0, (int)m_visualizationTexRTV.GetResource().GetWidth() };
 		gxapi::Viewport viewport;
 		viewport.width = (float)rect.right;
@@ -471,12 +585,12 @@ void Voxelization::Execute(RenderContext & context) {
 		commandList.SetGraphicsBinder(&m_binder.value());
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::POINTLIST);
 
-		commandList.BindGraphics(m_voxelTexBindParam, m_voxelTexUAV);
+		commandList.BindGraphics(m_voxelTexBindParam, m_voxelTexUAV[0]);
 		//commandList.BindGraphics(m_voxelTexBindParam, m_voxelLightTexUAV);
 
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 		commandList.DrawInstanced(voxelDimension * voxelDimension * voxelDimension); //draw points, expand in geometry shader
-	}*/
+	}
 }
 
 void Voxelization::InitRenderTarget(SetupContext& context) {
@@ -498,21 +612,42 @@ void Voxelization::InitRenderTarget(SetupContext& context) {
 		srvDesc.mipLevelClamping = 0;
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.numMipLevels = -1;
+		
+
+		gxeng::Texture3DDesc texDesc;
+		texDesc.width = (uint64_t)voxelDimension;
+		texDesc.height = (uint64_t)voxelDimension;
+		texDesc.depth = (uint64_t)voxelDimension;
+		texDesc.format = formatVoxel;
+		texDesc.mipLevels = 0;
 
 		//TODO init to 0
-		Texture3D voxel_tex = context.CreateTexture3D({ (uint64_t)voxelDimension, (uint32_t)voxelDimension, (uint16_t)voxelDimension, formatVoxel }, { true, false, false, true });
-		voxel_tex.SetName("Voxelization voxel tex");
-		m_voxelTexUAV = context.CreateUav(voxel_tex, formatVoxel, uavDesc);
-		
+		Texture3D voxel_tex = context.CreateTexture3D(texDesc, { true, false, false, true });
+		voxel_tex.SetName("Voxelization voxel tex");	
+
+		m_voxelTexUAV.resize(voxel_tex.GetNumMiplevels());
+		m_voxelLightTexUAV.resize(voxel_tex.GetNumMiplevels());
+
 		m_voxelTexSRV = context.CreateSrv(voxel_tex, formatVoxel, srvDesc);
+		uavDesc.depthSize = voxelDimension;
+		for (int c = 0; c < voxel_tex.GetNumMiplevels(); ++c)
+		{
+			uavDesc.mipLevel = c;
+			m_voxelTexUAV[c] = context.CreateUav(voxel_tex, formatVoxel, uavDesc);
+			uavDesc.depthSize = uavDesc.depthSize / 2;
+		}
 		
 
-		Texture3D voxelLightTex = context.CreateTexture3D({ (uint64_t)voxelDimension, (uint32_t)voxelDimension, (uint16_t)voxelDimension, formatVoxel }, { true, false, false, true });
-		voxelLightTex.SetName("Voxelization voxel tex");
-		m_voxelLightTexUAV = context.CreateUav(voxelLightTex, formatVoxel, uavDesc);
-		
+		Texture3D voxelLightTex = context.CreateTexture3D(texDesc, { true, false, false, true });
+		voxelLightTex.SetName("Voxelization voxel tex");		
 		m_voxelLightTexSRV = context.CreateSrv(voxelLightTex, formatVoxel, srvDesc);
-		
+		uavDesc.depthSize = voxelDimension;
+		for (int c = 0; c < voxel_tex.GetNumMiplevels(); ++c)
+		{
+			uavDesc.mipLevel = c;
+			m_voxelLightTexUAV[c] = context.CreateUav(voxelLightTex, formatVoxel, uavDesc);
+			uavDesc.depthSize = uavDesc.depthSize / 2;
+		}
 	}
 }
 

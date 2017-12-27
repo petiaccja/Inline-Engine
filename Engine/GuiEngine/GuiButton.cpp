@@ -2,10 +2,10 @@
 
 using namespace inl::gui;
 
-GuiButton::GuiButton(GuiEngine* guiEngine)
+GuiButton::GuiButton(GuiEngine& guiEngine)
 :Gui(guiEngine)
 {
-	text = AddGuiText();
+	text = AddGui<GuiText>();
 	text->StretchFitToChildren();
 	text->AlignLeft();
 	text->AlignVerCenter();

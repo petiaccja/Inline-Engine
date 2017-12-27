@@ -375,6 +375,7 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 		case WM_DESTROY:
 			instance.CallEvent(instance.OnClose);
 			PostQuitMessage(0);
+			instance.m_handle = nullptr;
 			return 0;
 		case WM_CHAR:
 			instance.CallEvent(instance.OnCharacter, (char32_t)wParam);

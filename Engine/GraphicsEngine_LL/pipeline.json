@@ -476,6 +476,11 @@
       "id": 9,
       "name": "textRender"
     },
+	{
+      "class": "Pipeline/Render/Voxelization",
+      "id": 666,
+      "name": "voxelization"
+    },
     {
       "class": "Pipeline/Render/TileMax",
       "id": 30,
@@ -490,7 +495,7 @@
             "dstp": 0
         },
         {
-            "src": 2,
+            "src": 2, 
             "dst": 0,
             "srcp": 0,
             "dstp": 3
@@ -550,9 +555,45 @@
             "dstp": 1
         },
         {
-            "src": "debugDraw",
-            "dst": 0,
+            "src": 71,
+            "dst": "voxelization",
             "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 70,
+            "dst": "voxelization",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "forwardRender",
+            "dst": "voxelization",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "voxelization",
+            "srcp": 0,
+            "dstp": 3
+        },
+        {
+            "src": "csm",
+            "dst": "voxelization",
+            "srcp": 0,
+            "dstp": 4
+        },
+        {
+            "src": "depthReductionFinal",
+            "dst": "voxelization",
+            "srcp": 3,
+            "dstp": 5
+        },
+        {
+            "src": "voxelization",
+            "dst": 0,
+            "srcp": 1,
             "dstp": 1
         },
         {

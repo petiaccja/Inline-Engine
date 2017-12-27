@@ -10,6 +10,18 @@ namespace inl {
 namespace gxeng {
 
 
+static std::vector<uint32_t> CalcSubresourceList(const Texture2D&, const gxapi::RtvTexture2DArray&);
+static std::vector<uint32_t> CalcSubresourceList(const Texture2D&, const gxapi::DsvTexture2DArray&);
+static std::vector<uint32_t> CalcSubresourceList(const Texture1D&, const gxapi::SrvTexture1DArray&);
+static std::vector<uint32_t> CalcSubresourceList(const Texture2D&, const gxapi::SrvTexture2DArray&);
+static std::vector<uint32_t> CalcSubresourceList(const Texture3D&, const gxapi::SrvTexture3D&);
+static std::vector<uint32_t> CalcSubresourceList(const Texture2D&, const gxapi::SrvTextureCubeArray&);
+static std::vector<uint32_t> CalcSubresourceList(const Texture1D&, const gxapi::UavTexture1DArray&);
+static std::vector<uint32_t> CalcSubresourceList(const Texture2D&, const gxapi::UavTexture2DArray&);
+static std::vector<uint32_t> CalcSubresourceList(const Texture3D&, const gxapi::UavTexture3D&);
+
+
+
 VertexBufferView::VertexBufferView(const VertexBuffer& resource, uint32_t stride, uint32_t size) :
 	m_resource(resource),
 	m_stride(stride),
@@ -30,6 +42,8 @@ ConstBufferView::ConstBufferView(const VolatileConstBuffer& resource, CbvSrvUavH
 	desc.sizeInBytes = resource.GetSize();
 
 	heap.CreateCBV(desc, GetHandle());
+
+	SetSubresourceList({ gxapi::ALL_SUBRESOURCES });
 }
 
 
@@ -41,6 +55,8 @@ ConstBufferView::ConstBufferView(const PersistentConstBuffer& resource, CbvSrvUa
 	desc.sizeInBytes = resource.GetSize();
 
 	heap.CreateCBV(desc, GetHandle());
+
+	SetSubresourceList({ gxapi::ALL_SUBRESOURCES });
 }
 
 
@@ -52,6 +68,8 @@ ConstBufferView::ConstBufferView(const VolatileConstBuffer & resource, gxapi::De
 	desc.sizeInBytes = resource.GetSize();
 
 	gxapi->CreateConstantBufferView(desc, GetHandle());
+
+	SetSubresourceList({ gxapi::ALL_SUBRESOURCES });
 }
 
 
@@ -63,6 +81,8 @@ ConstBufferView::ConstBufferView(const PersistentConstBuffer & resource, gxapi::
 	desc.sizeInBytes = resource.GetSize();
 
 	gxapi->CreateConstantBufferView(desc, GetHandle());
+
+	SetSubresourceList({ gxapi::ALL_SUBRESOURCES });
 }
 
 
@@ -82,6 +102,8 @@ RenderTargetView2D::RenderTargetView2D(
 	m_desc = RTVdesc;
 
 	heap.Create(GetResource(), RTVdesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, desc));
 }
 
 RenderTargetView2D::RenderTargetView2D(
@@ -101,6 +123,8 @@ RenderTargetView2D::RenderTargetView2D(
 	m_desc = RTVdesc;
 
 	gxapi->CreateRenderTargetView(GetResource()._GetResourcePtr(), RTVdesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, desc));
 }
 
 gxapi::RenderTargetViewDesc RenderTargetView2D::GetDescription() const {
@@ -124,6 +148,8 @@ DepthStencilView2D::DepthStencilView2D(
 	m_desc = DSVdesc;
 
 	heap.Create(GetResource(), DSVdesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, desc));
 }
 
 DepthStencilView2D::DepthStencilView2D(const Texture2D & resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi * gxapi, gxapi::eFormat format, gxapi::DsvTexture2DArray desc)
@@ -137,6 +163,8 @@ DepthStencilView2D::DepthStencilView2D(const Texture2D & resource, gxapi::Descri
 	m_desc = DSVdesc;
 
 	gxapi->CreateDepthStencilView(GetResource()._GetResourcePtr(), DSVdesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, desc));
 }
 
 
@@ -162,6 +190,8 @@ BufferView::BufferView(
 	fullSrvDesc.buffer = desc;
 
 	heap.CreateSRV(GetResource(), fullSrvDesc, GetHandle());
+
+	SetSubresourceList({ gxapi::ALL_SUBRESOURCES });
 }
 
 BufferView::BufferView(
@@ -181,6 +211,8 @@ BufferView::BufferView(
 	fullSrvDesc.buffer = desc;
 
 	gxapi->CreateShaderResourceView(GetResource()._GetResourcePtr(), fullSrvDesc, GetHandle());
+
+	SetSubresourceList({ gxapi::ALL_SUBRESOURCES });
 }
 
 
@@ -210,6 +242,8 @@ TextureView1D::TextureView1D(
 	fullSrvDesc.tex1DArray = desc;
 
 	heap.CreateSRV(GetResource(), fullSrvDesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, desc));
 }
 
 TextureView1D::TextureView1D(
@@ -229,6 +263,8 @@ TextureView1D::TextureView1D(
 	fullSrvDesc.tex1DArray = desc;
 
 	gxapi->CreateShaderResourceView(GetResource()._GetResourcePtr(), fullSrvDesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, desc));
 }
 
 
@@ -258,6 +294,8 @@ TextureView2D::TextureView2D(
 	fullSrvDesc.tex2DArray = srvDesc;
 
 	heap.CreateSRV(GetResource(), fullSrvDesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, srvDesc));
 }
 
 TextureView2D::TextureView2D(
@@ -277,6 +315,8 @@ TextureView2D::TextureView2D(
 	fullSrvDesc.tex2DArray = srvDesc;
 
 	gxapi->CreateShaderResourceView(GetResource()._GetResourcePtr(), fullSrvDesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, srvDesc));
 }
 
 
@@ -306,6 +346,8 @@ TextureView3D::TextureView3D(
 	fullSrvDesc.tex3D = srvDesc;
 
 	heap.CreateSRV(GetResource(), fullSrvDesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, srvDesc));
 }
 
 TextureView3D::TextureView3D(
@@ -325,6 +367,8 @@ TextureView3D::TextureView3D(
 	fullSrvDesc.tex3D = srvDesc;
 
 	gxapi->CreateShaderResourceView(GetResource()._GetResourcePtr(), fullSrvDesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, srvDesc));
 }
 
 
@@ -337,57 +381,6 @@ const gxapi::SrvTexture3D& TextureView3D::GetDescription() const {
 	return m_srvDesc;
 }
 
-/*
-TextureViewCube::TextureViewCube(
-	const TextureCube& resource,
-	CbvSrvUavHeap& heap,
-	gxapi::eFormat format,
-	gxapi::SrvTextureCubeArray srvDesc
-) :
-	ResourceViewBase(resource, &heap),
-	m_format(format),
-	m_srvDesc(srvDesc)
-{
-	gxapi::ShaderResourceViewDesc fullSrvDesc;
-	fullSrvDesc.format = format;
-	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURECUBEARRAY;
-	fullSrvDesc.texCubeArray = srvDesc;
-
-	heap.CreateSRV(GetResource(), fullSrvDesc, GetHandle());
-}
-
-TextureViewCube::TextureViewCube(
-	const TextureCube & resource,
-	gxapi::DescriptorHandle handle,
-	gxapi::IGraphicsApi * gxapi,
-	gxapi::eFormat format,
-	gxapi::SrvTextureCubeArray srvDesc
-) :
-	ResourceViewBase(resource, handle),
-	m_format(format),
-	m_srvDesc(srvDesc)
-{
-	gxapi::ShaderResourceViewDesc fullSrvDesc;
-	fullSrvDesc.format = format;
-	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURECUBEARRAY;
-	fullSrvDesc.texCubeArray = srvDesc;
-
-	gxapi->CreateShaderResourceView(GetResource()._GetResourcePtr(), fullSrvDesc, GetHandle());
-}
-
-
-gxapi::eFormat TextureViewCube::GetFormat() {
-	return m_format;
-}
-
-
-const gxapi::SrvTextureCubeArray & TextureViewCube::GetDescription() const {
-	return m_srvDesc;
-}
-*/
-
-
-
 TextureViewCube::TextureViewCube(
 	const Texture2D& resource,
 	CbvSrvUavHeap& heap,
@@ -408,6 +401,8 @@ TextureViewCube::TextureViewCube(
 	fullSrvDesc.texCubeArray = srvDesc;
 
 	heap.CreateSRV(GetResource(), fullSrvDesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, srvDesc));
 }
 
 TextureViewCube::TextureViewCube(
@@ -431,6 +426,8 @@ TextureViewCube::TextureViewCube(
 	fullSrvDesc.texCubeArray = srvDesc;
 
 	gxapi->CreateShaderResourceView(GetResource()._GetResourcePtr(), fullSrvDesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, srvDesc));
 }
 
 
@@ -483,6 +480,8 @@ RWBufferView::RWBufferView(const LinearBuffer& resource,
 	fullUavDesc.buffer = desc;
 
 	gxapi->CreateUnorderedAccessView(GetResource()._GetResourcePtr(), fullUavDesc, GetHandle());
+
+	SetSubresourceList({ gxapi::ALL_SUBRESOURCES });
 }
 
 gxapi::eFormat RWBufferView::GetFormat() {
@@ -510,6 +509,8 @@ RWTextureView1D::RWTextureView1D(const Texture1D& resource,
 	fullUavDesc.tex1DArray = desc;
 
 	heap.CreateUAV(GetResource(), fullUavDesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, desc));
 }
 
 RWTextureView1D::RWTextureView1D(const Texture1D& resource,
@@ -528,6 +529,8 @@ RWTextureView1D::RWTextureView1D(const Texture1D& resource,
 	fullUavDesc.tex1DArray = desc;
 
 	gxapi->CreateUnorderedAccessView(GetResource()._GetResourcePtr(), fullUavDesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, desc));
 }
 
 gxapi::eFormat RWTextureView1D::GetFormat() {
@@ -555,6 +558,8 @@ RWTextureView2D::RWTextureView2D(const Texture2D& resource,
 	fullUavDesc.tex2DArray = desc;
 
 	heap.CreateUAV(GetResource(), fullUavDesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, desc));
 }
 
 RWTextureView2D::RWTextureView2D(const Texture2D& resource,
@@ -573,6 +578,8 @@ RWTextureView2D::RWTextureView2D(const Texture2D& resource,
 	fullUavDesc.tex2DArray = desc;
 
 	gxapi->CreateUnorderedAccessView(GetResource()._GetResourcePtr(), fullUavDesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, desc));
 }
 
 gxapi::eFormat RWTextureView2D::GetFormat() {
@@ -600,6 +607,8 @@ RWTextureView3D::RWTextureView3D(const Texture3D& resource,
 	fullUavDesc.tex3D = desc;
 
 	heap.CreateUAV(GetResource(), fullUavDesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, desc));
 }
 
 RWTextureView3D::RWTextureView3D(const Texture3D& resource,
@@ -618,6 +627,8 @@ RWTextureView3D::RWTextureView3D(const Texture3D& resource,
 	fullUavDesc.tex3D = desc;
 
 	gxapi->CreateUnorderedAccessView(GetResource()._GetResourcePtr(), fullUavDesc, GetHandle());
+
+	SetSubresourceList(CalcSubresourceList(resource, desc));
 }
 
 gxapi::eFormat RWTextureView3D::GetFormat() {
@@ -628,6 +639,121 @@ const gxapi::UavTexture3D& RWTextureView3D::GetDescription() const {
 	return m_uavDesc;
 }
 
+
+
+
+static std::vector<uint32_t> CalcSubresourceList(const Texture2D& obj, const gxapi::RtvTexture2DArray& desc) {
+	std::vector<uint32_t> ret;
+	for (uint32_t arr = desc.firstArrayElement; arr < desc.firstArrayElement + desc.activeArraySize; ++arr) {
+		ret.push_back(obj.GetSubresourceIndex(desc.firstMipLevel, arr, desc.planeIndex));
+	}
+	return ret;
+}
+
+static std::vector<uint32_t> CalcSubresourceList(const Texture2D& obj, const gxapi::DsvTexture2DArray& desc) {
+	std::vector<uint32_t> ret;
+	for (uint32_t arr = desc.firstArrayElement; arr < desc.firstArrayElement + desc.activeArraySize; ++arr) {
+		ret.push_back(obj.GetSubresourceIndex(desc.firstMipLevel, arr, 0));
+	}
+	return ret;
+}
+
+static std::vector<uint32_t> CalcSubresourceList(const Texture1D& obj, const gxapi::SrvTexture1DArray& desc) {
+	std::vector<uint32_t> ret;
+
+	uint32_t lastMip = desc.mostDetailedMip + desc.numMipLevels;
+	if (desc.numMipLevels == 0 || desc.numMipLevels > obj.GetNumMiplevels()) {
+		lastMip = obj.GetNumMiplevels();
+	}
+
+	for (uint32_t arr = desc.firstArrayElement; arr < desc.firstArrayElement + desc.activeArraySize; ++arr) {
+		for (uint32_t mip = desc.mostDetailedMip; mip < lastMip; ++mip) {
+			ret.push_back(obj.GetSubresourceIndex(mip, arr, 0));
+		}
+	}
+
+	return ret;
+}
+
+static std::vector<uint32_t> CalcSubresourceList(const Texture2D& obj, const gxapi::SrvTexture2DArray& desc) {
+	std::vector<uint32_t> ret;
+
+	uint32_t lastMip = desc.mostDetailedMip + desc.numMipLevels;
+	if (desc.numMipLevels == 0 || desc.numMipLevels > obj.GetNumMiplevels()) {
+		lastMip = obj.GetNumMiplevels();
+	}
+
+	for (uint32_t arr = desc.firstArrayElement; arr < desc.firstArrayElement + desc.activeArraySize; ++arr) {
+		for (uint32_t mip = desc.mostDetailedMip; mip < lastMip; ++mip) {
+			ret.push_back(obj.GetSubresourceIndex(mip, arr, 0));
+		}
+	}
+
+	return ret;
+}
+
+static std::vector<uint32_t> CalcSubresourceList(const Texture3D& obj, const gxapi::SrvTexture3D& desc) {
+	std::vector<uint32_t> ret;
+
+	uint32_t lastMip = desc.mostDetailedMip + desc.numMipLevels;
+	if (desc.numMipLevels == 0 || desc.numMipLevels > obj.GetNumMiplevels()) {
+		lastMip = obj.GetNumMiplevels();
+	}
+
+	for (uint32_t mip = desc.mostDetailedMip; mip < lastMip; ++mip) {
+		ret.push_back(obj.GetSubresourceIndex(mip, 0));
+	}
+
+	return ret;
+}
+
+static std::vector<uint32_t> CalcSubresourceList(const Texture2D& obj, const gxapi::SrvTextureCubeArray& desc) {
+	std::vector<uint32_t> ret;
+
+	uint32_t lastMip = desc.mostDetailedMip + desc.numMipLevels;
+	if (desc.numMipLevels == 0 || desc.numMipLevels > obj.GetNumMiplevels()) {
+		lastMip = obj.GetNumMiplevels();
+	}
+
+	uint32_t firstArray = desc.indexOfFirst2DTex;
+	uint32_t lastArray = firstArray + 6*desc.numCubes;
+
+	for (uint32_t arr = firstArray; arr < lastArray; ++arr) {
+		for (uint32_t mip = desc.mostDetailedMip; mip < lastMip; ++mip) {
+			ret.push_back(obj.GetSubresourceIndex(mip, arr, 0));
+		}
+	}
+
+	return ret;
+}
+
+static std::vector<uint32_t> CalcSubresourceList(const Texture1D& obj, const gxapi::UavTexture1DArray& desc) {
+	std::vector<uint32_t> ret;
+
+	for (uint32_t arr = desc.firstArrayElement; arr < desc.firstArrayElement + desc.activeArraySize; ++arr) {
+		ret.push_back(obj.GetSubresourceIndex(desc.mipLevel, arr, 0));
+	}
+
+	return ret;
+}
+
+static std::vector<uint32_t> CalcSubresourceList(const Texture2D& obj, const gxapi::UavTexture2DArray& desc) {
+	std::vector<uint32_t> ret;
+
+	for (uint32_t arr = desc.firstArrayElement; arr < desc.firstArrayElement + desc.activeArraySize; ++arr) {
+		ret.push_back(obj.GetSubresourceIndex(desc.mipLevel, arr, desc.planeIndex));
+	}
+
+	return ret;
+}
+
+static std::vector<uint32_t> CalcSubresourceList(const Texture3D& obj, const gxapi::UavTexture3D& desc) {
+	std::vector<uint32_t> ret;
+
+	ret.push_back(obj.GetSubresourceIndex(desc.mipLevel, 0));
+
+	return ret;
+}
 
 
 } // namespace gxeng

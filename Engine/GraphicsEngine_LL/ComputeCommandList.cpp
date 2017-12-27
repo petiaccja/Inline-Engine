@@ -98,7 +98,11 @@ void ComputeCommandList::SetComputeBinder(Binder* binder) {
 
 
 void ComputeCommandList::BindCompute(BindParameter parameter, const TextureView1D& shaderResource) {
-	ExpectResourceState(shaderResource.GetResource(), gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
+	ExpectResourceState(
+		shaderResource.GetResource(),
+		gxapi::eResourceState{ gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE },
+		shaderResource.GetSubresourceList());
+
 	try {
 		m_computeBindingManager.Bind(parameter, shaderResource);
 	}
@@ -109,7 +113,11 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const TextureView1
 }
 
 void ComputeCommandList::BindCompute(BindParameter parameter, const TextureView2D& shaderResource) {
-	ExpectResourceState(shaderResource.GetResource(), gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
+	ExpectResourceState(
+		shaderResource.GetResource(),
+		gxapi::eResourceState{ gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE },
+		shaderResource.GetSubresourceList());
+
 	try {
 		m_computeBindingManager.Bind(parameter, shaderResource);
 	}
@@ -120,7 +128,11 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const TextureView2
 }
 
 void ComputeCommandList::BindCompute(BindParameter parameter, const TextureView3D& shaderResource) {
-	ExpectResourceState(shaderResource.GetResource(), gxapi::eResourceState(gxapi::eResourceState::PIXEL_SHADER_RESOURCE) + gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
+	ExpectResourceState(
+		shaderResource.GetResource(),
+		gxapi::eResourceState{ gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE },
+		shaderResource.GetSubresourceList());
+
 	try {
 		m_computeBindingManager.Bind(parameter, shaderResource);
 	}
@@ -155,7 +167,8 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const void* shader
 }
 
 void ComputeCommandList::BindCompute(BindParameter parameter, const RWTextureView1D& rwResource) {
-	ExpectResourceState(rwResource.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+	ExpectResourceState(rwResource.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, rwResource.GetSubresourceList());
+
 	try {
 		m_computeBindingManager.Bind(parameter, rwResource);
 	}
@@ -166,7 +179,8 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const RWTextureVie
 }
 
 void ComputeCommandList::BindCompute(BindParameter parameter, const RWTextureView2D& rwResource) {
-	ExpectResourceState(rwResource.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+	ExpectResourceState(rwResource.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, rwResource.GetSubresourceList());
+
 	try {
 		m_computeBindingManager.Bind(parameter, rwResource);
 	}
@@ -177,7 +191,8 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const RWTextureVie
 }
 
 void ComputeCommandList::BindCompute(BindParameter parameter, const RWTextureView3D& rwResource) {
-	ExpectResourceState(rwResource.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+	ExpectResourceState(rwResource.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, rwResource.GetSubresourceList());
+
 	try {
 		m_computeBindingManager.Bind(parameter, rwResource);
 	}
@@ -188,7 +203,8 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const RWTextureVie
 }
 
 void ComputeCommandList::BindCompute(BindParameter parameter, const RWBufferView& rwResource) {
-	ExpectResourceState(rwResource.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+	ExpectResourceState(rwResource.GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, rwResource.GetSubresourceList());
+
 	{
 		try {
 			m_computeBindingManager.Bind(parameter, rwResource);

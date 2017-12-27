@@ -3,7 +3,7 @@
 
 using namespace inl::gui;
 
-GuiMenu::GuiMenu(GuiEngine* guiEngine)
+GuiMenu::GuiMenu(GuiEngine& guiEngine)
 : GuiList(guiEngine), guiArrow(nullptr), guiButton(nullptr)
 {
 	StretchFitToChildren();
@@ -28,7 +28,7 @@ GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
 	GuiMenu* subMenu = new GuiMenu(guiEngine);
 	subMenu->SetGuiButton(btn);
 	
-	subMenu->OnChildAdded += [this, item, subMenu](Gui* self, ChildEvent& e)
+	subMenu->OnChildAdded += [this, item, subMenu](Gui& self, ChildEvent& e)
 	{
 		// Add Arrow when we got submenu
 		if (GetOrientation() == eGuiOrientation::VERTICAL && subMenu->GetChildren().size() == 1)
@@ -47,7 +47,7 @@ GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
 		}
 	};
 
-	subMenu->OnChildRemoved += [this, item, subMenu](Gui* self, ChildEvent& e)
+	subMenu->OnChildRemoved += [this, item, subMenu](Gui& self, ChildEvent& e)
 	{
 		if (subMenu->GetChildren().size() == 0)
 		{
@@ -88,7 +88,7 @@ void GuiMenu::AddItem(Gui* menuItem)
 	};
 
 	thread_local std::vector<MenuTreeNode> activeMenuTree; // Here thread_local will not cause any problems
-	menuItem->OnCursorEntered += [menu](Gui* self, CursorEvent& evt)
+	menuItem->OnCursorEntered += [menu](Gui& self, CursorEvent& evt)
 	{
 		// Case 1. It's menu ->		 close menus behind this AND open that one
 		// case 2. It's not a menu-> close menus behind this
@@ -116,7 +116,7 @@ void GuiMenu::AddItem(Gui* menuItem)
 					// Unfreeze item, restore state to idle
 					node.item->UnfreezeBg();
 
-					if(node.item != self)
+					if(node.item != &self)
 						node.item->SetBgStateToIdle();
 
 					// Close menu
@@ -135,23 +135,23 @@ void GuiMenu::AddItem(Gui* menuItem)
 		{
 			menu->BringToFront();
 
-			GuiMenu* containingMenu = self->GetParent()->AsMenu();
+			GuiMenu& containingMenu = self.GetParent()->As<GuiMenu>();
 
-			if (containingMenu->GetOrientation() == eGuiOrientation::HORIZONTAL)
-				menu->SetPos(self->GetPosBottomLeft()); // TODO new menu should open at different position, for example menuBar open menus down ! and average menus opens to the right
+			if (containingMenu.GetOrientation() == eGuiOrientation::HORIZONTAL)
+				menu->SetPos(self.GetPosBottomLeft()); // TODO new menu should open at different position, for example menuBar open menus down ! and average menus opens to the right
 			else
-				menu->SetPos(self->GetPosTopRight()); // TODO new menu should open at different position, for example menuBar open menus down ! and average menus opens to the right
+				menu->SetPos(self.GetPosTopRight()); // TODO new menu should open at different position, for example menuBar open menus down ! and average menus opens to the right
 
-			self->FreezeBg();
+			self.FreezeBg();
 
 			MenuTreeNode node;
 			node.menu = menu;
-			node.item = self;
+			node.item = &self;
 			activeMenuTree.push_back(node);
 		}
 	};
 
-	guiEngine->OnCursorPressed += [this](CursorEvent& evt)
+	guiEngine.OnCursorPressed += [this](CursorEvent& evt)
 	{
 		bool bMenuHovered = false;
 
@@ -177,7 +177,6 @@ void GuiMenu::AddItem(Gui* menuItem)
 				node.item->UnfreezeBg();
 				node.item->SetBgStateToIdle();
 			}
-		}
-			
+		}	
 	};
 }

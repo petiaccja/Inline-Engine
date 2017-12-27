@@ -7,12 +7,13 @@ namespace inl::gui {
 class GuiList : public GuiLayout
 {
 public:
-	GuiList(GuiEngine* guiEngine);
-	GuiList(const GuiList& other) { *this = other; }
+	GuiList(GuiEngine& guiEngine);
+	GuiList(const GuiList& other):GuiLayout(other.guiEngine) { *this = other; }
 
 	// Important to implement in derived classes
 	virtual GuiList* Clone() const override { return new GuiList(*this); }
 
+	using GuiLayout::AddItem;
 	virtual void AddItem(Gui* gui) override { AddGui(gui); }
 	virtual bool RemoveItem(Gui* gui) override { return RemoveGui(gui); }
 	virtual std::vector<Gui*> GetItems() override { return GetChildren(); };
@@ -22,6 +23,14 @@ public:
 
 	void SetOrientation(eGuiOrientation dir);
 	eGuiOrientation GetOrientation() { return orientation; }
+
+	//template<class T>
+	//T* AddItem()
+	//{
+	//	T* child = new T(guiEngine);
+	//	AddItem(child);
+	//	return child;
+	//}
 
 protected:
 	virtual Vec2 ArrangeChildren(const Vec2& finalSize) override;

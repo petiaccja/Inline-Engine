@@ -7,7 +7,7 @@ namespace inl::gui {
 class GuiSlider : public Gui
 {
 public:
-	GuiSlider(GuiEngine* guiEngine);
+	GuiSlider(GuiEngine& guiEngine);
 
 	// Important to implement in derived classes
 	virtual GuiSlider* Clone() const override { return new GuiSlider(*this); }
@@ -24,10 +24,9 @@ protected:
 	void SlideToValue() { SlideToValue(value); }
 
 public:
-	Delegate<void(Gui* self, float value)> OnValueChanged;
+	Delegate<void(Gui& self, float value)> OnValueChanged;
 
 protected:
-	Gui* background;
 	Gui* slider;
 
 	float value;

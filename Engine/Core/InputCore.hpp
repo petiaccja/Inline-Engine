@@ -1,5 +1,5 @@
 #pragma once
-#include <BaseLibrary/Platform/Sys.hpp>
+#include <BaseLibrary/Platform/System.hpp>
 #include <array>
 #include <functional>
 #include <queue>
@@ -64,15 +64,15 @@ protected:
 	Vec2i clientCursorPos;
 
 	// Keyboard delegates
-	Delegate<void()> onKeyDown[(int)eKey::COUNT];
-	Delegate<void()> onKeyPressed[(int)eKey::COUNT];
-	Delegate<void()> onKeyReleased[(int)eKey::COUNT];
+	Event<> OnKeyDown[(int)eKey::COUNT];
+	Event<> OnKeyPressed[(int)eKey::COUNT];
+	Event<> OnKeyReleased[(int)eKey::COUNT];
 
 	// Mouse delegates
-	Delegate<void(const Vec2i& clientCursorPos)> onMousePressed[(int)eMouseButton::COUNT];
-	Delegate<void(const Vec2i& clientCursorPos)> onMouseReleased[(int)eMouseButton::COUNT];
-	Delegate<void(const Vec2i& clientCursorPos)> onMouseDown[(int)eMouseButton::COUNT];
-	Delegate<void(const Vec2i& mouseDelta, const Vec2i& clientCursorPos)> onMouseMove;
+	Event<const Vec2i& /*clientCursorPos*/> OnMousePressed[(int)eMouseButton::COUNT];
+	Event<const Vec2i& /*clientCursorPos*/> OnMouseReleased[(int)eMouseButton::COUNT];
+	Event<const Vec2i& /*clientCursorPos*/> OnMouseDown[(int)eMouseButton::COUNT];
+	Event<const Vec2i& /*mouseDelta*/, const Vec2i& /*clientCursorPos*/> OnMouseMove;
 };
 
 } // namespace inl::core

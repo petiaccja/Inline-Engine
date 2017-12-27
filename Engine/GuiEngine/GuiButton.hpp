@@ -7,8 +7,8 @@ namespace inl::gui {
 class GuiButton : public Gui
 {
 public:
-	GuiButton(GuiEngine* guiEngine);
-	GuiButton(const GuiButton& other) { *this = other; }
+	GuiButton(GuiEngine& guiEngine);
+	GuiButton(const GuiButton& other):Gui(other.guiEngine) { *this = other; }
 
 	// Important to implement in derived classes
 	virtual GuiButton* Clone() const override { return new GuiButton(*this); }

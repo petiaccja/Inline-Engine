@@ -4,10 +4,10 @@
 
 using namespace inl::gui;
 
-GuiLayer::GuiLayer(GuiEngine* guiEngine)
+GuiLayer::GuiLayer(GuiEngine& guiEngine)
 :Gui(guiEngine, true)
 {
-	Vec2u windowContentArea = guiEngine->GetTargetWindow()->GetClientSize();
+	Vec2u windowContentArea = guiEngine.GetTargetWindow()->GetClientSize();
 	SetSize(Vec2(windowContentArea.x, windowContentArea.y));
 
 	HideBgColor();

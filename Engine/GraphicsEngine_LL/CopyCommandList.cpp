@@ -88,47 +88,112 @@ void CopyCommandList::SetResourceState(const MemoryObject& resource, gxapi::eRes
 	}
 }
 
-void CopyCommandList::ExpectResourceState(const MemoryObject& resource, gxapi::eResourceState state, unsigned subresource) {
-	ExpectResourceState(resource, { state }, subresource);
+// REMOVE THESE IF ONES BELOW WORK
+//void CopyCommandList::ExpectResourceState(const MemoryObject& resource, gxapi::eResourceState state, unsigned subresource) {
+//	ExpectResourceState(resource, { state }, subresource);
+//}
+//
+//void CopyCommandList::ExpectResourceState(const MemoryObject& resource, const std::initializer_list<gxapi::eResourceState>& anyOfStates, unsigned subresource) {
+//	assert(anyOfStates.size() > 0);
+//
+//	if (resource.GetHeap() == eResourceHeap::CONSTANT || resource.GetHeap() == eResourceHeap::UPLOAD) {
+//		return; // they are GENERIC_READ, we don't care about them
+//	}
+//
+//
+//	if (subresource == gxapi::ALL_SUBRESOURCES) {
+//		for (unsigned s = 0; s < resource._GetResourcePtr()->GetNumSubresources(); ++s) {
+//			ExpectResourceState(resource, anyOfStates, s);
+//		}
+//	}
+//	else {
+//		SubresourceId resId{ resource, subresource };
+//
+//		auto iter = m_resourceTransitions.find(resId);
+//
+//		if (iter == m_resourceTransitions.end()) {
+//			if (IsDebuggerPresent()) {
+//				DebugBreak();
+//			}
+//			throw InvalidStateException("You did not set resource state before using this resource!");
+//		}
+//		else {
+//			gxapi::eResourceState currentState = iter->second.lastState;
+//			bool ok = false;
+//			for (auto it = anyOfStates.begin(); it != anyOfStates.end(); ++it) {
+//				ok = ok || ((currentState & *it) == *it);
+//			}
+//			if (!ok) {
+//				if (IsDebuggerPresent()) {
+//					DebugBreak();
+//				}
+//				throw InvalidStateException("You did set resource state, but to the wrong value!");
+//			}
+//		}
+//	}
+//}
+
+void CopyCommandList::ExpectResourceState(const MemoryObject& resource, gxapi::eResourceState state, const std::vector<uint32_t>& subresources) {
+	ExpectResourceState(resource, { state }, subresources);
 }
 
-void CopyCommandList::ExpectResourceState(const MemoryObject& resource, const std::initializer_list<gxapi::eResourceState>& anyOfStates, unsigned subresource) {
+void CopyCommandList::ExpectResourceState(const MemoryObject& resource, const std::initializer_list<gxapi::eResourceState>& anyOfStates, const std::vector<uint32_t>& subresources) {
 	assert(anyOfStates.size() > 0);
 
 	if (resource.GetHeap() == eResourceHeap::CONSTANT || resource.GetHeap() == eResourceHeap::UPLOAD) {
 		return; // they are GENERIC_READ, we don't care about them
 	}
 
-
-	if (subresource == gxapi::ALL_SUBRESOURCES) {
-		for (unsigned s = 0; s < resource._GetResourcePtr()->GetNumSubresources(); ++s) {
-			ExpectResourceState(resource, anyOfStates, s);
+	struct SubresourceIterator {
+		SubresourceIterator(const MemoryObject& resource, const std::vector<uint32_t>& subresources) {
+			count = resource.GetNumSubresources();
+			sub = &subresources;
+			all = false;
+			for (auto s : subresources) {
+				if (s == gxapi::ALL_SUBRESOURCES) {
+					all = true;
+					return;
+				}
+			}
 		}
-	}
-	else {
-		SubresourceId resId{ resource, subresource };
+		bool all;
+		unsigned count;
+		unsigned iter;
+		const std::vector<uint32_t>* sub;
+		bool HasNext() const {
+			return all ? (iter < count) : (iter < sub->size());
+		}
+		void operator++() {
+			++iter;
+		}
+		uint32_t Get() const {
+			return all ? (uint32_t)iter : (*sub)[iter];
+		}
+	};
 
-		auto iter = m_resourceTransitions.find(resId);
+	SubresourceIterator subiter(resource, subresources);
+
+	while (subiter.HasNext()) {
+		uint32_t subres = subiter.Get();
+
+		SubresourceId key{ resource, subres };
+		auto iter = m_resourceTransitions.find(key);
 
 		if (iter == m_resourceTransitions.end()) {
-			if (IsDebuggerPresent()) {
-				DebugBreak();
-			}
-			throw InvalidStateException("You did not set resource state before using this resource!");
+			throw InvalidStateException("You must SetSubresourceState before binding the resource view to the pipeline.");
 		}
 		else {
 			gxapi::eResourceState currentState = iter->second.lastState;
 			bool ok = false;
 			for (auto it = anyOfStates.begin(); it != anyOfStates.end(); ++it) {
-				ok = ok || ((currentState & *it) == *it);
+				ok = ok || (currentState & *it);
 			}
 			if (!ok) {
-				if (IsDebuggerPresent()) {
-					DebugBreak();
-				}
-				throw InvalidStateException("You did set resource state, but to the wrong value!");
+				throw InvalidStateException("Resource being bound to pipeline is in the wrong state. Use SetSubresourceState.");
 			}
 		}
+
+		++subiter;
 	}
 }
 
@@ -140,16 +205,16 @@ BasicCommandList::Decomposition CopyCommandList::Decompose() {
 
 
 void CopyCommandList::CopyBuffer(MemoryObject& dst, size_t dstOffset, const MemoryObject& src, size_t srcOffset, size_t numBytes) {
-	ExpectResourceState(dst, gxapi::eResourceState::COPY_DEST);
-	ExpectResourceState(src, gxapi::eResourceState::COPY_SOURCE);
+	ExpectResourceState(dst, gxapi::eResourceState::COPY_DEST, { gxapi::ALL_SUBRESOURCES });
+	ExpectResourceState(src, gxapi::eResourceState::COPY_SOURCE, { gxapi::ALL_SUBRESOURCES });
 
 	m_commandList->CopyBuffer(dst._GetResourcePtr(), dstOffset, const_cast<gxapi::IResource*>(src._GetResourcePtr()), srcOffset, numBytes);
 }
 
 
 void CopyCommandList::CopyTexture(Texture2D& dst, const Texture2D& src, SubTexture2D dstPlace, SubTexture2D srcPlace) {
-	ExpectResourceState(dst, gxapi::eResourceState::COPY_DEST);
-	ExpectResourceState(src, gxapi::eResourceState::COPY_SOURCE);
+	ExpectResourceState(dst, gxapi::eResourceState::COPY_DEST, { dstPlace.subresource });
+	ExpectResourceState(src, gxapi::eResourceState::COPY_SOURCE, { srcPlace.subresource });
 
 	gxapi::TextureCopyDesc dstDesc =
 		gxapi::TextureCopyDesc::Texture(dstPlace.subresource);
@@ -179,8 +244,8 @@ void CopyCommandList::CopyTexture(Texture2D& dst, const Texture2D& src, SubTextu
 
 
 void CopyCommandList::CopyTexture(Texture2D& dst, const Texture2D& src, SubTexture2D dstPlace) {
-	ExpectResourceState(dst, gxapi::eResourceState::COPY_DEST);
-	ExpectResourceState(src, gxapi::eResourceState::COPY_SOURCE);
+	ExpectResourceState(dst, gxapi::eResourceState::COPY_DEST, { dstPlace.subresource });
+	ExpectResourceState(src, gxapi::eResourceState::COPY_SOURCE, { 0 });
 
 	gxapi::TextureCopyDesc dstDesc =
 		gxapi::TextureCopyDesc::Texture(dstPlace.subresource);
@@ -201,8 +266,8 @@ void CopyCommandList::CopyTexture(Texture2D& dst, const Texture2D& src, SubTextu
 
 
 void CopyCommandList::CopyTexture(Texture2D& dst, const LinearBuffer& src, SubTexture2D dstPlace, gxapi::TextureCopyDesc bufferDesc) {
-	ExpectResourceState(dst, gxapi::eResourceState::COPY_DEST);
-	ExpectResourceState(src, gxapi::eResourceState::COPY_SOURCE);
+	ExpectResourceState(dst, gxapi::eResourceState::COPY_DEST, { dstPlace.subresource });
+	ExpectResourceState(src, gxapi::eResourceState::COPY_SOURCE, { gxapi::ALL_SUBRESOURCES });
 
 	gxapi::TextureCopyDesc dstDesc =
 		gxapi::TextureCopyDesc::Texture(dstPlace.subresource);

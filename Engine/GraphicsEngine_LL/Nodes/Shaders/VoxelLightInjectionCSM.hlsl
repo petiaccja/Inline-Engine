@@ -8,8 +8,9 @@ struct Uniforms
 {
 	float4x4 model, viewProj;
 	float3 voxelCenter; float voxelSize;
-	int voxelDimension;
+	int voxelDimension; int inputMipLevel; int outputMipLevel;
 };
+
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
 //RWTexture3D<uint> voxelTex : register(u0);
@@ -19,6 +20,7 @@ Texture2DArray<float> shadowCSMTex : register(t0);
 Texture2D<float4> shadowCSMExtentsTex : register(t1);
 
 SamplerState samp0 : register(s0);
+SamplerState samp1 : register(s1);
 
 struct PS_Input
 {

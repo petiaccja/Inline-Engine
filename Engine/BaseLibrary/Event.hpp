@@ -1,69 +1,128 @@
 #pragma once
 
-
 #include "Delegate.hpp"
 #include <set>
 #include "SpinMutex.hpp"
 #include <mutex>
 #include <vector>
+#include <typeindex>
+#include "TemplateUtil.hpp"
+
+
+#ifdef _MSC_VER
+#pragma warning(disable: 4180)
+#endif
+
 
 namespace inl {
 
 
-
+/// <summary> You can sign up functors, then fire the event by calling it's (), 
+///		and all the signed up functors will be called. </summary>
 template <class... ArgsT>
 class Event {
-public:
-	void operator()(ArgsT... args) {
-		std::unique_lock<spin_mutex> lkg(m_mtx);
-		auto delegates = m_delegates;
-		auto functions = m_functions;
-		lkg.unlock();
+	// Helper class to store comparable functors
+	struct Comparable {
+		template <class ComparableFun>
+		Comparable(const ComparableFun& fun) {
+			callee = fun;
 
-		for (auto& del : delegates) {
-			del(args...);
+			// Compares two comparable functors as -1, 0, +1 for less, equal and greater (like strcmp)
+			compare = [](const std::function<void(ArgsT...)>& lhs, const std::function<void(ArgsT...)>& rhs) {
+				const ComparableFun* target1 = lhs.target<const ComparableFun>();
+				const ComparableFun* target2 = rhs.target<const ComparableFun>();
+				if (target1 == nullptr || target2 == nullptr) {
+					return
+						((std::type_index)rhs.target_type() < (std::type_index)lhs.target_type())
+						- ((std::type_index)lhs.target_type() < (std::type_index)rhs.target_type());
+				}
+				return (*target2 < *target1) - (*target1 < *target2);
+			};
 		}
 
-		for (auto& fn : functions) {
-			fn(args...);
+		// Calls the comparable functor.
+		void operator()(ArgsT... args) const {
+			callee(std::forward<ArgsT>(args)...);
+		}
+		// Check equality of underlying functors.
+		bool operator==(const Comparable& rhs) const {
+			return compare(callee, rhs.callee) == 0;
+		}
+		// Check less of underlying functors.
+		bool operator<(const Comparable& rhs) const {
+			return compare(callee, rhs.callee) < 0;
+		}
+
+		std::function<void(ArgsT...)> callee; // Underlying functor.
+		std::function<int(const std::function<void(ArgsT...)>&, const std::function<void(ArgsT...)>&)> compare; // Comparison inner helper.
+	};
+
+	// Functors having both < and == are considered comparable.
+	template <class Fun>
+	static constexpr bool IsComparable = templ::is_equality_comparable<Fun>::value && templ::is_less_comparable<Fun>::value;
+public:
+	/// <summary> Fire off the event, call all signed up functors with given arguments. </summary>
+	void operator()(ArgsT... args) {
+		std::unique_lock<spin_mutex> lkg(m_mtx);
+		// Copy so that if a fired functor changes m_simples/m_comparables iterators won't invalidate.
+		auto simples = m_simples;
+		auto comparables = m_comparables;
+		lkg.unlock();
+
+		for (auto& callee : simples) {
+			callee(args...);
+		}
+		for (auto& callee : comparables) {
+			callee(args...);
 		}
 	}
 	
-	void operator+=(const std::function<void(ArgsT...)>& func) {
+	/// <summary> Signs up functor for the event. You may remove this functor via <see cref="operator-="/>. </summary>
+	template <class ComparableFun, typename std::enable_if_t<IsComparable<ComparableFun>, int> = 0>
+	void operator+=(const ComparableFun& fun) {
 		std::lock_guard<decltype(m_mtx)> lkg(m_mtx);
-
-		m_functions.push_back(func);
+		
+		m_comparables.insert(Comparable(fun));
 	}
-	void operator+=(const Delegate<void(ArgsT...)>& func) {
+
+	/// <summary> Signs up functor for the event. You can't remove this functor later. </summary>
+	template <class SimpleFun, typename std::enable_if_t<!IsComparable<SimpleFun>, int> = 0>
+	void operator+=(const SimpleFun& fun) {
+		std::function<void(ArgsT...)> callee = fun;
+
 		std::lock_guard<decltype(m_mtx)> lkg(m_mtx);
 
-		m_delegates.insert(func);
+		m_simples.push_back(callee);
 	}
-	bool operator-=(const Delegate<void(ArgsT...)>& func) {
+
+	/// <summary> Remove previously signed up functor. </summary>
+	/// <returns> True if the functor was found and removed, false if not found. </returns>
+	template <class ComparableFun, typename std::enable_if_t<IsComparable<ComparableFun>, int> = 0>
+	bool operator-=(const ComparableFun& fun) {
 		std::lock_guard<decltype(m_mtx)> lkg(m_mtx);
 
-		auto it = m_delegates.find(func);
-		if (it == m_delegates.end()) {
-			return false;
-		}
-		else {
-			m_delegates.erase(it);
+		auto it = m_comparables.find(Comparable(fun));
+		if (it != m_comparables.end()) {
+			m_comparables.erase(it);
 			return true;
 		}
+		return false;
 	}
 
-	Event& operator=(const Event& other)
-	{
-		m_delegates = other.m_delegates;
-		m_functions = other.m_functions;
+	/// <summary> Copy event object.
+	///		all signed up functors are copied as well and signed up for the new event. </summary>
+	Event& operator=(const Event& other) {
+		m_simples = other.m_simples;
+		m_comparables = other.m_comparables;
 
 		return *this;
 	}
 
 private:
 	spin_mutex m_mtx;
-	std::multiset<Delegate<void(ArgsT...)>> m_delegates;
-	std::vector<std::function<void(ArgsT...)>> m_functions;
+
+	std::vector<std::function<void(ArgsT...)>> m_simples; // These functions cannot be removed via -=
+	std::multiset<Comparable> m_comparables; // These function can be removed by -= because they have < and ==
 };
 
 

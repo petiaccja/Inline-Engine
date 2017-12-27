@@ -44,11 +44,11 @@ int TestWindow::Run() {
 		Window window{ u8"Test Window", {640, 480}, false, true };
 		window.SetQueueMode(eInputQueueMode::QUEUED);
 
-		window.OnMouseButton += {&TestWindow::OnClick, this};
+		window.OnMouseButton += Delegate<void(MouseButtonEvent)>{&TestWindow::OnClick, this};
 		//window.OnKeyboard += {&TestWindow::OnKey, this};
-		window.OnCharacter += {&TestWindow::OnChar, this};
-		window.OnClose += {&TestWindow::OnClose, this};
-		window.OnDropped += {&TestWindow::OnDropped, this};
+		window.OnCharacter += Delegate<void(char32_t)>{&TestWindow::OnChar, this};
+		window.OnClose += Delegate<void()>{&TestWindow::OnClose, this};
+		window.OnDropped += Delegate<void(DragDropEvent)>{&TestWindow::OnDropped, this};
 
 		while (!closed) {
 			this_thread::sleep_for(chrono::milliseconds(50));
