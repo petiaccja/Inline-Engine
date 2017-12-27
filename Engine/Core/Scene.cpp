@@ -28,7 +28,7 @@ void Scene::Update(float deltaTime)
 {
 	for (Part* part : parts)
 		part->UpdateEntityTransform();
-
+	
 	if (physicsScene)
 		physicsScene->Update(deltaTime);
 }

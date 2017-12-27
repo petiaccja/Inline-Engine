@@ -135,6 +135,8 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 		eventData.cursorPos = Vec2(e.absx, e.absy);
 		eventData.cursorDelta = Vec2(e.relx, e.rely);
 
+		cursorPos = eventData.cursorPos;
+
 		OnCursorMoved(eventData);
 
 		Vec2 pixelCenterCursorPos = eventData.cursorPos + Vec2(0.5, 0.5); // Important, make cursorPos pointing to the center of the pixel ! Making children gui - s non overlappable at edges
@@ -226,6 +228,8 @@ void GuiEngine::Update(float deltaTime)
 	// Let's hint the window to repaint itself
 	InvalidateRect((HWND)targetWindow->GetNativeHandle(), NULL, false);
 
+	GuiRectF clipRect(std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max(), std::numeric_limits<int16_t>::max(), std::numeric_limits<int16_t>::min());
+
 	// Calculate clipping rect for all gui controls
 	std::function<void(Gui* control, GuiRectF& clipRect)> traverseControls;
 	traverseControls = [&](Gui* control, GuiRectF& clipRect)
@@ -237,7 +241,7 @@ void GuiEngine::Update(float deltaTime)
 		if (control->IsChildrenClipEnabled())
 			rect = control->GetPaddingRect();
 		else
-			rect = GuiRectF(std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max(), std::numeric_limits<int16_t>::max(), std::numeric_limits<int16_t>::min());
+			rect = clipRect;
 
 		GuiRectF newClipRect = GuiRectF::Intersection(clipRect, rect);
 
@@ -246,14 +250,11 @@ void GuiEngine::Update(float deltaTime)
 	};
 
 	for (GuiLayer* layer : GetLayers())
-	{
-		GuiRectF clipRect(std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max(), std::numeric_limits<int16_t>::max(), std::numeric_limits<int16_t>::min());
 		traverseControls(layer, clipRect);
-	}
 
 
 	// Call Update callback for all gui controls
-	TraverseGuiControls([=](Gui& control)
+	TraverseGuiControls([&](Gui& control)
 	{
 		UpdateEvent updateEvent;
 		updateEvent.deltaTime = deltaTime;
@@ -326,11 +327,6 @@ void GuiEngine::Update(float deltaTime)
 void GuiEngine::Render()
 {
 	SelectObject(memHDC, memBitmap);
-
-	//RECT clientRect;
-	//GetClientRect((HWND)targetWindow->GetNativeHandle(), &clientRect);
-	//FillRect(memHDC, &clientRect, CreateSolidBrush(RGB(64, 96, 192)));
-	//DrawTextA(memHDC, "Ez egy szoveg akar lenni remeljuk kirajzolodik", -1, &clientRect, DT_CENTER | DT_VCENTER);
 
 	std::function<void(Gui& control)> traverseControls;
 	traverseControls = [&](Gui& control)
