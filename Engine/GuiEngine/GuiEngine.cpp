@@ -24,12 +24,12 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 	Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
 	SetResolution(targetWindow->GetClientSize());
-	targetWindow->OnResize+= [this](Vec2u windowSize, Vec2u clientSize)
+	targetWindow->OnResize+= [this](ResizeEvent& e)
 	{
-		SetResolution(clientSize);
+		SetResolution(e.clientSize);
 
 		for (auto& layer : GetLayers())
-			layer->SetSize(Vec2(clientSize.x, clientSize.y));
+			layer->SetSize(e.clientSize);
 	};
 
 	//Propagate mousePress
@@ -134,8 +134,6 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 		CursorEvent eventData;
 		eventData.cursorPos = Vec2(e.absx, e.absy);
 		eventData.cursorDelta = Vec2(e.relx, e.rely);
-
-		cursorPos = eventData.cursorPos;
 
 		OnCursorMoved(eventData);
 

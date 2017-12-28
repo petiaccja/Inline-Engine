@@ -1,5 +1,6 @@
 #pragma once
 
+#include <InlineMath.hpp>
 #include <cstdint>
 #undef DELETE // hogy a faszomat húzzam bele a winapiba
 
@@ -170,6 +171,20 @@ struct KeyboardEvent {
 	eKey key;
 };
 
+enum class eResizeMode
+{
+	RESTORED,
+	MINIMIZED,
+	MAXIMIZED,
+	MAXSHOW,
+	MAXHIDE,
+};
+
+struct ResizeEvent {
+	Vec2u size;
+	Vec2u clientSize;
+	eResizeMode resizeMode;
+};
 
 // Joystick click
 enum class eJoystickButton {

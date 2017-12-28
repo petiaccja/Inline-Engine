@@ -42,7 +42,7 @@ public:
 
 	void TraverseGuiControls(const std::function<void(Gui&)>& fn);
 
-	inline Vec2 GetCursorPos() { return cursorPos; }
+	inline Vec2 GetCursorPos() { return targetWindow->GetClientCursorPos(); }
 	inline float GetCursorPosX() { return GetCursorPos().x; }
 	inline float GetCursorPosY() { return GetCursorPos().y; }
 
@@ -76,7 +76,6 @@ protected:
 	Gui* hoveredGui;
 	Gui* activeContextMenu;
 
-	Vec2 cursorPos;
 	bool bHoverFreezed;
 	bool bOperSysDragging;
 	DragDropEvent lastDropEvent;

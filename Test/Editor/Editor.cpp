@@ -15,7 +15,7 @@ Editor::Editor()
 	input = new InputCore();
 
 	// Create main window for Editor
-	wnd = new Window("Inline Engine", Vec2u(800, 600), false, true, false);
+	wnd = new Window("Inline Engine", Vec2u(800, 600), false, true, false, std::bind(&Editor::WndProc, this, _1, _2, _3, _4));
 
 	wnd->OnPaint += [this]()
 	{
@@ -23,6 +23,23 @@ Editor::Editor()
 			guiEngine->Render();
 	};
 
+	wnd->OnResize += [this](ResizeEvent& e)
+	{
+		if (maximizeBtn)
+		{
+			if (e.resizeMode == eResizeMode::MAXIMIZED)
+			{
+				maximizeBtn->SetImages(L"Resources/restore.png", L"Resources/restore_h.png");
+				bWndMaximized = true;
+			}
+			else if (e.resizeMode == eResizeMode::RESTORED)
+			{
+				maximizeBtn->SetImages(L"Resources/maximize.png", L"Resources/maximize_h.png");
+
+				bWndMaximized = false;
+			}
+		}
+	};
 	// Create secondary window for GAME inside Editor
 	//gameWnd = new Window("Inline Engine", Vec2u(100, 100), true, true);
 
@@ -218,7 +235,7 @@ void Editor::InitGui()
 		else
 			wnd->Maximize();
 	};
-	closeBtn->OnCursorClicked += [this](Gui& self, CursorEvent& evt) { /*wnd->Close(); TODO*/ };
+	closeBtn->OnCursorClicked += [this](Gui& self, CursorEvent& evt) { wnd->Close(); };
 
 	minimizeBtn->SetImages(L"Resources/minimize.png", L"Resources/minimize_h.png");
 	maximizeBtn->SetImages(L"Resources/maximize.png", L"Resources/maximize_h.png");
@@ -519,7 +536,6 @@ void Editor::Update()
 
 	wnd->SetTitle("Inline Editor");
 
-	//wnd->SetQueueMode(eInputQueueMode::IMMEDIATE);
 	while (!wnd->IsClosed())
 	{
 		// Prepare for input processing
@@ -609,168 +625,119 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	switch (msg)
 	{
-	case WM_SETCURSOR:
-		if (LOWORD(lParam) == HTCLIENT)
+		case WM_SETCURSOR:
 		{
-			if (!guiEngine->IsUsingCustomCursor())
-				SetCursor(LoadCursor(nullptr, IDC_ARROW));
-
-			return TRUE;
-		}
-		break;
-	case WM_ACTIVATE:
-	{
-		// Extend the frame into the client area.
-		MARGINS margins;
-
-		margins.cxLeftWidth = 0;		// 8
-		margins.cxRightWidth = 0;		// 8
-		margins.cyBottomHeight = 0;		// 20
-		margins.cyTopHeight = 0;		// 27
-
-		HRESULT hr = DwmExtendFrameIntoClientArea(handle, &margins);
-		assert(hr == S_OK);
-
-		fCallDWP = true;
-		lRet = 0;
-
-		break;
-	}
-	case WM_CREATE:
-	{
-		RECT rcClient;
-		GetWindowRect(handle, &rcClient);
-
-		// Inform the application of the frame change.
-		SetWindowPos(handle,
-			NULL,
-			rcClient.left, rcClient.top,
-			rcClient.right - rcClient.left, rcClient.top - rcClient.bottom,
-			SWP_FRAMECHANGED);
-
-		fCallDWP = true;
-		lRet = 0;
-
-		break;
-	}
-	case WM_PAINT:
-	{
-		PAINTSTRUCT ps;
-		BeginPaint(handle, &ps);
-
-		if (guiEngine)
-			guiEngine->Render();
-
-		EndPaint(handle, &ps);
-		fCallDWP = true;
-		lRet = 0;
-		break;
-	}
-	case WM_SIZE:
-	{
-		if (maximizeBtn)
-		{
-			if (wParam == SIZE_MAXIMIZED)
+			if (LOWORD(lParam) == HTCLIENT)
 			{
-				maximizeBtn->SetImages(L"Resources/restore.png", L"Resources/restore_h.png");
-				bWndMaximized = true;
+				if (!guiEngine->IsUsingCustomCursor())
+					SetCursor(LoadCursor(nullptr, IDC_ARROW));
+
+				return TRUE;
 			}
-			else if (wParam == SIZE_RESTORED)
+			break;
+		}
+		case WM_NCCALCSIZE:
+		{
+			// Calculate new NCCALCSIZE_PARAMS based on custom NCA inset.
+			NCCALCSIZE_PARAMS *pncsp = reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
+
+			if (IsMaximized(handle))
 			{
-				maximizeBtn->SetImages(L"Resources/maximize.png", L"Resources/maximize_h.png");
-				
-				bWndMaximized = false;
+				pncsp->rgrc[0].left = pncsp->rgrc[0].left + 8;
+				pncsp->rgrc[0].top = pncsp->rgrc[0].top + 8;
+				pncsp->rgrc[0].right = pncsp->rgrc[0].right - 8;
+				pncsp->rgrc[0].bottom = pncsp->rgrc[0].bottom - 8;
 			}
-		}
+			else
+			{
+				pncsp->rgrc[0].left = pncsp->rgrc[0].left + 0;
+				pncsp->rgrc[0].top = pncsp->rgrc[0].top + 0;
+				pncsp->rgrc[0].right = pncsp->rgrc[0].right - 0;
+				pncsp->rgrc[0].bottom = pncsp->rgrc[0].bottom - 0;
+			}
 
-		break;
-	}
-	case WM_DESTROY:
-	{
-		PostQuitMessage(WM_QUIT);
-		break;
-	}
-	case WM_NCCALCSIZE:
-	{
-		// Calculate new NCCALCSIZE_PARAMS based on custom NCA inset.
-		NCCALCSIZE_PARAMS *pncsp = reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
+			
 
-		pncsp->rgrc[0].left = pncsp->rgrc[0].left + 0;
-		pncsp->rgrc[0].top = pncsp->rgrc[0].top + 0;
-		pncsp->rgrc[0].right = pncsp->rgrc[0].right - 0;
-		pncsp->rgrc[0].bottom = pncsp->rgrc[0].bottom - 0;
+			lRet = 0;
 
-		lRet = 0;
+			// No need to pass the message on to the DefWindowProc.
+			fCallDWP = false;
 
-		// No need to pass the message on to the DefWindowProc.
-		fCallDWP = false;
+			break;
+		}
+		case WM_NCHITTEST:
+		{
+			Vec2 cursorPos = guiEngine->GetCursorPos();
+			
+			int border;
+			if (IsMaximized(handle))
+				border = 0;
+			else
+				border = 4;
+			
+			bool bLeft = cursorPos.x < border;
+			bool bRight = cursorPos.x > mainLayer->GetWidth() - border;
+			bool bTop = cursorPos.y < border;
+			bool bBottom = cursorPos.y > mainLayer->GetHeight() - border;
+			
+			GuiRectF captionBarRect = captionBar->GetRect();
+			captionBarRect.MoveSides(GuiRectF(-1, 1, 0, -1));
 
-		break;
-	}
-	case WM_NCHITTEST:
-	{
-		Vec2 cursorPos = guiEngine->GetCursorPos();
+			if (bTop && bLeft)
+			{
+				return HTTOPLEFT;
+			}
+			else if (bTop && bRight)
+			{
+				return HTTOPRIGHT;
+			}
+			else if (bBottom && bRight)
+			{
+				return HTBOTTOMRIGHT;
+			}
+			else if (bBottom && bLeft)
+			{
+				return HTBOTTOMLEFT;
+			}
+			else if (bLeft)
+			{
+				return HTLEFT;
+			}
+			else if (bRight)
+			{
+				return HTRIGHT;
+			}
+			else if (bTop)
+			{
+				return HTTOP;
+			}
+			else if (bBottom)
+			{
+				return HTBOTTOM;
+			}
+			else if (closeBtn && closeBtn->IsCursorInside())
+			{
+				// HTNOWHERE
+			}
+			else if (maximizeBtn && maximizeBtn->IsCursorInside())
+			{
+				// HTNOWHERE
+			}
+			else if (minimizeBtn && minimizeBtn->IsCursorInside())
+			{
+				// HTNOWHERE
+			}
+			else if (captionBar && captionBarRect.IsPointInside(guiEngine->GetCursorPos()))
+			{
+				return HTCAPTION;
+			}
+			else
+			{
+				return HTCLIENT;
+			}
 
-		bool bLeft = cursorPos.x < 8;
-		bool bRight = cursorPos.x > mainLayer->GetWidth() - 8;
-		bool bTop = cursorPos.y < 8;
-		bool bBottom = cursorPos.y > mainLayer->GetHeight() - 8;
-
-		if (bTop && bLeft)
-		{
-			return HTTOPLEFT;
+			break;
 		}
-		else if (bTop && bRight)
-		{
-			return HTTOPRIGHT;
-		}
-		else if (bBottom && bRight)
-		{
-			return HTBOTTOMRIGHT;
-		}
-		else if (bBottom && bLeft)
-		{
-			return HTBOTTOMLEFT;
-		}
-		else if (bLeft)
-		{
-			return HTLEFT;
-		}
-		else if (bRight)
-		{
-			return HTRIGHT;
-		}
-		else if (bTop)
-		{
-			return HTTOP;
-		}
-		else if (bBottom)
-		{
-			return HTBOTTOM;
-		}
-		else if (closeBtn && closeBtn->IsCursorInside())
-		{
-			// HTNOWHERE
-		}
-		else if (maximizeBtn && maximizeBtn->IsCursorInside())
-		{
-			// HTNOWHERE
-		}
-		else if (minimizeBtn && minimizeBtn->IsCursorInside())
-		{
-			// HTNOWHERE
-		}
-		else if (captionBar && captionBar->IsCursorInside())
-		{
-			return HTCAPTION;
-		}
-		else
-		{
-			return HTCLIENT;
-		}
-
-		break;
-	}
 	}
 
 	if (fCallDWP)

@@ -35,7 +35,8 @@ public:
 		Vec2u size = { 640, 480 },
 		bool borderless = false, 
 		bool resizable = true,
-		bool hiddenInitially = false);
+		bool hiddenInitially = false,
+		const std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)>& userWndProc = nullptr);
 	Window(const Window&) = delete;
 	Window(Window&& rhs) noexcept;
 	Window& operator=(const Window&) = delete;
@@ -44,6 +45,7 @@ public:
 
 	// Common
 	bool IsClosed() const;
+	void Close();
 	void Show();
 	void Hide();
 	bool IsFocused() const;
@@ -93,7 +95,7 @@ public:
 	Event<MouseButtonEvent> OnMouseButton;
 	Event<MouseMoveEvent> OnMouseMove;
 	Event<KeyboardEvent> OnKeyboard;
-	Event<Vec2u, Vec2u> OnResize; /// <summary> Parameters: window size, client area size. </summary>
+	Event<ResizeEvent> OnResize; /// <summary> Parameters: window size, client area size. </summary>
 	Event<char32_t> OnCharacter;
 	Event<> OnClose;
 	Event<> OnFocus;
@@ -124,6 +126,7 @@ private:
 private:
 	WindowHandle m_handle = NULL;
 	HANDLE m_icon = NULL;
+	std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> m_userWndProc;
 
 	// This code is for immediate/queue mode setup
 	/*

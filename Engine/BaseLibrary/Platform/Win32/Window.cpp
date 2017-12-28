@@ -17,8 +17,11 @@ Window::Window(const std::string& title,
 	Vec2u size,
 	bool borderless,
 	bool resizable,
-	bool hiddenInitially)
+	bool hiddenInitially,
+	const std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)>& userWndProc)
 {
+	m_userWndProc = userWndProc;
+
 	// Lazy-register window class.
 	static bool isWcRegistered = [] {
 		WNDCLASSEXA wc;
@@ -213,6 +216,10 @@ bool Window::IsClosed() const {
 	return m_handle == NULL;
 }
 
+void Window::Close() {
+	CloseWindow(m_handle);
+	m_handle = nullptr;
+}
 
 void Window::Show() {
 	if (IsClosed()) {
@@ -414,7 +421,7 @@ bool Window::CallEvents() {
 
 
 LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	Window& instance = *reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+	Window* instance = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 
 	auto CallClickEvent = [&instance, lParam](eMouseButton btn, eKeyState state) {
 		MouseButtonEvent evt;
@@ -423,125 +430,150 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 		evt.y = HIWORD(lParam);
 		evt.state = state;
 		evt.button = btn;
-		instance.CallEvent(instance.OnMouseButton, evt);
+		instance->CallEvent(instance->OnMouseButton, evt);
 	};
 
 	switch (msg) {
 		case WM_CLOSE:
 			DestroyWindow(hwnd);
-			return 0;
+			break;
 		case WM_DESTROY:
-			instance.CallEvent(instance.OnClose);
+			instance->CallEvent(instance->OnClose);
 			PostQuitMessage(0);
-			instance.m_handle = nullptr;
-			return 0;
+			instance->m_handle = nullptr;
+			break;
 		case WM_CHAR:
-			instance.CallEvent(instance.OnCharacter, (char32_t)wParam);
-			return 0;
+			instance->CallEvent(instance->OnCharacter, (char32_t)wParam);
+			break;
 		case WM_KEYDOWN: {
 			KeyboardEvent evt;
 			evt.key = impl::TranslateKey((unsigned)wParam);
 			evt.state = eKeyState::DOWN;
 			if (evt.key != eKey::UNKNOWN) {
-				instance.CallEvent(instance.OnKeyboard, evt);
+				instance->CallEvent(instance->OnKeyboard, evt);
 			}
-			return 0;
+			break;
 		}
 		case WM_KEYUP: {
 			KeyboardEvent evt;
 			evt.key = impl::TranslateKey((unsigned)wParam);
 			evt.state = eKeyState::UP;
 			if (evt.key != eKey::UNKNOWN) {
-				instance.CallEvent(instance.OnKeyboard, evt);
+				instance->CallEvent(instance->OnKeyboard, evt);
 			}
-			return 0;
+			break;
 		}
+		case WM_NCLBUTTONDOWN:
 		case WM_LBUTTONDOWN: {
 			CallClickEvent(eMouseButton::LEFT, eKeyState::DOWN);
-			return 0;
+			break;
 		}
+		case WM_NCLBUTTONUP:
 		case WM_LBUTTONUP: {
 			CallClickEvent(eMouseButton::LEFT, eKeyState::UP);
-			return 0;
+			break;
 		}
+		case WM_NCLBUTTONDBLCLK:
 		case WM_LBUTTONDBLCLK: {
 			CallClickEvent(eMouseButton::LEFT, eKeyState::DOUBLE);
-			return 0;
+			break;
 		}
+		case WM_NCRBUTTONDOWN:
 		case WM_RBUTTONDOWN: {
 			CallClickEvent(eMouseButton::RIGHT, eKeyState::DOWN);
-			return 0;
+			break;
 		}
+		case WM_NCRBUTTONUP:
 		case WM_RBUTTONUP: {
 			CallClickEvent(eMouseButton::RIGHT, eKeyState::UP);
-			return 0;
+			break;
 		}
+		case WM_NCRBUTTONDBLCLK:
 		case WM_RBUTTONDBLCLK: {
 			CallClickEvent(eMouseButton::RIGHT, eKeyState::DOUBLE);
-			return 0;
+			break;
 		}
+		case WM_NCMBUTTONDOWN:
 		case WM_MBUTTONDOWN: {
 			CallClickEvent(eMouseButton::MIDDLE, eKeyState::DOWN);
-			return 0;
+			break;
 		}
+		case WM_NCMBUTTONUP:
 		case WM_MBUTTONUP: {
 			CallClickEvent(eMouseButton::MIDDLE, eKeyState::UP);
-			return 0;
+			break;
 		}
+		case WM_NCMBUTTONDBLCLK:
 		case WM_MBUTTONDBLCLK: {
 			CallClickEvent(eMouseButton::MIDDLE, eKeyState::DOUBLE);
-			return 0;
+			break;
 		}
+		case WM_NCXBUTTONDOWN:
 		case WM_XBUTTONDOWN: {
 			eMouseButton btn = HIWORD(wParam) == 1 ? eMouseButton::EXTRA1 : eMouseButton::EXTRA2;
 			CallClickEvent(btn, eKeyState::DOWN);
+			return TRUE;
 		}
+		case WM_NCXBUTTONUP:
 		case WM_XBUTTONUP: {
 			eMouseButton btn = HIWORD(wParam) == 1 ? eMouseButton::EXTRA1 : eMouseButton::EXTRA2;
 			CallClickEvent(btn, eKeyState::UP);
+			return TRUE;
 		}
+		case WM_NCXBUTTONDBLCLK:
 		case WM_XBUTTONDBLCLK: {
 			eMouseButton btn = HIWORD(wParam) == 1 ? eMouseButton::EXTRA1 : eMouseButton::EXTRA2;
 			CallClickEvent(btn, eKeyState::DOUBLE);
+			return TRUE;
 		}
+		case WM_NCMOUSEMOVE:
 		case WM_MOUSEMOVE: {
 			MouseMoveEvent evt;
 			evt.absx = GET_X_LPARAM(lParam);
 			evt.absy = GET_Y_LPARAM(lParam);
 			evt.relx = evt.rely = 0;
-			instance.CallEvent(instance.OnMouseMove, evt);
-			return 0;
+			instance->CallEvent(instance->OnMouseMove, evt);
+			break;
 		}
 		case WM_MOUSEWHEEL: {
 			short rot = static_cast<short>(HIWORD(wParam));
 			MouseButtonEvent evt;
 			// nahh this does not work
-			return 0;
+			break;
 		}
+		case WM_NCACTIVATE:
 		case WM_ACTIVATE: {
-			instance.CallEvent(instance.OnFocus);
-			return 0;
+			instance->CallEvent(instance->OnFocus);
+			break;
 		}
 		case WM_SIZE: {
-			instance.CallEvent(instance.OnResize, instance.GetSize(), instance.GetClientSize());
-			return 0;
+			ResizeEvent evt;
+			evt.size = instance->GetSize();
+			evt.clientSize = instance->GetClientSize();
+			evt.resizeMode = (eResizeMode)wParam;
+			instance->CallEvent(instance->OnResize, evt);
+			break;
 		}
-		case WM_PAINT:
-		{
+		case WM_NCPAINT:
+		case WM_PAINT: {
 			PAINTSTRUCT ps;
-			BeginPaint(instance.m_handle, &ps);
+			BeginPaint(instance->m_handle, &ps);
 			
-			instance.CallEvent(instance.OnPaint);
+			instance->CallEvent(instance->OnPaint);
 			
-			EndPaint(instance.m_handle, &ps);
-			return DefWindowProc(hwnd, msg, wParam, lParam);
+			EndPaint(instance->m_handle, &ps);
+			break;
 		}
-		case WM_NCCREATE:
+		case WM_NCCREATE: {
 			SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)((CREATESTRUCT*)lParam)->lpCreateParams);
-			return DefWindowProc(hwnd, msg, wParam, lParam);
-		default:
-			return DefWindowProc(hwnd, msg, wParam, lParam);
+			break;
+		}
 	}
+
+	if (instance && instance->m_userWndProc)
+		return instance->m_userWndProc(hwnd, msg, wParam, lParam);
+	else
+		return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
 
