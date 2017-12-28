@@ -42,7 +42,7 @@ private:
 int TestWindow::Run() {
 	try {
 		Window window{ u8"Test Window", {640, 480}, false, true };
-		window.SetQueueMode(eInputQueueMode::QUEUED);
+		//window.SetQueueMode(eInputQueueMode::QUEUED);
 
 		window.OnMouseButton += Delegate<void(MouseButtonEvent)>{&TestWindow::OnClick, this};
 		//window.OnKeyboard += {&TestWindow::OnKey, this};

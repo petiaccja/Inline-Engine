@@ -74,16 +74,16 @@ public:
 
 
 	/// <summary> Tells how many events should be queued at maximum. Only applies to queued mode. </summary>
-	void SetQueueSizeHint(size_t queueSize);
+	//void SetQueueSizeHint(size_t queueSize);
 
 	/// <summary> Sets event calling mode: in immediate mode, events are called 
 	///		asynchonously from another thread; in queued mode, events are stored
 	///		and you have to call <see cref="CallEvents"> manually to call all queued 
 	///		events on the caller's thread. </summary>
-	void SetQueueMode(eInputQueueMode mode);
+	//void SetQueueMode(eInputQueueMode mode);
 
 	/// <summary> Returns the currently set queueing mode. </summary>
-	eInputQueueMode GetQueueMode() const;
+	//eInputQueueMode GetQueueMode() const;
 
 	/// <summary> Calls all queued events synchronously on the caller's thread. </summary>
 	/// <returns> False if some events were dropped due to too small queue size. </returns>
@@ -106,6 +106,7 @@ public:
 private:
 	static LRESULT __stdcall WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	void MessageLoop();
+	void MessageLoopPeek();
 	template <class... EventArgs>
 	void CallEvent(Event<EventArgs...>& evt, EventArgs... args);
 
@@ -123,6 +124,9 @@ private:
 private:
 	WindowHandle m_handle = NULL;
 	HANDLE m_icon = NULL;
+
+	// This code is for immediate/queue mode setup
+	/*
 	std::thread m_messageThread;
 
 	volatile eInputQueueMode m_queueMode = eInputQueueMode::IMMEDIATE;
@@ -130,11 +134,16 @@ private:
 	volatile bool m_eventDropped = false;
 	std::queue<std::function<void()>> m_eventQueue;
 	std::mutex m_queueMtx;
+	*/
 };
 
 
 template <class... EventArgs>
 void Window::CallEvent(Event<EventArgs...>& evt, EventArgs... args) {
+	evt(args...);
+
+	// This code is for immediate/queue mode setup
+	/*
 	if (m_queueMode == eInputQueueMode::IMMEDIATE) {
 		evt(args...);
 	}
@@ -148,6 +157,7 @@ void Window::CallEvent(Event<EventArgs...>& evt, EventArgs... args) {
 			m_eventQueue.pop();
 		}
 	}
+	*/
 }
 
 

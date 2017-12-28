@@ -519,7 +519,7 @@ void Editor::Update()
 
 	wnd->SetTitle("Inline Editor");
 
-	wnd->SetQueueMode(eInputQueueMode::IMMEDIATE);
+	//wnd->SetQueueMode(eInputQueueMode::IMMEDIATE);
 	while (!wnd->IsClosed())
 	{
 		// Prepare for input processing

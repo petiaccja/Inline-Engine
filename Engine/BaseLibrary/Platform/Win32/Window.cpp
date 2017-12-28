@@ -48,6 +48,58 @@ Window::Window(const std::string& title,
 		throw RuntimeException("Window class is not registered.");
 	}
 
+
+	// Create window on current thread
+	HWND hwnd = NULL;
+	try {
+		// Create the WINAPI window itself.
+		hwnd = CreateWindowExA(
+			0,
+			"INL_SIMPLE_WINDOW_CLASS",
+			title.c_str(),
+			WS_OVERLAPPEDWINDOW,
+			CW_USEDEFAULT,
+			CW_USEDEFAULT,
+			size.x,
+			size.y,
+			NULL,
+			NULL,
+			GetModuleHandle(NULL),
+			(void*)this);
+
+		if (hwnd == NULL) {
+			DWORD error = GetLastError();
+			throw RuntimeException("Failed to create window.", std::to_string(error));
+		}
+
+		// Init OLE and drag and drop for this thread.
+		HRESULT res;
+		res = OleInitialize(nullptr);
+		if (res != S_OK) {
+			throw RuntimeException("Could not initialize OLE on thread.");
+		}
+		res = RegisterDragDrop(hwnd, this);
+		if (res != S_OK) {
+			throw RuntimeException("Failed to set drag'n'drop for window.");
+		}
+	}
+	catch (...) {
+		if (hwnd) {
+			DestroyWindow(hwnd);
+		}
+		throw;
+	}
+
+	// Show and update the newly created window.
+	m_handle = hwnd;
+	if (!hiddenInitially) {
+		ShowWindow(m_handle, SW_SHOW);
+	}
+	UpdateWindow(m_handle);
+
+
+	// The code below is for the immediate/queue mode setup
+	/*
 	// Message loop runs in another thread.
 	// If the thread is finished setting up the window the promise is signaled.
 	std::promise<void> creationPromise;
@@ -121,12 +173,13 @@ Window::Window(const std::string& title,
 		m_messageThread.join();
 		throw;
 	}
+	*/
 }
 
 
 Window::Window(Window&& rhs) noexcept {
 	m_handle = rhs.m_handle;
-	m_messageThread = std::move(rhs.m_messageThread);
+	//m_messageThread = std::move(rhs.m_messageThread);
 
 	rhs.m_handle = NULL;
 }
@@ -134,7 +187,7 @@ Window::Window(Window&& rhs) noexcept {
 
 Window& Window::operator=(Window&& rhs) noexcept {
 	m_handle = rhs.m_handle;
-	m_messageThread = std::move(rhs.m_messageThread);
+	//m_messageThread = std::move(rhs.m_messageThread);
 
 	rhs.m_handle = NULL;
 
@@ -146,9 +199,9 @@ Window::~Window() {
 	if (m_handle != 0) {
 		DestroyWindow(m_handle);
 	}
-	if (m_messageThread.joinable()) {
-		m_messageThread.join();
-	}
+	//if (m_messageThread.joinable()) {
+	//	m_messageThread.join();
+	//}
 	if (m_icon) {
 		DestroyIcon((HICON)m_icon);
 	}
@@ -321,17 +374,21 @@ void Window::SetIcon(const std::string& imageFilePath) {
 }
 
 
-void Window::SetQueueSizeHint(size_t queueSize) {
-	m_queueSize = queueSize;
-}
+//void Window::SetQueueSizeHint(size_t queueSize) {
+//	m_queueSize = queueSize;
+//}
 
 
-void Window::SetQueueMode(eInputQueueMode mode) {
-	m_queueMode = mode;
-}
+//void Window::SetQueueMode(eInputQueueMode mode) {
+//	m_queueMode = mode;
+//}
 
 
 bool Window::CallEvents() {
+	MessageLoopPeek();
+	return false;
+	// Code below is for the queue/immediate mode setup
+	/*
 	std::unique_lock<decltype(m_queueMtx)> lk(m_queueMtx);
 
 	bool eventDropped = m_eventDropped;
@@ -347,12 +404,13 @@ bool Window::CallEvents() {
 	}
 
 	return eventDropped;
+	*/
 }
 
 
-eInputQueueMode Window::GetQueueMode() const {
-	return m_queueMode;
-}
+//eInputQueueMode Window::GetQueueMode() const {
+//	return m_queueMode;
+//}
 
 
 LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -490,6 +548,15 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 void Window::MessageLoop() {
 	MSG msg;
 	while (GetMessage(&msg, NULL, 0, 0)) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+}
+
+
+void Window::MessageLoopPeek() {
+	MSG msg;
+	while (PeekMessage(&msg, m_handle, 0, 0, PM_REMOVE)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
