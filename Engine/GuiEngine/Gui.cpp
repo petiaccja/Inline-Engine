@@ -760,8 +760,13 @@ Vec2 Gui::Arrange(const Vec2& pos, const Vec2& size)
 	}
 
 	// Pos and size containing the margin, subtract it
-	newPos.x += margin.left;
-	newPos.y += margin.right;
+	if (bFillParentHor || bFillParentPositibeDirHor || alignHor != eGuiAlignHor::NONE)
+		newPos.x += margin.left;
+	
+
+	if (bFillParentVer || bFillParentPositibeDirVer || alignVer != eGuiAlignVer::NONE)
+		newPos.y += margin.top;
+
 	newSize.x -= margin.left + margin.right;
 	newSize.y -= margin.top + margin.bottom;
 

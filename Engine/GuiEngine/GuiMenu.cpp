@@ -87,7 +87,8 @@ void GuiMenu::AddItem(Gui* menuItem)
 		GuiMenu* menu;
 	};
 
-	thread_local std::vector<MenuTreeNode> activeMenuTree; // Here thread_local will not cause any problems
+	// TODO thread_local somehow not working
+	static std::vector<MenuTreeNode> activeMenuTree;
 	menuItem->OnCursorEntered += [menu](Gui& self, CursorEvent& evt)
 	{
 		// Case 1. It's menu ->		 close menus behind this AND open that one
