@@ -40,15 +40,6 @@ Editor::Editor()
 			}
 		}
 	};
-	// Create secondary window for GAME inside Editor
-	//gameWnd = new Window("Inline Engine", Vec2u(100, 100), true, true);
-
-	//HWND editorHwnd = (HWND)wnd->GetNativeHandle();
-	//HWND gameHwnd = (HWND)gameWnd->GetNativeHandle();
-	//SetParent(gameHwnd, editorHwnd);
-
-	// Resize window, non client area removal made it's size wrong
-	//wnd->SetRect({ 0,0 }, Sys::GetScreenSize());
 
 	// Init Graphics Engine
 	graphicsEngine = core->InitGraphicsEngine(wnd->GetClientSize().x, wnd->GetClientSize().y, (HWND)wnd->GetNativeHandle());
@@ -620,8 +611,7 @@ void Editor::Update()
 
 LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-	LRESULT lRet;
-	bool fCallDWP = !DwmDefWindowProc(handle, msg, wParam, lParam, &lRet);
+	bool fCallDWP = !DwmDefWindowProc(handle, msg, wParam, lParam, NULL);
 
 	switch (msg)
 	{
@@ -655,10 +645,6 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 				pncsp->rgrc[0].right = pncsp->rgrc[0].right - 0;
 				pncsp->rgrc[0].bottom = pncsp->rgrc[0].bottom - 0;
 			}
-
-			
-
-			lRet = 0;
 
 			// No need to pass the message on to the DefWindowProc.
 			fCallDWP = false;
