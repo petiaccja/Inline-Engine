@@ -3,8 +3,6 @@
 #include <thread>
 #include <queue>
 
-#include <SpinMutex.hpp>
-
 #include "TcpSocketBuilder.hpp"
 
 namespace inl::net::sockets

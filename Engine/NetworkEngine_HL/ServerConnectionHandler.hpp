@@ -1,8 +1,8 @@
 #pragma once
 
 #include <queue>
+#include <map>
 
-#include <SpinMutex.hpp>
 #include <Exception/Exception.hpp>
 #include <Serialization/BinarySerializer.hpp>
 
@@ -11,6 +11,7 @@
 #include "NewConnectionEvent.hpp"
 #include "DisconnectedEvent.hpp"
 #include "ServerConnection.hpp"
+#include "NetworkMessage.hpp"
 
 namespace inl::net::servers
 {
@@ -19,11 +20,29 @@ namespace inl::net::servers
 
 	class ServerConnectionHandler
 	{
-		friend class ServerConnection;
-
 	public:
-		ServerConnectionHandler()
+		ServerConnectionHandler(bool multithreaded = true)
 		{
+			m_run = true;
+
+			if (multithreaded)
+			{
+				std::thread receive_thread(&ServerConnectionHandler::HandleReceive, this);
+				m_receiveThread.swap(receive_thread);
+
+				std::thread send_thread(&ServerConnectionHandler::HandleSend, this);
+				m_sendThread.swap(send_thread);
+			}
+		}
+
+		~ServerConnectionHandler()
+		{
+			m_run.exchange(false);
+		}
+
+		void Stop()
+		{
+			m_run.exchange(false);
 		}
 
 		void Add(ServerConnection *c)
@@ -74,7 +93,92 @@ namespace inl::net::servers
 		}
 
 	private:
+		void HandleReceive()
+		{
+			while (m_run.load())
+			{
+
+			}
+		}
+
+		void HandleSend()
+		{
+			while (m_run.load())
+			{
+				if (m_messagesToSend.size() > 0)
+				{
+					m_sendMutex.lock();
+					NetworkMessage msg = m_messagesToSend.front();
+					m_messagesToSend.pop();
+					m_sendMutex.unlock();
+
+					uint32_t count;
+					uint8_t* data = msg.SerializeData(count);
+
+					if (msg.DistributionMode == DistributionMode::Others)
+					{
+						for (int i = 0; i < m_list.size(); i++) // should i lock here?
+						{
+							ServerConnection *c = m_list.at(i);
+							if (c->GetID() != msg.SenderID)
+							{
+								int32_t sent;
+								if (!c->GetClient()->Send(data, count, sent))
+								{
+									// it failed - retry? or just disconnect right in the first try
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		void HandleSendReceive() // no loop
+		{
+			if (m_messagesToSend.size() > 0)
+			{
+				m_sendMutex.lock();
+				NetworkMessage msg = m_messagesToSend.front();
+				m_messagesToSend.pop();
+				m_sendMutex.unlock();
+
+				uint32_t count;
+				uint8_t* data = msg.SerializeData(count);
+
+				if (msg.DistributionMode == DistributionMode::Others)
+				{
+					for (int i = 0; i < m_list.size(); i++) // should i lock here?
+					{
+						ServerConnection *c = m_list.at(i);
+						if (c->GetID() != msg.SenderID)
+						{
+							int32_t sent;
+							if (!c->GetClient()->Send(data, count, sent))
+							{
+								// it failed - retry? or just disconnect right in the first try
+							}
+						}
+					}
+				}
+			}
+
+			//receive
+		}
+
+	private:
 		std::vector<ServerConnection*> m_list;
 		uint32_t m_maxConnections;
+
+		std::thread m_receiveThread;
+		std::thread m_sendThread;
+
+		std::atomic_bool m_run;
+
+		std::queue<NetworkMessage> m_messagesToSend;
+		std::queue<NetworkMessage> m_receivedMessages;
+
+		std::mutex m_sendMutex;
+		std::mutex m_receiveMutex;
 	};
 }

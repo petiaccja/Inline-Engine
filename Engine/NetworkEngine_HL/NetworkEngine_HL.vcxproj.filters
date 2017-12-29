@@ -13,15 +13,23 @@
     <Filter Include="Chat\Common">
       <UniqueIdentifier>{6992b5df-6894-4a41-b077-04688a329356}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Events">
+      <UniqueIdentifier>{9f4a347f-6099-4527-bdc1-684b89222914}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TcpServer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TcpServer.hpp" />
-    <ClInclude Include="NewConnectionEvent.hpp" />
-    <ClInclude Include="DisconnectedEvent.hpp" />
     <ClInclude Include="ServerConnectionHandler.hpp" />
     <ClInclude Include="ServerConnection.hpp" />
+    <ClInclude Include="DisconnectedEvent.hpp">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="NewConnectionEvent.hpp">
+      <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkMessage.hpp" />
   </ItemGroup>
 </Project>

@@ -31,6 +31,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DisconnectedEvent.hpp" />
+    <ClInclude Include="NetworkMessage.hpp" />
     <ClInclude Include="NewConnectionEvent.hpp" />
     <ClInclude Include="ServerConnection.hpp" />
     <ClInclude Include="ServerConnectionHandler.hpp" />

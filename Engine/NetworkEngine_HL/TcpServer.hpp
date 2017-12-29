@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SpinMutex.hpp>
+
 #include <TcpListener.hpp>
 
 #include "ServerConnectionHandler.hpp"
@@ -23,10 +25,11 @@ namespace inl::net::servers
 		TcpListener *listener;
 		uint32_t m_maxConnections;
 		uint16_t m_port;
-		bool m_run;
+
+		std::atomic_bool m_run;
 
 		std::thread m_acceptingThread;
 
-		ServerConnectionHandler m_connectionPool;
+		ServerConnectionHandler m_connectionHandler;
 	};
 }
