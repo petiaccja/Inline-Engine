@@ -2,18 +2,21 @@
 
 #include <Exception/Exception.hpp>
 
+#include "ServerConnection.hpp"
+
 namespace inl::net::servers
 {
 	TcpServer::TcpServer(uint32_t max_connections, uint16_t port)
 		: m_maxConnections(max_connections)
 		, m_port(port)
 		, m_run(false)
+		, m_connectionHandler(new ServerConnectionHandler())
 	{
 		if (max_connections == 0 || port == 0)
 			throw InvalidArgumentException("TcpServer::TcpServer()");
 
 		listener = TcpSocketBuilder().AsReusable().Bind(IPAddress(0, 0, 0, 0, port)).Listening().BuildListener();
-		m_connectionHandler.SetMaxConnections(max_connections);
+		m_connectionHandler->SetMaxConnections(max_connections);
 	}
 
 	void TcpServer::Start()
@@ -38,7 +41,7 @@ namespace inl::net::servers
 			if (c)
 			{
 				ServerConnection *connection = new ServerConnection(c);
-				m_connectionHandler.Add(connection); // maybe i should thread the add fn in the handler
+				m_connectionHandler->Add(connection); // maybe i should thread the add fn in the handler
 			}
 		}
 	}

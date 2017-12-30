@@ -1,8 +1,10 @@
 #pragma once
 
+#include <cstdint>
+
 namespace inl::net
 {
-	enum class DistributionMode
+	enum class DistributionMode : uint8_t
 	{
 		ID,
 		Others,
@@ -13,20 +15,16 @@ namespace inl::net
 	class NetworkMessage
 	{
 	public:
-		uint32_t SenderID;
-		DistributionMode DistributionMode;
-		uint16_t Tag;
+		uint32_t m_senderID;
+		DistributionMode m_distributionMode;
+		uint32_t m_destinationID;
+		uint32_t m_tag;
 
-		void *Data;
-
-		uint8_t *SerializeData(uint32_t &count)
-		{
-
-		}
-
-		void Deserialize(uint8_t *data)
-		{
-
-		}
+		void *m_data;
+		uint32_t m_dataSize;
+	
+	public:
+		uint8_t * SerializeData(uint32_t &size);
+		void Deserialize(uint8_t *data, int32_t size);
 	};
 }

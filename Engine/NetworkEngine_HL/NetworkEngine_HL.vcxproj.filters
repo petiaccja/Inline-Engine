@@ -19,6 +19,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TcpServer.cpp" />
+    <ClCompile Include="NetworkMessage.cpp" />
+    <ClCompile Include="ServerConnectionHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TcpServer.hpp" />
@@ -31,5 +33,7 @@
       <Filter>Events</Filter>
     </ClInclude>
     <ClInclude Include="NetworkMessage.hpp" />
+    <ClInclude Include="NetworkHeader.hpp" />
+    <ClInclude Include="BitConverter.hpp" />
   </ItemGroup>
 </Project>

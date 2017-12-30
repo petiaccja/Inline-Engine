@@ -1,14 +1,12 @@
 #pragma once
 
-#include <SpinMutex.hpp>
-
 #include <TcpListener.hpp>
 
 #include "ServerConnectionHandler.hpp"
 
 namespace inl::net::servers
 {
-	using namespace inl::net::sockets;
+	using namespace sockets;
 
 	class TcpServer
 	{
@@ -30,6 +28,6 @@ namespace inl::net::servers
 
 		std::thread m_acceptingThread;
 
-		ServerConnectionHandler m_connectionHandler;
+		ServerConnectionHandler *m_connectionHandler;
 	};
 }
