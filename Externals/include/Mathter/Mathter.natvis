@@ -10,7 +10,8 @@ For more information, please refer to <http://unlicense.org/>
     <DisplayString Condition="$T2==2">[{*data}, {*(data+1)}]</DisplayString>
     <DisplayString Condition="$T2==3">[{*data}, {*(data+1)}, {*(data+2)}]</DisplayString>
     <DisplayString Condition="$T2==4">[{*data}, {*(data+1)}, {*(data+2)}, {*(data+3)}]</DisplayString>
-    <DisplayString Condition="$T2&gt;4">dim={$T2}  [{*data}, {*(data+1)}, ..., {*(data+$T2-1)}]</DisplayString>
+    <DisplayString Condition="$T2==5">[{*data}, {*(data+1)}, {*(data+2)}, {*(data+3)}, {*(data+4)}]</DisplayString>
+    <DisplayString Condition="$T2&gt;5">dim={$T2}  [{*data}, {*(data+1)}, ..., {*(data+$T2-1)}]</DisplayString>
     <Expand>
       <Item Name="[dimension]" ExcludeView="simple">$T2</Item>
       <ArrayItems>
@@ -27,11 +28,11 @@ For more information, please refer to <http://unlicense.org/>
       <Item Name="[columns]" ExcludeView="simple">$T3</Item>
       <ArrayItems Condition="$T5==0">
         <Size>$T2</Size>
-        <ValuePointer>stripes</ValuePointer>
+        <ValuePointer>stripes._Elems</ValuePointer>
       </ArrayItems>
       <ArrayItems Condition="$T5==1">
         <Size>$T3</Size>
-        <ValuePointer>stripes</ValuePointer>
+        <ValuePointer>stripes._Elems</ValuePointer>
       </ArrayItems>
     </Expand>
   </Type>
