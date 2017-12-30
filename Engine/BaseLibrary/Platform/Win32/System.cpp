@@ -55,7 +55,7 @@ void System::SetCursorVisual(eCursorVisual visual, WindowHandle windowHandle)
 	assert(cursorHandle);
 
 	if (windowHandle)
-		SetClassLong((HWND)windowHandle, -12, (DWORD)cursorHandle); // #define GCL_HCURSOR (-12)
+		SetClassLong((HWND)windowHandle, -12, (LONG)cursorHandle); // #define GCL_HCURSOR (-12)
 
 	SetCursor(cursorHandle);
 }
