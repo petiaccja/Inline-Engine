@@ -232,6 +232,9 @@ public:
 	bool AlmostEqual(const Quaternion& rhs) const {
 		return vec.AlmostEqual(rhs.vec);
 	}
+	auto Approx() const {
+		return mathter::Approx<Quaternion>(*this);
+	}
 
 	//-----------------------------------------------
 	// Mathematically named functions
@@ -323,18 +326,13 @@ public:
 	/// <summary> Returns the angle of the rotation represented by quaternion. </summary>
 	/// <remarks> Only valid for unit quaternions. </remarks>
 	const T Angle() const {
-		assert(IsNormalized());
-		return 2 * std::acos(s);
+		return 2 * std::acos(Clamp(s/Length(), T(-1), T(1)));
 	}
 	/// <summary> Returns the axis of rotation represented by quaternion. </summary>
 	/// <remarks> Only valid for unit quaternions. Returns (1,0,0) for near 180 degree rotations. </remarks>
 	const Vector<T, 3, Packed> Axis() const {
-		assert(IsNormalized());
 		auto direction = VectorPart();
-		T sgnx = direction.x >= T(0.0) ? T(1.0) : T(-1.0);
-		static constexpr T epsilon = T(1) / impl::ConstexprExp10<T>(impl::ConstexprAbs(std::numeric_limits<T>::min_exponent10) / 2);
-		direction.x += sgnx * epsilon; // Compensation is needed so that degenerated nullvector axis can be normalized.
-		return direction.Normalized();
+		return direction.SafeNormalized();
 	}
 
 	//-----------------------------------------------
@@ -548,12 +546,8 @@ inline Quaternion<long double> operator "" _k(long double arg) {
 } // namespace quat_literals
 
 
-} // namespace mathter
-
-
-
 template <class T, bool Packed>
-std::ostream& operator<<(std::ostream& os, const mathter::Quaternion<T, Packed>& q) {
+std::ostream& operator<<(std::ostream& os, const Quaternion<T, Packed>& q) {
 	os << "["
 		<< q.Angle() * T(180.0) / T(3.1415926535897932384626)
 		<< " deg @ "
@@ -561,3 +555,6 @@ std::ostream& operator<<(std::ostream& os, const mathter::Quaternion<T, Packed>&
 		<< "]";
 	return os;
 }
+
+
+} // namespace mathter

@@ -476,6 +476,9 @@ public:
 		}
 		return equal;
 	}
+	auto Approx() const {
+		return mathter::Approx<Matrix>(*this);
+	}
 
 	//--------------------------------------------
 	// Arithmetic

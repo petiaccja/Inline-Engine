@@ -75,6 +75,39 @@ constexpr int DYNAMIC = -1;
 
 
 
+// Floating point comparison helper class, works like Catch2 units testing framework's float Approx.
+template <class LinalgClass>
+struct Approx {
+	Approx() {}
+	Approx(LinalgClass object) {
+		this->object = object;
+	}
+	LinalgClass object;
+};
+
+template <class LinalgClass>
+bool operator==(const Approx<LinalgClass>& lhs, const LinalgClass& rhs) {
+	return lhs.object.AlmostEqual(rhs);
+}
+
+template <class LinalgClass>
+bool operator==(const LinalgClass& lhs, const Approx<LinalgClass>& rhs) {
+	return rhs.object.AlmostEqual(rhs);
+}
+
+template <class LinalgClass>
+bool operator==(const Approx<LinalgClass>& lhs, const Approx<LinalgClass>& rhs) {
+	return lhs.object.AlmostEqual(rhs.object);
+}
+
+template <class LinalgClass>
+std::ostream& operator<<(std::ostream& os, const Approx<LinalgClass>& arg) {
+	os << arg.object;
+	return os;
+}
+
+
+
 
 
 namespace impl {

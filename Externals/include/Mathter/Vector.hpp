@@ -824,6 +824,9 @@ public:
 		}
 		return same;
 	}
+	auto Approx() const {
+		return mathter::Approx<Vector>(*this);
+	}
 
 	//--------------------------------------------
 	// Arithmetic

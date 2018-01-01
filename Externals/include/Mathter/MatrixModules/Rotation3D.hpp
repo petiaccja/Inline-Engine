@@ -63,7 +63,7 @@ public:
 		};
 		return (std::abs(Dot(rows[0], rows[1])) + std::abs(Dot(rows[0], rows[2])) + std::abs(Dot(rows[1], rows[2]))) < T(0.0005) // rows are orthogonal to each other
 			&& rows[0].IsNormalized() && rows[1].IsNormalized() && rows[2].IsNormalized() // all rows are normalized
-			&& self().Determinant() > 0; // not an improper rotation
+			&& Matrix<T, 3, 3>(self().Submatrix<3,3>(0,0)).Determinant() > 0; // not an improper rotation
 	}
 public:
 	friend MatrixT;
