@@ -11,13 +11,13 @@ class ComparsionNode
 {
 public:
 	ComparsionNode() {
-		GetInput<0>().AddObserver(this);
-		GetInput<1>().AddObserver(this);
+		this->GetInput<0>().AddObserver(this);
+		this->GetInput<1>().AddObserver(this);
 	}
 
 	void Update() override {
-		auto in0 = GetInput<0>().Get();
-		auto in1 = GetInput<1>().Get();
+		auto in0 = this->GetInput<0>().Get();
+		auto in1 = this->GetInput<1>().Get();
 		GetOutput<0>().Set(OperatorT()(in0, in1));
 	}
 

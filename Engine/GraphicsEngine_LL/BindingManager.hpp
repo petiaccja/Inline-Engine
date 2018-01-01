@@ -16,13 +16,19 @@ namespace inl::gxeng {
 
 template <gxapi::eCommandListType Type>
 class BindingManager : protected RootTableManager<Type> {
+	using RootTableManager<Type>::CommandListT;
+	using RootTableManager<Type>::m_graphicsApi;
+	using RootTableManager<Type>::m_commandList;
+	using RootTableManager<Type>::m_binder;
+	using RootTableManager<Type>::m_heap;
+	using RootTableManager<Type>::UpdateBinding;
 public:
 	BindingManager();
 	BindingManager(gxapi::IGraphicsApi* graphicsApi, CommandListT* commandList, MemoryManager* memoryManager, VolatileViewHeap* volatileCbvHeap);
 
-	using RootTableManager::SetBinder;
-	using RootTableManager::SetDescriptorHeap;
-	using RootTableManager::CommitDrawCall;
+	using RootTableManager<Type>::SetBinder;
+	using RootTableManager<Type>::SetDescriptorHeap;
+	using RootTableManager<Type>::CommitDrawCall;
 
 	void Bind(BindParameter parameter, const TextureView1D& shaderResource);
 	void Bind(BindParameter parameter, const TextureView2D& shaderResource);
@@ -55,12 +61,12 @@ private:
 
 template <gxapi::eCommandListType Type>
 BindingManager<Type>::BindingManager()
-	: RootTableManager()
+	: RootTableManager<Type>()
 {}
 
 template <gxapi::eCommandListType Type>
 BindingManager<Type>::BindingManager(gxapi::IGraphicsApi* graphicsApi, CommandListT* commandList, MemoryManager* memoryManager, VolatileViewHeap* volatileCbvHeap)
-	: RootTableManager(graphicsApi, commandList), m_memoryManager(memoryManager), m_volatileCbvHeap(volatileCbvHeap)
+	: RootTableManager<Type>(graphicsApi, commandList), m_memoryManager(memoryManager), m_volatileCbvHeap(volatileCbvHeap)
 {}
 
 

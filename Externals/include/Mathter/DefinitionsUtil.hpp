@@ -11,6 +11,7 @@
 // - general helpers
 
 #include <cstdint>
+#include <cmath>
 #include <type_traits>
 
 
@@ -131,7 +132,8 @@ namespace impl {
 
 	template <class T>
 	T sign_nonzero(T arg) {
-		return T(arg >= T(0)) - (arg < T(0));
+		return copysign(T(1), arg);
+		//return T(arg >= T(0)) - (arg < T(0));
 	}
 	
 

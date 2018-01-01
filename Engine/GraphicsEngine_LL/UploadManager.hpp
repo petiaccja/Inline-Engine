@@ -69,7 +69,7 @@ public:
 	void OnFrameCompleteDevice(uint64_t frameId) override;
 	void OnFrameCompleteHost(uint64_t frameId) override;
 
-	const std::vector<UploadDescription>& UploadManager::GetQueuedUploads() const;
+	const std::vector<UploadDescription>& GetQueuedUploads() const;
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
 	std::list<UploadFrame> m_uploadFrames;

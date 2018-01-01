@@ -1,12 +1,13 @@
 #pragma once
 
 #include "Delegate.hpp"
-#include <set>
 #include "SpinMutex.hpp"
+#include "TemplateUtil.hpp"
+
+#include <set>
 #include <mutex>
 #include <vector>
 #include <typeindex>
-#include "TemplateUtil.hpp"
 
 
 #ifdef _MSC_VER
@@ -78,16 +79,16 @@ public:
 	}
 	
 	/// <summary> Signs up functor for the event. You may remove this functor via <see cref="operator-="/>. </summary>
-	template <class ComparableFun, typename std::enable_if_t<IsComparable<ComparableFun>, int> = 0>
-	void operator+=(const ComparableFun& fun) {
+	template <class ComparableFun>
+	std::enable_if_t<IsComparable<ComparableFun>, void> operator+=(const ComparableFun& fun) {
 		std::lock_guard<decltype(m_mtx)> lkg(m_mtx);
 		
 		m_comparables.insert(Comparable(fun));
 	}
 
 	/// <summary> Signs up functor for the event. You can't remove this functor later. </summary>
-	template <class SimpleFun, typename std::enable_if_t<!IsComparable<SimpleFun>, int> = 0>
-	void operator+=(const SimpleFun& fun) {
+	template <class SimpleFun>
+	std::enable_if_t<!IsComparable<SimpleFun>, void> operator+=(const SimpleFun& fun) {
 		std::function<void(ArgsT...)> callee = fun;
 
 		std::lock_guard<decltype(m_mtx)> lkg(m_mtx);
@@ -97,8 +98,8 @@ public:
 
 	/// <summary> Remove previously signed up functor. </summary>
 	/// <returns> True if the functor was found and removed, false if not found. </returns>
-	template <class ComparableFun, typename std::enable_if_t<IsComparable<ComparableFun>, int> = 0>
-	bool operator-=(const ComparableFun& fun) {
+	template <class ComparableFun>
+	std::enable_if_t<IsComparable<ComparableFun>, bool> operator-=(const ComparableFun& fun) {
 		std::lock_guard<decltype(m_mtx)> lkg(m_mtx);
 
 		auto it = m_comparables.find(Comparable(fun));
