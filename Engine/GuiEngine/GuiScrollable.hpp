@@ -2,7 +2,7 @@
 #include "BaseLibrary\Common.hpp"
 #include "GuiGrid.hpp"
 
-namespace inl::gui {
+namespace inl::ui {
 
 class GuiScrollable : public GuiGrid
 {
@@ -38,4 +38,4 @@ protected:
 	bool bHorScrollBarVisible;
 };
 
-} // namespace inl::gui
+} // namespace inl::ui

@@ -1,7 +1,7 @@
 #include "GuiScrollable.hpp"
 #include "GuiButton.hpp"
 
-using namespace inl::gui;
+using namespace inl::ui;
 
 GuiScrollable::GuiScrollable(GuiEngine& guiEngine)
 :GuiGrid(guiEngine), bVerScrollBarVisible(false), bHorScrollBarVisible(false)
@@ -14,7 +14,7 @@ GuiScrollable::GuiScrollable(GuiEngine& guiEngine)
 	Gui* horizontalScrollCell = GetCell(0, 1);
 	//Gui* emptyCell = GetCell(1, 1);
 	
-	contentCell->SetBgToColor(ColorI(45, 45, 45, 255));
+	contentCell->SetBgToColor(ColorI(25, 25, 25, 255));
 	//verticalScrollCell->SetBgToColor(ColorI(75));
 	horizontalScrollCell->SetBgToColor(ColorI(75, 75, 75, 255));
 	//emptyCell->SetBgToColor(ColorI(75));

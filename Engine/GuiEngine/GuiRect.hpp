@@ -1,7 +1,7 @@
 #pragma once
 #include <BaseLibrary/Rect.hpp>
 
-namespace inl::gui {
+namespace inl::ui {
 
 using GuiRectF = Rect<float, false, true>;
 

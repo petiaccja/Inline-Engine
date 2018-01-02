@@ -1,6 +1,6 @@
 #include "GuiEngine.hpp"
 
-using namespace inl::gui;
+using namespace inl::ui;
 
 GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow)
 {
@@ -39,7 +39,7 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 		{
 			CursorEvent eventData;
 			eventData.cursorPos = Vec2(e.x, e.y);
-			OnCursorPressed(eventData);
+			OnCursorPress(eventData);
 
 			mousePosWhenPress = eventData.cursorPos;
 
@@ -50,7 +50,7 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 				hoveredGui->TraverseTowardParents([&](Gui& control)
 				{
 					if (control.GetVisiblePaddingRect().IsPointInside(pixelCenterCursorPos))
-						control.OnCursorPressed(control, eventData);
+						control.OnCursorPress(control, eventData);
 				});
 			}
 
@@ -68,13 +68,13 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 			CursorEvent eventData;
 			eventData.cursorPos = Vec2(e.x, e.y);
 			eventData.mouseButton = e.button;
-			OnCursorReleased(eventData);
+			OnCursorRelease(eventData);
 
 			// Mouse click
 			bool bClick = mousePosWhenPress == eventData.cursorPos;
 
 			if (bClick)
-				OnCursorClicked(eventData);
+				OnCursorClick(eventData);
 
 			if (activeContextMenu)
 				activeContextMenu->RemoveFromParent();
@@ -87,7 +87,7 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 				hoveredGui->TraverseTowardParents([&](Gui& control)
 				{
 					if (control.GetVisiblePaddingRect().IsPointInside(pixelCenterCursorPos))
-						control.OnCursorReleased(control, eventData);
+						control.OnCursorRelease(control, eventData);
 				});
 
 				// Control Mouse click
@@ -97,7 +97,7 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 					{
 						if (control.GetVisiblePaddingRect().IsPointInside(pixelCenterCursorPos))
 						{
-							control.OnCursorClicked(control, eventData);
+							control.OnCursorClick(control, eventData);
 
 							if (e.button == eMouseButton::RIGHT)
 							{
@@ -135,7 +135,7 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 		eventData.cursorPos = Vec2(e.absx, e.absy);
 		eventData.cursorDelta = Vec2(e.relx, e.rely);
 
-		OnCursorMoved(eventData);
+		OnCursorMove(eventData);
 
 		Vec2 pixelCenterCursorPos = eventData.cursorPos + Vec2(0.5, 0.5); // Important, make cursorPos pointing to the center of the pixel ! Making children gui - s non overlappable at edges
 		if (hoveredGui)
@@ -144,13 +144,13 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 			{
 				if (control.GetVisiblePaddingRect().IsPointInside(pixelCenterCursorPos))
 				{
-					control.OnCursorMoved(control, eventData);
+					control.OnCursorMove(control, eventData);
 				}
 			});
 		}
 	};
 
-	targetWindow->OnDropEntered += [this](DragDropEvent e)
+	targetWindow->OnDropEnter += [this](DragDropEvent e)
 	{
 		bOperSysDragging = true;
 
@@ -159,22 +159,22 @@ GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow
 		Gui* hoveredGui = GetHoveredGui();
 
 		if (hoveredGui)
-			hoveredGui->OnOperSysDragEntered(*hoveredGui, e);
+			hoveredGui->OnOperSysDragEnter(*hoveredGui, e);
 	};
 
-	targetWindow->OnDropLeft += [this](DragDropEvent e)
+	targetWindow->OnDropLeave += [this](DragDropEvent e)
 	{
 		bOperSysDragging = false;
 	};
 
-	targetWindow->OnDropped += [this](DragDropEvent e)
+	targetWindow->OnDrop += [this](DragDropEvent e)
 	{
 		bOperSysDragging = false;
 
 		Gui* hoveredGui = GetHoveredGui();
 
 		if(hoveredGui)
-			hoveredGui->OnOperSysDropped(*hoveredGui, e);
+			hoveredGui->OnOperSysDrop(*hoveredGui, e);
 	};
 }
 
@@ -259,7 +259,7 @@ void GuiEngine::Update(float deltaTime)
 		control.OnUpdate(control, updateEvent);
 	});
 
-	// Search for hovered control, handle MouseLeaved, MouseEntered, MouseHovering
+	// Search for hovered control, handle MouseLeft, MouseEntered, MouseHovering
 	if (!IsHoverFreezed())
 	{
 		Vec2 cursorPos = targetWindow->GetClientCursorPos();
@@ -282,7 +282,7 @@ void GuiEngine::Update(float deltaTime)
 			{
 				hoveredGui->TraverseTowardParents([&](Gui& control)
 				{
-					control.OnCursorLeft(control, cursorEvent);
+					control.OnCursorLeave(control, cursorEvent);
 				});
 			}
 
@@ -292,7 +292,7 @@ void GuiEngine::Update(float deltaTime)
 				newHoveredControl->TraverseTowardParents([&](Gui& control)
 				{
 					if (control.GetVisiblePaddingRect().IsPointInside(cursorPos))
-						control.OnCursorEntered(control, cursorEvent);
+						control.OnCursorEnter(control, cursorEvent);
 				});
 			}
 		}
@@ -305,7 +305,7 @@ void GuiEngine::Update(float deltaTime)
 				{
 					if (control.GetVisiblePaddingRect().IsPointInside(cursorPos) && control.IsHoverable())
 					{
-						control.OnCursorHovering(control, cursorEvent);
+						control.OnCursorHover(control, cursorEvent);
 					}
 				});
 			}
@@ -318,7 +318,7 @@ void GuiEngine::Update(float deltaTime)
 		Gui* hoveredGui = GetHoveredGui();
 		
 		if (hoveredGui)
-			hoveredGui->OnOperSysDragHovering(*hoveredGui, lastDropEvent);
+			hoveredGui->OnOperSysDragHover(*hoveredGui, lastDropEvent);
 	}
 }
 

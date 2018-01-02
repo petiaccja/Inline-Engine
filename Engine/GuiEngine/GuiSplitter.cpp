@@ -1,7 +1,7 @@
 #include "GuiSlider.hpp"
 #include "GuiEngine.hpp"
 
-using namespace inl::gui;
+using namespace inl::ui;
 
 GuiSplitter::GuiSplitter(GuiEngine& guiEngine)
 :GuiLayout(guiEngine), orientation(eGuiOrientation::HORIZONTAL), separatorLength(10)
@@ -114,7 +114,7 @@ void GuiSplitter::AddItem(Gui* item)
 		Gui* separator = AddGui();
 		separators.push_back(separator);
 
-		separator->OnCursorEntered += [](Gui& self_, CursorEvent& evt)
+		separator->OnCursorEnter += [](Gui& self_, CursorEvent& evt)
 		{
 			GuiSplitter& splitter = self_.GetParent()->As<GuiSplitter>();
 
@@ -126,7 +126,7 @@ void GuiSplitter::AddItem(Gui* item)
 				splitter.guiEngine.SetCursorVisual(eCursorVisual::SIZENS);
 		};
 
-		separator->OnCursorLeft += [](Gui& self, CursorEvent& evt)
+		separator->OnCursorLeave += [](Gui& self, CursorEvent& evt)
 		{
 			GuiSplitter& splitter = self.GetParent()->As<GuiSplitter>();
 
@@ -134,7 +134,7 @@ void GuiSplitter::AddItem(Gui* item)
 				self.guiEngine.SetCursorVisual(eCursorVisual::ARROW);
 		};
 
-		separator->OnCursorPressed += [](Gui& separator, CursorEvent& evt)
+		separator->OnCursorPress += [](Gui& separator, CursorEvent& evt)
 		{
 			GuiSplitter& splitter = separator.GetParent()->As<GuiSplitter>();
 
@@ -151,7 +151,7 @@ void GuiSplitter::AddItem(Gui* item)
 			separator.guiEngine.FreezeHover();
 		};
 
-		guiEngine.OnCursorMoved += [this](CursorEvent& evt)
+		guiEngine.OnCursorMove += [this](CursorEvent& evt)
 		{
 			if (bDragging)
 			{
@@ -180,7 +180,7 @@ void GuiSplitter::AddItem(Gui* item)
 			}
 		};
 
-		guiEngine.OnCursorReleased += [this](CursorEvent& evt)
+		guiEngine.OnCursorRelease += [this](CursorEvent& evt)
 		{
 			if (bDragging)
 			{

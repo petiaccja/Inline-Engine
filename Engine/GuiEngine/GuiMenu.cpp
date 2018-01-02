@@ -1,12 +1,12 @@
 ﻿#include "GuiMenu.hpp"
 #include "GuiEngine.hpp"
 
-using namespace inl::gui;
+using namespace inl::ui;
 
 GuiMenu::GuiMenu(GuiEngine& guiEngine)
 : GuiList(guiEngine), guiArrow(nullptr), guiButton(nullptr)
 {
-	StretchFitToChildren();
+	
 }
 
 GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
@@ -28,7 +28,7 @@ GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
 	GuiMenu* subMenu = new GuiMenu(guiEngine);
 	subMenu->SetGuiButton(btn);
 	
-	subMenu->OnChildAdded += [this, item, subMenu](Gui& self, ChildEvent& e)
+	subMenu->OnChildAdd += [this, item, subMenu](Gui& self, ChildEvent& e)
 	{
 		// Add Arrow when we got submenu
 		if (GetOrientation() == eGuiOrientation::VERTICAL && subMenu->GetChildren().size() == 1)
@@ -47,7 +47,7 @@ GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
 		}
 	};
 
-	subMenu->OnChildRemoved += [this, item, subMenu](Gui& self, ChildEvent& e)
+	subMenu->OnChildRemove += [this, item, subMenu](Gui& self, ChildEvent& e)
 	{
 		if (subMenu->GetChildren().size() == 0)
 		{
@@ -88,7 +88,7 @@ void GuiMenu::AddItem(Gui* menuItem)
 	};
 
 	thread_local std::vector<MenuTreeNode> activeMenuTree;
-	menuItem->OnCursorEntered += [menu](Gui& self, CursorEvent& evt)
+	menuItem->OnCursorEnter += [menu](Gui& self, CursorEvent& evt)
 	{
 		// Case 1. It's menu ->		 close menus behind this AND open that one
 		// case 2. It's not a menu-> close menus behind this
@@ -138,9 +138,9 @@ void GuiMenu::AddItem(Gui* menuItem)
 			GuiMenu& containingMenu = self.GetParent()->As<GuiMenu>();
 
 			if (containingMenu.GetOrientation() == eGuiOrientation::HORIZONTAL)
-				menu->SetPos(self.GetPosBottomLeft()); // TODO new menu should open at different position, for example menuBar open menus down ! and average menus opens to the right
+				menu->SetPos(self.GetPosBottomLeft());
 			else
-				menu->SetPos(self.GetPosTopRight()); // TODO new menu should open at different position, for example menuBar open menus down ! and average menus opens to the right
+				menu->SetPos(self.GetPosTopRight());
 
 			self.FreezeBg();
 
@@ -151,7 +151,7 @@ void GuiMenu::AddItem(Gui* menuItem)
 		}
 	};
 
-	guiEngine.OnCursorPressed += [this](CursorEvent& evt)
+	guiEngine.OnCursorPress += [this](CursorEvent& evt)
 	{
 		bool bMenuHovered = false;
 

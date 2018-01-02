@@ -1,6 +1,6 @@
 #include "GuiGrid.hpp"
 
-using namespace inl::gui;
+using namespace inl::ui;
 
 GuiGrid::GuiGrid(GuiEngine& guiEngine)
 :GuiLayout(guiEngine), dimension(0,0)

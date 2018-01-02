@@ -2,7 +2,7 @@
 #include "BaseLibrary\Common.hpp"
 #include "GuiLayout.hpp"
 
-namespace inl::gui {
+namespace inl::ui {
 
 
 class GuiGrid;
@@ -107,4 +107,4 @@ protected:
 };
 
 
-} // namespace inl::gui
+} // namespace inl::ui

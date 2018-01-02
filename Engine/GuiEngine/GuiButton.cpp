@@ -1,6 +1,6 @@
 #include "GuiButton.hpp"
 
-using namespace inl::gui;
+using namespace inl::ui;
 
 GuiButton::GuiButton(GuiEngine& guiEngine)
 :Gui(guiEngine)

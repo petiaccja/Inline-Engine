@@ -1,11 +1,12 @@
 #include "GuiList.hpp"
 
-using namespace inl::gui;
+using namespace inl::ui;
 
 GuiList::GuiList(GuiEngine& guiEngine)
 :GuiLayout(guiEngine), orientation(eGuiOrientation::VERTICAL)
 {
 	SetBgToColor(GetBgIdleColor());
+	StretchFitToChildren();
 }
 
 void GuiList::SetOrientation(eGuiOrientation orientation)
@@ -16,6 +17,12 @@ void GuiList::SetOrientation(eGuiOrientation orientation)
 
 Vec2 GuiList::ArrangeChildren(const Vec2& finalSize)
 {
+	if (GetName() == L"OPTIONS_")
+	{
+		int asd = 5;
+		asd++;
+	}
+
 	Vec2 pos = GetContentPos();
 	Vec2 selfSize(0, 0);
 	for (Gui* child : GetItems())

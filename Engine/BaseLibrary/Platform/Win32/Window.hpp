@@ -100,10 +100,10 @@ public:
 	Event<> OnClose;
 	Event<> OnFocus;
 	Event<> OnPaint;
-	Event<DragDropEvent> OnDropped;
-	Event<DragDropEvent> OnDropEntered;
-	Event<DragDropEvent> OnDropLeft;
-	Event<DragDropEvent> OnDropHovering;
+	Event<DragDropEvent> OnDrop;
+	Event<DragDropEvent> OnDropEnter;
+	Event<DragDropEvent> OnDropLeave;
+	Event<DragDropEvent> OnDropHover;
 
 private:
 	static LRESULT __stdcall WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LPARAM lParam);

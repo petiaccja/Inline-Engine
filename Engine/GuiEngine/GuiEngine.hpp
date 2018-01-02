@@ -18,7 +18,7 @@
 
 using namespace inl;
 
-namespace inl::gui {
+namespace inl::ui {
 
 class GuiEngine
 {
@@ -60,10 +60,10 @@ protected:
 	void Register(Gui* g) { guis.push_back(g); }
 
 public:
-	Event<CursorEvent&> OnCursorClicked;
-	Event<CursorEvent&> OnCursorPressed;
-	Event<CursorEvent&> OnCursorReleased;
-	Event<CursorEvent&> OnCursorMoved;
+	Event<CursorEvent&> OnCursorClick;
+	Event<CursorEvent&> OnCursorPress;
+	Event<CursorEvent&> OnCursorRelease;
+	Event<CursorEvent&> OnCursorMove;
 
 protected:
 	gxeng::GraphicsEngine* graphicsEngine;
@@ -93,4 +93,4 @@ protected:
 	Vec2 mousePosWhenPress = Vec2(-1, -1);
 };
 
-} //namespace inl::gui
+} //namespace inl::ui

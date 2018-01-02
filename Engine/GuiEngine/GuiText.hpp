@@ -3,7 +3,7 @@
 #include "Gui.hpp"
 
 
-namespace inl::gui {
+namespace inl::ui {
 
 enum class eTextAlign
 {
@@ -54,7 +54,7 @@ protected:
 
 
 inline GuiText::GuiText(GuiEngine& guiEngine)
-:Gui(guiEngine), color(220, 220, 220, 255)
+:Gui(guiEngine), color(220, 220, 220, 255), fontSize(0)
 {
 	SetFontFamily("Helvetica");
 	SetFontSize(12);
@@ -143,4 +143,4 @@ inline void GuiText::SetText(const std::string& text)
 	SetText(std::wstring(text.begin(), text.end()));
 }
 
-} // namespace inl::gui
+} // namespace inl::ui

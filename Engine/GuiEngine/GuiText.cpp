@@ -1,7 +1,7 @@
 #include "GuiText.hpp"
 #include "GuiEngine.hpp"
 
-using namespace inl::gui;
+using namespace inl::ui;
 
 Vec2 GuiText::ArrangeChildren(const Vec2& finalSize)
 {

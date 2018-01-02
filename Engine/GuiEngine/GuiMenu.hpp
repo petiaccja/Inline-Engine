@@ -3,14 +3,15 @@
 #include "GuiButton.hpp"
 #include <unordered_map>
 
-namespace inl::gui {
+namespace inl::ui {
 
 class GuiMenu : public GuiList
 {
 public:
 	GuiMenu(GuiEngine& guiEngine);
 
-	virtual void AddItem(Gui* gui);
+	using GuiList::AddItem;
+	virtual void AddItem(Gui* gui) override;
 
 	GuiMenu* AddItemMenu(const std::wstring& text);
 	GuiMenu* AddItemMenu(const std::string& text) { return AddItemMenu(std::wstring(text.begin(), text.end())); }
@@ -29,4 +30,4 @@ protected:
 	GuiButton* guiButton;
 };
 
-} // namespace inl::gui
+} // namespace inl::ui

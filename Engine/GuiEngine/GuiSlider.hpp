@@ -2,7 +2,7 @@
 #include "BaseLibrary\Common.hpp"
 #include "Gui.hpp"
 
-namespace inl::gui {
+namespace inl::ui {
 
 class GuiSlider : public Gui
 {
@@ -24,7 +24,7 @@ protected:
 	void SlideToValue() { SlideToValue(value); }
 
 public:
-	Delegate<void(Gui& self, float value)> OnValueChanged;
+	Delegate<void(Gui& self, float value)> OnValueChange;
 
 protected:
 	Gui* slider;
@@ -37,4 +37,4 @@ protected:
 	bool bSliding;
 };
 
-} // namespace inl::gui
+} // namespace inl::ui

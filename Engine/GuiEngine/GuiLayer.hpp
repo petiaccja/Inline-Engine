@@ -2,7 +2,7 @@
 #include "Gui.hpp"
 #include <vector>
 
-namespace inl::gui {
+namespace inl::ui {
 
 class GuiLayer : public Gui
 {
@@ -12,4 +12,4 @@ public:
 	virtual Vec2 ArrangeChildren(const Vec2& finalSize);
 };
 
-} // namespace inl::gui
+} // namespace inl::ui
