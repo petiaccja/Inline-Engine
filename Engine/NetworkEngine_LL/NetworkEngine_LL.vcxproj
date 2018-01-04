@@ -61,12 +61,9 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-<<<<<<< HEAD
       <AdditionalIncludeDirectories>E:\Inline-Engine\Engine</AdditionalIncludeDirectories>
-=======
       <AdditionalIncludeDirectories>E:\Inline-Engine\Engine\BaseLibrary</AdditionalIncludeDirectories>
       <ConformanceMode>false</ConformanceMode>
->>>>>>> 99ce3a9b846fb1288ee6da42cc2b73cfc59a0bb5
     </ClCompile>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
