@@ -9,17 +9,17 @@ namespace inl::net::servers
 	class ServerConnection
 	{
 	public:
-		ServerConnection(TcpClient *client)
+		ServerConnection(std::shared_ptr<TcpClient> client)
 			: m_client(client)
 		{
 		}
 
-		TcpClient * GetClient() { return m_client; }
+		std::shared_ptr<TcpClient> GetClient() { return m_client; }
 		uint32_t GetID() { return m_id; }
 		void SetID(uint32_t id) { m_id = id; }
 
 	private:
-		TcpClient * m_client;
+		std::shared_ptr<TcpClient> m_client;
 		uint32_t m_id;
 	};
 }

@@ -34,17 +34,12 @@ namespace inl::net
 
 	void NetworkMessage::Deserialize(uint8_t * data, int32_t size)
 	{
-		NetworkHeader header;
-		int32_t sizeOfNetHeader = sizeof(NetworkHeader);
-		memcpy(&header, data, sizeOfNetHeader);
+		memcpy(&(m_senderID), data, 4);
+		m_distributionMode = (DistributionMode)data[4];
+		memcpy(&(m_destinationID), data + 5, 4);
+		memcpy(&(m_tag), data + 9, 4);
 
-		// int32_t realSize = size - sizeOfNetHeader; // maybe instead of doing this just strip the bytes off the array?
-		memcpy(&(m_senderID), data + sizeOfNetHeader, 4);
-		m_distributionMode = (DistributionMode)data[sizeOfNetHeader + 4];
-		memcpy(&(m_destinationID), data + sizeOfNetHeader + 5, 4);
-		memcpy(&(m_tag), data + sizeOfNetHeader + 9, 4);
-
-		m_dataSize = size - sizeOfNetHeader - 13;
-		memcpy(m_data, data + sizeOfNetHeader + 13, m_dataSize);
+		m_dataSize = size - 13;
+		memcpy(m_data, data + 13, m_dataSize);
 	}
 }

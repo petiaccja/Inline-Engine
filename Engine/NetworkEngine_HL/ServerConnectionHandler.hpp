@@ -25,7 +25,7 @@ namespace inl::net::servers
 			m_run.exchange(false);
 		}
 
-		void Add(ServerConnection *c);
+		void Add(std::shared_ptr<ServerConnection> c);
 
 		uint32_t GetAvailableID();
 
@@ -36,8 +36,10 @@ namespace inl::net::servers
 
 	private:
 		void HandleReceive();
-
 		void HandleSend();
+
+		void HandleReceiveThreaded();
+		void HandleSendThreaded();
 
 		//void HandleSendReceive() // no loop
 		//{
@@ -72,7 +74,7 @@ namespace inl::net::servers
 		//}
 
 	private:
-		std::vector<ServerConnection*> m_list;
+		std::vector<std::shared_ptr<ServerConnection>> m_list;
 		uint32_t m_maxConnections;
 
 		std::thread m_receiveThread;
@@ -85,5 +87,6 @@ namespace inl::net::servers
 
 		std::mutex m_sendMutex;
 		std::mutex m_receiveMutex;
+		std::mutex m_listMutex;
 	};
 }

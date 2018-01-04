@@ -3,11 +3,11 @@
 
 namespace inl::net::sockets
 {
-	TcpClient *TcpListener::AcceptClient()
+	std::shared_ptr<TcpClient> TcpListener::AcceptClient()
 	{
 		if (m_socket == nullptr)
 		{
-			m_socket = TcpSocketBuilder().AsReusable().Bind(IPAddress(0, 0, 0, 0, m_port)).Listening().Build();
+			m_socket = std::unique_ptr<Socket>(&*(TcpSocketBuilder().AsReusable().Bind(IPAddress(0, 0, 0, 0, m_port)).Listening().Build()));
 		}
 
 		if (m_socket == nullptr)
@@ -23,11 +23,11 @@ namespace inl::net::sockets
 		{
 			if (pending)
 			{
-				Socket* connectionSocket = (Socket*)m_socket->Accept();
+				std::shared_ptr<Socket> connectionSocket = m_socket->Accept();
 
 				if (connectionSocket != nullptr)
 				{
-					return new TcpClient(connectionSocket);
+					return std::shared_ptr<TcpClient>(new TcpClient(connectionSocket));
 				}
 			}
 			else if (hasZeroSleepTime)

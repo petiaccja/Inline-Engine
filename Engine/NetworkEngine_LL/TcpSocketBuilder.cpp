@@ -5,9 +5,9 @@
 
 namespace inl::net::sockets
 {
-	Socket * TcpSocketBuilder::Build() const
+	std::shared_ptr<Socket> TcpSocketBuilder::Build() const
 	{
-		Socket* socket = new Socket(SocketType::Streaming, m_socketProtocol);
+		std::shared_ptr<Socket> socket = std::shared_ptr<Socket>(new Socket(SocketType::Streaming, m_socketProtocol));
 
 		if (socket != nullptr)
 		{
@@ -45,25 +45,21 @@ namespace inl::net::sockets
 			}
 
 			if (Error)
-			{
-				delete socket;
-				socket = nullptr;
 				throw inl::RuntimeException("Couldnt create socket"); // make parameter a string depending on the error
-			}
 		}
 
 		return socket;
 	}
 
-	TcpClient *TcpSocketBuilder::BuildClient() const
+	std::shared_ptr<TcpClient> TcpSocketBuilder::BuildClient() const
 	{
-		Socket* socket = Build();
-		return new TcpClient(socket);
+		std::shared_ptr<Socket> socket = Build();
+		return std::shared_ptr<TcpClient>(new TcpClient(socket));
 	}
 
-	TcpListener *TcpSocketBuilder::BuildListener() const
+	std::shared_ptr<TcpListener> TcpSocketBuilder::BuildListener() const
 	{
-		Socket* socket = Build();
-		return new TcpListener(socket);
+		std::shared_ptr<Socket> socket = Build();
+		return std::shared_ptr<TcpListener>(new TcpListener(socket));
 	}
 }

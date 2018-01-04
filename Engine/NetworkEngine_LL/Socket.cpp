@@ -93,12 +93,12 @@ namespace inl::net::sockets
 		return false;
 	}
 
-	ISocket* Socket::Accept()
+	std::shared_ptr<Socket> Socket::Accept()
 	{
 		SOCKET newSocket = accept(m_socket, nullptr, nullptr);
 
 		if (newSocket != INVALID_SOCKET)
-			return new Socket(newSocket, GetSocketType());
+			return std::shared_ptr<Socket>(new Socket(newSocket, GetSocketType()));
 
 		return nullptr;
 	}
@@ -303,17 +303,12 @@ namespace inl::net::sockets
 		return success;
 	}
 
-	int32_t Socket::GetPortNo()
+	uint32_t Socket::GetPortNo()
 	{
 		sockaddr_in addr;
 		socklen_t size = sizeof(sockaddr_in);
-		bool success = getsockname(m_socket, (sockaddr*)&addr, &size) == 0;
-
-		if (!success)
-		{
-			return -1;
-		}
-
+		if (getsockname(m_socket, (sockaddr*)&addr, &size) != 0)
+			return 0; // invalid port
 		return ntohs(addr.sin_port);
 	}
 

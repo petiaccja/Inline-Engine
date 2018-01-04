@@ -9,14 +9,14 @@ namespace inl::net::events
 	class NewConnectionEvent // server only
 	{
 	public:
-		inline NewConnectionEvent(TcpClient *client, uint32_t id)
+		inline NewConnectionEvent(std::shared_ptr<TcpClient> client, uint32_t id)
 			: m_client(client)
 			, m_id(id)
 		{
 		}
 
 	private:
-		TcpClient * m_client;
+		std::shared_ptr<TcpClient> m_client;
 		uint32_t m_id;
 	};
 }

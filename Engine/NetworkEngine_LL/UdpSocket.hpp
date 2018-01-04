@@ -2,6 +2,8 @@
 
 #include "Socket.hpp"
 
+#include <memory>
+
 namespace inl::net::sockets
 {
 	class UdpSocket
@@ -9,7 +11,7 @@ namespace inl::net::sockets
 	public:
 		UdpSocket(SocketProtocol protocol = SocketProtocol::IPv4)
 		{
-			m_socket = new Socket(SocketType::Datagram, protocol);
+			m_socket = std::make_unique<Socket>(new Socket(SocketType::Datagram, protocol));
 		}
 
 		inline bool Bind(const IPAddress &addr) { return m_socket->Bind(addr); }
@@ -20,10 +22,10 @@ namespace inl::net::sockets
 		inline bool LeaveMulticastGroup(const IPAddress& addrStr) { return m_socket->LeaveMulticastGroup(addrStr); }
 		inline bool SetMulticastLoopback(bool loopback) { return m_socket->SetMulticastLoopback(loopback); }
 		inline bool SetMulticastTtl(uint8_t timeToLive) { return m_socket->SetMulticastTtl(timeToLive); }
-		inline int32_t GetPortNo() { return m_socket->GetPortNo(); }
+		inline uint32_t GetPortNo() { return m_socket->GetPortNo(); }
 		inline bool SetReuseAddr(bool allowReuse = true) { m_socket->SetReuseAddr(allowReuse); }
 
 	private:
-		Socket * m_socket;
+		std::unique_ptr<Socket> m_socket;
 	};
 }

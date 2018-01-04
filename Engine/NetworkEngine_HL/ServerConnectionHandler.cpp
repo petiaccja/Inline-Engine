@@ -3,6 +3,7 @@
 #include "ServerConnection.hpp"
 #include "DisconnectedEvent.hpp"
 #include "NewConnectionEvent.hpp"
+#include "NetworkHeader.hpp"
 
 namespace inl::net::servers
 {
@@ -13,15 +14,15 @@ namespace inl::net::servers
 	{
 		if (multithreaded)
 		{
-			std::thread receive_thread(&ServerConnectionHandler::HandleReceive, this);
+			std::thread receive_thread(&ServerConnectionHandler::HandleReceiveThreaded, this);
 			m_receiveThread.swap(receive_thread);
 
-			std::thread send_thread(&ServerConnectionHandler::HandleSend, this);
+			std::thread send_thread(&ServerConnectionHandler::HandleSendThreaded, this);
 			m_sendThread.swap(send_thread);
 		}
 	}
 
-	void ServerConnectionHandler::Add(ServerConnection * c)
+	void ServerConnectionHandler::Add(std::shared_ptr<ServerConnection> c)
 	{
 		uint32_t id = GetAvailableID();
 		if (id == -1)
@@ -29,7 +30,7 @@ namespace inl::net::servers
 			// this can be handled just by the server
 			// what if the server owner wants to know if a user wanted to join but couldnt
 			DisconnectedEvent disconnected_event(id, "Server Full", -1);
-			TcpClient *client = c->GetClient();
+			std::shared_ptr<TcpClient> client = c->GetClient();
 			int32_t size = 0;
 			uint8_t *buffer = disconnected_event.Serialize(size);
 			int32_t sent = 0;
@@ -39,8 +40,10 @@ namespace inl::net::servers
 
 		c->SetID(id);
 
+		m_listMutex.lock();
 		m_list.push_back(c);
-		NewConnectionEvent *new_conn_event = new NewConnectionEvent(c->GetClient(), id);
+		m_listMutex.unlock();
+		NewConnectionEvent *new_conn_event = new NewConnectionEvent(c->GetClient(), id); // shared?
 		// send new connection event to main thread - but how
 	}
 
@@ -49,11 +52,13 @@ namespace inl::net::servers
 		for (int i = 1; i <= m_maxConnections; i++)
 		{
 			bool flag = true;
+			m_listMutex.lock();
 			for (int k = 0; k < m_list.size(); k++)
 			{
 				if (m_list.at(k)->GetID() == i)
 					flag = false;
 			}
+			m_listMutex.unlock();
 
 			if (flag)
 				return i;
@@ -65,42 +70,79 @@ namespace inl::net::servers
 
 	void ServerConnectionHandler::HandleReceive()
 	{
-		while (m_run.load())
+		for (int i = 0; i < m_list.size(); i++)
 		{
+			std::shared_ptr<ServerConnection> c = m_list.at(i);
+			std::unique_ptr<uint8_t> header(new uint8_t[sizeof(NetworkHeader*)]());
 
+			int32_t read;
+			if (!c->GetClient()->Recv(header.get(), sizeof(NetworkHeader*), read))
+				return;
+
+			if (read == sizeof(NetworkHeader*))
+			{
+				std::unique_ptr<NetworkHeader> net_header((NetworkHeader*)header.get());
+
+				std::unique_ptr<uint8_t> buffer(new uint8_t[net_header->Size]());
+				int32_t read;
+				if (!c->GetClient()->Recv(buffer.get(), net_header->Size, read))
+				{
+					if (read != net_header->Size)
+						return; // wrong message?
+
+
+				}
+			}
+			else // wrong message
+			{
+				return;
+			}
 		}
 	}
 
 	void ServerConnectionHandler::HandleSend()
 	{
-		while (m_run.load())
+		if (m_messagesToSend.size() > 0)
 		{
-			if (m_messagesToSend.size() > 0)
+			m_sendMutex.lock();
+			NetworkMessage msg = m_messagesToSend.front();
+			m_messagesToSend.pop();
+			m_sendMutex.unlock();
+
+			uint32_t size;
+			std::unique_ptr<uint8_t> data(msg.SerializeData(size));
+
+			if (msg.m_distributionMode == DistributionMode::Others)
 			{
-				m_sendMutex.lock();
-				NetworkMessage msg = m_messagesToSend.front();
-				m_messagesToSend.pop();
-				m_sendMutex.unlock();
-
-				uint32_t size;
-				uint8_t* data = msg.SerializeData(size);
-
-				if (msg.m_distributionMode == DistributionMode::Others)
+				m_listMutex.lock();
+				for (int i = 0; i < m_list.size(); i++) // should i lock here?
 				{
-					for (int i = 0; i < m_list.size(); i++) // should i lock here?
+					std::shared_ptr<ServerConnection> c = m_list.at(i);
+					if (c->GetID() != msg.m_senderID)
 					{
-						ServerConnection *c = m_list.at(i);
-						if (c->GetID() != msg.m_senderID)
+						int32_t sent;
+						if (!c->GetClient()->Send(data.get(), size, sent))
 						{
-							int32_t sent;
-							if (!c->GetClient()->Send(data, size, sent))
-							{
-								// it failed - retry? or just disconnect right in the first try
-							}
+							// it failed - retry? or just disconnect right in the first try
 						}
 					}
 				}
+				m_listMutex.unlock();
 			}
+		}
+	}
+
+	void ServerConnectionHandler::HandleReceiveThreaded()
+	{
+		while (m_run.load())
+			HandleSend();
+	}
+
+	void ServerConnectionHandler::HandleSendThreaded()
+	{
+		while (m_run.load())
+		{
+			
 		}
 	}
 }

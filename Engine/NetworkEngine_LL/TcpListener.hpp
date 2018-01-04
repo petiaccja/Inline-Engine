@@ -13,28 +13,26 @@ namespace inl::net::sockets
 		inline TcpListener(uint16_t port, std::chrono::milliseconds inSleepTime = std::chrono::milliseconds(1))
 			: m_port(port)
 			, m_sleepTime(inSleepTime)
-			, m_socket(nullptr)
 		{
+			m_socket = std::unique_ptr<Socket>(&(*TcpSocketBuilder().AsNonBlocking().AsReusable().Bind(IPAddress(0, 0, 0, 0, port)).Listening().Build()));
 		}
 
-		inline TcpListener(Socket *InSocket, std::chrono::milliseconds inSleepTime = std::chrono::milliseconds(1))
+		inline TcpListener(std::shared_ptr<Socket> InSocket, std::chrono::milliseconds inSleepTime = std::chrono::milliseconds(1))
 			: m_sleepTime(inSleepTime)
-			, m_socket(InSocket)
 		{
+			m_socket = std::unique_ptr<Socket>(&(*InSocket));
 		}
 
 		inline ~TcpListener()
 		{
-			delete m_socket;
-			m_socket = nullptr;
 		}
 
-		inline Socket* GetSocket() const { return m_socket; }
-		TcpClient *AcceptClient();
+		//inline std::shared_ptr<Socket> GetSocket() const { return m_socket; }
+		std::shared_ptr<TcpClient> AcceptClient();
 
 	private:
 		std::chrono::milliseconds m_sleepTime;
-		Socket* m_socket;
+		std::unique_ptr<Socket> m_socket;
 		uint16_t m_port;
 	};
 }

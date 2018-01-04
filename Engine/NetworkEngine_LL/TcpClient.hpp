@@ -7,21 +7,19 @@ namespace inl::net::sockets
 	class TcpClient
 	{
 	public:
-		inline TcpClient(Socket *soc) : 
-			m_socket(soc)
+		inline TcpClient(std::shared_ptr<Socket> soc)
 		{
+			m_socket = std::unique_ptr<Socket>(&(*soc));
 		}
 
 		inline TcpClient(SocketProtocol protocol = SocketProtocol::IPv4)
-			: m_socket(TcpSocketBuilder().AsNonBlocking().AsReusable().Protocol(protocol).Build())
 		{
+			m_socket = std::unique_ptr<Socket>(&(*TcpSocketBuilder().AsNonBlocking().AsReusable().Protocol(protocol).Build()));
 		}
 
 		inline ~TcpClient()
 		{
 			Close();
-			delete m_socket;
-			m_socket = nullptr;
 		}
 
 		inline bool Connect(const IPAddress& addrStr) { return m_socket->Connect(addrStr); }
@@ -35,6 +33,6 @@ namespace inl::net::sockets
 		inline int32_t GetPortNo() const { return m_socket->GetPortNo(); }
 
 	private:
-		Socket * m_socket;
+		std::unique_ptr<Socket> m_socket;
 	};
 }

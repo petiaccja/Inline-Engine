@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include <Serialization/BinarySerializer.hpp>
+#include <BaseLibrary/Serialization/BinarySerializer.hpp>
 
 namespace inl::net::events
 {

@@ -11,6 +11,8 @@ namespace inl::net::sockets
 {
 	using namespace enums;
 
+	class Socket;
+
 	class ISocket
 	{
 	public:
@@ -36,7 +38,7 @@ namespace inl::net::sockets
 		virtual bool Listen() = 0;
 		virtual bool WaitForPendingConnection(bool& hasPendingConnection, std::chrono::milliseconds t) = 0;
 		virtual bool HasPendingData(uint32_t& pendingDataSize) = 0;
-		virtual class ISocket* Accept() = 0;
+		virtual std::shared_ptr<Socket> Accept() = 0;
 		virtual bool SendTo(const uint8_t* data, int32_t count, int32_t& sent, const IPAddress& addrDest) = 0;
 		virtual bool Send(const uint8_t* data, int32_t count, int32_t& sent) = 0;
 		virtual bool RecvFrom(uint8_t* data, int32_t size, int32_t& read, IPAddress& srcAddr, SocketReceiveFlags flags = SocketReceiveFlags::None) = 0;
@@ -54,7 +56,7 @@ namespace inl::net::sockets
 		virtual bool SetLinger(bool shouldLinger = true, int32_t t = 0) = 0;
 		virtual bool SetSendBufferSize(int32_t size, int32_t& newSize) = 0;
 		virtual bool SetReceiveBufferSize(int32_t size, int32_t& newSize) = 0;
-		virtual int32_t GetPortNo() = 0;
+		virtual uint32_t GetPortNo() = 0;
 
 		inline SocketType GetSocketType() const
 		{

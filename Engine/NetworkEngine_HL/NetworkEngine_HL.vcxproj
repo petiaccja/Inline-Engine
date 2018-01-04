@@ -80,7 +80,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>E:\Inline-Engine\Engine\NetworkEngine_LL;E:\Inline-Engine\Engine\BaseLibrary</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\Inline-Engine\Engine\NetworkEngine_LL;E:\Inline-Engine\Engine</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

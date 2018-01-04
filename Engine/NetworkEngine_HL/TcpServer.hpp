@@ -20,7 +20,7 @@ namespace inl::net::servers
 		void EndAccept();
 
 	private:
-		TcpListener *listener;
+		std::unique_ptr<TcpListener> listener;
 		uint32_t m_maxConnections;
 		uint16_t m_port;
 
@@ -28,6 +28,6 @@ namespace inl::net::servers
 
 		std::thread m_acceptingThread;
 
-		ServerConnectionHandler *m_connectionHandler;
+		std::shared_ptr<ServerConnectionHandler> m_connectionHandler;
 	};
 }

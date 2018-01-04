@@ -16,11 +16,16 @@
     <Filter Include="Events">
       <UniqueIdentifier>{9f4a347f-6099-4527-bdc1-684b89222914}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{3879289b-c422-4549-b67a-90ab96c26a1d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TcpServer.cpp" />
-    <ClCompile Include="NetworkMessage.cpp" />
     <ClCompile Include="ServerConnectionHandler.cpp" />
+    <ClCompile Include="NetworkMessage.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TcpServer.hpp" />
@@ -32,8 +37,12 @@
     <ClInclude Include="NewConnectionEvent.hpp">
       <Filter>Events</Filter>
     </ClInclude>
-    <ClInclude Include="NetworkMessage.hpp" />
-    <ClInclude Include="NetworkHeader.hpp" />
     <ClInclude Include="BitConverter.hpp" />
+    <ClInclude Include="NetworkHeader.hpp">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="NetworkMessage.hpp">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Exception/Exception.hpp>
+#include <BaseLibrary/Exception/Exception.hpp>
 
 #include "Enums.hpp"
 #include "IPAddress.hpp"
@@ -96,9 +96,9 @@ namespace inl::net::sockets
 		}
 
 	public:
-		Socket * Build() const;
-		TcpClient* BuildClient() const;
-		TcpListener* BuildListener() const;
+		std::shared_ptr<Socket> Build() const;
+		std::shared_ptr<TcpClient> BuildClient() const;
+		std::shared_ptr<TcpListener> BuildListener() const;
 
 	private:
 		bool m_blocking;
