@@ -1,8 +1,9 @@
 #include "ServerConnectionHandler.hpp"
 
-#include "ServerConnection.hpp"
 #include "DisconnectedEvent.hpp"
 #include "NewConnectionEvent.hpp"
+
+#include "ServerConnection.hpp"
 #include "NetworkHeader.hpp"
 
 namespace inl::net::servers
@@ -90,7 +91,11 @@ namespace inl::net::servers
 					if (read != net_header->Size)
 						return; // wrong message?
 
+					NetworkMessage msg;
+					msg.Deserialize(buffer.get(), net_header->Size);
 
+					DataReceivedEvent ev(msg);
+					m_receivedMessages.push(msg);
 				}
 			}
 			else // wrong message

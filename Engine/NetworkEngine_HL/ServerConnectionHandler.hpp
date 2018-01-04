@@ -5,6 +5,7 @@
 #include <queue>
 
 #include "NetworkMessage.hpp"
+#include "DataReceivedEvent.hpp"
 
 namespace inl::net::servers
 {
@@ -41,38 +42,6 @@ namespace inl::net::servers
 		void HandleReceiveThreaded();
 		void HandleSendThreaded();
 
-		//void HandleSendReceive() // no loop
-		//{
-		//	if (m_messagesToSend.size() > 0)
-		//	{
-		//		m_sendMutex.lock();
-		//		NetworkMessage msg = m_messagesToSend.front();
-		//		m_messagesToSend.pop();
-		//		m_sendMutex.unlock();
-
-		//		uint32_t count;
-		//		uint8_t* data = msg.SerializeData(count);
-
-		//		if (msg.m_distributionMode == DistributionMode::Others)
-		//		{
-		//			for (int i = 0; i < m_list.size(); i++) // should i lock here?
-		//			{
-		//				ServerConnection *c = m_list.at(i);
-		//				if (c->GetID() != msg.m_senderID)
-		//				{
-		//					int32_t sent;
-		//					if (!c->GetClient()->Send(data, count, sent))
-		//					{
-		//						// it failed - retry? or just disconnect right in the first try
-		//					}
-		//				}
-		//			}
-		//		}
-		//	}
-
-		//	//receive
-		//}
-
 	private:
 		std::vector<std::shared_ptr<ServerConnection>> m_list;
 		uint32_t m_maxConnections;
@@ -83,7 +52,7 @@ namespace inl::net::servers
 		std::atomic_bool m_run;
 
 		std::queue<NetworkMessage> m_messagesToSend;
-		std::queue<NetworkMessage> m_receivedMessages;
+		std::queue<events::DataReceivedEvent> m_receivedMessages;
 
 		std::mutex m_sendMutex;
 		std::mutex m_receiveMutex;

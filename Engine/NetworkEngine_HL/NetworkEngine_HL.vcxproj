@@ -14,9 +14,6 @@
     <ProjectReference Include="..\BaseLibrary\BaseLibrary.vcxproj">
       <Project>{f55437f4-00c1-49ae-bffc-4b0a6dc75081}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\NetworkEngine_LL\NetworkEngine_LL.vcxproj">
-      <Project>{805edcb5-391b-4f92-8568-cf6b691c16fe}</Project>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NetworkMessage.cpp" />
@@ -25,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BitConverter.hpp" />
+    <ClInclude Include="DataReceivedEvent.hpp" />
     <ClInclude Include="DisconnectedEvent.hpp" />
     <ClInclude Include="NetworkHeader.hpp" />
     <ClInclude Include="NetworkMessage.hpp" />

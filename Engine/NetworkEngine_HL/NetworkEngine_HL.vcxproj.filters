@@ -44,5 +44,8 @@
     <ClInclude Include="NetworkMessage.hpp">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="DataReceivedEvent.hpp">
+      <Filter>Events</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
