@@ -100,6 +100,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4180</DisableSpecificWarnings>
+      <ConformanceMode>false</ConformanceMode>
     </ClCompile>
     <Lib>
       <AdditionalDependencies>GraphicsEngine_LL.lib;GuiEngine.lib;AssetLibrary.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -119,6 +120,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4180</DisableSpecificWarnings>
+      <ConformanceMode>false</ConformanceMode>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

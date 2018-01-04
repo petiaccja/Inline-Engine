@@ -10,7 +10,7 @@
 
 #include "GuiRect.hpp"
 
-namespace inl::gui {
+namespace inl::ui {
 
 enum class eEventPropagationPolicy
 {
@@ -67,4 +67,4 @@ struct PaintEvent
 	Gdiplus::Graphics* graphics;
 };
 
-} //namespace inl::gui
+} //namespace inl::ui

@@ -1,28 +1,48 @@
 #pragma once
 #include "GuiCollapsable.hpp"
 
-using namespace inl::gui;
+using namespace inl::ui;
 
 GuiCollapsable::GuiCollapsable(GuiEngine& guiEngine)
-:GuiList(guiEngine), bOpened(false)
+:GuiLayout(guiEngine), bOpened(false)
 {
-	//StretchFitToChildren();
-	//SetAutoSize(true);
+	DisableHover();
 
-	list = new GuiList(guiEngine);
-	//list->SetBgToColor(Color(0, 0, 0, 0));
+	StretchHorFillParent();
+	StretchVerFitToChildren();
 
-	caption = AddGui<GuiButton>();
-	//caption->SetAlign(eGuiAlign::STRETCH_H);
+	// List layout for caption and item list
+	layout = AddGui<GuiList>();
+	layout->StretchFillParent();
 
-	caption->OnCursorPressed += [](Gui& self, CursorEvent& e)
+	// Create item list
+	itemList = new GuiList(guiEngine);
+	itemList->StretchHorFillParent();
+	itemList->OnChildAdd += [](Gui& self, ChildEvent& e)
 	{
-		GuiCollapsable& c = self.GetParent()->As<GuiCollapsable>();
+		e.child->StretchHorFillParent();
+		e.child->StretchVerFitToChildren();
+		e.child->SetPadding(4);
+	};
 
+	// Add caption to layout
+	caption = layout->AddItem<GuiButton>();
+	caption->StretchHorFillParent();
+	caption->StretchVerFitToChildren();
+	caption->SetBgIdleColor(ColorI(25, 25, 25, 255));
+	caption->SetBgHoverColor(ColorI(60, 60, 60, 255));
+	caption->GetGuiText()->SetFontSize(16);
+	caption->SetPadding(4);
+
+	caption->OnCursorPress += [](Gui& self, CursorEvent& e)
+	{
+		GuiCollapsable& c = self.GetParent()->GetParent()->As<GuiCollapsable>();
+
+		// Add item list to layout based on if "collapsable" opened or not
 		if (c.bOpened)
-			c.RemoveGui(c.list);
+			c.layout->RemoveItem(c.itemList);
 		else
-			c.AddGui(c.list);
+			c.layout->AddItem(c.itemList);
 
 		c.bOpened = !c.bOpened;
 	};
@@ -37,8 +57,9 @@ GuiCollapsable& GuiCollapsable::operator = (const GuiCollapsable& other)
 {
 	Gui::operator = (other);
 
+	layout = Copy(other.layout);
 	caption = Copy(other.caption);
-	list = Copy(other.list);
+	itemList = Copy(other.itemList);
 
 	bOpened = other.bOpened;
 

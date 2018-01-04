@@ -8,7 +8,7 @@
 #include "GuiScrollable.hpp"
 #include "GuiEngine.hpp"
 
-using namespace inl::gui;
+using namespace inl::ui;
 
 Gui::Gui(GuiEngine& guiEngine)
 :Gui(guiEngine, false)
@@ -60,7 +60,7 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 
 	SetBgActiveColor(bgIdleColor);
 
-	OnCursorEntered += [](Gui& self, CursorEvent& e)
+	OnCursorEnter += [](Gui& self, CursorEvent& e)
 	{
 		if (!self.bBgFreezed)
 		{
@@ -71,7 +71,7 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 		self.bHovered = true;
 	};
 
-	OnCursorLeft += [](Gui& self, CursorEvent& e)
+	OnCursorLeave += [](Gui& self, CursorEvent& e)
 	{
 		if (!self.bBgFreezed)
 		{
@@ -82,12 +82,12 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 		self.bHovered = false;
 	};
 
-	OnChildRemoved += [](Gui& self, ChildEvent& e)
+	OnChildRemove += [](Gui& self, ChildEvent& e)
 	{
 		self.bLayoutNeedRefresh = true;
 	};
 
-	OnChildAdded += [](Gui& self, ChildEvent& e)
+	OnChildAdd += [](Gui& self, ChildEvent& e)
 	{
 		self.bLayoutNeedRefresh = true;
 	};
@@ -103,61 +103,62 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 		Gdiplus::Rect gdiBorderRect(borderRect.left, borderRect.top, borderRect.GetWidth(), borderRect.GetHeight());
 		Gdiplus::Rect gdiPaddingRect(paddingRect.left, paddingRect.top, paddingRect.GetWidth(), paddingRect.GetHeight());
 
-		// TODO visibleRect
-		auto visibleContentRect = self.GetVisibleRect();
+		GuiRectF visibleContentRect = self.GetVisibleRect();
 		Gdiplus::Rect gdiClipRect(visibleContentRect.left, visibleContentRect.top, visibleContentRect.GetWidth(), visibleContentRect.GetHeight());
 
 		// Clipping
-		//e.graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeReplace);
+		e.graphics->SetClip(gdiClipRect, Gdiplus::CombineMode::CombineModeReplace);
 
 		// Draw left border
 		ColorI borderColor = self.GetBorderColor();
 		GuiRectF border = self.GetBorder();
 
 		Gdiplus::SolidBrush borderBrush(Gdiplus::Color(borderColor.a, borderColor.r, borderColor.g, borderColor.b));
+
+		// Draw left border
 		if (border.left != 0)
 		{
 			GuiRectF tmp = borderRect;
-
+		
 			// Setup left border
 			tmp.right = tmp.left + border.left;
-
+		
 			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
 			e.graphics->FillRectangle(&borderBrush, tmpGdi);
 		}
 
-		// Draw right border
+		//Draw right border
 		if (border.right != 0)
 		{
 			GuiRectF tmp = borderRect;
-
+		
 			// Setup right border
 			tmp.left = tmp.right - border.right;
-
+		
 			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
 			e.graphics->FillRectangle(&borderBrush, tmpGdi);
 		}
-
+		
 		// Draw top border
 		if (border.top != 0)
 		{
 			GuiRectF tmp = borderRect;
-
+		
 			// Setup top border
 			tmp.bottom = tmp.top + border.top;
-
+		
 			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
 			e.graphics->FillRectangle(&borderBrush, tmpGdi);
 		}
-
+		
 		// Draw bottom border
 		if (border.bottom != 0)
 		{
 			GuiRectF tmp = borderRect;
-
+		
 			// Setup top border
 			tmp.top = tmp.bottom - border.bottom;
-
+		
 			Gdiplus::Rect tmpGdi(tmp.left, tmp.top, tmp.GetWidth(), tmp.GetHeight());
 			e.graphics->FillRectangle(&borderBrush, tmpGdi);
 		}
@@ -173,6 +174,7 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 			ColorI bgColor = self.GetBgActiveColor();
 			Gdiplus::SolidBrush brush(Gdiplus::Color(bgColor.a, bgColor.r, bgColor.g, bgColor.b));
 			e.graphics->FillRectangle(&brush, gdiPaddingRect);
+			
 		}
 	};
 }
@@ -215,20 +217,20 @@ Gui& Gui::operator = (const Gui& other)
 	bBgColorVisible = other.bBgColorVisible;
 	bBgImageVisible = other.bBgImageVisible;
 
-	OnCursorClicked = other.OnCursorClicked;
-	OnCursorPressed = other.OnCursorPressed;
-	OnCursorReleased = other.OnCursorReleased;
-	OnCursorMoved = other.OnCursorMoved;
-	OnCursorEntered = other.OnCursorEntered;
-	OnCursorLeft = other.OnCursorLeft;
-	OnCursorHovering = other.OnCursorHovering;
+	OnCursorClick = other.OnCursorClick;
+	OnCursorPress = other.OnCursorPress;
+	OnCursorRelease = other.OnCursorRelease;
+	OnCursorMove = other.OnCursorMove;
+	OnCursorEnter = other.OnCursorEnter;
+	OnCursorLeave = other.OnCursorLeave;
+	OnCursorHover = other.OnCursorHover;
 	OnUpdate = other.OnUpdate;
-	OnTransformChanged = other.OnTransformChanged;
-	OnParentTransformChanged = other.OnParentTransformChanged;
-	OnChildTransformChanged = other.OnChildTransformChanged;
-	OnParentChanged = other.OnParentChanged;
-	OnChildAdded = other.OnChildAdded;
-	OnChildRemoved = other.OnChildRemoved;
+	OnTransformChange = other.OnTransformChange;
+	OnParentTransformChange = other.OnParentTransformChange;
+	OnChildTransformChange = other.OnChildTransformChange;
+	OnParentChange = other.OnParentChange;
+	OnChildAdd = other.OnChildAdd;
+	OnChildRemove = other.OnChildRemove;
 	OnPaint = other.OnPaint;
 
 	// Background
@@ -281,11 +283,11 @@ void Gui::AddGui(Gui* child, bool bFireEvents)
 	{
 		ParentEvent parentEvent;
 		parentEvent.parent = this;
-		child->OnParentChanged(*child, parentEvent);
+		child->OnParentChange(*child, parentEvent);
 
 		ChildEvent childEvent;
 		childEvent.child = child;
-		OnChildAdded(*this, childEvent);
+		OnChildAdd(*this, childEvent);
 	}
 }
 
@@ -323,11 +325,11 @@ bool Gui::RemoveGui(Gui* child, bool bFireEvents)
 			{
 				ChildEvent childEvent;
 				childEvent.child = child;
-				OnChildRemoved(*this, childEvent);
+				OnChildRemove(*this, childEvent);
 
 				ParentEvent parentEvent;
 				parentEvent.parent = nullptr;
-				child->OnParentChanged(*child, parentEvent);
+				child->OnParentChange(*child, parentEvent);
 			}
 
 			return true;
@@ -397,14 +399,14 @@ void Gui::SetRect(float x, float y, float width, float height, bool bMoveChildre
 			if (bMoveChildren)
 				child->Move(rect.GetTopLeft() - oldRect.GetTopLeft());
 
-			child->OnParentTransformChanged(*child, transformEvent);
+			child->OnParentTransformChange(*child, transformEvent);
 		}
 
 		
-		OnTransformChanged(*this, transformEvent);
+		OnTransformChange(*this, transformEvent);
 
 		if (parent)
-			parent->OnChildTransformChanged(*parent, transformEvent);
+			parent->OnChildTransformChange(*parent, transformEvent);
 
 		if (bSizeChanged)
 		{
@@ -509,12 +511,12 @@ void Gui::SetBgToColor(const ColorI& idleColor, const ColorI& hoverColor)
 	HideBgImage();
 
 	if (GetBgIdleColor() == GetBgActiveColor())
-		SetBgActiveColor(idleColor);
+SetBgActiveColor(idleColor);
 	else if (GetBgHoverColor() == GetBgActiveColor())
 		SetBgActiveColor(hoverColor);
 
-	SetBgIdleColor(idleColor);
-	SetBgHoverColor(hoverColor);
+		SetBgIdleColor(idleColor);
+		SetBgHoverColor(hoverColor);
 }
 
 void Gui::SetBgHoverColor(const ColorI& color)
@@ -769,6 +771,12 @@ Vec2 Gui::Arrange(const Vec2& pos, const Vec2& size)
 
 	newSize.x -= margin.left + margin.right;
 	newSize.y -= margin.top + margin.bottom;
+
+	//if (!bFitToChildrenHor && !bFillParentHor && ! bFillParentPositibeDirHor)
+	//	newSize.x += padding.left + padding.right;
+	//
+	//if (!bFitToChildrenVer && !bFillParentVer && !bFillParentPositibeDirVer)
+	//	newSize.y += padding.top + padding.bottom;
 
 	SetRect(newPos.x, newPos.y, newSize.x, newSize.y, true, false);
 

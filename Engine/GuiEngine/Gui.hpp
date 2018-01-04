@@ -7,7 +7,7 @@
 #include "GuiEvent.hpp"
 #include "GuiRect.hpp"
 
-namespace inl::gui {
+namespace inl::ui {
 
 enum class eGuiAlignHor
 {
@@ -434,25 +434,25 @@ public:
 	GuiEngine& guiEngine;
 
 	// Public events
-	Event<Gui& /*self*/, CursorEvent&> OnCursorClicked;
-	Event<Gui& /*self*/, CursorEvent&> OnCursorDblClicked;
-	Event<Gui& /*self*/, CursorEvent&> OnCursorPressed;
-	Event<Gui& /*self*/, CursorEvent&> OnCursorReleased;
-	Event<Gui& /*self*/, CursorEvent&> OnCursorMoved;
-	Event<Gui& /*self*/, CursorEvent&> OnCursorEntered;
-	Event<Gui& /*self*/, CursorEvent&> OnCursorLeft;
-	Event<Gui& /*self*/, CursorEvent&> OnCursorHovering;
-	Event<Gui& /*self*/, DragDropEvent&> OnOperSysDragEntered;
-	Event<Gui& /*self*/, DragDropEvent&> OnOperSysDragLeaved;
-	Event<Gui& /*self*/, DragDropEvent&> OnOperSysDragHovering;
-	Event<Gui& /*self*/, DragDropEvent&> OnOperSysDropped;
+	Event<Gui& /*self*/, CursorEvent&> OnCursorClick;
+	Event<Gui& /*self*/, CursorEvent&> OnCursorDblClick;
+	Event<Gui& /*self*/, CursorEvent&> OnCursorPress;
+	Event<Gui& /*self*/, CursorEvent&> OnCursorRelease;
+	Event<Gui& /*self*/, CursorEvent&> OnCursorMove;
+	Event<Gui& /*self*/, CursorEvent&> OnCursorEnter;
+	Event<Gui& /*self*/, CursorEvent&> OnCursorLeave;
+	Event<Gui& /*self*/, CursorEvent&> OnCursorHover;
+	Event<Gui& /*self*/, DragDropEvent&> OnOperSysDragEnter;
+	Event<Gui& /*self*/, DragDropEvent&> OnOperSysDragLeave;
+	Event<Gui& /*self*/, DragDropEvent&> OnOperSysDragHover;
+	Event<Gui& /*self*/, DragDropEvent&> OnOperSysDrop;
 	Event<Gui& /*self*/, UpdateEvent&> OnUpdate;
-	Event<Gui& /*self*/, TransformEvent&> OnTransformChanged;
-	Event<Gui& /*self*/, TransformEvent&> OnParentTransformChanged;
-	Event<Gui& /*self*/, TransformEvent&> OnChildTransformChanged;
-	Event<Gui& /*self*/, ParentEvent&> OnParentChanged;
-	Event<Gui& /*self*/, ChildEvent&> OnChildAdded;
-	Event<Gui& /*self*/, ChildEvent&> OnChildRemoved;
+	Event<Gui& /*self*/, TransformEvent&> OnTransformChange;
+	Event<Gui& /*self*/, TransformEvent&> OnParentTransformChange;
+	Event<Gui& /*self*/, TransformEvent&> OnChildTransformChange;
+	Event<Gui& /*self*/, ParentEvent&> OnParentChange;
+	Event<Gui& /*self*/, ChildEvent&> OnChildAdd;
+	Event<Gui& /*self*/, ChildEvent&> OnChildRemove;
 	Event<Gui& /*self*/, PaintEvent&> OnPaint;
 };
 
@@ -495,4 +495,4 @@ bool Gui::Is()
 	return dynamic_cast<T*>(this) != nullptr;
 }
 
-} // namespace inl::gui
+} // namespace inl::ui

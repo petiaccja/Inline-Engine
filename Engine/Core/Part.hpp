@@ -66,7 +66,7 @@ public:
 		}
 	}
 
-	Part* Part::Detach()
+	Part* Detach()
 	{
 		Part* savedParent = parent;
 

@@ -2,7 +2,7 @@
 #include "BaseLibrary\Common.hpp"
 #include "Gui.hpp"
 
-namespace inl::gui {
+namespace inl::ui {
 
 class GuiImage : public Gui
 {
@@ -19,4 +19,4 @@ public:
 	void SetImages(const std::wstring& idleImagePath, const std::wstring& hoverImagePath, int width = 0, int height = 0);
 };
 
-} // namespace inl::gui
+} // namespace inl::ui

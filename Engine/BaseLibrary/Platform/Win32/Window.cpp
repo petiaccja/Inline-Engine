@@ -632,7 +632,7 @@ HRESULT __stdcall Window::DragEnter(IDataObject *pdto, DWORD grfKeyState, POINTL
 
 		m_currentDragDropEvent.text = std::string(text, text + wcslen(text));
 
-		CallEvent(OnDropEntered, m_currentDragDropEvent);
+		CallEvent(OnDropEnter, m_currentDragDropEvent);
 
 		GlobalUnlock(medium.hGlobal);
 		ReleaseStgMedium(&medium);
@@ -652,7 +652,7 @@ HRESULT __stdcall Window::DragEnter(IDataObject *pdto, DWORD grfKeyState, POINTL
 
 		m_currentDragDropEvent.filePaths = std::move(filePaths);
 
-		CallEvent(OnDropEntered, m_currentDragDropEvent);
+		CallEvent(OnDropEnter, m_currentDragDropEvent);
 
 		ReleaseStgMedium(&medium);
 	}
@@ -662,19 +662,19 @@ HRESULT __stdcall Window::DragEnter(IDataObject *pdto, DWORD grfKeyState, POINTL
 }
 
 HRESULT __stdcall Window::DragOver(DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) {
-	CallEvent(OnDropHovering, m_currentDragDropEvent);
+	CallEvent(OnDropHover, m_currentDragDropEvent);
 
 	*pdwEffect &= DROPEFFECT_COPY;
 	return S_OK;
 }
 
 HRESULT __stdcall Window::DragLeave() {
-	CallEvent(OnDropLeft, m_currentDragDropEvent);
+	CallEvent(OnDropLeave, m_currentDragDropEvent);
 	return S_OK;
 }
 
 HRESULT __stdcall Window::Drop(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) {
-	CallEvent(OnDropped, m_currentDragDropEvent);
+	CallEvent(OnDrop, m_currentDragDropEvent);
 
 	*pdwEffect &= DROPEFFECT_COPY;
 	return S_OK;

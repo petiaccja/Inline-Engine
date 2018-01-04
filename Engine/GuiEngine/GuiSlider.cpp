@@ -2,7 +2,7 @@
 #include "GuiSlider.hpp"
 #include "GuiEngine.hpp"
 
-using namespace inl::gui;
+using namespace inl::ui;
 
 GuiSlider::GuiSlider(GuiEngine& guiEngine)
 :Gui(guiEngine), value(0), minValue(0), maxValue(1), sliderWidth(5), bSliding(false)
@@ -11,26 +11,26 @@ GuiSlider::GuiSlider(GuiEngine& guiEngine)
 	slider->SetBgIdleColor(ColorI(130, 130, 130, 255));
 	slider->SetBgHoverColor(slider->GetBgIdleColor());
 
-	OnTransformChanged += [](Gui& self_, TransformEvent& e)
+	OnTransformChange += [](Gui& self_, TransformEvent& e)
 	{
 		GuiSlider& self = self_.As<GuiSlider>();
 		self.SlideToValue();
 	};
 
-	OnCursorEntered += [](Gui& self_, CursorEvent& evt)
+	OnCursorEnter += [](Gui& self_, CursorEvent& evt)
 	{
 		GuiSlider& self = self_.As<GuiSlider>();
 		self.slider->SetBgActiveColor(self.slider->GetBgIdleColor() + ColorI(65, 65, 65, 0));
 	};
 
-	OnCursorLeft += [](Gui& self_, CursorEvent& evt)
+	OnCursorLeave += [](Gui& self_, CursorEvent& evt)
 	{
 		GuiSlider& self = self_.As<GuiSlider>();
 		self.slider->SetBgActiveColorToIdle();
 	};
 
 	// Start drag
-	OnCursorPressed += [](Gui& self_, CursorEvent& evt)
+	OnCursorPress += [](Gui& self_, CursorEvent& evt)
 	{
 		GuiSlider& self = self_.As<GuiSlider>();
 		self.bSliding = true;
@@ -38,14 +38,14 @@ GuiSlider::GuiSlider(GuiEngine& guiEngine)
 	};
 
 	// Dragging
-	guiEngine.OnCursorMoved += [this](CursorEvent& evt)
+	guiEngine.OnCursorMove += [this](CursorEvent& evt)
 	{
 		if (bSliding)
 			SlideToCursor();
 	};
 
 	// Stop draw
-	guiEngine.OnCursorReleased += [this](CursorEvent& evt)
+	guiEngine.OnCursorRelease += [this](CursorEvent& evt)
 	{
 		bSliding = false;
 	};
@@ -77,7 +77,7 @@ void GuiSlider::SetValue(float val)
 {
 	value = Clamp(val, minValue, maxValue);
 	SlideToValue(value);
-	OnValueChanged(*this, val);
+	OnValueChange(*this, val);
 }
 
 void GuiSlider::SetMinValue(float val)

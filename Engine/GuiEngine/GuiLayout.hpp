@@ -1,7 +1,7 @@
 #pragma once
 #include "Gui.hpp"
 
-namespace inl::gui
+namespace inl::ui
 {
 
 class GuiLayout : public Gui
@@ -21,10 +21,6 @@ public:
 		AddItem(child);
 		return child;
 	}
-
-	// TODO remove these
-	GuiButton*	AddItemButton(const std::string& text = "");
-	Gui*		AddItemSeparatorHor();
 };
 
-} // namespace inl::gui
+} // namespace inl::ui

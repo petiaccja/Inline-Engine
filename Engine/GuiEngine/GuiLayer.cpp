@@ -2,7 +2,7 @@
 #include "GuiLayer.hpp"
 #include "GuiEngine.hpp"
 
-using namespace inl::gui;
+using namespace inl::ui;
 
 GuiLayer::GuiLayer(GuiEngine& guiEngine)
 :Gui(guiEngine, true)

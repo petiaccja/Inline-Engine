@@ -114,7 +114,7 @@ public:
 	Delegate(ReturnT(*func)(ArgsT...)) {
 		static_assert(sizeof(impl::GlobalCallable<ReturnT, ArgsT...>) <= sizeof(m_callablePlaceholder), "Tell this error and the compiler you used to the author.");
 		new (m_callablePlaceholder) impl::GlobalCallable<ReturnT, ArgsT...>(func);
-		m_callable = static_cast<impl::Callable<ReturnT, ArgsT...>*>(reinterpret_cast<GlobalCallable<ReturnT, ArgsT...>*>(m_callablePlaceholder));
+		m_callable = static_cast<impl::Callable<ReturnT, ArgsT...>*>(reinterpret_cast<impl::GlobalCallable<ReturnT, ArgsT...>*>(m_callablePlaceholder));
 	}
 
 	template <class ClassT, typename std::enable_if<!std::is_const<ClassT>::value, int>::type = 0>
@@ -193,7 +193,7 @@ public:
 		return *this;
 	}
 	Delegate(Delegate&& rhs) : Delegate((const Delegate&)rhs) {}
-	Delegate& operator=(Delegate&& rhs) { return *this = (const Delegate& rhs); }
+	Delegate& operator=(Delegate&& rhs) { return *this = (const Delegate&)rhs; }
 
 	template <class ReturnT>
 	Delegate(ReturnT(*func)(ArgsT...)) {

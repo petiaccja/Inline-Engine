@@ -22,15 +22,18 @@ public:
 		assert(principalAxis != modulatorAxis);
 		assert(principalAxis < Rows);
 		assert(modulatorAxis < Rows);
+		MatrixT ret;
+		ret.SetIdentity();
 		if (Order == eMatrixOrder::FOLLOW_VECTOR) {
-			self()(modulatorAxis, principalAxis) = slope;
+			ret(modulatorAxis, principalAxis) = slope;
 		}
 		else {
-			self()(principalAxis, modulatorAxis) = slope;
+			ret(principalAxis, modulatorAxis) = slope;
 		}
+		return ret;
 	}
 
-	MatrixT& SetScale(T slope, int principalAxis, int modulatorAxis) {
+	MatrixT& SetShear(T slope, int principalAxis, int modulatorAxis) {
 		self() = Shear(slope, principalAxis, modulatorAxis); return self();
 	}
 public:

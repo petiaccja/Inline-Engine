@@ -58,11 +58,12 @@ public:
 	bool IsRotationMatrix3D() const {
 		Vector<T, 3> rows[3] = {
 			{ self()(0,0), self()(0,1), self()(0,2) },
-		{ self()(1,0), self()(1,1), self()(1,2) },
-		{ self()(2,0), self()(2,1), self()(2,2) },
+			{ self()(1,0), self()(1,1), self()(1,2) },
+			{ self()(2,0), self()(2,1), self()(2,2) },
 		};
-		return (std::abs(Dot(rows[0], rows[1])) + std::abs(Dot(rows[0], rows[2])) + std::abs(Dot(rows[1], rows[2]))) < T(0.0001)
-			&& rows[0].IsNormalized() && rows[1].IsNormalized() && rows[2].IsNormalized();
+		return (std::abs(Dot(rows[0], rows[1])) + std::abs(Dot(rows[0], rows[2])) + std::abs(Dot(rows[1], rows[2]))) < T(0.0005) // rows are orthogonal to each other
+			&& rows[0].IsNormalized() && rows[1].IsNormalized() && rows[2].IsNormalized() // all rows are normalized
+			&& Matrix<T, 3, 3>(self().Submatrix<3,3>(0,0)).Determinant() > 0; // not an improper rotation
 	}
 public:
 	friend MatrixT;

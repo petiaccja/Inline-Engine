@@ -18,14 +18,20 @@ class HasIterator;
 
 // Basic iterator class to iterate over ArrayViews.
 template <class T>
-class iterator_impl : std::iterator<std::random_access_iterator_tag, T> {
+class iterator_impl {
 protected:
 	iterator_impl(T* ptr) : ptr(ptr) {}
 public:
+	using value_type = T;
+	using difference_type = ptrdiff_t;
+	using pointer = T*;
+	using reference = std::decay_t<T>&;
+	using iterator_category = std::random_access_iterator_tag;
+
 	// ctor
 	iterator_impl() : ptr(nullptr) {}
-	iterator_impl(const iterator& rhs) : ptr(rhs.ptr) {}
-	iterator_impl(iterator&& rhs) : ptr(rhs.ptr) {}
+	iterator_impl(const iterator_impl& rhs) : ptr(rhs.ptr) {}
+	iterator_impl(iterator_impl&& rhs) : ptr(rhs.ptr) {}
 
 	// basic
 	T& operator*() { return *ptr; }

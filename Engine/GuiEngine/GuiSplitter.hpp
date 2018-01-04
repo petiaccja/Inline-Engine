@@ -4,7 +4,7 @@
 
 #include <unordered_set>
 
-namespace inl::gui {
+namespace inl::ui {
 
 class GuiSplitter : public GuiLayout
 {
@@ -42,4 +42,4 @@ protected:
 	Gui* separatorSaved;
 };
 
-} // namespace inl::gui
+} // namespace inl::ui

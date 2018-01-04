@@ -476,6 +476,9 @@ public:
 		}
 		return equal;
 	}
+	auto Approx() const {
+		return mathter::Approx<Matrix>(*this);
+	}
 
 	//--------------------------------------------
 	// Arithmetic
@@ -1191,7 +1194,7 @@ Matrix<T, Rows, Columns, Order, Layout, Packed> strtomat(const char* str, const 
 	// parse rows
 	for (int i = 0; i < Rows; ++i) {
 		const char* rowend;
-		VectorT row = strtovec<T, Columns, Packed>(strproc, &rowend);
+		VectorT row = strtovec<VectorT>(strproc, &rowend);
 		if (rowend == strproc) {
 			*end = str;
 			return ret;
