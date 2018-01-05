@@ -24,7 +24,7 @@ namespace inl::net::servers
 		if (!m_run.load())
 		{
 			m_run = true;
-			std::thread acceptor_thread(&TcpServer::BeginAccept, this);
+			std::thread acceptor_thread(&TcpServer::AcceptClients, this);
 			m_acceptingThread.swap(acceptor_thread);
 		}
 		else
@@ -33,7 +33,12 @@ namespace inl::net::servers
 		}
 	}
 
-	void TcpServer::BeginAccept()
+	void TcpServer::Stop()
+	{
+		m_run.exchange(false);
+	}
+
+	void TcpServer::AcceptClients()
 	{
 		while (m_run.load())
 		{
@@ -44,10 +49,5 @@ namespace inl::net::servers
 				m_connectionHandler->Add(connection); // maybe i should thread the add fn in the handler
 			}
 		}
-	}
-
-	void TcpServer::EndAccept()
-	{
-		m_run = false;
 	}
 }

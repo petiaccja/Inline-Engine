@@ -18,6 +18,7 @@
   <ItemGroup>
     <ClCompile Include="MessageQueue.cpp" />
     <ClCompile Include="NetworkMessage.cpp" />
+    <ClCompile Include="Server.cpp" />
     <ClCompile Include="TcpConnectionHandler.cpp" />
     <ClCompile Include="TcpServer.cpp" />
   </ItemGroup>
@@ -29,6 +30,7 @@
     <ClInclude Include="NetworkHeader.hpp" />
     <ClInclude Include="NetworkMessage.hpp" />
     <ClInclude Include="NewConnectionEvent.hpp" />
+    <ClInclude Include="Server.hpp" />
     <ClInclude Include="TcpConnection.hpp" />
     <ClInclude Include="TcpConnectionHandler.hpp" />
     <ClInclude Include="TcpServer.hpp" />

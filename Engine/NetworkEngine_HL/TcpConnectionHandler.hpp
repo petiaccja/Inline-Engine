@@ -35,6 +35,8 @@ namespace inl::net::servers
 			m_maxConnections = max_connections;
 		}
 
+		std::shared_ptr<MessageQueue> m_queue; // quick hack
+
 	private:
 		void HandleReceive();
 		void HandleSend();
@@ -50,8 +52,6 @@ namespace inl::net::servers
 		std::thread m_sendThread;
 
 		std::atomic_bool m_run;
-
-		MessageQueue queue;
 
 		std::mutex m_listMutex;
 	};

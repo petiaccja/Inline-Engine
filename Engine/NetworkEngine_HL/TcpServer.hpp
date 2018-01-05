@@ -14,10 +14,12 @@ namespace inl::net::servers
 		TcpServer(uint32_t max_connections, uint16_t port);
 
 		void Start();
+		void Stop();
+
+		std::unique_ptr<TcpConnectionHandler> m_connectionHandler; // quick hack
 
 	private:
-		void BeginAccept();
-		void EndAccept();
+		void AcceptClients();
 
 	private:
 		std::unique_ptr<TcpListener> listener;
@@ -27,7 +29,5 @@ namespace inl::net::servers
 		std::atomic_bool m_run;
 
 		std::thread m_acceptingThread;
-
-		std::unique_ptr<TcpConnectionHandler> m_connectionHandler;
 	};
 }

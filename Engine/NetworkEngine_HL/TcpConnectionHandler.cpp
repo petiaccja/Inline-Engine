@@ -93,7 +93,7 @@ namespace inl::net::servers
 					NetworkMessage msg;
 					msg.Deserialize(buffer.get(), net_header->Size);
 
-					queue.EnqueueMessageReceived(msg);
+					m_queue->EnqueueMessageReceived(msg);
 				}
 			}
 			else // wrong message
@@ -105,9 +105,9 @@ namespace inl::net::servers
 
 	void TcpConnectionHandler::HandleSend()
 	{
-		if (queue.SendSize() > 0)
+		if (m_queue->SendSize() > 0)
 		{
-			NetworkMessage msg = queue.DequeueMessageToSend();
+			NetworkMessage msg = m_queue->DequeueMessageToSend();
 
 			uint32_t size;
 			std::unique_ptr<uint8_t> data(msg.SerializeData(size));

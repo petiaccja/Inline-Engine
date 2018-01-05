@@ -34,6 +34,7 @@
     <ClCompile Include="TcpConnectionHandler.cpp">
       <Filter>Tcp</Filter>
     </ClCompile>
+    <ClCompile Include="Server.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DisconnectedEvent.hpp">
@@ -62,5 +63,6 @@
     <ClInclude Include="TcpConnectionHandler.hpp">
       <Filter>Tcp</Filter>
     </ClInclude>
+    <ClInclude Include="Server.hpp" />
   </ItemGroup>
 </Project>
