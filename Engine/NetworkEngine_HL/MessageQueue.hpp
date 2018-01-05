@@ -18,8 +18,8 @@ namespace inl::net
 		uint32_t SendSize();
 
 	private:
-		std::queue<NetworkMessage> m_messagesReceived;
-		std::queue<NetworkMessage> m_messagesToSend;
+		std::deque<NetworkMessage> m_messagesReceived;
+		std::deque<NetworkMessage> m_messagesToSend;
 
 		std::mutex m_receivedMutex;
 		std::mutex m_sendMutex;
