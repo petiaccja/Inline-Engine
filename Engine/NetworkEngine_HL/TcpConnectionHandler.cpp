@@ -1,9 +1,9 @@
-#include "ServerConnectionHandler.hpp"
+#include "TcpConnectionHandler.hpp"
 
 #include "DisconnectedEvent.hpp"
 #include "NewConnectionEvent.hpp"
 
-#include "ServerConnection.hpp"
+#include "TcpConnection.hpp"
 #include "NetworkHeader.hpp"
 
 #include <chrono>
@@ -12,17 +12,17 @@ namespace inl::net::servers
 {
 	using namespace events;
 
-	ServerConnectionHandler::ServerConnectionHandler()
+	TcpConnectionHandler::TcpConnectionHandler()
 		: m_run(true)
 	{
-		std::thread receive_thread(&ServerConnectionHandler::HandleReceiveThreaded, this);
+		std::thread receive_thread(&TcpConnectionHandler::HandleReceiveThreaded, this);
 		m_receiveThread.swap(receive_thread);
 
-		std::thread send_thread(&ServerConnectionHandler::HandleSendThreaded, this);
+		std::thread send_thread(&TcpConnectionHandler::HandleSendThreaded, this);
 		m_sendThread.swap(send_thread);
 	}
 
-	void ServerConnectionHandler::Add(std::shared_ptr<ServerConnection> &c)
+	void TcpConnectionHandler::Add(std::shared_ptr<TcpConnection> &c)
 	{
 		uint32_t id = GetAvailableID();
 		if (id == -1)
@@ -47,7 +47,7 @@ namespace inl::net::servers
 		// send new connection event to main thread - but how
 	}
 
-	uint32_t ServerConnectionHandler::GetAvailableID()
+	uint32_t TcpConnectionHandler::GetAvailableID()
 	{
 		for (int i = 1; i <= m_maxConnections; i++)
 		{
@@ -68,11 +68,11 @@ namespace inl::net::servers
 		return -1;
 	}
 
-	void ServerConnectionHandler::HandleReceive()
+	void TcpConnectionHandler::HandleReceive()
 	{
 		for (int i = 0; i < m_list.size(); i++)
 		{
-			std::shared_ptr<ServerConnection> c = m_list.at(i);
+			std::shared_ptr<TcpConnection> c = m_list.at(i);
 			std::unique_ptr<uint8_t> header(new uint8_t[sizeof(NetworkHeader*)]());
 
 			int32_t read;
@@ -103,7 +103,7 @@ namespace inl::net::servers
 		}
 	}
 
-	void ServerConnectionHandler::HandleSend()
+	void TcpConnectionHandler::HandleSend()
 	{
 		if (queue.SendSize() > 0)
 		{
@@ -117,7 +117,7 @@ namespace inl::net::servers
 				m_listMutex.lock();
 				for (int i = 0; i < m_list.size(); i++)
 				{
-					std::shared_ptr<ServerConnection> c = m_list.at(i);
+					std::shared_ptr<TcpConnection> c = m_list.at(i);
 					if (c->GetID() != msg.m_senderID)
 					{
 						int32_t sent;
@@ -132,7 +132,7 @@ namespace inl::net::servers
 		}
 	}
 
-	void ServerConnectionHandler::HandleReceiveThreaded()
+	void TcpConnectionHandler::HandleReceiveThreaded()
 	{
 		while (m_run.load())
 		{
@@ -141,7 +141,7 @@ namespace inl::net::servers
 		}
 	}
 
-	void ServerConnectionHandler::HandleSendThreaded()
+	void TcpConnectionHandler::HandleSendThreaded()
 	{
 		while (m_run.load())
 		{

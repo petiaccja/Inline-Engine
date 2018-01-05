@@ -18,7 +18,7 @@
   <ItemGroup>
     <ClCompile Include="MessageQueue.cpp" />
     <ClCompile Include="NetworkMessage.cpp" />
-    <ClCompile Include="ServerConnectionHandler.cpp" />
+    <ClCompile Include="TcpConnectionHandler.cpp" />
     <ClCompile Include="TcpServer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -29,8 +29,8 @@
     <ClInclude Include="NetworkHeader.hpp" />
     <ClInclude Include="NetworkMessage.hpp" />
     <ClInclude Include="NewConnectionEvent.hpp" />
-    <ClInclude Include="ServerConnection.hpp" />
-    <ClInclude Include="ServerConnectionHandler.hpp" />
+    <ClInclude Include="TcpConnection.hpp" />
+    <ClInclude Include="TcpConnectionHandler.hpp" />
     <ClInclude Include="TcpServer.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

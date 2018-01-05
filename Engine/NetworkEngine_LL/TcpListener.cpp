@@ -6,9 +6,7 @@ namespace inl::net::sockets
 	std::unique_ptr<TcpClient> TcpListener::AcceptClient()
 	{
 		if (m_socket == nullptr)
-		{
 			m_socket = std::unique_ptr<Socket>(&*(TcpSocketBuilder().AsReusable().Bind(IPAddress(0, 0, 0, 0, m_port)).Listening().Build()));
-		}
 
 		if (m_socket == nullptr)
 			return nullptr;

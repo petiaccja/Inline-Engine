@@ -9,14 +9,14 @@
 
 namespace inl::net::servers
 {
-	class ServerConnection;
+	class TcpConnection;
 
-	class ServerConnectionHandler
+	class TcpConnectionHandler
 	{
 	public:
-		ServerConnectionHandler();
+		TcpConnectionHandler();
 
-		inline ~ServerConnectionHandler()
+		inline ~TcpConnectionHandler()
 		{
 			m_run.exchange(false);
 		}
@@ -26,7 +26,7 @@ namespace inl::net::servers
 			m_run.exchange(false);
 		}
 
-		void Add(std::shared_ptr<ServerConnection> &c);
+		void Add(std::shared_ptr<TcpConnection> &c);
 
 		uint32_t GetAvailableID();
 
@@ -43,7 +43,7 @@ namespace inl::net::servers
 		void HandleSendThreaded();
 
 	private:
-		std::vector<std::shared_ptr<ServerConnection>> m_list;
+		std::vector<std::shared_ptr<TcpConnection>> m_list;
 		uint32_t m_maxConnections;
 
 		std::thread m_receiveThread;

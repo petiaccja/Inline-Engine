@@ -2,7 +2,7 @@
 
 #include "TcpListener.hpp"
 
-#include "ServerConnectionHandler.hpp"
+#include "TcpConnectionHandler.hpp"
 
 namespace inl::net::servers
 {
@@ -28,6 +28,6 @@ namespace inl::net::servers
 
 		std::thread m_acceptingThread;
 
-		std::unique_ptr<ServerConnectionHandler> m_connectionHandler;
+		std::unique_ptr<TcpConnectionHandler> m_connectionHandler;
 	};
 }

@@ -14,7 +14,7 @@ namespace inl::net::sockets
 
 		inline TcpClient(SocketProtocol protocol = SocketProtocol::IPv4)
 		{
-			m_socket = std::unique_ptr<Socket>(&(*TcpSocketBuilder().AsNonBlocking().AsReusable().Protocol(protocol).Build()));
+			m_socket = TcpSocketBuilder().AsNonBlocking().AsReusable().Protocol(protocol).Build();
 		}
 
 		inline ~TcpClient()

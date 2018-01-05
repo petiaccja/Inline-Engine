@@ -6,10 +6,10 @@ namespace inl::net::servers
 {
 	using namespace sockets;
 
-	class ServerConnection
+	class TcpConnection
 	{
 	public:
-		ServerConnection(TcpClient *client)
+		TcpConnection(TcpClient *client)
 			: m_client(client)
 		{
 		}

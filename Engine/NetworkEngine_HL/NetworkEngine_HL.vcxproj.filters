@@ -19,19 +19,23 @@
     <Filter Include="Common">
       <UniqueIdentifier>{3879289b-c422-4549-b67a-90ab96c26a1d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Tcp">
+      <UniqueIdentifier>{43256329-0fdd-4627-9b72-c6e0cf8005aa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="TcpServer.cpp" />
-    <ClCompile Include="ServerConnectionHandler.cpp" />
     <ClCompile Include="NetworkMessage.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="MessageQueue.cpp" />
+    <ClCompile Include="TcpServer.cpp">
+      <Filter>Tcp</Filter>
+    </ClCompile>
+    <ClCompile Include="TcpConnectionHandler.cpp">
+      <Filter>Tcp</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="TcpServer.hpp" />
-    <ClInclude Include="ServerConnectionHandler.hpp" />
-    <ClInclude Include="ServerConnection.hpp" />
     <ClInclude Include="DisconnectedEvent.hpp">
       <Filter>Events</Filter>
     </ClInclude>
@@ -49,5 +53,14 @@
       <Filter>Events</Filter>
     </ClInclude>
     <ClInclude Include="MessageQueue.hpp" />
+    <ClInclude Include="TcpServer.hpp">
+      <Filter>Tcp</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpConnection.hpp">
+      <Filter>Tcp</Filter>
+    </ClInclude>
+    <ClInclude Include="TcpConnectionHandler.hpp">
+      <Filter>Tcp</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

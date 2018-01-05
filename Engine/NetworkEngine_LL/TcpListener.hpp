@@ -14,7 +14,7 @@ namespace inl::net::sockets
 			: m_port(port)
 			, m_sleepTime(inSleepTime)
 		{
-			m_socket = std::unique_ptr<Socket>(&(*TcpSocketBuilder().AsNonBlocking().AsReusable().Bind(IPAddress(0, 0, 0, 0, port)).Listening().Build()));
+			m_socket = TcpSocketBuilder().AsNonBlocking().AsReusable().Bind(IPAddress(0, 0, 0, 0, port)).Listening().Build();
 		}
 
 		inline TcpListener(Socket *InSocket, std::chrono::milliseconds inSleepTime = std::chrono::milliseconds(1))

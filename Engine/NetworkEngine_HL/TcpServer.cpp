@@ -2,7 +2,7 @@
 
 #include <BaseLibrary/Exception/Exception.hpp>
 
-#include "ServerConnection.hpp"
+#include "TcpConnection.hpp"
 
 namespace inl::net::servers
 {
@@ -10,8 +10,8 @@ namespace inl::net::servers
 		: m_maxConnections(max_connections)
 		, m_port(port)
 		, m_run(false)
-		, m_connectionHandler(new ServerConnectionHandler())
 	{
+		m_connectionHandler = std::make_unique<TcpConnectionHandler>();
 		if (max_connections == 0 || port == 0)
 			throw InvalidArgumentException("TcpServer::TcpServer()");
 
@@ -40,7 +40,7 @@ namespace inl::net::servers
 			std::unique_ptr<TcpClient> c = listener->AcceptClient();
 			if (c)
 			{
-				std::shared_ptr<ServerConnection> connection = std::make_shared<ServerConnection>(c.release());
+				std::shared_ptr<TcpConnection> connection = std::make_shared<TcpConnection>(c.release());
 				m_connectionHandler->Add(connection); // maybe i should thread the add fn in the handler
 			}
 		}
