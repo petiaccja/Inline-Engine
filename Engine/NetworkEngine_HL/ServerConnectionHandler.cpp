@@ -6,24 +6,23 @@
 #include "ServerConnection.hpp"
 #include "NetworkHeader.hpp"
 
+#include <chrono>
+
 namespace inl::net::servers
 {
 	using namespace events;
 
-	ServerConnectionHandler::ServerConnectionHandler(bool multithreaded)
+	ServerConnectionHandler::ServerConnectionHandler()
 		: m_run(true)
 	{
-		if (multithreaded)
-		{
-			std::thread receive_thread(&ServerConnectionHandler::HandleReceiveThreaded, this);
-			m_receiveThread.swap(receive_thread);
+		std::thread receive_thread(&ServerConnectionHandler::HandleReceiveThreaded, this);
+		m_receiveThread.swap(receive_thread);
 
-			std::thread send_thread(&ServerConnectionHandler::HandleSendThreaded, this);
-			m_sendThread.swap(send_thread);
-		}
+		std::thread send_thread(&ServerConnectionHandler::HandleSendThreaded, this);
+		m_sendThread.swap(send_thread);
 	}
 
-	void ServerConnectionHandler::Add(std::shared_ptr<ServerConnection> c)
+	void ServerConnectionHandler::Add(std::shared_ptr<ServerConnection> &c)
 	{
 		uint32_t id = GetAvailableID();
 		if (id == -1)
@@ -94,8 +93,7 @@ namespace inl::net::servers
 					NetworkMessage msg;
 					msg.Deserialize(buffer.get(), net_header->Size);
 
-					DataReceivedEvent ev(msg);
-					m_receivedMessages.push(msg);
+					queue.EnqueueMessageReceived(msg);
 				}
 			}
 			else // wrong message
@@ -107,12 +105,9 @@ namespace inl::net::servers
 
 	void ServerConnectionHandler::HandleSend()
 	{
-		if (m_messagesToSend.size() > 0)
+		if (queue.SendSize() > 0)
 		{
-			m_sendMutex.lock();
-			NetworkMessage msg = m_messagesToSend.front();
-			m_messagesToSend.pop();
-			m_sendMutex.unlock();
+			NetworkMessage msg = queue.DequeueMessageToSend();
 
 			uint32_t size;
 			std::unique_ptr<uint8_t> data(msg.SerializeData(size));
@@ -120,7 +115,7 @@ namespace inl::net::servers
 			if (msg.m_distributionMode == DistributionMode::Others)
 			{
 				m_listMutex.lock();
-				for (int i = 0; i < m_list.size(); i++) // should i lock here?
+				for (int i = 0; i < m_list.size(); i++)
 				{
 					std::shared_ptr<ServerConnection> c = m_list.at(i);
 					if (c->GetID() != msg.m_senderID)
@@ -140,14 +135,18 @@ namespace inl::net::servers
 	void ServerConnectionHandler::HandleReceiveThreaded()
 	{
 		while (m_run.load())
-			HandleSend();
+		{
+			HandleReceive();
+			std::this_thread::sleep_for(std::chrono::milliseconds(5));
+		}
 	}
 
 	void ServerConnectionHandler::HandleSendThreaded()
 	{
 		while (m_run.load())
 		{
-			
+			HandleSend();
+			std::this_thread::sleep_for(std::chrono::milliseconds(5));
 		}
 	}
 }

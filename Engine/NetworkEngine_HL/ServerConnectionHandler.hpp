@@ -5,7 +5,7 @@
 #include <queue>
 
 #include "NetworkMessage.hpp"
-#include "DataReceivedEvent.hpp"
+#include "MessageQueue.hpp"
 
 namespace inl::net::servers
 {
@@ -14,7 +14,7 @@ namespace inl::net::servers
 	class ServerConnectionHandler
 	{
 	public:
-		ServerConnectionHandler(bool multithreaded = true);
+		ServerConnectionHandler();
 
 		inline ~ServerConnectionHandler()
 		{
@@ -26,7 +26,7 @@ namespace inl::net::servers
 			m_run.exchange(false);
 		}
 
-		void Add(std::shared_ptr<ServerConnection> c);
+		void Add(std::shared_ptr<ServerConnection> &c);
 
 		uint32_t GetAvailableID();
 
@@ -51,11 +51,8 @@ namespace inl::net::servers
 
 		std::atomic_bool m_run;
 
-		std::queue<NetworkMessage> m_messagesToSend;
-		std::queue<events::DataReceivedEvent> m_receivedMessages;
+		MessageQueue queue;
 
-		std::mutex m_sendMutex;
-		std::mutex m_receiveMutex;
 		std::mutex m_listMutex;
 	};
 }

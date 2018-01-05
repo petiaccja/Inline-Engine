@@ -16,6 +16,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="MessageQueue.cpp" />
     <ClCompile Include="NetworkMessage.cpp" />
     <ClCompile Include="ServerConnectionHandler.cpp" />
     <ClCompile Include="TcpServer.cpp" />
@@ -24,6 +25,7 @@
     <ClInclude Include="BitConverter.hpp" />
     <ClInclude Include="DataReceivedEvent.hpp" />
     <ClInclude Include="DisconnectedEvent.hpp" />
+    <ClInclude Include="MessageQueue.hpp" />
     <ClInclude Include="NetworkHeader.hpp" />
     <ClInclude Include="NetworkMessage.hpp" />
     <ClInclude Include="NewConnectionEvent.hpp" />

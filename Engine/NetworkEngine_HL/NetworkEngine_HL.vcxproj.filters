@@ -26,6 +26,7 @@
     <ClCompile Include="NetworkMessage.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="MessageQueue.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TcpServer.hpp" />
@@ -47,5 +48,6 @@
     <ClInclude Include="DataReceivedEvent.hpp">
       <Filter>Events</Filter>
     </ClInclude>
+    <ClInclude Include="MessageQueue.hpp" />
   </ItemGroup>
 </Project>
