@@ -7,9 +7,9 @@ namespace inl::net::sockets
 	class TcpClient
 	{
 	public:
-		inline TcpClient(std::shared_ptr<Socket> soc)
+		inline TcpClient(Socket *soc)
 		{
-			m_socket = std::unique_ptr<Socket>(&(*soc));
+			m_socket = std::unique_ptr<Socket>(soc); // will this work
 		}
 
 		inline TcpClient(SocketProtocol protocol = SocketProtocol::IPv4)

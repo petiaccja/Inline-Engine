@@ -3,7 +3,7 @@
 
 namespace inl::net::sockets
 {
-	std::shared_ptr<TcpClient> TcpListener::AcceptClient()
+	std::unique_ptr<TcpClient> TcpListener::AcceptClient()
 	{
 		if (m_socket == nullptr)
 		{
@@ -23,22 +23,16 @@ namespace inl::net::sockets
 		{
 			if (pending)
 			{
-				std::shared_ptr<Socket> connectionSocket = m_socket->Accept();
+				std::unique_ptr<Socket> connectionSocket = m_socket->Accept();
 
 				if (connectionSocket != nullptr)
-				{
-					return std::shared_ptr<TcpClient>(new TcpClient(connectionSocket));
-				}
+					return std::make_unique<TcpClient>(connectionSocket.release());
 			}
 			else if (hasZeroSleepTime)
-			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(0));
-			}
 		}
 		else
-		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(m_sleepTime));
-		}
 
 		return nullptr;
 	}

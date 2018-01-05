@@ -28,6 +28,6 @@ namespace inl::net::servers
 
 		std::thread m_acceptingThread;
 
-		std::shared_ptr<ServerConnectionHandler> m_connectionHandler;
+		std::unique_ptr<ServerConnectionHandler> m_connectionHandler;
 	};
 }

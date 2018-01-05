@@ -5,9 +5,9 @@
 
 namespace inl::net::sockets
 {
-	std::shared_ptr<Socket> TcpSocketBuilder::Build() const
+	std::unique_ptr<Socket> TcpSocketBuilder::Build() const
 	{
-		std::shared_ptr<Socket> socket = std::shared_ptr<Socket>(new Socket(SocketType::Streaming, m_socketProtocol));
+		std::unique_ptr<Socket> socket = std::make_unique<Socket>(SocketType::Streaming, m_socketProtocol);
 
 		if (socket != nullptr)
 		{
@@ -15,33 +15,19 @@ namespace inl::net::sockets
 				!socket->SetLinger(m_linger, m_lingerTimeout);
 
 			if (!Error)
-			{
 				Error = m_bound && !socket->Bind(m_boundAddr);
-			}
-
 			if (!Error)
-			{
 				Error = m_listen && !socket->Listen();
-			}
-
 			if (!Error)
-			{
 				Error = !socket->SetNonBlocking(!m_blocking);
-			}
 
 			if (!Error)
 			{
 				int32_t OutNewSize;
-
 				if (m_receiveBufferSize > 0)
-				{
 					socket->SetReceiveBufferSize(m_receiveBufferSize, OutNewSize);
-				}
-
 				if (m_sendBufferSize > 0)
-				{
 					socket->SetSendBufferSize(m_sendBufferSize, OutNewSize);
-				}
 			}
 
 			if (Error)
@@ -51,15 +37,15 @@ namespace inl::net::sockets
 		return socket;
 	}
 
-	std::shared_ptr<TcpClient> TcpSocketBuilder::BuildClient() const
+	std::unique_ptr<TcpClient> TcpSocketBuilder::BuildClient() const
 	{
-		std::shared_ptr<Socket> socket = Build();
-		return std::shared_ptr<TcpClient>(new TcpClient(socket));
+		std::unique_ptr<Socket> socket = Build();
+		return std::make_unique<TcpClient>(socket.release());
 	}
 
-	std::shared_ptr<TcpListener> TcpSocketBuilder::BuildListener() const
+	std::unique_ptr<TcpListener> TcpSocketBuilder::BuildListener() const
 	{
-		std::shared_ptr<Socket> socket = Build();
-		return std::shared_ptr<TcpListener>(new TcpListener(socket));
+		std::unique_ptr<Socket> socket = Build();
+		return std::make_unique<TcpListener>(socket.release());
 	}
 }

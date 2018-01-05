@@ -33,7 +33,7 @@ namespace inl::net::sockets
 		inline virtual bool Listen() override { return listen(m_socket, SOMAXCONN) == 0; }
 		virtual bool WaitForPendingConnection(bool& hasPendingConnection, std::chrono::milliseconds t) override;
 		virtual bool HasPendingData(uint32_t& pendingDataSize) override;
-		virtual std::shared_ptr<Socket> Accept() override;
+		virtual std::unique_ptr<Socket> Accept() override;
 		virtual bool SendTo(const uint8_t* data, int32_t count, int32_t& sent, const IPAddress& addrDest) override;
 		virtual bool Send(const uint8_t* data, int32_t count, int32_t& sent) override;
 		virtual bool RecvFrom(uint8_t* data, int32_t size, int32_t& read, IPAddress& srcAddr, SocketReceiveFlags flags = SocketReceiveFlags::None) override;

@@ -11,7 +11,7 @@ namespace inl::net::sockets
 	public:
 		UdpSocket(SocketProtocol protocol = SocketProtocol::IPv4)
 		{
-			m_socket = std::make_unique<Socket>(new Socket(SocketType::Datagram, protocol));
+			m_socket = std::make_unique<Socket>(SocketType::Datagram, protocol);
 		}
 
 		inline bool Bind(const IPAddress &addr) { return m_socket->Bind(addr); }

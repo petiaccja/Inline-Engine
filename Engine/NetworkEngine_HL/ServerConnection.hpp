@@ -9,7 +9,7 @@ namespace inl::net::servers
 	class ServerConnection
 	{
 	public:
-		ServerConnection(std::shared_ptr<TcpClient> client)
+		ServerConnection(TcpClient *client)
 			: m_client(client)
 		{
 		}

@@ -17,10 +17,10 @@ namespace inl::net::sockets
 			m_socket = std::unique_ptr<Socket>(&(*TcpSocketBuilder().AsNonBlocking().AsReusable().Bind(IPAddress(0, 0, 0, 0, port)).Listening().Build()));
 		}
 
-		inline TcpListener(std::shared_ptr<Socket> InSocket, std::chrono::milliseconds inSleepTime = std::chrono::milliseconds(1))
+		inline TcpListener(Socket *InSocket, std::chrono::milliseconds inSleepTime = std::chrono::milliseconds(1))
 			: m_sleepTime(inSleepTime)
 		{
-			m_socket = std::unique_ptr<Socket>(&(*InSocket));
+			m_socket = std::unique_ptr<Socket>(InSocket);
 		}
 
 		inline ~TcpListener()
@@ -28,7 +28,7 @@ namespace inl::net::sockets
 		}
 
 		//inline std::shared_ptr<Socket> GetSocket() const { return m_socket; }
-		std::shared_ptr<TcpClient> AcceptClient();
+		std::unique_ptr<TcpClient> AcceptClient();
 
 	private:
 		std::chrono::milliseconds m_sleepTime;

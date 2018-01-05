@@ -96,9 +96,9 @@ namespace inl::net::sockets
 		}
 
 	public:
-		std::shared_ptr<Socket> Build() const;
-		std::shared_ptr<TcpClient> BuildClient() const;
-		std::shared_ptr<TcpListener> BuildListener() const;
+		std::unique_ptr<Socket> Build() const;
+		std::unique_ptr<TcpClient> BuildClient() const;
+		std::unique_ptr<TcpListener> BuildListener() const;
 
 	private:
 		bool m_blocking;

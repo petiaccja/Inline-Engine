@@ -62,7 +62,7 @@
       <MinimalRebuild>false</MinimalRebuild>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalIncludeDirectories>E:\Inline-Engine\Engine</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>E:\Inline-Engine\Engine\BaseLibrary</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\Inline-Engine\Engine</AdditionalIncludeDirectories>
       <ConformanceMode>false</ConformanceMode>
     </ClCompile>
     <Link>

@@ -15,7 +15,7 @@ namespace inl::net::servers
 		if (max_connections == 0 || port == 0)
 			throw InvalidArgumentException("TcpServer::TcpServer()");
 
-		listener = std::unique_ptr<TcpListener>(&(*(TcpSocketBuilder().AsReusable().Bind(IPAddress(0, 0, 0, 0, port)).Listening().BuildListener())));
+		listener = TcpSocketBuilder().AsReusable().Bind(IPAddress(0, 0, 0, 0, port)).Listening().BuildListener();
 		m_connectionHandler->SetMaxConnections(max_connections);
 	}
 
@@ -37,10 +37,10 @@ namespace inl::net::servers
 	{
 		while (m_run.load())
 		{
-			std::shared_ptr<TcpClient> c = listener->AcceptClient();
+			std::unique_ptr<TcpClient> c = listener->AcceptClient();
 			if (c)
 			{
-				std::shared_ptr<ServerConnection> connection(new ServerConnection(c));
+				std::shared_ptr<ServerConnection> connection = std::make_shared<ServerConnection>(c.release());
 				m_connectionHandler->Add(connection); // maybe i should thread the add fn in the handler
 			}
 		}

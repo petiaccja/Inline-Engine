@@ -93,12 +93,14 @@ namespace inl::net::sockets
 		return false;
 	}
 
-	std::shared_ptr<Socket> Socket::Accept()
+	std::unique_ptr<Socket> Socket::Accept()
 	{
 		SOCKET newSocket = accept(m_socket, nullptr, nullptr);
 
 		if (newSocket != INVALID_SOCKET)
-			return std::shared_ptr<Socket>(new Socket(newSocket, GetSocketType()));
+		{
+			return std::make_unique<Socket>(newSocket, GetSocketType());
+		}
 
 		return nullptr;
 	}
