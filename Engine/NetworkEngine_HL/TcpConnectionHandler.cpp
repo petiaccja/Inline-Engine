@@ -71,8 +71,7 @@ namespace inl::net::servers
 			//couldnt send
 		}
 
-		NewConnectionEvent new_conn_event(id, data);
-		// send new connection event to main thread - but how
+		m_queue->EnqueueConnection(msg);
 	}
 
 	uint32_t TcpConnectionHandler::GetAvailableID()

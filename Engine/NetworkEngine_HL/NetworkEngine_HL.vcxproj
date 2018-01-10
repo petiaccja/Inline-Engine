@@ -36,9 +36,6 @@
     <ClInclude Include="TcpConnectionHandler.hpp" />
     <ClInclude Include="TcpServer.hpp" />
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="blabla.txt" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{821C9304-A290-4380-9850-A0D3C19A0AD2}</ProjectGuid>

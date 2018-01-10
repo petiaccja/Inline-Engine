@@ -68,7 +68,4 @@
       <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="blabla.txt" />
-  </ItemGroup>
 </Project>
