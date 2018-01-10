@@ -298,7 +298,11 @@ void Voxelization::Setup(SetupContext & context) {
 			psoDesc.gs = m_shader.gs;
 			psoDesc.ps = m_shader.ps;
 			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
-			psoDesc.rasterization.conservativeRasterization = gxapi::eConservativeRasterizationMode::ON;
+			bool peti = true;
+			if (!peti)
+			{
+				psoDesc.rasterization.conservativeRasterization = gxapi::eConservativeRasterizationMode::ON;
+			}
 			psoDesc.depthStencilState.enableDepthStencilWrite = false;
 			psoDesc.depthStencilState.enableDepthTest = false;
 			psoDesc.depthStencilState.enableStencilTest = false;
