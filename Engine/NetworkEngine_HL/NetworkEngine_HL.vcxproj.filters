@@ -64,5 +64,11 @@
       <Filter>Tcp</Filter>
     </ClInclude>
     <ClInclude Include="Server.hpp" />
+    <ClInclude Include="InternalTags.hpp">
+      <Filter>Common</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="blabla.txt" />
   </ItemGroup>
 </Project>

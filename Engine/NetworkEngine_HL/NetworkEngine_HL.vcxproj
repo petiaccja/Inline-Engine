@@ -26,6 +26,7 @@
     <ClInclude Include="BitConverter.hpp" />
     <ClInclude Include="DataReceivedEvent.hpp" />
     <ClInclude Include="DisconnectedEvent.hpp" />
+    <ClInclude Include="InternalTags.hpp" />
     <ClInclude Include="MessageQueue.hpp" />
     <ClInclude Include="NetworkHeader.hpp" />
     <ClInclude Include="NetworkMessage.hpp" />
@@ -34,6 +35,9 @@
     <ClInclude Include="TcpConnection.hpp" />
     <ClInclude Include="TcpConnectionHandler.hpp" />
     <ClInclude Include="TcpServer.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="blabla.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

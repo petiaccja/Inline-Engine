@@ -8,7 +8,9 @@ namespace inl::net
 	{
 		ID,
 		Others,
+		OthersAndServer,
 		All,
+		AllAndMe,
 		Server
 	};
 

@@ -1,4 +1,5 @@
 #include "MessageQueue.hpp"
+
 namespace inl::net
 {
 	void MessageQueue::EnqueueMessageToSend(const NetworkMessage & msg)
@@ -11,8 +12,25 @@ namespace inl::net
 	void MessageQueue::EnqueueMessageReceived(const NetworkMessage & msg)
 	{
 		m_receivedMutex.lock();
-		m_messagesReceived.emplace_back(msg);
+		DataReceivedEvent ev(msg);
+		m_dataReceivedEvents.push_back(ev);
 		m_receivedMutex.unlock();
+	}
+
+	void MessageQueue::EnqueueDisconnection(const NetworkMessage & msg)
+	{
+		m_disconnectMutex.lock();
+		DisconnectedEvent ev(msg.m_senderID, std::string((char*)msg.m_data, msg.m_dataSize - 1), ((char*)(msg).m_data)[msg.m_dataSize - 1]);
+		m_disconnectedEvents.push_back(ev);
+		m_disconnectMutex.unlock();
+	}
+
+	void MessageQueue::EnqueueConnection(const NetworkMessage & msg)
+	{
+		m_connectionMutex.lock();
+		NewConnectionEvent ev(msg.m_senderID, (uint8_t*)msg.m_data);
+		m_connectionEvents.push_back(ev);
+		m_connectionMutex.unlock();
 	}
 
 	NetworkMessage MessageQueue::DequeueMessageToSend()

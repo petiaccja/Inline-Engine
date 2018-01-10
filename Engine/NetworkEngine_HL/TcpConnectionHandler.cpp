@@ -2,6 +2,7 @@
 
 #include "DisconnectedEvent.hpp"
 #include "NewConnectionEvent.hpp"
+#include "InternalTags.hpp"
 
 #include "TcpConnection.hpp"
 #include "NetworkHeader.hpp"
@@ -43,7 +44,34 @@ namespace inl::net::servers
 		m_listMutex.lock();
 		m_list.push_back(c);
 		m_listMutex.unlock();
-		NewConnectionEvent *new_conn_event = new NewConnectionEvent(c->GetClient(), id); // shared?
+
+		uint32_t data_size;
+		uint8_t *data;
+		if (c->GetClient()->HasPendingData(data_size))
+		{
+			int32_t read;
+			if (c->GetClient()->Recv(data, data_size, read))
+			{
+				// failed to read
+			}
+		}
+
+		NetworkMessage msg;
+		msg.m_distributionMode = DistributionMode::ID;
+		msg.m_destinationID = id;
+		msg.m_tag = (uint32_t)InternalTags::AssignID;
+		//msg.m_data = id; // id to uint8_t*
+		msg.m_dataSize = 4;
+
+		uint32_t serialized_size;
+		uint8_t *serialized_data = msg.SerializeData(serialized_size);
+		int32_t sent;
+		if (c->GetClient()->Send(serialized_data, serialized_size, sent))
+		{
+			//couldnt send
+		}
+
+		NewConnectionEvent new_conn_event(id, data);
 		// send new connection event to main thread - but how
 	}
 
@@ -93,7 +121,12 @@ namespace inl::net::servers
 					NetworkMessage msg;
 					msg.Deserialize(buffer.get(), net_header->Size);
 
-					m_queue->EnqueueMessageReceived(msg);
+					if (msg.m_tag == (uint32_t)InternalTags::Disconnect)
+						m_queue->EnqueueDisconnection(msg);
+					else if (msg.m_tag == (uint32_t)InternalTags::Connect)
+						m_queue->EnqueueConnection(msg);
+					else
+						m_queue->EnqueueMessageReceived(msg);
 				}
 			}
 			else // wrong message
@@ -128,6 +161,78 @@ namespace inl::net::servers
 					}
 				}
 				m_listMutex.unlock();
+			}
+			else if (msg.m_distributionMode == DistributionMode::OthersAndServer)
+			{
+				m_listMutex.lock();
+				for (int i = 0; i < m_list.size(); i++)
+				{
+					std::shared_ptr<TcpConnection> c = m_list.at(i);
+					if (c->GetID() != msg.m_senderID)
+					{
+						int32_t sent;
+						if (!c->GetClient()->Send(data.get(), size, sent))
+						{
+							// it failed - retry? or just disconnect right in the first try
+						}
+					}
+				}
+				m_listMutex.unlock();
+
+				//handle to plugins too
+			}
+			else if (msg.m_distributionMode == DistributionMode::ID)
+			{
+				m_listMutex.lock();
+				for (int i = 0; i < m_list.size(); i++)
+				{
+					std::shared_ptr<TcpConnection> c = m_list.at(i);
+					if (c->GetID() == msg.m_senderID)
+					{
+						int32_t sent;
+						if (!c->GetClient()->Send(data.get(), size, sent))
+						{
+							// it failed - retry? or just disconnect right in the first try
+						}
+					}
+				}
+				m_listMutex.unlock();
+			}
+			else if (msg.m_distributionMode == DistributionMode::All)
+			{
+				m_listMutex.lock();
+				for (int i = 0; i < m_list.size(); i++)
+				{
+					std::shared_ptr<TcpConnection> c = m_list.at(i);
+
+					int32_t sent;
+					if (!c->GetClient()->Send(data.get(), size, sent))
+					{
+						// it failed - retry? or just disconnect right in the first try
+					}
+				}
+				m_listMutex.unlock();
+			}
+			else if (msg.m_distributionMode == DistributionMode::AllAndMe)
+			{
+				m_listMutex.lock();
+				for (int i = 0; i < m_list.size(); i++)
+				{
+					std::shared_ptr<TcpConnection> c = m_list.at(i);
+						
+					int32_t sent;
+					if (!c->GetClient()->Send(data.get(), size, sent))
+					{
+						// it failed - retry? or just disconnect right in the first try
+					}
+				}
+				m_listMutex.unlock();
+
+				//handle to plugins too
+			}
+			else if (msg.m_distributionMode == DistributionMode::Server)
+			{
+				//handle just in plugins
 			}
 		}
 	}
