@@ -2,6 +2,7 @@
 
 #include <string>
 #include <chrono>
+#include <memory>
 
 #include "Net.hpp"
 #include "IPAddress.hpp"

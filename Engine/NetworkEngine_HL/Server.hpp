@@ -1,8 +1,10 @@
 #pragma once
 
-#include "TcpServer.hpp"
-//#include "UdpServer.hpp"
 #include "MessageQueue.hpp"
+#include "TcpServer.hpp"
+//#include "UdpServer.hpp
+
+#include <Net.hpp>
 
 namespace inl::net
 {
@@ -11,7 +13,7 @@ namespace inl::net
 	class Server
 	{
 	public:
-		Server(uint32_t max_connections, uint16_t port);
+		Server(uint32_t max_connections, uint16_t port = DEFAULT_SERVER_PORT);
 
 		void Start();
 		void Stop();

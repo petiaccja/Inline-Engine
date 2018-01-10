@@ -12,4 +12,9 @@ namespace inl::net
 	{
 		m_tcpServer->Start();
 	}
+
+	void Server::Stop()
+	{
+		m_tcpServer->Stop();
+	}
 }

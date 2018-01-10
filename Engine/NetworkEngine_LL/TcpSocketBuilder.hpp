@@ -4,19 +4,19 @@
 
 #include "Enums.hpp"
 #include "IPAddress.hpp"
-#include "Socket.hpp"
 
 namespace inl::net::sockets
 {
 	using namespace inl::net::enums;
 
+	class Socket;
 	class TcpClient;
 	class TcpListener;
 
 	class TcpSocketBuilder
 	{
 	public:
-		TcpSocketBuilder()
+		inline TcpSocketBuilder()
 			: m_blocking(false)
 			, m_bound(false)
 			, m_boundAddr(IPAddress::Any)
@@ -30,28 +30,28 @@ namespace inl::net::sockets
 		{
 		}
 
-		TcpSocketBuilder AsBlocking()
+		inline TcpSocketBuilder AsBlocking()
 		{
 			m_blocking = true;
 
 			return *this;
 		}
 
-		TcpSocketBuilder AsNonBlocking()
+		inline TcpSocketBuilder AsNonBlocking()
 		{
 			m_blocking = false;
 
 			return *this;
 		}
 
-		TcpSocketBuilder AsReusable()
+		inline TcpSocketBuilder AsReusable()
 		{
 			m_reusable = true;
 
 			return *this;
 		}
 
-		TcpSocketBuilder Bind(const IPAddress &addr)
+		inline TcpSocketBuilder Bind(const IPAddress &addr)
 		{
 			m_boundAddr = addr;
 			m_bound = true;
@@ -59,7 +59,7 @@ namespace inl::net::sockets
 			return *this;
 		}
 
-		TcpSocketBuilder Lingering(int32_t Timeout)
+		inline TcpSocketBuilder Lingering(int32_t Timeout)
 		{
 			m_linger = true;
 			m_lingerTimeout = Timeout;
@@ -67,28 +67,28 @@ namespace inl::net::sockets
 			return *this;
 		}
 
-		TcpSocketBuilder Listening()
+		inline TcpSocketBuilder Listening()
 		{
 			m_listen = true;
 
 			return *this;
 		}
 
-		TcpSocketBuilder WithReceiveBufferSize(int32_t SizeInBytes)
+		inline TcpSocketBuilder WithReceiveBufferSize(int32_t SizeInBytes)
 		{
 			m_receiveBufferSize = SizeInBytes;
 
 			return *this;
 		}
 
-		TcpSocketBuilder WithSendBufferSize(int32_t SizeInBytes)
+		inline TcpSocketBuilder WithSendBufferSize(int32_t SizeInBytes)
 		{
 			m_sendBufferSize = SizeInBytes;
 
 			return *this;
 		}
 
-		TcpSocketBuilder Protocol(SocketProtocol prot)
+		inline TcpSocketBuilder Protocol(SocketProtocol prot)
 		{
 			m_socketProtocol = prot;
 

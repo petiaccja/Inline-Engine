@@ -7,6 +7,9 @@
 #include "TcpConnection.hpp"
 #include "NetworkHeader.hpp"
 
+#include "NetworkMessage.hpp"
+#include "MessageQueue.hpp"
+
 #include <chrono>
 
 namespace inl::net::servers
@@ -14,8 +17,13 @@ namespace inl::net::servers
 	using namespace events;
 
 	TcpConnectionHandler::TcpConnectionHandler()
-		: m_run(true)
+		//: m_run(false)
 	{
+	}
+
+	void TcpConnectionHandler::Start()
+	{
+		//m_run.exchange(true);
 		std::thread receive_thread(&TcpConnectionHandler::HandleReceiveThreaded, this);
 		m_receiveThread.swap(receive_thread);
 
@@ -32,10 +40,10 @@ namespace inl::net::servers
 			// what if the server owner wants to know if a user wanted to join but couldnt
 			DisconnectedEvent disconnected_event(id, "Server Full", -1);
 			std::shared_ptr<TcpClient> client = c->GetClient();
-			int32_t size = 0;
+			/*int32_t size = 0;
 			uint8_t *buffer = disconnected_event.Serialize(size);
 			int32_t sent = 0;
-			client->Send(buffer, size, sent);
+			client->Send(buffer, size, sent);*/
 			client->Close();
 		}
 
@@ -46,7 +54,7 @@ namespace inl::net::servers
 		m_listMutex.unlock();
 
 		uint32_t data_size;
-		uint8_t *data;
+		uint8_t *data = nullptr;
 		if (c->GetClient()->HasPendingData(data_size))
 		{
 			int32_t read;
@@ -97,6 +105,7 @@ namespace inl::net::servers
 
 	void TcpConnectionHandler::HandleReceive()
 	{
+		m_listMutex.lock();
 		for (int i = 0; i < m_list.size(); i++)
 		{
 			std::shared_ptr<TcpConnection> c = m_list.at(i);
@@ -133,6 +142,7 @@ namespace inl::net::servers
 				return;
 			}
 		}
+		m_listMutex.unlock();
 	}
 
 	void TcpConnectionHandler::HandleSend()
@@ -238,7 +248,7 @@ namespace inl::net::servers
 
 	void TcpConnectionHandler::HandleReceiveThreaded()
 	{
-		while (m_run.load())
+		while (/*m_run.load()*/true)
 		{
 			HandleReceive();
 			std::this_thread::sleep_for(std::chrono::milliseconds(5));
@@ -247,7 +257,7 @@ namespace inl::net::servers
 
 	void TcpConnectionHandler::HandleSendThreaded()
 	{
-		while (m_run.load())
+		while (/*m_run.load()*/true)
 		{
 			HandleSend();
 			std::this_thread::sleep_for(std::chrono::milliseconds(5));

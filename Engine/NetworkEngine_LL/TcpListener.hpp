@@ -3,32 +3,20 @@
 #include <thread>
 #include <queue>
 
-#include "TcpSocketBuilder.hpp"
+#include "Socket.hpp"
 
 namespace inl::net::sockets
 {
+	class TcpClient;
+
 	class TcpListener
 	{
 	public:
-		inline TcpListener(uint16_t port, std::chrono::milliseconds inSleepTime = std::chrono::milliseconds(1))
-			: m_port(port)
-			, m_sleepTime(inSleepTime)
-		{
-			m_socket = TcpSocketBuilder().AsNonBlocking().AsReusable().Bind(IPAddress(0, 0, 0, 0, port)).Listening().Build();
-		}
-
-		inline TcpListener(Socket *InSocket, std::chrono::milliseconds inSleepTime = std::chrono::milliseconds(1))
-			: m_sleepTime(inSleepTime)
-		{
-			m_socket = std::unique_ptr<Socket>(InSocket);
-		}
-
-		inline ~TcpListener()
-		{
-		}
+		TcpListener(uint16_t port, std::chrono::milliseconds inSleepTime = std::chrono::milliseconds(1));
+		TcpListener(Socket *InSocket, std::chrono::milliseconds inSleepTime = std::chrono::milliseconds(1));
 
 		//inline std::shared_ptr<Socket> GetSocket() const { return m_socket; }
-		std::unique_ptr<TcpClient> AcceptClient();
+		TcpClient *AcceptClient();
 
 	private:
 		std::chrono::milliseconds m_sleepTime;

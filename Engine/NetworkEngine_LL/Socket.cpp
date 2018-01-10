@@ -12,7 +12,7 @@ namespace inl::net::sockets
 
 		if (m_socket == INVALID_SOCKET)
 		{
-			m_socket = socket(AF_INET, (int)GetSocketType(), (int)GetSocketProtocol());
+			m_socket = socket(AF_INET, (int)GetSocketType(), 0);
 
 			if (m_socket == INVALID_SOCKET)
 				throw inl::RuntimeException("Couldnt create socket");

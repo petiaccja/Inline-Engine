@@ -3,6 +3,8 @@
 #include <BaseLibrary/Exception/Exception.hpp>
 
 #include "TcpConnection.hpp"
+#include "TcpSocketBuilder.hpp"
+#include "TcpClient.hpp"
 
 namespace inl::net::servers
 {
@@ -21,16 +23,8 @@ namespace inl::net::servers
 
 	void TcpServer::Start()
 	{
-		if (!m_run.load())
-		{
-			m_run = true;
-			std::thread acceptor_thread(&TcpServer::AcceptClients, this);
-			m_acceptingThread.swap(acceptor_thread);
-		}
-		else
-		{
-			// already running
-		}
+		m_run = true;
+		m_connectionHandler->Start();
 	}
 
 	void TcpServer::Stop()
@@ -42,10 +36,10 @@ namespace inl::net::servers
 	{
 		while (m_run.load())
 		{
-			std::unique_ptr<TcpClient> c = listener->AcceptClient();
+			TcpClient *c = listener->AcceptClient();
 			if (c)
 			{
-				std::shared_ptr<TcpConnection> connection = std::make_shared<TcpConnection>(c.release());
+				std::shared_ptr<TcpConnection> connection = std::make_shared<TcpConnection>(c);
 				m_connectionHandler->Add(connection); // maybe i should thread the add fn in the handler
 			}
 		}

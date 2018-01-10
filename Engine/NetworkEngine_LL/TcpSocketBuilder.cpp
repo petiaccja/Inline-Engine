@@ -1,5 +1,6 @@
 #include "TcpSocketBuilder.hpp"
 
+#include "Socket.hpp"
 #include "TcpClient.hpp"
 #include "TcpListener.hpp"
 

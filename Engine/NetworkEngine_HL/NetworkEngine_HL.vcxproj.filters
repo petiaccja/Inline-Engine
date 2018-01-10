@@ -35,6 +35,7 @@
       <Filter>Tcp</Filter>
     </ClCompile>
     <ClCompile Include="Server.cpp" />
+    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DisconnectedEvent.hpp">

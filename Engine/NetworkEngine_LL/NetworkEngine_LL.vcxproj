@@ -104,6 +104,7 @@
   <ItemGroup>
     <ClCompile Include="IPAddress.cpp" />
     <ClCompile Include="Socket.cpp" />
+    <ClCompile Include="TcpClient.cpp" />
     <ClCompile Include="TcpListener.cpp" />
     <ClCompile Include="TcpSocketBuilder.cpp" />
   </ItemGroup>
