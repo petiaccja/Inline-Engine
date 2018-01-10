@@ -17,12 +17,6 @@ void GuiList::SetOrientation(eGuiOrientation orientation)
 
 Vec2 GuiList::ArrangeChildren()
 {
-	if (GetName() == L"__OPTIONS__")
-	{
-		int c = 0;
-		c++;
-	}
-
 	Vec2 pos = GetContentPos();
 	Vec2 selfSize(0, 0);
 	for (Gui* child : GetItems())
@@ -30,12 +24,6 @@ Vec2 GuiList::ArrangeChildren()
 		Vec2 desiredSize = child->GetDesiredSize();
 		if (orientation == eGuiOrientation::VERTICAL)
 		{
-			if (GetName() == L"__OPTIONS__")
-			{
-				int c = 0;
-				c++;
-			}
-
 			Vec2 sizeUsed = child->Arrange(Vec2(pos.x, pos.y + selfSize.y), desiredSize);
 
 			selfSize.y += sizeUsed.y;
@@ -43,23 +31,11 @@ Vec2 GuiList::ArrangeChildren()
 		}
 		else if (orientation == eGuiOrientation::HORIZONTAL)
 		{
-			if (GetName() == L"__OPTIONS__")
-			{
-				int c = 0;
-				c++;
-			}
-
 			Vec2 sizeUsed = child->Arrange(Vec2(pos.x + selfSize.x, pos.y), desiredSize);
 
 			selfSize.x += sizeUsed.x;
 			selfSize.y = std::max(selfSize.y, sizeUsed.y);
 		}
-	}
-
-	if (GetName() == L"__OPTIONS__")
-	{
-		int c = 0;
-		c++;
 	}
 
 	return selfSize;
