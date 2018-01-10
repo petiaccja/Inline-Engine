@@ -3,7 +3,7 @@
 #include "GuiButton.hpp"
 #include <unordered_map>
 
-namespace inl::ui {
+namespace inl::gui {
 
 class GuiMenu : public GuiList
 {
@@ -30,4 +30,4 @@ protected:
 	GuiButton* guiButton;
 };
 
-} // namespace inl::ui
+} // namespace inl::gui

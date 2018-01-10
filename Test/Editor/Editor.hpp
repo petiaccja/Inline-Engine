@@ -14,7 +14,7 @@ namespace inl {
 
 using namespace std::placeholders;
 using namespace inl::core;
-using namespace inl::ui;
+using namespace inl::gui;
 
 class Editor
 {

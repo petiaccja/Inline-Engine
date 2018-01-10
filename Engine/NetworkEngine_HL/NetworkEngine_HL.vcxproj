@@ -14,8 +14,12 @@
     <ProjectReference Include="..\BaseLibrary\BaseLibrary.vcxproj">
       <Project>{f55437f4-00c1-49ae-bffc-4b0a6dc75081}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\NetworkEngine_LL\NetworkEngine_LL.vcxproj">
+      <Project>{805edcb5-391b-4f92-8568-cf6b691c16fe}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="MessageQueue.cpp" />
     <ClCompile Include="NetworkMessage.cpp" />
     <ClCompile Include="Server.cpp" />
@@ -26,6 +30,7 @@
     <ClInclude Include="BitConverter.hpp" />
     <ClInclude Include="DataReceivedEvent.hpp" />
     <ClInclude Include="DisconnectedEvent.hpp" />
+    <ClInclude Include="InternalTags.hpp" />
     <ClInclude Include="MessageQueue.hpp" />
     <ClInclude Include="NetworkHeader.hpp" />
     <ClInclude Include="NetworkMessage.hpp" />
@@ -43,7 +48,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
@@ -70,6 +75,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)\Bin\$(Configuration)_$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)\Bin\Intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
+    <IncludePath>$(SolutionDir)Externals\include;$(SolutionDir)Engine;$(IncludePath);$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -82,8 +88,12 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalIncludeDirectories>E:\Inline-Engine\Engine\NetworkEngine_LL;E:\Inline-Engine\Engine</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Engine\NetworkEngine_LL;$(SolutionDir)\Engine</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName>D:\Inline-Engine\Bin\Debug_x64\net_hl.pdb</ProgramDataBaseFileName>
     </ClCompile>
+    <Link>
+      <ProgramDatabaseFile>E:\Inline-Engine\Bin\Debug_x64\net_hl.pdb</ProgramDatabaseFile>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

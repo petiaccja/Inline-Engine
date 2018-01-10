@@ -1,8 +1,8 @@
 #pragma once
 #include "BaseLibrary\Common.hpp"
-#include "GuiLayout.hpp"
+#include "Gui.hpp"
 
-namespace inl::ui {
+namespace inl::gui {
 
 
 class GuiGrid;
@@ -11,7 +11,10 @@ enum class eGridLineSizing
 {
 	FIXED,
 	FILL_SPACE,
+	FIT_TO_CONTENT,
 };
+
+// TODO make base class for them.. don't generalize width and height to "length"
 
 class GuiGridRow
 {
@@ -21,14 +24,17 @@ public:
 
 	void StretchFillSpace(float spaceMultiplier);
 	void SetHeight(float height);
+	void StretchFitToContent() { sizingPolicy = eGridLineSizing::FIT_TO_CONTENT; }
 
 	Gui* GetCell(int idx);
+	uint32_t GetCellCount();
+	std::vector<Gui*> GetCells();
 
 	float GetSpaceMultiplier() { return spaceMultiplier; }
 
 	float GetHeight() { return height; }
 	eGridLineSizing GetSizingPolicy() { return sizingPolicy; }	
-
+	int GetIndex() { return idx; }
 protected:
 	eGridLineSizing sizingPolicy;
 	float height; // Fixed size
@@ -47,14 +53,16 @@ public:
 
 	void StretchFillSpace(float spaceMultiplier);
 	void SetWidth(float width);
+	void StretchFitToContent() { sizingPolicy = eGridLineSizing::FIT_TO_CONTENT; }
 
 	Gui* GetCell(int idx);
-
+	uint32_t GetCellCount();
+	std::vector<Gui*> GetCells();
 	eGridLineSizing GetSizingPolicy() { return sizingPolicy; }
 
 	float GetWidth() { return width; }
 	float GetSpaceMultiplier() { return spaceMultiplier; }
-
+	int GetIndex() { return idx; }
 protected:
 	eGridLineSizing sizingPolicy;
 	float width; // Fixed size
@@ -64,15 +72,15 @@ protected:
 };
 
 
-class GuiGrid : public GuiLayout
+class GuiGrid : public Gui
 {
 public:
 	GuiGrid(GuiEngine& guiEngine);
-	GuiGrid(const GuiGrid& other):GuiLayout(other.guiEngine) { *this = other; }
+	GuiGrid(const GuiGrid& other):Gui(other.guiEngine) { *this = other; }
 
-	virtual void AddItem(Gui* gui) {};
-	virtual bool RemoveItem(Gui* gui) { return false; };
-	virtual std::vector<Gui*> GetItems() { return std::vector<Gui*>(); }
+	// Important to implement in derived classes
+	virtual GuiGrid* Clone() const override { return new GuiGrid(*this); }
+	GuiGrid& operator = (const GuiGrid& other);
 
 	void SetDimension(uint32_t width, uint32_t height);
 
@@ -96,7 +104,7 @@ public:
 	const Vec2u& GetDimension() { return dimension; }
 
 protected:
-	virtual Vec2 ArrangeChildren(const Vec2& finalSize) override;
+	virtual Vec2 ArrangeChildren() override;
 
 protected:
 	// For now I don't care about the performance, later we will use 2D arrays
@@ -107,4 +115,4 @@ protected:
 };
 
 
-} // namespace inl::ui
+} // namespace inl::gui

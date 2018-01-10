@@ -4,6 +4,8 @@
 
 #include "TcpConnectionHandler.hpp"
 
+#include <Net.hpp>
+
 namespace inl::net::servers
 {
 	using namespace sockets;
@@ -11,7 +13,7 @@ namespace inl::net::servers
 	class TcpServer
 	{
 	public:
-		TcpServer(uint32_t max_connections, uint16_t port);
+		TcpServer(uint32_t max_connections, uint16_t port = DEFAULT_SERVER_PORT);
 
 		void Start();
 		void Stop();

@@ -3,7 +3,7 @@
 #include "Gui.hpp"
 
 
-namespace inl::ui {
+namespace inl::gui {
 
 enum class eTextAlign
 {
@@ -34,7 +34,7 @@ public:
 	void SetFontFamily(const std::string& text) { SetFontFamily(std::wstring(text.begin(), text.end())); }
 	void SetFontStyle(Gdiplus::FontStyle style);
 
-	virtual Vec2 ArrangeChildren(const Vec2& finalSize) override;
+	virtual Vec2 ArrangeChildren() override;
 
 	void SetText(const std::wstring& text);
 	void SetText(const std::string& text);
@@ -143,4 +143,4 @@ inline void GuiText::SetText(const std::string& text)
 	SetText(std::wstring(text.begin(), text.end()));
 }
 
-} // namespace inl::ui
+} // namespace inl::gui

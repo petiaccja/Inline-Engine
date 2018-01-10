@@ -68,5 +68,8 @@
     <ClCompile Include="TcpSocketBuilder.cpp">
       <Filter>Tcp</Filter>
     </ClCompile>
+    <ClCompile Include="TcpClient.cpp">
+      <Filter>Tcp</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

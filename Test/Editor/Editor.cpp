@@ -15,7 +15,7 @@ Editor::Editor()
 	input = new InputCore();
 
 	// Create main window for Editor
-	wnd = new Window("Inline Engine", Vec2u(800, 600), true, true, false, std::bind(&Editor::WndProc, this, _1, _2, _3, _4));
+	wnd = new Window("Inline Engine", Vec2u(800, 600), false, true, false, std::bind(&Editor::WndProc, this, _1, _2, _3, _4));
 
 	wnd->OnPaint += [this]()
 	{
@@ -213,7 +213,7 @@ void Editor::InitGui()
 	
 	// Minimize, Maximize, Close btn
 	GuiList* minMaxCloseList = mainLayer->AddGui<GuiList>();
-	minMaxCloseList->StretchFitToChildren();
+	minMaxCloseList->StretchFitToContent();
 	minimizeBtn = mainLayer->AddGui<GuiImage>();
 	maximizeBtn = mainLayer->AddGui<GuiImage>();
 	closeBtn = mainLayer->AddGui<GuiImage>();
@@ -259,7 +259,7 @@ void Editor::InitGui()
 	menuBar->SetOrientation(eGuiOrientation::HORIZONTAL);
 	menuBar->SetBgToColor(ColorI(25, 25, 25, 255));
 	menuBar->StretchHorFillParent();
-	menuBar->StretchVerFitToChildren();
+	menuBar->StretchVerFitToContent();
 	{
 		GuiMenu* fileMenu = menuBar->AddItemMenu("File");
 		GuiMenu* buildMenu = menuBar->AddItemMenu("Build");
@@ -341,7 +341,7 @@ void Editor::InitGui()
 		for (Gui* c : menuBar->GetChildrenRecursive<GuiButton>())
 		{
 			c->SetBgToColor(ColorI(25, 25, 25, 255), ColorI(65, 65, 65, 255));
-			c->StretchFitToChildren();
+			c->StretchFitToContent();
 			c->SetPadding(4, 4, 2, 2);
 			c->AlignCenter();
 		}
@@ -356,7 +356,7 @@ void Editor::InitGui()
 	GuiSplitter* split0 = mainLayer->AddGui<GuiSplitter>(); // split main
 	GuiSplitter* split1 = mainLayer->AddGui<GuiSplitter>(); // split main left to (top, bottom)
 	GuiSplitter* split2 = mainLayer->AddGui<GuiSplitter>(); // split main left-top to (left, right)
-	split0->Stretch(eGuiStretch::FILL_PARENT_POSITIVE_DIR, eGuiStretch::FILL_PARENT_POSITIVE_DIR);
+	split0->Stretch(eGuiStretch::FILL_SPACE_POSITIVE_DIR, eGuiStretch::FILL_SPACE_POSITIVE_DIR);
 	split1->StretchFillParent();
 	split2->StretchFillParent();
 	
@@ -462,7 +462,7 @@ void Editor::InitGui()
 	
 	textureList->SetBgToColor(ColorI(0, 0, 0, 0));
 	textureList->SetOrientation(eGuiOrientation::HORIZONTAL);
-	textureList->StretchFitToChildren();
+	textureList->StretchFitToContent();
 	
 	Gui* contentCell = scrollableBottom->GetCell(0, 0);
 	thread_local float colorDiff = 0;
@@ -503,7 +503,7 @@ void Editor::InitGui()
 	
 			// Texture image
 			GuiList* listItem = textureList->AddItem<GuiList>();
-			listItem->StretchFitToChildren();
+			listItem->StretchFitToContent();
 			listItem->MakeVertical();
 			listItem->SetSize(70, 100);
 			listItem->SetBgToColor(ColorI(0, 0, 0, 0), ColorI(20, 20, 20, 255));
@@ -526,7 +526,7 @@ void Editor::InitGui()
 	
 			// Texture text
 			GuiText* text0 = listItem->AddGui<GuiText>();
-			text0->StretchFitToChildren();
+			text0->StretchFitToContent();
 			text0->AlignHorCenter();
 			text0->SetMargin(4);
 			text0->SetText(nameWithoutExt);
@@ -535,14 +535,15 @@ void Editor::InitGui()
 	
 		SetFocus((HWND)wnd->GetNativeHandle());
 	};
-
-
+	
 	GuiList* options = rightArea->AddGui<GuiList>();
 	options->SetOrientation(eGuiOrientation::VERTICAL);
-	options->StretchFillParent();
+	options->StretchHorFillParent();
+	options->StretchVerFitToContent();
 	options->SetBgToColor(ColorI(0, 0, 0, 0));
+	options->SetName("__OPTIONS__");
 	
-	GuiCollapsable* dof = options->AddItem<GuiCollapsable>();
+	GuiCollapsable* dof = options->AddGui<GuiCollapsable>();
 	//dof->SetBorder(1, ColorI(80, 80, 80, 255));
 	dof->SetCaptionText(L"Depth of Field");
 	
@@ -552,13 +553,13 @@ void Editor::InitGui()
 	ssao->SetCaptionText(L"SSAO");
 	
 	GuiCollapsable* voxelGI = options->AddItem<GuiCollapsable>();
-	//voxelGI->SetMargin(1);
-	//voxelGI->SetBorder(1, ColorI(80, 80, 80, 255));
+	////voxelGI->SetMargin(1);
+	////voxelGI->SetBorder(1, ColorI(80, 80, 80, 255));
 	voxelGI->SetCaptionText(L"VoxelGI");
-	
+	//
 	GuiCollapsable* ssr = options->AddItem<GuiCollapsable>();
-	//ssr->SetMargin(1);
-	//ssr->SetBorder(1, ColorI(80, 80, 80, 255));
+	////ssr->SetMargin(1);
+	////ssr->SetBorder(1, ColorI(80, 80, 80, 255));
 	ssr->SetCaptionText(L"SSR");
 	
 	GuiButton* tmp = dof->AddItem<GuiButton>();
@@ -586,6 +587,42 @@ void Editor::InitGui()
 	tmp->SetText("parameter 0");
 	tmp = ssr->AddItem<GuiButton>();
 	tmp->SetText("parameter 1");
+
+	// RAW GRID TEST
+	//GuiGrid* grid = mainLayer->AddGui<GuiGrid>();
+	//grid->StretchHorFillParent();
+	//grid->StretchVerFitToContent();
+	//grid->SetDimension(2, 2);
+	//
+	//grid->GetColumn(0)->SetWidth(100);
+	//grid->GetColumn(1)->StretchFillSpace(1.0);
+	//
+	//grid->GetRow(0)->SetHeight(100);
+	//grid->GetRow(1)->StretchFitToContent();
+	//
+	//GuiButton* btn0 = grid->GetCell(0, 0)->AddGui<GuiButton>();
+	//GuiButton* btn1 = grid->GetCell(1, 0)->AddGui<GuiButton>();
+	//GuiButton* btn2 = grid->GetCell(0, 1)->AddGui<GuiButton>();
+	//
+	//btn1->SetText("Depth of Field (so long name Depth of Field)");
+	//
+	//btn0->StretchFillParent();
+	//btn1->StretchFillParent();
+	//btn2->StretchFillParent();
+	//
+	//btn0->SetBgToColor(ColorI(255, 0, 0, 255));
+	//btn1->SetBgToColor(ColorI(0, 0, 255, 255));
+	//btn2->SetBgToColor(ColorI(0, 255, 0, 255));
+	//
+	//GuiList* list = grid->GetCell(1, 1)->AddGui<GuiList>();
+	//GuiButton* tmp = list->AddItem<GuiButton>(); tmp->SetText("parameter0");	tmp->StretchHorFillParent();
+	//tmp = list->AddItem<GuiButton>(); tmp->SetText("parameter1");				tmp->StretchHorFillParent();
+	//tmp = list->AddItem<GuiButton>(); tmp->SetText("parameter2");				tmp->StretchHorFillParent();
+	//tmp = list->AddItem<GuiButton>(); tmp->SetText("parameter3");				tmp->StretchHorFillParent();
+	//tmp = list->AddItem<GuiButton>(); tmp->SetText("parameter4");				tmp->StretchHorFillParent();
+	//tmp = list->AddItem<GuiButton>(); tmp->SetText("parameter5");				tmp->StretchHorFillParent();
+	//tmp = list->AddItem<GuiButton>(); tmp->SetText("parameter6");				tmp->StretchHorFillParent();
+	//tmp = list->AddItem<GuiButton>(); tmp->SetText("parameter7");				tmp->StretchHorFillParent();
 }
 
 void Editor::Update()

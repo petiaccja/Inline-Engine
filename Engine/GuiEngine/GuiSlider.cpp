@@ -2,7 +2,7 @@
 #include "GuiSlider.hpp"
 #include "GuiEngine.hpp"
 
-using namespace inl::ui;
+using namespace inl::gui;
 
 GuiSlider::GuiSlider(GuiEngine& guiEngine)
 :Gui(guiEngine), value(0), minValue(0), maxValue(1), sliderWidth(5), bSliding(false)

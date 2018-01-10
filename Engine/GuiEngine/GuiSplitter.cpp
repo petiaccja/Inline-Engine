@@ -1,7 +1,7 @@
 #include "GuiSlider.hpp"
 #include "GuiEngine.hpp"
 
-using namespace inl::ui;
+using namespace inl::gui;
 
 GuiSplitter::GuiSplitter(GuiEngine& guiEngine)
 :GuiLayout(guiEngine), orientation(eGuiOrientation::HORIZONTAL), separatorLength(10)
@@ -35,7 +35,7 @@ bool GuiSplitter::RemoveItem(Gui* gui)
 	return bRemoved;
 }
 
-Vec2 GuiSplitter::ArrangeChildren(const Vec2& finalSize)
+Vec2 GuiSplitter::ArrangeChildren()
 {
 	// The logic of the splitter arrangement is:
 	// separators should always fill the whole area of splitter with preserving percentage !
@@ -90,14 +90,14 @@ Vec2 GuiSplitter::ArrangeChildren(const Vec2& finalSize)
 		Vec2 desiredSize = child->GetDesiredSize();
 		if (bVertical)
 		{
-			Vec2 sizeUsed = child->Arrange(pos.x, pos.y + selfSize.y, desiredSize);
+			Vec2 sizeUsed = child->Arrange(Vec2(pos.x, pos.y + selfSize.y), desiredSize);
 
 			selfSize.y += sizeUsed.y;
 			selfSize.x = std::max(selfSize.x, sizeUsed.x);
 		}
 		else
 		{
-			Vec2 sizeUsed = child->Arrange(pos.x + selfSize.x, pos.y, desiredSize);
+			Vec2 sizeUsed = child->Arrange(Vec2(pos.x + selfSize.x, pos.y), desiredSize);
 
 			selfSize.x += sizeUsed.x;
 			selfSize.y = std::max(selfSize.y, sizeUsed.y);

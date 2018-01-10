@@ -1,7 +1,7 @@
 ﻿#include "GuiMenu.hpp"
 #include "GuiEngine.hpp"
 
-using namespace inl::ui;
+using namespace inl::gui;
 
 GuiMenu::GuiMenu(GuiEngine& guiEngine)
 : GuiList(guiEngine), guiArrow(nullptr), guiButton(nullptr)
@@ -38,7 +38,7 @@ GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
 			arrow->HideBgColor();
 			arrow->DisableHover();
 			arrow->AlignRight();
-			arrow->StretchFitToChildren();
+			arrow->StretchFitToContent();
 			arrow->GetGuiText()->SetFontSize(8);
 			arrow->AlignVerCenter();
 
@@ -70,12 +70,12 @@ void GuiMenu::AddItem(Gui* menuItem)
 	if (GetOrientation() == eGuiOrientation::VERTICAL)
 	{
 		menuItem->StretchHorFillParent();
-		menuItem->StretchVerFitToChildren();
+		menuItem->StretchVerFitToContent();
 	}
 	else
 	{
 		menuItem->StretchVerFillParent();
-		menuItem->StretchHorFitToChildren();
+		menuItem->StretchHorFitToContent();
 	}
 
 	auto it = subMenus.find(menuItem);

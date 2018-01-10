@@ -1,12 +1,27 @@
 #include "TcpListener.hpp"
+#include "TcpSocketBuilder.hpp"
+#include "Socket.hpp"
 #include "TcpClient.hpp"
 
 namespace inl::net::sockets
 {
-	std::unique_ptr<TcpClient> TcpListener::AcceptClient()
+	TcpListener::TcpListener(uint16_t port, std::chrono::milliseconds inSleepTime)
+		: m_port(port)
+		, m_sleepTime(inSleepTime)
+	{
+		m_socket = TcpSocketBuilder().AsNonBlocking().AsReusable().Bind(IPAddress(0, 0, 0, 0, port)).Listening().Build();
+	}
+
+	TcpListener::TcpListener(Socket *InSocket, std::chrono::milliseconds inSleepTime)
+		: m_sleepTime(inSleepTime)
+	{
+		m_socket = std::unique_ptr<Socket>(InSocket);
+	}
+
+	TcpClient *TcpListener::AcceptClient()
 	{
 		if (m_socket == nullptr)
-			m_socket = std::unique_ptr<Socket>(&*(TcpSocketBuilder().AsReusable().Bind(IPAddress(0, 0, 0, 0, m_port)).Listening().Build()));
+			m_socket = TcpSocketBuilder().AsReusable().Bind(IPAddress(0, 0, 0, 0, m_port)).Listening().Build();
 
 		if (m_socket == nullptr)
 			return nullptr;
@@ -24,7 +39,9 @@ namespace inl::net::sockets
 				std::unique_ptr<Socket> connectionSocket = m_socket->Accept();
 
 				if (connectionSocket != nullptr)
-					return std::make_unique<TcpClient>(connectionSocket.release());
+				{
+					return new TcpClient(connectionSocket.release());
+				}
 			}
 			else if (hasZeroSleepTime)
 				std::this_thread::sleep_for(std::chrono::milliseconds(0));

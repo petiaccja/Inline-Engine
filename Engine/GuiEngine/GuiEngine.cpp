@@ -1,6 +1,6 @@
 #include "GuiEngine.hpp"
 
-using namespace inl::ui;
+using namespace inl::gui;
 
 GuiEngine::GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow)
 {
