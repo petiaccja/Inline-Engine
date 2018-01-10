@@ -1,7 +1,7 @@
 #include "GuiScrollable.hpp"
 #include "GuiButton.hpp"
 
-using namespace inl::ui;
+using namespace inl::gui;
 
 GuiScrollable::GuiScrollable(GuiEngine& guiEngine)
 :GuiGrid(guiEngine), bVerScrollBarVisible(false), bHorScrollBarVisible(false)

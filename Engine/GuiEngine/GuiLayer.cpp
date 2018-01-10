@@ -2,7 +2,7 @@
 #include "GuiLayer.hpp"
 #include "GuiEngine.hpp"
 
-using namespace inl::ui;
+using namespace inl::gui;
 
 GuiLayer::GuiLayer(GuiEngine& guiEngine)
 :Gui(guiEngine, true)
@@ -14,7 +14,7 @@ GuiLayer::GuiLayer(GuiEngine& guiEngine)
 	SetName("layer");
 }
 
-Vec2 GuiLayer::ArrangeChildren(const Vec2& finalSize)
+Vec2 GuiLayer::ArrangeChildren()
 {
 	for (Gui* child : GetChildren())
 		child->Arrange(child->GetPos(), child->GetDesiredSize());

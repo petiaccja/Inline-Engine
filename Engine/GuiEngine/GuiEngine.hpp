@@ -18,7 +18,7 @@
 
 using namespace inl;
 
-namespace inl::ui {
+namespace inl::gui {
 
 class GuiEngine
 {
@@ -93,4 +93,4 @@ protected:
 	Vec2 mousePosWhenPress = Vec2(-1, -1);
 };
 
-} //namespace inl::ui
+} //namespace inl::gui

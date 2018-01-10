@@ -2,13 +2,15 @@
 #include "BaseLibrary\Common.hpp"
 #include "Gui.hpp"
 
-namespace inl::ui {
+namespace inl::gui {
 
 class GuiImage : public Gui
 {
 public:
 	GuiImage(GuiEngine& guiEngine);
-	//GuiImage(const GuiImage& other) { *this = other; }
+
+	// Important to implement in derived classes
+	virtual GuiImage* Clone() const override { return new GuiImage(*this); }
 
 	// Important to implement in derived classes
 	//virtual GuiImage* Clone() const override { return new GuiImage(*this); }
@@ -19,4 +21,4 @@ public:
 	void SetImages(const std::wstring& idleImagePath, const std::wstring& hoverImagePath, int width = 0, int height = 0);
 };
 
-} // namespace inl::ui
+} // namespace inl::gui

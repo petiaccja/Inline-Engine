@@ -1,12 +1,12 @@
 #include "GuiButton.hpp"
 
-using namespace inl::ui;
+using namespace inl::gui;
 
 GuiButton::GuiButton(GuiEngine& guiEngine)
 :Gui(guiEngine)
 {
 	text = AddGui<GuiText>();
-	text->StretchFitToChildren();
+	text->StretchFitToContent();
 	text->AlignLeft();
 	text->AlignVerCenter();
 	text->DisableHover();

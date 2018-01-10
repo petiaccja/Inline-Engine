@@ -2,7 +2,7 @@
 #include "BaseLibrary\Common.hpp"
 #include "GuiText.hpp"
 
-namespace inl::ui {
+namespace inl::gui {
 
 class GuiButton : public Gui
 {
@@ -23,4 +23,4 @@ public:
 	GuiText* text;
 };
 
-} // namespace inl::ui
+} // namespace inl::gui

@@ -1,7 +1,7 @@
 #pragma once
 #include "Gui.hpp"
 
-namespace inl::ui
+namespace inl::gui
 {
 
 class GuiLayout : public Gui
@@ -23,4 +23,4 @@ public:
 	}
 };
 
-} // namespace inl::ui
+} // namespace inl::gui

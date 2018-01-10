@@ -11,7 +11,7 @@
 namespace inl {
 
 using namespace inl::core;
-using namespace inl::ui;
+using namespace inl::gui;
 
 class GeneralCamera : public PerspCameraActor
 {
