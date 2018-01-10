@@ -161,7 +161,7 @@ TEST_CASE("Complex transform 2D", "[Transformable]") {
 	Mat33 t1 = Mat33::Translation(1, 2);
 	Mat33 t2 = Mat33::Rotation(Deg2Rad(40.f));
 	Mat33 t3 = Mat33::Scale(4, 0.5f);
-	Mat33 t4 = Mat33::Shear(0.4, 0, 1);
+	Mat33 t4 = Mat33::Shear(0.4f, 0, 1);
 
 	Mat33 total = t1*t2*t3*t4;
 
@@ -169,7 +169,7 @@ TEST_CASE("Complex transform 2D", "[Transformable]") {
 	t.Move({ 1, 2 });
 	t.Rotate(Deg2Rad(40.f));
 	t.Scale({ 4, 0.5f });
-	t.Shear(0.4, 0, 1);
+	t.Shear(0.4f, 0, 1);
 
 	REQUIRE(t.GetTransform().Approx() == total);
 }

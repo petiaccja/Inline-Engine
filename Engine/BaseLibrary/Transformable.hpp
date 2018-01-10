@@ -24,9 +24,16 @@ class Transformable23Base {
 	using RotT = std::conditional_t<Dim == 2, float, Quaternion<T, false>>;
 
 public:
-	Transformable23Base()
-		: rotation1(IdentityRot()), scale(1), rotation2(IdentityRot()), position(0)
+	Transformable23Base(const VectorT& scale = VectorT(1), const RotT& rotation = IdentityRot(), const VectorT& position = VectorT(0))
+		: rotation1(IdentityRot()), scale(scale), rotation2(rotation), position(position)
 	{}
+	Transformable23Base(const MatLinT& linearTransform) {
+		position.Spread(0);
+		SetLinearTransform(linearTransform);
+	}
+	Transformable23Base(const MatHomT& fullTransform) {
+		SetTransform(fullTransform);
+	}
 
 	// Absolute transforms
 	void SetPosition(const VectorT& pos);
@@ -118,6 +125,8 @@ protected:
 template <class T>
 class Transformable<T, 2> : public Transformable23Base<T, 2> {
 public:
+	using Transformable23Base<T, 2>::Transformable23Base;
+
 	void ShearX(T slope) { Shear(slope, 0, 1); }
 	void ShearY(T slope) { Shear(slope, 1, 0); }
 };
@@ -126,6 +135,8 @@ public:
 template <class T>
 class Transformable<T, 3> : public Transformable23Base<T, 3> {
 public:
+	using Transformable23Base<T, 3>::Transformable23Base;
+
 	void ShearXY(T slope) { Shear(slope, 0, 1);	}
 	void ShearXZ(T slope) { Shear(slope, 0, 2); }
 	void ShearYX(T slope) { Shear(slope, 1, 0); }
