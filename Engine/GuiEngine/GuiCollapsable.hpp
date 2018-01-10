@@ -1,8 +1,11 @@
 #pragma once
 #include "GuiList.hpp"
-#include "GuiButton.hpp"
 
-namespace inl::ui {
+namespace inl::gui {
+
+class GuiGrid;
+class GuiButton;
+class GuiImage;
 
 class GuiCollapsable : public GuiLayout
 {
@@ -25,13 +28,14 @@ public:
 
 protected:
 	// Layout
-	GuiList* layout;
+	GuiGrid* layout;
 
 	// Layout items
 	GuiButton* caption;
+	GuiImage* arrow;
 	GuiList* itemList;
 
 	bool bOpened;
 };
 
-} //namespace inl::ui
+} //namespace inl::gui

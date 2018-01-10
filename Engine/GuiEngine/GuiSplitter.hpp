@@ -4,7 +4,7 @@
 
 #include <unordered_set>
 
-namespace inl::ui {
+namespace inl::gui {
 
 class GuiSplitter : public GuiLayout
 {
@@ -25,7 +25,7 @@ public:
 	std::vector<Gui*>& GetSeparators() { return separators; }
 
 protected:
-	virtual Vec2 ArrangeChildren(const Vec2& finalSize) override;
+	virtual Vec2 ArrangeChildren() override;
 
 protected:
 	std::unordered_set<Gui*> items;
@@ -42,4 +42,4 @@ protected:
 	Gui* separatorSaved;
 };
 
-} // namespace inl::ui
+} // namespace inl::gui

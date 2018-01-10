@@ -2,7 +2,7 @@
 #include "BaseLibrary\Common.hpp"
 #include "Gui.hpp"
 
-namespace inl::ui {
+namespace inl::gui {
 
 class GuiSlider : public Gui
 {
@@ -37,4 +37,4 @@ protected:
 	bool bSliding;
 };
 
-} // namespace inl::ui
+} // namespace inl::gui

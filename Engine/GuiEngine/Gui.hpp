@@ -7,7 +7,7 @@
 #include "GuiEvent.hpp"
 #include "GuiRect.hpp"
 
-namespace inl::ui {
+namespace inl::gui {
 
 enum class eGuiAlignHor
 {
@@ -28,9 +28,9 @@ enum class eGuiAlignVer
 enum class eGuiStretch
 {
 	NONE,
-	FILL_PARENT,
-	FILL_PARENT_POSITIVE_DIR,
-	FIT_TO_CHILDREN,
+	FILL_SPACE,
+	FILL_SPACE_POSITIVE_DIR,
+	FIT_TO_CONTENT,
 };
 
 enum class eGuiOrientation
@@ -92,7 +92,7 @@ public:
 	void Move(const Vec2& delta) { Move(delta.x, delta.y); }
 
 	Vec2 Arrange(const Vec2& pos, const Vec2& size);
-	Vec2 Arrange(float posX, float posY, const Vec2& size) { return Arrange(Vec2(posX, posY), size); }	
+	virtual Vec2 ArrangeChildren();
 
 	void EnableClipChildren() { SetClipChildren(true); }
 	void DisableClipChildren() { SetClipChildren(false); }
@@ -163,20 +163,20 @@ public:
 	void StretchHor(eGuiStretch stretch) { stretchHor = stretch; bLayoutNeedRefresh = true; }
 	void StretchVer(eGuiStretch stretch) { stretchVer = stretch; bLayoutNeedRefresh = true; }
 
-	void StretchHorFillParent() {StretchHor(eGuiStretch::FILL_PARENT); }
-	void StretchHorFitToChildren() { StretchHor(eGuiStretch::FIT_TO_CHILDREN); }
+	void StretchHorFillParent() {StretchHor(eGuiStretch::FILL_SPACE); }
+	void StretchHorFitToContent() { StretchHor(eGuiStretch::FIT_TO_CONTENT); }
 	void StretchHorNone() { StretchHor(eGuiStretch::NONE); }
 
-	void StretchVerFillParent() { StretchVer(eGuiStretch::FILL_PARENT); }
-	void StretchVerFitToChildren() { StretchVer(eGuiStretch::FIT_TO_CHILDREN); }
+	void StretchVerFillParent() { StretchVer(eGuiStretch::FILL_SPACE); }
+	void StretchVerFitToContent() { StretchVer(eGuiStretch::FIT_TO_CONTENT); }
 	void StretchVerNone() { StretchVer(eGuiStretch::NONE); }
 
 	void StretchFillParent(bool bHor, bool bVer);
-	void StretchFitToChildren(bool bHor, bool bVer);
+	void StretchFitToContent(bool bHor, bool bVer);
 
 
-	void StretchFillParent() { Stretch(eGuiStretch::FILL_PARENT); }
-	void StretchFitToChildren() { Stretch(eGuiStretch::FIT_TO_CHILDREN); }
+	void StretchFillParent() { Stretch(eGuiStretch::FILL_SPACE); }
+	void StretchFitToContent() { Stretch(eGuiStretch::FIT_TO_CONTENT); }
 	void StretchNone() { Stretch(eGuiStretch::NONE); }
 
 	void Align(eGuiAlignHor horizontalAlign, eGuiAlignVer verticalAlign) { alignHor = horizontalAlign; alignVer = verticalAlign; bLayoutNeedRefresh = true; }
@@ -349,8 +349,6 @@ protected:
 
 	void TraverseTowardParents(const std::function<void(Gui&)>& fn);
 
-	virtual Vec2 ArrangeChildren(const Vec2& finalSize);
-
 protected:
 	// Name it however you want
 	std::wstring name;
@@ -428,7 +426,7 @@ protected:
 
 	// Very internal stuff, Parent's are only fillable after their size is evaluated, before it shouldn't
 	bool bFillParentEnabled;
-	bool bForceFitToChildren;
+	bool bForceFitToContent;
 public:
 
 	GuiEngine& guiEngine;
@@ -495,4 +493,4 @@ bool Gui::Is()
 	return dynamic_cast<T*>(this) != nullptr;
 }
 
-} // namespace inl::ui
+} // namespace inl::gui

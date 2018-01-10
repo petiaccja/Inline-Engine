@@ -26,7 +26,7 @@ namespace inl::core {
 class SceneScript;
 
 using namespace inl;
-using namespace inl::ui;
+using namespace inl::gui;
 using namespace inl::gxapi;
 using namespace inl::gxapi_dx12;
 

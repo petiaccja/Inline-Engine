@@ -1,6 +1,6 @@
 #include "GuiImage.hpp"
 
-using namespace inl::ui;
+using namespace inl::gui;
 
 GuiImage::GuiImage(GuiEngine& guiEngine)
 :Gui(guiEngine)

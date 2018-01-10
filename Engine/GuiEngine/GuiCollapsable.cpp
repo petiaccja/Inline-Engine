@@ -1,7 +1,10 @@
 #pragma once
 #include "GuiCollapsable.hpp"
+#include "GuiGrid.hpp"
+#include "GuiButton.hpp"
+#include "GuiImage.hpp"
 
-using namespace inl::ui;
+using namespace inl::gui;
 
 GuiCollapsable::GuiCollapsable(GuiEngine& guiEngine)
 :GuiLayout(guiEngine), bOpened(false)
@@ -9,26 +12,41 @@ GuiCollapsable::GuiCollapsable(GuiEngine& guiEngine)
 	DisableHover();
 
 	StretchHorFillParent();
-	StretchVerFitToChildren();
+	StretchVerFitToContent();
 
-	// List layout for caption and item list
-	layout = AddGui<GuiList>();
+
+	// Grid layout for arrow, caption, and the item list		arrow | caption
+	//															empty |	item 0
+	//															empty | item 1
+	//															empty | item ...
+
+	layout = AddGui<GuiGrid>();
 	layout->StretchFillParent();
+	layout->SetDimension(2, 1);
 
-	// Create item list
+	// Arrow
+	arrow = layout->GetCell(0, 0)->AddGui<GuiImage>();
+	arrow->SetImages(L"Resources/empty_right_arrow.png", L"Resources/empty_right_arrow.png", 12, 12);
+	arrow->DisableHover();
+	arrow->AlignCenter();
+
+	layout->GetRow(0)->StretchFitToContent();
+	layout->GetColumn(0)->SetWidth(30);
+	layout->GetColumn(1)->StretchFillSpace(1.0);
+
+	// item list
 	itemList = new GuiList(guiEngine);
-	itemList->StretchHorFillParent();
 	itemList->OnChildAdd += [](Gui& self, ChildEvent& e)
 	{
 		e.child->StretchHorFillParent();
-		e.child->StretchVerFitToChildren();
-		e.child->SetPadding(4);
+		e.child->StretchVerFitToContent();
+		e.child->SetPadding(2);
 	};
 
-	// Add caption to layout
-	caption = layout->AddItem<GuiButton>();
+	// Caption
+	caption = layout->GetCell(1, 0)->AddGui<GuiButton>();
 	caption->StretchHorFillParent();
-	caption->StretchVerFitToChildren();
+	caption->StretchVerFitToContent();
 	caption->SetBgIdleColor(ColorI(25, 25, 25, 255));
 	caption->SetBgHoverColor(ColorI(60, 60, 60, 255));
 	caption->GetGuiText()->SetFontSize(16);
@@ -36,14 +54,22 @@ GuiCollapsable::GuiCollapsable(GuiEngine& guiEngine)
 
 	caption->OnCursorPress += [](Gui& self, CursorEvent& e)
 	{
-		GuiCollapsable& c = self.GetParent()->GetParent()->As<GuiCollapsable>();
-
+		GuiCollapsable& c = self.GetParent()->GetParent()->GetParent()->As<GuiCollapsable>();
+	
 		// Add item list to layout based on if "collapsable" opened or not
 		if (c.bOpened)
-			c.layout->RemoveItem(c.itemList);
+		{
+			c.layout->SetDimension(2, 1);
+		}
 		else
-			c.layout->AddItem(c.itemList);
+		{
+			c.layout->SetDimension(2, 2);
+			c.layout->GetRow(1)->StretchFitToContent();
 
+			c.layout->GetCell(1, 1)->AddGui(c.itemList);
+			c.itemList->SetPos(c.layout->GetCell(1, 1)->GetPos());
+		}
+	
 		c.bOpened = !c.bOpened;
 	};
 }
@@ -60,6 +86,7 @@ GuiCollapsable& GuiCollapsable::operator = (const GuiCollapsable& other)
 	layout = Copy(other.layout);
 	caption = Copy(other.caption);
 	itemList = Copy(other.itemList);
+	arrow = Copy(other.arrow);
 
 	bOpened = other.bOpened;
 

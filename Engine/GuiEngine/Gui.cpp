@@ -8,7 +8,7 @@
 #include "GuiScrollable.hpp"
 #include "GuiEngine.hpp"
 
-using namespace inl::ui;
+using namespace inl::gui;
 
 Gui::Gui(GuiEngine& guiEngine)
 :Gui(guiEngine, false)
@@ -55,7 +55,7 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 	bHoverable = true;
 	bBgFreezed = false;
 	bFillParentEnabled = false;
-	bForceFitToChildren = false;
+	bForceFitToContent = false;
 	this->guiEngine = guiEngine;
 
 	SetBgActiveColor(bgIdleColor);
@@ -94,6 +94,10 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 
 	OnPaint += [](Gui& self, PaintEvent& e)
 	{
+		static const bool bDebugDraw = false;
+		if (bDebugDraw)
+			self.SetBorder(1.f, ColorI(255, 0, 0, 255));
+
 		if (self.IsLayoutNeedRefresh())
 			self.RefreshLayout();
 
@@ -115,6 +119,8 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 
 		Gdiplus::SolidBrush borderBrush(Gdiplus::Color(borderColor.a, borderColor.r, borderColor.g, borderColor.b));
 
+		
+			
 		// Draw left border
 		if (border.left != 0)
 		{
@@ -210,7 +216,7 @@ Gui& Gui::operator = (const Gui& other)
 	stretchHor = other.stretchHor;
 	stretchVer = other.stretchVer;
 	bFillParentEnabled = other.bFillParentEnabled;
-	bForceFitToChildren = other.bForceFitToChildren;
+	bForceFitToContent = other.bForceFitToContent;
 	//eventPropagationPolicy = other.eventPropagationPolicy;
 	bHovered = other.bHovered;
 	bHoverable = other.bHoverable;
@@ -575,22 +581,22 @@ void Gui::SetBorder(float leftLength, float rightLength, float topLength, float 
 
 void Gui::StretchFillParent(bool bHor, bool bVer)
 {
-	bool bWasHorFill = stretchHor == eGuiStretch::FILL_PARENT;
-	bool bWasVerFill = stretchVer == eGuiStretch::FILL_PARENT;
+	bool bWasHorFill = stretchHor == eGuiStretch::FILL_SPACE;
+	bool bWasVerFill = stretchVer == eGuiStretch::FILL_SPACE;
 
-	eGuiStretch hor = bHor ? eGuiStretch::FILL_PARENT : (bWasHorFill ? eGuiStretch::NONE : stretchHor);
-	eGuiStretch ver = bVer ? eGuiStretch::FILL_PARENT : (bWasVerFill ? eGuiStretch::NONE : stretchVer);
+	eGuiStretch hor = bHor ? eGuiStretch::FILL_SPACE : (bWasHorFill ? eGuiStretch::NONE : stretchHor);
+	eGuiStretch ver = bVer ? eGuiStretch::FILL_SPACE : (bWasVerFill ? eGuiStretch::NONE : stretchVer);
 
 	Stretch(hor, ver);
 }
 
-void Gui::StretchFitToChildren(bool bHor, bool bVer)
+void Gui::StretchFitToContent(bool bHor, bool bVer)
 {
-	bool bWasHorFitToChildren = stretchHor == eGuiStretch::FIT_TO_CHILDREN;
-	bool bWasVerFitToChildren = stretchVer == eGuiStretch::FIT_TO_CHILDREN;
+	bool bWasHorFitToContent = stretchHor == eGuiStretch::FIT_TO_CONTENT;
+	bool bWasVerFitToContent = stretchVer == eGuiStretch::FIT_TO_CONTENT;
 
-	eGuiStretch hor = bHor ? eGuiStretch::FIT_TO_CHILDREN : (bWasHorFitToChildren ? eGuiStretch::NONE : stretchHor);
-	eGuiStretch ver = bVer ? eGuiStretch::FIT_TO_CHILDREN : (bWasVerFitToChildren ? eGuiStretch::NONE : stretchVer);
+	eGuiStretch hor = bHor ? eGuiStretch::FIT_TO_CONTENT : (bWasHorFitToContent ? eGuiStretch::NONE : stretchHor);
+	eGuiStretch ver = bVer ? eGuiStretch::FIT_TO_CONTENT : (bWasVerFitToContent ? eGuiStretch::NONE : stretchVer);
 
 	Stretch(hor, ver);
 }
@@ -613,58 +619,49 @@ Vec2 Gui::Arrange(const Vec2& pos, const Vec2& size)
 	Vec2 newPos = pos;
 	Vec2 newSize = size;
 
-	bool bFitToChildrenHor = stretchHor == eGuiStretch::FIT_TO_CHILDREN;
-	bool bFitToChildrenVer = stretchVer == eGuiStretch::FIT_TO_CHILDREN;
-	bool bFillParentHor = stretchHor == eGuiStretch::FILL_PARENT;
-	bool bFillParentVer = stretchVer == eGuiStretch::FILL_PARENT;
-	bool bFillParentPositibeDirHor = stretchHor == eGuiStretch::FILL_PARENT_POSITIVE_DIR;
-	bool bFillParentPositibeDirVer = stretchVer == eGuiStretch::FILL_PARENT_POSITIVE_DIR;
+	bool bFitToContentHor = stretchHor == eGuiStretch::FIT_TO_CONTENT;
+	bool bFitToContentVer = stretchVer == eGuiStretch::FIT_TO_CONTENT;
+	bool bFillParentHor = stretchHor == eGuiStretch::FILL_SPACE;
+	bool bFillParentVer = stretchVer == eGuiStretch::FILL_SPACE;
+	bool bFillParentPositibeDirHor = stretchHor == eGuiStretch::FILL_SPACE_POSITIVE_DIR;
+	bool bFillParentPositibeDirVer = stretchVer == eGuiStretch::FILL_SPACE_POSITIVE_DIR;
 
-	if (bForceFitToChildren)
+	if (bForceFitToContent)
 	{
 		if (bFillParentHor)
 		{
 			bFillParentHor = false;
-			bFitToChildrenHor = true;
+			bFitToContentHor = true;
 		}
 
 		if (bFillParentVer)
 		{
 			bFillParentVer = false;
-			bFitToChildrenVer = true;
+			bFitToContentVer = true;
 		}
 
-		bForceFitToChildren = false;
+		bForceFitToContent = false;
 	}
 
-	bool bFitToChildren = bFitToChildrenHor | bFitToChildrenVer;
+	bool bFitToContent = bFitToContentHor | bFitToContentVer;
 	bool bFillParent = bFillParentHor || bFillParentVer;
 	bool bFillParentPositiveDir = bFillParentPositibeDirHor || bFillParentPositibeDirVer;
 
-	// Even call that when parent FIT_CHILDREN and self FILL_PARENT, see upper code
-	if (bFitToChildren)
+	// Even call that when parent FIT_CHILDREN and self FILL_SPACE, see upper code
+	if (bFitToContent)
 	{
-		// Calculate content size
-		Vec2 contentSize = newSize;
-		contentSize.x -= margin.left + margin.right;
-		contentSize.y -= margin.top + margin.bottom;
-
-		contentSize.x -= border.left + border.right;
-		contentSize.y -= border.top + border.bottom;
-
-		contentSize.x -= padding.left + padding.right;
-		contentSize.y -= padding.top + padding.bottom;
-
-		// Order is important ArrangeChildren calls Arrange, and it will use bForceFitToChildren
+		// Order is important ArrangeChildren calls Arrange, and it will use bForceFitToContent
 		for (Gui* c : GetChildren())
-			if (c->stretchHor == eGuiStretch::FILL_PARENT || c->stretchVer == eGuiStretch::FILL_PARENT)
-				c->bForceFitToChildren = true;
+		{
+			if (c->stretchHor == eGuiStretch::FILL_SPACE || c->stretchVer == eGuiStretch::FILL_SPACE)
+				c->bForceFitToContent = true;
+		}
 
 		// Arrange children's based on our available content size
-		Vec2 sizeUsed = ArrangeChildren(contentSize);
+		Vec2 sizeUsed = ArrangeChildren();
 
 		// Convert the sizeUsed from content space to margin space
-		if (bFitToChildrenHor)
+		if (bFitToContentHor)
 		{
 			sizeUsed.x += padding.left + padding.right;
 			sizeUsed.x += border.left + border.right;
@@ -672,8 +669,8 @@ Vec2 Gui::Arrange(const Vec2& pos, const Vec2& size)
 			newSize.x = sizeUsed.x;
 		}
 
-		// FIT_TO_CHILDREN -> FILL_PARENT -> FILL_PARENT, a FILL_PARENT,  parent -> children -> children.... parent will be dominant against "FILL_PARENT" flagged children, so everybody should take the minimal size
-		if (bFitToChildrenVer)
+		// FIT_TO_CONTENT -> FILL_SPACE -> FILL_SPACE, a FILL_SPACE,  parent -> children -> children.... parent will be dominant against "FILL_SPACE" flagged children, so everybody should take the minimal size
+		if (bFitToContentVer)
 		{
 			sizeUsed.y += padding.top + padding.bottom;
 			sizeUsed.y += border.top + border.bottom;
@@ -681,10 +678,10 @@ Vec2 Gui::Arrange(const Vec2& pos, const Vec2& size)
 			newSize.y = sizeUsed.y;
 		}
 
-		// At this point we should enable children to fill self (eGuiStretch::FILL_PARENT)
+		// At this point we should enable children to fill self (eGuiStretch::FILL_SPACE)
 		for (Gui* c : GetChildren())
-			if (c->stretchHor == eGuiStretch::FILL_PARENT || c->stretchVer == eGuiStretch::FILL_PARENT ||
-				c->stretchHor == eGuiStretch::FILL_PARENT_POSITIVE_DIR || c->stretchVer == eGuiStretch::FILL_PARENT_POSITIVE_DIR)
+			if (c->stretchHor == eGuiStretch::FILL_SPACE || c->stretchVer == eGuiStretch::FILL_SPACE ||
+				c->stretchHor == eGuiStretch::FILL_SPACE_POSITIVE_DIR || c->stretchVer == eGuiStretch::FILL_SPACE_POSITIVE_DIR)
 			{
 				c->bFillParentEnabled = true;
 			}
@@ -692,24 +689,24 @@ Vec2 Gui::Arrange(const Vec2& pos, const Vec2& size)
 
 	if (bFillParent || bFillParentPositiveDir)
 	{
-		if (bFillParentHor && (parent->stretchHor != eGuiStretch::FIT_TO_CHILDREN || bFillParentEnabled))
+		if (bFillParentHor && (parent->stretchHor != eGuiStretch::FIT_TO_CONTENT || bFillParentEnabled))
 		{
 			newSize.x = parent->GetContentSize().x;
 			newPos.x = parent->GetContentPos().x;
 		}
 
-		if (bFillParentVer && (parent->stretchVer != eGuiStretch::FIT_TO_CHILDREN || bFillParentEnabled))
+		if (bFillParentVer && (parent->stretchVer != eGuiStretch::FIT_TO_CONTENT || bFillParentEnabled))
 		{
 			newSize.y = parent->GetContentSize().y;
 			newPos.y = parent->GetContentPos().y;
 		}
 
-		if (bFillParentPositibeDirHor && (parent->stretchHor != eGuiStretch::FIT_TO_CHILDREN || bFillParentEnabled))
+		if (bFillParentPositibeDirHor && (parent->stretchHor != eGuiStretch::FIT_TO_CONTENT || bFillParentEnabled))
 		{
 			newSize.x = parent->GetContentRect().right - newPos.x;
 		}
 
-		if (bFillParentPositibeDirVer && (parent->stretchVer != eGuiStretch::FIT_TO_CHILDREN || bFillParentEnabled))
+		if (bFillParentPositibeDirVer && (parent->stretchVer != eGuiStretch::FIT_TO_CONTENT || bFillParentEnabled))
 		{
 			newSize.y = parent->GetContentRect().bottom - newPos.y;
 		}
@@ -772,17 +769,11 @@ Vec2 Gui::Arrange(const Vec2& pos, const Vec2& size)
 	newSize.x -= margin.left + margin.right;
 	newSize.y -= margin.top + margin.bottom;
 
-	//if (!bFitToChildrenHor && !bFillParentHor && ! bFillParentPositibeDirHor)
-	//	newSize.x += padding.left + padding.right;
-	//
-	//if (!bFitToChildrenVer && !bFillParentVer && !bFillParentPositibeDirVer)
-	//	newSize.y += padding.top + padding.bottom;
-
 	SetRect(newPos.x, newPos.y, newSize.x, newSize.y, true, false);
 
 	newSize = GetSize(); // SetRect do std::max(newSize, GetMinSize()); so resulted size might be different
 
-	ArrangeChildren(newSize);
+	Vec2 tmp = ArrangeChildren();
 
 	// Here we have up to date layout, it's not dirty
 	bLayoutNeedRefresh = false;
@@ -794,7 +785,7 @@ Vec2 Gui::Arrange(const Vec2& pos, const Vec2& size)
 	return newSize;
 }
 
-Vec2 Gui::ArrangeChildren(const Vec2& finalSize)
+Vec2 Gui::ArrangeChildren()
 {
 	Vec2 size(0, 0);
 	for (Gui* child : GetChildren())

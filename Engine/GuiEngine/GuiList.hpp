@@ -2,7 +2,7 @@
 #include "BaseLibrary\Common.hpp"
 #include "GuiLayout.hpp"
 
-namespace inl::ui {
+namespace inl::gui {
 
 class GuiList : public GuiLayout
 {
@@ -25,7 +25,7 @@ public:
 	eGuiOrientation GetOrientation() { return orientation; }
 
 protected:
-	virtual Vec2 ArrangeChildren(const Vec2& finalSize) override;
+	virtual Vec2 ArrangeChildren() override;
 
 protected:
 	eGuiOrientation orientation;
