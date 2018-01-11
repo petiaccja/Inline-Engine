@@ -48,7 +48,7 @@ int TestWindow::Run() {
 		//window.OnKeyboard += {&TestWindow::OnKey, this};
 		window.OnCharacter += Delegate<void(char32_t)>{&TestWindow::OnChar, this};
 		window.OnClose += Delegate<void()>{&TestWindow::OnClose, this};
-		window.OnDropped += Delegate<void(DragDropEvent)>{&TestWindow::OnDropped, this};
+		window.OnDrop += Delegate<void(DragDropEvent)>{&TestWindow::OnDropped, this};
 
 		while (!closed) {
 			this_thread::sleep_for(chrono::milliseconds(50));

@@ -323,13 +323,22 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Materials\PbrBrdf.hlsl">
-      <FileType>Document</FileType>
-    </None>
     <None Include="Nodes\Shaders\Blend.hlsl">
       <FileType>Document</FileType>
     </None>
     <None Include="Nodes\Shaders\BlendWithTransform.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\BloomAdd.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\BloomBlur.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\BloomDownsample.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\BrightLumPass.hlsl">
       <FileType>Document</FileType>
     </None>
     <None Include="Nodes\Shaders\CSM.hlsl">
@@ -350,16 +359,52 @@
     <None Include="Nodes\Shaders\DepthReductionFinal.hlsl">
       <FileType>Document</FileType>
     </None>
+    <None Include="Nodes\Shaders\DOFMain.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\DOFNeighborMax.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\DOFPostfilter.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\DOFPrepare.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\DOFTileMax.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\DOFUpsample.hlsl">
+      <FileType>Document</FileType>
+    </None>
     <None Include="Nodes\Shaders\DrawSky.hlsl">
       <FileType>Document</FileType>
     </None>
-    <None Include="Nodes\Shaders\ForwardRender.hlsl">
+    <None Include="Nodes\Shaders\EncodeVelocity.hlsl">
       <FileType>Document</FileType>
     </None>
-    <None Include="Nodes\Shaders\GenCSM.hlsl">
+    <None Include="Nodes\Shaders\HDRCombine.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\LensFlare.hlsl">
       <FileType>Document</FileType>
     </None>
     <None Include="Nodes\Shaders\LightCulling.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\LightingUniforms.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\LuminanceReduction.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\LuminanceReductionFinal.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\MotionBlur.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\NeighborMax.hlsl">
       <FileType>Document</FileType>
     </None>
     <None Include="Nodes\Shaders\OverlayColored.hlsl">
@@ -368,10 +413,76 @@
     <None Include="Nodes\Shaders\OverlayTextured.hlsl">
       <FileType>Document</FileType>
     </None>
+    <None Include="Nodes\Shaders\PbrBrdf.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\PointLightShadowMapSample.hlsl">
+      <FileType>Document</FileType>
+    </None>
     <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
       <FileType>Document</FileType>
     </None>
+    <None Include="Nodes\Shaders\ScreenSpaceAmbientOcclusion.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\ScreenSpaceReflection.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\ScreenSpaceShadow.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\SDFCulling.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\ShadowGen.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\SMAA.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\SMAABlendingWeights.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\SMAAEdgeDetection.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\SMAANeighborhoodBlending.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\SsaoBilateralHorizontalBlur.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\SsaoBilateralVerticalBlur.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\SsrBlur.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\SsrDownsample.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\TextRender.hlsl">
+      <FileType>Document</FileType>
+    </None>
     <None Include="Nodes\Shaders\TiledLighting.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\TileMax.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\VolumetricLighting.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\Voxelization.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\VoxelLightInjectionCSM.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\VoxelMipmap.hlsl">
+      <FileType>Document</FileType>
+    </None>
+    <None Include="Nodes\Shaders\VoxelVisualizer.hlsl">
       <FileType>Document</FileType>
     </None>
   </ItemGroup>

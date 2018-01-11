@@ -144,17 +144,38 @@ void RootTableManager<Type>::DuplicateRootTable(DescriptorTableState& table) {
 	DescriptorArrayRef space = m_heap->Allocate(numDescriptors);
 
 	// copy old descriptors to new space
-	std::vector<gxapi::DescriptorHandle> sourceDescHandles(numDescriptors);
+	std::vector<gxapi::DescriptorHandle> sourceDescHandles;
 	std::vector<uint32_t> sourceRangeSizes(numDescriptors, 1);
-	for (size_t i = 0; i < numDescriptors; ++i) {
-		sourceDescHandles[i] = table.bindings[i];
-	}
 
-	gxapi::DescriptorHandle destDescHandle = space.Get(0);
+	std::vector<gxapi::DescriptorHandle> destDescHandleStarts;
+	std::vector<uint32_t> destRangeSizes;
+
+	sourceDescHandles.reserve(numDescriptors);
+	destDescHandleStarts.reserve(10); // 99% only needs 1, 10 is negligible overhead but less allocation
+	destRangeSizes.reserve(10);
+
+	bool makeFreshRange = true;
+	for (size_t i = 0; i < numDescriptors; ++i) {
+		if (table.bindings[i].cpuAddress != 0) {
+			// initially and after null descriptors, start a new range
+			if (makeFreshRange) {
+				destDescHandleStarts.push_back(space.Get(i));
+				destRangeSizes.push_back(0);
+				makeFreshRange = false;
+			}
+
+			// push descriptor into current dst range
+			sourceDescHandles.push_back(table.bindings[i]);
+			++destRangeSizes.back();
+		}
+		else {
+			makeFreshRange = true;
+		}
+	}
 
 	m_graphicsApi->CopyDescriptors(
 		sourceDescHandles.size(), sourceDescHandles.data(), sourceRangeSizes.data(),
-		1, &destDescHandle, &numDescriptors,
+		destDescHandleStarts.size(), destDescHandleStarts.data(), destRangeSizes.data(),
 		gxapi::eDescriptorHeapType::CBV_SRV_UAV);
 
 	// update table parameters
