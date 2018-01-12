@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <cstring>
 
+#include <BaseLibrary/Exception/Exception.hpp>
+
 namespace inl
 {
 	class BitConverter
@@ -23,9 +25,8 @@ namespace inl
 		template<typename T>
 		inline static T FromBytes(uint8_t *data)
 		{
-			if (data)
-				delete data;
-			data = new uint8_t[sizeof(T)]();
+			if (!data)
+				throw InvalidArgumentException("cant have null parameter -> BitConverter::FromBytes");
 			T value;
 			memcpy(&value, data, sizeof(T));
 			return value;

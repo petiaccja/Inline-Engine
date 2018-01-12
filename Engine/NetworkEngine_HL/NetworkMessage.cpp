@@ -32,14 +32,18 @@ namespace inl::net
 		return bytes;
 	}
 
-	void NetworkMessage::Deserialize(uint8_t * data, int32_t size)
+	void NetworkMessage::Deserialize(uint8_t * data, uint32_t size)
 	{
-		memcpy(&(m_senderID), data, 4);
-		m_distributionMode = (DistributionMode)data[4];
-		memcpy(&(m_destinationID), data + 5, 4);
-		memcpy(&(m_tag), data + 9, 4);
+		NetworkHeader buffer;
+		uint32_t sizeOfNetHeader = sizeof(NetworkHeader);
+		memcpy(&(buffer), data, sizeOfNetHeader);
 
-		m_dataSize = size - 13;
-		memcpy(m_data, data + 13, m_dataSize);
+		memcpy(&(m_senderID), data, 4 + sizeOfNetHeader);
+		m_distributionMode = (DistributionMode)data[4 + sizeOfNetHeader];
+		memcpy(&(m_destinationID), data + 5 + sizeOfNetHeader, 4 + sizeOfNetHeader);
+		memcpy(&(m_tag), data + 9 + sizeOfNetHeader, 4 + sizeOfNetHeader);
+
+		m_dataSize = size - 13 - sizeOfNetHeader;
+		m_data = data + 13 + sizeOfNetHeader;
 	}
 }
