@@ -21,6 +21,11 @@ namespace inl::net::servers
 	{
 	}
 
+	TcpConnectionHandler::~TcpConnectionHandler()
+	{
+		m_run.exchange(false);
+	}
+
 	void TcpConnectionHandler::Start()
 	{
 		m_run.exchange(true);
@@ -31,7 +36,12 @@ namespace inl::net::servers
 		m_sendThread.swap(send_thread);
 	}
 
-	void TcpConnectionHandler::Add(std::shared_ptr<TcpConnection> &c)
+	void TcpConnectionHandler::Stop()
+	{
+		m_run.exchange(false);
+	}
+
+	void TcpConnectionHandler::AddClient(std::shared_ptr<TcpConnection> &c)
 	{
 		uint32_t id = GetAvailableID();
 		if (id == -1)
@@ -93,6 +103,11 @@ namespace inl::net::servers
 
 		//throw OutOfRangeException("Out of IDs to allocate - clients = max connections", "NewConnectionEventPool");
 		return -1;
+	}
+
+	void TcpConnectionHandler::SetMaxConnections(uint32_t max_connections)
+	{
+		m_maxConnections = max_connections;
 	}
 
 	void TcpConnectionHandler::HandleReceive()

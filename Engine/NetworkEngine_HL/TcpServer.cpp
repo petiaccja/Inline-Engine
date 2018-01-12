@@ -43,7 +43,7 @@ namespace inl::net::servers
 			if (c)
 			{
 				std::shared_ptr<TcpConnection> connection = std::make_shared<TcpConnection>(c);
-				m_connectionHandler->Add(connection); // maybe i should thread the add fn in the handler
+				m_connectionHandler->AddClient(connection); // maybe i should thread the add fn in the handler
 			}
 		}
 	}

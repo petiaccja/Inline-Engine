@@ -29,6 +29,9 @@ namespace inl::net
 		uint8_t * SerializeData(uint32_t &size);
 		void Deserialize(uint8_t *data, uint32_t size);
 
-		virtual void HandleData() = 0; // this allows custom messages
+		virtual void HandleData() // this allows custom messages
+		{
+
+		}
 	};
 }

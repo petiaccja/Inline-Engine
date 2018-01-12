@@ -19,27 +19,14 @@ namespace inl::net::servers
 	{
 	public:
 		TcpConnectionHandler();
-
-		inline ~TcpConnectionHandler()
-		{
-			m_run.exchange(false);
-		}
+		~TcpConnectionHandler();
 
 		void Start();
-
-		inline void Stop()
-		{
-			m_run.exchange(false);
-		}
-
-		void Add(std::shared_ptr<TcpConnection> &c);
+		void Stop();
+		void AddClient(std::shared_ptr<TcpConnection> &c);
+		void SetMaxConnections(uint32_t max_connections);
 
 		uint32_t GetAvailableID();
-
-		inline void SetMaxConnections(uint32_t max_connections)
-		{
-			m_maxConnections = max_connections;
-		}
 
 		std::shared_ptr<MessageQueue> m_queue; // quick hack
 
