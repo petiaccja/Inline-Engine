@@ -22,14 +22,14 @@ namespace inl::net::servers
 
 		inline ~TcpConnectionHandler()
 		{
-			//m_run.exchange(false);
+			m_run.exchange(false);
 		}
 
 		void Start();
 
 		inline void Stop()
 		{
-			//m_run.exchange(false);
+			m_run.exchange(false);
 		}
 
 		void Add(std::shared_ptr<TcpConnection> &c);
@@ -57,7 +57,7 @@ namespace inl::net::servers
 		std::thread m_receiveThread;
 		std::thread m_sendThread;
 
-		//std::atomic_bool m_run;
+		std::atomic_bool m_run;
 
 		inl::spin_mutex m_listMutex;
 	};

@@ -16,6 +16,10 @@ namespace inl::net
 	class MessageQueue
 	{
 	public:
+		MessageQueue()
+		{
+		}
+
 		void EnqueueMessageToSend(const NetworkMessage &msg);
 
 		void EnqueueMessageReceived(const NetworkMessage &msg);

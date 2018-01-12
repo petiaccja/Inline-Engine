@@ -17,13 +17,13 @@ namespace inl::net::servers
 	using namespace events;
 
 	TcpConnectionHandler::TcpConnectionHandler()
-		//: m_run(false)
+		: m_run(false)
 	{
 	}
 
 	void TcpConnectionHandler::Start()
 	{
-		//m_run.exchange(true);
+		m_run.exchange(true);
 		std::thread receive_thread(&TcpConnectionHandler::HandleReceiveThreaded, this);
 		m_receiveThread.swap(receive_thread);
 
@@ -248,7 +248,7 @@ namespace inl::net::servers
 
 	void TcpConnectionHandler::HandleReceiveThreaded()
 	{
-		while (/*m_run.load()*/true)
+		while (m_run.load())
 		{
 			HandleReceive();
 			std::this_thread::sleep_for(std::chrono::milliseconds(5));
@@ -257,7 +257,7 @@ namespace inl::net::servers
 
 	void TcpConnectionHandler::HandleSendThreaded()
 	{
-		while (/*m_run.load()*/true)
+		while (m_run.load())
 		{
 			HandleSend();
 			std::this_thread::sleep_for(std::chrono::milliseconds(5));
