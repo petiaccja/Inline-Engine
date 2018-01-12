@@ -49,35 +49,27 @@ namespace inl::net::servers
 
 		c->SetID(id);
 
-		m_listMutex.lock();
-		m_list.push_back(c);
-		m_listMutex.unlock();
-
-		uint32_t data_size;
-		uint8_t *data = nullptr;
-		if (c->GetClient()->HasPendingData(data_size))
-		{
-			int32_t read;
-			if (c->GetClient()->Recv(data, data_size, read))
-			{
-				// failed to read
-			}
-		}
-
 		NetworkMessage msg;
 		msg.m_distributionMode = DistributionMode::ID;
 		msg.m_destinationID = id;
 		msg.m_tag = (uint32_t)InternalTags::AssignID;
-		//msg.m_data = id; // id to uint8_t*
+		msg.m_data = &id; // id to uint8_t*
 		msg.m_dataSize = 4;
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 		uint32_t serialized_size;
 		uint8_t *serialized_data = msg.SerializeData(serialized_size);
 		int32_t sent;
-		if (c->GetClient()->Send(serialized_data, serialized_size, sent))
+		if (!c->GetClient()->Send(serialized_data, serialized_size, sent))
 		{
 			//couldnt send
+			return;
 		}
+
+		m_listMutex.lock();
+		m_list.push_back(c);
+		m_listMutex.unlock();
 
 		m_queue->EnqueueConnection(msg);
 	}

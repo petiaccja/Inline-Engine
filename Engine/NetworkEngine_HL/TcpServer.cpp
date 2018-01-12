@@ -25,6 +25,9 @@ namespace inl::net::servers
 	{
 		m_run = true;
 		m_connectionHandler->Start();
+
+		std::thread receive_thread(&TcpServer::AcceptClients, this);
+		m_acceptingThread.swap(receive_thread);
 	}
 
 	void TcpServer::Stop()
