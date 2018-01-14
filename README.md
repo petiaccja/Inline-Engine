@@ -30,5 +30,4 @@ The above-mentioned rendering task graph provides an interface to implement cust
 
 Legal
 ---
-There is no licence yet, so the code is 'const' or 'readonly', unavailable for redistribution in any form. We are too lazy to figure out which licence to add, and will not be doing so unless it becomes necessary.
-
+Inline Engine is free to use, with a 5% royalty on gross product revenue after the first $3,000 per game per calendar quarter from commercial products. Contact us if you require custom terms.
