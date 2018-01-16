@@ -19,6 +19,9 @@
     <Filter Include="Sockets">
       <UniqueIdentifier>{b5e8f179-a633-4ea0-8a2c-05c269986dd3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Http">
+      <UniqueIdentifier>{f3bd4fe2-41e5-4fde-a3fb-4ef5b39f9023}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Enums.hpp">
@@ -57,6 +60,27 @@
     <ClInclude Include="UdpSocketBuilder.hpp">
       <Filter>Udp</Filter>
     </ClInclude>
+    <ClInclude Include="Cookies.hpp">
+      <Filter>Http</Filter>
+    </ClInclude>
+    <ClInclude Include="Parse.hpp">
+      <Filter>Http</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers.hpp">
+      <Filter>Http</Filter>
+    </ClInclude>
+    <ClInclude Include="Request.hpp">
+      <Filter>Http</Filter>
+    </ClInclude>
+    <ClInclude Include="Response.hpp">
+      <Filter>Http</Filter>
+    </ClInclude>
+    <ClInclude Include="Uri.hpp">
+      <Filter>Http</Filter>
+    </ClInclude>
+    <ClInclude Include="Http.hpp">
+      <Filter>Http</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Socket.cpp">
@@ -76,6 +100,24 @@
     </ClCompile>
     <ClCompile Include="UdpSocket.cpp">
       <Filter>Udp</Filter>
+    </ClCompile>
+    <ClCompile Include="Cookies.cpp">
+      <Filter>Http</Filter>
+    </ClCompile>
+    <ClCompile Include="Headers.cpp">
+      <Filter>Http</Filter>
+    </ClCompile>
+    <ClCompile Include="Request.cpp">
+      <Filter>Http</Filter>
+    </ClCompile>
+    <ClCompile Include="Response.cpp">
+      <Filter>Http</Filter>
+    </ClCompile>
+    <ClCompile Include="Uri.cpp">
+      <Filter>Http</Filter>
+    </ClCompile>
+    <ClCompile Include="Http.cpp">
+      <Filter>Http</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

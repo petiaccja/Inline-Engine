@@ -90,10 +90,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Cookies.hpp" />
     <ClInclude Include="Enums.hpp" />
+    <ClInclude Include="Headers.hpp" />
+    <ClInclude Include="Http.hpp" />
     <ClInclude Include="IPAddress.hpp" />
     <ClInclude Include="Net.hpp" />
     <ClInclude Include="Init.hpp" />
+    <ClInclude Include="Parse.hpp" />
+    <ClInclude Include="Request.hpp" />
+    <ClInclude Include="Response.hpp" />
     <ClInclude Include="Socket.hpp" />
     <ClInclude Include="ISocket.hpp" />
     <ClInclude Include="TcpClient.hpp" />
@@ -101,15 +107,22 @@
     <ClInclude Include="TcpSocketBuilder.hpp" />
     <ClInclude Include="UdpSocket.hpp" />
     <ClInclude Include="UdpSocketBuilder.hpp" />
+    <ClInclude Include="Uri.hpp" />
     <ClInclude Include="Util.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Cookies.cpp" />
+    <ClCompile Include="Headers.cpp" />
+    <ClCompile Include="Http.cpp" />
     <ClCompile Include="IPAddress.cpp" />
+    <ClCompile Include="Request.cpp" />
+    <ClCompile Include="Response.cpp" />
     <ClCompile Include="Socket.cpp" />
     <ClCompile Include="TcpClient.cpp" />
     <ClCompile Include="TcpListener.cpp" />
     <ClCompile Include="TcpSocketBuilder.cpp" />
     <ClCompile Include="UdpSocket.cpp" />
+    <ClCompile Include="Uri.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BaseLibrary\BaseLibrary.vcxproj">
