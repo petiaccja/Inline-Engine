@@ -64,12 +64,11 @@ namespace inl::net::servers
 		msg.m_destinationID = id;
 		msg.m_tag = (uint32_t)InternalTags::AssignID;
 		msg.m_data = &id; // id to uint8_t*
-		msg.m_dataSize = 4;
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
 		uint32_t serialized_size;
-		uint8_t *serialized_data = msg.SerializeData(serialized_size);
+		uint8_t *serialized_data = msg.SerializeData<uint32_t>(serialized_size);
 		int32_t sent;
 		if (!c->GetClient()->Send(serialized_data, serialized_size, sent))
 		{

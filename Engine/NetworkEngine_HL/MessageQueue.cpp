@@ -20,8 +20,8 @@ namespace inl::net
 	void MessageQueue::EnqueueDisconnection(const NetworkMessage & msg)
 	{
 		m_disconnectMutex.lock();
-		DisconnectedEvent ev(msg.m_senderID, std::string((char*)msg.m_data, msg.m_dataSize - 1), ((char*)(msg).m_data)[msg.m_dataSize - 1]);
-		m_disconnectedEvents.push_back(ev);
+		std::unique_ptr<DisconnectedEvent> ev = std::make_unique<DisconnectedEvent>(((NetworkMessage)msg).GetData<DisconnectedEvent>());
+		m_disconnectedEvents.push_back(*(ev.get()));
 		m_disconnectMutex.unlock();
 	}
 

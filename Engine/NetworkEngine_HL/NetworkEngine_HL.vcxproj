@@ -21,7 +21,6 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MessageQueue.cpp" />
-    <ClCompile Include="NetworkMessage.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="TcpConnectionHandler.cpp" />
     <ClCompile Include="TcpServer.cpp" />
