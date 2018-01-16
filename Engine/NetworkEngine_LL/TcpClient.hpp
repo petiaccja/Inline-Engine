@@ -18,7 +18,7 @@ namespace inl::net::sockets
 		bool Wait(SocketWaitConditions cond, std::chrono::milliseconds t) const;
 		SocketConnectionState GetConnectionState() const;
 		void GetAddress(IPAddress& outAddr) const;
-		int32_t GetPortNo() const;
+		int32_t GetPort() const;
 
 	private:
 		std::unique_ptr<Socket> m_socket;

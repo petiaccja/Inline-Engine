@@ -19,7 +19,7 @@ namespace inl::net::sockets
 		inline TcpSocketBuilder()
 			: m_blocking(false)
 			, m_bound(false)
-			, m_boundAddr(IPAddress::Any)
+			, m_boundAddr(IPAddress::Any, 0)
 			, m_linger(false)
 			, m_lingerTimeout(0)
 			, m_listen(false)

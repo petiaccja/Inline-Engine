@@ -53,8 +53,8 @@ namespace inl::net::sockets
 		return m_socket->GetAddress(outAddr); 
 	}
 
-	int32_t TcpClient::GetPortNo() const 
+	int32_t TcpClient::GetPort() const 
 	{ 
-		return m_socket->GetPortNo(); 
+		return m_socket->GetPort(); 
 	}
 }

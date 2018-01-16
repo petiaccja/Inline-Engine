@@ -24,11 +24,11 @@ namespace inl::net::sockets
 
 			if (!Error)
 			{
-				int32_t OutNewSize;
+				int32_t out_new_size;
 				if (m_receiveBufferSize > 0)
-					socket->SetReceiveBufferSize(m_receiveBufferSize, OutNewSize);
+					socket->SetReceiveBufferSize(m_receiveBufferSize, out_new_size);
 				if (m_sendBufferSize > 0)
-					socket->SetSendBufferSize(m_sendBufferSize, OutNewSize);
+					socket->SetSendBufferSize(m_sendBufferSize, out_new_size);
 			}
 
 			if (Error)

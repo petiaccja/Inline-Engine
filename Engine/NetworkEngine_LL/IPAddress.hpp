@@ -12,6 +12,13 @@ namespace inl::net
 	class IPAddress
 	{
 	public:
+		inline IPAddress(const IPAddress &addr, uint16_t port)
+			: m_address(addr.ToInteger())
+			, m_valid(true)
+			, m_port(port)
+		{
+		}
+
 		inline IPAddress()
 			: m_address(0)
 			, m_valid(false)

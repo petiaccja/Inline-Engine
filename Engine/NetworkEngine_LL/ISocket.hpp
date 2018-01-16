@@ -57,7 +57,7 @@ namespace inl::net::sockets
 		virtual bool SetLinger(bool shouldLinger = true, int32_t t = 0) = 0;
 		virtual bool SetSendBufferSize(int32_t size, int32_t& newSize) = 0;
 		virtual bool SetReceiveBufferSize(int32_t size, int32_t& newSize) = 0;
-		virtual uint32_t GetPortNo() = 0;
+		virtual uint32_t GetPort() = 0;
 
 		inline SocketType GetSocketType() const
 		{

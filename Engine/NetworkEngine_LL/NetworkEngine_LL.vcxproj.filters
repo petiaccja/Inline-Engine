@@ -54,6 +54,9 @@
     <ClInclude Include="Util.hpp">
       <Filter>Base</Filter>
     </ClInclude>
+    <ClInclude Include="UdpSocketBuilder.hpp">
+      <Filter>Udp</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Socket.cpp">
@@ -70,6 +73,9 @@
     </ClCompile>
     <ClCompile Include="TcpClient.cpp">
       <Filter>Tcp</Filter>
+    </ClCompile>
+    <ClCompile Include="UdpSocket.cpp">
+      <Filter>Udp</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

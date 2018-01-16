@@ -57,7 +57,7 @@ namespace inl::net::sockets
 		virtual bool SetLinger(bool shouldLinger = true, int32_t t = 0) override;
 		virtual bool SetSendBufferSize(int32_t size, int32_t& newSize) override;
 		virtual bool SetReceiveBufferSize(int32_t size, int32_t& newSize) override;
-		virtual uint32_t GetPortNo() override;
+		virtual uint32_t GetPort() override;
 
 	private:
 		SOCKET getNativeSocket() { return m_socket; }

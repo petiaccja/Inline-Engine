@@ -305,7 +305,7 @@ namespace inl::net::sockets
 		return success;
 	}
 
-	uint32_t Socket::GetPortNo()
+	uint32_t Socket::GetPort()
 	{
 		sockaddr_in addr;
 		socklen_t size = sizeof(sockaddr_in);
