@@ -28,7 +28,7 @@ int main()
 
 			message.Deserialize(bytes, data_size);
 
-			uint32_t id = inl::BitConverter::FromBytes<uint32_t>((uint8_t*)(message.m_data));
+			uint32_t id = inl::BitConverter::FromBytes<uint32_t>((uint8_t*)(message.GetData<void>()));
 			std::cout << id << std::endl;
 		}
 	}

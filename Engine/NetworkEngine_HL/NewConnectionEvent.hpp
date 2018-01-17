@@ -9,7 +9,7 @@ namespace inl::net::events
 	class NewConnectionEvent
 	{
 	public:
-		inline NewConnectionEvent(uint32_t id, uint8_t *data)
+		inline NewConnectionEvent(uint32_t id, void *data)
 			: m_id(id)
 			, m_data(data)
 		{
@@ -17,6 +17,6 @@ namespace inl::net::events
 
 	private:
 		uint32_t m_id;
-		uint8_t *m_data;
+		void *m_data;
 	};
 }

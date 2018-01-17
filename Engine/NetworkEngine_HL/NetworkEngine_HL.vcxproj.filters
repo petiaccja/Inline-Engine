@@ -33,6 +33,10 @@
     </ClCompile>
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="TcpConnection.cpp" />
+    <ClCompile Include="NetworkMessage.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DisconnectedEvent.hpp">

@@ -20,15 +20,15 @@ namespace inl::net
 	void MessageQueue::EnqueueDisconnection(const NetworkMessage & msg)
 	{
 		m_disconnectMutex.lock();
-		std::unique_ptr<DisconnectedEvent> ev = std::make_unique<DisconnectedEvent>(((NetworkMessage)msg).GetData<DisconnectedEvent>());
-		m_disconnectedEvents.push_back(*(ev.get()));
+		//std::unique_ptr<DisconnectedEvent> ev(((NetworkMessage)msg).GetData<DisconnectedEvent>());
+		//m_disconnectedEvents.push_back(*(ev.get()));
 		m_disconnectMutex.unlock();
 	}
 
 	void MessageQueue::EnqueueConnection(const NetworkMessage & msg)
 	{
 		m_connectionMutex.lock();
-		NewConnectionEvent ev(msg.m_senderID, (uint8_t*)msg.m_data);
+		NewConnectionEvent ev(msg.GetSenderID(), msg.GetData<void>());
 		m_connectionEvents.push_back(ev);
 		m_connectionMutex.unlock();
 	}

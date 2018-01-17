@@ -9,11 +9,11 @@ namespace inl::net::events
 	public:
 		inline DataReceivedEvent(const NetworkMessage &msg)
 		{
-			SenderID = msg.m_senderID;
-			DistributionMode = msg.m_distributionMode;
-			DestinationID = msg.m_destinationID;
-			Tag = msg.m_tag;
-			Data = msg.m_data;
+			SenderID = msg.GetSenderID();
+			DistributionMode = msg.GetDistributionMode();
+			DestinationID = msg.GetDestinationID();
+			Tag = msg.GetTag();
+			Data = msg.GetData<void>();
 		}
 
 	public:

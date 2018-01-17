@@ -5,16 +5,16 @@
 #include <queue>
 
 #include <BaseLibrary/SpinMutex.hpp>
+#include "TcpConnection.hpp"
 
 namespace inl::net
 {
 	class MessageQueue;
+	class TcpConnection;
 }
 
 namespace inl::net::servers
 {
-	class TcpConnection;
-
 	class TcpConnectionHandler
 	{
 	public:

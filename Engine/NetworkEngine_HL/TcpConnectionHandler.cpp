@@ -4,9 +4,6 @@
 #include "NewConnectionEvent.hpp"
 #include "InternalTags.hpp"
 
-#include "TcpConnection.hpp"
-#include "NetworkHeader.hpp"
-
 #include "NetworkMessage.hpp"
 #include "MessageQueue.hpp"
 
@@ -59,11 +56,7 @@ namespace inl::net::servers
 
 		c->SetID(id);
 
-		NetworkMessage msg;
-		msg.m_distributionMode = DistributionMode::ID;
-		msg.m_destinationID = id;
-		msg.m_tag = (uint32_t)InternalTags::AssignID;
-		msg.m_data = &id; // id to uint8_t*
+		NetworkMessage msg(id, DistributionMode::ID, id, (uint32_t)InternalTags::AssignID, &id, sizeof(uint32_t));
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
@@ -135,9 +128,9 @@ namespace inl::net::servers
 					NetworkMessage msg;
 					msg.Deserialize(buffer.get(), net_header->Size);
 
-					if (msg.m_tag == (uint32_t)InternalTags::Disconnect)
+					if (msg.GetTag() == (uint32_t)InternalTags::Disconnect)
 						m_queue->EnqueueDisconnection(msg);
-					else if (msg.m_tag == (uint32_t)InternalTags::Connect)
+					else if (msg.GetTag() == (uint32_t)InternalTags::Connect)
 						m_queue->EnqueueConnection(msg);
 					else
 						m_queue->EnqueueMessageReceived(msg);
@@ -160,13 +153,13 @@ namespace inl::net::servers
 			uint32_t size;
 			std::unique_ptr<uint8_t> data(msg.SerializeData(size));
 
-			if (msg.m_distributionMode == DistributionMode::Others)
+			if (msg.GetDistributionMode() == DistributionMode::Others)
 			{
 				m_listMutex.lock();
 				for (int i = 0; i < m_list.size(); i++)
 				{
 					std::shared_ptr<TcpConnection> c = m_list.at(i);
-					if (c->GetID() != msg.m_senderID)
+					if (c->GetID() != msg.GetSenderID())
 					{
 						int32_t sent;
 						if (!c->GetClient()->Send(data.get(), size, sent))
@@ -177,13 +170,13 @@ namespace inl::net::servers
 				}
 				m_listMutex.unlock();
 			}
-			else if (msg.m_distributionMode == DistributionMode::OthersAndServer)
+			else if (msg.GetDistributionMode() == DistributionMode::OthersAndServer)
 			{
 				m_listMutex.lock();
 				for (int i = 0; i < m_list.size(); i++)
 				{
 					std::shared_ptr<TcpConnection> c = m_list.at(i);
-					if (c->GetID() != msg.m_senderID)
+					if (c->GetID() != msg.GetSenderID())
 					{
 						int32_t sent;
 						if (!c->GetClient()->Send(data.get(), size, sent))
@@ -196,13 +189,13 @@ namespace inl::net::servers
 
 				//handle to plugins too
 			}
-			else if (msg.m_distributionMode == DistributionMode::ID)
+			else if (msg.GetDistributionMode() == DistributionMode::ID)
 			{
 				m_listMutex.lock();
 				for (int i = 0; i < m_list.size(); i++)
 				{
 					std::shared_ptr<TcpConnection> c = m_list.at(i);
-					if (c->GetID() == msg.m_senderID)
+					if (c->GetID() == msg.GetSenderID())
 					{
 						int32_t sent;
 						if (!c->GetClient()->Send(data.get(), size, sent))
@@ -213,7 +206,7 @@ namespace inl::net::servers
 				}
 				m_listMutex.unlock();
 			}
-			else if (msg.m_distributionMode == DistributionMode::All)
+			else if (msg.GetDistributionMode() == DistributionMode::All)
 			{
 				m_listMutex.lock();
 				for (int i = 0; i < m_list.size(); i++)
@@ -228,7 +221,7 @@ namespace inl::net::servers
 				}
 				m_listMutex.unlock();
 			}
-			else if (msg.m_distributionMode == DistributionMode::AllAndMe)
+			else if (msg.GetDistributionMode() == DistributionMode::AllAndMe)
 			{
 				m_listMutex.lock();
 				for (int i = 0; i < m_list.size(); i++)
@@ -245,7 +238,7 @@ namespace inl::net::servers
 
 				//handle to plugins too
 			}
-			else if (msg.m_distributionMode == DistributionMode::Server)
+			else if (msg.GetDistributionMode() == DistributionMode::Server)
 			{
 				//handle just in plugins
 			}
