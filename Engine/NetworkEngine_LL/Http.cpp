@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "Socket.hpp"
+#include "SecureSocket.hpp"
 
 #undef DELETE
 
@@ -21,10 +22,13 @@ namespace inl::net::http
 		
 		uint16_t port = 0;
 		std::unique_ptr<Socket> socket;
+		std::unique_ptr<SecureSocket> secure_socket;
+		bool secure = false;
 		if (request.uri().scheme() == "https") 
 		{
-			//socket.reset(new SslSocket(SocketType::Streaming));
-			//port = 443;
+			secure_socket.reset(new SecureSocket());
+			port = 443;
+			secure = true;
 		}
 		else if (request.uri().scheme() == "http") 
 		{
@@ -37,9 +41,9 @@ namespace inl::net::http
 		if (request.uri().port())
 			port = request.uri().port();
 
-		socket->Connect(IPAddress(request.uri().host(), port));
+		secure ? secure_socket->Connect(IPAddress(request.uri().host(), port)) : socket->Connect(IPAddress(request.uri().host(), port));
 		int32_t sent;
-		socket->Send((uint8_t*)string.c_str(), string.size(), sent);
+		secure ? secure_socket->Recv((uint8_t*)string.c_str(), string.size(), sent) : socket->Send((uint8_t*)string.c_str(), string.size(), sent);
 
 		std::vector<char> buffer(16384); // 16 KiB
 		std::stringstream ss;
@@ -47,11 +51,11 @@ namespace inl::net::http
 		int32_t read;
 		do 
 		{
-			socket->Recv((uint8_t*)&buffer[0], buffer.size(), read);
+			secure ? secure_socket->Recv((uint8_t*)&buffer[0], buffer.size(), read) : socket->Recv((uint8_t*)&buffer[0], buffer.size(), read);
 			ss.write(&buffer[0], read);
 		} 
 		while (read > 0);
-		socket->Close();
+		secure ? secure_socket->Close() : socket->Close();
 
 		return Response(ss.str());
 	}

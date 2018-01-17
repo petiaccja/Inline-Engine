@@ -4,9 +4,9 @@
 
 #include <cassert>
 
-namespace inl::net
+namespace inl::net::sockets
 {
-	SecureSocket::SecureSocket(Socket * soc)
+	SecureSocket::SecureSocket()
 		: m_context(0), m_conn(0), m_eof(false) 
 	{
 		m_socket = std::make_unique<Socket>(SocketType::Streaming);

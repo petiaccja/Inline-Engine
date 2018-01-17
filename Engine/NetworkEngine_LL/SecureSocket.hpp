@@ -6,7 +6,7 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-namespace inl::net
+namespace inl::net::sockets
 {
 	using namespace enums;
 	using namespace sockets;
@@ -14,7 +14,7 @@ namespace inl::net
 	class SecureSocket
 	{
 	public:
-		SecureSocket(Socket *soc);
+		SecureSocket();
 
 		bool Connect(const IPAddress& addr);
 		bool Close() const;
