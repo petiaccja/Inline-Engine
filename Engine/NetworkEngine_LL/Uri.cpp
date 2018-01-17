@@ -5,7 +5,7 @@
 
 namespace inl::net::http
 {
-	static bool isReserved(char ch) 
+	static bool IsReserved(char ch) 
 	{
 		switch (ch) 
 		{
@@ -20,22 +20,22 @@ namespace inl::net::http
 		}
 	}
 
-	static ParseResult<std::string> parseScheme(char const* str) 
+	static ParseResult<std::string> ParseScheme(char const* str) 
 	{
-		auto result = parseWhile(str, [](char ch) 
+		auto result = ParseWhile(str, [](char ch) 
 		{
-			return ch != ':' && !isReserved(ch);
+			return ch != ':' && !IsReserved(ch);
 		});
 
 		result.ch = (result.ch[0] == ':') ? (result.ch + 1) : (result.ch);
 		return result;
 	}
 
-	static ParseResult<std::string> parseUser(char const* str) 
+	static ParseResult<std::string> ParseUser(char const* str) 
 	{
-		auto result = parseWhile(str, [](char ch) 
+		auto result = ParseWhile(str, [](char ch) 
 		{
-			return ch != '@' && !isReserved(ch);
+			return ch != '@' && !IsReserved(ch);
 		});
 
 		if (result.ch[0] == '@')
@@ -47,15 +47,15 @@ namespace inl::net::http
 		return result;
 	}
 
-	static ParseResult<std::string> parseHost(char const* str) 
+	static ParseResult<std::string> ParseHost(char const* str) 
 	{
-		return parseWhile(str, [](char ch) 
+		return ParseWhile(str, [](char ch) 
 		{
-			return ch != ':' && !isReserved(ch);
+			return ch != ':' && !IsReserved(ch);
 		});
 	}
 
-	static ParseResult<uint16_t> parsePort(char const* str) 
+	static ParseResult<uint16_t> ParsePort(char const* str) 
 	{
 		ParseResult<uint16_t> result;
 		if (str[0] != ':') 
@@ -65,9 +65,9 @@ namespace inl::net::http
 			return result;
 		}
 
-		auto tmp = parseWhile(str + 1, [](char ch) 
+		auto tmp = ParseWhile(str + 1, [](char ch) 
 		{
-			return !isReserved(ch);
+			return !IsReserved(ch);
 		});
 
 		result.value = uint16_t(strtol(tmp.value.c_str(), 0, 10));
@@ -87,13 +87,13 @@ namespace inl::net::http
 			return result;
 		}
 
-		auto user = parseUser(str + 2); // For "//"
-		auto host = parseHost(user.ch);
-		auto port = parsePort(host.ch);
+		auto user = ParseUser(str + 2); // For "//"
+		auto host = ParseHost(user.ch);
+		auto port = ParsePort(host.ch);
 
-		result.value.userIs(user.value);
-		result.value.hostIs(host.value);
-		result.value.portIs(port.value);
+		result.value.SetUser(user.value);
+		result.value.SetHost(host.value);
+		result.value.SetPort(port.value);
 		result.ch = port.ch;
 
 		return result;
@@ -102,7 +102,7 @@ namespace inl::net::http
 	static ParseResult<std::string> parsePath(char const* str) 
 	{
 		// Return query/frag as part of path for now
-		ParseResult<std::string> result = parseWhile(str, [](char ch) 
+		ParseResult<std::string> result = ParseWhile(str, [](char ch) 
 		{
 			return true;
 		});
@@ -120,50 +120,50 @@ namespace inl::net::http
 	{
 		Uri uri;
 
-		auto scheme = parseScheme(str);
+		auto scheme = ParseScheme(str);
 		auto authority = parseAuthority(scheme.ch);
 		auto path = parsePath(authority.ch);
 
-		uri.schemeIs(scheme.value);
-		uri.authorityIs(authority.value);
-		uri.pathIs(path.value);
+		uri.SetScheme(scheme.value);
+		uri.SetAuthority(authority.value);
+		uri.SetPath(path.value);
 		return uri;
 	}
 
 
 	Authority::Authority(std::string const& user, std::string const& host, uint16_t port) 
 	{
-		user_ = user;
-		host_ = host;
-		port_ = port;
+		m_user = user;
+		m_host = host;
+		m_port = port;
 	}
 
 	Authority::Authority() 
 	{
-		port_ = 0;
+		m_port = 0;
 	}
 
-	void Authority::userIs(std::string const& user) 
+	void Authority::SetUser(std::string const& user) 
 	{
-		user_ = user;
+		m_user = user;
 	}
 
-	void Authority::hostIs(std::string const& host) 
+	void Authority::SetHost(std::string const& host) 
 	{
-		host_ = host;
+		m_host = host;
 	}
 
-	void Authority::portIs(uint16_t port) 
+	void Authority::SetPort(uint16_t port) 
 	{
-		port_ = port;
+		m_port = port;
 	}
 
-	Uri::Uri(char* const value) 
+	Uri::Uri(const char* value) 
 	{
 		*this = parseUri(value);
 	}
 
-	Uri::Uri(std::string const& value) 
+	Uri::Uri(const std::string& value) 
 	{
 		*this = parseUri(value.c_str());
 	}
@@ -171,18 +171,18 @@ namespace inl::net::http
 	Uri::Uri() {
 	}
 
-	void Uri::schemeIs(std::string const& scheme) 
+	void Uri::SetScheme(const std::string& scheme) 
 	{
-		scheme_ = scheme;
+		m_scheme = scheme;
 	}
 
-	void Uri::authorityIs(Authority const& authority)
+	void Uri::SetAuthority(const Authority& authority)
 	{
-		authority_ = authority;
+		m_authority = authority;
 	}
 
-	void Uri::pathIs(std::string const& path) 
+	void Uri::SetPath(const std::string& path) 
 	{
-		path_ = path;
+		m_path = path;
 	}
 }

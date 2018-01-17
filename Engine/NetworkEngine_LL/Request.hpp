@@ -4,50 +4,51 @@
 
 #include "Uri.hpp"
 #include "Headers.hpp"
+#include "Enums.hpp"
 
 namespace inl::net::http
 {
+	using namespace enums;
+
 	class Request 
 	{
 	public:
-		enum Method { GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT };
-
-		Method method() const 
+		Method GetMethod() const 
 		{ 
-			return method_; 
+			return m_method;
 		}
 
-		Uri const& uri() const 
+		const Uri& GetUri() const 
 		{ 
-			return uri_; 
+			return m_uri;
 		}
 
-		std::string const& path() const 
+		const std::string& GetPath() const 
 		{ 
-			return uri_.path();
+			return m_uri.GetPath();
 		}
 
-		std::string const& data() const 
+		const std::string& GetData() const 
 		{ 
-			return data_; 
+			return m_data;
 		}
 
-		std::string const header(std::string const& name) const;
+		const std::string GetHeaderElement(const std::string& name) const;
 
-		Headers const& headers() const 
+		const Headers& GetHeaders() const 
 		{ 
-			return headers_; 
+			return m_headers; 
 		}
 
-		void methodIs(Method method);
-		void uriIs(Uri const& path);
-		void dataIs(std::string const& data);
-		void headerIs(std::string const& name, std::string const& value);
+		void SetMethod(Method method);
+		void SetUri(const Uri& path);
+		void SetData(const std::string& data);
+		void AddHeader(const std::string& name, const std::string& value);
 
 	private:
-		Method method_ = GET;
-		Uri uri_;
-		std::string data_;
-		Headers headers_;
+		Method m_method = Method::GET;
+		Uri m_uri;
+		std::string m_data;
+		Headers m_headers;
 	};
 }

@@ -4,28 +4,28 @@
 
 namespace inl::net::http
 {
-	std::string const Request::header(std::string const& name) const 
+	const std::string Request::GetHeaderElement(const std::string& name) const 
 	{
-		return headers_.header(name);
+		return m_headers[name];
 	}
 
-	void Request::methodIs(Method method) 
+	void Request::SetMethod(Method method) 
 	{
-		method_ = method;
+		m_method = method;
 	}
 
-	void Request::uriIs(Uri const& uri) 
+	void Request::SetUri(const Uri& uri) 
 	{
-		uri_ = uri;
+		m_uri = uri;
 	}
 
-	void Request::dataIs(std::string const& data) 
+	void Request::SetData(const std::string& data) 
 	{
-		data_ = data;
+		m_data = data;
 	}
 
-	void Request::headerIs(std::string const& name, std::string const& value) 
+	void Request::AddHeader(const std::string& name, const std::string& value) 
 	{
-		headers_.headerIs(name, value);
+		m_headers.AddHeader(name, value);
 	}
 }

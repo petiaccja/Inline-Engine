@@ -9,70 +9,70 @@ namespace inl::net::http
 	class Authority 
 	{
 	public:
-		Authority(std::string const& user, std::string const& host, uint16_t port);
+		Authority(const std::string& user, const std::string& host, uint16_t port);
 		Authority();
 
-		std::string const& user() const 
+		const std::string& GetUser() const 
 		{ 
-			return user_; 
+			return m_user;
 		}
 
-		std::string const& host() const 
+		const std::string& GetHost() const 
 		{ 
-			return host_; 
+			return m_host;
 		}
 
-		uint16_t port() const 
+		uint16_t GetPort() const 
 		{ 
-			return port_; 
+			return m_port;
 		}
 
-		void userIs(std::string const& user);
-		void hostIs(std::string const& host);
-		void portIs(uint16_t port);
+		void SetUser(const std::string& user);
+		void SetHost(const std::string& host);
+		void SetPort(uint16_t port);
 	private:
-		std::string user_;
-		std::string host_;
-		uint16_t port_;
+		std::string m_user;
+		std::string m_host;
+		uint16_t m_port;
 	};
 
 	class Uri {
 	public:
-		Uri(char* const value);
-		Uri(std::string const& value);
+		Uri(const char* value);
+		Uri(const std::string& value);
 		Uri();
 
-		std::string const& scheme() const 
+		const std::string& GetScheme() const 
 		{ 
-			return scheme_;
+			return m_scheme;
 		}
 
-		Authority const& authority() const 
+		const Authority& GetAuthority() const 
 		{ 
-			return authority_; 
+			return m_authority;
 		}
 
-		std::string const& path() const 
+		const std::string& GetPath() const 
 		{ 
-			return path_; 
+			return m_path;
 		}
 
-		std::string const& host() const 
+		const std::string& GetHost() const 
 		{
-			return authority_.host(); 
+			return m_authority.GetHost();
 		}
 
-		uint16_t port() const 
+		uint16_t GetPort() const 
 		{ 
-			return authority_.port(); 
+			return m_authority.GetPort();
 		}
 
-		void schemeIs(std::string const& scheme);
-		void authorityIs(Authority const& authority);
-		void pathIs(std::string const& path);
+		void SetScheme(const std::string& scheme);
+		void SetAuthority(const Authority& authority);
+		void SetPath(const std::string& path);
 	private:
-		std::string scheme_;
-		Authority authority_;
-		std::string path_;
+		std::string m_scheme;
+		Authority m_authority;
+		std::string m_path;
 	};
 }

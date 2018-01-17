@@ -9,93 +9,92 @@ namespace inl::net::http
 	class Cookie 
 	{
 	public:
-		Cookie(std::string const& text);
+		Cookie(const std::string& text);
 
-		Cookie() : httpOnly_(false), secure_(false) 
+		Cookie() : m_httpOnly(false), m_secure(false)
 		{
 		}
 
-		std::string const& name() const 
+		const std::string& GetName() const 
 		{ 
-			return name_; 
+			return m_name;
 		}
 
-		std::string const& value() const 
+		const std::string& GetValue() const 
 		{ 
-			return value_; 
+			return m_value;
 		}
 
-		std::string const& path() const 
+		const std::string& GetPath() const 
 		{ 
-			return path_; 
+			return m_path;
 		}
 
-		bool httpOnly() const 
+		bool IsHttpOnly() const 
 		{ 
-			return httpOnly_; 
+			return m_httpOnly;
 		}
 
-		bool secure() const 
+		bool IsSecure() const 
 		{ 
-			return secure_; 
+			return m_secure;
 		}
 
-		void nameIs(std::string const& name) 
+		void SetName(const std::string& name) 
 		{ 
-			name_ = name; 
+			m_name = name;
 		}
 
-		void valueIs(std::string const& value) 
+		void SetValue(const std::string& value) 
 		{ 
-			value_ = value; 
+			m_value = value;
 		}
 
-		void pathIs(std::string const& path) 
+		void SetPath(const std::string& path) 
 		{ 
-			path_ = path; 
+			m_path = path;
 		}
 
-		void httpOnlyIs(bool httpOnly) 
+		void SetHttpOnly(bool httpOnly) 
 		{ 
-			httpOnly_ = httpOnly; 
+			m_httpOnly = httpOnly;
 		}
 
-		void secureIs(bool secure) 
+		void SetSecure(bool secure) 
 		{ 
-			secure_ = secure; 
+			m_secure = secure;
 		}
 
 	private:
-		std::string name_;
-		std::string value_;
-		std::string path_;
-		bool httpOnly_;
-		bool secure_;
+		std::string m_name;
+		std::string m_value;
+		std::string m_path;
+		bool m_httpOnly;
+		bool m_secure;
 	};
 
-	class Cookies {
+	class Cookies 
+	{
 	public:
-		typedef std::map<std::string, Cookie> Map;
+		const Cookie operator[](const std::string &name) const;
 
-		Cookie const cookie(std::string const& name) const;
-
-		Map::const_iterator begin() const 
+		std::map<std::string, Cookie>::const_iterator begin() const
 		{ 
-			return cookie_.begin(); 
+			return m_cookie.begin();
 		}
 
-		Map::const_iterator end() const 
+		std::map<std::string, Cookie>::const_iterator end() const
 		{ 
-			return cookie_.end(); 
+			return m_cookie.end();
 		}
 
-		void cookieIs(Cookie const& cookie);
+		void SetCookie(Cookie const& cookie);
 
-		static std::string const HOST;
-		static std::string const CONTENT_LENGTH;
-		static std::string const ACCEPT_ENCODING;
-		static std::string const CONNECTION;
+		static const std::string HOST;
+		static const std::string CONTENT_LENGTH;
+		static const std::string ACCEPT_ENCODING;
+		static const std::string CONNECTION;
 	private:
-		Map cookie_;
+		std::map<std::string, Cookie> m_cookie;
 	};
 }

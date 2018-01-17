@@ -15,7 +15,7 @@ namespace inl::net::http
 	};
 
 	template <typename F>
-	static inline ParseResult<std::string> parseUntil(char const* str, F func) 
+	static inline ParseResult<std::string> ParseUntil(char const* str, F func) 
 	{
 		ParseResult<std::string> result{};
 		char const* ch = str;
@@ -29,7 +29,7 @@ namespace inl::net::http
 	}
 
 	template <typename F>
-	static inline ParseResult<std::string> parseWhile(char const* str, F func) 
+	static inline ParseResult<std::string> ParseWhile(char const* str, F func) 
 	{
 		ParseResult<std::string> result{};
 		char const* ch = str;
@@ -42,26 +42,26 @@ namespace inl::net::http
 		return result;
 	}
 
-	static inline ParseResult<std::string> parseToken(char const* str) 
+	static inline ParseResult<std::string> ParseToken(char const* str) 
 	{
-		auto token = parseUntil(str, isspace);
-		token.ch = parseWhile(token.ch, isspace).ch;
+		auto token = ParseUntil(str, isspace);
+		token.ch = ParseWhile(token.ch, isspace).ch;
 		return token;
 	}
 
 	static inline ParseResult<std::string> parseCrLf(char const* str) 
 	{
-		auto cr = parseUntil(str, [](char ch) { return ch == '\r'; });
+		auto cr = ParseUntil(str, [](char ch) { return ch == '\r'; });
 		if (*cr.ch == '\r')
 			cr.ch++;
-		return parseWhile(cr.ch, [](char ch) 
+		return ParseWhile(cr.ch, [](char ch) 
 		{ 
 			return isspace(ch) && ch != '\r'; 
 		});
 	}
 
-	static inline ParseResult<std::string> parseWhitespace(char const* str) 
+	static inline ParseResult<std::string> ParseWhitespace(char const* str) 
 	{
-		return parseWhile(str, isspace);
+		return ParseWhile(str, isspace);
 	}
 }

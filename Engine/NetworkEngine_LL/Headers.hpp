@@ -6,28 +6,28 @@
 
 namespace inl::net::http
 {
-	class Headers {
+	class Headers 
+	{
 	public:
-		typedef std::multimap<std::string,std::string> Map;
+		const std::string operator[](const std::string &name) const;
 
-		std::string const header(std::string const& name) const;
-		Map::const_iterator begin() const 
+		std::multimap<std::string, std::string>::const_iterator begin() const
 		{ 
-			return header_.begin(); 
+			return m_header.begin();
 		}
 
-		Map::const_iterator end() const 
+		std::multimap<std::string, std::string>::const_iterator end() const
 		{ 
-			return header_.end(); 
+			return m_header.end();
 		}
 
-		void headerIs(std::string const& name, std::string const& value);
+		void AddHeader(std::string const& name, std::string const& value);
 
 		static std::string const HOST;
 		static std::string const CONTENT_LENGTH;
 		static std::string const ACCEPT_ENCODING;
 		static std::string const CONNECTION;
 	private:
-		Map header_;
+		std::multimap<std::string, std::string> m_header;
 };
 }

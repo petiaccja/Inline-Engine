@@ -9,14 +9,14 @@ namespace inl::net::http
 	std::string const Headers::ACCEPT_ENCODING("Accept-Encoding");
 	std::string const Headers::CONNECTION("Connection");
 
-	std::string const Headers::header(std::string const& name) const 
+	const std::string Headers::operator[](const std::string & name) const
 	{
-		auto i = header_.find(name);
-		return (i == header_.end()) ? "" : i->second;
+		auto i = m_header.find(name);
+		return (i == m_header.end()) ? "" : i->second;
 	}
 
-	void Headers::headerIs(std::string const& name, std::string const& value) 
+	void Headers::AddHeader(std::string const& name, std::string const& value) 
 	{
-		header_.emplace(name, value);
+		m_header.emplace(name, value);
 	}
 }

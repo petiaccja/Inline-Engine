@@ -10,11 +10,11 @@ namespace inl::net::http
 	class Http
 	{
 	public:
-		static Response get(std::string const& path, std::string const& data = "");
-		static Response post(std::string const& path, std::string const& data = "");
+		static Response Get(std::string const& path, std::string const& data = "");
+		static Response Post(std::string const& path, std::string const& data = "");
 
 	private:
-		static Response send(Request const& request);
-		static std::string str(Request const& request);
+		static Response Send(Request const& request);
+		static std::string Str(Request const& request);
 	};
 }

@@ -7,25 +7,25 @@
 
 namespace inl::net::http
 {
-	static ParseResult<Response::Status> parseStatus(char const* str) 
+	static ParseResult<HttpStatus> ParseStatus(const char* str)
 	{
-		ParseResult<Response::Status> result
+		ParseResult<HttpStatus> result
 		{
 		};
 
-		auto code = parseToken(str);
+		auto code = ParseToken(str);
 
-		result.value = (Response::Status)std::atoi(code.value.c_str());
+		result.value = (HttpStatus)std::atoi(code.value.c_str());
 		result.ch = code.ch;
 		return result;
 	}
 
-	Response parseResponse(char const* str) 
+	Response ParseResponse(const char* str) 
 	{
 		// Parse an HTTP response 
-		auto version = parseToken(str);
-		auto code = parseStatus(version.ch);
-		auto message = parseUntil(code.ch, [](char ch) 
+		auto version = ParseToken(str);
+		auto code = ParseStatus(version.ch);
+		auto message = ParseUntil(code.ch, [](char ch) 
 		{ 
 			return ch == '\r'; 
 		});
@@ -37,63 +37,63 @@ namespace inl::net::http
 		auto ch = parseCrLf(message.ch).ch;
 		while (*ch != '\0' && *ch != '\r') 
 		{
-			auto name = parseUntil(ch, [](char ch) 
+			auto name = ParseUntil(ch, [](char ch) 
 			{ 
 				return ch == ':'; 
 			});
 
 			if (*name.ch)
 				name.ch++; // For ":"
-			auto ws = parseWhile(name.ch, isspace);
-			auto value = parseUntil(ws.ch, [](char ch) 
+			auto ws = ParseWhile(name.ch, isspace);
+			auto value = ParseUntil(ws.ch, [](char ch) 
 			{ 
 				return ch == '\r'; 
 			});
 
-			response.headerIs(name.value, value.value);
+			response.SetHeader(name.value, value.value);
 			if (name.value == "Set-Cookie")
-				response.cookieIs(Cookie(value.value));
+				response.SetCookie(Cookie(value.value));
 			ch = parseCrLf(value.ch).ch;
 		}
 		ch = parseCrLf(ch).ch;
 
-		response.statusIs(code.value);
-		response.dataIs(ch);
+		response.SetStatus(code.value);
+		response.SetData(ch);
 		return response;
 	}
 
-	Response::Response(std::string const& response) 
+	Response::Response(const std::string& response) 
 	{
-		*this = parseResponse(response.c_str());
+		*this = ParseResponse(response.c_str());
 	}
 
-	std::string const Response::header(std::string const& name) const 
+	const std::string Response::GetHeader(const std::string& name) const 
 	{
-		return headers_.header(name);
+		return m_headers[name];
 	}
 
-	Cookie const Response::cookie(std::string const& name) const 
+	const Cookie Response::GetCookie(const std::string& name) const 
 	{
-		return cookies_.cookie(name);
+		return m_cookies[name];
 	}
 
-	void Response::statusIs(Status status) 
+	void Response::SetStatus(HttpStatus status)
 	{
-		status_ = status;
+		m_status = status;
 	}
 
-	void Response::dataIs(std::string const& data) 
+	void Response::SetData(const std::string& data) 
 	{
-		data_ = data;
+		m_data = data;
 	}
 
-	void Response::headerIs(std::string const& name, std::string const& value) 
+	void Response::SetHeader(const std::string& name, const std::string& value) 
 	{
-		headers_.headerIs(name, value);
+		m_headers.AddHeader(name, value);
 	}
 
-	void Response::cookieIs(Cookie const& cookie) 
+	void Response::SetCookie(const Cookie& cookie) 
 	{
-		cookies_.cookieIs(cookie);
+		m_cookies.SetCookie(cookie);
 	}
 }

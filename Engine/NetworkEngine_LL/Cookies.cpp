@@ -7,26 +7,28 @@
 
 namespace inl::net::http
 {
-	ParseResult<std::string> parseName(char const* str) 
+	ParseResult<std::string> ParseName(const char* str) 
 	{
-		return parseUntil(str, [](char ch) 
+		return ParseUntil(str, [](char ch) 
 		{ 
 			return isspace(ch) || ch == '='; 
 		});
 	}
 
-	ParseResult<std::string> parseValue(char const* str) 
+	ParseResult<std::string> ParseValue(const char* str) 
 	{
-		return parseUntil(str, [](char ch) 
-		{ return ch == ';' || ch == '='; 
+		return ParseUntil(str, [](char ch) 
+		{ 
+			return ch == ';' || ch == '='; 
 		});
 	}
 
-	ParseResult<std::string> parseSeparator(char const* str) {
+	ParseResult<std::string> ParseSeparator(const char* str) 
+	{
 		if (*str) 
 		{
 			assert(*str == ';' || *str == '=');
-			return parseWhitespace(str + 1);
+			return ParseWhitespace(str + 1);
 		}
 		else 
 		{
@@ -36,47 +38,47 @@ namespace inl::net::http
 		}
 	}
 
-	Cookie parseCookie(char const* str) 
+	Cookie ParseCookie(const char* str) 
 	{
-		auto name = parseName(str);
-		auto ch = parseSeparator(name.ch).ch;
-		auto value = parseValue(ch);
-		ch = parseSeparator(value.ch).ch;
+		auto name = ParseName(str);
+		auto ch = ParseSeparator(name.ch).ch;
+		auto value = ParseValue(ch);
+		ch = ParseSeparator(value.ch).ch;
 
 		auto cookie = Cookie();
-		cookie.nameIs(name.value);
-		cookie.valueIs(value.value);
+		cookie.SetName(name.value);
+		cookie.SetValue(value.value);
 		while (*ch) 
 		{
-			auto flag = parseValue(ch);
+			auto flag = ParseValue(ch);
 			if (flag.value == "Path") 
 			{
-				ch = parseSeparator(flag.ch).ch;
-				flag = parseValue(ch);
-				cookie.pathIs(flag.value);
+				ch = ParseSeparator(flag.ch).ch;
+				flag = ParseValue(ch);
+				cookie.SetPath(flag.value);
 			}
 			else if (flag.value == "HttpOnly")
-				cookie.httpOnlyIs(true);
+				cookie.SetHttpOnly(true);
 			else if (flag.value == "Secure")
-				cookie.secureIs(true);
-			ch = parseSeparator(flag.ch).ch;
+				cookie.SetSecure(true);
+			ch = ParseSeparator(flag.ch).ch;
 		}
 		return cookie;
 	}
 
-	Cookie::Cookie(std::string const& text) 
+	Cookie::Cookie(const std::string& text) 
 	{
-		*this = parseCookie(text.c_str());
+		*this = ParseCookie(text.c_str());
 	}
 
-	Cookie const Cookies::cookie(std::string const& name) const 
+	const Cookie Cookies::operator[](const std::string & name) const
 	{
-		auto i = cookie_.find(name);
-		return (i == cookie_.end()) ? Cookie() : i->second;
+		auto i = m_cookie.find(name);
+		return (i == m_cookie.end()) ? Cookie() : i->second;
 	}
 
-	void Cookies::cookieIs(Cookie const& cookie) 
+	void Cookies::SetCookie(const Cookie& cookie)
 	{
-		cookie_[cookie.name()] = cookie;
+		m_cookie[cookie.GetName()] = cookie;
 	}
 }
