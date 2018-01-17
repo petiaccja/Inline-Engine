@@ -3,8 +3,8 @@
 #include <BaseLibrary/Exception/Exception.hpp>
 
 #include "TcpConnection.hpp"
-#include "TcpSocketBuilder.hpp"
-#include "TcpClient.hpp"
+#include "NetworkEngine_LL/TcpSocketBuilder.hpp"
+#include "NetworkEngine_LL/TcpClient.hpp"
 
 namespace inl::net::servers
 {

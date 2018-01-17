@@ -18,7 +18,7 @@ namespace inl::net::http
 	{
 		// Send an HTTP request.  Auto-fill the content-length headers.
 		std::string string = str(request);
-
+		
 		uint16_t port = 0;
 		std::unique_ptr<Socket> socket;
 		if (request.uri().scheme() == "https") 
@@ -51,6 +51,7 @@ namespace inl::net::http
 			ss.write(&buffer[0], read);
 		} 
 		while (read > 0);
+		socket->Close();
 
 		return Response(ss.str());
 	}

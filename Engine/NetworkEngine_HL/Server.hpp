@@ -4,8 +4,6 @@
 #include "TcpServer.hpp"
 //#include "UdpServer.hpp
 
-#include <Net.hpp>
-
 namespace inl::net
 {
 	using namespace servers;
@@ -13,7 +11,7 @@ namespace inl::net
 	class Server
 	{
 	public:
-		Server(uint32_t max_connections, uint16_t port = DEFAULT_SERVER_PORT);
+		Server(uint32_t max_connections = 20, uint16_t port = DEFAULT_SERVER_PORT);
 
 		void Start();
 		void Stop();

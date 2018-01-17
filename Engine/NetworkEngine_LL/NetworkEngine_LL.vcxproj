@@ -100,6 +100,7 @@
     <ClInclude Include="Parse.hpp" />
     <ClInclude Include="Request.hpp" />
     <ClInclude Include="Response.hpp" />
+    <ClInclude Include="SecureSocket.hpp" />
     <ClInclude Include="Socket.hpp" />
     <ClInclude Include="ISocket.hpp" />
     <ClInclude Include="TcpClient.hpp" />
@@ -117,6 +118,7 @@
     <ClCompile Include="IPAddress.cpp" />
     <ClCompile Include="Request.cpp" />
     <ClCompile Include="Response.cpp" />
+    <ClCompile Include="SecureSocket.cpp" />
     <ClCompile Include="Socket.cpp" />
     <ClCompile Include="TcpClient.cpp" />
     <ClCompile Include="TcpListener.cpp" />

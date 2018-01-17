@@ -37,7 +37,7 @@ namespace inl::net::sockets
 		}
 	}
 
-	bool Socket::Close(void)
+	bool Socket::Close()
 	{
 		if (m_socket != INVALID_SOCKET)
 		{
@@ -121,7 +121,7 @@ namespace inl::net::sockets
 	{
 		sent = send(m_socket, (const char*)data, count, 0);
 
-		bool result = sent >= 0;
+		bool result = sent != SOCKET_ERROR;
 		if (result)
 			m_lastActivityTime = std::chrono::system_clock::now().time_since_epoch().count();
 

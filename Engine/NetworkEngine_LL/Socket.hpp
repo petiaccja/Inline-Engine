@@ -29,7 +29,7 @@ namespace inl::net::sockets
 
 		virtual bool Close() override;
 		virtual bool Bind(const IPAddress &addr) override;
-		virtual bool Connect(const IPAddress& addrStr) override;
+		virtual bool Connect(const IPAddress& addr) override;
 		inline virtual bool Listen() override { return listen(m_socket, SOMAXCONN) == 0; }
 		virtual bool WaitForPendingConnection(bool& hasPendingConnection, std::chrono::milliseconds t) override;
 		virtual bool HasPendingData(uint32_t& pendingDataSize) override;

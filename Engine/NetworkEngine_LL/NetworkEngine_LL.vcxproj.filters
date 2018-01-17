@@ -81,6 +81,9 @@
     <ClInclude Include="Http.hpp">
       <Filter>Http</Filter>
     </ClInclude>
+    <ClInclude Include="SecureSocket.hpp">
+      <Filter>Sockets</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Socket.cpp">
@@ -118,6 +121,9 @@
     </ClCompile>
     <ClCompile Include="Http.cpp">
       <Filter>Http</Filter>
+    </ClCompile>
+    <ClCompile Include="SecureSocket.cpp">
+      <Filter>Sockets</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
