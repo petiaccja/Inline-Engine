@@ -59,8 +59,12 @@ namespace inl::net::sockets
 		virtual bool SetReceiveBufferSize(int32_t size, int32_t& newSize) override;
 		virtual uint32_t GetPort() override;
 
+		SOCKET GetNativeSocket() 
+		{ 
+			return m_socket; 
+		}
+
 	private:
-		SOCKET getNativeSocket() { return m_socket; }
 		void init();
 
 		virtual SocketReturn HasState(SocketParam state, std::chrono::milliseconds t = std::chrono::milliseconds(0));

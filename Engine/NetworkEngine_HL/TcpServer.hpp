@@ -1,8 +1,8 @@
 #pragma once
 
-#include "NetworkEngine_LL/TcpListener.hpp"
+#include <atomic>
 
-#include "TcpConnectionHandler.hpp"
+#include "NetworkEngine_LL/TcpListener.hpp"
 
 namespace inl::net
 {
@@ -12,6 +12,8 @@ namespace inl::net
 namespace inl::net::servers
 {
 	using namespace sockets;
+
+	class TcpConnectionHandler;
 
 	class TcpServer
 	{
@@ -24,17 +26,12 @@ namespace inl::net::servers
 		void Stop();
 
 	private:
-		void AcceptClients();
-
-	private:
-		std::unique_ptr<TcpListener> listener;
+		std::shared_ptr<TcpListener> listener;
 		uint32_t m_maxConnections;
 		uint16_t m_port;
 
 		std::atomic_bool m_run;
 
-		std::thread m_acceptingThread;
-
-		std::unique_ptr<TcpConnectionHandler> m_connectionHandler;
+		std::shared_ptr<inl::net::servers::TcpConnectionHandler> m_connectionHandler;
 	};
 }

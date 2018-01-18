@@ -11,6 +11,11 @@ namespace inl::net
 	class MessageQueue;
 	class TcpConnection;
 	class Server;
+
+	namespace sockets
+	{
+		class TcpListener;
+	}
 }
 
 namespace inl::net::servers
@@ -20,7 +25,7 @@ namespace inl::net::servers
 		friend class inl::net::Server;
 
 	public:
-		TcpConnectionHandler();
+		TcpConnectionHandler(std::shared_ptr<inl::net::sockets::TcpListener> listener_ptr);
 		~TcpConnectionHandler();
 
 		void Start();
@@ -31,10 +36,10 @@ namespace inl::net::servers
 		uint32_t GetAvailableID();
 
 	private:
-		void HandleReceive();
+		void HandleReceiveMsgAndConns();
 		void HandleSend();
 
-		void HandleReceiveThreaded();
+		void HandleReceiveMsgAndConnsThreaded();
 		void HandleSendThreaded();
 
 	private:
@@ -49,5 +54,7 @@ namespace inl::net::servers
 		std::atomic_bool m_run;
 
 		std::shared_ptr<MessageQueue> m_queue;
+
+		std::shared_ptr<inl::net::sockets::TcpListener> m_listenerPtr;
 	};
 }

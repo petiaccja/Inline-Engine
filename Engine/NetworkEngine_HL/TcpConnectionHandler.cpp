@@ -7,6 +7,7 @@
 #include "NetworkMessage.hpp"
 #include "MessageQueue.hpp"
 #include "TcpConnection.hpp"
+#include "NetworkEngine_LL/TcpListener.hpp"
 
 #include <chrono>
 
@@ -14,8 +15,9 @@ namespace inl::net::servers
 {
 	using namespace events;
 
-	TcpConnectionHandler::TcpConnectionHandler()
+	TcpConnectionHandler::TcpConnectionHandler(std::shared_ptr<TcpListener> listener_ptr)
 		: m_run(false)
+		, m_listenerPtr(listener_ptr)
 	{
 	}
 
@@ -27,7 +29,7 @@ namespace inl::net::servers
 	void TcpConnectionHandler::Start()
 	{
 		m_run.exchange(true);
-		std::thread receive_thread(&TcpConnectionHandler::HandleReceiveThreaded, this);
+		std::thread receive_thread(&TcpConnectionHandler::HandleReceiveMsgAndConnsThreaded, this);
 		m_receiveThread.swap(receive_thread);
 
 		std::thread send_thread(&TcpConnectionHandler::HandleSendThreaded, this);
@@ -103,29 +105,69 @@ namespace inl::net::servers
 		m_maxConnections = max_connections;
 	}
 
-	void TcpConnectionHandler::HandleReceive()
+	void TcpConnectionHandler::HandleReceiveMsgAndConns()
 	{
-		m_listMutex.lock();
-		for (int i = 0; i < m_list.size(); i++)
+		// https://www.ibm.com/support/knowledgecenter/en/ssw_i5_54/rzab6/poll.htm
+		std::vector<pollfd> poll_fds;
+		pollfd master_fd;
+		master_fd.fd = m_listenerPtr->m_socket->GetNativeSocket();
+		master_fd.events = POLLIN;
+
+		int res = poll(&poll_fds[0], poll_fds.size(), -1);
+
+		if (res < 0)
 		{
-			std::shared_ptr<TcpConnection> c = m_list.at(i);
-			std::unique_ptr<uint8_t> header(new uint8_t[sizeof(NetworkHeader*)]());
+			//poll error
+		}
 
-			int32_t read;
-			if (!c->GetClient()->Recv(header.get(), sizeof(NetworkHeader*), read))
-				return;
+		//should never timeout because its infinite (negative)
+		//if (res == 0)
+		//{
+			//timeout
+		//}
 
-			if (read == sizeof(NetworkHeader*))
+		for (int i = 0; i < poll_fds.size(); i++)
+		{
+			if (poll_fds.at(i).revents == 0)
+				continue;
+
+			if (poll_fds[i].revents != POLLIN)
 			{
-				std::unique_ptr<NetworkHeader> net_header((NetworkHeader*)header.get());
+				printf("  Error! revents = %d\n", poll_fds.at(i).revents);
+				//end_server = TRUE;
+				break;
 
-				std::unique_ptr<uint8_t> buffer(new uint8_t[net_header->Size]());
-				int32_t read;
-				if (!c->GetClient()->Recv(buffer.get(), net_header->Size, read))
+			}
+			if (poll_fds.at(i).fd == m_listenerPtr->m_socket->GetNativeSocket())
+			{
+				TcpClient *c = m_listenerPtr->AcceptClient();
+				if (c)
 				{
-					if (read != net_header->Size)
-						return; // wrong message?
+					std::shared_ptr<TcpConnection> connection = std::make_shared<TcpConnection>(c);
 
+					pollfd new_client;
+					new_client.fd = connection->GetClient()->m_socket->GetNativeSocket();
+					new_client.events = POLLIN;
+					poll_fds.emplace_back(new_client);
+
+					AddClient(connection);
+				}
+			}
+			else // not the listening socket
+			{
+				SOCKET c = poll_fds.at(i).fd;
+				std::unique_ptr<uint8_t> header(new uint8_t[sizeof(NetworkHeader*)]());
+
+				int32_t read;
+				if ((read = recv(c, (char*)header.get(), sizeof(NetworkHeader*), 0)) != sizeof(NetworkHeader*))
+					continue;
+
+				std::unique_ptr<NetworkHeader> net_header((NetworkHeader*)header.get());
+				std::unique_ptr<uint8_t> buffer(new uint8_t[net_header->Size]());
+
+				int32_t read;
+				if ((read = recv(c, (char*)buffer.get(), net_header->Size, 0)) == net_header->Size)
+				{
 					NetworkMessage msg;
 					msg.Deserialize(buffer.get(), net_header->Size);
 
@@ -136,13 +178,10 @@ namespace inl::net::servers
 					else
 						m_queue->EnqueueMessageReceived(msg);
 				}
-			}
-			else // wrong message
-			{
-				return;
+				else
+					continue;
 			}
 		}
-		m_listMutex.unlock();
 	}
 
 	void TcpConnectionHandler::HandleSend()
@@ -246,11 +285,11 @@ namespace inl::net::servers
 		}
 	}
 
-	void TcpConnectionHandler::HandleReceiveThreaded()
+	void TcpConnectionHandler::HandleReceiveMsgAndConnsThreaded()
 	{
 		while (m_run.load())
 		{
-			HandleReceive();
+			HandleReceiveMsgAndConns();
 			std::this_thread::sleep_for(std::chrono::milliseconds(5));
 		}
 	}

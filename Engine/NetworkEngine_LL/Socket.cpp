@@ -86,7 +86,7 @@ namespace inl::net::sockets
 
 		if (HasState(SocketParam::CanRead) == SocketReturn::Yes)
 		{
-			if (ioctlsocket(m_socket, FIONREAD, (u_long*)(&pendingDataSize)) == 0)
+			if (ioctl(m_socket, FIONREAD, &pendingDataSize) == 0)
 				return (pendingDataSize > 0);
 		}
 
@@ -243,8 +243,7 @@ namespace inl::net::sockets
 #else 
 
 #if _WIN32
-		u_long value = isNonBlocking ? true : false;
-		return ioctlsocket(m_socket, FIONBIO, &value) == 0;
+		return ioctl(m_socket, FIONBIO, &isNonBlocking) == 0;
 #else 
 		int flags = fcntl(m_socket, F_GETFL, 0);
 		flags = isNonBlocking ? flags | O_NONBLOCK : flags ^ (flags & O_NONBLOCK);

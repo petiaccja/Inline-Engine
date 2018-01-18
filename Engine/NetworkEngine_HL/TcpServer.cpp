@@ -5,6 +5,7 @@
 #include "TcpConnection.hpp"
 #include "NetworkEngine_LL/TcpSocketBuilder.hpp"
 #include "NetworkEngine_LL/TcpClient.hpp"
+#include "TcpConnectionHandler.hpp"
 
 namespace inl::net::servers
 {
@@ -13,11 +14,11 @@ namespace inl::net::servers
 		, m_port(port)
 		, m_run(false)
 	{
-		m_connectionHandler = std::make_unique<TcpConnectionHandler>();
+		m_connectionHandler = std::make_shared<inl::net::servers::TcpConnectionHandler>(listener);
 		if (max_connections == 0 || port == 0)
 			throw InvalidArgumentException("TcpServer::TcpServer()");
 
-		listener = TcpSocketBuilder().AsReusable().Bind(IPAddress(0, 0, 0, 0, port)).Listening().BuildListener();
+		listener = std::shared_ptr<TcpListener>(TcpSocketBuilder().AsReusable().Bind(IPAddress(0, 0, 0, 0, port)).Listening().BuildListener().release());
 		m_connectionHandler->SetMaxConnections(max_connections);
 	}
 
@@ -25,26 +26,10 @@ namespace inl::net::servers
 	{
 		m_run = true;
 		m_connectionHandler->Start();
-
-		std::thread receive_thread(&TcpServer::AcceptClients, this);
-		m_acceptingThread.swap(receive_thread);
 	}
 
 	void TcpServer::Stop()
 	{
 		m_run.exchange(false);
-	}
-
-	void TcpServer::AcceptClients()
-	{
-		while (m_run.load())
-		{
-			TcpClient *c = listener->AcceptClient();
-			if (c)
-			{
-				std::shared_ptr<TcpConnection> connection = std::make_shared<TcpConnection>(c);
-				m_connectionHandler->AddClient(connection); // maybe i should thread the add fn in the handler
-			}
-		}
 	}
 }

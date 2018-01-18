@@ -1,12 +1,17 @@
 #pragma once
 
-#include "MessageQueue.hpp"
-#include "TcpServer.hpp"
-//#include "UdpServer.hpp
+#include <NetworkEngine_LL/Net.hpp>
+
+#include <memory>
 
 namespace inl::net
 {
-	using namespace servers;
+	namespace servers
+	{
+		class TcpServer;
+	}
+
+	class MessageQueue;
 
 	class Server
 	{
@@ -17,7 +22,7 @@ namespace inl::net
 		void Stop();
 
 	private:
-		std::unique_ptr<TcpServer> m_tcpServer;
+		std::shared_ptr<inl::net::servers::TcpServer> m_tcpServer;
 
 		std::shared_ptr<MessageQueue> m_queue;
 	};

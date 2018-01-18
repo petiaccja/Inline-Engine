@@ -1,6 +1,8 @@
 #include "NetworkEngine_LL/Init.hpp"
 #include "Server.hpp"
 #include "BitConverter.hpp"
+#include "NetworkEngine_LL/TcpClient.hpp"
+#include "NetworkMessage.hpp"
 
 #include <iostream>
 

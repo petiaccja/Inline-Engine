@@ -3,12 +3,21 @@
 #include <stdint.h>
 
 #ifdef _MSC_VER
-#pragma comment(lib, "ws2_32.lib")
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#undef SendMessage
-#undef SetPort
+	#pragma comment(lib, "ws2_32.lib")
+	#include <winsock2.h>
+	#include <ws2tcpip.h>
+	#undef SendMessage
+	#undef SetPort
 
+	int poll(pollfd *fds, uint32_t nfds, int32_t timeout)
+	{
+		return WSAPoll(fds, nfds, timeout);
+	}
+
+	int ioctl(SOCKET s, long cmd, void *argp)
+	{
+		return ioctlsocket(s, cmd, (u_long*)argp);
+	}
 #else
 	#include <unistd.h>
 	#include <stdio.h>
@@ -26,6 +35,11 @@
 	#define SOCKET int
 	#define closesocket close
 	#define ioctlsocket ioctl
+
+	int closesocket(SOCKET soc)
+	{
+		return close(soc);
+	}
 
 #endif
 
