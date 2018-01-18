@@ -4,19 +4,24 @@
 
 #include "TcpConnectionHandler.hpp"
 
+namespace inl::net
+{
+	class Server;
+}
+
 namespace inl::net::servers
 {
 	using namespace sockets;
 
 	class TcpServer
 	{
+		friend class inl::net::Server;
+
 	public:
 		TcpServer(uint32_t max_connections, uint16_t port = DEFAULT_SERVER_PORT);
 
 		void Start();
 		void Stop();
-
-		std::unique_ptr<TcpConnectionHandler> m_connectionHandler; // quick hack
 
 	private:
 		void AcceptClients();
@@ -29,5 +34,7 @@ namespace inl::net::servers
 		std::atomic_bool m_run;
 
 		std::thread m_acceptingThread;
+
+		std::unique_ptr<TcpConnectionHandler> m_connectionHandler;
 	};
 }

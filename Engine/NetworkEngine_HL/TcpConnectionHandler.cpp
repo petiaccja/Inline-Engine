@@ -6,6 +6,7 @@
 
 #include "NetworkMessage.hpp"
 #include "MessageQueue.hpp"
+#include "TcpConnection.hpp"
 
 #include <chrono>
 

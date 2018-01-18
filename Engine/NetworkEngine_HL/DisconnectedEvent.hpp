@@ -24,9 +24,9 @@ namespace inl::net::events
 		{
 		}
 
-		inline const std::string &Reason() const { return m_reason; }
-		inline int32_t ReasonID() const { return m_reasonID; }
-		inline uint32_t ID() const { return m_clientID; }
+		inline const std::string &GetReason() const { return m_reason; }
+		inline int32_t GetReasonID() const { return m_reasonID; }
+		inline uint32_t GetID() const { return m_clientID; }
 
 	private:
 		std::string m_reason;

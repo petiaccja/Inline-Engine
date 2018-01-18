@@ -2,10 +2,17 @@
 
 #include "Socket.hpp"
 
+namespace inl::net::servers
+{
+	class TcpConnectionHandler;
+}
+
 namespace inl::net::sockets
 {
 	class TcpClient
 	{
+		friend class inl::net::servers::TcpConnectionHandler;
+
 	public:
 		TcpClient(Socket *soc);
 		TcpClient(SocketProtocol protocol = SocketProtocol::IPv4);

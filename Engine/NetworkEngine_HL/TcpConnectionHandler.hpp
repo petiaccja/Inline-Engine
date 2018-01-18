@@ -5,18 +5,20 @@
 #include <queue>
 
 #include <BaseLibrary/SpinMutex.hpp>
-#include "TcpConnection.hpp"
 
 namespace inl::net
 {
 	class MessageQueue;
 	class TcpConnection;
+	class Server;
 }
 
 namespace inl::net::servers
 {
 	class TcpConnectionHandler
 	{
+		friend class inl::net::Server;
+
 	public:
 		TcpConnectionHandler();
 		~TcpConnectionHandler();
@@ -28,8 +30,6 @@ namespace inl::net::servers
 
 		uint32_t GetAvailableID();
 
-		std::shared_ptr<MessageQueue> m_queue; // quick hack
-
 	private:
 		void HandleReceive();
 		void HandleSend();
@@ -39,6 +39,8 @@ namespace inl::net::servers
 
 	private:
 		std::vector<std::shared_ptr<TcpConnection>> m_list;
+		inl::spin_mutex m_listMutex;
+
 		uint32_t m_maxConnections;
 
 		std::thread m_receiveThread;
@@ -46,6 +48,6 @@ namespace inl::net::servers
 
 		std::atomic_bool m_run;
 
-		inl::spin_mutex m_listMutex;
+		std::shared_ptr<MessageQueue> m_queue;
 	};
 }
