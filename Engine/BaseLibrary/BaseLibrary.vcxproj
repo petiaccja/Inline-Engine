@@ -120,7 +120,6 @@
     <ClInclude Include="EnumFlag.hpp" />
     <ClInclude Include="BitOperations.hpp" />
     <ClInclude Include="Color.hpp" />
-    <ClInclude Include="Common.hpp" />
     <ClInclude Include="Delegate.hpp" />
     <ClInclude Include="Event.hpp" />
     <ClInclude Include="Exception\Exception.hpp" />

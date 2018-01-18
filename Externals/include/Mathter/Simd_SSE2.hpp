@@ -434,20 +434,17 @@ union alignas(16) Simd<double, 4> {
 	static inline double dot(const Simd& lhs, const Simd& rhs) {
 		static_assert(Count <= 4, "Number of elements to dot must be smaller or equal to dimension.");
 		static_assert(0 < Count, "Count must not be zero.");
-		__m128d reg1, reg2;
-		reg1 = _mm_mul_pd(lhs.reg[0], rhs.reg[0]);
-		reg2 = _mm_mul_pd(lhs.reg[1], rhs.reg[1]);
+		__m128d regs[2];
+		regs[0] = _mm_mul_pd(lhs.reg[0], rhs.reg[0]);
+		regs[1] = _mm_mul_pd(lhs.reg[1], rhs.reg[1]);
 
-		for (int i = 3; i >= Count && i >= 2; --i) {
-			reinterpret_cast<float*>(&reg2)[i] = 0.0f;
-		}
-		for (int i = 1; i >= Count && i >= 0; --i) {
-			reinterpret_cast<float*>(&reg1)[i] = 0.0f;
+		for (int i = 3; i >= Count; --i) {
+			reinterpret_cast<double*>(&regs)[i] = 0.0;
 		}
 
 		double sum;
-		reg1 = _mm_add_pd(reg1, reg2);
-		sum = reinterpret_cast<float*>(&reg1)[0] + reinterpret_cast<float*>(&reg1)[1];
+		regs[0] = _mm_add_pd(regs[0], regs[1]);
+		sum = reinterpret_cast<double*>(&regs[0])[0] + reinterpret_cast<double*>(&regs[0])[1];
 
 		return sum;
 	}

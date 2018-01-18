@@ -48,14 +48,16 @@ T MatrixSquare<T, Dim, Dim, Order, Layout, Packed>::Trace() const {
 
 template <class T, int Dim, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
 T MatrixSquare<T, Dim, Dim, Order, Layout, Packed>::Determinant() const {
-	// only works for Crout's algorithm, where U's diagonal is 1s
+	// only works if L's diagonal is 1s
 	MatrixT L, U;
-	self().DecomposeLU(L, U);
-	T prod = L(0, 0);
-	for (int i = 1; i < L.RowCount(); ++i) {
-		prod *= L(i, i);
+	Vector<int, Dim, false> P;
+	int parity;
+	self().DecomposeLUP(L, U, P, parity);
+	T prod = U(0, 0);
+	for (int i = 1; i < U.RowCount(); ++i) {
+		prod *= U(i, i);
 	}
-	return prod;
+	return parity*prod;
 }
 
 template <class T, int Dim, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
@@ -74,14 +76,14 @@ template <class T, int Dim, eMatrixOrder Order, eMatrixLayout Layout, bool Packe
 auto MatrixSquare<T, Dim, Dim, Order, Layout, Packed>::Inverse() const -> MatrixT {
 	MatrixT ret;
 
-	mathter::DecompositionLU<T, Dim, Order, Layout, Packed> LU = self().DecompositionLU();
+	auto LUP = self().DecompositionLUP();
 
 	Vector<T, Dim, Packed> b(0);
 	Vector<T, Dim, Packed> x;
 	for (int col = 0; col < Dim; ++col) {
 		b(std::max(0, col - 1)) = 0;
 		b(col) = 1;
-		LU.Solve(x, b);
+		x = LUP.Solve(b);
 		for (int i = 0; i < Dim; ++i) {
 			ret(i, col) = x(i);
 		}

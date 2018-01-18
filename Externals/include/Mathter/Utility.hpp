@@ -26,13 +26,15 @@ public:
 
 // Radians and degrees
 template <class Scalar>
-Scalar Rad2Deg(Scalar rad) {
-	return rad / Constants<Scalar>::Pi * Scalar(180);
+auto Rad2Deg(Scalar rad) {
+	using ComputeT = typename std::conditional<std::is_floating_point<Scalar>::value, Scalar, long double>::type;
+	return rad / Constants<ComputeT>::Pi * ComputeT(180);
 }
 
 template <class Scalar>
-Scalar Deg2Rad(Scalar deg) {
-	return deg / Scalar(180) * Constants<Scalar>::Pi;
+auto Deg2Rad(Scalar deg) {
+	using ComputeT = typename std::conditional<std::is_floating_point<Scalar>::value, Scalar, long double>::type;
+	return deg / ComputeT(180) * Constants<ComputeT>::Pi;
 }
 
 

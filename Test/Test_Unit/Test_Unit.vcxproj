@@ -146,6 +146,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BaseLibrary\Test_Range.cpp" />
     <ClCompile Include="BaseLibrary\Test_Transformable.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>

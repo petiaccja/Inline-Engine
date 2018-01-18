@@ -99,7 +99,6 @@
     <ClInclude Include="GraphEditor\INode.hpp">
       <Filter>GraphEditor</Filter>
     </ClInclude>
-    <ClInclude Include="Common.hpp" />
     <ClInclude Include="Delegate.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="Transform3D.hpp" />

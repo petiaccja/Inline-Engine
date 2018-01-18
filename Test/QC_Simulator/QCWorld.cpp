@@ -306,9 +306,9 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_terrainEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_terrainEntity->SetMesh(m_terrainMesh.get());
 	m_terrainEntity->SetMaterial(m_terrainMaterial.get());
-	m_terrainEntity->InitPosition({ 0,0,0 });
-	m_terrainEntity->InitRotation({ 1,0,0,0 });
-	m_terrainEntity->InitScale({ 1,1,1 });
+	m_terrainEntity->SetPosition({ 0,0,0 });
+	m_terrainEntity->SetRotation({ 1,0,0,0 });
+	m_terrainEntity->SetScale({ 1,1,1 });
 	m_worldScene->GetMeshEntities().Add(m_terrainEntity.get());
 
 	/**
@@ -319,9 +319,9 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		sphere.reset(m_graphicsEngine->CreateMeshEntity());
 		sphere->SetMesh(m_sphereMesh.get());
 		sphere->SetMaterial(m_sphereMaterial.get());
-		sphere->InitPosition({ 0.1-c*0.01, -1.44+0.1+c*0.1, 1.38 });
-		sphere->InitRotation({ 1,0,0,0 });
-		sphere->InitScale({ 0.05,0.01,0.1 });
+		sphere->SetPosition({ 0.1-c*0.01, -1.44+0.1+c*0.1, 1.38 });
+		sphere->SetRotation({ 1,0,0,0 });
+		sphere->SetScale({ 0.05,0.01,0.1 });
 		m_worldScene->GetMeshEntities().Add(sphere.get());
 		m_staticEntities.push_back(std::move(sphere));
 	}
@@ -334,9 +334,9 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		sphere.reset(m_graphicsEngine->CreateMeshEntity());
 		sphere->SetMesh(m_sphereMesh.get());
 		sphere->SetMaterial(m_sphereMaterial.get());
-		sphere->InitPosition({ 0.1, -1.44 + 3.3, 0.0 });
-		sphere->InitRotation({ 1,0,0,0 });
-		sphere->InitScale({ 0.5,0.5,0.5 });
+		sphere->SetPosition({ 0.1, -1.44 + 3.3, 0.0 });
+		sphere->SetRotation({ 1,0,0,0 });
+		sphere->SetScale({ 0.5,0.5,0.5 });
 		m_worldScene->GetMeshEntities().Add(sphere.get());
 		m_staticEntities.push_back(std::move(sphere));
 	}
@@ -346,9 +346,9 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		sphere.reset(m_graphicsEngine->CreateMeshEntity());
 		sphere->SetMesh(m_sphereMesh.get());
 		sphere->SetMaterial(m_sphereMaterial.get());
-		sphere->InitPosition({ 0.1+1.0, -1.44 + 3.3, 0.0 });
-		sphere->InitRotation({ 1,0,0,0 });
-		sphere->InitScale({ 0.5,0.5,0.5 });
+		sphere->SetPosition({ 0.1+1.0, -1.44 + 3.3, 0.0 });
+		sphere->SetRotation({ 1,0,0,0 });
+		sphere->SetScale({ 0.5,0.5,0.5 });
 		m_worldScene->GetMeshEntities().Add(sphere.get());
 		m_staticEntities.push_back(std::move(sphere));
 	}
@@ -358,9 +358,9 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		sphere.reset(m_graphicsEngine->CreateMeshEntity());
 		sphere->SetMesh(m_sphereMesh.get());
 		sphere->SetMaterial(m_sphereMaterial.get());
-		sphere->InitPosition({ 0.1 - 1.0, -1.44 + 3.3, 0.0 });
-		sphere->InitRotation({ 1,0,0,0 });
-		sphere->InitScale({ 0.5,0.5,0.5 });
+		sphere->SetPosition({ 0.1 - 1.0, -1.44 + 3.3, 0.0 });
+		sphere->SetRotation({ 1,0,0,0 });
+		sphere->SetScale({ 0.5,0.5,0.5 });
 		m_worldScene->GetMeshEntities().Add(sphere.get());
 		m_staticEntities.push_back(std::move(sphere));
 	}
@@ -370,9 +370,9 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		sphere.reset(m_graphicsEngine->CreateMeshEntity());
 		sphere->SetMesh(m_sphereMesh.get());
 		sphere->SetMaterial(m_sphereMaterial.get());
-		sphere->InitPosition({ 0.1 + 0.5, -1.44 + 3.3, 0.0 + 0.75 });
-		sphere->InitRotation({ 1,0,0,0 });
-		sphere->InitScale({ 0.5,0.5,0.5 });
+		sphere->SetPosition({ 0.1 + 0.5, -1.44 + 3.3, 0.0 + 0.75 });
+		sphere->SetRotation({ 1,0,0,0 });
+		sphere->SetScale({ 0.5,0.5,0.5 });
 		m_worldScene->GetMeshEntities().Add(sphere.get());
 		m_staticEntities.push_back(std::move(sphere));
 	}
@@ -382,9 +382,9 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		sphere.reset(m_graphicsEngine->CreateMeshEntity());
 		sphere->SetMesh(m_sphereMesh.get());
 		sphere->SetMaterial(m_sphereMaterial.get());
-		sphere->InitPosition({ 0.1 - 0.5, -1.44 + 3.3, 0.0 + 0.75 });
-		sphere->InitRotation({ 1,0,0,0 });
-		sphere->InitScale({ 0.5,0.5,0.5 });
+		sphere->SetPosition({ 0.1 - 0.5, -1.44 + 3.3, 0.0 + 0.75 });
+		sphere->SetRotation({ 1,0,0,0 });
+		sphere->SetScale({ 0.5,0.5,0.5 });
 		m_worldScene->GetMeshEntities().Add(sphere.get());
 		m_staticEntities.push_back(std::move(sphere));
 	}
@@ -394,9 +394,9 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		sphere.reset(m_graphicsEngine->CreateMeshEntity());
 		sphere->SetMesh(m_sphereMesh.get());
 		sphere->SetMaterial(m_sphereMaterial.get());
-		sphere->InitPosition({ 0.1, -1.44 + 3.3, 0.0 + 1.5 });
-		sphere->InitRotation({ 1,0,0,0 });
-		sphere->InitScale({ 0.5,0.5,0.5 });
+		sphere->SetPosition({ 0.1, -1.44 + 3.3, 0.0 + 1.5 });
+		sphere->SetRotation({ 1,0,0,0 });
+		sphere->SetScale({ 0.5,0.5,0.5 });
 		m_worldScene->GetMeshEntities().Add(sphere.get());
 		m_staticEntities.push_back(std::move(sphere));
 	}
@@ -406,18 +406,18 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_quadcopterEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_quadcopterEntity->SetMesh(m_quadcopterMesh.get());
 	m_quadcopterEntity->SetMaterial(m_quadcopterMaterial.get());
-	m_quadcopterEntity->InitPosition({ 0,0,-3 });
-	m_quadcopterEntity->InitRotation({ 1,0,0,0 });
-	m_quadcopterEntity->InitScale({ 1,1,1 });
+	m_quadcopterEntity->SetPosition({ 0,0,-3 });
+	m_quadcopterEntity->SetRotation({ 1,0,0,0 });
+	m_quadcopterEntity->SetScale({ 1,1,1 });
 	m_worldScene->GetMeshEntities().Add(m_quadcopterEntity.get());
 
 	// Set up axes
 	m_axesEntity.reset(m_graphicsEngine->CreateMeshEntity());
 	m_axesEntity->SetMesh(m_axesMesh.get());
 	m_axesEntity->SetMaterial(m_axesMaterial.get());
-	m_axesEntity->InitPosition({ 0,0,3 });
-	m_axesEntity->InitRotation({ 1,0,0,0 });
-	m_axesEntity->InitScale({ 1,1,1 });
+	m_axesEntity->SetPosition({ 0,0,3 });
+	m_axesEntity->SetRotation({ 1,0,0,0 });
+	m_axesEntity->SetScale({ 1,1,1 });
 	//m_worldScene->GetMeshEntities().Add(m_axesEntity.get());
 
 	// Set up trees
@@ -519,9 +519,9 @@ void QCWorld::AddTree(inl::Vec3 position) {
 	tree.reset(m_graphicsEngine->CreateMeshEntity());
 	tree->SetMesh(m_treeMesh.get());
 	tree->SetMaterial(m_treeMaterial.get());
-	tree->InitPosition(position);
-	tree->InitRotation({ 1,0,0,0 });
-	tree->InitScale({ s,s,s });
+	tree->SetPosition(position);
+	tree->SetRotation({ 1,0,0,0 });
+	tree->SetScale({ s,s,s });
 	m_worldScene->GetMeshEntities().Add(tree.get());
 	m_staticEntities.push_back(std::move(tree));
 }

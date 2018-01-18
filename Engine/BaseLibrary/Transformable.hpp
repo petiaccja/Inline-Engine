@@ -6,18 +6,23 @@
 namespace inl {
 
 
+/// <summary> Determines the way transformable entities calculate their velocity transforms. </summary>
+enum class eMotionMode {
+	EXPLICIT, /// <summary> Motion vectors explicitly set by the user. </summary>
+	FIRST_ORDER, /// <summary> Motion vectors approximated from previous frame's transform. </summary>
+	SECOND_ORDER, /// <summary> Motion vector approximated fromprevious two frames' transform. </summary>
+};
 
-template <class T, int Dim>
+
+
+template <class T, int Dim, bool EnableMotion>
 class Transformable;
-
-
-
 
 
 template <class T, int Dim>
 class Transformable23Base {
 	static_assert(2 <= Dim && Dim <= 3, "This class is only a helper for 2D and 3D transforms.");
-
+protected:
 	using VectorT = Vector<T, Dim, false>;
 	using MatLinT = Matrix<T, Dim, Dim, matrix_props::order, matrix_props::layout, false>;
 	using MatHomT = Matrix<T, Dim+1, Dim+1, matrix_props::order, matrix_props::layout, false>;
@@ -46,12 +51,12 @@ public:
 
 	// Get current transform
 	const VectorT& GetPosition() const { return position; }
-	const RotT GetShearRotation() const { return rotation1; }
-	const RotT GetRotation() const { return CombineRotations(rotation1, rotation2); }
+	RotT GetShearRotation() const { return rotation1; }
+	RotT GetRotation() const { return CombineRotations(rotation1, rotation2); }
 	const VectorT& GetScale() const { return scale; }
 
-	const MatLinT GetLinearTransform() const;
-	const MatHomT GetTransform() const;
+	MatLinT GetLinearTransform() const;
+	MatHomT GetTransform() const;
 
 
 	// Relative transforms
@@ -60,6 +65,12 @@ public:
 	void Scale(const VectorT& scale);
 
 	void Shear(T slope, int primaryAxis, int perpAxis);
+
+
+	// Motion matrix finite difference estimation
+	static MatHomT MotionMatrix(MatHomT currentTransform, MatHomT pastTransform, T elapsed);
+	static MatHomT MotionMatrix(MatHomT currentTransform, MatHomT pastTransform1, T elapsed1, MatHomT pastTransform2, T elapsed2);
+
 protected:
 	// Helper functions
 	static MatLinT ToRotationMatrix(const RotT& arg) {
@@ -123,7 +134,9 @@ protected:
 
 
 template <class T>
-class Transformable<T, 2> : public Transformable23Base<T, 2> {
+class Transformable<T, 2, false> : public Transformable23Base<T, 2> {
+protected:
+	using typename Transformable23Base<T, 2>::MatHomT;
 public:
 	using Transformable23Base<T, 2>::Transformable23Base;
 
@@ -133,7 +146,9 @@ public:
 
 
 template <class T>
-class Transformable<T, 3> : public Transformable23Base<T, 3> {
+class Transformable<T, 3, false> : public Transformable23Base<T, 3> {
+protected:
+	using typename Transformable23Base<T, 3>::MatHomT;
 public:
 	using Transformable23Base<T, 3>::Transformable23Base;
 
@@ -144,6 +159,37 @@ public:
 	void ShearZX(T slope) { Shear(slope, 2, 0); }
 	void ShearZY(T slope) { Shear(slope, 2, 1); }
 };
+
+
+template <class T, int Dim>
+class Transformable<T, Dim, true> : public Transformable<T, Dim, false> {
+protected:
+	using typename Transformable<T, Dim, false>::MatHomT;
+public:
+	using Transformable<T, Dim, false>::Transformable;
+
+
+	/// <summary> Sets the matrix that transforms local points into world space motion vectors. </summary>
+	void SetTransformMotion(const MatHomT& motion);
+	/// <summary> Gets the matrix that transforms local points into world space motion vectors.
+	///		See <see cref="SetMotionMode"/> on how it is calculated. </summary>
+	MatHomT GetTransformMotion() const;
+
+	/// <summary> Called by the graphics engine every frame to update first order motion matrix. </summary>
+	void UpdateTransformMotion(float deltaTime);
+
+
+	/// <summary> Determines how motion matrices are calculated. </summary>
+	/// <remarks> Second order mode is not supported and treated as first order. </remarks>
+	void SetMotionMode(eMotionMode mode);
+	eMotionMode GetMotionMode() const;
+
+protected:
+	eMotionMode m_motionMode = eMotionMode::FIRST_ORDER;
+	MatHomT m_transformMotion = MatHomT::Identity(); // Either prev transform or explicit motion matrix.
+	T m_deltaTime = T(1e+20); // Large value so that first motion is going to be zero anyway.
+};
+
 
 
 //------------------------------------------------------------------------------
@@ -205,7 +251,7 @@ void Transformable23Base<T, Dim>::SetTransform(const MatHomT& transform) {
 
 
 template <class T, int Dim>
-const typename Transformable23Base<T, Dim>::MatLinT Transformable23Base<T, Dim>::GetLinearTransform() const {
+typename Transformable23Base<T, Dim>::MatLinT Transformable23Base<T, Dim>::GetLinearTransform() const {
 	if constexpr (matrix_props::order == eMatrixOrder::FOLLOW_VECTOR) {
 		return ToRotationMatrix(rotation1)*MatLinT::Scale(scale)*ToRotationMatrix(rotation2);
 	}
@@ -215,7 +261,7 @@ const typename Transformable23Base<T, Dim>::MatLinT Transformable23Base<T, Dim>:
 }
 
 template <class T, int Dim>
-const typename Transformable23Base<T, Dim>::MatHomT Transformable23Base<T, Dim>::GetTransform() const {
+typename Transformable23Base<T, Dim>::MatHomT Transformable23Base<T, Dim>::GetTransform() const {
 	MatLinT linear = GetLinearTransform();
 	MatHomT tr = MatHomT::Translation(position);
 	tr.Submatrix<Dim, Dim>(0, 0) = linear;
@@ -265,10 +311,76 @@ void Transformable23Base<T, Dim>::Shear(T slope, int primaryAxis, int perpAxis) 
 }
 
 
-using Transformable2D = Transformable<float, 2>;
-using Transformable3D = Transformable<float, 3>;
-using Transformable2Dd = Transformable<double, 2>;
-using Transformable3Dd = Transformable<double, 3>;
+template <class T, int Dim> 
+typename Transformable23Base<T, Dim>::MatHomT Transformable23Base<T, Dim>::MotionMatrix(MatHomT currentTransform, MatHomT pastTransform, T elapsed) {
+	// Calculate tap coefficients
+	T c0 = 1/elapsed;
+	T c1 = -c0;
+	MatHomT motion = c0*currentTransform + c1*pastTransform;
+	//motion(motion.RowCount()-1, motion.ColumnCount()-1) = 1;
+	return motion;
+}
+
+template <class T, int Dim>
+typename Transformable23Base<T, Dim>::MatHomT Transformable23Base<T, Dim>::MotionMatrix(MatHomT currentTransform, MatHomT pastTransform1, T elapsed1, MatHomT pastTransform2, T elapsed2) {
+	// Calculate tap coefficients
+	T c2 = elapsed1/(elapsed2*elapsed2 - elapsed1*elapsed2);
+	T c1 = elapsed2/(elapsed1*elapsed1 - elapsed1*elapsed2);
+	T c0 = -(c1 + c2);
+	MatHomT motion = c0*currentTransform + c1*pastTransform1 + c2*pastTransform2;
+	//motion(motion.RowCount()-1, motion.ColumnCount()-1) = 1;
+	return motion;
+}
+
+
+
+//------------------------------------------------------------------------------
+// Motion methods
+//------------------------------------------------------------------------------
+template <class T, int Dim>
+void Transformable<T, Dim, true>::SetTransformMotion(const MatHomT& motion) {
+	assert(m_motionMode == eMotionMode::EXPLICIT);
+	m_transformMotion = motion;
+}
+
+template <class T, int Dim>
+auto Transformable<T, Dim, true>::GetTransformMotion() const -> MatHomT {
+	if (m_motionMode == eMotionMode::EXPLICIT) {
+		return m_transformMotion;
+	}
+	else {
+		return Transformable<T, Dim, false>::MotionMatrix(this->GetTransform(), m_transformMotion, m_deltaTime);
+	}
+}
+
+template <class T, int Dim>
+void Transformable<T, Dim, true>::UpdateTransformMotion(float deltaTime) {
+	m_deltaTime = deltaTime;
+	if (m_motionMode != eMotionMode::EXPLICIT) {
+		m_transformMotion = this->GetTransform();
+	}
+}
+
+template <class T, int Dim>
+void Transformable<T, Dim, true>::SetMotionMode(eMotionMode mode) {
+	m_motionMode = mode;
+}
+
+template <class T, int Dim>
+eMotionMode Transformable<T, Dim, true>::GetMotionMode() const {
+	return m_motionMode;
+}
+
+
+//------------------------------------------------------------------------------
+// Typedefs
+//------------------------------------------------------------------------------
+
+
+using Transformable2D = Transformable<float, 2, true>;
+using Transformable3D = Transformable<float, 3, true>;
+using Transformable2Dd = Transformable<double, 2, true>;
+using Transformable3Dd = Transformable<double, 3, true>;
 
 
 } // namespace inl

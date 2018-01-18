@@ -1,5 +1,4 @@
 #pragma once
-#include <BaseLibrary/Common.hpp>
 #include <BaseLibrary/Platform/Window.hpp>
 #include <BaseLibrary/Color.hpp>
 #include <unordered_map>

@@ -1,5 +1,4 @@
 #pragma once
-#include "BaseLibrary\Common.hpp"
 #include "Gui.hpp"
 
 namespace inl::gui {

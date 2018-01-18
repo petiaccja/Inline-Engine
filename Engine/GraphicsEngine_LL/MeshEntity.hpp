@@ -2,6 +2,7 @@
 
 
 #include <InlineMath.hpp>
+#include "BaseLibrary/Transformable.hpp"
 
 namespace inl::gxeng {
 
@@ -11,49 +12,28 @@ class Material;
 class Image;
 
 
-class MeshEntity {
+class MeshEntity : public Transformable3D {
 public:
 	MeshEntity();
 
+	/// <summary> Provides the base geometry for the mesh. </summary>
+	/// <remarks> Passing nullptr is ok, but rendering it is undefined behviour.
+	///		The mesh must not be deleted while assigned to the entity. </remarks>
 	void SetMesh(Mesh* mesh);
+	/// <summary> Returns currently associated triangle mesh. </summary>
 	Mesh* GetMesh() const;
+
+	/// <summary> Describes the surface of the triangle mesh. </summary>
+	/// <remarks> Passing nullptr is ok, but rendering it is undefined behviour.
+	///		The material must not be deleted while assigned to the entity. </remarks>
 	void SetMaterial(Material* material);
+	/// <summary> Returns the currently associated material. </summary>
 	Material* GetMaterial() const;
 
-	//void SetTransform(const Mat44& transform);
-	//const Mat44& GetTransform() const;
-
-	//void SetTransformMotion(const Mat44& motion);
-	//const Mat44& GetTransformMotion() const;
-
-
-	void SetPosition(const Vec3& pos);
-	void SetRotation(const Quat& rotation);
-	void SetScale(const Vec3& scale);
-	void InitScale(Vec3 scale);
-	void InitRotation(Quat rotation);
-	void InitPosition(Vec3 pos);
-
-	Vec3 GetPosition() const;
-	Quat GetRotation() const;
-	Vec3 GetScale() const;
-
-	Mat44 GetTransform() const;
-	Vec3 GetPrevPosition() const;
-	Quat GetPrevRotation() const;
-	Vec3 GetPrevScale() const;
-
-	Mat44 GetPrevTransform() const;
-
 private:
+	// Physical properties
 	Mesh* m_mesh;
 	Material* m_material;
-	Vec3 m_position;
-	Quat m_rotation;
-	Vec3 m_scale;
-	Vec3 m_prevPosition;
-	Quat m_prevRotation;
-	Vec3 m_prevScale;
 };
 
 

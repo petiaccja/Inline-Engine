@@ -1,5 +1,4 @@
 #pragma once
-#include "BaseLibrary/Common.hpp"
 #include "BaseLibrary/Platform/Input.hpp"
 
 #define min(a,b) a < b ? a : b

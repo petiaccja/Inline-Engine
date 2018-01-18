@@ -1,9 +1,9 @@
 #include "GuiGrid.hpp"
 
-using namespace inl::gui;
+namespace inl::gui {
 
 GuiGrid::GuiGrid(GuiEngine& guiEngine)
-:Gui(guiEngine), dimension(0,0)
+	:Gui(guiEngine), dimension(0, 0)
 {
 	SetDimension(1, 1);
 	StretchFitToContent();
@@ -47,7 +47,7 @@ Vec2 GuiGrid::ArrangeChildren()
 			maxWidths[column.GetIndex()] = maxWidth;
 		}
 	}
-	
+
 	std::vector<float> maxHeights(rows.size());
 	for (GuiGridRow& row : rows)
 	{
@@ -72,7 +72,7 @@ Vec2 GuiGrid::ArrangeChildren()
 		if (row.GetSizingPolicy() == eGridLineSizing::FILL_SPACE)
 			spaceMultiplierSum.y += row.GetSpaceMultiplier();
 
-	Vec2 baseSpaceForFlexibleItem = Vec2::Max(Vec2(0,0), (GetContentSize() - allFixedSpace)) / spaceMultiplierSum;
+	Vec2 baseSpaceForFlexibleItem = Vec2::Max(Vec2(0, 0), (GetContentSize() - allFixedSpace)) / spaceMultiplierSum;
 
 	Vec2 newSize(0, 0);
 
@@ -116,9 +116,9 @@ Vec2 GuiGrid::ArrangeChildren()
 				assert(0);
 
 			cell->Arrange(pos, cellSize);
-	
+
 			pos.x += cellSize.x;
-			newSize.x += cellSize.x;	
+			newSize.x += cellSize.x;
 		}
 
 		newSize.y += cellSize.y;
@@ -183,7 +183,7 @@ void GuiGrid::SetDimension(uint32_t width, uint32_t height)
 
 
 GuiGridRow::GuiGridRow(int idx, GuiGrid* grid)
-:idx(idx), grid(grid), height(5), spaceMultiplier(1.f), sizingPolicy(eGridLineSizing::FILL_SPACE)
+	:idx(idx), grid(grid), height(5), spaceMultiplier(1.f), sizingPolicy(eGridLineSizing::FILL_SPACE)
 {
 
 }
@@ -224,7 +224,7 @@ uint32_t GuiGridRow::GetCellCount()
 
 
 GuiGridColumn::GuiGridColumn(int idx, GuiGrid* grid)
-:idx(idx), grid(grid), width(5), spaceMultiplier(1.f), sizingPolicy(eGridLineSizing::FILL_SPACE)
+	:idx(idx), grid(grid), width(5), spaceMultiplier(1.f), sizingPolicy(eGridLineSizing::FILL_SPACE)
 {
 
 }
@@ -251,7 +251,7 @@ std::vector<Gui*> GuiGridColumn::GetCells()
 	std::vector<Gui*> result(GetCellCount());
 
 	for (int i = 0; i < GetCellCount(); ++i)
-		result[i] = grid->GetCell(idx,i);
+		result[i] = grid->GetCell(idx, i);
 
 	return result;
 }
@@ -259,4 +259,7 @@ std::vector<Gui*> GuiGridColumn::GetCells()
 uint32_t GuiGridColumn::GetCellCount()
 {
 	return grid->GetDimension().y;
+}
+
+
 }

@@ -20,5 +20,8 @@
     <ClCompile Include="BaseLibrary\Test_Transformable.cpp">
       <Filter>Tests\BaseLibrary</Filter>
     </ClCompile>
+    <ClCompile Include="BaseLibrary\Test_Range.cpp">
+      <Filter>Tests\BaseLibrary</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

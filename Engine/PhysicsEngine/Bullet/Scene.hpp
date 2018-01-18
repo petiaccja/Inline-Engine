@@ -9,7 +9,6 @@
 #include <Bullet/BulletCollision/CollisionDispatch/btCollisionWorld.h>
 #include <Bullet/BulletCollision/CollisionShapes/btCollisionShape.h>
 
-#include <BaseLibrary/Common.hpp>
 #include <InlineMath.hpp>
 #include <vector>
 

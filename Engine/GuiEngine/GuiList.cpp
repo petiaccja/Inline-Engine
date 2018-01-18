@@ -1,9 +1,9 @@
 #include "GuiList.hpp"
 
-using namespace inl::gui;
+namespace inl::gui {
 
 GuiList::GuiList(GuiEngine& guiEngine)
-:GuiLayout(guiEngine), orientation(eGuiOrientation::VERTICAL)
+	:GuiLayout(guiEngine), orientation(eGuiOrientation::VERTICAL)
 {
 	SetBgToColor(GetBgIdleColor());
 	StretchFitToContent();
@@ -39,4 +39,6 @@ Vec2 GuiList::ArrangeChildren()
 	}
 
 	return selfSize;
+}
+
 }

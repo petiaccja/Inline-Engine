@@ -420,7 +420,7 @@ void ForwardRender::Execute(RenderContext& context) {
 		vsConstants.mv = entity->GetTransform() * view;
 		vsConstants.v = view;
 		vsConstants.p = projection;
-		vsConstants.prevMVP = entity->GetPrevTransform() * prevViewProjection;
+		vsConstants.prevMVP = vsConstants.mvp;// entity->GetPrevTransform() * prevViewProjection;
 		Vec4 vsLightDir = Vec4(sun->GetDirection(), 0.0f) * view;
 		lightConstants.direction = Vec3(vsLightDir.xyz).Normalized();
 		lightConstants.color = sun->GetColor();

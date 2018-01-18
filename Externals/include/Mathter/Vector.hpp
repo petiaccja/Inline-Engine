@@ -668,18 +668,14 @@ public:
 	// Homogeneous up- and downcast
 	//--------------------------------------------
 
-	/// <summary> Strips the last element of the vector. </summary>
-	/// <remarks> Use it to switch between homogeneous and simple coordinates. </remarks>
-	template <class T = Vector<T, Dim - 1, Packed>, class = typename std::enable_if<(Dim > 1), Vector<T, Dim-1, Packed>>::type>
-	explicit operator Vector<T, Dim - 1, Packed>() {
-		return Vector<T, Dim - 1, Packed>(this->data);
-	}
+	/// <summary> Creates a homogeneous vector by appending a 1. </summary>
+	template <class T2, bool Packed2, class = typename std::enable_if<(Dim>=2)>::type>
+	explicit Vector(const Vector<T2, Dim-1, Packed2>& rhs) : Vector(rhs, 1) {}
 
-	/// <summary> Appeds a 1 to the end of the vector. </summary>
-	/// <remarks> Use it to switch between homogeneous and simple coordinates. </remarks>
-	explicit operator Vector<T, Dim + 1, Packed>() {
-		return Vector<T, Dim + 1, Packed>(*this, 1);
-	}
+	/// <summary> Truncates last coordinate of homogenous vector to create non-homogeneous. </summary>
+	template <class T2, bool Packed2>
+	explicit Vector(const Vector<T2, Dim+1, Packed2>& rhs) : Vector(rhs.data) {}
+
 
 	//--------------------------------------------
 	// Copy, assignment, set

@@ -176,7 +176,7 @@ void GeneralCamera::UpdateKeyActions(float deltaTime)
 	// Manual move smoothness calc, we can't separate from smooth rotation with baseclass without that
 	m_vRemainingDeltaMove += vMoveVector;
 	//float fW = CMathLib::CalcSmoothUpdateWeight((double)fSmooth, (double)deltaTime);
-	Vec3 vDeltaMove = m_vRemainingDeltaMove * Clamp01(10.0 * deltaTime);
+	Vec3 vDeltaMove = m_vRemainingDeltaMove * Saturate(10.0 * deltaTime);
 
 	SetPos(GetPos() + vDeltaMove);
 	SetTarget(GetTarget() + vDeltaMove);
