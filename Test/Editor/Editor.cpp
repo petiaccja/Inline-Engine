@@ -15,7 +15,7 @@ Editor::Editor()
 	input = new InputCore();
 
 	// Create main window for Editor
-	wnd = new Window("Inline Engine", Vec2u(800, 600), false, true, false, std::bind(&Editor::WndProc, this, _1, _2, _3, _4));
+	wnd = new Window("Inline Engine", Vec2u(800, 600), true, true, false, std::bind(&Editor::WndProc, this, _1, _2, _3, _4));
 
 	wnd->OnPaint += [this]()
 	{
@@ -732,104 +732,104 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		}
-		//case WM_NCCALCSIZE:
-		//{
-		//	// Calculate new NCCALCSIZE_PARAMS based on custom NCA inset.
-		//	NCCALCSIZE_PARAMS *pncsp = reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
-		//
-		//	if (IsMaximized(handle))
-		//	{
-		//		pncsp->rgrc[0].left = pncsp->rgrc[0].left + 8;
-		//		pncsp->rgrc[0].top = pncsp->rgrc[0].top + 8;
-		//		pncsp->rgrc[0].right = pncsp->rgrc[0].right - 8;
-		//		pncsp->rgrc[0].bottom = pncsp->rgrc[0].bottom - 8;
-		//	}
-		//	else
-		//	{
-		//		pncsp->rgrc[0].left = pncsp->rgrc[0].left + 0;
-		//		pncsp->rgrc[0].top = pncsp->rgrc[0].top + 0;
-		//		pncsp->rgrc[0].right = pncsp->rgrc[0].right - 0;
-		//		pncsp->rgrc[0].bottom = pncsp->rgrc[0].bottom - 0;
-		//	}
-		//
-		//	// No need to pass the message on to the DefWindowProc.
-		//	fCallDWP = false;
-		//
-		//	break;
-		//}
-		//case WM_NCHITTEST:
-		//{
-		//	Vec2 cursorPos = guiEngine->GetCursorPos();
-		//	
-		//	int border;
-		//	if (IsMaximized(handle))
-		//		border = 0;
-		//	else
-		//		border = 3;
-		//	
-		//	bool bLeft = cursorPos.x < border;
-		//	bool bRight = cursorPos.x > mainLayer->GetWidth() - border;
-		//	bool bTop = cursorPos.y < border;
-		//	bool bBottom = cursorPos.y > mainLayer->GetHeight() - border;
-		//	
-		//	GuiRectF captionBarRect = captionBar->GetRect();
-		//	captionBarRect.MoveSides(GuiRectF(-1, 1, 0, -1));
-		//
-		//	if (bTop && bLeft)
-		//	{
-		//		return HTTOPLEFT;
-		//	}
-		//	else if (bTop && bRight)
-		//	{
-		//		return HTTOPRIGHT;
-		//	}
-		//	else if (bBottom && bRight)
-		//	{
-		//		return HTBOTTOMRIGHT;
-		//	}
-		//	else if (bBottom && bLeft)
-		//	{
-		//		return HTBOTTOMLEFT;
-		//	}
-		//	else if (bLeft)
-		//	{
-		//		return HTLEFT;
-		//	}
-		//	else if (bRight)
-		//	{
-		//		return HTRIGHT;
-		//	}
-		//	else if (bTop)
-		//	{
-		//		return HTTOP;
-		//	}
-		//	else if (bBottom)
-		//	{
-		//		return HTBOTTOM;
-		//	}
-		//	else if (closeBtn && closeBtn->IsCursorInside())
-		//	{
-		//		// HTNOWHERE
-		//	}
-		//	else if (maximizeBtn && maximizeBtn->IsCursorInside())
-		//	{
-		//		// HTNOWHERE
-		//	}
-		//	else if (minimizeBtn && minimizeBtn->IsCursorInside())
-		//	{
-		//		// HTNOWHERE
-		//	}
-		//	else if (captionBar && captionBarRect.IsPointInside(guiEngine->GetCursorPos()))
-		//	{
-		//		return HTCAPTION;
-		//	}
-		//	else
-		//	{
-		//		return HTCLIENT;
-		//	}
-		//
-		//	break;
-		//}
+		case WM_NCCALCSIZE:
+		{
+			// Calculate new NCCALCSIZE_PARAMS based on custom NCA inset.
+			NCCALCSIZE_PARAMS *pncsp = reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
+		
+			if (IsMaximized(handle))
+			{
+				pncsp->rgrc[0].left = pncsp->rgrc[0].left + 8;
+				pncsp->rgrc[0].top = pncsp->rgrc[0].top + 8;
+				pncsp->rgrc[0].right = pncsp->rgrc[0].right - 8;
+				pncsp->rgrc[0].bottom = pncsp->rgrc[0].bottom - 8;
+			}
+			else
+			{
+				pncsp->rgrc[0].left = pncsp->rgrc[0].left + 0;
+				pncsp->rgrc[0].top = pncsp->rgrc[0].top + 0;
+				pncsp->rgrc[0].right = pncsp->rgrc[0].right - 0;
+				pncsp->rgrc[0].bottom = pncsp->rgrc[0].bottom - 0;
+			}
+		
+			// No need to pass the message on to the DefWindowProc.
+			fCallDWP = false;
+		
+			break;
+		}
+		case WM_NCHITTEST:
+		{
+			Vec2 cursorPos = guiEngine->GetCursorPos();
+			
+			int border;
+			if (IsMaximized(handle))
+				border = 0;
+			else
+				border = 3;
+			
+			bool bLeft = cursorPos.x < border;
+			bool bRight = cursorPos.x > mainLayer->GetWidth() - border;
+			bool bTop = cursorPos.y < border;
+			bool bBottom = cursorPos.y > mainLayer->GetHeight() - border;
+			
+			GuiRectF captionBarRect = captionBar->GetRect();
+			captionBarRect.MoveSides(GuiRectF(-1, 1, 0, -1));
+		
+			if (bTop && bLeft)
+			{
+				return HTTOPLEFT;
+			}
+			else if (bTop && bRight)
+			{
+				return HTTOPRIGHT;
+			}
+			else if (bBottom && bRight)
+			{
+				return HTBOTTOMRIGHT;
+			}
+			else if (bBottom && bLeft)
+			{
+				return HTBOTTOMLEFT;
+			}
+			else if (bLeft)
+			{
+				return HTLEFT;
+			}
+			else if (bRight)
+			{
+				return HTRIGHT;
+			}
+			else if (bTop)
+			{
+				return HTTOP;
+			}
+			else if (bBottom)
+			{
+				return HTBOTTOM;
+			}
+			else if (closeBtn && closeBtn->IsCursorInside())
+			{
+				// HTNOWHERE
+			}
+			else if (maximizeBtn && maximizeBtn->IsCursorInside())
+			{
+				// HTNOWHERE
+			}
+			else if (minimizeBtn && minimizeBtn->IsCursorInside())
+			{
+				// HTNOWHERE
+			}
+			else if (captionBar && captionBarRect.IsPointInside(guiEngine->GetCursorPos()))
+			{
+				return HTCAPTION;
+			}
+			else
+			{
+				return HTCLIENT;
+			}
+		
+			break;
+		}
 	}
 
 	if (fCallDWP)
