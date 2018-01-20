@@ -10,6 +10,12 @@ Inline Engine is a modern game engine built with latest C++ that provides/will p
 
 The Engine leverages the power of DirectX 12 and similar APIs. It got its name from the overuse of inline methods to speed up the software, however, it's not a victim of such behaviour. The Engine is component based so you can tear it to pieces and for example integrate the Graphics, Network, Physics, etc modules individually into an another complete game engine or real-time simulation environments.
 
+Platforms
+---
+1. Windows (working)
+2. Linux   (future)
+4. XBoxOne (future)
+3. PS4     (future)
 
 How To Build
 ---
