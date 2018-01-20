@@ -14,8 +14,9 @@ The Engine leverages the power of DirectX 12 and similar APIs. It got its name f
 How To Build
 ---
 ### Windows
-- Open Inline-Engine.sln in Visual Studio 2017 latest version (2015 might do as well, but not tested)
-- Build All Projects
+1. Open Inline-Engine.sln in Visual Studio 2017 latest version (2015 might do as well, but not tested)
+2. Build All Projects
+3. Enjoy
 
 At the moment 2 projects are interesting which you can run ( gpu must support DirectX 12 feature level 11_0  + install latest drivers ):
 - QC_Simulator -> Quadcopter simulator with which you can play or tweak the PID controller.
