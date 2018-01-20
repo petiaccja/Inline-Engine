@@ -1,6 +1,4 @@
 Inline Engine
-===
-
 
 Introduction
 ---
