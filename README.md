@@ -20,7 +20,7 @@ How To Build
 
 At the moment 2 projects are interesting which you can run ( gpu must support DirectX 12 feature level 11_0  + install latest drivers ):
 - QC_Simulator -> Quadcopter simulator with which you can play or tweak the PID controller.
-- Editor       -> The game engine's editor where you can make your games/projects with tools (Not usable at the moment).
+- Editor       -> Where you can edit your whole game/project with tools
 
 
 License
