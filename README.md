@@ -1,21 +1,33 @@
 Inline Engine
 ===
 
-Notice
----
-Please note that facilities other than graphics have recently been added to this repository. These features aim to implement a full-featured game engine. We will update the readme as soon as it becomes more clear to us how we will manage the repository. The description below still stands for the graphics engine part.
 
-Introduction (graphics)
+Introduction
 ---
-Inline Engine is a game graphics library that leverages the power of DirectX 12 and similar APIs. It got its name from the overuse of inline methods to speed up the software, however, it's not a victim of such behaviour. The engine is aimed at integration into complete game engines and real-time simulation environments.
+Inline Engine is a modern game engine built on latest C++ that provides/will provide solutions to existing common industrial problems:
+- Smoother Editor User Experience
+- Higher Performance Editor & Engine
+- Better Stability & More Focus On The Community
+- Better PBR Graphics than the typical industrial PBR equations
 
-Usage
+The Engine leverages the power of DirectX 12 and similar APIs. It got its name from the overuse of inline methods to speed up the software, however, it's not a victim of such behaviour. The Engine is component based so you can tear it to pieces and for example integrate the Graphics, Network, Physics, etc modules individually into an another complete game engine or real-time simulation environments.
+
+
+How To Build
 ---
-### Integrate into your project
-Currently, the engine is not yet available for integration or public use, as it's still in its infancy.
+### Windows
+- Open Inline-Engine.sln in Visual Studio 2017 latest version (2015 might do as well, but not tested)
+- Build All Projects
 
-### Play around
-Download the project, open the solution in Visual Studio 2017 RC (2015 might do as well, but not tested), and hit compile. It does not do much yet, but there is a quadcopter simulator with which you can play or tweak the PID controller. Note that you need a graphics card that supports DirectX 12 (feature level 11_0) and appropriate drivers.
+At the moment 2 projects are interesting which you can run ( gpu must support DirectX 12 feature level 11_0  + install latest drivers ):
+- QC_Simulator -> Quadcopter simulator with which you can play or tweak the PID controller.
+- Editor       -> The game engine's editor where you can make your games/projects with tools (Not usable at the moment).
+
+
+License
+---
+Inline Engine is free to use, with a 5% royalty on gross product revenue after the first $3,000 per game per calendar quarter from commercial products. Contact us if you require custom terms.
+
 
 Core ideas
 ---
@@ -27,7 +39,3 @@ Inspired by CryEngine's flow graph and Unreal's BluePrint, users can leverage th
 
 ### Adding your own rendering algorithms
 The above-mentioned rendering task graph provides an interface to implement custom task nodes. The nodes inputs and outputs are defined, and the programmer can code the data transform performed on the inputs. The node can access the underlying Direct3D 12 API through a simplified interface. The framework that executes the task graph takes the responsibility of distributing work accross multiple CPU cores and the scheduling of generated GPU command lists.
-
-Legal
----
-Inline Engine is free to use, with a 5% royalty on gross product revenue after the first $3,000 per game per calendar quarter from commercial products. Contact us if you require custom terms.
