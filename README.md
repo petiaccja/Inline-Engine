@@ -4,7 +4,7 @@ Inline Engine
 
 Introduction
 ---
-Inline Engine is a modern game engine built on latest C++ that provides/will provide solutions to existing common industrial problems:
+Inline Engine is a modern game engine built with latest C++ that provides/will provide solutions to existing common industrial problems:
 - Smoother Editor User Experience
 - Higher Performance Editor & Engine
 - Better Stability & More Focus On The Community
