@@ -11,6 +11,7 @@
 #include "GuiImage.hpp"
 #include "GuiMenu.hpp"
 #include "GuiScrollable.hpp"
+#include "GuiCheckBox.hpp"
 
 #include <BaseLibrary/Platform/System.hpp>
 #include <vector>

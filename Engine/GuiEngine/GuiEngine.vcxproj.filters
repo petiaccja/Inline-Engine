@@ -62,6 +62,9 @@
     <ClInclude Include="GuiRect.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GuiCheckBox.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GuiCollapsable.cpp">
@@ -104,6 +107,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GuiScrollable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GuiCheckBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
