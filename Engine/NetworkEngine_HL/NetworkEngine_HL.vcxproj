@@ -90,10 +90,10 @@
       <MinimalRebuild>false</MinimalRebuild>
       <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(SolutionDir)\Engine</AdditionalIncludeDirectories>
-      <ProgramDataBaseFileName>D:\Inline-Engine\Bin\Debug_x64\net_hl.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>$(SolutionDir)Bin\Debug_x64\net_hl.pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
-      <ProgramDatabaseFile>E:\Inline-Engine\Bin\Debug_x64\net_hl.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(SolutionDir)Bin\Debug_x64\net_hl.pdb</ProgramDatabaseFile>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
