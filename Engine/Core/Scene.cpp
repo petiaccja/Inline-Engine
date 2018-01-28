@@ -129,11 +129,10 @@ MeshActor* Scene::AddActor_Mesh(const path& modelPath)
 		static inl::asset::Image img("assets\\pine_tree.jpg");
 	
 		gxeng::Image* texture = graphicsEngine->CreateImage();
-	
+			
 		texture->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR);
-		assert(0); //TODO
-		//texture->Update(0, 0, img.GetWidth(), img.GetHeight(), img.GetData(), gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR>::Reader());
-	
+		texture->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
+
 		(*material)[0] = texture;
 	}
 	
@@ -175,10 +174,10 @@ RigidBodyActor* Scene::AddActor_RigidBody(const path& modelPath, float mass /*= 
 		vertices[i] = vertex.position;
 	}
 	
-	//if (mass != 0)
-	//	rigidBodyEntity = physicsScene->AddEntityRigidStatic(vertices, vertexCount, indices, indexSize, indexCount);
-	//else
-	rigidBodyEntity = physicsScene->AddEntityRigidDynamic(vertices, vertexCount, mass);
+	if (mass != 0)
+		rigidBodyEntity = physicsScene->AddEntityRigidDynamic(vertices, vertexCount, mass);
+	else
+		rigidBodyEntity = physicsScene->AddEntityRigidStatic(vertices, vertexCount, indices, indexSize, indexCount);
 	
 	delete vertices;
 	

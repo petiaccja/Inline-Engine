@@ -384,28 +384,26 @@ void Editor::InitGui()
 	
 	centerRenderArea->OnCursorClick += [this](Gui& self, CursorEvent& evt)
 	{
-		if (evt.mouseButton == eMouseButton::LEFT)
-		{
-			Ray3D ray = cam->ScreenPointToRay(centerRenderArea->GetCursorPosContentSpace());
-			TraceResult traceResult;
-	
-			Vec3 spawnPos;
-			if (scene->TraceGraphicsRay(ray, traceResult))
-			{
-				spawnPos = traceResult.pos;
-			}
-			else
-			{
-				spawnPos = cam->GetPos() + cam->GetFrontDir() * 200;
-			}
-	
-			// Spawn something at that position
-			RigidBodyActor* actor = scene->AddActor_RigidBody("D:/sphere2.fbx", 0);
-			MeshActor* childActor = actor->AddActor_Mesh("D:/sphere2.fbx");
-	
-			actor->SetPos(spawnPos);
-		}
-	
+		//if (evt.mouseButton == eMouseButton::LEFT)
+		//{
+		//	Ray3D ray = cam->ScreenPointToRay(centerRenderArea->GetCursorPosContentSpace());
+		//	TraceResult traceResult;
+		//
+		//	Vec3 spawnPos;
+		//	if (scene->TraceGraphicsRay(ray, traceResult))
+		//	{
+		//		spawnPos = traceResult.pos;
+		//	}
+		//	else
+		//	{
+		//		spawnPos = cam->GetPos() + cam->GetFrontDir() * 200;
+		//	}
+		//
+		//	// Spawn something at that position
+		//	RigidBodyActor* actor = scene->AddActor_RigidBody("D:/sphere2.fbx", 0);
+		//
+		//	actor->SetPos(spawnPos);
+		//}
 	};
 	
 	centerRenderArea->OnTransformChange += [this](Gui& self, TransformEvent& e)
