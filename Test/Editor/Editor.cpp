@@ -271,6 +271,9 @@ void Editor::InitGui()
 		//toolsMenu->GetButtonText()->SetFontSize(18);
 		//helpMenu->GetButtonText()->SetFontSize(18);
 	
+        CheckBox* chkBox = fileMenu->AddItem<CheckBox>();
+        chkBox->SetText("CheckBox");
+
 		Button* tmpBtn = fileMenu->AddItem<Button>();
 		tmpBtn->SetText("New Scene");
 	
