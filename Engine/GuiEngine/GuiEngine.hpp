@@ -11,6 +11,7 @@
 #include "Image.hpp"
 #include "Menu.hpp"
 #include "Scrollable.hpp"
+#include "CheckBox.hpp"
 
 #include <BaseLibrary/Platform/System.hpp>
 #include <vector>

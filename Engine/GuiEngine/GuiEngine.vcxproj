@@ -94,7 +94,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="GuiCheckBox.cpp" />
+    <ClCompile Include="CheckBox.cpp" />
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="GuiEngine.cpp" />
     <ClCompile Include="Grid.cpp" />
@@ -109,7 +109,7 @@
     <ClCompile Include="Collapsable.cpp">
       <FileType>CppHeader</FileType>
     </ClCompile>
-    <ClInclude Include="GuiCheckBox.hpp" />
+    <ClInclude Include="CheckBox.hpp" />
     <ClInclude Include="Collapsable.hpp" />
     <ClInclude Include="Gui.hpp" />
     <ClInclude Include="GuiEngine.hpp" />

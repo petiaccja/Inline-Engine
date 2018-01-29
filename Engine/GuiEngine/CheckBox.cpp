@@ -1,20 +1,20 @@
-﻿#include "GuiCheckBox.hpp"
+﻿#include "CheckBox.hpp"
 
 using namespace inl::gui;
 
-GuiCheckBox::GuiCheckBox(GuiEngine& guiEngine)
+CheckBox::CheckBox(GuiEngine& guiEngine)
     :Gui(guiEngine)
 {
-    checkBox = AddGui<GuiButton>();
+    checkBox = AddGui<Button>();
     checkBox->SetText(L"✓");
     checkBox->AlignLeft();
     checkBox->StretchFitToContent();
-    text = AddGui<GuiText>();
+    text = AddGui<Text>();
     text->SetPosX(checkBox->GetPosX() + checkBox->GetWidth());
     text->AlignVerCenter();
 }
 
-GuiCheckBox& GuiCheckBox::operator = (const GuiCheckBox& other)
+CheckBox& CheckBox::operator = (const CheckBox& other)
 {
     Gui::operator = (other);
 
@@ -23,12 +23,12 @@ GuiCheckBox& GuiCheckBox::operator = (const GuiCheckBox& other)
     return *this;
 }
 
-void GuiCheckBox::SetText(const std::wstring& str)
+void CheckBox::SetText(const std::wstring& str)
 {
     text->SetText(str);
 }
 
-void inl::gui::GuiCheckBox::SetText(const std::string & str)
+void inl::gui::CheckBox::SetText(const std::string & str)
 {
     text->SetText(str);
 }
