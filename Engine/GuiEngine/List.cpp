@@ -1,21 +1,21 @@
-#include "GuiList.hpp"
+#include "List.hpp"
 
 namespace inl::gui {
 
-GuiList::GuiList(GuiEngine& guiEngine)
-	:GuiLayout(guiEngine), orientation(eGuiOrientation::VERTICAL)
+ListView::ListView(GuiEngine& guiEngine)
+	:Layout(guiEngine), orientation(eGuiOrientation::VERTICAL)
 {
 	SetBgToColor(GetBgIdleColor());
 	StretchFitToContent();
 }
 
-void GuiList::SetOrientation(eGuiOrientation orientation)
+void ListView::SetOrientation(eGuiOrientation orientation)
 {
 	this->orientation = orientation;
 	bLayoutNeedRefresh = true;
 }
 
-Vec2 GuiList::ArrangeChildren()
+Vec2 ListView::ArrangeChildren()
 {
 	Vec2 pos = GetContentPos();
 	Vec2 selfSize(0, 0);

@@ -1,18 +1,18 @@
 #pragma once
-#include "GuiLayout.hpp"
+#include "Layout.hpp"
 
 namespace inl::gui {
 
-class GuiList : public GuiLayout
+class ListView : public Layout
 {
 public:
-	GuiList(GuiEngine& guiEngine);
-	GuiList(const GuiList& other):GuiLayout(other.guiEngine) { *this = other; }
+	ListView(GuiEngine& guiEngine);
+	ListView(const ListView& other):Layout(other.guiEngine) { *this = other; }
 
 	// Important to implement in derived classes
-	virtual GuiList* Clone() const override { return new GuiList(*this); }
+	virtual ListView* Clone() const override { return new ListView(*this); }
 
-	using GuiLayout::AddItem;
+	using Layout::AddItem;
 	virtual void AddItem(Gui* gui) override { AddGui(gui); }
 	virtual bool RemoveItem(Gui* gui) override { return RemoveGui(gui); }
 	virtual std::vector<Gui*> GetItems() override { return GetChildren(); };

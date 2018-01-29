@@ -48,13 +48,13 @@ protected:
 	Window* wnd;
 	Window* gameWnd;
 
-	GuiLayer* mainLayer;
+	Layer* mainLayer;
 
 	Gui* centerRenderArea;
 	Gui* captionBar;
-	GuiImage* minimizeBtn;
-	GuiImage* maximizeBtn;
-	GuiImage* closeBtn;
+	Image* minimizeBtn;
+	Image* maximizeBtn;
+	Image* closeBtn;
 
 	GeneralCamera* cam;
 

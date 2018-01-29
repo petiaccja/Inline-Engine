@@ -17,14 +17,14 @@ enum class eTextAlign
 	BOTTOM_RIGHT,
 };
 
-class GuiText : public Gui
+class Text : public Gui
 {
 public:
-	GuiText(GuiEngine& guiEngine);
-	GuiText(const GuiText& other):Gui(other.guiEngine) { *this = other; }
+	Text(GuiEngine& guiEngine);
+	Text(const Text& other):Gui(other.guiEngine) { *this = other; }
 
-	virtual GuiText* Clone() const { return new GuiText(*this); }
-	GuiText& operator = (const GuiText& other);
+	virtual Text* Clone() const { return new Text(*this); }
+	Text& operator = (const Text& other);
 
 	//virtual void OnPaint(Gdiplus::Graphics* graphics, GuiRectF& clipRect) override;
 
@@ -52,7 +52,7 @@ protected:
 
 
 
-inline GuiText::GuiText(GuiEngine& guiEngine)
+inline Text::Text(GuiEngine& guiEngine)
 :Gui(guiEngine), color(220, 220, 220, 255), fontSize(0)
 {
 	SetFontFamily("Helvetica");
@@ -64,7 +64,7 @@ inline GuiText::GuiText(GuiEngine& guiEngine)
 
 	OnPaint += [](Gui& self_, PaintEvent& e)
 	{
-		GuiText& self = self_.As<GuiText>();
+		Text& self = self_.As<Text>();
 	
 		if (self.text.length() == 0)
 			return;
@@ -90,7 +90,7 @@ inline GuiText::GuiText(GuiEngine& guiEngine)
 	};
 }
 
-inline GuiText& GuiText::operator = (const GuiText& other)
+inline Text& Text::operator = (const Text& other)
 {
 	Gui::operator=(other);
 
@@ -104,7 +104,7 @@ inline GuiText& GuiText::operator = (const GuiText& other)
 	return *this;
 }
 
-inline void GuiText::SetFontSize(int size)
+inline void Text::SetFontSize(int size)
 {
 	if (fontSize != size)
 	{
@@ -113,7 +113,7 @@ inline void GuiText::SetFontSize(int size)
 	}
 }
 
-inline void GuiText::SetFontFamily(const std::wstring& text)
+inline void Text::SetFontFamily(const std::wstring& text)
 {
 	if (fontFamilyName != text)
 	{
@@ -122,7 +122,7 @@ inline void GuiText::SetFontFamily(const std::wstring& text)
 	}
 }
 
-inline void GuiText::SetFontStyle(Gdiplus::FontStyle style)
+inline void Text::SetFontStyle(Gdiplus::FontStyle style)
 {
 	if (fontStyle != style)
 	{
@@ -131,12 +131,12 @@ inline void GuiText::SetFontStyle(Gdiplus::FontStyle style)
 	}
 }
 
-inline void GuiText::SetText(const std::wstring& text)
+inline void Text::SetText(const std::wstring& text)
 {
 	this->text = text;
 }
 
-inline void GuiText::SetText(const std::string& text)
+inline void Text::SetText(const std::string& text)
 {
 	// Conversion to wchar_t, TODO replace with utf8 lib
 	SetText(std::wstring(text.begin(), text.end()));

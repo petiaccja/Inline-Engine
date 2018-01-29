@@ -1,11 +1,11 @@
 #pragma once
 #include "Gui.hpp"
-#include "GuiText.hpp"
-#include "GuiButton.hpp"
-#include "GuiList.hpp"
-#include "GuiSplitter.hpp"
-#include "GuiMenu.hpp"
-#include "GuiScrollable.hpp"
+#include "Text.hpp"
+#include "Button.hpp"
+#include "List.hpp"
+#include "Splitter.hpp"
+#include "Menu.hpp"
+#include "Scrollable.hpp"
 #include "GuiEngine.hpp"
 
 using namespace inl::gui;
@@ -119,8 +119,6 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 
 		Gdiplus::SolidBrush borderBrush(Gdiplus::Color(borderColor.a, borderColor.r, borderColor.g, borderColor.b));
 
-		
-			
 		// Draw left border
 		if (border.left != 0)
 		{

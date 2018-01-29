@@ -1,10 +1,10 @@
 #pragma once
-#include "GuiLayer.hpp"
+#include "Layer.hpp"
 #include "GuiEngine.hpp"
 
 using namespace inl::gui;
 
-GuiLayer::GuiLayer(GuiEngine& guiEngine)
+Layer::Layer(GuiEngine& guiEngine)
 :Gui(guiEngine, true)
 {
 	Vec2u windowContentArea = guiEngine.GetTargetWindow()->GetClientSize();
@@ -14,7 +14,7 @@ GuiLayer::GuiLayer(GuiEngine& guiEngine)
 	SetName("layer");
 }
 
-Vec2 GuiLayer::ArrangeChildren()
+Vec2 Layer::ArrangeChildren()
 {
 	for (Gui* child : GetChildren())
 		child->Arrange(child->GetPos(), child->GetDesiredSize());

@@ -3,13 +3,13 @@
 
 namespace inl::gui {
 
-class GuiSlider : public Gui
+class Slider : public Gui
 {
 public:
-	GuiSlider(GuiEngine& guiEngine);
+	Slider(GuiEngine& guiEngine);
 
 	// Important to implement in derived classes
-	virtual GuiSlider* Clone() const override { return new GuiSlider(*this); }
+	virtual Slider* Clone() const override { return new Slider(*this); }
 
 	void SetValue(float val);
 	void SetMinValue(float val);

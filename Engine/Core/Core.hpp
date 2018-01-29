@@ -29,6 +29,7 @@ using namespace inl;
 using namespace inl::gui;
 using namespace inl::gxapi;
 using namespace inl::gxapi_dx12;
+using namespace inl::physics;
 
 class Core
 {

@@ -1,31 +1,31 @@
-﻿#include "GuiMenu.hpp"
+﻿#include "Menu.hpp"
 #include "GuiEngine.hpp"
 
-using namespace inl::gui;
+namespace inl::gui {
 
-GuiMenu::GuiMenu(GuiEngine& guiEngine)
-: GuiList(guiEngine), guiArrow(nullptr), guiButton(nullptr)
+Menu::Menu(GuiEngine& guiEngine)
+:ListView(guiEngine), guiArrow(nullptr), guiButton(nullptr)
 {
-	
+
 }
 
-GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
+Menu* Menu::AddItemMenu(const std::wstring& text)
 {
 	// The item we will hover on
-	GuiList* item = new GuiList(guiEngine);
+	ListView* item = new ListView(guiEngine);
 	item->SetOrientation(eGuiOrientation::HORIZONTAL);
 	item->SetBgToColor(ColorI(25, 25, 25, 255), ColorI(65,65,65, 255));
 
 	// Add button
-	GuiButton* btn = new GuiButton(guiEngine);
+	Button* btn = new Button(guiEngine);
 	btn->StretchFillParent();
 
 	btn->SetText(text);
 	btn->DisableHover();
 	btn->HideBgColor();
 	item->AddItem(btn);
-
-	GuiMenu* subMenu = new GuiMenu(guiEngine);
+	
+	Menu* subMenu = new Menu(guiEngine);
 	subMenu->SetGuiButton(btn);
 	
 	subMenu->OnChildAdd += [this, item, subMenu](Gui& self, ChildEvent& e)
@@ -33,13 +33,13 @@ GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
 		// Add Arrow when we got submenu
 		if (GetOrientation() == eGuiOrientation::VERTICAL && subMenu->GetChildren().size() == 1)
 		{
-			GuiButton* arrow = new GuiButton(subMenu->guiEngine);
+			Button* arrow = new Button(subMenu->guiEngine);
 			arrow->SetText(L"►");
 			arrow->HideBgColor();
 			arrow->DisableHover();
 			arrow->AlignRight();
 			arrow->StretchFitToContent();
-			arrow->GetGuiText()->SetFontSize(8);
+			arrow->GetText()->SetFontSize(8);
 			arrow->AlignVerCenter();
 
 			item->AddItem(arrow);
@@ -63,9 +63,9 @@ GuiMenu* GuiMenu::AddItemMenu(const std::wstring& text)
 	return subMenu;
 }
 
-void GuiMenu::AddItem(Gui* menuItem)
+void Menu::AddItem(Gui* menuItem)
 {
-	GuiList::AddItem(menuItem);
+	ListView::AddItem(menuItem);
 
 	if (GetOrientation() == eGuiOrientation::VERTICAL)
 	{
@@ -79,12 +79,12 @@ void GuiMenu::AddItem(Gui* menuItem)
 	}
 
 	auto it = subMenus.find(menuItem);
-	GuiMenu* menu = it == subMenus.end() ? nullptr : it->second;
+	Menu* menu = it == subMenus.end() ? nullptr : it->second;
 
 	struct MenuTreeNode
 	{
 		Gui* item;
-		GuiMenu* menu;
+		Menu* menu;
 	};
 
 	thread_local std::vector<MenuTreeNode> activeMenuTree;
@@ -100,7 +100,7 @@ void GuiMenu::AddItem(Gui* menuItem)
 			MenuTreeNode& node = *it;
 			
 			Gui* item = node.item;
-			GuiMenu* menu = node.menu;
+			Menu* menu = node.menu;
 
 			bool bSibling = item->IsSibling(self);
 
@@ -111,7 +111,7 @@ void GuiMenu::AddItem(Gui* menuItem)
 					MenuTreeNode& node = *it;
 
 					Gui* item = node.item;
-					GuiMenu* menu = node.menu;
+					Menu* menu = node.menu;
 
 					// Unfreeze item, restore state to idle
 					node.item->UnfreezeBg();
@@ -135,7 +135,7 @@ void GuiMenu::AddItem(Gui* menuItem)
 		{
 			menu->BringToFront();
 
-			GuiMenu& containingMenu = self.GetParent()->As<GuiMenu>();
+			Menu& containingMenu = self.GetParent()->As<Menu>();
 
 			if (containingMenu.GetOrientation() == eGuiOrientation::HORIZONTAL)
 				menu->SetPos(self.GetPosBottomLeft());
@@ -180,3 +180,5 @@ void GuiMenu::AddItem(Gui* menuItem)
 		}	
 	};
 }
+
+} // namespace inl::gui

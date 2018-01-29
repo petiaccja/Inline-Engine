@@ -50,7 +50,7 @@ bool Scene::TraceGraphicsRay(const Ray3D& ray, TraceResult& traceResult_out)
 		traceResult_out.pos = result.pos;
 		traceResult_out.normal = result.normal;
 		
-		RigidBodyEntity* entity = (RigidBodyEntity*)result.userPointer;
+		IRigidBodyEntity* entity = (IRigidBodyEntity*)result.userPointer;
 		
 		if (entity)
 			traceResult_out.actor = (Actor*)entity->GetUserPointer();

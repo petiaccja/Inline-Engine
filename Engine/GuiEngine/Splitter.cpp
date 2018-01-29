@@ -1,15 +1,15 @@
-#include "GuiSlider.hpp"
+#include "Slider.hpp"
 #include "GuiEngine.hpp"
 
 using namespace inl::gui;
 
-GuiSplitter::GuiSplitter(GuiEngine& guiEngine)
-:GuiLayout(guiEngine), orientation(eGuiOrientation::HORIZONTAL), separatorLength(10)
+Splitter::Splitter(GuiEngine& guiEngine)
+:Layout(guiEngine), orientation(eGuiOrientation::HORIZONTAL), separatorLength(10)
 {
 	SetBgToColor(GetBgIdleColor());
 }
 
-bool GuiSplitter::RemoveItem(Gui* gui)
+bool Splitter::RemoveItem(Gui* gui)
 {
 	Gui* container = gui->GetParent();
 
@@ -35,7 +35,7 @@ bool GuiSplitter::RemoveItem(Gui* gui)
 	return bRemoved;
 }
 
-Vec2 GuiSplitter::ArrangeChildren()
+Vec2 Splitter::ArrangeChildren()
 {
 	// The logic of the splitter arrangement is:
 	// separators should always fill the whole area of splitter with preserving percentage !
@@ -107,7 +107,7 @@ Vec2 GuiSplitter::ArrangeChildren()
 	return selfSize;
 }
 
-void GuiSplitter::AddItem(Gui* item)
+void Splitter::AddItem(Gui* item)
 {
 	if (items.size() > 0)
 	{
@@ -116,7 +116,7 @@ void GuiSplitter::AddItem(Gui* item)
 
 		separator->OnCursorEnter += [](Gui& self_, CursorEvent& evt)
 		{
-			GuiSplitter& splitter = self_.GetParent()->As<GuiSplitter>();
+			Splitter& splitter = self_.GetParent()->As<Splitter>();
 
 			splitter.separatorSaved = &self_;
 
@@ -128,7 +128,7 @@ void GuiSplitter::AddItem(Gui* item)
 
 		separator->OnCursorLeave += [](Gui& self, CursorEvent& evt)
 		{
-			GuiSplitter& splitter = self.GetParent()->As<GuiSplitter>();
+			Splitter& splitter = self.GetParent()->As<Splitter>();
 
 			if(!splitter.bDragging)
 				self.guiEngine.SetCursorVisual(eCursorVisual::ARROW);
@@ -136,7 +136,7 @@ void GuiSplitter::AddItem(Gui* item)
 
 		separator->OnCursorPress += [](Gui& separator, CursorEvent& evt)
 		{
-			GuiSplitter& splitter = separator.GetParent()->As<GuiSplitter>();
+			Splitter& splitter = separator.GetParent()->As<Splitter>();
 
 			// We are starting to drag the separator, save the cursor pos
 			splitter.bDragging = true;
@@ -155,7 +155,7 @@ void GuiSplitter::AddItem(Gui* item)
 		{
 			if (bDragging)
 			{
-				GuiSplitter& splitter = separatorSaved->GetParent()->As<GuiSplitter>();
+				Splitter& splitter = separatorSaved->GetParent()->As<Splitter>();
 
 				Vec2 deltaMouse = evt.cursorPos - mousePosWhenPressed;
 				
@@ -211,13 +211,13 @@ void GuiSplitter::AddItem(Gui* item)
 	items.insert(item);
 }
 
-void GuiSplitter::SetOrientation(eGuiOrientation orientation)
+void Splitter::SetOrientation(eGuiOrientation orientation)
 {
 	this->orientation = orientation;
 	bLayoutNeedRefresh = true;
 }
 
-std::vector<Gui*> GuiSplitter::GetItems()
+std::vector<Gui*> Splitter::GetItems()
 {
 	std::vector<Gui*> result(items.size());
 

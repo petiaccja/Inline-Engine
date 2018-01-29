@@ -201,7 +201,7 @@ void Editor::InitGui()
 	mainLayer->SetBorder(1, ColorI(100, 100, 100, 255));
 	
 	// Main layout of the editor is a simple list
-	GuiList* mainLayout = mainLayer->AddGui<GuiList>();
+	ListView* mainLayout = mainLayer->AddGui<ListView>();
 	mainLayout->StretchFillParent(); // Fill the layer
 	mainLayout->SetOrientation(eGuiOrientation::VERTICAL);
 	mainLayout->SetBgToColor(ColorI(0, 0, 0, 255));
@@ -212,11 +212,11 @@ void Editor::InitGui()
 	captionBar->SetRect(0, 0, 100, 26);
 	
 	// Minimize, Maximize, Close btn
-	GuiList* minMaxCloseList = mainLayer->AddGui<GuiList>();
+	ListView* minMaxCloseList = mainLayer->AddGui<ListView>();
 	minMaxCloseList->StretchFitToContent();
-	minimizeBtn = mainLayer->AddGui<GuiImage>();
-	maximizeBtn = mainLayer->AddGui<GuiImage>();
-	closeBtn = mainLayer->AddGui<GuiImage>();
+	minimizeBtn = mainLayer->AddGui<Image>();
+	maximizeBtn = mainLayer->AddGui<Image>();
+	closeBtn = mainLayer->AddGui<Image>();
 	
 	minimizeBtn->OnCursorRelease += [this](Gui& self, CursorEvent& evt) { wnd->Minize(); };
 	maximizeBtn->OnCursorRelease += [this](Gui& self, CursorEvent& evt)
@@ -239,7 +239,7 @@ void Editor::InitGui()
 	minMaxCloseList->AlignRight();
 	
 	// Editor caption text
-	GuiText* inlineEngineText = mainLayer->AddGui<GuiText>();
+	Text* inlineEngineText = mainLayer->AddGui<Text>();
 	inlineEngineText->SetFontSize(14);
 	inlineEngineText->SetFontStyle(Gdiplus::FontStyle::FontStyleBold);
 	inlineEngineText->SetText("Inline Editor");
@@ -254,91 +254,91 @@ void Editor::InitGui()
 	mainLayout->AddItem(captionBar);
 	
 	// Main menu bar
-	GuiMenu* menuBar = mainLayer->AddGui<GuiMenu>();
+	Menu* menuBar = mainLayer->AddGui<Menu>();
 	menuBar->SetBorder(0, 0, 0, 1, ColorI(70, 70, 70, 255));
 	menuBar->SetOrientation(eGuiOrientation::HORIZONTAL);
 	menuBar->SetBgToColor(ColorI(25, 25, 25, 255));
 	menuBar->StretchHorFillParent();
 	menuBar->StretchVerFitToContent();
 	{
-		GuiMenu* fileMenu = menuBar->AddItemMenu("File");
-		GuiMenu* buildMenu = menuBar->AddItemMenu("Build");
-		GuiMenu* toolsMenu = menuBar->AddItemMenu("Tools");
-		GuiMenu* helpMenu = menuBar->AddItemMenu("Help");
+		Menu* fileMenu = menuBar->AddItemMenu("File");
+		Menu* buildMenu = menuBar->AddItemMenu("Build");
+		Menu* toolsMenu = menuBar->AddItemMenu("Tools");
+		Menu* helpMenu = menuBar->AddItemMenu("Help");
 	
-		//fileMenu->GetGuiButtonText()->SetFontSize(18);
-		//buildMenu->GetGuiButtonText()->SetFontSize(18);
-		//toolsMenu->GetGuiButtonText()->SetFontSize(18);
-		//helpMenu->GetGuiButtonText()->SetFontSize(18);
+		//fileMenu->GetButtonText()->SetFontSize(18);
+		//buildMenu->GetButtonText()->SetFontSize(18);
+		//toolsMenu->GetButtonText()->SetFontSize(18);
+		//helpMenu->GetButtonText()->SetFontSize(18);
 	
-		GuiButton* tmpBtn = fileMenu->AddItem<GuiButton>();
+		Button* tmpBtn = fileMenu->AddItem<Button>();
 		tmpBtn->SetText("New Scene");
 	
-		tmpBtn = fileMenu->AddItem<GuiButton>();
+		tmpBtn = fileMenu->AddItem<Button>();
 		tmpBtn->SetText("Open Scene");
 		Gui* separator0 = fileMenu->AddItem<Gui>();
 		separator0->SetSize(1, 1);
 		separator0->StretchHorFillParent();
 		separator0->SetBgToColor(ColorI(80, 80, 80, 255));
 		separator0->DisableHover();
-		tmpBtn = fileMenu->AddItem<GuiButton>();
+		tmpBtn = fileMenu->AddItem<Button>();
 		tmpBtn->SetText("Save Scene");
-		tmpBtn = fileMenu->AddItem<GuiButton>();
+		tmpBtn = fileMenu->AddItem<Button>();
 		tmpBtn->SetText("Save Scene as...");
 		Gui* separator1 = fileMenu->AddItem<Gui>();
 		separator1->SetSize(1, 1);
 		separator1->StretchHorFillParent();
 		separator1->SetBgToColor(ColorI(80, 80, 80, 255));
 		separator1->DisableHover();
-		tmpBtn = fileMenu->AddItem<GuiButton>();
+		tmpBtn = fileMenu->AddItem<Button>();
 		tmpBtn->SetText("New Project...");
-		tmpBtn = fileMenu->AddItem<GuiButton>();
+		tmpBtn = fileMenu->AddItem<Button>();
 		tmpBtn->SetText("Open Project...");
-		tmpBtn = fileMenu->AddItem<GuiButton>();
+		tmpBtn = fileMenu->AddItem<Button>();
 		tmpBtn->SetText("Save Project");
 	
-		tmpBtn = buildMenu->AddItem<GuiButton>();
+		tmpBtn = buildMenu->AddItem<Button>();
 		tmpBtn->SetText("Windows...");
-		tmpBtn = buildMenu->AddItem<GuiButton>();
+		tmpBtn = buildMenu->AddItem<Button>();
 		tmpBtn->SetText("Linux...");
-		tmpBtn = buildMenu->AddItem<GuiButton>();
+		tmpBtn = buildMenu->AddItem<Button>();
 		tmpBtn->SetText("Mac...");
-		tmpBtn = buildMenu->AddItem<GuiButton>();
+		tmpBtn = buildMenu->AddItem<Button>();
 		tmpBtn->SetText("XBox One...");
-		tmpBtn = buildMenu->AddItem<GuiButton>();
+		tmpBtn = buildMenu->AddItem<Button>();
 		tmpBtn->SetText("PS4...");
-		tmpBtn = buildMenu->AddItem<GuiButton>();
+		tmpBtn = buildMenu->AddItem<Button>();
 		tmpBtn->SetText("Android");
-		tmpBtn = buildMenu->AddItem<GuiButton>();
+		tmpBtn = buildMenu->AddItem<Button>();
 		tmpBtn->SetText("IOS");
 	
-		GuiMenu* menu0 = toolsMenu->AddItemMenu("TESZT - 0");
-		GuiMenu* menu1 = menu0->AddItemMenu("TESZT - 1");
-		GuiMenu* menu2 = menu1->AddItemMenu("TESZT - 2");
+		Menu* menu0 = toolsMenu->AddItemMenu("TESZT - 0");
+		Menu* menu1 = menu0->AddItemMenu("TESZT - 1");
+		Menu* menu2 = menu1->AddItemMenu("TESZT - 2");
 	
-		GuiMenu* menu00 = toolsMenu->AddItemMenu("TESZT - 00");
-		GuiMenu* menu01 = menu00->AddItemMenu("TESZT - 01");
-		GuiMenu* menu001 = menu00->AddItemMenu("TESZT - 001");
-		GuiMenu* menu02 = menu01->AddItemMenu("TESZT - 02");
-		GuiMenu* menu002 = menu001->AddItemMenu("TESZT - 002");
-		tmpBtn = toolsMenu->AddItem<GuiButton>();
+		Menu* menu00 = toolsMenu->AddItemMenu("TESZT - 00");
+		Menu* menu01 = menu00->AddItemMenu("TESZT - 01");
+		Menu* menu001 = menu00->AddItemMenu("TESZT - 001");
+		Menu* menu02 = menu01->AddItemMenu("TESZT - 02");
+		Menu* menu002 = menu001->AddItemMenu("TESZT - 002");
+		tmpBtn = toolsMenu->AddItem<Button>();
 		tmpBtn->SetText("** PUT TOOLS HERE **");
 	
-		tmpBtn = helpMenu->AddItem<GuiButton>();
+		tmpBtn = helpMenu->AddItem<Button>();
 		tmpBtn->SetText("About Inline Engine");
 	
 	
 		for (Gui* c : { fileMenu, buildMenu, toolsMenu, helpMenu, menu0, menu1, menu00, menu01, menu001, menu02, menu002 })
 		{
 			c->SetBorder(1, ColorI(70, 70, 70, 255));
-			for (Gui* child : c->GetChildrenRecursive<GuiButton>())
+			for (Gui* child : c->GetChildrenRecursive<Button>())
 			{
 				child->SetBgToColor(ColorI(25, 25, 25, 255), ColorI(65, 65, 65, 255));
 				child->SetPadding(2, 2, 4, 4);
 			}
 		}
 	
-		for (Gui* c : menuBar->GetChildrenRecursive<GuiButton>())
+		for (Gui* c : menuBar->GetChildrenRecursive<Button>())
 		{
 			c->SetBgToColor(ColorI(25, 25, 25, 255), ColorI(65, 65, 65, 255));
 			c->StretchFitToContent();
@@ -353,9 +353,9 @@ void Editor::InitGui()
 	//toolBar->SetBgToColor(ColorI(25));
 	//mainLayout->AddItem(toolBar);
 	
-	GuiSplitter* split0 = mainLayer->AddGui<GuiSplitter>(); // split main
-	GuiSplitter* split1 = mainLayer->AddGui<GuiSplitter>(); // split main left to (top, bottom)
-	GuiSplitter* split2 = mainLayer->AddGui<GuiSplitter>(); // split main left-top to (left, right)
+	Splitter* split0 = mainLayer->AddGui<Splitter>(); // split main
+	Splitter* split1 = mainLayer->AddGui<Splitter>(); // split main left to (top, bottom)
+	Splitter* split2 = mainLayer->AddGui<Splitter>(); // split main left-top to (left, right)
 	split0->Stretch(eGuiStretch::FILL_SPACE_POSITIVE_DIR, eGuiStretch::FILL_SPACE_POSITIVE_DIR);
 	split1->StretchFillParent();
 	split2->StretchFillParent();
@@ -368,10 +368,10 @@ void Editor::InitGui()
 	split1->SetSize(750, 400);
 	split2->SetSize(750, 300);
 	
-	Gui* rightArea = mainLayer->AddGui<GuiButton>();
-	Gui* bottomArea = mainLayer->AddGui<GuiButton>();
-	Gui* leftArea = mainLayer->AddGui<GuiButton>();
-	centerRenderArea = mainLayer->AddGui<GuiButton>();
+	Gui* rightArea = mainLayer->AddGui<Button>();
+	Gui* bottomArea = mainLayer->AddGui<Button>();
+	Gui* leftArea = mainLayer->AddGui<Button>();
+	centerRenderArea = mainLayer->AddGui<Button>();
 	rightArea->SetSize(150, 100);
 	rightArea->SetBgToColor(ColorI(10, 10, 10, 255));
 	bottomArea->SetSize(100, 100);
@@ -451,11 +451,11 @@ void Editor::InitGui()
 		}
 	}
 	
-	GuiScrollable* scrollableBottom = bottomArea->AddGui<GuiScrollable>();
+	ScrollableArea* scrollableBottom = bottomArea->AddGui<ScrollableArea>();
 	scrollableBottom->StretchFillParent();
 	
 	
-	GuiList* textureList = new GuiList(scrollableBottom->guiEngine);
+	ListView* textureList = new ListView(scrollableBottom->guiEngine);
 	scrollableBottom->SetContent(textureList);
 	
 	textureList->SetBgToColor(ColorI(0, 0, 0, 0));
@@ -500,12 +500,12 @@ void Editor::InitGui()
 			path filePath = filesPaths[i];
 	
 			// Texture image
-			GuiList* listItem = textureList->AddItem<GuiList>();
+			ListView* listItem = textureList->AddItem<ListView>();
 			listItem->StretchFitToContent();
 			listItem->MakeVertical();
 			listItem->SetSize(70, 100);
 			listItem->SetBgToColor(ColorI(0, 0, 0, 0), ColorI(20, 20, 20, 255));
-			GuiImage* img0 = listItem->AddItem<GuiImage>();
+			Image* img0 = listItem->AddItem<Image>();
 			img0->AlignHorCenter();
 			img0->SetMargin(4, 4, 4, 0);
 			img0->SetImage(filePath.c_str(), 70, 70);
@@ -523,7 +523,7 @@ void Editor::InitGui()
 			std::wstring nameWithoutExt = filePath.filename();
 	
 			// Texture text
-			GuiText* text0 = listItem->AddGui<GuiText>();
+			Text* text0 = listItem->AddGui<Text>();
 			text0->StretchFitToContent();
 			text0->AlignHorCenter();
 			text0->SetMargin(4);
@@ -534,60 +534,60 @@ void Editor::InitGui()
 		SetFocus((HWND)wnd->GetNativeHandle());
 	};
 	
-	GuiList* options = rightArea->AddGui<GuiList>();
+	ListView* options = rightArea->AddGui<ListView>();
 	options->SetOrientation(eGuiOrientation::VERTICAL);
 	options->StretchHorFillParent();
 	options->StretchVerFitToContent();
 	options->SetBgToColor(ColorI(0, 0, 0, 0));
 	options->SetName("__OPTIONS__");
 	
-	GuiCollapsable* dof = options->AddGui<GuiCollapsable>();
+	Collapsable* dof = options->AddGui<Collapsable>();
 	//dof->SetBorder(1, ColorI(80, 80, 80, 255));
 	dof->SetCaptionText(L"Depth of Field");
 	
-	GuiCollapsable* ssao = options->AddItem<GuiCollapsable>();
+	Collapsable* ssao = options->AddItem<Collapsable>();
 	//ssao->SetMargin(1);
 	//ssao->SetBorder(1, ColorI(80, 80, 80, 255));
 	ssao->SetCaptionText(L"SSAO");
 	
-	GuiCollapsable* voxelGI = options->AddItem<GuiCollapsable>();
+	Collapsable* voxelGI = options->AddItem<Collapsable>();
 	////voxelGI->SetMargin(1);
 	////voxelGI->SetBorder(1, ColorI(80, 80, 80, 255));
 	voxelGI->SetCaptionText(L"VoxelGI");
 	//
-	GuiCollapsable* ssr = options->AddItem<GuiCollapsable>();
+	Collapsable* ssr = options->AddItem<Collapsable>();
 	////ssr->SetMargin(1);
 	////ssr->SetBorder(1, ColorI(80, 80, 80, 255));
 	ssr->SetCaptionText(L"SSR");
 	
-	GuiButton* tmp = dof->AddItem<GuiButton>();
+	Button* tmp = dof->AddItem<Button>();
 	tmp->SetText("parameter 0");
-	tmp = dof->AddItem<GuiButton>();
+	tmp = dof->AddItem<Button>();
 	tmp->SetText("parameter 1");
-	tmp = dof->AddItem<GuiButton>();
+	tmp = dof->AddItem<Button>();
 	tmp->SetText("parameter 2");
-	tmp = dof->AddItem<GuiButton>();
+	tmp = dof->AddItem<Button>();
 	tmp->SetText("parameter 3");
-	tmp = dof->AddItem<GuiButton>();
+	tmp = dof->AddItem<Button>();
 	tmp->SetText("parameter 4");
 	
-	tmp = ssao->AddItem<GuiButton>();
+	tmp = ssao->AddItem<Button>();
 	tmp->SetText("parameter 0");
-	tmp = ssao->AddItem<GuiButton>();
+	tmp = ssao->AddItem<Button>();
 	tmp->SetText("parameter 1");
 	
-	tmp = voxelGI->AddItem<GuiButton>();
+	tmp = voxelGI->AddItem<Button>();
 	tmp->SetText("parameter 0");
-	tmp = voxelGI->AddItem<GuiButton>();
+	tmp = voxelGI->AddItem<Button>();
 	tmp->SetText("parameter 1");
 	
-	tmp = ssr->AddItem<GuiButton>();
+	tmp = ssr->AddItem<Button>();
 	tmp->SetText("parameter 0");
-	tmp = ssr->AddItem<GuiButton>();
+	tmp = ssr->AddItem<Button>();
 	tmp->SetText("parameter 1");
 
 	// RAW GRID TEST
-	//GuiGrid* grid = mainLayer->AddGui<GuiGrid>();
+	//Grid* grid = mainLayer->AddGui<Grid>();
 	//grid->StretchHorFillParent();
 	//grid->StretchVerFitToContent();
 	//grid->SetDimension(2, 2);
@@ -598,9 +598,9 @@ void Editor::InitGui()
 	//grid->GetRow(0)->SetHeight(100);
 	//grid->GetRow(1)->StretchFitToContent();
 	//
-	//GuiButton* btn0 = grid->GetCell(0, 0)->AddGui<GuiButton>();
-	//GuiButton* btn1 = grid->GetCell(1, 0)->AddGui<GuiButton>();
-	//GuiButton* btn2 = grid->GetCell(0, 1)->AddGui<GuiButton>();
+	//Button* btn0 = grid->GetCell(0, 0)->AddGui<Button>();
+	//Button* btn1 = grid->GetCell(1, 0)->AddGui<Button>();
+	//Button* btn2 = grid->GetCell(0, 1)->AddGui<Button>();
 	//
 	//btn1->SetText("Depth of Field (so long name Depth of Field)");
 	//
@@ -612,15 +612,15 @@ void Editor::InitGui()
 	//btn1->SetBgToColor(ColorI(0, 0, 255, 255));
 	//btn2->SetBgToColor(ColorI(0, 255, 0, 255));
 	//
-	//GuiList* list = grid->GetCell(1, 1)->AddGui<GuiList>();
-	//GuiButton* tmp = list->AddItem<GuiButton>(); tmp->SetText("parameter0");	tmp->StretchHorFillParent();
-	//tmp = list->AddItem<GuiButton>(); tmp->SetText("parameter1");				tmp->StretchHorFillParent();
-	//tmp = list->AddItem<GuiButton>(); tmp->SetText("parameter2");				tmp->StretchHorFillParent();
-	//tmp = list->AddItem<GuiButton>(); tmp->SetText("parameter3");				tmp->StretchHorFillParent();
-	//tmp = list->AddItem<GuiButton>(); tmp->SetText("parameter4");				tmp->StretchHorFillParent();
-	//tmp = list->AddItem<GuiButton>(); tmp->SetText("parameter5");				tmp->StretchHorFillParent();
-	//tmp = list->AddItem<GuiButton>(); tmp->SetText("parameter6");				tmp->StretchHorFillParent();
-	//tmp = list->AddItem<GuiButton>(); tmp->SetText("parameter7");				tmp->StretchHorFillParent();
+	//ListView* list = grid->GetCell(1, 1)->AddGui<ListView>();
+	//Button* tmp = list->AddItem<Button>(); tmp->SetText("parameter0");	tmp->StretchHorFillParent();
+	//tmp = list->AddItem<Button>(); tmp->SetText("parameter1");				tmp->StretchHorFillParent();
+	//tmp = list->AddItem<Button>(); tmp->SetText("parameter2");				tmp->StretchHorFillParent();
+	//tmp = list->AddItem<Button>(); tmp->SetText("parameter3");				tmp->StretchHorFillParent();
+	//tmp = list->AddItem<Button>(); tmp->SetText("parameter4");				tmp->StretchHorFillParent();
+	//tmp = list->AddItem<Button>(); tmp->SetText("parameter5");				tmp->StretchHorFillParent();
+	//tmp = list->AddItem<Button>(); tmp->SetText("parameter6");				tmp->StretchHorFillParent();
+	//tmp = list->AddItem<Button>(); tmp->SetText("parameter7");				tmp->StretchHorFillParent();
 }
 
 void Editor::Update()

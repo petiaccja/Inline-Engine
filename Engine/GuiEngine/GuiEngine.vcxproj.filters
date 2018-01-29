@@ -14,96 +14,93 @@
     <ClInclude Include="GuiEngine.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GuiLayer.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GuiButton.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GuiText.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GuiSlider.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GuiList.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GuiCollapsable.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Gui.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GuiSplitter.hpp">
+    <ClInclude Include="Button.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GuiImage.hpp">
+    <ClInclude Include="Collapsable.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GuiScrollable.hpp">
+    <ClInclude Include="Event.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GuiMenu.hpp">
+    <ClInclude Include="Grid.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GuiGrid.hpp">
+    <ClInclude Include="Image.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GuiLayout.hpp">
+    <ClInclude Include="Layer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GuiEvent.hpp">
+    <ClInclude Include="Layout.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Events.hpp">
+    <ClInclude Include="List.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GuiRect.hpp">
+    <ClInclude Include="Menu.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rect.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Scrollable.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Slider.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Splitter.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Text.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="GuiCollapsable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GuiSlider.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Gui.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GuiLayer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GuiText.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GuiSplitter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GuiButton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="GuiEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GuiList.cpp">
+    <ClCompile Include="Button.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GuiMenu.cpp">
+    <ClCompile Include="Collapsable.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GuiImage.cpp">
+    <ClCompile Include="Grid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GuiGrid.cpp">
+    <ClCompile Include="Image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GuiLayout.cpp">
+    <ClCompile Include="Layer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GuiScrollable.cpp">
+    <ClCompile Include="Layout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="List.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Menu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Scrollable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Slider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Splitter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Text.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

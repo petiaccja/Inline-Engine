@@ -1,18 +1,18 @@
 #pragma once
-#include "GuiLayout.hpp"
+#include "Layout.hpp"
 
 #include <unordered_set>
 
 namespace inl::gui {
 
-class GuiSplitter : public GuiLayout
+class Splitter : public Layout
 {
 public:
-	GuiSplitter(GuiEngine& guiEngine);
-	GuiSplitter(const GuiSplitter& other):GuiLayout(other.guiEngine) { *this = other; }
+	Splitter(GuiEngine& guiEngine);
+	Splitter(const Splitter& other):Layout(other.guiEngine) { *this = other; }
 
 	// Important to implement in derived classes
-	virtual GuiSplitter* Clone() const override { return new GuiSplitter(*this); }
+	virtual Splitter* Clone() const override { return new Splitter(*this); }
 
 	virtual void AddItem(Gui* gui) override;
 	virtual bool RemoveItem(Gui* gui) override;

@@ -4,6 +4,9 @@
 
 namespace inl {
 
+using namespace mathter;
+
+// TODO RELOCATE THESE :)
 #define KEY_ROTATE_SPEED 0.001f
 #define KEY_ZOOM_SPEED 1.0f
 
@@ -14,8 +17,6 @@ namespace inl {
 static const float m_fSpeedMulForShift = 4.0f;
 static const float fSmooth = 1.013;
 static const float fNotSmooth = 999999.0f;
-
-using namespace mathter;
 
 GeneralCamera::GeneralCamera(core::Scene* scene, InputCore* inputCore, gxeng::PerspectiveCamera* cam, Gui* viewportGui)
 :PerspCameraActor(scene, cam), Part(scene, ePartType::CAMERA), viewportGui(viewportGui)

@@ -94,42 +94,41 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="GuiButton.cpp" />
+    <ClCompile Include="Button.cpp" />
     <ClCompile Include="GuiEngine.cpp" />
-    <ClCompile Include="GuiGrid.cpp" />
-    <ClCompile Include="GuiImage.cpp" />
-    <ClCompile Include="GuiList.cpp" />
-    <ClCompile Include="GuiMenu.cpp" />
-    <ClCompile Include="GuiScrollable.cpp" />
-    <ClCompile Include="GuiSplitter.cpp" />
-    <ClCompile Include="GuiText.cpp" />
-    <ClCompile Include="GuiLayout.cpp" />
-    <ClInclude Include="Events.hpp" />
-    <ClInclude Include="GuiButton.hpp" />
-    <ClCompile Include="GuiCollapsable.cpp">
+    <ClCompile Include="Grid.cpp" />
+    <ClCompile Include="Image.cpp" />
+    <ClCompile Include="List.cpp" />
+    <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="Scrollable.cpp" />
+    <ClCompile Include="Splitter.cpp" />
+    <ClCompile Include="Text.cpp" />
+    <ClCompile Include="Layout.cpp" />
+    <ClInclude Include="Button.hpp" />
+    <ClCompile Include="Collapsable.cpp">
       <FileType>CppHeader</FileType>
     </ClCompile>
-    <ClInclude Include="GuiCollapsable.hpp" />
+    <ClInclude Include="Collapsable.hpp" />
     <ClInclude Include="Gui.hpp" />
     <ClInclude Include="GuiEngine.hpp" />
-    <ClInclude Include="GuiEvent.hpp" />
-    <ClCompile Include="GuiLayer.cpp">
+    <ClInclude Include="Event.hpp" />
+    <ClCompile Include="Layer.cpp">
       <FileType>CppHeader</FileType>
     </ClCompile>
-    <ClInclude Include="GuiGrid.hpp" />
-    <ClInclude Include="GuiImage.hpp" />
-    <ClInclude Include="GuiLayer.hpp" />
-    <ClInclude Include="GuiList.hpp" />
-    <ClInclude Include="GuiMenu.hpp" />
-    <ClInclude Include="GuiRect.hpp" />
-    <ClInclude Include="GuiScrollable.hpp" />
-    <ClInclude Include="GuiSlider.hpp" />
-    <ClCompile Include="GuiSlider.cpp">
+    <ClInclude Include="Grid.hpp" />
+    <ClInclude Include="Image.hpp" />
+    <ClInclude Include="Layer.hpp" />
+    <ClInclude Include="List.hpp" />
+    <ClInclude Include="Menu.hpp" />
+    <ClInclude Include="Rect.hpp" />
+    <ClInclude Include="Scrollable.hpp" />
+    <ClInclude Include="Slider.hpp" />
+    <ClCompile Include="Slider.cpp">
       <FileType>CppHeader</FileType>
     </ClCompile>
-    <ClInclude Include="GuiSplitter.hpp" />
-    <ClInclude Include="GuiText.hpp" />
-    <ClInclude Include="GuiLayout.hpp" />
+    <ClInclude Include="Splitter.hpp" />
+    <ClInclude Include="Text.hpp" />
+    <ClInclude Include="Layout.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Gui.cpp" />

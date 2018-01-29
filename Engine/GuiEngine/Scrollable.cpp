@@ -1,10 +1,10 @@
-#include "GuiScrollable.hpp"
-#include "GuiButton.hpp"
+#include "Scrollable.hpp"
+#include "Button.hpp"
 
 using namespace inl::gui;
 
-GuiScrollable::GuiScrollable(GuiEngine& guiEngine)
-:GuiGrid(guiEngine), bVerScrollBarVisible(false), bHorScrollBarVisible(false)
+ScrollableArea::ScrollableArea(GuiEngine& guiEngine)
+:Grid(guiEngine), bVerScrollBarVisible(false), bHorScrollBarVisible(false)
 {
 	SetDimension(1, 2);
 
@@ -28,12 +28,12 @@ GuiScrollable::GuiScrollable(GuiEngine& guiEngine)
 	GetRow(1)->SetHeight(16);
 	
 	// Add scroll bars
-	GuiButton* btn = horizontalScrollCell->AddGui<GuiButton>();
+	Button* btn = horizontalScrollCell->AddGui<Button>();
 	btn->SetMargin(3);
 	btn->SetBgToColor(ColorI(120, 120, 120, 255), ColorI(200, 200, 200, 255));
 	btn->StretchVerFillParent();
 	btn->SetWidth(250);
-	//btn = verticalScrollCell->AddGuiButton();
+	//btn = verticalScrollCell->AddButton();
 	//btn->SetMargin(3);
 	//btn->SetBgToColor(ColorI(120), ColorI(200));
 	//btn->StretchHorFillParent();
@@ -41,13 +41,13 @@ GuiScrollable::GuiScrollable(GuiEngine& guiEngine)
 	SetBgToColor(GetBgIdleColor());
 }
 
-//void GuiScrollable::SetOrientation(eGuiOrientation orientation)
+//void ScrollableArea::SetOrientation(eGuiOrientation orientation)
 //{
 //	this->orientation = orientation;
 //	bLayoutNeedRefresh = true;
 //}
 //
-//Vec2 GuiScrollable::ArrangeChildren(const Vec2& finalSize)
+//Vec2 ScrollableArea::ArrangeChildren(const Vec2& finalSize)
 //{
 //	Vec2 pos = GetContentPos();
 //	Vec2 selfSize(0, 0);
@@ -73,7 +73,7 @@ GuiScrollable::GuiScrollable(GuiEngine& guiEngine)
 //	return selfSize;
 //}
 
-void GuiScrollable::SetContent(Gui* contentGui)
+void ScrollableArea::SetContent(Gui* contentGui)
 {
 	// The content cell we want to fill in
 	Gui* contentCell = GetCell(0, 0);

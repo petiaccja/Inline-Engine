@@ -5,9 +5,6 @@
 #include <vector>
 #include <stdint.h>
 
-using namespace inl;
-using namespace inl::physics;
-
 namespace inl::physics {
 
 class IPhysicsEngine
