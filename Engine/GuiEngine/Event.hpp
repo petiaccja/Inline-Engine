@@ -7,7 +7,7 @@
 #undef min
 #undef max
 
-#include "GuiRect.hpp"
+#include "Rect.hpp"
 
 namespace inl::gui {
 

@@ -209,16 +209,16 @@ void GuiEngine::SetResolution(Vec2u& size)
 	gdiGraphics = Gdiplus::Graphics::FromHDC(memHDC);
 }
 
-GuiLayer* GuiEngine::AddLayer()
+Layer* GuiEngine::AddLayer()
 {
-	GuiLayer* layer = CreateLayer();
+	Layer* layer = CreateLayer();
 	layers.push_back(layer);
 	return layer;
 }
 
-GuiLayer* GuiEngine::CreateLayer()
+Layer* GuiEngine::CreateLayer()
 {
-	return new GuiLayer(*this);
+	return new Layer(*this);
 }
 
 void GuiEngine::Update(float deltaTime)
@@ -247,7 +247,7 @@ void GuiEngine::Update(float deltaTime)
 			traverseControls(child, newClipRect);
 	};
 
-	for (GuiLayer* layer : GetLayers())
+	for (Layer* layer : GetLayers())
 		traverseControls(layer, clipRect);
 
 
@@ -337,7 +337,7 @@ void GuiEngine::Render()
 			traverseControls(*child);
 	};
 	
-	for (GuiLayer* layer : GetLayers())
+	for (Layer* layer : GetLayers())
 		traverseControls(*layer);
 	
 	// Present
@@ -358,7 +358,7 @@ void GuiEngine::TraverseGuiControls(const std::function<void(Gui&)>& fn)
 	auto allLayers = layers;
 	allLayers.push_back(postProcessLayer);
 
-	for (GuiLayer* layer : allLayers)
+	for (Layer* layer : allLayers)
 	{
 		traverseControls(*layer, [&](Gui& control)
 		{
@@ -373,9 +373,9 @@ void GuiEngine::SetCursorVisual(eCursorVisual cursorVisual)
 	System::SetCursorVisual(cursorVisual, targetWindow->GetNativeHandle());
 }
 
-std::vector<GuiLayer*> GuiEngine::GetLayers()
+std::vector<Layer*> GuiEngine::GetLayers()
 {
-	std::vector<GuiLayer*> result = layers;
+	std::vector<Layer*> result = layers;
 	result.push_back(postProcessLayer);
 
 	return result;

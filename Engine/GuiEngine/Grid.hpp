@@ -4,7 +4,7 @@
 namespace inl::gui {
 
 
-class GuiGrid;
+class Grid;
 
 enum class eGridLineSizing
 {
@@ -15,11 +15,11 @@ enum class eGridLineSizing
 
 // TODO make base class for them.. don't generalize width and height to "length"
 
-class GuiGridRow
+class GridRow
 {
 public:
-	GuiGridRow() {}
-	GuiGridRow(int idx, GuiGrid* grid);
+	GridRow() {}
+	GridRow(int idx, Grid* grid);
 
 	void StretchFillSpace(float spaceMultiplier);
 	void SetHeight(float height);
@@ -39,16 +39,16 @@ protected:
 	float height; // Fixed size
 	float spaceMultiplier; // FILL_SPACE
 	int idx;
-	GuiGrid* grid;
+	Grid* grid;
 };
 
 
 
-class GuiGridColumn
+class GridColumn
 {
 public:
-	GuiGridColumn() {}
-	GuiGridColumn(int idx, GuiGrid* grid);
+	GridColumn() {}
+	GridColumn(int idx, Grid* grid);
 
 	void StretchFillSpace(float spaceMultiplier);
 	void SetWidth(float width);
@@ -67,19 +67,19 @@ protected:
 	float width; // Fixed size
 	float spaceMultiplier; // FILL_SPACE
 	int idx;
-	GuiGrid* grid;
+	Grid* grid;
 };
 
 
-class GuiGrid : public Gui
+class Grid : public Gui
 {
 public:
-	GuiGrid(GuiEngine& guiEngine);
-	GuiGrid(const GuiGrid& other):Gui(other.guiEngine) { *this = other; }
+	Grid(GuiEngine& guiEngine);
+	Grid(const Grid& other):Gui(other.guiEngine) { *this = other; }
 
 	// Important to implement in derived classes
-	virtual GuiGrid* Clone() const override { return new GuiGrid(*this); }
-	GuiGrid& operator = (const GuiGrid& other);
+	virtual Grid* Clone() const override { return new Grid(*this); }
+	Grid& operator = (const Grid& other);
 
 	void SetDimension(uint32_t width, uint32_t height);
 
@@ -88,12 +88,12 @@ public:
 		return cells[x + y * dimension.x];
 	}
 
-	GuiGridColumn* GetColumn(int idx)
+	GridColumn* GetColumn(int idx)
 	{
 		return &columns[idx];
 	}
 
-	GuiGridRow* GetRow(int idx)
+	GridRow* GetRow(int idx)
 	{
 		return &rows[idx];
 	}
@@ -108,8 +108,8 @@ protected:
 protected:
 	// For now I don't care about the performance, later we will use 2D arrays
 	std::vector<Gui*> cells;
-	std::vector<GuiGridRow> rows;
-	std::vector<GuiGridColumn> columns;
+	std::vector<GridRow> rows;
+	std::vector<GridColumn> columns;
 	Vec2u dimension;
 };
 

@@ -1,10 +1,6 @@
 #pragma once
-
 #include "PhysicsEngine/IPhysicsEngine.hpp"
 #include "Scene.hpp"
-
-using namespace inl;
-using namespace inl::physics::bullet;
 
 namespace inl::physics::bullet {
 

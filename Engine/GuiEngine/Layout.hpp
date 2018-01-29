@@ -4,11 +4,11 @@
 namespace inl::gui
 {
 
-class GuiLayout : public Gui
+class Layout : public Gui
 {
 public:
-	//GuiLayout() {}
-	GuiLayout(GuiEngine& guiEngine) :Gui(guiEngine) {}
+	//Layout() {}
+	Layout(GuiEngine& guiEngine) :Gui(guiEngine) {}
 
 	virtual void AddItem(Gui* gui) = 0;
 	virtual bool RemoveItem(Gui* gui) = 0;

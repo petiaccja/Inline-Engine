@@ -4,10 +4,10 @@
 
 namespace inl::gui {
 
-class GuiLayer : public Gui
+class Layer : public Gui
 {
 public:
-	GuiLayer(GuiEngine& guiEngine);
+	Layer(GuiEngine& guiEngine);
 
 	virtual Vec2 ArrangeChildren();
 };

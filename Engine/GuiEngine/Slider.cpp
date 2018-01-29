@@ -1,10 +1,10 @@
 #pragma once
-#include "GuiSlider.hpp"
+#include "Slider.hpp"
 #include "GuiEngine.hpp"
 
-using namespace inl::gui;
+namespace inl::gui {
 
-GuiSlider::GuiSlider(GuiEngine& guiEngine)
+Slider::Slider(GuiEngine& guiEngine)
 :Gui(guiEngine), value(0), minValue(0), maxValue(1), sliderWidth(5), bSliding(false)
 {
 	slider = AddGui();
@@ -13,26 +13,26 @@ GuiSlider::GuiSlider(GuiEngine& guiEngine)
 
 	OnTransformChange += [](Gui& self_, TransformEvent& e)
 	{
-		GuiSlider& self = self_.As<GuiSlider>();
+		Slider& self = self_.As<Slider>();
 		self.SlideToValue();
 	};
 
 	OnCursorEnter += [](Gui& self_, CursorEvent& evt)
 	{
-		GuiSlider& self = self_.As<GuiSlider>();
+		Slider& self = self_.As<Slider>();
 		self.slider->SetBgActiveColor(self.slider->GetBgIdleColor() + ColorI(65, 65, 65, 0));
 	};
 
 	OnCursorLeave += [](Gui& self_, CursorEvent& evt)
 	{
-		GuiSlider& self = self_.As<GuiSlider>();
+		Slider& self = self_.As<Slider>();
 		self.slider->SetBgActiveColorToIdle();
 	};
 
 	// Start drag
 	OnCursorPress += [](Gui& self_, CursorEvent& evt)
 	{
-		GuiSlider& self = self_.As<GuiSlider>();
+		Slider& self = self_.As<Slider>();
 		self.bSliding = true;
 		self.SlideToCursor();
 	};
@@ -53,19 +53,19 @@ GuiSlider::GuiSlider(GuiEngine& guiEngine)
 	SlideToValue();
 }
 
-void GuiSlider::SlideToValue(float value)
+void Slider::SlideToValue(float value)
 {
 	float normedPercent = value / (maxValue - minValue);
 	SlideToNormedPercent(normedPercent);
 }
 
-void GuiSlider::SlideToNormedPercent(float normedPercent)
+void Slider::SlideToNormedPercent(float normedPercent)
 {
 	slider->SetSize(sliderWidth, GetSize().y);
 	slider->SetPos(GetPosX() + normedPercent * (GetWidth() - slider->GetWidth()), GetPosY());
 }
 
-void GuiSlider::SlideToCursor()
+void Slider::SlideToCursor()
 {
 	// Ha cursor sliderHalfWidth() - nél van akkor 0, ha GetWidth() - sliderHalfWidth() - nél akkor meg egy
 	float normalizedPercent = (GetCursorPosContentSpaceX() - slider->GetHalfWidth()) / (GetWidth() - slider->GetWidth());
@@ -73,23 +73,25 @@ void GuiSlider::SlideToCursor()
 	SlideToNormedPercent(normalizedPercent);
 }
 
-void GuiSlider::SetValue(float val)
+void Slider::SetValue(float val)
 {
 	value = Clamp(val, minValue, maxValue);
 	SlideToValue(value);
 	OnValueChange(*this, val);
 }
 
-void GuiSlider::SetMinValue(float val)
+void Slider::SetMinValue(float val)
 {
 	minValue = val;
 	val = Clamp(val, minValue, maxValue);
 	SetValue(val);
 }
 
-void GuiSlider::SetMaxValue(float val)
+void Slider::SetMaxValue(float val)
 {
 	maxValue = val;
 	val = Clamp(val, minValue, maxValue);
 	SetValue(val);
 }
+
+} //namespace inl::gui

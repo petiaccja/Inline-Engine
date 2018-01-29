@@ -3,17 +3,17 @@
 
 namespace inl::gui {
 
-class GuiImage : public Gui
+class Image : public Gui
 {
 public:
-	GuiImage(GuiEngine& guiEngine);
+	Image(GuiEngine& guiEngine);
 
 	// Important to implement in derived classes
-	virtual GuiImage* Clone() const override { return new GuiImage(*this); }
+	virtual Image* Clone() const override { return new Image(*this); }
 
 	// Important to implement in derived classes
-	//virtual GuiImage* Clone() const override { return new GuiImage(*this); }
-	//GuiImage& operator = (const GuiImage& other);
+	//virtual Image* Clone() const override { return new Image(*this); }
+	//Image& operator = (const Image& other);
 
 	void SetImage(const std::wstring& imagePath, int width = 0, int height = 0) { SetImages(imagePath, imagePath, width, height); }
 

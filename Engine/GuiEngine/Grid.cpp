@@ -1,8 +1,8 @@
-#include "GuiGrid.hpp"
+#include "Grid.hpp"
 
 namespace inl::gui {
 
-GuiGrid::GuiGrid(GuiEngine& guiEngine)
+Grid::Grid(GuiEngine& guiEngine)
 	:Gui(guiEngine), dimension(0, 0)
 {
 	SetDimension(1, 1);
@@ -10,7 +10,7 @@ GuiGrid::GuiGrid(GuiEngine& guiEngine)
 	SetBgToColor(GetBgIdleColor());
 }
 
-GuiGrid& GuiGrid::operator = (const GuiGrid& other)
+Grid& Grid::operator = (const Grid& other)
 {
 	Gui::operator = (other);
 
@@ -20,22 +20,22 @@ GuiGrid& GuiGrid::operator = (const GuiGrid& other)
 	return *this;
 }
 
-Vec2 GuiGrid::ArrangeChildren()
+Vec2 Grid::ArrangeChildren()
 {
 	// Count fixed space
 	Vec2 allFixedSpace(0, 0);
-	for (GuiGridColumn& column : columns)
+	for (GridColumn& column : columns)
 		if (column.GetSizingPolicy() == eGridLineSizing::FIXED)
 			allFixedSpace.x += column.GetWidth();
 
-	for (GuiGridRow& row : rows)
+	for (GridRow& row : rows)
 		if (row.GetSizingPolicy() == eGridLineSizing::FIXED)
 			allFixedSpace.y += row.GetHeight();
 
 	// Count FIT_TO_CONTENT space
 	// Search for max width per column
 	std::vector<float> maxWidths(columns.size());
-	for (GuiGridColumn& column : columns)
+	for (GridColumn& column : columns)
 	{
 		if (column.GetSizingPolicy() == eGridLineSizing::FIT_TO_CONTENT)
 		{
@@ -49,7 +49,7 @@ Vec2 GuiGrid::ArrangeChildren()
 	}
 
 	std::vector<float> maxHeights(rows.size());
-	for (GuiGridRow& row : rows)
+	for (GridRow& row : rows)
 	{
 		if (row.GetSizingPolicy() == eGridLineSizing::FIT_TO_CONTENT)
 		{
@@ -64,11 +64,11 @@ Vec2 GuiGrid::ArrangeChildren()
 
 	// Sum remaining space multipliers
 	Vec2 spaceMultiplierSum(0, 0);
-	for (GuiGridColumn& column : columns)
+	for (GridColumn& column : columns)
 		if (column.GetSizingPolicy() == eGridLineSizing::FILL_SPACE)
 			spaceMultiplierSum.x += column.GetSpaceMultiplier();
 
-	for (GuiGridRow& row : rows)
+	for (GridRow& row : rows)
 		if (row.GetSizingPolicy() == eGridLineSizing::FILL_SPACE)
 			spaceMultiplierSum.y += row.GetSpaceMultiplier();
 
@@ -81,7 +81,7 @@ Vec2 GuiGrid::ArrangeChildren()
 	//float gridHeight = 0;
 	for (uint32_t i = 0; i < dimension.y; ++i)
 	{
-		GuiGridRow* row = GetRow(i);
+		GridRow* row = GetRow(i);
 
 		pos.x = GetContentPos().x;
 
@@ -94,7 +94,7 @@ Vec2 GuiGrid::ArrangeChildren()
 		for (uint32_t j = 0; j < dimension.x; ++j)
 		{
 			Gui* cell = GetCell(j, i);
-			GuiGridColumn* column = GetColumn(j);
+			GridColumn* column = GetColumn(j);
 
 			// Determine the size of the cell
 			if (column->GetSizingPolicy() == eGridLineSizing::FIXED)
@@ -128,7 +128,7 @@ Vec2 GuiGrid::ArrangeChildren()
 	return newSize;
 }
 
-void GuiGrid::SetDimension(uint32_t width, uint32_t height)
+void Grid::SetDimension(uint32_t width, uint32_t height)
 {
 	int cellCountDiff = width * height - dimension.x * dimension.y;
 
@@ -158,7 +158,7 @@ void GuiGrid::SetDimension(uint32_t width, uint32_t height)
 	if (dimensionDiff.x >= 0)
 	{
 		for (int i = 0; i < dimensionDiff.x; ++i)
-			columns.push_back(GuiGridColumn(columns.size() + i, this));
+			columns.push_back(GridColumn(columns.size() + i, this));
 	}
 	else // Remove columns
 	{
@@ -169,7 +169,7 @@ void GuiGrid::SetDimension(uint32_t width, uint32_t height)
 	if (dimensionDiff.y >= 0)
 	{
 		for (int i = 0; i < dimensionDiff.y; ++i)
-			rows.push_back(GuiGridRow(rows.size() + i, this));
+			rows.push_back(GridRow(rows.size() + i, this));
 	}
 	else // Remove rows
 	{
@@ -182,30 +182,30 @@ void GuiGrid::SetDimension(uint32_t width, uint32_t height)
 
 
 
-GuiGridRow::GuiGridRow(int idx, GuiGrid* grid)
+GridRow::GridRow(int idx, Grid* grid)
 	:idx(idx), grid(grid), height(5), spaceMultiplier(1.f), sizingPolicy(eGridLineSizing::FILL_SPACE)
 {
 
 }
 
-void GuiGridRow::StretchFillSpace(float spaceMultiplier)
+void GridRow::StretchFillSpace(float spaceMultiplier)
 {
 	sizingPolicy = eGridLineSizing::FILL_SPACE;
 	this->spaceMultiplier = spaceMultiplier;
 }
 
-void GuiGridRow::SetHeight(float height)
+void GridRow::SetHeight(float height)
 {
 	sizingPolicy = eGridLineSizing::FIXED;
 	this->height = height;
 }
 
-Gui* GuiGridRow::GetCell(int idx)
+Gui* GridRow::GetCell(int idx)
 {
 	return grid->GetCell(idx, this->idx);
 }
 
-std::vector<Gui*> GuiGridRow::GetCells()
+std::vector<Gui*> GridRow::GetCells()
 {
 	std::vector<Gui*> result(GetCellCount());
 
@@ -215,7 +215,7 @@ std::vector<Gui*> GuiGridRow::GetCells()
 	return result;
 }
 
-uint32_t GuiGridRow::GetCellCount()
+uint32_t GridRow::GetCellCount()
 {
 	return grid->GetDimension().x;
 }
@@ -223,30 +223,30 @@ uint32_t GuiGridRow::GetCellCount()
 
 
 
-GuiGridColumn::GuiGridColumn(int idx, GuiGrid* grid)
+GridColumn::GridColumn(int idx, Grid* grid)
 	:idx(idx), grid(grid), width(5), spaceMultiplier(1.f), sizingPolicy(eGridLineSizing::FILL_SPACE)
 {
 
 }
 
-void GuiGridColumn::StretchFillSpace(float spaceMultiplier)
+void GridColumn::StretchFillSpace(float spaceMultiplier)
 {
 	sizingPolicy = eGridLineSizing::FILL_SPACE;
 	this->spaceMultiplier = spaceMultiplier;
 }
 
-void GuiGridColumn::SetWidth(float width)
+void GridColumn::SetWidth(float width)
 {
 	sizingPolicy = eGridLineSizing::FIXED;
 	this->width = width;
 }
 
-Gui* GuiGridColumn::GetCell(int idx)
+Gui* GridColumn::GetCell(int idx)
 {
 	return grid->GetCell(this->idx, idx);
 }
 
-std::vector<Gui*> GuiGridColumn::GetCells()
+std::vector<Gui*> GridColumn::GetCells()
 {
 	std::vector<Gui*> result(GetCellCount());
 
@@ -256,7 +256,7 @@ std::vector<Gui*> GuiGridColumn::GetCells()
 	return result;
 }
 
-uint32_t GuiGridColumn::GetCellCount()
+uint32_t GridColumn::GetCellCount()
 {
 	return grid->GetDimension().y;
 }

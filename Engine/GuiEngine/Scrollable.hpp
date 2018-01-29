@@ -1,13 +1,13 @@
 #pragma once
-#include "GuiGrid.hpp"
+#include "Grid.hpp"
 
 namespace inl::gui {
 
-class GuiScrollable : public GuiGrid
+class ScrollableArea : public Grid
 {
 public:
-	GuiScrollable(GuiEngine& guiEngine);
-	GuiScrollable(const GuiScrollable& other):GuiGrid(other.guiEngine) { *this = other; }
+	ScrollableArea(GuiEngine& guiEngine);
+	ScrollableArea(const ScrollableArea& other):Grid(other.guiEngine) { *this = other; }
 
 	//virtual void AddItem(Gui* gui) {};
 	//virtual bool RemoveItem(Gui* gui) { return false; };
@@ -17,7 +17,7 @@ public:
 
 
 	// Important to implement in derived classes
-	//virtual GuiScrollable* Clone() const override { return new GuiScrollable(*this); }
+	//virtual ScrollableArea* Clone() const override { return new ScrollableArea(*this); }
 	//
 	//virtual void AddItem(Gui* gui) override { Add(gui); }
 	//virtual bool RemoveItem(Gui* gui) override { return Remove(gui); }

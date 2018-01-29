@@ -1,9 +1,9 @@
-#include "GuiText.hpp"
+#include "Text.hpp"
 #include "GuiEngine.hpp"
 
 using namespace inl::gui;
 
-Vec2 GuiText::ArrangeChildren()
+Vec2 Text::ArrangeChildren()
 {
 	Gdiplus::RectF gdiRect(-FLT_MAX * 0.5, -FLT_MAX * 0.5, FLT_MAX, FLT_MAX);
 

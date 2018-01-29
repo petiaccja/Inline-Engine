@@ -3,8 +3,8 @@
 #include <BaseLibrary/Color.hpp>
 #include <unordered_map>
 
-#include "GuiEvent.hpp"
-#include "GuiRect.hpp"
+#include "Event.hpp"
+#include "Rect.hpp"
 
 namespace inl::gui {
 
@@ -40,15 +40,15 @@ enum class eGuiOrientation
 
 class GuiEngine;
 class Gui;
-class GuiText;
-class GuiButton;
-class GuiList;
-class GuiSlider;
-class GuiCollapsable;
-class GuiSplitter;
-class GuiMenu;
-class GuiImage;
-class GuiScrollable;
+class Text;
+class Button;
+class ListView;
+class Slider;
+class Collapsable;
+class Splitter;
+class Menu;
+class Image;
+class ScrollableArea;
 
 
 

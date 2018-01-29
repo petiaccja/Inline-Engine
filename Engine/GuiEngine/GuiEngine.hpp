@@ -1,23 +1,20 @@
 #pragma once
 #include "GraphicsEngine_LL/GraphicsEngine.hpp"
 
-#include "GuiLayer.hpp"
-#include "GuiButton.hpp"
-#include "GuiText.hpp"
-#include "GuiCollapsable.hpp"
-#include "GuiList.hpp"
-#include "GuiSlider.hpp"
-#include "GuiSplitter.hpp"
-#include "GuiImage.hpp"
-#include "GuiMenu.hpp"
-#include "GuiScrollable.hpp"
-#include "GuiCheckBox.hpp"
+#include "Layer.hpp"
+#include "Button.hpp"
+#include "Text.hpp"
+#include "Collapsable.hpp"
+#include "List.hpp"
+#include "Slider.hpp"
+#include "Splitter.hpp"
+#include "Image.hpp"
+#include "Menu.hpp"
+#include "Scrollable.hpp"
 
 #include <BaseLibrary/Platform/System.hpp>
 #include <vector>
 #include <functional>
-
-using namespace inl;
 
 namespace inl::gui {
 
@@ -28,8 +25,8 @@ public:
 	GuiEngine(gxeng::GraphicsEngine* graphicsEngine, Window* targetWindow);
 	~GuiEngine();
 
-	GuiLayer* CreateLayer();
-	GuiLayer* AddLayer();
+	Layer* CreateLayer();
+	Layer* AddLayer();
 
 	void Update(float deltaTime);
 	void Render();
@@ -49,13 +46,13 @@ public:
 
 	inline Window* GetTargetWindow() { return targetWindow; }
 	Gdiplus::Graphics* GetGdiGraphics() { return gdiGraphics; }
-	GuiLayer* GetPostProcessLayer() { return postProcessLayer; }
+	Layer* GetPostProcessLayer() { return postProcessLayer; }
 
 	bool IsHoverFreezed() { return bHoverFreezed; }
 	bool IsUsingCustomCursor() { return cursorVisual != eCursorVisual::ARROW; }
 	Gui* GetHoveredGui() { return hoveredGui; }
 
-	std::vector<GuiLayer*> GetLayers();
+	std::vector<Layer*> GetLayers();
 
 protected:
 	void Register(Gui* g) { guis.push_back(g); }
@@ -70,8 +67,8 @@ protected:
 	gxeng::GraphicsEngine* graphicsEngine;
 	Window* targetWindow;
 
-	std::vector<GuiLayer*> layers; // "layers" rendered first
-	GuiLayer* postProcessLayer; // postProcessLayer renders above "layers"
+	std::vector<Layer*> layers; // "layers" rendered first
+	Layer* postProcessLayer; // postProcessLayer renders above "layers"
 	std::vector<Gui*> guis;
 
 	Gui* hoveredGui;
