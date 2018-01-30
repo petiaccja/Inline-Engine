@@ -2,9 +2,9 @@
 
 using namespace inl::gui;
 
-CheckBox::CheckBox(GuiEngine& guiEngine)
+CheckBox::CheckBox(GuiEngine* guiEngine)
     :Gui(guiEngine),
-    eState(CheckState::eUnchecked)
+    state(eCheckState::UNCHECKED)
 {
     setupUi();
     connectSlot();
@@ -29,14 +29,14 @@ void CheckBox::SetText(const std::string & str)
     text->SetText(str);
 }
 
-void CheckBox::SetCheckState(CheckState state)
+void CheckBox::SetCheckState(eCheckState state)
 {
-    eState = state;
-    if (eState == CheckState::eChecked)
+    this->state = state;
+    if (this->state == eCheckState::CHECKED)
     {
         checkBoxImage->SetBgIdleImage(L"Resources/unchecked.png", 20, 20);
     }
-    else if (eState == CheckState::eUnchecked)
+    else if (this->state == eCheckState::UNCHECKED)
     {
         checkBoxImage->SetBgIdleImage(L"Resources/checked.png", 20, 20);
     }
@@ -69,15 +69,11 @@ void CheckBox::setupUi()
 }
 void CheckBox::connectSlot()
 {
-    this->OnCursorClick += [](Gui& self, CursorEvent& evt)
+    this->OnCursorClick += [](CursorEvent& evt)
     {
-        CheckBox& checkBox = self.As<CheckBox>();
-        CheckState toggleState = checkBox.GetState() == CheckState::eChecked ? CheckState::eUnchecked : CheckState::eChecked;
+        CheckBox& checkBox = evt.self->As<CheckBox>();
+        eCheckState toggleState = checkBox.GetState() == eCheckState::CHECKED ? eCheckState::UNCHECKED : eCheckState::CHECKED;
         checkBox.SetCheckState(toggleState);
     };
 }
 
-void inl::gui::CheckBox::SetText(const std::string & str)
-{
-    text->SetText(str);
-}
