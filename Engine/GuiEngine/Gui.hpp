@@ -346,7 +346,7 @@ protected:
 	template<class T>
 	T* Copy(T* other);
 
-	void TraverseTowardParents(GuiEvent& event, const std::function<void(Gui&)>& eventHandler);
+	void TraverseTowardParents(GuiEvent& event, const std::function<void(Gui&)>& eventHandler, bool bCalledOnTarget = true);
 
 protected:
 	// Name it however you want

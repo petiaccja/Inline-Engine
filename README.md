@@ -28,12 +28,6 @@ At the moment 2 projects are interesting which you can run ( gpu must support Di
 - QC_Simulator -> Quadcopter simulator with which you can play or tweak the PID controller.
 - Editor       -> Where you can edit your whole game/project with tools
 
-
-License
----
-Inline Engine is free to use, with a 5% royalty on gross product revenue after the first $3,000 per game per calendar quarter from commercial products. Contact us if you require custom terms.
-
-
 Core ideas
 ---
 ### High-level interface
