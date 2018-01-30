@@ -2,7 +2,7 @@
 
 namespace inl::gui {
 
-Button::Button(GuiEngine& guiEngine)
+Button::Button(GuiEngine* guiEngine)
 :Gui(guiEngine)
 {
 	text = AddGui<Text>();

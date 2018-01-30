@@ -77,7 +77,7 @@ protected:
 
 	bool bHoverFreezed;
 	bool bOperSysDragging;
-	DragDropEvent lastDropEvent;
+	gui::DragDropEvent lastDropEvent;
 
 	eCursorVisual cursorVisual;
 

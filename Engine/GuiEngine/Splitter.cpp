@@ -3,7 +3,7 @@
 
 using namespace inl::gui;
 
-Splitter::Splitter(GuiEngine& guiEngine)
+Splitter::Splitter(GuiEngine* guiEngine)
 :Layout(guiEngine), orientation(eGuiOrientation::HORIZONTAL), separatorLength(10)
 {
 	SetBgToColor(GetBgIdleColor());
@@ -114,33 +114,39 @@ void Splitter::AddItem(Gui* item)
 		Gui* separator = AddGui();
 		separators.push_back(separator);
 
-		separator->OnCursorEnter += [](Gui& self_, CursorEvent& evt)
+		separator->OnCursorEnter += [](CursorEvent& e)
 		{
-			Splitter& splitter = self_.GetParent()->As<Splitter>();
+			Gui& self = *e.self;
 
-			splitter.separatorSaved = &self_;
+			Splitter& splitter = e.self->GetParent()->As<Splitter>();
+
+			splitter.separatorSaved = &self;
 
 			if (splitter.GetOrientation() == eGuiOrientation::HORIZONTAL)
-				splitter.guiEngine.SetCursorVisual(eCursorVisual::SIZEWE);
+				splitter.guiEngine->SetCursorVisual(eCursorVisual::SIZEWE);
 			if (splitter.GetOrientation() == eGuiOrientation::VERTICAL)
-				splitter.guiEngine.SetCursorVisual(eCursorVisual::SIZENS);
+				splitter.guiEngine->SetCursorVisual(eCursorVisual::SIZENS);
 		};
 
-		separator->OnCursorLeave += [](Gui& self, CursorEvent& evt)
+		separator->OnCursorLeave += [](CursorEvent& e)
 		{
+			Gui& self = *e.self;
+
 			Splitter& splitter = self.GetParent()->As<Splitter>();
 
 			if(!splitter.bDragging)
-				self.guiEngine.SetCursorVisual(eCursorVisual::ARROW);
+				self.guiEngine->SetCursorVisual(eCursorVisual::ARROW);
 		};
 
-		separator->OnCursorPress += [](Gui& separator, CursorEvent& evt)
+		separator->OnCursorPress += [](CursorEvent& e)
 		{
+			Gui& separator = *e.self;
+
 			Splitter& splitter = separator.GetParent()->As<Splitter>();
 
 			// We are starting to drag the separator, save the cursor pos
 			splitter.bDragging = true;
-			splitter.mousePosWhenPressed = evt.cursorPos;
+			splitter.mousePosWhenPressed = e.cursorPos;
 			
 			Gui* prevItem = splitter.GetChild(separator.GetIndexInParent() - 1);
 			Gui* nextItem = splitter.GetChild(separator.GetIndexInParent() + 1);
@@ -148,16 +154,16 @@ void Splitter::AddItem(Gui* item)
 			splitter.prevItemOrigSize = prevItem->GetSize();
 			splitter.nextItemOrigSize = nextItem->GetSize();
 
-			separator.guiEngine.FreezeHover();
+			separator.guiEngine->FreezeHover();
 		};
 
-		guiEngine.OnCursorMove += [this](CursorEvent& evt)
+		guiEngine->OnCursorMove += [this](CursorEvent& e)
 		{
 			if (bDragging)
 			{
 				Splitter& splitter = separatorSaved->GetParent()->As<Splitter>();
 
-				Vec2 deltaMouse = evt.cursorPos - mousePosWhenPressed;
+				Vec2 deltaMouse = e.cursorPos - mousePosWhenPressed;
 				
 				Gui* leftContainer = splitter.GetChild(separatorSaved->GetIndexInParent() - 1);
 				Gui* rightContainer = splitter.GetChild(separatorSaved->GetIndexInParent() + 1);
@@ -180,12 +186,12 @@ void Splitter::AddItem(Gui* item)
 			}
 		};
 
-		guiEngine.OnCursorRelease += [this](CursorEvent& evt)
+		guiEngine->OnCursorRelease += [this](CursorEvent& e)
 		{
 			if (bDragging)
 			{
 				bDragging = false;
-				guiEngine.DefreezeHover();
+				guiEngine->DefreezeHover();
 			}
 		};
 

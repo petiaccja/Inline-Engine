@@ -13,7 +13,6 @@ CheckBox::CheckBox(GuiEngine& guiEngine)
 CheckBox& CheckBox::operator = (const CheckBox& other)
 {
     Gui::operator = (other);
-
     text = Copy(other.text);
     SetCheckState(other.GetState());
     return *this;
@@ -23,6 +22,7 @@ void CheckBox::SetText(const std::wstring& str)
 {
     text->SetText(str);
 }
+
 
 void CheckBox::SetText(const std::string & str)
 {
@@ -75,4 +75,9 @@ void CheckBox::connectSlot()
         CheckState toggleState = checkBox.GetState() == CheckState::eChecked ? CheckState::eUnchecked : CheckState::eChecked;
         checkBox.SetCheckState(toggleState);
     };
+}
+
+void inl::gui::CheckBox::SetText(const std::string & str)
+{
+    text->SetText(str);
 }

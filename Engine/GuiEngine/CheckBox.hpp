@@ -1,7 +1,9 @@
 #pragma once
 #include "Text.hpp"
+
 #include "Image.hpp"
 #include "Grid.hpp"
+#include "Button.hpp"
 
 namespace inl::gui {
 
@@ -36,6 +38,22 @@ namespace inl::gui {
         Grid * layout;
         Text * text;
         Image *checkBoxImage;
-        CheckState eState;
+        CheckBox(GuiEngine* guiEngine);
+        CheckBox(const CheckBox& other) :Gui(other.guiEngine) { *this = other; }
+
+	    // Important to implement in derived classes
+        virtual CheckBox* Clone() const override { return new CheckBox(*this); };
+        CheckBox& operator = (const CheckBox& other);
+
+        void setCheckState(CheckState state) { eState = state; }
+	    void SetText(const std::wstring& str);
+        void SetText(const std::string& str);
+
+	    Text* GetText() { return text; }
+        CheckState checkState() const { return eState; }
+    public:
+	    Text * text;
+      Button *checkBox;
+      CheckState eState;
     };
 }

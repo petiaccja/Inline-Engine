@@ -218,15 +218,15 @@ void Editor::InitGui()
 	maximizeBtn = mainLayer->AddGui<Image>();
 	closeBtn = mainLayer->AddGui<Image>();
 	
-	minimizeBtn->OnCursorRelease += [this](Gui& self, CursorEvent& evt) { wnd->Minize(); };
-	maximizeBtn->OnCursorRelease += [this](Gui& self, CursorEvent& evt)
+	minimizeBtn->OnCursorRelease += [this](CursorEvent& evt) { wnd->Minize(); };
+	maximizeBtn->OnCursorRelease += [this](CursorEvent& evt)
 	{
 		if (bWndMaximized)
 			wnd->Restore();
 		else
 			wnd->Maximize();
 	};
-	closeBtn->OnCursorRelease += [this](Gui& self, CursorEvent& evt) { wnd->Close(); };
+	closeBtn->OnCursorRelease += [this](CursorEvent& evt) { wnd->Close(); };
 	
 	minimizeBtn->SetImages(L"Resources/minimize.png", L"Resources/minimize_h.png");
 	maximizeBtn->SetImages(L"Resources/maximize.png", L"Resources/maximize_h.png");
@@ -385,7 +385,7 @@ void Editor::InitGui()
 	centerRenderArea->SetBgToColor(ColorI(0, 0, 0, 255));
 	centerRenderArea->StretchFillParent();
 	
-	centerRenderArea->OnCursorClick += [this](Gui& self, CursorEvent& evt)
+	centerRenderArea->OnCursorClick += [this](CursorEvent& evt)
 	{
 		//if (evt.mouseButton == eMouseButton::LEFT)
 		//{
@@ -409,7 +409,7 @@ void Editor::InitGui()
 		//}
 	};
 	
-	centerRenderArea->OnTransformChange += [this](Gui& self, TransformEvent& e)
+	centerRenderArea->OnTransformChange += [this](TransformEvent& e)
 	{
 		//HWND gameHwnd = (HWND)gameWnd->GetNativeHandle();
 		//HWND editorHwnd = (HWND)this->wnd->GetNativeHandle();
@@ -468,13 +468,13 @@ void Editor::InitGui()
 	Gui* contentCell = scrollableBottom->GetCell(0, 0);
 	thread_local float colorDiff = 0;
 	thread_local float time = 0;
-	contentCell->OnOperSysDragEnter += [contentCell](Gui& self, DragDropEvent& data)
+	contentCell->OnOperSysDragEnter += [contentCell](gui::DragDropEvent& data)
 	{
 		time = 0;
 		// Show tooltip about what will happen if user Drops it
 	};
 	
-	contentCell->OnOperSysDragLeave += [contentCell](Gui& self, DragDropEvent& data)
+	contentCell->OnOperSysDragLeave += [contentCell](gui::DragDropEvent& data)
 	{
 		// Remove the highlight
 		contentCell->SetBgActiveColor(contentCell->GetBgIdleColor());
@@ -482,7 +482,7 @@ void Editor::InitGui()
 		// Hide tooltip
 	};
 	
-	contentCell->OnOperSysDragHover += [contentCell](Gui& self, DragDropEvent& data)
+	contentCell->OnOperSysDragHover += [contentCell](gui::DragDropEvent& data)
 	{
 		const float maxColorDifference = 40;
 	
@@ -491,7 +491,7 @@ void Editor::InitGui()
 		contentCell->SetBgActiveColor(contentCell->GetBgIdleColor() + ColorI(color, color, color, 255));
 	};
 	
-	contentCell->OnOperSysDrop += [this, textureList, contentCell](Gui& self, DragDropEvent& e)
+	contentCell->OnOperSysDrop += [this, textureList, contentCell](gui::DragDropEvent& e)
 	{
 		contentCell->SetBgActiveColor(contentCell->GetBgIdleColor());
 	
@@ -514,7 +514,7 @@ void Editor::InitGui()
 			img0->SetImage(filePath.c_str(), 70, 70);
 			img0->SetSize(70, 70);
 	
-			listItem->OnCursorClick += [filePath, this](Gui& self, CursorEvent& evt)
+			listItem->OnCursorClick += [filePath, this](CursorEvent& evt)
 			{
 				if (filePath.extension() == L".fbx")
 				{
@@ -540,7 +540,8 @@ void Editor::InitGui()
 	ListView* options = rightArea->AddGui<ListView>();
 	options->SetOrientation(eGuiOrientation::VERTICAL);
 	options->StretchHorFillParent();
-	options->StretchVerFitToContent();
+	//options->StretchVerFitToContent();
+	options->StretchVerFillParent();
 	options->SetBgToColor(ColorI(0, 0, 0, 0));
 	options->SetName("__OPTIONS__");
 	
@@ -728,7 +729,7 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if (!guiEngine->IsUsingCustomCursor())
 					SetCursor(LoadCursor(nullptr, IDC_ARROW));
-
+		
 				return TRUE;
 			}
 			break;

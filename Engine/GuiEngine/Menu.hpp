@@ -8,7 +8,7 @@ namespace inl::gui {
 class Menu : public ListView
 {
 public:
-	Menu(GuiEngine& guiEngine);
+	Menu(GuiEngine* guiEngine);
 
 	using ListView::AddItem;
 	virtual void AddItem(Gui* gui) override;

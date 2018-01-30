@@ -6,7 +6,7 @@ namespace inl::gui {
 class ListView : public Layout
 {
 public:
-	ListView(GuiEngine& guiEngine);
+	ListView(GuiEngine* guiEngine);
 	ListView(const ListView& other):Layout(other.guiEngine) { *this = other; }
 
 	// Important to implement in derived classes

@@ -6,7 +6,7 @@ namespace inl::gui {
 class Image : public Gui
 {
 public:
-	Image(GuiEngine& guiEngine);
+	Image(GuiEngine* guiEngine);
 
 	// Important to implement in derived classes
 	virtual Image* Clone() const override { return new Image(*this); }

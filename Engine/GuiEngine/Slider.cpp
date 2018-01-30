@@ -4,48 +4,48 @@
 
 namespace inl::gui {
 
-Slider::Slider(GuiEngine& guiEngine)
+Slider::Slider(GuiEngine* guiEngine)
 :Gui(guiEngine), value(0), minValue(0), maxValue(1), sliderWidth(5), bSliding(false)
 {
 	slider = AddGui();
 	slider->SetBgIdleColor(ColorI(130, 130, 130, 255));
 	slider->SetBgHoverColor(slider->GetBgIdleColor());
 
-	OnTransformChange += [](Gui& self_, TransformEvent& e)
+	OnTransformChange += [](TransformEvent& e)
 	{
-		Slider& self = self_.As<Slider>();
+		Slider& self = e.self->As<Slider>();
 		self.SlideToValue();
 	};
 
-	OnCursorEnter += [](Gui& self_, CursorEvent& evt)
+	OnCursorEnter += [](CursorEvent& e)
 	{
-		Slider& self = self_.As<Slider>();
+		Slider& self = e.self->As<Slider>();
 		self.slider->SetBgActiveColor(self.slider->GetBgIdleColor() + ColorI(65, 65, 65, 0));
 	};
 
-	OnCursorLeave += [](Gui& self_, CursorEvent& evt)
+	OnCursorLeave += [](CursorEvent& e)
 	{
-		Slider& self = self_.As<Slider>();
+		Slider& self = e.self->As<Slider>();
 		self.slider->SetBgActiveColorToIdle();
 	};
 
 	// Start drag
-	OnCursorPress += [](Gui& self_, CursorEvent& evt)
+	OnCursorPress += [](CursorEvent& e)
 	{
-		Slider& self = self_.As<Slider>();
+		Slider& self = e.self->As<Slider>();
 		self.bSliding = true;
 		self.SlideToCursor();
 	};
 
 	// Dragging
-	guiEngine.OnCursorMove += [this](CursorEvent& evt)
+	guiEngine->OnCursorMove += [this](CursorEvent& e)
 	{
 		if (bSliding)
 			SlideToCursor();
 	};
 
 	// Stop draw
-	guiEngine.OnCursorRelease += [this](CursorEvent& evt)
+	guiEngine->OnCursorRelease += [this](CursorEvent& e)
 	{
 		bSliding = false;
 	};

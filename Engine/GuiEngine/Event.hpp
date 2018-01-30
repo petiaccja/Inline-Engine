@@ -9,7 +9,10 @@
 
 #include "Rect.hpp"
 
+
 namespace inl::gui {
+
+class Gui;
 
 enum class eEventPropagationPolicy
 {
@@ -19,11 +22,30 @@ enum class eEventPropagationPolicy
 	PROCESS_STOP,
 };
 
-class CursorEvent
+struct GuiEvent
+{
+	GuiEvent(): self(nullptr), target(nullptr), m_bStopPropagation(false){}
+
+	void StopPropagation() { m_bStopPropagation = true; }
+	bool IsPropagationStopped() { return m_bStopPropagation; }
+
+	Gui* self;
+	Gui* target;
+private:
+	bool m_bStopPropagation : 1;
+};
+
+struct DragDropEvent : GuiEvent
+{
+	std::string text;
+	std::vector<std::experimental::filesystem::path> filePaths;
+};
+
+struct CursorEvent : GuiEvent
 {
 public:
 	CursorEvent() : cursorPos(0, 0), cursorDelta(0,0), mouseButton((eMouseButton)0){}
-	CursorEvent(Vec2 CursorPosContentSpace) : cursorPos(CursorPosContentSpace), cursorDelta(0,0) {}
+	CursorEvent(Vec2 CursorPosContentSpace): cursorPos(CursorPosContentSpace), cursorDelta(0,0) {}
 
 public:
 	Vec2 cursorPos;
@@ -31,37 +53,37 @@ public:
 	eMouseButton mouseButton;
 };
 
-struct UpdateEvent
+struct UpdateEvent : GuiEvent
 {
 	float deltaTime;
 };
 
-struct TransformEvent
+struct TransformEvent : GuiEvent
 {
 	GuiRectF rect;
 };
 
-struct PositionEvent
+struct PositionEvent : GuiEvent
 {
 	Vec2 pos;
 };
 
-struct SizeEvent
+struct SizeEvent : GuiEvent
 {
 	Vec2 size;
 };
 
-struct ParentEvent
+struct ParentEvent : GuiEvent
 {
 	class Gui* parent;
 };
 
-struct ChildEvent
+struct ChildEvent : GuiEvent
 {
 	class Gui* child;
 };
 
-struct PaintEvent
+struct PaintEvent : GuiEvent
 {
 	Gdiplus::Graphics* graphics;
 };

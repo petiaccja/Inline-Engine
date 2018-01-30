@@ -8,7 +8,7 @@ namespace inl::gui {
 class Splitter : public Layout
 {
 public:
-	Splitter(GuiEngine& guiEngine);
+	Splitter(GuiEngine* guiEngine);
 	Splitter(const Splitter& other):Layout(other.guiEngine) { *this = other; }
 
 	// Important to implement in derived classes
