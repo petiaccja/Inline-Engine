@@ -2,7 +2,7 @@
 
 namespace inl::gui {
 
-Grid::Grid(GuiEngine& guiEngine)
+Grid::Grid(GuiEngine* guiEngine)
 	:Gui(guiEngine), dimension(0, 0)
 {
 	SetDimension(1, 1);

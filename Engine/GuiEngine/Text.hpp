@@ -20,7 +20,7 @@ enum class eTextAlign
 class Text : public Gui
 {
 public:
-	Text(GuiEngine& guiEngine);
+	Text(GuiEngine* guiEngine);
 	Text(const Text& other):Gui(other.guiEngine) { *this = other; }
 
 	virtual Text* Clone() const { return new Text(*this); }
@@ -52,7 +52,7 @@ protected:
 
 
 
-inline Text::Text(GuiEngine& guiEngine)
+inline Text::Text(GuiEngine* guiEngine)
 :Gui(guiEngine), color(220, 220, 220, 255), fontSize(0)
 {
 	SetFontFamily("Helvetica");
@@ -62,9 +62,9 @@ inline Text::Text(GuiEngine& guiEngine)
 	HideBgImage();
 	HideBgColor();
 
-	OnPaint += [](Gui& self_, PaintEvent& e)
+	OnPaint += [](PaintEvent& e)
 	{
-		Text& self = self_.As<Text>();
+		Text& self = e.self->As<Text>();
 	
 		if (self.text.length() == 0)
 			return;

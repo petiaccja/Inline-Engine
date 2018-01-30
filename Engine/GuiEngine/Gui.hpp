@@ -57,8 +57,8 @@ class Gui
 	friend class GuiEngine;
 public:
 	//Gui();
-	Gui(GuiEngine& guiEngine);
-	Gui(GuiEngine& guiEngine, bool bLayer);
+	Gui(GuiEngine* guiEngine);
+	Gui(GuiEngine* guiEngine, bool bLayer);
 	Gui(const Gui& other):guiEngine(other.guiEngine) { *this = other; }
 
 	virtual ~Gui() { Clear(); }
@@ -346,7 +346,7 @@ protected:
 	template<class T>
 	T* Copy(T* other);
 
-	void TraverseTowardParents(const std::function<void(Gui&)>& fn);
+	void TraverseTowardParents(GuiEvent& event, const std::function<void(Gui&)>& eventHandler);
 
 protected:
 	// Name it however you want
@@ -428,29 +428,29 @@ protected:
 	bool bForceFitToContent;
 public:
 
-	GuiEngine& guiEngine;
+	GuiEngine* guiEngine;
 
 	// Public events
-	Event<Gui& /*self*/, CursorEvent&> OnCursorClick;
-	Event<Gui& /*self*/, CursorEvent&> OnCursorDblClick;
-	Event<Gui& /*self*/, CursorEvent&> OnCursorPress;
-	Event<Gui& /*self*/, CursorEvent&> OnCursorRelease;
-	Event<Gui& /*self*/, CursorEvent&> OnCursorMove;
-	Event<Gui& /*self*/, CursorEvent&> OnCursorEnter;
-	Event<Gui& /*self*/, CursorEvent&> OnCursorLeave;
-	Event<Gui& /*self*/, CursorEvent&> OnCursorHover;
-	Event<Gui& /*self*/, DragDropEvent&> OnOperSysDragEnter;
-	Event<Gui& /*self*/, DragDropEvent&> OnOperSysDragLeave;
-	Event<Gui& /*self*/, DragDropEvent&> OnOperSysDragHover;
-	Event<Gui& /*self*/, DragDropEvent&> OnOperSysDrop;
-	Event<Gui& /*self*/, UpdateEvent&> OnUpdate;
-	Event<Gui& /*self*/, TransformEvent&> OnTransformChange;
-	Event<Gui& /*self*/, TransformEvent&> OnParentTransformChange;
-	Event<Gui& /*self*/, TransformEvent&> OnChildTransformChange;
-	Event<Gui& /*self*/, ParentEvent&> OnParentChange;
-	Event<Gui& /*self*/, ChildEvent&> OnChildAdd;
-	Event<Gui& /*self*/, ChildEvent&> OnChildRemove;
-	Event<Gui& /*self*/, PaintEvent&> OnPaint;
+	Event<CursorEvent&> OnCursorClick;
+	Event<CursorEvent&> OnCursorDblClick;
+	Event<CursorEvent&> OnCursorPress;
+	Event<CursorEvent&> OnCursorRelease;
+	Event<CursorEvent&> OnCursorMove;
+	Event<CursorEvent&> OnCursorEnter;
+	Event<CursorEvent&> OnCursorLeave;
+	Event<CursorEvent&> OnCursorHover;
+	Event<DragDropEvent&> OnOperSysDragEnter;
+	Event<DragDropEvent&> OnOperSysDragLeave;
+	Event<DragDropEvent&> OnOperSysDragHover;
+	Event<DragDropEvent&> OnOperSysDrop;
+	Event<UpdateEvent&> OnUpdate;
+	Event<TransformEvent&> OnTransformChange;
+	Event<TransformEvent&> OnParentTransformChange;
+	Event<TransformEvent&> OnChildTransformChange;
+	Event<ParentEvent&> OnParentChange;
+	Event<ChildEvent&> OnChildAdd;
+	Event<ChildEvent&> OnChildRemove;
+	Event<PaintEvent&> OnPaint;
 };
 
 template<class T>

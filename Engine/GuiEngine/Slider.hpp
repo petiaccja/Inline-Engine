@@ -6,7 +6,7 @@ namespace inl::gui {
 class Slider : public Gui
 {
 public:
-	Slider(GuiEngine& guiEngine);
+	Slider(GuiEngine* guiEngine);
 
 	// Important to implement in derived classes
 	virtual Slider* Clone() const override { return new Slider(*this); }

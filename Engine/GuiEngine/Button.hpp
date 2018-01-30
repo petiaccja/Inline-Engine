@@ -6,7 +6,7 @@ namespace inl::gui {
 class Button : public Gui
 {
 public:
-	Button(GuiEngine& guiEngine);
+	Button(GuiEngine* guiEngine);
 	Button(const Button& other):Gui(other.guiEngine) { *this = other; }
 
 	// Important to implement in derived classes

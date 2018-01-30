@@ -3,7 +3,7 @@
 
 using namespace inl::gui;
 
-ScrollableArea::ScrollableArea(GuiEngine& guiEngine)
+ScrollableArea::ScrollableArea(GuiEngine* guiEngine)
 :Grid(guiEngine), bVerScrollBarVisible(false), bHorScrollBarVisible(false)
 {
 	SetDimension(1, 2);
@@ -86,7 +86,7 @@ void ScrollableArea::SetContent(Gui* contentGui)
 	// Add new content
 	contentCell->AddGui(contentGui);
 
-	//contentGui->onRectChanged += [this, contentCell](Gui& self, GuiRectF rect)
+	//contentGui->onRectChanged += [this, contentCell](GuiRectF rect)
 	//{
 	//	GuiRectF cellRect = contentCell->GetRect();
 	//

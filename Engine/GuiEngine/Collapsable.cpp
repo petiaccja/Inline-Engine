@@ -6,7 +6,7 @@
 
 using namespace inl::gui;
 
-Collapsable::Collapsable(GuiEngine& guiEngine)
+Collapsable::Collapsable(GuiEngine* guiEngine)
 :Layout(guiEngine), bOpened(false)
 {
 	DisableHover();
@@ -36,7 +36,7 @@ Collapsable::Collapsable(GuiEngine& guiEngine)
 
 	// item list
 	itemList = new ListView(guiEngine);
-	itemList->OnChildAdd += [](Gui& self, ChildEvent& e)
+	itemList->OnChildAdd += [](ChildEvent& e)
 	{
 		e.child->StretchHorFillParent();
 		e.child->StretchVerFitToContent();
@@ -52,9 +52,9 @@ Collapsable::Collapsable(GuiEngine& guiEngine)
 	caption->GetText()->SetFontSize(16);
 	caption->SetPadding(4);
 
-	caption->OnCursorPress += [](Gui& self, CursorEvent& e)
+	caption->OnCursorPress += [](CursorEvent& e)
 	{
-		Collapsable& c = self.GetParent()->GetParent()->GetParent()->As<Collapsable>();
+		Collapsable& c = e.self->GetParent()->GetParent()->GetParent()->As<Collapsable>();
 	
 		// Add item list to layout based on if "collapsable" opened or not
 		if (c.bOpened)

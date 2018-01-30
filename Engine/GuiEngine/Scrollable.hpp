@@ -6,7 +6,7 @@ namespace inl::gui {
 class ScrollableArea : public Grid
 {
 public:
-	ScrollableArea(GuiEngine& guiEngine);
+	ScrollableArea(GuiEngine* guiEngine);
 	ScrollableArea(const ScrollableArea& other):Grid(other.guiEngine) { *this = other; }
 
 	//virtual void AddItem(Gui* gui) {};

@@ -10,7 +10,7 @@ class Image;
 class Collapsable : public Layout
 {
 public:
-	Collapsable(GuiEngine& guiEngine);
+	Collapsable(GuiEngine* guiEngine);
 	Collapsable(const Collapsable& other):Layout(other.guiEngine) { *this = other; }
 
 	// Important to implement in derived classes

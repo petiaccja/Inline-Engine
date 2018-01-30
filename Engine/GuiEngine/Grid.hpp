@@ -74,7 +74,7 @@ protected:
 class Grid : public Gui
 {
 public:
-	Grid(GuiEngine& guiEngine);
+	Grid(GuiEngine* guiEngine);
 	Grid(const Grid& other):Gui(other.guiEngine) { *this = other; }
 
 	// Important to implement in derived classes

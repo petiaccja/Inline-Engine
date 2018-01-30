@@ -2,7 +2,7 @@
 
 using namespace inl::gui;
 
-Image::Image(GuiEngine& guiEngine)
+Image::Image(GuiEngine* guiEngine)
 :Gui(guiEngine)
 {
 

@@ -2,7 +2,7 @@
 
 namespace inl::gui {
 
-ListView::ListView(GuiEngine& guiEngine)
+ListView::ListView(GuiEngine* guiEngine)
 	:Layout(guiEngine), orientation(eGuiOrientation::VERTICAL)
 {
 	SetBgToColor(GetBgIdleColor());

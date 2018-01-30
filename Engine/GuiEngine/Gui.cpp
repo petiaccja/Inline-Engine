@@ -7,22 +7,23 @@
 #include "Menu.hpp"
 #include "Scrollable.hpp"
 #include "GuiEngine.hpp"
+#include "Rect.hpp"
 
 using namespace inl::gui;
 
-Gui::Gui(GuiEngine& guiEngine)
+Gui::Gui(GuiEngine* guiEngine)
 :Gui(guiEngine, false)
 {
-	guiEngine.Register(this);
+	guiEngine->Register(this);
 }
 
 //Gui::Gui()
 //:Gui(nullptr, false)
 //{
-//	guiEngine.Register(this);
+//	guiEngine->Register(this);
 //}
 
-Gui::Gui(GuiEngine& guiEngine, bool bLayer)
+Gui::Gui(GuiEngine* guiEngine, bool bLayer)
 :guiEngine(guiEngine)
 {
 	borderColor = ColorI(128, 128, 128, 255);
@@ -56,12 +57,13 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 	bBgFreezed = false;
 	bFillParentEnabled = false;
 	bForceFitToContent = false;
-	this->guiEngine = guiEngine;
 
 	SetBgActiveColor(bgIdleColor);
 
-	OnCursorEnter += [](Gui& self, CursorEvent& e)
+	OnCursorEnter += [](CursorEvent& e)
 	{
+		Gui& self = *e.self;
+
 		if (!self.bBgFreezed)
 		{
 			self.SetBgActiveColor(self.GetBgHoverColor());
@@ -71,9 +73,11 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 		self.bHovered = true;
 	};
 
-	OnCursorLeave += [](Gui& self, CursorEvent& e)
+	OnCursorLeave += [](CursorEvent& e)
 	{
-		if (!self.bBgFreezed)
+		Gui& self = *e.self;
+
+		if (!e.self->bBgFreezed)
 		{
 			self.SetBgActiveColor(self.GetBgIdleColor());
 			self.SetBgActiveImage(self.GetBgIdleImage());
@@ -82,18 +86,22 @@ Gui::Gui(GuiEngine& guiEngine, bool bLayer)
 		self.bHovered = false;
 	};
 
-	OnChildRemove += [](Gui& self, ChildEvent& e)
+	OnChildRemove += [](ChildEvent& e)
 	{
+		Gui& self = *e.self;
 		self.bLayoutNeedRefresh = true;
 	};
 
-	OnChildAdd += [](Gui& self, ChildEvent& e)
+	OnChildAdd += [](ChildEvent& e)
 	{
+		Gui& self = *e.self;
 		self.bLayoutNeedRefresh = true;
 	};
 
-	OnPaint += [](Gui& self, PaintEvent& e)
+	OnPaint += [](PaintEvent& e)
 	{
+		Gui& self = *e.self;
+
 		static const bool bDebugDraw = false;
 		if (bDebugDraw)
 			self.SetBorder(1.f, ColorI(255, 0, 0, 255));
@@ -197,7 +205,12 @@ Gui& Gui::operator = (const Gui& other)
 {
 	Clear();
 
+	//GuiEngine& asd = other.guiEngine;
 	guiEngine = other.guiEngine;
+	//size_t lol = *((size_t*)other.guiEngine);// reinterpret_cast<size_t>(other.guiEngine);
+	//memcpy((GuiEngine*)guiEngine, reinterpret_cast<size_t>(other.guiEngine), sizeof(GuiEngine*));
+	//const_cast<GuiEngine&>(guiEngine) = const_cast<GuiEngine&>(other.guiEngine);
+
 	pos = other.pos;
 	size = other.size;
 	name = other.name;
@@ -287,11 +300,13 @@ void Gui::AddGui(Gui* child, bool bFireEvents)
 	{
 		ParentEvent parentEvent;
 		parentEvent.parent = this;
-		child->OnParentChange(*child, parentEvent);
+		parentEvent.self = child;
+		child->OnParentChange(parentEvent);
 
 		ChildEvent childEvent;
 		childEvent.child = child;
-		OnChildAdd(*this, childEvent);
+		childEvent.self = this;
+		OnChildAdd(childEvent);
 	}
 }
 
@@ -329,11 +344,13 @@ bool Gui::RemoveGui(Gui* child, bool bFireEvents)
 			{
 				ChildEvent childEvent;
 				childEvent.child = child;
-				OnChildRemove(*this, childEvent);
+				childEvent.self = this;
+				OnChildRemove(childEvent);
 
 				ParentEvent parentEvent;
 				parentEvent.parent = nullptr;
-				child->OnParentChange(*child, parentEvent);
+				parentEvent.self = child;
+				child->OnParentChange(parentEvent);
 			}
 
 			return true;
@@ -350,24 +367,24 @@ bool Gui::RemoveFromParent()
 	return false;
 }
 
-void Gui::TraverseTowardParents(const std::function<void(Gui&)>& fn)
+void Gui::TraverseTowardParents(GuiEvent& event, const std::function<void(Gui&)>& eventHandler)
 {
-	// STOP traverse 
-	//if (eventPropagationPolicy == eEventPropagationPolicy::STOP)
-	//	return;
-	//
-	//// PROCESS fn then STOP
-	//if (eventPropagationPolicy == eEventPropagationPolicy::PROCESS || eventPropagationPolicy == eEventPropagationPolicy::PROCESS_STOP)
-		fn(*this);
-	//
-	//// Continue recursion
-	//if (eventPropagationPolicy == eEventPropagationPolicy::PROCESS || eventPropagationPolicy == eEventPropagationPolicy::AVOID)
-	//{
-		if (back)
-			back->TraverseTowardParents(fn);
-		else if (parent)
-			fn(*parent);
-	//}
+	// Lazy initialization of the source gui of the event (target), it's for convenience
+	if (&event.target == nullptr)
+		event.target = this;
+
+	// Set self, user will use this variable through the eventHandler
+	event.self = this;
+	eventHandler(*this);
+
+	// Decide if we continue propagation upwards, toward parents, or it can happen that user stops propagaiot in eventHandler, by calling event.StopPropagation()
+	if (parent && !event.IsPropagationStopped())
+		parent->TraverseTowardParents(event, eventHandler);
+
+	//if (back)
+	//	back->TraverseTowardParents(fn);
+	//else if (parent)
+	//	fn(*parent);
 }
 
 void Gui::Move(float dx, float dy)
@@ -403,14 +420,19 @@ void Gui::SetRect(float x, float y, float width, float height, bool bMoveChildre
 			if (bMoveChildren)
 				child->Move(rect.GetTopLeft() - oldRect.GetTopLeft());
 
-			child->OnParentTransformChange(*child, transformEvent);
+			transformEvent.self = child;
+			child->OnParentTransformChange(transformEvent);
 		}
 
 		
-		OnTransformChange(*this, transformEvent);
+		transformEvent.self = this;
+		OnTransformChange(transformEvent);
 
 		if (parent)
-			parent->OnChildTransformChange(*parent, transformEvent);
+		{
+			transformEvent.self = parent;
+			parent->OnChildTransformChange(transformEvent);
+		}
 
 		if (bSizeChanged)
 		{
@@ -685,75 +707,78 @@ Vec2 Gui::Arrange(const Vec2& pos, const Vec2& size)
 			}
 	}
 
-	if (bFillParent || bFillParentPositiveDir)
+	if (parent)
 	{
-		if (bFillParentHor && (parent->stretchHor != eGuiStretch::FIT_TO_CONTENT || bFillParentEnabled))
+		if (bFillParent || bFillParentPositiveDir)
 		{
-			newSize.x = parent->GetContentSize().x;
-			newPos.x = parent->GetContentPos().x;
+			if (bFillParentHor && (parent->stretchHor != eGuiStretch::FIT_TO_CONTENT || bFillParentEnabled))
+			{
+				newSize.x = parent->GetContentSize().x;
+				newPos.x = parent->GetContentPos().x;
+			}
+
+			if (bFillParentVer && (parent->stretchVer != eGuiStretch::FIT_TO_CONTENT || bFillParentEnabled))
+			{
+				newSize.y = parent->GetContentSize().y;
+				newPos.y = parent->GetContentPos().y;
+			}
+
+			if (bFillParentPositibeDirHor && (parent->stretchHor != eGuiStretch::FIT_TO_CONTENT || bFillParentEnabled))
+			{
+				newSize.x = parent->GetContentRect().right - newPos.x;
+			}
+
+			if (bFillParentPositibeDirVer && (parent->stretchVer != eGuiStretch::FIT_TO_CONTENT || bFillParentEnabled))
+			{
+				newSize.y = parent->GetContentRect().bottom - newPos.y;
+			}
+
+			bFillParentEnabled = false;
 		}
 
-		if (bFillParentVer && (parent->stretchVer != eGuiStretch::FIT_TO_CONTENT || bFillParentEnabled))
+		switch (alignVer)
 		{
-			newSize.y = parent->GetContentSize().y;
-			newPos.y = parent->GetContentPos().y;
+			case eGuiAlignVer::TOP:
+			{
+				newPos.y = parent->GetContentPos().y;
+				break;
+			}
+			case eGuiAlignVer::CENTER:
+			{
+				if (parent)
+				{
+					newPos.y = parent->GetContentCenterPos().y - newSize.y * 0.5;
+				}
+				break;
+			}
+			case eGuiAlignVer::BOTTOM:
+			{
+				newPos.y = parent->GetContentRect().bottom - newSize.y;
+				break;
+			}
 		}
 
-		if (bFillParentPositibeDirHor && (parent->stretchHor != eGuiStretch::FIT_TO_CONTENT || bFillParentEnabled))
+		switch (alignHor)
 		{
-			newSize.x = parent->GetContentRect().right - newPos.x;
+			case eGuiAlignHor::LEFT:
+			{
+				newPos.x = parent->GetContentPos().x;
+				break;
+			}
+			case eGuiAlignHor::CENTER:
+			{
+				if (parent)
+				{
+					newPos.x = parent->GetContentCenterPos().x - newSize.x * 0.5;
+				}
+				break;
+			}
+			case eGuiAlignHor::RIGHT:
+			{
+				newPos.x = parent->GetContentPos().x + parent->GetContentRect().GetWidth() - newSize.x;
+				break;
+			}
 		}
-
-		if (bFillParentPositibeDirVer && (parent->stretchVer != eGuiStretch::FIT_TO_CONTENT || bFillParentEnabled))
-		{
-			newSize.y = parent->GetContentRect().bottom - newPos.y;
-		}
-
-		bFillParentEnabled = false;
-	}
-
-	switch (alignVer)
-	{
-	case eGuiAlignVer::TOP:
-	{
-		newPos.y = parent->GetContentPos().y;
-		break;
-	}
-	case eGuiAlignVer::CENTER:
-	{
-		if (parent)
-		{
-			newPos.y = parent->GetContentCenterPos().y - newSize.y * 0.5;
-		}
-		break;
-	}
-	case eGuiAlignVer::BOTTOM:
-	{
-		newPos.y = parent->GetContentRect().bottom - newSize.y;
-		break;
-	}
-	}
-
-	switch (alignHor)
-	{
-	case eGuiAlignHor::LEFT:
-	{
-		newPos.x = parent->GetContentPos().x;
-		break;
-	}
-	case eGuiAlignHor::CENTER:
-	{
-		if (parent)
-		{
-			newPos.x = parent->GetContentCenterPos().x - newSize.x * 0.5;
-		}
-		break;
-	}
-	case eGuiAlignHor::RIGHT:
-	{
-		newPos.x = parent->GetContentPos().x + parent->GetContentRect().GetWidth() - newSize.x;
-		break;
-	}
 	}
 
 	// Pos and size containing the margin, subtract it
@@ -785,14 +810,16 @@ Vec2 Gui::Arrange(const Vec2& pos, const Vec2& size)
 
 Vec2 Gui::ArrangeChildren()
 {
-	Vec2 size(0, 0);
+	// Union child rectangles, rectangles's width and height will be the space used by the control !
+	GuiRectF childrenRect(GetContentPos().x, GetContentPos().x, GetContentPos().y, GetContentPos().y);
+	
 	for (Gui* child : GetChildren())
 	{
 		Vec2 sizeUsed = child->Arrange(child->GetPos(), child->GetDesiredSize());
-		size = Vec2(std::max(size.x, sizeUsed.x), std::max(size.y, sizeUsed.y));
+		childrenRect.Union(child->GetRect());
 	}
-
-	return size;
+	
+	return childrenRect.GetSize();
 }
 
 GuiRectF Gui::GetRect()
@@ -904,26 +931,26 @@ bool Gui::IsSibling(Gui& gui)
 
 float Gui::GetCursorPosContentSpaceX()
 {
-	return guiEngine.GetCursorPosX() - pos.x;
+	return guiEngine->GetCursorPosX() - pos.x;
 }
 
 float Gui::GetCursorPosContentSpaceY()
 {
-	return guiEngine.GetCursorPosY() - pos.y;
+	return guiEngine->GetCursorPosY() - pos.y;
 }
 
 bool Gui::IsCursorInside()
 {
-	return GetRect().IsPointInside(guiEngine.GetCursorPos());
+	return GetRect().IsPointInside(guiEngine->GetCursorPos());
 }
 
 Vec2 Gui::GetCursorPosContentSpace()
 {
-	return guiEngine.GetCursorPos() - GetContentPos();
+	return guiEngine->GetCursorPos() - GetContentPos();
 }
 
 void Gui::BringToFront()
 {
 	RemoveFromParent(); // Remove from previous layer
-	guiEngine.GetPostProcessLayer()->AddGui(this); // Add to post process (top most layer)
+	guiEngine->GetPostProcessLayer()->AddGui(this); // Add to post process (top most layer)
 }

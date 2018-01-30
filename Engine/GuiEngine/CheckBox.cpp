@@ -2,7 +2,7 @@
 
 using namespace inl::gui;
 
-CheckBox::CheckBox(GuiEngine& guiEngine)
+CheckBox::CheckBox(GuiEngine* guiEngine)
     :Gui(guiEngine)
 {
     checkBox = AddGui<Button>();

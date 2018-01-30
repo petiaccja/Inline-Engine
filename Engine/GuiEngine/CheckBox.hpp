@@ -14,7 +14,7 @@ namespace inl::gui {
     class CheckBox : public Gui
     {
     public:
-        CheckBox(GuiEngine& guiEngine);
+        CheckBox(GuiEngine* guiEngine);
         CheckBox(const CheckBox& other) :Gui(other.guiEngine) { *this = other; }
 
 	    // Important to implement in derived classes

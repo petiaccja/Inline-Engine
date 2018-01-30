@@ -3,7 +3,7 @@
 
 namespace inl::gui {
 
-Menu::Menu(GuiEngine& guiEngine)
+Menu::Menu(GuiEngine* guiEngine)
 :ListView(guiEngine), guiArrow(nullptr), guiButton(nullptr)
 {
 
@@ -28,7 +28,7 @@ Menu* Menu::AddItemMenu(const std::wstring& text)
 	Menu* subMenu = new Menu(guiEngine);
 	subMenu->SetGuiButton(btn);
 	
-	subMenu->OnChildAdd += [this, item, subMenu](Gui& self, ChildEvent& e)
+	subMenu->OnChildAdd += [this, item, subMenu](ChildEvent& e)
 	{
 		// Add Arrow when we got submenu
 		if (GetOrientation() == eGuiOrientation::VERTICAL && subMenu->GetChildren().size() == 1)
@@ -47,7 +47,7 @@ Menu* Menu::AddItemMenu(const std::wstring& text)
 		}
 	};
 
-	subMenu->OnChildRemove += [this, item, subMenu](Gui& self, ChildEvent& e)
+	subMenu->OnChildRemove += [this, item, subMenu](ChildEvent& e)
 	{
 		if (subMenu->GetChildren().size() == 0)
 		{
@@ -88,8 +88,10 @@ void Menu::AddItem(Gui* menuItem)
 	};
 
 	thread_local std::vector<MenuTreeNode> activeMenuTree;
-	menuItem->OnCursorEnter += [menu](Gui& self, CursorEvent& evt)
+	menuItem->OnCursorEnter += [menu](CursorEvent& e)
 	{
+		Gui& self = *e.self;
+
 		// Case 1. It's menu ->		 close menus behind this AND open that one
 		// case 2. It's not a menu-> close menus behind this
 
@@ -151,7 +153,7 @@ void Menu::AddItem(Gui* menuItem)
 		}
 	};
 
-	guiEngine.OnCursorPress += [this](CursorEvent& evt)
+	guiEngine->OnCursorPress += [this](CursorEvent& e)
 	{
 		bool bMenuHovered = false;
 

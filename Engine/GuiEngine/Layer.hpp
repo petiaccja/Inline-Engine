@@ -7,7 +7,7 @@ namespace inl::gui {
 class Layer : public Gui
 {
 public:
-	Layer(GuiEngine& guiEngine);
+	Layer(GuiEngine* guiEngine);
 
 	virtual Vec2 ArrangeChildren();
 };
