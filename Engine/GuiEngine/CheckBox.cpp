@@ -12,6 +12,8 @@ CheckBox::CheckBox(GuiEngine* guiEngine)
     text = AddGui<Text>();
     text->SetPosX(checkBox->GetPosX() + checkBox->GetWidth());
     text->AlignVerCenter();
+
+	StretchFitToContent();
 }
 
 CheckBox& CheckBox::operator = (const CheckBox& other)

@@ -158,9 +158,9 @@ public:
 	void SetPadding(float length) { SetPadding(length, length, length, length); }
 
 	void Stretch(eGuiStretch stretch) { Stretch(stretch, stretch); }
-	void Stretch(eGuiStretch horizontalStretch, eGuiStretch verticalStretch) { stretchHor = horizontalStretch; stretchVer = verticalStretch; bLayoutNeedRefresh = true; }
-	void StretchHor(eGuiStretch stretch) { stretchHor = stretch; bLayoutNeedRefresh = true; }
-	void StretchVer(eGuiStretch stretch) { stretchVer = stretch; bLayoutNeedRefresh = true; }
+	void Stretch(eGuiStretch horizontalStretch, eGuiStretch verticalStretch) { stretchHor = horizontalStretch; stretchVer = verticalStretch; bLayoutNeedRefresh = true; RefreshLayout(); }
+	void StretchHor(eGuiStretch stretch) { stretchHor = stretch; bLayoutNeedRefresh = true; RefreshLayout(); }
+	void StretchVer(eGuiStretch stretch) { stretchVer = stretch; bLayoutNeedRefresh = true; RefreshLayout(); }
 
 	void StretchHorFillParent() {StretchHor(eGuiStretch::FILL_SPACE); }
 	void StretchHorFitToContent() { StretchHor(eGuiStretch::FIT_TO_CONTENT); }
