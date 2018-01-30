@@ -1,14 +1,14 @@
 #pragma once
 #include "Text.hpp"
-#include "Button.hpp"
+#include "Image.hpp"
+#include "Grid.hpp"
 
 namespace inl::gui {
 
-    enum CheckState
+    enum class eCheckState
     {
-        eUnchecked,
-        ePartiallyChecked,
-        eChecked,
+        UNCHECKED,
+        CHECKED,
     };
 
     class CheckBox : public Gui
@@ -17,19 +17,25 @@ namespace inl::gui {
         CheckBox(GuiEngine* guiEngine);
         CheckBox(const CheckBox& other) :Gui(other.guiEngine) { *this = other; }
 
-	    // Important to implement in derived classes
+        // Important to implement in derived classes
         virtual CheckBox* Clone() const override { return new CheckBox(*this); };
         CheckBox& operator = (const CheckBox& other);
 
-        void setCheckState(CheckState state) { eState = state; }
-	    void SetText(const std::wstring& str);
+        void SetCheckState(eCheckState state);
+        void SetText(const std::wstring& str);
         void SetText(const std::string& str);
 
-	    Text* GetText() { return text; }
-        CheckState checkState() const { return eState; }
-    public:
-	    Text * text;
-        Button *checkBox;
-        CheckState eState;
+        Text* GetText() { return text; }
+        eCheckState GetState() const { return this->state; }
+
+        Event<> onStateChange;
+    private:
+        void setupUi();
+        void connectSlot();
+
+        Grid * layout;
+        Text * text;
+        Image *checkBoxImage;
+        eCheckState state;
     };
 }
