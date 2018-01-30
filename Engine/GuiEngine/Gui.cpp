@@ -367,11 +367,11 @@ bool Gui::RemoveFromParent()
 	return false;
 }
 
-void Gui::TraverseTowardParents(GuiEvent& event, const std::function<void(Gui&)>& eventHandler)
+void Gui::TraverseTowardParents(GuiEvent& event, const std::function<void(Gui&)>& eventHandler, bool bCalledOnTarget /*= true*/)
 {
-	// Lazy initialization of the source gui of the event (target), it's for convenience
-	if (&event.target == nullptr)
-		event.target = this;
+	//Lazy initialization of the source gui of the event(target), it's for convenience
+	if (bCalledOnTarget)
+		event.target = this;		
 
 	// Set self, user will use this variable through the eventHandler
 	event.self = this;
@@ -379,7 +379,7 @@ void Gui::TraverseTowardParents(GuiEvent& event, const std::function<void(Gui&)>
 
 	// Decide if we continue propagation upwards, toward parents, or it can happen that user stops propagaiot in eventHandler, by calling event.StopPropagation()
 	if (parent && !event.IsPropagationStopped())
-		parent->TraverseTowardParents(event, eventHandler);
+		parent->TraverseTowardParents(event, eventHandler, false);
 
 	//if (back)
 	//	back->TraverseTowardParents(fn);
