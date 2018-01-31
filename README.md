@@ -3,10 +3,17 @@
 Introduction
 ---
 Inline Engine is a modern game engine built with latest C++ that provides/will provide solutions to existing common industrial problems:
-- Smoother Editor User Experience (Achieve by our experience from multiple big engine editors + GUI lib written from scratch)
-- Higher Performance Editor & Engine (Whole Editor will be async thus making you more productive + Heavy experience with optimizations )
-- Better Stability & More Focus On The Community (Will give smaller percent time for feature implementation compared to bug fixes)
-- Better PBR Graphics than the typical industrial PBR equations (W.I.P state of the art researches (already have great results))
+- Smoother Editor User Experience  
+    (Achieve by our experience from multiple big engine editors + GUI lib written from scratch)
+    
+- Higher Performance Editor & Engine  
+   (Whole Editor will be async thus making you more productive + Heavy experience with optimizations )
+    
+- Better Stability & More Focus On The Community  
+    (Will give smaller percent time for feature implementation compared to bug fixes)
+
+- Better PBR Graphics than the typical industrial PBR equations   
+    (W.I.P state of the art researches (already have great results))
 
 The Engine leverages the power of DirectX 12 and similar APIs. It got its name from the overuse of inline methods to speed up the software, however, it's not a victim of such behavior. The Engine is component based so you can tear it to pieces and for example integrate the Graphics, Network, Physics, etc modules individually into an another complete game engine or real-time simulation environments.
 
