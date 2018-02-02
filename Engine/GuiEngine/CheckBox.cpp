@@ -69,7 +69,7 @@ void CheckBox::setupUi()
 }
 void CheckBox::connectSlot()
 {
-    this->OnCursorClick += [](CursorEvent& evt)
+    this->OnCursorRelease += [](CursorEvent& evt)
     {
         CheckBox& checkBox = evt.self->As<CheckBox>();
         eCheckState toggleState = checkBox.GetState() == eCheckState::CHECKED ? eCheckState::UNCHECKED : eCheckState::CHECKED;
