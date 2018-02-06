@@ -15,6 +15,7 @@
 #define NOMINMAX
 #include <Windows.h>
 #undef DELETE
+#include <hidsdi.h>
 
 
 namespace inl {
@@ -89,6 +90,13 @@ private:
 private:
 	class RawInputSourceBase {
 		static constexpr size_t InvalidDeviceId = -1;
+		struct JoyState {
+			std::vector<uint8_t> preparsedBuffer;
+			std::vector<bool> buttonStates;
+			std::vector<float> valueStates;
+			std::vector<HIDP_BUTTON_CAPS> buttonCaps;
+			std::vector<HIDP_VALUE_CAPS> valueCaps;
+		};
 	public:
 		RawInputSourceBase();
 		~RawInputSourceBase();
@@ -103,10 +111,14 @@ private:
 		template <class EventArg>
 		void CallEvents(size_t device, Event<EventArg> Input::*eventMember, const EventArg& evt) const;
 
+		static JoyState GetJoyInfo(size_t deviceId);
+	private:
 		std::mutex m_mtx;
 		std::thread m_messageLoopThread;
 		HWND m_messageLoopWindow = 0;
 		std::map<size_t, std::set<Input*>> m_sources;
+
+		std::unordered_map<size_t, JoyState> m_joyStates; // deviceId -> joyState
 	};
 	using RawInputSource = Singleton<RawInputSourceBase>;
 };

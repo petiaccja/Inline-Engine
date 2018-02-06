@@ -220,6 +220,7 @@
     <ClInclude Include="SyncPoint.hpp" />
     <ClInclude Include="MemoryObject.hpp" />
     <ClInclude Include="Mesh.hpp" />
+    <ClInclude Include="TextEntity.hpp" />
     <ClInclude Include="UploadManager.hpp" />
     <ClInclude Include="VertexCompressor.hpp" />
     <ClInclude Include="Vertex.hpp" />
@@ -303,6 +304,7 @@
     <ClCompile Include="ScratchSpacePool.cpp" />
     <ClCompile Include="MemoryObject.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="TextEntity.cpp" />
     <ClCompile Include="UploadManager.cpp" />
     <ClCompile Include="VertexCompressor.cpp" />
     <ClCompile Include="VolatileViewHeap.cpp" />

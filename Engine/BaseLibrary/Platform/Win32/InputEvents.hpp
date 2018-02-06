@@ -216,7 +216,7 @@ enum class eJoystickAxis {
 };
 
 struct JoystickMoveEvent {
-	eJoystickAxis axis;
+	int axis;
 	float absPos;
 };
 

@@ -397,6 +397,9 @@
     <ClInclude Include="Font.hpp">
       <Filter>Resources</Filter>
     </ClInclude>
+    <ClInclude Include="TextEntity.hpp">
+      <Filter>Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -637,6 +640,9 @@
     <ClCompile Include="Font.cpp">
       <Filter>Resources</Filter>
     </ClCompile>
+    <ClCompile Include="TextEntity.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Materials\bitmap_color_2d.mtl.hlsl">
@@ -655,163 +661,161 @@
     <None Include="Nodes\Shaders\VoxelVisualizer.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Nodes\Shaders\ScreenSpaceReflection.hlsl">
+    <None Include="Nodes\Shaders\VoxelMipmap.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\ScreenSpaceShadow.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\Blend.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\SDFCulling.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\BlendWithTransform.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\ShadowGen.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\BloomAdd.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\SMAA.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\BloomBlur.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\SMAABlendingWeights.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\BloomDownsample.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\SMAAEdgeDetection.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\BrightLumPass.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\SMAANeighborhoodBlending.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\CSM.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\SsaoBilateralHorizontalBlur.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\CSMSample.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\SsaoBilateralVerticalBlur.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DebugDraw.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\SsrBlur.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DepthPrepass.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\SsrDownsample.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DepthReduction.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\TextRender.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DepthReductionFinal.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\TiledLighting.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DOFNeighborMax.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\TileMax.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DOFPostfilter.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\VolumetricLighting.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DOFPrepare.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\Voxelization.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DOFTileMax.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\VoxelLightInjectionCSM.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DOFUpsample.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\VoxelMipmap.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\DrawSky.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\Blend.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\EncodeVelocity.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\BlendWithTransform.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\HDRCombine.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\BloomAdd.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\LensFlare.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\BloomBlur.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\LightCulling.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\BloomDownsample.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\LightingUniforms.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\BrightLumPass.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\LuminanceReduction.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\CSM.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\LuminanceReductionFinal.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\CSMSample.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\MotionBlur.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DebugDraw.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\NeighborMax.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DepthPrepass.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\OverlayColored.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DepthReduction.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\OverlayTextured.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DepthReductionFinal.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\PbrBrdf.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DOFNeighborMax.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\PointLightShadowMapSample.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DOFPostfilter.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DOFPrepare.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\ScreenSpaceAmbientOcclusion.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DOFTileMax.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\ScreenSpaceReflection.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DOFUpsample.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\ScreenSpaceShadow.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\DrawSky.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\SDFCulling.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\EncodeVelocity.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\ShadowGen.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\HDRCombine.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\SMAA.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\LensFlare.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\SMAABlendingWeights.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\LightCulling.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\SMAAEdgeDetection.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\LightingUniforms.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\SMAANeighborhoodBlending.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\LuminanceReduction.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\SsaoBilateralHorizontalBlur.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\LuminanceReductionFinal.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\SsaoBilateralVerticalBlur.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\MotionBlur.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\SsrBlur.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\NeighborMax.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\SsrDownsample.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\OverlayColored.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\TextRender.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\OverlayTextured.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\TiledLighting.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\PbrBrdf.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\TileMax.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\PointLightShadowMapSample.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\VolumetricLighting.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\Voxelization.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="Nodes\Shaders\ScreenSpaceAmbientOcclusion.hlsl">
+    </None>
+    <None Include="Nodes\Shaders\VoxelLightInjectionCSM.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
-    </FxCompile>
+    </None>
   </ItemGroup>
 </Project>

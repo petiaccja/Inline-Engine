@@ -23,6 +23,7 @@ public:
 	int Run() override;
 	void OnClick(MouseButtonEvent evt);
 	void OnKey(KeyboardEvent evt);
+	void OnAxis(JoystickMoveEvent evt);
 private:
 	static int a;
 };
@@ -44,6 +45,7 @@ int TestInput::Run() {
 
 	size_t mouseId = -1;
 	size_t keyboardId = -1;
+	size_t joystickId = -1;
 	cout << "Input devices:" << endl;
 	for (int i = 0; i < devices.size(); ++i) {
 		if (devices[i].type == eInputSourceType::MOUSE) {
@@ -51,6 +53,9 @@ int TestInput::Run() {
 		}
 		if (devices[i].type == eInputSourceType::KEYBOARD) {
 			keyboardId = devices[i].id;
+		}
+		if (devices[i].type == eInputSourceType::JOYSTICK) {
+			joystickId = devices[i].id;
 		}
 		cout << "id = " << devices[i].id;
 		cout << ", name = " << devices[i].name;
@@ -61,29 +66,32 @@ int TestInput::Run() {
 		}
 	}
 
-	if (mouseId == -1) {
-		cout << "No mouse found, cannot subscribe." << endl;
-		return 0;
+	std::unique_ptr<Input> inputMouse, inputKeyboard, inputJoystick;
+	if (mouseId != -1) {
+		inputMouse = std::make_unique<Input>(mouseId);
+		inputMouse->SetQueueMode(eInputQueueMode::QUEUED);
+
+		inputMouse->OnMouseButton += Delegate<void(MouseButtonEvent)>{ &TestInput::OnClick, this };
 	}
-	if (keyboardId == -1) {
-		cout << "No keyboard found, cannot subscribe." << endl;
-		return 0;
+	if (keyboardId != -1) {
+		inputKeyboard = std::make_unique<Input>(keyboardId);
+
+		inputKeyboard->OnKeyboard += Delegate<void(KeyboardEvent)>{ &TestInput::OnKey, this };
 	}
+	if (joystickId != -1) {
+		inputJoystick = std::make_unique<Input>(joystickId);
 
-	Input inputMouse(mouseId);
-	Input inputKeyboard(keyboardId);
-
-	inputMouse.SetQueueMode(eInputQueueMode::QUEUED);
-
-	inputMouse.OnMouseButton += Delegate<void(MouseButtonEvent)>{ &TestInput::OnClick, this };
-	inputKeyboard.OnKeyboard += Delegate<void(KeyboardEvent)>{ &TestInput::OnKey, this };
+		inputJoystick->OnJoystickMove += Delegate<void(JoystickMoveEvent)>{ &TestInput::OnAxis, this };
+	}
+	
+	
 
 	cout << "Press Control-C to quit." << endl;
 	signal(SIGINT, SignalHandler);
 
 	while (run) {
 		this_thread::sleep_for(chrono::milliseconds(50));
-		inputMouse.CallEvents();
+		inputMouse->CallEvents();
 	}
 
 
@@ -113,4 +121,8 @@ void TestInput::OnKey(KeyboardEvent evt) {
 		btn = (char)evt.key - (char)eKey::NUMBER_0 + '0';
 	}
 	cout << btn << endl;
+}
+
+void TestInput::OnAxis(JoystickMoveEvent evt) {
+	cout << "Axis " << evt.axis << " = " << evt.absPos << endl;
 }

@@ -6,6 +6,7 @@ namespace inl::gxeng {
 
 
 class Font {
+public:
 
 
 

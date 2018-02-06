@@ -113,17 +113,14 @@ void OverlayRender::Execute(RenderContext& context) {
 
 	// Iterate over all entities
 	for (const OverlayEntity* entity : *m_entities) {
-		if (entity->GetVisible() == false) {
-			continue;
-		}
-
 		Mesh* mesh = entity->GetMesh();
 
 		if (!CheckMeshFormat(mesh)) {
 			assert(false);
 		}
 
-		auto world = entity->GetTransform();
+		Mat44 world = Mat44::Identity();
+		world.Submatrix<3,3>(0,0) = entity->GetTransform();
 		auto MVP = viewProjection * world;
 
 		Mat44_Packed transformCBData = MVP;

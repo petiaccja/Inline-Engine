@@ -377,10 +377,23 @@ eMotionMode Transformable<T, Dim, true>::GetMotionMode() const {
 //------------------------------------------------------------------------------
 
 
+/// <summary> 2D float transformable with motion. </summary>
 using Transformable2D = Transformable<float, 2, true>;
+/// <summary> 3D float transformable with motion. </summary>
 using Transformable3D = Transformable<float, 3, true>;
 using Transformable2Dd = Transformable<double, 2, true>;
+/// <summary> 2D double transformable with motion. </summary>
 using Transformable3Dd = Transformable<double, 3, true>;
+/// <summary> 3D double transformable with motion. </summary>
+
+/// <summary> 2D float transformable without motion. </summary>
+using Transformable2DN = Transformable<float, 2, false>;
+/// <summary> 3D float transformable without motion. </summary>
+using Transformable3DN = Transformable<float, 3, false>;
+/// <summary> 2D double transformable without motion. </summary>
+using Transformable2DNd = Transformable<double, 2, false>;
+/// <summary> 3D double transformable without motion. </summary>
+using Transformable3DNd = Transformable<double, 3, false>;
 
 
 } // namespace inl
