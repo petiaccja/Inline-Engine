@@ -174,8 +174,8 @@ int main(int argc, char* argv[]) {
 		int device = 0;
 		if (argc == 3 && argv[1] == std::string("--device") && isdigit(argv[2][0])) {
 			device = argv[2][0] - '0'; // works for single digits, good enough, lol
-			cout << "You may attach debugger now. Press ENTER..." << endl;
-			std::cin.get();
+			//cout << "You may attach debugger now. Press ENTER..." << endl;
+			//std::cin.get();
 		}
 		systemLogStream.Event("Creating GraphicsApi...");
 		gxapi.reset(gxapiMgr->CreateGraphicsApi(adapters[device].adapterId));

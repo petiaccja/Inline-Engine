@@ -73,6 +73,7 @@ BasicCommandList::Decomposition ComputeCommandList::Decompose() {
 //------------------------------------------------------------------------------
 void ComputeCommandList::Dispatch(size_t numThreadGroupsX, size_t numThreadGroupsY, size_t numThreadGroupsZ) {
 	m_commandList->Dispatch(numThreadGroupsX, numThreadGroupsY, numThreadGroupsZ);
+	m_computeBindingManager.CommitDrawCall();
 }
 
 

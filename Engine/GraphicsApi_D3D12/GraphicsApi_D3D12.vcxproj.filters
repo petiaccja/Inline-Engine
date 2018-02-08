@@ -126,6 +126,9 @@
     <ClInclude Include="CommandList.hpp">
       <Filter>Implementation</Filter>
     </ClInclude>
+    <ClInclude Include="..\GraphicsApi_LL\HardwareCapability.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />

@@ -112,6 +112,7 @@
   <ItemGroup>
     <ClInclude Include="..\GraphicsApi_LL\Common.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\Exception.hpp" />
+    <ClInclude Include="..\GraphicsApi_LL\HardwareCapability.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\IGxapiManager.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\ICommandAllocator.hpp" />
     <ClInclude Include="..\GraphicsApi_LL\ICommandList.hpp" />

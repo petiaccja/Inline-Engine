@@ -350,7 +350,7 @@ void Voxelization::Setup(SetupContext & context) {
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::POINT;
 			psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
 			psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::LESS;
-			psoDesc.depthStencilFormat = m_visualizationDSV.GetResource().GetFormat();
+			psoDesc.depthStencilFormat = m_visualizationDSV.GetDescription().format;
 
 			psoDesc.numRenderTargets = 1;
 			psoDesc.renderTargetFormats[0] = m_visualizationTexRTV.GetResource().GetFormat();
@@ -493,8 +493,8 @@ void Voxelization::Execute(RenderContext & context) {
 
 				commandList.SetPipelineState(m_mipmapCSO.get());
 				commandList.SetComputeBinder(&m_binder.value());
-				commandList.BindGraphics(m_voxelTexBindParam, m_voxelTexUAV[c]);
-				commandList.BindGraphics(m_shadowCSMTexBindParam, m_voxelTexSRV);
+				commandList.BindCompute(m_voxelTexBindParam, m_voxelTexUAV[c]);
+				commandList.BindCompute(m_shadowCSMTexBindParam, m_voxelTexSRV);
 				commandList.Dispatch(dispatchW, dispatchH, dispatchD);
 				commandList.UAVBarrier(m_voxelTexUAV[c].GetResource());
 

@@ -455,25 +455,33 @@ void QCWorld::UpdateWorld(float elapsed) {
 	m_rotorInfo.heading += 2.0f*((int)m_rotorInfo.rotateLeft - (int)m_rotorInfo.rotateRight)*elapsed;
 
 	// Update simulation
-	bool controller = true;
-	if (!controller) {
-		inl::Vec4 rpm = m_rotorInfo.RPM(m_rotor);
-		inl::Vec3 force;
-		inl::Vec3 torque;
-		m_rotor.SetRPM(rpm, force, torque);
-		m_rigidBody.Update(elapsed, force, torque);
+	float simulationStep = elapsed;
+	int numSubiters = 1;
+	if (simulationStep > 0.02f) {
+		numSubiters = int(ceil(simulationStep/0.02f) + 0.1);
+		simulationStep = simulationStep/numSubiters;
 	}
-	else {
-		inl::Quat orientation = m_rotorInfo.Orientation();
-		inl::Quat q = m_rigidBody.GetRotation();
-		inl::Vec3 force;
-		inl::Vec3 torque;
-		inl::Vec4 rpm;
-		float lift = 2.0f * 9.81 + 5.f*((int)m_rotorInfo.ascend - (int)m_rotorInfo.descend);
-		m_controller.Update(orientation, lift, q, m_rigidBody.GetAngularVelocity(), elapsed, force, torque);
-		m_rotor.SetTorque(force, torque, rpm);
-		m_rotor.SetRPM(rpm, force, torque);
-		m_rigidBody.Update(elapsed, force, torque);
+	bool controller = true;
+	for (int i=0; i<numSubiters; ++i) {
+		if (!controller) {
+			inl::Vec4 rpm = m_rotorInfo.RPM(m_rotor);
+			inl::Vec3 force;
+			inl::Vec3 torque;
+			m_rotor.SetRPM(rpm, force, torque);
+			m_rigidBody.Update(simulationStep, force, torque);
+		}
+		else {
+			inl::Quat orientation = m_rotorInfo.Orientation();
+			inl::Quat q = m_rigidBody.GetRotation();
+			inl::Vec3 force;
+			inl::Vec3 torque;
+			inl::Vec4 rpm;
+			float lift = 2.0f * 9.81 + 5.f*((int)m_rotorInfo.ascend - (int)m_rotorInfo.descend);
+			m_controller.Update(orientation, lift, q, m_rigidBody.GetAngularVelocity(), simulationStep, force, torque);
+			m_rotor.SetTorque(force, torque, rpm);
+			m_rotor.SetRPM(rpm, force, torque);
+			m_rigidBody.Update(simulationStep, force, torque);
+		}	
 	}
 
 	// Move quadcopter entity
