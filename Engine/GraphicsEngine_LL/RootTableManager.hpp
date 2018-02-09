@@ -78,6 +78,8 @@ template <gxapi::eCommandListType Type>
 RootTableManager<Type>::RootTableManager() {
 	m_graphicsApi = nullptr;
 	m_commandList = nullptr;
+	m_binder = nullptr;
+	m_heap = nullptr;
 }
 
 
@@ -85,6 +87,8 @@ template <gxapi::eCommandListType Type>
 RootTableManager<Type>::RootTableManager(gxapi::IGraphicsApi* graphicsApi, CommandListT* commandList) {
 	m_graphicsApi = graphicsApi;
 	m_commandList = commandList;
+	m_binder = nullptr;
+	m_heap = nullptr;
 }
 
 

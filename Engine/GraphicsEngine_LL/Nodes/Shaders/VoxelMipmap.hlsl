@@ -35,9 +35,11 @@ void CSMain(
 	uint3 outputTexSize;
 	outputTex.GetDimensions(outputTexSize.x, outputTexSize.y, outputTexSize.z);
 
-	float3 uvw = (float3(dispatchThreadId.xyz) + float3(0.5, 0.5, 0.5)) / inputTexSize.xyz;
+	float3 uvw = (float3(dispatchThreadId.xyz) + float3(0.5, 0.5, 0.5)) / outputTexSize.xyz;
 
 	float4 data = inputTex.SampleLevel(samp1, uvw, uniforms.inputMipLevel);
 
-	outputTex[uint3(uvw * outputTexSize.xyz)] = data;
+	//outputTex[uint3(uvw * outputTexSize.xyz)] = data;
+	outputTex[dispatchThreadId.xyz] = data; // uvw.xyzz;// data; // float4(0, uniforms.inputMipLevel / 16.0, uniforms.outputMipLevel / 16.0, 1);
+	//outputTex[uint3(uvw * outputTexSize.xyz)] = float4(1, uniforms.outputMipLevel / 16., uniforms.outputMipLevel/16.0, 1);
 }

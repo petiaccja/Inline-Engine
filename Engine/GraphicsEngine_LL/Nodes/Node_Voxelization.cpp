@@ -482,17 +482,19 @@ void Voxelization::Execute(RenderContext & context) {
 				unsigned dispatchW, dispatchH, dispatchD;
 				SetWorkgroupSize(currDim, currDim, currDim, 8, 8, 8, dispatchW, dispatchH, dispatchD);
 
+				commandList.SetPipelineState(m_mipmapCSO.get());
+				//NOTE: must set compute binder before bind* calls
+				commandList.SetComputeBinder(&m_binder.value());
+
 				uniformsCBData.inputMipLevel = c - 1;
 				uniformsCBData.outputMipLevel = c;
-
-				commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
+				
+				commandList.BindCompute(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 				//TODO: set the resource but wrong value???
 				commandList.SetResourceState(m_voxelTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, m_voxelTexSRV.GetResource().GetSubresourceIndex(c, 0));
 				commandList.SetResourceState(m_voxelTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE }, m_voxelTexSRV.GetResource().GetSubresourceIndex(c - 1, 0));
 
-				commandList.SetPipelineState(m_mipmapCSO.get());
-				commandList.SetComputeBinder(&m_binder.value());
 				commandList.BindCompute(m_voxelTexBindParam, m_voxelTexUAV[c]);
 				commandList.BindCompute(m_shadowCSMTexBindParam, m_voxelTexSRV);
 				commandList.Dispatch(dispatchW, dispatchH, dispatchD);
@@ -547,19 +549,20 @@ void Voxelization::Execute(RenderContext & context) {
 			unsigned dispatchW, dispatchH, dispatchD;
 			SetWorkgroupSize(currDim, currDim, currDim, 8, 8, 8, dispatchW, dispatchH, dispatchD);
 
+			commandList.SetPipelineState(m_mipmapCSO.get());
+			commandList.SetComputeBinder(&m_binder.value());
+
 			uniformsCBData.inputMipLevel = c - 1;
 			uniformsCBData.outputMipLevel = c;
 
-			commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
+			commandList.BindCompute(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 			//TODO: set the resource but wrong value???
 			commandList.SetResourceState(m_voxelLightTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, m_voxelLightTexSRV.GetResource().GetSubresourceIndex(c, 0));
 			commandList.SetResourceState(m_voxelLightTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE }, m_voxelLightTexSRV.GetResource().GetSubresourceIndex(c - 1, 0));
 
-			commandList.SetPipelineState(m_mipmapCSO.get());
-			commandList.SetComputeBinder(&m_binder.value());
-			commandList.BindGraphics(m_voxelTexBindParam, m_voxelLightTexUAV[c]);
-			commandList.BindGraphics(m_shadowCSMTexBindParam, m_voxelLightTexSRV);
+			commandList.BindCompute(m_voxelTexBindParam, m_voxelLightTexUAV[c]);
+			commandList.BindCompute(m_shadowCSMTexBindParam, m_voxelLightTexSRV);
 			commandList.Dispatch(dispatchW, dispatchH, dispatchD);
 			commandList.UAVBarrier(m_voxelLightTexUAV[c].GetResource());
 
