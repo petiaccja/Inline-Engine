@@ -99,13 +99,22 @@ public:
 
 	/// <summary> Check if any flag is set. </summary>
 	/// <returns> True if not an empty bitset, false if empty. </returns> 
-	explicit operator bool() {
+	explicit operator bool() const {
 		return (UnderlyingT)m_value != 0;
 	}
 
 	/// <summary> Cast to underlying enumeration type. </summary>
 	explicit operator EnumT() {
 		return m_value;
+	}
+
+
+	/// <summary> Return true if no flag is set. </summary>
+	bool Empty() const { return !operator bool(); }
+
+	/// <summary> Returns true if all values of <paramref name="rhs"/> are contained in this. </summary>
+	bool Contains(EnumFlag_Helper rhs) {
+		return (rhs - *this).Empty();
 	}
 private:
 	EnumT m_value;

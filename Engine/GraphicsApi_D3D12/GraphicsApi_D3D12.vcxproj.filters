@@ -40,6 +40,9 @@
     <ClCompile Include="CommandList.cpp">
       <Filter>Implementation</Filter>
     </ClCompile>
+    <ClCompile Include="CapabilityQuery.cpp">
+      <Filter>Implementation</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GraphicsApi_LL\ICommandAllocator.hpp">
@@ -128,6 +131,9 @@
     </ClInclude>
     <ClInclude Include="..\GraphicsApi_LL\HardwareCapability.hpp">
       <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="CapabilityQuery.hpp">
+      <Filter>Implementation</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
