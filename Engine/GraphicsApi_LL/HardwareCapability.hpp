@@ -43,6 +43,17 @@ struct CapsResourceBinding {
 	bool operator<=(const CapsResourceBinding& rhs) const {
 		return rhs >= *this;
 	}
+
+	int GetDx12Tier() const {
+		if (*this >= Dx12Tier3())
+			return 3;
+		else if (*this >= Dx12Tier2())
+			return 2;
+		else if (*this >= Dx12Tier1())
+			return 1;
+		else
+			return 0;
+	}
 };
 
 
@@ -71,6 +82,17 @@ struct CapsTiledResources {
 	bool operator<=(const CapsTiledResources& rhs) const {
 		return rhs >= *this;
 	}
+
+	int GetDx12Tier() const {
+		if (*this >= Dx12Tier3())
+			return 3;
+		else if (*this >= Dx12Tier2())
+			return 2;
+		else if (*this >= Dx12Tier1())
+			return 1;
+		else
+			return 0;
+	}
 };
 
 
@@ -91,6 +113,17 @@ struct CapsConservativeRasterization {
 	bool operator<=(const CapsConservativeRasterization& rhs) const {
 		return rhs >= *this;
 	}
+
+	int GetDx12Tier() const {
+		if (*this >= Dx12Tier3())
+			return 3;
+		else if (*this >= Dx12Tier2())
+			return 2;
+		else if (*this >= Dx12Tier1())
+			return 1;
+		else
+			return 0;
+	}
 };
 
 
@@ -106,6 +139,15 @@ struct CapsResourceHeaps {
 	bool operator<=(const CapsResourceHeaps& rhs) const {
 		return rhs >= *this;
 	}
+
+	int GetDx12Tier() const {
+		if (*this >= Dx12Tier2())
+			return 2;
+		else if (*this >= Dx12Tier1())
+			return 1;
+		else
+			return 0;
+	}
 };
 
 
@@ -117,9 +159,10 @@ struct CapsAdditional {
 	unsigned virtualAddressBitsPerProcess = 32;
 
 	bool operator>=(const CapsAdditional& rhs) const {
+		int shm = shaderModelMajor*100 + shaderModelMinor;
+		int shmrhs = rhs.shaderModelMajor*100 + rhs.shaderModelMinor;
 		return rovsSupported >= rhs.rovsSupported
-			&& shaderModelMajor >= rhs.shaderModelMajor
-			&& shaderModelMinor >= rhs.shaderModelMinor
+			&& shm >= shmrhs
 			&& virtualAddressBitsPerResource >= rhs.virtualAddressBitsPerResource
 			&& virtualAddressBitsPerProcess >= rhs.virtualAddressBitsPerProcess;
 	}
@@ -178,7 +221,8 @@ struct eCapsFormatUsage_Base {
 		RENDER_TARGET,
 		RENDER_TARGET_BLEND,
 		DEPTH_STENCIL,
-		UNORDERED_ACCESS,
+		UNORDERED_ACCESS_LOAD,
+		UNORDERED_ACCESS_STORE,
 		UNORDERED_ACCESS_ATOMIC
 	};
 };
@@ -208,9 +252,9 @@ struct CapsRequirementSet {
 //------------------------------------------------------------------------------
 
 
-class ICapablityQuery {
+class ICapabilityQuery {
 public:
-	virtual ~ICapablityQuery() = default;
+	virtual ~ICapabilityQuery() = default;
 
 	virtual CapsResourceBinding QueryResourceBinding() const = 0;
 	virtual CapsTiledResources QueryTiledResources() const = 0;

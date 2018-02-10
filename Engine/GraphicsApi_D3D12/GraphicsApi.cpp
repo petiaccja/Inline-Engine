@@ -6,6 +6,7 @@
 #include "DescriptorHeap.hpp"
 #include "NativeCast.hpp"
 #include "ExceptionExpansions.hpp"
+#include "CapabilityQuery.hpp"
 
 #include "../GraphicsApi_LL/Exception.hpp"
 
@@ -537,6 +538,12 @@ void GraphicsApi::Evict(const std::vector<gxapi::IResource*>& objects) {
 
 	ThrowIfFailed(m_device->Evict((unsigned)nativeObjects.size(), nativeObjects.data()));
 }
+
+
+gxapi::ICapabilityQuery* GraphicsApi::GetCapabilityQuery() const {
+	return new CapabilityQuery(m_device);
+}
+
 
 
 } // namespace gxapi_dx12

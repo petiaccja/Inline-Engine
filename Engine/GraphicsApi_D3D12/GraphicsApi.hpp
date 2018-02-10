@@ -106,6 +106,8 @@ public:
 	// Debug
 	void ReportLiveObjects() const override;
 
+	gxapi::ICapabilityQuery* GetCapabilityQuery() const override;
+
 protected:
 	Microsoft::WRL::ComPtr<ID3D12Device> m_device;
 	Microsoft::WRL::ComPtr<ID3D12DebugDevice1> m_debugDevice;

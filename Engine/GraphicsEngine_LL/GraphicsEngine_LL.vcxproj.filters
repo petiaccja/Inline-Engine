@@ -67,6 +67,7 @@
   <ItemGroup>
     <Text Include="ReadMe.txt" />
     <Text Include="pipeline.json" />
+    <Text Include="pipeline_nogi.json" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GraphicsEngine\IGraphicsEngine.hpp">

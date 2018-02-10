@@ -26,6 +26,7 @@ CapsResourceBinding CapabilityQuery::QueryResourceBinding() const {
 
 CapsTiledResources CapabilityQuery::QueryTiledResources() const {
 	switch (options.TiledResourcesTier) {
+		case D3D12_TILED_RESOURCES_TIER_NOT_SUPPORTED: return CapsTiledResources{};
 		case D3D12_TILED_RESOURCES_TIER_1: return CapsTiledResources::Dx12Tier1();
 		case D3D12_TILED_RESOURCES_TIER_2: return CapsTiledResources::Dx12Tier2();
 		case D3D12_TILED_RESOURCES_TIER_3: return CapsTiledResources::Dx12Tier3();
@@ -36,6 +37,7 @@ CapsTiledResources CapabilityQuery::QueryTiledResources() const {
 
 CapsConservativeRasterization CapabilityQuery::QueryConservativeRasterization() const {
 	switch (options.ConservativeRasterizationTier) {
+		case D3D12_CONSERVATIVE_RASTERIZATION_TIER_NOT_SUPPORTED: return CapsConservativeRasterization{};
 		case D3D12_CONSERVATIVE_RASTERIZATION_TIER_1: return CapsConservativeRasterization::Dx12Tier1();
 		case D3D12_CONSERVATIVE_RASTERIZATION_TIER_2: return CapsConservativeRasterization::Dx12Tier2();
 		case D3D12_CONSERVATIVE_RASTERIZATION_TIER_3: return CapsConservativeRasterization::Dx12Tier3();
@@ -56,11 +58,13 @@ CapsResourceHeaps CapabilityQuery::QueryResourceHeaps() const {
 CapsAdditional CapabilityQuery::QueryAdditional() const {
 	CapsAdditional caps;
 	
+	HRESULT hr;
 	D3D12_FEATURE_DATA_SHADER_MODEL shader;
+	shader.HighestShaderModel = D3D_SHADER_MODEL_6_1;
 	D3D12_FEATURE_DATA_GPU_VIRTUAL_ADDRESS_SUPPORT address;
 
-	m_device->CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL, &shader, sizeof(shader));
-	m_device->CheckFeatureSupport(D3D12_FEATURE_GPU_VIRTUAL_ADDRESS_SUPPORT, &address, sizeof(address));
+	hr = m_device->CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL, &shader, sizeof(shader));
+	hr = m_device->CheckFeatureSupport(D3D12_FEATURE_GPU_VIRTUAL_ADDRESS_SUPPORT, &address, sizeof(address));
 
 	caps.rovsSupported = options.ROVsSupported == TRUE;
 	caps.virtualAddressBitsPerResource = address.MaxGPUVirtualAddressBitsPerResource;
@@ -91,6 +95,9 @@ CapsLimits CapabilityQuery::QueryLimits() const {
 eCapsFormatUsage CapabilityQuery::QueryFormat(eFormat format) const {
 	DXGI_FORMAT nativeFormat = native_cast(format);
 	D3D12_FEATURE_DATA_FORMAT_SUPPORT data;
+	data.Format = nativeFormat;
+	data.Support1 = D3D12_FORMAT_SUPPORT1_NONE;
+	data.Support2 = D3D12_FORMAT_SUPPORT2_NONE;
 	m_device->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &data, sizeof(data));
 
 	eCapsFormatUsage usage;
@@ -125,8 +132,10 @@ eCapsFormatUsage CapabilityQuery::QueryFormat(eFormat format) const {
 
 
 
-	if (data.Support1 & D3D12_FORMAT_SUPPORT1_TYPED_UNORDERED_ACCESS_VIEW)
-		usage += eCapsFormatUsage::UNORDERED_ACCESS;
+	if (data.Support2 & D3D12_FORMAT_SUPPORT2_UAV_TYPED_LOAD)
+		usage += eCapsFormatUsage::UNORDERED_ACCESS_LOAD;
+	if (data.Support2 & D3D12_FORMAT_SUPPORT2_UAV_TYPED_STORE)
+		usage += eCapsFormatUsage::UNORDERED_ACCESS_STORE;
 	D3D12_FORMAT_SUPPORT2 atomic =
 		D3D12_FORMAT_SUPPORT2_UAV_ATOMIC_ADD
 		| D3D12_FORMAT_SUPPORT2_UAV_ATOMIC_BITWISE_OPS

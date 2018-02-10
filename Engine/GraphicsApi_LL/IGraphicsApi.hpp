@@ -19,6 +19,8 @@ class IRootSignature;
 class IPipelineState;
 class IDescriptorHeap;
 
+class ICapabilityQuery;
+
 
 // todo: descriptor view bullshit
 class IGraphicsApi {
@@ -43,7 +45,7 @@ public:
 	// Pipeline and binding
 	virtual IRootSignature* CreateRootSignature(RootSignatureDesc desc) = 0;
 	virtual IPipelineState* CreateGraphicsPipelineState(const GraphicsPipelineStateDesc& desc) = 0;
-	virtual gxapi::IPipelineState* CreateComputePipelineState(const gxapi::ComputePipelineStateDesc& desc) = 0;
+	virtual IPipelineState* CreateComputePipelineState(const ComputePipelineStateDesc& desc) = 0;
 	virtual IDescriptorHeap* CreateDescriptorHeap(DescriptorHeapDesc) = 0;
 
 	// Views
@@ -110,6 +112,8 @@ public:
 
 	// Debug
 	virtual void ReportLiveObjects() const = 0;
+
+	virtual ICapabilityQuery* GetCapabilityQuery() const = 0;
 };
 
 

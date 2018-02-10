@@ -1,10 +1,16 @@
+// base lib 
 #include <BaseLibrary/Logging_All.hpp>
+#include <BaseLibrary/Platform/System.hpp>
+
+// include interfaces
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
+#include <GraphicsApi_LL/HardwareCapability.hpp>
 #include <GraphicsApi_LL/Exception.hpp>
+
+// hacked includes - should use some factory
 #include <GraphicsApi_D3D12/GxapiManager.hpp>
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
 
-#include <BaseLibrary/Platform/System.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -50,6 +56,7 @@ std::string errorMessage;
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 bool ProcessControls(int key, bool down);
 bool ProcessRawInput(RAWINPUT* raw);
+std::string SelectPipeline(IGraphicsApi* gxapi);
 
 
 // -----------------------------------------------------------------------------
@@ -200,8 +207,9 @@ int main(int argc, char* argv[]) {
 		pEngine = engine.get();
 
 		// Load graphics pipeline
+		std::string pipelineFileName = SelectPipeline(gxapi.get());
 		std::string exeDir = System::GetExecutableDir();
-		std::ifstream pipelineFile(exeDir + "\\pipeline.json");
+		std::ifstream pipelineFile(exeDir + "\\" + pipelineFileName);
 		if (!pipelineFile.is_open()) {
 			throw FileNotFoundException("Failed to open pipeline JSON.");
 		}
@@ -525,4 +533,46 @@ bool ProcessRawInput(RAWINPUT* raw) {
 	}
 
 	return false;
+}
+
+
+
+
+std::string SelectPipeline(IGraphicsApi* gxapi) {
+	std::unique_ptr<ICapabilityQuery> query(gxapi->GetCapabilityQuery());
+
+	auto binding = query->QueryResourceBinding();
+	auto tiled = query->QueryTiledResources();
+	auto conserv = query->QueryConservativeRasterization();
+	auto heaps = query->QueryResourceHeaps();
+	auto additional = query->QueryAdditional();
+
+	int bindingTier = binding.GetDx12Tier();
+	int tiledTier = tiled.GetDx12Tier();
+	int conservTier = conserv.GetDx12Tier();
+	int heapsTier = heaps.GetDx12Tier();
+
+	int maxVmemResourceGB = (1ull << additional.virtualAddressBitsPerResource) / 1024/1024/1024;
+	int maxVmemProcessGB = (1ull << additional.virtualAddressBitsPerProcess) / 1024/1024/1024;
+
+	cout << "Selected GPU supports:" << endl;
+	cout << "   Resource binding:      Tier" << bindingTier << endl;
+	cout << "   Tiled resources:       Tier" << tiledTier << endl;
+	cout << "   Conservative raster.:  " << (conservTier == 0 ? std::string("UNSUPPORTED") : "Tier" + std::to_string(conservTier)) << endl;
+	cout << "   Resource heaps:        Tier" << heapsTier << endl;
+	cout << "   Process virtual memory: " << maxVmemProcessGB << " GiB, resource vmem: " << maxVmemResourceGB << " GiB" << endl;
+	cout << "   Shader model " << additional.shaderModelMajor << "." << additional.shaderModelMinor << endl;
+
+	CapsRequirementSet giReqs;
+	giReqs.conservativeRasterization = CapsConservativeRasterization::Dx12Tier1();
+	giReqs.formats.push_back({ eFormat::R32G32B32A32_FLOAT, eCapsFormatUsage({eCapsFormatUsage::UNORDERED_ACCESS_LOAD, eCapsFormatUsage::UNORDERED_ACCESS_STORE, eCapsFormatUsage::TEXTURE_3D}) });
+
+	bool supportsGi = query->SupportsAll(giReqs);
+	if (supportsGi) {
+		return "pipeline.json";
+	}
+	else {
+		return "pipeline_nogi.json";
+	}
+	
 }

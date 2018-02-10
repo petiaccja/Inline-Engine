@@ -13,7 +13,7 @@
 namespace inl::gxapi_dx12 {
 
 
-class CapabilityQuery : public gxapi::ICapablityQuery {
+class CapabilityQuery : public gxapi::ICapabilityQuery {
 public:
 	CapabilityQuery(Microsoft::WRL::ComPtr<ID3D12Device> device);
 

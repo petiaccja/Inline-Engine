@@ -78,7 +78,9 @@
       <AdditionalDependencies>lemon.lib;</AdditionalDependencies>
     </Lib>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline.json" "$(OutputPath)"</Command>
+      <Command>copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline.json" "$(OutputPath)"
+copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline_nogi.json" "$(OutputPath)"</Command>
+      <Message>Copy pipeline JSON files next to exe</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -107,7 +109,9 @@
       <AdditionalDependencies>lemon.lib;</AdditionalDependencies>
     </Lib>
     <PostBuildEvent>
-      <Command>copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline.json" "$(OutputPath)"</Command>
+      <Command>copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline.json" "$(OutputPath)"
+copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline_nogi.json" "$(OutputPath)"</Command>
+      <Message>Copy pipeline JSON files next to exe</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -320,8 +324,15 @@
       <FileType>Document</FileType>
     </None>
     <None Include="pipeline_example.json" />
+    <Text Include="pipeline_nogi.json">
+      <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </Text>
     <Text Include="pipeline.json">
       <FileType>Document</FileType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </Text>
   </ItemGroup>
   <ItemGroup>
