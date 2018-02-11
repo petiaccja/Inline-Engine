@@ -63,7 +63,6 @@ void ShadowMapGen::Reset() {
 	m_pointLightDsvs.clear();
 	GetInput(0)->Clear();
 	GetInput(1)->Clear();
-	GetInput(2)->Clear();
 }
 
 

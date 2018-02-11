@@ -128,18 +128,14 @@ public:
 
 	/// <summary> Get pointer to the indexth input port. </summary>
 	InputPortBase* GetInput(size_t index) override {
-		if (index >= sizeof...(Types))
-			return nullptr;
-		else
-			return portTable[index];
+		assert(index < sizeof...(Types));
+		return portTable[index];
 	}
 
 	/// <summary> Get pointer to the indexth input port. </summary>
 	const InputPortBase* GetInput(size_t index) const override {
-		if (index >= sizeof...(Types))
-			return nullptr;
-		else
-			return portTable[index];
+		assert(index < sizeof...(Types));
+		return portTable[index];
 	}
 
 	/// <summary> Returns the number of inputs. </summary>
@@ -247,18 +243,14 @@ public:
 
 	/// <summary> Get pointer to the indexth output port. </summary>
 	OutputPortBase* GetOutput(size_t index) override {
-		if (index >= sizeof...(Types))
-			return nullptr;
-		else
-			return portTable[index];
+		assert(index < sizeof...(Types));
+		return portTable[index];
 	}
 
 	/// <summary> Get pointer to the indexth output port. </summary>
 	const OutputPortBase* GetOutput(size_t index) const override {
-		if (index >= sizeof...(Types))
-			return nullptr;
-		else
-			return portTable[index];
+		assert(index < sizeof...(Types));
+		return portTable[index];
 	}
 	/// <summary> Returns the number of outputs. </summary>
 	size_t GetNumOutputs() const override {
