@@ -23,7 +23,12 @@ protected:
 		|| (Columns == 3 && Rows == 2 && Order == eMatrixOrder::PRECEDE_VECTOR)
 		|| (Columns == 2 && Rows == 2);
 public:
+	/// <summary> Creates a 2D rotation matrix. </summary>
+	/// <param name="angle"> Counter-clockwise angle in radians. </param>
 	static MatrixT Rotation(T angle);
+
+	/// <summary> Sets this matrix to a 2D rotation matrix. </summary>
+	/// <param name="angle"> Counter-clockwise angle in radians. </param>
 	MatrixT& SetRotation(T angle) {
 		*this = Rotation(angle);
 		return *this;

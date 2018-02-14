@@ -123,6 +123,18 @@ std::vector<InputDevice> Input::GetDeviceList() {
 }
 
 
+std::vector<InputDevice> Input::GetDeviceList(eInputSourceType filter) {
+	auto devices = GetDeviceList();
+	std::vector<InputDevice> specificDevices;
+	for (auto& dev : devices) {
+		if (dev.type == filter) {
+			specificDevices.push_back(dev);
+		}
+	}
+	return specificDevices;
+}
+
+
 Input::RawInputSourceBase::RawInputSourceBase() {
 	m_messageLoopThread = std::thread([this] {
 		MessageLoopThreadFunc();

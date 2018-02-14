@@ -23,13 +23,15 @@ protected:
 		((Order == eMatrixOrder::FOLLOW_VECTOR && Rows - 1 <= Columns && Columns <= Rows)
 			|| (Order == eMatrixOrder::PRECEDE_VECTOR && Columns - 1 <= Rows && Rows <= Columns));
 public:
+	/// <summary> Creates a translation matrix. </summary>
+	/// <param name="translations"> A list of scalars that specify movement along repsective axes. </param>
 	template <class... Args, typename std::enable_if<(impl::All<impl::IsScalar, typename std::decay<Args>::type...>::value), int>::type = 0>
-	static MatrixT Translation(Args&&... args) {
+	static MatrixT Translation(Args&&... translations) {
 		static_assert(sizeof...(Args) == TranslationDim, "Number of arguments must match the dimension of translation.");
 
 		MatrixT m;
 		m.SetIdentity();
-		T tableArgs[sizeof...(Args)] = { (T)std::forward<Args>(args)... };
+		T tableArgs[sizeof...(Args)] = { (T)std::forward<Args>(translations)... };
 		if (Order == eMatrixOrder::FOLLOW_VECTOR) {
 			for (int i = 0; i < sizeof...(Args); ++i) {
 				m(Rows - 1, i) = std::move(tableArgs[i]);
@@ -43,6 +45,8 @@ public:
 		return m;
 	}
 
+	/// <summary> Creates a translation matrix. </summary>
+	/// <param name="translation"> The movement vector. </param>
 	template <class Vt, bool Vpacked>
 	static MatrixT Translation(const Vector<Vt, TranslationDim, Vpacked>& translation) {
 		MatrixT m;
@@ -60,9 +64,13 @@ public:
 		return m;
 	}
 
+	/// <summary> Sets this matrix to a translation matrix. </summary>
+	/// <param name="translations"> A list of scalars that specify movement along repsective axes. </param>
 	template <class... Args>
 	MatrixT& SetTranslation(Args&&... args) { self() = Translation(std::forward<Args>(args)...); return self(); }
 
+	/// <summary> Sets this matrix to a translation matrix. </summary>
+	/// <param name="translation"> The movement vector. </param>
 	template <class Vt, bool Vpacked>
 	MatrixT& SetTranslation(const Vector<Vt, TranslationDim, Vpacked>& translation) { self() = Translation(translation); return self(); }
 public:

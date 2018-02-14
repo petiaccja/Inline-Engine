@@ -76,13 +76,13 @@ class Ray : protected Line<T, Dim> {
 public:
 	// Inhreitance is protected to deny casting.
 	// Casting is bad 'cause we don't want to implicit cast a Ray to a Line and Intersect() it with a plane.
-	using Line::Line;
-	using Line::Through;
-	using Line::Direction;
-	using Line::Base;
-	using Line::PointAt;
-	using Line::direction;
-	using Line::base;
+	using Line<T, Dim>::Line;
+	using Line<T, Dim>::Through;
+	using Line<T, Dim>::Direction;
+	using Line<T, Dim>::Base;
+	using Line<T, Dim>::PointAt;
+	using Line<T, Dim>::direction;
+	using Line<T, Dim>::base;
 	mathter::Line<T, Dim> Line() const {
 		return static_cast<mathter::Line<T, Dim>>(*this);
 	}

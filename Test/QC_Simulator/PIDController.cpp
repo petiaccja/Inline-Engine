@@ -33,7 +33,7 @@ void PIDController::Update(inl::Quat orientation, float lift, inl::Quat q, inl::
 	Vec3 eaxis;
 	eaxis = e.Axis();
 	eangle = e.Angle();
-	ie = eangle > 0.001f ? (elapsed*e)*ie : ie;
+	ie = (elapsed*e)*ie;
 
 	e.Normalize();
 	ie.Normalize();
@@ -46,14 +46,14 @@ void PIDController::Update(inl::Quat orientation, float lift, inl::Quat q, inl::
 	Vec3 paxis;
 	paxis = e.Axis();
 	pangle = e.Angle();
-	P = pangle > 0.001f ? pangle * paxis : Vec3{ 0,0,0 };
+	P = pangle * paxis;
 
 	// I
 	float iangle;
 	Vec3 iaxis;
 	iaxis = ie.Axis();
 	iangle = ie.Angle();
-	I = iangle > 0.001f ? iangle * iaxis : Vec3{ 0,0,0 };
+	I = iangle * iaxis;
 
 	// D
 	D = de;

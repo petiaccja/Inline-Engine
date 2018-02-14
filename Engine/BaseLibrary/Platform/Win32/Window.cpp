@@ -3,6 +3,8 @@
 #include <future>
 #include <Windowsx.h>
 #include "shellapi.h"
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi.lib")
 #undef UNKNOWN
 
 #undef IsMaximized
@@ -99,6 +101,9 @@ Window::Window(const std::string& title,
 		ShowWindow(m_handle, SW_SHOW);
 	}
 	UpdateWindow(m_handle);
+
+
+	// Handle borderless and resize properties.
 
 
 	// The code below is for the immediate/queue mode setup
@@ -322,27 +327,116 @@ Vec2i Window::GetClientCursorPos() const
 	return Vec2i(p.x, p.y);
 }
 
+
+
+void Window::SetFrameMargins(RectI frameMargins) {
+	m_frameMargins = frameMargins;
+}
+
+
+RectI Window::GetFrameMargins() const {
+	return m_frameMargins;
+}
+
+
+void Window::SetCaptionButtonHandler(std::function<eWindowCaptionButton(Vec2i)> handler) {
+	m_captionButtonHandler = handler;
+}
+
+
+std::function<eWindowCaptionButton(Vec2i)> Window::GetCaptionButtonHandler() const {
+	return m_captionButtonHandler;
+}
+
+
 void Window::SetResizable(bool enabled) {
-	throw NotImplementedException();
 	if (IsClosed()) { return; }
+	m_resizable = enabled;
+	if (enabled) {
+		SetWindowLong(m_handle, GWL_STYLE, GetWindowLong(m_handle, GWL_STYLE)|WS_SIZEBOX);
+	}
+	else {
+		SetWindowLong(m_handle, GWL_STYLE, GetWindowLong(m_handle, GWL_STYLE)&~WS_SIZEBOX);
+	}
 }
 
 
 bool Window::GetResizable() const {
-	throw NotImplementedException();
 	if (IsClosed()) { return false; }
+	return m_resizable;
 }
 
 
 void Window::SetBorderless(bool enabled) {
-	throw NotImplementedException();
 	if (IsClosed()) { return; }
+	m_borderless = enabled;
+
+	// Must call SetWindowPos to trigger changes
+	RECT rc;
+	GetWindowRect(m_handle, &rc);
+	SetWindowPos(m_handle,
+		NULL,
+		rc.left, rc.top,
+		rc.right-rc.left, rc.bottom-rc.top,
+		SWP_FRAMECHANGED);
+}
+
+
+int Window::DwmHittest(Vec2i cursorPos) const {
+	Vec2u windowSize = GetSize();
+
+	bool onLeftBorder = cursorPos.x < m_frameMargins.left;
+	bool onRightBorder = cursorPos.x > windowSize.x - m_frameMargins.right;
+	bool onTopBorder = cursorPos.y < m_frameMargins.top;
+	bool onBottomBorder = cursorPos.y > windowSize.y - m_frameMargins.bottom;
+
+	if (onTopBorder && onLeftBorder) {
+		return HTTOPLEFT;
+	}
+	if (onTopBorder && onRightBorder) {
+		return HTTOPRIGHT;
+	}
+	if (onBottomBorder && onRightBorder) {
+		return HTBOTTOMRIGHT;
+	}
+	if (onBottomBorder && onLeftBorder) {
+		return HTBOTTOMLEFT;
+	}
+	if (onLeftBorder) {
+		return HTLEFT;
+	}
+	if (onRightBorder) {
+		return HTRIGHT;
+	}
+	if (onTopBorder) {
+		return HTTOP;
+	}
+	if (onBottomBorder) {
+		return HTBOTTOM;
+	}
+
+	eWindowCaptionButton onCaption = eWindowCaptionButton::NONE;
+	if (m_captionButtonHandler) {
+		onCaption = m_captionButtonHandler(cursorPos);
+	}
+	switch (onCaption) {
+		case eWindowCaptionButton::BAR:
+			return HTCAPTION;
+		case eWindowCaptionButton::MINIMIZE:
+			return HTMINBUTTON;
+		case eWindowCaptionButton::MAXIMIZE:
+			return HTMAXBUTTON;
+		case eWindowCaptionButton::CLOSE:
+			return HTCLOSE;
+	}
+
+	return HTCLIENT;
 }
 
 
 bool Window::GetBorderless() const {
-	throw NotImplementedException();
 	if (IsClosed()) { return false; }
+	return m_borderless;
 }
 
 
@@ -421,7 +515,8 @@ bool Window::CallEvents() {
 
 
 LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	Window* instance = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+	void* pInstance = (void*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
+	Window& instance = *reinterpret_cast<Window*>(pInstance);
 
 	auto CallClickEvent = [&instance, lParam](eMouseButton btn, eKeyState state) {
 		MouseButtonEvent evt;
@@ -430,27 +525,67 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 		evt.y = HIWORD(lParam);
 		evt.state = state;
 		evt.button = btn;
-		instance->CallEvent(instance->OnMouseButton, evt);
+		instance.CallEvent(instance.OnMouseButton, evt);
 	};
 
+	LRESULT lret;
+	bool callDwp = true;
+	callDwp = !DwmDefWindowProc(hwnd, msg, wParam, lParam, &lret);
+
 	switch (msg) {
+		case WM_NCCREATE:
+			SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)((CREATESTRUCT*)lParam)->lpCreateParams);
+			return TRUE;
 		case WM_CLOSE:
 			DestroyWindow(hwnd);
 			break;
 		case WM_DESTROY:
-			instance->CallEvent(instance->OnClose);
+			instance.CallEvent(instance.OnClose);
 			PostQuitMessage(0);
-			instance->m_handle = nullptr;
+			instance.m_handle = nullptr;
 			break;
+		case WM_NCCALCSIZE:
+			if (instance.m_borderless && wParam == TRUE) {
+				NCCALCSIZE_PARAMS *pncsp = reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
+				pncsp->rgrc[2] = pncsp->rgrc[1];
+				pncsp->rgrc[1] = pncsp->rgrc[0];
+				if (instance.IsMaximized()) {
+					pncsp->rgrc[0].left = pncsp->rgrc[0].left + instance.m_frameMargins.left;
+					pncsp->rgrc[0].top = pncsp->rgrc[0].top + instance.m_frameMargins.top;
+					pncsp->rgrc[0].right = pncsp->rgrc[0].right - instance.m_frameMargins.right;
+					pncsp->rgrc[0].bottom = pncsp->rgrc[0].bottom - instance.m_frameMargins.bottom;
+				}
+				else {
+					pncsp->rgrc[0].left = pncsp->rgrc[0].left + 0;
+					pncsp->rgrc[0].top = pncsp->rgrc[0].top + 0;
+					pncsp->rgrc[0].right = pncsp->rgrc[0].right - 0;
+					pncsp->rgrc[0].bottom = pncsp->rgrc[0].bottom - 0;
+				}
+				return 0;
+			}
+			else {
+				return DefWindowProc(hwnd, msg, wParam, lParam);
+			}
+		case WM_NCHITTEST:
+			if (instance.m_borderless) {
+				Vec2i cursorPos = { LOWORD(lParam), HIWORD(lParam) };
+				Vec2i windowPos = instance.GetPosition();
+				cursorPos -= windowPos;
+				int hitCategory = instance.DwmHittest(cursorPos);
+				return hitCategory;
+			}
+			else {
+				return DefWindowProc(hwnd, msg, wParam, lParam);
+			}
 		case WM_CHAR:
-			instance->CallEvent(instance->OnCharacter, (char32_t)wParam);
+			instance.CallEvent(instance.OnCharacter, (char32_t)wParam);
 			break;
 		case WM_KEYDOWN: {
 			KeyboardEvent evt;
 			evt.key = impl::TranslateKey((unsigned)wParam);
 			evt.state = eKeyState::DOWN;
 			if (evt.key != eKey::UNKNOWN) {
-				instance->CallEvent(instance->OnKeyboard, evt);
+				instance.CallEvent(instance.OnKeyboard, evt);
 			}
 			break;
 		}
@@ -459,80 +594,93 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 			evt.key = impl::TranslateKey((unsigned)wParam);
 			evt.state = eKeyState::UP;
 			if (evt.key != eKey::UNKNOWN) {
-				instance->CallEvent(instance->OnKeyboard, evt);
+				instance.CallEvent(instance.OnKeyboard, evt);
 			}
 			break;
 		}
 		case WM_NCLBUTTONDOWN:
+			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_LBUTTONDOWN: {
 			CallClickEvent(eMouseButton::LEFT, eKeyState::DOWN);
 			break;
 		}
 		case WM_NCLBUTTONUP:
+			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_LBUTTONUP: {
 			CallClickEvent(eMouseButton::LEFT, eKeyState::UP);
 			break;
 		}
 		case WM_NCLBUTTONDBLCLK:
+			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_LBUTTONDBLCLK: {
 			CallClickEvent(eMouseButton::LEFT, eKeyState::DOUBLE);
 			break;
 		}
 		case WM_NCRBUTTONDOWN:
+			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_RBUTTONDOWN: {
 			CallClickEvent(eMouseButton::RIGHT, eKeyState::DOWN);
 			break;
 		}
 		case WM_NCRBUTTONUP:
+			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_RBUTTONUP: {
 			CallClickEvent(eMouseButton::RIGHT, eKeyState::UP);
 			break;
 		}
 		case WM_NCRBUTTONDBLCLK:
+			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_RBUTTONDBLCLK: {
 			CallClickEvent(eMouseButton::RIGHT, eKeyState::DOUBLE);
 			break;
 		}
 		case WM_NCMBUTTONDOWN:
+			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_MBUTTONDOWN: {
 			CallClickEvent(eMouseButton::MIDDLE, eKeyState::DOWN);
 			break;
 		}
 		case WM_NCMBUTTONUP:
+			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_MBUTTONUP: {
 			CallClickEvent(eMouseButton::MIDDLE, eKeyState::UP);
 			break;
 		}
 		case WM_NCMBUTTONDBLCLK:
+			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_MBUTTONDBLCLK: {
 			CallClickEvent(eMouseButton::MIDDLE, eKeyState::DOUBLE);
 			break;
 		}
 		case WM_NCXBUTTONDOWN:
+			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_XBUTTONDOWN: {
 			eMouseButton btn = HIWORD(wParam) == 1 ? eMouseButton::EXTRA1 : eMouseButton::EXTRA2;
 			CallClickEvent(btn, eKeyState::DOWN);
 			return TRUE;
 		}
 		case WM_NCXBUTTONUP:
+			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_XBUTTONUP: {
 			eMouseButton btn = HIWORD(wParam) == 1 ? eMouseButton::EXTRA1 : eMouseButton::EXTRA2;
 			CallClickEvent(btn, eKeyState::UP);
 			return TRUE;
 		}
 		case WM_NCXBUTTONDBLCLK:
+			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_XBUTTONDBLCLK: {
 			eMouseButton btn = HIWORD(wParam) == 1 ? eMouseButton::EXTRA1 : eMouseButton::EXTRA2;
 			CallClickEvent(btn, eKeyState::DOUBLE);
 			return TRUE;
 		}
 		case WM_NCMOUSEMOVE:
+			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_MOUSEMOVE: {
 			MouseMoveEvent evt;
 			evt.absx = GET_X_LPARAM(lParam);
 			evt.absy = GET_Y_LPARAM(lParam);
 			evt.relx = evt.rely = 0;
-			instance->CallEvent(instance->OnMouseMove, evt);
+			instance.CallEvent(instance.OnMouseMove, evt);
 			break;
 		}
 		case WM_MOUSEWHEEL: {
@@ -542,38 +690,50 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 			break;
 		}
 		case WM_NCACTIVATE:
+			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_ACTIVATE: {
-			instance->CallEvent(instance->OnFocus);
+			instance.CallEvent(instance.OnFocus);
 			break;
 		}
 		case WM_SIZE: {
 			ResizeEvent evt;
-			evt.size = instance->GetSize();
-			evt.clientSize = instance->GetClientSize();
+			evt.size = instance.GetSize();
+			evt.clientSize = instance.GetClientSize();
 			evt.resizeMode = (eResizeMode)wParam;
-			instance->CallEvent(instance->OnResize, evt);
+			instance.CallEvent(instance.OnResize, evt);
 			break;
 		}
 		case WM_NCPAINT:
+			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_PAINT: {
 			PAINTSTRUCT ps;
-			BeginPaint(instance->m_handle, &ps);
+			BeginPaint(instance.m_handle, &ps);
 			
-			instance->CallEvent(instance->OnPaint);
+			RECT rc;
+			GetClientRect(hwnd, &rc);
+			rc.bottom -= rc.top;
+			rc.right -= rc.left;
+			rc.top = rc.left = 0;
+			FillRect(ps.hdc, &rc, (HBRUSH)(COLOR_WINDOW+1));
+			instance.CallEvent(instance.OnPaint);
 			
-			EndPaint(instance->m_handle, &ps);
-			break;
+			EndPaint(instance.m_handle, &ps);
+			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
-		case WM_NCCREATE: {
-			SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)((CREATESTRUCT*)lParam)->lpCreateParams);
-			break;
-		}
+		default:
+			if (callDwp) {
+				return DefWindowProc(hwnd, msg, wParam, lParam);
+			}
+			else {
+				return lret;
+			}
 	}
+	return 0;
 
-	if (instance && instance->m_userWndProc)
-		return instance->m_userWndProc(hwnd, msg, wParam, lParam);
-	else
-		return DefWindowProc(hwnd, msg, wParam, lParam);
+	//if (instance && instance.m_userWndProc)
+	//	return instance.m_userWndProc(hwnd, msg, wParam, lParam);
+	//else
+	//	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
 
@@ -588,7 +748,7 @@ void Window::MessageLoop() {
 
 void Window::MessageLoopPeek() {
 	MSG msg;
-	while (PeekMessage(&msg, m_handle, 0, 0, PM_REMOVE)) {
+	while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}

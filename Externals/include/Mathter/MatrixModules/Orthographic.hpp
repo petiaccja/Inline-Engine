@@ -23,6 +23,13 @@ class MatrixOrthographic {
 	MatrixT& self() { return *static_cast<MatrixT*>(this); }
 	const MatrixT& self() const { return *static_cast<const MatrixT*>(this); }
 public:
+	/// <summary> Creates an orthographics projection matrix. The volume before projection
+	///		is an axis-aligned hypercube and it is projected onto a unit hypercube. </summary>
+	/// <param name="minBounds"> The "left" corner of the hypercube. </param>
+	/// <param name="maxBounds"> The "right" corner of the hypercube. </param>
+	/// <param name="projNearPlane"> The lower bound of the last axis of the projected volume (Z axis in 3D). </param>
+	/// <param name="projFarPlane"> The upper bound of the last axis of the projected volume (Z axis in 3D). </param>
+	/// <remarks> After projection, all axes range from -1 to 1, except for the last axis, which is specified explicitly. </remarks>
 	static MatrixT Orthographic(const VectorT& minBounds, const VectorT& maxBounds, T projNearPlane = T(0), T projFarPlane = T(1)) {
 		VectorT volumeSize = maxBounds - minBounds;
 		VectorT scale = T(2) / volumeSize;
@@ -39,6 +46,8 @@ public:
 
 		return ret;
 	}
+
+	/// <summary> Set this matrix to an orthographic projection matrix. See <see cref="Orthographic"/>. </summary>
 	MatrixT& SetOrthographic(const VectorT& minBounds, const VectorT& maxBounds, T projNearPlane = T(0), T projFarPlane = T(1)) {
 		self() = Orthographic(minBounds, maxBounds, projNearPlane, projFarPlane);
 		return self();

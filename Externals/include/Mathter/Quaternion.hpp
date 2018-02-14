@@ -233,7 +233,7 @@ public:
 		return vec.AlmostEqual(rhs.vec);
 	}
 	auto Approx() const {
-		return mathter::Approx<Quaternion>(*this);
+		return mathter::ApproxHelper<Quaternion>(*this);
 	}
 
 	//-----------------------------------------------
@@ -326,7 +326,7 @@ public:
 	/// <summary> Returns the angle of the rotation represented by quaternion. </summary>
 	/// <remarks> Only valid for unit quaternions. </remarks>
 	const T Angle() const {
-		return 2 * std::acos(Clamp(s/Length(), T(-1), T(1)));
+		return impl::sign(s) * 2 * std::acos(Clamp(abs(s)/Length(), T(-1), T(1)));
 	}
 	/// <summary> Returns the axis of rotation represented by quaternion. </summary>
 	/// <remarks> Only valid for unit quaternions. Returns (1,0,0) for near 180 degree rotations. </remarks>

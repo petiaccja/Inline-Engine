@@ -1,6 +1,9 @@
 // base lib 
 #include <BaseLibrary/Logging_All.hpp>
 #include <BaseLibrary/Platform/System.hpp>
+#include <BaseLibrary/Platform/Input.hpp>
+#include <BaseLibrary/Platform/Window.hpp>
+#include <BaseLibrary/Timer.hpp>
 
 // include interfaces
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
@@ -38,25 +41,43 @@ using namespace std::chrono_literals;
 // -----------------------------------------------------------------------------
 // Globals
 
-bool isEngineInit = false;
 std::ofstream logFile;
 Logger logger;
 LogStream systemLogStream = logger.CreateLogStream("system");
 LogStream graphicsLogStream = logger.CreateLogStream("graphics");
 std::experimental::filesystem::path logFilePath;
-GraphicsEngine* pEngine = nullptr;
-QCWorld* pQcWorld = nullptr;
-
 
 std::string errorMessage;
 
 // -----------------------------------------------------------------------------
 // Function prototypes
-
-LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 bool ProcessControls(int key, bool down);
 bool ProcessRawInput(RAWINPUT* raw);
 std::string SelectPipeline(IGraphicsApi* gxapi);
+void OnTerminate();
+
+
+// -----------------------------------------------------------------------------
+// Helper classes
+
+// Reports live GPU object when GraphicsApi is freed
+struct ReportDeleter {
+	void operator()(IGraphicsApi* obj) const {
+		obj->ReportLiveObjects();
+		delete obj;
+	}
+};
+
+// Processes key and joy input to control the copter
+class InputHandler {
+public:
+	InputHandler(QCWorld* qcWorld) : world(qcWorld) {}
+
+	void OnJoystickMove(JoystickMoveEvent evt);
+	void OnKey(KeyboardEvent evt);
+private:
+	QCWorld* world;
+};
 
 
 // -----------------------------------------------------------------------------
@@ -77,93 +98,27 @@ int main(int argc, char* argv[]) {
 		logger.OpenStream(&std::cout);
 	}
 
-	// Set exception handler
-	std::set_terminate([]()
-	{
-		try {
-			std::rethrow_exception(std::current_exception());
-			systemLogStream.Event(std::string("Terminate called, shutting down services."));
-		}
-		catch (Exception& ex) {
-			systemLogStream.Event(std::string("Terminate called, shutting down services.") + ex.what() + "\n" + ex.StackTraceStr());
-		}
-		catch (std::exception& ex) {
-			systemLogStream.Event(std::string("Terminate called, shutting down services.") + ex.what());
-		}
-		logger.Flush();
-		logger.OpenStream(nullptr);
-		logFile.close();
-		int ans = MessageBoxA(NULL, "Open logs?", "Unhandled exception", MB_YESNO);
-		if (ans == IDYES) {
-			system(logFilePath.string().c_str());
-		}
+	// Set exception terminate handler
+	std::set_terminate(OnTerminate);
 
-		std::abort();
-	});
-
-
-	// Create and register window class
-	WNDCLASSEX wc;
-	wc.cbClsExtra = 0;
-	wc.cbSize = sizeof(wc);
-	wc.cbWndExtra = 0;
-	wc.hbrBackground = NULL;
-	wc.hCursor = NULL;
-	wc.hIcon = NULL;
-	wc.hIconSm = NULL;
-	wc.hInstance = GetModuleHandle(NULL);
-	wc.lpfnWndProc = WndProc;
-	wc.lpszClassName = TEXT("WC_ENGINETEST");
-	wc.lpszMenuName = TEXT("MENUNAME");
-	wc.style = CS_VREDRAW | CS_HREDRAW;
-	ATOM r = RegisterClassEx(&wc);
-	if (r == FALSE) {
-		cout << "Could not register window class." << endl;
-		return 0;
-	}
 
 	// Create the window itself
-	HWND hWnd = CreateWindowEx(
-		NULL,
-		TEXT("WC_ENGINETEST"),
-		TEXT("Graphics Engine Test"),
-		WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT,
-		CW_USEDEFAULT,
-		800,
-		600,
-		NULL,
-		NULL,
-		wc.hInstance,
-		NULL);
-
-	if (hWnd == INVALID_HANDLE_VALUE) {
-		cout << "Could not create window." << endl;
-		return 0;
-	}
-
-	// Show the window
-	ShowWindow(hWnd, SW_SHOW);
-	UpdateWindow(hWnd);
-
-	// Get actual client area params
-	RECT clientRect;
-	GetClientRect(hWnd, &clientRect);
-	int width = clientRect.right - clientRect.left;
-	int height = clientRect.bottom - clientRect.top;
+	Window window;
+	window.SetTitle("QC Simulator");
+	window.SetSize({ 960, 640 });
+	window.Maximize();
+	
 
 	// Create GraphicsEngine
 	systemLogStream.Event("Initializing Graphics Engine...");
+
 	std::unique_ptr<IGxapiManager> gxapiMgr;
-	struct ReportDeleter {
-		void operator()(IGraphicsApi* obj) const {
-			obj->ReportLiveObjects();
-			delete obj;
-		}
-	};
 	std::unique_ptr<IGraphicsApi, ReportDeleter> gxapi;
 	std::unique_ptr<GraphicsEngine> engine;
 	std::unique_ptr<QCWorld> qcWorld;
+	std::unique_ptr<InputHandler> inputHandler;
+	std::unique_ptr<Input> joyInput;
+
 	try {
 		// Create manager
 		systemLogStream.Event("Creating GxApi Manager...");
@@ -181,8 +136,6 @@ int main(int argc, char* argv[]) {
 		int device = 0;
 		if (argc == 3 && argv[1] == std::string("--device") && isdigit(argv[2][0])) {
 			device = argv[2][0] - '0'; // works for single digits, good enough, lol
-			//cout << "You may attach debugger now. Press ENTER..." << endl;
-			//std::cin.get();
 		}
 		systemLogStream.Event("Creating GraphicsApi...");
 		gxapi.reset(gxapiMgr->CreateGraphicsApi(adapters[device].adapterId));
@@ -198,13 +151,12 @@ int main(int argc, char* argv[]) {
 		desc.fullScreen = false;
 		desc.graphicsApi = gxapi.get();
 		desc.gxapiManager = gxapiMgr.get();
-		desc.width = width;
-		desc.height = height;
-		desc.targetWindow = hWnd;
+		desc.width = window.GetClientSize().x;
+		desc.height = window.GetClientSize().y;
+		desc.targetWindow = window.GetNativeHandle();
 		desc.logger = &logger;
 
 		engine.reset(new GraphicsEngine(desc));
-		pEngine = engine.get();
 
 		// Load graphics pipeline
 		std::string pipelineFileName = SelectPipeline(gxapi.get());
@@ -219,113 +171,122 @@ int main(int argc, char* argv[]) {
 
 		// Create mini world
 		qcWorld.reset(new QCWorld(engine.get()));
-		pQcWorld = qcWorld.get();
+		
 
-		isEngineInit = true;
+		// Create input handling
+		auto joysticks = Input::GetDeviceList(eInputSourceType::JOYSTICK);
+		inputHandler = std::make_unique<InputHandler>(qcWorld.get());
+		if (!joysticks.empty()) {
+			joyInput = std::make_unique<Input>(joysticks.front().id);
+			joyInput->SetQueueMode(eInputQueueMode::QUEUED);
+			joyInput->OnJoystickMove += Delegate<void(JoystickMoveEvent)>{ &InputHandler::OnJoystickMove, inputHandler.get() };
+		}
+
+		window.OnResize += [&engine, &qcWorld](ResizeEvent evt) {
+			engine->SetScreenSize(evt.clientSize.x, evt.clientSize.y);
+			qcWorld->ScreenSizeChanged(evt.clientSize.x, evt.clientSize.y);
+		};
 
 		logger.Flush();
 	}
 	catch (Exception& ex) {
-		pEngine = nullptr;
-		isEngineInit = false;
 		errorMessage = std::string("Error creating GraphicsEngine: ") + ex.what() + "\n" + ex.StackTraceStr();
 		systemLogStream.Event(errorMessage);
 		logger.Flush();
 	}
 	catch (std::exception& ex) {
-		pEngine = nullptr;
-		isEngineInit = false;
 		errorMessage = std::string("Error creating GraphicsEngine: ") + ex.what();
 		systemLogStream.Event(errorMessage);
 		logger.Flush();
 	}
 
-
-	// Show the window
-	InvalidateRect(hWnd, nullptr, TRUE);
-
-	// Register for raw input
-	RAWINPUTDEVICE Rid[1];
-	Rid[0].usUsagePage = 0x01;
-	Rid[0].usUsage = 0x02;
-	Rid[0].dwFlags = 0;   // adds HID mouse and also ignores legacy mouse messages
-	Rid[0].hwndTarget = 0;
-	if (RegisterRawInputDevices(Rid, 1, sizeof(Rid[0])) == FALSE) {
-		cout << "Raw input failed: " << GetLastError() << endl;
+	if (!qcWorld) {
+		throw std::logic_error("Failed to create engine so I'm just throwing this from main() to trigger show log.");
 	}
 
 
-	// Game-style main loop
-	MSG msg;
-	bool run = true;
-
-	std::chrono::high_resolution_clock::time_point timestamp = std::chrono::high_resolution_clock::now();
-	std::chrono::nanoseconds frameTime(1000);
-	std::chrono::nanoseconds frameRateUpdate(0);
-	std::vector<std::chrono::nanoseconds> frameTimeHistory;
+	// Main rendering loop
+	Timer timer;
+	timer.Start();
+	double frameTime = 0.05, frameRateUpdate = 0;
+	std::vector<double> frameTimeHistory;
 	float avgFps = 0;
 
-	while (run) {
-		while (PeekMessage(&msg, /*hWnd*/NULL, 0, 0, PM_REMOVE)) {
-			if (msg.message == WM_QUIT) {
-				run = false;
-				break;
-			}
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+	auto CaptionHandler = [&window](Vec2i cursorPos) {
+		Vec2i size = window.GetSize();
+		RectI rc;
+		rc.top = 5;
+		rc.bottom = 20;
+		rc.right = size.x - 5;
+		rc.left = size.x - 20;
+		if (rc.IsPointInside(cursorPos))
+			return eWindowCaptionButton::CLOSE;
+		rc.Move({ -20, 0 });
+		if (rc.IsPointInside(cursorPos))
+			return eWindowCaptionButton::MAXIMIZE;
+		rc.Move({ -20, 0 });
+		if (rc.IsPointInside(cursorPos))
+			return eWindowCaptionButton::MINIMIZE;
+		if (cursorPos.y < 25) {
+			return eWindowCaptionButton::BAR;
 		}
-		if (qcWorld) {
-			try {
-				// Measure time of Update().
-				auto updateStart = std::chrono::high_resolution_clock::now();
+		return eWindowCaptionButton::NONE;
+	};
+	//window.SetBorderless(true);
+	//window.Maximize();
+	window.SetCaptionButtonHandler(CaptionHandler);
+	//window.SetBorderless(false);
 
-				// Update world
-				qcWorld->UpdateWorld(frameTime.count() / 1e9f);
-				qcWorld->RenderWorld(frameTime.count() / 1e9f);
+	while (!window.IsClosed()) {
+		window.CallEvents();
+		//std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		//continue;
+		if (joyInput) {
+			joyInput->CallEvents();
+		}
 
-				auto updateEnd = std::chrono::high_resolution_clock::now();
-				std::chrono::nanoseconds updateElapsed = updateEnd - updateStart;
+		try {
+			// Update world
+			qcWorld->UpdateWorld(frameTime);
+			qcWorld->RenderWorld(frameTime);
 
-				// Calculate elapsed time for frame.
-				auto now = std::chrono::high_resolution_clock::now();
-				frameTime = now - timestamp;
-				timestamp = now;
-				//std::this_thread::sleep_for(16667us - updateElapsed);
+			// Calculate elapsed time for frame.
+			frameTime = timer.Elapsed();
+			timer.Reset();
 
-				frameRateUpdate += frameTime;
-				if (frameRateUpdate > 500ms) {
-					frameRateUpdate = 0ns;
+			// Calculate average framerate
+			frameRateUpdate += frameTime;
+			if (frameRateUpdate > 0.5) {
+				frameRateUpdate = 0;
 
-					double avgFrameTime = 0.0;
-					for (auto v : frameTimeHistory) {
-						avgFrameTime += v.count() / 1e9;
-					}
-					avgFrameTime /= frameTimeHistory.size();
-					avgFps = 1 / avgFrameTime;
-
-					frameTimeHistory.clear();
+				double avgFrameTime = 0.0;
+				for (auto v : frameTimeHistory) {
+					avgFrameTime += v;
 				}
-				frameTimeHistory.push_back(frameTime);
+				avgFrameTime /= frameTimeHistory.size();
+				avgFps = 1 / avgFrameTime;
 
+				frameTimeHistory.clear();
+			}
+			frameTimeHistory.push_back(frameTime);
 
-				std::stringstream ss;
-				unsigned width, height;
-				engine->GetScreenSize(width, height);
-				ss << "Graphics Engine Test | " << width << "x" << height << " | FPS=" << (int)avgFps;
-				SetWindowTextA(hWnd, ss.str().c_str());
-			}
-			catch (Exception& ex) {
-				std::stringstream trace;
-				trace << "Graphics engine error:" << ex.what() << "\n";
-				ex.PrintStackTrace(trace);
-				systemLogStream.Event(trace.str());
-				PostQuitMessage(0);
-			}
-			catch (std::exception& ex) {
-				systemLogStream.Event(std::string("Graphics engine error: ") + ex.what());
-				logger.Flush();
-				PostQuitMessage(0);
-			}
+			// Set info text as window title
+			unsigned width, height;
+			engine->GetScreenSize(width, height);
+			std::string title = "Graphics Engine Test | " + std::to_string(width) + "x" + std::to_string(height) + " | FPS=" + std::to_string((int)avgFps);
+			window.SetTitle(title);
+		}
+		catch (Exception& ex) {
+			std::stringstream trace;
+			trace << "Graphics engine error:" << ex.what() << "\n";
+			ex.PrintStackTrace(trace);
+			systemLogStream.Event(trace.str());
+			PostQuitMessage(0);
+		}
+		catch (std::exception& ex) {
+			systemLogStream.Event(std::string("Graphics engine error: ") + ex.what());
+			logger.Flush();
+			PostQuitMessage(0);
 		}
 	}
 
@@ -334,106 +295,8 @@ int main(int argc, char* argv[]) {
 }
 
 
-LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	switch (msg) {
-		case WM_CLOSE:
-			PostQuitMessage(0);
-			return 0;
-		case WM_PAINT:
-		{
-			if (!isEngineInit) {
-				HDC hdc;
-				PAINTSTRUCT paintStruct;
-				hdc = BeginPaint(hWnd, &paintStruct);
-				RECT clientRect;
-				GetClientRect(hWnd, &clientRect);
-				FillRect(hdc, &clientRect, CreateSolidBrush(RGB(64, 96, 192)));
-				DrawTextA(hdc, errorMessage.c_str(), -1, &clientRect, DT_CENTER | DT_VCENTER);
-				EndPaint(hWnd, &paintStruct);
-				return 0;
-			}
-			else {
-				return DefWindowProc(hWnd, msg, wParam, lParam);
-			}
-		}
-		case WM_SIZE:
-		{
-			if (isEngineInit) {
-				RECT clientRect;
-				GetClientRect(hWnd, &clientRect);
-				unsigned width = clientRect.right - clientRect.top;
-				unsigned height = clientRect.bottom - clientRect.top;
-				pEngine->SetScreenSize(width, height);
-				pQcWorld->ScreenSizeChanged(width, height);
-				return 0;
-			}
-			else {
-				return DefWindowProc(hWnd, msg, wParam, lParam);
-			}
-		}
-		case WM_KEYDOWN:
-		{
-			if (ProcessControls((int)wParam, true)) {
-				return 0;
-			}
-			return DefWindowProc(hWnd, msg, wParam, lParam);
-		}
-		case WM_KEYUP:
-			if (wParam == VK_ESCAPE) {
-				PostQuitMessage(0);
-				return 0;
-			}
-			else if (wParam == VK_RETURN) {
-				if (pEngine) {
-					bool isfs = pEngine->GetFullScreen();
-					if (isfs) {
-						pEngine->SetFullScreen(false);
-					}
-					else {
-						int monWidth = GetSystemMetrics(SM_CXSCREEN);
-						int monHeight = GetSystemMetrics(SM_CYSCREEN);
-						pEngine->SetFullScreen(true);
-						pEngine->SetScreenSize(monWidth, monHeight);
-					}
-				}
-				return 0;
-			}
-			else if (wParam == 'L') {
-				if (pQcWorld) {
-					pQcWorld->IWantSunsetBitches();
-				}
-				return 0;
-			}
-			else if (pQcWorld && ProcessControls(wParam, false)) {
-				return 0;
-			}
-			return DefWindowProc(hWnd, msg, wParam, lParam);
-		case WM_INPUT: {
-			// get raw input data
-			UINT dwSize;
-			GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
-			std::vector<LPBYTE> lpb(dwSize);
-			if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb.data(), &dwSize,
-				sizeof(RAWINPUTHEADER)) != dwSize)
-				OutputDebugString(TEXT("GetRawInputData does not return correct size !\n"));
 
-			RAWINPUT* raw = (RAWINPUT*)lpb.data();
-			if (pQcWorld && ProcessRawInput(raw)) {
-				return 0;
-			}
-			else {
-				DefWindowProc(hWnd, msg, wParam, lParam);
-			}
-		}
-		case WM_KILLFOCUS:
-			ShowCursor(TRUE);
-		default:
-			return DefWindowProc(hWnd, msg, wParam, lParam);
-	}
-}
-
-
-
+/*
 bool ProcessControls(int key, bool down) {
 	float enable = down ? 1.f : 0.f;
 	switch (key) {
@@ -534,6 +397,32 @@ bool ProcessRawInput(RAWINPUT* raw) {
 
 	return false;
 }
+*/
+
+
+
+
+void InputHandler::OnJoystickMove(JoystickMoveEvent evt) {
+	if (!world) {
+		return;
+	}
+	//cout << "Axis" << evt.axis << " = " << evt.absPos << endl;
+	switch (evt.axis) {
+		case 0: world->TiltForward(-evt.absPos); break;
+		case 1: world->TiltRight(evt.absPos); break;
+		case 2: world->Ascend(-std::copysign(1.0f, evt.absPos)*std::max(0.0f, std::abs(evt.absPos)-0.15f)); break;
+		case 3: world->RotateRight(evt.absPos); break;
+		default:
+			break;
+	}
+}
+
+
+void InputHandler::OnKey(KeyboardEvent evt) {
+	if (!world) {
+		return;
+	}
+}
 
 
 
@@ -575,4 +464,27 @@ std::string SelectPipeline(IGraphicsApi* gxapi) {
 		return "pipeline_nogi.json";
 	}
 	
+}
+
+
+void OnTerminate() {
+	try {
+		std::rethrow_exception(std::current_exception());
+		systemLogStream.Event(std::string("Terminate called, shutting down services."));
+	}
+	catch (Exception& ex) {
+		systemLogStream.Event(std::string("Terminate called, shutting down services.") + ex.what() + "\n" + ex.StackTraceStr());
+	}
+	catch (std::exception& ex) {
+		systemLogStream.Event(std::string("Terminate called, shutting down services.") + ex.what());
+	}
+	logger.Flush();
+	logger.OpenStream(nullptr);
+	logFile.close();
+	int ans = MessageBoxA(NULL, "Open logs?", "Unhandled exception", MB_YESNO);
+	if (ans == IDYES) {
+		system(logFilePath.string().c_str());
+	}
+
+	std::abort();
 }

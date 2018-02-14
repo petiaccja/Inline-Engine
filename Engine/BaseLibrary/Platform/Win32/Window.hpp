@@ -5,11 +5,13 @@
 #include <thread>
 #include <mutex>
 #include <atomic>
-#include "../../Event.hpp"
-#include "InputEvents.hpp"
-#include "Input.hpp"
 #include <filesystem>
 #include <vector>
+
+#include "../../Event.hpp"
+#include "../../Rect.hpp"
+#include "InputEvents.hpp"
+#include "Input.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
@@ -26,6 +28,14 @@ using WindowHandle = HWND;
 struct DragDropEvent {
 	std::string text;
 	std::vector<std::experimental::filesystem::path> filePaths;
+};
+
+enum class eWindowCaptionButton {
+	NONE,
+	BAR,
+	MINIMIZE,
+	MAXIMIZE,
+	CLOSE,
 };
 
 
@@ -64,6 +74,12 @@ public:
 	Vec2i GetPosition() const;
 	Vec2u GetClientSize() const;
 	Vec2i GetClientCursorPos() const;
+
+	// Borderless windows
+	void SetFrameMargins(RectI frameMargins);
+	RectI GetFrameMargins() const;
+	void SetCaptionButtonHandler(std::function<eWindowCaptionButton(Vec2i)> handler);
+	std::function<eWindowCaptionButton(Vec2i)> GetCaptionButtonHandler() const;
 
 	// Text & style
 	void SetResizable(bool enabled);
@@ -122,11 +138,19 @@ private:
 	HRESULT __stdcall Drop(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) override;
 	std::atomic<ULONG> m_refCount;
 	DragDropEvent m_currentDragDropEvent;
+
+	// borderless
+	int DwmHittest(Vec2i cursorPos) const;
 		
 private:
 	WindowHandle m_handle = NULL;
+	bool m_borderless = false;
+	bool m_resizable = true;
 	HANDLE m_icon = NULL;
 	std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> m_userWndProc;
+
+	RectI m_frameMargins = { 8,8,8,8 };
+	std::function<eWindowCaptionButton(Vec2i)> m_captionButtonHandler;
 
 	// This code is for immediate/queue mode setup
 	/*

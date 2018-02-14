@@ -17,11 +17,13 @@ template <class T, int Dim, eMatrixOrder Order, eMatrixLayout Layout, bool Packe
 class DecompositionLU {
 	using MatrixT = Matrix<T, Dim, Dim, Order, Layout, Packed>;
 
-	template <class T, int Dim, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
+	template <class T2, int Dim2, eMatrixOrder Order2, eMatrixLayout Layout2, bool Packed2>
 	friend class DecompositionLUP;
 private:
 	static Vector<float, Dim, Packed> Solve(const MatrixT& L, const MatrixT& U, const Vector<T, Dim, Packed>& b);
 public:
+	/// <summary> Calculates the LU decomposition of <paramref name="arg"/>
+	///		and stores it for later calculations. </summary>
 	DecompositionLU(const MatrixT& arg) {
 		arg.DecomposeLU(L, U);
 		T prod = L(0, 0);
@@ -53,6 +55,8 @@ template <class T, int Dim, eMatrixOrder Order, eMatrixLayout Layout, bool Packe
 class DecompositionLUP {
 	using MatrixT = Matrix<T, Dim, Dim, Order, Layout, Packed>;
 public:
+	/// <summary> Calculates the LUP decomposition of <paramref name="arg"/>
+	///		and stores it for later calculations. </summary>
 	DecompositionLUP(const MatrixT& arg) {
 		arg.DecomposeLUP(L, U, P);
 		T prod = L(0, 0);
@@ -250,7 +254,7 @@ Vector<float, Dim, Packed> DecompositionLU<T, Dim, Order, Layout, Packed>::Solve
 	Matrix<T, Dim, Dim + 1, eMatrixOrder::FOLLOW_VECTOR, eMatrixLayout::ROW_MAJOR, Packed> E;
 
 	// Solve Ld = b;
-	E.Submatrix<Dim, Dim>(0, 0) = L;
+	E.template Submatrix<Dim, Dim>(0, 0) = L;
 	E.Column(Dim) = b;
 
 	for (int i = 0; i < Dim - 1; ++i) {
@@ -264,7 +268,7 @@ Vector<float, Dim, Packed> DecompositionLU<T, Dim, Order, Layout, Packed>::Solve
 	// d is now the last column of E
 
 	// Solve Ux = d
-	E.Submatrix<Dim, Dim>(0, 0) = U;
+	E.template Submatrix<Dim, Dim>(0, 0) = U;
 
 	for (int i = Dim - 1; i > 0; --i) {
 		for (int i2 = i - 1; i2 >= 0; --i2) {

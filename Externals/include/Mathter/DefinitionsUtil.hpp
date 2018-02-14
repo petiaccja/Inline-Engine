@@ -60,7 +60,7 @@ template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layo
 class Matrix;
 
 template <class MatrixT, int SRows, int SColumns>
-class Submatrix;
+class SubmatrixHelper;
 
 
 // Quaternion
@@ -77,31 +77,32 @@ constexpr int DYNAMIC = -1;
 
 // Floating point comparison helper class, works like Catch2 units testing framework's float Approx.
 template <class LinalgClass>
-struct Approx {
-	Approx() {}
-	Approx(LinalgClass object) {
+struct ApproxHelper {
+	ApproxHelper() {}
+	ApproxHelper(LinalgClass object) {
 		this->object = object;
 	}
 	LinalgClass object;
 };
 
-template <class LinalgClass>
-bool operator==(const Approx<LinalgClass>& lhs, const LinalgClass& rhs) {
+
+template <class LinalgClass1, class LinalgClass2>
+bool operator==(const ApproxHelper<LinalgClass1>& lhs, const LinalgClass2& rhs) {
 	return lhs.object.AlmostEqual(rhs);
 }
 
-template <class LinalgClass>
-bool operator==(const LinalgClass& lhs, const Approx<LinalgClass>& rhs) {
+template <class LinalgClass1, class LinalgClass2>
+bool operator==(const LinalgClass1& lhs, const ApproxHelper<LinalgClass2>& rhs) {
 	return rhs.object.AlmostEqual(rhs);
 }
 
-template <class LinalgClass>
-bool operator==(const Approx<LinalgClass>& lhs, const Approx<LinalgClass>& rhs) {
+template <class LinalgClass1, class LinalgClass2>
+bool operator==(const ApproxHelper<LinalgClass1>& lhs, const ApproxHelper<LinalgClass2>& rhs) {
 	return lhs.object.AlmostEqual(rhs.object);
 }
 
 template <class LinalgClass>
-std::ostream& operator<<(std::ostream& os, const Approx<LinalgClass>& arg) {
+std::ostream& operator<<(std::ostream& os, const ApproxHelper<LinalgClass>& arg) {
 	os << arg.object;
 	return os;
 }
@@ -268,7 +269,7 @@ namespace impl {
 		static constexpr bool value = false;
 	};
 	template <class M, int Rows, int Columns>
-	struct IsSubmatrix<Submatrix<M, Rows, Columns>> {
+	struct IsSubmatrix<SubmatrixHelper<M, Rows, Columns>> {
 		static constexpr bool value = true;
 	};
 	template <class T>

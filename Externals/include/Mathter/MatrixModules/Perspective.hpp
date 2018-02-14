@@ -26,6 +26,14 @@ protected:
 	MatrixT& self() { return *static_cast<MatrixT*>(this); }
 	const MatrixT& self() const { return *static_cast<const MatrixT*>(this); }
 public:
+	/// <summary> Creates a perspective projection matrix. </summary>
+	/// <param name="fovX"> Field of view on the first axis (usually denoted X) in radians. </param>
+	/// <param name="ratios"> Aspect ratio (or ratios in higher dimensions). FovX/FovY. </param>
+	/// <param name="nearPlane"> Near bound of the projected volume on the last axis (Z in 3D). </param>
+	/// <param name="farPlane"> Far bound of the projected volume on the last axis (Z in 3D). </param>
+	/// <param name="projNearPlane"> The near plane is taken here after projection. </param>
+	/// <param name="projFarPlane"> The far plane is taken here after projection. </param>
+	/// <remarks> Post-projection near and far planes can be inverted. Negative ratios invert image. </remarks>
 	static MatrixT Perspective(T fovX, const Vector<T, Dim-2, Packed>& ratios, T nearPlane, T farPlane, T projNearPlane = 0, T projFarPlane = 1) {
 		assert((nearPlane < 0 && farPlane < nearPlane) || (0 < nearPlane && nearPlane < farPlane));
 
@@ -59,6 +67,14 @@ public:
 		return m;
 	}
 
+	/// <summary> Set this matrix to a perspective projection matrix. </summary>
+	/// <param name="fovX"> Field of view on the first axis (usually denoted X) in radians. </param>
+	/// <param name="ratios"> Aspect ratio (or ratios in higher dimensions). FovX/FovY. </param>
+	/// <param name="nearPlane"> Near bound of the projected volume on the last axis (Z in 3D). </param>
+	/// <param name="farPlane"> Far bound of the projected volume on the last axis (Z in 3D). </param>
+	/// <param name="projNearPlane"> The near plane is taken here after projection. </param>
+	/// <param name="projFarPlane"> The far plane is taken here after projection. </param>
+	/// <remarks> Post-projection near and far planes can be inverted. Negative ratios invert image. </remarks>
 	MatrixT& SetPerspective(T fovX, const Vector<T, Dim - 2, Packed>& ratios, T nearPlane, T farPlane, T projNearPlane = 0, T projFarPlane = 1) {
 		self() = Perspective(fovX, ratios, nearPlane, farPlane, projNearPlane, projFarPlane);
 		return self();
@@ -90,10 +106,24 @@ class MatrixPerspective<T, 3, 3, Order, Layout, Packed>
 	MatrixT& self() { return *static_cast<MatrixT*>(this); }
 	const MatrixT& self() const { return *static_cast<const MatrixT*>(this); }
 public:
+	/// <summary> Creates a 2D projection matrix. </summary>
+	/// <param name="fov"/> Field of view. </param>
+	/// <param name="nearPlane"/> Lower bound of the volume on the Y axis. </param>
+	/// <param name="farPlane"/> Upper bound of the volume on the Y axis. </param>
+	/// <param name="projNearPlane"/> Near plane is taken here after projection. </param>
+	/// <param name="projFarPlane"/> Far plane is taken here after projection. </param>
+	/// <remarks> Post-projection bounds may be inverted. </summary>
 	static MatrixT Perspective(T fov, T nearPlane, T farPlane, T projNearPlane = 0, T projFarPlane = 1) {
 		return MatrixProjectiveBase<T, 3, Order, Layout, Packed>::Perspective(
 			abs(fov), Vector<T, 1, Packed>{ fov < 0 ? -1 : 1 }, nearPlane, farPlane, projNearPlane, projFarPlane);
 	}
+	/// <summary> Sets this matrix to a 2D projection matrix. </summary>
+	/// <param name="fov"/> Field of view. </param>
+	/// <param name="nearPlane"/> Lower bound of the volume on the Y axis. </param>
+	/// <param name="farPlane"/> Upper bound of the volume on the Y axis. </param>
+	/// <param name="projNearPlane"/> Near plane is taken here after projection. </param>
+	/// <param name="projFarPlane"/> Far plane is taken here after projection. </param>
+	/// <remarks> Post-projection bounds may be inverted. </summary>
 	MatrixT& SetPerspective(T fov, T nearPlane, T farPlane, T projNearPlane = 0, T projFarPlane = 1) {
 		self() = Perspective(fov, nearPlane, farPlane, projNearPlane, projFarPlane);
 		return self();
@@ -112,10 +142,26 @@ class MatrixPerspective<T, 4, 4, Order, Layout, Packed>
 	MatrixT& self() { return *static_cast<MatrixT*>(this); }
 	const MatrixT& self() const { return *static_cast<const MatrixT*>(this); }
 public:
+	/// <summary> Creates a 3D projection matrix. </summary>
+	/// <param name="fov"/> Field of view. </param>
+	/// <param name="aspectRatio"> FovX/FovY, so 1.777 for a 16:9 screen. </param>
+	/// <param name="nearPlane"/> Lower bound of the volume on the Y axis. </param>
+	/// <param name="farPlane"/> Upper bound of the volume on the Y axis. </param>
+	/// <param name="projNearPlane"/> Near plane is taken here after projection. </param>
+	/// <param name="projFarPlane"/> Far plane is taken here after projection. </param>
+	/// <remarks> Post-projection bounds may be inverted. </summary>
 	static MatrixT Perspective(T fov, T aspectRatio, T nearPlane, T farPlane, T projNearPlane = 0, T projFarPlane = 1) {
 		return MatrixProjectiveBase<T, 4, Order, Layout, Packed>::Perspective(
 			std::abs(fov), Vector<T, 2, Packed>{ fov < 0 ? -1 : 1, T(1)/aspectRatio}, nearPlane, farPlane, projNearPlane, projFarPlane);
 	}
+	/// <summary> Sets this matrix to a 3D projection matrix. </summary>
+	/// <param name="fov"/> Field of view. </param>
+	/// <param name="aspectRatio"> FovX/FovY, so 1.777 for a 16:9 screen. </param>
+	/// <param name="nearPlane"/> Lower bound of the volume on the Y axis. </param>
+	/// <param name="farPlane"/> Upper bound of the volume on the Y axis. </param>
+	/// <param name="projNearPlane"/> Near plane is taken here after projection. </param>
+	/// <param name="projFarPlane"/> Far plane is taken here after projection. </param>
+	/// <remarks> Post-projection bounds may be inverted. </summary>
 	MatrixT& SetPerspective(T fov, T aspectRatio, T nearPlane, T farPlane, T projNearPlane = 0, T projFarPlane = 1) {
 		self() = Perspective(fov, aspectRatio, nearPlane, farPlane, projNearPlane, projFarPlane);
 		return self();

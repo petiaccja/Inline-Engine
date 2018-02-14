@@ -20,9 +20,23 @@ class MatrixView {
 		&& SpaceDim >= 2;
 	using MatrixT = Matrix<T, Rows, Columns, Order, Layout, Packed>;
 	using VectorT = Vector<T, SpaceDim, Packed>;
+	MatrixT& self() { return *static_cast<MatrixT*>(this); }
+	const MatrixT& self() const { return *static_cast<const MatrixT*>(this); }
 public:
 	// General function
-	static MatrixT LookAt(const VectorT& eye, const VectorT& target, const std::array<VectorT, SpaceDim - 2>& bases, const std::array<bool, SpaceDim>& flipAxes) {
+
+	/// <summary> Creates a camera look-at matrix. </summary>
+	/// <param name="eye"> The camera's position. </param>
+	/// <param name="target"> The camera's target. </param>
+	/// <param name="bases"> Basis vectors fixing the camera's orientation. </param>
+	/// <param name="flipAxis"> Set any element to true to flip an axis in camera space. </param>
+	/// <remarks> The camera look down the vector going from <paramref name="eye"/> to
+	///		<paramref name="target"/>, but it can still rotate around that vector. To fix the rotation,
+	///		an "up" vector must be provided in 3 dimensions. In higher dimensions, 
+	///		we need multiple up vectors. Unfortunately I can't fucking remember how these
+	///		basis vectors are used, but they are orthogonalized to each-other and to the look vector. 
+	///		I can't remember the order of orthogonalization. </remarks>
+	static MatrixT LookAt(const VectorT& eye, const VectorT& target, const std::array<VectorT, size_t(SpaceDim - 2)>& bases, const std::array<bool, SpaceDim>& flipAxes) {
 		MatrixT matrix;
 		VectorT columns[SpaceDim];
 		std::array<const VectorT*, SpaceDim - 1> crossTable = {};
@@ -81,15 +95,74 @@ public:
 	}
 
 	// Specialization for 2D
+
+	/// <summary> Creates a 2D look-at matrix. </summary>
+	/// <param name="eye"> The camera's position. </param>
+	/// <param name="target"> The camera's target. </param>
+	/// <param name="positiveYForward"> True if the camera looks towards +Y, false if -Y. </param>
+	/// <param name="flipX"> True to flip X in camera space. </param>
 	template <class Q = MatrixT>
 	static typename std::enable_if<SpaceDim == 2, Q>::type LookAt(const VectorT& eye, const VectorT& target, bool positiveYForward = true, bool flipX = false) {
 		return LookAt(eye, target, {}, { flipX, positiveYForward });
 	}
 
 	// Specialization for 3D
+
+	/// <summary> Creates a 2D look-at matrix. </summary>
+	/// <param name="eye"> The camera's position. </param>
+	/// <param name="target"> The camera's target. </param>
+	/// <param name="up"> Up direction in world space. </param>
+	/// <param name="positiveZForward"> True if the camera looks towards +Z, false if -Z. </param>
+	/// <param name="flipX"> True to flip X in camera space. </param>
+	/// <param name="flipY"> True to flip Y in camera space. </param>
 	template <class Q = MatrixT>
 	static typename std::enable_if<SpaceDim == 3, Q>::type LookAt(const VectorT& eye, const VectorT& target, const VectorT& up, bool positiveZForward = true, bool flipX = false, bool flipY = false) {
 		return LookAt(eye, target, { up }, { flipX, flipY, positiveZForward });
+	}
+
+
+	/// <summary> Sets this matrix to a camera look-at matrix. </summary>
+	/// <param name="eye"> The camera's position. </param>
+	/// <param name="target"> The camera's target. </param>
+	/// <param name="bases"> Basis vectors fixing the camera's orientation. </param>
+	/// <param name="flipAxis"> Set any element to true to flip an axis in camera space. </param>
+	/// <remarks> The camera look down the vector going from <paramref name="eye"/> to
+	///		<paramref name="target"/>, but it can still rotate around that vector. To fix the rotation,
+	///		an "up" vector must be provided in 3 dimensions. In higher dimensions, 
+	///		we need multiple up vectors. Unfortunately I can't fucking remember how these
+	///		basis vectors are used, but they are orthogonalized to each-other and to the look vector. 
+	///		I can't remember the order of orthogonalization. </remarks>
+	MatrixT& SetLookAt(const VectorT& eye, const VectorT& target, const std::array<VectorT, size_t(SpaceDim - 2)>& bases, const std::array<bool, SpaceDim>& flipAxes) {
+		self() = LookAt(eye, target, bases, flipAxes);
+		return self();
+	}
+
+	// Specialization for 2D
+
+	/// <summary> Sets this matrix to a 2D look-at matrix. </summary>
+	/// <param name="eye"> The camera's position. </param>
+	/// <param name="target"> The camera's target. </param>
+	/// <param name="positiveYForward"> True if the camera looks towards +Y, false if -Y. </param>
+	/// <param name="flipX"> True to flip X in camera space. </param>
+	template <class Q = MatrixT>
+	typename std::enable_if<SpaceDim == 2, Q>::type SetLookAt(const VectorT& eye, const VectorT& target, bool positiveYForward = true, bool flipX = false) {
+		self() = LookAt(eye, target, positiveYForward, flipX);
+		return self();
+	}
+
+	// Specialization for 3D
+
+	/// <summary> Sets this matrix to a 2D look-at matrix. </summary>
+	/// <param name="eye"> The camera's position. </param>
+	/// <param name="target"> The camera's target. </param>
+	/// <param name="up"> Up direction in world space. </param>
+	/// <param name="positiveZForward"> True if the camera looks towards +Z, false if -Z. </param>
+	/// <param name="flipX"> True to flip X in camera space. </param>
+	/// <param name="flipY"> True to flip Y in camera space. </param>
+	template <class Q = MatrixT>
+	typename std::enable_if<SpaceDim == 3, Q>::type SetLookAt(const VectorT& eye, const VectorT& target, const VectorT& up, bool positiveZForward = true, bool flipX = false, bool flipY = false) {
+		self() = LookAt(eye, target, up, positiveZForward, flipX, flipY);
+		return self();
 	}
 public:
 	friend MatrixT;

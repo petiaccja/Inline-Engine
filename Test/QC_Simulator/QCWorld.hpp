@@ -34,11 +34,11 @@ struct ControlInfo {
 	//           >       <
 	inl::Vec4 RPM(const Rotor& rotor) const {
 		inl::Vec3 force, torque;
-		force = { 0, 0, weight + (int)ascend - (int)descend };
+		force = { 0, 0, weight + ascend - descend };
 		torque = {
-			0.05f*((int)back - (int)front),
-			0.05f*((int)right - (int)left),
-			0.2f*((int)rotateLeft - (int)rotateRight)
+			0.05f*(back - front),
+			0.05f*(right - left),
+			0.2f*(rotateLeft - rotateRight)
 		};
 		inl::Vec4 rpm;
 		rotor.SetTorque(force, torque, rpm);

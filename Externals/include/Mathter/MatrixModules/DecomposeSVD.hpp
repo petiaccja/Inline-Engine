@@ -11,6 +11,8 @@
 namespace mathter {
 
 
+/// <summary> A utility class that can do common operations with the singular value decomposition,
+///		i.e. solving equation systems. </summary>
 template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
 class DecompositionSVD {
 	template <int Rows_, int Columns_>
@@ -20,6 +22,7 @@ class DecompositionSVD {
 	static constexpr int Udim = Rows;
 	static constexpr int Vdim = Columns;
 public:
+	/// <summary> Calculates the SVD of <paramref name="arg"/> and stores it for later use. </summary>
 	DecompositionSVD(const MatrixT<Rows, Columns>& arg) {
 		arg.DecomposeSVD(U, S, V);
 	}
@@ -41,6 +44,9 @@ class MatrixSVD {
 	static constexpr int Udim = Rows;
 	static constexpr int Vdim = Columns;
 public:
+	/// <summary> Calculates the thin SVD of the matrix. </summary>
+	/// <remarks> For wide matrices, V is wide while U and S square.
+	///		For tall matrices, U is tall while S and V square. </remarks>
 	void DecomposeSVD(
 		Matrix<T, Udim, Sdim, Order, Layout, Packed>& Uout,
 		Matrix<T, Sdim, Sdim, Order, Layout, Packed>& Sout,
@@ -49,6 +55,11 @@ public:
 		DecomposeSVD(Uout, Sout, Vout, std::integral_constant<bool, (Rows >= Columns)>());
 	}
 
+	/// <summary> Returns a helper object that works on the SVD. </summary>
+	/// <remarks> You can still access U, S, and V matrices directly through the helper. </remarks>
+	mathter::DecompositionSVD<T, Rows, Columns, Order, Layout, Packed> DecompositionSVD() const {
+		return mathter::DecompositionSVD<T, Rows, Columns, Order, Layout, Packed>(self());
+	}
 private:
 	void DecomposeSVD(
 		Matrix<T, Rows, Columns, Order, Layout, Packed>& Uout,
@@ -177,7 +188,7 @@ void MatrixSVD<T, Rows, Columns, Order, Layout, Packed>::DecomposeSVD(
 		Matrix<T, Rows, Columns, Order, Layout, false> R;
 		self().DecomposeQR(Q, R);
 		B = R;
-		U = Q.Submatrix<Rows, Columns>(0, 0);
+		U = Q.template Submatrix<Rows, Columns>(0, 0);
 		V.SetIdentity();
 	}
 	else {
@@ -199,20 +210,11 @@ void MatrixSVD<T, Rows, Columns, Order, Layout, Packed>::DecomposeSVD(
 				s += B(i, j)*B(i, j) + B(j, i)*B(j, i);
 
 				T s1, c1, s2, c2, d1, d2; // SVD of the submat row,col i,j of B
-				Matrix<T, 2, 2> Bsub = {
+				Matrix<T, 2, 2, eMatrixOrder::FOLLOW_VECTOR, eMatrixLayout::ROW_MAJOR, false> Bsub = {
 					B(i, i), B(i, j),
 					B(j, i), B(j, j)
 				};
 				Svd2x2Helper(Bsub, c1, s1, c2, s2, d1, d2);
-				Matrix<T, 2, 2> U_ = {
-					c1, -s1,
-					s1, c1
-				};
-				Matrix<T, 2, 2> V_ = {
-					c2, s2,
-					-s2, c2
-				};
-				auto check = U_*Bsub*V_;
 
 				// Apply givens rotations given by 2x2 SVD to working matrices
 				// B = R(c1,s1)*B*R(c2,-s2)

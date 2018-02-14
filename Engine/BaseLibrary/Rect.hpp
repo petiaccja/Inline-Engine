@@ -312,46 +312,27 @@ Rect<T, InvertHorizontal, InvertVertical> Rect<T, InvertHorizontal, InvertVertic
 
 template <class T, bool InvertHorizontal, bool InvertVertical>
 bool Rect<T, InvertHorizontal, InvertVertical>::IsPointInside(const Vec2T& arg) const {
-	bool bVerticalInside;
-	bool bHorizontalInside;
+	auto minHoriz = std::min(left, right);
+	auto maxHoriz = std::max(left, right);
+	auto minVert = std::min(bottom, top);
+	auto maxVert = std::max(bottom, top);
 
-	if constexpr (!InvertHorizontal) {
-		bHorizontalInside = arg.x >= left && arg.x <= right;
-	}
-	else {
-		bHorizontalInside = arg.x <= left && arg.x >= right;
-	}
-
-	if constexpr (!InvertVertical) {
-		bVerticalInside = arg.y >= bottom && arg.y <= top;
-	}
-	else {
-		bVerticalInside = arg.y <= bottom && arg.y >= top;
-	}
-
-	return bVerticalInside && bHorizontalInside;
+	return (minHoriz <= arg.x && arg.x <= maxHoriz) && (minVert <= arg.y && arg.y <= maxVert);
 }
 
 template <class T, bool InvertHorizontal, bool InvertVertical>
 bool Rect<T, InvertHorizontal, InvertVertical>::IsRectInside(const Rect& arg) const {
-	bool bVerticalInside;
-	bool bHorizontalInside;
+	auto minHorizArg = std::min(left, right);
+	auto maxHorizArg = std::max(left, right);
+	auto minVertArg = std::min(bottom, top);
+	auto maxVertArg = std::max(bottom, top);
 
-	if constexpr (!InvertHorizontal) {
-		bHorizontalInside = arg.left >= left && arg.right <= right
-	}
-	else {
-		bHorizontalInside = arg.left <= left && arg.right >= right
-	}
+	auto minHoriz = std::min(left, right);
+	auto maxHoriz = std::max(left, right);
+	auto minVert = std::min(bottom, top);
+	auto maxVert = std::max(bottom, top);
 
-	if constexpr (!InvertVertical) {
-		bVerticalInside = arg.top <= top && arg.bottom >= bottom;
-	}
-	else {
-		bVerticalInside = arg.top >= top && arg.bottom <= bottom;
-	}
-
-	return bVerticalInside && bHorizontalInside;
+	return (minHoriz <= minHorizArg && maxHorizArg <= maxHoriz) && (minVert <= minVertArg && maxVertArg <= maxVert);
 }
 
 template <class T, bool InvertHorizontal, bool InvertVertical>

@@ -99,17 +99,19 @@ private:
 //------------------------------------------------------------------------------
 
 template <class MatrixT, int SRows, int SColumns>
-class Submatrix {
+class SubmatrixHelper {
 	friend MatrixT;
 	using Props = impl::MatrixProperties<MatrixT>;
 	template <class, int, int>
-	friend class Submatrix;
+	friend class SubmatrixHelper;
+	static constexpr int VecDim = std::max(SRows, SColumns);
+	static constexpr bool VectorAssignable = std::min(SRows, SColumns) == 1;
 protected:
-	Submatrix(MatrixT& mat, int row, int col) : mat(mat), row(row), col(col) {}
+	SubmatrixHelper(MatrixT& mat, int row, int col) : mat(mat), row(row), col(col) {}
 
 public:
-	Submatrix(const Submatrix& rhs) = delete;
-	Submatrix(Submatrix&& rhs) : mat(rhs.mat), row(rhs.row), col(rhs.col) {}
+	SubmatrixHelper(const SubmatrixHelper& rhs) = delete;
+	SubmatrixHelper(SubmatrixHelper&& rhs) : mat(rhs.mat), row(rhs.row), col(rhs.col) {}
 
 
 	template <class U, eMatrixOrder UOrder, eMatrixLayout ULayout, bool UPacked>
@@ -123,9 +125,9 @@ public:
 		return ret;
 	}
 
-	template <class U, bool Packed, class = typename std::enable_if<std::min(SRows, SColumns) == 1>::type>
-	operator Vector<U, std::max(SRows, SColumns), Packed>() const {
-		Vector<U, std::max(SRows, SColumns), Packed> v;
+	template <class U, bool Packed2, class = typename std::enable_if<VectorAssignable, U>::type>
+	operator Vector<U, VecDim, Packed2>() const {
+		Vector<U, std::max(SRows, SColumns), Packed2> v;
 		int k = 0;
 		for (int i = 0; i < SRows; ++i) {
 			for (int j = 0; j < SColumns; ++j) {
@@ -138,7 +140,7 @@ public:
 
 
 	template <class U, eMatrixOrder UOrder, eMatrixLayout ULayout, bool UPacked>
-	Submatrix& operator=(const Matrix<U, SRows, SColumns, UOrder, ULayout, UPacked>& rhs) {
+	SubmatrixHelper& operator=(const Matrix<U, SRows, SColumns, UOrder, ULayout, UPacked>& rhs) {
 		static_assert(!std::is_const<MatrixT>::value, "Cannot assign to submatrix of const matrix.");
 
 		// If aliasing happens, the same matrix is copied to itself with no side-effects.
@@ -152,8 +154,8 @@ public:
 
 
 	// From vector if applicable (for 1*N and N*1 submatrices)
-	template <class U, bool Packed, class = typename std::enable_if<std::min(SRows, SColumns) == 1>::type>
-	Submatrix& operator=(const Vector<U, std::max(SRows, SColumns), Packed>& v) {
+	template <class U, bool Packed, class = typename std::enable_if<VectorAssignable, U>::type>
+	SubmatrixHelper& operator=(const Vector<U, VecDim, Packed>& v) {
 		static_assert(!std::is_const<MatrixT>::value, "Cannot assign to submatrix of const matrix.");
 
 		int k = 0;
@@ -168,12 +170,17 @@ public:
 
 
 	template <class MatrixU>
-	Submatrix& operator=(const Submatrix<MatrixU, SRows, SColumns>& rhs) {
+	SubmatrixHelper& operator=(const SubmatrixHelper<MatrixU, SRows, SColumns>& rhs) {
 		static_assert(!std::is_const<MatrixT>::value, "Cannot assign to submatrix of const matrix.");
 
 		// If *this and rhs reference the same matrix, aliasing must be resolved.
 		if ((void*)&mat == (void*)&rhs.mat) {
-			Matrix<typename impl::MatrixProperties<MatrixU>::Type, SRows, SColumns> tmpmat;
+			Matrix<typename impl::MatrixProperties<MatrixU>::Type,
+					SRows,
+					SColumns,
+					impl::MatrixProperties<MatrixU>::Order,
+					impl::MatrixProperties<MatrixU>::Layout,
+					impl::MatrixProperties<MatrixU>::Packed> tmpmat;
 			tmpmat = rhs;
 			operator=(tmpmat);
 		}
@@ -186,7 +193,7 @@ public:
 		}
 		return *this;
 	}
-	Submatrix& operator=(const Submatrix& rhs) {
+	SubmatrixHelper& operator=(const SubmatrixHelper& rhs) {
 		static_assert(!std::is_const<MatrixT>::value, "Cannot assign to submatrix of const matrix.");
 		return operator=<MatrixT>(rhs);
 	}
@@ -303,6 +310,9 @@ class MATHTER_EBCO Matrix
 	// These checks must be put in a separate function instead of class scope because the full definition
 	// of the Matrix class is required to determine memory layout.
 	void CheckLayoutContraints() const noexcept;
+
+	static constexpr int VecDim = std::max(Rows, Columns);
+	static constexpr bool VectorAssignable = std::min(Rows, Columns) == 1;
 protected:
 	using MatrixData<T, Rows, Columns, Order, Layout, Packed>::GetElement;
 	using MatrixData<T, Rows, Columns, Order, Layout, Packed>::stripes;
@@ -374,8 +384,8 @@ public:
 	}
 
 	// From vector if applicable (for 1*N and N*1 matrices)
-	template <class U, bool Packed, class = typename std::enable_if<std::min(Rows, Columns) == 1>::type>
-	Matrix(const Vector<U, std::max(Rows, Columns), Packed>& v){
+	template <class T2, bool Packed2, class = typename std::enable_if<VectorAssignable, T2>::type>
+	Matrix(const Vector<T2, VecDim, Packed2>& v){
 		for (int i = 0; i < v.Dimension(); ++i) {
 			(*this)(i) = v(i);
 		}
@@ -406,19 +416,19 @@ public:
 
 	// Submatrices
 	template <int Subrows, int Subcolumns> 
-	mathter::Submatrix<Matrix, Subrows, Subcolumns> Submatrix(int rowIdx, int colIdx) {
+	mathter::SubmatrixHelper<Matrix, Subrows, Subcolumns> Submatrix(int rowIdx, int colIdx) {
 		assert(Subrows + rowIdx <= Rows);
 		assert(Subcolumns + colIdx <= Columns);
 
-		return mathter::Submatrix<Matrix, Subrows, Subcolumns>(*this, rowIdx, colIdx);
+		return SubmatrixHelper<Matrix, Subrows, Subcolumns>(*this, rowIdx, colIdx);
 	}
 
 	template <int Subrows, int Subcolumns>
-	mathter::Submatrix<const Matrix, Subrows, Subcolumns> Submatrix(int rowIdx, int colIdx) const {
+	mathter::SubmatrixHelper<const Matrix, Subrows, Subcolumns> Submatrix(int rowIdx, int colIdx) const {
 		assert(Subrows + rowIdx <= Rows);
 		assert(Subcolumns + colIdx <= Columns);
 
-		return mathter::Submatrix<const Matrix, Subrows, Subcolumns>(*this, rowIdx, colIdx);
+		return SubmatrixHelper<const Matrix, Subrows, Subcolumns>(*this, rowIdx, colIdx);
 	}
 
 	auto Column(int colIdx) {
@@ -435,9 +445,9 @@ public:
 	}
 
 	// Conversion to vector if applicable
-	template <class U, bool Packed, class = typename std::enable_if<std::min(Rows, Columns) == 1>::type>
-	explicit operator Vector<U, std::max(Rows, Columns), Packed>() const {
-		Vector<U, std::max(Rows, Columns), Packed> v;
+	template <class T2, bool Packed2, class = typename std::enable_if<VectorAssignable, T2>::type>
+	operator Vector<T2, VecDim, Packed2>() const {
+		Vector<T2, std::max(Rows, Columns), Packed2> v;
 		int k = 0;
 		for (int i = 0; i < Rows; ++i) {
 			for (int j = 0; j < Columns; ++j) {
@@ -466,8 +476,8 @@ public:
 		return !(*this == rhs);
 	}
 
-	template <eMatrixOrder Order2, eMatrixLayout Layout2, bool Packed2, class = typename std::enable_if<std::is_floating_point<T>::value>::type>
-	bool AlmostEqual(const Matrix<T, Rows, Columns, Order2, Layout2, Packed2>& rhs) const {
+	template <eMatrixOrder Order2, eMatrixLayout Layout2, bool Packed2>
+	bool AlmostEqual(const Matrix<T, Rows, Columns, Order2, Layout2, Packed2>& rhs, std::true_type) const {
 		bool equal = true;
 		for (int i = 0; i < RowCount(); ++i) {
 			for (int j = 0; j < ColumnCount(); ++j) {
@@ -476,8 +486,17 @@ public:
 		}
 		return equal;
 	}
+	template <eMatrixOrder Order2, eMatrixLayout Layout2, bool Packed2>
+	bool AlmostEqual(const Matrix<T, Rows, Columns, Order2, Layout2, Packed2>& rhs, std::false_type) const {
+		return *this == rhs;
+	};
+	template <eMatrixOrder Order2, eMatrixLayout Layout2, bool Packed2>
+	bool AlmostEqual(const Matrix<T, Rows, Columns, Order2, Layout2, Packed2>& rhs) const {
+		return AlmostEqual(rhs, std::integral_constant<bool, std::is_floating_point<T>::value>());
+	};
+
 	auto Approx() const {
-		return mathter::Approx<Matrix>(*this);
+		return mathter::ApproxHelper<Matrix>(*this);
 	}
 
 	//--------------------------------------------
