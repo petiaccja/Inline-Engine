@@ -22,7 +22,7 @@ namespace inl::gxeng::nodes {
 class Voxelization :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<const EntityCollection<MeshEntity>*, const BasicCamera*, Texture2D, Texture2D, Texture2D, Texture2D>,
+	virtual public InputPortConfig<const EntityCollection<MeshEntity>*, const BasicCamera*, Texture2D, Texture2D, Texture2D, Texture2D, Texture2D>,
 	virtual public OutputPortConfig<Texture3D, Texture2D, Texture2D>
 {
 public:
@@ -47,10 +47,12 @@ protected:
 	BindParameter m_shadowCSMExtentsTexBindParam;
 	ShaderProgram m_shader;
 	ShaderProgram m_visualizerShader;
+	ShaderProgram m_finalGatherShader;
 	ShaderProgram m_lightInjectionCSMShader;
 	ShaderProgram m_mipmapShader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 	std::unique_ptr<gxapi::IPipelineState> m_visualizerPSO;
+	std::unique_ptr<gxapi::IPipelineState> m_finalGatherPSO;
 	std::unique_ptr<gxapi::IPipelineState> m_lightInjectionCSMPSO;
 	std::unique_ptr<gxapi::IPipelineState> m_mipmapCSO;
 
@@ -62,9 +64,11 @@ protected:
 
 	TextureView2D m_shadowCSMTexSrv;
 	TextureView2D m_shadowCSMExtentsTexSrv;
+	TextureView2D m_normalTexSrv;
 
 	RenderTargetView2D m_visualizationTexRTV;
 	DepthStencilView2D m_visualizationDSV;
+	TextureView2D m_depthTexSRV;
 
 	VertexBuffer m_fsq;
 	IndexBuffer m_fsqIndices;

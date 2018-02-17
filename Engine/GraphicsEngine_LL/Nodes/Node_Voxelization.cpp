@@ -21,7 +21,9 @@ struct Uniforms
 {
 	Mat44_Packed model, viewProj;
 	Vec3_Packed voxelCenter; float voxelSize;
-	int voxelDimension; int inputMipLevel; int outputMipLevel;
+	Vec4_Packed farPlaneData0, farPlaneData1, vsCamPos;
+	int voxelDimension; int inputMipLevel; int outputMipLevel; int dummy;
+	float nearPlane, farPlane;
 };
 
 static void SetWorkgroupSize(unsigned w, unsigned h, unsigned d, unsigned groupSizeW, unsigned groupSizeH, unsigned groupSizeD, unsigned& dispatchW, unsigned& dispatchH, unsigned& dispatchD)
@@ -131,15 +133,23 @@ void Voxelization::Setup(SetupContext & context) {
 	m_visualizationTexRTV = context.CreateRtv(target, target.GetFormat(), rtvDesc);
 	
 
+	gxapi::SrvTexture2DArray srvDesc;
+	srvDesc.activeArraySize = 1;
+	srvDesc.firstArrayElement = 0;
+	srvDesc.mipLevelClamping = 0;
+	srvDesc.mostDetailedMip = 0;
+	srvDesc.numMipLevels = 1;
+	srvDesc.planeIndex = 0;
+
 	auto& depthStencil = this->GetInput<3>().Get();
 	gxapi::DsvTexture2DArray dsvDesc;
 	dsvDesc.activeArraySize = 1;
 	dsvDesc.firstArrayElement = 0;
 	dsvDesc.firstMipLevel = 0;
 	m_visualizationDSV = context.CreateDsv(depthStencil, FormatAnyToDepthStencil(depthStencil.GetFormat()), dsvDesc);
+	m_depthTexSRV = context.CreateSrv(depthStencil, FormatDepthToColor(depthStencil.GetFormat()), srvDesc);
 	
 
-	gxapi::SrvTexture2DArray srvDesc;
 	srvDesc.activeArraySize = 4;
 	srvDesc.firstArrayElement = 0;
 	srvDesc.mipLevelClamping = 0;
@@ -155,6 +165,9 @@ void Voxelization::Setup(SetupContext & context) {
 
 	Texture2D shadowCSMExtentsTex = this->GetInput<5>().Get();
 	m_shadowCSMExtentsTexSrv = context.CreateSrv(shadowCSMExtentsTex, FormatDepthToColor(shadowCSMExtentsTex.GetFormat()), srvDesc);
+
+	//Texture2D normalTex = this->GetInput<6>().Get();
+	//m_normalTexSrv = context.CreateSrv(normalTex, normalTex.GetFormat(), srvDesc);
 	
 
 	if (!m_binder.has_value()) {
@@ -179,6 +192,13 @@ void Voxelization::Setup(SetupContext & context) {
 		sampBindParamDesc1.relativeAccessFrequency = 0;
 		sampBindParamDesc1.relativeChangeFrequency = 0;
 		sampBindParamDesc1.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc sampBindParamDesc2;
+		sampBindParamDesc2.parameter = BindParameter(eBindParameterType::SAMPLER, 2);
+		sampBindParamDesc2.constantSize = 0;
+		sampBindParamDesc2.relativeAccessFrequency = 0;
+		sampBindParamDesc2.relativeChangeFrequency = 0;
+		sampBindParamDesc2.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 		BindParameterDesc voxelTexBindParamDesc;
 		m_voxelTexBindParam = BindParameter(eBindParameterType::UNORDERED, 0);
@@ -240,7 +260,17 @@ void Voxelization::Setup(SetupContext & context) {
 		samplerDesc1.registerSpace = 0;
 		samplerDesc1.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, sampBindParamDesc1, voxelTexBindParamDesc, shadowCSMTexBindParamDesc, voxelLightTexBindParamDesc, shadowCSMExtentsTexBindParamDesc, albedoTexBindParamDesc },{ samplerDesc, samplerDesc1 });
+		gxapi::StaticSamplerDesc samplerDesc2;
+		samplerDesc2.shaderRegister = 2;
+		samplerDesc2.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
+		samplerDesc2.addressU = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc2.addressV = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc2.addressW = gxapi::eTextureAddressMode::CLAMP;
+		samplerDesc2.mipLevelBias = 0.f;
+		samplerDesc2.registerSpace = 0;
+		samplerDesc2.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, sampBindParamDesc1, sampBindParamDesc2, voxelTexBindParamDesc, shadowCSMTexBindParamDesc, voxelLightTexBindParamDesc, shadowCSMExtentsTexBindParamDesc, albedoTexBindParamDesc },{ samplerDesc, samplerDesc1, samplerDesc2 });
 	}
 
 	if (!m_shader.vs || !m_shader.gs || !m_shader.ps) {
@@ -298,7 +328,7 @@ void Voxelization::Setup(SetupContext & context) {
 			psoDesc.gs = m_shader.gs;
 			psoDesc.ps = m_shader.ps;
 			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
-			bool peti = true;
+			bool peti = false;
 			if (!peti)
 			{
 				psoDesc.rasterization.conservativeRasterization = gxapi::eConservativeRasterizationMode::ON;
@@ -358,6 +388,49 @@ void Voxelization::Setup(SetupContext & context) {
 			m_visualizerPSO.reset(context.CreatePSO(psoDesc));
 		}
 
+		{ //final gather shader
+			std::vector<gxapi::InputElementDesc> inputElementDesc = {
+				gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
+				gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12)
+			};
+
+			ShaderParts shaderParts;
+			shaderParts.vs = true;
+			shaderParts.ps = true;
+
+			m_finalGatherShader = context.CreateShader("VoxelFinalGather", shaderParts, "");
+
+			gxapi::GraphicsPipelineStateDesc psoDesc;
+			psoDesc.inputLayout.elements = inputElementDesc.data();
+			psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
+			psoDesc.rootSignature = m_binder->GetRootSignature();
+			psoDesc.vs = m_finalGatherShader.vs;
+			psoDesc.ps = m_finalGatherShader.ps;
+			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+			psoDesc.depthStencilState = gxapi::DepthStencilState(false, false);
+			psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::LESS;
+			psoDesc.depthStencilFormat = m_visualizationDSV.GetDescription().format;
+
+			gxapi::RenderTargetBlendState blending;
+			blending.enableBlending = false;
+			blending.alphaOperation = gxapi::eBlendOperation::ADD;
+			blending.shaderAlphaFactor = gxapi::eBlendOperand::ONE;
+			blending.targetAlphaFactor = gxapi::eBlendOperand::ONE;
+			blending.colorOperation = gxapi::eBlendOperation::ADD;
+			blending.shaderColorFactor = gxapi::eBlendOperand::ONE;
+			blending.targetColorFactor = gxapi::eBlendOperand::ONE;
+			blending.enableLogicOp = false;
+			blending.mask = gxapi::eColorMask::ALL;
+
+			psoDesc.blending.singleTarget = blending;
+
+			psoDesc.numRenderTargets = 1;
+			psoDesc.renderTargetFormats[0] = m_visualizationTexRTV.GetResource().GetFormat();
+
+			m_finalGatherPSO.reset(context.CreatePSO(psoDesc));
+		}
+
 		{ //mipmap gen shader
 			gxapi::ComputePipelineStateDesc csoDesc;
 			csoDesc.rootSignature = m_binder->GetRootSignature();
@@ -389,6 +462,29 @@ void Voxelization::Execute(RenderContext & context) {
 	uniformsCBData.voxelDimension = voxelDimension;
 	uniformsCBData.voxelCenter = voxelCenter;
 	uniformsCBData.voxelSize = voxelSize;
+
+	uniformsCBData.nearPlane = m_camera->GetNearPlane();
+	uniformsCBData.farPlane = m_camera->GetFarPlane();
+	Mat44 v = m_camera->GetViewMatrix();
+	Mat44 p = m_camera->GetProjectionMatrix();
+	Mat44 invP = p.Inverse();
+	uniformsCBData.vsCamPos = Vec4(m_camera->GetPosition(), 1.0) * v;
+
+	//far ndc corners
+	Vec4 ndcCorners[] =
+	{
+		Vec4(-1.f, -1.f, 1.f, 1.f),
+		Vec4(1.f, 1.f, 1.f, 1.f),
+	};
+
+	//convert to world space frustum corners
+	ndcCorners[0] = ndcCorners[0] * invP;
+	ndcCorners[1] = ndcCorners[1] * invP;
+	ndcCorners[0] /= ndcCorners[0].w;
+	ndcCorners[1] /= ndcCorners[1].w;
+
+	uniformsCBData.farPlaneData0 = Vec4(ndcCorners[0].xyz, ndcCorners[1].x);
+	uniformsCBData.farPlaneData1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0.0f, 0.0f);
 
 	uniformsCBData.viewProj = m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix();
 
@@ -570,7 +666,7 @@ void Voxelization::Execute(RenderContext & context) {
 		}
 	}
 
-	{ //visualization
+	/*{ //visualization
 		gxapi::Rectangle rect{ 0, (int)m_visualizationTexRTV.GetResource().GetHeight(), 0, (int)m_visualizationTexRTV.GetResource().GetWidth() };
 		gxapi::Viewport viewport;
 		viewport.width = (float)rect.right;
@@ -597,6 +693,45 @@ void Voxelization::Execute(RenderContext & context) {
 
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 		commandList.DrawInstanced(voxelDimension * voxelDimension * voxelDimension); //draw points, expand in geometry shader
+	}*/
+
+	{ //final gather
+		gxapi::Rectangle rect{ 0, (int)m_visualizationTexRTV.GetResource().GetHeight(), 0, (int)m_visualizationTexRTV.GetResource().GetWidth() };
+		gxapi::Viewport viewport;
+		viewport.width = (float)rect.right;
+		viewport.height = (float)rect.bottom;
+		viewport.topLeftX = 0;
+		viewport.topLeftY = 0;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		commandList.SetScissorRects(1, &rect);
+		commandList.SetViewports(1, &viewport);
+
+		commandList.SetResourceState(m_visualizationTexRTV.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+		commandList.SetResourceState(m_visualizationDSV.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
+
+		RenderTargetView2D* pRTV = &m_visualizationTexRTV;
+		commandList.SetRenderTargets(1, &pRTV, 0);
+
+		commandList.SetPipelineState(m_finalGatherPSO.get());
+		commandList.SetGraphicsBinder(&m_binder.value());
+
+		commandList.BindGraphics(m_shadowCSMTexBindParam, m_voxelLightTexSRV);
+		commandList.BindGraphics(m_shadowCSMExtentsTexBindParam, m_voxelTexSRV);
+		commandList.BindGraphics(m_albedoTexBindParam, m_depthTexSRV);
+
+		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
+
+		gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
+		unsigned vbSize = (unsigned)m_fsq.GetSize();
+		unsigned vbStride = 5 * sizeof(float);
+
+		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
+		commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
+		commandList.SetResourceState(m_fsqIndices, gxapi::eResourceState::INDEX_BUFFER);
+		commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
+		commandList.SetIndexBuffer(&m_fsqIndices, false);
+		commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
 	}
 }
 
