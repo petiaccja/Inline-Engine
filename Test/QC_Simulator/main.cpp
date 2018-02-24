@@ -14,17 +14,10 @@
 #include <GraphicsApi_D3D12/GxapiManager.hpp>
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
 
-
 #include <iostream>
 #include <fstream>
 #include <filesystem>
 #include <string>
-
-#define _WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
-#include <tchar.h>
-#undef DELETE
 
 #include "QCWorld.hpp"
 
@@ -51,8 +44,6 @@ std::string errorMessage;
 
 // -----------------------------------------------------------------------------
 // Function prototypes
-bool ProcessControls(int key, bool down);
-bool ProcessRawInput(RAWINPUT* raw);
 std::string SelectPipeline(IGraphicsApi* gxapi);
 void OnTerminate();
 
@@ -106,8 +97,7 @@ int main(int argc, char* argv[]) {
 	Window window;
 	window.SetTitle("QC Simulator");
 	window.SetSize({ 960, 640 });
-	window.Maximize();
-	
+
 
 	// Create GraphicsEngine
 	systemLogStream.Event("Initializing Graphics Engine...");
@@ -118,6 +108,7 @@ int main(int argc, char* argv[]) {
 	std::unique_ptr<QCWorld> qcWorld;
 	std::unique_ptr<InputHandler> inputHandler;
 	std::unique_ptr<Input> joyInput;
+	std::unique_ptr<Input> keyboardInput;
 
 	try {
 		// Create manager
@@ -174,12 +165,19 @@ int main(int argc, char* argv[]) {
 		
 
 		// Create input handling
-		auto joysticks = Input::GetDeviceList(eInputSourceType::JOYSTICK);
 		inputHandler = std::make_unique<InputHandler>(qcWorld.get());
+
+		auto joysticks = Input::GetDeviceList(eInputSourceType::JOYSTICK);
 		if (!joysticks.empty()) {
 			joyInput = std::make_unique<Input>(joysticks.front().id);
 			joyInput->SetQueueMode(eInputQueueMode::QUEUED);
 			joyInput->OnJoystickMove += Delegate<void(JoystickMoveEvent)>{ &InputHandler::OnJoystickMove, inputHandler.get() };
+		}
+		auto keyboards = Input::GetDeviceList(eInputSourceType::KEYBOARD);
+		if (!keyboards.empty()) {
+			keyboardInput = std::make_unique<Input>(keyboards.front().id);
+			keyboardInput->SetQueueMode(eInputQueueMode::QUEUED);
+			keyboardInput->OnKeyboard += Delegate<void(KeyboardEvent)>{ &InputHandler::OnKey, inputHandler.get() };
 		}
 
 		window.OnResize += [&engine, &qcWorld](ResizeEvent evt) {
@@ -216,33 +214,32 @@ int main(int argc, char* argv[]) {
 		Vec2i size = window.GetSize();
 		RectI rc;
 		rc.top = 5;
-		rc.bottom = 20;
+		rc.bottom = 50;
 		rc.right = size.x - 5;
-		rc.left = size.x - 20;
+		rc.left = size.x - 50;
 		if (rc.IsPointInside(cursorPos))
 			return eWindowCaptionButton::CLOSE;
-		rc.Move({ -20, 0 });
+		rc.Move({ -50, 0 });
 		if (rc.IsPointInside(cursorPos))
 			return eWindowCaptionButton::MAXIMIZE;
-		rc.Move({ -20, 0 });
+		rc.Move({ -50, 0 });
 		if (rc.IsPointInside(cursorPos))
 			return eWindowCaptionButton::MINIMIZE;
-		if (cursorPos.y < 25) {
+		if (cursorPos.y < 55) {
 			return eWindowCaptionButton::BAR;
 		}
 		return eWindowCaptionButton::NONE;
 	};
-	//window.SetBorderless(true);
-	//window.Maximize();
+	window.SetBorderless(true);
 	window.SetCaptionButtonHandler(CaptionHandler);
-	//window.SetBorderless(false);
 
 	while (!window.IsClosed()) {
 		window.CallEvents();
-		//std::this_thread::sleep_for(std::chrono::milliseconds(20));
-		//continue;
 		if (joyInput) {
 			joyInput->CallEvents();
+		}
+		if (keyboardInput) {
+			keyboardInput->CallEvents();
 		}
 
 		try {
@@ -295,118 +292,11 @@ int main(int argc, char* argv[]) {
 }
 
 
-
-/*
-bool ProcessControls(int key, bool down) {
-	float enable = down ? 1.f : 0.f;
-	switch (key) {
-		case 'W': pQcWorld->TiltForward(enable); break;
-		case 'A': pQcWorld->TiltLeft(enable); break;
-		case 'S': pQcWorld->TiltBackward(enable); break;
-		case 'D': pQcWorld->TiltRight(enable); break;
-		case VK_LEFT: pQcWorld->RotateLeft(enable); break;
-		case VK_RIGHT: pQcWorld->RotateRight(enable); break;
-		case VK_UP: pQcWorld->Ascend(enable); break;
-		case VK_DOWN: pQcWorld->Descend(enable); break;
-		default: return false;
-	}
-	return true;
-}
-
-bool ProcessRawInput(RAWINPUT* raw) {
-	if (raw->header.dwType == RIM_TYPEMOUSE) {
-		// track up/down states
-		static bool lmbDown = false, mmbDown = false, rmbDown = false;
-		static POINT cursorPos{ 0, 0 };
-		if (raw->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_DOWN) {
-			lmbDown = true;
-		}
-		if (raw->data.mouse.usButtonFlags & RI_MOUSE_MIDDLE_BUTTON_DOWN) {
-			mmbDown = true;
-		}
-		if (raw->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_DOWN) {
-			rmbDown = true;
-		}
-		if (raw->data.mouse.usButtonFlags & RI_MOUSE_LEFT_BUTTON_UP) {
-			lmbDown = false;
-		}
-		if (raw->data.mouse.usButtonFlags & RI_MOUSE_MIDDLE_BUTTON_UP) {
-			mmbDown = false;
-		}
-		if (raw->data.mouse.usButtonFlags & RI_MOUSE_RIGHT_BUTTON_UP) {
-			rmbDown = false;
-		}
-		bool down = mmbDown || rmbDown;
-		if (down) {
-			SetCursorPos(cursorPos.x, cursorPos.y);
-		}
-		else {
-			GetCursorPos(&cursorPos);
-		}
-
-		// check if relative
-		bool relative = raw->data.mouse.usFlags == 0;
-		if (!relative) {
-			return false;
-		}
-
-		//  set motion
-		float dx = raw->data.mouse.lLastX, dy = raw->data.mouse.lLastY;
-		static float tiltfw = 0.0f, tiltr = 0.0f;
-		static float turnr = 0.0f;
-		static float heading = 0.0f;
-		static float lookoff = 0.0f;
-		static float look = 0.0f;
-
-		if (rmbDown) {
-			turnr += -dx / 400.f;
-			pQcWorld->Heading(heading + turnr);
-		}
-		else {
-			heading = pQcWorld->Heading();
-			turnr = 0.0f;
-		}
-
-		static bool lastMmbDown = false;
-		if (mmbDown) {
-			tiltfw += -dy / 300.f;
-			tiltr += dx / 300.f;
-			pQcWorld->TiltForward(tiltfw);
-			pQcWorld->TiltRight(tiltr);
-		}
-		else {
-			if (lastMmbDown != mmbDown) {
-				pQcWorld->TiltForward(0);
-				pQcWorld->TiltRight(0);
-			}
-			tiltfw = tiltr = 0;
-		}
-		lastMmbDown = mmbDown;
-
-		if (rmbDown) {
-			lookoff += -dy / 400.f;
-			pQcWorld->Look(look + lookoff);
-		}
-		else {
-			look = pQcWorld->Look();
-			lookoff = 0;
-		}
-
-		return true;
-	}
-
-	return false;
-}
-*/
-
-
-
-
 void InputHandler::OnJoystickMove(JoystickMoveEvent evt) {
 	if (!world) {
 		return;
 	}
-	//cout << "Axis" << evt.axis << " = " << evt.absPos << endl;
+	cout << "Axis" << evt.axis << " = " << evt.absPos << endl;
 	switch (evt.axis) {
 		case 0: world->TiltForward(-evt.absPos); break;
 		case 1: world->TiltRight(evt.absPos); break;
@@ -421,6 +311,19 @@ void InputHandler::OnJoystickMove(JoystickMoveEvent evt) {
 void InputHandler::OnKey(KeyboardEvent evt) {
 	if (!world) {
 		return;
+	}
+	float enable = float(evt.state == eKeyState::DOWN);
+	switch (evt.key) {
+		case eKey::W: world->TiltForward(enable); break;
+		case eKey::A: world->TiltLeft(enable); break;
+		case eKey::S: world->TiltBackward(enable); break;
+		case eKey::D: world->TiltRight(enable); break;
+		case eKey::LEFT: world->RotateLeft(enable); break;
+		case eKey::RIGHT: world->RotateRight(enable); break;
+		case eKey::UP: world->Ascend(enable); break;
+		case eKey::DOWN: world->Descend(enable); break;
+		default:
+			break;
 	}
 }
 

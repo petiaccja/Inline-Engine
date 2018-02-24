@@ -73,6 +73,7 @@ public:
 	/// <summary> Returns the list of available input devices of specific type that you can listen to. </summary>
 	static std::vector<InputDevice> GetDeviceList(eInputSourceType filter);
 
+	static DWORD DbgTID() { return RawInputSource::GetInstance()->DbgTID(); }
 public:
 	Event<MouseButtonEvent> OnMouseButton;
 	Event<MouseMoveEvent> OnMouseMove;
@@ -106,6 +107,7 @@ private:
 
 		void AddInput(Input* input, size_t device);
 		void RemoveInput(Input* input, size_t device = InvalidDeviceId);
+		DWORD DbgTID() { return GetThreadId(m_messageLoopThread.native_handle()); }
 	private:
 		static LRESULT __stdcall WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 		void ProcessInput(const RAWINPUT& rawInput);

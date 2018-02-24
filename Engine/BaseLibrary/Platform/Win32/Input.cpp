@@ -142,7 +142,7 @@ Input::RawInputSourceBase::RawInputSourceBase() {
 }
 
 Input::RawInputSourceBase::~RawInputSourceBase() {
-	SendMessage(m_messageLoopWindow, WM_CLOSE, 0, 0);
+	PostMessage(m_messageLoopWindow, WM_CLOSE, 0, 0);
 	if (m_messageLoopThread.joinable()) {
 		m_messageLoopThread.join();
 	}
@@ -344,7 +344,7 @@ void Input::RawInputSourceBase::MessageLoopThreadFunc() {
 	HWND hwnd = CreateWindowA("INL_INPUT_CAPTURE",
 		"Inl input capture",
 		WS_OVERLAPPEDWINDOW,
-		0, 0, 10, 10,
+		0, 0, 100, 100,
 		NULL,
 		NULL,
 		GetModuleHandle(NULL),
@@ -363,12 +363,12 @@ void Input::RawInputSourceBase::MessageLoopThreadFunc() {
 
 	Rid[0].usUsagePage = 0x01;
 	Rid[0].usUsage = 0x02;
-	Rid[0].dwFlags = RIDEV_NOLEGACY | RIDEV_INPUTSINK;   // adds HID mouse and also ignores legacy mouse messages
+	Rid[0].dwFlags = RIDEV_INPUTSINK;   // adds HID mouse and also ignores legacy mouse messages
 	Rid[0].hwndTarget = m_messageLoopWindow;
 
 	Rid[1].usUsagePage = 0x01;
 	Rid[1].usUsage = 0x06;
-	Rid[1].dwFlags = RIDEV_NOLEGACY | RIDEV_INPUTSINK;   // adds HID keyboard and also ignores legacy keyboard messages
+	Rid[1].dwFlags = RIDEV_INPUTSINK;   // adds HID keyboard and also ignores legacy keyboard messages
 	Rid[1].hwndTarget = m_messageLoopWindow;
 
 	Rid[2].usUsagePage = 0x01;
@@ -382,7 +382,7 @@ void Input::RawInputSourceBase::MessageLoopThreadFunc() {
 
 	// Start processing raw input messages.
 	MSG msg;
-	while (GetMessage(&msg, NULL, 0, 0) != 0) {
+	while (GetMessage(&msg, NULL, 0, 0)) {
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}

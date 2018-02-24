@@ -15,7 +15,7 @@ Editor::Editor()
 	input = new InputCore();
 
 	// Create main window for Editor
-	wnd = new Window("Inline Engine", Vec2u(800, 600), true, true, false, std::bind(&Editor::WndProc, this, _1, _2, _3, _4));
+	wnd = new Window("Inline Engine", Vec2u(800, 600), true, true, false);
 
 	wnd->OnPaint += [this]()
 	{
@@ -716,7 +716,7 @@ void Editor::Update()
 
 	delete timer;
 }
-
+/*
 LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	bool fCallDWP = !DwmDefWindowProc(handle, msg, wParam, lParam, NULL);
@@ -839,5 +839,6 @@ LRESULT Editor::WndProc(HWND handle, UINT msg, WPARAM wParam, LPARAM lParam)
 
 	return 0;
 }
+*/
 
 } // namespace inl

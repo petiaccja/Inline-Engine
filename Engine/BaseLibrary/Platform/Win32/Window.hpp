@@ -45,8 +45,7 @@ public:
 		Vec2u size = { 640, 480 },
 		bool borderless = false, 
 		bool resizable = true,
-		bool hiddenInitially = false,
-		const std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)>& userWndProc = nullptr);
+		bool hiddenInitially = false);
 	Window(const Window&) = delete;
 	Window(Window&& rhs) noexcept;
 	Window& operator=(const Window&) = delete;
@@ -90,19 +89,6 @@ public:
 	std::string GetTitle() const;
 	void SetIcon(const std::string& imageFilePath);
 
-
-	/// <summary> Tells how many events should be queued at maximum. Only applies to queued mode. </summary>
-	//void SetQueueSizeHint(size_t queueSize);
-
-	/// <summary> Sets event calling mode: in immediate mode, events are called 
-	///		asynchonously from another thread; in queued mode, events are stored
-	///		and you have to call <see cref="CallEvents"> manually to call all queued 
-	///		events on the caller's thread. </summary>
-	//void SetQueueMode(eInputQueueMode mode);
-
-	/// <summary> Returns the currently set queueing mode. </summary>
-	//eInputQueueMode GetQueueMode() const;
-
 	/// <summary> Calls all queued events synchronously on the caller's thread. </summary>
 	/// <returns> False if some events were dropped due to too small queue size. </returns>
 	bool CallEvents();
@@ -143,48 +129,22 @@ private:
 	int DwmHittest(Vec2i cursorPos) const;
 		
 private:
+	// WinAPI handles
 	WindowHandle m_handle = NULL;
+	HANDLE m_icon = NULL;
+
+	// Window properties
 	bool m_borderless = false;
 	bool m_resizable = true;
-	HANDLE m_icon = NULL;
-	std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> m_userWndProc;
-
 	RectI m_frameMargins = { 8,8,8,8 };
 	std::function<eWindowCaptionButton(Vec2i)> m_captionButtonHandler;
-
-	// This code is for immediate/queue mode setup
-	/*
-	std::thread m_messageThread;
-
-	volatile eInputQueueMode m_queueMode = eInputQueueMode::IMMEDIATE;
-	volatile size_t m_queueSize = 10000;
-	volatile bool m_eventDropped = false;
-	std::queue<std::function<void()>> m_eventQueue;
-	std::mutex m_queueMtx;
-	*/
+	eWindowCaptionButton m_mouseHover = eWindowCaptionButton::NONE;
 };
 
 
 template <class... EventArgs>
 void Window::CallEvent(Event<EventArgs...>& evt, EventArgs... args) {
 	evt(args...);
-
-	// This code is for immediate/queue mode setup
-	/*
-	if (m_queueMode == eInputQueueMode::IMMEDIATE) {
-		evt(args...);
-	}
-	else {
-		std::lock_guard<decltype(m_queueMtx)> lkg(m_queueMtx);
-		m_eventQueue.push([&evt, args...](){ evt(args...); });
-		if (m_eventQueue.size() > m_queueSize) {
-			m_eventDropped = true;
-		}
-		while (m_eventQueue.size() > m_queueSize) {
-			m_eventQueue.pop();
-		}
-	}
-	*/
 }
 
 
