@@ -59,6 +59,7 @@ struct GraphicsEngineDesc {
 // Temporary, delete this!!!!44négy
 // Peti wuz here '17.07.28 - surprisingly, I actually understood why this is temporary, but I'm not gonna write it down
 // Yeah, I still understand and this is really not important '17.11.07
+// Okay, I know what it does, but why would I need it? Probably junk... '18.02.24
 class PipelineEventPrinter : public PipelineEventListener {
 public:
 	PipelineEventPrinter() : m_log(nullptr) {}
