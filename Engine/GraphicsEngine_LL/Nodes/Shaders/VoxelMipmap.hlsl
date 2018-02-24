@@ -8,7 +8,10 @@ struct Uniforms
 {
 	float4x4 model, viewProj;
 	float3 voxelCenter; float voxelSize;
-	int voxelDimension; int inputMipLevel; int outputMipLevel;
+	float4 farPlaneData0, farPlaneData1;
+	float4 vsCamPos;
+	int voxelDimension; int inputMipLevel; int outputMipLevel; int dummy;
+	float nearPlane, farPlane;
 };
 
 Texture3D inputTex : register(t0);
@@ -39,7 +42,5 @@ void CSMain(
 
 	float4 data = inputTex.SampleLevel(samp1, uvw, uniforms.inputMipLevel);
 
-	//outputTex[uint3(uvw * outputTexSize.xyz)] = data;
-	outputTex[dispatchThreadId.xyz] = data; // uvw.xyzz;// data; // float4(0, uniforms.inputMipLevel / 16.0, uniforms.outputMipLevel / 16.0, 1);
-	//outputTex[uint3(uvw * outputTexSize.xyz)] = float4(1, uniforms.outputMipLevel / 16., uniforms.outputMipLevel/16.0, 1);
+	outputTex[dispatchThreadId.xyz] = data; 
 }
