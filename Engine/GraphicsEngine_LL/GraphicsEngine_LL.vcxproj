@@ -156,7 +156,7 @@ copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline_nogi.json" "$(OutputPat
     <ClInclude Include="Nodes\Node_LuminanceReductionFinal.hpp" />
     <ClInclude Include="Nodes\Node_MotionBlur.hpp" />
     <ClInclude Include="Nodes\Node_NeighborMax.hpp" />
-    <ClInclude Include="Nodes\Node_RenderText2D.hpp" />
+    <ClInclude Include="Nodes\Node_RenderOverlay.hpp" />
     <ClInclude Include="Nodes\Node_ScreenSpaceAmbientOcclusion.hpp" />
     <ClInclude Include="Nodes\Node_ScreenSpaceReflection.hpp" />
     <ClInclude Include="Nodes\Node_ScreenSpaceShadow.hpp" />
@@ -267,7 +267,7 @@ copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline_nogi.json" "$(OutputPat
     <ClCompile Include="Nodes\Node_MotionBlur.cpp" />
     <ClCompile Include="Nodes\Node_NeighborMax.cpp" />
     <ClCompile Include="Nodes\Node_OverlayRender.cpp" />
-    <ClCompile Include="Nodes\Node_RenderText2D.cpp" />
+    <ClCompile Include="Nodes\Node_RenderOverlay.cpp" />
     <ClCompile Include="Nodes\Node_ScreenSpaceAmbientOcclusion.cpp" />
     <ClCompile Include="Nodes\Node_ScreenSpaceReflection.cpp" />
     <ClCompile Include="Nodes\Node_ScreenSpaceShadow.cpp" />

@@ -406,7 +406,7 @@
     <ClInclude Include="TextEntity.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Node_RenderText2D.hpp">
+    <ClInclude Include="Nodes\Node_RenderOverlay.hpp">
       <Filter>Frontend\Nodes\Drawing</Filter>
     </ClInclude>
   </ItemGroup>
@@ -652,7 +652,7 @@
     <ClCompile Include="TextEntity.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes\Node_RenderText2D.cpp">
+    <ClCompile Include="Nodes\Node_RenderOverlay.cpp">
       <Filter>Frontend\Nodes\Drawing</Filter>
     </ClCompile>
   </ItemGroup>
