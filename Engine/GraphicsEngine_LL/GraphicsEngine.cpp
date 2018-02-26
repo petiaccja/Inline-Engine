@@ -68,6 +68,8 @@
 #include "Image.hpp"
 #include "MeshEntity.hpp"
 #include "OverlayEntity.hpp"
+#include "Font.hpp"
+#include "TextEntity.hpp"
 
 
 namespace inl {
@@ -270,6 +272,10 @@ MaterialShaderGraph* GraphicsEngine::CreateMaterialShaderGraph() {
 	return new MaterialShaderGraph(&m_shaderManager);
 }
 
+Font* GraphicsEngine::CreateFont() {
+	return new Font(std::move(*CreateImage()));
+}
+
 
 
 // Scene
@@ -359,6 +365,10 @@ MeshEntity* GraphicsEngine::CreateMeshEntity() {
 
 OverlayEntity* GraphicsEngine::CreateOverlayEntity() {
 	return new OverlayEntity;
+}
+
+TextEntity* GraphicsEngine::CreateTextEntity() {
+	return new TextEntity;
 }
 
 

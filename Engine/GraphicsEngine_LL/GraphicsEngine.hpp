@@ -25,6 +25,8 @@
 
 #include <BaseLibrary/Any.hpp>
 
+#undef CreateFont // Fuck goddamn winapi -.-
+
 
 namespace inl {
 namespace gxeng {
@@ -41,6 +43,9 @@ class MeshEntity;
 class OverlayEntity;
 class PerspectiveCamera;
 class OrthographicCamera;
+
+class Font;
+class TextEntity;
 
 class WindowResizeListener;
 
@@ -109,6 +114,7 @@ public:
 	Material* CreateMaterial();
 	MaterialShaderEquation* CreateMaterialShaderEquation();
 	MaterialShaderGraph* CreateMaterialShaderGraph();
+	Font* CreateFont();
 
 
 	// Scene
@@ -117,6 +123,7 @@ public:
 	OverlayEntity* CreateOverlayEntity();
 	PerspectiveCamera* CreatePerspectiveCamera(std::string name);
 	OrthographicCamera* CreateOrthographicCamera(std::string name);
+	TextEntity* CreateTextEntity();
 
 
 	// Pipeline and environment variables

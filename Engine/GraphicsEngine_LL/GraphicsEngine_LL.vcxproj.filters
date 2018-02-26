@@ -33,12 +33,6 @@
     <Filter Include="Frontend\Nodes\ForwardRenderer">
       <UniqueIdentifier>{4eafdf62-4696-4151-af89-d7f190e59dc2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Frontend\Nodes\Rendering">
-      <UniqueIdentifier>{bf61464b-9a01-400e-b2bf-cfafd24d515a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Frontend\Nodes\General">
-      <UniqueIdentifier>{3e242522-430d-401c-8b83-5d0c9b29ed5e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Frontend\Nodes\Debug">
       <UniqueIdentifier>{28a89b59-deb0-4922-ad83-3bb4faf0cf61}</UniqueIdentifier>
     </Filter>
@@ -63,9 +57,20 @@
     <Filter Include="Backend\Pipeline\ResourcePools">
       <UniqueIdentifier>{8e627d0d-764e-47ea-8b35-7ae8d429f37b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Frontend\Nodes\PostProcess">
+      <UniqueIdentifier>{6b7b7e5f-7cfc-4f41-9767-cc1c94e7cc61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frontend\Nodes\Drawing">
+      <UniqueIdentifier>{6c9f27f6-3a9e-4743-a4d8-02ae3f311385}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frontend\Nodes\System">
+      <UniqueIdentifier>{3e242522-430d-401c-8b83-5d0c9b29ed5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frontend\Nodes\Utility">
+      <UniqueIdentifier>{bf61464b-9a01-400e-b2bf-cfafd24d515a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
     <Text Include="pipeline.json" />
     <Text Include="pipeline_nogi.json" />
   </ItemGroup>
@@ -180,25 +185,25 @@
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_Blend.hpp">
-      <Filter>Frontend\Nodes\Rendering</Filter>
+      <Filter>Frontend\Nodes\Utility</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_GetBackBuffer.hpp">
-      <Filter>Frontend\Nodes\General</Filter>
+      <Filter>Frontend\Nodes\System</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_GetCameraByName.hpp">
-      <Filter>Frontend\Nodes\General</Filter>
+      <Filter>Frontend\Nodes\System</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_GetSceneByName.hpp">
-      <Filter>Frontend\Nodes\General</Filter>
+      <Filter>Frontend\Nodes\System</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_GetTime.hpp">
-      <Filter>Frontend\Nodes\General</Filter>
+      <Filter>Frontend\Nodes\System</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_CreateTexture.hpp">
-      <Filter>Frontend\Nodes\General</Filter>
+      <Filter>Frontend\Nodes\System</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_TextureProperties.hpp">
-      <Filter>Frontend\Nodes\General</Filter>
+      <Filter>Frontend\Nodes\System</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\NodeUtility.hpp">
       <Filter>Frontend\Nodes</Filter>
@@ -216,16 +221,16 @@
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_GetEnvVariable.hpp">
-      <Filter>Frontend\Nodes\General</Filter>
+      <Filter>Frontend\Nodes\System</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_BlendWithTransform.hpp">
-      <Filter>Frontend\Nodes\Rendering</Filter>
+      <Filter>Frontend\Nodes\Utility</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_ScreenSpaceTransform.hpp">
-      <Filter>Frontend\Nodes\General</Filter>
+      <Filter>Frontend\Nodes\System</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_VectorComponents.hpp">
-      <Filter>Frontend\Nodes\General</Filter>
+      <Filter>Frontend\Nodes\System</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\DebugDrawManager.hpp">
       <Filter>Frontend\Nodes\Debug</Filter>
@@ -401,6 +406,9 @@
     <ClInclude Include="TextEntity.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
+    <ClInclude Include="Nodes\Node_RenderText2D.hpp">
+      <Filter>Frontend\Nodes\Drawing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GraphicsEngine.cpp" />
@@ -474,7 +482,7 @@
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_Blend.cpp">
-      <Filter>Frontend\Nodes\Rendering</Filter>
+      <Filter>Frontend\Nodes\Utility</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\NodeUtility.cpp">
       <Filter>Frontend\Nodes</Filter>
@@ -486,7 +494,7 @@
       <Filter>Frontend\Nodes\Debug</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_BlendWithTransform.cpp">
-      <Filter>Frontend\Nodes\Rendering</Filter>
+      <Filter>Frontend\Nodes\Utility</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_LightCulling.cpp">
       <Filter>Frontend\Nodes\ForwardRenderer</Filter>
@@ -644,6 +652,9 @@
     <ClCompile Include="TextEntity.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
+    <ClCompile Include="Nodes\Node_RenderText2D.cpp">
+      <Filter>Frontend\Nodes\Drawing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Materials\bitmap_color_2d.mtl.hlsl">
@@ -655,7 +666,6 @@
     <None Include="Materials\simple_diffuse.mtl.hlsl">
       <Filter>Materials</Filter>
     </None>
-    <None Include="pipeline_example.json" />
     <None Include="Nodes\Shaders\DOFMain.hlsl">
       <Filter>Frontend\Nodes\Shaders</Filter>
     </None>

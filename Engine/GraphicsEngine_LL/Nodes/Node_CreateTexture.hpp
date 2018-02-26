@@ -31,11 +31,6 @@ public:
 	static const char* Info_GetName() { return "CreateTexture"; }
 	virtual void Update() override {}
 
-	static int getNumMips(int w, int h, int d)
-	{
-		return 1 + std::floor(std::log2(std::max(std::max(w, h), d)));
-	}
-
 	virtual void Notify(InputPortBase* sender) override {}
 
 	virtual void Initialize(EngineContext& context) override {
@@ -78,7 +73,7 @@ public:
 			|| m_texture.GetArrayCount() != arrayCount
 			|| (m_texture.GetDescription().textureDesc.flags & flagMask) != requestedFlags)
 		{
-			m_texture = context.CreateTexture2D(Texture2DDesc{ width, height, format, uint16_t(mipchainNeeded ? getNumMips(width, height, 1) : 1), arrayCount }, usage);
+			m_texture = context.CreateTexture2D(Texture2DDesc{ width, height, format, uint16_t(mipchainNeeded ? 0 : 1), arrayCount }, usage);
 		}
 
 		GetOutput<0>().Set(m_texture);

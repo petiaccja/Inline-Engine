@@ -11,6 +11,8 @@
 #include <GraphicsEngine_LL/PerspectiveCamera.hpp>
 #include <GraphicsEngine_LL/OrthographicCamera.hpp>
 #include <GraphicsEngine_LL/DirectionalLight.hpp>
+#include <GraphicsEngine_LL/Font.hpp>
+#include <GraphicsEngine_LL/TextEntity.hpp>
 #include "RigidBody.hpp"
 #include "Rotor.hpp"
 #include "PIDController.hpp"
@@ -114,6 +116,8 @@ private:
 	std::unique_ptr<inl::gxeng::MaterialShaderGraph> m_simpleShader;
 	std::unique_ptr<inl::gxeng::MaterialShaderGraph> m_pbrShader;
 
+	std::unique_ptr<inl::gxeng::Font> m_font;
+
 	// Pipeline resources
 	std::unique_ptr<inl::gxeng::Image> m_areaImage, m_searchImage;
 	std::unique_ptr<inl::gxeng::Image> m_lensFlareColorImage;
@@ -140,6 +144,7 @@ private:
 	std::unique_ptr<inl::gxeng::Mesh> m_overlayQuadMesh;
 	std::unique_ptr<inl::gxeng::Image> m_overlayTexture;
 	std::vector<std::unique_ptr<inl::gxeng::OverlayEntity>> m_overlayElements;
+	std::unique_ptr<inl::gxeng::TextEntity> m_infoText;
 
 	// Simulation
 	PIDController m_controller;

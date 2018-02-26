@@ -14,6 +14,10 @@ namespace inl::gxeng {
 class ImageBase {
 public:
 	ImageBase(MemoryManager* memoryManager, CbvSrvUavHeap* descriptorHeap);
+	ImageBase(const ImageBase&) = delete;
+	ImageBase(ImageBase&&) = default;
+	ImageBase& operator=(const ImageBase&) = delete;
+	ImageBase& operator=(ImageBase&&) = default;
 	~ImageBase();
 
 	/// <summary> Returns the width of the image in pixels. </summary>

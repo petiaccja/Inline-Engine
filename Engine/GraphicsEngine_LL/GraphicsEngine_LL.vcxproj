@@ -75,7 +75,7 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <Lib>
-      <AdditionalDependencies>lemon.lib;</AdditionalDependencies>
+      <AdditionalDependencies>lemon.lib;freetype.lib</AdditionalDependencies>
     </Lib>
     <PostBuildEvent>
       <Command>copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline.json" "$(OutputPath)"
@@ -106,7 +106,7 @@ copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline_nogi.json" "$(OutputPat
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>lemon.lib;</AdditionalDependencies>
+      <AdditionalDependencies>lemon.lib;freetype.lib</AdditionalDependencies>
     </Lib>
     <PostBuildEvent>
       <Command>copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline.json" "$(OutputPath)"
@@ -114,9 +114,6 @@ copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline_nogi.json" "$(OutputPat
       <Message>Copy pipeline JSON files next to exe</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\GraphicsEngine\Definitions.hpp" />
     <ClInclude Include="..\GraphicsEngine\ICamera.hpp" />
@@ -159,6 +156,7 @@ copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline_nogi.json" "$(OutputPat
     <ClInclude Include="Nodes\Node_LuminanceReductionFinal.hpp" />
     <ClInclude Include="Nodes\Node_MotionBlur.hpp" />
     <ClInclude Include="Nodes\Node_NeighborMax.hpp" />
+    <ClInclude Include="Nodes\Node_RenderText2D.hpp" />
     <ClInclude Include="Nodes\Node_ScreenSpaceAmbientOcclusion.hpp" />
     <ClInclude Include="Nodes\Node_ScreenSpaceReflection.hpp" />
     <ClInclude Include="Nodes\Node_ScreenSpaceShadow.hpp" />
@@ -269,6 +267,7 @@ copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline_nogi.json" "$(OutputPat
     <ClCompile Include="Nodes\Node_MotionBlur.cpp" />
     <ClCompile Include="Nodes\Node_NeighborMax.cpp" />
     <ClCompile Include="Nodes\Node_OverlayRender.cpp" />
+    <ClCompile Include="Nodes\Node_RenderText2D.cpp" />
     <ClCompile Include="Nodes\Node_ScreenSpaceAmbientOcclusion.cpp" />
     <ClCompile Include="Nodes\Node_ScreenSpaceReflection.cpp" />
     <ClCompile Include="Nodes\Node_ScreenSpaceShadow.cpp" />
@@ -323,7 +322,6 @@ copy /Y "$(SolutionDir)Engine\GraphicsEngine_LL\pipeline_nogi.json" "$(OutputPat
     <None Include="Materials\simple_diffuse.mtl.hlsl">
       <FileType>Document</FileType>
     </None>
-    <None Include="pipeline_example.json" />
     <Text Include="pipeline_nogi.json">
       <FileType>Document</FileType>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>

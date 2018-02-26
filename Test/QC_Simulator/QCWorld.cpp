@@ -60,6 +60,12 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 			m_guiScene->GetOverlayEntities().Add(curr.get());
 		}
 
+		// Create text rendering
+		m_font.reset(m_graphicsEngine->CreateFont());
+		m_infoText.reset(m_graphicsEngine->CreateTextEntity());
+
+		m_font->SetFamily("Arial", false, false);
+
 		// Set world render transform
 		m_graphicsEngine->SetEnvVariable("world_render_pos", inl::Any(inl::Vec2(0.f, 0.f)));
 		m_graphicsEngine->SetEnvVariable("world_render_rot", inl::Any(0.f));

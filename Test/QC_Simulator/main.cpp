@@ -230,8 +230,8 @@ int main(int argc, char* argv[]) {
 		}
 		return eWindowCaptionButton::NONE;
 	};
-	window.SetBorderless(true);
-	window.SetCaptionButtonHandler(CaptionHandler);
+	//window.SetBorderless(true);
+	//window.SetCaptionButtonHandler(CaptionHandler);
 
 	while (!window.IsClosed()) {
 		window.CallEvents();
