@@ -1,5 +1,5 @@
 #include "Window.hpp"
-#include "BaseLibrary/Exception/Exception.hpp"
+#include "../../Exception/Exception.hpp"
 #include <future>
 #include <Windowsx.h>
 #include "shellapi.h"

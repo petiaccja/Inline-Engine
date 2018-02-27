@@ -30,9 +30,6 @@
     <Filter Include="Frontend\Nodes">
       <UniqueIdentifier>{c18b293d-9d94-453e-8486-9d3b8b614c34}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer">
-      <UniqueIdentifier>{4eafdf62-4696-4151-af89-d7f190e59dc2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Frontend\Nodes\Debug">
       <UniqueIdentifier>{28a89b59-deb0-4922-ad83-3bb4faf0cf61}</UniqueIdentifier>
     </Filter>
@@ -51,59 +48,56 @@
     <Filter Include="Backend\Misc">
       <UniqueIdentifier>{85a41bd1-c16c-405f-b065-5a3ddb50e941}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Frontend\Nodes\Shaders">
-      <UniqueIdentifier>{45b0517c-79df-4276-b594-4e0a7747417f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Backend\Pipeline\ResourcePools">
       <UniqueIdentifier>{8e627d0d-764e-47ea-8b35-7ae8d429f37b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer\PostProcess">
-      <UniqueIdentifier>{f669dcec-1117-42c4-9a85-d2e539735b7b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer\Lighting">
+    <Filter Include="Frontend\Nodes\Lighting">
       <UniqueIdentifier>{26c544be-49c9-46a2-90a9-e4a31b302fec}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer\PostProcess\MotionBlur">
-      <UniqueIdentifier>{22c4c58d-b6ba-40bc-a73f-a9cd2ae33b4a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer\PostProcess\DOF">
-      <UniqueIdentifier>{dde73d0b-8ae9-4775-9738-016addbf490c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer\PostProcess\Bloom">
-      <UniqueIdentifier>{da38c778-ba46-484b-a3dc-24f8650b1755}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer\Shadows">
-      <UniqueIdentifier>{c95e263d-c753-4c5b-a162-bcab39dc2a63}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer\Lighting\Direct">
+    <Filter Include="Frontend\Nodes\Lighting\Direct">
       <UniqueIdentifier>{55338e31-f36c-42c6-9375-0fe0c5a8fdeb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer\Lighting\Indirect">
+    <Filter Include="Frontend\Nodes\Lighting\Indirect">
       <UniqueIdentifier>{6eb17cc3-92ef-48b0-a7e1-f3244fdeaf8d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer\Lighting\Volumetric">
+    <Filter Include="Frontend\Nodes\Lighting\Volumetric">
       <UniqueIdentifier>{5959a380-3044-460d-a1a5-6bc27c952cfd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer\Shadows\PointSpot">
-      <UniqueIdentifier>{a7f9e8b9-0052-4e1e-a6e6-66bea5417a21}</UniqueIdentifier>
+    <Filter Include="Frontend\Nodes\PostProcess">
+      <UniqueIdentifier>{f669dcec-1117-42c4-9a85-d2e539735b7b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer\Shadows\Cascaded">
-      <UniqueIdentifier>{2a9f61c4-5e6a-4cd5-ae0c-66beaad84486}</UniqueIdentifier>
+    <Filter Include="Frontend\Nodes\PostProcess\MotionBlur">
+      <UniqueIdentifier>{22c4c58d-b6ba-40bc-a73f-a9cd2ae33b4a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer\PostProcess\SSAO">
+    <Filter Include="Frontend\Nodes\PostProcess\DOF">
+      <UniqueIdentifier>{dde73d0b-8ae9-4775-9738-016addbf490c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frontend\Nodes\PostProcess\Bloom">
+      <UniqueIdentifier>{da38c778-ba46-484b-a3dc-24f8650b1755}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frontend\Nodes\PostProcess\SSAO">
       <UniqueIdentifier>{26e6aa29-383f-4e50-9f3f-0dd7626e65ec}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer\PostProcess\SSR">
+    <Filter Include="Frontend\Nodes\PostProcess\SSR">
       <UniqueIdentifier>{bd6959a1-a88f-447f-b6bb-993575af0e59}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer\Shadows\ScreenSpace">
-      <UniqueIdentifier>{6a1a1742-d32a-48d0-9103-d5678ee6c656}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer\PostProcess\AA">
+    <Filter Include="Frontend\Nodes\PostProcess\AA">
       <UniqueIdentifier>{f7a5f9d4-388c-4b26-9ccf-3664490e7933}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Frontend\Nodes\ForwardRenderer\UI">
+    <Filter Include="Frontend\Nodes\UI">
       <UniqueIdentifier>{8b772fa1-8973-4305-8f87-defcdad88621}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frontend\Nodes\Shadows">
+      <UniqueIdentifier>{c95e263d-c753-4c5b-a162-bcab39dc2a63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frontend\Nodes\Shadows\PointSpot">
+      <UniqueIdentifier>{a7f9e8b9-0052-4e1e-a6e6-66bea5417a21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frontend\Nodes\Shadows\Cascaded">
+      <UniqueIdentifier>{2a9f61c4-5e6a-4cd5-ae0c-66beaad84486}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Frontend\Nodes\Shadows\ScreenSpace">
+      <UniqueIdentifier>{6a1a1742-d32a-48d0-9103-d5678ee6c656}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -199,27 +193,6 @@
     <ClInclude Include="OverlayEntity.hpp">
       <Filter>Scene</Filter>
     </ClInclude>
-    <ClInclude Include="Nodes\Node_Blend.hpp">
-      <Filter>Frontend\Nodes\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_GetBackBuffer.hpp">
-      <Filter>Frontend\Nodes\System</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_GetCameraByName.hpp">
-      <Filter>Frontend\Nodes\System</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_GetSceneByName.hpp">
-      <Filter>Frontend\Nodes\System</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_GetTime.hpp">
-      <Filter>Frontend\Nodes\System</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_CreateTexture.hpp">
-      <Filter>Frontend\Nodes\System</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_TextureProperties.hpp">
-      <Filter>Frontend\Nodes\System</Filter>
-    </ClInclude>
     <ClInclude Include="Nodes\NodeUtility.hpp">
       <Filter>Frontend\Nodes</Filter>
     </ClInclude>
@@ -231,18 +204,6 @@
     </ClInclude>
     <ClInclude Include="Nodes\Node_DebugDraw.hpp">
       <Filter>Frontend\Nodes\Debug</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_GetEnvVariable.hpp">
-      <Filter>Frontend\Nodes\System</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_BlendWithTransform.hpp">
-      <Filter>Frontend\Nodes\Utility</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_ScreenSpaceTransform.hpp">
-      <Filter>Frontend\Nodes\System</Filter>
-    </ClInclude>
-    <ClInclude Include="Nodes\Node_VectorComponents.hpp">
-      <Filter>Frontend\Nodes\System</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\DebugDrawManager.hpp">
       <Filter>Frontend\Nodes\Debug</Filter>
@@ -350,100 +311,133 @@
       <Filter>Scene</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_BloomAdd.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\Bloom</Filter>
+      <Filter>Frontend\Nodes\PostProcess\Bloom</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_BloomBlur.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\Bloom</Filter>
+      <Filter>Frontend\Nodes\PostProcess\Bloom</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_BloomDownsample.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\Bloom</Filter>
+      <Filter>Frontend\Nodes\PostProcess\Bloom</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_BrightLumPass.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\Bloom</Filter>
+      <Filter>Frontend\Nodes\PostProcess\Bloom</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_CSM.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Shadows\Cascaded</Filter>
+      <Filter>Frontend\Nodes\Shadows\Cascaded</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_DepthReduction.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Shadows\Cascaded</Filter>
+      <Filter>Frontend\Nodes\Shadows\Cascaded</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_DepthReductionFinal.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Shadows\Cascaded</Filter>
+      <Filter>Frontend\Nodes\Shadows\Cascaded</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_DOFMain.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\DOF</Filter>
+      <Filter>Frontend\Nodes\PostProcess\DOF</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_DOFNeighborMax.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\DOF</Filter>
+      <Filter>Frontend\Nodes\PostProcess\DOF</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_DOFPrepare.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\DOF</Filter>
+      <Filter>Frontend\Nodes\PostProcess\DOF</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_DOFTileMax.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\DOF</Filter>
+      <Filter>Frontend\Nodes\PostProcess\DOF</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_MotionBlur.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\MotionBlur</Filter>
+      <Filter>Frontend\Nodes\PostProcess\MotionBlur</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_NeighborMax.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\MotionBlur</Filter>
+      <Filter>Frontend\Nodes\PostProcess\MotionBlur</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_LuminanceReductionFinal.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\Bloom</Filter>
+      <Filter>Frontend\Nodes\PostProcess\Bloom</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_LuminanceReduction.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\Bloom</Filter>
+      <Filter>Frontend\Nodes\PostProcess\Bloom</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_LensFlare.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\Bloom</Filter>
+      <Filter>Frontend\Nodes\PostProcess\Bloom</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_HDRCombine.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\Bloom</Filter>
+      <Filter>Frontend\Nodes\PostProcess\Bloom</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_TileMax.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\MotionBlur</Filter>
+      <Filter>Frontend\Nodes\PostProcess\MotionBlur</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_ForwardRender.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Lighting\Direct</Filter>
+      <Filter>Frontend\Nodes\Lighting\Direct</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_LightCulling.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Lighting\Direct</Filter>
+      <Filter>Frontend\Nodes\Lighting\Direct</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_Voxelization.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Lighting\Indirect</Filter>
+      <Filter>Frontend\Nodes\Lighting\Indirect</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_VolumetricLighting.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Lighting\Volumetric</Filter>
+      <Filter>Frontend\Nodes\Lighting\Volumetric</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_ShadowMapGen.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Shadows\PointSpot</Filter>
+      <Filter>Frontend\Nodes\Shadows\PointSpot</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_ScreenSpaceAmbientOcclusion.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\SSAO</Filter>
+      <Filter>Frontend\Nodes\PostProcess\SSAO</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_ScreenSpaceReflection.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\SSR</Filter>
+      <Filter>Frontend\Nodes\PostProcess\SSR</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_ScreenSpaceShadow.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Shadows\ScreenSpace</Filter>
+      <Filter>Frontend\Nodes\Shadows\ScreenSpace</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_SMAA.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\AA</Filter>
+      <Filter>Frontend\Nodes\PostProcess\AA</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_DepthPrepass.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Lighting\Direct</Filter>
+      <Filter>Frontend\Nodes\Lighting\Direct</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_DrawSky.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Lighting\Direct</Filter>
+      <Filter>Frontend\Nodes\Lighting\Direct</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_OverlayRender.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\UI</Filter>
+      <Filter>Frontend\Nodes\UI</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_TextRender.hpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\UI</Filter>
+      <Filter>Frontend\Nodes\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_Blend.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_BlendWithTransform.hpp">
+      <Filter>Interfaces</Filter>
     </ClInclude>
     <ClInclude Include="Nodes\Node_RenderOverlay.hpp">
-      <Filter>Frontend\Nodes\Drawing</Filter>
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_ScreenSpaceTransform.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_CreateTexture.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GetBackBuffer.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GetCameraByName.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GetEnvVariable.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GetSceneByName.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_GetTime.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_TextureProperties.hpp">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Nodes\Node_VectorComponents.hpp">
+      <Filter>Interfaces</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -496,9 +490,6 @@
     <ClCompile Include="OverlayEntity.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
-    <ClCompile Include="Nodes\Node_Blend.cpp">
-      <Filter>Frontend\Nodes\Utility</Filter>
-    </ClCompile>
     <ClCompile Include="Nodes\NodeUtility.cpp">
       <Filter>Frontend\Nodes</Filter>
     </ClCompile>
@@ -507,9 +498,6 @@
     </ClCompile>
     <ClCompile Include="Nodes\Node_DebugDraw.cpp">
       <Filter>Frontend\Nodes\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="Nodes\Node_BlendWithTransform.cpp">
-      <Filter>Frontend\Nodes\Utility</Filter>
     </ClCompile>
     <ClCompile Include="BasicCommandList.cpp">
       <Filter>Bridge\CommandLists</Filter>
@@ -596,100 +584,106 @@
       <Filter>Scene</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_BloomAdd.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\Bloom</Filter>
+      <Filter>Frontend\Nodes\PostProcess\Bloom</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_BloomBlur.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\Bloom</Filter>
+      <Filter>Frontend\Nodes\PostProcess\Bloom</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_BloomDownsample.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\Bloom</Filter>
+      <Filter>Frontend\Nodes\PostProcess\Bloom</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_BrightLumPass.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\Bloom</Filter>
+      <Filter>Frontend\Nodes\PostProcess\Bloom</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_CSM.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Shadows\Cascaded</Filter>
+      <Filter>Frontend\Nodes\Shadows\Cascaded</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_DepthReduction.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Shadows\Cascaded</Filter>
+      <Filter>Frontend\Nodes\Shadows\Cascaded</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_DepthReductionFinal.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Shadows\Cascaded</Filter>
+      <Filter>Frontend\Nodes\Shadows\Cascaded</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_DOFMain.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\DOF</Filter>
+      <Filter>Frontend\Nodes\PostProcess\DOF</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_DOFNeighborMax.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\DOF</Filter>
+      <Filter>Frontend\Nodes\PostProcess\DOF</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_DOFPrepare.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\DOF</Filter>
+      <Filter>Frontend\Nodes\PostProcess\DOF</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_DOFTileMax.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\DOF</Filter>
+      <Filter>Frontend\Nodes\PostProcess\DOF</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_MotionBlur.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\MotionBlur</Filter>
+      <Filter>Frontend\Nodes\PostProcess\MotionBlur</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_NeighborMax.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\MotionBlur</Filter>
+      <Filter>Frontend\Nodes\PostProcess\MotionBlur</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_LuminanceReductionFinal.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\Bloom</Filter>
+      <Filter>Frontend\Nodes\PostProcess\Bloom</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_LuminanceReduction.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\Bloom</Filter>
+      <Filter>Frontend\Nodes\PostProcess\Bloom</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_LensFlare.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\Bloom</Filter>
+      <Filter>Frontend\Nodes\PostProcess\Bloom</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_HDRCombine.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\Bloom</Filter>
+      <Filter>Frontend\Nodes\PostProcess\Bloom</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_TileMax.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\MotionBlur</Filter>
+      <Filter>Frontend\Nodes\PostProcess\MotionBlur</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_ForwardRender.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Lighting\Direct</Filter>
+      <Filter>Frontend\Nodes\Lighting\Direct</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_LightCulling.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Lighting\Direct</Filter>
+      <Filter>Frontend\Nodes\Lighting\Direct</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_Voxelization.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Lighting\Indirect</Filter>
+      <Filter>Frontend\Nodes\Lighting\Indirect</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_VolumetricLighting.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Lighting\Volumetric</Filter>
+      <Filter>Frontend\Nodes\Lighting\Volumetric</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_ShadowMapGen.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Shadows\PointSpot</Filter>
+      <Filter>Frontend\Nodes\Shadows\PointSpot</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_ScreenSpaceAmbientOcclusion.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\SSAO</Filter>
+      <Filter>Frontend\Nodes\PostProcess\SSAO</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_ScreenSpaceReflection.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\SSR</Filter>
+      <Filter>Frontend\Nodes\PostProcess\SSR</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_ScreenSpaceShadow.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Shadows\ScreenSpace</Filter>
+      <Filter>Frontend\Nodes\Shadows\ScreenSpace</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_SMAA.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\PostProcess\AA</Filter>
+      <Filter>Frontend\Nodes\PostProcess\AA</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_DepthPrepass.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Lighting\Direct</Filter>
+      <Filter>Frontend\Nodes\Lighting\Direct</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_DrawSky.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\Lighting\Direct</Filter>
+      <Filter>Frontend\Nodes\Lighting\Direct</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_OverlayRender.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\UI</Filter>
+      <Filter>Frontend\Nodes\UI</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_TextRender.cpp">
-      <Filter>Frontend\Nodes\ForwardRenderer\UI</Filter>
+      <Filter>Frontend\Nodes\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_Blend.cpp">
+      <Filter>Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="Nodes\Node_BlendWithTransform.cpp">
+      <Filter>Resources</Filter>
     </ClCompile>
     <ClCompile Include="Nodes\Node_RenderOverlay.cpp">
-      <Filter>Frontend\Nodes\Drawing</Filter>
+      <Filter>Resources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -701,168 +695,6 @@
     </None>
     <None Include="Materials\simple_diffuse.mtl.hlsl">
       <Filter>Materials</Filter>
-    </None>
-    <None Include="Nodes\Shaders\DOFMain.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\VoxelVisualizer.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\VoxelMipmap.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\Blend.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\BlendWithTransform.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\BloomAdd.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\BloomBlur.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\BloomDownsample.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\BrightLumPass.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\CSM.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\CSMSample.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\DebugDraw.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\DepthPrepass.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\DepthReduction.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\DepthReductionFinal.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\DOFNeighborMax.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\DOFPostfilter.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\DOFPrepare.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\DOFTileMax.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\DOFUpsample.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\DrawSky.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\EncodeVelocity.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\HDRCombine.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\LensFlare.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\LightCulling.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\LightingUniforms.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\LuminanceReduction.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\LuminanceReductionFinal.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\MotionBlur.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\NeighborMax.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\OverlayColored.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\OverlayTextured.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\PbrBrdf.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\PointLightShadowMapSample.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\RenderToBackbuffer.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\ScreenSpaceAmbientOcclusion.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\ScreenSpaceReflection.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\ScreenSpaceShadow.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\SDFCulling.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\ShadowGen.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\SMAA.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\SMAABlendingWeights.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\SMAAEdgeDetection.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\SMAANeighborhoodBlending.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\SsaoBilateralHorizontalBlur.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\SsaoBilateralVerticalBlur.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\SsrBlur.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\SsrDownsample.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\TextRender.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\TiledLighting.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\TileMax.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\VolumetricLighting.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\Voxelization.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
-    </None>
-    <None Include="Nodes\Shaders\VoxelLightInjectionCSM.hlsl">
-      <Filter>Frontend\Nodes\Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>
