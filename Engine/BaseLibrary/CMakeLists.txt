@@ -40,3 +40,6 @@ source_group("Platform\\Win32" FILES ${src_platform_win32})
 source_group("Serialization" FILES ${src_serialization})
 
 # Dependencies
+target_link_libraries(BaseLibrary
+	$<IF:${TARGET_PLATFORM_WINDOWS},dbghelp,>
+)

@@ -112,10 +112,6 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_backBufferHeap = std::make_unique<BackBufferManager>(m_graphicsApi, m_swapChain.get());
 
 	// Init shader manager before creating the pipeline
-	m_shaderManager.AddSourceDirectory("../../Engine/GraphicsEngine_LL/Nodes/Shaders");
-	m_shaderManager.AddSourceDirectory("../../Engine/GraphicsEngine_LL/Materials");
-	m_shaderManager.AddSourceDirectory("./Shaders");
-	m_shaderManager.AddSourceDirectory("./Materials");
 	gxapi::eShaderCompileFlags shaderFlags;
 	shaderFlags += gxapi::eShaderCompileFlags::ROW_MAJOR_MATRICES;
 #ifdef NDEBUG
@@ -128,10 +124,6 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 
 	// Register nodes
 	RegisterPipelineClasses();
-
-	// Do more stuff...
-	//CreatePipeline();
-	//m_scheduler.SetPipeline(std::move(m_pipeline));
 
 	// Init logger
 	m_logStreamGeneral = m_logger->CreateLogStream("General");
@@ -409,6 +401,14 @@ void GraphicsEngine::LoadPipeline(const std::string& graphDesc) {
 	m_pipeline = std::move(pipeline);
 	DumpPipelineGraph(m_pipeline, "pipeline_graph.dot");
 	m_scheduler.SetPipeline(std::move(m_pipeline));
+}
+
+
+void GraphicsEngine::SetShaderDirectories(const std::vector<std::experimental::filesystem::path>& directories) {
+	m_shaderManager.ClearSourceDirectories();
+	for (auto directory : directories) {
+		m_shaderManager.AddSourceDirectory(directory);
+	}
 }
 
 

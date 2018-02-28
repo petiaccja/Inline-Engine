@@ -25,6 +25,8 @@
 
 #include <BaseLibrary/Any.hpp>
 
+#include <filesystem>
+
 #undef CreateFont // Fuck goddamn winapi -.-
 
 
@@ -143,6 +145,9 @@ public:
 
 	/// <summary> Load the pipeline from the JSON node graph description. </summary>
 	void LoadPipeline(const std::string& nodes);
+
+	/// <summary> The engine will look for shader files in these directories. </summary>
+	void SetShaderDirectories(const std::vector<std::experimental::filesystem::path>& directories);
 private:
 	//void CreatePipeline();
 	void RegisterPipelineClasses();

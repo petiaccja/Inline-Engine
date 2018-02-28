@@ -149,6 +149,9 @@ public:
 	/// <remarks> This method is thread-safe. </remarks>
 	void RemoveSourceDirectory(std::experimental::filesystem::path directory);
 
+	/// <summary> Removes all added source directories. </summary>
+	void ClearSourceDirectories();
+
 	/// <summary> Query source directories currently in use. </summary> 
 	/// <returns> Iterator to the beginning and end of the range containing shader directories. </returns>
 	/// <remarks> This method is NOT thread-safe,
@@ -163,6 +166,9 @@ public:
 	/// <summary> Removes a source code to the list. </summary> 
 	/// <remarks> This method is thread-safe. </remarks>
 	void RemoveSourceCode(const std::string& name);
+
+	/// <summary> Removes all added source codes. </summary>
+	void ClearSourceCodes();
 
 	/// <summary> Query source codes currently in use. </summary>
 	/// <returns> Iterator to the beginning and end of the range containing source codes. </returns>

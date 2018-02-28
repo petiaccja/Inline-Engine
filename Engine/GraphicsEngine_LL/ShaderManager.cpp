@@ -36,6 +36,12 @@ void ShaderManager::RemoveSourceDirectory(std::experimental::filesystem::path di
 	m_directories.erase(directory);
 }
 
+void ShaderManager::ClearSourceDirectories() {
+	std::unique_lock<std::shared_mutex> lkg(m_sourceMutex);
+
+	m_directories.clear();
+}
+
 auto ShaderManager::GetSourceDirectories() const -> std::pair<PathContainer::const_iterator, PathContainer::const_iterator> {
 	return{ m_directories.begin(), m_directories.end() };
 }
@@ -51,6 +57,12 @@ void ShaderManager::RemoveSourceCode(const std::string& name) {
 	std::unique_lock<std::shared_mutex> lkg(m_sourceMutex);
 
 	m_codes.erase(name);
+}
+
+void ShaderManager::ClearSourceCodes() {
+	std::unique_lock<std::shared_mutex> lkg(m_sourceMutex);
+
+	m_codes.clear();
 }
 
 auto ShaderManager::GetSourceCodes() const ->std::pair<CodeContainer::const_iterator, CodeContainer::const_iterator> {

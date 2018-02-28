@@ -20,3 +20,9 @@ endif()
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	set(TARGET_COMPILER_MSVC 1)
 endif()
+
+
+# Check if compiler is good enough
+if (TARGET_COMPILER_MSVC)
+
+endif()
