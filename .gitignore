@@ -9,6 +9,13 @@ pipeline_graph.dot
 pipeline_out_json.json
 pipeline_out.json
 
+##------------------------------------------------------------------------------
+## Ignore CLion files
+##------------------------------------------------------------------------------
+
+cmake-build*
+.idea
+
 
 ##------------------------------------------------------------------------------
 ## Ignore Visual Studio temporary files, build results, and
