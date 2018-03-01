@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
 		// Load graphics pipeline
 		std::string pipelineFileName = SelectPipeline(gxapi.get());
 		std::string exeDir = System::GetExecutableDir();
-		std::ifstream pipelineFile(exeDir + "\\" + pipelineFileName);
+		std::ifstream pipelineFile(INL_PIPELINE_DIRECTORY "\\" + pipelineFileName);
 		if (!pipelineFile.is_open()) {
 			throw FileNotFoundException("Failed to open pipeline JSON.");
 		}
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	if (!qcWorld) {
-		throw std::logic_error("Failed to create engine so I'm just throwing this from main() to trigger show log.");
+		return 0;
 	}
 
 

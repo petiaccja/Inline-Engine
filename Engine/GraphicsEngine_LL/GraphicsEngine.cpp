@@ -112,10 +112,6 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_backBufferHeap = std::make_unique<BackBufferManager>(m_graphicsApi, m_swapChain.get());
 
 	// Init shader manager before creating the pipeline
-	m_shaderManager.AddSourceDirectory("../../Engine/GraphicsEngine_LL/Nodes/Shaders");
-	m_shaderManager.AddSourceDirectory("../../Engine/GraphicsEngine_LL/Materials");
-	m_shaderManager.AddSourceDirectory("./Shaders");
-	m_shaderManager.AddSourceDirectory("./Materials");
 	gxapi::eShaderCompileFlags shaderFlags;
 	shaderFlags += gxapi::eShaderCompileFlags::ROW_MAJOR_MATRICES;
 #ifdef NDEBUG
@@ -128,10 +124,6 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 
 	// Register nodes
 	RegisterPipelineClasses();
-
-	// Do more stuff...
-	//CreatePipeline();
-	//m_scheduler.SetPipeline(std::move(m_pipeline));
 
 	// Init logger
 	m_logStreamGeneral = m_logger->CreateLogStream("General");
@@ -155,8 +147,7 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 
 GraphicsEngine::~GraphicsEngine() {
 	std::cout << "Graphics engine shutting down..." << std::endl;
-	SyncPoint lastSync = m_masterCommandQueue.Signal();
-	lastSync.Wait();
+	FlushPipelineQueue();
 	std::cout << "Graphics engine deleting..." << std::endl;
 }
 
@@ -228,8 +219,7 @@ void GraphicsEngine::SetScreenSize(unsigned width, unsigned height) {
 		return;
 	}
 
-	SyncPoint sp = m_masterCommandQueue.Signal();
-	sp.Wait();
+	FlushPipelineQueue();
 
 	m_backBufferHeap.reset();
 	m_scheduler.ReleaseResources();
@@ -393,6 +383,8 @@ const Any& GraphicsEngine::GetEnvVariable(const std::string& name) {
 
 
 void GraphicsEngine::LoadPipeline(const std::string& graphDesc) {
+	FlushPipelineQueue();
+
 	Pipeline pipeline;
 	pipeline.CreateFromDescription(graphDesc, m_nodeFactory);
 
@@ -409,6 +401,20 @@ void GraphicsEngine::LoadPipeline(const std::string& graphDesc) {
 	m_pipeline = std::move(pipeline);
 	DumpPipelineGraph(m_pipeline, "pipeline_graph.dot");
 	m_scheduler.SetPipeline(std::move(m_pipeline));
+}
+
+
+void GraphicsEngine::SetShaderDirectories(const std::vector<std::experimental::filesystem::path>& directories) {
+	m_shaderManager.ClearSourceDirectories();
+	for (auto directory : directories) {
+		m_shaderManager.AddSourceDirectory(directory);
+	}
+}
+
+
+void GraphicsEngine::FlushPipelineQueue() {
+	SyncPoint lastSync = m_masterCommandQueue.Signal();
+	lastSync.Wait();
 }
 
 

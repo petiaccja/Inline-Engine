@@ -6,7 +6,7 @@
 
 #include <GraphicsEngine_LL\GraphicsEngine.hpp>
 #include <GraphicsEngine_LL\Scene.hpp>
-#include <PhysicsEngine\Bullet\Scene.hpp>
+#include <PhysicsEngineBullet\Scene.hpp>
 
 // TMP !!
 #include <GraphicsEngine_LL\DirectionalLight.hpp>

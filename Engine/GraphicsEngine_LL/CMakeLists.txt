@@ -333,8 +333,8 @@ set(all_the_files
 )
 	
 file(GLOB_RECURSE all_the_rest RELATIVE ${CMAKE_CURRENT_LIST_DIR} "*.?pp" "*.hlsl")
-list(REMOVE_ITEM all_the_rest ${all_the_files})
 set(all_the_rest_hlsl ${all_the_rest})
+list(REMOVE_ITEM all_the_rest ${all_the_files})
 list(FILTER all_the_rest_hlsl INCLUDE REGEX ".*\.hlsl")
 
 # Target
@@ -342,7 +342,6 @@ add_library(GraphicsEngine_LL STATIC
 	${all_the_files}
 	${all_the_rest}
 )
-set_source_files_properties(${mtlshaders} PROPERTIES VS_TOOL_OVERRIDE "None")
 set_source_files_properties(${all_the_rest_hlsl} PROPERTIES VS_TOOL_OVERRIDE "None")
 
 # Filters
@@ -382,5 +381,18 @@ source_group("Frontend\\Nodes\\Utility" FILES ${node_util})
 source_group("Frontend\\Nodes\\!!!Deprecated!!!" FILES ${node_deprecated})
 
 source_group("!!!PleaseGroupThese!!!" FILES ${all_the_rest})
+
+
+# Dependencies
+target_link_libraries(GraphicsEngine_LL
+	BaseLibrary
+	GraphicsApi_D3D12
+	
+	debug ${EXTERNALS_LIB_DEBUG}/freetype.lib
+	optimized ${EXTERNALS_LIB_RELEASE}/freetype.lib
+	debug ${EXTERNALS_LIB_DEBUG}/lemon.lib
+	optimized ${EXTERNALS_LIB_RELEASE}/lemon.lib
+)
+	
 
 

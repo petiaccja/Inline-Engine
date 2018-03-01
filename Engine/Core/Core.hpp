@@ -7,7 +7,7 @@
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
 #include <BaseLibrary/Platform/Window.hpp>
-#include <PhysicsEngine/Bullet/PhysicsEngineBullet.hpp>
+#include <PhysicsEngineBullet/PhysicsEngineBullet.hpp>
 
 #include "InputCore.hpp"
 #include "ActorScript.hpp"

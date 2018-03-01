@@ -13,10 +13,21 @@ inline float rand2() {
 	return (rand() / float(RAND_MAX)) * 2 - 1;
 }
 
+#ifndef INL_ASSET_DIRECTORY
+#define INL_ASSET_DIRECTORY "assets"
+#endif
+#ifndef INL_NODE_SHADER_DIRECTORY
+#define INL_NODE_SHADER_DIRECTORY "../../Engine/GraphicsEngine_LL/Nodes/Shaders"
+#endif
+#ifndef INL_MTL_SHADER_DIRECTORY
+#define INL_MTL_SHADER_DIRECTORY "../../Engine/GraphicsEngine_LL/Materials"
+#endif
+
 QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	using namespace inl::gxeng;
 
 	m_graphicsEngine = graphicsEngine;
+	m_graphicsEngine->SetShaderDirectories({ INL_NODE_SHADER_DIRECTORY, INL_MTL_SHADER_DIRECTORY, "./Shaders", "./Materials" });
 
 	//Create gui
 	{
@@ -43,7 +54,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_overlayQuadMesh->Set(vertices.data(), &vertices[0].GetReader(), vertices.size(), indices.data(), indices.size());
 
 		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
-		inl::asset::Image img("assets\\overlay.png");
+		inl::asset::Image img(AssetPath("overlay.png"));
 		m_overlayTexture.reset(m_graphicsEngine->CreateImage());
 		m_overlayTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR);
 		m_overlayTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
@@ -91,7 +102,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 	// Create terrain mesh
 	{
-		inl::asset::Model model("assets\\terrain.fbx");
+		inl::asset::Model model(AssetPath("terrain.fbx"));
 
 		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0, coordSysLayout);
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
@@ -103,7 +114,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	// Create terrain texture
 	{
 		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
-		inl::asset::Image img("assets\\terrain.jpg");
+		inl::asset::Image img(AssetPath("terrain.jpg"));
 
 		m_terrainTexture.reset(m_graphicsEngine->CreateImage());
 		m_terrainTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
@@ -112,7 +123,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 	// Create sphere mesh
 	{
-		inl::asset::Model model("assets\\sphere\\sphere.fbx");
+		inl::asset::Model model(AssetPath("sphere\\sphere.fbx"));
 
 		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0, coordSysLayout);
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
@@ -124,7 +135,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	// Create sphere albedo texture
 	{
 		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR>;
-		inl::asset::Image img("assets\\sphere\\rustedIronAlbedo.png");
+		inl::asset::Image img(AssetPath("sphere\\rustedIronAlbedo.png"));
 
 		m_sphereAlbedoTex.reset(m_graphicsEngine->CreateImage());
 		m_sphereAlbedoTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 4, ePixelClass::LINEAR);
@@ -134,7 +145,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	// Create sphere normal texture
 	{
 		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
-		inl::asset::Image img("assets\\sphere\\rustedIronNormal.png");
+		inl::asset::Image img(AssetPath("sphere\\rustedIronNormal.png"));
 
 		m_sphereNormalTex.reset(m_graphicsEngine->CreateImage());
 		m_sphereNormalTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
@@ -144,7 +155,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	// Create sphere metalness texture
 	{
 		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR>;
-		inl::asset::Image img("assets\\sphere\\rustedIronMetalness.png");
+		inl::asset::Image img(AssetPath("sphere\\rustedIronMetalness.png"));
 
 		m_sphereMetalnessTex.reset(m_graphicsEngine->CreateImage());
 		m_sphereMetalnessTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR);
@@ -154,7 +165,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	// Create sphere roughness texture
 	{
 		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR>;
-		inl::asset::Image img("assets\\sphere\\rustedIronRoughness.png");
+		inl::asset::Image img(AssetPath("sphere\\rustedIronRoughness.png"));
 
 		m_sphereRoughnessTex.reset(m_graphicsEngine->CreateImage());
 		m_sphereRoughnessTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR);
@@ -164,7 +175,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	// Create sphere AO texture
 	{
 		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
-		inl::asset::Image img("assets\\sphere\\rustedIronAO.png");
+		inl::asset::Image img(AssetPath("sphere\\rustedIronAO.png"));
 
 		m_sphereAOTex.reset(m_graphicsEngine->CreateImage());
 		m_sphereAOTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
@@ -173,7 +184,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 	// Create QC mesh
 	{
-		inl::asset::Model model("assets\\quadcopter.fbx");
+		inl::asset::Model model(AssetPath("quadcopter.fbx"));
 
 		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0, coordSysLayout);
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
@@ -185,7 +196,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	// Create QC texture
 	{
 		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
-		inl::asset::Image img("assets\\axes.jpg");
+		inl::asset::Image img(AssetPath("axes.jpg"));
 
 		m_axesTexture.reset(m_graphicsEngine->CreateImage());
 		m_axesTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
@@ -194,7 +205,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 	// Create axes mesh
 	{
-		inl::asset::Model model("assets\\axes.fbx");
+		inl::asset::Model model(AssetPath("axes.fbx"));
 
 		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0, { inl::asset::AxisDir::POS_Z, inl::asset::AxisDir::POS_Y, inl::asset::AxisDir::POS_X });
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
@@ -206,7 +217,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	// Create axes texture
 	{
 		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
-		inl::asset::Image img("assets\\quadcopter.jpg");
+		inl::asset::Image img(AssetPath("quadcopter.jpg"));
 
 		m_quadcopterTexture.reset(m_graphicsEngine->CreateImage());
 		m_quadcopterTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
@@ -215,7 +226,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 	// Create tree mesh
 	{
-		inl::asset::Model model("assets\\pine_tree.fbx");
+		inl::asset::Model model(AssetPath("pine_tree.fbx"));
 
 		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0, coordSysLayout);
 		std::vector<unsigned> modelIndices = model.GetIndices(0);
@@ -227,7 +238,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	// Create tree texture
 	{
 		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
-		inl::asset::Image img("assets\\pine_tree.jpg");
+		inl::asset::Image img(AssetPath("pine_tree.jpg"));
 
 		m_treeTexture.reset(m_graphicsEngine->CreateImage());
 		m_treeTexture->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
@@ -610,7 +621,7 @@ void QCWorld::CreatePipelineResources()
 
 	{
 		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR>;
-		inl::asset::Image img("assets\\lensFlare\\lens_color.png");
+		inl::asset::Image img(AssetPath("lensFlare\\lens_color.png"));
 
 		m_lensFlareColorImage.reset(this->m_graphicsEngine->CreateImage());
 		m_lensFlareColorImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
@@ -621,7 +632,7 @@ void QCWorld::CreatePipelineResources()
 
 	{
 		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR>;
-		inl::asset::Image img("assets\\colorGrading\\default_lut_table.png");
+		inl::asset::Image img(AssetPath("colorGrading\\default_lut_table.png"));
 
 		m_colorGradingLutImage.reset(this->m_graphicsEngine->CreateImage());
 		m_colorGradingLutImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 3, gxeng::ePixelClass::LINEAR);
@@ -635,7 +646,7 @@ void QCWorld::CreatePipelineResources()
 
 	{
 		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR>;
-		inl::asset::Image img("assets\\lensFlare\\lens_dirt.png");
+		inl::asset::Image img(AssetPath("lensFlare\\lens_dirt.png"));
 
 		m_lensFlareDirtImage.reset(this->m_graphicsEngine->CreateImage());
 		m_lensFlareDirtImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
@@ -646,7 +657,7 @@ void QCWorld::CreatePipelineResources()
 
 	{
 		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR>;
-		inl::asset::Image img("assets\\lensFlare\\lens_star.png");
+		inl::asset::Image img(AssetPath("lensFlare\\lens_star.png"));
 
 		m_lensFlareStarImage.reset(this->m_graphicsEngine->CreateImage());
 		m_lensFlareStarImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
@@ -657,7 +668,7 @@ void QCWorld::CreatePipelineResources()
 
 	{
 		using PixelT = gxeng::Pixel<gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR>;
-		inl::asset::Image img("assets\\font\\courier_new_0.png");
+		inl::asset::Image img(AssetPath("font\\courier_new_0.png"));
 
 		m_fontImage.reset(this->m_graphicsEngine->CreateImage());
 		m_fontImage->SetLayout(img.GetWidth(), img.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
@@ -668,7 +679,7 @@ void QCWorld::CreatePipelineResources()
 
 	{
 		std::fstream f;
-		f.open("assets\\font\\courier_new.fnt", std::ios::in | std::ios::binary | std::ios::ate);
+		f.open(AssetPath("font\\courier_new.fnt"), std::ios::in | std::ios::binary | std::ios::ate);
 		if (f.is_open())
 		{
 			size_t size = f.tellg();
@@ -681,4 +692,8 @@ void QCWorld::CreatePipelineResources()
 
 		this->m_graphicsEngine->SetEnvVariable("TextRender_fontBinary", inl::Any{ m_fontBinary.get() });
 	}
+}
+
+std::string QCWorld::AssetPath(std::string name) const {
+	return INL_ASSET_DIRECTORY "\\" + std::move(name);
 }
