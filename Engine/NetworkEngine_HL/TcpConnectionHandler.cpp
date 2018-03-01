@@ -165,7 +165,6 @@ namespace inl::net::servers
 				std::unique_ptr<NetworkHeader> net_header((NetworkHeader*)header.get());
 				std::unique_ptr<uint8_t> buffer(new uint8_t[net_header->Size]());
 
-				int32_t read;
 				if ((read = recv(c, (char*)buffer.get(), net_header->Size, 0)) == net_header->Size)
 				{
 					NetworkMessage msg;

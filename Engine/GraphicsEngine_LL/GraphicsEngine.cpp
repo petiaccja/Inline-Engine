@@ -147,8 +147,7 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 
 GraphicsEngine::~GraphicsEngine() {
 	std::cout << "Graphics engine shutting down..." << std::endl;
-	SyncPoint lastSync = m_masterCommandQueue.Signal();
-	lastSync.Wait();
+	FlushPipelineQueue();
 	std::cout << "Graphics engine deleting..." << std::endl;
 }
 
@@ -220,8 +219,7 @@ void GraphicsEngine::SetScreenSize(unsigned width, unsigned height) {
 		return;
 	}
 
-	SyncPoint sp = m_masterCommandQueue.Signal();
-	sp.Wait();
+	FlushPipelineQueue();
 
 	m_backBufferHeap.reset();
 	m_scheduler.ReleaseResources();
@@ -385,6 +383,8 @@ const Any& GraphicsEngine::GetEnvVariable(const std::string& name) {
 
 
 void GraphicsEngine::LoadPipeline(const std::string& graphDesc) {
+	FlushPipelineQueue();
+
 	Pipeline pipeline;
 	pipeline.CreateFromDescription(graphDesc, m_nodeFactory);
 
@@ -409,6 +409,12 @@ void GraphicsEngine::SetShaderDirectories(const std::vector<std::experimental::f
 	for (auto directory : directories) {
 		m_shaderManager.AddSourceDirectory(directory);
 	}
+}
+
+
+void GraphicsEngine::FlushPipelineQueue() {
+	SyncPoint lastSync = m_masterCommandQueue.Signal();
+	lastSync.Wait();
 }
 
 

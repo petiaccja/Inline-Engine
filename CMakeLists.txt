@@ -33,15 +33,22 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Properties applied to all targets
 include_directories("${CMAKE_CURRENT_LIST_DIR}/Engine")
+include_directories("${EXTERNALS_INCLUDE}/Bullet") # because Bullet is retarded...
 
 
 # Add additional folders
 add_subdirectory(Engine)
 add_subdirectory(Test)
+add_subdirectory(Executables)
 
 
 # Add custom target containing global files
-add_custom_target(Files SOURCES CMakeLists.txt Paths.cmake GetPlatform.cmake "${EXTERNALS_INCLUDE}/Mathter/Mathter.natvis")
+add_custom_target(Files SOURCES 
+	CMakeLists.txt
+	Paths.cmake
+	GetPlatform.cmake
+	CopyRuntime.cmake
+	"${EXTERNALS_INCLUDE}/Mathter/Mathter.natvis")
 set_target_properties(Files PROPERTIES FOLDER Files)
 
 
@@ -50,9 +57,16 @@ set_target_properties(BaseLibrary PROPERTIES FOLDER Modules)
 set_target_properties(GraphicsApi_D3D12 PROPERTIES FOLDER Modules)
 set_target_properties(GraphicsEngine_LL PROPERTIES FOLDER Modules)
 set_target_properties(AssetLibrary PROPERTIES FOLDER Modules)
+set_target_properties(GuiEngine PROPERTIES FOLDER Modules)
+set_target_properties(Core PROPERTIES FOLDER Modules)
+set_target_properties(NetworkEngine PROPERTIES FOLDER Modules)
+set_target_properties(NetworkApi PROPERTIES FOLDER Modules)
+set_target_properties(PhysicsEngineBullet PROPERTIES FOLDER Modules)
 
 set_target_properties(Test_General PROPERTIES FOLDER Test)
 set_target_properties(QC_Simulator PROPERTIES FOLDER Test)
 set_target_properties(Test_Unit PROPERTIES FOLDER Test)
+
+set_target_properties(Editor PROPERTIES FOLDER Executables)
 
 

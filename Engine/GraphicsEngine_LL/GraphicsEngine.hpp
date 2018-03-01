@@ -103,10 +103,23 @@ public:
 
 
 	// Update scene
+
+	/// <summary> Redraws the entire screen. </summary>
+	/// <param name="elapsed"> Time since last frame in seconds. </param>
 	void Update(float elapsed);
+
+	/// <summary> Rescales the backbuffer. </summary>
+	/// <remarks> Causes a pipeline flush, high overhead. </remarks>
 	void SetScreenSize(unsigned width, unsigned height);
+
+	/// <summary> Returns the current backbuffer size in the out parameters. </remarks>
 	void GetScreenSize(unsigned& width, unsigned& height);
+
+	/// <summary> Sets the D3D swap chain to full-screen mode. </summary>
+	/// <param name="enable"> True to full screen, false to windowed. </param>
 	void SetFullScreen(bool enable);
+
+	/// <summary> True if the swap chain is currently in full-screen mode. </summary>
 	bool GetFullScreen() const;
 
 
@@ -144,12 +157,17 @@ public:
 	const Any& GetEnvVariable(const std::string& name);
 
 	/// <summary> Load the pipeline from the JSON node graph description. </summary>
+	/// <remarks> Tears down all the resources associated with the old pipeline, including
+	///		textures, render targets, etc., and builds up the new pipeline.
+	///		Also incurs a pipeline queue flush. Use it only when settings change,
+	///		use env vars to control pipeline behaviour on the fly.
 	void LoadPipeline(const std::string& nodes);
 
 	/// <summary> The engine will look for shader files in these directories. </summary>
+	/// <remarks> May be absolute, relative, or whatever paths you OS can handle. </remarks>
 	void SetShaderDirectories(const std::vector<std::experimental::filesystem::path>& directories);
 private:
-	//void CreatePipeline();
+	void FlushPipelineQueue();
 	void RegisterPipelineClasses();
 	static std::vector<GraphicsNode*> SelectSpecialNodes(Pipeline& pipeline);
 	void UpdateSpecialNodes();
