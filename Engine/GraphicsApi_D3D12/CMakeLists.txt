@@ -18,4 +18,6 @@ target_link_libraries(GraphicsApi_D3D12
 	d3d12
 	dxgi
 	d3dcompiler.lib
+	debug ${EXTERNALS_LIB_DEBUG}/WinPixEventRuntime.lib
+	optimized ${EXTERNALS_LIB_RELEASE}/WinPixEventRuntime.lib
 )

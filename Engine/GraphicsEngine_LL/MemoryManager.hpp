@@ -70,7 +70,7 @@ public:
 	/// <summary>
 	/// Makes given resources resident.
 	/// </summary>
-	/// <exception cref="inl::gxapi::OutOfMemory">
+	/// <exception cref="inl::gxapi::OutOfMemoryException">
 	/// If there is not enough free memory in the resource's appropriate
 	/// memory pool for the resource to fit in.
 	/// </exception>

@@ -105,7 +105,7 @@ void OverlayRender::Execute(RenderContext& context) {
 
 	Mat44 view = m_camera->GetViewMatrix();
 	Mat44 projection = m_camera->GetProjectionMatrix();
-	auto viewProjection = projection * view;
+	auto viewProjection = Mat44::Identity(); // view*projection;
 
 	std::vector<const gxeng::VertexBuffer*> vertexBuffers;
 	std::vector<unsigned> sizes;
@@ -121,12 +121,12 @@ void OverlayRender::Execute(RenderContext& context) {
 
 		Mat44 world = Mat44::Identity();
 		world.Submatrix<3,3>(0,0) = entity->GetTransform();
-		auto MVP = viewProjection * world;
+		auto MVP = world*viewProjection;
 
 		Mat44_Packed transformCBData = MVP;
 
-		auto renderType = entity->GetSurfaceType();
-		if (renderType == OverlayEntity::COLORED) {
+		
+		if (!entity->GetTexture()) {
 			auto color = entity->GetColor();
 			if (color.w == 0.f) {
 				continue;
@@ -141,7 +141,6 @@ void OverlayRender::Execute(RenderContext& context) {
 			commandList.BindGraphics(m_coloredPipeline.colorParam, colorCBData.data, sizeof(colorCBData));
 		}
 		else {
-			assert(renderType == OverlayEntity::TEXTURED);
 			commandList.SetPipelineState(m_texturedPipeline.pso.get());
 			commandList.SetGraphicsBinder(&m_texturedPipeline.binder.value());
 			commandList.SetResourceState(entity->GetTexture()->GetSrv().GetResource(), 

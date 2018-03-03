@@ -66,19 +66,35 @@ public:
 	/// Different MemoryObject instances are equal if one is the copy of the other. </summary>
 	bool operator==(const MemoryObject&) const;
 
+	/// <summary> Returns true if the operands do not refer to the same resource,
+	///		or if one of them is empty. </summary>
+	bool operator!=(const MemoryObject& rhs) const { return !(*this == rhs); }
+
+
+	/// <summary> True if there is an actual GPU resource behind this object. False
+	///		if this object has not been initialized yet. </summary>
 	explicit operator bool() const {
 		return (bool)m_contents;
 	}
 
+	/// <summary> True if there is an actual GPU resource behind this object. False
+	///		if this object has not been initialized yet. </summary>
 	bool HasObject() const {
 		return (bool)m_contents;
 	}
 	
+	/// <summary> Return the virtual address of the GPU resource behind this object. </summary>
 	void* GetVirtualAddress() const;
+
+	/// <summary> Returns the description of the GPU resource as given by the underlying GxApi. </summary>
 	gxapi::ResourceDesc GetDescription() const;
 
 	/// <summary> Sets the name of the resource. Only for debug purposes. </summary>
+	/// <remarks> You can easily identify the resources by their name in D3D debug output. </remarks>
 	void SetName(const std::string& name);
+
+	/// <summary> Sets the name of the resource. Only for debug purposes. </summary>
+	/// <remarks> You can easily identify the resources by their name in D3D debug output. </remarks>
 	void SetName(const char* name);
 
 	/// <summary> Records the current state of the resource. Does not change resource state, only used for tracking it. </summary>
@@ -88,7 +104,10 @@ public:
 	/// <summary> Returns the current tracked state. </summary>
 	gxapi::eResourceState ReadState(unsigned subresource) const;
 
+	/// <summary> The total number of subresources, equals mipCount*arrayCount*planeCount. </summary>
 	unsigned GetNumSubresources() const { return (unsigned)m_contents->resource->GetNumSubresources(); }
+
+	/// <summary> Returns the number of mip levels. One if not applicable (e.g. for buffers). </summary>
 	unsigned GetNumMiplevels() const { return (unsigned)m_contents->resource->GetNumMipLevels(); }
 
 

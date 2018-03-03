@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <d3d12.h>
+#include <WinPixEventRuntime/pix3.h>
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
 
 namespace inl {
@@ -52,6 +53,15 @@ void CommandQueue::Wait(gxapi::IFence* fence, uint64_t value) {
 
 gxapi::CommandQueueDesc CommandQueue::GetDesc() const {
 	return native_cast(m_native->GetDesc());
+}
+
+
+void CommandQueue::BeginDebuggerEvent(const std::string& name) const {
+	PIXBeginEvent(m_native.Get(), PIX_COLOR_DEFAULT, name.c_str());
+}
+
+void CommandQueue::EndDebuggerEvent() const {
+	PIXEndEvent(m_native.Get());
 }
 
 

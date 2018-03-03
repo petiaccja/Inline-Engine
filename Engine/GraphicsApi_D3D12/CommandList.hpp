@@ -9,6 +9,7 @@
 #define NOMINMAX
 #include <wrl.h>
 #include <d3d12.h>
+#include <WinPixEventRuntime/pix3.h>
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
 
 #pragma warning(disable: 4250)
@@ -37,7 +38,10 @@ public:
 	ID3D12CommandList* GetNativeGenericList();
 	ID3D12GraphicsCommandList* GetNative();
 
-	virtual gxapi::eCommandListType GetType() const override;
+	gxapi::eCommandListType GetType() const override;
+
+	void BeginDebuggerEvent(const std::string& name) const override;
+	void EndDebuggerEvent() const override;
 protected:
 	ComPtr<ID3D12GraphicsCommandList> m_native;
 };

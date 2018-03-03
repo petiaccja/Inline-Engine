@@ -24,6 +24,9 @@ public:
 	virtual void Wait(IFence* fence, uint64_t value) = 0;
 
 	virtual CommandQueueDesc GetDesc() const = 0;
+
+	virtual void BeginDebuggerEvent(const std::string& name) const = 0;
+	virtual void EndDebuggerEvent() const = 0;
 };
 
 } // namespace gxapi

@@ -40,6 +40,15 @@ gxapi::eCommandListType BasicCommandList::GetType() const {
 }
 
 
+void BasicCommandList::BeginDebuggerEvent(const std::string& name) const {
+	PIXBeginEvent(m_native.Get(), PIX_COLOR_DEFAULT, name.c_str());
+}
+
+void BasicCommandList::EndDebuggerEvent() const {
+	PIXEndEvent(m_native.Get());
+}
+
+
 //------------------------------------------------------------------------------
 // Copy command list
 //------------------------------------------------------------------------------

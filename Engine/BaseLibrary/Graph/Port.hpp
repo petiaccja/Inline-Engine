@@ -165,7 +165,7 @@ public:
 	void SetConvert(const U& u);
 
 	/// <summary> Converts underlying data to string using it's &lt;&lt; operator </summary>
-	/// <exception cref="InvalidCallException"> If no ostream operator available. </summary> 
+	/// <exception cref="InvalidCallException"> If no ostream operator available. </exception> 
 	virtual std::string ToString() const = 0;
 protected:
 	OutputPortBase* link;
@@ -189,6 +189,7 @@ private:
 /// is forwarded to connected input ports. An output port can be linked
 /// to multiple input ports at the same time.
 /// </para>
+/// </summary>
 class OutputPortBase {
 public:
 	using LinkIterator = std::set<InputPortBase*>::iterator;

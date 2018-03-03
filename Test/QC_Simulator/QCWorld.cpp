@@ -63,7 +63,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 		element.reset(m_graphicsEngine->CreateOverlayEntity());
 		element->SetMesh(m_overlayQuadMesh.get());
-		element->SetScale({ (float)img.GetWidth()*0.75f, (float)img.GetHeight()*0.75f });
+		element->SetScale({ 0.1, 0.1 });
 		element->SetTexture(m_overlayTexture.get());
 		m_overlayElements.push_back(std::move(element));
 

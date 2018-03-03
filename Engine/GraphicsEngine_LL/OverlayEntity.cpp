@@ -19,33 +19,33 @@ Mesh * OverlayEntity::GetMesh() const {
 	return m_mesh;
 }
 
-
-OverlayEntity::eSurfaceType OverlayEntity::GetSurfaceType() const {
-	if (std::holds_alternative<Image*>(m_color)) {
-		return TEXTURED;
-	}
-	return COLORED;
-}
-
-
 void OverlayEntity::SetColor(Vec4 color) {
 	m_color = color;
 }
 
 
 Vec4 OverlayEntity::GetColor() const {
-	return std::get<Vec4>(m_color);
+	return Vec4(m_color);
 }
 
 
 void OverlayEntity::SetTexture(Image * texture) {
-	m_color = texture;
+	m_texture = texture;
 }
 
 
 Image* OverlayEntity::GetTexture() const {
-	return std::get<Image*>(m_color);
+	return m_texture;
 }
+
+
+void OverlayEntity::SetZDepth(float z) {
+	m_zDepth = z;
+}
+float OverlayEntity::GetZDepth() const {
+	return m_zDepth;
+}
+
 
 
 } // namespace inl::gxeng

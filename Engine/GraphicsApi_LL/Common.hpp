@@ -1070,6 +1070,9 @@ struct DepthStencilState {
 	FaceOperations cwFace, ccwFace;
 };
 
+
+/// <summary> Describes the fixed function parts of the GPU pipeline. </summary>
+/// <remarks> Values are filled with sensible defaults. </remarks>
 struct GraphicsPipelineStateDesc {
 	GraphicsPipelineStateDesc()
 		:
@@ -1105,7 +1108,7 @@ struct GraphicsPipelineStateDesc {
 	ePrimitiveTopologyType primitiveTopologyType;
 	eTriangleStripCutIndex triangleStripCutIndex;
 
-	unsigned numRenderTargets;
+	unsigned numRenderTargets; 
 	eFormat renderTargetFormats[8];
 	eFormat depthStencilFormat;
 	unsigned multisampleCount;

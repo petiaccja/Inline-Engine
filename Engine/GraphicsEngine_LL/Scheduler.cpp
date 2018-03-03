@@ -1,10 +1,13 @@
 #include "Scheduler.hpp"
 
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
+#include <BaseLibrary/AtScopeExit.hpp>
 
 #include "GraphicsCommandList.hpp"
 
 #include <cassert>
+#include <typeinfo> // Track render passes.
+#include <regex> // Node typeinfo name prettyfy.
 #include <iostream> // only for debugging
 
 namespace inl {
@@ -61,6 +64,17 @@ void Scheduler::Execute(FrameContext context) {
 
 			// Execute the task on the CPU.
 			if (task != nullptr) {
+				// Mark debug event on command queue.
+				std::string className = typeid(*task).name();
+				size_t idx = className.find("inl::gxeng::");
+				if (idx != className.npos) { className = className.substr(idx+12); }
+				std::stringstream passName;
+				passName << "Node - " << className;
+				context.commandQueue->GetUnderlyingQueue()->BeginDebuggerEvent(passName.str());
+				AtScopeExit endPass([&context] { context.commandQueue->GetUnderlyingQueue()->EndDebuggerEvent(); });
+				
+
+				// Call execute.
 				task->Execute(renderContext);
 
 				// Enqueue all command lists on the GPU.

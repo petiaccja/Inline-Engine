@@ -74,45 +74,45 @@ Texture3D SetupContext::CreateTexture3D(const Texture3DDesc& desc, const Texture
 }
 
 
-TextureView2D SetupContext::CreateSrv(Texture2D& texture, gxapi::eFormat format, gxapi::SrvTexture2DArray desc) const {
+TextureView2D SetupContext::CreateSrv(const Texture2D& texture, gxapi::eFormat format, gxapi::SrvTexture2DArray desc) const {
 	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create srv without srv/cbv/uav heap.");
 
 	return TextureView2D{ texture, *m_srvHeap, format, desc };
 }
 
-TextureViewCube SetupContext::CreateSrv(Texture2D & texture, gxapi::eFormat format, gxapi::SrvTextureCubeArray desc) const {
+TextureViewCube SetupContext::CreateSrv(const Texture2D & texture, gxapi::eFormat format, gxapi::SrvTextureCubeArray desc) const {
 	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create srv without srv/cbv/uav heap.");
 
 	return TextureViewCube{ texture, *m_srvHeap, format, desc };
 }
 
-TextureView3D SetupContext::CreateSrv(Texture3D & texture, gxapi::eFormat format, gxapi::SrvTexture3D desc) const {
+TextureView3D SetupContext::CreateSrv(const Texture3D & texture, gxapi::eFormat format, gxapi::SrvTexture3D desc) const {
 	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create srv without srv/cbv/uav heap.");
 
 	return TextureView3D{ texture, *m_srvHeap, format, desc };
 }
 
-RenderTargetView2D SetupContext::CreateRtv(Texture2D& texture, gxapi::eFormat format, gxapi::RtvTexture2DArray desc) const {
+RenderTargetView2D SetupContext::CreateRtv(const Texture2D& texture, gxapi::eFormat format, gxapi::RtvTexture2DArray desc) const {
 	if (m_rtvHeap == nullptr) throw InvalidStateException("Cannot create rtv without rtv heap.");
 
 	return RenderTargetView2D{ texture, *m_rtvHeap, format, desc };
 }
 
 
-DepthStencilView2D SetupContext::CreateDsv(Texture2D& texture, gxapi::eFormat format, gxapi::DsvTexture2DArray desc) const {
+DepthStencilView2D SetupContext::CreateDsv(const Texture2D& texture, gxapi::eFormat format, gxapi::DsvTexture2DArray desc) const {
 	if (m_dsvHeap == nullptr) throw InvalidStateException("Cannot create dsv without dsv heap.");
 
 	return DepthStencilView2D{ texture, *m_dsvHeap, format, desc };
 }
 
 
-RWTextureView2D SetupContext::CreateUav(Texture2D& rwTexture, gxapi::eFormat format, gxapi::UavTexture2DArray desc) const {
+RWTextureView2D SetupContext::CreateUav(const Texture2D& rwTexture, gxapi::eFormat format, gxapi::UavTexture2DArray desc) const {
 	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create uav wihtout srv/cbv/uav heap.");
 
 	return RWTextureView2D{ rwTexture, *m_srvHeap, format, desc };
 }
 
-RWTextureView3D SetupContext::CreateUav(Texture3D& rwTexture, gxapi::eFormat format, gxapi::UavTexture3D desc) const {
+RWTextureView3D SetupContext::CreateUav(const Texture3D& rwTexture, gxapi::eFormat format, gxapi::UavTexture3D desc) const {
 	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create uav wihtout srv/cbv/uav heap.");
 
 	return RWTextureView3D{ rwTexture, *m_srvHeap, format, desc };
@@ -134,7 +134,7 @@ IndexBuffer SetupContext::CreateIndexBuffer(const void* data, size_t size, size_
 	return result;
 }
 
-ConstBufferView SetupContext::CreateCbv(VolatileConstBuffer& buffer, size_t offset, size_t size, VolatileViewHeap& viewHeap) const {
+ConstBufferView SetupContext::CreateCbv(const VolatileConstBuffer& buffer, size_t offset, size_t size, VolatileViewHeap& viewHeap) const {
 	return ConstBufferView(
 		buffer,
 		viewHeap.Allocate(),

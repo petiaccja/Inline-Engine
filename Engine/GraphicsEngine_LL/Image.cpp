@@ -12,7 +12,7 @@ void Image::Update(uint64_t x, uint32_t y, uint64_t width, uint32_t height, int 
 	ImageBase::Update(x, y, width, height, mipLevel, 0, pixels, reader, bytesPerRow);
 }
 
-const TextureView2D& Image::GetSrv() {
+const TextureView2D& Image::GetSrv() const {
 	return m_resourceView;
 }
 

@@ -148,10 +148,10 @@ class LogEvent {
 public:
 	LogEvent();
 
-	/// <summary> Create an event with specific message. </sumary>
+	/// <summary> Create an event with specific message. </summary>
 	LogEvent(std::string message) : LogEvent(std::move(message), eEventType::UNSPECIFIED) {}
 
-	/// <summary> Create an event with specific message. </sumary>
+	/// <summary> Create an event with specific message. </summary>
 	LogEvent(const char* message) : LogEvent(std::string(message)) {}
 	
 	/// <summary> Construct object with message and a list of parameters. </summary>

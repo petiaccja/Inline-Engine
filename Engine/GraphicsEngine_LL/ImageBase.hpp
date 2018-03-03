@@ -26,7 +26,7 @@ public:
 	/// <summary> Returns the height of the image in pixels. </summary>
 	size_t GetHeight();
 
-	/// <summary> Return the numeric representation type of a pixel. See <see cref="ePixelChannelType/>. </summary>
+	/// <summary> Return the numeric representation type of a pixel. See <see cref="ePixelChannelType"/>. </summary>
 	ePixelChannelType GetChannelType() const;
 
 	/// <summary> Returns the number of channels per pixel, i.e RGBA counts as 4. </summary>
@@ -39,7 +39,7 @@ protected:
 	/// <summary> Allocates the underlying GPU-resident texture. </summary>
 	/// <param name="width"> Width of the texture in pixels. </param>
 	/// <param name="height"> Height of the texture in pixels. </param>
-	/// <param name="channelType"> The numeric representation of a pixel channel. See <see cref="ePixelChannelType/>. </param>
+	/// <param name="channelType"> The numeric representation of a pixel channel. See <see cref="ePixelChannelType"/>. </param>
 	/// <param name="channelCount"> Number of channels per pixel. </param>
 	/// <param name="pixelClass"> How pixels are interpreted. See <see cref="ePixelClass"/>. </param>
 	/// <param name="arraySize"> Specify 1 for simple images and 6 for cubemaps. </param>

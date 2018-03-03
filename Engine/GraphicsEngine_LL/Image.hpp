@@ -32,7 +32,7 @@ public:
 	/// <param name="bytesPerRow"> How many bytes to skip in <paramref name="pixels"/> for each row. Leave as 0 for no row padding. </param>
 	void Update(uint64_t x, uint32_t y, uint64_t width, uint32_t height, int mipLevel, const void* pixels, const IPixelReader& reader, size_t bytesPerRow = 0);
 	
-	const TextureView2D& GetSrv();
+	const TextureView2D& GetSrv() const;
 
 private:
 	void CreateResourceView(const Texture2D& texture) override;

@@ -60,7 +60,7 @@ public:
 	/// <summary> Get pointer to the indexth output port. </summary>
 	virtual OutputPortBase* GetOutput(size_t index) = 0;
 
-	/// <sumary> Get pointer to the indexth input port. </summary>
+	/// <summary> Get pointer to the indexth input port. </summary>
 	virtual const InputPortBase* GetInput(size_t index) const = 0;
 	/// <summary> Get pointer to the indexth output port. </summary>
 	virtual const OutputPortBase* GetOutput(size_t index) const = 0;

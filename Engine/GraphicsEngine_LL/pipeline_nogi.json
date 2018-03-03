@@ -7,7 +7,7 @@
       "inputs": [
         {},
         {},
-        "{enabled,disabled,INV_TARGET_ALPHA,TARGET_ALPHA,ADD,INV_TARGET_ALPHA,TARGET_ALPHA,ADD,RED|GREEN|BLUE|ALPHA,NOOP}"
+        "{enabled,disabled,SHADER_ALPHA,INV_SHADER_ALPHA,ADD,SHADER_ALPHA,INV_SHADER_ALPHA,ADD,RED|GREEN|BLUE|ALPHA,NOOP}"
       ]
     },
     {
@@ -334,22 +334,6 @@
       "name": "drawSky"
     },
     {
-      "class": "Pipeline/System/GetEnvVariable",
-      "id": 7,
-      "name": "fontBinaryEnv",
-      "inputs": [
-        "TextRender_fontBinary"
-      ]
-    },
-    {
-      "class": "Pipeline/System/GetEnvVariable",
-      "id": 8,
-      "name": "fontTexEnv",
-      "inputs": [
-        "TextRender_fontTex"
-      ]
-    },
-    {
       "class": "Pipeline/Render/ForwardRender",
       "id": 60,
       "name": "forwardRender"
@@ -471,11 +455,6 @@
       "inputs": [
         "SMAA_searchTex"
       ]
-    },
-    {
-      "class": "Pipeline/Render/TextRender",
-      "id": 9,
-      "name": "textRender"
     },
     {
       "class": "Pipeline/Render/TileMax",
@@ -1161,24 +1140,6 @@
       "dst": "smaa",
       "srcp": 0,
       "dstp": 2
-    },
-    {
-      "src": "fontBinaryEnv",
-      "dst": "textRender",
-      "srcp": 0,
-      "dstp": 2
-    },
-    {
-      "src": "fontTexEnv",
-      "dst": "textRender",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "smaa",
-      "dst": "textRender",
-      "srcp": 0,
-      "dstp": 0
     },
     {
       "src": "forwardRender",

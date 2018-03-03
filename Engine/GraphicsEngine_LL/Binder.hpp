@@ -37,7 +37,7 @@ enum class eBindParameterType {
 
 /// <summary>
 /// Bind parameters identify a register in the shader. 
-/// You can bind resources to the register via <see cref="Binder"/> and <see cref="BasicCommandList"/>.
+/// You can bind resources to the register via <see cref="Binder"/> and <see cref="inl::gxeng::BasicCommandList"/>.
 /// </summary>
 struct BindParameter {
 	constexpr BindParameter(eBindParameterType type = eBindParameterType::CONSTANT, unsigned reg = 0, unsigned space = 0) :
@@ -104,8 +104,11 @@ public:
 	gxapi::IRootSignature* GetRootSignature() const { return m_rootSignature.get(); }
 
 	/// <summary> Return the description of the underying root signature object. </summary>
-	/// <remarks> Use this to determine the type of slots returned by <see cref="Translate">. </remarks>
+	/// <remarks> Use this to determine the type of slots returned by <see cref="Translate"/>. </remarks>
 	const gxapi::RootSignatureDesc& GetRootSignatureDesc() const { return m_rootSignatureDesc; }
+
+	/// <summary> True if the binder has been initialized with a list of parameters. </summary>
+	operator bool() const { return (bool)m_rootSignature; }
 private:
 	void CalculateLayout(const std::vector<BindParameterDesc>& parameters);
 	void DistributeParameters(const std::vector<BindParameterDesc>& parameters,

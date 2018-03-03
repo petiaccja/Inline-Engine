@@ -94,19 +94,19 @@ public:
 	IndexBuffer CreateIndexBuffer(const void* data, size_t size, size_t indexCount) const;
 
 	// Create views
-	TextureView2D CreateSrv(Texture2D& texture, gxapi::eFormat format, gxapi::SrvTexture2DArray desc = {}) const;
-	TextureViewCube CreateSrv(Texture2D& texture, gxapi::eFormat format, gxapi::SrvTextureCubeArray desc) const;
-	TextureView3D CreateSrv(Texture3D& texture, gxapi::eFormat format, gxapi::SrvTexture3D desc) const;
-	RenderTargetView2D CreateRtv(Texture2D& renderTarget, gxapi::eFormat format, gxapi::RtvTexture2DArray desc) const;
-	DepthStencilView2D CreateDsv(Texture2D& depthStencilView, gxapi::eFormat format, gxapi::DsvTexture2DArray desc) const;
-	RWTextureView2D CreateUav(Texture2D& rwTexture, gxapi::eFormat format, gxapi::UavTexture2DArray desc) const;
-	RWTextureView3D CreateUav(Texture3D& rwTexture, gxapi::eFormat format, gxapi::UavTexture3D desc) const;
-	ConstBufferView CreateCbv(VolatileConstBuffer& buffer, size_t offset, size_t size, VolatileViewHeap& viewHeap) const;
+	TextureView2D CreateSrv(const Texture2D& texture, gxapi::eFormat format, gxapi::SrvTexture2DArray desc = {}) const;
+	TextureViewCube CreateSrv(const Texture2D& texture, gxapi::eFormat format, gxapi::SrvTextureCubeArray desc) const;
+	TextureView3D CreateSrv(const Texture3D& texture, gxapi::eFormat format, gxapi::SrvTexture3D desc) const;
+	RenderTargetView2D CreateRtv(const Texture2D& renderTarget, gxapi::eFormat format, gxapi::RtvTexture2DArray desc) const;
+	DepthStencilView2D CreateDsv(const Texture2D& depthStencilView, gxapi::eFormat format, gxapi::DsvTexture2DArray desc) const;
+	RWTextureView2D CreateUav(const Texture2D& rwTexture, gxapi::eFormat format, gxapi::UavTexture2DArray desc) const;
+	RWTextureView3D CreateUav(const Texture3D& rwTexture, gxapi::eFormat format, gxapi::UavTexture3D desc) const;
+	ConstBufferView CreateCbv(const VolatileConstBuffer& buffer, size_t offset, size_t size, VolatileViewHeap& viewHeap) const;
 
 
 	// Shaders and PSOs
-	ShaderProgram CreateShader(const std::string& name, ShaderParts stages, const std::string& macros) const;
-	ShaderProgram CompileShader(const std::string& code, ShaderParts stages, const std::string& macros) const;
+	ShaderProgram CreateShader(const std::string& name, ShaderParts stages, const std::string& macros = {}) const;
+	ShaderProgram CompileShader(const std::string& code, ShaderParts stages, const std::string& macros = {}) const;
 	gxapi::IPipelineState* CreatePSO(const gxapi::GraphicsPipelineStateDesc& desc) const;
 	gxapi::IPipelineState* CreatePSO(const gxapi::ComputePipelineStateDesc& desc) const;
 

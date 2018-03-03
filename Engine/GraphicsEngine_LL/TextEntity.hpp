@@ -27,10 +27,16 @@ public:
 
 	float GetTextWidth() const;
 	float GetTextHeight() const;
+
+	/// <summary> Z-Depth determines which 2D entity lays over the other. </summary>
+	/// <remarks> Number are not limited to [0,1], anything is fine. Don't pass NaN and Inf. </remarks>
+	void SetZDepth(float z);
+	float GetZDepth() const;
 private:
 	Vec4 m_color;
 	std::string m_text;
 	const Font* m_font;
+	float m_zDepth = 0.0f;
 };
 
 

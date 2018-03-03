@@ -29,7 +29,7 @@ public:
 	/// <summary> Allocates the underlying GPU-resident texture. </summary>
 	/// <param name="width"> Width of the texture in pixels. </param>
 	/// <param name="height"> Height of the texture in pixels. </param>
-	/// <param name="channelType"> The numeric representation of a pixel channel. See <see cref="ePixelChannelType/>. </param>
+	/// <param name="channelType"> The numeric representation of a pixel channel. See <see cref="ePixelChannelType"/>. </param>
 	/// <param name="channelCount"> Number of channels per pixel. </param>
 	/// <param name="pixelClass"> How pixels are interpreted. See <see cref="ePixelClass"/>. </param>
 	void SetLayout(uint64_t width, uint32_t height, ePixelChannelType channelType, unsigned channelCount, ePixelClass pixelClass);

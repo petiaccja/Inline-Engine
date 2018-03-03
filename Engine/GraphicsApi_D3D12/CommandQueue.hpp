@@ -29,6 +29,9 @@ public:
 
 	gxapi::CommandQueueDesc GetDesc() const override;
 
+	void BeginDebuggerEvent(const std::string& name) const override;
+	void EndDebuggerEvent() const override;
+
 private:
 	ComPtr<ID3D12CommandQueue> m_native;
 };

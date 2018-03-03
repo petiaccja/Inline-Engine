@@ -179,6 +179,9 @@ set(node_draw
 	"Nodes/Node_DrawSky.hpp"
 	"Nodes/Node_DepthPrepass.hpp"
 	"Nodes/Node_RenderOverlay.hpp"
+
+	"Nodes/Shaders/RenderOverlay_Overlay.hlsl"
+	"Nodes/Shaders/RenderOverlay_Text.hlsl"
 )
 
 set(node_lighting
