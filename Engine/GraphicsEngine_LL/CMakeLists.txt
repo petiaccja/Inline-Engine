@@ -170,12 +170,10 @@ set(node_dbg
 )
 
 set(node_draw
-	"Nodes/Node_ForwardRender.cpp"
 	"Nodes/Node_DrawSky.cpp"
 	"Nodes/Node_DepthPrepass.cpp"
 	"Nodes/Node_RenderOverlay.cpp"
 	
-	"Nodes/Node_ForwardRender.hpp"
 	"Nodes/Node_DrawSky.hpp"
 	"Nodes/Node_DepthPrepass.hpp"
 	"Nodes/Node_RenderOverlay.hpp"
@@ -185,10 +183,12 @@ set(node_draw
 )
 
 set(node_lighting
+	"Nodes/Node_ForwardRender.cpp"
 	"Nodes/Node_LightCulling.cpp"
 	"Nodes/Node_Voxelization.cpp"
 	"Nodes/Node_VolumetricLighting.cpp"
 	
+	"Nodes/Node_ForwardRender.hpp"
 	"Nodes/Node_LightCulling.hpp"
 	"Nodes/Node_Voxelization.hpp"
 	"Nodes/Node_VolumetricLighting.hpp"
@@ -298,6 +298,86 @@ set(node_deprecated
 	"Nodes/Node_TextRender.hpp"
 )
 
+set(shaders_dof
+	"Nodes/Shaders/DOFMain.hlsl"
+	"Nodes/Shaders/DOFNeighborMax.hlsl"
+	"Nodes/Shaders/DOFPostfilter.hlsl"
+	"Nodes/Shaders/DOFPrepare.hlsl"
+	"Nodes/Shaders/DOFTileMax.hlsl"
+	"Nodes/Shaders/DOFUpsample.hlsl"
+	)
+
+set(shaders_bloom
+	"Nodes/Shaders/BloomAdd.hlsl"
+	"Nodes/Shaders/BloomBlur.hlsl"
+	"Nodes/Shaders/BloomDownsample.hlsl"
+	"Nodes/Shaders/BrightLumPass.hlsl"
+	"Nodes/Shaders/HDRCombine.hlsl"
+	"Nodes/Shaders/LensFlare.hlsl"
+	"Nodes/Shaders/LuminanceReduction.hlsl"
+	"Nodes/Shaders/LuminanceReductionFinal.hlsl"
+	"Nodes/Shaders/LuminanceReductionFinal.hlsl"
+	)
+	
+set(shaders_shadow_csm
+	"Nodes/Shaders/CSM.hlsl"
+	"Nodes/Shaders/CSMSample.hlsl"
+	"Nodes/Shaders/DepthReduction.hlsl"
+	"Nodes/Shaders/DepthReductionFinal.hlsl"
+	)
+	
+set(shaders_shadow_point_spot
+	"Nodes/Shaders/PointLightShadowMapSample.hlsl"
+	"Nodes/Shaders/ShadowGen.hlsl"
+	)
+	
+set(shaders_debug
+	"Nodes/Shaders/DebugDraw.hlsl"
+	)
+	
+set(shaders_lighting
+	"Nodes/Shaders/DepthPrepass.hlsl"
+	"Nodes/Shaders/DrawSky.hlsl"
+	"Nodes/Shaders/LightCulling.hlsl"
+	"Nodes/Shaders/LightingUniforms.hlsl"
+	"Nodes/Shaders/PbrBrdf.hlsl"
+	"Nodes/Shaders/SDFCulling.hlsl"
+	"Nodes/Shaders/TiledLighting.hlsl"
+	"Nodes/Shaders/VolumetricLighting.hlsl"
+	)
+	
+set(shaders_motion_blur
+	"Nodes/Shaders/EncodeVelocity.hlsl"
+	"Nodes/Shaders/MotionBlur.hlsl"
+	"Nodes/Shaders/NeighborMax.hlsl"
+	"Nodes/Shaders/TileMax.hlsl"
+	)
+	
+set(shaders_screen_space
+	"Nodes/Shaders/ScreenSpaceAmbientOcclusion.hlsl"
+	"Nodes/Shaders/SsaoBilateralHorizontalBlur.hlsl"
+	"Nodes/Shaders/SsaoBilateralVerticalBlur.hlsl"
+	"Nodes/Shaders/ScreenSpaceReflection.hlsl"
+	"Nodes/Shaders/SsrBlur.hlsl"
+	"Nodes/Shaders/SsrDownsample.hlsl"
+	"Nodes/Shaders/ScreenSpaceShadow.hlsl"
+	)
+	
+set(shaders_aa
+	"Nodes/Shaders/SMAA.hlsl"
+	"Nodes/Shaders/SMAABlendingWeights.hlsl"
+	"Nodes/Shaders/SMAAEdgeDetection.hlsl"
+	"Nodes/Shaders/SMAANeighborhoodBlending.hlsl"
+	)
+	
+set(shaders_vxgi
+	"Nodes/Shaders/VoxelFinalGather.hlsl"
+	"Nodes/Shaders/Voxelization.hlsl"
+	"Nodes/Shaders/VoxelLightInjectionCSM.hlsl"
+	"Nodes/Shaders/VoxelMipmap.hlsl"
+	"Nodes/Shaders/VoxelVisualizer.hlsl"
+	)
+	
 set(all_the_files
 	${common} 
 	${scene}
@@ -333,6 +413,17 @@ set(all_the_files
 	${node_sys}
 	${node_util}
 	${node_deprecated}
+	
+	${shaders_dof}
+	${shaders_bloom}
+	${shaders_shadow_csm}
+	${shaders_shadow_point_spot}
+	${shaders_debug}
+	${shaders_lighting}
+	${shaders_motion_blur}
+	${shaders_screen_space}
+	${shaders_aa}
+	${shaders_vxgi}
 )
 	
 file(GLOB_RECURSE all_the_rest RELATIVE ${CMAKE_CURRENT_LIST_DIR} "*.?pp" "*.hlsl")
@@ -382,6 +473,17 @@ source_group("Frontend\\Nodes\\Shadow\\ScreenSpace" FILES ${node_shadow_screensp
 source_group("Frontend\\Nodes\\System" FILES ${node_sys})
 source_group("Frontend\\Nodes\\Utility" FILES ${node_util})
 source_group("Frontend\\Nodes\\!!!Deprecated!!!" FILES ${node_deprecated})
+
+source_group("Shaders\\DOF" FILES ${shaders_dof})
+source_group("Shaders\\Bloom" FILES ${shaders_bloom})
+source_group("Shaders\\Shadow\\CSM" FILES ${shaders_shadow_csm})
+source_group("Shaders\\Shadow\\PointSpot" FILES ${shaders_shadow_point_spot})
+source_group("Shaders\\Debug" FILES ${shaders_debug})
+source_group("Shaders\\Lighting" FILES ${shaders_lighting})
+source_group("Shaders\\MotionBlur" FILES ${shaders_motion_blur})
+source_group("Shaders\\ScreenSpace" FILES ${shaders_screen_space})
+source_group("Shaders\\AA" FILES ${shaders_aa})
+source_group("Shaders\\VXGI" FILES ${shaders_vxgi})
 
 source_group("!!!PleaseGroupThese!!!" FILES ${all_the_rest})
 
