@@ -93,6 +93,14 @@ BasicCommandList::Decomposition BasicCommandList::Decompose() {
 }
 
 
+void BasicCommandList::BeginDebuggerEvent(const std::string& name) {
+	m_commandList->BeginDebuggerEvent(name);
+}
+
+void BasicCommandList::EndDebuggerEvent() {
+	m_commandList->EndDebuggerEvent();
+}
+
 
 
 } // namespace gxapi

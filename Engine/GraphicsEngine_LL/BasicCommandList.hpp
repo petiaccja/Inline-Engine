@@ -88,6 +88,9 @@ public:
 	gxapi::eCommandListType GetType() const { return m_commandList->GetType(); }
 
 	virtual Decomposition Decompose();
+
+	void BeginDebuggerEvent(const std::string& name);
+	void EndDebuggerEvent();
 protected:
 	BasicCommandList(
 		gxapi::IGraphicsApi* gxApi,

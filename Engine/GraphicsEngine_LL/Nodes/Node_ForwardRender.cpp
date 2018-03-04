@@ -303,10 +303,10 @@ void ForwardRender::Execute(RenderContext& context) {
 		return;
 	}
 
-	gxeng::GraphicsCommandList& commandList = context.AsGraphics();
+	GraphicsCommandList& commandList = context.AsGraphics();
 
 	// Set render target
-	inl::gxeng::RenderTargetView2D* pRTV[] = { &m_rtv, &m_velocity_rtv };
+	RenderTargetView2D* pRTV[] = { &m_rtv, &m_velocity_rtv };
 	commandList.SetResourceState(m_velocity_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_dsv.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
