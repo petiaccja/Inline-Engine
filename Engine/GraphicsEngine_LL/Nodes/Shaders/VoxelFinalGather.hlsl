@@ -51,7 +51,8 @@ float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneApert
 {
 	float4 result = float4(0, 0, 0, 0);
 
-	float traceDist = uniforms.voxelSize;
+	//TODO start offset based on cone aperture?
+	float traceDist = uniforms.voxelSize * 2.0;
 	float3 wsStartPos = wsPos + wsNormal * traceDist;
 
 	const float maxDist = uniforms.voxelDimension * uniforms.voxelSize;
@@ -75,6 +76,7 @@ float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneApert
 			break; 
 		}
 
+		//TODO: alpha won't be correct here, as we used the alpha channel for atomic avg counter...
 		float4 data = inputTex1.SampleLevel(samp2, voxelTexCoord, mipLevel);
 		
 		result += (1.0 - result.w) * data;
