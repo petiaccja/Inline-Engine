@@ -6,10 +6,10 @@
 
 struct Uniforms
 {
-	float4x4 model, viewProj;
+	float4x4 model, viewProj, invView;
 	float3 voxelCenter; float voxelSize;
 	float4 farPlaneData0, farPlaneData1;
-	float4 vsCamPos;
+	float4 wsCamPos;
 	int voxelDimension; int inputMipLevel; int outputMipLevel; int dummy;
 	float nearPlane, farPlane;
 };

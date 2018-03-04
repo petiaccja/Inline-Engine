@@ -19,9 +19,9 @@ const Vec3 voxelCenter = Vec3(0.0f);
 
 struct Uniforms
 {
-	Mat44_Packed model, viewProj;
+	Mat44_Packed model, viewProj, invView;
 	Vec3_Packed voxelCenter; float voxelSize;
-	Vec4_Packed farPlaneData0, farPlaneData1, vsCamPos;
+	Vec4_Packed farPlaneData0, farPlaneData1, wsCamPos;
 	int voxelDimension; int inputMipLevel; int outputMipLevel; int dummy;
 	float nearPlane, farPlane;
 };
@@ -467,8 +467,10 @@ void Voxelization::Execute(RenderContext & context) {
 	uniformsCBData.farPlane = m_camera->GetFarPlane();
 	Mat44 v = m_camera->GetViewMatrix();
 	Mat44 p = m_camera->GetProjectionMatrix();
+	Mat44 invV = v.Inverse();
 	Mat44 invP = p.Inverse();
-	uniformsCBData.vsCamPos = Vec4(m_camera->GetPosition(), 1.0) * v;
+	uniformsCBData.wsCamPos = Vec4(m_camera->GetPosition(), 1.0);
+	uniformsCBData.invView = invV;
 
 	//far ndc corners
 	Vec4 ndcCorners[] =
@@ -520,7 +522,7 @@ void Voxelization::Execute(RenderContext & context) {
 
 	static bool sceneVoxelized = false;
 
-	//if (!sceneVoxelized)
+	if (!sceneVoxelized)
 	{
 		{ // scene voxelization
 			for (const MeshEntity* entity : *m_entities) {
