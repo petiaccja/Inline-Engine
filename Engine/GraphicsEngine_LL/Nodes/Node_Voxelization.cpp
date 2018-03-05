@@ -108,6 +108,7 @@ void Voxelization::Initialize(EngineContext & context) {
 
 void Voxelization::Reset() {
 	m_voxelTexSRV = TextureView3D();
+	m_voxelSecondaryTexSRV = TextureView3D();
 	m_visualizationDSV = DepthStencilView2D();
 	m_visualizationTexRTV = RenderTargetView2D();
 	m_shadowCSMTexSrv = TextureView2D();
@@ -216,6 +217,14 @@ void Voxelization::Setup(SetupContext & context) {
 		voxelLightTexBindParamDesc.relativeChangeFrequency = 0;
 		voxelLightTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+		BindParameterDesc voxelSecondaryTexBindParamDesc;
+		m_voxelSecondaryTexBindParam = BindParameter(eBindParameterType::UNORDERED, 2);
+		voxelSecondaryTexBindParamDesc.parameter = m_voxelSecondaryTexBindParam;
+		voxelSecondaryTexBindParamDesc.constantSize = 0;
+		voxelSecondaryTexBindParamDesc.relativeAccessFrequency = 0;
+		voxelSecondaryTexBindParamDesc.relativeChangeFrequency = 0;
+		voxelSecondaryTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
 		BindParameterDesc shadowCSMTexBindParamDesc;
 		m_shadowCSMTexBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
 		shadowCSMTexBindParamDesc.parameter = m_shadowCSMTexBindParam;
@@ -239,6 +248,14 @@ void Voxelization::Setup(SetupContext & context) {
 		albedoTexBindParamDesc.relativeAccessFrequency = 0;
 		albedoTexBindParamDesc.relativeChangeFrequency = 0;
 		albedoTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc voxelSecondaryTexReadBindParamDesc;
+		m_voxelSecondaryTexReadBindParam = BindParameter(eBindParameterType::TEXTURE, 3);
+		voxelSecondaryTexReadBindParamDesc.parameter = m_voxelSecondaryTexReadBindParam;
+		voxelSecondaryTexReadBindParamDesc.constantSize = 0;
+		voxelSecondaryTexReadBindParamDesc.relativeAccessFrequency = 0;
+		voxelSecondaryTexReadBindParamDesc.relativeChangeFrequency = 0;
+		voxelSecondaryTexReadBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
@@ -270,7 +287,7 @@ void Voxelization::Setup(SetupContext & context) {
 		samplerDesc2.registerSpace = 0;
 		samplerDesc2.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, sampBindParamDesc1, sampBindParamDesc2, voxelTexBindParamDesc, shadowCSMTexBindParamDesc, voxelLightTexBindParamDesc, shadowCSMExtentsTexBindParamDesc, albedoTexBindParamDesc },{ samplerDesc, samplerDesc1, samplerDesc2 });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, sampBindParamDesc1, sampBindParamDesc2, voxelTexBindParamDesc, voxelSecondaryTexReadBindParamDesc, voxelSecondaryTexBindParamDesc, shadowCSMTexBindParamDesc, voxelLightTexBindParamDesc, shadowCSMExtentsTexBindParamDesc, albedoTexBindParamDesc },{ samplerDesc, samplerDesc1, samplerDesc2 });
 	}
 
 	if (!m_shader.vs || !m_shader.gs || !m_shader.ps) {
@@ -515,7 +532,9 @@ void Voxelization::Execute(RenderContext & context) {
 	commandList.SetResourceState(m_shadowCSMExtentsTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_voxelLightTexUAV[0].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	commandList.SetResourceState(m_voxelTexUAV[0].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.SetResourceState(m_voxelSecondaryTexUAV[0].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
 	commandList.BindGraphics(m_voxelTexBindParam, m_voxelTexUAV[0]);
+	commandList.BindGraphics(m_voxelSecondaryTexBindParam, m_voxelSecondaryTexUAV[0]);
 	commandList.BindGraphics(m_voxelLightTexBindParam, m_voxelLightTexUAV[0]);
 	commandList.BindGraphics(m_shadowCSMTexBindParam, m_shadowCSMTexSrv);
 	commandList.BindGraphics(m_shadowCSMExtentsTexBindParam, m_shadowCSMExtentsTexSrv);
@@ -570,6 +589,7 @@ void Voxelization::Execute(RenderContext & context) {
 			}
 
 			commandList.UAVBarrier(m_voxelTexUAV[0].GetResource());
+			commandList.UAVBarrier(m_voxelSecondaryTexUAV[0].GetResource());
 		}
 
 		{ //scene mipmap gen
@@ -589,7 +609,7 @@ void Voxelization::Execute(RenderContext & context) {
 				
 				commandList.BindCompute(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
-				//TODO: set the resource but wrong value???
+				//gen mipmap for primary voxel tex
 				commandList.SetResourceState(m_voxelTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, m_voxelTexSRV.GetResource().GetSubresourceIndex(c, 0));
 				commandList.SetResourceState(m_voxelTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE }, m_voxelTexSRV.GetResource().GetSubresourceIndex(c - 1, 0));
 
@@ -597,6 +617,15 @@ void Voxelization::Execute(RenderContext & context) {
 				commandList.BindCompute(m_shadowCSMTexBindParam, m_voxelTexSRV);
 				commandList.Dispatch(dispatchW, dispatchH, dispatchD);
 				commandList.UAVBarrier(m_voxelTexUAV[c].GetResource());
+
+				//gen mipmap for secondary voxel tex
+				commandList.SetResourceState(m_voxelSecondaryTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, m_voxelSecondaryTexSRV.GetResource().GetSubresourceIndex(c, 0));
+				commandList.SetResourceState(m_voxelSecondaryTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE }, m_voxelSecondaryTexSRV.GetResource().GetSubresourceIndex(c - 1, 0));
+
+				commandList.BindCompute(m_voxelTexBindParam, m_voxelSecondaryTexUAV[c]);
+				commandList.BindCompute(m_shadowCSMTexBindParam, m_voxelSecondaryTexSRV);
+				commandList.Dispatch(dispatchW, dispatchH, dispatchD);
+				commandList.UAVBarrier(m_voxelSecondaryTexUAV[c].GetResource());
 
 				currDim = currDim / 2;
 			}
@@ -623,6 +652,7 @@ void Voxelization::Execute(RenderContext & context) {
 
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 		commandList.BindGraphics(m_voxelTexBindParam, m_voxelTexUAV[0]);
+		commandList.BindGraphics(m_voxelSecondaryTexBindParam, m_voxelSecondaryTexUAV[0]);
 		commandList.BindGraphics(m_voxelLightTexBindParam, m_voxelLightTexUAV[0]);
 		commandList.BindGraphics(m_shadowCSMTexBindParam, m_shadowCSMTexSrv);
 		commandList.BindGraphics(m_shadowCSMExtentsTexBindParam, m_shadowCSMExtentsTexSrv);
@@ -655,7 +685,6 @@ void Voxelization::Execute(RenderContext & context) {
 
 			commandList.BindCompute(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
-			//TODO: set the resource but wrong value???
 			commandList.SetResourceState(m_voxelLightTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, m_voxelLightTexSRV.GetResource().GetSubresourceIndex(c, 0));
 			commandList.SetResourceState(m_voxelLightTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE }, m_voxelLightTexSRV.GetResource().GetSubresourceIndex(c - 1, 0));
 
@@ -720,6 +749,7 @@ void Voxelization::Execute(RenderContext & context) {
 
 		commandList.BindGraphics(m_shadowCSMTexBindParam, m_voxelLightTexSRV);
 		commandList.BindGraphics(m_shadowCSMExtentsTexBindParam, m_voxelTexSRV);
+		commandList.BindGraphics(m_voxelSecondaryTexReadBindParam, m_voxelSecondaryTexSRV);
 		commandList.BindGraphics(m_albedoTexBindParam, m_depthTexSRV);
 
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
@@ -778,6 +808,20 @@ void Voxelization::InitRenderTarget(SetupContext& context) {
 		{
 			uavDesc.mipLevel = c;
 			m_voxelTexUAV[c] = context.CreateUav(voxel_tex, formatVoxel, uavDesc);
+			uavDesc.depthSize = uavDesc.depthSize / 2;
+		}
+
+		Texture3D secondaryVoxelTex = context.CreateTexture3D(texDesc, { true, false, false, true });
+		secondaryVoxelTex.SetName("Voxelization voxel secondary tex");
+
+		m_voxelSecondaryTexUAV.resize(secondaryVoxelTex.GetNumMiplevels());
+
+		m_voxelSecondaryTexSRV = context.CreateSrv(secondaryVoxelTex, formatVoxel, srvDesc);
+		uavDesc.depthSize = voxelDimension;
+		for (int c = 0; c < secondaryVoxelTex.GetNumMiplevels(); ++c)
+		{
+			uavDesc.mipLevel = c;
+			m_voxelSecondaryTexUAV[c] = context.CreateUav(secondaryVoxelTex, formatVoxel, uavDesc);
 			uavDesc.depthSize = uavDesc.depthSize / 2;
 		}
 		

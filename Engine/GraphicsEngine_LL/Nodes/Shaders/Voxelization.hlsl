@@ -17,6 +17,7 @@ struct Uniforms
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
 RWTexture3D<uint> voxelTex : register(u0);
+RWTexture3D<uint> voxelSecondaryTex : register(u2);
 Texture2D<float4> albedoTex : register(t2);
 
 SamplerState samp0 : register(s0);
@@ -117,7 +118,7 @@ void GSMain(triangle GS_Input input[3], inout TriangleStream<PS_Input> OutputStr
 	OutputStream.RestartStrip();
 }
 
-void atomicAdd(float val, uint3 target)
+void atomicAdd(RWTexture3D<uint> tex, float val, uint3 target)
 {
 	uint newVal = asuint(val);
 	uint prevVal = 0; uint curVal;
@@ -125,7 +126,7 @@ void atomicAdd(float val, uint3 target)
 	[allow_uav_condition]
 	while (true)
 	{
-		InterlockedCompareExchange(voxelTex[target.xyz], prevVal, newVal, curVal);
+		InterlockedCompareExchange(tex[target.xyz], prevVal, newVal, curVal);
 		if (curVal == prevVal)
 		{
 			break;
@@ -136,7 +137,7 @@ void atomicAdd(float val, uint3 target)
 	}
 }
 
-void atomicAvg(float4 color, uint3 target)
+void atomicAvg(RWTexture3D<uint> tex, float4 color, uint3 target)
 {
 	//w channel is used for atomic moving average
 	//so keep it 1
@@ -153,7 +154,7 @@ void atomicAvg(float4 color, uint3 target)
 		//If they are identical, the destination is overwritten with the input value. 
 		//The original value is set to the destination's original value.
 		//                          dest                  compare        input      original
-		InterlockedCompareExchange(voxelTex[target.xyz], prevStoredVal, newVal, curStoredVal);
+		InterlockedCompareExchange(tex[target.xyz], prevStoredVal, newVal, curStoredVal);
 		if (curStoredVal == prevStoredVal)
 		{
 			break;
@@ -172,7 +173,6 @@ void PSMain(PS_Input input)
 {
 	//float4 albedo = float4(input.texcoord, 0.0, 1.0);
 	float4 albedo = albedoTex.Sample(samp0, input.texcoord);
-	albedo.w = 1;
 
 	uint3 target = input.voxelPos;
 	
@@ -181,5 +181,7 @@ void PSMain(PS_Input input)
 	//TODO write out texture color, opacity, normal, roughness metalness
 
 	//InterlockedMax(voxelTex[target.xyz], encodeColor(albedo*255.0));
-	atomicAvg(albedo, target);
+	atomicAvg(voxelTex, albedo, target);
+	//atomicAvg(voxelSecondaryTex, albedo.wwww, target);
+	atomicAvg(voxelSecondaryTex, float4(1,1,1,1), target);
 }

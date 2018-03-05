@@ -20,6 +20,7 @@ ConstantBuffer<Uniforms> uniforms : register(b0);
 Texture3D<float4> inputTex0 : register(t0); //voxel light tex
 Texture3D<float4> inputTex1 : register(t1); //voxel tex
 Texture2D<float> inputTex2 : register(t2); //depth tex
+Texture3D<float4> inputTex3 : register(t3); //secondary voxel tex
 
 SamplerState samp0 : register(s0); //point
 SamplerState samp1 : register(s1); //bilinear
@@ -78,6 +79,7 @@ float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneApert
 
 		//TODO: alpha won't be correct here, as we used the alpha channel for atomic avg counter...
 		float4 data = inputTex1.SampleLevel(samp2, voxelTexCoord, mipLevel);
+		data.w = inputTex3.SampleLevel(samp2, voxelTexCoord, mipLevel).x;
 		
 		result += (1.0 - result.w) * data;
 

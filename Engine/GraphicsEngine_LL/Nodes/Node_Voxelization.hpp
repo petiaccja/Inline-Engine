@@ -42,9 +42,11 @@ protected:
 	BindParameter m_uniformsBindParam;
 	BindParameter m_albedoTexBindParam;
 	BindParameter m_voxelTexBindParam;
+	BindParameter m_voxelSecondaryTexBindParam;
 	BindParameter m_voxelLightTexBindParam;
 	BindParameter m_shadowCSMTexBindParam;
 	BindParameter m_shadowCSMExtentsTexBindParam;
+	BindParameter m_voxelSecondaryTexReadBindParam;
 	ShaderProgram m_shader;
 	ShaderProgram m_visualizerShader;
 	ShaderProgram m_finalGatherShader;
@@ -59,6 +61,8 @@ protected:
 	bool m_outputTexturesInited = false;
 	std::vector<RWTextureView3D> m_voxelTexUAV;
 	TextureView3D m_voxelTexSRV;
+	std::vector<RWTextureView3D> m_voxelSecondaryTexUAV;
+	TextureView3D m_voxelSecondaryTexSRV;
 	std::vector<RWTextureView3D> m_voxelLightTexUAV;
 	TextureView3D m_voxelLightTexSRV;
 
