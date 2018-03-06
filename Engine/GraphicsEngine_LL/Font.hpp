@@ -33,6 +33,7 @@ public:
 	/// <exception cref="OutOfRangeException"> If character cannot be rendered. </exception>
 	GlyphInfo GetCharacterInfo(char32_t character) const;
 
+	const Image* GetAtlas() const;
 private:
 	Image m_atlas;
 	std::unordered_map<char32_t, GlyphInfo> m_glyphs;

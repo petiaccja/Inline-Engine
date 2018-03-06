@@ -170,6 +170,8 @@ public:
 	// Debug draw
 	void AddDebugObject(std::vector<DebugObject*> objects);
 
+	// TMP: RenderDoc does not process command queue PIX debug events
+	void TMP_SetCommandListName(const std::string& name) { m_TMP_commandListName = name; }
 private:
 	// Memory management stuff
 	MemoryManager* m_memoryManager;
@@ -186,6 +188,9 @@ private:
 	ScratchSpacePool* m_scratchSpacePool;
 	std::unique_ptr<BasicCommandList> m_commandList;
 	gxapi::eCommandListType m_type = static_cast<gxapi::eCommandListType>(0xDEADBEEF);
+
+	// TMP: command list name
+	std::string m_TMP_commandListName;
 };
 
 

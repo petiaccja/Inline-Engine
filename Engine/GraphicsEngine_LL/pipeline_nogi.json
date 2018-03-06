@@ -2,17 +2,18 @@
   "nodes": [
     {
       "class": "Pipeline/Render/BlendWithTransform",
-      "name":  "uiblend",
+      "name": "uiblend",
       "id": 0,
       "inputs": [
         {},
         {},
-        "{enabled,disabled,SHADER_ALPHA,INV_SHADER_ALPHA,ADD,SHADER_ALPHA,INV_SHADER_ALPHA,ADD,RED|GREEN|BLUE|ALPHA,NOOP}"
+        "{enabled,disabled,INV_TARGET_ALPHA,TARGET_ALPHA,ADD,INV_TARGET_ALPHA,TARGET_ALPHA,ADD,RED|GREEN|BLUE|ALPHA,NOOP}"
       ]
     },
     {
-      "class": "Pipeline/Render/OverlayRender",
-      "id": 3
+      "class": "Pipeline/Render/RenderOverlay",
+      "id": 3,
+      "name": "RenderGUI"
     },
     {
       "class": "Pipeline/Render/ScreenSpaceTransform",
@@ -20,11 +21,13 @@
     },
     {
       "class": "Pipeline/System/GetBackBuffer",
+      "name": "Backbuffer",
       "id": 69
     },
     {
       "class": "Pipeline/System/GetCameraByName",
       "id": 4,
+      "name": "GUICam",
       "inputs": [
         "GuiCamera"
       ]
@@ -60,6 +63,7 @@
     {
       "class": "Pipeline/System/GetSceneByName",
       "id": 5,
+      "name": "GUIScene",
       "inputs": [
         "Gui"
       ]
@@ -464,6 +468,12 @@
   ],
   "links": [
     {
+      "src": "GUIScene",
+      "dst": "RenderGUI",
+      "srcp": 3,
+      "dstp": 3
+    },
+    {
       "src": 3,
       "dst": "uiblend",
       "srcp": 0,
@@ -500,22 +510,22 @@
       "dstp": 4
     },
     {
-      "src": 69,
-      "dst": 3,
+      "src": "Backbuffer",
+      "dst": "RenderGUI",
       "srcp": 0,
       "dstp": 0
     },
     {
-      "src": 5,
-      "dst": 3,
+      "src": "GUIScene",
+      "dst": "RenderGUI",
       "srcp": 1,
-      "dstp": 1
+      "dstp": 2
     },
     {
-      "src": 4,
-      "dst": 3,
+      "src": "GUICam",
+      "dst": "RenderGUI",
       "srcp": 0,
-      "dstp": 2
+      "dstp": 1
     },
     {
       "src": 66,

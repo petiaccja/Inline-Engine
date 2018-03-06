@@ -11,6 +11,7 @@ class GraphicsEngine;
 
 class MeshEntity;
 class OverlayEntity;
+class TextEntity;
 
 class DirectionalLight;
 
@@ -32,12 +33,16 @@ public:
 	EntityCollection<OverlayEntity>& GetOverlayEntities();
 	const EntityCollection<OverlayEntity>& GetOverlayEntities() const;
 
+	EntityCollection<TextEntity>& GetTextEntities();
+	const EntityCollection<TextEntity>& GetTextEntities() const;
+
 	EntityCollection<DirectionalLight>& GetDirectionalLights();
 	const EntityCollection<DirectionalLight>& GetDirectionalLights() const;
 
 private:
 	EntityCollection<MeshEntity> m_meshEntities;	
 	EntityCollection<OverlayEntity> m_overlayEntities;
+	EntityCollection<TextEntity> m_textEntities;
 	EntityCollection<DirectionalLight> m_directionalLights;
 
 	std::string m_name;

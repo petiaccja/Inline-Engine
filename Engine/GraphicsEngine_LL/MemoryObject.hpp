@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <cassert>
+#include <string>
 
 namespace inl {
 namespace gxeng {
@@ -126,6 +127,7 @@ protected:
 		bool resident;
 		eResourceHeap heap;
 		std::vector<gxapi::eResourceState> subresourceStates;
+		std::string name;
 	};
 	std::shared_ptr<Contents> m_contents;
 };

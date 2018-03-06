@@ -66,8 +66,10 @@ public:
 
 	void OnJoystickMove(JoystickMoveEvent evt);
 	void OnKey(KeyboardEvent evt);
+	void SetFocused(bool focused) { m_focused = focused; }
 private:
 	QCWorld* world;
+	bool m_focused = true;
 };
 
 
@@ -234,6 +236,7 @@ int main(int argc, char* argv[]) {
 	//window.SetCaptionButtonHandler(CaptionHandler);
 
 	while (!window.IsClosed()) {
+		inputHandler->SetFocused(window.IsFocused());
 		window.CallEvents();
 		if (joyInput) {
 			joyInput->CallEvents();
@@ -293,7 +296,7 @@ int main(int argc, char* argv[]) {
 
 
 void InputHandler::OnJoystickMove(JoystickMoveEvent evt) {
-	if (!world) {
+	if (!world || !m_focused) {
 		return;
 	}
 	cout << "Axis" << evt.axis << " = " << evt.absPos << endl;
@@ -309,7 +312,7 @@ void InputHandler::OnJoystickMove(JoystickMoveEvent evt) {
 
 
 void InputHandler::OnKey(KeyboardEvent evt) {
-	if (!world) {
+	if (!world || !m_focused) {
 		return;
 	}
 	float enable = float(evt.state == eKeyState::DOWN);

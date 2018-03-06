@@ -89,6 +89,7 @@ void MemoryObject::SetName(const std::string& name) {
 void MemoryObject::SetName(const char* name) {
 	if (m_contents) {
 		m_contents->resource->SetName(name);
+		m_contents->name = name;
 	}
 }
 

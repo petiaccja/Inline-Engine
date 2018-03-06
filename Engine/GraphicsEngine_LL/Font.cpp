@@ -1,4 +1,5 @@
 #include "Font.hpp"
+#include <BaseLibrary/Exception/Exception.hpp>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -56,11 +57,11 @@ void Font::SetFamily(std::string familyName, bool bold, bool italic) {
 	error = FT_Init_FreeType(&library);
 
 	// Load font.
-	error = FT_New_Face(library, R"(C:\Windows\Fonts\arial.ttf)", 0, &face);
+	error = FT_New_Face(library, R"(C:\Windows\Fonts\calibri.ttf)", 0, &face);
 	error = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
 
 	// Set font properties.
-	int sizeInPixels = 16;
+	int sizeInPixels = 32;
 	error = FT_Set_Pixel_Sizes(face, 0, sizeInPixels);
 
 	AtlasHelper atlasPixels;
@@ -107,6 +108,7 @@ void Font::SetFamily(std::string familyName, bool bold, bool italic) {
 	m_atlas.SetLayout(atlasPixels.Width(), atlasPixels.Height(), ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR);
 	const IPixelReader& pixelReader = Pixel<ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR>::Reader();
 	m_atlas.Update(0, 0, atlasPixels.Width(), atlasPixels.Height(), 0, atlasPixels.Data(), pixelReader);
+	const_cast<Texture2D&>(m_atlas.GetSrv().GetResource()).SetName("font atlas");
 }
 
 
@@ -123,6 +125,10 @@ Font::GlyphInfo Font::GetCharacterInfo(char32_t character) const {
 	}
 
 	return it->second;
+}
+
+const Image* Font::GetAtlas() const {
+	return &m_atlas;
 }
 
 

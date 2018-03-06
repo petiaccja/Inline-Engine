@@ -21,10 +21,10 @@ public:
 	~ImageBase();
 
 	/// <summary> Returns the width of the image in pixels. </summary>
-	size_t GetWidth();
+	size_t GetWidth() const;
 
 	/// <summary> Returns the height of the image in pixels. </summary>
-	size_t GetHeight();
+	size_t GetHeight() const;
 
 	/// <summary> Return the numeric representation type of a pixel. See <see cref="ePixelChannelType"/>. </summary>
 	ePixelChannelType GetChannelType() const;

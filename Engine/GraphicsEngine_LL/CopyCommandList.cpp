@@ -149,6 +149,7 @@ void CopyCommandList::ExpectResourceState(const MemoryObject& resource, const st
 			count = resource.GetNumSubresources();
 			sub = &subresources;
 			all = false;
+			iter = 0;
 			for (auto s : subresources) {
 				if (s == gxapi::ALL_SUBRESOURCES) {
 					all = true;

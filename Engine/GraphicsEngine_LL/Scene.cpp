@@ -37,6 +37,14 @@ const EntityCollection<OverlayEntity>& Scene::GetOverlayEntities() const {
 	return m_overlayEntities;
 }
 
+EntityCollection<TextEntity>& Scene::GetTextEntities() {
+	return m_textEntities;
+}
+
+const EntityCollection<TextEntity>& Scene::GetTextEntities() const {
+	return m_textEntities;
+}
+
 EntityCollection<DirectionalLight>& Scene::GetDirectionalLights() {
 	return m_directionalLights;
 }

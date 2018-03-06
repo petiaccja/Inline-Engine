@@ -90,7 +90,7 @@ void ImageBase::Update(uint64_t x, uint32_t y, uint64_t width, uint32_t height, 
 }
 
 
-size_t ImageBase::GetWidth() {
+size_t ImageBase::GetWidth() const {
 	if (m_resource) {
 		return m_resource.GetWidth();
 	}
@@ -100,7 +100,7 @@ size_t ImageBase::GetWidth() {
 }
 
 
-size_t ImageBase::GetHeight() {
+size_t ImageBase::GetHeight() const {
 	if (m_resource) {
 		return m_resource.GetHeight();
 	}

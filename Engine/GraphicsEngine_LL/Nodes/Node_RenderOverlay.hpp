@@ -56,7 +56,10 @@ private:
 	Binder m_overlayBinder;
 	Binder m_textBinder;
 	BindParameter m_bindOverlayCb;
-	BindParameter m_bindTexture;
+	BindParameter m_bindOverlayTexture;
+	BindParameter m_bindTextTransform;
+	BindParameter m_bindTextRender;
+	BindParameter m_bindTextTexture;
 	std::unique_ptr<gxapi::IPipelineState> m_overlayPso;
 	std::unique_ptr<gxapi::IPipelineState> m_textPso;
 
