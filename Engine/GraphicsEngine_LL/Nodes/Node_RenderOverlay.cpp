@@ -401,7 +401,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			// Render the text.
 			const TextEntity* entity = *itText;
 			const Font* font = entity->GetFont();
-			if (!font || !font->GetAtlas()->GetSrv()) {
+			if (!font || !font->GetGlyphAtlas().GetSrv()) {
 				++itText;
 				continue;
 			}
@@ -409,7 +409,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			commandList.SetPipelineState(m_textPso.get());
 			commandList.SetGraphicsBinder(&m_textBinder);
 			commandList.SetPrimitiveTopology(ePrimitiveTopology::TRIANGLESTRIP);
-			commandList.SetResourceState(font->GetAtlas()->GetSrv().GetResource(), { eResourceState::PIXEL_SHADER_RESOURCE, eResourceState::NON_PIXEL_SHADER_RESOURCE });
+			commandList.SetResourceState(font->GetGlyphAtlas().GetSrv().GetResource(), { eResourceState::PIXEL_SHADER_RESOURCE, eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 			// Set cbuffer constants unchanging over letters.
 			CbufferTextTransform cbufferTransform;
@@ -422,12 +422,11 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			cbufferRender.color = entity->GetColor();
 
 			// Position of the first letter.
-			float fontToTextRatio = entity->GetFontSize() / 32.0f;
-			float textHeight = font->GetAtlas()->GetHeight() * fontToTextRatio;
-			RectF letterRect;
-			letterRect.left = -entity->GetSize().x/2.0f;
-			letterRect.bottom = -textHeight/2.0f;
-			letterRect.top = textHeight/2.0f;
+			float textHeight = font->CalculateTextHeight(entity->GetFontSize());
+			RectF letterRect = AlignFirstLetter(entity);
+			//letterRect.left = -entity->GetSize().x/2.0f;
+			//letterRect.bottom = -textHeight/2.0f;
+			//letterRect.top = textHeight/2.0f;
 
 			// Convert string to UCS-4 code-points.
 			std::wstring_convert<std::codecvt_utf8<uint32_t>, uint32_t> converter;
@@ -435,32 +434,51 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 
 			// Draw letters one-by-one.
 			for (auto& character : text) {
-				bool supported = font->SupportsCharacter(character);
+				bool supported = font->IsCharacterSupported(character);
 				if (!supported) {
 					continue;
 				}
-				Font::GlyphInfo charInfo = font->GetCharacterInfo(character);
-				letterRect.right = letterRect.left + charInfo.advance*fontToTextRatio;
+				Font::GlyphInfo charInfo = font->GetGlyphInfo(character);
+				letterRect.right = letterRect.left + charInfo.advance*entity->GetFontSize();
 				cbufferRender.atlasAccessTopleft = charInfo.atlasPos;
-				cbufferRender.atlasAccessSize = { charInfo.atlasSize.x, font->GetAtlas()->GetHeight() };
+				cbufferRender.atlasAccessSize = { charInfo.atlasSize.x, font->GetGlyphAtlas().GetHeight() };
 
 				Mat33 letterTransform = Mat33::Scale(letterRect.GetSize()/2)*Mat33::Translation(letterRect.GetCenter());
 				cbufferTransform.worldViewProj.Submatrix<3, 3>(0, 0) = letterTransform*worldViewProj;
 
 				commandList.BindGraphics(m_bindTextTransform, &cbufferTransform, sizeof(cbufferTransform));
 				commandList.BindGraphics(m_bindTextRender, &cbufferRender, sizeof(cbufferRender));
-				commandList.BindGraphics(m_bindTextTexture, font->GetAtlas()->GetSrv());
+				commandList.BindGraphics(m_bindTextTexture, font->GetGlyphAtlas().GetSrv());
 
 				commandList.DrawInstanced(4);
 
 				letterRect.left = letterRect.right;
 			}
-
 			++itText;
 		}
-
 	}
+}
 
+
+RectF RenderOverlay::AlignFirstLetter(const TextEntity* entity) {
+	RectF place;
+	float textWidth = entity->CalculateTextWidth();
+	float boxWidth = entity->GetSize().x;
+	
+	float textHeight = entity->CalculateTextHeight();
+	float boxHeight = entity->GetSize().y;
+
+	float widthSlide = (boxWidth - textWidth)/2;
+	float heightSlide = (boxHeight - textHeight)/2;
+
+	float widthOffset = widthSlide * entity->GetHorizontalAlignment();
+	float heightOffset = heightSlide * entity->GetVerticalAlignment();
+
+	place.left = place.right = -textWidth/2 + widthOffset;
+	place.top = textHeight/2 + heightOffset;
+	place.bottom = place.top - textHeight;
+
+	return place;
 }
 
 

@@ -52,6 +52,9 @@ private:
 						const std::vector<const TextEntity*>& textList,
 						float minZ,
 						float maxZ);
+
+	// Return the position of the first letter in entity's local space, entity size included.
+	static RectF AlignFirstLetter(const TextEntity*);
 private:
 	Binder m_overlayBinder;
 	Binder m_textBinder;

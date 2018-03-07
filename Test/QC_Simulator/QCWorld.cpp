@@ -64,7 +64,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 		element.reset(m_graphicsEngine->CreateOverlayEntity());
 		element->SetMesh(m_overlayQuadMesh.get());
-		element->SetScale({ 200/2, 30/2 });
+		element->SetScale({ 200/2, 40/2 });
 		element->SetPosition({ 400, 30 });
 		//element->SetTexture(m_overlayTexture.get());
 		element->SetColor({ 0.2,0.2,0.2,1 });
@@ -72,22 +72,26 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_overlayElements.push_back(std::move(element));
 
 		for (auto& curr : m_overlayElements) {
-			m_guiScene->GetOverlayEntities().Add(curr.get());
+			m_guiScene->GetEntities<OverlayEntity>().Add(curr.get());
 		}
 
 		// Create text rendering
 		m_font.reset(m_graphicsEngine->CreateFont());
-		m_font->SetFamily("Arial", false, false);
+		std::ifstream fontFile(R"(C:\Windows\Fonts\calibri.ttf)", std::ios::binary);
+		m_font->LoadFile(fontFile);
 		m_infoText.reset(m_graphicsEngine->CreateTextEntity());
 		m_infoText->SetColor({ 1,1,1,1 });
 		m_infoText->SetFont(m_font.get());
 		m_infoText->SetFontSize(16.0f);
 		m_infoText->SetPosition({ 400, 30 });
 		m_infoText->SetScale({ 1.f, 1.f });
-		m_infoText->SetSize({ 200, 30 });
+		m_infoText->SetSize({ 200, 40 });
 		m_infoText->SetZDepth(1);
-		m_infoText->SetText(u8"Ricsi egy gyökér! Muhahaha!");
+		m_infoText->SetHorizontalAlignment(TextEntity::ALIGN_LEFT);
+		m_infoText->SetVerticalAlignment(TextEntity::ALIGN_TOP);
+
 		m_guiScene->GetTextEntities().Add(m_infoText.get());
+		m_guiScene->GetEntities<TextEntity>().Add(m_infoText.get());
 
 		// Set world render transform
 		m_graphicsEngine->SetEnvVariable("world_render_pos", inl::Any(inl::Vec2(0.f, 0.f)));
@@ -97,8 +101,6 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	
 	// Create scene and camera
 	m_worldScene.reset(m_graphicsEngine->CreateScene("World"));
-	//m_sun.SetColor({1.0f, 0.63f, 0.46f});
-	//m_sun.SetDirection({ 0.8f, -0.7f, -0.15f });
 	m_sun.SetColor({1.0f, 0.9f, 0.85f});
 	m_sun.SetDirection({ 0.8f, -0.7f, -0.9f });
 	m_worldScene->GetDirectionalLights().Add(&m_sun);

@@ -20,20 +20,27 @@ public:
 public:
 	Font(Image atlas);
 
-	void SetFamily(std::string familyName, bool bold, bool italic);
-	void SetFile(std::istream& file);
-	void SetFile(const void* data, size_t size);
+	/// <summary> Loads an already opened TTF font file. </summary>
+	void LoadFile(std::istream& file);
+
+	/// <summary> Load TTF file from memory. </summary>
+	void LoadFile(const void* data, size_t size);
 
 	/// <summary> Check weather given character can be rendered. </summary>
 	/// <param name="character"> UCS-4 code point. </param>
-	bool SupportsCharacter(char32_t character) const;
+	bool IsCharacterSupported(char32_t character) const;
 
 	/// <summary> Returns the width of the specified character. </summary>
 	/// <param name="character"> UCS-4 code point. </param>
 	/// <exception cref="OutOfRangeException"> If character cannot be rendered. </exception>
-	GlyphInfo GetCharacterInfo(char32_t character) const;
+	GlyphInfo GetGlyphInfo(char32_t character) const;
 
-	const Image* GetAtlas() const;
+	/// <summary> Returns the texture atlas that contain the rasterized letters. </summary>
+	const Image& GetGlyphAtlas() const;
+
+	/// <summary> Calculates the height of a line of text for given font size. </summary>
+	/// <param name="fontSize"> The size of the font you want to render. </param>
+	float CalculateTextHeight(float fontSize) const;
 private:
 	Image m_atlas;
 	std::unordered_map<char32_t, GlyphInfo> m_glyphs;

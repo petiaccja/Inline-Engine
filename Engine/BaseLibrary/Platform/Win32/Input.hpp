@@ -73,7 +73,7 @@ public:
 	/// <summary> Returns the list of available input devices of specific type that you can listen to. </summary>
 	static std::vector<InputDevice> GetDeviceList(eInputSourceType filter);
 
-	static DWORD DbgTID() { return RawInputSource::GetInstance()->DbgTID(); }
+	static DWORD DbgTID() { return RawInputSource::GetInstance().DbgTID(); }
 public:
 	Event<MouseButtonEvent> OnMouseButton;
 	Event<MouseMoveEvent> OnMouseMove;

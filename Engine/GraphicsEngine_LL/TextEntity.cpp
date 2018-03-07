@@ -1,7 +1,12 @@
 #pragma once
 
 #include "TextEntity.hpp"
+#include "Font.hpp"
+
 #include <BaseLibrary/Exception/Exception.hpp>
+
+#include <locale>
+#include <codecvt>
 
 namespace inl::gxeng {
 
@@ -21,6 +26,9 @@ void TextEntity::SetText(std::string text) {
 }
 
 void TextEntity::SetFontSize(float size) {
+	if (size <= 0.0f) {
+		throw InvalidArgumentException("Font size must be a positive real number.");
+	}
 	m_fontSize = size;
 }
 
@@ -44,12 +52,62 @@ float TextEntity::GetFontSize() const {
 	return m_fontSize;
 }
 
-float TextEntity::GetTextWidth() const {
-	throw NotImplementedException();
+void TextEntity::SetAdditionalClip(RectF clipRectangle, Mat33 transform) {
+	m_clipRect = clipRectangle;
+	m_clipRectTransform = transform;
+}
+std::pair<RectF, Mat33> TextEntity::GetAdditionalClip() const {
+	return { m_clipRect, m_clipRectTransform };
+}
+void TextEntity::EnableAdditionalClip(bool enabled) {
+	m_clipEnabled = enabled;
+}
+bool TextEntity::IsAdditionalClipEnabled() const {
+	return m_clipEnabled;
 }
 
-float TextEntity::GetTextHeight() const {
-	throw NotImplementedException();
+
+void TextEntity::SetHorizontalAlignment(float alignment) {
+	m_alignment.x = alignment;
+}
+void TextEntity::SetVerticalAlignment(float alignment) {
+	m_alignment.y = alignment;
+}
+float TextEntity::GetHorizontalAlignment() const {
+	return m_alignment.x;
+}
+float TextEntity::GetVerticalAlignment() const {
+	return m_alignment.y;
+}
+
+float TextEntity::CalculateTextWidth() const {
+	if (m_font) {
+		// Convert string to UCS-4 code-points.
+		std::wstring_convert<std::codecvt_utf8<uint32_t>, uint32_t> converter;
+		std::basic_string<uint32_t> text = converter.from_bytes(m_text);
+
+		// Accumulate length.
+		float width = 0.0f;
+		for (auto ch : text) {
+			if (!m_font->IsCharacterSupported(ch)) {
+				continue;
+			}
+			width += m_fontSize * m_font->GetGlyphInfo(ch).advance;
+		}
+		return width;
+	}
+	else {
+		throw InvalidCallException("Cannot calculate text metrics because no font is set.");
+	}
+}
+
+float TextEntity::CalculateTextHeight() const {
+	if (m_font) {
+		return m_font->CalculateTextHeight(m_fontSize);
+	}
+	else {
+		throw InvalidCallException("Cannot calculate text metrics because no font is set.");
+	}
 }
 
 const Vec2& TextEntity::GetSize() const {
