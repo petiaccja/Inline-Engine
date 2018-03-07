@@ -335,7 +335,7 @@ void InputHandler::OnKey(KeyboardEvent evt) {
 
 void InputHandler::OnResize(ResizeEvent evt) {
 	if (world) {
-		world->ScreenSizeChanged(evt.clientSize.x, evt.clientSize.x);
+		world->ScreenSizeChanged(evt.clientSize.x, evt.clientSize.y);
 	}
 }
 
