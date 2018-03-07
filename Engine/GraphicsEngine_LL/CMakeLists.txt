@@ -17,6 +17,7 @@ set(scene
 	"PerspectiveCamera.cpp"
 	"Scene.cpp"
 	"TextEntity.cpp"
+	"Camera2D.cpp"
 	
 	"BasicCamera.hpp"
 	"DirectionalLight.hpp"	
@@ -26,6 +27,7 @@ set(scene
 	"PerspectiveCamera.hpp"
 	"Scene.hpp"
 	"TextEntity.hpp"
+	"Camera2D.hpp"
 	
 	"EntityCollection.hpp"
 )
@@ -272,6 +274,7 @@ set(node_sys
 	"Nodes/Node_CreateTexture.hpp"
 	"Nodes/Node_GetBackBuffer.hpp"
 	"Nodes/Node_GetCameraByName.hpp"
+	"Nodes/Node_GetCamera2DByName.hpp"
 	"Nodes/Node_GetEnvVariable.hpp"
 	"Nodes/Node_GetSceneByName.hpp"
 	"Nodes/Node_GetTime.hpp"

@@ -39,15 +39,16 @@ class Image;
 class Material;
 class MaterialShaderEquation;
 class MaterialShaderGraph;
+class Font;
 
 class Scene;
 class MeshEntity;
 class OverlayEntity;
+class TextEntity;
 class PerspectiveCamera;
 class OrthographicCamera;
+class Camera2D;
 
-class Font;
-class TextEntity;
 
 class WindowResizeListener;
 
@@ -106,6 +107,12 @@ public:
 
 	/// <summary> Redraws the entire screen. </summary>
 	/// <param name="elapsed"> Time since last frame in seconds. </param>
+	/// <remarks>
+	/// Since this call operates on all the entities and resources that compose the scene,
+	/// you are not allowed to concurrently modify these objects while Update() is running.
+	/// This includes but is not limited to adding new entities to a scene and uploading
+	/// data to meshes or images.
+	/// </remarks>
 	void Update(float elapsed);
 
 	/// <summary> Rescales the backbuffer. </summary>
@@ -130,15 +137,15 @@ public:
 	MaterialShaderEquation* CreateMaterialShaderEquation();
 	MaterialShaderGraph* CreateMaterialShaderGraph();
 	Font* CreateFont();
-
-
+	
 	// Scene
 	Scene* CreateScene(std::string name);
 	MeshEntity* CreateMeshEntity();
 	OverlayEntity* CreateOverlayEntity();
+	TextEntity* CreateTextEntity();
 	PerspectiveCamera* CreatePerspectiveCamera(std::string name);
 	OrthographicCamera* CreateOrthographicCamera(std::string name);
-	TextEntity* CreateTextEntity();
+	Camera2D* CreateCamera2D(std::string name);
 
 
 	// Pipeline and environment variables
@@ -147,7 +154,7 @@ public:
 	/// <returns> True if a new variable was created, false if old was overridden. </returns>
 	/// <remarks> Environment variables can be accessed in the graphics pipeline graph by the special
 	///		<see cref="nodes::GetEnvVariable"/> node. You can use it to slightly 
-	///		alter pipeline behavriourfrom outside. </remarks>
+	///		alter pipeline behavriour from outside. </remarks>
 	bool SetEnvVariable(std::string name, Any obj);
 
 	/// <summary> Returns true if env var with given name exists. </summary>
@@ -220,6 +227,7 @@ private:
 	// Scene
 	std::set<Scene*> m_scenes;
 	std::set<BasicCamera*> m_cameras;
+	std::set<Camera2D*> m_cameras2d;
 };
 
 

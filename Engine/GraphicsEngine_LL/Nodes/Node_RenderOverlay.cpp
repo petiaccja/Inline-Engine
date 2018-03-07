@@ -315,7 +315,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 		return (z-minZ)/(maxZ-minZ)*0.98f + 0.01f;
 	};
 
-	const BasicCamera* camera = GetInput<1>().Get();
+	const Camera2D* camera = GetInput<1>().Get();
 	if (!camera) {
 		throw InvalidArgumentException("You must supply a non-null camera.");
 	}
@@ -340,8 +340,8 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 	auto itOverlay = overlayList.begin();
 	auto itText = textList.begin();
 
-	Mat33 view = Mat33::Identity();
-	Mat33 proj = Mat33::Orthographic({ 0,0 }, { 960,500 }, -1.0f, 1.0f);
+	Mat33 view = camera->GetViewMatrix();//Mat33::Identity();
+	Mat33 proj = camera->GetProjectionMatrix();//Mat33::Orthographic({ 0,0 }, { 960,500 }, -1.0f, 1.0f);
 
 	while (itOverlay != overlayList.end() || itText != textList.end()) {
 		float zOverlay = (itOverlay != overlayList.end() ? (*itOverlay)->GetZDepth() : std::numeric_limits<float>::max());

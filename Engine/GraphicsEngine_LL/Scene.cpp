@@ -21,37 +21,6 @@ const std::string& Scene::GetName() const {
 	return m_name;
 }
 
-EntityCollection<MeshEntity>& Scene::GetMeshEntities() {
-	return m_meshEntities;
-}
-
-const EntityCollection<MeshEntity>& Scene::GetMeshEntities() const {
-	return m_meshEntities;
-}
-
-EntityCollection<OverlayEntity>& Scene::GetOverlayEntities() {
-	return m_overlayEntities;
-}
-
-const EntityCollection<OverlayEntity>& Scene::GetOverlayEntities() const {
-	return m_overlayEntities;
-}
-
-EntityCollection<TextEntity>& Scene::GetTextEntities() {
-	return m_textEntities;
-}
-
-const EntityCollection<TextEntity>& Scene::GetTextEntities() const {
-	return m_textEntities;
-}
-
-EntityCollection<DirectionalLight>& Scene::GetDirectionalLights() {
-	return m_directionalLights;
-}
-const EntityCollection<DirectionalLight>& Scene::GetDirectionalLights() const {
-	return m_directionalLights;
-}
-
 
 EntityCollectionBase* Scene::GetEntities(const std::type_index& entityType) {
 	auto it = m_entityCollections.find(entityType);

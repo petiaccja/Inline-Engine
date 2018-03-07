@@ -4,7 +4,7 @@
 #include "../ResourceView.hpp"
 #include "../Scene.hpp"
 #include "../TextEntity.hpp"
-#include "../BasicCamera.hpp"
+#include "../Camera2D.hpp"
 
 #include <GraphicsApi_LL/Common.hpp>
 #include <GraphicsApi_LL/IPipelineState.hpp>
@@ -24,7 +24,7 @@ namespace inl::gxeng::nodes {
 class RenderOverlay :
 	virtual public GraphicsNode,
 	public GraphicsTask,
-	public InputPortConfig<Texture2D, const BasicCamera*, const EntityCollection<OverlayEntity>*, const EntityCollection<TextEntity>*>,
+	public InputPortConfig<Texture2D, const Camera2D*, const EntityCollection<OverlayEntity>*, const EntityCollection<TextEntity>*>,
 	public OutputPortConfig<Texture2D>
 {
 public:

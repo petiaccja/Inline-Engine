@@ -24,22 +24,12 @@ public:
 	Scene(std::string name);
 	Scene(const Scene&) = delete;
 	Scene& operator=(const Scene&) = delete;
+	Scene(Scene&&) = default;
+	Scene& operator=(Scene&&) = default;
 	virtual ~Scene();
 
 	void SetName(std::string name);
 	const std::string& GetName() const;
-		
-	EntityCollection<MeshEntity>& GetMeshEntities();
-	const EntityCollection<MeshEntity>& GetMeshEntities() const;
-
-	EntityCollection<OverlayEntity>& GetOverlayEntities();
-	const EntityCollection<OverlayEntity>& GetOverlayEntities() const;
-
-	EntityCollection<TextEntity>& GetTextEntities();
-	const EntityCollection<TextEntity>& GetTextEntities() const;
-
-	EntityCollection<DirectionalLight>& GetDirectionalLights();
-	const EntityCollection<DirectionalLight>& GetDirectionalLights() const;
 
 	template <class EntityType>
 	EntityCollection<EntityType>& GetEntities();

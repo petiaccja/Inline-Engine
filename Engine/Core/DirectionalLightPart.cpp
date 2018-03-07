@@ -6,12 +6,12 @@ DirectionalLightPart::DirectionalLightPart(Scene* scene, gxeng::Scene* graphicsS
 :Part(scene, TYPE), graphicsScene(graphicsScene)
 {
 	light = new gxeng::DirectionalLight();
-	graphicsScene->GetDirectionalLights().Add(light);
+	graphicsScene->GetEntities<gxeng::DirectionalLight>().Add(light);
 }
 
 DirectionalLightPart::~DirectionalLightPart()
 {
-	graphicsScene->GetDirectionalLights().Remove(light);
+	graphicsScene->GetEntities<gxeng::DirectionalLight>().Remove(light);
 	delete light;
 }
 

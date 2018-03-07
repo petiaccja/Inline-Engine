@@ -67,6 +67,7 @@ public:
 	void OnJoystickMove(JoystickMoveEvent evt);
 	void OnKey(KeyboardEvent evt);
 	void SetFocused(bool focused) { m_focused = focused; }
+	void OnResize(ResizeEvent);
 private:
 	QCWorld* world;
 	bool m_focused = true;
@@ -168,6 +169,8 @@ int main(int argc, char* argv[]) {
 
 		// Create input handling
 		inputHandler = std::make_unique<InputHandler>(qcWorld.get());
+
+		window.OnResize += Delegate<void(ResizeEvent)>{ &InputHandler::OnResize, inputHandler.get() };
 
 		auto joysticks = Input::GetDeviceList(eInputSourceType::JOYSTICK);
 		if (!joysticks.empty()) {
@@ -330,7 +333,11 @@ void InputHandler::OnKey(KeyboardEvent evt) {
 	}
 }
 
-
+void InputHandler::OnResize(ResizeEvent evt) {
+	if (world) {
+		world->ScreenSizeChanged(evt.clientSize.x, evt.clientSize.x);
+	}
+}
 
 
 std::string SelectPipeline(IGraphicsApi* gxapi) {
