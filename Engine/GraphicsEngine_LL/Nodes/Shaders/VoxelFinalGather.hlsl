@@ -5,6 +5,67 @@
 * Output: scene with added GI
 */
 
+//ULTRA HIGH SETTING CONES
+const float3 coneDirs[56] = {
+	float3(-0.4713, 0.6617, 0.5831),
+	float3(-0.7002, 0.6617, -0.2680),
+	float3(0.0385, 0.6617, -0.7488),
+	float3(0.7240, 0.6617, -0.1947),
+	float3(0.2680, 0.9435, -0.1947),
+	float3(0.4911, 0.7947, -0.3568),
+	float3(0.4089, 0.6617, -0.6284),
+	float3(-0.1024, 0.9435, -0.3151),
+	float3(-0.1876, 0.7947, -0.5773),
+	float3(-0.4713, 0.6617, -0.5831),
+	float3(-0.3313, 0.9435, 0.0000),
+	float3(-0.6071, 0.7947, 0.0000),
+	float3(-0.7002, 0.6617, 0.2680),
+	float3(-0.1024, 0.9435, 0.3151),
+	float3(-0.1876, 0.7947, 0.5773),
+	float3(0.0385, 0.6617, 0.7488),
+	float3(0.2680, 0.9435, 0.1947),
+	float3(0.4911, 0.7947, 0.3568),
+	float3(0.7240, 0.6617, 0.1947),
+	float3(0.8897, 0.3304, -0.3151),
+	float3(0.7947, 0.1876, -0.5773),
+	float3(0.5746, 0.3304, -0.7488),
+	float3(-0.0247, 0.3304, -0.9435),
+	float3(-0.3035, 0.1876, -0.9342),
+	float3(-0.5346, 0.3304, -0.7779),
+	float3(-0.9050, 0.3304, -0.2680),
+	float3(-0.9822, 0.1876, 0.0000),
+	float3(-0.9050, 0.3304, 0.2680),
+	float3(-0.5346, 0.3304, 0.7779),
+	float3(-0.3035, 0.1876, 0.9342),
+	float3(-0.0247, 0.3304, 0.9435),
+	float3(0.5746, 0.3304, 0.7488),
+	float3(0.7947, 0.1876, 0.5773),
+	float3(0.8897, 0.3304, 0.3151),
+	float3(0.3066, 0.1256, -0.9435),
+	float3(-0.8026, 0.1256, -0.5831),
+	float3(-0.8026, 0.1256, 0.5831),
+	float3(0.3066, 0.1256, 0.9435),
+	float3(0.9921, 0.1256, 0.0000),
+	float3(0.4089, 0.6617, 0.6284),
+	float3(0.276388, 0.447220, 0.850649),
+	float3(-0.723607, 0.447220, 0.525725),
+	float3(-0.723607, 0.447220, -0.525725),
+	float3(0.276388, 0.447220, -0.850649),
+	float3(0.894426, 0.447216, 0.000000),
+	float3(0.000000, 1.000000, 0.000000),
+	float3(0.688189, 0.525736, 0.499997),
+	float3(-0.262869, 0.525738, 0.809012),
+	float3(-0.850648, 0.525736, 0.000000),
+	float3(-0.262869, 0.525738, -0.809012),
+	float3(0.688189, 0.525736, -0.499997),
+	float3(0.162456, 0.850654, 0.499995),
+	float3(0.525730, 0.850652, 0.000000),
+	float3(-0.425323, 0.850654, 0.309011),
+	float3(-0.425323, 0.850654, -0.309011),
+	float3(0.162456, 0.850654, -0.499995)
+};
+#define NUM_CONES 56
+
 struct Uniforms
 {
 	float4x4 model, viewProj, invView;
@@ -25,6 +86,26 @@ Texture3D<float4> inputTex3 : register(t3); //secondary voxel tex
 SamplerState samp0 : register(s0); //point
 SamplerState samp1 : register(s1); //bilinear
 SamplerState samp2 : register(s2); //trilinear
+
+//transforms a direction into the coordinate system
+//defined by the normal vector
+float3 trans_normal(float3 n, float3 d)
+{
+	float3 a, b;
+
+	if (abs(n.z) < 1.0)
+	{
+		a = normalize(cross(float3(0, 0, 1), n));
+	}
+	else
+	{
+		a = normalize(cross(float3(1, 0, 0), n));
+	}
+
+	b = normalize(cross(n, a));
+
+	return a * d.x + b * d.y + n * d.z;
+}
 
 float linearize_depth(float depth, float near, float far)
 {
@@ -48,7 +129,7 @@ float3 wsPosToVoxelTC(float3 wsPos)
 }
 
 //aperture: tan(coneHalfAngle) ???
-float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneAperture)
+float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneAperture, const bool opacityOnly = false)
 {
 	float4 result = float4(0, 0, 0, 0);
 
@@ -78,10 +159,16 @@ float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneApert
 		}
 
 		//TODO: alpha won't be correct here, as we used the alpha channel for atomic avg counter...
-		float4 data = inputTex1.SampleLevel(samp2, voxelTexCoord, mipLevel);
+		float4 data = float4(0, 0, 0, 0);
+		if (!opacityOnly)
+		{
+			data.xyz = inputTex1.SampleLevel(samp2, voxelTexCoord, mipLevel).xyz;
+		}
 		data.w = inputTex3.SampleLevel(samp2, voxelTexCoord, mipLevel).x;
 		
+
 		result += (1.0 - result.w) * data;
+
 
 		//TODO 0.5?????????
 		//voxel size???????
@@ -89,7 +176,14 @@ float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneApert
 		traceDist += diameter * 0.5;
 	}
 
-	return float4(result.xyz * result.w, 1.0);
+	if (!opacityOnly)
+	{
+		return float4(result.xyz * result.w, 1.0);
+	}
+	else
+	{
+		return result.wwww;
+	}
 }
 
 struct PS_Input
@@ -138,7 +232,19 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//roughness * pi * 0.125???
 	float4 result = coneTrace(wsPos, wsDepthNormal, perfectReflectionDir, tan(0.5 * 0.0174533));
 
-	return result;
+	//cone trace AO
+	float aoResult = 0.0;
+	for (int c = 0; c < NUM_CONES; ++c)
+	{
+		float3 dir = coneDirs[c];
+		float3 dirOriented = trans_normal(wsDepthNormal, dir);
+		//half angle = 10deg
+		aoResult += max(dot(wsDepthNormal, dir), 0.0) * coneTrace(wsPos, wsDepthNormal, dirOriented, tan(0.174533));
+	}
+	aoResult /= NUM_CONES;
+
+	//return float4(aoResult, aoResult, aoResult, aoResult);
+	return result * aoResult;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);
 	//return float4(wsPos, 1.0);
 	//return float4(wsViewDir, 1.0);
