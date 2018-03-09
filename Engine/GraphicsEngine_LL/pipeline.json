@@ -10,10 +10,6 @@
       ]
     },
     {
-      "class": "Pipeline/Render/OverlayRender",
-      "id": 3
-    },
-    {
       "class": "Pipeline/Render/ScreenSpaceTransform",
       "id": 2
     },
@@ -491,12 +487,6 @@
   ],
   "links": [
     {
-      "src": 3,
-      "dst": 0,
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
       "src": 2,
       "dst": 0,
       "srcp": 0,
@@ -519,24 +509,6 @@
       "dst": 2,
       "srcp": 0,
       "dstp": 4
-    },
-    {
-      "src": 69,
-      "dst": 3,
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "GUIScene",
-      "dst": 3,
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": 4,
-      "dst": 3,
-      "srcp": 0,
-      "dstp": 2
     },
     {
       "src": 66,

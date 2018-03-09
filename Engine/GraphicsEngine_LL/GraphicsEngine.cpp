@@ -56,7 +56,6 @@
 #include "Nodes/Node_ScreenSpaceAmbientOcclusion.hpp"
 
 //Gui
-//#include "Nodes/Node_OverlayRender.hpp"
 #include "Nodes/Node_RenderOverlay.hpp"
 #include "Nodes/Node_Blend.hpp"
 #include "Nodes/Node_ScreenSpaceTransform.hpp"
@@ -574,7 +573,6 @@ void GraphicsEngine::RegisterPipelineClasses() {
 	m_nodeFactory.RegisterNodeClass<nodes::TextRender>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceAmbientOcclusion>("Pipeline/Render");
 
-	//m_nodeFactory.RegisterNodeClass<nodes::OverlayRender>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::RenderOverlay>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::Blend>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceTransform>("Pipeline/Render");
