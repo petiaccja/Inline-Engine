@@ -61,10 +61,13 @@ protected:
 	bool m_outputTexturesInited = false;
 	std::vector<RWTextureView3D> m_voxelTexUAV;
 	TextureView3D m_voxelTexSRV;
+	std::vector<TextureView3D> m_voxelTexMipSRV;
 	std::vector<RWTextureView3D> m_voxelSecondaryTexUAV;
 	TextureView3D m_voxelSecondaryTexSRV;
+	std::vector<TextureView3D> m_voxelSecondaryTexMipSRV;
 	std::vector<RWTextureView3D> m_voxelLightTexUAV;
 	TextureView3D m_voxelLightTexSRV;
+	std::vector<TextureView3D> m_voxelLightTexMipSRV;
 
 	TextureView2D m_shadowCSMTexSrv;
 	TextureView2D m_shadowCSMExtentsTexSrv;
