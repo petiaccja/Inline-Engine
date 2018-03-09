@@ -66,8 +66,11 @@ public:
 
 	void OnJoystickMove(JoystickMoveEvent evt);
 	void OnKey(KeyboardEvent evt);
+	void SetFocused(bool focused) { m_focused = focused; }
+	void OnResize(ResizeEvent);
 private:
 	QCWorld* world;
+	bool m_focused = true;
 };
 
 
@@ -167,6 +170,8 @@ int main(int argc, char* argv[]) {
 		// Create input handling
 		inputHandler = std::make_unique<InputHandler>(qcWorld.get());
 
+		window.OnResize += Delegate<void(ResizeEvent)>{ &InputHandler::OnResize, inputHandler.get() };
+
 		auto joysticks = Input::GetDeviceList(eInputSourceType::JOYSTICK);
 		if (!joysticks.empty()) {
 			joyInput = std::make_unique<Input>(joysticks.front().id);
@@ -234,6 +239,7 @@ int main(int argc, char* argv[]) {
 	//window.SetCaptionButtonHandler(CaptionHandler);
 
 	while (!window.IsClosed()) {
+		inputHandler->SetFocused(window.IsFocused());
 		window.CallEvents();
 		if (joyInput) {
 			joyInput->CallEvents();
@@ -293,7 +299,7 @@ int main(int argc, char* argv[]) {
 
 
 void InputHandler::OnJoystickMove(JoystickMoveEvent evt) {
-	if (!world) {
+	if (!world || !m_focused) {
 		return;
 	}
 	cout << "Axis" << evt.axis << " = " << evt.absPos << endl;
@@ -309,7 +315,7 @@ void InputHandler::OnJoystickMove(JoystickMoveEvent evt) {
 
 
 void InputHandler::OnKey(KeyboardEvent evt) {
-	if (!world) {
+	if (!world || !m_focused) {
 		return;
 	}
 	float enable = float(evt.state == eKeyState::DOWN);
@@ -327,7 +333,11 @@ void InputHandler::OnKey(KeyboardEvent evt) {
 	}
 }
 
-
+void InputHandler::OnResize(ResizeEvent evt) {
+	if (world) {
+		world->ScreenSizeChanged(evt.clientSize.x, evt.clientSize.y);
+	}
+}
 
 
 std::string SelectPipeline(IGraphicsApi* gxapi) {

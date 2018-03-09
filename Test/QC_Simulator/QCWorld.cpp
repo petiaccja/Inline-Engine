@@ -8,6 +8,7 @@
 
 #include <array>
 #include <random>
+#include <iomanip>
 
 inline float rand2() {
 	return (rand() / float(RAND_MAX)) * 2 - 1;
@@ -33,15 +34,16 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	{
 		unsigned width, height;
 		m_guiScene.reset(m_graphicsEngine->CreateScene("Gui"));
-		m_guiCamera.reset(m_graphicsEngine->CreateOrthographicCamera("GuiCamera"));
+		m_guiCamera.reset(m_graphicsEngine->CreateCamera2D("GuiCamera"));
 		graphicsEngine->GetScreenSize(width, height);
-		m_guiCamera->SetBounds(0, width, height, 0, -1, 1);
+		m_guiCamera->SetExtent({ width, height });
+		m_guiCamera->SetPosition(m_guiCamera->GetExtent()/2);
 
 		std::vector<inl::gxeng::Vertex<Position<0>, TexCoord<0>>> vertices(4);
-		vertices[0].position = inl::Vec3(0, 0, 0);
-		vertices[1].position = inl::Vec3(0, 1, 0);
+		vertices[0].position = inl::Vec3(-1, -1, 0);
+		vertices[1].position = inl::Vec3(-1, 1, 0);
 		vertices[2].position = inl::Vec3(1, 1, 0);
-		vertices[3].position = inl::Vec3(1, 0, 0);
+		vertices[3].position = inl::Vec3(1, -1, 0);
 
 		vertices[0].texCoord = inl::Vec2(0, 0);
 		vertices[1].texCoord = inl::Vec2(0, 1);
@@ -63,19 +65,33 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 		element.reset(m_graphicsEngine->CreateOverlayEntity());
 		element->SetMesh(m_overlayQuadMesh.get());
-		element->SetScale({ 0.1, 0.1 });
-		element->SetTexture(m_overlayTexture.get());
+		element->SetScale({ 200/2, 40/2 });
+		element->SetPosition({ 400, 30 });
+		//element->SetTexture(m_overlayTexture.get());
+		element->SetColor({ 0.2,0.2,0.2,1 });
+		element->SetZDepth(-1);
 		m_overlayElements.push_back(std::move(element));
 
 		for (auto& curr : m_overlayElements) {
-			m_guiScene->GetOverlayEntities().Add(curr.get());
+			m_guiScene->GetEntities<OverlayEntity>().Add(curr.get());
 		}
 
 		// Create text rendering
 		m_font.reset(m_graphicsEngine->CreateFont());
+		std::ifstream fontFile(R"(C:\Windows\Fonts\calibri.ttf)", std::ios::binary);
+		m_font->LoadFile(fontFile);
 		m_infoText.reset(m_graphicsEngine->CreateTextEntity());
+		m_infoText->SetColor({ 1,1,1,1 });
+		m_infoText->SetFont(m_font.get());
+		m_infoText->SetFontSize(16.0f);
+		m_infoText->SetPosition({ 400, 30 });
+		m_infoText->SetScale({ 1.f, 1.f });
+		m_infoText->SetSize({ 200, 40 });
+		m_infoText->SetZDepth(1);
+		m_infoText->SetHorizontalAlignment(TextEntity::ALIGN_LEFT);
+		m_infoText->SetVerticalAlignment(TextEntity::ALIGN_TOP);
 
-		m_font->SetFamily("Arial", false, false);
+		m_guiScene->GetEntities<TextEntity>().Add(m_infoText.get());
 
 		// Set world render transform
 		m_graphicsEngine->SetEnvVariable("world_render_pos", inl::Any(inl::Vec2(0.f, 0.f)));
@@ -85,11 +101,9 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	
 	// Create scene and camera
 	m_worldScene.reset(m_graphicsEngine->CreateScene("World"));
-	//m_sun.SetColor({1.0f, 0.63f, 0.46f});
-	//m_sun.SetDirection({ 0.8f, -0.7f, -0.15f });
 	m_sun.SetColor({1.0f, 0.9f, 0.85f});
 	m_sun.SetDirection({ 0.8f, -0.7f, -0.9f });
-	m_worldScene->GetDirectionalLights().Add(&m_sun);
+	m_worldScene->GetEntities<DirectionalLight>().Add(&m_sun);
 	m_camera.reset(m_graphicsEngine->CreatePerspectiveCamera("WorldCam"));
 	m_camera->SetTargeted(true);
 	m_camera->SetTarget({ 0, 0, 0 });
@@ -326,7 +340,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_terrainEntity->SetPosition({ 0,0,0 });
 	m_terrainEntity->SetRotation({ 1,0,0,0 });
 	m_terrainEntity->SetScale({ 1,1,1 });
-	m_worldScene->GetMeshEntities().Add(m_terrainEntity.get());
+	m_worldScene->GetEntities<MeshEntity>().Add(m_terrainEntity.get());
 
 	/**
 	// Set up sphere
@@ -354,7 +368,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		sphere->SetPosition({ 0.1, -1.44 + 3.3, 0.0 });
 		sphere->SetRotation({ 1,0,0,0 });
 		sphere->SetScale({ 0.5,0.5,0.5 });
-		m_worldScene->GetMeshEntities().Add(sphere.get());
+		m_worldScene->GetEntities<MeshEntity>().Add(sphere.get());
 		m_staticEntities.push_back(std::move(sphere));
 	}
 	{
@@ -366,7 +380,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		sphere->SetPosition({ 0.1+1.0, -1.44 + 3.3, 0.0 });
 		sphere->SetRotation({ 1,0,0,0 });
 		sphere->SetScale({ 0.5,0.5,0.5 });
-		m_worldScene->GetMeshEntities().Add(sphere.get());
+		m_worldScene->GetEntities<MeshEntity>().Add(sphere.get());
 		m_staticEntities.push_back(std::move(sphere));
 	}
 	{
@@ -378,7 +392,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		sphere->SetPosition({ 0.1 - 1.0, -1.44 + 3.3, 0.0 });
 		sphere->SetRotation({ 1,0,0,0 });
 		sphere->SetScale({ 0.5,0.5,0.5 });
-		m_worldScene->GetMeshEntities().Add(sphere.get());
+		m_worldScene->GetEntities<MeshEntity>().Add(sphere.get());
 		m_staticEntities.push_back(std::move(sphere));
 	}
 	{
@@ -390,7 +404,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		sphere->SetPosition({ 0.1 + 0.5, -1.44 + 3.3, 0.0 + 0.75 });
 		sphere->SetRotation({ 1,0,0,0 });
 		sphere->SetScale({ 0.5,0.5,0.5 });
-		m_worldScene->GetMeshEntities().Add(sphere.get());
+		m_worldScene->GetEntities<MeshEntity>().Add(sphere.get());
 		m_staticEntities.push_back(std::move(sphere));
 	}
 	{
@@ -402,7 +416,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		sphere->SetPosition({ 0.1 - 0.5, -1.44 + 3.3, 0.0 + 0.75 });
 		sphere->SetRotation({ 1,0,0,0 });
 		sphere->SetScale({ 0.5,0.5,0.5 });
-		m_worldScene->GetMeshEntities().Add(sphere.get());
+		m_worldScene->GetEntities<MeshEntity>().Add(sphere.get());
 		m_staticEntities.push_back(std::move(sphere));
 	}
 	{
@@ -414,7 +428,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		sphere->SetPosition({ 0.1, -1.44 + 3.3, 0.0 + 1.5 });
 		sphere->SetRotation({ 1,0,0,0 });
 		sphere->SetScale({ 0.5,0.5,0.5 });
-		m_worldScene->GetMeshEntities().Add(sphere.get());
+		m_worldScene->GetEntities<MeshEntity>().Add(sphere.get());
 		m_staticEntities.push_back(std::move(sphere));
 	}
 	/**/
@@ -426,7 +440,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	m_quadcopterEntity->SetPosition({ 0,0,-3 });
 	m_quadcopterEntity->SetRotation({ 1,0,0,0 });
 	m_quadcopterEntity->SetScale({ 1,1,1 });
-	m_worldScene->GetMeshEntities().Add(m_quadcopterEntity.get());
+	m_worldScene->GetEntities<MeshEntity>().Add(m_quadcopterEntity.get());
 
 	// Set up axes
 	m_axesEntity.reset(m_graphicsEngine->CreateMeshEntity());
@@ -501,6 +515,14 @@ void QCWorld::UpdateWorld(float elapsed) {
 		}	
 	}
 
+	float speed = m_rigidBody.GetVelocity().Length();
+	float altitude = m_rigidBody.GetPosition().z;
+	std::stringstream infoString;
+	infoString << std::setprecision(4);
+	infoString << "Speed: " << speed*3.6f << " km/h, Alt.: " << altitude << " m";
+	m_infoText->SetText(infoString.str());
+
+
 	// Move quadcopter entity
 	m_quadcopterEntity->SetPosition(m_rigidBody.GetPosition());
 	m_quadcopterEntity->SetRotation(m_rigidBody.GetRotation());
@@ -525,7 +547,8 @@ void QCWorld::UpdateWorld(float elapsed) {
 void QCWorld::ScreenSizeChanged(int width, int height) {
 	const float aspect = width / ((float)height);
 	m_camera->SetFOVAspect(75.f / 180.f * 3.1419f, aspect);
-	m_guiCamera->SetBounds(0, width, height, 0, -1, 1);
+	m_guiCamera->SetExtent({ width, height });
+	m_guiCamera->SetPosition(m_guiCamera->GetExtent()/2);
 	m_graphicsEngine->SetEnvVariable("world_render_size", inl::Any(inl::Vec2(width, height)));
 }
 
@@ -547,7 +570,7 @@ void QCWorld::AddTree(inl::Vec3 position) {
 	tree->SetPosition(position);
 	tree->SetRotation({ 1,0,0,0 });
 	tree->SetScale({ s,s,s });
-	m_worldScene->GetMeshEntities().Add(tree.get());
+	m_worldScene->GetEntities<gxeng::MeshEntity>().Add(tree.get());
 	m_staticEntities.push_back(std::move(tree));
 }
 

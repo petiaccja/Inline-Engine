@@ -59,6 +59,7 @@
     {
       "class": "Pipeline/System/GetSceneByName",
       "id": 5,
+      "name": "GUIScene",
       "inputs": [
         "Gui"
       ]
@@ -66,6 +67,7 @@
     {
       "class": "Pipeline/System/GetSceneByName",
       "id": 71,
+      "name": "3DScene",
       "inputs": [
         "World"
       ]
@@ -525,9 +527,9 @@
       "dstp": 0
     },
     {
-      "src": 5,
+      "src": "GUIScene",
       "dst": 3,
-      "srcp": 1,
+      "srcp": 0,
       "dstp": 1
     },
     {
@@ -555,7 +557,7 @@
       "dstp": 1
     },
     {
-      "src": 71,
+      "src": "3DScene",
       "dst": "voxelization",
       "srcp": 0,
       "dstp": 0
@@ -777,7 +779,7 @@
       "dstp": 0
     },
     {
-      "src": 71,
+      "src": "3DScene",
       "dst": "csm",
       "srcp": 0,
       "dstp": 1
@@ -801,7 +803,7 @@
       "dstp": 0
     },
     {
-      "src": 71,
+      "src": "3DScene",
       "dst": "depthPrePass",
       "srcp": 0,
       "dstp": 1
@@ -831,9 +833,9 @@
       "dstp": 1
     },
     {
-      "src": 71,
+      "src": "3DScene",
       "dst": "depthReductionFinal",
-      "srcp": 2,
+      "srcp": 0,
       "dstp": 2
     },
     {
@@ -921,9 +923,9 @@
       "dstp": 2
     },
     {
-      "src": 71,
+      "src": "3DScene",
       "dst": "drawSky",
-      "srcp": 2,
+      "srcp": 0,
       "dstp": 3
     },
     {
@@ -939,7 +941,7 @@
       "dstp": 0
     },
     {
-      "src": 71,
+      "src": "3DScene",
       "dst": "forwardRender",
       "srcp": 0,
       "dstp": 2
@@ -951,9 +953,9 @@
       "dstp": 3
     },
     {
-      "src": 71,
+      "src": "3DScene",
       "dst": "forwardRender",
-      "srcp": 2,
+      "srcp": 0,
       "dstp": 4
     },
     {
@@ -1173,7 +1175,7 @@
       "dstp": 0
     },
     {
-      "src": 71,
+      "src": "3DScene",
       "dst": "shadowMapGen",
       "srcp": 0,
       "dstp": 1

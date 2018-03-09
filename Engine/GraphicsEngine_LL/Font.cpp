@@ -1,17 +1,22 @@
 #include "Font.hpp"
+#include <BaseLibrary/Exception/Exception.hpp>
+#include <BaseLibrary/Singleton.hpp>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
 namespace inl::gxeng {
 
-Font::Font(Image atlas)
-	: m_atlas(std::move(atlas))
-{
+//------------------------------------------------------------------------------
+// Helper classes.
+//------------------------------------------------------------------------------
 
-}
+// Currently the texture atlas contains rasterized letters of only this size.
+static constexpr float ATLAS_FONT_SIZE = 32.f;
 
 
+// A small helper class for a resizeable 2D texture so that it's easy to append new
+// rendered glyphs to the atlas.
 class AtlasHelper {
 public:
 	AtlasHelper(int width = 0, int height = 0) : m_width(width), m_height(height), m_pixels(width*height) {}
@@ -30,7 +35,7 @@ public:
 
 		*this = std::move(resized);
 	}
-	
+
 	uint8_t& operator()(int x, int y) {
 		return m_pixels[y*m_width + x];
 	}
@@ -46,22 +51,59 @@ private:
 };
 
 
-void Font::SetFamily(std::string familyName, bool bold, bool italic) {
-	FT_Error error;
+// Throw an exception in a freetype function failed.
+template <class ExceptionT, class... Args>
+void ThrowIfFailed(FT_Error error, Args&&... args) {
+	if (error != FT_Err_Ok) {
+		throw ExceptionT(std::forward<Args>(args)...);
+	}
+}
 
-	FT_Library library;
+
+// Initializes freetype lazily
+class FreetypeInit {
+public:
+	FreetypeInit() {
+		ThrowIfFailed<RuntimeException>(FT_Init_FreeType(&m_library), "Failed to initialize freetype.");
+	}
+	FT_Library GetFreetype() const {
+		return m_library;
+	}
+private:
+	FT_Library m_library;
+};
+
+using Freetype = Singleton<FreetypeInit>;
+
+
+
+//------------------------------------------------------------------------------
+// Font class.
+//------------------------------------------------------------------------------
+
+
+Font::Font(Image atlas)
+	: m_atlas(std::move(atlas))
+{}
+
+
+void Font::LoadFile(std::istream& file) {
+	std::vector<char> content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	LoadFile(content.data(), content.size());
+}
+
+
+void Font::LoadFile(const void* data, size_t size) {
+	FT_Library library = Freetype::GetInstance().GetFreetype();
 	FT_Face face;
 
-	// Init freetype.
-	error = FT_Init_FreeType(&library);
-
 	// Load font.
-	error = FT_New_Face(library, R"(C:\Windows\Fonts\arial.ttf)", 0, &face);
-	error = FT_Select_Charmap(face, FT_ENCODING_UNICODE);
+	ThrowIfFailed<InvalidArgumentException>(FT_New_Memory_Face(library, (FT_Byte*)data, (FT_Long)size, 0, &face), "Failed to read font file.");
+	ThrowIfFailed<InvalidArgumentException>(FT_Select_Charmap(face, FT_ENCODING_UNICODE), "Font does not have UNICODE glyph map.");
 
 	// Set font properties.
-	int sizeInPixels = 16;
-	error = FT_Set_Pixel_Sizes(face, 0, sizeInPixels);
+	int sizeInPixels = ATLAS_FONT_SIZE;
+	ThrowIfFailed<RuntimeException>(FT_Set_Pixel_Sizes(face, 0, sizeInPixels), "Could not set pixel size with freetype.");
 
 	AtlasHelper atlasPixels;
 	int totalWidth = 0;
@@ -74,8 +116,8 @@ void Font::SetFamily(std::string familyName, bool bold, bool italic) {
 			continue;
 		}
 
-		error = FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT);
-		error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
+		ThrowIfFailed<RuntimeException>(FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT), "Freetype could not load glyph.", std::to_string(glyphIndex));
+		ThrowIfFailed<RuntimeException>(FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL), "Freetype could not render glyph.", std::to_string(glyphIndex));
 
 		Vec2i position = { totalWidth, 0 };
 		Vec2i size = { 
@@ -86,7 +128,7 @@ void Font::SetFamily(std::string familyName, bool bold, bool italic) {
 		maxHeight = std::max(size.y, maxHeight);
 
 		m_glyphs[ch] = GlyphInfo{
-			float(face->glyph->advance.x/64),
+			float(face->glyph->advance.x)/64.f/sizeInPixels,
 			position,
 			size
 		};
@@ -107,22 +149,31 @@ void Font::SetFamily(std::string familyName, bool bold, bool italic) {
 	m_atlas.SetLayout(atlasPixels.Width(), atlasPixels.Height(), ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR);
 	const IPixelReader& pixelReader = Pixel<ePixelChannelType::INT8_NORM, 1, ePixelClass::LINEAR>::Reader();
 	m_atlas.Update(0, 0, atlasPixels.Width(), atlasPixels.Height(), 0, atlasPixels.Data(), pixelReader);
+	const_cast<Texture2D&>(m_atlas.GetSrv().GetResource()).SetName("font atlas");
 }
 
 
-bool Font::SupportsCharacter(char32_t character) const {
+bool Font::IsCharacterSupported(char32_t character) const {
 	auto it = m_glyphs.find(character);
 	return it != m_glyphs.end();
 }
 
 
-Font::GlyphInfo Font::GetCharacterInfo(char32_t character) const {
+Font::GlyphInfo Font::GetGlyphInfo(char32_t character) const {
 	auto it = m_glyphs.find(character);
 	if (it == m_glyphs.end()) {
 		throw OutOfRangeException("Character cannot be rendered.");
 	}
 
 	return it->second;
+}
+
+const Image& Font::GetGlyphAtlas() const {
+	return m_atlas;
+}
+
+float Font::CalculateTextHeight(float fontSize) const {
+	return m_atlas.GetHeight() * fontSize / ATLAS_FONT_SIZE;
 }
 
 

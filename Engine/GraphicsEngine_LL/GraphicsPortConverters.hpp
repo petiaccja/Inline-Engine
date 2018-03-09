@@ -12,6 +12,7 @@
 // Graphics API & Engine includes
 #include <GraphicsApi_LL/Common.hpp>
 #include "NodeContext.hpp"
+#include "Scene.hpp"
 
 
 
@@ -167,6 +168,19 @@ protected:
 	static gxeng::TextureUsage FromString(const std::string&);
 };
 
+
+// Scene -> EntityCollection
+template <class EntityType>
+class PortConverter<const gxeng::EntityCollection<EntityType>*> : public PortConverterCollection<const gxeng::EntityCollection<EntityType>*> {
+public:
+	PortConverter() :
+		PortConverterCollection<const gxeng::EntityCollection<EntityType>*>(&FromScene) {}
+
+protected:
+	static const gxeng::EntityCollection<EntityType>* FromScene(const gxeng::Scene* scene) {
+		return &scene->GetEntities<EntityType>();
+	}
+};
 
 
 

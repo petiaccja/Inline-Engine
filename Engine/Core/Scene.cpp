@@ -138,7 +138,7 @@ MeshActor* Scene::AddActor_Mesh(const path& modelPath)
 	
 	entity->SetMaterial(material);
 	
-	graphicsScene->GetMeshEntities().Add(entity);
+	graphicsScene->GetEntities<gxeng::MeshEntity>().Add(entity);
 	
 	MeshActor* a = new MeshActor(this, entity);
 	actors.push_back(a);

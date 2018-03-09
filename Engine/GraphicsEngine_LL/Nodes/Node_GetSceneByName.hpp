@@ -20,7 +20,7 @@ class GetSceneByName :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
 	virtual public InputPortConfig<std::string>,
-	virtual public OutputPortConfig<const EntityCollection<MeshEntity>*, const EntityCollection<OverlayEntity>*, const EntityCollection<DirectionalLight>*>
+	virtual public OutputPortConfig<const Scene*>
 {
 public:
 	static const char* Info_GetName() { return "GetSceneByName"; }
@@ -54,9 +54,7 @@ public:
 		}
 
 		// set scene parameters to output ports
-		this->GetOutput<0>().Set(&match->GetMeshEntities());
-		this->GetOutput<1>().Set(&match->GetOverlayEntities());
-		this->GetOutput<2>().Set(&match->GetDirectionalLights());
+		this->GetOutput<0>().Set(match);
 	}
 
 	void Execute(RenderContext& context) {}

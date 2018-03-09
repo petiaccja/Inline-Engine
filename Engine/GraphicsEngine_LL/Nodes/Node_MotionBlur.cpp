@@ -42,6 +42,7 @@ void MotionBlur::Reset() {
 	m_velocityTexSrv = TextureView2D();
 	m_depthTexSrv = TextureView2D();
 	m_neighborMaxTexSrv = TextureView2D();
+	m_motionblur_rtv = {};
 
 	GetInput<0>().Clear();
 	GetInput<1>().Clear();
@@ -61,6 +62,12 @@ void MotionBlur::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
+	if (!m_motionblur_rtv || 
+		(inputTex.GetWidth() != m_motionblur_rtv.GetResource().GetWidth()
+		 || inputTex.GetHeight() != m_motionblur_rtv.GetResource().GetHeight()))
+	{
+		m_outputTexturesInited = false;
+	}
 	
 
 	Texture2D velocityTex = this->GetInput<1>().Get();
@@ -153,8 +160,8 @@ void MotionBlur::Setup(SetupContext& context) {
 		m_fsqIndices.SetName("Motion blur full screen quad index buffer");
 	}
 
+	InitRenderTarget(context);
 	if (!m_PSO) {
-		InitRenderTarget(context);
 
 		ShaderParts shaderParts;
 		shaderParts.vs = true;

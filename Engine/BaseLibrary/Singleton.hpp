@@ -7,9 +7,9 @@ namespace inl {
 template <class T>
 class Singleton : public T {
 public:
-	static Singleton* GetInstance() {
+	static Singleton& GetInstance() {
 		static std::unique_ptr<Singleton> instance(new Singleton());
-		return instance.get();
+		return *instance.get();
 	}
 };
 

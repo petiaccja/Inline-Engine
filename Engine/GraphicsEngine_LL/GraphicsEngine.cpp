@@ -16,6 +16,7 @@
 #include "Nodes/Node_CreateTexture.hpp"
 #include "Nodes/Node_GetSceneByName.hpp"
 #include "Nodes/Node_GetCameraByName.hpp"
+#include "Nodes/Node_GetCamera2DByName.hpp"
 #include "Nodes/Node_GetTime.hpp"
 #include "Nodes/Node_GetEnvVariable.hpp"
 #include "Nodes/Node_VectorComponents.hpp"
@@ -55,7 +56,8 @@
 #include "Nodes/Node_ScreenSpaceAmbientOcclusion.hpp"
 
 //Gui
-#include "Nodes/Node_OverlayRender.hpp"
+//#include "Nodes/Node_OverlayRender.hpp"
+#include "Nodes/Node_RenderOverlay.hpp"
 #include "Nodes/Node_Blend.hpp"
 #include "Nodes/Node_ScreenSpaceTransform.hpp"
 #include "Nodes/Node_BlendWithTransform.hpp"
@@ -63,6 +65,7 @@
 #include "Scene.hpp"
 #include "PerspectiveCamera.hpp"
 #include "OrthographicCamera.hpp"
+#include "Camera2D.hpp"
 #include "Mesh.hpp"
 #include "Material.hpp"
 #include "Image.hpp"
@@ -349,6 +352,32 @@ OrthographicCamera* GraphicsEngine::CreateOrthographicCamera(std::string name) {
 	return camera;
 }
 
+Camera2D* GraphicsEngine::CreateCamera2D(std::string name) {
+	class ObservedCamera2D : public Camera2D {
+	public:
+		ObservedCamera2D(std::function<void(Camera2D*)> deleteHandler, std::string name) :
+			m_deleteHandler(std::move(deleteHandler)) {
+			SetName(name);
+		}
+		~ObservedCamera2D() {
+			if (m_deleteHandler) { m_deleteHandler(static_cast<Camera2D*>(this)); }
+		}
+	protected:
+		std::function<void(Camera2D*)> m_deleteHandler;
+	};
+
+	// Functor to perform the unregistration.
+	auto unregisterCamera = [this](Camera2D* arg) {
+		m_cameras2d.erase(arg);
+	};
+
+	// Allocate a new scene, and register it.
+	Camera2D* camera = new ObservedCamera2D(unregisterCamera, std::move(name));
+	m_cameras2d.insert(camera);
+
+	return camera;
+}
+
 MeshEntity* GraphicsEngine::CreateMeshEntity() {
 	return new MeshEntity;
 }
@@ -430,6 +459,9 @@ std::vector<GraphicsNode*> GraphicsEngine::SelectSpecialNodes(Pipeline& pipeline
 		else if (nodes::GetCameraByName* ptr = dynamic_cast<nodes::GetCameraByName*>(&node)) {
 			specialNodes.push_back(ptr);
 		}
+		else if (nodes::GetCamera2DByName* ptr = dynamic_cast<nodes::GetCamera2DByName*>(&node)) {
+			specialNodes.push_back(ptr);
+		}
 		else if (nodes::GetBackBuffer* ptr = dynamic_cast<nodes::GetBackBuffer*>(&node)) {
 			specialNodes.push_back(ptr);
 		}
@@ -456,6 +488,11 @@ void GraphicsEngine::UpdateSpecialNodes() {
 		cameras.push_back(camera);
 	}
 
+	std::vector<const Camera2D*> cameras2d;
+	for (auto camera : m_cameras2d) {
+		cameras2d.push_back(camera);
+	}
+
 	int backBufferIndex = m_swapChain->GetCurrentBufferIndex();
 	Texture2D backBuffer = m_backBufferHeap->GetBackBuffer(backBufferIndex).GetResource();
 
@@ -465,6 +502,9 @@ void GraphicsEngine::UpdateSpecialNodes() {
 		}
 		else if (auto* getCamera = dynamic_cast<nodes::GetCameraByName*>(node)) {
 			getCamera->SetCameraList(cameras);
+		}
+		else if (auto* getCamera = dynamic_cast<nodes::GetCamera2DByName*>(node)) {
+			getCamera->SetCameraList(cameras2d);
 		}
 		else if (auto* getBB = dynamic_cast<nodes::GetBackBuffer*>(node)) {
 			getBB->SetBuffer(backBuffer);
@@ -491,6 +531,7 @@ void GraphicsEngine::RegisterPipelineClasses() {
 	m_nodeFactory.RegisterNodeClass<nodes::GetBackBuffer>("Pipeline/System");
 	m_nodeFactory.RegisterNodeClass<nodes::GetSceneByName>("Pipeline/System");
 	m_nodeFactory.RegisterNodeClass<nodes::GetCameraByName>("Pipeline/System");
+	m_nodeFactory.RegisterNodeClass<nodes::GetCamera2DByName>("Pipeline/System");
 	m_nodeFactory.RegisterNodeClass<nodes::GetTime>("Pipeline/System");
 	m_nodeFactory.RegisterNodeClass<nodes::GetEnvVariable>("Pipeline/System");
 
@@ -533,7 +574,8 @@ void GraphicsEngine::RegisterPipelineClasses() {
 	m_nodeFactory.RegisterNodeClass<nodes::TextRender>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceAmbientOcclusion>("Pipeline/Render");
 
-	m_nodeFactory.RegisterNodeClass<nodes::OverlayRender>("Pipeline/Render");
+	//m_nodeFactory.RegisterNodeClass<nodes::OverlayRender>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::RenderOverlay>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::Blend>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceTransform>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::BlendWithTransform>("Pipeline/Render");

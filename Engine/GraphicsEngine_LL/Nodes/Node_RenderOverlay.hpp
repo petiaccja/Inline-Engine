@@ -4,7 +4,7 @@
 #include "../ResourceView.hpp"
 #include "../Scene.hpp"
 #include "../TextEntity.hpp"
-#include "../BasicCamera.hpp"
+#include "../Camera2D.hpp"
 
 #include <GraphicsApi_LL/Common.hpp>
 #include <GraphicsApi_LL/IPipelineState.hpp>
@@ -24,7 +24,7 @@ namespace inl::gxeng::nodes {
 class RenderOverlay :
 	virtual public GraphicsNode,
 	public GraphicsTask,
-	public InputPortConfig<Texture2D, const BasicCamera*, const EntityCollection<OverlayEntity>*, const EntityCollection<TextEntity>*>,
+	public InputPortConfig<Texture2D, const Camera2D*, const EntityCollection<OverlayEntity>*, const EntityCollection<TextEntity>*>,
 	public OutputPortConfig<Texture2D>
 {
 public:
@@ -52,11 +52,17 @@ private:
 						const std::vector<const TextEntity*>& textList,
 						float minZ,
 						float maxZ);
+
+	// Return the position of the first letter in entity's local space, entity size included.
+	static RectF AlignFirstLetter(const TextEntity*);
 private:
 	Binder m_overlayBinder;
 	Binder m_textBinder;
 	BindParameter m_bindOverlayCb;
-	BindParameter m_bindTexture;
+	BindParameter m_bindOverlayTexture;
+	BindParameter m_bindTextTransform;
+	BindParameter m_bindTextRender;
+	BindParameter m_bindTextTexture;
 	std::unique_ptr<gxapi::IPipelineState> m_overlayPso;
 	std::unique_ptr<gxapi::IPipelineState> m_textPso;
 

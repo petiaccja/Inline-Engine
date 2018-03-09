@@ -12,6 +12,8 @@
 
 #include "InlineMath.hpp"
 
+#include <locale>
+
 namespace inl::gxeng::nodes {
 
 using namespace gxapi;
@@ -19,16 +21,29 @@ using namespace gxapi;
 
 struct CbufferOverlay {
 	Mat34_Packed worldViewProj;
-	Vec4 color;
+	Vec4_Packed color;
 	uint32_t hasTexture;
 	uint32_t hasMesh;
 	float z;
 };
 
+struct CbufferTextTransform {
+	Mat34_Packed worldViewProj;
+	float z;
+};
+
+struct CbufferTextRender {
+	Vec2i_Packed atlasAccessTopleft;
+	Vec2i_Packed atlasAccessSize;
+	Vec4_Packed color;
+};
+
+
 
 void RenderOverlay::Reset() {
 	// Clear input resource slots.
 	GetInput<0>().Clear();
+	m_rtv = {};
 
 	// Release PSOs.
 	m_overlayPso.reset();
@@ -42,6 +57,8 @@ void RenderOverlay::Setup(SetupContext& context) {
 	CreateRtv(context);
 	CreateBinders(context);
 	CreatePipelineStates(context);
+
+	GetOutput<0>().Set(GetInput<0>().Get());
 }
 
 
@@ -94,6 +111,7 @@ void RenderOverlay::Execute(RenderContext& context) {
 
 	// Render entities
 	GraphicsCommandList& commandList = context.AsGraphics();
+	commandList.ClearRenderTarget(m_rtv, ColorRGBA(0, 0, 0, 0));
 	RenderEntities(commandList, overlayList, textList, minZ, maxZ);
 
 }
@@ -116,6 +134,7 @@ void RenderOverlay::ValidateInput() {
 	if (texture.GetFormat() != m_currentFormat) {
 		m_overlayPso.reset();
 		m_textPso.reset();
+		m_currentFormat = texture.GetFormat();
 	}
 }
 
@@ -157,8 +176,9 @@ void RenderOverlay::CreateBinders(SetupContext& context) {
 		p.parameter.reg = 0;
 		p.parameter.space = 0;
 		p.parameter.type = eBindParameterType::TEXTURE;
+		p.shaderVisibility = eShaderVisiblity::PIXEL;
 		parameters.push_back(p);
-		m_bindTexture = p.parameter;
+		m_bindOverlayTexture = p.parameter;
 
 		// sampler
 		StaticSamplerDesc samp;
@@ -167,6 +187,48 @@ void RenderOverlay::CreateBinders(SetupContext& context) {
 		samp.shaderRegister = 0;
 
 		m_overlayBinder = context.CreateBinder(parameters, { samp });
+	}
+
+	if (!m_textBinder) {
+		std::vector<BindParameterDesc> parameters;
+
+		BindParameterDesc p;
+		p.relativeAccessFrequency = 1;
+		p.relativeChangeFrequency = 1;
+
+		// vs cbuffer
+		p.parameter.reg = 0;
+		p.parameter.space = 0;
+		p.parameter.type = eBindParameterType::CONSTANT;
+		p.constantSize = sizeof(CbufferTextTransform);
+		p.shaderVisibility = eShaderVisiblity::VERTEX;
+		parameters.push_back(p);
+		m_bindTextTransform = p.parameter;
+
+		// ps cbuffer
+		p.parameter.reg = 7;
+		p.parameter.space = 0;
+		p.parameter.type = eBindParameterType::CONSTANT;
+		p.constantSize = sizeof(CbufferTextRender);
+		p.shaderVisibility = eShaderVisiblity::PIXEL;
+		parameters.push_back(p);
+		m_bindTextRender = p.parameter;
+
+		// texture
+		p.parameter.reg = 0;
+		p.parameter.space = 0;
+		p.parameter.type = eBindParameterType::TEXTURE;
+		p.shaderVisibility = eShaderVisiblity::PIXEL;
+		parameters.push_back(p);
+		m_bindTextTexture = p.parameter;
+
+		// sampler
+		StaticSamplerDesc samp;
+		samp.filter = eTextureFilterMode::MIN_MAG_MIP_LINEAR;
+		samp.registerSpace = 0;
+		samp.shaderRegister = 0;
+
+		m_textBinder = context.CreateBinder(parameters, { samp });
 	}
 }
 
@@ -207,6 +269,7 @@ void RenderOverlay::CreatePipelineStates(SetupContext& context) {
 	};
 	desc.inputLayout.elements = inputElements.data();
 	desc.inputLayout.numElements = inputElements.size();
+	desc.primitiveTopologyType = ePrimitiveTopologyType::TRIANGLE;
 
 	if (!m_overlayPso) {
 		// Shader
@@ -223,6 +286,9 @@ void RenderOverlay::CreatePipelineStates(SetupContext& context) {
 
 	// Binder
 	desc.rootSignature = m_textBinder.GetRootSignature();
+	desc.inputLayout = { 0, nullptr };
+	desc.primitiveTopologyType = ePrimitiveTopologyType::TRIANGLE;
+
 
 	if (!m_textPso) {
 		// Shader
@@ -249,18 +315,33 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 		return (z-minZ)/(maxZ-minZ)*0.98f + 0.01f;
 	};
 
-	const BasicCamera* camera = GetInput<1>().Get();
+	const Camera2D* camera = GetInput<1>().Get();
 	if (!camera) {
 		throw InvalidArgumentException("You must supply a non-null camera.");
 	}
 
 	// Set up pipeline.
 	const RenderTargetView2D* rtvs[] = { &m_rtv };
-	commandList.SetRenderTargets(1, rtvs);
 	commandList.SetResourceState(m_rtv.GetResource(), eResourceState::RENDER_TARGET);
+	commandList.SetRenderTargets(1, rtvs);
+	Viewport viewport;
+	viewport.width = m_rtv.GetResource().GetWidth();
+	viewport.height = m_rtv.GetResource().GetHeight();
+	viewport.maxDepth = 1.0f;
+	viewport.minDepth = 0.0f;
+	viewport.topLeftX = viewport.topLeftY = 0;
+	Rectangle rect;
+	rect.left = rect.top = 0;
+	rect.right = viewport.width;
+	rect.bottom = viewport.height;
+	commandList.SetScissorRects(1, &rect);
+	commandList.SetViewports(1, &viewport);
 
 	auto itOverlay = overlayList.begin();
 	auto itText = textList.begin();
+
+	Mat33 view = camera->GetViewMatrix();//Mat33::Identity();
+	Mat33 proj = camera->GetProjectionMatrix();//Mat33::Orthographic({ 0,0 }, { 960,500 }, -1.0f, 1.0f);
 
 	while (itOverlay != overlayList.end() || itText != textList.end()) {
 		float zOverlay = (itOverlay != overlayList.end() ? (*itOverlay)->GetZDepth() : std::numeric_limits<float>::max());
@@ -278,8 +359,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			CbufferOverlay cbuffer;
 
 			Mat33 world = entity->GetTransform();
-			Mat33 view = Mat33::Identity();
-			Mat33 proj = Mat33::Orthographic({ -1,-1 }, { 1,1 }, 0.0f, 1.0f);
+
 
 			cbuffer.worldViewProj.Submatrix<3,3>(0,0) = world*view*proj;
 			cbuffer.hasTexture = (uint32_t)(texture != nullptr && texture->GetSrv());
@@ -290,7 +370,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			commandList.BindGraphics(m_bindOverlayCb, &cbuffer, sizeof(cbuffer));
 			if (cbuffer.hasTexture) {
 				commandList.SetResourceState(texture->GetSrv().GetResource(), { eResourceState::PIXEL_SHADER_RESOURCE, eResourceState::NON_PIXEL_SHADER_RESOURCE });
-				commandList.BindGraphics(m_bindTexture, texture->GetSrv());
+				commandList.BindGraphics(m_bindOverlayTexture, texture->GetSrv());
 			}
 
 			if (cbuffer.hasMesh) {
@@ -304,12 +384,14 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 					vbstrides[stream] = mesh->GetVertexBufferStride(stream);
 					commandList.SetResourceState(vb, eResourceState::VERTEX_AND_CONSTANT_BUFFER);
 				}
+				commandList.SetPrimitiveTopology(ePrimitiveTopology::TRIANGLELIST);
 				commandList.SetResourceState(mesh->GetIndexBuffer(), eResourceState::INDEX_BUFFER);
 				commandList.SetVertexBuffers(0, vbs.size(), vbs.data(), vbsizes.data(), vbstrides.data());
 				commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
 				commandList.DrawIndexedInstanced(mesh->GetIndexBuffer().GetIndexCount());
 			}
 			else {
+				commandList.SetPrimitiveTopology(ePrimitiveTopology::TRIANGLESTRIP);
 				commandList.DrawInstanced(4);
 			}
 			
@@ -317,12 +399,86 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 		}
 		else {
 			// Render the text.
+			const TextEntity* entity = *itText;
+			const Font* font = entity->GetFont();
+			if (!font || !font->GetGlyphAtlas().GetSrv()) {
+				++itText;
+				continue;
+			}
 
+			commandList.SetPipelineState(m_textPso.get());
+			commandList.SetGraphicsBinder(&m_textBinder);
+			commandList.SetPrimitiveTopology(ePrimitiveTopology::TRIANGLESTRIP);
+			commandList.SetResourceState(font->GetGlyphAtlas().GetSrv().GetResource(), { eResourceState::PIXEL_SHADER_RESOURCE, eResourceState::NON_PIXEL_SHADER_RESOURCE });
+
+			// Set cbuffer constants unchanging over letters.
+			CbufferTextTransform cbufferTransform;
+			CbufferTextRender cbufferRender;
+
+			Mat33 world = entity->GetTransform();
+			Mat33 worldViewProj = world*view*proj;;
+
+			cbufferTransform.z = RecalcZ(entity->GetZDepth());
+			cbufferRender.color = entity->GetColor();
+
+			// Position of the first letter.
+			float textHeight = font->CalculateTextHeight(entity->GetFontSize());
+			RectF letterRect = AlignFirstLetter(entity);
+			//letterRect.left = -entity->GetSize().x/2.0f;
+			//letterRect.bottom = -textHeight/2.0f;
+			//letterRect.top = textHeight/2.0f;
+
+			// Convert string to UCS-4 code-points.
+			std::wstring_convert<std::codecvt_utf8<uint32_t>, uint32_t> converter;
+			std::basic_string<uint32_t> text = converter.from_bytes(entity->GetText());
+
+			// Draw letters one-by-one.
+			for (auto& character : text) {
+				bool supported = font->IsCharacterSupported(character);
+				if (!supported) {
+					continue;
+				}
+				Font::GlyphInfo charInfo = font->GetGlyphInfo(character);
+				letterRect.right = letterRect.left + charInfo.advance*entity->GetFontSize();
+				cbufferRender.atlasAccessTopleft = charInfo.atlasPos;
+				cbufferRender.atlasAccessSize = { charInfo.atlasSize.x, font->GetGlyphAtlas().GetHeight() };
+
+				Mat33 letterTransform = Mat33::Scale(letterRect.GetSize()/2)*Mat33::Translation(letterRect.GetCenter());
+				cbufferTransform.worldViewProj.Submatrix<3, 3>(0, 0) = letterTransform*worldViewProj;
+
+				commandList.BindGraphics(m_bindTextTransform, &cbufferTransform, sizeof(cbufferTransform));
+				commandList.BindGraphics(m_bindTextRender, &cbufferRender, sizeof(cbufferRender));
+				commandList.BindGraphics(m_bindTextTexture, font->GetGlyphAtlas().GetSrv());
+
+				commandList.DrawInstanced(4);
+
+				letterRect.left = letterRect.right;
+			}
 			++itText;
 		}
-
 	}
+}
 
+
+RectF RenderOverlay::AlignFirstLetter(const TextEntity* entity) {
+	RectF place;
+	float textWidth = entity->CalculateTextWidth();
+	float boxWidth = entity->GetSize().x;
+	
+	float textHeight = entity->CalculateTextHeight();
+	float boxHeight = entity->GetSize().y;
+
+	float widthSlide = (boxWidth - textWidth)/2;
+	float heightSlide = (boxHeight - textHeight)/2;
+
+	float widthOffset = widthSlide * entity->GetHorizontalAlignment();
+	float heightOffset = heightSlide * entity->GetVerticalAlignment();
+
+	place.left = place.right = -textWidth/2 + widthOffset;
+	place.top = textHeight/2 + heightOffset;
+	place.bottom = place.top - textHeight;
+
+	return place;
 }
 
 

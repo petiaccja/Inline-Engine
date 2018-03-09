@@ -68,10 +68,9 @@ void Scheduler::Execute(FrameContext context) {
 				std::string className = typeid(*task).name();
 				size_t idx = className.find("inl::gxeng::");
 				if (idx != className.npos) { className = className.substr(idx+12); }
-				std::stringstream passName;
-				passName << "Node - " << className;
-				context.commandQueue->GetUnderlyingQueue()->BeginDebuggerEvent(passName.str());
+				context.commandQueue->GetUnderlyingQueue()->BeginDebuggerEvent("Node - " + className);
 				AtScopeExit endPass([&context] { context.commandQueue->GetUnderlyingQueue()->EndDebuggerEvent(); });
+				renderContext.TMP_SetCommandListName("Node - " + className + " - Execute()");
 				
 
 				// Call execute.
@@ -99,8 +98,10 @@ void Scheduler::Execute(FrameContext context) {
 					if (barriers.size() > 0) {
 						CmdAllocPtr injectAlloc = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
 						GraphicsCmdListPtr injectList = context.commandListPool->RequestGraphicsList(injectAlloc.get());
+						injectList->BeginDebuggerEvent("Node - " + className + " - Barrier Injection");
 
 						injectList->ResourceBarrier((unsigned)barriers.size(), barriers.data());
+						injectList->EndDebuggerEvent();
 						injectList->Close();
 
 						EnqueueCommandList(*context.commandQueue,
@@ -125,6 +126,7 @@ void Scheduler::Execute(FrameContext context) {
 						usedResourceList.push_back(std::move(v));
 					}
 
+					decomposition.commandList->EndDebuggerEvent();
 					dynamic_cast<gxapi::ICopyCommandList*>(decomposition.commandList.get())->Close();
 
 					EnqueueCommandList(*context.commandQueue,
@@ -147,11 +149,13 @@ void Scheduler::Execute(FrameContext context) {
 		if (bbState != gxapi::eResourceState::PRESENT) {
 			CmdAllocPtr injectAlloc = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
 			GraphicsCmdListPtr injectList = context.commandListPool->RequestGraphicsList(injectAlloc.get());
+			injectList->BeginDebuggerEvent("Backbuffer State");
 
 			injectList->ResourceBarrier(gxapi::TransitionBarrier{
 				context.backBuffer->GetResource()._GetResourcePtr(),
 				context.backBuffer->GetResource().ReadState(0),
 				gxapi::eResourceState::PRESENT });
+			injectList->EndDebuggerEvent();
 			injectList->Close();
 			context.backBuffer->GetResource().RecordState(gxapi::eResourceState::PRESENT);
 

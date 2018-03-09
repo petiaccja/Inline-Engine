@@ -9,7 +9,7 @@
 #include <GraphicsEngine_LL/Scene.hpp>
 #include <GraphicsEngine_LL/OverlayEntity.hpp>
 #include <GraphicsEngine_LL/PerspectiveCamera.hpp>
-#include <GraphicsEngine_LL/OrthographicCamera.hpp>
+#include <GraphicsEngine_LL/Camera2D.hpp>
 #include <GraphicsEngine_LL/DirectionalLight.hpp>
 #include <GraphicsEngine_LL/Font.hpp>
 #include <GraphicsEngine_LL/TextEntity.hpp>
@@ -140,7 +140,7 @@ private:
 	std::unique_ptr<inl::gxeng::Scene> m_worldScene;
 
 	// Gui
-	std::unique_ptr<inl::gxeng::OrthographicCamera> m_guiCamera;
+	std::unique_ptr<inl::gxeng::Camera2D> m_guiCamera;
 	std::unique_ptr<inl::gxeng::Scene> m_guiScene;
 	std::unique_ptr<inl::gxeng::Mesh> m_overlayQuadMesh;
 	std::unique_ptr<inl::gxeng::Image> m_overlayTexture;

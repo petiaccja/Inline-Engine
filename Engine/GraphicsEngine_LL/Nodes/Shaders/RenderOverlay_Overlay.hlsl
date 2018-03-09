@@ -15,7 +15,7 @@ SamplerState linearSampler : register(s0);
 
 
 // Shaders
-void VsMain(float2 posL : POSITION,
+void VSMain(float2 posL : POSITION,
 			float2 texCoord : TEXCOORD0,
 			out float4 posHOut : SV_Position,
 			out float2 texCoordOut : TEXCOORD0)
@@ -26,7 +26,7 @@ void VsMain(float2 posL : POSITION,
 }
 
 
-float4 PsMain(float4 posS : SV_Position, float2 texCoord : TEXCOORD0) : SV_Target0
+float4 PSMain(float4 posS : SV_Position, float2 texCoord : TEXCOORD0) : SV_Target0
 {
     float4 texColor;
     if (constants.hasTexture) {

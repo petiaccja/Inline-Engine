@@ -16,11 +16,11 @@ Input::Input() {
 Input::Input(size_t deviceId) {
 	m_queueMode = eInputQueueMode::IMMEDIATE;
 	m_queueSize = 10000;
-	RawInputSource::GetInstance()->AddInput(this, deviceId);
+	RawInputSource::GetInstance().AddInput(this, deviceId);
 }
 
 Input::~Input() {
-	RawInputSource::GetInstance()->RemoveInput(this);
+	RawInputSource::GetInstance().RemoveInput(this);
 }
 
 

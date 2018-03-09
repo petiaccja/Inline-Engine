@@ -8,8 +8,17 @@ namespace inl {
 namespace gxeng {
 
 
+/// <summary> A helper polymorphic base for all EntityCollections. </summary>
+class EntityCollectionBase {
+public:
+	virtual ~EntityCollectionBase() {}
+};
+
+
+/// <summary> A collection of a certain type of entities. 
+///		A <see cref="Scene"/> consists of multiple entity collections. </summary>
 template <class EntityType>
-class EntityCollection {
+class EntityCollection : public EntityCollectionBase {
 public:
 	using iterator = typename std::set<EntityType*>::iterator;
 	using const_iterator = typename std::set<EntityType*>::const_iterator;
