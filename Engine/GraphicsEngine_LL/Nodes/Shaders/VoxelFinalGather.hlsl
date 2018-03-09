@@ -244,7 +244,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	aoResult /= NUM_CONES;
 
 	//return float4(aoResult, aoResult, aoResult, aoResult);
-	return result * aoResult;
+	return result;// *aoResult;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);
 	//return float4(wsPos, 1.0);
 	//return float4(wsViewDir, 1.0);
