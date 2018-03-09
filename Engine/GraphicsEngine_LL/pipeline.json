@@ -1,28 +1,12 @@
 {
   "nodes": [
     {
-      "class": "Pipeline/Render/BlendWithTransform",
-      "id": 0,
-      "inputs": [
-        {},
-        {},
-        "{enabled,disabled,INV_TARGET_ALPHA,TARGET_ALPHA,ADD,INV_TARGET_ALPHA,TARGET_ALPHA,ADD,RED|GREEN|BLUE|ALPHA,NOOP}"
-      ]
-    },
-    {
       "class": "Pipeline/Render/ScreenSpaceTransform",
       "id": 2
     },
     {
       "class": "Pipeline/System/GetBackBuffer",
       "id": 69
-    },
-    {
-      "class": "Pipeline/System/GetCameraByName",
-      "id": 4,
-      "inputs": [
-        "GuiCamera"
-      ]
     },
     {
       "class": "Pipeline/System/GetCameraByName",
@@ -487,12 +471,6 @@
   ],
   "links": [
     {
-      "src": 2,
-      "dst": 0,
-      "srcp": 0,
-      "dstp": 3
-    },
-    {
       "src": 68,
       "dst": 2,
       "srcp": 0,
@@ -563,12 +541,6 @@
       "dst": "voxelization",
       "srcp": 3,
       "dstp": 5
-    },
-    {
-      "src": "voxelization",
-      "dst": 0,
-      "srcp": 1,
-      "dstp": 1
     },
     {
       "src": 69,
