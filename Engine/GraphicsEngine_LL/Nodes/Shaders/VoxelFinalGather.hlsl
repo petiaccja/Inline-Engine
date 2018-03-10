@@ -239,7 +239,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		float3 dir = coneDirs[c];
 		float3 dirOriented = trans_normal(wsDepthNormal, dir);
 		//half angle = 10deg
-		aoResult += max(dot(wsDepthNormal, dir), 0.0) * coneTrace(wsPos, wsDepthNormal, dirOriented, tan(0.174533));
+		aoResult += max(dot(wsDepthNormal, dir), 0.0) * coneTrace(wsPos, wsDepthNormal, dirOriented, tan(0.174533), true);
 	}
 	aoResult /= NUM_CONES;
 	aoResult = 1.0 - aoResult;
