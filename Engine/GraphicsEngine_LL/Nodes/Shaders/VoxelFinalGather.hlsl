@@ -108,6 +108,15 @@ float3 trans_normal(float3 n, float3 d)
 	return a * d.x + b * d.y + n * d.z;
 }
 
+float3 multiBounce(float ao, float3 albedo)
+{
+	float3 a = 2.0404 * albedo - 0.3324;
+	float3 b = -4.7951 * albedo + 0.6417;
+	float3 c = 2.7552 * albedo + 0.6903;
+
+	return max(ao, ((ao * a + b) * ao + c) * ao);
+}
+
 float linearize_depth(float depth, float near, float far)
 {
 	float A = far / (far - near);
@@ -234,19 +243,20 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float4 result = coneTrace(wsPos, wsDepthNormal, perfectReflectionDir, tan(0.5 * 0.0174533));
 
 	//cone trace AO
-	float4 aoResult = float4(0,0,0,0);
+	float aoResult = 0;
 	for (int c = 0; c < NUM_CONES; ++c)
 	{
 		float3 dir = coneDirs[c];
 		float3 dirOriented = trans_normal(wsDepthNormal, dir);
 
 		//half angle = 10deg
-		aoResult += max(dot(wsDepthNormal, dir), 0.0) * coneTrace(wsPos, wsDepthNormal, dirOriented, tan(0.174533), true);
+		aoResult += max(dot(wsDepthNormal, dirOriented), 0.0) * coneTrace(wsPos, wsDepthNormal, dirOriented, tan(0.174533), true);
 	}
 	aoResult /= NUM_CONES;
 	aoResult = 1.0 - aoResult;
 
 	return aoResult;
+	//return float4(multiBounce(aoResult, float3(1,1,1)), 1.0);
 	//return result;// *aoResult;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);
 	//return float4(wsPos, 1.0);
