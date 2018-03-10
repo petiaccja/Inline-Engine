@@ -6,7 +6,7 @@
 */
 
 //ULTRA HIGH SETTING CONES
-const float3 coneDirs[56] = {
+static const float3 coneDirs[56] = {
 	float3(-0.4713, 0.6617, 0.5831),
 	float3(-0.7002, 0.6617, -0.2680),
 	float3(0.0385, 0.6617, -0.7488),
@@ -242,9 +242,10 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		aoResult += max(dot(wsDepthNormal, dir), 0.0) * coneTrace(wsPos, wsDepthNormal, dirOriented, tan(0.174533));
 	}
 	aoResult /= NUM_CONES;
+	aoResult = 1.0 - aoResult;
 
-	//return float4(aoResult, aoResult, aoResult, aoResult);
-	return result;// *aoResult;
+	return float4(aoResult, aoResult, aoResult, aoResult);
+	//return result;// *aoResult;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);
 	//return float4(wsPos, 1.0);
 	//return float4(wsViewDir, 1.0);
