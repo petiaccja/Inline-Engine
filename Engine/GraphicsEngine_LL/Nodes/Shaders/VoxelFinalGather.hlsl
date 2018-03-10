@@ -93,7 +93,8 @@ float3 trans_normal(float3 n, float3 d)
 {
 	float3 a, b;
 
-	if (abs(n.z) < 1.0)
+	//had to modify it to 0.9 (should be 1 for normalization check, div-by-0)
+	if (abs(n.z) < 0.9)
 	{
 		a = normalize(cross(float3(0, 0, 1), n));
 	}
@@ -233,18 +234,19 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float4 result = coneTrace(wsPos, wsDepthNormal, perfectReflectionDir, tan(0.5 * 0.0174533));
 
 	//cone trace AO
-	float aoResult = 0.0;
+	float4 aoResult = float4(0,0,0,0);
 	for (int c = 0; c < NUM_CONES; ++c)
 	{
 		float3 dir = coneDirs[c];
 		float3 dirOriented = trans_normal(wsDepthNormal, dir);
+
 		//half angle = 10deg
 		aoResult += max(dot(wsDepthNormal, dir), 0.0) * coneTrace(wsPos, wsDepthNormal, dirOriented, tan(0.174533), true);
 	}
 	aoResult /= NUM_CONES;
 	aoResult = 1.0 - aoResult;
 
-	return float4(aoResult, aoResult, aoResult, aoResult);
+	return aoResult;
 	//return result;// *aoResult;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);
 	//return float4(wsPos, 1.0);
