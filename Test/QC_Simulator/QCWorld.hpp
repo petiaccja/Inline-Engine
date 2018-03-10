@@ -153,6 +153,8 @@ private:
 	std::unique_ptr<inl::gxeng::Image> m_overlayTexture;
 	std::vector<std::unique_ptr<inl::gxeng::OverlayEntity>> m_overlayElements;
 	std::unique_ptr<inl::gxeng::TextEntity> m_infoText;
+	std::unique_ptr<inl::gxeng::TextEntity> m_fideszText;
+	bool m_textFlashing = false;
 
 	// Simulation
 	PIDController m_controller;

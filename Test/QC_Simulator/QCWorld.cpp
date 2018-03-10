@@ -89,8 +89,20 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_infoText->SetSize({ 200, 40 });
 		m_infoText->SetZDepth(1);
 		m_infoText->SetHorizontalAlignment(TextEntity::ALIGN_LEFT);
-		m_infoText->SetVerticalAlignment(TextEntity::ALIGN_TOP);
+		m_infoText->SetVerticalAlignment(TextEntity::ALIGN_CENTER);
 
+		m_fideszText.reset(m_graphicsEngine->CreateTextEntity());
+		m_fideszText->SetColor({ 1,0.5,0,1 });
+		m_fideszText->SetFont(m_font.get());
+		m_fideszText->SetFontSize(48.0f);
+		m_fideszText->SetPosition({ width/2.0f, height/2.0f });
+		m_fideszText->SetScale({ 1.f, 1.f });
+		m_fideszText->SetSize({ 600, 60 });
+		m_fideszText->SetZDepth(2);
+		m_fideszText->SetText("Csak a FIDESZ!!!444");
+		m_fideszText->SetHorizontalAlignment(TextEntity::ALIGN_CENTER);
+		m_fideszText->SetVerticalAlignment(TextEntity::ALIGN_CENTER);
+		
 		m_guiScene->GetEntities<TextEntity>().Add(m_infoText.get());
 
 		// Set world render transform
@@ -571,6 +583,22 @@ void QCWorld::UpdateWorld(float elapsed) {
 	m_axesEntity->SetPosition(m_quadcopterEntity->GetPosition());
 	m_axesEntity->SetRotation(m_rotorInfo.Orientation());
 
+	// Update fidesz text
+	if (Distance(m_quadcopterEntity->GetPosition(), m_billboardEntity->GetPosition()) < 3.f
+		|| Distance(m_quadcopterEntity->GetPosition(), m_billboardEntity2->GetPosition()) < 3.f) 
+	{
+		if (!m_textFlashing) {
+			m_guiScene->GetEntities<gxeng::TextEntity>().Add(m_fideszText.get());
+		}
+		m_textFlashing = true;
+	}
+	else {
+		if (m_textFlashing) {
+			m_guiScene->GetEntities<gxeng::TextEntity>().Remove(m_fideszText.get());
+		}
+		m_textFlashing = false;
+	}
+
 	// Follow copter with camera
 	inl::Vec3 frontDir = m_rigidBody.GetRotation() * inl::Vec3{ 0, 1, 0 };
 	inl::Vec3 upDir = m_rigidBody.GetRotation() * inl::Vec3{ 0, 0, 1 };
@@ -590,6 +618,7 @@ void QCWorld::ScreenSizeChanged(int width, int height) {
 	m_camera->SetFOVAspect(75.f / 180.f * 3.1419f, aspect);
 	m_guiCamera->SetExtent({ width, height });
 	m_guiCamera->SetPosition(m_guiCamera->GetExtent()/2);
+	m_fideszText->SetPosition({ width / 2.0f, height / 2.f });
 	m_graphicsEngine->SetEnvVariable("world_render_size", inl::Any(inl::Vec2(width, height)));
 }
 
