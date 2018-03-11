@@ -100,11 +100,15 @@ private:
 	std::unique_ptr<inl::gxeng::Image> m_treeTexture;
 	std::unique_ptr<inl::gxeng::Mesh> m_sphereMesh;
 
+	std::unique_ptr<inl::gxeng::Mesh> m_billboardMesh;
+
 	std::unique_ptr<inl::gxeng::Image> m_sphereAlbedoTex;
 	std::unique_ptr<inl::gxeng::Image> m_sphereMetalnessTex;
 	std::unique_ptr<inl::gxeng::Image> m_sphereRoughnessTex;
 	std::unique_ptr<inl::gxeng::Image> m_sphereNormalTex;
 	std::unique_ptr<inl::gxeng::Image> m_sphereAOTex;
+
+	std::unique_ptr<inl::gxeng::Image> m_billboardSorosTex;
 
 
 	std::unique_ptr<inl::gxeng::Image> m_checkerTexture;
@@ -114,6 +118,7 @@ private:
 	std::unique_ptr<inl::gxeng::Material> m_terrainMaterial;
 	std::unique_ptr<inl::gxeng::Material> m_sphereMaterial;
 	std::unique_ptr<inl::gxeng::Material> m_axesMaterial;
+	std::unique_ptr<inl::gxeng::Material> m_billboardMaterial;
 	std::unique_ptr<inl::gxeng::MaterialShaderGraph> m_simpleShader;
 	std::unique_ptr<inl::gxeng::MaterialShaderGraph> m_pbrShader;
 
@@ -132,6 +137,8 @@ private:
 	std::unique_ptr<inl::gxeng::MeshEntity> m_sphereEntity;
 	std::unique_ptr<inl::gxeng::MeshEntity> m_quadcopterEntity;
 	std::unique_ptr<inl::gxeng::MeshEntity> m_axesEntity;
+	std::unique_ptr<inl::gxeng::MeshEntity> m_billboardEntity;
+	std::unique_ptr<inl::gxeng::MeshEntity> m_billboardEntity2;
 
 	inl::gxeng::DirectionalLight m_sun;
 
@@ -146,6 +153,8 @@ private:
 	std::unique_ptr<inl::gxeng::Image> m_overlayTexture;
 	std::vector<std::unique_ptr<inl::gxeng::OverlayEntity>> m_overlayElements;
 	std::unique_ptr<inl::gxeng::TextEntity> m_infoText;
+	std::unique_ptr<inl::gxeng::TextEntity> m_fideszText;
+	bool m_textFlashing = false;
 
 	// Simulation
 	PIDController m_controller;

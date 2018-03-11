@@ -67,7 +67,7 @@ void ImageBase::Update(uint64_t x, uint32_t y, uint64_t width, uint32_t height, 
 		size_t dstPitch = width * structureSize4;
 		size_t srcPitch = bytesPerRow > 0 ? bytesPerRow : width * structureSize;
 		for (size_t y = 0; y < height; ++y) {
-			for (size_t x = 0; x < height; ++x) {
+			for (size_t x = 0; x < width; ++x) {
 				uint8_t* dst = pixels4.get() + (y * dstPitch + x * structureSize4);
 				memcpy(dst, (uint8_t*)pixels + (y * srcPitch + x * structureSize), structureSize);
 				memset(dst + structureSize, 0, channelSize);

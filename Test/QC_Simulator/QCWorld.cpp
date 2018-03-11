@@ -89,8 +89,20 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_infoText->SetSize({ 200, 40 });
 		m_infoText->SetZDepth(1);
 		m_infoText->SetHorizontalAlignment(TextEntity::ALIGN_LEFT);
-		m_infoText->SetVerticalAlignment(TextEntity::ALIGN_TOP);
+		m_infoText->SetVerticalAlignment(TextEntity::ALIGN_CENTER);
 
+		m_fideszText.reset(m_graphicsEngine->CreateTextEntity());
+		m_fideszText->SetColor({ 1,0.5,0,1 });
+		m_fideszText->SetFont(m_font.get());
+		m_fideszText->SetFontSize(48.0f);
+		m_fideszText->SetPosition({ width/2.0f, height/2.0f });
+		m_fideszText->SetScale({ 1.f, 1.f });
+		m_fideszText->SetSize({ 600, 60 });
+		m_fideszText->SetZDepth(2);
+		m_fideszText->SetText("Csak a FIDESZ!!!444");
+		m_fideszText->SetHorizontalAlignment(TextEntity::ALIGN_CENTER);
+		m_fideszText->SetVerticalAlignment(TextEntity::ALIGN_CENTER);
+		
 		m_guiScene->GetEntities<TextEntity>().Add(m_infoText.get());
 
 		// Set world render transform
@@ -259,6 +271,27 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_treeTexture->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
 	}
 
+	// Create billboard mesh
+	{
+		inl::asset::Model model(AssetPath("soros/billboard.fbx"));
+
+		auto modelVertices = model.GetVertices<Position<0>, Normal<0>, TexCoord<0>>(0, coordSysLayout);
+		std::vector<unsigned> modelIndices = model.GetIndices(0);
+
+		m_billboardMesh.reset(m_graphicsEngine->CreateMesh());
+		m_billboardMesh->Set(modelVertices.data(), &modelVertices[0].GetReader(), modelVertices.size(), modelIndices.data(), modelIndices.size());
+	}
+
+	// Create billboard texture
+	{
+		using PixelT = Pixel<ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR>;
+		inl::asset::Image img(AssetPath("soros/plakat1.jpg"));
+
+		m_billboardSorosTex.reset(m_graphicsEngine->CreateImage());
+		m_billboardSorosTex->SetLayout(img.GetWidth(), img.GetHeight(), ePixelChannelType::INT8_NORM, 3, ePixelClass::LINEAR);
+		m_billboardSorosTex->Update(0, 0, img.GetWidth(), img.GetHeight(), 0, img.GetData(), PixelT::Reader());
+	}
+
 	// Create materials
 	{
 		m_treeMaterial.reset(m_graphicsEngine->CreateMaterial());
@@ -266,6 +299,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_axesMaterial.reset(m_graphicsEngine->CreateMaterial());
 		m_terrainMaterial.reset(m_graphicsEngine->CreateMaterial());
 		m_sphereMaterial.reset(m_graphicsEngine->CreateMaterial());
+		m_billboardMaterial.reset(m_graphicsEngine->CreateMaterial());
 
 		m_simpleShader.reset(m_graphicsEngine->CreateMaterialShaderGraph());
 		m_pbrShader.reset(m_graphicsEngine->CreateMaterialShaderGraph());
@@ -299,6 +333,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_quadcopterMaterial->SetShader(m_simpleShader.get());
 		m_axesMaterial->SetShader(m_simpleShader.get());
 		m_terrainMaterial->SetShader(m_simpleShader.get());
+		m_billboardMaterial->SetShader(m_simpleShader.get());
 
 		std::vector<std::unique_ptr<inl::gxeng::MaterialShader>> nodes2;
 		nodes2.push_back(std::move(pbrShader));
@@ -312,6 +347,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		(*m_quadcopterMaterial)[0] = m_quadcopterTexture.get();
 		(*m_axesMaterial)[0] = m_axesTexture.get();
 		(*m_terrainMaterial)[0] = m_terrainTexture.get();
+		(*m_billboardMaterial)[0] = m_billboardSorosTex.get();
 
 		(*m_sphereMaterial)[0] = m_sphereAlbedoTex.get();
 		(*m_sphereMaterial)[1] = m_sphereRoughnessTex.get();
@@ -460,6 +496,23 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 	AddTree({ 8, 14, 0 });
 	AddTree({ 9, -12, 0 });
 
+
+	// Set up Soros
+	m_billboardEntity.reset(m_graphicsEngine->CreateMeshEntity());
+	m_billboardEntity->SetMesh(m_billboardMesh.get());
+	m_billboardEntity->SetMaterial(m_billboardMaterial.get());
+	m_billboardEntity->SetPosition({ -3, 8, 1.8 });
+	m_billboardEntity->SetRotation(Quat::AxisAngle(Vec3{ 0,0,1 }, 0.4f));
+
+	m_billboardEntity2.reset(m_graphicsEngine->CreateMeshEntity());
+	m_billboardEntity2->SetMesh(m_billboardMesh.get());
+	m_billboardEntity2->SetMaterial(m_billboardMaterial.get());
+	m_billboardEntity2->SetPosition({ 7, 7, 1.8 });
+	m_billboardEntity2->SetRotation(Quat::AxisAngle(Vec3{ 0,0,1 }, -1.3f));
+
+	m_worldScene->GetEntities<MeshEntity>().Add(m_billboardEntity.get());
+	m_worldScene->GetEntities<MeshEntity>().Add(m_billboardEntity2.get());
+
 	// Set up simulation
 	m_rigidBody.SetPosition({0, 0, 1});
 	m_rigidBody.SetRotation({ 1, 0, 0, 0 });
@@ -530,6 +583,22 @@ void QCWorld::UpdateWorld(float elapsed) {
 	m_axesEntity->SetPosition(m_quadcopterEntity->GetPosition());
 	m_axesEntity->SetRotation(m_rotorInfo.Orientation());
 
+	// Update fidesz text
+	if (Distance(m_quadcopterEntity->GetPosition(), m_billboardEntity->GetPosition()) < 3.f
+		|| Distance(m_quadcopterEntity->GetPosition(), m_billboardEntity2->GetPosition()) < 3.f) 
+	{
+		if (!m_textFlashing) {
+			m_guiScene->GetEntities<gxeng::TextEntity>().Add(m_fideszText.get());
+		}
+		m_textFlashing = true;
+	}
+	else {
+		if (m_textFlashing) {
+			m_guiScene->GetEntities<gxeng::TextEntity>().Remove(m_fideszText.get());
+		}
+		m_textFlashing = false;
+	}
+
 	// Follow copter with camera
 	inl::Vec3 frontDir = m_rigidBody.GetRotation() * inl::Vec3{ 0, 1, 0 };
 	inl::Vec3 upDir = m_rigidBody.GetRotation() * inl::Vec3{ 0, 0, 1 };
@@ -549,6 +618,7 @@ void QCWorld::ScreenSizeChanged(int width, int height) {
 	m_camera->SetFOVAspect(75.f / 180.f * 3.1419f, aspect);
 	m_guiCamera->SetExtent({ width, height });
 	m_guiCamera->SetPosition(m_guiCamera->GetExtent()/2);
+	m_fideszText->SetPosition({ width / 2.0f, height / 2.f });
 	m_graphicsEngine->SetEnvVariable("world_render_size", inl::Any(inl::Vec2(width, height)));
 }
 
