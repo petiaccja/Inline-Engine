@@ -14,11 +14,11 @@ namespace inl::net::servers
 		, m_port(port)
 		, m_run(false)
 	{
-		m_connectionHandler = std::make_shared<inl::net::servers::TcpConnectionHandler>(listener);
 		if (max_connections == 0 || port == 0)
 			throw InvalidArgumentException("TcpServer::TcpServer()");
 
 		listener = std::shared_ptr<TcpListener>(TcpSocketBuilder().AsReusable().Bind(IPAddress(0, 0, 0, 0, port)).Listening().BuildListener().release());
+		m_connectionHandler = std::make_shared<inl::net::servers::TcpConnectionHandler>(listener);
 		m_connectionHandler->SetMaxConnections(max_connections);
 	}
 

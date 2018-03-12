@@ -32,8 +32,8 @@ namespace inl::net::servers
 		std::thread receive_thread(&TcpConnectionHandler::HandleReceiveMsgAndConnsThreaded, this);
 		m_receiveThread.swap(receive_thread);
 
-		std::thread send_thread(&TcpConnectionHandler::HandleSendThreaded, this);
-		m_sendThread.swap(send_thread);
+		//std::thread send_thread(&TcpConnectionHandler::HandleSendThreaded, this);
+		//m_sendThread.swap(send_thread);
 	}
 
 	void TcpConnectionHandler::Stop()
@@ -111,9 +111,10 @@ namespace inl::net::servers
 		std::vector<pollfd> poll_fds;
 		pollfd master_fd;
 		master_fd.fd = m_listenerPtr->m_socket->GetNativeSocket();
-		master_fd.events = POLLIN;
+		master_fd.events = POLLRDNORM;
+		poll_fds.emplace_back(master_fd);
 
-		int res = poll(&poll_fds[0], poll_fds.size(), -1);
+		int res = poll(poll_fds.data(), poll_fds.size(), -1);
 
 		if (res < 0)
 		{
@@ -131,7 +132,7 @@ namespace inl::net::servers
 			if (poll_fds.at(i).revents == 0)
 				continue;
 
-			if (poll_fds[i].revents != POLLIN)
+			if (poll_fds[i].revents != POLLRDNORM)
 			{
 				printf("  Error! revents = %d\n", poll_fds.at(i).revents);
 				//end_server = TRUE;
@@ -147,7 +148,7 @@ namespace inl::net::servers
 
 					pollfd new_client;
 					new_client.fd = connection->GetClient()->m_socket->GetNativeSocket();
-					new_client.events = POLLIN;
+					new_client.events = POLLRDNORM;
 					poll_fds.emplace_back(new_client);
 
 					AddClient(connection);
