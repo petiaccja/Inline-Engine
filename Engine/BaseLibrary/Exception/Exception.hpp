@@ -132,6 +132,16 @@ public:
 };
 
 
+class NotSupportedException : public LogicException {
+public:
+	using LogicException::LogicException;
+
+	NotSupportedException() : LogicException("Requested operation is not supported.") {}
+	NotSupportedException(nullptr_t, std::string subject) : LogicException("Requested operation is not supported.", std::move(subject)) {}
+};
+
+
+
 //------------------------------------------------------------------------------
 // IO
 //------------------------------------------------------------------------------

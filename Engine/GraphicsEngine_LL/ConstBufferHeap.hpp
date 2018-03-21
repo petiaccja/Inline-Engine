@@ -2,6 +2,7 @@
 
 #include "MemoryObject.hpp"
 #include "PipelineEventListener.hpp"
+#include "BufferHeap.hpp"
 
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include "../GraphicsApi_LL/IResource.hpp"
@@ -14,11 +15,9 @@
 namespace inl {
 namespace gxeng {
 
-using namespace inl::prefix;
-
 class MemoryManager;
 
-class ConstantBufferHeap : public PipelineEventListener {
+class ConstantBufferHeap : public PipelineEventListener, public BufferHeap {
 protected:
 	class ConstBufferPage {
 	public:
@@ -45,8 +44,8 @@ protected:
 public:
 	ConstantBufferHeap(gxapi::IGraphicsApi* graphicsApi);
 
-	VolatileConstBuffer CreateVolatileBuffer(const void* data, uint32_t dataSize);
-	PersistentConstBuffer CreatePersistentBuffer(const void* data, uint32_t dataSize);
+	VolatileConstBuffer CreateVolatileConstBuffer(const void* data, uint32_t dataSize) override;
+	PersistentConstBuffer CreatePersistentConstBuffer(const void* data, uint32_t dataSize) override;
 
 	void OnFrameBeginDevice(uint64_t frameId) override;
 	void OnFrameBeginHost(uint64_t frameId) override;
@@ -68,7 +67,7 @@ protected:
 	// From ( https://msdn.microsoft.com/en-us/library/windows/desktop/dn899216%28v=vs.85%29.aspx )
 	// "Linear subresource copying must be aligned to 512 bytes"
 	static constexpr size_t ALIGNEMENT = 512;
-	static constexpr size_t PAGE_SIZE = 64_Ki;
+	static constexpr size_t PAGE_SIZE = 64*1024;
 
 	static constexpr size_t MAX_PERMANENT_LARGE_PAGE_COUNT = 5;
 

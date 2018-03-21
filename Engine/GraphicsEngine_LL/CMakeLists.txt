@@ -85,6 +85,8 @@ set (memoryheaps
 	"ConstBufferHeap.hpp"
 	"CriticalBufferHeap.hpp"
 	"UploadManager.hpp"
+
+	"BufferHeap.hpp"
 )
 
 set (backendmisc

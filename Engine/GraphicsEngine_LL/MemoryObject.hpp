@@ -9,8 +9,7 @@
 #include <cassert>
 #include <string>
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 class MemoryManager;
@@ -23,29 +22,16 @@ enum class eResourceHeap {
 	STREAMING,
 	PIPELINE,
 	CRITICAL,
+	BACKBUFFER,
 	INVALID,
 };
 
 
-struct MemoryObjDesc {
-	using Deleter = std::function<void(gxapi::IResource*)>;
-	using UniqPtr = std::unique_ptr<gxapi::IResource, Deleter>;
-
-	MemoryObjDesc() { heap = eResourceHeap::INVALID; }
-	MemoryObjDesc(gxapi::IResource* ptr, eResourceHeap heap, bool resident = true);
-
-	UniqPtr resource;
-	bool resident;
-	eResourceHeap heap;
-};
-
-// TODO make std hash for memory object
 class MemoryObject {
 public:
 	friend struct std::hash<MemoryObject>;
 
-	using Deleter = MemoryObjDesc::Deleter;
-
+	using UniquePtr = std::unique_ptr<gxapi::IResource, std::function<void(const gxapi::IResource*)>>;
 public:
 	static bool PtrLess(const MemoryObject& lhs, const MemoryObject& rhs);
 	static bool PtrGreater(const MemoryObject& lhs, const MemoryObject& rhs);
@@ -53,8 +39,8 @@ public:
 
 public:
 	MemoryObject() = default;
-	explicit MemoryObject(MemoryObjDesc&& desc);
-	virtual ~MemoryObject() {}
+	MemoryObject(UniquePtr resource, bool resident, eResourceHeap heap);
+	virtual ~MemoryObject() = default;
 
 	MemoryObject(const MemoryObject&) = default;
 	MemoryObject(MemoryObject&&) = default;
@@ -123,7 +109,9 @@ protected:
 	void InitResourceStates(gxapi::eResourceState initialState);
 
 	struct Contents {
-		std::unique_ptr<gxapi::IResource, Deleter> resource;
+		Contents() = default;
+		Contents(UniquePtr&& resource, bool resident, eResourceHeap heap) : resource(std::move(resource)), resident(resident), heap(heap) {}
+		UniquePtr resource;
 		bool resident;
 		eResourceHeap heap;
 		std::vector<gxapi::eResourceState> subresourceStates;
@@ -132,11 +120,11 @@ protected:
 	std::shared_ptr<Contents> m_contents;
 };
 
-//==================================
 
 
-//==================================
+//------------------------------------------------------------------------------
 // Vertex buffer, index buffer
+//------------------------------------------------------------------------------
 
 class LinearBuffer : public MemoryObject {
 public:
@@ -154,7 +142,7 @@ public:
 class IndexBuffer : public LinearBuffer {
 public:
 	IndexBuffer() : m_indexCount(0) {}
-	IndexBuffer(MemoryObjDesc&& desc, size_t indexCount);
+	IndexBuffer(UniquePtr resource, bool resident, eResourceHeap heap, size_t indexCount);
 
 	size_t GetIndexCount() const;
 
@@ -162,11 +150,11 @@ protected:
 	size_t m_indexCount;
 };
 
-//==================================
 
-
-//==================================
+//------------------------------------------------------------------------------
 // Const Buffers
+//------------------------------------------------------------------------------
+
 
 class ConstBuffer : public LinearBuffer {
 public:
@@ -176,7 +164,7 @@ public:
 	uint64_t GetDataSize() const;
 
 protected:
-	ConstBuffer(MemoryObjDesc&& desc, void* gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize);
+	ConstBuffer(UniquePtr resource, bool resident, eResourceHeap heap, void* gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize);
 
 protected:
 	void* m_gpuVirtualPtr;
@@ -194,20 +182,20 @@ protected:
 
 class VolatileConstBuffer : public ConstBuffer {
 public:
-	VolatileConstBuffer(MemoryObjDesc&& desc, void* gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize);
+	VolatileConstBuffer(UniquePtr resource, bool resident, eResourceHeap heap, void* gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize);
 };
 
 
 class PersistentConstBuffer : public ConstBuffer {
 public:
-	PersistentConstBuffer(MemoryObjDesc&& desc, void* gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize);
+	PersistentConstBuffer(UniquePtr resource, bool resident, eResourceHeap heap, void* gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize);
 };
 
-//==================================
 
-
-//==================================
+//------------------------------------------------------------------------------
 // Textures
+//------------------------------------------------------------------------------
+
 
 class Texture1D : public MemoryObject {
 public:
@@ -244,8 +232,8 @@ public:
 };
 
 
-} // namespace gxeng
-} // namespace inl
+} // namespace inl::gxeng
+
 
 namespace std {
 template <>
@@ -254,5 +242,4 @@ struct hash<inl::gxeng::MemoryObject> {
 		return reinterpret_cast<size_t>(obj.m_contents.get());
 	}
 };
-
 }

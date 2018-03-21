@@ -27,7 +27,7 @@ void ImageBase::SetLayout(uint64_t width, uint32_t height, ePixelChannelType cha
 
 
 	Texture2DDesc resdesc(width, height, format, 0, arraySize);
-	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, resdesc);
+	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeap::CRITICAL, resdesc);
 
 	// In case this throws an exception changes will be unrolled.
 	CreateResourceView(texture);

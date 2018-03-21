@@ -11,57 +11,15 @@
 #include <utility>
 #include <iostream>
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 using namespace gxapi;
 
-//==================================
-
-MemoryObjDesc::MemoryObjDesc(gxapi::IResource* ptr, eResourceHeap heap, bool resident) :
-	resource(ptr, std::default_delete<gxapi::IResource>()),
-	resident(resident),
-	heap(heap)
-{}
 
 
-
-bool MemoryObject::PtrLess(const MemoryObject& lhs, const MemoryObject& rhs) {
-	assert(lhs.m_contents);
-	assert(rhs.m_contents);
-	return lhs.m_contents.get() < rhs.m_contents.get();
-}
-
-
-bool MemoryObject::PtrGreater(const MemoryObject& lhs, const MemoryObject& rhs) {
-	assert(lhs.m_contents);
-	assert(rhs.m_contents);
-	return lhs.m_contents.get() > rhs.m_contents.get();
-}
-
-
-bool MemoryObject::PtrEqual(const MemoryObject& lhs, const MemoryObject& rhs) {
-	// "An empty shared_ptr may have a non-null stored pointer if the aliasing constructor was used to create it."
-	// from: http://en.cppreference.com/w/cpp/memory/shared_ptr
-	assert(lhs.m_contents);
-	assert(rhs.m_contents);
-	return lhs.m_contents.get() == rhs.m_contents.get();
-}
-
-
-
-MemoryObject::MemoryObject(MemoryObjDesc&& desc) :
-	m_contents(new Contents{ std::move(desc.resource), desc.resident, desc.heap, {} })
+MemoryObject::MemoryObject(UniquePtr resource, bool resident, eResourceHeap heap)
+	: m_contents(std::make_shared<Contents>(std::move(resource), resident, heap))
 {
-	//auto deleter = m_contents->resource.get_deleter();
-	//auto* ptr = m_contents->resource.release();
-	//m_contents->resource = MemoryObjDesc::UniqPtr(ptr, [deleter](gxapi::IResource* ptr) {
-	//	std::cout << "memobj destroy: ";
-	//	std::cout << "ptr = " << ptr;
-	//	std::cout << ", dxptr = " << gxapi_dx12::native_cast(static_cast<gxapi_dx12::Resource*>(ptr));
-	//	std::cout << std::endl;
-	//	deleter(ptr);
-	//});
 	InitResourceStates(eResourceState::COMMON);
 }
 
@@ -150,15 +108,13 @@ void MemoryObject::InitResourceStates(gxapi::eResourceState initialState) {
 	m_contents->subresourceStates.resize(numSubresources, initialState);
 }
 
-//==================================
-
 
 uint64_t LinearBuffer::GetSize() const {
 	return GetDescription().bufferDesc.sizeInBytes;
 }
 
-IndexBuffer::IndexBuffer(MemoryObjDesc&& desc, size_t indexCount) :
-	LinearBuffer(std::move(desc)),
+IndexBuffer::IndexBuffer(UniquePtr resource, bool resident, eResourceHeap heap, size_t indexCount) :
+	LinearBuffer(std::move(resource), resident, heap),
 	m_indexCount(indexCount)
 {}
 
@@ -168,11 +124,8 @@ size_t IndexBuffer::GetIndexCount() const {
 }
 
 
-//==================================
-
-
-ConstBuffer::ConstBuffer(MemoryObjDesc&& desc, void* gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize) :
-	LinearBuffer(std::move(desc)),
+ConstBuffer::ConstBuffer(UniquePtr resource, bool resident, eResourceHeap heap, void* gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize) :
+	LinearBuffer(std::move(resource), resident, heap),
 	m_gpuVirtualPtr(gpuVirtualPtr),
 	m_dataSize(dataSize),
 	m_bufferSize(bufferSize)
@@ -194,17 +147,15 @@ uint64_t ConstBuffer::GetDataSize() const {
 }
 
 
-VolatileConstBuffer::VolatileConstBuffer(MemoryObjDesc&& desc, void * gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize) :
-	ConstBuffer(std::move(desc), gpuVirtualPtr, dataSize, bufferSize)
+VolatileConstBuffer::VolatileConstBuffer(UniquePtr resource, bool resident, eResourceHeap heap, void * gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize) :
+	ConstBuffer(std::move(resource), resident, heap, gpuVirtualPtr, dataSize, bufferSize)
 {}
 
 
-PersistentConstBuffer::PersistentConstBuffer(MemoryObjDesc&& desc, void * gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize) :
-	ConstBuffer(std::move(desc), gpuVirtualPtr, dataSize, bufferSize)
+PersistentConstBuffer::PersistentConstBuffer(UniquePtr resource, bool resident, eResourceHeap heap, void * gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize) :
+	ConstBuffer(std::move(resource), resident, heap, gpuVirtualPtr, dataSize, bufferSize)
 {}
 
-
-//==================================
 
 
 uint64_t Texture1D::GetWidth() const {
@@ -228,19 +179,16 @@ gxapi::eFormat Texture1D::GetFormat() const {
 
 uint64_t Texture2D::GetWidth() const {
 	return m_contents->resource->GetSize().x;
-	// return GetDescription().textureDesc.width; old
 }
 
 
 uint32_t Texture2D::GetHeight() const {
 	return (uint32_t)m_contents->resource->GetSize().y;
-	// return GetDescription().textureDesc.height; old
 }
 
 
 uint16_t Texture2D::GetArrayCount() const {
 	return m_contents->resource->GetNumArrayLevels();
-	// return GetDescription().textureDesc.depthOrArraySize; old
 }
 
 uint32_t Texture2D::GetSubresourceIndex(uint32_t mipLevel, uint32_t arrayIndex, uint32_t planeIndex) const {
@@ -268,7 +216,6 @@ uint16_t Texture3D::GetDepth() const {
 }
 
 uint32_t Texture3D::GetSubresourceIndex(uint32_t mipLevel, uint32_t planeIndex) const {
-	//assert(false);
 	return m_contents->resource->GetSubresourceIndex(mipLevel, 0, planeIndex);
 }
 
@@ -276,26 +223,28 @@ gxapi::eFormat Texture3D::GetFormat() const {
 	return GetDescription().textureDesc.format;
 }
 
-/*
-uint64_t TextureCube::GetWidth() const {
-	return GetDescription().textureDesc.width;
+
+bool MemoryObject::PtrLess(const MemoryObject& lhs, const MemoryObject& rhs) {
+	assert(lhs.m_contents);
+	assert(rhs.m_contents);
+	return lhs.m_contents.get() < rhs.m_contents.get();
 }
 
 
-uint64_t TextureCube::GetHeight() const {
-	return GetDescription().textureDesc.height;
+bool MemoryObject::PtrGreater(const MemoryObject& lhs, const MemoryObject& rhs) {
+	assert(lhs.m_contents);
+	assert(rhs.m_contents);
+	return lhs.m_contents.get() > rhs.m_contents.get();
 }
 
-uint16_t TextureCube::GetArrayCount() const {
-	return GetDescription().textureDesc.depthOrArraySize / 6;
+
+bool MemoryObject::PtrEqual(const MemoryObject& lhs, const MemoryObject& rhs) {
+	// "An empty shared_ptr may have a non-null stored pointer if the aliasing constructor was used to create it."
+	// from: http://en.cppreference.com/w/cpp/memory/shared_ptr
+	assert(lhs.m_contents);
+	assert(rhs.m_contents);
+	return lhs.m_contents.get() == rhs.m_contents.get();
 }
 
 
-gxapi::eFormat TextureCube::GetFormat() const {
-	return GetDescription().textureDesc.format;
-}
-*/
-
-
-} // namespace gxeng
-} // namespace inl
+} // namespace inl::gxeng

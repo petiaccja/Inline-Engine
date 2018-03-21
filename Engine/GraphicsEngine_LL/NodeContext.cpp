@@ -57,7 +57,7 @@ Texture2D SetupContext::CreateTexture2D(const Texture2DDesc& desc, const Texture
 	if (usage.depthStencil) flags += gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL;
 	if (usage.randomAccess) flags += gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS;
 
-	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeapType::CRITICAL, desc, flags);
+	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeap::CRITICAL, desc, flags);
 	return texture;
 }
 
@@ -69,7 +69,7 @@ Texture3D SetupContext::CreateTexture3D(const Texture3DDesc& desc, const Texture
 	if (usage.depthStencil) flags += gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL;
 	if (usage.randomAccess) flags += gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS;
 
-	Texture3D texture = m_memoryManager->CreateTexture3D(eResourceHeapType::CRITICAL, desc, flags);
+	Texture3D texture = m_memoryManager->CreateTexture3D(eResourceHeap::CRITICAL, desc, flags);
 	return texture;
 }
 
@@ -121,7 +121,7 @@ RWTextureView3D SetupContext::CreateUav(const Texture3D& rwTexture, gxapi::eForm
 
 VertexBuffer SetupContext::CreateVertexBuffer(const void* data, size_t size) const {
 #pragma message("This is not good, context uploads should NOT go through upload manager but through node's command list, immediately.")
-	VertexBuffer result = m_memoryManager->CreateVertexBuffer(eResourceHeapType::CRITICAL, size);
+	VertexBuffer result = m_memoryManager->CreateVertexBuffer(eResourceHeap::CRITICAL, size);
 	m_memoryManager->GetUploadManager().Upload(result, 0, data, size);
 	return result;
 }
@@ -129,7 +129,7 @@ VertexBuffer SetupContext::CreateVertexBuffer(const void* data, size_t size) con
 
 IndexBuffer SetupContext::CreateIndexBuffer(const void* data, size_t size, size_t indexCount) const {
 #pragma message("This is not good, context uploads should NOT go through upload manager but through node's command list, immediately.")
-	IndexBuffer result = m_memoryManager->CreateIndexBuffer(eResourceHeapType::CRITICAL, size, indexCount);
+	IndexBuffer result = m_memoryManager->CreateIndexBuffer(eResourceHeap::CRITICAL, size, indexCount);
 	m_memoryManager->GetUploadManager().Upload(result, 0, data, size);
 	return result;
 }

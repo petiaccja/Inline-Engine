@@ -90,7 +90,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 		if (streamSizeBytes == 0) {
 			throw InvalidArgumentException("Stream cannot have 0 stride or 0 vertices.");
 		}
-		VertexBuffer buffer(m_memoryManager->CreateVertexBuffer(eResourceHeapType::CRITICAL, streamSizeBytes));
+		VertexBuffer buffer(m_memoryManager->CreateVertexBuffer(eResourceHeap::CRITICAL, streamSizeBytes));
 		newVertexBuffers.push_back(std::move(buffer));
 	}
 
@@ -102,7 +102,7 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 	bool using32BitIndex = numVertices > 0xFFFFu;
 	unsigned indexStride = using32BitIndex ? sizeof(uint32_t) : sizeof(uint16_t);
 	size_t indexTotalSize = numIndices * indexStride;
-	IndexBuffer newIndexBuffer = m_memoryManager->CreateIndexBuffer(eResourceHeapType::CRITICAL, indexTotalSize, numIndices);
+	IndexBuffer newIndexBuffer = m_memoryManager->CreateIndexBuffer(eResourceHeap::CRITICAL, indexTotalSize, numIndices);
 
 
 	// Update internals.

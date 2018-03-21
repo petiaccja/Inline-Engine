@@ -19,7 +19,6 @@
 namespace inl {
 namespace gxeng {
 
-enum class eResourceHeapType { CRITICAL };
 
 
 struct Texture1DDesc {
@@ -89,19 +88,16 @@ public:
 	VolatileConstBuffer CreateVolatileConstBuffer(const void* data, uint32_t size);
 	PersistentConstBuffer CreatePersistentConstBuffer(const void* data, uint32_t size);
 
-	VertexBuffer CreateVertexBuffer(eResourceHeapType heap, size_t size);
-	IndexBuffer CreateIndexBuffer(eResourceHeapType heap, size_t size, size_t indexCount);
-	/*
-	Texture1D CreateTexture1D(eResourceHeapType heap, uint64_t width, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE, uint16_t arraySize = 1);
-	Texture2D CreateTexture2D(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE, uint16_t arraySize = 1);
-	Texture3D CreateTexture3D(eResourceHeapType heap, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE);
-	*/
-	Texture1D CreateTexture1D(eResourceHeapType heap, const Texture1DDesc& desc, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE);
-	Texture2D CreateTexture2D(eResourceHeapType heap, const Texture2DDesc& desc, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE);
-	Texture3D CreateTexture3D(eResourceHeapType heap, const Texture3DDesc& desc, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE);
-	//TextureCube CreateTextureCube(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE, uint16_t arraySize = 1);
+	VertexBuffer CreateVertexBuffer(eResourceHeap heap, size_t size);
+	IndexBuffer CreateIndexBuffer(eResourceHeap heap, size_t size, size_t indexCount);
+	Texture1D CreateTexture1D(eResourceHeap heap, const Texture1DDesc& desc, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE);
+	Texture2D CreateTexture2D(eResourceHeap heap, const Texture2DDesc& desc, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE);
+	Texture3D CreateTexture3D(eResourceHeap heap, const Texture3DDesc& desc, gxapi::eResourceFlags flags = gxapi::eResourceFlags::NONE);
 
-protected:
+private:
+	BufferHeap& GetHeap(eResourceHeap heap);
+
+private:
 	gxapi::IGraphicsApi* m_graphicsApi;
 
 	impl::CriticalBufferHeap m_criticalHeap;
@@ -111,9 +107,6 @@ protected:
 
 	std::mutex m_evictablesMtx;
 	std::unordered_set<MemoryObject> m_evictables;
-
-protected:
-	MemoryObjDesc AllocateResource(eResourceHeapType heap, const gxapi::ResourceDesc& desc);
 };
 
 

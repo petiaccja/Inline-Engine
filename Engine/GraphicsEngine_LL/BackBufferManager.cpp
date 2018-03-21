@@ -33,13 +33,13 @@ BackBufferManager::BackBufferManager(gxapi::IGraphicsApi* graphicsApi, gxapi::IS
 
 	m_backBuffers.reserve(numBuffers);
 	for (unsigned i = 0; i < numBuffers; i++) {
-		MemoryObjDesc texDesc = MemoryObjDesc(swapChain->GetBuffer(i), eResourceHeap::CRITICAL); // CRITICAL is going to be fine for now, consider adding BACKBUFFER
-		gxapi::ResourceDesc resourceDesc = texDesc.resource->GetDesc();
+		MemoryObject::UniquePtr resource(swapChain->GetBuffer(i), [](auto) {});
+		gxapi::ResourceDesc resourceDesc = resource->GetDesc();
 		gxapi::DescriptorHandle descriptorHandle = m_descriptorHeap->At(i);
 
 		rtvDesc.format = resourceDesc.textureDesc.format;
 		
-		Texture2D texture{ std::move(texDesc) };
+		Texture2D texture{ std::move(resource), true, eResourceHeap::BACKBUFFER };
 
 		RenderTargetView2D rtv{texture, descriptorHandle, graphicsApi, rtvDesc.format, rtvDesc.tex2DArray };
 		m_backBuffers.push_back(std::move(rtv));

@@ -42,153 +42,50 @@ UploadManager& MemoryManager::GetUploadManager() {
 
 
 VolatileConstBuffer MemoryManager::CreateVolatileConstBuffer(const void* data, uint32_t size) {
-	return m_constBufferHeap.CreateVolatileBuffer(data, size);
+	return m_constBufferHeap.CreateVolatileConstBuffer(data, size);
 }
 
 
 PersistentConstBuffer MemoryManager::CreatePersistentConstBuffer(const void * data, uint32_t size) {
-	return m_constBufferHeap.CreatePersistentBuffer(data, size);
+	return m_constBufferHeap.CreatePersistentConstBuffer(data, size);
 }
 
 
-VertexBuffer MemoryManager::CreateVertexBuffer(eResourceHeapType heap, size_t size) {
-	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::Buffer(size));
-
-	VertexBuffer result(std::move(desc));
-	return result;
+VertexBuffer MemoryManager::CreateVertexBuffer(eResourceHeap heap, size_t size) {
+	return GetHeap(heap).CreateVertexBuffer(size);
 }
 
 
-IndexBuffer MemoryManager::CreateIndexBuffer(eResourceHeapType heap, size_t size, size_t indexCount) {
-	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::Buffer(size));
-
-	IndexBuffer result(std::move(desc), indexCount);
-	return result;
+IndexBuffer MemoryManager::CreateIndexBuffer(eResourceHeap heap, size_t size, size_t indexCount) {
+	return GetHeap(heap).CreateIndexBuffer(size, indexCount);
 }
 
 
-/*
-Texture1D MemoryManager::CreateTexture1D(eResourceHeapType heap, uint64_t width, gxapi::eFormat format, gxapi::eResourceFlags flags, uint16_t arraySize) {
-	if (arraySize < 1) {
-		throw InvalidArgumentException("Array must have dimension greater than 0.", "arraySize");
+Texture1D MemoryManager::CreateTexture1D(eResourceHeap heap, const Texture1DDesc& desc, gxapi::eResourceFlags flags) {
+	return GetHeap(heap).CreateTexture1D(desc, flags);
+}
+
+
+Texture2D MemoryManager::CreateTexture2D(eResourceHeap heap, const Texture2DDesc& desc, gxapi::eResourceFlags flags) {
+	return GetHeap(heap).CreateTexture2D(desc, flags);
+}
+
+
+Texture3D MemoryManager::CreateTexture3D(eResourceHeap heap, const Texture3DDesc& desc, gxapi::eResourceFlags flags) {
+	return GetHeap(heap).CreateTexture3D(desc, flags);
+}
+
+
+BufferHeap& MemoryManager::GetHeap(eResourceHeap heap) {
+	switch (heap) {
+		case eResourceHeap::UPLOAD: throw NotImplementedException("Memory heap not implemented yet.");
+		case eResourceHeap::CONSTANT: return m_constBufferHeap;
+		case eResourceHeap::STREAMING: throw NotImplementedException("Memory heap not implemented yet.");
+		case eResourceHeap::PIPELINE: throw NotImplementedException("Memory heap not implemented yet.");
+		case eResourceHeap::CRITICAL: return m_criticalHeap;
+		case eResourceHeap::INVALID: throw InvalidArgumentException("Invalid memory heap.");
+		default: throw NotImplementedException("Memory heap not implemented yet.");
 	}
-
-	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::Texture1DArray(width, format, arraySize, flags));
-
-	Texture1D result(std::move(desc));
-	return result;
-}
-
-
-Texture2D MemoryManager::CreateTexture2D(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, gxapi::eResourceFlags flags, uint16_t arraySize) {
-	if (arraySize < 1) {
-		throw InvalidArgumentException("Array must have dimension greater than 0.", "arraySize");
-	}
-
-	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::Texture2DArray(width, height, format, arraySize, flags));
-
-	Texture2D result(std::move(desc));
-	return result;
-}
-
-
-Texture3D MemoryManager::CreateTexture3D(eResourceHeapType heap, uint64_t width, uint32_t height, uint16_t depth, gxapi::eFormat format, gxapi::eResourceFlags flags) {
-	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::Texture3D(width, height, depth, format, flags));
-
-	Texture3D result(std::move(desc));
-	return result;
-}
-*/
-
-
-Texture1D MemoryManager::CreateTexture1D(eResourceHeapType heap, const Texture1DDesc& desc, gxapi::eResourceFlags flags) {
-	if (desc.arraySize < 1) {
-		throw InvalidArgumentException("Array must have dimension greater than 0.", "arraySize");
-	}
-
-	MemoryObjDesc objdesc = AllocateResource(heap, gxapi::ResourceDesc::Texture1DArray(desc.width, desc.format, desc.arraySize, flags, desc.mipLevels));
-
-	Texture1D result(std::move(objdesc));
-	return result;
-}
-
-
-Texture2D MemoryManager::CreateTexture2D(eResourceHeapType heap, const Texture2DDesc& desc, gxapi::eResourceFlags flags) {
-	if (desc.arraySize < 1) {
-		throw InvalidArgumentException("Array must have dimension greater than 0.", "arraySize");
-	}
-
-	MemoryObjDesc objdesc = AllocateResource(heap, gxapi::ResourceDesc::Texture2DArray(desc.width, desc.height, desc.format, desc.arraySize, flags, desc.mipLevels));
-
-	Texture2D result(std::move(objdesc));
-	return result;
-}
-
-
-Texture3D MemoryManager::CreateTexture3D(eResourceHeapType heap, const Texture3DDesc& desc, gxapi::eResourceFlags flags) {
-	MemoryObjDesc objdesc = AllocateResource(heap, gxapi::ResourceDesc::Texture3D(desc.width, desc.height, desc.depth, desc.format, flags, desc.mipLevels));
-
-	Texture3D result(std::move(objdesc));
-	return result;
-}
-
-/*
-TextureCube MemoryManager::CreateTextureCube(eResourceHeapType heap, uint64_t width, uint32_t height, gxapi::eFormat format, gxapi::eResourceFlags flags, uint16_t arraySize) {
-	MemoryObjDesc desc = AllocateResource(heap, gxapi::ResourceDesc::CubeMapArray(width, height, format, arraySize));
-
-	TextureCube result(std::move(desc));
-	return result;
-}
-*/
-
-MemoryObjDesc MemoryManager::AllocateResource(eResourceHeapType heap, const gxapi::ResourceDesc& desc) {
-
-	gxapi::ClearValue* pClearValue = nullptr;
-
-	bool depthStencilTexture = (desc.type == gxapi::eResourceType::TEXTURE) && (desc.textureDesc.flags & gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL);
-	bool renderTargetTexture = (desc.type == gxapi::eResourceType::TEXTURE) && (desc.textureDesc.flags & gxapi::eResourceFlags::ALLOW_RENDER_TARGET);
-
-	using gxapi::eFormat;
-	gxapi::eFormat clearFormat = desc.textureDesc.format;
-	if (depthStencilTexture) {
-		switch (desc.textureDesc.format) {
-		case eFormat::D16_UNORM:
-		case eFormat::D24_UNORM_S8_UINT:
-		case eFormat::D32_FLOAT:
-		case eFormat::D32_FLOAT_S8X24_UINT:
-			break; // just leave the format as it is
-
-		case eFormat::R32_TYPELESS:
-			clearFormat = eFormat::D32_FLOAT;
-			break;
-		case eFormat::R32G8X24_TYPELESS:
-			clearFormat = eFormat::D32_FLOAT_S8X24_UINT;
-			break;
-		default:
-			assert(false);
-			// I know I know... this exception message is horribe
-			throw InvalidArgumentException("Resource requested to be created is a depth stencil texture but its format can not be recognized while determining clear value format.");
-		}
-	}
-
-	gxapi::ClearValue dsvClearValue(clearFormat, 1, 0);
-	gxapi::ClearValue rtvClearValue(clearFormat, gxapi::ColorRGBA(0, 0, 0, 1));
-	if (depthStencilTexture) {
-		pClearValue = &dsvClearValue;
-	}
-	if (renderTargetTexture) {
-		pClearValue = &rtvClearValue;
-	}
-
-	switch(heap) {
-	case eResourceHeapType::CRITICAL: 
-		return m_criticalHeap.Allocate(std::move(desc), pClearValue);
-		break;
-	default:
-		assert(false);
-	}
-
-	return MemoryObjDesc();
 }
 
 
