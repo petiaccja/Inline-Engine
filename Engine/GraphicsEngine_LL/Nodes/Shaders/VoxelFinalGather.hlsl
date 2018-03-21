@@ -172,7 +172,7 @@ float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneApert
 		float4 data = float4(0, 0, 0, 0);
 		if (!opacityOnly)
 		{
-			data.xyz = inputTex1.SampleLevel(samp2, voxelTexCoord, mipLevel).xyz;
+			data.xyz = inputTex0.SampleLevel(samp2, voxelTexCoord, mipLevel).xyz;
 		}
 		data.w = inputTex3.SampleLevel(samp2, voxelTexCoord, mipLevel).x;
 		
@@ -188,7 +188,7 @@ float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneApert
 
 	if (!opacityOnly)
 	{
-		return float4(result.xyz * result.w, 1.0);
+		return float4(result.xyz, result.w);
 	}
 	else
 	{
@@ -240,24 +240,27 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 	//TODO derive aperture from something...
 	//roughness * pi * 0.125???
-	float4 result = coneTrace(wsPos, wsDepthNormal, perfectReflectionDir, tan(0.5 * 0.0174533));
+	float4 specularResult = coneTrace(wsPos, wsDepthNormal, perfectReflectionDir, tan(0.174533 * 0.5));
 
-	//cone trace AO
-	float aoResult = 0;
+	//cone trace diffuse GI + AO in alpha
+	float4 diffuseResult = float4(0,0,0,0);
 	for (int c = 0; c < NUM_CONES; ++c)
 	{
 		float3 dir = coneDirs[c];
 		float3 dirOriented = trans_normal(wsDepthNormal, dir);
 
 		//half angle = 10deg
-		aoResult += max(dot(wsDepthNormal, dirOriented), 0.0) * coneTrace(wsPos, wsDepthNormal, dirOriented, tan(0.174533), true);
+		float4 coneResult = coneTrace(wsPos, wsDepthNormal, dirOriented, tan(0.174533));
+		diffuseResult.xyz += coneResult.xyz;
+		diffuseResult.w += max(dot(dirOriented, wsDepthNormal), 0.0) * coneResult.w;
 	}
-	aoResult /= NUM_CONES;
-	aoResult = 1.0 - aoResult;
+	diffuseResult /= NUM_CONES;
+	diffuseResult.w = 1.0 - diffuseResult.w;
 
-	return aoResult;
+	//return diffuseResult.w;
+	return float4(diffuseResult.xyz * diffuseResult.w + specularResult.xyz * specularResult.w, 1.0);
 	//return float4(multiBounce(aoResult, float3(1,1,1)), 1.0);
-	//return result;// *aoResult;
+	//return result;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);
 	//return float4(wsPos, 1.0);
 	//return float4(wsViewDir, 1.0);

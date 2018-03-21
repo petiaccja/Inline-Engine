@@ -38,7 +38,6 @@ namespace inl::net
 		std::deque<DataReceivedEvent> m_dataReceivedEvents;
 
 		std::mutex m_sendMutex;
-
 		std::mutex m_receivedMutex;
 		std::mutex m_disconnectMutex;
 		std::mutex m_connectionMutex;
