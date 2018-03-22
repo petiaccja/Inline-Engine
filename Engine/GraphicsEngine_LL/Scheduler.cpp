@@ -335,7 +335,7 @@ void Scheduler::UploadTask::Execute(RenderContext& context) {
 	for (auto& request : *m_uploads) {
 		// Init copy parameters
 		auto& source = request.source;
-		auto& destination = const_cast<MemoryObject&>(request.destination);
+		auto& destination = request.destination;
 
 		// Set resource states
 		commandList.SetResourceState(destination, gxapi::eResourceState::COPY_DEST);
@@ -343,12 +343,13 @@ void Scheduler::UploadTask::Execute(RenderContext& context) {
 		auto destType = request.destType;
 
 		if (destType == UploadManager::DestType::BUFFER) {
-			auto& dstBuffer = static_cast<LinearBuffer&>(destination);
-			commandList.CopyBuffer(dstBuffer, request.dstOffsetX, source, 0, dstBuffer.GetSize());
+			auto& dstBuffer = static_cast<const LinearBuffer&>(destination);
+			commandList.CopyBuffer(dstBuffer, request.dstOffsetX, source, 0, source.GetSize());
 		}
 		else if (destType == UploadManager::DestType::TEXTURE_2D) {
-			auto& dstTexture = static_cast<Texture2D&>(destination);
-			commandList.CopyTexture(dstTexture, source, SubTexture2D(request.dstSubresource, Vector<intptr_t, 2>((intptr_t)request.dstOffsetX, (intptr_t)request.dstOffsetY)), request.textureBufferDesc);
+			auto& dstTexture = static_cast<const Texture2D&>(destination);
+			SubTexture2D dstPlace(request.dstSubresource, Vector<intptr_t, 2>((intptr_t)request.dstOffsetX, (intptr_t)request.dstOffsetY));
+			commandList.CopyTexture(dstTexture, source, dstPlace, request.textureBufferDesc);
 		}
 	}
 }

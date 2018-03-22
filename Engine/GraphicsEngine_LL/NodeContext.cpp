@@ -226,6 +226,29 @@ Binder RenderContext::CreateBinder(const std::vector<BindParameterDesc>& paramet
 }
 
 
+void RenderContext::Upload(CopyCommandList& commandList,
+			const LinearBuffer& target,
+			size_t offset,
+			const void* data,
+			size_t size) 
+{
+	m_memoryManager->GetUploadManager().UploadNow(commandList, target, offset, data, size);
+}
+
+void RenderContext::Upload(CopyCommandList& commandList,
+			const Texture2D& target,
+			uint32_t offsetX,
+			uint32_t offsetY,
+			uint32_t subresource,
+			const void* data,
+			uint64_t width,
+			uint32_t height,
+			gxapi::eFormat format,
+			size_t bytesPerRow) 
+{
+	m_memoryManager->GetUploadManager().UploadNow(commandList, target, offsetX, offsetY, subresource, data, width, height, format, bytesPerRow);
+}
+
 // Query command list
 GraphicsCommandList& RenderContext::AsGraphics() {
 	if (!m_commandList) {

@@ -103,7 +103,6 @@ public:
 	RWTextureView3D CreateUav(const Texture3D& rwTexture, gxapi::eFormat format, gxapi::UavTexture3D desc) const;
 	ConstBufferView CreateCbv(const VolatileConstBuffer& buffer, size_t offset, size_t size, VolatileViewHeap& viewHeap) const;
 
-
 	// Shaders and PSOs
 	ShaderProgram CreateShader(const std::string& name, ShaderParts stages, const std::string& macros = {}) const;
 	ShaderProgram CompileShader(const std::string& code, ShaderParts stages, const std::string& macros = {}) const;
@@ -159,6 +158,23 @@ public:
 
 	// Binding
 	Binder CreateBinder(const std::vector<BindParameterDesc>& parameters, const std::vector<gxapi::StaticSamplerDesc>& staticSamplers = {}) const;
+
+	// Upload data to graphics card
+	void Upload(CopyCommandList& commandList,
+				const LinearBuffer& target,
+				size_t offset,
+				const void* data,
+				size_t size);
+	void Upload(CopyCommandList& commandList,
+				const Texture2D& target,
+				uint32_t offsetX,
+				uint32_t offsetY,
+				uint32_t subresource,
+				const void* data,
+				uint64_t width,
+				uint32_t height,
+				gxapi::eFormat format,
+				size_t bytesPerRow = 0);
 
 	// Query command list
 	GraphicsCommandList& AsGraphics();

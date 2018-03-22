@@ -144,6 +144,10 @@ protected:
 
 	mutable std::mutex m_mtx;
 
+	// Creates and copies uploaded data into a staging GPU buffer (for buffers).
+	MemoryObject::UniquePtr CreateStagingResource(const void* data, size_t size);
+	// Creates and copies uploaded data into a staging GPU buffer (for textures).
+	MemoryObject::UniquePtr CreateStagingResource(const void* data, uint64_t width, uint32_t height, gxapi::eFormat format, size_t bytesPerRow);
 protected:
 	static constexpr int DUP_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT = 256;
 

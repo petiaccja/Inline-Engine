@@ -205,7 +205,7 @@ BasicCommandList::Decomposition CopyCommandList::Decompose() {
 }
 
 
-void CopyCommandList::CopyBuffer(MemoryObject& dst, size_t dstOffset, const MemoryObject& src, size_t srcOffset, size_t numBytes) {
+void CopyCommandList::CopyBuffer(const MemoryObject& dst, size_t dstOffset, const MemoryObject& src, size_t srcOffset, size_t numBytes) {
 	ExpectResourceState(dst, gxapi::eResourceState::COPY_DEST, { gxapi::ALL_SUBRESOURCES });
 	ExpectResourceState(src, gxapi::eResourceState::COPY_SOURCE, { gxapi::ALL_SUBRESOURCES });
 
@@ -213,7 +213,7 @@ void CopyCommandList::CopyBuffer(MemoryObject& dst, size_t dstOffset, const Memo
 }
 
 
-void CopyCommandList::CopyTexture(Texture2D& dst, const Texture2D& src, SubTexture2D dstPlace, SubTexture2D srcPlace) {
+void CopyCommandList::CopyTexture(const Texture2D& dst, const Texture2D& src, SubTexture2D dstPlace, SubTexture2D srcPlace) {
 	ExpectResourceState(dst, gxapi::eResourceState::COPY_DEST, { dstPlace.subresource });
 	ExpectResourceState(src, gxapi::eResourceState::COPY_SOURCE, { srcPlace.subresource });
 
@@ -244,7 +244,7 @@ void CopyCommandList::CopyTexture(Texture2D& dst, const Texture2D& src, SubTextu
 }
 
 
-void CopyCommandList::CopyTexture(Texture2D& dst, const Texture2D& src, SubTexture2D dstPlace) {
+void CopyCommandList::CopyTexture(const Texture2D& dst, const Texture2D& src, SubTexture2D dstPlace) {
 	ExpectResourceState(dst, gxapi::eResourceState::COPY_DEST, { dstPlace.subresource });
 	ExpectResourceState(src, gxapi::eResourceState::COPY_SOURCE, { 0 });
 
@@ -266,7 +266,7 @@ void CopyCommandList::CopyTexture(Texture2D& dst, const Texture2D& src, SubTextu
 }
 
 
-void CopyCommandList::CopyTexture(Texture2D& dst, const LinearBuffer& src, SubTexture2D dstPlace, gxapi::TextureCopyDesc bufferDesc) {
+void CopyCommandList::CopyTexture(const Texture2D& dst, const LinearBuffer& src, SubTexture2D dstPlace, gxapi::TextureCopyDesc bufferDesc) {
 	ExpectResourceState(dst, gxapi::eResourceState::COPY_DEST, { dstPlace.subresource });
 	ExpectResourceState(src, gxapi::eResourceState::COPY_SOURCE, { gxapi::ALL_SUBRESOURCES });
 
