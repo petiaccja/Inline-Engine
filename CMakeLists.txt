@@ -49,10 +49,27 @@ add_custom_target(Files SOURCES
 	CMakeLists.txt
 	Paths.cmake
 	GetPlatform.cmake
-	CopyRuntime.cmake
-	"${EXTERNALS_INCLUDE}/Mathter/Mathter.natvis")
+	CopyRuntime.cmake)
 set_target_properties(Files PROPERTIES FOLDER Files)
 
+# Add Mathter.natvis to all targets
+function(get_all_targets _result _dir)
+    get_property(_subdirs DIRECTORY "${_dir}" PROPERTY SUBDIRECTORIES)
+    foreach(_subdir IN LISTS _subdirs)
+        get_all_targets(${_result} "${_subdir}")
+    endforeach()
+    get_property(_sub_targets DIRECTORY "${_dir}" PROPERTY BUILDSYSTEM_TARGETS)
+    set(${_result} ${${_result}} ${_sub_targets} PARENT_SCOPE)
+endfunction()
+
+get_all_targets(all_targets ${CMAKE_SOURCE_DIR})
+foreach (tar IN ITEMS ${all_targets})
+	get_target_property(tar_type ${tar} TYPE)
+	if (tar_type MATCHES "(STATIC_LIBRARY|MODULE_LIBRARY|SHARED_LIBRARY|EXECUTABLE)")
+		target_sources(${tar} PRIVATE "${EXTERNALS_INCLUDE}/Mathter/Mathter.natvis")
+	endif()
+endforeach()
+source_group("" FILES "${EXTERNALS_INCLUDE}/Mathter/Mathter.natvis")
 
 # Put projects in their folders
 set_target_properties(BaseLibrary PROPERTIES FOLDER Modules)

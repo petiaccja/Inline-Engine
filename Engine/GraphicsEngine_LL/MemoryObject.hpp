@@ -71,7 +71,7 @@ public:
 	}
 	
 	/// <summary> Return the virtual address of the GPU resource behind this object. </summary>
-	void* GetVirtualAddress() const;
+	virtual void* GetVirtualAddress() const;
 
 	/// <summary> Returns the description of the GPU resource as given by the underlying GxApi. </summary>
 	gxapi::ResourceDesc GetDescription() const;
@@ -158,7 +158,7 @@ protected:
 
 class ConstBuffer : public LinearBuffer {
 public:
-	void* GetVirtualAddress() const;
+	void* GetVirtualAddress() const override;
 
 	uint64_t GetSize() const;
 	uint64_t GetDataSize() const;
