@@ -20,7 +20,7 @@ SamplerState samp1 : register(s1);
 struct PS_Input
 {
 	float4 position : SV_POSITION;
-	float2 texcoord : TEX_COORD0;
+	float2 texCoord : TEXCOORD0;
 };
 
 struct PS_Output
@@ -119,14 +119,27 @@ float calculate_coc(float focal_length, float subject_distance, float opening_di
 }
 
 
-PS_Input VSMain(float4 position : POSITION, float4 texcoord : TEX_COORD)
+PS_Input VSMain(uint vertexId : SV_VertexID)
 {
-	PS_Input result;
+	// Triangle strip based on vertex id
+	// 3-----2
+	// |   / |
+	// | /   |
+	// 1-----0
+	// 0: (1, 0)
+	// 1: (0, 0)
+	// 2: (1, 1)
+	// 3: (0, 1)
+    PS_Input output;
 
-	result.position = position;
-	result.texcoord = texcoord.xy;
+    output.texCoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
+    output.texCoord.y = vertexId >> 1; // 1 if bit1 is 1.
 
-	return result;
+    float2 posL = output.texCoord.xy * 2.0f - float2(1, 1);
+    output.position = float4(posL, 0.5f, 1.0f);
+    output.texCoord.y = 1.f - output.texCoord.y;
+
+    return output;
 }
 
 PS_Output PSMain(PS_Input input)
@@ -136,8 +149,8 @@ PS_Output PSMain(PS_Input input)
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 
-	float4 inputData = inputTex.Sample(samp0, input.texcoord);
-	float4 depthGather = depthTex.Gather(samp0, input.texcoord);
+	float4 inputData = inputTex.Sample(samp0, input.texCoord);
+	float4 depthGather = depthTex.Gather(samp0, input.texCoord);
 	float maxDepth = max(depthGather.x, max(depthGather.y, max(depthGather.z, depthGather.w)));
 	float inputDepth = linearize_depth(maxDepth, 0.1, 100);
 
@@ -153,13 +166,13 @@ PS_Output PSMain(PS_Input input)
 	float pixel_coc = inputTexSize.x * coc / sensor_width; //0.5 for half res rendering!
 	float final_coc = min(pixel_coc, uniforms.maxBlurDiameter);
 
-	//float4 prefilteredColor = filterFuncTier3(input.texcoord, inputTexSize.xy, inputData, inputDepth);
-	float4 prefilteredColor = filterFuncTier3(input.texcoord, inputTexSize.xy, float4(inputData.xyz, final_coc), inputDepth);
+	//float4 prefilteredColor = filterFuncTier3(input.texCoord, inputTexSize.xy, inputData, inputDepth);
+	float4 prefilteredColor = filterFuncTier3(input.texCoord, inputTexSize.xy, float4(inputData.xyz, final_coc), inputDepth);
 
 	output.color_coc = float4(prefilteredColor.xyz, final_coc);
 	output.depth = maxDepth;
 	return output;
-	//return inputTex.Sample(samp0, input.texcoord);
+	//return inputTex.Sample(samp0, input.texCoord);
 	//return float4(inputData.xyz, min(coc * coc_multiplier, uniforms.maxBlurDiameter) );
-	//return linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100);
+	//return linearize_depth(depthTex.Sample(samp0, input.texCoord), 0.1, 100);
 }

@@ -23,15 +23,29 @@ struct PS_Input
 };
 
 
-PS_Input VSMain(float3 position : POSITION)
+PS_Input VSMain(uint vertexId : SV_VertexID)
 {
-	PS_Input result;
+	// Triangle strip based on vertex id
+	// 3-----2
+	// |   / |
+	// | /   |
+	// 1-----0
+	// 0: (1, 0)
+	// 1: (0, 0)
+	// 2: (1, 1)
+	// 3: (0, 1)
+    PS_Input output;
 
-	result.position = float4(position, 1);
-    result.worldPos = mul(float4(position, 1), cam.invViewProj);
-	result.worldPos /= result.worldPos.w;
+    float2 texCoord;
+    texCoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
+    texCoord.y = vertexId >> 1; // 1 if bit1 is 1.
 
-	return result;
+    float2 posL = texCoord.xy * 2.0f - float2(1, 1);
+    output.position = float4(posL, 1.0f, 1.0f);
+    output.worldPos = mul(output.position, cam.invViewProj);
+    output.worldPos /= output.worldPos.w;
+
+    return output;
 }
 
 

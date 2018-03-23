@@ -46,11 +46,6 @@ protected: // outputs
 	bool m_outputTexturesInited = false;
 	RenderTargetView2D m_lens_flare_rtv;
 
-	VertexBuffer m_fsq;
-	IndexBuffer m_fsqIndices;
-	bool fsqInited;
-
-
 protected: // render context
 	TextureView2D m_inputTexSrv;
 

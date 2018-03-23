@@ -46,11 +46,6 @@ protected: // outputs
 	RenderTargetView2D m_prepare_rtv;
 	RenderTargetView2D m_depth_rtv;
 
-	VertexBuffer m_fsq;
-	IndexBuffer m_fsqIndices;
-	bool fsqInited;
-
-
 protected: // render context
 	TextureView2D m_inputTexSrv;
 	TextureView2D m_depthTexSrv;

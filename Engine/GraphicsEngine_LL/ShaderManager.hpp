@@ -213,7 +213,7 @@ private:
 	ShaderProgram CompileShaderInternal(const std::string& sourceCode, ShaderParts parts, const std::string& macros);
 
 	// Cuts off extension (only .hlsl, .glsl, .cg, .txt), converts to lowercase.
-	static std::string StripShaderName(std::string name);
+	static std::string StripShaderName(std::string name, bool lowerCase = true);
 private:
 	gxapi::IGxapiManager* m_gxapiManager;
 

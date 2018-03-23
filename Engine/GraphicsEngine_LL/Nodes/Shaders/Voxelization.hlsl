@@ -26,14 +26,14 @@ SamplerState samp1 : register(s1);
 struct GS_Input
 {
 	float4 position	: SV_POSITION;
-	float2 texcoord	: TEXCOORD0;
+	float2 texCoord	: TEXCOORD0;
 };
 
 struct PS_Input
 {
 	float4 position	: SV_POSITION;
 	float3 voxelPos	: TEXCOORD0;
-	float2 texcoord	: TEXCOORD1;
+	float2 texCoord	: TEXCOORD1;
 };
 
 //encodes rgba8 color [0...255] into uint
@@ -58,7 +58,7 @@ GS_Input VSMain(float4 position : POSITION, float4 normal : NORMAL, float4 texCo
 	GS_Input result;
 
     result.position = mul(position, uniforms.model);
-	result.texcoord = texCoord.xy;
+	result.texCoord = texCoord.xy;
 
 	return result;
 }
@@ -110,7 +110,7 @@ void GSMain(triangle GS_Input input[3], inout TriangleStream<PS_Input> OutputStr
 		//these coords are only used for rasteriation
 		output.position = float4(voxelPos.xy, 1, 1);
 		output.voxelPos = insertionPos;
-		output.texcoord = input[i].texcoord;
+		output.texCoord = input[i].texCoord;
 
 		OutputStream.Append(output);
 	}
@@ -171,8 +171,8 @@ void atomicAvg(RWTexture3D<uint> tex, float4 color, uint3 target)
 
 void PSMain(PS_Input input)
 {
-	//float4 albedo = float4(input.texcoord, 0.0, 1.0);
-	float4 albedo = albedoTex.Sample(samp0, input.texcoord);
+	//float4 albedo = float4(input.texCoord, 0.0, 1.0);
+	float4 albedo = albedoTex.Sample(samp0, input.texCoord);
 
 	uint3 target = input.voxelPos;
 	

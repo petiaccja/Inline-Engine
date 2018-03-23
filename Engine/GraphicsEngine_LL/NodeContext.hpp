@@ -90,8 +90,8 @@ public:
 	// Create resources
 	Texture2D CreateTexture2D(const Texture2DDesc& desc, const TextureUsage& usage) const;
 	Texture3D CreateTexture3D(const Texture3DDesc& desc, const TextureUsage& usage) const;
-	VertexBuffer CreateVertexBuffer(const void* data, size_t size) const;
-	IndexBuffer CreateIndexBuffer(const void* data, size_t size, size_t indexCount) const;
+	VertexBuffer CreateVertexBuffer(size_t size) const;
+	IndexBuffer CreateIndexBuffer(size_t size, size_t indexCount) const;
 
 	// Create views
 	TextureView2D CreateSrv(const Texture2D& texture, gxapi::eFormat format, gxapi::SrvTexture2DArray desc = {}) const;
@@ -160,13 +160,30 @@ public:
 	Binder CreateBinder(const std::vector<BindParameterDesc>& parameters, const std::vector<gxapi::StaticSamplerDesc>& staticSamplers = {}) const;
 
 	// Upload data to graphics card
-	void Upload(CopyCommandList& commandList,
-				const LinearBuffer& target,
+
+	/// <summary> Uploads data to a GPU resource through the command list you queried while executing. </summary>
+	/// <param name="target"> Data is uploaded into this buffer. </param>
+	/// <param name="offset"> Offset in bytes into the target buffer. </param>
+	/// <param name="data"> Source bytes to upload. </param>
+	/// <param name="size"> Number of source bytes. </param>
+	/// <remarks> You must call one of AsGraphics/AsCompute/AsCopy before using this. </remarks>
+	void Upload(const LinearBuffer& target,
 				size_t offset,
 				const void* data,
 				size_t size);
-	void Upload(CopyCommandList& commandList,
-				const Texture2D& target,
+
+	/// <summary> Uploads data to a GPU resource through the command list you queried while executing. </summary>
+	/// <param name="target"> Subimage is uploaded into this texture. </param>
+	/// <param name="offsetX"> Topleft corner of subimage. (Left is smaller index.) </param>
+	/// <param name="offsetY"> Topleft corner of subimage. (Top is smaller index.) </param>
+	/// <param name="subresource"> Which subresource of <paramref name="target"/> to update. </param>
+	/// <param name="data"> Pointer to pixels to upload, row-major format. </param>
+	/// <param name="width"> Width of the uploaded subimage. </param>
+	/// <param name="height"> Height of the uploaded subimage. </param>
+	/// <param name="format"> Pixel format of the uploaded subimage, must match texture format at least for pixel byte size. </param>
+	/// <param name="bytesPerRow"> Row pitch (pixels + end-of-row padding). If left zero, no padding is assumed. </param>
+	/// <remarks> You must call one of AsGraphics/AsCompute/AsCopy before using this. </remarks>
+	void Upload(const Texture2D& target,
 				uint32_t offsetX,
 				uint32_t offsetY,
 				uint32_t subresource,

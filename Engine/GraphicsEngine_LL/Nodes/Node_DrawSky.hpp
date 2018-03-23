@@ -34,11 +34,6 @@ public:
 	void Setup(SetupContext& context) override;
 	void Execute(RenderContext& context) override;
 
-protected:
-	VertexBuffer m_fsq;
-	IndexBuffer m_fsqIndices;
-	bool fsqInited;
-
 private: // execution
 	RenderTargetView2D m_rtv;
 	DepthStencilView2D m_dsv;

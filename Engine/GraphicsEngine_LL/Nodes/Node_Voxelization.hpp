@@ -77,10 +77,6 @@ protected:
 	DepthStencilView2D m_visualizationDSV;
 	TextureView2D m_depthTexSRV;
 
-	VertexBuffer m_fsq;
-	IndexBuffer m_fsqIndices;
-	bool fsqInited;
-
 private: // execution context
 	const EntityCollection<MeshEntity>* m_entities;
 	const BasicCamera* m_camera;

@@ -23,7 +23,7 @@ SamplerState samp1 : register(s1);
 struct PS_Input
 {
 	float4 position : SV_POSITION;
-	float2 texcoord : TEX_COORD0;
+	float2 texCoord : TEXCOORD0;
 };
 
 //warning: result [0...far]
@@ -196,14 +196,27 @@ float4 filterFunc(float2 uv, float2 resolution, float4 center_tap, float coc, in
 	return float4((result.rgb / clamp(result.a, 1e-4, 5e4)) * saturate(1.0 - revealage), 1);
 }
 
-PS_Input VSMain(float4 position : POSITION, float4 texcoord : TEX_COORD)
+PS_Input VSMain(uint vertexId : SV_VertexID)
 {
-	PS_Input result;
+	// Triangle strip based on vertex id
+	// 3-----2
+	// |   / |
+	// | /   |
+	// 1-----0
+	// 0: (1, 0)
+	// 1: (0, 0)
+	// 2: (1, 1)
+	// 3: (0, 1)
+    PS_Input output;
 
-	result.position = position;
-	result.texcoord = texcoord.xy;
+    output.texCoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
+    output.texCoord.y = vertexId >> 1; // 1 if bit1 is 1.
 
-	return result;
+    float2 posL = output.texCoord.xy * 2.0f - float2(1, 1);
+    output.position = float4(posL, 0.5f, 1.0f);
+    output.texCoord.y = 1.f - output.texCoord.y;
+
+    return output;
 }
 
 float4 PSMain(PS_Input input) : SV_TARGET
@@ -212,50 +225,50 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 
 	int2 currPixelPos = int2(input.position.xy);
-	float4 currentColor = inputTex.Sample(samp0, input.texcoord);
-	float currentDepth = linearize_depth(depthTex.Sample(samp0, input.texcoord), 0.1, 100.0);
+	float4 currentColor = inputTex.Sample(samp0, input.texCoord);
+	float currentDepth = linearize_depth(depthTex.Sample(samp0, input.texCoord), 0.1, 100.0);
 
 	float tileDistX = float((currPixelPos.x % (int)uniforms.tileSize - (int)uniforms.tileSize / 2)) / (uniforms.tileSize*0.5);
 	float tileDistY = float((currPixelPos.y % (int)uniforms.tileSize - (int)uniforms.tileSize / 2)) / (uniforms.tileSize*0.5);
 
-	int2 offset = int2(sign(tileDistX) * float(rand(input.texcoord) < (abs(tileDistX) * 0.5)), sign(tileDistY) * float(rand(input.texcoord + 1) < (abs(tileDistY) * 0.5)));
+	int2 offset = int2(sign(tileDistX) * float(rand(input.texCoord) < (abs(tileDistX) * 0.5)), sign(tileDistY) * float(rand(input.texCoord + 1) < (abs(tileDistY) * 0.5)));
 	float2 tileData = neighborhoodMaxTex.Load(clamp(int3(currPixelPos/(int)uniforms.tileSize + offset, 0), int3(0,0,0), int3(inputTexSize.xy / (int)uniforms.tileSize - 1, 0))).xy;
-	//float2 tileData = neighborhoodMaxTex.Sample(samp1, input.texcoord + float2(rand(input.texcoord)*2-1, rand(input.texcoord*2)*2-1)*0.05);
-	//float2 tileData = neighborhoodMaxTex.Sample(samp1, input.texcoord);
+	//float2 tileData = neighborhoodMaxTex.Sample(samp1, input.texCoord + float2(rand(input.texCoord)*2-1, rand(input.texCoord*2)*2-1)*0.05);
+	//float2 tileData = neighborhoodMaxTex.Sample(samp1, input.texCoord);
 
 	float tileMaxCoc = tileData.x;
 
 	float4 result = float4(0, 0, 0, 0);
 	
-	result = filterFunc(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 7);
+	result = filterFunc(input.texCoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 7);
 
 	/*if (tileMaxCoc >= 29.0)
 	{
-		result = filterFunc(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 7);
+		result = filterFunc(input.texCoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 7);
 	}
 	else if (tileMaxCoc >= 25.0)
 	{
-		result = filterFunc(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 6);
+		result = filterFunc(input.texCoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 6);
 	}
 	else if (tileMaxCoc >= 21.0)
 	{
-		result = filterFunc(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 5);
+		result = filterFunc(input.texCoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 5);
 	}
 	else if (tileMaxCoc >= 17.0)
 	{
-		result = filterFunc(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 4);
+		result = filterFunc(input.texCoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 4);
 	}
 	else if (tileMaxCoc >= 13.0)
 	{
-		result = filterFunc(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 3);
+		result = filterFunc(input.texCoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 3);
 	}
 	else if (tileMaxCoc >= 9.0)
 	{
-		result = filterFunc(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 2);
+		result = filterFunc(input.texCoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 2);
 	}
 	else if (tileMaxCoc >= 5.0)
 	{
-		result = filterFunc(input.texcoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 1);
+		result = filterFunc(input.texCoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 1);
 	}
 	else
 	{

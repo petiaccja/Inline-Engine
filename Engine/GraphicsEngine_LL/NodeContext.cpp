@@ -119,18 +119,14 @@ RWTextureView3D SetupContext::CreateUav(const Texture3D& rwTexture, gxapi::eForm
 }
 
 
-VertexBuffer SetupContext::CreateVertexBuffer(const void* data, size_t size) const {
-#pragma message("This is not good, context uploads should NOT go through upload manager but through node's command list, immediately.")
+VertexBuffer SetupContext::CreateVertexBuffer(size_t size) const {
 	VertexBuffer result = m_memoryManager->CreateVertexBuffer(eResourceHeap::CRITICAL, size);
-	m_memoryManager->GetUploadManager().Upload(result, 0, data, size);
 	return result;
 }
 
 
-IndexBuffer SetupContext::CreateIndexBuffer(const void* data, size_t size, size_t indexCount) const {
-#pragma message("This is not good, context uploads should NOT go through upload manager but through node's command list, immediately.")
+IndexBuffer SetupContext::CreateIndexBuffer(size_t size, size_t indexCount) const {
 	IndexBuffer result = m_memoryManager->CreateIndexBuffer(eResourceHeap::CRITICAL, size, indexCount);
-	m_memoryManager->GetUploadManager().Upload(result, 0, data, size);
 	return result;
 }
 
@@ -226,26 +222,32 @@ Binder RenderContext::CreateBinder(const std::vector<BindParameterDesc>& paramet
 }
 
 
-void RenderContext::Upload(CopyCommandList& commandList,
-			const LinearBuffer& target,
-			size_t offset,
-			const void* data,
-			size_t size) 
+void RenderContext::Upload(const LinearBuffer& target,
+						   size_t offset,
+						   const void* data,
+						   size_t size)
 {
+	if (!m_commandList) {
+		throw InvalidCallException("Call one of AsGraphics/AsCompute/AsCopy before calling this.");
+	}
+	CopyCommandList& commandList = *dynamic_cast<CopyCommandList*>(m_commandList.get());
 	m_memoryManager->GetUploadManager().UploadNow(commandList, target, offset, data, size);
 }
 
-void RenderContext::Upload(CopyCommandList& commandList,
-			const Texture2D& target,
-			uint32_t offsetX,
-			uint32_t offsetY,
-			uint32_t subresource,
-			const void* data,
-			uint64_t width,
-			uint32_t height,
-			gxapi::eFormat format,
-			size_t bytesPerRow) 
+void RenderContext::Upload(const Texture2D& target,
+						   uint32_t offsetX,
+						   uint32_t offsetY,
+						   uint32_t subresource,
+						   const void* data,
+						   uint64_t width,
+						   uint32_t height,
+						   gxapi::eFormat format,
+						   size_t bytesPerRow)
 {
+	if (!m_commandList) {
+		throw InvalidCallException("Call one of AsGraphics/AsCompute/AsCopy before calling this.");
+	}
+	CopyCommandList& commandList = *dynamic_cast<CopyCommandList*>(m_commandList.get());
 	m_memoryManager->GetUploadManager().UploadNow(commandList, target, offsetX, offsetY, subresource, data, width, height, format, bytesPerRow);
 }
 

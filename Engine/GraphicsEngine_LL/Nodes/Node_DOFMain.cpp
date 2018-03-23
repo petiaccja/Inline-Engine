@@ -155,23 +155,6 @@ void DOFMain::Setup(SetupContext& context) {
 		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, sampBindParamDesc2, inputBindParamDesc, depthBindParamDesc, neighborhoodMaxBindParamDesc }, { samplerDesc, samplerDesc2 });
 	}
 
-	if (!m_fsq.HasObject()) {
-		std::vector<float> vertices = {
-			-1, -1, 0,  0, +1,
-			+1, -1, 0, +1, +1,
-			+1, +1, 0, +1,  0,
-			-1, +1, 0,  0,  0
-		};
-		std::vector<uint16_t> indices = {
-			0, 1, 2,
-			0, 2, 3
-		};
-		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq.SetName("DOF full screen quad vertex buffer");
-		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices.SetName("DOF full screen quad index buffer");
-	}
-
 	if (!m_main_PSO) {
 		InitRenderTarget(context);
 
@@ -294,9 +277,6 @@ void DOFMain::Execute(RenderContext& context) {
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 
-	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
-	unsigned vbSize = (unsigned)m_fsq.GetSize();
-	unsigned vbStride = 5 * sizeof(float);
 
 	{ //main pass
 		commandList.SetResourceState(m_main_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
@@ -316,11 +296,8 @@ void DOFMain::Execute(RenderContext& context) {
 		commandList.BindGraphics(m_neighborhoodMaxTexBindParam, m_neighborhoodMaxTexSrv);
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
-		commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-		commandList.SetResourceState(m_fsqIndices, gxapi::eResourceState::INDEX_BUFFER);
-		commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
-		commandList.SetIndexBuffer(&m_fsqIndices, false);
-		commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
+		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLESTRIP);
+		commandList.DrawInstanced(4);
 	}
 
 	{ //postfilter
@@ -343,11 +320,8 @@ void DOFMain::Execute(RenderContext& context) {
 		commandList.BindGraphics(m_neighborhoodMaxTexBindParam, m_originalTexSrv);
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
-		commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-		commandList.SetResourceState(m_fsqIndices, gxapi::eResourceState::INDEX_BUFFER);
-		commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
-		commandList.SetIndexBuffer(&m_fsqIndices, false);
-		commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
+		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLESTRIP);
+		commandList.DrawInstanced(4);
 	}
 
 	{ //upsample
@@ -380,11 +354,9 @@ void DOFMain::Execute(RenderContext& context) {
 		commandList.BindGraphics(m_neighborhoodMaxTexBindParam, m_originalTexSrv);
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
-		commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-		commandList.SetResourceState(m_fsqIndices, gxapi::eResourceState::INDEX_BUFFER);
-		commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
-		commandList.SetIndexBuffer(&m_fsqIndices, false);
-		commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());*/
+		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLESTRIP);
+		commandList.DrawInstanced(4);
+		*/
 	}
 }
 

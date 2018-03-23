@@ -60,11 +60,6 @@ protected: // outputs
 
 	Mat44 m_prevVP;
 
-	VertexBuffer m_fsq;
-	IndexBuffer m_fsqIndices;
-	bool fsqInited;
-
-
 protected: // render context
 	TextureView2D m_depthTexSrv;
 	const BasicCamera* m_camera;

@@ -55,11 +55,6 @@ protected: // outputs
 	RenderTargetView2D m_bright_pass_rtv;
 	RenderTargetView2D m_luminance_rtv;
 
-	VertexBuffer m_fsq;
-	IndexBuffer m_fsqIndices;
-	bool fsqInited;
-
-
 protected: // render context
 	TextureView2D m_inputTexSrv;
 

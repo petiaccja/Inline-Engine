@@ -143,23 +143,6 @@ void MotionBlur::Setup(SetupContext& context) {
 		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, velocityBindParamDesc, neighborMaxBindParamDesc, depthBindParamDesc }, { samplerDesc });
 	}
 
-	if (!m_fsq.HasObject()) {
-		std::vector<float> vertices = {
-			-1, -1, 0,  0, +1,
-			+1, -1, 0, +1, +1,
-			+1, +1, 0, +1,  0,
-			-1, +1, 0,  0,  0
-		};
-		std::vector<uint16_t> indices = {
-			0, 1, 2,
-			0, 2, 3
-		};
-		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq.SetName("Motion blur full screen quad vertex buffer");
-		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices.SetName("Motion blur full screen quad index buffer");
-	}
-
 	InitRenderTarget(context);
 	if (!m_PSO) {
 
@@ -248,15 +231,8 @@ void MotionBlur::Execute(RenderContext& context) {
 	commandList.BindGraphics(m_depthTexBindParam, m_depthTexSrv);
 	commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
-	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
-	unsigned vbSize = (unsigned)m_fsq.GetSize();
-	unsigned vbStride = 5 * sizeof(float);
-
-	commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-	commandList.SetResourceState(m_fsqIndices, gxapi::eResourceState::INDEX_BUFFER);
-	commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
-	commandList.SetIndexBuffer(&m_fsqIndices, false);
-	commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
+	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLESTRIP);
+	commandList.DrawInstanced(4);
 }
 
 

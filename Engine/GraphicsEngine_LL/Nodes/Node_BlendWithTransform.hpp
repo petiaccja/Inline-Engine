@@ -34,10 +34,6 @@ public:
 	void Execute(RenderContext& context) override;
 
 protected:
-	VertexBuffer m_fsq;
-	IndexBuffer m_fsqIndices;
-
-protected:
 	gxapi::RenderTargetBlendState m_blendMode;
 
 	std::optional<Binder> m_binder;

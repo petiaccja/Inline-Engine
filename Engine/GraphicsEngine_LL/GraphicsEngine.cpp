@@ -52,7 +52,6 @@
 #include "Nodes/Node_ShadowMapGen.hpp"
 #include "Nodes/Node_ScreenSpaceShadow.hpp"
 #include "Nodes/Node_ScreenSpaceReflection.hpp"
-#include "Nodes/Node_TextRender.hpp"
 #include "Nodes/Node_ScreenSpaceAmbientOcclusion.hpp"
 
 //Gui
@@ -570,7 +569,6 @@ void GraphicsEngine::RegisterPipelineClasses() {
 	m_nodeFactory.RegisterNodeClass<nodes::ShadowMapGen>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceShadow>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceReflection>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::TextRender>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceAmbientOcclusion>("Pipeline/Render");
 
 	m_nodeFactory.RegisterNodeClass<nodes::RenderOverlay>("Pipeline/Render");

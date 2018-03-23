@@ -22,8 +22,6 @@ void Blend::Initialize(EngineContext & context) {
 }
 
 void Blend::Reset() {
-	m_fsq = {};
-	m_fsqIndices = {};
 	m_blendDest = {};
 	m_blendSrc = {};
 	GetInput(0)->Clear();
@@ -84,20 +82,6 @@ void Blend::Setup(SetupContext& context) {
 		m_binder = context.CreateBinder({ tex0ParamDesc, sampBindParamDesc }, { samplerDesc });
 	}
 
-	if (!m_fsq.HasObject() || !m_fsqIndices.HasObject()) {
-		std::vector<float> vertices = {
-			-1, -1,
-			+1, -1,
-			+1, +1,
-			-1, +1
-		};
-		std::vector<uint16_t> indices = {
-			0, 1, 2,
-			0, 2, 3
-		};
-		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-	}
 
 	if (!m_shader.vs || m_shader.ps) {
 		ShaderParts shaderParts;
@@ -158,18 +142,12 @@ void Blend::Execute(RenderContext& context) {
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
-	unsigned vbSize = (unsigned)m_fsq.GetSize();
-	unsigned vbStride = 2 * sizeof(float);
 
 	commandList.SetResourceState(const_cast<Texture2D&>(m_blendSrc.GetResource()), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.BindGraphics(m_tex0Param, m_blendSrc);
 
-	commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-	commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
-	commandList.SetResourceState(m_fsqIndices, gxapi::eResourceState::INDEX_BUFFER);
-	commandList.SetIndexBuffer(&m_fsqIndices, false);
-	commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
+	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLESTRIP);
+	commandList.DrawInstanced(4);
 }
 
 

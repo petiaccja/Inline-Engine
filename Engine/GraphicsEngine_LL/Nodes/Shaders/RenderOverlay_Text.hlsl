@@ -23,7 +23,7 @@ void VSMain(uint vertexId : SV_VertexID,
 			out float4 posHOut : SV_Position,
 			out float2 texCoordOut : TEXCOORD0)
 {
-	// Triangle fan based on vertex id
+	// Triangle strip based on vertex id
 	// 3-----2
 	// |   / |
 	// | /   |

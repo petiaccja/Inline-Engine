@@ -151,10 +151,10 @@ void DebugDraw::Setup(SetupContext& context) {
 				std::vector<Vec3> vertices;
 				std::vector<uint32_t> indices;
 				currObject->GetMesh(vertices, indices);
-				m_objects[c].second.vertexBuffer = context.CreateVertexBuffer(vertices.data(), vertices.size() * sizeof(Vec3));
-				m_objects[c].second.indexBuffer = context.CreateIndexBuffer(indices.data(), indices.size() * sizeof(uint32_t), indices.size());
-				m_objects[c].second.size = (unsigned)(m_objects[c].second.vertexBuffer.GetSize());
-				m_objects[c].second.stride = currObject->GetStride();
+				m_objects[c].second.vertexBuffer = context.CreateVertexBuffer(vertices.size() * sizeof(Vec3));
+				m_objects[c].second.indexBuffer = context.CreateIndexBuffer(indices.size() * sizeof(uint32_t), indices.size());
+				m_objects[c].second.size = 0;
+				m_objects[c].second.stride = 0;
 			}
 		}
 		else {
@@ -169,6 +169,26 @@ void DebugDraw::Setup(SetupContext& context) {
 void DebugDraw::Execute(RenderContext& context) {
 	GraphicsCommandList& commandList = context.AsGraphics();
 
+
+	// Upload data to vertex and index buffers
+	for (int c = 0; c < DebugDrawManager::GetInstance().GetObjects().size(); ++c) {
+		const std::shared_ptr<DebugObject>& currObject = DebugDrawManager::GetInstance().GetObjects()[c];
+
+		//if there's no allocated vertex buffer and the object is alive, then allocate and fill vertex buffer
+		if (currObject && currObject->IsAlive()) {
+			if (m_objects[c].second.vertexBuffer && m_objects[c].second.size == 0) {
+				std::vector<Vec3> vertices;
+				std::vector<uint32_t> indices;
+				currObject->GetMesh(vertices, indices);
+				context.Upload(m_objects[c].second.vertexBuffer, 0, vertices.data(), vertices.size() * sizeof(Vec3));
+				context.Upload(m_objects[c].second.indexBuffer, 0, indices.data(), indices.size() * sizeof(uint32_t));
+				m_objects[c].second.size = (unsigned)(m_objects[c].second.vertexBuffer.GetSize());
+				m_objects[c].second.stride = currObject->GetStride();
+			}
+		}
+	}
+
+	// Render things
 	gxapi::Rectangle rect{ 0, (int)m_target.GetResource().GetHeight(), 0, (int)m_target.GetResource().GetWidth() };
 	commandList.SetScissorRects(1, &rect);
 

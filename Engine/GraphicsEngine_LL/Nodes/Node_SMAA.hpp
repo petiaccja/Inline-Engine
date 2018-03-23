@@ -56,11 +56,6 @@ protected: // outputs
 	TextureView2D m_blendingWeightsSRV;
 	TextureView2D m_neighborhoodBlendingSRV;
 
-	VertexBuffer m_fsq;
-	IndexBuffer m_fsqIndices;
-	bool fsqInited;
-
-
 protected: // render context
 	TextureView2D m_inputTexSrv;
 

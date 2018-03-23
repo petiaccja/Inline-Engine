@@ -25,19 +25,33 @@ SamplerState samp0 : register(s0);
 struct PS_Input
 {
 	float4 position : SV_POSITION;
-	float2 texcoord : TEX_COORD0;
+	float2 texCoord : TEXCOORD0;
 };
 
 
-PS_Input VSMain(float4 position : POSITION, float4 texcoord : TEX_COORD)
+PS_Input VSMain(uint vertexId : SV_VertexID)
 {
-	PS_Input result;
+	// Triangle strip based on vertex id
+	// 3-----2
+	// |   / |
+	// | /   |
+	// 1-----0
+	// 0: (1, 0)
+	// 1: (0, 0)
+	// 2: (1, 1)
+	// 3: (0, 1)
+    PS_Input output;
 
-	result.position = position;
-	result.texcoord = texcoord.xy;
+    output.texCoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
+    output.texCoord.y = vertexId >> 1; // 1 if bit1 is 1.
 
-	return result;
+    float2 posL = output.texCoord.xy * 2.0f - float2(1, 1);
+    output.position = float4(posL, 0.5f, 1.0f);
+    output.texCoord.y = 1.f - output.texCoord.y;
+
+    return output;
 }
+
 
 float3 tonemap_func(float3 x, float a, float b, float c, float d, float e, float f)
 {
@@ -100,15 +114,15 @@ float3 blue_shift(float3 col, float night_factor)
 	return lerp(col, night_color, blue_shift_coeff);
 }
 
-/*float3 vignette(float2 texcoord, float3 col)
+/*float3 vignette(float2 texCoord, float3 col)
 {
 	float vignette_size = 0.5, vignette_amount = 0.5;
-	float dist = distance(texcoord, float2(0.5, 0.5));
+	float dist = distance(texCoord, float2(0.5, 0.5));
 
 	return col * smoothstep(0.8, vignette_size * 0.799, dist * (vignette_amount + vignette_size));
 }*/
 
-float3 vignette(float2 texcoord, float3 col)
+float3 vignette(float2 texCoord, float3 col)
 {
 	float aperture_diameter = 2.8 * 0.001;
 	float lens_to_sensor_dist = 20 * 0.001;
@@ -124,8 +138,8 @@ float3 vignette(float2 texcoord, float3 col)
 	float3 sensor_corner_ur = float3(sensor_width, sensor_height, 0);
 	float3 sensor_vector = sensor_corner_ur - sensor_corner_ll;
 
-	float3 point_on_aperture = aperture_corner_ll + float3(aperture_vector.xy * texcoord, 0);
-	float3 point_on_sensor = sensor_corner_ll + float3(sensor_vector.xy * texcoord, 0);
+	float3 point_on_aperture = aperture_corner_ll + float3(aperture_vector.xy * texCoord, 0);
+	float3 point_on_sensor = sensor_corner_ll + float3(sensor_vector.xy * texCoord, 0);
 
 	float3 angle_vector = normalize(point_on_aperture - point_on_sensor);
 	float3 compare_vector = float3(0, 0, 1);
@@ -136,15 +150,15 @@ float3 vignette(float2 texcoord, float3 col)
 	//return col;
 }
 
-float3 lens_flare(float2 texcoord)
+float3 lens_flare(float2 texCoord)
 {
-	float3 lens_mod = gamma_to_linear(lensFlareDirtTex.Sample(samp0, texcoord));
-	float2 lens_star_tex_coord = mul(float4(texcoord, 1, 0), uniforms.lensStarMx).xy;
+	float3 lens_mod = gamma_to_linear(lensFlareDirtTex.Sample(samp0, texCoord));
+	float2 lens_star_tex_coord = mul(float4(texCoord, 1, 0), uniforms.lensStarMx).xy;
 	//return gamma_to_linear(lens_mod.xyz);
 	//return gamma_to_linear(lensFlareStarTex.Sample(samp0, lens_star_tex_coord));
 	lens_mod += gamma_to_linear(lensFlareStarTex.Sample(samp0, lens_star_tex_coord));
 
-	float4 input_tex = lensFlareTex.Sample(samp0, texcoord);
+	float4 input_tex = lensFlareTex.Sample(samp0, texCoord);
 
 	return max(input_tex.xyz * lens_mod.xyz, 0) * 100;
 }
@@ -153,15 +167,15 @@ float4 PSMain(PS_Input input) : SV_TARGET
 {
 	float4 inputData = max(inputTex.Load(int3(input.position.xy, 0)), float4(0,0,0,0));
 	//float4 inputData = max(lensFlareTex.Load(int3(input.position.xy, 0)), float4(0,0,0,0));
-	float4 bloomData = bloomTex.Sample(samp0, input.texcoord);
+	float4 bloomData = bloomTex.Sample(samp0, input.texCoord);
 
-	inputData.xyz = vignette(input.texcoord, inputData.xyz);
+	inputData.xyz = vignette(input.texCoord, inputData.xyz);
 
 	inputData += bloomData * uniforms.bloom_weight;
-	inputData.xyz += lens_flare(input.texcoord);
+	inputData.xyz += lens_flare(input.texCoord);
 	
 	float3 hdrColor = max(inputData, float4(0, 0, 0, 0)).xyz;
-	float avg_lum = luminanceTex.Sample(samp0, input.texcoord);
+	float avg_lum = luminanceTex.Sample(samp0, input.texCoord);
 
 	//hdrColor = blue_shift(hdrColor, 1.0);
 

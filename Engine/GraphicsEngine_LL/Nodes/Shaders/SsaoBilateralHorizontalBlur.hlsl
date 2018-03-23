@@ -22,18 +22,31 @@ SamplerState samp1 : register(s1);
 struct PS_Input
 {
 	float4 position : SV_POSITION;
-	float2 texcoord : TEX_COORD0;
+	float2 texCoord : TEX_COORD0;
 };
 
 
-PS_Input VSMain(float4 position : POSITION, float4 texcoord : TEX_COORD)
+PS_Input VSMain(uint vertexId : SV_VertexID)
 {
-	PS_Input result;
+	// Triangle strip based on vertex id
+	// 3-----2
+	// |   / |
+	// | /   |
+	// 1-----0
+	// 0: (1, 0)
+	// 1: (0, 0)
+	// 2: (1, 1)
+	// 3: (0, 1)
+    PS_Input output;
 
-	result.position = position;
-	result.texcoord = texcoord.xy;
+    output.texCoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
+    output.texCoord.y = vertexId >> 1; // 1 if bit1 is 1.
 
-	return result;
+    float2 posL = output.texCoord.xy * 2.0f - float2(1, 1);
+    output.position = float4(posL, 0.5f, 1.0f);
+    output.texCoord.y = 1.f - output.texCoord.y;
+
+    return output;
 }
 
 float4 PSMain(PS_Input input) : SV_TARGET
@@ -52,16 +65,16 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	depthTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 	float2 direction = float2(1.0, 0.0) / inputTexSize.xy;
 
-	float centerDepth = depthTex.Sample(samp0, input.texcoord);
+	float centerDepth = depthTex.Sample(samp0, input.texCoord);
 
 	float4 result = float4(0, 0, 0, 0);
 
 	for (int c = 0; c < 5; c++)
 	{
-		float currentDepth = depthTex.Sample(samp0, input.texcoord + offsets[c] * direction);
+		float currentDepth = depthTex.Sample(samp0, input.texCoord + offsets[c] * direction);
 		float diff = abs(centerDepth - currentDepth);
 		float bilateralWeight = exp(-12.0*diff);
-		result += ssaoTex.Sample(samp1, input.texcoord + offsets[c] * direction) * weights[c] * bilateralWeight;
+		result += ssaoTex.Sample(samp1, input.texCoord + offsets[c] * direction) * weights[c] * bilateralWeight;
 	}
 
 	return result;

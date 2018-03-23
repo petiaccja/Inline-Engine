@@ -128,22 +128,6 @@ void ScreenSpaceAmbientOcclusion::Setup(SetupContext& context) {
 		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc0, sampBindParamDesc1, dethBindParamDesc, inputBindParamDesc, temporalBindParamDesc },{ samplerDesc0, samplerDesc1 });
 	}
 
-	if (!m_fsq.HasObject()) {
-		std::vector<float> vertices = {
-			-1, -1, 0,  0, +1,
-			+1, -1, 0, +1, +1,
-			+1, +1, 0, +1,  0,
-			-1, +1, 0,  0,  0
-		};
-		std::vector<uint16_t> indices = {
-			0, 1, 2,
-			0, 2, 3
-		};
-		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq.SetName("Screen space ambient occlusion full screen quad vertex buffer");
-		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices.SetName("Screen space ambient occlusion full screen quad index buffer");
-	}
 
 	if (!m_PSO) {
 		InitRenderTarget(context);
@@ -249,9 +233,6 @@ void ScreenSpaceAmbientOcclusion::Execute(RenderContext& context) {
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
 	*/
 
-	gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
-	unsigned vbSize = (unsigned)m_fsq.GetSize();
-	unsigned vbStride = 5 * sizeof(float);
 
 	uniformsCBData.temporalIndex = temporalIndex;
 	temporalIndex = (temporalIndex + 1) % 6;
@@ -310,11 +291,8 @@ void ScreenSpaceAmbientOcclusion::Execute(RenderContext& context) {
 		commandList.BindGraphics(m_depthTexBindParam, m_depthTexSrv);
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
-		commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-		commandList.SetResourceState(m_fsqIndices, gxapi::eResourceState::INDEX_BUFFER);
-		commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
-		commandList.SetIndexBuffer(&m_fsqIndices, false);
-		commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
+		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLESTRIP);
+		commandList.DrawInstanced(4);
 	}
 
 
@@ -345,11 +323,8 @@ void ScreenSpaceAmbientOcclusion::Execute(RenderContext& context) {
 		commandList.BindGraphics(m_inputTexBindParam, m_ssao_srv);
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
-		commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-		commandList.SetResourceState(m_fsqIndices, gxapi::eResourceState::INDEX_BUFFER);
-		commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
-		commandList.SetIndexBuffer(&m_fsqIndices, false);
-		commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
+		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLESTRIP);
+		commandList.DrawInstanced(4);
 	}
 
 	{ //Bilateral vertical blur pass
@@ -385,11 +360,8 @@ void ScreenSpaceAmbientOcclusion::Execute(RenderContext& context) {
 		commandList.BindGraphics(m_inputTexBindParam, m_blur_horizontal_srv);
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
-		commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-		commandList.SetResourceState(m_fsqIndices, gxapi::eResourceState::INDEX_BUFFER);
-		commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
-		commandList.SetIndexBuffer(&m_fsqIndices, false);
-		commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
+		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLESTRIP);
+		commandList.DrawInstanced(4);
 	}
 
 	m_prevVP = vp;

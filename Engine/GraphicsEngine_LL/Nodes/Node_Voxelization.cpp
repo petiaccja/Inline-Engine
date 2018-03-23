@@ -310,23 +310,6 @@ void Voxelization::Setup(SetupContext & context) {
 		m_mipmapShader = context.CreateShader("VoxelMipmap", shaderParts, "");
 	}
 
-	if (!m_fsq.HasObject()) {
-		std::vector<float> vertices = {
-			-1, -1, 0,  0, +1,
-			+1, -1, 0, +1, +1,
-			+1, +1, 0, +1,  0,
-			-1, +1, 0,  0,  0
-		};
-		std::vector<uint16_t> indices = {
-			0, 1, 2,
-			0, 2, 3
-		};
-		m_fsq = context.CreateVertexBuffer(vertices.data(), sizeof(float)*vertices.size());
-		m_fsq.SetName("Voxelization full screen quad vertex buffer");
-		m_fsqIndices = context.CreateIndexBuffer(indices.data(), sizeof(uint16_t)*indices.size(), indices.size());
-		m_fsqIndices.SetName("Voxelization full screen quad index buffer");
-	}
-
 	if (m_PSO == nullptr) {
 		InitRenderTarget(context);
 
@@ -660,15 +643,8 @@ void Voxelization::Execute(RenderContext & context) {
 		commandList.BindGraphics(m_shadowCSMTexBindParam, m_shadowCSMTexSrv);
 		commandList.BindGraphics(m_shadowCSMExtentsTexBindParam, m_shadowCSMExtentsTexSrv);
 
-		gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
-		unsigned vbSize = (unsigned)m_fsq.GetSize();
-		unsigned vbStride = 5 * sizeof(float);
-
-		commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-		commandList.SetResourceState(m_fsqIndices, gxapi::eResourceState::INDEX_BUFFER);
-		commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
-		commandList.SetIndexBuffer(&m_fsqIndices, false);
-		commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
+		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLESTRIP);
+		commandList.DrawInstanced(4);
 		commandList.UAVBarrier(m_voxelLightTexUAV[0].GetResource()); 
 	}
 
@@ -762,16 +738,8 @@ void Voxelization::Execute(RenderContext & context) {
 
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
-		gxeng::VertexBuffer* pVertexBuffer = &m_fsq;
-		unsigned vbSize = (unsigned)m_fsq.GetSize();
-		unsigned vbStride = 5 * sizeof(float);
-
-		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
-		commandList.SetResourceState(*pVertexBuffer, gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-		commandList.SetResourceState(m_fsqIndices, gxapi::eResourceState::INDEX_BUFFER);
-		commandList.SetVertexBuffers(0, 1, &pVertexBuffer, &vbSize, &vbStride);
-		commandList.SetIndexBuffer(&m_fsqIndices, false);
-		commandList.DrawIndexedInstanced((unsigned)m_fsqIndices.GetIndexCount());
+		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLESTRIP);
+		commandList.DrawInstanced(4);
 	}
 }
 

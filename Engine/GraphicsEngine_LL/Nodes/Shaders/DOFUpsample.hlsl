@@ -21,7 +21,7 @@ SamplerState samp1 : register(s1); //linear
 struct PS_Input
 {
 	float4 position : SV_POSITION;
-	float2 texcoord : TEX_COORD0;
+	float2 texCoord : TEX_COORD0;
 };
 
 //warning: result [0...far]
@@ -89,14 +89,27 @@ float calculate_coc(float focal_length, float subject_distance, float opening_di
 	//CoCBias = (aperture * focallength * (znear - planeinfocus)) /	((planeinfocus * focallength) * znear)
 }
 
-PS_Input VSMain(float4 position : POSITION, float4 texcoord : TEX_COORD)
+PS_Input VSMain(uint vertexId : SV_VertexID)
 {
-	PS_Input result;
+	// Triangle strip based on vertex id
+	// 3-----2
+	// |   / |
+	// | /   |
+	// 1-----0
+	// 0: (1, 0)
+	// 1: (0, 0)
+	// 2: (1, 1)
+	// 3: (0, 1)
+    PS_Input output;
 
-	result.position = position;
-	result.texcoord = texcoord.xy;
+    output.texCoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
+    output.texCoord.y = vertexId >> 1; // 1 if bit1 is 1.
 
-	return result;
+    float2 posL = output.texCoord.xy * 2.0f - float2(1, 1);
+    output.position = float4(posL, 0.5f, 1.0f);
+    output.texCoord.y = 1.f - output.texCoord.y;
+
+    return output;
 }
 
 float4 PSMain(PS_Input input) : SV_TARGET
@@ -104,8 +117,8 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 
-	float4 center_tap = originalTex.Sample(samp0, input.texcoord);
-	float4 depthGather = depthTex.Gather(samp0, input.texcoord);
+	float4 center_tap = originalTex.Sample(samp0, input.texCoord);
+	float4 depthGather = depthTex.Gather(samp0, input.texCoord);
 	float maxDepth = max(depthGather.x, max(depthGather.y, max(depthGather.z, depthGather.w)));
 	float inputDepth = linearize_depth(maxDepth, 0.1, 100);
 
@@ -121,11 +134,11 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float final_coc = min(pixel_coc, uniforms.maxBlurDiameter);
 
 
-	float4 fullres = filterFuncTier3(input.texcoord, inputTexSize.xy, float4(center_tap.xyz, final_coc));
-	float4 halfres = inputTex.Sample(samp1, input.texcoord);
+	float4 fullres = filterFuncTier3(input.texCoord, inputTexSize.xy, float4(center_tap.xyz, final_coc));
+	float4 halfres = inputTex.Sample(samp1, input.texCoord);
 
 	return halfres;
-	//return inputTex.Sample(samp1, input.texcoord);
-	//return originalTex.Sample(samp0, input.texcoord);
+	//return inputTex.Sample(samp1, input.texCoord);
+	//return originalTex.Sample(samp0, input.texCoord);
 	//return lerp(fullres, halfres, clamp(final_coc-1.0, 0.0, 2.0)*0.5);
 }

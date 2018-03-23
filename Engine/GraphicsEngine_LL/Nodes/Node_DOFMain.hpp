@@ -54,11 +54,6 @@ protected: // outputs
 	TextureView2D m_main_srv;
 	TextureView2D m_postfilter_srv;
 
-	VertexBuffer m_fsq;
-	IndexBuffer m_fsqIndices;
-	bool fsqInited;
-
-
 protected: // render context
 	TextureView2D m_inputTexSrv;
 	TextureView2D m_halfDepthTexSrv;

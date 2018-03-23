@@ -28,7 +28,7 @@ SamplerState samp1 : register(s1);
 struct PS_Input
 {
 	float4 position : SV_POSITION;
-	float2 texcoord : TEX_COORD0;
+	float2 texCoord : TEX_COORD0;
 };
 
 //encodes rgba8 color [0...255] into uint
@@ -48,7 +48,7 @@ float4 decodeColor(uint color)
 		);
 }
 
-float3 getCSMTexelWSPos(float depth, float3 camPos, float3 camViewDir, float3 camUpDir, float3 extents, float2 texcoord)
+float3 getCSMTexelWSPos(float depth, float3 camPos, float3 camViewDir, float3 camUpDir, float3 extents, float2 texCoord)
 {
 	float3 camRightDir = normalize(cross(camViewDir, camUpDir));
 
@@ -58,21 +58,34 @@ float3 getCSMTexelWSPos(float depth, float3 camPos, float3 camViewDir, float3 ca
 
 	float3 wsPos = camPos +
 		depth * extents.z * camViewDir +
-		(texcoord.x - 0.5) * extents.x * camRightDir + 
-		(1-texcoord.y - 0.5) * extents.y * camUpDir; 
+		(texCoord.x - 0.5) * extents.x * camRightDir + 
+		(1-texCoord.y - 0.5) * extents.y * camUpDir; 
 
 	return wsPos;
-	//return float3((texcoord.x - 0.5) * extents.x * 0.5, (texcoord.y - 0.5) * extents.y * 0.5, depth * extents.z);
+	//return float3((texCoord.x - 0.5) * extents.x * 0.5, (texCoord.y - 0.5) * extents.y * 0.5, depth * extents.z);
 }
 
-PS_Input VSMain(float4 position : POSITION, float4 texcoord : TEX_COORD)
+PS_Input VSMain(uint vertexId : SV_VertexID)
 {
-	PS_Input result;
+	// Triangle strip based on vertex id
+	// 3-----2
+	// |   / |
+	// | /   |
+	// 1-----0
+	// 0: (1, 0)
+	// 1: (0, 0)
+	// 2: (1, 1)
+	// 3: (0, 1)
+    PS_Input output;
 
-	result.position = position;
-	result.texcoord = texcoord.xy;
+    output.texCoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
+    output.texCoord.y = vertexId >> 1; // 1 if bit1 is 1.
 
-	return result;
+    float2 posL = output.texCoord.xy * 2.0f - float2(1, 1);
+    output.position = float4(posL, 0.5f, 1.0f);
+    output.texCoord.y = 1.f - output.texCoord.y;
+
+    return output;
 }
 
 void PSMain(PS_Input input)
@@ -82,7 +95,7 @@ void PSMain(PS_Input input)
 
 	for (int c = 0; c < 4; ++c)
 	{ //for each cascade
-		float depth = shadowCSMTex.Sample(samp0, float3(input.texcoord, float(c)));
+		float depth = shadowCSMTex.Sample(samp0, float3(input.texCoord, float(c)));
 
 		if (depth<0.0001 || depth >0.9999)
 		{
@@ -101,7 +114,7 @@ void PSMain(PS_Input input)
 		camUpDir = tmp.xyz;
 		extents.z = tmp.w;
 		
-		float3 wsPos = getCSMTexelWSPos(depth, camPos, camViewDir, camUpDir, extents, input.texcoord); 
+		float3 wsPos = getCSMTexelWSPos(depth, camPos, camViewDir, camUpDir, extents, input.texCoord); 
 
 		//voxel space [-1...1]
 		float3 voxelPos = (wsPos - uniforms.voxelCenter) / (uniforms.voxelSize * uniforms.voxelDimension * 0.5);

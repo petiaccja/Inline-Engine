@@ -295,14 +295,6 @@ set(node_util
 	"Nodes/Node_ScreenSpaceTransform.hpp"
 )
 
-set(node_deprecated 
-	"Nodes/Node_OverlayRender.cpp"
-	"Nodes/Node_OverlayRender.hpp"
-	
-	"Nodes/Node_TextRender.cpp"
-	"Nodes/Node_TextRender.hpp"
-)
-
 set(shaders_dof
 	"Nodes/Shaders/DOFMain.hlsl"
 	"Nodes/Shaders/DOFNeighborMax.hlsl"
@@ -417,7 +409,6 @@ set(all_the_files
 	${node_shadow_screenspace}
 	${node_sys}
 	${node_util}
-	${node_deprecated}
 	
 	${shaders_dof}
 	${shaders_bloom}
@@ -477,7 +468,6 @@ source_group("Frontend\\Nodes\\Shadow\\PointSpot" FILES ${node_shadow_pointspot}
 source_group("Frontend\\Nodes\\Shadow\\ScreenSpace" FILES ${node_shadow_screenspace})
 source_group("Frontend\\Nodes\\System" FILES ${node_sys})
 source_group("Frontend\\Nodes\\Utility" FILES ${node_util})
-source_group("Frontend\\Nodes\\!!!Deprecated!!!" FILES ${node_deprecated})
 
 source_group("Shaders\\DOF" FILES ${shaders_dof})
 source_group("Shaders\\Bloom" FILES ${shaders_bloom})
