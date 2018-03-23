@@ -1,0 +1,62 @@
+#---------------------------------#
+#      general configuration      #
+#---------------------------------#
+
+# version format
+version: 1.0.{build}
+
+
+# branches to build
+branches:
+  only:
+    - master
+
+
+#---------------------------------#
+#    environment configuration    #
+#---------------------------------#
+
+# Build worker image (VM template)
+image: 
+  - Visual Studio 2017
+
+# scripts that are called at very beginning, before repo cloning
+init:
+  - git config --global core.autocrlf input
+
+# clone directory
+clone_folder: C:\projects\Inline-Engine
+
+
+
+# this is how to allow failing jobs in the matrix
+matrix:
+  fast_finish: true
+
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+# to add several platforms to build matrix:
+platform:
+  - x64
+
+# to add several configurations to build matrix:
+configuration:
+  - Debug
+  - Release
+
+build:
+  parallel: true
+  project: C:\projects\Mathter\build\Inline-Engine.sln
+  verbosity: normal
+
+
+# scripts to run before build
+before_build:
+- cmd: |-
+    mkdir build
+    cd build
+    cmake --version
+    cmake .. -G "Visual Studio 15 2017 Win64"
