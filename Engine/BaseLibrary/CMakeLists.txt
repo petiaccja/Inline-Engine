@@ -12,6 +12,7 @@ file(GLOB src_memory "Memory/*.?pp")
 file(GLOB src_platform "Platform/*.?pp")
 file(GLOB src_platform_win32 "Platform/Win32/*.?pp")
 file(GLOB src_serialization "Serialization/*.?pp")
+file(GLOB src_jobsystem "JobSystem/*.?pp")
 
 # Create target
 add_library(BaseLibrary STATIC 
@@ -25,6 +26,7 @@ add_library(BaseLibrary STATIC
 	${src_platform}
 	${src_platform_win32}
 	${src_serialization}
+	${src_jobsystem}
 )
 
 # Filters
@@ -38,6 +40,7 @@ source_group("Memory" FILES ${src_memory})
 source_group("Platform" FILES ${src_platform})
 source_group("Platform\\Win32" FILES ${src_platform_win32})
 source_group("Serialization" FILES ${src_serialization})
+source_group("JobSystem" FILES ${src_jobsystem})
 
 # Dependencies
 target_link_libraries(BaseLibrary

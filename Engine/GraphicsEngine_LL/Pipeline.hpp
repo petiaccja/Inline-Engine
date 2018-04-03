@@ -108,6 +108,7 @@ private:
 	void CalculateTaskGraph();
 	void CalculateDependencyGraph();
 	bool IsLinked(NodeBase* srcNode, NodeBase* dstNode);
+	static void TransitiveReduction(lemon::ListDigraph& graph);
 
 
 	lemon::ListDigraph m_dependencyGraph;

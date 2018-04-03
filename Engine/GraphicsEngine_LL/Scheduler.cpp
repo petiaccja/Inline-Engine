@@ -7,8 +7,9 @@
 
 #include <cassert>
 #include <typeinfo> // Track render passes.
-#include <regex> // Node typeinfo name prettyfy.
-#include <iostream> // only for debugging
+#include <fstream> // only for debugging
+#include <sstream>
+#include <iomanip>
 
 namespace inl {
 namespace gxeng {
@@ -21,15 +22,155 @@ void Scheduler::SetPipeline(Pipeline&& pipeline) {
 	m_pipeline = std::move(pipeline);
 }
 
+
 const Pipeline& Scheduler::GetPipeline() const {
 	return m_pipeline;
 }
+
 
 Pipeline Scheduler::ReleasePipeline() {
 	return std::move(m_pipeline);
 }
 
-void Scheduler::Execute(FrameContext context) {
+
+void Scheduler::ReleaseResources() {
+	for (NodeBase& node : m_pipeline) {
+		if (GraphicsNode* ptr = dynamic_cast<GraphicsNode*>(&node)) {
+			ptr->Reset();
+		}
+	}
+}
+
+
+//--------------------------------------------
+// Multi-threaded rendering
+//--------------------------------------------
+
+struct NodeDeps {
+	NodeDeps() : numSatisfied(std::make_shared<std::atomic_size_t>(0)) {}
+	std::shared_ptr<std::atomic_size_t> numSatisfied;
+	size_t numTotal;
+};
+
+
+template <class OnNode>
+jobs::Task<void> TraverseNode(jobs::Scheduler& scheduler,
+				  const lemon::ListDigraph& graph,
+				  lemon::ListDigraph::NodeMap<NodeDeps>& dependencyCounter, 
+				  lemon::ListDigraph::Node node,
+				  OnNode onNode) 
+{
+	onNode(node);
+
+	for (lemon::ListDigraph::OutArcIt outArc(graph, node); outArc != lemon::INVALID; ++outArc) {
+		auto nextNode = graph.target(outArc);
+		int numSatisfied = 1 + dependencyCounter[nextNode].numSatisfied->fetch_add(1);
+		if (numSatisfied == dependencyCounter[nextNode].numTotal) {
+			auto nextTask = scheduler.EnqueueTask(TraverseNode<OnNode>, 
+												  std::ref(scheduler),
+												  std::ref(graph),
+												  std::ref(dependencyCounter),
+												  nextNode,
+												  onNode);
+			co_await nextTask;
+		}
+	}
+}
+
+
+void Scheduler::ExecuteParallel(FrameContext context) {
+	// Get task graph and function map.
+	const auto& taskGraph = m_pipeline.GetTaskGraph();
+	const auto& taskFunctions = m_pipeline.GetTaskFunctionMap();
+
+
+	// Get dependency count and source nodes.
+	lemon::ListDigraph::NodeMap<NodeDeps> dependencyCounter(taskGraph);
+	std::vector<lemon::ListDigraph::Node> sourceNodes;
+
+
+	for (lemon::ListDigraph::NodeIt nodeIt(taskGraph); nodeIt != lemon::INVALID; ++nodeIt) {
+		size_t numDependencies = countInArcs(taskGraph, nodeIt);
+		*dependencyCounter[nodeIt].numSatisfied = 0;
+		dependencyCounter[nodeIt].numTotal = numDependencies;
+		if (numDependencies == 0) {
+			sourceNodes.push_back(nodeIt);
+		}
+	}
+
+	// Launch task for all source nodes.
+	struct TraceInfo {
+		unsigned depth = 0;
+	};
+	lemon::ListDigraph::NodeMap<TraceInfo> traceMap(taskGraph);
+	auto VisitNode = [this, &taskGraph, &traceMap](lemon::ListDigraph::Node node) {
+		unsigned depth = 0;
+		for (lemon::ListDigraph::InArcIt inArc(taskGraph, node); inArc != lemon::INVALID; ++inArc) {
+			lemon::ListDigraph::Node source = taskGraph.source(inArc);
+			depth = std::max(depth, traceMap[source].depth);
+		}
+		depth += 1;
+		traceMap[node].depth = depth;		
+	};
+	std::vector<std::future<void>> sourceFutures;
+	for (lemon::ListDigraph::Node source : sourceNodes) {
+		std::future<void> fut = m_jobScheduler.EnqueueFuture(TraverseNode<decltype(VisitNode)>, 
+															 std::ref(m_jobScheduler),
+															 std::ref(taskGraph),
+															 std::ref(dependencyCounter),
+															 source,
+															 VisitNode);
+		sourceFutures.push_back(std::move(fut));
+	}
+
+	for (auto& fut : sourceFutures) {
+		fut.get();
+	}
+
+	// Print tracemap into dot file
+	std::stringstream ss;
+	ss << "digraph {" << std::endl
+		<< "rankdir = LR;" << std::endl
+		<< "ranksep = \"0.8\";" << std::endl
+		<< "node[shape = circle];" << std::endl;
+	for (lemon::ListDigraph::NodeIt nodeIt(taskGraph); nodeIt != lemon::INVALID; ++nodeIt) {
+		unsigned depth = traceMap[nodeIt].depth;
+
+		float t = std::clamp(depth / 35.f, 0.0f, 1.0f);
+		float red = t;
+		float blue = 1.0f-t;
+		float green = 0.5f-std::abs(t-0.5f);
+
+		ss << "node" << lemon::ListDigraph::id(nodeIt) << " ";
+		ss << "[shape=circle, " << "style=filled, ";
+		ss << "label=" << depth << ", ";
+		ss << "fillcolor=\"#";
+		ss << std::setfill('0') << std::setw(2) << std::hex << int(255.f*red);
+		ss << std::setfill('0') << std::setw(2) << std::hex << int(255.f*green);
+		ss << std::setfill('0') << std::setw(2) << std::hex << int(255.f*blue);
+		ss << "\"";
+		ss << std::dec;
+		ss << "];" << std::endl;
+	}
+	for (lemon::ListDigraph::ArcIt arcIt(taskGraph); arcIt != lemon::INVALID; ++arcIt) {
+		lemon::ListDigraph::Node source = taskGraph.source(arcIt);
+		lemon::ListDigraph::Node target = taskGraph.target(arcIt);
+		ss << "node" << lemon::ListDigraph::id(source);
+		ss << " -> ";
+		ss << "node" << lemon::ListDigraph::id(target) << ";" << std::endl;
+	}
+	ss << "}";
+	//std::ofstream file(R"(D:\Programming\Inline-Engine\Test\QC_Simulator\pipeline_parallel.dot)", std::ios::trunc);
+	//file << ss.str();
+	//file.close();
+}
+
+
+//------------------------------------------------------------------------------
+// Single threaded rendering
+//------------------------------------------------------------------------------
+
+void Scheduler::ExecuteSerial(FrameContext context) {
 	const auto& taskGraph = m_pipeline.GetTaskGraph();
 	const auto& taskFunctionMap = m_pipeline.GetTaskFunctionMap();
 
@@ -186,26 +327,8 @@ void Scheduler::Execute(FrameContext context) {
 }
 
 
-void Scheduler::ReleaseResources() {
-	for (NodeBase& node : m_pipeline) {
-		if (GraphicsNode* ptr = dynamic_cast<GraphicsNode*>(&node)) {
-			ptr->Reset();
-		}
-	}
-}
-
-
-void Scheduler::MakeResident(std::vector<MemoryObject*> usedResources) {
-
-}
-
-
-void Scheduler::Evict(std::vector<MemoryObject*> usedResources) {
-
-}
-
 std::vector<GraphicsTask*> Scheduler::MakeSchedule(const lemon::ListDigraph& taskGraph,
-													const lemon::ListDigraph::NodeMap<GraphicsTask*>& taskFunctionMap
+												   const lemon::ListDigraph::NodeMap<GraphicsTask*>& taskFunctionMap
 /*std::vector<CommandQueue*> queues*/)
 {
 	// Topologically sort the tasks.
@@ -234,6 +357,10 @@ std::vector<GraphicsTask*> Scheduler::MakeSchedule(const lemon::ListDigraph& tas
 }
 
 
+//------------------------------------------------------------------------------
+// Utilities
+//------------------------------------------------------------------------------
+
 void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
 								   CmdListPtr commandList,
 								   CmdAllocPtr commandAllocator,
@@ -257,6 +384,11 @@ void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
 	context.residencyQueue->EnqueueClean(completionPoint, std::move(usedResources), std::move(commandAllocator), std::move(scratchSpaces), std::move(volatileHeap));
 }
 
+
+
+//------------------------------------------------------------------------------
+// Failure handling
+//------------------------------------------------------------------------------
 
 void Scheduler::RenderFailureScreen(FrameContext context) {
 	// Decide wether to show blinking image.
@@ -324,6 +456,12 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 	commandList->Close();
 	EnqueueCommandList(*context.commandQueue, std::move(commandList), std::move(commandAllocator), {}, {}, {}, context);
 }
+
+
+
+//------------------------------------------------------------------------------
+// Upload task
+//------------------------------------------------------------------------------
 
 
 void Scheduler::UploadTask::Setup(SetupContext& context) {

@@ -15,12 +15,11 @@ spin_mutex::spin_mutex() {
 
 void spin_mutex::lock() {
 	bool expected;
+	bool success;
 	do {
-		while (flag != false)
-			;
 		expected = false;
-		flag.compare_exchange_strong(expected, true);
-	} while (expected);
+		success = flag.compare_exchange_weak(expected, true);
+	} while (!success);
 	ownerId = std::this_thread::get_id();
 }
 

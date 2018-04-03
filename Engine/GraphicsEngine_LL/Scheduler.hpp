@@ -7,12 +7,14 @@
 #include "CommandListPool.hpp"
 #include "MemoryObject.hpp"
 
-#include <BaseLibrary/optional.hpp>
 #include <GraphicsApi_LL/IFence.hpp>
 #include <GraphicsApi_LL/Common.hpp>
+#include <BaseLibrary/JobSystem/Task.hpp>
+#include <BaseLibrary/JobSystem/ThreadpoolScheduler.hpp>
 #include <memory>
 #include <cstdint>
 #include <vector>
+#include <optional>
 
 namespace inl {
 namespace gxeng {
@@ -23,11 +25,26 @@ class Scheduler {
 public:
 	Scheduler();
 
-	// don't let anyone else 'own' the pipeline
+	/// <summary> Currently active pipeline contains the nodes that are executed each frame. </summary>
+	/// <remarks> The pipeline cannot be modified outside the scheduler, hence the exclusive access. </remarks>
 	void SetPipeline(Pipeline&& pipeline);
+
+	/// <summary> You can read information about currently used pipeline. </summary>
 	const Pipeline& GetPipeline() const;
+
+	/// <summary> You can regain ownership of the pipeline and leave the scheduler with an empty pipeline. </summary>
 	Pipeline ReleasePipeline();
-	void Execute(FrameContext context);
+
+	/// <summary> Runs the currently bound pipeline nodes using information about the frame. </summary>
+	void Execute(FrameContext context) {
+		ExecuteParallel(context); // Only dry-run
+		ExecuteSerial(context); // Real drawing
+	}
+
+	/// <summary> Instructs all pipeline nodes to release their resources related to rendering. </summary>
+	/// <remarks> This can be called to free resources before resizing the swapchain.
+	///		First, references to the swapchain are dropped, second, GPU memory will be freed
+	///		so that old resources won't prevent new ones from being allocated. </remarks>
 	void ReleaseResources();
 protected:
 	struct UsedResource {
@@ -37,15 +54,27 @@ protected:
 		bool multipleUse;
 	};
 
+	//--------------------------------------------
+	// Multi-threaded rendering
+	//--------------------------------------------
+	void ExecuteParallel(FrameContext context);
 
-	static void MakeResident(std::vector<MemoryObject*> usedResources);
-	static void Evict(std::vector<MemoryObject*> usedResources);
 
+	//--------------------------------------------
+	// Single threaded rendering
+	//--------------------------------------------
+	void ExecuteSerial(FrameContext context);
 
 	static std::vector<GraphicsTask*> MakeSchedule(const lemon::ListDigraph& taskGraph,
 												   const lemon::ListDigraph::NodeMap<GraphicsTask*>& taskFunctionMap
 													/*std::vector<CommandQueue*> queues*/);
 
+	//--------------------------------------------
+	// Utilities
+	//--------------------------------------------
+
+	// Enqueues a command list into the command queue, and enqueues init and clean tasks
+	// for given command list. Also sets up synchronization between init, gpu and clean.
 	static void EnqueueCommandList(CommandQueue& commandQueue,
 								   CmdListPtr commandList,
 								   CmdAllocPtr commandAllocator,
@@ -54,18 +83,31 @@ protected:
 								   std::unique_ptr<VolatileViewHeap> volatileHeap,
 								   const FrameContext& context);
 
+
+	// Command lists (gxeng, not gxapi) do not issue resource barriers for the first time SetResourceState is called.
+	// Instead, these states are recorded, and must be "patched in", that is, issued before said command list
+	// by the scheduler. This function gives the list of barriers to issue.
 	template <class UsedResourceIter>
 	static std::vector<gxapi::ResourceBarrier> InjectBarriers(UsedResourceIter firstResource, UsedResourceIter lastResource);
 
-	template <class UsedResourceIter1, class UsedResourceIter2>
-	static bool CanExecuteParallel(UsedResourceIter1 first1, UsedResourceIter1 last1, UsedResourceIter2 first2, UsedResourceIter2 last2);
-
+	// Goes over the list of resource usages of a command list and updates CPU-side resource state tracking accordingly.
+	// Iterator points to UsedResources.
 	template <class UsedResourceIter>
 	static void UpdateResourceStates(UsedResourceIter firstResource, UsedResourceIter lastResource);
 
+	// Check if two GPU command lists can execute asynchronously.
+	// Using the same resources in different states prohibits that.
+	template <class UsedResourceIter1, class UsedResourceIter2>
+	static bool CanExecuteParallel(UsedResourceIter1 first1, UsedResourceIter1 last1, UsedResourceIter2 first2, UsedResourceIter2 last2);
+
+
+	//--------------------------------------------
+	// Failure handling
+	//--------------------------------------------
 	static void RenderFailureScreen(FrameContext context);
 private:
 	Pipeline m_pipeline;
+	jobs::ThreadpoolScheduler m_jobScheduler;
 private:
 	class UploadTask : public GraphicsTask {
 	public:

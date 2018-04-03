@@ -285,6 +285,7 @@ void Pipeline::CreateFromNodesList(const std::vector<std::shared_ptr<NodeBase>> 
 	try {
 		CalculateDependencyGraph();
 		CalculateTaskGraph();
+		TransitiveReduction(m_taskGraph);
 	}
 	catch (...) {
 		Clear();
@@ -581,6 +582,68 @@ bool Pipeline::IsLinked(NodeBase* srcNode, NodeBase* dstNode) {
 	}
 	// no link found
 	return false;
+}
+
+void Pipeline::TransitiveReduction(lemon::ListDigraph& graph) {
+	const int nodeCount = lemon::countNodes(graph);
+	std::vector<bool> reachabilityData(nodeCount*nodeCount, false);
+	auto reachbility = [&reachabilityData, nodeCount](int source, int target) {
+		return reachabilityData[nodeCount*source + target];
+	};
+
+	// Get topological sort.
+	lemon::ListDigraph::NodeMap<int> sortedMap(graph);
+	bool isSortable = lemon::checkedTopologicalSort(graph, sortedMap);
+	assert(isSortable);
+
+	std::vector<lemon::ListDigraph::NodeIt> sortedNodes;
+	for (lemon::ListDigraph::NodeIt nodeIt(graph); nodeIt != lemon::INVALID; ++nodeIt) {
+		sortedNodes.push_back(nodeIt);
+	}
+
+	std::sort(sortedNodes.begin(), sortedNodes.end(), [&](auto n1, auto n2)
+	{
+		return sortedMap[n1] < sortedMap[n2];
+	});
+
+	// Iterate backwards to find transitive closure of the graph.
+	for (auto it = sortedNodes.rbegin(); it != sortedNodes.rend(); ++it) {
+		int index = sortedMap[*it];
+
+		// Add current node to reachability list.
+		reachbility(index, index) = true;
+
+		// Add this node's reachables to the reachability of all predecessors.
+		for (lemon::ListDigraph::InArcIt inArcIt(graph, *it); inArcIt != lemon::INVALID; ++inArcIt) {
+			lemon::ListDigraph::Node pred = graph.source(inArcIt);
+			int predIndex = sortedMap[pred];
+			for (int i=0; i<nodeCount; ++i) {
+				reachbility(predIndex, i) = reachbility(predIndex, i) || reachbility(index, i);
+			}
+		}
+	}
+
+	// For all edges, remove the edge if target can be reached from source without that edge.
+	for (lemon::ListDigraph::ArcIt arcIt(graph); arcIt != lemon::INVALID; ++arcIt) {
+		lemon::ListDigraph::Node source = graph.source(arcIt);
+		lemon::ListDigraph::Node target = graph.target(arcIt);
+		int targetIdx = sortedMap[target];
+		
+		bool reachable = false;
+		for (lemon::ListDigraph::OutArcIt outArcIt(graph, source); outArcIt != lemon::INVALID && !reachable; ++outArcIt) {
+			lemon::ListDigraph::Node jumper = graph.target(outArcIt);
+			if (jumper != target) {
+				int jumperIdx = sortedMap[jumper];
+				for (int i = 0; i<nodeCount && !reachable; ++i) {
+					reachable = reachable || reachbility(jumperIdx, targetIdx);
+				}
+			}
+		}
+
+		if (reachable) {
+			graph.erase(arcIt);
+		}
+	}
 }
 
 
