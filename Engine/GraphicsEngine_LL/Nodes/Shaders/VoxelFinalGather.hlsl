@@ -216,10 +216,10 @@ PS_Input VSMain(uint vertexId : SV_VertexID)
 	// 3: (0, 1)
     PS_Input output;
 
-	output.texCoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
-	output.texCoord.y = vertexId >> 1; // 1 if bit1 is 1.
+	output.texcoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
+	output.texcoord.y = vertexId >> 1; // 1 if bit1 is 1.
 
-    float2 posL = output.texCoord.xy * 2.0f - float2(1, 1);
+    float2 posL = output.texcoord.xy * 2.0f - float2(1, 1);
     output.position = float4(posL, 0.5f, 1.0f);
     output.texcoord.y = 1.f - output.texcoord.y;
 
@@ -271,7 +271,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	diffuseResult.w = 1.0 - diffuseResult.w;
 
 	//return diffuseResult.w;
-	return float4(diffuseResult.xyz * diffuseResult.w + specularResult.xyz * specularResult.w, 1.0);
+	return float4(diffuseResult.xyz * diffuseResult.w/* + specularResult.xyz * specularResult.w*/, 1.0);
 	//return float4(multiBounce(aoResult, float3(1,1,1)), 1.0);
 	//return result;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);
