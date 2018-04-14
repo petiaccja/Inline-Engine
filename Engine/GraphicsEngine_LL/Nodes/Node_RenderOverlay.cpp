@@ -1,3 +1,7 @@
+// Codecvt is deprecated according to the C++17 standard.
+// There is no replacement yet, we keep using it until it is removed.
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+
 #include "Node_RenderOverlay.hpp"
 
 #include "../Font.hpp"
@@ -268,7 +272,7 @@ void RenderOverlay::CreatePipelineStates(SetupContext& context) {
 		InputElementDesc{ "TEXCOORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 0 },
 	};
 	desc.inputLayout.elements = inputElements.data();
-	desc.inputLayout.numElements = inputElements.size();
+	desc.inputLayout.numElements = (unsigned)inputElements.size();
 	desc.primitiveTopologyType = ePrimitiveTopologyType::TRIANGLE;
 
 	if (!m_overlayPso) {
@@ -325,15 +329,15 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 	commandList.SetResourceState(m_rtv.GetResource(), eResourceState::RENDER_TARGET);
 	commandList.SetRenderTargets(1, rtvs);
 	Viewport viewport;
-	viewport.width = m_rtv.GetResource().GetWidth();
-	viewport.height = m_rtv.GetResource().GetHeight();
+	viewport.width = (float)m_rtv.GetResource().GetWidth();
+	viewport.height = (float)m_rtv.GetResource().GetHeight();
 	viewport.maxDepth = 1.0f;
 	viewport.minDepth = 0.0f;
 	viewport.topLeftX = viewport.topLeftY = 0;
 	Rectangle rect;
 	rect.left = rect.top = 0;
-	rect.right = viewport.width;
-	rect.bottom = viewport.height;
+	rect.right = (int)viewport.width;
+	rect.bottom = (int)viewport.height;
 	commandList.SetScissorRects(1, &rect);
 	commandList.SetViewports(1, &viewport);
 
@@ -380,15 +384,15 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 				for (auto stream : Range(mesh->GetNumStreams())) {
 					const VertexBuffer& vb = mesh->GetVertexBuffer(stream);
 					vbs[stream] = &vb;
-					vbsizes[stream] = vb.GetSize();
-					vbstrides[stream] = mesh->GetVertexBufferStride(stream);
+					vbsizes[stream] = (unsigned)vb.GetSize();
+					vbstrides[stream] = (unsigned)mesh->GetVertexBufferStride(stream);
 					commandList.SetResourceState(vb, eResourceState::VERTEX_AND_CONSTANT_BUFFER);
 				}
 				commandList.SetPrimitiveTopology(ePrimitiveTopology::TRIANGLELIST);
 				commandList.SetResourceState(mesh->GetIndexBuffer(), eResourceState::INDEX_BUFFER);
-				commandList.SetVertexBuffers(0, vbs.size(), vbs.data(), vbsizes.data(), vbstrides.data());
+				commandList.SetVertexBuffers(0, (unsigned)vbs.size(), vbs.data(), vbsizes.data(), vbstrides.data());
 				commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
-				commandList.DrawIndexedInstanced(mesh->GetIndexBuffer().GetIndexCount());
+				commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
 			}
 			else {
 				commandList.SetPrimitiveTopology(ePrimitiveTopology::TRIANGLESTRIP);

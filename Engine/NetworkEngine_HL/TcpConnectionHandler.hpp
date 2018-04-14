@@ -44,7 +44,7 @@ namespace inl::net::servers
 
 	private:
 		std::vector<std::shared_ptr<TcpConnection>> m_list;
-		inl::spin_mutex m_listMutex;
+		inl::SpinMutex m_listMutex;
 
 		uint32_t m_maxConnections;
 

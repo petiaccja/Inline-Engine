@@ -12,7 +12,7 @@ namespace inl::gxeng {
 //------------------------------------------------------------------------------
 
 // Currently the texture atlas contains rasterized letters of only this size.
-static constexpr float ATLAS_FONT_SIZE = 32.f;
+static constexpr int ATLAS_FONT_SIZE = 32;
 
 
 // A small helper class for a resizeable 2D texture so that it's easy to append new

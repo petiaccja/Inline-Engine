@@ -1,7 +1,6 @@
 #pragma once
 
-#include "SpinMutex.hpp"
-#include "Task.hpp"
+#include "../SpinMutex.hpp"
 
 #include <experimental/coroutine>
 #include <atomic>
@@ -46,7 +45,7 @@ public:
 private:
 	uint64_t m_currentValue;
 	mutable FenceAwaiter* m_firstAwaiter;
-	mutable spin_mutex m_mtx;
+	mutable SpinMutex m_mtx;
 };
 
 

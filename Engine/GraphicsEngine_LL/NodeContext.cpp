@@ -130,15 +130,6 @@ IndexBuffer SetupContext::CreateIndexBuffer(size_t size, size_t indexCount) cons
 	return result;
 }
 
-ConstBufferView SetupContext::CreateCbv(const VolatileConstBuffer& buffer, size_t offset, size_t size, VolatileViewHeap& viewHeap) const {
-	return ConstBufferView(
-		buffer,
-		viewHeap.Allocate(),
-		m_graphicsApi
-	);
-}
-
-
 ShaderProgram SetupContext::CreateShader(const std::string& name, ShaderParts stages, const std::string& macros) const {
 	return m_shaderManager->CreateShader(name, stages, macros);
 }
@@ -174,7 +165,8 @@ RenderContext::RenderContext(MemoryManager* memoryManager,
 							 gxapi::IGraphicsApi* graphicsApi,
 							 CommandListPool* commandListPool,
 							 CommandAllocatorPool* commandAllocatorPool,
-							 ScratchSpacePool* scratchSpacePool)
+							 ScratchSpacePool* scratchSpacePool,
+							 std::unique_ptr<BasicCommandList> inheritedList)
 	: m_memoryManager(memoryManager),
 	m_srvHeap(srvHeap),
 	m_volatileViewHeap(volatileViewHeap),
@@ -182,7 +174,8 @@ RenderContext::RenderContext(MemoryManager* memoryManager,
 	m_graphicsApi(graphicsApi),
 	m_commandListPool(commandListPool),
 	m_commandAllocatorPool(commandAllocatorPool),
-	m_scratchSpacePool(scratchSpacePool)
+	m_scratchSpacePool(scratchSpacePool),
+	m_inheritedCommandList(std::move(inheritedList))
 {}
 
 
@@ -254,7 +247,12 @@ void RenderContext::Upload(const Texture2D& target,
 // Query command list
 GraphicsCommandList& RenderContext::AsGraphics() {
 	if (!m_commandList) {
-		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap));
+		if (m_inheritedCommandList && m_inheritedCommandList->GetType() == gxapi::eCommandListType::GRAPHICS) {
+			m_commandList = std::move(m_inheritedCommandList);
+		}
+		else {
+			m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap));
+		}
 		m_commandList->BeginDebuggerEvent(m_TMP_commandListName); // TMP
 		m_type = gxapi::eCommandListType::GRAPHICS;
 		return *dynamic_cast<GraphicsCommandList*>(m_commandList.get());
@@ -268,7 +266,12 @@ GraphicsCommandList& RenderContext::AsGraphics() {
 }
 ComputeCommandList& RenderContext::AsCompute() {
 	if (!m_commandList) {
-		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap)); // only graphics queues now
+		if (m_inheritedCommandList && m_inheritedCommandList->GetType() == gxapi::eCommandListType::COMPUTE) {
+			m_commandList = std::move(m_inheritedCommandList);
+		}
+		else {
+			m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap)); // only graphics queues now
+		}
 		m_commandList->BeginDebuggerEvent(m_TMP_commandListName); // TMP
 		m_type = gxapi::eCommandListType::COMPUTE;
 		return *dynamic_cast<ComputeCommandList*>(m_commandList.get());
@@ -282,7 +285,12 @@ ComputeCommandList& RenderContext::AsCompute() {
 }
 CopyCommandList& RenderContext::AsCopy() {
 	if (!m_commandList) {
-		m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap)); // only graphics queues now
+		if (m_inheritedCommandList && m_inheritedCommandList->GetType() == gxapi::eCommandListType::COPY) {
+			m_commandList = std::move(m_inheritedCommandList);
+		}
+		else {
+			m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap)); // only graphics queues now
+		}
 		m_commandList->BeginDebuggerEvent(m_TMP_commandListName); // TMP
 		m_type = gxapi::eCommandListType::COPY;
 		return *dynamic_cast<CopyCommandList*>(m_commandList.get());
@@ -293,6 +301,11 @@ CopyCommandList& RenderContext::AsCopy() {
 	else {
 		throw std::logic_error("Your first call to AsType() determines the command list type. You did not choose COPY, thus this call is invalid.");
 	}
+}
+
+void RenderContext::Decompose(std::unique_ptr<BasicCommandList>& inheritedList,	std::unique_ptr<BasicCommandList>& currentList) {
+	inheritedList = std::move(m_inheritedCommandList);
+	currentList = std::move(m_commandList);
 }
 
 

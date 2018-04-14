@@ -47,7 +47,8 @@ float OnEventGlobal1(float a, float b) {
 
 void OnEventGlobal2(float a, float b) {
 	cout << "g2" << endl;
-	a + b;
+	auto c = a + b;
+	(c);
 }
 
 class Subscriber {
@@ -58,7 +59,8 @@ public:
 	}
 	void OnEvent2(float a, float b) {
 		cout << "m2" << endl;
-		a + b;
+		auto c = a + b;
+		(c);
 	}
 };
 

@@ -2,7 +2,8 @@
 
 #include <experimental/coroutine>
 #include <cassert>
-#include <sstream>
+
+#include "SchedulablePromiseTag.hpp"
 
 
 namespace inl::jobs {
@@ -10,9 +11,6 @@ namespace inl::jobs {
 
 class Scheduler;
 
-struct SchedulablePromiseTag {
-	Scheduler* m_scheduler = nullptr;
-};
 
 template <class T>
 struct Task {
@@ -77,7 +75,6 @@ public:
 	}
 private:
 	Task(handle_type handle) : m_handle(handle) {}
-
 	handle_type m_handle;
 	bool m_detached = false;
 };
@@ -143,13 +140,6 @@ T Task<T>::Awaiter::await_resume() noexcept {
 	if constexpr (!std::is_void_v<T>) {
 		return this->m_result;
 	}
-
-	//if (m_awaitedHandle.promise().m_exception) {
-	//	std::rethrow_exception(m_awaitedHandle.promise().m_exception);
-	//}
-	//if constexpr (!std::is_void_v<T>) {
-	//	return m_awaitedHandle.promise().m_result;
-	//}
 }
 
 

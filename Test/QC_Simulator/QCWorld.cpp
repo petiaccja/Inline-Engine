@@ -10,6 +10,10 @@
 #include <random>
 #include <iomanip>
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4267)
+#endif
+
 inline float rand2() {
 	return (rand() / float(RAND_MAX)) * 2 - 1;
 }
@@ -519,9 +523,9 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 
 	// copter parameters
 	float m = 2;
-	float Ixx = 0.026;
-	float Iyy = 0.024;
-	float Izz = 0.048;
+	float Ixx = 0.026f;
+	float Iyy = 0.024f;
+	float Izz = 0.048f;
 	inl::Mat33 I = {
 		Ixx, 0, 0,
 		0, Iyy, 0,
@@ -560,7 +564,7 @@ void QCWorld::UpdateWorld(float elapsed) {
 			inl::Vec3 force;
 			inl::Vec3 torque;
 			inl::Vec4 rpm;
-			float lift = 2.0f * 9.81 + 5.f*(m_rotorInfo.ascend - m_rotorInfo.descend);
+			float lift = 2.0f * 9.81f + 5.f*(m_rotorInfo.ascend - m_rotorInfo.descend);
 			m_controller.Update(orientation, lift, q, m_rigidBody.GetAngularVelocity(), simulationStep, force, torque);
 			m_rotor.SetTorque(force, torque, rpm);
 			m_rotor.SetRPM(rpm, force, torque);

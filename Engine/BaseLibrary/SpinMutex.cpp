@@ -9,11 +9,11 @@
 namespace inl {
 
 
-spin_mutex::spin_mutex() {
+SpinMutex::SpinMutex() {
 	flag = false;
 }
 
-void spin_mutex::lock() {
+void SpinMutex::lock() {
 	bool expected;
 	bool success;
 	do {
@@ -23,7 +23,7 @@ void spin_mutex::lock() {
 	ownerId = std::this_thread::get_id();
 }
 
-bool spin_mutex::try_lock() {
+bool SpinMutex::try_lock() {
 	bool expected = false;
 	if (flag == false && flag.compare_exchange_strong(expected, true)) {
 		ownerId = std::this_thread::get_id();
@@ -34,7 +34,7 @@ bool spin_mutex::try_lock() {
 	}
 }
 
-void spin_mutex::unlock() {
+void SpinMutex::unlock() {
 	if (ownerId == std::this_thread::get_id()) {
 		bool expected = true;
 		flag.compare_exchange_strong(expected, false);

@@ -25,7 +25,7 @@ VolatileConstBuffer ConstantBufferHeap::CreateVolatileConstBuffer(const void* da
 	if (m_pages.Front().m_consumedSize + targetSize > m_pages.Front().m_pageSize) {
 		if (targetSize > PAGE_SIZE) {
 			if (m_largePages.Count() == 0) {
-				m_largePages.PushFront(std::move(CreateLargePage(targetSize)));
+				m_largePages.PushFront(CreateLargePage(targetSize));
 			}
 			else {
 				if (HasBecomeAvailable(m_largePages.Front())) {
@@ -46,7 +46,7 @@ VolatileConstBuffer ConstantBufferHeap::CreateVolatileConstBuffer(const void* da
 
 				bool noSuitable = roundEnd == m_largePages.Begin();
 				if (noSuitable) {
-					m_largePages.PushFront(std::move(CreateLargePage(targetSize)));
+					m_largePages.PushFront(CreateLargePage(targetSize));
 				}
 			}
 
@@ -122,7 +122,7 @@ void ConstantBufferHeap::OnFrameBeginHost(uint64_t frameId)
 void ConstantBufferHeap::OnFrameCompleteDevice(uint64_t frameId) {
 	std::lock_guard<std::mutex> lock(m_mutex);
 
-	m_lastFinishedFrameID++;
+	m_lastFinishedFrameID = frameId;
 
 	bool foundVictim = true;
 	while (m_largePages.Count() > MAX_PERMANENT_LARGE_PAGE_COUNT && foundVictim) {

@@ -87,7 +87,7 @@ void Scene::AddActor(Actor* a)
 	parts.push_back(a);
 }
 
-MeshActor* Scene::AddActor_Mesh(const path& modelPath)
+MeshActor* Scene::AddActor_Mesh(const std::experimental::filesystem::path& modelPath)
 {
 	gxeng::GraphicsEngine* graphicsEngine = core->GetGraphicsEngine();
 	
@@ -146,7 +146,7 @@ MeshActor* Scene::AddActor_Mesh(const path& modelPath)
 	return a;
 }
 
-RigidBodyActor* Scene::AddActor_RigidBody(const path& modelPath, float mass /*= 0*/)
+RigidBodyActor* Scene::AddActor_RigidBody(const std::experimental::filesystem::path& modelPath, float mass /*= 0*/)
 {
 	// Load model
 	Model model(modelPath.generic_string());

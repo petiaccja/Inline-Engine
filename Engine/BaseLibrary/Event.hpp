@@ -64,7 +64,7 @@ class Event {
 public:
 	/// <summary> Fire off the event, call all signed up functors with given arguments. </summary>
 	void operator()(ArgsT... args) {
-		std::unique_lock<spin_mutex> lkg(m_mtx);
+		std::unique_lock<SpinMutex> lkg(m_mtx);
 		// Copy so that if a fired functor changes m_simples/m_comparables iterators won't invalidate.
 		auto simples = m_simples;
 		auto comparables = m_comparables;
@@ -120,7 +120,7 @@ public:
 	}
 
 private:
-	spin_mutex m_mtx;
+	SpinMutex m_mtx;
 
 	std::vector<std::function<void(ArgsT...)>> m_simples; // These functions cannot be removed via -=
 	std::multiset<Comparable> m_comparables; // These function can be removed by -= because they have < and ==

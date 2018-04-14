@@ -15,7 +15,6 @@
 #ifndef RAPIDJSON_STRTOD_
 #define RAPIDJSON_STRTOD_
 
-#include "../rapidjson.h"
 #include "ieee754.h"
 #include "biginteger.h"
 #include "diyfp.h"
@@ -141,15 +140,15 @@ inline bool StrtodDiyFp(const char* decimals, size_t length, size_t decimalPosit
         significand++;
 
     size_t remaining = length - i;
-    const unsigned kUlpShift = 3;
-    const unsigned kUlp = 1 << kUlpShift;
-    int error = (remaining == 0) ? 0 : kUlp / 2;
+    const int kUlpShift = 3;
+    const int kUlp = 1 << kUlpShift;
+    int64_t error = (remaining == 0) ? 0 : kUlp / 2;
 
     DiyFp v(significand, 0);
     v = v.Normalize();
     error <<= -v.e;
 
-    const int dExp = (int)decimalPosition - (int)i + exp;
+    const int dExp = static_cast<int>(decimalPosition) - static_cast<int>(i) + exp;
 
     int actualExp;
     DiyFp cachedPower = GetCachedPower10(dExp, &actualExp);
@@ -178,17 +177,17 @@ inline bool StrtodDiyFp(const char* decimals, size_t length, size_t decimalPosit
     v = v.Normalize();
     error <<= oldExp - v.e;
 
-    const unsigned effectiveSignificandSize = Double::EffectiveSignificandSize(64 + v.e);
-    unsigned precisionSize = 64 - effectiveSignificandSize;
+    const int effectiveSignificandSize = Double::EffectiveSignificandSize(64 + v.e);
+    int precisionSize = 64 - effectiveSignificandSize;
     if (precisionSize + kUlpShift >= 64) {
-        unsigned scaleExp = (precisionSize + kUlpShift) - 63;
+        int scaleExp = (precisionSize + kUlpShift) - 63;
         v.f >>= scaleExp;
         v.e += scaleExp; 
-        error = (error >> scaleExp) + 1 + static_cast<int>(kUlp);
+        error = (error >> scaleExp) + 1 + kUlp;
         precisionSize -= scaleExp;
     }
 
-    DiyFp rounded(v.f >> precisionSize, v.e + static_cast<int>(precisionSize));
+    DiyFp rounded(v.f >> precisionSize, v.e + precisionSize);
     const uint64_t precisionBits = (v.f & ((uint64_t(1) << precisionSize) - 1)) * kUlp;
     const uint64_t halfWay = (uint64_t(1) << (precisionSize - 1)) * kUlp;
     if (precisionBits >= halfWay + static_cast<unsigned>(error)) {
@@ -206,7 +205,7 @@ inline bool StrtodDiyFp(const char* decimals, size_t length, size_t decimalPosit
 
 inline double StrtodBigInteger(double approx, const char* decimals, size_t length, size_t decimalPosition, int exp) {
     const BigInteger dInt(decimals, length);
-    const int dExp = (int)decimalPosition - (int)length + exp;
+    const int dExp = static_cast<int>(decimalPosition) - static_cast<int>(length) + exp;
     Double a(approx);
     int cmp = CheckWithinHalfULP(a.Value(), dInt, dExp);
     if (cmp < 0)
@@ -246,8 +245,8 @@ inline double StrtodFullPrecision(double d, int p, const char* decimals, size_t 
 
     // Trim right-most digits
     const int kMaxDecimalDigit = 780;
-    if ((int)length > kMaxDecimalDigit) {
-        int delta = (int(length) - kMaxDecimalDigit);
+    if (static_cast<int>(length) > kMaxDecimalDigit) {
+        int delta = (static_cast<int>(length) - kMaxDecimalDigit);
         exp += delta;
         decimalPosition -= static_cast<unsigned>(delta);
         length = kMaxDecimalDigit;

@@ -25,7 +25,7 @@ void Actor::AddBehavior(ActorBehavior* b)
 	behaviors.push_back(b);
 }
 
-MeshActor* Actor::AddActor_Mesh(const path& modelPath)
+MeshActor* Actor::AddActor_Mesh(const std::experimental::filesystem::path& modelPath)
 {
 	MeshActor* childActor = scene->AddActor_Mesh(modelPath);
 	Attach(childActor);

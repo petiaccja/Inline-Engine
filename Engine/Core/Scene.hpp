@@ -15,9 +15,6 @@
 
 namespace inl::core {
 
-using namespace inl;
-using namespace std::experimental::filesystem;
-
 class MeshPart;
 class RigidBodyPart;
 class PerspCameraPart;
@@ -33,12 +30,12 @@ public:
 	bool TraceGraphicsRay(const Ray3D& ray, TraceResult& traceResult_out);
 
 	template<class T>
-	SceneScript* AddScript() {return return Core.AddScript<T>();}
+	SceneScript* AddScript() { return nullptr; /* core.AddScript<T>(); */ }
 
 	EmptyActor*				AddActor();
 	void					AddActor(Actor* a);
-	MeshActor*				AddActor_Mesh(const path& modelPath);
-	RigidBodyActor*			AddActor_RigidBody(const path& modelPath, float mass = 0);
+	MeshActor*				AddActor_Mesh(const std::experimental::filesystem::path& modelPath);
+	RigidBodyActor*			AddActor_RigidBody(const std::experimental::filesystem::path& modelPath, float mass = 0);
 	RigidBodyActor*			AddActor_RigidBodyCapsule(float height, float radius, float mass = 0);
 	PerspCameraActor*		AddActor_PerspCamera();
 	DirectionalLightActor*	AddActor_DirectionalLight();
