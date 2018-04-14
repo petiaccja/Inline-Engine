@@ -264,14 +264,12 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 		//half angle = 10deg
 		float4 coneResult = coneTrace(wsPos, wsDepthNormal, dirOriented, tan(0.174533));
-		diffuseResult.xyz += coneResult.xyz;
-		diffuseResult.w += max(dot(dirOriented, wsDepthNormal), 0.0) * coneResult.w;
+		diffuseResult.xyz += coneResult.xyz * max(dot(dirOriented, wsDepthNormal), 0.0);
 	}
 	diffuseResult /= NUM_CONES;
-	diffuseResult.w = 1.0 - diffuseResult.w;
 
 	//return diffuseResult.w;
-	return float4(diffuseResult.xyz * diffuseResult.w/* + specularResult.xyz * specularResult.w*/, 1.0);
+	return float4(diffuseResult.xyz + specularResult.xyz, 1.0);
 	//return float4(multiBounce(aoResult, float3(1,1,1)), 1.0);
 	//return result;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);
