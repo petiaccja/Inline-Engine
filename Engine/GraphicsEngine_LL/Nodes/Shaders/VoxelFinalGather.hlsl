@@ -6,7 +6,7 @@
 */
 
 //ULTRA HIGH SETTING CONES
-static const float3 coneDirs[56] = {
+static const float3 coneDirs[46] = {
 	float3(-0.4713, 0.6617, 0.5831),
 	float3(-0.7002, 0.6617, -0.2680),
 	float3(0.0385, 0.6617, -0.7488),
@@ -27,25 +27,25 @@ static const float3 coneDirs[56] = {
 	float3(0.4911, 0.7947, 0.3568),
 	float3(0.7240, 0.6617, 0.1947),
 	float3(0.8897, 0.3304, -0.3151),
-	float3(0.7947, 0.1876, -0.5773),
+	//float3(0.7947, 0.1876, -0.5773),
 	float3(0.5746, 0.3304, -0.7488),
 	float3(-0.0247, 0.3304, -0.9435),
-	float3(-0.3035, 0.1876, -0.9342),
+	//float3(-0.3035, 0.1876, -0.9342),
 	float3(-0.5346, 0.3304, -0.7779),
 	float3(-0.9050, 0.3304, -0.2680),
-	float3(-0.9822, 0.1876, 0.0000),
+	//float3(-0.9822, 0.1876, 0.0000),
 	float3(-0.9050, 0.3304, 0.2680),
 	float3(-0.5346, 0.3304, 0.7779),
-	float3(-0.3035, 0.1876, 0.9342),
+	//float3(-0.3035, 0.1876, 0.9342),
 	float3(-0.0247, 0.3304, 0.9435),
 	float3(0.5746, 0.3304, 0.7488),
-	float3(0.7947, 0.1876, 0.5773),
+	//float3(0.7947, 0.1876, 0.5773),
 	float3(0.8897, 0.3304, 0.3151),
-	float3(0.3066, 0.1256, -0.9435),
+	/*float3(0.3066, 0.1256, -0.9435),
 	float3(-0.8026, 0.1256, -0.5831),
 	float3(-0.8026, 0.1256, 0.5831),
 	float3(0.3066, 0.1256, 0.9435),
-	float3(0.9921, 0.1256, 0.0000),
+	float3(0.9921, 0.1256, 0.0000),*/
 	float3(0.4089, 0.6617, 0.6284),
 	float3(0.276388, 0.447220, 0.850649),
 	float3(-0.723607, 0.447220, 0.525725),
@@ -64,7 +64,7 @@ static const float3 coneDirs[56] = {
 	float3(-0.425323, 0.850654, -0.309011),
 	float3(0.162456, 0.850654, -0.499995)
 };
-#define NUM_CONES 56
+#define NUM_CONES 46
 
 struct Uniforms
 {
@@ -216,10 +216,10 @@ PS_Input VSMain(uint vertexId : SV_VertexID)
 	// 3: (0, 1)
     PS_Input output;
 
-	output.texCoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
-	output.texCoord.y = vertexId >> 1; // 1 if bit1 is 1.
+	output.texcoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
+	output.texcoord.y = vertexId >> 1; // 1 if bit1 is 1.
 
-    float2 posL = output.texCoord.xy * 2.0f - float2(1, 1);
+    float2 posL = output.texcoord.xy * 2.0f - float2(1, 1);
     output.position = float4(posL, 0.5f, 1.0f);
     output.texcoord.y = 1.f - output.texcoord.y;
 
@@ -253,7 +253,8 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 	//TODO derive aperture from something...
 	//roughness * pi * 0.125???
-	float4 specularResult = coneTrace(wsPos, wsDepthNormal, perfectReflectionDir, tan(0.174533 * 0.5));
+	//TODO at grazing angles self reflection happens... we need to overcome this somehow. I added a dot for now but I doubt it's correct...
+	float4 specularResult = coneTrace(wsPos, wsDepthNormal, perfectReflectionDir, tan(0.174533 * 0.5)) * pow(max(dot(perfectReflectionDir, wsDepthNormal), 0.0), 0.75);
 
 	//cone trace diffuse GI + AO in alpha
 	float4 diffuseResult = float4(0,0,0,0);
@@ -264,14 +265,12 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 		//half angle = 10deg
 		float4 coneResult = coneTrace(wsPos, wsDepthNormal, dirOriented, tan(0.174533));
-		diffuseResult.xyz += coneResult.xyz;
-		diffuseResult.w += max(dot(dirOriented, wsDepthNormal), 0.0) * coneResult.w;
+		diffuseResult.xyz += coneResult.xyz * pow(max(dot(dirOriented, wsDepthNormal), 0.0), 0.1);
 	}
 	diffuseResult /= NUM_CONES;
-	diffuseResult.w = 1.0 - diffuseResult.w;
 
 	//return diffuseResult.w;
-	return float4(diffuseResult.xyz * diffuseResult.w + specularResult.xyz * specularResult.w, 1.0);
+	return float4(diffuseResult.xyz + specularResult.xyz, 1.0);
 	//return float4(multiBounce(aoResult, float3(1,1,1)), 1.0);
 	//return result;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);

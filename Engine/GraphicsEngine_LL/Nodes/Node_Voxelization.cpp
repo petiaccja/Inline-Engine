@@ -356,7 +356,7 @@ void Voxelization::Setup(SetupContext & context) {
 			psoDesc.rootSignature = m_binder->GetRootSignature();
 			psoDesc.vs = m_lightInjectionCSMShader.vs;
 			psoDesc.ps = m_lightInjectionCSMShader.ps;
-			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
+			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 			psoDesc.depthStencilState.enableDepthStencilWrite = false;
 			psoDesc.depthStencilState.enableDepthTest = false;

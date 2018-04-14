@@ -454,11 +454,6 @@
       ]
     },
     {
-      "class": "Pipeline/Render/TextRender",
-      "id": 9,
-      "name": "textRender"
-    },
-    {
       "class": "Pipeline/Render/Voxelization",
       "id": 666,
       "name": "voxelization"
@@ -1147,24 +1142,6 @@
       "dst": "smaa",
       "srcp": 0,
       "dstp": 2
-    },
-    {
-      "src": "fontBinaryEnv",
-      "dst": "textRender",
-      "srcp": 0,
-      "dstp": 2
-    },
-    {
-      "src": "fontTexEnv",
-      "dst": "textRender",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "smaa",
-      "dst": "textRender",
-      "srcp": 0,
-      "dstp": 0
     },
     {
       "src": "forwardRender",
