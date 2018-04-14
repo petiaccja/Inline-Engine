@@ -254,7 +254,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//TODO derive aperture from something...
 	//roughness * pi * 0.125???
 	//TODO at grazing angles self reflection happens... we need to overcome this somehow. I added a dot for now but I doubt it's correct...
-	float4 specularResult = coneTrace(wsPos, wsDepthNormal, perfectReflectionDir, tan(0.174533 * 0.5)) * max(dot(perfectReflectionDir, wsDepthNormal), 0.0);
+	float4 specularResult = coneTrace(wsPos, wsDepthNormal, perfectReflectionDir, tan(0.174533 * 0.5)) * pow(max(dot(perfectReflectionDir, wsDepthNormal), 0.0), 0.75);
 
 	//cone trace diffuse GI + AO in alpha
 	float4 diffuseResult = float4(0,0,0,0);
@@ -265,7 +265,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 		//half angle = 10deg
 		float4 coneResult = coneTrace(wsPos, wsDepthNormal, dirOriented, tan(0.174533));
-		diffuseResult.xyz += coneResult.xyz * max(dot(dirOriented, wsDepthNormal), 0.0);
+		diffuseResult.xyz += coneResult.xyz * pow(max(dot(dirOriented, wsDepthNormal), 0.0), 0.1);
 	}
 	diffuseResult /= NUM_CONES;
 
