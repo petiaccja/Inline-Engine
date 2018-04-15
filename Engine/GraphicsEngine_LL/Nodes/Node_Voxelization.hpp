@@ -22,7 +22,7 @@ namespace inl::gxeng::nodes {
 class Voxelization :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<const EntityCollection<MeshEntity>*, const BasicCamera*, Texture2D, Texture2D, Texture2D, Texture2D, Texture2D>,
+	virtual public InputPortConfig<const EntityCollection<MeshEntity>*, const BasicCamera*, Texture2D, Texture2D, Texture2D, Texture2D, Texture2D, Texture2D, Texture2D>,
 	virtual public OutputPortConfig<Texture3D, Texture2D, Texture2D>
 {
 public:
@@ -47,6 +47,8 @@ protected:
 	BindParameter m_shadowCSMTexBindParam;
 	BindParameter m_shadowCSMExtentsTexBindParam;
 	BindParameter m_voxelSecondaryTexReadBindParam;
+	BindParameter m_velocityNormalTexBindParam;
+	BindParameter m_albedoRoughnessMetalnessTexBindParam;
 	ShaderProgram m_shader;
 	ShaderProgram m_visualizerShader;
 	ShaderProgram m_finalGatherShader;
@@ -71,7 +73,8 @@ protected:
 
 	TextureView2D m_shadowCSMTexSrv;
 	TextureView2D m_shadowCSMExtentsTexSrv;
-	TextureView2D m_normalTexSrv;
+	TextureView2D m_velocityNormalTexSrv;
+	TextureView2D m_albedoRoughnessMetalnessTexSrv;
 
 	RenderTargetView2D m_visualizationTexRTV;
 	DepthStencilView2D m_visualizationDSV;

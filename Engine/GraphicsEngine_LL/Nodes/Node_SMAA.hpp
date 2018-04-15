@@ -18,7 +18,7 @@ namespace inl::gxeng::nodes {
 class SMAA :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<Texture2D, inl::gxeng::Image*, inl::gxeng::Image*>,
+	virtual public InputPortConfig<Texture2D, inl::gxeng::Image*, inl::gxeng::Image*, Texture2D>,
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
@@ -54,7 +54,7 @@ protected: // outputs
 	RenderTargetView2D m_neighborhoodBlendingRTV;
 	TextureView2D m_edgeDetectionSRV;
 	TextureView2D m_blendingWeightsSRV;
-	TextureView2D m_neighborhoodBlendingSRV;
+	//TextureView2D m_neighborhoodBlendingSRV;
 
 protected: // render context
 	TextureView2D m_inputTexSrv;

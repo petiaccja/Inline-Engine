@@ -101,7 +101,8 @@ void ForwardRender::Initialize(EngineContext & context) {
 
 void ForwardRender::Reset() {
 	m_rtv = RenderTargetView2D();
-	m_velocity_rtv = RenderTargetView2D();
+	m_velocityNormal_rtv = RenderTargetView2D();
+	m_albedoRoughnessMetalness_rtv = RenderTargetView2D();
 	m_dsv = DepthStencilView2D();
 	m_entities = nullptr;
 	m_camera = nullptr;
@@ -193,11 +194,11 @@ void ForwardRender::Setup(SetupContext& context) {
 	m_lightCullDataView = context.CreateSrv(lightCullData, lightCullData.GetFormat(), srvDesc);
 	
 
-	if (!m_velocity_rtv)
+	if (!m_velocityNormal_rtv)
 	{
 		using gxapi::eFormat;
 
-		auto formatVelocity = eFormat::R8G8_UNORM;
+		auto formatVelocity = eFormat::R8G8B8A8_UNORM;
 
 		gxapi::RtvTexture2DArray rtvDesc;
 		rtvDesc.activeArraySize = 1;
@@ -218,13 +219,42 @@ void ForwardRender::Setup(SetupContext& context) {
 		};
 
 		Texture2D velocity_tex = context.CreateTexture2D(desc, { true, true, false, false });
-		velocity_tex.SetName("Forward render Velocity tex");
-		m_velocity_rtv = context.CreateRtv(velocity_tex, formatVelocity, rtvDesc);
-		
+		velocity_tex.SetName("Forward render Velocity/normal tex");
+		m_velocityNormal_rtv = context.CreateRtv(velocity_tex, formatVelocity, rtvDesc);
+	}
+
+	if (!m_albedoRoughnessMetalness_rtv)
+	{
+		using gxapi::eFormat;
+
+		auto formatAlbedo = eFormat::R8G8B8A8_UNORM;
+
+		gxapi::RtvTexture2DArray rtvDesc;
+		rtvDesc.activeArraySize = 1;
+		rtvDesc.firstArrayElement = 0;
+		rtvDesc.firstMipLevel = 0;
+		rtvDesc.planeIndex = 0;
+
+		gxapi::SrvTexture2DArray srvDesc;
+		srvDesc.activeArraySize = 1;
+		srvDesc.firstArrayElement = 0;
+		srvDesc.numMipLevels = -1;
+		srvDesc.mipLevelClamping = 0;
+		srvDesc.mostDetailedMip = 0;
+		srvDesc.planeIndex = 0;
+
+		Texture2DDesc desc{
+			target.GetWidth(), target.GetHeight(), formatAlbedo
+		};
+
+		Texture2D albedoRoughnessMetalness_tex = context.CreateTexture2D(desc, { true, true, false, false });
+		albedoRoughnessMetalness_tex.SetName("Forward render albedo/roughness/metalness tex");
+		m_albedoRoughnessMetalness_rtv = context.CreateRtv(albedoRoughnessMetalness_tex, formatAlbedo, rtvDesc);
 	}
 
 	this->GetOutput<0>().Set(target);
-	this->GetOutput<1>().Set(m_velocity_rtv.GetResource());
+	this->GetOutput<1>().Set(m_velocityNormal_rtv.GetResource());
+	this->GetOutput<2>().Set(m_albedoRoughnessMetalness_rtv.GetResource());
 
 
 	/*if (!m_binder.has_value()) {
@@ -306,13 +336,15 @@ void ForwardRender::Execute(RenderContext& context) {
 	GraphicsCommandList& commandList = context.AsGraphics();
 
 	// Set render target
-	RenderTargetView2D* pRTV[] = { &m_rtv, &m_velocity_rtv };
-	commandList.SetResourceState(m_velocity_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+	RenderTargetView2D* pRTV[] = { &m_rtv, &m_velocityNormal_rtv, &m_albedoRoughnessMetalness_rtv };
+	commandList.SetResourceState(m_velocityNormal_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(m_albedoRoughnessMetalness_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_dsv.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
-	commandList.SetRenderTargets(2, pRTV, &m_dsv);
-	commandList.ClearRenderTarget(m_rtv, gxapi::ColorRGBA(0, 0, 0, 1));
-	commandList.ClearRenderTarget(m_velocity_rtv, gxapi::ColorRGBA(0.5, 0.5, 0, 1));
+	commandList.SetRenderTargets(3, pRTV, &m_dsv);
+	commandList.ClearRenderTarget(m_rtv, gxapi::ColorRGBA(0, 0, 0, 0));
+	commandList.ClearRenderTarget(m_velocityNormal_rtv, gxapi::ColorRGBA(0.5, 0.5, 0, 0));
+	commandList.ClearRenderTarget(m_albedoRoughnessMetalness_rtv, gxapi::ColorRGBA(0, 0, 0, 0));
 
 	gxapi::Rectangle rect{ 0, (int)m_rtv.GetResource().GetHeight(), 0, (int)m_rtv.GetResource().GetWidth() };
 	gxapi::Viewport viewport;
@@ -703,7 +735,8 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 
 	// main function
 	std::stringstream PSMain;
-	PSMain << "struct PS_OUTPUT	{ float4 litColor : SV_Target0;	float2 velocity : SV_Target1; };\n";
+	PSMain << "struct PS_OUTPUT	{ float4 litColor : SV_Target0;	float4 velocityNormal : SV_Target1; float4 albedoRoughnessMetalness : SV_Target2; };\n";
+	PSMain << "struct MaterialOutput	{ float4 litColor; float4 albedo; float roughness; float metalness; };\n";
 	PSMain << "PS_OUTPUT PSMain(PsInput psInput) : SV_TARGET {\n";
 	PSMain << "	   PS_OUTPUT result;\n";
 	PSMain << "    g_lightDir = lightCb.direction;\n";
@@ -714,7 +747,8 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 	PSMain << "    g_ndcPos = psInput.ndcPos;\n";
 	PSMain << "    g_vsPos = psInput.vsPosition;\n";
 	PSMain << "    g_tex0 = float3(psInput.texCoord, 0.0f);\n";
-	PSMain << "    result.velocity = encodeVelocity(psInput.currPosition, psInput.prevPosition);\n";
+	PSMain << "    result.velocityNormal.xy = encodeVelocity(psInput.currPosition, psInput.prevPosition, uniforms.halfExposureFramerate, uniforms.maxMotionBlurRadius);\n";
+	PSMain << "    result.velocityNormal.zw = encodeNormal(g_normal);\n";
 	for (size_t i = 0; i < params.size(); ++i) {
 		switch (params[i].type) {
 			case eMaterialShaderParamType::COLOR:
@@ -745,14 +779,14 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 			}
 		}
 	}
-	PSMain << "    result.litColor = mtl_shader(";
+	PSMain << "    MaterialOutput mo = mtl_shader(";
 	for (intptr_t i = 0; i < (intptr_t)params.size() - 1; ++i) {
 		PSMain << "input" << i << ", ";
 	}
 	if (params.size() > 0) {
 		PSMain << "input" << params.size() - 1;
 	}
-	PSMain << "); return result; \n} \n";
+	PSMain << "); result.litColor = mo.litColor; result.albedoRoughnessMetalness = float4(rgb_to_ycocg(mo.albedo.xyz, int2(psInput.ndcPos.xy)), mo.roughness, mo.metalness); return result; \n} \n";
 
 	return
 		std::string()
@@ -770,7 +804,7 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 		+ "#include \"PointLightShadowMapSample\"\n"
 		+ "#include \"PbrBrdf\"\n"
 		+ "#include \"TiledLighting\"\n"
-		+ "#include \"EncodeVelocity\"\n"
+		+ "#include \"EncodeVelocityNormal\"\n"
 		+ "\n//-------------------------------------\n\n"
 		+ shadingFunction
 		+ "\n//-------------------------------------\n\n"
@@ -998,9 +1032,10 @@ std::unique_ptr<gxapi::IPipelineState> ForwardRender::CreatePso(
 	psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
 	psoDesc.depthStencilFormat = depthStencilFormat;
 
-	psoDesc.numRenderTargets = 2;
+	psoDesc.numRenderTargets = 3;
 	psoDesc.renderTargetFormats[0] = renderTargetFormat;
-	psoDesc.renderTargetFormats[1] = m_velocity_rtv.GetResource().GetFormat();
+	psoDesc.renderTargetFormats[1] = m_velocityNormal_rtv.GetResource().GetFormat();
+	psoDesc.renderTargetFormats[2] = m_albedoRoughnessMetalness_rtv.GetResource().GetFormat();
 
 	result.reset(context.CreatePSO(psoDesc));
 

@@ -59,8 +59,9 @@ void ScreenSpaceReflection::Setup(SetupContext& context) {
 	Texture2D depthTex = this->GetInput<1>().Get();
 	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
 
-
 	m_camera = this->GetInput<2>().Get();
+
+	//TODO input 3 normal tex
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
