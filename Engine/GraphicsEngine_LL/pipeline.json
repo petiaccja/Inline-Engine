@@ -550,6 +550,18 @@
       "dstp": 7
     },
     {
+      "src": "screenSpaceReflection",
+      "dst": "voxelization",
+      "srcp": 0,
+      "dstp": 8
+    },
+    {
+      "src": "screenSpaceAmbientOcclusion",
+      "dst": "voxelization",
+      "srcp": 0,
+      "dstp": 9
+    },
+    {
       "src": 69,
       "dst": "backBufferProperties",
       "srcp": 0,

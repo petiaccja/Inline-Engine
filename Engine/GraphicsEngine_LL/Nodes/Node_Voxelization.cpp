@@ -173,6 +173,12 @@ void Voxelization::Setup(SetupContext & context) {
 	Texture2D albedoRoughnessMetalnessTex = this->GetInput<7>().Get();
 	m_albedoRoughnessMetalnessTexSrv = context.CreateSrv(albedoRoughnessMetalnessTex, albedoRoughnessMetalnessTex.GetFormat(), srvDesc);
 	
+	Texture2D screenSpaceReflectionTex = this->GetInput<8>().Get();
+	m_screenSpaceReflectionTexSrv = context.CreateSrv(screenSpaceReflectionTex, screenSpaceReflectionTex.GetFormat(), srvDesc);
+
+	Texture2D screenSpaceAmbientOcclusionTex = this->GetInput<9>().Get();
+	m_screenSpaceAmbientOcclusionTexSrv = context.CreateSrv(screenSpaceAmbientOcclusionTex, screenSpaceAmbientOcclusionTex.GetFormat(), srvDesc);
+
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -276,6 +282,22 @@ void Voxelization::Setup(SetupContext & context) {
 		albedoRoughnessMetalnessTexBindParamDesc.relativeChangeFrequency = 0;
 		albedoRoughnessMetalnessTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+		BindParameterDesc screenSpaceReflectionTexBindParamDesc;
+		m_screenSpaceReflectionTexBindParam = BindParameter(eBindParameterType::TEXTURE, 6);
+		screenSpaceReflectionTexBindParamDesc.parameter = m_screenSpaceReflectionTexBindParam;
+		screenSpaceReflectionTexBindParamDesc.constantSize = 0;
+		screenSpaceReflectionTexBindParamDesc.relativeAccessFrequency = 0;
+		screenSpaceReflectionTexBindParamDesc.relativeChangeFrequency = 0;
+		screenSpaceReflectionTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc screenSpaceAmbientOcclusionTexBindParamDesc;
+		m_screenSpaceAmbientOcclusionTexBindParam = BindParameter(eBindParameterType::TEXTURE, 7);
+		screenSpaceAmbientOcclusionTexBindParamDesc.parameter = m_screenSpaceAmbientOcclusionTexBindParam;
+		screenSpaceAmbientOcclusionTexBindParamDesc.constantSize = 0;
+		screenSpaceAmbientOcclusionTexBindParamDesc.relativeAccessFrequency = 0;
+		screenSpaceAmbientOcclusionTexBindParamDesc.relativeChangeFrequency = 0;
+		screenSpaceAmbientOcclusionTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+		
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
 		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
@@ -306,7 +328,7 @@ void Voxelization::Setup(SetupContext & context) {
 		samplerDesc2.registerSpace = 0;
 		samplerDesc2.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, sampBindParamDesc1, sampBindParamDesc2, voxelTexBindParamDesc, voxelSecondaryTexReadBindParamDesc, voxelSecondaryTexBindParamDesc, shadowCSMTexBindParamDesc, voxelLightTexBindParamDesc, shadowCSMExtentsTexBindParamDesc, albedoTexBindParamDesc, velocityNormalTexBindParamDesc, albedoRoughnessMetalnessTexBindParamDesc },{ samplerDesc, samplerDesc1, samplerDesc2 });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, sampBindParamDesc1, sampBindParamDesc2, voxelTexBindParamDesc, voxelSecondaryTexReadBindParamDesc, voxelSecondaryTexBindParamDesc, shadowCSMTexBindParamDesc, voxelLightTexBindParamDesc, shadowCSMExtentsTexBindParamDesc, albedoTexBindParamDesc, velocityNormalTexBindParamDesc, albedoRoughnessMetalnessTexBindParamDesc, screenSpaceReflectionTexBindParamDesc, screenSpaceAmbientOcclusionTexBindParamDesc },{ samplerDesc, samplerDesc1, samplerDesc2 });
 	}
 
 	if (!m_shader.vs || !m_shader.gs || !m_shader.ps) {
@@ -751,6 +773,8 @@ void Voxelization::Execute(RenderContext & context) {
 		commandList.SetResourceState(m_depthTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_velocityNormalTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_albedoRoughnessMetalnessTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_screenSpaceReflectionTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_screenSpaceAmbientOcclusionTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 		commandList.BindGraphics(m_shadowCSMTexBindParam, m_voxelLightTexSRV);
 		commandList.BindGraphics(m_shadowCSMExtentsTexBindParam, m_voxelTexSRV);
@@ -758,6 +782,8 @@ void Voxelization::Execute(RenderContext & context) {
 		commandList.BindGraphics(m_albedoTexBindParam, m_depthTexSRV);
 		commandList.BindGraphics(m_velocityNormalTexBindParam, m_velocityNormalTexSrv);
 		commandList.BindGraphics(m_albedoRoughnessMetalnessTexBindParam, m_albedoRoughnessMetalnessTexSrv);
+		commandList.BindGraphics(m_screenSpaceReflectionTexBindParam, m_screenSpaceReflectionTexSrv);
+		commandList.BindGraphics(m_screenSpaceAmbientOcclusionTexBindParam, m_screenSpaceAmbientOcclusionTexSrv);
 
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 

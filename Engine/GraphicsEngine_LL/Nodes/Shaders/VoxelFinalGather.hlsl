@@ -86,6 +86,8 @@ Texture2D<float> inputTex2 : register(t2); //depth tex
 Texture3D<float4> inputTex3 : register(t3); //secondary voxel tex
 Texture2D<float4> inputTex4 : register(t4); //velocityNormal tex
 Texture2D<float4> inputTex5 : register(t5); //albedoRoughnessMetalness tex
+Texture2D<float4> inputTex6 : register(t6); //screenSpaceReflection tex
+Texture2D<float4> inputTex7 : register(t7); //screenSpaceAmbientOcclusion tex
 
 SamplerState samp0 : register(s0); //point
 SamplerState samp1 : register(s1); //bilinear
@@ -289,8 +291,11 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	}
 	diffuseResult /= NUM_CONES;
 
+	float4 ssr = inputTex6.Sample(samp1, input.texcoord.xy);
+	float4 ssao = inputTex7.Sample(samp1, input.texcoord.xy).x;
+
 	//return diffuseResult.w;
-	return float4(/*albedo * */(diffuseResult.xyz + specularResult.xyz), 1.0);
+	return float4(/*albedo * */(diffuseResult.xyz * ssao.x + mix(ssr.xyz, specularResult.xyz, ssr.w)), 1.0);
 	//return float4(multiBounce(aoResult, float3(1,1,1)), 1.0);
 	//return result;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);

@@ -235,7 +235,7 @@ void ScreenSpaceReflection::Execute(RenderContext& context) {
 
 	Uniforms uniformsCBData;
 
-	bool peti = true;
+	bool peti = false;
 	if (peti)
 	{
 		return;
