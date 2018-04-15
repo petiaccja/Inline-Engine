@@ -34,7 +34,7 @@ PS_Input VSMain(uint vertexId : SV_VertexID)
 
     output.position = mul(float4(posL, 0, 1), transform.t);
     output.texCoord.y = 1.f - output.texCoord.y;
-
+	
     return output;
 }
 

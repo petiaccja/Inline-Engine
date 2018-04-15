@@ -46,88 +46,382 @@ void Scheduler::ReleaseResources() {
 // Multi-threaded rendering
 //--------------------------------------------
 
-struct NodeDeps {
-	NodeDeps() : numSatisfied(std::make_shared<std::atomic_size_t>(0)) {}
-	std::shared_ptr<std::atomic_size_t> numSatisfied;
-	size_t numTotal;
-};
+void Scheduler::WriteTraceFile(const lemon::ListDigraph& taskGraph, const ExecuteState& state) {
+	std::string graphvizDotText = WriteTraceGraphviz(taskGraph, state.trace);
+	std::experimental::filesystem::path traceFilePath = R"(D:\Programming\Inline-Engine\Test\QC_Simulator)";
+	if (std::experimental::filesystem::exists(traceFilePath)) {
+		std::ofstream file(traceFilePath / "pipeline_parallel.dot");
+		file << graphvizDotText;
+	}
+}
 
+void Scheduler::ExecuteParallel(FrameContext context) {
+	try {
+		// Get graphs.
+		const auto& taskGraph = m_pipeline.GetTaskGraph();
+		const auto& taskFunctions = m_pipeline.GetTaskFunctionMap();
 
-template <class OnNode>
-jobs::Task<void> TraverseNode(jobs::Scheduler& scheduler,
-				  const lemon::ListDigraph& graph,
-				  lemon::ListDigraph::NodeMap<NodeDeps>& dependencyCounter, 
-				  lemon::ListDigraph::Node node,
-				  OnNode onNode) 
-{
-	onNode(node);
+		// Get dependency tracker.
+		lemon::ListDigraph::NodeMap<TraverseDependency> dependencyTracker(taskGraph);
+		GetTraverseDependencies(taskGraph, dependencyTracker);
 
-	for (lemon::ListDigraph::OutArcIt outArc(graph, node); outArc != lemon::INVALID; ++outArc) {
-		auto nextNode = graph.target(outArc);
-		int numSatisfied = 1 + dependencyCounter[nextNode].numSatisfied->fetch_add(1);
-		if (numSatisfied == dependencyCounter[nextNode].numTotal) {
-			auto nextTask = scheduler.EnqueueTask(TraverseNode<OnNode>, 
-												  std::ref(scheduler),
-												  std::ref(graph),
-												  std::ref(dependencyCounter),
-												  nextNode,
-												  onNode);
-			co_await nextTask;
+		// Launch variables.
+		VolatileViewHeap vheap(context.gxApi);
+		ExecuteState state(taskGraph, vheap, context);
+		std::vector<jobs::Future<void>> jobFutures;
+		std::vector<lemon::ListDigraph::Node> sourceNodes = GetSourceNodes(taskGraph);
+		m_finishedListRemNodes.store(lemon::countNodes(taskGraph));
+
+		// Launch setup tasks.
+		auto SetupNodeWrapper = [this, &state](lemon::ListDigraph::Node node) {
+			SetupNode(node, state);
+		};
+		for (auto sourceNode : sourceNodes) {
+			jobs::Future<void> future = m_jobScheduler.Enqueue(TraverseNode<decltype(SetupNodeWrapper)>,
+															   sourceNode,
+															   std::ref(taskGraph),
+															   std::ref(m_jobScheduler),
+															   std::ref(dependencyTracker),
+															   SetupNodeWrapper);
+			jobFutures.push_back(std::move(future));
 		}
+
+		// Wait in setup tasks.
+		for (auto& future : jobFutures) {
+			future.get();
+		}
+
+		// Launch execute tasks.
+		jobFutures.clear();
+		for (lemon::ListDigraph::NodeIt nodeIt(taskGraph); nodeIt != lemon::INVALID; ++nodeIt) {
+			dependencyTracker[nodeIt].ResetCounter();
+		}
+		auto ExecuteNodeWrapper = [this, &state](lemon::ListDigraph::Node node) {
+			ExecuteNode(node, state);
+		};
+		for (auto sourceNode : sourceNodes) {
+			jobs::Future<void> future = m_jobScheduler.Enqueue(TraverseNode<decltype(ExecuteNodeWrapper)>,
+															   sourceNode,
+															   std::ref(taskGraph),
+															   std::ref(m_jobScheduler),
+															   std::ref(dependencyTracker),
+															   ExecuteNodeWrapper);
+			jobFutures.push_back(std::move(future));
+		}
+
+		// Wait in execute tasks and execute incoming command lists.
+		EnqueueFinishedLists(context, jobFutures);
+		for (auto& future : jobFutures) {
+			future.get();
+		}
+
+		// Print trace into a graphviz dot file.
+		WriteTraceFile(taskGraph, state);
+	}
+	catch (Exception& ex) {
+		std::cout << "=== This frame is fucked ===" << std::endl;
+		std::cout << "Error message: " << std::endl << ex.what() << std::endl;
+
+		std::cout << std::endl;
+		Exception::BreakOnce();
+	}
+	catch (std::exception& ex) {
+		std::cout << "This frame is doubly fucked: " << ex.what() << std::endl;
 	}
 }
 
 
-void Scheduler::ExecuteParallel(FrameContext context) {
-	// Get task graph and function map.
-	const auto& taskGraph = m_pipeline.GetTaskGraph();
-	const auto& taskFunctions = m_pipeline.GetTaskFunctionMap();
+void Scheduler::GetTraverseDependencies(const lemon::ListDigraph& graph, lemon::ListDigraph::NodeMap<TraverseDependency>& dependencyTracker) {
+	for (lemon::ListDigraph::NodeIt nodeIt(graph); nodeIt != lemon::INVALID; ++nodeIt) {
+		size_t numDependencies = countInArcs(graph, nodeIt);
+		dependencyTracker[nodeIt].ResetCounter();
+		dependencyTracker[nodeIt].Set(numDependencies);
+	}
+}
 
 
-	// Get dependency count and source nodes.
-	lemon::ListDigraph::NodeMap<NodeDeps> dependencyCounter(taskGraph);
-	std::vector<lemon::ListDigraph::Node> sourceNodes;
+std::vector<lemon::ListDigraph::Node> Scheduler::GetSourceNodes(const lemon::ListDigraph& graph) {
+	std::vector<lemon::ListDigraph::Node> sources;
 
-
-	for (lemon::ListDigraph::NodeIt nodeIt(taskGraph); nodeIt != lemon::INVALID; ++nodeIt) {
-		size_t numDependencies = countInArcs(taskGraph, nodeIt);
-		*dependencyCounter[nodeIt].numSatisfied = 0;
-		dependencyCounter[nodeIt].numTotal = numDependencies;
+	for (lemon::ListDigraph::NodeIt nodeIt(graph); nodeIt != lemon::INVALID; ++nodeIt) {
+		size_t numDependencies = countInArcs(graph, nodeIt);
 		if (numDependencies == 0) {
-			sourceNodes.push_back(nodeIt);
+			sources.push_back(nodeIt);
 		}
 	}
 
-	// Launch task for all source nodes.
-	struct TraceInfo {
-		unsigned depth = 0;
-	};
-	lemon::ListDigraph::NodeMap<TraceInfo> traceMap(taskGraph);
-	auto VisitNode = [this, &taskGraph, &traceMap](lemon::ListDigraph::Node node) {
-		unsigned depth = 0;
-		for (lemon::ListDigraph::InArcIt inArc(taskGraph, node); inArc != lemon::INVALID; ++inArc) {
-			lemon::ListDigraph::Node source = taskGraph.source(inArc);
-			depth = std::max(depth, traceMap[source].depth);
+	return sources;
+}
+
+
+// Can be in the .cpp because it is only used in this compilation unit.
+template <class Func>
+jobs::Future<void> Scheduler::TraverseNode(lemon::ListDigraph::Node node,
+										   const lemon::ListDigraph& graph,
+										   jobs::Scheduler& scheduler,
+										   lemon::ListDigraph::NodeMap<TraverseDependency>& dependencyTracker,
+										   Func onVisit)
+{
+	onVisit(node);
+
+	std::vector<jobs::Future<void>> childJobs;
+	for (lemon::ListDigraph::OutArcIt outArc(graph, node); outArc != lemon::INVALID; ++outArc) {
+		auto nextNode = graph.target(outArc);
+
+		if (++dependencyTracker[nextNode]) {
+			auto nextTask = scheduler.Enqueue(TraverseNode<Func>,
+											  nextNode,
+											  std::ref(graph),
+											  std::ref(scheduler),
+											  std::ref(dependencyTracker),
+											  onVisit);
+			childJobs.push_back(std::move(nextTask));
 		}
-		depth += 1;
-		traceMap[node].depth = depth;		
+	}
+
+	for (auto& childFuture : childJobs) {
+		co_await childFuture;
+	}
+}
+
+
+
+void Scheduler::SetupNode(lemon::ListDigraph::Node node, ExecuteState& state) {
+	// Calculate depth for tracing.
+	unsigned depth = 0;
+	for (lemon::ListDigraph::InArcIt inArc(state.taskGraph, node); inArc != lemon::INVALID; ++inArc) {
+		lemon::ListDigraph::Node source = state.taskGraph.source(inArc);
+		depth = std::max(depth, state.trace[source].depth);
+	}
+	depth += 1;
+	state.trace[node].depth = depth;
+
+	// Acquire task.
+	GraphicsTask* task = m_pipeline.GetTaskFunctionMap()[node];
+	if (task == nullptr) {
+		return;
+	}
+
+	// Setup given node.
+	SetupContext setupContext(state.frameContext.memoryManager,
+								state.frameContext.textureSpace,
+								state.frameContext.rtvHeap,
+								state.frameContext.dsvHeap,
+								state.frameContext.shaderManager,
+								state.frameContext.gxApi);
+	task->Setup(setupContext);	
+}
+
+
+void Scheduler::ExecuteNode(lemon::ListDigraph::Node node, ExecuteState& state) {
+	bool signaled = false;
+	try {
+		// Acquire task.
+		GraphicsTask* task = m_pipeline.GetTaskFunctionMap()[node];
+		if (task == nullptr) {
+			return;
+		}
+
+
+		// See if we can inherit a command list.
+		std::unique_ptr<BasicCommandList> inheritedCommandList;
+		std::unique_ptr<VolatileViewHeap> inheritedVheap;
+		if (lemon::countInArcs(state.taskGraph, node) == 1) {
+			lemon::ListDigraph::Node prevNode = state.taskGraph.source(lemon::ListDigraph::InArcIt(state.taskGraph, node));
+			inheritedCommandList = std::move(state.trace[prevNode].inheritableList);
+			inheritedVheap = std::move(state.trace[prevNode].inheritableVheap);
+		}
+
+		// Record trace.
+		bool couldInheritList = (bool)inheritedCommandList;
+
+		// Execute given node.
+		auto vheap = std::make_unique<VolatileViewHeap>(state.frameContext.gxApi);
+		RenderContext renderContext(state.frameContext.memoryManager,
+									state.frameContext.textureSpace,
+									vheap.get(),
+									state.frameContext.shaderManager,
+									state.frameContext.gxApi,
+									state.frameContext.commandListPool,
+									state.frameContext.commandAllocatorPool,
+									state.frameContext.scratchSpacePool,
+									std::move(inheritedCommandList));
+		task->Execute(renderContext);
+
+		// Handle produced command list(s).
+		std::unique_ptr<BasicCommandList> currentCommandList;
+		renderContext.Decompose(inheritedCommandList, currentCommandList);
+		m_finishedListRemNodes.fetch_sub(1);
+		signaled = true;
+
+		// Record trace.
+		state.trace[node].inheritedCommandList = couldInheritList && !inheritedCommandList;
+		state.trace[node].producedCommandList = (bool)currentCommandList;
+
+		// Handle produced command list(s).
+		if (inheritedCommandList) {
+			FinishList(std::move(inheritedCommandList), std::move(inheritedVheap));
+		}
+		if (currentCommandList) {
+			bool canNextNodeInherit = false;
+			if (lemon::countOutArcs(state.taskGraph, node) == 1) {
+				lemon::ListDigraph::OutArcIt theOnlyOutArc(state.taskGraph, node);
+				lemon::ListDigraph::Node theOnlyNextNode = state.taskGraph.target(theOnlyOutArc);
+				canNextNodeInherit = lemon::countInArcs(state.taskGraph, theOnlyNextNode) == 1;
+			}
+			if (canNextNodeInherit) {
+				state.trace[node].inheritableList = std::move(currentCommandList);
+				state.trace[node].inheritableVheap = std::move(vheap);
+			}
+			else {
+				FinishList(std::move(currentCommandList), std::move(vheap));
+			}
+		}
+	}
+	catch (...) {
+		if (!signaled) {
+			m_finishedListRemNodes.fetch_sub(1);
+			m_finishedListCv.notify_all();
+		}
+		throw;
+	}
+}
+
+
+void Scheduler::FinishList(std::unique_ptr<BasicCommandList> list, std::unique_ptr<VolatileViewHeap> vheap) {
+	std::lock_guard<SpinMutex> lkg(m_finishedListMtx);
+	m_finishedLists.push({ std::move(list), std::move(vheap) });
+	m_finishedListCv.notify_all();
+}
+
+
+void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vector<jobs::Future<void>>& futures) {
+	decltype(m_finishedLists) localLists;
+	BasicCommandList::Decomposition previousList;
+	std::unique_ptr<VolatileViewHeap> prevVheap;
+
+	previousList.commandAllocator = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
+	previousList.commandList = context.commandListPool->RequestGraphicsList(previousList.commandAllocator.get());
+	
+
+	// Initialize previous list with the upload task and a dummy barrier-only list.
+	UploadTask uploadTask(context.uploadRequests);
+	SetupContext setupContext(context.memoryManager,
+							  context.textureSpace,
+							  context.rtvHeap,
+							  context.dsvHeap,
+							  context.shaderManager,
+							  context.gxApi);
+	auto uploadVheap= std::make_unique<VolatileViewHeap>(context.gxApi);
+	RenderContext renderContext(context.memoryManager,
+								context.textureSpace,
+								prevVheap.get(),
+								context.shaderManager,
+								context.gxApi,
+								context.commandListPool,
+								context.commandAllocatorPool,
+								context.scratchSpacePool);
+	uploadTask.Setup(setupContext);
+	uploadTask.Execute(renderContext);
+	std::unique_ptr<BasicCommandList> uploadInherit, uploadList;
+	renderContext.Decompose(uploadInherit, uploadList);
+	localLists.push({ std::move(uploadList), std::move(uploadVheap) });
+
+
+	bool jobsReady = false;
+	auto JobsReady = [&futures] {
+		bool jobsReady = true;
+		for (auto& future : futures) {
+			jobsReady = jobsReady && future.ready();
+		}
+		return jobsReady;
 	};
-	std::vector<std::future<void>> sourceFutures;
-	for (lemon::ListDigraph::Node source : sourceNodes) {
-		std::future<void> fut = m_jobScheduler.EnqueueFuture(TraverseNode<decltype(VisitNode)>, 
-															 std::ref(m_jobScheduler),
-															 std::ref(taskGraph),
-															 std::ref(dependencyCounter),
-															 source,
-															 VisitNode);
-		sourceFutures.push_back(std::move(fut));
-	}
+	do {
+		jobsReady = JobsReady();
 
-	for (auto& fut : sourceFutures) {
-		fut.get();
-	}
+		// Acquire pending command lists.
+		std::unique_lock<SpinMutex> lk(m_finishedListMtx);
+		m_finishedListCv.wait(lk, [this] { return !m_finishedLists.empty() || m_finishedListRemNodes == 0; });
+		while (!m_finishedLists.empty()) {
+			localLists.push(std::move(m_finishedLists.front()));
+			m_finishedLists.pop();
+		}
+		lk.unlock();
 
-	// Print tracemap into dot file
+		// Process pending command lists.
+		while (!localLists.empty()) {
+			auto* prevCopyList = dynamic_cast<gxapi::ICopyCommandList*>(previousList.commandList.get());
+			auto currentList = std::get<0>(localLists.front())->Decompose();
+			auto currentVheap = std::move(std::get<1>(localLists.front()));
+
+			// Add current list's barriers to previous list.
+			std::vector<gxapi::ResourceBarrier> barriers = InjectBarriers(currentList.usedResources.begin(), currentList.usedResources.end());
+			if (!barriers.empty()) {
+				prevCopyList->ResourceBarrier((unsigned)barriers.size(), barriers.data());
+			}
+
+			// Update resource states to reflect current list.
+			UpdateResourceStates(currentList.usedResources.begin(), currentList.usedResources.end());
+			
+			// Collect used resource of previous list.
+			std::vector<MemoryObject> usedResourceList;
+			usedResourceList.reserve(previousList.usedResources.size() + previousList.additionalResources.size());
+			for (auto& v : previousList.usedResources) {
+				usedResourceList.push_back(std::move(v.resource));
+			}
+			for (auto& v : previousList.additionalResources) {
+				usedResourceList.push_back(std::move(v));
+			}
+
+			// Finally close and enqueue previous with the barriers added.
+			prevCopyList->Close();
+
+			EnqueueCommandList(*context.commandQueue,
+							   std::move(previousList.commandList),
+							   std::move(previousList.commandAllocator),
+							   std::move(previousList.scratchSpaces),
+							   std::move(usedResourceList),
+							   std::move(prevVheap),
+							   context);
+
+			// Store current list so that it can take the barriers of the next one, if any.
+			previousList = std::move(currentList);
+			prevVheap = std::move(currentVheap);
+			localLists.pop();
+		}
+
+	} while (!jobsReady);
+
+	// Set backBuffer to PRESENT state.
+	gxapi::eResourceState bbState = context.backBuffer->GetResource().ReadState(0);
+	auto* prevCopyList = dynamic_cast<gxapi::ICopyCommandList*>(previousList.commandList.get());
+	if (bbState != gxapi::eResourceState::PRESENT) {
+		gxapi::TransitionBarrier barrier(context.backBuffer->GetResource()._GetResourcePtr(), bbState, gxapi::eResourceState::PRESENT);
+		prevCopyList->ResourceBarrier(barrier);
+	}
+	prevCopyList->Close();
+
+	// Enqueue the last command list.
+	// Collect used resource of previous list.
+	std::vector<MemoryObject> usedResourceList;
+	usedResourceList.reserve(previousList.usedResources.size() + previousList.additionalResources.size());
+	for (auto& v : previousList.usedResources) {
+		usedResourceList.push_back(std::move(v.resource));
+	}
+	for (auto& v : previousList.additionalResources) {
+		usedResourceList.push_back(std::move(v));
+	}
+	EnqueueCommandList(*context.commandQueue,
+					   std::move(previousList.commandList),
+					   std::move(previousList.commandAllocator),
+					   std::move(previousList.scratchSpaces),
+					   std::move(usedResourceList),
+					   std::move(prevVheap),
+					   context);
+}
+
+
+std::string Scheduler::WriteTraceGraphviz(const lemon::ListDigraph& taskGraph, const lemon::ListDigraph::NodeMap<ExecuteTrace>& traceMap) {
 	std::stringstream ss;
 	ss << "digraph {" << std::endl
 		<< "rankdir = LR;" << std::endl
@@ -135,6 +429,12 @@ void Scheduler::ExecuteParallel(FrameContext context) {
 		<< "node[shape = circle];" << std::endl;
 	for (lemon::ListDigraph::NodeIt nodeIt(taskGraph); nodeIt != lemon::INVALID; ++nodeIt) {
 		unsigned depth = traceMap[nodeIt].depth;
+		bool hasListInside = (bool)traceMap[nodeIt].inheritableList;
+
+		std::string labelStatus;
+		labelStatus += (hasListInside ? "ACTIVE" : "EMPTY");
+		labelStatus += (traceMap[nodeIt].inheritedCommandList ? "_I" : "");
+		labelStatus += (traceMap[nodeIt].producedCommandList ? "_P" : "");
 
 		float t = std::clamp(depth / 35.f, 0.0f, 1.0f);
 		float red = t;
@@ -143,7 +443,7 @@ void Scheduler::ExecuteParallel(FrameContext context) {
 
 		ss << "node" << lemon::ListDigraph::id(nodeIt) << " ";
 		ss << "[shape=circle, " << "style=filled, ";
-		ss << "label=" << depth << ", ";
+		ss << "label=" << "\"" << depth << "_" << labelStatus << "\", ";
 		ss << "fillcolor=\"#";
 		ss << std::setfill('0') << std::setw(2) << std::hex << int(255.f*red);
 		ss << std::setfill('0') << std::setw(2) << std::hex << int(255.f*green);
@@ -160,9 +460,7 @@ void Scheduler::ExecuteParallel(FrameContext context) {
 		ss << "node" << lemon::ListDigraph::id(target) << ";" << std::endl;
 	}
 	ss << "}";
-	//std::ofstream file(R"(D:\Programming\Inline-Engine\Test\QC_Simulator\pipeline_parallel.dot)", std::ios::trunc);
-	//file << ss.str();
-	//file.close();
+	return ss.str();
 }
 
 

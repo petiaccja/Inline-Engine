@@ -293,6 +293,9 @@ set(node_util
 	"Nodes/Node_BlendWithTransform.hpp"
 	
 	"Nodes/Node_ScreenSpaceTransform.hpp"
+
+	"Nodes/Shaders/Blend.hlsl"
+	"Nodes/Shaders/BlendWithTransform.hlsl"
 )
 
 set(shaders_dof

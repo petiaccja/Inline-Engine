@@ -45,12 +45,12 @@ int TestAllocator::Run() {
 
 	std::unordered_set<int> indices;
 	for (int i = 0; i < 300; ++i) {
-		int idx = -1;
+		size_t idx = 0;
 		try {
 			idx = engine.Allocate();
 		}
 		catch (std::bad_alloc&) {
-			engine.Resize(engine.Size() * 1.1f + 1);
+			engine.Resize(size_t(engine.Size() * 1.1f) + 1);
 			idx = engine.Allocate();
 		}
 		indices.insert(idx);
@@ -74,7 +74,7 @@ int TestAllocator::Run() {
 			size_t index = engine.Allocate();
 		}
 	}
-	catch (std::bad_alloc& ex) {
+	catch (std::bad_alloc&) {
 		//std::lock_guard<std::mutex> lk(coutLock);
 		//cout << ex.what() << endl;
 	}
@@ -88,7 +88,7 @@ int TestAllocator::Run() {
 	cout << "Consistency:" << endl;
 	engine.Reset();
 	std::vector<int> counter(PoolSize, 0);
-	std::vector<int> allocations;
+	std::vector<size_t> allocations;
 	std::mt19937 rne;
 	constexpr int BatchSize = PoolSize / 3;
 	constexpr int NumCycles = 100;
@@ -102,7 +102,7 @@ int TestAllocator::Run() {
 				index = engine.Allocate();
 			}
 			catch (...)	{
-				engine.Resize(engine.Size() * 1.2f + 1);
+				engine.Resize(size_t(engine.Size() * 1.2f) + 1);
 				index = engine.Allocate();
 			}
 			++counter[index];
@@ -118,7 +118,7 @@ int TestAllocator::Run() {
 					index = engine.Allocate();
 				}
 				catch (...) {
-					engine.Resize(engine.Size() * 1.2f + 1);
+					engine.Resize(size_t(engine.Size() * 1.2f) + 1);
 					index = engine.Allocate();
 				}
 				++counter[index];

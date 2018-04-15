@@ -578,6 +578,7 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 		case WM_MOUSEWHEEL: {
 			short rot = static_cast<short>(HIWORD(wParam));
 			MouseButtonEvent evt;
+			UNREFERENCED_PARAMETER(evt);
 			// nahh this does not work, TODO
 			break;
 		}

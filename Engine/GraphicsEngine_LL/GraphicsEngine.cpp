@@ -135,6 +135,7 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	m_commandAllocatorPool.SetLogStream(&m_logStreamPipeline);
 
 	m_pipelineEventDispatcher += &m_memoryManager.GetUploadManager();
+	m_pipelineEventDispatcher += &m_memoryManager.GetConstBufferHeap();
 	// DELETE THIS
 	m_pipelineEventPrinter.SetLog(&m_logStreamPipeline);
 	m_pipelineEventDispatcher += &m_pipelineEventPrinter;

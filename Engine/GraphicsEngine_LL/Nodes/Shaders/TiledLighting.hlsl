@@ -109,7 +109,7 @@ float3 get_lighting(float4 sv_position, //gl_FragCoord
 								 roughness,
 								 metalness);
 
-	//color += hemisphere_ambient_lighting(g_wsNormal.xyz) * 0.1;
+    color.xyz += hemisphere_ambient_lighting(g_wsNormal.xyz) * 0.8f * albedo.xyz;
 
 	return color;
 	//return g_normal.xyz;

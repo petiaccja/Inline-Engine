@@ -807,7 +807,7 @@ void Voxelization::InitRenderTarget(SetupContext& context) {
 
 		m_voxelTexSRV = context.CreateSrv(voxel_tex, formatVoxel, srvDesc);
 		uavDesc.depthSize = voxelDimension;
-		for (int c = 0; c < voxel_tex.GetNumMiplevels(); ++c)
+		for (unsigned c = 0; c < voxel_tex.GetNumMiplevels(); ++c)
 		{
 			uavDesc.mipLevel = c;
 			m_voxelTexUAV[c] = context.CreateUav(voxel_tex, formatVoxel, uavDesc);
@@ -824,7 +824,7 @@ void Voxelization::InitRenderTarget(SetupContext& context) {
 		srvDesc.numMipLevels = -1;
 		m_voxelSecondaryTexSRV = context.CreateSrv(secondaryVoxelTex, formatVoxel, srvDesc);
 		uavDesc.depthSize = voxelDimension;
-		for (int c = 0; c < secondaryVoxelTex.GetNumMiplevels(); ++c)
+		for (unsigned c = 0; c < secondaryVoxelTex.GetNumMiplevels(); ++c)
 		{
 			uavDesc.mipLevel = c;
 			m_voxelSecondaryTexUAV[c] = context.CreateUav(secondaryVoxelTex, formatVoxel, uavDesc);
@@ -842,7 +842,7 @@ void Voxelization::InitRenderTarget(SetupContext& context) {
 		srvDesc.numMipLevels = -1;
 		m_voxelLightTexSRV = context.CreateSrv(voxelLightTex, formatVoxel, srvDesc);
 		uavDesc.depthSize = voxelDimension;
-		for (int c = 0; c < voxel_tex.GetNumMiplevels(); ++c)
+		for (unsigned c = 0; c < voxel_tex.GetNumMiplevels(); ++c)
 		{
 			uavDesc.mipLevel = c;
 			m_voxelLightTexUAV[c] = context.CreateUav(voxelLightTex, formatVoxel, uavDesc);

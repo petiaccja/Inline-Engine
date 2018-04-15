@@ -495,12 +495,12 @@ void Editor::InitGui()
 	{
 		contentCell->SetBgActiveColor(contentCell->GetBgIdleColor());
 	
-		std::vector<path> filesPaths = e.filePaths;
+		std::vector<std::experimental::filesystem::path> filesPaths = e.filePaths;
 		std::string text = e.text;
 	
 		for (int i = 0; i < filesPaths.size(); ++i)
 		{
-			path filePath = filesPaths[i];
+			std::experimental::filesystem::path filePath = filesPaths[i];
 	
 			// Texture image
 			ListView* listItem = textureList->AddItem<ListView>();

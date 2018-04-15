@@ -250,8 +250,8 @@ int main(int argc, char* argv[]) {
 
 		try {
 			// Update world
-			qcWorld->UpdateWorld(frameTime);
-			qcWorld->RenderWorld(frameTime);
+			qcWorld->UpdateWorld((float)frameTime);
+			qcWorld->RenderWorld((float)frameTime);
 
 			// Calculate elapsed time for frame.
 			frameTime = timer.Elapsed();
@@ -267,7 +267,7 @@ int main(int argc, char* argv[]) {
 					avgFrameTime += v;
 				}
 				avgFrameTime /= frameTimeHistory.size();
-				avgFps = 1 / avgFrameTime;
+				avgFps = 1.0f / (float)avgFrameTime;
 
 				frameTimeHistory.clear();
 			}

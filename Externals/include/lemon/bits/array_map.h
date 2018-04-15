@@ -218,8 +218,11 @@ namespace lemon {
         for (nf->first(it); it != INVALID; nf->next(it)) {
           int jd = nf->id(it);;
           if (id != jd) {
-            allocator.construct(&(new_values[jd]), values[jd]);
-            allocator.destroy(&(values[jd]));
+			// Use move constructor instead of rebuild.
+            //allocator.construct(&(new_values[jd]), values[jd]);
+            //allocator.destroy(&(values[jd]));
+			allocator.construct(&(new_values[jd]), std::move(values[jd]));
+			allocator.destroy(&(values[jd]));
           }
         }
         if (capacity != 0) allocator.deallocate(values, capacity);
@@ -233,7 +236,7 @@ namespace lemon {
     //
     // It adds more new keys to the map. It is called by the observer notifier
     // and it overrides the add() member function of the observer base.
-    virtual void add(const std::vector<Key>& keys) {
+    virtual void add(const std::vector<Key>& keys) override {
       Notifier* nf = Parent::notifier();
       int max_id = -1;
       for (int i = 0; i < int(keys.size()); ++i) {
@@ -260,8 +263,11 @@ namespace lemon {
             }
           }
           if (found) continue;
-          allocator.construct(&(new_values[id]), values[id]);
-          allocator.destroy(&(values[id]));
+		  // Using move instead of copy thing.
+          //allocator.construct(&(new_values[id]), values[id]);
+          //allocator.destroy(&(values[id]));
+		  allocator.construct(&(new_values[id]), std::move(values[id]));
+		  allocator.destroy(&(values[id]));
         }
         if (capacity != 0) allocator.deallocate(values, capacity);
         values = new_values;

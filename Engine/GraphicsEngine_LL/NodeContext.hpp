@@ -101,7 +101,6 @@ public:
 	DepthStencilView2D CreateDsv(const Texture2D& depthStencilView, gxapi::eFormat format, gxapi::DsvTexture2DArray desc) const;
 	RWTextureView2D CreateUav(const Texture2D& rwTexture, gxapi::eFormat format, gxapi::UavTexture2DArray desc) const;
 	RWTextureView3D CreateUav(const Texture3D& rwTexture, gxapi::eFormat format, gxapi::UavTexture3D desc) const;
-	ConstBufferView CreateCbv(const VolatileConstBuffer& buffer, size_t offset, size_t size, VolatileViewHeap& viewHeap) const;
 
 	// Shaders and PSOs
 	ShaderProgram CreateShader(const std::string& name, ShaderParts stages, const std::string& macros = {}) const;
@@ -139,7 +138,8 @@ public:
 				  gxapi::IGraphicsApi* graphicsApi = nullptr,
 				  CommandListPool* commandListPool = nullptr,
 				  CommandAllocatorPool* commandAllocatorPool = nullptr,
-				  ScratchSpacePool* scratchSpacePool = nullptr);
+				  ScratchSpacePool* scratchSpacePool = nullptr,
+				  std::unique_ptr<BasicCommandList> inheritedList = nullptr);
 	RenderContext(RenderContext&&) = delete;
 	RenderContext& operator=(RenderContext&&) = delete;
 	RenderContext(const RenderContext&) = delete;
@@ -200,6 +200,9 @@ public:
 	gxapi::eCommandListType GetType() const { return m_type; }
 	bool IsListInitialized() const { return (bool)m_commandList; }
 
+	// Extract command lists.
+	void Decompose(std::unique_ptr<BasicCommandList>& inheritedList, std::unique_ptr<BasicCommandList>& currentList);
+
 	// Debug draw
 	void AddDebugObject(std::vector<DebugObject*> objects);
 
@@ -219,6 +222,7 @@ private:
 	CommandListPool* m_commandListPool;
 	CommandAllocatorPool* m_commandAllocatorPool;
 	ScratchSpacePool* m_scratchSpacePool;
+	std::unique_ptr<BasicCommandList> m_inheritedCommandList;
 	std::unique_ptr<BasicCommandList> m_commandList;
 	gxapi::eCommandListType m_type = static_cast<gxapi::eCommandListType>(0xDEADBEEF);
 

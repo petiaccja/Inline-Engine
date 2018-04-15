@@ -1,4 +1,6 @@
-#pragma once
+// Codecvt is deprecated according to the C++17 standard.
+// There is no replacement yet, we keep using it until it is removed.
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 
 #include "TextEntity.hpp"
 #include "Font.hpp"

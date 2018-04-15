@@ -9,7 +9,6 @@
 
 namespace inl::core {
 
-using namespace std::experimental::filesystem;
 
 class MeshActor;
 
@@ -23,7 +22,7 @@ public:
 	void Update(float deltaTime);
 	void AddBehavior(ActorBehavior* b);
 
-	MeshActor* AddActor_Mesh(const path& assetPath);
+	MeshActor* AddActor_Mesh(const std::experimental::filesystem::path& assetPath);
 
 public:
 	Delegate<void(float deltaSeconds)> onUpdate;

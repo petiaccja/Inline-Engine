@@ -6,6 +6,7 @@
 #include "ScratchSpacePool.hpp"
 #include "CommandListPool.hpp"
 #include "MemoryObject.hpp"
+#include "BasicCommandList.hpp"
 
 #include <GraphicsApi_LL/IFence.hpp>
 #include <GraphicsApi_LL/Common.hpp>
@@ -15,6 +16,7 @@
 #include <cstdint>
 #include <vector>
 #include <optional>
+#include "BaseLibrary/SpinMutex.hpp"
 
 namespace inl {
 namespace gxeng {
@@ -37,8 +39,8 @@ public:
 
 	/// <summary> Runs the currently bound pipeline nodes using information about the frame. </summary>
 	void Execute(FrameContext context) {
-		ExecuteParallel(context); // Only dry-run
-		ExecuteSerial(context); // Real drawing
+		ExecuteParallel(context); // Real drawing
+		//ExecuteSerial(context); // Legacy for fallback
 	}
 
 	/// <summary> Instructs all pipeline nodes to release their resources related to rendering. </summary>
@@ -57,7 +59,53 @@ protected:
 	//--------------------------------------------
 	// Multi-threaded rendering
 	//--------------------------------------------
+	struct ExecuteTrace {
+		// Profiling/debugging
+		unsigned depth = 0;
+		bool inheritedCommandList = false;
+		bool producedCommandList = false;
+		// Operational
+		std::unique_ptr<BasicCommandList> inheritableList;
+		std::unique_ptr<VolatileViewHeap> inheritableVheap;
+	};
+
+	struct ExecuteState {
+		ExecuteState(const lemon::ListDigraph& taskGraph, VolatileViewHeap& vheap, FrameContext context) : taskGraph(taskGraph), trace(taskGraph), frameContext(context) {}
+		const lemon::ListDigraph& taskGraph;
+		lemon::ListDigraph::NodeMap<ExecuteTrace> trace;
+		FrameContext frameContext;
+	};
+
+	struct TraverseDependency {
+	public:
+		void ResetCounter() { *counter = 0; }
+		void Set(size_t total) { this->total = total; }
+		bool operator++() {		return (counter->fetch_add(1) + 1) == total;	}
+	private:
+		std::shared_ptr<std::atomic_size_t> counter = std::make_shared<std::atomic_size_t>(0);
+		std::size_t total = 0;
+		bool shouldBeEmpty = false;
+	};
+
 	void ExecuteParallel(FrameContext context);
+
+	static void GetTraverseDependencies(const lemon::ListDigraph& graph, lemon::ListDigraph::NodeMap<TraverseDependency>& dependencyTracker);
+	static std::vector<lemon::ListDigraph::Node> GetSourceNodes(const lemon::ListDigraph& graph);
+	template <class Func>
+	static jobs::Future<void> TraverseNode(lemon::ListDigraph::Node node,
+										   const lemon::ListDigraph& graph,
+										   jobs::Scheduler& scheduler, 
+										   lemon::ListDigraph::NodeMap<TraverseDependency>& dependencyTracker, 
+										   Func onVisit);
+
+	void SetupNode(lemon::ListDigraph::Node node, ExecuteState& trace);
+	void ExecuteNode(lemon::ListDigraph::Node node, ExecuteState& trace);
+	void FinishList(std::unique_ptr<BasicCommandList> list, std::unique_ptr<VolatileViewHeap> vheap);
+	void EnqueueFinishedLists(const FrameContext& context, const std::vector<jobs::Future<void>>& futures);
+
+	static std::string WriteTraceGraphviz(const lemon::ListDigraph& taskGraph, const lemon::ListDigraph::NodeMap<ExecuteTrace>& traceMap);
+	void WriteTraceFile(const lemon::ListDigraph& taskGraph, const ExecuteState& state);
+
 
 
 	//--------------------------------------------
@@ -67,7 +115,7 @@ protected:
 
 	static std::vector<GraphicsTask*> MakeSchedule(const lemon::ListDigraph& taskGraph,
 												   const lemon::ListDigraph::NodeMap<GraphicsTask*>& taskFunctionMap
-													/*std::vector<CommandQueue*> queues*/);
+	/*std::vector<CommandQueue*> queues*/);
 
 	//--------------------------------------------
 	// Utilities
@@ -108,6 +156,10 @@ protected:
 private:
 	Pipeline m_pipeline;
 	jobs::ThreadpoolScheduler m_jobScheduler;
+	std::queue<std::tuple<std::unique_ptr<BasicCommandList>, std::unique_ptr<VolatileViewHeap>>> m_finishedLists;
+	SpinMutex m_finishedListMtx;
+	std::condition_variable_any m_finishedListCv;
+	std::atomic_int m_finishedListRemNodes;
 private:
 	class UploadTask : public GraphicsTask {
 	public:
@@ -118,7 +170,6 @@ private:
 		const std::vector<UploadManager::UploadDescription>* m_uploads;
 	};
 };
-
 
 
 template <class UsedResourceIter>

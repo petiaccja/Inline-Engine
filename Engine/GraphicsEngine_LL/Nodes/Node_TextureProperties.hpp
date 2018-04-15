@@ -36,8 +36,8 @@ public:
 	void Setup(SetupContext& context) override {
 		const auto& texture = GetInput<0>().Get();
 
-		GetOutput<0>().Set(texture.GetWidth());
-		GetOutput<1>().Set(texture.GetHeight());
+		GetOutput<0>().Set((unsigned)texture.GetWidth());
+		GetOutput<1>().Set((unsigned)texture.GetHeight());
 		GetOutput<2>().Set(texture.GetFormat());
 		GetOutput<3>().Set(texture.GetArrayCount());
 	}

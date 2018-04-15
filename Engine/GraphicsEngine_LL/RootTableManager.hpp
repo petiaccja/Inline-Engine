@@ -159,7 +159,7 @@ void RootTableManager<Type>::DuplicateRootTable(DescriptorTableState& table) {
 	destRangeSizes.reserve(10);
 
 	bool makeFreshRange = true;
-	for (size_t i = 0; i < numDescriptors; ++i) {
+	for (uint32_t i = 0; i < numDescriptors; ++i) {
 		if (table.bindings[i].cpuAddress != 0) {
 			// initially and after null descriptors, start a new range
 			if (makeFreshRange) {

@@ -40,6 +40,10 @@ UploadManager& MemoryManager::GetUploadManager() {
 	return m_uploadHeap;
 }
 
+ConstantBufferHeap & MemoryManager::GetConstBufferHeap() {
+	return m_constBufferHeap;
+}
+
 
 VolatileConstBuffer MemoryManager::CreateVolatileConstBuffer(const void* data, uint32_t size) {
 	return m_constBufferHeap.CreateVolatileConstBuffer(data, size);

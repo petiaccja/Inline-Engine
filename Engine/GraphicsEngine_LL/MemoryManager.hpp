@@ -85,6 +85,7 @@ public:
 	void UnlockResident(IterT begin, IterT end);
 
 	UploadManager& GetUploadManager();
+	ConstantBufferHeap& GetConstBufferHeap();
 	VolatileConstBuffer CreateVolatileConstBuffer(const void* data, uint32_t size);
 	PersistentConstBuffer CreatePersistentConstBuffer(const void* data, uint32_t size);
 
