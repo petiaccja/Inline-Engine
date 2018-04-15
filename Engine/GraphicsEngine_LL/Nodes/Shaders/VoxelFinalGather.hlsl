@@ -5,7 +5,7 @@
 * Output: scene with added GI
 */
 
-#include "EncodeVelocityNormal.hlsl"
+#include "EncodeDecode.hlsl"
 
 //ULTRA HIGH SETTING CONES
 static const float3 coneDirs[46] = {
@@ -259,14 +259,14 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float roughness;
 	float metalness;
 	{ //load up albedo, roughness, metalness
-		float4 centerAlbedoRoughnessMetalness = inputTex5.Load(input.ndcPos.xy);
-		float2 a0 = inputTex5.Load(input.ndcPos.xy + float2(1, 0)).xy;
-		float2 a1 = inputTex5.Load(input.ndcPos.xy - float2(1, 0)).xy;
-		float2 a2 = inputTex5.Load(input.ndcPos.xy + float2(0, 1)).xy;
-		float2 a3 = inputTex5.Load(input.ndcPos.xy - float2(0, 1)).xy;
+		float4 centerAlbedoRoughnessMetalness = inputTex5.Load(float3(input.position.xy, 0));
+		float2 a0 = inputTex5.Load(float3(input.position.xy + float2(1, 0), 0)).xy;
+		float2 a1 = inputTex5.Load(float3(input.position.xy - float2(1, 0), 0)).xy;
+		float2 a2 = inputTex5.Load(float3(input.position.xy + float2(0, 1), 0)).xy;
+		float2 a3 = inputTex5.Load(float3(input.position.xy - float2(0, 1), 0)).xy;
 		roughness = centerAlbedoRoughnessMetalness.z;
 		metalness = centerAlbedoRoughnessMetalness.w;
-		albedo = ycocg_to_rgb(int2(input.ndcPos.xy), centerAlbedoRoughnessMetalness.xy, a0, a1, a2, a3);
+		albedo = ycocg_to_rgb(int2(input.position.xy), centerAlbedoRoughnessMetalness.xy, a0, a1, a2, a3);
 	}
 
 	float3 perfectReflectionDir = normalize(reflect(wsViewDir, wsNormal));
@@ -290,7 +290,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	diffuseResult /= NUM_CONES;
 
 	//return diffuseResult.w;
-	return float4(albedo * (diffuseResult.xyz/* + specularResult.xyz*/), 1.0);
+	return float4(/*albedo * */(diffuseResult.xyz + specularResult.xyz), 1.0);
 	//return float4(multiBounce(aoResult, float3(1,1,1)), 1.0);
 	//return result;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);

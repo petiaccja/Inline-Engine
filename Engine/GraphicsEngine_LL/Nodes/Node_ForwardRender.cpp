@@ -736,7 +736,6 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 	// main function
 	std::stringstream PSMain;
 	PSMain << "struct PS_OUTPUT	{ float4 litColor : SV_Target0;	float4 velocityNormal : SV_Target1; float4 albedoRoughnessMetalness : SV_Target2; };\n";
-	PSMain << "struct MaterialOutput	{ float4 litColor; float4 albedo; float roughness; float metalness; };\n";
 	PSMain << "PS_OUTPUT PSMain(PsInput psInput) : SV_TARGET {\n";
 	PSMain << "	   PS_OUTPUT result;\n";
 	PSMain << "    g_lightDir = lightCb.direction;\n";
@@ -749,6 +748,7 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 	PSMain << "    g_tex0 = float3(psInput.texCoord, 0.0f);\n";
 	PSMain << "    result.velocityNormal.xy = encodeVelocity(psInput.currPosition, psInput.prevPosition, uniforms.halfExposureFramerate, uniforms.maxMotionBlurRadius);\n";
 	PSMain << "    result.velocityNormal.zw = encodeNormal(g_normal);\n";
+	PSMain << "    float4 albedo = float4(0,0,0,0);\n";
 	for (size_t i = 0; i < params.size(); ++i) {
 		switch (params[i].type) {
 			case eMaterialShaderParamType::COLOR:
@@ -779,14 +779,15 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 			}
 		}
 	}
-	PSMain << "    MaterialOutput mo = mtl_shader(";
+	PSMain << "    result.litColor = mtl_shader(";
 	for (intptr_t i = 0; i < (intptr_t)params.size() - 1; ++i) {
 		PSMain << "input" << i << ", ";
 	}
 	if (params.size() > 0) {
 		PSMain << "input" << params.size() - 1;
 	}
-	PSMain << "); result.litColor = mo.litColor; result.albedoRoughnessMetalness = float4(rgb_to_ycocg(mo.albedo.xyz, int2(psInput.ndcPos.xy)), mo.roughness, mo.metalness); return result; \n} \n";
+	//TODO get material params
+	PSMain << "); result.albedoRoughnessMetalness.xy = rgb_to_ycocg(albedo.xyz, int2(psInput.ndcPos.xy)); result.albedoRoughnessMetalness.zw = float2(0,0); return result; \n} \n";
 
 	return
 		std::string()
@@ -804,7 +805,7 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 		+ "#include \"PointLightShadowMapSample\"\n"
 		+ "#include \"PbrBrdf\"\n"
 		+ "#include \"TiledLighting\"\n"
-		+ "#include \"EncodeVelocityNormal\"\n"
+		+ "#include \"EncodeDecode\"\n"
 		+ "\n//-------------------------------------\n\n"
 		+ shadingFunction
 		+ "\n//-------------------------------------\n\n"

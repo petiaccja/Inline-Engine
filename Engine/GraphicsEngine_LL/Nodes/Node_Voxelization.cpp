@@ -270,7 +270,7 @@ void Voxelization::Setup(SetupContext & context) {
 
 		BindParameterDesc albedoRoughnessMetalnessTexBindParamDesc;
 		m_albedoRoughnessMetalnessTexBindParam = BindParameter(eBindParameterType::TEXTURE, 5);
-		albedoRoughnessMetalnessTexBindParamDesc.parameter = m_velocityNormalTexBindParam;
+		albedoRoughnessMetalnessTexBindParamDesc.parameter = m_albedoRoughnessMetalnessTexBindParam;
 		albedoRoughnessMetalnessTexBindParamDesc.constantSize = 0;
 		albedoRoughnessMetalnessTexBindParamDesc.relativeAccessFrequency = 0;
 		albedoRoughnessMetalnessTexBindParamDesc.relativeChangeFrequency = 0;

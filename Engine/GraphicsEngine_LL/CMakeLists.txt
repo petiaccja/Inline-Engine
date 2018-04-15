@@ -347,7 +347,7 @@ set(shaders_lighting
 	)
 	
 set(shaders_motion_blur
-	"Nodes/Shaders/EncodeVelocity.hlsl"
+	"Nodes/Shaders/EncodeDecode.hlsl"
 	"Nodes/Shaders/MotionBlur.hlsl"
 	"Nodes/Shaders/NeighborMax.hlsl"
 	"Nodes/Shaders/TileMax.hlsl"
