@@ -514,7 +514,7 @@
       "dstp": 1
     },
     {
-      "src": "forwardRender",
+      "src": "drawSky",
       "dst": "voxelization",
       "srcp": 0,
       "dstp": 2
@@ -898,9 +898,9 @@
       "dstp": 1
     },
     {
-      "src": "voxelization",
+      "src": "forwardRender",
       "dst": "drawSky",
-      "srcp": 1,
+      "srcp": 0,
       "dstp": 0
     },
     {
@@ -988,9 +988,9 @@
       "dstp": 4
     },
     {
-      "src": "drawSky",
+      "src": "voxelization",
       "dst": "hdrCombine",
-      "srcp": 0,
+      "srcp": 1,
       "dstp": 0
     },
     {

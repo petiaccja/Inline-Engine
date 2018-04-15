@@ -294,8 +294,10 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float4 ssr = inputTex6.Sample(samp1, input.texcoord.xy);
 	float4 ssao = inputTex7.Sample(samp1, input.texcoord.xy).x;
 
+	bool ssrValid = dot(ssr.xyz, float3(1, 1, 1)) > 0.0;
+
 	//return diffuseResult.w;
-	return float4(/*albedo * */(diffuseResult.xyz * ssao.x + mix(ssr.xyz, specularResult.xyz, ssr.w)), 1.0);
+	return float4(/*albedo * */(diffuseResult.xyz * ssao.x + lerp(specularResult.xyz, ssr.xyz, ssrValid)), 1.0);
 	//return float4(multiBounce(aoResult, float3(1,1,1)), 1.0);
 	//return result;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);
