@@ -83,7 +83,7 @@ public:
 	BasicCommandList(BasicCommandList&& rhs);
 	BasicCommandList& operator=(const BasicCommandList& rhs) = delete; // could be, but big perf hit, better not allow user
 	BasicCommandList& operator=(BasicCommandList&& rhs);
-	virtual ~BasicCommandList() = default;
+	virtual ~BasicCommandList();
 
 	gxapi::eCommandListType GetType() const { return m_commandList->GetType(); }
 

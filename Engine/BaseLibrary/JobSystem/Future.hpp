@@ -122,7 +122,7 @@ public:
 	bool await_ready() const noexcept;
 	template <class HandleT>
 	bool await_suspend(HandleT awaitingCoroutine) noexcept;
-	T await_resume() noexcept;
+	T await_resume();
 	
 private:
 	Scheduler* m_awatingScheduler = nullptr;
@@ -270,9 +270,10 @@ bool Awaiter<T>::await_ready() const noexcept {
 }
 
 template <class T>
-T Awaiter<T>::await_resume() noexcept {
+T Awaiter<T>::await_resume() {
 	m_fenceAwaiter.await_resume();
 	if (m_future->m_sharedState->ex) {
+		assert(!std::current_exception());
 		std::rethrow_exception(m_future->m_sharedState->ex);
 	}
 	if constexpr (!std::is_void_v<T>) {

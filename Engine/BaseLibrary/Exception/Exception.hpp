@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <ostream>
 #include <memory>
+#include <atomic>
 
 
 namespace inl {
@@ -35,8 +36,11 @@ public:
 	const std::vector<StackFrame>& StackTrace() const noexcept;
 	const std::string StackTraceStr() const;
 	void PrintStackTrace(std::ostream& os) const;
+
+	static void BreakOnce();
 protected:
 	void CalculateStackTrace();
+	static void DoBreak();
 
 protected:
 	std::shared_ptr<std::string> m_message;
@@ -45,6 +49,9 @@ protected:
 	std::shared_ptr<std::vector<StackFrame>> m_stackTrace;
 	static const std::string emptyString;
 	static const std::vector<StackFrame> emptyStackTrace;
+
+private:
+	static std::atomic_bool breakOnce;
 };
 
 

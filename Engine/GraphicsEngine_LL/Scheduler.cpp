@@ -88,7 +88,7 @@ void Scheduler::ExecuteParallel(FrameContext context) {
 
 		// Wait in setup tasks.
 		for (auto& future : jobFutures) {
-			future.wait();
+			future.get();
 		}
 
 		// Launch execute tasks.
@@ -111,14 +111,19 @@ void Scheduler::ExecuteParallel(FrameContext context) {
 
 		// Wait in execute tasks and execute incoming command lists.
 		EnqueueFinishedLists(context, jobFutures);
+		for (auto& future : jobFutures) {
+			future.get();
+		}
 
 		// Print trace into a graphviz dot file.
 		WriteTraceFile(taskGraph, state);
 	}
 	catch (Exception& ex) {
-		std::cout << "This frame is fucked: " << ex.what();
-		ex.PrintStackTrace(std::cout);
+		std::cout << "=== This frame is fucked ===" << std::endl;
+		std::cout << "Error message: " << std::endl << ex.what() << std::endl;
+
 		std::cout << std::endl;
+		Exception::BreakOnce();
 	}
 	catch (std::exception& ex) {
 		std::cout << "This frame is doubly fucked: " << ex.what() << std::endl;
@@ -209,65 +214,76 @@ void Scheduler::SetupNode(lemon::ListDigraph::Node node, ExecuteState& state) {
 
 
 void Scheduler::ExecuteNode(lemon::ListDigraph::Node node, ExecuteState& state) {
-	// Acquire task.
-	GraphicsTask* task = m_pipeline.GetTaskFunctionMap()[node];
-	if (task == nullptr) {
-		return;
-	}
-
-
-	// See if we can inherit a command list.
-	std::unique_ptr<BasicCommandList> inheritedCommandList;
-	std::unique_ptr<VolatileViewHeap> inheritedVheap;
-	if (lemon::countInArcs(state.taskGraph, node) == 1) {
-		lemon::ListDigraph::Node prevNode = state.taskGraph.source(lemon::ListDigraph::InArcIt(state.taskGraph, node));
-		inheritedCommandList = std::move(state.trace[prevNode].inheritableList);
-		inheritedVheap = std::move(state.trace[prevNode].inheritableVheap);
-	}
-
-	// Record trace.
-	bool couldInheritList = (bool)inheritedCommandList;
-
-	// Execute given node.
-	auto vheap = std::make_unique<VolatileViewHeap>(state.frameContext.gxApi);
-	RenderContext renderContext(state.frameContext.memoryManager,
-								state.frameContext.textureSpace,
-								vheap.get(),
-								state.frameContext.shaderManager,
-								state.frameContext.gxApi,
-								state.frameContext.commandListPool,
-								state.frameContext.commandAllocatorPool,
-								state.frameContext.scratchSpacePool,
-								std::move(inheritedCommandList));
-	task->Execute(renderContext);
-
-	// Handle produced command list(s).
-	std::unique_ptr<BasicCommandList> currentCommandList;
-	renderContext.Decompose(inheritedCommandList, currentCommandList);
-	m_finishedListRemNodes.fetch_sub(1);
-
-	// Record trace.
-	state.trace[node].inheritedCommandList = couldInheritList && !inheritedCommandList;
-	state.trace[node].producedCommandList = (bool)currentCommandList;
-
-	// Handle produced command list(s).
-	if (inheritedCommandList) {
-		FinishList(std::move(inheritedCommandList), std::move(inheritedVheap));
-	}
-	if (currentCommandList) {
-		bool canNextNodeInherit = false;
-		if (lemon::countOutArcs(state.taskGraph, node) == 1) {
-			lemon::ListDigraph::OutArcIt theOnlyOutArc(state.taskGraph, node);
-			lemon::ListDigraph::Node theOnlyNextNode = state.taskGraph.target(theOnlyOutArc);
-			canNextNodeInherit = lemon::countInArcs(state.taskGraph, theOnlyNextNode) == 1;
+	bool signaled = false;
+	try {
+		// Acquire task.
+		GraphicsTask* task = m_pipeline.GetTaskFunctionMap()[node];
+		if (task == nullptr) {
+			return;
 		}
-		if (canNextNodeInherit) {
-			state.trace[node].inheritableList = std::move(currentCommandList);
-			state.trace[node].inheritableVheap = std::move(vheap);
+
+
+		// See if we can inherit a command list.
+		std::unique_ptr<BasicCommandList> inheritedCommandList;
+		std::unique_ptr<VolatileViewHeap> inheritedVheap;
+		if (lemon::countInArcs(state.taskGraph, node) == 1) {
+			lemon::ListDigraph::Node prevNode = state.taskGraph.source(lemon::ListDigraph::InArcIt(state.taskGraph, node));
+			inheritedCommandList = std::move(state.trace[prevNode].inheritableList);
+			inheritedVheap = std::move(state.trace[prevNode].inheritableVheap);
 		}
-		else {
-			FinishList(std::move(currentCommandList), std::move(vheap));
+
+		// Record trace.
+		bool couldInheritList = (bool)inheritedCommandList;
+
+		// Execute given node.
+		auto vheap = std::make_unique<VolatileViewHeap>(state.frameContext.gxApi);
+		RenderContext renderContext(state.frameContext.memoryManager,
+									state.frameContext.textureSpace,
+									vheap.get(),
+									state.frameContext.shaderManager,
+									state.frameContext.gxApi,
+									state.frameContext.commandListPool,
+									state.frameContext.commandAllocatorPool,
+									state.frameContext.scratchSpacePool,
+									std::move(inheritedCommandList));
+		task->Execute(renderContext);
+
+		// Handle produced command list(s).
+		std::unique_ptr<BasicCommandList> currentCommandList;
+		renderContext.Decompose(inheritedCommandList, currentCommandList);
+		m_finishedListRemNodes.fetch_sub(1);
+		signaled = true;
+
+		// Record trace.
+		state.trace[node].inheritedCommandList = couldInheritList && !inheritedCommandList;
+		state.trace[node].producedCommandList = (bool)currentCommandList;
+
+		// Handle produced command list(s).
+		if (inheritedCommandList) {
+			FinishList(std::move(inheritedCommandList), std::move(inheritedVheap));
 		}
+		if (currentCommandList) {
+			bool canNextNodeInherit = false;
+			if (lemon::countOutArcs(state.taskGraph, node) == 1) {
+				lemon::ListDigraph::OutArcIt theOnlyOutArc(state.taskGraph, node);
+				lemon::ListDigraph::Node theOnlyNextNode = state.taskGraph.target(theOnlyOutArc);
+				canNextNodeInherit = lemon::countInArcs(state.taskGraph, theOnlyNextNode) == 1;
+			}
+			if (canNextNodeInherit) {
+				state.trace[node].inheritableList = std::move(currentCommandList);
+				state.trace[node].inheritableVheap = std::move(vheap);
+			}
+			else {
+				FinishList(std::move(currentCommandList), std::move(vheap));
+			}
+		}
+	}
+	catch (...) {
+		if (!signaled) {
+			m_finishedListRemNodes.fetch_sub(1);
+			m_finishedListCv.notify_all();
+		}
+		throw;
 	}
 }
 
@@ -340,7 +356,9 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 
 			// Add current list's barriers to previous list.
 			std::vector<gxapi::ResourceBarrier> barriers = InjectBarriers(currentList.usedResources.begin(), currentList.usedResources.end());
-			prevCopyList->ResourceBarrier((unsigned)barriers.size(), barriers.data());
+			if (!barriers.empty()) {
+				prevCopyList->ResourceBarrier((unsigned)barriers.size(), barriers.data());
+			}
 
 			// Update resource states to reflect current list.
 			UpdateResourceStates(currentList.usedResources.begin(), currentList.usedResources.end());

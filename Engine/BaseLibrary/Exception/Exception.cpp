@@ -6,18 +6,22 @@ namespace inl {
 
 const std::string Exception::emptyString;
 const std::vector<StackFrame> Exception::emptyStackTrace;
+std::atomic_bool Exception::breakOnce(false);
+
 
 
 Exception::Exception() 
 	: m_message(std::make_shared<std::string>("Unknown error occured."))
 {
 	CalculateStackTrace();
+	DoBreak();
 }
 
 Exception::Exception(std::string message) 
 	: m_message(std::make_shared<std::string>(std::move(message)))
 {
 	CalculateStackTrace();
+	DoBreak();
 }
 
 Exception::Exception(std::string message, std::string subject) 
@@ -25,12 +29,14 @@ Exception::Exception(std::string message, std::string subject)
 {
 	m_what = std::make_shared<std::string>(*m_message + ": " + *m_subject);
 	CalculateStackTrace();
+	DoBreak();
 }
 
 Exception::Exception(nullptr_t, std::string subject) 
 	: m_message(std::make_shared<std::string>("Unknown error occured.")), m_subject(std::make_shared<std::string>(std::move(subject)))
 {
 	CalculateStackTrace();
+	DoBreak();
 }
 
 
@@ -65,6 +71,19 @@ Exception& Exception::operator=(Exception&& rhs) noexcept {
 	return *this;
 }
 
+
+void Exception::BreakOnce() {
+	breakOnce.store(true);
+}
+
+void Exception::DoBreak() {
+	bool shouldBreak = breakOnce.exchange(false);
+#ifdef _MSC_VER 
+	if (IsDebuggerPresent() && shouldBreak) {
+		DebugBreak();
+	}
+#endif
+}
 
 
 const char* Exception::what() const noexcept {

@@ -61,3 +61,33 @@ TEST_CASE("JobSystem - Promise explicit", "[JobSystem") {
 	int result = future.get();
 	REQUIRE(result == 42);
 }
+
+
+TEST_CASE("JobSystem - Exception", "[JobSystem]") {
+	ThreadpoolScheduler scheduler(2);
+	Future<int> fut = scheduler.Enqueue([]() -> Future<int> {
+		throw std::runtime_error("Ooops");
+		co_return 42;
+	});
+
+	REQUIRE_THROWS(fut.get());
+}
+
+
+TEST_CASE("JobSystem - Exception nested", "[JobSystem]") {
+	ImmediateScheduler scheduler;
+
+	auto One = []() -> Future<int> {
+		throw std::runtime_error("Ooops");
+		co_return 42;
+	};
+	auto Two = [](Scheduler& scheduler, auto functor) -> Future<int> {
+		Future<int> one = scheduler.Enqueue(functor);
+		co_await one;
+		co_return 0;
+	};
+
+	Future<int> fut = scheduler.Enqueue(Two, std::ref(scheduler), One);
+
+	REQUIRE_THROWS(fut.get());
+}

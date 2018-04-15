@@ -34,6 +34,14 @@ BasicCommandList::BasicCommandList(gxapi::IGraphicsApi* gxApi,
 }
 
 
+BasicCommandList::~BasicCommandList() {
+	// If the command list was not decomposed, we would like to close it before deleting it.
+	if (m_commandList) {
+		dynamic_cast<gxapi::ICopyCommandList*>(m_commandList.get())->Close();
+	}
+}
+
+
 StackDescHeap* BasicCommandList::GetCurrentScratchSpace() {
 	return m_currentScratchSpace;
 }
