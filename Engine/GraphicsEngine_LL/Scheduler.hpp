@@ -67,6 +67,7 @@ protected:
 		// Operational
 		std::unique_ptr<BasicCommandList> inheritableList;
 		std::unique_ptr<VolatileViewHeap> inheritableVheap;
+		std::string nodeName;
 	};
 
 	struct ExecuteState {
@@ -89,8 +90,9 @@ protected:
 
 	void ExecuteParallel(FrameContext context);
 
-	static void GetTraverseDependencies(const lemon::ListDigraph& graph, lemon::ListDigraph::NodeMap<TraverseDependency>& dependencyTracker);
+	void GetNodeNames(ExecuteState& state) const;
 	static std::vector<lemon::ListDigraph::Node> GetSourceNodes(const lemon::ListDigraph& graph);
+	static void GetTraverseDependencies(const lemon::ListDigraph& graph, lemon::ListDigraph::NodeMap<TraverseDependency>& dependencyTracker);
 	template <class Func>
 	static jobs::Future<void> TraverseNode(lemon::ListDigraph::Node node,
 										   const lemon::ListDigraph& graph,

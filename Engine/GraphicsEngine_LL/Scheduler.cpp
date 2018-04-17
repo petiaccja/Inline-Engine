@@ -72,6 +72,8 @@ void Scheduler::ExecuteParallel(FrameContext context) {
 		std::vector<lemon::ListDigraph::Node> sourceNodes = GetSourceNodes(taskGraph);
 		m_finishedListRemNodes.store(lemon::countNodes(taskGraph));
 
+		GetNodeNames(state);
+
 		// Launch setup tasks.
 		auto SetupNodeWrapper = [this, &state](lemon::ListDigraph::Node node) {
 			SetupNode(node, state);
@@ -127,6 +129,26 @@ void Scheduler::ExecuteParallel(FrameContext context) {
 	}
 	catch (std::exception& ex) {
 		std::cout << "This frame is doubly fucked: " << ex.what() << std::endl;
+	}
+}
+
+
+void Scheduler::GetNodeNames(ExecuteState& state) const {
+	const auto& depGraph = m_pipeline.GetDependencyGraph();
+	const auto& nodeMap = m_pipeline.GetNodeMap();
+	const auto& parentMap = m_pipeline.GetTaskParentMap();
+
+	for (lemon::ListDigraph::NodeIt nodeIt(state.taskGraph); nodeIt != lemon::INVALID; ++nodeIt) {
+		lemon::ListDigraph::Node parent = parentMap[nodeIt];
+		const NodeBase* pipelineNode = nodeMap[parent].get();
+		std::string className = typeid(*pipelineNode).name();
+
+		size_t idx = className.find("inl::gxeng::");
+		if (idx != className.npos) { 
+			className = className.substr(idx+12); 
+		}
+
+		state.trace[nodeIt].nodeName = className;
 	}
 }
 
@@ -246,11 +268,15 @@ void Scheduler::ExecuteNode(lemon::ListDigraph::Node node, ExecuteState& state) 
 									state.frameContext.commandAllocatorPool,
 									state.frameContext.scratchSpacePool,
 									std::move(inheritedCommandList));
+		renderContext.SetCommandListName(state.trace[node].nodeName);
 		task->Execute(renderContext);
 
 		// Handle produced command list(s).
 		std::unique_ptr<BasicCommandList> currentCommandList;
 		renderContext.Decompose(inheritedCommandList, currentCommandList);
+		if (currentCommandList) {
+			currentCommandList->EndDebuggerEvent();
+		}
 		m_finishedListRemNodes.fetch_sub(1);
 		signaled = true;
 
@@ -509,7 +535,7 @@ void Scheduler::ExecuteSerial(FrameContext context) {
 				if (idx != className.npos) { className = className.substr(idx+12); }
 				context.commandQueue->GetUnderlyingQueue()->BeginDebuggerEvent("Node - " + className);
 				AtScopeExit endPass([&context] { context.commandQueue->GetUnderlyingQueue()->EndDebuggerEvent(); });
-				renderContext.TMP_SetCommandListName("Node - " + className + " - Execute()");
+				renderContext.SetCommandListName("Node - " + className + " - Execute()");
 				
 
 				// Call execute.

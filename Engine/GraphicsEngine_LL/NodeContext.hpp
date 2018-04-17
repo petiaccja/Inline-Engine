@@ -207,7 +207,7 @@ public:
 	void AddDebugObject(std::vector<DebugObject*> objects);
 
 	// TMP: RenderDoc does not process command queue PIX debug events
-	void TMP_SetCommandListName(const std::string& name) { m_TMP_commandListName = name; }
+	void SetCommandListName(const std::string& name) { m_TMP_commandListName = name; }
 private:
 	// Memory management stuff
 	MemoryManager* m_memoryManager;

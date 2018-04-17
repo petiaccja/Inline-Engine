@@ -275,28 +275,30 @@ void Pipeline::CreateFromDescription(const std::string& jsonDescription, Graphic
 
 
 void Pipeline::CreateFromNodesList(const std::vector<std::shared_ptr<NodeBase>> nodes) {
-	// assign pipeline nodes to graph nodes
+	// Assign pipeline nodes to graph nodes.
 	for (auto pipelineNode : nodes) {
 		lemon::ListDigraph::Node graphNode = m_dependencyGraph.addNode();
 		m_nodeMap[graphNode] = pipelineNode;
 	}
 
-	// calculate graphs
 	try {
+		// Calculate dependency and task graphs.
 		CalculateDependencyGraph();
 		CalculateTaskGraph();
+
+		// Check if graphs are DAGs.
+		// Note: if task graph is a DAG => dep. graph must be a DAG.
+		bool isTaskGraphDAG = lemon::dag(m_taskGraph);
+		if (!isTaskGraphDAG) {
+			throw InvalidArgumentException("Supplied nodes do not make a directed acyclic graph.");
+		}
+
+		// Remove transitive edges from task graph: long chains can now share the same command list.
 		TransitiveReduction(m_taskGraph);
 	}
 	catch (...) {
 		Clear();
 		throw;
-	}
-
-	// check if graphs are DAGs
-	// note: if task graph is a DAG => dep. graph must be a DAG
-	bool isTaskGraphDAG = lemon::dag(m_taskGraph);
-	if (!isTaskGraphDAG) {
-		throw InvalidArgumentException("Supplied nodes do not make a directed acyclic graph.");
 	}
 }
 
