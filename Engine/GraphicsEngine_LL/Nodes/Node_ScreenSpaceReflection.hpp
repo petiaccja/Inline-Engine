@@ -18,7 +18,7 @@ namespace inl::gxeng::nodes {
 class ScreenSpaceReflection :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<Texture2D, Texture2D, const BasicCamera*>,
+	virtual public InputPortConfig<Texture2D, Texture2D, const BasicCamera*, Texture2D>,
 	virtual public OutputPortConfig<Texture2D>
 {
 public:

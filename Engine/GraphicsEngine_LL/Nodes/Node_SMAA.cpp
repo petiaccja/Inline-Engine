@@ -53,6 +53,14 @@ void SMAA::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
+
+	auto& target = this->GetInput<3>().Get();
+	gxapi::RtvTexture2DArray rtvDesc;
+	rtvDesc.activeArraySize = 1;
+	rtvDesc.firstArrayElement = 0;
+	rtvDesc.firstMipLevel = 0;
+	rtvDesc.planeIndex = 0;
+	m_neighborhoodBlendingRTV = context.CreateRtv(target, target.GetFormat(), rtvDesc);
 	
 
 	auto areaImage = this->GetInput<1>().Get();
@@ -401,11 +409,11 @@ void SMAA::InitRenderTarget(SetupContext& context) {
 		m_blendingWeightsSRV = context.CreateSrv(blendingWeightsTex, format, srvDesc);
 		
 
-		Texture2D neighborhoodBlendingTex = context.CreateTexture2D(desc, usage);
-		neighborhoodBlendingTex.SetName("SMAA neighborhood blending tex");
-		m_neighborhoodBlendingRTV = context.CreateRtv(neighborhoodBlendingTex, format, rtvDesc);
+		//Texture2D neighborhoodBlendingTex = context.CreateTexture2D(desc, usage);
+		//neighborhoodBlendingTex.SetName("SMAA neighborhood blending tex");
+		//m_neighborhoodBlendingRTV = context.CreateRtv(neighborhoodBlendingTex, format, rtvDesc);
 		
-		m_neighborhoodBlendingSRV = context.CreateSrv(neighborhoodBlendingTex, format, srvDesc);
+		//m_neighborhoodBlendingSRV = context.CreateSrv(neighborhoodBlendingTex, format, srvDesc);
 		
 	}
 }

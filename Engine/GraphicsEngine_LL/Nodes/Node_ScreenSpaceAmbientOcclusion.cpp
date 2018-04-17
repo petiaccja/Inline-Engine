@@ -54,9 +54,10 @@ void ScreenSpaceAmbientOcclusion::Setup(SetupContext& context) {
 
 	Texture2D depthTex = this->GetInput<0>().Get();
 	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
-	
 
 	m_camera = this->GetInput<1>().Get();
+
+	//TODO input 2 normal tex
 
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;

@@ -340,9 +340,9 @@ std::string MaterialShader::GetParameterString(eMaterialShaderParamType type) {
 		case eMaterialShaderParamType::COLOR: return "float4";
 		case eMaterialShaderParamType::BITMAP_COLOR_2D: return "MapColor2D";
 		case eMaterialShaderParamType::BITMAP_VALUE_2D: return "MapValue2D";
-		case eMaterialShaderParamType::UNKNOWN: return "anyád";
+		case eMaterialShaderParamType::UNKNOWN: return "anyad";
 		case eMaterialShaderParamType::VALUE: return "float";
-		default: return "anyád";
+		default: return "anyad";
 	}
 }
 eMaterialShaderParamType MaterialShader::GetParameterType(std::string typeString) {

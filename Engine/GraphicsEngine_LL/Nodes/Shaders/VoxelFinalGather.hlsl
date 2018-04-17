@@ -5,6 +5,8 @@
 * Output: scene with added GI
 */
 
+#include "EncodeDecode.hlsl"
+
 //ULTRA HIGH SETTING CONES
 static const float3 coneDirs[46] = {
 	float3(-0.4713, 0.6617, 0.5831),
@@ -82,6 +84,10 @@ Texture3D<float4> inputTex0 : register(t0); //voxel light tex
 Texture3D<float4> inputTex1 : register(t1); //voxel tex
 Texture2D<float> inputTex2 : register(t2); //depth tex
 Texture3D<float4> inputTex3 : register(t3); //secondary voxel tex
+Texture2D<float4> inputTex4 : register(t4); //velocityNormal tex
+Texture2D<float4> inputTex5 : register(t5); //albedoRoughnessMetalness tex
+Texture2D<float4> inputTex6 : register(t6); //screenSpaceReflection tex
+Texture2D<float4> inputTex7 : register(t7); //screenSpaceAmbientOcclusion tex
 
 SamplerState samp0 : register(s0); //point
 SamplerState samp1 : register(s1); //bilinear
@@ -247,30 +253,51 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float3 wsViewDir = normalize(wsPos - uniforms.wsCamPos.xyz);
 
 	//TODO replace with proper normals
-	float3 wsDepthNormal = normalize(cross(ddy(wsPos.xyz), ddx(wsPos.xyz)));
+	//float3 wsDepthNormal = normalize(cross(ddy(wsPos.xyz), ddx(wsPos.xyz)));
+	float3 vsNormal = decodeNormal(inputTex4.Sample(samp1, input.texcoord.xy).zw);
+	float3 wsNormal = mul(float4(vsNormal, 0.0), uniforms.invView).xyz;
 
-	float3 perfectReflectionDir = normalize(reflect(wsViewDir, wsDepthNormal));
+	float3 albedo;
+	float roughness;
+	float metalness;
+	{ //load up albedo, roughness, metalness
+		float4 centerAlbedoRoughnessMetalness = inputTex5.Load(float3(input.position.xy, 0));
+		float2 a0 = inputTex5.Load(float3(input.position.xy + float2(1, 0), 0)).xy;
+		float2 a1 = inputTex5.Load(float3(input.position.xy - float2(1, 0), 0)).xy;
+		float2 a2 = inputTex5.Load(float3(input.position.xy + float2(0, 1), 0)).xy;
+		float2 a3 = inputTex5.Load(float3(input.position.xy - float2(0, 1), 0)).xy;
+		roughness = centerAlbedoRoughnessMetalness.z;
+		metalness = centerAlbedoRoughnessMetalness.w;
+		albedo = ycocg_to_rgb(int2(input.position.xy), centerAlbedoRoughnessMetalness.xy, a0, a1, a2, a3);
+	}
+
+	float3 perfectReflectionDir = normalize(reflect(wsViewDir, wsNormal));
 
 	//TODO derive aperture from something...
 	//roughness * pi * 0.125???
 	//TODO at grazing angles self reflection happens... we need to overcome this somehow. I added a dot for now but I doubt it's correct...
-	float4 specularResult = coneTrace(wsPos, wsDepthNormal, perfectReflectionDir, tan(0.174533 * 0.5)) * pow(max(dot(perfectReflectionDir, wsDepthNormal), 0.0), 0.75);
+	float4 specularResult = coneTrace(wsPos, wsNormal, perfectReflectionDir, tan(0.174533 * 0.5)) * pow(max(dot(perfectReflectionDir, wsNormal), 0.0), 0.75);
 
 	//cone trace diffuse GI + AO in alpha
 	float4 diffuseResult = float4(0,0,0,0);
 	for (int c = 0; c < NUM_CONES; ++c)
 	{
 		float3 dir = coneDirs[c];
-		float3 dirOriented = trans_normal(wsDepthNormal, dir);
+		float3 dirOriented = trans_normal(wsNormal, dir);
 
 		//half angle = 10deg
-		float4 coneResult = coneTrace(wsPos, wsDepthNormal, dirOriented, tan(0.174533));
-		diffuseResult.xyz += coneResult.xyz * pow(max(dot(dirOriented, wsDepthNormal), 0.0), 0.1);
+		float4 coneResult = coneTrace(wsPos, wsNormal, dirOriented, tan(0.174533));
+		diffuseResult.xyz += coneResult.xyz * pow(max(dot(dirOriented, wsNormal), 0.0), 0.1);
 	}
 	diffuseResult /= NUM_CONES;
 
+	float4 ssr = inputTex6.Sample(samp1, input.texcoord.xy);
+	float4 ssao = inputTex7.Sample(samp1, input.texcoord.xy).x;
+
+	bool ssrValid = dot(ssr.xyz, float3(1, 1, 1)) > 0.0;
+
 	//return diffuseResult.w;
-	return float4(diffuseResult.xyz + specularResult.xyz, 1.0);
+	return float4(/*albedo * */(diffuseResult.xyz * ssao.x + lerp(specularResult.xyz, ssr.xyz, ssrValid)), 1.0);
 	//return float4(multiBounce(aoResult, float3(1,1,1)), 1.0);
 	//return result;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);
