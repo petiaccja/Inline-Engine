@@ -147,7 +147,8 @@ float3 wsPosToVoxelTC(float3 wsPos)
 //aperture: tan(coneHalfAngle) ???
 float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneAperture, float ssao, const bool opacityOnly = false)
 {
-	float4 result = float4(0, 0, 0, 0);
+	//float4 result = float4(0, 0, 0, 0.0);
+	float4 result = float4(0, 0, 0, ssao);
 
 	//TODO start offset based on cone aperture?
 	float traceDist = uniforms.voxelSize * 2.0;
@@ -184,7 +185,7 @@ float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneApert
 		
 
 		result += (1.0 - result.w) * data;
-		//result += min(1.0- ssao, 1.0 - result.w) * data;
+		//result += min(1.0-ssao, 1.0 - result.w) * data;
 
 
 		//TODO 0.5?????????
@@ -282,7 +283,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//TODO derive aperture from something...
 	//roughness * pi * 0.125???
 	//TODO at grazing angles self reflection happens... we need to overcome this somehow. I added a dot for now but I doubt it's correct...
-	float4 specularResult = coneTrace(wsPos, wsNormal, perfectReflectionDir, 1.0, tan(0.174533 * 0.5)) * pow(max(dot(perfectReflectionDir, wsNormal), 0.0), 0.75);
+	float4 specularResult = coneTrace(wsPos, wsNormal, perfectReflectionDir, 0.0, tan(0.174533 * 0.5)) * pow(max(dot(perfectReflectionDir, wsNormal), 0.0), 0.75);
 
 	//cone trace diffuse GI + AO in alpha
 	float4 diffuseResult = float4(0,0,0,0);
@@ -300,11 +301,12 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	diffuseResult.w = 1.0 - diffuseResult.w;
 
 	//return ssao;
-	return diffuseResult.w;
+	//return diffuseResult.w;
 	//return min(diffuseResult.w, ssao);
 	//return diffuseResult.w *ssao;
 	//return float4(diffuseResult.xyz * ssao, 1.0);
-	//return float4(/*albedo * */(diffuseResult.xyz + lerp(specularResult.xyz, ssr.xyz, ssrValid)), 1.0);
+	//return float4(diffuseResult.xyz, 1.0);
+	return float4(/*albedo * */(diffuseResult.xyz + specularResult.xyz), 1.0);
 	//return float4(multiBounce(aoResult, float3(1,1,1)), 1.0);
 	//return result;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);
