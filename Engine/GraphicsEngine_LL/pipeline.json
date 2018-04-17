@@ -970,6 +970,12 @@
       "dstp": 10
     },
     {
+      "src": "screenSpaceShadow",
+      "dst": "forwardRender",
+      "srcp": 0,
+      "dstp": 11
+    },
+    {
       "src": 70,
       "dst": "hdrCombine",
       "srcp": 0,
