@@ -32,6 +32,7 @@ class ForwardRender :
 		Texture2D,
 		Texture2D,
 		Texture2D,
+		Texture2D,
 		Texture2D>,
 	virtual public OutputPortConfig<Texture2D, Texture2D, Texture2D>
 {
@@ -116,6 +117,7 @@ private:
 	TextureView2D m_csmSplitsTexView;
 	TextureView2D m_lightMVPTexView;
 	TextureView2D m_lightCullDataView;
+	TextureView2D m_screenSpaceShadowTexView;
 
 private:
 	struct ElementHash {

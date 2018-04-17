@@ -1,4 +1,5 @@
 Texture2D<uint> lightCullData : register(t600);
+Texture2D<float> screenSpaceShadowTex : register(t601);
 
 //NOTE: actually, just use SRGB, it's got better quality!
 float3 linear_to_gamma(float3 col)
@@ -101,11 +102,13 @@ float3 get_lighting(float4 sv_position, //gl_FragCoord
 		}
 	}
 
+	float screenSpaceShadow = screenSpaceShadowTex.Sample(samp0, texel);
+
 	color += getCookTorranceBRDF(albedo.xyz,
 								 vs_normal,
 								 vs_view_dir,
 								 -g_lightDir,
-								 g_lightColor.xyz * 10.0 * get_csm_shadow(g_vsPos),
+								 g_lightColor.xyz * 10.0  * screenSpaceShadow * get_csm_shadow(g_vsPos),
 								 roughness,
 								 metalness);
 
