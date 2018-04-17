@@ -145,7 +145,7 @@ float3 wsPosToVoxelTC(float3 wsPos)
 }
 
 //aperture: tan(coneHalfAngle) ???
-float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneAperture, const bool opacityOnly = false)
+float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneAperture, float ssao, const bool opacityOnly = false)
 {
 	float4 result = float4(0, 0, 0, 0);
 
@@ -184,6 +184,7 @@ float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneApert
 		
 
 		result += (1.0 - result.w) * data;
+		//result += min(1.0- ssao, 1.0 - result.w) * data;
 
 
 		//TODO 0.5?????????
@@ -271,12 +272,17 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		albedo = ycocg_to_rgb(int2(input.position.xy), centerAlbedoRoughnessMetalness.xy, a0, a1, a2, a3);
 	}
 
+	float4 ssr = inputTex6.Sample(samp1, input.texcoord.xy);
+	float4 ssao = inputTex7.Sample(samp1, input.texcoord.xy).x;
+
+	bool ssrValid = dot(ssr.xyz, float3(1, 1, 1)) > 0.0;
+
 	float3 perfectReflectionDir = normalize(reflect(wsViewDir, wsNormal));
 
 	//TODO derive aperture from something...
 	//roughness * pi * 0.125???
 	//TODO at grazing angles self reflection happens... we need to overcome this somehow. I added a dot for now but I doubt it's correct...
-	float4 specularResult = coneTrace(wsPos, wsNormal, perfectReflectionDir, tan(0.174533 * 0.5)) * pow(max(dot(perfectReflectionDir, wsNormal), 0.0), 0.75);
+	float4 specularResult = coneTrace(wsPos, wsNormal, perfectReflectionDir, 1.0, tan(0.174533 * 0.5)) * pow(max(dot(perfectReflectionDir, wsNormal), 0.0), 0.75);
 
 	//cone trace diffuse GI + AO in alpha
 	float4 diffuseResult = float4(0,0,0,0);
@@ -286,18 +292,19 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		float3 dirOriented = trans_normal(wsNormal, dir);
 
 		//half angle = 10deg
-		float4 coneResult = coneTrace(wsPos, wsNormal, dirOriented, tan(0.174533));
+		float4 coneResult = coneTrace(wsPos, wsNormal, dirOriented, ssao, tan(0.174533));
 		diffuseResult.xyz += coneResult.xyz * pow(max(dot(dirOriented, wsNormal), 0.0), 0.1);
+		diffuseResult.w += coneResult.w;
 	}
 	diffuseResult /= NUM_CONES;
+	diffuseResult.w = 1.0 - diffuseResult.w;
 
-	float4 ssr = inputTex6.Sample(samp1, input.texcoord.xy);
-	float4 ssao = inputTex7.Sample(samp1, input.texcoord.xy).x;
-
-	bool ssrValid = dot(ssr.xyz, float3(1, 1, 1)) > 0.0;
-
-	//return diffuseResult.w;
-	return float4(/*albedo * */(diffuseResult.xyz * ssao.x + lerp(specularResult.xyz, ssr.xyz, ssrValid)), 1.0);
+	//return ssao;
+	return diffuseResult.w;
+	//return min(diffuseResult.w, ssao);
+	//return diffuseResult.w *ssao;
+	//return float4(diffuseResult.xyz * ssao, 1.0);
+	//return float4(/*albedo * */(diffuseResult.xyz + lerp(specularResult.xyz, ssr.xyz, ssrValid)), 1.0);
 	//return float4(multiBounce(aoResult, float3(1,1,1)), 1.0);
 	//return result;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);
