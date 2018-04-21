@@ -7,7 +7,17 @@
 
 #include "EncodeDecode.hlsl"
 
+#define LOW 1
+#define MEDIUM 2
+#define HIGH 3
+#define ULTRA 4
+
+#define QUALITY LOW
+
+#if QUALITY == ULTRA
 //ULTRA HIGH SETTING CONES
+#define NUM_CONES 46
+#define DIFFUSE_APERTURE 0.174533
 static const float3 coneDirs[46] = {
 	float3(-0.4713, 0.6617, 0.5831),
 	float3(-0.7002, 0.6617, -0.2680),
@@ -66,7 +76,22 @@ static const float3 coneDirs[46] = {
 	float3(-0.425323, 0.850654, -0.309011),
 	float3(0.162456, 0.850654, -0.499995)
 };
-#define NUM_CONES 46
+#elif QUALITY == HIGH
+#elif QUALITY == MEDIUM
+#elif QUALITY == LOW
+#define NUM_CONES 6
+#define DIFFUSE_APERTURE 0.453786
+	static const float3 coneDirs[6] = {
+		float3(0.0, 1.0,  0.000000),
+		float3(-0.794654, 0.607062,  0.000000),
+		float3(0.642889, 0.607062,  0.467086),
+		float3(0.642889, 0.607062, -0.467086),
+		float3(-0.245562, 0.607062,  0.755761),
+		float3(-0.245562, 0.607062, -0.755761)
+	};
+#else
+#error "define quality"
+#endif
 
 struct Uniforms
 {
@@ -293,7 +318,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		float3 dirOriented = trans_normal(wsNormal, dir);
 
 		//half angle = 10deg
-		float4 coneResult = coneTrace(wsPos, wsNormal, dirOriented, ssao, tan(0.174533));
+		float4 coneResult = coneTrace(wsPos, wsNormal, dirOriented, ssao, tan(DIFFUSE_APERTURE));
 		diffuseResult.xyz += coneResult.xyz * pow(max(dot(dirOriented, wsNormal), 0.0), 0.1);
 		diffuseResult.w += coneResult.w;
 	}
@@ -306,6 +331,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//return diffuseResult.w *ssao;
 	//return float4(diffuseResult.xyz * ssao, 1.0);
 	//return float4(diffuseResult.xyz, 1.0);
+	//return float4(specularResult.xyz, 1.0);
 	return float4(/*albedo * */(diffuseResult.xyz + specularResult.xyz), 1.0);
 	//return float4(multiBounce(aoResult, float3(1,1,1)), 1.0);
 	//return result;
