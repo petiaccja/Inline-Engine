@@ -1,3 +1,4 @@
+
 # Inline Engine
 
 Introduction
@@ -19,23 +20,31 @@ The Engine leverages the power of DirectX 12 and similar APIs. It got its name f
 
 Platforms
 ---
-1. Windows (working)
-2. Linux   (future)
-4. XBoxOne (future)
-3. PS4     (future)
+1. Windows (supported)
+2. Linux   (planned)
+4. XBoxOne (planned)
+3. PS4     (planned)
 
 How To Build
 ---
-### Windows
-1. Open Inline-Engine.sln in Visual Studio 2017 latest version (2015 might do as well, but not tested)
-2. Build All Projects
-3. Enjoy
 
-At the moment 2 projects are interesting which you can run ( gpu must support DirectX 12 feature level 11_0  + install latest drivers ):
-- QC_Simulator -> Quadcopter simulator with which you can play or tweak the PID controller.
-- Editor       -> Where you can edit your whole game/project with tools
+**Recommended**:
+Prerequisites: Visual Studio 2017 with latest updates, CMake 3.10 or later
+1. Generate Visual Studio solution files via CMake for Inline-Engine/CMakeLists.txt
+2. Open and build solution files
 
-Core ideas
+**Alternatively**:
+Prerequisites: latest MSVC 19 toolchain, CMake compatible IDE (e.g. Visual Studio, CLion)
+1. Open the folder Inline-Engine with the CMakeLists.txt
+2. Build from the IDE
+
+Note: you can *not* compile it with the GNU toolchain because the Direct3D libraries won't compile, and Vulkan is not supported yet.
+Note: you don't need any additional dependencies, all libraries are packed with the project.
+
+**What to do after build**:
+You can run  QC_Simulator and play around flying a quadcopter. That project tests the rendering pipeline, and effect can be seen in action.
+
+Rendering core ideas
 ---
 ### High-level interface
 The engine exposes geometries, material, and textures to work with. These are used as properties to describe an entity. Entities are grouped into multiple scenes that act like a virtual world. One might put terrain entities, lights, geometries or other types of objects into a scene. The purpose of having multiple scenes is to achieve the separation of 3D world, GUI and debug draw objects. With this, one might define completely different ways of rendering each scene, and can quickly toggle whether to display a scene at all. The results of each scene can be freely combined with desired final output.
