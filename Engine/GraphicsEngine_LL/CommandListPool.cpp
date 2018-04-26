@@ -32,13 +32,13 @@ auto CommandListPool::RequestList(gxapi::eCommandListType type, gxapi::ICommandA
 }
 
 GraphicsCmdListPtr CommandListPool::RequestGraphicsList(gxapi::ICommandAllocator* allocator) {
-	return dynamic_cast_smart<gxapi::IGraphicsCommandList>(RequestList(gxapi::eCommandListType::GRAPHICS, allocator));
+	return dynamic_pointer_cast<gxapi::IGraphicsCommandList>(RequestList(gxapi::eCommandListType::GRAPHICS, allocator));
 }
 ComputeCmdListPtr CommandListPool::RequestComputeList(gxapi::ICommandAllocator* allocator) {
-	return dynamic_cast_smart<gxapi::IComputeCommandList>(RequestList(gxapi::eCommandListType::COMPUTE, allocator));
+	return dynamic_pointer_cast<gxapi::IComputeCommandList>(RequestList(gxapi::eCommandListType::COMPUTE, allocator));
 }
 CopyCmdListPtr CommandListPool::RequestCopyList(gxapi::ICommandAllocator* allocator) {
-	return dynamic_cast_smart<gxapi::ICopyCommandList>(RequestList(gxapi::eCommandListType::COPY, allocator));
+	return dynamic_pointer_cast<gxapi::ICopyCommandList>(RequestList(gxapi::eCommandListType::COPY, allocator));
 }
 
 

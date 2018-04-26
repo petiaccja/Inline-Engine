@@ -22,12 +22,19 @@ class CommandListPoolBase {
 public:
 	struct Deleter {
 	public:
-		Deleter() : m_container(nullptr) {}
-		Deleter(const Deleter&) = default;
-		Deleter(Deleter&&) = default;
-		Deleter& operator=(const Deleter&) = default;
-		Deleter& operator=(Deleter&&) = default;
-		explicit Deleter(CommandListPoolBase* container) : m_container(container) {}
+		Deleter() noexcept : m_container(nullptr) {}
+		Deleter(const Deleter& rhs) noexcept : m_container(rhs.m_container) {}
+		Deleter(Deleter&& rhs) noexcept : m_container(rhs.m_container) { rhs.m_container = nullptr; }
+		Deleter& operator=(const Deleter& rhs) noexcept {
+			m_container = rhs.m_container;
+			return *this;
+		}
+		Deleter& operator=(Deleter&& rhs) noexcept { 
+			m_container = rhs.m_container; rhs.m_container = nullptr;
+			return *this;
+		}
+		explicit Deleter(CommandListPoolBase* container) noexcept : m_container(container) {}
+		~Deleter() noexcept = default;
 		void operator()(gxapi::ICommandList* object) const {
 			assert(m_container != nullptr);
 			m_container->RecycleList(object);

@@ -9,7 +9,7 @@ namespace inl {
 
 
 Logger::Logger() {
-	myNode = std::make_unique<LogNode>();
+	myNode = std::make_shared<LogNode>();
 	outputFile = std::make_unique<std::ofstream>();
 }
 

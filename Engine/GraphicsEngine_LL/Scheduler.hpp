@@ -71,7 +71,7 @@ protected:
 	};
 
 	struct ExecuteState {
-		ExecuteState(const lemon::ListDigraph& taskGraph, VolatileViewHeap& vheap, FrameContext context) : taskGraph(taskGraph), trace(taskGraph), frameContext(context) {}
+		ExecuteState(const lemon::ListDigraph& taskGraph, FrameContext context) : taskGraph(taskGraph), trace(taskGraph), frameContext(context) {}
 		const lemon::ListDigraph& taskGraph;
 		lemon::ListDigraph::NodeMap<ExecuteTrace> trace;
 		FrameContext frameContext;

@@ -66,8 +66,7 @@ void Scheduler::ExecuteParallel(FrameContext context) {
 		GetTraverseDependencies(taskGraph, dependencyTracker);
 
 		// Launch variables.
-		VolatileViewHeap vheap(context.gxApi);
-		ExecuteState state(taskGraph, vheap, context);
+		ExecuteState state(taskGraph, context);
 		std::vector<jobs::Future<void>> jobFutures;
 		std::vector<lemon::ListDigraph::Node> sourceNodes = GetSourceNodes(taskGraph);
 		m_finishedListRemNodes.store(lemon::countNodes(taskGraph));
