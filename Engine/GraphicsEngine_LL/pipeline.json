@@ -706,7 +706,7 @@
       "dstp": 0
     },
     {
-      "src": "motionBlur",
+      "src": "dofMain",
       "dst": "brightLumPass",
       "srcp": 0,
       "dstp": 0
@@ -970,6 +970,12 @@
       "dstp": 10
     },
     {
+      "src": "screenSpaceShadow",
+      "dst": "forwardRender",
+      "srcp": 0,
+      "dstp": 11
+    },
+    {
       "src": 70,
       "dst": "hdrCombine",
       "srcp": 0,
@@ -988,9 +994,9 @@
       "dstp": 4
     },
     {
-      "src": "voxelization",
+      "src": "dofMain",
       "dst": "hdrCombine",
-      "srcp": 1,
+      "srcp": 0,
       "dstp": 0
     },
     {
@@ -1072,9 +1078,9 @@
       "dstp": 3
     },
     {
-      "src": "drawSky",
+      "src": "voxelization",
       "dst": "motionBlur",
-      "srcp": 0,
+      "srcp": 1,
       "dstp": 0
     },
     {

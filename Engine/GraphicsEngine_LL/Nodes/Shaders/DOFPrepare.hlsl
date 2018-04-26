@@ -153,6 +153,10 @@ PS_Output PSMain(PS_Input input)
 	float4 depthGather = depthTex.Gather(samp0, input.texCoord);
 	float maxDepth = max(depthGather.x, max(depthGather.y, max(depthGather.z, depthGather.w)));
 	float inputDepth = linearize_depth(maxDepth, 0.1, 100);
+	
+	output.color_coc = inputData;
+	output.depth = maxDepth;
+	return output;
 
 	float sensor_width = 0.035; //35mm full frame sensor
 

@@ -261,8 +261,8 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//ao = ao / numDirs;
 
 	//TODO sample real albedo
-	return float4(multiBounce(ao, float3(1, 1, 1)), 1.0);
-	//return ao;
+	//return float4(multiBounce(ao, float3(1, 1, 1)), 1.0);
+	return ao;
 
 	//return float4(haltonFactor, 0, 1);
 	//return float4(float2(rand(seed), rand(seed)), 0, 1);

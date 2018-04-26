@@ -89,6 +89,6 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 
-	return medianFilter(input.position.xy, inputTexSize.xy);
-	//return inputTex.Load(int3(int2(input.position.xy), 0));
+	//return medianFilter(input.position.xy, inputTexSize.xy);
+	return inputTex.Load(int3(int2(input.position.xy), 0));
 }

@@ -193,6 +193,9 @@ void ForwardRender::Setup(SetupContext& context) {
 	this->GetInput<9>().Clear();
 	m_lightCullDataView = context.CreateSrv(lightCullData, lightCullData.GetFormat(), srvDesc);
 	
+	auto screenSpaceShadowTex = this->GetInput<11>().Get();
+	this->GetInput<11>().Clear();
+	m_screenSpaceShadowTexView = context.CreateSrv(screenSpaceShadowTex, screenSpaceShadowTex.GetFormat(), srvDesc);
 
 	if (!m_velocityNormal_rtv)
 	{
@@ -397,6 +400,7 @@ void ForwardRender::Execute(RenderContext& context) {
 		commandList.SetResourceState(m_shadowMXTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_csmSplitsTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_lightMVPTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_screenSpaceShadowTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 400), m_pointLightShadowMapTexView);
 
@@ -408,6 +412,8 @@ void ForwardRender::Execute(RenderContext& context) {
 		commandList.SetResourceState(m_lightCullDataView.GetResource(), {gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE	});
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 600), m_lightCullDataView);
+
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 601), m_screenSpaceShadowTexView);
 
 		// Set material parameters
 		std::vector<uint8_t> materialConstants(scenario.constantsSize);
@@ -917,6 +923,13 @@ Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<M
 	lightCullDataBindParamDesc.relativeChangeFrequency = 0;
 	lightCullDataBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+	BindParameterDesc screenSpaceShadowTexBindParamDesc;
+	screenSpaceShadowTexBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 601);
+	screenSpaceShadowTexBindParamDesc.constantSize = 0;
+	screenSpaceShadowTexBindParamDesc.relativeAccessFrequency = 0;
+	screenSpaceShadowTexBindParamDesc.relativeChangeFrequency = 0;
+	screenSpaceShadowTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
 	BindParameterDesc lightUniformsCbDesc;
 	lightUniformsCbDesc.parameter = BindParameter(eBindParameterType::CONSTANT, 600);
 	lightUniformsCbDesc.constantSize = sizeof(Uniforms);
@@ -974,6 +987,7 @@ Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<M
 	descs.push_back(lightMVPBindParamDesc);
 
 	descs.push_back(lightCullDataBindParamDesc);
+	descs.push_back(screenSpaceShadowTexBindParamDesc);
 
 	if (cbSize > 0) {
 		descs.push_back(mtlCbDesc);

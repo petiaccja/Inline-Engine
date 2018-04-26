@@ -7,7 +7,17 @@
 
 #include "EncodeDecode.hlsl"
 
+#define LOW 1
+#define MEDIUM 2
+#define HIGH 3
+#define ULTRA 4
+
+#define QUALITY LOW
+
+#if QUALITY == ULTRA
 //ULTRA HIGH SETTING CONES
+#define NUM_CONES 46
+#define DIFFUSE_APERTURE 0.174533
 static const float3 coneDirs[46] = {
 	float3(-0.4713, 0.6617, 0.5831),
 	float3(-0.7002, 0.6617, -0.2680),
@@ -66,7 +76,22 @@ static const float3 coneDirs[46] = {
 	float3(-0.425323, 0.850654, -0.309011),
 	float3(0.162456, 0.850654, -0.499995)
 };
-#define NUM_CONES 46
+#elif QUALITY == HIGH
+#elif QUALITY == MEDIUM
+#elif QUALITY == LOW
+#define NUM_CONES 6
+#define DIFFUSE_APERTURE 0.453786
+	static const float3 coneDirs[6] = {
+		float3(0.0, 1.0,  0.000000),
+		float3(-0.794654, 0.607062,  0.000000),
+		float3(0.642889, 0.607062,  0.467086),
+		float3(0.642889, 0.607062, -0.467086),
+		float3(-0.245562, 0.607062,  0.755761),
+		float3(-0.245562, 0.607062, -0.755761)
+	};
+#else
+#error "define quality"
+#endif
 
 struct Uniforms
 {
@@ -145,9 +170,10 @@ float3 wsPosToVoxelTC(float3 wsPos)
 }
 
 //aperture: tan(coneHalfAngle) ???
-float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneAperture, const bool opacityOnly = false)
+float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneAperture, float ssao, const bool opacityOnly = false)
 {
-	float4 result = float4(0, 0, 0, 0);
+	//float4 result = float4(0, 0, 0, 0.0);
+	float4 result = float4(0, 0, 0, ssao);
 
 	//TODO start offset based on cone aperture?
 	float traceDist = uniforms.voxelSize * 2.0;
@@ -184,6 +210,7 @@ float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneApert
 		
 
 		result += (1.0 - result.w) * data;
+		//result += min(1.0-ssao, 1.0 - result.w) * data;
 
 
 		//TODO 0.5?????????
@@ -271,12 +298,17 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		albedo = ycocg_to_rgb(int2(input.position.xy), centerAlbedoRoughnessMetalness.xy, a0, a1, a2, a3);
 	}
 
+	float4 ssr = inputTex6.Sample(samp1, input.texcoord.xy);
+	float4 ssao = inputTex7.Sample(samp1, input.texcoord.xy).x;
+
+	bool ssrValid = dot(ssr.xyz, float3(1, 1, 1)) > 0.0;
+
 	float3 perfectReflectionDir = normalize(reflect(wsViewDir, wsNormal));
 
 	//TODO derive aperture from something...
 	//roughness * pi * 0.125???
 	//TODO at grazing angles self reflection happens... we need to overcome this somehow. I added a dot for now but I doubt it's correct...
-	float4 specularResult = coneTrace(wsPos, wsNormal, perfectReflectionDir, tan(0.174533 * 0.5)) * pow(max(dot(perfectReflectionDir, wsNormal), 0.0), 0.75);
+	float4 specularResult = coneTrace(wsPos, wsNormal, perfectReflectionDir, 0.0, tan(0.174533 * 0.5)) * pow(max(dot(perfectReflectionDir, wsNormal), 0.0), 0.75);
 
 	//cone trace diffuse GI + AO in alpha
 	float4 diffuseResult = float4(0,0,0,0);
@@ -286,18 +318,21 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		float3 dirOriented = trans_normal(wsNormal, dir);
 
 		//half angle = 10deg
-		float4 coneResult = coneTrace(wsPos, wsNormal, dirOriented, tan(0.174533));
+		float4 coneResult = coneTrace(wsPos, wsNormal, dirOriented, ssao, tan(DIFFUSE_APERTURE));
 		diffuseResult.xyz += coneResult.xyz * pow(max(dot(dirOriented, wsNormal), 0.0), 0.1);
+		diffuseResult.w += coneResult.w;
 	}
 	diffuseResult /= NUM_CONES;
+	diffuseResult.w = 1.0 - diffuseResult.w;
 
-	float4 ssr = inputTex6.Sample(samp1, input.texcoord.xy);
-	float4 ssao = inputTex7.Sample(samp1, input.texcoord.xy).x;
-
-	bool ssrValid = dot(ssr.xyz, float3(1, 1, 1)) > 0.0;
-
+	//return ssao;
 	//return diffuseResult.w;
-	return float4(/*albedo * */(diffuseResult.xyz * ssao.x + lerp(specularResult.xyz, ssr.xyz, ssrValid)), 1.0);
+	//return min(diffuseResult.w, ssao);
+	//return diffuseResult.w *ssao;
+	//return float4(diffuseResult.xyz * ssao, 1.0);
+	//return float4(diffuseResult.xyz, 1.0);
+	//return float4(specularResult.xyz, 1.0);
+	return float4(/*albedo * */(diffuseResult.xyz + specularResult.xyz), 1.0);
 	//return float4(multiBounce(aoResult, float3(1,1,1)), 1.0);
 	//return result;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);

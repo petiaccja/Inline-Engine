@@ -227,6 +227,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	int2 currPixelPos = int2(input.position.xy);
 	float4 currentColor = inputTex.Sample(samp0, input.texCoord);
 	float currentDepth = linearize_depth(depthTex.Sample(samp0, input.texCoord), 0.1, 100.0);
+	return currentColor;
 
 	float tileDistX = float((currPixelPos.x % (int)uniforms.tileSize - (int)uniforms.tileSize / 2)) / (uniforms.tileSize*0.5);
 	float tileDistY = float((currPixelPos.y % (int)uniforms.tileSize - (int)uniforms.tileSize / 2)) / (uniforms.tileSize*0.5);
@@ -275,7 +276,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		result = currentColor;
 	}*/
 
-	return float4(result.xyz, currentColor.w);
+	//return float4(result.xyz, currentColor.w);
 
 	//return float4(tileMaxCoc, tileMaxCoc, tileMaxCoc, tileMaxCoc)/uniforms.maxBlurDiameter;
 	//return float4(tileClosestDepth, tileClosestDepth, tileClosestDepth, tileClosestDepth)*0.01;
