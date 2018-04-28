@@ -50,7 +50,7 @@ configuration:
 build:
   parallel: true
   project: C:\projects\Inline-Engine\build\Inline-Engine.sln
-  verbosity: normal
+  verbosity: minimal
 
 
 # scripts to run before build
