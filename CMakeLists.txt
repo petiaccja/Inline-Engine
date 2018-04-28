@@ -25,7 +25,13 @@ include(CopyRuntime.cmake)
 if (TARGET_COMPILER_MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /MP /await")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4638") # Ignore XML doc not found reference
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5033") # Register keyword is now deprecated but retarded Bullet uses it	
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5033") # Register keyword is now deprecated but retarded Bullet uses it
+endif()
+
+if (TARGET_PLATFORM_WINDOWS)
+	if (${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION} VERSION_LESS "10.0.16299.0")
+		set(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION 10.0.16299.0)
+	endif()
 endif()
 
 
