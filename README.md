@@ -1,6 +1,8 @@
 
 # Inline Engine
 
+[![Build status](https://ci.appveyor.com/api/projects/status/rdyulmuoq5cc64o9?svg=true)](https://ci.appveyor.com/project/petiaccja/inline-engine)
+
 Introduction
 ---
 Inline Engine is a modern game engine built with latest C++ that provides/will provide solutions to existing common industrial problems:
