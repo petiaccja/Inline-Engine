@@ -31,16 +31,21 @@ How To Build
 ---
 
 **Recommended**:
+
 Prerequisites: Visual Studio 2017 with latest updates, CMake 3.10 or later
+
 1. Generate Visual Studio solution files via CMake for Inline-Engine/CMakeLists.txt
 2. Open and build solution files
 
 **Alternatively**:
+
 Prerequisites: latest MSVC 19 toolchain, CMake compatible IDE (e.g. Visual Studio, CLion)
+
 1. Open the folder Inline-Engine with the CMakeLists.txt
 2. Build from the IDE
 
 Note: you can *not* compile it with the GNU toolchain because the Direct3D libraries won't compile, and Vulkan is not supported yet.
+
 Note: you don't need any additional dependencies, all libraries are packed with the project.
 
 **What to do after build**:
