@@ -60,7 +60,7 @@ CapsAdditional CapabilityQuery::QueryAdditional() const {
 	
 	HRESULT hr;
 	D3D12_FEATURE_DATA_SHADER_MODEL shader;
-	shader.HighestShaderModel = D3D_SHADER_MODEL_6_1;
+	shader.HighestShaderModel = (D3D_SHADER_MODEL)0x61; // D3D_SHADER_MODEL_6_1; // AppVeyor does not take it
 	D3D12_FEATURE_DATA_GPU_VIRTUAL_ADDRESS_SUPPORT address;
 
 	hr = m_device->CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL, &shader, sizeof(shader));
