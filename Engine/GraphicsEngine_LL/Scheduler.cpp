@@ -46,16 +46,8 @@ void Scheduler::ReleaseResources() {
 // Multi-threaded rendering
 //--------------------------------------------
 
-void Scheduler::WriteTraceFile(const lemon::ListDigraph& taskGraph, const ExecuteState& state) {
-	std::string graphvizDotText = WriteTraceGraphviz(taskGraph, state.trace);
-	std::experimental::filesystem::path traceFilePath = R"(D:\Programming\Inline-Engine\Test\QC_Simulator)";
-	if (std::experimental::filesystem::exists(traceFilePath)) {
-		std::ofstream file(traceFilePath / "pipeline_parallel.dot");
-		file << graphvizDotText;
-	}
-}
 
-void Scheduler::ExecuteParallel(FrameContext context) {
+void Scheduler::Execute(FrameContext context) {
 	try {
 		// Get graphs.
 		const auto& taskGraph = m_pipeline.GetTaskGraph();
@@ -489,194 +481,13 @@ std::string Scheduler::WriteTraceGraphviz(const lemon::ListDigraph& taskGraph, c
 }
 
 
-//------------------------------------------------------------------------------
-// Single threaded rendering
-//------------------------------------------------------------------------------
-
-void Scheduler::ExecuteSerial(FrameContext context) {
-	const auto& taskGraph = m_pipeline.GetTaskGraph();
-	const auto& taskFunctionMap = m_pipeline.GetTaskFunctionMap();
-
-	auto tasks = MakeSchedule(taskGraph, taskFunctionMap);
-
-	// Inject copy task to the start.
-	UploadTask uploadTask(context.uploadRequests);
-	tasks.insert(tasks.begin(), &uploadTask);
-
-	// Setup and execute the tasks.
-	try {
-		// PHASE I.: Setup() tasks in correct order
-		for (auto& task : tasks) {
-			if (task != nullptr) {
-				SetupContext setupContext(context.memoryManager, context.textureSpace, context.rtvHeap, context.dsvHeap, context.shaderManager, context.gxApi);
-				task->Setup(setupContext);
-			}
-		}
-
-
-		// PHASE II.: Execute() tasks in correct
-		for (auto& task : tasks) {
-			VolatileViewHeap volatileHeap(context.gxApi);
-			RenderContext renderContext(context.memoryManager,
-										context.textureSpace,
-										&volatileHeap,
-										context.shaderManager,
-										context.gxApi,
-										context.commandListPool,
-										context.commandAllocatorPool,
-										context.scratchSpacePool);
-
-			// Execute the task on the CPU.
-			if (task != nullptr) {
-				// Mark debug event on command queue.
-				std::string className = typeid(*task).name();
-				size_t idx = className.find("inl::gxeng::");
-				if (idx != className.npos) { className = className.substr(idx+12); }
-				context.commandQueue->GetUnderlyingQueue()->BeginDebuggerEvent("Node - " + className);
-				AtScopeExit endPass([&context] { context.commandQueue->GetUnderlyingQueue()->EndDebuggerEvent(); });
-				renderContext.SetCommandListName("Node - " + className + " - Execute()");
-				
-
-				// Call execute.
-				task->Execute(renderContext);
-
-				// Enqueue all command lists on the GPU.
-				if (renderContext.IsListInitialized()) {
-					BasicCommandList* commandList = nullptr;
-					switch (renderContext.GetType()) {
-						case gxapi::eCommandListType::GRAPHICS: commandList = &renderContext.AsGraphics(); break;
-						case gxapi::eCommandListType::COMPUTE: commandList = &renderContext.AsCompute(); break;
-						case gxapi::eCommandListType::COPY: commandList = &renderContext.AsCopy(); break;
-						default: assert(false);
-					}
-					BasicCommandList::Decomposition decomposition = commandList->Decompose();
-
-					std::sort(decomposition.usedResources.begin(), decomposition.usedResources.end(), [](const ResourceUsage& lhs, const ResourceUsage& rhs) {
-						auto lhsPtr = lhs.resource._GetResourcePtr();
-						auto rhsPtr = rhs.resource._GetResourcePtr();
-						return lhsPtr < rhsPtr || (lhs.resource._GetResourcePtr() == rhs.resource._GetResourcePtr() && lhs.subresource < rhs.subresource);
-					});
-
-					// Inject a transition barrier command list.
-					auto barriers = InjectBarriers(decomposition.usedResources.begin(), decomposition.usedResources.end());
-					if (barriers.size() > 0) {
-						CmdAllocPtr injectAlloc = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
-						GraphicsCmdListPtr injectList = context.commandListPool->RequestGraphicsList(injectAlloc.get());
-						injectList->BeginDebuggerEvent("Node - " + className + " - Barrier Injection");
-
-						injectList->ResourceBarrier((unsigned)barriers.size(), barriers.data());
-						injectList->EndDebuggerEvent();
-						injectList->Close();
-
-						EnqueueCommandList(*context.commandQueue,
-										   std::move(injectList),
-										   std::move(injectAlloc),
-										   {},
-										   {},
-										   {},
-										   context);
-					}
-
-					// Update resource states.
-					UpdateResourceStates(decomposition.usedResources.begin(), decomposition.usedResources.end());
-
-					// Enqueue actual command list.
-					std::vector<MemoryObject> usedResourceList;
-					usedResourceList.reserve(decomposition.usedResources.size());
-					for (auto& v : decomposition.usedResources) {
-						usedResourceList.push_back(std::move(v.resource));
-					}
-					for (auto& v : decomposition.additionalResources) {
-						usedResourceList.push_back(std::move(v));
-					}
-
-					decomposition.commandList->EndDebuggerEvent();
-					dynamic_cast<gxapi::ICopyCommandList*>(decomposition.commandList.get())->Close();
-
-					EnqueueCommandList(*context.commandQueue,
-									   std::move(decomposition.commandList),
-									   std::move(decomposition.commandAllocator),
-									   std::move(decomposition.scratchSpaces),
-									   std::move(usedResourceList),
-									   std::unique_ptr<VolatileViewHeap>(new VolatileViewHeap(std::move(volatileHeap))),
-									   context);
-
-
-
-				}
-			}
-		}
-
-		// Set backBuffer to PRESENT state.
-		gxapi::eResourceState bbState = context.backBuffer->GetResource().ReadState(0);
-
-		if (bbState != gxapi::eResourceState::PRESENT) {
-			CmdAllocPtr injectAlloc = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
-			GraphicsCmdListPtr injectList = context.commandListPool->RequestGraphicsList(injectAlloc.get());
-			injectList->BeginDebuggerEvent("Backbuffer State");
-
-			injectList->ResourceBarrier(gxapi::TransitionBarrier{
-				context.backBuffer->GetResource()._GetResourcePtr(),
-				context.backBuffer->GetResource().ReadState(0),
-				gxapi::eResourceState::PRESENT });
-			injectList->EndDebuggerEvent();
-			injectList->Close();
-			context.backBuffer->GetResource().RecordState(gxapi::eResourceState::PRESENT);
-
-			EnqueueCommandList(*context.commandQueue,
-				std::move(injectList),
-				std::move(injectAlloc),
-				{},
-				{},
-				{},
-				context);
-		}
+void Scheduler::WriteTraceFile(const lemon::ListDigraph& taskGraph, const ExecuteState& state) {
+	std::string graphvizDotText = WriteTraceGraphviz(taskGraph, state.trace);
+	std::experimental::filesystem::path traceFilePath = R"(D:\Programming\Inline-Engine\Test\QC_Simulator)";
+	if (std::experimental::filesystem::exists(traceFilePath)) {
+		std::ofstream file(traceFilePath / "pipeline_parallel.dot");
+		file << graphvizDotText;
 	}
-	catch (std::exception& ex) {
-		// One of the pipeline Nodes (Tasks) threw an exception.
-		// Scene cannot be rendered, but we should draw an error message on the screen for the devs.
-
-		// Log error.
-		context.log->Event(std::string("Fatal pipeline Execute error: ") + ex.what());
-
-		// Draw a red blinking background to signal error.
-		try {
-			RenderFailureScreen(context);
-		}
-		catch (std::exception& ex) {
-			context.log->Event(std::string("Fatal pipeline Execute error, could not render error screen: ") + ex.what());
-		}
-	}
-}
-
-
-std::vector<GraphicsTask*> Scheduler::MakeSchedule(const lemon::ListDigraph& taskGraph,
-												   const lemon::ListDigraph::NodeMap<GraphicsTask*>& taskFunctionMap
-/*std::vector<CommandQueue*> queues*/)
-{
-	// Topologically sort the tasks.
-	lemon::ListDigraph::NodeMap<int> taskOrderMap(taskGraph);
-	bool isSortable = lemon::checkedTopologicalSort(taskGraph, taskOrderMap);
-	assert(isSortable);
-
-	std::vector<lemon::ListDigraph::NodeIt> taskNodes;
-	for (lemon::ListDigraph::NodeIt taskNode(taskGraph); taskNode != lemon::INVALID; ++taskNode) {
-		taskNodes.push_back(taskNode);
-	}
-
-	std::sort(taskNodes.begin(), taskNodes.end(), [&](auto n1, auto n2)
-	{
-		return taskOrderMap[n1] < taskOrderMap[n2];
-	});
-
-	// Make a list of them.
-	std::vector<GraphicsTask*> tasks;
-	for (auto node : taskNodes) {
-		auto& task = taskFunctionMap[node];
-		tasks.push_back(task);
-	}
-
-	return tasks;
 }
 
 

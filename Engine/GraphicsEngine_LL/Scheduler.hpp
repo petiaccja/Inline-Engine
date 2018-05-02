@@ -38,10 +38,7 @@ public:
 	Pipeline ReleasePipeline();
 
 	/// <summary> Runs the currently bound pipeline nodes using information about the frame. </summary>
-	void Execute(FrameContext context) {
-		ExecuteParallel(context); // Real drawing
-		//ExecuteSerial(context); // Legacy for fallback
-	}
+	void Execute(FrameContext context);
 
 	/// <summary> Instructs all pipeline nodes to release their resources related to rendering. </summary>
 	/// <remarks> This can be called to free resources before resizing the swapchain.
@@ -88,8 +85,6 @@ protected:
 		bool shouldBeEmpty = false;
 	};
 
-	void ExecuteParallel(FrameContext context);
-
 	void GetNodeNames(ExecuteState& state) const;
 	static std::vector<lemon::ListDigraph::Node> GetSourceNodes(const lemon::ListDigraph& graph);
 	static void GetTraverseDependencies(const lemon::ListDigraph& graph, lemon::ListDigraph::NodeMap<TraverseDependency>& dependencyTracker);
@@ -108,16 +103,6 @@ protected:
 	static std::string WriteTraceGraphviz(const lemon::ListDigraph& taskGraph, const lemon::ListDigraph::NodeMap<ExecuteTrace>& traceMap);
 	void WriteTraceFile(const lemon::ListDigraph& taskGraph, const ExecuteState& state);
 
-
-
-	//--------------------------------------------
-	// Single threaded rendering
-	//--------------------------------------------
-	void ExecuteSerial(FrameContext context);
-
-	static std::vector<GraphicsTask*> MakeSchedule(const lemon::ListDigraph& taskGraph,
-												   const lemon::ListDigraph::NodeMap<GraphicsTask*>& taskFunctionMap
-	/*std::vector<CommandQueue*> queues*/);
 
 	//--------------------------------------------
 	// Utilities
