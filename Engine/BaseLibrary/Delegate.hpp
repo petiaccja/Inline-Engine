@@ -256,7 +256,7 @@ bool impl::CallableBase<ArgsT...>::operator==(const CallableBase& rhs) {
 		return GetClassPtr() == rhs.GetClassPtr()
 			&& GetClassType() == rhs.GetClassType()
 			&& GetFuncPtrSize() == rhs.GetFuncPtrSize()
-			memcmp(*GetFuncPtr(), *rhs.GetFuncPtr(), GetFuncPtrSize());
+			&& 0 == memcmp(GetFuncPtr(), rhs.GetFuncPtr(), GetFuncPtrSize());
 	}
 	else if (!IsClass() && !rhs.IsClass()) {
 		return GetFuncPtr() == rhs.GetFuncPtr();

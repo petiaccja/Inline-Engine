@@ -137,7 +137,7 @@ public:
 		}
 		void Set(void* pixel, int channel, float value) const override {
 			Pixel* px = reinterpret_cast<Pixel*>(pixel);
-			px->channels[channel] = impl::DenormalizeColor<PixelData::Type>(value);
+			px->channels[channel] = impl::DenormalizeColor<typename impl::PixelData<typename impl::GetChannelType<ChannelType>::type, ChannelCount>::Type>(value);
 		}
 		ePixelChannelType GetChannelType() const override {
 			return ChannelType;

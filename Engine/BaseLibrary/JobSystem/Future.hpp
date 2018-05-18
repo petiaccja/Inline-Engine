@@ -194,8 +194,8 @@ void PromiseBase<T>::set_exception(std::exception_ptr ex) {
 
 template <class T>
 void Promise<T>::set_value(T value) {
-	m_sharedState->value = std::move(value);
-	m_sharedState->fence.Signal(1);
+	PromiseBase<T>::m_sharedState->value = std::move(value);
+	PromiseBase<T>::m_sharedState->fence.Signal(1);
 }
 
 inline void Promise<void>::set_value() {

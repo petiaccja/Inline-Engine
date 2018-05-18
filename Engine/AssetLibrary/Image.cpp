@@ -50,7 +50,7 @@ Pixel<type, count>& Image::At(size_t x, size_t y) {
 	assert(x < GetWidth());
 	assert(y < GetHeight());
 
-	if (type != GetType() && count != GetCount()) {
+	if (type != GetType() && count != GetChannelCount()) {
 		throw InvalidCastException("The image does not contain this pixel type.");
 	}
 
@@ -61,7 +61,7 @@ const Pixel<type, count>& Image::At(size_t x, size_t y) {
 	assert(x < GetWidth());
 	assert(y < GetHeight());
 
-	if (type != GetType() && count != GetCount()) {
+	if (type != GetType() && count != GetChannelCount()) {
 		throw InvalidCastException("The image does not contain this pixel type.");
 	}
 

@@ -13,14 +13,14 @@ class BinaryArithmeticNode
 {
 public:
 	BinaryArithmeticNode() {
-		GetInput<0>().AddObserver(this);
-		GetInput<1>().AddObserver(this);
+		this->GetInput<0>().AddObserver(this);
+		this->GetInput<1>().AddObserver(this);
 	}
 
 	void Update() override {
-		ArithmeticT a = GetInput<0>().Get();
-		ArithmeticT b = GetInput<1>().Get();
-		GetOutput<0>().Set(Operator()(a, b));
+		ArithmeticT a = this->GetInput<0>().Get();
+		ArithmeticT b = this->GetInput<1>().Get();
+		this->GetOutput<0>().Set(Operator()(a, b));
 	}
 
 	void Notify(InputPortBase* sender) override {

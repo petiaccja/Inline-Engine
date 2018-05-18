@@ -84,7 +84,7 @@ public:
 private:
 	void AddTree(inl::Vec3 position);
 	void CreatePipelineResources();
-	std::string QCWorld::AssetPath(std::string name) const;
+	std::string AssetPath(std::string name) const;
 private:
 	// Engine
 	inl::gxeng::GraphicsEngine* m_graphicsEngine;

@@ -149,7 +149,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Tangent<semanticIndex>, Tail
 		const Mat44& posTr,
 		const Mat44& normTr
 		) {
-		using DataType = gxeng::VertexPart<gxeng::eVertexElementSemantic::NORMAL>::DataType;
+		using DataType = typename gxeng::VertexPart<gxeng::eVertexElementSemantic::NORMAL>::DataType;
 		if (mesh->HasTangentsAndBitangents() == false) {
 			throw InvalidCallException("Vertex array requested with tangents but loaded mesh does not have such an attribute.");
 		}
@@ -172,7 +172,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Bitangent<semanticIndex>, Ta
 		const Mat44& posTr,
 		const Mat44& normTr
 		) {
-		using DataType = gxeng::VertexPart<gxeng::eVertexElementSemantic::NORMAL>::DataType;
+		using DataType = typename gxeng::VertexPart<gxeng::eVertexElementSemantic::NORMAL>::DataType;
 		if (mesh->HasTangentsAndBitangents() == false) {
 			throw InvalidCallException("Vertex array requested with bitangents but loaded mesh does not have such an attribute.");
 		}

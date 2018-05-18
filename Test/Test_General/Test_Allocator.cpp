@@ -43,7 +43,7 @@ int TestAllocator::Run() {
 
 	inl::SlabAllocatorEngine engine;
 
-	std::unordered_set<int> indices;
+	std::unordered_set<size_t> indices;
 	for (int i = 0; i < 300; ++i) {
 		size_t idx = 0;
 		try {
