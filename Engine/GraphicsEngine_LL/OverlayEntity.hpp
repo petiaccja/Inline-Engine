@@ -37,8 +37,8 @@ public:
 	void SetZDepth(float z);
 	float GetZDepth() const;
 private:
-	Mesh* m_mesh;
-	Image* m_texture;
+	Mesh* m_mesh = nullptr;
+	Image* m_texture = nullptr;
 	Vec4 m_color;
 	float m_zDepth = 0.0f;
 };

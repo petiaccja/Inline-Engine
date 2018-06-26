@@ -22,7 +22,11 @@ InputPortBase::~InputPortBase() {
 }
 
 
-bool InputPortBase::Link(OutputPortBase* source) {
+void InputPortBase::Link(OutputPortBase* source) {
+	if (GetLink() != nullptr) {
+		throw InvalidStateException("Input port is already linked.");
+	}
+
 	// just let the source OutputPortBase do the nasty stuff
 	// note that OutputPortBase is a friend, and sets this' members correctly
 	return source->Link(this);
@@ -82,18 +86,20 @@ OutputPortBase::~OutputPortBase() {
 }
 
 
-bool OutputPortBase::Link(InputPortBase* destination) {
+void OutputPortBase::Link(InputPortBase* destination) {
 	if (destination->link != nullptr) {
-		return false;
+		throw InvalidArgumentException("Input port is already linked.");
 	}
 
 	if (destination->IsCompatible(GetType()) || GetType() == typeid(Any)) {
 		links.insert(destination);
 		destination->SetLinkState(this);
-		return true;
 	}
-
-	return false;
+	else {
+		std::stringstream ss;
+		ss << GetType().name() << " -> " << destination->GetType().name();
+		throw InvalidArgumentException("Port types are not compatible.", ss.str());
+	}
 }
 
 

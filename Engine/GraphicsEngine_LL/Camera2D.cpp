@@ -31,6 +31,11 @@ void Camera2D::SetRotation(float rotation) {
 }
 
 
+void Camera2D::SetVerticalFlip(bool enable) {
+	m_verticalFlip = enable;
+}
+
+
 Vec2 Camera2D::GetPosition() const {
 	return m_position;
 }
@@ -49,10 +54,14 @@ Vec2 Camera2D::GetExtent() const {
 	return m_extent;
 }
 
+bool Camera2D::GetVerticalFlip() const {
+	return m_verticalFlip;
+}
+
 
 Mat33 Camera2D::GetViewMatrix() const {
 	Vec2 target = Vec2{0.0f, 1.0f}*Mat22::Rotation(m_rotation) + m_position;
-	Mat33 view = Mat33::LookAt(m_position, target, true, false);
+	Mat33 view = Mat33::LookAt(m_position, target, !m_verticalFlip, false);
 	return view;
 }
 

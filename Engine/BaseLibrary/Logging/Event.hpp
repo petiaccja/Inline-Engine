@@ -5,6 +5,8 @@
 #include <vector>
 #include <memory>
 
+#undef ERROR
+
 namespace inl {
 
 /// <summary> Denotes the type of polimorphic EventParameters. </summary>

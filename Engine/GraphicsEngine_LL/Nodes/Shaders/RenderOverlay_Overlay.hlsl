@@ -17,12 +17,34 @@ SamplerState linearSampler : register(s0);
 // Shaders
 void VSMain(float2 posL : POSITION,
 			float2 texCoord : TEXCOORD0,
+			uint vertexId : SV_VertexID,
 			out float4 posHOut : SV_Position,
 			out float2 texCoordOut : TEXCOORD0)
 {
-    float3 posH = mul(float3(posL, 1), constants.worldViewProj);
-    posHOut = float4(posH.xy, constants.z * posH.z, posH.z);
-    texCoordOut = texCoord;
+    if (constants.hasMesh) {
+		float3 posH = mul(float3(posL, 1), constants.worldViewProj);
+		posHOut = float4(posH.xy, constants.z * posH.z, posH.z);
+		texCoordOut = texCoord;
+    }
+    else {
+		// Triangle strip based on vertex id
+		// 3-----2
+		// |   / |
+		// | /   |
+		// 1-----0
+		// 0: (1, 0)
+		// 1: (0, 0)
+		// 2: (1, 1)
+		// 3: (0, 1)
+	
+		texCoordOut.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
+		texCoordOut.y = vertexId >> 1; // 1 if bit1 is 1.
+
+        float2 posL = (texCoordOut.xy * 2.0f - float2(1, 1)) * 0.5f;
+
+        float3 posH = mul(float3(posL, 1), constants.worldViewProj);
+        posHOut = float4(posH.xy, constants.z * posH.z, posH.z);
+    }
 }
 
 

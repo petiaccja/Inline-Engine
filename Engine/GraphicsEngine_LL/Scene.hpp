@@ -41,11 +41,6 @@ protected:
 	void NewCollection(std::unique_ptr<EntityCollectionBase> collection, const std::type_index& type);
 
 private:
-	EntityCollection<MeshEntity> m_meshEntities;	
-	EntityCollection<OverlayEntity> m_overlayEntities;
-	EntityCollection<TextEntity> m_textEntities;
-	EntityCollection<DirectionalLight> m_directionalLights;
-
 	std::unordered_map<std::type_index, std::unique_ptr<EntityCollectionBase>> m_entityCollections;
 
 	std::string m_name;

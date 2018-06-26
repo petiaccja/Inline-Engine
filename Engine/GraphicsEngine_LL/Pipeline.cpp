@@ -242,7 +242,7 @@ void Pipeline::CreateFromDescription(const std::string& jsonDescription, Graphic
 				}
 			}
 		}
-		else {
+		else if (info.srcpidx.value() < src->GetNumOutputs()) {
 			srcp = src->GetOutput(info.srcpidx.value());
 		}
 		if (info.dstpname) {
@@ -253,12 +253,13 @@ void Pipeline::CreateFromDescription(const std::string& jsonDescription, Graphic
 				}
 			}
 		}
-		else {
+		else if (info.dstpidx.value() < dst->GetNumInputs()) {
 			dstp = dst->GetInput(info.dstpidx.value());
 		}
 		// Link said ports
-		bool linked = srcp->Link(dstp);
-		AssertThrow(linked, "Ports not compatible.");
+		AssertThrow(srcp != nullptr, "Invalid input port given.");
+		AssertThrow(dstp != nullptr, "Invalid output port given.");
+		srcp->Link(dstp);
 	}
 
 

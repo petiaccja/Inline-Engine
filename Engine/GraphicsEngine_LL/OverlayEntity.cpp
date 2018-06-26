@@ -6,8 +6,6 @@ namespace inl::gxeng {
 
 OverlayEntity::OverlayEntity() {
 	m_color = Vec4(1.f);
-	m_mesh = nullptr;
-	m_texture = nullptr;
 }
 
 

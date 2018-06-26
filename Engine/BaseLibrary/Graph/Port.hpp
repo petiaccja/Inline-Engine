@@ -145,7 +145,9 @@ public:
 
 	/// <summary> Link this port to an output port. </summary>
 	/// <returns> True if succesfully linked. Make sures types are compatible. </returns>
-	bool Link(OutputPortBase* source);
+	/// <exception cref="InvalidStateException"> In case the port is already linked. </exception>
+	/// <exception cref="InvalidArgumentException">  If types are incompatible. </exception>
+	void Link(OutputPortBase* source);
 
 	/// <summary> Remove link between this and the other end. </summary>
 	void Unlink();
@@ -203,7 +205,8 @@ public:
 
 	/// <summary> Link to an input port. </summary>
 	/// <returns> True if succesfully linked. Make sures types are compatible. </returns>
-	virtual bool Link(InputPortBase* destination);
+	/// <exception cref="InvalidArgumentException"> In case the other port is already linked or types are incompatible. </exception>
+	void Link(InputPortBase* destination);
 
 	/// <summary> Remove link between this and the other end. </summary>
 	/// <param param="other"> The port to unlink from this. </param>

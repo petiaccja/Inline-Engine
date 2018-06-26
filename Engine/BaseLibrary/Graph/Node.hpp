@@ -17,6 +17,7 @@
 #include <typeindex>
 
 
+#undef GetClassName // retarded Windows
 
 
 namespace inl {

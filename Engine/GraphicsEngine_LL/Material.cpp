@@ -103,10 +103,7 @@ void MaterialShaderGraph::AssembleShaderCode() {
 		if (sink.GetNumInputs() <= link.sinkPort) {
 			throw InvalidArgumentException("Invalid link: port does not have that many inputs.");
 		}
-		bool isLinked = source.GetOutput(0)->Link(sink.GetInput(link.sinkPort));
-		if (!isLinked) {
-			throw InvalidArgumentException("Invalid link: duplicate input to a single port.");
-		}
+		source.GetOutput(0)->Link(sink.GetInput(link.sinkPort));
 	}
 
 	// create output port LUT

@@ -565,6 +565,12 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 			CallClickEvent(btn, eKeyState::DOUBLE);
 			return TRUE;
 		}
+		case WM_NCMOUSELEAVE:
+			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+		case WM_MOUSELEAVE:
+			instance.m_lastMouseX = -1000000;
+			instance.m_lastMouseY = -1000000;
+			break;
 		case WM_NCMOUSEMOVE:
 			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_MOUSEMOVE: {
@@ -572,14 +578,20 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 			evt.absx = GET_X_LPARAM(lParam);
 			evt.absy = GET_Y_LPARAM(lParam);
 			evt.relx = evt.rely = 0;
+			if (instance.m_lastMouseX > -999999) {
+				evt.relx = evt.absx - instance.m_lastMouseX;
+				evt.rely = evt.absy - instance.m_lastMouseY;
+			}
+			instance.m_lastMouseX = evt.absx;
+			instance.m_lastMouseY = evt.absy;
 			instance.CallEvent(instance.OnMouseMove, evt);
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
 		case WM_MOUSEWHEEL: {
-			short rot = static_cast<short>(HIWORD(wParam));
-			MouseButtonEvent evt;
-			UNREFERENCED_PARAMETER(evt);
-			// nahh this does not work, TODO
+			signed short rot = static_cast<signed short>(HIWORD(wParam));
+			MouseWheelEvent evt;
+			evt.rotation = rot / WHEEL_DELTA;
+			instance.CallEvent(instance.OnMouseWheel, evt);
 			break;
 		}
 		case WM_NCACTIVATE:

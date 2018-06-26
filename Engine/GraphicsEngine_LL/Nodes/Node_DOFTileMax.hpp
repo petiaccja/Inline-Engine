@@ -22,7 +22,7 @@ class DOFTileMax :
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
-	static const char* Info_GetName() { return "DOFTileMax:fú de a faszom ki van már vagy a 200. buzi node-hoz adom hozzá ezt a függvényt"; }
+	static const char* Info_GetName() { return "DOFTileMax"; }
 	DOFTileMax();
 
 	void Update() override {}

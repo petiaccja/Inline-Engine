@@ -55,8 +55,8 @@ public:
 
 template <class T, bool InvertHorizontal, bool InvertVertical>
 Rect<T, InvertHorizontal,InvertVertical>::Rect(Vec2T anchorPoint1, Vec2T anchorPoint2) {
-	Vec2T minp = std::min(anchorPoint1, anchorPoint2);
-	Vec2T maxp = std::max(anchorPoint1, anchorPoint2);
+	Vec2T minp = Min(anchorPoint1, anchorPoint2);
+	Vec2T maxp = Max(anchorPoint1, anchorPoint2);
 
 	if constexpr (!InvertHorizontal) {
 		left = minp.x;

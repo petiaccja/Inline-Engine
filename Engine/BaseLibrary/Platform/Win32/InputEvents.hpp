@@ -44,6 +44,10 @@ struct MouseMoveEvent {
 };
 
 
+struct MouseWheelEvent {
+	float rotation;
+};
+
 
 // Keyboard
 enum class eKey : unsigned {

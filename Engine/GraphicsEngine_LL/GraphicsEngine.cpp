@@ -72,6 +72,8 @@
 #include "Font.hpp"
 #include "TextEntity.hpp"
 
+#include "GraphEditor/PipelineEditorGraph.hpp"
+
 
 namespace inl {
 namespace gxeng {
@@ -225,6 +227,9 @@ void GraphicsEngine::SetScreenSize(unsigned width, unsigned height) {
 
 	m_backBufferHeap.reset();
 	m_scheduler.ReleaseResources();
+	
+	m_graphicsApi->ReportLiveObjects();
+
 	m_swapChain->Resize(width, height);
 	m_backBufferHeap = std::make_unique<BackBufferManager>(m_graphicsApi, m_swapChain.get());
 }
@@ -240,6 +245,12 @@ void GraphicsEngine::SetFullScreen(bool enable) {
 }
 bool GraphicsEngine::GetFullScreen() const {
 	return m_swapChain->IsFullScreen();
+}
+
+
+// Graph editor interfaces
+IGraph* GraphicsEngine::QueryPipelineEditor() const {
+	return new PipelineEditorGraph(m_nodeFactory);
 }
 
 

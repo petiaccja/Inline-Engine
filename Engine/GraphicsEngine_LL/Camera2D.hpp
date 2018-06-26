@@ -29,6 +29,9 @@ public:
 	/// <param name="rotation"> In radians, CCW. </param>
 	void SetRotation(float rotation);
 
+	/// <summary> If true, Y axis is flipped so that coordinates increase downwards. </summary>
+	void SetVerticalFlip(bool enable);	
+
 
 	/// <summary> Get which world-space point is the center of the rendered image. </summary>
 	Vec2 GetPosition() const;
@@ -43,6 +46,9 @@ public:
 	/// <remarks> The rectangle's center point corresponds to <see cref="SetPosition/>. </remarks>
 	Vec2 GetExtent() const;
 
+	/// <summary> False if Y coordinates increase upwards. </summary>
+	bool GetVerticalFlip() const;
+
 	/// <summary> The matrix transforms world space to camera space, with Y being screen-up post-transform. </summary>
 	Mat33 GetViewMatrix() const;
 
@@ -53,6 +59,7 @@ private:
 	Vec2 m_position;
 	float m_rotation;
 	Vec2 m_extent;
+	bool m_verticalFlip = false;
 };
 
 

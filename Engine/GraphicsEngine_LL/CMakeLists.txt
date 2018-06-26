@@ -381,6 +381,14 @@ set(shaders_vxgi
 	"Nodes/Shaders/VoxelMipmap.hlsl"
 	"Nodes/Shaders/VoxelVisualizer.hlsl"
 	)
+
+
+set(graph_editors
+	"GraphEditor/PipelineEditorGraph.cpp"
+	"GraphEditor/PipelineEditorGraph.hpp"
+	"GraphEditor/PipelineEditorNode.cpp"
+	"GraphEditor/PipelineEditorNode.hpp"
+)
 	
 set(all_the_files
 	${common} 
@@ -427,6 +435,8 @@ set(all_the_files
 	${shaders_screen_space}
 	${shaders_aa}
 	${shaders_vxgi}
+
+	${graph_editors}
 )
 	
 file(GLOB_RECURSE all_the_rest RELATIVE ${CMAKE_CURRENT_LIST_DIR} "*.?pp" "*.hlsl")
@@ -486,6 +496,8 @@ source_group("Shaders\\MotionBlur" FILES ${shaders_motion_blur})
 source_group("Shaders\\ScreenSpace" FILES ${shaders_screen_space})
 source_group("Shaders\\AA" FILES ${shaders_aa})
 source_group("Shaders\\VXGI" FILES ${shaders_vxgi})
+
+source_group("GraphEditors" FILES ${graph_editors})
 
 source_group("!!!PleaseGroupThese!!!" FILES ${all_the_rest})
 

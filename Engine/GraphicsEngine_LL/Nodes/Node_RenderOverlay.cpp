@@ -52,6 +52,10 @@ void RenderOverlay::Reset() {
 	// Release PSOs.
 	m_overlayPso.reset();
 	m_textPso.reset();
+
+	// Release binders.
+	m_overlayBinder = {};
+	m_textBinder = {};
 }
 
 
@@ -115,6 +119,7 @@ void RenderOverlay::Execute(RenderContext& context) {
 
 	// Render entities
 	GraphicsCommandList& commandList = context.AsGraphics();
+	commandList.SetResourceState(m_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.ClearRenderTarget(m_rtv, ColorRGBA(0, 0, 0, 0));
 	RenderEntities(commandList, overlayList, textList, minZ, maxZ);
 
@@ -363,7 +368,6 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			CbufferOverlay cbuffer;
 
 			Mat33 world = entity->GetTransform();
-
 
 			cbuffer.worldViewProj.Submatrix<3,3>(0,0) = world*view*proj;
 			cbuffer.hasTexture = (uint32_t)(texture != nullptr && texture->GetSrv());

@@ -51,7 +51,7 @@ private:
 	DescriptorTableState&  FindRootTable(int rootSignatureSlot);
 
 	/// <summary> Calculates root table states based on the currently bound Binder. </summary>
-	void InitRootTables();
+	std::vector<DescriptorTableState> InitRootTables(Binder* binder);
 
 	/// <summary> Marks all root tables committed. Call this after each drawcall. </summary>
 	void CommitRootTables();
@@ -94,9 +94,13 @@ RootTableManager<Type>::RootTableManager(gxapi::IGraphicsApi* graphicsApi, Comma
 
 template <gxapi::eCommandListType Type>
 void RootTableManager<Type>::SetBinder(Binder* binder) {
+	auto rootTableStates = InitRootTables(binder);
+	SetRootSignature(m_commandList, binder->GetRootSignature());
+	for (auto& state : rootTableStates) {
+		SetRootDescriptorTable(m_commandList, state.slot, state.reference.Get(0));
+	}
+	m_rootTableStates = std::move(rootTableStates);
 	m_binder = binder;
-	SetRootSignature(m_commandList, m_binder->GetRootSignature());
-	InitRootTables();
 }
 
 
@@ -203,9 +207,9 @@ auto RootTableManager<Type>::FindRootTable(int rootSignatureSlot) -> DescriptorT
 }
 
 template <gxapi::eCommandListType Type>
-void RootTableManager<Type>::InitRootTables() {
-	m_rootTableStates.clear();
-	const gxapi::RootSignatureDesc& desc = m_binder->GetRootSignatureDesc();
+std::vector<DescriptorTableState> RootTableManager<Type>::InitRootTables(Binder* binder) {
+	std::vector<DescriptorTableState> rootTableStates;
+	const gxapi::RootSignatureDesc& desc = binder->GetRootSignatureDesc();
 
 	for (size_t slot = 0; slot < desc.rootParameters.size(); slot++) {
 		auto& param = desc.rootParameters[slot];
@@ -241,11 +245,12 @@ void RootTableManager<Type>::InitRootTables() {
 			assert(descriptorCountTotal == largestIndex);
 
 			// add record for this table
-			m_rootTableStates.push_back({ m_heap->Allocate((uint32_t)descriptorCountTotal), (int)slot });
-			SetRootDescriptorTable(m_commandList, m_rootTableStates.back().slot, m_rootTableStates.back().reference.Get(0));
-			m_rootTableStates.back().bindings.resize(descriptorCountTotal);
+			rootTableStates.emplace_back(m_heap->Allocate((uint32_t)descriptorCountTotal), (int)slot);
+			rootTableStates.back().bindings.resize(descriptorCountTotal);
 		}
 	}
+
+	return rootTableStates;
 }
 
 template <gxapi::eCommandListType Type>

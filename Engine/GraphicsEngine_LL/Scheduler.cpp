@@ -10,6 +10,7 @@
 #include <fstream> // only for debugging
 #include <sstream>
 #include <iomanip>
+#include <atomic>
 
 namespace inl {
 namespace gxeng {
@@ -317,11 +318,11 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 	BasicCommandList::Decomposition previousList;
 	std::unique_ptr<VolatileViewHeap> prevVheap;
 
+	// Initialize previous list with the upload task and a dummy barrier-only list.
 	previousList.commandAllocator = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
 	previousList.commandList = context.commandListPool->RequestGraphicsList(previousList.commandAllocator.get());
 	
 
-	// Initialize previous list with the upload task and a dummy barrier-only list.
 	UploadTask uploadTask(context.uploadRequests);
 	SetupContext setupContext(context.memoryManager,
 							  context.textureSpace,

@@ -5,27 +5,38 @@
 #include <typeindex>
 
 
+#undef GetClassName // retarded Windows
+
+
 namespace inl {
 
 
 
 class INode {
 public:
-	virtual std::string GetName() = 0;
-	virtual std::string GetClassName() = 0;
+	virtual ~INode() = default;
 
-	virtual int GetNumInputs() = 0;
-	virtual int GetNumOutputs() = 0;
+	virtual std::string GetName() const = 0;
+	virtual void SetName(std::string name) = 0;
+	virtual std::string GetClassName() const = 0;
 
-	virtual bool HasVariableInputs() = 0;
-	virtual bool HasVariableOutputs() = 0;
-	virtual bool SetNumInputs() = 0;
-	virtual bool SetNumOutputs() = 0;
+	virtual int GetNumInputs() const = 0;
+	virtual int GetNumOutputs() const = 0;
 
-	virtual std::string GetInputName(int idx) = 0;
-	virtual std::string GetOutputName(int idx) = 0;
-	virtual std::type_index GetInputType(int idx) = 0;
-	virtual std::type_index GetOutputType(int idx) = 0;
+	virtual bool HasVariableInputs() const = 0;
+	virtual bool HasVariableOutputs() const = 0;
+	virtual void SetNumInputs() = 0;
+	virtual void SetNumOutputs() = 0;
+
+	virtual std::string GetInputName(int idx) const = 0;
+	virtual std::string GetOutputName(int idx) const = 0;
+
+	virtual bool HasPortTypes() const = 0;
+	virtual std::type_index GetInputType(int idx) const = 0;
+	virtual std::type_index GetOutputType(int idx) const = 0;
+
+	virtual std::string GetInputTypeName(int idx) const = 0;
+	virtual std::string GetOutputTypeName(int idx) const = 0;
 };
 
 

@@ -3,7 +3,19 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <tuple>
 
+#ifdef _MSC_VER // disable lemon warnings
+#pragma warning(push)
+#pragma warning(disable: 4267)
+#endif
+
+#include <lemon/euler.h>
+#include <lemon/list_graph.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 namespace inl::gxeng {
 
@@ -37,9 +49,9 @@ public:
 
 	const MaterialShaderOutput* GetLink() const;
 
-	const std::string name;
-	const std::string type;
-	const int index = 0;
+	const std::string name; // HLSL variable name of the port.
+	const std::string type; // HLSL type of the port.
+	const int index = 0; // Index in the HLSL function parameter list.
 private:
 	MaterialShaderOutput* m_link = nullptr;
 	const MaterialShader2* m_parent = nullptr;
@@ -74,10 +86,10 @@ public:
 
 	// Shaders
 	virtual const std::string& GetShaderCode() const = 0;
-	virtual size_t GetHash() const = 0;
+	virtual size_t GetHash() const { return std::hash<std::string>()(GetShaderCode()); }
 
-	void SetDisplayName(std::string name);
-	const std::string& GetDisplayName() const;
+	void SetDisplayName(std::string name) { m_name = std::move(name); }
+	const std::string& GetDisplayName() const { return m_name; }
 
 	// Ports
 	size_t GetNumInputs() const { return m_inputs.size(); }
@@ -129,6 +141,30 @@ public:
 	const std::string& GetShaderCode() const override;
 
 	void SetGraph(std::vector<std::unique_ptr<MaterialShader2>> nodes);
+
+private:
+	// Creates one graph node per shader node, adds arc in graph for any two shader nodes which have their ports linked together.
+	static void CalculateDependencyGraph(const std::vector<std::unique_ptr<MaterialShader2>>& nodes,
+										 lemon::ListDigraph& depGraph,
+										 lemon::ListDigraph::NodeMap<MaterialShader2*>& depMap);
+
+	// Gets the list of unlinked (free) ports of the node graph.
+	static auto GetUnlinkedPorts(const std::vector<std::unique_ptr<MaterialShader2>>& nodes)
+		->std::tuple<std::vector<MaterialShaderInput*>, std::vector<MaterialShaderOutput*>>;
+
+
+	// Creates the parameter list string of the main function using the list of unlinked ports.
+	// Parameters are renamed by adding the name of the parent node.
+	// Throws an exception if two parameters have the same name, because that's invalid in HLSL.
+	static std::string CreateParameterString(const std::vector<MaterialShaderInput*>& inputs,
+											 const std::vector<MaterialShaderOutput*>& outputs);
+
+	// Creates input and outputs ports.
+	void CreatePorts(const std::vector<MaterialShaderInput*>& inputs,
+					 const std::vector<MaterialShaderOutput*>& outputs);
+private:
+	std::vector<std::unique_ptr<MaterialShader2>> m_nodes;
+	std::string m_sourceCode;
 };
 
 

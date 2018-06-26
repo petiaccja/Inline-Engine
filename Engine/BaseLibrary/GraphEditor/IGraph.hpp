@@ -18,12 +18,18 @@ struct Link {
 
 class IGraph {
 public:
-	virtual std::string GetNodeNames() = 0;
-	virtual INode* AddNode(std::string name) = 0;
+	virtual ~IGraph() = default;
 
-	virtual void Link(INode* sourceNode, int sourcePort, INode* targetNode, int targetPort) = 0;
-	virtual const std::vector<inl::Link>& GetLinks() const = 0;
+	virtual std::vector<std::string> GetNodeList() const = 0;
+
+	virtual INode* AddNode(std::string name) = 0;
+	virtual void RemoveNode(INode* node) = 0;
+
+	virtual Link Link(INode* sourceNode, int sourcePort, INode* targetNode, int targetPort) = 0;
+	virtual void Unlink(INode* targetNode, int targetPort) = 0;
+
 	virtual const std::vector<INode*> GetNodes() const = 0;
+	virtual const std::vector<inl::Link>& GetLinks() const = 0;
 
 	virtual void Validate() = 0;
 	virtual std::string SerializeJSON() = 0;

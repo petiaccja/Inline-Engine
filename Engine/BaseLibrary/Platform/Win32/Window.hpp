@@ -96,6 +96,7 @@ public:
 public:
 	Event<MouseButtonEvent> OnMouseButton;
 	Event<MouseMoveEvent> OnMouseMove;
+	Event<MouseWheelEvent> OnMouseWheel;
 	Event<KeyboardEvent> OnKeyboard;
 	Event<ResizeEvent> OnResize; /// <summary> Parameters: window size, client area size. </summary>
 	Event<char32_t> OnCharacter;
@@ -139,6 +140,9 @@ private:
 	RectI m_frameMargins = { 8,8,8,8 };
 	std::function<eWindowCaptionButton(Vec2i)> m_captionButtonHandler;
 	eWindowCaptionButton m_mouseHover = eWindowCaptionButton::NONE;
+
+	// Mouse move history.
+	int m_lastMouseX = -1000000, m_lastMouseY = -1000000;
 };
 
 

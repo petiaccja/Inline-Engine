@@ -20,8 +20,8 @@ public:
 template <class EntityType>
 class EntityCollection : public EntityCollectionBase {
 public:
-	using iterator = typename std::set<EntityType*>::iterator;
-	using const_iterator = typename std::set<EntityType*>::const_iterator;
+	using iterator = typename std::set<const EntityType*>::iterator;
+	using const_iterator = typename std::set<const EntityType*>::const_iterator;
 public:
 	iterator begin();
 	iterator end();
@@ -33,12 +33,12 @@ public:
 	bool IsEmpty() const;
 	size_t Size() const;
 
-	void Add(EntityType* entity);
-	void Remove(EntityType* entity);
-	bool Contains(EntityType* entity) const;
+	void Add(const EntityType* entity);
+	void Remove(const EntityType* entity);
+	bool Contains(const EntityType* entity) const;
 	void Clear();
 private:
-	std::set<EntityType*> m_entites;
+	std::set<const EntityType*> m_entites;
 };
 
 
@@ -83,7 +83,7 @@ size_t EntityCollection<EntityType>::Size() const {
 }
 
 template <class EntityType>
-void EntityCollection<EntityType>::Add(EntityType* entity) {
+void EntityCollection<EntityType>::Add(const EntityType* entity) {
 	auto result = m_entites.insert(entity);
 	if (result.second == false) {
 		throw InvalidArgumentException("Entity already member of this collection.");
@@ -91,12 +91,12 @@ void EntityCollection<EntityType>::Add(EntityType* entity) {
 }
 
 template <class EntityType>
-void EntityCollection<EntityType>::Remove(EntityType* entity) {
+void EntityCollection<EntityType>::Remove(const EntityType* entity) {
 	m_entites.erase(entity);
 }
 
 template <class EntityType>
-bool EntityCollection<EntityType>::Contains(EntityType* entity) const {
+bool EntityCollection<EntityType>::Contains(const EntityType* entity) const {
 	return m_entites.count(entity) > 0;
 }
 

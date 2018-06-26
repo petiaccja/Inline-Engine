@@ -24,8 +24,10 @@
 #include <BaseLibrary/Logging_All.hpp>
 
 #include <BaseLibrary/Any.hpp>
+#include <BaseLibrary/GraphEditor/IGraph.hpp>
 
 #include <filesystem>
+
 
 #undef CreateFont // Fuck goddamn winapi -.-
 
@@ -128,6 +130,10 @@ public:
 
 	/// <summary> True if the swap chain is currently in full-screen mode. </summary>
 	bool GetFullScreen() const;
+
+
+	// Graph editor interfaces
+	IGraph* QueryPipelineEditor() const;
 
 
 	// Resources

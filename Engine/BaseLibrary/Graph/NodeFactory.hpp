@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Node.hpp"
+#include "../StringUtil.hpp"
 
 #include <unordered_map>
 #include <functional>
@@ -25,6 +26,7 @@ public:
 		std::vector<std::type_index> inputTypes;
 		std::vector<std::type_index> outputTypes;
 		std::string name;
+		std::string description;
 		std::string group;
 	};
 private:
@@ -75,19 +77,28 @@ template <class T>
 bool NodeFactory::RegisterNodeClass(const std::string& group) {
 	static_assert(std::is_base_of<NodeBase, T>::value, "Registered class does not inherit from NodeBase.");
 
-	// concat name and group as a path
+	// Cut trailing slash from group name.
 	std::string strGroup = group;
-	std::string strName = T::Info_GetName();
+	while (strGroup.size() > 0 && strGroup[strGroup.size() - 1] == '/') {
+		strGroup.pop_back();
+	}
+
+	// Split name to name and description.
+	std::string nameDesc = T::Info_GetName();
+	auto tokens = Tokenize(nameDesc, ":", false);
+	if (tokens.size() == 0) {
+		throw InvalidArgumentException("Node's name cannot be empty.");
+	}
+
+	std::string strName(tokens[0].begin(), tokens[0].end());
 	if (strName.find('/') != std::string::npos) {
 		assert(false); // Node's name cannot contain slashes
 		return false;
 	}
-	auto descriptionBegins = strName.find(':');
-	if (descriptionBegins != std::string::npos) {
-		strName = strName.substr(0, descriptionBegins);
-	}
-	while (strGroup.size() > 0 && strGroup[strGroup.size() - 1] == '/') {
-		strGroup.pop_back();
+
+	std::string strDesc;
+	if (tokens.size() >= 2) {
+		strDesc = std::string(tokens[1].begin(), tokens[1].end());
 	}
 
 	// check already registered
@@ -99,7 +110,8 @@ bool NodeFactory::RegisterNodeClass(const std::string& group) {
 
 	// set up node information for the class
 	NodeCreator creator;
-	creator.info.name = T::Info_GetName();
+	creator.info.name = strName;
+	creator.info.description = strDesc;
 	creator.info.group = strGroup;
 	//creator.info.numInputPorts = T::Info_GetNumInputs();
 	//creator.info.numOutputPorts = T::Info_GetNumOutputs();
