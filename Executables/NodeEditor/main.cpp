@@ -64,6 +64,15 @@ int main() {
 			nodeEditor.Update();
 		}
 	}
+	catch (Exception& ex) {
+		cout << "Program crashed: " << endl;
+		cout << ex.what() << endl;
+		ex.PrintStackTrace(cout);
+		cout << endl;
+		cout << "Press ENTER to exit..." << endl;
+		std::cin.get();
+		return 2;
+	}
 	catch (std::exception& ex) {
 		cout << "Program crashed: " << endl;
 		cout << ex.what() << endl;

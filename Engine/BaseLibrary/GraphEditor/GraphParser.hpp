@@ -12,13 +12,16 @@
 
 namespace inl {
 
+struct NodeMetaDescription {
+	Vec2i placement;
+};
 
 struct NodeDescription {
 	std::optional<int> id;
 	std::optional<std::string> name;
 	std::string cl;
 	std::vector<std::optional<std::string>> defaultInputs;
-	Vec2i placement;
+	NodeMetaDescription metaData;
 };
 
 struct LinkDescription {
@@ -32,6 +35,7 @@ struct LinkDescription {
 class GraphParser {
 public:
 	void Parse(const std::string& json);
+	static std::string Serialize(const NodeBase* const* nodes, const NodeMetaDescription* metaData, size_t count, std::function<std::string(const NodeBase&)> FindName);
 
 	const std::vector<NodeDescription>& GetNodes() const;
 	const std::vector<LinkDescription>& GetLinks() const;
@@ -50,6 +54,7 @@ public:
 private:
 	void ParseDocument(const std::string& document);
 	void CreateLookupTables();
+	static std::string MakeJson(std::vector<NodeDescription> nodeDescs, std::vector<LinkDescription> linkDescs);
 
 private:
 	std::vector<NodeDescription> m_nodeDescs;

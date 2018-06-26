@@ -1,8 +1,11 @@
 #include "GraphParser.hpp"
 
+#include <BaseLibrary/Range.hpp>
+
 #include <rapidjson/encodings.h>
 #include <rapidjson/document.h>
-#include "BaseLibrary/Range.hpp"
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/prettywriter.h>
 
 
 namespace inl {
@@ -32,6 +35,96 @@ static StringErrorPosition GetStringErrorPosition(const std::string& str, size_t
 void GraphParser::Parse(const std::string& json) {
 	ParseDocument(json);
 	CreateLookupTables();
+}
+
+
+std::string GraphParser::Serialize(const NodeBase* const* nodes,
+								   const NodeMetaDescription* metaData,
+								   size_t count,
+								   std::function<std::string(const NodeBase&)> FindName)
+{
+	// { node -> description }
+	std::unordered_map<const NodeBase*, NodeDescription> nodeDescLookup;
+	// { output port -> { parent, index in parent }}
+	std::unordered_map<const OutputPortBase*, std::tuple<const NodeBase*, int>> outputLookup;
+
+	// Description vector.
+	std::vector<NodeDescription> nodeDescs;
+	std::vector<LinkDescription> linkDescs;
+
+	// Go over all nodes, create description and output lookup.
+	for (auto i : Range(count)) {
+		const NodeBase* node = nodes[i];
+
+		// Create output lookup.
+		for (int j = 0; j < node->GetNumOutputs(); ++j) {
+			outputLookup[node->GetOutput(j)] = { node, j };
+		}
+
+		// Create preliminary description.
+		NodeDescription desc;
+		std::string className = FindName(*node);
+		desc.cl = className;
+		desc.id = (int)i;
+		if (!node->GetDisplayName().empty()) {
+			desc.name = node->GetDisplayName();
+		}
+		// Add meta to description.
+		desc.metaData = metaData[i];
+
+		nodeDescLookup.insert({ node, desc });
+	}
+
+
+	// Create link descs for all ports of all nodes.
+	for (auto i : Range(count)) {
+		// Destination node.
+		const NodeBase* dst = nodes[i];
+
+		// Iterate over all input ports.
+		for (int i = 0; i < dst->GetNumInputs(); ++i) {
+			const InputPortBase* input = dst->GetInput(i);
+			const OutputPortBase* output = input->GetLink();
+
+			// If we have an output port linked, add a link desc.
+			if (output) {
+				auto nit = outputLookup.find(output);
+				assert(nit != outputLookup.end());
+				const auto[src, srcpidx] = nit->second;
+
+				LinkDescription desc;
+				if (!src->GetDisplayName().empty()) {
+					desc.srcname = src->GetDisplayName();
+				}
+				else {
+					desc.srcid = nodeDescLookup[src].id;
+				}
+				if (!dst->GetDisplayName().empty()) {
+					desc.dstname = dst->GetDisplayName();
+				}
+				else {
+					desc.dstid = nodeDescLookup[dst].id;
+				}
+
+				desc.srcpidx = srcpidx;
+				desc.dstpidx = i;
+
+				linkDescs.push_back(desc);
+			}
+			// If no link, save the default value.
+			else {
+				std::optional<std::string> value = input->ToString();
+
+				auto& nodeInfo = nodeDescLookup[dst];
+				if (nodeInfo.defaultInputs.size() < i + 1) {
+					nodeInfo.defaultInputs.resize(i + 1);
+				}
+				nodeInfo.defaultInputs[i] = value;
+			}
+		}
+	}
+
+	return MakeJson(std::move(nodeDescs), std::move(linkDescs));
 }
 
 
@@ -98,7 +191,7 @@ InputPortBase* GraphParser::FindInputPort(NodeBase* holder, const std::string& n
 
 
 InputPortBase* GraphParser::FindInputPort(NodeBase* holder, int index) {
-	if (index < holder->GetNumInputs() && 0 < index) {
+	if (index < holder->GetNumInputs() && 0 <= index) {
 		return holder->GetInput(index);
 	}
 	throw OutOfRangeException("Port was not found.");
@@ -129,7 +222,7 @@ OutputPortBase* GraphParser::FindOutputPort(NodeBase* holder, const std::string&
 
 
 OutputPortBase* GraphParser::FindOutputPort(NodeBase* holder, int index) {
-	if (index < holder->GetNumOutputs() && 0 < index) {
+	if (index < holder->GetNumOutputs() && 0 <= index) {
 		return holder->GetOutput(index);
 	}
 	throw OutOfRangeException("Port was not found.");
@@ -155,34 +248,125 @@ void GraphParser::ParseDocument(const std::string& document) {
 
 	auto& nodes = doc["nodes"];
 	auto& links = doc["links"];
-	std::vector<NodeDescription> nodeCreationInfos;
-	std::vector<LinkDescription> linkCreationInfos;
+	std::vector<NodeDescription> nodeDescs;
+	std::vector<LinkDescription> linkDescs;
 
 	for (SizeType i = 0; i < nodes.Size(); ++i) {
 		NodeDescription info = ParseNode(nodes[i]);
-		nodeCreationInfos.push_back(info);
+		nodeDescs.push_back(info);
 	}
 
 	for (SizeType i = 0; i < links.Size(); ++i) {
 		LinkDescription info = ParseLink(links[i]);
-		linkCreationInfos.push_back(info);
+		linkDescs.push_back(info);
 	}
+
+	m_nodeDescs = nodeDescs;
+	m_linkDescs = linkDescs;
 }
 
 
 void GraphParser::CreateLookupTables() {
-	std::unordered_map<int, size_t> idBook;
-	std::unordered_map<std::string, size_t> nameBook;
+	std::unordered_map<int, size_t> idLookup;
+	std::unordered_map<std::string, size_t> nameLookup;
 	for (size_t i = 0; i < m_nodeDescs.size(); ++i) {
 		if (m_nodeDescs[i].name) {
-			auto ins = nameBook.insert({ m_nodeDescs[i].name.value(), i });
+			auto ins = nameLookup.insert({ m_nodeDescs[i].name.value(), i });
 			AssertThrow(ins.second == true, "Node names must be unique.");
 		}
 		if (m_nodeDescs[i].id) {
-			auto ins = idBook.insert({ m_nodeDescs[i].id.value(), i });
+			auto ins = idLookup.insert({ m_nodeDescs[i].id.value(), i });
 			AssertThrow(ins.second == true, "Node ids must be unique.");
 		}
 	}
+
+	m_nameLookup = std::move(nameLookup);
+	m_idLookup = std::move(idLookup);
+}
+
+
+std::string GraphParser::MakeJson(std::vector<NodeDescription> nodeDescs, std::vector<LinkDescription> linkDescs) {
+	using namespace rapidjson;
+
+	std::stable_sort(nodeDescs.begin(), nodeDescs.end(), [](const NodeDescription& lhs, const NodeDescription& rhs) {
+		return lhs.cl < rhs.cl;
+	});
+	std::stable_sort(nodeDescs.begin(), nodeDescs.end(), [](const NodeDescription& lhs, const NodeDescription& rhs) {
+		return lhs.name < rhs.name;
+	});
+
+	std::stable_sort(linkDescs.begin(), linkDescs.end(), [](const LinkDescription& lhs, const LinkDescription& rhs) {
+		return lhs.srcname < rhs.srcname;
+	});
+	std::stable_sort(linkDescs.begin(), linkDescs.end(), [](const LinkDescription& lhs, const LinkDescription& rhs) {
+		return lhs.dstname < rhs.dstname;
+	});
+
+	using namespace rapidjson;
+	Document doc;
+	auto& alloc = doc.GetAllocator();
+	doc.SetObject();
+
+	doc.AddMember("nodes", kArrayType, alloc);
+	doc.AddMember("links", kArrayType, alloc);
+	auto& docNodes = doc["nodes"];
+	auto& docLinks = doc["links"];
+
+	// Add nodes to doc.
+	for (auto& node : nodeDescs) {
+		Value v;
+		v.SetObject();
+		v.AddMember("class", Value().SetString(node.cl.c_str(), alloc), alloc);
+		if (node.id) {
+			v.AddMember("id", node.id.value(), alloc);
+		}
+		if (node.name) {
+			v.AddMember("name", Value().SetString(node.name.value().c_str(), alloc), alloc);
+		}
+		if (!node.defaultInputs.empty()) {
+			v.AddMember("inputs", kArrayType, alloc);
+			for (const auto& input : node.defaultInputs) {
+				if (input) {
+					v["inputs"].PushBack(Value().SetString(input.value().c_str(), alloc), alloc);
+				}
+				else {
+					v["inputs"].PushBack(Value().SetObject(), alloc);
+				}
+			}
+		}
+		std::stringstream ss;
+		ss << node.metaData.placement;
+		v.AddMember("meta_pos", Value().SetString(ss.str().c_str(), alloc), alloc);
+		docNodes.PushBack(v, alloc);
+	}
+
+	// Add links to doc.
+	auto AddLinkMember = [&alloc](Value& v, const char* member, std::optional<int> num, std::optional<std::string> str) {
+		if (num) {
+			v.AddMember(GenericStringRef<char>(member), num.value(), alloc);
+		}
+		else {
+			assert(str);
+			v.AddMember(GenericStringRef<char>(member), Value().SetString(str.value().c_str(), alloc), alloc);
+		}
+	};
+
+	for (auto& link : linkDescs) {
+		Value v;
+		v.SetObject();
+		AddLinkMember(v, "src", link.srcid, link.srcname);
+		AddLinkMember(v, "dst", link.dstid, link.dstname);
+		AddLinkMember(v, "srcp", link.srcpidx, link.srcpname);
+		AddLinkMember(v, "dstp", link.dstpidx, link.dstpname);
+		docLinks.PushBack(v, alloc);
+	}
+
+	// Convert JSON doc to sring
+	StringBuffer buffer;
+	PrettyWriter<StringBuffer> writer(buffer);
+	doc.Accept(writer);
+
+	return buffer.GetString();
 }
 
 
@@ -234,6 +418,15 @@ NodeDescription ParseNode(const rapidjson::GenericValue<rapidjson::UTF8<>>& obj)
 			}
 		}
 	}
+
+	if (obj.HasMember("meta_pos")) {
+		AssertThrow(obj["name"].IsString(), "Node's name member must be a string.");
+		std::string vecStr = obj["name"].GetString();
+		const char* endPtr;
+		Vec2u pos = strtovec<Vec2u>(vecStr.c_str(), &endPtr);
+		info.metaData.placement = pos;
+	}
+
 	return info;
 };
 

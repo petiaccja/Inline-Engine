@@ -87,7 +87,7 @@ void Exception::DoBreak() {
 
 
 const char* Exception::what() const noexcept {
-	return m_what ? m_what->c_str() : "";
+	return m_what ? m_what->c_str() : (m_message ? m_message->c_str() : "");
 }
 
 const std::string& Exception::Message() const noexcept {

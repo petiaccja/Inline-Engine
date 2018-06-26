@@ -6,51 +6,14 @@
 #include "GraphicsNode.hpp"
 
 #include <BaseLibrary/Exception/Exception.hpp>
+#include <BaseLibrary/GraphEditor/GraphParser.hpp>
 
-#include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/prettywriter.h>
 #include <cassert>
 #include <optional>
 #include <typeinfo>
 
 
-namespace inl {
-namespace gxeng {
-
-
-//------------------------------------------------------------------------------
-// Helper structures and functions
-//------------------------------------------------------------------------------
-
-struct NodeCreationInfo {
-	std::optional<int> id;
-	std::optional<std::string> name;
-	std::string cl;
-	std::vector<std::optional<std::string>> inputs;
-};
-
-struct LinkCreationInfo {
-	std::optional<int> srcid, dstid;
-	std::optional<std::string> srcname, dstname;
-	std::optional<int> srcpidx, dstpidx;
-	std::optional<std::string> srcpname, dstpname;
-};
-
-struct StringErrorPosition {
-	int lineNumber;
-	int characterNumber;
-	std::string line;
-};
-
-
-static void AssertThrow(bool condition, const std::string& message);
-static NodeCreationInfo ParseNode(const rapidjson::GenericValue<rapidjson::UTF8<>>& jsonObj);
-static LinkCreationInfo ParseLink(const rapidjson::GenericValue<rapidjson::UTF8<>>& jsonObj);
-static StringErrorPosition GetStringErrorPosition(const std::string& str, size_t errorCharacter);
-
-static std::string SerializeNodesAndLinks(std::vector<NodeCreationInfo> nodes, std::vector<LinkCreationInfo> links);
-
+namespace inl::gxeng {
 
 
 //------------------------------------------------------------------------------
@@ -141,65 +104,23 @@ Pipeline::~Pipeline() {
 }
 
 
-
 void Pipeline::CreateFromDescription(const std::string& jsonDescription, GraphicsNodeFactory& factory) {
-	using namespace rapidjson;
+	GraphParser parser;
+	std::vector<std::shared_ptr<NodeBase>> nodeObjects;
 
-	// Parse the JSON file.
-	Document doc;
-	doc.Parse(jsonDescription.c_str());
-	ParseErrorCode ec = doc.GetParseError();
-	if (ec != ParseErrorCode::kParseErrorNone) {
-		size_t errorCharacter = doc.GetErrorOffset();
-		auto [lineNumber, characterNumber, line] = GetStringErrorPosition(jsonDescription, errorCharacter);
-		throw InvalidArgumentException("JSON descripion has syntax errors.", "Check line " + std::to_string(lineNumber) + ":" + std::to_string(characterNumber));
-	}
-
-	AssertThrow(doc.IsObject(), "JSON root must be an object with member arrays \"nodes\" and \"links\".");
-	AssertThrow(doc.HasMember("nodes") && doc["nodes"].IsArray(), "JSON root must have \"nodes\" member array.");
-	AssertThrow(doc.HasMember("links") && doc["links"].IsArray(), "JSON root must have \"links\" member array.");
-
-	auto& nodes = doc["nodes"];
-	auto& links = doc["links"];
-	std::vector<NodeCreationInfo> nodeCreationInfos;
-	std::vector<LinkCreationInfo> linkCreationInfos;
-
-	for (SizeType i = 0; i < nodes.Size(); ++i) {
-		NodeCreationInfo info = ParseNode(nodes[i]);
-		nodeCreationInfos.push_back(info);
-	}
-
-	for (SizeType i = 0; i < links.Size(); ++i) {
-		LinkCreationInfo info = ParseLink(links[i]);
-		linkCreationInfos.push_back(info);
-	}
-
-	// Create lookup dictionary of nodes by name and by id.
-	// {name/id of node, index of node in vector}
-	std::unordered_map<int, size_t> idBook;
-	std::unordered_map<std::string, size_t> nameBook;
-	for (size_t i = 0; i < nodeCreationInfos.size(); ++i) {
-		if (nodeCreationInfos[i].name) {
-			auto ins = nameBook.insert({ nodeCreationInfos[i].name.value(), i });
-			AssertThrow(ins.second == true, "Node names must be unique.");
-		}
-		if (nodeCreationInfos[i].id) {
-			auto ins = idBook.insert({ nodeCreationInfos[i].id.value(), i });
-			AssertThrow(ins.second == true, "Node ids must be unique.");
-		}
-	}
+	// Parse json.
+	parser.Parse(jsonDescription);
 
 	// Create nodes with initial values.
-	std::vector<std::shared_ptr<NodeBase>> nodeObjects;
-	for (auto& info : nodeCreationInfos) {
-		std::shared_ptr<NodeBase> nodeObject(factory.CreateNode(info.cl));
-		if (info.name) {
-			nodeObject->SetDisplayName(info.name.value());
+	for (auto& nodeDesc : parser.GetNodes()) {
+		std::shared_ptr<NodeBase> nodeObject(factory.CreateNode(nodeDesc.cl));
+		if (nodeDesc.name) {
+			nodeObject->SetDisplayName(nodeDesc.name.value());
 		}
 
-		for (int i = 0; i < nodeObject->GetNumInputs() && i < info.inputs.size(); ++i) {
-			if (info.inputs[i]) {
-				nodeObject->GetInput(i)->SetConvert(info.inputs[i].value());
+		for (int i = 0; i < nodeObject->GetNumInputs() && i < nodeDesc.defaultInputs.size(); ++i) {
+			if (nodeDesc.defaultInputs[i]) {
+				nodeObject->GetInput(i)->SetConvert(nodeDesc.defaultInputs[i].value());
 			}
 		}
 
@@ -207,61 +128,25 @@ void Pipeline::CreateFromDescription(const std::string& jsonDescription, Graphic
 	}
 
 	// Link nodes above.
-	for (auto& info : linkCreationInfos) {
-		NodeBase *src, *dst;
+	for (auto& info : parser.GetLinks()) {
+		NodeBase *src = nullptr, *dst = nullptr;
 		OutputPortBase* srcp = nullptr;
 		InputPortBase* dstp = nullptr;
 
-		// Find src and dst nodes
-		if (info.srcname) {
-			auto it = nameBook.find(info.srcname.value());
-			AssertThrow(it != nameBook.end(), "Node requested to link named " + info.srcname.value() + " not found.");
-			src = nodeObjects[it->second].get();
-		}
-		else {
-			auto it = idBook.find(info.srcid.value());
-			AssertThrow(it != idBook.end(), "Node requested to link id=" + std::to_string(info.srcid.value()) + " not found.");
-			src = nodeObjects[it->second].get();
-		}
-		if (info.dstname) {
-			auto it = nameBook.find(info.dstname.value());
-			AssertThrow(it != nameBook.end(), "Node requested to link named " + info.dstname.value() + " not found.");
-			dst = nodeObjects[it->second].get();
-		}
-		else {
-			auto it = idBook.find(info.dstid.value());
-			AssertThrow(it != idBook.end(), "Node requested to link id=" + std::to_string(info.dstid.value()) + " not found.");
-			dst = nodeObjects[it->second].get();
-		}
-		// Find src and dst ports
-		if (info.srcpname) {
-			for (int i = 0; i < src->GetNumOutputs(); ++i) {
-				if (info.srcpname.value() == src->GetOutputName(i)) {
-					srcp = src->GetOutput(i);
-					break;
-				}
-			}
-		}
-		else if (info.srcpidx.value() < src->GetNumOutputs()) {
-			srcp = src->GetOutput(info.srcpidx.value());
-		}
-		if (info.dstpname) {
-			for (int i = 0; i < dst->GetNumInputs(); ++i) {
-				if (info.dstpname.value() == dst->GetInputName(i)) {
-					dstp = dst->GetInput(i);
-					break;
-				}
-			}
-		}
-		else if (info.dstpidx.value() < dst->GetNumInputs()) {
-			dstp = dst->GetInput(info.dstpidx.value());
-		}
+		// Find src and dst nodes.
+		size_t srcNodeIdx = parser.FindNode(info.srcid, info.srcname);
+		size_t dstNodeIdx = parser.FindNode(info.dstid, info.dstname);
+
+		src = nodeObjects[srcNodeIdx].get();
+		dst = nodeObjects[dstNodeIdx].get();
+
+		// Find src and dst ports.
+		srcp = parser.FindOutputPort(src, info.srcpidx, info.srcpname);
+		dstp = parser.FindInputPort(dst, info.dstpidx, info.dstpname);
+
 		// Link said ports
-		AssertThrow(srcp != nullptr, "Invalid input port given.");
-		AssertThrow(dstp != nullptr, "Invalid output port given.");
 		srcp->Link(dstp);
 	}
-
 
 	// Finish by creating the actual pipeline.
 	EngineContext engineContext(1, 1);
@@ -305,82 +190,18 @@ void Pipeline::CreateFromNodesList(const std::vector<std::shared_ptr<NodeBase>> 
 
 
 std::string Pipeline::SerializeToJSON(const NodeFactory& factory) const {
-	using namespace rapidjson;
-
-	std::unordered_map<OutputPortBase*, std::tuple<NodeBase*, int>> outputLookup;
-	std::unordered_map<NodeBase*, NodeCreationInfo> nodeCreation;
-	std::vector<LinkCreationInfo> linkCreation;
-	int nodeId = 0;
-
+	std::vector<NodeBase*> nodes;
 	for (lemon::ListDigraph::NodeIt it(m_dependencyGraph); it != lemon::INVALID; ++it) {
 		NodeBase* node = m_nodeMap[it].get();
-		for (int i = 0; i < node->GetNumOutputs(); ++i) {
-			outputLookup[node->GetOutput(i)] = { node, i };
-		}
-
-		NodeCreationInfo info;
-		auto [group, className] = factory.GetFullName(typeid(*node));
-		info.cl = group + "/" + className;
-		info.id = nodeId++;
-		if (!node->GetDisplayName().empty()) {
-			info.name = node->GetDisplayName();
-		}
-		nodeCreation.insert({ node, info });
+		nodes.push_back(node);
 	}
 
-	for (lemon::ListDigraph::NodeIt it(m_dependencyGraph); it != lemon::INVALID; ++it) {
-		NodeBase* dst = m_nodeMap[it].get();
-		for (int i = 0; i < dst->GetNumInputs(); ++i) {
-			InputPortBase* input = dst->GetInput(i);
-			OutputPortBase* output = input->GetLink();
-			if (output != nullptr) {
-				auto nit = outputLookup.find(output);
-				assert(nit != outputLookup.end());
-				const auto [ src, srcpidx ] = nit->second;
+	auto FindName = [&](const NodeBase& node) {
+		auto[group, className] = factory.GetFullName(typeid(node));
+		return group + "/" + className;
+	};
 
-				LinkCreationInfo info;
-				if (!src->GetDisplayName().empty()) {
-					info.srcname = src->GetDisplayName();
-				}
-				else {
-					info.srcid = nodeCreation[src].id;
-				}
-				if (!dst->GetDisplayName().empty()) {
-					info.dstname = dst->GetDisplayName();
-				}
-				else {
-					info.dstid = nodeCreation[dst].id;
-				}
-
-				info.srcpidx = srcpidx;
-				info.dstpidx = i;
-
-				linkCreation.push_back(info);
-			}
-			else {
-				// save default input value
-				try {
-					std::optional<std::string> value = input->ToString();
-
-					auto& nodeInfo = nodeCreation[dst];
-					if (nodeInfo.inputs.size() < i + 1) {
-						nodeInfo.inputs.resize(i + 1);
-					}
-					nodeInfo.inputs[i] = value;
-				}
-				catch (InvalidCallException&) {
-					std::cout << "Conversion failed for " << input->GetType().name() << std::endl;
-				}
-			}
-		}
-	}
-
-	std::vector<NodeCreationInfo> nodeCreationVec;
-	for (auto& v : nodeCreation) {
-		nodeCreationVec.push_back(v.second);
-	}
-
-	return SerializeNodesAndLinks(nodeCreationVec, linkCreation);
+	return GraphParser::Serialize(nodes.data(), nullptr, nodes.size(), FindName);
 }
 
 
@@ -670,228 +491,4 @@ const lemon::ListDigraph::NodeMap<lemon::ListDigraph::NodeIt>& Pipeline::GetTask
 
 
 
-
-//------------------------------------------------------------------------------
-// Helper functions
-//------------------------------------------------------------------------------
-
-void AssertThrow(bool condition, const std::string& text) {
-	if (!condition) {
-		throw InvalidArgumentException(text);
-	}
-};
-
-
-NodeCreationInfo ParseNode(const rapidjson::GenericValue<rapidjson::UTF8<>>& obj) {
-	using namespace rapidjson;
-
-	NodeCreationInfo info;
-	if (obj.HasMember("id")) {
-		AssertThrow(obj["id"].IsInt(), "Node's id member must be an integer.");
-		info.id = obj["id"].GetInt();
-	}
-	if (obj.HasMember("name")) {
-		AssertThrow(obj["name"].IsString(), "Node's name member must be a string.");
-		info.name = obj["name"].GetString();
-	}
-	AssertThrow(info.id || info.name, "Node must have either id or name.");
-	AssertThrow(obj.HasMember("class") && obj["class"].IsString(), "Node must have a class.");
-	info.cl = obj["class"].GetString();
-
-	if (obj.HasMember("inputs")) {
-		AssertThrow(obj["inputs"].IsArray(), "Default inputs must be specified in an array, undefined inputs as {}.");
-		auto& inputs = obj["inputs"];
-		for (SizeType i = 0; i < inputs.Size(); ++i) {
-			if (inputs[i].IsObject() && inputs[i].ObjectEmpty()) {
-				info.inputs.push_back({});
-			}
-			else if (inputs[i].IsString()) {
-				info.inputs.push_back(inputs[i].GetString());
-			}
-			else if (inputs[i].IsInt64()) {
-				info.inputs.push_back(std::to_string(inputs[i].GetInt64()));
-			}
-			else if (inputs[i].IsDouble()) {
-				info.inputs.push_back(std::to_string(inputs[i].GetDouble()));
-			}
-			else {
-				assert(false);
-			}
-		}
-	}
-	return info;
-};
-
-
-LinkCreationInfo ParseLink(const rapidjson::GenericValue<rapidjson::UTF8<>>& obj) {
-	LinkCreationInfo info;
-
-	AssertThrow(obj.HasMember("src")
-		&& obj.HasMember("dst")
-		&& obj.HasMember("srcp")
-		&& obj.HasMember("dstp"),
-		"Link must have members src, dst, srcp and dstp.");
-
-	if (obj["src"].IsString()) {
-		info.srcname = obj["src"].GetString();
-	}
-	else if (obj["src"].IsInt()) {
-		info.srcid = obj["src"].GetInt();
-	}
-	else {
-		AssertThrow(false, "Link src must be string (name) or int (id) of the node.");
-	}
-
-	if (obj["dst"].IsString()) {
-		info.dstname = obj["dst"].GetString();
-	}
-	else if (obj["dst"].IsInt()) {
-		info.dstid = obj["dst"].GetInt();
-	}
-	else {
-		AssertThrow(false, "Link dst must be string (name) or int (id) of the node.");
-	}
-
-	if (obj["srcp"].IsString()) {
-		info.srcpname = obj["srcp"].GetString();
-	}
-	else if (obj["srcp"].IsInt()) {
-		info.srcpidx = obj["srcp"].GetInt();
-	}
-	else {
-		AssertThrow(false, "Link srcp must be string (name) or int (index) of the port.");
-	}
-
-	if (obj["dstp"].IsString()) {
-		info.dstpname = obj["dstp"].GetString();
-	}
-	else if (obj["dstp"].IsInt()) {
-		info.dstpidx = obj["dstp"].GetInt();
-	}
-	else {
-		AssertThrow(false, "Link dstp must be string (name) or int (index) of the port.");
-	}
-
-	return info;
-};
-
-
-static StringErrorPosition GetStringErrorPosition(const std::string& str, size_t errorCharacter) {
-	int currentCharacter = 0;
-	int characterNumber = 0;
-	int lineNumber = 0;
-	while (currentCharacter < errorCharacter && currentCharacter < str.size()) {
-		if (str[currentCharacter] == '\n') {
-			++lineNumber;
-			characterNumber = 0;
-		}
-		++currentCharacter;
-		++characterNumber;
-	}
-	
-	size_t lineBegIdx = str.rfind('\n', errorCharacter);
-	size_t lineEndIdx = str.find('\n', errorCharacter);
-
-	if (lineBegIdx = str.npos) {
-		lineBegIdx = 0;
-	}
-	else {
-		++lineBegIdx; // we don't want to keep the '\n'
-	}
-	if (lineEndIdx != str.npos && lineEndIdx > 0) {
-		--lineEndIdx; // we don't want to keep the '\n'
-	}
-
-	return { lineNumber, characterNumber, str.substr(lineBegIdx, lineEndIdx) };
-}
-
-
-static std::string SerializeNodesAndLinks(std::vector<NodeCreationInfo> nodes, std::vector<LinkCreationInfo> links) {
-	std::stable_sort(nodes.begin(), nodes.end(), [](const NodeCreationInfo& lhs, const NodeCreationInfo& rhs) {
-		return lhs.cl < rhs.cl;
-	});
-	std::stable_sort(nodes.begin(), nodes.end(), [](const NodeCreationInfo& lhs, const NodeCreationInfo& rhs) {
-		return lhs.name < rhs.name;
-	});
-
-	std::stable_sort(links.begin(), links.end(), [](const LinkCreationInfo& lhs, const LinkCreationInfo& rhs) {
-		return lhs.srcname < rhs.srcname;
-	});
-	std::stable_sort(links.begin(), links.end(), [](const LinkCreationInfo& lhs, const LinkCreationInfo& rhs) {
-		return lhs.dstname < rhs.dstname;
-	});
-
-	using namespace rapidjson;
-	Document doc;
-	auto& alloc = doc.GetAllocator();
-	doc.SetObject();
-
-	doc.AddMember("nodes", kArrayType, alloc);
-	doc.AddMember("links", kArrayType, alloc);
-	auto& docNodes = doc["nodes"];
-	auto& docLinks = doc["links"];
-
-	// Add nodes to doc
-	for (auto& node : nodes) {
-		Value v;
-		v.SetObject();
-		v.AddMember("class", Value().SetString(node.cl.c_str(), alloc), alloc);
-		if (node.id) {
-			v.AddMember("id", node.id.value(), alloc);
-		}
-		if (node.name) {
-			v.AddMember("name", Value().SetString(node.name.value().c_str(), alloc), alloc);
-		}
-		if (!node.inputs.empty()) {
-			v.AddMember("inputs", kArrayType, alloc);
-			for (const auto& input : node.inputs) {
-				if (input) {
-					v["inputs"].PushBack(Value().SetString(input.value().c_str(), alloc), alloc);
-				}
-				else {
-					v["inputs"].PushBack(Value().SetObject(), alloc);
-				}
-			}
-		}
-		docNodes.PushBack(v, alloc);
-	}
-
-	// Add links to doc
-	auto AddLinkMember = [&alloc](Value& v, const char* member, std::optional<int> num, std::optional<std::string> str) {
-		if (num) {
-			v.AddMember(GenericStringRef<char>(member), num.value(), alloc);
-		}
-		else {
-			assert(str);
-			v.AddMember(GenericStringRef<char>(member), Value().SetString(str.value().c_str(), alloc), alloc);
-		}
-	};
-
-	for (auto& link : links) {
-		Value v;
-		v.SetObject();
-		AddLinkMember(v, "src", link.srcid, link.srcname);
-		AddLinkMember(v, "dst", link.dstid, link.dstname);
-		AddLinkMember(v, "srcp", link.srcpidx, link.srcpname);
-		AddLinkMember(v, "dstp", link.dstpidx, link.dstpname);
-		docLinks.PushBack(v, alloc);
-	}
-
-	// Convert JSON doc to sring
-	StringBuffer buffer;
-	PrettyWriter<StringBuffer> writer(buffer);
-	doc.Accept(writer);
-
-	return buffer.GetString();
-}
-
-
-template <class T>
-std::string GetInputPortValueHelper(const InputPortBase* port) {
-	return std::to_string(dynamic_cast<const InputPort<T>*>(port)->Get());
-}
-
-
-
-} // namespace gxeng
-} // namespace inl
+} // namespace inl::gxeng
