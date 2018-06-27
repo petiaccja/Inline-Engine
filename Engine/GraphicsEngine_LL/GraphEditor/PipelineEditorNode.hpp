@@ -1,5 +1,6 @@
 #include <BaseLibrary/GraphEditor/INode.hpp>
 #include <BaseLibrary/Graph_All.hpp>
+#include <BaseLibrary/GraphEditor/GraphParser.hpp>
 
 
 #undef GetClassName // retarded Windows
@@ -36,8 +37,12 @@ public:
 	std::string GetOutputTypeName(int idx) const override;
 
 	NodeBase* GetRealNode() const;
+
+	void SetMetaData(NodeMetaDescription data) override;
+	NodeMetaDescription GetMetaData() const override;
 private:
 	std::unique_ptr<NodeBase> m_realNode;
+	NodeMetaDescription m_metaData;
 };
 
 

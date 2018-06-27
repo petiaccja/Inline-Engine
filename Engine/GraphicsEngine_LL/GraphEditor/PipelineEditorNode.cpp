@@ -5,7 +5,7 @@ namespace inl::gxeng {
 
 
 PipelineEditorNode::PipelineEditorNode(std::unique_ptr<NodeBase> realNode)
-	: m_realNode(std::move(realNode))
+	: m_realNode(std::move(realNode)), m_metaData{Vec2i{0,0}}
 {}
 
 std::string PipelineEditorNode::GetName() const {
@@ -21,11 +21,11 @@ std::string PipelineEditorNode::GetClassName() const {
 }
 
 int PipelineEditorNode::GetNumInputs() const {
-	return m_realNode->GetNumInputs();
+	return (int)m_realNode->GetNumInputs();
 }
 
 int PipelineEditorNode::GetNumOutputs() const {
-	return m_realNode->GetNumOutputs();
+	return (int)m_realNode->GetNumOutputs();
 }
 
 bool PipelineEditorNode::HasVariableInputs() const {
@@ -74,6 +74,14 @@ std::string PipelineEditorNode::GetOutputTypeName(int idx) const {
 
 NodeBase* PipelineEditorNode::GetRealNode() const {
 	return m_realNode.get();
+}
+
+void PipelineEditorNode::SetMetaData(NodeMetaDescription data) {
+	m_metaData = data;
+}
+
+NodeMetaDescription PipelineEditorNode::GetMetaData() const {
+	return m_metaData;
 }
 
 

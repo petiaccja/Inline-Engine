@@ -27,8 +27,7 @@ NodeEditor::NodeEditor(gxeng::GraphicsEngine* graphicsEngine, IGraph* graphEdito
 	m_graphicsEngine->SetShaderDirectories({ INL_NODE_SHADER_DIRECTORY, INL_MTL_SHADER_DIRECTORY, "./Shaders", "./Materials" });
 
 	// Load pipeline.
-	//std::ifstream pipelineFile(INL_NODEEDITOR_PIPELINE);
-	std::ifstream pipelineFile(R"(D:\Programming\Inline-Engine\Executables\NodeEditor\pipeline.json)");
+	std::ifstream pipelineFile(INL_NODEEDITOR_PIPELINE);
 	if (!pipelineFile.is_open()) {
 		throw FileNotFoundException("Failed to open pipeline JSON.");
 	}
@@ -50,13 +49,21 @@ NodeEditor::NodeEditor(gxeng::GraphicsEngine* graphicsEngine, IGraph* graphEdito
 	unsigned width, height;
 	m_graphicsEngine->GetScreenSize(width, height);
 	m_camera->SetExtent(Vec2(width, height));
-	m_camera->SetPosition(m_camera->GetExtent()/2);
+	m_camera->SetPosition({0,0});
 	m_camera->SetVerticalFlip(true);
 
 	// Init select panel.
 	auto nameList = m_graphEditor->GetNodeList();
 	m_selectPanel = std::make_unique<SelectPanel>(m_graphicsEngine, m_font.get());
 	m_selectPanel->SetOptions(nameList.cbegin(), nameList.cend());
+
+	// Background color.
+	m_background.reset(m_graphicsEngine->CreateOverlayEntity());
+	m_background->SetZDepth(-2.f);
+	m_background->SetColor({0.05f, 0.05f, 0.15f, 1.0f});
+	m_background->SetPosition(m_camera->GetPosition());
+	m_background->SetScale(m_camera->GetExtent());
+	m_scene->GetEntities<gxeng::OverlayEntity>().Add(m_background.get());
 }
 
 void NodeEditor::Update() {
@@ -114,6 +121,8 @@ void NodeEditor::OnMouseMove(MouseMoveEvent evt) {
 		Vec2 move = Vec2(evt.relx, evt.rely) * (extent.x/(float)scrWidth);
 
 		m_camera->SetPosition(pos - move);
+		m_background->SetPosition(m_camera->GetPosition());
+		m_background->SetScale(m_camera->GetExtent());
 	}
 }
 
@@ -126,6 +135,9 @@ void NodeEditor::OnMouseWheel(MouseWheelEvent evt) {
 		float scale = std::pow(0.95f, evt.rotation);
 		Vec2 newExtent = m_camera->GetExtent()*scale;
 		m_camera->SetExtent(newExtent);
+
+		m_background->SetPosition(m_camera->GetPosition());
+		m_background->SetScale(m_camera->GetExtent());
 	}
 }
 
@@ -281,6 +293,19 @@ void NodeEditor::OnKey(KeyboardEvent evt) {
 			SendToFront(m_selectedNode);
 		}
 	}
+
+	if (evt.key == eKey::O && evt.state == eKeyState::UP) {
+		std::optional<std::string> file = OpenDialog();
+		if (file) {
+			OpenFile(file.value());
+		}
+	}
+	if (evt.key == eKey::S && evt.state == eKeyState::UP) {
+		std::optional<std::string> file = SaveDialog();
+		if (file) {
+			SaveFile(file.value());
+		}
+	}
 }
 
 
@@ -424,6 +449,7 @@ void NodeEditor::SendToFront(Node* node) {
 void NodeEditor::DeleteNode(Node* node) {
 	float depth = node->GetDepth();
 	int idx = FindNodeIndex(node);
+	m_graphEditor->RemoveNode(node->GetNode());
 	m_nodes.erase(m_nodes.begin() + idx);
 	for (auto& n : m_nodes) {
 		if (n->GetDepth() > depth) {
@@ -442,6 +468,73 @@ Vec2 NodeEditor::ScreenToWorld(Vec2 screenPoint) const {
 	Vec2 screenSize = { width, height };
 	Vec2 worldPoint = screenPoint / screenSize * m_camera->GetExtent() + m_camera->GetPosition() - m_camera->GetExtent()/2;
 	return worldPoint;
+}
+
+
+void NodeEditor::OpenFile(std::string path) {
+	std::ifstream file(path);
+	if (!file.is_open()) {
+		std::cout << "File not found..." << std::endl;
+		return;
+	}
+	std::string json((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+	m_graphEditor->LoadJSON(json);
+	m_nodes.clear();
+	m_camera->SetPosition({ 0,0 });
+	m_background->SetPosition(m_camera->GetPosition());
+	m_background->SetScale(m_camera->GetExtent());
+
+	// Create nodes.
+	std::map<INode*, Node*> inversionMap;
+
+	auto graphNodes = m_graphEditor->GetNodes();
+	for (auto realNode : graphNodes) {
+		auto node = std::make_unique<Node>();
+		node->SetNode(realNode, m_graphicsEngine, m_scene.get(), m_font.get());
+		node->SetPosition(realNode->GetMetaData().placement);
+		node->SetDepth((float)m_nodes.size());
+		node->SetSize(Vec2(300, 0));
+		inversionMap[node->GetNode()] = node.get();
+		m_nodes.push_back(std::move(node));
+	}
+
+	auto graphLinks = m_graphEditor->GetLinks();
+	for (auto realLink : graphLinks) {
+		Node* src = inversionMap[realLink.sourceNode];
+		Node* tar = inversionMap[realLink.targetNode];
+		Port* srcPort = src->GetOutputs()[realLink.sourcePort].get();
+		Port* tarPort = tar->GetInputs()[realLink.targetPort].get();
+
+		Link link{ m_graphicsEngine, m_scene.get() };
+		srcPort->Link(tarPort, std::move(link));
+	}
+}
+
+void NodeEditor::SaveFile(std::string path) {
+	std::ofstream file(path, std::ios::trunc);
+	if (!file.is_open()) {
+		std::cout << "Could not open file." << std::endl;
+	}
+
+	// Center nodes in saved file.
+	Vec2 avg = { 0,0 };
+	for (auto& node : m_nodes) {
+		avg += node->GetPosition();
+	}
+	avg /= m_nodes.size();
+
+	for (auto& node : m_nodes) {
+		Vec2 realNodePos = node->GetPosition() - avg;
+		auto metaData = node->GetNode()->GetMetaData();
+		metaData.placement = realNodePos;
+		node->GetNode()->SetMetaData(metaData);
+	}
+
+	// Save json.
+	std::string json = m_graphEditor->SerializeJSON();
+
+	file << json;
 }
 
 

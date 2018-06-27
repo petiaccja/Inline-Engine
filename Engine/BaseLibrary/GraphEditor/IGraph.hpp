@@ -28,8 +28,8 @@ public:
 	virtual Link Link(INode* sourceNode, int sourcePort, INode* targetNode, int targetPort) = 0;
 	virtual void Unlink(INode* targetNode, int targetPort) = 0;
 
-	virtual const std::vector<INode*> GetNodes() const = 0;
-	virtual const std::vector<inl::Link>& GetLinks() const = 0;
+	virtual std::vector<INode*> GetNodes() const = 0;
+	virtual std::vector<inl::Link> GetLinks() const = 0;
 
 	virtual void Validate() = 0;
 	virtual std::string SerializeJSON() = 0;

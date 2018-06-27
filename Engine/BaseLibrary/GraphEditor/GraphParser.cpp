@@ -70,7 +70,12 @@ std::string GraphParser::Serialize(const NodeBase* const* nodes,
 			desc.name = node->GetDisplayName();
 		}
 		// Add meta to description.
-		desc.metaData = metaData[i];
+		if (metaData) {
+			desc.metaData = metaData[i];
+		}
+		else {
+			memset(&desc.metaData, 0, sizeof desc.metaData);
+		}
 
 		nodeDescLookup.insert({ node, desc });
 	}
@@ -113,15 +118,24 @@ std::string GraphParser::Serialize(const NodeBase* const* nodes,
 			}
 			// If no link, save the default value.
 			else {
-				std::optional<std::string> value = input->ToString();
+				try {
+					std::optional<std::string> value = input->ToString();
 
-				auto& nodeInfo = nodeDescLookup[dst];
-				if (nodeInfo.defaultInputs.size() < i + 1) {
-					nodeInfo.defaultInputs.resize(i + 1);
+					auto& nodeInfo = nodeDescLookup[dst];
+					if (nodeInfo.defaultInputs.size() < i + 1) {
+						nodeInfo.defaultInputs.resize(i + 1);
+					}
+					nodeInfo.defaultInputs[i] = value;
 				}
-				nodeInfo.defaultInputs[i] = value;
+				catch (...) {
+					// cannot be saved.
+				}
 			}
 		}
+	}
+
+	for (auto& v : nodeDescLookup) {
+		nodeDescs.push_back(v.second);
 	}
 
 	return MakeJson(std::move(nodeDescs), std::move(linkDescs));
@@ -420,8 +434,8 @@ NodeDescription ParseNode(const rapidjson::GenericValue<rapidjson::UTF8<>>& obj)
 	}
 
 	if (obj.HasMember("meta_pos")) {
-		AssertThrow(obj["name"].IsString(), "Node's name member must be a string.");
-		std::string vecStr = obj["name"].GetString();
+		AssertThrow(obj["meta_pos"].IsString(), "Meta pos must a string of format [123, -456].");
+		std::string vecStr = obj["meta_pos"].GetString();
 		const char* endPtr;
 		Vec2u pos = strtovec<Vec2u>(vecStr.c_str(), &endPtr);
 		info.metaData.placement = pos;

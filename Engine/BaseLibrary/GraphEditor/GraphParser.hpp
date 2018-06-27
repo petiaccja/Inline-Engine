@@ -13,7 +13,7 @@
 namespace inl {
 
 struct NodeMetaDescription {
-	Vec2i placement;
+	Vec2i placement = {0,0};
 };
 
 struct NodeDescription {

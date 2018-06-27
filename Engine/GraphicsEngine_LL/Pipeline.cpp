@@ -190,9 +190,9 @@ void Pipeline::CreateFromNodesList(const std::vector<std::shared_ptr<NodeBase>> 
 
 
 std::string Pipeline::SerializeToJSON(const NodeFactory& factory) const {
-	std::vector<NodeBase*> nodes;
+	std::vector<const NodeBase*> nodes;
 	for (lemon::ListDigraph::NodeIt it(m_dependencyGraph); it != lemon::INVALID; ++it) {
-		NodeBase* node = m_nodeMap[it].get();
+		const NodeBase* node = m_nodeMap[it].get();
 		nodes.push_back(node);
 	}
 

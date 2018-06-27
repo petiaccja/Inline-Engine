@@ -61,6 +61,12 @@ private:
 
 	Vec2 ScreenToWorld(Vec2 screenPoint) const;
 
+	void OpenFile(std::string path);
+	void SaveFile(std::string path);
+
+	static std::optional<std::string> OpenDialog();
+	static std::optional<std::string> SaveDialog();
+
 	int FindNodeIndex(Node* node) const;
 private:
 	Node* m_selectedNode = nullptr;
@@ -82,7 +88,7 @@ private:
 	std::unique_ptr<gxeng::Font> m_font;
 	std::unique_ptr<gxeng::Camera2D> m_camera;
 
-	std::unique_ptr<gxeng::OverlayEntity> m_highlight1, m_highlight2;
+	std::unique_ptr<gxeng::OverlayEntity> m_highlight1, m_highlight2, m_background;
 
 	std::vector<std::unique_ptr<Node>> m_nodes;
 	std::unique_ptr<SelectPanel> m_selectPanel;

@@ -110,7 +110,7 @@ void Scheduler::Execute(FrameContext context) {
 		}
 
 		// Print trace into a graphviz dot file.
-		WriteTraceFile(taskGraph, state);
+		//WriteTraceFile(taskGraph, state);
 	}
 	catch (Exception& ex) {
 		std::cout << "=== This frame is fucked ===" << std::endl;

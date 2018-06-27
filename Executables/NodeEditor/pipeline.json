@@ -1,56 +1,60 @@
 {
-  "nodes": [
-    {
-      "name": "BackBuffer",
-      "class": "Pipeline/System/GetBackBuffer",
-      "id": 1
-    },
-    {
-      "name": "Camera",
-      "class": "Pipeline/System/GetCamera2DByName",
-      "id": 2,
-      "inputs": [
-        "MainCam"
-      ]
-    },
-    {
-      "name": "Scene",
-      "class": "Pipeline/System/GetSceneByName",
-      "id": 3,
-      "inputs": [
-        "MainScene"
-      ]
-    },
-    {
-      "name": "Renderer",
-      "class": "Pipeline/Render/RenderOverlay",
-      "id": 4
-    }
-  ],
-  "links": [
-    {
-      "src": "BackBuffer",
-      "dst": "Renderer",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "Camera",
-      "dst": "Renderer",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "Scene",
-      "dst": "Renderer",
-      "srcp": 0,
-      "dstp": 2
-    },
-    {
-      "src": "Scene",
-      "dst": "Renderer",
-      "srcp": 0,
-      "dstp": 3
-    }
-  ]
+    "nodes": [
+        {
+            "class": "Pipeline/System/GetBackBuffer",
+            "id": 0,
+            "name": "BackBuffer",
+            "meta_pos": "[-124, -152]"
+        },
+        {
+            "class": "Pipeline/System/GetCamera2DByName",
+            "id": 1,
+            "name": "Camera",
+            "inputs": [
+                "MainCam"
+            ],
+            "meta_pos": "[-125, 4]"
+        },
+        {
+            "class": "Pipeline/Render/RenderOverlay",
+            "id": 3,
+            "name": "Renderer",
+            "meta_pos": "[351, -6]"
+        },
+        {
+            "class": "Pipeline/System/GetSceneByName",
+            "id": 2,
+            "name": "Scene",
+            "inputs": [
+                "MainScene"
+            ],
+            "meta_pos": "[-102, 154]"
+        }
+    ],
+    "links": [
+        {
+            "src": "BackBuffer",
+            "dst": "Renderer",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "Camera",
+            "dst": "Renderer",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "Scene",
+            "dst": "Renderer",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": "Scene",
+            "dst": "Renderer",
+            "srcp": 0,
+            "dstp": 3
+        }
+    ]
 }

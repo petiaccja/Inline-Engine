@@ -15,9 +15,33 @@ using namespace inl;
 using std::cout;
 using std::endl;
 
+void PrintHelpText() {
+	cout << "Keyboard shortcuts: " << endl;
+	cout << "  O - open JSON file" << endl;
+	cout << "  S - save JSON file" << endl;
+	cout << "  N - add new node" << endl;
+	cout << "  Esc - close node selection window" << endl;
+	cout << "Actions: " << endl;
+	cout << "  Select node/port - click on it" << endl;
+	cout << "  Delete selected node - press Del" << endl;
+	cout <<	"  Delete link - double click on arrow" << endl;
+	cout << "  Add node - N, then double click on name" << endl;
+	cout << "  Link ports - drag one port to other (no visuals)" << endl;
+	cout << "Navigation: " << endl;
+	cout << "  Mouse wheel - zoom" << endl;
+	cout << "  Right button drag - pan view" << endl;
+	cout << endl;
+	cout << "NODES CANNOT BE RENAMED YET" << endl;
+	cout << "DEFAULT PORT VALUES CANNOT BE ACCESSED YET" << endl;
+	cout << "THERE IS NO CONTROL-Z" << endl;
+	cout << "SAVE OFTEN, TO NEW FILE" << endl;
+}
+
 
 int main() {
 	try {
+		PrintHelpText();
+
 		// Create logger.
 		Logger logger;
 
@@ -33,7 +57,7 @@ int main() {
 		// Create window.
 		Window window;
 		window.SetTitle("Node editor");
-		window.SetSize({ 960, 600 });
+		window.SetSize({ 1600, 920 });
 
 		// Create graphics engine.
 		gxeng::GraphicsEngineDesc desc;

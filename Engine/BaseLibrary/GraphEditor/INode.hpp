@@ -3,6 +3,7 @@
 
 #include <string>
 #include <typeindex>
+#include "GraphParser.hpp"
 
 
 #undef GetClassName // retarded Windows
@@ -37,6 +38,9 @@ public:
 
 	virtual std::string GetInputTypeName(int idx) const = 0;
 	virtual std::string GetOutputTypeName(int idx) const = 0;
+
+	virtual void SetMetaData(NodeMetaDescription data) = 0;
+	virtual NodeMetaDescription GetMetaData() const = 0;
 };
 
 

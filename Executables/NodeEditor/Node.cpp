@@ -466,10 +466,6 @@ void Node::Tidy() {
 		auto& texts = m_scene->GetEntities<gxeng::TextEntity>();
 		auto& overlays = m_scene->GetEntities<gxeng::OverlayEntity>();
 
-		auto s = texts.Size();
-		std::stringstream ss;
-		ss << "deleted " << s << " -> ";
-
 		// Clean up previous node.
 		texts.Remove(m_nameLabel.get());
 		overlays.Remove(m_background.get());
@@ -487,9 +483,6 @@ void Node::Tidy() {
 			texts.Remove(port->GetLabel());
 			overlays.Remove(port->GetBackground());
 		}
-		
-		ss << texts.Size();
-		std::cout << ss.str() << std::endl;
 	}
 }
 

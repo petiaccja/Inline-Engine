@@ -21,8 +21,8 @@ public:
 	inl::Link Link(INode* sourceNode, int sourcePort, INode* targetNode, int targetPort) override;
 	void Unlink(INode* targetNode, int targetPort) override;
 
-	const std::vector<INode*> GetNodes() const override;
-	const std::vector<inl::Link>& GetLinks() const override;
+	std::vector<INode*> GetNodes() const override;
+	std::vector<inl::Link> GetLinks() const override;
 
 	void Validate() override;
 	std::string SerializeJSON() override;

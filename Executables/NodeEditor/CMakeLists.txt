@@ -11,6 +11,7 @@ set(files
 	"GraphPanel.hpp"
 	"NodeEditor.cpp"
 	"NodeEditor.hpp"
+	"FileDialog.cpp" 
 )
 
 # Target

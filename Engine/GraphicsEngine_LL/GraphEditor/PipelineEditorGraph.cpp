@@ -1,5 +1,8 @@
 #include "PipelineEditorGraph.hpp"
 
+#include <BaseLibrary/GraphEditor/GraphParser.hpp>
+#include <BaseLibrary/Range.hpp>
+#include "../../../Executables/NodeEditor/Node.hpp"
 
 
 namespace inl::gxeng {
@@ -77,7 +80,7 @@ void PipelineEditorGraph::Unlink(INode* targetNode, int targetPort) {
 }
 
 
-const std::vector<INode*> PipelineEditorGraph::GetNodes() const {
+std::vector<INode*> PipelineEditorGraph::GetNodes() const {
 	std::vector<INode*> nodes;
 	for (const auto& pipelineNode : m_nodes) {
 		nodes.push_back(pipelineNode.get());
@@ -86,14 +89,44 @@ const std::vector<INode*> PipelineEditorGraph::GetNodes() const {
 }
 
 
-const std::vector<Link>& PipelineEditorGraph::GetLinks() const {
+std::vector<Link> PipelineEditorGraph::GetLinks() const {
 	std::vector<inl::Link> links;
 
-	for (const auto& pipelineNode : m_nodes) {
-		
+	struct Rec {
+		PipelineEditorNode* parent;
+		int index;
+	};
+
+	std::map<InputPortBase*, Rec> inputMap;
+	std::map<OutputPortBase*, Rec> outputMap;
+
+	for (const auto& node : m_nodes) {
+		for (auto i : Range(node->GetNumInputs())) {
+			inputMap.insert_or_assign(node->GetRealNode()->GetInput(i), Rec{ node.get(), i });
+		}
+		for (auto i : Range(node->GetNumOutputs())) {
+			outputMap.insert_or_assign(node->GetRealNode()->GetOutput(i), Rec{ node.get(), i });
+		}
 	}
 
-	throw NotImplementedException();
+	for (auto& dst : inputMap) {
+		InputPortBase* input = dst.first;
+		OutputPortBase* link = input->GetLink();
+
+
+		if (link) {
+			auto& src = *outputMap.find(link);
+			
+			inl::Link link;
+			link.sourceNode = src.second.parent;
+			link.sourcePort = src.second.index;
+			link.targetNode = dst.second.parent;
+			link.targetPort = dst.second.index;
+			links.push_back(link);
+		}
+	}
+
+	return links;
 }
 
 
@@ -103,12 +136,75 @@ void PipelineEditorGraph::Validate() {
 
 
 std::string PipelineEditorGraph::SerializeJSON() {
-	throw NotImplementedException();
+	std::vector<const NodeBase*> nodes;
+	std::vector<NodeMetaDescription> metaData;
+	for (auto& node : m_nodes) {
+		nodes.push_back(node->GetRealNode());
+		metaData.push_back(node->GetMetaData());
+	}
+
+	auto FindName = [&](const NodeBase& node) {
+		auto[group, className] = m_factory.GetFullName(typeid(node));
+		return group + "/" + className;
+	};
+
+	return GraphParser::Serialize(nodes.data(), metaData.data(), nodes.size(), FindName);
 }
 
 
 void PipelineEditorGraph::LoadJSON(const std::string& description) {
-	throw NotImplementedException();
+	GraphParser parser;
+	std::vector<std::unique_ptr<NodeBase>> nodeObjects;
+
+	// Parse json.
+	parser.Parse(description);
+
+	// Create nodes with initial values.
+	for (auto& nodeDesc : parser.GetNodes()) {
+		std::unique_ptr<NodeBase> nodeObject(m_factory.CreateNode(nodeDesc.cl));
+		if (nodeDesc.name) {
+			nodeObject->SetDisplayName(nodeDesc.name.value());
+		}
+
+		for (int i = 0; i < nodeObject->GetNumInputs() && i < nodeDesc.defaultInputs.size(); ++i) {
+			if (nodeDesc.defaultInputs[i]) {
+				nodeObject->GetInput(i)->SetConvert(nodeDesc.defaultInputs[i].value());
+			}
+		}
+
+		nodeObjects.push_back(std::move(nodeObject));
+	}
+
+	// Link nodes above.
+	for (auto& info : parser.GetLinks()) {
+		NodeBase *src = nullptr, *dst = nullptr;
+		OutputPortBase* srcp = nullptr;
+		InputPortBase* dstp = nullptr;
+
+		// Find src and dst nodes.
+		size_t srcNodeIdx = parser.FindNode(info.srcid, info.srcname);
+		size_t dstNodeIdx = parser.FindNode(info.dstid, info.dstname);
+
+		src = nodeObjects[srcNodeIdx].get();
+		dst = nodeObjects[dstNodeIdx].get();
+
+		// Find src and dst ports.
+		srcp = parser.FindOutputPort(src, info.srcpidx, info.srcpname);
+		dstp = parser.FindInputPort(dst, info.dstpidx, info.dstpname);
+
+		// Link said ports
+		srcp->Link(dstp);
+	}
+
+	// Set internal data structures.
+	m_nodes.clear();
+	m_nodes.reserve(nodeObjects.size());
+	for (auto i : Range(nodeObjects.size())) {
+		auto& realNode = nodeObjects[i];
+		NodeMetaDescription metaData = parser.GetNodes()[i].metaData;
+		m_nodes.emplace_back(std::make_unique<PipelineEditorNode>(std::move(realNode)));
+		m_nodes.back()->SetMetaData(metaData);
+	}
 }
 
 
