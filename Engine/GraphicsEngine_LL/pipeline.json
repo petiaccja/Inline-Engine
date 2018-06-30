@@ -1,1201 +1,1173 @@
 {
-  "nodes": [
-    {
-      "class": "Pipeline/Render/ScreenSpaceTransform",
-      "id": 2
-    },
-    {
-      "class": "Pipeline/System/GetBackBuffer",
-      "id": 69
-    },
-    {
-      "class": "Pipeline/System/GetCameraByName",
-      "id": 70,
-      "inputs": [
-        "WorldCam"
-      ]
-    },
-    {
-      "class": "Pipeline/System/GetEnvVariable",
-      "id": 66,
-      "inputs": [
-        "world_render_size"
-      ]
-    },
-    {
-      "class": "Pipeline/System/GetEnvVariable",
-      "id": 67,
-      "inputs": [
-        "world_render_rot"
-      ]
-    },
-    {
-      "class": "Pipeline/System/GetEnvVariable",
-      "id": 68,
-      "inputs": [
-        "world_render_pos"
-      ]
-    },
-    {
-      "class": "Pipeline/System/GetSceneByName",
-      "id": 5,
-      "name": "GUIScene",
-      "inputs": [
-        "Gui"
-      ]
-    },
-    {
-      "class": "Pipeline/System/GetSceneByName",
-      "id": 71,
-      "name": "3DScene",
-      "inputs": [
-        "World"
-      ]
-    },
-    {
-      "class": "Pipeline/Utility/CreateTexture",
-      "id": 61,
-      "inputs": [
-        "1024",
-        "1024",
-        "R32_TYPELESS",
-        "4",
-        "DS|SR",
-        "false",
-        "false"
-      ]
-    },
-    {
-      "class": "Pipeline/Utility/Vector2Components",
-      "id": 65
-    },
-    {
-      "class": "Pipeline/Utility/TextureProperties",
-      "id": 64,
-      "name": "backBufferProperties"
-    },
-    {
-      "class": "Pipeline/Render/BloomAdd",
-      "id": 40,
-      "name": "bloomAdd168"
-    },
-    {
-      "class": "Pipeline/Render/BloomAdd",
-      "id": 43,
-      "name": "bloomAdd3216"
-    },
-    {
-      "class": "Pipeline/Render/BloomAdd",
-      "id": 34,
-      "name": "bloomAdd42"
-    },
-    {
-      "class": "Pipeline/Render/BloomAdd",
-      "id": 37,
-      "name": "bloomAdd84"
-    },
-    {
-      "class": "Pipeline/Render/BloomBlur",
-      "id": 41,
-      "name": "bloomBlurHorizontal16",
-      "inputs": [
-        {},
-        "[1, 0]"
-      ]
-    },
-    {
-      "class": "Pipeline/Render/BloomBlur",
-      "id": 32,
-      "name": "bloomBlurHorizontal2",
-      "inputs": [
-        {},
-        "[1, 0]"
-      ]
-    },
-    {
-      "class": "Pipeline/Render/BloomBlur",
-      "id": 44,
-      "name": "bloomBlurHorizontal32",
-      "inputs": [
-        {},
-        "[1, 0]"
-      ]
-    },
-    {
-      "class": "Pipeline/Render/BloomBlur",
-      "id": 35,
-      "name": "bloomBlurHorizontal4",
-      "inputs": [
-        {},
-        "[1, 0]"
-      ]
-    },
-    {
-      "class": "Pipeline/Render/BloomBlur",
-      "id": 38,
-      "name": "bloomBlurHorizontal8",
-      "inputs": [
-        {},
-        "[1, 0]"
-      ]
-    },
-    {
-      "class": "Pipeline/Render/BloomBlur",
-      "id": 42,
-      "name": "bloomBlurVertical16",
-      "inputs": [
-        {},
-        "[0, 1]"
-      ]
-    },
-    {
-      "class": "Pipeline/Render/BloomBlur",
-      "id": 33,
-      "name": "bloomBlurVertical2",
-      "inputs": [
-        {},
-        "[0, 1]"
-      ]
-    },
-    {
-      "class": "Pipeline/Render/BloomBlur",
-      "id": 45,
-      "name": "bloomBlurVertical32",
-      "inputs": [
-        {},
-        "[0, 1]"
-      ]
-    },
-    {
-      "class": "Pipeline/Render/BloomBlur",
-      "id": 36,
-      "name": "bloomBlurVertical4",
-      "inputs": [
-        {},
-        "[0, 1]"
-      ]
-    },
-    {
-      "class": "Pipeline/Render/BloomBlur",
-      "id": 39,
-      "name": "bloomBlurVertical8",
-      "inputs": [
-        {},
-        "[0, 1]"
-      ]
-    },
-    {
-      "class": "Pipeline/Render/BloomDownsample",
-      "id": 47,
-      "name": "bloomDownsample16"
-    },
-    {
-      "class": "Pipeline/Render/BloomDownsample",
-      "id": 50,
-      "name": "bloomDownsample2"
-    },
-    {
-      "class": "Pipeline/Render/BloomDownsample",
-      "id": 46,
-      "name": "bloomDownsample32"
-    },
-    {
-      "class": "Pipeline/Render/BloomDownsample",
-      "id": 49,
-      "name": "bloomDownsample4"
-    },
-    {
-      "class": "Pipeline/Render/BloomDownsample",
-      "id": 48,
-      "name": "bloomDownsample8"
-    },
-    {
-      "class": "Pipeline/Render/BrightLumPass",
-      "id": 53,
-      "name": "brightLumPass"
-    },
-    {
-      "class": "Pipeline/System/GetEnvVariable",
-      "id": 17,
-      "name": "colorGradingEnv",
-      "inputs": [
-        "HDRCombine_colorGradingTex"
-      ]
-    },
-    {
-      "class": "Pipeline/Utility/CreateTexture",
-      "id": 63,
-      "name": "createDepthBuffer",
-      "inputs": [
-        {},
-        {},
-        "R32G8X24_TYPELESS",
-        "1",
-        "DS|SR",
-        "false",
-        "false"
-      ]
-    },
-    {
-      "class": "Pipeline/Utility/CreateTexture",
-      "id": 62,
-      "name": "createHdrRenderTarget",
-      "inputs": [
-        {},
-        {},
-        "R16G16B16A16_FLOAT",
-        "1",
-        "RT|SR",
-        "false",
-        "true"
-      ]
-    },
-    {
-      "class": "Pipeline/Utility/CreateTexture",
-      "id": 12,
-      "name": "createShadowmapTextures",
-      "inputs": [
-        "1024",
-        "1024",
-        "R32_TYPELESS",
-        "6",
-        "DS|SR",
-        "true",
-        "false"
-      ]
-    },
-    {
-      "class": "Pipeline/Render/CSM",
-      "id": 56,
-      "name": "csm"
-    },
-    {
-      "class": "Pipeline/Render/DebugDraw",
-      "id": 1,
-      "name": "debugDraw"
-    },
-    {
-      "class": "Pipeline/Render/DepthPrepass",
-      "id": 59,
-      "name": "depthPrePass"
-    },
-    {
-      "class": "Pipeline/Render/DepthReduction",
-      "id": 58,
-      "name": "depthReduction"
-    },
-    {
-      "class": "Pipeline/Render/DepthReductionFinal",
-      "id": 57,
-      "name": "depthReductionFinal"
-    },
-    {
-      "class": "Pipeline/Render/DOFMain",
-      "id": 14,
-      "name": "dofMain"
-    },
-    {
-      "class": "Pipeline/Render/DofNeighborMax",
-      "id": 21,
-      "name": "dofNeighborMax"
-    },
-    {
-      "class": "Pipeline/Render/DOSPrepare",
-      "id": 23,
-      "name": "dofPrepare"
-    },
-    {
-      "class": "Pipeline/Render/DOFTileMax",
-      "id": 22,
-      "name": "dofTileMax"
-    },
-    {
-      "class": "Pipeline/Render/DrawSky",
-      "id": 55,
-      "name": "drawSky"
-    },
-    {
-      "class": "Pipeline/System/GetEnvVariable",
-      "id": 7,
-      "name": "fontBinaryEnv",
-      "inputs": [
-        "TextRender_fontBinary"
-      ]
-    },
-    {
-      "class": "Pipeline/System/GetEnvVariable",
-      "id": 8,
-      "name": "fontTexEnv",
-      "inputs": [
-        "TextRender_fontTex"
-      ]
-    },
-    {
-      "class": "Pipeline/Render/ForwardRender",
-      "id": 60,
-      "name": "forwardRender"
-    },
-    {
-      "class": "Pipeline/Render/HDRCombine",
-      "id": 31,
-      "name": "hdrCombine"
-    },
-    {
-      "class": "Pipeline/Render/LensBlur",
-      "id": 27,
-      "name": "lensFlare"
-    },
-    {
-      "class": "Pipeline/Render/BloomBlur",
-      "id": 26,
-      "name": "lensFlareBlurHorizontal",
-      "inputs": [
-        {},
-        "[1, 0]"
-      ]
-    },
-    {
-      "class": "Pipeline/Render/BloomBlur",
-      "id": 25,
-      "name": "lensFlareBlurVertical",
-      "inputs": [
-        {},
-        "[0, 1]"
-      ]
-    },
-    {
-      "class": "Pipeline/System/GetEnvVariable",
-      "id": 18,
-      "name": "lensFlareColorEnv",
-      "inputs": [
-        "LensFlare_ColorTex"
-      ]
-    },
-    {
-      "class": "Pipeline/System/GetEnvVariable",
-      "id": 16,
-      "name": "lensFlareDirtEnv",
-      "inputs": [
-        "HDRCombine_lensFlareDirtTex"
-      ]
-    },
-    {
-      "class": "Pipeline/System/GetEnvVariable",
-      "id": 15,
-      "name": "lensFlareStarEnv",
-      "inputs": [
-        "HDRCombine_lensFlareStarTex"
-      ]
-    },
-    {
-      "class": "Pipeline/Render/LightCulling",
-      "id": 54,
-      "name": "lightCulling"
-    },
-    {
-      "class": "Pipeline/Render/LuminanceReduction",
-      "id": 52,
-      "name": "luminanceReduction"
-    },
-    {
-      "class": "Pipeline/Render/LuminanceReductionFinal",
-      "id": 51,
-      "name": "luminanceReductionFinal"
-    },
-    {
-      "class": "Pipeline/Render/MotionBlur",
-      "id": 28,
-      "name": "motionBlur"
-    },
-    {
-      "class": "Pipeline/Render/NeightborMax",
-      "id": 29,
-      "name": "neighborMax"
-    },
-    {
-      "class": "Pipeline/Render/ScreenSpaceAmbientOcclusion",
-      "id": 6,
-      "name": "screenSpaceAmbientOcclusion"
-    },
-    {
-      "class": "Pipeline/Render/ScreenSpaceReflection",
-      "id": 10,
-      "name": "screenSpaceReflection"
-    },
-    {
-      "class": "Pipeline/Render/ScreenSpaceShadow",
-      "id": 11,
-      "name": "screenSpaceShadow"
-    },
-    {
-      "class": "Pipeline/Render/ShadowMapGen",
-      "id": 13,
-      "name": "shadowMapGen"
-    },
-    {
-      "class": "Pipeline/Render/SMAA",
-      "id": 24,
-      "name": "smaa"
-    },
-    {
-      "class": "Pipeline/System/GetEnvVariable",
-      "id": 20,
-      "name": "smaaAreaEnv",
-      "inputs": [
-        "SMAA_areaTex"
-      ]
-    },
-    {
-      "class": "Pipeline/System/GetEnvVariable",
-      "id": 19,
-      "name": "smaaSearchEnv",
-      "inputs": [
-        "SMAA_searchTex"
-      ]
-    },
-    {
-      "class": "Pipeline/Render/Voxelization",
-      "id": 666,
-      "name": "voxelization"
-    },
-    {
-      "class": "Pipeline/Render/TileMax",
-      "id": 30,
-      "name": "tileMax"
-    }
-  ],
-  "links": [
-    {
-      "src": 68,
-      "dst": 2,
-      "srcp": 0,
-      "dstp": 2
-    },
-    {
-      "src": 67,
-      "dst": 2,
-      "srcp": 0,
-      "dstp": 3
-    },
-    {
-      "src": 66,
-      "dst": 2,
-      "srcp": 0,
-      "dstp": 4
-    },
-    {
-      "src": 66,
-      "dst": 65,
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "backBufferProperties",
-      "dst": 2,
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "backBufferProperties",
-      "dst": 2,
-      "srcp": 1,
-      "dstp": 1
-    },
-    {
-      "src": "3DScene",
-      "dst": "voxelization",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": 70,
-      "dst": "voxelization",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "drawSky",
-      "dst": "voxelization",
-      "srcp": 0,
-      "dstp": 2
-    },
-    {
-      "src": "depthPrePass",
-      "dst": "voxelization",
-      "srcp": 0,
-      "dstp": 3
-    },
-    {
-      "src": "csm",
-      "dst": "voxelization",
-      "srcp": 0,
-      "dstp": 4
-    },
-    {
-      "src": "depthReductionFinal",
-      "dst": "voxelization",
-      "srcp": 3,
-      "dstp": 5
-    },
-    {
-      "src": "forwardRender",
-      "dst": "voxelization",
-      "srcp": 1,
-      "dstp": 6
-    },
-    {
-      "src": "forwardRender",
-      "dst": "voxelization",
-      "srcp": 2,
-      "dstp": 7
-    },
-    {
-      "src": "screenSpaceReflection",
-      "dst": "voxelization",
-      "srcp": 0,
-      "dstp": 8
-    },
-    {
-      "src": "screenSpaceAmbientOcclusion",
-      "dst": "voxelization",
-      "srcp": 0,
-      "dstp": 9
-    },
-    {
-      "src": 69,
-      "dst": "backBufferProperties",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomBlurHorizontal16",
-      "dst": "bloomAdd168",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomDownsample8",
-      "dst": "bloomAdd168",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "bloomBlurHorizontal32",
-      "dst": "bloomAdd3216",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomDownsample16",
-      "dst": "bloomAdd3216",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "bloomBlurHorizontal4",
-      "dst": "bloomAdd42",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomDownsample2",
-      "dst": "bloomAdd42",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "bloomBlurHorizontal8",
-      "dst": "bloomAdd84",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomDownsample4",
-      "dst": "bloomAdd84",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "bloomBlurVertical16",
-      "dst": "bloomBlurHorizontal16",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomBlurVertical2",
-      "dst": "bloomBlurHorizontal2",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomBlurVertical32",
-      "dst": "bloomBlurHorizontal32",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomBlurVertical4",
-      "dst": "bloomBlurHorizontal4",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomBlurVertical8",
-      "dst": "bloomBlurHorizontal8",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomAdd3216",
-      "dst": "bloomBlurVertical16",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomAdd42",
-      "dst": "bloomBlurVertical2",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomDownsample32",
-      "dst": "bloomBlurVertical32",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomAdd84",
-      "dst": "bloomBlurVertical4",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomAdd168",
-      "dst": "bloomBlurVertical8",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomDownsample8",
-      "dst": "bloomDownsample16",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "brightLumPass",
-      "dst": "bloomDownsample2",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomDownsample16",
-      "dst": "bloomDownsample32",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomDownsample2",
-      "dst": "bloomDownsample4",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "bloomDownsample4",
-      "dst": "bloomDownsample8",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "dofMain",
-      "dst": "brightLumPass",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "backBufferProperties",
-      "dst": "createDepthBuffer",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "backBufferProperties",
-      "dst": "createDepthBuffer",
-      "srcp": 1,
-      "dstp": 1
-    },
-    {
-      "src": "backBufferProperties",
-      "dst": "createHdrRenderTarget",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "backBufferProperties",
-      "dst": "createHdrRenderTarget",
-      "srcp": 1,
-      "dstp": 1
-    },
-    {
-      "src": 61,
-      "dst": "csm",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "3DScene",
-      "dst": "csm",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "depthReductionFinal",
-      "dst": "csm",
-      "srcp": 0,
-      "dstp": 2
-    },
-    {
-      "src": 70,
-      "dst": "debugDraw",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "hdrCombine",
-      "dst": "debugDraw",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "3DScene",
-      "dst": "depthPrePass",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": 70,
-      "dst": "depthPrePass",
-      "srcp": 0,
-      "dstp": 2
-    },
-    {
-      "src": "createDepthBuffer",
-      "dst": "depthPrePass",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "depthPrePass",
-      "dst": "depthReduction",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": 70,
-      "dst": "depthReductionFinal",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "3DScene",
-      "dst": "depthReductionFinal",
-      "srcp": 0,
-      "dstp": 2
-    },
-    {
-      "src": "depthReduction",
-      "dst": "depthReductionFinal",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": 70,
-      "dst": "dofMain",
-      "srcp": 0,
-      "dstp": 3
-    },
-    {
-      "src": "depthPrePass",
-      "dst": "dofMain",
-      "srcp": 0,
-      "dstp": 5
-    },
-    {
-      "src": "dofNeighborMax",
-      "dst": "dofMain",
-      "srcp": 0,
-      "dstp": 2
-    },
-    {
-      "src": "dofPrepare",
-      "dst": "dofMain",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "dofPrepare",
-      "dst": "dofMain",
-      "srcp": 1,
-      "dstp": 1
-    },
-    {
-      "src": "motionBlur",
-      "dst": "dofMain",
-      "srcp": 0,
-      "dstp": 4
-    },
-    {
-      "src": "dofTileMax",
-      "dst": "dofNeighborMax",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": 70,
-      "dst": "dofPrepare",
-      "srcp": 0,
-      "dstp": 2
-    },
-    {
-      "src": "depthPrePass",
-      "dst": "dofPrepare",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "motionBlur",
-      "dst": "dofPrepare",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "dofPrepare",
-      "dst": "dofTileMax",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "dofPrepare",
-      "dst": "dofTileMax",
-      "srcp": 1,
-      "dstp": 1
-    },
-    {
-      "src": 70,
-      "dst": "drawSky",
-      "srcp": 0,
-      "dstp": 2
-    },
-    {
-      "src": "3DScene",
-      "dst": "drawSky",
-      "srcp": 0,
-      "dstp": 3
-    },
-    {
-      "src": "depthPrePass",
-      "dst": "drawSky",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "forwardRender",
-      "dst": "drawSky",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "3DScene",
-      "dst": "forwardRender",
-      "srcp": 0,
-      "dstp": 2
-    },
-    {
-      "src": 70,
-      "dst": "forwardRender",
-      "srcp": 0,
-      "dstp": 3
-    },
-    {
-      "src": "3DScene",
-      "dst": "forwardRender",
-      "srcp": 0,
-      "dstp": 4
-    },
-    {
-      "src": "createHdrRenderTarget",
-      "dst": "forwardRender",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "csm",
-      "dst": "forwardRender",
-      "srcp": 0,
-      "dstp": 5
-    },
-    {
-      "src": "depthPrePass",
-      "dst": "forwardRender",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "depthReductionFinal",
-      "dst": "forwardRender",
-      "srcp": 1,
-      "dstp": 6
-    },
-    {
-      "src": "depthReductionFinal",
-      "dst": "forwardRender",
-      "srcp": 2,
-      "dstp": 7
-    },
-    {
-      "src": "depthReductionFinal",
-      "dst": "forwardRender",
-      "srcp": 0,
-      "dstp": 8
-    },
-    {
-      "src": "lightCulling",
-      "dst": "forwardRender",
-      "srcp": 0,
-      "dstp": 9
-    },
-    {
-      "src": "shadowMapGen",
-      "dst": "forwardRender",
-      "srcp": 0,
-      "dstp": 10
-    },
-    {
-      "src": "screenSpaceShadow",
-      "dst": "forwardRender",
-      "srcp": 0,
-      "dstp": 11
-    },
-    {
-      "src": 70,
-      "dst": "hdrCombine",
-      "srcp": 0,
-      "dstp": 7
-    },
-    {
-      "src": "bloomBlurHorizontal2",
-      "dst": "hdrCombine",
-      "srcp": 0,
-      "dstp": 2
-    },
-    {
-      "src": "colorGradingEnv",
-      "dst": "hdrCombine",
-      "srcp": 0,
-      "dstp": 4
-    },
-    {
-      "src": "dofMain",
-      "dst": "hdrCombine",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "lensFlareBlurHorizontal",
-      "dst": "hdrCombine",
-      "srcp": 0,
-      "dstp": 3
-    },
-    {
-      "src": "lensFlareDirtEnv",
-      "dst": "hdrCombine",
-      "srcp": 0,
-      "dstp": 5
-    },
-    {
-      "src": "lensFlareStarEnv",
-      "dst": "hdrCombine",
-      "srcp": 0,
-      "dstp": 6
-    },
-    {
-      "src": "luminanceReductionFinal",
-      "dst": "hdrCombine",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "bloomDownsample4",
-      "dst": "lensFlare",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "lensFlareColorEnv",
-      "dst": "lensFlare",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "lensFlareBlurVertical",
-      "dst": "lensFlareBlurHorizontal",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "lensFlare",
-      "dst": "lensFlareBlurVertical",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": 70,
-      "dst": "lightCulling",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "depthPrePass",
-      "dst": "lightCulling",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "brightLumPass",
-      "dst": "luminanceReduction",
-      "srcp": 1,
-      "dstp": 0
-    },
-    {
-      "src": "luminanceReduction",
-      "dst": "luminanceReductionFinal",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "depthPrePass",
-      "dst": "motionBlur",
-      "srcp": 0,
-      "dstp": 3
-    },
-    {
-      "src": "voxelization",
-      "dst": "motionBlur",
-      "srcp": 1,
-      "dstp": 0
-    },
-    {
-      "src": "forwardRender",
-      "dst": "motionBlur",
-      "srcp": 1,
-      "dstp": 1
-    },
-    {
-      "src": "neighborMax",
-      "dst": "motionBlur",
-      "srcp": 0,
-      "dstp": 2
-    },
-    {
-      "src": "tileMax",
-      "dst": "neighborMax",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": 70,
-      "dst": "screenSpaceAmbientOcclusion",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "depthPrePass",
-      "dst": "screenSpaceAmbientOcclusion",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "forwardRender",
-      "dst": "screenSpaceAmbientOcclusion",
-      "srcp": 1,
-      "dstp": 2
-    },
-    {
-      "src": 70,
-      "dst": "screenSpaceReflection",
-      "srcp": 0,
-      "dstp": 2
-    },
-    {
-      "src": "depthPrePass",
-      "dst": "screenSpaceReflection",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "drawSky",
-      "dst": "screenSpaceReflection",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "forwardRender",
-      "dst": "screenSpaceReflection",
-      "srcp": 1,
-      "dstp": 3
-    },
-    {
-      "src": 70,
-      "dst": "screenSpaceShadow",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "depthPrePass",
-      "dst": "screenSpaceShadow",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "3DScene",
-      "dst": "shadowMapGen",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "createShadowmapTextures",
-      "dst": "shadowMapGen",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "debugDraw",
-      "dst": "smaa",
-      "srcp": 0,
-      "dstp": 0
-    },
-    {
-      "src": "smaaAreaEnv",
-      "dst": "smaa",
-      "srcp": 0,
-      "dstp": 1
-    },
-    {
-      "src": "smaaSearchEnv",
-      "dst": "smaa",
-      "srcp": 0,
-      "dstp": 2
-    },
-    {
-      "src": 69,
-      "dst": "smaa",
-      "srcp": 0,
-      "dstp": 3
-    },
-    {
-      "src": "forwardRender",
-      "dst": "tileMax",
-      "srcp": 1,
-      "dstp": 0
-    }
-  ]
+    "nodes": [
+        {
+            "class": "Pipeline/System/GetBackBuffer",
+            "id": 0,
+            "meta_pos": "[-4922, -413]"
+        },
+        {
+            "class": "Pipeline/System/GetCameraByName",
+            "id": 1,
+            "inputs": [
+                "WorldCam"
+            ],
+            "meta_pos": "[-3881, 1648]"
+        },
+        {
+            "class": "Pipeline/Utility/CreateTexture",
+            "id": 2,
+            "inputs": [
+                "1024",
+                "1024",
+                "R32_TYPELESS",
+                "4",
+                "DS|SR",
+                "false",
+                "false"
+            ],
+            "meta_pos": "[-3592, 414]"
+        },
+        {
+            "class": "Pipeline/System/GetSceneByName",
+            "id": 3,
+            "name": "3DScene",
+            "inputs": [
+                "World"
+            ],
+            "meta_pos": "[-4131, -976]"
+        },
+        {
+            "class": "Pipeline/Utility/TextureProperties",
+            "id": 4,
+            "name": "backBufferProperties",
+            "meta_pos": "[-4537, -486]"
+        },
+        {
+            "class": "Pipeline/Render/BloomAdd",
+            "id": 5,
+            "name": "bloomAdd168",
+            "meta_pos": "[2207, -730]"
+        },
+        {
+            "class": "Pipeline/Render/BloomAdd",
+            "id": 6,
+            "name": "bloomAdd3216",
+            "meta_pos": "[2205, -1029]"
+        },
+        {
+            "class": "Pipeline/Render/BloomAdd",
+            "id": 7,
+            "name": "bloomAdd42",
+            "meta_pos": "[2212, -103]"
+        },
+        {
+            "class": "Pipeline/Render/BloomAdd",
+            "id": 8,
+            "name": "bloomAdd84",
+            "meta_pos": "[2212, -422]"
+        },
+        {
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 9,
+            "name": "bloomBlurHorizontal16",
+            "inputs": [
+                {},
+                "[1, 0]"
+            ],
+            "meta_pos": "[2207, -828]"
+        },
+        {
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 10,
+            "name": "bloomBlurHorizontal2",
+            "inputs": [
+                {},
+                "[1, 0]"
+            ],
+            "meta_pos": "[2209, 99]"
+        },
+        {
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 11,
+            "name": "bloomBlurHorizontal32",
+            "inputs": [
+                {},
+                "[1, 0]"
+            ],
+            "meta_pos": "[2204, -1135]"
+        },
+        {
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 12,
+            "name": "bloomBlurHorizontal4",
+            "inputs": [
+                {},
+                "[1, 0]"
+            ],
+            "meta_pos": "[2214, -207]"
+        },
+        {
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 13,
+            "name": "bloomBlurHorizontal8",
+            "inputs": [
+                {},
+                "[1, 0]"
+            ],
+            "meta_pos": "[2199, -522]"
+        },
+        {
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 14,
+            "name": "bloomBlurVertical16",
+            "inputs": [
+                {},
+                "[0, 1]"
+            ],
+            "meta_pos": "[2200, -933]"
+        },
+        {
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 15,
+            "name": "bloomBlurVertical2",
+            "inputs": [
+                {},
+                "[0, 1]"
+            ],
+            "meta_pos": "[2213, 0]"
+        },
+        {
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 16,
+            "name": "bloomBlurVertical32",
+            "inputs": [
+                {},
+                "[0, 1]"
+            ],
+            "meta_pos": "[2200, -1234]"
+        },
+        {
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 17,
+            "name": "bloomBlurVertical4",
+            "inputs": [
+                {},
+                "[0, 1]"
+            ],
+            "meta_pos": "[2217, -318]"
+        },
+        {
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 18,
+            "name": "bloomBlurVertical8",
+            "inputs": [
+                {},
+                "[0, 1]"
+            ],
+            "meta_pos": "[2204, -623]"
+        },
+        {
+            "class": "Pipeline/Render/BloomDownsample",
+            "id": 19,
+            "name": "bloomDownsample16",
+            "meta_pos": "[1294, -346]"
+        },
+        {
+            "class": "Pipeline/Render/BloomDownsample",
+            "id": 20,
+            "name": "bloomDownsample2",
+            "meta_pos": "[1301, -114]"
+        },
+        {
+            "class": "Pipeline/Render/BloomDownsample",
+            "id": 21,
+            "name": "bloomDownsample32",
+            "meta_pos": "[1292, -420]"
+        },
+        {
+            "class": "Pipeline/Render/BloomDownsample",
+            "id": 22,
+            "name": "bloomDownsample4",
+            "meta_pos": "[1301, -194]"
+        },
+        {
+            "class": "Pipeline/Render/BloomDownsample",
+            "id": 23,
+            "name": "bloomDownsample8",
+            "meta_pos": "[1296, -273]"
+        },
+        {
+            "class": "Pipeline/Render/BrightLumPass",
+            "id": 24,
+            "name": "brightLumPass",
+            "meta_pos": "[888, 115]"
+        },
+        {
+            "class": "Pipeline/System/GetEnvVariable",
+            "id": 25,
+            "name": "colorGradingEnv",
+            "inputs": [
+                "HDRCombine_colorGradingTex"
+            ],
+            "meta_pos": "[2063, 840]"
+        },
+        {
+            "class": "Pipeline/Utility/CreateTexture",
+            "id": 26,
+            "name": "createDepthBuffer",
+            "inputs": [
+                {},
+                {},
+                "R32G8X24_TYPELESS",
+                "1",
+                "DS|SR",
+                "false",
+                "false"
+            ],
+            "meta_pos": "[-4153, -691]"
+        },
+        {
+            "class": "Pipeline/Utility/CreateTexture",
+            "id": 27,
+            "name": "createHdrRenderTarget",
+            "inputs": [
+                {},
+                {},
+                "R16G16B16A16_FLOAT",
+                "1",
+                "RT|SR",
+                "false",
+                "true"
+            ],
+            "meta_pos": "[-3215, -126]"
+        },
+        {
+            "class": "Pipeline/Utility/CreateTexture",
+            "id": 28,
+            "name": "createShadowmapTextures",
+            "inputs": [
+                "1024",
+                "1024",
+                "R32_TYPELESS",
+                "6",
+                "DS|SR",
+                "true",
+                "false"
+            ],
+            "meta_pos": "[-3637, 1016]"
+        },
+        {
+            "class": "Pipeline/Render/CSM",
+            "id": 29,
+            "name": "csm",
+            "meta_pos": "[-3191, 349]"
+        },
+        {
+            "class": "Pipeline/Render/DebugDraw",
+            "id": 30,
+            "name": "debugDraw",
+            "meta_pos": "[2948, 643]"
+        },
+        {
+            "class": "Pipeline/Render/DepthPrepass",
+            "id": 31,
+            "name": "depthPrePass",
+            "meta_pos": "[-3752, -941]"
+        },
+        {
+            "class": "Pipeline/Render/DepthReduction",
+            "id": 32,
+            "name": "depthReduction",
+            "meta_pos": "[-3341, -972]"
+        },
+        {
+            "class": "Pipeline/Render/DepthReductionFinal",
+            "id": 33,
+            "name": "depthReductionFinal",
+            "meta_pos": "[-3553, 85]"
+        },
+        {
+            "class": "Pipeline/Render/DOFMain",
+            "id": 34,
+            "name": "dofMain",
+            "meta_pos": "[545, 267]"
+        },
+        {
+            "class": "Pipeline/Render/DofNeighborMax",
+            "id": 35,
+            "name": "dofNeighborMax",
+            "meta_pos": "[195, 84]"
+        },
+        {
+            "class": "Pipeline/Render/DOSPrepare",
+            "id": 36,
+            "name": "dofPrepare",
+            "meta_pos": "[-472, 66]"
+        },
+        {
+            "class": "Pipeline/Render/DOFTileMax",
+            "id": 37,
+            "name": "dofTileMax",
+            "meta_pos": "[-142, -6]"
+        },
+        {
+            "class": "Pipeline/Render/DrawSky",
+            "id": 38,
+            "name": "drawSky",
+            "meta_pos": "[-2092, -284]"
+        },
+        {
+            "class": "Pipeline/Render/ForwardRender",
+            "id": 39,
+            "name": "forwardRender",
+            "meta_pos": "[-2658, 66]"
+        },
+        {
+            "class": "Pipeline/Render/HDRCombine",
+            "id": 40,
+            "name": "hdrCombine",
+            "meta_pos": "[2595, 402]"
+        },
+        {
+            "class": "Pipeline/Render/LensBlur",
+            "id": 41,
+            "name": "lensFlare",
+            "meta_pos": "[1802, 6]"
+        },
+        {
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 42,
+            "name": "lensFlareBlurHorizontal",
+            "inputs": [
+                {},
+                "[1, 0]"
+            ],
+            "meta_pos": "[1801, 206]"
+        },
+        {
+            "class": "Pipeline/Render/BloomBlur",
+            "id": 43,
+            "name": "lensFlareBlurVertical",
+            "inputs": [
+                {},
+                "[0, 1]"
+            ],
+            "meta_pos": "[1800, 104]"
+        },
+        {
+            "class": "Pipeline/System/GetEnvVariable",
+            "id": 44,
+            "name": "lensFlareColorEnv",
+            "inputs": [
+                "LensFlare_ColorTex"
+            ],
+            "meta_pos": "[1445, 25]"
+        },
+        {
+            "class": "Pipeline/System/GetEnvVariable",
+            "id": 45,
+            "name": "lensFlareDirtEnv",
+            "inputs": [
+                "HDRCombine_lensFlareDirtTex"
+            ],
+            "meta_pos": "[2077, 918]"
+        },
+        {
+            "class": "Pipeline/System/GetEnvVariable",
+            "id": 46,
+            "name": "lensFlareStarEnv",
+            "inputs": [
+                "HDRCombine_lensFlareStarTex"
+            ],
+            "meta_pos": "[2084, 997]"
+        },
+        {
+            "class": "Pipeline/Render/LightCulling",
+            "id": 47,
+            "name": "lightCulling",
+            "meta_pos": "[-3194, 216]"
+        },
+        {
+            "class": "Pipeline/Render/LuminanceReduction",
+            "id": 48,
+            "name": "luminanceReduction",
+            "meta_pos": "[1130, 204]"
+        },
+        {
+            "class": "Pipeline/Render/LuminanceReductionFinal",
+            "id": 49,
+            "name": "luminanceReductionFinal",
+            "meta_pos": "[1365, 287]"
+        },
+        {
+            "class": "Pipeline/Render/MotionBlur",
+            "id": 50,
+            "name": "motionBlur",
+            "meta_pos": "[-866, 163]"
+        },
+        {
+            "class": "Pipeline/Render/NeightborMax",
+            "id": 51,
+            "name": "neighborMax",
+            "meta_pos": "[-1306, 179]"
+        },
+        {
+            "class": "Pipeline/Render/ScreenSpaceAmbientOcclusion",
+            "id": 52,
+            "name": "screenSpaceAmbientOcclusion",
+            "meta_pos": "[-1671, 62]"
+        },
+        {
+            "class": "Pipeline/Render/ScreenSpaceReflection",
+            "id": 53,
+            "name": "screenSpaceReflection",
+            "meta_pos": "[-1728, -106]"
+        },
+        {
+            "class": "Pipeline/Render/ScreenSpaceShadow",
+            "id": 54,
+            "name": "screenSpaceShadow",
+            "meta_pos": "[-3081, 1283]"
+        },
+        {
+            "class": "Pipeline/Render/ShadowMapGen",
+            "id": 55,
+            "name": "shadowMapGen",
+            "meta_pos": "[-3262, 933]"
+        },
+        {
+            "class": "Pipeline/Render/SMAA",
+            "id": 56,
+            "name": "smaa",
+            "meta_pos": "[3347, 777]"
+        },
+        {
+            "class": "Pipeline/System/GetEnvVariable",
+            "id": 57,
+            "name": "smaaAreaEnv",
+            "inputs": [
+                "SMAA_areaTex"
+            ],
+            "meta_pos": "[2942, 891]"
+        },
+        {
+            "class": "Pipeline/System/GetEnvVariable",
+            "id": 58,
+            "name": "smaaSearchEnv",
+            "inputs": [
+                "SMAA_searchTex"
+            ],
+            "meta_pos": "[2947, 962]"
+        },
+        {
+            "class": "Pipeline/Render/TileMax",
+            "id": 59,
+            "name": "tileMax",
+            "meta_pos": "[-1668, 181]"
+        },
+        {
+            "class": "Pipeline/Render/Voxelization",
+            "id": 60,
+            "name": "voxelization",
+            "meta_pos": "[-1318, -57]"
+        }
+    ],
+    "links": [
+        {
+            "src": 0,
+            "dst": "backBufferProperties",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomBlurHorizontal16",
+            "dst": "bloomAdd168",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomDownsample8",
+            "dst": "bloomAdd168",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "bloomBlurHorizontal32",
+            "dst": "bloomAdd3216",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomDownsample16",
+            "dst": "bloomAdd3216",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "bloomBlurHorizontal4",
+            "dst": "bloomAdd42",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomDownsample2",
+            "dst": "bloomAdd42",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "bloomBlurHorizontal8",
+            "dst": "bloomAdd84",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomDownsample4",
+            "dst": "bloomAdd84",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "bloomBlurVertical16",
+            "dst": "bloomBlurHorizontal16",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomBlurVertical2",
+            "dst": "bloomBlurHorizontal2",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomBlurVertical32",
+            "dst": "bloomBlurHorizontal32",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomBlurVertical4",
+            "dst": "bloomBlurHorizontal4",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomBlurVertical8",
+            "dst": "bloomBlurHorizontal8",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomAdd3216",
+            "dst": "bloomBlurVertical16",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomAdd42",
+            "dst": "bloomBlurVertical2",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomDownsample32",
+            "dst": "bloomBlurVertical32",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomAdd84",
+            "dst": "bloomBlurVertical4",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomAdd168",
+            "dst": "bloomBlurVertical8",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomDownsample8",
+            "dst": "bloomDownsample16",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "brightLumPass",
+            "dst": "bloomDownsample2",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomDownsample16",
+            "dst": "bloomDownsample32",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomDownsample2",
+            "dst": "bloomDownsample4",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "bloomDownsample4",
+            "dst": "bloomDownsample8",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "dofMain",
+            "dst": "brightLumPass",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "backBufferProperties",
+            "dst": "createDepthBuffer",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "backBufferProperties",
+            "dst": "createDepthBuffer",
+            "srcp": 1,
+            "dstp": 1
+        },
+        {
+            "src": "backBufferProperties",
+            "dst": "createHdrRenderTarget",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "backBufferProperties",
+            "dst": "createHdrRenderTarget",
+            "srcp": 1,
+            "dstp": 1
+        },
+        {
+            "src": 2,
+            "dst": "csm",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "3DScene",
+            "dst": "csm",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "depthReductionFinal",
+            "dst": "csm",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": 1,
+            "dst": "debugDraw",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "hdrCombine",
+            "dst": "debugDraw",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 1,
+            "dst": "depthPrePass",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": "3DScene",
+            "dst": "depthPrePass",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "createDepthBuffer",
+            "dst": "depthPrePass",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "depthReduction",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 1,
+            "dst": "depthReductionFinal",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "3DScene",
+            "dst": "depthReductionFinal",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": "depthReduction",
+            "dst": "depthReductionFinal",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 1,
+            "dst": "dofMain",
+            "srcp": 0,
+            "dstp": 3
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "dofMain",
+            "srcp": 0,
+            "dstp": 5
+        },
+        {
+            "src": "dofNeighborMax",
+            "dst": "dofMain",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": "dofPrepare",
+            "dst": "dofMain",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "dofPrepare",
+            "dst": "dofMain",
+            "srcp": 1,
+            "dstp": 1
+        },
+        {
+            "src": "motionBlur",
+            "dst": "dofMain",
+            "srcp": 0,
+            "dstp": 4
+        },
+        {
+            "src": "dofTileMax",
+            "dst": "dofNeighborMax",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 1,
+            "dst": "dofPrepare",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "dofPrepare",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "motionBlur",
+            "dst": "dofPrepare",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "dofPrepare",
+            "dst": "dofTileMax",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "dofPrepare",
+            "dst": "dofTileMax",
+            "srcp": 1,
+            "dstp": 1
+        },
+        {
+            "src": 1,
+            "dst": "drawSky",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": "3DScene",
+            "dst": "drawSky",
+            "srcp": 0,
+            "dstp": 3
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "drawSky",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "forwardRender",
+            "dst": "drawSky",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 1,
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 3
+        },
+        {
+            "src": "3DScene",
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": "3DScene",
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 4
+        },
+        {
+            "src": "createHdrRenderTarget",
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "csm",
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 5
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "depthReductionFinal",
+            "dst": "forwardRender",
+            "srcp": 1,
+            "dstp": 6
+        },
+        {
+            "src": "depthReductionFinal",
+            "dst": "forwardRender",
+            "srcp": 2,
+            "dstp": 7
+        },
+        {
+            "src": "depthReductionFinal",
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 8
+        },
+        {
+            "src": "lightCulling",
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 9
+        },
+        {
+            "src": "screenSpaceShadow",
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 11
+        },
+        {
+            "src": "shadowMapGen",
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 10
+        },
+        {
+            "src": 1,
+            "dst": "hdrCombine",
+            "srcp": 0,
+            "dstp": 7
+        },
+        {
+            "src": "bloomBlurHorizontal2",
+            "dst": "hdrCombine",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": "colorGradingEnv",
+            "dst": "hdrCombine",
+            "srcp": 0,
+            "dstp": 4
+        },
+        {
+            "src": "dofMain",
+            "dst": "hdrCombine",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "lensFlareBlurHorizontal",
+            "dst": "hdrCombine",
+            "srcp": 0,
+            "dstp": 3
+        },
+        {
+            "src": "lensFlareDirtEnv",
+            "dst": "hdrCombine",
+            "srcp": 0,
+            "dstp": 5
+        },
+        {
+            "src": "lensFlareStarEnv",
+            "dst": "hdrCombine",
+            "srcp": 0,
+            "dstp": 6
+        },
+        {
+            "src": "luminanceReductionFinal",
+            "dst": "hdrCombine",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "bloomDownsample4",
+            "dst": "lensFlare",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "lensFlareColorEnv",
+            "dst": "lensFlare",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "lensFlareBlurVertical",
+            "dst": "lensFlareBlurHorizontal",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "lensFlare",
+            "dst": "lensFlareBlurVertical",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 1,
+            "dst": "lightCulling",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "lightCulling",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "brightLumPass",
+            "dst": "luminanceReduction",
+            "srcp": 1,
+            "dstp": 0
+        },
+        {
+            "src": "luminanceReduction",
+            "dst": "luminanceReductionFinal",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "motionBlur",
+            "srcp": 0,
+            "dstp": 3
+        },
+        {
+            "src": "forwardRender",
+            "dst": "motionBlur",
+            "srcp": 1,
+            "dstp": 1
+        },
+        {
+            "src": "neighborMax",
+            "dst": "motionBlur",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": "voxelization",
+            "dst": "motionBlur",
+            "srcp": 1,
+            "dstp": 0
+        },
+        {
+            "src": "tileMax",
+            "dst": "neighborMax",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 1,
+            "dst": "screenSpaceAmbientOcclusion",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "screenSpaceAmbientOcclusion",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "forwardRender",
+            "dst": "screenSpaceAmbientOcclusion",
+            "srcp": 1,
+            "dstp": 2
+        },
+        {
+            "src": 1,
+            "dst": "screenSpaceReflection",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "screenSpaceReflection",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "drawSky",
+            "dst": "screenSpaceReflection",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "forwardRender",
+            "dst": "screenSpaceReflection",
+            "srcp": 1,
+            "dstp": 3
+        },
+        {
+            "src": 1,
+            "dst": "screenSpaceShadow",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "screenSpaceShadow",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "3DScene",
+            "dst": "shadowMapGen",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "createShadowmapTextures",
+            "dst": "shadowMapGen",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 0,
+            "dst": "smaa",
+            "srcp": 0,
+            "dstp": 3
+        },
+        {
+            "src": "debugDraw",
+            "dst": "smaa",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "smaaAreaEnv",
+            "dst": "smaa",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "smaaSearchEnv",
+            "dst": "smaa",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": "forwardRender",
+            "dst": "tileMax",
+            "srcp": 1,
+            "dstp": 0
+        },
+        {
+            "src": 1,
+            "dst": "voxelization",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "3DScene",
+            "dst": "voxelization",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "csm",
+            "dst": "voxelization",
+            "srcp": 0,
+            "dstp": 4
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "voxelization",
+            "srcp": 0,
+            "dstp": 3
+        },
+        {
+            "src": "depthReductionFinal",
+            "dst": "voxelization",
+            "srcp": 3,
+            "dstp": 5
+        },
+        {
+            "src": "drawSky",
+            "dst": "voxelization",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": "forwardRender",
+            "dst": "voxelization",
+            "srcp": 1,
+            "dstp": 6
+        },
+        {
+            "src": "forwardRender",
+            "dst": "voxelization",
+            "srcp": 2,
+            "dstp": 7
+        },
+        {
+            "src": "screenSpaceAmbientOcclusion",
+            "dst": "voxelization",
+            "srcp": 0,
+            "dstp": 9
+        },
+        {
+            "src": "screenSpaceReflection",
+            "dst": "voxelization",
+            "srcp": 0,
+            "dstp": 8
+        }
+    ]
 }
