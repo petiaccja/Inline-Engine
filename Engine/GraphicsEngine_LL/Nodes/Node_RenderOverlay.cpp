@@ -126,6 +126,22 @@ void RenderOverlay::Execute(RenderContext& context) {
 }
 
 
+const std::string& RenderOverlay::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"Target",
+		"Camera",
+		"Overlays",
+		"Texts",
+	};
+	return names[index];
+}
+const std::string& RenderOverlay::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"Target",
+	};
+	return names[index];
+}
+
 void RenderOverlay::ValidateInput() {
 	const Texture2D& texture = GetInput<0>().Get();
 

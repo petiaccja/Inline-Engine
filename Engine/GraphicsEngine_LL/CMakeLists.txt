@@ -18,6 +18,7 @@ set(scene
 	"Scene.cpp"
 	"TextEntity.cpp"
 	"Camera2D.cpp"
+	"AnimationState.cpp"
 	
 	"BasicCamera.hpp"
 	"DirectionalLight.hpp"	
@@ -28,6 +29,7 @@ set(scene
 	"Scene.hpp"
 	"TextEntity.hpp"
 	"Camera2D.hpp"
+	"AnimationState.hpp"
 	
 	"EntityCollection.hpp"
 )
