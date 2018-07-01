@@ -73,6 +73,9 @@ void ShadowFilter::Setup(SetupContext& context) {
 	Texture2D cubeShadowTex = this->GetInput<4>().Get();
 	m_cubeShadowTexSrv = context.CreateSrv(cubeShadowTex, FormatDepthToColor(cubeShadowTex.GetFormat()), cubeSrvDesc);
 
+	Texture2D depthTex = this->GetInput<5>().Get();
+	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
+
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
 		m_uniformsBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
@@ -97,6 +100,46 @@ void ShadowFilter::Setup(SetupContext& context) {
 		inputBindParamDesc.relativeChangeFrequency = 0;
 		inputBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+		BindParameterDesc cubeShadowBindParamDesc;
+		m_cubeShadowTexBindParam = BindParameter(eBindParameterType::TEXTURE, 1);
+		cubeShadowBindParamDesc.parameter = m_cubeShadowTexBindParam;
+		cubeShadowBindParamDesc.constantSize = 0;
+		cubeShadowBindParamDesc.relativeAccessFrequency = 0;
+		cubeShadowBindParamDesc.relativeChangeFrequency = 0;
+		cubeShadowBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc csmBindParamDesc;
+		m_csmTexBindParam = BindParameter(eBindParameterType::TEXTURE, 500);
+		csmBindParamDesc.parameter = m_csmTexBindParam;
+		csmBindParamDesc.constantSize = 0;
+		csmBindParamDesc.relativeAccessFrequency = 0;
+		csmBindParamDesc.relativeChangeFrequency = 0;
+		csmBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc shadowMxBindParamDesc;
+		m_shadowMxTexBindParam = BindParameter(eBindParameterType::TEXTURE, 501);
+		shadowMxBindParamDesc.parameter = m_shadowMxTexBindParam;
+		shadowMxBindParamDesc.constantSize = 0;
+		shadowMxBindParamDesc.relativeAccessFrequency = 0;
+		shadowMxBindParamDesc.relativeChangeFrequency = 0;
+		shadowMxBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc csmSplitsBindParamDesc;
+		m_csmSplitsTexBindParam = BindParameter(eBindParameterType::TEXTURE, 502);
+		csmSplitsBindParamDesc.parameter = m_csmSplitsTexBindParam;
+		csmSplitsBindParamDesc.constantSize = 0;
+		csmSplitsBindParamDesc.relativeAccessFrequency = 0;
+		csmSplitsBindParamDesc.relativeChangeFrequency = 0;
+		csmSplitsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc lightMvpBindParamDesc;
+		m_lightMvpTexBindParam = BindParameter(eBindParameterType::TEXTURE, 503);
+		lightMvpBindParamDesc.parameter = m_lightMvpTexBindParam;
+		lightMvpBindParamDesc.constantSize = 0;
+		lightMvpBindParamDesc.relativeAccessFrequency = 0;
+		lightMvpBindParamDesc.relativeChangeFrequency = 0;
+		lightMvpBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
 		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
@@ -107,7 +150,7 @@ void ShadowFilter::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, cubeShadowBindParamDesc, csmBindParamDesc, shadowMxBindParamDesc, csmSplitsBindParamDesc, lightMvpBindParamDesc },{ samplerDesc });
 	}
 
 
@@ -119,30 +162,55 @@ void ShadowFilter::Setup(SetupContext& context) {
 		shaderParts.ps = true;
 
 		m_minfilterShader = context.CreateShader("ShadowMinfilter", shaderParts, "");
+		m_penumbraShader = context.CreateShader("ShadowPenumbra", shaderParts, "");
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
 			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
 			gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12)
 		};
 
-		gxapi::GraphicsPipelineStateDesc psoDesc;
-		psoDesc.inputLayout.elements = inputElementDesc.data();
-		psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-		psoDesc.rootSignature = m_binder->GetRootSignature();
-		psoDesc.vs = m_minfilterShader.vs;
-		psoDesc.ps = m_minfilterShader.ps;
-		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
-		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+		{ //minfilter pso
+			gxapi::GraphicsPipelineStateDesc psoDesc;
+			psoDesc.inputLayout.elements = inputElementDesc.data();
+			psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
+			psoDesc.rootSignature = m_binder->GetRootSignature();
+			psoDesc.vs = m_minfilterShader.vs;
+			psoDesc.ps = m_minfilterShader.ps;
+			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
-		psoDesc.depthStencilState.enableDepthTest = false;
-		psoDesc.depthStencilState.enableDepthStencilWrite = false;
-		psoDesc.depthStencilState.enableStencilTest = false;
-		psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
+			psoDesc.depthStencilState.enableDepthTest = false;
+			psoDesc.depthStencilState.enableDepthStencilWrite = false;
+			psoDesc.depthStencilState.enableStencilTest = false;
+			psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
 
-		psoDesc.numRenderTargets = 1;
-		psoDesc.renderTargetFormats[0] = m_filterHorizontal_rtv[0].GetResource().GetFormat();
+			psoDesc.numRenderTargets = 1;
+			psoDesc.renderTargetFormats[0] = m_filterHorizontal_rtv[0].GetResource().GetFormat();
 
-		m_minfilterPSO.reset(context.CreatePSO(psoDesc));
+			m_minfilterPSO.reset(context.CreatePSO(psoDesc));
+		}
+
+		{ //penumbra pso
+			gxapi::GraphicsPipelineStateDesc psoDesc;
+			psoDesc.inputLayout.elements = inputElementDesc.data();
+			psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
+			psoDesc.rootSignature = m_binder->GetRootSignature();
+			psoDesc.vs = m_penumbraShader.vs;
+			psoDesc.ps = m_penumbraShader.ps;
+			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+
+			psoDesc.depthStencilState.enableDepthTest = false;
+			psoDesc.depthStencilState.enableDepthStencilWrite = false;
+			psoDesc.depthStencilState.enableStencilTest = false;
+			psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
+
+			psoDesc.numRenderTargets = 2;
+			psoDesc.renderTargetFormats[0] = m_shadowLayers_rtv.GetResource().GetFormat();
+			psoDesc.renderTargetFormats[1] = m_penumbraLayers_rtv.GetResource().GetFormat();
+
+			m_penumbraPSO.reset(context.CreatePSO(psoDesc));
+		}
 	}
 
 	this->GetOutput<0>().Set(m_filterVertical_rtv[0].GetResource());
@@ -229,7 +297,45 @@ void ShadowFilter::Execute(RenderContext& context) {
 		}
 	}
 
+	{ //layer generation pass
+		commandList.SetResourceState(m_penumbraLayers_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+		commandList.SetResourceState(m_shadowLayers_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+		commandList.SetResourceState(m_depthTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_csmTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_shadowMxTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_csmSplitsTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_lightMvpTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_cubeShadowTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
+		RenderTargetView2D* pRTV[2] = { &m_penumbraLayers_rtv, &m_shadowLayers_rtv };
+		commandList.SetRenderTargets(1, pRTV, 0);
+
+		gxapi::Rectangle rect{ 0, (int)m_penumbraLayers_rtv.GetResource().GetHeight(), 0, (int)m_penumbraLayers_rtv.GetResource().GetWidth() };
+		gxapi::Viewport viewport;
+		viewport.width = (float)rect.right;
+		viewport.height = (float)rect.bottom;
+		viewport.topLeftX = 0;
+		viewport.topLeftY = 0;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		commandList.SetScissorRects(1, &rect);
+		commandList.SetViewports(1, &viewport);
+
+		commandList.SetPipelineState(m_penumbraPSO.get());
+		commandList.SetGraphicsBinder(&m_binder.value());
+		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
+		commandList.BindGraphics(m_inputTexBindParam, m_depthTexSrv);
+		commandList.BindGraphics(m_cubeShadowTexBindParam, m_cubeShadowTexSrv);
+		commandList.BindGraphics(m_csmTexBindParam, m_csmTexSrv);
+		commandList.BindGraphics(m_shadowMxTexBindParam, m_shadowMxTexSrv);
+		commandList.BindGraphics(m_csmSplitsTexBindParam, m_csmSplitsTexSrv);
+		commandList.BindGraphics(m_lightMvpTexBindParam, m_lightMvpTexSrv);
+
+		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
+
+		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLESTRIP);
+		commandList.DrawInstanced(4);
+	}
 }
 
 
@@ -240,6 +346,8 @@ void ShadowFilter::InitRenderTarget(SetupContext& context) {
 		using gxapi::eFormat;
 
 		auto formatBlur = eFormat::R16_FLOAT;
+		auto formatShadowLayers = eFormat::R8G8B8A8_UNORM;
+		auto formatPenumbraLayers = eFormat::R16G16B16A16_FLOAT;
 
 		gxapi::RtvTexture2DArray rtvDesc;
 		rtvDesc.activeArraySize = 1;
@@ -347,6 +455,22 @@ void ShadowFilter::InitRenderTarget(SetupContext& context) {
 			cubeSrvDesc.numCubes = 1;
 			m_cubeMinfilter_srv.push_back(context.CreateSrv(m_cubeShadowTexSrv.GetResource(), FormatDepthToColor(m_cubeShadowTexSrv.GetFormat()), cubeSrvDesc));
 		}
+
+		//create penumbra rtvs
+		desc.arraySize = 1;
+		desc.width = m_depthTexSrv.GetResource().GetWidth();
+		desc.height = m_depthTexSrv.GetResource().GetHeight();
+		desc.format = formatShadowLayers;
+		Texture2D shadowLayers_tex = context.CreateTexture2D(desc, { true, true, false, false });
+		shadowLayers_tex.SetName("Shadow layers tex ");
+		desc.format = formatPenumbraLayers;
+		Texture2D penumbraLayers_tex = context.CreateTexture2D(desc, { true, true, false, false });
+		penumbraLayers_tex.SetName("Penumbra layers tex ");
+
+		rtvDesc.activeArraySize = 1;
+		rtvDesc.firstArrayElement = 0;
+		m_shadowLayers_rtv = context.CreateRtv(shadowLayers_tex, shadowLayers_tex.GetFormat(), rtvDesc);
+		m_penumbraLayers_rtv = context.CreateRtv(penumbraLayers_tex, penumbraLayers_tex.GetFormat(), rtvDesc);
 	}
 }
 

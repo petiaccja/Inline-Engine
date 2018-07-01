@@ -3,49 +3,17 @@
         {
             "class": "Pipeline/Render/ShadowFilter",
             "id": 0,
-            "meta_pos": "[-2452, 697]"
-        },
-        {
-            "class": "Pipeline/System/GetBackBuffer",
-            "id": 1,
-            "meta_pos": "[-4587, -428]"
+            "meta_pos": "[-2452, 699]"
         },
         {
             "class": "Pipeline/System/GetBackBuffer",
             "id": 2,
-            "meta_pos": "[3270, 1008]"
+            "meta_pos": "[3269, 1010]"
         },
         {
-            "class": "Pipeline/System/GetCameraByName",
-            "id": 6,
-            "inputs": [
-                "WorldCam"
-            ],
-            "meta_pos": "[-2770, -381]"
-        },
-        {
-            "class": "Pipeline/System/GetCameraByName",
-            "id": 3,
-            "inputs": [
-                "WorldCam"
-            ],
-            "meta_pos": "[-613, 443]"
-        },
-        {
-            "class": "Pipeline/System/GetCameraByName",
-            "id": 4,
-            "inputs": [
-                "WorldCam"
-            ],
-            "meta_pos": "[-3844, -902]"
-        },
-        {
-            "class": "Pipeline/System/GetCameraByName",
-            "id": 8,
-            "inputs": [
-                "WorldCam"
-            ],
-            "meta_pos": "[-3169, 1272]"
+            "class": "Pipeline/System/GetBackBuffer",
+            "id": 1,
+            "meta_pos": "[-4587, -425]"
         },
         {
             "class": "Pipeline/System/GetCameraByName",
@@ -53,7 +21,39 @@
             "inputs": [
                 "WorldCam"
             ],
-            "meta_pos": "[2349, 588]"
+            "meta_pos": "[2348, 590]"
+        },
+        {
+            "class": "Pipeline/System/GetCameraByName",
+            "id": 3,
+            "inputs": [
+                "WorldCam"
+            ],
+            "meta_pos": "[-2770, -378]"
+        },
+        {
+            "class": "Pipeline/System/GetCameraByName",
+            "id": 4,
+            "inputs": [
+                "WorldCam"
+            ],
+            "meta_pos": "[-613, 445]"
+        },
+        {
+            "class": "Pipeline/System/GetCameraByName",
+            "id": 8,
+            "inputs": [
+                "WorldCam"
+            ],
+            "meta_pos": "[-3729, 160]"
+        },
+        {
+            "class": "Pipeline/System/GetCameraByName",
+            "id": 6,
+            "inputs": [
+                "WorldCam"
+            ],
+            "meta_pos": "[-3169, 1274]"
         },
         {
             "class": "Pipeline/System/GetCameraByName",
@@ -61,7 +61,7 @@
             "inputs": [
                 "WorldCam"
             ],
-            "meta_pos": "[-3729, 158]"
+            "meta_pos": "[-3844, -899]"
         },
         {
             "class": "Pipeline/System/GetCameraByName",
@@ -69,7 +69,7 @@
             "inputs": [
                 "WorldCam"
             ],
-            "meta_pos": "[-2191, 297]"
+            "meta_pos": "[-2191, 299]"
         },
         {
             "class": "Pipeline/System/GetSceneByName",
@@ -77,7 +77,7 @@
             "inputs": [
                 "World"
             ],
-            "meta_pos": "[-2307, -237]"
+            "meta_pos": "[-2307, -234]"
         },
         {
             "class": "Pipeline/System/GetSceneByName",
@@ -85,7 +85,7 @@
             "inputs": [
                 "World"
             ],
-            "meta_pos": "[-1359, -453]"
+            "meta_pos": "[-1359, -450]"
         },
         {
             "class": "Pipeline/System/GetSceneByName",
@@ -93,7 +93,7 @@
             "inputs": [
                 "World"
             ],
-            "meta_pos": "[-2739, -5]"
+            "meta_pos": "[-2739, -2]"
         },
         {
             "class": "Pipeline/System/GetSceneByName",
@@ -101,7 +101,7 @@
             "inputs": [
                 "World"
             ],
-            "meta_pos": "[-3655, 289]"
+            "meta_pos": "[-3655, 291]"
         },
         {
             "class": "Pipeline/Utility/CreateTexture",
@@ -115,7 +115,7 @@
                 "false",
                 "false"
             ],
-            "meta_pos": "[-3280, 352]"
+            "meta_pos": "[-3280, 354]"
         },
         {
             "class": "Pipeline/System/GetSceneByName",
@@ -124,37 +124,37 @@
             "inputs": [
                 "World"
             ],
-            "meta_pos": "[-3796, -991]"
+            "meta_pos": "[-3796, -988]"
         },
         {
             "class": "Pipeline/Utility/TextureProperties",
             "id": 16,
             "name": "backBufferProperties",
-            "meta_pos": "[-4202, -501]"
+            "meta_pos": "[-4202, -498]"
         },
         {
             "class": "Pipeline/Render/BloomAdd",
             "id": 17,
             "name": "bloomAdd168",
-            "meta_pos": "[2531, -745]"
+            "meta_pos": "[2530, -742]"
         },
         {
             "class": "Pipeline/Render/BloomAdd",
             "id": 18,
             "name": "bloomAdd3216",
-            "meta_pos": "[2529, -1044]"
+            "meta_pos": "[2528, -1041]"
         },
         {
             "class": "Pipeline/Render/BloomAdd",
             "id": 19,
             "name": "bloomAdd42",
-            "meta_pos": "[2536, -118]"
+            "meta_pos": "[2535, -115]"
         },
         {
             "class": "Pipeline/Render/BloomAdd",
             "id": 20,
             "name": "bloomAdd84",
-            "meta_pos": "[2536, -437]"
+            "meta_pos": "[2535, -434]"
         },
         {
             "class": "Pipeline/Render/BloomBlur",
@@ -164,7 +164,7 @@
                 {},
                 "[1, 0]"
             ],
-            "meta_pos": "[2531, -843]"
+            "meta_pos": "[2530, -840]"
         },
         {
             "class": "Pipeline/Render/BloomBlur",
@@ -174,7 +174,7 @@
                 {},
                 "[1, 0]"
             ],
-            "meta_pos": "[2533, 73]"
+            "meta_pos": "[2532, 75]"
         },
         {
             "class": "Pipeline/Render/BloomBlur",
@@ -184,7 +184,7 @@
                 {},
                 "[1, 0]"
             ],
-            "meta_pos": "[2528, -1150]"
+            "meta_pos": "[2527, -1147]"
         },
         {
             "class": "Pipeline/Render/BloomBlur",
@@ -194,7 +194,7 @@
                 {},
                 "[1, 0]"
             ],
-            "meta_pos": "[2538, -222]"
+            "meta_pos": "[2537, -219]"
         },
         {
             "class": "Pipeline/Render/BloomBlur",
@@ -204,7 +204,7 @@
                 {},
                 "[1, 0]"
             ],
-            "meta_pos": "[2523, -537]"
+            "meta_pos": "[2522, -534]"
         },
         {
             "class": "Pipeline/Render/BloomBlur",
@@ -214,7 +214,7 @@
                 {},
                 "[0, 1]"
             ],
-            "meta_pos": "[2524, -948]"
+            "meta_pos": "[2523, -945]"
         },
         {
             "class": "Pipeline/Render/BloomBlur",
@@ -224,7 +224,7 @@
                 {},
                 "[0, 1]"
             ],
-            "meta_pos": "[2537, -15]"
+            "meta_pos": "[2536, -12]"
         },
         {
             "class": "Pipeline/Render/BloomBlur",
@@ -234,7 +234,7 @@
                 {},
                 "[0, 1]"
             ],
-            "meta_pos": "[2524, -1249]"
+            "meta_pos": "[2523, -1246]"
         },
         {
             "class": "Pipeline/Render/BloomBlur",
@@ -244,7 +244,7 @@
                 {},
                 "[0, 1]"
             ],
-            "meta_pos": "[2541, -333]"
+            "meta_pos": "[2540, -330]"
         },
         {
             "class": "Pipeline/Render/BloomBlur",
@@ -254,43 +254,43 @@
                 {},
                 "[0, 1]"
             ],
-            "meta_pos": "[2528, -638]"
+            "meta_pos": "[2527, -635]"
         },
         {
             "class": "Pipeline/Render/BloomDownsample",
             "id": 31,
             "name": "bloomDownsample16",
-            "meta_pos": "[1618, -361]"
+            "meta_pos": "[1617, -358]"
         },
         {
             "class": "Pipeline/Render/BloomDownsample",
             "id": 32,
             "name": "bloomDownsample2",
-            "meta_pos": "[1625, -129]"
+            "meta_pos": "[1624, -126]"
         },
         {
             "class": "Pipeline/Render/BloomDownsample",
             "id": 33,
             "name": "bloomDownsample32",
-            "meta_pos": "[1616, -435]"
+            "meta_pos": "[1615, -432]"
         },
         {
             "class": "Pipeline/Render/BloomDownsample",
             "id": 34,
             "name": "bloomDownsample4",
-            "meta_pos": "[1625, -209]"
+            "meta_pos": "[1624, -206]"
         },
         {
             "class": "Pipeline/Render/BloomDownsample",
             "id": 35,
             "name": "bloomDownsample8",
-            "meta_pos": "[1620, -288]"
+            "meta_pos": "[1619, -285]"
         },
         {
             "class": "Pipeline/Render/BrightLumPass",
             "id": 36,
             "name": "brightLumPass",
-            "meta_pos": "[1212, 89]"
+            "meta_pos": "[1211, 91]"
         },
         {
             "class": "Pipeline/System/GetEnvVariable",
@@ -299,7 +299,7 @@
             "inputs": [
                 "HDRCombine_colorGradingTex"
             ],
-            "meta_pos": "[2387, 814]"
+            "meta_pos": "[2386, 816]"
         },
         {
             "class": "Pipeline/Utility/CreateTexture",
@@ -314,7 +314,7 @@
                 "false",
                 "false"
             ],
-            "meta_pos": "[-3818, -706]"
+            "meta_pos": "[-3818, -703]"
         },
         {
             "class": "Pipeline/Utility/CreateTexture",
@@ -329,7 +329,7 @@
                 "false",
                 "true"
             ],
-            "meta_pos": "[-2878, -193]"
+            "meta_pos": "[-2878, -190]"
         },
         {
             "class": "Pipeline/Utility/CreateTexture",
@@ -344,85 +344,85 @@
                 "true",
                 "false"
             ],
-            "meta_pos": "[-3302, 990]"
+            "meta_pos": "[-3302, 992]"
         },
         {
             "class": "Pipeline/Render/CSM",
             "id": 41,
             "name": "csm",
-            "meta_pos": "[-2856, 323]"
+            "meta_pos": "[-2856, 325]"
         },
         {
             "class": "Pipeline/Render/DebugDraw",
             "id": 42,
             "name": "debugDraw",
-            "meta_pos": "[3272, 617]"
+            "meta_pos": "[3271, 619]"
         },
         {
             "class": "Pipeline/Render/DepthPrepass",
             "id": 43,
             "name": "depthPrePass",
-            "meta_pos": "[-3417, -956]"
+            "meta_pos": "[-3417, -953]"
         },
         {
             "class": "Pipeline/Render/DepthReduction",
             "id": 44,
             "name": "depthReduction",
-            "meta_pos": "[-3006, -987]"
+            "meta_pos": "[-3006, -984]"
         },
         {
             "class": "Pipeline/Render/DepthReductionFinal",
             "id": 45,
             "name": "depthReductionFinal",
-            "meta_pos": "[-3218, 59]"
+            "meta_pos": "[-3218, 61]"
         },
         {
             "class": "Pipeline/Render/DOFMain",
             "id": 46,
             "name": "dofMain",
-            "meta_pos": "[869, 241]"
+            "meta_pos": "[868, 243]"
         },
         {
             "class": "Pipeline/Render/DofNeighborMax",
             "id": 47,
             "name": "dofNeighborMax",
-            "meta_pos": "[519, 58]"
+            "meta_pos": "[518, 60]"
         },
         {
             "class": "Pipeline/Render/DOSPrepare",
             "id": 48,
             "name": "dofPrepare",
-            "meta_pos": "[-137, 40]"
+            "meta_pos": "[-137, 42]"
         },
         {
             "class": "Pipeline/Render/DOFTileMax",
             "id": 49,
             "name": "dofTileMax",
-            "meta_pos": "[186, -21]"
+            "meta_pos": "[185, -18]"
         },
         {
             "class": "Pipeline/Render/DrawSky",
             "id": 50,
             "name": "drawSky",
-            "meta_pos": "[-1926, -377]"
+            "meta_pos": "[-1926, -374]"
         },
         {
             "class": "Pipeline/Render/ForwardRender",
             "id": 51,
             "name": "forwardRender",
-            "meta_pos": "[-2323, 40]"
+            "meta_pos": "[-2323, 42]"
         },
         {
             "class": "Pipeline/Render/HDRCombine",
             "id": 52,
             "name": "hdrCombine",
-            "meta_pos": "[2919, 376]"
+            "meta_pos": "[2918, 378]"
         },
         {
             "class": "Pipeline/Render/LensBlur",
             "id": 53,
             "name": "lensFlare",
-            "meta_pos": "[2126, -11]"
+            "meta_pos": "[2125, -8]"
         },
         {
             "class": "Pipeline/Render/BloomBlur",
@@ -432,7 +432,7 @@
                 {},
                 "[1, 0]"
             ],
-            "meta_pos": "[2125, 180]"
+            "meta_pos": "[2124, 182]"
         },
         {
             "class": "Pipeline/Render/BloomBlur",
@@ -442,7 +442,7 @@
                 {},
                 "[0, 1]"
             ],
-            "meta_pos": "[2124, 78]"
+            "meta_pos": "[2123, 80]"
         },
         {
             "class": "Pipeline/System/GetEnvVariable",
@@ -451,7 +451,7 @@
             "inputs": [
                 "LensFlare_ColorTex"
             ],
-            "meta_pos": "[1769, 2]"
+            "meta_pos": "[1768, 4]"
         },
         {
             "class": "Pipeline/System/GetEnvVariable",
@@ -460,7 +460,7 @@
             "inputs": [
                 "HDRCombine_lensFlareDirtTex"
             ],
-            "meta_pos": "[2401, 892]"
+            "meta_pos": "[2400, 894]"
         },
         {
             "class": "Pipeline/System/GetEnvVariable",
@@ -469,67 +469,67 @@
             "inputs": [
                 "HDRCombine_lensFlareStarTex"
             ],
-            "meta_pos": "[2408, 971]"
+            "meta_pos": "[2407, 973]"
         },
         {
             "class": "Pipeline/Render/LightCulling",
             "id": 59,
             "name": "lightCulling",
-            "meta_pos": "[-2859, 190]"
+            "meta_pos": "[-2859, 192]"
         },
         {
             "class": "Pipeline/Render/LuminanceReduction",
             "id": 60,
             "name": "luminanceReduction",
-            "meta_pos": "[1454, 178]"
+            "meta_pos": "[1453, 180]"
         },
         {
             "class": "Pipeline/Render/LuminanceReductionFinal",
             "id": 61,
             "name": "luminanceReductionFinal",
-            "meta_pos": "[1916, 290]"
+            "meta_pos": "[1915, 292]"
         },
         {
             "class": "Pipeline/Render/MotionBlur",
             "id": 62,
             "name": "motionBlur",
-            "meta_pos": "[-531, 137]"
+            "meta_pos": "[-531, 139]"
         },
         {
             "class": "Pipeline/Render/NeightborMax",
             "id": 63,
             "name": "neighborMax",
-            "meta_pos": "[-992, 214]"
+            "meta_pos": "[-992, 216]"
         },
         {
             "class": "Pipeline/Render/ScreenSpaceAmbientOcclusion",
             "id": 64,
             "name": "screenSpaceAmbientOcclusion",
-            "meta_pos": "[-1427, 154]"
+            "meta_pos": "[-1427, 156]"
         },
         {
             "class": "Pipeline/Render/ScreenSpaceReflection",
             "id": 65,
             "name": "screenSpaceReflection",
-            "meta_pos": "[-1562, -177]"
+            "meta_pos": "[-1562, -174]"
         },
         {
             "class": "Pipeline/Render/ScreenSpaceShadow",
             "id": 66,
             "name": "screenSpaceShadow",
-            "meta_pos": "[-2746, 1257]"
+            "meta_pos": "[-2746, 1259]"
         },
         {
             "class": "Pipeline/Render/ShadowMapGen",
             "id": 67,
             "name": "shadowMapGen",
-            "meta_pos": "[-2927, 907]"
+            "meta_pos": "[-2902, 702]"
         },
         {
             "class": "Pipeline/Render/SMAA",
             "id": 68,
             "name": "smaa",
-            "meta_pos": "[3671, 751]"
+            "meta_pos": "[3670, 753]"
         },
         {
             "class": "Pipeline/System/GetEnvVariable",
@@ -538,7 +538,7 @@
             "inputs": [
                 "SMAA_areaTex"
             ],
-            "meta_pos": "[3266, 865]"
+            "meta_pos": "[3265, 867]"
         },
         {
             "class": "Pipeline/System/GetEnvVariable",
@@ -547,19 +547,19 @@
             "inputs": [
                 "SMAA_searchTex"
             ],
-            "meta_pos": "[3271, 936]"
+            "meta_pos": "[3270, 938]"
         },
         {
             "class": "Pipeline/Render/TileMax",
             "id": 71,
             "name": "tileMax",
-            "meta_pos": "[-1429, 295]"
+            "meta_pos": "[-1429, 297]"
         },
         {
             "class": "Pipeline/Render/Voxelization",
             "id": 72,
             "name": "voxelization",
-            "meta_pos": "[-983, -72]"
+            "meta_pos": "[-983, -69]"
         }
     ],
     "links": [
@@ -568,6 +568,12 @@
             "dst": 0,
             "srcp": 0,
             "dstp": 0
+        },
+        {
+            "src": "depthPrePass",
+            "dst": 0,
+            "srcp": 0,
+            "dstp": 5
         },
         {
             "src": "depthReductionFinal",
@@ -798,7 +804,7 @@
             "dstp": 0
         },
         {
-            "src": 4,
+            "src": 5,
             "dst": "depthPrePass",
             "srcp": 0,
             "dstp": 2
@@ -822,7 +828,7 @@
             "dstp": 0
         },
         {
-            "src": 5,
+            "src": 8,
             "dst": "depthReductionFinal",
             "srcp": 0,
             "dstp": 1
@@ -840,7 +846,7 @@
             "dstp": 0
         },
         {
-            "src": 3,
+            "src": 4,
             "dst": "dofMain",
             "srcp": 0,
             "dstp": 3
@@ -882,7 +888,7 @@
             "dstp": 0
         },
         {
-            "src": 3,
+            "src": 4,
             "dst": "dofPrepare",
             "srcp": 0,
             "dstp": 2
@@ -912,7 +918,7 @@
             "dstp": 1
         },
         {
-            "src": 6,
+            "src": 3,
             "dst": "drawSky",
             "srcp": 0,
             "dstp": 2
@@ -942,7 +948,7 @@
             "dstp": 2
         },
         {
-            "src": 6,
+            "src": 3,
             "dst": "forwardRender",
             "srcp": 0,
             "dstp": 3
@@ -1080,7 +1086,7 @@
             "dstp": 0
         },
         {
-            "src": 5,
+            "src": 8,
             "dst": "lightCulling",
             "srcp": 0,
             "dstp": 1
@@ -1176,7 +1182,7 @@
             "dstp": 3
         },
         {
-            "src": 8,
+            "src": 6,
             "dst": "screenSpaceShadow",
             "srcp": 0,
             "dstp": 1
