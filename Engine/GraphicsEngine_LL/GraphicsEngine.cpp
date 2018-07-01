@@ -50,6 +50,7 @@
 #include "Nodes/Node_Voxelization.hpp"
 #include "Nodes/Node_VolumetricLighting.hpp"
 #include "Nodes/Node_ShadowMapGen.hpp"
+#include "Nodes/Node_ShadowFilter.hpp"
 #include "Nodes/Node_ScreenSpaceShadow.hpp"
 #include "Nodes/Node_ScreenSpaceReflection.hpp"
 #include "Nodes/Node_ScreenSpaceAmbientOcclusion.hpp"
@@ -579,6 +580,7 @@ void GraphicsEngine::RegisterPipelineClasses() {
 	m_nodeFactory.RegisterNodeClass<nodes::Voxelization>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::VolumetricLighting>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::ShadowMapGen>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::ShadowFilter>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceShadow>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceReflection>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceAmbientOcclusion>("Pipeline/Render");
