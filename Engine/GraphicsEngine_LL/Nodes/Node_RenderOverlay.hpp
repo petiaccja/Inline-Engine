@@ -42,6 +42,9 @@ public:
 	void Update() override {}
 	void Notify(InputPortBase* sender) override {}
 
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
+
 private:
 	void ValidateInput();
 	void CreateRtv(SetupContext& context);
