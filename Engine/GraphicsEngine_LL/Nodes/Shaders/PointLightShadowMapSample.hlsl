@@ -13,13 +13,20 @@ float linearize_depth(float depth, float near, float far)
 	return vs_zrecon;// / far;
 };
 
-float3 getPointLightShadow(float3 dir, float dist)
+float3 getPointLightShadow(float3 dir, float dist
+#ifdef POINT_EXTENDED_INFO
+, out float4 shadowCoord
+#endif
+)
 {
 	float3 ws_dir = mul(float4(dir, 0.0), uniforms.invV).xyz;
+	#ifdef POINT_EXTENDED_INFO
+	shadowCoord = float4(ws_dir, 1.0);
+	#endif
 	float depth = pointLightShadowMapTex.SampleLevel(theSampler, ws_dir, 0.0).x;
 	float linearDepth = linearize_depth(depth, 0.1, 100);
 	float bias = 0.05;
-	float shadowTerm = float(linearDepth > dist - bias);
+	float shadowTerm = float(linearDepth > dist - bias);	
 	return float3(shadowTerm, shadowTerm, shadowTerm);
 	//return float3(linearDepth, linearDepth, linearDepth)*0.01;
 	//return float3(depth, depth, depth);

@@ -6,8 +6,11 @@
 
 struct Uniforms
 {
+	float4x4 invV;
+	float4 farPlaneData0, farPlaneData1;
+	float lightSize, nearPlane, farPlane, dummy;
+	float4 vsLightPos;
 	float2 direction;
-	float lightSize;
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
@@ -51,12 +54,12 @@ float PSMain(PS_Input input) : SV_TARGET
 	{
 		5.0, 4.0, 3.0, 2.0, 1.0, -1.0, -2.0, -3.0, -4.0, -5.0
 	};
-	
-	const float magicConst = 0.065;
 
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 	float2 direction = uniforms.direction / float2(inputTexSize.xy);
+	
+	float2 magicConst = float2(inputTexSize.xy) / float2(128.0, 128.0);
 
 	float minz = inputTex.Sample(samp0, input.texCoord).x; //center
 

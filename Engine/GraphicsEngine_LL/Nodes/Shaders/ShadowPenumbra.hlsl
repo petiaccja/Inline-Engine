@@ -5,21 +5,25 @@
 * (penumbra size in each layer, binary shadow value)
 */
 
-#define CSM_EXTENDED_INFO
-#include "CSMSample.hlsl"
-
 struct Uniforms
 {
+	float4x4 invV;
 	float4 farPlaneData0, farPlaneData1;
 	float lightSize, nearPlane, farPlane, dummy;
+	float4 vsLightPos;
 	float2 direction;
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
 
+#define CSM_EXTENDED_INFO
+#include "CSMSample.hlsl"
+#define POINT_EXTENDED_INFO
+#include "PointLightShadowMapSample.hlsl"
+
 Texture2D inputTex0 : register(t0); //depth texture
-TextureCube inputTex1 : register(t1); //shadow cube map
-Texture2DArray<float> inputTex2 : register(t2); //csm minfilter map
+Texture2DArray<float> inputTex1 : register(t1); //csm minfilter map
+TextureCube<float> inputTex2 : register(t2); //cube minfilter map
 SamplerState samp0 : register(s0);
 
 struct PS_Input
@@ -39,19 +43,6 @@ float estimate_penumbra( float receiver, float blocker )
 {
 	return abs(receiver - blocker) / blocker;
 }
-
-float linearize_depth(float depth, float near, float far)
-{
-	float A = far / (far - near);
-	float B = -far * near / (far - near);
-	float zndc = depth;
-
-	//view space linear z
-	float vs_zrecon = B / (zndc - A);
-
-	//range: [0...far]
-	return vs_zrecon;// / far;
-};
 
 PS_Input VSMain(uint vertexId : SV_VertexID)
 {
@@ -102,13 +93,12 @@ PS_Output PSMain(PS_Input input) : SV_TARGET
 	
 	{ //csm 
 		//blocker comes from minfilter tex
-		//ls is light size
 		float4 shadowCoord;
 		{
 			shadow.x = get_csm_shadow(float4(vsPos, 1.0), shadowCoord).x;
 		}
 		
-		float blocker = clamp(inputTex2.SampleLevel(samp0, get_shadow_uv(shadowCoord.xy, shadowCoord.w), 0.0).x, 0.0, 1.0);
+		float blocker = clamp(inputTex1.SampleLevel(samp0, get_shadow_uv(shadowCoord.xy, shadowCoord.w), 0.0).x, 0.0, 1.0);
 		float shadowCoordZ = clamp(shadowCoord.z, 0.0, 1.0);
 		
 		float ls = uniforms.lightSize;
@@ -120,9 +110,22 @@ PS_Output PSMain(PS_Input input) : SV_TARGET
 	{ //point lights
 		{ //TODO for each point light
 			//blocker comes from minfilter tex
-			//ls is light size
-			//float penumbra = abs(estimate_penumbra( abs(lsprojz), abs(blocker) )) * ls * ls;
-			//float shadow = float(distance_from_light < shadow_coord.z);
+			float4 shadowCoord;
+			{
+				float3 light_dir = uniforms.vsLightPos.xyz - vsPos;
+				float distance = length(light_dir);
+				shadow.y = getPointLightShadow(-light_dir, distance, shadowCoord).x;
+				shadowCoord.w = distance;
+			}
+			
+			float blocker = inputTex2.SampleLevel(samp0, shadowCoord.xyz, 0.0).x;
+			blocker = linearize_depth(blocker, 0.1, 100.0);
+			float shadowCoordZ = shadowCoord.w;
+			
+			float ls = uniforms.lightSize;
+			penumbra.y = estimate_penumbra( shadowCoordZ, blocker ) * ls * ls;
+			//penumbra.z = shadowCoordZ;
+			//penumbra.w = blocker;
 		}
 	}
 	

@@ -42,6 +42,9 @@ protected:
 	BindParameter m_lightMvpTexBindParam;
 	BindParameter m_cubeShadowTexBindParam;
 	BindParameter m_csmMinfilterTexBindParam;
+	BindParameter m_cubeMinfilterTexBindParam;
+	BindParameter m_shadowLayersTexBindParam;
+	BindParameter m_penumbraLayersTexBindParam;
 	BindParameter m_uniformsBindParam;
 	ShaderProgram m_minfilterShader;
 	ShaderProgram m_penumbraShader;
@@ -59,6 +62,7 @@ protected: // outputs
 
 	RenderTargetView2D m_shadowLayers_rtv;
 	RenderTargetView2D m_penumbraLayers_rtv;
+	RenderTargetView2D m_blurLayers_rtv;
 
 protected: // render context
 	TextureView2D m_csmTexSrv;
@@ -67,6 +71,8 @@ protected: // render context
 	TextureView2D m_lightMvpTexSrv;
 	TextureView2D m_depthTexSrv;
 	TextureViewCube m_cubeShadowTexSrv;
+	TextureView2D m_shadowLayers_srv;
+	TextureView2D m_penumbraLayers_srv;
 
 	const BasicCamera* m_camera;
 
