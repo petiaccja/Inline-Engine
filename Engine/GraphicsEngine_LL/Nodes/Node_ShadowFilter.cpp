@@ -18,8 +18,9 @@ namespace inl::gxeng::nodes {
 
 struct Uniforms
 {
+	Vec4 farPlaneData0, farPlaneData1;
+	float lightSize, nearPlane, farPlane, dummy;
 	Vec2 direction;
-	float lightSize;
 };
 
 
@@ -76,6 +77,8 @@ void ShadowFilter::Setup(SetupContext& context) {
 	Texture2D depthTex = this->GetInput<5>().Get();
 	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
 
+	m_camera = this->GetInput<6>().Get();
+
 	if (!m_binder.has_value()) {
 		BindParameterDesc uniformsBindParamDesc;
 		m_uniformsBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
@@ -107,6 +110,21 @@ void ShadowFilter::Setup(SetupContext& context) {
 		cubeShadowBindParamDesc.relativeAccessFrequency = 0;
 		cubeShadowBindParamDesc.relativeChangeFrequency = 0;
 		cubeShadowBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc csmMinfilterBindParamDesc;
+		m_csmMinfilterTexBindParam = BindParameter(eBindParameterType::TEXTURE, 2);
+		csmMinfilterBindParamDesc.parameter = m_csmMinfilterTexBindParam;
+		csmMinfilterBindParamDesc.constantSize = 0;
+		csmMinfilterBindParamDesc.relativeAccessFrequency = 0;
+		csmMinfilterBindParamDesc.relativeChangeFrequency = 0;
+		csmMinfilterBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc csmSampBindParamDesc;
+		csmSampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 500);
+		csmSampBindParamDesc.constantSize = 0;
+		csmSampBindParamDesc.relativeAccessFrequency = 0;
+		csmSampBindParamDesc.relativeChangeFrequency = 0;
+		csmSampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 		BindParameterDesc csmBindParamDesc;
 		m_csmTexBindParam = BindParameter(eBindParameterType::TEXTURE, 500);
@@ -150,7 +168,17 @@ void ShadowFilter::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, cubeShadowBindParamDesc, csmBindParamDesc, shadowMxBindParamDesc, csmSplitsBindParamDesc, lightMvpBindParamDesc },{ samplerDesc });
+		gxapi::StaticSamplerDesc csmSamplerDesc;
+		csmSamplerDesc.shaderRegister = 500;
+		csmSamplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
+		csmSamplerDesc.addressU = gxapi::eTextureAddressMode::CLAMP;
+		csmSamplerDesc.addressV = gxapi::eTextureAddressMode::CLAMP;
+		csmSamplerDesc.addressW = gxapi::eTextureAddressMode::CLAMP;
+		csmSamplerDesc.mipLevelBias = 0.f;
+		csmSamplerDesc.registerSpace = 0;
+		csmSamplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, csmSampBindParamDesc, inputBindParamDesc, cubeShadowBindParamDesc, csmMinfilterBindParamDesc, csmBindParamDesc, shadowMxBindParamDesc, csmSplitsBindParamDesc, lightMvpBindParamDesc },{ samplerDesc, csmSamplerDesc });
 	}
 
 
@@ -306,9 +334,10 @@ void ShadowFilter::Execute(RenderContext& context) {
 		commandList.SetResourceState(m_csmSplitsTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_lightMvpTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_cubeShadowTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_csmMinfilter_srv[0].GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
-		RenderTargetView2D* pRTV[2] = { &m_penumbraLayers_rtv, &m_shadowLayers_rtv };
-		commandList.SetRenderTargets(1, pRTV, 0);
+		RenderTargetView2D* pRTV[2] = { &m_shadowLayers_rtv, &m_penumbraLayers_rtv };
+		commandList.SetRenderTargets(2, pRTV, 0);
 
 		gxapi::Rectangle rect{ 0, (int)m_penumbraLayers_rtv.GetResource().GetHeight(), 0, (int)m_penumbraLayers_rtv.GetResource().GetWidth() };
 		gxapi::Viewport viewport;
@@ -321,6 +350,28 @@ void ShadowFilter::Execute(RenderContext& context) {
 		commandList.SetScissorRects(1, &rect);
 		commandList.SetViewports(1, &viewport);
 
+		uniformsCBData.nearPlane = m_camera->GetNearPlane();
+		uniformsCBData.farPlane = m_camera->GetFarPlane();
+
+		//far ndc corners
+		Vec4 ndcCorners[] =
+		{
+			Vec4(-1.f, -1.f, 1.f, 1.f),
+			Vec4(1.f, 1.f, 1.f, 1.f),
+		};
+
+		Mat44 p = m_camera->GetProjectionMatrix();
+		Mat44 invP = p.Inverse();
+
+		//convert to world space frustum corners
+		ndcCorners[0] = ndcCorners[0] * invP;
+		ndcCorners[1] = ndcCorners[1] * invP;
+		ndcCorners[0] /= ndcCorners[0].w;
+		ndcCorners[1] /= ndcCorners[1].w;
+
+		uniformsCBData.farPlaneData0 = Vec4(ndcCorners[0].xyz, ndcCorners[1].x);
+		uniformsCBData.farPlaneData1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0.0f, 0.0f);
+
 		commandList.SetPipelineState(m_penumbraPSO.get());
 		commandList.SetGraphicsBinder(&m_binder.value());
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
@@ -330,6 +381,7 @@ void ShadowFilter::Execute(RenderContext& context) {
 		commandList.BindGraphics(m_shadowMxTexBindParam, m_shadowMxTexSrv);
 		commandList.BindGraphics(m_csmSplitsTexBindParam, m_csmSplitsTexSrv);
 		commandList.BindGraphics(m_lightMvpTexBindParam, m_lightMvpTexSrv);
+		commandList.BindGraphics(m_csmMinfilterTexBindParam, m_csmMinfilter_srv[0]);
 
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
@@ -442,7 +494,7 @@ void ShadowFilter::InitRenderTarget(SetupContext& context) {
 		{ //csm
 			srvDesc.activeArraySize = 4;
 			srvDesc.firstArrayElement = 0;
-			m_csmMinfilter_srv.push_back(context.CreateSrv(m_csmTexSrv.GetResource(), FormatDepthToColor(m_csmTexSrv.GetFormat()), srvDesc));
+			m_csmMinfilter_srv.push_back(context.CreateSrv(csmMinfilter_tex, csmMinfilter_tex.GetFormat(), srvDesc));
 		}
 
 		//create minfilter srvs
@@ -453,7 +505,7 @@ void ShadowFilter::InitRenderTarget(SetupContext& context) {
 			cubeSrvDesc.mostDetailedMip = 0;
 			cubeSrvDesc.numMipLevels = 1;
 			cubeSrvDesc.numCubes = 1;
-			m_cubeMinfilter_srv.push_back(context.CreateSrv(m_cubeShadowTexSrv.GetResource(), FormatDepthToColor(m_cubeShadowTexSrv.GetFormat()), cubeSrvDesc));
+			m_cubeMinfilter_srv.push_back(context.CreateSrv(cubeMinfilter_tex, cubeMinfilter_tex.GetFormat(), cubeSrvDesc));
 		}
 
 		//create penumbra rtvs

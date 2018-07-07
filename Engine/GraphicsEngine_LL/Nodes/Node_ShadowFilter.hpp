@@ -18,7 +18,7 @@ namespace inl::gxeng::nodes {
 class ShadowFilter :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<Texture2D, Texture2D, Texture2D, Texture2D, Texture2D, Texture2D>,
+	virtual public InputPortConfig<Texture2D, Texture2D, Texture2D, Texture2D, Texture2D, Texture2D, const BasicCamera*>,
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
@@ -41,6 +41,7 @@ protected:
 	BindParameter m_csmSplitsTexBindParam;
 	BindParameter m_lightMvpTexBindParam;
 	BindParameter m_cubeShadowTexBindParam;
+	BindParameter m_csmMinfilterTexBindParam;
 	BindParameter m_uniformsBindParam;
 	ShaderProgram m_minfilterShader;
 	ShaderProgram m_penumbraShader;
@@ -66,6 +67,8 @@ protected: // render context
 	TextureView2D m_lightMvpTexSrv;
 	TextureView2D m_depthTexSrv;
 	TextureViewCube m_cubeShadowTexSrv;
+
+	const BasicCamera* m_camera;
 
 private:
 	void InitRenderTarget(SetupContext& context);
