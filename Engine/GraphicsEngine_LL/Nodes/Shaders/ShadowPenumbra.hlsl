@@ -102,13 +102,14 @@ PS_Output PSMain(PS_Input input) : SV_TARGET
 		float shadowCoordZ = clamp(shadowCoord.z, 0.0, 1.0);
 		
 		float ls = uniforms.lightSize;
-		penumbra.x = estimate_penumbra( shadowCoordZ, blocker ) * ls * ls;
+		penumbra.x = estimate_penumbra( shadowCoordZ, blocker ) * ls;// * ls;
 		//penumbra.y = shadowCoordZ;
 		//penumbra.z = blocker;
 	}
 	
 	{ //point lights
 		{ //TODO for each point light
+			//TODO check for light bounds
 			//blocker comes from minfilter tex
 			float4 shadowCoord;
 			{
@@ -123,7 +124,7 @@ PS_Output PSMain(PS_Input input) : SV_TARGET
 			float shadowCoordZ = shadowCoord.w;
 			
 			float ls = uniforms.lightSize;
-			penumbra.y = estimate_penumbra( shadowCoordZ, blocker ) * ls * ls;
+			penumbra.y = estimate_penumbra( shadowCoordZ, blocker ) * ls;// * ls;
 			//penumbra.z = shadowCoordZ;
 			//penumbra.w = blocker;
 		}

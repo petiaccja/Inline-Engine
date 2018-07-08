@@ -4,6 +4,13 @@
 * Output: blurred shadows
 */
 
+#define LOW 1
+#define MEDIUM 2
+#define HIGH 3
+#define ULTRA 4
+
+#define QUALITY ULTRA
+
 struct Uniforms
 {
 	float4x4 invV;
@@ -23,32 +30,13 @@ Texture2D inputTex3 : register(t3); //layered penumbra texture
 Texture2D inputTex4 : register(t4); //layered shadow texture
 SamplerState samp0 : register(s0);
 
+#include "ShadowBlurSample.hlsl"
+
 struct PS_Input
 {
 	float4 position : SV_POSITION;
 	float2 texCoord : TEXCOORD0;
 };
-
-float linearize_depth(float depth, float near, float far)
-{
-	float A = far / (far - near);
-	float B = -far * near / (far - near);
-	float zndc = depth;
-
-	//view space linear z
-	float vs_zrecon = B / (zndc - A);
-
-	//range: [0...far]
-	return vs_zrecon;// / far;
-};
-
-float2 get_step_size( float2 direction, float3 normal, float depth, float threshold )
-{
-  return direction 
-         //* light_size * light_size //included in the penumbra
-         * sqrt( max( dot( float3( 0.0, 0.0, 1.0 ), normal ), threshold ) )
-         * (1 / (depth/* * depth * 100*/));
-}
 
 PS_Input VSMain(uint vertexId : SV_VertexID)
 {
@@ -76,7 +64,7 @@ PS_Input VSMain(uint vertexId : SV_VertexID)
 float4 PSMain(PS_Input input) : SV_TARGET
 {
 	uint3 inputTexSize;
-	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
+	inputTex0.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 	
 	float depth = inputTex0.Sample(samp0, input.texCoord).x;
 	
@@ -96,21 +84,18 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//TODO replace with proper normals
 	float3 vsDepthNormal = -normalize(cross(ddy(vsPos.xyz), ddx(vsPos.xyz)));
 	
+	float4 penumbra = inputTex3.Sample(samp0, input.texCoord);
 	float4 hardShadow = inputTex4.Sample(samp0, input.texCoord);
 	
-	const float aniso_threshold = 0.25; //TODO make it uniform
-	const float2 direction = float2(0.89442719082100156952748325334158, 0.44721359585778655717526397765935) * 1.11803398875;
-	float2 step_size = get_step_size( direction, vsDepthNormal, linearDepth, aniso_threshold );
+	const float anisoThreshold = 0.25; //TODO make it uniform
+	float2 stepSize = get_step_size( uniforms.direction, vsDepthNormal, linearDepth, anisoThreshold );
 	
+	float4 blurredResultLayers = float4(0.0, 0.0, 0.0, 0.0);
 	
-	
-	
-	
-	
-	
-	
-
-	float4 blurredResultLayers = float4(step_size, 0.0, 0.0);
+	blurredResultLayers.x = blur( stepSize, input.texCoord, hardShadow.x, depth, penumbra.x, 0 );
+	blurredResultLayers.y = blur( stepSize, input.texCoord, hardShadow.y, depth, penumbra.y, 1 );
+	blurredResultLayers.z = blur( stepSize, input.texCoord, hardShadow.z, depth, penumbra.z, 2 );
+	blurredResultLayers.w = blur( stepSize, input.texCoord, hardShadow.w, depth, penumbra.w, 3 );
 	
 	return blurredResultLayers;
 }

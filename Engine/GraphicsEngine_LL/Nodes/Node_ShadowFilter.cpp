@@ -121,21 +121,21 @@ void ShadowFilter::Setup(SetupContext& context) {
 		cubeMinfilterBindParamDesc.relativeChangeFrequency = 0;
 		cubeMinfilterBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		BindParameterDesc shadowLayersBindParamDesc;
-		m_shadowLayersTexBindParam = BindParameter(eBindParameterType::TEXTURE, 3);
-		shadowLayersBindParamDesc.parameter = m_shadowLayersTexBindParam;
-		shadowLayersBindParamDesc.constantSize = 0;
-		shadowLayersBindParamDesc.relativeAccessFrequency = 0;
-		shadowLayersBindParamDesc.relativeChangeFrequency = 0;
-		shadowLayersBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
-
 		BindParameterDesc penumbraLayersBindParamDesc;
-		m_penumbraLayersTexBindParam = BindParameter(eBindParameterType::TEXTURE, 4);
+		m_penumbraLayersTexBindParam = BindParameter(eBindParameterType::TEXTURE, 3);
 		penumbraLayersBindParamDesc.parameter = m_penumbraLayersTexBindParam;
 		penumbraLayersBindParamDesc.constantSize = 0;
 		penumbraLayersBindParamDesc.relativeAccessFrequency = 0;
 		penumbraLayersBindParamDesc.relativeChangeFrequency = 0;
 		penumbraLayersBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+		BindParameterDesc shadowLayersBindParamDesc;
+		m_shadowLayersTexBindParam = BindParameter(eBindParameterType::TEXTURE, 4);
+		shadowLayersBindParamDesc.parameter = m_shadowLayersTexBindParam;
+		shadowLayersBindParamDesc.constantSize = 0;
+		shadowLayersBindParamDesc.relativeAccessFrequency = 0;
+		shadowLayersBindParamDesc.relativeChangeFrequency = 0;
+		shadowLayersBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 		BindParameterDesc cubeShadowBindParamDesc;
 		m_cubeShadowTexBindParam = BindParameter(eBindParameterType::TEXTURE, 400);
@@ -217,6 +217,7 @@ void ShadowFilter::Setup(SetupContext& context) {
 
 		m_minfilterShader = context.CreateShader("ShadowMinfilter", shaderParts, "");
 		m_penumbraShader = context.CreateShader("ShadowPenumbra", shaderParts, "");
+		m_blurShader = context.CreateShader("ShadowBlur", shaderParts, "");
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
 			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
@@ -265,6 +266,27 @@ void ShadowFilter::Setup(SetupContext& context) {
 
 			m_penumbraPSO.reset(context.CreatePSO(psoDesc));
 		}
+
+		{ //blur pso
+			gxapi::GraphicsPipelineStateDesc psoDesc;
+			psoDesc.inputLayout.elements = inputElementDesc.data();
+			psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
+			psoDesc.rootSignature = m_binder->GetRootSignature();
+			psoDesc.vs = m_blurShader.vs;
+			psoDesc.ps = m_blurShader.ps;
+			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+
+			psoDesc.depthStencilState.enableDepthTest = false;
+			psoDesc.depthStencilState.enableDepthStencilWrite = false;
+			psoDesc.depthStencilState.enableStencilTest = false;
+			psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
+
+			psoDesc.numRenderTargets = 1;
+			psoDesc.renderTargetFormats[0] = m_blurLayersFirstPass_rtv.GetResource().GetFormat();
+
+			m_blurPSO.reset(context.CreatePSO(psoDesc));
+		}
 	}
 
 	this->GetOutput<0>().Set(m_filterVertical_rtv[0].GetResource());
@@ -286,6 +308,38 @@ void ShadowFilter::Execute(RenderContext& context) {
 
 	commandList.SetResourceState(m_csmTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_cubeShadowTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_depthTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_csmTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_shadowMxTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_csmSplitsTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_lightMvpTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_cubeShadowTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+
+	uniformsCBData.nearPlane = m_camera->GetNearPlane();
+	uniformsCBData.farPlane = m_camera->GetFarPlane();
+
+	//far ndc corners
+	Vec4 ndcCorners[] =
+	{
+		Vec4(-1.f, -1.f, 1.f, 1.f),
+		Vec4(1.f, 1.f, 1.f, 1.f),
+	};
+
+	Mat44 p = m_camera->GetProjectionMatrix();
+	Mat44 invP = p.Inverse();
+
+	//convert to world space frustum corners
+	ndcCorners[0] = ndcCorners[0] * invP;
+	ndcCorners[1] = ndcCorners[1] * invP;
+	ndcCorners[0] /= ndcCorners[0].w;
+	ndcCorners[1] /= ndcCorners[1].w;
+
+	uniformsCBData.farPlaneData0 = Vec4(ndcCorners[0].xyz, ndcCorners[1].x);
+	uniformsCBData.farPlaneData1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0.0f, 0.0f);
+
+	uniformsCBData.vsLightPos = Vec4(Vec3(0, 0, 1), 1.0f) * m_camera->GetViewMatrix();
+
+	uniformsCBData.invV = m_camera->GetViewMatrix().Inverse();
 
 	//do minfiltering
 	for(int c = 0; c < m_filterHorizontal_rtv.size(); ++c)
@@ -354,12 +408,6 @@ void ShadowFilter::Execute(RenderContext& context) {
 	{ //layer generation pass
 		commandList.SetResourceState(m_penumbraLayers_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 		commandList.SetResourceState(m_shadowLayers_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
-		commandList.SetResourceState(m_depthTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_csmTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_shadowMxTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_csmSplitsTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_lightMvpTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_cubeShadowTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_csmMinfilter_srv[0].GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_cubeMinfilter_srv[0].GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
@@ -376,32 +424,6 @@ void ShadowFilter::Execute(RenderContext& context) {
 		viewport.maxDepth = 1.0f;
 		commandList.SetScissorRects(1, &rect);
 		commandList.SetViewports(1, &viewport);
-
-		uniformsCBData.nearPlane = m_camera->GetNearPlane();
-		uniformsCBData.farPlane = m_camera->GetFarPlane();
-
-		//far ndc corners
-		Vec4 ndcCorners[] =
-		{
-			Vec4(-1.f, -1.f, 1.f, 1.f),
-			Vec4(1.f, 1.f, 1.f, 1.f),
-		};
-
-		Mat44 p = m_camera->GetProjectionMatrix();
-		Mat44 invP = p.Inverse();
-
-		//convert to world space frustum corners
-		ndcCorners[0] = ndcCorners[0] * invP;
-		ndcCorners[1] = ndcCorners[1] * invP;
-		ndcCorners[0] /= ndcCorners[0].w;
-		ndcCorners[1] /= ndcCorners[1].w;
-
-		uniformsCBData.farPlaneData0 = Vec4(ndcCorners[0].xyz, ndcCorners[1].x);
-		uniformsCBData.farPlaneData1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0.0f, 0.0f);
-
-		uniformsCBData.vsLightPos = Vec4(Vec3(0, 0, 1), 1.0f) * m_camera->GetViewMatrix();
-
-		uniformsCBData.invV = m_camera->GetViewMatrix().Inverse();
 
 		commandList.SetPipelineState(m_penumbraPSO.get());
 		commandList.SetGraphicsBinder(&m_binder.value());
@@ -422,22 +444,17 @@ void ShadowFilter::Execute(RenderContext& context) {
 	}
 
 	{ //blur layers pass
-		commandList.SetResourceState(m_blurLayers_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
-		commandList.SetResourceState(m_depthTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_csmTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_shadowMxTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_csmSplitsTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_lightMvpTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_cubeShadowTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		//first pass
+		commandList.SetResourceState(m_blurLayersFirstPass_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 		commandList.SetResourceState(m_csmMinfilter_srv[0].GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_cubeMinfilter_srv[0].GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_penumbraLayers_rtv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_shadowLayers_rtv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
-		RenderTargetView2D* pRTV = &m_blurLayers_rtv;
+		RenderTargetView2D* pRTV = &m_blurLayersFirstPass_rtv;
 		commandList.SetRenderTargets(1, &pRTV, 0);
 
-		gxapi::Rectangle rect{ 0, (int)m_blurLayers_rtv.GetResource().GetHeight(), 0, (int)m_blurLayers_rtv.GetResource().GetWidth() };
+		gxapi::Rectangle rect{ 0, (int)m_blurLayersFirstPass_rtv.GetResource().GetHeight(), 0, (int)m_blurLayersFirstPass_rtv.GetResource().GetWidth() };
 		gxapi::Viewport viewport;
 		viewport.width = (float)rect.right;
 		viewport.height = (float)rect.bottom;
@@ -448,33 +465,9 @@ void ShadowFilter::Execute(RenderContext& context) {
 		commandList.SetScissorRects(1, &rect);
 		commandList.SetViewports(1, &viewport);
 
-		uniformsCBData.nearPlane = m_camera->GetNearPlane();
-		uniformsCBData.farPlane = m_camera->GetFarPlane();
+		uniformsCBData.direction = Vec2(0.89442719082100156952748325334158, 0.44721359585778655717526397765935) * 1.11803398875;
 
-		//far ndc corners
-		Vec4 ndcCorners[] =
-		{
-			Vec4(-1.f, -1.f, 1.f, 1.f),
-			Vec4(1.f, 1.f, 1.f, 1.f),
-		};
-
-		Mat44 p = m_camera->GetProjectionMatrix();
-		Mat44 invP = p.Inverse();
-
-		//convert to world space frustum corners
-		ndcCorners[0] = ndcCorners[0] * invP;
-		ndcCorners[1] = ndcCorners[1] * invP;
-		ndcCorners[0] /= ndcCorners[0].w;
-		ndcCorners[1] /= ndcCorners[1].w;
-
-		uniformsCBData.farPlaneData0 = Vec4(ndcCorners[0].xyz, ndcCorners[1].x);
-		uniformsCBData.farPlaneData1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0.0f, 0.0f);
-
-		uniformsCBData.vsLightPos = Vec4(Vec3(0, 0, 1), 1.0f) * m_camera->GetViewMatrix();
-
-		uniformsCBData.invV = m_camera->GetViewMatrix().Inverse();
-
-		commandList.SetPipelineState(m_penumbraPSO.get());
+		commandList.SetPipelineState(m_blurPSO.get());
 		commandList.SetGraphicsBinder(&m_binder.value());
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 		commandList.BindGraphics(m_inputTexBindParam, m_depthTexSrv);
@@ -491,6 +484,20 @@ void ShadowFilter::Execute(RenderContext& context) {
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLESTRIP);
+		commandList.DrawInstanced(4);
+
+		//second pass
+		commandList.SetResourceState(m_blurLayersSecondPass_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+		commandList.SetResourceState(m_blurLayersFirstPass_rtv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+
+		pRTV = &m_blurLayersSecondPass_rtv;
+		commandList.SetRenderTargets(1, &pRTV, 0);
+
+		uniformsCBData.direction = Vec2(-0.44721359585778655717526397765935, 0.89442719082100156952748325334158) * 1.11803398875;
+		
+		commandList.BindGraphics(m_shadowLayersTexBindParam, m_blurLayersFirstPass_srv);
+		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
+
 		commandList.DrawInstanced(4);
 	}
 }
@@ -624,19 +631,23 @@ void ShadowFilter::InitRenderTarget(SetupContext& context) {
 		Texture2D penumbraLayers_tex = context.CreateTexture2D(desc, { true, true, false, false });
 		penumbraLayers_tex.SetName("Penumbra layers tex ");
 		desc.format = formatShadowLayers;
-		Texture2D blurLayers_tex = context.CreateTexture2D(desc, { true, true, false, false });
-		blurLayers_tex.SetName("Blur layers tex ");
+		Texture2D blurLayersFirstPass_tex = context.CreateTexture2D(desc, { true, true, false, false });
+		blurLayersFirstPass_tex.SetName("Blur layers fist pass tex ");
+		Texture2D blurLayersSecondPass_tex = context.CreateTexture2D(desc, { true, true, false, false });
+		blurLayersSecondPass_tex.SetName("Blur layers second pass tex ");
 
 		rtvDesc.activeArraySize = 1;
 		rtvDesc.firstArrayElement = 0;
 		m_shadowLayers_rtv = context.CreateRtv(shadowLayers_tex, shadowLayers_tex.GetFormat(), rtvDesc);
 		m_penumbraLayers_rtv = context.CreateRtv(penumbraLayers_tex, penumbraLayers_tex.GetFormat(), rtvDesc);
-		m_blurLayers_rtv = context.CreateRtv(blurLayers_tex, blurLayers_tex.GetFormat(), rtvDesc);
+		m_blurLayersFirstPass_rtv = context.CreateRtv(blurLayersFirstPass_tex, blurLayersFirstPass_tex.GetFormat(), rtvDesc);
+		m_blurLayersSecondPass_rtv = context.CreateRtv(blurLayersSecondPass_tex, blurLayersSecondPass_tex.GetFormat(), rtvDesc);
 
 		srvDesc.activeArraySize = 1;
 		srvDesc.firstArrayElement = 0;
 		m_shadowLayers_srv = context.CreateSrv(shadowLayers_tex, shadowLayers_tex.GetFormat(), srvDesc);
 		m_penumbraLayers_srv = context.CreateSrv(penumbraLayers_tex, penumbraLayers_tex.GetFormat(), srvDesc);
+		m_blurLayersFirstPass_srv = context.CreateSrv(blurLayersFirstPass_tex, blurLayersFirstPass_tex.GetFormat(), srvDesc);
 	}
 }
 

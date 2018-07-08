@@ -48,8 +48,10 @@ protected:
 	BindParameter m_uniformsBindParam;
 	ShaderProgram m_minfilterShader;
 	ShaderProgram m_penumbraShader;
+	ShaderProgram m_blurShader;
 	std::unique_ptr<gxapi::IPipelineState> m_minfilterPSO;
 	std::unique_ptr<gxapi::IPipelineState> m_penumbraPSO;
+	std::unique_ptr<gxapi::IPipelineState> m_blurPSO;
 
 protected: // outputs
 	bool m_outputTexturesInited = false;
@@ -62,7 +64,8 @@ protected: // outputs
 
 	RenderTargetView2D m_shadowLayers_rtv;
 	RenderTargetView2D m_penumbraLayers_rtv;
-	RenderTargetView2D m_blurLayers_rtv;
+	RenderTargetView2D m_blurLayersFirstPass_rtv;
+	RenderTargetView2D m_blurLayersSecondPass_rtv;
 
 protected: // render context
 	TextureView2D m_csmTexSrv;
@@ -73,6 +76,7 @@ protected: // render context
 	TextureViewCube m_cubeShadowTexSrv;
 	TextureView2D m_shadowLayers_srv;
 	TextureView2D m_penumbraLayers_srv;
+	TextureView2D m_blurLayersFirstPass_srv;
 
 	const BasicCamera* m_camera;
 
