@@ -289,7 +289,7 @@ void ShadowFilter::Setup(SetupContext& context) {
 		}
 	}
 
-	this->GetOutput<0>().Set(m_filterVertical_rtv[0].GetResource());
+	this->GetOutput<0>().Set(m_blurLayersSecondPass_rtv.GetResource());
 }
 
 

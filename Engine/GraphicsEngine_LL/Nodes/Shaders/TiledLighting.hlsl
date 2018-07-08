@@ -1,5 +1,7 @@
 Texture2D<uint> lightCullData : register(t600);
 Texture2D<float> screenSpaceShadowTex : register(t601);
+Texture2D<float4> layeredShadowTex : register(t602);
+SamplerState theSampler : register(s500);
 
 //NOTE: actually, just use SRGB, it's got better quality!
 float3 linear_to_gamma(float3 col)
@@ -27,6 +29,26 @@ float3 hemisphere_ambient_lighting(float3 ws_n)
 
 	float vec_hemi = dot(ws_n, sky_dir) * 0.5 + 0.5;
 	return hemi_intensity * lerp(ground_col.xyz, sky_col.xyz, vec_hemi);
+}
+
+float getLayeredShadow( float2 texCoord, const int layer )
+{
+	if(layer == 0)
+	{
+		return layeredShadowTex.SampleLevel(theSampler, texCoord, 0).x;
+	}
+	else if(layer == 1)
+	{
+		return layeredShadowTex.SampleLevel(theSampler, texCoord, 0).y;
+	}
+	else if(layer == 2)
+	{
+		return layeredShadowTex.SampleLevel(theSampler, texCoord, 0).z;
+	}
+	else
+	{
+		return layeredShadowTex.SampleLevel(theSampler, texCoord, 0).w;
+	}
 }
 
 float3 get_lighting(float4 sv_position, //gl_FragCoord
@@ -75,7 +97,7 @@ float3 get_lighting(float4 sv_position, //gl_FragCoord
 										 vs_normal,
 										 vs_view_dir,
 									     light_dir,
-										 diffuse_color.xyz * attenuation * 10.0 * getPointLightShadow(-light_dir, distance), //TODO: shadowmap id!
+										 diffuse_color.xyz * attenuation * 10.0 * getLayeredShadow(texel, 1),
 										 roughness, 
 										 metalness 
 										);
@@ -108,11 +130,11 @@ float3 get_lighting(float4 sv_position, //gl_FragCoord
 								 vs_normal,
 								 vs_view_dir,
 								 -g_lightDir,
-								 g_lightColor.xyz * 10.0  * screenSpaceShadow * get_csm_shadow(g_vsPos),
+								 g_lightColor.xyz * 10.0 * screenSpaceShadow * getLayeredShadow(texel, 0),
 								 roughness,
 								 metalness);
 
-    color.xyz += hemisphere_ambient_lighting(g_wsNormal.xyz) * 0.8f * albedo.xyz;
+    //color.xyz += hemisphere_ambient_lighting(g_wsNormal.xyz) * 0.8f * albedo.xyz;
 
 	return color;
 	//return g_normal.xyz;

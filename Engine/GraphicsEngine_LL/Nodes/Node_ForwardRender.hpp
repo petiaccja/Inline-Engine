@@ -29,10 +29,6 @@ class ForwardRender :
 		const EntityCollection<DirectionalLight>*,
 		Texture2D,
 		Texture2D,
-		Texture2D,
-		Texture2D,
-		Texture2D,
-		Texture2D,
 		Texture2D>,
 	virtual public OutputPortConfig<Texture2D, Texture2D, Texture2D>
 {
@@ -111,12 +107,8 @@ private:
 	const BasicCamera* m_camera;
 	const EntityCollection<DirectionalLight>* m_directionalLights;
 
-	TextureViewCube m_pointLightShadowMapTexView;
-	TextureView2D m_cascadedShadowMapTexView;
-	TextureView2D m_shadowMXTexView;
-	TextureView2D m_csmSplitsTexView;
-	TextureView2D m_lightMVPTexView;
 	TextureView2D m_lightCullDataView;
+	TextureView2D m_layeredShadowTexView;
 	TextureView2D m_screenSpaceShadowTexView;
 
 private:
