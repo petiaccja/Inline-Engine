@@ -132,7 +132,7 @@ float2 get_step_size( float2 direction, float3 normal, float depth, float thresh
 
 float getShadow( float2 texCoord, const int layer )
 {
-	float4 shadow = inputTex4.Sample(samp0, texCoord);
+	float4 shadow = inputTex4.Sample(samp1, texCoord);
 	
 	if(layer == 0)
 	{
@@ -159,7 +159,7 @@ float blur( float2 stepSize, float2 texCoord, float shadow, float depth, float p
 		return shadow;
 	}
 	
-	const float maxDepthDiff = 0.1;
+	const float maxDepthDiff = 0.01;
 	
 	float color = shadow * weights[0];
 	

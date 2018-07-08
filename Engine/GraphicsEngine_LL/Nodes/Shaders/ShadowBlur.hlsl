@@ -29,6 +29,7 @@ TextureCube<float> inputTex2 : register(t2); //cube minfilter map
 Texture2D inputTex3 : register(t3); //layered penumbra texture
 Texture2D inputTex4 : register(t4); //layered shadow texture
 SamplerState samp0 : register(s0);
+SamplerState samp1 : register(s1);
 
 #include "ShadowBlurSample.hlsl"
 
@@ -88,7 +89,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float4 hardShadow = inputTex4.Sample(samp0, input.texCoord);
 	
 	const float anisoThreshold = 0.25; //TODO make it uniform
-	float2 stepSize = get_step_size( uniforms.direction, vsDepthNormal, linearDepth, anisoThreshold ) * 0.01;
+	float2 stepSize = get_step_size( uniforms.direction, vsDepthNormal, linearDepth, anisoThreshold ) / uniforms.farPlane * 3.0;
 	
 	float4 blurredResultLayers = float4(0.0, 0.0, 0.0, 0.0);
 	

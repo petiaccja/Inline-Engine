@@ -41,7 +41,11 @@ struct PS_Output
 
 float estimate_penumbra( float receiver, float blocker )
 {
-	return abs(receiver - blocker) / blocker;
+	//need to set min to roughly near plane,
+	//as we render stuff into cascades even when outside cascade
+	//to make sure we have all blockers
+	blocker = max(blocker, 0.1); 
+	return clamp(abs(receiver - blocker) / blocker, 0.0, 1.0);
 }
 
 PS_Input VSMain(uint vertexId : SV_VertexID)
@@ -103,8 +107,8 @@ PS_Output PSMain(PS_Input input) : SV_TARGET
 		
 		float ls = uniforms.lightSize;
 		penumbra.x = estimate_penumbra( shadowCoordZ, blocker ) * ls;// * ls;
-		//penumbra.y = shadowCoordZ;
-		//penumbra.z = blocker;
+		//penumbra.z = shadowCoordZ;
+		//penumbra.w = blocker;
 	}
 	
 	{ //point lights

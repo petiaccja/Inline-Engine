@@ -97,6 +97,13 @@ void ShadowFilter::Setup(SetupContext& context) {
 		sampBindParamDesc.relativeChangeFrequency = 0;
 		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+		BindParameterDesc sampLinearBindParamDesc;
+		sampLinearBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 1);
+		sampLinearBindParamDesc.constantSize = 0;
+		sampLinearBindParamDesc.relativeAccessFrequency = 0;
+		sampLinearBindParamDesc.relativeChangeFrequency = 0;
+		sampLinearBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
 		BindParameterDesc inputBindParamDesc;
 		m_inputTexBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
 		inputBindParamDesc.parameter = m_inputTexBindParam;
@@ -194,6 +201,17 @@ void ShadowFilter::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+		gxapi::StaticSamplerDesc samplerLinearDesc;
+		samplerLinearDesc.shaderRegister = 1;
+		samplerLinearDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_LINEAR_MIP_POINT;
+		samplerLinearDesc.addressU = gxapi::eTextureAddressMode::CLAMP;
+		samplerLinearDesc.addressV = gxapi::eTextureAddressMode::CLAMP;
+		samplerLinearDesc.addressW = gxapi::eTextureAddressMode::CLAMP;
+		samplerLinearDesc.mipLevelBias = 0.f;
+		samplerLinearDesc.registerSpace = 0;
+		samplerLinearDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+
 		gxapi::StaticSamplerDesc csmSamplerDesc;
 		csmSamplerDesc.shaderRegister = 500;
 		csmSamplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
@@ -204,7 +222,7 @@ void ShadowFilter::Setup(SetupContext& context) {
 		csmSamplerDesc.registerSpace = 0;
 		csmSamplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, shadowLayersBindParamDesc, penumbraLayersBindParamDesc, csmSampBindParamDesc, cubeMinfilterBindParamDesc, inputBindParamDesc, cubeShadowBindParamDesc, csmMinfilterBindParamDesc, csmBindParamDesc, shadowMxBindParamDesc, csmSplitsBindParamDesc, lightMvpBindParamDesc },{ samplerDesc, csmSamplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, shadowLayersBindParamDesc, penumbraLayersBindParamDesc, csmSampBindParamDesc, cubeMinfilterBindParamDesc, inputBindParamDesc, cubeShadowBindParamDesc, csmMinfilterBindParamDesc, csmBindParamDesc, shadowMxBindParamDesc, csmSplitsBindParamDesc, lightMvpBindParamDesc },{ samplerDesc, samplerLinearDesc, csmSamplerDesc });
 	}
 
 
