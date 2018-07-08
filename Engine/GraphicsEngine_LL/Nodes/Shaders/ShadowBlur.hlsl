@@ -85,7 +85,16 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//TODO replace with proper normals
 	float3 vsDepthNormal = -normalize(cross(ddy(vsPos.xyz), ddx(vsPos.xyz)));
 	
-	float4 penumbra = inputTex3.Sample(samp0, input.texCoord);
+	float4 penumbra = float4(0.0, 0.0, 0.0, 0.0);
+	//TODO
+	//hacked here to hide cascade transitions
+	for(int y = -1; y <= 1; ++y)
+	{
+		for(int x = -1; x <= 1; ++x)
+		{
+			penumbra += inputTex3.Sample(samp0, input.texCoord, int2(x,y) * 3) / 9.0;
+		}
+	}
 	float4 hardShadow = inputTex4.Sample(samp0, input.texCoord);
 	
 	const float anisoThreshold = 0.25; //TODO make it uniform
