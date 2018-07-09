@@ -56,13 +56,13 @@ class WindowResizeListener;
 
 
 struct GraphicsEngineDesc {
-	gxapi::IGxapiManager* gxapiManager;
-	gxapi::IGraphicsApi* graphicsApi;
-	gxapi::NativeWindowHandle targetWindow;
-	bool fullScreen;
-	int width;
-	int height;
-	Logger* logger;
+	gxapi::IGxapiManager* gxapiManager = nullptr;
+	gxapi::IGraphicsApi* graphicsApi = nullptr;
+	gxapi::NativeWindowHandle targetWindow = {};
+	bool fullScreen = false;
+	int width = 640;
+	int height = 480;
+	Logger* logger = nullptr;
 };
 
 

@@ -20,7 +20,7 @@ namespace inl::gxeng::nodes {
 class DepthPrepass :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<Texture2D, const EntityCollection<MeshEntity>*, const BasicCamera*>,
+	virtual public InputPortConfig<Texture2D, const BasicCamera*, const EntityCollection<MeshEntity>*>,
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
@@ -34,18 +34,17 @@ public:
 	void Reset() override;
 	void Setup(SetupContext& context) override;
 	void Execute(RenderContext& context) override;
-	
-protected:
-	std::optional<Binder> m_binder;
+
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
+private:
 	BindParameter m_transformBindParam;
-	ShaderProgram m_shader;
-	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 	gxapi::eFormat m_depthStencilFormat = gxapi::eFormat::UNKNOWN;
 
-private: // execution context
+	Binder m_binder;
+	std::unique_ptr<gxapi::IPipelineState> m_PSO;
+	ShaderProgram m_shader;
 	DepthStencilView2D m_targetDsv;
-	const EntityCollection<MeshEntity>* m_entities;
-	const BasicCamera* m_camera;
 };
 
 

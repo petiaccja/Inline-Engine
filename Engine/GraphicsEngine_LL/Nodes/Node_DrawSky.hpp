@@ -34,18 +34,19 @@ public:
 	void Setup(SetupContext& context) override;
 	void Execute(RenderContext& context) override;
 
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
+
 private: // execution
 	RenderTargetView2D m_rtv;
 	DepthStencilView2D m_dsv;
-	const BasicCamera* m_camera;
-	const EntityCollection<DirectionalLight>* m_suns;
 
 protected:
-	std::optional<Binder> m_binder;
+	Binder m_binder;
 	BindParameter m_sunCbBindParam;
 	BindParameter m_camCbBindParam;
 
-	gxeng::ShaderProgram m_shader;
+	ShaderProgram m_shader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 	gxapi::eFormat m_colorFormat = gxapi::eFormat::UNKNOWN;
 	gxapi::eFormat m_depthStencilFormat = gxapi::eFormat::UNKNOWN;

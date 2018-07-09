@@ -111,16 +111,16 @@ public:
 		return *this;
 	}
 
-	Color& operator*(const Color& rhs) const {
+	Color operator*(const Color& rhs) const {
 		return Color(*this) *= rhs;
 	}
-	Color& operator/(const Color& rhs) const {
+	Color operator/(const Color& rhs) const {
 		return Color(*this) /= rhs;
 	}
-	Color& operator+(const Color& rhs) const {
+	Color operator+(const Color& rhs) const {
 		return Color(*this) += rhs;
 	}
-	Color& operator-(const Color& rhs) const {
+	Color operator-(const Color& rhs) const {
 		return Color(*this) -= rhs;
 	}
 

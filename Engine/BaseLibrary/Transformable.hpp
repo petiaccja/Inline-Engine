@@ -14,7 +14,23 @@ enum class eMotionMode {
 };
 
 
-
+/// <summary> Stores 2D or 3D affine transforms. </summary>
+/// <remarks> Any affine transform can be represented, including translation, rotation, scaling
+///		and shear.
+///		<para/> 
+///		All affine transforms can be represented as the succession of a rotation, a scaling,
+///		another rotation and a translation (RSRT). Translation can be treated separately.
+///		The RSR sequence can be represented with a single square matrix M (3x3 for 3D), however,
+///		using singular value decomposition, M can be decomposed as M = USV. Here, U and V are rotation
+///		matrices and S is a scaling matrix. As such, U and V can be represented by quaternions
+///		and are called pre/shear- and post rotation. S can simply be represented by a vector.
+///		<para/>
+///		The quat-vec3-quat-vec3 representation is used internally for fast setting of these values.
+///		These fields can be queried individually, too.
+///		This also results in applying scaling and shear as relative transforms being slow, because
+///		an SVD needs to be performed. Querying the total transform matrix is acceptable,
+///		but still has a cost.
+///		</remarks>
 template <class T, int Dim, bool EnableMotion>
 class Transformable;
 
@@ -41,29 +57,70 @@ public:
 	}
 
 	// Absolute transforms
+
+	/// <summary> Linear position coordinates. </summary>
 	void SetPosition(const VectorT& pos);
+
+	/// <summary> Set total rotation. </summary>
+	/// <remarks> If shearing is present, the total rotation is the combination of the pre rotation and the post rotation.
+	///		Only the post rotation is changed. </remarks>
 	void SetRotation(const RotT& rot);
+	
+	/// <summary> Sets the total scaling. </summary>
+	/// <remarks> If shearing is present, the pre rotation and the post rotation are not changed,
+	///		and the effect are visually illogical. </remarks>
 	void SetScale(const VectorT& scale);
 
+
+	/// <summary> Sets a transformation matrix, without positioning. </summary>
+	/// <remarks> Use it to add shear, scale and rotation in one go. </remarks>
 	void SetLinearTransform(const MatLinT& transform);
+
+	/// <summary> Sets a transformation matrix, including positioning. </summary>
 	void SetTransform(const MatHomT& transform);
 
 
 	// Get current transform
+
+	/// <summary> Returns the current linear position coordinates. </summary>
 	const VectorT& GetPosition() const { return position; }
+
+	/// <summary> Returns the pre rotation which happens before scaling. </summary>
 	RotT GetShearRotation() const { return rotation1; }
+
+	/// <summary> Returns the post rotation which happens after scaling. </summary>
+	RotT GetPostRotation() const { return rotation2; }
+
+	/// <summary> Return the total rotation, which is the sum of the pre- and post rotations. </summary>
 	RotT GetRotation() const { return CombineRotations(rotation1, rotation2); }
+
+	/// <summary> Return the current scale. </summary>
+	/// <remarks> If shear is present, returns the scaling that happens between pre- and post rotations. </remarks>
 	const VectorT& GetScale() const { return scale; }
 
+
+	/// <summary> Returns the transformation matrix, excluding translation. </summary>
 	MatLinT GetLinearTransform() const;
+
+	/// <summary> Returns the transformation matrix, including translation. </summary>
 	MatHomT GetTransform() const;
 
 
 	// Relative transforms
+
+	/// <summary> Changes the position of the object by <paramref name="offset"/>. </summary>
 	void Move(const VectorT& offset);
+
+	/// <summary> Applies given rotation to existing transform. </summary>
+	/// <remarks> Regarless of shear, only the post rotation is changed. Existing shear is preserved. </remarks>
 	void Rotate(const RotT& rot);
+
+	/// <summary> Applies scaling to existing transform. </summary>
 	void Scale(const VectorT& scale);
 
+	/// <summary> Applies shear to existing transform. </summary>
+	/// <remarks> All elements of the transform are changed, except position.
+	///		Can be very expensive because of the SVD it has to do. </remarks>
 	void Shear(T slope, int primaryAxis, int perpAxis);
 
 

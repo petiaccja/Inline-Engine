@@ -5,7 +5,7 @@ file(GLOB sources "*.?pp")
 file(GLOB interfaces "../PhysicsEngine/*.?pp")
 
 # Target
-add_library(PhysicsEngineBullet
+add_library(PhysicsEngineBullet_OLD
 	${sources}
 	${interfaces}
 )
@@ -15,7 +15,7 @@ source_group("Sources" FILES ${sources})
 source_group("Interfaces" FILES ${interfaces})
 
 # Dependencies
-target_link_libraries(PhysicsEngineBullet
+target_link_libraries(PhysicsEngineBullet_OLD
 	debug ${EXTERNALS_LIB_DEBUG}/Bullet3Collision.lib
 	debug ${EXTERNALS_LIB_DEBUG}/Bullet3Common.lib
 	debug ${EXTERNALS_LIB_DEBUG}/Bullet3Dynamics.lib

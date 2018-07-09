@@ -9,7 +9,7 @@
 namespace inl {
 namespace asset {
 
-// count of nodes that contain at least one mesh
+// Number of nodes that contain at least one mesh
 static unsigned FilledNodeCount(const aiNode* node) {
 	unsigned result = 0;
 	if (node->mNumMeshes > 0) {

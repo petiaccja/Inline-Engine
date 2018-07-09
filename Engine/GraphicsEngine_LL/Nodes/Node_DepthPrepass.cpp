@@ -77,15 +77,10 @@ void DepthPrepass::Setup(SetupContext & context) {
 	desc.firstMipLevel = 0;
 
 	m_targetDsv = context.CreateDsv(depthStencil, currDepthStencilFormat, desc);
-	
-	
-	m_entities = this->GetInput<1>().Get();
-
-	m_camera = this->GetInput<2>().Get();
 
 	this->GetOutput<0>().Set(depthStencil);
 
-	if (!m_binder.has_value()) {
+	if (!m_binder) {
 		BindParameterDesc transformBindParamDesc;
 		m_transformBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
 		transformBindParamDesc.parameter = m_transformBindParam;
@@ -134,7 +129,7 @@ void DepthPrepass::Setup(SetupContext & context) {
 		gxapi::GraphicsPipelineStateDesc psoDesc;
 		psoDesc.inputLayout.elements = inputElementDesc.data();
 		psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-		psoDesc.rootSignature = m_binder->GetRootSignature();
+		psoDesc.rootSignature = m_binder.GetRootSignature();
 		psoDesc.vs = m_shader.vs;
 		psoDesc.ps = m_shader.ps;
 		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
@@ -151,8 +146,13 @@ void DepthPrepass::Setup(SetupContext & context) {
 
 
 void DepthPrepass::Execute(RenderContext & context) {
-	if (!m_entities) {
+	auto* camera = this->GetInput<1>().Get();
+	auto* entities = this->GetInput<2>().Get();
+	if (!entities) {
 		return;
+	}
+	if (!camera) {
+		throw InvalidCallException("Depth prepass cannot be rendered without a valid camera.");
 	}
 
 	auto& commandList = context.AsGraphics();
@@ -174,11 +174,11 @@ void DepthPrepass::Execute(RenderContext & context) {
 	commandList.ClearDepthStencil(m_targetDsv, 1, 0, 0, nullptr, true, true);
 
 	commandList.SetPipelineState(m_PSO.get());
-	commandList.SetGraphicsBinder(&m_binder.value());
+	commandList.SetGraphicsBinder(&m_binder);
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-	Mat44 view = m_camera->GetViewMatrix();
-	Mat44 projection = m_camera->GetProjectionMatrix();
+	Mat44 view = camera->GetViewMatrix();
+	Mat44 projection = camera->GetProjectionMatrix();
 
 	auto viewProjection = view * projection;
 
@@ -187,7 +187,7 @@ void DepthPrepass::Execute(RenderContext & context) {
 	std::vector<unsigned> strides;
 
 	// Iterate over all entities
-	for (const MeshEntity* entity : *m_entities) {
+	for (const MeshEntity* entity : *entities) {
 		// Get entity parameters
 		Mesh* mesh = entity->GetMesh();
 		auto position = entity->GetPosition();
@@ -216,6 +216,22 @@ void DepthPrepass::Execute(RenderContext & context) {
 		commandList.SetIndexBuffer(&mesh->GetIndexBuffer(), mesh->IsIndexBuffer32Bit());
 		commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
 	}
+}
+
+const std::string& DepthPrepass::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"Render target",
+		"Camera",
+		"Mesh entities"
+	};
+	return names[index];
+}
+
+const std::string& DepthPrepass::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"Render target",
+	};
+	return names[index];
 }
 
 

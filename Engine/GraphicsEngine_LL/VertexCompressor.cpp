@@ -208,6 +208,13 @@ SemanticCompressor* VertexCompressor::AssignCompressor(const IVertexReader::Elem
 		}
 		++it;
 	}
+	auto passit = m_passThroughCompressors.begin();
+	while (passit != m_passThroughCompressors.end()) {
+		if ((*passit)->IsSupported(element.semantic)) {
+			return passit->get();
+		}
+		++passit;
+	}
 	return nullptr;
 }
 

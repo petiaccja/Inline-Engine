@@ -103,6 +103,7 @@ Window::Window(const std::string& title,
 	// Handle borderless and resize properties.
 	SetBorderless(borderless);
 	SetResizable(resizable);
+	SetTitle(title);
 }
 
 

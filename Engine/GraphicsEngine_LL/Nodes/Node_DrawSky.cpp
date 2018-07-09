@@ -17,10 +17,8 @@ void DrawSky::Initialize(EngineContext & context) {
 }
 
 void DrawSky::Reset() {
-	m_rtv = RenderTargetView2D();
-	m_dsv = DepthStencilView2D();
-	m_camera = nullptr;
-	m_suns = nullptr;
+	m_rtv = {};
+	m_dsv = {};
 
 	GetInput<0>().Clear();
 	GetInput<1>().Clear();
@@ -51,14 +49,9 @@ void DrawSky::Setup(SetupContext & context) {
 	dsvDesc.firstMipLevel = 0;
 	m_dsv = context.CreateDsv(depthStencil, currDepthStencilFormat, dsvDesc);
 	
-
-	m_camera = this->GetInput<2>().Get();
-	m_suns = this->GetInput<3>().Get();
-
 	this->GetOutput<0>().Set(renderTarget);
 
-
-	if (!m_binder.has_value()) {
+	if (!m_binder) {
 		BindParameterDesc sunCbBindParamDesc;
 		m_sunCbBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
 		sunCbBindParamDesc.parameter = m_sunCbBindParam;
@@ -118,7 +111,7 @@ void DrawSky::Setup(SetupContext & context) {
 		gxapi::GraphicsPipelineStateDesc psoDesc;
 		psoDesc.inputLayout.elements = inputElementDesc.data();
 		psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
-		psoDesc.rootSignature = m_binder->GetRootSignature();
+		psoDesc.rootSignature = m_binder.GetRootSignature();
 		psoDesc.vs = m_shader.vs;
 		psoDesc.ps = m_shader.ps;
 		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
@@ -164,7 +157,7 @@ void DrawSky::Execute(RenderContext & context) {
 	commandList.SetViewports(1, &viewport);
 
 	commandList.SetPipelineState(m_PSO.get());
-	commandList.SetGraphicsBinder(&m_binder.value());
+	commandList.SetGraphicsBinder(&m_binder);
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 	commandList.SetStencilRef(0); // only allow sky to be rendered to background pixels
 
@@ -183,21 +176,24 @@ void DrawSky::Execute(RenderContext & context) {
 	Sun sunCB;
 	Cam camCB;
 
-	// TODO render all the suns using additive blending
-	assert(m_suns != nullptr);
-	assert(m_suns->Size() > 0);
-	auto sun = *m_suns->begin();
+	auto* camera = this->GetInput<2>().Get();
+	auto* suns = this->GetInput<3>().Get();
 
-	Mat44 viewInv = m_camera->GetViewMatrix().Inverse();
+	// TODO render all the suns using additive blending
+	assert(suns != nullptr);
+	assert(suns->Size() > 0);
+	auto sun = *suns->begin();
+
+	Mat44 viewInv = camera->GetViewMatrix().Inverse();
 	Vec4 sunViewDir = Vec4(sun->GetDirection(), 0.0f) * viewInv;
 	Vec4 sunColor = Vec4(sun->GetColor(), 1.0f);
-	Mat44 invViewProj = (m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix()).Inverse();
+	Mat44 invViewProj = (camera->GetViewMatrix() * camera->GetProjectionMatrix()).Inverse();
 
 	sunCB.dir = Vec4(sun->GetDirection(), 0.0);
 	sunCB.color = sunColor;
 	camCB.invViewProj = invViewProj;
 
-	const PerspectiveCamera* perpectiveCamera = dynamic_cast<const PerspectiveCamera*>(m_camera);
+	const PerspectiveCamera* perpectiveCamera = dynamic_cast<const PerspectiveCamera*>(camera);
 	if (perpectiveCamera == nullptr) {
 		throw InvalidArgumentException("Sky drawing only works with perspective camera");
 	}
@@ -209,5 +205,26 @@ void DrawSky::Execute(RenderContext & context) {
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLESTRIP);
 	commandList.DrawInstanced(4);
 }
+
+
+const std::string& DrawSky::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"Render target",
+		"Stencil",
+		"Camera",
+		"Lights"
+	};
+	return names[index];
+}
+
+const std::string& DrawSky::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"Render target",
+	};
+	return names[index];
+}
+
+
+
 
 } // namespace inl::gxeng::nodes

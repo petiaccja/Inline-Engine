@@ -1,0 +1,444 @@
+{
+    "nodes": [
+        {
+            "class": "Pipeline/Render/Blend",
+            "id": 0,
+            "inputs": [
+                {},
+                {},
+                "{enabled,disabled,ONE,ZERO,ADD,ONE,ZERO,ADD,RED|GREEN|BLUE|ALPHA,NOOP}"
+            ],
+            "meta_pos": "[1603, -245]"
+        },
+        {
+            "class": "Pipeline/System/GetBackBuffer",
+            "id": 1,
+            "meta_pos": "[-1519, -310]"
+        },
+        {
+            "class": "Pipeline/System/GetBackBuffer",
+            "id": 2,
+            "meta_pos": "[1239, -302]"
+        },
+        {
+            "class": "Pipeline/System/GetCameraByName",
+            "id": 5,
+            "inputs": [
+                "WorldCam"
+            ],
+            "meta_pos": "[-661, 273]"
+        },
+        {
+            "class": "Pipeline/System/GetCameraByName",
+            "id": 3,
+            "inputs": [
+                "WorldCam"
+            ],
+            "meta_pos": "[295, -263]"
+        },
+        {
+            "class": "Pipeline/System/GetCameraByName",
+            "id": 6,
+            "inputs": [
+                "WorldCam"
+            ],
+            "meta_pos": "[-747, -862]"
+        },
+        {
+            "class": "Pipeline/System/GetCameraByName",
+            "id": 4,
+            "inputs": [
+                "WorldCam"
+            ],
+            "meta_pos": "[-127, 686]"
+        },
+        {
+            "class": "Pipeline/System/GetSceneByName",
+            "id": 8,
+            "inputs": [
+                "World"
+            ],
+            "meta_pos": "[758, -119]"
+        },
+        {
+            "class": "Pipeline/System/GetSceneByName",
+            "id": 7,
+            "inputs": [
+                "World"
+            ],
+            "meta_pos": "[326, 108]"
+        },
+        {
+            "class": "Pipeline/System/GetSceneByName",
+            "id": 9,
+            "inputs": [
+                "World"
+            ],
+            "meta_pos": "[-587, 404]"
+        },
+        {
+            "class": "Pipeline/Utility/CreateTexture",
+            "id": 10,
+            "inputs": [
+                "1024",
+                "1024",
+                "R32_TYPELESS",
+                "4",
+                "DS|SR",
+                "false",
+                "false"
+            ],
+            "meta_pos": "[-212, 467]"
+        },
+        {
+            "class": "Pipeline/System/GetSceneByName",
+            "id": 11,
+            "name": "3DScene",
+            "inputs": [
+                "World"
+            ],
+            "meta_pos": "[-742, -777]"
+        },
+        {
+            "class": "Pipeline/Utility/TextureProperties",
+            "id": 12,
+            "name": "backBufferProperties",
+            "meta_pos": "[-1134, -383]"
+        },
+        {
+            "class": "Pipeline/Utility/CreateTexture",
+            "id": 13,
+            "name": "createDepthBuffer",
+            "inputs": [
+                {},
+                {},
+                "R32G8X24_TYPELESS",
+                "1",
+                "DS|SR",
+                "false",
+                "false"
+            ],
+            "meta_pos": "[-750, -588]"
+        },
+        {
+            "class": "Pipeline/Utility/CreateTexture",
+            "id": 14,
+            "name": "createHdrRenderTarget",
+            "inputs": [
+                {},
+                {},
+                "R16G16B16A16_FLOAT",
+                "1",
+                "RT|SR",
+                "false",
+                "true"
+            ],
+            "meta_pos": "[187, -75]"
+        },
+        {
+            "class": "Pipeline/Utility/CreateTexture",
+            "id": 15,
+            "name": "createShadowmapTextures",
+            "inputs": [
+                "1024",
+                "1024",
+                "R32_TYPELESS",
+                "6",
+                "DS|SR",
+                "true",
+                "false"
+            ],
+            "meta_pos": "[-234, 1105]"
+        },
+        {
+            "class": "Pipeline/Render/CSM",
+            "id": 16,
+            "name": "csm",
+            "meta_pos": "[209, 438]"
+        },
+        {
+            "class": "Pipeline/Render/DepthPrepass",
+            "id": 17,
+            "name": "depthPrePass",
+            "meta_pos": "[-349, -838]"
+        },
+        {
+            "class": "Pipeline/Render/DepthReduction",
+            "id": 18,
+            "name": "depthReduction",
+            "meta_pos": "[60, -869]"
+        },
+        {
+            "class": "Pipeline/Render/DepthReductionFinal",
+            "id": 19,
+            "name": "depthReductionFinal",
+            "meta_pos": "[-150, 174]"
+        },
+        {
+            "class": "Pipeline/Render/DrawSky",
+            "id": 20,
+            "name": "drawSky",
+            "meta_pos": "[1235, -164]"
+        },
+        {
+            "class": "Pipeline/Render/ForwardRender",
+            "id": 21,
+            "name": "forwardRender",
+            "meta_pos": "[742, 155]"
+        },
+        {
+            "class": "Pipeline/Render/LightCulling",
+            "id": 22,
+            "name": "lightCulling",
+            "meta_pos": "[206, 305]"
+        },
+        {
+            "class": "Pipeline/Render/ScreenSpaceShadow",
+            "id": 23,
+            "name": "screenSpaceShadow",
+            "meta_pos": "[212, 657]"
+        },
+        {
+            "class": "Pipeline/Render/ShadowMapGen",
+            "id": 24,
+            "name": "shadowMapGen",
+            "meta_pos": "[138, 1022]"
+        }
+    ],
+    "links": [
+        {
+            "src": 2,
+            "dst": 0,
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "drawSky",
+            "dst": 0,
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": 1,
+            "dst": "backBufferProperties",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "backBufferProperties",
+            "dst": "createDepthBuffer",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "backBufferProperties",
+            "dst": "createDepthBuffer",
+            "srcp": 1,
+            "dstp": 1
+        },
+        {
+            "src": "backBufferProperties",
+            "dst": "createHdrRenderTarget",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "backBufferProperties",
+            "dst": "createHdrRenderTarget",
+            "srcp": 1,
+            "dstp": 1
+        },
+        {
+            "src": 10,
+            "dst": "csm",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 9,
+            "dst": "csm",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "depthReductionFinal",
+            "dst": "csm",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": 6,
+            "dst": "depthPrePass",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "3DScene",
+            "dst": "depthPrePass",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": "createDepthBuffer",
+            "dst": "depthPrePass",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "depthReduction",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 5,
+            "dst": "depthReductionFinal",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": 9,
+            "dst": "depthReductionFinal",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": "depthReduction",
+            "dst": "depthReductionFinal",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 3,
+            "dst": "drawSky",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": 8,
+            "dst": "drawSky",
+            "srcp": 0,
+            "dstp": 3
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "drawSky",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "forwardRender",
+            "dst": "drawSky",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 7,
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": 3,
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 3
+        },
+        {
+            "src": 7,
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 4
+        },
+        {
+            "src": "createHdrRenderTarget",
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": "csm",
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 5
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "depthReductionFinal",
+            "dst": "forwardRender",
+            "srcp": 1,
+            "dstp": 6
+        },
+        {
+            "src": "depthReductionFinal",
+            "dst": "forwardRender",
+            "srcp": 2,
+            "dstp": 7
+        },
+        {
+            "src": "depthReductionFinal",
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 8
+        },
+        {
+            "src": "lightCulling",
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 9
+        },
+        {
+            "src": "screenSpaceShadow",
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 11
+        },
+        {
+            "src": "shadowMapGen",
+            "dst": "forwardRender",
+            "srcp": 0,
+            "dstp": 10
+        },
+        {
+            "src": 5,
+            "dst": "lightCulling",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "lightCulling",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 4,
+            "dst": "screenSpaceShadow",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "depthPrePass",
+            "dst": "screenSpaceShadow",
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 9,
+            "dst": "shadowMapGen",
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": "createShadowmapTextures",
+            "dst": "shadowMapGen",
+            "srcp": 0,
+            "dstp": 0
+        }
+    ]
+}

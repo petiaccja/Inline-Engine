@@ -40,6 +40,18 @@ public:
 	static constexpr bool value = check(1);
 };
 
+// can be read from istream
+template <class T, class IS = std::istream>
+struct is_readable {
+private:
+	template <class U = decltype(*(IS*)nullptr >> *(T*)nullptr)>
+	static constexpr bool check(int) { return true; }
+
+	static constexpr bool check(...) { return false; }
+public:
+	static constexpr bool value = check(1);
+};
+
 
 // can be compared with == 
 template <class T>

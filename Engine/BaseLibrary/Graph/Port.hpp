@@ -101,6 +101,27 @@ public:
 };
 
 
+template <class T, bool Readable> 
+class DefaultPortConverter : public PortConverterCollection<T> 
+{};
+
+template <class T>
+class DefaultPortConverter<T, true> : public PortConverterCollection<T> {
+public:
+	DefaultPortConverter() : PortConverterCollection<T>(&FromString) 
+	{}
+protected:
+	static T FromString(const std::string& str) {
+		T val;
+		std::stringstream ss(str);
+		ss >> val;
+		if (!ss.fail()) {
+			throw InvalidArgumentException("String could not be converted to type.");
+		}
+		return val;
+	}
+};
+
 
 /// <summary>
 /// Converts types when passed between output->input ports.
@@ -113,8 +134,8 @@ public:
 ///		method should throw an std::out_of_range. </para>
 /// </summary>
 template <class T>
-class PortConverter : public PortConverterCollection<T> {
-};
+class PortConverter : public DefaultPortConverter<T, templ::is_readable<T>::value> 
+{};
 
 
 

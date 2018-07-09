@@ -106,9 +106,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Position<semanticIndex>, Tai
 		assert(mesh->HasPositions());
 		assert(vertexIndex < mesh->mNumVertices);
 		const aiVector3D& pos = mesh->mVertices[vertexIndex];
-		//target.position = (model->m_transform * mathfu::Vector<float, 4>(pos.x, pos.z, -pos.y, 1)).xyz();
 		target.position = (posTr * Vec4(pos.x, pos.y, pos.z, 1)).xyz;
-		//target.position = DataType(pos.x, pos.z, -pos.y);
 
 		VertexAttributeSetter<VertexT, TailAttribT...>()(target, mesh, vertexIndex, posTr, normTr);
 	}
