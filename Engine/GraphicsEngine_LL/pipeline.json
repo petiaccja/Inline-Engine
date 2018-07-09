@@ -17,7 +17,7 @@
         },
         {
             "class": "Pipeline/System/GetCameraByName",
-            "id": 7,
+            "id": 8,
             "inputs": [
                 "WorldCam"
             ],
@@ -798,7 +798,7 @@
             "dstp": 2
         },
         {
-            "src": 2,
+            "src": 6,
             "dst": "debugDraw",
             "srcp": 0,
             "dstp": 1
@@ -813,13 +813,13 @@
             "src": 3,
             "dst": "depthPrePass",
             "srcp": 0,
-            "dstp": 1
+            "dstp": 2
         },
         {
             "src": "3DScene",
             "dst": "depthPrePass",
             "srcp": 0,
-            "dstp": 2
+            "dstp": 1
         },
         {
             "src": "createDepthBuffer",
