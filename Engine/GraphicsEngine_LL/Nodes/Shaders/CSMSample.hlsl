@@ -81,7 +81,11 @@ float shadow_pcf_3x3(float4 shadow_coord, float2 scale, float2 offset, float cas
 	return offset_lookup(shadow_coord, offset, scale, cascade); //TODO only one sample for now
 }
 
-float sample_csm(int cascade, float4 vs_pos)
+float sample_csm(int cascade, float4 vs_pos
+#ifdef CSM_EXTENDED_INFO
+, out float4 shadowCoord
+#endif
+)
 {
 	float4x4 shadow_mx;
 	for (int d = 0; d < 4; ++d)
@@ -108,6 +112,10 @@ float sample_csm(int cascade, float4 vs_pos)
 	float2 scale = 1.0 / float2(inputTexSize.xy);
 
 	//shadow_coord.xy = shadow_coord.xy * float2(0.5, -0.5) + 0.5;
+	
+	#ifdef CSM_EXTENDED_INFO
+	shadowCoord = float4(shadow_coord.xyz, cascade);
+	#endif
 
 	float shadow_depth = offset_lookup(shadow_coord, offset, scale, cascade);
 	//return float3(shadow_coord.x < 0.0, shadow_coord.y < 0.0, shadow_coord.z < 0.0);
@@ -119,7 +127,11 @@ float sample_csm(int cascade, float4 vs_pos)
 }
 
 //vec3 get_shadow(sampler2D tex, vec4 shadow_coord)
-float3 get_csm_shadow(float4 vs_pos)
+float3 get_csm_shadow(float4 vs_pos
+#ifdef CSM_EXTENDED_INFO
+, out float4 shadowCoord
+#endif
+)
 {
 	//return sample_csm(0, vs_pos);
 
@@ -135,7 +147,11 @@ float3 get_csm_shadow(float4 vs_pos)
 		}
 	}
 
-	float shadow_term = sample_csm(cascade, vs_pos);
+	float shadow_term = sample_csm(cascade, vs_pos
+	#ifdef CSM_EXTENDED_INFO
+	, shadowCoord
+	#endif
+	);
 
 	{ //filter across cascades
 		const float blendThreshold = 0.05f;

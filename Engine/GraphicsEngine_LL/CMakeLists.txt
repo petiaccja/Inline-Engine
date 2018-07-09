@@ -277,6 +277,10 @@ set(node_shadow_screenspace
 	"Nodes/Node_ScreenSpaceShadow.cpp"
 	"Nodes/Node_ScreenSpaceShadow.hpp"
 )
+set(node_shadow_filtering
+	"Nodes/Node_ShadowFilter.cpp"
+	"Nodes/Node_ShadowFilter.hpp"
+)
 
 set(node_sys 
 	"Nodes/Node_CreateTexture.hpp"
@@ -336,6 +340,10 @@ set(shaders_shadow_point_spot
 	"Nodes/Shaders/PointLightShadowMapSample.hlsl"
 	"Nodes/Shaders/ShadowGen.hlsl"
 	)
+	
+set(shaders_shadow_filter
+	"Nodes/Shaders/ShadowMinfilter.hlsl"
+)
 	
 set(shaders_debug
 	"Nodes/Shaders/DebugDraw.hlsl"
@@ -424,6 +432,7 @@ set(all_the_files
 	${node_shadow_csm}
 	${node_shadow_pointspot}
 	${node_shadow_screenspace}
+	${node_shadow_filtering}
 	${node_sys}
 	${node_util}
 	
@@ -431,6 +440,7 @@ set(all_the_files
 	${shaders_bloom}
 	${shaders_shadow_csm}
 	${shaders_shadow_point_spot}
+	${shaders_shadow_filter}
 	${shaders_debug}
 	${shaders_lighting}
 	${shaders_motion_blur}
@@ -485,6 +495,7 @@ source_group("Frontend\\Nodes\\PostProcess\\SSR" FILES ${node_pp_ssr})
 source_group("Frontend\\Nodes\\Shadow\\CascadedShadowMap" FILES ${node_shadow_csm})
 source_group("Frontend\\Nodes\\Shadow\\PointSpot" FILES ${node_shadow_pointspot})
 source_group("Frontend\\Nodes\\Shadow\\ScreenSpace" FILES ${node_shadow_screenspace})
+source_group("Frontend\\Nodes\\Shadow\\Filtering" FILES ${node_shadow_filtering})
 source_group("Frontend\\Nodes\\System" FILES ${node_sys})
 source_group("Frontend\\Nodes\\Utility" FILES ${node_util})
 
@@ -492,6 +503,7 @@ source_group("Shaders\\DOF" FILES ${shaders_dof})
 source_group("Shaders\\Bloom" FILES ${shaders_bloom})
 source_group("Shaders\\Shadow\\CSM" FILES ${shaders_shadow_csm})
 source_group("Shaders\\Shadow\\PointSpot" FILES ${shaders_shadow_point_spot})
+source_group("Shaders\\Shadow\\Filter" FILES ${shaders_shadow_filter})
 source_group("Shaders\\Debug" FILES ${shaders_debug})
 source_group("Shaders\\Lighting" FILES ${shaders_lighting})
 source_group("Shaders\\MotionBlur" FILES ${shaders_motion_blur})

@@ -108,11 +108,6 @@ void ForwardRender::Reset() {
 	m_camera = nullptr;
 	m_directionalLights = nullptr;
 
-	m_cascadedShadowMapTexView = TextureView2D();
-	m_shadowMXTexView = TextureView2D();
-	m_csmSplitsTexView = TextureView2D();
-	m_lightMVPTexView = TextureView2D();
-
 	GetInput<0>().Clear();
 	GetInput<1>().Clear();
 	GetInput<2>().Clear();
@@ -121,7 +116,6 @@ void ForwardRender::Reset() {
 	GetInput<5>().Clear();
 	GetInput<6>().Clear();
 	GetInput<7>().Clear();
-	GetInput<8>().Clear();
 }
 
 
@@ -150,51 +144,25 @@ void ForwardRender::Setup(SetupContext& context) {
 	m_directionalLights = this->GetInput<4>().Get();
 	assert(m_directionalLights->Size() == 1);
 
-	auto cascadedShadowMapTex = this->GetInput<5>().Get();
-	this->GetInput<5>().Clear();
 	gxapi::SrvTexture2DArray srvDesc;
-	srvDesc.activeArraySize = 4;
+	srvDesc.activeArraySize = 1;
 	srvDesc.firstArrayElement = 0;
 	srvDesc.mipLevelClamping = 0;
 	srvDesc.mostDetailedMip = 0;
 	srvDesc.numMipLevels = 1;
 	srvDesc.planeIndex = 0;
-	m_cascadedShadowMapTexView = context.CreateSrv(cascadedShadowMapTex, FormatDepthToColor(cascadedShadowMapTex.GetFormat()), srvDesc);
 
-	auto pointLightShadowMapTex = this->GetInput<10>().Get();
-	this->GetInput<10>().Clear();
-	gxapi::SrvTextureCubeArray cubeSrvDesc;
-	cubeSrvDesc.indexOfFirst2DTex = 0;
-	cubeSrvDesc.mipLevelClamping = 0;
-	cubeSrvDesc.mostDetailedMip = 0;
-	cubeSrvDesc.numMipLevels = 1;
-	cubeSrvDesc.numCubes = 1;
-	m_pointLightShadowMapTexView = context.CreateSrv(pointLightShadowMapTex, FormatDepthToColor(pointLightShadowMapTex.GetFormat()), cubeSrvDesc);
+	auto layeredShadowTex = this->GetInput<5>().Get();
+	this->GetInput<5>().Clear();
+	m_layeredShadowTexView = context.CreateSrv(layeredShadowTex, layeredShadowTex.GetFormat(), srvDesc);
 	
 
-	srvDesc.activeArraySize = 1;
-
-	auto shadowMXTex = this->GetInput<6>().Get();
+	auto lightCullData = this->GetInput<6>().Get();
 	this->GetInput<6>().Clear();
-	m_shadowMXTexView = context.CreateSrv(shadowMXTex, shadowMXTex.GetFormat(), srvDesc);
-	
-
-	auto csmSplitsTex = this->GetInput<7>().Get();
-	this->GetInput<7>().Clear();
-	m_csmSplitsTexView = context.CreateSrv(csmSplitsTex, csmSplitsTex.GetFormat(), srvDesc);
-	
-
-	auto lightMVPTex = this->GetInput<8>().Get();
-	this->GetInput<8>().Clear();
-	m_lightMVPTexView = context.CreateSrv(lightMVPTex, lightMVPTex.GetFormat(), srvDesc);
-	
-
-	auto lightCullData = this->GetInput<9>().Get();
-	this->GetInput<9>().Clear();
 	m_lightCullDataView = context.CreateSrv(lightCullData, lightCullData.GetFormat(), srvDesc);
 	
-	auto screenSpaceShadowTex = this->GetInput<11>().Get();
-	this->GetInput<11>().Clear();
+	auto screenSpaceShadowTex = this->GetInput<7>().Get();
+	this->GetInput<7>().Clear();
 	m_screenSpaceShadowTexView = context.CreateSrv(screenSpaceShadowTex, screenSpaceShadowTex.GetFormat(), srvDesc);
 
 	if (!m_velocityNormal_rtv)
@@ -258,76 +226,6 @@ void ForwardRender::Setup(SetupContext& context) {
 	this->GetOutput<0>().Set(target);
 	this->GetOutput<1>().Set(m_velocityNormal_rtv.GetResource());
 	this->GetOutput<2>().Set(m_albedoRoughnessMetalness_rtv.GetResource());
-
-
-	/*if (!m_binder.has_value()) {
-		BindParameterDesc transformBindParamDesc;
-		m_transformBindParam = BindParameter(eBindParameterType::CONSTANT, 0);
-		transformBindParamDesc.parameter = m_transformBindParam;
-		transformBindParamDesc.constantSize = sizeof(float) * 4 * 4 * 2;
-		transformBindParamDesc.relativeAccessFrequency = 0;
-		transformBindParamDesc.relativeChangeFrequency = 0;
-		transformBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::VERTEX;
-
-		BindParameterDesc sunBindParamDesc;
-		m_sunBindParam = BindParameter(eBindParameterType::CONSTANT, 1);
-		sunBindParamDesc.parameter = m_sunBindParam;
-		sunBindParamDesc.constantSize = sizeof(float) * 4 * 2;
-		sunBindParamDesc.relativeAccessFrequency = 0;
-		sunBindParamDesc.relativeChangeFrequency = 0;
-		sunBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-		BindParameterDesc albedoBindParamDesc;
-		m_albedoBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
-		albedoBindParamDesc.parameter = m_albedoBindParam;
-		albedoBindParamDesc.constantSize = 0;
-		albedoBindParamDesc.relativeAccessFrequency = 0;
-		albedoBindParamDesc.relativeChangeFrequency = 0;
-		albedoBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-		BindParameterDesc shadowMapBindParamDesc;
-		m_shadowMapBindParam = BindParameter(eBindParameterType::TEXTURE, 1);
-		shadowMapBindParamDesc.parameter = m_shadowMapBindParam;
-		shadowMapBindParamDesc.constantSize = 0;
-		shadowMapBindParamDesc.relativeAccessFrequency = 0;
-		shadowMapBindParamDesc.relativeChangeFrequency = 0;
-		shadowMapBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-		BindParameterDesc shadowMXBindParamDesc;
-		m_shadowMXBindParam = BindParameter(eBindParameterType::TEXTURE, 2);
-		shadowMXBindParamDesc.parameter = m_shadowMXBindParam;
-		shadowMXBindParamDesc.constantSize = 0;
-		shadowMXBindParamDesc.relativeAccessFrequency = 0;
-		shadowMXBindParamDesc.relativeChangeFrequency = 0;
-		shadowMXBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-		BindParameterDesc csmSplitsBindParamDesc;
-		m_csmSplitsBindParam = BindParameter(eBindParameterType::TEXTURE, 3);
-		csmSplitsBindParamDesc.parameter = m_csmSplitsBindParam;
-		csmSplitsBindParamDesc.constantSize = 0;
-		csmSplitsBindParamDesc.relativeAccessFrequency = 0;
-		csmSplitsBindParamDesc.relativeChangeFrequency = 0;
-		csmSplitsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-		BindParameterDesc sampBindParamDesc;
-		sampBindParamDesc.parameter = BindParameter(eBindParameterType::SAMPLER, 0);
-		sampBindParamDesc.constantSize = 0;
-		sampBindParamDesc.relativeAccessFrequency = 0;
-		sampBindParamDesc.relativeChangeFrequency = 0;
-		sampBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-		gxapi::StaticSamplerDesc samplerDesc;
-		samplerDesc.shaderRegister = 0;
-		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR;
-		samplerDesc.addressU = gxapi::eTextureAddressMode::WRAP;
-		samplerDesc.addressV = gxapi::eTextureAddressMode::WRAP;
-		samplerDesc.addressW = gxapi::eTextureAddressMode::WRAP;
-		samplerDesc.mipLevelBias = 0.f;
-		samplerDesc.registerSpace = 0;
-		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-		m_binder = context.CreateBinder({ transformBindParamDesc, sunBindParamDesc, albedoBindParamDesc, shadowMapBindParamDesc, shadowMXBindParamDesc, csmSplitsBindParamDesc, sampBindParamDesc },{ samplerDesc });
-	}*/
 }
 
 
@@ -395,25 +293,16 @@ void ForwardRender::Execute(RenderContext& context) {
 		commandList.SetPipelineState(scenario.pso.get());
 		commandList.SetGraphicsBinder(&scenario.binder);
 
-		commandList.SetResourceState(m_pointLightShadowMapTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_cascadedShadowMapTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_shadowMXTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_csmSplitsTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_lightMVPTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_layeredShadowTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_screenSpaceShadowTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-
-		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 400), m_pointLightShadowMapTexView);
-
-		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 500), m_cascadedShadowMapTexView);
-		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 501), m_shadowMXTexView);
-		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 502), m_csmSplitsTexView);
-		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 503), m_lightMVPTexView);
 
 		commandList.SetResourceState(m_lightCullDataView.GetResource(), {gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE	});
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 600), m_lightCullDataView);
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 601), m_screenSpaceShadowTexView);
+
+		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 602), m_layeredShadowTexView);
 
 		// Set material parameters
 		std::vector<uint8_t> materialConstants(scenario.constantsSize);
@@ -807,8 +696,6 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 		+ textures.str()
 		+ "\n//-------------------------------------\n\n"
 		+ "#include \"LightingUniforms\"\n"
-		+ "#include \"CSMSample\"\n"
-		+ "#include \"PointLightShadowMapSample\"\n"
 		+ "#include \"PbrBrdf\"\n"
 		+ "#include \"TiledLighting\"\n"
 		+ "#include \"EncodeDecode\"\n"
@@ -881,41 +768,6 @@ Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<M
 	theSamplerParam.registerSpace = 0;
 	theSamplerParam.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
-	BindParameterDesc shadowMapBindParamDesc2;
-	shadowMapBindParamDesc2.parameter = BindParameter(eBindParameterType::TEXTURE, 400);
-	shadowMapBindParamDesc2.constantSize = 0;
-	shadowMapBindParamDesc2.relativeAccessFrequency = 0;
-	shadowMapBindParamDesc2.relativeChangeFrequency = 0;
-	shadowMapBindParamDesc2.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	BindParameterDesc shadowMapBindParamDesc;
-	shadowMapBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 500);
-	shadowMapBindParamDesc.constantSize = 0;
-	shadowMapBindParamDesc.relativeAccessFrequency = 0;
-	shadowMapBindParamDesc.relativeChangeFrequency = 0;
-	shadowMapBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	BindParameterDesc shadowMXBindParamDesc;
-	shadowMXBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 501);
-	shadowMXBindParamDesc.constantSize = 0;
-	shadowMXBindParamDesc.relativeAccessFrequency = 0;
-	shadowMXBindParamDesc.relativeChangeFrequency = 0;
-	shadowMXBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	BindParameterDesc csmSplitsBindParamDesc;
-	csmSplitsBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 502);
-	csmSplitsBindParamDesc.constantSize = 0;
-	csmSplitsBindParamDesc.relativeAccessFrequency = 0;
-	csmSplitsBindParamDesc.relativeChangeFrequency = 0;
-	csmSplitsBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-
-	BindParameterDesc lightMVPBindParamDesc;
-	lightMVPBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 503);
-	lightMVPBindParamDesc.constantSize = 0;
-	lightMVPBindParamDesc.relativeAccessFrequency = 0;
-	lightMVPBindParamDesc.relativeChangeFrequency = 0;
-	lightMVPBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
-
 	BindParameterDesc lightCullDataBindParamDesc;
 	lightCullDataBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 600);
 	lightCullDataBindParamDesc.constantSize = 0;
@@ -929,6 +781,13 @@ Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<M
 	screenSpaceShadowTexBindParamDesc.relativeAccessFrequency = 0;
 	screenSpaceShadowTexBindParamDesc.relativeChangeFrequency = 0;
 	screenSpaceShadowTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+	BindParameterDesc layeredShadowTexBindParamDesc;
+	layeredShadowTexBindParamDesc.parameter = BindParameter(eBindParameterType::TEXTURE, 602);
+	layeredShadowTexBindParamDesc.constantSize = 0;
+	layeredShadowTexBindParamDesc.relativeAccessFrequency = 0;
+	layeredShadowTexBindParamDesc.relativeChangeFrequency = 0;
+	layeredShadowTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 	BindParameterDesc lightUniformsCbDesc;
 	lightUniformsCbDesc.parameter = BindParameter(eBindParameterType::CONSTANT, 600);
@@ -980,11 +839,7 @@ Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<M
 	descs.push_back(lightUniformsCbDesc);
 
 	descs.push_back(theSamplerDesc);
-	descs.push_back(shadowMapBindParamDesc);
-	descs.push_back(shadowMapBindParamDesc2);
-	descs.push_back(shadowMXBindParamDesc);
-	descs.push_back(csmSplitsBindParamDesc);
-	descs.push_back(lightMVPBindParamDesc);
+	descs.push_back(layeredShadowTexBindParamDesc);
 
 	descs.push_back(lightCullDataBindParamDesc);
 	descs.push_back(screenSpaceShadowTexBindParamDesc);
