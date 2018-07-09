@@ -193,7 +193,23 @@ void PipelineEditorGraph::LoadJSON(const std::string& description) {
 		dstp = parser.FindInputPort(dst, info.dstpidx, info.dstpname);
 
 		// Link said ports
-		srcp->Link(dstp);
+		try {
+			srcp->Link(dstp);
+		}
+		catch (Exception& ex) {
+			std::stringstream ss;
+			ss << " while linking " << (info.srcname ? info.srcname.value() : "");
+			if (info.srcid) {
+				ss << "(" << info.srcid.value() << ")";
+			}
+			ss << ":" << (info.srcpidx ? info.srcpidx.value() : -1);
+			ss << " and " << (info.dstname ? info.dstname.value() : "");
+			if (info.dstid) {
+				ss << "(" << info.dstid.value() << ")";
+			}
+			ss << ":" << (info.dstpidx ? info.dstpidx.value() : -1);
+			throw InvalidArgumentException(ex.Message() + ss.str(), ex.Subject());
+		}
 	}
 
 	// Set internal data structures.
