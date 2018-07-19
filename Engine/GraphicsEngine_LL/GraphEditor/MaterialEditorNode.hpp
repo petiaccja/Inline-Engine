@@ -1,6 +1,7 @@
 #include <BaseLibrary/GraphEditor/IGraphEditorNode.hpp>
 #include <BaseLibrary/Graph_All.hpp>
 #include <BaseLibrary/GraphEditor/GraphParser.hpp>
+#include "GraphicsEngine_LL/MaterialShader.hpp"
 
 
 #undef GetClassName // retarded Windows
@@ -9,11 +10,11 @@
 namespace inl::gxeng {
 
 
-class PipelineEditorNode : public IGraphEditorNode {
+class MaterialEditorNode : public IGraphEditorNode {
 public:
-	PipelineEditorNode() = default;
-	PipelineEditorNode(std::unique_ptr<NodeBase> realNode);
-	
+	MaterialEditorNode() = default;
+	MaterialEditorNode(std::unique_ptr<MaterialShader2> realNode);
+
 	std::string GetName() const override;
 	void SetName(std::string name) override;
 	std::string GetClassName() const override;
@@ -36,12 +37,12 @@ public:
 	std::string GetInputTypeName(int idx) const override;
 	std::string GetOutputTypeName(int idx) const override;
 
-	NodeBase* GetRealNode() const;
+	MaterialShader2* GetRealNode() const;
 
 	void SetMetaData(NodeMetaDescription data) override;
 	NodeMetaDescription GetMetaData() const override;
 private:
-	std::unique_ptr<NodeBase> m_realNode;
+	std::unique_ptr<MaterialShader2> m_realNode;
 	NodeMetaDescription m_metaData;
 };
 

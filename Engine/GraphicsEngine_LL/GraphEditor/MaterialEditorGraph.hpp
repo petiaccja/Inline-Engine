@@ -1,19 +1,20 @@
-#include "../GraphicsNodeFactory.hpp"
-
 #include <BaseLibrary/GraphEditor/IEditorGraph.hpp>
 #include <BaseLibrary/Graph_All.hpp>
 
-#include "PipelineEditorNode.hpp"
+#include "MaterialEditorNode.hpp"
 
 
 namespace inl::gxeng {
 
+class ShaderManager;
 
-class PipelineEditorGraph : public IEditorGraph {
+
+class MaterialEditorGraph : public IEditorGraph {
 public:
-	PipelineEditorGraph(const GraphicsNodeFactory& factory);
+	MaterialEditorGraph(const ShaderManager& shaderManager);
 
 	std::vector<std::string> GetNodeList() const override;
+	void SetNodeList(const std::vector<std::string>&) override;
 
 	IGraphEditorNode* AddNode(std::string name) override;
 	void RemoveNode(IGraphEditorNode* node) override;
@@ -32,10 +33,10 @@ public:
 	void Clear() override;
 
 private:
-	const GraphicsNodeFactory& m_factory;
-	std::vector<std::unique_ptr<PipelineEditorNode>> m_nodes;
+	const ShaderManager& m_shaderManager;
+	std::vector<std::string> m_nodeList;
+	std::vector<std::unique_ptr<MaterialEditorNode>> m_nodes;
 };
-
 
 
 } // namespace inl::gxeng

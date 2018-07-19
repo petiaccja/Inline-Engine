@@ -1,6 +1,10 @@
 #include "GraphParser.hpp"
+#include "IGraphEditorNode.hpp"
 
 #include <BaseLibrary/Range.hpp>
+#include <BaseLibrary/Exception/Exception.hpp>
+
+#include <sstream>
 
 #include <rapidjson/encodings.h>
 #include <rapidjson/document.h>
@@ -38,15 +42,16 @@ void GraphParser::Parse(const std::string& json) {
 }
 
 
-std::string GraphParser::Serialize(const NodeBase* const* nodes,
+std::string GraphParser::Serialize(const ISerializableNode* const* nodes,
 								   const NodeMetaDescription* metaData,
 								   size_t count,
-								   std::function<std::string(const NodeBase&)> FindName)
+								   std::function<std::string(const ISerializableNode&)> FindName,
+								   const GraphHeader& header)
 {
 	// { node -> description }
-	std::unordered_map<const NodeBase*, NodeDescription> nodeDescLookup;
+	std::unordered_map<const ISerializableNode*, NodeDescription> nodeDescLookup;
 	// { output port -> { parent, index in parent }}
-	std::unordered_map<const OutputPortBase*, std::tuple<const NodeBase*, int>> outputLookup;
+	std::unordered_map<const ISerializableOutputPort*, std::tuple<const ISerializableNode*, int>> outputLookup;
 
 	// Description vector.
 	std::vector<NodeDescription> nodeDescs;
@@ -54,7 +59,7 @@ std::string GraphParser::Serialize(const NodeBase* const* nodes,
 
 	// Go over all nodes, create description and output lookup.
 	for (auto i : Range(count)) {
-		const NodeBase* node = nodes[i];
+		const ISerializableNode* node = nodes[i];
 
 		// Create output lookup.
 		for (int j = 0; j < node->GetNumOutputs(); ++j) {
@@ -84,12 +89,12 @@ std::string GraphParser::Serialize(const NodeBase* const* nodes,
 	// Create link descs for all ports of all nodes.
 	for (auto i : Range(count)) {
 		// Destination node.
-		const NodeBase* dst = nodes[i];
+		const ISerializableNode* dst = nodes[i];
 
 		// Iterate over all input ports.
 		for (int i = 0; i < dst->GetNumInputs(); ++i) {
-			const InputPortBase* input = dst->GetInput(i);
-			const OutputPortBase* output = input->GetLink();
+			const ISerializableInputPort* input = dst->GetInput(i);
+			const ISerializableOutputPort* output = input->GetLink();
 
 			// If we have an output port linked, add a link desc.
 			if (output) {
@@ -138,7 +143,12 @@ std::string GraphParser::Serialize(const NodeBase* const* nodes,
 		nodeDescs.push_back(v.second);
 	}
 
-	return MakeJson(std::move(nodeDescs), std::move(linkDescs));
+	return MakeJson(std::move(nodeDescs), std::move(linkDescs), header);
+}
+
+
+const GraphHeader& GraphParser::GetHeader() const {
+	return m_header;
 }
 
 
@@ -181,7 +191,7 @@ size_t GraphParser::FindNode(const std::string& name) const {
 }
 
 
-InputPortBase* GraphParser::FindInputPort(NodeBase* holder, const std::optional<int>& index,
+ISerializableInputPort* GraphParser::FindInputPort(ISerializableNode* holder, const std::optional<int>& index,
 										  const std::optional<std::string>& name) 
 {
 	if (index) {
@@ -194,7 +204,7 @@ InputPortBase* GraphParser::FindInputPort(NodeBase* holder, const std::optional<
 }
 
 
-InputPortBase* GraphParser::FindInputPort(NodeBase* holder, const std::string& name) {
+ISerializableInputPort* GraphParser::FindInputPort(ISerializableNode* holder, const std::string& name) {
 	for (auto i : Range(holder->GetNumInputs())) {
 		if (holder->GetInputName(i) == name) {
 			return holder->GetInput(i);
@@ -204,7 +214,7 @@ InputPortBase* GraphParser::FindInputPort(NodeBase* holder, const std::string& n
 }
 
 
-InputPortBase* GraphParser::FindInputPort(NodeBase* holder, int index) {
+ISerializableInputPort* GraphParser::FindInputPort(ISerializableNode* holder, int index) {
 	if (index < holder->GetNumInputs() && 0 <= index) {
 		return holder->GetInput(index);
 	}
@@ -212,7 +222,7 @@ InputPortBase* GraphParser::FindInputPort(NodeBase* holder, int index) {
 }
 
 
-OutputPortBase* GraphParser::FindOutputPort(NodeBase* holder, const std::optional<int>& index,
+ISerializableOutputPort* GraphParser::FindOutputPort(ISerializableNode* holder, const std::optional<int>& index,
 											const std::optional<std::string>& name) 
 {
 	if (index) {
@@ -225,7 +235,7 @@ OutputPortBase* GraphParser::FindOutputPort(NodeBase* holder, const std::optiona
 }
 
 
-OutputPortBase* GraphParser::FindOutputPort(NodeBase* holder, const std::string& name) {
+ISerializableOutputPort* GraphParser::FindOutputPort(ISerializableNode* holder, const std::string& name) {
 	for (auto i : Range(holder->GetNumOutputs())) {
 		if (holder->GetOutputName(i) == name) {
 			return holder->GetOutput(i);
@@ -235,7 +245,7 @@ OutputPortBase* GraphParser::FindOutputPort(NodeBase* holder, const std::string&
 }
 
 
-OutputPortBase* GraphParser::FindOutputPort(NodeBase* holder, int index) {
+ISerializableOutputPort* GraphParser::FindOutputPort(ISerializableNode* holder, int index) {
 	if (index < holder->GetNumOutputs() && 0 <= index) {
 		return holder->GetOutput(index);
 	}
@@ -255,8 +265,17 @@ void GraphParser::ParseDocument(const std::string& document) {
 		auto[lineNumber, characterNumber, line] = GetStringErrorPosition(document, errorCharacter);
 		throw InvalidArgumentException("JSON descripion has syntax errors.", "Check line " + std::to_string(lineNumber) + ":" + std::to_string(characterNumber));
 	}
+	AssertThrow(doc.IsObject(), R"(JSON root must be an object with member arrays "nodes" and "links".)");
 
-	AssertThrow(doc.IsObject(), "JSON root must be an object with member arrays \"nodes\" and \"links\".");
+	// Extract header.
+	GraphHeader graphHeader{};
+	if (doc.HasMember("header") && doc["header"].IsObject()) {
+		auto& header = doc["header"];
+		AssertThrow(header.HasMember("contentType") && header["contentType"].IsString(), "Header must be a struct: { string contentType; }.");
+		graphHeader.contentType = header["contentType"].GetString();
+	}
+
+	// Extract nodes and links.
 	AssertThrow(doc.HasMember("nodes") && doc["nodes"].IsArray(), "JSON root must have \"nodes\" member array.");
 	AssertThrow(doc.HasMember("links") && doc["links"].IsArray(), "JSON root must have \"links\" member array.");
 
@@ -275,6 +294,7 @@ void GraphParser::ParseDocument(const std::string& document) {
 		linkDescs.push_back(info);
 	}
 
+	m_header = graphHeader;
 	m_nodeDescs = nodeDescs;
 	m_linkDescs = linkDescs;
 }
@@ -299,7 +319,7 @@ void GraphParser::CreateLookupTables() {
 }
 
 
-std::string GraphParser::MakeJson(std::vector<NodeDescription> nodeDescs, std::vector<LinkDescription> linkDescs) {
+std::string GraphParser::MakeJson(std::vector<NodeDescription> nodeDescs, std::vector<LinkDescription> linkDescs, const GraphHeader& header) {
 	using namespace rapidjson;
 
 	std::stable_sort(nodeDescs.begin(), nodeDescs.end(), [](const NodeDescription& lhs, const NodeDescription& rhs) {
@@ -320,6 +340,9 @@ std::string GraphParser::MakeJson(std::vector<NodeDescription> nodeDescs, std::v
 	Document doc;
 	auto& alloc = doc.GetAllocator();
 	doc.SetObject();
+
+	doc.AddMember("header", kObjectType, alloc);
+	doc["header"].AddMember("contentType", Value().SetString(header.contentType.c_str(), alloc), alloc);
 
 	doc.AddMember("nodes", kArrayType, alloc);
 	doc.AddMember("links", kArrayType, alloc);

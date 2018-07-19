@@ -13,9 +13,9 @@ namespace inl {
 
 
 
-class INode {
+class IGraphEditorNode {
 public:
-	virtual ~INode() = default;
+	virtual ~IGraphEditorNode() = default;
 
 	virtual std::string GetName() const = 0;
 	virtual void SetName(std::string name) = 0;

@@ -11,16 +11,25 @@
 #include <GraphicsEngine_LL/PerspectiveCamera.hpp>
 #include <GraphicsEngine_LL/DirectionalLight.hpp>
 
+#include <PhysicsEngine_Bullet/PhysicsEngine.hpp>
+#include <PhysicsEngine_Bullet/Scene.hpp>
+#include <PhysicsEngine_Bullet/MeshShape.hpp>
+#include <PhysicsEngine_Bullet/RigidBody.hpp>
+
 
 using namespace inl;
 
 
 class GameScene {
 public:
-	GameScene(gxeng::GraphicsEngine* graphicsEngine) : m_graphicsEngine(graphicsEngine) {
+	GameScene(gxeng::GraphicsEngine* graphicsEngine, pxeng_bl::PhysicsEngine* physicsEngine) 
+	: m_graphicsEngine(graphicsEngine), m_physicsEngine(physicsEngine)
+	{
 		m_gxScene.reset(m_graphicsEngine->CreateScene("World"));
 		m_camera.reset(m_graphicsEngine->CreatePerspectiveCamera("WorldCam"));
 		m_light.reset(new gxeng::DirectionalLight());
+
+		m_pxScene.reset(m_physicsEngine->CreateScene());
 
 		m_light->SetDirection(Vec3{ -1, -2, -3 }.Normalized());
 		m_light->SetColor({ 0.7f, 0.8f, 0.9f });
@@ -37,7 +46,12 @@ private:
 	std::unique_ptr<gxeng::Scene> m_gxScene;
 	std::unique_ptr<gxeng::PerspectiveCamera> m_camera;
 
+	pxeng_bl::PhysicsEngine* m_physicsEngine;
+	std::unique_ptr<pxeng_bl::Scene> m_pxScene;
+	
 	std::unique_ptr<gxeng::DirectionalLight> m_light;
+
+
 };
 
 
@@ -78,8 +92,11 @@ int main() {
 		graphicsEngine->LoadPipeline(pipelineDesc);
 		graphicsEngine->SetShaderDirectories({ INL_NODE_SHADER_DIRECTORY, INL_MTL_SHADER_DIRECTORY, "./Shaders", "./Materials" });
 
+		// Create physics engine.
+		std::unique_ptr<pxeng_bl::PhysicsEngine> physicsEngine(new pxeng_bl::PhysicsEngine());
+
 		// Create scene and camera.
-		GameScene gameScene(graphicsEngine.get());
+		GameScene gameScene(graphicsEngine.get(), physicsEngine.get());
 
 		// Game loop.
 		while (!window.IsClosed()) {

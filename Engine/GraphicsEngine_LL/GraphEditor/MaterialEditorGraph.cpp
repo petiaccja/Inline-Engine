@@ -1,40 +1,37 @@
-#include "PipelineEditorGraph.hpp"
-
-#include <BaseLibrary/GraphEditor/GraphParser.hpp>
+#include "MaterialEditorGraph.hpp"
+#include "../ShaderManager.hpp"
 #include <BaseLibrary/Range.hpp>
-#include "../../../Executables/NodeEditor/Node.hpp"
 
 
 namespace inl::gxeng {
 
 
-PipelineEditorGraph::PipelineEditorGraph(const GraphicsNodeFactory& factory)
-	: m_factory(factory)
+MaterialEditorGraph::MaterialEditorGraph(const ShaderManager& shaderManager) 
+	: m_shaderManager(shaderManager)
 {}
 
 
-std::vector<std::string> PipelineEditorGraph::GetNodeList() const {
-	auto nodeList = m_factory.EnumerateNodes();
-	std::vector<std::string> nameList;
-
-	for (auto info : nodeList) {
-		nameList.push_back(info.group + "/" + info.name);
-	}
-
-	return nameList;
+std::vector<std::string> MaterialEditorGraph::GetNodeList() const {
+	return m_nodeList;
 }
 
 
-IGraphEditorNode* PipelineEditorGraph::AddNode(std::string name) {
-	std::unique_ptr<NodeBase> realNode(m_factory.CreateNode(name));
-	auto node = std::make_unique<PipelineEditorNode>(std::move(realNode));
-	IGraphEditorNode* ptr = node.get();
+void MaterialEditorGraph::SetNodeList(const std::vector<std::string>& nodeList) {
+	// TODO: check if shader codes actually exist in shader manager.
+	m_nodeList = std::move(nodeList);
+}
+
+
+IGraphEditorNode* MaterialEditorGraph::AddNode(std::string name) {
+	auto realNode = std::make_unique<MaterialShaderEquation2>(&m_shaderManager);
+	realNode->SetSourceFile(name);
+	auto node = std::make_unique<MaterialEditorNode>(std::move(realNode));
 	m_nodes.push_back(std::move(node));
-	return ptr;
+	return m_nodes.back().get();
 }
 
 
-void PipelineEditorGraph::RemoveNode(IGraphEditorNode* node) {
+void MaterialEditorGraph::RemoveNode(IGraphEditorNode* node) {
 	// Shitty O(n) performance!
 
 	auto it = m_nodes.begin();
@@ -53,16 +50,16 @@ void PipelineEditorGraph::RemoveNode(IGraphEditorNode* node) {
 }
 
 
-Link PipelineEditorGraph::Link(IGraphEditorNode* sourceNode, int sourcePort, IGraphEditorNode* targetNode, int targetPort) {
-	PipelineEditorNode* sourcePipelineNode = dynamic_cast<PipelineEditorNode*>(sourceNode);
-	PipelineEditorNode* targetPipelineNode = dynamic_cast<PipelineEditorNode*>(targetNode);
-	assert(sourcePipelineNode);
-	assert(targetPipelineNode);
+inl::Link MaterialEditorGraph::Link(IGraphEditorNode* sourceNode, int sourcePort, IGraphEditorNode* targetNode, int targetPort) {
+	MaterialEditorNode* sourceMaterialNode = dynamic_cast<MaterialEditorNode*>(sourceNode);
+	MaterialEditorNode* targetMaterialNode = dynamic_cast<MaterialEditorNode*>(targetNode);
+	assert(sourceMaterialNode);
+	assert(targetMaterialNode);
 
-	assert(sourcePort < sourcePipelineNode->GetNumOutputs());
-	assert(targetPort < targetPipelineNode->GetNumInputs());
+	assert(sourcePort < sourceMaterialNode->GetNumOutputs());
+	assert(targetPort < targetMaterialNode->GetNumInputs());
 
-	sourcePipelineNode->GetRealNode()->GetOutput(sourcePort)->Link(targetPipelineNode->GetRealNode()->GetInput(targetPort));
+	sourceMaterialNode->GetRealNode()->GetOutput(sourcePort)->Link(targetMaterialNode->GetRealNode()->GetInput(targetPort));
 
 	inl::Link link;
 	link.sourceNode = sourceNode;
@@ -73,16 +70,17 @@ Link PipelineEditorGraph::Link(IGraphEditorNode* sourceNode, int sourcePort, IGr
 }
 
 
-void PipelineEditorGraph::Unlink(IGraphEditorNode* targetNode, int targetPort) {
-	PipelineEditorNode* targetPipelineNode = dynamic_cast<PipelineEditorNode*>(targetNode);
+void MaterialEditorGraph::Unlink(IGraphEditorNode* targetNode, int targetPort) {
+	MaterialEditorNode* targetMaterialNode = dynamic_cast<MaterialEditorNode*>(targetNode);
 
-	assert(targetPort < targetPipelineNode->GetNumInputs());
+	assert(targetMaterialNode != nullptr);
+	assert(targetPort < targetMaterialNode->GetNumInputs());
 
-	targetPipelineNode->GetRealNode()->GetInput(targetPort)->Unlink();
+	targetMaterialNode->GetRealNode()->GetInput(targetPort)->Unlink();
 }
 
 
-std::vector<IGraphEditorNode*> PipelineEditorGraph::GetNodes() const {
+std::vector<IGraphEditorNode*> MaterialEditorGraph::GetNodes() const {
 	std::vector<IGraphEditorNode*> nodes;
 	for (const auto& pipelineNode : m_nodes) {
 		nodes.push_back(pipelineNode.get());
@@ -91,16 +89,16 @@ std::vector<IGraphEditorNode*> PipelineEditorGraph::GetNodes() const {
 }
 
 
-std::vector<Link> PipelineEditorGraph::GetLinks() const {
+std::vector<inl::Link> MaterialEditorGraph::GetLinks() const {
 	std::vector<inl::Link> links;
 
 	struct Rec {
-		PipelineEditorNode* parent;
+		MaterialEditorNode* parent;
 		int index;
 	};
 
-	std::map<const InputPortBase*, Rec> inputMap;
-	std::map<const OutputPortBase*, Rec> outputMap;
+	std::map<const MaterialShaderInput*, Rec> inputMap;
+	std::map<const MaterialShaderOutput*, Rec> outputMap;
 
 	for (const auto& node : m_nodes) {
 		for (auto i : Range(node->GetNumInputs())) {
@@ -112,13 +110,13 @@ std::vector<Link> PipelineEditorGraph::GetLinks() const {
 	}
 
 	for (auto& dst : inputMap) {
-		const InputPortBase* input = dst.first;
-		const OutputPortBase* link = input->GetLink();
+		const MaterialShaderInput* input = dst.first;
+		const MaterialShaderOutput* link = input->GetLink();
 
 
 		if (link) {
 			auto& src = *outputMap.find(link);
-			
+
 			inl::Link link;
 			link.sourceNode = src.second.parent;
 			link.sourcePort = src.second.index;
@@ -132,12 +130,12 @@ std::vector<Link> PipelineEditorGraph::GetLinks() const {
 }
 
 
-void PipelineEditorGraph::Validate() {
-	throw NotImplementedException();
+void MaterialEditorGraph::Validate() {
+	throw NotImplementedException("Fuck this method I'm lazy.");
 }
 
 
-std::string PipelineEditorGraph::SerializeJSON() {
+std::string MaterialEditorGraph::SerializeJSON() {
 	std::vector<const ISerializableNode*> nodes;
 	std::vector<NodeMetaDescription> metaData;
 	for (auto& node : m_nodes) {
@@ -146,8 +144,7 @@ std::string PipelineEditorGraph::SerializeJSON() {
 	}
 
 	auto FindName = [&](const ISerializableNode& node) {
-		auto[group, className] = m_factory.GetFullName(typeid(node));
-		return group + "/" + className;
+		return node.GetClassName();
 	};
 
 	GraphHeader header;
@@ -157,9 +154,9 @@ std::string PipelineEditorGraph::SerializeJSON() {
 }
 
 
-void PipelineEditorGraph::LoadJSON(const std::string& description) {
+void MaterialEditorGraph::LoadJSON(const std::string& description) {
 	GraphParser parser;
-	std::vector<std::unique_ptr<NodeBase>> nodeObjects;
+	std::vector<std::unique_ptr<MaterialShader2>> nodeObjects;
 
 	// Parse json.
 	parser.Parse(description);
@@ -169,15 +166,10 @@ void PipelineEditorGraph::LoadJSON(const std::string& description) {
 
 	// Create nodes with initial values.
 	for (auto& nodeDesc : parser.GetNodes()) {
-		std::unique_ptr<NodeBase> nodeObject(m_factory.CreateNode(nodeDesc.cl));
+		auto nodeObject = std::make_unique<MaterialShaderEquation2>(&m_shaderManager);
+		nodeObject->SetSourceFile(nodeDesc.cl);
 		if (nodeDesc.name) {
 			nodeObject->SetDisplayName(nodeDesc.name.value());
-		}
-
-		for (int i = 0; i < nodeObject->GetNumInputs() && i < nodeDesc.defaultInputs.size(); ++i) {
-			if (nodeDesc.defaultInputs[i]) {
-				nodeObject->GetInput(i)->SetConvert(nodeDesc.defaultInputs[i].value());
-			}
 		}
 
 		nodeObjects.push_back(std::move(nodeObject));
@@ -185,9 +177,9 @@ void PipelineEditorGraph::LoadJSON(const std::string& description) {
 
 	// Link nodes above.
 	for (auto& info : parser.GetLinks()) {
-		NodeBase *src = nullptr, *dst = nullptr;
-		OutputPortBase* srcp = nullptr;
-		InputPortBase* dstp = nullptr;
+		MaterialShader2 *src = nullptr, *dst = nullptr;
+		MaterialShaderOutput* srcp = nullptr;
+		MaterialShaderInput* dstp = nullptr;
 
 		// Find src and dst nodes.
 		size_t srcNodeIdx = parser.FindNode(info.srcid, info.srcname);
@@ -197,8 +189,8 @@ void PipelineEditorGraph::LoadJSON(const std::string& description) {
 		dst = nodeObjects[dstNodeIdx].get();
 
 		// Find src and dst ports.
-		srcp = static_cast<OutputPortBase*>(parser.FindOutputPort(src, info.srcpidx, info.srcpname));
-		dstp = static_cast<InputPortBase*>(parser.FindInputPort(dst, info.dstpidx, info.dstpname));
+		srcp = static_cast<MaterialShaderOutput*>(parser.FindOutputPort(src, info.srcpidx, info.srcpname));
+		dstp = static_cast<MaterialShaderInput*>(parser.FindInputPort(dst, info.dstpidx, info.dstpname));
 
 		// Link said ports
 		try {
@@ -226,21 +218,23 @@ void PipelineEditorGraph::LoadJSON(const std::string& description) {
 	for (auto i : Range(nodeObjects.size())) {
 		auto& realNode = nodeObjects[i];
 		NodeMetaDescription metaData = parser.GetNodes()[i].metaData;
-		m_nodes.emplace_back(std::make_unique<PipelineEditorNode>(std::move(realNode)));
+		m_nodes.emplace_back(std::make_unique<MaterialEditorNode>(std::move(realNode)));
 		m_nodes.back()->SetMetaData(metaData);
 	}
 }
 
 
-const std::string& PipelineEditorGraph::GetContentType() const {
-	static const std::string contentType = "pipeline";
+const std::string& MaterialEditorGraph::GetContentType() const {
+	static const std::string contentType = "material";
 	return contentType;
 }
 
 
-void PipelineEditorGraph::Clear() {
+void MaterialEditorGraph::Clear() {
 	m_nodes.clear();
 }
+
+
 
 
 } // namespace inl::gxeng

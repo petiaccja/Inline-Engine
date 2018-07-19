@@ -1,4 +1,5 @@
 #include <iostream>
+#include <filesystem>
 
 #include <BaseLibrary/Platform/Window.hpp>
 #include <BaseLibrary/Platform/System.hpp>
@@ -19,6 +20,7 @@ void PrintHelpText() {
 	cout << "Keyboard shortcuts: " << endl;
 	cout << "  O - open JSON file" << endl;
 	cout << "  S - save JSON file" << endl;
+	cout << "  C - reset graph" << endl;
 	cout << "  N - add new node" << endl;
 	cout << "  Esc - close node selection window" << endl;
 	cout << "Actions: " << endl;
@@ -35,6 +37,32 @@ void PrintHelpText() {
 	cout << "DEFAULT PORT VALUES CANNOT BE ACCESSED YET" << endl;
 	cout << "THERE IS NO CONTROL-Z" << endl;
 	cout << "SAVE OFTEN, TO NEW FILE" << endl;
+}
+
+std::vector<std::string> GetMaterialShaders() {
+	std::vector<std::string> classList;
+
+	std::filesystem::path materialShaderDirectory = INL_MTL_SHADER_DIRECTORY;
+	std::error_code ec;
+	std::filesystem::directory_iterator contents(materialShaderDirectory, ec);
+	for (auto file : contents) {
+		if (!file.is_regular_file()) {
+			continue;
+		}
+		std::string name = file.path().filename().string();
+		auto dot = name.find_last_of('.');
+		if (dot == name.npos) {
+			continue;
+		}
+		if (dot + 1 >= name.size()) {
+			continue;
+		}
+		if (name.substr(dot + 1) == "hlsl") {
+			std::string className = name.substr(0, dot);
+			classList.push_back(className);
+		}
+	}
+	return classList;
 }
 
 
@@ -71,10 +99,13 @@ int main() {
 		gxeng::GraphicsEngine graphicsEngine(desc);
 
 		// Create graph editor interface.
-		std::unique_ptr<IGraph> graphEditor(graphicsEngine.QueryPipelineEditor());
+		std::unique_ptr<IEditorGraph> pipelineGraphEditor(graphicsEngine.QueryPipelineEditor());
+		std::unique_ptr<IEditorGraph> materialGraphEditor(graphicsEngine.QueryMaterialEditor());
+		auto mtlClassList = GetMaterialShaders();
+		materialGraphEditor->SetNodeList(mtlClassList);
 
 		// Create NodeEditor.
-		tool::NodeEditor nodeEditor(&graphicsEngine, graphEditor.get());
+		tool::NodeEditor nodeEditor(&graphicsEngine, { pipelineGraphEditor.get(), materialGraphEditor.get() });
 		window.OnResize += Delegate<void(ResizeEvent)>(&tool::NodeEditor::OnResize, &nodeEditor);
 		window.OnMouseMove += Delegate<void(MouseMoveEvent)>(&tool::NodeEditor::OnMouseMove, &nodeEditor);
 		window.OnMouseWheel += Delegate<void(MouseWheelEvent)>(&tool::NodeEditor::OnMouseWheel, &nodeEditor);

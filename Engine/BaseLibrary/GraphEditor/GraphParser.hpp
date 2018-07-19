@@ -3,14 +3,15 @@
 #include <string>
 #include <unordered_map>
 #include <optional>
+#include <functional>
 
 #include <InlineMath.hpp>
 
-#include "../Graph/Node.hpp"
-#include "GraphicsEngine_LL/GraphicsPortConverters.hpp"
+#include "../Graph/SerializableNode.hpp"
 
 
 namespace inl {
+
 
 struct NodeMetaDescription {
 	Vec2i placement = {0,0};
@@ -31,12 +32,23 @@ struct LinkDescription {
 	std::optional<std::string> srcpname, dstpname;
 };
 
+struct GraphHeader {
+	std::string contentType;
+};
+
 
 class GraphParser {
 public:
 	void Parse(const std::string& json);
-	static std::string Serialize(const NodeBase* const* nodes, const NodeMetaDescription* metaData, size_t count, std::function<std::string(const NodeBase&)> FindName);
 
+	// TODO: make common interface for all node/port systems.
+	static std::string Serialize(const ISerializableNode* const* nodes,
+								 const NodeMetaDescription* metaData,
+								 size_t count,
+								 std::function<std::string(const ISerializableNode&)> FindName,
+								 const GraphHeader& header);
+
+	const GraphHeader& GetHeader() const;
 	const std::vector<NodeDescription>& GetNodes() const;
 	const std::vector<LinkDescription>& GetLinks() const;
 
@@ -44,19 +56,20 @@ public:
 	size_t FindNode(int id) const;
 	size_t FindNode(const std::string& name) const;
 
-	InputPortBase* FindInputPort(NodeBase* holder, const std::optional<int>& index, const std::optional<std::string>& name);
-	InputPortBase* FindInputPort(NodeBase* holder, const std::string& name);
-	InputPortBase* FindInputPort(NodeBase* holder, int index);
-	OutputPortBase* FindOutputPort(NodeBase* holder, const std::optional<int>& index, const std::optional<std::string>& name);
-	OutputPortBase* FindOutputPort(NodeBase* holder, const std::string& name);
-	OutputPortBase* FindOutputPort(NodeBase* holder, int index);
+	ISerializableInputPort* FindInputPort(ISerializableNode* holder, const std::optional<int>& index, const std::optional<std::string>& name);
+	ISerializableInputPort* FindInputPort(ISerializableNode* holder, const std::string& name);
+	ISerializableInputPort* FindInputPort(ISerializableNode* holder, int index);
+	ISerializableOutputPort* FindOutputPort(ISerializableNode* holder, const std::optional<int>& index, const std::optional<std::string>& name);
+	ISerializableOutputPort* FindOutputPort(ISerializableNode* holder, const std::string& name);
+	ISerializableOutputPort* FindOutputPort(ISerializableNode* holder, int index);
 
 private:
 	void ParseDocument(const std::string& document);
 	void CreateLookupTables();
-	static std::string MakeJson(std::vector<NodeDescription> nodeDescs, std::vector<LinkDescription> linkDescs);
+	static std::string MakeJson(std::vector<NodeDescription> nodeDescs, std::vector<LinkDescription> linkDescs, const GraphHeader& header);
 
 private:
+	GraphHeader m_header;
 	std::vector<NodeDescription> m_nodeDescs;
 	std::vector<LinkDescription> m_linkDescs;
 

@@ -24,13 +24,13 @@ MaterialShaderInput::MaterialShaderInput(const MaterialShader2& parent, std::str
 	: m_parent(&parent), name(std::move(name)), type(std::move(type)), index(index)
 {}
 
-void MaterialShaderInput::Link(MaterialShaderOutput& source) {
-	source.Link(*this);
+void MaterialShaderInput::Link(MaterialShaderOutput* source) {
+	source->Link(this);
 }
 
 void MaterialShaderInput::Unlink() {
 	if (m_link) {
-		m_link->Unlink(*this);
+		m_link->Unlink(this);
 	}
 }
 
@@ -38,8 +38,22 @@ const MaterialShader2* MaterialShaderInput::GetParent() const {
 	return m_parent;
 }
 
-const MaterialShaderOutput* MaterialShaderInput::GetLink() const {
+MaterialShaderOutput* MaterialShaderInput::GetLink() const {
 	return m_link;
+}
+
+
+const std::string& MaterialShaderInput::GetType() const {
+	return type;
+}
+
+const std::string& MaterialShaderInput::GetName() const {
+	return name;
+}
+
+
+std::string MaterialShaderInput::ToString() const {
+	return "";
 }
 
 
@@ -52,12 +66,14 @@ MaterialShaderOutput::MaterialShaderOutput(const MaterialShader2& parent, std::s
 {}
 
 
-void MaterialShaderOutput::Link(MaterialShaderInput& target) {
-	if (target.m_link) {
-		target.Unlink();
+void MaterialShaderOutput::Link(MaterialShaderInput* target) {
+	// TODO: check for type compatbility.
+
+	if (target->m_link) {
+		target->Unlink();
 	}
-	m_links.push_back(&target);
-	target.m_link = this;
+	m_links.push_back(target);
+	target->m_link = this;
 }
 
 void MaterialShaderOutput::UnlinkAll() {
@@ -67,10 +83,10 @@ void MaterialShaderOutput::UnlinkAll() {
 	m_links.clear();
 }
 
-void MaterialShaderOutput::Unlink(MaterialShaderInput& target) {
+void MaterialShaderOutput::Unlink(MaterialShaderInput* target) {
 	auto it = m_links.begin();
 	for (; it != m_links.end(); ++it) {
-		if (*it == &target) {
+		if (*it == target) {
 			break;
 		}
 	}
@@ -86,14 +102,32 @@ const std::vector<MaterialShaderInput*>& MaterialShaderOutput::GetLinks() const 
 	return m_links;
 }
 
+const std::string& MaterialShaderOutput::GetType() const {
+	return type;
+}
+
+const std::string& MaterialShaderOutput::GetName() const {
+	return name;
+}
+
 
 //------------------------------------------------------------------------------
 // Material shader base class
 //------------------------------------------------------------------------------
 
-MaterialShader2::MaterialShader2(ShaderManager* shaderManager)
+MaterialShader2::MaterialShader2(const ShaderManager* shaderManager)
 	: m_shaderManager(shaderManager)
 {}
+
+
+const std::string& MaterialShader2::GetInputName(size_t index) const {
+	return m_inputs[index].GetName();
+}
+
+
+const std::string& MaterialShader2::GetOutputName(size_t index) const {
+	return m_outputs[index].GetName();
+}
 
 
 std::string MaterialShader2::RemoveComments(std::string code) {
@@ -228,12 +262,16 @@ const std::string& MaterialShaderEquation2::GetShaderCode() const {
 void MaterialShaderEquation2::SetSourceFile(const std::string& name) {
 	m_sourceCode = m_shaderManager->LoadShaderSource(name);
 	CreatePorts(m_sourceCode);
+	SetClassName(name);
 }
 
 
 void MaterialShaderEquation2::SetSourceCode(std::string code) {
 	m_sourceCode = std::move(code);
 	CreatePorts(m_sourceCode);
+	std::stringstream ss;
+	ss << "inlineclass_" << std::hex << std::hash<std::string>()(m_sourceCode);
+	SetClassName(ss.str());
 }
 
 
@@ -424,6 +462,9 @@ void MaterialShaderGraph2::SetGraph(std::vector<std::unique_ptr<MaterialShader2>
 	// Create source code and ports.
 	m_sourceCode = concatCode + mainss.str();
 	CreatePorts(freeInputs, freeOutputs);
+	std::stringstream ss;
+	ss << "graphclass_" << std::hex << std::hash<std::string>()(m_sourceCode);
+	SetClassName(ss.str());
 }
 
 

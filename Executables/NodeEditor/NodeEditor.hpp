@@ -19,7 +19,7 @@ namespace inl::tool {
 
 class NodeEditor {
 public:
-	NodeEditor(gxeng::GraphicsEngine* graphicsEngine, IGraph* graphEditor);
+	NodeEditor(gxeng::GraphicsEngine* graphicsEngine, std::vector<IEditorGraph*> availableEditors);
 
 	void Update();
 
@@ -56,6 +56,7 @@ private:
 	void SendToFront(Node* node);
 
 	void DeleteNode(Node* node);
+	void Clear();
 
 	void ErrorMessage(std::string msg);
 
@@ -82,7 +83,8 @@ private:
 	bool m_enablePan = false;
 private:
 	gxeng::GraphicsEngine* m_graphicsEngine;
-	IGraph* m_graphEditor;
+	IEditorGraph* m_graphEditor;
+	std::vector<IEditorGraph*> m_availableEditors;
 
 	std::unique_ptr<gxeng::Scene> m_scene;
 	std::unique_ptr<gxeng::Font> m_font;

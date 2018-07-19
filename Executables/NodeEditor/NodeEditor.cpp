@@ -15,9 +15,10 @@ static const ColorF highlightDrag = { 0.2f, 0.9f, 0.3f, 1.0f };
 
 
 
-NodeEditor::NodeEditor(gxeng::GraphicsEngine* graphicsEngine, IGraph* graphEditor) {
+NodeEditor::NodeEditor(gxeng::GraphicsEngine* graphicsEngine, std::vector<IEditorGraph*> availableEditors) {
 	m_graphicsEngine = graphicsEngine;
-	m_graphEditor = graphEditor;
+	m_availableEditors = std::move(availableEditors);
+	m_graphEditor = nullptr;
 
 	// Create basic resources.
 	m_scene.reset(m_graphicsEngine->CreateScene("MainScene"));
@@ -53,14 +54,17 @@ NodeEditor::NodeEditor(gxeng::GraphicsEngine* graphicsEngine, IGraph* graphEdito
 	m_camera->SetVerticalFlip(true);
 
 	// Init select panel.
-	auto nameList = m_graphEditor->GetNodeList();
+	std::vector<std::string> nameList;
+	for (auto& graphEditor : m_availableEditors) {
+		nameList.push_back(graphEditor->GetContentType());
+	}
 	m_selectPanel = std::make_unique<SelectPanel>(m_graphicsEngine, m_font.get());
 	m_selectPanel->SetOptions(nameList.cbegin(), nameList.cend());
 
 	// Background color.
 	m_background.reset(m_graphicsEngine->CreateOverlayEntity());
 	m_background->SetZDepth(-2.f);
-	m_background->SetColor({0.05f, 0.05f, 0.15f, 1.0f});
+	m_background->SetColor({32.f/255.f, 16.f/255.f, 16.f/255.f, 1.0f});
 	m_background->SetPosition(m_camera->GetPosition());
 	m_background->SetScale(m_camera->GetExtent());
 	m_scene->GetEntities<gxeng::OverlayEntity>().Add(m_background.get());
@@ -198,8 +202,8 @@ void NodeEditor::OnMouseClick(MouseButtonEvent evt) {
 					int sourceIdx = sourcePort->GetIndex();
 					int targetIdx = targetPort->GetIndex();
 
-					INode* sourceNode = sourcePort->GetParent()->GetNode();
-					INode* targetNode = targetPort->GetParent()->GetNode();
+					IGraphEditorNode* sourceNode = sourcePort->GetParent()->GetNode();
+					IGraphEditorNode* targetNode = targetPort->GetParent()->GetNode();
 
 					m_graphEditor->Link(sourceNode, sourceIdx, targetNode, targetIdx);
 
@@ -228,7 +232,7 @@ void NodeEditor::OnMouseClick(MouseButtonEvent evt) {
 		if (evt.state == eKeyState::DOUBLE) {
 			const Drawable* drawable = m_selectPanel->Intersect(point);
 			const SelectItem* item = dynamic_cast<const SelectItem*>(drawable);
-			if (item) {
+			if (item && m_graphEditor) {
 				std::string name = item->GetText();
 				try {
 					Node node;
@@ -241,6 +245,20 @@ void NodeEditor::OnMouseClick(MouseButtonEvent evt) {
 				}
 				catch (...) {
 					assert(false);
+				}
+			}
+			if (item && !m_graphEditor) {
+				std::string type = item->GetText();
+				DisablePlacing();
+				RemoveHighlight();
+				for (auto& graphEditor : m_availableEditors) {
+					if (graphEditor->GetContentType() == type) {
+						m_graphEditor = graphEditor;
+						std::vector<std::string> nameList = m_graphEditor->GetNodeList();
+						m_selectPanel->SetOptions(nameList.cbegin(), nameList.cend());
+						m_background->SetColor({ 16.f/255.f, 16.f/255.f, 32.f/255.f, 1.0f });
+						break;
+					}
 				}
 			}
 		}
@@ -257,6 +275,10 @@ void NodeEditor::OnMouseClick(MouseButtonEvent evt) {
 }
 
 void NodeEditor::OnKey(KeyboardEvent evt) {
+	if (evt.key == eKey::C && evt.state == eKeyState::UP) {
+		Clear();
+	}
+
 	if (!m_placing && evt.key == eKey::N && evt.state == eKeyState::UP) {
 		EnablePlacing();
 		return;
@@ -300,7 +322,7 @@ void NodeEditor::OnKey(KeyboardEvent evt) {
 			OpenFile(file.value());
 		}
 	}
-	if (evt.key == eKey::S && evt.state == eKeyState::UP) {
+	if (evt.key == eKey::S && evt.state == eKeyState::UP && m_graphEditor) {
 		std::optional<std::string> file = SaveDialog();
 		if (file) {
 			SaveFile(file.value());
@@ -413,6 +435,7 @@ void NodeEditor::DisablePlacing() {
 	if (m_highlightedItem) {
 		m_highlightedItem->SetColor({ 1,1,1,1 });
 	}
+	m_highlightedItem = nullptr;
 }
 
 void NodeEditor::EnablePan() {
@@ -458,6 +481,40 @@ void NodeEditor::DeleteNode(Node* node) {
 	}
 }
 
+
+void NodeEditor::Clear() {
+	SelectNode(nullptr);
+	SelectPort(nullptr);
+	m_highlightedItem = nullptr;
+	RemoveHighlight();
+	DisablePlacing();
+	DisableDrag();
+	DisableLink();
+	DisablePan();
+
+	m_nodes.clear();
+	if (m_graphEditor) {
+		m_graphEditor->Clear();
+	}
+	m_graphEditor = nullptr;
+	
+
+	m_camera->SetPosition({ 0,0 });
+	unsigned width, height;
+	m_graphicsEngine->GetScreenSize(width, height);
+	m_camera->SetExtent({ width, height });
+
+	std::vector<std::string> nameList;
+	for (auto& graphEditor : m_availableEditors) {
+		nameList.push_back(graphEditor->GetContentType());
+	}
+	m_selectPanel = std::make_unique<SelectPanel>(m_graphicsEngine, m_font.get());
+	m_selectPanel->SetOptions(nameList.cbegin(), nameList.cend());
+
+	m_background->SetColor({ 32.f/255.f, 16.f/255.f, 16.f/255.f, 1.0f });
+}
+
+
 void NodeEditor::ErrorMessage(std::string msg) {
 	std::cout << msg << std::endl;
 }
@@ -479,14 +536,32 @@ void NodeEditor::OpenFile(std::string path) {
 	}
 	std::string json((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 
-	m_graphEditor->LoadJSON(json);
+	bool loaded = false;
+	for (auto& graphEditor : m_availableEditors) {
+		try {
+			graphEditor->LoadJSON(json);
+			m_graphEditor = graphEditor;
+			break;
+		}
+		catch (NotSupportedException&) {
+			// Graph editor does not support specified type.
+		}
+		catch (InvalidArgumentException& ex) {
+			// Graph found legal input to be invalid.
+			std::cout << ex.what() << std::endl;
+			ex.PrintStackTrace(std::cout);
+			std::cout << std::endl;
+			break;
+		}
+	}
+
 	m_nodes.clear();
 	m_camera->SetPosition({ 0,0 });
 	m_background->SetPosition(m_camera->GetPosition());
 	m_background->SetScale(m_camera->GetExtent());
 
 	// Create nodes.
-	std::map<INode*, Node*> inversionMap;
+	std::map<IGraphEditorNode*, Node*> inversionMap;
 
 	auto graphNodes = m_graphEditor->GetNodes();
 	for (auto realNode : graphNodes) {
@@ -509,6 +584,8 @@ void NodeEditor::OpenFile(std::string path) {
 		Link link{ m_graphicsEngine, m_scene.get() };
 		srcPort->Link(tarPort, std::move(link));
 	}
+
+	m_background->SetColor({ 16.f/255.f, 16.f/255.f, 32.f/255.f, 1.0f });
 }
 
 void NodeEditor::SaveFile(std::string path) {

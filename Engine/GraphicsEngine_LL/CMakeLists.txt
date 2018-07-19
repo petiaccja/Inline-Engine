@@ -96,11 +96,9 @@ set (memoryheaps
 )
 
 set (backendmisc
-	"GraphEditor.cpp"
 	"GraphicsNodeFactory.cpp"
 	"ShaderManager.cpp"
 	
-	"GraphEditor.hpp"
 	"GraphicsNodeFactory.hpp"
 	"ShaderManager.hpp"
 )
@@ -398,6 +396,10 @@ set(graph_editors
 	"GraphEditor/PipelineEditorGraph.hpp"
 	"GraphEditor/PipelineEditorNode.cpp"
 	"GraphEditor/PipelineEditorNode.hpp"
+	"GraphEditor/MaterialEditorGraph.cpp"
+	"GraphEditor/MaterialEditorGraph.hpp"
+	"GraphEditor/MaterialEditorNode.cpp"
+	"GraphEditor/MaterialEditorNode.hpp"
 )
 	
 set(all_the_files

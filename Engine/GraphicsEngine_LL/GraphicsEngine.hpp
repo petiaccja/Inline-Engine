@@ -24,7 +24,7 @@
 #include <BaseLibrary/Logging_All.hpp>
 
 #include <BaseLibrary/Any.hpp>
-#include <BaseLibrary/GraphEditor/IGraph.hpp>
+#include <BaseLibrary/GraphEditor/IEditorGraph.hpp>
 
 #include <filesystem>
 
@@ -133,7 +133,8 @@ public:
 
 
 	// Graph editor interfaces
-	IGraph* QueryPipelineEditor() const;
+	IEditorGraph* QueryPipelineEditor() const;
+	IEditorGraph* QueryMaterialEditor() const;
 
 
 	// Resources

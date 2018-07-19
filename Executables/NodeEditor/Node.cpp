@@ -302,7 +302,7 @@ Node::~Node() {
 	Tidy();
 }
 
-void Node::SetNode(INode* node, gxeng::GraphicsEngine* graphicsEngine, gxeng::Scene* scene, gxeng::Font* font) {
+void Node::SetNode(IGraphEditorNode* node, gxeng::GraphicsEngine* graphicsEngine, gxeng::Scene* scene, gxeng::Font* font) {
 	Tidy();
 
 	// Create new node.
@@ -395,7 +395,7 @@ float Node::GetDepth() const {
 }
 
 
-INode* Node::GetNode() const {
+IGraphEditorNode* Node::GetNode() const {
 	return m_myNode;
 }
 

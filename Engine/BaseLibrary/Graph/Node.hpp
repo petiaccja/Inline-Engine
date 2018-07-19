@@ -47,24 +47,24 @@ class InputPortBase;
 /// InputPortConfig and/or OutputPortConfig.
 /// </para>
 /// </summary>
-class NodeBase {
+class NodeBase : public ISerializableNode {
 public:
 	virtual ~NodeBase() = default;
 
 	/// <summary> Returns the number of input ports. </summary>
-	virtual size_t GetNumInputs() const = 0;
+	virtual size_t GetNumInputs() const override = 0;
 	/// <summary> Returns the number of output ports. </summary>
-	virtual size_t GetNumOutputs() const = 0;
+	virtual size_t GetNumOutputs() const override = 0;
 
 	/// <summary> Get pointer to the indexth input port. </summary>
-	virtual InputPortBase* GetInput(size_t index) = 0;
+	virtual InputPortBase* GetInput(size_t index) override = 0;
 	/// <summary> Get pointer to the indexth output port. </summary>
-	virtual OutputPortBase* GetOutput(size_t index) = 0;
+	virtual OutputPortBase* GetOutput(size_t index) override = 0;
 
 	/// <summary> Get pointer to the indexth input port. </summary>
-	virtual const InputPortBase* GetInput(size_t index) const = 0;
+	virtual const InputPortBase* GetInput(size_t index) const override = 0;
 	/// <summary> Get pointer to the indexth output port. </summary>
-	virtual const OutputPortBase* GetOutput(size_t index) const = 0;
+	virtual const OutputPortBase* GetOutput(size_t index) const override = 0;
 
 	/// <summary> Read and process input ports and activate output. </summary>
 	virtual void Update() = 0;
@@ -72,19 +72,21 @@ public:
 	virtual void Notify(InputPortBase* sender) = 0;
 
 	/// <summary> Returns the name of the input port. This is optionally specified for the node class. </summary>
-	virtual const std::string& GetInputName(size_t index) const { static const std::string n = ""; return n; }
+	virtual const std::string& GetInputName(size_t index) const override { static const std::string n = ""; return n; }
 	/// <summary> Returns the name of the output port. This is optionally specified for the node class. </summary>
-	virtual const std::string& GetOutputName(size_t index) const { static const std::string n = ""; return n; }
+	virtual const std::string& GetOutputName(size_t index) const override { static const std::string n = ""; return n; }
 
 	/// <summary> Sets a name for the node so that a graph drawing is more readable. </summary>
 	void SetDisplayName(std::string name) { m_displayName = name; }
 	/// <summary> Gets the drawing name of the node. </summary>
-	const std::string& GetDisplayName() const { return m_displayName; }
+	const std::string& GetDisplayName() const override { return m_displayName; }
 
 	/// <summary> Gets the class name of the node. </summary>
 	/// <remarks> By default, this function returns the C++ class name of the node.
 	///		Override this function if you don't like the C++ class name. </remarks>
-	virtual std::string GetClassName(bool simplify = false, const std::vector<std::string>& stripNamespaces = {}) const;
+	virtual std::string GetClassName(bool simplify, const std::vector<std::string>& stripNamespaces = {}) const;
+
+	virtual std::string GetClassName() const override { return GetClassName(false); }
 protected:
 	std::string m_displayName;
 };

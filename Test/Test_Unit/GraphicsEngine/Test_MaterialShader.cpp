@@ -99,8 +99,8 @@ TEST_CASE_METHOD(ShaderManagerFixture, "MaterialShader make graph", "[MaterialSh
 	sub->SetSourceCode(subtractorSource);
 	mad->SetSourceCode(mad4Source);
 
-	add->GetOutput(0)->Link(*mad->GetInput(0));
-	sub->GetOutput(0)->Link(*mad->GetInput(1));
+	add->GetOutput(0)->Link(mad->GetInput(0));
+	sub->GetOutput(0)->Link(mad->GetInput(1));
 
 	std::vector<std::unique_ptr<MaterialShader2>> nodes;
 	nodes.push_back(std::move(add));

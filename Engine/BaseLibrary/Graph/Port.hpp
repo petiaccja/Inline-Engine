@@ -9,8 +9,10 @@
 #include <memory>
 #include <unordered_map>
 #include <sstream>
+
 #include "../Any.hpp"
 #include "../TemplateUtil.hpp"
+#include "SerializableNode.hpp"
 
 
 namespace inl {
@@ -140,13 +142,58 @@ class PortConverter : public DefaultPortConverter<T, templ::is_readable<T>::valu
 
 
 /// <summary>
+/// <para> Output port of a node. </para>
+/// <para>
+/// Output ports are attached to nodes. They can be linked to
+/// input ports. A node can activate them with data, and that data
+/// is forwarded to connected input ports. An output port can be linked
+/// to multiple input ports at the same time.
+/// </para>
+/// </summary>
+class OutputPortBase : public ISerializableOutputPort {
+public:
+	using LinkIterator = std::set<InputPortBase*>::iterator;
+	using ConstLinkIterator = std::set<InputPortBase*>::const_iterator;
+public:
+	OutputPortBase();
+	~OutputPortBase();
+
+	/// <summary> Get typeid of underlying data. </summary>
+	virtual std::type_index GetType() const = 0;
+
+	/// <summary> Link to an input port. </summary>
+	/// <returns> True if succesfully linked. Make sures types are compatible. </returns>
+	/// <exception cref="InvalidArgumentException"> In case the other port is already linked or types are incompatible. </exception>
+	void Link(InputPortBase* destination);
+
+	/// <summary> Remove link between this and the other end. </summary>
+	/// <param param="other"> The port to unlink from this. </param>
+	virtual void Unlink(InputPortBase* other);
+
+	/// <summary> Unlink all ports from this. </summary>
+	virtual void UnlinkAll();
+
+	// Iterate over links.
+	LinkIterator begin();
+	LinkIterator end();
+	ConstLinkIterator begin() const;
+	ConstLinkIterator end() const;
+	ConstLinkIterator cbegin() const;
+	ConstLinkIterator cend() const;
+protected:
+	std::set<InputPortBase*> links;
+};
+
+
+
+/// <summary>
 /// <para> Input port of a Node. </para>
 /// <para> 
 /// Input ports are attached to a node. An input port can also be linked
 /// to an output port, from where it receives the data.
 /// </para>
 /// </summary>
-class InputPortBase {
+class InputPortBase : public ISerializableInputPort {
 	friend class OutputPortBase;
 	friend class OutputPort<Any>;
 public:
@@ -181,7 +228,7 @@ public:
 
 	/// <summary> Get which output port it is linked to. </summary>
 	/// <returns> The other end. Null if not linked. </returns>
-	OutputPortBase* GetLink() const;
+	OutputPortBase* GetLink() const override;
 
 	/// <summary> Set type that is to be converted automatically. </summary>
 	template <class U>
@@ -189,7 +236,7 @@ public:
 
 	/// <summary> Converts underlying data to string using it's &lt;&lt; operator </summary>
 	/// <exception cref="InvalidCallException"> If no ostream operator available. </exception> 
-	virtual std::string ToString() const = 0;
+	virtual std::string ToString() const override = 0;
 protected:
 	OutputPortBase* link;
 	void NotifyAll();
@@ -200,51 +247,6 @@ private:
 	void SetLinkState(OutputPortBase* link);
 
 	std::set<NodeBase*> observers;
-};
-
-
-
-/// <summary>
-/// <para> Output port of a node. </para>
-/// <para>
-/// Output ports are attached to nodes. They can be linked to
-/// input ports. A node can activate them with data, and that data
-/// is forwarded to connected input ports. An output port can be linked
-/// to multiple input ports at the same time.
-/// </para>
-/// </summary>
-class OutputPortBase {
-public:
-	using LinkIterator = std::set<InputPortBase*>::iterator;
-	using ConstLinkIterator = std::set<InputPortBase*>::const_iterator;
-public:
-	OutputPortBase();
-	~OutputPortBase();
-
-	/// <summary> Get typeid of underlying data. </summary>
-	virtual std::type_index GetType() const = 0;
-
-	/// <summary> Link to an input port. </summary>
-	/// <returns> True if succesfully linked. Make sures types are compatible. </returns>
-	/// <exception cref="InvalidArgumentException"> In case the other port is already linked or types are incompatible. </exception>
-	void Link(InputPortBase* destination);
-
-	/// <summary> Remove link between this and the other end. </summary>
-	/// <param param="other"> The port to unlink from this. </param>
-	virtual void Unlink(InputPortBase* other);
-
-	/// <summary> Unlink all ports from this. </summary>
-	virtual void UnlinkAll();
-
-	//! TODO: add iterator support to iterate over links
-	LinkIterator begin();
-	LinkIterator end();
-	ConstLinkIterator begin() const;
-	ConstLinkIterator end() const;
-	ConstLinkIterator cbegin() const;
-	ConstLinkIterator cend() const;
-protected:
-	std::set<InputPortBase*> links;
 };
 
 

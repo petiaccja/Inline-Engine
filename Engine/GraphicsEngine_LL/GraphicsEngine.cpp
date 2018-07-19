@@ -74,6 +74,7 @@
 #include "TextEntity.hpp"
 
 #include "GraphEditor/PipelineEditorGraph.hpp"
+#include "GraphEditor/MaterialEditorGraph.hpp"
 
 
 namespace inl {
@@ -250,8 +251,12 @@ bool GraphicsEngine::GetFullScreen() const {
 
 
 // Graph editor interfaces
-IGraph* GraphicsEngine::QueryPipelineEditor() const {
+IEditorGraph* GraphicsEngine::QueryPipelineEditor() const {
 	return new PipelineEditorGraph(m_nodeFactory);
+}
+
+IEditorGraph* GraphicsEngine::QueryMaterialEditor() const {
+	return new MaterialEditorGraph(m_shaderManager);
 }
 
 

@@ -141,8 +141,8 @@ void Pipeline::CreateFromDescription(const std::string& jsonDescription, Graphic
 		dst = nodeObjects[dstNodeIdx].get();
 
 		// Find src and dst ports.
-		srcp = parser.FindOutputPort(src, info.srcpidx, info.srcpname);
-		dstp = parser.FindInputPort(dst, info.dstpidx, info.dstpname);
+		srcp = static_cast<OutputPortBase*>(parser.FindOutputPort(src, info.srcpidx, info.srcpname));
+		dstp = static_cast<InputPortBase*>(parser.FindInputPort(dst, info.dstpidx, info.dstpname));
 
 		// Link said ports
 		srcp->Link(dstp);
@@ -190,18 +190,20 @@ void Pipeline::CreateFromNodesList(const std::vector<std::shared_ptr<NodeBase>> 
 
 
 std::string Pipeline::SerializeToJSON(const NodeFactory& factory) const {
-	std::vector<const NodeBase*> nodes;
+	std::vector<const ISerializableNode*> nodes;
 	for (lemon::ListDigraph::NodeIt it(m_dependencyGraph); it != lemon::INVALID; ++it) {
 		const NodeBase* node = m_nodeMap[it].get();
 		nodes.push_back(node);
 	}
 
-	auto FindName = [&](const NodeBase& node) {
+	auto FindName = [&](const ISerializableNode& node) {
 		auto[group, className] = factory.GetFullName(typeid(node));
 		return group + "/" + className;
 	};
 
-	return GraphParser::Serialize(nodes.data(), nullptr, nodes.size(), FindName);
+	GraphHeader header;
+	header.contentType = "pipeline";
+	return GraphParser::Serialize(nodes.data(), nullptr, nodes.size(), FindName, header);
 }
 
 

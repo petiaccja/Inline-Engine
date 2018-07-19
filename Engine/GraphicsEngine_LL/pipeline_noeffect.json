@@ -1,4 +1,7 @@
 {
+    "header": {
+        "contentType": "pipeline"
+    },
     "nodes": [
         {
             "class": "Pipeline/Render/Blend",

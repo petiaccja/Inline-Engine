@@ -4,7 +4,7 @@
 #include <GraphicsEngine_LL/OverlayEntity.hpp>
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
 
-#include <BaseLibrary/GraphEditor/INode.hpp>
+#include <BaseLibrary/GraphEditor/IGraphEditorNode.hpp>
 
 #include <InlineMath.hpp>
 
@@ -123,7 +123,7 @@ public:
 	Node& operator=(Node&&) noexcept;
 	~Node();
 
-	void SetNode(INode* node, gxeng::GraphicsEngine* graphicsEngine, gxeng::Scene* scene, gxeng::Font* font);
+	void SetNode(IGraphEditorNode* node, gxeng::GraphicsEngine* graphicsEngine, gxeng::Scene* scene, gxeng::Font* font);
 
 	void SetPosition(Vec2 position) override;
 	Vec2 GetPosition() const override;
@@ -134,7 +134,7 @@ public:
 	void SetDepth(float depth) override;
 	float GetDepth() const override;
 
-	INode* GetNode() const;
+	IGraphEditorNode* GetNode() const;
 
 	const Drawable* Intersect(Vec2 point) const override;
 
@@ -149,7 +149,7 @@ private:
 private:
 	gxeng::Scene* m_scene = nullptr;
 
-	INode* m_myNode = nullptr;
+	IGraphEditorNode* m_myNode = nullptr;
 
 	std::unique_ptr<gxeng::TextEntity> m_nameLabel;
 	std::unique_ptr<gxeng::OverlayEntity> m_background;
