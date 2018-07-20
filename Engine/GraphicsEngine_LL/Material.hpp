@@ -158,13 +158,4 @@ private:
 };
 
 
-
-// TEST IMPLEMENTATION
-inline std::string MaterialGenPixelShader(const MaterialShader& shader) {
-	return "this function is no longer used";
-}
-
-
-
-
 } // namespace inl::gxeng

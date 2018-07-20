@@ -71,9 +71,9 @@ int TestMaterialShader::Run() {
 	cout << shaderCode << endl;
 
 
-	std::string code = inl::gxeng::MaterialGenPixelShader(graph);
-	cout << "---------------------------" << endl;
-	cout << code << endl;
+	//std::string code = inl::gxeng::MaterialGenPixelShader(graph);
+	//cout << "---------------------------" << endl;
+	//cout << code << endl;
 
 
 	//cout << code << endl;

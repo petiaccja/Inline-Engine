@@ -20,8 +20,8 @@ MaterialShaderInput::MaterialShaderInput(const MaterialShader2& parent)
 	: m_parent(&parent)
 {}
 
-MaterialShaderInput::MaterialShaderInput(const MaterialShader2& parent, std::string name, std::string type, int index)
-	: m_parent(&parent), name(std::move(name)), type(std::move(type)), index(index)
+MaterialShaderInput::MaterialShaderInput(const MaterialShader2& parent, std::string name, std::string type, int index, std::string defaultValue)
+	: m_parent(&parent), name(std::move(name)), type(std::move(type)), index(index), m_defaultValue(std::move(defaultValue))
 {}
 
 void MaterialShaderInput::Link(MaterialShaderOutput* source) {
@@ -70,7 +70,7 @@ void MaterialShaderOutput::Link(MaterialShaderInput* target) {
 	// TODO: check for type compatbility.
 
 	if (target->m_link) {
-		target->Unlink();
+		throw InvalidStateException("Target port is already linked.");
 	}
 	m_links.push_back(target);
 	target->m_link = this;
@@ -166,6 +166,9 @@ std::string MaterialShader2::GetFunctionSignature(const std::string& code, const
 	while (first != code.begin() && !isspace(*first)) {
 		--first;
 	}
+	if (isspace(*first)) {
+		++first;
+	}
 
 	return std::string(first, last-1);
 }
@@ -221,6 +224,9 @@ FunctionParameter DissectFunctionParameter(std::string_view parameter) {
 
 	// Get declaration details.
 	FunctionParameter declaration = DissectFunctionParameterDeclaration(declarationString);
+	if (declarationAndValue.size() >= 2) {
+		declaration.defaultValue = Trim(declarationAndValue[1], " \t\v\r\n");
+	}
 
 	return declaration;
 }
@@ -238,7 +244,26 @@ FunctionSignature MaterialShader2::DissectFunctionSignature(const std::string& s
 	paramsFirst = paramsFirst + 1; // opening parenthesis not needed
 
 	std::string_view paramString(signatureString.c_str() + paramsFirst, paramsLast - paramsFirst);
-	auto parameters = Tokenize(paramString, ",", false);
+
+	// Need to turn default parameters into spaces so that it can be tokenized on commas.
+	std::string paramStringToken(paramString.begin(), paramString.end());
+	int parentheseDepth = 0;
+	bool isDefaultParam = false;
+	for (auto& c : paramStringToken) {
+		if (c == '(') { ++parentheseDepth; }
+		if (c == ')') {	--parentheseDepth; }
+		if (parentheseDepth == 0 && isDefaultParam && c == ',') { isDefaultParam = false; }
+		if (parentheseDepth == 0 && c == '=') { isDefaultParam = true; }
+		if (isDefaultParam) { c = ' '; }
+	}
+
+	// Tokenize space-ified string.
+	auto parameters = Tokenize(paramStringToken, ",", false);
+
+	// Restore original characters instead of spaces, string views will change too.
+	for (auto i : Range(paramString.size())) {
+		paramStringToken[i] = paramString[i];
+	}
 
 	FunctionSignature signature;
 	signature.returnType = returnType;
@@ -294,7 +319,7 @@ void MaterialShaderEquation2::CreatePorts(const std::string& code) {
 			outputs.push_back(output);
 		}
 		else {
-			MaterialShaderInput input(*this, parameter.name, parameter.type, index);
+			MaterialShaderInput input(*this, parameter.name, parameter.type, index, parameter.defaultValue);
 			inputs.push_back(input);
 		}
 

@@ -48,3 +48,24 @@ TEST_CASE("Tokenize, trim", "[StringUtil]") {
 
 	REQUIRE(tokens == expectedTokens);
 }
+
+
+TEST_CASE("Trim, simple", "[StringUtil]") {
+	std::string str = " \t asd  ";
+	auto trimmed = Trim(str, " \t\n");
+	REQUIRE(trimmed == "asd");
+}
+
+
+TEST_CASE("Trim, already trimmed", "[StringUtil]") {
+	std::string str = "asd";
+	auto trimmed = Trim(str, " \t\n");
+	REQUIRE(trimmed == "asd");
+}
+
+
+TEST_CASE("Trim, empty", "[StringUtil]") {
+	std::string str = "";
+	auto trimmed = Trim(str, " \t\n");
+	REQUIRE(trimmed == "");
+}

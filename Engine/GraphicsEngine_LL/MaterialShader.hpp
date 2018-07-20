@@ -35,6 +35,7 @@ struct FunctionParameter {
 	bool out;
 	std::string type;
 	std::string name;
+	std::string defaultValue;
 };
 
 struct FunctionSignature {
@@ -74,7 +75,7 @@ class MaterialShaderInput : public ISerializableInputPort {
 public:
 	MaterialShaderInput() = default;
 	MaterialShaderInput(const MaterialShader2& parent);
-	MaterialShaderInput(const MaterialShader2& parent, std::string name, std::string type, int index);
+	MaterialShaderInput(const MaterialShader2& parent, std::string name, std::string type, int index, std::string defaultValue = {});
 
 	void Link(MaterialShaderOutput* source);
 	void Unlink();
@@ -85,12 +86,16 @@ public:
 	const std::string& GetType() const;
 	const std::string& GetName() const;
 
+	void SetDefaultValue(std::string defaultValue);
+	std::string GetDefaultValue() const;
+
 	std::string ToString() const override;
 
 	const std::string name; // HLSL variable name of the port.
 	const std::string type; // HLSL type of the port.
 	const int index = 0; // Index in the HLSL function parameter list.
 private:
+	std::string m_defaultValue;
 	MaterialShaderOutput* m_link = nullptr;
 	const MaterialShader2* m_parent = nullptr;
 };

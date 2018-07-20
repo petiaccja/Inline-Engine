@@ -80,7 +80,7 @@ auto TokenizeStringView(const std::basic_string_view<CharT, Traits>& str,
 }
 
 
-} // namespace inl
+} // namespace impl
 
 
 
@@ -102,7 +102,46 @@ auto Tokenize(const StringT& str,
 
 
 
+//------------------------------------------------------------------------------
+// Trim characters from begin and end.
+//------------------------------------------------------------------------------
 
+
+namespace impl {
+
+
+template <class CharT, class Traits>
+auto Trim(const std::basic_string_view<CharT, Traits>& str,
+		  const std::basic_string_view<CharT, Traits>& delimiters)
+	-> std::basic_string_view<CharT, Traits>
+{
+ 	auto beginIt = str.begin();
+	while (beginIt != str.end() && delimiters.find(*beginIt) != std::string::npos) {
+		++beginIt;
+	}
+
+	auto endIt = str.end();
+	while (endIt != beginIt) {
+		--endIt;
+		if (delimiters.find(*endIt) == std::string::npos) {
+			++endIt;
+			break;
+		}
+	}
+
+	return str.substr(beginIt - str.begin(), endIt - beginIt);
+}
+
+
+}
+
+
+template <class StringT, class DelimitersT>
+auto Trim(const StringT& str,
+			  const DelimitersT& delimiters)
+{
+	return impl::Trim(MakeStringView(str), MakeStringView(delimiters));
+}
 
 
 
