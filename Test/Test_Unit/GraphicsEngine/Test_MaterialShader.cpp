@@ -38,21 +38,21 @@ protected:
 
 
 TEST_CASE_METHOD(ShaderManagerFixture, "MaterialShader set file", "[MaterialShader]") {
-	MaterialShaderEquation2 shader(&shaderManager);
+	MaterialShaderEquation shader(&shaderManager);
 	shader.SetSourceFile("adder");
 	REQUIRE(shader.GetShaderCode() == adderSource);
 }
 
 
 TEST_CASE_METHOD(ShaderManagerFixture, "MaterialShader set code", "[MaterialShader]") {
-	MaterialShaderEquation2 shader(&shaderManager);
+	MaterialShaderEquation shader(&shaderManager);
 	shader.SetSourceCode(adderSource);
 	REQUIRE(shader.GetShaderCode() == adderSource);
 }
 
 
 TEST_CASE_METHOD(ShaderManagerFixture, "MaterialShader get params return", "[MaterialShader]") {
-	MaterialShaderEquation2 shader(&shaderManager);
+	MaterialShaderEquation shader(&shaderManager);
 	shader.SetSourceCode(adderSource);
 	REQUIRE(shader.GetNumInputs() == 2);
 	REQUIRE(shader.GetNumOutputs() == 1);
@@ -72,7 +72,7 @@ TEST_CASE_METHOD(ShaderManagerFixture, "MaterialShader get params return", "[Mat
 
 
 TEST_CASE_METHOD(ShaderManagerFixture, "MaterialShader get params out", "[MaterialShader]") {
-	MaterialShaderEquation2 shader(&shaderManager);
+	MaterialShaderEquation shader(&shaderManager);
 	shader.SetSourceCode(mad4Source);
 
 	REQUIRE(shader.GetNumOutputs() == 1);
@@ -86,10 +86,10 @@ TEST_CASE_METHOD(ShaderManagerFixture, "MaterialShader get params out", "[Materi
 TEST_CASE_METHOD(ShaderManagerFixture, "MaterialShader make graph", "[MaterialShader]") {
 	inl::Exception::BreakOnce();
 
-	auto add = std::make_unique<MaterialShaderEquation2>(&shaderManager);
-	auto sub = std::make_unique<MaterialShaderEquation2>(&shaderManager);
-	auto mad = std::make_unique<MaterialShaderEquation2>(&shaderManager);
-	auto graph = std::make_unique<MaterialShaderGraph2>(&shaderManager);
+	auto add = std::make_unique<MaterialShaderEquation>(&shaderManager);
+	auto sub = std::make_unique<MaterialShaderEquation>(&shaderManager);
+	auto mad = std::make_unique<MaterialShaderEquation>(&shaderManager);
+	auto graph = std::make_unique<MaterialShaderGraph>(&shaderManager);
 
 	add->SetDisplayName("Add");
 	sub->SetDisplayName("Sub");
@@ -102,7 +102,7 @@ TEST_CASE_METHOD(ShaderManagerFixture, "MaterialShader make graph", "[MaterialSh
 	add->GetOutput(0)->Link(mad->GetInput(0));
 	sub->GetOutput(0)->Link(mad->GetInput(1));
 
-	std::vector<std::unique_ptr<MaterialShader2>> nodes;
+	std::vector<std::unique_ptr<MaterialShader>> nodes;
 	nodes.push_back(std::move(add));
 	nodes.push_back(std::move(sub));
 	nodes.push_back(std::move(mad));

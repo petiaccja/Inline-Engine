@@ -23,7 +23,7 @@ void MaterialEditorGraph::SetNodeList(const std::vector<std::string>& nodeList) 
 
 
 IGraphEditorNode* MaterialEditorGraph::AddNode(std::string name) {
-	auto realNode = std::make_unique<MaterialShaderEquation2>(&m_shaderManager);
+	auto realNode = std::make_unique<MaterialShaderEquation>(&m_shaderManager);
 	realNode->SetSourceFile(name);
 	auto node = std::make_unique<MaterialEditorNode>(std::move(realNode));
 	m_nodes.push_back(std::move(node));
@@ -156,7 +156,7 @@ std::string MaterialEditorGraph::SerializeJSON() {
 
 void MaterialEditorGraph::LoadJSON(const std::string& description) {
 	GraphParser parser;
-	std::vector<std::unique_ptr<MaterialShader2>> nodeObjects;
+	std::vector<std::unique_ptr<MaterialShader>> nodeObjects;
 
 	// Parse json.
 	parser.Parse(description);
@@ -166,7 +166,7 @@ void MaterialEditorGraph::LoadJSON(const std::string& description) {
 
 	// Create nodes with initial values.
 	for (auto& nodeDesc : parser.GetNodes()) {
-		auto nodeObject = std::make_unique<MaterialShaderEquation2>(&m_shaderManager);
+		auto nodeObject = std::make_unique<MaterialShaderEquation>(&m_shaderManager);
 		nodeObject->SetSourceFile(nodeDesc.cl);
 		if (nodeDesc.name) {
 			nodeObject->SetDisplayName(nodeDesc.name.value());
@@ -177,7 +177,7 @@ void MaterialEditorGraph::LoadJSON(const std::string& description) {
 
 	// Link nodes above.
 	for (auto& info : parser.GetLinks()) {
-		MaterialShader2 *src = nullptr, *dst = nullptr;
+		MaterialShader *src = nullptr, *dst = nullptr;
 		MaterialShaderOutput* srcp = nullptr;
 		MaterialShaderInput* dstp = nullptr;
 

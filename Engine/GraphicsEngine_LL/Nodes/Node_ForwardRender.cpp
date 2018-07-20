@@ -9,8 +9,13 @@
 #include "../NodeContext.hpp"
 #include "../GraphicsCommandList.hpp"
 #include "../ResourceView.hpp"
+#include "../Material.hpp"
+#include "../MaterialShader.hpp"
 
-#include <array>
+#include <BaseLibrary/Range.hpp>
+
+#include <regex>
+
 
 namespace inl::gxeng::nodes {
 
@@ -288,7 +293,7 @@ void ForwardRender::Execute(RenderContext& context) {
 		assert(materialShader != nullptr);
 
 		ScenarioData& scenario = GetScenario(
-			context, layout, *materialShader, m_rtv.GetDescription().format, m_dsv.GetDescription().format);
+			context, layout, *material, m_rtv.GetDescription().format, m_dsv.GetDescription().format);
 
 		commandList.SetPipelineState(scenario.pso.get());
 		commandList.SetGraphicsBinder(&scenario.binder);
@@ -399,10 +404,11 @@ void ForwardRender::Execute(RenderContext& context) {
 ForwardRender::ScenarioData& ForwardRender::GetScenario(
 	RenderContext& context,
 	const Mesh::Layout& layout,
-	const MaterialShader& shader,
+	const Material& material,
 	gxapi::eFormat renderTargetFormat,
 	gxapi::eFormat depthStencilFormat)
 {
+	const auto& shader = *material.GetShader();
 	std::string shaderCode = shader.GetShaderCode();
 
 	ScenarioDesc key{ layout, shaderCode };
@@ -424,7 +430,7 @@ ForwardRender::ScenarioData& ForwardRender::GetScenario(
 
 		// Compile pixel shader if needed
 		if (psIt == m_materialShaders.end()) {
-			std::string psCode = GeneratePixelShader(shader);
+			std::string psCode = GeneratePixelShader(material);
 			ShaderParts psParts;
 			psParts.ps = true;
 			auto res = m_materialShaders.insert({ shaderCode, context.CompileShader(psCode, psParts, "") });
@@ -437,7 +443,7 @@ ForwardRender::ScenarioData& ForwardRender::GetScenario(
 		size_t constantsSize;
 		Binder binder;
 
-		binder = GenerateBinder(context, shader.GetShaderParameters(), offsets, constantsSize);
+		binder = GenerateBinder(context, material, offsets, constantsSize);
 		pso = CreatePso(context, binder, vsIt->second.vs, psIt->second.ps, renderTargetFormat, depthStencilFormat);
 
 		auto res = m_scenarios.insert({ key, ScenarioData() });
@@ -537,13 +543,10 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 	return vertexShader;
 }
 
-std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
+std::string ForwardRender::GeneratePixelShader(const Material& material) {
 	// get material shading function's HLSL code
-	std::vector<MaterialShaderParameter> params;
-	std::string shadingFunction;
-
-	params = shader.GetShaderParameters();
-	shadingFunction = shader.GetShaderCode();
+	const auto& shader = *material.GetShader();
+	std::string shadingFunction = shader.GetShaderCode();
 
 	// rename "main" to something else
 	std::stringstream renameMain;
@@ -594,8 +597,8 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 
 	mtlConstantBuffer << "struct MtlConstants { \n";
 	int numMtlConstants = 0;
-	for (size_t i = 0; i < params.size(); ++i) {
-		switch (params[i].type) {
+	for (size_t i = 0; i < material.GetParameterCount(); ++i) {
+		switch (material[i].GetType()) {
 			case eMaterialShaderParamType::COLOR:
 			{
 				mtlConstantBuffer << "    float4 param" << i << "; \n";
@@ -644,8 +647,8 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 	PSMain << "    result.velocityNormal.xy = encodeVelocity(psInput.currPosition, psInput.prevPosition, uniforms.halfExposureFramerate, uniforms.maxMotionBlurRadius);\n";
 	PSMain << "    result.velocityNormal.zw = encodeNormal(g_normal);\n";
 	PSMain << "    float4 albedo = float4(0,0,0,0);\n";
-	for (size_t i = 0; i < params.size(); ++i) {
-		switch (params[i].type) {
+	for (size_t i = 0; i < material.GetParameterCount(); ++i) {
+		switch (material[i].GetType()) {
 			case eMaterialShaderParamType::COLOR:
 			{
 				PSMain << "    float4 input" << i << "; \n";
@@ -675,11 +678,11 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 		}
 	}
 	PSMain << "    result.litColor = mtl_shader(";
-	for (intptr_t i = 0; i < (intptr_t)params.size() - 1; ++i) {
+	for (intptr_t i = 0; i < (intptr_t)material.GetParameterCount() - 1; ++i) {
 		PSMain << "input" << i << ", ";
 	}
-	if (params.size() > 0) {
-		PSMain << "input" << params.size() - 1;
+	if (material.GetParameterCount() > 0) {
+		PSMain << "input" << material.GetParameterCount() - 1;
 	}
 	//TODO get material params
 	PSMain << "); result.albedoRoughnessMetalness.xy = rgb_to_ycocg(albedo.xyz, int2(psInput.ndcPos.xy)); result.albedoRoughnessMetalness.zw = float2(0,0); return result; \n} \n";
@@ -705,49 +708,47 @@ std::string ForwardRender::GeneratePixelShader(const MaterialShader& shader) {
 		+ PSMain.str();
 }
 
-Binder ForwardRender::GenerateBinder(RenderContext& context, const std::vector<MaterialShaderParameter>& mtlParams, std::vector<int>& offsets, size_t& materialCbSize) {
+Binder ForwardRender::GenerateBinder(RenderContext& context, const Material& material, std::vector<int>& offsets, size_t& materialCbSize) {
 	int textureRegister = 0;
 	int cbSize = 0;
 	std::vector<BindParameterDesc> descs;
 	offsets.clear();
 
-	for (auto& param : mtlParams) {
-		switch (param.type) {
-		case eMaterialShaderParamType::BITMAP_COLOR_2D:
-		case eMaterialShaderParamType::BITMAP_VALUE_2D:
-		{
-			BindParameterDesc desc;
-			desc.parameter = BindParameter(eBindParameterType::TEXTURE, textureRegister);
-			desc.constantSize = 0;
-			desc.relativeAccessFrequency = 0;
-			desc.relativeChangeFrequency = 0;
-			desc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
-			descs.push_back(desc);
+	for (auto i : Range(material.GetParameterCount())) {
+		const auto& param = material[i];
+		switch (param.GetType()) {
+			case eMaterialShaderParamType::BITMAP_COLOR_2D: [[fallthrough]];
+			case eMaterialShaderParamType::BITMAP_VALUE_2D:	{
+				BindParameterDesc desc;
+				desc.parameter = BindParameter(eBindParameterType::TEXTURE, textureRegister);
+				desc.constantSize = 0;
+				desc.relativeAccessFrequency = 0;
+				desc.relativeChangeFrequency = 0;
+				desc.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+				descs.push_back(desc);
 
-			offsets.push_back(desc.parameter.reg);
+				offsets.push_back(desc.parameter.reg);
 
-			++textureRegister;
+				++textureRegister;
 
-			break;
-		}
-		case eMaterialShaderParamType::COLOR:
-		{
-			cbSize = ((cbSize + 15) / 16) * 16; // correct alignement
-			offsets.push_back(cbSize);
-			cbSize += 16;
+				break;
+			}
+			case eMaterialShaderParamType::COLOR: {
+				cbSize = ((cbSize + 15) / 16) * 16; // correct alignement
+				offsets.push_back(cbSize);
+				cbSize += 16;
 
-			break;
-		}
-		case eMaterialShaderParamType::VALUE:
-		{
-			cbSize = ((cbSize + 3) / 4) * 4; // correct alignement
-			offsets.push_back(cbSize);
-			cbSize += sizeof(float);
+				break;
+			}
+			case eMaterialShaderParamType::VALUE: {
+				cbSize = ((cbSize + 3) / 4) * 4; // correct alignement
+				offsets.push_back(cbSize);
+				cbSize += sizeof(float);
 
-			break;
-		}
-		default:
-			assert(false);;
+				break;
+			}
+			default:
+				assert(false);
 		}
 	}
 

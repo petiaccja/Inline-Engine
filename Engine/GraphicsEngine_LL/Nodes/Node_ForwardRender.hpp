@@ -72,8 +72,8 @@ public:
 
 private:
 	static std::string GenerateVertexShader(const Mesh::Layout& layout);
-	static std::string GeneratePixelShader(const MaterialShader& shader);
-	Binder GenerateBinder(RenderContext& context, const std::vector<MaterialShaderParameter>& mtlParams, std::vector<int>& offsets, size_t& materialCbSize);
+	static std::string GeneratePixelShader(const Material& shader);
+	Binder GenerateBinder(RenderContext& context, const Material& mtlParams, std::vector<int>& offsets, size_t& materialCbSize);
 	std::unique_ptr<gxapi::IPipelineState> CreatePso(
 		RenderContext& context,
 		Binder& binder,
@@ -85,7 +85,7 @@ private:
 	ScenarioData& GetScenario(
 		RenderContext& context,
 		const Mesh::Layout& layout,
-		const MaterialShader& shader,
+		const Material& material,
 		gxapi::eFormat renderTargetFormat,
 		gxapi::eFormat depthStencilFormat);
 

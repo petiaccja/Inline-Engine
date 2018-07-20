@@ -16,11 +16,11 @@ namespace inl::gxeng {
 // Material shader IO ports
 //------------------------------------------------------------------------------
 
-MaterialShaderInput::MaterialShaderInput(const MaterialShader2& parent)
+MaterialShaderInput::MaterialShaderInput(const MaterialShader& parent)
 	: m_parent(&parent)
 {}
 
-MaterialShaderInput::MaterialShaderInput(const MaterialShader2& parent, std::string name, std::string type, int index, std::string defaultValue)
+MaterialShaderInput::MaterialShaderInput(const MaterialShader& parent, std::string name, std::string type, int index, std::string defaultValue)
 	: m_parent(&parent), name(std::move(name)), type(std::move(type)), index(index), m_defaultValue(std::move(defaultValue))
 {}
 
@@ -34,7 +34,7 @@ void MaterialShaderInput::Unlink() {
 	}
 }
 
-const MaterialShader2* MaterialShaderInput::GetParent() const {
+const MaterialShader* MaterialShaderInput::GetParent() const {
 	return m_parent;
 }
 
@@ -51,17 +51,25 @@ const std::string& MaterialShaderInput::GetName() const {
 	return name;
 }
 
+void MaterialShaderInput::SetDefaultValue(std::string defaultValue) {
+	m_defaultValue = defaultValue;
+}
+
+std::string MaterialShaderInput::GetDefaultValue() const {
+	return m_defaultValue;
+}
+
 
 std::string MaterialShaderInput::ToString() const {
 	return "";
 }
 
 
-MaterialShaderOutput::MaterialShaderOutput(const MaterialShader2& parent)
+MaterialShaderOutput::MaterialShaderOutput(const MaterialShader& parent)
 	: m_parent(&parent)
 {}
 
-MaterialShaderOutput::MaterialShaderOutput(const MaterialShader2& parent, std::string name, std::string type, int index)
+MaterialShaderOutput::MaterialShaderOutput(const MaterialShader& parent, std::string name, std::string type, int index)
 	: m_parent(&parent), name(std::move(name)), type(std::move(type)), index(index)
 {}
 
@@ -94,7 +102,7 @@ void MaterialShaderOutput::Unlink(MaterialShaderInput* target) {
 	m_links.erase(it);
 }
 
-const MaterialShader2* MaterialShaderOutput::GetParent() const {
+const MaterialShader* MaterialShaderOutput::GetParent() const {
 	return m_parent;
 }
 
@@ -115,22 +123,22 @@ const std::string& MaterialShaderOutput::GetName() const {
 // Material shader base class
 //------------------------------------------------------------------------------
 
-MaterialShader2::MaterialShader2(const ShaderManager* shaderManager)
+MaterialShader::MaterialShader(const ShaderManager* shaderManager)
 	: m_shaderManager(shaderManager)
 {}
 
 
-const std::string& MaterialShader2::GetInputName(size_t index) const {
+const std::string& MaterialShader::GetInputName(size_t index) const {
 	return m_inputs[index].GetName();
 }
 
 
-const std::string& MaterialShader2::GetOutputName(size_t index) const {
+const std::string& MaterialShader::GetOutputName(size_t index) const {
 	return m_outputs[index].GetName();
 }
 
 
-std::string MaterialShader2::RemoveComments(std::string code) {
+std::string MaterialShader::RemoveComments(std::string code) {
 	std::regex singleLineRegex("//\n");
 	std::regex multilineRegex(R"(/\*.*\*/)");
 
@@ -140,7 +148,7 @@ std::string MaterialShader2::RemoveComments(std::string code) {
 }
 
 
-std::string MaterialShader2::GetFunctionSignature(const std::string& code, const std::string& functionName) {
+std::string MaterialShader::GetFunctionSignature(const std::string& code, const std::string& functionName) {
 	// Search for the signature as "FunctionName ( ??? ) {".
 	std::regex signatureRegex(R"(\s)" + functionName + R"(\s*\(.*\)\s*\{)");
 
@@ -232,7 +240,7 @@ FunctionParameter DissectFunctionParameter(std::string_view parameter) {
 }
 
 
-FunctionSignature MaterialShader2::DissectFunctionSignature(const std::string& signatureString) {
+FunctionSignature MaterialShader::DissectFunctionSignature(const std::string& signatureString) {
 	std::string_view returnType = NextToken(signatureString, " \t\v\r\n").value_or("");
 	assert(!returnType.empty());
 
@@ -279,19 +287,19 @@ FunctionSignature MaterialShader2::DissectFunctionSignature(const std::string& s
 // Material shader equation
 //------------------------------------------------------------------------------
 
-const std::string& MaterialShaderEquation2::GetShaderCode() const {
+const std::string& MaterialShaderEquation::GetShaderCode() const {
 	return m_sourceCode;
 }
 
 
-void MaterialShaderEquation2::SetSourceFile(const std::string& name) {
+void MaterialShaderEquation::SetSourceFile(const std::string& name) {
 	m_sourceCode = m_shaderManager->LoadShaderSource(name);
 	CreatePorts(m_sourceCode);
 	SetClassName(name);
 }
 
 
-void MaterialShaderEquation2::SetSourceCode(std::string code) {
+void MaterialShaderEquation::SetSourceCode(std::string code) {
 	m_sourceCode = std::move(code);
 	CreatePorts(m_sourceCode);
 	std::stringstream ss;
@@ -300,7 +308,7 @@ void MaterialShaderEquation2::SetSourceCode(std::string code) {
 }
 
 
-void MaterialShaderEquation2::CreatePorts(const std::string& code) {
+void MaterialShaderEquation::CreatePorts(const std::string& code) {
 	std::string signatureString = GetFunctionSignature(code, "main");
 	FunctionSignature signature = DissectFunctionSignature(signatureString);
 
@@ -339,24 +347,24 @@ void MaterialShaderEquation2::CreatePorts(const std::string& code) {
 //------------------------------------------------------------------------------
 
 
-const std::string& MaterialShaderGraph2::GetShaderCode() const {
+const std::string& MaterialShaderGraph::GetShaderCode() const {
 	return m_sourceCode;
 }
 
-void MaterialShaderGraph2::SetGraph(std::vector<std::unique_ptr<MaterialShader2>> nodes) {
+void MaterialShaderGraph::SetGraph(std::vector<std::unique_ptr<MaterialShader>> nodes) {
 	using namespace lemon;
 
 	// Algorithm:
 
 	// 1. create dependency graph of nodes
 	ListDigraph depGraph;
-	ListDigraph::NodeMap<MaterialShader2*> depMap(depGraph);
+	ListDigraph::NodeMap<MaterialShader*> depMap(depGraph);
 	CalculateDependencyGraph(nodes, depGraph, depMap);
 
 
 	// 2. find topological ordering
 	ListDigraph::NodeMap<int> sortingMap(depGraph);
-	std::unordered_map<const MaterialShader2*, int> indexMap;
+	std::unordered_map<const MaterialShader*, int> indexMap;
 
 	bool isDag = checkedTopologicalSort(depGraph, sortingMap);
 	if (!isDag) {
@@ -467,7 +475,7 @@ void MaterialShaderGraph2::SetGraph(std::vector<std::unique_ptr<MaterialShader2>
 	// 7. forward results of sub-mains to the output of main.
 	for (const auto result : freeOutputs) {
 		std::stringstream ss;
-		const MaterialShader2* node = result->GetParent();
+		const MaterialShader* node = result->GetParent();
 		int nodeIdx = indexMap[node];
 
 		std::string mainParamName = node->GetDisplayName() + "_" + result->name;
@@ -493,9 +501,9 @@ void MaterialShaderGraph2::SetGraph(std::vector<std::unique_ptr<MaterialShader2>
 }
 
 
-void MaterialShaderGraph2::CalculateDependencyGraph(const std::vector<std::unique_ptr<MaterialShader2>>& nodes,
+void MaterialShaderGraph::CalculateDependencyGraph(const std::vector<std::unique_ptr<MaterialShader>>& nodes,
 													lemon::ListDigraph& depGraph,
-													lemon::ListDigraph::NodeMap<MaterialShader2*>& depMap)
+													lemon::ListDigraph::NodeMap<MaterialShader*>& depMap)
 {
 	using namespace lemon;
 
@@ -503,7 +511,7 @@ void MaterialShaderGraph2::CalculateDependencyGraph(const std::vector<std::uniqu
 		ListDigraph::Node graphNode;
 		size_t index;
 	};
-	std::unordered_map<const MaterialShader2*, NodeMap> nodeMap;
+	std::unordered_map<const MaterialShader*, NodeMap> nodeMap;
 
 	for (auto i : Range(nodes.size())) {
 		auto& node = nodes[i];
@@ -526,7 +534,7 @@ void MaterialShaderGraph2::CalculateDependencyGraph(const std::vector<std::uniqu
 }
 
 
-auto MaterialShaderGraph2::GetUnlinkedPorts(const std::vector<std::unique_ptr<MaterialShader2>>& nodes)
+auto MaterialShaderGraph::GetUnlinkedPorts(const std::vector<std::unique_ptr<MaterialShader>>& nodes)
 ->std::tuple<std::vector<MaterialShaderInput*>, std::vector<MaterialShaderOutput*>>
 {
 	std::vector<MaterialShaderInput*> inputs;
@@ -549,7 +557,7 @@ auto MaterialShaderGraph2::GetUnlinkedPorts(const std::vector<std::unique_ptr<Ma
 }
 
 
-std::string MaterialShaderGraph2::CreateParameterString(const std::vector<MaterialShaderInput*>& inputs,
+std::string MaterialShaderGraph::CreateParameterString(const std::vector<MaterialShaderInput*>& inputs,
 														const std::vector<MaterialShaderOutput*>& outputs)
 {
 	std::stringstream paramss;
@@ -581,7 +589,7 @@ std::string MaterialShaderGraph2::CreateParameterString(const std::vector<Materi
 }
 
 
-void MaterialShaderGraph2::CreatePorts(const std::vector<MaterialShaderInput*>& inputs,
+void MaterialShaderGraph::CreatePorts(const std::vector<MaterialShaderInput*>& inputs,
 									   const std::vector<MaterialShaderOutput*>& outputs)
 {
 	m_inputs.clear();

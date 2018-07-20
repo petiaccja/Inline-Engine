@@ -26,7 +26,7 @@ namespace inl::gxeng {
 
 
 class ShaderManager;
-class MaterialShader2;
+class MaterialShader;
 class MaterialShaderInput;
 class MaterialShaderOutput;
 
@@ -47,13 +47,13 @@ struct FunctionSignature {
 class MaterialShaderOutput : public ISerializableOutputPort {
 public:
 	MaterialShaderOutput() = default;
-	MaterialShaderOutput(const MaterialShader2& parent);
-	MaterialShaderOutput(const MaterialShader2& parent, std::string name, std::string type, int index);
+	MaterialShaderOutput(const MaterialShader& parent);
+	MaterialShaderOutput(const MaterialShader& parent, std::string name, std::string type, int index);
 
 	void Link(MaterialShaderInput* target);
 	void UnlinkAll();
 	void Unlink(MaterialShaderInput* target);
-	const MaterialShader2* GetParent() const;
+	const MaterialShader* GetParent() const;
 
 	const std::vector<MaterialShaderInput*>& GetLinks() const;
 
@@ -65,7 +65,7 @@ public:
 	const int index = 0;
 private:
 	std::vector<MaterialShaderInput*> m_links;
-	const MaterialShader2* m_parent = nullptr;
+	const MaterialShader* m_parent = nullptr;
 };
 
 
@@ -74,12 +74,12 @@ class MaterialShaderInput : public ISerializableInputPort {
 	friend class MaterialShaderOutput;
 public:
 	MaterialShaderInput() = default;
-	MaterialShaderInput(const MaterialShader2& parent);
-	MaterialShaderInput(const MaterialShader2& parent, std::string name, std::string type, int index, std::string defaultValue = {});
+	MaterialShaderInput(const MaterialShader& parent);
+	MaterialShaderInput(const MaterialShader& parent, std::string name, std::string type, int index, std::string defaultValue = {});
 
 	void Link(MaterialShaderOutput* source);
 	void Unlink();
-	const MaterialShader2* GetParent() const;
+	const MaterialShader* GetParent() const;
 
 	MaterialShaderOutput* GetLink() const override;
 
@@ -97,13 +97,13 @@ public:
 private:
 	std::string m_defaultValue;
 	MaterialShaderOutput* m_link = nullptr;
-	const MaterialShader2* m_parent = nullptr;
+	const MaterialShader* m_parent = nullptr;
 };
 
 
-class MaterialShader2 : public ISerializableNode {
+class MaterialShader : public ISerializableNode {
 public:
-	MaterialShader2(const ShaderManager* shaderManager);
+	MaterialShader(const ShaderManager* shaderManager);
 
 	// Shaders
 	virtual const std::string& GetShaderCode() const = 0;
@@ -146,9 +146,9 @@ private:
 
 
 
-class MaterialShaderEquation2 : public MaterialShader2 {
+class MaterialShaderEquation : public MaterialShader {
 public:
-	MaterialShaderEquation2(const ShaderManager* shaderManager) : MaterialShader2(shaderManager) {}
+	MaterialShaderEquation(const ShaderManager* shaderManager) : MaterialShader(shaderManager) {}
 
 	const std::string& GetShaderCode() const override;
 
@@ -164,22 +164,22 @@ private:
 
 
 
-class MaterialShaderGraph2 : public MaterialShader2 {
+class MaterialShaderGraph : public MaterialShader {
 public:
-	MaterialShaderGraph2(const ShaderManager* shaderManager) : MaterialShader2(shaderManager) {}
+	MaterialShaderGraph(const ShaderManager* shaderManager) : MaterialShader(shaderManager) {}
 
 	const std::string& GetShaderCode() const override;
 
-	void SetGraph(std::vector<std::unique_ptr<MaterialShader2>> nodes);
+	void SetGraph(std::vector<std::unique_ptr<MaterialShader>> nodes);
 
 private:
 	// Creates one graph node per shader node, adds arc in graph for any two shader nodes which have their ports linked together.
-	static void CalculateDependencyGraph(const std::vector<std::unique_ptr<MaterialShader2>>& nodes,
+	static void CalculateDependencyGraph(const std::vector<std::unique_ptr<MaterialShader>>& nodes,
 										 lemon::ListDigraph& depGraph,
-										 lemon::ListDigraph::NodeMap<MaterialShader2*>& depMap);
+										 lemon::ListDigraph::NodeMap<MaterialShader*>& depMap);
 
 	// Gets the list of unlinked (free) ports of the node graph.
-	static auto GetUnlinkedPorts(const std::vector<std::unique_ptr<MaterialShader2>>& nodes)
+	static auto GetUnlinkedPorts(const std::vector<std::unique_ptr<MaterialShader>>& nodes)
 		->std::tuple<std::vector<MaterialShaderInput*>, std::vector<MaterialShaderOutput*>>;
 
 
@@ -193,7 +193,7 @@ private:
 	void CreatePorts(const std::vector<MaterialShaderInput*>& inputs,
 					 const std::vector<MaterialShaderOutput*>& outputs);
 private:
-	std::vector<std::unique_ptr<MaterialShader2>> m_nodes;
+	std::vector<std::unique_ptr<MaterialShader>> m_nodes;
 	std::string m_sourceCode;
 };
 

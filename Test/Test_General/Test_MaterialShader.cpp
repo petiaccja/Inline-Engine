@@ -1,6 +1,8 @@
 #include "Test.hpp"
 #include <iostream>
 #include "GraphicsEngine_LL/Material.hpp"
+#include "GraphicsEngine_LL/MaterialShader.hpp"
+
 
 using namespace std::literals::chrono_literals;
 
@@ -58,15 +60,13 @@ int TestMaterialShader::Run() {
 	nodes.push_back(std::unique_ptr<MaterialShader>(new MaterialShaderEquation(darkenNode)));
 	nodes.push_back(std::unique_ptr<MaterialShader>(new MaterialShaderEquation(shaderNode)));
 
-	std::vector<MaterialShaderGraph::Link> links = {
-		{ 0, 1, 0 },
-		{ 0, 2, 0 },
-		{ 1, 3, 0 },
-		{ 2, 3, 1 },
-	};
+	nodes[0]->GetOutput(0)->Link(nodes[1]->GetInput(0));
+	nodes[0]->GetOutput(0)->Link(nodes[2]->GetInput(0));
+	nodes[1]->GetOutput(0)->Link(nodes[3]->GetInput(0));
+	nodes[2]->GetOutput(0)->Link(nodes[3]->GetInput(1));
 
 	MaterialShaderGraph graph(nullptr);
-	graph.SetGraph(std::move(nodes), std::move(links));
+	graph.SetGraph(std::move(nodes));
 	std::string shaderCode = graph.GetShaderCode();
 	cout << shaderCode << endl;
 

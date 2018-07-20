@@ -13,7 +13,7 @@ namespace inl::gxeng {
 class MaterialEditorNode : public IGraphEditorNode {
 public:
 	MaterialEditorNode() = default;
-	MaterialEditorNode(std::unique_ptr<MaterialShader2> realNode);
+	MaterialEditorNode(std::unique_ptr<MaterialShader> realNode);
 
 	std::string GetName() const override;
 	void SetName(std::string name) override;
@@ -37,12 +37,12 @@ public:
 	std::string GetInputTypeName(int idx) const override;
 	std::string GetOutputTypeName(int idx) const override;
 
-	MaterialShader2* GetRealNode() const;
+	MaterialShader* GetRealNode() const;
 
 	void SetMetaData(NodeMetaDescription data) override;
 	NodeMetaDescription GetMetaData() const override;
 private:
-	std::unique_ptr<MaterialShader2> m_realNode;
+	std::unique_ptr<MaterialShader> m_realNode;
 	NodeMetaDescription m_metaData;
 };
 
