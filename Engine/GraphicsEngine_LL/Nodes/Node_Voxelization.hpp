@@ -27,6 +27,8 @@ class Voxelization :
 {
 public:
 	static const char* Info_GetName() { return "Voxelization"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	Voxelization();
 
 	void Update() override {}

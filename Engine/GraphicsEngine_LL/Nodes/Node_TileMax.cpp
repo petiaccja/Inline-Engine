@@ -37,6 +37,19 @@ void TileMax::Reset() {
 	GetInput<0>().Clear();
 }
 
+const std::string& TileMax::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"colorTex"
+	};
+	return names[index];
+}
+
+const std::string& TileMax::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"tileMaxTex"
+	};
+	return names[index];
+}
 
 void TileMax::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

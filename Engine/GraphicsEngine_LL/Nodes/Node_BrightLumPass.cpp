@@ -37,6 +37,20 @@ void BrightLumPass::Reset() {
 	GetInput<0>().Clear();
 }
 
+const std::string& BrightLumPass::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"colorTex"
+	};
+	return names[index];
+}
+
+const std::string& BrightLumPass::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"brightPassTex",
+		"luminanceTex"
+	};
+	return names[index];
+}
 
 void BrightLumPass::Setup(SetupContext& context) {
 	Texture2D inputTex = this->GetInput<0>().Get();

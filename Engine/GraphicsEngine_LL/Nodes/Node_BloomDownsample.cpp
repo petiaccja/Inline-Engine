@@ -36,6 +36,19 @@ void BloomDownsample::Reset() {
 	GetInput<0>().Clear();
 }
 
+const std::string& BloomDownsample::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"colorTex"
+	};
+	return names[index];
+}
+
+const std::string& BloomDownsample::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"downsampleOutput"
+	};
+	return names[index];
+}
 
 void BloomDownsample::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

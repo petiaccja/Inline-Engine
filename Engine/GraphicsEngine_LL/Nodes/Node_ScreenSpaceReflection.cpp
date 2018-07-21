@@ -42,6 +42,21 @@ void ScreenSpaceReflection::Reset() {
 	GetInput<0>().Clear();
 }
 
+const std::string& ScreenSpaceReflection::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"colorTex",
+		"depthTex",
+		"camera"
+	};
+	return names[index];
+}
+
+const std::string& ScreenSpaceReflection::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"screenSpaceReflectionTex"
+	};
+	return names[index];
+}
 
 void ScreenSpaceReflection::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

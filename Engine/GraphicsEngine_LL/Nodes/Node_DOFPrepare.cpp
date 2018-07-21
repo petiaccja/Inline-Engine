@@ -43,6 +43,22 @@ void DOFPrepare::Reset() {
 	GetInput<2>().Clear();
 }
 
+const std::string& DOFPrepare::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"colorTex",
+		"depthTex",
+		"camera"
+	};
+	return names[index];
+}
+
+const std::string& DOFPrepare::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"dofPrepareTex",
+		"depthTex"
+	};
+	return names[index];
+}
 
 void DOFPrepare::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

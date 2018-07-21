@@ -65,6 +65,20 @@ void ShadowMapGen::Reset() {
 	GetInput(1)->Clear();
 }
 
+const std::string& ShadowMapGen::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"cubemapDSVs"
+		"entities"
+	};
+	return names[index];
+}
+
+const std::string& ShadowMapGen::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"cubeShadowMaps"
+	};
+	return names[index];
+}
 
 void ShadowMapGen::Setup(SetupContext & context) {
 	Texture2D& pointLightCubemaps = this->GetInput<0>().Get();

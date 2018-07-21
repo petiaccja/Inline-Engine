@@ -23,6 +23,8 @@ class ShadowFilter :
 {
 public:
 	static const char* Info_GetName() { return "ShadowFilter"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	ShadowFilter();
 
 	void Update() override {}

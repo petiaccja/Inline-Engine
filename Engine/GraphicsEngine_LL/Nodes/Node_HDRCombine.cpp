@@ -56,6 +56,25 @@ void HDRCombine::Reset() {
 	GetInput<7>().Clear();
 }
 
+const std::string& HDRCombine::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"colorTex",
+		"luminanceTex",
+		"bloomTex",
+		"lensFlareTex",
+		"colorGradingImage",
+		"lensFlareDirtImage",
+		"lensFlareStarImage"
+	};
+	return names[index];
+}
+
+const std::string& HDRCombine::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"combinedOutput"
+	};
+	return names[index];
+}
 
 void HDRCombine::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

@@ -23,6 +23,8 @@ class ScreenSpaceAmbientOcclusion :
 {
 public:
 	static const char* Info_GetName() { return "ScreenSpaceAmbientOcclusion"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	ScreenSpaceAmbientOcclusion();
 
 	void Update() override {}

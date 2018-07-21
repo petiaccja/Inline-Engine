@@ -23,6 +23,8 @@ class LuminanceReductionFinal :
 {
 public:
 	static const char* Info_GetName() { return "LuminanceReductionFinal"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	LuminanceReductionFinal();
 
 	void Update() override {}

@@ -119,6 +119,30 @@ void Voxelization::Reset() {
 	GetInput(4)->Clear();
 }
 
+const std::string& Voxelization::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"entities",
+		"camera",
+		"colorRTV",
+		"depthStencil",
+		"shadowCSMTex",
+		"shadowCSMExtentsTex",
+		"velocityNormalTex",
+		"albedoRoughnessMetalnessTex",
+		"screenSpaceReflectionsTex",
+		"screenSpaceAmbientOcclusion"
+	};
+	return names[index];
+}
+
+const std::string& Voxelization::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"voxelTex",
+		"colorOutput",
+		"depthStencilOutput"
+	};
+	return names[index];
+}
 
 void Voxelization::Setup(SetupContext & context) {
 	m_entities = this->GetInput<0>().Get();

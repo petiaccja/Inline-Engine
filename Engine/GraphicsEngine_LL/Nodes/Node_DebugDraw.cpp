@@ -68,6 +68,20 @@ void DebugDraw::Reset() {
 	m_camera = nullptr;
 }
 
+const std::string& DebugDraw::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"colorRTV",
+		"camera"
+	};
+	return names[index];
+}
+
+const std::string& DebugDraw::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"debugOutput",
+	};
+	return names[index];
+}
 
 void DebugDraw::Setup(SetupContext& context) {
 	Texture2D& renderTarget = this->GetInput<0>().Get();

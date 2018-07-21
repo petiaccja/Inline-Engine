@@ -23,6 +23,8 @@ class BloomDownsample :
 {
 public:
 	static const char* Info_GetName() { return "BloomDownsample"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	BloomDownsample();
 
 	void Update() override {}

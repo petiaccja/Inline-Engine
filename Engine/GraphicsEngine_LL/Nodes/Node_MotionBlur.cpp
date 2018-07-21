@@ -50,6 +50,26 @@ void MotionBlur::Reset() {
 	GetInput<3>().Clear();
 }
 
+const std::string& MotionBlur::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"colorRTV",
+		"depthStencil",
+		"entities",
+		"camera",
+		"directionalLights",
+		"layeredShadowTex",
+		"lightCullData",
+		"screenSpaceShadowTex"
+	};
+	return names[index];
+}
+
+const std::string& MotionBlur::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"motionBlurOutput"
+	};
+	return names[index];
+}
 
 void MotionBlur::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

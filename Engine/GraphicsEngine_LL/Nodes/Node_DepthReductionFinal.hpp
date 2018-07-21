@@ -23,6 +23,8 @@ class DepthReductionFinal :
 {
 public:
 	static const char* Info_GetName() { return "DepthReductionFinal"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	DepthReductionFinal();
 
 	void Update() override {}

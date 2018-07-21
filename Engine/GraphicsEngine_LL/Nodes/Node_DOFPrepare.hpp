@@ -23,6 +23,8 @@ class DOFPrepare :
 {
 public:
 	static const char* Info_GetName() { return "DOSPrepare"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	DOFPrepare();
 
 	void Update() override {}

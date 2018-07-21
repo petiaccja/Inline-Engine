@@ -123,6 +123,28 @@ void ForwardRender::Reset() {
 	GetInput<7>().Clear();
 }
 
+const std::string& ForwardRender::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"colorRTV",
+		"depthStencil",
+		"entities",
+		"camera",
+		"directionalLights",
+		"layeredShadowTex",
+		"lightCullData",
+		"screenSpaceShadowTex"
+	};
+	return names[index];
+}
+
+const std::string& ForwardRender::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"litColor",
+		"velocityNormal",
+		"albedoRoughnessMetalness"
+	};
+	return names[index];
+}
 
 void ForwardRender::Setup(SetupContext& context) {
 	auto& target = this->GetInput<0>().Get();

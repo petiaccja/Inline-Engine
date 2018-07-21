@@ -37,6 +37,20 @@ void LensFlare::Reset() {
 	GetInput<1>().Clear();
 }
 
+const std::string& LensFlare::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"inputTex",
+		"colorImage"
+	};
+	return names[index];
+}
+
+const std::string& LensFlare::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"lensFlareOutput"
+	};
+	return names[index];
+}
 
 void LensFlare::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

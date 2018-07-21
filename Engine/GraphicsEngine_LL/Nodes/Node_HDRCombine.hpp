@@ -24,6 +24,8 @@ class HDRCombine :
 {
 public:
 	static const char* Info_GetName() { return "HDRCombine"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	HDRCombine();
 
 	void Update() override {}

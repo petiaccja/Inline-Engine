@@ -39,6 +39,20 @@ void BloomAdd::Reset() {
 	GetInput<1>().Clear();
 }
 
+const std::string& BloomAdd::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"inputTex0",
+		"inputTex1"
+	};
+	return names[index];
+}
+
+const std::string& BloomAdd::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"colorSum"
+	};
+	return names[index];
+}
 
 void BloomAdd::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

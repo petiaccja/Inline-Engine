@@ -41,6 +41,22 @@ void SMAA::Reset() {
 	GetInput<2>().Clear();
 }
 
+const std::string& SMAA::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"colorTex",
+		"areaImage",
+		"searchImage",
+		"neighborHoodBlendingRTV",
+	};
+	return names[index];
+}
+
+const std::string& SMAA::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"smaaOutput"
+	};
+	return names[index];
+}
 
 void SMAA::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

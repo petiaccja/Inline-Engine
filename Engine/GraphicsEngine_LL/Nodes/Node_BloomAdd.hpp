@@ -23,6 +23,8 @@ class BloomAdd :
 {
 public:
 	static const char* Info_GetName() { return "BloomAdd"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	BloomAdd();
 
 	void Update() override {}

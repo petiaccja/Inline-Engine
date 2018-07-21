@@ -54,6 +54,19 @@ void DepthReduction::Reset() {
 	GetInput(0)->Clear();
 }
 
+const std::string& DepthReduction::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"colorTex"
+	};
+	return names[index];
+}
+
+const std::string& DepthReduction::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"reductionTex"
+	};
+	return names[index];
+}
 
 void DepthReduction::Setup(SetupContext& context) {
 	auto& inputDepth = this->GetInput<0>().Get();

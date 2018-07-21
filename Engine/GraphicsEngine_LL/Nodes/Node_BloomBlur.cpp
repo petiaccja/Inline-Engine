@@ -41,6 +41,20 @@ void BloomBlur::Reset() {
 	GetInput<1>().Clear();
 }
 
+const std::string& BloomBlur::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"colorTex"
+		"dir"
+	};
+	return names[index];
+}
+
+const std::string& BloomBlur::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"blurOutput"
+	};
+	return names[index];
+}
 
 void BloomBlur::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

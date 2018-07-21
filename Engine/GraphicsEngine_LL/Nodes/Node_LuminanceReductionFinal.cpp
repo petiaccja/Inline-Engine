@@ -37,6 +37,19 @@ void LuminanceReductionFinal::Reset() {
 	GetInput<0>().Clear();
 }
 
+const std::string& LuminanceReductionFinal::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"reductionTex"
+	};
+	return names[index];
+}
+
+const std::string& LuminanceReductionFinal::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"averageLuminance"
+	};
+	return names[index];
+}
 
 void LuminanceReductionFinal::Setup(SetupContext& context) {
 	InitRenderTarget(context);
