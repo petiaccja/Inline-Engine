@@ -64,7 +64,8 @@ const std::string& HDRCombine::GetInputName(size_t index) const {
 		"lensFlareTex",
 		"colorGradingImage",
 		"lensFlareDirtImage",
-		"lensFlareStarImage"
+		"lensFlareStarImage",
+		"camera"
 	};
 	return names[index];
 }

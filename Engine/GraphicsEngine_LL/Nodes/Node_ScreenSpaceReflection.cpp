@@ -46,7 +46,8 @@ const std::string& ScreenSpaceReflection::GetInputName(size_t index) const {
 	static const std::vector<std::string> names = {
 		"colorTex",
 		"depthTex",
-		"camera"
+		"camera",
+		"velocityNormalTex"
 	};
 	return names[index];
 }

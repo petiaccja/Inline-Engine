@@ -43,7 +43,7 @@ void BloomBlur::Reset() {
 
 const std::string& BloomBlur::GetInputName(size_t index) const {
 	static const std::vector<std::string> names = {
-		"colorTex"
+		"colorTex",
 		"dir"
 	};
 	return names[index];
