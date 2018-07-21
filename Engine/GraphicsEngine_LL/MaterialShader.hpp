@@ -127,6 +127,12 @@ public:
 	const std::string& GetInputName(size_t index) const override;
 	const std::string& GetOutputName(size_t index) const override;
 
+	struct Hash {
+		size_t operator()(const MaterialShader& obj) const { return obj.GetHash(); }
+	};
+	struct EqualTo {
+		size_t operator()(const MaterialShader& lhs, const MaterialShader& rhs) const { return lhs.GetShaderCode() == rhs.GetShaderCode(); }
+	};
 protected:
 	// HLSL string processing helpers
 	static std::string RemoveComments(std::string code);

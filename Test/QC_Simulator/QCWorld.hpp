@@ -4,6 +4,7 @@
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
 #include <GraphicsEngine_LL/Mesh.hpp>
 #include <GraphicsEngine_LL/Material.hpp>
+#include <GraphicsEngine_LL/MaterialShader.hpp>
 #include <GraphicsEngine_LL/Image.hpp>
 #include <GraphicsEngine_LL/MeshEntity.hpp>
 #include <GraphicsEngine_LL/Scene.hpp>

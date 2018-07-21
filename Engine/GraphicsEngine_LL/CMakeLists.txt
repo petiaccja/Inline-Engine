@@ -179,10 +179,12 @@ set(node_draw
 	"Nodes/Node_DrawSky.cpp"
 	"Nodes/Node_DepthPrepass.cpp"
 	"Nodes/Node_RenderOverlay.cpp"
+	"Nodes/Node_RenderForwardSimple.cpp"
 	
 	"Nodes/Node_DrawSky.hpp"
 	"Nodes/Node_DepthPrepass.hpp"
 	"Nodes/Node_RenderOverlay.hpp"
+	"Nodes/Node_RenderForwardSimple.hpp"
 
 	"Nodes/Shaders/RenderOverlay_Overlay.hlsl"
 	"Nodes/Shaders/RenderOverlay_Text.hlsl"

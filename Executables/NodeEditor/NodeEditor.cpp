@@ -541,6 +541,7 @@ void NodeEditor::OpenFile(std::string path) {
 		try {
 			graphEditor->LoadJSON(json);
 			m_graphEditor = graphEditor;
+			loaded = true;
 			break;
 		}
 		catch (NotSupportedException&) {
@@ -551,8 +552,12 @@ void NodeEditor::OpenFile(std::string path) {
 			std::cout << ex.what() << std::endl;
 			ex.PrintStackTrace(std::cout);
 			std::cout << std::endl;
-			break;
+			return;
 		}
+	}
+	if (!loaded) {
+		std::cout << "Graph has missing type or is incompatible with all editors." << std::endl;
+		return;
 	}
 
 	m_nodes.clear();
