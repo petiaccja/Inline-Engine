@@ -67,7 +67,7 @@ void ShadowMapGen::Reset() {
 
 const std::string& ShadowMapGen::GetInputName(size_t index) const {
 	static const std::vector<std::string> names = {
-		"cubemapDSVs"
+		"cubemapDSVs",
 		"entities"
 	};
 	return names[index];

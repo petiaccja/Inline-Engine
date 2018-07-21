@@ -45,7 +45,8 @@ void ScreenSpaceAmbientOcclusion::Reset() {
 const std::string& ScreenSpaceAmbientOcclusion::GetInputName(size_t index) const {
 	static const std::vector<std::string> names = {
 		"depthTex",
-		"camera"
+		"camera",
+		"velocityNormalTex"
 	};
 	return names[index];
 }
