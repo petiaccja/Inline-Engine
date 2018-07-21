@@ -60,6 +60,8 @@ private:
 
 public:
 	static const char* Info_GetName() { return "ForwardRender"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	ForwardRender();
 
 	void Update() override {}

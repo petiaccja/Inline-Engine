@@ -42,6 +42,20 @@ void ScreenSpaceAmbientOcclusion::Reset() {
 	GetInput<0>().Clear();
 }
 
+const std::string& ScreenSpaceAmbientOcclusion::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"depthTex",
+		"camera"
+	};
+	return names[index];
+}
+
+const std::string& ScreenSpaceAmbientOcclusion::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"ssaoOutput"
+	};
+	return names[index];
+}
 
 void ScreenSpaceAmbientOcclusion::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

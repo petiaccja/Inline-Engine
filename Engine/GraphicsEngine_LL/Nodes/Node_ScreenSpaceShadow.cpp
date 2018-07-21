@@ -41,6 +41,20 @@ void ScreenSpaceShadow::Reset() {
 	GetInput<0>().Clear();
 }
 
+const std::string& ScreenSpaceShadow::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"depthTex",
+		"camera"
+	};
+	return names[index];
+}
+
+const std::string& ScreenSpaceShadow::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"screenSpaceShadowTex"
+	};
+	return names[index];
+}
 
 void ScreenSpaceShadow::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

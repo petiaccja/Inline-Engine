@@ -23,6 +23,8 @@ class TileMax :
 {
 public:
 	static const char* Info_GetName() { return "TileMax"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	TileMax();
 
 	void Update() override {}

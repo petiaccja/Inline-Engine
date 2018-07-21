@@ -23,6 +23,8 @@ class ScreenSpaceShadow :
 {
 public:
 	static const char* Info_GetName() { return "ScreenSpaceShadow"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	ScreenSpaceShadow();
 
 	void Update() override {}

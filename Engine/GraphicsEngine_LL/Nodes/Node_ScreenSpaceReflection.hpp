@@ -23,6 +23,8 @@ class ScreenSpaceReflection :
 {
 public:
 	static const char* Info_GetName() { return "ScreenSpaceReflection"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	ScreenSpaceReflection();
 
 	void Update() override {}

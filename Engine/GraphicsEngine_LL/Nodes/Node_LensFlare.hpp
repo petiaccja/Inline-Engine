@@ -24,6 +24,8 @@ class LensFlare :
 {
 public:
 	static const char* Info_GetName() { return "LensBlur"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	LensFlare();
 
 	void Update() override {}

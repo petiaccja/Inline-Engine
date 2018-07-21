@@ -220,7 +220,7 @@ void DepthPrepass::Execute(RenderContext & context) {
 
 const std::string& DepthPrepass::GetInputName(size_t index) const {
 	static const std::vector<std::string> names = {
-		"Render target",
+		"depthStencilTex",
 		"Camera",
 		"Mesh entities"
 	};
@@ -229,7 +229,7 @@ const std::string& DepthPrepass::GetInputName(size_t index) const {
 
 const std::string& DepthPrepass::GetOutputName(size_t index) const {
 	static const std::vector<std::string> names = {
-		"Render target",
+		"depthPrepassOutput",
 	};
 	return names[index];
 }

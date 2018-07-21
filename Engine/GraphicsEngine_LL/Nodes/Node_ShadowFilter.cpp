@@ -42,6 +42,25 @@ void ShadowFilter::Reset() {
 	GetInput<0>().Clear();
 }
 
+const std::string& ShadowFilter::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"csmTex",
+		"shadowMxTex",
+		"csmSplitsTex",
+		"lightMvpTex",
+		"cubeShadowTex",
+		"depthTex",
+		"camera"
+	};
+	return names[index];
+}
+
+const std::string& ShadowFilter::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"layeredShadowMap"
+	};
+	return names[index];
+}
 
 void ShadowFilter::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

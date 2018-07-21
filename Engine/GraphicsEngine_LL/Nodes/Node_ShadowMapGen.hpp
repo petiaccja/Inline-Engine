@@ -26,6 +26,8 @@ class ShadowMapGen :
 {
 public:
 	static const char* Info_GetName() { return "ShadowMapGen"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	ShadowMapGen();
 
 	void Update() override {}

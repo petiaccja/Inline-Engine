@@ -108,6 +108,25 @@ void VolumetricLighting::Reset() {
 	GetInput<2>().Clear();
 }
 
+const std::string& VolumetricLighting::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"depthTex",
+		"colorTex",
+		"lightCullTex",
+		"camera",
+		"csmTex",
+		"shadowMxTex",
+		"csmSplitsTex"
+	};
+	return names[index];
+}
+
+const std::string& VolumetricLighting::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"sdfCullData"
+	};
+	return names[index];
+}
 
 void VolumetricLighting::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

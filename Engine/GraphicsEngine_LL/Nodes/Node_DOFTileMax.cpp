@@ -40,6 +40,20 @@ void DOFTileMax::Reset() {
 	GetInput<1>().Clear();
 }
 
+const std::string& DOFTileMax::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"colorTex",
+		"depthTex"
+	};
+	return names[index];
+}
+
+const std::string& DOFTileMax::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"tileMaxTex"
+	};
+	return names[index];
+}
 
 void DOFTileMax::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

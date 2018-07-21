@@ -23,6 +23,8 @@ class DOFNeighborMax :
 {
 public:
 	static const char* Info_GetName() { return "DofNeighborMax"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	DOFNeighborMax();
 
 	void Update() override {}

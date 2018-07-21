@@ -54,6 +54,19 @@ void LuminanceReduction::Reset() {
 	GetInput(0)->Clear();
 }
 
+const std::string& LuminanceReduction::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"luminanceTex"
+	};
+	return names[index];
+}
+
+const std::string& LuminanceReduction::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"reductionTex"
+	};
+	return names[index];
+}
 
 void LuminanceReduction::Setup(SetupContext& context) {
 	auto& inputLuminance = this->GetInput<0>().Get();

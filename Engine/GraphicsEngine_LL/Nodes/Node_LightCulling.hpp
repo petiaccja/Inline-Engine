@@ -23,6 +23,8 @@ class LightCulling :
 {
 public:
 	static const char* Info_GetName() { return "LightCulling"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	LightCulling();
 
 	void Update() override {}

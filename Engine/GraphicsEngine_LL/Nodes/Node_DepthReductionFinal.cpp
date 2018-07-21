@@ -46,6 +46,24 @@ void DepthReductionFinal::Reset() {
 	GetInput<2>().Clear();
 }
 
+const std::string& DepthReductionFinal::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"reductionTex",
+		"camera",
+		"directionalLights"
+	};
+	return names[index];
+}
+
+const std::string& DepthReductionFinal::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"lightMvpTex",
+		"shadowMxTex",
+		"csmSplitsTex",
+		"csmExtentsTex"
+	};
+	return names[index];
+}
 
 void DepthReductionFinal::Setup(SetupContext& context) {
 	InitRenderTarget(context);

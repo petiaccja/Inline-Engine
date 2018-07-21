@@ -68,6 +68,21 @@ void CSM::Reset() {
 	GetInput(2)->Clear();
 }
 
+const std::string& CSM::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"depthDSV",
+		"entities",
+		"lightMvpTex"
+	};
+	return names[index];
+}
+
+const std::string& CSM::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"csmTex"
+	};
+	return names[index];
+}
 
 void CSM::Setup(SetupContext & context) {
 	Texture2D& renderTarget = this->GetInput<0>().Get();

@@ -27,6 +27,8 @@ class DebugDraw :
 {
 public:
 	static const char* Info_GetName() { return "DebugDraw"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	DebugDraw();
 
 	void Update() override {}

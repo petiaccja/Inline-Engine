@@ -23,6 +23,8 @@ class VolumetricLighting :
 {
 public:
 	static const char* Info_GetName() { return "VolumetricLighting"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	VolumetricLighting();
 
 	void Update() override {}

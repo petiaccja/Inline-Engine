@@ -76,6 +76,20 @@ void LightCulling::Reset() {
 	//GetInput<2>().Clear();
 }
 
+const std::string& LightCulling::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"depthTex",
+		"camera"
+	};
+	return names[index];
+}
+
+const std::string& LightCulling::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"lightCullData"
+	};
+	return names[index];
+}
 
 void LightCulling::Setup(SetupContext& context) {
 	Texture2D depthTex = this->GetInput<0>().Get();

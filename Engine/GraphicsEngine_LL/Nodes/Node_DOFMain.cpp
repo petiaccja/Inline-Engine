@@ -53,6 +53,24 @@ void DOFMain::Reset() {
 	GetInput<5>().Clear();
 }
 
+const std::string& DOFMain::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"colorTex",
+		"halfDepthTex",
+		"neighborhoodMaxTex",
+		"camera",
+		"originalTex",
+		"depthTex"
+	};
+	return names[index];
+}
+
+const std::string& DOFMain::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"dofOutput"
+	};
+	return names[index];
+}
 
 void DOFMain::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

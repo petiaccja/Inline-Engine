@@ -23,6 +23,8 @@ class MotionBlur :
 {
 public:
 	static const char* Info_GetName() { return "MotionBlur"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	MotionBlur();
 
 	void Update() override {}

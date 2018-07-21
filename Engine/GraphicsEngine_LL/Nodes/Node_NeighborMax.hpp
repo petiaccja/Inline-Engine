@@ -23,6 +23,8 @@ class NeighborMax :
 {
 public:
 	static const char* Info_GetName() { return "NeightborMax"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	NeighborMax();
 
 	void Update() override {}

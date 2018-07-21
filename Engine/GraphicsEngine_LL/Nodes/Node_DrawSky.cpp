@@ -219,7 +219,7 @@ const std::string& DrawSky::GetInputName(size_t index) const {
 
 const std::string& DrawSky::GetOutputName(size_t index) const {
 	static const std::vector<std::string> names = {
-		"Render target",
+		"SkyTex",
 	};
 	return names[index];
 }

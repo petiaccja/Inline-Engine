@@ -36,6 +36,19 @@ void NeighborMax::Reset() {
 	GetInput<0>().Clear();
 }
 
+const std::string& NeighborMax::GetInputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"colorTex",
+	};
+	return names[index];
+}
+
+const std::string& NeighborMax::GetOutputName(size_t index) const {
+	static const std::vector<std::string> names = {
+		"neighborhoodMaxTex"
+	};
+	return names[index];
+}
 
 void NeighborMax::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;

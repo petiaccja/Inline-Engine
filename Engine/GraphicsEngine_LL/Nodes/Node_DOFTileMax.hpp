@@ -23,6 +23,8 @@ class DOFTileMax :
 {
 public:
 	static const char* Info_GetName() { return "DOFTileMax"; }
+	const std::string& GetInputName(size_t index) const override;
+	const std::string& GetOutputName(size_t index) const override;
 	DOFTileMax();
 
 	void Update() override {}
