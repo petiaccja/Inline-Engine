@@ -1,4 +1,4 @@
-#include "Node_LightCulling.hpp"
+#include "LightCulling.hpp"
 
 #include "NodeUtility.hpp"
 
@@ -16,20 +16,20 @@
 
 namespace inl::gxeng::nodes {
 
-struct light_data
+struct LightData
 {
-	Vec4_Packed vs_position;
-	float attenuation_end;
+	Vec4_Packed vsPosition;
+	float attenuationEnd;
 	Vec3_Packed dummy;
 };
 
 struct Uniforms
 {
-	light_data ld[10];
+	LightData ld[10];
 	Mat44_Packed p;
-	Vec4_Packed far_plane0, far_plane1;
-	float cam_near, cam_far;
-	uint32_t num_lights, num_workgroups_x, num_workgroups_y;
+	Vec4_Packed farPlane0, farPlane1;
+	float camNear, camFar;
+	uint32_t numLights, numWorkgroupsX, numWorkgroupsY;
 	Vec3_Packed dummy;
 };
 
@@ -180,9 +180,9 @@ void LightCulling::Execute(RenderContext& context) {
 
 	Uniforms uniformsCBData;
 
-	uniformsCBData.cam_near = m_camera->GetNearPlane();
-	uniformsCBData.cam_far = m_camera->GetFarPlane();
-	uniformsCBData.num_lights = 1;
+	uniformsCBData.camNear = m_camera->GetNearPlane();
+	uniformsCBData.camFar = m_camera->GetFarPlane();
+	uniformsCBData.numLights = 1;
 	uniformsCBData.p = m_camera->GetProjectionMatrix();
 
 	Mat44 invVP = (m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix()).Inverse();
@@ -200,20 +200,20 @@ void LightCulling::Execute(RenderContext& context) {
 	ndcCorners[0] /= ndcCorners[0].w;
 	ndcCorners[1] /= ndcCorners[1].w;
 
-	uniformsCBData.far_plane0 = Vec4(ndcCorners[0].xyz, ndcCorners[1].x);
-	uniformsCBData.far_plane1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0.0f, 0.0f);
+	uniformsCBData.farPlane0 = Vec4(ndcCorners[0].xyz, ndcCorners[1].x);
+	uniformsCBData.farPlane1 = Vec4(ndcCorners[1].y, ndcCorners[1].z, 0.0f, 0.0f);
 
-	uniformsCBData.ld[0].vs_position = Vec4(Vec3(0, 0, 1), 1.0f) * m_camera->GetViewMatrix();
+	uniformsCBData.ld[0].vsPosition = Vec4(Vec3(0, 0, 1), 1.0f) * m_camera->GetViewMatrix();
 	//uniformsCBData.ld[0].vs_position = Vec4(m_camera->GetPosition() + m_camera->GetLookDirection() * 5.f, 1.0f) * m_camera->GetViewMatrix();
-	uniformsCBData.ld[0].attenuation_end = 5.0f;
+	uniformsCBData.ld[0].attenuationEnd = 5.0f;
 
 	//DebugDrawManager::GetInstance().AddSphere(Vec3(0, 0, 1), 5.0f, 0);
 
 	uint32_t dispatchW, dispatchH;
 	SetWorkgroupSize((unsigned)m_width, (unsigned)m_height, 16, 16, dispatchW, dispatchH);
 
-	uniformsCBData.num_workgroups_x = dispatchW;
-	uniformsCBData.num_workgroups_y = dispatchH;
+	uniformsCBData.numWorkgroupsX = dispatchW;
+	uniformsCBData.numWorkgroupsY = dispatchH;
 
 	//create single-frame only cb
 	gxeng::VolatileConstBuffer cb = context.CreateVolatileConstBuffer(&uniformsCBData, sizeof(Uniforms));

@@ -45,8 +45,8 @@ protected:
 
 protected: // outputs
 	bool m_outputTexturesInited = false;
-	RenderTargetView2D m_prepare_rtv;
-	RenderTargetView2D m_depth_rtv;
+	RenderTargetView2D m_prepareRTV;
+	RenderTargetView2D m_depthRTV;
 
 protected: // render context
 	TextureView2D m_inputTexSrv;

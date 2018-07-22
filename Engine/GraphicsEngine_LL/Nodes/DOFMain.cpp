@@ -1,4 +1,4 @@
-#include "Node_DOFMain.hpp"
+#include "DOFMain.hpp"
 
 #include "NodeUtility.hpp"
 
@@ -173,7 +173,7 @@ void DOFMain::Setup(SetupContext& context) {
 		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, sampBindParamDesc2, inputBindParamDesc, depthBindParamDesc, neighborhoodMaxBindParamDesc }, { samplerDesc, samplerDesc2 });
 	}
 
-	if (!m_main_PSO) {
+	if (!m_mainPSO) {
 		InitRenderTarget(context);
 
 		ShaderParts shaderParts;
@@ -186,14 +186,14 @@ void DOFMain::Setup(SetupContext& context) {
 		};
 
 		{
-			m_main_shader = context.CreateShader("DOFMain", shaderParts, "");
+			m_mainShader = context.CreateShader("DOFMain", shaderParts, "");
 
 			gxapi::GraphicsPipelineStateDesc psoDesc;
 			psoDesc.inputLayout.elements = inputElementDesc.data();
 			psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
 			psoDesc.rootSignature = m_binder->GetRootSignature();
-			psoDesc.vs = m_main_shader.vs;
-			psoDesc.ps = m_main_shader.ps;
+			psoDesc.vs = m_mainShader.vs;
+			psoDesc.ps = m_mainShader.ps;
 			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
@@ -203,20 +203,20 @@ void DOFMain::Setup(SetupContext& context) {
 			psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
 
 			psoDesc.numRenderTargets = 1;
-			psoDesc.renderTargetFormats[0] = m_main_rtv.GetResource().GetFormat();
+			psoDesc.renderTargetFormats[0] = m_mainRTV.GetResource().GetFormat();
 
-			m_main_PSO.reset(context.CreatePSO(psoDesc));
+			m_mainPSO.reset(context.CreatePSO(psoDesc));
 		}
 
 		{
-			m_postfilter_shader = context.CreateShader("DOFPostfilter", shaderParts, "");
+			m_postfilterShader = context.CreateShader("DOFPostfilter", shaderParts, "");
 
 			gxapi::GraphicsPipelineStateDesc psoDesc;
 			psoDesc.inputLayout.elements = inputElementDesc.data();
 			psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
 			psoDesc.rootSignature = m_binder->GetRootSignature();
-			psoDesc.vs = m_postfilter_shader.vs;
-			psoDesc.ps = m_postfilter_shader.ps;
+			psoDesc.vs = m_postfilterShader.vs;
+			psoDesc.ps = m_postfilterShader.ps;
 			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
@@ -226,20 +226,20 @@ void DOFMain::Setup(SetupContext& context) {
 			psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
 
 			psoDesc.numRenderTargets = 1;
-			psoDesc.renderTargetFormats[0] = m_postfilter_rtv.GetResource().GetFormat();
+			psoDesc.renderTargetFormats[0] = m_postfilterRTV.GetResource().GetFormat();
 
-			m_postfilter_PSO.reset(context.CreatePSO(psoDesc));
+			m_postfilterPSO.reset(context.CreatePSO(psoDesc));
 		}
 
 		{
-			m_upsample_shader = context.CreateShader("DOFUpsample", shaderParts, "");
+			m_upsampleShader = context.CreateShader("DOFUpsample", shaderParts, "");
 
 			gxapi::GraphicsPipelineStateDesc psoDesc;
 			psoDesc.inputLayout.elements = inputElementDesc.data();
 			psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
 			psoDesc.rootSignature = m_binder->GetRootSignature();
-			psoDesc.vs = m_upsample_shader.vs;
-			psoDesc.ps = m_upsample_shader.ps;
+			psoDesc.vs = m_upsampleShader.vs;
+			psoDesc.ps = m_upsampleShader.ps;
 			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
@@ -249,14 +249,14 @@ void DOFMain::Setup(SetupContext& context) {
 			psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
 
 			psoDesc.numRenderTargets = 1;
-			psoDesc.renderTargetFormats[0] = m_upsample_rtv.GetResource().GetFormat();
+			psoDesc.renderTargetFormats[0] = m_upsampleRTV.GetResource().GetFormat();
 
 			m_upsample_PSO.reset(context.CreatePSO(psoDesc));
 		}
 	}
 
 	//this->GetOutput<0>().Set(m_upsample_rtv.GetResource());
-	this->GetOutput<0>().Set(m_postfilter_rtv.GetResource());
+	this->GetOutput<0>().Set(m_postfilterRTV.GetResource());
 	//this->GetOutput<0>().Set(m_main_rtv.GetResource());
 }
 
@@ -286,7 +286,7 @@ void DOFMain::Execute(RenderContext& context) {
 
 	Vec3 pos = m_camera->GetPosition();
 
-	gxapi::Rectangle rect{ 0, (int)m_main_rtv.GetResource().GetHeight(), 0, (int)m_main_rtv.GetResource().GetWidth() };
+	gxapi::Rectangle rect{ 0, (int)m_mainRTV.GetResource().GetHeight(), 0, (int)m_mainRTV.GetResource().GetWidth() };
 	gxapi::Viewport viewport;
 	viewport.width = (float)rect.right;
 	viewport.height = (float)rect.bottom;
@@ -297,15 +297,15 @@ void DOFMain::Execute(RenderContext& context) {
 
 
 	{ //main pass
-		commandList.SetResourceState(m_main_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+		commandList.SetResourceState(m_mainRTV.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 
-		RenderTargetView2D* pRTV = &m_main_rtv;
+		RenderTargetView2D* pRTV = &m_mainRTV;
 		commandList.SetRenderTargets(1, &pRTV, 0);
 
 		commandList.SetScissorRects(1, &rect);
 		commandList.SetViewports(1, &viewport);
 
-		commandList.SetPipelineState(m_main_PSO.get());
+		commandList.SetPipelineState(m_mainPSO.get());
 		commandList.SetGraphicsBinder(&m_binder.value());
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
@@ -319,21 +319,21 @@ void DOFMain::Execute(RenderContext& context) {
 	}
 
 	{ //postfilter
-		commandList.SetResourceState(m_postfilter_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
-		commandList.SetResourceState(m_main_srv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_postfilterRTV.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+		commandList.SetResourceState(m_mainSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_originalTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
-		RenderTargetView2D* pRTV = &m_postfilter_rtv;
+		RenderTargetView2D* pRTV = &m_postfilterRTV;
 		commandList.SetRenderTargets(1, &pRTV, 0);
 
 		commandList.SetScissorRects(1, &rect);
 		commandList.SetViewports(1, &viewport);
 
-		commandList.SetPipelineState(m_postfilter_PSO.get());
+		commandList.SetPipelineState(m_postfilterPSO.get());
 		commandList.SetGraphicsBinder(&m_binder.value());
 		commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
-		commandList.BindGraphics(m_inputTexBindParam, m_main_srv);
+		commandList.BindGraphics(m_inputTexBindParam, m_mainSRV);
 		commandList.BindGraphics(m_depthTexBindParam, m_halfDepthTexSrv);
 		commandList.BindGraphics(m_neighborhoodMaxTexBindParam, m_originalTexSrv);
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
@@ -409,18 +409,18 @@ void DOFMain::InitRenderTarget(SetupContext& context) {
 			format,
 		};
 
-		Texture2D main_tex = context.CreateTexture2D(desc, { true, true, false, false });
-		main_tex.SetName("DOF main tex");
-		m_main_rtv = context.CreateRtv(main_tex, format, rtvDesc);
+		Texture2D mainTex = context.CreateTexture2D(desc, { true, true, false, false });
+		mainTex.SetName("DOF main tex");
+		m_mainRTV = context.CreateRtv(mainTex, format, rtvDesc);
 		
-		m_main_srv = context.CreateSrv(main_tex, format, srvDesc);
+		m_mainSRV = context.CreateSrv(mainTex, format, srvDesc);
 		
 
-		Texture2D postfilter_tex = context.CreateTexture2D(desc, { true, true, false, false });
-		postfilter_tex.SetName("DOF postfilter tex");
-		m_postfilter_rtv = context.CreateRtv(postfilter_tex, format, rtvDesc);
+		Texture2D postfilterTex = context.CreateTexture2D(desc, { true, true, false, false });
+		postfilterTex.SetName("DOF postfilter tex");
+		m_postfilterRTV = context.CreateRtv(postfilterTex, format, rtvDesc);
 		
-		m_postfilter_srv = context.CreateSrv(postfilter_tex, format, srvDesc);
+		m_postfilterSRV = context.CreateSrv(postfilterTex, format, srvDesc);
 		
 
 		desc = {
@@ -429,9 +429,9 @@ void DOFMain::InitRenderTarget(SetupContext& context) {
 			format
 		};
 
-		Texture2D upsample_tex = context.CreateTexture2D(desc, { true, true, false, false });
-		upsample_tex.SetName("DOF upsample tex");
-		m_upsample_rtv = context.CreateRtv(upsample_tex, format, rtvDesc);
+		Texture2D upsampleTex = context.CreateTexture2D(desc, { true, true, false, false });
+		upsampleTex.SetName("DOF upsample tex");
+		m_upsampleRTV = context.CreateRtv(upsampleTex, format, rtvDesc);
 		
 	}
 }

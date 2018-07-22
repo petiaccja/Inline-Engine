@@ -1,4 +1,4 @@
-#include "Node_Voxelization.hpp"
+#include "Voxelization.hpp"
 
 #include "NodeUtility.hpp"
 
@@ -845,25 +845,25 @@ void Voxelization::InitRenderTarget(SetupContext& context) {
 		texDesc.mipLevels = 0;
 
 		//TODO init to 0
-		Texture3D voxel_tex = context.CreateTexture3D(texDesc, { true, false, false, true });
-		voxel_tex.SetName("Voxelization voxel tex");	
+		Texture3D voxelTex = context.CreateTexture3D(texDesc, { true, false, false, true });
+		voxelTex.SetName("Voxelization voxel tex");	
 
-		m_voxelTexUAV.resize(voxel_tex.GetNumMiplevels());
-		m_voxelTexMipSRV.resize(voxel_tex.GetNumMiplevels());
-		m_voxelLightTexUAV.resize(voxel_tex.GetNumMiplevels());
-		m_voxelLightTexMipSRV.resize(voxel_tex.GetNumMiplevels());
-		m_voxelSecondaryTexUAV.resize(voxel_tex.GetNumMiplevels());
-		m_voxelSecondaryTexMipSRV.resize(voxel_tex.GetNumMiplevels());
+		m_voxelTexUAV.resize(voxelTex.GetNumMiplevels());
+		m_voxelTexMipSRV.resize(voxelTex.GetNumMiplevels());
+		m_voxelLightTexUAV.resize(voxelTex.GetNumMiplevels());
+		m_voxelLightTexMipSRV.resize(voxelTex.GetNumMiplevels());
+		m_voxelSecondaryTexUAV.resize(voxelTex.GetNumMiplevels());
+		m_voxelSecondaryTexMipSRV.resize(voxelTex.GetNumMiplevels());
 
-		m_voxelTexSRV = context.CreateSrv(voxel_tex, formatVoxel, srvDesc);
+		m_voxelTexSRV = context.CreateSrv(voxelTex, formatVoxel, srvDesc);
 		uavDesc.depthSize = voxelDimension;
-		for (unsigned c = 0; c < voxel_tex.GetNumMiplevels(); ++c)
+		for (unsigned c = 0; c < voxelTex.GetNumMiplevels(); ++c)
 		{
 			uavDesc.mipLevel = c;
-			m_voxelTexUAV[c] = context.CreateUav(voxel_tex, formatVoxel, uavDesc);
+			m_voxelTexUAV[c] = context.CreateUav(voxelTex, formatVoxel, uavDesc);
 			srvDesc.numMipLevels = 1;
 			srvDesc.mostDetailedMip = c;
-			m_voxelTexMipSRV[c] = context.CreateSrv(voxel_tex, formatVoxel, srvDesc);
+			m_voxelTexMipSRV[c] = context.CreateSrv(voxelTex, formatVoxel, srvDesc);
 			uavDesc.depthSize = uavDesc.depthSize / 2;
 		}
 
@@ -892,7 +892,7 @@ void Voxelization::InitRenderTarget(SetupContext& context) {
 		srvDesc.numMipLevels = -1;
 		m_voxelLightTexSRV = context.CreateSrv(voxelLightTex, formatVoxel, srvDesc);
 		uavDesc.depthSize = voxelDimension;
-		for (unsigned c = 0; c < voxel_tex.GetNumMiplevels(); ++c)
+		for (unsigned c = 0; c < voxelTex.GetNumMiplevels(); ++c)
 		{
 			uavDesc.mipLevel = c;
 			m_voxelLightTexUAV[c] = context.CreateUav(voxelLightTex, formatVoxel, uavDesc);

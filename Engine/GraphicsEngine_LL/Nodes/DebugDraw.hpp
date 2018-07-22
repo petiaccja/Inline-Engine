@@ -43,8 +43,8 @@ protected:
 	std::optional<Binder> m_binder;
 	BindParameter m_uniformsBindParam;
 	ShaderProgram m_shader;
-	std::unique_ptr<gxapi::IPipelineState> m_LinePSO;
-	std::unique_ptr<gxapi::IPipelineState> m_TrianglePSO;
+	std::unique_ptr<gxapi::IPipelineState> m_linePSO;
+	std::unique_ptr<gxapi::IPipelineState> m_trianglePSO;
 
 private:
 	void BuildVertexBuffers();

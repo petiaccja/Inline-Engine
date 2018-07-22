@@ -101,10 +101,10 @@ protected:
 	BindParameter m_csmSplitsBindParam;
 
 private:
-	RenderTargetView2D m_rtv;
-	RenderTargetView2D m_velocityNormal_rtv;
-	RenderTargetView2D m_albedoRoughnessMetalness_rtv;
-	DepthStencilView2D m_dsv;
+	RenderTargetView2D m_targetRTV;
+	RenderTargetView2D m_velocityNormalRTV;
+	RenderTargetView2D m_albedoRoughnessMetalnessRTV;
+	DepthStencilView2D m_targetDSV;
 	const EntityCollection<MeshEntity>* m_entities;
 	const BasicCamera* m_camera;
 	const EntityCollection<DirectionalLight>* m_directionalLights;

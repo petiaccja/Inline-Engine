@@ -1,4 +1,4 @@
-#include "Node_RenderForwardSimple.hpp"
+#include "RenderForwardSimple.hpp"
 
 
 namespace inl::gxeng::nodes {

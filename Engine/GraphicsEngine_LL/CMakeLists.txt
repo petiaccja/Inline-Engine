@@ -341,6 +341,9 @@ set(shaders_shadow_point_spot
 	
 set(shaders_shadow_filter
 	"Nodes/Shaders/ShadowMinfilter.hlsl"
+	"Nodes/Shaders/ShadowBlur.hlsl"
+	"Nodes/Shaders/ShadowBlurSample.hlsl"
+	"Nodes/Shaders/ShadowPenumbra.hlsl"
 )
 	
 set(shaders_debug

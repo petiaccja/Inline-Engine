@@ -15,17 +15,17 @@
 namespace inl::gxeng::nodes {
 
 
-class DOFMain :
+class DOFNeighborMax :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<Texture2D, Texture2D, Texture2D, const BasicCamera*, Texture2D, Texture2D>,
+	virtual public InputPortConfig<Texture2D>,
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
-	static const char* Info_GetName() { return "DOFMain"; }
+	static const char* Info_GetName() { return "DofNeighborMax"; }
 	const std::string& GetInputName(size_t index) const override;
 	const std::string& GetOutputName(size_t index) const override;
-	DOFMain();
+	DOFNeighborMax();
 
 	void Update() override {}
 	void Notify(InputPortBase* sender) override {}
@@ -38,31 +38,16 @@ public:
 protected:
 	std::optional<Binder> m_binder;
 	BindParameter m_inputTexBindParam;
-	BindParameter m_depthTexBindParam;
-	BindParameter m_neighborhoodMaxTexBindParam;
 	BindParameter m_uniformsBindParam;
-	ShaderProgram m_postfilter_shader;
-	ShaderProgram m_upsample_shader;
-	ShaderProgram m_main_shader;
-	std::unique_ptr<gxapi::IPipelineState> m_postfilter_PSO;
-	std::unique_ptr<gxapi::IPipelineState> m_main_PSO;
-	std::unique_ptr<gxapi::IPipelineState> m_upsample_PSO;
+	ShaderProgram m_shader;
+	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 protected: // outputs
 	bool m_outputTexturesInited = false;
-	RenderTargetView2D m_postfilter_rtv;
-	RenderTargetView2D m_main_rtv;
-	RenderTargetView2D m_upsample_rtv;
-	TextureView2D m_main_srv;
-	TextureView2D m_postfilter_srv;
+	RenderTargetView2D m_neighbormaxRTV;
 
 protected: // render context
 	TextureView2D m_inputTexSrv;
-	TextureView2D m_halfDepthTexSrv;
-	TextureView2D m_depthTexSrv;
-	TextureView2D m_neighborhoodMaxTexSrv;
-	TextureView2D m_originalTexSrv;
-	const BasicCamera* m_camera;
 
 private:
 	void InitRenderTarget(SetupContext& context);

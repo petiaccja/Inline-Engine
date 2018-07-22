@@ -1,4 +1,4 @@
-#include "Node_ForwardRender.hpp"
+#include "ForwardRender.hpp"
 
 #include "NodeUtility.hpp"
 
@@ -19,20 +19,20 @@
 
 namespace inl::gxeng::nodes {
 
-struct light_data
+struct LightData
 {
-	Vec4_Packed diffuse_color;
-	Vec4_Packed vs_position;
-	Vec4_Packed attenuation_end;
+	Vec4_Packed diffuseColor;
+	Vec4_Packed vsPosition;
+	Vec4_Packed attenuationEnd;
 };
 
 struct Uniforms
 {
 	Mat44_Packed invV;
-	light_data ld[10];
-	Vec4_Packed screen_dimensions;
-	Vec4_Packed vs_cam_pos;
-	int group_size_x, group_size_y;
+	LightData ld[10];
+	Vec4_Packed screenDimensions;
+	Vec4_Packed vsCamPos;
+	int groupSizeX, groupSizeY;
 	float halfExposureFramerate, //0.5 * exposure time (% of time exposure is open -> 0.75?) * frame rate (s? or fps?)
 		  maxMotionBlurRadius; //pixels
 };
@@ -105,10 +105,10 @@ void ForwardRender::Initialize(EngineContext & context) {
 }
 
 void ForwardRender::Reset() {
-	m_rtv = RenderTargetView2D();
-	m_velocityNormal_rtv = RenderTargetView2D();
-	m_albedoRoughnessMetalness_rtv = RenderTargetView2D();
-	m_dsv = DepthStencilView2D();
+	m_targetRTV = RenderTargetView2D();
+	m_velocityNormalRTV = RenderTargetView2D();
+	m_albedoRoughnessMetalnessRTV = RenderTargetView2D();
+	m_targetDSV = DepthStencilView2D();
 	m_entities = nullptr;
 	m_camera = nullptr;
 	m_directionalLights = nullptr;
@@ -153,7 +153,7 @@ void ForwardRender::Setup(SetupContext& context) {
 	rtvDesc.firstArrayElement = 0;
 	rtvDesc.firstMipLevel = 0;
 	rtvDesc.planeIndex = 0;
-	m_rtv = context.CreateRtv(target, target.GetFormat(), rtvDesc);
+	m_targetRTV = context.CreateRtv(target, target.GetFormat(), rtvDesc);
 	
 
 	auto& depthStencil = this->GetInput<1>().Get();
@@ -161,7 +161,7 @@ void ForwardRender::Setup(SetupContext& context) {
 	dsvDesc.activeArraySize = 1;
 	dsvDesc.firstArrayElement = 0;
 	dsvDesc.firstMipLevel = 0;
-	m_dsv = context.CreateDsv(depthStencil, FormatAnyToDepthStencil(depthStencil.GetFormat()), dsvDesc);
+	m_targetDSV = context.CreateDsv(depthStencil, FormatAnyToDepthStencil(depthStencil.GetFormat()), dsvDesc);
 	
 
 	m_entities = this->GetInput<2>().Get();
@@ -192,7 +192,7 @@ void ForwardRender::Setup(SetupContext& context) {
 	this->GetInput<7>().Clear();
 	m_screenSpaceShadowTexView = context.CreateSrv(screenSpaceShadowTex, screenSpaceShadowTex.GetFormat(), srvDesc);
 
-	if (!m_velocityNormal_rtv)
+	if (!m_velocityNormalRTV)
 	{
 		using gxapi::eFormat;
 
@@ -216,12 +216,12 @@ void ForwardRender::Setup(SetupContext& context) {
 			target.GetWidth(), target.GetHeight(), formatVelocity
 		};
 
-		Texture2D velocity_tex = context.CreateTexture2D(desc, { true, true, false, false });
-		velocity_tex.SetName("Forward render Velocity/normal tex");
-		m_velocityNormal_rtv = context.CreateRtv(velocity_tex, formatVelocity, rtvDesc);
+		Texture2D velocityTex = context.CreateTexture2D(desc, { true, true, false, false });
+		velocityTex.SetName("Forward render Velocity/normal tex");
+		m_velocityNormalRTV = context.CreateRtv(velocityTex, formatVelocity, rtvDesc);
 	}
 
-	if (!m_albedoRoughnessMetalness_rtv)
+	if (!m_albedoRoughnessMetalnessRTV)
 	{
 		using gxapi::eFormat;
 
@@ -245,14 +245,14 @@ void ForwardRender::Setup(SetupContext& context) {
 			target.GetWidth(), target.GetHeight(), formatAlbedo
 		};
 
-		Texture2D albedoRoughnessMetalness_tex = context.CreateTexture2D(desc, { true, true, false, false });
-		albedoRoughnessMetalness_tex.SetName("Forward render albedo/roughness/metalness tex");
-		m_albedoRoughnessMetalness_rtv = context.CreateRtv(albedoRoughnessMetalness_tex, formatAlbedo, rtvDesc);
+		Texture2D albedoRoughnessMetalnessTex = context.CreateTexture2D(desc, { true, true, false, false });
+		albedoRoughnessMetalnessTex.SetName("Forward render albedo/roughness/metalness tex");
+		m_albedoRoughnessMetalnessRTV = context.CreateRtv(albedoRoughnessMetalnessTex, formatAlbedo, rtvDesc);
 	}
 
 	this->GetOutput<0>().Set(target);
-	this->GetOutput<1>().Set(m_velocityNormal_rtv.GetResource());
-	this->GetOutput<2>().Set(m_albedoRoughnessMetalness_rtv.GetResource());
+	this->GetOutput<1>().Set(m_velocityNormalRTV.GetResource());
+	this->GetOutput<2>().Set(m_albedoRoughnessMetalnessRTV.GetResource());
 }
 
 
@@ -264,17 +264,17 @@ void ForwardRender::Execute(RenderContext& context) {
 	GraphicsCommandList& commandList = context.AsGraphics();
 
 	// Set render target
-	RenderTargetView2D* pRTV[] = { &m_rtv, &m_velocityNormal_rtv, &m_albedoRoughnessMetalness_rtv };
-	commandList.SetResourceState(m_velocityNormal_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
-	commandList.SetResourceState(m_albedoRoughnessMetalness_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
-	commandList.SetResourceState(m_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
-	commandList.SetResourceState(m_dsv.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
-	commandList.SetRenderTargets(3, pRTV, &m_dsv);
-	commandList.ClearRenderTarget(m_rtv, gxapi::ColorRGBA(0, 0, 0, 0));
-	commandList.ClearRenderTarget(m_velocityNormal_rtv, gxapi::ColorRGBA(0.5, 0.5, 0, 0));
-	commandList.ClearRenderTarget(m_albedoRoughnessMetalness_rtv, gxapi::ColorRGBA(0, 0, 0, 0));
+	RenderTargetView2D* pRTV[] = { &m_targetRTV, &m_velocityNormalRTV, &m_albedoRoughnessMetalnessRTV };
+	commandList.SetResourceState(m_velocityNormalRTV.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(m_albedoRoughnessMetalnessRTV.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(m_targetRTV.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(m_targetDSV.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
+	commandList.SetRenderTargets(3, pRTV, &m_targetDSV);
+	commandList.ClearRenderTarget(m_targetRTV, gxapi::ColorRGBA(0, 0, 0, 0));
+	commandList.ClearRenderTarget(m_velocityNormalRTV, gxapi::ColorRGBA(0.5, 0.5, 0, 0));
+	commandList.ClearRenderTarget(m_albedoRoughnessMetalnessRTV, gxapi::ColorRGBA(0, 0, 0, 0));
 
-	gxapi::Rectangle rect{ 0, (int)m_rtv.GetResource().GetHeight(), 0, (int)m_rtv.GetResource().GetWidth() };
+	gxapi::Rectangle rect{ 0, (int)m_targetRTV.GetResource().GetHeight(), 0, (int)m_targetRTV.GetResource().GetWidth() };
 	gxapi::Viewport viewport;
 	viewport.width = (float)rect.right;
 	viewport.height = (float)rect.bottom;
@@ -315,7 +315,7 @@ void ForwardRender::Execute(RenderContext& context) {
 		assert(materialShader != nullptr);
 
 		ScenarioData& scenario = GetScenario(
-			context, layout, *material, m_rtv.GetDescription().format, m_dsv.GetDescription().format);
+			context, layout, *material, m_targetRTV.GetDescription().format, m_targetDSV.GetDescription().format);
 
 		commandList.SetPipelineState(scenario.pso.get());
 		commandList.SetGraphicsBinder(&scenario.binder);
@@ -383,19 +383,19 @@ void ForwardRender::Execute(RenderContext& context) {
 		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 100), &lightConstants, sizeof(lightConstants));
 
 		Uniforms uniformsCBData;
-		uniformsCBData.screen_dimensions = Vec4((float)m_rtv.GetResource().GetWidth(), (float)m_rtv.GetResource().GetHeight(), 0.f, 0.f);
+		uniformsCBData.screenDimensions = Vec4((float)m_targetRTV.GetResource().GetWidth(), (float)m_targetRTV.GetResource().GetHeight(), 0.f, 0.f);
 		//uniformsCBData.ld[0].vs_position = Vec4(m_camera->GetPosition() + m_camera->GetLookDirection() * 5.f, 1.0f) * m_camera->GetViewMatrix();
-		uniformsCBData.ld[0].vs_position = Vec4(Vec3(0, 0, 1), 1.0f) * m_camera->GetViewMatrix();
-		uniformsCBData.ld[0].attenuation_end = Vec4(5.0f, 0.f, 0.f, 0.f);
-		uniformsCBData.ld[0].diffuse_color = Vec4(1.f, 0.f, 0.f, 1.f);
-		uniformsCBData.vs_cam_pos = Vec4(m_camera->GetPosition(), 1.0f) * m_camera->GetViewMatrix();
+		uniformsCBData.ld[0].vsPosition = Vec4(Vec3(0, 0, 1), 1.0f) * m_camera->GetViewMatrix();
+		uniformsCBData.ld[0].attenuationEnd = Vec4(5.0f, 0.f, 0.f, 0.f);
+		uniformsCBData.ld[0].diffuseColor = Vec4(1.f, 0.f, 0.f, 1.f);
+		uniformsCBData.vsCamPos = Vec4(m_camera->GetPosition(), 1.0f) * m_camera->GetViewMatrix();
 		uniformsCBData.invV = m_camera->GetViewMatrix().Inverse();
 
 		uint32_t dispatchW, dispatchH;
-		SetWorkgroupSize((unsigned)m_rtv.GetResource().GetWidth(), (unsigned)m_rtv.GetResource().GetHeight(), 16, 16, dispatchW, dispatchH);
+		SetWorkgroupSize((unsigned)m_targetRTV.GetResource().GetWidth(), (unsigned)m_targetRTV.GetResource().GetHeight(), 16, 16, dispatchW, dispatchH);
 
-		uniformsCBData.group_size_x = dispatchW;
-		uniformsCBData.group_size_y = dispatchH;
+		uniformsCBData.groupSizeX = dispatchW;
+		uniformsCBData.groupSizeY = dispatchH;
 
 		uniformsCBData.halfExposureFramerate = 0.5 * 0.75 * 150; //TODO add measured FPS (or target)
 		uniformsCBData.maxMotionBlurRadius = 20;
@@ -542,11 +542,11 @@ std::string ForwardRender::GenerateVertexShader(const Mesh::Layout& layout) {
 		//"	normal.xyz = normalize(normal.xyz);\n"
 		"	float3 viewNormal = mul(normal.xyz, (float3x3)vsConstants.MV);\n"
 
-		"float4x4 light_mvp;\n"
+		"float4x4 lightMvp;\n"
 		"float cascade = 0;\n"
 		"for (int d = 0; d < 4; ++d)\n"
 		"{\n"
-		"	light_mvp[d] = lightMVPTex.Load(int3(cascade * 4 + d, 0, 0));\n"
+		"	lightMvp[d] = lightMVPTex.Load(int3(cascade * 4 + d, 0, 0));\n"
 		"}\n"
 
 		"	result.position = mul(position, vsConstants.MVP);\n"
@@ -707,7 +707,7 @@ std::string ForwardRender::GeneratePixelShader(const Material& material) {
 		PSMain << "input" << material.GetParameterCount() - 1;
 	}
 	//TODO get material params
-	PSMain << "); result.albedoRoughnessMetalness.xy = rgb_to_ycocg(albedo.xyz, int2(psInput.ndcPos.xy)); result.albedoRoughnessMetalness.zw = float2(0,0); return result; \n} \n";
+	PSMain << "); result.albedoRoughnessMetalness.xy = rgbToYcocg(albedo.xyz, int2(psInput.ndcPos.xy)); result.albedoRoughnessMetalness.zw = float2(0,0); return result; \n} \n";
 
 	return
 		std::string()
@@ -927,8 +927,8 @@ std::unique_ptr<gxapi::IPipelineState> ForwardRender::CreatePso(
 
 	psoDesc.numRenderTargets = 3;
 	psoDesc.renderTargetFormats[0] = renderTargetFormat;
-	psoDesc.renderTargetFormats[1] = m_velocityNormal_rtv.GetResource().GetFormat();
-	psoDesc.renderTargetFormats[2] = m_albedoRoughnessMetalness_rtv.GetResource().GetFormat();
+	psoDesc.renderTargetFormats[1] = m_velocityNormalRTV.GetResource().GetFormat();
+	psoDesc.renderTargetFormats[2] = m_albedoRoughnessMetalnessRTV.GetResource().GetFormat();
 
 	result.reset(context.CreatePSO(psoDesc));
 

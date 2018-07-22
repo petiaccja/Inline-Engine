@@ -15,17 +15,17 @@
 namespace inl::gxeng::nodes {
 
 
-class DOFNeighborMax :
+class DOFTileMax :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<Texture2D>,
+	virtual public InputPortConfig<Texture2D, Texture2D>,
 	virtual public OutputPortConfig<Texture2D>
 {
 public:
-	static const char* Info_GetName() { return "DofNeighborMax"; }
+	static const char* Info_GetName() { return "DOFTileMax"; }
 	const std::string& GetInputName(size_t index) const override;
 	const std::string& GetOutputName(size_t index) const override;
-	DOFNeighborMax();
+	DOFTileMax();
 
 	void Update() override {}
 	void Notify(InputPortBase* sender) override {}
@@ -38,16 +38,18 @@ public:
 protected:
 	std::optional<Binder> m_binder;
 	BindParameter m_inputTexBindParam;
+	BindParameter m_depthTexBindParam;
 	BindParameter m_uniformsBindParam;
 	ShaderProgram m_shader;
 	std::unique_ptr<gxapi::IPipelineState> m_PSO;
 
 protected: // outputs
 	bool m_outputTexturesInited = false;
-	RenderTargetView2D m_neighbormax_rtv;
+	RenderTargetView2D m_tilemaxRTV;
 
 protected: // render context
 	TextureView2D m_inputTexSrv;
+	TextureView2D m_depthTexSrv;
 
 private:
 	void InitRenderTarget(SetupContext& context);

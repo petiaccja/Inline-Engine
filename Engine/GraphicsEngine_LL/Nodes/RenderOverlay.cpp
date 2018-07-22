@@ -2,7 +2,7 @@
 // There is no replacement yet, we keep using it until it is removed.
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 
-#include "Node_RenderOverlay.hpp"
+#include "RenderOverlay.hpp"
 
 #include "../Font.hpp"
 #include "../OverlayEntity.hpp"

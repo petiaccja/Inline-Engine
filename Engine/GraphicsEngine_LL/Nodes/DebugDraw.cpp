@@ -1,4 +1,4 @@
-#include "Node_DebugDraw.hpp"
+#include "DebugDraw.hpp"
 
 #include "NodeUtility.hpp"
 
@@ -120,7 +120,7 @@ void DebugDraw::Setup(SetupContext& context) {
 		m_binder = context.CreateBinder({ uniformsBindParamDesc }, { samplerDesc });
 	}
 
-	if (!m_LinePSO || !m_TrianglePSO) {
+	if (!m_linePSO || !m_trianglePSO) {
 		ShaderParts shaderParts;
 		shaderParts.vs = true;
 		shaderParts.ps = true;
@@ -145,10 +145,10 @@ void DebugDraw::Setup(SetupContext& context) {
 		psoDesc.numRenderTargets = 1;
 		psoDesc.renderTargetFormats[0] = renderTarget.GetFormat();
 
-		m_LinePSO.reset(context.CreatePSO(psoDesc));
+		m_linePSO.reset(context.CreatePSO(psoDesc));
 
 		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
-		m_TrianglePSO.reset(context.CreatePSO(psoDesc));
+		m_trianglePSO.reset(context.CreatePSO(psoDesc));
 	}
 
 	m_objects.resize(DebugDrawManager::GetInstance().GetObjects().size());
@@ -206,7 +206,7 @@ void DebugDraw::Execute(RenderContext& context) {
 	gxapi::Rectangle rect{ 0, (int)m_target.GetResource().GetHeight(), 0, (int)m_target.GetResource().GetWidth() };
 	commandList.SetScissorRects(1, &rect);
 
-	commandList.SetPipelineState(m_LinePSO.get());
+	commandList.SetPipelineState(m_linePSO.get());
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::LINELIST);
 

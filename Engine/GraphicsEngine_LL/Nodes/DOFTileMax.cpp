@@ -1,4 +1,4 @@
-#include "Node_DOFNeighborMax.hpp"
+#include "DOFTileMax.hpp"
 
 #include "NodeUtility.hpp"
 
@@ -18,39 +18,44 @@ namespace inl::gxeng::nodes {
 
 struct Uniforms
 {
+	float tileSize;
 };
 
 
-DOFNeighborMax::DOFNeighborMax() {
+DOFTileMax::DOFTileMax() {
 	this->GetInput<0>().Set({});
+	this->GetInput<1>().Set({});
 }
 
 
-void DOFNeighborMax::Initialize(EngineContext & context) {
+void DOFTileMax::Initialize(EngineContext & context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
-void DOFNeighborMax::Reset() {
+void DOFTileMax::Reset() {
 	m_inputTexSrv = TextureView2D();
+	m_depthTexSrv = TextureView2D();
 
 	GetInput<0>().Clear();
+	GetInput<1>().Clear();
 }
 
-const std::string& DOFNeighborMax::GetInputName(size_t index) const {
+const std::string& DOFTileMax::GetInputName(size_t index) const {
 	static const std::vector<std::string> names = {
-		"colorTex"
+		"colorTex",
+		"depthTex"
 	};
 	return names[index];
 }
 
-const std::string& DOFNeighborMax::GetOutputName(size_t index) const {
+const std::string& DOFTileMax::GetOutputName(size_t index) const {
 	static const std::vector<std::string> names = {
-		"neighborhoodMaxTex"
+		"tileMaxTex"
 	};
 	return names[index];
 }
 
-void DOFNeighborMax::Setup(SetupContext& context) {
+void DOFTileMax::Setup(SetupContext& context) {
 	gxapi::SrvTexture2DArray srvDesc;
 	srvDesc.activeArraySize = 1;
 	srvDesc.firstArrayElement = 0;
@@ -61,6 +66,10 @@ void DOFNeighborMax::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
+	
+
+	Texture2D depthTex = this->GetInput<1>().Get();
+	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
 	
 
 	if (!m_binder.has_value()) {
@@ -87,6 +96,15 @@ void DOFNeighborMax::Setup(SetupContext& context) {
 		inputBindParamDesc.relativeChangeFrequency = 0;
 		inputBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
+		BindParameterDesc depthBindParamDesc;
+		m_depthTexBindParam = BindParameter(eBindParameterType::TEXTURE, 1);
+		depthBindParamDesc.parameter = m_depthTexBindParam;
+		depthBindParamDesc.constantSize = 0;
+		depthBindParamDesc.relativeAccessFrequency = 0;
+		depthBindParamDesc.relativeChangeFrequency = 0;
+		depthBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+
+
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
 		samplerDesc.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
@@ -97,8 +115,9 @@ void DOFNeighborMax::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, depthBindParamDesc },{ samplerDesc });
 	}
+
 
 	if (!m_PSO) {
 		InitRenderTarget(context);
@@ -107,7 +126,7 @@ void DOFNeighborMax::Setup(SetupContext& context) {
 		shaderParts.vs = true;
 		shaderParts.ps = true;
 
-		m_shader = context.CreateShader("DOFNeighborMax", shaderParts, "");
+		m_shader = context.CreateShader("DOFTileMax", shaderParts, "");
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
 			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
@@ -129,16 +148,16 @@ void DOFNeighborMax::Setup(SetupContext& context) {
 		psoDesc.depthStencilState.cwFace = psoDesc.depthStencilState.ccwFace;
 
 		psoDesc.numRenderTargets = 1;
-		psoDesc.renderTargetFormats[0] = m_neighbormax_rtv.GetResource().GetFormat();
+		psoDesc.renderTargetFormats[0] = m_tilemaxRTV.GetResource().GetFormat();
 
 		m_PSO.reset(context.CreatePSO(psoDesc));
 	}
 
-	this->GetOutput<0>().Set(m_neighbormax_rtv.GetResource());
+	this->GetOutput<0>().Set(m_tilemaxRTV.GetResource());
 }
 
 
-void DOFNeighborMax::Execute(RenderContext& context) {
+void DOFTileMax::Execute(RenderContext& context) {
 	GraphicsCommandList& commandList = context.AsGraphics();
 
 	Uniforms uniformsCBData;
@@ -151,13 +170,16 @@ void DOFNeighborMax::Execute(RenderContext& context) {
 	gxeng::ConstBufferView cbv = context.CreateCbv(cb, 0, sizeof(Uniforms));
 	*/
 
-	commandList.SetResourceState(m_neighbormax_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
-	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	uniformsCBData.tileSize = 20.0;
 
-	RenderTargetView2D* pRTV = &m_neighbormax_rtv;
+	commandList.SetResourceState(m_tilemaxRTV.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(m_inputTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_depthTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+
+	RenderTargetView2D* pRTV = &m_tilemaxRTV;
 	commandList.SetRenderTargets(1, &pRTV, 0);
 
-	gxapi::Rectangle rect{ 0, (int)m_neighbormax_rtv.GetResource().GetHeight(), 0, (int)m_neighbormax_rtv.GetResource().GetWidth() };
+	gxapi::Rectangle rect{ 0, (int)m_tilemaxRTV.GetResource().GetHeight(), 0, (int)m_tilemaxRTV.GetResource().GetWidth() };
 	gxapi::Viewport viewport;
 	viewport.width = (float)rect.right;
 	viewport.height = (float)rect.bottom;
@@ -175,20 +197,21 @@ void DOFNeighborMax::Execute(RenderContext& context) {
 	commandList.SetPipelineState(m_PSO.get());
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.BindGraphics(m_inputTexBindParam, m_inputTexSrv);
-	//commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
+	commandList.BindGraphics(m_depthTexBindParam, m_depthTexSrv);
+	commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLESTRIP);
 	commandList.DrawInstanced(4);
 }
 
 
-void DOFNeighborMax::InitRenderTarget(SetupContext& context) {
+void DOFTileMax::InitRenderTarget(SetupContext& context) {
 	if (!m_outputTexturesInited) {
 		m_outputTexturesInited = true;
 
 		using gxapi::eFormat;
 
-		auto formatNeighborMax = eFormat::R16G16_FLOAT;
+		auto formatTileMax = eFormat::R16G16_FLOAT;
 
 		gxapi::RtvTexture2DArray rtvDesc;
 		rtvDesc.activeArraySize = 1;
@@ -204,15 +227,17 @@ void DOFNeighborMax::InitRenderTarget(SetupContext& context) {
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.planeIndex = 0;
 
+		int tileSize = 20;
+
 		Texture2DDesc desc{
-			m_inputTexSrv.GetResource().GetWidth(),
-			m_inputTexSrv.GetResource().GetHeight(),
-			formatNeighborMax
+			m_inputTexSrv.GetResource().GetWidth() / tileSize,
+			m_inputTexSrv.GetResource().GetHeight() / tileSize,
+			formatTileMax
 		};
 
-		Texture2D neighbormax_tex = context.CreateTexture2D(desc, {true, true, false, false});
-		neighbormax_tex.SetName("DOF neighbormax tex");
-		m_neighbormax_rtv = context.CreateRtv(neighbormax_tex, formatNeighborMax, rtvDesc);
+		Texture2D tilemaxTex = context.CreateTexture2D(desc, {true, true, false, false});
+		tilemaxTex.SetName("DOF tilemax tex");
+		m_tilemaxRTV = context.CreateRtv(tilemaxTex, formatTileMax, rtvDesc);
 		
 	}
 }

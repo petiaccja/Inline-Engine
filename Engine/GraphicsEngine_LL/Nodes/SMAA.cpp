@@ -1,4 +1,4 @@
-#include "Node_SMAA.hpp"
+#include "SMAA.hpp"
 
 #include "NodeUtility.hpp"
 

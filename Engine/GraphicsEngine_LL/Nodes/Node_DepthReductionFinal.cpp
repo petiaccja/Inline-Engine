@@ -20,9 +20,9 @@ struct Uniforms
 {
 	Mat44_Packed invVP;
 	Mat44_Packed bias_mx, inv_mv;
-	Vec4_Packed cam_pos, cam_view_dir, cam_up_vector;
+	Vec4_Packed camPos, cam_view_dir, cam_up_vector;
 	Vec4_Packed light_cam_pos, light_cam_view_dir, light_cam_up_vector;
-	float cam_near, cam_far, tex_size;
+	float camNear, camFar, tex_size;
 	float dummy;
 };
 
@@ -205,12 +205,12 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 	Vec4 cam_view_dir(perpectiveCamera->GetLookDirection().Normalized(), 0.0f);
 	Vec4 cam_up_vector(perpectiveCamera->GetUpVector().Normalized(), 0.0f);
 
-	uniformsCBData.cam_pos = cam_pos;
+	uniformsCBData.camPos = cam_pos;
 	uniformsCBData.cam_view_dir = cam_view_dir;
 	uniformsCBData.cam_up_vector = cam_up_vector;
 
-	uniformsCBData.cam_near = perpectiveCamera->GetNearPlane();
-	uniformsCBData.cam_far = perpectiveCamera->GetFarPlane();
+	uniformsCBData.camNear = perpectiveCamera->GetNearPlane();
+	uniformsCBData.camFar = perpectiveCamera->GetFarPlane();
 
 	assert(m_suns->Size() > 0);
 	auto sun = *m_suns->begin();

@@ -1,4 +1,4 @@
-#include "Node_VolumetricLighting.hpp"
+#include "VolumetricLighting.hpp"
 
 #include "NodeUtility.hpp"
 
@@ -16,32 +16,32 @@
 
 namespace inl::gxeng::nodes {
 
-struct sdf_data
+struct SdfData
 {
-	Vec4_Packed vs_position;
+	Vec4_Packed vsPosition;
 	float radius;
 	Vec3_Packed dummy;
 }; //size: 32
 
-struct light_data
+struct LightData
 {
 	Vec4_Packed diffuseLightColor;
-	Vec4_Packed vs_position;
-	float attenuation_end;
+	Vec4_Packed vsPosition;
+	float attenuationEnd;
 	Vec3_Packed dummy;
 }; //size: 48
 
 struct Uniforms
 {
-	sdf_data sd[10]; //320
-	light_data ld[10]; //480
+	SdfData sd[10]; //320
+	LightData ld[10]; //480
 	Mat44_Packed v, p; //64
 	Mat44_Packed invVP, oldVP; //128
-	float cam_near, cam_far, dummy1, dummy2; //16
-	uint32_t num_sdfs, num_workgroups_x, num_workgroups_y; float haltonFactor; //16
-	Vec4_Packed sun_direction; //16
-	Vec4_Packed sun_color; //16
-	Vec4_Packed cam_pos; //16
+	float camNear, camFar, dummy1, dummy2; //16
+	uint32_t numSdfs, numWorkgroupsX, numWorkgroupsY; float haltonFactor; //16
+	Vec4_Packed sunDirection; //16
+	Vec4_Packed sunColor; //16
+	Vec4_Packed camPos; //16
 }; //1072
 
 static void SetWorkgroupSize(unsigned w, unsigned h, unsigned groupSizeW, unsigned groupSizeH, unsigned& dispatchW, unsigned& dispatchH)
@@ -362,9 +362,9 @@ void VolumetricLighting::Execute(RenderContext& context) {
 
 	Uniforms uniformsCBData;
 
-	uniformsCBData.cam_near = m_camera->GetNearPlane();
-	uniformsCBData.cam_far = m_camera->GetFarPlane();
-	uniformsCBData.num_sdfs = 1;
+	uniformsCBData.camNear = m_camera->GetNearPlane();
+	uniformsCBData.camFar = m_camera->GetFarPlane();
+	uniformsCBData.numSdfs = 1;
 	uniformsCBData.v = m_camera->GetViewMatrix();
 	uniformsCBData.p = m_camera->GetProjectionMatrix();
 
@@ -372,10 +372,10 @@ void VolumetricLighting::Execute(RenderContext& context) {
 	const uint32_t haltonBase = 2;
 	uniformsCBData.haltonFactor = getHalton(haltonIndex++, haltonBase);
 
-	uniformsCBData.cam_pos = Vec4(m_camera->GetPosition(), 1);
+	uniformsCBData.camPos = Vec4(m_camera->GetPosition(), 1);
 
-	uniformsCBData.sun_direction = Vec4( 0.8f, -0.7f, -0.9f, 0.0f );
-	uniformsCBData.sun_color = Vec4( 1.0f, 0.9f, 0.85f, 1.0f );
+	uniformsCBData.sunDirection = Vec4( 0.8f, -0.7f, -0.9f, 0.0f );
+	uniformsCBData.sunColor = Vec4( 1.0f, 0.9f, 0.85f, 1.0f );
 
 	Mat44 VP = m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix();
 	Mat44 invVP = VP.Inverse();
@@ -418,12 +418,12 @@ void VolumetricLighting::Execute(RenderContext& context) {
 	uint32_t dispatchW, dispatchH;
 	SetWorkgroupSize((unsigned)m_depthTexSrv.GetResource().GetWidth(), (unsigned)m_depthTexSrv.GetResource().GetHeight(), 16, 16, dispatchW, dispatchH);
 
-	uniformsCBData.num_workgroups_x = dispatchW;
-	uniformsCBData.num_workgroups_y = dispatchH;
+	uniformsCBData.numWorkgroupsX = dispatchW;
+	uniformsCBData.numWorkgroupsY = dispatchH;
 
 	{ //cull SDFs
 		//view space for culling
-		uniformsCBData.sd[0].vs_position = Vec4(Vec3(-4.0, 0, 1), 1.0f) * m_camera->GetViewMatrix();
+		uniformsCBData.sd[0].vsPosition = Vec4(Vec3(-4.0, 0, 1), 1.0f) * m_camera->GetViewMatrix();
 		uniformsCBData.sd[0].radius = 3.0f;
 
 		//create single-frame only cb
@@ -455,11 +455,11 @@ void VolumetricLighting::Execute(RenderContext& context) {
 
 	{ //do volumetric lighting
 		//world space for lighting / raymarching
-		uniformsCBData.sd[0].vs_position = Vec4(Vec3(-4.0, 0, 1), 1.0f);
+		uniformsCBData.sd[0].vsPosition = Vec4(Vec3(-4.0, 0, 1), 1.0f);
 		uniformsCBData.sd[0].radius = 3.0f;
 
-		uniformsCBData.ld[0].vs_position = Vec4(Vec3(0, 0, 1), 1.0f);
-		uniformsCBData.ld[0].attenuation_end = 5.0f;
+		uniformsCBData.ld[0].vsPosition = Vec4(Vec3(0, 0, 1), 1.0f);
+		uniformsCBData.ld[0].attenuationEnd = 5.0f;
 		uniformsCBData.ld[0].diffuseLightColor = Vec4(1.f, 0.f, 0.f, 1.f);
 
 		//create single-frame only cb
