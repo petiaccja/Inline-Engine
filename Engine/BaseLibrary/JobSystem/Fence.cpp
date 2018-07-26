@@ -3,6 +3,7 @@
 
 #include <mutex>
 #include <future>
+#include "BaseLibrary/AtScopeExit.hpp"
 
 
 namespace inl::jobs {
@@ -12,6 +13,13 @@ bool Fence::FenceAwaiter::await_ready() const noexcept {
 	return m_fence.m_currentValue >= m_targetValue;
 }
 
+
+Fence::FenceAwaiter::FenceAwaiter(const Fence& f, uint64_t expected) noexcept
+	: m_fence(f), m_targetValue(expected), m_next(nullptr), m_awaitingHandle(nullptr)
+{
+	volatile int a;
+	a = 0;
+}
 
 bool Fence::FenceAwaiter::await_suspend(std::experimental::coroutine_handle<> awaitingCoroutine, Scheduler* scheduler) noexcept {
 	m_awaitingHandle = awaitingCoroutine;
@@ -46,7 +54,6 @@ void Fence::Signal(uint64_t value) {
 	if (currentValue > value) {
 		return;
 	}
-
 	m_currentValue = value;
 
 	FenceAwaiter* list = m_firstAwaiter;
@@ -56,15 +63,25 @@ void Fence::Signal(uint64_t value) {
 
 	uint64_t newCurrentValue = value;
 
+
+	int total = 0, awoke = 0, putback = 0;
+	bool totalCounted = false;
+	AtScopeExit([&]{
+		assert(total == awoke + putback);
+	});
 	// Process the list.
 	do {
 		FenceAwaiter* unsatisfied = nullptr;
 		while (list != nullptr) {
+			if (!totalCounted) {
+				++total;
+			}
 			FenceAwaiter* next = list->m_next;
 			uint64_t expected = list->m_targetValue;
 
 
 			if (expected <= newCurrentValue) {
+				++awoke;
 				// Resume coroutine if expected value is satisfied.
 				if (list->m_scheduler) {
 					list->m_scheduler->Resume(list->m_awaitingHandle);
@@ -81,19 +98,26 @@ void Fence::Signal(uint64_t value) {
 
 			list = next;
 		}
+		totalCounted = true;
 
 		// See if somebody changed the fence values and re-process list.
+		if (!unsatisfied) {
+			return;
+		}
 		list = unsatisfied;
 		lk.lock();
 		newCurrentValue = m_currentValue;
-		if (currentValue == newCurrentValue || list == nullptr) {
+		if (currentValue == newCurrentValue) {
 			// Put remaining in list back.
 			while (list != nullptr) {
+				++putback;
 				list->m_next = m_firstAwaiter;
 				m_firstAwaiter = list;
+				list = list->m_next;
 			}
 			return;
 		}
+		currentValue = newCurrentValue;
 		lk.unlock();
 	} while (true);
 }
@@ -110,7 +134,7 @@ bool Fence::TryWait(uint64_t value) const {
 
 void Fence::WaitExplicit(uint64_t value) const {
 	std::future<void> fut = [value, this]() -> std::future<void> {
-		co_await this->Wait(value);
+		co_await Wait(value);
 	}();
 	fut.wait();
 }

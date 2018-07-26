@@ -155,6 +155,7 @@ public:
 
 	void Schedule(Scheduler& scheduler);
 	void Run();
+
 protected:
 	using handle_type = std::experimental::coroutine_handle<promise_type>;
 	Future(handle_type coroutineHandle, std::shared_ptr<SharedState<T>> sharedState) 
@@ -165,6 +166,8 @@ protected:
 	std::shared_ptr<SharedState<T>> m_sharedState;
 	mutable bool m_ready = false;
 	handle_type m_handle;
+public:
+	handle_type& TMP_GetHandle() { return m_handle; }
 };
 
 
@@ -232,6 +235,19 @@ bool Future<T>::ready() const noexcept {
 template <class T>
 void Future<T>::wait() const {
 	assert(valid());
+
+	// Run if needed.
+	bool hasStarted = m_sharedState->coroStarted.test_and_set();
+	if (!hasStarted) {
+		Scheduler* scheduler = m_handle.promise().m_scheduler;
+		if (scheduler != nullptr) {
+			scheduler->Resume(m_handle);
+		}
+		else {
+			m_handle.resume();
+		}
+	}
+
 	m_sharedState->fence.WaitExplicit(1);
 	m_ready = true;
 }

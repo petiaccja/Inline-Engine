@@ -97,6 +97,8 @@ protected:
 
 	void SetupNode(lemon::ListDigraph::Node node, ExecuteState& trace);
 	void ExecuteNode(lemon::ListDigraph::Node node, ExecuteState& trace);
+	static std::pair<std::unique_ptr<BasicCommandList>, std::unique_ptr<VolatileViewHeap>> InheritCommandList(lemon::ListDigraph::Node node, ExecuteState& state);
+	static bool CanNextInheritCommandList(lemon::ListDigraph::Node node, ExecuteState& state);
 	void FinishList(std::unique_ptr<BasicCommandList> list, std::unique_ptr<VolatileViewHeap> vheap);
 	void EnqueueFinishedLists(const FrameContext& context, const std::vector<jobs::Future<void>>& futures);
 

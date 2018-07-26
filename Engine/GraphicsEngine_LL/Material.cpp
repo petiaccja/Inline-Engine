@@ -56,6 +56,7 @@ void Material::SetShader(const MaterialShader* shader) {
 
 	m_parameters = std::move(parameters);
 	m_paramNameMap = std::move(paramNameMap);
+	m_shader = shader;
 }
 
 const MaterialShader* Material::GetShader() const {

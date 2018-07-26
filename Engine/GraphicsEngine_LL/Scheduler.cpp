@@ -52,7 +52,6 @@ void Scheduler::Execute(FrameContext context) {
 	try {
 		// Get graphs.
 		const auto& taskGraph = m_pipeline.GetTaskGraph();
-		const auto& taskFunctions = m_pipeline.GetTaskFunctionMap();
 
 		// Get dependency tracker.
 		lemon::ListDigraph::NodeMap<TraverseDependency> dependencyTracker(taskGraph);
@@ -108,9 +107,6 @@ void Scheduler::Execute(FrameContext context) {
 		for (auto& future : jobFutures) {
 			future.get();
 		}
-
-		// Print trace into a graphviz dot file.
-		//WriteTraceFile(taskGraph, state);
 	}
 	catch (Exception& ex) {
 		std::cout << "=== This frame is fucked ===" << std::endl;
@@ -120,27 +116,20 @@ void Scheduler::Execute(FrameContext context) {
 		Exception::BreakOnce();
 	}
 	catch (std::exception& ex) {
-		std::cout << "This frame is doubly fucked: " << ex.what() << std::endl;
+		std::cout << "=== This frame is fucked for unknown reasons ===" << std::endl;
+		std::cout << "Error message:" << std::endl << ex.what() << std::endl;
 	}
 }
 
 
 void Scheduler::GetNodeNames(ExecuteState& state) const {
-	const auto& depGraph = m_pipeline.GetDependencyGraph();
 	const auto& nodeMap = m_pipeline.GetNodeMap();
 	const auto& parentMap = m_pipeline.GetTaskParentMap();
 
 	for (lemon::ListDigraph::NodeIt nodeIt(state.taskGraph); nodeIt != lemon::INVALID; ++nodeIt) {
 		lemon::ListDigraph::Node parent = parentMap[nodeIt];
 		const NodeBase* pipelineNode = nodeMap[parent].get();
-		std::string className = typeid(*pipelineNode).name();
-
-		size_t idx = className.find("inl::gxeng::");
-		if (idx != className.npos) { 
-			className = className.substr(idx+12); 
-		}
-
-		state.trace[nodeIt].nodeName = className;
+		state.trace[nodeIt].nodeName = pipelineNode->GetClassName(true, { "inl", "gxeng" });
 	}
 }
 
@@ -201,15 +190,6 @@ jobs::Future<void> Scheduler::TraverseNode(lemon::ListDigraph::Node node,
 
 
 void Scheduler::SetupNode(lemon::ListDigraph::Node node, ExecuteState& state) {
-	// Calculate depth for tracing.
-	unsigned depth = 0;
-	for (lemon::ListDigraph::InArcIt inArc(state.taskGraph, node); inArc != lemon::INVALID; ++inArc) {
-		lemon::ListDigraph::Node source = state.taskGraph.source(inArc);
-		depth = std::max(depth, state.trace[source].depth);
-	}
-	depth += 1;
-	state.trace[node].depth = depth;
-
 	// Acquire task.
 	GraphicsTask* task = m_pipeline.GetTaskFunctionMap()[node];
 	if (task == nullptr) {
@@ -227,81 +207,79 @@ void Scheduler::SetupNode(lemon::ListDigraph::Node node, ExecuteState& state) {
 }
 
 
-void Scheduler::ExecuteNode(lemon::ListDigraph::Node node, ExecuteState& state) {
-	bool signaled = false;
-	try {
-		// Acquire task.
-		GraphicsTask* task = m_pipeline.GetTaskFunctionMap()[node];
-		if (task == nullptr) {
-			return;
-		}
-
-
-		// See if we can inherit a command list.
-		std::unique_ptr<BasicCommandList> inheritedCommandList;
-		std::unique_ptr<VolatileViewHeap> inheritedVheap;
-		if (lemon::countInArcs(state.taskGraph, node) == 1) {
-			lemon::ListDigraph::Node prevNode = state.taskGraph.source(lemon::ListDigraph::InArcIt(state.taskGraph, node));
-			inheritedCommandList = std::move(state.trace[prevNode].inheritableList);
-			inheritedVheap = std::move(state.trace[prevNode].inheritableVheap);
-		}
-
-		// Record trace.
-		bool couldInheritList = (bool)inheritedCommandList;
-
-		// Execute given node.
-		auto vheap = std::make_unique<VolatileViewHeap>(state.frameContext.gxApi);
-		RenderContext renderContext(state.frameContext.memoryManager,
-									state.frameContext.textureSpace,
-									vheap.get(),
-									state.frameContext.shaderManager,
-									state.frameContext.gxApi,
-									state.frameContext.commandListPool,
-									state.frameContext.commandAllocatorPool,
-									state.frameContext.scratchSpacePool,
-									std::move(inheritedCommandList));
-		renderContext.SetCommandListName(state.trace[node].nodeName);
-		task->Execute(renderContext);
-
-		// Handle produced command list(s).
-		std::unique_ptr<BasicCommandList> currentCommandList;
-		renderContext.Decompose(inheritedCommandList, currentCommandList);
-		if (currentCommandList) {
-			currentCommandList->EndDebuggerEvent();
-		}
-		m_finishedListRemNodes.fetch_sub(1);
-		signaled = true;
-
-		// Record trace.
-		state.trace[node].inheritedCommandList = couldInheritList && !inheritedCommandList;
-		state.trace[node].producedCommandList = (bool)currentCommandList;
-
-		// Handle produced command list(s).
-		if (inheritedCommandList) {
-			FinishList(std::move(inheritedCommandList), std::move(inheritedVheap));
-		}
-		if (currentCommandList) {
-			bool canNextNodeInherit = false;
-			if (lemon::countOutArcs(state.taskGraph, node) == 1) {
-				lemon::ListDigraph::OutArcIt theOnlyOutArc(state.taskGraph, node);
-				lemon::ListDigraph::Node theOnlyNextNode = state.taskGraph.target(theOnlyOutArc);
-				canNextNodeInherit = lemon::countInArcs(state.taskGraph, theOnlyNextNode) == 1;
-			}
-			if (canNextNodeInherit) {
-				state.trace[node].inheritableList = std::move(currentCommandList);
-				state.trace[node].inheritableVheap = std::move(vheap);
-			}
-			else {
-				FinishList(std::move(currentCommandList), std::move(vheap));
-			}
-		}
+std::pair<std::unique_ptr<BasicCommandList>, std::unique_ptr<VolatileViewHeap>> Scheduler::InheritCommandList(lemon::ListDigraph::Node node, ExecuteState& state) {
+	if (lemon::countInArcs(state.taskGraph, node) == 1) {
+		lemon::ListDigraph::Node prevNode = state.taskGraph.source(lemon::ListDigraph::InArcIt(state.taskGraph, node));
+		std::pair<std::unique_ptr<BasicCommandList>, std::unique_ptr<VolatileViewHeap>> ret{
+			std::move(state.trace[prevNode].inheritableList),
+			std::move(state.trace[prevNode].inheritableVheap)
+		};
+		return ret;
 	}
-	catch (...) {
-		if (!signaled) {
-			m_finishedListRemNodes.fetch_sub(1);
-			m_finishedListCv.notify_all();
+	return { nullptr, nullptr };
+}
+
+bool Scheduler::CanNextInheritCommandList(lemon::ListDigraph::Node node, ExecuteState& state) {
+	if (lemon::countOutArcs(state.taskGraph, node) == 1) {
+		lemon::ListDigraph::OutArcIt theOnlyOutArc(state.taskGraph, node);
+		lemon::ListDigraph::Node theOnlyNextNode = state.taskGraph.target(theOnlyOutArc);
+		return lemon::countInArcs(state.taskGraph, theOnlyNextNode) == 1;
+	}
+	return false;
+}
+
+
+void Scheduler::ExecuteNode(lemon::ListDigraph::Node node, ExecuteState& state) {
+	// When node is done, we want to notify the queue collector about it. (Scheduler on main thread.)
+	AtScopeExit notifyOnExit([&, this] {
+		m_finishedListRemNodes.fetch_sub(1);
+		m_finishedListCv.notify_all();
+	});
+
+	// Acquire task.
+	GraphicsTask* task = m_pipeline.GetTaskFunctionMap()[node];
+	if (task == nullptr) {
+		return;
+	}
+
+	// See if we can inherit a command list.
+	auto[inheritedCommandList, inheritedVheap] = InheritCommandList(node, state);
+
+	// Execute given node.
+	auto vheap = std::make_unique<VolatileViewHeap>(state.frameContext.gxApi);
+	RenderContext renderContext(state.frameContext.memoryManager,
+								state.frameContext.textureSpace,
+								vheap.get(),
+								state.frameContext.shaderManager,
+								state.frameContext.gxApi,
+								state.frameContext.commandListPool,
+								state.frameContext.commandAllocatorPool,
+								state.frameContext.scratchSpacePool,
+								std::move(inheritedCommandList));
+	renderContext.SetCommandListName(state.trace[node].nodeName);
+	task->Execute(renderContext);
+
+	// Get inherited and current list, if any.
+	std::unique_ptr<BasicCommandList> currentCommandList;
+	renderContext.Decompose(inheritedCommandList, currentCommandList);
+
+
+	// Schedule inherited command list.
+	if (inheritedCommandList) {
+		FinishList(std::move(inheritedCommandList), std::move(inheritedVheap));
+	}
+
+	// Scheduler or pass on current command list.
+	if (currentCommandList) {
+		currentCommandList->EndDebuggerEvent(); // End marker for profilers.
+
+		if (CanNextInheritCommandList(node, state)) {
+			state.trace[node].inheritableList = std::move(currentCommandList);
+			state.trace[node].inheritableVheap = std::move(vheap);
 		}
-		throw;
+		else {
+			FinishList(std::move(currentCommandList), std::move(vheap));
+		}
 	}
 }
 
@@ -309,7 +287,6 @@ void Scheduler::ExecuteNode(lemon::ListDigraph::Node node, ExecuteState& state) 
 void Scheduler::FinishList(std::unique_ptr<BasicCommandList> list, std::unique_ptr<VolatileViewHeap> vheap) {
 	std::lock_guard<SpinMutex> lkg(m_finishedListMtx);
 	m_finishedLists.push({ std::move(list), std::move(vheap) });
-	m_finishedListCv.notify_all();
 }
 
 

@@ -60,10 +60,9 @@ protected:
 		}
 	}
 
-
+public: // temporarily
 	template <class Func, class... Args>
-	auto MakeTask(Func func, Args... args) {
-		using Ret = std::invoke_result_t<Func, Args...>;
+	static auto MakeTask(Func& func, Args... args) {
 		if constexpr (is_schedulable<Func, Args...>::value) {
 			auto task = func(std::forward<Args>(args)...);
 			return task;

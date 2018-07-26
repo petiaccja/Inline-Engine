@@ -14,35 +14,54 @@ public:
 		bool await_ready() const noexcept;
 		template <class T>
 		bool await_suspend(T awaitingCoroutine) noexcept;
-		Mutex& await_resume() noexcept;
+		void await_resume() noexcept {}
 	private:
-		MutexAwaiter(Mutex& mtx, Fence::FenceAwaiter fenceAwaiter);
+		MutexAwaiter(Fence::FenceAwaiter fenceAwaiter);
+		bool await_suspend(std::experimental::coroutine_handle<> awaitingCoroutine, Scheduler* scheduler = nullptr) noexcept;
 	private:
 		Fence::FenceAwaiter m_fenceAwaiter;
-		Mutex& m_mtx;
 	};
-
 public:
-	Mutex();
+	Mutex() noexcept;
+	Mutex(const Mutex&) = delete;
+	Mutex(Mutex&&) noexcept = default;
+	Mutex& operator=(const Mutex&) = delete;
+	Mutex& operator=(Mutex&&) noexcept = default;
 	
-	MutexAwaiter operator co_await();
-	void lock();
-	bool try_lock();
-	void unlock();
-
+	Fence::FenceAwaiter Lock();
+	void LockExplicit();
+	bool TryLock();
+	void Unlock();
 private:
 	Fence m_fence;
 	std::atomic_uint64_t m_waitFor;
 	std::atomic_uint64_t m_unlockSignal;
-	bool m_ignoreNext = false;
+	bool m_dbg_Locked = false;
 };
 
 
+class LockGuard {
+public:
+	LockGuard(Mutex& mutex) noexcept;
+	~LockGuard() noexcept;
 
-template <class T>
-bool Mutex::MutexAwaiter::await_suspend(T awaitingCoroutine) noexcept {
-	return m_fenceAwaiter.await_suspend(awaitingCoroutine);
-}
+	Fence::FenceAwaiter Lock();
+};
+
+
+class UniqueLock {
+public:
+	UniqueLock(Mutex& mutex) noexcept;
+	~UniqueLock() noexcept;
+
+	Fence::FenceAwaiter Lock();
+	void LockExplicit();
+	bool TryLock();
+	void Unlock();
+private:
+	Mutex& m_mutex;
+};
+
 
 
 } // namespace inl::jobs

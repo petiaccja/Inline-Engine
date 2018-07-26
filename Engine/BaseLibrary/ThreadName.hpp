@@ -3,7 +3,12 @@
 
 
 #if defined(WIN32) && defined(_MSC_VER)
+
 #include <Windows.h>
+
+namespace inl {
+
+namespace impl {
 // Usage: SetThreadName ("CurrentThread");
 //        SetThreadName ("OtherThread", 4567);
 typedef struct tagTHREADNAME_INFO
@@ -29,12 +34,18 @@ inline void SetThreadName(LPCSTR szThreadName, CONST DWORD dwThreadID = -1)
 		__except (EXCEPTION_CONTINUE_EXECUTION) {}
 	}
 }
-inline void SetCurrentThreadName(const char* name) {
-	SetThreadName(name, GetCurrentThreadId());
 }
+
+inline void SetCurrentThreadName(const char* name) {
+	impl::SetThreadName(name, GetCurrentThreadId());
+}
+}
+
 #else
+
 inline void SetCurrentThreadName(const char* name) {
 	// thread name can only be set on windows, with visual studio
 }
+
 #endif
 

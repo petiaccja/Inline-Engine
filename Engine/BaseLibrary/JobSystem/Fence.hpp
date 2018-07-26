@@ -16,26 +16,27 @@ class Fence {
 public:
 	class FenceAwaiter {
 		friend class Fence;
+		friend class ConditionVariable;
 	public:
 		bool await_ready() const noexcept;
 		template <class T>
 		bool await_suspend(T awaitingCoroutine) noexcept;
 		void await_resume() noexcept {}
 	private:
-		FenceAwaiter(const Fence& f, uint64_t expected) noexcept : m_fence(f), m_targetValue(expected) {}
+		FenceAwaiter(const Fence& f, uint64_t expected) noexcept;
 		bool await_suspend(std::experimental::coroutine_handle<> awaitingCoroutine, Scheduler* scheduler = nullptr) noexcept;
 	private:
 		std::experimental::coroutine_handle<> m_awaitingHandle;
 		const Fence& m_fence;
-		FenceAwaiter* m_next = nullptr;
+		FenceAwaiter* m_next;
 		const uint64_t m_targetValue;
-		Scheduler* m_scheduler = nullptr;
+		Scheduler* m_scheduler;
 	};
 public:
 	Fence(uint64_t initial = 0);
-	Fence(Fence&&) = default;
+	Fence(Fence&&) noexcept = default;
 	Fence(const Fence&) = delete;
-	Fence& operator=(Fence&&) = default;
+	Fence& operator=(Fence&&) noexcept = default;
 	Fence& operator=(const Fence&) = delete;
 
 	void Signal(uint64_t value);
@@ -43,7 +44,7 @@ public:
 	bool TryWait(uint64_t value) const;
 	void WaitExplicit(uint64_t value) const;
 private:
-	uint64_t m_currentValue;
+	std::atomic<uint64_t> m_currentValue;
 	mutable FenceAwaiter* m_firstAwaiter;
 	mutable SpinMutex m_mtx;
 };

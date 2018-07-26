@@ -1,4 +1,6 @@
 #include "ThreadpoolScheduler.hpp"
+#include <BaseLibrary/ThreadName.hpp>
+#include <sstream>
 
 namespace inl::jobs {
 
@@ -6,10 +8,17 @@ namespace inl::jobs {
 ThreadpoolScheduler::ThreadpoolScheduler(int threadCount) {
 	m_running = true;
 	m_workers.resize(threadCount);
+
+	int threadIndex = 0;
 	for (auto& worker : m_workers) {
-		worker = std::thread([this] {
+		worker = std::thread([this](int threadIndex) {
+			std::stringstream ss;
+			ss << "Jobsys Pool #" << threadIndex;
+			SetCurrentThreadName(ss.str().c_str());
 			ThreadFunc();
-		});
+		},
+		threadIndex);
+		++threadIndex;
 	}
 }
 
@@ -27,7 +36,7 @@ void ThreadpoolScheduler::Resume(handle_t coroutine) {
 		std::lock_guard<std::mutex> lkg(m_queueMtx);
 		m_tasks.push(coroutine);
 	}
-	m_cv.notify_all();
+	m_cv.notify_one();
 }
 
 
