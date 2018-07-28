@@ -27,21 +27,21 @@ struct PS_Input
 };
 
 //warning: result [0...far]
-float linearize_depth(float depth, float near, float far)
+float LinearizeDepth(float depth, float near, float far)
 {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 	float zndc = depth;
 
 	//view space linear z
-	float vs_zrecon = B / (zndc - A);
+	float vsZrecon = B / (zndc - A);
 
 	//range: [0...far]
-	return vs_zrecon;
+	return vsZrecon;
 };
 
 //warning: result [0...1]
-float toDepth(float depth, float near, float far)
+float ToDepth(float depth, float near, float far)
 {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
@@ -50,11 +50,11 @@ float toDepth(float depth, float near, float far)
 	return zndc;
 }
 
-float rand(float2 co) {
+float Rand(float2 co) {
 	return frac(sin(dot(co.xy, float2(12.9898, 78.233))) * 43758.5453);
 }
 
-float bokehShape(float2 center, float2 uv, float radius)
+float BokehShape(float2 center, float2 uv, float radius)
 {
 	float2 pos = center;
 	float radiusSqr = radius * radius;
@@ -110,13 +110,13 @@ gl_FragColor = vec4(accum.rgb / clamp(accum.a, 1e-4, 5e4), r);
 ...}", accumTexture, revealageTexture);
 */
 
-float weight(float2 uv, float alpha)
+float Weight(float2 uv, float alpha)
 {
-	float subject_distance = toDepth(0.3, 0.1, 100); //0.667
+	float subjectDistance = ToDepth(0.3, 0.1, 100); //0.667
 	float depth = depthTex.Sample(samp0, uv).x;
-	float toSubjectDist = abs(depthTex.Sample(samp0, uv).x - subject_distance);
+	float toSubjectDist = abs(depthTex.Sample(samp0, uv).x - subjectDistance);
 
-	if (depth > subject_distance)
+	if (depth > subjectDistance)
 	{
 		float dist = toSubjectDist;
 		float oneMinusDepth = 1 - dist;
@@ -132,7 +132,7 @@ float weight(float2 uv, float alpha)
 	}
 }
 
-float4 circle_filter(float2 uv, float dist, float2 resolution, const int taps, inout float4 result, inout float revealage)
+float4 CircleFilter(float2 uv, float dist, float2 resolution, const int taps, inout float4 result, inout float revealage)
 {
 	const float pi = 3.14159265;
 	float ftaps = 1.0 / float(taps);
@@ -164,7 +164,7 @@ float4 circle_filter(float2 uv, float dist, float2 resolution, const int taps, i
 			float alpha = (4 * pi) / (tapCoc*tapCoc*pi*0.25);
 			//float alpha = (pi) / (tapCoc*tapCoc*pi*0.25);
 
-			result += float4(data.xyz * alpha, alpha) * min(weight(sampleUV, alpha), 1.0);
+			result += float4(data.xyz * alpha, alpha) * min(Weight(sampleUV, alpha), 1.0);
 			
 			if (revealage > 0.001) //float underflow fix
 			{
@@ -175,22 +175,22 @@ float4 circle_filter(float2 uv, float dist, float2 resolution, const int taps, i
 	return result;
 }
 
-float4 filterFunc(float2 uv, float2 resolution, float4 center_tap, float coc, int rings)
+float4 FilterFunc(float2 uv, float2 resolution, float4 centerTap, float coc, int rings)
 {
 	const float pi = 3.14159265;
 
 	float dist = coc * 0.5;
 
-	float center_coc = max(center_tap.w, 1.0);
-	float center_alpha = (4 * pi) / (center_coc*center_coc*pi*0.25);
+	float centerCoc = max(centerTap.w, 1.0);
+	float centerAlpha = (4 * pi) / (centerCoc*centerCoc*pi*0.25);
 	//float center_alpha = (pi) / (center_coc*center_coc*pi*0.25);
 
-	float4 result = float4(center_tap.xyz * center_alpha, center_alpha) * min(weight(uv, center_alpha), 1.0);
-	float revealage = (1 - center_alpha);
+	float4 result = float4(centerTap.xyz * centerAlpha, centerAlpha) * min(Weight(uv, centerAlpha), 1.0);
+	float revealage = (1 - centerAlpha);
 
 	for (int d = 1; d <= rings; ++d)
 	{
-		circle_filter(uv, float(d) / float(rings) * dist, resolution, 8 * d, result, revealage);
+		CircleFilter(uv, float(d) / float(rings) * dist, resolution, 8 * d, result, revealage);
 	}
 
 	return float4((result.rgb / clamp(result.a, 1e-4, 5e4)) * saturate(1.0 - revealage), 1);
@@ -226,13 +226,13 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 	int2 currPixelPos = int2(input.position.xy);
 	float4 currentColor = inputTex.Sample(samp0, input.texCoord);
-	float currentDepth = linearize_depth(depthTex.Sample(samp0, input.texCoord), 0.1, 100.0);
+	float currentDepth = LinearizeDepth(depthTex.Sample(samp0, input.texCoord), 0.1, 100.0);
 	return currentColor;
 
 	float tileDistX = float((currPixelPos.x % (int)uniforms.tileSize - (int)uniforms.tileSize / 2)) / (uniforms.tileSize*0.5);
 	float tileDistY = float((currPixelPos.y % (int)uniforms.tileSize - (int)uniforms.tileSize / 2)) / (uniforms.tileSize*0.5);
 
-	int2 offset = int2(sign(tileDistX) * float(rand(input.texCoord) < (abs(tileDistX) * 0.5)), sign(tileDistY) * float(rand(input.texCoord + 1) < (abs(tileDistY) * 0.5)));
+	int2 offset = int2(sign(tileDistX) * float(Rand(input.texCoord) < (abs(tileDistX) * 0.5)), sign(tileDistY) * float(Rand(input.texCoord + 1) < (abs(tileDistY) * 0.5)));
 	float2 tileData = neighborhoodMaxTex.Load(clamp(int3(currPixelPos/(int)uniforms.tileSize + offset, 0), int3(0,0,0), int3(inputTexSize.xy / (int)uniforms.tileSize - 1, 0))).xy;
 	//float2 tileData = neighborhoodMaxTex.Sample(samp1, input.texCoord + float2(rand(input.texCoord)*2-1, rand(input.texCoord*2)*2-1)*0.05);
 	//float2 tileData = neighborhoodMaxTex.Sample(samp1, input.texCoord);
@@ -241,7 +241,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 	float4 result = float4(0, 0, 0, 0);
 	
-	result = filterFunc(input.texCoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 7);
+	result = FilterFunc(input.texCoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 7);
 
 	/*if (tileMaxCoc >= 29.0)
 	{

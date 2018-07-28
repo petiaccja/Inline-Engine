@@ -9,7 +9,7 @@ RWTexture2D<float> outputTex0 : register(u0);
 
 struct Uniforms
 {
-	float middle_grey, delta_time;
+	float middleGrey, deltaTime;
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
@@ -22,7 +22,7 @@ ConstantBuffer<Uniforms> uniforms : register(b0);
 //avg luminance
 groupshared float localData[LOCAL_SIZE_X * LOCAL_SIZE_Y];
 
-void init(uint2 dispatchThreadId, uint groupIndex)
+void Init(uint2 dispatchThreadId, uint groupIndex)
 {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
@@ -36,7 +36,7 @@ void init(uint2 dispatchThreadId, uint groupIndex)
 	localData[groupIndex] = data;
 }
 
-void reduce(uint groupIndex, uint idx)
+void Reduce(uint groupIndex, uint idx)
 {
 	localData[groupIndex] += localData[groupIndex + idx];
 }
@@ -58,7 +58,7 @@ void CSMain(
 		for (uint y = groupThreadId.y * (inputTexSize.y / float(LOCAL_SIZE_Y)); y < (groupThreadId.y + 1) * (inputTexSize.y / float(LOCAL_SIZE_Y)); ++y)
 			for (uint x = groupThreadId.x * (inputTexSize.x / float(LOCAL_SIZE_X)); x < (groupThreadId.x + 1) * (inputTexSize.x / float(LOCAL_SIZE_X)); ++x)
 			{
-				init(uint2(x, y), groupIndex);
+				Init(uint2(x, y), groupIndex);
 			}
 
 		GroupMemoryBarrierWithGroupSync();
@@ -70,7 +70,7 @@ void CSMain(
 		{
 			if (groupIndex < x)
 			{
-				reduce(groupIndex, x);
+				Reduce(groupIndex, x);
 			}
 
 			GroupMemoryBarrierWithGroupSync();
@@ -84,14 +84,14 @@ void CSMain(
 
 		const float delta = 0.0001;
 
-		float curr_lum = uniforms.middle_grey / (exp(avgLum) - delta);
-		float last_lum = outputTex0[uint2(0, 0)];
+		float currLum = uniforms.middleGrey / (exp(avgLum) - delta);
+		float lastLum = outputTex0[uint2(0, 0)];
 		//curr_lum = check_lum(curr_lum);
 		//last_lum = check_lum(last_lum);
 
 		const float tau = 0.5; //TODO separate uptau, downtau, based on where the current luminance is relative to the last lum
-		float adapted_lum = last_lum + (curr_lum - last_lum) * (1 - exp(-uniforms.delta_time * tau));
+		float adaptedLum = lastLum + (currLum - lastLum) * (1 - exp(-uniforms.deltaTime * tau));
 
-		outputTex0[uint2(0, 0)] = adapted_lum;
+		outputTex0[uint2(0, 0)] = adaptedLum;
 	}
 }

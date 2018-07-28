@@ -8,7 +8,7 @@
 struct Uniforms
 {
 	float4x4 lensStarMx;
-	float exposure, bloom_weight;
+	float exposure, bloomWeight;
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
@@ -53,12 +53,12 @@ PS_Input VSMain(uint vertexId : SV_VertexID)
 }
 
 
-float3 tonemap_func(float3 x, float a, float b, float c, float d, float e, float f)
+float3 TonemapFunc(float3 x, float a, float b, float c, float d, float e, float f)
 {
 	return ((x * (a * x + c * b) + d * e) / (x * (a * x + b) + d * f)) - e / f;
 }
 
-float3 tonemap(float3 col)
+float3 Tonemap(float3 col)
 {
 	//vec3 x = max( vec3(0), col - vec3(0.004));
 	//return ( x * (6.2 * x + 0.5) ) / ( x * ( 6.2 * x + 1.7 ) + 0.06 );
@@ -69,24 +69,24 @@ float3 tonemap(float3 col)
 	float d = 0.20; //Toe Strength
 	float e = 0.01; //Toe Numerator
 	float f = 0.30; //Toe Denominator
-	float linear_white = 11.2; //Linear White Point Value (11.2)
+	float linearWhite = 11.2; //Linear White Point Value (11.2)
 							   //Note: E/F = Toe Angle
 
-	return tonemap_func(col, a, b, c, d, e, f) / tonemap_func(float3(linear_white, linear_white, linear_white), a, b, c, d, e, f);
+	return TonemapFunc(col, a, b, c, d, e, f) / TonemapFunc(float3(linearWhite, linearWhite, linearWhite), a, b, c, d, e, f);
 }
 
 //NOTE: actually, just use SRGB, it's got better quality!
-float3 linear_to_gamma(float3 col)
+float3 LinearToGamma(float3 col)
 {
 	return pow(col, float3(1 / 2.2, 1 / 2.2, 1 / 2.2));
 }
 
-float3 gamma_to_linear(float3 col)
+float3 GammaToLinear(float3 col)
 {
 	return pow(col, float3(2.2, 2.2, 2.2));
 }
 
-float3 color_grading(float3 col)
+float3 ColorGrading(float3 col)
 {
 	uint2 colorGradingTexSize;
 	colorGradingTex.GetDimensions(colorGradingTexSize.x, colorGradingTexSize.y);
@@ -104,14 +104,14 @@ float3 color_grading(float3 col)
 	return col;
 }
 
-float3 blue_shift(float3 col, float night_factor)
+float3 BlueShift(float3 col, float nightFactor)
 {
 	//blue shift, experimental
-	const float3 blue_shift = float3(1.05, 0.97, 1.27);
+	const float3 blueShift = float3(1.05, 0.97, 1.27);
 	const float3 lumCoeff = float3(0.2126, 0.7152, 0.0722);
-	float3 night_color = dot(col, lumCoeff) * blue_shift;
-	float blue_shift_coeff = night_factor;
-	return lerp(col, night_color, blue_shift_coeff);
+	float3 nightColor = dot(col, lumCoeff) * blueShift;
+	float blueShiftCoeff = nightFactor;
+	return lerp(col, nightColor, blueShiftCoeff);
 }
 
 /*float3 vignette(float2 texCoord, float3 col)
@@ -122,45 +122,45 @@ float3 blue_shift(float3 col, float night_factor)
 	return col * smoothstep(0.8, vignette_size * 0.799, dist * (vignette_amount + vignette_size));
 }*/
 
-float3 vignette(float2 texCoord, float3 col)
+float3 Vignette(float2 texCoord, float3 col)
 {
-	float aperture_diameter = 2.8 * 0.001;
-	float lens_to_sensor_dist = 20 * 0.001;
-	float aspect_ratio = 16.0 / 9;
-	float sensor_width = 35 * 0.001;
-	float sensor_height = sensor_width / aspect_ratio;
+	float apertureDiameter = 2.8 * 0.001;
+	float lensToSensorDist = 20 * 0.001;
+	float aspectRatio = 16.0 / 9;
+	float sensorWidth = 35 * 0.001;
+	float sensorHeight = sensorWidth / aspectRatio;
 
-	float3 aperture_corner_ll = float3(sensor_width * 0.5, sensor_height * 0.5, lens_to_sensor_dist) - float3(aperture_diameter * 0.5, aperture_diameter * 0.5, 0.0);
-	float3 aperture_corner_ur = float3(sensor_width * 0.5, sensor_height * 0.5, lens_to_sensor_dist) + float3(aperture_diameter * 0.5, aperture_diameter * 0.5, 0.0);
-	float3 aperture_vector = aperture_corner_ur - aperture_corner_ll;
+	float3 apertureCornerLl = float3(sensorWidth * 0.5, sensorHeight * 0.5, lensToSensorDist) - float3(apertureDiameter * 0.5, apertureDiameter * 0.5, 0.0);
+	float3 apertureCornerUr = float3(sensorWidth * 0.5, sensorHeight * 0.5, lensToSensorDist) + float3(apertureDiameter * 0.5, apertureDiameter * 0.5, 0.0);
+	float3 apertureVector = apertureCornerUr - apertureCornerLl;
 
-	float3 sensor_corner_ll = float3(0, 0, 0);
-	float3 sensor_corner_ur = float3(sensor_width, sensor_height, 0);
-	float3 sensor_vector = sensor_corner_ur - sensor_corner_ll;
+	float3 sensorCornerLl = float3(0, 0, 0);
+	float3 sensorCornerUr = float3(sensorWidth, sensorHeight, 0);
+	float3 sensorVector = sensorCornerUr - sensorCornerLl;
 
-	float3 point_on_aperture = aperture_corner_ll + float3(aperture_vector.xy * texCoord, 0);
-	float3 point_on_sensor = sensor_corner_ll + float3(sensor_vector.xy * texCoord, 0);
+	float3 pointOnAperture = apertureCornerLl + float3(apertureVector.xy * texCoord, 0);
+	float3 pointOnSensor = sensorCornerLl + float3(sensorVector.xy * texCoord, 0);
 
-	float3 angle_vector = normalize(point_on_aperture - point_on_sensor);
-	float3 compare_vector = float3(0, 0, 1);
+	float3 angleVector = normalize(pointOnAperture - pointOnSensor);
+	float3 compareVector = float3(0, 0, 1);
 	
-	float angle = dot(angle_vector, compare_vector);
-	float angle_sqr = angle * angle;
-	return col * angle_sqr * angle_sqr; //(cos(x))^4
+	float angle = dot(angleVector, compareVector);
+	float angleSqr = angle * angle;
+	return col * angleSqr * angleSqr; //(cos(x))^4
 	//return col;
 }
 
-float3 lens_flare(float2 texCoord)
+float3 LensFlare(float2 texCoord)
 {
-	float3 lens_mod = gamma_to_linear(lensFlareDirtTex.Sample(samp0, texCoord));
-	float2 lens_star_tex_coord = mul(float4(texCoord, 1, 0), uniforms.lensStarMx).xy;
+	float3 lensMod = GammaToLinear(lensFlareDirtTex.Sample(samp0, texCoord));
+	float2 lensStarTexCoord = mul(float4(texCoord, 1, 0), uniforms.lensStarMx).xy;
 	//return gamma_to_linear(lens_mod.xyz);
 	//return gamma_to_linear(lensFlareStarTex.Sample(samp0, lens_star_tex_coord));
-	lens_mod += gamma_to_linear(lensFlareStarTex.Sample(samp0, lens_star_tex_coord));
+	lensMod += GammaToLinear(lensFlareStarTex.Sample(samp0, lensStarTexCoord));
 
-	float4 input_tex = lensFlareTex.Sample(samp0, texCoord);
+	float4 inputTex = lensFlareTex.Sample(samp0, texCoord);
 
-	return max(input_tex.xyz * lens_mod.xyz, 0) * 100;
+	return max(inputTex.xyz * lensMod.xyz, 0) * 100;
 }
 
 float4 PSMain(PS_Input input) : SV_TARGET
@@ -169,19 +169,19 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//float4 inputData = max(lensFlareTex.Load(int3(input.position.xy, 0)), float4(0,0,0,0));
 	float4 bloomData = bloomTex.Sample(samp0, input.texCoord);
 
-	inputData.xyz = vignette(input.texCoord, inputData.xyz);
+	inputData.xyz = Vignette(input.texCoord, inputData.xyz);
 
-	inputData += bloomData * uniforms.bloom_weight;
-	inputData.xyz += lens_flare(input.texCoord);
+	inputData += bloomData * uniforms.bloomWeight;
+	inputData.xyz += LensFlare(input.texCoord);
 	
 	float3 hdrColor = max(inputData, float4(0, 0, 0, 0)).xyz;
-	float avg_lum = luminanceTex.Sample(samp0, input.texCoord);
+	float avgLum = luminanceTex.Sample(samp0, input.texCoord);
 
 	//hdrColor = blue_shift(hdrColor, 1.0);
 
-	float3 ldr = tonemap(hdrColor * avg_lum * (uniforms.exposure + 1.0));
+	float3 ldr = Tonemap(hdrColor * avgLum * uniforms.exposure);
 
-	ldr = linear_to_gamma(ldr);
+	ldr = LinearToGamma(ldr);
 
 	//ldr = color_grading(ldr);
 

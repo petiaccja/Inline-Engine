@@ -34,7 +34,7 @@ struct PS_Input
 #define mnmx6(a, b, c, d, e, f) s2(a, d); s2(b, e); s2(c, f); mn3(a, b, c); mx3(d, e, f); // 7 exchanges
 
 //https://graphicscodex.com/research/McGuire2008Median/index.html
-float4 medianFilter(int2 uv, int2 resolution)
+float4 MedianFilter(int2 uv, int2 resolution)
 {
 	float4 v[9];
 

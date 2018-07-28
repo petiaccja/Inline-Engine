@@ -15,7 +15,7 @@ RWTexture2D<float2> outputTex : register(u0);
 //y: max depth
 groupshared float2 localData[LOCAL_SIZE_X * LOCAL_SIZE_Y];
 
-float linearize_depth(float depth)
+float LinearizeDepth(float depth)
 {
 	float near = 0.1;
 	float far = 100.0;
@@ -24,13 +24,13 @@ float linearize_depth(float depth)
 	float zndc = depth * 2 - 1;
 
 	//view space linear z
-	float vs_zrecon = -B / (zndc + A);
+	float vsZrecon = -B / (zndc + A);
 
 	//range: [0...1]
-	return vs_zrecon / -1.0;//far;
+	return vsZrecon / -1.0;//far;
 };
 
-void init(uint2 dispatchThreadId, uint groupIndex)
+void Init(uint2 dispatchThreadId, uint groupIndex)
 {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
@@ -47,7 +47,7 @@ void init(uint2 dispatchThreadId, uint groupIndex)
 	}
 }
 
-void reduce(uint groupIndex, uint idx)
+void Reduce(uint groupIndex, uint idx)
 {
 	localData[groupIndex].x = min(localData[groupIndex].x, localData[groupIndex + idx].x);
 	localData[groupIndex].y = max(localData[groupIndex].y, localData[groupIndex + idx].y);
@@ -67,9 +67,9 @@ void CSMain(
 	//get data from every second workgroup on the x axis
 	uint3 dispatchThreadId2 = uint3(groupId.x * 2, groupId.y, 0.0f);
 	dispatchThreadId2.xy = dispatchThreadId2.xy * uint2(LOCAL_SIZE_X, LOCAL_SIZE_Y) + groupThreadId.xy;
-	init(dispatchThreadId2.xy, groupIndex);
+	Init(dispatchThreadId2.xy, groupIndex);
 	//get data from every other workgroup on the x axis
-	init(uint2(dispatchThreadId2.x + LOCAL_SIZE_X, dispatchThreadId2.y), groupIndex);
+	Init(uint2(dispatchThreadId2.x + LOCAL_SIZE_X, dispatchThreadId2.y), groupIndex);
 
 	GroupMemoryBarrierWithGroupSync();
 
@@ -78,7 +78,7 @@ void CSMain(
 	{
 		if (groupIndex < x)
 		{
-			reduce(groupIndex, x);
+			Reduce(groupIndex, x);
 		}
 
 		GroupMemoryBarrierWithGroupSync();

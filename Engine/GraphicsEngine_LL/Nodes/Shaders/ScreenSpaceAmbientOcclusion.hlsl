@@ -28,13 +28,13 @@ static const float pi = 3.14159265;
 
 //white noise
 //[0...1]
-float rand(float seed)
+float Rand(float seed)
 {
 	return frac(sin(seed) * 43758.5453123);
 }
 
 //TODO: supply this from uniform/texture
-float getHalton(uint i, uint b)
+float GetHalton(uint i, uint b)
 {
 	float f = 1.0;
 	float r = 0.0;
@@ -51,7 +51,7 @@ float getHalton(uint i, uint b)
 
 //transforms a direction into the coordinate system
 //defined by the normal vector
-float3 trans_normal(float3 n, float3 d)
+float3 TransNormal(float3 n, float3 d)
 {
 	float3 a, b;
 
@@ -69,7 +69,7 @@ float3 trans_normal(float3 n, float3 d)
 	return a * d.x + b * d.y + n * d.z;
 }
 
-float falloffFunc(float distSqr)
+float FalloffFunc(float distSqr)
 {
 	float falloffStart = 0.4;
 	float falloffEnd = 2.0;
@@ -78,7 +78,7 @@ float falloffFunc(float distSqr)
 	return 2.0 * clamp((distSqr - falloffStartSqr) / (falloffEndSqr - falloffStartSqr), 0.0, 1.0);
 }
 
-float3 multiBounce(float ao, float3 albedo)
+float3 MultiBounce(float ao, float3 albedo)
 {
 	float3 a = 2.0404 * albedo - 0.3324;
 	float3 b = -4.7951 * albedo + 0.6417;
@@ -87,17 +87,17 @@ float3 multiBounce(float ao, float3 albedo)
 	return max(ao, ((ao * a + b) * ao + c) * ao);
 }
 
-float linearize_depth(float depth, float near, float far)
+float LinearizeDepth(float depth, float near, float far)
 {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 	float zndc = depth;
 
 	//view space linear z
-	float vs_zrecon = B / (zndc - A);
+	float vsZrecon = B / (zndc - A);
 
 	//range: [0...far]
-	return vs_zrecon;// / far;
+	return vsZrecon;// / far;
 }
 
 PS_Input VSMain(uint vertexId : SV_VertexID)
@@ -139,7 +139,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	}
 
 	//[0...far]
-	float linearDepth = linearize_depth(ndcDepth, uniforms.nearPlane, uniforms.farPlane);
+	float linearDepth = LinearizeDepth(ndcDepth, uniforms.nearPlane, uniforms.farPlane);
 
 	float3 farPlaneLL = uniforms.farPlaneData0.xyz;
 	float3 farPlaneUR = float3(uniforms.farPlaneData0.w, uniforms.farPlaneData1.xy);
@@ -173,7 +173,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//const float numDirs = 70;
 	//for (float d = 0; d < numDirs; ++d)
 	{
-		float2 randomFactor = float2(getHalton(spatialIndex + uniforms.temporalIndex * numSpatialSamples, 2), getHalton(spatialIndex + uniforms.temporalIndex * numSpatialSamples, 3));
+		float2 randomFactor = float2(GetHalton(spatialIndex + uniforms.temporalIndex * numSpatialSamples, 2), GetHalton(spatialIndex + uniforms.temporalIndex * numSpatialSamples, 3));
 		//float2 randomFactor = float2(getHalton(100.0+spatialIndex, 2), getHalton(100.0 + spatialIndex, 3));
 		//float2 randomFactor = float2(getHalton(seed + d, 2), getHalton(seed + d, 3));
 		//float2 randomFactor = float2(rand(seed*numDirs + d), rand(seed*numDirs + d));
@@ -200,7 +200,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 			float2 currSSPos = ssPos + (c / numSteps) * ssDir * ssRadius;
 
 			float currDepth = depthTex.Sample(samp0, float2(currSSPos.x, 1.0 - currSSPos.y)).x;
-			float currLinearDepth = linearize_depth(currDepth, uniforms.nearPlane, uniforms.farPlane);
+			float currLinearDepth = LinearizeDepth(currDepth, uniforms.nearPlane, uniforms.farPlane);
 			float3 currVsPos = float3(lerp(farPlaneLL.xy, farPlaneUR.xy, currSSPos) / uniforms.farPlane, 1.0) * currLinearDepth;
 
 			float3 diff = currVsPos - vsPos;
@@ -209,7 +209,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 			float cosAngle = dot(vsCurrDir, vsViewDir);
 
-			float falloff = falloffFunc(diffLengthSqr);
+			float falloff = FalloffFunc(diffLengthSqr);
 			horizons.y = max(horizons.y, cosAngle-falloff);
 		}
 
@@ -220,7 +220,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 			float2 currSSPos = ssPos + (e / numSteps) * ssDir * ssRadius;
 
 			float currDepth = depthTex.Sample(samp0, float2(currSSPos.x, 1.0 - currSSPos.y)).x;
-			float currLinearDepth = linearize_depth(currDepth, uniforms.nearPlane, uniforms.farPlane);
+			float currLinearDepth = LinearizeDepth(currDepth, uniforms.nearPlane, uniforms.farPlane);
 			float3 currVsPos = float3(lerp(farPlaneLL.xy, farPlaneUR.xy, currSSPos) / uniforms.farPlane, 1.0) * currLinearDepth;
 			
 			float3 diff = currVsPos - vsPos;
@@ -229,7 +229,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 			float cosAngle = dot(vsCurrDir, vsViewDir);
 
-			float falloff = falloffFunc(diffLengthSqr);
+			float falloff = FalloffFunc(diffLengthSqr);
 			horizons.x = max(horizons.x, cosAngle- falloff);
 		}
 

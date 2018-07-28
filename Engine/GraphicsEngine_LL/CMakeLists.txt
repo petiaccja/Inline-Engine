@@ -171,136 +171,136 @@ set(nodecommon
 
 set(node_dbg
 	"Nodes/DebugDrawManager.hpp"
-	"Nodes/Node_DebugDraw.cpp"
-	"Nodes/Node_DebugDraw.hpp"
+	"Nodes/DebugDraw.cpp"
+	"Nodes/DebugDraw.hpp"
 )
 
 set(node_draw
-	"Nodes/Node_DrawSky.cpp"
-	"Nodes/Node_DepthPrepass.cpp"
-	"Nodes/Node_RenderOverlay.cpp"
-	"Nodes/Node_RenderForwardSimple.cpp"
+	"Nodes/DrawSky.cpp"
+	"Nodes/DepthPrepass.cpp"
+	"Nodes/RenderOverlay.cpp"
+	"Nodes/RenderForwardSimple.cpp"
 	
-	"Nodes/Node_DrawSky.hpp"
-	"Nodes/Node_DepthPrepass.hpp"
-	"Nodes/Node_RenderOverlay.hpp"
-	"Nodes/Node_RenderForwardSimple.hpp"
+	"Nodes/DrawSky.hpp"
+	"Nodes/DepthPrepass.hpp"
+	"Nodes/RenderOverlay.hpp"
+	"Nodes/RenderForwardSimple.hpp"
 
 	"Nodes/Shaders/RenderOverlay_Overlay.hlsl"
 	"Nodes/Shaders/RenderOverlay_Text.hlsl"
 )
 
 set(node_lighting
-	"Nodes/Node_ForwardRender.cpp"
-	"Nodes/Node_LightCulling.cpp"
-	"Nodes/Node_Voxelization.cpp"
-	"Nodes/Node_VolumetricLighting.cpp"
+	"Nodes/ForwardRender.cpp"
+	"Nodes/LightCulling.cpp"
+	"Nodes/Voxelization.cpp"
+	"Nodes/VolumetricLighting.cpp"
 	
-	"Nodes/Node_ForwardRender.hpp"
-	"Nodes/Node_LightCulling.hpp"
-	"Nodes/Node_Voxelization.hpp"
-	"Nodes/Node_VolumetricLighting.hpp"
+	"Nodes/ForwardRender.hpp"
+	"Nodes/LightCulling.hpp"
+	"Nodes/Voxelization.hpp"
+	"Nodes/VolumetricLighting.hpp"
 )
 
 set(node_pp_aa
-	"Nodes/Node_SMAA.cpp"
-	"Nodes/Node_SMAA.hpp"
+	"Nodes/SMAA.cpp"
+	"Nodes/SMAA.hpp"
 )
 set(node_pp_bloom
-	"Nodes/Node_BloomAdd.cpp"
-	"Nodes/Node_BloomBlur.cpp"
-	"Nodes/Node_BloomDownsample.cpp"
-	"Nodes/Node_BrightLumPass.cpp"
-	"Nodes/Node_HDRCombine.cpp"
-	"Nodes/Node_LensFlare.cpp"
-	"Nodes/Node_LuminanceReduction.cpp"
-	"Nodes/Node_LuminanceReductionFinal.cpp"
+	"Nodes/BloomAdd.cpp"
+	"Nodes/BloomBlur.cpp"
+	"Nodes/BloomDownsample.cpp"
+	"Nodes/BrightLumPass.cpp"
+	"Nodes/HDRCombine.cpp"
+	"Nodes/LensFlare.cpp"
+	"Nodes/LuminanceReduction.cpp"
+	"Nodes/LuminanceReductionFinal.cpp"
 	
-	"Nodes/Node_BloomAdd.hpp"
-	"Nodes/Node_BloomBlur.hpp"
-	"Nodes/Node_BloomDownsample.hpp"
-	"Nodes/Node_BrightLumPass.hpp"
-	"Nodes/Node_HDRCombine.hpp"
-	"Nodes/Node_LensFlare.hpp"
-	"Nodes/Node_LuminanceReduction.hpp"
-	"Nodes/Node_LuminanceReductionFinal.hpp"
+	"Nodes/BloomAdd.hpp"
+	"Nodes/BloomBlur.hpp"
+	"Nodes/BloomDownsample.hpp"
+	"Nodes/BrightLumPass.hpp"
+	"Nodes/HDRCombine.hpp"
+	"Nodes/LensFlare.hpp"
+	"Nodes/LuminanceReduction.hpp"
+	"Nodes/LuminanceReductionFinal.hpp"
 )
 
 set(node_pp_dof
-	"Nodes/Node_DOFMain.cpp"
-	"Nodes/Node_DOFNeighborMax.cpp"
-	"Nodes/Node_DOFPrepare.cpp"
-	"Nodes/Node_DOFTileMax.cpp"
+	"Nodes/DOFMain.cpp"
+	"Nodes/DOFNeighborMax.cpp"
+	"Nodes/DOFPrepare.cpp"
+	"Nodes/DOFTileMax.cpp"
 	
-	"Nodes/Node_DOFMain.hpp"
-	"Nodes/Node_DOFNeighborMax.hpp"
-	"Nodes/Node_DOFPrepare.hpp"
-	"Nodes/Node_DOFTileMax.hpp"
+	"Nodes/DOFMain.hpp"
+	"Nodes/DOFNeighborMax.hpp"
+	"Nodes/DOFPrepare.hpp"
+	"Nodes/DOFTileMax.hpp"
 )
 
 set(node_pp_mblur
-	"Nodes/Node_MotionBlur.cpp"
-	"Nodes/Node_NeighborMax.cpp"
-	"Nodes/Node_TileMax.cpp"
+	"Nodes/MotionBlur.cpp"
+	"Nodes/NeighborMax.cpp"
+	"Nodes/TileMax.cpp"
 	
-	"Nodes/Node_MotionBlur.hpp"
-	"Nodes/Node_NeighborMax.hpp"
-	"Nodes/Node_TileMax.hpp"
+	"Nodes/MotionBlur.hpp"
+	"Nodes/NeighborMax.hpp"
+	"Nodes/TileMax.hpp"
 )
 
 set(node_pp_ssao
-	"Nodes/Node_ScreenSpaceAmbientOcclusion.cpp"
-	"Nodes/Node_ScreenSpaceAmbientOcclusion.hpp"
+	"Nodes/ScreenSpaceAmbientOcclusion.cpp"
+	"Nodes/ScreenSpaceAmbientOcclusion.hpp"
 )
 
 set(node_pp_ssr
-	"Nodes/Node_ScreenSpaceReflection.cpp"
-	"Nodes/Node_ScreenSpaceReflection.hpp"
+	"Nodes/ScreenSpaceReflection.cpp"
+	"Nodes/ScreenSpaceReflection.hpp"
 )
 
 set(node_shadow_csm
-	"Nodes/Node_CSM.cpp"
-	"Nodes/Node_DepthReduction.cpp"
-	"Nodes/Node_DepthReductionFinal.cpp"
+	"Nodes/CSM.cpp"
+	"Nodes/DepthReduction.cpp"
+	"Nodes/DepthReductionFinal.cpp"
 	
-	"Nodes/Node_CSM.hpp"
-	"Nodes/Node_DepthReduction.hpp"
-	"Nodes/Node_DepthReductionFinal.hpp"
+	"Nodes/CSM.hpp"
+	"Nodes/DepthReduction.hpp"
+	"Nodes/DepthReductionFinal.hpp"
 )
 set(node_shadow_pointspot
-	"Nodes/Node_ShadowMapGen.cpp"
-	"Nodes/Node_ShadowMapGen.hpp"
+	"Nodes/ShadowMapGen.cpp"
+	"Nodes/ShadowMapGen.hpp"
 )
 set(node_shadow_screenspace
-	"Nodes/Node_ScreenSpaceShadow.cpp"
-	"Nodes/Node_ScreenSpaceShadow.hpp"
+	"Nodes/ScreenSpaceShadow.cpp"
+	"Nodes/ScreenSpaceShadow.hpp"
 )
 set(node_shadow_filtering
-	"Nodes/Node_ShadowFilter.cpp"
-	"Nodes/Node_ShadowFilter.hpp"
+	"Nodes/ShadowFilter.cpp"
+	"Nodes/ShadowFilter.hpp"
 )
 
 set(node_sys 
-	"Nodes/Node_CreateTexture.hpp"
-	"Nodes/Node_GetBackBuffer.hpp"
-	"Nodes/Node_GetCameraByName.hpp"
-	"Nodes/Node_GetCamera2DByName.hpp"
-	"Nodes/Node_GetEnvVariable.hpp"
-	"Nodes/Node_GetSceneByName.hpp"
-	"Nodes/Node_GetTime.hpp"
+	"Nodes/CreateTexture.hpp"
+	"Nodes/GetBackBuffer.hpp"
+	"Nodes/GetCameraByName.hpp"
+	"Nodes/GetCamera2DByName.hpp"
+	"Nodes/GetEnvVariable.hpp"
+	"Nodes/GetSceneByName.hpp"
+	"Nodes/GetTime.hpp"
 )
 
 set(node_util 
-	"Nodes/Node_TextureProperties.hpp"
-	"Nodes/Node_VectorComponents.hpp"
+	"Nodes/TextureProperties.hpp"
+	"Nodes/VectorComponents.hpp"
 	
-	"Nodes/Node_Blend.cpp"
-	"Nodes/Node_Blend.hpp"
+	"Nodes/Blend.cpp"
+	"Nodes/Blend.hpp"
 	
-	"Nodes/Node_BlendWithTransform.cpp"
-	"Nodes/Node_BlendWithTransform.hpp"
+	"Nodes/BlendWithTransform.cpp"
+	"Nodes/BlendWithTransform.hpp"
 	
-	"Nodes/Node_ScreenSpaceTransform.hpp"
+	"Nodes/ScreenSpaceTransform.hpp"
 
 	"Nodes/Shaders/Blend.hlsl"
 	"Nodes/Shaders/BlendWithTransform.hlsl"

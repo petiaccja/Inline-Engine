@@ -1,30 +1,30 @@
 TextureCube<float> pointLightShadowMapTex : register(t400);
 
-float linearize_depth(float depth, float near, float far)
+float LinearizeDepth(float depth, float near, float far)
 {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 	float zndc = depth;
 
 	//view space linear z
-	float vs_zrecon = B / (zndc - A);
+	float vsZrecon = B / (zndc - A);
 
 	//range: [0...far]
-	return vs_zrecon;// / far;
+	return vsZrecon;// / far;
 };
 
-float3 getPointLightShadow(float3 dir, float dist
+float3 GetPointLightShadow(float3 dir, float dist
 #ifdef POINT_EXTENDED_INFO
 , out float4 shadowCoord
 #endif
 )
 {
-	float3 ws_dir = mul(float4(dir, 0.0), uniforms.invV).xyz;
+	float3 wsDir = mul(float4(dir, 0.0), uniforms.invV).xyz;
 	#ifdef POINT_EXTENDED_INFO
-	shadowCoord = float4(ws_dir, 1.0);
+	shadowCoord = float4(wsDir, 1.0);
 	#endif
-	float depth = pointLightShadowMapTex.SampleLevel(theSampler, ws_dir, 0.0).x;
-	float linearDepth = linearize_depth(depth, 0.1, 100);
+	float depth = pointLightShadowMapTex.SampleLevel(theSampler, wsDir, 0.0).x;
+	float linearDepth = LinearizeDepth(depth, 0.1, 100);
 	float bias = 0.05;
 	float shadowTerm = float(linearDepth > dist - bias);	
 	return float3(shadowTerm, shadowTerm, shadowTerm);

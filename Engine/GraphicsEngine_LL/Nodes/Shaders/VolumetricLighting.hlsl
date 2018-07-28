@@ -14,32 +14,32 @@ RWTexture2D<float4> dstTex : register(u2);
 
 #include "CSMSample"
 
-struct sdf_data
+struct SdfData
 {
-	float4 vs_position;
+	float4 vsPosition;
 	float radius;
 	float3 dummy;
 };
 
-struct light_data
+struct LightData
 {
 	float4 diffuseLightColor;
-	float4 vs_position;
-	float attenuation_end;
+	float4 vsPosition;
+	float attenuationEnd;
 	float3 dummy;
 };
 
 struct Uniforms
 {
-	sdf_data sd[10];
-	light_data ld[10];
+	SdfData sd[10];
+	LightData ld[10];
 	float4x4 v, p;
 	float4x4 invVP, oldVP;
-	float cam_near, cam_far, dummy1, dummy2;
-	uint num_sdfs, num_workgroups_x, num_workgroups_y; float haltonFactor;
-	float4 sun_direction;
-	float4 sun_color;
-	float4 cam_pos;
+	float camNear, camFar, dummy1, dummy2;
+	uint numSdfs, numWorkgroupsX, numWorkgroupsY; float haltonFactor;
+	float4 sunDirection;
+	float4 sunColor;
+	float4 camPos;
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
@@ -52,40 +52,40 @@ static const float pi = 3.14159265;
 #define LOCAL_SIZE_X 16
 #define LOCAL_SIZE_Y 16
 
-float linearize_depth(float depth, float near, float far)
+float LinearizeDepth(float depth, float near, float far)
 {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 	float zndc = depth;
 
 	//view space linear z
-	float vs_zrecon = B / (zndc - A);
+	float vsZrecon = B / (zndc - A);
 
 	//range: [0...far]
-	return vs_zrecon;// / far;
+	return vsZrecon;// / far;
 };
 
-float sphere(float3 rayOri, float3 rayDir, float3 center, float radius)
+float Sphere(float3 rayOri, float3 rayDir, float3 center, float radius)
 {
 	return distance(rayOri, center) - radius;
 }
 
-float3 sphereNormal(float3 rayOri, float3 rayDir, float3 spherePos, float sphereRad)
+float3 SphereNormal(float3 rayOri, float3 rayDir, float3 spherePos, float sphereRad)
 {
 	return normalize(float3(
-		sphere(rayOri + float3(epsilon, 0, 0), rayDir, spherePos, sphereRad) - sphere(rayOri + float3(-epsilon, 0, 0), rayDir, spherePos, sphereRad),
-		sphere(rayOri + float3(0, epsilon, 0), rayDir, spherePos, sphereRad) - sphere(rayOri + float3(0, -epsilon, 0), rayDir, spherePos, sphereRad),
-		sphere(rayOri + float3(0, 0, epsilon), rayDir, spherePos, sphereRad) - sphere(rayOri + float3(0, 0, -epsilon), rayDir, spherePos, sphereRad)
+		sphere(rayOri + float3(epsilon, 0, 0), rayDir, spherePos, sphereRad) - Sphere(rayOri + float3(-epsilon, 0, 0), rayDir, spherePos, sphereRad),
+		sphere(rayOri + float3(0, epsilon, 0), rayDir, spherePos, sphereRad) - Sphere(rayOri + float3(0, -epsilon, 0), rayDir, spherePos, sphereRad),
+		sphere(rayOri + float3(0, 0, epsilon), rayDir, spherePos, sphereRad) - Sphere(rayOri + float3(0, 0, -epsilon), rayDir, spherePos, sphereRad)
 	));
 }
 
 //neutral for now
-float phaseFunction()
+float PhaseFunction()
 {
 	return 1.0 / (4.0*3.14);
 }
 
-float getNextStepSize(float currStep, float maxSteps, float currPos, float minz, float maxz)
+float GetNextStepSize(float currStep, float maxSteps, float currPos, float minz, float maxz)
 {
 	float z = maxz;
 	float ratio = maxz / minz;
@@ -109,10 +109,10 @@ void CSMain(
 	//[0...1]
 	float ndcDepth = depthTex.Load(int3(dispatchThreadId.xy, 0)).x;
 	//[0...far]
-	float linear_depth = linearize_depth(ndcDepth, uniforms.cam_near, uniforms.cam_far);
+	float linearDepth = LinearizeDepth(ndcDepth, uniforms.camNear, uniforms.camFar);
 
-	uint local_num_of_sdfs = sdfCullTex.Load(int3(groupId.x * uniforms.num_workgroups_y + groupId.y, 0, 0));
-	uint local_num_of_lights = lightCullTex.Load(int3(groupId.x * uniforms.num_workgroups_y + groupId.y, 0, 0));
+	uint localNumOfSdfs = sdfCullTex.Load(int3(groupId.x * uniforms.numWorkgroupsY + groupId.y, 0, 0));
+	uint localNumOfLights = lightCullTex.Load(int3(groupId.x * uniforms.numWorkgroupsY + groupId.y, 0, 0));
 
 	float4 outColor = inputColorTex.Load(int3(dispatchThreadId.xy, 0));
 
@@ -124,7 +124,7 @@ void CSMain(
 	float4 rayOriTmp = float4(uv * 2 - 1, 0, 1); //ndc pos on near plane
 	rayOriTmp = mul(rayOriTmp, uniforms.invVP);
 	rayOri = rayOriTmp.xyz / rayOriTmp.w;
-	rayDir = normalize(rayOri - uniforms.cam_pos.xyz);
+	rayDir = normalize(rayOri - uniforms.camPos.xyz);
 
 	float4 reprojPosTmp = float4(uv * 2 - 1, ndcDepth, 1); //ndc pos on near plane
 	reprojPosTmp = mul(reprojPosTmp, uniforms.invVP);
@@ -133,7 +133,7 @@ void CSMain(
 	reprojPos /= reprojPos.w;
 
 	float t = 0;
-	float maxDist = min(linear_depth - 0.1, 32.0);
+	float maxDist = min(linearDepth - 0.1, 32.0);
 
 	float transmittance = 1.0;
 	float3 scatteredLight = float3(0, 0, 0);
@@ -168,27 +168,27 @@ void CSMain(
 		float phase = 0.0;
 		float phaseCounter = 0.0;
 
-		for (uint c = 0; c < local_num_of_sdfs; ++c)
+		for (uint c = 0; c < localNumOfSdfs; ++c)
 		{
-			uint index = sdfCullTex.Load(int3(groupId.x * uniforms.num_workgroups_y + groupId.y, c + 1, 0));
+			uint index = sdfCullTex.Load(int3(groupId.x * uniforms.numWorkgroupsY + groupId.y, c + 1, 0));
 			//world space
-			float3 pos = uniforms.sd[index].vs_position;
+			float3 pos = uniforms.sd[index].vsPosition;
 			float radius = uniforms.sd[index].radius;
 
 			//TODO sample texture or something...
-			float dist = max(-sphere(evalPos, rayDir, pos, radius), 0.0);
+			float dist = max(-Sphere(evalPos, rayDir, pos, radius), 0.0);
 
 			//add together scattering
 			muS += dist * 30.0 / radius;
 
 			//TODO: get this from somewhere
-			phase += phaseFunction();
+			phase += PhaseFunction();
 			phaseCounter++;
 		}
 
 		//constant world fog
 		muS += 0.2;
-		phase += phaseFunction();
+		phase += PhaseFunction();
 		phaseCounter++;
 
 		if (phaseCounter > 0.0)
@@ -200,29 +200,29 @@ void CSMain(
 
 		float3 lighting = float3(0, 0, 0);
 
-		for (uint e = 0; e < local_num_of_lights; ++e)
+		for (uint e = 0; e < localNumOfLights; ++e)
 		{
-			uint index = lightCullTex.Load(int3(groupId.x * uniforms.num_workgroups_y + groupId.y, e + 1, 0));
+			uint index = lightCullTex.Load(int3(groupId.x * uniforms.numWorkgroupsY + groupId.y, e + 1, 0));
 			//world space
-			float3 pos = uniforms.ld[index].vs_position;
-			float att_end = uniforms.ld[index].attenuation_end;
-			float3 light_color = uniforms.ld[index].diffuseLightColor;
+			float3 pos = uniforms.ld[index].vsPosition;
+			float attEnd = uniforms.ld[index].attenuationEnd;
+			float3 lightColor = uniforms.ld[index].diffuseLightColor;
 
-			float3 light_dir = pos - evalPos.xyz;
-			float distance = length(light_dir);
-			light_dir = normalize(light_dir);
+			float3 lightDir = pos - evalPos.xyz;
+			float distance = length(lightDir);
+			lightDir = normalize(lightDir);
 
-			float attenuation = clamp((att_end - distance) / att_end, 0.0, 1.0);
+			float attenuation = clamp((attEnd - distance) / attEnd, 0.0, 1.0);
 
 			//TODO sample shadow map
-			lighting += light_color * attenuation * 10.0;
+			lighting += lightColor * attenuation * 10.0;
 		}
 
-		float shadow = get_shadow(float4(vsEvalPos, 1.0)).x;
+		float shadow = GetShadow(float4(vsEvalPos, 1.0)).x;
 
 		//eval directional light
 		//TODO sample shadow map
-		lighting += uniforms.sun_color * 10.0 * shadow;
+		lighting += uniforms.sunColor * 10.0 * shadow;
 
 		float3 S = lighting * muS * phase; //TODO: volumetric shadow maps
 		float3 Sint = (S - S * exp(-muE * stepSize)) / muE; // integrate along the current step segment

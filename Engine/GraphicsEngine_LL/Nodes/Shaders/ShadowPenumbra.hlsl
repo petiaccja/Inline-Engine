@@ -39,7 +39,7 @@ struct PS_Output
 };
 
 
-float estimate_penumbra( float receiver, float blocker )
+float EstimatePenumbra( float receiver, float blocker )
 {
 	//need to set min to roughly near plane,
 	//as we render stuff into cascades even when outside cascade
@@ -85,7 +85,7 @@ PS_Output PSMain(PS_Input input) : SV_TARGET
 		discard;
 	}
 	
-	float linearDepth = linearize_depth(depth, uniforms.nearPlane, uniforms.farPlane);
+	float linearDepth = LinearizeDepth(depth, uniforms.nearPlane, uniforms.farPlane);
 	float3 farPlaneLL = uniforms.farPlaneData0.xyz;
 	float3 farPlaneUR = float3(uniforms.farPlaneData0.w, uniforms.farPlaneData1.xy);
 
@@ -99,14 +99,14 @@ PS_Output PSMain(PS_Input input) : SV_TARGET
 		//blocker comes from minfilter tex
 		float4 shadowCoord;
 		{
-			shadow.x = get_csm_shadow(float4(vsPos, 1.0), shadowCoord).x;
+			shadow.x = GetCsmShadow(float4(vsPos, 1.0), shadowCoord).x;
 		}
 		
-		float blocker = clamp(inputTex1.SampleLevel(samp0, get_shadow_uv(shadowCoord.xy, shadowCoord.w), 0.0).x, 0.0, 1.0);
+		float blocker = clamp(inputTex1.SampleLevel(samp0, GetShadowUv(shadowCoord.xy, shadowCoord.w), 0.0).x, 0.0, 1.0);
 		float shadowCoordZ = clamp(shadowCoord.z, 0.0, 1.0);
 		
 		float ls = uniforms.lightSize;
-		penumbra.x = estimate_penumbra( shadowCoordZ, blocker ) * ls;// * ls;
+		penumbra.x = EstimatePenumbra( shadowCoordZ, blocker ) * ls;// * ls;
 		//penumbra.z = shadowCoordZ;
 		//penumbra.w = blocker;
 	}
@@ -117,18 +117,18 @@ PS_Output PSMain(PS_Input input) : SV_TARGET
 			//blocker comes from minfilter tex
 			float4 shadowCoord;
 			{
-				float3 light_dir = uniforms.vsLightPos.xyz - vsPos;
-				float distance = length(light_dir);
-				shadow.y = getPointLightShadow(-light_dir, distance, shadowCoord).x;
+				float3 lightDir = uniforms.vsLightPos.xyz - vsPos;
+				float distance = length(lightDir);
+				shadow.y = GetPointLightShadow(-lightDir, distance, shadowCoord).x;
 				shadowCoord.w = distance;
 			}
 			
 			float blocker = inputTex2.SampleLevel(samp0, shadowCoord.xyz, 0.0).x;
-			blocker = linearize_depth(blocker, 0.1, 100.0);
+			blocker = LinearizeDepth(blocker, 0.1, 100.0);
 			float shadowCoordZ = shadowCoord.w;
 			
 			float ls = uniforms.lightSize;
-			penumbra.y = estimate_penumbra( shadowCoordZ, blocker ) * ls;// * ls;
+			penumbra.y = EstimatePenumbra( shadowCoordZ, blocker ) * ls;// * ls;
 			//penumbra.z = shadowCoordZ;
 			//penumbra.w = blocker;
 		}

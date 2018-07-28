@@ -4,34 +4,34 @@ Texture2D<float4> layeredShadowTex : register(t602);
 SamplerState theSampler : register(s500);
 
 //NOTE: actually, just use SRGB, it's got better quality!
-float3 linear_to_gamma(float3 col)
+float3 LinearToGamma(float3 col)
 {
 	return pow(col, float3(1 / 2.2, 1 / 2.2, 1 / 2.2));
 }
 
-float3 gamma_to_linear(float3 col)
+float3 GammaToLinear(float3 col)
 {
 	return pow(col, float3(2.2, 2.2, 2.2));
 }
 
-float3 get_sky_color()
+float3 GetSkyColor()
 {
 	return float3(110, 165, 255) / 255.0;
 }
 
-float3 hemisphere_ambient_lighting(float3 ws_n)
+float3 HemisphereAmbientLighting(float3 wsN)
 {
 	//hemisphere ambient term for visualization
-	float4 sky_col = float4(get_sky_color(), 1);
-	float3 sky_dir = float3(0, 0, 1);
-	float4 ground_col = float4(float3(0.25, 0.25, 0.25), 1);
-	float hemi_intensity = 0.7;
+	float4 skyCol = float4(GetSkyColor(), 1);
+	float3 skyDir = float3(0, 0, 1);
+	float4 groundCol = float4(float3(0.25, 0.25, 0.25), 1);
+	float hemiIntensity = 0.7;
 
-	float vec_hemi = dot(ws_n, sky_dir) * 0.5 + 0.5;
-	return hemi_intensity * lerp(ground_col.xyz, sky_col.xyz, vec_hemi);
+	float vecHemi = dot(wsN, skyDir) * 0.5 + 0.5;
+	return hemiIntensity * lerp(groundCol.xyz, skyCol.xyz, vecHemi);
 }
 
-float getLayeredShadow( float2 texCoord, const int layer )
+float GetLayeredShadow( float2 texCoord, const int layer )
 {
 	if(layer == 0)
 	{
@@ -51,53 +51,53 @@ float getLayeredShadow( float2 texCoord, const int layer )
 	}
 }
 
-float3 get_lighting(float4 sv_position, //gl_FragCoord
+float3 GetLighting(float4 svPosition, //gl_FragCoord
 					float4 albedo, 
-					float3 vs_normal,
-					float4 vs_pos,
+					float3 vsNormal,
+					float4 vsPos,
 					float roughness,
 					float metalness
 						)
 {
-	uint2 global_id = uint2(sv_position.xy);
-	float2 global_size = uniforms.screen_dimensions;
-	uint2 local_size = uint2(16, 16);
-	uint2 group_id = global_id / local_size;
-	float2 texel = global_id / global_size;
+	uint2 globalId = uint2(svPosition.xy);
+	float2 globalSize = uniforms.screenDimensions;
+	uint2 localSize = uint2(16, 16);
+	uint2 groupId = globalId / localSize;
+	float2 texel = globalId / globalSize;
 
-	uint local_num_of_lights = lightCullData.Load(int3(group_id.x * uniforms.group_size_y + group_id.y, 0, 0));
+	uint localNumOfLights = lightCullData.Load(int3(groupId.x * uniforms.groupSizeY + groupId.y, 0, 0));
 	//uint local_num_of_lights = lightCullData.Load(int3(global_id, 0));
 	
 	//return float3(asfloat(local_num_of_lights), 0, 0);
 	//return float3(float(local_num_of_lights), 0, 0);
 
-	float3 vs_view_dir = normalize(uniforms.vs_cam_pos.xyz - vs_pos.xyz);
+	float3 vsViewDir = normalize(uniforms.vsCamPos.xyz - vsPos.xyz);
 
 	float3 color = float3(0, 0, 0);
-	for (uint c = 0; c < local_num_of_lights; ++c)
+	for (uint c = 0; c < localNumOfLights; ++c)
 	{
-		uint index = lightCullData.Load(int3(group_id.x * uniforms.group_size_y + group_id.y, c + 1, 0));
-		float3 vs_light_pos = uniforms.ld[index].vs_position.xyz;
-		float attenuation_end = uniforms.ld[index].attenuation_end;
-		float4 diffuse_color = uniforms.ld[index].diffuse_color;
+		uint index = lightCullData.Load(int3(groupId.x * uniforms.groupSizeY + groupId.y, c + 1, 0));
+		float3 vsLightPos = uniforms.ld[index].vsPosition.xyz;
+		float attenuationEnd = uniforms.ld[index].attenuationEnd;
+		float4 diffuseColor = uniforms.ld[index].diffuseColor;
 
-		float3 light_dir = vs_light_pos - vs_pos.xyz;
-		float distance = length(light_dir);
-		light_dir = normalize(light_dir);
+		float3 lightDir = vsLightPos - vsPos.xyz;
+		float distance = length(lightDir);
+		lightDir = normalize(lightDir);
 
-		float attenuation = (attenuation_end - distance) / attenuation_end;
+		float attenuation = (attenuationEnd - distance) / attenuationEnd;
 
 		if (attenuation > 0.0)
 		{
-			float n_dot_l = max(dot(vs_normal, light_dir), 0.0);
+			float nDotL = max(dot(vsNormal, lightDir), 0.0);
 
 			//color += (n_dot_l * attenuation) * (diffuse_color.xyz * 10.0 * albedo.xyz); //TODO: shadow
 
 			color += getCookTorranceBRDF(albedo.xyz,
-										 vs_normal,
-										 vs_view_dir,
-									     light_dir,
-										 diffuse_color.xyz * attenuation * 10.0 * getLayeredShadow(texel, 1),
+										 vsNormal,
+										 vsViewDir,
+									     lightDir,
+										 diffuseColor.xyz * attenuation * 10.0 * getLayeredShadow(texel, 1),
 										 roughness, 
 										 metalness 
 										);
@@ -127,8 +127,8 @@ float3 get_lighting(float4 sv_position, //gl_FragCoord
 	float screenSpaceShadow = screenSpaceShadowTex.Sample(samp0, texel);
 
 	color += getCookTorranceBRDF(albedo.xyz,
-								 vs_normal,
-								 vs_view_dir,
+								 vsNormal,
+								 vsViewDir,
 								 -g_lightDir,
 								 g_lightColor.xyz * 10.0 * screenSpaceShadow * getLayeredShadow(texel, 0),
 								 roughness,

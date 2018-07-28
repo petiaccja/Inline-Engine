@@ -24,26 +24,26 @@ struct PS_Input
 	float2 texCoord : TEX_COORD0;
 };
 
-float linearize_depth(float depth, float near, float far)
+float LinearizeDepth(float depth, float near, float far)
 {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 	float zndc = depth;
 
 	//view space linear z
-	float vs_zrecon = B / (zndc - A);
+	float vsZrecon = B / (zndc - A);
 
 	//range: [0...far]
-	return vs_zrecon;// / far;
+	return vsZrecon;// / far;
 };
 
-float distanceSquared(float2 a, float2 b) 
+float DistanceSquared(float2 a, float2 b) 
 { 
 	a -= b; return dot(a, a); 
 }
 
 // Returns true if the ray hit something
-float traceScreenSpaceRay1(
+float TraceScreenSpaceRay1(
 	// Camera-space ray origin, which must be within the view volume
 	float3 csOrig,
 	// Unit length camera-space ray direction
@@ -93,7 +93,7 @@ float traceScreenSpaceRay1(
 
 	// If the line is degenerate, make it cover at least one pixel
 	// to avoid handling zero-pixel extent as a special case later
-	P1 += (distanceSquared(P0, P1) < 0.0001) ? 0.01 : 0.0;
+	P1 += (DistanceSquared(P0, P1) < 0.0001) ? 0.01 : 0.0;
 	float2 delta = P1 - P0;
 
 	// Permute so that the primary iteration is in x to collapse
@@ -146,7 +146,7 @@ float traceScreenSpaceRay1(
 		// You may need hitPixel.y = csZBufferSize.y - hitPixel.y; here if your vertical axis
 		// is different than ours in screen space
 		float depth = inputTex.Load(int3(hitPixel, 0)).x;
-		sceneZMax = linearize_depth(depth, uniforms.nearPlane, uniforms.farPlane);
+		sceneZMax = LinearizeDepth(depth, uniforms.nearPlane, uniforms.farPlane);
 		rayZ = Q.z / k;
 
 		if (sceneZMax < rayZ - zThickness)
@@ -199,7 +199,7 @@ float PSMain(PS_Input input) : SV_TARGET
 	}
 
 	//[0...far]
-	float linearDepth = linearize_depth(ndcDepth, uniforms.nearPlane, uniforms.farPlane);
+	float linearDepth = LinearizeDepth(ndcDepth, uniforms.nearPlane, uniforms.farPlane);
 
 	float3 farPlaneLL = uniforms.farPlaneData0.xyz;
 	float3 farPlaneUR = float3(uniforms.farPlaneData0.w, uniforms.farPlaneData1.xy);
@@ -209,7 +209,7 @@ float PSMain(PS_Input input) : SV_TARGET
 	
 	float3 hitPoint;
 	float2 hitPixel;
-	float res = traceScreenSpaceRay1(vsPos, uniforms.vsSunDirection.xyz, uniforms.projSS, inputTexSize.xy, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 10, 0.1, hitPixel, hitPoint);
+	float res = TraceScreenSpaceRay1(vsPos, uniforms.vsSunDirection.xyz, uniforms.projSS, inputTexSize.xy, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 10, 0.1, hitPixel, hitPoint);
 
 	return res;
 }

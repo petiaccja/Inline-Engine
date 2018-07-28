@@ -19,7 +19,7 @@ struct PS_Input
 	float2 texCoord : TEXCOORD0;
 };
 
-float2 compareWithNeighbor(int2 tileCorner, int s, int t, float2 result)
+float2 CompareWithNeighbor(int2 tileCorner, int s, int t, float2 result)
 {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
@@ -77,7 +77,7 @@ float2 PSMain(PS_Input input) : SV_TARGET
 	{
 		for (int y = -searchRadius; y <= searchRadius; ++y)
 		{
-			result = compareWithNeighbor(tileCorner, x, y, result);
+			result = CompareWithNeighbor(tileCorner, x, y, result);
 		}
 	}
 

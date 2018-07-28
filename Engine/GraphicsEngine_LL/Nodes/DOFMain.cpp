@@ -251,7 +251,7 @@ void DOFMain::Setup(SetupContext& context) {
 			psoDesc.numRenderTargets = 1;
 			psoDesc.renderTargetFormats[0] = m_upsampleRTV.GetResource().GetFormat();
 
-			m_upsample_PSO.reset(context.CreatePSO(psoDesc));
+			m_upsamplePSO.reset(context.CreatePSO(psoDesc));
 		}
 	}
 

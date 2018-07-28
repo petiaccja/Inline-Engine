@@ -74,7 +74,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		discard;
 	}
 	
-	float linearDepth = linearize_depth(depth, uniforms.nearPlane, uniforms.farPlane);
+	float linearDepth = LinearizeDepth(depth, uniforms.nearPlane, uniforms.farPlane);
 	
 	float3 farPlaneLL = uniforms.farPlaneData0.xyz;
 	float3 farPlaneUR = float3(uniforms.farPlaneData0.w, uniforms.farPlaneData1.xy);
@@ -98,14 +98,14 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float4 hardShadow = inputTex4.Sample(samp0, input.texCoord);
 	
 	const float anisoThreshold = 0.25; //TODO make it uniform
-	float2 stepSize = get_step_size( uniforms.direction, vsDepthNormal, linearDepth, anisoThreshold ) / uniforms.farPlane * 3.0;
+	float2 stepSize = GetStepSize( uniforms.direction, vsDepthNormal, linearDepth, anisoThreshold ) / uniforms.farPlane * 3.0;
 	
 	float4 blurredResultLayers = float4(0.0, 0.0, 0.0, 0.0);
 	
-	blurredResultLayers.x = blur( stepSize, input.texCoord, hardShadow.x, depth, penumbra.x, 0 );
-	blurredResultLayers.y = blur( stepSize, input.texCoord, hardShadow.y, depth, penumbra.y, 1 );
-	blurredResultLayers.z = blur( stepSize, input.texCoord, hardShadow.z, depth, penumbra.z, 2 );
-	blurredResultLayers.w = blur( stepSize, input.texCoord, hardShadow.w, depth, penumbra.w, 3 );
+	blurredResultLayers.x = Blur( stepSize, input.texCoord, hardShadow.x, depth, penumbra.x, 0 );
+	blurredResultLayers.y = Blur( stepSize, input.texCoord, hardShadow.y, depth, penumbra.y, 1 );
+	blurredResultLayers.z = Blur( stepSize, input.texCoord, hardShadow.z, depth, penumbra.z, 2 );
+	blurredResultLayers.w = Blur( stepSize, input.texCoord, hardShadow.w, depth, penumbra.w, 3 );
 	
 	return blurredResultLayers;
 }
