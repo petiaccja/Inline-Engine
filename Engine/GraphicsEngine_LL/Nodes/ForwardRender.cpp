@@ -727,7 +727,7 @@ std::string ForwardRender::GeneratePixelShader(const Material& material) {
 		}
 	}
 	//TODO get material params
-	PSMain << "); result.albedoRoughnessMetalness.xy = rgbToYcocg(albedo.xyz, int2(psInput.ndcPos.xy)); result.albedoRoughnessMetalness.zw = float2(0,0); return result; \n} \n";
+	PSMain << "); result.albedoRoughnessMetalness.xy = RgbToYcocg(albedo.xyz, int2(psInput.ndcPos.xy)); result.albedoRoughnessMetalness.zw = float2(0,0); return result; \n} \n";
 
 	return
 		std::string()
