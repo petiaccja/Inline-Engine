@@ -104,6 +104,8 @@ protected:
 	std::vector<MemoryObject> GetUsedResources(std::vector<ResourceUsage> usages, std::vector<MemoryObject> additional);
 	void EnqueueFinishedLists(const FrameContext& context, const std::vector<jobs::Future<void>>& futures);
 
+	void PrintListStats(const BasicCommandList& list);
+
 	static std::string WriteTraceGraphviz(const lemon::ListDigraph& taskGraph, const lemon::ListDigraph::NodeMap<ExecuteTrace>& traceMap);
 	void WriteTraceFile(const lemon::ListDigraph& taskGraph, const ExecuteState& state);
 

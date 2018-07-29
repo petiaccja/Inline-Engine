@@ -87,6 +87,8 @@ void GraphicsCommandList::DrawIndexedInstanced(unsigned numIndices,
 {
 	m_commandList->DrawIndexedInstanced(numIndices, startIndex, vertexOffset, numInstances, startInstance);
 	m_graphicsBindingManager.CommitDrawCall();
+
+	m_performanceCounters.numDrawCalls++;
 }
 
 void GraphicsCommandList::DrawInstanced(unsigned numVertices,
@@ -96,6 +98,8 @@ void GraphicsCommandList::DrawInstanced(unsigned numVertices,
 {
 	m_commandList->DrawInstanced(numVertices, startVertex, numInstances, startInstance);
 	m_graphicsBindingManager.CommitDrawCall();
+
+	m_performanceCounters.numDrawCalls++;
 }
 
 

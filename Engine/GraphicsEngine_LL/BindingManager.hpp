@@ -30,6 +30,8 @@ public:
 	using RootTableManager<Type>::SetDescriptorHeap;
 	using RootTableManager<Type>::CommitDrawCall;
 
+	using RootTableManager<Type>::GetDescriptorCounter;
+
 	void Bind(BindParameter parameter, const TextureView1D& shaderResource);
 	void Bind(BindParameter parameter, const TextureView2D& shaderResource);
 	void Bind(BindParameter parameter, const TextureView3D& shaderResource);

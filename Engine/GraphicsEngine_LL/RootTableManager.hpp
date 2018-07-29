@@ -40,6 +40,8 @@ public:
 	void SetDescriptorHeap(StackDescHeap* heap);
 	void CommitDrawCall();
 	void UpdateBinding(gxapi::DescriptorHandle handle, int rootSignatureSlot, int indexInTable);
+
+	size_t GetDescriptorCounter() const { return m_descriptorCounter; }
 private:
 	/// <summary> Updates a binding which is managed on the scratch space. </summary>
 	void UpdateRootTable(gxapi::DescriptorHandle, int rootSignatureSlot, int indexInTable);
@@ -68,6 +70,14 @@ protected:
 	CommandListT* m_commandList;
 	Binder* m_binder;
 	StackDescHeap* m_heap;
+
+	// These are only used inside DuplicateRootTable, but we don't want them to allocate every single time.
+	std::vector<gxapi::DescriptorHandle> sourceDescHandles;
+	std::vector<uint32_t> sourceRangeSizes;
+	std::vector<gxapi::DescriptorHandle> destDescHandleStarts;
+	std::vector<uint32_t> destRangeSizes;
+
+	size_t m_descriptorCounter = 0; // Profiling only. Keeps track of the number of descriptors allocated on the scratch space.
 private:
 	std::vector<DescriptorTableState> m_rootTableStates;
 };
@@ -150,17 +160,13 @@ void RootTableManager<Type>::DuplicateRootTable(DescriptorTableState& table) {
 
 	// allocate new space on scratch space
 	DescriptorArrayRef space = m_heap->Allocate(numDescriptors);
+	m_descriptorCounter += numDescriptors;
 
 	// copy old descriptors to new space
-	std::vector<gxapi::DescriptorHandle> sourceDescHandles;
-	std::vector<uint32_t> sourceRangeSizes(numDescriptors, 1);
-
-	std::vector<gxapi::DescriptorHandle> destDescHandleStarts;
-	std::vector<uint32_t> destRangeSizes;
-
-	sourceDescHandles.reserve(numDescriptors);
-	destDescHandleStarts.reserve(10); // 99% only needs 1, 10 is negligible overhead but less allocation
-	destRangeSizes.reserve(10);
+	sourceRangeSizes.resize(numDescriptors, 1);
+	sourceDescHandles.clear();
+	destDescHandleStarts.clear();
+	destRangeSizes.clear();
 
 	bool makeFreshRange = true;
 	for (uint32_t i = 0; i < numDescriptors; ++i) {
@@ -246,6 +252,7 @@ std::vector<DescriptorTableState> RootTableManager<Type>::InitRootTables(Binder*
 
 			// add record for this table
 			rootTableStates.emplace_back(m_heap->Allocate((uint32_t)descriptorCountTotal), (int)slot);
+			m_descriptorCounter += descriptorCountTotal;
 			rootTableStates.back().bindings.resize(descriptorCountTotal);
 		}
 	}

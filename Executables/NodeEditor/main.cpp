@@ -4,6 +4,7 @@
 #include <BaseLibrary/Platform/Window.hpp>
 #include <BaseLibrary/Platform/System.hpp>
 #include <BaseLibrary/Logging_All.hpp>
+#include <BaseLibrary/Timer.hpp>
 
 #include <GraphicsApi_D3D12/GxapiManager.hpp>
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
@@ -113,10 +114,18 @@ int main() {
 		window.OnKeyboard += Delegate<void(KeyboardEvent)>(&tool::NodeEditor::OnKey, &nodeEditor);
 
 		// Run game loop.
+		Timer timer;
+		timer.Start();
 		window.Show();
 		while (!window.IsClosed()) {
 			window.CallEvents();
 			nodeEditor.Update();
+
+			double elapsed = timer.Elapsed();
+			timer.Reset();
+			std::stringstream ss;
+			ss << "Node Editor | " << "FrameTime=" << elapsed*1000 << "ms";
+			window.SetTitle(ss.str());
 		}
 	}
 	catch (Exception& ex) {

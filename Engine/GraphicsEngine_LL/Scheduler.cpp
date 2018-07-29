@@ -370,6 +370,7 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 		// Process pending command lists.
 		while (!localLists.empty()) {
 			auto* prevCopyList = dynamic_cast<gxapi::ICopyCommandList*>(prevList.commandList.get());
+			//PrintListStats(*std::get<0>(localLists.front()));
 			auto currentList = std::get<0>(localLists.front())->Decompose();
 			auto currentVheap = std::move(std::get<1>(localLists.front()));
 
@@ -423,6 +424,19 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 					   std::move(usedResourceList),
 					   std::move(prevVheap),
 					   context);
+}
+
+void Scheduler::PrintListStats(const BasicCommandList& list) {
+	auto& counter = list.GetPerformanceCounters();
+	std::cout << "CMD LIST " 
+		<< &list 
+		<< ": " 
+		<< counter.numDrawCalls 
+		<< " drawcalls, "
+		<< counter.numKernels
+		<< " kernels, "
+		<< counter.numScratchSpaceDescriptors 
+		<< " descriptors" << std::endl;
 }
 
 

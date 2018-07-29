@@ -45,6 +45,14 @@ struct ResourceUsage {
 };
 
 
+struct CommandListCounters {
+	size_t numDrawCalls = 0;
+	size_t numKernels = 0;
+	size_t numScratchSpaceDescriptors = 0;
+};
+
+
+
 } // namespace gxeng
 } // namespace inl
 
@@ -94,6 +102,8 @@ public:
 	
 	void SetName(const std::string& name);
 	void SetName(const char* name);
+
+	const CommandListCounters& GetPerformanceCounters() const { return m_performanceCounters; }
 protected:
 	BasicCommandList(
 		gxapi::IGraphicsApi* gxApi,
@@ -110,6 +120,8 @@ protected:
 	std::unordered_map<SubresourceId, SubresourceUsageInfo> m_resourceTransitions;
 	std::vector<MemoryObject> m_additionalResources;
 	gxapi::IGraphicsApi* m_graphicsApi;
+
+	CommandListCounters m_performanceCounters;
 private:
 	// Part sources
 	ScratchSpacePool* m_scratchSpacePool;

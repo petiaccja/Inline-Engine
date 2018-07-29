@@ -365,8 +365,12 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 	auto itOverlay = overlayList.begin();
 	auto itText = textList.begin();
 
-	Mat33 view = camera->GetViewMatrix();//Mat33::Identity();
-	Mat33 proj = camera->GetProjectionMatrix();//Mat33::Orthographic({ 0,0 }, { 960,500 }, -1.0f, 1.0f);
+	Mat33 view = camera->GetViewMatrix();
+	Mat33 proj = camera->GetProjectionMatrix();
+
+	enum {
+		UNKNOWN, OVERLAY, TEXT
+	} lastType = UNKNOWN;
 
 	while (itOverlay != overlayList.end() || itText != textList.end()) {
 		float zOverlay = (itOverlay != overlayList.end() ? (*itOverlay)->GetZDepth() : std::numeric_limits<float>::max());
@@ -378,8 +382,10 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			const Mesh* mesh = entity->GetMesh();
 			const Image* texture = entity->GetTexture();
 
-			commandList.SetPipelineState(m_overlayPso.get());
-			commandList.SetGraphicsBinder(&m_overlayBinder);
+			if (lastType != OVERLAY) {
+				commandList.SetPipelineState(m_overlayPso.get());
+				commandList.SetGraphicsBinder(&m_overlayBinder);
+			}
 			
 			CbufferOverlay cbuffer;
 
@@ -420,6 +426,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			}
 			
 			++itOverlay;
+			lastType = OVERLAY;
 		}
 		else {
 			// Render the text.
@@ -430,10 +437,13 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 				continue;
 			}
 
-			commandList.SetPipelineState(m_textPso.get());
-			commandList.SetGraphicsBinder(&m_textBinder);
-			commandList.SetPrimitiveTopology(ePrimitiveTopology::TRIANGLESTRIP);
-			commandList.SetResourceState(font->GetGlyphAtlas().GetSrv().GetResource(), { eResourceState::PIXEL_SHADER_RESOURCE, eResourceState::NON_PIXEL_SHADER_RESOURCE });
+			if (lastType != TEXT) {
+				commandList.SetPipelineState(m_textPso.get());
+				commandList.SetGraphicsBinder(&m_textBinder);
+				commandList.SetPrimitiveTopology(ePrimitiveTopology::TRIANGLESTRIP);
+				commandList.SetResourceState(font->GetGlyphAtlas().GetSrv().GetResource(), { eResourceState::PIXEL_SHADER_RESOURCE, eResourceState::NON_PIXEL_SHADER_RESOURCE });
+				commandList.BindGraphics(m_bindTextTexture, font->GetGlyphAtlas().GetSrv());
+			}
 
 			// Set cbuffer constants unchanging over letters.
 			CbufferTextTransform cbufferTransform;
@@ -448,9 +458,6 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			// Position of the first letter.
 			float textHeight = font->CalculateTextHeight(entity->GetFontSize());
 			RectF letterRect = AlignFirstLetter(entity);
-			//letterRect.left = -entity->GetSize().x/2.0f;
-			//letterRect.bottom = -textHeight/2.0f;
-			//letterRect.top = textHeight/2.0f;
 
 			// Convert string to UCS-4 code-points.
 			std::basic_string<uint32_t> text = m_stringConverter.from_bytes(entity->GetText());
@@ -471,13 +478,13 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 
 				commandList.BindGraphics(m_bindTextTransform, &cbufferTransform, sizeof(cbufferTransform));
 				commandList.BindGraphics(m_bindTextRender, &cbufferRender, sizeof(cbufferRender));
-				commandList.BindGraphics(m_bindTextTexture, font->GetGlyphAtlas().GetSrv());
 
 				commandList.DrawInstanced(4);
 
 				letterRect.left = letterRect.right;
 			}
 			++itText;
+			lastType = TEXT;
 		}
 	}
 }
