@@ -143,7 +143,7 @@ void Scheduler::GetNodeNames(ExecuteState& state) const {
 	for (lemon::ListDigraph::NodeIt nodeIt(state.taskGraph); nodeIt != lemon::INVALID; ++nodeIt) {
 		lemon::ListDigraph::Node parent = parentMap[nodeIt];
 		const NodeBase* pipelineNode = nodeMap[parent].get();
-		state.trace[nodeIt].nodeName = pipelineNode->GetClassName(true, { "inl", "gxeng" });
+		state.trace[nodeIt].nodeName = pipelineNode->GetClassName(false); // Simplifying names is extremely slow with the regexes.
 	}
 }
 

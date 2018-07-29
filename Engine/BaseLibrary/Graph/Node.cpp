@@ -5,36 +5,39 @@
 
 
 
-std::string NodeBase::GetClassName(bool simplify, const std::vector<std::string>& stripNamespaces) const {
+std::string NodeBase::GetClassName(bool simplify, const std::vector<std::regex>& additional) const {
 	std::string name = typeid(*this).name();
 
 	if (simplify) {
 		// Remove class, struct and enum specifiers.
-		std::regex classFilter(R"(\s*class\s*)");
+		static std::regex classFilter(R"(\s*class\s*)", std::regex_constants::ECMAScript | std::regex_constants::optimize);
 		name = std::regex_replace(name, classFilter, "");
 
-		std::regex structFilter(R"(\s*struct\s*)");
+		static std::regex structFilter(R"(\s*struct\s*)", std::regex_constants::ECMAScript | std::regex_constants::optimize);
 		name = std::regex_replace(name, structFilter, "");
 
-		std::regex enumFilter(R"(\s*enum\s*)");
+		static std::regex enumFilter(R"(\s*enum\s*)", std::regex_constants::ECMAScript | std::regex_constants::optimize);
 		name = std::regex_replace(name, enumFilter, "");
 
 		// MSVC specific things.
-		std::regex ptrFilter(R"(\s*__ptr64\s*)");
+		static std::regex ptrFilter(R"(\s*__ptr64\s*)", std::regex_constants::ECMAScript | std::regex_constants::optimize);
 		name = std::regex_replace(name, ptrFilter, "");
 
 		// Transform common templates to readable format
-		std::regex stringFilter(R"(\s*std::basic_string.*)");
+		static std::regex stringFilter(R"(\s*std::basic_string.*)", std::regex_constants::ECMAScript | std::regex_constants::optimize);
 		name = std::regex_replace(name, stringFilter, "std::string");
 
 		// Remove consts.
-		std::regex constFilter(R"(\s*const\s*)");
+		static std::regex constFilter(R"(\s*const\s*)", std::regex_constants::ECMAScript | std::regex_constants::optimize);
 		name = std::regex_replace(name, constFilter, "");
 
+		// Remove inl::gxeng::
+		static std::regex namespaceFilter1(R"(\s*inl::gxeng::\s*)", std::regex_constants::ECMAScript | std::regex_constants::optimize);
+		name = std::regex_replace(name, namespaceFilter1, "");
+
 		// Remove requested namespaces.
-		for (auto& ns : stripNamespaces) {
-			std::regex namespaceFilter1(R"(\s*)" + ns + R"(\s*)");
-			name = std::regex_replace(name, namespaceFilter1, "");
+		for (auto& filter : additional) {
+			name = std::regex_replace(name, filter, "");
 		}
 	}
 

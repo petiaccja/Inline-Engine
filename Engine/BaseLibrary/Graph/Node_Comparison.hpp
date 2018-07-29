@@ -28,7 +28,7 @@ public:
 	static std::string Info_GetName() {
 		return name;
 	}
-	std::string GetClassName(bool simplify = false, const std::vector<std::string>& stripNamespaces = {}) const override {
+	std::string GetClassName(bool simplify = false, const std::vector<std::regex>& additional = {}) const override {
 		auto s = Info_GetName();
 		return s.substr(0, s.find_first_of(':'));
 	}

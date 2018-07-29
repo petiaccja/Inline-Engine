@@ -692,7 +692,7 @@ void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string fil
 	for (const auto& v : nodeIndexMap) {
 		dot << "node" << v.second << " [shape=record, label=\"";
 		//dot << "&lt;&lt;&lt; " << TidyTypeName(typeid(*v.first).name()) << " &gt;&gt;&gt;";
-		dot << v.first->GetDisplayName() << " : " << TidyTypeName(v.first->GetClassName(true, {"inl::gxeng::", "inl::"}));
+		dot << v.first->GetDisplayName() << " : " << TidyTypeName(v.first->GetClassName(true));
 		dot << " | {";
 		// Inputs
 		dot << "{";

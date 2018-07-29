@@ -15,6 +15,7 @@
 #include <vector>
 #include <typeinfo>
 #include <typeindex>
+#include <regex>
 
 
 #undef GetClassName // retarded Windows
@@ -84,7 +85,7 @@ public:
 	/// <summary> Gets the class name of the node. </summary>
 	/// <remarks> By default, this function returns the C++ class name of the node.
 	///		Override this function if you don't like the C++ class name. </remarks>
-	virtual std::string GetClassName(bool simplify, const std::vector<std::string>& stripNamespaces = {}) const;
+	virtual std::string GetClassName(bool simplify, const std::vector<std::regex>& additional = {}) const;
 
 	virtual std::string GetClassName() const override { return GetClassName(false); }
 protected:

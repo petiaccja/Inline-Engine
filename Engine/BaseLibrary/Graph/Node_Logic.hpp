@@ -43,7 +43,7 @@ public:
 	static std::string Info_GetName() {
 		return "Any:Forward any input to the output";
 	}
-	std::string GetClassName(bool simplify = false, const std::vector<std::string>& stripNamespaces = {}) const override {
+	std::string GetClassName(bool simplify = false, const std::vector<std::regex>& additional = {}) const override {
 		auto s = Info_GetName();
 		return s.substr(0, s.find_first_of(':'));
 	}
@@ -114,7 +114,7 @@ public:
 	static std::string Info_GetName() {
 		return "All:Forward last input when all inputs were triggered at least once";
 	}
-	std::string GetClassName(bool simplify = false, const std::vector<std::string>& stripNamespaces = {}) const override {
+	std::string GetClassName(bool simplify = false, const std::vector<std::regex>& additional = {}) const override {
 		auto s = Info_GetName();
 		return s.substr(0, s.find_first_of(':'));
 	}
