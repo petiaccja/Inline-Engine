@@ -85,7 +85,7 @@ float TextEntity::GetVerticalAlignment() const {
 float TextEntity::CalculateTextWidth() const {
 	if (m_font) {
 		// Convert string to UCS-4 code-points.
-		std::wstring_convert<std::codecvt_utf8<uint32_t>, uint32_t> converter;
+		thread_local std::wstring_convert<std::codecvt_utf8<uint32_t>, uint32_t> converter; // Costly to create.
 		std::basic_string<uint32_t> text = converter.from_bytes(m_text);
 
 		// Accumulate length.

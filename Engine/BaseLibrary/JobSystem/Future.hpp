@@ -288,17 +288,21 @@ bool Awaiter<T>::await_ready() const noexcept {
 template <class T>
 T Awaiter<T>::await_resume() {
 	m_fenceAwaiter.await_resume();
-	if (m_future->m_sharedState->ex) {
-		assert(!std::current_exception());
+
+	// Handle exceptions.
+	std::exception_ptr currentEx = std::current_exception();
+	if (currentEx) {
+		std::rethrow_exception(std::current_exception());
+	}
+	else if (m_future->m_sharedState->ex) {
 		std::rethrow_exception(m_future->m_sharedState->ex);
 	}
+
+	// Return value.
 	if constexpr (!std::is_void_v<T>) {
 		return m_future->m_sharedState->value;
 	}
 }
-
-
-
 
 
 

@@ -42,6 +42,8 @@ public:
 
 	void BeginDebuggerEvent(const std::string& name) const override;
 	void EndDebuggerEvent() const override;
+
+	void SetName(const char* name) override;
 protected:
 	ComPtr<ID3D12GraphicsCommandList> m_native;
 };

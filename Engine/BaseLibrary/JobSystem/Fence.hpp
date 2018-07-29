@@ -16,7 +16,6 @@ class Fence {
 public:
 	class FenceAwaiter {
 		friend class Fence;
-		friend class ConditionVariable;
 	public:
 		bool await_ready() const noexcept;
 		template <class T>

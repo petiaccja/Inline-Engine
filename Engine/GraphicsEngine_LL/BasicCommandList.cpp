@@ -110,6 +110,14 @@ void BasicCommandList::EndDebuggerEvent() {
 }
 
 
+void BasicCommandList::SetName(const std::string& name) {
+	m_commandList->SetName(name.c_str());
+}
+
+void BasicCommandList::SetName(const char* name) {
+	m_commandList->SetName(name);
+}
+
 
 } // namespace gxapi
 } // namespace inl

@@ -6,7 +6,26 @@
 namespace inl::jobs {
 
 
+ConditionVariable::CvarAwaiter::CvarAwaiter(CvarAwaiter&& rhs) 
+	: 
+	m_mtx(rhs.m_mtx), 
+	m_cvar(rhs.m_cvar),
+	m_pred(std::move(rhs.m_pred)),
+	m_next(rhs.m_next),
+	m_awaitingHandle(std::move(rhs.m_awaitingHandle)),
+	m_mutexAwaiter(std::move(rhs.m_mutexAwaiter)),
+	m_scheduler(rhs.m_scheduler)
+{
+	rhs.m_awaitingHandle = {};
+	rhs.m_next = nullptr;
+	rhs.m_scheduler = nullptr;
+}
+
 bool ConditionVariable::CvarAwaiter::await_ready() const noexcept {
+	// Note that predicate does not need to be checked in await_suspend because it's protected by the mutex.
+	if (m_pred) {
+		return m_pred();
+	}
 	return false;
 }
 
@@ -16,9 +35,6 @@ bool ConditionVariable::CvarAwaiter::await_suspend(std::experimental::coroutine_
 	m_awaitingHandle = awaitingCoroutine;
 	m_scheduler = scheduler;
 
-	// We can drop the mutex now.
-	m_mtx.Unlock();
-
 	// Add this to the waiting list.
 	bool success;
 	do {
@@ -26,26 +42,27 @@ bool ConditionVariable::CvarAwaiter::await_suspend(std::experimental::coroutine_
 		m_next = first;
 		success = m_cvar.m_firstAwaiter.compare_exchange_weak(m_next, this);
 	} while (!success);
+	
+	// Accessing *this is safe as coro cannot be continued while the mutex is being held.
+	m_mtx.Unlock();
 
-	// Don't do anything after chaining the coro into the list
-	// as *this might have already been deleted from another thread that continued this coro.
+	// *this is unsafe to access from here on, it might have been destroyed on another thread.
 
 	return true;
 }
 
 
 
-ConditionVariable::ConditionVariable() {
-	m_firstAwaiter = nullptr;
+ConditionVariable::ConditionVariable() : m_firstAwaiter(nullptr) {
 }
 
 
-ConditionVariable::CvarAwaiter ConditionVariable::Wait(Mutex& lock) {
+ConditionVariable::CvarAwaiter ConditionVariable::Wait(UniqueLock& lock) {
 	return CvarAwaiter(*this, lock);
 }
 
 
-void ConditionVariable::WaitExplicit(Mutex& lock) {
+void ConditionVariable::WaitExplicit(UniqueLock& lock) {
 	std::future<void> future = [this, &lock]() -> std::future<void> {
 		co_await Wait(lock);
 	}();
@@ -63,21 +80,6 @@ void ConditionVariable::AwakeAwaiter(CvarAwaiter* last) {
 		isSuspended = last->m_mutexAwaiter->await_suspend(last->m_awaitingHandle, last->m_scheduler);
 	}
 	if (isReady || !isSuspended) {
-		// Resume coroutine if mutex has been acquired immediately.
-		if (last->m_scheduler) {
-			last->m_scheduler->Resume(last->m_awaitingHandle);
-		}
-		else {
-			last->m_awaitingHandle.resume();
-		}
-	}
-	return;
-
-	if (!last->m_mutexAwaiter->await_ready()) {
-		// Hack it into the mutex's awake queue if mutex could not be acquired immediately.
-		bool doSuspend = last->m_mutexAwaiter->await_suspend(last->m_awaitingHandle, last->m_scheduler);
-	}
-	else {
 		// Resume coroutine if mutex has been acquired immediately.
 		if (last->m_scheduler) {
 			last->m_scheduler->Resume(last->m_awaitingHandle);

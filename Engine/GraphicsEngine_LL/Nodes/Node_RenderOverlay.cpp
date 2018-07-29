@@ -453,8 +453,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			//letterRect.top = textHeight/2.0f;
 
 			// Convert string to UCS-4 code-points.
-			std::wstring_convert<std::codecvt_utf8<uint32_t>, uint32_t> converter;
-			std::basic_string<uint32_t> text = converter.from_bytes(entity->GetText());
+			std::basic_string<uint32_t> text = m_stringConverter.from_bytes(entity->GetText());
 
 			// Draw letters one-by-one.
 			for (auto& character : text) {

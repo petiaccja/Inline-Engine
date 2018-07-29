@@ -91,6 +91,9 @@ public:
 
 	void BeginDebuggerEvent(const std::string& name);
 	void EndDebuggerEvent();
+	
+	void SetName(const std::string& name);
+	void SetName(const char* name);
 protected:
 	BasicCommandList(
 		gxapi::IGraphicsApi* gxApi,

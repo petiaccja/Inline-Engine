@@ -61,7 +61,6 @@ void Scheduler::Execute(FrameContext context) {
 		ExecuteState state(taskGraph, context);
 		std::vector<jobs::Future<void>> jobFutures;
 		std::vector<lemon::ListDigraph::Node> sourceNodes = GetSourceNodes(taskGraph);
-		m_finishedListRemNodes.store(lemon::countNodes(taskGraph));
 
 		GetNodeNames(state);
 
@@ -102,11 +101,26 @@ void Scheduler::Execute(FrameContext context) {
 			jobFutures.push_back(std::move(future));
 		}
 
+		m_finishedListDone = false;
+		auto OnEnd = [&]() -> jobs::Future<void> {
+			AtScopeExit makeSignal([&]{
+				std::unique_lock<SpinMutex> lkg(m_finishedListMtx);
+				m_finishedListDone = true;
+				lkg.unlock();
+				m_finishedListCv.notify_one();				
+			});
+
+			// May throw.
+			for (auto& future : jobFutures) {
+				co_await future;
+			}		
+		};
+		auto onEndFut = OnEnd();
+		onEndFut.Run();
+
 		// Wait in execute tasks and execute incoming command lists.
 		EnqueueFinishedLists(context, jobFutures);
-		for (auto& future : jobFutures) {
-			future.get();
-		}
+		onEndFut.get();
 	}
 	catch (Exception& ex) {
 		std::cout << "=== This frame is fucked ===" << std::endl;
@@ -232,7 +246,6 @@ bool Scheduler::CanNextInheritCommandList(lemon::ListDigraph::Node node, Execute
 void Scheduler::ExecuteNode(lemon::ListDigraph::Node node, ExecuteState& state) {
 	// When node is done, we want to notify the queue collector about it. (Scheduler on main thread.)
 	AtScopeExit notifyOnExit([&, this] {
-		m_finishedListRemNodes.fetch_sub(1);
 		m_finishedListCv.notify_all();
 	});
 
@@ -292,12 +305,12 @@ void Scheduler::FinishList(std::unique_ptr<BasicCommandList> list, std::unique_p
 
 void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vector<jobs::Future<void>>& futures) {
 	decltype(m_finishedLists) localLists;
-	BasicCommandList::Decomposition previousList;
+	BasicCommandList::Decomposition prevList;
 	std::unique_ptr<VolatileViewHeap> prevVheap;
 
 	// Initialize previous list with the upload task and a dummy barrier-only list.
-	previousList.commandAllocator = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
-	previousList.commandList = context.commandListPool->RequestGraphicsList(previousList.commandAllocator.get());
+	prevList.commandAllocator = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
+	prevList.commandList = context.commandListPool->RequestGraphicsList(prevList.commandAllocator.get());
 	
 
 	UploadTask uploadTask(context.uploadRequests);
@@ -323,20 +336,10 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 	localLists.push({ std::move(uploadList), std::move(uploadVheap) });
 
 
-	bool jobsReady = false;
-	auto JobsReady = [&futures] {
-		bool jobsReady = true;
-		for (auto& future : futures) {
-			jobsReady = jobsReady && future.ready();
-		}
-		return jobsReady;
-	};
 	do {
-		jobsReady = JobsReady();
-
 		// Acquire pending command lists.
 		std::unique_lock<SpinMutex> lk(m_finishedListMtx);
-		m_finishedListCv.wait(lk, [this] { return !m_finishedLists.empty() || m_finishedListRemNodes == 0; });
+		m_finishedListCv.wait(lk, [this] { return !m_finishedLists.empty() || m_finishedListDone; });
 		while (!m_finishedLists.empty()) {
 			localLists.push(std::move(m_finishedLists.front()));
 			m_finishedLists.pop();
@@ -345,7 +348,7 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 
 		// Process pending command lists.
 		while (!localLists.empty()) {
-			auto* prevCopyList = dynamic_cast<gxapi::ICopyCommandList*>(previousList.commandList.get());
+			auto* prevCopyList = dynamic_cast<gxapi::ICopyCommandList*>(prevList.commandList.get());
 			auto currentList = std::get<0>(localLists.front())->Decompose();
 			auto currentVheap = std::move(std::get<1>(localLists.front()));
 
@@ -360,11 +363,11 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 			
 			// Collect used resource of previous list.
 			std::vector<MemoryObject> usedResourceList;
-			usedResourceList.reserve(previousList.usedResources.size() + previousList.additionalResources.size());
-			for (auto& v : previousList.usedResources) {
+			usedResourceList.reserve(prevList.usedResources.size() + prevList.additionalResources.size());
+			for (auto& v : prevList.usedResources) {
 				usedResourceList.push_back(std::move(v.resource));
 			}
-			for (auto& v : previousList.additionalResources) {
+			for (auto& v : prevList.additionalResources) {
 				usedResourceList.push_back(std::move(v));
 			}
 
@@ -372,24 +375,24 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 			prevCopyList->Close();
 
 			EnqueueCommandList(*context.commandQueue,
-							   std::move(previousList.commandList),
-							   std::move(previousList.commandAllocator),
-							   std::move(previousList.scratchSpaces),
+							   std::move(prevList.commandList),
+							   std::move(prevList.commandAllocator),
+							   std::move(prevList.scratchSpaces),
 							   std::move(usedResourceList),
 							   std::move(prevVheap),
 							   context);
 
 			// Store current list so that it can take the barriers of the next one, if any.
-			previousList = std::move(currentList);
+			prevList = std::move(currentList);
 			prevVheap = std::move(currentVheap);
 			localLists.pop();
 		}
 
-	} while (!jobsReady);
+	} while (!m_finishedListDone);
 
 	// Set backBuffer to PRESENT state.
 	gxapi::eResourceState bbState = context.backBuffer->GetResource().ReadState(0);
-	auto* prevCopyList = dynamic_cast<gxapi::ICopyCommandList*>(previousList.commandList.get());
+	auto* prevCopyList = dynamic_cast<gxapi::ICopyCommandList*>(prevList.commandList.get());
 	if (bbState != gxapi::eResourceState::PRESENT) {
 		gxapi::TransitionBarrier barrier(context.backBuffer->GetResource()._GetResourcePtr(), bbState, gxapi::eResourceState::PRESENT);
 		prevCopyList->ResourceBarrier(barrier);
@@ -399,17 +402,17 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 	// Enqueue the last command list.
 	// Collect used resource of previous list.
 	std::vector<MemoryObject> usedResourceList;
-	usedResourceList.reserve(previousList.usedResources.size() + previousList.additionalResources.size());
-	for (auto& v : previousList.usedResources) {
+	usedResourceList.reserve(prevList.usedResources.size() + prevList.additionalResources.size());
+	for (auto& v : prevList.usedResources) {
 		usedResourceList.push_back(std::move(v.resource));
 	}
-	for (auto& v : previousList.additionalResources) {
+	for (auto& v : prevList.additionalResources) {
 		usedResourceList.push_back(std::move(v));
 	}
 	EnqueueCommandList(*context.commandQueue,
-					   std::move(previousList.commandList),
-					   std::move(previousList.commandAllocator),
-					   std::move(previousList.scratchSpaces),
+					   std::move(prevList.commandList),
+					   std::move(prevList.commandAllocator),
+					   std::move(prevList.scratchSpaces),
 					   std::move(usedResourceList),
 					   std::move(prevVheap),
 					   context);

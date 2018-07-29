@@ -17,6 +17,9 @@ public:
 
 	virtual void BeginDebuggerEvent(const std::string& name) const = 0;
 	virtual void EndDebuggerEvent() const = 0;
+
+	// Debug
+	virtual void SetName(const char* name) = 0;
 };
 
 

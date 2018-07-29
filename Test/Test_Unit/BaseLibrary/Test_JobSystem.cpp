@@ -3,6 +3,7 @@
 #include <BaseLibrary/JobSystem/Mutex.hpp>
 #include <BaseLibrary/JobSystem/ConditionVariable.hpp>
 #include <BaseLibrary/JobSystem/ThreadpoolScheduler.hpp>
+#include <BaseLibrary/JobSystem/Wait.hpp>
 
 
 #include <Catch2/catch.hpp>
@@ -154,7 +155,7 @@ TEST_CASE("JobSystem - Mutex", "[JobSystem]") {
 
 	auto func1 = [&mutex, &sync, &syncBack]() -> Future<void> {
 		co_await sync.Wait(1);
-		mutex.Lock();
+		co_await mutex.Lock();
 		syncBack.Signal(1);
 		co_await sync.Wait(3);
 		mutex.Unlock();
@@ -166,7 +167,7 @@ TEST_CASE("JobSystem - Mutex", "[JobSystem]") {
 			throw std::logic_error("Mutex should be locked.");
 		}
 		syncBack.Signal(2);
-		mutex.Lock();
+		co_await mutex.Lock();
 		mutex.Unlock();
 	};
 
@@ -192,17 +193,16 @@ TEST_CASE("JobSystem - Condvar notify one", "[JobSystem]") {
 	std::vector<int> order;
 
 	auto func1 = [&]() -> Future<void> {
-		co_await mutex.Lock();
+		UniqueLock lk(mutex);
+		co_await lk.Lock();
 		syncBack.Signal(1);
-		co_await cvar.Wait(mutex);
+		co_await cvar.Wait(lk);
 
 		// We have been notified, mutex must be in locked state.
 		if (mutex.TryLock()) {
 			throw std::logic_error("Mutex should be locked.");
 		}
 		order.push_back(1);
-
-		mutex.Unlock();
 	};
 
 	auto func2 = [&]() -> Future<void> {
@@ -233,7 +233,8 @@ TEST_CASE("JobSystem - Condvar notify one", "[JobSystem]") {
 	REQUIRE(order[1] == 2);
 }
 
-TEST_CASE("JobSystem - Condvar notify all", "[JobSystem_]") {
+
+TEST_CASE("JobSystem - Condvar notify all", "[JobSystem]") {
 	ThreadpoolScheduler scheduler(3);
 	Mutex mutex;
 	ConditionVariable cvar;
@@ -243,44 +244,35 @@ TEST_CASE("JobSystem - Condvar notify all", "[JobSystem_]") {
 
 	auto func1 = [&]() -> Future<void> {
 		int myCount = counter.fetch_add(1);
-		cout << "#" << myCount << ": " << "started" << endl;
-		
-		co_await mutex.Lock();
-		syncBack[myCount].Signal(1);
-		cout << "#" << myCount << ": " << "waiting..." << endl;
-		co_await cvar.Wait(mutex);
 
-		cout << "#" << myCount << ": " << "wait done" << endl;
+		UniqueLock lk(mutex);
+		
+		co_await lk.Lock();
+		syncBack[myCount].Signal(1);
+		co_await cvar.Wait(lk);
+
 		order.push_back(myCount);
 
 		// We have been notified, mutex must be in locked state.
-		//if (mutex.TryLock()) {
-		//	mutex.Unlock();
-		//	throw std::logic_error("Mutex should be locked.");
-		//}
-
-		mutex.Unlock();
-		cout << "#" << myCount << ": " << "exit" << endl;
+		if (mutex.TryLock()) {
+			mutex.Unlock();
+			throw std::logic_error("Mutex should be locked.");
+		}
 	};
 
 	auto func2 = [&]() -> Future<void> {
 		co_await sync.Wait(1);
-		cout << "#" << "M" << ": " << "started" << endl;
 
 		// Just to wait until cvar released the mutex.
 		co_await mutex.Lock();
 		mutex.Unlock();
 
-		cout << "#" << "M" << ": " << "notifying..." << endl;
 		cvar.NotifyAll();
 
 		// See if thread1 ever releases the mutex and the order is correct.
-		cout << "#" << "M" << ": " << "locking mutex..." << endl;
 		co_await mutex.Lock();
-		cout << "#" << "M" << ": " << "locked" << endl;
 		order.push_back(5);
 		mutex.Unlock();
-		cout << "#" << "M" << ": " << "exit" << endl;
 	};
 
 	auto fut1_1 = scheduler.Enqueue(func1);
@@ -302,4 +294,57 @@ TEST_CASE("JobSystem - Condvar notify all", "[JobSystem_]") {
 
 	REQUIRE(order.size() == 5);
 	REQUIRE(order[4] == 5);
+}
+
+
+TEST_CASE("JobSystem - WaitAny", "[JobSystem]") {
+	ThreadpoolScheduler scheduler(4);
+	Fence fence;
+	std::atomic<int> counter = 0;
+	ConditionVariable cvar[3];
+	Mutex mtx[3];
+	UniqueLock lk[3] = {
+		UniqueLock(mtx[0]),
+		UniqueLock(mtx[1]),
+		UniqueLock(mtx[2]),
+	};
+	bool preds[3] = { false, false, false };
+
+	auto func = [&]() -> Future<void> {
+		int myId = counter.fetch_add(1);
+		co_await fence.Wait(myId);
+
+		UniqueLock lk(mtx[myId]);
+		co_await lk.Lock();
+		preds[myId] = true;
+		lk.Unlock();
+
+		cvar[myId].NotifyAll();
+	};
+
+	auto waitFunc = [&]() -> Future<void> {
+		co_await lk[0].Lock();
+		co_await lk[1].Lock();
+		co_await lk[2].Lock();
+
+		co_await WaitAny(
+			cvar[0].Wait(lk[0], [&]{ return preds[0]; }),
+			cvar[1].Wait(lk[1], [&]{ return preds[1]; }),
+			cvar[2].Wait(lk[2], [&]{ return preds[2]; })
+		);
+	};
+
+	auto fut1 = scheduler.Enqueue(func);
+	auto fut2 = scheduler.Enqueue(func);
+	auto fut3 = scheduler.Enqueue(func);
+
+	auto wfut = scheduler.Enqueue(waitFunc);
+
+	fence.Signal(1);
+	wfut.get();
+
+	fence.Signal(2);
+	fut1.get();
+	fut2.get();
+	fut3.get();
 }

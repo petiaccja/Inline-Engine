@@ -48,6 +48,14 @@ void BasicCommandList::EndDebuggerEvent() const {
 	PIXEndEvent(m_native.Get());
 }
 
+void BasicCommandList::SetName(const char* name) {
+	size_t count = strlen(name);
+	std::unique_ptr<wchar_t[]> dest = std::make_unique<wchar_t[]>(count + 1);
+	mbstowcs(dest.get(), name, count);
+	m_native->SetName(dest.get());
+}
+
+
 
 //------------------------------------------------------------------------------
 // Copy command list

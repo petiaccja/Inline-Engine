@@ -254,6 +254,7 @@ GraphicsCommandList& RenderContext::AsGraphics() {
 			m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap));
 		}
 		m_commandList->BeginDebuggerEvent(m_TMP_commandListName); // TMP
+		m_commandList->SetName(m_TMP_commandListName);
 		m_type = gxapi::eCommandListType::GRAPHICS;
 		return *dynamic_cast<GraphicsCommandList*>(m_commandList.get());
 	}

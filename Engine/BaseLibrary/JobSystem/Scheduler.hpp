@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Task.hpp"
 #include "Future.hpp"
 #include <experimental/coroutine>
 #include <future>
@@ -13,11 +12,6 @@ namespace inl::jobs {
 template <class RetType>
 struct is_schedulable_task {
 	static constexpr bool value = false;
-};
-
-template <class T>
-struct is_schedulable_task<Task<T>> {
-	static constexpr bool value = true;
 };
 
 template <class T>
@@ -39,8 +33,7 @@ public:
 	template <class Func, class... Args>
 	auto Enqueue(Func func, Args... args) {
 		static_assert(std::is_invocable<Func, Args...>::value, "Object must be callable with given arguments.");
-		auto task = MakeTask(func, std::forward<Args>(args)...);
-		task.Schedule(*this);
+		auto task = MakeTask(std::move(func), this, std::forward<Args>(args)...);
 		task.Run();
 		return task;
 	}
@@ -60,15 +53,20 @@ protected:
 		}
 	}
 
-public: // temporarily
 	template <class Func, class... Args>
-	static auto MakeTask(Func& func, Args... args) {
+	static auto MakeTask(Func func, Scheduler* scheduler, Args... args) {
 		if constexpr (is_schedulable<Func, Args...>::value) {
-			auto task = func(std::forward<Args>(args)...);
+			auto task = [](Func func, Scheduler* scheduler, Args... args) -> std::invoke_result_t<Func, Args...> {
+				auto innerTask = func(std::forward<Args>(args)...);
+				innerTask.Schedule(*scheduler);
+				co_return co_await innerTask;
+			}(std::move(func), scheduler, std::forward<Args>(args)...);
+			//auto task = func(std::forward<Args>(args)...);
 			return task;
 		}
 		else {
-			auto task = Wrapper(func, std::forward<Args>(args)...);
+			auto task = Wrapper(std::move(func), std::forward<Args>(args)...);
+			task.Schedule(*scheduler);
 			return task;
 		}
 	}

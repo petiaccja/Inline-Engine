@@ -10,7 +10,7 @@
 
 #include <GraphicsApi_LL/IFence.hpp>
 #include <GraphicsApi_LL/Common.hpp>
-#include <BaseLibrary/JobSystem/Task.hpp>
+#include <BaseLibrary/JobSystem/Future.hpp>
 #include <BaseLibrary/JobSystem/ThreadpoolScheduler.hpp>
 #include <memory>
 #include <cstdint>
@@ -148,7 +148,7 @@ private:
 	std::queue<std::tuple<std::unique_ptr<BasicCommandList>, std::unique_ptr<VolatileViewHeap>>> m_finishedLists;
 	SpinMutex m_finishedListMtx;
 	std::condition_variable_any m_finishedListCv;
-	std::atomic_int m_finishedListRemNodes;
+	volatile bool m_finishedListDone;
 private:
 	class UploadTask : public GraphicsTask {
 	public:

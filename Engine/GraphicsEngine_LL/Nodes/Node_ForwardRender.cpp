@@ -699,12 +699,32 @@ std::string ForwardRender::GeneratePixelShader(const Material& material) {
 			}
 		}
 	}
-	PSMain << "    result.litColor = mtl_shader(";
-	for (intptr_t i = 0; i < (intptr_t)material.GetParameterCount() - 1; ++i) {
-		PSMain << "input" << i << ", ";
+
+	// Only one output is supported, which is of type float4.
+	// This forward render is not implemented the proper way, do it properly.
+	assert(shader.GetNumOutputs() == 1);
+	assert(shader.GetOutput(0)->GetType() == "float4");
+
+	const MaterialShaderOutput* output = shader.GetOutput(0);
+
+	if (output->index < 0) {
+		PSMain << "    result.litColor = mtl_shader(";		
 	}
-	if (material.GetParameterCount() > 0) {
-		PSMain << "input" << material.GetParameterCount() - 1;
+	else {
+		PSMain << "    mtl_shader(";
+	}
+
+	intptr_t numParams = intptr_t(shader.GetNumInputs() + shader.GetNumOutputs());
+	for (intptr_t i = 0; i < numParams; ++i) {
+		if (i != output->index) {
+			PSMain << "input" << i;
+		}
+		else {
+			PSMain << "result.litColor";
+		}
+		if (i < (intptr_t)numParams - 1) {
+			PSMain << ", ";
+		}
 	}
 	//TODO get material params
 	PSMain << "); result.albedoRoughnessMetalness.xy = rgb_to_ycocg(albedo.xyz, int2(psInput.ndcPos.xy)); result.albedoRoughnessMetalness.zw = float2(0,0); return result; \n} \n";
