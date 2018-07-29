@@ -282,7 +282,7 @@ void Scheduler::ExecuteNode(lemon::ListDigraph::Node node, ExecuteState& state) 
 		FinishList(std::move(inheritedCommandList), std::move(inheritedVheap));
 	}
 
-	// Scheduler or pass on current command list.
+	// Schedule or pass on current command list.
 	if (currentCommandList) {
 		currentCommandList->EndDebuggerEvent(); // End marker for profilers.
 
@@ -303,6 +303,44 @@ void Scheduler::FinishList(std::unique_ptr<BasicCommandList> list, std::unique_p
 }
 
 
+std::tuple<std::unique_ptr<BasicCommandList>, std::unique_ptr<VolatileViewHeap>> Scheduler::ExecuteUploadTask(const FrameContext& context) {
+	UploadTask uploadTask(context.uploadRequests);
+	SetupContext setupContext(context.memoryManager,
+	                          context.textureSpace,
+	                          context.rtvHeap,
+	                          context.dsvHeap,
+	                          context.shaderManager,
+	                          context.gxApi);
+	auto uploadVheap = std::make_unique<VolatileViewHeap>(context.gxApi);
+	RenderContext renderContext(context.memoryManager,
+	                            context.textureSpace,
+	                            uploadVheap.get(),
+	                            context.shaderManager,
+	                            context.gxApi,
+	                            context.commandListPool,
+	                            context.commandAllocatorPool,
+	                            context.scratchSpacePool);
+	uploadTask.Setup(setupContext);
+	uploadTask.Execute(renderContext);
+	std::unique_ptr<BasicCommandList> uploadInherit, uploadList;
+	renderContext.Decompose(uploadInherit, uploadList);
+	return { std::move(uploadList), std::move(uploadVheap) };
+}
+
+std::vector<MemoryObject> Scheduler::GetUsedResources(std::vector<ResourceUsage> usages, std::vector<MemoryObject> additional) {
+	std::vector<MemoryObject> usedResourceList;
+
+	usedResourceList.reserve(usages.size() + additional.size());
+	for (auto& v : usages) {
+		usedResourceList.push_back(std::move(v.resource));
+	}
+	for (auto& v : additional) {
+		usedResourceList.push_back(std::move(v));
+	}
+
+	return usedResourceList;
+}
+
 void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vector<jobs::Future<void>>& futures) {
 	decltype(m_finishedLists) localLists;
 	BasicCommandList::Decomposition prevList;
@@ -313,30 +351,12 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 	prevList.commandList = context.commandListPool->RequestGraphicsList(prevList.commandAllocator.get());
 	
 
-	UploadTask uploadTask(context.uploadRequests);
-	SetupContext setupContext(context.memoryManager,
-							  context.textureSpace,
-							  context.rtvHeap,
-							  context.dsvHeap,
-							  context.shaderManager,
-							  context.gxApi);
-	auto uploadVheap= std::make_unique<VolatileViewHeap>(context.gxApi);
-	RenderContext renderContext(context.memoryManager,
-								context.textureSpace,
-								prevVheap.get(),
-								context.shaderManager,
-								context.gxApi,
-								context.commandListPool,
-								context.commandAllocatorPool,
-								context.scratchSpacePool);
-	uploadTask.Setup(setupContext);
-	uploadTask.Execute(renderContext);
-	std::unique_ptr<BasicCommandList> uploadInherit, uploadList;
-	renderContext.Decompose(uploadInherit, uploadList);
+	auto[uploadList, uploadVheap] = ExecuteUploadTask(context);
 	localLists.push({ std::move(uploadList), std::move(uploadVheap) });
 
 
-	do {
+	bool frameCompleted = false;
+	while (!frameCompleted) {
 		// Acquire pending command lists.
 		std::unique_lock<SpinMutex> lk(m_finishedListMtx);
 		m_finishedListCv.wait(lk, [this] { return !m_finishedLists.empty() || m_finishedListDone; });
@@ -344,6 +364,7 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 			localLists.push(std::move(m_finishedLists.front()));
 			m_finishedLists.pop();
 		}
+		frameCompleted = m_finishedListDone;
 		lk.unlock();
 
 		// Process pending command lists.
@@ -362,14 +383,7 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 			UpdateResourceStates(currentList.usedResources.begin(), currentList.usedResources.end());
 			
 			// Collect used resource of previous list.
-			std::vector<MemoryObject> usedResourceList;
-			usedResourceList.reserve(prevList.usedResources.size() + prevList.additionalResources.size());
-			for (auto& v : prevList.usedResources) {
-				usedResourceList.push_back(std::move(v.resource));
-			}
-			for (auto& v : prevList.additionalResources) {
-				usedResourceList.push_back(std::move(v));
-			}
+			std::vector<MemoryObject> usedResourceList = GetUsedResources(std::move(prevList.usedResources), std::move(prevList.additionalResources));
 
 			// Finally close and enqueue previous with the barriers added.
 			prevCopyList->Close();
@@ -388,7 +402,7 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 			localLists.pop();
 		}
 
-	} while (!m_finishedListDone);
+	};
 
 	// Set backBuffer to PRESENT state.
 	gxapi::eResourceState bbState = context.backBuffer->GetResource().ReadState(0);
@@ -401,14 +415,7 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 
 	// Enqueue the last command list.
 	// Collect used resource of previous list.
-	std::vector<MemoryObject> usedResourceList;
-	usedResourceList.reserve(prevList.usedResources.size() + prevList.additionalResources.size());
-	for (auto& v : prevList.usedResources) {
-		usedResourceList.push_back(std::move(v.resource));
-	}
-	for (auto& v : prevList.additionalResources) {
-		usedResourceList.push_back(std::move(v));
-	}
+	std::vector<MemoryObject> usedResourceList = GetUsedResources(std::move(prevList.usedResources), std::move(prevList.additionalResources));
 	EnqueueCommandList(*context.commandQueue,
 					   std::move(prevList.commandList),
 					   std::move(prevList.commandAllocator),

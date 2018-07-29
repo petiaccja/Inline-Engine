@@ -97,7 +97,7 @@ float3 GetLighting(float4 svPosition, //gl_FragCoord
 										 vsNormal,
 										 vsViewDir,
 									     lightDir,
-										 diffuseColor.xyz * attenuation * 10.0 * getLayeredShadow(texel, 1),
+										 diffuseColor.xyz * attenuation * 10.0 * GetLayeredShadow(texel, 1),
 										 roughness, 
 										 metalness 
 										);
@@ -130,7 +130,7 @@ float3 GetLighting(float4 svPosition, //gl_FragCoord
 								 vsNormal,
 								 vsViewDir,
 								 -g_lightDir,
-								 g_lightColor.xyz * 10.0 * screenSpaceShadow * getLayeredShadow(texel, 0),
+								 g_lightColor.xyz * 10.0 * screenSpaceShadow * GetLayeredShadow(texel, 0),
 								 roughness,
 								 metalness);
 

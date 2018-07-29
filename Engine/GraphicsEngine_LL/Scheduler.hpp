@@ -100,6 +100,8 @@ protected:
 	static std::pair<std::unique_ptr<BasicCommandList>, std::unique_ptr<VolatileViewHeap>> InheritCommandList(lemon::ListDigraph::Node node, ExecuteState& state);
 	static bool CanNextInheritCommandList(lemon::ListDigraph::Node node, ExecuteState& state);
 	void FinishList(std::unique_ptr<BasicCommandList> list, std::unique_ptr<VolatileViewHeap> vheap);
+	std::tuple<std::unique_ptr<BasicCommandList>, std::unique_ptr<VolatileViewHeap>> ExecuteUploadTask(const FrameContext& context);
+	std::vector<MemoryObject> GetUsedResources(std::vector<ResourceUsage> usages, std::vector<MemoryObject> additional);
 	void EnqueueFinishedLists(const FrameContext& context, const std::vector<jobs::Future<void>>& futures);
 
 	static std::string WriteTraceGraphviz(const lemon::ListDigraph& taskGraph, const lemon::ListDigraph::NodeMap<ExecuteTrace>& traceMap);

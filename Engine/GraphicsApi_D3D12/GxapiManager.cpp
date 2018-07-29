@@ -358,7 +358,8 @@ gxapi::ShaderProgramBinary GxapiManager::CompileShader(
 			errorStr.resize(errSize);
 			memcpy(errorStr.data(), errorMessage->GetBufferPointer(), errSize);
 
-			errorStr = std::regex_replace(errorStr, std::regex(R"([[:alnum:]@/_\-\:\\]+(\([0-9\-,]+\):))"), "\\1", std::regex_constants::format_sed);
+			// This is meant to produce readable file names, but it does not really help.
+			//errorStr = std::regex_replace(errorStr, std::regex(R"([[:alnum:]@/_\-\:\\]+(\([0-9\-,]+\):))"), "\\1", std::regex_constants::format_sed);
 
 			throw ShaderCompilationError("Shader compilation failed.", errorStr);
 		}

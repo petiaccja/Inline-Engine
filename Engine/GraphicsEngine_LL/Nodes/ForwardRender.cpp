@@ -666,8 +666,8 @@ std::string ForwardRender::GeneratePixelShader(const Material& material) {
 	PSMain << "    g_ndcPos = psInput.ndcPos;\n";
 	PSMain << "    g_vsPos = psInput.vsPosition;\n";
 	PSMain << "    g_tex0 = float3(psInput.texCoord, 0.0f);\n";
-	PSMain << "    result.velocityNormal.xy = encodeVelocity(psInput.currPosition, psInput.prevPosition, uniforms.halfExposureFramerate, uniforms.maxMotionBlurRadius);\n";
-	PSMain << "    result.velocityNormal.zw = encodeNormal(g_normal);\n";
+	PSMain << "    result.velocityNormal.xy = EncodeVelocity(psInput.currPosition, psInput.prevPosition, uniforms.halfExposureFramerate, uniforms.maxMotionBlurRadius);\n";
+	PSMain << "    result.velocityNormal.zw = EncodeNormal(g_normal);\n";
 	PSMain << "    float4 albedo = float4(0,0,0,0);\n";
 	for (size_t i = 0; i < material.GetParameterCount(); ++i) {
 		switch (material[i].GetType()) {
