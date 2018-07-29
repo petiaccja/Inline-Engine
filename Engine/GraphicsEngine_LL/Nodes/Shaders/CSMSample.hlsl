@@ -25,14 +25,14 @@ static const float4 radarColors[14] =
 	{ 0.6,0.3333,0.7882,1 }, // purple
 };
 
-float4 num_to_radar_color(int num, int num_max)
+float4 NumToRadarColor(int num, int numMax)
 {
 	// black for 0
 	if (num == 0) return float4(0, 0, 0, 1);
 	// light purple for reaching the max
-	else if (num == num_max) return float4(0.847, 0.745, 0.921, 1);
+	else if (num == numMax) return float4(0.847, 0.745, 0.921, 1);
 	// white for going over the max
-	else if (num > num_max) return float4(1, 1, 1, 1);
+	else if (num > numMax) return float4(1, 1, 1, 1);
 	// else use weather radar colors
 	else
 	{
@@ -40,7 +40,7 @@ float4 num_to_radar_color(int num, int num_max)
 
 		// want to find the base b such that the logb of uMaxNumLightsPerTile is 14
 		// (because we have 14 radar colors)
-		float fLogBase = exp2(0.07142857f*log2((float)num_max));
+		float fLogBase = exp2(0.07142857f*log2((float)numMax));
 
 		// change of base
 		// logb(x) = log2(x) / log2(b)
@@ -49,23 +49,23 @@ float4 num_to_radar_color(int num, int num_max)
 	}
 }
 
-float3 get_shadow_uv(float2 uv, float cascade_idx)
+float3 GetShadowUv(float2 uv, float cascadeIdx)
 {
 	// float2 res = float2(uv.x*0.25, uv.y) + cascade_idx * float2(0.25, 0);
 	// res.x = clamp(res.x, cascade_idx * 0.25, (cascade_idx + 1) * 0.25);
 	// return res;
 	
-	return float3(uv, cascade_idx);
+	return float3(uv, cascadeIdx);
 }
 
-float offset_lookup(float4 loc, float2 offset, float2 scale, float cascade)
+float OffsetLookup(float4 loc, float2 offset, float2 scale, float cascade)
 {
 	//return shadowMapTex.SampleCmp(shadowSampler, get_shadow_uv(loc.xy, cascade), loc.z, int2(offset)).x;
 	//return shadowMapTex.Sample(theSampler, get_shadow_uv(loc.xy, cascade), int2(offset)).x;
-	return shadowMapTex.SampleLevel(theSampler, get_shadow_uv(loc.xy, cascade), 0.0).x;
+	return shadowMapTex.SampleLevel(theSampler, GetShadowUv(loc.xy, cascade), 0.0).x;
 }
 
-float shadow_pcf_3x3(float4 shadow_coord, float2 scale, float2 offset, float cascade)
+float ShadowPcf3x3(float4 shadowCoord, float2 scale, float2 offset, float cascade)
 {
 	/*const int size = 1;
 	float accum = 0;
@@ -78,27 +78,27 @@ float shadow_pcf_3x3(float4 shadow_coord, float2 scale, float2 offset, float cas
 	}
 
 	return accum / count;*/
-	return offset_lookup(shadow_coord, offset, scale, cascade); //TODO only one sample for now
+	return OffsetLookup(shadowCoord, offset, scale, cascade); //TODO only one sample for now
 }
 
-float sample_csm(int cascade, float4 vs_pos
+float SampleCsm(int cascade, float4 vsPos
 #ifdef CSM_EXTENDED_INFO
-, out float4 shadowCoord
+, out float4 _shadowCoord
 #endif
 )
 {
-	float4x4 shadow_mx;
+	float4x4 shadowMx;
 	for (int d = 0; d < 4; ++d)
 	{
-		shadow_mx[d] = shadowMXTex.Load(int3(cascade * 4 + d, 0, 0));
+		shadowMx[d] = shadowMXTex.Load(int3(cascade * 4 + d, 0, 0));
 	}
-	float4 shadow_coord = mul(vs_pos, shadow_mx);
-	shadow_coord /= shadow_coord.w;
+	float4 shadowCoord = mul(vsPos, shadowMx);
+	shadowCoord /= shadowCoord.w;
 
 	float bias = 0.0075;
-	shadow_coord.z -= bias;
+	shadowCoord.z -= bias;
 
-	float2 offset = fmod(shadow_coord.xy * 0.5, 0.25);
+	float2 offset = fmod(shadowCoord.xy * 0.5, 0.25);
 	offset.y += offset.x;  // y ^= x in floating point
 
 	if (offset.y > 1.1)
@@ -114,12 +114,12 @@ float sample_csm(int cascade, float4 vs_pos
 	//shadow_coord.xy = shadow_coord.xy * float2(0.5, -0.5) + 0.5;
 	
 	#ifdef CSM_EXTENDED_INFO
-	shadowCoord = float4(shadow_coord.xyz, cascade);
+	_shadowCoord = float4(shadowCoord.xyz, cascade);
 	#endif
 
-	float shadow_depth = offset_lookup(shadow_coord, offset, scale, cascade);
+	float shadowDepth = OffsetLookup(shadowCoord, offset, scale, cascade);
 	//return float3(shadow_coord.x < 0.0, shadow_coord.y < 0.0, shadow_coord.z < 0.0);
-	return shadow_coord.z < shadow_depth;
+	return shadowCoord.z < shadowDepth;
 	//return shadowMapTex.Sample(theSampler, float3(shadow_coord.xy * 0.5 + 0.5, 1.0)).x;
 	//return float(inputTexSize.z > 3);
 	//return shadow_depth;
@@ -127,7 +127,7 @@ float sample_csm(int cascade, float4 vs_pos
 }
 
 //vec3 get_shadow(sampler2D tex, vec4 shadow_coord)
-float3 get_csm_shadow(float4 vs_pos
+float3 GetCsmShadow(float4 vsPos
 #ifdef CSM_EXTENDED_INFO
 , out float4 shadowCoord
 #endif
@@ -140,14 +140,14 @@ float3 get_csm_shadow(float4 vs_pos
 	{
 		float2 split = csmSplitsTex.Load(int3(c, 0, 0)).xy;
 
-		if (vs_pos.z >= split.x && vs_pos.z < split.y)
+		if (vsPos.z >= split.x && vsPos.z < split.y)
 		{
 			cascade = c;
 			break;
 		}
 	}
 
-	float shadow_term = sample_csm(cascade, vs_pos
+	float shadowTerm = SampleCsm(cascade, vsPos
 	#ifdef CSM_EXTENDED_INFO
 	, shadowCoord
 	#endif
@@ -159,8 +159,8 @@ float3 get_csm_shadow(float4 vs_pos
 		float prevSplit = split.x;
 		float nextSplit = split.y;
 		float splitSize = nextSplit - prevSplit;
-		float splitDistPrev = (vs_pos.z - prevSplit) / splitSize;
-		float splitDistNext = (nextSplit + vs_pos.z) / splitSize;
+		float splitDistPrev = (vsPos.z - prevSplit) / splitSize;
+		float splitDistNext = (nextSplit + vsPos.z) / splitSize;
 
 		//method 1
 		//sharper transition
@@ -189,7 +189,7 @@ float3 get_csm_shadow(float4 vs_pos
 	//return float3(1,1,1);
 	//return cascade * 0.25;
 	//return shadow_term;
-	return float3(shadow_term, shadow_term, shadow_term);
+	return float3(shadowTerm, shadowTerm, shadowTerm);
 	//return num_to_radar_color(cascade, 4).xyz;
 	//return float3(shadow_term, shadow_term, shadow_term);// *0.5 + num_to_radar_color(cascade, 4).xyz * 0.1;
 	//return float(shadow_coord.z - 0.005 < texture(tex, shadow_coord.xy).x) * shadow_selector / 4.0;

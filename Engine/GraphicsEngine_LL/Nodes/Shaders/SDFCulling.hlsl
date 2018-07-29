@@ -11,32 +11,32 @@ RWTexture2D<float4> volDstTex1 : register(u1);
 RWTexture2D<float4> dstTex : register(u2);
 RWTexture2D<uint> cullTex : register(u3);
 
-struct sdf_data
+struct SdfData
 {
-	float4 vs_position;
+	float4 vsPosition;
 	float radius;
 	float3 dummy;
 };
 
-struct light_data
+struct LightData
 {
 	float4 diffuseLightColor;
-	float4 vs_position;
-	float attenuation_end;
+	float4 vsPosition;
+	float attenuationEnd;
 	float3 dummy;
 };
 
 struct Uniforms
 {
-	sdf_data sd[10];
-	light_data ld[10];
+	SdfData sd[10];
+	LightData ld[10];
 	float4x4 v, p;
 	float4x4 invVP, oldVP;
-	float cam_near, cam_far, dummy1, dummy2;
-	uint num_sdfs, num_workgroups_x, num_workgroups_y; float haltonFactor;
-	float4 sun_direction;
-	float4 sun_color;
-	float4 cam_pos;
+	float camNear, camFar, dummy1, dummy2;
+	uint numSdfs, numWorkgroupsX, numWorkgroupsY; float haltonFactor;
+	float4 sunDirection;
+	float4 sunColor;
+	float4 camPos;
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
@@ -49,17 +49,17 @@ ConstantBuffer<Uniforms> uniforms : register(b0);
 groupshared int localNumSDFsInput, localNumSDFsOutput;
 groupshared int localSDFs[1024];
 
-float linearize_depth(float depth, float near, float far)
+float LinearizeDepth(float depth, float near, float far)
 {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 	float zndc = depth;
 
 	//view space linear z
-	float vs_zrecon = B / (zndc - A);
+	float vsZrecon = B / (zndc - A);
 
 	//range: [0...1]
-	return vs_zrecon / far;
+	return vsZrecon / far;
 };
 
 [numthreads(LOCAL_SIZE_X, LOCAL_SIZE_Y, 1)]
@@ -75,60 +75,60 @@ void CSMain(
 
 	if (groupIndex == 0)
 	{
-		localNumSDFsInput = uniforms.num_sdfs;
+		localNumSDFsInput = uniforms.numSdfs;
 		localNumSDFsOutput = 0;
 	}
 
 	GroupMemoryBarrierWithGroupSync(); //local memory barrier
 
-	float2 tile_scale = float2(inputTexSize.x, inputTexSize.y) * (1.0 / (LOCAL_SIZE_X + LOCAL_SIZE_Y));
-	float2 tile_bias = tile_scale - float2(groupId.x, groupId.y);
+	float2 tileScale = float2(inputTexSize.x, inputTexSize.y) * (1.0 / (LOCAL_SIZE_X + LOCAL_SIZE_Y));
+	float2 tileBias = tileScale - float2(groupId.x, groupId.y);
 
-	float proj_11 = uniforms.p[0].x;
-	float proj_22 = uniforms.p[1].y;
+	float proj11 = uniforms.p[0].x;
+	float proj22 = uniforms.p[1].y;
 
-	float4 c1 = float4(proj_11 * tile_scale.x, 0.0, tile_bias.x, 0.0);
-	float4 c2 = float4(0.0, -proj_22 * tile_scale.y, tile_bias.y, 0.0);
+	float4 c1 = float4(proj11 * tileScale.x, 0.0, tileBias.x, 0.0);
+	float4 c2 = float4(0.0, -proj22 * tileScale.y, tileBias.y, 0.0);
 	float4 c4 = float4(0.0, 0.0, 1.0, 0.0);
 
-	float4 frustum_planes[6];
+	float4 frustumPlanes[6];
 
-	frustum_planes[0] = c4 - c1;
-	frustum_planes[1] = c4 + c1;
-	frustum_planes[2] = c4 - c2;
-	frustum_planes[3] = c4 + c2;
-	frustum_planes[4] = float4(0.0, 0.0, 1.0, 0.0); 
-	frustum_planes[5] = float4(0.0, 0.0, 1.0, uniforms.cam_far); 
+	frustumPlanes[0] = c4 - c1;
+	frustumPlanes[1] = c4 + c1;
+	frustumPlanes[2] = c4 - c2;
+	frustumPlanes[3] = c4 + c2;
+	frustumPlanes[4] = float4(0.0, 0.0, 1.0, 0.0); 
+	frustumPlanes[5] = float4(0.0, 0.0, 1.0, uniforms.camFar); 
 
-	frustum_planes[0].xyz = normalize(frustum_planes[0].xyz);
-	frustum_planes[1].xyz = normalize(frustum_planes[1].xyz);
-	frustum_planes[2].xyz = normalize(frustum_planes[2].xyz);
-	frustum_planes[3].xyz = normalize(frustum_planes[3].xyz);
+	frustumPlanes[0].xyz = normalize(frustumPlanes[0].xyz);
+	frustumPlanes[1].xyz = normalize(frustumPlanes[1].xyz);
+	frustumPlanes[2].xyz = normalize(frustumPlanes[2].xyz);
+	frustumPlanes[3].xyz = normalize(frustumPlanes[3].xyz);
 
 	for (uint c = groupIndex; c < localNumSDFsInput; c += LOCAL_SIZE_X * LOCAL_SIZE_Y)
 	{
-		bool in_frustum = true;
+		bool inFrustum = true;
 		int index = int(c);
 
 		float radius = uniforms.sd[index].radius;
-		float4 sdf_pos = float4(uniforms.sd[index].vs_position.xyz, 1.0);
+		float4 sdfPos = float4(uniforms.sd[index].vsPosition.xyz, 1.0);
 
 		//manual unroll
 		{
-			float e = dot(frustum_planes[0], sdf_pos);
-			in_frustum = in_frustum && (e >= -radius);
+			float e = dot(frustumPlanes[0], sdfPos);
+			inFrustum = inFrustum && (e >= -radius);
 		}
 		{
-			float e = dot(frustum_planes[1], sdf_pos);
-			in_frustum = in_frustum && (e >= -radius);
+			float e = dot(frustumPlanes[1], sdfPos);
+			inFrustum = inFrustum && (e >= -radius);
 		}
 		{
-			float e = dot(frustum_planes[2], sdf_pos);
-			in_frustum = in_frustum && (e >= -radius);
+			float e = dot(frustumPlanes[2], sdfPos);
+			inFrustum = inFrustum && (e >= -radius);
 		}
 		{
-			float e = dot(frustum_planes[3], sdf_pos);
-			in_frustum = in_frustum && (e >= -radius);
+			float e = dot(frustumPlanes[3], sdfPos);
+			inFrustum = inFrustum && (e >= -radius);
 		}
 		/*{
 			float e = dot(frustum_planes[4], sdf_pos);
@@ -139,7 +139,7 @@ void CSMain(
 			in_frustum = in_frustum && (e >= -radius);
 		}*/
 
-		if (in_frustum)
+		if (inFrustum)
 		{
 			localSDFs[localNumSDFsOutput] = int(index);
 			InterlockedAdd(localNumSDFsOutput, 1);
@@ -150,11 +150,11 @@ void CSMain(
 
 	if (groupIndex == 0)
 	{
-		cullTex[int2(groupId.x * uniforms.num_workgroups_y + groupId.y, 0)] = uint(localNumSDFsOutput);
+		cullTex[int2(groupId.x * uniforms.numWorkgroupsY + groupId.y, 0)] = uint(localNumSDFsOutput);
 	}
 
 	for (uint c = groupIndex; c < localNumSDFsOutput; c += LOCAL_SIZE_X * LOCAL_SIZE_Y)
 	{
-		cullTex[int2(groupId.x * uniforms.num_workgroups_y + groupId.y, c + 1)] = uint(localSDFs[c]);
+		cullTex[int2(groupId.x * uniforms.numWorkgroupsY + groupId.y, c + 1)] = uint(localSDFs[c]);
 	}
 }

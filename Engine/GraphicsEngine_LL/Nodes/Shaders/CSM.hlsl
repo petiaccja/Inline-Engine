@@ -24,13 +24,13 @@ PS_Input VSMain(float4 position : POSITION)
 {
 	PS_Input result;
 
-	float4x4 light_mvp;
+	float4x4 lightMvp;
 	for (int d = 0; d < 4; ++d)
 	{
-		light_mvp[d] = inputTex.Load(int3(uniforms.cascadeIDX * 4 + d, 0, 0));
+		lightMvp[d] = inputTex.Load(int3(uniforms.cascadeIDX * 4 + d, 0, 0));
 	}
 
-    result.position = mul(position, mul(uniforms.model, light_mvp));
+    result.position = mul(position, mul(uniforms.model, lightMvp));
 
 	return result;
 }

@@ -25,26 +25,26 @@ struct PS_Input
 
 struct PS_Output
 {
-	float4 color_coc : SV_TARGET0;
+	float4 colorCoc : SV_TARGET0;
 	float depth : SV_TARGET1;
 };
 
 //warning: result [0...far]
-float linearize_depth(float depth, float near, float far)
+float LinearizeDepth(float depth, float near, float far)
 {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 	float zndc = depth;
 
 	//view space linear z
-	float vs_zrecon = B / (zndc - A);
+	float vsZrecon = B / (zndc - A);
 
 	//range: [0...far]
-	return vs_zrecon;
+	return vsZrecon;
 };
 
 //warning: result [0...1]
-float toDepth(float depth, float near, float far)
+float ToDepth(float depth, float near, float far)
 {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
@@ -53,25 +53,25 @@ float toDepth(float depth, float near, float far)
 	return zndc;
 }
 
-float rand(float2 co) {
+float Rand(float2 co) {
 	return frac(sin(dot(co.xy, float2(12.9898, 78.233))) * 43758.5453);
 }
 
-float4 filterFuncTier3(float2 uv, float2 resolution, float4 center_tap, float center_depth)
+float4 FilterFuncTier3(float2 uv, float2 resolution, float4 centerTap, float centerDepth)
 {
 	const float pi = 3.14159265;
 	int taps = 8;
 	const float threshold = 0.1;
 
-	float center_coc = center_tap.w;
-	float dist = max(center_coc * 0.5 * 0.333, 1.0); //9
+	float centerCoc = centerTap.w;
+	float dist = max(centerCoc * 0.5 * 0.333, 1.0); //9
 
-	if (center_coc <= 1.0)
+	if (centerCoc <= 1.0)
 	{
-		return center_tap;
+		return centerTap;
 	}
 
-	float4 result = center_tap;
+	float4 result = centerTap;
 	float samples = 1;
 	float ftaps = 1.0 / float(taps);
 	float2 pixelSize = 1.0 / resolution;
@@ -85,27 +85,27 @@ float4 filterFuncTier3(float2 uv, float2 resolution, float4 center_tap, float ce
 
 		float4 data = inputTex.Sample(samp1, sampleUV); //bilinear tap
 		float4 depthGather = depthTex.Gather(samp0, sampleUV);
-		float depthMin = linearize_depth(min(depthGather.x, min(depthGather.y, min(depthGather.z, depthGather.w))), 0.1, 100);
+		float depthMin = LinearizeDepth(min(depthGather.x, min(depthGather.y, min(depthGather.z, depthGather.w))), 0.1, 100);
 
 
-		if (abs(depthMin - center_depth) < threshold)
+		if (abs(depthMin - centerDepth) < threshold)
 		{
 			result += data;
 			samples++;
 		}
 	}
 
-	return float4(result.xyz / samples, center_tap.w);
+	return float4(result.xyz / samples, centerTap.w);
 }
 
 //all in metres (scene unit)
-float calculate_coc(float focal_length, float subject_distance, float opening_diameter, float scene_depth)
+float CalculateCoc(float focalLength, float subjectDistance, float openingDiameter, float sceneDepth)
 {
 	//return focal_length * (focal_length / subject_distance) * abs(scene_depth - subject_distance) /
 	//	((focal_length / opening_diameter) * (subject_distance + (scene_depth < subject_distance ? -1 : 1) * abs(scene_depth - subject_distance)));
 	
 	//based on wikipedia
-	return opening_diameter * (focal_length / subject_distance) * abs(scene_depth - subject_distance) / scene_depth;
+	return openingDiameter * (focalLength / subjectDistance) * abs(sceneDepth - subjectDistance) / sceneDepth;
 
 	//based on gpu gems
 	//return opening_diameter * (focal_length / scene_depth) * abs(scene_depth - subject_distance) / abs(subject_distance - focal_length);
@@ -152,28 +152,28 @@ PS_Output PSMain(PS_Input input)
 	float4 inputData = inputTex.Sample(samp0, input.texCoord);
 	float4 depthGather = depthTex.Gather(samp0, input.texCoord);
 	float maxDepth = max(depthGather.x, max(depthGather.y, max(depthGather.z, depthGather.w)));
-	float inputDepth = linearize_depth(maxDepth, 0.1, 100);
+	float inputDepth = LinearizeDepth(maxDepth, 0.1, 100);
 	
-	output.color_coc = inputData;
+	output.colorCoc = inputData;
 	output.depth = maxDepth;
 	return output;
 
-	float sensor_width = 0.035; //35mm full frame sensor
+	float sensorWidth = 0.035; //35mm full frame sensor
 
-	float focal_length_multiplier = 1.5; //1.0 for full frame
-	float focal_length = 50 * focal_length_multiplier; //millimeters
-	float f_stops = 5.6; //millimeters
-	float subject_distance = 0.3; //meters
+	float focalLengthMultiplier = 1.5; //1.0 for full frame
+	float focalLength = 50 * focalLengthMultiplier; //millimeters
+	float fStops = 5.6; //millimeters
+	float subjectDistance = 0.3; //meters
 
-	float coc = calculate_coc(focal_length * 0.001, subject_distance, f_stops * 0.001, inputDepth); //in meters
+	float coc = CalculateCoc(focalLength * 0.001, subjectDistance, fStops * 0.001, inputDepth); //in meters
 	//float pixel_coc = inputTexSize.x * 0.5 * coc / sensor_width; //0.5 for half res rendering!
-	float pixel_coc = inputTexSize.x * coc / sensor_width; //0.5 for half res rendering!
-	float final_coc = min(pixel_coc, uniforms.maxBlurDiameter);
+	float pixelCoc = inputTexSize.x * coc / sensorWidth; //0.5 for half res rendering!
+	float finalCoc = min(pixelCoc, uniforms.maxBlurDiameter);
 
 	//float4 prefilteredColor = filterFuncTier3(input.texCoord, inputTexSize.xy, inputData, inputDepth);
-	float4 prefilteredColor = filterFuncTier3(input.texCoord, inputTexSize.xy, float4(inputData.xyz, final_coc), inputDepth);
+	float4 prefilteredColor = FilterFuncTier3(input.texCoord, inputTexSize.xy, float4(inputData.xyz, finalCoc), inputDepth);
 
-	output.color_coc = float4(prefilteredColor.xyz, final_coc);
+	output.colorCoc = float4(prefilteredColor.xyz, finalCoc);
 	output.depth = maxDepth;
 	return output;
 	//return inputTex.Sample(samp0, input.texCoord);

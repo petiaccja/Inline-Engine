@@ -6,7 +6,7 @@
 
 struct Uniforms
 {
-	float bright_pass_threshold;
+	float brightPassThreshold;
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
@@ -55,7 +55,7 @@ PS_OUTPUT PSMain(PS_Input input) : SV_TARGET
 	PS_OUTPUT outputData;
 
 	float4 inputData = max(inputTex.Sample(samp0, input.texCoord), float4(0,0,0,0));
-	float4 threshold = float4(uniforms.bright_pass_threshold, uniforms.bright_pass_threshold, uniforms.bright_pass_threshold, uniforms.bright_pass_threshold);
+	float4 threshold = float4(uniforms.brightPassThreshold, uniforms.brightPassThreshold, uniforms.brightPassThreshold, uniforms.brightPassThreshold);
 
 	outputData.brightPassResult = max(inputData - threshold, float4(0, 0, 0, 0));
 

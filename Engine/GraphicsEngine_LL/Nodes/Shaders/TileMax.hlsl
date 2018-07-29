@@ -20,12 +20,12 @@ struct PS_Input
 	float2 texCoord : TEX_COORD0;
 };
 
-float2 undoVelocityBiasScale(float2 v)
+float2 UndoVelocityBiasScale(float2 v)
 {
 	return v * 2.0 - 1.0;
 }
 
-float2 doVelocityBiasScale(float2 v)
+float2 DoVelocityBiasScale(float2 v)
 {
 	return (v + 1.0) * 0.5;
 }
@@ -68,7 +68,7 @@ float2 PSMain(PS_Input input) : SV_TARGET
 	{
 		for (int t = 0; t < uniforms.maxMotionBlurRadius; ++t)
 		{
-			float2 velocity = undoVelocityBiasScale(inputTex.Load(int3(clamp(tileCorner + int2(s,t), int2(0,0), texSize),0)).xy);
+			float2 velocity = UndoVelocityBiasScale(inputTex.Load(int3(clamp(tileCorner + int2(s,t), int2(0,0), texSize),0)).xy);
 
 			float lenSqr = dot(velocity, velocity);
 			if (maxVelSqr < lenSqr)
@@ -79,5 +79,5 @@ float2 PSMain(PS_Input input) : SV_TARGET
 		}
 	}
 
-	return doVelocityBiasScale(result);
+	return DoVelocityBiasScale(result);
 }

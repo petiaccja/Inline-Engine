@@ -46,56 +46,56 @@ protected:
 
 
 class DebugSphere : public DebugObject {
-	Vec4 d; //w=radius
+	Vec4 m_d; //w=radius
 
 	static void GetStaticMesh(std::vector<Vec3>& vertices, std::vector<uint32_t>& indices) {
 		static std::vector<Vec3> staticVertices;
 		static std::vector<uint32_t> staticIndices;
-		static bool is_init = false;
+		static bool isInit = false;
 
-		if (!is_init) {
+		if (!isInit) {
 			//LINES
 			const float pi = 3.14159265f;
 
-			const int resolution_u = 10;
-			const int resolution_v = 10 * 2;
+			const int resolutionU = 10;
+			const int resolutionV = 10 * 2;
 
-			const float u_step = 1.f / resolution_u;
-			const float v_step = 1.f / resolution_v;
+			const float uStep = 1.f / resolutionU;
+			const float vStep = 1.f / resolutionV;
 
 			float u = 0;
 			float v = 0;
-			for (int u_index = 0; u_index < resolution_u; u_index += 1, u += u_step) {
+			for (int uIndex = 0; uIndex < resolutionU; uIndex += 1, u += uStep) {
 				//0 <= alpha <= pi
 				const float alpha = u * pi;
 
-				for (int v_index = 0; v_index < resolution_v; v_index += 1, v += v_step) {
+				for (int vIndex = 0; vIndex < resolutionV; vIndex += 1, v += vStep) {
 					//0 <= theta <= 2*pi
 					const float theta = v * 2 * pi;
 					staticVertices.push_back(Vec3(cosf(alpha) * cosf(theta), sinf(alpha) * cosf(theta), sinf(theta)));
 				}
 			}
 
-			int curr_index = 0;
-			for (int u_index = 0; u_index < resolution_u; u_index += 1, u += u_step) {
-				for (int v_index = 0; v_index < resolution_v; v_index += 1, v += v_step) {
+			int currIndex = 0;
+			for (int uIndex = 0; uIndex < resolutionU; uIndex += 1, u += uStep) {
+				for (int vIndex = 0; vIndex < resolutionV; vIndex += 1, v += vStep) {
 					//if there is a preceding vertex
-					if (v_index - 1 >= 0) {
-						staticIndices.push_back(curr_index);
+					if (vIndex - 1 >= 0) {
+						staticIndices.push_back(currIndex);
 					}
 
-					staticIndices.push_back(curr_index);
+					staticIndices.push_back(currIndex);
 
-					curr_index += 1;
+					currIndex += 1;
 				}
 
-				staticIndices.push_back(curr_index - resolution_v);
+				staticIndices.push_back(currIndex - resolutionV);
 			}
 
 			staticVertices.shrink_to_fit();
 			staticIndices.shrink_to_fit();
 
-			is_init = true;
+			isInit = true;
 		}
 
 		vertices = staticVertices;
@@ -104,7 +104,7 @@ class DebugSphere : public DebugObject {
 
 public:
 	DebugSphere(Vec3 pos, float radius, int newLife, Vec3 newColor = Vec3(1.0f, 1.0f, 1.0f)) {
-		d = Vec4(pos, radius);
+		m_d = Vec4(pos, radius);
 		m_life = newLife;
 		m_color = newColor;
 	}
@@ -113,18 +113,18 @@ public:
 		GetStaticMesh(vertices, indices);
 
 		for (int c = 0; c < vertices.size(); ++c) {
-			vertices[c] = vertices[c] * d.w + d.xyz;
+			vertices[c] = vertices[c] * m_d.w + m_d.xyz;
 		}
 	}
 };
 
 
 class DebugCross : public DebugObject {
-	Vec4 d; //w=size
+	Vec4 m_d; //w=size
 
 public:
 	DebugCross(Vec3 pos, float size, int newLife, Vec3 newColor = Vec3(1.0f, 1.0f, 1.0f)) {
-		d = Vec4(pos, size);
+		m_d = Vec4(pos, size);
 		m_life = newLife;
 		m_color = newColor;
 	}
@@ -136,14 +136,14 @@ public:
 		vertices.reserve(4);
 		indices.reserve(4);
 
-		vertices.push_back(d.xyz.ToVector() - Vec3(1.f, 0.f, 0.f) * d.w);
-		vertices.push_back(d.xyz.ToVector() + Vec3(1.f, 0.f, 0.f) * d.w);
+		vertices.push_back(m_d.xyz.ToVector() - Vec3(1.f, 0.f, 0.f) * m_d.w);
+		vertices.push_back(m_d.xyz.ToVector() + Vec3(1.f, 0.f, 0.f) * m_d.w);
 
-		vertices.push_back(d.xyz.ToVector() - Vec3(0.f, 1.f, 0.f) * d.w);
-		vertices.push_back(d.xyz.ToVector() + Vec3(0.f, 1.f, 0.f) * d.w);
+		vertices.push_back(m_d.xyz.ToVector() - Vec3(0.f, 1.f, 0.f) * m_d.w);
+		vertices.push_back(m_d.xyz.ToVector() + Vec3(0.f, 1.f, 0.f) * m_d.w);
 
-		vertices.push_back(d.xyz.ToVector() - Vec3(0.f, 0.f, 1.f) * d.w);
-		vertices.push_back(d.xyz.ToVector() + Vec3(0.f, 0.f, 1.f) * d.w);
+		vertices.push_back(m_d.xyz.ToVector() - Vec3(0.f, 0.f, 1.f) * m_d.w);
+		vertices.push_back(m_d.xyz.ToVector() + Vec3(0.f, 0.f, 1.f) * m_d.w);
 
 		indices.push_back(0);
 		indices.push_back(1);
@@ -158,12 +158,12 @@ public:
 
 
 class DebugLine : public DebugObject {
-	Vec3 s, e;
+	Vec3 m_s, m_e;
 
 public:
 	DebugLine(Vec3 start, Vec3 end, int newLife, Vec3 newColor = Vec3(1.0f, 1.0f, 1.0f)) {
-		s = start;
-		e = end;
+		m_s = start;
+		m_e = end;
 		m_life = newLife;
 		m_color = newColor;
 	}
@@ -175,8 +175,8 @@ public:
 		vertices.reserve(2);
 		indices.reserve(2);
 
-		vertices.push_back(s);
-		vertices.push_back(e);
+		vertices.push_back(m_s);
+		vertices.push_back(m_e);
 		indices.push_back(0);
 		indices.push_back(1);
 	}
@@ -184,12 +184,12 @@ public:
 
 
 class DebugBox : public DebugObject{
-	Vec3 min, max;
+	Vec3 m_min, m_max;
 
 public:
 	DebugBox(Vec3 newMin, Vec3 newMax, int newLife, Vec3 newColor = Vec3(1.0f, 1.0f, 1.0f)) {
-		min = newMin;
-		max = newMax;
+		m_min = newMin;
+		m_max = newMax;
 		m_life = newLife;
 		m_color = newColor;
 	}
@@ -201,18 +201,18 @@ public:
 		vertices.reserve(8);
 		indices.reserve(24);
 
-		std::vector<Vec3> min_max;
-		min_max.push_back(min);
-		min_max.push_back(max);
+		std::vector<Vec3> minMax;
+		minMax.push_back(m_min);
+		minMax.push_back(m_max);
 
-		vertices.push_back(Vec3(min_max[0].x, min_max[0].y, min_max[0].z));
-		vertices.push_back(Vec3(min_max[0].x, min_max[0].y, min_max[1].z));
-		vertices.push_back(Vec3(min_max[0].x, min_max[1].y, min_max[0].z));
-		vertices.push_back(Vec3(min_max[0].x, min_max[1].y, min_max[1].z));
-		vertices.push_back(Vec3(min_max[1].x, min_max[0].y, min_max[0].z));
-		vertices.push_back(Vec3(min_max[1].x, min_max[0].y, min_max[1].z));
-		vertices.push_back(Vec3(min_max[1].x, min_max[1].y, min_max[0].z));
-		vertices.push_back(Vec3(min_max[1].x, min_max[1].y, min_max[1].z));
+		vertices.push_back(Vec3(minMax[0].x, minMax[0].y, minMax[0].z));
+		vertices.push_back(Vec3(minMax[0].x, minMax[0].y, minMax[1].z));
+		vertices.push_back(Vec3(minMax[0].x, minMax[1].y, minMax[0].z));
+		vertices.push_back(Vec3(minMax[0].x, minMax[1].y, minMax[1].z));
+		vertices.push_back(Vec3(minMax[1].x, minMax[0].y, minMax[0].z));
+		vertices.push_back(Vec3(minMax[1].x, minMax[0].y, minMax[1].z));
+		vertices.push_back(Vec3(minMax[1].x, minMax[1].y, minMax[0].z));
+		vertices.push_back(Vec3(minMax[1].x, minMax[1].y, minMax[1].z));
 
 		indices.push_back(0); indices.push_back(1);
 		indices.push_back(0); indices.push_back(2);
@@ -231,7 +231,7 @@ public:
 
 
 class DebugFrustum : public DebugObject{
-	Vec3 nearLowerLeft, nearUpperLeft, nearLowerRight, farLowerLeft, farUpperLeft, farLowerRight;
+	Vec3 m_nearLowerLeft, m_nearUpperLeft, m_nearLowerRight, m_farLowerLeft, m_farUpperLeft, m_farLowerRight;
 
 public:
 	DebugFrustum(Vec3 newNearLowerLeft,
@@ -242,12 +242,12 @@ public:
 		Vec3 newFarLowerRight,
 		int newLife,
 		Vec3 newColor = Vec3(1.0f, 1.0f, 1.0f)) {
-		nearLowerLeft = newNearLowerLeft;
-		nearUpperLeft = newNearUpperLeft;
-		nearLowerRight = newNearLowerRight;
-		farLowerLeft = newFarLowerLeft;
-		farUpperLeft = newFarUpperLeft;
-		farLowerRight = newFarLowerRight;
+		m_nearLowerLeft = newNearLowerLeft;
+		m_nearUpperLeft = newNearUpperLeft;
+		m_nearLowerRight = newNearLowerRight;
+		m_farLowerLeft = newFarLowerLeft;
+		m_farUpperLeft = newFarUpperLeft;
+		m_farLowerRight = newFarLowerRight;
 		m_life = newLife;
 		m_color = newColor;
 	}
@@ -259,34 +259,34 @@ public:
 		vertices.reserve(8);
 		indices.reserve(24);
 
-		vertices.push_back(nearLowerLeft);
-		vertices.push_back(nearLowerRight);
-		vertices.push_back(nearLowerRight + (nearUpperLeft - nearLowerLeft));
-		vertices.push_back(nearUpperLeft);
+		vertices.push_back(m_nearLowerLeft);
+		vertices.push_back(m_nearLowerRight);
+		vertices.push_back(m_nearLowerRight + (m_nearUpperLeft - m_nearLowerLeft));
+		vertices.push_back(m_nearUpperLeft);
 
-		vertices.push_back(farLowerLeft);
-		vertices.push_back(farLowerRight);
-		vertices.push_back(farLowerRight + (farUpperLeft - farLowerLeft));
-		vertices.push_back(farUpperLeft);
+		vertices.push_back(m_farLowerLeft);
+		vertices.push_back(m_farLowerRight);
+		vertices.push_back(m_farLowerRight + (m_farUpperLeft - m_farLowerLeft));
+		vertices.push_back(m_farUpperLeft);
 
 		//LINES
-		uint32_t starting_index = 0;
-		uint32_t ending_index = 3;
-		uint32_t curr_index = starting_index;
+		uint32_t startingIndex = 0;
+		uint32_t endingIndex = 3;
+		uint32_t currIndex = startingIndex;
 		for (int i = 0; i < 2; i += 1) {
 			for (int j = 0; j < 4; j += 1) {
-				indices.push_back(curr_index);
-				indices.push_back((curr_index == ending_index) ? starting_index : ++curr_index);
+				indices.push_back(currIndex);
+				indices.push_back((currIndex == endingIndex) ? startingIndex : ++currIndex);
 			}
-			curr_index = starting_index = 4;
-			ending_index = 7;
+			currIndex = startingIndex = 4;
+			endingIndex = 7;
 		}
 
-		curr_index = 0;
+		currIndex = 0;
 		for (int i = 0; i < 4; i += 1) {
-			indices.push_back(curr_index);
-			indices.push_back(curr_index + 4);
-			curr_index += 1;
+			indices.push_back(currIndex);
+			indices.push_back(currIndex + 4);
+			currIndex += 1;
 		}
 	}
 };

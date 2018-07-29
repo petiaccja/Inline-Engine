@@ -1,17 +1,17 @@
-struct light_data
+struct LightData
 {
-	float4 diffuse_color;
-	float4 vs_position;
-	float4 attenuation_end;
+	float4 diffuseColor;
+	float4 vsPosition;
+	float4 attenuationEnd;
 };
 
 struct Uniforms
 {
 	float4x4 invV;
-	light_data ld[10];
-	float4 screen_dimensions;
-	float4 vs_cam_pos;
-	int group_size_x, group_size_y;
+	LightData ld[10];
+	float4 screenDimensions;
+	float4 vsCamPos;
+	int groupSizeX, groupSizeY;
 	float halfExposureFramerate, //0.5 * exposure time (% of time exposure is open -> 0.75?) * frame rate (s? or fps?)
 		maxMotionBlurRadius; //pixels
 };

@@ -26,35 +26,35 @@ struct PS_Input
 	float2 texCoord : TEXCOORD0;
 };
 
-float2 undoVelocityBiasScale(float2 v)
+float2 UndoVelocityBiasScale(float2 v)
 {
 	return v * 2.0 - 1.0;
 }
 
-float2 doVelocityBiasScale(float2 v)
+float2 DoVelocityBiasScale(float2 v)
 {
 	return (v + 1.0) * 0.5;
 }
 
 ///////////////////////////
 //depth compare functions
-float cone(float magDiff, float magVel)
+float Cone(float magDiff, float magVel)
 {
 	return 1.0 - abs(magDiff) / magVel;
 }
 
-float cylinder(float magDiff, float magVel)
+float Cylinder(float magDiff, float magVel)
 {
 	return 1.0 - smoothstep(0.95 * magVel, 1.05 * magVel, abs(magDiff));
 }
 
-float softDepthCompare(float za, float zb)
+float SoftDepthCompare(float za, float zb)
 {
 	return clamp((1.0 - (za - zb) / 0.1), 0.0, 1.0);
 }
 ///////////////////////////
 
-float linearize_depth(float depth)
+float LinearizeDepth(float depth)
 {
 	float near = 0.1;
 	float far = 100.0;
@@ -63,24 +63,24 @@ float linearize_depth(float depth)
 	float zndc = depth;
 
 	//view space linear z
-	float vs_zrecon = B / (zndc - A);
+	float vsZrecon = B / (zndc - A);
 
 	//range: [0...1]
-	return vs_zrecon / far;
+	return vsZrecon / far;
 };
 
-float rand(float2 n) {
+float Rand(float2 n) {
 	return frac(sin(dot(n, float2(12.9898, 4.1414))) * 43758.5453);
 }
 
-float pseudoRandom(float2 p) {
+float PseudoRandom(float2 p) {
 	float2 ip = floor(p);
 	float2 u = frac(p);
 	u = u*u*(3.0 - 2.0*u);
 
 	float res = lerp(
-		lerp(rand(ip), rand(ip + float2(1.0, 0.0)), u.x),
-		lerp(rand(ip + float2(0.0, 1.0)), rand(ip + float2(1.0, 1.0)), u.x), u.y);
+		lerp(Rand(ip), Rand(ip + float2(1.0, 0.0)), u.x),
+		lerp(Rand(ip + float2(0.0, 1.0)), Rand(ip + float2(1.0, 1.0)), u.x), u.y);
 	return res*res;
 }
 
@@ -119,7 +119,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 	// VN = NeighborMax[X/k] (sample from NeighborMax buffer; holds dominant
 	// half-velocity for the current fragment's neighborhood tile)
-	float2 dominantVelocity = undoVelocityBiasScale(neighborMaxTex.Load(int3(currPixelPos / (int)uniforms.maxMotionBlurRadius,0)).xy);
+	float2 dominantVelocity = UndoVelocityBiasScale(neighborMaxTex.Load(int3(currPixelPos / (int)uniforms.maxMotionBlurRadius,0)).xy);
 	float lenDomVel = length(dominantVelocity);
 
 	// Weighting, correcting and clamping half-velocity
@@ -143,7 +143,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//return max(float4(dominantVelocity, 0, 0), float4(0, 0, 0, 0));
 
 	// V[X] (sample from half-velocity buffer at X)
-	float2 velocity = undoVelocityBiasScale(velocityTex.Load(int3(currPixelPos, 0)).xy);
+	float2 velocity = UndoVelocityBiasScale(velocityTex.Load(int3(currPixelPos, 0)).xy);
 	float lenVel = length(velocity);
 
 	// Weighting, correcting and clamping half-velocity
@@ -159,12 +159,12 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//return max(float4(velocity, 0, 0), float4(0, 0, 0, 0));
 
 	// Random value in [-0.5, 0.5]
-	float random = pseudoRandom(currPixelPos) - 0.5;
+	float random = PseudoRandom(currPixelPos) - 0.5;
 
 	//return float4(random, 0, 0, 1);
 
 	// Z[X] (depth value at X)
-	float currDepth = -linearize_depth(depthTex.Load(int3(currPixelPos, 0)));
+	float currDepth = -LinearizeDepth(depthTex.Load(int3(currPixelPos, 0)));
 
 	//return float4(-currDepth, 0, 0, 1);
 
@@ -209,7 +209,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		int2 ySamplePos = int2(currPixelPos + int2(switchVel * distCurrSample + float2(0.5, 0.5)));
 
 		// V[Y] (sample from half-velocity buffer at Y)
-		float2 velSampleY = undoVelocityBiasScale(velocityTex.Load(int3(ySamplePos, 0)).xy);
+		float2 velSampleY = UndoVelocityBiasScale(velocityTex.Load(int3(ySamplePos, 0)).xy);
 		float lenVelSampleY = length(velSampleY);
 
 		// Weighting, correcting and clamping half-velocity
@@ -223,13 +223,13 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		}
 
 		// Z[Y] (depth value at Y)
-		float depthSampleY = -linearize_depth(depthTex.Load(int3(ySamplePos, 0)));
+		float depthSampleY = -LinearizeDepth(depthTex.Load(int3(ySamplePos, 0)));
 
 		// alpha = foreground contribution + background contribution + 
 		//         blur of both foreground and background
-		float alphaY = softDepthCompare(currDepth, depthSampleY) * cone(distCurrSample, templVelSampleY) +
-			softDepthCompare(depthSampleY, currDepth) * cone(distCurrSample, tempVel) +
-			cylinder(distCurrSample, templVelSampleY) * cylinder(distCurrSample, tempVel) * 2.0;
+		float alphaY = SoftDepthCompare(currDepth, depthSampleY) * Cone(distCurrSample, templVelSampleY) +
+			SoftDepthCompare(depthSampleY, currDepth) * Cone(distCurrSample, tempVel) +
+			Cylinder(distCurrSample, templVelSampleY) * Cylinder(distCurrSample, tempVel) * 2.0;
 
 		// Applying to weight and weighted sum
 		weight += alphaY;

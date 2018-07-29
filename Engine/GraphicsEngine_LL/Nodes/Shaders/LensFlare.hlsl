@@ -23,15 +23,15 @@ struct PS_Input
 
 static const int samples = 8;
 static const float dispersal = 0.3;
-static const float halo_width = 0.6;
-static const float distortion_amount = 1.5;
+static const float haloWidth = 0.6;
+static const float distortionAmount = 1.5;
 
 //chromatic distortion
-float4 distort(float2 tex_coord, float2 direction, float3 distortion)
+float4 Distort(float2 texCoord, float2 direction, float3 distortion)
 {
-	float3 distorted = float3(inputTex.Sample(samp0, tex_coord + direction * distortion.x).x,
-							  inputTex.Sample(samp0, tex_coord + direction * distortion.y).y,
-							  inputTex.Sample(samp0, tex_coord + direction * distortion.z).z);
+	float3 distorted = float3(inputTex.Sample(samp0, texCoord + direction * distortion.x).x,
+							  inputTex.Sample(samp0, texCoord + direction * distortion.y).y,
+							  inputTex.Sample(samp0, texCoord + direction * distortion.z).z);
 	distorted *= uniforms.scale;
 	return float4(distorted, 1);
 }
@@ -67,31 +67,31 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 	float2 invTexSize = 1.0 / inputTexSize.xy;
 
-	float2 ghost_vec = (0.5 - texCoord) * dispersal;
-	float2 halo_vec = normalize(ghost_vec) * halo_width;
+	float2 ghostVec = (0.5 - texCoord) * dispersal;
+	float2 haloVec = normalize(ghostVec) * haloWidth;
 
-	float3 distortion = float3(-invTexSize.x * distortion_amount, 0, invTexSize.x * distortion_amount);
+	float3 distortion = float3(-invTexSize.x * distortionAmount, 0, invTexSize.x * distortionAmount);
 
 	//sample ghosts
 	float4 result = float4(0,0,0,0);
 	for (int c = 0; c < samples; ++c)
 	{
-		float2 offset = frac(texCoord + ghost_vec * float(c));
+		float2 offset = frac(texCoord + ghostVec * float(c));
 
 		float weight = length(0.5 - offset) / length(float2(0.5, 0.5));
 		weight = pow(1.0 - weight, 10.0);
 
-		result += distort(offset, normalize(ghost_vec), distortion) * weight;
+		result += Distort(offset, normalize(ghostVec), distortion) * weight;
 	}
 
 	
 	result *= lensColorTex.Sample(samp0, float2(length(0.5 - texCoord) / length(float2(0.5, 0.5)), 0));
 
 	//sample halo
-	float weight = length(0.5 - frac(texCoord + halo_vec)) / length(float2(0.5, 0.5));
+	float weight = length(0.5 - frac(texCoord + haloVec)) / length(float2(0.5, 0.5));
 	weight = pow(1.0 - weight, 10.0);
 
-	result += distort(frac(texCoord + halo_vec), normalize(ghost_vec), distortion) * weight;
+	result += Distort(frac(texCoord + haloVec), normalize(ghostVec), distortion) * weight;
 
 	return result;
 }

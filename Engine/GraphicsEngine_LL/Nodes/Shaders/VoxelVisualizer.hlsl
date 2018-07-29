@@ -33,13 +33,13 @@ struct PS_Input
 };
 
 //encodes rgba8 color [0...255] into uint
-uint encodeColor(float4 color)
+uint EncodeColor(float4 color)
 {
 	return uint(color.x) | uint(color.y) << 8 | uint(color.z) << 16 | uint(color.w) << 24;
 }
 
 //decode rgba8 color [0...1] from uint
-float4 decodeColor(uint color)
+float4 DecodeColor(uint color)
 {
 	return float4(
 		float(color & 0x000000ff) / 255.0,

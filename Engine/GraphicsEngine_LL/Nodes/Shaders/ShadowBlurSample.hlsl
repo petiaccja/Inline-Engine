@@ -1,5 +1,5 @@
 #if QUALITY == MEDIUM
-static const int num_steps = 5-1;
+static const int numSteps = 5-1;
 
 static const float weights[5] =
 {
@@ -20,7 +20,7 @@ static const float offsets[4] =
 #endif
 
 #if QUALITY == HIGH
-static const int num_steps = 11-1;
+static const int numSteps = 11-1;
 
 static const float weights[11] =
 {
@@ -53,7 +53,7 @@ static const float offsets[10] =
 #endif
 
 #if QUALITY == ULTRA
-static const int num_steps = 23-1;
+static const int numSteps = 23-1;
 
 static const float weights[23] =
 {
@@ -109,20 +109,20 @@ static const float offsets[22] =
 };
 #endif
 
-float linearize_depth(float depth, float near, float far)
+float LinearizeDepth(float depth, float near, float far)
 {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 	float zndc = depth;
 
 	//view space linear z
-	float vs_zrecon = B / (zndc - A);
+	float vsZrecon = B / (zndc - A);
 
 	//range: [0...far]
-	return vs_zrecon;// / far;
+	return vsZrecon;// / far;
 };
 
-float2 get_step_size( float2 direction, float3 normal, float depth, float threshold )
+float2 GetStepSize( float2 direction, float3 normal, float depth, float threshold )
 {
   return direction 
          //* light_size * light_size //included in the penumbra
@@ -130,7 +130,7 @@ float2 get_step_size( float2 direction, float3 normal, float depth, float thresh
          * (1 / (depth/* * depth * 100*/));
 }
 
-float getShadow( float2 texCoord, const int layer )
+float GetShadow( float2 texCoord, const int layer )
 {
 	float4 shadow = inputTex4.Sample(samp1, texCoord);
 	
@@ -152,7 +152,7 @@ float getShadow( float2 texCoord, const int layer )
 	}
 }
 
-float blur( float2 stepSize, float2 texCoord, float shadow, float depth, float penumbra, const int layer)
+float Blur( float2 stepSize, float2 texCoord, float shadow, float depth, float penumbra, const int layer)
 {
 	if(penumbra <= 0.001)
 	{
@@ -165,14 +165,14 @@ float blur( float2 stepSize, float2 texCoord, float shadow, float depth, float p
 	
 	float sumWeights = weights[0];
 	
-	for(int c = 0; c < num_steps; ++c)
+	for(int c = 0; c < numSteps; ++c)
 	{
 		float2 sampleLoc = texCoord + stepSize * (offsets[c] * penumbra);
 		float depthAtSample = inputTex0.Sample(samp0, sampleLoc).x;
 		
 		if( abs( depth - depthAtSample ) < maxDepthDiff )
 		{
-			color += getShadow( sampleLoc, layer ) * weights[c + 1];
+			color += GetShadow( sampleLoc, layer ) * weights[c + 1];
 			sumWeights += weights[c + 1];
 		}
 	}

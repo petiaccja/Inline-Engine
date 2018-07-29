@@ -316,11 +316,11 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		std::unique_ptr<inl::gxeng::MaterialShaderEquation> diffuseShader(m_graphicsEngine->CreateMaterialShaderEquation());
 		std::unique_ptr<inl::gxeng::MaterialShaderEquation> pbrShader(m_graphicsEngine->CreateMaterialShaderEquation());
 
-		mapShader->SetSourceFile("bitmap_color_2d.mtl");
-		map2Shader->SetSourceFile("bitmap_color_2d.mtl");
-		map3Shader->SetSourceFile("bitmap_roughness_2d.mtl");
-		map4Shader->SetSourceFile("bitmap_metalness_2d.mtl");
-		diffuseShader->SetSourceFile("simple_diffuse.mtl");
+		mapShader->SetSourceFile("BitmapColor2D.mtl");
+		map2Shader->SetSourceFile("BitmapColor2D.mtl");
+		map3Shader->SetSourceFile("BitmapRoughness2D.mtl");
+		map4Shader->SetSourceFile("BitmapMetalness2D.mtl");
+		diffuseShader->SetSourceFile("SimpleDiffuse.mtl");
 		pbrShader->SetSourceFile("pbr.mtl");
 
 		std::vector<std::unique_ptr<inl::gxeng::MaterialShader>> nodes;

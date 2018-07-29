@@ -19,17 +19,17 @@ struct PS_Input
 	float2 texCoord : TEXCOORD0;
 };
 
-float2 undoVelocityBiasScale(float2 v)
+float2 UndoVelocityBiasScale(float2 v)
 {
 	return v * 2.0 - 1.0;
 }
 
-float2 doVelocityBiasScale(float2 v)
+float2 DoVelocityBiasScale(float2 v)
 {
 	return (v + 1.0) * 0.5;
 }
 
-float3 compareWithNeighbor(int2 tileCorner, int s, int t, float3 result)
+float3 CompareWithNeighbor(int2 tileCorner, int s, int t, float3 result)
 {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
@@ -37,7 +37,7 @@ float3 compareWithNeighbor(int2 tileCorner, int s, int t, float3 result)
 
 
 	int2 offset = int2(s, t);
-	float2 velocity = undoVelocityBiasScale(inputTex.Load(int3(clamp(tileCorner + offset, int2(0, 0), texSize), 0)).xy);
+	float2 velocity = UndoVelocityBiasScale(inputTex.Load(int3(clamp(tileCorner + offset, int2(0, 0), texSize), 0)).xy);
 
 	float lenSqr = dot(velocity, velocity);
 
@@ -89,9 +89,9 @@ float2 PSMain(PS_Input input) : SV_TARGET
 	{
 		for (int y = -1; y <= 1; ++y)
 		{
-			result = compareWithNeighbor(tileCorner, x, y, result);
+			result = CompareWithNeighbor(tileCorner, x, y, result);
 		}
 	}
 
-	return doVelocityBiasScale(result.xy);
+	return DoVelocityBiasScale(result.xy);
 }

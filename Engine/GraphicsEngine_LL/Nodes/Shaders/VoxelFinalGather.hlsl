@@ -120,7 +120,7 @@ SamplerState samp2 : register(s2); //trilinear
 
 //transforms a direction into the coordinate system
 //defined by the normal vector
-float3 trans_normal(float3 n, float3 d)
+float3 TransNormal(float3 n, float3 d)
 {
 	float3 a, b;
 
@@ -139,7 +139,7 @@ float3 trans_normal(float3 n, float3 d)
 	return a * d.x + b * d.y + n * d.z;
 }
 
-float3 multiBounce(float ao, float3 albedo)
+float3 MultiBounce(float ao, float3 albedo)
 {
 	float3 a = 2.0404 * albedo - 0.3324;
 	float3 b = -4.7951 * albedo + 0.6417;
@@ -148,20 +148,20 @@ float3 multiBounce(float ao, float3 albedo)
 	return max(ao, ((ao * a + b) * ao + c) * ao);
 }
 
-float linearize_depth(float depth, float near, float far)
+float LinearizeDepth(float depth, float near, float far)
 {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 	float zndc = depth;
 
 	//view space linear z
-	float vs_zrecon = B / (zndc - A);
+	float vsZrecon = B / (zndc - A);
 
 	//range: [0...far]
-	return vs_zrecon;// / far;
+	return vsZrecon;// / far;
 };
 
-float3 wsPosToVoxelTC(float3 wsPos)
+float3 WsPosToVoxelTC(float3 wsPos)
 {
 	const float voxelTotalSize = uniforms.voxelDimension * uniforms.voxelSize;
 	const float voxelTotalSizeInv = 1.0 / voxelTotalSize;
@@ -170,7 +170,7 @@ float3 wsPosToVoxelTC(float3 wsPos)
 }
 
 //aperture: tan(coneHalfAngle) ???
-float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneAperture, float ssao, const bool opacityOnly = false)
+float4 ConeTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneAperture, float ssao, const bool opacityOnly = false)
 {
 	//float4 result = float4(0, 0, 0, 0.0);
 	float4 result = float4(0, 0, 0, ssao);
@@ -191,7 +191,7 @@ float4 coneTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneApert
 		float mipLevel = log2(diameter * invVoxelSize); //is this correct?
 
 		//get texture coordinate to sample
-		float3 voxelTexCoord = wsPosToVoxelTC(wsStartPos + traceDir * traceDist);
+		float3 voxelTexCoord = WsPosToVoxelTC(wsStartPos + traceDir * traceDist);
 
 		if (any(voxelTexCoord > float3(1,1,1)) || any(voxelTexCoord < float3(0,0,0)) || mipLevel >= maxMipLevel)
 		{
@@ -268,7 +268,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		return 0.0;
 	}
 
-	float linearDepth = linearize_depth(depth, uniforms.nearPlane, uniforms.farPlane);
+	float linearDepth = LinearizeDepth(depth, uniforms.nearPlane, uniforms.farPlane);
 
 	float3 farPlaneLL = uniforms.farPlaneData0.xyz;
 	float3 farPlaneUR = float3(uniforms.farPlaneData0.w, uniforms.farPlaneData1.xy);
@@ -281,7 +281,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 	//TODO replace with proper normals
 	//float3 wsDepthNormal = normalize(cross(ddy(wsPos.xyz), ddx(wsPos.xyz)));
-	float3 vsNormal = decodeNormal(inputTex4.Sample(samp1, input.texcoord.xy).zw);
+	float3 vsNormal = DecodeNormal(inputTex4.Sample(samp1, input.texcoord.xy).zw);
 	float3 wsNormal = mul(float4(vsNormal, 0.0), uniforms.invView).xyz;
 
 	float3 albedo;
@@ -295,7 +295,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		float2 a3 = inputTex5.Load(float3(input.position.xy - float2(0, 1), 0)).xy;
 		roughness = centerAlbedoRoughnessMetalness.z;
 		metalness = centerAlbedoRoughnessMetalness.w;
-		albedo = ycocg_to_rgb(int2(input.position.xy), centerAlbedoRoughnessMetalness.xy, a0, a1, a2, a3);
+		albedo = YcocgToRgb(int2(input.position.xy), centerAlbedoRoughnessMetalness.xy, a0, a1, a2, a3);
 	}
 
 	float4 ssr = inputTex6.Sample(samp1, input.texcoord.xy);
@@ -308,17 +308,17 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//TODO derive aperture from something...
 	//roughness * pi * 0.125???
 	//TODO at grazing angles self reflection happens... we need to overcome this somehow. I added a dot for now but I doubt it's correct...
-	float4 specularResult = coneTrace(wsPos, wsNormal, perfectReflectionDir, 0.0, tan(0.174533 * 0.5)) * pow(max(dot(perfectReflectionDir, wsNormal), 0.0), 0.75);
+	float4 specularResult = ConeTrace(wsPos, wsNormal, perfectReflectionDir, 0.0, tan(0.174533 * 0.5)) * pow(max(dot(perfectReflectionDir, wsNormal), 0.0), 0.75);
 
 	//cone trace diffuse GI + AO in alpha
 	float4 diffuseResult = float4(0,0,0,0);
 	for (int c = 0; c < NUM_CONES; ++c)
 	{
 		float3 dir = coneDirs[c];
-		float3 dirOriented = trans_normal(wsNormal, dir);
+		float3 dirOriented = TransNormal(wsNormal, dir);
 
 		//half angle = 10deg
-		float4 coneResult = coneTrace(wsPos, wsNormal, dirOriented, ssao, tan(DIFFUSE_APERTURE));
+		float4 coneResult = ConeTrace(wsPos, wsNormal, dirOriented, ssao, tan(DIFFUSE_APERTURE));
 		diffuseResult.xyz += coneResult.xyz * pow(max(dot(dirOriented, wsNormal), 0.0), 0.1);
 		diffuseResult.w += coneResult.w;
 	}

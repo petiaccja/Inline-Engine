@@ -31,13 +31,13 @@ static const float pi = 3.14159265;
 
 //white noise
 //[0...1]
-float rand(inout float seed)
+float Rand(inout float seed)
 {
 	return frac(sin(seed++) * 43758.5453123);
 }
 
 //TODO: supply this from uniform/texture
-float getHalton(uint i, uint b)
+float GetHalton(uint i, uint b)
 {
 	float f = 1.0;
 	float r = 0.0;
@@ -54,7 +54,7 @@ float getHalton(uint i, uint b)
 
 //transforms a direction into the coordinate system
 //defined by the normal vector
-float3 trans_normal(float3 n, float3 d)
+float3 TransNormal(float3 n, float3 d)
 {
 	float3 a, b;
 
@@ -74,7 +74,7 @@ float3 trans_normal(float3 n, float3 d)
 
 //a: roughness^2
 //xi: 2D random pos [0...1]
-float4 importance_sample_ggx(float2 xi, float a)
+float4 ImportanceSampleGgx(float2 xi, float a)
 {
 	float phi = 2.0 * pi * xi.x;
 	float cosTheta = sqrt(
@@ -92,17 +92,17 @@ float4 importance_sample_ggx(float2 xi, float a)
 	return float4(v, pdf);
 }
 
-float linearize_depth(float depth, float near, float far)
+float LinearizeDepth(float depth, float near, float far)
 {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 	float zndc = depth;
 
 	//view space linear z
-	float vs_zrecon = B / (zndc - A);
+	float vsZrecon = B / (zndc - A);
 
 	//range: [0...far]
-	return vs_zrecon;// / far;
+	return vsZrecon;// / far;
 };
 
 float distanceSquared(float2 a, float2 b) 
@@ -111,7 +111,7 @@ float distanceSquared(float2 a, float2 b)
 }
 
 // Returns true if the ray hit something
-float traceScreenSpaceRay1(
+float TraceScreenSpaceRay1(
 	// Camera-space ray origin, which must be within the view volume
 	float3 csOrig,
 	// Unit length camera-space ray direction
@@ -216,7 +216,7 @@ float traceScreenSpaceRay1(
 		// You may need hitPixel.y = csZBufferSize.y - hitPixel.y; here if your vertical axis
 		// is different than ours in screen space
 		float depth = depthTex.Load(int3(hitPixel, 0)).x;
-		sceneZMax = linearize_depth(depth, uniforms.nearPlane, uniforms.farPlane);
+		sceneZMax = LinearizeDepth(depth, uniforms.nearPlane, uniforms.farPlane);
 		rayZ = Q.z / k;
 
 		if (sceneZMax < rayZ - zThickness && abs(sceneZMax - rayZ) < zDiff)
@@ -271,7 +271,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	}
 
 	//[0...far]
-	float linearDepth = linearize_depth(ndcDepth, uniforms.nearPlane, uniforms.farPlane);
+	float linearDepth = LinearizeDepth(ndcDepth, uniforms.nearPlane, uniforms.farPlane);
 
 	float3 farPlaneLL = uniforms.farPlaneData0.xyz;
 	float3 farPlaneUR = float3(uniforms.farPlaneData0.w, uniforms.farPlaneData1.xy);
@@ -294,13 +294,13 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	{
 		for (int c = 0; c < 1; ++c)
 		{
-			float2 randomFactor = float2(getHalton(seed*10+c, 2), getHalton(seed*10+c, 3));
+			float2 randomFactor = float2(GetHalton(seed*10+c, 2), GetHalton(seed*10+c, 3));
 			//float2 randomFactor = float2(rand(seed), rand(seed));
 			//TODO: replace with proper roughness
 			float3 vsReflectionDir;
 
-			float4 ggxRes = importance_sample_ggx(randomFactor, roughness * roughness);
-			float3 vsSampleDir = normalize(trans_normal(vsDepthNormal, ggxRes.xyz));
+			float4 ggxRes = ImportanceSampleGgx(randomFactor, roughness * roughness);
+			float3 vsSampleDir = normalize(TransNormal(vsDepthNormal, ggxRes.xyz));
 			vsReflectionDir = reflect(vsViewDir, vsSampleDir);
 
 			float directionality = dot(vsReflectionDir, vsDepthNormal);
@@ -311,7 +311,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 			{
 				float3 hitPoint;
 				float2 hitPixel;
-				float res = traceScreenSpaceRay1(vsPos, vsReflectionDir, uniforms.projSS, inputTexSize.xy, 0.001, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 1000, 100.0, hitPixel, hitPoint);
+				float res = TraceScreenSpaceRay1(vsPos, vsReflectionDir, uniforms.projSS, inputTexSize.xy, 0.001, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 1000, 100.0, hitPixel, hitPoint);
 				result += res * float4(inputTex.Load(int3(hitPixel, 0)).xyz, 1.0);
 			}
 
@@ -327,7 +327,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 
 		if (validDir)
 		{
-			float res = traceScreenSpaceRay1(vsPos, perfectReflectionDir, uniforms.projSS, inputTexSize.xy, 0.001, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 1000, 100.0, hitPixel, hitPoint);
+			float res = TraceScreenSpaceRay1(vsPos, perfectReflectionDir, uniforms.projSS, inputTexSize.xy, 0.001, 0.001, uniforms.nearPlane, uniforms.stride, uniforms.jitter, 1000, 100.0, hitPixel, hitPoint);
 			result += validDir * res * float4(inputTex.Load(int3(hitPixel, 0)).xyz, 1.0);
 		}
 	}
