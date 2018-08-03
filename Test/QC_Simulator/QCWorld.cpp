@@ -609,10 +609,10 @@ void QCWorld::UpdateWorld(float elapsed) {
 	inl::Vec3 viewDir = (5*frontDir.LengthSquared() > upDir.LengthSquared()) ? frontDir.Normalized() : upDir.Normalized();
 	m_camera->SetTarget(m_rigidBody.GetPosition());
 	m_camera->SetPosition(m_rigidBody.GetPosition() + (-viewDir * 1.5 + inl::Vec3{ 0,0,-lookTilt }).Normalized() * 1.5f);
-	//m_camera->SetTarget({ 0,0,0 });
-	//static float time = 0;
-	//time += elapsed / 3;
-	//m_camera->SetPosition(inl::Vec3{cos(time), sin(time), 0.5f}*10.f);
+
+	unsigned width, height;
+	m_graphicsEngine->GetScreenSize(width, height);
+	m_camera->SetFOVAspect(Deg2Rad(75.f), (float)width/(float)height);
 }
 
 void QCWorld::ScreenSizeChanged(int width, int height) {

@@ -124,6 +124,27 @@ size_t Mesh::Layout::GetLayoutHash() const {
 	return m_layoutHash;
 }
 
+UniqueId Mesh::Layout::GetElementId() const {
+	return m_elementId;
+}
+
+UniqueId Mesh::Layout::GetLayoutId() const {
+	return m_layoutId;
+}
+
+void Mesh::Layout::Clear() {
+	m_layout.clear();
+	m_elementHash = m_layoutHash = 0;
+	m_elementId = m_layoutId = UniqueId{};
+}
+
+Mesh::Layout::Layout(std::vector<std::vector<Element>> layout): m_layout(std::move(layout)) {
+	CalculateHashes(m_layout, m_elementHash, m_layoutHash);
+	std::lock_guard lkg(idGeneratorMtx);
+	m_elementId = elementIdGenerator(*this);
+	m_layoutId = layoutIdGenerator(*this);
+}
+
 size_t Mesh::Layout::GetStreamCount() const {
 	return m_layout.size();
 }
@@ -214,6 +235,12 @@ void Mesh::Layout::CalculateHashes(const std::vector<std::vector<Element>>& layo
 		elementHash ^= inthash((size_t)e.offset);
 	}
 }
+
+
+UniqueIdGenerator<Mesh::Layout, Mesh::Layout::HashElement, Mesh::Layout::EqualToElement> Mesh::Layout::elementIdGenerator;
+UniqueIdGenerator<Mesh::Layout, Mesh::Layout::HashLayout, Mesh::Layout::EqualToLayout> Mesh::Layout::layoutIdGenerator;
+std::mutex Mesh::Layout::idGeneratorMtx;
+
 
 
 } // namespace gxeng

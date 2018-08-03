@@ -4,6 +4,8 @@
 #include "Vertex.hpp"
 
 #include <type_traits>
+#include <mutex>
+#include <BaseLibrary/UniqueIdGenerator.hpp>
 
 
 namespace inl {
@@ -22,9 +24,7 @@ public:
 	struct Layout {
 	public:
 		Layout() = default;
-		Layout(std::vector<std::vector<Element>> layout) : m_layout(std::move(layout)) {
-			CalculateHashes(m_layout, m_elementHash, m_layoutHash);
-		}
+		Layout(std::vector<std::vector<Element>> layout);
 
 		/// <summary> Returns the number of vertex streams. </summary>
 		size_t GetStreamCount() const;
@@ -44,8 +44,16 @@ public:
 		/// <summary> Returns the hash for this particular list of elements in this particular arrangement. </summary>
 		size_t GetLayoutHash() const;
 
+		/// <summary> Return an ID that is the same for all Layouts that contain the same particular list of elements. 
+		///		Does not change throughout program execution. </summary>
+		UniqueId GetElementId() const;
+
+		/// <summary> Return an ID that is the same for all Layouts that contain the same particular arrangement of elements. 
+		///		Does not change throughout program execution. </summary>
+		UniqueId GetLayoutId() const;
+
 		/// <summary> Removes all elements. </summary>
-		void Clear() { m_layout.clear(); m_elementHash = m_layoutHash = 0; }
+		void Clear();
 
 
 		struct HashElement {
@@ -69,6 +77,11 @@ public:
 		std::vector<std::vector<Element>> m_layout; // One set of elements for each vertex buffer.
 		size_t m_elementHash = 0;
 		size_t m_layoutHash = 0;
+		UniqueId m_elementId;
+		UniqueId m_layoutId;
+		static UniqueIdGenerator<Layout, HashElement, EqualToElement> elementIdGenerator;
+		static UniqueIdGenerator<Layout, HashLayout, EqualToLayout> layoutIdGenerator;
+		static std::mutex idGeneratorMtx;
 	};
 public:
 	Mesh(MemoryManager* memoryManager) : MeshBuffer(memoryManager) {}

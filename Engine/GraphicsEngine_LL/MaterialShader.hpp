@@ -4,16 +4,17 @@
 #include <vector>
 #include <memory>
 #include <tuple>
+#include <mutex>
 
 #include <BaseLibrary/Graph/Port.hpp>
 #include <BaseLibrary/Graph/SerializableNode.hpp>
+#include <BaseLibrary/UniqueIdGenerator.hpp>
 
 #ifdef _MSC_VER // disable lemon warnings
 #pragma warning(push)
 #pragma warning(disable: 4267)
 #endif
 
-#include <lemon/euler.h>
 #include <lemon/list_graph.h>
 
 #ifdef _MSC_VER
@@ -127,19 +128,18 @@ public:
 	const std::string& GetInputName(size_t index) const override;
 	const std::string& GetOutputName(size_t index) const override;
 
-	struct Hash {
-		size_t operator()(const MaterialShader& obj) const { return obj.GetHash(); }
-	};
-	struct EqualTo {
-		size_t operator()(const MaterialShader& lhs, const MaterialShader& rhs) const { return lhs.GetShaderCode() == rhs.GetShaderCode(); }
-	};
+	// Hashing
+	/// <summary> Returns an ID that is the same for all MaterialShaders with the same shader code.
+	///		Does not change throughout program execution. </summary>
+	UniqueId GetId() const { return m_id; }
 protected:
 	// HLSL string processing helpers
 	static std::string RemoveComments(std::string code);
 	static std::string GetFunctionSignature(const std::string& code, const std::string& functionName);
-	static FunctionSignature DissectFunctionSignature(const std::string& signature);
+	static FunctionSignature DissectFunctionSignature(const std::string& signatureString);
 
 	void SetClassName(std::string className) { m_className = std::move(className); }
+	void RecalcId();
 protected:
 	std::vector<MaterialShaderInput> m_inputs;
 	std::vector<MaterialShaderOutput> m_outputs;
@@ -148,6 +148,10 @@ protected:
 private:
 	std::string m_name;
 	std::string m_className;
+
+	UniqueId m_id;
+	static std::mutex idGeneratorMtx;
+	static UniqueIdGenerator<std::string> idGenerator;
 };
 
 

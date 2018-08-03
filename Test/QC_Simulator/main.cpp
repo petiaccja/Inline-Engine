@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
 	// Create the window itself
 	Window window;
 	window.SetTitle("QC Simulator");
-	window.SetSize({ 960, 640 });
+	window.SetSize({ 1024, 576 });
 
 
 	// Create GraphicsEngine

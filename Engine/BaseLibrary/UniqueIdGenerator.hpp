@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cstdint>
 #include <unordered_map>
 
@@ -31,6 +33,7 @@ public:
 	/// <summary> Generate a unique identifier for the object. </summary>
 	UniqueId operator()(const T& object);
 
+	void Reset();
 private:
 	std::unordered_map<T, uint64_t, Hash, Equal> m_knownObjects;
 	uint64_t m_counter = 0;
@@ -48,6 +51,13 @@ UniqueId UniqueIdGenerator<T, Hash, Equal>::operator()(const T& object) {
 		m_knownObjects[object] = m_counter;
 		return UniqueId(m_counter);
 	}
+}
+
+
+template <class T, class Hash, class Equal>
+void UniqueIdGenerator<T, Hash, Equal>::Reset() {
+	m_knownObjects.clear();
+	m_counter = 0;
 }
 
 

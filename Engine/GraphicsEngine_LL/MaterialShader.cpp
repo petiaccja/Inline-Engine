@@ -123,6 +123,10 @@ const std::string& MaterialShaderOutput::GetName() const {
 // Material shader base class
 //------------------------------------------------------------------------------
 
+std::mutex MaterialShader::idGeneratorMtx;
+UniqueIdGenerator<std::string> MaterialShader::idGenerator;
+
+
 MaterialShader::MaterialShader(const ShaderManager* shaderManager)
 	: m_shaderManager(shaderManager)
 {}
@@ -282,6 +286,11 @@ FunctionSignature MaterialShader::DissectFunctionSignature(const std::string& si
 	return signature;
 }
 
+void MaterialShader::RecalcId() {
+	std::lock_guard lkg(idGeneratorMtx);
+	m_id = idGenerator(GetShaderCode());
+}
+
 
 //------------------------------------------------------------------------------
 // Material shader equation
@@ -296,6 +305,7 @@ void MaterialShaderEquation::SetSourceFile(const std::string& name) {
 	m_sourceCode = m_shaderManager->LoadShaderSource(name);
 	CreatePorts(m_sourceCode);
 	SetClassName(name);
+	RecalcId();
 }
 
 
@@ -305,6 +315,7 @@ void MaterialShaderEquation::SetSourceCode(std::string code) {
 	std::stringstream ss;
 	ss << "inlineclass_" << std::hex << std::hash<std::string>()(m_sourceCode);
 	SetClassName(ss.str());
+	RecalcId();
 }
 
 
@@ -498,6 +509,7 @@ void MaterialShaderGraph::SetGraph(std::vector<std::unique_ptr<MaterialShader>> 
 	std::stringstream ss;
 	ss << "graphclass_" << std::hex << std::hash<std::string>()(m_sourceCode);
 	SetClassName(ss.str());
+	RecalcId();
 }
 
 

@@ -6,6 +6,8 @@
 #include <mutex>
 #include <atomic>
 
+#include <moodycamel/blockingconcurrentqueue.h>
+
 namespace inl::jobs {
 
 
@@ -19,13 +21,17 @@ public:
 	void Resume(handle_t coroutine) override;
 
 private:
+	void ShutdownThreads();
 	void ThreadFunc();
+
 private:
 	std::vector<std::thread> m_workers;
 	std::queue<handle_t> m_tasks;
 	std::mutex m_queueMtx;
 	std::condition_variable m_cv;
 	std::atomic_bool m_running;
+
+	moodycamel::BlockingConcurrentQueue<handle_t> m_tasks2;
 };
 
 

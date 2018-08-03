@@ -9,6 +9,7 @@
 
 #include <GraphicsApi_LL/Common.hpp>
 #include <GraphicsApi_LL/IPipelineState.hpp>
+#include <BaseLibrary/UniqueIdGenerator.hpp>
 
 #include <unordered_map>
 
@@ -24,12 +25,35 @@ namespace inl::gxeng::nodes {
 
 class PipelineStateManager {
 public:
-	gxapi::IPipelineState* GetPipelineState(const Mesh& mesh, const Material& material);
+	struct StateDesc {
+		std::unique_ptr<gxapi::IPipelineState> pso;
+		Binder binder;
+		gxapi::eFormat renderTargetFormat = gxapi::eFormat::UNKNOWN;
+		gxapi::eFormat depthStencilFormat = gxapi::eFormat::UNKNOWN;
+	};
 private:
-	std::unordered_map<Mesh::Layout, ShaderProgram, Mesh::Layout::HashElement, Mesh::Layout::EqualToElement> m_vertexShaderCache;
+	struct StateKey {
+		UniqueId materialShaderId;
+		UniqueId streamLayoutId;
+		bool operator==(const StateKey& rhs) {
+			return materialShaderId == rhs.materialShaderId && streamLayoutId == rhs.streamLayoutId;
+		}
+	};
+	struct StateKeyHash {
+		size_t operator()(const StateKey& obj) const {
+			return std::hash<UniqueId>()(obj.materialShaderId) ^ std::hash<UniqueId>()(obj.streamLayoutId);
+		}
+	};
+
+public:
+	const StateDesc& GetPipelineState(const Mesh& mesh, const Material& material);
+
+private:
+	std::unordered_map<UniqueId, ShaderProgram> m_vertexShaderCache; // Mesh element list -> Vertex shader.
+	std::unordered_map<UniqueId, ShaderProgram> m_materialShaderCache; // Material shader -> Pixel shader.
+	std::unordered_map<StateKey, std::unique_ptr<StateDesc>, StateKeyHash> m_psoCache; // Mesh layout & mtl shader -> PSO.
 
 };
-
 
 
 

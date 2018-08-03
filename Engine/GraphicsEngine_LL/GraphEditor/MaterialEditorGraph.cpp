@@ -1,6 +1,7 @@
 #include "MaterialEditorGraph.hpp"
 #include "../ShaderManager.hpp"
 #include <BaseLibrary/Range.hpp>
+#include <map>
 
 
 namespace inl::gxeng {
