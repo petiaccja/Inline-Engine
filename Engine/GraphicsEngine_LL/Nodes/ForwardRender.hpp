@@ -111,7 +111,7 @@ private:
 
 	TextureView2D m_lightCullDataView;
 	TextureView2D m_layeredShadowTexView;
-	TextureView2D m_screenSpaceShadowTexView;
+	std::optional<TextureView2D> m_screenSpaceShadowTexView;
 
 private:
 	struct ElementHash {

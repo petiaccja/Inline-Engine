@@ -19,6 +19,8 @@
 
 namespace inl::gxeng::nodes {
 
+	bool hasSSShadow = false;
+
 struct LightData
 {
 	Vec4_Packed diffuseColor;
@@ -190,7 +192,11 @@ void ForwardRender::Setup(SetupContext& context) {
 	
 	auto screenSpaceShadowTex = this->GetInput<7>().Get();
 	this->GetInput<7>().Clear();
-	m_screenSpaceShadowTexView = context.CreateSrv(screenSpaceShadowTex, screenSpaceShadowTex.GetFormat(), srvDesc);
+	if (screenSpaceShadowTex)
+	{
+		m_screenSpaceShadowTexView = context.CreateSrv(screenSpaceShadowTex, screenSpaceShadowTex.GetFormat(), srvDesc);
+		hasSSShadow = true;
+	}
 
 	if (!m_velocityNormalRTV)
 	{
@@ -321,13 +327,19 @@ void ForwardRender::Execute(RenderContext& context) {
 		commandList.SetGraphicsBinder(&scenario.binder);
 
 		commandList.SetResourceState(m_layeredShadowTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_screenSpaceShadowTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		if (m_screenSpaceShadowTexView)
+		{
+			commandList.SetResourceState(m_screenSpaceShadowTexView->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		}
 
 		commandList.SetResourceState(m_lightCullDataView.GetResource(), {gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE	});
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 600), m_lightCullDataView);
 
-		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 601), m_screenSpaceShadowTexView);
+		if (m_screenSpaceShadowTexView)
+		{
+			commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 601), *m_screenSpaceShadowTexView);
+		}
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 602), m_layeredShadowTexView);
 
@@ -575,6 +587,10 @@ std::string ForwardRender::GeneratePixelShader(const Material& material) {
 	std::regex renameRegex("main");
 	std::regex_replace(std::ostreambuf_iterator<char>(renameMain), shadingFunction.begin(), shadingFunction.end(), renameRegex, "mtl_shader");
 	shadingFunction = renameMain.str();
+
+	std::string defines = std::string()
+		+ (!hasSSShadow ? "#define NO_SSShadow" : "") + "\n"
+		+ "";
 
 	// structures
 	std::string structures =

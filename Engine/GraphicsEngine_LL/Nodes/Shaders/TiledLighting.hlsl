@@ -1,5 +1,7 @@
 Texture2D<uint> lightCullData : register(t600);
+#ifndef NO_SSShadow
 Texture2D<float> screenSpaceShadowTex : register(t601);
+#endif
 Texture2D<float4> layeredShadowTex : register(t602);
 SamplerState theSampler : register(s500);
 
@@ -124,7 +126,10 @@ float3 GetLighting(float4 svPosition, //gl_FragCoord
 		}
 	}
 
-	float screenSpaceShadow = screenSpaceShadowTex.Sample(samp0, texel);
+	float screenSpaceShadow = 1.0;
+	#ifndef NO_SSShadow
+	screenSpaceShadow = screenSpaceShadowTex.Sample(samp0, texel);
+	#endif
 
 	color += getCookTorranceBRDF(albedo.xyz,
 								 vsNormal,
