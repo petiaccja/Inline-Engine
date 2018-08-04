@@ -138,6 +138,13 @@ void DrawSky::Setup(SetupContext & context) {
 
 
 void DrawSky::Execute(RenderContext & context) {
+	auto* suns = this->GetInput<3>().Get();
+
+	if (!suns || suns->Size() == 0)
+	{
+		return;
+	}
+
 	gxeng::GraphicsCommandList& commandList = context.AsGraphics();
 
 	auto* pRTV = &m_rtv;
@@ -177,11 +184,8 @@ void DrawSky::Execute(RenderContext & context) {
 	Cam camCB;
 
 	auto* camera = this->GetInput<2>().Get();
-	auto* suns = this->GetInput<3>().Get();
 
 	// TODO render all the suns using additive blending
-	assert(suns != nullptr);
-	assert(suns->Size() > 0);
 	auto sun = *suns->begin();
 
 	Mat44 viewInv = camera->GetViewMatrix().Inverse();

@@ -170,8 +170,11 @@ void ForwardRender::Setup(SetupContext& context) {
 
 	m_camera = this->GetInput<3>().Get();
 
-	m_directionalLights = this->GetInput<4>().Get();
-	assert(m_directionalLights->Size() == 1);
+	auto dirLights = this->GetInput<4>().Get();
+	if (dirLights && dirLights->Size()>0)
+	{
+		m_directionalLights = dirLights;
+	}
 
 	gxapi::SrvTexture2DArray srvDesc;
 	srvDesc.activeArraySize = 1;
@@ -375,8 +378,7 @@ void ForwardRender::Execute(RenderContext& context) {
 			commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 200), materialConstants.data(), (int)materialConstants.size());
 		}
 
-		assert(m_directionalLights->Size() == 1);
-		const DirectionalLight* sun = *m_directionalLights->begin();
+		const DirectionalLight* sun = m_directionalLights ? *(*m_directionalLights)->begin() : 0;
 
 		// Set vertex and light constants
 		VsConstants vsConstants;
@@ -387,9 +389,12 @@ void ForwardRender::Execute(RenderContext& context) {
 		vsConstants.v = view;
 		vsConstants.p = projection;
 		vsConstants.prevMVP = vsConstants.mvp;// entity->GetPrevTransform() * prevViewProjection;
-		Vec4 vsLightDir = Vec4(sun->GetDirection(), 0.0f) * view;
-		lightConstants.direction = Vec3(vsLightDir.xyz).Normalized();
-		lightConstants.color = sun->GetColor();
+		if (sun)
+		{
+			Vec4 vsLightDir = Vec4(sun->GetDirection(), 0.0f) * view;
+			lightConstants.direction = Vec3(vsLightDir.xyz).Normalized();
+			lightConstants.color = sun->GetColor();
+		}
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 0), &vsConstants, sizeof(vsConstants));
 		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 100), &lightConstants, sizeof(lightConstants));

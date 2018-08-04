@@ -82,7 +82,11 @@ void DepthReductionFinal::Setup(SetupContext& context) {
 	
 
 	m_camera = this->GetInput<1>().Get();
-	m_suns = this->GetInput<2>().Get();
+	auto dirLights = this->GetInput<2>().Get();
+	if (dirLights && dirLights->Size() > 0)
+	{
+		m_suns = dirLights;
+	}
 
 	this->GetOutput<0>().Set(m_lightMvpUav.GetResource());
 	this->GetOutput<1>().Set(m_shadowMxUav.GetResource());
@@ -175,7 +179,13 @@ void DepthReductionFinal::Setup(SetupContext& context) {
 }
 
 
-void DepthReductionFinal::Execute(RenderContext& context) {
+void DepthReductionFinal::Execute(RenderContext& context) 
+{
+	if (!m_suns)
+	{
+		return;
+	}
+
 	ComputeCommandList& commandList = context.AsCompute();
 
 	Uniforms uniformsCBData;
@@ -212,8 +222,8 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 	uniformsCBData.camNear = perpectiveCamera->GetNearPlane();
 	uniformsCBData.camFar = perpectiveCamera->GetFarPlane();
 
-	assert(m_suns->Size() > 0);
-	auto sun = *m_suns->begin();
+	assert((*m_suns)->Size() > 0);
+	auto sun = *(*m_suns)->begin();
 	//TODO get from somewhere
 	Vec4 lightCamPos = Vec4(0.f, 0.f, 0.f, 1.f);
 	Vec4 lightCamViewDir = Vec4(sun->GetDirection().Normalized(), 0);//Vec4(1, 1, 1, 0).Normalized();
