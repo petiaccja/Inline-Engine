@@ -16,6 +16,9 @@ public:
 	bool operator> (const UniqueId& rhs) const { return value > rhs.value; }
 	bool operator<=(const UniqueId& rhs) const { return value <= rhs.value; }
 	bool operator>=(const UniqueId& rhs) const { return value >= rhs.value; }
+
+	uint64_t Value() const { return value; }
+	uint64_t Hash() const { return std::hash<uint64_t>()(value); }
 private:
 	uint64_t value;
 };

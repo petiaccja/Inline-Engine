@@ -4,9 +4,6 @@
 #include "../ResourceView.hpp"
 #include "../BasicCamera.hpp"
 
-#include "../Mesh.hpp"
-#include "../Material.hpp"
-
 #include <GraphicsApi_LL/Common.hpp>
 #include <GraphicsApi_LL/IPipelineState.hpp>
 #include <BaseLibrary/UniqueIdGenerator.hpp>
@@ -46,7 +43,12 @@ private:
 	};
 
 public:
-	const StateDesc& GetPipelineState(const Mesh& mesh, const Material& material);
+	const StateDesc& GetPipelineState(RenderContext& context, const Mesh& mesh, const Material& material);
+
+private:
+	static std::string GenerateVertexShader(RenderContext& context, const Mesh& mesh);
+	static std::string GenerateMaterialShader(const Material& shader);
+	static std::string GeneratePixelShader(RenderContext& context, const Material& shader);
 
 private:
 	std::unordered_map<UniqueId, ShaderProgram> m_vertexShaderCache; // Mesh element list -> Vertex shader.
@@ -91,7 +93,7 @@ private:
 	RenderTargetView2D m_rtv;
 	DepthStencilView2D m_dsv;
 
-	std::unique_ptr<gxapi::IPipelineState> m_pso;
+	PipelineStateManager m_psoManager;
 };
 
 
