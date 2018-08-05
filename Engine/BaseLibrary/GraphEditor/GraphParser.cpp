@@ -122,7 +122,7 @@ std::string GraphParser::Serialize(const ISerializableNode* const* nodes,
 				linkDescs.push_back(desc);
 			}
 			// If no link, save the default value.
-			else {
+			else if (input->IsSet()) {
 				try {
 					std::optional<std::string> value = input->ToString();
 

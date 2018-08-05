@@ -204,7 +204,7 @@ public:
 	virtual void Clear() = 0;
 
 	/// <summary> Get weather any valid data is set. </summary>
-	virtual bool IsSet() const = 0;
+	virtual bool IsSet() const override = 0;
 
 	/// <summary> Get typeid of underlying data. </summary>
 	virtual std::type_index GetType() const = 0;
@@ -330,6 +330,7 @@ private:
 
 template <class T, class ConverterT = PortConverter<T>>
 void InputPort<T, ConverterT>::SetConvert(const void* object, std::type_index type) {
+	isSet = true;
 	if (type == typeid(T)) {
 		data = *reinterpret_cast<const T*>(object);
 	}
@@ -429,6 +430,7 @@ public:
 	}
 protected:
 	void SetConvert(const void* object, std::type_index type) override {
+		isSet = true;
 		// conversion does nothing
 	}
 private:

@@ -19,6 +19,7 @@ public:
 
 	virtual ISerializableOutputPort* GetLink() const = 0;
 	virtual std::string ToString() const = 0;
+	virtual bool IsSet() const = 0;
 };
 
 

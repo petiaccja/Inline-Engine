@@ -91,6 +91,7 @@ public:
 	std::string GetDefaultValue() const;
 
 	std::string ToString() const override;
+	bool IsSet() const override;
 
 	const std::string name; // HLSL variable name of the port.
 	const std::string type; // HLSL type of the port.

@@ -64,6 +64,10 @@ std::string MaterialShaderInput::ToString() const {
 	return "";
 }
 
+bool MaterialShaderInput::IsSet() const {
+	return false;
+}
+
 
 MaterialShaderOutput::MaterialShaderOutput(const MaterialShader& parent)
 	: m_parent(&parent)

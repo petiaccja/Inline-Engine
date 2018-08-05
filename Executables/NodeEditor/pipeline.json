@@ -1,4 +1,7 @@
 {
+    "header": {
+        "contentType": "pipeline"
+    },
     "nodes": [
         {
             "class": "Pipeline/System/GetBackBuffer",
@@ -17,13 +20,13 @@
         },
         {
             "class": "Pipeline/Render/RenderOverlay",
-            "id": 3,
+            "id": 2,
             "name": "Renderer",
             "meta_pos": "[351, -6]"
         },
         {
             "class": "Pipeline/System/GetSceneByName",
-            "id": 2,
+            "id": 3,
             "name": "Scene",
             "inputs": [
                 "MainScene"

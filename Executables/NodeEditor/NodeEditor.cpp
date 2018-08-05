@@ -565,6 +565,13 @@ void NodeEditor::OpenFile(std::string path) {
 	m_background->SetPosition(m_camera->GetPosition());
 	m_background->SetScale(m_camera->GetExtent());
 
+	// Set node list.
+	DisablePlacing();
+	RemoveHighlight();
+	std::vector<std::string> nameList = m_graphEditor->GetNodeList();
+	m_selectPanel->SetOptions(nameList.cbegin(), nameList.cend());
+	m_background->SetColor({ 16.f/255.f, 16.f/255.f, 32.f/255.f, 1.0f });
+
 	// Create nodes.
 	std::map<IGraphEditorNode*, Node*> inversionMap;
 
