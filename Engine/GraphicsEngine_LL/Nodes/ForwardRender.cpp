@@ -19,6 +19,8 @@
 
 namespace inl::gxeng::nodes {
 
+	bool hasSSShadow = false;
+
 struct LightData
 {
 	Vec4_Packed diffuseColor;
@@ -168,8 +170,11 @@ void ForwardRender::Setup(SetupContext& context) {
 
 	m_camera = this->GetInput<3>().Get();
 
-	m_directionalLights = this->GetInput<4>().Get();
-	assert(m_directionalLights->Size() == 1);
+	auto dirLights = this->GetInput<4>().Get();
+	if (dirLights && dirLights->Size()>0)
+	{
+		m_directionalLights = dirLights;
+	}
 
 	gxapi::SrvTexture2DArray srvDesc;
 	srvDesc.activeArraySize = 1;
@@ -190,7 +195,11 @@ void ForwardRender::Setup(SetupContext& context) {
 	
 	auto screenSpaceShadowTex = this->GetInput<7>().Get();
 	this->GetInput<7>().Clear();
-	m_screenSpaceShadowTexView = context.CreateSrv(screenSpaceShadowTex, screenSpaceShadowTex.GetFormat(), srvDesc);
+	if (screenSpaceShadowTex)
+	{
+		m_screenSpaceShadowTexView = context.CreateSrv(screenSpaceShadowTex, screenSpaceShadowTex.GetFormat(), srvDesc);
+		hasSSShadow = true;
+	}
 
 	if (!m_velocityNormalRTV)
 	{
@@ -321,13 +330,19 @@ void ForwardRender::Execute(RenderContext& context) {
 		commandList.SetGraphicsBinder(&scenario.binder);
 
 		commandList.SetResourceState(m_layeredShadowTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_screenSpaceShadowTexView.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		if (m_screenSpaceShadowTexView)
+		{
+			commandList.SetResourceState(m_screenSpaceShadowTexView->GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		}
 
 		commandList.SetResourceState(m_lightCullDataView.GetResource(), {gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE	});
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 600), m_lightCullDataView);
 
-		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 601), m_screenSpaceShadowTexView);
+		if (m_screenSpaceShadowTexView)
+		{
+			commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 601), *m_screenSpaceShadowTexView);
+		}
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::TEXTURE, 602), m_layeredShadowTexView);
 
@@ -363,8 +378,7 @@ void ForwardRender::Execute(RenderContext& context) {
 			commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 200), materialConstants.data(), (int)materialConstants.size());
 		}
 
-		assert(m_directionalLights->Size() == 1);
-		const DirectionalLight* sun = *m_directionalLights->begin();
+		const DirectionalLight* sun = m_directionalLights ? *(*m_directionalLights)->begin() : 0;
 
 		// Set vertex and light constants
 		VsConstants vsConstants;
@@ -375,9 +389,12 @@ void ForwardRender::Execute(RenderContext& context) {
 		vsConstants.v = view;
 		vsConstants.p = projection;
 		vsConstants.prevMVP = vsConstants.mvp;// entity->GetPrevTransform() * prevViewProjection;
-		Vec4 vsLightDir = Vec4(sun->GetDirection(), 0.0f) * view;
-		lightConstants.direction = Vec3(vsLightDir.xyz).Normalized();
-		lightConstants.color = sun->GetColor();
+		if (sun)
+		{
+			Vec4 vsLightDir = Vec4(sun->GetDirection(), 0.0f) * view;
+			lightConstants.direction = Vec3(vsLightDir.xyz).Normalized();
+			lightConstants.color = sun->GetColor();
+		}
 
 		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 0), &vsConstants, sizeof(vsConstants));
 		commandList.BindGraphics(BindParameter(eBindParameterType::CONSTANT, 100), &lightConstants, sizeof(lightConstants));
@@ -575,6 +592,10 @@ std::string ForwardRender::GeneratePixelShader(const Material& material) {
 	std::regex renameRegex("main");
 	std::regex_replace(std::ostreambuf_iterator<char>(renameMain), shadingFunction.begin(), shadingFunction.end(), renameRegex, "mtl_shader");
 	shadingFunction = renameMain.str();
+
+	std::string defines = std::string()
+		+ (!hasSSShadow ? "#define NO_SSShadow" : "") + "\n"
+		+ "";
 
 	// structures
 	std::string structures =

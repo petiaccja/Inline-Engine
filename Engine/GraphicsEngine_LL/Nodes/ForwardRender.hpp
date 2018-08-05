@@ -107,11 +107,11 @@ private:
 	DepthStencilView2D m_targetDSV;
 	const EntityCollection<MeshEntity>* m_entities;
 	const BasicCamera* m_camera;
-	const EntityCollection<DirectionalLight>* m_directionalLights;
+	std::optional<const EntityCollection<DirectionalLight>*> m_directionalLights;
 
 	TextureView2D m_lightCullDataView;
 	TextureView2D m_layeredShadowTexView;
-	TextureView2D m_screenSpaceShadowTexView;
+	std::optional<TextureView2D> m_screenSpaceShadowTexView;
 
 private:
 	struct ElementHash {

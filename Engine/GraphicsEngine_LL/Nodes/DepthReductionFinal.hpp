@@ -66,7 +66,7 @@ protected: // outputs
 protected: // render context
 	TextureView2D m_reductionTexSrv;
 	const BasicCamera* m_camera;
-	const EntityCollection<DirectionalLight>* m_suns;
+	std::optional<const EntityCollection<DirectionalLight>*> m_suns;
 
 private:
 	void InitRenderTarget(SetupContext& context);
