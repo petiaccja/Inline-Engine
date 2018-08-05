@@ -1292,12 +1292,6 @@
             "dst": "voxelization",
             "srcp": 0,
             "dstp": 0
-        },
-        {
-            "src": 3,
-            "dst": "voxelization",
-            "srcp": 0,
-            "dstp": 1
         }
     ]
 }

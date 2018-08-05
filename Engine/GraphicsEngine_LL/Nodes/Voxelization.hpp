@@ -22,7 +22,7 @@ namespace inl::gxeng::nodes {
 class Voxelization :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<const EntityCollection<MeshEntity>*, const BasicCamera*>,
+	virtual public InputPortConfig<const EntityCollection<MeshEntity>*>,
 	virtual public OutputPortConfig<Texture3D, Texture3D>
 {
 public:
@@ -61,7 +61,6 @@ protected:
 
 private: // execution context
 	const EntityCollection<MeshEntity>* m_entities;
-	const BasicCamera* m_camera;
 
 	void InitRenderTarget(SetupContext& context);
 };

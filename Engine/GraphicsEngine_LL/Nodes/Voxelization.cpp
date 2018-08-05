@@ -93,7 +93,6 @@ static void ConvertToSubmittable(
 
 Voxelization::Voxelization() {
 	this->GetInput<0>().Set({});
-	this->GetInput<1>().Set({});
 }
 
 
@@ -126,8 +125,6 @@ const std::string& Voxelization::GetOutputName(size_t index) const {
 
 void Voxelization::Setup(SetupContext & context) {
 	m_entities = this->GetInput<0>().Get();
-
-	m_camera = this->GetInput<1>().Get();
 
 
 	if (!m_binder.has_value()) {
