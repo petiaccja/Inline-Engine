@@ -24,6 +24,7 @@
 
 //forward
 #include "Nodes/ForwardRender.hpp"
+#include "Nodes/RenderForwardSimple.hpp"
 #include "Nodes/DepthPrepass.hpp"
 #include "Nodes/DepthReduction.hpp"
 #include "Nodes/DepthReductionFinal.hpp"
@@ -560,6 +561,7 @@ void GraphicsEngine::RegisterPipelineClasses() {
 	m_nodeFactory.RegisterNodeClass<nodes::VectorComponents<4>>("Pipeline/Utility");
 
 	m_nodeFactory.RegisterNodeClass<nodes::ForwardRender>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::RenderForwardSimple>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::DepthPrepass>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::DepthReduction>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::DepthReductionFinal>("Pipeline/Render");

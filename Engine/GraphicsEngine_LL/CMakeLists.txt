@@ -188,6 +188,7 @@ set(node_draw
 
 	"Nodes/Shaders/RenderOverlay_Overlay.hlsl"
 	"Nodes/Shaders/RenderOverlay_Text.hlsl"
+	"Nodes/Shaders/RenderForwardSimple.hlsl"
 )
 
 set(node_lighting

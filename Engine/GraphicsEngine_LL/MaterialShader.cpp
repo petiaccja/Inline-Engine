@@ -396,10 +396,14 @@ void MaterialShaderGraph::SetGraph(std::vector<std::unique_ptr<MaterialShader>> 
 	int snIndex = 0;
 	for (auto graphNode : sortedNodes) {
 		std::stringstream ss;
-		ss << "namespace " << "subnode" << snIndex++ << " {\n";
+		ss << "namespace " << "subnode" << snIndex << " {\n";
 		ss << depMap[graphNode]->GetShaderCode();
 		ss << "\n}\n\n\n";
 		sourceCodes.push_back(ss.str());
+		if (depMap[graphNode]->GetDisplayName().empty()) {
+			depMap[graphNode]->SetDisplayName("subnode" + std::to_string(snIndex));
+		}
+		++snIndex;
 	}
 
 

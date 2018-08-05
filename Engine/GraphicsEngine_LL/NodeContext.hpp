@@ -105,6 +105,8 @@ public:
 	// Shaders and PSOs
 	ShaderProgram CreateShader(const std::string& name, ShaderParts stages, const std::string& macros = {}) const;
 	ShaderProgram CompileShader(const std::string& code, ShaderParts stages, const std::string& macros = {}) const;
+	std::string LoadShader(const std::string& name) const;
+	void StoreShader(const std::string& name, const std::string& code) const;
 	gxapi::IPipelineState* CreatePSO(const gxapi::GraphicsPipelineStateDesc& desc) const;
 	gxapi::IPipelineState* CreatePSO(const gxapi::ComputePipelineStateDesc& desc) const;
 
@@ -153,6 +155,8 @@ public:
 	// Shaders and PSOs
 	ShaderProgram CreateShader(const std::string& name, ShaderParts stages, const std::string& macros) const;
 	ShaderProgram CompileShader(const std::string& code, ShaderParts stages, const std::string& macros) const;
+	std::string LoadShader(const std::string& name) const;
+	void StoreShader(const std::string& name, const std::string& code) const;
 	gxapi::IPipelineState* CreatePSO(const gxapi::GraphicsPipelineStateDesc& desc) const;
 	gxapi::IPipelineState* CreatePSO(const gxapi::ComputePipelineStateDesc& desc) const;
 

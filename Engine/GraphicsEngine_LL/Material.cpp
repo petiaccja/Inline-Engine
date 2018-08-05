@@ -38,6 +38,7 @@ void Material::SetShader(const MaterialShader* shader) {
 	std::vector<Parameter> parameters;
 	std::unordered_map<std::string, size_t> paramNameMap;
 
+	int paramIdx = 0;
 	for (auto inputIdx : Range(shader->GetNumInputs())) {
 		const MaterialShaderInput* input = shader->GetInput(inputIdx);
 		eMaterialShaderParamType type = GetParameterType(input->type);
@@ -50,8 +51,12 @@ void Material::SetShader(const MaterialShader* shader) {
 				ssextra.str()
 			);
 		}
-		parameters.emplace_back(input->name, type);
-		paramNameMap.insert_or_assign(input->name, inputIdx);
+		if (type == eMaterialShaderParamType::UNKNOWN) {
+			continue;
+		}
+		parameters.emplace_back(input->name, type, inputIdx);
+		paramNameMap.insert_or_assign(input->name, paramIdx);
+		++paramIdx;
 	}
 
 	m_parameters = std::move(parameters);
@@ -97,9 +102,10 @@ const Material::Parameter& Material::operator[](const std::string& name) const {
 Material::Parameter::Parameter() {
 	m_type = eMaterialShaderParamType::UNKNOWN;
 }
-Material::Parameter::Parameter(std::string name, eMaterialShaderParamType type) {
+Material::Parameter::Parameter(std::string name, eMaterialShaderParamType type, int shaderParamIndex) {
 	m_type = type;
 	m_name = std::move(name);
+	m_shaderParamIndex = shaderParamIndex;
 }
 
 
@@ -110,6 +116,11 @@ const std::string& Material::Parameter::GetName() const {
 
 eMaterialShaderParamType Material::Parameter::GetType() const {
 	return m_type;
+}
+
+
+int Material::Parameter::GetShaderParamIndex() const {
+	return m_shaderParamIndex;
 }
 
 

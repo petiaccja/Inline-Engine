@@ -1,0 +1,102 @@
+{
+    "header": {
+        "contentType": "pipeline"
+    },
+    "nodes": [
+        {
+            "class": "Pipeline/Render/RenderForwardSimple",
+            "id": 0,
+            "meta_pos": "[571, -69]"
+        },
+        {
+            "class": "Pipeline/System/GetBackBuffer",
+            "id": 1,
+            "meta_pos": "[-617, -281]"
+        },
+        {
+            "class": "Pipeline/System/GetCameraByName",
+            "id": 2,
+            "inputs": [
+                ""
+            ],
+            "meta_pos": "[97, 160]"
+        },
+        {
+            "class": "Pipeline/System/GetSceneByName",
+            "id": 3,
+            "inputs": [
+                ""
+            ],
+            "meta_pos": "[96, 240]"
+        },
+        {
+            "class": "Pipeline/Utility/CreateTexture",
+            "id": 4,
+            "inputs": [
+                {},
+                {},
+                "UNKNOWN",
+                "0",
+                "SR",
+                "false",
+                "false"
+            ],
+            "meta_pos": "[99, -7]"
+        },
+        {
+            "class": "Pipeline/Utility/TextureProperties",
+            "id": 5,
+            "meta_pos": "[-247, -44]"
+        }
+    ],
+    "links": [
+        {
+            "src": 1,
+            "dst": 0,
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 4,
+            "dst": 0,
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": 2,
+            "dst": 0,
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": 3,
+            "dst": 0,
+            "srcp": 0,
+            "dstp": 3
+        },
+        {
+            "src": 3,
+            "dst": 0,
+            "srcp": 0,
+            "dstp": 4
+        },
+        {
+            "src": 5,
+            "dst": 4,
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 5,
+            "dst": 4,
+            "srcp": 1,
+            "dstp": 1
+        },
+        {
+            "src": 1,
+            "dst": 5,
+            "srcp": 0,
+            "dstp": 0
+        }
+    ]
+}

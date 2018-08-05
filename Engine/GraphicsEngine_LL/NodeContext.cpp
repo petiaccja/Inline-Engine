@@ -138,6 +138,14 @@ ShaderProgram SetupContext::CompileShader(const std::string& code, ShaderParts s
 	return m_shaderManager->CompileShader(code, stages, macros);
 }
 
+std::string SetupContext::LoadShader(const std::string& name) const {
+	return m_shaderManager->LoadShaderSource(name);
+}
+
+void SetupContext::StoreShader(const std::string& name, const std::string& code) const {
+	m_shaderManager->AddSourceCode(name, code);
+}
+
 gxapi::IPipelineState* SetupContext::CreatePSO(const gxapi::GraphicsPipelineStateDesc& desc) const {
 	return m_graphicsApi->CreateGraphicsPipelineState(desc);
 }
@@ -200,6 +208,13 @@ ShaderProgram RenderContext::CreateShader(const std::string& name, ShaderParts s
 
 ShaderProgram RenderContext::CompileShader(const std::string& code, ShaderParts stages, const std::string& macros) const {
 	return m_shaderManager->CompileShader(code, stages, macros);
+}
+
+std::string RenderContext::LoadShader(const std::string& name) const {
+	return m_shaderManager->LoadShaderSource(name);
+}
+void RenderContext::StoreShader(const std::string& name, const std::string& code) const {
+	m_shaderManager->AddSourceCode(name, code);
 }
 
 gxapi::IPipelineState* RenderContext::CreatePSO(const gxapi::GraphicsPipelineStateDesc& desc) const {

@@ -25,10 +25,11 @@ public:
 	class Parameter {
 	public:
 		Parameter();
-		Parameter(std::string name, eMaterialShaderParamType type);
+		Parameter(std::string name, eMaterialShaderParamType type, int shaderParamIndex);
 
 		const std::string& GetName() const;
 		eMaterialShaderParamType GetType() const;
+		int GetShaderParamIndex() const;
 
 		Parameter& operator=(Image*);
 		Parameter& operator=(Vec4);
@@ -40,6 +41,7 @@ public:
 	private:
 		std::string m_name;
 		eMaterialShaderParamType m_type;
+		int m_shaderParamIndex;
 		union Data {
 			Data() { memset(this, 0, sizeof(*this)); }
 			Data(const Data& rhs) { memcpy(this, &rhs, sizeof(*this)); }
