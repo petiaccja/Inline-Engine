@@ -19,17 +19,17 @@ namespace inl::gxeng::nodes {
 /// Inputs: entities, camera
 /// Voxelizes scene into a dense 3D texture
 /// </summary>
-class Voxelization :
+class VoxelLighting :
 	virtual public GraphicsNode,
 	virtual public GraphicsTask,
-	virtual public InputPortConfig<const EntityCollection<MeshEntity>*, const BasicCamera*>,
-	virtual public OutputPortConfig<Texture3D, Texture3D>
+	virtual public InputPortConfig<const BasicCamera*, Texture3D, Texture3D, Texture2D, Texture2D, Texture2D, Texture2D, Texture2D, Texture2D, Texture2D>,
+	virtual public OutputPortConfig<Texture2D, Texture2D>
 {
 public:
-	static const char* Info_GetName() { return "Voxelization"; }
+	static const char* Info_GetName() { return "VoxelLighting"; }
 	const std::string& GetInputName(size_t index) const override;
 	const std::string& GetOutputName(size_t index) const override;
-	Voxelization();
+	VoxelLighting();
 
 	void Update() override {}
 	void Notify(InputPortBase* sender) override {}
@@ -42,25 +42,43 @@ public:
 protected:
 	std::optional<Binder> m_binder;
 	BindParameter m_uniformsBindParam;
-	BindParameter m_albedoTexBindParam;
 	BindParameter m_voxelTexBindParam;
-	BindParameter m_voxelSecondaryTexBindParam;
-	BindParameter m_voxelSecondaryTexReadBindParam;
-	ShaderProgram m_shader;
+	BindParameter m_voxelLightTexBindParam;
+	BindParameter m_tex0BindParam;
+	BindParameter m_tex1BindParam;
+	BindParameter m_tex2BindParam;
+	BindParameter m_tex3BindParam;
+	BindParameter m_tex4BindParam;
+	BindParameter m_tex5BindParam;
+	BindParameter m_tex6BindParam;
+	ShaderProgram m_visualizerShader;
+	ShaderProgram m_finalGatherShader;
+	ShaderProgram m_lightInjectionCSMShader;
 	ShaderProgram m_mipmapShader;
-	std::unique_ptr<gxapi::IPipelineState> m_PSO;
+	std::unique_ptr<gxapi::IPipelineState> m_visualizerPSO;
+	std::unique_ptr<gxapi::IPipelineState> m_finalGatherPSO;
+	std::unique_ptr<gxapi::IPipelineState> m_lightInjectionCSMPSO;
 	std::unique_ptr<gxapi::IPipelineState> m_mipmapCSO;
 
 	bool m_outputTexturesInited = false;
-	std::vector<RWTextureView3D> m_voxelTexUAV;
 	TextureView3D m_voxelTexSRV;
-	std::vector<TextureView3D> m_voxelTexMipSRV;
-	std::vector<RWTextureView3D> m_voxelSecondaryTexUAV;
 	TextureView3D m_voxelSecondaryTexSRV;
-	std::vector<TextureView3D> m_voxelSecondaryTexMipSRV;
+
+	std::vector<RWTextureView3D> m_voxelLightTexUAV;
+	TextureView3D m_voxelLightTexSRV;
+	std::vector<TextureView3D> m_voxelLightTexMipSRV;
+
+	TextureView2D m_shadowCSMTexSrv;
+	TextureView2D m_shadowCSMExtentsTexSrv;
+	TextureView2D m_velocityNormalTexSrv;
+	TextureView2D m_albedoRoughnessMetalnessTexSrv;
+	TextureView2D m_screenSpaceAmbientOcclusionTexSrv;
+
+	RenderTargetView2D m_visualizationTexRTV;
+	DepthStencilView2D m_visualizationDSV;
+	TextureView2D m_depthTexSRV;
 
 private: // execution context
-	const EntityCollection<MeshEntity>* m_entities;
 	const BasicCamera* m_camera;
 
 	void InitRenderTarget(SetupContext& context);

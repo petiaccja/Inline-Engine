@@ -48,6 +48,7 @@
 #include "Nodes/DOFNeighborMax.hpp"
 #include "Nodes/DOFMain.hpp"
 #include "Nodes/Voxelization.hpp"
+#include "Nodes/VoxelLighting.hpp"
 #include "Nodes/VolumetricLighting.hpp"
 #include "Nodes/ShadowMapGen.hpp"
 #include "Nodes/ShadowFilter.hpp"
@@ -583,6 +584,7 @@ void GraphicsEngine::RegisterPipelineClasses() {
 	m_nodeFactory.RegisterNodeClass<nodes::DOFNeighborMax>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::DOFMain>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::Voxelization>("Pipeline/Render");
+	m_nodeFactory.RegisterNodeClass<nodes::VoxelLighting>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::VolumetricLighting>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::ShadowMapGen>("Pipeline/Render");
 	m_nodeFactory.RegisterNodeClass<nodes::ShadowFilter>("Pipeline/Render");

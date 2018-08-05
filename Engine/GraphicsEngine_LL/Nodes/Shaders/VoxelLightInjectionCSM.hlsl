@@ -17,10 +17,10 @@ struct Uniforms
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
 //RWTexture3D<uint> voxelTex : register(u0);
-RWTexture3D<float4> voxelTex : register(u0);
 RWTexture3D<uint> voxelLightTex : register(u1);
-Texture2DArray<float> shadowCSMTex : register(t0);
-Texture2D<float4> shadowCSMExtentsTex : register(t1);
+Texture3D<float4> voxelTex : register(t0);
+Texture2DArray<float> shadowCSMTex : register(t1);
+Texture2D<float4> shadowCSMExtentsTex : register(t2);
 
 SamplerState samp0 : register(s0);
 SamplerState samp1 : register(s1);
