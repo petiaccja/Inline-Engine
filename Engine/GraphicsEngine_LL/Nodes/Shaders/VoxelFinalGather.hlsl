@@ -111,8 +111,7 @@ Texture2D<float> inputTex2 : register(t2); //depth tex
 Texture3D<float4> inputTex3 : register(t3); //secondary voxel tex
 Texture2D<float4> inputTex4 : register(t4); //velocityNormal tex
 Texture2D<float4> inputTex5 : register(t5); //albedoRoughnessMetalness tex
-Texture2D<float4> inputTex6 : register(t6); //screenSpaceReflection tex
-Texture2D<float4> inputTex7 : register(t7); //screenSpaceAmbientOcclusion tex
+Texture2D<float4> inputTex6 : register(t6); //screenSpaceAmbientOcclusion tex
 
 SamplerState samp0 : register(s0); //point
 SamplerState samp1 : register(s1); //bilinear
@@ -298,10 +297,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 		albedo = YcocgToRgb(int2(input.position.xy), centerAlbedoRoughnessMetalness.xy, a0, a1, a2, a3);
 	}
 
-	float4 ssr = inputTex6.Sample(samp1, input.texcoord.xy);
-	float4 ssao = inputTex7.Sample(samp1, input.texcoord.xy).x;
-
-	bool ssrValid = dot(ssr.xyz, float3(1, 1, 1)) > 0.0;
+	float4 ssao = inputTex6.Sample(samp1, input.texcoord.xy).x;
 
 	float3 perfectReflectionDir = normalize(reflect(wsViewDir, wsNormal));
 

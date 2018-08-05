@@ -195,11 +195,13 @@ set(node_lighting
 	"Nodes/ForwardRender.cpp"
 	"Nodes/LightCulling.cpp"
 	"Nodes/Voxelization.cpp"
+	"Nodes/VoxelLighting.cpp"
 	"Nodes/VolumetricLighting.cpp"
 	
 	"Nodes/ForwardRender.hpp"
 	"Nodes/LightCulling.hpp"
 	"Nodes/Voxelization.hpp"
+	"Nodes/VoxelLighting.hpp"
 	"Nodes/VolumetricLighting.hpp"
 )
 

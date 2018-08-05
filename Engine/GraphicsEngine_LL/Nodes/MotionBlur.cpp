@@ -53,13 +53,9 @@ void MotionBlur::Reset() {
 const std::string& MotionBlur::GetInputName(size_t index) const {
 	static const std::vector<std::string> names = {
 		"colorRTV",
-		"depthStencil",
-		"entities",
-		"camera",
-		"directionalLights",
-		"layeredShadowTex",
-		"lightCullData",
-		"screenSpaceShadowTex"
+		"velocityTex",
+		"neighbormaxTex",
+		"depthTex"
 	};
 	return names[index];
 }

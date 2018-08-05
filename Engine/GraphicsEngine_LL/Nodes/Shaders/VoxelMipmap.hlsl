@@ -6,12 +6,9 @@
 
 struct Uniforms
 {
-	float4x4 model, viewProj, invView;
+	float4x4 model;
 	float3 voxelCenter; float voxelSize;
-	float4 farPlaneData0, farPlaneData1;
-	float4 wsCamPos;
-	int voxelDimension; int inputMipLevel; int outputMipLevel; int dummy;
-	float nearPlane, farPlane;
+	int voxelDimension; int inputMipLevel;
 };
 
 Texture3D inputTex : register(t0);
