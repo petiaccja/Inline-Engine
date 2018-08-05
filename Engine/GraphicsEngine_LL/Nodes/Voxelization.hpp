@@ -43,21 +43,20 @@ protected:
 	std::optional<Binder> m_binder;
 	BindParameter m_uniformsBindParam;
 	BindParameter m_albedoTexBindParam;
-	BindParameter m_voxelTexBindParam;
-	BindParameter m_voxelSecondaryTexBindParam;
-	BindParameter m_voxelSecondaryTexReadBindParam;
-	ShaderProgram m_shader;
+	BindParameter m_voxelColorTexBindParam;
+	BindParameter m_voxelAlphaNormalTexBindParam;
+	ShaderProgram m_voxelizationShader;
 	ShaderProgram m_mipmapShader;
-	std::unique_ptr<gxapi::IPipelineState> m_PSO;
+	std::unique_ptr<gxapi::IPipelineState> m_voxelizationPSO;
 	std::unique_ptr<gxapi::IPipelineState> m_mipmapCSO;
 
 	bool m_outputTexturesInited = false;
-	std::vector<RWTextureView3D> m_voxelTexUAV;
-	TextureView3D m_voxelTexSRV;
-	std::vector<TextureView3D> m_voxelTexMipSRV;
-	std::vector<RWTextureView3D> m_voxelSecondaryTexUAV;
-	TextureView3D m_voxelSecondaryTexSRV;
-	std::vector<TextureView3D> m_voxelSecondaryTexMipSRV;
+	std::vector<RWTextureView3D> m_voxelColorTexUAV;
+	TextureView3D m_voxelColorTexSRV;
+	std::vector<TextureView3D> m_voxelColorTexMipSRV;
+	std::vector<RWTextureView3D> m_voxelAlphaNormalTexUAV;
+	TextureView3D m_voxelAlphaNormalTexSRV;
+	std::vector<TextureView3D> m_voxelAlphaNormalTexMipSRV;
 
 private: // execution context
 	const EntityCollection<MeshEntity>* m_entities;

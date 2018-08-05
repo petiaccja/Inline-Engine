@@ -42,7 +42,7 @@ public:
 protected:
 	std::optional<Binder> m_binder;
 	BindParameter m_uniformsBindParam;
-	BindParameter m_voxelTexBindParam;
+	BindParameter m_voxelColorTexBindParam;
 	BindParameter m_voxelLightTexBindParam;
 	BindParameter m_tex0BindParam;
 	BindParameter m_tex1BindParam;
@@ -61,8 +61,8 @@ protected:
 	std::unique_ptr<gxapi::IPipelineState> m_mipmapCSO;
 
 	bool m_outputTexturesInited = false;
-	TextureView3D m_voxelTexSRV;
-	TextureView3D m_voxelSecondaryTexSRV;
+	TextureView3D m_voxelColorTexSRV;
+	TextureView3D m_voxelAlphaNormalTexSRV;
 
 	std::vector<RWTextureView3D> m_voxelLightTexUAV;
 	TextureView3D m_voxelLightTexSRV;

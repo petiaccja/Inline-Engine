@@ -107,8 +107,8 @@ void VoxelLighting::Initialize(EngineContext & context) {
 }
 
 void VoxelLighting::Reset() {
-	m_voxelTexSRV = TextureView3D();
-	m_voxelSecondaryTexSRV = TextureView3D();
+	m_voxelColorTexSRV = TextureView3D();
+	m_voxelAlphaNormalTexSRV = TextureView3D();
 	m_visualizationDSV = DepthStencilView2D();
 	m_visualizationTexRTV = RenderTargetView2D();
 	m_shadowCSMTexSrv = TextureView2D();
@@ -122,8 +122,8 @@ void VoxelLighting::Reset() {
 const std::string& VoxelLighting::GetInputName(size_t index) const {
 	static const std::vector<std::string> names = {
 		"camera",
-		"voxelTex",
-		"secondaryVoxelTex",
+		"voxelColorTex",
+		"voxelAlphaNormalTex",
 		"colorRTV",
 		"depthStencil",
 		"shadowCSMTex",
@@ -146,16 +146,16 @@ const std::string& VoxelLighting::GetOutputName(size_t index) const {
 void VoxelLighting::Setup(SetupContext & context) {
 	m_camera = this->GetInput<0>().Get();
 
-	auto& voxelTex = this->GetInput<1>().Get();
-	auto& secondaryVoxelTex = this->GetInput<2>().Get();
+	auto& voxelColorTex = this->GetInput<1>().Get();
+	auto& voxelAlphaNormalTex = this->GetInput<2>().Get();
 	gxapi::SrvTexture3D srvDesc3D;
 	srvDesc3D.mipLevelClamping = 0;
 	srvDesc3D.mostDetailedMip = 0;
 	srvDesc3D.numMipLevels = 1;
 
-	m_voxelTexSRV = context.CreateSrv(voxelTex, voxelTex.GetFormat(), srvDesc3D);
+	m_voxelColorTexSRV = context.CreateSrv(voxelColorTex, voxelColorTex.GetFormat(), srvDesc3D);
 
-	m_voxelSecondaryTexSRV = context.CreateSrv(voxelTex, voxelTex.GetFormat(), srvDesc3D);
+	m_voxelAlphaNormalTexSRV = context.CreateSrv(voxelColorTex, voxelColorTex.GetFormat(), srvDesc3D);
 
 	auto& target = this->GetInput<3>().Get();
 	gxapi::RtvTexture2DArray rtvDesc;
@@ -240,8 +240,8 @@ void VoxelLighting::Setup(SetupContext & context) {
 		sampBindParamDesc2.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 		BindParameterDesc voxelTexBindParamDesc;
-		m_voxelTexBindParam = BindParameter(eBindParameterType::UNORDERED, 0);
-		voxelTexBindParamDesc.parameter = m_voxelTexBindParam;
+		m_voxelColorTexBindParam = BindParameter(eBindParameterType::UNORDERED, 0);
+		voxelTexBindParamDesc.parameter = m_voxelColorTexBindParam;
 		voxelTexBindParamDesc.constantSize = 0;
 		voxelTexBindParamDesc.relativeAccessFrequency = 0;
 		voxelTexBindParamDesc.relativeChangeFrequency = 0;
@@ -518,7 +518,7 @@ void VoxelLighting::Execute(RenderContext & context) {
 	commandList.SetResourceState(m_shadowCSMTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_shadowCSMExtentsTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 	commandList.SetResourceState(m_voxelLightTexUAV[0].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
-	commandList.SetResourceState(m_voxelTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+	commandList.SetResourceState(m_voxelColorTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 	{ //light injection
 		gxapi::Rectangle rect{ 0, (int)m_shadowCSMTexSrv.GetResource().GetHeight(), 0, (int)m_shadowCSMTexSrv.GetResource().GetWidth() };
@@ -538,7 +538,7 @@ void VoxelLighting::Execute(RenderContext & context) {
 
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 		commandList.BindGraphics(m_voxelLightTexBindParam, m_voxelLightTexUAV[0]);
-		commandList.BindGraphics(m_tex0BindParam, m_voxelTexSRV);
+		commandList.BindGraphics(m_tex0BindParam, m_voxelColorTexSRV);
 		commandList.BindGraphics(m_tex1BindParam, m_shadowCSMTexSrv);
 		commandList.BindGraphics(m_tex2BindParam, m_shadowCSMExtentsTexSrv);
 
@@ -566,7 +566,7 @@ void VoxelLighting::Execute(RenderContext & context) {
 			commandList.SetResourceState(m_voxelLightTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, m_voxelLightTexSRV.GetResource().GetSubresourceIndex(c, 0));
 			commandList.SetResourceState(m_voxelLightTexMipSRV[c-1].GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE }, m_voxelLightTexSRV.GetResource().GetSubresourceIndex(c - 1, 0));
 
-			commandList.BindCompute(m_voxelTexBindParam, m_voxelLightTexUAV[c]);
+			commandList.BindCompute(m_voxelColorTexBindParam, m_voxelLightTexUAV[c]);
 			commandList.BindCompute(m_tex0BindParam, m_voxelLightTexMipSRV[c-1]);
 			commandList.Dispatch(dispatchW, dispatchH, dispatchD);
 			commandList.UAVBarrier(m_voxelLightTexUAV[c].GetResource());
@@ -625,17 +625,17 @@ void VoxelLighting::Execute(RenderContext & context) {
 		commandList.SetGraphicsBinder(&m_binder.value());
 
 		commandList.SetResourceState(m_voxelLightTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_voxelTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-		commandList.SetResourceState(m_voxelSecondaryTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_voxelColorTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
+		commandList.SetResourceState(m_voxelAlphaNormalTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_depthTexSRV.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_velocityNormalTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_albedoRoughnessMetalnessTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 		commandList.SetResourceState(m_screenSpaceAmbientOcclusionTexSrv.GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
 
 		commandList.BindGraphics(m_tex0BindParam, m_voxelLightTexSRV);
-		commandList.BindGraphics(m_tex1BindParam, m_voxelTexSRV);
+		commandList.BindGraphics(m_tex1BindParam, m_voxelColorTexSRV);
 		commandList.BindGraphics(m_tex2BindParam, m_depthTexSRV);
-		commandList.BindGraphics(m_tex3BindParam, m_voxelSecondaryTexSRV);
+		commandList.BindGraphics(m_tex3BindParam, m_voxelAlphaNormalTexSRV);
 		commandList.BindGraphics(m_tex4BindParam, m_velocityNormalTexSrv);
 		commandList.BindGraphics(m_tex5BindParam, m_albedoRoughnessMetalnessTexSrv);
 		commandList.BindGraphics(m_tex6BindParam, m_screenSpaceAmbientOcclusionTexSrv);
@@ -675,8 +675,8 @@ void VoxelLighting::InitRenderTarget(SetupContext& context) {
 		texDesc.format = formatVoxel;
 		texDesc.mipLevels = 0;		
 
-		m_voxelLightTexUAV.resize(m_voxelTexSRV.GetResource().GetNumMiplevels());
-		m_voxelLightTexMipSRV.resize(m_voxelTexSRV.GetResource().GetNumMiplevels());
+		m_voxelLightTexUAV.resize(m_voxelColorTexSRV.GetResource().GetNumMiplevels());
+		m_voxelLightTexMipSRV.resize(m_voxelColorTexSRV.GetResource().GetNumMiplevels());
 
 		Texture3D voxelLightTex = context.CreateTexture3D(texDesc, { true, false, false, true });
 		voxelLightTex.SetName("VoxelLighting voxel tex");
@@ -685,7 +685,7 @@ void VoxelLighting::InitRenderTarget(SetupContext& context) {
 		srvDesc.numMipLevels = -1;
 		m_voxelLightTexSRV = context.CreateSrv(voxelLightTex, formatVoxel, srvDesc);
 		uavDesc.depthSize = voxelDimension;
-		for (unsigned c = 0; c < m_voxelTexSRV.GetResource().GetNumMiplevels(); ++c)
+		for (unsigned c = 0; c < m_voxelColorTexSRV.GetResource().GetNumMiplevels(); ++c)
 		{
 			uavDesc.mipLevel = c;
 			m_voxelLightTexUAV[c] = context.CreateUav(voxelLightTex, formatVoxel, uavDesc);

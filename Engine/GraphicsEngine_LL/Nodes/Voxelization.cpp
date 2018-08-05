@@ -101,8 +101,8 @@ void Voxelization::Initialize(EngineContext & context) {
 }
 
 void Voxelization::Reset() {
-	m_voxelTexSRV = TextureView3D();
-	m_voxelSecondaryTexSRV = TextureView3D();
+	m_voxelColorTexSRV = TextureView3D();
+	m_voxelAlphaNormalTexSRV = TextureView3D();
 	GetInput(0)->Clear();
 	GetInput(1)->Clear();
 }
@@ -117,8 +117,8 @@ const std::string& Voxelization::GetInputName(size_t index) const {
 
 const std::string& Voxelization::GetOutputName(size_t index) const {
 	static const std::vector<std::string> names = {
-		"voxelTex",
-		"secondaryVoxelTex"
+		"voxelColorTex",
+		"voxelAlphaNormalTex"
 	};
 	return names[index];
 }
@@ -150,21 +150,21 @@ void Voxelization::Setup(SetupContext & context) {
 		sampBindParamDesc1.relativeChangeFrequency = 0;
 		sampBindParamDesc1.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		BindParameterDesc voxelTexBindParamDesc;
-		m_voxelTexBindParam = BindParameter(eBindParameterType::UNORDERED, 0);
-		voxelTexBindParamDesc.parameter = m_voxelTexBindParam;
-		voxelTexBindParamDesc.constantSize = 0;
-		voxelTexBindParamDesc.relativeAccessFrequency = 0;
-		voxelTexBindParamDesc.relativeChangeFrequency = 0;
-		voxelTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+		BindParameterDesc voxelColorTexBindParamDesc;
+		m_voxelColorTexBindParam = BindParameter(eBindParameterType::UNORDERED, 0);
+		voxelColorTexBindParamDesc.parameter = m_voxelColorTexBindParam;
+		voxelColorTexBindParamDesc.constantSize = 0;
+		voxelColorTexBindParamDesc.relativeAccessFrequency = 0;
+		voxelColorTexBindParamDesc.relativeChangeFrequency = 0;
+		voxelColorTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		BindParameterDesc voxelSecondaryTexBindParamDesc;
-		m_voxelSecondaryTexBindParam = BindParameter(eBindParameterType::UNORDERED, 1);
-		voxelSecondaryTexBindParamDesc.parameter = m_voxelSecondaryTexBindParam;
-		voxelSecondaryTexBindParamDesc.constantSize = 0;
-		voxelSecondaryTexBindParamDesc.relativeAccessFrequency = 0;
-		voxelSecondaryTexBindParamDesc.relativeChangeFrequency = 0;
-		voxelSecondaryTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
+		BindParameterDesc voxelAlphaNormalTexBindParamDesc;
+		m_voxelAlphaNormalTexBindParam = BindParameter(eBindParameterType::UNORDERED, 1);
+		voxelAlphaNormalTexBindParamDesc.parameter = m_voxelAlphaNormalTexBindParam;
+		voxelAlphaNormalTexBindParamDesc.constantSize = 0;
+		voxelAlphaNormalTexBindParamDesc.relativeAccessFrequency = 0;
+		voxelAlphaNormalTexBindParamDesc.relativeChangeFrequency = 0;
+		voxelAlphaNormalTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
 		BindParameterDesc albedoTexBindParamDesc;
 		m_albedoTexBindParam = BindParameter(eBindParameterType::TEXTURE, 0);
@@ -173,14 +173,6 @@ void Voxelization::Setup(SetupContext & context) {
 		albedoTexBindParamDesc.relativeAccessFrequency = 0;
 		albedoTexBindParamDesc.relativeChangeFrequency = 0;
 		albedoTexBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
-
-		BindParameterDesc voxelSecondaryTexReadBindParamDesc;
-		m_voxelSecondaryTexReadBindParam = BindParameter(eBindParameterType::TEXTURE, 1);
-		voxelSecondaryTexReadBindParamDesc.parameter = m_voxelSecondaryTexReadBindParam;
-		voxelSecondaryTexReadBindParamDesc.constantSize = 0;
-		voxelSecondaryTexReadBindParamDesc.relativeAccessFrequency = 0;
-		voxelSecondaryTexReadBindParamDesc.relativeChangeFrequency = 0;
-		voxelSecondaryTexReadBindParamDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 		
 		gxapi::StaticSamplerDesc samplerDesc;
 		samplerDesc.shaderRegister = 0;
@@ -202,16 +194,16 @@ void Voxelization::Setup(SetupContext & context) {
 		samplerDesc1.registerSpace = 0;
 		samplerDesc1.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, sampBindParamDesc1, voxelTexBindParamDesc, voxelSecondaryTexReadBindParamDesc, voxelSecondaryTexBindParamDesc, albedoTexBindParamDesc },{ samplerDesc, samplerDesc1 });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, sampBindParamDesc1, voxelColorTexBindParamDesc, voxelAlphaNormalTexBindParamDesc, albedoTexBindParamDesc },{ samplerDesc, samplerDesc1 });
 	}
 
-	if (!m_shader.vs || !m_shader.gs || !m_shader.ps) {
+	if (!m_voxelizationShader.vs || !m_voxelizationShader.gs || !m_voxelizationShader.ps) {
 		ShaderParts shaderParts;
 		shaderParts.vs = true;
 		shaderParts.gs = true;
 		shaderParts.ps = true;
 
-		m_shader = context.CreateShader("Voxelization", shaderParts, "");
+		m_voxelizationShader = context.CreateShader("Voxelization", shaderParts, "");
 
 		shaderParts.cs = true;
 		shaderParts.vs = false;
@@ -220,7 +212,7 @@ void Voxelization::Setup(SetupContext & context) {
 		m_mipmapShader = context.CreateShader("VoxelMipmap", shaderParts, "");
 	}
 
-	if (m_PSO == nullptr) {
+	if (m_voxelizationPSO == nullptr) {
 		InitRenderTarget(context);
 
 		{
@@ -234,9 +226,9 @@ void Voxelization::Setup(SetupContext & context) {
 			psoDesc.inputLayout.elements = inputElementDesc.data();
 			psoDesc.inputLayout.numElements = (unsigned)inputElementDesc.size();
 			psoDesc.rootSignature = m_binder->GetRootSignature();
-			psoDesc.vs = m_shader.vs;
-			psoDesc.gs = m_shader.gs;
-			psoDesc.ps = m_shader.ps;
+			psoDesc.vs = m_voxelizationShader.vs;
+			psoDesc.gs = m_voxelizationShader.gs;
+			psoDesc.ps = m_voxelizationShader.ps;
 			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
 			bool peti = false;
 			if (!peti)
@@ -251,7 +243,7 @@ void Voxelization::Setup(SetupContext & context) {
 
 			psoDesc.numRenderTargets = 0;
 
-			m_PSO.reset(context.CreatePSO(psoDesc));
+			m_voxelizationPSO.reset(context.CreatePSO(psoDesc));
 		}
 
 		{ //mipmap gen shader
@@ -263,8 +255,8 @@ void Voxelization::Setup(SetupContext & context) {
 		}
 	}
 
-	this->GetOutput<0>().Set(m_voxelTexUAV[0].GetResource());
-	this->GetOutput<1>().Set(m_voxelSecondaryTexUAV[0].GetResource());
+	this->GetOutput<0>().Set(m_voxelColorTexUAV[0].GetResource());
+	this->GetOutput<1>().Set(m_voxelAlphaNormalTexUAV[0].GetResource());
 }
 
 
@@ -287,7 +279,7 @@ void Voxelization::Execute(RenderContext & context) {
 
 	auto& commandList = context.AsGraphics();
 
-	gxapi::Rectangle rect{ 0, (int)m_voxelTexUAV[0].GetResource().GetHeight(), 0, (int)m_voxelTexUAV[0].GetResource().GetWidth() };
+	gxapi::Rectangle rect{ 0, (int)m_voxelColorTexUAV[0].GetResource().GetHeight(), 0, (int)m_voxelColorTexUAV[0].GetResource().GetWidth() };
 	gxapi::Viewport viewport;
 	viewport.width = (float)rect.right;
 	viewport.height = (float)rect.bottom;
@@ -298,7 +290,7 @@ void Voxelization::Execute(RenderContext & context) {
 	commandList.SetScissorRects(1, &rect);
 	commandList.SetViewports(1, &viewport);
 
-	commandList.SetPipelineState(m_PSO.get());
+	commandList.SetPipelineState(m_voxelizationPSO.get());
 	commandList.SetGraphicsBinder(&m_binder.value());
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 
@@ -306,10 +298,10 @@ void Voxelization::Execute(RenderContext & context) {
 	std::vector<unsigned> sizes;
 	std::vector<unsigned> strides;
 
-	commandList.SetResourceState(m_voxelTexUAV[0].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
-	commandList.SetResourceState(m_voxelSecondaryTexUAV[0].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
-	commandList.BindGraphics(m_voxelTexBindParam, m_voxelTexUAV[0]);
-	commandList.BindGraphics(m_voxelSecondaryTexBindParam, m_voxelSecondaryTexUAV[0]);
+	commandList.SetResourceState(m_voxelColorTexUAV[0].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.SetResourceState(m_voxelAlphaNormalTexUAV[0].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS);
+	commandList.BindGraphics(m_voxelColorTexBindParam, m_voxelColorTexUAV[0]);
+	commandList.BindGraphics(m_voxelAlphaNormalTexBindParam, m_voxelAlphaNormalTexUAV[0]);
 
 	static bool sceneVoxelized = false;
 
@@ -360,12 +352,12 @@ void Voxelization::Execute(RenderContext & context) {
 				commandList.DrawIndexedInstanced((unsigned)mesh->GetIndexBuffer().GetIndexCount());
 			}
 
-			commandList.UAVBarrier(m_voxelTexUAV[0].GetResource());
-			commandList.UAVBarrier(m_voxelSecondaryTexUAV[0].GetResource());
+			commandList.UAVBarrier(m_voxelColorTexUAV[0].GetResource());
+			commandList.UAVBarrier(m_voxelAlphaNormalTexUAV[0].GetResource());
 		}
 
 		{ //scene mipmap gen
-			int numMips = m_voxelTexSRV.GetResource().GetNumMiplevels();
+			int numMips = m_voxelColorTexSRV.GetResource().GetNumMiplevels();
 			int currDim = voxelDimension / 2;
 			for (int c = 1; c < numMips; ++c)
 			{
@@ -381,22 +373,22 @@ void Voxelization::Execute(RenderContext & context) {
 				commandList.BindCompute(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 
 				//gen mipmap for primary voxel tex
-				commandList.SetResourceState(m_voxelTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, m_voxelTexSRV.GetResource().GetSubresourceIndex(c, 0));
-				commandList.SetResourceState(m_voxelTexMipSRV[c-1].GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE }, m_voxelTexSRV.GetResource().GetSubresourceIndex(c - 1, 0));
+				commandList.SetResourceState(m_voxelColorTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, m_voxelColorTexSRV.GetResource().GetSubresourceIndex(c, 0));
+				commandList.SetResourceState(m_voxelColorTexMipSRV[c-1].GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE }, m_voxelColorTexSRV.GetResource().GetSubresourceIndex(c - 1, 0));
 
-				commandList.BindCompute(m_voxelTexBindParam, m_voxelTexUAV[c]);
-				commandList.BindCompute(m_albedoTexBindParam, m_voxelTexMipSRV[c - 1]);
+				commandList.BindCompute(m_voxelColorTexBindParam, m_voxelColorTexUAV[c]);
+				commandList.BindCompute(m_albedoTexBindParam, m_voxelColorTexMipSRV[c - 1]);
 				commandList.Dispatch(dispatchW, dispatchH, dispatchD);
-				commandList.UAVBarrier(m_voxelTexUAV[c].GetResource());
+				commandList.UAVBarrier(m_voxelColorTexUAV[c].GetResource());
 
 				//gen mipmap for secondary voxel tex
-				commandList.SetResourceState(m_voxelSecondaryTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, m_voxelSecondaryTexSRV.GetResource().GetSubresourceIndex(c, 0));
-				commandList.SetResourceState(m_voxelSecondaryTexMipSRV[c-1].GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE }, m_voxelSecondaryTexSRV.GetResource().GetSubresourceIndex(c - 1, 0));
+				commandList.SetResourceState(m_voxelAlphaNormalTexUAV[c].GetResource(), gxapi::eResourceState::UNORDERED_ACCESS, m_voxelAlphaNormalTexSRV.GetResource().GetSubresourceIndex(c, 0));
+				commandList.SetResourceState(m_voxelAlphaNormalTexMipSRV[c-1].GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE }, m_voxelAlphaNormalTexSRV.GetResource().GetSubresourceIndex(c - 1, 0));
 
-				commandList.BindCompute(m_voxelTexBindParam, m_voxelSecondaryTexUAV[c]);
-				commandList.BindCompute(m_albedoTexBindParam, m_voxelSecondaryTexMipSRV[c - 1]);
+				commandList.BindCompute(m_voxelColorTexBindParam, m_voxelAlphaNormalTexUAV[c]);
+				commandList.BindCompute(m_albedoTexBindParam, m_voxelAlphaNormalTexMipSRV[c - 1]);
 				commandList.Dispatch(dispatchW, dispatchH, dispatchD);
-				commandList.UAVBarrier(m_voxelSecondaryTexUAV[c].GetResource());
+				commandList.UAVBarrier(m_voxelAlphaNormalTexUAV[c].GetResource());
 
 				currDim = currDim / 2;
 			}
@@ -438,37 +430,37 @@ void Voxelization::InitRenderTarget(SetupContext& context) {
 		Texture3D voxelTex = context.CreateTexture3D(texDesc, { true, false, false, true });
 		voxelTex.SetName("Voxelization voxel tex");	
 
-		m_voxelTexUAV.resize(voxelTex.GetNumMiplevels());
-		m_voxelTexMipSRV.resize(voxelTex.GetNumMiplevels());
-		m_voxelSecondaryTexUAV.resize(voxelTex.GetNumMiplevels());
-		m_voxelSecondaryTexMipSRV.resize(voxelTex.GetNumMiplevels());
+		m_voxelColorTexUAV.resize(voxelTex.GetNumMiplevels());
+		m_voxelColorTexMipSRV.resize(voxelTex.GetNumMiplevels());
+		m_voxelAlphaNormalTexUAV.resize(voxelTex.GetNumMiplevels());
+		m_voxelAlphaNormalTexMipSRV.resize(voxelTex.GetNumMiplevels());
 
-		m_voxelTexSRV = context.CreateSrv(voxelTex, formatVoxel, srvDesc);
+		m_voxelColorTexSRV = context.CreateSrv(voxelTex, formatVoxel, srvDesc);
 		uavDesc.depthSize = voxelDimension;
 		for (unsigned c = 0; c < voxelTex.GetNumMiplevels(); ++c)
 		{
 			uavDesc.mipLevel = c;
-			m_voxelTexUAV[c] = context.CreateUav(voxelTex, formatVoxel, uavDesc);
+			m_voxelColorTexUAV[c] = context.CreateUav(voxelTex, formatVoxel, uavDesc);
 			srvDesc.numMipLevels = 1;
 			srvDesc.mostDetailedMip = c;
-			m_voxelTexMipSRV[c] = context.CreateSrv(voxelTex, formatVoxel, srvDesc);
+			m_voxelColorTexMipSRV[c] = context.CreateSrv(voxelTex, formatVoxel, srvDesc);
 			uavDesc.depthSize = uavDesc.depthSize / 2;
 		}
 
-		Texture3D secondaryVoxelTex = context.CreateTexture3D(texDesc, { true, false, false, true });
-		secondaryVoxelTex.SetName("Voxelization voxel secondary tex");
+		Texture3D alphaNormalVoxelTex = context.CreateTexture3D(texDesc, { true, false, false, true });
+		alphaNormalVoxelTex.SetName("Voxelization voxel alpha/normal tex");
 
 		srvDesc.mostDetailedMip = 0;
 		srvDesc.numMipLevels = -1;
-		m_voxelSecondaryTexSRV = context.CreateSrv(secondaryVoxelTex, formatVoxel, srvDesc);
+		m_voxelAlphaNormalTexSRV = context.CreateSrv(alphaNormalVoxelTex, formatVoxel, srvDesc);
 		uavDesc.depthSize = voxelDimension;
-		for (unsigned c = 0; c < secondaryVoxelTex.GetNumMiplevels(); ++c)
+		for (unsigned c = 0; c < alphaNormalVoxelTex.GetNumMiplevels(); ++c)
 		{
 			uavDesc.mipLevel = c;
-			m_voxelSecondaryTexUAV[c] = context.CreateUav(secondaryVoxelTex, formatVoxel, uavDesc);
+			m_voxelAlphaNormalTexUAV[c] = context.CreateUav(alphaNormalVoxelTex, formatVoxel, uavDesc);
 			srvDesc.numMipLevels = 1;
 			srvDesc.mostDetailedMip = c;
-			m_voxelSecondaryTexMipSRV[c] = context.CreateSrv(secondaryVoxelTex, formatVoxel, srvDesc);
+			m_voxelAlphaNormalTexMipSRV[c] = context.CreateSrv(alphaNormalVoxelTex, formatVoxel, srvDesc);
 			uavDesc.depthSize = uavDesc.depthSize / 2;
 		}
 	}
