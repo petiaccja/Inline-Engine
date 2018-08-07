@@ -38,7 +38,7 @@ std::ofstream logFile;
 Logger logger;
 LogStream systemLogStream = logger.CreateLogStream("system");
 LogStream graphicsLogStream = logger.CreateLogStream("graphics");
-std::experimental::filesystem::path logFilePath;
+std::filesystem::path logFilePath;
 
 std::string errorMessage;
 
@@ -80,7 +80,7 @@ private:
 int main(int argc, char* argv[]) {
 	// Initialize logger
 	logFile.open("engine_test.log");
-	logFilePath = std::experimental::filesystem::current_path();
+	logFilePath = std::filesystem::current_path();
 	logFilePath /= "engine_test.log";
 	cout << "Log files can be found at:\n   ";
 	cout << "   " << logFilePath << endl;

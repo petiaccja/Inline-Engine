@@ -694,7 +694,7 @@ HRESULT __stdcall Window::DragEnter(IDataObject *pdto, DWORD grfKeyState, POINTL
 	{
 		int fileCount = DragQueryFile((HDROP)medium.hGlobal, 0xFFFFFFFF, nullptr, 0);
 
-		std::vector<std::experimental::filesystem::path> filePaths;
+		std::vector<std::filesystem::path> filePaths;
 		for (int i = 0; i < fileCount; ++i)
 		{
 			int FileNameLength = DragQueryFileA((HDROP)medium.hGlobal, i, nullptr, 0);

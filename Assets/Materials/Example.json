@@ -1,0 +1,8 @@
+{
+  "shader": "SampleShader.json",
+  "inputs": [
+    "textures/models/asphalt.jpg",
+    2.6,
+    "[0.7, 0.2, 0.2, 1.0]"
+  ]
+}

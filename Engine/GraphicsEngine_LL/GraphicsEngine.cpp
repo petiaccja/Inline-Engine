@@ -451,7 +451,7 @@ void GraphicsEngine::LoadPipeline(const std::string& graphDesc) {
 }
 
 
-void GraphicsEngine::SetShaderDirectories(const std::vector<std::experimental::filesystem::path>& directories) {
+void GraphicsEngine::SetShaderDirectories(const std::vector<std::filesystem::path>& directories) {
 	m_shaderManager.ClearSourceDirectories();
 	for (auto directory : directories) {
 		m_shaderManager.AddSourceDirectory(directory);

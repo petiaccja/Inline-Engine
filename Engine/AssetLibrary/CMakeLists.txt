@@ -1,19 +1,27 @@
 # ASSETLIBRARY
 
 # Files
-set(files
+set(primitives
 	"Image.cpp"
 	"Image.hpp"
 	"Model.cpp"
 	"Model.hpp"
 )
 
+set(main
+	"AssetStore.cpp"
+	"AssetStore.hpp"
+)
+
 # Target
-add_library(AssetLibrary STATIC ${files})
+add_library(AssetLibrary STATIC
+	${primitives}
+	${main})
 
 
 # Filters
-source_group("" FILES ${files})
+source_group("Primitives" FILES ${primitives})
+source_group("Main" FILES ${main})
 
 # Dependencies
 target_link_libraries(AssetLibrary

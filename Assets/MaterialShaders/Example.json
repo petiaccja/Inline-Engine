@@ -1,0 +1,42 @@
+{
+    "header": {
+        "contentType": "material"
+    },
+    "nodes": [
+        {
+            "class": "SimpleDiffuse.mtl",
+            "id": 2,
+            "meta_pos": "[-1, -41]"
+        },
+        {
+            "class": "SurfaceInputs",
+            "id": 1,
+            "meta_pos": "[-370, 22]"
+        },
+        {
+            "class": "UniversalSink",
+            "id": 0,
+            "meta_pos": "[371, 19]"
+        }
+    ],
+    "links": [
+        {
+            "src": 2,
+            "dst": 0,
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 1,
+            "dst": 0,
+            "srcp": 1,
+            "dstp": 2
+        },
+        {
+            "src": 1,
+            "dst": 2,
+            "srcp": 0,
+            "dstp": 0
+        }
+    ]
+}

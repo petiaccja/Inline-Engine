@@ -27,7 +27,7 @@ using WindowHandle = HWND;
 
 struct DragDropEvent {
 	std::string text;
-	std::vector<std::experimental::filesystem::path> filePaths;
+	std::vector<std::filesystem::path> filePaths;
 };
 
 enum class eWindowCaptionButton {

@@ -24,13 +24,13 @@ ShaderManager::~ShaderManager() {
 }
 
 
-void ShaderManager::AddSourceDirectory(std::experimental::filesystem::path directory) {
+void ShaderManager::AddSourceDirectory(std::filesystem::path directory) {
 	std::unique_lock<std::shared_mutex> lkg(m_sourceMutex);
 
 	m_directories.insert(directory);
 }
 
-void ShaderManager::RemoveSourceDirectory(std::experimental::filesystem::path directory) {
+void ShaderManager::RemoveSourceDirectory(std::filesystem::path directory) {
 	std::unique_lock<std::shared_mutex> lkg(m_sourceMutex);
 
 	m_directories.erase(directory);

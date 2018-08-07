@@ -179,7 +179,7 @@ public:
 
 	/// <summary> The engine will look for shader files in these directories. </summary>
 	/// <remarks> May be absolute, relative, or whatever paths you OS can handle. </remarks>
-	void SetShaderDirectories(const std::vector<std::experimental::filesystem::path>& directories);
+	void SetShaderDirectories(const std::vector<std::filesystem::path>& directories);
 private:
 	void FlushPipelineQueue();
 	void RegisterPipelineClasses();
