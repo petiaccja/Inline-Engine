@@ -1,12 +1,13 @@
 #include "MaterialShader.hpp"
-
 #include "ShaderManager.hpp"
+
 #include <BaseLibrary/StringUtil.hpp>
+#include <BaseLibrary/Range.hpp>
+#include <BaseLibrary/GraphEditor/GraphParser.hpp>
 
 #include <regex>
 #include <utility>
 #include <lemon/list_graph.h>
-#include "BaseLibrary/Range.hpp"
 #include <lemon/connectivity.h>
 
 namespace inl::gxeng {
@@ -518,6 +519,49 @@ void MaterialShaderGraph::SetGraph(std::vector<std::unique_ptr<MaterialShader>> 
 	ss << "graphclass_" << std::hex << std::hash<std::string>()(m_sourceCode);
 	SetClassName(ss.str());
 	RecalcId();
+}
+
+
+void MaterialShaderGraph::SetGraph(std::string jsonDescription) {
+	GraphParser parser;
+	std::vector<std::unique_ptr<MaterialShader>> nodeObjects;
+
+	// Parse JSON.
+	parser.Parse(jsonDescription);
+
+	// Create nodes with initial values.
+	for (auto& nodeDesc : parser.GetNodes()) {
+		auto nodeObject = std::make_unique<MaterialShaderEquation>(m_shaderManager);
+		nodeObject->SetSourceFile(nodeDesc.cl);
+		if (nodeDesc.name) {
+			nodeObject->SetDisplayName(nodeDesc.name.value());
+		}
+
+		nodeObjects.push_back(std::move(nodeObject));
+	}
+
+	// Link nodes above.
+	for (auto& info : parser.GetLinks()) {
+		MaterialShader *src = nullptr, *dst = nullptr;
+		MaterialShaderOutput* srcp = nullptr;
+		MaterialShaderInput* dstp = nullptr;
+
+		// Find src and dst nodes.
+		size_t srcNodeIdx = parser.FindNode(info.srcid, info.srcname);
+		size_t dstNodeIdx = parser.FindNode(info.dstid, info.dstname);
+
+		src = nodeObjects[srcNodeIdx].get();
+		dst = nodeObjects[dstNodeIdx].get();
+
+		// Find src and dst ports.
+		srcp = static_cast<MaterialShaderOutput*>(parser.FindOutputPort(src, info.srcpidx, info.srcpname));
+		dstp = static_cast<MaterialShaderInput*>(parser.FindInputPort(dst, info.dstpidx, info.dstpname));
+
+		// Link said ports
+		srcp->Link(dstp);
+	}
+
+	SetGraph(std::move(nodeObjects));
 }
 
 

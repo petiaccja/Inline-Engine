@@ -183,6 +183,8 @@ public:
 
 	void SetGraph(std::vector<std::unique_ptr<MaterialShader>> nodes);
 
+	/// <summary> Cannot handle nested graphs. </summary>
+	void SetGraph(std::string jsonDescription);
 private:
 	// Creates one graph node per shader node, adds arc in graph for any two shader nodes which have their ports linked together.
 	static void CalculateDependencyGraph(const std::vector<std::unique_ptr<MaterialShader>>& nodes,
