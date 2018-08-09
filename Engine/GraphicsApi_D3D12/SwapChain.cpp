@@ -4,6 +4,7 @@
 #include "../GraphicsApi_LL/Exception.hpp"
 
 #include <D3d12.h>
+#include <d3dcompiler.h>
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
 
 using namespace inl::gxapi;

@@ -40,7 +40,7 @@ struct FrameContext {
 	ShaderManager* shaderManager = nullptr;
 
 	CommandQueue* commandQueue = nullptr;
-	RenderTargetView2D* backBuffer = nullptr;
+	Texture2D backBuffer;
 	const std::set<Scene*>* scenes = nullptr;
 	const std::set<BasicCamera*>* cameras = nullptr;
 	const std::vector<UploadManager::UploadDescription>* uploadRequests = nullptr;

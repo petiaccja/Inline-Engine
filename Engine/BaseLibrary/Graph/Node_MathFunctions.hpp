@@ -16,12 +16,12 @@ class MathFunctionNode
 {
 public:
 	MathFunctionNode() {
-		this->GetInput<0>().AddObserver(this);
+		this->template GetInput<0>().AddObserver(this);
 	}
 
 	void Update() override final {
-		ArithmeticT a = this->GetInput<0>().Get();
-		this->GetOutput<0>().Set(Function(a));
+		ArithmeticT a = this->template GetInput<0>().Get();
+		this->template GetOutput<0>().Set(Function(a));
 	}
 
 	void Notify(InputPortBase* sender) override {

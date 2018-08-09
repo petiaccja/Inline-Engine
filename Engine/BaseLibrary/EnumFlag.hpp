@@ -10,13 +10,13 @@ namespace impl {
 template <class T>
 struct IsEnumFlagSuitable {
 private:
-	template <class U = decltype(T::EnumT())>
+	template <class U = typename T::EnumT>
 	static constexpr bool has(int) { return true; }
 
 	template <class U>
 	static constexpr bool has(...) { return false; }
 public:
-	static constexpr bool value = has<int>(0) && std::is_enum_v<T::EnumT>;
+	static constexpr bool value = has<int>(0) && std::is_enum_v<typename T::EnumT>;
 };
 
 }

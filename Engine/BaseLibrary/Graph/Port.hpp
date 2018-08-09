@@ -328,7 +328,7 @@ private:
 };
 
 
-template <class T, class ConverterT = PortConverter<T>>
+template <class T, class ConverterT>
 void InputPort<T, ConverterT>::SetConvert(const void* object, std::type_index type) {
 	isSet = true;
 	if (type == typeid(T)) {
@@ -340,7 +340,7 @@ void InputPort<T, ConverterT>::SetConvert(const void* object, std::type_index ty
 }
 
 
-template <class T, class ConverterT = PortConverter<T>>
+template <class T, class ConverterT>
 bool InputPort<T, ConverterT>::IsCompatible(std::type_index type) const {
 	if (type == typeid(T)) {
 		return true;

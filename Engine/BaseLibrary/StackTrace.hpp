@@ -38,6 +38,7 @@ std::ostream& operator<<(std::ostream& os, const StackFrameT<Allocator>& frame) 
 template <template <class> class Allocator = std::allocator>
 std::vector<StackFrameT<Allocator>, Allocator<StackFrameT<Allocator>>> GetStackTrace() {
 	// Initialize sym stuff
+	[[maybe_unused]]
 	static bool isInitalized = [] {
 		SymInitialize(GetCurrentProcess(), NULL, TRUE);
 		return true;

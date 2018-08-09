@@ -12,6 +12,8 @@ public:
 	SpinMutex();
 	SpinMutex(const SpinMutex&) = delete;
 	SpinMutex& operator=(const SpinMutex&) = delete;
+	SpinMutex(SpinMutex&&) noexcept;
+	SpinMutex& operator=(SpinMutex&&) noexcept;
 
 	void lock();
 	bool try_lock();

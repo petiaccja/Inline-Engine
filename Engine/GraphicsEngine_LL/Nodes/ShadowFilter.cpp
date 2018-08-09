@@ -502,7 +502,7 @@ void ShadowFilter::Execute(RenderContext& context) {
 		commandList.SetScissorRects(1, &rect);
 		commandList.SetViewports(1, &viewport);
 
-		uniformsCBData.direction = Vec2(0.89442719082100156952748325334158, 0.44721359585778655717526397765935) * 1.11803398875;
+		uniformsCBData.direction = Vec2(0.89442719082100156952748325334158f, 0.44721359585778655717526397765935f) * 1.11803398875f;
 
 		commandList.SetPipelineState(m_blurPSO.get());
 		commandList.SetGraphicsBinder(&m_binder.value());

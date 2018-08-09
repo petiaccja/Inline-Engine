@@ -31,7 +31,7 @@ eChannelType Image::GetType() const {
 	TranslateImageType(type, count);
 	return type;
 }
-size_t Image::GetChannelCount() const {
+int Image::GetChannelCount() const {
 	eChannelType type;
 	size_t count;
 	TranslateImageType(type, count);

@@ -415,7 +415,7 @@ void AssertThrow(bool condition, const std::string& text) {
 	if (!condition) {
 		throw InvalidArgumentException(text);
 	}
-};
+}
 
 
 NodeDescription ParseNode(const rapidjson::GenericValue<rapidjson::UTF8<>>& obj) {

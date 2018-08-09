@@ -147,7 +147,7 @@ std::string PipelineStateManager::GenerateMaterialShader(const Material& materia
 		}
 	}
 
-	int numOutParams = 0;
+	size_t numOutParams = 0;
 	for (auto i : Range(shader.GetNumOutputs())) {
 		if (shader.GetOutput(i)->index >= 0) {
 			mtlMain << "    " << shader.GetOutput(i)->GetType() << " " << shader.GetOutput(i)->GetName() << ";\n";
@@ -155,7 +155,7 @@ std::string PipelineStateManager::GenerateMaterialShader(const Material& materia
 		}
 	}
 
-	int numParams = shader.GetNumInputs() + numOutParams;
+	size_t numParams = shader.GetNumInputs() + numOutParams;
 	std::vector<std::string> params(numParams);
 
 	for (auto i : Range(shader.GetNumOutputs())) {

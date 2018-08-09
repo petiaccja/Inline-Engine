@@ -4,7 +4,6 @@
 #include "../GraphicsApi_LL/Common.hpp"
 
 #include <dxgi1_4.h>
-#include <d3dcompiler.h>
 #include <wrl.h>
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
 

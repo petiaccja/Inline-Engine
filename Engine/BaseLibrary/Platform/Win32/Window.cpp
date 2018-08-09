@@ -591,7 +591,7 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 		case WM_MOUSEWHEEL: {
 			signed short rot = static_cast<signed short>(HIWORD(wParam));
 			MouseWheelEvent evt;
-			evt.rotation = rot / WHEEL_DELTA;
+			evt.rotation = (float)rot / (float)WHEEL_DELTA;
 			instance.CallEvent(instance.OnMouseWheel, evt);
 			break;
 		}

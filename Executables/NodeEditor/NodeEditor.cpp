@@ -76,7 +76,14 @@ void NodeEditor::Update() {
 
 
 void NodeEditor::OnResize(ResizeEvent evt) {
+	evt.clientSize = Max(evt.clientSize, Vec2u(1, 1));
+
 	m_graphicsEngine->SetScreenSize(evt.clientSize.x, evt.clientSize.y);
+	
+	m_camera->SetExtent(Vec2(evt.clientSize));
+
+	m_background->SetPosition(m_camera->GetPosition());
+	m_background->SetScale(m_camera->GetExtent());
 }
 
 void NodeEditor::OnMouseMove(MouseMoveEvent evt) {
@@ -611,7 +618,7 @@ void NodeEditor::SaveFile(std::string path) {
 	for (auto& node : m_nodes) {
 		avg += node->GetPosition();
 	}
-	avg /= m_nodes.size();
+	avg /= (float)m_nodes.size();
 
 	for (auto& node : m_nodes) {
 		Vec2 realNodePos = node->GetPosition() - avg;

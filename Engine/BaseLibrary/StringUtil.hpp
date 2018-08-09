@@ -70,7 +70,7 @@ auto TokenizeStringView(const std::basic_string_view<CharT, Traits>& str,
 	std::vector<StringViewT> tokens;
 	std::optional<StringViewT> token;
 	StringViewT currentView = str;
-	while (token = NextToken(currentView, delimiters)) {
+	while ((token = NextToken(currentView, delimiters))) {
 		if (!token.value().empty() || !trimEmpty) {
 			tokens.push_back(token.value());
 		}

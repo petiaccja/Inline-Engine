@@ -183,6 +183,7 @@ public:
 	ComputeCmdListPtr RequestComputeList(gxapi::ICommandAllocator* allocator);
 	CopyCmdListPtr RequestCopyList(gxapi::ICommandAllocator* allocator);
 	void RecycleList(gxapi::ICommandList* list);
+	void Clear();
 
 	gxapi::IGraphicsApi* GetGraphicsApi() const;
 

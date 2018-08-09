@@ -406,10 +406,10 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 	};
 
 	// Set backBuffer to PRESENT state.
-	gxapi::eResourceState bbState = context.backBuffer->GetResource().ReadState(0);
+	gxapi::eResourceState bbState = context.backBuffer.ReadState(0);
 	auto* prevCopyList = dynamic_cast<gxapi::ICopyCommandList*>(prevList.commandList.get());
 	if (bbState != gxapi::eResourceState::PRESENT) {
-		gxapi::TransitionBarrier barrier(context.backBuffer->GetResource()._GetResourcePtr(), bbState, gxapi::eResourceState::PRESENT);
+		gxapi::TransitionBarrier barrier(context.backBuffer._GetResourcePtr(), bbState, gxapi::eResourceState::PRESENT);
 		prevCopyList->ResourceBarrier(barrier);
 	}
 	prevCopyList->Close();
@@ -536,13 +536,20 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 	auto commandAllocator = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
 	auto commandList = context.commandListPool->RequestGraphicsList(commandAllocator.get());
 
-	gxapi::DescriptorHandle rtvHandle = context.backBuffer->GetHandle();
+	gxapi::RenderTargetViewDesc rtvDesc;
+	rtvDesc.dimension = gxapi::eRtvDimension::TEXTURE2DARRAY;
+	rtvDesc.tex2DArray.activeArraySize = 1;
+	rtvDesc.tex2DArray.firstArrayElement = 0;
+	rtvDesc.tex2DArray.firstMipLevel = 0;
+	rtvDesc.tex2DArray.planeIndex = 0;
+	RenderTargetView2D rtv{ context.backBuffer, *context.rtvHeap, context.backBuffer.GetFormat(), rtvDesc.tex2DArray };
+	gxapi::DescriptorHandle rtvHandle = rtv.GetHandle();
 
 	// Transition backbuffer to RTV.
-	if (context.backBuffer->GetResource().ReadState(0) != gxapi::eResourceState::RENDER_TARGET) {
+	if (context.backBuffer.ReadState(0) != gxapi::eResourceState::RENDER_TARGET) {
 		commandList->ResourceBarrier(gxapi::TransitionBarrier(
-			context.backBuffer->GetResource()._GetResourcePtr(),
-			context.backBuffer->GetResource().ReadState(0),
+			context.backBuffer._GetResourcePtr(),
+			context.backBuffer.ReadState(0),
 			gxapi::eResourceState::RENDER_TARGET,
 			0));
 	}
@@ -551,8 +558,8 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 	commandList->SetRenderTargets(1, &rtvHandle);
 
 	// Draw image.
-	int width = (int)context.backBuffer->GetResource().GetWidth();
-	int height = (int)context.backBuffer->GetResource().GetHeight();
+	int width = (int)context.backBuffer.GetWidth();
+	int height = (int)context.backBuffer.GetHeight();
 	commandList->ClearRenderTarget(rtvHandle, gxapi::ColorRGBA{ 0.2f, 0.2f, 0.2f });
 	std::vector<gxapi::Rectangle> rects;
 	for (float t = 0.2f; t < 0.8005f; t += 0.05f) {
@@ -582,14 +589,15 @@ void Scheduler::RenderFailureScreen(FrameContext context) {
 
 	// Transition backbuffer to PRESENT.
 	commandList->ResourceBarrier(gxapi::TransitionBarrier(
-		context.backBuffer->GetResource()._GetResourcePtr(),
+		context.backBuffer._GetResourcePtr(),
 		gxapi::eResourceState::RENDER_TARGET,
 		gxapi::eResourceState::PRESENT,
 		0));
-	context.backBuffer->GetResource().RecordState(0, gxapi::eResourceState::PRESENT);
+	context.backBuffer.RecordState(0, gxapi::eResourceState::PRESENT);
 
 	// Enqueue command list.
 	commandList->Close();
+	assert(false); // RTV must be passed on to cleanup thread.
 	EnqueueCommandList(*context.commandQueue, std::move(commandList), std::move(commandAllocator), {}, {}, {}, context);
 }
 

@@ -86,7 +86,7 @@ int main() {
 		// Create window.
 		Window window;
 		window.SetTitle("Node editor");
-		window.SetSize({ 1600, 920 });
+		window.SetSize({ 700, 400 });
 
 		// Create graphics engine.
 		gxeng::GraphicsEngineDesc desc;

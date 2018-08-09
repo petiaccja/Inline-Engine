@@ -296,7 +296,7 @@ void HDRCombine::Execute(RenderContext& context) {
 	// 2 stop = 4x normal
 	// 3 stop = 8x normal
 	float eVstops = 0.0;
-	uniformsCBData.exposure = std::pow(2.0, eVstops);
+	uniformsCBData.exposure = std::pow(2.0f, eVstops);
 	uniformsCBData.bloomWeight = 1.0f;
 
 	//create single-frame only cb

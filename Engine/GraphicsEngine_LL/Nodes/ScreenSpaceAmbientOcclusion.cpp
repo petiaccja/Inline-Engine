@@ -250,7 +250,7 @@ void ScreenSpaceAmbientOcclusion::Execute(RenderContext& context) {
 	*/
 
 
-	uniformsCBData.temporalIndex = temporalIndex;
+	uniformsCBData.temporalIndex = (float)temporalIndex;
 	temporalIndex = (temporalIndex + 1) % 6;
 
 	Mat44 v = m_camera->GetViewMatrix();

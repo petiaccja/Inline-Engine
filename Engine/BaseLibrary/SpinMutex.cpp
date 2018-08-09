@@ -13,6 +13,19 @@ SpinMutex::SpinMutex() {
 	flag = false;
 }
 
+SpinMutex::SpinMutex(SpinMutex&& rhs) noexcept 
+	: ownerId(rhs.ownerId.load()), flag(rhs.flag.load())
+{
+	rhs.flag.store(false);
+}
+
+SpinMutex& SpinMutex::operator=(SpinMutex&& rhs) noexcept {
+	ownerId = rhs.ownerId.load();
+	flag = rhs.flag.load();
+	rhs.flag.store(false);
+	return *this;
+}
+
 void SpinMutex::lock() {
 	bool expected;
 	bool success;

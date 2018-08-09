@@ -32,25 +32,35 @@ struct any<HeadT, TailT...> : public std::integral_constant<bool, HeadT::value |
 template <class T, class OS = std::ostream>
 struct is_printable {
 private:
-	template <class U = decltype(*(OS*)nullptr << *(T*)nullptr)>
+	template <OS&(*P)(OS&, const T&) = &OS::operator<< >
 	static constexpr bool check(int) { return true; }
 
 	static constexpr bool check(...) { return false; }
 public:
 	static constexpr bool value = check(1);
+};
+template <class OS>
+struct is_printable<void, OS> {
+	static constexpr bool value = false;
 };
 
 // can be read from istream
 template <class T, class IS = std::istream>
 struct is_readable {
 private:
-	template <class U = decltype(*(IS*)nullptr >> *(T*)nullptr)>
+	template <IS&(*P)(IS&, const T&) = &IS::operator>> >
 	static constexpr bool check(int) { return true; }
 
 	static constexpr bool check(...) { return false; }
 public:
 	static constexpr bool value = check(1);
 };
+
+template <class IS>
+struct is_readable<void, IS> {
+	static constexpr bool value = false;
+};
+
 
 
 // can be compared with == 

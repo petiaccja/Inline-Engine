@@ -9,6 +9,7 @@
 #include <vector>
 #include <cassert>
 
+#define _CRT_SECURE_NO_WARNINGS
 
 namespace inl {
 namespace gxapi_dx12 {

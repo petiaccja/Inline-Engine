@@ -72,7 +72,7 @@ public:
 	size_t GetBytesPerRow() const;
 
 	eChannelType GetType() const;
-	size_t GetChannelCount() const;
+	int GetChannelCount() const;
 
 	void* GetData();
 	const void* GetData() const;

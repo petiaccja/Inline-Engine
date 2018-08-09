@@ -221,6 +221,7 @@ gxeng::IPixelReader& GetPixelReader(eChannelType channelType, int channelCount) 
 		case eChannelType::INT16: return GetPixelReaderCh<gxeng::ePixelChannelType::INT16_NORM>(channelCount);
 		case eChannelType::INT32: return GetPixelReaderCh<gxeng::ePixelChannelType::INT32>(channelCount);
 		case eChannelType::FLOAT: return GetPixelReaderCh<gxeng::ePixelChannelType::FLOAT32>(channelCount);
+		default: std::terminate();
 	}
 }
 
@@ -235,8 +236,8 @@ std::shared_ptr<gxeng::Image> AssetStore::ForceLoadImage(std::filesystem::path p
 	gxeng::IPixelReader& reader = GetPixelReader(channelType, channelCount);
 	
 	std::shared_ptr<gxeng::Image> resource(m_graphicsEngine->CreateImage());
-	resource->SetLayout(image.GetWidth(), image.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
-	resource->Update(0, 0, image.GetWidth(), image.GetHeight(), 0, image.GetData(), reader);
+	resource->SetLayout(image.GetWidth(), (uint32_t)image.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
+	resource->Update(0, 0, image.GetWidth(), (uint32_t)image.GetHeight(), 0, image.GetData(), reader);
 
 	return resource;
 }

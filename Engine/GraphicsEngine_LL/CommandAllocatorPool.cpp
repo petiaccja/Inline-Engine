@@ -45,6 +45,14 @@ void CommandAllocatorPool::RecycleAllocator(gxapi::ICommandAllocator* allocator)
 	}
 }
 
+
+void CommandAllocatorPool::Clear() {
+	m_cpPool.Reset();
+	m_cuPool.Reset();
+	m_gxPool.Reset();
+}
+
+
 gxapi::IGraphicsApi* CommandAllocatorPool::GetGraphicsApi() const {
 	return m_gxPool.GetGraphicsApi();
 }

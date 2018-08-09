@@ -18,7 +18,7 @@ std::optional<std::string> NodeEditor::OpenDialog() {
 	openFileName.lpstrFilter = "JSON files (.json)\0*.json\0\0";
 	openFileName.nFilterIndex = 1;
 	openFileName.lpstrFile = path.data();
-	openFileName.nMaxFile = path.size()-1;
+	openFileName.nMaxFile = (DWORD)(path.size()-1);
 	openFileName.lpstrTitle = "Select JSON pipeline file";
 
 	BOOL ret = GetOpenFileNameA(&openFileName);
@@ -36,7 +36,7 @@ std::optional<std::string> NodeEditor::SaveDialog() {
 	openFileName.lpstrFilter = "JSON files (.json)\0*.json\0\0";
 	openFileName.nFilterIndex = 1;
 	openFileName.lpstrFile = path.data();
-	openFileName.nMaxFile = path.size()-1;
+	openFileName.nMaxFile = (DWORD)(path.size()-1);
 	openFileName.lpstrTitle = "Select JSON pipeline file";
 
 	BOOL ret = GetSaveFileNameA(&openFileName);

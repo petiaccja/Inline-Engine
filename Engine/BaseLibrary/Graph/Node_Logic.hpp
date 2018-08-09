@@ -31,7 +31,7 @@ public:
 		}
 	}
 
-	void Notify(InputPortBase* sender) {
+	void Notify(InputPortBase* sender) override {
 		for (ptrdiff_t i = 0; i < 6; i++) {
 			if (sender == GetInput(i)) {
 				lastActivated = i;
@@ -95,7 +95,7 @@ public:
 		}
 	}
 
-	void Notify(InputPortBase* sender) {
+	void Notify(InputPortBase* sender) override {
 		if (sender == GetInput(0)) {
 			activationMap = 0;
 		}

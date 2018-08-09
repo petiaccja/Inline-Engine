@@ -188,7 +188,7 @@ void GraphicsEngine::Update(float elapsed) {
 	context.shaderManager = &m_shaderManager;
 
 	context.commandQueue = &m_masterCommandQueue;
-	context.backBuffer = &m_backBufferHeap->GetBackBuffer(backBufferIndex);
+	context.backBuffer = m_backBufferHeap->GetBackBuffer(backBufferIndex);
 	context.scenes = &m_scenes;
 	context.cameras = &m_cameras;
 
@@ -224,7 +224,7 @@ void GraphicsEngine::Update(float elapsed) {
 
 void GraphicsEngine::SetScreenSize(unsigned width, unsigned height) {
 	if (width == 0 || height == 0) {
-		return;
+		throw InvalidArgumentException("Neither dimension can be zero.");
 	}
 
 	FlushPipelineQueue();
@@ -232,7 +232,7 @@ void GraphicsEngine::SetScreenSize(unsigned width, unsigned height) {
 	m_backBufferHeap.reset();
 	m_scheduler.ReleaseResources();
 	
-	m_graphicsApi->ReportLiveObjects();
+	//m_graphicsApi->ReportLiveObjects();
 
 	m_swapChain->Resize(width, height);
 	m_backBufferHeap = std::make_unique<BackBufferManager>(m_graphicsApi, m_swapChain.get());
@@ -512,7 +512,7 @@ void GraphicsEngine::UpdateSpecialNodes() {
 	}
 
 	int backBufferIndex = m_swapChain->GetCurrentBufferIndex();
-	Texture2D backBuffer = m_backBufferHeap->GetBackBuffer(backBufferIndex).GetResource();
+	Texture2D backBuffer = m_backBufferHeap->GetBackBuffer(backBufferIndex);
 
 	for (auto node : m_specialNodes) {
 		if (auto* getScene = dynamic_cast<nodes::GetSceneByName*>(node)) {

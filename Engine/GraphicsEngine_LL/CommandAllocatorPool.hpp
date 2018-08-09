@@ -163,6 +163,7 @@ public:
 
 	CmdAllocPtr RequestAllocator(gxapi::eCommandListType type);
 	void RecycleAllocator(gxapi::ICommandAllocator* allocator);
+	void Clear();
 
 	gxapi::IGraphicsApi* GetGraphicsApi() const;
 

@@ -21,6 +21,8 @@ endif()
 # Determine compiler
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 	set(TARGET_COMPILER_MSVC 1)
+elseif (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	set(TARGET_COMPILER_CLANG 1)
 endif()
 
 

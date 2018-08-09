@@ -43,6 +43,9 @@ CopyCmdListPtr CommandListPool::RequestCopyList(gxapi::ICommandAllocator* alloca
 
 
 void CommandListPool::RecycleList(gxapi::ICommandList* list) {
+	if (auto x = dynamic_cast<gxapi::IComputeCommandList*>(list)) {
+		x->ResetState(nullptr);
+	}
 	switch (list->GetType())
 	{
 	case gxapi::eCommandListType::COPY:
@@ -55,6 +58,14 @@ void CommandListPool::RecycleList(gxapi::ICommandList* list) {
 		assert(false); // hülye vagy bazmeg
 	}
 }
+
+
+void CommandListPool::Clear() {
+	m_cpPool.Reset();
+	m_cuPool.Reset();
+	m_gxPool.Reset();
+}
+
 
 gxapi::IGraphicsApi* CommandListPool::GetGraphicsApi() const {
 	return m_gxPool.GetGraphicsApi();

@@ -2,6 +2,7 @@
 
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
 #include <GraphicsApi_LL/ISwapChain.hpp>
+#include "MemoryObject.hpp"
 
 
 namespace inl {
@@ -16,14 +17,13 @@ class BackBufferManager
 public:
 	BackBufferManager(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapChain* swapChain);
 
-	RenderTargetView2D& GetBackBuffer(unsigned index);
+	Texture2D& GetBackBuffer(unsigned index);
 
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
 	gxapi::ISwapChain* m_swapChain;
 
-	std::unique_ptr<gxapi::IDescriptorHeap> m_descriptorHeap;
-	std::vector<RenderTargetView2D> m_backBuffers;
+	std::vector<Texture2D> m_backBuffers;
 };
 
 
