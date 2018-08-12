@@ -25,7 +25,7 @@ public:
 	class Parameter {
 	public:
 		Parameter();
-		Parameter(std::string name, eMaterialShaderParamType type, int shaderParamIndex);
+		Parameter(std::string name, eMaterialShaderParamType type, int shaderParamIndex, bool optional);
 
 		const std::string& GetName() const;
 		eMaterialShaderParamType GetType() const;
@@ -38,6 +38,9 @@ public:
 		operator Image*() const;
 		operator Vec4() const;
 		operator float() const;
+
+		bool IsSet() const { return m_set; }
+		bool IsOptional() const { return m_optional; }
 	private:
 		std::string m_name;
 		eMaterialShaderParamType m_type;
@@ -50,6 +53,8 @@ public:
 			Vec4 color;
 			float value;
 		} m_data;
+		bool m_set = false;
+		bool m_optional = false;
 	};
 
 public:

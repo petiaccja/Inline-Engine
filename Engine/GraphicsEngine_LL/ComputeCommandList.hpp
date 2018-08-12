@@ -39,7 +39,7 @@ public:
 	void SetPipelineState(gxapi::IPipelineState* pipelineState);
 
 	// set compute root signature stuff
-	void SetComputeBinder(Binder* binder);
+	void SetComputeBinder(const Binder* binder);
 
 	void BindCompute(BindParameter parameter, const TextureView1D& shaderResource);
 	void BindCompute(BindParameter parameter, const TextureView2D& shaderResource);

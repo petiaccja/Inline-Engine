@@ -198,7 +198,7 @@ void GraphicsCommandList::SetViewports(unsigned numViewports, gxapi::Viewport* v
 // Set graphics root signature stuff
 //------------------------------------------------------------------------------
 
-void GraphicsCommandList::SetGraphicsBinder(Binder* binder) {
+void GraphicsCommandList::SetGraphicsBinder(const Binder* binder) {
 	assert(binder != nullptr);
 	try {
 		m_graphicsBindingManager.SetBinder(binder);

@@ -6,42 +6,41 @@ struct VsConstants
 };
 ConstantBuffer<VsConstants> vsConstants : register(b0);
 
-struct PsInput
-{
+struct PsInput {
     float4 hPos : SV_Position;
-    float4 wPos : TEXCOORD10;
-    float2 sVelocity : VELOCITY;
+    float4 wPos : Output0;
+    float2 sVelocity : Output1;
 #ifdef HAS_NORMAL
-	float3 wNormal : NORMAL;
+	float3 wNormal : Output2;
 #endif
 #ifdef HAS_COLOR
-	float4 color : COLOR0;
+	float4 color : Output3;
 #endif
 #ifdef HAS_TEXCOORD
-	float2 texCoord : TEX_COORD0;
+	float2 texCoord : TEXCOORD0;
 #endif
 #ifdef HAS_TANGENT
-	float3 wTangent : TANGENT;
-	float3 wBitangent : BITANGENT;
+	float3 wTangent : Output4;
+	float3 wBitangent : Output5;
 #endif
 };
 
 
-PsInput VSMain(float4 lPos : POSITION,
+PsInput VSMain(float4 lPos : POSITION
 #ifdef HAS_NORMAL
-				float3 lNormal : NORMAL,
+				,float3 lNormal : NORMAL
 #endif
 #ifdef HAS_COLOR
-				float4 color : COLOR,
+				,float4 color : COLOR
 #endif
 #ifdef HAS_TEXCOORD
-				float2 texCoord : TEX_COORD,
+				,float2 texCoord : TEX_COORD
 #endif
 #ifdef HAS_TANGENT
-				float3 lTangent : TANGENT,
+				,float3 lTangent : TANGENT
 #endif
 #ifdef HAS_BITANGENT
-				float3 lBitangent : BITANGENT
+				,float3 lBitangent : BITANGENT
 #endif
 )
 {
@@ -52,7 +51,7 @@ PsInput VSMain(float4 lPos : POSITION,
     output.wPos = mul(lPos, vsConstants.world);
 
 #ifdef HAS_NORMAL
-    float3x3 worldRotation = float3x3(vsConstants.world);
+    float3x3 worldRotation = (float3x3)vsConstants.world;
     output.wNormal = mul(lNormal, worldRotation);
 #endif
 #ifdef HAS_COLOR
@@ -82,6 +81,8 @@ struct PsConstants
 };
 ConstantBuffer<PsConstants> psConstants : register(b100);
 
+SamplerState globalSamp : register(s0);
+
 
 struct PsOutput
 {
@@ -103,9 +104,9 @@ static float4 go_color;
 
 
 // Implementations
-#define NORMAL_IMPLEMENTATION return go_wNormal;
-#define TANGENT_IMPLEMENTATION return go_wTangent;
-#define BITANGENT_IMPLEMENTATION return go_wBitangent;
+#define NORMAL_IMPLEMENTATION return g_wNormal;
+#define TANGENT_IMPLEMENTATION return g_wTangent;
+#define BITANGENT_IMPLEMENTATION return g_wBitangent;
 #define COLOR_IMPLEMENTATION return g_vertexColor;
 #define TEXCOORD_IMPLEMENTATION return g_texCoord;
 
@@ -115,37 +116,40 @@ static float4 go_color;
 
 #define SINK_IMPLEMENTATION go_color = color;
 
-struct MapColor2D {
-    Texture2DArray<float4> tex;
-    SamplerState samp;
-};
-struct MapValue2D {
-    Texture2DArray<float> tex;
-    SamplerState samp;
-};
+
+#define main main_sf
+#include "SurfaceInputsFunc.hlsl"
+#define main main_li
+#include "LightInputs.hlsl"
+#define main main_tp
+#include "Types.hlsl"
+#undef main
 
 
 //!1#include "material_shader_################.hlsl"
+#ifdef VERTEX_SHADER
+void MtlMain() {}
+#endif
 
 
 PsOutput PSMain(PsInput input)
 {
     g_wPosition = input.wPos;
 
-#if HAS_NORMAL
+#ifdef HAS_NORMAL
     g_wNormal = input.wNormal;
 #endif
 
-#if HAS_TANGENT
+#ifdef HAS_TANGENT
     g_wTangent = input.wTangent;
     g_wBitangent = input.wBitangent;
 #endif
 
-#if HAS_COLOR
+#ifdef HAS_COLOR
     g_vertexColor = input.color;
 #endif
 
-#if HAS_TEXCOORD
+#ifdef HAS_TEXCOORD
     g_texCoord = input.texCoord;
 #endif
 
@@ -153,5 +157,6 @@ PsOutput PSMain(PsInput input)
 
     MtlMain();
 
-	output.color = go_color;
+    output.color = float4(1, 0, 0, 1); //go_color;
+    return output;
 }

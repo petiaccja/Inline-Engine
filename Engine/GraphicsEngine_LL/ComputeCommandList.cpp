@@ -94,7 +94,7 @@ void ComputeCommandList::SetPipelineState(gxapi::IPipelineState* pipelineState) 
 //------------------------------------------------------------------------------
 // Set compute root signature stuff
 //------------------------------------------------------------------------------
-void ComputeCommandList::SetComputeBinder(Binder* binder) {
+void ComputeCommandList::SetComputeBinder(const Binder* binder) {
 	assert(binder != nullptr);
 	m_computeBindingManager.SetBinder(binder);
 }

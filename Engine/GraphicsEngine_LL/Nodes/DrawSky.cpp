@@ -33,6 +33,14 @@ void DrawSky::Setup(SetupContext & context) {
 	// Set inputs, outputs
 
 	auto renderTarget = this->GetInput<0>().Get();
+	auto depthStencil = this->GetInput<1>().Get();
+	if (!renderTarget) {
+		throw InvalidArgumentException("Render target cannot be null.");
+	}
+	if (!depthStencil) {
+		throw InvalidArgumentException("Depth-stencil cannot be null.");
+	}
+
 	gxapi::RtvTexture2DArray rtvDesc;
 	rtvDesc.activeArraySize = 1;
 	rtvDesc.firstArrayElement = 0;
@@ -41,7 +49,6 @@ void DrawSky::Setup(SetupContext & context) {
 	m_rtv = context.CreateRtv(renderTarget, renderTarget.GetFormat(), rtvDesc);
 	
 
-	auto depthStencil = this->GetInput<1>().Get();
 	const gxapi::eFormat currDepthStencilFormat = FormatAnyToDepthStencil(depthStencil.GetFormat());
 	gxapi::DsvTexture2DArray dsvDesc;
 	dsvDesc.activeArraySize = 1;

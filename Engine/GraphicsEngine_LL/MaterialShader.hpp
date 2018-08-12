@@ -50,6 +50,7 @@ public:
 	MaterialShaderOutput() = default;
 	MaterialShaderOutput(const MaterialShader& parent);
 	MaterialShaderOutput(const MaterialShader& parent, std::string name, std::string type, int index);
+	~MaterialShaderOutput();
 
 	void Link(MaterialShaderInput* target);
 	void UnlinkAll();
@@ -77,6 +78,7 @@ public:
 	MaterialShaderInput() = default;
 	MaterialShaderInput(const MaterialShader& parent);
 	MaterialShaderInput(const MaterialShader& parent, std::string name, std::string type, int index, std::string defaultValue = {});
+	~MaterialShaderInput();
 
 	void Link(MaterialShaderOutput* source);
 	void Unlink();

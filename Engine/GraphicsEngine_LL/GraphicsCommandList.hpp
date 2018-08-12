@@ -81,7 +81,7 @@ public:
 
 
 	// set graphics root signature stuff
-	void SetGraphicsBinder(Binder* binder);
+	void SetGraphicsBinder(const Binder* binder);
 
 	void BindGraphics(BindParameter parameter, const TextureView1D& shaderResource);
 	void BindGraphics(BindParameter parameter, const TextureView2D& shaderResource);

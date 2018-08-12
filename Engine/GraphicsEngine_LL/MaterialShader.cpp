@@ -25,6 +25,10 @@ MaterialShaderInput::MaterialShaderInput(const MaterialShader& parent, std::stri
 	: m_parent(&parent), name(std::move(name)), type(std::move(type)), index(index), m_defaultValue(std::move(defaultValue))
 {}
 
+MaterialShaderInput::~MaterialShaderInput() {
+	Unlink();
+}
+
 void MaterialShaderInput::Link(MaterialShaderOutput* source) {
 	source->Link(this);
 }
@@ -77,6 +81,10 @@ MaterialShaderOutput::MaterialShaderOutput(const MaterialShader& parent)
 MaterialShaderOutput::MaterialShaderOutput(const MaterialShader& parent, std::string name, std::string type, int index)
 	: m_parent(&parent), name(std::move(name)), type(std::move(type)), index(index)
 {}
+
+MaterialShaderOutput::~MaterialShaderOutput() {
+	UnlinkAll();
+}
 
 
 void MaterialShaderOutput::Link(MaterialShaderInput* target) {
@@ -663,7 +671,7 @@ void MaterialShaderGraph::CreatePorts(const std::vector<MaterialShaderInput*>& i
 	for (auto input : inputs) {
 		std::string name = input->GetParent()->GetDisplayName() + "_" + input->name;
 
-		MaterialShaderInput port{ *this, name, input->type, idx++ };
+		MaterialShaderInput port{ *this, name, input->type, idx++, input->GetDefaultValue() };
 		m_inputs.push_back(port);
 	}
 	for (auto output : outputs) {

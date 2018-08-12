@@ -1,0 +1,6 @@
+{
+	"shader": "MaterialShaders/SimpleTextured.json",
+	"inputs": {
+		"DiffuseTex_image": "Models/Terrain/terrain.jpg"
+	}
+}

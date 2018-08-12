@@ -41,8 +41,9 @@ void Material::SetShader(const MaterialShader* shader) {
 	int paramIdx = 0;
 	for (auto inputIdx : Range(shader->GetNumInputs())) {
 		const MaterialShaderInput* input = shader->GetInput(inputIdx);
+		bool mandatory = input->GetDefaultValue().empty();
 		eMaterialShaderParamType type = GetParameterType(input->type);
-		if (type == eMaterialShaderParamType::UNKNOWN && input->GetDefaultValue().empty()) {
+		if (type == eMaterialShaderParamType::UNKNOWN && mandatory) {
 			std::stringstream ssextra;
 			ssextra << "You provided \"" << input->type << "\" for parameter " << inputIdx << ".";
 			ssextra << "See eMaterialShaderParamType for acceptable values.";
@@ -54,7 +55,7 @@ void Material::SetShader(const MaterialShader* shader) {
 		if (type == eMaterialShaderParamType::UNKNOWN) {
 			continue;
 		}
-		parameters.emplace_back(input->name, type, inputIdx);
+		parameters.emplace_back(input->name, type, (int)inputIdx, !mandatory);
 		paramNameMap.insert_or_assign(input->name, paramIdx);
 		++paramIdx;
 	}
@@ -84,12 +85,16 @@ const Material::Parameter& Material::operator[](size_t index) const {
 
 Material::Parameter& Material::operator[](const std::string& name) {
 	auto it = m_paramNameMap.find(name);
-	assert(it != m_paramNameMap.end());
+	if (it == m_paramNameMap.end()) {
+		throw InvalidArgumentException("Material input with given name cannot be found.", name);
+	}
 	return (*this)[it->second];
 }
 const Material::Parameter& Material::operator[](const std::string& name) const {
 	auto it = m_paramNameMap.find(name);
-	assert(it != m_paramNameMap.end());
+	if (it == m_paramNameMap.end()) {
+		throw InvalidArgumentException("Material input with given name cannot be found.", name);
+	}
 	return (*this)[it->second];
 }
 
@@ -102,10 +107,13 @@ const Material::Parameter& Material::operator[](const std::string& name) const {
 Material::Parameter::Parameter() {
 	m_type = eMaterialShaderParamType::UNKNOWN;
 }
-Material::Parameter::Parameter(std::string name, eMaterialShaderParamType type, int shaderParamIndex) {
+
+
+Material::Parameter::Parameter(std::string name, eMaterialShaderParamType type, int shaderParamIndex, bool optional) {
 	m_type = type;
 	m_name = std::move(name);
 	m_shaderParamIndex = shaderParamIndex;
+	m_optional = optional;
 }
 
 
@@ -130,6 +138,7 @@ Material::Parameter& Material::Parameter::operator=(Image* image) {
 	}
 
 	m_data.image = image;
+	m_set = true;
 	return *this;
 }
 
@@ -139,6 +148,7 @@ Material::Parameter& Material::Parameter::operator=(Vec4 color) {
 	}
 
 	m_data.color = color;
+	m_set = true;
 	return *this;
 }
 
@@ -148,6 +158,7 @@ Material::Parameter& Material::Parameter::operator=(float value) {
 	}
 
 	m_data.value = value;
+	m_set = true;
 	return *this;
 }
 
@@ -156,6 +167,9 @@ Material::Parameter::operator Image*() const {
 	if (m_type != eMaterialShaderParamType::BITMAP_COLOR_2D && m_type != eMaterialShaderParamType::BITMAP_VALUE_2D) {
 		throw InvalidArgumentException("This parameter is not an image.");
 	}
+	if (!m_set) {
+		throw InvalidStateException("Value first must be set before accesing.");
+	}
 	return m_data.image;
 }
 
@@ -163,12 +177,18 @@ Material::Parameter::operator Vec4() const {
 	if (m_type != eMaterialShaderParamType::COLOR) {
 		throw InvalidArgumentException("This parameter is not a color.");
 	}
+	if (!m_set) {
+		throw InvalidStateException("Value first must be set before accesing.");
+	}
 	return m_data.color;
 }
 
 Material::Parameter::operator float() const {
 	if (m_type != eMaterialShaderParamType::VALUE) {
 		throw InvalidArgumentException("This parameter is not a value.");
+	}
+	if (!m_set) {
+		throw InvalidStateException("Value first must be set before accesing.");
 	}
 	return m_data.value;
 }

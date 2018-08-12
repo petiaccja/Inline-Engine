@@ -36,7 +36,7 @@ protected:
 public:
 	RootTableManager();
 	RootTableManager(gxapi::IGraphicsApi* graphicsApi, CommandListT* commandList);
-	void SetBinder(Binder* binder);
+	void SetBinder(const Binder* binder);
 	void SetDescriptorHeap(StackDescHeap* heap);
 	void CommitDrawCall();
 	void UpdateBinding(gxapi::DescriptorHandle handle, int rootSignatureSlot, int indexInTable);
@@ -53,7 +53,7 @@ private:
 	DescriptorTableState&  FindRootTable(int rootSignatureSlot);
 
 	/// <summary> Calculates root table states based on the currently bound Binder. </summary>
-	std::vector<DescriptorTableState> InitRootTables(Binder* binder);
+	std::vector<DescriptorTableState> InitRootTables(const Binder* binder);
 
 	/// <summary> Marks all root tables committed. Call this after each drawcall. </summary>
 	void CommitRootTables();
@@ -68,7 +68,7 @@ private:
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
 	CommandListT* m_commandList;
-	Binder* m_binder;
+	const Binder* m_binder;
 	StackDescHeap* m_heap;
 
 	// These are only used inside DuplicateRootTable, but we don't want them to allocate every single time.
@@ -103,7 +103,7 @@ RootTableManager<Type>::RootTableManager(gxapi::IGraphicsApi* graphicsApi, Comma
 
 
 template <gxapi::eCommandListType Type>
-void RootTableManager<Type>::SetBinder(Binder* binder) {
+void RootTableManager<Type>::SetBinder(const Binder* binder) {
 	auto rootTableStates = InitRootTables(binder);
 	SetRootSignature(m_commandList, binder->GetRootSignature());
 	for (auto& state : rootTableStates) {
@@ -213,7 +213,7 @@ auto RootTableManager<Type>::FindRootTable(int rootSignatureSlot) -> DescriptorT
 }
 
 template <gxapi::eCommandListType Type>
-std::vector<DescriptorTableState> RootTableManager<Type>::InitRootTables(Binder* binder) {
+std::vector<DescriptorTableState> RootTableManager<Type>::InitRootTables(const Binder* binder) {
 	std::vector<DescriptorTableState> rootTableStates;
 	const gxapi::RootSignatureDesc& desc = binder->GetRootSignatureDesc();
 

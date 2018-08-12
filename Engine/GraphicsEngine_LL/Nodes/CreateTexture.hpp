@@ -80,6 +80,25 @@ public:
 	}
 
 	void Execute(RenderContext& context) override {}
+
+	const std::string& GetInputName(size_t index) const override {
+		static const std::vector<std::string> names = {
+			"Width",
+			"Height",
+			"Format",
+			"Array size",
+			"Usage",
+			"Is cubemap",
+			"Gen mips",
+		};
+		return names[index];
+	}
+	const std::string& GetOutputName(size_t index) const override {
+		static const std::vector<std::string> names = {
+			"Texture",
+		};
+		return names[index];
+	}
 private:
 	gxeng::Texture2D m_texture;
 };

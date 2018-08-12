@@ -16,7 +16,7 @@ namespace gxeng {
 //------------------------------------------------------------------------------
 
 MeshBuffer::MeshBuffer(MemoryManager* memoryManager)
-	: m_memoryManager(memoryManager)
+	: m_memoryManager(memoryManager), m_isIndex32Bit(false)
 {
 	assert(m_memoryManager != nullptr);
 }

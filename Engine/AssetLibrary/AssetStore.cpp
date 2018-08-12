@@ -24,6 +24,11 @@ static StringErrorPosition GetStringErrorPosition(const std::string& str, size_t
 
 
 
+AssetStore::AssetStore(gxeng::GraphicsEngine * graphicsEngine) {
+	m_graphicsEngine = graphicsEngine;
+}
+
+
 std::shared_ptr<gxeng::Mesh> AssetStore::LoadMesh(std::filesystem::path path) {
 	auto& cache = m_cachedMeshes[path];
 	if (!cache.m_forced) {
@@ -150,8 +155,7 @@ std::shared_ptr<gxeng::Material> AssetStore::ForceLoadMaterial(std::filesystem::
 	}
 
 	AssertThrow(doc.IsObject(), "Material JSON document must have an object as root.");
-	AssertThrow(doc.HasMember("header") && doc["header"].IsObject(), R"(Material JSON document must have members "header", "shader" and "inputs")");
-	AssertThrow(doc.HasMember("shader") && doc["shader"].IsString(), R"(Material JSON document must have members "header", "shader" and "inputs")");
+	AssertThrow(doc.HasMember("shader") && doc["shader"].IsString(), R"(Material JSON document must have members "shader" and "inputs")");
 	AssertThrow(doc.HasMember("inputs"), R"(Material JSON document must have members "header", "shader" and "inputs")");
 
 
@@ -252,6 +256,7 @@ void AssetStore::SetMaterialParameter(gxeng::Material::Parameter& param, std::st
 				throw InvalidArgumentException("Given value could not be converted to Vec4.");
 			}
 			param = parsedValue;
+			break;
 		}
 		case gxeng::eMaterialShaderParamType::VALUE: {
 			char* endptr;
@@ -260,11 +265,13 @@ void AssetStore::SetMaterialParameter(gxeng::Material::Parameter& param, std::st
 				throw InvalidArgumentException("Given value could not be converted to float.");
 			}
 			param = parsedValue;
+			break;
 		}
 		case gxeng::eMaterialShaderParamType::BITMAP_COLOR_2D: [[fallthrough]];
 		case gxeng::eMaterialShaderParamType::BITMAP_VALUE_2D: {
 			auto image = LoadImage(value);
 			param = image.get();
+			break;
 		}
 		default: throw InvalidArgumentException("Parameter and given value have different types.");
 	}

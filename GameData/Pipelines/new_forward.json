@@ -1,0 +1,127 @@
+{
+  "header": {
+    "contentType": "pipeline"
+  },
+  "nodes": [
+    {
+      "class": "Pipeline/Render/DrawSky",
+      "id": 6,
+      "meta_pos": "[839, -29]"
+    },
+    {
+      "class": "Pipeline/Render/RenderForwardSimple",
+      "id": 2,
+      "meta_pos": "[413, -24]"
+    },
+    {
+      "class": "Pipeline/System/GetBackBuffer",
+      "id": 3,
+      "meta_pos": "[-472, -237]"
+    },
+    {
+      "class": "Pipeline/System/GetCameraByName",
+      "id": 1,
+      "meta_pos": "[-104, 152]",
+      "inputs": [ "MainCamera" ]
+    },
+    {
+      "class": "Pipeline/System/GetSceneByName",
+      "id": 0,
+      "meta_pos": "[-104, 232]",
+      "inputs": [ "MainScene" ]
+    },
+    {
+      "class": "Pipeline/Utility/CreateTexture",
+      "id": 4,
+      "meta_pos": "[-100, -25]",
+      "inputs": [
+        {},
+        {},
+        "D24_UNORM_S8_UINT",
+        "1",
+        "DS|SR",
+        "false",
+        "false"
+      ]
+    },
+    {
+      "class": "Pipeline/Utility/TextureProperties",
+      "id": 5,
+      "meta_pos": "[-469, -68]"
+    }
+  ],
+  "links": [
+    {
+      "src": 3,
+      "dst": 2,
+      "srcp": 0,
+      "dstp": 0
+    },
+    {
+      "src": 4,
+      "dst": 2,
+      "srcp": 0,
+      "dstp": 1
+    },
+    {
+      "src": 1,
+      "dst": 2,
+      "srcp": 0,
+      "dstp": 2
+    },
+    {
+      "src": 0,
+      "dst": 2,
+      "srcp": 0,
+      "dstp": 3
+    },
+    {
+      "src": 0,
+      "dst": 2,
+      "srcp": 0,
+      "dstp": 4
+    },
+    {
+      "src": 5,
+      "dst": 4,
+      "srcp": 0,
+      "dstp": 0
+    },
+    {
+      "src": 5,
+      "dst": 4,
+      "srcp": 1,
+      "dstp": 1
+    },
+    {
+      "src": 3,
+      "dst": 5,
+      "srcp": 0,
+      "dstp": 0
+    },
+    {
+      "src": 2,
+      "dst": 6,
+      "srcp": 0,
+      "dstp": 0
+    },
+    {
+      "src": 2,
+      "dst": 6,
+      "srcp": 1,
+      "dstp": 1
+    },
+    {
+      "src": 1,
+      "dst": 6,
+      "srcp": 0,
+      "dstp": 2
+    },
+    {
+      "src": 0,
+      "dst": 6,
+      "srcp": 0,
+      "dstp": 3
+    }
+  ]
+}

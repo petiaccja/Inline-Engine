@@ -406,11 +406,13 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 	};
 
 	// Set backBuffer to PRESENT state.
-	gxapi::eResourceState bbState = context.backBuffer.ReadState(0);
+	Texture2D backbuffer = context.backBuffer;
+	gxapi::eResourceState bbState = backbuffer.ReadState(0);
 	auto* prevCopyList = dynamic_cast<gxapi::ICopyCommandList*>(prevList.commandList.get());
 	if (bbState != gxapi::eResourceState::PRESENT) {
 		gxapi::TransitionBarrier barrier(context.backBuffer._GetResourcePtr(), bbState, gxapi::eResourceState::PRESENT);
 		prevCopyList->ResourceBarrier(barrier);
+		backbuffer.RecordState(gxapi::eResourceState::PRESENT);
 	}
 	prevCopyList->Close();
 

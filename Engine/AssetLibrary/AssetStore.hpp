@@ -21,6 +21,8 @@ namespace inl::asset {
 
 class AssetStore {
 public:
+	AssetStore(gxeng::GraphicsEngine* graphicsEngine);
+
 	/// <summary> Loads a model file from a common format such as FBX. </summary>
 	std::shared_ptr<gxeng::Mesh> LoadMesh(std::filesystem::path path);
 

@@ -27,3 +27,5 @@ float GetLightColor(int i)
 {
 	LIGHTCOLOR_IMPLEMENTATION
 }
+
+void main(uint not_a_node) {}
