@@ -122,7 +122,7 @@ inline GameScene::GameScene(gxeng::GraphicsEngine * graphicsEngine, pxeng_bl::Ph
 	m_pxScene.reset(m_physicsEngine->CreateScene());
 
 	m_light->SetDirection(Vec3{ -1, -2, -3 }.Normalized());
-	m_light->SetColor({ 0.7f, 0.8f, 0.9f });
+	m_light->SetColor(Vec3{ 1.0f, 0.9f, 0.8f }*1.f);
 
 	m_gxScene->GetEntities<gxeng::DirectionalLight>().Add(m_light.get());
 

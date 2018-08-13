@@ -17,13 +17,13 @@ int GetLightCount()
 }
 
 
-float GetLightDir(int i)
+float3 GetLightDir(int i)
 {
 	LIGHTDIR_IMPLEMENTATION
 }
 
 
-float GetLightColor(int i)
+float3 GetLightColor(int i)
 {
 	LIGHTCOLOR_IMPLEMENTATION
 }

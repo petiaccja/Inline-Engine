@@ -100,7 +100,7 @@ static float2 g_texCoord;
 
 
 // GBuffer output
-static float4 go_color;
+static float4 go_color = float4(1, 0, 0, 1);
 
 
 // Implementations
@@ -137,12 +137,12 @@ PsOutput PSMain(PsInput input)
     g_wPosition = input.wPos;
 
 #ifdef HAS_NORMAL
-    g_wNormal = input.wNormal;
+    g_wNormal = normalize(input.wNormal);
 #endif
 
 #ifdef HAS_TANGENT
-    g_wTangent = input.wTangent;
-    g_wBitangent = input.wBitangent;
+    g_wTangent = normalize(input.wTangent);
+    g_wBitangent = normalize(input.wBitangent);
 #endif
 
 #ifdef HAS_COLOR
@@ -157,6 +157,6 @@ PsOutput PSMain(PsInput input)
 
     MtlMain();
 
-    output.color = float4(1, 0, 0, 1); //go_color;
+    output.color = go_color;
     return output;
 }

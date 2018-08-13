@@ -308,7 +308,7 @@ std::string PipelineStateManager::GenerateMaterialShader(const Material& materia
 		}
 	}
 	mtlConstantBuffer << "};\n";
-	mtlConstantBuffer << "ConstantBuffer<MtlConstants> mtlCb : register(b3000);\n\n";
+	mtlConstantBuffer << "ConstantBuffer<MtlConstants> mtlCb : register(b200);\n\n";
 
 	mtlMain << "void MtlMain() {\n";
 	for (size_t i = 0; i < material.GetParameterCount(); ++i) {
@@ -473,9 +473,8 @@ std::unique_ptr<gxapi::IPipelineState> PipelineStateManager::GeneratePSO(RenderC
 	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
 	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
-	//psoDesc.depthStencilState = gxapi::DepthStencilState(false, true);
 	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
-	psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::EQUAL;
+	psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::LESS_EQUAL;
 	psoDesc.depthStencilState.enableStencilTest = true;
 	psoDesc.depthStencilState.stencilReadMask = 0;
 	psoDesc.depthStencilState.stencilWriteMask = ~uint8_t(0);
@@ -597,6 +596,7 @@ void RenderForwardSimple::Execute(RenderContext& context) {
 	commandList.SetViewports(1, &viewport);
 
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
+	commandList.SetStencilRef(1);
 
 	// Render entities.
 	std::vector<const VertexBuffer*> vertexBuffers;

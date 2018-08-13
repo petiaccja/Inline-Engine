@@ -103,8 +103,8 @@ std::shared_ptr<gxeng::Mesh> AssetStore::ForceLoadMesh(std::filesystem::path pat
 
 	CoordSysLayout csys;
 	csys.x = AxisDir::POS_X;
-	csys.y = AxisDir::POS_Y;
-	csys.z = AxisDir::POS_Z;
+	csys.y = AxisDir::POS_Z;
+	csys.z = AxisDir::NEG_Y;
 
 	auto vertices = model.GetVertices<gxeng::Position<0>, gxeng::Normal<0>, gxeng::TexCoord<0>>(0, csys);
 	auto indices = model.GetIndices(0);
