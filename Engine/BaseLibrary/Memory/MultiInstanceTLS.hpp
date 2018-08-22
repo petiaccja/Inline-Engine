@@ -7,20 +7,6 @@
 #include <mutex>
 #include <set>
 #include <deque>
-
-
-// optional is part of C++17, but not included in VS yet
-// this is a reference implementation by the authors of the proposal
-// uses boost license
-// replace when official is available
-// see https://github.com/akrzemi1/Optional
-//#define TR2_OPTIONAL_DISABLE_EMULATION_OF_TYPE_TRAITS
-//#include "../optional.hpp"
-//namespace std {
-//	template <class T>
-//	using optional = experimental::optional<T>;
-//}
-
 #include <optional>
 
 namespace inl {
@@ -129,13 +115,6 @@ private:
 			threadObjects[myIndex] = defaultRecord;
 		}
 		return threadObjects[myIndex].value();
-	}
-
-	void Register() {
-		std::lock_guard<std::mutex> lkg(registryLock);
-		myThreadObjects.insert(&threadObjects);
-		myThreadInstances.insert(&threadInstances);
-		threadInstances.insert(this);
 	}
 
 	//void UnregisterByThread() {

@@ -90,7 +90,7 @@ public:
 	using iterator_impl<const ViewT>::iterator_impl;
 
 	// Convert from mutable iterators.
-	const_iterator(typename HasIterator<ViewT>::iterator& rhs) : ptr(rhs.ptr) {}
+	const_iterator(typename HasIterator<ViewT>::iterator& rhs) : iterator_impl(rhs.ptr) {}
 };
 
 
@@ -185,14 +185,14 @@ public:
 	}
 
 	/// <summary> Get mutable iterator to the first element of the container. </summary>
-	template <class = typename std::enable_if<!IsConst>::type>
-	auto begin() {
-		return iterator{ GetOffsetedPointer(0) };
+	template <class Q = typename impl::HasIterator<ViewT>::iterator>
+	Q begin() {
+		return impl::HasIterator<ViewT>::iterator{ GetOffsetedPointer(0) };
 	}
 	/// <summary> Get mutable iterator to the end (past the last element) of the container. </summary>
-	template <class = typename std::enable_if<!IsConst>::type>
-	auto end() {
-		return iterator{ GetOffsetedPointer(Size()) };
+	template <class Q = typename impl::HasIterator<ViewT>::iterator>
+	Q end() {
+		return impl::HasIterator<ViewT>::iterator{ GetOffsetedPointer(Size()) };
 	}
 
 	/// <summary> Get const iterator to the first element of the container. </summary>
