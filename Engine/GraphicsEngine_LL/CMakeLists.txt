@@ -1,6 +1,8 @@
 # GRAPHICSENGINE_LL
 
 # Files
+file(GLOB interfaces "../GraphicsEngine/*.hpp")
+
 set(common 
 	"GraphicsEngine.cpp"
 	"GraphicsEngine.hpp"
@@ -409,6 +411,8 @@ set(graph_editors
 )
 	
 set(all_the_files
+	${interfaces}
+
 	${common} 
 	${scene}
 	${resources}
@@ -473,6 +477,7 @@ set_source_files_properties(${all_the_rest_hlsl} PROPERTIES VS_TOOL_OVERRIDE "No
 
 # Filters
 source_group("" FILES ${common})
+source_group("Interfaces" FILES ${interfaces})
 source_group("Scene" FILES ${scene})
 source_group("Resources" FILES ${resources})
 

@@ -18,6 +18,7 @@
 #include <PhysicsEngine_Bullet/RigidBody.hpp>
 
 #include <AssetLibrary/AssetStore.hpp>
+#include <BaseLibrary/Timer.hpp>
 
 
 using namespace inl;
@@ -28,8 +29,11 @@ public:
 	GameScene(gxeng::GraphicsEngine* graphicsEngine, pxeng_bl::PhysicsEngine* physicsEngine);
 
 	void LoadAssets();
+
+	void Update(float elapsed);
 protected:
 	std::unique_ptr<gxeng::MeshEntity> CreateGraphicsEntity(std::string_view mesh, std::string_view material);
+	std::unique_ptr<pxeng_bl::RigidBody> CreatePhysicsEntity(std::string_view mesh);
 private:
 	gxeng::GraphicsEngine* m_graphicsEngine;
 	std::unique_ptr<gxeng::Scene> m_gxScene;
@@ -43,6 +47,7 @@ private:
 	asset::AssetStore m_assetStore;
 
 	std::vector<std::unique_ptr<gxeng::MeshEntity>> m_entities;
+	std::vector<std::unique_ptr<pxeng_bl::RigidBody>> m_pxEntities;
 };
 
 
@@ -91,9 +96,13 @@ int main() {
 		gameScene.LoadAssets();
 
 		// Game loop.
+		Timer timer;
+		timer.Start();
 		while (!window.IsClosed()) {
+			float elapsed = timer.Elapsed();
+			timer.Reset();
 			window.CallEvents();
-			graphicsEngine->Update(0.016f);
+			gameScene.Update(elapsed);
 		}
 
 		return 0;
@@ -111,7 +120,7 @@ int main() {
 
 
 inline GameScene::GameScene(gxeng::GraphicsEngine * graphicsEngine, pxeng_bl::PhysicsEngine * physicsEngine)
-	: m_graphicsEngine(graphicsEngine), m_physicsEngine(physicsEngine), m_assetStore(graphicsEngine)
+	: m_graphicsEngine(graphicsEngine), m_physicsEngine(physicsEngine), m_assetStore(graphicsEngine, physicsEngine)
 {
 	m_assetStore.AddSourceDirectory(INL_GAMEDATA);
 
@@ -120,6 +129,7 @@ inline GameScene::GameScene(gxeng::GraphicsEngine * graphicsEngine, pxeng_bl::Ph
 	m_light.reset(new gxeng::DirectionalLight());
 
 	m_pxScene.reset(m_physicsEngine->CreateScene());
+	m_pxScene->SetGravity({ 0,0,-9.81f });
 
 	m_light->SetDirection(Vec3{ -1, -2, -3 }.Normalized());
 	m_light->SetColor(Vec3{ 1.0f, 0.9f, 0.8f }*1.f);
@@ -137,17 +147,39 @@ void GameScene::LoadAssets() {
 	auto terrain = CreateGraphicsEntity("Models/Terrain/terrain.fbx", "models/Terrain/terrain.mtl");
 	m_gxScene->GetEntities<gxeng::MeshEntity>().Add(terrain.get());
 	m_entities.push_back(std::move(terrain));
+
+	auto pxTerrain = CreatePhysicsEntity("Models/Terrain/terrain.fbx");
+	m_pxScene->AddEntity(pxTerrain.get());
+	m_pxEntities.push_back(std::move(pxTerrain));
+}
+
+
+void GameScene::Update(float elapsed) {
+	m_pxScene->Update(elapsed);
+	m_entities[0]->SetPosition(m_pxEntities[0]->GetPosition());
+	m_graphicsEngine->Update(elapsed);
 }
 
 
 std::unique_ptr<gxeng::MeshEntity> GameScene::CreateGraphicsEntity(std::string_view mesh, std::string_view material) {
 	std::unique_ptr<gxeng::MeshEntity> entity(m_graphicsEngine->CreateMeshEntity());
 
-	auto meshResource = m_assetStore.LoadMesh(mesh);
+	auto meshResource = m_assetStore.LoadGraphicsMesh(mesh);
 	auto materialResource = m_assetStore.LoadMaterial(material);
 
 	entity->SetMesh(meshResource.get());
 	entity->SetMaterial(materialResource.get());
+
+	return entity;
+}
+
+std::unique_ptr<pxeng_bl::RigidBody> GameScene::CreatePhysicsEntity(std::string_view mesh){
+	std::unique_ptr<pxeng_bl::RigidBody> entity(m_physicsEngine->CreateRigidBody());
+
+	auto meshResource = m_assetStore.LoadPhysicsMesh(mesh, true);
+
+	entity->SetShape(meshResource.get());
+	entity->SetDynamic(true);
 
 	return entity;
 }

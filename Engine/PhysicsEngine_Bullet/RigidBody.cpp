@@ -59,8 +59,10 @@ void RigidBody::SetShape(const Shape* shape) {
 
 	// Remove all child shapes from internal compound shape.
 	int numChildShapes = m_internalShape->getNumChildShapes();
-	assert(numChildShapes == 1); // Compound shape is only to apply scale/shear, not to combine.
-	m_internalShape->removeChildShapeByIndex(0);
+	assert(numChildShapes <= 1); // Compound shape is only to apply scale/shear, not to combine.
+	if (numChildShapes == 1) {
+		m_internalShape->removeChildShapeByIndex(0);
+	}
 
 
 	// Figure out pre-transform.

@@ -15,8 +15,8 @@ void MeshShape::SetMesh(const Vec3* vertices, size_t numVertices, const unsigned
 
 	btIndexedMesh mesh;
 
-	assert(numVertices > std::numeric_limits<decltype(mesh.m_numVertices)>::max());
-	assert(numIndices / 3 > std::numeric_limits<decltype(mesh.m_numTriangles)>::max());
+	assert(numVertices < (size_t)std::numeric_limits<decltype(mesh.m_numVertices)>::max());
+	assert(numIndices / 3 < (size_t)std::numeric_limits<decltype(mesh.m_numTriangles)>::max());
 
 	mesh.m_numTriangles = int(numIndices / 3);
 	mesh.m_numVertices = int(numVertices);

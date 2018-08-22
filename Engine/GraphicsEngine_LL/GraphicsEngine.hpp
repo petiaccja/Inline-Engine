@@ -66,36 +66,6 @@ struct GraphicsEngineDesc {
 };
 
 
-// Temporary, delete this!!!!44négy
-// Peti wuz here '17.07.28 - surprisingly, I actually understood why this is temporary, but I'm not gonna write it down
-// Yeah, I still understand and this is really not important '17.11.07
-// Okay, I know what it does, but why would I need it? Probably junk... '18.02.24
-class PipelineEventPrinter : public PipelineEventListener {
-public:
-	PipelineEventPrinter() : m_log(nullptr) {}
-
-	void SetLog(LogStream* log) { m_log = log; }
-
-	void OnFrameBeginDevice(uint64_t frameId) override {
-		m_log->Event(LogEvent{ "Frame begin - DEVICE", EventParameterInt("frameId", (int)frameId) });
-	}
-	void OnFrameBeginHost(uint64_t frameId) override {
-		m_log->Event(LogEvent{ "Frame begin - HOST", EventParameterInt("frameId", (int)frameId) });
-	}
-	void OnFrameBeginAwait(uint64_t frameId) override {
-		m_log->Event(LogEvent{ "Awaiting frame", EventParameterInt("frameId", (int)frameId) });
-	}
-	void OnFrameCompleteDevice(uint64_t frameId) override {
-		m_log->Event(LogEvent{ "Frame finished - DEVICE", EventParameterInt("frameId", (int)frameId) });
-	}
-	void OnFrameCompleteHost(uint64_t frameId) override {
-		m_log->Event(LogEvent{ "Frame finished - HOST", EventParameterInt("frameId", (int)frameId) });
-	}
-private:
-	LogStream* m_log;
-};
-
-
 class GraphicsEngine {
 public:
 	// Custructors
@@ -217,7 +187,6 @@ private:
 	CommandQueue m_masterCommandQueue;
 	ResourceResidencyQueue m_residencyQueue;
 	PipelineEventDispatcher m_pipelineEventDispatcher;
-	PipelineEventPrinter m_pipelineEventPrinter; // ONLY FOR TEST PURPOSES
 
 	// Logging
 	Logger* m_logger;

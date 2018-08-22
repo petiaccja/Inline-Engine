@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Definitions.hpp"
 
 #include <string>
 
@@ -41,7 +40,6 @@ public:
 	// Where to render.
 	virtual void SetResolution(int width, int height) = 0;
 	virtual void SetViewport(int top, int bottom, int left, int right) = 0;
-	virtual void SetTargetWindow(NativeWindowHandle handle) = 0;
 
 	// Create resources.
 	virtual IMesh* CreateMesh() = 0;

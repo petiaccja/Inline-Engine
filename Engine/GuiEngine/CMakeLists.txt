@@ -2,10 +2,13 @@
 
 # Files comprising the target
 set(sources
+	Control.hpp
+	Layout.hpp
+)
+
+set(controls 
 	Frame.hpp
 	Frame.cpp
-	Control.hpp
-	Control.cpp
 	Button.hpp
 	Button.cpp
 	Label.hpp
@@ -14,13 +17,20 @@ set(sources
 	TextBox.cpp
 )
 
+set(layouts
+	AbsoluteLayout.hpp
+	AbsoluteLayout.cpp
+)
+
 # Create target
 add_library(GuiEngine STATIC 
-	${sources}
+	${sources} ${controls} ${layouts}
 )
 
 # Filters
 source_group("" FILES ${sources})
+source_group("Controls" FILES ${controls})
+source_group("Layouts" FILES ${layouts})
 
 
 # Dependencies
