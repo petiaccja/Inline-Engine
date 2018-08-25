@@ -14,6 +14,139 @@ enum class eMotionMode {
 };
 
 
+
+/// <summary> Common interface for all transformable objects. </summary>
+template <class T, int Dim, bool EnableMotion>
+class ITransformable;
+
+template <class T, int Dim>
+class ITransformable23Base {
+protected:
+	using VectorT = Vector<T, Dim, false>;
+	using MatLinT = Matrix<T, Dim, Dim, matrix_props::order, matrix_props::layout, false>;
+	using MatHomT = Matrix<T, Dim+1, Dim+1, matrix_props::order, matrix_props::layout, false>;
+	using RotT = std::conditional_t<Dim == 2, float, Quaternion<T, false>>;
+public:
+	virtual ~ITransformable23Base() = default;
+
+	// Absolute transforms
+
+	/// <summary> Linear position coordinates. </summary>
+	virtual void SetPosition(const VectorT& pos) = 0;
+
+	/// <summary> Set total rotation. </summary>
+	/// <remarks> If shearing is present, the total rotation is the combination of the pre rotation and the post rotation.
+	///		Only the post rotation is changed. </remarks>
+	virtual void SetRotation(const RotT& rot) = 0;
+
+	/// <summary> Sets the total scaling. </summary>
+	/// <remarks> If shearing is present, the pre rotation and the post rotation are not changed,
+	///		and the effect are visually illogical. </remarks>
+	virtual void SetScale(const VectorT& scale) = 0;
+
+
+	/// <summary> Sets a transformation matrix, without positioning. </summary>
+	/// <remarks> Use it to add shear, scale and rotation in one go. </remarks>
+	virtual void SetLinearTransform(const MatLinT& transform) = 0;
+
+	/// <summary> Sets a transformation matrix, including positioning. </summary>
+	virtual void SetTransform(const MatHomT& transform) = 0;
+
+
+	// Get current transform
+
+	/// <summary> Returns the current linear position coordinates. </summary>
+	virtual const VectorT& GetPosition() const = 0;
+
+	/// <summary> Returns the pre rotation which happens before scaling. </summary>
+	virtual RotT GetShearRotation() const = 0;
+
+	/// <summary> Returns the post rotation which happens after scaling. </summary>
+	virtual RotT GetPostRotation() const = 0;
+
+	/// <summary> Return the total rotation, which is the sum of the pre- and post rotations. </summary>
+	virtual RotT GetRotation() const = 0;
+
+	/// <summary> Return the current scale. </summary>
+	/// <remarks> If shear is present, returns the scaling that happens between pre- and post rotations. </remarks>
+	virtual const VectorT& GetScale() const = 0;
+
+
+	/// <summary> Returns the transformation matrix, excluding translation. </summary>
+	virtual MatLinT GetLinearTransform() const = 0;
+
+	/// <summary> Returns the transformation matrix, including translation. </summary>
+	virtual MatHomT GetTransform() const = 0;
+
+
+	// Relative transforms
+
+	/// <summary> Changes the position of the object by <paramref name="offset"/>. </summary>
+	virtual void Move(const VectorT& offset) = 0;
+
+	/// <summary> Applies given rotation to existing transform. </summary>
+	/// <remarks> Regarless of shear, only the post rotation is changed. Existing shear is preserved. </remarks>
+	virtual void Rotate(const RotT& rot) = 0;
+
+	/// <summary> Applies scaling to existing transform. </summary>
+	virtual void Scale(const VectorT& scale) = 0;
+
+	/// <summary> Applies shear to existing transform. </summary>
+	/// <remarks> All elements of the transform are changed, except position.
+	///		Can be very expensive because of the SVD it has to do. </remarks>
+	virtual void Shear(T slope, int primaryAxis, int perpAxis) = 0;
+};
+
+
+template <class T>
+class ITransformable<T, 2, false> : public ITransformable23Base<T, 2> {
+protected:
+	using typename ITransformable23Base<T, 2>::MatHomT;
+public:
+	virtual void ShearX(T slope) = 0;
+	virtual void ShearY(T slope) = 0;
+};
+
+
+template <class T>
+class ITransformable<T, 3, false> : public ITransformable23Base<T, 3> {
+protected:
+	using typename ITransformable23Base<T, 3>::MatHomT;
+public:
+	virtual void ShearXY(T slope) = 0;
+	virtual void ShearXZ(T slope) = 0;
+	virtual void ShearYX(T slope) = 0;
+	virtual void ShearYZ(T slope) = 0;
+	virtual void ShearZX(T slope) = 0;
+	virtual void ShearZY(T slope) = 0;
+};
+
+
+template <class T, int Dim>
+class ITransformable<T, Dim, true> : public ITransformable<T, Dim, false> {
+protected:
+	using typename ITransformable<T, Dim, false>::MatHomT;
+public:
+	/// <summary> Sets the matrix that transforms local points into world space motion vectors. </summary>
+	virtual void SetTransformMotion(const MatHomT& motion) = 0;
+	/// <summary> Gets the matrix that transforms local points into world space motion vectors.
+	///		See <see cref="SetMotionMode"/> on how it is calculated. </summary>
+	virtual MatHomT GetTransformMotion() const = 0;
+
+	/// <summary> Called by the graphics engine every frame to update first order motion matrix. </summary>
+	virtual void UpdateTransformMotion(float deltaTime) = 0;
+
+
+	/// <summary> Determines how motion matrices are calculated. </summary>
+	/// <remarks> Second order mode is not supported and treated as first order. </remarks>
+	virtual void SetMotionMode(eMotionMode mode) = 0;
+	virtual eMotionMode GetMotionMode() const = 0;
+};
+
+
+
+
+
 /// <summary> Stores 2D or 3D affine transforms. </summary>
 /// <remarks> Any affine transform can be represented, including translation, rotation, scaling
 ///		and shear.
@@ -432,6 +565,25 @@ eMotionMode Transformable<T, Dim, true>::GetMotionMode() const {
 //------------------------------------------------------------------------------
 // Typedefs
 //------------------------------------------------------------------------------
+
+
+/// <summary> 2D float transformable with motion. </summary>
+using ITransformable2D = ITransformable<float, 2, true>;
+/// <summary> 3D float transformable with motion. </summary>
+using ITransformable3D = ITransformable<float, 3, true>;
+using ITransformable2Dd = ITransformable<double, 2, true>;
+/// <summary> 2D double transformable with motion. </summary>
+using ITransformable3Dd = ITransformable<double, 3, true>;
+/// <summary> 3D double transformable with motion. </summary>
+
+/// <summary> 2D float transformable without motion. </summary>
+using ITransformable2DN = ITransformable<float, 2, false>;
+/// <summary> 3D float transformable without motion. </summary>
+using ITransformable3DN = ITransformable<float, 3, false>;
+/// <summary> 2D double transformable without motion. </summary>
+using ITransformable2DNd = ITransformable<double, 2, false>;
+/// <summary> 3D double transformable without motion. </summary>
+using ITransformable3DNd = ITransformable<double, 3, false>;
 
 
 /// <summary> 2D float transformable with motion. </summary>
