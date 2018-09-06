@@ -93,7 +93,7 @@ bool operator==(const ApproxHelper<LinalgClass1>& lhs, const LinalgClass2& rhs) 
 
 template <class LinalgClass1, class LinalgClass2>
 bool operator==(const LinalgClass1& lhs, const ApproxHelper<LinalgClass2>& rhs) {
-	return rhs.object.AlmostEqual(rhs);
+	return lhs.AlmostEqual(rhs.object);
 }
 
 template <class LinalgClass1, class LinalgClass2>

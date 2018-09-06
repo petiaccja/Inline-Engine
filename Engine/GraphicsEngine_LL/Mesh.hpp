@@ -1,7 +1,8 @@
 #pragma once
 
 #include "MeshBuffer.hpp"
-#include "Vertex.hpp"
+#include <GraphicsEngine/Resources/Vertex.hpp>
+#include <GraphicsEngine/Resources/IMesh.hpp>
 
 #include <type_traits>
 #include <mutex>
@@ -12,7 +13,7 @@ namespace inl {
 namespace gxeng {
 
 
-class Mesh : protected MeshBuffer {
+class Mesh : public IMesh, protected MeshBuffer {
 public:
 	struct Element {
 		eVertexElementSemantic semantic; // Semantic of the vertex elements.
@@ -86,9 +87,9 @@ public:
 public:
 	Mesh(MemoryManager* memoryManager) : MeshBuffer(memoryManager) {}
 
-	void Set(const VertexBase* vertices, const IVertexReader* vertexReader, size_t numVertices, const unsigned* indices, size_t numIndices);
-	void Update(const VertexBase* vertices, const IVertexReader* vertexReader, size_t numVertices, size_t offsetInVertices);
-	void Clear();
+	void Set(const VertexBase* vertices, const IVertexReader* vertexReader, size_t numVertices, const unsigned* indices, size_t numIndices) override;
+	void Update(const VertexBase* vertices, const IVertexReader* vertexReader, size_t numVertices, size_t offsetInVertices) override;
+	void Clear() override;
 
 	using MeshBuffer::GetNumStreams;
 	using MeshBuffer::GetVertexBuffer;

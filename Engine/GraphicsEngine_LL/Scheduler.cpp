@@ -203,7 +203,7 @@ jobs::Future<void> Scheduler::TraverseNode(lemon::ListDigraph::Node node,
 
 
 
-void Scheduler::SetupNode(lemon::ListDigraph::Node node, ExecuteState& state) {
+void Scheduler::SetupNode(lemon::ListDigraph::Node node, ExecuteState& state) const {
 	// Acquire task.
 	GraphicsTask* task = m_pipeline.GetTaskFunctionMap()[node];
 	if (task == nullptr) {
@@ -426,72 +426,6 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 					   std::move(usedResourceList),
 					   std::move(prevVheap),
 					   context);
-}
-
-void Scheduler::PrintListStats(const BasicCommandList& list) {
-	auto& counter = list.GetPerformanceCounters();
-	std::cout << "CMD LIST " 
-		<< &list 
-		<< ": " 
-		<< counter.numDrawCalls 
-		<< " drawcalls, "
-		<< counter.numKernels
-		<< " kernels, "
-		<< counter.numScratchSpaceDescriptors 
-		<< " descriptors" << std::endl;
-}
-
-
-std::string Scheduler::WriteTraceGraphviz(const lemon::ListDigraph& taskGraph, const lemon::ListDigraph::NodeMap<ExecuteTrace>& traceMap) {
-	std::stringstream ss;
-	ss << "digraph {" << std::endl
-		<< "rankdir = LR;" << std::endl
-		<< "ranksep = \"0.8\";" << std::endl
-		<< "node[shape = circle];" << std::endl;
-	for (lemon::ListDigraph::NodeIt nodeIt(taskGraph); nodeIt != lemon::INVALID; ++nodeIt) {
-		unsigned depth = traceMap[nodeIt].depth;
-		bool hasListInside = (bool)traceMap[nodeIt].inheritableList;
-
-		std::string labelStatus;
-		labelStatus += (hasListInside ? "ACTIVE" : "EMPTY");
-		labelStatus += (traceMap[nodeIt].inheritedCommandList ? "_I" : "");
-		labelStatus += (traceMap[nodeIt].producedCommandList ? "_P" : "");
-
-		float t = std::clamp(depth / 35.f, 0.0f, 1.0f);
-		float red = t;
-		float blue = 1.0f-t;
-		float green = 0.5f-std::abs(t-0.5f);
-
-		ss << "node" << lemon::ListDigraph::id(nodeIt) << " ";
-		ss << "[shape=circle, " << "style=filled, ";
-		ss << "label=" << "\"" << depth << "_" << labelStatus << "\", ";
-		ss << "fillcolor=\"#";
-		ss << std::setfill('0') << std::setw(2) << std::hex << int(255.f*red);
-		ss << std::setfill('0') << std::setw(2) << std::hex << int(255.f*green);
-		ss << std::setfill('0') << std::setw(2) << std::hex << int(255.f*blue);
-		ss << "\"";
-		ss << std::dec;
-		ss << "];" << std::endl;
-	}
-	for (lemon::ListDigraph::ArcIt arcIt(taskGraph); arcIt != lemon::INVALID; ++arcIt) {
-		lemon::ListDigraph::Node source = taskGraph.source(arcIt);
-		lemon::ListDigraph::Node target = taskGraph.target(arcIt);
-		ss << "node" << lemon::ListDigraph::id(source);
-		ss << " -> ";
-		ss << "node" << lemon::ListDigraph::id(target) << ";" << std::endl;
-	}
-	ss << "}";
-	return ss.str();
-}
-
-
-void Scheduler::WriteTraceFile(const lemon::ListDigraph& taskGraph, const ExecuteState& state) {
-	std::string graphvizDotText = WriteTraceGraphviz(taskGraph, state.trace);
-	std::filesystem::path traceFilePath = R"(D:\Programming\Inline-Engine\Test\QC_Simulator)";
-	if (std::filesystem::exists(traceFilePath)) {
-		std::ofstream file(traceFilePath / "pipeline_parallel.dot");
-		file << graphvizDotText;
-	}
 }
 
 

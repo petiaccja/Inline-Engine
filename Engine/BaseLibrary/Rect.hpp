@@ -84,24 +84,25 @@ Rect<T, InvertHorizontal, InvertVertical> Rect<T, InvertHorizontal, InvertVertic
 
 template <class T, bool InvertHorizontal, bool InvertVertical>
 Rect<T, InvertHorizontal, InvertVertical> Rect<T, InvertHorizontal, InvertVertical>::FromSize(Vec2T bottomLeft, Vec2T size) {
-	
-	left = bottomLeft.x;
-	bottom = bottomLeft.y;
+	Rect rc;
+	rc.left = bottomLeft.x;
+	rc.bottom = bottomLeft.y;
 
 	if constexpr (!InvertHorizontal) {
-		right = bottomLeft.x + size.x;
+		rc.right = bottomLeft.x + size.x;
 		
 	}
 	else {
-		right = bottomLeft.x - size.x;
+		rc.right = bottomLeft.x - size.x;
 	}
 
 	if constexpr (!InvertVertical) {
-		top = bottomLeft.y + size.y;
+		rc.top = bottomLeft.y + size.y;
 	}
 	else {		
-		top = bottomLeft.y - size.y;
+		rc.top = bottomLeft.y - size.y;
 	}
+	return rc;
 }
 
 template <class T, bool InvertHorizontal, bool InvertVertical>
@@ -322,10 +323,10 @@ bool Rect<T, InvertHorizontal, InvertVertical>::IsPointInside(const Vec2T& arg) 
 
 template <class T, bool InvertHorizontal, bool InvertVertical>
 bool Rect<T, InvertHorizontal, InvertVertical>::IsRectInside(const Rect& arg) const {
-	auto minHorizArg = std::min(left, right);
-	auto maxHorizArg = std::max(left, right);
-	auto minVertArg = std::min(bottom, top);
-	auto maxVertArg = std::max(bottom, top);
+	auto minHorizArg = std::min(arg.left, arg.right);
+	auto maxHorizArg = std::max(arg.left, arg.right);
+	auto minVertArg = std::min(arg.bottom, arg.top);
+	auto maxVertArg = std::max(arg.bottom, arg.top);
 
 	auto minHoriz = std::min(left, right);
 	auto maxHoriz = std::max(left, right);

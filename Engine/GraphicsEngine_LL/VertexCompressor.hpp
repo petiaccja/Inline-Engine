@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vertex.hpp"
+#include <GraphicsEngine/Resources/Vertex.hpp>
 #include <memory>
 
 

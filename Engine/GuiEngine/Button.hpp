@@ -2,6 +2,9 @@
 
 
 #include "Control.hpp"
+#include <GraphicsEngine/Resources/IFont.hpp>
+#include <GraphicsEngine/Scene/ITextEntity.hpp>
+#include <GraphicsEngine/Scene/IOverlayEntity.hpp>
 
 
 namespace inl::gui {
@@ -23,6 +26,14 @@ public:
 protected:
 	void Attach(Layout* parent);
 	void Detach();
+private:
+	void MigrateContext(const DrawingContext* newContext);
+
+private:
+	std::unique_ptr<gxeng::ITextEntity> m_text;
+	std::unique_ptr<gxeng::IOverlayEntity> m_background;
+	const Layout* m_parent = nullptr;
+	const DrawingContext* m_context;
 };
 
 

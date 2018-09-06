@@ -5,11 +5,8 @@
 #include <BaseLibrary/JobSystem/ThreadpoolScheduler.hpp>
 #include <BaseLibrary/JobSystem/Wait.hpp>
 
-
 #include <Catch2/catch.hpp>
 
-
-#include <iostream>
 
 using namespace inl::jobs;
 using std::cout;

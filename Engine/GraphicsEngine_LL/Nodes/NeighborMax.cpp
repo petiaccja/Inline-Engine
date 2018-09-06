@@ -8,7 +8,7 @@
 #include "../DirectionalLight.hpp"
 #include "../PerspectiveCamera.hpp"
 #include "../GraphicsCommandList.hpp"
-#include "../EntityCollection.hpp"
+#include <GraphicsEngine/Scene/EntityCollection.hpp>
 
 #include "DebugDrawManager.hpp"
 

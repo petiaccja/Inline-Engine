@@ -1,6 +1,6 @@
 #pragma once
 
-#include <GraphicsEngine_LL/Vertex.hpp>
+#include <GraphicsEngine/Resources/Vertex.hpp>
 
 #include <assimp/Importer.hpp>
 #include <assimp/mesh.h>

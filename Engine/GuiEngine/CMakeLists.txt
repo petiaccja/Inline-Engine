@@ -3,7 +3,9 @@
 # Files comprising the target
 set(sources
 	Control.hpp
+	Control.cpp
 	Layout.hpp
+	Layout.cpp
 )
 
 set(controls 

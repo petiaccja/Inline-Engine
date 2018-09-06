@@ -58,9 +58,6 @@ set(resources
 	"Mesh.hpp"
 	"MeshBuffer.hpp"
 	"VertexCompressor.hpp"
-		
-	"Vertex.hpp"
-	"Pixel.hpp"
 )
 
 set(memory

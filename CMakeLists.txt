@@ -26,7 +26,9 @@ if (TARGET_COMPILER_MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /MP /await /permissive-")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4638") # Ignore XML doc not found reference
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5033") # Register keyword is now deprecated but retarded Bullet uses it
-	set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS} /PROFILE")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4250") # Inheritence via dominance
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4099") # Missing PDB for libraries
+	# set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS} /PROFILE")
 elseif (TARGET_COMPILER_CLANG)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fcoroutines-ts /std:c++17")
 endif()

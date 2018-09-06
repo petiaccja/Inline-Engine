@@ -16,10 +16,13 @@
 #include "HostDescHeap.hpp"
 #include "ShaderManager.hpp"
 
+
 #include <GraphicsApi_LL/IGxapiManager.hpp>
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
 #include <GraphicsApi_LL/ISwapChain.hpp>
 #include <GraphicsApi_LL/ICommandQueue.hpp>
+
+#include <GraphicsEngine/IGraphicsEngine.hpp>
 
 #include <BaseLibrary/Logging_All.hpp>
 
@@ -27,6 +30,19 @@
 #include <BaseLibrary/GraphEditor/IEditorGraph.hpp>
 
 #include <filesystem>
+
+// For the create functions, type covariance.
+#include "Scene.hpp"
+#include "PerspectiveCamera.hpp"
+#include "OrthographicCamera.hpp"
+#include "Camera2D.hpp"
+#include "Mesh.hpp"
+#include "Material.hpp"
+#include "Image.hpp"
+#include "MeshEntity.hpp"
+#include "OverlayEntity.hpp"
+#include "Font.hpp"
+#include "TextEntity.hpp"
 
 
 #undef CreateFont // Fuck goddamn winapi -.-
@@ -52,9 +68,6 @@ class OrthographicCamera;
 class Camera2D;
 
 
-class WindowResizeListener;
-
-
 struct GraphicsEngineDesc {
 	gxapi::IGxapiManager* gxapiManager = nullptr;
 	gxapi::IGraphicsApi* graphicsApi = nullptr;
@@ -66,7 +79,7 @@ struct GraphicsEngineDesc {
 };
 
 
-class GraphicsEngine {
+class GraphicsEngine : public IGraphicsEngine {
 public:
 	// Custructors
 	GraphicsEngine(GraphicsEngineDesc desc);
@@ -85,41 +98,41 @@ public:
 	/// This includes but is not limited to adding new entities to a scene and uploading
 	/// data to meshes or images.
 	/// </remarks>
-	void Update(float elapsed);
+	void Update(float elapsed) override;
 
 	/// <summary> Rescales the backbuffer. </summary>
 	/// <remarks> Causes a pipeline flush, high overhead. </remarks>
-	void SetScreenSize(unsigned width, unsigned height);
+	void SetScreenSize(unsigned width, unsigned height) override;
 
 	/// <summary> Returns the current backbuffer size in the out parameters. </remarks>
-	void GetScreenSize(unsigned& width, unsigned& height);
+	void GetScreenSize(unsigned& width, unsigned& height) override;
 
 	/// <summary> Sets the D3D swap chain to full-screen mode. </summary>
 	/// <param name="enable"> True to full screen, false to windowed. </param>
-	void SetFullScreen(bool enable);
+	void SetFullScreen(bool enable) override;
 
 	/// <summary> True if the swap chain is currently in full-screen mode. </summary>
-	bool GetFullScreen() const;
+	bool GetFullScreen() const override;
 
 
 	// Graph editor interfaces
-	IEditorGraph* QueryPipelineEditor() const;
-	IEditorGraph* QueryMaterialEditor() const;
+	IEditorGraph* QueryPipelineEditor() const override;
+	IEditorGraph* QueryMaterialEditor() const override;
 
 
 	// Resources
-	Mesh* CreateMesh();
-	Image* CreateImage();
+	Mesh* CreateMesh() override;
+	Image* CreateImage() override;
 	Material* CreateMaterial();
 	MaterialShaderEquation* CreateMaterialShaderEquation();
 	MaterialShaderGraph* CreateMaterialShaderGraph();
-	Font* CreateFont();
+	Font* CreateFont() override;
 	
 	// Scene
-	Scene* CreateScene(std::string name);
+	Scene* CreateScene(std::string name) override;
 	MeshEntity* CreateMeshEntity();
-	OverlayEntity* CreateOverlayEntity();
-	TextEntity* CreateTextEntity();
+	OverlayEntity* CreateOverlayEntity() override;
+	TextEntity* CreateTextEntity() override;
 	PerspectiveCamera* CreatePerspectiveCamera(std::string name);
 	OrthographicCamera* CreateOrthographicCamera(std::string name);
 	Camera2D* CreateCamera2D(std::string name);
@@ -168,7 +181,6 @@ private:
 	RTVHeap m_rtvHeap;
 	CbvSrvUavHeap m_persResViewHeap;
 	std::unique_ptr<BackBufferManager> m_backBufferHeap;
-	std::vector<WindowResizeListener*> m_windowResizeListeners;
 
 	// Pipeline Facilities
 	GraphicsNodeFactory m_nodeFactory;

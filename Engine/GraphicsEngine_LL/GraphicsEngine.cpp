@@ -63,17 +63,6 @@
 #include "Nodes/ScreenSpaceTransform.hpp"
 #include "Nodes/BlendWithTransform.hpp"
 
-#include "Scene.hpp"
-#include "PerspectiveCamera.hpp"
-#include "OrthographicCamera.hpp"
-#include "Camera2D.hpp"
-#include "Mesh.hpp"
-#include "Material.hpp"
-#include "Image.hpp"
-#include "MeshEntity.hpp"
-#include "OverlayEntity.hpp"
-#include "Font.hpp"
-#include "TextEntity.hpp"
 
 #include "GraphEditor/PipelineEditorGraph.hpp"
 #include "GraphEditor/MaterialEditorGraph.hpp"

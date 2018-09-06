@@ -14,7 +14,7 @@ namespace inl::gxeng {
 class IFont;
 
 
-class ITextEntity : public ITransformable2DN {
+class ITextEntity : public virtual ITransformable2DN {
 public:
 	virtual ~ITextEntity() = default;
 

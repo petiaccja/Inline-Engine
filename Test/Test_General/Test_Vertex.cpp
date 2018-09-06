@@ -2,7 +2,7 @@
 #include <thread>
 #include <iostream>
 #include <InlineMath.hpp>
-#include "GraphicsEngine_LL/Vertex.hpp"
+#include <GraphicsEngine/Resources/Vertex.hpp>
 #include "BaseLibrary/ArrayView.hpp"
 
 using namespace std::literals::chrono_literals;

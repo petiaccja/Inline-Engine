@@ -2,7 +2,7 @@
 
 #include <memory>
 #include "MemoryObject.hpp"
-#include "Pixel.hpp"
+#include <GraphicsEngine/Resources/Pixel.hpp>
 #include "MemoryManager.hpp"
 #include "ResourceView.hpp"
 

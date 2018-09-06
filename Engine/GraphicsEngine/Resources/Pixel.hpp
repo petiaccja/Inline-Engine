@@ -133,7 +133,7 @@ public:
 	class PixelReader : public IPixelReader {
 	public:
 		float Get(const void* pixel, int channel) const override {
-			return impl::DenormalizeColor<float>(reinterpret_cast<const Pixel*>(pixel)->channels[channel]);
+			return impl::NormalizeColor(reinterpret_cast<const Pixel*>(pixel)->channels[channel]);
 		}
 		void Set(void* pixel, int channel, float value) const override {
 			Pixel* px = reinterpret_cast<Pixel*>(pixel);

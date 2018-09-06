@@ -37,6 +37,8 @@ public:
 	UniqueId operator()(const T& object);
 
 	void Reset();
+
+	size_t DataBaseSize() const;
 private:
 	std::unordered_map<T, uint64_t, Hash, Equal> m_knownObjects;
 	uint64_t m_counter = 0;
@@ -61,6 +63,11 @@ template <class T, class Hash, class Equal>
 void UniqueIdGenerator<T, Hash, Equal>::Reset() {
 	m_knownObjects.clear();
 	m_counter = 0;
+}
+
+template<class T, class Hash, class Equal>
+size_t UniqueIdGenerator<T, Hash, Equal>::DataBaseSize() const {
+	return m_knownObjects.size();
 }
 
 

@@ -99,7 +99,7 @@ public:
 
 
 template <class T>
-class ITransformable<T, 2, false> : public ITransformable23Base<T, 2> {
+class ITransformable<T, 2, false> : public virtual ITransformable23Base<T, 2> {
 protected:
 	using typename ITransformable23Base<T, 2>::MatHomT;
 public:
@@ -109,7 +109,7 @@ public:
 
 
 template <class T>
-class ITransformable<T, 3, false> : public ITransformable23Base<T, 3> {
+class ITransformable<T, 3, false> : public virtual ITransformable23Base<T, 3> {
 protected:
 	using typename ITransformable23Base<T, 3>::MatHomT;
 public:
@@ -123,7 +123,7 @@ public:
 
 
 template <class T, int Dim>
-class ITransformable<T, Dim, true> : public ITransformable<T, Dim, false> {
+class ITransformable<T, Dim, true> : public virtual ITransformable<T, Dim, false> {
 protected:
 	using typename ITransformable<T, Dim, false>::MatHomT;
 public:
@@ -169,7 +169,7 @@ class Transformable;
 
 
 template <class T, int Dim>
-class Transformable23Base {
+class Transformable23Base : public virtual ITransformable23Base<T, Dim> {
 	static_assert(2 <= Dim && Dim <= 3, "This class is only a helper for 2D and 3D transforms.");
 protected:
 	using VectorT = Vector<T, Dim, false>;
@@ -324,35 +324,35 @@ protected:
 
 
 template <class T>
-class Transformable<T, 2, false> : public Transformable23Base<T, 2> {
+class Transformable<T, 2, false> : public Transformable23Base<T, 2>, public virtual ITransformable<T, 2, false> {
 protected:
 	using typename Transformable23Base<T, 2>::MatHomT;
 public:
 	using Transformable23Base<T, 2>::Transformable23Base;
 
-	void ShearX(T slope) { Shear(slope, 0, 1); }
-	void ShearY(T slope) { Shear(slope, 1, 0); }
+	void ShearX(T slope) { this->Shear(slope, 0, 1); }
+	void ShearY(T slope) { this->Shear(slope, 1, 0); }
 };
 
 
 template <class T>
-class Transformable<T, 3, false> : public Transformable23Base<T, 3> {
+class Transformable<T, 3, false> : public Transformable23Base<T, 3>, public virtual ITransformable<T, 3, false> {
 protected:
 	using typename Transformable23Base<T, 3>::MatHomT;
 public:
 	using Transformable23Base<T, 3>::Transformable23Base;
 
-	void ShearXY(T slope) { Shear(slope, 0, 1);	}
-	void ShearXZ(T slope) { Shear(slope, 0, 2); }
-	void ShearYX(T slope) { Shear(slope, 1, 0); }
-	void ShearYZ(T slope) { Shear(slope, 1, 2); }
-	void ShearZX(T slope) { Shear(slope, 2, 0); }
-	void ShearZY(T slope) { Shear(slope, 2, 1); }
+	void ShearXY(T slope) { this->Shear(slope, 0, 1);	}
+	void ShearXZ(T slope) { this->Shear(slope, 0, 2); }
+	void ShearYX(T slope) { this->Shear(slope, 1, 0); }
+	void ShearYZ(T slope) { this->Shear(slope, 1, 2); }
+	void ShearZX(T slope) { this->Shear(slope, 2, 0); }
+	void ShearZY(T slope) { this->Shear(slope, 2, 1); }
 };
 
 
 template <class T, int Dim>
-class Transformable<T, Dim, true> : public Transformable<T, Dim, false> {
+class Transformable<T, Dim, true> : public Transformable<T, Dim, false>, public virtual ITransformable<T, Dim, true> {
 protected:
 	using typename Transformable<T, Dim, false>::MatHomT;
 public:
@@ -571,10 +571,10 @@ eMotionMode Transformable<T, Dim, true>::GetMotionMode() const {
 using ITransformable2D = ITransformable<float, 2, true>;
 /// <summary> 3D float transformable with motion. </summary>
 using ITransformable3D = ITransformable<float, 3, true>;
-using ITransformable2Dd = ITransformable<double, 2, true>;
 /// <summary> 2D double transformable with motion. </summary>
-using ITransformable3Dd = ITransformable<double, 3, true>;
+using ITransformable2Dd = ITransformable<double, 2, true>;
 /// <summary> 3D double transformable with motion. </summary>
+using ITransformable3Dd = ITransformable<double, 3, true>;
 
 /// <summary> 2D float transformable without motion. </summary>
 using ITransformable2DN = ITransformable<float, 2, false>;
@@ -590,10 +590,10 @@ using ITransformable3DNd = ITransformable<double, 3, false>;
 using Transformable2D = Transformable<float, 2, true>;
 /// <summary> 3D float transformable with motion. </summary>
 using Transformable3D = Transformable<float, 3, true>;
-using Transformable2Dd = Transformable<double, 2, true>;
 /// <summary> 2D double transformable with motion. </summary>
-using Transformable3Dd = Transformable<double, 3, true>;
+using Transformable2Dd = Transformable<double, 2, true>;
 /// <summary> 3D double transformable with motion. </summary>
+using Transformable3Dd = Transformable<double, 3, true>;
 
 /// <summary> 2D float transformable without motion. </summary>
 using Transformable2DN = Transformable<float, 2, false>;

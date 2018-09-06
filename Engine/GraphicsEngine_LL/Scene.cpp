@@ -1,4 +1,5 @@
 #include "Scene.hpp"
+#include <cassert>
 
 
 namespace inl {

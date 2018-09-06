@@ -2,21 +2,29 @@
 
 
 #include <string>
+#include <BaseLibrary/GraphEditor/IEditorGraph.hpp>
+
+
+#undef CreateFont // damn bullshit winapi
 
 
 namespace inl {
 namespace gxeng {
 
+
 class IMesh;
+class IImage;
+class IFont;
 class IMaterial;
-class ITexture2D;
 
 class IScene;
-class ILight;
 class IMeshEntity;
-class ITerrainEntity;
-class PerspectiveCamera;
-class OrthographicCamera;
+class IOverlayEntity;
+class ITextEntity;
+class IPerspectiveCamera;
+class IOrthographicCamera;
+class ICamera2D;
+
 
 /// <summary>
 /// <para>The graphics engine handles the rendering of a 3D scene.</para>
@@ -37,26 +45,54 @@ class IGraphicsEngine {
 public:
 	virtual ~IGraphicsEngine() = default;
 
-	// Where to render.
-	virtual void SetResolution(int width, int height) = 0;
-	virtual void SetViewport(int top, int bottom, int left, int right) = 0;
+	// Update scene
 
-	// Create resources.
+	/// <summary> Redraws the entire screen. </summary>
+	/// <param name="elapsed"> Time since last frame in seconds. </param>
+	/// <remarks>
+	/// Since this call operates on all the entities and resources that compose the scene,
+	/// you are not allowed to concurrently modify these objects while Update() is running.
+	/// This includes but is not limited to adding new entities to a scene and uploading
+	/// data to meshes or images.
+	/// </remarks>
+	virtual void Update(float elapsed) = 0;
+
+	/// <summary> Rescales the backbuffer. </summary>
+	/// <remarks> Causes a pipeline flush, high overhead. </remarks>
+	virtual void SetScreenSize(unsigned width, unsigned height) = 0;
+
+	/// <summary> Returns the current backbuffer size in the out parameters. </remarks>
+	virtual void GetScreenSize(unsigned& width, unsigned& height) = 0;
+
+	/// <summary> Sets the D3D swap chain to full-screen mode. </summary>
+	/// <param name="enable"> True to full screen, false to windowed. </param>
+	virtual void SetFullScreen(bool enable) = 0;
+
+	/// <summary> True if the swap chain is currently in full-screen mode. </summary>
+	virtual bool GetFullScreen() const = 0;
+
+
+	// Graph editor interfaces
+	virtual IEditorGraph* QueryPipelineEditor() const = 0;
+	virtual IEditorGraph* QueryMaterialEditor() const = 0;
+
+
+	// Resources
 	virtual IMesh* CreateMesh() = 0;
-	virtual IMaterial* CreateMaterial() = 0;
-	virtual ITexture2D* CreateTexture2D() = 0;
+	virtual IImage* CreateImage() = 0;
+	//virtual IMaterial* CreateMaterial() = 0;
+	//virtual IMaterialShaderEquation* CreateMaterialShaderEquation() = 0;
+	//virtual IMaterialShaderGraph* CreateMaterialShaderGraph() = 0;
+	virtual IFont* CreateFont() = 0;
 
-	// Create scene.
-	virtual IScene* CreateScene() = 0;
-	virtual ILight* CreateLight() = 0;
-	virtual IMeshEntity* CreateMeshEntity() = 0;
-	virtual ITerrainEntity* CreateTerrainEntity() = 0;
-	virtual PerspectiveCamera* CreatePerspectiveCamera() = 0;
-	virtual OrthographicCamera* CreateOrthographicCamera() = 0;
-
-	// Rendering.
-	virtual void RenderWorld(double elapsed) = 0;
-	virtual void SetPipeline(std::string definition) = 0;
+	// Scene
+	virtual IScene* CreateScene(std::string name) = 0;
+	//virtual IMeshEntity* CreateMeshEntity() = 0;
+	virtual IOverlayEntity* CreateOverlayEntity() = 0;
+	virtual ITextEntity* CreateTextEntity() = 0;
+	//virtual IPerspectiveCamera* CreatePerspectiveCamera(std::string name) = 0;
+	//virtual IOrthographicCamera* CreateOrthographicCamera(std::string name) = 0;
+	//virtual ICamera2D* CreateCamera2D(std::string name) = 0;
 };
 
 

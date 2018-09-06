@@ -1,6 +1,7 @@
 #pragma once
 
 #include <InlineMath.hpp>
+#include <iostream>
 
 
 namespace inl {
@@ -35,10 +36,8 @@ public:
 			long double maxval = std::numeric_limits<S2>::max();
 			long double range = maxval - minval;
 			transition = rhs.v;
-			transition += minval;
+			transition -= minval;
 			transition /= range;
-			transition *= 2.0;
-			transition -= -1.0;
 		}
 		// unsigned integer source
 		else if (std::is_integral<S2>::value && !std::is_signed<S2>::value) {
@@ -46,7 +45,7 @@ public:
 			long double maxval = std::numeric_limits<S2>::max();
 			long double range = maxval - minval;
 			transition = rhs.v;
-			transition += minval;
+			transition -= minval;
 			transition /= range;
 		}
 		// floating point source
@@ -60,7 +59,7 @@ public:
 			long double minval = std::numeric_limits<Scalar>::min();
 			long double maxval = std::numeric_limits<Scalar>::max();
 			long double range = maxval - minval;
-			assert(false); // this is simply wrong but im too lazy
+			transition = Saturate(transition);
 			transition *= range;
 			transition -= minval;
 			transition += 0.5;
@@ -78,7 +77,7 @@ public:
 		}
 		// floating point dst
 		else {
-			transition = rhs.v;
+			v = transition;
 		}
 	}
 
@@ -136,6 +135,19 @@ public:
 		return Dot(v, Color(Color<float>(0.2126f, 0.7152f, 0.0722f, 0.0f)).v);
 	}
 };
+
+
+template <class T>
+std::ostream& operator<<(std::ostream& os, const Color<T>& obj) {
+	os << obj.v;
+	return os;
+}
+
+template <class T>
+std::istream& operator<<(std::istream& is, Color<T>& obj) {
+	is >> obj.v;
+	return is;
+}
 
 
 using ColorF = Color<float>;

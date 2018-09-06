@@ -1,13 +1,21 @@
 #pragma once
 
 #include <InlineMath.hpp>
-#include <memory>
+
+#include <GraphicsEngine/Scene/IScene.hpp>
+#include <GraphicsEngine_LL/GraphicsEngine.hpp>
 
 
 namespace inl::gui {
 
 
 class Layout;
+
+struct DrawingContext {
+public:
+	gxeng::GraphicsEngine* engine;
+	gxeng::IScene* scene;
+};
 
 
 class Control {
@@ -28,8 +36,11 @@ public:
 protected:
 	static void Attach(Layout* parent, Control* child) { child->OnAttach(parent); }
 	static void Detach(Control* child) { child->OnDetach(); }
+	static const DrawingContext* GetContext(const Control* layout) { return layout->GetContext(); }
+
 	virtual void OnAttach(Layout* parent) = 0;
 	virtual void OnDetach() = 0;
+	virtual const DrawingContext* GetContext() const;
 };
 
 

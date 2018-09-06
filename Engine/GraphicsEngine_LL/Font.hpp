@@ -1,5 +1,7 @@
 #pragma once
 
+#include <GraphicsEngine/Resources/IFont.hpp>
+
 #include <string>
 #include <unordered_map>
 
@@ -10,7 +12,7 @@ namespace inl::gxeng {
 
 
 
-class Font {
+class Font : public IFont {
 public:
 	struct GlyphInfo {
 		float advance;
@@ -21,14 +23,14 @@ public:
 	Font(Image atlas);
 
 	/// <summary> Loads an already opened TTF font file. </summary>
-	void LoadFile(std::istream& file);
+	void LoadFile(std::istream& file) override;
 
 	/// <summary> Load TTF file from memory. </summary>
-	void LoadFile(const void* data, size_t size);
+	void LoadFile(const void* data, size_t size) override;
 
 	/// <summary> Check weather given character can be rendered. </summary>
 	/// <param name="character"> UCS-4 code point. </param>
-	bool IsCharacterSupported(char32_t character) const;
+	bool IsCharacterSupported(char32_t character) const override;
 
 	/// <summary> Returns the width of the specified character. </summary>
 	/// <param name="character"> UCS-4 code point. </param>
@@ -40,7 +42,7 @@ public:
 
 	/// <summary> Calculates the height of a line of text for given font size. </summary>
 	/// <param name="fontSize"> The size of the font you want to render. </param>
-	float CalculateTextHeight(float fontSize) const;
+	float CalculateTextHeight(float fontSize) const override;
 private:
 	Image m_atlas;
 	std::unordered_map<char32_t, GlyphInfo> m_glyphs;
