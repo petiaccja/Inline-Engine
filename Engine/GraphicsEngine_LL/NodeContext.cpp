@@ -168,22 +168,22 @@ Binder SetupContext::CreateBinder(const std::vector<BindParameterDesc>& paramete
 
 RenderContext::RenderContext(MemoryManager* memoryManager,
 							 CbvSrvUavHeap* srvHeap,
-							 VolatileViewHeap* volatileViewHeap,
 							 ShaderManager* shaderManager,
 							 gxapi::IGraphicsApi* graphicsApi,
 							 CommandListPool* commandListPool,
 							 CommandAllocatorPool* commandAllocatorPool,
 							 ScratchSpacePool* scratchSpacePool,
-							 std::unique_ptr<BasicCommandList> inheritedList)
+							 std::unique_ptr<BasicCommandList> inheritedList,
+							 std::unique_ptr<VolatileViewHeap> inheritedVheap)
 	: m_memoryManager(memoryManager),
 	m_srvHeap(srvHeap),
-	m_volatileViewHeap(volatileViewHeap),
 	m_shaderManager(shaderManager),
 	m_graphicsApi(graphicsApi),
 	m_commandListPool(commandListPool),
 	m_commandAllocatorPool(commandAllocatorPool),
 	m_scratchSpacePool(scratchSpacePool),
-	m_inheritedCommandList(std::move(inheritedList))
+	m_inheritedCommandList(std::move(inheritedList)),
+	m_vheap(std::move(inheritedVheap))
 {}
 
 
@@ -195,9 +195,10 @@ VolatileConstBuffer RenderContext::CreateVolatileConstBuffer(const void* data, s
 }
 
 ConstBufferView RenderContext::CreateCbv(VolatileConstBuffer& buffer, size_t offset, size_t size) const {
+	InitVheap();
 	return ConstBufferView(
 		buffer,
-		m_volatileViewHeap->Allocate(),
+		m_vheap->Allocate(),
 		m_graphicsApi
 	);
 }
@@ -261,12 +262,13 @@ void RenderContext::Upload(const Texture2D& target,
 
 // Query command list
 GraphicsCommandList& RenderContext::AsGraphics() {
+	InitVheap();
 	if (!m_commandList) {
 		if (m_inheritedCommandList && m_inheritedCommandList->GetType() == gxapi::eCommandListType::GRAPHICS) {
 			m_commandList = std::move(m_inheritedCommandList);
 		}
 		else {
-			m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap));
+			m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_vheap.get()));
 		}
 		m_commandList->BeginDebuggerEvent(m_TMP_commandListName); // TMP
 		m_commandList->SetName(m_TMP_commandListName);
@@ -281,12 +283,13 @@ GraphicsCommandList& RenderContext::AsGraphics() {
 	}
 }
 ComputeCommandList& RenderContext::AsCompute() {
+	InitVheap();
 	if (!m_commandList) {
 		if (m_inheritedCommandList && m_inheritedCommandList->GetType() == gxapi::eCommandListType::COMPUTE) {
 			m_commandList = std::move(m_inheritedCommandList);
 		}
 		else {
-			m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap)); // only graphics queues now
+			m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_vheap.get())); // only graphics queues now
 		}
 		m_commandList->BeginDebuggerEvent(m_TMP_commandListName); // TMP
 		m_type = gxapi::eCommandListType::COMPUTE;
@@ -300,12 +303,13 @@ ComputeCommandList& RenderContext::AsCompute() {
 	}
 }
 CopyCommandList& RenderContext::AsCopy() {
+	InitVheap();
 	if (!m_commandList) {
 		if (m_inheritedCommandList && m_inheritedCommandList->GetType() == gxapi::eCommandListType::COPY) {
 			m_commandList = std::move(m_inheritedCommandList);
 		}
 		else {
-			m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_volatileViewHeap)); // only graphics queues now
+			m_commandList.reset(new GraphicsCommandList(m_graphicsApi, *m_commandListPool, *m_commandAllocatorPool, *m_scratchSpacePool, *m_memoryManager, *m_vheap.get())); // only graphics queues now
 		}
 		m_commandList->BeginDebuggerEvent(m_TMP_commandListName); // TMP
 		m_type = gxapi::eCommandListType::COPY;
@@ -319,9 +323,19 @@ CopyCommandList& RenderContext::AsCopy() {
 	}
 }
 
-void RenderContext::Decompose(std::unique_ptr<BasicCommandList>& inheritedList,	std::unique_ptr<BasicCommandList>& currentList) {
+void RenderContext::Decompose(std::unique_ptr<BasicCommandList>& inheritedList,
+							  std::unique_ptr<BasicCommandList>& currentList, 
+							  std::unique_ptr<VolatileViewHeap>& currentVheap) 
+{
 	inheritedList = std::move(m_inheritedCommandList);
 	currentList = std::move(m_commandList);
+	currentVheap = std::move(m_vheap);
+}
+
+void RenderContext::InitVheap() const {
+	if (!m_vheap) {
+		m_vheap = std::make_unique<VolatileViewHeap>(m_graphicsApi);
+	}
 }
 
 

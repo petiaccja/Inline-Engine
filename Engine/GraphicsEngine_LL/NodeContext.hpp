@@ -135,13 +135,13 @@ class RenderContext {
 public:
 	RenderContext(MemoryManager* memoryManager = nullptr,
 				  CbvSrvUavHeap* srvHeap = nullptr,
-				  VolatileViewHeap* volatileViewHeap = nullptr,
 				  ShaderManager* shaderManager = nullptr,
 				  gxapi::IGraphicsApi* graphicsApi = nullptr,
 				  CommandListPool* commandListPool = nullptr,
 				  CommandAllocatorPool* commandAllocatorPool = nullptr,
 				  ScratchSpacePool* scratchSpacePool = nullptr,
-				  std::unique_ptr<BasicCommandList> inheritedList = nullptr);
+				  std::unique_ptr<BasicCommandList> inheritedList = nullptr,
+				  std::unique_ptr<VolatileViewHeap> inheritedVheap = nullptr);
 	RenderContext(RenderContext&&) = delete;
 	RenderContext& operator=(RenderContext&&) = delete;
 	RenderContext(const RenderContext&) = delete;
@@ -205,18 +205,21 @@ public:
 	bool IsListInitialized() const { return (bool)m_commandList; }
 
 	// Extract command lists.
-	void Decompose(std::unique_ptr<BasicCommandList>& inheritedList, std::unique_ptr<BasicCommandList>& currentList);
+	void Decompose(std::unique_ptr<BasicCommandList>& inheritedList, std::unique_ptr<BasicCommandList>& currentList, std::unique_ptr<VolatileViewHeap>& currentVheap);
 
 	// Debug draw
 	void AddDebugObject(std::vector<DebugObject*> objects);
 
 	// TMP: RenderDoc does not process command queue PIX debug events
 	void SetCommandListName(const std::string& name) { m_TMP_commandListName = name; }
+
+private:
+	void InitVheap() const;
+
 private:
 	// Memory management stuff
 	MemoryManager* m_memoryManager;
 	CbvSrvUavHeap* m_srvHeap;
-	VolatileViewHeap* m_volatileViewHeap;
 
 	// Shaders and PSOs
 	ShaderManager* m_shaderManager;
@@ -228,6 +231,7 @@ private:
 	ScratchSpacePool* m_scratchSpacePool;
 	std::unique_ptr<BasicCommandList> m_inheritedCommandList;
 	std::unique_ptr<BasicCommandList> m_commandList;
+	mutable std::unique_ptr<VolatileViewHeap> m_vheap; // Don't want to make CBV creation non-const.
 	gxapi::eCommandListType m_type = static_cast<gxapi::eCommandListType>(0xDEADBEEF);
 
 	// TMP: command list name

@@ -1,26 +1,28 @@
 #pragma once
 
-#include "GraphicsNode.hpp"
-#include "Pipeline.hpp"
-#include "FrameContext.hpp"
-#include "ScratchSpacePool.hpp"
-#include "CommandListPool.hpp"
-#include "MemoryObject.hpp"
 #include "BasicCommandList.hpp"
+#include "CommandListPool.hpp"
+#include "FrameContext.hpp"
+#include "GraphicsNode.hpp"
+#include "MemoryObject.hpp"
+#include "Pipeline.hpp"
+#include "SchedulerCPU.hpp"
+#include "SchedulerGPU.hpp"
+#include "ScratchSpacePool.hpp"
 
-#include <GraphicsApi_LL/IFence.hpp>
-#include <GraphicsApi_LL/Common.hpp>
+#include "BaseLibrary/SpinMutex.hpp"
 #include <BaseLibrary/JobSystem/Future.hpp>
 #include <BaseLibrary/JobSystem/ThreadpoolScheduler.hpp>
-#include <memory>
+#include <GraphicsApi_LL/Common.hpp>
+#include <GraphicsApi_LL/IFence.hpp>
+
+#include <any>
 #include <cstdint>
-#include <vector>
+#include <memory>
 #include <optional>
-#include "BaseLibrary/SpinMutex.hpp"
+#include <vector>
 
-namespace inl {
-namespace gxeng {
-
+namespace inl::gxeng {
 
 
 class Scheduler {
@@ -45,6 +47,11 @@ public:
 	///		First, references to the swapchain are dropped, second, GPU memory will be freed
 	///		so that old resources won't prevent new ones from being allocated. </remarks>
 	void ReleaseResources();
+
+private:
+	SchedulerCPU m_cpuScheduler;
+	SchedulerGPU m_gpuScheduler;
+
 protected:
 	struct UsedResource {
 		MemoryObject* resource;
@@ -68,7 +75,8 @@ protected:
 	};
 
 	struct ExecuteState {
-		ExecuteState(const lemon::ListDigraph& taskGraph, FrameContext context) : taskGraph(taskGraph), trace(taskGraph), frameContext(context) {}
+		ExecuteState(const lemon::ListDigraph& taskGraph, FrameContext context)
+			: taskGraph(taskGraph), trace(taskGraph), frameContext(context) {}
 		const lemon::ListDigraph& taskGraph;
 		lemon::ListDigraph::NodeMap<ExecuteTrace> trace;
 		FrameContext frameContext;
@@ -76,9 +84,16 @@ protected:
 
 	struct TraverseDependency {
 	public:
-		void ResetCounter() { *counter = 0; }
-		void Set(size_t total) { this->total = total; }
-		bool operator++() {		return (counter->fetch_add(1) + 1) == total;	}
+		void ResetCounter() {
+			*counter = 0;
+		}
+		void Set(size_t total) {
+			this->total = total;
+		}
+		bool operator++() {
+			return (counter->fetch_add(1) + 1) == total;
+		}
+
 	private:
 		std::shared_ptr<std::atomic_size_t> counter = std::make_shared<std::atomic_size_t>(0);
 		std::size_t total = 0;
@@ -91,8 +106,8 @@ protected:
 	template <class Func>
 	static jobs::Future<void> TraverseNode(lemon::ListDigraph::Node node,
 										   const lemon::ListDigraph& graph,
-										   jobs::Scheduler& scheduler, 
-										   lemon::ListDigraph::NodeMap<TraverseDependency>& dependencyTracker, 
+										   jobs::Scheduler& scheduler,
+										   lemon::ListDigraph::NodeMap<TraverseDependency>& dependencyTracker,
 										   Func onVisit);
 
 	void SetupNode(lemon::ListDigraph::Node node, ExecuteState& trace) const;
@@ -103,6 +118,8 @@ protected:
 	static std::tuple<std::unique_ptr<BasicCommandList>, std::unique_ptr<VolatileViewHeap>> ExecuteUploadTask(const FrameContext& context);
 	static std::vector<MemoryObject> GetUsedResources(std::vector<ResourceUsage> usages, std::vector<MemoryObject> additional);
 	void EnqueueFinishedLists(const FrameContext& context, const std::vector<jobs::Future<void>>& futures);
+
+
 
 	//--------------------------------------------
 	// Utilities
@@ -140,6 +157,7 @@ protected:
 	// Failure handling
 	//--------------------------------------------
 	static void RenderFailureScreen(FrameContext context);
+
 private:
 	Pipeline m_pipeline;
 	jobs::ThreadpoolScheduler m_jobScheduler;
@@ -147,12 +165,15 @@ private:
 	SpinMutex m_finishedListMtx;
 	std::condition_variable_any m_finishedListCv;
 	volatile bool m_finishedListDone;
+
 private:
 	class UploadTask : public GraphicsTask {
 	public:
-		UploadTask(const std::vector<UploadManager::UploadDescription>* uploads) : m_uploads(uploads) {}
+		UploadTask(const std::vector<UploadManager::UploadDescription>* uploads)
+			: m_uploads(uploads) {}
 		void Setup(SetupContext& context) override;
 		void Execute(RenderContext& context) override;
+
 	private:
 		const std::vector<UploadManager::UploadDescription>* m_uploads;
 	};
@@ -206,8 +227,7 @@ bool Scheduler::CanExecuteParallel(UsedResourceIter1 first1, UsedResourceIter1 l
 			// If the resources are the same, but uses are incompatible, return false.
 			if (it1->firstState != it2->firstState
 				|| it1->multipleUse
-				|| it2->multipleUse)
-			{
+				|| it2->multipleUse) {
 				return false;
 			}
 			++it1;
@@ -234,5 +254,4 @@ void Scheduler::UpdateResourceStates(UsedResourceIter firstResource, UsedResourc
 }
 
 
-} // namespace gxeng
-} // namespace inl
+} // namespace inl::gxeng

@@ -34,8 +34,6 @@ set(scene
 	"TextEntity.hpp"
 	"Camera2D.hpp"
 	"AnimationState.hpp"
-	
-	"EntityCollection.hpp"
 )
 
 set(resources
@@ -107,11 +105,15 @@ set (backendpipe
 	"PipelineEventDispatcher.cpp"
 	"ResourceResidencyQueue.cpp"
 	"Scheduler.cpp"
+	"SchedulerCPU.cpp"
+	"SchedulerGPU.cpp"
 	
 	"Pipeline.hpp"
 	"PipelineEventDispatcher.hpp"
 	"ResourceResidencyQueue.hpp"
 	"Scheduler.hpp"
+	"SchedulerCPU.hpp"
+	"SchedulerGPU.hpp"
 	
 	"CommandQueue.hpp"
 	"FrameContext.hpp"

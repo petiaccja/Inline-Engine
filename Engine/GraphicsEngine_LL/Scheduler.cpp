@@ -1,23 +1,22 @@
 #include "Scheduler.hpp"
 
-#include <GraphicsApi_LL/IGraphicsApi.hpp>
-#include <BaseLibrary/AtScopeExit.hpp>
-
 #include "GraphicsCommandList.hpp"
+#include "ResourceResidencyQueue.hpp"
 
-#include <cassert>
-#include <typeinfo> // Track render passes.
-#include <fstream> // only for debugging
-#include <sstream>
-#include <iomanip>
+#include <BaseLibrary/AtScopeExit.hpp>
+#include <GraphicsApi_LL/IGraphicsApi.hpp>
+
 #include <atomic>
+#include <cassert>
+#include <fstream> // only for debugging
+#include <iomanip>
+#include <sstream>
+#include <typeinfo> // Track render passes.
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
-Scheduler::Scheduler()
-{}
+Scheduler::Scheduler() {}
 
 void Scheduler::SetPipeline(Pipeline&& pipeline) {
 	m_pipeline = std::move(pipeline);
@@ -103,17 +102,17 @@ void Scheduler::Execute(FrameContext context) {
 
 		m_finishedListDone = false;
 		auto OnEnd = [&]() -> jobs::Future<void> {
-			AtScopeExit makeSignal([&]{
+			AtScopeExit makeSignal([&] {
 				std::unique_lock<SpinMutex> lkg(m_finishedListMtx);
 				m_finishedListDone = true;
 				lkg.unlock();
-				m_finishedListCv.notify_one();				
+				m_finishedListCv.notify_one();
 			});
 
 			// May throw.
 			for (auto& future : jobFutures) {
 				co_await future;
-			}		
+			}
 		};
 		auto onEndFut = OnEnd();
 		onEndFut.Run();
@@ -124,14 +123,16 @@ void Scheduler::Execute(FrameContext context) {
 	}
 	catch (Exception& ex) {
 		std::cout << "=== This frame is fucked ===" << std::endl;
-		std::cout << "Error message: " << std::endl << ex.what() << std::endl;
+		std::cout << "Error message: " << std::endl
+				  << ex.what() << std::endl;
 
 		std::cout << std::endl;
 		Exception::BreakOnce();
 	}
 	catch (std::exception& ex) {
 		std::cout << "=== This frame is fucked for unknown reasons ===" << std::endl;
-		std::cout << "Error message:" << std::endl << ex.what() << std::endl;
+		std::cout << "Error message:" << std::endl
+				  << ex.what() << std::endl;
 	}
 }
 
@@ -177,8 +178,7 @@ jobs::Future<void> Scheduler::TraverseNode(lemon::ListDigraph::Node node,
 										   const lemon::ListDigraph& graph,
 										   jobs::Scheduler& scheduler,
 										   lemon::ListDigraph::NodeMap<TraverseDependency>& dependencyTracker,
-										   Func onVisit)
-{
+										   Func onVisit) {
 	onVisit(node);
 
 	std::vector<jobs::Future<void>> childJobs;
@@ -212,12 +212,12 @@ void Scheduler::SetupNode(lemon::ListDigraph::Node node, ExecuteState& state) co
 
 	// Setup given node.
 	SetupContext setupContext(state.frameContext.memoryManager,
-								state.frameContext.textureSpace,
-								state.frameContext.rtvHeap,
-								state.frameContext.dsvHeap,
-								state.frameContext.shaderManager,
-								state.frameContext.gxApi);
-	task->Setup(setupContext);	
+							  state.frameContext.textureSpace,
+							  state.frameContext.rtvHeap,
+							  state.frameContext.dsvHeap,
+							  state.frameContext.shaderManager,
+							  state.frameContext.gxApi);
+	task->Setup(setupContext);
 }
 
 
@@ -256,25 +256,25 @@ void Scheduler::ExecuteNode(lemon::ListDigraph::Node node, ExecuteState& state) 
 	}
 
 	// See if we can inherit a command list.
-	auto[inheritedCommandList, inheritedVheap] = InheritCommandList(node, state);
+	auto [inheritedCommandList, inheritedVheap] = InheritCommandList(node, state);
 
 	// Execute given node.
-	auto vheap = std::make_unique<VolatileViewHeap>(state.frameContext.gxApi);
 	RenderContext renderContext(state.frameContext.memoryManager,
 								state.frameContext.textureSpace,
-								vheap.get(),
 								state.frameContext.shaderManager,
 								state.frameContext.gxApi,
 								state.frameContext.commandListPool,
 								state.frameContext.commandAllocatorPool,
 								state.frameContext.scratchSpacePool,
-								std::move(inheritedCommandList));
+								std::move(inheritedCommandList),
+								std::move(inheritedVheap));
 	renderContext.SetCommandListName(state.trace[node].nodeName);
 	task->Execute(renderContext);
 
 	// Get inherited and current list, if any.
 	std::unique_ptr<BasicCommandList> currentCommandList;
-	renderContext.Decompose(inheritedCommandList, currentCommandList);
+	std::unique_ptr<VolatileViewHeap> currentVheap;
+	renderContext.Decompose(inheritedCommandList, currentCommandList, currentVheap);
 
 
 	// Schedule inherited command list.
@@ -288,10 +288,10 @@ void Scheduler::ExecuteNode(lemon::ListDigraph::Node node, ExecuteState& state) 
 
 		if (CanNextInheritCommandList(node, state)) {
 			state.trace[node].inheritableList = std::move(currentCommandList);
-			state.trace[node].inheritableVheap = std::move(vheap);
+			state.trace[node].inheritableVheap = std::move(currentVheap);
 		}
 		else {
-			FinishList(std::move(currentCommandList), std::move(vheap));
+			FinishList(std::move(currentCommandList), std::move(currentVheap));
 		}
 	}
 }
@@ -306,24 +306,24 @@ void Scheduler::FinishList(std::unique_ptr<BasicCommandList> list, std::unique_p
 std::tuple<std::unique_ptr<BasicCommandList>, std::unique_ptr<VolatileViewHeap>> Scheduler::ExecuteUploadTask(const FrameContext& context) {
 	UploadTask uploadTask(context.uploadRequests);
 	SetupContext setupContext(context.memoryManager,
-	                          context.textureSpace,
-	                          context.rtvHeap,
-	                          context.dsvHeap,
-	                          context.shaderManager,
-	                          context.gxApi);
-	auto uploadVheap = std::make_unique<VolatileViewHeap>(context.gxApi);
+							  context.textureSpace,
+							  context.rtvHeap,
+							  context.dsvHeap,
+							  context.shaderManager,
+							  context.gxApi);
 	RenderContext renderContext(context.memoryManager,
-	                            context.textureSpace,
-	                            uploadVheap.get(),
-	                            context.shaderManager,
-	                            context.gxApi,
-	                            context.commandListPool,
-	                            context.commandAllocatorPool,
-	                            context.scratchSpacePool);
+								context.textureSpace,
+								context.shaderManager,
+								context.gxApi,
+								context.commandListPool,
+								context.commandAllocatorPool,
+								context.scratchSpacePool,
+								nullptr);
 	uploadTask.Setup(setupContext);
 	uploadTask.Execute(renderContext);
 	std::unique_ptr<BasicCommandList> uploadInherit, uploadList;
-	renderContext.Decompose(uploadInherit, uploadList);
+	std::unique_ptr<VolatileViewHeap> uploadVheap;
+	renderContext.Decompose(uploadInherit, uploadList, uploadVheap);
 	return { std::move(uploadList), std::move(uploadVheap) };
 }
 
@@ -349,9 +349,9 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 	// Initialize previous list with the upload task and a dummy barrier-only list.
 	prevList.commandAllocator = context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
 	prevList.commandList = context.commandListPool->RequestGraphicsList(prevList.commandAllocator.get());
-	
 
-	auto[uploadList, uploadVheap] = ExecuteUploadTask(context);
+
+	auto [uploadList, uploadVheap] = ExecuteUploadTask(context);
 	localLists.push({ std::move(uploadList), std::move(uploadVheap) });
 
 
@@ -382,7 +382,7 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 
 			// Update resource states to reflect current list.
 			UpdateResourceStates(currentList.usedResources.begin(), currentList.usedResources.end());
-			
+
 			// Collect used resource of previous list.
 			std::vector<MemoryObject> usedResourceList = GetUsedResources(std::move(prevList.usedResources), std::move(prevList.additionalResources));
 
@@ -402,7 +402,6 @@ void Scheduler::EnqueueFinishedLists(const FrameContext& context, const std::vec
 			prevVheap = std::move(currentVheap);
 			localLists.pop();
 		}
-
 	};
 
 	// Set backBuffer to PRESENT state.
@@ -439,8 +438,7 @@ void Scheduler::EnqueueCommandList(CommandQueue& commandQueue,
 								   std::vector<ScratchSpacePtr> scratchSpaces,
 								   std::vector<MemoryObject> usedResources,
 								   std::unique_ptr<VolatileViewHeap> volatileHeap,
-								   const FrameContext& context)
-{
+								   const FrameContext& context) {
 	// Enqueue CPU task to make resources resident before the command list runs.
 	SyncPoint residentPoint = context.residencyQueue->EnqueueInit(usedResources);
 
@@ -574,5 +572,4 @@ void Scheduler::UploadTask::Execute(RenderContext& context) {
 
 
 
-} // namespace gxeng
-} // namespace inl
+} // namespace inl::gxeng
