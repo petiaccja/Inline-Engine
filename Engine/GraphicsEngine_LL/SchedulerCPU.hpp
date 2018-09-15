@@ -6,7 +6,7 @@
 #include <BaseLibrary/JobSystem/Scheduler.hpp>
 
 #include <any>
-#include <memory>
+#include <optional>
 
 
 
@@ -34,12 +34,12 @@ private:
 	};
 
 	static std::vector<lemon::ListDigraph::Node> GetSourceNodes(const lemon::ListDigraph& graph);
-	void LaunchTasks(const FrameContextEx& context, std::function<std::any(const FrameContextEx&, const Pipeline&, lemon::ListDigraph::Node, std::any)> onNode);
+	void LaunchTasks(const FrameContextEx& context, std::function<jobs::Future<std::any>(const FrameContextEx&, const Pipeline&, lemon::ListDigraph::Node, std::any)> onNode);
 
-	static std::any OnSetupNode(const FrameContextEx& context, const Pipeline& pipeline, lemon::ListDigraph::Node node, std::any);
+	static jobs::Future<std::any> OnSetupNode(const FrameContextEx& context, const Pipeline& pipeline, lemon::ListDigraph::Node node, std::any);
 	static void SetupNode(GraphicsTask& task, const FrameContextEx& context);
 
-	static std::any OnExecuteNode(const FrameContextEx& context, const Pipeline& pipeline, lemon::ListDigraph::Node node, std::any forwarded);
+	static jobs::Future<std::any> OnExecuteNode(const FrameContextEx& context, const Pipeline& pipeline, lemon::ListDigraph::Node node, std::any forwarded);
 	static ProducedCommands ExecuteNode(GraphicsTask& task, std::optional<ProducedCommands>& inherited, const FrameContextEx& context);
 
 private:

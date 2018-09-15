@@ -149,14 +149,14 @@ void GameScene::LoadAssets() {
 	m_entities.push_back(std::move(terrain));
 
 	auto pxTerrain = CreatePhysicsEntity("Models/Terrain/terrain.fbx");
-	m_pxScene->AddEntity(pxTerrain.get());
-	m_pxEntities.push_back(std::move(pxTerrain));
+	//m_pxScene->AddEntity(pxTerrain.get());
+	//m_pxEntities.push_back(std::move(pxTerrain));
 }
 
 
 void GameScene::Update(float elapsed) {
-	m_pxScene->Update(elapsed);
-	m_entities[0]->SetPosition(m_pxEntities[0]->GetPosition());
+	//m_pxScene->Update(elapsed);
+	//m_entities[0]->SetPosition(m_pxEntities[0]->GetPosition());
 	m_graphicsEngine->Update(elapsed);
 }
 

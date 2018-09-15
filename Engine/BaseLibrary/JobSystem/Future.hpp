@@ -144,6 +144,7 @@ public:
 	Future& operator=(const Future&) = delete;
 	Future(Future&&) noexcept = default;
 	Future& operator=(Future&&) noexcept = default;
+	~Future();
 
 	bool valid() const noexcept;
 	bool ready() const noexcept;
@@ -221,6 +222,13 @@ inline Future<void> CoroPromise<void>::get_return_object() {
 //------------------------------------------------------------------------------
 // Future - defs
 //------------------------------------------------------------------------------
+
+template <class T>
+Future<T>::~Future() {
+	if (valid() && !ready()) {
+		std::terminate();
+	}
+}
 
 template <class T>
 bool Future<T>::valid() const noexcept {
