@@ -77,7 +77,7 @@ auto MatrixSquare<T, Dim, Dim, Order, Layout, Packed>::Transpose() -> MatrixT& {
 
 template <class T, int Dim, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
 auto MatrixSquare<T, Dim, Dim, Order, Layout, Packed>::Invert() -> MatrixT& {
-	*this = Inverse();
+	self() = self().Inverse();
 	return self();
 }
 

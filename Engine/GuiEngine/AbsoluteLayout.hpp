@@ -30,13 +30,22 @@ public:
 
 
 class AbsoluteLayout : public Layout {
+public:
+	enum class eRefPoint {
+		TOPLEFT,
+		BOTTOMLEFT,
+		TOPRIGHT,
+		BOTTOMRIGHT,
+		CENTER,
+	};
+private:
 	class Binding {
 		friend class AbsoluteLayout;
 	public:
-		Binding& SetPosition(Vec2u position);
-		Vec2u GetPosition() const;
+		Binding& SetPosition(Vec2i position);
+		Vec2i GetPosition() const;
 	private:
-		Vec2u position = {0, 0};
+		Vec2i position = {0, 0};
 	};
 public:
 	Binding& AddChild(std::shared_ptr<Control> child);
@@ -51,13 +60,32 @@ public:
 
 	void SetVisible(bool visible) override;
 	bool GetVisible() const override;
+	bool IsShown() const override;
 
 	void Update(float elapsed = 0.0f) override;
+
+	void SetReferencePoint(eRefPoint point);
+	eRefPoint GetReferencePoint() const;
+	void SetYDown(bool enabled);
+	bool GetYDown() const;
+
 private:
+	void OnAttach(Layout* parent) override;
+	void OnDetach() override;
+	const DrawingContext* GetContext() const  override { return m_context; }
+
+	Vec2i CalculateChildPosition(const Binding& binding) const;
+
+private:
+	Layout* m_parent = nullptr;
 	std::map<std::shared_ptr<Control>, std::unique_ptr<Binding>, impl::ControlPtrLess> m_children;
 
-	Vec2i m_position;
-	Vec2u m_size;
+	Vec2i m_position = { 0,0 };
+	Vec2u m_size = { 10,10 };
+	eRefPoint m_refPoint = eRefPoint::TOPLEFT;
+	bool m_yDown = true;
+
+	const DrawingContext* m_context = nullptr;
 };
 
 

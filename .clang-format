@@ -9,7 +9,7 @@ AlignTrailingComments: 'false'
 AllowAllParametersOfDeclarationOnNextLine: 'false'
 AllowShortBlocksOnASingleLine: 'true'
 AllowShortCaseLabelsOnASingleLine: 'true'
-AllowShortFunctionsOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: 'true'
 AlwaysBreakAfterReturnType: None
 AlwaysBreakTemplateDeclarations: 'true'
 BinPackArguments: 'true'

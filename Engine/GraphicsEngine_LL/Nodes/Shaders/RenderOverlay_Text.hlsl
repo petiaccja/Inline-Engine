@@ -51,7 +51,7 @@ float4 PSMain(float4 posS : SV_Position, float2 texCoord : TEXCOORD0) : SV_Targe
 	float2 topleft = (float2)renderConstants.atlasAccessTopleft / (float2)atlasSize;
 	float2 bottomRight = (float2)(renderConstants.atlasAccessTopleft + renderConstants.atlasAccessSize) / (float2)atlasSize;
 
-    float2 sampleCoord = float2(topleft.x * (1 - texCoord.x) + bottomRight.x * texCoord.x, topleft.y * (1 - texCoord.y) + bottomRight.y * texCoord.y);
+    float2 sampleCoord = float2(topleft.x * (1 - texCoord.x) + bottomRight.x * texCoord.x, topleft.y * texCoord.y + bottomRight.y * (1 - texCoord.y));
 
 	float4 alpha = alphaTexture.Sample(linearSampler, sampleCoord);
 

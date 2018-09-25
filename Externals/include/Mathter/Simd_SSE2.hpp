@@ -226,14 +226,14 @@ union alignas(16) Simd<float, 8> {
 	template <int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7>
 	static inline Simd shuffle(const Simd& arg) {
 		Simd ret;
-		ret.v[0] = arg.v[i0];
-		ret.v[1] = arg.v[i1];
-		ret.v[2] = arg.v[i2];
-		ret.v[3] = arg.v[i3];
-		ret.v[4] = arg.v[i4];
-		ret.v[5] = arg.v[i5];
-		ret.v[6] = arg.v[i6];
-		ret.v[7] = arg.v[i7];
+		ret.v[7] = arg.v[i0];
+		ret.v[6] = arg.v[i1];
+		ret.v[5] = arg.v[i2];
+		ret.v[4] = arg.v[i3];
+		ret.v[3] = arg.v[i4];
+		ret.v[2] = arg.v[i5];
+		ret.v[1] = arg.v[i6];
+		ret.v[0] = arg.v[i7];
 		return ret;
 	}
 };
@@ -453,10 +453,10 @@ union alignas(16) Simd<double, 4> {
 	template <int i0, int i1, int i2, int i3>
 	static inline Simd shuffle(const Simd& arg) {
 		Simd ret;
-		ret.v[0] = arg.v[i0];
-		ret.v[1] = arg.v[i1];
-		ret.v[2] = arg.v[i2];
-		ret.v[3] = arg.v[i3];
+		ret.v[3] = arg.v[i0];
+		ret.v[2] = arg.v[i1];
+		ret.v[1] = arg.v[i2];
+		ret.v[0] = arg.v[i3];
 		return ret;
 	}
 };

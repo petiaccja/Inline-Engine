@@ -1,15 +1,17 @@
 #pragma once
 
 
-#include <string>
 #include <BaseLibrary/GraphEditor/IEditorGraph.hpp>
+#include <BaseLibrary/Any.hpp>
+
+#include <string>
+#include <filesystem>
 
 
 #undef CreateFont // damn bullshit winapi
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 class IMesh;
@@ -33,7 +35,7 @@ class ICamera2D;
 ///		into scene objects. An engine may create any number of scenes and
 ///		entities. </para>
 /// <para>Entities may have properties such as geometry, material or texture.
-///		These properties are called resources, and are also created by the 
+///		These properties are called resources, and are also created by the
 ///		graphics engine.</para>
 /// <para>A graphics engine requires a low-level rendering backend (i.e. dx12),
 ///		a target window and a rendering pipeline definition to function.
@@ -92,9 +94,33 @@ public:
 	virtual ITextEntity* CreateTextEntity() = 0;
 	//virtual IPerspectiveCamera* CreatePerspectiveCamera(std::string name) = 0;
 	//virtual IOrthographicCamera* CreateOrthographicCamera(std::string name) = 0;
-	//virtual ICamera2D* CreateCamera2D(std::string name) = 0;
+	virtual ICamera2D* CreateCamera2D(std::string name) = 0;
+
+
+	/// <summary> Creates or sets an environment variable to the given value. </summary>
+	/// <returns> True if a new variable was created, false if old was overridden. </returns>
+	/// <remarks> Environment variables can be accessed in the graphics pipeline graph by the special
+	///		<see cref="nodes::GetEnvVariable"/> node. You can use it to slightly
+	///		alter pipeline behavriour from outside. </remarks>
+	virtual bool SetEnvVariable(std::string name, Any obj) = 0;
+
+	/// <summary> Returns true if env var with given name exists. </summary>
+	virtual bool EnvVariableExists(const std::string& name) = 0;
+
+	/// <summary> Return the env var with given name or throws <see cref="InvalidArgumentException"/>. </summary>
+	virtual const Any& GetEnvVariable(const std::string& name) = 0;
+
+	/// <summary> Load the pipeline from the JSON node graph description. </summary>
+	/// <remarks> Tears down all the resources associated with the old pipeline, including
+	///		textures, render targets, etc., and builds up the new pipeline.
+	///		Also incurs a pipeline queue flush. Use it only when settings change,
+	///		use env vars to control pipeline behaviour on the fly.
+	virtual void LoadPipeline(const std::string& nodes) = 0;
+
+	/// <summary> The engine will look for shader files in these directories. </summary>
+	/// <remarks> May be absolute, relative, or whatever paths you OS can handle. </remarks>
+	virtual void SetShaderDirectories(const std::vector<std::filesystem::path>& directories) = 0;
 };
 
 
-} // namespace gxeng
-} // namespace inl
+} // namespace inl::gxeng

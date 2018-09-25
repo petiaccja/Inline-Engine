@@ -1,40 +1,46 @@
 #pragma once
 
+#include "StandardControl.hpp"
 
-#include "Control.hpp"
+#include <BaseLibrary/Color.hpp>
 #include <GraphicsEngine/Resources/IFont.hpp>
-#include <GraphicsEngine/Scene/ITextEntity.hpp>
 #include <GraphicsEngine/Scene/IOverlayEntity.hpp>
+#include <GraphicsEngine/Scene/ITextEntity.hpp>
 
 
 namespace inl::gui {
 
 
-class Button : public Control {
+class Button : public StandardControl {
 public:
+	Button();
+
 	void SetSize(Vec2u size) override;
 	Vec2u GetSize() const override;
 
 	void SetPosition(Vec2i position) override;
-	Vec2i GetPosition() const override = 0;
-
-	void SetVisible(bool visible) override;
-	bool GetVisible() const override;
+	Vec2i GetPosition() const override;
 
 	void Update(float elapsed = 0.0f) override;
 
+	// Button specific properties.
+	void SetBackgroundColor(ColorF color);
+	ColorF GetBackgroundColor() const;
+
+	void SetTextColor(ColorF color);
+	ColorF GetTextColor() const;
+
+	void SetText(std::string text);
+	const std::string& GetText() const;
 protected:
-	void Attach(Layout* parent);
-	void Detach();
-private:
-	void MigrateContext(const DrawingContext* newContext);
+	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> GetTextEntities() override;
+	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::IOverlayEntity>>> GetOverlayEntities() override;
 
 private:
 	std::unique_ptr<gxeng::ITextEntity> m_text;
 	std::unique_ptr<gxeng::IOverlayEntity> m_background;
-	const Layout* m_parent = nullptr;
-	const DrawingContext* m_context;
+	const gxeng::IFont* m_font = nullptr;
 };
 
 
-} // inl::gui
+} // namespace inl::gui

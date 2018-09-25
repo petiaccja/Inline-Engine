@@ -28,9 +28,7 @@ void SchedulerGPU::BeginFrame(const FrameContext& context) {
 
 
 jobs::Future<void> SchedulerGPU::Enqueue(std::unique_ptr<BasicCommandList> commandList, std::unique_ptr<VolatileViewHeap> vheap) {
-	if (!commandList) {
-		__debugbreak();
-	}
+	assert(commandList);
 	if (!m_currentContext) {
 		throw InvalidCallException("First call BeginFrame.");
 	}

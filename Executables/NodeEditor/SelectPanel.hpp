@@ -1,8 +1,8 @@
 #pragma once
 
-#include <GraphicsEngine_LL/TextEntity.hpp>
-#include <GraphicsEngine_LL/OverlayEntity.hpp>
-#include <GraphicsEngine_LL/GraphicsEngine.hpp>
+#include <GraphicsEngine/Scene/ITextEntity.hpp>
+#include <GraphicsEngine/Scene/IOverlayEntity.hpp>
+#include <GraphicsEngine/IGraphicsEngine.hpp>
 #include <BaseLibrary/Color.hpp>
 
 #include "Drawable.hpp"
@@ -12,7 +12,7 @@ namespace inl::tool {
 
 class SelectItem : public Drawable {
 public:
-	SelectItem(gxeng::GraphicsEngine* graphicsEngine, gxeng::Font* font);
+	SelectItem(gxeng::IGraphicsEngine* graphicsEngine, gxeng::IFont* font);
 
 	// Text props
 	void SetText(std::string text);
@@ -31,21 +31,21 @@ public:
 
 	const Drawable* Intersect(Vec2 point) const override;
 
-	const gxeng::TextEntity* GetLabel() const;
+	const gxeng::ITextEntity* GetLabel() const;
 private:
-	std::unique_ptr<gxeng::TextEntity> m_label;
+	std::unique_ptr<gxeng::ITextEntity> m_label;
 };
 
 
 
 class SelectPanel : public Drawable {
 public:
-	SelectPanel(gxeng::GraphicsEngine* graphicsEngine, gxeng::Font* font);
+	SelectPanel(gxeng::IGraphicsEngine* graphicsEngine, gxeng::IFont* font);
 
 	template <class IterT> 
 	void SetOptions(IterT first, IterT last);
 
-	void MakeVisible(gxeng::Scene* scene);
+	void MakeVisible(gxeng::IScene* scene);
 	void Hide();
 
 	// Positioning
@@ -72,11 +72,11 @@ private:
 	static constexpr float rowSize = 28.f;
 	int m_firstRow = 0;
 private:
-	std::unique_ptr<gxeng::OverlayEntity> m_background;
+	std::unique_ptr<gxeng::IOverlayEntity> m_background;
 	std::vector<SelectItem> m_items;
-	gxeng::Scene* m_scene = nullptr;
-	gxeng::GraphicsEngine* m_engine;
-	gxeng::Font* m_font;
+	gxeng::IScene* m_scene = nullptr;
+	gxeng::IGraphicsEngine* m_engine;
+	gxeng::IFont* m_font;
 };
 
 

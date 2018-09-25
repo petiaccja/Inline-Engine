@@ -91,7 +91,9 @@ void SchedulerCPU::RunPipeline(const FrameContext& frameContext, SchedulerGPU& s
 	schedulerGpu.BeginFrame(frameContext);
 	try {
 		auto[uploadList, uploadVheap] = ExecuteUploadTask(frameContext);
-		schedulerGpu.Enqueue(std::move(uploadList), std::move(uploadVheap)).get();
+		if (uploadList) {
+			schedulerGpu.Enqueue(std::move(uploadList), std::move(uploadVheap)).get();
+		}
 		LaunchTasks(frameContextEx, OnSetupNode);
 		LaunchTasks(frameContextEx, OnExecuteNode);
 		schedulerGpu.EndFrame(true).get();

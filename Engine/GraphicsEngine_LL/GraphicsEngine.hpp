@@ -65,7 +65,6 @@ class OverlayEntity;
 class TextEntity;
 class PerspectiveCamera;
 class OrthographicCamera;
-class Camera2D;
 
 
 struct GraphicsEngineDesc {
@@ -135,7 +134,7 @@ public:
 	TextEntity* CreateTextEntity() override;
 	PerspectiveCamera* CreatePerspectiveCamera(std::string name);
 	OrthographicCamera* CreateOrthographicCamera(std::string name);
-	Camera2D* CreateCamera2D(std::string name);
+	Camera2D* CreateCamera2D(std::string name) override;
 
 
 	// Pipeline and environment variables
@@ -145,24 +144,24 @@ public:
 	/// <remarks> Environment variables can be accessed in the graphics pipeline graph by the special
 	///		<see cref="nodes::GetEnvVariable"/> node. You can use it to slightly 
 	///		alter pipeline behavriour from outside. </remarks>
-	bool SetEnvVariable(std::string name, Any obj);
+	bool SetEnvVariable(std::string name, Any obj) override;
 
 	/// <summary> Returns true if env var with given name exists. </summary>
-	bool EnvVariableExists(const std::string& name);
+	bool EnvVariableExists(const std::string& name) override;
 
 	/// <summary> Return the env var with given name or throws <see cref="InvalidArgumentException"/>. </summary>
-	const Any& GetEnvVariable(const std::string& name);
+	const Any& GetEnvVariable(const std::string& name) override;
 
 	/// <summary> Load the pipeline from the JSON node graph description. </summary>
 	/// <remarks> Tears down all the resources associated with the old pipeline, including
 	///		textures, render targets, etc., and builds up the new pipeline.
 	///		Also incurs a pipeline queue flush. Use it only when settings change,
 	///		use env vars to control pipeline behaviour on the fly.
-	void LoadPipeline(const std::string& nodes);
+	void LoadPipeline(const std::string& nodes) override;
 
 	/// <summary> The engine will look for shader files in these directories. </summary>
 	/// <remarks> May be absolute, relative, or whatever paths you OS can handle. </remarks>
-	void SetShaderDirectories(const std::vector<std::filesystem::path>& directories);
+	void SetShaderDirectories(const std::vector<std::filesystem::path>& directories) override;
 private:
 	void FlushPipelineQueue();
 	void RegisterPipelineClasses();

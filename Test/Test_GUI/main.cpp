@@ -1,24 +1,22 @@
-#include <iostream>
-
+#include <AssetLibrary/AssetStore.hpp>
 #include <BaseLibrary/Logging_All.hpp>
 #include <BaseLibrary/Platform/Window.hpp>
-#include <GraphicsApi_D3D12/GxapiManager.hpp>
-#include <GraphicsApi_LL/IGxapiManager.hpp>
-#include <GraphicsApi_LL/IGraphicsApi.hpp>
-#include <GraphicsEngine_LL/GraphicsEngine.hpp>
-
-#include <GraphicsEngine_LL/Scene.hpp>
-#include <GraphicsEngine_LL/PerspectiveCamera.hpp>
-#include <GraphicsEngine_LL/DirectionalLight.hpp>
-#include <GraphicsEngine_LL/MeshEntity.hpp>
-
-#include <PhysicsEngine_Bullet/PhysicsEngine.hpp>
-#include <PhysicsEngine_Bullet/Scene.hpp>
-#include <PhysicsEngine_Bullet/MeshShape.hpp>
-#include <PhysicsEngine_Bullet/RigidBody.hpp>
-
-#include <AssetLibrary/AssetStore.hpp>
 #include <BaseLibrary/Timer.hpp>
+#include <GraphicsApi_D3D12/GxapiManager.hpp>
+#include <GraphicsApi_LL/IGraphicsApi.hpp>
+#include <GraphicsApi_LL/IGxapiManager.hpp>
+#include <GraphicsEngine_LL/Camera2D.hpp>
+#include <GraphicsEngine_LL/DirectionalLight.hpp>
+#include <GraphicsEngine_LL/GraphicsEngine.hpp>
+#include <GraphicsEngine_LL/MeshEntity.hpp>
+#include <GraphicsEngine_LL/PerspectiveCamera.hpp>
+#include <GraphicsEngine_LL/Scene.hpp>
+#include <GuiEngine/AbsoluteLayout.hpp>
+#include <GuiEngine/Button.hpp>
+#include <GuiEngine/Frame.hpp>
+#include <GuiEngine/Label.hpp>
+
+#include <iostream>
 
 
 using namespace inl;
@@ -26,28 +24,32 @@ using namespace inl;
 
 class GameScene {
 public:
-	GameScene(gxeng::GraphicsEngine* graphicsEngine, pxeng_bl::PhysicsEngine* physicsEngine);
+	GameScene(gxeng::GraphicsEngine* graphicsEngine);
 
 	void LoadAssets();
+	void LoadGUI();
 
 	void Update(float elapsed);
+
 protected:
 	std::unique_ptr<gxeng::MeshEntity> CreateGraphicsEntity(std::string_view mesh, std::string_view material);
-	std::unique_ptr<pxeng_bl::RigidBody> CreatePhysicsEntity(std::string_view mesh);
+
 private:
 	gxeng::GraphicsEngine* m_graphicsEngine;
-	std::unique_ptr<gxeng::Scene> m_gxScene;
+	std::unique_ptr<gxeng::Scene> m_gxScene, m_guiScene;
 	std::unique_ptr<gxeng::PerspectiveCamera> m_camera;
-
-	pxeng_bl::PhysicsEngine* m_physicsEngine;
-	std::unique_ptr<pxeng_bl::Scene> m_pxScene;
-	
+	std::unique_ptr<gxeng::Camera2D> m_guiCamera;
 	std::unique_ptr<gxeng::DirectionalLight> m_light;
 
 	asset::AssetStore m_assetStore;
 
 	std::vector<std::unique_ptr<gxeng::MeshEntity>> m_entities;
-	std::vector<std::unique_ptr<pxeng_bl::RigidBody>> m_pxEntities;
+
+	std::unique_ptr<gxeng::IFont> m_font;
+	std::shared_ptr<gui::Frame> m_frame;
+	std::shared_ptr<gui::AbsoluteLayout> m_layout;
+	std::shared_ptr<gui::Button> m_button1, m_button2;
+	std::shared_ptr<gui::Label> m_infoLabel;
 };
 
 
@@ -55,7 +57,7 @@ int main() {
 	try {
 		// Create logger and window.
 		Logger logger;
-		Window window{ "Physics test", {1024, 640}, false, false };
+		Window window{ "GUI test", { 1024, 640 }, false, true };
 
 		// Create graphics API.
 		std::unique_ptr<gxapi::IGxapiManager> gxapiManager(new gxapi_dx12::GxapiManager());
@@ -80,7 +82,7 @@ int main() {
 		std::unique_ptr<gxeng::GraphicsEngine> graphicsEngine(new gxeng::GraphicsEngine(graphicsEngineDesc));
 
 		// Load graphics pipeline.
-		std::ifstream pipelineFile(INL_GAMEDATA R"(\Pipelines\new_forward.json)");
+		std::ifstream pipelineFile(INL_GAMEDATA R"(\Pipelines\new_forward_with_gui.json)");
 		if (!pipelineFile.is_open()) {
 			throw FileNotFoundException("Failed to open pipeline JSON.");
 		}
@@ -92,7 +94,7 @@ int main() {
 		std::unique_ptr<pxeng_bl::PhysicsEngine> physicsEngine(new pxeng_bl::PhysicsEngine());
 
 		// Create scene and camera.
-		GameScene gameScene(graphicsEngine.get(), physicsEngine.get());
+		GameScene gameScene(graphicsEngine.get());
 		gameScene.LoadAssets();
 
 		// Game loop.
@@ -110,7 +112,7 @@ int main() {
 			totalElapsed += elapsed;
 			if (totalElapsed > 0.5) {
 				double avgFrameTime = totalElapsed / numFrames;
-				window.SetTitle("Physics test | " + std::to_string(1.0/avgFrameTime) + " FPS");
+				window.SetTitle("GUI test | " + std::to_string(1.0 / avgFrameTime) + " FPS");
 				totalElapsed = 0;
 				numFrames = 0;
 			}
@@ -130,27 +132,29 @@ int main() {
 }
 
 
-inline GameScene::GameScene(gxeng::GraphicsEngine * graphicsEngine, pxeng_bl::PhysicsEngine * physicsEngine)
-	: m_graphicsEngine(graphicsEngine), m_physicsEngine(physicsEngine), m_assetStore(graphicsEngine, physicsEngine)
-{
+inline GameScene::GameScene(gxeng::GraphicsEngine* graphicsEngine)
+	: m_graphicsEngine(graphicsEngine), m_assetStore(graphicsEngine, nullptr) {
 	m_assetStore.AddSourceDirectory(INL_GAMEDATA);
 
 	m_gxScene.reset(m_graphicsEngine->CreateScene("MainScene"));
 	m_camera.reset(m_graphicsEngine->CreatePerspectiveCamera("MainCamera"));
 	m_light.reset(new gxeng::DirectionalLight());
 
-	m_pxScene.reset(m_physicsEngine->CreateScene());
-	m_pxScene->SetGravity({ 0,0,-9.81f });
-
 	m_light->SetDirection(Vec3{ -1, -2, -3 }.Normalized());
-	m_light->SetColor(Vec3{ 1.0f, 0.9f, 0.8f }*1.f);
+	m_light->SetColor(Vec3{ 1.0f, 0.9f, 0.8f } * 1.f);
 
 	m_gxScene->GetEntities<gxeng::DirectionalLight>().Add(m_light.get());
 
 	m_camera->SetTargeted(true);
 	m_camera->SetPosition({ 10, 10, 10 });
-	m_camera->SetTarget({ 0,0,0 });
-	m_camera->SetUpVector({ 0,0,1 });
+	m_camera->SetTarget({ 0, 0, 0 });
+	m_camera->SetUpVector({ 0, 0, 1 });
+
+	m_font.reset(m_graphicsEngine->CreateFont());
+	std::ifstream fontFile(R"(C:\Windows\Fonts\calibri.ttf)", std::ios::binary);
+	m_font->LoadFile(fontFile);
+
+	LoadGUI();
 }
 
 
@@ -158,17 +162,55 @@ void GameScene::LoadAssets() {
 	auto terrain = CreateGraphicsEntity("Models/Terrain/terrain.fbx", "models/Terrain/terrain.mtl");
 	m_gxScene->GetEntities<gxeng::MeshEntity>().Add(terrain.get());
 	m_entities.push_back(std::move(terrain));
+}
 
-	auto pxTerrain = CreatePhysicsEntity("Models/Terrain/terrain.fbx");
-	//m_pxScene->AddEntity(pxTerrain.get());
-	//m_pxEntities.push_back(std::move(pxTerrain));
+void GameScene::LoadGUI() {
+	m_frame = std::make_shared<gui::Frame>();
+	m_button1 = std::make_shared<gui::Button>();
+	m_button2 = std::make_shared<gui::Button>();
+	m_infoLabel = std::make_shared<gui::Label>();
+	m_layout = std::make_shared<gui::AbsoluteLayout>();
+	m_guiScene.reset(m_graphicsEngine->CreateScene("GuiScene"));
+	m_guiCamera.reset(m_graphicsEngine->CreateCamera2D("GuiCamera"));
+
+	m_frame->SetLayout(m_layout);
+	m_layout->AddChild(m_button1);
+	m_layout->AddChild(m_button2);
+	m_layout->AddChild(m_infoLabel);
+
+	gui::DrawingContext drawingContext;
+	drawingContext.engine = m_graphicsEngine;
+	drawingContext.scene = m_guiScene.get();
+	drawingContext.font = m_font.get();
+	m_frame->SetDrawingContext(drawingContext);
+
+	m_frame->SetPosition({ 0, 0 });
+	m_frame->SetSize({ 200,200 });
+	(*m_layout)[m_button1.get()].SetPosition({ 60, 30 });
+	(*m_layout)[m_button2.get()].SetPosition({ 60, 70 });
+	(*m_layout)[m_infoLabel.get()].SetPosition({ 60, 110 });
+	m_button1->SetSize({ 90, 35 });
+	m_button2->SetSize({ 90, 35 });
+	m_infoLabel->SetSize({ 90, 30 });
+
+	m_button1->SetBackgroundColor({ 0.2f, 0.2f, 0.2f, 1.0f });
+	m_button2->SetBackgroundColor({ 0.4f, 0.2f, 0.4f, 0.5f });
+	m_button1->SetText("Button 1");
+	m_button2->SetText("Button 2");
+	m_button2->SetTextColor({ 0.1f, 0.6f, 0.1f, 1.0f });
 }
 
 
 void GameScene::Update(float elapsed) {
-	//m_pxScene->Update(elapsed);
-	//m_entities[0]->SetPosition(m_pxEntities[0]->GetPosition());
+	unsigned width, height;
+	m_graphicsEngine->GetScreenSize(width, height);
+	Vec2i screenSize = { width, height };
+	m_frame->SetPosition(m_frame->GetSize()/2*Vec2i(1,-1) + screenSize/2*Vec2i(-1,1) );
+	m_frame->Update();
+	m_guiCamera->SetExtent({ width, height });
+	m_guiCamera->SetPosition({ 0, 0 });
 	m_graphicsEngine->Update(elapsed);
+	m_infoLabel->SetText("Resolution: " + std::to_string(width) + "x" + std::to_string(height));
 }
 
 
@@ -180,17 +222,6 @@ std::unique_ptr<gxeng::MeshEntity> GameScene::CreateGraphicsEntity(std::string_v
 
 	entity->SetMesh(meshResource.get());
 	entity->SetMaterial(materialResource.get());
-
-	return entity;
-}
-
-std::unique_ptr<pxeng_bl::RigidBody> GameScene::CreatePhysicsEntity(std::string_view mesh){
-	std::unique_ptr<pxeng_bl::RigidBody> entity(m_physicsEngine->CreateRigidBody());
-
-	auto meshResource = m_assetStore.LoadPhysicsMesh(mesh, true);
-
-	entity->SetShape(meshResource.get());
-	entity->SetDynamic(true);
 
 	return entity;
 }

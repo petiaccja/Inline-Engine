@@ -1,0 +1,176 @@
+{
+    "header": {
+        "contentType": "pipeline"
+    },
+    "nodes": [
+        {
+            "class": "Pipeline/Render/DrawSky",
+            "id": 0,
+            "meta_pos": "[547, -54]"
+        },
+        {
+            "class": "Pipeline/Render/RenderForwardSimple",
+            "id": 1,
+            "meta_pos": "[121, -49]"
+        },
+        {
+            "class": "Pipeline/Render/RenderOverlay",
+            "id": 7,
+            "meta_pos": "[949, -54]"
+        },
+        {
+            "class": "Pipeline/System/GetBackBuffer",
+            "id": 2,
+            "meta_pos": "[-763, -262]"
+        },
+        {
+            "class": "Pipeline/System/GetCamera2DByName",
+            "id": 9,
+            "meta_pos": "[545, 74]",
+            "inputs": [
+                "GuiCamera"
+            ]
+        },
+        {
+            "class": "Pipeline/System/GetCameraByName",
+            "id": 3,
+            "inputs": [
+                "MainCamera"
+            ],
+            "meta_pos": "[-395, 126]"
+        },
+        {
+            "class": "Pipeline/System/GetSceneByName",
+            "id": 8,
+            "meta_pos": "[545, 157]",
+			"inputs": [
+				"GuiScene"
+			]
+        },
+        {
+            "class": "Pipeline/System/GetSceneByName",
+            "id": 4,
+            "inputs": [
+                "MainScene"
+            ],
+            "meta_pos": "[-395, 206]"
+        },
+        {
+            "class": "Pipeline/Utility/CreateTexture",
+            "id": 5,
+            "inputs": [
+                {},
+                {},
+                "D24_UNORM_S8_UINT",
+                "1",
+                "DS|SR",
+                "false",
+                "false"
+            ],
+            "meta_pos": "[-391, -50]"
+        },
+        {
+            "class": "Pipeline/Utility/TextureProperties",
+            "id": 6,
+            "meta_pos": "[-760, -93]"
+        }
+    ],
+    "links": [
+        {
+            "src": 1,
+            "dst": 0,
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 1,
+            "dst": 0,
+            "srcp": 1,
+            "dstp": 1
+        },
+        {
+            "src": 3,
+            "dst": 0,
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": 4,
+            "dst": 0,
+            "srcp": 0,
+            "dstp": 3
+        },
+        {
+            "src": 2,
+            "dst": 1,
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 5,
+            "dst": 1,
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": 3,
+            "dst": 1,
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": 4,
+            "dst": 1,
+            "srcp": 0,
+            "dstp": 3
+        },
+        {
+            "src": 4,
+            "dst": 1,
+            "srcp": 0,
+            "dstp": 4
+        },
+        {
+            "src": 6,
+            "dst": 5,
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 6,
+            "dst": 5,
+            "srcp": 1,
+            "dstp": 1
+        },
+        {
+            "src": 2,
+            "dst": 6,
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 0,
+            "dst": 7,
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 9,
+            "dst": 7,
+            "srcp": 0,
+            "dstp": 1
+        },
+        {
+            "src": 8,
+            "dst": 7,
+            "srcp": 0,
+            "dstp": 2
+        },
+        {
+            "src": 8,
+            "dst": 7,
+            "srcp": 0,
+            "dstp": 3
+        }
+    ]
+}

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <GraphicsEngine_LL/Scene.hpp>
-#include <GraphicsEngine_LL/Font.hpp>
-#include <GraphicsEngine_LL/Camera2D.hpp>
+#include <GraphicsEngine/Scene/IScene.hpp>
+#include <GraphicsEngine/Resources/IFont.hpp>
+#include <GraphicsEngine/Scene/ICamera2D.hpp>
 
 #include <BaseLibrary/Platform/Input.hpp>
 #include <BaseLibrary/Color.hpp>
@@ -19,7 +19,7 @@ namespace inl::tool {
 
 class NodeEditor {
 public:
-	NodeEditor(gxeng::GraphicsEngine* graphicsEngine, std::vector<IEditorGraph*> availableEditors);
+	NodeEditor(gxeng::IGraphicsEngine* graphicsEngine, std::vector<IEditorGraph*> availableEditors);
 
 	void Update();
 
@@ -82,15 +82,15 @@ private:
 
 	bool m_enablePan = false;
 private:
-	gxeng::GraphicsEngine* m_graphicsEngine;
+	gxeng::IGraphicsEngine* m_graphicsEngine;
 	IEditorGraph* m_graphEditor;
 	std::vector<IEditorGraph*> m_availableEditors;
 
-	std::unique_ptr<gxeng::Scene> m_scene;
-	std::unique_ptr<gxeng::Font> m_font;
-	std::unique_ptr<gxeng::Camera2D> m_camera;
+	std::unique_ptr<gxeng::IScene> m_scene;
+	std::unique_ptr<gxeng::IFont> m_font;
+	std::unique_ptr<gxeng::ICamera2D> m_camera;
 
-	std::unique_ptr<gxeng::OverlayEntity> m_highlight1, m_highlight2, m_background;
+	std::unique_ptr<gxeng::IOverlayEntity> m_highlight1, m_highlight2, m_background;
 
 	std::vector<std::unique_ptr<Node>> m_nodes;
 	std::unique_ptr<SelectPanel> m_selectPanel;

@@ -1,4 +1,5 @@
 #include "AbsoluteLayout.hpp"
+
 #include <BaseLibrary/Exception/Exception.hpp>
 
 
@@ -19,8 +20,7 @@ AbsoluteLayout::Binding& AbsoluteLayout::AddChild(std::shared_ptr<Control> child
 
 void AbsoluteLayout::RemoveChild(const Control* child) {
 	auto it = m_children.find(child);
-	[[likely]]
-	if (it != m_children.end()) {
+	[[likely]] if (it != m_children.end()) {
 		Detach(it->first.get());
 		m_children.erase(it);
 	}
@@ -32,9 +32,7 @@ void AbsoluteLayout::RemoveChild(const Control* child) {
 
 AbsoluteLayout::Binding& AbsoluteLayout::operator[](const Control* child) {
 	auto it = m_children.find(child);
-	[[likely]]
-	if (it != m_children.end()) {
-		m_children.erase(it);
+	[[likely]] if (it != m_children.end()) {
 		return *it->second;
 	}
 	else {
@@ -71,15 +69,77 @@ void AbsoluteLayout::SetVisible(bool visible) {
 bool AbsoluteLayout::GetVisible() const {
 	return false;
 }
+bool AbsoluteLayout::IsShown() const {
+	if (m_parent) {
+		return m_parent->IsShown();
+	}
+	return false;
+}
 
 
 void AbsoluteLayout::Update(float elapsed) {
 	for (auto& childBinding : m_children) {
-		auto&[child, binding] = childBinding;
-		child->SetPosition(GetPosition() + binding->GetPosition());
+		auto& [child, binding] = childBinding;
+		child->SetPosition(CalculateChildPosition(*binding));
 		child->Update(elapsed);
 	}
 }
 
+void AbsoluteLayout::SetReferencePoint(eRefPoint point) {
+	m_refPoint = point;
+}
+AbsoluteLayout::eRefPoint AbsoluteLayout::GetReferencePoint() const {
+	return m_refPoint;
+}
+void AbsoluteLayout::SetYDown(bool enabled) {
+	m_yDown = enabled;
+}
+bool AbsoluteLayout::GetYDown() const {
+	return m_yDown;
+}
 
-} // inl::gui
+void AbsoluteLayout::OnAttach(Layout* parent) {
+	m_parent = parent;
+	m_context = Control::GetContext(parent);
+	for (auto& child : m_children) {
+		Attach(this, child.first.get());
+	}
+}
+
+void AbsoluteLayout::OnDetach() {
+	m_context = nullptr;
+	for (auto& child : m_children) {
+		Detach(child.first.get());
+	}
+	m_parent = nullptr;
+}
+
+
+Vec2i AbsoluteLayout::CalculateChildPosition(const Binding& binding) const {
+	Vec2i pos = binding.GetPosition();
+	if (m_yDown) {
+		pos.y = -pos.y;
+	}
+	Vec2i offset = GetSize() / 2;
+	switch (m_refPoint) {
+		case eRefPoint::TOPLEFT: offset *= { -1, 1 }; break;
+		case eRefPoint::BOTTOMLEFT: offset *= { -1, -1 }; break;
+		case eRefPoint::TOPRIGHT: offset *= { 1, 1 }; break;
+		case eRefPoint::BOTTOMRIGHT: offset *= { 1, -1 }; break;
+		case eRefPoint::CENTER: offset *= { 0, 0 }; break;
+		default:;
+	}
+	return pos + offset + GetPosition();
+}
+
+
+AbsoluteLayout::Binding& AbsoluteLayout::Binding::SetPosition(Vec2i position) {
+	this->position = position;
+	return *this;
+}
+
+Vec2i AbsoluteLayout::Binding::GetPosition() const {
+	return position;
+}
+
+} // namespace inl::gui

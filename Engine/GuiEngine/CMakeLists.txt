@@ -6,6 +6,8 @@ set(sources
 	Control.cpp
 	Layout.hpp
 	Layout.cpp
+	ControlTracer.hpp
+	ControlTracer.cpp
 )
 
 set(controls 
@@ -17,6 +19,9 @@ set(controls
 	Label.cpp
 	TextBox.hpp
 	TextBox.cpp
+
+	StandardControl.cpp
+	StandardControl.hpp
 )
 
 set(layouts
@@ -24,15 +29,20 @@ set(layouts
 	AbsoluteLayout.cpp
 )
 
+set(placeholders
+	Placeholders/PlaceholderTextEntity.hpp
+	Placeholders/PlaceholderOverlayEntity.hpp)
+
 # Create target
 add_library(GuiEngine STATIC 
-	${sources} ${controls} ${layouts}
+	${sources} ${controls} ${layouts} ${placeholders}
 )
 
 # Filters
 source_group("" FILES ${sources})
 source_group("Controls" FILES ${controls})
 source_group("Layouts" FILES ${layouts})
+source_group("Placeholders" FILES ${placeholders})
 
 
 # Dependencies

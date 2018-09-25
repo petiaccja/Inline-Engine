@@ -12,6 +12,8 @@ namespace inl::gui {
 class Layout : public Control {
 public:
 	virtual ~Layout() = default;
+
+	virtual bool IsShown() const override { return true; }
 };
 
 

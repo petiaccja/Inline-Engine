@@ -62,9 +62,9 @@ void MatrixQR<T, Rows, Columns, Order, Layout, Packed>::DecomposeQR(
 	R = self();
 	Q.SetIdentity();
 
-	Matrix<T, Rows, Rows, Order, Layout, false> Qi;
-	Vector<T, Rows, false> u;
-	Matrix<T, Rows, 1, Order, eMatrixLayout::ROW_MAJOR, false> v;
+	Matrix<T, Rows, Rows, Order, Layout, Packed> Qi;
+	Vector<T, Rows, Packed> u;
+	Matrix<T, Rows, 1, Order, eMatrixLayout::ROW_MAJOR, Packed> v;
 
 	for (int col = 0; col<self().ColumnCount(); ++col) {
 		u = R.Column(col);

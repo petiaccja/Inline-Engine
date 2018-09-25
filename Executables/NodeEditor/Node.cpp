@@ -1,7 +1,8 @@
 #include "Node.hpp"
-#include <GraphicsEngine_LL/Scene.hpp>
+#include <GraphicsEngine/Scene/IScene.hpp>
 #include <BaseLibrary/Range.hpp>
 #include <regex>
+#undef GetClassName
 
 
 namespace inl::tool {
@@ -35,7 +36,7 @@ static std::string TidyName(std::string arg) {
 // Link
 //------------------------------------------------------------------------------
 
-Link::Link(gxeng::GraphicsEngine* graphicsEngine, gxeng::Scene* scene) {
+Link::Link(gxeng::IGraphicsEngine* graphicsEngine, gxeng::IScene* scene) {
 	m_scene = scene;
 	m_arrowBody.reset(graphicsEngine->CreateOverlayEntity());
 	m_arrowBody->SetColor({ 0.8f, 0.8f, 0.8f, 1.f });
@@ -43,14 +44,14 @@ Link::Link(gxeng::GraphicsEngine* graphicsEngine, gxeng::Scene* scene) {
 }
 
 Link::~Link() {
-	auto& entities = m_scene->GetEntities<gxeng::OverlayEntity>();
+	auto& entities = m_scene->GetEntities<gxeng::IOverlayEntity>();
 	if (entities.Contains(m_arrowBody.get())) {
 		entities.Remove(m_arrowBody.get());
 	}
 }
 
 void Link::SetEndpoints(const Port* source, const Port* target) {
-	auto& entities = m_scene->GetEntities<gxeng::OverlayEntity>();
+	auto& entities = m_scene->GetEntities<gxeng::IOverlayEntity>();
 	if (entities.Contains(m_arrowBody.get())) {
 		entities.Remove(m_arrowBody.get());
 	}
@@ -122,7 +123,7 @@ const Link* Link::Intersect(Vec2 point) const {
 //------------------------------------------------------------------------------
 
 
-Port::Port(gxeng::GraphicsEngine* graphicsEngine, gxeng::Font* font, bool isInput, Node& parent, int idx) {
+Port::Port(gxeng::IGraphicsEngine* graphicsEngine, gxeng::IFont* font, bool isInput, Node& parent, int idx) {
 	m_nameLabel.reset(graphicsEngine->CreateTextEntity());
 	m_background.reset(graphicsEngine->CreateOverlayEntity());
 	m_nameLabel->SetFont(font);
@@ -172,10 +173,10 @@ float Port::GetDepth() const {
 	return m_background->GetZDepth();
 }
 
-const gxeng::TextEntity* Port::GetLabel() const {
+const gxeng::ITextEntity* Port::GetLabel() const {
 	return m_nameLabel.get();
 }
-const gxeng::OverlayEntity* Port::GetBackground() const {
+const gxeng::IOverlayEntity* Port::GetBackground() const {
 	return m_background.get();
 }
 
@@ -302,12 +303,12 @@ Node::~Node() {
 	Tidy();
 }
 
-void Node::SetNode(IGraphEditorNode* node, gxeng::GraphicsEngine* graphicsEngine, gxeng::Scene* scene, gxeng::Font* font) {
+void Node::SetNode(IGraphEditorNode* node, gxeng::IGraphicsEngine* graphicsEngine, gxeng::IScene* scene, gxeng::IFont* font) {
 	Tidy();
 
 	// Create new node.
-	std::unique_ptr<gxeng::TextEntity> nameLabel(graphicsEngine->CreateTextEntity());
-	std::unique_ptr<gxeng::OverlayEntity> background(graphicsEngine->CreateOverlayEntity());
+	std::unique_ptr<gxeng::ITextEntity> nameLabel(graphicsEngine->CreateTextEntity());
+	std::unique_ptr<gxeng::IOverlayEntity> background(graphicsEngine->CreateOverlayEntity());
 	nameLabel->SetFont(font);
 	nameLabel->SetFontSize(12.0f);
 	nameLabel->SetColor(textColor);
@@ -332,15 +333,15 @@ void Node::SetNode(IGraphEditorNode* node, gxeng::GraphicsEngine* graphicsEngine
 
 	try {
 		for (auto& p : inputPorts) {
-			scene->GetEntities<gxeng::TextEntity>().Add(p->GetLabel());
-			scene->GetEntities<gxeng::OverlayEntity>().Add(p->GetBackground());
+			scene->GetEntities<gxeng::ITextEntity>().Add(p->GetLabel());
+			scene->GetEntities<gxeng::IOverlayEntity>().Add(p->GetBackground());
 		}
 		for (auto& p : outputPorts) {
-			scene->GetEntities<gxeng::TextEntity>().Add(p->GetLabel());
-			scene->GetEntities<gxeng::OverlayEntity>().Add(p->GetBackground());
+			scene->GetEntities<gxeng::ITextEntity>().Add(p->GetLabel());
+			scene->GetEntities<gxeng::IOverlayEntity>().Add(p->GetBackground());
 		}
-		scene->GetEntities<gxeng::TextEntity>().Add(nameLabel.get());
-		scene->GetEntities<gxeng::OverlayEntity>().Add(background.get());
+		scene->GetEntities<gxeng::ITextEntity>().Add(nameLabel.get());
+		scene->GetEntities<gxeng::IOverlayEntity>().Add(background.get());
 	}
 	catch (...) {
 		// std::bad_alloc failed inside Scene
@@ -463,8 +464,8 @@ void Node::RecalcPortTransforms() {
 
 void Node::Tidy() {
 	if (m_scene) {
-		auto& texts = m_scene->GetEntities<gxeng::TextEntity>();
-		auto& overlays = m_scene->GetEntities<gxeng::OverlayEntity>();
+		auto& texts = m_scene->GetEntities<gxeng::ITextEntity>();
+		auto& overlays = m_scene->GetEntities<gxeng::IOverlayEntity>();
 
 		// Clean up previous node.
 		texts.Remove(m_nameLabel.get());

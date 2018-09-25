@@ -15,7 +15,7 @@ static const ColorF highlightDrag = { 0.2f, 0.9f, 0.3f, 1.0f };
 
 
 
-NodeEditor::NodeEditor(gxeng::GraphicsEngine* graphicsEngine, std::vector<IEditorGraph*> availableEditors) {
+NodeEditor::NodeEditor(gxeng::IGraphicsEngine* graphicsEngine, std::vector<IEditorGraph*> availableEditors) {
 	m_graphicsEngine = graphicsEngine;
 	m_availableEditors = std::move(availableEditors);
 	m_graphEditor = nullptr;
@@ -67,7 +67,7 @@ NodeEditor::NodeEditor(gxeng::GraphicsEngine* graphicsEngine, std::vector<IEdito
 	m_background->SetColor({32.f/255.f, 16.f/255.f, 16.f/255.f, 1.0f});
 	m_background->SetPosition(m_camera->GetPosition());
 	m_background->SetScale(m_camera->GetExtent());
-	m_scene->GetEntities<gxeng::OverlayEntity>().Add(m_background.get());
+	m_scene->GetEntities<gxeng::IOverlayEntity>().Add(m_background.get());
 }
 
 void NodeEditor::Update() {
@@ -372,14 +372,14 @@ void NodeEditor::Hightlight(const Drawable* target, ColorF color) {
 	m_highlight1->SetPosition(target->GetPosition());
 	m_highlight1->SetScale(target->GetSize() + Vec2(4, 4));
 
-	auto& entitySet = m_scene->GetEntities<gxeng::OverlayEntity>();
+	auto& entitySet = m_scene->GetEntities<gxeng::IOverlayEntity>();
 	if (!entitySet.Contains(m_highlight1.get())) {
 		entitySet.Add(m_highlight1.get());
 	}
 }
 
 void NodeEditor::RemoveHighlight() {
-	auto& entitySet = m_scene->GetEntities<gxeng::OverlayEntity>();
+	auto& entitySet = m_scene->GetEntities<gxeng::IOverlayEntity>();
 	if (entitySet.Contains(m_highlight1.get())) {
 		entitySet.Remove(m_highlight1.get());
 	}

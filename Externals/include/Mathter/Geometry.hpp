@@ -24,19 +24,33 @@ template <class T, int Dim>
 class Line {
 	using VectorT = Vector<T, Dim>;
 public:
-	Line() : direction(0), base(0) {
-		direction(0) = 1;
-	}
+	/// <summary> Does not zero-initialize members. </summary>
+	Line() = default;
+
+	/// <summary> Construct a line through <paramref name="base"/> in given <paramref name="direction"/>. </summary>
+	/// <param name="base"> Any point in 3D space. </param>
+	/// <param name="direction"> Must be normalized. </param>
 	Line(const VectorT& base, const VectorT& direction) : direction(direction), base(base) {
-		assert(impl::AlmostEqual(direction.Length(), T(1)));
+		assert(direction.IsNormalized());
 	}
+
+	/// <summary> Constructs a line through both points. </summary>
+	/// <param name="point1"> Base of the line. </param>
+	/// <param name="point2"> Specifies direction only. </param>
 	static Line Through(const VectorT& point1, const VectorT& point2) {
-		return Line(point1, (point2 - point1).Normalized());
+		return Line(point1, (point2 - point1).SafeNormalized());
 	}
+
+	/// <summary> A 2D plane and line are equivalent, converts representation. Only for 2D. </summary>
 	Line(const Hyperplane<T, 2>& plane);
 
+	/// <summary> Return the signed direction of the line (as given in constructor). </summary>
 	VectorT Direction() const { return direction; }
+
+	/// <summary> Returns the base point or point1 as given in constructor. </summary>
 	VectorT Base() const { return base; }
+
+	/// <summary> Returns the point at <paramref name="param"/> distance from the base point along direction. </summary>
 	VectorT PointAt(T param) const { return base + param*direction; }
 public:
 	VectorT direction, base;
@@ -133,6 +147,16 @@ Line<T, Dim>::Line(const Hyperplane<T, 2>& plane) {
 	base = { a*d / div, b*d / div };
 	direction = { b, -a };
 }
+
+
+template <class T>
+class Triangle3D {
+public:
+	Triangle3D() = default;
+	Triangle3D(const Vector<T, 3, false>& a, const Vector<T, 3, false>& b, const Vector<T, 3, false>& c) :
+		a(a), b(b), c(c) {}
+	Vector<T, 3, false> a, b, c; // Corners of the traingle.
+};
 
 
 //------------------------------------------------------------------------------
@@ -342,6 +366,77 @@ public:
 	T InterpolParameter2() const { return Intersection<LineSegment<T, 2>, Line<T, 2>>::InterpolParameter1(); }
 	T LineParameter2() const { return Intersection<LineSegment<T, 2>, Line<T, 2>>::LineParameter1(); }
 };
+
+
+// Ray-triangle intersection (Möller-Trumbore algorithm)
+template <class T>
+class Intersection<Ray<T, 3>, Triangle3D<T>> {
+	using VectorT = Vector<T, 3, false>;
+public:
+	Intersection(const Ray<T, 3>& ray, const Triangle3D<T>& triangle);
+
+	bool IsIntersecting() const { return intersecting; }
+	VectorT Point() const { return point; }
+
+	template <class U>
+	U Interpolate(const U& a, const U& b, const U& c) const;
+	
+	T GetT() const { return t; }
+	T GetU() const { return u; }
+	T GetV() const { return v; }
+
+private:
+	T t, u, v;
+	bool intersecting;
+	VectorT point;
+};
+
+template <class T>
+Intersection<Ray<T, 3>, Triangle3D<T>>::Intersection(const Ray<T, 3>& ray, const Triangle3D<T>& triangle) {
+	constexpr T EPSILON = T(0.00000001);
+
+	VectorT edge1 = triangle.b - triangle.a;
+	VectorT edge2 = triangle.c - triangle.a;
+
+	VectorT h = Cross(ray.Direction(), edge2);
+	T a = Dot(edge1, h);
+
+	if (std::abs(a) < EPSILON) {
+		intersecting = false;
+		return;
+	}
+
+	T f = T(1)/a;
+	VectorT s = ray.Base() - triangle.a;
+	u = f* Dot(s, h);
+
+	if (u < T(0) || u > T(1)) {
+		intersecting = false;
+		return;
+	}
+
+	VectorT q = Cross(s, edge1);
+	v = f * Dot(ray.Direction(), q);
+
+	if (v < 0.0 || u + v > 1.0) {
+		intersecting = false;
+		return;
+	}
+
+	t = f * Dot(edge2, q);
+	intersecting = t > EPSILON;
+	if (intersecting) {
+		point = ray.PointAt(t);
+	}
+}
+
+
+template <class T>
+template <class U>
+U Intersection<Ray<T, 3>, Triangle3D<T>>::Interpolate(const U& a, const U& b, const U& c) const {
+	T w = T(1) - u - v;
+	return u*b + v*c + w*a;
+}
 
 
 } // namespace mathter

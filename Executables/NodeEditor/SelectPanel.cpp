@@ -1,10 +1,11 @@
 #include "SelectPanel.hpp"
 #include <BaseLibrary/Range.hpp>
+#include <GraphicsEngine/Scene/IScene.hpp>
 
 namespace inl::tool {
 
 
-SelectItem::SelectItem(gxeng::GraphicsEngine* graphicsEngine, gxeng::Font* font) {
+SelectItem::SelectItem(gxeng::IGraphicsEngine* graphicsEngine, gxeng::IFont* font) {
 	m_label.reset(graphicsEngine->CreateTextEntity());
 	m_label->SetFont(font);
 	m_label->SetFontSize(12.0f);
@@ -56,14 +57,14 @@ const Drawable* SelectItem::Intersect(Vec2 point) const {
 	return isInside ? this : nullptr;
 }
 
-const gxeng::TextEntity* SelectItem::GetLabel() const {
+const gxeng::ITextEntity* SelectItem::GetLabel() const {
 	return m_label.get();
 }
 
 
 
 
-SelectPanel::SelectPanel(gxeng::GraphicsEngine* graphicsEngine, gxeng::Font* font) 
+SelectPanel::SelectPanel(gxeng::IGraphicsEngine* graphicsEngine, gxeng::IFont* font) 
 	: m_engine(graphicsEngine), m_font(font)
 {
 	m_background.reset(graphicsEngine->CreateOverlayEntity());
@@ -72,13 +73,13 @@ SelectPanel::SelectPanel(gxeng::GraphicsEngine* graphicsEngine, gxeng::Font* fon
 
 
 
-void SelectPanel::MakeVisible(gxeng::Scene* scene) {
+void SelectPanel::MakeVisible(gxeng::IScene* scene) {
 	if (m_scene != nullptr) {
 		return;
 	}
 	m_scene = scene;
-	auto& overlays = m_scene->GetEntities<gxeng::OverlayEntity>();
-	auto& texts = m_scene->GetEntities<gxeng::TextEntity>();
+	auto& overlays = m_scene->GetEntities<gxeng::IOverlayEntity>();
+	auto& texts = m_scene->GetEntities<gxeng::ITextEntity>();
 	overlays.Add(m_background.get());
 	for (auto& item : m_items) {
 		texts.Add(item.GetLabel());
@@ -89,8 +90,8 @@ void SelectPanel::Hide() {
 	if (!m_scene) {
 		return;
 	}
-	auto& overlays = m_scene->GetEntities<gxeng::OverlayEntity>();
-	auto& texts = m_scene->GetEntities<gxeng::TextEntity>();
+	auto& overlays = m_scene->GetEntities<gxeng::IOverlayEntity>();
+	auto& texts = m_scene->GetEntities<gxeng::ITextEntity>();
 	overlays.Remove(m_background.get());
 	for (auto& item : m_items) {
 		texts.Remove(item.GetLabel());

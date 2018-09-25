@@ -133,7 +133,7 @@ void Svd2x2Helper(const Matrix<T, 2, 2, Order, Layout, Packed>& A, T& c1, T& s1,
 	T x_ = x*scaler, y_ = y*scaler, z_ = z*scaler;
 	T numer = ((z_-x_)*(z_+x_)) + y_*y_;
 	T gamma = x_*y_;
-	gamma = numer == 0 ? 1 : gamma;
+	numer = numer == 0 ? std::numeric_limits<T>::infinity() : numer;
 	T zeta = numer/gamma;
 
 	T t = 2*impl::sign_nonzero(zeta)/(abs(zeta) + sqrt(zeta*zeta+4));
@@ -184,8 +184,8 @@ void MatrixSVD<T, Rows, Columns, Order, Layout, Packed>::DecomposeSVD(
 
 	// Precondition with QR if needed
 	if (Rows > Columns) {
-		Matrix<T, Rows, Rows, Order, Layout, false> Q;
-		Matrix<T, Rows, Columns, Order, Layout, false> R;
+		Matrix<T, Rows, Rows, Order, Layout, Packed> Q;
+		Matrix<T, Rows, Columns, Order, Layout, Packed> R;
 		self().DecomposeQR(Q, R);
 		B = R;
 		U = Q.template Submatrix<Rows, Columns>(0, 0);

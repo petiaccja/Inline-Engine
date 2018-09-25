@@ -72,8 +72,8 @@ void RenderOverlay::Setup(SetupContext& context) {
 
 void RenderOverlay::Execute(RenderContext& context) {
 	// Get list of entities to render.
-	const EntityCollection<OverlayEntity>* overlays = GetInput<2>().Get();
-	const EntityCollection<TextEntity>* texts = GetInput<3>().Get();
+	const EntityCollection<IOverlayEntity>* overlays = GetInput<2>().Get();
+	const EntityCollection<ITextEntity>* texts = GetInput<3>().Get();
 
 
 	// Sort entities by z-order and get Z limits.
@@ -86,7 +86,7 @@ void RenderOverlay::Execute(RenderContext& context) {
 			float z = entity->GetZDepth();
 			minZ = std::min(minZ, z);
 			maxZ = std::max(maxZ, z);
-			overlayList.push_back(entity);
+			overlayList.push_back(static_cast<const OverlayEntity*>(entity));
 		}
 	}
 
@@ -95,7 +95,7 @@ void RenderOverlay::Execute(RenderContext& context) {
 			float z = entity->GetZDepth();
 			minZ = std::min(minZ, z);
 			maxZ = std::max(maxZ, z);
-			textList.push_back(entity);
+			textList.push_back(static_cast<const TextEntity*>(entity));
 		}
 	}
 
@@ -120,7 +120,7 @@ void RenderOverlay::Execute(RenderContext& context) {
 	// Render entities
 	GraphicsCommandList& commandList = context.AsGraphics();
 	commandList.SetResourceState(m_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
-	commandList.ClearRenderTarget(m_rtv, ColorRGBA(0, 0, 0, 0));
+	//commandList.ClearRenderTarget(m_rtv, ColorRGBA(0, 0, 0, 0));
 	RenderEntities(commandList, overlayList, textList, minZ, maxZ);
 
 }

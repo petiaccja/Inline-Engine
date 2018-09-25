@@ -79,7 +79,7 @@ constexpr int DYNAMIC = -1;
 template <class LinalgClass>
 struct ApproxHelper {
 	ApproxHelper() {}
-	ApproxHelper(LinalgClass object) {
+	explicit ApproxHelper(LinalgClass object) {
 		this->object = object;
 	}
 	LinalgClass object;
@@ -93,7 +93,7 @@ bool operator==(const ApproxHelper<LinalgClass1>& lhs, const LinalgClass2& rhs) 
 
 template <class LinalgClass1, class LinalgClass2>
 bool operator==(const LinalgClass1& lhs, const ApproxHelper<LinalgClass2>& rhs) {
-	return lhs.AlmostEqual(rhs.object);
+	return rhs.object.AlmostEqual(lhs);
 }
 
 template <class LinalgClass1, class LinalgClass2>
@@ -328,7 +328,7 @@ namespace impl {
 	// Specialization for floats.
 	template <class T>
 	bool AlmostEqual(T d1, T d2, std::true_type) {
-		if (d1 < 1e-38 && d2 < 1e-38) {
+		if (std::abs(d1) < 1e-38 && std::abs(d2) < 1e-38) {
 			return true;
 		}
 		if ((d1 == 0 && d2 < 1e-4) || (d2 == 0 && d1 < 1e-4)) {

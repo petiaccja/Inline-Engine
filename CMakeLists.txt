@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 
 # Configurations
-set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo Release CACHE TYPE INTERNAL FORCE)
+set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo CACHE TYPE INTERNAL FORCE)
 set(DEBUG_CONFIGURATIONS Debug)
 
 
@@ -98,6 +98,7 @@ set_target_properties(Test_General PROPERTIES FOLDER Test)
 set_target_properties(QC_Simulator PROPERTIES FOLDER Test)
 set_target_properties(Test_Unit PROPERTIES FOLDER Test)
 set_target_properties(Test_Physics PROPERTIES FOLDER Test)
+set_target_properties(Test_GUI PROPERTIES FOLDER Test)
 
 #set_target_properties(Editor PROPERTIES FOLDER Executables)
 set_target_properties(NodeEditor PROPERTIES FOLDER Executables)

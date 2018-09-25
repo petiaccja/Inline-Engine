@@ -1,95 +1,88 @@
 #include "GraphicsEngine.hpp"
-#include "GraphicsNode.hpp"
+
+#include "GraphEditor/MaterialEditorGraph.hpp"
+#include "GraphEditor/PipelineEditorGraph.hpp"
 
 #include <BaseLibrary/Graph/Node.hpp>
 #include <BaseLibrary/Graph/NodeLibrary.hpp>
 
-#include <iostream> // only for debugging
-#include <regex> // as well...
-#include <lemon/bfs.h> // as well...
-
 #include <rapidjson/document.h>
-#include <optional>
 
-#include "Nodes/GetBackBuffer.hpp"
-#include "Nodes/TextureProperties.hpp"
+// System
+#include "GraphicsNode.hpp"
 #include "Nodes/CreateTexture.hpp"
-#include "Nodes/GetSceneByName.hpp"
-#include "Nodes/GetCameraByName.hpp"
+#include "Nodes/GetBackBuffer.hpp"
 #include "Nodes/GetCamera2DByName.hpp"
-#include "Nodes/GetTime.hpp"
+#include "Nodes/GetCameraByName.hpp"
 #include "Nodes/GetEnvVariable.hpp"
+#include "Nodes/GetSceneByName.hpp"
+#include "Nodes/GetTime.hpp"
+#include "Nodes/TextureProperties.hpp"
 #include "Nodes/VectorComponents.hpp"
 
-
-//forward
-#include "Nodes/ForwardRender.hpp"
-#include "Nodes/RenderForwardSimple.hpp"
+// Forward
+#include "Nodes/BloomAdd.hpp"
+#include "Nodes/BloomBlur.hpp"
+#include "Nodes/BloomDownsample.hpp"
+#include "Nodes/BrightLumPass.hpp"
+#include "Nodes/CSM.hpp"
+#include "Nodes/DOFMain.hpp"
+#include "Nodes/DOFNeighborMax.hpp"
+#include "Nodes/DOFPrepare.hpp"
+#include "Nodes/DOFTileMax.hpp"
+#include "Nodes/DebugDraw.hpp"
 #include "Nodes/DepthPrepass.hpp"
 #include "Nodes/DepthReduction.hpp"
 #include "Nodes/DepthReductionFinal.hpp"
-#include "Nodes/CSM.hpp"
 #include "Nodes/DrawSky.hpp"
-#include "Nodes/DebugDraw.hpp"
+#include "Nodes/ForwardRender.hpp"
+#include "Nodes/HDRCombine.hpp"
+#include "Nodes/LensFlare.hpp"
 #include "Nodes/LightCulling.hpp"
-#include "Nodes/BrightLumPass.hpp"
 #include "Nodes/LuminanceReduction.hpp"
 #include "Nodes/LuminanceReductionFinal.hpp"
-#include "Nodes/HDRCombine.hpp"
-#include "Nodes/BloomDownsample.hpp"
-#include "Nodes/BloomBlur.hpp"
-#include "Nodes/BloomAdd.hpp"
-#include "Nodes/TileMax.hpp"
-#include "Nodes/NeighborMax.hpp"
 #include "Nodes/MotionBlur.hpp"
-#include "Nodes/LensFlare.hpp"
+#include "Nodes/NeighborMax.hpp"
+#include "Nodes/RenderForwardSimple.hpp"
 #include "Nodes/SMAA.hpp"
-#include "Nodes/DOFPrepare.hpp"
-#include "Nodes/DOFTileMax.hpp"
-#include "Nodes/DOFNeighborMax.hpp"
-#include "Nodes/DOFMain.hpp"
-#include "Nodes/Voxelization.hpp"
-#include "Nodes/VoxelLighting.hpp"
-#include "Nodes/VolumetricLighting.hpp"
-#include "Nodes/ShadowMapGen.hpp"
-#include "Nodes/ShadowFilter.hpp"
-#include "Nodes/ScreenSpaceShadow.hpp"
-#include "Nodes/ScreenSpaceReflection.hpp"
 #include "Nodes/ScreenSpaceAmbientOcclusion.hpp"
+#include "Nodes/ScreenSpaceReflection.hpp"
+#include "Nodes/ScreenSpaceShadow.hpp"
+#include "Nodes/ShadowFilter.hpp"
+#include "Nodes/ShadowMapGen.hpp"
+#include "Nodes/TileMax.hpp"
+#include "Nodes/VolumetricLighting.hpp"
+#include "Nodes/VoxelLighting.hpp"
+#include "Nodes/Voxelization.hpp"
 
-//Gui
-#include "Nodes/RenderOverlay.hpp"
+// Gui
 #include "Nodes/Blend.hpp"
-#include "Nodes/ScreenSpaceTransform.hpp"
 #include "Nodes/BlendWithTransform.hpp"
+#include "Nodes/RenderOverlay.hpp"
+#include "Nodes/ScreenSpaceTransform.hpp"
 
 
-#include "GraphEditor/PipelineEditorGraph.hpp"
-#include "GraphEditor/MaterialEditorGraph.hpp"
 
-
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 using namespace gxapi;
 
 
 GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	: m_gxapiManager(desc.gxapiManager),
-	m_graphicsApi(desc.graphicsApi),
-	m_commandAllocatorPool(desc.graphicsApi),
-	m_commandListPool(desc.graphicsApi),
-	m_scratchSpacePool(desc.graphicsApi, gxapi::eDescriptorHeapType::CBV_SRV_UAV),
-	m_textureSpace(desc.graphicsApi),
-	m_masterCommandQueue(desc.graphicsApi->CreateCommandQueue(CommandQueueDesc{ eCommandListType::GRAPHICS }), desc.graphicsApi->CreateFence(0)),
-	m_residencyQueue(std::unique_ptr<gxapi::IFence>(desc.graphicsApi->CreateFence(0))),
-	m_memoryManager(desc.graphicsApi),
-	m_dsvHeap(desc.graphicsApi),
-	m_rtvHeap(desc.graphicsApi),
-	m_persResViewHeap(desc.graphicsApi),
-	m_logger(desc.logger),
-	m_shaderManager(desc.gxapiManager)
-{
+	  m_graphicsApi(desc.graphicsApi),
+	  m_commandAllocatorPool(desc.graphicsApi),
+	  m_commandListPool(desc.graphicsApi),
+	  m_scratchSpacePool(desc.graphicsApi, gxapi::eDescriptorHeapType::CBV_SRV_UAV),
+	  m_textureSpace(desc.graphicsApi),
+	  m_masterCommandQueue(desc.graphicsApi->CreateCommandQueue(CommandQueueDesc{ eCommandListType::GRAPHICS }), desc.graphicsApi->CreateFence(0)),
+	  m_residencyQueue(std::unique_ptr<gxapi::IFence>(desc.graphicsApi->CreateFence(0))),
+	  m_memoryManager(desc.graphicsApi),
+	  m_dsvHeap(desc.graphicsApi),
+	  m_rtvHeap(desc.graphicsApi),
+	  m_persResViewHeap(desc.graphicsApi),
+	  m_logger(desc.logger),
+	  m_shaderManager(desc.gxapiManager) {
 	// Create swapchain
 	SwapChainDesc swapChainDesc;
 	swapChainDesc.format = eFormat::R8G8B8A8_UNORM;
@@ -216,8 +209,6 @@ void GraphicsEngine::SetScreenSize(unsigned width, unsigned height) {
 
 	m_backBufferHeap.reset();
 	m_scheduler.ReleaseResources();
-	
-	//m_graphicsApi->ReportLiveObjects();
 
 	m_swapChain->Resize(width, height);
 	m_backBufferHeap = std::make_unique<BackBufferManager>(m_graphicsApi, m_swapChain.get());
@@ -279,12 +270,13 @@ Scene* GraphicsEngine::CreateScene(std::string name) {
 	// Declare a derived class for the sole purpose of making the destructor unregister the object from scene list.
 	class ObservedScene : public Scene {
 	public:
-		ObservedScene(std::function<void(Scene*)> deleteHandler, std::string name) :
-			Scene(std::move(name)), m_deleteHandler(std::move(deleteHandler))
-		{}
+		ObservedScene(std::function<void(Scene*)> deleteHandler, std::string name) : Scene(std::move(name)), m_deleteHandler(std::move(deleteHandler)) {}
 		~ObservedScene() {
-			if (m_deleteHandler) { m_deleteHandler(static_cast<Scene*>(this)); }
+			if (m_deleteHandler) {
+				m_deleteHandler(static_cast<Scene*>(this));
+			}
 		}
+
 	protected:
 		std::function<void(Scene*)> m_deleteHandler;
 	};
@@ -305,14 +297,15 @@ Scene* GraphicsEngine::CreateScene(std::string name) {
 PerspectiveCamera* GraphicsEngine::CreatePerspectiveCamera(std::string name) {
 	class ObservedPerspectiveCamera : public PerspectiveCamera {
 	public:
-		ObservedPerspectiveCamera(std::function<void(PerspectiveCamera*)> deleteHandler, std::string name) :
-			m_deleteHandler(std::move(deleteHandler))
-		{
+		ObservedPerspectiveCamera(std::function<void(PerspectiveCamera*)> deleteHandler, std::string name) : m_deleteHandler(std::move(deleteHandler)) {
 			SetName(name);
 		}
 		~ObservedPerspectiveCamera() {
-			if (m_deleteHandler) { m_deleteHandler(static_cast<PerspectiveCamera*>(this)); }
+			if (m_deleteHandler) {
+				m_deleteHandler(static_cast<PerspectiveCamera*>(this));
+			}
 		}
+
 	protected:
 		std::function<void(PerspectiveCamera*)> m_deleteHandler;
 	};
@@ -332,13 +325,15 @@ PerspectiveCamera* GraphicsEngine::CreatePerspectiveCamera(std::string name) {
 OrthographicCamera* GraphicsEngine::CreateOrthographicCamera(std::string name) {
 	class ObservedOrthographicCamera : public OrthographicCamera {
 	public:
-		ObservedOrthographicCamera(std::function<void(OrthographicCamera*)> deleteHandler, std::string name) :
-			m_deleteHandler(std::move(deleteHandler)) {
+		ObservedOrthographicCamera(std::function<void(OrthographicCamera*)> deleteHandler, std::string name) : m_deleteHandler(std::move(deleteHandler)) {
 			SetName(name);
 		}
 		~ObservedOrthographicCamera() {
-			if (m_deleteHandler) { m_deleteHandler(static_cast<OrthographicCamera*>(this)); }
+			if (m_deleteHandler) {
+				m_deleteHandler(static_cast<OrthographicCamera*>(this));
+			}
 		}
+
 	protected:
 		std::function<void(OrthographicCamera*)> m_deleteHandler;
 	};
@@ -358,13 +353,15 @@ OrthographicCamera* GraphicsEngine::CreateOrthographicCamera(std::string name) {
 Camera2D* GraphicsEngine::CreateCamera2D(std::string name) {
 	class ObservedCamera2D : public Camera2D {
 	public:
-		ObservedCamera2D(std::function<void(Camera2D*)> deleteHandler, std::string name) :
-			m_deleteHandler(std::move(deleteHandler)) {
+		ObservedCamera2D(std::function<void(Camera2D*)> deleteHandler, std::string name) : m_deleteHandler(std::move(deleteHandler)) {
 			SetName(name);
 		}
 		~ObservedCamera2D() {
-			if (m_deleteHandler) { m_deleteHandler(static_cast<Camera2D*>(this)); }
+			if (m_deleteHandler) {
+				m_deleteHandler(static_cast<Camera2D*>(this));
+			}
 		}
+
 	protected:
 		std::function<void(Camera2D*)> m_deleteHandler;
 	};
@@ -431,7 +428,6 @@ void GraphicsEngine::LoadPipeline(const std::string& graphDesc) {
 
 	m_specialNodes = specialNodes;
 	m_pipeline = std::move(pipeline);
-	DumpPipelineGraph(m_pipeline, "pipeline_graph.dot");
 	m_scheduler.SetPipeline(std::move(m_pipeline));
 }
 
@@ -587,165 +583,4 @@ void GraphicsEngine::RegisterPipelineClasses() {
 
 
 
-std::string TidyTypeName(std::string name) {
-	std::string s2;
-
-	// Replace <> with &lt; and &gt; escapes
-	int inTemplate = 0;
-	for (auto c : name) {
-		if (c == '<') {
-			inTemplate++;
-			s2 += "&lt;";
-		}
-		else if (c == '>') {
-			inTemplate--;
-			s2 += "&gt;";
-		}
-		else {
-			s2 += c;
-		}
-	}
-
-	std::vector<std::string> stripNamespaces = {
-		"inl::gxeng::",
-		"inl::",
-		"mathter::",
-		"nodes::",
-	};
-
-	// Remove class, struct and enum specifiers.
-	std::regex classFilter(R"(\s*class\s*)");
-	s2 = std::regex_replace(s2, classFilter, "");
-
-	std::regex structFilter(R"(\s*struct\s*)");
-	s2 = std::regex_replace(s2, structFilter, "");
-
-	std::regex enumFilter(R"(\s*enum\s*)");
-	s2 = std::regex_replace(s2, enumFilter, "");
-
-	// MSVC specific things.
-	std::regex ptrFilter(R"(\s*__ptr64\s*)");
-	s2 = std::regex_replace(s2, ptrFilter, "");
-
-	// Transform common templates to readable format
-	std::regex stringFilter(R"(\s*std::basic_string.*)");
-	s2 = std::regex_replace(s2, stringFilter, "std::string");
-
-	// Remove consts.
-	std::regex constFilter(R"(\s*const\s*)");
-	s2 = std::regex_replace(s2, constFilter, "");
-
-	// Remove requested s2spaces.
-	for (auto& ns : stripNamespaces) {
-		std::regex s2spaceFilter1(R"(\s*)" + ns + R"(\s*)");
-		s2 = std::regex_replace(s2, s2spaceFilter1, "");
-	}
-
-	return s2;
-}
-
-
-void GraphicsEngine::DumpPipelineGraph(const Pipeline& pipeline, std::string file) {
-	std::stringstream dot; // graphviz dot file
-
-	struct PortMap {
-		const NodeBase* parent;
-		int portIndex;
-	};
-
-	std::map<const InputPortBase*, PortMap> inputParents;
-	std::map<const OutputPortBase*, PortMap> outputParents;
-	std::map<const NodeBase*, size_t> nodeIndexMap;
-
-	// Fill node map and parent maps
-	for (const NodeBase& node : pipeline) {
-		size_t nodeIndex = nodeIndexMap.size();
-		nodeIndexMap.insert({ &node, nodeIndex });
-
-		for (int i = 0; i < node.GetNumInputs(); ++i) {
-			inputParents.insert({ node.GetInput(i), PortMap{&node, i} });
-		}
-		for (int i = 0; i < node.GetNumOutputs(); ++i) {
-			outputParents.insert({ node.GetOutput(i), PortMap{ &node, i } });
-		}
-	}
-
-	// Write out preamble
-	dot << "digraph structs {" << std::endl;
-	dot << "rankdir=LR;" << std::endl;
-	dot << "ranksep=\"0.8\";" << std::endl;
-	dot << "node [shape=record];" << std::endl;
-	dot << std::endl;
-
-	// Write out nodes
-	for (const auto& v : nodeIndexMap) {
-		dot << "node" << v.second << " [shape=record, label=\"";
-		//dot << "&lt;&lt;&lt; " << TidyTypeName(typeid(*v.first).name()) << " &gt;&gt;&gt;";
-		dot << v.first->GetDisplayName() << " : " << TidyTypeName(v.first->GetClassName(true));
-		dot << " | {";
-		// Inputs
-		dot << "{";
-		for (int i = 0; i < v.first->GetNumInputs(); ++i) {
-			const InputPortBase* port = v.first->GetInput(i);
-			dot << "<in" << i << "> ";
-			dot << TidyTypeName(port->GetType().name());
-			if (i < (int)v.first->GetNumInputs() - 1) {
-				dot << " | ";
-			}
-		}
-		dot << "} | ";
-		// Outputs
-		dot << "{";
-		for (int i = 0; i < v.first->GetNumOutputs(); ++i) {
-			const OutputPortBase* port = v.first->GetOutput(i);
-			dot << "<out" << i << "> ";
-			dot << TidyTypeName(port->GetType().name());
-			if (i < (int)v.first->GetNumOutputs() - 1) {
-				dot << " | ";
-			}
-		}
-		dot << "}";
-
-		dot << "}\"];" << std::endl;
-	}
-
-	dot << std::endl;
-
-	// Write out links
-	for (const auto& v : nodeIndexMap) {
-		// Inputs
-		for (int i = 0; i < v.first->GetNumInputs(); ++i) {
-			const InputPortBase* target = v.first->GetInput(i);
-			OutputPortBase* source = target->GetLink();
-			if (source && outputParents.count(source) > 0) {
-				auto srcNode = outputParents[source];
-				auto tarNode = inputParents[target];
-
-				dot << "node" << nodeIndexMap[srcNode.parent] << ":";
-				dot << "out" << srcNode.portIndex;
-				dot << " -> ";
-				dot << "node" << nodeIndexMap[tarNode.parent] << ":";
-				dot << "in" << tarNode.portIndex;
-				dot << ";" << std::endl;
-				assert(tarNode.portIndex == i);
-			}
-		}
-	}
-
-	dot << std::endl;
-
-	// Write closing
-	dot << "}" << std::endl;
-
-
-	// Write out file
-	std::ofstream f(file, std::ios::trunc);
-	if (f.is_open()) {
-		f << dot.str();
-	}
-}
-
-
-
-} // namespace gxeng
-} // namespace inl
+} // namespace inl::gxeng
