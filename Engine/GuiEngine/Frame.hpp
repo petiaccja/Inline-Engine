@@ -26,6 +26,8 @@ public:
 
 	void Update(float elapsed = 0.0f) override;
 
+	std::vector<const Control*> GetChildren() const override;
+
 	// Frame specific things.
 	void SetLayout(std::shared_ptr<Layout> layout);
 	const std::shared_ptr<Layout> GetLayout() const;

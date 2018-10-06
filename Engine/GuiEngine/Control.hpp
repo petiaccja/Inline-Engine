@@ -35,6 +35,7 @@ public:
 
 	virtual void Update(float elapsed = 0.0f) {}
 
+	virtual std::vector<const Control*> GetChildren() const { return {}; }
 protected:
 	static void Attach(Layout* parent, Control* child) { child->OnAttach(parent); }
 	static void Detach(Control* child) { child->OnDetach(); }

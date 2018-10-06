@@ -64,6 +64,8 @@ public:
 
 	void Update(float elapsed = 0.0f) override;
 
+	std::vector<const Control*> GetChildren() const override;
+
 	void SetReferencePoint(eRefPoint point);
 	eRefPoint GetReferencePoint() const;
 	void SetYDown(bool enabled);

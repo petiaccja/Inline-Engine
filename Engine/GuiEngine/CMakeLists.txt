@@ -8,6 +8,8 @@ set(sources
 	Layout.cpp
 	ControlTracer.hpp
 	ControlTracer.cpp
+	Board.hpp
+	Board.cpp
 )
 
 set(controls 

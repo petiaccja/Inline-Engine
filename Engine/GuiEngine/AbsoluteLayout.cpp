@@ -20,7 +20,7 @@ AbsoluteLayout::Binding& AbsoluteLayout::AddChild(std::shared_ptr<Control> child
 
 void AbsoluteLayout::RemoveChild(const Control* child) {
 	auto it = m_children.find(child);
-	[[likely]] if (it != m_children.end()) {
+	if (it != m_children.end()) {
 		Detach(it->first.get());
 		m_children.erase(it);
 	}
@@ -32,7 +32,7 @@ void AbsoluteLayout::RemoveChild(const Control* child) {
 
 AbsoluteLayout::Binding& AbsoluteLayout::operator[](const Control* child) {
 	auto it = m_children.find(child);
-	[[likely]] if (it != m_children.end()) {
+	if (it != m_children.end()) {
 		return *it->second;
 	}
 	else {
@@ -84,6 +84,17 @@ void AbsoluteLayout::Update(float elapsed) {
 		child->Update(elapsed);
 	}
 }
+
+
+std::vector<const Control*> AbsoluteLayout::GetChildren() const {
+	std::vector<const Control*> children;
+	children.reserve(m_children.size());
+	for (const auto& child : m_children) {
+		children.push_back(child.first.get());
+	}
+	return children;
+}
+
 
 void AbsoluteLayout::SetReferencePoint(eRefPoint point) {
 	m_refPoint = point;

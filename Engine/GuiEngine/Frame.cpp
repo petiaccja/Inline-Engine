@@ -63,6 +63,15 @@ void Frame::Update(float elapsed) {
 	}
 }
 
+std::vector<const Control*> Frame::GetChildren() const {
+	if (m_layout) {
+		return { m_layout.get() };
+	}
+	else {
+		return {};
+	}
+}
+
 
 void Frame::SetLayout(std::shared_ptr<Layout> layout) {
 	if (m_layout) {
