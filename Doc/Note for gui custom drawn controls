@@ -1,0 +1,40 @@
+// options:
+
+// 1. template:
+template <class ButtonDrawing = DefaultButtonDrawing>
+class Button {
+public:
+  void Update() {
+    m_drawing.Update(this);
+  }
+private:
+  ButtonDrawing m_drawing;
+};
+
+// pros:
+// - no runtime overhead
+// - no inheritence & virtual
+// - no additional setup by user, only if customized
+// cons:
+// - template class -> long compiles
+// - template class -> templates are ugly
+// - interface/concept advisable
+
+// 2. injection
+class Button {
+public:
+  void Update() {
+    m_drawing->Update(this);
+  }
+private:
+  std::unique_ptr<IButtonDrawing> m_drawing;
+};
+
+// pros:
+// - no templates
+// cons:
+// - runtime overhead
+// - stupid useless interfaces and their boilerplate
+// - 
+
+
