@@ -1,11 +1,10 @@
 #pragma once
 
 
-#include "../BaseLibrary/Graph/NodeFactory.hpp"
+#include <BaseLibrary/Graph/NodeFactory.hpp>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 class GraphicsEngine;
@@ -16,10 +15,9 @@ public:
 	NodeBase* CreateNode(const std::string& name) const override;
 
 private:
-	GraphicsEngine* m_engine;
+	GraphicsEngine* m_engine = nullptr;
 };
 
 
-}
 }
 

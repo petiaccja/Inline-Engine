@@ -471,6 +471,7 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 			KeyboardEvent evt;
 			evt.key = impl::TranslateKey((unsigned)wParam);
 			evt.state = eKeyState::DOWN;
+			evt.repcount = LOWORD(lParam);
 			if (evt.key != eKey::UNKNOWN) {
 				instance.CallEvent(instance.OnKeyboard, evt);
 			}

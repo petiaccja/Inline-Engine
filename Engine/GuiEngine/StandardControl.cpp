@@ -8,6 +8,11 @@
 namespace inl::gui {
 
 
+StandardControl::StandardControl() {
+	AddStateScripts();
+}
+
+
 void StandardControl::SetVisible(bool visible) {
 	m_isVisible = visible;
 	UpdateVisibility(m_parent && m_parent->IsShown() && m_context && m_isVisible);
@@ -24,16 +29,37 @@ bool StandardControl::IsShown() const {
 }
 
 
-void StandardControl::OnAttach(Layout* parent) {
+void StandardControl::SetStyle(nullptr_t) {
+	m_isStyleInherited = true;
+	if (m_parent) {
+		m_style = m_parent->GetStyle();
+	}
+}
+
+
+void StandardControl::SetStyle(const ControlStyle& style, bool asDefault) {
+	m_style = style;
+	m_isStyleInherited = asDefault;
+}
+
+
+const ControlStyle& StandardControl::GetStyle() const {
+	return m_style;
+}
+
+
+void StandardControl::OnAttach(Control* parent) {
 	m_parent = parent;
 	m_context = Control::GetContext(parent);
+	if (m_isStyleInherited) {
+		m_style = parent->GetStyle();
+	}
 	if (m_context) {
 		MakeRealEntities();
-		UpdateFont(m_context->font);
+		UpdateFont(m_style.font);
 	}
 	assert(!IsShown());
 	UpdateVisibility(m_parent->IsShown() && m_context && m_isVisible);
-
 }
 
 
@@ -118,6 +144,54 @@ void StandardControl::MakePlaceholderEntities() {
 		auto old = std::move(overlay.get());
 		overlay.get() = std::make_unique<PlaceholderOverlayEntity>();
 		PlaceholderOverlayEntity::CopyProperties(old.get(), overlay.get().get());
+	}
+}
+
+eStandardControlState StandardControl::GetState() const {
+	return m_state;
+}
+
+
+void StandardControl::AddStateScripts() {
+	OnEnterArea += [this] {
+		m_hovered = true;
+		UpdateState();
+	};
+	OnLeaveArea += [this] {
+		m_hovered = false;
+		m_pressed = 0;
+		UpdateState();
+	};
+	OnGainFocus += [this] {
+		m_focused = true;
+		UpdateState();
+	};
+	OnLoseFocus += [this] {
+		m_focused = false; 
+		UpdateState();
+	};
+	OnMouseDown += [this](Vec2, eMouseButton) {
+		m_pressed++;
+		UpdateState();
+	};
+	OnMouseUp += [this](Vec2, eMouseButton) {
+		m_pressed--;
+		UpdateState();
+	};
+}
+
+void StandardControl::UpdateState() {
+	if (m_pressed > 0) {
+		m_state = eStandardControlState::PRESSED;
+	}
+	else if (m_hovered) {
+		m_state = eStandardControlState::MOUSEOVER;
+	}
+	else if (m_focused) {
+		m_state = eStandardControlState::FOCUSED;
+	}
+	else {
+		m_state = eStandardControlState::DEFAULT;
 	}
 }
 

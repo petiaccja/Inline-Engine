@@ -14,6 +14,7 @@
 #include <GuiEngine/AbsoluteLayout.hpp>
 #include <GuiEngine/Button.hpp>
 #include <GuiEngine/Frame.hpp>
+#include <GuiEngine/Board.hpp>
 #include <GuiEngine/Label.hpp>
 
 #include <iostream>
@@ -24,10 +25,11 @@ using namespace inl;
 
 class GameScene {
 public:
-	GameScene(gxeng::GraphicsEngine* graphicsEngine);
+	GameScene(gxeng::GraphicsEngine* graphicsEngine, Window* window);
 
 	void LoadAssets();
 	void LoadGUI();
+	void SetScripts();
 
 	void Update(float elapsed);
 
@@ -35,6 +37,8 @@ protected:
 	std::unique_ptr<gxeng::MeshEntity> CreateGraphicsEntity(std::string_view mesh, std::string_view material);
 
 private:
+	Window* m_window;
+
 	gxeng::GraphicsEngine* m_graphicsEngine;
 	std::unique_ptr<gxeng::Scene> m_gxScene, m_guiScene;
 	std::unique_ptr<gxeng::PerspectiveCamera> m_camera;
@@ -45,8 +49,8 @@ private:
 
 	std::vector<std::unique_ptr<gxeng::MeshEntity>> m_entities;
 
+	gui::Board m_guiBoard;
 	std::unique_ptr<gxeng::IFont> m_font;
-	std::shared_ptr<gui::Frame> m_frame;
 	std::shared_ptr<gui::AbsoluteLayout> m_layout;
 	std::shared_ptr<gui::Button> m_button1, m_button2;
 	std::shared_ptr<gui::Label> m_infoLabel;
@@ -94,7 +98,7 @@ int main() {
 		std::unique_ptr<pxeng_bl::PhysicsEngine> physicsEngine(new pxeng_bl::PhysicsEngine());
 
 		// Create scene and camera.
-		GameScene gameScene(graphicsEngine.get());
+		GameScene gameScene(graphicsEngine.get(), &window);
 		gameScene.LoadAssets();
 
 		// Game loop.
@@ -132,8 +136,8 @@ int main() {
 }
 
 
-inline GameScene::GameScene(gxeng::GraphicsEngine* graphicsEngine)
-	: m_graphicsEngine(graphicsEngine), m_assetStore(graphicsEngine, nullptr) {
+inline GameScene::GameScene(gxeng::GraphicsEngine* graphicsEngine, Window* window)
+	: m_graphicsEngine(graphicsEngine), m_assetStore(graphicsEngine, nullptr), m_window(window) {
 	m_assetStore.AddSourceDirectory(INL_GAMEDATA);
 
 	m_gxScene.reset(m_graphicsEngine->CreateScene("MainScene"));
@@ -155,6 +159,12 @@ inline GameScene::GameScene(gxeng::GraphicsEngine* graphicsEngine)
 	m_font->LoadFile(fontFile);
 
 	LoadGUI();
+	SetScripts();
+
+	window->OnKeyboard += Delegate<void(KeyboardEvent)>{ &gui::Board::OnKeyboard, &m_guiBoard };
+	window->OnMouseMove += Delegate<void(MouseMoveEvent)>{ &gui::Board::OnMouseMove, &m_guiBoard };
+	window->OnMouseButton += Delegate<void(MouseButtonEvent)>{ &gui::Board::OnMouseButton, &m_guiBoard };
+
 }
 
 
@@ -165,7 +175,6 @@ void GameScene::LoadAssets() {
 }
 
 void GameScene::LoadGUI() {
-	m_frame = std::make_shared<gui::Frame>();
 	m_button1 = std::make_shared<gui::Button>();
 	m_button2 = std::make_shared<gui::Button>();
 	m_infoLabel = std::make_shared<gui::Label>();
@@ -173,7 +182,6 @@ void GameScene::LoadGUI() {
 	m_guiScene.reset(m_graphicsEngine->CreateScene("GuiScene"));
 	m_guiCamera.reset(m_graphicsEngine->CreateCamera2D("GuiCamera"));
 
-	m_frame->SetLayout(m_layout);
 	m_layout->AddChild(m_button1);
 	m_layout->AddChild(m_button2);
 	m_layout->AddChild(m_infoLabel);
@@ -181,11 +189,13 @@ void GameScene::LoadGUI() {
 	gui::DrawingContext drawingContext;
 	drawingContext.engine = m_graphicsEngine;
 	drawingContext.scene = m_guiScene.get();
-	drawingContext.font = m_font.get();
-	m_frame->SetDrawingContext(drawingContext);
+	m_guiBoard.SetDrawingContext(drawingContext);
+	gui::ControlStyle style;
+	style.font = m_font.get();
+	m_guiBoard.SetStyle(style);
 
-	m_frame->SetPosition({ 0, 0 });
-	m_frame->SetSize({ 200,200 });
+	m_layout->SetPosition({ 0, 0 });
+	m_layout->SetSize({ 200,200 });
 	(*m_layout)[m_button1.get()].SetPosition({ 60, 30 });
 	(*m_layout)[m_button2.get()].SetPosition({ 60, 70 });
 	(*m_layout)[m_infoLabel.get()].SetPosition({ 60, 110 });
@@ -193,11 +203,18 @@ void GameScene::LoadGUI() {
 	m_button2->SetSize({ 90, 35 });
 	m_infoLabel->SetSize({ 90, 30 });
 
-	m_button1->SetBackgroundColor({ 0.2f, 0.2f, 0.2f, 1.0f });
-	m_button2->SetBackgroundColor({ 0.4f, 0.2f, 0.4f, 0.5f });
 	m_button1->SetText("Button 1");
 	m_button2->SetText("Button 2");
-	m_button2->SetTextColor({ 0.1f, 0.6f, 0.1f, 1.0f });
+
+	m_guiBoard.AddControl(m_layout);
+}
+
+
+void GameScene::SetScripts() {
+	m_button1->OnClick += [this](Vec2 where, eMouseButton btn) {
+		bool show = !m_infoLabel->GetVisible();
+		m_infoLabel->SetVisible(show);
+	};
 }
 
 
@@ -205,12 +222,15 @@ void GameScene::Update(float elapsed) {
 	unsigned width, height;
 	m_graphicsEngine->GetScreenSize(width, height);
 	Vec2i screenSize = { width, height };
-	m_frame->SetPosition(m_frame->GetSize()/2*Vec2i(1,-1) + screenSize/2*Vec2i(-1,1) );
-	m_frame->Update();
+	m_layout->SetPosition(m_layout->GetSize()/2*Vec2i(1,-1) + screenSize/2*Vec2i(-1,1) );
+	m_layout->Update();
 	m_guiCamera->SetExtent({ width, height });
 	m_guiCamera->SetPosition({ 0, 0 });
-	m_graphicsEngine->Update(elapsed);
+	m_guiBoard.SetCoordinateMapping({ 0.f, (float)width, (float)height, 0.f }, { width / -2.f, width / 2.f, height / -2.f, height / 2.f });
+
 	m_infoLabel->SetText("Resolution: " + std::to_string(width) + "x" + std::to_string(height));
+
+	m_graphicsEngine->Update(elapsed);
 }
 
 

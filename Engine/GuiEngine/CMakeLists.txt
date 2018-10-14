@@ -6,8 +6,6 @@ set(sources
 	Control.cpp
 	Layout.hpp
 	Layout.cpp
-	ControlTracer.hpp
-	ControlTracer.cpp
 	Board.hpp
 	Board.cpp
 )
@@ -29,6 +27,8 @@ set(controls
 set(layouts
 	AbsoluteLayout.hpp
 	AbsoluteLayout.cpp
+	LinearLayout.hpp
+	LinearLayout.cpp
 )
 
 set(placeholders

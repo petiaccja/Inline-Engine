@@ -18,7 +18,7 @@ AbsoluteLayout::Binding& AbsoluteLayout::AddChild(std::shared_ptr<Control> child
 }
 
 
-void AbsoluteLayout::RemoveChild(const Control* child) {
+void AbsoluteLayout::RemoveChild(Control* child) {
 	auto it = m_children.find(child);
 	if (it != m_children.end()) {
 		Detach(it->first.get());
@@ -61,22 +61,6 @@ Vec2i AbsoluteLayout::GetPosition() const {
 }
 
 
-void AbsoluteLayout::SetVisible(bool visible) {
-	// empty
-}
-
-
-bool AbsoluteLayout::GetVisible() const {
-	return false;
-}
-bool AbsoluteLayout::IsShown() const {
-	if (m_parent) {
-		return m_parent->IsShown();
-	}
-	return false;
-}
-
-
 void AbsoluteLayout::Update(float elapsed) {
 	for (auto& childBinding : m_children) {
 		auto& [child, binding] = childBinding;
@@ -109,20 +93,18 @@ bool AbsoluteLayout::GetYDown() const {
 	return m_yDown;
 }
 
-void AbsoluteLayout::OnAttach(Layout* parent) {
-	m_parent = parent;
-	m_context = Control::GetContext(parent);
+void AbsoluteLayout::OnAttach(Control* parent) {
+	Layout::OnAttach(parent);
 	for (auto& child : m_children) {
 		Attach(this, child.first.get());
 	}
 }
 
 void AbsoluteLayout::OnDetach() {
-	m_context = nullptr;
 	for (auto& child : m_children) {
 		Detach(child.first.get());
 	}
-	m_parent = nullptr;
+	Layout::OnDetach();
 }
 
 

@@ -166,6 +166,7 @@ protected:
 protected:
 	std::shared_ptr<SharedState<T>> m_sharedState;
 	mutable bool m_ready = false;
+	mutable bool m_alreadyRun = false;
 	handle_type m_handle;
 public:
 	handle_type& TMP_GetHandle() { return m_handle; }
@@ -225,7 +226,7 @@ inline Future<void> CoroPromise<void>::get_return_object() {
 
 template <class T>
 Future<T>::~Future() {
-	if (valid() && !ready()) {
+	if (valid() && !m_alreadyRun) {
 		std::terminate();
 	}
 }
@@ -247,6 +248,7 @@ void Future<T>::wait() const {
 	// Run if needed.
 	bool hasStarted = m_sharedState->coroStarted.test_and_set();
 	if (!hasStarted) {
+		m_alreadyRun = true;
 		Scheduler* scheduler = m_handle.promise().m_scheduler;
 		if (scheduler != nullptr) {
 			scheduler->Resume(m_handle);
@@ -255,6 +257,7 @@ void Future<T>::wait() const {
 			m_handle.resume();
 		}
 	}
+
 
 	m_sharedState->fence.WaitExplicit(1);
 	m_ready = true;
@@ -326,6 +329,7 @@ bool Awaiter<T>::await_suspend(HandleT awaitingCoroutine) noexcept {
 	bool hasStarted = m_future->m_sharedState->coroStarted.test_and_set();
 	if (!hasStarted) {
 		Scheduler* scheduler = m_future->m_handle.promise().m_scheduler;
+		m_future->m_alreadyRun = true;
 		if (scheduler != nullptr) {
 			scheduler->Resume(m_future->m_handle);
 		}
@@ -341,6 +345,7 @@ template <class T>
 void Future<T>::Run() {
 	bool hasStarted = m_sharedState->coroStarted.test_and_set();
 	if (!hasStarted) {
+		m_alreadyRun = true;
 		Scheduler* scheduler = m_handle.promise().m_scheduler;
 		if (scheduler != nullptr) {
 			scheduler->Resume(m_handle);

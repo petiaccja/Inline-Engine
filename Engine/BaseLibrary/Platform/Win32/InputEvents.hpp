@@ -173,6 +173,7 @@ enum class eKey : unsigned {
 struct KeyboardEvent {
 	eKeyState state;
 	eKey key;
+	int repcount = 0;
 };
 
 enum class eResizeMode

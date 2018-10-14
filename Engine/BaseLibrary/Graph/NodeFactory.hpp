@@ -45,6 +45,7 @@ private:
 public:
 	NodeFactory() = default;
 	NodeFactory(const NodeFactory&) = delete;
+	virtual ~NodeFactory() = default;
 
 	/// <summary>
 	/// Register a node class. Registered classes can be instantiated later.

@@ -28,6 +28,7 @@ if (TARGET_COMPILER_MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd5033") # Register keyword is now deprecated but retarded Bullet uses it
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4250") # Inheritence via dominance
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4099") # Missing PDB for libraries
+	add_definitions("-D_ENABLE_EXTENDED_ALIGNED_STORAGE")
 	# set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS} /PROFILE")
 elseif (TARGET_COMPILER_CLANG)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fcoroutines-ts /std:c++17")
@@ -102,5 +103,6 @@ set_target_properties(Test_GUI PROPERTIES FOLDER Test)
 
 #set_target_properties(Editor PROPERTIES FOLDER Executables)
 set_target_properties(NodeEditor PROPERTIES FOLDER Executables)
+set_target_properties(NodeEditor_v2 PROPERTIES FOLDER Executables)
 
 

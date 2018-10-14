@@ -1,6 +1,7 @@
 #include "Font.hpp"
 #include <BaseLibrary/Exception/Exception.hpp>
 #include <BaseLibrary/Singleton.hpp>
+#include <BaseLibrary/Range.hpp>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -12,7 +13,7 @@ namespace inl::gxeng {
 //------------------------------------------------------------------------------
 
 // Currently the texture atlas contains rasterized letters of only this size.
-static constexpr int ATLAS_FONT_SIZE = 32;
+static constexpr int ATLAS_FONT_SIZE = 24;
 
 
 // A small helper class for a resizeable 2D texture so that it's easy to append new
@@ -124,7 +125,7 @@ void Font::LoadFile(const void* data, size_t size) {
 			face->glyph->bitmap_left + face->glyph->bitmap.width,
 			face->glyph->bitmap_top + face->glyph->bitmap.rows
 		};
-		totalWidth += size.x;
+		totalWidth += size.x + 2;
 		maxHeight = std::max(size.y, maxHeight);
 
 		m_glyphs[ch] = GlyphInfo{
@@ -168,12 +169,52 @@ Font::GlyphInfo Font::GetGlyphInfo(char32_t character) const {
 	return it->second;
 }
 
+
 const Image& Font::GetGlyphAtlas() const {
 	return m_atlas;
 }
 
+
 float Font::CalculateTextHeight(float fontSize) const {
+	assert(fontSize > 0);
 	return m_atlas.GetHeight() * fontSize / ATLAS_FONT_SIZE;
+}
+
+
+float Font::CalculateTextWidth(std::u32string_view text, float fontSize) const {
+	assert(fontSize > 0);
+	float width = 0.0f;
+	for (auto& glyph : text) {
+		const auto& info = GetGlyphInfo(glyph);
+		width += info.advance;
+	}
+	return width * fontSize;
+}
+
+
+intptr_t Font::FindCharacter(std::u32string_view text, float coordinate, float fontSize) const {
+	assert(fontSize > 0);
+	if (coordinate < 0) {
+		return -1;
+	}
+	float width = 0.0f;
+	for (auto glyphIdx : Range(intptr_t(text.size()))) {
+		const auto& info = GetGlyphInfo(text[glyphIdx]);
+		width += info.advance*fontSize;
+		if (width >= coordinate) {
+			return glyphIdx;
+		}
+	}
+	return (intptr_t)text.size();
+}
+
+
+std::pair<float, float> Font::FindCoordinates(std::u32string_view text, size_t index, float fontSize) const {
+	assert(index < text.size());
+	assert(fontSize > 0);
+	float precedingWidth = CalculateTextWidth(text.substr(0, index), fontSize);
+	float glyphWidth = GetGlyphInfo(text[index]).advance*fontSize;
+	return { precedingWidth, precedingWidth + glyphWidth };
 }
 
 

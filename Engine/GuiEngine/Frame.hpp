@@ -5,12 +5,13 @@
 #include "Layout.hpp"
 
 #include <BaseLibrary/Color.hpp>
+#include "StandardControl.hpp"
 
 
 namespace inl::gui {
 
 
-class Frame : Layout {
+class Frame : public StandardControl {
 public:
 	Frame();
 
@@ -20,42 +21,26 @@ public:
 	void SetPosition(Vec2i position) override;
 	Vec2i GetPosition() const override;
 
-	void SetVisible(bool visible) override;
-	bool GetVisible() const override;
-	bool IsShown() const override;
-
 	void Update(float elapsed = 0.0f) override;
 
 	std::vector<const Control*> GetChildren() const override;
 
-	// Frame specific things.
+	// Frame specific properties.
+	void SetLayout(Layout& layout) { SetLayout(MakeBlankShared(layout)); }
 	void SetLayout(std::shared_ptr<Layout> layout);
-	const std::shared_ptr<Layout> GetLayout() const;
+	std::shared_ptr<Layout> GetLayout() const;
 
-	void SetDrawingContext(DrawingContext context);
-	const DrawingContext& GetDrawingContext() const;
-
-	// Frame display things.
-	void ShowBackground(bool show);
-	bool IsShowingBackground() const;
-	void SetBackgroundColor(ColorF color);
-	ColorF GetBackgroundColor() const;
-
-protected:
-	void OnAttach(Layout* parent) override;
+	void OnAttach(Control* parent) override;
 	void OnDetach() override;
-	const DrawingContext* GetContext() const override;
 
-	void UpdateEntity(const DrawingContext* newContext);
-	void UpdateVisibility();
+	void SetZOrder(int rank) override;
+protected:
+	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> GetTextEntities() override;
+	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::IOverlayEntity>>> GetOverlayEntities() override;
+
 private:
-	DrawingContext m_context;
 	std::shared_ptr<Layout> m_layout;
-
-	bool m_visible = true;
-
 	std::unique_ptr<gxeng::IOverlayEntity> m_background;
-	bool m_showBackground = true;
 };
 
 

@@ -1,14 +1,8 @@
-// Codecvt is deprecated according to the C++17 standard.
-// There is no replacement yet, we keep using it until it is removed.
-#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
-
 #include "TextEntity.hpp"
 #include "Font.hpp"
 
 #include <BaseLibrary/Exception/Exception.hpp>
-
-#include <locale>
-#include <codecvt>
+#include <BaseLibrary/StringUtil.hpp>
 
 namespace inl::gxeng {
 
@@ -85,8 +79,7 @@ float TextEntity::GetVerticalAlignment() const {
 float TextEntity::CalculateTextWidth() const {
 	if (m_font) {
 		// Convert string to UCS-4 code-points.
-		thread_local std::wstring_convert<std::codecvt_utf8<uint32_t>, uint32_t> converter; // Costly to create.
-		std::basic_string<uint32_t> text = converter.from_bytes(m_text);
+		std::u32string text = EncodeString<char32_t>(m_text);
 
 		// Accumulate length.
 		float width = 0.0f;

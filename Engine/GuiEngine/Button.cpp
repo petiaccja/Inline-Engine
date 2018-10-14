@@ -35,26 +35,15 @@ Vec2i Button::GetPosition() const {
 
 
 void Button::Update(float elapsed) {
-	return;
-}
-
-
-void Button::SetBackgroundColor(ColorF color) {
-	m_background->SetColor(color.v);
-}
-ColorF Button::GetBackgroundColor() const {
-	ColorF c;
-	c.v = m_background->GetColor();
-	return c;
-}
-
-void Button::SetTextColor(ColorF color) {
-	m_text->SetColor(color.v);
-}
-ColorF Button::GetTextColor() const {
-	ColorF c;
-	c.v = m_text->GetColor();
-	return c;
+	ColorF foreground;
+	switch (GetState()) {
+		case eStandardControlState::DEFAULT: foreground = GetStyle().foreground; break;
+		case eStandardControlState::MOUSEOVER: foreground = GetStyle().hover; break;
+		case eStandardControlState::FOCUSED: foreground = GetStyle().focus; break;
+		case eStandardControlState::PRESSED: foreground = GetStyle().pressed; break;
+	}
+	m_background->SetColor(foreground.v);
+	m_text->SetColor(GetStyle().text.v);
 }
 
 void Button::SetText(std::string text) {
@@ -62,6 +51,11 @@ void Button::SetText(std::string text) {
 }
 const std::string& Button::GetText() const {
 	return m_text->GetText();
+}
+
+void Button::SetZOrder(int rank) {
+	m_background->SetZDepth(rank);
+	m_text->SetZDepth(rank + 0.1f);
 }
 
 std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> Button::GetTextEntities() {

@@ -13,6 +13,9 @@
             "class": "Pipeline/System/GetCamera2DByName",
             "id": 1,
             "name": "Camera",
+            "inputs": [
+                "GuiCam"
+            ],
             "meta_pos": "[-125, 4]"
         },
         {
@@ -25,6 +28,9 @@
             "class": "Pipeline/System/GetSceneByName",
             "id": 3,
             "name": "Scene",
+            "inputs": [
+                "GuiScene"
+            ],
             "meta_pos": "[-102, 154]"
         }
     ],
