@@ -3,6 +3,7 @@
 add_subdirectory(BaseLibrary)
 add_subdirectory(GraphicsApi_D3D12)
 add_subdirectory(GraphicsEngine_LL)
+add_subdirectory(GraphicsPipeline)
 add_subdirectory(AssetLibrary)
 add_subdirectory(GuiEngine)
 #add_subdirectory(Core)

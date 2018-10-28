@@ -10,57 +10,14 @@
 
 // System
 #include "GraphicsNode.hpp"
-#include "Nodes/CreateTexture.hpp"
-#include "Nodes/GetBackBuffer.hpp"
-#include "Nodes/GetCamera2DByName.hpp"
-#include "Nodes/GetCameraByName.hpp"
-#include "Nodes/GetEnvVariable.hpp"
-#include "Nodes/GetSceneByName.hpp"
-#include "Nodes/GetTime.hpp"
-#include "Nodes/TextureProperties.hpp"
-#include "Nodes/VectorComponents.hpp"
+#include "Nodes/System/GetBackBuffer.hpp"
+#include "Nodes/System/GetCamera2DByName.hpp"
+#include "Nodes/System/GetCameraByName.hpp"
+#include "Nodes/System/GetEnvVariable.hpp"
+#include "Nodes/System/GetSceneByName.hpp"
+#include "Nodes/System/GetTime.hpp"
 
-// Forward
-#include "Nodes/BloomAdd.hpp"
-#include "Nodes/BloomBlur.hpp"
-#include "Nodes/BloomDownsample.hpp"
-#include "Nodes/BrightLumPass.hpp"
-#include "Nodes/CSM.hpp"
-#include "Nodes/DOFMain.hpp"
-#include "Nodes/DOFNeighborMax.hpp"
-#include "Nodes/DOFPrepare.hpp"
-#include "Nodes/DOFTileMax.hpp"
-#include "Nodes/DebugDraw.hpp"
-#include "Nodes/DepthPrepass.hpp"
-#include "Nodes/DepthReduction.hpp"
-#include "Nodes/DepthReductionFinal.hpp"
-#include "Nodes/DrawSky.hpp"
-#include "Nodes/ForwardRender.hpp"
-#include "Nodes/HDRCombine.hpp"
-#include "Nodes/LensFlare.hpp"
-#include "Nodes/LightCulling.hpp"
-#include "Nodes/LuminanceReduction.hpp"
-#include "Nodes/LuminanceReductionFinal.hpp"
-#include "Nodes/MotionBlur.hpp"
-#include "Nodes/NeighborMax.hpp"
-#include "Nodes/RenderForwardSimple.hpp"
-#include "Nodes/SMAA.hpp"
-#include "Nodes/ScreenSpaceAmbientOcclusion.hpp"
-#include "Nodes/ScreenSpaceReflection.hpp"
-#include "Nodes/ScreenSpaceShadow.hpp"
-#include "Nodes/ShadowFilter.hpp"
-#include "Nodes/ShadowMapGen.hpp"
-#include "Nodes/TileMax.hpp"
-#include "Nodes/VolumetricLighting.hpp"
-#include "Nodes/VoxelLighting.hpp"
-#include "Nodes/Voxelization.hpp"
-
-// Gui
-#include "Nodes/Blend.hpp"
-#include "Nodes/BlendWithTransform.hpp"
-#include "Nodes/RenderOverlay.hpp"
-#include "Nodes/ScreenSpaceTransform.hpp"
-
+#include "Nodes/System/RegisterSystemNodes.hpp"
 
 
 namespace inl::gxeng {
@@ -230,7 +187,7 @@ bool GraphicsEngine::GetFullScreen() const {
 
 // Graph editor interfaces
 IEditorGraph* GraphicsEngine::QueryPipelineEditor() const {
-	return new PipelineEditorGraph(m_nodeFactory);
+	return new PipelineEditorGraph(GraphicsNodeFactory_Singleton::GetInstance());
 }
 
 IEditorGraph* GraphicsEngine::QueryMaterialEditor() const {
@@ -415,7 +372,7 @@ void GraphicsEngine::LoadPipeline(const std::string& graphDesc) {
 	FlushPipelineQueue();
 
 	Pipeline pipeline;
-	pipeline.CreateFromDescription(graphDesc, m_nodeFactory);
+	pipeline.CreateFromDescription(graphDesc, GraphicsNodeFactory_Singleton::GetInstance());
 
 	EngineContext engineContext(1, 1);
 	for (auto& node : pipeline) {
@@ -519,66 +476,8 @@ void GraphicsEngine::UpdateSpecialNodes() {
 
 
 void GraphicsEngine::RegisterPipelineClasses() {
-	RegisterIntegerArithmeticNodes(&m_nodeFactory, "Integer");
-	RegisterIntegerComparisonNodes(&m_nodeFactory, "Integer");
-	RegisterFloatArithmeticNodes(&m_nodeFactory, "Float");
-	RegisterFloatComparisonNodes(&m_nodeFactory, "Float");
-	RegisterFloatMathNodes(&m_nodeFactory, "Float");
-	RegisterLogicNodes(&m_nodeFactory, "Logic");
-
-
-	m_nodeFactory.RegisterNodeClass<nodes::GetBackBuffer>("Pipeline/System");
-	m_nodeFactory.RegisterNodeClass<nodes::GetSceneByName>("Pipeline/System");
-	m_nodeFactory.RegisterNodeClass<nodes::GetCameraByName>("Pipeline/System");
-	m_nodeFactory.RegisterNodeClass<nodes::GetCamera2DByName>("Pipeline/System");
-	m_nodeFactory.RegisterNodeClass<nodes::GetTime>("Pipeline/System");
-	m_nodeFactory.RegisterNodeClass<nodes::GetEnvVariable>("Pipeline/System");
-
-	m_nodeFactory.RegisterNodeClass<nodes::TextureProperties>("Pipeline/Utility");
-	m_nodeFactory.RegisterNodeClass<nodes::CreateTexture>("Pipeline/Utility");
-	m_nodeFactory.RegisterNodeClass<nodes::VectorComponents<1>>("Pipeline/Utility");
-	m_nodeFactory.RegisterNodeClass<nodes::VectorComponents<2>>("Pipeline/Utility");
-	m_nodeFactory.RegisterNodeClass<nodes::VectorComponents<3>>("Pipeline/Utility");
-	m_nodeFactory.RegisterNodeClass<nodes::VectorComponents<4>>("Pipeline/Utility");
-
-	m_nodeFactory.RegisterNodeClass<nodes::ForwardRender>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::RenderForwardSimple>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::DepthPrepass>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::DepthReduction>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::DepthReductionFinal>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::CSM>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::DrawSky>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::DebugDraw>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::LightCulling>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::BrightLumPass>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::LuminanceReduction>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::LuminanceReductionFinal>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::HDRCombine>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::BloomDownsample>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::BloomBlur>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::BloomAdd>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::TileMax>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::NeighborMax>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::MotionBlur>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::LensFlare>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::SMAA>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::DOFPrepare>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::DOFTileMax>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::DOFNeighborMax>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::DOFMain>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::Voxelization>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::VoxelLighting>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::VolumetricLighting>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::ShadowMapGen>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::ShadowFilter>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceShadow>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceReflection>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceAmbientOcclusion>("Pipeline/Render");
-
-	m_nodeFactory.RegisterNodeClass<nodes::RenderOverlay>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::Blend>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::ScreenSpaceTransform>("Pipeline/Render");
-	m_nodeFactory.RegisterNodeClass<nodes::BlendWithTransform>("Pipeline/Render");
+	INL_NODE_FORCE_REGISTER;
+	INL_SYSNODE_FORCE_REGISTER;
 }
 
 

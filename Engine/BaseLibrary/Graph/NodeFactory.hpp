@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Node.hpp"
+#include "../Singleton.hpp"
 #include "../StringUtil.hpp"
 
 #include <unordered_map>
@@ -60,7 +61,7 @@ public:
 	const NodeInfo* GetNodeInfo(const std::string& name) const;
 
 	/// <summary> Get list of all registered nodes. </summary>
-	std::vector<NodeInfo> EnumerateNodes() const;
+	virtual std::vector<NodeInfo> EnumerateNodes() const;
 
 	/// <summary> Get path and class name for given node type. </summary>
 	std::tuple<std::string, std::string> GetFullName(std::type_index classType) const;
@@ -114,53 +115,25 @@ bool NodeFactory::RegisterNodeClass(const std::string& group) {
 	creator.info.name = strName;
 	creator.info.description = strDesc;
 	creator.info.group = strGroup;
-	//creator.info.numInputPorts = T::Info_GetNumInputs();
-	//creator.info.numOutputPorts = T::Info_GetNumOutputs();
-	//creator.info.inputTypes = T::Info_GetInputTypes();
-	//creator.info.outputTypes = T::Info_GetOutputTypes();
-	//creator.info.inputNames = T::Info_GetInputNames();
-	//creator.info.outputNames = T::Info_GetOutputNames();
 	creator.creator = []() -> NodeBase* {return new T();};
 
 	// insert class to registered classes' map
 	registeredClasses.insert({ strGroup + (strGroup.size() > 0 ? "/" : "") + strName, std::move(creator) });
 	typeLookup.insert({ typeid(T), { strGroup, strName } });
 
-
 	return true;
 }
 
 
+using NodeFactory_Singleton = Singleton<NodeFactory>;
 
 
 
-// Statics don't fucking work when you have even static libraries.
-// That fucking linker does not include unreferenced symbols, so 
-// static member ctors are never called, thus classes are never registered.
-// Can be solved by forcing the linker to include all symbols, but
-// that's not portable, not efficient, and ugly as fuck. Anyway, use
-// /OPT:NOREF on msvc and -Wl --whole-library on gcc.
-//
-// Switched to explicit registration, however, don't delete this code.
-
-
-//template <class T, const char* Group>
-//class AutoRegisterNode {
-//	class Registerer {
-//	public:
-//		Registerer() {
-//			NodeFactory::GetInstance()->RegisterNodeClass<T>(Group);
-//		}
-//	};
-//public:
-//	AutoRegisterNode() { &registerer; }
-//private:
-//	static Registerer registerer;
-//};
-//
-//template <class T, const char* Group>
-//typename AutoRegisterNode<T, Group>::Registerer AutoRegisterNode<T, Group>::registerer;
-
+#define INL_REGISTER_NODE(ClassName) \
+const int __declspec(dllexport) s_registrar_##ClassName = [] { \
+	std::cout << ClassName::Info_GetName() << std::endl; \
+	return true; \
+}();
 
 
 } // namespace inl

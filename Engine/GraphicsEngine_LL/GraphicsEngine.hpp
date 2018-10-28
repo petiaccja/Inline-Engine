@@ -8,9 +8,7 @@
 #include "ScratchSpacePool.hpp"
 #include "ResourceResidencyQueue.hpp"
 #include "PipelineEventDispatcher.hpp"
-#include "PipelineEventListener.hpp"
 
-#include "CriticalBufferHeap.hpp"
 #include "BackBufferManager.hpp"
 #include "MemoryManager.hpp"
 #include "HostDescHeap.hpp"
@@ -20,7 +18,6 @@
 #include <GraphicsApi_LL/IGxapiManager.hpp>
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
 #include <GraphicsApi_LL/ISwapChain.hpp>
-#include <GraphicsApi_LL/ICommandQueue.hpp>
 
 #include <GraphicsEngine/IGraphicsEngine.hpp>
 
@@ -182,7 +179,6 @@ private:
 	std::unique_ptr<BackBufferManager> m_backBufferHeap;
 
 	// Pipeline Facilities
-	GraphicsNodeFactory m_nodeFactory;
 	CommandAllocatorPool m_commandAllocatorPool;
 	CommandListPool m_commandListPool;
 	ScratchSpacePool m_scratchSpacePool; // Creates CBV_SRV_UAV type scratch spaces

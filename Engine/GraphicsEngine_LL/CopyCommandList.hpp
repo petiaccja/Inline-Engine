@@ -4,12 +4,11 @@
 #include "Binder.hpp"
 #include "BasicCommandList.hpp"
 
-#include "../GraphicsApi_LL/Common.hpp"
-#include "../GraphicsApi_LL/ICommandList.hpp"
+#include <GraphicsApi_LL/Common.hpp>
+#include <GraphicsApi_LL/ICommandList.hpp>
+#include <GraphicsApi_LL/IPipelineState.hpp>
 
 #include <InlineMath.hpp>
-#include <type_traits>
-#include <unordered_map>
 
 namespace inl {
 namespace gxapi {

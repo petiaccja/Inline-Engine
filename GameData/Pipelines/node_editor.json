@@ -4,13 +4,13 @@
     },
     "nodes": [
         {
-            "class": "Pipeline/System/GetBackBuffer",
+            "class": "GetBackBuffer",
             "id": 0,
             "name": "BackBuffer",
             "meta_pos": "[-124, -152]"
         },
         {
-            "class": "Pipeline/System/GetCamera2DByName",
+            "class": "GetCamera2DByName",
             "id": 1,
             "name": "Camera",
             "inputs": [
@@ -19,13 +19,13 @@
             "meta_pos": "[-125, 4]"
         },
         {
-            "class": "Pipeline/Render/RenderOverlay",
+            "class": "RenderOverlay",
             "id": 2,
             "name": "Renderer",
             "meta_pos": "[351, -6]"
         },
         {
-            "class": "Pipeline/System/GetSceneByName",
+            "class": "GetSceneByName",
             "id": 3,
             "name": "Scene",
             "inputs": [

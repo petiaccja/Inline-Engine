@@ -1,10 +1,10 @@
 #pragma once
 
 
-#include "../GraphicsNode.hpp"
+#include <GraphicsEngine_LL/GraphicsNode.hpp>
 #include "../PipelineTypes.hpp"
 #include "../ResourceView.hpp"
-#include "../GraphicsCommandList.hpp"
+#include <GraphicsEngine_LL/GraphicsCommandList.hpp>
 
 
 namespace inl::gxeng::nodes {

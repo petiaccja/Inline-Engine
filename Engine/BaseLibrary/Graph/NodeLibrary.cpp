@@ -173,7 +173,6 @@ void RegisterLogicNodes(NodeFactory* factory, const char* group) {
 }
 
 
-
 const char AddStrings::Name[] = "Add:Adds the two inputs";
 const char AddStrings::R[] = "R:A+B";
 const char AddStrings::A[] = "A";
@@ -280,3 +279,15 @@ const char MathFunctionNames::Round[] = "Round:The nearest integer";
 
 
 } // namespace inl
+
+
+extern "C"
+bool g_autoRegisterNodes = [] {
+	RegisterIntegerArithmeticNodes(&NodeFactory_Singleton::GetInstance(), "Integer");
+	RegisterIntegerComparisonNodes(&NodeFactory_Singleton::GetInstance(), "Integer");
+	RegisterFloatArithmeticNodes(&NodeFactory_Singleton::GetInstance(), "Float");
+	RegisterFloatComparisonNodes(&NodeFactory_Singleton::GetInstance(), "Float");
+	RegisterFloatMathNodes(&NodeFactory_Singleton::GetInstance(), "Float");
+	RegisterLogicNodes(&NodeFactory_Singleton::GetInstance(), "Logic");
+	return true;
+}();

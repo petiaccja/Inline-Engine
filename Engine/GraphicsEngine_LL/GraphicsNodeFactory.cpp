@@ -17,3 +17,13 @@ NodeBase* inl::gxeng::GraphicsNodeFactory::CreateNode(const std::string & name) 
 
 	return node;
 }
+
+std::vector<NodeFactory::NodeInfo> gxeng::GraphicsNodeFactory::EnumerateNodes() const {
+	auto normalNodes = NodeFactory_Singleton::GetInstance().EnumerateNodes();
+	auto myNodes = NodeFactory::EnumerateNodes();
+
+	auto allNodes = std::move(normalNodes);
+	allNodes.insert(allNodes.end(), myNodes.begin(), myNodes.end());
+
+	return allNodes;
+}

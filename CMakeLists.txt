@@ -21,6 +21,8 @@ set(DEBUG_CONFIGURATIONS Debug)
 include(GetPlatform.cmake)
 include(Paths.cmake)
 include(CopyRuntime.cmake)
+include(Utils.cmake)
+include(WholeArchive.cmake)
 
 if (TARGET_COMPILER_MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj /MP /await /permissive-")
@@ -61,19 +63,12 @@ add_custom_target(Files SOURCES
 	CMakeLists.txt
 	Paths.cmake
 	GetPlatform.cmake
-	CopyRuntime.cmake)
+	CopyRuntime.cmake
+	Utils.cmake
+	WholeArchive.cmake)
 set_target_properties(Files PROPERTIES FOLDER Files)
 
 # Add Mathter.natvis to all targets
-function(get_all_targets _result _dir)
-    get_property(_subdirs DIRECTORY "${_dir}" PROPERTY SUBDIRECTORIES)
-    foreach(_subdir IN LISTS _subdirs)
-        get_all_targets(${_result} "${_subdir}")
-    endforeach()
-    get_property(_sub_targets DIRECTORY "${_dir}" PROPERTY BUILDSYSTEM_TARGETS)
-    set(${_result} ${${_result}} ${_sub_targets} PARENT_SCOPE)
-endfunction()
-
 get_all_targets(all_targets ${CMAKE_SOURCE_DIR})
 foreach (tar IN ITEMS ${all_targets})
 	get_target_property(tar_type ${tar} TYPE)
@@ -83,16 +78,18 @@ foreach (tar IN ITEMS ${all_targets})
 endforeach()
 source_group("" FILES "${EXTERNALS_INCLUDE}/Mathter/Mathter.natvis")
 
+# Enable whole-archive on marked projects.
+set_whole_archive_linkage(${CMAKE_SOURCE_DIR})
+
 # Put projects in their folders
 set_target_properties(BaseLibrary PROPERTIES FOLDER Modules)
 set_target_properties(GraphicsApi_D3D12 PROPERTIES FOLDER Modules)
 set_target_properties(GraphicsEngine_LL PROPERTIES FOLDER Modules)
+set_target_properties(GraphicsPipeline PROPERTIES FOLDER Modules)
 set_target_properties(AssetLibrary PROPERTIES FOLDER Modules)
 set_target_properties(GuiEngine PROPERTIES FOLDER Modules)
-#set_target_properties(Core PROPERTIES FOLDER Modules)
 set_target_properties(NetworkEngine PROPERTIES FOLDER Modules)
 set_target_properties(NetworkApi PROPERTIES FOLDER Modules)
-#set_target_properties(PhysicsEngineBullet_OLD PROPERTIES FOLDER Modules)
 set_target_properties(PhysicsEngine_Bullet PROPERTIES FOLDER Modules)
 
 set_target_properties(Test_General PROPERTIES FOLDER Test)
@@ -101,7 +98,6 @@ set_target_properties(Test_Unit PROPERTIES FOLDER Test)
 set_target_properties(Test_Physics PROPERTIES FOLDER Test)
 set_target_properties(Test_GUI PROPERTIES FOLDER Test)
 
-#set_target_properties(Editor PROPERTIES FOLDER Executables)
 set_target_properties(NodeEditor PROPERTIES FOLDER Executables)
 set_target_properties(NodeEditor_v2 PROPERTIES FOLDER Executables)
 
