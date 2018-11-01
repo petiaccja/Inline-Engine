@@ -4,61 +4,74 @@
 namespace inl::gui {
 
 
-void LinearLayout::Cell::SetControl(std::shared_ptr<Control> control) {
-	if (this->control) {
-		Control::Detach(this->control.get());
-	}
-	this->control = control;
-	if (this->control && parent) {
-		Control::Attach(parent, this->control.get());
-	}
-}
-
-LinearLayout::CellSize& LinearLayout::AddChild(Control& child, size_t index) {
-	return AddChild(MakeBlankShared(child), index);
+void LinearLayout::Insert(const_iterator where, Control& control, CellSize sizing) {
+	return Insert(where, MakeBlankShared(control), sizing);
 }
 
 
-LinearLayout::CellSize& LinearLayout::AddChild(std::shared_ptr<Control> child, size_t index) {
-	if (m_children.size() < index) {
-		m_children.resize(index);
-		m_children.push_back({ this, child, CellSize{} });
-	}
-	else {
-		m_children.insert(m_children.begin() + index, { this, child, CellSize{} });
-	}
-	Attach(this, child.get());
-	return m_children[index].size;
-}
-
-
-void LinearLayout::RemoveChild(size_t index) {
-	assert(index < m_children.size());
-	auto it = m_children.begin() + index;
-	Detach(it->control.get());
-	m_children.erase(it);
-}
-
-LinearLayout::Cell& LinearLayout::operator[](size_t index) {
-	assert(index < m_children.size());
-	return m_children[index];
-}
-
-const LinearLayout::Cell& LinearLayout::operator[](size_t index) const {
-	assert(index < m_children.size());
-	return m_children[index];
-}
-
-void LinearLayout::SetNumCells(size_t size) {
-	m_children.resize(size);
-	for (auto& child : m_children) {
-		child.parent = this;
+void LinearLayout::Insert(const_iterator where, std::shared_ptr<Control> control, CellSize sizing) {
+	auto mutWhere = m_children.emplace(where, std::move(control), sizing);
+	if (mutWhere->control) {
+		Attach(this, mutWhere->control.get());
 	}
 }
 
-size_t LinearLayout::GetNumCells() const {
-	return m_children.size();
+
+void LinearLayout::Change(const_iterator which, Control& control, CellSize sizing) {
+	return Change(which, MakeBlankShared(control), sizing);
 }
+
+
+void LinearLayout::Change(const_iterator which, std::shared_ptr<Control> control, CellSize sizing) {
+	auto mutWhich = m_children.begin() + (which - m_children.cbegin());
+
+	if (mutWhich->control) {
+		Detach(mutWhich->control.get());
+	}
+	mutWhich->control = std::move(control);
+	if (mutWhich->control) {
+		Attach(this, mutWhich->control.get());
+	}
+	mutWhich->sizing = sizing;
+}
+
+
+void LinearLayout::Change(const_iterator which, CellSize sizing) {
+	auto mutWhich = m_children.begin() + (which - m_children.cbegin());
+	mutWhich->sizing = sizing;
+}
+
+
+void LinearLayout::PushBack(Control& control, CellSize sizing) {
+	return PushBack(MakeBlankShared(control), sizing);
+}
+
+
+void LinearLayout::PushBack(std::shared_ptr<Control> control, CellSize sizing) {
+	m_children.emplace_back(std::move(control), sizing);
+	if (m_children.back().control) {
+		Attach(this, m_children.back().control.get());
+	}
+}
+
+
+void LinearLayout::Erase(const_iterator which) {
+	if (which->control) {
+		Detach(which->control.get());
+	}
+	m_children.erase(which);
+}
+
+
+void LinearLayout::Clear() {
+	for (auto& cell : m_children) {
+		if (cell.control) {
+			Detach(cell.control.get());
+		}
+	}
+	m_children.clear();
+}
+
 
 void LinearLayout::SetSize(Vec2u size) {
 	m_size = size;
@@ -78,9 +91,9 @@ void LinearLayout::Update(float elapsed) {
 	float sumPercentage = 0.0f;
 	unsigned sumAbsolute = 0;
 	for (const auto& child : m_children) {
-		switch (child.size.type) {
-			case eCellType::ABSOLUTE: sumAbsolute += (unsigned)std::max(0.0f, child.size.value); break;
-			case eCellType::WEIGHT: sumPercentage += std::max(0.0f, child.size.value); break;
+		switch (child.sizing.GetType()) {
+			case eCellType::ABSOLUTE: sumAbsolute += (unsigned)std::max(0.0f, child.sizing.GetValue()); break;
+			case eCellType::WEIGHT: sumPercentage += std::max(0.0f, child.sizing.GetValue()); break;
 			case eCellType::AUTO: sumAbsolute += 80; break; // Use Control::GetPreferred size instead.
 		}
 	}
@@ -100,14 +113,14 @@ void LinearLayout::Update(float elapsed) {
 	for (const auto& child : m_children) {
 		int moving = 0;
 		int fix = !m_vertical ? GetSize().y : GetSize().x;
-		switch (child.size.type) {
-			case eCellType::ABSOLUTE: moving = (int)std::max(0.0f, child.size.value); break;
-			case eCellType::WEIGHT: moving = (int)std::max(0.0f, child.size.value)/sumPercentage*weightedLength; break;
+		switch (child.sizing.GetType()) {
+			case eCellType::ABSOLUTE: moving = (int)std::max(0.0f, child.sizing.GetValue()); break;
+			case eCellType::WEIGHT: moving = (int)std::max(0.0f, child.sizing.GetValue())/sumPercentage*weightedLength; break;
 			case eCellType::AUTO: moving = 80; break;
 		}
 
-		int totalMarginMoving = child.size.margin.left + child.size.margin.right;
-		int totalMarginFix = child.size.margin.top + child.size.margin.bottom;
+		int totalMarginMoving = child.sizing.GetMargin().left + child.sizing.GetMargin().right;
+		int totalMarginFix = child.sizing.GetMargin().top + child.sizing.GetMargin().bottom;
 
 		int controlMoving = moving - totalMarginMoving;
 		controlMoving = std::max(0, controlMoving);
@@ -121,7 +134,7 @@ void LinearLayout::Update(float elapsed) {
 		if (child.control) {
 			Vec2i controlPos;
 			Vec2u controlSize;
-			int fixLowMargin = !m_vertical ? child.size.margin.bottom : child.size.margin.left;
+			int fixLowMargin = !m_vertical ? child.sizing.GetMargin().bottom : child.sizing.GetMargin().left;
 			if (!m_vertical) {
 				controlPos = { whereMoving + controlMoving / 2, whereFix + fixLowMargin + controlFix / 2 };
 				controlSize = { std::abs(controlMoving), controlFix };

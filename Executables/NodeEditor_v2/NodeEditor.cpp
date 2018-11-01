@@ -4,10 +4,9 @@
 namespace inl::tool {
 
 
-NodeEditor::NodeEditor(gxeng::IGraphicsEngine* engine, Window* window) 
-	: m_engine(engine), m_window(window)
-{
-	window->OnResize += Delegate<void(ResizeEvent)>{&NodeEditor::OnResize, this};
+NodeEditor::NodeEditor(gxeng::IGraphicsEngine* engine, Window* window)
+	: m_engine(engine), m_window(window) {
+	window->OnResize += Delegate<void(ResizeEvent)>{ &NodeEditor::OnResize, this };
 
 	CreateGraphicsEnvironment();
 	CreateGui();
@@ -25,7 +24,7 @@ void NodeEditor::Update(float elapsed) {
 
 
 void NodeEditor::OnResize(ResizeEvent evt) {
-	evt.clientSize = Max(evt.clientSize, Vec2u{ 1,1 });
+	evt.clientSize = Max(evt.clientSize, Vec2u{ 1, 1 });
 	m_engine->SetScreenSize(evt.clientSize.x, evt.clientSize.y);
 
 	m_camera->SetPosition(Vec2(evt.clientSize) / 2.f);
@@ -56,30 +55,41 @@ void NodeEditor::CreateGui() {
 	gui::ControlStyle style;
 	style.font = m_font.get();
 	m_board.SetStyle(style);
-	
+
 	m_board.AddControl(m_mainFrame);
 
 	m_mainFrame.SetLayout(m_mainLayout);
 
-	m_mainLayout.SetNumCells(3);
-	m_mainLayout[0].SetWeight(1);
+	m_mainLayout.PushBack(m_testNodeFrame, gui::LinearLayout::CellSize().SetWeight(1));
+	m_mainLayout.PushBack(m_mainLayoutSep, gui::LinearLayout::CellSize().SetWidth(8));
+	m_mainLayout.PushBack(m_sidePanelLayout, gui::LinearLayout::CellSize().SetWidth(200));
 
-	m_mainLayout[1].SetControl(m_mainLayoutSep);
-	m_mainLayout[1].SetWidth(8);
+	m_testNode.SetSize({ 300, 200 });
+	m_testNode.SetName("Blender");
+	m_testNode.SetType("MixColor");
+	m_testNode.SetInputPorts({
+		{ "Color 1", "Vec4" },
+		{ "Color 2", "Vec4" },
+		{ "Balance", "float" }
+	});
+	m_testNode.SetOutputPorts({
+		{ "Result", "Vec4" }
+	});
+	m_testNodeLayout.AddChild(m_testNode).SetPosition({ 200, 200 });
+	m_testNodeFrame.SetLayout(m_testNodeLayout);
+	style.background = { 0.08f, 0.08f, 0.08f, 1.0f };
+	m_testNodeFrame.SetStyle(style);
 
-	m_mainLayout[2].SetWidth(200);
-	m_mainLayout[2].SetControl(m_sidePanelLayout);
-
-	m_sidePanelDummy1.SetText("Default");
-	m_sidePanelDummy2.SetText("Clear");
-	m_sidePanelDummy1.OnClick += [this](auto, auto) { m_sidePanelDummy3.SetText("Default"); };
+	m_sidePanelDummy1.SetText(U"Default");
+	m_sidePanelDummy2.SetText(U"Clear");
+	m_sidePanelDummy1.OnClick += [this](auto, auto) { m_sidePanelDummy3.SetText(U"Default"); };
 	m_sidePanelDummy2.OnClick += [this](auto, auto) { m_sidePanelDummy3.SetText({}); };
-	m_sidePanelLayout.AddChild(m_sidePanelDummy1, 0);
-	m_sidePanelLayout.AddChild(m_sidePanelDummy2, 1);
-	m_sidePanelLayout.AddChild(m_sidePanelDummy3, 2);
-	m_sidePanelLayout[0].SetWidth(30.f);
-	m_sidePanelLayout[1].SetWidth(30.f);
-	m_sidePanelLayout[2].SetWidth(30.f);
+
+
+	m_sidePanelLayout.PushBack(m_sidePanelDummy1, gui::LinearLayout::CellSize().SetWidth(30.f));
+	m_sidePanelLayout.PushBack(m_sidePanelDummy2, gui::LinearLayout::CellSize().SetWidth(30.f));
+	m_sidePanelLayout.PushBack(m_sidePanelDummy3, gui::LinearLayout::CellSize().SetWidth(30.f));
+
 	m_sidePanelLayout.SetVertical(true);
 	m_sidePanelLayout.SetInverted(true);
 
@@ -97,4 +107,4 @@ void NodeEditor::CreateGui() {
 }
 
 
-}
+} // namespace inl::tool

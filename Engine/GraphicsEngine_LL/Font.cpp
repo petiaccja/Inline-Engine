@@ -185,8 +185,10 @@ float Font::CalculateTextWidth(std::u32string_view text, float fontSize) const {
 	assert(fontSize > 0);
 	float width = 0.0f;
 	for (auto& glyph : text) {
-		const auto& info = GetGlyphInfo(glyph);
-		width += info.advance;
+		if (IsCharacterSupported(glyph)) {
+			const auto& info = GetGlyphInfo(glyph);
+			width += info.advance;
+		}
 	}
 	return width * fontSize;
 }

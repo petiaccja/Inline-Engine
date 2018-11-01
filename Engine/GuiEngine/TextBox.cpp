@@ -44,14 +44,16 @@ Vec2i TextBox::GetPosition() const {
 void TextBox::Update(float elapsed) {
 	SetColor();
 
+	// Manage cursor blinking.
 	m_sinceLastCursorBlink += elapsed;
 	if (m_sinceLastCursorBlink > 2*m_blinkTime) {
 		m_sinceLastCursorBlink = 0.0f;
 	}
-	float alpha = m_sinceLastCursorBlink < m_blinkTime ? 1.0f : 0.0f;
+	float alpha = m_sinceLastCursorBlink < m_blinkTime && m_drawCursor ? 1.0f : 0.0f;
 	auto currentColor = m_cursor->GetColor();
-	m_cursor->SetColor((Vec3)currentColor | alpha);
+	m_cursor->SetColor(currentColor.xyz | alpha);
 
+	// Calculate cursor position.
 	auto font = GetStyle().font;
 	auto fontSize = m_text->GetFontSize();
 	if (font) {
@@ -62,11 +64,11 @@ void TextBox::Update(float elapsed) {
 	}
 }
 
-void TextBox::SetText(std::string text) {
+void TextBox::SetText(std::u32string text) {
 	m_cursorPosition = std::min(m_cursorPosition, (intptr_t)text.size());
 	m_text->SetText(std::move(text));
 }
-const std::string& TextBox::GetText() const {
+const std::u32string& TextBox::GetText() const {
 	return m_text->GetText();
 }
 
@@ -89,10 +91,10 @@ std::vector<std::reference_wrapper<std::unique_ptr<gxeng::IOverlayEntity>>> Text
 void TextBox::SetColor() {
 	ColorF foreground;
 	switch (GetState()) {
-	case eStandardControlState::DEFAULT: foreground = GetStyle().foreground; break;
-	case eStandardControlState::MOUSEOVER: foreground = GetStyle().hover; break;
-	case eStandardControlState::FOCUSED: foreground = GetStyle().focus; break;
-	case eStandardControlState::PRESSED: foreground = GetStyle().pressed; break;
+		case eStandardControlState::DEFAULT: foreground = GetStyle().foreground; break;
+		case eStandardControlState::MOUSEOVER: foreground = GetStyle().hover; break;
+		case eStandardControlState::FOCUSED: foreground = GetStyle().focus; break;
+		case eStandardControlState::PRESSED: foreground = GetStyle().pressed; break;
 	}
 	m_frame->SetColor(foreground.v);
 	m_background->SetColor(GetStyle().background.v);
@@ -107,7 +109,7 @@ void TextBox::SetScripts() {
 		if (std::u32string(U"\u0008\u007F\r\n\t\v").find(character) != std::u32string::npos) {
 			return;
 		}
-		std::string text = GetText();
+		std::u32string text = GetText();
 		if (m_cursorPosition >= text.size()) {
 			m_cursorPosition = text.size();
 			text.push_back((char)character);
@@ -120,7 +122,7 @@ void TextBox::SetScripts() {
 		m_sinceLastCursorBlink = 0.0f;
 	};
 	OnKeydown += [this](eKey key) {	
-		std::string text = GetText();
+		std::u32string text = GetText();
 		if (key == eKey::LEFT) {
 			--m_cursorPosition;
 			m_cursorPosition = std::max((intptr_t)0, m_cursorPosition);
@@ -153,6 +155,13 @@ void TextBox::SetScripts() {
 	};
 	OnLeaveArea += [] {
 		System::SetCursorVisual(eCursorVisual::ARROW, nullptr);
+	};
+	OnGainFocus += [this] {
+		m_drawCursor = true;
+		m_sinceLastCursorBlink = 0.0f;
+	};
+	OnLoseFocus += [this] {
+		m_drawCursor = false;
 	};
 }
 

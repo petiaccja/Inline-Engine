@@ -51,9 +51,12 @@ const ControlStyle& StandardControl::GetStyle() const {
 void StandardControl::OnAttach(Control* parent) {
 	m_parent = parent;
 	m_context = Control::GetContext(parent);
+
+	// Inherit parent's style if style is not specified.
 	if (m_isStyleInherited) {
 		m_style = parent->GetStyle();
 	}
+
 	if (m_context) {
 		MakeRealEntities();
 		UpdateFont(m_style.font);

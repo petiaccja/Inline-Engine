@@ -203,8 +203,8 @@ void GameScene::LoadGUI() {
 	m_button2->SetSize({ 90, 35 });
 	m_infoLabel->SetSize({ 90, 30 });
 
-	m_button1->SetText("Button 1");
-	m_button2->SetText("Button 2");
+	m_button1->SetText(U"Button 1");
+	m_button2->SetText(U"Button 2");
 
 	m_guiBoard.AddControl(m_layout);
 }
@@ -228,7 +228,7 @@ void GameScene::Update(float elapsed) {
 	m_guiCamera->SetPosition({ 0, 0 });
 	m_guiBoard.SetCoordinateMapping({ 0.f, (float)width, (float)height, 0.f }, { width / -2.f, width / 2.f, height / -2.f, height / 2.f });
 
-	m_infoLabel->SetText("Resolution: " + std::to_string(width) + "x" + std::to_string(height));
+	m_infoLabel->SetText(EncodeString<char32_t>("Resolution: " + std::to_string(width) + "x" + std::to_string(height)));
 
 	m_graphicsEngine->Update(elapsed);
 }

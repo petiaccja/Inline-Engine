@@ -25,8 +25,8 @@ public:
 	void Update(float elapsed = 0.0f) override;
 
 	// Textbox specific properties.
-	void SetText(std::string text);
-	const std::string& GetText() const;
+	void SetText(std::u32string text);
+	const std::u32string& GetText() const;
 
 	void SetZOrder(int rank) override;
 
@@ -45,6 +45,7 @@ private:
 
 	float m_sinceLastCursorBlink = 0.0f;
 	float m_blinkTime = 0.5f;
+	bool m_drawCursor = false;
 	intptr_t m_cursorPosition = 0;
 };
 

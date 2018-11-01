@@ -1,12 +1,14 @@
 #pragma once
 
-#include <GraphicsEngine/IGraphicsEngine.hpp>
-#include <BaseLibrary/Platform/Window.hpp>
+#include "NodeControl.hpp"
 
+#include <BaseLibrary/Platform/Window.hpp>
+#include <GraphicsEngine/IGraphicsEngine.hpp>
+#include <GuiEngine/AbsoluteLayout.hpp>
 #include <GuiEngine/Board.hpp>
+#include <GuiEngine/Button.hpp>
 #include <GuiEngine/Frame.hpp>
 #include <GuiEngine/LinearLayout.hpp>
-#include <GuiEngine/Button.hpp>
 #include <GuiEngine/TextBox.hpp>
 
 namespace inl::tool {
@@ -38,6 +40,10 @@ private:
 	gui::LinearLayout m_mainLayout;
 	gui::Frame m_mainLayoutSep;
 
+	gui::Frame m_testNodeFrame;
+	gui::AbsoluteLayout m_testNodeLayout;
+	NodeControl m_testNode;
+
 	gui::LinearLayout m_sidePanelLayout;
 	gui::Button m_sidePanelDummy1, m_sidePanelDummy2;
 	gui::TextBox m_sidePanelDummy3;
@@ -45,4 +51,4 @@ private:
 
 
 
-}
+} // namespace inl::tool

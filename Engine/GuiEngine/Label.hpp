@@ -23,12 +23,13 @@ public:
 	void Update(float elapsed = 0.0f) override;
 
 	// Label specific properties
-	void SetTextColor(ColorF color);
-	ColorF GetTextColor() const;
+	void SetHorizontalAlignment(float alignment);
+	void SetVerticalAlignment(float alignment);
 
-	void SetText(std::string text);
-	const std::string& GetText() const;
+	void SetText(std::u32string text);
+	const std::u32string& GetText() const;
 
+	void SetZOrder(int rank) override;
 protected:
 	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> GetTextEntities() override;
 	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::IOverlayEntity>>> GetOverlayEntities() override;

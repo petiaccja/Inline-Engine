@@ -1,6 +1,7 @@
 #include "SelectPanel.hpp"
 #include <BaseLibrary/Range.hpp>
 #include <GraphicsEngine/Scene/IScene.hpp>
+#include <BaseLibrary/StringUtil.hpp>
 
 namespace inl::tool {
 
@@ -13,7 +14,7 @@ SelectItem::SelectItem(gxeng::IGraphicsEngine* graphicsEngine, gxeng::IFont* fon
 }
 
 void SelectItem::SetText(std::string text) {
-	m_label->SetText(text);
+	m_label->SetText(EncodeString<char32_t>(text));
 }
 
 void SelectItem::SetColor(ColorF color) {
@@ -21,7 +22,7 @@ void SelectItem::SetColor(ColorF color) {
 }
 
 std::string SelectItem::GetText() const {
-	return m_label->GetText();
+	return EncodeString<char>(m_label->GetText());
 }
 
 void SelectItem::SetPosition(Vec2 position) {

@@ -68,6 +68,7 @@ private:
 	std::optional<Vec2> m_dragSource;
 
 	Mat33 m_coordinateMapping = Mat33::Identity();
+	mutable bool m_breakOnTrace = false;
 };
 
 

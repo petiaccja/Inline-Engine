@@ -25,8 +25,8 @@ public:
 	void Update(float elapsed = 0.0f) override;
 
 	// Button specific properties.
-	void SetText(std::string text);
-	const std::string& GetText() const;
+	void SetText(std::u32string text);
+	const std::u32string& GetText() const;
 
 	void SetZOrder(int rank) override;
 	

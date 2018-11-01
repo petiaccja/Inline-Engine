@@ -17,7 +17,7 @@ void TextEntity::SetColor(Vec4 color) {
 	m_color = color;
 }
 
-void TextEntity::SetText(std::string text) {
+void TextEntity::SetText(std::u32string text) {
 	m_text = std::move(text);
 }
 
@@ -40,7 +40,7 @@ Vec4 TextEntity::GetColor() const {
 	return m_color;
 }
 
-const std::string& TextEntity::GetText() const {
+const std::u32string& TextEntity::GetText() const {
 	return m_text;
 }
 

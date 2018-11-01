@@ -32,23 +32,29 @@ Vec2i Label::GetPosition() const {
 
 
 void Label::Update(float elapsed) {
-	return;
+	m_text->SetColor(GetStyle().text.v);
 }
 
-void Label::SetTextColor(ColorF color) {
-	m_text->SetColor(color.v);
-}
-ColorF Label::GetTextColor() const {
-	ColorF c;
-	c.v = m_text->GetColor();
-	return c;
+void Label::SetHorizontalAlignment(float alignment) {
+	m_text->SetHorizontalAlignment(alignment);
 }
 
-void Label::SetText(std::string text) {
+
+void Label::SetVerticalAlignment(float alignment) {
+	m_text->SetVerticalAlignment(alignment);
+}
+
+
+
+void Label::SetText(std::u32string text) {
 	m_text->SetText(std::move(text));
 }
-const std::string& Label::GetText() const {
+const std::u32string& Label::GetText() const {
 	return m_text->GetText();
+}
+
+void Label::SetZOrder(int rank) {
+	m_text->SetZDepth((float)rank);
 }
 
 std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> Label::GetTextEntities() {

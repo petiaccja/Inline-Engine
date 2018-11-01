@@ -4,6 +4,7 @@
 #include "Placeholders/PlaceholderOverlayEntity.hpp"
 #include "Placeholders/PlaceholderTextEntity.hpp"
 
+#include <BaseLibrary/Platform/System.hpp>
 
 
 namespace inl::gui {
@@ -14,6 +15,10 @@ Button::Button() {
 	m_background.reset(new PlaceholderOverlayEntity());
 	m_text->SetZDepth(0.1f);
 	m_background->SetZDepth(0.0f);
+
+	OnEnterArea += [] {
+		System::SetCursorVisual(eCursorVisual::ARROW, nullptr);
+	};
 }
 
 void Button::SetSize(Vec2u size) {
@@ -46,10 +51,10 @@ void Button::Update(float elapsed) {
 	m_text->SetColor(GetStyle().text.v);
 }
 
-void Button::SetText(std::string text) {
+void Button::SetText(std::u32string text) {
 	m_text->SetText(std::move(text));
 }
-const std::string& Button::GetText() const {
+const std::u32string& Button::GetText() const {
 	return m_text->GetText();
 }
 

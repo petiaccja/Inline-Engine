@@ -70,8 +70,6 @@ private:
 
 	RenderTargetView2D m_rtv;
 	gxapi::eFormat m_currentFormat = gxapi::eFormat::UNKNOWN;
-
-	std::wstring_convert<std::codecvt_utf8<uint32_t>, uint32_t> m_stringConverter;
 };
 
 

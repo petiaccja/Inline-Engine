@@ -458,11 +458,12 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			float textHeight = font->CalculateTextHeight(entity->GetFontSize());
 			RectF letterRect = AlignFirstLetter(entity);
 
-			// Convert string to UCS-4 code-points.
-			std::basic_string<uint32_t> text = m_stringConverter.from_bytes(entity->GetText());
+			// Letters can be drawn only inside the limits on the X axis.
+			Vec2 limits = Vec2(-0.5f, 0.5f)*entity->GetSize().xx;
+
 
 			// Draw letters one-by-one.
-			for (auto& character : text) {
+			for (auto& character : entity->GetText()) {
 				bool supported = font->IsCharacterSupported(character);
 				if (!supported) {
 					continue;
@@ -475,10 +476,12 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 				Mat33 letterTransform = Mat33::Scale(letterRect.GetSize() / 2) * Mat33::Translation(letterRect.GetCenter());
 				cbufferTransform.worldViewProj.Submatrix<3, 3>(0, 0) = letterTransform * worldViewProj;
 
-				commandList.BindGraphics(m_bindTextTransform, &cbufferTransform, sizeof(cbufferTransform));
-				commandList.BindGraphics(m_bindTextRender, &cbufferRender, sizeof(cbufferRender));
+				if (limits[0] <= letterRect.left && letterRect.right <= limits[1]) {
+					commandList.BindGraphics(m_bindTextTransform, &cbufferTransform, sizeof(cbufferTransform));
+					commandList.BindGraphics(m_bindTextRender, &cbufferRender, sizeof(cbufferRender));
 
-				commandList.DrawInstanced(4);
+					commandList.DrawInstanced(4);
+				}
 
 				letterRect.left = letterRect.right;
 			}

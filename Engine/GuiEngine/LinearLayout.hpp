@@ -21,36 +21,40 @@ public:
 		AUTO,
 	};
 	struct CellSize {
+	public:
+		CellSize& SetWidth(unsigned width) { type = eCellType::ABSOLUTE; value = width; return *this; }
+		CellSize& SetWeight(float weight) { type = eCellType::WEIGHT; value = std::max(0.0f, weight); return *this; }
+		eCellType GetType() const { return type; }
+		float GetValue() const { return value; }
+		Rect<unsigned, false, false> GetMargin() const { return margin; }
+	private:
 		eCellType type = eCellType::WEIGHT;
 		float value = 1.0f;
 		Rect<unsigned, false, false> margin = {3,3,3,3};
 	};
 	struct Cell {
-		friend class LinearLayout;
-	public:
 		Cell() = default;
-		Cell(std::shared_ptr<Control> control, CellSize size) : control(std::move(control)), size(size) {}
-		void SetControl(Control& control) { SetControl(MakeBlankShared(control)); }
-		void SetControl(std::shared_ptr<Control> control);
-		void SetWidth(unsigned width) { size.type = eCellType::ABSOLUTE; size.value = width; }
-		void SetWeight(float weight) { size.type = eCellType::WEIGHT; size.value = std::max(0.0f, weight); }
-		eCellType GetType() const { return size.type; }
-		float GetValue() const { return size.value; }
-	private:
-		Cell(LinearLayout* parent, std::shared_ptr<Control> control, CellSize size) : parent(parent), control(std::move(control)), size(size) {}
+		Cell(Control& control, CellSize sizing) : control(MakeBlankShared(control)), sizing(sizing) {}
+		Cell(std::shared_ptr<Control> control, CellSize sizing) : control(control), sizing(sizing) {}
 		std::shared_ptr<Control> control;
-		CellSize size;
-		LinearLayout* parent = nullptr;
+		CellSize sizing;
 	};
-public:
-	CellSize& AddChild(Control& child, size_t index);
-	CellSize& AddChild(std::shared_ptr<Control> child, size_t index);
-	void RemoveChild(size_t index);
-	Cell& operator[](size_t index);
-	const Cell& operator[](size_t index) const;
 
-	void SetNumCells(size_t size);
-	size_t GetNumCells() const;
+public:
+	using const_iterator = std::vector<Cell>::const_iterator;
+	const_iterator begin() const { return m_children.begin(); }
+	const_iterator end() const { return m_children.end(); }
+
+	void Insert(const_iterator where, Control& control, CellSize sizing);
+	void Insert(const_iterator where, std::shared_ptr<Control> control, CellSize sizing);
+	void Change(const_iterator which, Control& control, CellSize sizing);
+	void Change(const_iterator which, std::shared_ptr<Control> control, CellSize sizing);
+	void Change(const_iterator which, CellSize sizing);
+	void PushBack(Control& control, CellSize sizing);
+	void PushBack(std::shared_ptr<Control> control, CellSize sizing);
+	void Erase(const_iterator which);
+	void Clear();
+	
 
 	void SetSize(Vec2u size) override;
 	Vec2u GetSize() const override;

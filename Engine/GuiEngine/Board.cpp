@@ -125,6 +125,12 @@ void Board::OnKeyboard(KeyboardEvent evt) {
 			m_focusedControl->OnKeyup(evt.key);
 		}
 	}
+	if (evt.key == eKey::F1 && evt.state == eKeyState::DOWN) {
+		DebugTree();
+	}
+	if (evt.key == eKey::F2 && evt.state == eKeyState::DOWN) {
+		m_breakOnTrace = true;
+	}
 }
 
 
@@ -191,7 +197,7 @@ void Board::DebugTreeRecurse(const Control* control, int level) const {
 	for (int i = 0; i < level; ++i) {
 		std::cout << "  ";
 	}
-	std::cout << "- " << typeid(*control).name() << "\n";
+	std::cout << "- " << typeid(*control).name() << " " << control->GetSize() << "\n";
 
 	auto children = control->GetChildren();
 	for (auto child : children) {
@@ -203,13 +209,19 @@ const Control* Board::GetTarget(Vec2 point) const {
 	const Control* target = nullptr;
 	float topmostDepth = -1e4f;
 
+#ifdef _WIN32
+	if (m_breakOnTrace && IsDebuggerPresent()) {
+		__debugbreak();
+	}
+#endif
+
 	for (auto child : m_controls) {
 		auto* hit = HitTestRecurse(point, child.get());
 		if (hit && 0.0f > topmostDepth) {
 			target = hit;
 		}
 	}
-
+	m_breakOnTrace = false;
 	return target;
 }
 

@@ -105,7 +105,7 @@ QCWorld::QCWorld(inl::gxeng::GraphicsEngine* graphicsEngine) {
 		m_fideszText->SetScale({ 1.f, 1.f });
 		m_fideszText->SetSize({ 600, 60 });
 		m_fideszText->SetZDepth(2);
-		m_fideszText->SetText("Csak a FIDESZ!!!444");
+		m_fideszText->SetText(U"Csak a FIDESZ!!!444");
 		m_fideszText->SetHorizontalAlignment(TextEntity::ALIGN_CENTER);
 		m_fideszText->SetVerticalAlignment(TextEntity::ALIGN_CENTER);
 		
@@ -575,7 +575,7 @@ void QCWorld::UpdateWorld(float elapsed) {
 	std::stringstream infoString;
 	infoString << std::setprecision(4);
 	infoString << "Speed: " << speed*3.6f << " km/h, Alt.: " << altitude << " m";
-	m_infoText->SetText(infoString.str());
+	m_infoText->SetText(EncodeString<char32_t>(infoString.str()));
 
 
 	// Move quadcopter entity

@@ -33,9 +33,9 @@ public:
 
 
 	/// <summary> This text is drawn to the screen. </summary>
-	void SetText(std::string text) override;
+	void SetText(std::u32string text) override;
 	/// <summary> Returns the currently drawn text. </summary>
-	const std::string& GetText() const override;
+	const std::u32string& GetText() const override;
 
 
 	/// <summary> Sets a solid color for the whole text. </summary>
@@ -91,7 +91,7 @@ public:
 private:
 	Vec4 m_color = { 1,0,0,1 };
 	float m_fontSize = 16;
-	std::string m_text;
+	std::u32string m_text;
 	const Font* m_font = nullptr;
 	float m_zDepth = 0.0f;
 	Vec2 m_size = { 16, 16 };

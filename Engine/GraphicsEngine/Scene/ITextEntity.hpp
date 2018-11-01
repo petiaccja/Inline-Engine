@@ -31,9 +31,9 @@ public:
 
 
 	/// <summary> This text is drawn to the screen. </summary>
-	virtual void SetText(std::string text) = 0;
+	virtual void SetText(std::u32string text) = 0;
 	/// <summary> Returns the currently drawn text. </summary>
-	virtual const std::string& GetText() const = 0;
+	virtual const std::u32string& GetText() const = 0;
 
 
 	/// <summary> Sets a solid color for the whole text. </summary>

@@ -2,6 +2,7 @@
 #include <GraphicsEngine/Scene/IScene.hpp>
 #include <BaseLibrary/Range.hpp>
 #include <regex>
+#include <BaseLibrary/StringUtil.hpp>
 #undef GetClassName
 
 
@@ -143,7 +144,7 @@ Port::~Port() {
 }
 
 void Port::SetName(std::string name) {
-	m_nameLabel->SetText(name);
+	m_nameLabel->SetText(EncodeString<char32_t>(name));
 }
 
 
@@ -312,7 +313,7 @@ void Node::SetNode(IGraphEditorNode* node, gxeng::IGraphicsEngine* graphicsEngin
 	nameLabel->SetFont(font);
 	nameLabel->SetFontSize(12.0f);
 	nameLabel->SetColor(textColor);
-	nameLabel->SetText(node->GetName() + " : " + TidyName(node->GetClassName()));
+	nameLabel->SetText(EncodeString<char32_t>(node->GetName() + " : " + TidyName(node->GetClassName())));
 	background->SetColor(bgColor);
 
 

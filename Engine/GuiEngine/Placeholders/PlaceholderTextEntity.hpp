@@ -15,8 +15,8 @@ public:
 	void SetFontSize(float size) override { m_fontSize = size; }
 	float GetFontSize() const override { return m_fontSize; }
 
-	void SetText(std::string text) override { m_text = text; }
-	const std::string& GetText() const override { return m_text; }
+	void SetText(std::u32string text) override { m_text = text; }
+	const std::u32string& GetText() const override { return m_text; }
 
 	void SetColor(Vec4 color) override { m_color = color; }
 	Vec4 GetColor() const override { return m_color; }
@@ -60,7 +60,7 @@ public:
 private:
 	const gxeng::IFont* m_font = nullptr;
 	float m_fontSize = 14.f;
-	std::string m_text = "PLACEHOLDER";
+	std::u32string m_text = U"PLACEHOLDER";
 	Vec4 m_color = { 1, 1, 1, 1 };
 	Vec2 m_size = { 10, 10 };
 	RectF m_clipRectangle = { 0, 0, 0, 0 };

@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
 
 		// Load graphics pipeline
 		std::string pipelineFileName = SelectPipeline(gxapi.get());
-		std::ifstream pipelineFile(INL_PIPELINE_DIRECTORY "\\" + pipelineFileName);
+		std::ifstream pipelineFile(INL_GAMEDATA "\\Pipelines\\" + pipelineFileName);
 		if (!pipelineFile.is_open()) {
 			throw FileNotFoundException("Failed to open pipeline JSON.");
 		}
