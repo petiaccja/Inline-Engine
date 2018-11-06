@@ -30,6 +30,8 @@ public:
 	void SetStyle(nullptr_t) override final;
 	void SetStyle(const ControlStyle& style, bool asDefault = false) override final;
 	const ControlStyle& GetStyle() const override final;
+
+	Control* GetParent() const override { return m_parent; }
 protected:
 	void OnAttach(Control* parent) override;
 	void OnDetach() override;

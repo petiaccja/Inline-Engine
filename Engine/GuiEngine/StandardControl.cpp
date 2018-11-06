@@ -156,28 +156,28 @@ eStandardControlState StandardControl::GetState() const {
 
 
 void StandardControl::AddStateScripts() {
-	OnEnterArea += [this] {
+	OnEnterArea += [this](auto...) {
 		m_hovered = true;
 		UpdateState();
 	};
-	OnLeaveArea += [this] {
+	OnLeaveArea += [this](auto...) {
 		m_hovered = false;
 		m_pressed = 0;
 		UpdateState();
 	};
-	OnGainFocus += [this] {
+	OnGainFocus += [this](auto...) {
 		m_focused = true;
 		UpdateState();
 	};
-	OnLoseFocus += [this] {
+	OnLoseFocus += [this](auto...) {
 		m_focused = false; 
 		UpdateState();
 	};
-	OnMouseDown += [this](Vec2, eMouseButton) {
+	OnMouseDown += [this](Control*, Vec2, eMouseButton) {
 		m_pressed++;
 		UpdateState();
 	};
-	OnMouseUp += [this](Vec2, eMouseButton) {
+	OnMouseUp += [this](Control*, Vec2, eMouseButton) {
 		m_pressed--;
 		UpdateState();
 	};

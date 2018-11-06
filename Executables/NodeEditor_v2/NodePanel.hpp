@@ -1,34 +1,87 @@
 #pragma once
 
+#include "ArrowControl.hpp"
+#include "NodeControl.hpp"
+
 #include <GuiEngine/AbsoluteLayout.hpp>
 #include <GuiEngine/Frame.hpp>
 
-#include "NodeControl.hpp"
-#include "ArrowControl.hpp"
-
 #include <memory>
-#include <string_view>
-#include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 
 namespace inl::tool {
 
 
-class NodePanel : gui::Frame {
-public:
-    NodePanel();
+class NodePanel : public gui::Frame {
+private:
+	struct ArrowKey {
+		const NodeControl* source = nullptr;
+		int sourcePort = 0;
+		const NodeControl* target = nullptr;
+		int targetPort = 0;
+		bool operator==(const ArrowKey& rhs) const {
+			return source == rhs.source && target == rhs.target && sourcePort == rhs.sourcePort && targetPort == rhs.targetPort;
+		}
+	};
+	struct ArrowKeyHash {
+		size_t operator()(const ArrowKey& obj) const {
+			return std::hash<const NodeControl*>()(obj.source)
+				^ (std::hash<const NodeControl*>()(obj.target) << 1)
+				^ (std::hash<int>()(obj.sourcePort) << 2)
+				^ (std::hash<int>()(obj.targetPort) << 3);
+		}
+	};
+	class NodeControlPtrLess {
+	public:
+		bool operator()(const std::shared_ptr<NodeControl>& lhs, const std::shared_ptr<NodeControl>& rhs) const {
+			return lhs < rhs;
+		}
+		bool operator()(const std::shared_ptr<NodeControl>& lhs, const NodeControl* rhs) const {
+			return lhs.get() < rhs;
+		}
+		bool operator()(const NodeControl* lhs, const std::shared_ptr<NodeControl>& rhs) const {
+			return lhs < rhs.get();
+		}
+		using is_transparent = void*;
+	};
 
-    void AddNode(std::shared_ptr<NodeControl> node);
-    void RemoveNode(const NodeControl* node);
-    
+public:
+	NodePanel();
+
+	void AddNode(std::shared_ptr<NodeControl> node);
+	void RemoveNode(const NodeControl* node);
+
+	void AddLink(const NodeControl* source, int sourcePort, const NodeControl* target, int targetPort);
+	void RemoveLink(const NodeControl* source, int sourcePort, const NodeControl* target, int targetPort);
+
+	Event<Vec2i> OnContextMenu;
+	Event<const NodeControl*> OnDeleteNode;
+	Event<const NodeControl*, int, const NodeControl*, int> OnAddLink;
+	Event<const NodeControl*, int, const NodeControl*, int> OnDeleteLink;
 
 private:
-    gui::AbsoluteLayout m_layout;
+	void UpdateNodesPositions();
+	void UpdateArrowPositions();
+	void UpdateArrowPosition(const ArrowKey& key, ArrowControl& arrow);
 
-    std::set<std::shared_ptr<NodeControl>> m_nodes;
-    std::set<std::shared_ptr<ArrowControl>> m_arrows;
+	void OnNodeDragged(Control* control, Vec2 controlOrigin, Vec2 dragOrigin, Vec2 dragTarget);
 
-    
+private:
+	gui::AbsoluteLayout m_layout;
+
+	// Node and arrows.
+	std::set<std::shared_ptr<NodeControl>, NodeControlPtrLess> m_nodes;
+	std::unordered_map<ArrowKey, std::shared_ptr<ArrowControl>, ArrowKeyHash> m_arrows;
+
+	// Linking state.
+	ArrowKey m_linkState;
+	std::unique_ptr<ArrowControl> m_temporaryArrow;
+
+	// Camera state.
+	Vec2i m_center = { 0, 0 };
+	float m_zoom = 1.0f;
 };
 
 

@@ -98,6 +98,8 @@ void AbsoluteLayout::OnAttach(Control* parent) {
 	for (auto& child : m_children) {
 		Attach(this, child.first.get());
 	}
+
+	m_parent = parent;
 }
 
 void AbsoluteLayout::OnDetach() {
@@ -105,6 +107,8 @@ void AbsoluteLayout::OnDetach() {
 		Detach(child.first.get());
 	}
 	Layout::OnDetach();
+
+	m_parent = nullptr;
 }
 
 

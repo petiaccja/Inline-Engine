@@ -1,12 +1,12 @@
 #pragma once
 
+#include <BaseLibrary/Color.hpp>
+#include <BaseLibrary/Platform/Input.hpp>
 #include <GraphicsEngine/Scene/IScene.hpp>
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
 
 #include <InlineMath.hpp>
 #include <memory>
-#include <BaseLibrary/Platform/Input.hpp>
-#include <BaseLibrary/Color.hpp>
 
 
 namespace inl::gui {
@@ -23,7 +23,7 @@ struct ControlStyle {
 	ColorF pressed = { 0.10f, 0.10f, 0.10f, 1 };
 	ColorF accent = { 0.24f, 0.45f, 0.37f, 1 };
 
-	ColorF text = {0.8f, 0.8f, 0.8f, 1};
+	ColorF text = { 0.8f, 0.8f, 0.8f, 1 };
 	ColorF selection = { 0.2f, 0.3f, 0.8f, 1.0f };
 
 	gxeng::IFont* font = nullptr;
@@ -53,31 +53,32 @@ public:
 
 	virtual void Update(float elapsed = 0.0f) {}
 
+	virtual Control* GetParent() const { return nullptr; }
 	virtual std::vector<const Control*> GetChildren() const { return {}; }
 
 	virtual void SetStyle(nullptr_t) = 0;
 	virtual void SetStyle(const ControlStyle& style, bool asDefault = false) = 0;
 	virtual const ControlStyle& GetStyle() const = 0;
 
-	virtual void SetZOrder(int rank) {};
+	virtual void SetZOrder(int rank) {}
 
 	// Events
-	Event<> OnEnterArea;
-	Event<Vec2> OnHover;
-	Event<> OnLeaveArea;
+	Event<Control*> OnEnterArea;
+	Event<Control*, Vec2> OnHover;
+	Event<Control*> OnLeaveArea;
 
-	Event<Vec2, eMouseButton> OnMouseDown;
-	Event<Vec2, eMouseButton> OnMouseUp;
-	Event<Vec2, eMouseButton> OnClick;
-	Event<Vec2, eMouseButton> OnDoubleClick;
-	Event<Vec2, Vec2> OnDrag;
+	Event<Control*, Vec2, eMouseButton> OnMouseDown;
+	Event<Control*, Vec2, eMouseButton> OnMouseUp;
+	Event<Control*, Vec2, eMouseButton> OnClick;
+	Event<Control*, Vec2, eMouseButton> OnDoubleClick;
+	Event<Control*, Vec2, Vec2, Vec2> OnDrag; // controlOrigin, dragOrigin, dragTarget
 
-	Event<eKey> OnKeydown;
-	Event<eKey> OnKeyup;
-	Event<char32_t> OnCharacter;
+	Event<Control*, eKey> OnKeydown;
+	Event<Control*, eKey> OnKeyup;
+	Event<Control*, char32_t> OnCharacter;
 
-	Event<> OnGainFocus;
-	Event<> OnLoseFocus;
+	Event<Control*> OnGainFocus;
+	Event<Control*> OnLoseFocus;
 
 protected:
 	static void Attach(Control* parent, Control* child) { child->OnAttach(parent); }
@@ -88,6 +89,8 @@ protected:
 	virtual void OnDetach() = 0;
 	virtual const DrawingContext* GetContext() const = 0;
 
+ 	template <class EventT, class... Args>
+	void CallEventUpstream(EventT event, const Args&... args);
 protected:
 	template <class T>
 	static std::shared_ptr<std::remove_reference_t<T>> MakeBlankShared(T& obj) {
@@ -95,6 +98,15 @@ protected:
 	}
 };
 
+
+template <class EventT, class ... Args>
+void Control::CallEventUpstream(EventT event, const Args&... args) {
+	(this->*event)(args...);
+	Control* parent = GetParent();
+	if (parent) {
+		parent->CallEventUpstream(event, args...);
+	}
+}
 
 
 namespace impl {

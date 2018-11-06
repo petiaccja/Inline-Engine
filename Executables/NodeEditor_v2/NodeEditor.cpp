@@ -60,30 +60,32 @@ void NodeEditor::CreateGui() {
 
 	m_mainFrame.SetLayout(m_mainLayout);
 
-	m_mainLayout.PushBack(m_testNodeFrame, gui::LinearLayout::CellSize().SetWeight(1));
+	m_mainLayout.PushBack(m_nodePanel, gui::LinearLayout::CellSize().SetWeight(1));
 	m_mainLayout.PushBack(m_mainLayoutSep, gui::LinearLayout::CellSize().SetWidth(8));
 	m_mainLayout.PushBack(m_sidePanelLayout, gui::LinearLayout::CellSize().SetWidth(200));
 
-	m_testNode.SetSize({ 300, 200 });
-	m_testNode.SetName("Blender");
-	m_testNode.SetType("MixColor");
-	m_testNode.SetInputPorts({
+	m_testNode = std::make_shared<NodeControl>();
+	m_testNode->SetSize({ 300, 200 });
+	m_testNode->SetName("Blender");
+	m_testNode->SetType("MixColor");
+	m_testNode->SetInputPorts({
 		{ "Color 1", "Vec4" },
 		{ "Color 2", "Vec4" },
 		{ "Balance", "float" }
 	});
-	m_testNode.SetOutputPorts({
+	m_testNode->SetOutputPorts({
 		{ "Result", "Vec4" }
 	});
-	m_testNodeLayout.AddChild(m_testNode).SetPosition({ 200, 200 });
-	m_testNodeFrame.SetLayout(m_testNodeLayout);
+
+	m_nodePanel.AddNode(m_testNode);
+	
 	style.background = { 0.08f, 0.08f, 0.08f, 1.0f };
-	m_testNodeFrame.SetStyle(style);
+	m_nodePanel.SetStyle(style);
 
 	m_sidePanelDummy1.SetText(U"Default");
 	m_sidePanelDummy2.SetText(U"Clear");
-	m_sidePanelDummy1.OnClick += [this](auto, auto) { m_sidePanelDummy3.SetText(U"Default"); };
-	m_sidePanelDummy2.OnClick += [this](auto, auto) { m_sidePanelDummy3.SetText({}); };
+	m_sidePanelDummy1.OnClick += [this](auto...) { m_sidePanelDummy3.SetText(U"Default"); };
+	m_sidePanelDummy2.OnClick += [this](auto...) { m_sidePanelDummy3.SetText({}); };
 
 
 	m_sidePanelLayout.PushBack(m_sidePanelDummy1, gui::LinearLayout::CellSize().SetWidth(30.f));

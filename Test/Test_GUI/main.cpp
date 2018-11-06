@@ -211,7 +211,7 @@ void GameScene::LoadGUI() {
 
 
 void GameScene::SetScripts() {
-	m_button1->OnClick += [this](Vec2 where, eMouseButton btn) {
+	m_button1->OnClick += [this](gui::Control*, Vec2 where, eMouseButton btn) {
 		bool show = !m_infoLabel->GetVisible();
 		m_infoLabel->SetVisible(show);
 	};

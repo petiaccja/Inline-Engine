@@ -104,7 +104,7 @@ void TextBox::SetColor() {
 
 
 void TextBox::SetScripts() {
-	OnCharacter += [this](char32_t character) {
+	OnCharacter += [this](Control*, char32_t character) {
 		// Filter unwanted characters: backspace, delete, CR, LF, tab, vtab 
 		if (std::u32string(U"\u0008\u007F\r\n\t\v").find(character) != std::u32string::npos) {
 			return;
@@ -121,7 +121,7 @@ void TextBox::SetScripts() {
 		SetText(text);
 		m_sinceLastCursorBlink = 0.0f;
 	};
-	OnKeydown += [this](eKey key) {	
+	OnKeydown += [this](Control*, eKey key) {	
 		std::u32string text = GetText();
 		if (key == eKey::LEFT) {
 			--m_cursorPosition;
@@ -150,17 +150,17 @@ void TextBox::SetScripts() {
 		}
 		m_sinceLastCursorBlink = 0.0f;
 	};
-	OnEnterArea += [] {
+	OnEnterArea += [](auto...) {
 		System::SetCursorVisual(eCursorVisual::IBEAM, nullptr);
 	};
-	OnLeaveArea += [] {
+	OnLeaveArea += [](auto...) {
 		System::SetCursorVisual(eCursorVisual::ARROW, nullptr);
 	};
-	OnGainFocus += [this] {
+	OnGainFocus += [this](auto...) {
 		m_drawCursor = true;
 		m_sinceLastCursorBlink = 0.0f;
 	};
-	OnLoseFocus += [this] {
+	OnLoseFocus += [this](auto...) {
 		m_drawCursor = false;
 	};
 }

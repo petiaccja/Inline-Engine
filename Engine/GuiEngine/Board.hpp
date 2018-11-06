@@ -42,6 +42,9 @@ private:
 
 	void UpdateZOrder();
 	static void UpdateZOrderRecurse(Control* control, int rank);
+
+	template <class EventT, class... Args>
+	void PropagateEventUpwards(Control* control, EventT event, Args&&... args);
 private:
 	// Dummy implementations for Control.
 	void SetSize(Vec2u) override {}
@@ -65,12 +68,13 @@ private:
 
 	Control* m_focusedControl = nullptr;
 	Control* m_hoveredControl = nullptr;
-	std::optional<Vec2> m_dragSource;
+	Control* m_draggedControl = nullptr;
+	Vec2 m_dragControlOrigin;
+	Vec2 m_dragPointOrigin;
 
 	Mat33 m_coordinateMapping = Mat33::Identity();
 	mutable bool m_breakOnTrace = false;
 };
-
 
 
 } // namespace inl::gui

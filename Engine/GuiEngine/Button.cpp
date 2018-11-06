@@ -16,7 +16,7 @@ Button::Button() {
 	m_text->SetZDepth(0.1f);
 	m_background->SetZDepth(0.0f);
 
-	OnEnterArea += [] {
+	OnEnterArea += [](auto...) {
 		System::SetCursorVisual(eCursorVisual::ARROW, nullptr);
 	};
 }

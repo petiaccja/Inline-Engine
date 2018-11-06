@@ -174,6 +174,8 @@ void LinearLayout::OnAttach(Control* parent) {
 	for (auto& child : m_children) {
 		Attach(this, child.control.get());
 	}
+
+	m_parent = parent;
 }
 
 void LinearLayout::OnDetach() {
@@ -181,6 +183,8 @@ void LinearLayout::OnDetach() {
 		Detach(child.control.get());
 	}
 	Layout::OnDetach();
+
+	m_parent = nullptr;
 }
 
 

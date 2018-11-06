@@ -64,6 +64,7 @@ public:
 
 	void Update(float elapsed = 0.0f) override;
 
+	Control* GetParent() const override { return m_parent; }
 	std::vector<const Control*> GetChildren() const override;
 
 	void SetVertical(bool vertical) { m_vertical = vertical; }
@@ -76,9 +77,11 @@ private:
 	void OnDetach() override;
 
 private:
+	Control* m_parent = nullptr;
+	std::vector<Cell> m_children;
+
 	bool m_vertical = false;
 	bool m_inverted = false;
-	std::vector<Cell> m_children;
 
 	Vec2i m_position = { 0,0 };
 	Vec2u m_size = { 10,10 };

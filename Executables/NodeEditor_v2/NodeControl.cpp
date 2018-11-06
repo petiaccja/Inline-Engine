@@ -28,8 +28,11 @@ NodeControl::NodeControl() {
 
 	UpdateHeight();
 
-	m_title.OnEnterArea += [] {
+	m_title.OnEnterArea += [](Control*) {
 		System::SetCursorVisual(eCursorVisual::SIZEALL, nullptr);
+	};
+	m_title.OnDrag += [this](Control*, Vec2 controlOrigin, Vec2 dragOrigin, Vec2 dragTarget) {
+		CallEventUpstream(&Control::OnDrag, this, controlOrigin - m_title.GetPosition() + GetPosition(), dragOrigin, dragTarget);
 	};
 }
 

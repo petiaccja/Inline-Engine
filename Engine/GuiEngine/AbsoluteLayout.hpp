@@ -42,6 +42,7 @@ public:
 
 	void Update(float elapsed = 0.0f) override;
 
+	Control* GetParent() const override { return m_parent; }
 	std::vector<const Control*> GetChildren() const override;
 
 	void SetReferencePoint(eRefPoint point);
@@ -55,6 +56,7 @@ private:
 	void OnAttach(Control* parent) override;
 	void OnDetach() override;
 private:
+	Control* m_parent = nullptr;
 	std::map<std::shared_ptr<Control>, std::unique_ptr<Binding>, impl::ControlPtrLess> m_children;
 
 	Vec2i m_position = { 0,0 };

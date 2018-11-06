@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NodeControl.hpp"
+#include "NodePanel.hpp"
 
 #include <BaseLibrary/Platform/Window.hpp>
 #include <GraphicsEngine/IGraphicsEngine.hpp>
@@ -40,9 +41,10 @@ private:
 	gui::LinearLayout m_mainLayout;
 	gui::Frame m_mainLayoutSep;
 
-	gui::Frame m_testNodeFrame;
-	gui::AbsoluteLayout m_testNodeLayout;
-	NodeControl m_testNode;
+	NodePanel m_nodePanel;
+	//gui::Frame m_testNodeFrame;
+	//gui::AbsoluteLayout m_testNodeLayout;
+	std::shared_ptr<NodeControl> m_testNode;
 
 	gui::LinearLayout m_sidePanelLayout;
 	gui::Button m_sidePanelDummy1, m_sidePanelDummy2;
