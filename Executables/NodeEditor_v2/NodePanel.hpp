@@ -66,8 +66,13 @@ private:
 	void UpdateArrowPositions();
 	void UpdateArrowPosition(const ArrowKey& key, ArrowControl& arrow);
 
-	void OnNodeDragged(Control* control, Vec2 controlOrigin, Vec2 dragOrigin, Vec2 dragTarget);
+	void OnNodeDragBegin(Control* control, Vec2 dragOrigin);
+	void OnNodeDragged(Control* control, Vec2 dragTarget);
+	void OnNodeDragEnd(Control* control, Vec2 dragEnd, Control*);
 
+	void OnPortDragBegin(Control* control, Vec2 dragOrigin);
+	void OnPortDragged(Control* control, Vec2 dragTarget);
+	void OnPortDragEnd(Control* control, Vec2 dragEnd, Control*);
 private:
 	gui::AbsoluteLayout m_layout;
 
@@ -82,6 +87,10 @@ private:
 	// Camera state.
 	Vec2i m_center = { 0, 0 };
 	float m_zoom = 1.0f;
+
+	// Input actions.
+	Vec2 m_dragOffset;
+	NodeControl* m_draggedNode = nullptr;
 };
 
 

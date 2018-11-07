@@ -71,6 +71,7 @@ private:
 	Control* m_draggedControl = nullptr;
 	Vec2 m_dragControlOrigin;
 	Vec2 m_dragPointOrigin;
+	bool m_firstDrag = true;
 
 	Mat33 m_coordinateMapping = Mat33::Identity();
 	mutable bool m_breakOnTrace = false;

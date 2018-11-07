@@ -102,7 +102,11 @@ void Board::OnMouseButton(MouseButtonEvent evt) {
 			break;
 		case eKeyState::UP:
 			if (evt.button == eMouseButton::LEFT) {
+				if (m_draggedControl) {
+					PropagateEventUpwards(m_draggedControl, &Control::OnDragEnd, point, target);
+				}
 				m_draggedControl = nullptr;
+				m_firstDrag = true;
 			}
 			break;
 	}
@@ -141,7 +145,11 @@ void Board::OnMouseMove(MouseMoveEvent evt) {
 
 	// Drag events.
 	if (m_draggedControl) {
-		PropagateEventUpwards(m_draggedControl, &Control::OnDrag, m_dragControlOrigin, m_dragPointOrigin, point);
+		if (m_firstDrag) {
+			PropagateEventUpwards(m_draggedControl, &Control::OnDragBegin, point);
+			m_firstDrag = false;
+		}
+		PropagateEventUpwards(m_draggedControl, &Control::OnDrag, point);
 	}
 }
 

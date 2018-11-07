@@ -1,5 +1,7 @@
 #pragma once
 
+#include "PortControl.hpp"
+
 #include <GuiEngine/Button.hpp>
 #include <GuiEngine/Frame.hpp>
 #include <GuiEngine/Label.hpp>
@@ -30,8 +32,8 @@ private:
 	gui::LinearLayout m_inputPortsLayout;
 	gui::LinearLayout m_outputPortsLayout;
 
-	std::vector<gui::Button> m_inputPorts;
-	std::vector<gui::Button> m_outputPorts;
+	std::vector<PortControl> m_inputPorts;
+	std::vector<PortControl> m_outputPorts;
 
 	std::string m_name;
 	std::string m_type;

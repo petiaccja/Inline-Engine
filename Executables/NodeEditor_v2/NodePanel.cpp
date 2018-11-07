@@ -10,7 +10,13 @@ NodePanel::NodePanel() {
 	m_layout.SetYDown(false);
 	SetLayout(m_layout);
 
-	OnDrag += Delegate<void(Control*, Vec2, Vec2, Vec2)>{&NodePanel::OnNodeDragged, this};
+	OnDragBegin += Delegate<void(Control*, Vec2)>{&NodePanel::OnNodeDragBegin, this};
+	OnDrag += Delegate<void(Control*, Vec2)>{&NodePanel::OnNodeDragged, this};
+	OnDragEnd += Delegate<void(Control*, Vec2, Control*)>{&NodePanel::OnNodeDragEnd, this};
+
+	OnDragBegin += Delegate<void(Control*, Vec2)>{&NodePanel::OnPortDragBegin, this};
+	OnDrag += Delegate<void(Control*, Vec2)>{&NodePanel::OnPortDragged, this};
+	OnDragEnd += Delegate<void(Control*, Vec2, Control*)>{&NodePanel::OnPortDragEnd, this};
 }
 
 
@@ -62,13 +68,51 @@ void NodePanel::UpdateArrowPositions() {
 	
 }
 
+
 void NodePanel::UpdateArrowPosition(const ArrowKey& key, ArrowControl& arrow) {
 	
 }
 
-void NodePanel::OnNodeDragged(Control* control, Vec2 controlOrigin, Vec2 dragOrigin, Vec2 dragTarget) {
+
+void NodePanel::OnNodeDragBegin(Control* control, Vec2 dragOrigin) {
 	if (NodeControl* node; node = dynamic_cast<NodeControl*>(control)) {
-		m_layout[node].SetPosition(controlOrigin + (dragTarget - dragOrigin) - m_layout.GetPosition());
+		m_dragOffset = node->GetPosition() - dragOrigin;
+		m_draggedNode = node;
+	}
+}
+
+
+void NodePanel::OnNodeDragged(Control* control, Vec2 dragPosition) {
+	if (NodeControl* node; node = dynamic_cast<NodeControl*>(control)) {
+		m_layout[node].SetPosition(m_dragOffset + dragPosition - m_layout.GetPosition());
+	}
+}
+
+
+void NodePanel::OnNodeDragEnd(Control* control, Vec2 dragEnd, Control*) {
+	if (NodeControl* node; node = dynamic_cast<NodeControl*>(control)) {
+		m_draggedNode = nullptr;
+	}
+}
+
+
+void NodePanel::OnPortDragBegin(Control* control, Vec2 dragOrigin) {
+	if (PortControl* port; port = dynamic_cast<PortControl*>(control)) {
+		
+	}
+}
+
+
+void NodePanel::OnPortDragged(Control* control, Vec2 dragTarget) {
+	if (PortControl* port; port = dynamic_cast<PortControl*>(control)) {
+
+	}
+}
+
+
+void NodePanel::OnPortDragEnd(Control* control, Vec2 dragEnd, Control*) {
+	if (PortControl* port; port = dynamic_cast<PortControl*>(control)) {
+
 	}
 }
 

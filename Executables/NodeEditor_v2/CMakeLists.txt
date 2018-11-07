@@ -13,6 +13,8 @@ set(files
 	"PortPropertiesPanel.hpp"
 	"NodeControl.cpp"
 	"NodeControl.hpp"
+	"PortControl.cpp"
+	"PortControl.hpp"
 	"ArrowControl.cpp"
 	"ArrowControl.hpp"
 )

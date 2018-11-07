@@ -71,7 +71,9 @@ public:
 	Event<Control*, Vec2, eMouseButton> OnMouseUp;
 	Event<Control*, Vec2, eMouseButton> OnClick;
 	Event<Control*, Vec2, eMouseButton> OnDoubleClick;
-	Event<Control*, Vec2, Vec2, Vec2> OnDrag; // controlOrigin, dragOrigin, dragTarget
+	Event<Control*, Vec2> OnDragBegin; // dragOrigin
+	Event<Control*, Vec2> OnDrag; // dragPosition
+	Event<Control*, Vec2, Control*> OnDragEnd; // dragPosition, dragTarget
 
 	Event<Control*, eKey> OnKeydown;
 	Event<Control*, eKey> OnKeyup;
