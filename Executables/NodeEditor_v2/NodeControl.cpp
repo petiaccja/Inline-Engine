@@ -63,7 +63,7 @@ void NodeControl::SetInputPorts(std::vector<std::pair<std::string, std::string>>
 	m_inputPorts.reserve(inputPorts.size());
 
 	for (auto& desc : inputPorts) {
-		PortControl& port = m_inputPorts.emplace_back(this, (int)m_inputPorts.size());
+		PortControl& port = m_inputPorts.emplace_back(this, (int)m_inputPorts.size(), true);
 		port.SetText(EncodeString<char32_t>(desc.first + " : " + desc.second));
 		m_inputPortsLayout.PushBack(port, gui::LinearLayout::CellSize().SetWidth(26));
 	}
@@ -79,7 +79,7 @@ void NodeControl::SetOutputPorts(std::vector<std::pair<std::string, std::string>
 	m_outputPorts.reserve(outputPorts.size());
 
 	for (auto& desc : outputPorts) {
-		PortControl& port = m_outputPorts.emplace_back(this, (int)m_outputPorts.size());
+		PortControl& port = m_outputPorts.emplace_back(this, (int)m_outputPorts.size(), false);
 		port.SetText(EncodeString<char32_t>(desc.first + " : " + desc.second));
 		m_outputPortsLayout.PushBack(port, gui::LinearLayout::CellSize().SetWidth(26));
 	}

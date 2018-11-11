@@ -7,10 +7,18 @@ namespace inl::gui {
 
 
 AbsoluteLayout::Binding& AbsoluteLayout::AddChild(std::shared_ptr<Control> child) {
-	auto insIt = m_children.insert({ child, std::make_unique<Binding>() });
-	if (insIt.second) {
+	auto [it, isNew] = m_children.insert({ child, std::make_unique<Binding>() });
+	try {
+		m_childrenOrder.push_front(child.get());
+	} catch (...) {
+		m_children.erase(it);
+	}
+
+	if (isNew) {
 		Attach(this, child.get());
-		return *insIt.first->second;
+		it->second->orderList = &m_childrenOrder;
+		it->second->orderIter = m_childrenOrder.begin();
+		return *it->second;
 	}
 	else {
 		throw InvalidArgumentException("Child already in layout.");
@@ -20,8 +28,10 @@ AbsoluteLayout::Binding& AbsoluteLayout::AddChild(std::shared_ptr<Control> child
 
 void AbsoluteLayout::RemoveChild(Control* child) {
 	auto it = m_children.find(child);
+
 	if (it != m_children.end()) {
 		Detach(it->first.get());
+		m_childrenOrder.erase(it->second->orderIter);
 		m_children.erase(it);
 	}
 	else {
@@ -67,6 +77,7 @@ void AbsoluteLayout::Update(float elapsed) {
 		child->SetPosition(CalculateChildPosition(*binding));
 		child->Update(elapsed);
 	}
+	SetDepth(m_depth);
 }
 
 
@@ -92,6 +103,25 @@ void AbsoluteLayout::SetYDown(bool enabled) {
 bool AbsoluteLayout::GetYDown() const {
 	return m_yDown;
 }
+
+
+float AbsoluteLayout::SetDepth(float depth) {
+	m_depth = depth;
+	float totalSpan = 0.0f;
+	for (auto it = m_childrenOrder.rbegin(), end = m_childrenOrder.rend(); it != end; ++it) {
+		auto child = *it;
+		totalSpan += child->SetDepth(depth + 1.0f + totalSpan);
+		std::cout << totalSpan << std::endl;
+	}
+	std::cout << "----------------------------" << std::endl;
+	return totalSpan + 1.0f;
+}
+
+
+float AbsoluteLayout::GetDepth() const {
+	return m_depth;
+}
+
 
 void AbsoluteLayout::OnAttach(Control* parent) {
 	Layout::OnAttach(parent);
@@ -137,6 +167,44 @@ AbsoluteLayout::Binding& AbsoluteLayout::Binding::SetPosition(Vec2i position) {
 
 Vec2i AbsoluteLayout::Binding::GetPosition() const {
 	return position;
+}
+
+void AbsoluteLayout::Binding::MoveForward() {
+	assert(orderList);
+
+	auto prevIt = orderIter;
+	--prevIt;
+	if (prevIt != orderList->end()) {
+		orderList->splice(prevIt, *orderList, orderIter);
+	}
+}
+
+void AbsoluteLayout::Binding::MoveBackward() {
+	assert(orderList);
+
+	auto nextIt = orderIter;
+	++nextIt;
+	if (nextIt != orderList->end()) {
+		orderList->splice(++nextIt, *orderList, orderIter);
+	}
+}
+
+void AbsoluteLayout::Binding::MoveToFront() {
+	assert(orderList);
+
+	const auto firstIt = orderList->begin();
+	if (firstIt != orderList->end()) {
+		orderList->splice(firstIt, *orderList, orderIter);
+	}
+}
+
+void AbsoluteLayout::Binding::MoveToBack() {
+	assert(orderList);
+
+	const auto endIt = orderList->end();
+	if (endIt != orderList->end()) {
+		orderList->splice(endIt, *orderList, orderIter);
+	}
 }
 
 } // namespace inl::gui

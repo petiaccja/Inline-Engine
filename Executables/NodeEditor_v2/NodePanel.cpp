@@ -98,21 +98,28 @@ void NodePanel::OnNodeDragEnd(Control* control, Vec2 dragEnd, Control*) {
 
 void NodePanel::OnPortDragBegin(Control* control, Vec2 dragOrigin) {
 	if (PortControl* port; port = dynamic_cast<PortControl*>(control)) {
-		
+		m_layout.AddChild(m_temporaryArrow).MoveToFront();
 	}
 }
 
 
 void NodePanel::OnPortDragged(Control* control, Vec2 dragTarget) {
 	if (PortControl* port; port = dynamic_cast<PortControl*>(control)) {
-
+		float side = port->IsOutput() ? +1.f : -1.f;
+		Vec2 begin = port->GetPosition();
+		begin.x += 0.5f*side*port->GetSize().x;
+		Vec2 end = dragTarget;
+		if (port->IsInput()) {
+			std::swap(begin, end);
+		}
+		m_temporaryArrow.SetEndPoints(begin, end);
 	}
 }
 
 
 void NodePanel::OnPortDragEnd(Control* control, Vec2 dragEnd, Control*) {
 	if (PortControl* port; port = dynamic_cast<PortControl*>(control)) {
-
+		m_layout.RemoveChild(&m_temporaryArrow);
 	}
 }
 

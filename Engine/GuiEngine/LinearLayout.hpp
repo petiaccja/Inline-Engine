@@ -72,6 +72,8 @@ public:
 	void SetInverted(bool inversion) { m_inverted = inversion; }
 	bool IsInverted() const { return m_inverted; }
 
+	float SetDepth(float depth) override;
+	float GetDepth() const override;
 private:
 	void OnAttach(Control* parent) override;
 	void OnDetach() override;
@@ -82,6 +84,7 @@ private:
 
 	bool m_vertical = false;
 	bool m_inverted = false;
+	float m_depth = 0.0f;
 
 	Vec2i m_position = { 0,0 };
 	Vec2u m_size = { 10,10 };

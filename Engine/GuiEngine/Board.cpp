@@ -9,7 +9,7 @@ namespace inl::gui {
 template <class EventT, class... Args>
 void Board::PropagateEventUpwards(Control* control, EventT event, Args&&... args) {
 	while (control != nullptr) {
-		(control->*event)(control, std::forward<Args>(args)...);
+		(control->*event)(std::forward<Args>(args)...);
 		control = control->GetParent();
 	}
 }
@@ -75,20 +75,20 @@ void Board::OnMouseButton(MouseButtonEvent evt) {
 					m_dragControlOrigin = target->GetPosition();
 					m_draggedControl = target;
 				}
-				PropagateEventUpwards(target, &Control::OnMouseDown, point, evt.button);
+				PropagateEventUpwards(target, &Control::OnMouseDown, target, point, evt.button);
 				break;
 			case eKeyState::UP:
 				if (!m_focusedControl) {
 					m_focusedControl = target;
-					PropagateEventUpwards(target, &Control::OnGainFocus);
+					PropagateEventUpwards(target, &Control::OnGainFocus, target);
 				}
 
-				PropagateEventUpwards(target, &Control::OnMouseUp, point, evt.button);
-				PropagateEventUpwards(target, &Control::OnClick, point, evt.button);
+				PropagateEventUpwards(target, &Control::OnMouseUp, target, point, evt.button);
+				PropagateEventUpwards(target, &Control::OnClick, target, point, evt.button);
 				break;
 			case eKeyState::DOUBLE:
-				PropagateEventUpwards(target, &Control::OnMouseDown, point, evt.button);
-				PropagateEventUpwards(target, &Control::OnDoubleClick, point, evt.button);
+				PropagateEventUpwards(target, &Control::OnMouseDown, target, point, evt.button);
+				PropagateEventUpwards(target, &Control::OnDoubleClick, target, point, evt.button);
 				break;
 		}
 	}
@@ -96,14 +96,14 @@ void Board::OnMouseButton(MouseButtonEvent evt) {
 	switch (evt.state) {
 		case eKeyState::DOWN:
 			if (m_focusedControl && target != m_focusedControl) {
-				PropagateEventUpwards(m_focusedControl, &Control::OnLoseFocus);
+				PropagateEventUpwards(m_focusedControl, &Control::OnLoseFocus, m_focusedControl);
 				m_focusedControl = nullptr;
 			}
 			break;
 		case eKeyState::UP:
 			if (evt.button == eMouseButton::LEFT) {
 				if (m_draggedControl) {
-					PropagateEventUpwards(m_draggedControl, &Control::OnDragEnd, point, target);
+					PropagateEventUpwards(m_draggedControl, &Control::OnDragEnd, m_draggedControl, point, target);
 				}
 				m_draggedControl = nullptr;
 				m_firstDrag = true;
@@ -123,33 +123,33 @@ void Board::OnMouseMove(MouseMoveEvent evt) {
 	// Handle leave area events.
 	if (!target) {
 		if (m_hoveredControl) {
-			PropagateEventUpwards(m_hoveredControl, &Control::OnLeaveArea);
+			PropagateEventUpwards(m_hoveredControl, &Control::OnLeaveArea, m_hoveredControl);
 			m_hoveredControl = nullptr;
 		}
 	}
 
 	// Handle area enter and leave events.
 	if (m_hoveredControl && m_hoveredControl != target) {
-		PropagateEventUpwards(m_hoveredControl, &Control::OnLeaveArea);
+		PropagateEventUpwards(m_hoveredControl, &Control::OnLeaveArea, m_hoveredControl);
 		m_hoveredControl = nullptr;
 	}
 	if (!m_hoveredControl) {
 		m_hoveredControl = target;
 		if (m_hoveredControl) {
-			PropagateEventUpwards(target, &Control::OnEnterArea);
+			PropagateEventUpwards(target, &Control::OnEnterArea, target);
 		}
 	}
 
 	// Hovering events.
-	PropagateEventUpwards(target, &Control::OnHover, point);
+	PropagateEventUpwards(target, &Control::OnHover, target, point);
 
 	// Drag events.
 	if (m_draggedControl) {
 		if (m_firstDrag) {
-			PropagateEventUpwards(m_draggedControl, &Control::OnDragBegin, point);
+			PropagateEventUpwards(m_draggedControl, &Control::OnDragBegin, m_draggedControl,point);
 			m_firstDrag = false;
 		}
-		PropagateEventUpwards(m_draggedControl, &Control::OnDrag, point);
+		PropagateEventUpwards(m_draggedControl, &Control::OnDrag, m_draggedControl, point);
 	}
 }
 
@@ -157,10 +157,10 @@ void Board::OnMouseMove(MouseMoveEvent evt) {
 void Board::OnKeyboard(KeyboardEvent evt) {
 	if (m_focusedControl) {
 		if (evt.state == eKeyState::DOWN) {
-			PropagateEventUpwards(m_focusedControl, &Control::OnKeydown, evt.key);
+			PropagateEventUpwards(m_focusedControl, &Control::OnKeydown, m_focusedControl, evt.key);
 		}
 		if (evt.state == eKeyState::UP) {
-			PropagateEventUpwards(m_focusedControl, &Control::OnKeyup, evt.key);
+			PropagateEventUpwards(m_focusedControl, &Control::OnKeyup, m_focusedControl, evt.key);
 		}
 	}
 
@@ -176,7 +176,7 @@ void Board::OnKeyboard(KeyboardEvent evt) {
 
 void Board::OnCharacter(char32_t evt) {
 	if (m_focusedControl) {
-		PropagateEventUpwards(m_focusedControl, &Control::OnCharacter, evt);
+		PropagateEventUpwards(m_focusedControl, &Control::OnCharacter, m_focusedControl, evt);
 	}
 }
 
@@ -192,11 +192,22 @@ void Board::SetCoordinateMapping(RectF window, RectF gui) {
 }
 
 
+float Board::SetDepth(float depth) {
+	m_depth = depth;
+	return m_depthSpan;
+}
+
+
+float Board::GetDepth() const {
+	return m_depth;
+}
+
+
 void Board::Update(float elapsed) {
 	for (auto& child : m_controls) {
 		child->Update(elapsed);
+		child->SetDepth(m_depth); // TODO: implement order by focus
 	}
-	UpdateZOrder();
 }
 
 
@@ -263,21 +274,6 @@ const Control* Board::GetTarget(Vec2 point) const {
 	}
 	m_breakOnTrace = false;
 	return target;
-}
-
-
-void Board::UpdateZOrder() {
-	for (auto& child : m_controls) {
-		UpdateZOrderRecurse(child.get(), 0);
-	}
-}
-
-void Board::UpdateZOrderRecurse(Control* control, int rank) {
-	control->SetZOrder(rank);
-	auto children = control->GetChildren();
-	for (auto child : children) {
-		UpdateZOrderRecurse(const_cast<Control*>(child), rank + 1);
-	}
 }
 
 

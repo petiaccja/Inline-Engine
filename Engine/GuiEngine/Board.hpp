@@ -30,6 +30,9 @@ public:
 
 	void SetCoordinateMapping(RectF window, RectF gui);
 
+	float SetDepth(float depth) override;
+	float GetDepth() const override;
+
 	void Update(float elapsed) override;
 
 private:
@@ -39,9 +42,6 @@ private:
 	void DebugTree() const;
 	void DebugTreeRecurse(const Control* control, int level) const;
 	const Control* GetTarget(Vec2 point) const;
-
-	void UpdateZOrder();
-	static void UpdateZOrderRecurse(Control* control, int rank);
 
 	template <class EventT, class... Args>
 	void PropagateEventUpwards(Control* control, EventT event, Args&&... args);
@@ -75,6 +75,8 @@ private:
 
 	Mat33 m_coordinateMapping = Mat33::Identity();
 	mutable bool m_breakOnTrace = false;
+	float m_depth = 0.0f;
+	float m_depthSpan = -1.0f; // TODO: implement properly
 };
 
 

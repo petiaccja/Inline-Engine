@@ -21,6 +21,9 @@ public:
 	void SetLineWidth(float width);
 	float GetLineWidth() const;
 
+	float SetDepth(float depth) override;
+	float GetDepth() const override;
+
 protected:
 	// Use SetEndPoints.
 	void SetSize(Vec2u size) override {}

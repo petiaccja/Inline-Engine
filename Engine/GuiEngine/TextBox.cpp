@@ -68,16 +68,25 @@ void TextBox::SetText(std::u32string text) {
 	m_cursorPosition = std::min(m_cursorPosition, (intptr_t)text.size());
 	m_text->SetText(std::move(text));
 }
+
+
 const std::u32string& TextBox::GetText() const {
 	return m_text->GetText();
 }
 
-void TextBox::SetZOrder(int rank) {
-	m_frame->SetZDepth(rank);
-	m_background->SetZDepth(rank + 0.1f);
-	m_text->SetZDepth(rank + 0.2f);
-	m_cursor->SetZDepth(rank + 0.3f);
+
+float TextBox::SetDepth(float depth) {
+	m_frame->SetZDepth(depth);
+	m_background->SetZDepth(depth + 0.1f);
+	m_text->SetZDepth(depth + 0.2f);
+	m_cursor->SetZDepth(depth + 0.3f);
+	return 1.0f;
 }
+
+float TextBox::GetDepth() const {
+	return m_frame->GetZDepth();
+}
+
 
 std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> TextBox::GetTextEntities() {
 	return { m_text };

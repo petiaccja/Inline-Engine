@@ -86,8 +86,17 @@ void Frame::OnDetach() {
 	StandardControl::OnDetach();
 }
 
-void Frame::SetZOrder(int rank) {
-	m_background->SetZDepth(rank);
+float Frame::SetDepth(float depth) {
+	m_background->SetZDepth(depth);
+	float span = 1.0f;
+	if (m_layout) {
+		span += m_layout->SetDepth(depth + 1.0f);
+	}
+	return span;
+}
+
+float Frame::GetDepth() const {
+	return m_background->GetZDepth();
 }
 
 std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> Frame::GetTextEntities() {

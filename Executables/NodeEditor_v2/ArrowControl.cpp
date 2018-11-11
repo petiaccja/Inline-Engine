@@ -48,6 +48,19 @@ float ArrowControl::GetLineWidth() const {
 }
 
 
+float ArrowControl::SetDepth(float depth) {
+	m_bezierLine->SetZDepth(depth);
+	m_holdPoint->SetZDepth(depth + 0.1f);
+	m_arrowHead->SetZDepth(depth + 0.1f);
+	return 1.0f;
+}
+
+
+float ArrowControl::GetDepth() const {
+	return m_bezierLine->GetZDepth();
+}
+
+
 std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> ArrowControl::GetTextEntities() {
 	return {};
 }

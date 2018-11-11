@@ -99,8 +99,8 @@ void NodeEditor::CreateGui() {
 	sepStyle.background = sepStyle.accent;
 	m_mainLayoutSep.SetStyle(sepStyle);
 
-	m_mainLayout.SetZOrder(0);
-	m_mainLayoutSep.SetZOrder(1);
+	m_mainLayout.SetDepth(0);
+	m_mainLayoutSep.SetDepth(1);
 
 	m_window->OnMouseButton += Delegate<void(MouseButtonEvent)>{ &gui::Board::OnMouseButton, &m_board };
 	m_window->OnMouseMove += Delegate<void(MouseMoveEvent)>{ &gui::Board::OnMouseMove, &m_board };

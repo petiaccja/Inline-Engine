@@ -53,9 +53,15 @@ const std::u32string& Label::GetText() const {
 	return m_text->GetText();
 }
 
-void Label::SetZOrder(int rank) {
-	m_text->SetZDepth((float)rank);
+float Label::SetDepth(float depth) {
+	m_text->SetZDepth(depth);
+	return 1.0f;
 }
+
+float Label::GetDepth() const {
+	return m_text->GetZDepth();
+}
+
 
 std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> Label::GetTextEntities() {
 	return { m_text };

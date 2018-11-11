@@ -60,7 +60,18 @@ public:
 	virtual void SetStyle(const ControlStyle& style, bool asDefault = false) = 0;
 	virtual const ControlStyle& GetStyle() const = 0;
 
-	virtual void SetZOrder(int rank) {}
+	/// <summary> Used to specify Z-order of controls. </summary>
+	/// <param name="depth"> Z value of the control. The higher the more visible/front
+	///		the control is. </param>
+	/// <returns> The depth span of the control and its children. I.e. a control with 
+	///		a child tree of depth 5 (including the control as root) should return 5,
+	///		a control with no children should return 1 (see remarks). </returns>
+	/// <remarks> Each control should manage the depth of all of its children.
+	///		For each child tree level, depth should increase by one, so children
+	///		are drawn on top of the parent. Individual elements of the control,
+	///		such as overlays and texts can be adjusted by fractional depths. </remarks>
+	virtual float SetDepth(float depth) = 0;
+	virtual float GetDepth() const = 0;
 
 	// Events
 	Event<Control*> OnEnterArea;

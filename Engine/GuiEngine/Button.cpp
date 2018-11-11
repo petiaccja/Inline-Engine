@@ -58,10 +58,16 @@ const std::u32string& Button::GetText() const {
 	return m_text->GetText();
 }
 
-void Button::SetZOrder(int rank) {
-	m_background->SetZDepth(rank);
-	m_text->SetZDepth(rank + 0.1f);
+float Button::SetDepth(float depth) {
+	m_background->SetZDepth(depth);
+	m_text->SetZDepth(depth + 0.1f);
+	return 1.0f;
 }
+
+float Button::GetDepth() const {
+	return m_background->GetZDepth();
+}
+
 
 std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> Button::GetTextEntities() {
 	return { m_text };

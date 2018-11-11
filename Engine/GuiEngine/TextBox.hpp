@@ -28,7 +28,8 @@ public:
 	void SetText(std::u32string text);
 	const std::u32string& GetText() const;
 
-	void SetZOrder(int rank) override;
+	float SetDepth(float depth) override;
+	float GetDepth() const override;
 
 protected:
 	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> GetTextEntities() override;

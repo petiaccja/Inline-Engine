@@ -82,7 +82,7 @@ private:
 
 	// Linking state.
 	ArrowKey m_linkState;
-	std::unique_ptr<ArrowControl> m_temporaryArrow;
+	ArrowControl m_temporaryArrow;
 
 	// Camera state.
 	Vec2i m_center = { 0, 0 };

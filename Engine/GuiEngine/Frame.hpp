@@ -33,7 +33,8 @@ public:
 	void OnAttach(Control* parent) override;
 	void OnDetach() override;
 
-	void SetZOrder(int rank) override;
+	float SetDepth(float depth) override;
+	float GetDepth() const override;
 protected:
 	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> GetTextEntities() override;
 	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::IOverlayEntity>>> GetOverlayEntities() override;
