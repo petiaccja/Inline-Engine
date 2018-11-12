@@ -214,12 +214,16 @@ void Board::Update(float elapsed) {
 const Control* Board::HitTestRecurse(Vec2 point, const Control* top) {
 	if (HitTest(point, top)) {
 		auto children = top->GetChildren();
+		float maxDepth = -1e4f;
+		const Control* finalHit = top;
 		for (auto child : children) {
-			if (auto finalHit = HitTestRecurse(point, child)) {
-				return finalHit;
+			const Control* childHit = HitTestRecurse(point, child);
+			if (childHit && childHit->GetDepth() > maxDepth) {
+				finalHit = childHit;
+				maxDepth = childHit->GetDepth();
 			}
 		}
-		return top;
+		return finalHit;
 	}
 	else {
 		return nullptr;
@@ -266,9 +270,10 @@ const Control* Board::GetTarget(Vec2 point) const {
 	}
 #endif
 
+	// TODO: handle depth
 	for (auto child : m_controls) {
 		auto* hit = HitTestRecurse(point, child.get());
-		if (hit && 0.0f > topmostDepth) {
+		if (hit) {
 			target = hit;
 		}
 	}

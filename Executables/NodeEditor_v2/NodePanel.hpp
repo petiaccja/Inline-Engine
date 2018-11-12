@@ -56,6 +56,8 @@ public:
 	void AddLink(const NodeControl* source, int sourcePort, const NodeControl* target, int targetPort);
 	void RemoveLink(const NodeControl* source, int sourcePort, const NodeControl* target, int targetPort);
 
+	void Clear();
+
 	Event<Vec2i> OnContextMenu;
 	Event<const NodeControl*> OnDeleteNode;
 	Event<const NodeControl*, int, const NodeControl*, int> OnAddLink;
@@ -81,7 +83,6 @@ private:
 	std::unordered_map<ArrowKey, std::shared_ptr<ArrowControl>, ArrowKeyHash> m_arrows;
 
 	// Linking state.
-	ArrowKey m_linkState;
 	ArrowControl m_temporaryArrow;
 
 	// Camera state.
@@ -91,6 +92,7 @@ private:
 	// Input actions.
 	Vec2 m_dragOffset;
 	NodeControl* m_draggedNode = nullptr;
+	PortControl* m_draggedPort = nullptr;
 };
 
 

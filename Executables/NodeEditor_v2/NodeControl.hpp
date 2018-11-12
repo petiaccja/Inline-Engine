@@ -20,6 +20,8 @@ public:
 	void SetInputPorts(std::vector<std::pair<std::string, std::string>> inputPorts);
 	void SetOutputPorts(std::vector<std::pair<std::string, std::string>> outputPorts);
 
+	const PortControl& GetInputPort(int index) const;
+	const PortControl& GetOutputPort(int index) const;
 private:
 	void UpdateTitle();
 	void UpdateHeight();

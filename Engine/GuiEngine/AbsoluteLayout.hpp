@@ -46,6 +46,7 @@ public:
 	Binding& AddChild(Control& child) { return AddChild(MakeBlankShared(child)); }
 	Binding& AddChild(std::shared_ptr<Control> child);
 	void RemoveChild(Control* child);
+	void Clear();
 	Binding& operator[](const Control* child);
 
 	void SetSize(Vec2u size) override;

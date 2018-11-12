@@ -64,23 +64,38 @@ void NodeEditor::CreateGui() {
 	m_mainLayout.PushBack(m_mainLayoutSep, gui::LinearLayout::CellSize().SetWidth(8));
 	m_mainLayout.PushBack(m_sidePanelLayout, gui::LinearLayout::CellSize().SetWidth(200));
 
-	m_testNode = std::make_shared<NodeControl>();
-	m_testNode->SetSize({ 300, 200 });
-	m_testNode->SetName("Blender");
-	m_testNode->SetType("MixColor");
-	m_testNode->SetInputPorts({
+	m_testNode1 = std::make_shared<NodeControl>();
+	m_testNode1->SetSize({ 300, 200 });
+	m_testNode1->SetName("Blender");
+	m_testNode1->SetType("MixColor");
+	m_testNode1->SetInputPorts({
 		{ "Color 1", "Vec4" },
 		{ "Color 2", "Vec4" },
 		{ "Balance", "float" }
 	});
-	m_testNode->SetOutputPorts({
+	m_testNode1->SetOutputPorts({
 		{ "Result", "Vec4" }
 	});
 
-	m_nodePanel.AddNode(m_testNode);
+	m_testNode2 = std::make_shared<NodeControl>();
+	m_testNode2->SetSize({ 300, 200 });
+	m_testNode2->SetName("Saturate");
+	m_testNode2->SetType("Saturate");
+	m_testNode2->SetInputPorts({
+		{ "Color", "Vec4" },
+		});
+	m_testNode2->SetOutputPorts({
+		{ "Result", "Vec4" }
+		});
+
+	m_nodePanel.AddNode(m_testNode1);
+	m_nodePanel.AddNode(m_testNode2);
 	
 	style.background = { 0.08f, 0.08f, 0.08f, 1.0f };
 	m_nodePanel.SetStyle(style);
+
+	m_controller.SetNodePanel(m_nodePanel);
+
 
 	m_sidePanelDummy1.SetText(U"Default");
 	m_sidePanelDummy2.SetText(U"Clear");

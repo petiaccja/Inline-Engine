@@ -11,6 +11,7 @@
 #include <GuiEngine/Frame.hpp>
 #include <GuiEngine/LinearLayout.hpp>
 #include <GuiEngine/TextBox.hpp>
+#include "GraphController.hpp"
 
 namespace inl::tool {
 
@@ -41,10 +42,10 @@ private:
 	gui::LinearLayout m_mainLayout;
 	gui::Frame m_mainLayoutSep;
 
+	GraphController m_controller;
 	NodePanel m_nodePanel;
-	//gui::Frame m_testNodeFrame;
-	//gui::AbsoluteLayout m_testNodeLayout;
-	std::shared_ptr<NodeControl> m_testNode;
+	std::shared_ptr<NodeControl> m_testNode1;
+	std::shared_ptr<NodeControl> m_testNode2;
 
 	gui::LinearLayout m_sidePanelLayout;
 	gui::Button m_sidePanelDummy1, m_sidePanelDummy2;

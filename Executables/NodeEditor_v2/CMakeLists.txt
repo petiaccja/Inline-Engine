@@ -17,6 +17,8 @@ set(files
 	"PortControl.hpp"
 	"ArrowControl.cpp"
 	"ArrowControl.hpp"
+	"GraphController.cpp"
+	"GraphController.hpp"
 )
 
 # Target

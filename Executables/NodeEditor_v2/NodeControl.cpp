@@ -88,6 +88,16 @@ void NodeControl::SetOutputPorts(std::vector<std::pair<std::string, std::string>
 }
 
 
+const PortControl& NodeControl::GetInputPort(int index) const {
+	return m_inputPorts[index];
+}
+
+
+const PortControl& NodeControl::GetOutputPort(int index) const {
+	return m_outputPorts[index];
+}
+
+
 void NodeControl::UpdateTitle() {
 	m_title.SetText(EncodeString<char32_t>(m_name + " : " + m_type));
 }

@@ -40,6 +40,15 @@ void AbsoluteLayout::RemoveChild(Control* child) {
 }
 
 
+void AbsoluteLayout::Clear() {
+	for (auto& child : m_children) {
+		Detach(child.first.get());
+	}
+	m_childrenOrder.clear();
+	m_children.clear();
+}
+
+
 AbsoluteLayout::Binding& AbsoluteLayout::operator[](const Control* child) {
 	auto it = m_children.find(child);
 	if (it != m_children.end()) {
@@ -111,9 +120,7 @@ float AbsoluteLayout::SetDepth(float depth) {
 	for (auto it = m_childrenOrder.rbegin(), end = m_childrenOrder.rend(); it != end; ++it) {
 		auto child = *it;
 		totalSpan += child->SetDepth(depth + 1.0f + totalSpan);
-		std::cout << totalSpan << std::endl;
 	}
-	std::cout << "----------------------------" << std::endl;
 	return totalSpan + 1.0f;
 }
 
