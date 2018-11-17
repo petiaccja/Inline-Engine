@@ -21,20 +21,20 @@ Button::Button() {
 	};
 }
 
-void Button::SetSize(Vec2u size) {
+void Button::SetSize(Vec2 size) {
 	m_background->SetScale(size);
 	m_text->SetSize(size);
 }
 
-Vec2u Button::GetSize() const {
+Vec2 Button::GetSize() const {
 	return m_background->GetScale();
 }
 
-void Button::SetPosition(Vec2i position) {
+void Button::SetPosition(Vec2 position) {
 	m_background->SetPosition(position);
 	m_text->SetPosition(position);
 }
-Vec2i Button::GetPosition() const {
+Vec2 Button::GetPosition() const {
 	return m_background->GetPosition();
 }
 

@@ -15,11 +15,11 @@ class Frame : public StandardControl {
 public:
 	Frame();
 
-	void SetSize(Vec2u size) override;
-	Vec2u GetSize() const override;
+	void SetSize(Vec2 size) override;
+	Vec2 GetSize() const override;
 
-	void SetPosition(Vec2i position) override;
-	Vec2i GetPosition() const override;
+	void SetPosition(Vec2 position) override;
+	Vec2 GetPosition() const override;
 
 	void Update(float elapsed = 0.0f) override;
 

@@ -73,16 +73,16 @@ void LinearLayout::Clear() {
 }
 
 
-void LinearLayout::SetSize(Vec2u size) {
+void LinearLayout::SetSize(Vec2 size) {
 	m_size = size;
 }
-Vec2u LinearLayout::GetSize() const {
+Vec2 LinearLayout::GetSize() const {
 	return m_size;
 }
-void LinearLayout::SetPosition(Vec2i position) {
+void LinearLayout::SetPosition(Vec2 position) {
 	m_position = position;
 }
-Vec2i LinearLayout::GetPosition() const {
+Vec2 LinearLayout::GetPosition() const {
 	return m_position;
 }
 
@@ -132,8 +132,8 @@ void LinearLayout::Update(float elapsed) {
 		int controlFix = fix - totalMarginFix;
 
 		if (child.control) {
-			Vec2i controlPos;
-			Vec2u controlSize;
+			Vec2 controlPos;
+			Vec2 controlSize;
 			int fixLowMargin = !m_vertical ? child.sizing.GetMargin().bottom : child.sizing.GetMargin().left;
 			if (!m_vertical) {
 				controlPos = { whereMoving + controlMoving / 2, whereFix + fixLowMargin + controlFix / 2 };

@@ -15,18 +15,18 @@ Label::Label() {
 	m_text->SetHorizontalAlignment(-1);
 }
 
-void Label::SetSize(Vec2u size) {
+void Label::SetSize(Vec2 size) {
 	m_text->SetSize(size);
 }
 
-Vec2u Label::GetSize() const {
+Vec2 Label::GetSize() const {
 	return m_text->GetSize();
 }
 
-void Label::SetPosition(Vec2i position) {
+void Label::SetPosition(Vec2 position) {
 	m_text->SetPosition(position);
 }
-Vec2i Label::GetPosition() const {
+Vec2 Label::GetPosition() const {
 	return m_text->GetPosition();
 }
 

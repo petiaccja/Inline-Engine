@@ -28,11 +28,11 @@ public:
 
 protected:
 	// Use SetEndPoints.
-	void SetSize(Vec2u size) override {}
-	Vec2u GetSize() const override { return { 0,0 }; }
+	void SetSize(Vec2 size) override {}
+	Vec2 GetSize() const override { return { 0,0 }; }
 
-	void SetPosition(Vec2i position) override {}
-	Vec2i GetPosition() const override { return (m_p1 + m_p2) / 2.f; }
+	void SetPosition(Vec2 position) override {}
+	Vec2 GetPosition() const override { return (m_p1 + m_p2) / 2.f; }
 
 	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> GetTextEntities() override;
 	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::IOverlayEntity>>> GetOverlayEntities() override;

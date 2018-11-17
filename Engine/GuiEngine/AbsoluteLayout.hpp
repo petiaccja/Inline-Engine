@@ -23,14 +23,14 @@ private:
 	class Binding {
 		friend class AbsoluteLayout;
 	public:
-		Binding& SetPosition(Vec2i position);
-		Vec2i GetPosition() const;
+		Binding& SetPosition(Vec2 position);
+		Vec2 GetPosition() const;
 		void MoveForward();
 		void MoveBackward();
 		void MoveToFront();
 		void MoveToBack();
 	private:
-		Vec2i position = {0, 0};
+		Vec2 position = {0, 0};
 		std::list<Control*>::iterator orderIter;
 		std::list<Control*>* orderList = nullptr;
 	};
@@ -49,11 +49,11 @@ public:
 	void Clear();
 	Binding& operator[](const Control* child);
 
-	void SetSize(Vec2u size) override;
-	Vec2u GetSize() const override;
+	void SetSize(Vec2 size) override;
+	Vec2 GetSize() const override;
 
-	void SetPosition(Vec2i position) override;
-	Vec2i GetPosition() const override;
+	void SetPosition(Vec2 position) override;
+	Vec2 GetPosition() const override;
 
 	void Update(float elapsed = 0.0f) override;
 
@@ -69,7 +69,7 @@ public:
 	float GetDepth() const override;
 
 private:
-	Vec2i CalculateChildPosition(const Binding& binding) const;
+	Vec2 CalculateChildPosition(const Binding& binding) const;
 
 	void OnAttach(Control* parent) override;
 	void OnDetach() override;
@@ -79,8 +79,8 @@ private:
 	std::map<std::shared_ptr<Control>, std::unique_ptr<Binding>, impl::ControlPtrLess> m_children;
 	std::list<Control*> m_childrenOrder;
 
-	Vec2i m_position = { 0,0 };
-	Vec2u m_size = { 10,10 };
+	Vec2 m_position = { 0,0 };
+	Vec2 m_size = { 10,10 };
 	eRefPoint m_refPoint = eRefPoint::TOPLEFT;
 	bool m_yDown = true;
 	float m_depth = 0.0f;

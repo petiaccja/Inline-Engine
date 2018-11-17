@@ -12,7 +12,7 @@ Frame::Frame() {
 }
 
 
-void Frame::SetSize(Vec2u size) {
+void Frame::SetSize(Vec2 size) {
 	m_background->SetScale(size);
 	if (m_layout) {
 		m_layout->SetSize(size);
@@ -20,12 +20,12 @@ void Frame::SetSize(Vec2u size) {
 }
 
 
-Vec2u Frame::GetSize() const {
+Vec2 Frame::GetSize() const {
 	return m_background->GetScale();
 }
 
 
-void Frame::SetPosition(Vec2i position) {
+void Frame::SetPosition(Vec2 position) {
 	m_background->SetPosition(position);
 	if (m_layout) {
 		m_layout->SetPosition(position);
@@ -33,7 +33,7 @@ void Frame::SetPosition(Vec2i position) {
 }
 
 
-Vec2i Frame::GetPosition() const {
+Vec2 Frame::GetPosition() const {
 	return m_background->GetPosition();
 }
 

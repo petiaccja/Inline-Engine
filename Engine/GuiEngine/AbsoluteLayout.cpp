@@ -60,22 +60,22 @@ AbsoluteLayout::Binding& AbsoluteLayout::operator[](const Control* child) {
 }
 
 
-void AbsoluteLayout::SetSize(Vec2u size) {
+void AbsoluteLayout::SetSize(Vec2 size) {
 	m_size = size;
 }
 
 
-Vec2u AbsoluteLayout::GetSize() const {
+Vec2 AbsoluteLayout::GetSize() const {
 	return m_size;
 }
 
 
-void AbsoluteLayout::SetPosition(Vec2i position) {
+void AbsoluteLayout::SetPosition(Vec2 position) {
 	m_position = position;
 }
 
 
-Vec2i AbsoluteLayout::GetPosition() const {
+Vec2 AbsoluteLayout::GetPosition() const {
 	return m_position;
 }
 
@@ -149,12 +149,12 @@ void AbsoluteLayout::OnDetach() {
 }
 
 
-Vec2i AbsoluteLayout::CalculateChildPosition(const Binding& binding) const {
-	Vec2i pos = binding.GetPosition();
+Vec2 AbsoluteLayout::CalculateChildPosition(const Binding& binding) const {
+	Vec2 pos = binding.GetPosition();
 	if (m_yDown) {
 		pos.y = -pos.y;
 	}
-	Vec2i offset = GetSize() / 2;
+	Vec2 offset = GetSize() / 2;
 	switch (m_refPoint) {
 		case eRefPoint::TOPLEFT: offset *= { -1, 1 }; break;
 		case eRefPoint::BOTTOMLEFT: offset *= { -1, -1 }; break;
@@ -167,12 +167,12 @@ Vec2i AbsoluteLayout::CalculateChildPosition(const Binding& binding) const {
 }
 
 
-AbsoluteLayout::Binding& AbsoluteLayout::Binding::SetPosition(Vec2i position) {
+AbsoluteLayout::Binding& AbsoluteLayout::Binding::SetPosition(Vec2 position) {
 	this->position = position;
 	return *this;
 }
 
-Vec2i AbsoluteLayout::Binding::GetPosition() const {
+Vec2 AbsoluteLayout::Binding::GetPosition() const {
 	return position;
 }
 

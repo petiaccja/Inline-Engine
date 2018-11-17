@@ -47,11 +47,11 @@ private:
 	void PropagateEventUpwards(Control* control, EventT event, Args&&... args);
 private:
 	// Dummy implementations for Control.
-	void SetSize(Vec2u) override {}
-	Vec2u GetSize() const override { return { 10000000, 10000000 }; }
+	void SetSize(Vec2) override {}
+	Vec2 GetSize() const override { return { 10000000, 10000000 }; }
 
-	void SetPosition(Vec2i) override {}
-	Vec2i GetPosition() const override { return { 0,0 }; }
+	void SetPosition(Vec2) override {}
+	Vec2 GetPosition() const override { return { 0,0 }; }
 
 	void SetVisible(bool) override {}
 	bool GetVisible() const override { return true; }

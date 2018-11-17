@@ -232,8 +232,8 @@ const Control* Board::HitTestRecurse(Vec2 point, const Control* top) {
 
 
 bool Board::HitTest(Vec2 point, const Control* control) {
-	Vec2i pos = control->GetPosition();
-	Vec2u size = control->GetSize();
+	Vec2 pos = control->GetPosition();
+	Vec2 size = control->GetSize();
 	RectF rc{ pos - size / 2, pos + size / 2 };
 
 	return rc.IsPointInside(point);

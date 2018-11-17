@@ -19,6 +19,8 @@ set(controls
 	Label.cpp
 	TextBox.hpp
 	TextBox.cpp
+	TreeView.cpp
+	TreeView.cpp
 
 	StandardControl.cpp
 	StandardControl.hpp

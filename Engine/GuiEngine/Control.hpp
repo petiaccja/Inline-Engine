@@ -41,11 +41,11 @@ class Control {
 public:
 	virtual ~Control() = default;
 
-	virtual void SetSize(Vec2u size) = 0;
-	virtual Vec2u GetSize() const = 0;
+	virtual void SetSize(Vec2 size) = 0;
+	virtual Vec2 GetSize() const = 0;
 
-	virtual void SetPosition(Vec2i position) = 0;
-	virtual Vec2i GetPosition() const = 0;
+	virtual void SetPosition(Vec2 position) = 0;
+	virtual Vec2 GetPosition() const = 0;
 
 	virtual void SetVisible(bool visible) = 0;
 	virtual bool GetVisible() const = 0;

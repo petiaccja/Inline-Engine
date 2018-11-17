@@ -58,7 +58,7 @@ public:
 
 	void Clear();
 
-	Event<Vec2i> OnContextMenu;
+	Event<Vec2> OnContextMenu;
 	Event<const NodeControl*> OnDeleteNode;
 	Event<const NodeControl*, int, const NodeControl*, int> OnAddLink;
 	Event<const NodeControl*, int, const NodeControl*, int> OnDeleteLink;
@@ -86,7 +86,7 @@ private:
 	ArrowControl m_temporaryArrow;
 
 	// Camera state.
-	Vec2i m_center = { 0, 0 };
+	Vec2 m_center = { 0, 0 };
 	float m_zoom = 1.0f;
 
 	// Input actions.

@@ -21,22 +21,22 @@ TextBox::TextBox() {
 	SetScripts();
 }
 
-void TextBox::SetSize(Vec2u size) {
+void TextBox::SetSize(Vec2 size) {
 	m_frame->SetScale(size);
 	m_background->SetScale(Vec2(size) - Vec2(2, 2));
 	m_text->SetSize(size);
 }
 
-Vec2u TextBox::GetSize() const {
+Vec2 TextBox::GetSize() const {
 	return m_frame->GetScale();
 }
 
-void TextBox::SetPosition(Vec2i position) {
+void TextBox::SetPosition(Vec2 position) {
 	m_frame->SetPosition(position);
 	m_background->SetPosition(position);
 	m_text->SetPosition(position);
 }
-Vec2i TextBox::GetPosition() const {
+Vec2 TextBox::GetPosition() const {
 	return m_frame->GetPosition();
 }
 
