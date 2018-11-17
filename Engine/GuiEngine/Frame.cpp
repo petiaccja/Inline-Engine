@@ -39,6 +39,8 @@ Vec2i Frame::GetPosition() const {
 
 
 void Frame::Update(float elapsed) {
+	UpdateClip();
+
 	if (m_layout) {
 		m_layout->Update(elapsed);
 	}

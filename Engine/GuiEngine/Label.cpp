@@ -32,6 +32,8 @@ Vec2i Label::GetPosition() const {
 
 
 void Label::Update(float elapsed) {
+	UpdateClip();
+
 	m_text->SetColor(GetStyle().text.v);
 }
 

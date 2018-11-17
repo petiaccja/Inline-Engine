@@ -28,11 +28,23 @@ public:
 		target->SetZDepth(source->GetZDepth());
 		target->SetTransform(source->GetTransform());
 	}
+
+	void SetAdditionalClip(RectF clipRectangle, Mat33 transform) override {
+		m_clipRectangle = clipRectangle;
+		m_clipRectangleTransform = transform;
+	}
+	std::pair<RectF, Mat33> GetAdditionalClip() const override { return { m_clipRectangle, m_clipRectangleTransform }; }
+	void EnableAdditionalClip(bool enabled) override { m_clipEnabled = enabled; }
+	bool IsAdditionalClipEnabled() const override { return m_clipEnabled; }
 private:
 	gxeng::IMesh* m_mesh = nullptr;
 	Vec4 m_color = { 1, 1, 1, 1 };
 	gxeng::IImage* m_image = nullptr;
 	float m_depth = 0.0f;
+
+	RectF m_clipRectangle = { 0, 0, 0, 0 };
+	Mat33 m_clipRectangleTransform = Mat33::Identity();
+	bool m_clipEnabled = false;
 };
 
 

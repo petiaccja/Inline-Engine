@@ -60,6 +60,10 @@ float ArrowControl::GetDepth() const {
 	return m_bezierLine->GetZDepth();
 }
 
+void ArrowControl::Update(float elapsed) {
+	UpdateClip();
+}
+
 
 std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> ArrowControl::GetTextEntities() {
 	return {};

@@ -150,6 +150,52 @@ void StandardControl::MakePlaceholderEntities() {
 	}
 }
 
+
+void StandardControl::UpdateClip() {
+	const Control* parent = GetParent();
+	if (!parent) {
+		SetChildrenClip({}, false);
+	}
+	else {
+		RectF clip = RectF::FromCenter(parent->GetPosition(), parent->GetSize());
+
+		while (parent != nullptr) {
+			RectF nextClip = RectF::FromCenter(parent->GetPosition(), parent->GetSize());
+			clip.Intersect(nextClip);
+
+			parent = parent->GetParent();
+		}
+
+		SetChildrenClip(clip, true);
+	}
+}
+
+
+void StandardControl::SetChildrenClip(RectF clip, bool enable) {
+	auto texts = GetTextEntities();
+	auto overlays = GetOverlayEntities();
+
+	if (enable) {
+		for (auto& text : texts) {
+			text.get()->SetAdditionalClip(clip, Mat33::Identity());
+			text.get()->EnableAdditionalClip(true);
+		}
+		for (auto& overlay : overlays) {
+			overlay.get()->SetAdditionalClip(clip, Mat33::Identity());
+			overlay.get()->EnableAdditionalClip(true);
+		}
+	}
+	else {
+		for (auto& text : texts) {
+			text.get()->EnableAdditionalClip(false);
+		}
+		for (auto& overlay : overlays) {
+			overlay.get()->EnableAdditionalClip(false);
+		}
+	}
+}
+
+
 eStandardControlState StandardControl::GetState() const {
 	return m_state;
 }
@@ -170,7 +216,7 @@ void StandardControl::AddStateScripts() {
 		UpdateState();
 	};
 	OnLoseFocus += [this](auto...) {
-		m_focused = false; 
+		m_focused = false;
 		UpdateState();
 	};
 	OnMouseDown += [this](Control*, Vec2, eMouseButton) {

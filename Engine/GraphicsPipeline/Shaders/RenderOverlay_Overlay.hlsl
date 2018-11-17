@@ -5,6 +5,9 @@ struct Constants {
     bool hasTexture;
 	bool hasMesh;
     float z;
+	float3x3 discardTransform;
+	uint __padding;
+	bool enableDiscard;
 };
 ConstantBuffer<Constants> constants : register(b0);
 
@@ -19,7 +22,8 @@ void VSMain(float2 posL : POSITION,
 			float2 texCoord : TEXCOORD0,
 			uint vertexId : SV_VertexID,
 			out float4 posHOut : SV_Position,
-			out float2 texCoordOut : TEXCOORD0)
+			out float2 texCoordOut : TEXCOORD0,
+			out float2 posNdcOut : TEXCOORD1)
 {
     if (constants.hasMesh) {
 		float3 posH = mul(float3(posL, 1), constants.worldViewProj);
@@ -44,12 +48,23 @@ void VSMain(float2 posL : POSITION,
 
         float3 posH = mul(float3(posL, 1), constants.worldViewProj);
         posHOut = float4(posH.xy, constants.z * posH.z, posH.z);
+		posNdcOut = posH / posH.z;
     }
 }
 
 
-float4 PSMain(float4 posS : SV_Position, float2 texCoord : TEXCOORD0) : SV_Target0
+float4 PSMain(float4 posS : SV_Position, float2 texCoord : TEXCOORD0, float2 posNdc : TEXCOORD1) : SV_Target0
 {
+	if (constants.enableDiscard) {
+		float3 discardPos = mul(float3(posNdc.xy, 1.0f), constants.discardTransform);
+		discardPos /= discardPos.z;
+		discardPos.z = 0.0f;
+		if (abs(discardPos.x) > 0.5f || abs(discardPos.y) > 0.5f) {
+			discard;
+		}
+	}
+
+
     float4 texColor;
     if (constants.hasTexture) {
         texColor = colorTexture.Sample(linearSampler, texCoord);

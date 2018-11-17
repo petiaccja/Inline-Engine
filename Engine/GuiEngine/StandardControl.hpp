@@ -32,6 +32,7 @@ public:
 	const ControlStyle& GetStyle() const override final;
 
 	Control* GetParent() const override { return m_parent; }
+
 protected:
 	void OnAttach(Control* parent) override;
 	void OnDetach() override;
@@ -39,12 +40,17 @@ protected:
 
 	virtual std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> GetTextEntities() = 0;
 	virtual std::vector<std::reference_wrapper<std::unique_ptr<gxeng::IOverlayEntity>>> GetOverlayEntities() = 0;
+
+	eStandardControlState GetState() const;
+	void UpdateClip();
+
+private:
 	void UpdateVisibility(bool shouldBeShown);
 	void UpdateFont(const gxeng::IFont* font);
 	void MakeRealEntities();
 	void MakePlaceholderEntities();
+	void SetChildrenClip(RectF clip, bool enable);
 
-	eStandardControlState GetState() const;
 private:
 	void AddStateScripts();
 	void UpdateState();

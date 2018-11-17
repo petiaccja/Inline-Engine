@@ -48,7 +48,7 @@ private:
 private:
 	// Dummy implementations for Control.
 	void SetSize(Vec2u) override {}
-	Vec2u GetSize() const override { return { 0,0 }; }
+	Vec2u GetSize() const override { return { 10000000, 10000000 }; }
 
 	void SetPosition(Vec2i) override {}
 	Vec2i GetPosition() const override { return { 0,0 }; }
@@ -60,6 +60,7 @@ private:
 	void OnAttach(Control* parent) override {}
 	void OnDetach() override {}
 	const DrawingContext* GetContext() const override;
+
 private:
 	DrawingContext m_context;
 	ControlStyle m_defaultStyle;

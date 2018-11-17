@@ -60,6 +60,7 @@ void NodeEditor::CreateGui() {
 
 	m_mainFrame.SetLayout(m_mainLayout);
 
+	m_mainLayout.PushBack(nullptr, gui::LinearLayout::CellSize().SetWidth(100));
 	m_mainLayout.PushBack(m_nodePanel, gui::LinearLayout::CellSize().SetWeight(1));
 	m_mainLayout.PushBack(m_mainLayoutSep, gui::LinearLayout::CellSize().SetWidth(8));
 	m_mainLayout.PushBack(m_sidePanelLayout, gui::LinearLayout::CellSize().SetWidth(200));

@@ -40,6 +40,8 @@ Vec2i Button::GetPosition() const {
 
 
 void Button::Update(float elapsed) {
+	UpdateClip();
+
 	ColorF foreground;
 	switch (GetState()) {
 		case eStandardControlState::DEFAULT: foreground = GetStyle().foreground; break;

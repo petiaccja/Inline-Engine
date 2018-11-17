@@ -46,5 +46,21 @@ float OverlayEntity::GetZDepth() const {
 }
 
 
+void OverlayEntity::SetAdditionalClip(RectF clipRectangle, Mat33 transform) {
+	m_clipRect = clipRectangle;
+	m_clipRectTransform = transform;
+}
+std::pair<RectF, Mat33> OverlayEntity::GetAdditionalClip() const {
+	return { m_clipRect, m_clipRectTransform };
+}
+void OverlayEntity::EnableAdditionalClip(bool enabled) {
+	m_clipEnabled = enabled;
+}
+bool OverlayEntity::IsAdditionalClipEnabled() const {
+	return m_clipEnabled;
+}
+
+
+
 
 } // namespace inl::gxeng

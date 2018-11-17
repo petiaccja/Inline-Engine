@@ -176,7 +176,9 @@ float LinearLayout::SetDepth(float depth) {
 	m_depth = depth;
 	float maxSpan = 0.0f;
 	for (auto& child : m_children) {
-		maxSpan = std::max(maxSpan, child.control->SetDepth(depth + 1.0f));
+		if (child.control) {
+			maxSpan = std::max(maxSpan, child.control->SetDepth(depth + 1.0f));
+		}
 	}
 	return maxSpan + 1.0f;
 }

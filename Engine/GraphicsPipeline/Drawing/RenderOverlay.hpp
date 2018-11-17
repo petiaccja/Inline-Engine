@@ -9,6 +9,8 @@
 #include <GraphicsEngine_LL/Scene.hpp>
 #include <GraphicsEngine_LL/TextEntity.hpp>
 
+#include <optional>
+
 
 namespace inl::gxeng::nodes {
 
@@ -56,6 +58,11 @@ private:
 
 	// Return the position of the first letter in entity's local space, entity size included.
 	static RectF AlignFirstLetter(const TextEntity*);
+
+	// Return weather to draw the entity and an optional clip rect matrix.
+	static std::tuple<bool, std::optional<Mat33>> CullEntity(const OverlayEntity& entity, const Mat33& viewProj);
+	static std::tuple<bool, std::optional<Mat33>> CullEntity(const TextEntity& entity, const Mat33& viewProj);
+
 
 private:
 	Binder m_overlayBinder;

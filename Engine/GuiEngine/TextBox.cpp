@@ -43,6 +43,7 @@ Vec2i TextBox::GetPosition() const {
 
 void TextBox::Update(float elapsed) {
 	SetColor();
+	UpdateClip();
 
 	// Manage cursor blinking.
 	m_sinceLastCursorBlink += elapsed;
@@ -119,8 +120,8 @@ void TextBox::SetScripts() {
 			return;
 		}
 		std::u32string text = GetText();
-		if (m_cursorPosition >= text.size()) {
-			m_cursorPosition = text.size();
+		if (m_cursorPosition >= (intptr_t)text.size()) {
+			m_cursorPosition = (intptr_t)text.size();
 			text.push_back((char)character);
 		}
 		else {
@@ -141,13 +142,13 @@ void TextBox::SetScripts() {
 			m_cursorPosition = std::min(m_cursorPosition, (intptr_t)text.size());
 		}
 		else if (key == eKey::BACKSPACE && m_cursorPosition > 0) {
-			assert(m_cursorPosition <= text.size());
+			assert(m_cursorPosition <= (intptr_t)text.size());
 			text.erase(text.begin() + m_cursorPosition - 1);
 			--m_cursorPosition;
 			SetText(text);
 		}
 		else if (key == eKey::DELETE && m_cursorPosition < (intptr_t)text.size()) {
-			assert(m_cursorPosition <= text.size());
+			assert(m_cursorPosition <= (intptr_t)text.size());
 			text.erase(text.begin() + m_cursorPosition);
 			SetText(text);
 		}

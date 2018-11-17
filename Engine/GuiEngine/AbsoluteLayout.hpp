@@ -67,11 +67,13 @@ public:
 
 	float SetDepth(float depth) override;
 	float GetDepth() const override;
+
 private:
 	Vec2i CalculateChildPosition(const Binding& binding) const;
 
 	void OnAttach(Control* parent) override;
 	void OnDetach() override;
+
 private:
 	Control* m_parent = nullptr;
 	std::map<std::shared_ptr<Control>, std::unique_ptr<Binding>, impl::ControlPtrLess> m_children;

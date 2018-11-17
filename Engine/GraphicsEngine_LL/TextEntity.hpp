@@ -98,8 +98,8 @@ private:
 
 	RectF m_clipRect;
 	Mat33 m_clipRectTransform;
-	Vec2 m_alignment = { ALIGN_CENTER, ALIGN_CENTER };
 	bool m_clipEnabled = false;
+	Vec2 m_alignment = { ALIGN_CENTER, ALIGN_CENTER };
 };
 
 

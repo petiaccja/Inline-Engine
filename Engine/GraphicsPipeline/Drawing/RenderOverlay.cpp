@@ -27,6 +27,9 @@ struct CbufferOverlay {
 	uint32_t hasTexture;
 	uint32_t hasMesh;
 	float z;
+	uint32_t padding;
+	Mat34_Packed discardTransform;
+	uint32_t enableDiscard;
 };
 
 struct CbufferTextTransform {
@@ -38,6 +41,8 @@ struct CbufferTextRender {
 	Vec2i_Packed atlasAccessTopleft;
 	Vec2i_Packed atlasAccessSize;
 	Vec4_Packed color;
+	Mat34_Packed discardTransform;
+	uint32_t enableDiscard;
 };
 
 
@@ -371,6 +376,8 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 	} lastType = UNKNOWN;
 
 	while (itOverlay != overlayList.end() || itText != textList.end()) {
+
+
 		float zOverlay = (itOverlay != overlayList.end() ? (*itOverlay)->GetZDepth() : std::numeric_limits<float>::max());
 		float zText = (itText != textList.end() ? (*itText)->GetZDepth() : std::numeric_limits<float>::max());
 
@@ -379,6 +386,13 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			const OverlayEntity* entity = *itOverlay;
 			const Mesh* mesh = entity->GetMesh();
 			const Image* texture = entity->GetTexture();
+
+			// Cancel the overlay early if possible/needed.
+			auto[shouldDraw, discardTransform] = CullEntity(*entity, view*proj);
+			if (!shouldDraw) {
+				++itOverlay;
+				continue;
+			}
 
 			if (lastType != OVERLAY) {
 				commandList.SetPipelineState(m_overlayPso.get());
@@ -394,6 +408,11 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			cbuffer.hasMesh = mesh != nullptr;
 			cbuffer.color = entity->GetColor();
 			cbuffer.z = RecalcZ(entity->GetZDepth());
+
+			cbuffer.enableDiscard = (bool)discardTransform;
+			if (discardTransform) {
+				cbuffer.discardTransform.Submatrix<3, 3>(0, 0) = discardTransform.value();
+			}
 
 			commandList.BindGraphics(m_bindOverlayCb, &cbuffer, sizeof(cbuffer));
 			if (cbuffer.hasTexture) {
@@ -428,12 +447,16 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 		}
 		else {
 			// Render the text.
+
+			// Cancel entity early if possible/needed.
 			const TextEntity* entity = *itText;
 			const Font* font = entity->GetFont();
-			if (!font || !font->GetGlyphAtlas().GetSrv()) {
+			auto[shouldDraw, discardTransform] = CullEntity(*entity, view*proj);
+			if (!shouldDraw || !font || !font->GetGlyphAtlas().GetSrv()) {
 				++itText;
 				continue;
 			}
+
 
 			if (lastType != TEXT) {
 				commandList.SetPipelineState(m_textPso.get());
@@ -449,10 +472,15 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 
 			Mat33 world = entity->GetTransform();
 			Mat33 worldViewProj = world * view * proj;
-			;
+
 
 			cbufferTransform.z = RecalcZ(entity->GetZDepth());
 			cbufferRender.color = entity->GetColor();
+
+			cbufferRender.enableDiscard = (bool)discardTransform;
+			if (discardTransform) {
+				cbufferRender.discardTransform.Submatrix<3,3>(0,0) = discardTransform.value();
+			}
 
 			// Position of the first letter.
 			float textHeight = font->CalculateTextHeight(entity->GetFontSize());
@@ -475,6 +503,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 
 				Mat33 letterTransform = Mat33::Scale(letterRect.GetSize() / 2) * Mat33::Translation(letterRect.GetCenter());
 				cbufferTransform.worldViewProj.Submatrix<3, 3>(0, 0) = letterTransform * worldViewProj;
+
 
 				if (limits[0] <= letterRect.left && letterRect.right <= limits[1]) {
 					commandList.BindGraphics(m_bindTextTransform, &cbufferTransform, sizeof(cbufferTransform));
@@ -512,6 +541,38 @@ RectF RenderOverlay::AlignFirstLetter(const TextEntity* entity) {
 
 	return place;
 }
+
+
+std::tuple<bool, std::optional<Mat33>> CullByClip(const RectF& clipRect, const Mat33& clipTransform, const Mat33& viewProj) {
+	if (clipRect.GetWidth() == 0.0f || clipRect.GetHeight() == 0.0f) {
+		return { false, {} };
+	}
+	else {
+		Mat33 discardTransform = Mat33::Scale(clipRect.GetSize())*Mat33::Translation(clipRect.GetCenter())*clipTransform*viewProj;
+		discardTransform.Invert();
+
+		return { true, discardTransform };
+	}
+}
+
+
+std::tuple<bool, std::optional<Mat33>> RenderOverlay::CullEntity(const OverlayEntity& entity, const Mat33& viewProj) {
+	if (entity.IsAdditionalClipEnabled()) {
+		auto[clipRect, clipTransform] = entity.GetAdditionalClip();
+		return CullByClip(clipRect, clipTransform, viewProj);
+	}
+	return { true, {} };
+}
+
+
+std::tuple<bool, std::optional<Mat33>> RenderOverlay::CullEntity(const TextEntity& entity, const Mat33& viewProj) {
+	if (entity.IsAdditionalClipEnabled()) {
+		auto[clipRect, clipTransform] = entity.GetAdditionalClip();
+		return CullByClip(clipRect, clipTransform, viewProj);
+	}
+	return { true, {} };
+}
+
 
 
 } // namespace inl::gxeng::nodes

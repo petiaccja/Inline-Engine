@@ -24,6 +24,8 @@ public:
 	float SetDepth(float depth) override;
 	float GetDepth() const override;
 
+	void Update(float elapsed) override;
+
 protected:
 	// Use SetEndPoints.
 	void SetSize(Vec2u size) override {}
