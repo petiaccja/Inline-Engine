@@ -24,6 +24,14 @@ Vec2 Frame::GetSize() const {
 	return m_background->GetScale();
 }
 
+Vec2 Frame::GetMinimumSize() const {
+	return m_layout ? m_layout->GetMinimumSize() : Vec2{ 0.f, 0.f };
+}
+
+Vec2 Frame::GetPreferredSize() const {
+	return m_layout ? m_layout->GetPreferredSize() : Vec2{ 0.f, 0.f };
+}
+
 
 void Frame::SetPosition(Vec2 position) {
 	m_background->SetPosition(position);

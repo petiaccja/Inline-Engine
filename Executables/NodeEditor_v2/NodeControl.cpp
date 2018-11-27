@@ -12,18 +12,18 @@ NodeControl::NodeControl() {
 
 	m_title.SetHorizontalAlignment(0.0f);
 
-	m_titleLayout.SetVertical(true);
+	m_titleLayout.SetDirection(gui::LinearLayout::VERTICAL);
 	m_titleLayout.SetInverted(true);
 	m_titleLayout.PushBack(m_title, gui::LinearLayout::CellSize().SetWidth(32));
 	m_titleLayout.PushBack(m_ioSplitLayout, gui::LinearLayout::CellSize().SetWeight(1.0f));
 
-	m_ioSplitLayout.SetVertical(false);
+	m_ioSplitLayout.SetDirection(gui::LinearLayout::HORIZONTAL);
 	m_ioSplitLayout.PushBack(m_inputPortsLayout, gui::LinearLayout::CellSize().SetWeight(1.0f));
 	m_ioSplitLayout.PushBack(m_outputPortsLayout, gui::LinearLayout::CellSize().SetWeight(1.0f));
 
-	m_inputPortsLayout.SetVertical(true);
+	m_inputPortsLayout.SetDirection(gui::LinearLayout::VERTICAL);
 	m_inputPortsLayout.SetInverted(true);
-	m_outputPortsLayout.SetVertical(true);
+	m_outputPortsLayout.SetDirection(gui::LinearLayout::VERTICAL);
 	m_outputPortsLayout.SetInverted(true);
 
 	UpdateHeight();

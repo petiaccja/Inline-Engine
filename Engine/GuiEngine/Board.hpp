@@ -36,19 +36,26 @@ public:
 	void Update(float elapsed) override;
 
 private:
+	void UpdateLayouts();
+	void UpdateLayouts(Control* subject);
+
 	static const Control* HitTestRecurse(Vec2 point, const Control* top);
 	static bool HitTest(Vec2 point, const Control* control);
-
-	void DebugTree() const;
-	void DebugTreeRecurse(const Control* control, int level) const;
 	const Control* GetTarget(Vec2 point) const;
 
 	template <class EventT, class... Args>
 	void PropagateEventUpwards(Control* control, EventT event, Args&&... args);
+
+	void DebugTree() const;
+	void DebugTreeRecurse(const Control* control, int level) const;
 private:
 	// Dummy implementations for Control.
 	void SetSize(Vec2) override {}
 	Vec2 GetSize() const override { return { 10000000, 10000000 }; }
+	Vec2 GetMinimumSize() const override { return { 0,0 }; }
+	Vec2 GetPreferredSize() const override { return { 0,0 }; }
+	Control* GetParent() const override { return nullptr; }
+	std::vector<const Control*> GetChildren() const override { return {}; }
 
 	void SetPosition(Vec2) override {}
 	Vec2 GetPosition() const override { return { 0,0 }; }

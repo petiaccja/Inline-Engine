@@ -6,11 +6,15 @@
 namespace inl::gui {
 
 
+//------------------------------------------------------------------------------
+// Children manipulation
+//------------------------------------------------------------------------------
 AbsoluteLayout::Binding& AbsoluteLayout::AddChild(std::shared_ptr<Control> child) {
 	auto [it, isNew] = m_children.insert({ child, std::make_unique<Binding>() });
 	try {
 		m_childrenOrder.push_front(child.get());
-	} catch (...) {
+	}
+	catch (...) {
 		m_children.erase(it);
 	}
 
@@ -20,9 +24,7 @@ AbsoluteLayout::Binding& AbsoluteLayout::AddChild(std::shared_ptr<Control> child
 		it->second->orderIter = m_childrenOrder.begin();
 		return *it->second;
 	}
-	else {
-		throw InvalidArgumentException("Child already in layout.");
-	}
+	throw InvalidArgumentException("Child already in layout.");
 }
 
 
@@ -54,11 +56,13 @@ AbsoluteLayout::Binding& AbsoluteLayout::operator[](const Control* child) {
 	if (it != m_children.end()) {
 		return *it->second;
 	}
-	else {
-		throw InvalidArgumentException("Child cannot be found.");
-	}
+	throw InvalidArgumentException("Child cannot be found.");
 }
 
+
+//------------------------------------------------------------------------------
+// Sizing
+//------------------------------------------------------------------------------
 
 void AbsoluteLayout::SetSize(Vec2 size) {
 	m_size = size;
@@ -70,6 +74,37 @@ Vec2 AbsoluteLayout::GetSize() const {
 }
 
 
+Vec2 AbsoluteLayout::GetPreferredSize() const {
+	if (m_children.empty()) {
+		return { 0, 0 };
+	}
+
+	Vec2 minBound = { std::numeric_limits<float>::max(), std::numeric_limits<float>::max() };
+	Vec2 maxBound = { std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest() };
+
+	for (auto& childBinding : m_children) {
+		Vec2 pos = childBinding.first->GetPosition();
+		Vec2 size = childBinding.first->GetSize();
+
+		Vec2 minCorner = pos - size / 2.0f;
+		Vec2 maxCorner = pos + size / 2.0f;
+
+		minBound = Min(minBound, minCorner);
+		maxBound = Min(maxBound, maxCorner);
+	}
+
+	return maxBound - minBound;
+}
+
+Vec2 AbsoluteLayout::GetMinimumSize() const {
+	return { 0, 0 };
+}
+
+
+//------------------------------------------------------------------------------
+// Position & depth
+//------------------------------------------------------------------------------
+
 void AbsoluteLayout::SetPosition(Vec2 position) {
 	m_position = position;
 }
@@ -77,40 +112,6 @@ void AbsoluteLayout::SetPosition(Vec2 position) {
 
 Vec2 AbsoluteLayout::GetPosition() const {
 	return m_position;
-}
-
-
-void AbsoluteLayout::Update(float elapsed) {
-	for (auto& childBinding : m_children) {
-		auto& [child, binding] = childBinding;
-		child->SetPosition(CalculateChildPosition(*binding));
-		child->Update(elapsed);
-	}
-	SetDepth(m_depth);
-}
-
-
-std::vector<const Control*> AbsoluteLayout::GetChildren() const {
-	std::vector<const Control*> children;
-	children.reserve(m_children.size());
-	for (const auto& child : m_children) {
-		children.push_back(child.first.get());
-	}
-	return children;
-}
-
-
-void AbsoluteLayout::SetReferencePoint(eRefPoint point) {
-	m_refPoint = point;
-}
-AbsoluteLayout::eRefPoint AbsoluteLayout::GetReferencePoint() const {
-	return m_refPoint;
-}
-void AbsoluteLayout::SetYDown(bool enabled) {
-	m_yDown = enabled;
-}
-bool AbsoluteLayout::GetYDown() const {
-	return m_yDown;
 }
 
 
@@ -129,6 +130,59 @@ float AbsoluteLayout::GetDepth() const {
 	return m_depth;
 }
 
+
+//------------------------------------------------------------------------------
+// Hierarchy
+//------------------------------------------------------------------------------
+
+
+std::vector<const Control*> AbsoluteLayout::GetChildren() const {
+	std::vector<const Control*> children;
+	children.reserve(m_children.size());
+	for (const auto& child : m_children) {
+		children.push_back(child.first.get());
+	}
+	return children;
+}
+
+
+//------------------------------------------------------------------------------
+// Layout update
+//------------------------------------------------------------------------------
+
+void AbsoluteLayout::UpdateLayout() {
+	for (auto& childBinding : m_children) {
+		auto& [child, binding] = childBinding;
+		child->SetPosition(CalculateChildPosition(*binding));
+	}
+	SetDepth(m_depth);
+}
+
+
+//------------------------------------------------------------------------------
+// Absolute layout
+//------------------------------------------------------------------------------
+
+void AbsoluteLayout::SetReferencePoint(eRefPoint point) {
+	m_refPoint = point;
+}
+
+AbsoluteLayout::eRefPoint AbsoluteLayout::GetReferencePoint() const {
+	return m_refPoint;
+}
+
+void AbsoluteLayout::SetYDown(bool enabled) {
+	m_yDown = enabled;
+}
+
+bool AbsoluteLayout::GetYDown() const {
+	return m_yDown;
+}
+
+
+//------------------------------------------------------------------------------
+// Layout
+//------------------------------------------------------------------------------
 
 void AbsoluteLayout::OnAttach(Control* parent) {
 	Layout::OnAttach(parent);
@@ -156,11 +210,21 @@ Vec2 AbsoluteLayout::CalculateChildPosition(const Binding& binding) const {
 	}
 	Vec2 offset = GetSize() / 2;
 	switch (m_refPoint) {
-		case eRefPoint::TOPLEFT: offset *= { -1, 1 }; break;
-		case eRefPoint::BOTTOMLEFT: offset *= { -1, -1 }; break;
-		case eRefPoint::TOPRIGHT: offset *= { 1, 1 }; break;
-		case eRefPoint::BOTTOMRIGHT: offset *= { 1, -1 }; break;
-		case eRefPoint::CENTER: offset *= { 0, 0 }; break;
+		case eRefPoint::TOPLEFT:
+			offset *= { -1, 1 };
+			break;
+		case eRefPoint::BOTTOMLEFT:
+			offset *= { -1, -1 };
+			break;
+		case eRefPoint::TOPRIGHT:
+			offset *= { 1, 1 };
+			break;
+		case eRefPoint::BOTTOMRIGHT:
+			offset *= { 1, -1 };
+			break;
+		case eRefPoint::CENTER:
+			offset *= { 0, 0 };
+			break;
 		default:;
 	}
 	return pos + offset + GetPosition();

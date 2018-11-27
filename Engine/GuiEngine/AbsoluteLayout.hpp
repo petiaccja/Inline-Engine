@@ -42,31 +42,36 @@ public:
 	AbsoluteLayout& operator=(const AbsoluteLayout&) = delete;
 	~AbsoluteLayout() = default;
 
-
+	// Children manipulation
 	Binding& AddChild(Control& child) { return AddChild(MakeBlankShared(child)); }
 	Binding& AddChild(std::shared_ptr<Control> child);
 	void RemoveChild(Control* child);
 	void Clear();
 	Binding& operator[](const Control* child);
 
+	// Sizing
 	void SetSize(Vec2 size) override;
 	Vec2 GetSize() const override;
+	Vec2 GetPreferredSize() const override;
+	Vec2 GetMinimumSize() const override;
 
+	// Position & depth
 	void SetPosition(Vec2 position) override;
 	Vec2 GetPosition() const override;
+	float SetDepth(float depth) override;
+	float GetDepth() const override;
 
-	void Update(float elapsed = 0.0f) override;
-
-	Control* GetParent() const override { return m_parent; }
+	// Hierarchy
 	std::vector<const Control*> GetChildren() const override;
 
+	// Layout update
+	void UpdateLayout() override;
+
+	// Absolute layout
 	void SetReferencePoint(eRefPoint point);
 	eRefPoint GetReferencePoint() const;
 	void SetYDown(bool enabled);
 	bool GetYDown() const;
-
-	float SetDepth(float depth) override;
-	float GetDepth() const override;
 
 private:
 	Vec2 CalculateChildPosition(const Binding& binding) const;

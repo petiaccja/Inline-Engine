@@ -19,8 +19,8 @@ set(controls
 	Label.cpp
 	TextBox.hpp
 	TextBox.cpp
-	TreeView.cpp
-	TreeView.cpp
+	ScrollBar.hpp
+	ScrollBar.cpp
 
 	StandardControl.cpp
 	StandardControl.hpp
@@ -31,6 +31,8 @@ set(layouts
 	AbsoluteLayout.cpp
 	LinearLayout.hpp
 	LinearLayout.cpp
+	ScrollVLayout.hpp
+	ScrollVLayout.cpp
 )
 
 set(placeholders

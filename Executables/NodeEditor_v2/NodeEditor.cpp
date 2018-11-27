@@ -108,7 +108,7 @@ void NodeEditor::CreateGui() {
 	m_sidePanelLayout.PushBack(m_sidePanelDummy2, gui::LinearLayout::CellSize().SetWidth(30.f));
 	m_sidePanelLayout.PushBack(m_sidePanelDummy3, gui::LinearLayout::CellSize().SetWidth(30.f));
 
-	m_sidePanelLayout.SetVertical(true);
+	m_sidePanelLayout.SetDirection(gui::LinearLayout::HORIZONTAL);
 	m_sidePanelLayout.SetInverted(true);
 
 	gui::ControlStyle sepStyle;

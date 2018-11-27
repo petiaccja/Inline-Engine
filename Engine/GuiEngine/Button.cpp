@@ -21,14 +21,32 @@ Button::Button() {
 	};
 }
 
+
 void Button::SetSize(Vec2 size) {
 	m_background->SetScale(size);
 	m_text->SetSize(size);
 }
 
+
 Vec2 Button::GetSize() const {
 	return m_background->GetScale();
 }
+
+
+Vec2 Button::GetPreferredSize() const {
+	if (m_text->GetFont()) {
+		return { m_text->CalculateTextHeight(),	m_text->CalculateTextWidth() };
+	}
+	else {
+		return { 10, 10 };
+	}
+}
+
+
+Vec2 Button::GetMinimumSize() const {
+	return { 0.0f, 0.0f };
+}
+
 
 void Button::SetPosition(Vec2 position) {
 	m_background->SetPosition(position);

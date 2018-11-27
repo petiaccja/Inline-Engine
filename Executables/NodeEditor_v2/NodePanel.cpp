@@ -17,6 +17,9 @@ NodePanel::NodePanel() {
 	OnDragBegin += Delegate<void(Control*, Vec2)>{ &NodePanel::OnPortDragBegin, this };
 	OnDrag += Delegate<void(Control*, Vec2)>{ &NodePanel::OnPortDragged, this };
 	OnDragEnd += Delegate<void(Control*, Vec2, Control*)>{ &NodePanel::OnPortDragEnd, this };
+
+	OnDragBegin += Delegate<void(Control*, Vec2)>{ &NodePanel::OnPanViewBegin, this };
+	OnDrag += Delegate<void(Control*, Vec2)>{ &NodePanel::OnPanView, this };
 }
 
 
@@ -67,7 +70,11 @@ void NodePanel::Clear() {
 }
 
 
-void NodePanel::UpdateNodesPositions() {
+void NodePanel::OffsetAllNodes(Vec2 offset) {
+	for (auto& node : m_nodes) {
+		auto& binding = m_layout[node.get()];
+		binding.SetPosition(binding.GetPosition() + offset);
+	}
 }
 
 
@@ -148,6 +155,22 @@ void NodePanel::OnPortDragEnd(Control* control, Vec2 dragEnd, Control* target) {
 			OnAddLink(port->GetNode(), port->GetPortIndex(), targetPort->GetNode(), targetPort->GetPortIndex());
 		}
 		m_draggedPort = nullptr;
+	}
+}
+
+
+void NodePanel::OnPanViewBegin(Control* control, Vec2 dragOrigin) {
+	if (control == &m_layout) {
+		m_panOrigin = dragOrigin;
+	}
+}
+
+
+void NodePanel::OnPanView(Control* control, Vec2 dragTarget) {
+	if (control == &m_layout) {
+		Vec2 offset = dragTarget - m_panOrigin;
+		m_panOrigin = dragTarget;
+		OffsetAllNodes(offset);
 	}
 }
 

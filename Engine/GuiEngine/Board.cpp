@@ -1,5 +1,7 @@
 #include "Board.hpp"
 
+#include "Layout.hpp"
+
 #include <iostream>
 
 
@@ -146,7 +148,7 @@ void Board::OnMouseMove(MouseMoveEvent evt) {
 	// Drag events.
 	if (m_draggedControl) {
 		if (m_firstDrag) {
-			PropagateEventUpwards(m_draggedControl, &Control::OnDragBegin, m_draggedControl,point);
+			PropagateEventUpwards(m_draggedControl, &Control::OnDragBegin, m_draggedControl, point);
 			m_firstDrag = false;
 		}
 		PropagateEventUpwards(m_draggedControl, &Control::OnDrag, m_draggedControl, point);
@@ -206,7 +208,24 @@ float Board::GetDepth() const {
 void Board::Update(float elapsed) {
 	for (auto& child : m_controls) {
 		child->Update(elapsed);
+		UpdateLayouts(child.get());
 		child->SetDepth(m_depth); // TODO: implement order by focus
+	}
+}
+
+
+void Board::UpdateLayouts(Control* subject) {
+	if (subject == nullptr) {
+		return;
+	}
+
+	if (auto* layout = dynamic_cast<Layout*>(subject)) {
+		layout->UpdateLayout();
+	}
+
+	auto children = subject->GetChildren();
+	for (auto& child : children) {
+		UpdateLayouts(const_cast<Control*>(child));
 	}
 }
 

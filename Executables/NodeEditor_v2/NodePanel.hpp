@@ -64,7 +64,7 @@ public:
 	Event<const NodeControl*, int, const NodeControl*, int> OnDeleteLink;
 
 private:
-	void UpdateNodesPositions();
+	void OffsetAllNodes(Vec2 offset);
 	void UpdateArrowPositions();
 	void UpdateArrowPosition(const ArrowKey& key, ArrowControl& arrow);
 
@@ -75,6 +75,9 @@ private:
 	void OnPortDragBegin(Control* control, Vec2 dragOrigin);
 	void OnPortDragged(Control* control, Vec2 dragTarget);
 	void OnPortDragEnd(Control* control, Vec2 dragEnd, Control*);
+
+	void OnPanViewBegin(Control* control, Vec2 dragOrigin);
+	void OnPanView(Control* control, Vec2 dragTarget);
 private:
 	gui::AbsoluteLayout m_layout;
 
@@ -93,6 +96,7 @@ private:
 	Vec2 m_dragOffset;
 	NodeControl* m_draggedNode = nullptr;
 	PortControl* m_draggedPort = nullptr;
+	Vec2 m_panOrigin = {0, 0};
 };
 
 

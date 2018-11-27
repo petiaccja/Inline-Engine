@@ -23,6 +23,21 @@ Vec2 Label::GetSize() const {
 	return m_text->GetSize();
 }
 
+Vec2 Label::GetPreferredSize() const {
+	if (m_text->GetFont()) {
+		return { m_text->CalculateTextHeight(),	m_text->CalculateTextWidth() };
+	}
+	else {
+		return { 10, 10 };
+	}
+}
+
+
+Vec2 Label::GetMinimumSize() const {
+	return { 0.0f, 0.0f };
+}
+
+
 void Label::SetPosition(Vec2 position) {
 	m_text->SetPosition(position);
 }

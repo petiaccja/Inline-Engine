@@ -32,6 +32,7 @@ public:
 	const ControlStyle& GetStyle() const override final;
 
 	Control* GetParent() const override { return m_parent; }
+	std::vector<const Control*> GetChildren() const override { return {}; }
 
 protected:
 	void OnAttach(Control* parent) override;

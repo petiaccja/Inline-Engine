@@ -31,6 +31,20 @@ Vec2 TextBox::GetSize() const {
 	return m_frame->GetScale();
 }
 
+Vec2 TextBox::GetPreferredSize() const {
+	if (m_text->GetFont()) {
+		return { m_text->CalculateTextHeight(),	m_text->CalculateTextWidth() };
+	}
+	else {
+		return { 10, 10 };
+	}
+}
+
+
+Vec2 TextBox::GetMinimumSize() const {
+	return { 0.0f, 0.0f };
+}
+
 void TextBox::SetPosition(Vec2 position) {
 	m_frame->SetPosition(position);
 	m_background->SetPosition(position);

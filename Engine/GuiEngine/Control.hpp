@@ -41,25 +41,34 @@ class Control {
 public:
 	virtual ~Control() = default;
 
+	// Sizing
 	virtual void SetSize(Vec2 size) = 0;
 	virtual Vec2 GetSize() const = 0;
+	virtual Vec2 GetPreferredSize() const = 0;
+	virtual Vec2 GetMinimumSize() const = 0;
 
+	// Position
 	virtual void SetPosition(Vec2 position) = 0;
 	virtual Vec2 GetPosition() const = 0;
 
+	// Visibility
 	virtual void SetVisible(bool visible) = 0;
 	virtual bool GetVisible() const = 0;
 	virtual bool IsShown() const = 0;
 
-	virtual void Update(float elapsed = 0.0f) {}
+	// Hierarchy
+	virtual Control* GetParent() const = 0;
+	virtual std::vector<const Control*> GetChildren() const = 0;
 
-	virtual Control* GetParent() const { return nullptr; }
-	virtual std::vector<const Control*> GetChildren() const { return {}; }
-
+	// Style
 	virtual void SetStyle(nullptr_t) = 0;
 	virtual void SetStyle(const ControlStyle& style, bool asDefault = false) = 0;
 	virtual const ControlStyle& GetStyle() const = 0;
 
+	// Update
+	virtual void Update(float elapsed = 0.0f) {}
+
+	// Depth
 	/// <summary> Used to specify Z-order of controls. </summary>
 	/// <param name="depth"> Z value of the control. The higher the more visible/front
 	///		the control is. </param>

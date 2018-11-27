@@ -14,13 +14,13 @@ void Layout::SetVisible(bool visible) {
 bool Layout::GetVisible() const {
 	return false;
 }
+
 bool Layout::IsShown() const {
 	if (m_parent) {
 		return m_parent->IsShown();
 	}
 	return false;
 }
-
 
 
 void Layout::SetStyle(nullptr_t) {
@@ -41,6 +41,9 @@ const ControlStyle& Layout::GetStyle() const {
 	return m_style;
 }
 
+Control* Layout::GetParent() const {
+	return m_parent;
+}
 
 
 void Layout::OnAttach(Control* parent) {
@@ -57,5 +60,4 @@ void Layout::OnDetach() {
 }
 
 
-
-} // inl::gui
+} // namespace inl::gui
