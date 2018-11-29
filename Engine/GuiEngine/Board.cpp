@@ -207,9 +207,23 @@ float Board::GetDepth() const {
 
 void Board::Update(float elapsed) {
 	for (auto& child : m_controls) {
-		child->Update(elapsed);
+		Update(child.get(), elapsed);
 		UpdateLayouts(child.get());
 		child->SetDepth(m_depth); // TODO: implement order by focus
+	}
+}
+
+
+void Board::Update(Control* subject, float elapsed) {
+	if (subject == nullptr) {
+		return;
+	}
+
+	subject->Update();
+
+	auto children = subject->GetChildren();
+	for (auto& child : children) {
+		Update(const_cast<Control*>(child), elapsed);
 	}
 }
 

@@ -41,7 +41,8 @@ public:
 
 		eCellType GetType() const { return type; }
 		float GetValue() const { return value; }
-		Rect<float, false, false> GetMargin() const { return margin; }
+		void SetMargin(Rect<float, false, false> margin) { this->margin = margin; }
+		const Rect<float, false, false>& GetMargin() const { return margin; }
 	private:
 		eCellType type = eCellType::WEIGHT;
 		float value = 1.0f;
@@ -80,6 +81,8 @@ public:
 	void PushBack(std::shared_ptr<Control> control, CellSize sizing);
 	void Erase(const_iterator which);
 	void Clear();
+	CellSize& operator[](size_t slot);
+	const CellSize& operator[](size_t slot) const;
 
 	// Sizing
 	void SetSize(Vec2 size) override;

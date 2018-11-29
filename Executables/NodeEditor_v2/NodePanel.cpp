@@ -171,6 +171,7 @@ void NodePanel::OnPanView(Control* control, Vec2 dragTarget) {
 		Vec2 offset = dragTarget - m_panOrigin;
 		m_panOrigin = dragTarget;
 		OffsetAllNodes(offset);
+		UpdateArrowPositions();
 	}
 }
 

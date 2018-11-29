@@ -96,7 +96,6 @@ set_target_properties(Test_General PROPERTIES FOLDER Test)
 set_target_properties(QC_Simulator PROPERTIES FOLDER Test)
 set_target_properties(Test_Unit PROPERTIES FOLDER Test)
 set_target_properties(Test_Physics PROPERTIES FOLDER Test)
-set_target_properties(Test_GUI PROPERTIES FOLDER Test)
 
 set_target_properties(NodeEditor PROPERTIES FOLDER Executables)
 set_target_properties(NodeEditor_v2 PROPERTIES FOLDER Executables)

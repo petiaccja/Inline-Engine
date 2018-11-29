@@ -16,10 +16,13 @@ NodeControl::NodeControl() {
 	m_titleLayout.SetInverted(true);
 	m_titleLayout.PushBack(m_title, gui::LinearLayout::CellSize().SetWidth(32));
 	m_titleLayout.PushBack(m_ioSplitLayout, gui::LinearLayout::CellSize().SetWeight(1.0f));
+	m_titleLayout[1].SetMargin({ 0,0,0,0 });
 
 	m_ioSplitLayout.SetDirection(gui::LinearLayout::HORIZONTAL);
 	m_ioSplitLayout.PushBack(m_inputPortsLayout, gui::LinearLayout::CellSize().SetWeight(1.0f));
 	m_ioSplitLayout.PushBack(m_outputPortsLayout, gui::LinearLayout::CellSize().SetWeight(1.0f));
+	m_ioSplitLayout[0].SetMargin({ 0,0,0,0 });
+	m_ioSplitLayout[1].SetMargin({ 0,0,0,0 });
 
 	m_inputPortsLayout.SetDirection(gui::LinearLayout::VERTICAL);
 	m_inputPortsLayout.SetInverted(true);

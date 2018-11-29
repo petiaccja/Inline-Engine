@@ -36,6 +36,7 @@ public:
 	void Update(float elapsed) override;
 
 private:
+	void Update(Control* subject, float elapsed);
 	void UpdateLayouts();
 	void UpdateLayouts(Control* subject);
 

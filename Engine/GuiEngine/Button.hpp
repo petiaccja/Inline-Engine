@@ -21,7 +21,6 @@ public:
 	Vec2 GetPreferredSize() const override;
 	Vec2 GetMinimumSize() const override;
 
-
 	void SetPosition(Vec2 position) override;
 	Vec2 GetPosition() const override;
 

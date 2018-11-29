@@ -78,6 +78,17 @@ void LinearLayout::Clear() {
 }
 
 
+LinearLayout::CellSize& LinearLayout::operator[](size_t slot) {
+	return m_children[slot].sizing;
+}
+
+
+const LinearLayout::CellSize& LinearLayout::operator[](size_t slot) const {
+	return m_children[slot].sizing;
+}
+
+
+
 void LinearLayout::SetSize(Vec2 size) {
 	m_size = size;
 }
@@ -113,16 +124,16 @@ LinearLayout::SizingMeasurement LinearLayout::CalcMeasures() const {
 
 		switch (child.sizing.GetType()) {
 			case eCellType::ABSOLUTE:
-				measures.sumAbsolute += std::max(minSize.x, child.sizing.GetValue());
+				measures.sumAbsolute += std::max(minSize.x + margin.x, child.sizing.GetValue());
 				measures.sumMinSizeAbs += minSize.x;
 				break;
 			case eCellType::WEIGHT:
 				measures.sumRelative += child.sizing.GetValue();
-				measures.maxPreferredPerRel = std::max(measures.maxPreferredPerRel, preferredSize.x / child.sizing.GetValue());
+				measures.maxPreferredPerRel = std::max(measures.maxPreferredPerRel, (preferredSize.x + margin.x) / child.sizing.GetValue());
 				measures.sumMinSizeRel += minSize.x;
 				break;
 			case eCellType::AUTO:
-				measures.sumAbsolute += preferredSize.x;
+				measures.sumAbsolute += preferredSize.x + margin.x;
 				measures.sumMinSizeAbs += minSize.x;
 				break;
 		}
@@ -161,7 +172,7 @@ void LinearLayout::PositionChild(const Cell& cell, Vec2 childSize, float primary
 	}
 
 
-	Vec2 base = GetPosition() - GetSize() / 2.0f*primaryDir - auxDir*budgetSize.y;
+	Vec2 base = GetPosition() - GetSize() / 2.0f*primaryDir - auxDir*budgetSize.y/2.0f;
 
 	float primaryPosOffset = primaryOffset + primaryMargins[0] + childSize.x / 2.0f;
 	float auxPosOffset = auxMargins[0] + childSize.y / 2.0f;
@@ -215,7 +226,7 @@ Vec2 LinearLayout::GetPosition() const {
 void LinearLayout::UpdateLayout() {
 	SizingMeasurement measures = CalcMeasures();
 
-	float minSize = measures.sumMinSizeAbs + measures.sumMinSizeRel + measures.sumMargins;
+	float minSize = measures.sumMinSizeAbs + measures.sumMinSizeRel;
 	float primarySize = m_direction == HORIZONTAL ? GetSize().x : GetSize().y;
 	float auxSize = m_direction == HORIZONTAL ? GetSize().y : GetSize().x;
 	float budget = std::max(minSize, primarySize);
@@ -253,19 +264,19 @@ void LinearLayout::UpdateLayout() {
 		size.y = auxBudget - margin.y;
 		switch (child.sizing.GetType()) {
 			case eCellType::ABSOLUTE: {
-				float wanted = std::max(minSize.x, child.sizing.GetValue());
+				float wanted = std::max(minSize.x + margin.x, child.sizing.GetValue());
 				float overMin = wanted - minSize.x;
 				float extraBudget = std::min(overMin, absoluteExtraBudget);
 				absoluteExtraBudget -= extraBudget;
-				size.x = minSize.x + overMin;
+				size.x = minSize.x + overMin - margin.x;
 				break;
 			}
 			case eCellType::WEIGHT: {
-				float wanted = std::max(minSize.x, std::floor(child.sizing.GetValue() * unitsPerRel));
+				float wanted = std::max(minSize.x + margin.x, std::floor(child.sizing.GetValue() * unitsPerRel));
 				float overMin = wanted - minSize.x;
 				float extraBudget = std::min(overMin, relativeExtraBudget);
 				relativeExtraBudget -= extraBudget;
-				size.x = minSize.x + overMin;
+				size.x = minSize.x + overMin - margin.x;
 				break;
 			}
 			case eCellType::AUTO:
@@ -273,15 +284,16 @@ void LinearLayout::UpdateLayout() {
 				float overMin = wanted - minSize.x;
 				float extraBudget = std::min(overMin, absoluteExtraBudget);
 				absoluteExtraBudget -= extraBudget;
-				size.x = minSize.x + overMin;
+				size.x = minSize.x + overMin - margin.x;
 				break;
 		}
-
-		primaryOffset += size.x + margin.x;
 
 		if (child.control) {
 			PositionChild(child, size, primaryOffset, { budget, auxBudget });
 		}
+
+		primaryOffset += size.x + margin.x;
+
 	}
 
 
