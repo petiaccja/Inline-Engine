@@ -102,11 +102,12 @@ void NodeEditor::CreateGui() {
 	m_sidePanelDummy2.SetText(U"Clear");
 	m_sidePanelDummy1.OnClick += [this](auto...) { m_sidePanelDummy3.SetText(U"Default"); };
 	m_sidePanelDummy2.OnClick += [this](auto...) { m_sidePanelDummy3.SetText({}); };
-
+	m_sidePanelDummy4.SetDirection(gui::ScrollBar::HORIZONTAL);
 
 	m_sidePanelLayout.PushBack(m_sidePanelDummy1, gui::LinearLayout::CellSize().SetWidth(30.f));
 	m_sidePanelLayout.PushBack(m_sidePanelDummy2, gui::LinearLayout::CellSize().SetWidth(30.f));
 	m_sidePanelLayout.PushBack(m_sidePanelDummy3, gui::LinearLayout::CellSize().SetWidth(30.f));
+	m_sidePanelLayout.PushBack(m_sidePanelDummy4, gui::LinearLayout::CellSize().SetWidth(30.f));
 
 	m_sidePanelLayout.SetDirection(gui::LinearLayout::VERTICAL);
 	m_sidePanelLayout.SetInverted(true);

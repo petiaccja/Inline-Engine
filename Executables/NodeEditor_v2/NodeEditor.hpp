@@ -11,6 +11,7 @@
 #include <GuiEngine/Frame.hpp>
 #include <GuiEngine/LinearLayout.hpp>
 #include <GuiEngine/TextBox.hpp>
+#include <GuiEngine/ScrollBar.hpp>
 #include "GraphController.hpp"
 
 namespace inl::tool {
@@ -50,6 +51,7 @@ private:
 	gui::LinearLayout m_sidePanelLayout;
 	gui::Button m_sidePanelDummy1, m_sidePanelDummy2;
 	gui::TextBox m_sidePanelDummy3;
+	gui::ScrollBar m_sidePanelDummy4;
 };
 
 
