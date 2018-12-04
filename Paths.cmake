@@ -6,6 +6,8 @@ include_directories(${EXTERNALS_INCLUDE})
 # Set lib dir
 if (TARGET_PLATFORM_WINDOWS AND (TARGET_COMPILER_MSVC OR TARGET_COMPILER_CLANG))
 	set(EXTERNALS_LIB_1 "")
+elseif (TARGET_PLATFORM_LINUX AND TARGET_COMPILER_CLANG)
+	set(EXTERNALS_LIB_1 "linux_")
 else()
 	set(EXTERNALS_LIB_1 "unknown_")
 	message(WARNING "Unhandled compiler.")

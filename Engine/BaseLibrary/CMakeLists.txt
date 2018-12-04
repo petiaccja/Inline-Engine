@@ -43,6 +43,12 @@ source_group("Serialization" FILES ${src_serialization})
 source_group("JobSystem" FILES ${src_jobsystem})
 
 # Dependencies
+if (TARGET_PLATFORM_WINDOWS) 
+	set(LINK_DBGHELP 1)
+else()
+	set(LINK_DBGHELP 0)
+endif()
+
 target_link_libraries(BaseLibrary
-	$<IF:${TARGET_PLATFORM_WINDOWS},dbghelp,>
+	$<IF:${LINK_DBGHELP},dbghelp,>
 )

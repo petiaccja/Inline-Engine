@@ -83,13 +83,15 @@ set_whole_archive_linkage(${CMAKE_SOURCE_DIR})
 
 # Put projects in their folders
 set_target_properties(BaseLibrary PROPERTIES FOLDER Modules)
-set_target_properties(GraphicsApi_D3D12 PROPERTIES FOLDER Modules)
+if (TARGET_PLATFORM_WINDOWS)
+	set_target_properties(GraphicsApi_D3D12 PROPERTIES FOLDER Modules)
+endif()
 set_target_properties(GraphicsEngine_LL PROPERTIES FOLDER Modules)
 set_target_properties(GraphicsPipeline PROPERTIES FOLDER Modules)
 set_target_properties(AssetLibrary PROPERTIES FOLDER Modules)
 set_target_properties(GuiEngine PROPERTIES FOLDER Modules)
-set_target_properties(NetworkEngine PROPERTIES FOLDER Modules)
-set_target_properties(NetworkApi PROPERTIES FOLDER Modules)
+#set_target_properties(NetworkEngine PROPERTIES FOLDER Modules)
+#set_target_properties(NetworkApi PROPERTIES FOLDER Modules)
 set_target_properties(PhysicsEngine_Bullet PROPERTIES FOLDER Modules)
 
 set_target_properties(Test_General PROPERTIES FOLDER Test)
