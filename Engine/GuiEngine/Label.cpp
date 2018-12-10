@@ -25,7 +25,7 @@ Vec2 Label::GetSize() const {
 
 Vec2 Label::GetPreferredSize() const {
 	if (m_text->GetFont()) {
-		return { m_text->CalculateTextHeight(),	m_text->CalculateTextWidth() };
+		return { std::ceil(m_text->CalculateTextWidth()), std::ceil(m_text->CalculateTextHeight()) };
 	}
 	else {
 		return { 10, 10 };

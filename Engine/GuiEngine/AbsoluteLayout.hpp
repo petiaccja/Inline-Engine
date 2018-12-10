@@ -33,6 +33,7 @@ private:
 		Vec2 position = {0, 0};
 		std::list<Control*>::iterator orderIter;
 		std::list<Control*>* orderList = nullptr;
+		bool m_dirty = true;
 	};
 public:
 	AbsoluteLayout() = default;
@@ -89,6 +90,8 @@ private:
 	eRefPoint m_refPoint = eRefPoint::TOPLEFT;
 	bool m_yDown = true;
 	float m_depth = 0.0f;
+
+	bool m_dirty = true;
 };
 
 

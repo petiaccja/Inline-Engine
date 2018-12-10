@@ -18,7 +18,12 @@ std::vector<std::string> PipelineEditorGraph::GetNodeList() const {
 	std::vector<std::string> nameList;
 
 	for (auto info : nodeList) {
-		nameList.push_back(info.group + "/" + info.name);
+		std::string name = info.group;
+		if (!name.empty()) {
+			name += "/";
+		}
+		name += info.name;
+		nameList.push_back(name);
 	}
 
 	return nameList;

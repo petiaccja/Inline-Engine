@@ -3,6 +3,7 @@
 #include <thread>
 #include <algorithm>
 #include <fstream>
+#include <functional>
 
 
 namespace inl {

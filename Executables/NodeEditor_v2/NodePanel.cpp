@@ -1,8 +1,8 @@
 #include "NodePanel.hpp"
+#include <regex>
 
 
 namespace inl::tool {
-
 
 
 NodePanel::NodePanel() {

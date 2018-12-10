@@ -8,6 +8,7 @@
 #include <mutex>
 #include <vector>
 #include <typeindex>
+#include <functional>
 
 
 #ifdef _MSC_VER

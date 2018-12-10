@@ -1,17 +1,19 @@
 #pragma once
 
 
+#include "AbsoluteLayout.hpp"
 #include "Control.hpp"
-#include "Layout.hpp"
+#include "LinearLayout.hpp"
+#include "ScrollBar.hpp"
 #include "StandardControl.hpp"
 
 
 namespace inl::gui {
 
 
-class Frame : public StandardControl {
+class ScrollFrameV : public StandardControl {
 public:
-	Frame();
+	ScrollFrameV();
 
 	void SetSize(Vec2 size) override;
 	Vec2 GetSize() const override;
@@ -26,9 +28,10 @@ public:
 	std::vector<const Control*> GetChildren() const override;
 
 	// Frame specific properties.
-	void SetLayout(Layout& layout) { SetLayout(MakeBlankShared(layout)); }
-	void SetLayout(std::shared_ptr<Layout> layout);
-	std::shared_ptr<Layout> GetLayout() const;
+	void SetContent(Control& content) { SetContent(MakeBlankShared(content)); }
+	void SetContent(std::shared_ptr<Control> content);
+	std::shared_ptr<Control> GetContent() const;
+	void SetContentHeight(float height);
 
 	void OnAttach(Control* parent) override;
 	void OnDetach() override;
@@ -41,8 +44,15 @@ protected:
 	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::IOverlayEntity>>> GetOverlayEntities() override;
 
 private:
-	std::shared_ptr<Layout> m_layout;
-	std::unique_ptr<gxeng::IOverlayEntity> m_background;
+	void UpdateContentPosition();
+
+private:
+	LinearLayout m_scrollLayout;
+	AbsoluteLayout m_contentLayout;
+	std::shared_ptr<Control> m_content;
+	ScrollBar m_scrollBar;
+	float m_scrollBarWidth = 14.f;
+	float m_contentHeight = 50.f;
 };
 
 

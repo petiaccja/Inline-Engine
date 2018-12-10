@@ -4,8 +4,8 @@
 namespace inl::tool {
 
 
-NodeEditor::NodeEditor(gxeng::IGraphicsEngine* engine, Window* window)
-	: m_engine(engine), m_window(window) {
+NodeEditor::NodeEditor(gxeng::IGraphicsEngine* engine, Window* window, std::vector<IEditorGraph*> editors)
+	: m_engine(engine), m_window(window), m_editors(std::move(editors)) {
 	window->OnResize += Delegate<void(ResizeEvent)>{ &NodeEditor::OnResize, this };
 
 	CreateGraphicsEnvironment();
@@ -60,64 +60,33 @@ void NodeEditor::CreateGui() {
 
 	m_mainFrame.SetLayout(m_mainLayout);
 
-	m_mainLayout.PushBack(nullptr, gui::LinearLayout::CellSize().SetWidth(100));
+	m_mainLayout.PushBack(m_selectPanel, gui::LinearLayout::CellSize().SetWidth(250));
 	m_mainLayout.PushBack(m_nodePanel, gui::LinearLayout::CellSize().SetWeight(1));
-	m_mainLayout.PushBack(m_mainLayoutSep, gui::LinearLayout::CellSize().SetWidth(8));
 	m_mainLayout.PushBack(m_sidePanelLayout, gui::LinearLayout::CellSize().SetWidth(200));
 
-	m_testNode1 = std::make_shared<NodeControl>();
-	m_testNode1->SetSize({ 300, 200 });
-	m_testNode1->SetName("Blender");
-	m_testNode1->SetType("MixColor");
-	m_testNode1->SetInputPorts({
-		{ "Color 1", "Vec4" },
-		{ "Color 2", "Vec4" },
-		{ "Balance", "float" }
-	});
-	m_testNode1->SetOutputPorts({
-		{ "Result", "Vec4" }
-	});
 
-	m_testNode2 = std::make_shared<NodeControl>();
-	m_testNode2->SetSize({ 300, 200 });
-	m_testNode2->SetName("Saturate");
-	m_testNode2->SetType("Saturate");
-	m_testNode2->SetInputPorts({
-		{ "Color", "Vec4" },
-		});
-	m_testNode2->SetOutputPorts({
-		{ "Result", "Vec4" }
-		});
+	auto nodes = m_editors[0]->GetNodeList();
+	std::vector<std::u32string> u32nodes;
+	for (const auto& name : nodes) {
+		u32nodes.push_back(EncodeString<char32_t>(name));
+	}
+	m_selectPanel.SetChoices(u32nodes);
 
-	m_nodePanel.AddNode(m_testNode1);
-	m_nodePanel.AddNode(m_testNode2);
 	
 	style.background = { 0.08f, 0.08f, 0.08f, 1.0f };
 	m_nodePanel.SetStyle(style);
 
+	m_controller.SetSelectPanel(m_selectPanel);
 	m_controller.SetNodePanel(m_nodePanel);
+	m_controller.SetEditorGraph(*m_editors[0]);
 
+	m_resetButton.SetText(U"Reset");
+	m_resetButton.OnClick += [this](auto...) { m_controller.Clear(); };
 
-	m_sidePanelDummy1.SetText(U"Default");
-	m_sidePanelDummy2.SetText(U"Clear");
-	m_sidePanelDummy1.OnClick += [this](auto...) { m_sidePanelDummy3.SetText(U"Default"); };
-	m_sidePanelDummy2.OnClick += [this](auto...) { m_sidePanelDummy3.SetText({}); };
-	m_sidePanelDummy4.SetDirection(gui::ScrollBar::HORIZONTAL);
-
-	m_sidePanelLayout.PushBack(m_sidePanelDummy1, gui::LinearLayout::CellSize().SetWidth(30.f));
-	m_sidePanelLayout.PushBack(m_sidePanelDummy2, gui::LinearLayout::CellSize().SetWidth(30.f));
-	m_sidePanelLayout.PushBack(m_sidePanelDummy3, gui::LinearLayout::CellSize().SetWidth(30.f));
-	m_sidePanelLayout.PushBack(m_sidePanelDummy4, gui::LinearLayout::CellSize().SetWidth(30.f));
+	m_sidePanelLayout.PushBack(m_resetButton, gui::LinearLayout::CellSize().SetWidth(30.f));
 
 	m_sidePanelLayout.SetDirection(gui::LinearLayout::VERTICAL);
 	m_sidePanelLayout.SetInverted(true);
-
-	gui::ControlStyle sepStyle;
-	sepStyle.background = sepStyle.accent;
-	m_mainLayoutSep.SetStyle(sepStyle);
-
-	m_mainLayout.SetDepth(0);
-	m_mainLayoutSep.SetDepth(1);
 
 	m_window->OnMouseButton += Delegate<void(MouseButtonEvent)>{ &gui::Board::OnMouseButton, &m_board };
 	m_window->OnMouseMove += Delegate<void(MouseMoveEvent)>{ &gui::Board::OnMouseMove, &m_board };

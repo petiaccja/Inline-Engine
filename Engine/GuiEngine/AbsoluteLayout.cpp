@@ -66,6 +66,8 @@ AbsoluteLayout::Binding& AbsoluteLayout::operator[](const Control* child) {
 
 void AbsoluteLayout::SetSize(Vec2 size) {
 	m_size = size;
+
+	m_dirty = true;
 }
 
 
@@ -107,6 +109,8 @@ Vec2 AbsoluteLayout::GetMinimumSize() const {
 
 void AbsoluteLayout::SetPosition(Vec2 position) {
 	m_position = position;
+
+	m_dirty = true;
 }
 
 
@@ -152,10 +156,15 @@ std::vector<const Control*> AbsoluteLayout::GetChildren() const {
 
 void AbsoluteLayout::UpdateLayout() {
 	for (auto& childBinding : m_children) {
-		auto& [child, binding] = childBinding;
-		child->SetPosition(CalculateChildPosition(*binding));
+		if (m_dirty || childBinding.second->m_dirty) {
+			auto&[child, binding] = childBinding;
+			child->SetPosition(CalculateChildPosition(*binding));
+		}
+		childBinding.second->m_dirty = false;
 	}
 	SetDepth(m_depth);
+
+	m_dirty = false;
 }
 
 
@@ -233,6 +242,7 @@ Vec2 AbsoluteLayout::CalculateChildPosition(const Binding& binding) const {
 
 AbsoluteLayout::Binding& AbsoluteLayout::Binding::SetPosition(Vec2 position) {
 	this->position = position;
+	m_dirty = true;
 	return *this;
 }
 

@@ -21,6 +21,8 @@ set(controls
 	TextBox.cpp
 	ScrollBar.hpp
 	ScrollBar.cpp
+	ScrollFrameV.hpp
+	ScrollFrameV.cpp
 
 	StandardControl.cpp
 	StandardControl.hpp
@@ -31,8 +33,6 @@ set(layouts
 	AbsoluteLayout.cpp
 	LinearLayout.hpp
 	LinearLayout.cpp
-	ScrollVLayout.hpp
-	ScrollVLayout.cpp
 )
 
 set(placeholders

@@ -1,4 +1,5 @@
 #include "ScrollBar.hpp"
+
 #include "Placeholders/PlaceholderOverlayEntity.hpp"
 
 
@@ -84,11 +85,22 @@ void ScrollBar::SetVisibleLength(float length) {
 
 void ScrollBar::SetVisiblePosition(float begin) {
 	m_visiblePosition = begin;
+	OnChanged(begin);
 }
 
 
 void ScrollBar::SetHandleMinimumSize(float size) {
 	m_minHandleSize = size;
+}
+
+
+void ScrollBar::SetScrollStep(float size) {
+	m_scrollStep = 1.0f;
+}
+
+
+float ScrollBar::GetVisiblePosition() const {
+	return m_visiblePosition;
 }
 
 
@@ -102,6 +114,15 @@ std::vector<std::reference_wrapper<std::unique_ptr<gxeng::IOverlayEntity>>> Scro
 }
 
 
+std::pair<float, float> ScrollBar::GetBudgets() const {
+	float primaryBudget = m_direction == HORIZONTAL ? GetSize().x : GetSize().y;
+	float auxBudget = m_direction == HORIZONTAL ? GetSize().y : GetSize().x;
+	primaryBudget = std::max(primaryBudget - 4.0f, 0.0f);
+	auxBudget = std::max(auxBudget - 4.0f, 0.0f);
+	return { primaryBudget, auxBudget };
+}
+
+
 void ScrollBar::UpdateHandlePosition() {
 	float lengthFrac = m_visibleLength / m_totalLength;
 	float posBeginFrac = m_visiblePosition / m_totalLength;
@@ -111,10 +132,7 @@ void ScrollBar::UpdateHandlePosition() {
 		posCenterFrac = 1.0f - posCenterFrac;
 	}
 
-	float primaryBudget = m_direction == HORIZONTAL ? GetSize().x : GetSize().y;
-	float auxBudget = m_direction == HORIZONTAL ? GetSize().y : GetSize().x;
-	primaryBudget = std::max(primaryBudget - 4.0f, 0.0f);
-	auxBudget = std::max(auxBudget - 4.0f, 0.0f);
+	auto [primaryBudget, auxBudget] = GetBudgets();
 
 	float primaryPos = primaryBudget * posCenterFrac;
 	float primarySize = primaryBudget * lengthFrac;
@@ -135,7 +153,13 @@ void ScrollBar::UpdateHandlePosition() {
 	}
 
 	m_handle->SetPosition(pos);
-	m_handle->SetScale(size);	
+	m_handle->SetScale(size);
+}
+
+
+void ScrollBar::ClampHandlePosition() {
+	m_visibleLength = std::min(m_visibleLength, m_totalLength);
+	m_visiblePosition = std::clamp(m_visiblePosition, 0.0f, m_totalLength - m_visibleLength);
 }
 
 
@@ -147,8 +171,36 @@ void ScrollBar::UpdateColor() {
 
 
 void ScrollBar::SetScripts() {
-	
+	OnDragBegin += [this](Control*, Vec2 point) {
+		RectF handleRect = RectF::FromCenter(m_handle->GetPosition(), m_handle->GetScale());
+		m_isDragged = handleRect.IsPointInside(point);
+		m_dragOrigin = point;
+		m_handlePosition = m_handle->GetPosition();
+	};
+	OnDrag += [this](Control*, Vec2 current) {
+		if (m_isDragged) {
+			Vec2 offset = current - m_dragOrigin;
+			auto [primaryBudget, auxBudget] = GetBudgets();
+			Vec2 newHandlePosition = m_handlePosition + offset;
+
+			// Calculate fraction.
+			float pos = m_direction == HORIZONTAL ? newHandlePosition.x : newHandlePosition.y;
+			float base = (m_direction == HORIZONTAL ? GetPosition().x : GetPosition().y) - primaryBudget / 2.0f;
+			float fraction = (pos - base) / primaryBudget;
+			fraction = m_inverted ? 1.0f - fraction : fraction;
+
+			// Set handle position.
+			m_visiblePosition = fraction * m_totalLength - m_visibleLength / 2.0f;
+
+			// Fix up overdrag.
+			ClampHandlePosition();
+			OnChanged(m_visiblePosition);
+		}
+	};
+	OnDragEnd += [this](Control*, Vec2, Control*) {
+		m_isDragged = false;
+	};
 }
 
 
-}
+} // namespace inl::gui

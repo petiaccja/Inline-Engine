@@ -104,7 +104,7 @@ void Board::OnMouseButton(MouseButtonEvent evt) {
 			break;
 		case eKeyState::UP:
 			if (evt.button == eMouseButton::LEFT) {
-				if (m_draggedControl) {
+				if (m_firstDrag != true && m_draggedControl) {
 					PropagateEventUpwards(m_draggedControl, &Control::OnDragEnd, m_draggedControl, point, target);
 				}
 				m_draggedControl = nullptr;
@@ -207,9 +207,9 @@ float Board::GetDepth() const {
 
 void Board::Update(float elapsed) {
 	for (auto& child : m_controls) {
-		Update(child.get(), elapsed);
 		UpdateLayouts(child.get());
 		child->SetDepth(m_depth); // TODO: implement order by focus
+		Update(child.get(), elapsed);
 	}
 }
 

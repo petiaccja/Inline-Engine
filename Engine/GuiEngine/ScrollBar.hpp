@@ -3,6 +3,7 @@
 #include "StandardControl.hpp"
 
 #include <GraphicsEngine/Scene/ITextEntity.hpp>
+#include <BaseLibrary/Event.hpp>
 
 
 namespace inl::gui {
@@ -39,13 +40,20 @@ public:
 	void SetVisibleLength(float length);
 	void SetVisiblePosition(float begin);
 	void SetHandleMinimumSize(float size);
+	void SetScrollStep(float size);
+
+	float GetVisiblePosition() const;
+
+	Event<float> OnChanged;
 
 protected:
 	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> GetTextEntities() override;
 	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::IOverlayEntity>>> GetOverlayEntities() override;
 
 private:
+	std::pair<float, float> GetBudgets() const;
 	void UpdateHandlePosition();
+	void ClampHandlePosition();
 	void UpdateColor();
 	void SetScripts();
 
@@ -56,8 +64,14 @@ private:
 	bool m_inverted = false;
 	float m_totalLength = 100.f;
 	float m_visibleLength = 33.0f;
-	float m_visiblePosition = 33.0f;
+	float m_visiblePosition = 0.0f;
 	float m_minHandleSize = 10.f;
+	float m_scrollStep = 10.0f;
+
+	// Behaviour.
+	bool m_isDragged = false;
+	Vec2 m_dragOrigin;
+	Vec2 m_handlePosition;
 };
 
 

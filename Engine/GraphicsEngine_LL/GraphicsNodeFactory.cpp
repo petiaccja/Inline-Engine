@@ -2,8 +2,11 @@
 #include "GraphicsNode.hpp"
 
 
-NodeBase* inl::gxeng::GraphicsNodeFactory::CreateNode(const std::string & name) const {
+NodeBase* inl::gxeng::GraphicsNodeFactory::CreateNode(const std::string& name) const {
 	NodeBase* node = NodeFactory::CreateNode(name);
+	if (node == nullptr) {
+		node = NodeFactory_Singleton::GetInstance().CreateNode(name);
+	}
 	if (node == nullptr) {
 		throw InvalidArgumentException("Node with given name not found.", name);
 	}

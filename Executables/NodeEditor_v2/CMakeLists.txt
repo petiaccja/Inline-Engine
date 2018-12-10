@@ -11,6 +11,8 @@ set(files
 	"NodePropertiesPanel.hpp"
 	"PortPropertiesPanel.cpp"
 	"PortPropertiesPanel.hpp"
+	"NodeSelectPanel.cpp"
+	"NodeSelectPanel.hpp"
 	"NodeControl.cpp"
 	"NodeControl.hpp"
 	"PortControl.cpp"

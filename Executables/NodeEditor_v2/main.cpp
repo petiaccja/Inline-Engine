@@ -44,8 +44,24 @@ std::vector<std::string> GetMaterialShaders() {
 	return classList;
 }
 
+class SpecialNode : public InputPortConfig<void, void>, public OutputPortConfig<void> {
+public:
+	static const char* Info_GetName() { return "SpecialNode"; }
+	const std::string& GetInputName(size_t index) const override {
+		static const std::vector<std::string> names = { "RICSI", "N00B" };
+		return names[index];
+	}
+	const std::string& GetOutputName(size_t index) const override {
+		static const std::vector<std::string> names = { "EGY" };
+		return names[index];
+	}
+	void Update() override {}
+	void Notify(InputPortBase* sender) override {};
+};
+
 
 int main() {
+	NodeFactory_Singleton::GetInstance().RegisterNodeClass<SpecialNode>("Extra");
 	try {
 		// Create logger.
 		Logger logger;
@@ -92,7 +108,7 @@ int main() {
 		materialGraphEditor->SetNodeList(mtlClassList);
 
 		// Create NodeEditor.
-		tool::NodeEditor nodeEditor(&graphicsEngine, &window);
+		tool::NodeEditor nodeEditor(&graphicsEngine, &window, { pipelineGraphEditor.get(), materialGraphEditor.get() });
 
 		// Run game loop.
 		Timer timer;

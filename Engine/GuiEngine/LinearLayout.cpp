@@ -19,6 +19,7 @@ void LinearLayout::Insert(const_iterator where, std::shared_ptr<Control> control
 	if (mutWhere->control) {
 		Attach(this, mutWhere->control.get());
 	}
+	m_dirty = true;
 }
 
 
@@ -38,12 +39,16 @@ void LinearLayout::Change(const_iterator which, std::shared_ptr<Control> control
 		Attach(this, mutWhich->control.get());
 	}
 	mutWhich->sizing = sizing;
+
+	m_dirty = true;
 }
 
 
 void LinearLayout::Change(const_iterator which, CellSize sizing) {
 	auto mutWhich = m_children.begin() + (which - m_children.cbegin());
 	mutWhich->sizing = sizing;
+
+	m_dirty = true;
 }
 
 
@@ -57,6 +62,8 @@ void LinearLayout::PushBack(std::shared_ptr<Control> control, CellSize sizing) {
 	if (m_children.back().control) {
 		Attach(this, m_children.back().control.get());
 	}
+
+	m_dirty = true;
 }
 
 
@@ -65,6 +72,8 @@ void LinearLayout::Erase(const_iterator which) {
 		Detach(which->control.get());
 	}
 	m_children.erase(which);
+
+	m_dirty = true;
 }
 
 
@@ -75,6 +84,8 @@ void LinearLayout::Clear() {
 		}
 	}
 	m_children.clear();
+
+	m_dirty = true;
 }
 
 
@@ -91,6 +102,8 @@ const LinearLayout::CellSize& LinearLayout::operator[](size_t slot) const {
 
 void LinearLayout::SetSize(Vec2 size) {
 	m_size = size;
+
+	m_dirty = true;
 }
 
 
@@ -103,8 +116,8 @@ LinearLayout::SizingMeasurement LinearLayout::CalcMeasures() const {
 	SizingMeasurement measures;
 
 	for (const auto& child : m_children) {
-		Vec2 preferredSize = child.control ? child.control->GetPreferredSize() : Vec2(0,0);
-		Vec2 minSize = child.control ? child.control->GetMinimumSize() : Vec2(0,0);
+		Vec2 preferredSize = child.control ? child.control->GetPreferredSize() : Vec2(0, 0);
+		Vec2 minSize = child.control ? child.control->GetMinimumSize() : Vec2(0, 0);
 
 
 		Vec2 margin = {
@@ -172,7 +185,7 @@ void LinearLayout::PositionChild(const Cell& cell, Vec2 childSize, float primary
 	}
 
 
-	Vec2 base = GetPosition() - GetSize() / 2.0f*primaryDir - auxDir*budgetSize.y/2.0f;
+	Vec2 base = GetPosition() - GetSize() / 2.0f * primaryDir - auxDir * budgetSize.y / 2.0f;
 
 	float primaryPosOffset = primaryOffset + primaryMargins[0] + childSize.x / 2.0f;
 	float auxPosOffset = auxMargins[0] + childSize.y / 2.0f;
@@ -215,6 +228,8 @@ Vec2 LinearLayout::GetMinimumSize() const {
 
 void LinearLayout::SetPosition(Vec2 position) {
 	m_position = position;
+
+	m_dirty = true;
 }
 
 
@@ -224,6 +239,11 @@ Vec2 LinearLayout::GetPosition() const {
 
 
 void LinearLayout::UpdateLayout() {
+	if (!m_dirty) {
+		return;
+	}
+	m_dirty = false;
+
 	SizingMeasurement measures = CalcMeasures();
 
 	float minSize = measures.sumMinSizeAbs + measures.sumMinSizeRel;
@@ -246,8 +266,8 @@ void LinearLayout::UpdateLayout() {
 	float primaryOffset = 0.0f;
 
 	for (const auto& child : m_children) {
-		Vec2 preferredSize = child.control ? child.control->GetPreferredSize() : Vec2(0,0);
-		Vec2 minSize = child.control ? child.control->GetMinimumSize() : Vec2(0,0);
+		Vec2 preferredSize = child.control ? child.control->GetPreferredSize() : Vec2(0, 0);
+		Vec2 minSize = child.control ? child.control->GetMinimumSize() : Vec2(0, 0);
 		Vec2 margin = {
 			child.sizing.GetMargin().left + child.sizing.GetMargin().right,
 			child.sizing.GetMargin().top + child.sizing.GetMargin().bottom
@@ -280,7 +300,7 @@ void LinearLayout::UpdateLayout() {
 				break;
 			}
 			case eCellType::AUTO:
-				float wanted = std::max(minSize.x, preferredSize.x);
+				float wanted = std::max(minSize.x + margin.x, preferredSize.x);
 				float overMin = wanted - minSize.x;
 				float extraBudget = std::min(overMin, absoluteExtraBudget);
 				absoluteExtraBudget -= extraBudget;
@@ -293,87 +313,7 @@ void LinearLayout::UpdateLayout() {
 		}
 
 		primaryOffset += size.x + margin.x;
-
 	}
-
-
-
-	/*
-
-	float sumPercentage = 0.0f;
-	unsigned sumAbsolute = 0;
-	for (const auto& child : m_children) {
-		switch (child.sizing.GetType()) {
-			case eCellType::ABSOLUTE:
-				sumAbsolute += (unsigned)std::max(0.0f, child.sizing.GetValue());
-				break;
-			case eCellType::WEIGHT:
-				sumPercentage += std::max(0.0f, child.sizing.GetValue());
-				break;
-			case eCellType::AUTO:
-				sumAbsolute += 80;
-				break; // Use Control::GetPreferred size instead.
-		}
-	}
-
-	unsigned totalLength = !m_vertical ? GetSize().x : GetSize().y;
-	unsigned weightedLength = std::max(0, (int)totalLength - (int)sumAbsolute);
-
-	int whereMoving = GetPosition().x - GetSize().x / 2;
-	int whereFix = GetPosition().y - GetSize().y / 2;
-	if (m_vertical) {
-		std::swap(whereMoving, whereFix);
-	}
-	if (m_inverted) {
-		whereMoving += totalLength;
-	}
-
-	for (const auto& child : m_children) {
-		int moving = 0;
-		int fix = !m_vertical ? GetSize().y : GetSize().x;
-		switch (child.sizing.GetType()) {
-			case eCellType::ABSOLUTE:
-				moving = (int)std::max(0.0f, child.sizing.GetValue());
-				break;
-			case eCellType::WEIGHT:
-				moving = (int)std::max(0.0f, child.sizing.GetValue()) / sumPercentage * weightedLength;
-				break;
-			case eCellType::AUTO:
-				moving = 80;
-				break;
-		}
-
-		int totalMarginMoving = child.sizing.GetMargin().left + child.sizing.GetMargin().right;
-		int totalMarginFix = child.sizing.GetMargin().top + child.sizing.GetMargin().bottom;
-
-		int controlMoving = moving - totalMarginMoving;
-		controlMoving = std::max(0, controlMoving);
-		if (m_inverted) {
-			moving *= -1;
-			controlMoving *= -1;
-		}
-
-		int controlFix = fix - totalMarginFix;
-
-		if (child.control) {
-			Vec2 controlPos;
-			Vec2 controlSize;
-			int fixLowMargin = !m_vertical ? child.sizing.GetMargin().bottom : child.sizing.GetMargin().left;
-			if (!m_vertical) {
-				controlPos = { whereMoving + controlMoving / 2, whereFix + fixLowMargin + controlFix / 2 };
-				controlSize = { std::abs(controlMoving), controlFix };
-			}
-			else {
-				controlPos = { whereFix + fixLowMargin + controlFix / 2, whereMoving + controlMoving / 2 };
-				controlSize = { controlFix, std::abs(controlMoving) };
-			}
-			child.control->SetPosition(controlPos);
-			child.control->SetSize(controlSize);
-		}
-
-		whereMoving += moving;
-	}
-	*/
 }
 
 
@@ -419,7 +359,9 @@ float LinearLayout::GetDepth() const {
 void LinearLayout::OnAttach(Control* parent) {
 	Layout::OnAttach(parent);
 	for (auto& child : m_children) {
-		Attach(this, child.control.get());
+		if (child.control) {
+			Attach(this, child.control.get());
+		}
 	}
 
 	m_parent = parent;
@@ -427,7 +369,9 @@ void LinearLayout::OnAttach(Control* parent) {
 
 void LinearLayout::OnDetach() {
 	for (auto& child : m_children) {
-		Detach(child.control.get());
+		if (child.control) {
+			Detach(child.control.get());
+		}
 	}
 	Layout::OnDetach();
 

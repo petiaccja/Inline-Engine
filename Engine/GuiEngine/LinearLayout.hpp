@@ -39,9 +39,19 @@ public:
 			return *this;
 		}
 
+		CellSize& SetAuto() {
+			type = eCellType::AUTO;
+			return *this;
+		}
+
+		CellSize& SetMargin(Rect<float, false, false> margin) {
+			this->margin = margin;
+			return *this;
+		}
+
 		eCellType GetType() const { return type; }
 		float GetValue() const { return value; }
-		void SetMargin(Rect<float, false, false> margin) { this->margin = margin; }
+
 		const Rect<float, false, false>& GetMargin() const { return margin; }
 	private:
 		eCellType type = eCellType::WEIGHT;
@@ -136,6 +146,8 @@ private:
 
 	Vec2 m_position = {0, 0};
 	Vec2 m_size = {10, 10};
+
+	bool m_dirty = true;
 };
 
 
