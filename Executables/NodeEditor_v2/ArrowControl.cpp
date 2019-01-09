@@ -9,7 +9,7 @@ ArrowControl::ArrowControl()
 	: m_bezierLine(std::make_unique<gui::PlaceholderOverlayEntity>()),
 	  m_holdPoint(std::make_unique<gui::PlaceholderOverlayEntity>()),
 	  m_arrowHead(std::make_unique<gui::PlaceholderOverlayEntity>()) {
-	m_holdPoint->SetScale({ 4, 4 });
+	m_holdPoint->SetScale({ 6, 6 });
 	m_arrowHead->SetScale({ 10,10 });
 }
 
@@ -62,6 +62,9 @@ float ArrowControl::GetDepth() const {
 
 void ArrowControl::Update(float elapsed) {
 	UpdateClip();
+	m_bezierLine->SetColor(GetStyle().text.v);
+	m_holdPoint->SetColor(GetStyle().text.v);
+	m_arrowHead->SetColor(GetStyle().text.v);
 }
 
 

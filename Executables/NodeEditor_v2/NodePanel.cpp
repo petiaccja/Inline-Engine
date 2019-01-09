@@ -1,4 +1,7 @@
 #include "NodePanel.hpp"
+
+#include "NodeControl.hpp"
+
 #include <regex>
 
 
@@ -20,6 +23,11 @@ NodePanel::NodePanel() {
 
 	OnDragBegin += Delegate<void(Control*, Vec2)>{ &NodePanel::OnPanViewBegin, this };
 	OnDrag += Delegate<void(Control*, Vec2)>{ &NodePanel::OnPanView, this };
+
+	OnGainFocus += Delegate<void(Control*)>{ &NodePanel::OnSelect, this };
+	OnLoseFocus += Delegate<void(Control*)>{ &NodePanel::OnDeselect, this };
+
+	OnKeydown += Delegate<void(Control*, eKey)>{ &NodePanel::OnShortcutPressed, this };
 }
 
 
@@ -32,7 +40,26 @@ void NodePanel::AddNode(std::shared_ptr<NodeControl> node) {
 void NodePanel::RemoveNode(const NodeControl* node) {
 	auto it = m_nodes.find(node);
 	[[likely]] if (it != m_nodes.end()) {
+		// Remove all arrows from and to the deleted node.
+		// TODO: use std::erase_if in C++20.
+		auto pred = [node](decltype(m_arrows)::value_type arrow) {
+			return arrow.first.source == node || arrow.first.target == node;
+		};
+		for (auto it = m_arrows.begin(), last = m_arrows.end(); it != last;) {
+			if (pred(*it)) {
+				m_layout.RemoveChild(it->second.get());
+				m_arrowKeys.erase(it->second.get());
+				it = m_arrows.erase(it);
+			}
+			else {
+				++it;
+			}
+		}
+
+		// Remove node itself.
+		m_layout.RemoveChild(const_cast<NodeControl*>(node));
 		m_nodes.erase(it);
+		m_selectedNode = nullptr;
 	}
 	else {
 		throw InvalidArgumentException("Node is not shown on this panel.");
@@ -44,6 +71,7 @@ void NodePanel::AddLink(const NodeControl* source, int sourcePort, const NodeCon
 	ArrowKey key{ source, sourcePort, target, targetPort };
 	auto [it, isNew] = m_arrows.insert({ key, std::make_shared<ArrowControl>() });
 	if (isNew) {
+		m_arrowKeys.insert({ it->second.get(), key });
 		m_layout.AddChild(it->second).MoveToFront();
 		UpdateArrowPosition(it->first, *it->second);
 	}
@@ -54,7 +82,10 @@ void NodePanel::RemoveLink(const NodeControl* source, int sourcePort, const Node
 	ArrowKey key{ source, sourcePort, target, targetPort };
 	auto it = m_arrows.find(key);
 	[[likely]] if (it != m_arrows.end()) {
+		m_layout.RemoveChild(const_cast<ArrowControl*>(it->second.get()));
+		m_arrowKeys.erase(it->second.get());
 		m_arrows.erase(it);
+		m_selectedArrow = nullptr;
 	}
 	else {
 		throw InvalidArgumentException("There is no link between specified nodes.");
@@ -172,6 +203,95 @@ void NodePanel::OnPanView(Control* control, Vec2 dragTarget) {
 		m_panOrigin = dragTarget;
 		OffsetAllNodes(offset);
 		UpdateArrowPositions();
+	}
+}
+
+
+void NodePanel::OnSelect(Control* control) {
+	while (control != this && control != nullptr) {
+		if (auto node = dynamic_cast<NodeControl*>(control)) {
+			SelectNode(node);
+			break;
+		}
+		else if (auto port = dynamic_cast<PortControl*>(control)) {
+			SelectPort(port);
+			break;
+		}
+		else if (auto arrow = dynamic_cast<ArrowControl*>(control)) {
+			SelectArrow(arrow);
+			break;
+		}
+		control = control->GetParent();
+	}
+}
+
+
+void NodePanel::OnDeselect(Control* control) {
+	DeselectNode();
+	DeselectPort();
+	DeselectArrow();
+}
+
+
+void inl::tool::NodePanel::SelectNode(NodeControl* node) {
+	auto style = GetStyle();
+	style.background = style.focus;
+	node->SetStyle(style);
+	m_selectedNode = node;
+}
+
+
+void inl::tool::NodePanel::SelectPort(PortControl* port) {
+	auto style = GetStyle();
+	style.background = style.focus;
+	port->SetStyle(style);
+	m_selectedPort = port;
+}
+
+
+void inl::tool::NodePanel::SelectArrow(ArrowControl* arrow) {
+	auto style = GetStyle();
+	style.background = style.focus;
+	style.text = style.accent;
+	arrow->SetStyle(style);
+	m_selectedArrow = arrow;
+}
+
+
+void inl::tool::NodePanel::DeselectNode() {
+	if (m_selectedNode) {
+		m_selectedNode->SetStyle(nullptr);
+		m_selectedNode = nullptr;
+	}
+}
+
+
+void inl::tool::NodePanel::DeselectPort() {
+	if (m_selectedPort) {
+		m_selectedPort->SetStyle(nullptr);
+		m_selectedPort = nullptr;
+	}
+}
+
+
+void inl::tool::NodePanel::DeselectArrow() {
+	if (m_selectedArrow) {
+		m_selectedArrow->SetStyle(nullptr);
+		m_selectedArrow = nullptr;
+	}
+}
+
+
+void NodePanel::OnShortcutPressed(Control*, eKey key) {
+	if (key == eKey::DELETE) {
+		if (m_selectedNode) {
+			OnDeleteNode(m_selectedNode);
+		}
+		if (m_selectedArrow) {
+			auto keyIt = m_arrowKeys.find(m_selectedArrow);
+			assert(keyIt != m_arrowKeys.end());
+			OnDeleteLink(keyIt->second.source, keyIt->second.sourcePort, keyIt->second.target, keyIt->second.targetPort);
+		}
 	}
 }
 

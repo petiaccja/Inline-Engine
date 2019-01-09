@@ -42,7 +42,9 @@ public:
 
 private:
 	void OnAddNode(std::u32string name);
+	void OnDeleteNode(const NodeControl* node);
 	void OnLink(const NodeControl* output, int outPort, const NodeControl* input, int inPort);
+	void OnDeleteLink(const NodeControl* output, int outPort, const NodeControl* input, int inPort);
 	void RegisterView(NodePanel* view);
 	void UnregisterView(NodePanel* view);
 

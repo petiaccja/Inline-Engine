@@ -94,11 +94,19 @@ void GraphController::OnAddNode(std::u32string name) {
 }
 
 
+void GraphController::OnDeleteNode(const NodeControl* node) {
+	auto it = m_nodes.find(node);
+	assert(it != m_nodes.end()); // View had nodes the model does not, should never get out of sync.
+	m_model->RemoveNode(it->second);
+	m_view->RemoveNode(node);
+}
+
+
 void GraphController::OnLink(const NodeControl* output, int outPort, const NodeControl* input, int inPort) {
 	auto it = m_nodes.find(output);
 	assert(it != m_nodes.end());
 	IGraphEditorNode* outputModelNode = it->second;
-	it = m_nodes.find(input); 
+	it = m_nodes.find(input);
 	assert(it != m_nodes.end());
 	IGraphEditorNode* inputModelNode = it->second;
 
@@ -111,9 +119,18 @@ void GraphController::OnLink(const NodeControl* output, int outPort, const NodeC
 	}
 }
 
+void GraphController::OnDeleteLink(const NodeControl* output, int outPort, const NodeControl* input, int inPort) {
+	IGraphEditorNode* tarNode = m_nodes.find(input)->second;
+
+	m_model->Unlink(tarNode, inPort);
+	m_view->RemoveLink(output, outPort, input, inPort);
+}
+
 
 void GraphController::RegisterView(NodePanel* view) {
 	m_view->OnAddLink += Delegate<void(const NodeControl*, int, const NodeControl*, int)>{ &GraphController::OnLink, this };
+	m_view->OnDeleteLink += Delegate<void(const NodeControl*, int, const NodeControl*, int)>{ &GraphController::OnDeleteLink, this };
+	m_view->OnDeleteNode += Delegate<void(const NodeControl*)>{ &GraphController::OnDeleteNode, this };
 }
 
 

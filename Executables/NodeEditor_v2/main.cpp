@@ -114,7 +114,9 @@ int main() {
 		Timer timer;
 		timer.Start();
 		window.Show();
-		double elapsed = 0.01f;
+		double elapsed = 0.01;
+		double elapsedAccumulator = 0.0;
+		int elapsedSampleCount = 0;
 		while (!window.IsClosed()) {
 			window.CallEvents();
 			nodeEditor.Update((float)elapsed);
@@ -122,9 +124,17 @@ int main() {
 
 			elapsed = timer.Elapsed();
 			timer.Reset();
-			std::stringstream ss;
-			ss << "Node Editor v2 | " << "FrameTime=" << elapsed*1000 << "ms";
-			window.SetTitle(ss.str());
+
+			elapsedAccumulator += elapsed;
+			++elapsedSampleCount;
+			if (elapsedAccumulator >= 0.5) {
+				double elapsedAverage = elapsedAccumulator / elapsedSampleCount;
+				std::stringstream ss;
+				ss << "Node Editor v2 | " << "FrameTime=" << elapsedAverage*1000 << "ms";
+				elapsedAccumulator = 0;
+				elapsedSampleCount = 0;
+				window.SetTitle(ss.str());
+			}
 		}
 	}
 	catch (Exception& ex) {

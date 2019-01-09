@@ -8,6 +8,9 @@
 
 namespace inl::gui {
 
+//static_assert(false, "Cached objects, such as control dragged, focused, can be deleted while in cache causing a crash.")
+// This can be solved by for example an OnDestroy callback on the Controls, or by using shared_ptrs as cache.
+
 
 class Board : private Control {
 public:
@@ -49,6 +52,7 @@ private:
 
 	void DebugTree() const;
 	void DebugTreeRecurse(const Control* control, int level) const;
+
 private:
 	// Dummy implementations for Control.
 	void SetSize(Vec2) override {}

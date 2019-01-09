@@ -39,8 +39,6 @@ public:
 
 class Control {
 public:
-	virtual ~Control() = default;
-
 	// Sizing
 	virtual void SetSize(Vec2 size) = 0;
 	virtual Vec2 GetSize() const = 0;

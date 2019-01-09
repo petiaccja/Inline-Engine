@@ -7,8 +7,8 @@
 #include <GuiEngine/Frame.hpp>
 
 #include <memory>
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
 
 
 namespace inl::tool {
@@ -28,9 +28,9 @@ private:
 	struct ArrowKeyHash {
 		size_t operator()(const ArrowKey& obj) const {
 			return std::hash<const NodeControl*>()(obj.source)
-				^ (std::hash<const NodeControl*>()(obj.target) << 1)
-				^ (std::hash<int>()(obj.sourcePort) << 2)
-				^ (std::hash<int>()(obj.targetPort) << 3);
+				   ^ (std::hash<const NodeControl*>()(obj.target) << 1)
+				   ^ (std::hash<int>()(obj.sourcePort) << 2)
+				   ^ (std::hash<int>()(obj.targetPort) << 3);
 		}
 	};
 	class NodeControlPtrLess {
@@ -78,12 +78,26 @@ private:
 
 	void OnPanViewBegin(Control* control, Vec2 dragOrigin);
 	void OnPanView(Control* control, Vec2 dragTarget);
+
+	void OnSelect(Control* control);
+	void OnDeselect(Control* control);
+
+	void SelectNode(NodeControl* node);
+	void SelectPort(PortControl* port);
+	void SelectArrow(ArrowControl* arrow);
+	void DeselectNode();
+	void DeselectPort();
+	void DeselectArrow();
+
+	void OnShortcutPressed(Control*, eKey key);
+
 private:
 	gui::AbsoluteLayout m_layout;
 
 	// Node and arrows.
 	std::set<std::shared_ptr<NodeControl>, NodeControlPtrLess> m_nodes;
 	std::unordered_map<ArrowKey, std::shared_ptr<ArrowControl>, ArrowKeyHash> m_arrows;
+	std::unordered_map<const ArrowControl*, ArrowKey> m_arrowKeys;
 
 	// Linking state.
 	ArrowControl m_temporaryArrow;
@@ -96,7 +110,12 @@ private:
 	Vec2 m_dragOffset;
 	NodeControl* m_draggedNode = nullptr;
 	PortControl* m_draggedPort = nullptr;
-	Vec2 m_panOrigin = {0, 0};
+	Vec2 m_panOrigin = { 0, 0 };
+
+	// Selecting nodes and ports.
+	NodeControl* m_selectedNode = nullptr;
+	PortControl* m_selectedPort = nullptr;
+	ArrowControl* m_selectedArrow = nullptr;
 };
 
 

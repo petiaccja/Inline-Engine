@@ -10,6 +10,11 @@ set(sources
 	Board.cpp
 )
 
+set(sources2
+	Control2.hpp
+	Control2.cpp
+)
+
 set(controls 
 	Frame.hpp
 	Frame.cpp
@@ -41,12 +46,13 @@ set(placeholders
 
 # Create target
 add_library(GuiEngine STATIC 
-	${sources} ${controls} ${layouts} ${placeholders}
+	${sources} ${sources2} ${controls} ${layouts} ${placeholders}
 )
 
 # Filters
 source_group("" FILES ${sources})
 source_group("Controls" FILES ${controls})
+source_group("V2" FILES ${sources2})
 source_group("Layouts" FILES ${layouts})
 source_group("Placeholders" FILES ${placeholders})
 
