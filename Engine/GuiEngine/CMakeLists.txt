@@ -8,6 +8,11 @@ set(sources
 	Layout.cpp
 	Board.hpp
 	Board.cpp
+	Sprite.hpp
+	Sprite.cpp
+	Text.hpp
+	Text.cpp
+	GraphicsContext.hpp
 )
 
 set(sources2

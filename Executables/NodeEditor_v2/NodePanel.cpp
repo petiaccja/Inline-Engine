@@ -39,7 +39,7 @@ void NodePanel::AddNode(std::shared_ptr<NodeControl> node) {
 
 void NodePanel::RemoveNode(const NodeControl* node) {
 	auto it = m_nodes.find(node);
-	[[likely]] if (it != m_nodes.end()) {
+	if (it != m_nodes.end()) {
 		// Remove all arrows from and to the deleted node.
 		// TODO: use std::erase_if in C++20.
 		auto pred = [node](decltype(m_arrows)::value_type arrow) {
@@ -81,7 +81,7 @@ void NodePanel::AddLink(const NodeControl* source, int sourcePort, const NodeCon
 void NodePanel::RemoveLink(const NodeControl* source, int sourcePort, const NodeControl* target, int targetPort) {
 	ArrowKey key{ source, sourcePort, target, targetPort };
 	auto it = m_arrows.find(key);
-	[[likely]] if (it != m_arrows.end()) {
+	if (it != m_arrows.end()) {
 		m_layout.RemoveChild(const_cast<ArrowControl*>(it->second.get()));
 		m_arrowKeys.erase(it->second.get());
 		m_arrows.erase(it);

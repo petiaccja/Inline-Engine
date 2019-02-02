@@ -53,7 +53,6 @@ void Scene::AddEntity(const RigidBody* entity) {
 
 void Scene::RemoveEntity(const RigidBody* entity) {
 	auto it = m_entities.find(entity);
-	[[likely]]
 	if (it != m_entities.end()) {
 		m_entities.erase(it);
 	}

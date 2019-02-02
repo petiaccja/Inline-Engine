@@ -15,6 +15,7 @@
 namespace inl::gui {
 
 
+
 class Control2 {
 public:
 	// Hierarchy
@@ -26,13 +27,13 @@ public:
 	std::set<const Control2*> GetChildren() const;
 
 	// Sizing
-	virtual void SetSize(Vec2 size) = 0;
+	virtual void SetSize(const Vec2& size) = 0;
 	virtual Vec2 GetSize() const = 0;
 	virtual Vec2 GetPreferredSize() const = 0;
 	virtual Vec2 GetMinimumSize() const = 0;
 
 	// Position
-	virtual void SetPosition(Vec2 position) = 0;
+	virtual void SetPosition(const Vec2& position) = 0;
 	virtual Vec2 GetPosition() const = 0;
 
 	// Visibility
@@ -79,6 +80,9 @@ protected:
 	template <class T>
 	static const T& GetLayoutPosition(const Control2& control);
 
+	template <class EventT, class... Args>
+	void CallEventUpstream(EventT event, const Args&... args);
+
 private:
 	const Control2* m_parent = nullptr;
 	std::set<std::shared_ptr<Control2>, SharedPtrLess<Control2>> m_children;
@@ -111,6 +115,17 @@ const T& Control2::GetLayoutPosition(const Control2& control) {
 	}
 	throw InvalidCastException("Layout position data stored in control has type different to the requested.");
 }
+
+
+template <class EventT, class... Args>
+void Control2::CallEventUpstream(EventT event, const Args&... args) {
+	(this->*event)(args...);
+	Control2* parent = GetParent();
+	if (parent) {
+		parent->CallEventUpstream(event, args...);
+	}
+}
+
 
 
 } // namespace inl::gui

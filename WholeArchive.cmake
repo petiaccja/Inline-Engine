@@ -8,7 +8,15 @@ define_property(
 function(make_archive_whole archive_name archive_output)
 	# This is just a hack for now.
 	# TODO: handle generators and compilers other than VS and MSVC.
-	set(${archive_output} "-WHOLEARCHIVE:${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/$(Configuration)/${archive_name}" PARENT_SCOPE)
+	if (TARGET_COMPILER_MSVC)
+		if (GENERATOR_IS_MULTI_CONFIG)
+			set(${archive_output} "-WHOLEARCHIVE:${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/$(Configuration)/${archive_name}" PARENT_SCOPE)
+		else()
+			set(${archive_output} "-WHOLEARCHIVE:${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${archive_name}" PARENT_SCOPE)
+		endif()
+	else()
+		message(SEND_ERROR "Whole archives are not written for compiler & generator.")
+	endif()
 endfunction()
 
 
@@ -30,7 +38,6 @@ function(target_whole_archives)
 		make_archive_whole(${whole_arch} cmdline_option)
 		LIST(APPEND wholified ${cmdline_option})
 	endforeach()
-
 
 	set(new_archives ${stripped_in} ${wholified})
 	set(${PARSED_ARGS_OUT} ${new_archives} PARENT_SCOPE)
