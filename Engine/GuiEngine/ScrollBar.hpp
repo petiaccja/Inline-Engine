@@ -1,16 +1,17 @@
 #pragma once
 
-#include "StandardControl.hpp"
+
 
 #include <GraphicsEngine/Scene/ITextEntity.hpp>
 #include <BaseLibrary/Event.hpp>
+#include "Sprite.hpp"
 
 
 namespace inl::gui {
 
 
 
-class ScrollBar : public StandardControl {
+class ScrollBar : public Control {
 public:
 	enum eDirection {
 		VERTICAL,
@@ -20,18 +21,21 @@ public:
 public:
 	ScrollBar(eDirection direction = VERTICAL);
 
-	void SetSize(Vec2 size) override;
+	void SetSize(const Vec2& size) override;
 	Vec2 GetSize() const override;
 	Vec2 GetMinimumSize() const override;
 	Vec2 GetPreferredSize() const override;
 
-	void SetPosition(Vec2 position) override;
+	void SetPosition(const Vec2& position) override;
 	Vec2 GetPosition() const override;
-
-	void Update(float elapsed = 0.0f) override;
-
 	float SetDepth(float depth) override;
 	float GetDepth() const override;
+
+	void SetVisible(bool visible) override;
+	bool GetVisible() const override;
+	bool IsShown() const override;
+
+	void Update(float elapsed = 0.0f) override;
 
 	// ScrollBar specific properties
 	void SetDirection(eDirection direction);
@@ -45,21 +49,16 @@ public:
 	float GetVisiblePosition() const;
 
 	Event<float> OnChanged;
-
-protected:
-	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> GetTextEntities() override;
-	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::IOverlayEntity>>> GetOverlayEntities() override;
-
+	
 private:
 	std::pair<float, float> GetBudgets() const;
 	void UpdateHandlePosition();
 	void ClampHandlePosition();
-	void UpdateColor();
 	void SetScripts();
 
 private:
-	std::unique_ptr<gxeng::IOverlayEntity> m_background;
-	std::unique_ptr<gxeng::IOverlayEntity> m_handle;
+	Sprite m_background;
+	Sprite m_handle;
 	eDirection m_direction;
 	bool m_inverted = false;
 	float m_totalLength = 100.f;

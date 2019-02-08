@@ -1,28 +1,30 @@
 #pragma once
 
-#include "StandardControl.hpp"
 
 #include <BaseLibrary/Color.hpp>
-#include <GraphicsEngine/Resources/IFont.hpp>
-#include <GraphicsEngine/Scene/ITextEntity.hpp>
+#include "Text.hpp"
 
 
 namespace inl::gui {
 
 
-class Label : public StandardControl {
+class Label : public Control {
 public:
 	Label();
 
-	void SetSize(Vec2 size) override;
+	void SetSize(const Vec2& size) override;
 	Vec2 GetSize() const override;
 	Vec2 GetPreferredSize() const override;
 	Vec2 GetMinimumSize() const override;
 
-	void SetPosition(Vec2 position) override;
+	void SetPosition(const Vec2& position) override;
 	Vec2 GetPosition() const override;
+	float SetDepth(float depth) override;
+	float GetDepth() const override;
 
-	void Update(float elapsed = 0.0f) override;
+	void SetVisible(bool visible) override;
+	bool GetVisible() const override;
+	bool IsShown() const override;
 
 	// Label specific properties
 	void SetHorizontalAlignment(float alignment);
@@ -31,15 +33,8 @@ public:
 	void SetText(std::u32string text);
 	const std::u32string& GetText() const;
 
-	float SetDepth(float depth) override;
-	float GetDepth() const override;
-protected:
-	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> GetTextEntities() override;
-	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::IOverlayEntity>>> GetOverlayEntities() override;
-
 private:
-	std::unique_ptr<gxeng::ITextEntity> m_text;
-	const gxeng::IFont* m_font = nullptr;
+	Text m_text;
 };
 
 

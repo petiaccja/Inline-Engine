@@ -12,54 +12,18 @@ template <class EventT, class... Args>
 void Board::PropagateEventUpwards(Control* control, EventT event, Args&&... args) {
 	while (control != nullptr) {
 		(control->*event)(std::forward<Args>(args)...);
-		control = control->GetParent();
+		control = const_cast<Control*>(control->GetParent());
 	}
 }
 
 
-void Board::AddControl(std::shared_ptr<Control> control) {
-	auto [it, newlyAdded] = m_controls.insert(control);
-	if (!newlyAdded) {
-		throw InvalidCallException("Control already added.");
-	}
-	Control::Attach(this, control.get());
-}
-
-
-void Board::RemoveControl(Control* control) {
-	auto it = m_controls.find(control);
-	if (it != m_controls.end()) {
-		m_controls.erase(it);
-		Control::Detach(control);
-	}
-	else {
-		throw InvalidCallException("Control is not part of this Board.");
-	}
-}
-
-
-void Board::SetDrawingContext(DrawingContext context) {
+void Board::SetDrawingContext(GraphicsContext context) {
 	m_context = context;
 }
 
 
-const DrawingContext& Board::GetDrawingContext() const {
+const GraphicsContext& Board::GetDrawingContext() const {
 	return m_context;
-}
-
-
-void Board::SetStyle(nullptr_t) {
-	m_defaultStyle = {};
-}
-
-
-void Board::SetStyle(const ControlStyle& style, bool asDefault) {
-	m_defaultStyle = style;
-}
-
-
-const ControlStyle& Board::GetStyle() const {
-	return m_defaultStyle;
 }
 
 
@@ -206,10 +170,12 @@ float Board::GetDepth() const {
 
 
 void Board::Update(float elapsed) {
-	for (auto& child : m_controls) {
-		UpdateLayouts(child.get());
-		child->SetDepth(m_depth); // TODO: implement order by focus
-		Update(child.get(), elapsed);
+	const auto& children = GetChildren();
+	for (auto& child : children) {
+		auto childMut = const_cast<Control*>(child);
+		UpdateLayouts(childMut);
+		childMut->SetDepth(m_depth); // TODO: implement order by focus
+		Update(childMut, elapsed);
 	}
 }
 
@@ -274,8 +240,9 @@ bool Board::HitTest(Vec2 point, const Control* control) {
 
 
 void Board::DebugTree() const {
-	for (auto& child : m_controls) {
-		DebugTreeRecurse(child.get(), 0);
+	const auto& children = GetChildren();
+	for (auto& child : children) {
+		DebugTreeRecurse(child, 0);
 	}
 	std::cout.flush();
 }
@@ -305,19 +272,15 @@ const Control* Board::GetTarget(Vec2 point) const {
 #endif
 
 	// TODO: handle depth
-	for (auto child : m_controls) {
-		auto* hit = HitTestRecurse(point, child.get());
+	const auto& children = GetChildren();
+	for (auto child : children) {
+		auto* hit = HitTestRecurse(point, child);
 		if (hit) {
 			target = hit;
 		}
 	}
 	m_breakOnTrace = false;
 	return target;
-}
-
-
-const DrawingContext* Board::GetContext() const {
-	return m_context.engine && m_context.scene ? &m_context : nullptr;
 }
 
 

@@ -209,7 +209,7 @@ std::shared_ptr<gxeng::Material> AssetStore::ForceLoadMaterial(std::filesystem::
 		}
 	}
 	else if (inputs.IsArray()) {
-		int idx;
+		int idx = 0;
 		for (auto it = inputs.Begin(); it != inputs.End(); ++it, ++idx) {
 			gxeng::Material::Parameter& param = (*material)[idx];
 			SetParam(param, std::to_string(idx), *it);

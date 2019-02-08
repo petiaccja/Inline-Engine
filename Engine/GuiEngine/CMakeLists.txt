@@ -15,11 +15,6 @@ set(sources
 	GraphicsContext.hpp
 )
 
-set(sources2
-	Control2.hpp
-	Control2.cpp
-)
-
 set(controls 
 	Frame.hpp
 	Frame.cpp
@@ -33,9 +28,6 @@ set(controls
 	ScrollBar.cpp
 	ScrollFrameV.hpp
 	ScrollFrameV.cpp
-
-	StandardControl.cpp
-	StandardControl.hpp
 )
 
 set(layouts
@@ -51,13 +43,12 @@ set(placeholders
 
 # Create target
 add_library(GuiEngine STATIC 
-	${sources} ${sources2} ${controls} ${layouts} ${placeholders}
+	${sources} ${controls} ${layouts} ${placeholders}
 )
 
 # Filters
 source_group("" FILES ${sources})
 source_group("Controls" FILES ${controls})
-source_group("V2" FILES ${sources2})
 source_group("Layouts" FILES ${layouts})
 source_group("Placeholders" FILES ${placeholders})
 

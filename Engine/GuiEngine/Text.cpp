@@ -74,6 +74,15 @@ Vec2 Text::GetPosition() const {
 	return m_entity->GetPosition();
 }
 
+float Text::SetDepth(float depth) {
+	m_entity->SetZDepth(depth);
+	return 1.0f;
+}
+
+float Text::GetDepth() const {
+	return m_entity->GetZDepth();
+}
+
 void Text::SetVisible(bool visible) {
 	throw NotImplementedException();
 }

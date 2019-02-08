@@ -43,7 +43,7 @@ protected:
 		if (str.empty()) {
 			throw InvalidCastException("Cannot convert empty string to artihmetic.");
 		}
-		char* pend;
+		char* pend = nullptr;
 		AritT value;
 		if constexpr (std::is_integral_v<AritT> && std::is_signed_v<AritT>) {
 			value = (AritT)strtoll(str.c_str(), &pend, 10);

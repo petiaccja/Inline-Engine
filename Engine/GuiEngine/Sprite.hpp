@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Control2.hpp"
+#include "Control.hpp"
 #include "GraphicsContext.hpp"
 
 #include <GraphicsEngine/Scene/IOverlayEntity.hpp>
@@ -14,7 +14,7 @@ namespace inl::gui {
 // Normal controls could just simply add them as sub-controls.
 
 
-class Sprite final : public Control2 {
+class Sprite final : public Control {
 public:
 	/// <summary> Creates an invisible placeholder sprite. </summary>
 	Sprite();
@@ -47,6 +47,8 @@ public:
 	// Position
 	void SetPosition(const Vec2& position) override;
 	Vec2 GetPosition() const override;
+	float SetDepth(float depth) override;
+	float GetDepth() const override;
 
 	// Visibility
 	void SetVisible(bool visible) override;
@@ -64,9 +66,6 @@ public:
 
 	void SetTexture(gxeng::IImage* texture);
 	gxeng::IImage* GetTexture() const;
-
-	void SetZDepth(float z);
-	float GetZDepth() const;
 
 	void SetAdditionalClip(RectF clipRectangle, Mat33 transform);
 	std::pair<RectF, Mat33> GetAdditionalClip() const;

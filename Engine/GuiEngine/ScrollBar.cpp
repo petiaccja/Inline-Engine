@@ -8,20 +8,17 @@ namespace inl::gui {
 
 ScrollBar::ScrollBar(eDirection direction) {
 	m_direction = direction;
-	m_background = std::make_unique<PlaceholderOverlayEntity>();
-	m_handle = std::make_unique<PlaceholderOverlayEntity>();
-
 	SetScripts();
 }
 
 
-void ScrollBar::SetSize(Vec2 size) {
-	m_background->SetScale(size);
+void ScrollBar::SetSize(const Vec2& size) {
+	m_background.SetSize(size);
 }
 
 
 Vec2 ScrollBar::GetSize() const {
-	return m_background->GetScale();
+	return m_background.GetSize();
 }
 
 
@@ -35,32 +32,47 @@ Vec2 ScrollBar::GetPreferredSize() const {
 }
 
 
-void ScrollBar::SetPosition(Vec2 position) {
-	m_background->SetPosition(position);
+void ScrollBar::SetPosition(const Vec2& position) {
+	m_background.SetPosition(position);
 }
 
 
 Vec2 ScrollBar::GetPosition() const {
-	return m_background->GetPosition();
+	return m_background.GetPosition();
 }
 
 
 void ScrollBar::Update(float elapsed) {
 	UpdateHandlePosition();
-	UpdateColor();
 }
 
 
 float ScrollBar::SetDepth(float depth) {
-	m_background->SetZDepth(depth);
-	m_handle->SetZDepth(depth + 0.1f);
+	m_background.SetDepth(depth);
+	m_handle.SetDepth(depth + 0.1f);
 	return 1.0f;
 }
 
 
 float ScrollBar::GetDepth() const {
-	return m_background->GetZDepth();
+	return m_background.GetDepth();
 }
+
+
+void ScrollBar::SetVisible(bool visible) {
+	throw NotImplementedException();
+}
+
+
+bool ScrollBar::GetVisible() const {
+	throw NotImplementedException();
+}
+
+
+bool ScrollBar::IsShown() const {
+	throw true;
+}
+
 
 
 void ScrollBar::SetDirection(eDirection direction) {
@@ -104,16 +116,6 @@ float ScrollBar::GetVisiblePosition() const {
 }
 
 
-std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> ScrollBar::GetTextEntities() {
-	return {};
-}
-
-
-std::vector<std::reference_wrapper<std::unique_ptr<gxeng::IOverlayEntity>>> ScrollBar::GetOverlayEntities() {
-	return { m_background, m_handle };
-}
-
-
 std::pair<float, float> ScrollBar::GetBudgets() const {
 	float primaryBudget = m_direction == HORIZONTAL ? GetSize().x : GetSize().y;
 	float auxBudget = m_direction == HORIZONTAL ? GetSize().y : GetSize().x;
@@ -152,8 +154,8 @@ void ScrollBar::UpdateHandlePosition() {
 		size = Vec2(auxSize, primarySize);
 	}
 
-	m_handle->SetPosition(pos);
-	m_handle->SetScale(size);
+	m_handle.SetPosition(pos);
+	m_handle.SetSize(size);
 }
 
 
@@ -163,19 +165,12 @@ void ScrollBar::ClampHandlePosition() {
 }
 
 
-void ScrollBar::UpdateColor() {
-	// TODO
-	m_background->SetColor(GetStyle().foreground.v);
-	m_handle->SetColor(GetStyle().background.v);
-}
-
-
 void ScrollBar::SetScripts() {
 	OnDragBegin += [this](Control*, Vec2 point) {
-		RectF handleRect = RectF::FromCenter(m_handle->GetPosition(), m_handle->GetScale());
+		RectF handleRect = RectF::FromCenter(m_handle.GetPosition(), m_handle.GetSize());
 		m_isDragged = handleRect.IsPointInside(point);
 		m_dragOrigin = point;
-		m_handlePosition = m_handle->GetPosition();
+		m_handlePosition = m_handle.GetPosition();
 	};
 	OnDrag += [this](Control*, Vec2 current) {
 		if (m_isDragged) {

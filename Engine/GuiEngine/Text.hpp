@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Control2.hpp"
+#include "Control.hpp"
 #include "GraphicsContext.hpp"
 
 #include <GraphicsEngine/Scene/ITextEntity.hpp>
@@ -10,7 +10,7 @@
 namespace inl::gui {
 
 
-class Text final : public Control2 {
+class Text final : public Control {
 public:
 	/// <summary> Creates an invisible placeholder text. </summary>
 	Text();
@@ -42,6 +42,8 @@ public:
 	// Position
 	void SetPosition(const Vec2& position) override;
 	Vec2 GetPosition() const override;
+	float SetDepth(float depth) override;
+	float GetDepth() const override;
 
 	// Visibility
 	void SetVisible(bool visible) override;
@@ -75,9 +77,6 @@ public:
 
 	float CalculateTextWidth() const { return m_entity->CalculateTextWidth(); }
 	float CalculateTextHeight() const { return m_entity->CalculateTextHeight(); }
-
-	void SetZDepth(float z) { m_entity->SetZDepth(z); }
-	float GetZDepth() const { return m_entity->GetZDepth(); }
 
 private:
 	static void CopyProperties(const gxeng::ITextEntity& source, gxeng::ITextEntity& target);

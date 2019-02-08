@@ -9,100 +9,19 @@ LinearLayout::LinearLayout(eDirection direction) {
 }
 
 
-void LinearLayout::Insert(const_iterator where, Control& control, CellSize sizing) {
-	return Insert(where, MakeBlankShared(control), sizing);
-}
-
-
-void LinearLayout::Insert(const_iterator where, std::shared_ptr<Control> control, CellSize sizing) {
-	auto mutWhere = m_children.emplace(where, std::move(control), sizing);
-	if (mutWhere->control) {
-		Attach(this, mutWhere->control.get());
-	}
-	m_dirty = true;
-}
-
-
-void LinearLayout::Change(const_iterator which, Control& control, CellSize sizing) {
-	return Change(which, MakeBlankShared(control), sizing);
-}
-
-
-void LinearLayout::Change(const_iterator which, std::shared_ptr<Control> control, CellSize sizing) {
-	auto mutWhich = m_children.begin() + (which - m_children.cbegin());
-
-	if (mutWhich->control) {
-		Detach(mutWhich->control.get());
-	}
-	mutWhich->control = std::move(control);
-	if (mutWhich->control) {
-		Attach(this, mutWhich->control.get());
-	}
-	mutWhich->sizing = sizing;
-
-	m_dirty = true;
-}
-
-
-void LinearLayout::Change(const_iterator which, CellSize sizing) {
-	auto mutWhich = m_children.begin() + (which - m_children.cbegin());
-	mutWhich->sizing = sizing;
-
-	m_dirty = true;
-}
-
-
-void LinearLayout::PushBack(Control& control, CellSize sizing) {
-	return PushBack(MakeBlankShared(control), sizing);
-}
-
-
-void LinearLayout::PushBack(std::shared_ptr<Control> control, CellSize sizing) {
-	m_children.emplace_back(std::move(control), sizing);
-	if (m_children.back().control) {
-		Attach(this, m_children.back().control.get());
-	}
-
-	m_dirty = true;
-}
-
-
-void LinearLayout::Erase(const_iterator which) {
-	if (which->control) {
-		Detach(which->control.get());
-	}
-	m_children.erase(which);
-
-	m_dirty = true;
-}
-
-
-void LinearLayout::Clear() {
-	for (auto& cell : m_children) {
-		if (cell.control) {
-			Detach(cell.control.get());
-		}
-	}
-	m_children.clear();
-
-	m_dirty = true;
-}
-
-
-LinearLayout::CellSize& LinearLayout::operator[](size_t slot) {
+LinearLayout::CellSize& LinearLayout::operator[](const Control*) {
 	return m_children[slot].sizing;
 }
 
 
-const LinearLayout::CellSize& LinearLayout::operator[](size_t slot) const {
+const LinearLayout::CellSize& LinearLayout::operator[](const Control*) const {
 	return m_children[slot].sizing;
 }
 
 
 
-void LinearLayout::SetSize(Vec2 size) {
+void LinearLayout::SetSize(const Vec2& size) {
 	m_size = size;
-
 	m_dirty = true;
 }
 
@@ -317,16 +236,6 @@ void LinearLayout::UpdateLayout() {
 }
 
 
-std::vector<const Control*> LinearLayout::GetChildren() const {
-	std::vector<const Control*> children;
-	children.reserve(m_children.size());
-	for (auto& child : m_children) {
-		if (child.control) {
-			children.push_back(child.control.get());
-		}
-	}
-	return children;
-}
 
 
 void LinearLayout::SetDirection(eDirection direction) {

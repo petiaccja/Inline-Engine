@@ -83,6 +83,17 @@ Vec2 Sprite::GetPosition() const {
 }
 
 
+float Sprite::SetDepth(float depth) {
+	m_entity->SetZDepth(depth);
+	return 1.0f;
+}
+
+
+float Sprite::GetDepth() const {
+	return m_entity->GetZDepth();
+}
+
+
 void Sprite::SetVisible(bool visible) {
 	throw NotImplementedException();
 }
@@ -114,10 +125,6 @@ Vec4 Sprite::GetColor() const { return m_entity->GetColor(); }
 void Sprite::SetTexture(gxeng::IImage* texture) { m_entity->SetTexture(texture); }
 
 gxeng::IImage* Sprite::GetTexture() const { return m_entity->GetTexture(); }
-
-void Sprite::SetZDepth(float z) { m_entity->SetZDepth(z); }
-
-float Sprite::GetZDepth() const { return m_entity->GetZDepth(); }
 
 void Sprite::SetAdditionalClip(RectF clipRectangle, Mat33 transform) { m_entity->SetAdditionalClip(clipRectangle, transform); }
 
