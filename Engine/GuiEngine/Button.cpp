@@ -14,6 +14,8 @@ Button::Button() {
 	OnEnterArea += [](auto...) {
 		System::SetCursorVisual(eCursorVisual::ARROW, nullptr);
 	};
+	AddChild(m_background);
+	AddChild(m_text);
 }
 
 
@@ -81,21 +83,6 @@ float Button::SetDepth(float depth) {
 
 float Button::GetDepth() const {
 	return m_background.GetDepth();
-}
-
-
-void Button::SetVisible(bool visible) {
-	throw NotImplementedException();
-}
-
-
-bool Button::GetVisible() const {
-	throw NotImplementedException();
-}
-
-
-bool Button::IsShown() const {
-	throw true;
 }
 
 

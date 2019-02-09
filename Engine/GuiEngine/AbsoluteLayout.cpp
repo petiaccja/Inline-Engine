@@ -17,6 +17,15 @@ AbsoluteLayout::Binding& AbsoluteLayout::operator[](const Control* child) {
 
 	return GetLayoutPosition<Binding>(*child);
 }
+	
+	
+const AbsoluteLayout::Binding& AbsoluteLayout::operator[](const Control* child) const {
+	if (child->GetParent() != this) {
+		throw InvalidArgumentException("Child does not belong to this control.");
+	}
+
+	return GetLayoutPosition<const Binding>(*child);
+}
 
 
 //------------------------------------------------------------------------------
@@ -169,6 +178,19 @@ Vec2 AbsoluteLayout::CalculateChildPosition(const Binding& binding) const {
 }
 
 
+void AbsoluteLayout::ChildAddedHandler(Control& child) {
+	m_childrenOrder.push_back(&child);
+	auto orderIt = --m_childrenOrder.end();
+	SetLayoutPosition(child, Binding(&m_childrenOrder, orderIt));
+}
+
+
+void AbsoluteLayout::ChildRemovedHandler(Control& child) {
+	Binding& binding = GetLayoutPosition<Binding>(child);
+	m_childrenOrder.erase(binding.orderIter);
+}
+
+
 AbsoluteLayout::Binding& AbsoluteLayout::Binding::SetPosition(Vec2 position) {
 	this->position = position;
 	m_dirty = true;
@@ -179,7 +201,7 @@ Vec2 AbsoluteLayout::Binding::GetPosition() const {
 	return position;
 }
 
-void AbsoluteLayout::Binding::MoveForward() {
+auto AbsoluteLayout::Binding::MoveForward() -> Binding& {
 	assert(orderList);
 
 	auto prevIt = orderIter;
@@ -187,9 +209,11 @@ void AbsoluteLayout::Binding::MoveForward() {
 	if (prevIt != orderList->end()) {
 		orderList->splice(prevIt, *orderList, orderIter);
 	}
+
+	return *this;
 }
 
-void AbsoluteLayout::Binding::MoveBackward() {
+auto AbsoluteLayout::Binding::MoveBackward() -> Binding& {
 	assert(orderList);
 
 	auto nextIt = orderIter;
@@ -197,24 +221,30 @@ void AbsoluteLayout::Binding::MoveBackward() {
 	if (nextIt != orderList->end()) {
 		orderList->splice(++nextIt, *orderList, orderIter);
 	}
+
+	return *this;
 }
 
-void AbsoluteLayout::Binding::MoveToFront() {
+auto AbsoluteLayout::Binding::MoveToFront() -> Binding& {
 	assert(orderList);
 
 	const auto firstIt = orderList->begin();
 	if (firstIt != orderList->end()) {
 		orderList->splice(firstIt, *orderList, orderIter);
 	}
+
+	return *this;
 }
 
-void AbsoluteLayout::Binding::MoveToBack() {
+auto AbsoluteLayout::Binding::MoveToBack() -> Binding& {
 	assert(orderList);
 
 	const auto endIt = orderList->end();
 	if (endIt != orderList->end()) {
 		orderList->splice(endIt, *orderList, orderIter);
 	}
+
+	return *this;
 }
 
 } // namespace inl::gui

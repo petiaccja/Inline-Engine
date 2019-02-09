@@ -29,7 +29,7 @@ public:
 
 	float SetDepth(float depth) override;
 	float GetDepth() const override;
-
+	
 protected:
 	void SetColor();
 	void SetScripts();

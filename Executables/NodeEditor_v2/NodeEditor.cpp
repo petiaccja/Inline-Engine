@@ -1,5 +1,10 @@
 #include "NodeEditor.hpp"
 
+#include <GraphicsEngine/Scene/ICamera2D.hpp>
+#include <BaseLibrary/StringUtil.hpp>
+
+#include <fstream>
+
 
 namespace inl::tool {
 
@@ -48,21 +53,24 @@ void NodeEditor::CreateGraphicsEnvironment() {
 }
 
 void NodeEditor::CreateGui() {
-	gui::DrawingContext drawingContext;
+	gui::GraphicsContext drawingContext;
 	drawingContext.engine = m_engine;
 	drawingContext.scene = m_scene.get();
 	m_board.SetDrawingContext(drawingContext);
-	gui::ControlStyle style;
-	style.font = m_font.get();
-	m_board.SetStyle(style);
+	//gui::ControlStyle style;
+	//style.font = m_font.get();
+	//m_board.SetStyle(style);
 
-	m_board.AddControl(m_mainFrame);
+	m_board.AddChild(m_mainFrame);
 
 	m_mainFrame.SetLayout(m_mainLayout);
 
-	m_mainLayout.PushBack(m_selectPanel, gui::LinearLayout::CellSize().SetWidth(250));
-	m_mainLayout.PushBack(m_nodePanel, gui::LinearLayout::CellSize().SetWeight(1));
-	m_mainLayout.PushBack(m_sidePanelLayout, gui::LinearLayout::CellSize().SetWidth(200));
+	m_mainLayout.AddChild(m_selectPanel);
+	m_mainLayout.AddChild(m_nodePanel);
+	m_mainLayout.AddChild(m_sidePanelLayout);
+	m_mainLayout[&m_selectPanel].SetWidth(250).MoveToBack();
+	m_mainLayout[&m_nodePanel].SetWidth(250).MoveToBack();
+	m_mainLayout[&m_sidePanelLayout].SetWidth(250).MoveToBack();
 
 
 	auto nodes = m_editors[0]->GetNodeList();
@@ -72,9 +80,9 @@ void NodeEditor::CreateGui() {
 	}
 	m_selectPanel.SetChoices(u32nodes);
 
-	
-	style.background = { 0.08f, 0.08f, 0.08f, 1.0f };
-	m_nodePanel.SetStyle(style);
+
+	//style.background = { 0.08f, 0.08f, 0.08f, 1.0f };
+	//m_nodePanel.SetStyle(style);
 
 	m_controller.SetSelectPanel(m_selectPanel);
 	m_controller.SetNodePanel(m_nodePanel);
@@ -83,7 +91,8 @@ void NodeEditor::CreateGui() {
 	m_resetButton.SetText(U"Reset");
 	m_resetButton.OnClick += [this](auto...) { m_controller.Clear(); };
 
-	m_sidePanelLayout.PushBack(m_resetButton, gui::LinearLayout::CellSize().SetWidth(30.f));
+	m_sidePanelLayout.AddChild(m_resetButton);
+	m_sidePanelLayout[&m_resetButton].SetWidth(30.f).MoveToBack();
 
 	m_sidePanelLayout.SetDirection(gui::LinearLayout::VERTICAL);
 	m_sidePanelLayout.SetInverted(true);

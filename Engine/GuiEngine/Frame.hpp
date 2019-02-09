@@ -23,11 +23,7 @@ public:
 	Vec2 GetPosition() const override;
 	float SetDepth(float depth) override;
 	float GetDepth() const override;
-	
-	void SetVisible(bool visible) override;
-	bool GetVisible() const override;
-	bool IsShown() const override;
-	
+
 	// Frame specific properties.
 	void SetLayout(Layout& layout) { SetLayout(MakeBlankShared(layout)); }
 	void SetLayout(std::shared_ptr<Layout> layout);

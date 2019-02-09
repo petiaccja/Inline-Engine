@@ -28,16 +28,25 @@ void Text::SetContext(const GraphicsContext& context) {
 	assert(context.engine);
 	assert(context.scene);
 
+	if (m_context.scene) {
+		m_context.scene->GetEntities<gxeng::ITextEntity>().Remove(m_entity.get());
+	}
+
 	std::unique_ptr<gxeng::ITextEntity> newEntity(context.engine->CreateTextEntity());
 
 	CopyProperties(*m_entity, *newEntity);
 
 	m_entity = std::move(newEntity);
 	m_context = context;
+	m_context.scene->GetEntities<gxeng::ITextEntity>().Add(m_entity.get());
 }
 
 
 void Text::ClearContext() {
+	if (m_context.scene) {
+		m_context.scene->GetEntities<gxeng::ITextEntity>().Remove(m_entity.get());
+	}
+
 	auto newEntity = std::make_unique<PlaceholderTextEntity>();
 	CopyProperties(*m_entity, *newEntity);
 
@@ -83,18 +92,9 @@ float Text::GetDepth() const {
 	return m_entity->GetZDepth();
 }
 
-void Text::SetVisible(bool visible) {
-	throw NotImplementedException();
+bool Text::HitTest(const Vec2& point) const {
+	return false;
 }
-
-bool Text::GetVisible() const {
-	throw NotImplementedException();
-}
-
-bool Text::IsShown() const {
-	return true;
-}
-
 
 void Text::CopyProperties(const gxeng::ITextEntity& source, gxeng::ITextEntity& target) {
 	target.SetFont(source.GetFont());

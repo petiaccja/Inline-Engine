@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Control.hpp"
+#include "GraphicalControl.hpp"
 #include "GraphicsContext.hpp"
 
 #include <GraphicsEngine/Scene/ITextEntity.hpp>
@@ -10,7 +11,7 @@
 namespace inl::gui {
 
 
-class Text final : public Control {
+class Text final : public Control, public GraphicalControl {
 public:
 	/// <summary> Creates an invisible placeholder text. </summary>
 	Text();
@@ -21,12 +22,8 @@ public:
 	/// <summary> Moves the text. The original will become invalid and cannot be further used. </summary>
 	Text(Text&& other) noexcept;
 
-	/// <summary> To turn the sprite into a true graphics engine object on a scene, a context can be provided. </summary>
-	/// <param name="context"> The graphics engine to use for the entity and the scene to register the entity for. </param>
-	void SetContext(const GraphicsContext& context);
-
-	/// <summary> If no graphics context is available, the sprite will not be visible, but it will be a valid object. </summary>
-	void ClearContext();
+	void SetContext(const GraphicsContext& context) override;
+	void ClearContext() override;
 
 
 	//-------------------------------------
@@ -45,10 +42,7 @@ public:
 	float SetDepth(float depth) override;
 	float GetDepth() const override;
 
-	// Visibility
-	void SetVisible(bool visible) override;
-	bool GetVisible() const override;
-	bool IsShown() const override;
+	bool HitTest(const Vec2& point) const override;
 
 	//-------------------------------------
 	// TextEntity

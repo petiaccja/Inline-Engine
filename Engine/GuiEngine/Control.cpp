@@ -5,7 +5,7 @@ namespace inl::gui {
 
 
 void Control::AddChild(std::shared_ptr<Control> child) {
-	assert(child->m_parent != nullptr);
+	assert(child->m_parent == nullptr);
 
 	auto [it, isNew] = m_children.insert(child);
 	if (!isNew) {
@@ -23,7 +23,7 @@ void Control::RemoveChild(const Control* child) {
 
 	auto it = m_children.find(child);
 	if (it != m_children.end()) {
-		CallEventUpstream(&Control::OnChildAdded, this, child);
+		CallEventUpstream(&Control::OnChildAdded, this, it->get());
 		(*it)->DetachedHandler();
 		ChildRemovedHandler(**it);
 		(*it)->m_parent = nullptr;
@@ -50,12 +50,21 @@ const Control* Control::GetParent() const {
 }
 
 
-std::set<const Control*> Control::GetChildren() const {
-	std::set<const Control*> children;
+std::set<Control*> Control::GetChildren() const {
+	std::set<Control*> children;
 	for (const auto& child : m_children) {
 		children.insert(child.get());
 	}
 	return children;
+}
+
+
+bool Control::HitTest(const Vec2& point) const {
+	Vec2 pos = GetPosition();
+	Vec2 size = GetSize();
+	RectF rc{ pos - size / 2, pos + size / 2 };
+
+	return rc.IsPointInside(point);
 }
 
 

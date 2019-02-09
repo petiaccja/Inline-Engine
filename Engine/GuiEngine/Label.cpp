@@ -10,6 +10,7 @@ namespace inl::gui {
 
 
 Label::Label() {
+	AddChild(m_text);
 	m_text.SetDepth(0.1f);
 	m_text.SetHorizontalAlignment(-1);
 }
@@ -73,22 +74,6 @@ float Label::SetDepth(float depth) {
 float Label::GetDepth() const {
 	return m_text.GetDepth();
 }
-
-
-void Label::SetVisible(bool visible) {
-	throw NotImplementedException();
-}
-
-
-bool Label::GetVisible() const {
-	throw NotImplementedException();
-}
-
-
-bool Label::IsShown() const {
-	throw true;
-}
-
 
 
 } // namespace inl::gui

@@ -22,10 +22,6 @@ public:
 	float SetDepth(float depth) override;
 	float GetDepth() const override;
 
-	void SetVisible(bool visible) override;
-	bool GetVisible() const override;
-	bool IsShown() const override;
-
 	// Label specific properties
 	void SetHorizontalAlignment(float alignment);
 	void SetVerticalAlignment(float alignment);

@@ -1,19 +1,15 @@
 #pragma once
 
 #include "GraphController.hpp"
-#include "NodeControl.hpp"
 #include "NodePanel.hpp"
 #include "NodeSelectPanel.hpp"
 
 #include <BaseLibrary/Platform/Window.hpp>
 #include <GraphicsEngine/IGraphicsEngine.hpp>
-#include <GuiEngine/AbsoluteLayout.hpp>
 #include <GuiEngine/Board.hpp>
 #include <GuiEngine/Button.hpp>
 #include <GuiEngine/Frame.hpp>
 #include <GuiEngine/LinearLayout.hpp>
-#include <GuiEngine/ScrollBar.hpp>
-#include <GuiEngine/TextBox.hpp>
 
 namespace inl::tool {
 

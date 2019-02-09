@@ -12,6 +12,9 @@ namespace inl::gui {
 
 
 TextBox::TextBox() {
+	AddChild(m_frame);
+	AddChild(m_background);
+	AddChild(m_text);
 	SetScripts();
 }
 

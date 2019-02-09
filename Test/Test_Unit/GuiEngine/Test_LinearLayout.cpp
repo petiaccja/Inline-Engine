@@ -13,9 +13,13 @@ TEST_CASE("LinearLayout ordering horizontal", "[GUI]") {
 	layout.SetPosition({ 0,0 });
 
 	Button b1, b2, b3;
-	layout.PushBack(b1, LinearLayout::CellSize().SetWeight(1));
-	layout.PushBack(b2, LinearLayout::CellSize().SetWeight(1));
-	layout.PushBack(b3, LinearLayout::CellSize().SetWeight(1));
+	layout.AddChild(b1);
+	layout.AddChild(b2);
+	layout.AddChild(b3);
+
+	layout[&b1].SetWeight(1).MoveToBack();
+	layout[&b2].SetWeight(1).MoveToBack();
+	layout[&b3].SetWeight(1).MoveToBack();
 
 	layout.UpdateLayout();
 
@@ -36,9 +40,13 @@ TEST_CASE("LinearLayout ordering vertical", "[GUI]") {
 	layout.SetDirection(LinearLayout::VERTICAL);
 
 	Button b1, b2, b3;
-	layout.PushBack(b1, LinearLayout::CellSize().SetWeight(1));
-	layout.PushBack(b2, LinearLayout::CellSize().SetWeight(1));
-	layout.PushBack(b3, LinearLayout::CellSize().SetWeight(1));
+	layout.AddChild(b1);
+	layout.AddChild(b2);
+	layout.AddChild(b3);
+
+	layout[&b1].SetWeight(1).MoveToBack();
+	layout[&b2].SetWeight(1).MoveToBack();
+	layout[&b3].SetWeight(1).MoveToBack();
 
 	layout.UpdateLayout();
 
@@ -59,9 +67,13 @@ TEST_CASE("LinearLayout ordering inverted", "[GUI]") {
 	layout.SetInverted(true);
 
 	Button b1, b2, b3;
-	layout.PushBack(b1, LinearLayout::CellSize().SetWeight(1));
-	layout.PushBack(b2, LinearLayout::CellSize().SetWeight(1));
-	layout.PushBack(b3, LinearLayout::CellSize().SetWeight(1));
+	layout.AddChild(b1);
+	layout.AddChild(b2);
+	layout.AddChild(b3);
+
+	layout[&b1].SetWeight(1).MoveToBack();
+	layout[&b2].SetWeight(1).MoveToBack();
+	layout[&b3].SetWeight(1).MoveToBack();
 
 	layout.UpdateLayout();
 
@@ -81,12 +93,12 @@ TEST_CASE("LinearLayout margins", "[GUI]") {
 	layout.SetPosition({ 150, 50 });
 
 	Button b1, b2, b3;
-	layout.PushBack(b1, LinearLayout::CellSize().SetWidth(100.f));
-	layout.PushBack(b2, LinearLayout::CellSize().SetWidth(100.f));
-	layout.PushBack(b3, LinearLayout::CellSize().SetWeight(1));
-	layout[0].SetMargin({ 20, 10, 30, 20 });
-	layout[1].SetMargin({ 3, 3, 3, 3 });
-	layout[2].SetMargin({ 3, 3, 3, 3 });
+	layout.AddChild(b1);
+	layout.AddChild(b2);
+	layout.AddChild(b3);
+	layout[&b1].SetWidth(100.f).SetMargin({ 20, 10, 30, 20 }).MoveToBack();
+	layout[&b2].SetWidth(100.f).SetMargin({ 3, 3, 3, 3 }).MoveToBack();
+	layout[&b3].SetWeight(1).SetMargin({ 3, 3, 3, 3 }).MoveToBack();
 
 	layout.UpdateLayout();
 

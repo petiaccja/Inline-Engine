@@ -35,10 +35,6 @@ public:
 	float SetDepth(float depth) override;
 	float GetDepth() const override;
 
-	void SetVisible(bool visible) override;
-	bool GetVisible() const override;
-	bool IsShown() const override;
-
 private:
 	Sprite m_background;
 	Text m_text;

@@ -7,6 +7,8 @@ namespace inl::gui {
 
 
 ScrollBar::ScrollBar(eDirection direction) {
+	AddChild(m_background);
+	AddChild(m_handle);
 	m_direction = direction;
 	SetScripts();
 }
@@ -57,23 +59,6 @@ float ScrollBar::SetDepth(float depth) {
 float ScrollBar::GetDepth() const {
 	return m_background.GetDepth();
 }
-
-
-void ScrollBar::SetVisible(bool visible) {
-	throw NotImplementedException();
-}
-
-
-bool ScrollBar::GetVisible() const {
-	throw NotImplementedException();
-}
-
-
-bool ScrollBar::IsShown() const {
-	throw true;
-}
-
-
 
 void ScrollBar::SetDirection(eDirection direction) {
 	m_direction = direction;

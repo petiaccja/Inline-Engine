@@ -6,7 +6,9 @@
 namespace inl::gui {
 
 
-Frame::Frame() {}
+Frame::Frame() {
+	AddChild(m_background);
+}
 
 
 void Frame::SetSize(const Vec2& size) {
@@ -76,22 +78,6 @@ float Frame::SetDepth(float depth) {
 float Frame::GetDepth() const {
 	return m_background.GetDepth();
 }
-
-
-void Frame::SetVisible(bool visible) {
-	throw NotImplementedException();
-}
-
-
-bool Frame::GetVisible() const {
-	throw NotImplementedException();
-}
-
-
-bool Frame::IsShown() const {
-	throw true;
-}
-
 
 
 } // namespace inl::gui

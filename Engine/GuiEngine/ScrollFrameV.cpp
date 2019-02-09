@@ -8,8 +8,10 @@ namespace inl::gui {
 
 ScrollFrameV::ScrollFrameV() {
 	m_scrollLayout.SetDirection(LinearLayout::HORIZONTAL);
-	m_scrollLayout.PushBack(m_contentLayout, LinearLayout::CellSize().SetWeight(1.0f).SetMargin({ 0, 0, 0, 0 }));
-	m_scrollLayout.PushBack(m_scrollBar, LinearLayout::CellSize().SetWidth(m_scrollBarWidth).SetMargin({ 0, 0, 0, 0 }));
+	m_scrollLayout.AddChild(m_contentLayout);
+	m_scrollLayout.AddChild(m_scrollBar);
+	m_scrollLayout[&m_contentLayout].SetWeight(1.0f).SetMargin({ 0, 0, 0, 0 }).MoveToBack();
+	m_scrollLayout[&m_scrollBar].SetWidth(m_scrollBarWidth).SetMargin({ 0, 0, 0, 0 }).MoveToBack();
 
 	m_scrollBar.SetDirection(ScrollBar::VERTICAL);
 	m_scrollBar.SetInverted(true);

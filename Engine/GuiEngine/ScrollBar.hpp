@@ -30,11 +30,7 @@ public:
 	Vec2 GetPosition() const override;
 	float SetDepth(float depth) override;
 	float GetDepth() const override;
-
-	void SetVisible(bool visible) override;
-	bool GetVisible() const override;
-	bool IsShown() const override;
-
+	
 	void Update(float elapsed = 0.0f) override;
 
 	// ScrollBar specific properties

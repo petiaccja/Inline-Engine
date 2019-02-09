@@ -1,8 +1,8 @@
 #pragma once
 
 
-#include <GraphicsEngine/Scene/IOverlayEntity.hpp>
-#include <GuiEngine/StandardControl.hpp>
+#include <GuiEngine/Sprite.hpp>
+#include <GuiEngine/Control.hpp>
 
 #include <InlineMath.hpp>
 #include <memory>
@@ -11,7 +11,7 @@
 namespace inl::tool {
 
 
-class ArrowControl : public gui::StandardControl {
+class ArrowControl : public gui::Control {
 public:
 	ArrowControl();
 
@@ -32,17 +32,13 @@ public:
 	Vec2 GetPosition() const override { return (m_p1 + m_p2) / 2.f; }
 protected:
 	// Use SetEndPoints.
-	void SetSize(Vec2 size) override {}
-
-	void SetPosition(Vec2 position) override {}
-
-	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> GetTextEntities() override;
-	std::vector<std::reference_wrapper<std::unique_ptr<gxeng::IOverlayEntity>>> GetOverlayEntities() override;
+	void SetSize(const Vec2& size) override {}
+	void SetPosition(const Vec2& position) override {}
 
 private:
-	std::unique_ptr<gxeng::IOverlayEntity> m_bezierLine;
-	std::unique_ptr<gxeng::IOverlayEntity> m_arrowHead;
-	std::unique_ptr<gxeng::IOverlayEntity> m_holdPoint;
+	gui::Sprite m_bezierLine;
+	gui::Sprite m_arrowHead;
+	gui::Sprite m_holdPoint;
 	Vec2 m_p1, m_p2;
 };
 

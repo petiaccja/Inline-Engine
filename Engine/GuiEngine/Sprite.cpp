@@ -31,16 +31,25 @@ void Sprite::SetContext(const GraphicsContext& context) {
 	assert(context.engine);
 	assert(context.scene);
 
+	if (m_context.scene) {
+		m_context.scene->GetEntities<gxeng::IOverlayEntity>().Remove(m_entity.get());
+	}
+
 	std::unique_ptr<gxeng::IOverlayEntity> newEntity(context.engine->CreateOverlayEntity());
 
 	CopyProperties(*m_entity, *newEntity);
 
 	m_entity = std::move(newEntity);
 	m_context = context;
+	m_context.scene->GetEntities<gxeng::IOverlayEntity>().Add(m_entity.get());
 }
 
 
 void Sprite::ClearContext() {
+	if (m_context.scene) {
+		m_context.scene->GetEntities<gxeng::IOverlayEntity>().Remove(m_entity.get());
+	}
+
 	auto newEntity = std::make_unique<PlaceholderOverlayEntity>();
 	CopyProperties(*m_entity, *newEntity);
 
@@ -94,20 +103,19 @@ float Sprite::GetDepth() const {
 }
 
 
-void Sprite::SetVisible(bool visible) {
-	throw NotImplementedException();
+void Sprite::SetRotation(float angle) {
+	m_entity->SetRotation(angle);
 }
 
 
-bool Sprite::GetVisible() const {
-	throw NotImplementedException();
+float Sprite::GetRotation() const {
+	return m_entity->GetRotation();
 }
 
 
-bool Sprite::IsShown() const {
-	return true;
+bool Sprite::HitTest(const Vec2& point) const {
+	return false;
 }
-
 
 
 //-------------------------------------

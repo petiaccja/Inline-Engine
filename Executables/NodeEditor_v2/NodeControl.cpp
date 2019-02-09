@@ -1,6 +1,7 @@
 #include "NodeControl.hpp"
 
 #include <BaseLibrary/Platform/System.hpp>
+#include <BaseLibrary/StringUtil.hpp>
 
 
 namespace inl::tool {
@@ -14,15 +15,16 @@ NodeControl::NodeControl() {
 
 	m_titleLayout.SetDirection(gui::LinearLayout::VERTICAL);
 	m_titleLayout.SetInverted(true);
-	m_titleLayout.PushBack(m_title, gui::LinearLayout::CellSize().SetWidth(32));
-	m_titleLayout.PushBack(m_ioSplitLayout, gui::LinearLayout::CellSize().SetWeight(1.0f));
-	m_titleLayout[1].SetMargin({ 0,0,0,0 });
+	m_titleLayout.AddChild(m_title);
+	m_titleLayout.AddChild(m_ioSplitLayout);
+	m_titleLayout[&m_title].SetWidth(32);
+	m_titleLayout[&m_ioSplitLayout].SetWeight(1.0f).SetMargin({ 0, 0, 0, 0 }).MoveToBack();
 
 	m_ioSplitLayout.SetDirection(gui::LinearLayout::HORIZONTAL);
-	m_ioSplitLayout.PushBack(m_inputPortsLayout, gui::LinearLayout::CellSize().SetWeight(1.0f));
-	m_ioSplitLayout.PushBack(m_outputPortsLayout, gui::LinearLayout::CellSize().SetWeight(1.0f));
-	m_ioSplitLayout[0].SetMargin({ 0,0,0,0 });
-	m_ioSplitLayout[1].SetMargin({ 0,0,0,0 });
+	m_ioSplitLayout.AddChild(m_inputPortsLayout);
+	m_ioSplitLayout.AddChild(m_outputPortsLayout);
+	m_ioSplitLayout[&m_inputPortsLayout].SetWeight(1.0f).SetMargin({ 0, 0, 0, 0 });
+	m_ioSplitLayout[&m_outputPortsLayout].SetWeight(1.0f).SetMargin({ 0, 0, 0, 0 });
 
 	m_inputPortsLayout.SetDirection(gui::LinearLayout::VERTICAL);
 	m_inputPortsLayout.SetInverted(true);
@@ -58,7 +60,7 @@ void NodeControl::SetType(std::string type) {
 
 
 void NodeControl::SetInputPorts(std::vector<std::pair<std::string, std::string>> inputPorts) {
-	m_inputPortsLayout.Clear();
+	m_inputPortsLayout.ClearChildren();
 	m_inputPorts.clear();
 
 	// Reserve avoid reallocation, which is important because items must keep
@@ -68,7 +70,8 @@ void NodeControl::SetInputPorts(std::vector<std::pair<std::string, std::string>>
 	for (auto& desc : inputPorts) {
 		PortControl& port = m_inputPorts.emplace_back(this, (int)m_inputPorts.size(), true);
 		port.SetText(EncodeString<char32_t>(desc.first + " : " + desc.second));
-		m_inputPortsLayout.PushBack(port, gui::LinearLayout::CellSize().SetWidth(26));
+		m_inputPortsLayout.AddChild(port);
+		m_inputPortsLayout[&port].SetWidth(26).MoveToBack();
 	}
 
 	UpdateHeight();
@@ -76,7 +79,7 @@ void NodeControl::SetInputPorts(std::vector<std::pair<std::string, std::string>>
 
 
 void NodeControl::SetOutputPorts(std::vector<std::pair<std::string, std::string>> outputPorts) {
-	m_outputPortsLayout.Clear();
+	m_outputPortsLayout.ClearChildren();
 	m_outputPorts.clear();
 
 	m_outputPorts.reserve(outputPorts.size());
@@ -84,7 +87,8 @@ void NodeControl::SetOutputPorts(std::vector<std::pair<std::string, std::string>
 	for (auto& desc : outputPorts) {
 		PortControl& port = m_outputPorts.emplace_back(this, (int)m_outputPorts.size(), false);
 		port.SetText(EncodeString<char32_t>(desc.first + " : " + desc.second));
-		m_outputPortsLayout.PushBack(port, gui::LinearLayout::CellSize().SetWidth(26));
+		m_outputPortsLayout.AddChild(port);
+		m_outputPortsLayout[&port].SetWidth(26).MoveToBack();
 	}
 
 	UpdateHeight();
@@ -107,7 +111,7 @@ void NodeControl::UpdateTitle() {
 
 void NodeControl::UpdateHeight() {
 	float height = 0.0f;
-	height += m_titleLayout.begin()->sizing.GetValue();
+	height += m_titleLayout[&m_title].GetValue();
 	height += 26 * std::max(m_inputPorts.size(), m_outputPorts.size());
 	SetSize({ GetSize().x, height });
 }

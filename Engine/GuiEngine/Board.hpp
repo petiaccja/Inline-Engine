@@ -1,12 +1,10 @@
 #pragma once
 
 #include "Control.hpp"
+#include "GraphicsContext.hpp"
 
 #include <BaseLibrary/Platform/Input.hpp>
 #include <BaseLibrary/Rect.hpp>
-
-#include <set>
-#include "GraphicsContext.hpp"
 
 
 namespace inl::gui {
@@ -17,9 +15,15 @@ namespace inl::gui {
 
 class Board : private Control {
 public:
+	Board();
+
+	using Control::AddChild;
+	using Control::ClearChildren;
+	using Control::RemoveChild;
+
 	void SetDrawingContext(GraphicsContext context);
 	const GraphicsContext& GetDrawingContext() const;
-	
+
 	// Even handlers.
 	void OnMouseButton(MouseButtonEvent evt);
 	void OnMouseMove(MouseMoveEvent evt);
@@ -35,15 +39,16 @@ public:
 
 private:
 	void Update(Control* subject, float elapsed);
-	void UpdateLayouts();
 	void UpdateLayouts(Control* subject);
 
+	template <class Func>
+	static void ApplyRecurse(Control* root, Func func);
+
 	static const Control* HitTestRecurse(Vec2 point, const Control* top);
-	static bool HitTest(Vec2 point, const Control* control);
 	const Control* GetTarget(Vec2 point) const;
 
-	template <class EventT, class... Args>
-	void PropagateEventUpwards(Control* control, EventT event, Args&&... args);
+	void SetGraphicsContext(Control* control);
+	void ClearGraphicsContext(Control* control);
 
 	void DebugTree() const;
 	void DebugTreeRecurse(const Control* control, int level) const;
@@ -58,13 +63,9 @@ private:
 	void SetPosition(const Vec2&) override {}
 	Vec2 GetPosition() const override { return { 0, 0 }; }
 
-	void SetVisible(bool) override {}
-	bool GetVisible() const override { return true; }
-	bool IsShown() const override { return true; }
-	
 private:
 	GraphicsContext m_context;
-	
+
 	Control* m_focusedControl = nullptr;
 	Control* m_hoveredControl = nullptr;
 	Control* m_draggedControl = nullptr;
@@ -77,6 +78,16 @@ private:
 	float m_depth = 0.0f;
 	float m_depthSpan = -1.0f; // TODO: implement properly
 };
+
+
+template <class Func>
+void Board::ApplyRecurse(Control* root, Func func) {
+	func(root);
+	auto children = root->GetChildren();
+	for (auto child: children) {
+		ApplyRecurse(child, func);
+	}
+}
 
 
 } // namespace inl::gui

@@ -20,18 +20,20 @@ public:
 private:
 	class Binding {
 		friend class AbsoluteLayout;
+		Binding(std::list<Control*>* orderList, std::list<Control*>::iterator orderIter)
+			: orderList(orderList), orderIter(orderIter) {}
 	public:
 		Binding& SetPosition(Vec2 position);
 		Vec2 GetPosition() const;
-		void MoveForward();
-		void MoveBackward();
-		void MoveToFront();
-		void MoveToBack();
+		Binding& MoveForward();
+		Binding& MoveBackward();
+		Binding& MoveToFront();
+		Binding& MoveToBack();
 	private:
 		Vec2 position = {0, 0};
+		bool m_dirty = true;
 		std::list<Control*>::iterator orderIter;
 		std::list<Control*>* orderList = nullptr;
-		bool m_dirty = true;
 	};
 public:
 	AbsoluteLayout() = default;
@@ -43,6 +45,7 @@ public:
 
 	// Children manipulation
 	Binding& operator[](const Control* child);
+	const Binding& operator[](const Control* child) const;
 
 	// Sizing
 	void SetSize(const Vec2& size) override;
@@ -68,6 +71,8 @@ public:
 private:
 	Vec2 CalculateChildPosition(const Binding& binding) const;
 
+	void ChildAddedHandler(Control& child) override;
+	void ChildRemovedHandler(Control& child) override;
 private:
 	Control* m_parent = nullptr;
 	std::list<Control*> m_childrenOrder;

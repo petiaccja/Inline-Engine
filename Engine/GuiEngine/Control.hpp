@@ -1,12 +1,13 @@
 #pragma once
 
 
-#include "SharedPtrLess.hpp"
 #include "BlankShared.hpp"
+#include "SharedPtrLess.hpp"
 
 #include <BaseLibrary/Event.hpp>
 #include <BaseLibrary/Exception/Exception.hpp>
 #include <BaseLibrary/Platform/Input.hpp>
+#include <BaseLibrary/Rect.hpp>
 
 #include <InlineMath.hpp>
 #include <any>
@@ -19,13 +20,16 @@ namespace inl::gui {
 
 class Control {
 public:
+	virtual ~Control() = default;
+
 	// Hierarchy
 	void AddChild(std::shared_ptr<Control> child);
+	void AddChild(Control& child) { AddChild(MakeBlankShared(child)); }
 	void RemoveChild(const Control* child);
 	void ClearChildren();
 
 	const Control* GetParent() const;
-	std::set<const Control*> GetChildren() const;
+	std::set<Control*> GetChildren() const;
 
 	// Sizing
 	virtual void SetSize(const Vec2& size) = 0;
@@ -40,16 +44,17 @@ public:
 	virtual float GetDepth() const = 0;
 
 	// Visibility
-	virtual void SetVisible(bool visible) = 0;
-	virtual bool GetVisible() const = 0;
-	virtual bool IsShown() const = 0;
+	void SetVisible(bool visible) {}
+	bool GetVisible() const { return true; }
+	bool IsShown() const { return true; }
 
+	virtual bool HitTest(const Vec2& point) const;
 	virtual void Update(float elapsed = 0.0f) {}
 
 
 	// Events
-	Event<Control*, const Control*> OnChildAdded; // subject, child
-	Event<Control*, const Control*> OnChildRemoved; // subject, child
+	Event<Control*, Control*> OnChildAdded; // subject, child
+	Event<Control*, Control*> OnChildRemoved; // subject, child
 
 	Event<Control*> OnEnterArea; // subject
 	Event<Control*, Vec2> OnHover; // subject, where absolute
@@ -70,6 +75,9 @@ public:
 	Event<Control*> OnGainFocus;
 	Event<Control*> OnLoseFocus;
 
+	template <class EventT, class... Args>
+	void CallEventUpstream(EventT event, const Args&... args) const;
+
 protected:
 	virtual void ChildAddedHandler(Control& child) {}
 	virtual void ChildRemovedHandler(Control& child) {}
@@ -82,15 +90,11 @@ protected:
 	template <class T>
 	static T& GetLayoutPosition(const Control& control);
 
-	template <class EventT, class... Args>
-	void CallEventUpstream(EventT event, const Args&... args) const;
-
 private:
 	const Control* m_parent = nullptr;
 	std::set<std::shared_ptr<Control>, SharedPtrLess<Control>> m_children;
 	mutable std::any m_layoutPosition;
 };
-
 
 
 template <class T>
