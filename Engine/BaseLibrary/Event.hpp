@@ -113,7 +113,7 @@ public:
 
 	/// <summary> Signs up functor for the event. You can't remove this functor later. </summary>
 	template <class SimpleFun>
-	std::enable_if_t<!IsComparable<SimpleFun>, void> operator+=(const SimpleFun& fun) {
+	std::enable_if_t<!IsComparable<SimpleFun>, void> operator+=(SimpleFun fun) {
 		std::function<void(ArgsT...)> callee = fun;
 
 		std::lock_guard<decltype(m_mtx)> lkg(m_mtx);

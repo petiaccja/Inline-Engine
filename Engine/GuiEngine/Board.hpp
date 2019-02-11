@@ -20,6 +20,8 @@ public:
 	using Control::AddChild;
 	using Control::ClearChildren;
 	using Control::RemoveChild;
+	using Control::SetStyle;
+	using Control::GetStyle;
 
 	void SetDrawingContext(GraphicsContext context);
 	const GraphicsContext& GetDrawingContext() const;
@@ -38,7 +40,6 @@ public:
 	void Update(float elapsed) override;
 
 private:
-	void Update(Control* subject, float elapsed);
 	void UpdateLayouts(Control* subject);
 
 	template <class Func>
@@ -47,8 +48,13 @@ private:
 	static const Control* HitTestRecurse(Vec2 point, const Control* top);
 	const Control* GetTarget(Vec2 point) const;
 
-	void SetGraphicsContext(Control* control);
-	void ClearGraphicsContext(Control* control);
+	void UpdateRecurse(Control* root, float elapsed);
+	void SetGraphicsContextRecurse(Control* root);
+	void ClearGraphicsContextRecurse(Control* root);
+	void UpdateStyleRecurse(Control* root);
+	void UpdateClipRecurse(Control* root);
+
+	void UpdateStyle() override;
 
 	void DebugTree() const;
 	void DebugTreeRecurse(const Control* control, int level) const;

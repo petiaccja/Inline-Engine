@@ -57,15 +57,19 @@ Vec2 Button::GetPosition() const {
 
 
 void Button::Update(float elapsed) {
-	//ColorF foreground;
-	//switch (GetState()) {
-	//	case eStandardControlState::DEFAULT: foreground = GetStyle().foreground; break;
-	//	case eStandardControlState::MOUSEOVER: foreground = GetStyle().hover; break;
-	//	case eStandardControlState::FOCUSED: foreground = GetStyle().focus; break;
-	//	case eStandardControlState::PRESSED: foreground = GetStyle().pressed; break;
-	//}
-	//m_background->SetColor(foreground.v);
-	//m_text->SetColor(GetStyle().text.v);
+	ColorF background;
+	const auto& style = GetStyle();
+
+	switch (m_stateTracker.Get()) {
+		case eControlState::NORMAL: background = style.foreground; break;
+		case eControlState::HOVERED: background = style.hover; break;
+		case eControlState::FOCUSED: background = style.focus; break;
+		case eControlState::HELD: background = style.pressed; break;
+		case eControlState::DRAGGED: background = style.pressed; break;
+	}
+
+	m_background.SetColor(background.v);
+	m_text.SetColor(style.text.v);
 }
 
 void Button::SetText(std::u32string text) {

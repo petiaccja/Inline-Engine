@@ -66,6 +66,11 @@ std::shared_ptr<Layout> Frame::GetLayout() const {
 }
 
 
+void Frame::UpdateStyle() {
+	m_background.SetColor(GetStyle().background.v);
+}
+
+
 float Frame::SetDepth(float depth) {
 	m_background.SetDepth(depth);
 	float span = 1.0f;

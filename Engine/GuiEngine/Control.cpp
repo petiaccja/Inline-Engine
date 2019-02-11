@@ -1,4 +1,5 @@
 #include "Control.hpp"
+#include <BaseLibrary/Rect.hpp>
 
 
 namespace inl::gui {
@@ -23,7 +24,7 @@ void Control::RemoveChild(const Control* child) {
 
 	auto it = m_children.find(child);
 	if (it != m_children.end()) {
-		CallEventUpstream(&Control::OnChildAdded, this, it->get());
+		CallEventUpstream(&Control::OnChildRemoved, this, it->get());
 		(*it)->DetachedHandler();
 		ChildRemovedHandler(**it);
 		(*it)->m_parent = nullptr;
@@ -47,6 +48,28 @@ void Control::ClearChildren() {
 
 const Control* Control::GetParent() const {
 	return m_parent;
+}
+
+
+void Control::SetStyle(const ControlStyle& style, bool useDefault) {
+	m_style = style;
+	m_usingDefaultStyle = useDefault;
+	UpdateStyle();
+}
+
+
+const ControlStyle& Control::GetStyle() const {
+	return m_style;
+}
+
+
+void Control::SetUsingDefaultStyle(bool enabled) {
+	m_usingDefaultStyle = enabled;
+}
+
+
+bool Control::GetUsingDefaultStyle() const {
+	return m_usingDefaultStyle;
 }
 
 

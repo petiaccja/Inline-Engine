@@ -28,6 +28,9 @@ public:
 
 	void SetContext(const GraphicsContext& context) override;
 	void ClearContext() override;
+	void SetClipRect(const RectF& rect, const Mat33& transform) override;
+
+	~Sprite();
 
 
 	//-------------------------------------
@@ -76,6 +79,12 @@ private:
 	std::unique_ptr<gxeng::IOverlayEntity> m_entity;
 	GraphicsContext m_context;
 };
+
+
+inline void Sprite::SetClipRect(const RectF& rect, const Mat33& transform) {
+	m_entity->SetAdditionalClip(rect, transform);
+	m_entity->EnableAdditionalClip(true);
+}
 
 
 } // namespace inl::gui

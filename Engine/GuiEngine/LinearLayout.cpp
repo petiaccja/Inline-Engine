@@ -124,15 +124,11 @@ Vec2 LinearLayout::GetSize() const {
 LinearLayout::SizingMeasurement LinearLayout::CalcMeasures() const {
 	SizingMeasurement measures;
 
-	const auto& children = GetChildren();
-
-	for (const auto& child : children) {
+	for (const auto& child : m_childrenOrder) {
 		const auto& sizing = GetLayoutPosition<const CellSize>(*child);
-
 
 		Vec2 preferredSize = child->GetPreferredSize();
 		Vec2 minSize = child->GetMinimumSize();
-
 
 		Vec2 margin = {
 			sizing.GetMargin().left + sizing.GetMargin().right,
@@ -219,7 +215,6 @@ Vec2 LinearLayout::GetPreferredSize() const {
 
 	float unitsPerRel = measures.maxPreferredPerRel;
 
-
 	float totalUnits = unitsPerRel * measures.sumRelative + measures.sumAbsolute;
 	Vec2 preferredSize = { totalUnits, measures.maxPreferredAux };
 	if (m_direction == VERTICAL) {
@@ -278,12 +273,9 @@ void LinearLayout::UpdateLayout() {
 	float relativeExtraBudget = budget - minSize - absoluteExtraBudget;
 	float unitsPerRel = (measures.sumMinSizeRel + relativeExtraBudget) / measures.sumRelative;
 
-
 	float primaryOffset = 0.0f;
-
-	const auto& children = GetChildren();
-
-	for (auto child : children) {
+	
+	for (auto child : m_childrenOrder) {
 		const CellSize& sizing = GetLayoutPosition<const CellSize>(*child);
 
 		Vec2 preferredSize = child->GetPreferredSize();

@@ -45,6 +45,8 @@ Vec2 ScrollBar::GetPosition() const {
 
 
 void ScrollBar::Update(float elapsed) {
+	m_background.SetColor(GetStyle().foreground.v);
+	m_handle.SetColor(GetStyle().accent.v);
 	UpdateHandlePosition();
 }
 

@@ -7,6 +7,8 @@ namespace inl::gui {
 
 
 ScrollFrameV::ScrollFrameV() {
+	AddChild(m_scrollLayout);
+
 	m_scrollLayout.SetDirection(LinearLayout::HORIZONTAL);
 	m_scrollLayout.AddChild(m_contentLayout);
 	m_scrollLayout.AddChild(m_scrollBar);

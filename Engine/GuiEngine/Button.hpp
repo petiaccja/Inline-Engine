@@ -1,14 +1,11 @@
 #pragma once
 
 
-
-#include <BaseLibrary/Color.hpp>
-#include <BaseLibrary/Event.hpp>
-#include <GraphicsEngine/Resources/IFont.hpp>
-#include <GraphicsEngine/Scene/IOverlayEntity.hpp>
-#include <GraphicsEngine/Scene/ITextEntity.hpp>
+#include "ControlStateTracker.hpp"
 #include "Sprite.hpp"
 #include "Text.hpp"
+
+#include <BaseLibrary/Event.hpp>
 
 
 namespace inl::gui {
@@ -38,6 +35,7 @@ public:
 private:
 	Sprite m_background;
 	Text m_text;
+	ControlStateTracker m_stateTracker{this};
 };
 
 

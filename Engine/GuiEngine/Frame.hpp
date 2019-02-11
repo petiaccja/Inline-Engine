@@ -28,7 +28,12 @@ public:
 	void SetLayout(Layout& layout) { SetLayout(MakeBlankShared(layout)); }
 	void SetLayout(std::shared_ptr<Layout> layout);
 	std::shared_ptr<Layout> GetLayout() const;
-	
+
+	void UpdateStyle() override;
+
+protected:
+	Sprite& GetBackground() { return m_background; }
+
 private:
 	std::shared_ptr<Layout> m_layout;
 	Sprite m_background;

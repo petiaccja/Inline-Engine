@@ -63,6 +63,8 @@ public:
 	Event<const NodeControl*, int, const NodeControl*, int> OnAddLink;
 	Event<const NodeControl*, int, const NodeControl*, int> OnDeleteLink;
 
+	void UpdateStyle() override;
+
 private:
 	void OffsetAllNodes(Vec2 offset);
 	void UpdateArrowPositions();

@@ -58,6 +58,13 @@ void Sprite::ClearContext() {
 }
 
 
+Sprite::~Sprite() {
+	if (m_context.scene) {
+		m_context.scene->GetEntities<gxeng::IOverlayEntity>().Remove(m_entity.get());
+	}
+}
+
+
 //-------------------------------------
 // Control
 //-------------------------------------

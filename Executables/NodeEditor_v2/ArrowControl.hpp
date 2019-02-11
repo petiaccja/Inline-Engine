@@ -5,7 +5,6 @@
 #include <GuiEngine/Control.hpp>
 
 #include <InlineMath.hpp>
-#include <memory>
 
 
 namespace inl::tool {
@@ -26,7 +25,11 @@ public:
 
 	void Update(float elapsed) override;
 
-	Vec2 GetSize() const override { return { 6,6 }; }
+	Vec2 GetSize() const override {
+		auto span = m_p1 - m_p2;
+		span = { std::abs(span.x) + 1000.f, std::abs(span.y) + 400.f };
+		return span;
+	}
 	Vec2 GetMinimumSize() const override { return { 0,0 }; }
 	Vec2 GetPreferredSize() const override { return GetSize(); }
 	Vec2 GetPosition() const override { return (m_p1 + m_p2) / 2.f; }
@@ -36,8 +39,11 @@ protected:
 	void SetPosition(const Vec2& position) override {}
 
 private:
+	std::array<gui::Sprite, 32> m_bezierSections;
+	BezierCurve<float, 2, 3> m_bezierCurve;
 	gui::Sprite m_bezierLine;
-	gui::Sprite m_arrowHead;
+	gui::Sprite m_arrowHead1;
+	gui::Sprite m_arrowHead2;
 	gui::Sprite m_holdPoint;
 	Vec2 m_p1, m_p2;
 };

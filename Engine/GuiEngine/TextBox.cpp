@@ -15,6 +15,7 @@ TextBox::TextBox() {
 	AddChild(m_frame);
 	AddChild(m_background);
 	AddChild(m_text);
+	AddChild(m_cursor);
 	SetScripts();
 }
 
@@ -65,7 +66,7 @@ void TextBox::Update(float elapsed) {
 	m_cursor.SetColor(currentColor.xyz | alpha);
 
 	// Calculate cursor position.
-	gxeng::IFont* font = nullptr;
+	gxeng::IFont* font = GetStyle().font;
 	auto fontSize = m_text.GetFontSize();
 	if (font) {
 		std::u32string u32text = EncodeString<char32_t>(GetText()) + U"_";
@@ -100,17 +101,37 @@ float TextBox::GetDepth() const {
 
 
 void TextBox::SetColor() {
-	//ColorF foreground;
-	//switch (GetState()) {
-	//	case eStandardControlState::DEFAULT: foreground = GetStyle().foreground; break;
-	//	case eStandardControlState::MOUSEOVER: foreground = GetStyle().hover; break;
-	//	case eStandardControlState::FOCUSED: foreground = GetStyle().focus; break;
-	//	case eStandardControlState::PRESSED: foreground = GetStyle().pressed; break;
-	//}
-	//m_frame->SetColor(foreground.v);
-	//m_background->SetColor(GetStyle().background.v);
-	//m_text->SetColor(GetStyle().text.v);
-	//m_cursor->SetColor(GetStyle().accent.v);
+	ColorF frame;
+	ColorF background;
+	const auto& style = GetStyle();
+
+	switch (m_stateTracker.Get()) {
+		case eControlState::NORMAL:
+			frame = style.foreground;
+			background = style.background;
+			break;
+		case eControlState::HOVERED:
+			frame = style.hover;
+			background = style.background;
+			break;
+		case eControlState::FOCUSED:
+			frame = style.focus;
+			background = style.foreground;
+			break;
+		case eControlState::HELD:
+			frame = style.pressed;
+			background = style.foreground;
+			break;
+		case eControlState::DRAGGED:
+			frame = style.pressed;
+			background = style.foreground;
+			break;
+	}
+
+	m_frame.SetColor(frame.v);
+	m_background.SetColor(background.v);
+	m_text.SetColor(style.text.v);
+	m_cursor.SetColor(style.text.v);
 }
 
 

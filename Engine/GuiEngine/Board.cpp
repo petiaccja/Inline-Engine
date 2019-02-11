@@ -10,14 +10,20 @@ namespace inl::gui {
 
 
 Board::Board() {
-	OnChildAdded += [this](Control*, Control* child) { SetGraphicsContext(child); };
-	OnChildRemoved += [this](Control*, Control* child) { ClearGraphicsContext(child); };
+	OnChildAdded += [this](Control*, Control* child) {
+		SetGraphicsContextRecurse(child);
+		UpdateStyleRecurse(child);
+	};
+	OnChildRemoved += [this](Control*, Control* child) {
+		ClearGraphicsContextRecurse(child);
+		UpdateStyleRecurse(child);
+	};
 }
 
 
 void Board::SetDrawingContext(GraphicsContext context) {
 	m_context = context;
-	SetGraphicsContext(this);
+	SetGraphicsContextRecurse(this);
 }
 
 
@@ -169,26 +175,23 @@ float Board::GetDepth() const {
 
 
 void Board::Update(float elapsed) {
+	UpdateLayouts(this);
+	UpdateRecurse(this, elapsed);
+	UpdateClipRecurse(this);
+
 	const auto& children = GetChildren();
 	for (auto& child : children) {
-		UpdateLayouts(child);
 		child->SetDepth(m_depth); // TODO: implement order by focus
-		Update(child, elapsed);
 	}
 }
 
 
-void Board::Update(Control* subject, float elapsed) {
-	if (subject == nullptr) {
-		return;
-	}
-
-	subject->Update();
-
-	auto children = subject->GetChildren();
-	for (auto& child : children) {
-		Update(const_cast<Control*>(child), elapsed);
-	}
+void Board::UpdateRecurse(Control* root, float elapsed) {
+	ApplyRecurse(root, [this, elapsed](Control* control) {
+		if (control != this) {
+			control->Update(elapsed);
+		}
+	});
 }
 
 
@@ -240,7 +243,7 @@ void Board::DebugTreeRecurse(const Control* control, int level) const {
 	for (int i = 0; i < level; ++i) {
 		std::cout << "  ";
 	}
-	std::cout << "- " << typeid(*control).name() << " " << control->GetSize() << "\n";
+	std::cout << "- " << typeid(*control).name() << " " << control->GetPosition() << ", " << control->GetSize() << "\n";
 
 	auto children = control->GetChildren();
 	for (auto child : children) {
@@ -271,20 +274,58 @@ const Control* Board::GetTarget(Vec2 point) const {
 	return target;
 }
 
-void Board::SetGraphicsContext(Control* control) {
-	ApplyRecurse(this, [this](Control* control) {
+
+void Board::SetGraphicsContextRecurse(Control* root) {
+	ApplyRecurse(root, [this](Control* control) {
 		if (GraphicalControl* graphical = dynamic_cast<GraphicalControl*>(control)) {
 			graphical->SetContext(m_context);
 		}
 	});
 }
 
-void Board::ClearGraphicsContext(Control* control) {
-	ApplyRecurse(this, [this](Control* control) {
+
+void Board::ClearGraphicsContextRecurse(Control* root) {
+	ApplyRecurse(root, [this](Control* control) {
 		if (GraphicalControl* graphical = dynamic_cast<GraphicalControl*>(control)) {
 			graphical->ClearContext();
 		}
 	});
+}
+
+
+void Board::UpdateStyleRecurse(Control* root) {
+	ApplyRecurse(root, [this](Control* control) {
+		if (control->GetUsingDefaultStyle()) {
+			const Control* parent = control->GetParent();
+			if (parent) {
+				control->SetStyle(parent->GetStyle(), true);
+			}
+		}
+	});
+}
+
+
+void Board::UpdateClipRecurse(Control* root) {
+	auto RecurseHelper = [](auto self, Control* root, const RectF& carry) -> void {
+		if (GraphicalControl* graphicalRoot = dynamic_cast<GraphicalControl*>(root)) {
+			graphicalRoot->SetClipRect(carry, Mat33::Identity());
+		}
+
+		RectF rootRect = RectF::FromCenter(root->GetPosition(), root->GetSize());
+		RectF nextCarry = RectF::Intersection(carry, rootRect);
+
+		auto children = root->GetChildren();
+		for (auto child : children) {
+			self(self, child, nextCarry);
+		}
+	};
+
+	RecurseHelper(RecurseHelper, root, RectF::FromCenter(0, 0, 10000, 10000));
+}
+
+
+void Board::UpdateStyle() {
+	UpdateStyleRecurse(this);
 }
 
 

@@ -22,8 +22,11 @@ public:
 	/// <summary> Moves the text. The original will become invalid and cannot be further used. </summary>
 	Text(Text&& other) noexcept;
 
+	~Text();
+
 	void SetContext(const GraphicsContext& context) override;
 	void ClearContext() override;
+	void SetClipRect(const RectF& rect, const Mat33& transform) override;
 
 
 	//-------------------------------------
@@ -43,6 +46,7 @@ public:
 	float GetDepth() const override;
 
 	bool HitTest(const Vec2& point) const override;
+	void UpdateStyle() override;
 
 	//-------------------------------------
 	// TextEntity

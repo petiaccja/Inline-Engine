@@ -2,6 +2,7 @@
 
 
 #include "Control.hpp"
+#include "ControlStateTracker.hpp"
 #include "Sprite.hpp"
 #include "Text.hpp"
 
@@ -29,7 +30,7 @@ public:
 
 	float SetDepth(float depth) override;
 	float GetDepth() const override;
-	
+
 protected:
 	void SetColor();
 	void SetScripts();
@@ -39,6 +40,7 @@ private:
 	Sprite m_frame;
 	Sprite m_background;
 	Sprite m_cursor;
+	ControlStateTracker m_stateTracker{this};
 
 	float m_sinceLastCursorBlink = 0.0f;
 	float m_blinkTime = 0.5f;

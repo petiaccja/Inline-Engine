@@ -57,9 +57,9 @@ void NodeEditor::CreateGui() {
 	drawingContext.engine = m_engine;
 	drawingContext.scene = m_scene.get();
 	m_board.SetDrawingContext(drawingContext);
-	//gui::ControlStyle style;
-	//style.font = m_font.get();
-	//m_board.SetStyle(style);
+	gui::ControlStyle style;
+	style.font = m_font.get();
+	m_board.SetStyle(style);
 
 	m_board.AddChild(m_mainFrame);
 
@@ -69,7 +69,7 @@ void NodeEditor::CreateGui() {
 	m_mainLayout.AddChild(m_nodePanel);
 	m_mainLayout.AddChild(m_sidePanelLayout);
 	m_mainLayout[&m_selectPanel].SetWidth(250).MoveToBack();
-	m_mainLayout[&m_nodePanel].SetWidth(250).MoveToBack();
+	m_mainLayout[&m_nodePanel].SetWeight(1.0f).MoveToBack();
 	m_mainLayout[&m_sidePanelLayout].SetWidth(250).MoveToBack();
 
 

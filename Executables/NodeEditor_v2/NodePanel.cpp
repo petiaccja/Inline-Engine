@@ -103,6 +103,11 @@ void NodePanel::Clear() {
 }
 
 
+void NodePanel::UpdateStyle() {
+	GetBackground().SetColor(GetStyle().background.v * 0.5f);
+}
+
+
 void NodePanel::OffsetAllNodes(Vec2 offset) {
 	for (auto& node : m_nodes) {
 		auto& binding = m_layout[node.get()];
@@ -179,7 +184,7 @@ void NodePanel::OnPortDragged(Control* control, Vec2 dragTarget) {
 
 
 void NodePanel::OnPortDragEnd(Control* control, Vec2 dragEnd, Control* target) {
-	if (PortControl * port; port = dynamic_cast<PortControl*>(control)) {
+	if (PortControl* port; port = dynamic_cast<PortControl*>(control)) {
 		m_layout.RemoveChild(&m_temporaryArrow);
 		PortControl* targetPort = dynamic_cast<PortControl*>(target);
 		if (targetPort && (port->IsInput() ^ targetPort->IsInput())) {
@@ -237,33 +242,33 @@ void NodePanel::OnDeselect(Control* control) {
 
 
 void inl::tool::NodePanel::SelectNode(NodeControl* node) {
-	//auto style = GetStyle();
-	//style.background = style.focus;
-	//node->SetStyle(style);
+	auto style = GetStyle();
+	style.background = style.focus;
+	node->SetStyle(style);
 	m_selectedNode = node;
 }
 
 
 void inl::tool::NodePanel::SelectPort(PortControl* port) {
-	//auto style = GetStyle();
-	//style.background = style.focus;
-	//port->SetStyle(style);
+	auto style = GetStyle();
+	style.background = style.focus;
+	port->SetStyle(style);
 	m_selectedPort = port;
 }
 
 
 void inl::tool::NodePanel::SelectArrow(ArrowControl* arrow) {
-	//auto style = GetStyle();
-	//style.background = style.focus;
-	//style.text = style.accent;
-	//arrow->SetStyle(style);
+	auto style = GetStyle();
+	style.background = style.focus;
+	style.text = style.accent;
+	arrow->SetStyle(style);
 	m_selectedArrow = arrow;
 }
 
 
 void inl::tool::NodePanel::DeselectNode() {
 	if (m_selectedNode) {
-		//m_selectedNode->SetStyle(nullptr);
+		m_selectedNode->SetUsingDefaultStyle(true);
 		m_selectedNode = nullptr;
 	}
 }
@@ -271,7 +276,7 @@ void inl::tool::NodePanel::DeselectNode() {
 
 void inl::tool::NodePanel::DeselectPort() {
 	if (m_selectedPort) {
-		//m_selectedPort->SetStyle(nullptr);
+		m_selectedPort->SetUsingDefaultStyle(true);
 		m_selectedPort = nullptr;
 	}
 }
@@ -279,7 +284,7 @@ void inl::tool::NodePanel::DeselectPort() {
 
 void inl::tool::NodePanel::DeselectArrow() {
 	if (m_selectedArrow) {
-		//m_selectedArrow->SetStyle(nullptr);
+		m_selectedArrow->SetUsingDefaultStyle(true);
 		m_selectedArrow = nullptr;
 	}
 }

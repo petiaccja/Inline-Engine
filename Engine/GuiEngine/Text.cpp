@@ -23,6 +23,12 @@ Text::Text(Text&& other) noexcept {
 	m_context = other.m_context;
 }
 
+Text::~Text() {
+	if (m_context.scene) {
+		m_context.scene->GetEntities<gxeng::ITextEntity>().Remove(m_entity.get());
+	}
+}
+
 
 void Text::SetContext(const GraphicsContext& context) {
 	assert(context.engine);
@@ -52,6 +58,12 @@ void Text::ClearContext() {
 
 	m_entity = std::move(newEntity);
 	m_context = { nullptr, nullptr };
+}
+
+
+void Text::SetClipRect(const RectF& rect, const Mat33& transform) {
+	m_entity->SetAdditionalClip(rect, transform);
+	m_entity->EnableAdditionalClip(true);
 }
 
 
@@ -95,6 +107,12 @@ float Text::GetDepth() const {
 bool Text::HitTest(const Vec2& point) const {
 	return false;
 }
+
+void Text::UpdateStyle() {
+	m_entity->SetFont(GetStyle().font);
+	m_entity->SetColor(GetStyle().text.v);
+}
+
 
 void Text::CopyProperties(const gxeng::ITextEntity& source, gxeng::ITextEntity& target) {
 	target.SetFont(source.GetFont());

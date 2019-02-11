@@ -8,14 +8,18 @@ set(sources
 	Layout.cpp
 	Board.hpp
 	Board.cpp
+	ControlStateTracker.hpp
+	ControlStateTracker.cpp
+	GraphicsContext.hpp
+	GraphicalControl.hpp
+	ControlStyle.hpp
+)
+
+set(controls 
 	Sprite.hpp
 	Sprite.cpp
 	Text.hpp
 	Text.cpp
-	GraphicsContext.hpp
-)
-
-set(controls 
 	Frame.hpp
 	Frame.cpp
 	Button.hpp

@@ -3,11 +3,11 @@
 
 #include "BlankShared.hpp"
 #include "SharedPtrLess.hpp"
+#include "ControlStyle.hpp"
 
 #include <BaseLibrary/Event.hpp>
 #include <BaseLibrary/Exception/Exception.hpp>
 #include <BaseLibrary/Platform/Input.hpp>
-#include <BaseLibrary/Rect.hpp>
 
 #include <InlineMath.hpp>
 #include <any>
@@ -51,6 +51,11 @@ public:
 	virtual bool HitTest(const Vec2& point) const;
 	virtual void Update(float elapsed = 0.0f) {}
 
+	void SetStyle(const ControlStyle& style, bool useDefault = false);
+	const ControlStyle& GetStyle() const;
+	void SetUsingDefaultStyle(bool enabled);
+	bool GetUsingDefaultStyle() const;
+	virtual void UpdateStyle() {}
 
 	// Events
 	Event<Control*, Control*> OnChildAdded; // subject, child
@@ -94,6 +99,9 @@ private:
 	const Control* m_parent = nullptr;
 	std::set<std::shared_ptr<Control>, SharedPtrLess<Control>> m_children;
 	mutable std::any m_layoutPosition;
+
+	bool m_usingDefaultStyle = true;
+	ControlStyle m_style;
 };
 
 
