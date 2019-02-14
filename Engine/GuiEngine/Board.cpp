@@ -15,8 +15,8 @@ Board::Board() {
 		UpdateStyleRecurse(child);
 	};
 	OnChildRemoved += [this](Control*, Control* child) {
+		RemoveControlReferences(child);
 		ClearGraphicsContextRecurse(child);
-		UpdateStyleRecurse(child);
 	};
 }
 
@@ -288,6 +288,21 @@ void Board::ClearGraphicsContextRecurse(Control* root) {
 	ApplyRecurse(root, [this](Control* control) {
 		if (GraphicalControl* graphical = dynamic_cast<GraphicalControl*>(control)) {
 			graphical->ClearContext();
+		}
+	});
+}
+
+
+void Board::RemoveControlReferences(Control* root) {
+	ApplyRecurse(root, [this](Control* control) {
+		if (control == m_hoveredControl) {
+			m_hoveredControl = nullptr;
+		}
+		if (control == m_focusedControl) {
+			m_focusedControl = nullptr;
+		}
+		if (control == m_draggedControl) {
+			m_draggedControl = nullptr;
 		}
 	});
 }

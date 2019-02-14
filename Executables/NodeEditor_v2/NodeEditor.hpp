@@ -47,6 +47,9 @@ private:
 
 	gui::LinearLayout m_sidePanelLayout;
 	gui::Button m_resetButton;
+	gui::Button m_saveButton;
+	gui::Button m_openButton;
+	std::vector<gui::Button> m_newButtons;
 };
 
 

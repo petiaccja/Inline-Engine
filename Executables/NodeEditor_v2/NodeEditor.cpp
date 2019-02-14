@@ -91,8 +91,28 @@ void NodeEditor::CreateGui() {
 	m_resetButton.SetText(U"Reset");
 	m_resetButton.OnClick += [this](auto...) { m_controller.Clear(); };
 
+	m_saveButton.SetText(U"Save");
+	m_openButton.SetText(U"Open");
+
 	m_sidePanelLayout.AddChild(m_resetButton);
 	m_sidePanelLayout[&m_resetButton].SetWidth(30.f).MoveToBack();
+
+	m_sidePanelLayout.AddChild(m_saveButton);
+	m_sidePanelLayout[&m_saveButton].SetWidth(30.f).MoveToBack();
+
+	m_sidePanelLayout.AddChild(m_openButton);
+	m_sidePanelLayout[&m_openButton].SetWidth(30.f).MoveToBack();
+
+
+	int idxTemp = 0; // Until I add an interface to query the name of the graph type. (Such as "pipeline" or "material").
+	m_newButtons.resize(m_editors.size()); // Resize needed to avoid reallocation of the vector to keep button memory addresses.
+	for (auto& editor : m_editors) {
+		auto& button = m_newButtons.emplace_back();
+		button.SetText(U"New " + EncodeString<char32_t>(std::to_string(idxTemp)) + U" graph");
+		++idxTemp;
+		m_sidePanelLayout.AddChild(button);
+		m_sidePanelLayout[&button].SetWidth(30.f).MoveToBack();
+	}
 
 	m_sidePanelLayout.SetDirection(gui::LinearLayout::VERTICAL);
 	m_sidePanelLayout.SetInverted(true);

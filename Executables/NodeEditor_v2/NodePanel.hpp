@@ -5,6 +5,7 @@
 
 #include <GuiEngine/AbsoluteLayout.hpp>
 #include <GuiEngine/Frame.hpp>
+#include <BaseLibrary/Platform/Input.hpp>
 
 #include <memory>
 #include <unordered_map>

@@ -51,6 +51,12 @@ private:
 	void UpdateRecurse(Control* root, float elapsed);
 	void SetGraphicsContextRecurse(Control* root);
 	void ClearGraphicsContextRecurse(Control* root);
+
+	/// <summary> If a Control is removed, but focus, drag or similar operations are in progress on it, the Board
+	/// keeps a reference to it, which might in turn become dangling. This function removes references to
+	/// <paramref name="root"/> and all its children. </summary>
+	void RemoveControlReferences(Control* root);
+
 	void UpdateStyleRecurse(Control* root);
 	void UpdateClipRecurse(Control* root);
 
