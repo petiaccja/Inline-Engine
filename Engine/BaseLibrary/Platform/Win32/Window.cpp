@@ -4,6 +4,7 @@
 #include <Windowsx.h>
 #include "shellapi.h"
 #include <dwmapi.h>
+#include "BaseLibrary/StringUtil.hpp"
 #pragma comment(lib, "dwmapi.lib")
 #undef UNKNOWN
 
@@ -684,7 +685,7 @@ HRESULT __stdcall Window::DragEnter(IDataObject *pdto, DWORD grfKeyState, POINTL
 		// We need to lock the HGLOBAL handle because we can't be sure if this is GMEM_FIXED (i.e. normal heap) data or not
 		wchar_t* text = (wchar_t*)GlobalLock(medium.hGlobal);
 
-		m_currentDragDropEvent.text = std::string(text, text + wcslen(text));
+		m_currentDragDropEvent.text = EncodeString<char>(reinterpret_cast<const char16_t*>(text));
 
 		CallEvent(OnDropEnter, m_currentDragDropEvent);
 

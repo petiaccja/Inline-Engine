@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <limits>
+#include <array>
 #include "Vector.hpp"
 
 
@@ -368,7 +369,7 @@ public:
 };
 
 
-// Ray-triangle intersection (Möller-Trumbore algorithm)
+// Ray-triangle intersection (Mï¿½ller-Trumbore algorithm)
 template <class T>
 class Intersection<Ray<T, 3>, Triangle3D<T>> {
 	using VectorT = Vector<T, 3, false>;
@@ -437,6 +438,41 @@ U Intersection<Ray<T, 3>, Triangle3D<T>>::Interpolate(const U& a, const U& b, co
 	T w = T(1) - u - v;
 	return u*b + v*c + w*a;
 }
+
+
+template <class T, int Dim, int Order>
+class BezierCurve {
+	static_assert(Order >= 1, "Bezier curve must have order n>=1.");
+public:
+	using VectorT = Vector<T, Dim, false>;
+
+	VectorT operator()(T t) const {
+		return EvalInterpolRecurse(t);
+	}
+
+protected:
+	VectorT EvalInterpolRecurse(T t) const;
+
+public:
+	std::array<VectorT, Order+1> p;
+};
+
+
+template <class T, int Dim, int Order>
+auto BezierCurve<T, Dim, Order>::EvalInterpolRecurse(T t) const -> VectorT {
+	std::array<VectorT, Order+1> reduction = p;
+
+	T u = T(1) - t;
+
+	for (int i=Order; i>=1; --i) {
+		for (int j=1; j<=i; ++j) {
+			reduction[j-1] = u*reduction[j-1] + t*reduction[j];
+		}
+	}
+
+	return reduction[0];
+}
+
 
 
 } // namespace mathter

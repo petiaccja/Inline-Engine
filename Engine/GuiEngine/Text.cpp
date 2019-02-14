@@ -23,10 +23,20 @@ Text::Text(Text&& other) noexcept {
 	m_context = other.m_context;
 }
 
+Text::~Text() {
+	if (m_context.scene) {
+		m_context.scene->GetEntities<gxeng::ITextEntity>().Remove(m_entity.get());
+	}
+}
+
 
 void Text::SetContext(const GraphicsContext& context) {
 	assert(context.engine);
 	assert(context.scene);
+
+	if (m_context.scene) {
+		m_context.scene->GetEntities<gxeng::ITextEntity>().Remove(m_entity.get());
+	}
 
 	std::unique_ptr<gxeng::ITextEntity> newEntity(context.engine->CreateTextEntity());
 
@@ -34,15 +44,26 @@ void Text::SetContext(const GraphicsContext& context) {
 
 	m_entity = std::move(newEntity);
 	m_context = context;
+	m_context.scene->GetEntities<gxeng::ITextEntity>().Add(m_entity.get());
 }
 
 
 void Text::ClearContext() {
+	if (m_context.scene) {
+		m_context.scene->GetEntities<gxeng::ITextEntity>().Remove(m_entity.get());
+	}
+
 	auto newEntity = std::make_unique<PlaceholderTextEntity>();
 	CopyProperties(*m_entity, *newEntity);
 
 	m_entity = std::move(newEntity);
 	m_context = { nullptr, nullptr };
+}
+
+
+void Text::SetClipRect(const RectF& rect, const Mat33& transform) {
+	m_entity->SetAdditionalClip(rect, transform);
+	m_entity->EnableAdditionalClip(true);
 }
 
 
@@ -74,16 +95,22 @@ Vec2 Text::GetPosition() const {
 	return m_entity->GetPosition();
 }
 
-void Text::SetVisible(bool visible) {
-	throw NotImplementedException();
+float Text::SetDepth(float depth) {
+	m_entity->SetZDepth(depth);
+	return 1.0f;
 }
 
-bool Text::GetVisible() const {
-	throw NotImplementedException();
+float Text::GetDepth() const {
+	return m_entity->GetZDepth();
 }
 
-bool Text::IsShown() const {
-	return true;
+bool Text::HitTest(const Vec2& point) const {
+	return false;
+}
+
+void Text::UpdateStyle() {
+	m_entity->SetFont(GetStyle().font);
+	m_entity->SetColor(GetStyle().text.v);
 }
 
 

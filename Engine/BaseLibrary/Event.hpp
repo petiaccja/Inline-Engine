@@ -88,7 +88,7 @@ public:
 	}
 
 	/// <summary> Fire off the event, call all signed up functors with given arguments. </summary>
-	void operator()(ArgsT... args) {
+	void operator()(ArgsT... args) const {
 		std::unique_lock<SpinMutex> lkg(m_mtx);
 		// Copy so that if a fired functor changes m_simples/m_comparables iterators won't invalidate.
 		auto simples = m_simples;
@@ -113,7 +113,7 @@ public:
 
 	/// <summary> Signs up functor for the event. You can't remove this functor later. </summary>
 	template <class SimpleFun>
-	std::enable_if_t<!IsComparable<SimpleFun>, void> operator+=(const SimpleFun& fun) {
+	std::enable_if_t<!IsComparable<SimpleFun>, void> operator+=(SimpleFun fun) {
 		std::function<void(ArgsT...)> callee = fun;
 
 		std::lock_guard<decltype(m_mtx)> lkg(m_mtx);
@@ -136,7 +136,7 @@ public:
 	}
 
 private:
-	SpinMutex m_mtx;
+	mutable SpinMutex m_mtx;
 
 	std::vector<std::function<void(ArgsT...)>> m_simples; // These functions cannot be removed via -=
 	std::multiset<Comparable> m_comparables; // These function can be removed by -= because they have < and ==

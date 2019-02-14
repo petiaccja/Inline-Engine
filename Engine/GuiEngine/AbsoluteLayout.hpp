@@ -3,8 +3,6 @@
 
 #include "Control.hpp"
 #include "Layout.hpp"
-#include <map>
-#include <memory>
 
 
 namespace inl::gui {
@@ -22,18 +20,20 @@ public:
 private:
 	class Binding {
 		friend class AbsoluteLayout;
+		Binding(std::list<Control*>* orderList, std::list<Control*>::iterator orderIter)
+			: orderList(orderList), orderIter(orderIter) {}
 	public:
 		Binding& SetPosition(Vec2 position);
 		Vec2 GetPosition() const;
-		void MoveForward();
-		void MoveBackward();
-		void MoveToFront();
-		void MoveToBack();
+		Binding& MoveForward();
+		Binding& MoveBackward();
+		Binding& MoveToFront();
+		Binding& MoveToBack();
 	private:
 		Vec2 position = {0, 0};
+		bool m_dirty = true;
 		std::list<Control*>::iterator orderIter;
 		std::list<Control*>* orderList = nullptr;
-		bool m_dirty = true;
 	};
 public:
 	AbsoluteLayout() = default;
@@ -44,27 +44,21 @@ public:
 	~AbsoluteLayout() = default;
 
 	// Children manipulation
-	Binding& AddChild(Control& child) { return AddChild(MakeBlankShared(child)); }
-	Binding& AddChild(std::shared_ptr<Control> child);
-	void RemoveChild(Control* child);
-	void Clear();
 	Binding& operator[](const Control* child);
+	const Binding& operator[](const Control* child) const;
 
 	// Sizing
-	void SetSize(Vec2 size) override;
+	void SetSize(const Vec2& size) override;
 	Vec2 GetSize() const override;
 	Vec2 GetPreferredSize() const override;
 	Vec2 GetMinimumSize() const override;
 
 	// Position & depth
-	void SetPosition(Vec2 position) override;
+	void SetPosition(const Vec2& position) override;
 	Vec2 GetPosition() const override;
 	float SetDepth(float depth) override;
 	float GetDepth() const override;
-
-	// Hierarchy
-	std::vector<const Control*> GetChildren() const override;
-
+	
 	// Layout update
 	void UpdateLayout() override;
 
@@ -77,12 +71,10 @@ public:
 private:
 	Vec2 CalculateChildPosition(const Binding& binding) const;
 
-	void OnAttach(Control* parent) override;
-	void OnDetach() override;
-
+	void ChildAddedHandler(Control& child) override;
+	void ChildRemovedHandler(Control& child) override;
 private:
 	Control* m_parent = nullptr;
-	std::map<std::shared_ptr<Control>, std::unique_ptr<Binding>, impl::ControlPtrLess> m_children;
 	std::list<Control*> m_childrenOrder;
 
 	Vec2 m_position = { 0,0 };

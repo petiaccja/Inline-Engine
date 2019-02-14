@@ -33,7 +33,8 @@ NodePanel::NodePanel() {
 
 void NodePanel::AddNode(std::shared_ptr<NodeControl> node) {
 	auto [it, isNew] = m_nodes.insert(std::move(node));
-	m_layout.AddChild(*it).SetPosition({ 0, 0 });
+	m_layout.AddChild(*it);
+	m_layout[it->get()].SetPosition({ 0, 0 });
 }
 
 
@@ -72,7 +73,8 @@ void NodePanel::AddLink(const NodeControl* source, int sourcePort, const NodeCon
 	auto [it, isNew] = m_arrows.insert({ key, std::make_shared<ArrowControl>() });
 	if (isNew) {
 		m_arrowKeys.insert({ it->second.get(), key });
-		m_layout.AddChild(it->second).MoveToFront();
+		m_layout.AddChild(it->second);
+		m_layout[it->second.get()].MoveToFront();
 		UpdateArrowPosition(it->first, *it->second);
 	}
 }
@@ -93,11 +95,16 @@ void NodePanel::RemoveLink(const NodeControl* source, int sourcePort, const Node
 }
 
 void NodePanel::Clear() {
-	m_layout.Clear();
+	m_layout.ClearChildren();
 	m_arrows.clear();
 	m_nodes.clear();
 	m_draggedNode = nullptr;
 	m_draggedPort = nullptr;
+}
+
+
+void NodePanel::UpdateStyle() {
+	GetBackground().SetColor(GetStyle().background.v * 0.5f);
 }
 
 
@@ -155,7 +162,8 @@ void NodePanel::OnPortDragBegin(Control* control, Vec2 dragOrigin) {
 		if (m_draggedPort) {
 			m_layout.RemoveChild(m_draggedPort);
 		}
-		m_layout.AddChild(m_temporaryArrow).MoveToFront();
+		m_layout.AddChild(m_temporaryArrow);
+		m_layout[&m_temporaryArrow].MoveToFront();
 		m_draggedPort = port;
 	}
 }
@@ -176,7 +184,7 @@ void NodePanel::OnPortDragged(Control* control, Vec2 dragTarget) {
 
 
 void NodePanel::OnPortDragEnd(Control* control, Vec2 dragEnd, Control* target) {
-	if (PortControl * port; port = dynamic_cast<PortControl*>(control)) {
+	if (PortControl* port; port = dynamic_cast<PortControl*>(control)) {
 		m_layout.RemoveChild(&m_temporaryArrow);
 		PortControl* targetPort = dynamic_cast<PortControl*>(target);
 		if (targetPort && (port->IsInput() ^ targetPort->IsInput())) {
@@ -221,7 +229,7 @@ void NodePanel::OnSelect(Control* control) {
 			SelectArrow(arrow);
 			break;
 		}
-		control = control->GetParent();
+		control = const_cast<Control*>(control->GetParent());
 	}
 }
 
@@ -260,7 +268,7 @@ void inl::tool::NodePanel::SelectArrow(ArrowControl* arrow) {
 
 void inl::tool::NodePanel::DeselectNode() {
 	if (m_selectedNode) {
-		m_selectedNode->SetStyle(nullptr);
+		m_selectedNode->SetUsingDefaultStyle(true);
 		m_selectedNode = nullptr;
 	}
 }
@@ -268,7 +276,7 @@ void inl::tool::NodePanel::DeselectNode() {
 
 void inl::tool::NodePanel::DeselectPort() {
 	if (m_selectedPort) {
-		m_selectedPort->SetStyle(nullptr);
+		m_selectedPort->SetUsingDefaultStyle(true);
 		m_selectedPort = nullptr;
 	}
 }
@@ -276,7 +284,7 @@ void inl::tool::NodePanel::DeselectPort() {
 
 void inl::tool::NodePanel::DeselectArrow() {
 	if (m_selectedArrow) {
-		m_selectedArrow->SetStyle(nullptr);
+		m_selectedArrow->SetUsingDefaultStyle(true);
 		m_selectedArrow = nullptr;
 	}
 }

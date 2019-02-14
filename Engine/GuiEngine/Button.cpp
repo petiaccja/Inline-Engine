@@ -11,31 +11,28 @@ namespace inl::gui {
 
 
 Button::Button() {
-	m_text.reset(new PlaceholderTextEntity());
-	m_background.reset(new PlaceholderOverlayEntity());
-	m_text->SetZDepth(0.1f);
-	m_background->SetZDepth(0.0f);
-
 	OnEnterArea += [](auto...) {
 		System::SetCursorVisual(eCursorVisual::ARROW, nullptr);
 	};
+	AddChild(m_background);
+	AddChild(m_text);
 }
 
 
-void Button::SetSize(Vec2 size) {
-	m_background->SetScale(size);
-	m_text->SetSize(size);
+void Button::SetSize(const Vec2& size) {
+	m_background.SetSize(size);
+	m_text.SetSize(size);
 }
 
 
 Vec2 Button::GetSize() const {
-	return m_background->GetScale();
+	return m_background.GetSize();
 }
 
 
 Vec2 Button::GetPreferredSize() const {
-	if (m_text->GetFont()) {
-		return { m_text->CalculateTextHeight(),	m_text->CalculateTextWidth() };
+	if (m_text.GetFont()) {
+		return { m_text.CalculateTextHeight(), m_text.CalculateTextWidth() };
 	}
 	else {
 		return { 10, 10 };
@@ -48,53 +45,48 @@ Vec2 Button::GetMinimumSize() const {
 }
 
 
-void Button::SetPosition(Vec2 position) {
-	m_background->SetPosition(position);
-	m_text->SetPosition(position);
+void Button::SetPosition(const Vec2& position) {
+	m_background.SetPosition(position);
+	m_text.SetPosition(position);
 }
+
+
 Vec2 Button::GetPosition() const {
-	return m_background->GetPosition();
+	return m_background.GetPosition();
 }
 
 
 void Button::Update(float elapsed) {
-	UpdateClip();
+	ColorF background;
+	const auto& style = GetStyle();
 
-	ColorF foreground;
-	switch (GetState()) {
-		case eStandardControlState::DEFAULT: foreground = GetStyle().foreground; break;
-		case eStandardControlState::MOUSEOVER: foreground = GetStyle().hover; break;
-		case eStandardControlState::FOCUSED: foreground = GetStyle().focus; break;
-		case eStandardControlState::PRESSED: foreground = GetStyle().pressed; break;
+	switch (m_stateTracker.Get()) {
+		case eControlState::NORMAL: background = style.foreground; break;
+		case eControlState::HOVERED: background = style.hover; break;
+		case eControlState::FOCUSED: background = style.focus; break;
+		case eControlState::HELD: background = style.pressed; break;
+		case eControlState::DRAGGED: background = style.pressed; break;
 	}
-	m_background->SetColor(foreground.v);
-	m_text->SetColor(GetStyle().text.v);
+
+	m_background.SetColor(background.v);
+	m_text.SetColor(style.text.v);
 }
 
 void Button::SetText(std::u32string text) {
-	m_text->SetText(std::move(text));
+	m_text.SetText(std::move(text));
 }
 const std::u32string& Button::GetText() const {
-	return m_text->GetText();
+	return m_text.GetText();
 }
 
 float Button::SetDepth(float depth) {
-	m_background->SetZDepth(depth);
-	m_text->SetZDepth(depth + 0.1f);
+	m_background.SetDepth(depth);
+	m_text.SetDepth(depth + 0.1f);
 	return 1.0f;
 }
 
 float Button::GetDepth() const {
-	return m_background->GetZDepth();
-}
-
-
-std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> Button::GetTextEntities() {
-	return { m_text };
-}
-
-std::vector<std::reference_wrapper<std::unique_ptr<gxeng::IOverlayEntity>>> Button::GetOverlayEntities() {
-	return { m_background };
+	return m_background.GetDepth();
 }
 
 

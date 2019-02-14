@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Control2.hpp"
+#include "Control.hpp"
+#include "GraphicalControl.hpp"
 #include "GraphicsContext.hpp"
 
 #include <GraphicsEngine/Scene/IOverlayEntity.hpp>
@@ -14,7 +15,7 @@ namespace inl::gui {
 // Normal controls could just simply add them as sub-controls.
 
 
-class Sprite final : public Control2 {
+class Sprite final : public Control, public GraphicalControl {
 public:
 	/// <summary> Creates an invisible placeholder sprite. </summary>
 	Sprite();
@@ -25,15 +26,13 @@ public:
 	/// <summary> Moves the sprite. The original will become invalid and cannot be further used. </summary>
 	Sprite(Sprite&& other) noexcept;
 
+	void SetContext(const GraphicsContext& context) override;
+	void ClearContext() override;
+	void SetClipRect(const RectF& rect, const Mat33& transform) override;
 
-	/// <summary> To turn the sprite into a true graphics engine object on a scene, a context can be provided. </summary>
-	/// <param name="context"> The graphics engine to use for the entity and the scene to register the entity for. </param>
-	void SetContext(const GraphicsContext& context);
+	~Sprite();
 
-	/// <summary> If no graphics context is available, the sprite will not be visible, but it will be a valid object. </summary>
-	void ClearContext();
 
-	
 	//-------------------------------------
 	// Control
 	//-------------------------------------
@@ -47,11 +46,14 @@ public:
 	// Position
 	void SetPosition(const Vec2& position) override;
 	Vec2 GetPosition() const override;
+	float SetDepth(float depth) override;
+	float GetDepth() const override;
 
-	// Visibility
-	void SetVisible(bool visible) override;
-	bool GetVisible() const override;
-	bool IsShown() const override;
+	// Rotation
+	void SetRotation(float angle);
+	float GetRotation() const;
+
+	bool HitTest(const Vec2& point) const override;
 
 	//-------------------------------------
 	// OverlayEntity
@@ -65,9 +67,6 @@ public:
 	void SetTexture(gxeng::IImage* texture);
 	gxeng::IImage* GetTexture() const;
 
-	void SetZDepth(float z);
-	float GetZDepth() const;
-
 	void SetAdditionalClip(RectF clipRectangle, Mat33 transform);
 	std::pair<RectF, Mat33> GetAdditionalClip() const;
 	void EnableAdditionalClip(bool enabled);
@@ -80,6 +79,12 @@ private:
 	std::unique_ptr<gxeng::IOverlayEntity> m_entity;
 	GraphicsContext m_context;
 };
+
+
+inline void Sprite::SetClipRect(const RectF& rect, const Mat33& transform) {
+	m_entity->SetAdditionalClip(rect, transform);
+	m_entity->EnableAdditionalClip(true);
+}
 
 
 } // namespace inl::gui

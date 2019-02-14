@@ -1,9 +1,10 @@
 #pragma once
 
 #include "Control.hpp"
+#include "GraphicsContext.hpp"
 
 #include <BaseLibrary/Platform/Input.hpp>
-#include <set>
+#include <BaseLibrary/Rect.hpp>
 
 
 namespace inl::gui {
@@ -14,16 +15,16 @@ namespace inl::gui {
 
 class Board : private Control {
 public:
-	void AddControl(Control& control) { AddControl(MakeBlankShared(control)); }
-	void AddControl(std::shared_ptr<Control> control);
-	void RemoveControl(Control* control);
+	Board();
 
-	void SetDrawingContext(DrawingContext context);
-	const DrawingContext& GetDrawingContext() const;
+	using Control::AddChild;
+	using Control::ClearChildren;
+	using Control::RemoveChild;
+	using Control::SetStyle;
+	using Control::GetStyle;
 
-	void SetStyle(nullptr_t) override;
-	void SetStyle(const ControlStyle& style, bool asDefault = false) override;
-	const ControlStyle& GetStyle() const override;
+	void SetDrawingContext(GraphicsContext context);
+	const GraphicsContext& GetDrawingContext() const;
 
 	// Even handlers.
 	void OnMouseButton(MouseButtonEvent evt);
@@ -39,45 +40,37 @@ public:
 	void Update(float elapsed) override;
 
 private:
-	void Update(Control* subject, float elapsed);
-	void UpdateLayouts();
 	void UpdateLayouts(Control* subject);
 
+	template <class Func>
+	static void ApplyRecurse(Control* root, Func func);
+
 	static const Control* HitTestRecurse(Vec2 point, const Control* top);
-	static bool HitTest(Vec2 point, const Control* control);
 	const Control* GetTarget(Vec2 point) const;
 
-	template <class EventT, class... Args>
-	void PropagateEventUpwards(Control* control, EventT event, Args&&... args);
+	void UpdateRecurse(Control* root, float elapsed);
+	void SetGraphicsContextRecurse(Control* root);
+	void ClearGraphicsContextRecurse(Control* root);
+	void UpdateStyleRecurse(Control* root);
+	void UpdateClipRecurse(Control* root);
+
+	void UpdateStyle() override;
 
 	void DebugTree() const;
 	void DebugTreeRecurse(const Control* control, int level) const;
 
 private:
 	// Dummy implementations for Control.
-	void SetSize(Vec2) override {}
+	void SetSize(const Vec2&) override {}
 	Vec2 GetSize() const override { return { 10000000, 10000000 }; }
-	Vec2 GetMinimumSize() const override { return { 0,0 }; }
-	Vec2 GetPreferredSize() const override { return { 0,0 }; }
-	Control* GetParent() const override { return nullptr; }
-	std::vector<const Control*> GetChildren() const override { return {}; }
+	Vec2 GetMinimumSize() const override { return { 0, 0 }; }
+	Vec2 GetPreferredSize() const override { return { 0, 0 }; }
 
-	void SetPosition(Vec2) override {}
-	Vec2 GetPosition() const override { return { 0,0 }; }
-
-	void SetVisible(bool) override {}
-	bool GetVisible() const override { return true; }
-	bool IsShown() const override { return true; }
-
-	void OnAttach(Control* parent) override {}
-	void OnDetach() override {}
-	const DrawingContext* GetContext() const override;
+	void SetPosition(const Vec2&) override {}
+	Vec2 GetPosition() const override { return { 0, 0 }; }
 
 private:
-	DrawingContext m_context;
-	ControlStyle m_defaultStyle;
-
-	std::set<std::shared_ptr<Control>, impl::ControlPtrLess> m_controls;
+	GraphicsContext m_context;
 
 	Control* m_focusedControl = nullptr;
 	Control* m_hoveredControl = nullptr;
@@ -91,6 +84,16 @@ private:
 	float m_depth = 0.0f;
 	float m_depthSpan = -1.0f; // TODO: implement properly
 };
+
+
+template <class Func>
+void Board::ApplyRecurse(Control* root, Func func) {
+	func(root);
+	auto children = root->GetChildren();
+	for (auto child: children) {
+		ApplyRecurse(child, func);
+	}
+}
 
 
 } // namespace inl::gui

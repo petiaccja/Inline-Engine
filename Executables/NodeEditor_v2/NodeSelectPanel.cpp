@@ -8,8 +8,11 @@ namespace inl::tool {
 
 NodeSelectPanel::NodeSelectPanel() {
 	SetLayout(m_searchBoxLayout);
-	m_searchBoxLayout.PushBack(m_searchBox, gui::LinearLayout::CellSize().SetWidth(m_searchBoxHeight));
-	m_searchBoxLayout.PushBack(m_listView, gui::LinearLayout::CellSize().SetWeight(1.0f));
+	m_searchBoxLayout.AddChild(m_searchBox);
+	m_searchBoxLayout.AddChild(m_listView);
+	m_searchBoxLayout[&m_searchBox].SetWidth(m_searchBoxHeight);
+	m_searchBoxLayout[&m_listView].SetWeight(1.0f).MoveToBack();
+
 	m_searchBoxLayout.SetDirection(gui::LinearLayout::VERTICAL);
 	m_searchBoxLayout.SetInverted(true);
 
@@ -24,14 +27,15 @@ NodeSelectPanel::NodeSelectPanel() {
 
 
 void NodeSelectPanel::SetChoices(std::vector<std::u32string> names) {
-	m_listLayout.Clear();
+	m_listLayout.ClearChildren();
 
 	std::sort(names.begin(), names.end());
 
 	for (const auto& name : names) {
 		auto label = std::make_shared<gui::Label>();
 		label->SetText({ name.begin(), name.end() });
-		m_listLayout.PushBack(label, gui::LinearLayout::CellSize().SetAuto());
+		m_listLayout.AddChild(label);
+		m_listLayout[label.get()].SetAuto().MoveToBack();
 	}
 
 	float prefSize = m_listLayout.GetPreferredSize().y;

@@ -2,6 +2,9 @@
 
 #include <BaseLibrary/Delegate.hpp>
 #include <BaseLibrary/Range.hpp>
+#include <BaseLibrary/StringUtil.hpp>
+
+#include <regex>
 
 
 namespace inl::tool {

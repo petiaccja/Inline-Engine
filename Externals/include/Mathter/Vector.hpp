@@ -962,6 +962,17 @@ public:
 		operator/=(l);
 	}
 
+	/// <summary> Makes a unit vector, but keeps direction. Leans towards <paramref name="degenerate"/> for nullvectors, costs more. </summary>
+	/// <param name="degenerate"> Must be a unit vector. </param>
+	void SafeNormalize(const Vector& degenerate) {
+		assert(degenerate.IsNormalized());
+		T length = LengthPrecise();
+		if (length == 0) {
+			*this = degenerate;
+		}
+		return operator/=(length);
+	}
+
 	/// <summary> Returns the unit vector having the same direction, without modifying the object. Leans towards (1,0,0...) for nullvectors, costs more. </summary>
 	Vector SafeNormalized() const {
 		Vector v = *this;
@@ -969,6 +980,15 @@ public:
 		return v;
 	}
 
+	/// <summary> Makes a unit vector, but keeps direction. Leans towards <paramref name="degenerate"/> for nullvectors, costs more. </summary>
+	/// <param name="degenerate"> Must be a unit vector. </param>
+	Vector SafeNormalized(const Vector& degenerate) const {
+		assert(degenerate.IsNormalized());
+		Vector v = *this;
+		v.SafeNormalize(degenerate);
+		return v;
+	}
+		
 
 	/// <summary> Returns true if the vector's length is too small for precise calculations (i.e. normalization). </summary>
 	/// <remarks> "Too small" means smaller than the square root of the smallest number representable by the underlying scalar. 

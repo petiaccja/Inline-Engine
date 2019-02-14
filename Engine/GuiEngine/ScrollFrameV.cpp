@@ -7,9 +7,13 @@ namespace inl::gui {
 
 
 ScrollFrameV::ScrollFrameV() {
+	AddChild(m_scrollLayout);
+
 	m_scrollLayout.SetDirection(LinearLayout::HORIZONTAL);
-	m_scrollLayout.PushBack(m_contentLayout, LinearLayout::CellSize().SetWeight(1.0f).SetMargin({ 0, 0, 0, 0 }));
-	m_scrollLayout.PushBack(m_scrollBar, LinearLayout::CellSize().SetWidth(m_scrollBarWidth).SetMargin({ 0, 0, 0, 0 }));
+	m_scrollLayout.AddChild(m_contentLayout);
+	m_scrollLayout.AddChild(m_scrollBar);
+	m_scrollLayout[&m_contentLayout].SetWeight(1.0f).SetMargin({ 0, 0, 0, 0 }).MoveToBack();
+	m_scrollLayout[&m_scrollBar].SetWidth(m_scrollBarWidth).SetMargin({ 0, 0, 0, 0 }).MoveToBack();
 
 	m_scrollBar.SetDirection(ScrollBar::VERTICAL);
 	m_scrollBar.SetInverted(true);
@@ -23,7 +27,7 @@ ScrollFrameV::ScrollFrameV() {
 }
 
 
-void ScrollFrameV::SetSize(Vec2 size) {
+void ScrollFrameV::SetSize(const Vec2& size) {
 	m_scrollLayout.SetSize(size);
 	m_scrollBar.SetVisibleLength(size.y);
 	UpdateContentPosition();
@@ -45,7 +49,7 @@ Vec2 ScrollFrameV::GetPreferredSize() const {
 }
 
 
-void ScrollFrameV::SetPosition(Vec2 position) {
+void ScrollFrameV::SetPosition(const Vec2& position) {
 	m_scrollLayout.SetPosition(position);
 }
 
@@ -56,18 +60,12 @@ Vec2 ScrollFrameV::GetPosition() const {
 
 
 void ScrollFrameV::Update(float elapsed) {
-	UpdateClip();
-}
-
-
-std::vector<const Control*> ScrollFrameV::GetChildren() const {
-	return { &m_scrollLayout };
 }
 
 
 void ScrollFrameV::SetContent(std::shared_ptr<Control> content) {
 	m_content = content;
-	m_contentLayout.Clear();
+	m_contentLayout.ClearChildren();
 	if (content) {
 		m_contentLayout.AddChild(m_content);
 	}
@@ -85,18 +83,6 @@ void ScrollFrameV::SetContentHeight(float height) {
 }
 
 
-void ScrollFrameV::OnAttach(Control* parent) {
-	StandardControl::OnAttach(parent);
-	Control::Attach(this, &m_scrollLayout);	
-}
-
-
-void ScrollFrameV::OnDetach() {
-	Control::Detach(&m_scrollLayout);
-	StandardControl::OnDetach();
-}
-
-
 float ScrollFrameV::SetDepth(float depth) {
 	return m_scrollLayout.SetDepth(depth);
 }
@@ -104,16 +90,6 @@ float ScrollFrameV::SetDepth(float depth) {
 
 float ScrollFrameV::GetDepth() const {
 	return m_scrollLayout.GetDepth();
-}
-
-
-std::vector<std::reference_wrapper<std::unique_ptr<gxeng::ITextEntity>>> ScrollFrameV::GetTextEntities() {
-	return {};
-}
-
-
-std::vector<std::reference_wrapper<std::unique_ptr<gxeng::IOverlayEntity>>> ScrollFrameV::GetOverlayEntities() {
-	return {};
 }
 
 

@@ -31,21 +31,37 @@ void Sprite::SetContext(const GraphicsContext& context) {
 	assert(context.engine);
 	assert(context.scene);
 
+	if (m_context.scene) {
+		m_context.scene->GetEntities<gxeng::IOverlayEntity>().Remove(m_entity.get());
+	}
+
 	std::unique_ptr<gxeng::IOverlayEntity> newEntity(context.engine->CreateOverlayEntity());
 
 	CopyProperties(*m_entity, *newEntity);
 
 	m_entity = std::move(newEntity);
 	m_context = context;
+	m_context.scene->GetEntities<gxeng::IOverlayEntity>().Add(m_entity.get());
 }
 
 
 void Sprite::ClearContext() {
+	if (m_context.scene) {
+		m_context.scene->GetEntities<gxeng::IOverlayEntity>().Remove(m_entity.get());
+	}
+
 	auto newEntity = std::make_unique<PlaceholderOverlayEntity>();
 	CopyProperties(*m_entity, *newEntity);
 
 	m_entity = std::move(newEntity);
 	m_context = { nullptr, nullptr };
+}
+
+
+Sprite::~Sprite() {
+	if (m_context.scene) {
+		m_context.scene->GetEntities<gxeng::IOverlayEntity>().Remove(m_entity.get());
+	}
 }
 
 
@@ -83,20 +99,30 @@ Vec2 Sprite::GetPosition() const {
 }
 
 
-void Sprite::SetVisible(bool visible) {
-	throw NotImplementedException();
+float Sprite::SetDepth(float depth) {
+	m_entity->SetZDepth(depth);
+	return 1.0f;
 }
 
 
-bool Sprite::GetVisible() const {
-	throw NotImplementedException();
+float Sprite::GetDepth() const {
+	return m_entity->GetZDepth();
 }
 
 
-bool Sprite::IsShown() const {
-	return true;
+void Sprite::SetRotation(float angle) {
+	m_entity->SetRotation(angle);
 }
 
+
+float Sprite::GetRotation() const {
+	return m_entity->GetRotation();
+}
+
+
+bool Sprite::HitTest(const Vec2& point) const {
+	return false;
+}
 
 
 //-------------------------------------
@@ -114,10 +140,6 @@ Vec4 Sprite::GetColor() const { return m_entity->GetColor(); }
 void Sprite::SetTexture(gxeng::IImage* texture) { m_entity->SetTexture(texture); }
 
 gxeng::IImage* Sprite::GetTexture() const { return m_entity->GetTexture(); }
-
-void Sprite::SetZDepth(float z) { m_entity->SetZDepth(z); }
-
-float Sprite::GetZDepth() const { return m_entity->GetZDepth(); }
 
 void Sprite::SetAdditionalClip(RectF clipRectangle, Mat33 transform) { m_entity->SetAdditionalClip(clipRectangle, transform); }
 

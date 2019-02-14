@@ -1,5 +1,6 @@
 #include "Board.hpp"
 
+#include "GraphicalControl.hpp"
 #include "Layout.hpp"
 
 #include <iostream>
@@ -8,58 +9,26 @@
 namespace inl::gui {
 
 
-template <class EventT, class... Args>
-void Board::PropagateEventUpwards(Control* control, EventT event, Args&&... args) {
-	while (control != nullptr) {
-		(control->*event)(std::forward<Args>(args)...);
-		control = control->GetParent();
-	}
+Board::Board() {
+	OnChildAdded += [this](Control*, Control* child) {
+		SetGraphicsContextRecurse(child);
+		UpdateStyleRecurse(child);
+	};
+	OnChildRemoved += [this](Control*, Control* child) {
+		ClearGraphicsContextRecurse(child);
+		UpdateStyleRecurse(child);
+	};
 }
 
 
-void Board::AddControl(std::shared_ptr<Control> control) {
-	auto [it, newlyAdded] = m_controls.insert(control);
-	if (!newlyAdded) {
-		throw InvalidCallException("Control already added.");
-	}
-	Control::Attach(this, control.get());
-}
-
-
-void Board::RemoveControl(Control* control) {
-	auto it = m_controls.find(control);
-	if (it != m_controls.end()) {
-		m_controls.erase(it);
-		Control::Detach(control);
-	}
-	else {
-		throw InvalidCallException("Control is not part of this Board.");
-	}
-}
-
-
-void Board::SetDrawingContext(DrawingContext context) {
+void Board::SetDrawingContext(GraphicsContext context) {
 	m_context = context;
+	SetGraphicsContextRecurse(this);
 }
 
 
-const DrawingContext& Board::GetDrawingContext() const {
+const GraphicsContext& Board::GetDrawingContext() const {
 	return m_context;
-}
-
-
-void Board::SetStyle(nullptr_t) {
-	m_defaultStyle = {};
-}
-
-
-void Board::SetStyle(const ControlStyle& style, bool asDefault) {
-	m_defaultStyle = style;
-}
-
-
-const ControlStyle& Board::GetStyle() const {
-	return m_defaultStyle;
 }
 
 
@@ -77,20 +46,20 @@ void Board::OnMouseButton(MouseButtonEvent evt) {
 					m_dragControlOrigin = target->GetPosition();
 					m_draggedControl = target;
 				}
-				PropagateEventUpwards(target, &Control::OnMouseDown, target, point, evt.button);
+				target->CallEventUpstream(&Control::OnMouseDown, target, point, evt.button);
 				break;
 			case eKeyState::UP:
 				if (!m_focusedControl) {
 					m_focusedControl = target;
-					PropagateEventUpwards(target, &Control::OnGainFocus, target);
+					target->CallEventUpstream(&Control::OnGainFocus, target);
 				}
 
-				PropagateEventUpwards(target, &Control::OnMouseUp, target, point, evt.button);
-				PropagateEventUpwards(target, &Control::OnClick, target, point, evt.button);
+				target->CallEventUpstream(&Control::OnMouseUp, target, point, evt.button);
+				target->CallEventUpstream(&Control::OnClick, target, point, evt.button);
 				break;
 			case eKeyState::DOUBLE:
-				PropagateEventUpwards(target, &Control::OnMouseDown, target, point, evt.button);
-				PropagateEventUpwards(target, &Control::OnDoubleClick, target, point, evt.button);
+				target->CallEventUpstream(&Control::OnMouseDown, target, point, evt.button);
+				target->CallEventUpstream(&Control::OnDoubleClick, target, point, evt.button);
 				break;
 		}
 	}
@@ -98,14 +67,14 @@ void Board::OnMouseButton(MouseButtonEvent evt) {
 	switch (evt.state) {
 		case eKeyState::DOWN:
 			if (m_focusedControl && target != m_focusedControl) {
-				PropagateEventUpwards(m_focusedControl, &Control::OnLoseFocus, m_focusedControl);
+				m_focusedControl->CallEventUpstream(&Control::OnLoseFocus, m_focusedControl);
 				m_focusedControl = nullptr;
 			}
 			break;
 		case eKeyState::UP:
 			if (evt.button == eMouseButton::LEFT) {
 				if (m_firstDrag != true && m_draggedControl) {
-					PropagateEventUpwards(m_draggedControl, &Control::OnDragEnd, m_draggedControl, point, target);
+					m_draggedControl->CallEventUpstream(&Control::OnDragEnd, m_draggedControl, point, target);
 				}
 				m_draggedControl = nullptr;
 				m_firstDrag = true;
@@ -125,33 +94,33 @@ void Board::OnMouseMove(MouseMoveEvent evt) {
 	// Handle leave area events.
 	if (!target) {
 		if (m_hoveredControl) {
-			PropagateEventUpwards(m_hoveredControl, &Control::OnLeaveArea, m_hoveredControl);
+			m_hoveredControl->CallEventUpstream(&Control::OnLeaveArea, m_hoveredControl);
 			m_hoveredControl = nullptr;
 		}
 	}
 
 	// Handle area enter and leave events.
 	if (m_hoveredControl && m_hoveredControl != target) {
-		PropagateEventUpwards(m_hoveredControl, &Control::OnLeaveArea, m_hoveredControl);
+		m_hoveredControl->CallEventUpstream(&Control::OnLeaveArea, m_hoveredControl);
 		m_hoveredControl = nullptr;
 	}
 	if (!m_hoveredControl) {
 		m_hoveredControl = target;
 		if (m_hoveredControl) {
-			PropagateEventUpwards(target, &Control::OnEnterArea, target);
+			target->CallEventUpstream(&Control::OnEnterArea, target);
 		}
 	}
 
 	// Hovering events.
-	PropagateEventUpwards(target, &Control::OnHover, target, point);
+	target->CallEventUpstream(&Control::OnHover, target, point);
 
 	// Drag events.
 	if (m_draggedControl) {
 		if (m_firstDrag) {
-			PropagateEventUpwards(m_draggedControl, &Control::OnDragBegin, m_draggedControl, point);
+			m_draggedControl->CallEventUpstream(&Control::OnDragBegin, m_draggedControl, point);
 			m_firstDrag = false;
 		}
-		PropagateEventUpwards(m_draggedControl, &Control::OnDrag, m_draggedControl, point);
+		m_draggedControl->CallEventUpstream(&Control::OnDrag, m_draggedControl, point);
 	}
 }
 
@@ -159,10 +128,10 @@ void Board::OnMouseMove(MouseMoveEvent evt) {
 void Board::OnKeyboard(KeyboardEvent evt) {
 	if (m_focusedControl) {
 		if (evt.state == eKeyState::DOWN) {
-			PropagateEventUpwards(m_focusedControl, &Control::OnKeydown, m_focusedControl, evt.key);
+			m_focusedControl->CallEventUpstream(&Control::OnKeydown, m_focusedControl, evt.key);
 		}
 		if (evt.state == eKeyState::UP) {
-			PropagateEventUpwards(m_focusedControl, &Control::OnKeyup, m_focusedControl, evt.key);
+			m_focusedControl->CallEventUpstream(&Control::OnKeyup, m_focusedControl, evt.key);
 		}
 	}
 
@@ -178,7 +147,7 @@ void Board::OnKeyboard(KeyboardEvent evt) {
 
 void Board::OnCharacter(char32_t evt) {
 	if (m_focusedControl) {
-		PropagateEventUpwards(m_focusedControl, &Control::OnCharacter, m_focusedControl, evt);
+		m_focusedControl->CallEventUpstream(&Control::OnCharacter, m_focusedControl, evt);
 	}
 }
 
@@ -206,25 +175,23 @@ float Board::GetDepth() const {
 
 
 void Board::Update(float elapsed) {
-	for (auto& child : m_controls) {
-		UpdateLayouts(child.get());
+	UpdateLayouts(this);
+	UpdateRecurse(this, elapsed);
+	UpdateClipRecurse(this);
+
+	const auto& children = GetChildren();
+	for (auto& child : children) {
 		child->SetDepth(m_depth); // TODO: implement order by focus
-		Update(child.get(), elapsed);
 	}
 }
 
 
-void Board::Update(Control* subject, float elapsed) {
-	if (subject == nullptr) {
-		return;
-	}
-
-	subject->Update();
-
-	auto children = subject->GetChildren();
-	for (auto& child : children) {
-		Update(const_cast<Control*>(child), elapsed);
-	}
+void Board::UpdateRecurse(Control* root, float elapsed) {
+	ApplyRecurse(root, [this, elapsed](Control* control) {
+		if (control != this) {
+			control->Update(elapsed);
+		}
+	});
 }
 
 
@@ -245,7 +212,7 @@ void Board::UpdateLayouts(Control* subject) {
 
 
 const Control* Board::HitTestRecurse(Vec2 point, const Control* top) {
-	if (HitTest(point, top)) {
+	if (top->HitTest(point)) {
 		auto children = top->GetChildren();
 		float maxDepth = -1e4f;
 		const Control* finalHit = top;
@@ -263,19 +230,10 @@ const Control* Board::HitTestRecurse(Vec2 point, const Control* top) {
 	}
 }
 
-
-bool Board::HitTest(Vec2 point, const Control* control) {
-	Vec2 pos = control->GetPosition();
-	Vec2 size = control->GetSize();
-	RectF rc{ pos - size / 2, pos + size / 2 };
-
-	return rc.IsPointInside(point);
-}
-
-
 void Board::DebugTree() const {
-	for (auto& child : m_controls) {
-		DebugTreeRecurse(child.get(), 0);
+	const auto& children = GetChildren();
+	for (auto& child : children) {
+		DebugTreeRecurse(child, 0);
 	}
 	std::cout.flush();
 }
@@ -285,7 +243,7 @@ void Board::DebugTreeRecurse(const Control* control, int level) const {
 	for (int i = 0; i < level; ++i) {
 		std::cout << "  ";
 	}
-	std::cout << "- " << typeid(*control).name() << " " << control->GetSize() << "\n";
+	std::cout << "- " << typeid(*control).name() << " " << control->GetPosition() << ", " << control->GetSize() << "\n";
 
 	auto children = control->GetChildren();
 	for (auto child : children) {
@@ -305,8 +263,9 @@ const Control* Board::GetTarget(Vec2 point) const {
 #endif
 
 	// TODO: handle depth
-	for (auto child : m_controls) {
-		auto* hit = HitTestRecurse(point, child.get());
+	const auto& children = GetChildren();
+	for (auto child : children) {
+		auto* hit = HitTestRecurse(point, child);
 		if (hit) {
 			target = hit;
 		}
@@ -316,8 +275,57 @@ const Control* Board::GetTarget(Vec2 point) const {
 }
 
 
-const DrawingContext* Board::GetContext() const {
-	return m_context.engine && m_context.scene ? &m_context : nullptr;
+void Board::SetGraphicsContextRecurse(Control* root) {
+	ApplyRecurse(root, [this](Control* control) {
+		if (GraphicalControl* graphical = dynamic_cast<GraphicalControl*>(control)) {
+			graphical->SetContext(m_context);
+		}
+	});
+}
+
+
+void Board::ClearGraphicsContextRecurse(Control* root) {
+	ApplyRecurse(root, [this](Control* control) {
+		if (GraphicalControl* graphical = dynamic_cast<GraphicalControl*>(control)) {
+			graphical->ClearContext();
+		}
+	});
+}
+
+
+void Board::UpdateStyleRecurse(Control* root) {
+	ApplyRecurse(root, [this](Control* control) {
+		if (control->GetUsingDefaultStyle()) {
+			const Control* parent = control->GetParent();
+			if (parent) {
+				control->SetStyle(parent->GetStyle(), true);
+			}
+		}
+	});
+}
+
+
+void Board::UpdateClipRecurse(Control* root) {
+	auto RecurseHelper = [](auto self, Control* root, const RectF& carry) -> void {
+		if (GraphicalControl* graphicalRoot = dynamic_cast<GraphicalControl*>(root)) {
+			graphicalRoot->SetClipRect(carry, Mat33::Identity());
+		}
+
+		RectF rootRect = RectF::FromCenter(root->GetPosition(), root->GetSize());
+		RectF nextCarry = RectF::Intersection(carry, rootRect);
+
+		auto children = root->GetChildren();
+		for (auto child : children) {
+			self(self, child, nextCarry);
+		}
+	};
+
+	RecurseHelper(RecurseHelper, root, RectF::FromCenter(0, 0, 10000, 10000));
+}
+
+
+void Board::UpdateStyle() {
+	UpdateStyleRecurse(this);
 }
 
 

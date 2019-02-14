@@ -1,3 +1,5 @@
+#pragma once
+
 #include <GraphicsEngine/Scene/IScene.hpp>
 #include <GraphicsEngine/IGraphicsEngine.hpp>
 

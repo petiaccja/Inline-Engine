@@ -4,105 +4,114 @@
 namespace inl::gui {
 
 
+//------------------------------------------------------------------------------
+// Binding
+//------------------------------------------------------------------------------
+
+LinearLayout::CellSize& LinearLayout::CellSize::SetWidth(float width) {
+	type = eCellType::ABSOLUTE;
+	value = width;
+	return *this;
+}
+
+LinearLayout::CellSize& LinearLayout::CellSize::SetWeight(float weight) {
+	type = eCellType::WEIGHT;
+	value = std::max(0.0f, weight);
+	return *this;
+}
+
+LinearLayout::CellSize& LinearLayout::CellSize::SetAuto() {
+	type = eCellType::AUTO;
+	return *this;
+}
+
+LinearLayout::CellSize& LinearLayout::CellSize::SetMargin(Rect<float, false, false> margin) {
+	this->margin = margin;
+	return *this;
+}
+
+LinearLayout::eCellType LinearLayout::CellSize::GetType() const {
+	return type;
+}
+
+float LinearLayout::CellSize::GetValue() const {
+	return value;
+}
+
+auto LinearLayout::CellSize::MoveForward() -> CellSize& {
+	assert(orderList);
+
+	auto prevIt = orderIter;
+	--prevIt;
+	if (prevIt != orderList->end()) {
+		orderList->splice(prevIt, *orderList, orderIter);
+	}
+
+	return *this;
+}
+
+auto LinearLayout::CellSize::MoveBackward() -> CellSize& {
+	assert(orderList);
+
+	auto nextIt = orderIter;
+	++nextIt;
+	if (nextIt != orderList->end()) {
+		orderList->splice(++nextIt, *orderList, orderIter);
+	}
+
+	return *this;
+}
+
+auto LinearLayout::CellSize::MoveToFront() -> CellSize& {
+	assert(orderList);
+
+	const auto firstIt = orderList->begin();
+	if (firstIt != orderList->end()) {
+		orderList->splice(firstIt, *orderList, orderIter);
+	}
+
+	return *this;
+}
+
+auto LinearLayout::CellSize::MoveToBack() -> CellSize& {
+	assert(orderList);
+
+	const auto endIt = orderList->end();
+	if (endIt != orderList->end()) {
+		orderList->splice(endIt, *orderList, orderIter);
+	}
+
+	return *this;
+}
+
+//------------------------------------------------------------------------------
+// Layout
+//------------------------------------------------------------------------------
+
 LinearLayout::LinearLayout(eDirection direction) {
 	m_direction = direction;
 }
 
 
-void LinearLayout::Insert(const_iterator where, Control& control, CellSize sizing) {
-	return Insert(where, MakeBlankShared(control), sizing);
-}
-
-
-void LinearLayout::Insert(const_iterator where, std::shared_ptr<Control> control, CellSize sizing) {
-	auto mutWhere = m_children.emplace(where, std::move(control), sizing);
-	if (mutWhere->control) {
-		Attach(this, mutWhere->control.get());
+LinearLayout::CellSize& LinearLayout::operator[](const Control* child) {
+	if (child->GetParent() != this) {
+		throw InvalidArgumentException("Child does not belong to this control.");
 	}
-	m_dirty = true;
+	return GetLayoutPosition<CellSize>(*child);
 }
 
 
-void LinearLayout::Change(const_iterator which, Control& control, CellSize sizing) {
-	return Change(which, MakeBlankShared(control), sizing);
-}
-
-
-void LinearLayout::Change(const_iterator which, std::shared_ptr<Control> control, CellSize sizing) {
-	auto mutWhich = m_children.begin() + (which - m_children.cbegin());
-
-	if (mutWhich->control) {
-		Detach(mutWhich->control.get());
+const LinearLayout::CellSize& LinearLayout::operator[](const Control* child) const {
+	if (child->GetParent() != this) {
+		throw InvalidArgumentException("Child does not belong to this control.");
 	}
-	mutWhich->control = std::move(control);
-	if (mutWhich->control) {
-		Attach(this, mutWhich->control.get());
-	}
-	mutWhich->sizing = sizing;
-
-	m_dirty = true;
-}
-
-
-void LinearLayout::Change(const_iterator which, CellSize sizing) {
-	auto mutWhich = m_children.begin() + (which - m_children.cbegin());
-	mutWhich->sizing = sizing;
-
-	m_dirty = true;
-}
-
-
-void LinearLayout::PushBack(Control& control, CellSize sizing) {
-	return PushBack(MakeBlankShared(control), sizing);
-}
-
-
-void LinearLayout::PushBack(std::shared_ptr<Control> control, CellSize sizing) {
-	m_children.emplace_back(std::move(control), sizing);
-	if (m_children.back().control) {
-		Attach(this, m_children.back().control.get());
-	}
-
-	m_dirty = true;
-}
-
-
-void LinearLayout::Erase(const_iterator which) {
-	if (which->control) {
-		Detach(which->control.get());
-	}
-	m_children.erase(which);
-
-	m_dirty = true;
-}
-
-
-void LinearLayout::Clear() {
-	for (auto& cell : m_children) {
-		if (cell.control) {
-			Detach(cell.control.get());
-		}
-	}
-	m_children.clear();
-
-	m_dirty = true;
-}
-
-
-LinearLayout::CellSize& LinearLayout::operator[](size_t slot) {
-	return m_children[slot].sizing;
-}
-
-
-const LinearLayout::CellSize& LinearLayout::operator[](size_t slot) const {
-	return m_children[slot].sizing;
+	return GetLayoutPosition<const CellSize>(*child);
 }
 
 
 
-void LinearLayout::SetSize(Vec2 size) {
+void LinearLayout::SetSize(const Vec2& size) {
 	m_size = size;
-
 	m_dirty = true;
 }
 
@@ -115,14 +124,15 @@ Vec2 LinearLayout::GetSize() const {
 LinearLayout::SizingMeasurement LinearLayout::CalcMeasures() const {
 	SizingMeasurement measures;
 
-	for (const auto& child : m_children) {
-		Vec2 preferredSize = child.control ? child.control->GetPreferredSize() : Vec2(0, 0);
-		Vec2 minSize = child.control ? child.control->GetMinimumSize() : Vec2(0, 0);
+	for (const auto& child : m_childrenOrder) {
+		const auto& sizing = GetLayoutPosition<const CellSize>(*child);
 
+		Vec2 preferredSize = child->GetPreferredSize();
+		Vec2 minSize = child->GetMinimumSize();
 
 		Vec2 margin = {
-			child.sizing.GetMargin().left + child.sizing.GetMargin().right,
-			child.sizing.GetMargin().top + child.sizing.GetMargin().bottom
+			sizing.GetMargin().left + sizing.GetMargin().right,
+			sizing.GetMargin().top + sizing.GetMargin().bottom
 		};
 
 		// Main direction in X, fixed in Y
@@ -135,14 +145,14 @@ LinearLayout::SizingMeasurement LinearLayout::CalcMeasures() const {
 		measures.maxPreferredAux = std::max(measures.maxPreferredAux, preferredSize.y);
 		measures.minSizeAux = std::max(measures.minSizeAux, minSize.y + margin.y);
 
-		switch (child.sizing.GetType()) {
+		switch (sizing.GetType()) {
 			case eCellType::ABSOLUTE:
-				measures.sumAbsolute += std::max(minSize.x + margin.x, child.sizing.GetValue());
+				measures.sumAbsolute += std::max(minSize.x + margin.x, sizing.GetValue());
 				measures.sumMinSizeAbs += minSize.x;
 				break;
 			case eCellType::WEIGHT:
-				measures.sumRelative += child.sizing.GetValue();
-				measures.maxPreferredPerRel = std::max(measures.maxPreferredPerRel, (preferredSize.x + margin.x) / child.sizing.GetValue());
+				measures.sumRelative += sizing.GetValue();
+				measures.maxPreferredPerRel = std::max(measures.maxPreferredPerRel, (preferredSize.x + margin.x) / sizing.GetValue());
 				measures.sumMinSizeRel += minSize.x;
 				break;
 			case eCellType::AUTO:
@@ -158,14 +168,16 @@ LinearLayout::SizingMeasurement LinearLayout::CalcMeasures() const {
 }
 
 
-void LinearLayout::PositionChild(const Cell& cell, Vec2 childSize, float primaryOffset, Vec2 budgetSize) {
+void LinearLayout::PositionChild(Control& child, Vec2 childSize, float primaryOffset, Vec2 budgetSize) {
+	const CellSize& sizing = GetLayoutPosition<const CellSize>(child);
+
 	Vec2 primaryDir = { 1.0f, 0.0f };
 	Vec2 auxDir = { 0.0, 1.0f };
 
 	float primaryMargins[2];
 	float auxMargins[2];
 
-	const auto& margin = cell.sizing.GetMargin();
+	const auto& margin = sizing.GetMargin();
 
 	auxMargins[0] = margin.bottom;
 	auxMargins[1] = margin.top;
@@ -193,8 +205,8 @@ void LinearLayout::PositionChild(const Cell& cell, Vec2 childSize, float primary
 	Vec2 pos = primaryPosOffset * primaryDir + auxPosOffset * auxDir + base;
 	Vec2 size = m_direction == HORIZONTAL ? childSize : childSize.yx;
 
-	cell.control->SetPosition(pos);
-	cell.control->SetSize(size);
+	child.SetPosition(pos);
+	child.SetSize(size);
 }
 
 
@@ -202,7 +214,6 @@ Vec2 LinearLayout::GetPreferredSize() const {
 	SizingMeasurement measures = CalcMeasures();
 
 	float unitsPerRel = measures.maxPreferredPerRel;
-
 
 	float totalUnits = unitsPerRel * measures.sumRelative + measures.sumAbsolute;
 	Vec2 preferredSize = { totalUnits, measures.maxPreferredAux };
@@ -226,7 +237,7 @@ Vec2 LinearLayout::GetMinimumSize() const {
 }
 
 
-void LinearLayout::SetPosition(Vec2 position) {
+void LinearLayout::SetPosition(const Vec2& position) {
 	m_position = position;
 
 	m_dirty = true;
@@ -262,15 +273,16 @@ void LinearLayout::UpdateLayout() {
 	float relativeExtraBudget = budget - minSize - absoluteExtraBudget;
 	float unitsPerRel = (measures.sumMinSizeRel + relativeExtraBudget) / measures.sumRelative;
 
-
 	float primaryOffset = 0.0f;
+	
+	for (auto child : m_childrenOrder) {
+		const CellSize& sizing = GetLayoutPosition<const CellSize>(*child);
 
-	for (const auto& child : m_children) {
-		Vec2 preferredSize = child.control ? child.control->GetPreferredSize() : Vec2(0, 0);
-		Vec2 minSize = child.control ? child.control->GetMinimumSize() : Vec2(0, 0);
+		Vec2 preferredSize = child->GetPreferredSize();
+		Vec2 minSize = child->GetMinimumSize();
 		Vec2 margin = {
-			child.sizing.GetMargin().left + child.sizing.GetMargin().right,
-			child.sizing.GetMargin().top + child.sizing.GetMargin().bottom
+			sizing.GetMargin().left + sizing.GetMargin().right,
+			sizing.GetMargin().top + sizing.GetMargin().bottom
 		};
 
 		// Main direction in X, fixed in Y
@@ -282,9 +294,9 @@ void LinearLayout::UpdateLayout() {
 
 		Vec2 size;
 		size.y = auxBudget - margin.y;
-		switch (child.sizing.GetType()) {
+		switch (sizing.GetType()) {
 			case eCellType::ABSOLUTE: {
-				float wanted = std::max(minSize.x + margin.x, child.sizing.GetValue());
+				float wanted = std::max(minSize.x + margin.x, sizing.GetValue());
 				float overMin = wanted - minSize.x;
 				float extraBudget = std::min(overMin, absoluteExtraBudget);
 				absoluteExtraBudget -= extraBudget;
@@ -292,7 +304,7 @@ void LinearLayout::UpdateLayout() {
 				break;
 			}
 			case eCellType::WEIGHT: {
-				float wanted = std::max(minSize.x + margin.x, std::floor(child.sizing.GetValue() * unitsPerRel));
+				float wanted = std::max(minSize.x + margin.x, std::floor(sizing.GetValue() * unitsPerRel));
 				float overMin = wanted - minSize.x;
 				float extraBudget = std::min(overMin, relativeExtraBudget);
 				relativeExtraBudget -= extraBudget;
@@ -308,25 +320,13 @@ void LinearLayout::UpdateLayout() {
 				break;
 		}
 
-		if (child.control) {
-			PositionChild(child, size, primaryOffset, { budget, auxBudget });
-		}
+		PositionChild(const_cast<Control&>(*child), size, primaryOffset, { budget, auxBudget });
+
 
 		primaryOffset += size.x + margin.x;
 	}
 }
 
-
-std::vector<const Control*> LinearLayout::GetChildren() const {
-	std::vector<const Control*> children;
-	children.reserve(m_children.size());
-	for (auto& child : m_children) {
-		if (child.control) {
-			children.push_back(child.control.get());
-		}
-	}
-	return children;
-}
 
 
 void LinearLayout::SetDirection(eDirection direction) {
@@ -342,10 +342,11 @@ LinearLayout::eDirection LinearLayout::GetDirection() {
 float LinearLayout::SetDepth(float depth) {
 	m_depth = depth;
 	float maxSpan = 0.0f;
-	for (auto& child : m_children) {
-		if (child.control) {
-			maxSpan = std::max(maxSpan, child.control->SetDepth(depth + 1.0f));
-		}
+
+	const auto& children = GetChildren();
+
+	for (auto& child : children) {
+		maxSpan = std::max(maxSpan, const_cast<Control*>(child)->SetDepth(depth + 1.0f));
 	}
 	return maxSpan + 1.0f;
 }
@@ -356,26 +357,16 @@ float LinearLayout::GetDepth() const {
 }
 
 
-void LinearLayout::OnAttach(Control* parent) {
-	Layout::OnAttach(parent);
-	for (auto& child : m_children) {
-		if (child.control) {
-			Attach(this, child.control.get());
-		}
-	}
-
-	m_parent = parent;
+void LinearLayout::ChildAddedHandler(Control& child) {
+	m_childrenOrder.push_back(&child);
+	auto orderIt = --m_childrenOrder.end();
+	SetLayoutPosition(child, CellSize(&m_childrenOrder, orderIt));
 }
 
-void LinearLayout::OnDetach() {
-	for (auto& child : m_children) {
-		if (child.control) {
-			Detach(child.control.get());
-		}
-	}
-	Layout::OnDetach();
 
-	m_parent = nullptr;
+void LinearLayout::ChildRemovedHandler(Control& child) {
+	CellSize& binding = GetLayoutPosition<CellSize>(child);
+	m_childrenOrder.erase(binding.orderIter);
 }
 
 
