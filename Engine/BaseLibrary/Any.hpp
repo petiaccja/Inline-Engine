@@ -57,7 +57,7 @@ public:
 		if (!m_data) {
 			throw InvalidStateException("Object is empty.");
 		}
-		if (typeid(T) != m_data->Type()) {
+		if (std::type_index(typeid(T)) != m_data->Type()) {
 			throw std::bad_cast("Types don't match.");
 		}
 		return *reinterpret_cast<T*>(m_data->Get());
@@ -68,7 +68,7 @@ public:
 		if (!m_data) {
 			throw InvalidStateException("Object is empty.");
 		}
-		if (typeid(T) != m_data->Type()) {
+		if (std::type_index(typeid(T)) != m_data->Type()) {
 			throw std::bad_cast("Types don't match.");
 		}
 		return *reinterpret_cast<const T*>(m_data->Get());

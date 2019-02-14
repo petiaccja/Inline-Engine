@@ -137,7 +137,7 @@ std::vector<StackFrameT<Allocator>, Allocator<StackFrameT<Allocator>>> GetStackT
 #else
 
 template <template <class> class Allocator = std::allocator>
-std::vector<StackFrameT, Allocator> GetStackTrace() {
+std::vector<StackFrameT<Allocator>, Allocator<StackFrameT<Allocator>>> GetStackTrace() {
 	StackFrameT<Allocator> currentFrame;
 	currentFrame.frame = 0;
 	currentFrame.frameAddress = (void*)0;
