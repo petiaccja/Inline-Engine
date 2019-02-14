@@ -21,6 +21,8 @@ set(files
 	"ArrowControl.hpp"
 	"GraphController.cpp"
 	"GraphController.hpp"
+	"FileDialog.cpp"
+	"FileDialog.hpp"
 )
 
 # Target

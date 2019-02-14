@@ -101,5 +101,10 @@ void ArrowControl::Update(float elapsed) {
 	}
 }
 
+bool ArrowControl::HitTest(const Vec2& point) const {
+	RectF catchRect = RectF::FromCenter((m_p1 + m_p2) / 2, { 4, 4 });
+	return catchRect.IsPointInside(point);
+}
+
 
 } // namespace inl::tool

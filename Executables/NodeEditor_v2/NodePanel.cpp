@@ -153,6 +153,7 @@ void NodePanel::OnNodeDragged(Control* control, Vec2 dragPosition) {
 void NodePanel::OnNodeDragEnd(Control* control, Vec2 dragEnd, Control*) {
 	if (NodeControl * node; node = dynamic_cast<NodeControl*>(control)) {
 		m_draggedNode = nullptr;
+		UpdateArrowPositions();
 	}
 }
 

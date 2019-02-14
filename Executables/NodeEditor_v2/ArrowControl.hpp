@@ -33,6 +33,8 @@ public:
 	Vec2 GetMinimumSize() const override { return { 0,0 }; }
 	Vec2 GetPreferredSize() const override { return GetSize(); }
 	Vec2 GetPosition() const override { return (m_p1 + m_p2) / 2.f; }
+
+	bool HitTest(const Vec2& point) const override;
 protected:
 	// Use SetEndPoints.
 	void SetSize(const Vec2& size) override {}

@@ -27,6 +27,15 @@ private:
 	void CreateGraphicsEnvironment();
 	void CreateGui();
 
+	void SetNodeList(const IEditorGraph* editor);
+	void NewGraph(IEditorGraph* editor);
+
+	void LoadGraph(const std::filesystem::path& filePath);
+	void SaveGraph(const std::filesystem::path& filePath) const;
+
+	std::optional<std::string> ShowLoadDialog() const;
+	std::optional<std::string> ShowSaveDialog() const;
+
 private:
 	gxeng::IGraphicsEngine* m_engine;
 	Window* m_window;
@@ -46,7 +55,6 @@ private:
 	NodeSelectPanel m_selectPanel;
 
 	gui::LinearLayout m_sidePanelLayout;
-	gui::Button m_resetButton;
 	gui::Button m_saveButton;
 	gui::Button m_openButton;
 	std::vector<gui::Button> m_newButtons;

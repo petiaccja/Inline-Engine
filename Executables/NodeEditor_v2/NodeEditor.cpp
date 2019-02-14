@@ -1,7 +1,9 @@
 #include "NodeEditor.hpp"
 
-#include <GraphicsEngine/Scene/ICamera2D.hpp>
+#include "FileDialog.hpp"
+
 #include <BaseLibrary/StringUtil.hpp>
+#include <GraphicsEngine/Scene/ICamera2D.hpp>
 
 #include <fstream>
 
@@ -72,46 +74,41 @@ void NodeEditor::CreateGui() {
 	m_mainLayout[&m_nodePanel].SetWeight(1.0f).MoveToBack();
 	m_mainLayout[&m_sidePanelLayout].SetWidth(250).MoveToBack();
 
-
-	auto nodes = m_editors[0]->GetNodeList();
-	std::vector<std::u32string> u32nodes;
-	for (const auto& name : nodes) {
-		u32nodes.push_back(EncodeString<char32_t>(name));
-	}
-	m_selectPanel.SetChoices(u32nodes);
-
-
-	//style.background = { 0.08f, 0.08f, 0.08f, 1.0f };
-	//m_nodePanel.SetStyle(style);
-
 	m_controller.SetSelectPanel(m_selectPanel);
 	m_controller.SetNodePanel(m_nodePanel);
-	m_controller.SetEditorGraph(*m_editors[0]);
-
-	m_resetButton.SetText(U"Reset");
-	m_resetButton.OnClick += [this](auto...) { m_controller.Clear(); };
 
 	m_saveButton.SetText(U"Save");
-	m_openButton.SetText(U"Open");
-
-	m_sidePanelLayout.AddChild(m_resetButton);
-	m_sidePanelLayout[&m_resetButton].SetWidth(30.f).MoveToBack();
-
 	m_sidePanelLayout.AddChild(m_saveButton);
 	m_sidePanelLayout[&m_saveButton].SetWidth(30.f).MoveToBack();
+	m_saveButton.OnClick += [this](gui::Control*, Vec2, eMouseButton) {
+		auto name = ShowSaveDialog();
+		if (name) {
+			SaveGraph(name.value());
+		}
+	};
 
+	m_openButton.SetText(U"Open");
 	m_sidePanelLayout.AddChild(m_openButton);
 	m_sidePanelLayout[&m_openButton].SetWidth(30.f).MoveToBack();
+	m_openButton.OnClick += [this](gui::Control*, Vec2, eMouseButton) {
+		auto name = ShowLoadDialog();
+		if (name) {
+			LoadGraph(name.value());
+		}
+	};
 
 
 	int idxTemp = 0; // Until I add an interface to query the name of the graph type. (Such as "pipeline" or "material").
-	m_newButtons.resize(m_editors.size()); // Resize needed to avoid reallocation of the vector to keep button memory addresses.
+	m_newButtons.reserve(m_editors.size()); // Resize needed to avoid reallocation of the vector to keep button memory addresses.
 	for (auto& editor : m_editors) {
 		auto& button = m_newButtons.emplace_back();
-		button.SetText(U"New " + EncodeString<char32_t>(std::to_string(idxTemp)) + U" graph");
+		button.SetText(U"New " + EncodeString<char32_t>(editor->GetContentType()) + U" graph");
 		++idxTemp;
 		m_sidePanelLayout.AddChild(button);
 		m_sidePanelLayout[&button].SetWidth(30.f).MoveToBack();
+		button.OnClick += [this, editor](gui::Control*, Vec2, eMouseButton) {
+			NewGraph(editor);
+		};
 	}
 
 	m_sidePanelLayout.SetDirection(gui::LinearLayout::VERTICAL);
@@ -121,6 +118,40 @@ void NodeEditor::CreateGui() {
 	m_window->OnMouseMove += Delegate<void(MouseMoveEvent)>{ &gui::Board::OnMouseMove, &m_board };
 	m_window->OnKeyboard += Delegate<void(KeyboardEvent)>{ &gui::Board::OnKeyboard, &m_board };
 	m_window->OnCharacter += Delegate<void(char32_t)>{ &gui::Board::OnCharacter, &m_board };
+}
+
+
+
+void NodeEditor::SetNodeList(const IEditorGraph* editor) {
+	auto nodes = editor->GetNodeList();
+	std::vector<std::u32string> u32nodes;
+	for (const auto& name : nodes) {
+		u32nodes.push_back(EncodeString<char32_t>(name));
+	}
+	m_selectPanel.SetChoices(u32nodes);
+}
+
+
+void NodeEditor::NewGraph(IEditorGraph* editor) {
+	SetNodeList(editor);
+	m_controller.Clear();
+	m_controller.SetEditorGraph(*editor);
+}
+
+void NodeEditor::LoadGraph(const std::filesystem::path& filePath) {
+}
+
+void NodeEditor::SaveGraph(const std::filesystem::path& filePath) const {
+}
+
+
+std::optional<std::string> NodeEditor::ShowLoadDialog() const {
+	return ShowFileOpenDialog();
+}
+
+
+std::optional<std::string> NodeEditor::ShowSaveDialog() const {
+	return ShowFileSaveDialog();
 }
 
 
