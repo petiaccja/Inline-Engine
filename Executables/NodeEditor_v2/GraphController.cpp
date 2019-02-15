@@ -57,6 +57,76 @@ void GraphController::SetEditorGraph(IEditorGraph& editorGraph) {
 }
 
 
+void GraphController::Load(const std::string& desc, const std::vector<IEditorGraph*>& editors) {
+	// Try to load the file with one of the editor interfaces.
+	bool loaded = false;
+	for (auto& graphEditor : editors) {
+		try {
+			graphEditor->LoadJSON(desc);
+			m_model = graphEditor;
+			loaded = true;
+			break;
+		}
+		catch (NotSupportedException&) {
+			// Graph editor does not support specified type.
+		}
+	}
+	if (!loaded) {
+		throw NotSupportedException("Graph type is not supported.");
+	}
+
+
+	m_nodes.clear();
+
+	// Set node list.
+	std::vector<std::u32string> nameList;
+	for (const auto& name : m_model->GetNodeList()) {
+		nameList.push_back(EncodeString<char32_t>(name));
+	}
+	m_selectPanel->SetChoices(nameList);
+
+	// Create nodes.
+	std::map<IGraphEditorNode*, NodeControl*> inversionMap;
+
+
+	auto graphNodes = m_model->GetNodes();
+	for (auto realNode : graphNodes) {
+		auto node = std::make_shared<NodeControl*>();
+		m_view->AddNode(node);
+		node->SetNode(realNode, m_graphicsEngine, m_scene.get(), m_font.get());
+		node->SetPosition(realNode->GetMetaData().placement);
+		node->SetDepth((float)m_nodes.size());
+		node->SetSize(Vec2(300, 0));
+		inversionMap[node->GetNode()] = node.get();
+		m_nodes.push_back(std::move(node));
+	}
+
+	auto graphLinks = m_model->GetLinks();
+	for (auto realLink : graphLinks) {
+		NodeControl* src = inversionMap[realLink.sourceNode];
+		NodeControl* tar = inversionMap[realLink.targetNode];
+		const PortControl& srcPort = src->GetOutputPort(realLink.sourcePort);
+		const PortControl& tarPort = tar->GetInputPort(realLink.targetPort);
+
+		Link link{ m_graphicsEngine, m_scene.get() };
+		srcPort->Link(tarPort, std::move(link));
+	}
+
+
+}
+
+
+std::string GraphController::Serialize() const {
+	for (const auto& node : m_nodes) {
+		NodeMetaDescription metaData = node.second->GetMetaData();
+		metaData.placement = node.first->GetPosition();
+		node.second->SetMetaData(metaData);
+	}
+
+	return m_model->SerializeJSON();
+}
+
+
 void GraphController::Clear() {
 	if (m_view) {
 		m_view->Clear();

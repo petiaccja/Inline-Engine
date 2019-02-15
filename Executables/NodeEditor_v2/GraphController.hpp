@@ -7,6 +7,8 @@
 #include <BaseLibrary/GraphEditor/IEditorGraph.hpp>
 #include <BaseLibrary/GraphEditor/IGraphEditorNode.hpp>
 
+#include <map>
+
 
 namespace inl::tool {
 
@@ -37,6 +39,9 @@ public:
 	void SetSelectPanel(NodeSelectPanel& selectPanel);
 	void SetNodePanel(NodePanel& panel);
 	void SetEditorGraph(IEditorGraph& editorGraph);
+
+	void Load(const std::string& desc, const std::vector<IEditorGraph*>& editors);
+	std::string Serialize() const;
 
 	void Clear();
 

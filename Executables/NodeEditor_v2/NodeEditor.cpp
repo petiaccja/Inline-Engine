@@ -139,9 +139,25 @@ void NodeEditor::NewGraph(IEditorGraph* editor) {
 }
 
 void NodeEditor::LoadGraph(const std::filesystem::path& filePath) {
+	std::ifstream file(filePath);
+	if (!file.is_open()) {
+		throw FileNotFoundException("Could not open selected file for reading.");
+	}
+
+	std::string desc{std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
+
+	m_controller.Load(desc);
 }
 
 void NodeEditor::SaveGraph(const std::filesystem::path& filePath) const {
+	std::string desc = m_controller.Serialize();
+
+	std::ofstream file(filePath);
+	if (!file.is_open()) {
+		throw FileNotFoundException("Could not open selected file for writing.");
+	}
+
+	file.write(desc.c_str(), desc.size());
 }
 
 
