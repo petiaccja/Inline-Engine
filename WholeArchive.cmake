@@ -9,7 +9,7 @@ function(make_archive_whole archive_name archive_output)
 	# This is just a hack for now.
 	# TODO: handle generators and compilers other than VS and MSVC.
 	if (TARGET_COMPILER_MSVC)
-		if (GENERATOR_IS_MULTI_CONFIG)
+		if (CMAKE_GENERATOR MATCHES "Visual Studio")
 			set(${archive_output} "-WHOLEARCHIVE:${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/$(Configuration)/${archive_name}" PARENT_SCOPE)
 		else()
 			set(${archive_output} "-WHOLEARCHIVE:${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${archive_name}" PARENT_SCOPE)
