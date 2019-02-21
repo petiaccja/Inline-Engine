@@ -1,6 +1,7 @@
 
 # Inline Engine
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/578452689f1f4138a07dcb2fd0e067f2)](https://app.codacy.com/app/petiaccja/Inline-Engine?utm_source=github.com&utm_medium=referral&utm_content=petiaccja/Inline-Engine&utm_campaign=Badge_Grade_Dashboard)
 [![Build status](https://ci.appveyor.com/api/projects/status/rdyulmuoq5cc64o9?svg=true)](https://ci.appveyor.com/project/petiaccja/inline-engine)
 
 Introduction
