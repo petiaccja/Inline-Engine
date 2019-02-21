@@ -1,11 +1,18 @@
 #include "Window.hpp"
+
 #include "../../Exception/Exception.hpp"
-#include <future>
-#include <Windowsx.h>
 #include "shellapi.h"
-#include <dwmapi.h>
+
 #include "BaseLibrary/StringUtil.hpp"
+
+#include <Windowsx.h>
+#include <dwmapi.h>
+#include <future>
+#include <windows.foundation.h>
+#include <windows.ui.viewmanagement.h>
+#include <wrl.h>
 #pragma comment(lib, "dwmapi.lib")
+#pragma comment(lib, "WindowsApp.lib")
 #undef UNKNOWN
 
 #undef IsMaximized
@@ -17,11 +24,10 @@ namespace inl {
 
 
 Window::Window(const std::string& title,
-	Vec2u size,
-	bool borderless,
-	bool resizable,
-	bool hiddenInitially)
-{
+			   Vec2u size,
+			   bool borderless,
+			   bool resizable,
+			   bool hiddenInitially) {
 	// Lazy-register window class.
 	static bool isWcRegistered = [] {
 		WNDCLASSEXA wc;
@@ -188,28 +194,38 @@ void Window::Minize() {
 
 
 void Window::Restore() {
-	if (IsClosed()) { return; }
+	if (IsClosed()) {
+		return;
+	}
 	ShowWindow(m_handle, SW_RESTORE);
 }
 
 
 bool Window::IsMaximized() const {
-	if (IsClosed()) { return false; }
+	if (IsClosed()) {
+		return false;
+	}
 	return IsZoomed(m_handle);
 }
 bool Window::IsMinimized() const {
-	if (IsClosed()) { return false; }
+	if (IsClosed()) {
+		return false;
+	}
 	return IsIconic(m_handle);
 }
 
 void Window::SetSize(const Vec2u& size) {
-	if (IsClosed()) { return; }
+	if (IsClosed()) {
+		return;
+	}
 	SetWindowPos(m_handle, NULL, 0, 0, size.x, size.y, SWP_NOMOVE);
 }
 
 
 Vec2u Window::GetSize() const {
-	if (IsClosed()) { return { 0,0 }; }
+	if (IsClosed()) {
+		return { 0, 0 };
+	}
 	RECT rc;
 	GetWindowRect(m_handle, &rc);
 	return { rc.right - rc.left, rc.bottom - rc.top };
@@ -217,7 +233,9 @@ Vec2u Window::GetSize() const {
 
 
 Vec2u Window::GetClientSize() const {
-	if (IsClosed()) { return { 0,0 }; }
+	if (IsClosed()) {
+		return { 0, 0 };
+	}
 	RECT rc;
 	GetClientRect(m_handle, &rc);
 	return { rc.right - rc.left, rc.bottom - rc.top };
@@ -225,20 +243,23 @@ Vec2u Window::GetClientSize() const {
 
 
 void Window::SetPosition(const Vec2i& position) {
-	if (IsClosed()) { return; }
+	if (IsClosed()) {
+		return;
+	}
 	SetWindowPos(m_handle, NULL, position.x, position.y, 0, 0, SWP_NOMOVE);
 }
 
 
 Vec2i Window::GetPosition() const {
-	if (IsClosed()) { return { 0,0 }; }
+	if (IsClosed()) {
+		return { 0, 0 };
+	}
 	RECT rc;
 	GetWindowRect(m_handle, &rc);
 	return { rc.left, rc.top };
 }
 
-Vec2i Window::GetClientCursorPos() const
-{
+Vec2i Window::GetClientCursorPos() const {
 	POINT p;
 	GetCursorPos(&p);
 	ScreenToClient(m_handle, &p);
@@ -268,35 +289,41 @@ std::function<eWindowCaptionButton(Vec2i)> Window::GetCaptionButtonHandler() con
 
 
 void Window::SetResizable(bool enabled) {
-	if (IsClosed()) { return; }
+	if (IsClosed()) {
+		return;
+	}
 	m_resizable = enabled;
 	if (enabled) {
-		SetWindowLong(m_handle, GWL_STYLE, GetWindowLong(m_handle, GWL_STYLE)|WS_SIZEBOX);
+		SetWindowLong(m_handle, GWL_STYLE, GetWindowLong(m_handle, GWL_STYLE) | WS_SIZEBOX);
 	}
 	else {
-		SetWindowLong(m_handle, GWL_STYLE, GetWindowLong(m_handle, GWL_STYLE)&~WS_SIZEBOX);
+		SetWindowLong(m_handle, GWL_STYLE, GetWindowLong(m_handle, GWL_STYLE) & ~WS_SIZEBOX);
 	}
 }
 
 
 bool Window::GetResizable() const {
-	if (IsClosed()) { return false; }
+	if (IsClosed()) {
+		return false;
+	}
 	return m_resizable;
 }
 
 
 void Window::SetBorderless(bool enabled) {
-	if (IsClosed()) { return; }
+	if (IsClosed()) {
+		return;
+	}
 	m_borderless = enabled;
 
 	// Must call SetWindowPos to trigger changes
 	RECT rc;
 	GetWindowRect(m_handle, &rc);
 	SetWindowPos(m_handle,
-		NULL,
-		rc.left, rc.top,
-		rc.right-rc.left, rc.bottom-rc.top,
-		SWP_FRAMECHANGED);
+				 NULL,
+				 rc.left, rc.top,
+				 rc.right - rc.left, rc.bottom - rc.top,
+				 SWP_FRAMECHANGED);
 }
 
 
@@ -353,19 +380,25 @@ int Window::DwmHittest(Vec2i cursorPos) const {
 
 
 bool Window::GetBorderless() const {
-	if (IsClosed()) { return false; }
+	if (IsClosed()) {
+		return false;
+	}
 	return m_borderless;
 }
 
 
 void Window::SetTitle(const std::string& text) {
-	if (IsClosed()) { return; }
+	if (IsClosed()) {
+		return;
+	}
 	SetWindowTextA(m_handle, text.c_str());
 }
 
 
 std::string Window::GetTitle() const {
-	if (IsClosed()) { return nullptr; }
+	if (IsClosed()) {
+		return nullptr;
+	}
 	char data[256];
 	GetWindowTextA(m_handle, data, sizeof(data));
 	return data;
@@ -373,7 +406,9 @@ std::string Window::GetTitle() const {
 
 
 void Window::SetIcon(const std::string& imageFilePath) {
-	if (IsClosed()) { return; }
+	if (IsClosed()) {
+		return;
+	}
 
 	HANDLE hIcon = LoadImageA(0, imageFilePath.c_str(), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
 	if (hIcon) {
@@ -390,6 +425,26 @@ void Window::SetIcon(const std::string& imageFilePath) {
 		PostMessage(GetWindow(m_handle, GW_OWNER), WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
 		PostMessage(GetWindow(m_handle, GW_OWNER), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
 	}
+}
+
+std::optional<ColorF> Window::GetWindows10AccentColor() {
+	namespace abi_vm = ABI::Windows::UI::ViewManagement;
+	namespace wrl = Microsoft::WRL;
+	namespace wf = Windows::Foundation;
+
+	// Error checking has been elided for expository purposes.
+	wrl::ComPtr<abi_vm::IUISettings> settings;
+	wrl::ComPtr<abi_vm::IUISettings3> settings3;
+	wf::ActivateInstance(wrl::Wrappers::HStringReference(RuntimeClass_Windows_UI_ViewManagement_UISettings).Get(), &settings);
+	settings.As(&settings3);
+
+	if (!settings3) {
+		return {};
+	}
+
+	ABI::Windows::UI::Color color;
+	settings3->GetColorValue(abi_vm::UIColorType_Accent, &color);
+	return ColorF(Color<uint8_t>{ color.R, color.G, color.B, color.A });
 }
 
 
@@ -431,7 +486,7 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 			break;
 		case WM_NCCALCSIZE:
 			if (instance.m_borderless && wParam == TRUE) {
-				NCCALCSIZE_PARAMS *pncsp = reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
+				NCCALCSIZE_PARAMS* pncsp = reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
 				pncsp->rgrc[2] = pncsp->rgrc[1];
 				pncsp->rgrc[1] = pncsp->rgrc[0];
 				if (instance.IsMaximized()) {
@@ -488,13 +543,15 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 			break;
 		}
 		case WM_NCLBUTTONDOWN:
-			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+			if (!instance.m_borderless)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_LBUTTONDOWN: {
 			CallClickEvent(eMouseButton::LEFT, eKeyState::DOWN);
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
 		case WM_NCLBUTTONUP:
-			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+			if (!instance.m_borderless)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 			if (instance.m_mouseHover == eWindowCaptionButton::MINIMIZE) {
 				instance.Minize();
 			}
@@ -506,76 +563,88 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
 		case WM_NCLBUTTONDBLCLK:
-			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+			if (!instance.m_borderless)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_LBUTTONDBLCLK: {
 			CallClickEvent(eMouseButton::LEFT, eKeyState::DOUBLE);
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
 		case WM_NCRBUTTONDOWN:
-			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+			if (!instance.m_borderless)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_RBUTTONDOWN: {
 			CallClickEvent(eMouseButton::RIGHT, eKeyState::DOWN);
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
 		case WM_NCRBUTTONUP:
-			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+			if (!instance.m_borderless)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_RBUTTONUP: {
 			CallClickEvent(eMouseButton::RIGHT, eKeyState::UP);
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
 		case WM_NCRBUTTONDBLCLK:
-			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+			if (!instance.m_borderless)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_RBUTTONDBLCLK: {
 			CallClickEvent(eMouseButton::RIGHT, eKeyState::DOUBLE);
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
 		case WM_NCMBUTTONDOWN:
-			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+			if (!instance.m_borderless)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_MBUTTONDOWN: {
 			CallClickEvent(eMouseButton::MIDDLE, eKeyState::DOWN);
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
 		case WM_NCMBUTTONUP:
-			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+			if (!instance.m_borderless)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_MBUTTONUP: {
 			CallClickEvent(eMouseButton::MIDDLE, eKeyState::UP);
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
 		case WM_NCMBUTTONDBLCLK:
-			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+			if (!instance.m_borderless)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_MBUTTONDBLCLK: {
 			CallClickEvent(eMouseButton::MIDDLE, eKeyState::DOUBLE);
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
 		case WM_NCXBUTTONDOWN:
-			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+			if (!instance.m_borderless)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_XBUTTONDOWN: {
 			eMouseButton btn = HIWORD(wParam) == 1 ? eMouseButton::EXTRA1 : eMouseButton::EXTRA2;
 			CallClickEvent(btn, eKeyState::DOWN);
 			return TRUE;
 		}
 		case WM_NCXBUTTONUP:
-			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+			if (!instance.m_borderless)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_XBUTTONUP: {
 			eMouseButton btn = HIWORD(wParam) == 1 ? eMouseButton::EXTRA1 : eMouseButton::EXTRA2;
 			CallClickEvent(btn, eKeyState::UP);
 			return TRUE;
 		}
 		case WM_NCXBUTTONDBLCLK:
-			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+			if (!instance.m_borderless)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_XBUTTONDBLCLK: {
 			eMouseButton btn = HIWORD(wParam) == 1 ? eMouseButton::EXTRA1 : eMouseButton::EXTRA2;
 			CallClickEvent(btn, eKeyState::DOUBLE);
 			return TRUE;
 		}
 		case WM_NCMOUSELEAVE:
-			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+			if (!instance.m_borderless)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_MOUSELEAVE:
 			instance.m_lastMouseX = -1000000;
 			instance.m_lastMouseY = -1000000;
 			break;
 		case WM_NCMOUSEMOVE:
-			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+			if (!instance.m_borderless)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_MOUSEMOVE: {
 			MouseMoveEvent evt;
 			evt.absx = GET_X_LPARAM(lParam);
@@ -598,7 +667,8 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 			break;
 		}
 		case WM_NCACTIVATE:
-			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+			if (!instance.m_borderless)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_ACTIVATE: {
 			instance.CallEvent(instance.OnFocus);
 			return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -612,11 +682,12 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
 		case WM_NCPAINT:
-			if (!instance.m_borderless) return DefWindowProc(hwnd, msg, wParam, lParam);
+			if (!instance.m_borderless)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 		case WM_PAINT: {
 			PAINTSTRUCT ps;
-			BeginPaint(instance.m_handle, &ps);			
-			instance.CallEvent(instance.OnPaint);			
+			BeginPaint(instance.m_handle, &ps);
+			instance.CallEvent(instance.OnPaint);
 			EndPaint(instance.m_handle, &ps);
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
@@ -651,7 +722,7 @@ void Window::MessageLoopPeek() {
 
 
 // crap'n'drop
-HRESULT __stdcall Window::QueryInterface(REFIID riid, void **ppv) {
+HRESULT __stdcall Window::QueryInterface(REFIID riid, void** ppv) {
 	if (riid == IID_IUnknown || riid == IID_IDropTarget) {
 		*ppv = static_cast<IUnknown*>(this);
 		AddRef();
@@ -671,17 +742,17 @@ ULONG __stdcall Window::Release() {
 	return c;
 }
 
-HRESULT __stdcall Window::DragEnter(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) {
+HRESULT __stdcall Window::DragEnter(IDataObject* pdto, DWORD grfKeyState, POINTL ptl, DWORD* pdwEffect) {
 	m_currentDragDropEvent = {};
 
-	FORMATETC textFormat = { CF_UNICODETEXT, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };;
+	FORMATETC textFormat = { CF_UNICODETEXT, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
+	;
 	FORMATETC fileFormat = { CF_HDROP, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
 
 	STGMEDIUM medium;
 
 	// Drop text data
-	if (pdto->GetData(&textFormat, &medium) == S_OK)
-	{
+	if (pdto->GetData(&textFormat, &medium) == S_OK) {
 		// We need to lock the HGLOBAL handle because we can't be sure if this is GMEM_FIXED (i.e. normal heap) data or not
 		wchar_t* text = (wchar_t*)GlobalLock(medium.hGlobal);
 
@@ -692,13 +763,11 @@ HRESULT __stdcall Window::DragEnter(IDataObject *pdto, DWORD grfKeyState, POINTL
 		GlobalUnlock(medium.hGlobal);
 		ReleaseStgMedium(&medium);
 	}
-	else if (pdto->GetData(&fileFormat, &medium) == S_OK)
-	{
+	else if (pdto->GetData(&fileFormat, &medium) == S_OK) {
 		int fileCount = DragQueryFile((HDROP)medium.hGlobal, 0xFFFFFFFF, nullptr, 0);
 
 		std::vector<std::filesystem::path> filePaths;
-		for (int i = 0; i < fileCount; ++i)
-		{
+		for (int i = 0; i < fileCount; ++i) {
 			int FileNameLength = DragQueryFileA((HDROP)medium.hGlobal, i, nullptr, 0);
 			std::vector<char> fileName(FileNameLength + 1);
 			DragQueryFileA((HDROP)medium.hGlobal, i, fileName.data(), FileNameLength + 1);
@@ -716,7 +785,7 @@ HRESULT __stdcall Window::DragEnter(IDataObject *pdto, DWORD grfKeyState, POINTL
 	return S_OK;
 }
 
-HRESULT __stdcall Window::DragOver(DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) {
+HRESULT __stdcall Window::DragOver(DWORD grfKeyState, POINTL ptl, DWORD* pdwEffect) {
 	CallEvent(OnDropHover, m_currentDragDropEvent);
 
 	*pdwEffect &= DROPEFFECT_COPY;
@@ -728,7 +797,7 @@ HRESULT __stdcall Window::DragLeave() {
 	return S_OK;
 }
 
-HRESULT __stdcall Window::Drop(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) {
+HRESULT __stdcall Window::Drop(IDataObject* pdto, DWORD grfKeyState, POINTL ptl, DWORD* pdwEffect) {
 	CallEvent(OnDrop, m_currentDragDropEvent);
 
 	*pdwEffect &= DROPEFFECT_COPY;

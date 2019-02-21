@@ -91,7 +91,6 @@ set (memory_resheaps
 )
 
 set (pipeline_misc
-	"GraphicsNodeFactory.cpp"
 	"ShaderManager.cpp"
 	
 	"GraphicsNodeFactory.hpp"

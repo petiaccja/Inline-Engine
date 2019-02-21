@@ -128,7 +128,7 @@ private:
 int TestPipeline::Run() {
 	cout << "Creating factory..." << endl;
 
-	GraphicsNodeFactory factory;
+	NodeFactory factory;
 	//factory.RegisterNodeClass<TestNode>("");
 	//factory.RegisterNodeClass<TestGraphicsNode>("");
 

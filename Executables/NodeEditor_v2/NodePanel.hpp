@@ -51,7 +51,7 @@ private:
 public:
 	NodePanel();
 
-	void AddNode(std::shared_ptr<NodeControl> node);
+	void AddNode(std::shared_ptr<NodeControl> node, Vec2 position = {0,0});
 	void RemoveNode(const NodeControl* node);
 
 	void AddLink(const NodeControl* source, int sourcePort, const NodeControl* target, int targetPort);

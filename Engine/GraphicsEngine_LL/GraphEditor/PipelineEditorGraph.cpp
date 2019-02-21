@@ -8,7 +8,7 @@
 namespace inl::gxeng {
 
 
-PipelineEditorGraph::PipelineEditorGraph(const GraphicsNodeFactory& factory)
+PipelineEditorGraph::PipelineEditorGraph(const NodeFactory& factory)
 	: m_factory(factory)
 {}
 

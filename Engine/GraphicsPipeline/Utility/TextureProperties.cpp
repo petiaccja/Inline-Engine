@@ -1,6 +1,8 @@
 #pragma once
 
+#include <GraphicsEngine_LL/AutoRegisterNode.hpp>
 #include <GraphicsEngine_LL/GraphicsNode.hpp>
+
 
 namespace inl::gxeng::nodes {
 
@@ -37,6 +39,9 @@ public:
 
 	void Execute(RenderContext& context) override {}
 };
+
+
+INL_REGISTER_GRAPHICS_NODE(TextureProperties)
 
 
 } // namespace inl::gxeng::nodes

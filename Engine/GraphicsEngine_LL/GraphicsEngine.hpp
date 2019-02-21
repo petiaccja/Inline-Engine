@@ -1,6 +1,5 @@
 #pragma once
 
-#include "GraphicsNodeFactory.hpp"
 #include "Pipeline.hpp"
 #include "Scheduler.hpp"
 #include "CommandAllocatorPool.hpp"

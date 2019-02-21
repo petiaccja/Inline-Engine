@@ -44,6 +44,7 @@ public:
 	std::string Serialize() const;
 
 	void Clear();
+	std::shared_ptr<NodeControl> CreateViewNode(IGraphEditorNode* newNode) const;
 
 private:
 	void OnAddNode(std::u32string name);

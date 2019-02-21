@@ -125,6 +125,14 @@ void Board::OnMouseMove(MouseMoveEvent evt) {
 }
 
 
+void Board::OnMouseWheel(MouseWheelEvent evt) {
+	// Forward events to hovered control, if any.
+	if (m_hoveredControl) {
+		m_hoveredControl->CallEventUpstream(&Control::OnMouseWheel, m_hoveredControl, evt.rotation);
+	}
+}
+
+
 void Board::OnKeyboard(KeyboardEvent evt) {
 	if (m_focusedControl) {
 		if (evt.state == eKeyState::DOWN) {

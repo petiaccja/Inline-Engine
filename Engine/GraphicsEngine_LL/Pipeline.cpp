@@ -104,7 +104,7 @@ Pipeline::~Pipeline() {
 }
 
 
-void Pipeline::CreateFromDescription(const std::string& jsonDescription, GraphicsNodeFactory& factory) {
+void Pipeline::CreateFromDescription(const std::string& jsonDescription, NodeFactory& factory) {
 	GraphParser parser;
 	std::vector<std::shared_ptr<NodeBase>> nodeObjects;
 

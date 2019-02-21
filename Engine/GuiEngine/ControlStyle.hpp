@@ -8,6 +8,21 @@ namespace inl::gui {
 
 
 struct ControlStyle {
+	static ControlStyle Dark(ColorF accent)	{
+		ControlStyle style;
+		style.background = { 0.16f, 0.16f, 0.16f, 1 };
+		style.foreground = { 0.24f, 0.24f, 0.24f, 1 };
+		style.hover.v.xyz = (Vec3)style.background.v.xyz + 0.2f * (Vec3)accent.v.xyz;
+		style.focus = { 0.32f, 0.32f, 0.32f, 1 };
+		style.pressed = { 0.10f, 0.10f, 0.10f, 1 };
+		style.accent = accent;
+
+		style.text = { 0.8f, 0.8f, 0.8f, 1 };
+		style.selection = { 0.2f, 0.3f, 0.8f, 1.0f };
+
+		return style;
+	}
+
 	ColorF background = { 0.16f, 0.16f, 0.16f, 1 };
 	ColorF foreground = { 0.24f, 0.24f, 0.24f, 1 };
 	ColorF hover = { 0.24f, 0.32f, 0.30f, 1 };

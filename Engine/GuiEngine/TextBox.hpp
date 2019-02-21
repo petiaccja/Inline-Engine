@@ -27,6 +27,8 @@ public:
 	// Textbox specific properties.
 	void SetText(std::u32string text);
 	const std::u32string& GetText() const;
+	void SetHint(std::u32string hint);
+	const std::u32string& GetHint() const;
 
 	float SetDepth(float depth) override;
 	float GetDepth() const override;
@@ -41,6 +43,8 @@ private:
 	Sprite m_background;
 	Sprite m_cursor;
 	ControlStateTracker m_stateTracker{this};
+	std::u32string m_textValue;
+	std::u32string m_hintValue;
 
 	float m_sinceLastCursorBlink = 0.0f;
 	float m_blinkTime = 0.5f;

@@ -59,7 +59,8 @@ void NodeEditor::CreateGui() {
 	drawingContext.engine = m_engine;
 	drawingContext.scene = m_scene.get();
 	m_board.SetDrawingContext(drawingContext);
-	gui::ControlStyle style;
+	ColorF accent = Window::GetWindows10AccentColor().value_or(ColorF{ 0.24f, 0.45f, 0.37f, 1 });
+	gui::ControlStyle style = gui::ControlStyle::Dark(accent);
 	style.font = m_font.get();
 	m_board.SetStyle(style);
 
@@ -81,9 +82,14 @@ void NodeEditor::CreateGui() {
 	m_sidePanelLayout.AddChild(m_saveButton);
 	m_sidePanelLayout[&m_saveButton].SetWidth(30.f).MoveToBack();
 	m_saveButton.OnClick += [this](gui::Control*, Vec2, eMouseButton) {
-		auto name = ShowSaveDialog();
-		if (name) {
-			SaveGraph(name.value());
+		try {
+			auto name = ShowSaveDialog();
+			if (name) {
+				SaveGraph(name.value());
+			}
+		}
+		catch (Exception& ex) {
+			std::cout << ex.what() << std::endl;
 		}
 	};
 
@@ -91,9 +97,14 @@ void NodeEditor::CreateGui() {
 	m_sidePanelLayout.AddChild(m_openButton);
 	m_sidePanelLayout[&m_openButton].SetWidth(30.f).MoveToBack();
 	m_openButton.OnClick += [this](gui::Control*, Vec2, eMouseButton) {
-		auto name = ShowLoadDialog();
-		if (name) {
-			LoadGraph(name.value());
+		try {
+			auto name = ShowLoadDialog();
+			if (name) {
+				LoadGraph(name.value());
+			}
+		}
+		catch (Exception& ex) {
+			std::cout << ex.what() << std::endl;
 		}
 	};
 
@@ -116,6 +127,7 @@ void NodeEditor::CreateGui() {
 
 	m_window->OnMouseButton += Delegate<void(MouseButtonEvent)>{ &gui::Board::OnMouseButton, &m_board };
 	m_window->OnMouseMove += Delegate<void(MouseMoveEvent)>{ &gui::Board::OnMouseMove, &m_board };
+	m_window->OnMouseWheel += Delegate<void(MouseWheelEvent)>{ &gui::Board::OnMouseWheel, &m_board };
 	m_window->OnKeyboard += Delegate<void(KeyboardEvent)>{ &gui::Board::OnKeyboard, &m_board };
 	m_window->OnCharacter += Delegate<void(char32_t)>{ &gui::Board::OnCharacter, &m_board };
 }
@@ -144,9 +156,9 @@ void NodeEditor::LoadGraph(const std::filesystem::path& filePath) {
 		throw FileNotFoundException("Could not open selected file for reading.");
 	}
 
-	std::string desc{std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>()};
+	std::string desc{ std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
 
-	m_controller.Load(desc);
+	m_controller.Load(desc, m_editors);
 }
 
 void NodeEditor::SaveGraph(const std::filesystem::path& filePath) const {

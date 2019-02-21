@@ -142,22 +142,22 @@ LinearLayout::SizingMeasurement LinearLayout::CalcMeasures() const {
 			margin = margin.yx;
 		}
 
-		measures.maxPreferredAux = std::max(measures.maxPreferredAux, preferredSize.y);
+		measures.maxPreferredAux = std::max(measures.maxPreferredAux, preferredSize.y + margin.y);
 		measures.minSizeAux = std::max(measures.minSizeAux, minSize.y + margin.y);
 
 		switch (sizing.GetType()) {
 			case eCellType::ABSOLUTE:
 				measures.sumAbsolute += std::max(minSize.x + margin.x, sizing.GetValue());
-				measures.sumMinSizeAbs += minSize.x;
+				measures.sumMinSizeAbs += minSize.x + margin.x;
 				break;
 			case eCellType::WEIGHT:
 				measures.sumRelative += sizing.GetValue();
 				measures.maxPreferredPerRel = std::max(measures.maxPreferredPerRel, (preferredSize.x + margin.x) / sizing.GetValue());
-				measures.sumMinSizeRel += minSize.x;
+				measures.sumMinSizeRel += minSize.x + margin.x;
 				break;
 			case eCellType::AUTO:
 				measures.sumAbsolute += preferredSize.x + margin.x;
-				measures.sumMinSizeAbs += minSize.x;
+				measures.sumMinSizeAbs += minSize.x + margin.x;
 				break;
 		}
 
@@ -312,7 +312,7 @@ void LinearLayout::UpdateLayout() {
 				break;
 			}
 			case eCellType::AUTO:
-				float wanted = std::max(minSize.x + margin.x, preferredSize.x);
+				float wanted = std::max(minSize.x + margin.x, preferredSize.x + margin.x);
 				float overMin = wanted - minSize.x;
 				float extraBudget = std::min(overMin, absoluteExtraBudget);
 				absoluteExtraBudget -= extraBudget;

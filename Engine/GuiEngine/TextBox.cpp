@@ -3,6 +3,7 @@
 #include "Layout.hpp"
 #include "Placeholders/PlaceholderOverlayEntity.hpp"
 #include "Placeholders/PlaceholderTextEntity.hpp"
+
 #include <BaseLibrary/Platform/System.hpp>
 #include <BaseLibrary/StringUtil.hpp>
 #include <GraphicsEngine/Resources/IFont.hpp>
@@ -31,7 +32,7 @@ Vec2 TextBox::GetSize() const {
 
 Vec2 TextBox::GetPreferredSize() const {
 	if (m_text.GetFont()) {
-		return { m_text.CalculateTextHeight(),	m_text.CalculateTextWidth() };
+		return { m_text.CalculateTextHeight(), m_text.CalculateTextWidth() };
 	}
 	else {
 		return { 10, 10 };
@@ -56,9 +57,14 @@ Vec2 TextBox::GetPosition() const {
 void TextBox::Update(float elapsed) {
 	SetColor();
 
+	// Set hint if no actual text.
+	if (m_textValue.empty() && !m_drawCursor) {
+		m_text.SetColor(m_text.GetColor() * Vec4{ 1.0f, 1.0f, 1.0f, 0.5f });
+	}
+
 	// Manage cursor blinking.
 	m_sinceLastCursorBlink += elapsed;
-	if (m_sinceLastCursorBlink > 2*m_blinkTime) {
+	if (m_sinceLastCursorBlink > 2 * m_blinkTime) {
 		m_sinceLastCursorBlink = 0.0f;
 	}
 	float alpha = m_sinceLastCursorBlink < m_blinkTime && m_drawCursor ? 1.0f : 0.0f;
@@ -72,18 +78,31 @@ void TextBox::Update(float elapsed) {
 		std::u32string u32text = EncodeString<char32_t>(GetText()) + U"_";
 		auto [left, right] = font->FindCoordinates(u32text, m_cursorPosition, fontSize);
 		m_cursor.SetSize({ 2, fontSize });
-		m_cursor.SetPosition({ m_text.GetPosition().x + left - m_text.CalculateTextWidth()/2, m_text.GetPosition().y });
+		m_cursor.SetPosition({ m_text.GetPosition().x + left - m_text.CalculateTextWidth() / 2, m_text.GetPosition().y });
 	}
 }
 
 void TextBox::SetText(std::u32string text) {
-	m_cursorPosition = std::min(m_cursorPosition, (intptr_t)text.size());
-	m_text.SetText(std::move(text));
+	m_textValue = std::move(text);
+	m_cursorPosition = std::min(m_cursorPosition, (intptr_t)m_textValue.size());
+
+	m_text.SetText(!m_textValue.empty() || m_drawCursor ? m_textValue : m_hintValue);
 }
 
 
 const std::u32string& TextBox::GetText() const {
-	return m_text.GetText();
+	return m_textValue;
+}
+
+
+void TextBox::SetHint(std::u32string hint) {
+	m_hintValue = hint;
+	m_text.SetText(!m_textValue.empty() ? m_textValue : m_hintValue);
+}
+
+
+const std::u32string& TextBox::GetHint() const {
+	return m_hintValue;
 }
 
 
@@ -115,7 +134,7 @@ void TextBox::SetColor() {
 			background = style.background;
 			break;
 		case eControlState::FOCUSED:
-			frame = style.focus;
+			frame = style.accent;
 			background = style.foreground;
 			break;
 		case eControlState::HELD:
@@ -137,7 +156,7 @@ void TextBox::SetColor() {
 
 void TextBox::SetScripts() {
 	OnCharacter += [this](Control*, char32_t character) {
-		// Filter unwanted characters: backspace, delete, CR, LF, tab, vtab 
+		// Filter unwanted characters: backspace, delete, CR, LF, tab, vtab
 		if (std::u32string(U"\u0008\u007F\r\n\t\v").find(character) != std::u32string::npos) {
 			return;
 		}
@@ -153,7 +172,7 @@ void TextBox::SetScripts() {
 		SetText(text);
 		m_sinceLastCursorBlink = 0.0f;
 	};
-	OnKeydown += [this](Control*, eKey key) {	
+	OnKeydown += [this](Control*, eKey key) {
 		std::u32string text = GetText();
 		if (key == eKey::LEFT) {
 			--m_cursorPosition;
@@ -190,10 +209,12 @@ void TextBox::SetScripts() {
 	};
 	OnGainFocus += [this](auto...) {
 		m_drawCursor = true;
+		m_text.SetText(m_textValue);
 		m_sinceLastCursorBlink = 0.0f;
 	};
 	OnLoseFocus += [this](auto...) {
 		m_drawCursor = false;
+		m_text.SetText(!m_textValue.empty() ? m_textValue : m_hintValue);
 	};
 }
 

@@ -1,31 +1,31 @@
 #pragma once
 
-#include <GraphicsEngine_LL//GraphicsNode.hpp>
+#include <GraphicsEngine_LL/GraphicsNode.hpp>
+#include <GraphicsEngine_LL/AutoRegisterNode.hpp>
+
 #include <InlineMath.hpp>
 
 namespace inl::gxeng::nodes {
 
 
 namespace impl {
-class VectorComponentBase :
-	virtual public GraphicsNode,
-	public GraphicsTask
-{
-public:
-	void Update() override {}
+	class VectorComponentBase : virtual public GraphicsNode,
+								public GraphicsTask {
+	public:
+		void Update() override {}
 
-	void Notify(InputPortBase* sender) override {}
+		void Notify(InputPortBase* sender) override {}
 
-	void Initialize(EngineContext& context) override {
-		GraphicsNode::SetTaskSingle(this);
-	}
-	void Reset() override {
-		GetInput(0)->Clear();
-	}
+		void Initialize(EngineContext& context) override {
+			GraphicsNode::SetTaskSingle(this);
+		}
+		void Reset() override {
+			GetInput(0)->Clear();
+		}
 
-	void Execute(RenderContext& context) override {}
-};
-}
+		void Execute(RenderContext& context) override {}
+	};
+} // namespace impl
 
 
 
@@ -34,7 +34,7 @@ public:
 /// Input: the vector
 /// Outputs: the components of the vector in the order of storage (x, y, z, w)
 /// </summary>
-template<int ComponentCount>
+template <int ComponentCount>
 class VectorComponents {
 public:
 	static_assert(ComponentCount > 0 && ComponentCount <= 4, "invalid number of components");
@@ -42,12 +42,10 @@ public:
 
 
 
-template<>
-class VectorComponents<1> :
-	public impl::VectorComponentBase,
-	public InputPortConfig<Vector<float, 1>>,
-	public OutputPortConfig<float>
-{
+template <>
+class VectorComponents<1> : public impl::VectorComponentBase,
+							public InputPortConfig<Vector<float, 1>>,
+							public OutputPortConfig<float> {
 public:
 	static const char* Info_GetName() { return "Vector1Components"; }
 	void Setup(SetupContext& context) override {
@@ -58,12 +56,10 @@ public:
 };
 
 
-template<>
-class VectorComponents<2> :
-	public impl::VectorComponentBase,
-	public InputPortConfig<Vec2>,
-	public OutputPortConfig<float, float>
-{
+template <>
+class VectorComponents<2> : public impl::VectorComponentBase,
+							public InputPortConfig<Vec2>,
+							public OutputPortConfig<float, float> {
 public:
 	static const char* Info_GetName() { return "Vector2Components"; }
 	void Setup(SetupContext& context) override {
@@ -75,12 +71,10 @@ public:
 };
 
 
-template<>
-class VectorComponents<3> :
-	public impl::VectorComponentBase,
-	public InputPortConfig<Vec3>,
-	public OutputPortConfig<float, float, float>
-{
+template <>
+class VectorComponents<3> : public impl::VectorComponentBase,
+							public InputPortConfig<Vec3>,
+							public OutputPortConfig<float, float, float> {
 public:
 	static const char* Info_GetName() { return "Vector3Components"; }
 	void Setup(SetupContext& context) override {
@@ -93,12 +87,10 @@ public:
 };
 
 
-template<>
-class VectorComponents<4> :
-	public impl::VectorComponentBase,
-	public InputPortConfig<Vec4>,
-	public OutputPortConfig<float, float, float, float>
-{
+template <>
+class VectorComponents<4> : public impl::VectorComponentBase,
+							public InputPortConfig<Vec4>,
+							public OutputPortConfig<float, float, float, float> {
 public:
 	static const char* Info_GetName() { return "Vector4Components"; }
 	void Setup(SetupContext& context) override {
@@ -110,5 +102,18 @@ public:
 		GetOutput<3>().Set(vector[3]);
 	}
 };
+
+
+using Vec1Components = VectorComponents<1>;
+using Vec2Components = VectorComponents<2>;
+using Vec3Components = VectorComponents<3>;
+using Vec4Components = VectorComponents<4>;
+
+
+INL_REGISTER_GRAPHICS_NODE(Vec1Components)
+INL_REGISTER_GRAPHICS_NODE(Vec2Components)
+INL_REGISTER_GRAPHICS_NODE(Vec3Components)
+INL_REGISTER_GRAPHICS_NODE(Vec4Components)
+
 
 } // namespace inl::gxeng::nodes

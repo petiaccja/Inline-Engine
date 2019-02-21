@@ -84,6 +84,7 @@ void ScrollBar::SetVisibleLength(float length) {
 
 void ScrollBar::SetVisiblePosition(float begin) {
 	m_visiblePosition = begin;
+	ClampHandlePosition();
 	OnChanged(begin);
 }
 

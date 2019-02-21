@@ -17,6 +17,8 @@
 #define NOMINMAX
 #include <Windows.h>
 #include "oleidl.h"
+#include "BaseLibrary/Color.hpp"
+#include <optional>
 #undef DELETE
 
 
@@ -88,6 +90,9 @@ public:
 	void SetTitle(const std::string& text);
 	std::string GetTitle() const;
 	void SetIcon(const std::string& imageFilePath);
+
+	/// <summary> Return the Windows 10 accent color of the UI, or no value on other systems. </summary>
+	static std::optional<ColorF> GetWindows10AccentColor();
 
 	/// <summary> Calls all queued events synchronously on the caller's thread. </summary>
 	/// <returns> False if some events were dropped due to too small queue size. </returns>

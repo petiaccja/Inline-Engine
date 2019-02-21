@@ -70,5 +70,5 @@ float4 PSMain(float4 posS : SV_Position, float2 texCoord : TEXCOORD0, float2 pos
 
 	float4 alpha = alphaTexture.Sample(linearSampler, sampleCoord);
 
-    return float4(renderConstants.color.xyz, alpha.x);
+    return float4(renderConstants.color.xyz, renderConstants.color.w*alpha.x);
 }

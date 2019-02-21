@@ -7,7 +7,7 @@ namespace inl {
 NodeBase* NodeFactory::CreateNode(const std::string& name) const {
 	auto it = registeredClasses.find(name);
 	if (it == registeredClasses.end()) {
-		return nullptr;
+		throw InvalidArgumentException("Requested node was not found.", name);
 	}
 	else {
 		return it->second.Create();
@@ -22,11 +22,6 @@ const NodeFactory::NodeInfo* NodeFactory::GetNodeInfo(const std::string& name) c
 	else {
 		return &it->second.info;
 	}
-}
-
-NodeFactory* NodeFactory::GetInstance() {
-	static NodeFactory instance;
-	return &instance;
 }
 
 

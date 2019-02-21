@@ -150,9 +150,13 @@ void ControlStateTracker::OnDragBegin(Control* arg, Vec2) {
 }
 
 
-void ControlStateTracker::OnDragEnd(Control* arg, Vec2, Control*) {
+void ControlStateTracker::OnDragEnd(Control* arg, Vec2, Control* dragTarget) {
 	if (arg != m_target) {
 		return;
+	}
+
+	if (dragTarget != m_target) {
+		m_held = false;
 	}
 
 	m_state =

@@ -11,7 +11,7 @@ namespace inl::gxeng {
 
 class PipelineEditorGraph : public IEditorGraph {
 public:
-	PipelineEditorGraph(const GraphicsNodeFactory& factory);
+	PipelineEditorGraph(const NodeFactory& factory);
 
 	std::vector<std::string> GetNodeList() const override;
 
@@ -32,7 +32,7 @@ public:
 	void Clear() override;
 
 private:
-	const GraphicsNodeFactory& m_factory;
+	const NodeFactory& m_factory;
 	std::vector<std::unique_ptr<PipelineEditorNode>> m_nodes;
 };
 

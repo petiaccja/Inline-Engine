@@ -66,6 +66,10 @@ const std::u32string& Label::GetText() const {
 	return m_text.GetText();
 }
 
+void Label::UpdateStyle() {
+	m_text.SetColor(GetStyle().text.v);
+}
+
 float Label::SetDepth(float depth) {
 	m_text.SetDepth(depth);
 	return 1.0f;

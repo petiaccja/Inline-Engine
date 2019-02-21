@@ -50,6 +50,17 @@ function(target_whole_archives)
 endfunction()
 
 
+function(target_add_dependencies)
+	cmake_parse_arguments(PARSED_ARGS "" "TARGET" "ARCHIVES;WHOLES" ${ARGN})
+
+	foreach(arch IN ITEMS ${PARSED_ARGS_ARCHIVES})
+		if (${arch} IN_LIST PARSED_ARGS_WHOLES)
+			add_dependencies(${PARSED_ARGS_TARGET} ${arch})
+		endif()
+	endforeach()
+endfunction()
+
+
 function(set_whole_archive_linkage _dir)
 	get_all_targets(all_targets, ${_dir})
 	set(exe_targets)
@@ -69,6 +80,7 @@ function(set_whole_archive_linkage _dir)
 		get_target_property(linker_input ${tar} LINK_LIBRARIES)
 		get_target_property(target_name ${tar} NAME)
 		target_whole_archives(ARCHIVES ${linker_input} WHOLES ${whole_archives} OUT new_archives)
+		target_add_dependencies(TARGET ${tar} ARCHIVES ${linker_input} WHOLES ${whole_archives})
 		set_property(TARGET ${tar} PROPERTY LINK_LIBRARIES ${new_archives})
 	endforeach()
 message(STATUS ${OUT})

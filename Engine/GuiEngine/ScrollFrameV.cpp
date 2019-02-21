@@ -24,6 +24,10 @@ ScrollFrameV::ScrollFrameV() {
 	m_scrollBar.OnChanged += [this](float begin) {
 		UpdateContentPosition();
 	};
+
+	OnMouseWheel += [this](Control*, float amount) {
+		m_scrollBar.SetVisiblePosition(m_scrollBar.GetVisiblePosition() + -60.f*amount);
+	};
 }
 
 
@@ -80,6 +84,7 @@ std::shared_ptr<Control> ScrollFrameV::GetContent() const {
 void ScrollFrameV::SetContentHeight(float height) {
 	m_contentHeight = height;
 	m_scrollBar.SetTotalLength(height);
+	UpdateContentPosition();
 }
 
 

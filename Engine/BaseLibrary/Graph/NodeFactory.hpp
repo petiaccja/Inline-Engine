@@ -30,6 +30,7 @@ public:
 		std::string description;
 		std::string group;
 	};
+
 private:
 	/// <summary> A helper struct to instantiate a specific node type. </summary>
 	struct NodeCreator {
@@ -43,10 +44,11 @@ private:
 		std::function<NodeBase*()> creator;
 	};
 	using RegistryMapT = std::unordered_map<std::string, NodeCreator>;
+
 public:
 	NodeFactory() = default;
 	NodeFactory(const NodeFactory&) = delete;
-	virtual ~NodeFactory() = default;
+	~NodeFactory() = default;
 
 	/// <summary>
 	/// Register a node class. Registered classes can be instantiated later.
@@ -55,19 +57,16 @@ public:
 	bool RegisterNodeClass(const std::string& group = "");
 
 	/// <summary> Instantiate node class by name. </summary>
-	virtual NodeBase* CreateNode(const std::string& name) const;
+	NodeBase* CreateNode(const std::string& name) const;
 
 	/// <summary> Get information about a node by name. </summary>
 	const NodeInfo* GetNodeInfo(const std::string& name) const;
 
 	/// <summary> Get list of all registered nodes. </summary>
-	virtual std::vector<NodeInfo> EnumerateNodes() const;
+	std::vector<NodeInfo> EnumerateNodes() const;
 
 	/// <summary> Get path and class name for given node type. </summary>
 	std::tuple<std::string, std::string> GetFullName(std::type_index classType) const;
-
-	/// <summary> Get singleton instance. </summary>
-	static NodeFactory* GetInstance();
 private:
 	RegistryMapT registeredClasses; // Maps group/name entries to creators.
 	std::unordered_map<std::type_index, std::tuple<std::string, std::string>> typeLookup;

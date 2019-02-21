@@ -29,6 +29,8 @@ public:
 	void SetText(std::u32string text);
 	const std::u32string& GetText() const;
 
+	void UpdateStyle() override;
+
 private:
 	Text m_text;
 };

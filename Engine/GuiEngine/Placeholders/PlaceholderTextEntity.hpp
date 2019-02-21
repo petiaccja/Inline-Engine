@@ -60,7 +60,7 @@ public:
 private:
 	const gxeng::IFont* m_font = nullptr;
 	float m_fontSize = 14.f;
-	std::u32string m_text = U"PLACEHOLDER";
+	std::u32string m_text;
 	Vec4 m_color = { 1, 0, 0, 1 };
 	Vec2 m_size = { 10, 10 };
 	RectF m_clipRectangle = { 0, 0, 0, 0 };

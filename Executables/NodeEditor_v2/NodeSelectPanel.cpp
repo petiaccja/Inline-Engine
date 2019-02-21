@@ -22,6 +22,8 @@ NodeSelectPanel::NodeSelectPanel() {
 
 	m_listLayout.SetSize(m_listLayout.GetPreferredSize());
 
+	m_searchBox.SetHint(U"Search (not working)");
+
 	SetScripts();
 }
 
@@ -35,7 +37,7 @@ void NodeSelectPanel::SetChoices(std::vector<std::u32string> names) {
 		auto label = std::make_shared<gui::Label>();
 		label->SetText({ name.begin(), name.end() });
 		m_listLayout.AddChild(label);
-		m_listLayout[label.get()].SetAuto().MoveToBack();
+		m_listLayout[label.get()].SetAuto().SetMargin({ 0, 0, 0, 0 }).MoveToBack();
 	}
 
 	float prefSize = m_listLayout.GetPreferredSize().y;
@@ -49,9 +51,26 @@ void NodeSelectPanel::Update(float elapsed) {
 
 
 void NodeSelectPanel::SetScripts() {
+	// Add a new node.
 	OnDoubleClick += [this](Control* control, Vec2, eMouseButton button) {
 		if (gui::Label* label = dynamic_cast<gui::Label*>(control); label != nullptr && button == eMouseButton::LEFT) {
 			OnAddNode(label->GetText());
+		}
+	};
+
+	// Highlighting.
+	OnEnterArea += [this](Control* control) {
+		if (gui::Label* label = dynamic_cast<gui::Label*>(control); label != nullptr) {
+			auto style = GetStyle();
+			style.text = style.accent;
+			label->SetStyle(style);
+		}
+	};
+
+	OnLeaveArea += [this](Control* control) {
+		if (gui::Label* label = dynamic_cast<gui::Label*>(control); label != nullptr) {
+			auto style = GetStyle();
+			label->SetStyle(style, true);
 		}
 	};
 }

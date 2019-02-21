@@ -75,7 +75,6 @@ void GraphController::Load(const std::string& desc, const std::vector<IEditorGra
 		throw NotSupportedException("Graph type is not supported.");
 	}
 
-
 	m_nodes.clear();
 
 	// Set node list.
@@ -88,38 +87,35 @@ void GraphController::Load(const std::string& desc, const std::vector<IEditorGra
 	// Create nodes.
 	std::map<IGraphEditorNode*, NodeControl*> inversionMap;
 
-
 	auto graphNodes = m_model->GetNodes();
 	for (auto realNode : graphNodes) {
-		auto node = std::make_shared<NodeControl*>();
-		m_view->AddNode(node);
-		node->SetNode(realNode, m_graphicsEngine, m_scene.get(), m_font.get());
-		node->SetPosition(realNode->GetMetaData().placement);
-		node->SetDepth((float)m_nodes.size());
-		node->SetSize(Vec2(300, 0));
-		inversionMap[node->GetNode()] = node.get();
-		m_nodes.push_back(std::move(node));
+		auto viewNode = CreateViewNode(realNode);
+		Vec2 position = realNode->GetMetaData().placement;
+		m_view->AddNode(viewNode, position);
+		inversionMap[realNode] = viewNode.get();
+		m_nodes.insert({viewNode, realNode});
 	}
 
 	auto graphLinks = m_model->GetLinks();
 	for (auto realLink : graphLinks) {
 		NodeControl* src = inversionMap[realLink.sourceNode];
 		NodeControl* tar = inversionMap[realLink.targetNode];
-		const PortControl& srcPort = src->GetOutputPort(realLink.sourcePort);
-		const PortControl& tarPort = tar->GetInputPort(realLink.targetPort);
 
-		Link link{ m_graphicsEngine, m_scene.get() };
-		srcPort->Link(tarPort, std::move(link));
+		m_view->AddLink(src, realLink.sourcePort, tar, realLink.targetPort);
 	}
-
-
 }
 
 
 std::string GraphController::Serialize() const {
+	Vec2 averagePosition;
+	for (const auto& node : m_nodes) {
+		averagePosition += node.first->GetPosition();
+	}
+	averagePosition /= (float)m_nodes.size();
+
 	for (const auto& node : m_nodes) {
 		NodeMetaDescription metaData = node.second->GetMetaData();
-		metaData.placement = node.first->GetPosition();
+		metaData.placement = node.first->GetPosition() - averagePosition;
 		node.second->SetMetaData(metaData);
 	}
 
@@ -138,28 +134,34 @@ void GraphController::Clear() {
 }
 
 
+std::shared_ptr<NodeControl> GraphController::CreateViewNode(IGraphEditorNode* newNode) const {
+	auto viewNode = std::make_shared<NodeControl>();
+
+	std::vector<std::pair<std::string, std::string>> inputNames, outputNames;
+
+	for (const auto inputIdx : Range(newNode->GetNumInputs())) {
+		inputNames.push_back({ newNode->GetInputName(inputIdx), TidyTypename(newNode->GetInputTypeName(inputIdx)) });
+	}
+	for (const auto outputIdx : Range(newNode->GetNumOutputs())) {
+		outputNames.push_back({ newNode->GetOutputName(outputIdx), TidyTypename(newNode->GetOutputTypeName(outputIdx)) });
+	}
+
+	viewNode->SetSize({ 300, 100 });
+	viewNode->SetInputPorts(inputNames);
+	viewNode->SetOutputPorts(outputNames);
+	viewNode->SetName("");
+	viewNode->SetType(TidyTypename(newNode->GetClassName()));
+
+	return viewNode;
+}
+
 void GraphController::OnAddNode(std::u32string name) {
 	try {
 		IGraphEditorNode* newNode(m_model->AddNode(EncodeString<char>(name)));
-		std::shared_ptr<NodeControl> newNodeView = std::make_shared<NodeControl>();
+		auto newViewNode = CreateViewNode(newNode);
 
-		std::vector<std::pair<std::string, std::string>> inputNames, outputNames;
-
-		for (const auto inputIdx : Range(newNode->GetNumInputs())) {
-			inputNames.push_back({ newNode->GetInputName(inputIdx), TidyTypename(newNode->GetInputTypeName(inputIdx)) });
-		}
-		for (const auto outputIdx : Range(newNode->GetNumOutputs())) {
-			outputNames.push_back({ newNode->GetOutputName(outputIdx), TidyTypename(newNode->GetOutputTypeName(outputIdx)) });
-		}
-
-		newNodeView->SetSize({ 300, 100 });
-		newNodeView->SetInputPorts(inputNames);
-		newNodeView->SetOutputPorts(outputNames);
-		newNodeView->SetName("");
-		newNodeView->SetType(TidyTypename(newNode->GetClassName()));
-
-		m_nodes.insert({ newNodeView, newNode });
-		m_view->AddNode(newNodeView);
+		m_nodes.insert({ newViewNode, newNode });
+		m_view->AddNode(newViewNode);
 	}
 	catch (...) {
 		std::cout << "Failed to add new node." << std::endl;

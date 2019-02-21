@@ -81,7 +81,7 @@ public:
 	Pipeline& operator=(Pipeline&&);
 	~Pipeline();
 
-	void CreateFromDescription(const std::string& jsonDescription, GraphicsNodeFactory& factory);
+	void CreateFromDescription(const std::string& jsonDescription, NodeFactory& factory);
 	void CreateFromNodesList(const std::vector<std::shared_ptr<NodeBase>> nodes);
 	std::string SerializeToJSON(const NodeFactory& factory) const;
 	void Clear();

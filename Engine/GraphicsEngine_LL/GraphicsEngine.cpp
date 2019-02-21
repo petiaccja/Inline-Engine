@@ -10,13 +10,13 @@
 
 // System
 #include "GraphicsNode.hpp"
+#include "GraphicsNodeFactory.hpp"
 #include "Nodes/System/GetBackBuffer.hpp"
 #include "Nodes/System/GetCamera2DByName.hpp"
 #include "Nodes/System/GetCameraByName.hpp"
 #include "Nodes/System/GetEnvVariable.hpp"
 #include "Nodes/System/GetSceneByName.hpp"
 #include "Nodes/System/GetTime.hpp"
-
 #include "Nodes/System/RegisterSystemNodes.hpp"
 
 

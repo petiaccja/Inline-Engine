@@ -66,6 +66,7 @@ public:
 	Event<Control*> OnLeaveArea; // subject
 
 	Event<Control*, Vec2, eMouseButton> OnMouseDown; // subject, where absolute, which button
+	Event<Control*, float> OnMouseWheel;
 	Event<Control*, Vec2, eMouseButton> OnMouseUp; // subject, where absolute, which button
 	Event<Control*, Vec2, eMouseButton> OnClick; // subject, where absolute, which button
 	Event<Control*, Vec2, eMouseButton> OnDoubleClick; // subject, where absolute, which button

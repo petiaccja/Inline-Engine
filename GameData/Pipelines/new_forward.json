@@ -4,34 +4,34 @@
   },
   "nodes": [
     {
-      "class": "Pipeline/Render/DrawSky",
+      "class": "DrawSky",
       "id": 6,
       "meta_pos": "[839, -29]"
     },
     {
-      "class": "Pipeline/Render/RenderForwardSimple",
+      "class": "RenderForwardSimple",
       "id": 2,
       "meta_pos": "[413, -24]"
     },
     {
-      "class": "Pipeline/System/GetBackBuffer",
+      "class": "GetBackBuffer",
       "id": 3,
       "meta_pos": "[-472, -237]"
     },
     {
-      "class": "Pipeline/System/GetCameraByName",
+      "class": "GetCameraByName",
       "id": 1,
       "meta_pos": "[-104, 152]",
       "inputs": [ "MainCamera" ]
     },
     {
-      "class": "Pipeline/System/GetSceneByName",
+      "class": "GetSceneByName",
       "id": 0,
       "meta_pos": "[-104, 232]",
       "inputs": [ "MainScene" ]
     },
     {
-      "class": "Pipeline/Utility/CreateTexture",
+      "class": "CreateTexture",
       "id": 4,
       "meta_pos": "[-100, -25]",
       "inputs": [
@@ -45,7 +45,7 @@
       ]
     },
     {
-      "class": "Pipeline/Utility/TextureProperties",
+      "class": "TextureProperties",
       "id": 5,
       "meta_pos": "[-469, -68]"
     }

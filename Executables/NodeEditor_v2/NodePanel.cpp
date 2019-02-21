@@ -31,10 +31,10 @@ NodePanel::NodePanel() {
 }
 
 
-void NodePanel::AddNode(std::shared_ptr<NodeControl> node) {
+void NodePanel::AddNode(std::shared_ptr<NodeControl> node, Vec2 position) {
 	auto [it, isNew] = m_nodes.insert(std::move(node));
 	m_layout.AddChild(*it);
-	m_layout[it->get()].SetPosition({ 0, 0 });
+	m_layout[it->get()].SetPosition(position).MoveToFront();
 }
 
 

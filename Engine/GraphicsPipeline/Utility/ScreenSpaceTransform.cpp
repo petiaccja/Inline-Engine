@@ -1,7 +1,10 @@
 #pragma once
 
+#include <GraphicsEngine_LL/AutoRegisterNode.hpp>
 #include <GraphicsEngine_LL/GraphicsNode.hpp>
+
 #include <InlineMath.hpp>
+
 
 namespace inl::gxeng::nodes {
 
@@ -10,12 +13,10 @@ namespace inl::gxeng::nodes {
 /// Inputs: Screen width, Screen height, Position, Rotation, Size
 /// Output: Blend Destination
 /// </summary>
-class ScreenSpaceTransform :
-	virtual public GraphicsNode,
-	virtual public GraphicsTask,
-	virtual public InputPortConfig<unsigned, unsigned, Vec2, float, Vec2>,
-	virtual public OutputPortConfig<Mat44>
-{
+class ScreenSpaceTransform : virtual public GraphicsNode,
+							 virtual public GraphicsTask,
+							 virtual public InputPortConfig<unsigned, unsigned, Vec2, float, Vec2>,
+							 virtual public OutputPortConfig<Mat44> {
 public:
 	static const char* Info_GetName() { return "ScreenSpaceTransform"; }
 	virtual void Update() override {}
@@ -44,8 +45,8 @@ public:
 		result = Mat44::Scale(Vec3(scaleX, scaleY, 1.f)) * result;
 		result = Mat44::RotationZ(rot) * result;
 
-		const float posX = (pos.x / width)*2.f - 1.f;
-		const float posY = (-pos.y / height)*2.f + 1.f;
+		const float posX = (pos.x / width) * 2.f - 1.f;
+		const float posY = (-pos.y / height) * 2.f + 1.f;
 		result = Mat44::Translation(Vec3(posX, posY, 0.f)) * result;
 
 		GetOutput<0>().Set(result);
@@ -54,4 +55,6 @@ public:
 	void Execute(RenderContext& context) override {}
 };
 
-}
+INL_REGISTER_GRAPHICS_NODE(ScreenSpaceTransform)
+
+} // namespace inl::gxeng::nodes

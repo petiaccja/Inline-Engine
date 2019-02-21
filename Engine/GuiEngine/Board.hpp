@@ -29,6 +29,7 @@ public:
 	// Even handlers.
 	void OnMouseButton(MouseButtonEvent evt);
 	void OnMouseMove(MouseMoveEvent evt);
+	void OnMouseWheel(MouseWheelEvent evt);
 	void OnKeyboard(KeyboardEvent evt);
 	void OnCharacter(char32_t evt);
 
