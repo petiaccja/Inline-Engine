@@ -60,3 +60,17 @@ before_build:
     cd build
     cmake --version
     cmake .. -G "Visual Studio 15 2017 Win64" -DCMAKE_SYSTEM_VERSION=10.0
+
+#---------------------------------#
+#             testing             #
+#---------------------------------#
+
+# run tests
+test_script:
+  - ps : |-
+      mkdir test_results
+      cd test_results
+      iex "C:\projects\Inline-Engine\build\Bin\$env:CONFIGURATION\Test_Unit.exe --reporter junit --out test.xml"
+      $wc = New-Object 'System.Net.WebClient'
+      $wc.UploadFile("https://ci.appveyor.com/api/testresults/junit/$($env:APPVEYOR_JOB_ID)", (Resolve-Path .\test.xml))
+

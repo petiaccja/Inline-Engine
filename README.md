@@ -1,28 +1,23 @@
-
 # Inline Engine
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/578452689f1f4138a07dcb2fd0e067f2)](https://app.codacy.com/app/petiaccja/Inline-Engine?utm_source=github.com&utm_medium=referral&utm_content=petiaccja/Inline-Engine&utm_campaign=Badge_Grade_Dashboard)
 [![Build status](https://ci.appveyor.com/api/projects/status/rdyulmuoq5cc64o9?svg=true)](https://ci.appveyor.com/project/petiaccja/inline-engine)
 
+
 Introduction
 ---
-Inline Engine is a modern game engine built with latest C++ that provides/will provide solutions to existing common industrial problems:
-- Smoother Editor User Experience  
-    (Achieved by our experience from multiple big engine editors + GUI lib written from scratch)
-    
-- Higher Performance Editor & Engine  
-   (Whole Editor will be async thus making you more productive + Heavy experience with optimizations )
-    
-- Better Stability & More Focus On The Community  
-    (Will give smaller percent time for feature implementation compared to bug fixes)
 
-- Better PBR Graphics than the typical industrial PBR equations   
-    (W.I.P state of the art researches (already have great results))
+Inline-Engine is a modern game engine that emphasizes the latest technologies and innovation in order to bring the most to the table regardless of weather you are a gamer, a developer or a game designer. It got its name from the overuse of inline methods to speed up the software, however, it only aims to live up to the performance expectations not the poor coding style.
 
-The Engine leverages the power of DirectX 12 and similar APIs. It got its name from the overuse of inline methods to speed up the software, however, it's not a victim of such behavior. The Engine is component based so you can tear it to pieces and for example integrate the Graphics, Network, Physics, etc modules individually into an another complete game engine or real-time simulation environments.
+- C++17 brings elegant coding solutions
+- Built for parallelism from the ground up
+- Build for DirectX 12 and Vulkan
+- Modular, hackable design
+- Highly configurable even without hacking
 
 Platforms
 ---
+
 1. Windows (supported)
 2. Linux   (planned)
 4. XBoxOne (planned)
@@ -31,26 +26,32 @@ Platforms
 How To Build
 ---
 
-**Recommended**:
+**Visual Studio solution files**:
 
-Prerequisites: Visual Studio 2017 with latest updates, CMake 3.10 or later
+1. Download Visual Studio 2019 or 2019 preview with the latest updates
+2. Download the latest CMake (3.10 or newer)
+3. Generate Visual Studio 2017/2019 Win64 solution files via CMake for Inline-Engine/CMakeLists.txt
+4. Open solution files and build
 
-1. Generate Visual Studio solution files via CMake for Inline-Engine/CMakeLists.txt
-2. Open and build solution files
+**CMake via IDE**:
 
-**Alternatively**:
+1. Install latest MSVC 19 toolchain
+2. Download a CMake compatible IDE (e.g. Visual Studio or CLion)
+3. Open Inline-Engine/CMakeLists.txt
+4. Configure CMake within IDE to use the MSVC toolset
+5. Build
 
-Prerequisites: latest MSVC 19 toolchain, CMake compatible IDE (e.g. Visual Studio, CLion)
+**CMake via Ninja or makefiles**:
 
-1. Open the folder Inline-Engine with the CMakeLists.txt
-2. Build from the IDE
+1. Install latest MSVC 19 toolchain
+2. Download the latest CMake (3.10 or newer)
+3. Generate Ninja or Makefile for Inline-Engine/CMakeLists.txt
+4. Build
 
-Note: you can *not* compile it with the GNU toolchain because the Direct3D libraries won't compile, and Vulkan is not supported yet.
+
+Note: you can *****not***** compile it with the GNU toolchain because the Direct3D libraries won't compile, and Vulkan is not supported yet.
 
 Note: you don't need any additional dependencies, all libraries are packed with the project.
-
-**What to do after build**:
-You can run  QC_Simulator and play around flying a quadcopter. That project tests the rendering pipeline, and effect can be seen in action.
 
 Rendering core ideas
 ---
