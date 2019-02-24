@@ -53,6 +53,8 @@ Note: you can *****not***** compile it with the GNU toolchain because the Direct
 
 Note: you don't need any additional dependencies, all libraries are packed with the project.
 
+Note: 32-bit build are *****not***** supported
+
 Rendering core ideas
 ---
 ### High-level interface
