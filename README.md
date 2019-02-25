@@ -28,7 +28,7 @@ How To Build
 
 **Visual Studio solution files**:
 
-1. Download Visual Studio 2019 or 2019 preview with the latest updates
+1. Download Visual Studio 2017 or 2019 preview with the latest updates
 2. Download the latest CMake (3.10 or newer)
 3. Generate Visual Studio 2017/2019 Win64 solution files via CMake for Inline-Engine/CMakeLists.txt
 4. Open solution files and build
@@ -52,6 +52,8 @@ How To Build
 Note: you can *****not***** compile it with the GNU toolchain because the Direct3D libraries won't compile, and Vulkan is not supported yet.
 
 Note: you don't need any additional dependencies, all libraries are packed with the project.
+
+Note: 32-bit build are *****not***** supported
 
 Rendering core ideas
 ---
