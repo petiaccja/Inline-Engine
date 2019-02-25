@@ -1,24 +1,42 @@
 #pragma once
 
-
 #include "BlankShared.hpp"
-#include "SharedPtrLess.hpp"
 #include "ControlStyle.hpp"
+#include "SharedPtrLess.hpp"
 
 #include <BaseLibrary/Event.hpp>
 #include <BaseLibrary/Exception/Exception.hpp>
 #include <BaseLibrary/Platform/Input.hpp>
+#include <BaseLibrary/Transformable.hpp>
 
 #include <InlineMath.hpp>
 #include <any>
 #include <memory>
+#include <optional>
 #include <set>
+
 
 namespace inl::gui {
 
 
+class ControlTransform {
+public:
+	void SetTransform(const Mat33& transform);
+	Mat33 GetTransform() const;
+	bool HasIdentityTransform() const;
 
-class Control {
+	virtual void UpdateTransform() {}
+
+private:
+	bool IsIdentity(const Mat33& transform);
+
+private:
+	std::optional<Transformable2DN> m_transform;
+};
+
+
+
+class Control : public ControlTransform {
 public:
 	virtual ~Control() = default;
 

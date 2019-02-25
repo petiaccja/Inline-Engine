@@ -104,7 +104,7 @@ public:
 	}
 
 	/// <summary> Cast to underlying enumeration type. </summary>
-	explicit operator EnumT() {
+	explicit operator EnumT() const {
 		return m_value;
 	}
 

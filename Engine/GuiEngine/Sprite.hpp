@@ -29,6 +29,7 @@ public:
 	void SetContext(const GraphicsContext& context) override;
 	void ClearContext() override;
 	void SetClipRect(const RectF& rect, const Mat33& transform) override;
+	void SetPostTransform(const Mat33& transform) override;
 
 	~Sprite();
 
@@ -74,8 +75,13 @@ public:
 
 private:
 	static void CopyProperties(const gxeng::IOverlayEntity& source, gxeng::IOverlayEntity& target);
+	void SetResultantTransform();
 
 private:
+	Vec2 m_position = {0,0};
+	Vec2 m_size = {1,1};
+	float m_rotation = 0;
+	Mat33 m_postTransform = Mat33::Identity();
 	std::unique_ptr<gxeng::IOverlayEntity> m_entity;
 	GraphicsContext m_context;
 };

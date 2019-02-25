@@ -1,8 +1,36 @@
 #include "Control.hpp"
+
 #include <BaseLibrary/Rect.hpp>
 
 
 namespace inl::gui {
+
+
+void ControlTransform::SetTransform(const Mat33& transform) {
+	if (IsIdentity(transform)) {
+		m_transform.reset();
+	}
+	else {
+		m_transform.emplace();
+		m_transform.value().SetTransform(transform);
+	}
+}
+
+
+Mat33 ControlTransform::GetTransform() const {
+	return m_transform ? m_transform.value().GetTransform() : Mat33::Identity();
+}
+
+
+bool ControlTransform::HasIdentityTransform() const {
+	return !m_transform;
+}
+
+
+bool ControlTransform::IsIdentity(const Mat33& transform) {
+	static const Mat33 identity = Mat33::Identity();
+	return transform == identity;
+}
 
 
 void Control::AddChild(std::shared_ptr<Control> child) {

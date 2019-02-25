@@ -11,7 +11,8 @@ namespace inl::tool {
 NodePanel::NodePanel() {
 	m_layout.SetReferencePoint(gui::AbsoluteLayout::eRefPoint::CENTER);
 	m_layout.SetYDown(false);
-	SetLayout(m_layout);
+	AddChild(m_layout);
+	m_layout.SetSize({10000,10000});
 
 	OnDragBegin += Delegate<void(Control*, Vec2)>{ &NodePanel::OnNodeDragBegin, this };
 	OnDrag += Delegate<void(Control*, Vec2)>{ &NodePanel::OnNodeDragged, this };
@@ -23,6 +24,7 @@ NodePanel::NodePanel() {
 
 	OnDragBegin += Delegate<void(Control*, Vec2)>{ &NodePanel::OnPanViewBegin, this };
 	OnDrag += Delegate<void(Control*, Vec2)>{ &NodePanel::OnPanView, this };
+	OnMouseWheel += Delegate<void(Control*, float)>{ &NodePanel::OnZoomView, this };
 
 	OnGainFocus += Delegate<void(Control*)>{ &NodePanel::OnSelect, this };
 	OnLoseFocus += Delegate<void(Control*)>{ &NodePanel::OnDeselect, this };
@@ -136,7 +138,8 @@ void NodePanel::UpdateArrowPosition(const ArrowKey& key, ArrowControl& arrow) {
 
 void NodePanel::OnNodeDragBegin(Control* control, Vec2 dragOrigin) {
 	if (NodeControl * node; node = dynamic_cast<NodeControl*>(control)) {
-		m_dragOffset = node->GetPosition() - dragOrigin;
+		m_dragOrigin = dragOrigin;
+		m_draggedNodeOrigin = m_layout[node].GetPosition();
 		m_draggedNode = node;
 	}
 }
@@ -144,7 +147,8 @@ void NodePanel::OnNodeDragBegin(Control* control, Vec2 dragOrigin) {
 
 void NodePanel::OnNodeDragged(Control* control, Vec2 dragPosition) {
 	if (NodeControl * node; node = dynamic_cast<NodeControl*>(control)) {
-		m_layout[node].SetPosition(m_dragOffset + dragPosition - m_layout.GetPosition());
+		Vec2 offset = (dragPosition - m_dragOrigin)/m_zoom;
+		m_layout[node].SetPosition(m_draggedNodeOrigin + offset);
 		UpdateArrowPositions();
 	}
 }
@@ -179,7 +183,7 @@ void NodePanel::OnPortDragged(Control* control, Vec2 dragTarget) {
 		if (port->IsInput()) {
 			std::swap(begin, end);
 		}
-		m_temporaryArrow.SetEndPoints(begin, end);
+		m_temporaryArrow.SetEndPoints(begin, m_layout.GetTransform().Transposed().DecompositionLUP().Solve(end|1.f).xy);
 	}
 }
 
@@ -210,9 +214,21 @@ void NodePanel::OnPanView(Control* control, Vec2 dragTarget) {
 	if (control == &m_layout) {
 		Vec2 offset = dragTarget - m_panOrigin;
 		m_panOrigin = dragTarget;
-		OffsetAllNodes(offset);
-		UpdateArrowPositions();
+		Mat33 transform = m_layout.GetTransform();
+		transform *= Mat33::Translation(offset * m_zoom);
+		m_layout.SetTransform(transform);
+		//OffsetAllNodes(offset);
+		//UpdateArrowPositions();
 	}
+}
+
+
+void NodePanel::OnZoomView(Control* control, float value) {
+	m_zoom *= std::exp(value * 0.05f);
+	Mat33 transform = Mat33::Translation(-m_layout.GetPosition());
+	transform *= Mat33::Scale(m_zoom, m_zoom);
+	transform *= Mat33::Translation(m_layout.GetPosition());
+	m_layout.SetTransform(transform);
 }
 
 

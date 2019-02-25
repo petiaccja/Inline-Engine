@@ -27,6 +27,7 @@ public:
 	void SetContext(const GraphicsContext& context) override;
 	void ClearContext() override;
 	void SetClipRect(const RectF& rect, const Mat33& transform) override;
+	void SetPostTransform(const Mat33& transform) override;
 
 
 	//-------------------------------------
@@ -78,8 +79,11 @@ public:
 
 private:
 	static void CopyProperties(const gxeng::ITextEntity& source, gxeng::ITextEntity& target);
+	void SetResultantTransform();
 
 private:
+	Vec2 m_position = { 0, 0 };
+	Mat33 m_postTransform = Mat33::Identity();
 	std::unique_ptr<gxeng::ITextEntity> m_entity;
 	GraphicsContext m_context;
 };

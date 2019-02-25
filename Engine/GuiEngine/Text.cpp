@@ -67,6 +67,12 @@ void Text::SetClipRect(const RectF& rect, const Mat33& transform) {
 }
 
 
+void Text::SetPostTransform(const Mat33& transform) {
+	m_postTransform = transform;
+	SetResultantTransform();
+}
+
+
 //-------------------------------------
 // Control
 //-------------------------------------
@@ -88,11 +94,12 @@ Vec2 Text::GetMinimumSize() const {
 }
 
 void Text::SetPosition(const Vec2& position) {
-	m_entity->SetPosition(position);
+	m_position = position;
+	SetResultantTransform();
 }
 
 Vec2 Text::GetPosition() const {
-	return m_entity->GetPosition();
+	return m_position;
 }
 
 float Text::SetDepth(float depth) {
@@ -127,6 +134,10 @@ void Text::CopyProperties(const gxeng::ITextEntity& source, gxeng::ITextEntity& 
 	target.SetVerticalAlignment(source.GetVerticalAlignment());
 	target.SetZDepth(source.GetZDepth());
 	target.SetTransform(source.GetTransform());
+}
+
+void Text::SetResultantTransform() {
+	m_entity->SetTransform(Mat33::Translation(m_position) * m_postTransform);
 }
 
 

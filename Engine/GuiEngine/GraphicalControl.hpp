@@ -20,6 +20,9 @@ public:
 
 	/// <summary> Control is not drawn outside <paramref name="rect"/> transformed by <paramref name="transform"/>. </summary>
 	virtual void SetClipRect(const RectF& rect, const Mat33& transform) = 0;
+
+	/// <summary> Set a transformation on the shown entities. </summary>
+	virtual void SetPostTransform(const Mat33& transform) = 0;
 };
 
 

@@ -81,6 +81,7 @@ private:
 
 	void OnPanViewBegin(Control* control, Vec2 dragOrigin);
 	void OnPanView(Control* control, Vec2 dragTarget);
+	void OnZoomView(Control* control, float value);
 
 	void OnSelect(Control* control);
 	void OnDeselect(Control* control);
@@ -110,7 +111,8 @@ private:
 	float m_zoom = 1.0f;
 
 	// Input actions.
-	Vec2 m_dragOffset;
+	Vec2 m_dragOrigin;
+	Vec2 m_draggedNodeOrigin;
 	NodeControl* m_draggedNode = nullptr;
 	PortControl* m_draggedPort = nullptr;
 	Vec2 m_panOrigin = { 0, 0 };

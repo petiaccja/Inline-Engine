@@ -58,6 +58,12 @@ void Sprite::ClearContext() {
 }
 
 
+void Sprite::SetPostTransform(const Mat33& transform) {
+	m_postTransform = transform;
+	SetResultantTransform();
+}
+
+
 Sprite::~Sprite() {
 	if (m_context.scene) {
 		m_context.scene->GetEntities<gxeng::IOverlayEntity>().Remove(m_entity.get());
@@ -70,12 +76,13 @@ Sprite::~Sprite() {
 //-------------------------------------
 
 void Sprite::SetSize(const Vec2& size) {
-	m_entity->SetScale(size);
+	m_size = size;
+	SetResultantTransform();
 }
 
 
 Vec2 Sprite::GetSize() const {
-	return m_entity->GetScale();
+	return m_size;
 }
 
 
@@ -90,12 +97,13 @@ Vec2 Sprite::GetMinimumSize() const {
 
 
 void Sprite::SetPosition(const Vec2& position) {
-	m_entity->SetPosition(position);
+	m_position = position;
+	SetResultantTransform();
 }
 
 
 Vec2 Sprite::GetPosition() const {
-	return m_entity->GetPosition();
+	return m_position;
 }
 
 
@@ -111,12 +119,13 @@ float Sprite::GetDepth() const {
 
 
 void Sprite::SetRotation(float angle) {
-	m_entity->SetRotation(angle);
+	m_rotation = angle;
+	SetResultantTransform();
 }
 
 
 float Sprite::GetRotation() const {
-	return m_entity->GetRotation();
+	return m_rotation;
 }
 
 
@@ -156,6 +165,11 @@ void Sprite::CopyProperties(const gxeng::IOverlayEntity& source, gxeng::IOverlay
 	target.SetTexture(source.GetTexture());
 	target.SetZDepth(source.GetZDepth());
 	target.SetTransform(source.GetTransform());
+}
+
+
+void Sprite::SetResultantTransform() {
+	m_entity->SetTransform(Mat33::Scale(m_size)*Mat33::Rotation(m_rotation)*Mat33::Translation(m_position)*m_postTransform);
 }
 
 

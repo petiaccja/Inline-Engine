@@ -185,7 +185,8 @@ float Board::GetDepth() const {
 void Board::Update(float elapsed) {
 	UpdateLayouts(this);
 	UpdateRecurse(this, elapsed);
-	UpdateClipRecurse(this);
+	//UpdateClipRecurse(this);
+	UpdateResultantTransformRecurse(this);
 
 	const auto& children = GetChildren();
 	for (auto& child : children) {
@@ -219,13 +220,17 @@ void Board::UpdateLayouts(Control* subject) {
 }
 
 
-const Control* Board::HitTestRecurse(Vec2 point, const Control* top) {
-	if (top->HitTest(point)) {
+const Control* Board::HitTestRecurse(Vec2 point, const Control* top, const Mat33& preTransform) {
+	const Mat33& topTransform = top->HasIdentityTransform() ? preTransform : preTransform*top->GetTransform();
+
+	Vec2 localPoint = topTransform.Transposed().DecompositionLUP().Solve(point|1.f).xy;
+
+	if (top->HitTest(localPoint)) {
 		auto children = top->GetChildren();
 		float maxDepth = -1e4f;
 		const Control* finalHit = top;
 		for (auto child : children) {
-			const Control* childHit = HitTestRecurse(point, child);
+			const Control* childHit = HitTestRecurse(point, child, topTransform);
 			if (childHit && childHit->GetDepth() > maxDepth) {
 				finalHit = childHit;
 				maxDepth = childHit->GetDepth();
@@ -298,6 +303,37 @@ void Board::ClearGraphicsContextRecurse(Control* root) {
 			graphical->ClearContext();
 		}
 	});
+}
+
+
+void Board::UpdateResultantTransformRecurse(Control* root, const Mat33& preTransform, RectF clip) {
+	const Mat33& topTransform = root->HasIdentityTransform() ? preTransform : preTransform * root->GetTransform();
+
+	if (GraphicalControl* graphical = dynamic_cast<GraphicalControl*>(root)) {
+		graphical->SetPostTransform(topTransform);
+		graphical->SetClipRect(clip, Mat33::Identity());
+	}
+
+	RectF rootClip = RectF::FromCenter(root->GetPosition(), root->GetSize());
+	std::array<Vec2, 4> points{ rootClip.GetTopLeft(), rootClip.GetTopRight(), rootClip.GetBottomLeft(), rootClip.GetBottomRight() };
+	std::array<float, 4> boundaryXs;
+	std::array<float, 4> boundaryYs;
+	for (int i = 0; i < 4; ++i) {
+		Vec2 boundaryPoint = points[i] * topTransform;
+		boundaryXs[i] = boundaryPoint.x;
+		boundaryYs[i] = boundaryPoint.y;
+	}
+	rootClip.left = *std::min_element(boundaryXs.begin(), boundaryXs.end());
+	rootClip.right = *std::max_element(boundaryXs.begin(), boundaryXs.end());
+	rootClip.bottom = *std::min_element(boundaryYs.begin(), boundaryYs.end());
+	rootClip.top = *std::max_element(boundaryYs.begin(), boundaryYs.end());	
+
+	RectF combinedClip = RectF::Intersection(rootClip, clip);
+
+	auto children = root->GetChildren();
+	for (auto child : children) {
+		UpdateResultantTransformRecurse(child, topTransform, combinedClip);
+	}
 }
 
 

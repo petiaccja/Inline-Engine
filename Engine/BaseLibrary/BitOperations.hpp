@@ -77,7 +77,7 @@ inline int CountLeadingZeros(uint64_t arg) {
 #if defined(_MSC_VER)
 	unsigned long index;
 	uint8_t res = _BitScanReverse64(&index, arg);
-	return res > 0 ? (31 - (int)index) : -1;
+	return res > 0 ? (63 - (int)index) : -1;
 #elif defined(__GNUC__)
 	return arg == 0 ? -1 : __builtin_clzll(arg);
 #else 

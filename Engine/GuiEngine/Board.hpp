@@ -9,9 +9,6 @@
 
 namespace inl::gui {
 
-//static_assert(false, "Cached objects, such as control dragged, focused, can be deleted while in cache causing a crash.")
-// This can be solved by for example an OnDestroy callback on the Controls, or by using shared_ptrs as cache.
-
 
 class Board : private Control {
 public:
@@ -46,12 +43,13 @@ private:
 	template <class Func>
 	static void ApplyRecurse(Control* root, Func func);
 
-	static const Control* HitTestRecurse(Vec2 point, const Control* top);
+	static const Control* HitTestRecurse(Vec2 point, const Control* top, const Mat33& preTransform = Mat33::Identity());
 	const Control* GetTarget(Vec2 point) const;
 
 	void UpdateRecurse(Control* root, float elapsed);
 	void SetGraphicsContextRecurse(Control* root);
 	void ClearGraphicsContextRecurse(Control* root);
+	void UpdateResultantTransformRecurse(Control* root, const Mat33& preTransform = Mat33::Identity(), RectF clip = RectF::FromCenter(0,0,100000,100000));
 
 	/// <summary> If a Control is removed, but focus, drag or similar operations are in progress on it, the Board
 	/// keeps a reference to it, which might in turn become dangling. This function removes references to
