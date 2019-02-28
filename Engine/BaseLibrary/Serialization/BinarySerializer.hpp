@@ -514,12 +514,4 @@ BinarySerializer& operator >> (BinarySerializer& s, double& v);
 BinarySerializer& operator >> (BinarySerializer& s, long double& v) = delete;
 
 
-
-// DELETE THESE AFTER TESTING
-uint32_t FloatToIEEE754(float v);
-float IEEE754ToFloat(uint32_t b);
-uint64_t DoubleToIEEE754(double v);
-double IEEE754ToDouble(uint64_t b);
-
-
 } // !namespace inl!
