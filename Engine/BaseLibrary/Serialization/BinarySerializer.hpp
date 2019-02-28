@@ -6,6 +6,7 @@
 #include <iterator>
 #include <vector>
 #include <type_traits>
+#include "../Exception/Exception.hpp"
 
 
 namespace inl {
@@ -413,18 +414,6 @@ BinarySerializer& operator << (BinarySerializer& s, double v);
 BinarySerializer& operator << (BinarySerializer& s, long double v) = delete;
 
 
-/// <summary> Serializes and appends data to the front of the stream.
-///		See appropriate right insertion operators. </summary>
-template <class T, class = typename std::enable_if<std::is_integral<T>::value || std::is_enum<T>::value>::type>
-BinarySerializer& operator >> (const T& v, BinarySerializer& s) {
-	InsertSerialized(s, s.begin(), v);
-	return s;
-}
-
-BinarySerializer& operator >> (float v, BinarySerializer& s);
-BinarySerializer& operator >> (double v, BinarySerializer& s);
-BinarySerializer& operator >> (long double v, BinarySerializer& s) = delete;
-
 //------------------------------------------------------------------------------
 // extract operators
 //------------------------------------------------------------------------------
@@ -433,7 +422,7 @@ BinarySerializer& operator >> (long double v, BinarySerializer& s) = delete;
 
 /// <summary> Extracts a boolean from the stream. <summary>
 inline BinarySerializer& operator >> (BinarySerializer& s, bool& v) {
-	v = s.PopBack() > 0;
+	v = s.PopFront() > 0;
 	return s;
 }
 
@@ -450,7 +439,7 @@ void ExtractSerialized(BinarySerializer& s, BinarySerializer::const_iterator whe
 	T value = 0;
 	uint8_t first = *where;
 	auto it = where;
-	bool isNegative = first < 0;
+	bool isNegative = first & 0b1000'0000;
 	first &= 0b0111'1111;
 	value += T(first) << ((sizeof(value) - 1) * 8);
 
@@ -505,8 +494,10 @@ void ExtractSerialized(BinarySerializer& s, BinarySerializer::const_iterator whe
 // overload for integral and enum types
 /// <summary> Extract integer an enum values from the stream. <sumamry>
 template <class T, class = typename std::enable_if<!decay_equiv<T, BinarySerializer>::value && (std::is_integral<T>::value || std::is_enum<T>::value)>::type>
-BinarySerializer& operator >> (BinarySerializer& s, T& v)
-{
+BinarySerializer& operator >> (BinarySerializer& s, T& v) {
+	if (s.Size() < sizeof(T)) {
+		throw OutOfRangeException("Not enough bytes to deserialize requested type.");
+	}
 	ExtractSerialized(s, s.begin(), v);
 	return s;
 };
@@ -521,19 +512,6 @@ BinarySerializer& operator >> (BinarySerializer& s, double& v);
 
 /// <summary> Intended to extract 128 bit IEEE-754 binary float from stream. Not implemented yet. </summary>
 BinarySerializer& operator >> (BinarySerializer& s, long double& v) = delete;
-
-
-/// <summary> Extracts data from the front of the stream.
-///		See appropriate right extraction operators. </summary>
-template <class T, class = typename std::enable_if<std::is_integral<T>::value || std::is_enum<T>::value>::type>
-BinarySerializer& operator << (T& v, BinarySerializer& s) {
-	ExtractSerialized(s, s.begin(), v);
-	return s;
-}
-
-BinarySerializer& operator << (float& v, BinarySerializer& s);
-BinarySerializer& operator << (double& v, BinarySerializer& s);
-BinarySerializer& operator << (long double& v, BinarySerializer& s) = delete;
 
 
 

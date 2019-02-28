@@ -219,31 +219,5 @@ BinarySerializer& operator >> (BinarySerializer& s, double& v) {
 	return s;
 }
 
-BinarySerializer& operator << (float& v, BinarySerializer& s) {
-	uint32_t ieee754;
-	ieee754 << s;
-	v = IEEE754ToFloat(ieee754);
-	return s;
-}
-
-BinarySerializer& operator << (double& v, BinarySerializer& s) {
-	uint64_t ieee754;
-	ieee754 << s;
-	v = IEEE754ToDouble(ieee754);
-	return s;
-}
-
-BinarySerializer& operator >> (float v, BinarySerializer& s) {
-	uint32_t ieee754 = FloatToIEEE754(v);
-	ieee754 >> s;
-	return s;
-}
-
-BinarySerializer& operator >> (double v, BinarySerializer& s) {
-	uint64_t ieee754 = DoubleToIEEE754(v);
-	ieee754 >> s;
-	return s;
-}
-
 
 } // namespace inl
