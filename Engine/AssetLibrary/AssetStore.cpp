@@ -25,13 +25,6 @@ static StringErrorPosition GetStringErrorPosition(const std::string& str, size_t
 
 
 
-
-AssetStore::AssetStore(gxeng::GraphicsEngine* graphicsEngine, pxeng_bl::PhysicsEngine* physicsEngine) {
-	m_graphicsEngine = graphicsEngine;
-	m_physicsEngine = physicsEngine;
-}
-
-
 std::shared_ptr<gxeng::Mesh> AssetStore::LoadGraphicsMesh(std::filesystem::path path) {
 	auto& cache = m_cachedGraphicsMeshes[path];
 	if (!cache.m_forced) {
@@ -78,19 +71,6 @@ std::shared_ptr<gxeng::Material> AssetStore::LoadMaterial(std::filesystem::path 
 	}
 	if (!cache.m_forced) {
 		cache.m_forced = ForceLoadMaterial(path);
-		cache.m_reference = cache.m_forced;
-	}
-	return cache.m_forced;
-}
-
-
-std::shared_ptr<pxeng_bl::MeshShape> AssetStore::LoadPhysicsMesh(std::filesystem::path path, bool dynamic) {
-	auto& cache = m_cachedPhysicsMeshes[path];
-	if (!cache.m_forced) {
-		cache.m_forced = cache.m_reference.lock();
-	}
-	if (!cache.m_forced) {
-		cache.m_forced = ForceLoadPhysicsMesh(path, dynamic);
 		cache.m_reference = cache.m_forced;
 	}
 	return cache.m_forced;
@@ -220,28 +200,6 @@ std::shared_ptr<gxeng::Material> AssetStore::ForceLoadMaterial(std::filesystem::
 	}
 
 	return material;
-}
-
-
-std::shared_ptr<pxeng_bl::MeshShape> AssetStore::ForceLoadPhysicsMesh(std::filesystem::path path, bool dynamic) {
-	path = GetFullPath(path);
-
-	Model model{ path.generic_u8string() };
-
-	CoordSysLayout csys;
-	csys.x = AxisDir::POS_X;
-	csys.y = AxisDir::POS_Z;
-	csys.z = AxisDir::NEG_Y;
-
-	auto vertices = model.GetVertices<gxeng::Position<0>>(0, csys);
-	auto indices = model.GetIndices(0);
-
-	std::shared_ptr<pxeng_bl::MeshShape> mesh(m_physicsEngine->CreateMeshShape());
-	
-	static_assert(sizeof(vertices[0]) == sizeof(Vec3));
-	mesh->SetMesh(reinterpret_cast<const Vec3*>(vertices.data()), vertices.size(), indices.data(), indices.size());
-
-	return mesh;
 }
 
 
