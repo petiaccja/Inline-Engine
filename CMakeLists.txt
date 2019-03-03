@@ -92,6 +92,7 @@ set_target_properties(GraphicsEngine_LL PROPERTIES FOLDER Modules)
 set_target_properties(GraphicsPipeline PROPERTIES FOLDER Modules)
 set_target_properties(AssetLibrary PROPERTIES FOLDER Modules)
 set_target_properties(GuiEngine PROPERTIES FOLDER Modules)
+set_target_properties(GameLogic PROPERTIES FOLDER Modules)
 
 set_target_properties(Test_General PROPERTIES FOLDER Test)
 set_target_properties(QC_Simulator PROPERTIES FOLDER Test)
