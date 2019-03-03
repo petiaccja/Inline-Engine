@@ -22,4 +22,5 @@ target_link_libraries(Test_Unit
 	BaseLibrary
 	GuiEngine
 	GraphicsEngine_LL
+	GameLogic
 )

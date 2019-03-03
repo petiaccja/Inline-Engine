@@ -23,7 +23,7 @@ private:
 
 	public:
 		iterator_base() = default;
-		iterator_base(SetIterator it) : m_it(it) {}
+		explicit iterator_base(SetIterator it) : m_it(it) {}
 
 		using iterator_category = std::bidirectional_iterator_tag;
 		using value_type = std::conditional_t<IsConst, const std::decay_t<ComponentT>, std::decay_t<ComponentT>>;
@@ -55,6 +55,13 @@ private:
 	};
 
 public:
+	GameEntity() = default;
+	GameEntity(const GameEntity&) = delete;
+	GameEntity(GameEntity&&) noexcept;
+	GameEntity& operator=(const GameEntity&) = delete;
+	GameEntity& operator=(GameEntity&&) noexcept;
+	~GameEntity();
+
 	template <class ComponentT>
 	using iterator = iterator_base<ComponentT, false>;
 	template <class ComponentT>
@@ -65,7 +72,7 @@ public:
 	void AddComponent(ComponentT& component);
 
 	template <class ComponentT>
-	void RemoveComponent(const ComponentT& component);
+	void RemoveComponent(ComponentT& component);
 
 	template <class ComponentT>
 	std::pair<iterator<ComponentT>, iterator<ComponentT>> GetComponents();
@@ -85,27 +92,37 @@ private:
 };
 
 
-
 template <class ComponentT>
 void GameEntity::AddComponent(ComponentT& component) {
-	auto [it, fresh] = m_components.insert({ typeid(ComponentT), &component });
-	if (!fresh) {
+	static_assert(std::is_base_of_v<Component, ComponentT>);
+
+	if (component.m_entity == this) {
 		throw InvalidArgumentException("Don't add shit twice dumbass.");
 	}
+	else if (component.m_entity != nullptr) {
+		throw InvalidArgumentException("Component belongs to another entity.");
+	}
+	auto [it, fresh] = m_components.insert({ typeid(ComponentT), &component });
+	component.m_entity = this;
 }
 
 
 template <class ComponentT>
-void GameEntity::RemoveComponent(const ComponentT& component) {
+void GameEntity::RemoveComponent(ComponentT& component) {
+	static_assert(std::is_base_of_v<Component, ComponentT>);
+
 	auto it = m_components.find({ typeid(ComponentT), &component });
 	if (it != m_components.end()) {
 		m_components.erase(it);
 	}
+	component.m_entity = nullptr;
 }
 
 
 template <class ComponentT>
 auto GameEntity::GetComponents() -> std::pair<iterator<ComponentT>, iterator<ComponentT>> {
+	static_assert(std::is_base_of_v<Component, ComponentT>);
+
 	return { iterator<ComponentT>(m_components.lower_bound({ typeid(ComponentT), reinterpret_cast<Component*>(0) })),
 			 iterator<ComponentT>(m_components.upper_bound({ typeid(ComponentT), reinterpret_cast<Component*>(~uintptr_t(0)) })) };
 }
@@ -113,6 +130,8 @@ auto GameEntity::GetComponents() -> std::pair<iterator<ComponentT>, iterator<Com
 
 template <class ComponentT>
 auto GameEntity::GetComponents() const -> std::pair<const_iterator<ComponentT>, const_iterator<ComponentT>> {
+	static_assert(std::is_base_of_v<Component, ComponentT>);
+
 	return { const_iterator<ComponentT>(m_components.lower_bound({ typeid(ComponentT), reinterpret_cast<Component*>(0) })),
 			 const_iterator<ComponentT>(m_components.upper_bound({ typeid(ComponentT), reinterpret_cast<Component*>(~uintptr_t(0)) })) };
 }
@@ -120,8 +139,10 @@ auto GameEntity::GetComponents() const -> std::pair<const_iterator<ComponentT>, 
 
 template <class ComponentT>
 ComponentT& GameEntity::GetFirstComponent() {
+	static_assert(std::is_base_of_v<Component, ComponentT>);
+
 	auto lb = m_components.lower_bound({ typeid(ComponentT), reinterpret_cast<Component*>(0) });
-	if (lb->first == typeid(ComponentT)) {
+	if (lb != m_components.end() && lb->first == typeid(ComponentT)) {
 		return static_cast<ComponentT&>(*lb->second);
 	}
 	else {
@@ -132,8 +153,10 @@ ComponentT& GameEntity::GetFirstComponent() {
 
 template <class ComponentT>
 const ComponentT& GameEntity::GetFirstComponent() const {
+	static_assert(std::is_base_of_v<Component, ComponentT>);
+
 	auto lb = m_components.lower_bound({ typeid(ComponentT), reinterpret_cast<Component*>(0) });
-	if (lb->first == typeid(ComponentT)) {
+	if (lb != m_components.end() && lb->first == typeid(ComponentT)) {
 		return static_cast<const ComponentT&>(*lb->second);
 	}
 	else {

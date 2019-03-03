@@ -4,7 +4,7 @@
 set(src_base
 	GameWorld.cpp
 	GameWorld.hpp
-	GameEntity.hpp
+	GameEntity.cpp
 	GameEntity.hpp
 	Component.hpp
 )
