@@ -1,19 +1,24 @@
 #pragma once
 
 #include "Component.hpp"
+#include "ComponentRange.hpp"
 
 
-namespace inl::gxeng {
+namespace inl::game {
+
+class ComponentStore;
 
 
 template <class... Components>
-class System;
+class System {
+public:
+	void Update(const std::vector<GameEntity>& entities, const ComponentStore& componentStore) {
+		// TODO: gather components for component range and then call actual update.
+	}
 
-
-template <class Component1, class Component2, class... Components>
-class System<Component1, Component2, Components...> {
-	
+protected:
+	virtual void Update(ComponentRange<std::decay_t<Components>...>) = 0;
 };
 
 
-} // namespace inl::gxeng
+} // namespace inl::game
