@@ -6,11 +6,17 @@ set(src_base
 	GameWorld.hpp
 	GameEntity.cpp
 	GameEntity.hpp
+	ComponentVector.cpp
+	ComponentVector.hpp
+	ComponentStore.cpp
+	ComponentStore.hpp
+	ComponentRange.hpp
 	Component.hpp
+	System.hpp
 )
 
 set(src_components
-	TransformComponent.hpp)
+	ComponentLibrary/TransformComponent.hpp)
 
 
 # Create target
