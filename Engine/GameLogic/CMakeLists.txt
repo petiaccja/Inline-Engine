@@ -6,10 +6,9 @@ set(src_base
 	GameWorld.hpp
 	GameEntity.cpp
 	GameEntity.hpp
-	ComponentVector.cpp
-	ComponentVector.hpp
-	ComponentStore.cpp
-	ComponentStore.hpp
+	ContiguousVector.hpp
+	EntityStore.cpp
+	EntityStore.hpp
 	ComponentRange.hpp
 	Component.hpp
 	System.hpp
