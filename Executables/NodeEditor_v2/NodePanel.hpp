@@ -10,6 +10,7 @@
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
+#include <BaseLibrary/HashCombine.hpp>
 
 
 namespace inl::tool {
@@ -28,10 +29,11 @@ private:
 	};
 	struct ArrowKeyHash {
 		size_t operator()(const ArrowKey& obj) const {
-			return std::hash<const NodeControl*>()(obj.source)
-				   ^ (std::hash<const NodeControl*>()(obj.target) << 1)
-				   ^ (std::hash<int>()(obj.sourcePort) << 2)
-				   ^ (std::hash<int>()(obj.targetPort) << 3);
+			size_t hash = std::hash<const NodeControl*>()(obj.source);
+			hash = CombineHash(hash, std::hash<const NodeControl*>()(obj.target));
+			hash = CombineHash(hash, std::hash<int>()(obj.sourcePort));
+			hash = CombineHash(hash, std::hash<int>()(obj.targetPort));
+			return hash;
 		}
 	};
 	class NodeControlPtrLess {

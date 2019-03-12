@@ -33,10 +33,11 @@ public:
 	template <class ComponentType>
 	void Extend(std::initializer_list<ComponentType>& data);
 
-	size_t Size() const;
-
+	size_t SizeEntities() const;
+	size_t SizeComponentTypes() const;
 private:
-	bool ContainsSameTypes(const EntityStore& other);
+	bool CompareTypes(const EntityStore& other); // true if same
+	size_t HashTypes() const;
 
 private:
 	std::multimap<std::type_index, ComponentVector> m_components;
@@ -83,7 +84,7 @@ void EntityStore::Extend() {
 template <class ComponentType>
 void EntityStore::Extend(std::initializer_list<ComponentType>& data) {
 	ContiguousVector<ComponentType> container{ data };
-	container.resize(Size());
+	container.resize(SizeEntities());
 
 	ComponentVector vec;
 	vec.container = std::move(container);

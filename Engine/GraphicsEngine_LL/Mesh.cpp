@@ -2,7 +2,7 @@
 //#include "VertexElementCompressor.hpp"
 #include "VertexCompressor.hpp"
 #include <BaseLibrary/ArrayView.hpp>
-
+#include <BaseLibrary/HashCombine.hpp>
 
 
 namespace inl {
@@ -221,18 +221,18 @@ void Mesh::Layout::CalculateHashes(const std::vector<std::vector<Element>>& layo
 	// hashing allElements will result in a hash tied to a specific layout
 	// this is because allElements retains the information as to which element is in which stream
 	for (const auto& e : allElements) {
-		layoutHash ^= inthash((size_t)e.semantic);
-		layoutHash ^= inthash((size_t)e.index);
-		layoutHash ^= inthash((size_t)e.offset);
+		layoutHash = CombineHash(layoutHash, inthash((size_t)e.semantic));
+		layoutHash = CombineHash(layoutHash, inthash((size_t)e.index));
+		layoutHash = CombineHash(layoutHash, inthash((size_t)e.offset));
 	}
 
 	// now we order allElements to remove layout information, and keep only element information
 	RadixSortElements(allElements);
 
 	for (const auto& e : allElements) {
-		elementHash ^= inthash((size_t)e.semantic);
-		elementHash ^= inthash((size_t)e.index);
-		elementHash ^= inthash((size_t)e.offset);
+		elementHash = CombineHash(layoutHash, inthash((size_t)e.semantic));
+		elementHash = CombineHash(layoutHash, inthash((size_t)e.index));
+		elementHash = CombineHash(layoutHash, inthash((size_t)e.offset));
 	}
 }
 

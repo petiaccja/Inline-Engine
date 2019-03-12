@@ -3,6 +3,8 @@
 
 #include "GameEntity.hpp"
 
+#include "EntityStore.hpp"
+
 
 namespace inl::game {
 
@@ -12,6 +14,7 @@ public:
 
 
 	void Update(float elapsed);
+
 
 };
 

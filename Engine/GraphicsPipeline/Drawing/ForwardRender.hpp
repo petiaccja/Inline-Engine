@@ -114,7 +114,7 @@ private:
 		size_t operator()(const Mesh::Layout& lhs, const Mesh::Layout& rhs) const { return lhs.EqualElements(rhs); }
 	};
 	struct ScenarioHash {
-		size_t operator()(const ScenarioDesc& obj) const { return obj.layout.GetLayoutHash() ^ std::hash<std::string>()(obj.shader); }
+		size_t operator()(const ScenarioDesc& obj) const { return CombineHash(obj.layout.GetLayoutHash(), std::hash<std::string>()(obj.shader)); }
 		size_t operator()(const ScenarioDesc& lhs, const ScenarioDesc& rhs) const {
 			return lhs.layout.EqualLayout(rhs.layout) && lhs.shader == rhs.shader;
 		}

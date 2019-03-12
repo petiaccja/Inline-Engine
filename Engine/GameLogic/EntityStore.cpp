@@ -1,16 +1,17 @@
 #include "EntityStore.hpp"
 
-#include "BaseLibrary/Exception/Exception.hpp"
+#include <BaseLibrary/Exception/Exception.hpp>
+#include <BaseLibrary/HashCombine.hpp>
 
 
 namespace inl::game {
 
 void EntityStore::Insert(EntityStore others) {
-	if (!ContainsSameTypes(others)) {
+	if (!CompareTypes(others)) {
 		throw InvalidArgumentException("The two stores must contain entities with the same set of components.");
 	}
 
-	m_size += others.Size();
+	m_size += others.SizeEntities();
 
 	auto myIt = m_components.begin();
 	auto myEnd = m_components.end();
@@ -22,7 +23,6 @@ void EntityStore::Insert(EntityStore others) {
 		++myIt;
 		++otherIt;
 	}
-
 }
 
 
@@ -52,12 +52,17 @@ EntityStore EntityStore::Extract(size_t index) {
 }
 
 
-size_t EntityStore::Size() const {
+size_t EntityStore::SizeEntities() const {
 	return m_size;
 }
 
 
-bool EntityStore::ContainsSameTypes(const EntityStore& other) {
+size_t EntityStore::SizeComponentTypes() const {
+	return m_components.size();
+}
+
+
+bool EntityStore::CompareTypes(const EntityStore& other) {
 	if (m_components.size() != other.m_components.size()) {
 		return false;
 	}
@@ -75,6 +80,15 @@ bool EntityStore::ContainsSameTypes(const EntityStore& other) {
 		++otherIt;
 	}
 	return true;
+}
+
+
+size_t EntityStore::HashTypes() const {
+	size_t hash = 17;
+	for (auto& v : m_components) {
+		hash = CombineHash(hash, v.first.hash_code());
+	}
+	return hash;
 }
 
 

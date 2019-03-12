@@ -57,7 +57,7 @@ private:
 	};
 	struct StateKeyHash {
 		size_t operator()(const StateKey& obj) const {
-			return std::hash<UniqueId>()(obj.materialShaderId) ^ std::hash<UniqueId>()(obj.streamLayoutId);
+			return CombineHash(std::hash<UniqueId>()(obj.materialShaderId), std::hash<UniqueId>()(obj.streamLayoutId));
 		}
 	};
 

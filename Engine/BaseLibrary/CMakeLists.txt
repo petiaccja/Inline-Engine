@@ -15,7 +15,7 @@ file(GLOB src_serialization "Serialization/*.?pp")
 file(GLOB src_jobsystem "JobSystem/*.?pp")
 
 # Create target
-add_library(BaseLibrary STATIC 
+add_library(BaseLibrary STATIC
 	${sources} ${headers}
 	
 	${src_exception}

@@ -12,7 +12,7 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
-
+#include <BaseLibrary/HashCombine.hpp>
 
 
 namespace inl {
@@ -64,7 +64,7 @@ using namespace inl;
 template<>
 struct hash<gxeng::SubresourceId> {
 	std::size_t operator()(const gxeng::SubresourceId& instance) const {
-		return std::hash<const void*>{}(instance.resource._GetResourcePtr()) ^ std::hash<unsigned>{}(instance.subresource);
+		return CombineHash(std::hash<const void*>{}(instance.resource._GetResourcePtr()), std::hash<unsigned>{}(instance.subresource));
 	}
 };
 

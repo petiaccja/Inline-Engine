@@ -8,6 +8,7 @@
 
 #include <GraphicsApi_LL/IGxapiManager.hpp>
 #include <GraphicsApi_LL/Common.hpp>
+#include <BaseLibrary/HashCombine.hpp>
 
 
 namespace inl {
@@ -130,7 +131,7 @@ private:
 	struct ShaderIdHash {
 		size_t operator()(const ShaderId& obj) const {
 			std::hash<std::string> sh;
-			return sh(obj.name) ^ sh(obj.macros);
+			return CombineHash(sh(obj.name), sh(obj.macros));
 		}
 	};
 
