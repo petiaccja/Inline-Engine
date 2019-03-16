@@ -7,7 +7,7 @@
 namespace inl::game {
 
 void EntityStore::Insert(EntityStore others) {
-	if (!CompareTypes(others)) {
+	if (!HasSameTypes(others)) {
 		throw InvalidArgumentException("The two stores must contain entities with the same set of components.");
 	}
 
@@ -62,7 +62,12 @@ size_t EntityStore::SizeComponentTypes() const {
 }
 
 
-bool EntityStore::CompareTypes(const EntityStore& other) {
+size_t EntityStore::GetHashOfTypes() const {
+	return m_hashOfTypes;
+}
+
+
+bool EntityStore::HasSameTypes(const EntityStore& other) const {
 	if (m_components.size() != other.m_components.size()) {
 		return false;
 	}
@@ -83,7 +88,7 @@ bool EntityStore::CompareTypes(const EntityStore& other) {
 }
 
 
-size_t EntityStore::HashTypes() const {
+size_t EntityStore::CalculateHashOfTypes() const {
 	size_t hash = 17;
 	for (auto& v : m_components) {
 		hash = CombineHash(hash, v.first.hash_code());

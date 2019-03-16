@@ -22,11 +22,11 @@ class ComponentRange {
 		using pointer = value_type*;
 		using reference = value_type&;
 
-		reference operator*() const { return *static_cast<ComponentT*>(m_it->second); }
-		pointer operator->() const { return static_cast<ComponentT*>(m_it->second); }
+		//reference operator*() const { return *static_cast<ComponentT*>(m_it->second); }
+		//pointer operator->() const { return static_cast<ComponentT*>(m_it->second); }
 
-		iterator_base& operator++() { return ++m_it, *this; }
-		iterator_base& operator--() { return --m_it, *this; }
+		//iterator_base& operator++() { return ++m_it, *this; }
+		//iterator_base& operator--() { return --m_it, *this; }
 		iterator_base operator++(int) {
 			iterator_base copy = (*this);
 			++*this;
@@ -38,8 +38,8 @@ class ComponentRange {
 			return copy;
 		}
 
-		bool operator==(const iterator_base& rhs) const { return m_it == rhs.m_it; }
-		bool operator!=(const iterator_base& rhs) const { return m_it != rhs.m_it; }
+		//bool operator==(const iterator_base& rhs) const { return m_it == rhs.m_it; }
+		//bool operator!=(const iterator_base& rhs) const { return m_it != rhs.m_it; }
 
 	private:
 		std::tuple<typename std::vector<Components*>::iterator...> m_iterators;

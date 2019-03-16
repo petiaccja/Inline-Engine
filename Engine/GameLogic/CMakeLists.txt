@@ -10,6 +10,8 @@ set(src_base
 	EntityStore.cpp
 	EntityStore.hpp
 	ComponentRange.hpp
+	ComponentScheme.hpp
+	ComponentScheme.cpp
 	Component.hpp
 	System.hpp
 )

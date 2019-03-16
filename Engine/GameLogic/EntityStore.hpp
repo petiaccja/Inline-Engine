@@ -9,9 +9,11 @@
 #include <functional>
 #include <map>
 #include <typeindex>
+#include "System.hpp"
 
 
 namespace inl::game {
+
 
 
 class EntityStore {
@@ -35,13 +37,17 @@ public:
 
 	size_t SizeEntities() const;
 	size_t SizeComponentTypes() const;
+
+	size_t GetHashOfTypes() const;
+	bool HasSameTypes(const EntityStore& other) const; // true if same
+
 private:
-	bool CompareTypes(const EntityStore& other); // true if same
-	size_t HashTypes() const;
+	size_t CalculateHashOfTypes() const;
 
 private:
 	std::multimap<std::type_index, ComponentVector> m_components;
 	size_t m_size = 0;
+	size_t m_hashOfTypes = CalculateHashOfTypes();
 };
 
 
@@ -78,6 +84,8 @@ void EntityStore::Extend() {
 	vec.extract = inl::game::Extract<ComponentType>;
 
 	m_components.insert({ typeid(ComponentType), std::move(vec) });
+
+	m_hashOfTypes = CalculateHashOfTypes();
 }
 
 
@@ -93,6 +101,8 @@ void EntityStore::Extend(std::initializer_list<ComponentType>& data) {
 	vec.extract = inl::game::Extract<ComponentType>;
 
 	m_components.insert({ typeid(ComponentType), std::move(vec) });
+
+	m_hashOfTypes = CalculateHashOfTypes();
 }
 
 
