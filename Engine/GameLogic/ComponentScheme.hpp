@@ -13,7 +13,7 @@ class ComponentScheme {
 public:
 	using const_iterator = std::vector<std::type_index>::const_iterator;
 
-	void Insert(std::type_index type);
+	const_iterator Insert(std::type_index type);
 	void Erase(const_iterator it);
 	std::pair<const_iterator, const_iterator> Range(std::type_index type) const;
 

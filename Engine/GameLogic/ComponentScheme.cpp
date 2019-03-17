@@ -10,9 +10,11 @@
 namespace inl::game {
 
 
-void ComponentScheme::Insert(std::type_index type) {
+auto ComponentScheme::Insert(std::type_index type) -> const_iterator {
 	auto last = std::upper_bound(begin(), end(), type);
+	auto index = last - begin();
 	m_types.insert(last, type);
+	return begin() + index; // Stupid recalculation of the iterator from index because insert might invalidated it.
 }
 
 

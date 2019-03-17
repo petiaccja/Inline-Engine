@@ -60,17 +60,20 @@ private:
 
 template <class T>
 RangeHelper<T> Range(T first, T last, T step) {
+	static_assert(std::is_arithmetic_v<T>, "Can only be used for arithmetic types.");
 	return RangeHelper<T>(first, last, step);
 }
 
 template <class T>
 RangeHelper<T> Range(T first, T last) {
+	static_assert(std::is_arithmetic_v<T>, "Can only be used for arithmetic types.");
 	T step = last >= first ? T(1) : T(-1);
 	return Range(first, last, step);
 }
 
 template <class T>
 RangeHelper<T> Range(T last) {
+	static_assert(std::is_arithmetic_v<T>, "Can only be used for arithmetic types.");
 	T first = T(0);
 	T step = last >= first ? T(1) : T(-1);
 	return Range(first, last, step);
