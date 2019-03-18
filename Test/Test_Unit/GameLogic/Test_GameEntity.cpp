@@ -1,6 +1,6 @@
 #include <Catch2/catch.hpp>
 #include <GameLogic/Component.hpp>
-#include <GameLogic/GameEntity.hpp>
+#include <GameLogic/Entity.hpp>
 
 using namespace inl::game;
 
@@ -21,36 +21,36 @@ public:
 };
 
 
-TEST_CASE("GameEntity - AddComponent", "[GameLogic]") {
+TEST_CASE("Entity - AddComponent", "[GameLogic]") {
 	FooComponent component;
-	GameEntity entity;
+	Entity entity;
 	entity.AddComponent(component);
 	REQUIRE(component.GetEntity() == &entity);
 }
 
 
-TEST_CASE("GameEntity - RemoveComponent", "[GameLogic]") {
+TEST_CASE("Entity - RemoveComponent", "[GameLogic]") {
 	FooComponent component;
-	GameEntity entity;
+	Entity entity;
 	entity.AddComponent(component);
 	entity.RemoveComponent(component);
 	REQUIRE(component.GetEntity() == nullptr);
 }
 
 
-TEST_CASE("GameEntity - Destruct", "[GameLogic]") {
+TEST_CASE("Entity - Destruct", "[GameLogic]") {
 	FooComponent component;
 	{
-		GameEntity entity;
+		Entity entity;
 		entity.AddComponent(component);
 	}
 	REQUIRE(component.GetEntity() == nullptr);
 }
 
 
-TEST_CASE("GameEntity - Get component success", "[GameLogic]") {
+TEST_CASE("Entity - Get component success", "[GameLogic]") {
 	FooComponent component;
-	GameEntity entity;
+	Entity entity;
 	entity.AddComponent(component);
 	REQUIRE_NOTHROW(entity.GetComponents<FooComponent>());
 	auto range = entity.GetComponents<FooComponent>();
@@ -59,34 +59,34 @@ TEST_CASE("GameEntity - Get component success", "[GameLogic]") {
 }
 
 
-TEST_CASE("GameEntity - Get component fail", "[GameLogic]") {
-	GameEntity entity;
+TEST_CASE("Entity - Get component fail", "[GameLogic]") {
+	Entity entity;
 	auto range = entity.GetComponents<FooComponent>();
 	REQUIRE(std::distance(range.first, range.second) == 0);
 }
 
 
-TEST_CASE("GameEntity - Get first component success", "[GameLogic]") {
+TEST_CASE("Entity - Get first component success", "[GameLogic]") {
 	FooComponent component;
-	GameEntity entity;
+	Entity entity;
 	entity.AddComponent(component);
 	REQUIRE_NOTHROW(entity.GetFirstComponent<FooComponent>());
 	REQUIRE(&entity.GetFirstComponent<FooComponent>() == &component);
 }
 
 
-TEST_CASE("GameEntity - Get first component fail", "[GameLogic]") {
-	GameEntity entity;
+TEST_CASE("Entity - Get first component fail", "[GameLogic]") {
+	Entity entity;
 	REQUIRE_THROWS(entity.GetFirstComponent<FooComponent>());
 }
 
 
-TEST_CASE("GameEntity - Get component range", "[GameLogic]") {
+TEST_CASE("Entity - Get component range", "[GameLogic]") {
 	FooComponent foo1, foo2;
 	BarComponent bar1, bar2, bar3;
 	BazComponent baz1, baz2, baz3;
 
-	GameEntity entity;
+	Entity entity;
 	entity.AddComponent(foo1);
 	entity.AddComponent(foo2);
 	entity.AddComponent(bar1);

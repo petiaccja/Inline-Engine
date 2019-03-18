@@ -2,10 +2,10 @@
 
 # Files comprising the target
 set(src_base
-	GameWorld.cpp
-	GameWorld.hpp
-	GameEntity.cpp
-	GameEntity.hpp
+	World.cpp
+	World.hpp
+	Entity.cpp
+	Entity.hpp
 	ContiguousVector.hpp
 	EntityStore.cpp
 	EntityStore.hpp

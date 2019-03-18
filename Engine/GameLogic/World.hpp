@@ -2,7 +2,7 @@
 
 
 #include "EntityStore.hpp"
-#include "GameEntity.hpp"
+#include "Entity.hpp"
 #include <unordered_set>
 
 

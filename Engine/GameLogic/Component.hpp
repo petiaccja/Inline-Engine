@@ -4,20 +4,20 @@
 namespace inl::game {
 
 
-class GameEntity;
+class Entity;
 
 
 
 class Component {
-	friend class GameEntity;
+	friend class Entity;
 
 public:
-	const GameEntity* GetEntity() const {
+	const Entity* GetEntity() const {
 		return m_entity;
 	}
 
 private:
-	GameEntity* m_entity = nullptr;
+	Entity* m_entity = nullptr;
 };
 
 

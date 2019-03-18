@@ -12,7 +12,7 @@ class ComponentStore;
 template <class... Components>
 class System {
 public:
-	void Update(const std::vector<GameEntity>& entities, const ComponentStore& componentStore) {
+	void Update(const std::vector<Entity>& entities, const ComponentStore& componentStore) {
 		// TODO: gather components for component range and then call actual update.
 	}
 
