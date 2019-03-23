@@ -39,11 +39,14 @@ public:
 	/// <param name="other"> The container to remove the element from. </param>
 	/// <param name="index"> The index of the element to remove from <paramref name="other"/>. </param>
 	virtual void SpliceBack(IComponentVector& other, size_t index) = 0;
+
+	/// <summary> Return the type of the stored objects. </summary>
+	virtual std::type_index GetType() = 0;
 };
 
 
 template <class ComponentType>
-class ComponentVector final : IComponentVector {
+class ComponentVector final : public IComponentVector {
 public:
 	ComponentVector() = default;
 	ComponentVector(std::initializer_list<ComponentType> list);
@@ -53,6 +56,7 @@ public:
 	void Erase(size_t index) override;
 	void SpliceBack(IComponentVector& other, size_t index) override;
 	void Resize(size_t size);
+	std::type_index GetType() override;
 
 private:
 	ContiguousVector<ComponentType> m_container;
@@ -77,9 +81,10 @@ public:
 
 	/// <summary> Moves the <paramref name="index"/>th container from <paramref name="other"/> into *this. </summary>
 	/// <param name="other"> The store to remove the element from. </param>
-	/// <param name="index"> Which element to remove. </param>
+	/// <param name="index"> Which element set to remove. </param>
+	/// <param name="selection"> Which subset of components to keep. </param>
 	/// <remarks> The scheme of *this must be a subset of the scheme of <paramref name="other"/>. </remarks>
-	void SpliceBack(EntityStore& other, size_t index);
+	void SpliceBack(EntityStore& other, size_t index, const std::vector<bool>& selection);
 
 
 	void Erase(size_t index);
@@ -94,32 +99,14 @@ public:
 	const ComponentScheme& Scheme() const;
 
 private:
+	template <class... ComponentT, size_t Index = 0>
+	void PushBackHelper(std::tuple<ComponentT...>& components, const std::array<size_t, sizeof...(ComponentT)>& reorder);
+
+private:
 	std::vector<std::unique_ptr<IComponentVector>> m_components;
 	ComponentScheme m_scheme;
 };
 
-
-template <class ComponentType>
-void (*Insert)(std::any&, std::any) = [](std::any& cTarget, std::any cElems) {
-	auto& t = std::any_cast<ContiguousVector<ComponentType>&>(cTarget);
-	auto& s = std::any_cast<ContiguousVector<ComponentType>&>(cElems);
-	for (auto& v : s) {
-		t.push_back(std::move(v));
-	}
-};
-template <class ComponentType>
-void (*Erase)(std::any&, size_t) = [](std::any& cTarget, size_t index) {
-	auto& t = std::any_cast<ContiguousVector<ComponentType>&>(cTarget);
-	t.erase(t.begin() + index);
-};
-template <class ComponentType>
-std::any (*Extract)(std::any&, size_t) = [](std::any& cTarget, size_t index) -> std::any {
-	auto& t = std::any_cast<ContiguousVector<ComponentType>&>(cTarget);
-	ContiguousVector<ComponentType> copy;
-	copy.push_back(std::move(t[index]));
-	t.erase(t.begin() + index);
-	return std::any{ copy };
-};
 
 
 template <class ComponentType>
@@ -129,6 +116,86 @@ ComponentVector<ComponentType>::ComponentVector(std::initializer_list<ComponentT
 template <class ComponentType>
 void ComponentVector<ComponentType>::Resize(size_t size) {
 	m_container.resize(size);
+}
+
+
+template <class ComponentType>
+std::type_index ComponentVector<ComponentType>::GetType() {
+	return typeid(ComponentType);
+}
+
+
+template <class... Components>
+void EntityStore::PushBack(Components&&... components) {
+	static const ComponentScheme scheme{ std::type_index(typeid(Components))... };
+	static const std::array<size_t, sizeof...(Components)> reorder = [] {
+		std::array<size_t, sizeof...(Components)> reorder;
+		std::array<std::type_index, sizeof...(Components)> types = { typeid(Components)... };
+		for (auto i : Range(reorder.size()))
+			reorder[i] = i;
+		std::stable_sort(reorder.begin(), reorder.end(), [&types](size_t lhs, size_t rhs) {
+			return types[lhs] < types[rhs];
+		});
+		return reorder;
+	};
+
+	if (scheme == m_scheme) {
+		PushBackHelper<Components...>(std::forward_as_tuple<Components...>(components...), reorder);
+	}
+	else {
+		throw InvalidArgumentException();
+	}
+}
+
+
+template <class... Components>
+void EntityStore::SpliceBack(EntityStore& other, size_t index, Components&&... extraComponents) {
+	static const auto reorder = [] {
+		std::array<size_t, sizeof...(Components)> reorder;
+		std::array<std::type_index, sizeof...(Components)> types = { typeid(Components)... };
+		for (auto i : Range(reorder.size()))
+			reorder[i] = i;
+		std::stable_sort(reorder.begin(), reorder.end(), [&types](size_t lhs, size_t rhs) {
+			return types[lhs] < types[rhs];
+		});
+		return reorder;
+	}();
+
+	static const auto types = std::array{ std::type_index(typeid(Components))... };
+	static const auto constness = std::array{ std::is_rvalue_reference_v<Components>... };
+	static const auto extraComponentPtrs = std::array{ static_cast<const void*>(&extraComponents)... };
+
+	size_t myVectorIndex = 0;
+	size_t otherVectorIndex = 0;
+	size_t extraIndex = 0;
+	size_t otherVectorSize = other.m_components.size();
+	size_t extraSize = sizeof...(Components);
+
+	while (myVectorIndex < m_components.size()) {
+		// Either must be true due to loop condition.
+		bool otherHasMore = otherVectorIndex < otherVectorSize;
+		bool extraHasMore = extraIndex < extraSize;
+		auto& myVector = *m_components[myVectorIndex];
+
+		// Splice components from other.
+		if (!extraHasMore || (otherHasMore && other.m_components[otherVectorIndex]->GetType() <= types[reorder[extraIndex]])) {
+			myVector.SpliceBack(*other.m_components[otherVectorIndex], index);
+			++otherVectorIndex;
+		}
+		// Push back component from extras.
+		else {
+			size_t reorderedIndex = reorder[extraIndex];
+			assert(types[reorderedIndex] == m_components[myVectorIndex]->GetType());
+			if (constness[reorderedIndex]) {
+				myVector.PushBack(extraComponentPtrs[reorderedIndex]);
+			}
+			else {
+				myVector.PushBack(const_cast<void*>(extraComponentPtrs[reorderedIndex]));
+			}
+			++extraIndex;
+		}
+		++myVectorIndex;
+	}
 }
 
 
@@ -166,7 +233,7 @@ void ComponentVector<ComponentType>::Erase(size_t index) {
 
 template <class ComponentType>
 void ComponentVector<ComponentType>::SpliceBack(IComponentVector& other, size_t index) {
-	assert(typeid(other) == typeid(*this)); // Check in debug mode via assert should be enough.
+	assert(GetType() == other.GetType()); // Check in debug mode via assert should be enough.
 	auto& otherTyped = static_cast<ComponentVector<ComponentType>&>(other);
 	auto movedIt = otherTyped.m_container.begin() + index;
 	m_container.push_back(std::move(*movedIt));
@@ -179,7 +246,7 @@ void EntityStore::Extend() {
 	ComponentVector<ComponentType> vec;
 	const auto schemeIt = m_scheme.Insert(typeid(ComponentType));
 	const auto schemeIndex = schemeIt - m_scheme.begin();
-	m_components.insert(m_components.begin() + schemeIndex, { typeid(ComponentType), std::move(vec) });
+	m_components.insert(m_components.begin() + schemeIndex, std::make_unique<decltype(vec)>(std::move(vec)));
 }
 
 
@@ -190,8 +257,27 @@ void EntityStore::Extend(std::initializer_list<ComponentType>& data) {
 
 	const auto schemeIt = m_scheme.Insert(typeid(ComponentType));
 	const auto schemeIndex = schemeIt - m_scheme.begin();
-	m_components.insert(m_components.begin() + schemeIndex, { typeid(ComponentType), std::move(vec) });
+	m_components.insert(m_components.begin() + schemeIndex, std::make_unique<decltype(vec)>(std::move(vec)));
 }
+
+
+template <class... ComponentT, size_t Index>
+void EntityStore::PushBackHelper(std::tuple<ComponentT...>& components, const std::array<size_t, sizeof...(ComponentT)>& reorder) {
+	if constexpr (Index < sizeof...(ComponentT)) {
+		auto& currentVector = *m_components[reorder[Index]];
+		using CurrentType = std::tuple_element_t<Index, std::tuple<ComponentT>>;
+
+		assert(currentVector.GetType() == typeid(CurrentType)); // May need the inverse permutation (reorder)?
+
+		constexpr bool shouldMove = std::is_rvalue_reference_v<CurrentType>;
+		using PointerType = std::conditional_t<shouldMove, void*, const void*>;
+
+		currentVector.PushBack(reinterpret_cast<PointerType>(&std::get<Index>(components)));
+
+		PushBackHelper<ComponentT..., Index + 1>(components, reorder);
+	}
+}
+
 
 
 } // namespace inl::game

@@ -10,6 +10,10 @@
 namespace inl::game {
 
 
+ComponentScheme::ComponentScheme(std::initializer_list<std::type_index> types) : m_types(types) {
+	std::stable_sort(m_types.begin(), m_types.end());
+}
+
 auto ComponentScheme::Insert(std::type_index type) -> const_iterator {
 	auto last = std::upper_bound(begin(), end(), type);
 	auto index = last - begin();

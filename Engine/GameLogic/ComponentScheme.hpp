@@ -4,6 +4,7 @@
 #include <typeindex>
 #include <vector>
 #include <unordered_set>
+#include <initializer_list>
 
 
 namespace inl::game {
@@ -11,6 +12,9 @@ namespace inl::game {
 
 class ComponentScheme {
 public:
+	ComponentScheme() = default;
+	ComponentScheme(std::initializer_list<std::type_index> types);
+
 	using const_iterator = std::vector<std::type_index>::const_iterator;
 
 	const_iterator Insert(std::type_index type);
