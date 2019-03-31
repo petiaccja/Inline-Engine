@@ -4,31 +4,49 @@
 #include "BaseLibrary/Range.hpp"
 
 #include <algorithm>
-#include <ppltasks.h>
 
 
 namespace inl::game {
 
 
+ComponentScheme::ComponentScheme() {
+	Rehash();
+}
+
 ComponentScheme::ComponentScheme(std::initializer_list<std::type_index> types) : m_types(types) {
-	std::stable_sort(m_types.begin(), m_types.end());
+	std::sort(m_types.begin(), m_types.end());
+	Rehash();
 }
 
 auto ComponentScheme::Insert(std::type_index type) -> const_iterator {
 	auto last = std::upper_bound(begin(), end(), type);
 	auto index = last - begin();
 	m_types.insert(last, type);
+	Rehash();
 	return begin() + index; // Stupid recalculation of the iterator from index because insert might invalidated it.
 }
 
 
 void ComponentScheme::Erase(const_iterator it) {
 	m_types.erase(it);
+	Rehash();
 }
 
 
 std::pair<ComponentScheme::const_iterator, ComponentScheme::const_iterator> ComponentScheme::Range(std::type_index type) const {
 	return std::equal_range(begin(), end(), type);
+}
+
+
+std::pair<size_t, size_t> ComponentScheme::Index(std::type_index type) const {
+	auto [first, last] = Range(type);
+	auto beg = begin();
+	return { std::distance(beg, first), std::distance(beg, last) };
+}
+
+
+size_t ComponentScheme::Size() const {
+	return m_types.size();
 }
 
 

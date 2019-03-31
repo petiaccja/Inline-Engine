@@ -37,7 +37,7 @@ Cpp11BracedListStyle: 'false'
 FixNamespaceComments: true
 IncludeBlocks: Regroup
 IncludeCategories:
-  - Regex:           '(AssetLibrary|BaseLibrary|GraphicsApi_D3D12|GraphicsApi_LL|GraphicsEngine|GraphicsEngine_LL|GuiEngine|PhysicsEngine|PhysicsEngine_Bullet)/'
+  - Regex:           '(AssetLibrary|BaseLibrary|GameLogic|GraphicsApi_D3D12|GraphicsApi_LL|GraphicsEngine|GraphicsEngine_LL|GuiEngine|PhysicsEngine|PhysicsEngine_Bullet)/'
     Priority:        2
   - Regex:           '^(<|"(gtest|gmock|isl|json)/)'
     Priority:        3

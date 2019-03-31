@@ -12,7 +12,7 @@ namespace inl::game {
 
 class ComponentScheme {
 public:
-	ComponentScheme() = default;
+	ComponentScheme();
 	ComponentScheme(std::initializer_list<std::type_index> types);
 
 	using const_iterator = std::vector<std::type_index>::const_iterator;
@@ -20,6 +20,8 @@ public:
 	const_iterator Insert(std::type_index type);
 	void Erase(const_iterator it);
 	std::pair<const_iterator, const_iterator> Range(std::type_index type) const;
+	std::pair<size_t, size_t> Index(std::type_index type) const;
+	size_t Size() const;
 
 	const_iterator begin() const;
 	const_iterator end() const;

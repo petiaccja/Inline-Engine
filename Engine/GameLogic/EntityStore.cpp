@@ -1,13 +1,12 @@
 #include "EntityStore.hpp"
 
 #include <BaseLibrary/Exception/Exception.hpp>
-#include <BaseLibrary/HashCombine.hpp>
 
 
 namespace inl::game {
 
 
-void EntityStore::SpliceBack(EntityStore& other, size_t index, const std::vector<bool>& selection) {
+void EntityStore::SpliceBack(EntityStore& other, const std::vector<bool>& selection, size_t index) {
 	assert(selection.size() == other.m_components.size());
 
 	size_t myVectorIndex = 0;
@@ -18,9 +17,14 @@ void EntityStore::SpliceBack(EntityStore& other, size_t index, const std::vector
 			assert(myVectorIndex < m_components.size());
 			++myVectorIndex;
 		}
+		else {
+			other.m_components[otherVectorIndex]->Erase(index);
+		}
 		++otherVectorIndex;
 	}
+	assert(myVectorIndex == Scheme().Size());
 }
+
 
 void EntityStore::Erase(size_t index) {
 	for (auto& vec : m_components) {
@@ -28,9 +32,23 @@ void EntityStore::Erase(size_t index) {
 	}
 }
 
+
 size_t EntityStore::Size() const {
+	// Just for debugging.
+	auto AllSame = [this] {
+		bool same = true;
+		size_t size = m_components.empty() ? 0 : m_components.front()->Size();
+		for (auto& cv : m_components) {
+			same = same && cv->Size() == size;
+		}
+		return same;
+	};
+	assert(AllSame());
+
+	// Actual code.
 	return m_components.empty() ? 0 : m_components.front()->Size();
 }
+
 
 const ComponentScheme& EntityStore::Scheme() const {
 	return m_scheme;

@@ -60,7 +60,7 @@ public:
 
 template <class T, class Alloc>
 void ContiguousVector<T, Alloc>::erase(const_iterator it) {
-	iterator last = --begin(); // Container must not be empty to remove from it.
+	iterator last = --end(); // Container must not be empty to remove from it.
 	const_cast<T&>(*it) = std::move(*last);
 	VectorT::pop_back();
 }

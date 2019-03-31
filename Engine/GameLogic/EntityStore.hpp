@@ -8,9 +8,22 @@
 #include "BaseLibrary/Range.hpp"
 
 #include <any>
+#include <array>
 
 
 namespace inl::game {
+
+
+namespace impl {
+	template <class T, size_t N>
+	std::array<T, N> InvertPermutation(const std::array<T, N>& perm) {
+		std::array<T, N> iperm;
+		for (size_t i = 0; i < N; ++i) {
+			iperm[perm[i]] = i;
+		}
+		return iperm;
+	}
+} // namespace impl
 
 
 /// <summary> An absolutely not typesafe wrapper for contiguous vectors to store any type.
@@ -45,6 +58,7 @@ public:
 };
 
 
+
 template <class ComponentType>
 class ComponentVector final : public IComponentVector {
 public:
@@ -57,10 +71,12 @@ public:
 	void SpliceBack(IComponentVector& other, size_t index) override;
 	void Resize(size_t size);
 	std::type_index GetType() override;
+	const ContiguousVector<ComponentType>& Container() const;
 
 private:
 	ContiguousVector<ComponentType> m_container;
 };
+
 
 
 class EntityStore {
@@ -84,23 +100,35 @@ public:
 	/// <param name="index"> Which element set to remove. </param>
 	/// <param name="selection"> Which subset of components to keep. </param>
 	/// <remarks> The scheme of *this must be a subset of the scheme of <paramref name="other"/>. </remarks>
-	void SpliceBack(EntityStore& other, size_t index, const std::vector<bool>& selection);
+	void SpliceBack(EntityStore& other, const std::vector<bool>& selection, size_t index);
 
-
+	/// <summary> Erases the <paramref name="index"/>th component from each component vector.</summary>
 	void Erase(size_t index);
 
+	/// <summary> Adds a new component type vector to the store, default initialized. </summary>
 	template <class ComponentType>
 	void Extend();
 
+	/// <summary> Adds a new component type vector to the store, initialized with <paramref name="data"/>. </summary>
 	template <class ComponentType>
 	void Extend(std::initializer_list<ComponentType>& data);
 
+	/// <summary> Return the number of components for one component type (same number for all component types). </summary>
 	size_t Size() const;
+
+	/// <summary> Returns the scheme for the set of component types the store contains. </summary>
 	const ComponentScheme& Scheme() const;
 
+	/// <summary> Return the <paramref name="index"/>th vector of components. </summary>
+	/// <exception cref="InvalidCastException"> In case you have given the wrong type. </exception>
+	/// <remarks> You must specify the type correctly. </remarks>
+	template <class ComponentT>
+	const ContiguousVector<ComponentT>& GetComponentVector(size_t index) const;
+
+
 private:
-	template <class... ComponentT, size_t Index = 0>
-	void PushBackHelper(std::tuple<ComponentT...>& components, const std::array<size_t, sizeof...(ComponentT)>& reorder);
+	template <size_t Index, class... ComponentT>
+	void PushBackHelper(const std::tuple<ComponentT...>& components, const std::array<size_t, sizeof...(ComponentT)>& reorder);
 
 private:
 	std::vector<std::unique_ptr<IComponentVector>> m_components;
@@ -125,6 +153,12 @@ std::type_index ComponentVector<ComponentType>::GetType() {
 }
 
 
+template <class ComponentType>
+const ContiguousVector<ComponentType>& ComponentVector<ComponentType>::Container() const {
+	return m_container;
+}
+
+
 template <class... Components>
 void EntityStore::PushBack(Components&&... components) {
 	static const ComponentScheme scheme{ std::type_index(typeid(Components))... };
@@ -136,11 +170,11 @@ void EntityStore::PushBack(Components&&... components) {
 		std::stable_sort(reorder.begin(), reorder.end(), [&types](size_t lhs, size_t rhs) {
 			return types[lhs] < types[rhs];
 		});
-		return reorder;
-	};
+		return impl::InvertPermutation(reorder);
+	}();
 
 	if (scheme == m_scheme) {
-		PushBackHelper<Components...>(std::forward_as_tuple<Components...>(components...), reorder);
+		PushBackHelper<0>(std::forward_as_tuple(std::forward<Components>(components)...), reorder);
 	}
 	else {
 		throw InvalidArgumentException();
@@ -261,11 +295,21 @@ void EntityStore::Extend(std::initializer_list<ComponentType>& data) {
 }
 
 
-template <class... ComponentT, size_t Index>
-void EntityStore::PushBackHelper(std::tuple<ComponentT...>& components, const std::array<size_t, sizeof...(ComponentT)>& reorder) {
+template <class ComponentT>
+const ContiguousVector<ComponentT>& EntityStore::GetComponentVector(size_t index) const {
+	const auto* cv = dynamic_cast<const ComponentVector<ComponentT>*>(m_components[index].get());
+	if (cv) {
+		return cv->Container();
+	}
+	throw InvalidCastException("Be sure to specify the correct component type.");
+}
+
+
+template <size_t Index, class... ComponentT>
+void EntityStore::PushBackHelper(const std::tuple<ComponentT...>& components, const std::array<size_t, sizeof...(ComponentT)>& reorder) {
 	if constexpr (Index < sizeof...(ComponentT)) {
 		auto& currentVector = *m_components[reorder[Index]];
-		using CurrentType = std::tuple_element_t<Index, std::tuple<ComponentT>>;
+		using CurrentType = std::tuple_element_t<Index, std::decay_t<decltype(components)>>;
 
 		assert(currentVector.GetType() == typeid(CurrentType)); // May need the inverse permutation (reorder)?
 
@@ -274,7 +318,7 @@ void EntityStore::PushBackHelper(std::tuple<ComponentT...>& components, const st
 
 		currentVector.PushBack(reinterpret_cast<PointerType>(&std::get<Index>(components)));
 
-		PushBackHelper<ComponentT..., Index + 1>(components, reorder);
+		PushBackHelper<Index + 1>(components, reorder);
 	}
 }
 
