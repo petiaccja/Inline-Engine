@@ -1,21 +1,21 @@
 #include "Components.hpp"
 
-#include <GameLogic/EntityStore.hpp>
+#include <GameLogic/ComponentStore.hpp>
 
 #include <Catch2/catch.hpp>
 
 using namespace inl::game;
 
 
-TEST_CASE("EntityStore - Default", "[GameLogic]") {
-	EntityStore store;
+TEST_CASE("ComponentStore - Default", "[GameLogic]") {
+	ComponentStore store;
 	REQUIRE(store.Scheme().Size() == 0);
 	REQUIRE(store.Size() == 0);
 }
 
 
-TEST_CASE("EntityStore - Extend", "[GameLogic]") {
-	EntityStore store;
+TEST_CASE("ComponentStore - Extend", "[GameLogic]") {
+	ComponentStore store;
 	store.Extend<FooComponent>();
 	store.Extend<BarComponent>();
 	store.Extend<BazComponent>();
@@ -31,8 +31,8 @@ TEST_CASE("EntityStore - Extend", "[GameLogic]") {
 }
 
 
-TEST_CASE("EntityStore - Push back", "[GameLogic]") {
-	EntityStore store;
+TEST_CASE("ComponentStore - Push back", "[GameLogic]") {
+	ComponentStore store;
 	store.Extend<FooComponent>();
 	store.Extend<BarComponent>();
 	store.Extend<BazComponent>();
@@ -45,14 +45,14 @@ TEST_CASE("EntityStore - Push back", "[GameLogic]") {
 }
 
 
-TEST_CASE("EntityStore - Splice back superset", "[GameLogic]") {
-	EntityStore targetStore;
+TEST_CASE("ComponentStore - Splice back superset", "[GameLogic]") {
+	ComponentStore targetStore;
 	targetStore.Extend<FooComponent>();
 	targetStore.Extend<FooComponent>();
 	targetStore.Extend<BarComponent>();
 	targetStore.Extend<BazComponent>();
 
-	EntityStore sourceStore;
+	ComponentStore sourceStore;
 	sourceStore.Extend<FooComponent>();
 	sourceStore.Extend<BarComponent>();
 	sourceStore.Extend<BazComponent>();
@@ -70,13 +70,13 @@ TEST_CASE("EntityStore - Splice back superset", "[GameLogic]") {
 
 
 
-TEST_CASE("EntityStore - Splice back subset", "[GameLogic]") {
-	EntityStore targetStore;
+TEST_CASE("ComponentStore - Splice back subset", "[GameLogic]") {
+	ComponentStore targetStore;
 	targetStore.Extend<FooComponent>();
 	targetStore.Extend<BarComponent>();
 	targetStore.Extend<BazComponent>();
 
-	EntityStore sourceStore;
+	ComponentStore sourceStore;
 	sourceStore.Extend<FooComponent>();
 	sourceStore.Extend<FooComponent>();
 	sourceStore.Extend<BarComponent>();

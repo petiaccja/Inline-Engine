@@ -1,33 +1,19 @@
 #include "Entity.hpp"
 
+#include "World.hpp"
 
 namespace inl::game {
 
 
-Entity::Entity(Entity&& rhs) noexcept {
-	std::swap(m_components, rhs.m_components);
-	for (auto& v : m_components) {
-		v.second->m_entity = this;
-	}
-	rhs.m_components.clear();
+void Entity::RemoveComponent(size_t index) {
+	assert(m_world);
+	m_world->RemoveComponent(*this, index);
 }
 
-Entity& Entity::operator=(Entity&& rhs) noexcept {
-	// Swap two operands.
-	std::swap(m_components, rhs.m_components);
-	for (auto& v : m_components) {
-		v.second->m_entity = this;
-	}
-	for (auto& v : rhs.m_components) {
-		v.second->m_entity = &rhs;
-	}
-	return *this;
-}
 
-Entity::~Entity() {
-	for (auto& v : m_components) {
-		v.second->m_entity = nullptr;
-	}
+const ComponentScheme& Entity::GetScheme() const {
+	assert(m_store);
+	return m_store->store.Scheme();
 }
 
 

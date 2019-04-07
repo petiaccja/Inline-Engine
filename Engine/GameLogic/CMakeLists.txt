@@ -7,12 +7,11 @@ set(src_base
 	Entity.cpp
 	Entity.hpp
 	ContiguousVector.hpp
-	EntityStore.cpp
-	EntityStore.hpp
+	ComponentStore.cpp
+	ComponentStore.hpp
 	ComponentRange.hpp
 	ComponentScheme.hpp
 	ComponentScheme.cpp
-	Component.hpp
 	System.hpp
 )
 

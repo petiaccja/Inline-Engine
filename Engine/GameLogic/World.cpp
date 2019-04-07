@@ -4,13 +4,13 @@
 namespace inl::game {
 
 
-void World::RemoveComponent(SlimEntity& entity, size_t index) {
+void World::RemoveComponent(Entity& entity, size_t index) {
 	assert(entity.GetWorld() == this);
 	assert(index < entity.GetStore()->store.Scheme().Size());
 
 	// Naive implementation of the reduced Scheme's construction as use as a hash key.
-	auto& currentEntities = const_cast<ContiguousVector<std::unique_ptr<SlimEntity>>&>(entity.GetStore()->entities);
-	auto& currentStore = const_cast<EntityStore&>(entity.GetStore()->store);
+	auto& currentEntities = const_cast<ContiguousVector<std::unique_ptr<Entity>>&>(entity.GetStore()->entities);
+	auto& currentStore = const_cast<ComponentStore&>(entity.GetStore()->store);
 	const size_t currentIdx = entity.GetIndex();
 	const ComponentScheme& currentScheme = currentStore.Scheme();
 	ComponentScheme reducedScheme = currentScheme;
@@ -35,7 +35,7 @@ void World::RemoveComponent(SlimEntity& entity, size_t index) {
 	if (currentStore.Size() == 0) {
 		m_entityStores.erase(currentStore.Scheme());
 	}
-	entity = SlimEntity(this, it->second.get(), it->second->store.Size() - 1);
+	entity = Entity(this, it->second.get(), it->second->store.Size() - 1);
 }
 
 

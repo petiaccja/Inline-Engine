@@ -1,84 +1,44 @@
 #pragma once
 
+#include "ComponentStore.hpp"
 
-#include "Component.hpp"
-
-#include "BaseLibrary/Exception/Exception.hpp"
-
-#include <set>
-#include <typeindex>
-#include <utility>
+#include <cassert>
 
 
 namespace inl::game {
 
 
-class Entity {
-private:
-	using ComponentSet = std::set<std::pair<std::type_index, Component*>>;
+class World;
+struct EntitySet;
+class ComponentScheme;
 
-	template <class ComponentT, bool IsConst>
-	class iterator_base {
-		using SetIterator = std::conditional_t<IsConst, ComponentSet::const_iterator, ComponentSet::iterator>;
 
-	public:
-		iterator_base() = default;
-		explicit iterator_base(SetIterator it) : m_it(it) {}
+namespace impl {
+	template <class ComponentT>
+	class ComponentIterator {
+		static constexpr bool isConst = std::is_const_v<std::remove_reference_t<ComponentT>>;
 
-		using iterator_category = std::bidirectional_iterator_tag;
-		using value_type = std::conditional_t<IsConst, const std::decay_t<ComponentT>, std::decay_t<ComponentT>>;
-		using difference_type = typename SetIterator::difference_type;
-		using pointer = value_type*;
-		using reference = value_type&;
-
-		reference operator*() const { return *static_cast<ComponentT*>(m_it->second); }
-		pointer operator->() const { return static_cast<ComponentT*>(m_it->second); }
-
-		iterator_base& operator++() { return ++m_it, *this; }
-		iterator_base& operator--() { return --m_it, *this; }
-		iterator_base operator++(int) {
-			iterator_base copy = (*this);
-			++*this;
-			return copy;
-		}
-		iterator_base operator--(int) {
-			iterator_base copy = (*this);
-			--*this;
-			return copy;
-		}
-
-		bool operator==(const iterator_base& rhs) const { return m_it == rhs.m_it; }
-		bool operator!=(const iterator_base& rhs) const { return m_it != rhs.m_it; }
-
-	private:
-		SetIterator m_it;
+		std::conditional<isConst, const ComponentStore*, ComponentStore*> m_store;
+		size_t m_entityIndex; // At which index in the vectors this entity's components reside.
+		size_t m_first; // Index of the first component vector with ComponentT.
+		size_t m_last; // Index of the past-the-last component vector with ComponentT.
 	};
+} // namespace impl
 
+
+
+class Entity {
 public:
 	Entity() = default;
-	Entity(const Entity&) = delete;
-	Entity(Entity&&) noexcept;
-	Entity& operator=(const Entity&) = delete;
-	Entity& operator=(Entity&&) noexcept;
-	~Entity();
+	Entity(World* world, EntitySet* store, size_t index) : m_world(world), m_store(store), m_index(index) {}
 
 	template <class ComponentT>
-	using iterator = iterator_base<ComponentT, false>;
-	template <class ComponentT>
-	using const_iterator = iterator_base<ComponentT, true>;
-
-public:
-	template <class ComponentT>
-	void AddComponent(ComponentT& component);
+	void AddComponent(ComponentT component);
 
 	template <class ComponentT>
-	void RemoveComponent(ComponentT& component);
+	void RemoveComponent();
 
-	template <class ComponentT>
-	std::pair<iterator<ComponentT>, iterator<ComponentT>> GetComponents();
-
-	template <class ComponentT>
-	std::pair<const_iterator<ComponentT>, const_iterator<ComponentT>> GetComponents() const;
+	void RemoveComponent(size_t index);
 
 	template <class ComponentT>
 	ComponentT& GetFirstComponent();
@@ -86,82 +46,61 @@ public:
 	template <class ComponentT>
 	const ComponentT& GetFirstComponent() const;
 
+	const ComponentScheme& GetScheme() const;
+	const World* GetWorld() const { return m_world; }
+	const EntitySet* GetStore() const { return m_store; }
+	size_t GetIndex() const { return m_index; }
 
 private:
-	std::set<std::pair<std::type_index, Component*>> m_components;
+	World* m_world;
+	EntitySet* m_store;
+	size_t m_index;
 };
 
+} // namespace inl::game
+
+
+
+#include "World.hpp"
+
+
+namespace inl::game {
 
 template <class ComponentT>
-void Entity::AddComponent(ComponentT& component) {
-	static_assert(std::is_base_of_v<Component, ComponentT>);
-
-	if (component.m_entity == this) {
-		throw InvalidArgumentException("Don't add shit twice dumbass.");
-	}
-	else if (component.m_entity != nullptr) {
-		throw InvalidArgumentException("Component belongs to another entity.");
-	}
-	auto [it, fresh] = m_components.insert({ typeid(ComponentT), &component });
-	component.m_entity = this;
+void Entity::AddComponent(ComponentT component) {
+	assert(m_world);
+	m_world->AddComponent(*this, std::forward<ComponentT>(component));
 }
 
 
 template <class ComponentT>
-void Entity::RemoveComponent(ComponentT& component) {
-	static_assert(std::is_base_of_v<Component, ComponentT>);
-
-	auto it = m_components.find({ typeid(ComponentT), &component });
-	if (it != m_components.end()) {
-		m_components.erase(it);
-	}
-	component.m_entity = nullptr;
-}
-
-
-template <class ComponentT>
-auto Entity::GetComponents() -> std::pair<iterator<ComponentT>, iterator<ComponentT>> {
-	static_assert(std::is_base_of_v<Component, ComponentT>);
-
-	return { iterator<ComponentT>(m_components.lower_bound({ typeid(ComponentT), reinterpret_cast<Component*>(0) })),
-			 iterator<ComponentT>(m_components.upper_bound({ typeid(ComponentT), reinterpret_cast<Component*>(~uintptr_t(0)) })) };
-}
-
-
-template <class ComponentT>
-auto Entity::GetComponents() const -> std::pair<const_iterator<ComponentT>, const_iterator<ComponentT>> {
-	static_assert(std::is_base_of_v<Component, ComponentT>);
-
-	return { const_iterator<ComponentT>(m_components.lower_bound({ typeid(ComponentT), reinterpret_cast<Component*>(0) })),
-			 const_iterator<ComponentT>(m_components.upper_bound({ typeid(ComponentT), reinterpret_cast<Component*>(~uintptr_t(0)) })) };
+void Entity::RemoveComponent() {
+	assert(m_world);
+	m_world->RemoveComponent<ComponentT>(*this);
 }
 
 
 template <class ComponentT>
 ComponentT& Entity::GetFirstComponent() {
-	static_assert(std::is_base_of_v<Component, ComponentT>);
-
-	auto lb = m_components.lower_bound({ typeid(ComponentT), reinterpret_cast<Component*>(0) });
-	if (lb != m_components.end() && lb->first == typeid(ComponentT)) {
-		return static_cast<ComponentT&>(*lb->second);
+	assert(m_store);
+	auto& store = m_store->store;
+	auto [index, last] = store.Scheme().Index(typeid(ComponentT));
+	if (index == last) {
+		throw InvalidArgumentException("No such component in entity.");
 	}
-	else {
-		throw OutOfRangeException("No component of requested type.");
-	}
+	return m_store->store.GetComponentVector<ComponentT>(index)[m_index];
 }
 
 
 template <class ComponentT>
 const ComponentT& Entity::GetFirstComponent() const {
-	static_assert(std::is_base_of_v<Component, ComponentT>);
-
-	auto lb = m_components.lower_bound({ typeid(ComponentT), reinterpret_cast<Component*>(0) });
-	if (lb != m_components.end() && lb->first == typeid(ComponentT)) {
-		return static_cast<const ComponentT&>(*lb->second);
+	assert(m_store);
+	auto& store = m_store->store;
+	auto [index, last] = store.Scheme().Index(typeid(ComponentT));
+	if (index == last) {
+		throw InvalidArgumentException("No such component in entity.");
 	}
-	else {
-		throw OutOfRangeException("No component of requested type.");
-	}
+	return m_store->store.GetComponentVector<ComponentT>(index)[m_index];
 }
 
 

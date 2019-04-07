@@ -1,7 +1,8 @@
 #pragma once
 
 
-#include "EntityStore.hpp"
+#include "ComponentStore.hpp"
+#include "Entity.hpp"
 
 #include <unordered_map>
 
@@ -9,34 +10,9 @@
 namespace inl::game {
 
 
-class World;
-
-
-struct EntitySet;
-
-// Rename this to normal "Entity"
-class SlimEntity {
-public:
-	SlimEntity() = default;
-	SlimEntity(World* world, EntitySet* store, size_t index) : m_world(world), m_store(store), m_index(index) {}
-
-
-
-
-	const World* GetWorld() const { return m_world; }
-	const EntitySet* GetStore() const { return m_store; }
-	size_t GetIndex() const { return m_index; }
-
-private:
-	World* m_world;
-	EntitySet* m_store;
-	size_t m_index;
-};
-
-
 struct EntitySet {
-	ContiguousVector<std::unique_ptr<SlimEntity>> entities;
-	EntityStore store;
+	ContiguousVector<std::unique_ptr<Entity>> entities;
+	ComponentStore store;
 };
 
 
@@ -45,15 +21,15 @@ public:
 	void Update(float elapsed);
 
 	template <class... ComponentTypes>
-	SlimEntity* CreateEntity(ComponentTypes&&... args);
+	Entity* CreateEntity(ComponentTypes&&... args);
 
 	template <class ComponentT>
-	void AddComponent(SlimEntity& entity, ComponentT component);
+	void AddComponent(Entity& entity, ComponentT component);
 
 	template <class ComponentT>
-	void RemoveComponent(SlimEntity& entity);
+	void RemoveComponent(Entity& entity);
 
-	void RemoveComponent(SlimEntity& entity, size_t index);
+	void RemoveComponent(Entity& entity, size_t index);
 
 private:
 	std::unordered_map<ComponentScheme, std::unique_ptr<EntitySet>> m_entityStores;
@@ -62,7 +38,7 @@ private:
 
 
 template <class... ComponentTypes>
-SlimEntity* World::CreateEntity(ComponentTypes&&... args) {
+Entity* World::CreateEntity(ComponentTypes&&... args) {
 	static const ComponentScheme scheme = { typeid(ComponentTypes)... };
 
 	auto it = m_entityStores.find(scheme);
@@ -72,19 +48,19 @@ SlimEntity* World::CreateEntity(ComponentTypes&&... args) {
 		it = newIt;
 	}
 	it->second->store.PushBack(std::forward<ComponentTypes>(args)...);
-	it->second->entities.push_back(std::make_unique<SlimEntity>(this, it->second.get(), it->second->store.Size() - 1));
+	it->second->entities.push_back(std::make_unique<Entity>(this, it->second.get(), it->second->store.Size() - 1));
 
 	return it->second->entities.back().get();
 }
 
 
 template <class ComponentT>
-void World::AddComponent(SlimEntity& entity, ComponentT component) {
+void World::AddComponent(Entity& entity, ComponentT component) {
 	assert(entity.GetWorld() == this);
 
 	// Naive implementation of the extended Scheme's construction as use as a hash key.
-	auto& currentEntities = const_cast<ContiguousVector<std::unique_ptr<SlimEntity>>&>(entity.GetStore()->entities);
-	auto& currentStore = const_cast<EntityStore&>(entity.GetStore()->store);
+	auto& currentEntities = const_cast<ContiguousVector<std::unique_ptr<Entity>>&>(entity.GetStore()->entities);
+	auto& currentStore = const_cast<ComponentStore&>(entity.GetStore()->store);
 	const size_t currentIndex = entity.GetIndex();
 	const ComponentScheme& currentScheme = currentStore.Scheme();
 	ComponentScheme extendedScheme = currentScheme;
@@ -107,16 +83,16 @@ void World::AddComponent(SlimEntity& entity, ComponentT component) {
 	if (currentStore.Size() == 0) {
 		m_entityStores.erase(currentStore.Scheme());
 	}
-	entity = SlimEntity(this, it->second.get(), it->second->store.Size() - 1);
+	entity = Entity(this, it->second.get(), it->second->store.Size() - 1);
 }
 
 
 template <class ComponentT>
-void World::RemoveComponent(SlimEntity& entity) {
+void World::RemoveComponent(Entity& entity) {
 	assert(entity.GetWorld() == this);
 
 	// Find the index of the first component of specified type.
-	auto& currentStore = const_cast<EntityStore&>(entity.GetStore()->store);
+	auto& currentStore = const_cast<ComponentStore&>(entity.GetStore()->store);
 	const ComponentScheme& currentScheme = currentStore.Scheme();
 
 	const auto [firstOfType, lastOfType] = currentScheme.Range(typeid(ComponentT));
