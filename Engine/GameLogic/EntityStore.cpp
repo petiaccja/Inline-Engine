@@ -6,7 +6,7 @@
 namespace inl::game {
 
 
-void EntityStore::SpliceBack(EntityStore& other, const std::vector<bool>& selection, size_t index) {
+void EntityStore::SpliceBackReduce(EntityStore& other, size_t index, const std::vector<bool>& selection) {
 	assert(selection.size() == other.m_components.size());
 
 	size_t myVectorIndex = 0;
@@ -33,6 +33,14 @@ void EntityStore::Erase(size_t index) {
 }
 
 
+void EntityStore::Reduce(size_t index) {
+	assert(index < m_scheme.Size());
+
+	m_scheme.Erase(m_scheme.begin() + index);
+	m_components.erase(m_components.begin() + index);
+}
+
+
 size_t EntityStore::Size() const {
 	// Just for debugging.
 	auto AllSame = [this] {
@@ -52,6 +60,19 @@ size_t EntityStore::Size() const {
 
 const ComponentScheme& EntityStore::Scheme() const {
 	return m_scheme;
+}
+
+
+EntityStore EntityStore::CloneScheme() const {
+	EntityStore clone;
+	clone.m_scheme = m_scheme;
+	clone.m_components.reserve(m_components.size());
+
+	for (auto& componentVector : m_components) {
+		clone.m_components.push_back(componentVector->Clone());
+	}
+
+	return clone;
 }
 
 

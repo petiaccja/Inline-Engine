@@ -55,6 +55,9 @@ public:
 
 	/// <summary> Return the type of the stored objects. </summary>
 	virtual std::type_index GetType() = 0;
+
+	/// <summary> Creates a component vector of the same type but empty. </summary>
+	virtual std::unique_ptr<IComponentVector> Clone() const = 0;
 };
 
 
@@ -72,6 +75,7 @@ public:
 	void Resize(size_t size);
 	std::type_index GetType() override;
 	const ContiguousVector<ComponentType>& Container() const;
+	std::unique_ptr<IComponentVector> Clone() const override;
 
 private:
 	ContiguousVector<ComponentType> m_container;
@@ -93,31 +97,41 @@ public:
 	/// <remarks> The scehem of *this must exactly match the scheme of <paramref name="other"/>
 	///		union <paramref name="extraComponents"/>. </remarks>
 	template <class... Components>
-	void SpliceBack(EntityStore& other, size_t index, Components&&... extraComponents);
+	void SpliceBackExtend(EntityStore& other, size_t index, Components&&... extraComponents);
 
 	/// <summary> Moves the <paramref name="index"/>th container from <paramref name="other"/> into *this. </summary>
 	/// <param name="other"> The store to remove the element from. </param>
 	/// <param name="index"> Which element set to remove. </param>
 	/// <param name="selection"> Which subset of components to keep. </param>
 	/// <remarks> The scheme of *this must be a subset of the scheme of <paramref name="other"/>. </remarks>
-	void SpliceBack(EntityStore& other, const std::vector<bool>& selection, size_t index);
+	void SpliceBackReduce(EntityStore& other, size_t index, const std::vector<bool>& selection);
 
 	/// <summary> Erases the <paramref name="index"/>th component from each component vector.</summary>
 	void Erase(size_t index);
 
 	/// <summary> Adds a new component type vector to the store, default initialized. </summary>
-	template <class ComponentType>
+	template <class ComponentType, class... ExtraTypes>
 	void Extend();
 
 	/// <summary> Adds a new component type vector to the store, initialized with <paramref name="data"/>. </summary>
 	template <class ComponentType>
 	void Extend(std::initializer_list<ComponentType>& data);
 
+	/// <summary> Removed the first occurence of the component type specified. </summary>
+	template <class ComponentType>
+	void Reduce();
+
+	/// <summary> Remove the component type specified by index. </summary>
+	void Reduce(size_t index);
+
 	/// <summary> Return the number of components for one component type (same number for all component types). </summary>
 	size_t Size() const;
 
 	/// <summary> Returns the scheme for the set of component types the store contains. </summary>
 	const ComponentScheme& Scheme() const;
+
+	/// <summary> Creates an EntityStore with the exact same component vectors as this, but with all vectors empty. </summary>
+	EntityStore CloneScheme() const;
 
 	/// <summary> Return the <paramref name="index"/>th vector of components. </summary>
 	/// <exception cref="InvalidCastException"> In case you have given the wrong type. </exception>
@@ -159,6 +173,12 @@ const ContiguousVector<ComponentType>& ComponentVector<ComponentType>::Container
 }
 
 
+template <class ComponentType>
+std::unique_ptr<IComponentVector> ComponentVector<ComponentType>::Clone() const {
+	return std::make_unique<ComponentVector>();
+}
+
+
 template <class... Components>
 void EntityStore::PushBack(Components&&... components) {
 	static const ComponentScheme scheme{ std::type_index(typeid(Components))... };
@@ -183,7 +203,7 @@ void EntityStore::PushBack(Components&&... components) {
 
 
 template <class... Components>
-void EntityStore::SpliceBack(EntityStore& other, size_t index, Components&&... extraComponents) {
+void EntityStore::SpliceBackExtend(EntityStore& other, size_t index, Components&&... extraComponents) {
 	static const auto reorder = [] {
 		std::array<size_t, sizeof...(Components)> reorder;
 		std::array<std::type_index, sizeof...(Components)> types = { typeid(Components)... };
@@ -275,12 +295,16 @@ void ComponentVector<ComponentType>::SpliceBack(IComponentVector& other, size_t 
 }
 
 
-template <class ComponentType>
+template <class ComponentType, class... ExtraTypes>
 void EntityStore::Extend() {
 	ComponentVector<ComponentType> vec;
 	const auto schemeIt = m_scheme.Insert(typeid(ComponentType));
 	const auto schemeIndex = schemeIt - m_scheme.begin();
 	m_components.insert(m_components.begin() + schemeIndex, std::make_unique<decltype(vec)>(std::move(vec)));
+
+	if constexpr (sizeof...(ExtraTypes) > 0) {
+		Extend<ExtraTypes...>();
+	}
 }
 
 
@@ -292,6 +316,20 @@ void EntityStore::Extend(std::initializer_list<ComponentType>& data) {
 	const auto schemeIt = m_scheme.Insert(typeid(ComponentType));
 	const auto schemeIndex = schemeIt - m_scheme.begin();
 	m_components.insert(m_components.begin() + schemeIndex, std::make_unique<decltype(vec)>(std::move(vec)));
+}
+
+
+template <class ComponentType>
+void EntityStore::Reduce() {
+	auto [firstIt, lastIt] = m_scheme.Range(typeid(ComponentType));
+
+	if (firstIt == lastIt) {
+		throw InvalidArgumentException("Given type if not member of this scheme.");
+	}
+
+	const size_t index = std::distance(m_scheme.begin(), firstIt);
+	m_scheme.Erase(firstIt);
+	m_components.erase(m_components.begin() + index);
 }
 
 

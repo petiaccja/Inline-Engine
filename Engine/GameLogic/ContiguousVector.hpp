@@ -31,6 +31,8 @@ public:
 	using VectorT::at;
 	using VectorT::operator[];
 	using VectorT::data;
+	using VectorT::front;
+	using VectorT::back;
 
 	using VectorT::begin;
 	using VectorT::cbegin;

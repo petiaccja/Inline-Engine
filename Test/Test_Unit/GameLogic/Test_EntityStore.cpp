@@ -62,7 +62,7 @@ TEST_CASE("EntityStore - Splice back superset", "[GameLogic]") {
 	REQUIRE(targetStore.Size() == 0);
 	REQUIRE(sourceStore.Size() == 2);
 
-	targetStore.SpliceBack(sourceStore, 1, FooComponent{ 12.f });
+	targetStore.SpliceBackExtend(sourceStore, 1, FooComponent{ 12.f });
 
 	REQUIRE(targetStore.Size() == 1);
 	REQUIRE(sourceStore.Size() == 1);
@@ -90,7 +90,7 @@ TEST_CASE("EntityStore - Splice back subset", "[GameLogic]") {
 	std::vector<bool> selection(sourceStore.Scheme().Size(), true);
 	auto scheme = sourceStore.Scheme();
 	selection[scheme.Index(typeid(FooComponent)).first] = false;
-	targetStore.SpliceBack(sourceStore, selection, 1);
+	targetStore.SpliceBackReduce(sourceStore, 1, selection);
 
 	REQUIRE(targetStore.Size() == 1);
 	REQUIRE(sourceStore.Size() == 1);

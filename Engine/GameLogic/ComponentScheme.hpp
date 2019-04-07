@@ -14,6 +14,10 @@ class ComponentScheme {
 public:
 	ComponentScheme();
 	ComponentScheme(std::initializer_list<std::type_index> types);
+	ComponentScheme(const ComponentScheme&) = default;
+	ComponentScheme(ComponentScheme&&) = default;
+	ComponentScheme& operator=(const ComponentScheme&) = default;
+	ComponentScheme& operator=(ComponentScheme&&) = default;
 
 	using const_iterator = std::vector<std::type_index>::const_iterator;
 
