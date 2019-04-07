@@ -74,6 +74,7 @@ public:
 	void SpliceBack(IComponentVector& other, size_t index) override;
 	void Resize(size_t size);
 	std::type_index GetType() override;
+	ContiguousVector<ComponentType>& Container();
 	const ContiguousVector<ComponentType>& Container() const;
 	std::unique_ptr<IComponentVector> Clone() const override;
 
@@ -135,6 +136,15 @@ public:
 
 	/// <summary> Return the <paramref name="index"/>th vector of components. </summary>
 	/// <exception cref="InvalidCastException"> In case you have given the wrong type. </exception>
+	/// <remarks> You must specify the type correctly.
+	///		TODO: remove this function and use ranges instead for non-const access to underlying components. 
+	///	</remarks>
+	template <class ComponentT>
+	ContiguousVector<ComponentT>& GetComponentVector(size_t index);
+
+
+	/// <summary> Return the <paramref name="index"/>th vector of components. </summary>
+	/// <exception cref="InvalidCastException"> In case you have given the wrong type. </exception>
 	/// <remarks> You must specify the type correctly. </remarks>
 	template <class ComponentT>
 	const ContiguousVector<ComponentT>& GetComponentVector(size_t index) const;
@@ -164,6 +174,12 @@ void ComponentVector<ComponentType>::Resize(size_t size) {
 template <class ComponentType>
 std::type_index ComponentVector<ComponentType>::GetType() {
 	return typeid(ComponentType);
+}
+
+
+template <class ComponentType>
+ContiguousVector<ComponentType>& ComponentVector<ComponentType>::Container() {
+	return m_container;
 }
 
 
@@ -330,6 +346,16 @@ void ComponentStore::Reduce() {
 	const size_t index = std::distance(m_scheme.begin(), firstIt);
 	m_scheme.Erase(firstIt);
 	m_components.erase(m_components.begin() + index);
+}
+
+
+template <class ComponentT>
+ContiguousVector<ComponentT>& ComponentStore::GetComponentVector(size_t index) {
+	auto* cv = dynamic_cast<ComponentVector<ComponentT>*>(m_components[index].get());
+	if (cv) {
+		return cv->Container();
+	}
+	throw InvalidCastException("Be sure to specify the correct component type.");
 }
 
 
