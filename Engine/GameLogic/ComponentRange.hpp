@@ -4,6 +4,7 @@
 
 #include <map>
 #include <vector>
+#include <type_traits>
 
 
 namespace inl::game {
@@ -24,7 +25,7 @@ namespace impl {
 
 template <class... ComponentTypes>
 class ComponentRange {
-	static constexpr bool IsAllConst = (... && std::is_const_v<std::remove_reference_t<ComponentTypes>>);
+	static constexpr bool IsAllConst = std::conjunction_v<std::is_const<std::remove_reference_t<ComponentTypes>>...>;
 	using ComponentStoreOptConstT = impl::add_const_opt_t<ComponentStore, IsAllConst>;
 	using ComponentVectorTupleT = std::tuple<impl::ComponentVectorOptConstT<ComponentTypes>&...>;
 
