@@ -3,8 +3,8 @@
 #include "ComponentStore.hpp"
 
 #include <map>
-#include <vector>
 #include <type_traits>
+#include <vector>
 
 
 namespace inl::game {
@@ -12,26 +12,106 @@ namespace inl::game {
 
 namespace impl {
 	template <class T, bool Const>
-	using add_const_opt_t = std::conditional_t<Const, const T, std::remove_const_t<T>>;
+	using AddConstOptT = std::conditional_t<Const, const T, T>;
 
 	template <class T>
 	using ComponentVectorT = ContiguousVector<std::decay_t<T>>;
 
 	template <class T>
-	using ComponentVectorOptConstT = add_const_opt_t<ComponentVectorT<T>, std::is_const_v<std::remove_reference_t<T>>>;
+	using ComponentVectorOptConstT = AddConstOptT<ComponentVectorT<T>, std::is_const_v<std::remove_reference_t<T>>>;
 } // namespace impl
 
+
+template <bool Const, class... ComponentTypes>
+class ComponentRangeIterator {
+	using ComponentVectorTupleT = std::tuple<impl::ComponentVectorOptConstT<ComponentTypes>&...>;
+	using ComponentValueTupleT = std::tuple<std::decay_t<ComponentTypes>...>;
+	using ComponentRefTupleT = std::tuple<impl::AddConstOptT<ComponentTypes, Const>&...>;
+	using ComponentRRefTupleT = std::tuple<impl::AddConstOptT<ComponentTypes, Const>&&...>;
+	using ComponentPtrTupleT = std::tuple<impl::AddConstOptT<ComponentTypes, Const>*...>;
+
+public:
+	ComponentRangeIterator() = default;
+	ComponentRangeIterator(ComponentVectorTupleT* componentVectors, size_t componentIndex)
+		: m_componentVectors(componentVectors), m_componentIndex(componentIndex) {}
+
+	ComponentRefTupleT operator*() { return Get(std::make_index_sequence<sizeof...(ComponentTypes)>{}); }
+
+	// Input
+	using value_type = ComponentValueTupleT;
+	using reference = ComponentRefTupleT;
+	using pointer = ComponentPtrTupleT;
+	using rvalue_reference = ComponentRRefTupleT;
+	using iterator_category = std::random_access_iterator_tag;
+	using difference_type = ptrdiff_t;
+	using size_type = size_t;
+
+	// Forward
+	ComponentRangeIterator& operator++() {
+		++m_componentIndex;
+		return *this;
+	}
+	ComponentRangeIterator& operator++(int) { return ++ComponentRangeIterator(this); }
+
+	// Bidirectional
+	ComponentRangeIterator& operator--() {
+		--m_componentIndex;
+		return *this;
+	}
+	ComponentRangeIterator& operator--(int) { return --ComponentRangeIterator(this); }
+
+	// Random access
+	ComponentRangeIterator& operator+=(size_t n) {
+		m_componentIndex += n;
+		return *this;
+	}
+	ComponentRangeIterator& operator-=(size_t n) {
+		m_componentIndex -= n;
+		return *this;
+	}
+	friend ComponentRangeIterator operator+(ComponentRangeIterator it, size_t n) { return it += n; }
+	friend ComponentRangeIterator operator-(ComponentRangeIterator it, size_t n) { return it -= n; }
+	friend ComponentRangeIterator operator+(size_t n, ComponentRangeIterator it) { return it + n; }
+	friend ptrdiff_t operator-(const ComponentRangeIterator& a, const ComponentRangeIterator& b) { return (ptrdiff_t)a.m_componentIndex - (ptrdiff_t)b.m_componentIndex; }
+
+	friend bool operator<(const ComponentRangeIterator& a, const ComponentRangeIterator& b) { return a.m_componentIndex < b.m_componentIndex; }
+	friend bool operator>(const ComponentRangeIterator& a, const ComponentRangeIterator& b) { return a.m_componentIndex > b.m_componentIndex; }
+	friend bool operator<=(const ComponentRangeIterator& a, const ComponentRangeIterator& b) { return a.m_componentIndex <= b.m_componentIndex; }
+	friend bool operator>=(const ComponentRangeIterator& a, const ComponentRangeIterator& b) { return a.m_componentIndex >= b.m_componentIndex; }
+	friend bool operator==(const ComponentRangeIterator& a, const ComponentRangeIterator& b) { return a.m_componentIndex == b.m_componentIndex; }
+	friend bool operator!=(const ComponentRangeIterator& a, const ComponentRangeIterator& b) { return a.m_componentIndex != b.m_componentIndex; }
+
+private:
+	template <size_t... Indices>
+	ComponentRefTupleT Get(std::index_sequence<Indices...>) { return { std::get<Indices>(*m_componentVectors)[m_componentIndex]... }; }
+
+private:
+	ComponentVectorTupleT* m_componentVectors = 0;
+	size_t m_componentIndex = 0;
+};
 
 
 template <class... ComponentTypes>
 class ComponentRange {
+public:
+	using iterator = ComponentRangeIterator<false, ComponentTypes...>;
+	using const_iterator = ComponentRangeIterator<true, ComponentTypes...>;
+
+private:
 	static constexpr bool IsAllConst = std::conjunction_v<std::is_const<std::remove_reference_t<ComponentTypes>>...>;
-	using ComponentStoreOptConstT = impl::add_const_opt_t<ComponentStore, IsAllConst>;
+	using ComponentStoreOptConstT = impl::AddConstOptT<ComponentStore, IsAllConst>;
 	using ComponentVectorTupleT = std::tuple<impl::ComponentVectorOptConstT<ComponentTypes>&...>;
 
 public:
 	ComponentRange(ComponentStoreOptConstT& componentStore);
 	ComponentRange(ComponentStoreOptConstT& componentStore, const std::vector<size_t>& componentVectorIndices);
+
+	iterator begin();
+	iterator end();
+	const_iterator begin() const;
+	const_iterator end() const;
+	const_iterator cbegin() const;
+	const_iterator cend() const;
 
 private:
 	std::vector<size_t> DefaultIndices(ComponentStoreOptConstT& componentStore);
@@ -74,6 +154,42 @@ ComponentRange<ComponentTypes...>::ComponentRange(ComponentStoreOptConstT& compo
 template <class... ComponentTypes>
 ComponentRange<ComponentTypes...>::ComponentRange(ComponentStoreOptConstT& componentStore, const std::vector<size_t>& componentVectorIndices)
 	: m_componentVectors(FindComponentVectors(componentStore, componentVectorIndices, std::make_index_sequence<sizeof...(ComponentTypes)>())) {}
+
+
+template <class... ComponentTypes>
+auto ComponentRange<ComponentTypes...>::begin() -> iterator {
+	return iterator{ &m_componentVectors, 0 };
+}
+
+
+template <class... ComponentTypes>
+auto ComponentRange<ComponentTypes...>::end() -> iterator {
+	return iterator{ &m_componentVectors, std::get<0>(m_componentVectors).size() };
+}
+
+
+template <class... ComponentTypes>
+auto ComponentRange<ComponentTypes...>::begin() const -> const_iterator {
+	return iterator{ &m_componentVectors, 0 };
+}
+
+
+template <class... ComponentTypes>
+auto ComponentRange<ComponentTypes...>::end() const -> const_iterator {
+	return iterator{ &m_componentVectors, std::get<0>(m_componentVectors).size() };
+}
+
+
+template <class... ComponentTypes>
+auto ComponentRange<ComponentTypes...>::cbegin() const -> const_iterator {
+	return iterator{ &m_componentVectors, 0 };
+}
+
+
+template <class... ComponentTypes>
+auto ComponentRange<ComponentTypes...>::cend() const -> const_iterator {
+	return iterator{ &m_componentVectors, std::get<0>(m_componentVectors).size() };
+}
 
 
 template <class... ComponentTypes>
