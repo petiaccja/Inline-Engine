@@ -65,3 +65,16 @@ TEST_CASE("ComponentRange - Modify elements", "[GameLogic]") {
 		REQUIRE(baz.value == foo.value);
 	}
 }
+
+
+TEST_CASE("ComponentRange - Failure to get vectors", "[GameLogic]") {
+	ComponentStore store;
+	store.Extend<FooComponent>();
+	store.Extend<BarComponent>();
+
+	store.PushBack(FooComponent{ 1 }, BarComponent{ 4 });
+	store.PushBack(FooComponent{ 2 }, BarComponent{ 5 });
+	store.PushBack(FooComponent{ 3 }, BarComponent{ 6 });
+
+	REQUIRE_THROWS(ComponentRange<const FooComponent, BazComponent>(store));
+}

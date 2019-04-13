@@ -135,6 +135,9 @@ std::vector<size_t> ComponentRange<ComponentTypes...>::DefaultIndices(ComponentS
 		auto it = indexCounter.find(type);
 		if (it == indexCounter.end()) {
 			auto [firstIdx, lastIdx] = scheme.Index(type);
+			if (firstIdx == lastIdx) {
+				throw InvalidArgumentException("Component type not found in store.");
+			}
 			indexCounter[type] = firstIdx;
 			indices.push_back(firstIdx);
 		}
