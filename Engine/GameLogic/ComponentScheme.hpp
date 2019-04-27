@@ -26,6 +26,9 @@ public:
 	std::pair<const_iterator, const_iterator> Range(std::type_index type) const;
 	std::pair<size_t, size_t> Index(std::type_index type) const;
 	size_t Size() const;
+	bool Empty() const;
+
+	bool SubsetOf(const ComponentScheme& superset) const;
 
 	const_iterator begin() const;
 	const_iterator end() const;

@@ -10,6 +10,9 @@
 namespace inl::game {
 
 
+class System;
+
+
 struct EntitySet {
 	ContiguousVector<std::unique_ptr<Entity>> entities;
 	ComponentStore store;
@@ -23,6 +26,8 @@ public:
 	template <class... ComponentTypes>
 	Entity* CreateEntity(ComponentTypes&&... args);
 
+	void DeleteEntity(Entity& entity);
+
 	template <class ComponentT>
 	void AddComponent(Entity& entity, ComponentT component);
 
@@ -31,8 +36,12 @@ public:
 
 	void RemoveComponent(Entity& entity, size_t index);
 
+	void SetSystems(std::vector<System*> systems);
+	const std::vector<System*>& GetSystems() const;
+
 private:
-	std::unordered_map<ComponentScheme, std::unique_ptr<EntitySet>> m_entityStores;
+	std::unordered_map<ComponentScheme, std::unique_ptr<EntitySet>> m_componentStores;
+	std::vector<System*> m_systems;
 };
 
 
@@ -41,9 +50,9 @@ template <class... ComponentTypes>
 Entity* World::CreateEntity(ComponentTypes&&... args) {
 	static const ComponentScheme scheme = { typeid(ComponentTypes)... };
 
-	auto it = m_entityStores.find(scheme);
-	if (it == m_entityStores.end()) {
-		auto [newIt, ignored_] = m_entityStores.insert(decltype(m_entityStores)::value_type{ scheme, std::make_unique<EntitySet>() });
+	auto it = m_componentStores.find(scheme);
+	if (it == m_componentStores.end()) {
+		auto [newIt, ignored_] = m_componentStores.insert(decltype(m_componentStores)::value_type{ scheme, std::make_unique<EntitySet>() });
 		newIt->second->store.Extend<ComponentTypes...>();
 		it = newIt;
 	}
@@ -67,9 +76,9 @@ void World::AddComponent(Entity& entity, ComponentT component) {
 	extendedScheme.Insert(typeid(ComponentT));
 
 	// Find or create extended store.
-	auto it = m_entityStores.find(extendedScheme);
-	if (it == m_entityStores.end()) {
-		auto [newIt, ignore_] = m_entityStores.insert({ extendedScheme, std::make_unique<EntitySet>() });
+	auto it = m_componentStores.find(extendedScheme);
+	if (it == m_componentStores.end()) {
+		auto [newIt, ignore_] = m_componentStores.insert({ extendedScheme, std::make_unique<EntitySet>() });
 		newIt->second->store = currentStore.CloneScheme();
 		newIt->second->store.Extend<ComponentT>();
 		it = newIt;
@@ -81,7 +90,7 @@ void World::AddComponent(Entity& entity, ComponentT component) {
 	it->second->entities.push_back(std::move(handle));
 	currentEntities.erase(currentEntities.begin() + currentIndex);
 	if (currentStore.Size() == 0) {
-		m_entityStores.erase(currentStore.Scheme());
+		m_componentStores.erase(currentStore.Scheme());
 	}
 	entity = Entity(this, it->second.get(), it->second->store.Size() - 1);
 }

@@ -8,7 +8,7 @@
 
 class DoubleFooToBarSystem : public inl::game::SpecificSystem<DoubleFooToBarSystem, const FooComponent, BarComponent> {
 public:
-	void UpdateEntity(const FooComponent& foo, BarComponent& bar) {
+	void UpdateEntity(float elapsed, const FooComponent& foo, BarComponent& bar) {
 		bar.value = 2.0f * foo.value;
 	}
 };
@@ -16,7 +16,7 @@ public:
 
 class StandaloneSystem : public inl::game::SpecificSystem<StandaloneSystem> {
 public:
-	void Update() override {
+	void Update(float elapsed) override {
 		content += "use renewables;";
 	}
 	std::string content;

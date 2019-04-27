@@ -7,10 +7,10 @@ file(GLOB_RECURSE material_shaders "MaterialShaders/*.hlsl*")
 
 
 # Create target
-add_library(GraphicsPipeline STATIC
+add_library(GraphicsFoundationLibrary STATIC
 	${sources} ${node_sources} ${node_shaders} ${material_shaders}
 )
-set_property(TARGET GraphicsPipeline PROPERTY WHOLE_ARCHIVE true)
+set_property(TARGET GraphicsFoundationLibrary PROPERTY WHOLE_ARCHIVE true)
 
 
 # Filters
@@ -30,7 +30,7 @@ set_source_files_properties(${node_shaders} ${material_shaders} PROPERTIES VS_TO
 
 
 # Dependencies
-target_link_libraries(GraphicsPipeline
+target_link_libraries(GraphicsFoundationLibrary
 	BaseLibrary
 	GraphicsEngine_LL
 )

@@ -1,8 +1,6 @@
 #pragma once
 
-
 #include <istream>
-
 
 
 namespace inl::gxeng {
@@ -45,9 +43,6 @@ public:
 	/// <returns> A pair to the coordinate interval the character spans. Same unit as fontSize. </param>
 	virtual std::pair<float, float> FindCoordinates(std::u32string_view text, size_t index, float fontSize) const = 0;
 };
-
-
-
 
 
 } // namespace inl::gxeng

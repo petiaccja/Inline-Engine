@@ -36,6 +36,6 @@ target_link_libraries(NodeEditor_v2
 	BaseLibrary
 	GraphicsApi_D3D12
 	GraphicsEngine_LL
-	GraphicsPipeline
+	GraphicsFoundationLibrary
 	GuiEngine
 )

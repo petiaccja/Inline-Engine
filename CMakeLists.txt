@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 
 # Configurations
-set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo CACHE TYPE INTERNAL FORCE)
+set(CMAKE_CONFIGURATION_TYPES Debug RelWithDebInfo CACHE STRING "")
 set(DEBUG_CONFIGURATIONS Debug)
 
 
@@ -89,10 +89,11 @@ if (TARGET_PLATFORM_WINDOWS)
 	set_target_properties(GraphicsApi_D3D12 PROPERTIES FOLDER Modules)
 endif()
 set_target_properties(GraphicsEngine_LL PROPERTIES FOLDER Modules)
-set_target_properties(GraphicsPipeline PROPERTIES FOLDER Modules)
+set_target_properties(GraphicsFoundationLibrary PROPERTIES FOLDER Modules)
 set_target_properties(AssetLibrary PROPERTIES FOLDER Modules)
 set_target_properties(GuiEngine PROPERTIES FOLDER Modules)
 set_target_properties(GameLogic PROPERTIES FOLDER Modules)
+set_target_properties(GameFoundationLibrary PROPERTIES FOLDER Modules)
 
 set_target_properties(Test_General PROPERTIES FOLDER Test)
 set_target_properties(QC_Simulator PROPERTIES FOLDER Test)

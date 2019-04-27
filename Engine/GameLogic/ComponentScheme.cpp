@@ -49,6 +49,31 @@ size_t ComponentScheme::Size() const {
 	return m_types.size();
 }
 
+bool ComponentScheme::Empty() const {
+	return Size() == 0;
+}
+
+
+bool ComponentScheme::SubsetOf(const ComponentScheme& superset) const {
+	auto curIt = this->cbegin();
+	auto supIt = superset.cbegin();
+	auto curEnd = this->cend();
+	auto supEnd = superset.cend();
+	while (curIt != curEnd && supIt != supEnd) {
+		if (*curIt == *supIt) {
+			++curIt;
+			++supIt;
+		}
+		else if (*curIt > *supIt) {
+			++supIt;
+		}
+		else {
+			return false;
+		}
+	}
+	return curIt == curEnd;
+}
+
 
 ComponentScheme::const_iterator ComponentScheme::begin() const {
 	return m_types.begin();

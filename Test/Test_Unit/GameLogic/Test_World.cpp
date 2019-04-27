@@ -17,6 +17,20 @@ TEST_CASE("World - AddEntity", "[GameLogic]") {
 }
 
 
+TEST_CASE("World - Delete entity", "[GameLogic]") {
+	World world;
+	auto entity1 = world.CreateEntity(FooComponent{}, BarComponent{}, BazComponent{});
+	auto entity2 = world.CreateEntity(FooComponent{}, BarComponent{}, BazComponent{});
+
+	world.DeleteEntity(*entity1);
+
+	REQUIRE(entity2->GetStore()->store.Size() == 1);
+	REQUIRE(entity2->GetIndex() == 0);
+	REQUIRE(entity2->GetWorld() == &world);
+}
+
+
+
 TEST_CASE("World - Add multiple entities", "[GameLogic]") {
 	World world;
 	auto entity0 = world.CreateEntity(FooComponent{}, BarComponent{}, BazComponent{});

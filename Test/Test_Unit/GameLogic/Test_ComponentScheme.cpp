@@ -133,3 +133,78 @@ TEST_CASE("ComponentScheme - Hash equality", "[GameLogic]") {
 
 	REQUIRE(scheme1.GetHashCode() != scheme3.GetHashCode());
 }
+
+
+TEST_CASE("ComponentScheme - Subset", "[GameLogic]") {
+	ComponentScheme subset1 = {
+		typeid(FooComponent),
+		typeid(FooComponent),
+		typeid(BarComponent),
+		typeid(BazComponent),
+	};
+
+	ComponentScheme superset1 = {
+		typeid(FooComponent),
+		typeid(FooComponent),
+		typeid(FooComponent),
+		typeid(FooComponent),
+		typeid(BarComponent),
+		typeid(BazComponent),
+		typeid(BazComponent),
+		typeid(BazComponent),
+	};
+
+	REQUIRE(subset1.SubsetOf(superset1));
+
+	ComponentScheme subset2 = {
+		typeid(FooComponent),
+		typeid(FooComponent),
+		typeid(FooComponent),
+		typeid(BazComponent),
+		typeid(BazComponent),
+	};
+
+	ComponentScheme superset2 = {
+		typeid(FooComponent),
+		typeid(FooComponent),
+		typeid(BarComponent),
+		typeid(BarComponent),
+		typeid(BarComponent),
+		typeid(BazComponent),
+	};
+
+	REQUIRE(!subset2.SubsetOf(superset2));
+
+	ComponentScheme subset3 = {
+		typeid(FooComponent),
+		typeid(BazComponent),
+	};
+
+	ComponentScheme superset3 = {
+		typeid(FooComponent),
+		typeid(BazComponent),
+	};
+
+	REQUIRE(subset3.SubsetOf(superset3));
+
+	ComponentScheme subset4 = {
+		typeid(FooComponent),
+		typeid(BazComponent),
+	};
+
+	ComponentScheme superset4 = {
+	};
+
+	REQUIRE(!subset4.SubsetOf(superset4));
+
+
+	ComponentScheme subset5 = {
+	};
+
+	ComponentScheme superset5 = {
+		typeid(FooComponent),
+		typeid(BazComponent),
+	};
+
+	REQUIRE(subset5.SubsetOf(superset5));
+}

@@ -21,7 +21,7 @@ TEST_CASE("System - Update default", "[GameLogic]") {
 
 	ComponentRange<const FooComponent, BarComponent> range(store);
 
-	system.Update(store);
+	system.Update(0.0f, store);
 
 	for (auto [foo, bar] : range) {
 		REQUIRE(foo.value * 2 == bar.value);
@@ -32,7 +32,7 @@ TEST_CASE("System - Update default", "[GameLogic]") {
 TEST_CASE("System - Update no components", "[GameLogic]") {
 	StandaloneSystem system;
 
-	system.Update();
+	system.Update(0.0f);
 
 	REQUIRE(system.content == "use renewables;");
 }
