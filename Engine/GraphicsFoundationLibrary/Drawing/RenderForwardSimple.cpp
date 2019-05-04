@@ -86,13 +86,13 @@ std::pair<std::function<std::vector<uint8_t>(const Material&)>, unsigned> Pipeli
 				cbSize = ((cbSize + 15) / 16) * 16; // correct alignement
 				offsets.push_back(cbSize);
 				cbSize += 16;
-				indexes.push_back(i);
+				indexes.push_back((int)i);
 				break;
 			case eMaterialShaderParamType::VALUE:
 				cbSize = ((cbSize + 3) / 4) * 4; // correct alignement
 				offsets.push_back(cbSize);
 				cbSize += 4;
-				indexes.push_back(i);
+				indexes.push_back((int)i);
 				break;
 			case eMaterialShaderParamType::BITMAP_COLOR_2D:
 				break;

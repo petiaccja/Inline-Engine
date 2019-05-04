@@ -1,4 +1,5 @@
 #include "Material.hpp"
+
 #include "MaterialShader.hpp"
 
 #include <BaseLibrary/Exception/Exception.hpp>
@@ -28,12 +29,6 @@ static eMaterialShaderParamType GetParameterType(std::string typeString) {
 }
 
 
-
-//------------------------------------------------------------------------------
-// Material
-//------------------------------------------------------------------------------
-
-
 void Material::SetShader(const MaterialShader* shader) {
 	std::vector<Parameter> parameters;
 	std::unordered_map<std::string, size_t> paramNameMap;
@@ -49,8 +44,7 @@ void Material::SetShader(const MaterialShader* shader) {
 			ssextra << "See eMaterialShaderParamType for acceptable values.";
 			throw InvalidArgumentException(
 				"Material shader can only be used with a material if its input ports are of specific type.",
-				ssextra.str()
-			);
+				ssextra.str());
 		}
 		if (type == eMaterialShaderParamType::UNKNOWN) {
 			continue;
@@ -72,6 +66,26 @@ const MaterialShader* Material::GetShader() const {
 
 size_t Material::GetParameterCount() const {
 	return m_parameters.size();
+}
+
+
+IMaterial::Parameter& Material::GetParameter(size_t index) {
+	return operator[](index);
+}
+
+
+const IMaterial::Parameter& Material::GetParameter(size_t index) const {
+	return operator[](index);
+}
+
+
+IMaterial::Parameter& Material::GetParameter(const std::string& name) {
+	return operator[](name);
+}
+
+
+const IMaterial::Parameter& Material::GetParameter(const std::string& name) const {
+	return operator[](name);
 }
 
 
@@ -97,102 +111,6 @@ const Material::Parameter& Material::operator[](const std::string& name) const {
 	}
 	return (*this)[it->second];
 }
-
-
-
-//------------------------------------------------------------------------------
-// Material::Parameter
-//------------------------------------------------------------------------------
-
-Material::Parameter::Parameter() {
-	m_type = eMaterialShaderParamType::UNKNOWN;
-}
-
-
-Material::Parameter::Parameter(std::string name, eMaterialShaderParamType type, int shaderParamIndex, bool optional) {
-	m_type = type;
-	m_name = std::move(name);
-	m_shaderParamIndex = shaderParamIndex;
-	m_optional = optional;
-}
-
-
-const std::string& Material::Parameter::GetName() const {
-	return m_name;
-}
-
-
-eMaterialShaderParamType Material::Parameter::GetType() const {
-	return m_type;
-}
-
-
-int Material::Parameter::GetShaderParamIndex() const {
-	return m_shaderParamIndex;
-}
-
-
-Material::Parameter& Material::Parameter::operator=(Image* image) {
-	if (m_type != eMaterialShaderParamType::BITMAP_COLOR_2D && m_type != eMaterialShaderParamType::BITMAP_VALUE_2D) {
-		throw InvalidArgumentException("This parameter is not an image.");
-	}
-
-	m_data.image = image;
-	m_set = true;
-	return *this;
-}
-
-Material::Parameter& Material::Parameter::operator=(Vec4 color) {
-	if (m_type != eMaterialShaderParamType::COLOR) {
-		throw InvalidArgumentException("This parameter is not a color.");
-	}
-
-	m_data.color = color;
-	m_set = true;
-	return *this;
-}
-
-Material::Parameter& Material::Parameter::operator=(float value) {
-	if (m_type != eMaterialShaderParamType::VALUE) {
-		throw InvalidArgumentException("This parameter is not a value.");
-	}
-
-	m_data.value = value;
-	m_set = true;
-	return *this;
-}
-
-
-Material::Parameter::operator Image*() const {
-	if (m_type != eMaterialShaderParamType::BITMAP_COLOR_2D && m_type != eMaterialShaderParamType::BITMAP_VALUE_2D) {
-		throw InvalidArgumentException("This parameter is not an image.");
-	}
-	if (!m_set) {
-		throw InvalidStateException("Value first must be set before accesing.");
-	}
-	return m_data.image;
-}
-
-Material::Parameter::operator Vec4() const {
-	if (m_type != eMaterialShaderParamType::COLOR) {
-		throw InvalidArgumentException("This parameter is not a color.");
-	}
-	if (!m_set) {
-		throw InvalidStateException("Value first must be set before accesing.");
-	}
-	return m_data.color;
-}
-
-Material::Parameter::operator float() const {
-	if (m_type != eMaterialShaderParamType::VALUE) {
-		throw InvalidArgumentException("This parameter is not a value.");
-	}
-	if (!m_set) {
-		throw InvalidStateException("Value first must be set before accesing.");
-	}
-	return m_data.value;
-}
-
 
 
 } // namespace inl::gxeng

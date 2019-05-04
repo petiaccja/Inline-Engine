@@ -9,6 +9,7 @@
 #include <BaseLibrary/Graph/Port.hpp>
 #include <BaseLibrary/Graph/SerializableNode.hpp>
 #include <BaseLibrary/UniqueIdGenerator.hpp>
+#include <GraphicsEngine/Resources/IMaterialShader.hpp>
 
 #ifdef _MSC_VER // disable lemon warnings
 #pragma warning(push)
@@ -45,34 +46,36 @@ struct FunctionSignature {
 };
 
 
-class MaterialShaderOutput : public ISerializableOutputPort {
+class MaterialShaderOutput : public IMaterialShaderOutput {
 public:
 	MaterialShaderOutput() = default;
 	MaterialShaderOutput(const MaterialShader& parent);
 	MaterialShaderOutput(const MaterialShader& parent, std::string name, std::string type, int index);
 	~MaterialShaderOutput();
 
+	void Link(IMaterialShaderInput* target) override;
 	void Link(MaterialShaderInput* target);
-	void UnlinkAll();
+	void UnlinkAll() override;
+	void Unlink(IMaterialShaderInput* target) override;
 	void Unlink(MaterialShaderInput* target);
-	const MaterialShader* GetParent() const;
+	const IMaterialShader* GetParent() const override;
 
-	const std::vector<MaterialShaderInput*>& GetLinks() const;
+	const std::vector<IMaterialShaderInput*>& GetLinks() const override;
 
-	const std::string& GetType() const;
-	const std::string& GetName() const;
+	const std::string& GetType() const override;
+	const std::string& GetName() const override;
 
 	const std::string name;
 	const std::string type;
 	const int index = 0;
 private:
-	std::vector<MaterialShaderInput*> m_links;
+	std::vector<IMaterialShaderInput*> m_links;
 	const MaterialShader* m_parent = nullptr;
 };
 
 
 
-class MaterialShaderInput : public ISerializableInputPort {
+class MaterialShaderInput : public IMaterialShaderInput {
 	friend class MaterialShaderOutput;
 public:
 	MaterialShaderInput() = default;
@@ -80,17 +83,18 @@ public:
 	MaterialShaderInput(const MaterialShader& parent, std::string name, std::string type, int index, std::string defaultValue = {});
 	~MaterialShaderInput();
 
+	void Link(IMaterialShaderOutput* source) override;
 	void Link(MaterialShaderOutput* source);
-	void Unlink();
-	const MaterialShader* GetParent() const;
+	void Unlink() override;
+	const IMaterialShader* GetParent() const override;
 
 	MaterialShaderOutput* GetLink() const override;
 
-	const std::string& GetType() const;
-	const std::string& GetName() const;
+	const std::string& GetType() const override;
+	const std::string& GetName() const override;
 
-	void SetDefaultValue(std::string defaultValue);
-	std::string GetDefaultValue() const;
+	void SetDefaultValue(std::string defaultValue) override;
+	std::string GetDefaultValue() const override;
 
 	std::string ToString() const override;
 	bool IsSet() const override;
@@ -105,15 +109,15 @@ private:
 };
 
 
-class MaterialShader : public ISerializableNode {
+class MaterialShader : public virtual IMaterialShader {
 public:
 	MaterialShader(const ShaderManager* shaderManager);
 
 	// Shaders
-	virtual const std::string& GetShaderCode() const = 0;
-	virtual size_t GetHash() const { return std::hash<std::string>()(GetShaderCode()); }
+	virtual const std::string& GetShaderCode() const override = 0;
+	virtual size_t GetHash() const override { return std::hash<std::string>()(GetShaderCode()); }
 
-	void SetDisplayName(std::string name) { m_name = std::move(name); }
+	void SetDisplayName(std::string name) override { m_name = std::move(name); }
 	const std::string& GetDisplayName() const override { return m_name; }
 
 	std::string GetClassName() const override { return m_className; }
@@ -159,14 +163,14 @@ private:
 
 
 
-class MaterialShaderEquation : public MaterialShader {
+class MaterialShaderEquation : public virtual MaterialShader, virtual public IMaterialShaderEquation {
 public:
 	MaterialShaderEquation(const ShaderManager* shaderManager) : MaterialShader(shaderManager) {}
 
 	const std::string& GetShaderCode() const override;
 
-	void SetSourceFile(const std::string& name);
-	void SetSourceCode(std::string code);
+	void SetSourceFile(const std::string& name) override;
+	void SetSourceCode(std::string code) override;
 
 private:
 	void CreatePorts(const std::string& code);
@@ -177,16 +181,17 @@ private:
 
 
 
-class MaterialShaderGraph : public MaterialShader {
+class MaterialShaderGraph : virtual public MaterialShader, virtual public IMaterialShaderGraph {
 public:
 	MaterialShaderGraph(const ShaderManager* shaderManager) : MaterialShader(shaderManager) {}
 
 	const std::string& GetShaderCode() const override;
 
+	void SetGraph(std::vector<std::unique_ptr<IMaterialShader>> nodes) override;
 	void SetGraph(std::vector<std::unique_ptr<MaterialShader>> nodes);
 
 	/// <summary> Cannot handle nested graphs. </summary>
-	void SetGraph(std::string jsonDescription);
+	void SetGraph(std::string jsonDescription) override;
 private:
 	// Creates one graph node per shader node, adds arc in graph for any two shader nodes which have their ports linked together.
 	static void CalculateDependencyGraph(const std::vector<std::unique_ptr<MaterialShader>>& nodes,
