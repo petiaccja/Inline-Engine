@@ -1,15 +1,20 @@
-#include "NodeEditor.hpp"
+#include "FileDialog.hpp"
+
+#ifndef _WIN32
+static_assert(false, "oops, file dialogs are only implemented for windows. Pls make custom dialogs with the game engine's gui system.");
+#endif
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
 #include <commdlg.h>
+#include <vector>
 
 
 namespace inl::tool {
 
 
-std::optional<std::string> NodeEditor::OpenDialog() {
+std::optional<std::string> ShowFileOpenDialog() {
 	OPENFILENAME openFileName;
 	std::vector<char> path;
 	path.resize(4096);
@@ -18,7 +23,7 @@ std::optional<std::string> NodeEditor::OpenDialog() {
 	openFileName.lpstrFilter = "JSON files (.json)\0*.json\0\0";
 	openFileName.nFilterIndex = 1;
 	openFileName.lpstrFile = path.data();
-	openFileName.nMaxFile = (DWORD)(path.size()-1);
+	openFileName.nMaxFile = (DWORD)(path.size() - 1);
 	openFileName.lpstrTitle = "Select JSON pipeline file";
 
 	BOOL ret = GetOpenFileNameA(&openFileName);
@@ -27,7 +32,7 @@ std::optional<std::string> NodeEditor::OpenDialog() {
 	}
 	return path.data();
 }
-std::optional<std::string> NodeEditor::SaveDialog() {
+std::optional<std::string> ShowFileSaveDialog() {
 	OPENFILENAME openFileName;
 	std::vector<char> path;
 	path.resize(4096);
@@ -36,7 +41,7 @@ std::optional<std::string> NodeEditor::SaveDialog() {
 	openFileName.lpstrFilter = "JSON files (.json)\0*.json\0\0";
 	openFileName.nFilterIndex = 1;
 	openFileName.lpstrFile = path.data();
-	openFileName.nMaxFile = (DWORD)(path.size()-1);
+	openFileName.nMaxFile = (DWORD)(path.size() - 1);
 	openFileName.lpstrTitle = "Select JSON pipeline file";
 
 	BOOL ret = GetSaveFileNameA(&openFileName);
@@ -47,4 +52,4 @@ std::optional<std::string> NodeEditor::SaveDialog() {
 }
 
 
-}
+} // namespace inl::tool

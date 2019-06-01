@@ -17,28 +17,6 @@ using namespace inl;
 using std::cout;
 using std::endl;
 
-void PrintHelpText() {
-	cout << "Keyboard shortcuts: " << endl;
-	cout << "  O - open JSON file" << endl;
-	cout << "  S - save JSON file" << endl;
-	cout << "  C - reset graph" << endl;
-	cout << "  N - add new node" << endl;
-	cout << "  Esc - close node selection window" << endl;
-	cout << "Actions: " << endl;
-	cout << "  Select node/port - click on it" << endl;
-	cout << "  Delete selected node - press Del" << endl;
-	cout <<	"  Delete link - double click on arrow" << endl;
-	cout << "  Add node - N, then double click on name" << endl;
-	cout << "  Link ports - drag one port to other (no visuals)" << endl;
-	cout << "Navigation: " << endl;
-	cout << "  Mouse wheel - zoom" << endl;
-	cout << "  Right button drag - pan view" << endl;
-	cout << endl;
-	cout << "NODES CANNOT BE RENAMED YET" << endl;
-	cout << "DEFAULT PORT VALUES CANNOT BE ACCESSED YET" << endl;
-	cout << "THERE IS NO CONTROL-Z" << endl;
-	cout << "SAVE OFTEN, TO NEW FILE" << endl;
-}
 
 std::vector<std::string> GetMaterialShaders() {
 	std::vector<std::string> classList;
@@ -69,8 +47,6 @@ std::vector<std::string> GetMaterialShaders() {
 
 int main() {
 	try {
-		PrintHelpText();
-
 		// Create logger.
 		Logger logger;
 
@@ -99,6 +75,16 @@ int main() {
 		desc.targetWindow = window.GetNativeHandle();
 		gxeng::GraphicsEngine graphicsEngine(desc);
 
+		// Set up graphics engine.
+		graphicsEngine.SetShaderDirectories({ INL_NODE_SHADER_DIRECTORY, INL_MTL_SHADER_DIRECTORY, "./Shaders", "./Materials" });
+
+		std::ifstream pipelineFile(INL_GAMEDATA "/Pipelines/node_editor.json");
+		if (!pipelineFile.is_open()) {
+			throw FileNotFoundException("Failed to open pipeline JSON.");
+		}
+		std::string pipelineDesc((std::istreambuf_iterator<char>(pipelineFile)), std::istreambuf_iterator<char>());
+		graphicsEngine.LoadPipeline(pipelineDesc);
+
 		// Create graph editor interface.
 		std::unique_ptr<IEditorGraph> pipelineGraphEditor(graphicsEngine.QueryPipelineEditor());
 		std::unique_ptr<IEditorGraph> materialGraphEditor(graphicsEngine.QueryMaterialEditor());
@@ -106,26 +92,33 @@ int main() {
 		materialGraphEditor->SetNodeList(mtlClassList);
 
 		// Create NodeEditor.
-		tool::NodeEditor nodeEditor(&graphicsEngine, { pipelineGraphEditor.get(), materialGraphEditor.get() });
-		window.OnResize += Delegate<void(ResizeEvent)>(&tool::NodeEditor::OnResize, &nodeEditor);
-		window.OnMouseMove += Delegate<void(MouseMoveEvent)>(&tool::NodeEditor::OnMouseMove, &nodeEditor);
-		window.OnMouseWheel += Delegate<void(MouseWheelEvent)>(&tool::NodeEditor::OnMouseWheel, &nodeEditor);
-		window.OnMouseButton += Delegate<void(MouseButtonEvent)>(&tool::NodeEditor::OnMouseClick, &nodeEditor);
-		window.OnKeyboard += Delegate<void(KeyboardEvent)>(&tool::NodeEditor::OnKey, &nodeEditor);
+		tool::NodeEditor nodeEditor(&graphicsEngine, &window, { pipelineGraphEditor.get(), materialGraphEditor.get() });
 
 		// Run game loop.
 		Timer timer;
 		timer.Start();
 		window.Show();
+		double elapsed = 0.01;
+		double elapsedAccumulator = 0.0;
+		int elapsedSampleCount = 0;
 		while (!window.IsClosed()) {
 			window.CallEvents();
-			nodeEditor.Update();
+			nodeEditor.Update((float)elapsed);
+			graphicsEngine.Update((float)elapsed);
 
-			double elapsed = timer.Elapsed();
+			elapsed = timer.Elapsed();
 			timer.Reset();
-			std::stringstream ss;
-			ss << "Node Editor | " << "FrameTime=" << elapsed*1000 << "ms";
-			window.SetTitle(ss.str());
+
+			elapsedAccumulator += elapsed;
+			++elapsedSampleCount;
+			if (elapsedAccumulator >= 0.5) {
+				double elapsedAverage = elapsedAccumulator / elapsedSampleCount;
+				std::stringstream ss;
+				ss << "Node Editor v2 | " << "FrameTime=" << elapsedAverage*1000 << "ms";
+				elapsedAccumulator = 0;
+				elapsedSampleCount = 0;
+				window.SetTitle(ss.str());
+			}
 		}
 	}
 	catch (Exception& ex) {

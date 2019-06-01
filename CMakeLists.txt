@@ -101,6 +101,5 @@ set_target_properties(Test_Unit PROPERTIES FOLDER Test)
 set_target_properties(Test_Game PROPERTIES FOLDER Test)
 
 set_target_properties(NodeEditor PROPERTIES FOLDER Executables)
-set_target_properties(NodeEditor_v2 PROPERTIES FOLDER Executables)
 
 

@@ -1,9 +1,8 @@
 #include "PipelineEditorGraph.hpp"
 
-#include "../../../Executables/NodeEditor/Node.hpp"
-
 #include <BaseLibrary/GraphEditor/GraphParser.hpp>
 #include <BaseLibrary/Range.hpp>
+#include <map>
 
 
 namespace inl::gxeng {

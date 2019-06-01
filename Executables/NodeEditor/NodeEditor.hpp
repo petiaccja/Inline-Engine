@@ -1,100 +1,65 @@
 #pragma once
 
-#include <GraphicsEngine/Scene/IScene.hpp>
-#include <GraphicsEngine/Resources/IFont.hpp>
-#include <GraphicsEngine/Scene/ICamera2D.hpp>
+#include "GraphController.hpp"
+#include "NodePanel.hpp"
+#include "NodeSelectPanel.hpp"
 
-#include <BaseLibrary/Platform/Input.hpp>
-#include <BaseLibrary/Color.hpp>
-#include <InlineMath.hpp>
-
-#include "Node.hpp"
-
-#include <any>
-#include "SelectPanel.hpp"
-
+#include <BaseLibrary/Platform/Window.hpp>
+#include <GraphicsEngine/IGraphicsEngine.hpp>
+#include <GuiEngine/Board.hpp>
+#include <GuiEngine/Button.hpp>
+#include <GuiEngine/Frame.hpp>
+#include <GuiEngine/LinearLayout.hpp>
 
 namespace inl::tool {
 
-
 class NodeEditor {
 public:
-	NodeEditor(gxeng::IGraphicsEngine* graphicsEngine, std::vector<IEditorGraph*> availableEditors);
+	NodeEditor(gxeng::IGraphicsEngine* engine, Window* window, std::vector<IEditorGraph*> editors);
 
-	void Update();
+	void Update(float elapsed);
 
+private:
+	// Window event handlers.
 	void OnResize(ResizeEvent evt);
-	void OnMouseMove(MouseMoveEvent evt);
-	void OnMouseWheel(MouseWheelEvent evt);
-	void OnMouseClick(MouseButtonEvent evt);
-	void OnKey(KeyboardEvent evt);
 
 private:
-	const Drawable* Intersect(Vec2 position) const;
-	const Link* IntersectLinks(Vec2 position) const;
+	void CreateGraphicsEnvironment();
+	void CreateGui();
 
+	void SetNodeList(const IEditorGraph* editor);
+	void NewGraph(IEditorGraph* editor);
 
-	void Hightlight(const Drawable* target, ColorF color);
-	void RemoveHighlight();
+	void LoadGraph(const std::filesystem::path& filePath);
+	void SaveGraph(const std::filesystem::path& filePath) const;
 
-	void SelectNode(Node* node);
-	void SelectPort(Port* port);
+	std::optional<std::string> ShowLoadDialog() const;
+	std::optional<std::string> ShowSaveDialog() const;
 
-	void EnableDrag(Vec2 offset);
-	void DisableDrag();
-
-	void EnableLink();
-	void DisableLink();
-
-	void EnablePlacing();
-	void DisablePlacing();
-
-	void EnablePan();
-	void DisablePan();
-
-	void SendToBack(Node* node);
-	void SendToFront(Node* node);
-
-	void DeleteNode(Node* node);
-	void Clear();
-
-	void ErrorMessage(std::string msg);
-
-	Vec2 ScreenToWorld(Vec2 screenPoint) const;
-
-	void OpenFile(std::string path);
-	void SaveFile(std::string path);
-
-	static std::optional<std::string> OpenDialog();
-	static std::optional<std::string> SaveDialog();
-
-	int FindNodeIndex(Node* node) const;
 private:
-	Node* m_selectedNode = nullptr;
-	bool m_enableDrag = false;
-	Vec2 m_dragOffset = {0.0f,0.0f};
+	gxeng::IGraphicsEngine* m_engine;
+	Window* m_window;
+	std::vector<IEditorGraph*> m_editors;
 
-	Port* m_selectedPort = nullptr;
-	bool m_enableLink = false;
-
-	bool m_placing = false;
-	SelectItem* m_highlightedItem = nullptr;
-
-	bool m_enablePan = false;
-private:
-	gxeng::IGraphicsEngine* m_graphicsEngine;
-	IEditorGraph* m_graphEditor;
-	std::vector<IEditorGraph*> m_availableEditors;
-
+	std::unique_ptr<gxeng::ICamera2D> m_camera;
 	std::unique_ptr<gxeng::IScene> m_scene;
 	std::unique_ptr<gxeng::IFont> m_font;
-	std::unique_ptr<gxeng::ICamera2D> m_camera;
 
-	std::unique_ptr<gxeng::IOverlayEntity> m_highlight1, m_highlight2, m_background;
+	gui::Board m_board;
+	gui::Frame m_mainFrame;
+	gui::LinearLayout m_mainLayout;
 
-	std::vector<std::unique_ptr<Node>> m_nodes;
-	std::unique_ptr<SelectPanel> m_selectPanel;
+	GraphController m_controller;
+	NodePanel m_nodePanel;
+
+	NodeSelectPanel m_selectPanel;
+
+	gui::LinearLayout m_sidePanelLayout;
+	gui::Button m_saveButton;
+	gui::Button m_openButton;
+	std::vector<gui::Button> m_newButtons;
 };
+
 
 
 } // namespace inl::tool
