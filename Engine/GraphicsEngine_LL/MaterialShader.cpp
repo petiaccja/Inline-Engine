@@ -402,6 +402,29 @@ void MaterialShaderGraph::SetGraph(std::vector<std::unique_ptr<IMaterialShader>>
 }
 
 
+auto MaterialShaderGraph::TopologicalSortNodes(const lemon::ListDigraph& depGraph, const lemon::ListDigraph::NodeMap<MaterialShader*>& depMap)
+	-> std::pair<std::vector<lemon::ListDigraph::Node>, std::unordered_map<const MaterialShader*, int>> {
+	std::unordered_map<const MaterialShader*, int> indexMap;
+	std::vector<lemon::ListDigraph::Node> sortedNodes;
+
+	lemon::ListDigraph::NodeMap<int> sortingMap(depGraph);
+
+	bool isDag = checkedTopologicalSort(depGraph, sortingMap);
+	if (!isDag) {
+		throw InvalidArgumentException("Provided shader nodes are linked in a circular way.");
+	}
+	for (lemon::ListDigraph::NodeIt node(depGraph); node != lemon::INVALID; ++node) {
+		sortedNodes.push_back(node); // Collect nodes into vector for re-ordering.
+		indexMap[depMap[node]] = sortingMap[node]; // Make LUT for nodePtr -> topIdx.
+	}
+	std::sort(sortedNodes.begin(), sortedNodes.end(), [&](auto lhs, auto rhs) {
+		return sortingMap[lhs] < sortingMap[rhs];
+	});
+
+	return { std::move(sortedNodes), std::move(indexMap) };
+}
+
+
 void MaterialShaderGraph::SetGraph(std::vector<std::unique_ptr<MaterialShader>> nodes) {
 	using namespace lemon;
 
@@ -414,21 +437,7 @@ void MaterialShaderGraph::SetGraph(std::vector<std::unique_ptr<MaterialShader>> 
 
 
 	// 2. find topological ordering
-	ListDigraph::NodeMap<int> sortingMap(depGraph);
-	std::unordered_map<const MaterialShader*, int> indexMap;
-
-	bool isDag = checkedTopologicalSort(depGraph, sortingMap);
-	if (!isDag) {
-		throw InvalidArgumentException("Provided shader nodes are linked in a circular way.");
-	}
-	std::vector<ListDigraph::Node> sortedNodes;
-	for (ListDigraph::NodeIt node(depGraph); node != lemon::INVALID; ++node) {
-		sortedNodes.push_back(node); // Collect nodes into vector for re-ordering.
-		indexMap[depMap[node]] = sortingMap[node]; // Make LUT for nodePtr -> topIdx.
-	}
-	std::sort(sortedNodes.begin(), sortedNodes.end(), [&](auto lhs, auto rhs) {
-		return sortingMap[lhs] < sortingMap[rhs];
-	});
+	auto [sortedNodes, indexMap] = TopologicalSortNodes(depGraph, depMap);
 
 
 	// 3. wrap node source codes into namespaces using their topological order as namespace name/id

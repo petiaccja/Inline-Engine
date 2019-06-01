@@ -188,6 +188,8 @@ public:
 	const std::string& GetShaderCode() const override;
 
 	void SetGraph(std::vector<std::unique_ptr<IMaterialShader>> nodes) override;
+	auto TopologicalSortNodes(const lemon::ListDigraph& depGraph, const lemon::ListDigraph::NodeMap<MaterialShader*>& depMap)
+		-> std::pair<std::vector<lemon::ListDigraph::Node>, std::unordered_map<const MaterialShader*, int>>;
 	void SetGraph(std::vector<std::unique_ptr<MaterialShader>> nodes);
 
 	/// <summary> Cannot handle nested graphs. </summary>

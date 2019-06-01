@@ -18,6 +18,8 @@ namespace impl {
 	class ComponentIterator {
 		static constexpr bool isConst = std::is_const_v<std::remove_reference_t<ComponentT>>;
 
+
+
 		std::conditional<isConst, const ComponentStore*, ComponentStore*> m_store;
 		size_t m_entityIndex; // At which index in the vectors this entity's components reside.
 		size_t m_first; // Index of the first component vector with ComponentT.
@@ -39,6 +41,9 @@ public:
 	void RemoveComponent();
 
 	void RemoveComponent(size_t index);
+
+	template <class ComponentT>
+	bool HasComponent() const;
 
 	template <class ComponentT>
 	ComponentT& GetFirstComponent();
@@ -77,6 +82,13 @@ template <class ComponentT>
 void Entity::RemoveComponent() {
 	assert(m_world);
 	m_world->RemoveComponent<ComponentT>(*this);
+}
+
+
+template <class ComponentT>
+bool Entity::HasComponent() const {
+	auto [firstIdx, lastIdx] = GetScheme().Index(typeid(ComponentT));
+	return firstIdx < lastIdx;
 }
 
 

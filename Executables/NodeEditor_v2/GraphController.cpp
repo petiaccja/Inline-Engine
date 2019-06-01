@@ -76,6 +76,7 @@ void GraphController::Load(const std::string& desc, const std::vector<IEditorGra
 	}
 
 	m_nodes.clear();
+	m_view->Clear();
 
 	// Set node list.
 	std::vector<std::u32string> nameList;
@@ -93,7 +94,7 @@ void GraphController::Load(const std::string& desc, const std::vector<IEditorGra
 		Vec2 position = realNode->GetMetaData().placement;
 		m_view->AddNode(viewNode, position);
 		inversionMap[realNode] = viewNode.get();
-		m_nodes.insert({viewNode, realNode});
+		m_nodes.insert({ viewNode, realNode });
 	}
 
 	auto graphLinks = m_model->GetLinks();
@@ -107,7 +108,7 @@ void GraphController::Load(const std::string& desc, const std::vector<IEditorGra
 
 
 std::string GraphController::Serialize() const {
-	Vec2 averagePosition;
+	Vec2 averagePosition = { 0, 0 };
 	for (const auto& node : m_nodes) {
 		averagePosition += node.first->GetPosition();
 	}
@@ -174,6 +175,7 @@ void GraphController::OnDeleteNode(const NodeControl* node) {
 	assert(it != m_nodes.end()); // View had nodes the model does not, should never get out of sync.
 	m_model->RemoveNode(it->second);
 	m_view->RemoveNode(node);
+	m_nodes.erase(it);
 }
 
 

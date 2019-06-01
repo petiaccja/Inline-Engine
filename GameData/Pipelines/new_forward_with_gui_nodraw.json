@@ -15,17 +15,17 @@
                 "false",
                 "false"
             ],
-            "meta_pos": "[-397, 37]"
+            "meta_pos": "[-384, 42]"
         },
         {
             "class": "DrawSky",
             "id": 1,
-            "meta_pos": "[537, 53]"
+            "meta_pos": "[549, 58]"
         },
         {
             "class": "GetBackBuffer",
             "id": 2,
-            "meta_pos": "[-753, 211]"
+            "meta_pos": "[-740, 216]"
         },
         {
             "class": "GetCamera2DByName",
@@ -33,7 +33,7 @@
             "inputs": [
                 "GuiCamera"
             ],
-            "meta_pos": "[537, -55]"
+            "meta_pos": "[549, -49]"
         },
         {
             "class": "GetCameraByName",
@@ -41,134 +41,99 @@
             "inputs": [
                 "MainCamera"
             ],
-            "meta_pos": "[-396, -115]"
-        },
-        {
-            "class": "GetSceneByName",
-            "id": 6,
-            "inputs": [
-                "MainScene"
-            ],
-            "meta_pos": "[-396, -189]"
+            "meta_pos": "[-383, -109]"
         },
         {
             "class": "GetSceneByName",
             "id": 5,
             "inputs": [
-                "GuiScene"
+                "MainScene"
             ],
-            "meta_pos": "[536, -125]"
+            "meta_pos": "[-383, -183]"
         },
         {
-            "class": "RenderForwardSimple",
-            "id": 7,
-            "meta_pos": "[112, 59]"
+            "class": "GetSceneByName",
+            "id": 6,
+            "inputs": [
+                "GuiScene"
+            ],
+            "meta_pos": "[548, -119]"
         },
         {
             "class": "RenderOverlay",
-            "id": 8,
-            "meta_pos": "[977, 53]"
+            "id": 7,
+            "meta_pos": "[989, 58]"
         },
         {
             "class": "TextureProperties",
-            "id": 9,
-            "meta_pos": "[-755, 77]"
+            "id": 8,
+            "meta_pos": "[-742, 82]"
         }
     ],
     "links": [
         {
-            "src": 9,
+            "src": 8,
             "dst": 0,
             "srcp": 0,
             "dstp": 0
         },
         {
-            "src": 9,
+            "src": 8,
             "dst": 0,
             "srcp": 1,
             "dstp": 1
-        },
-        {
-            "src": 7,
-            "dst": 1,
-            "srcp": 0,
-            "dstp": 0
-        },
-        {
-            "src": 7,
-            "dst": 1,
-            "srcp": 1,
-            "dstp": 1
-        },
-        {
-            "src": 4,
-            "dst": 1,
-            "srcp": 0,
-            "dstp": 2
-        },
-        {
-            "src": 6,
-            "dst": 1,
-            "srcp": 0,
-            "dstp": 3
         },
         {
             "src": 2,
-            "dst": 7,
+            "dst": 1,
             "srcp": 0,
             "dstp": 0
         },
         {
             "src": 0,
-            "dst": 7,
+            "dst": 1,
             "srcp": 0,
             "dstp": 1
         },
         {
             "src": 4,
-            "dst": 7,
+            "dst": 1,
             "srcp": 0,
             "dstp": 2
         },
         {
-            "src": 6,
-            "dst": 7,
+            "src": 5,
+            "dst": 1,
             "srcp": 0,
             "dstp": 3
         },
         {
-            "src": 6,
-            "dst": 7,
-            "srcp": 0,
-            "dstp": 4
-        },
-        {
             "src": 1,
-            "dst": 8,
+            "dst": 7,
             "srcp": 0,
             "dstp": 0
         },
         {
             "src": 3,
-            "dst": 8,
+            "dst": 7,
             "srcp": 0,
             "dstp": 1
         },
         {
-            "src": 5,
-            "dst": 8,
+            "src": 6,
+            "dst": 7,
             "srcp": 0,
             "dstp": 2
         },
         {
-            "src": 5,
-            "dst": 8,
+            "src": 6,
+            "dst": 7,
             "srcp": 0,
             "dstp": 3
         },
         {
             "src": 2,
-            "dst": 9,
+            "dst": 8,
             "srcp": 0,
             "dstp": 0
         }

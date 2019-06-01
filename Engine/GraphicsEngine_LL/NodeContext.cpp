@@ -327,6 +327,9 @@ void RenderContext::Decompose(std::unique_ptr<BasicCommandList>& inheritedList,
 							  std::unique_ptr<BasicCommandList>& currentList, 
 							  std::unique_ptr<VolatileViewHeap>& currentVheap) 
 {
+	if (m_commandList) {
+		m_commandList->EndDebuggerEvent();
+	}
 	inheritedList = std::move(m_inheritedCommandList);
 	currentList = std::move(m_commandList);
 	currentVheap = std::move(m_vheap);

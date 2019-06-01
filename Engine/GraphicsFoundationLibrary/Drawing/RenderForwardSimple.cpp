@@ -528,6 +528,8 @@ PipelineStateManager::StateDesc PipelineStateManager::CreateNewStateDesc(RenderC
 
 
 void RenderForwardSimple::Reset() {
+	m_rtv = {};
+	m_dsv = {};
 	GetInput(0)->Clear();
 	GetInput(1)->Clear();
 }

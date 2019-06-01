@@ -73,14 +73,14 @@ TEST_CASE("Trim, empty", "[StringUtil]") {
 
 TEST_CASE("Encode UCS4->UTF-8 character", "[StringEncode]") {
 	// Examples from wikipedia: https://en.wikipedia.org/wiki/UTF-8
-	char32_t c1 = 0x0024;
-	char32_t c2 = 0x00A2;
-	char32_t c3 = 0x20AC;
-	char32_t c4 = 0x10348;
-	std::array<char, 4> u1exp = { 0x24, 0, 0, 0 };
-	std::array<char, 4> u2exp = { 0xC2, 0xA2, 0, 0 };
-	std::array<char, 4> u3exp = { 0xE2, 0x82, 0xAC, 0 };
-	std::array<char, 4> u4exp = { 0xF0, 0x90, 0x8D, 0x88 };
+	char32_t c1 = char32_t(0x0024);
+	char32_t c2 = char32_t(0x00A2);
+	char32_t c3 = char32_t(0x20AC);
+	char32_t c4 = char32_t(0x10348);
+	std::array<char, 4> u1exp = { (char)0x24, (char)0, (char)0, (char)0 };
+	std::array<char, 4> u2exp = { (char)0xC2, (char)0xA2, (char)0, (char)0 };
+	std::array<char, 4> u3exp = { (char)0xE2, (char)0x82, (char)0xAC, (char)0 };
+	std::array<char, 4> u4exp = { (char)0xF0, (char)0x90, (char)0x8D, (char)0x88 };
 
 	auto u1 = inl::impl::EncodeProduce(c1, char());
 	auto u2 = inl::impl::EncodeProduce(c2, char());

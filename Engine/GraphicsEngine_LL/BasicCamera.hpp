@@ -1,60 +1,63 @@
 #pragma once
 
-#include <InlineMath.hpp>
+#include <GraphicsEngine/Scene/IBasicCamera.hpp>
 
+#include <InlineMath.hpp>
 #include <string>
+
 
 namespace inl::gxeng {
 
 /// <summary>
 /// Abstract base class of perspective and orthographic cameras
 /// </summary>
-class BasicCamera {
+class BasicCamera : virtual public IBasicCamera {
 public:
 	enum eMoveBehaviour {
 		KEEP_TARGET,
 		KEEP_LOOKDIR,
 	};
+
 public:
 	BasicCamera();
 	virtual ~BasicCamera() = default;
 
-	void SetName(std::string name);
-	const std::string& GetName() const;
+	void SetName(std::string name) override;
+	const std::string& GetName() const override;
 
 	// Set positional properties.
-	void SetPosition(Vec3 position);
-	void SetTarget(Vec3 targetPosition);
-	void SetLookDirection(Vec3 lookDirection);
-	void SetUpVector(Vec3 upVector);
-	void SetTargeted(bool targeted);
+	void SetPosition(Vec3 position) override;
+	void SetTarget(Vec3 targetPosition) override;
+	void SetLookDirection(Vec3 lookDirection) override;
+	void SetUpVector(Vec3 upVector) override;
+	void SetTargeted(bool targeted) override;
 
 	// Set rendering properties.
-	void SetFocus(float focusDistance);
+	void SetFocus(float focusDistance) override;
 
 	// negative values are valid
-	void SetNearPlane(float zOffset);
-	void SetFarPlane(float zOffset);
+	void SetNearPlane(float zOffset) override;
+	void SetFarPlane(float zOffset) override;
 
 	// Get positional properties.
-	Vec3 GetPosition() const;
-	Vec3 GetLookDirection() const;
-	Vec3 GetTarget() const;
-	float GetTargetDistance() const;
-	Vec3 GetUpVector() const;
+	Vec3 GetPosition() const override;
+	Vec3 GetLookDirection() const override;
+	Vec3 GetTarget() const override;
+	float GetTargetDistance() const override;
+	Vec3 GetUpVector() const override;
 
 	// Get rendering properties.
-	float GetFocus() const;
+	float GetFocus() const override;
 
 	// Get depth plane Z offset.
-	float GetNearPlane() const;
-	float GetFarPlane() const;
+	float GetNearPlane() const override;
+	float GetFarPlane() const override;
 
-	virtual float GetAspectRatio() const = 0;
+	float GetAspectRatio() const override = 0;
 
-	virtual Mat44 GetViewMatrix() const = 0;
-	virtual Mat44 GetProjectionMatrix() const = 0;
-	virtual Mat44 GetPrevViewMatrix() const = 0;
+	Mat44 GetViewMatrix() const override = 0;
+	Mat44 GetProjectionMatrix() const override = 0;
+	Mat44 GetPrevViewMatrix() const override = 0;
 
 protected:
 	std::string m_name;
@@ -76,4 +79,4 @@ protected:
 };
 
 
-} // inl::gxeng
+} // namespace inl::gxeng

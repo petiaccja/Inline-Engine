@@ -86,8 +86,7 @@ void Board::OnMouseButton(MouseButtonEvent evt) {
 
 void Board::OnMouseMove(MouseMoveEvent evt) {
 	// Find Control under the mouse pointer.
-	Vec2 point = { evt.absx, evt.absy };
-	point = point * m_coordinateMapping;
+	Vec2 point = Vec2{ evt.absx, evt.absy } * m_coordinateMapping;
 
 	Control* target = const_cast<Control*>(GetTarget(point));
 
@@ -126,9 +125,11 @@ void Board::OnMouseMove(MouseMoveEvent evt) {
 
 
 void Board::OnMouseWheel(MouseWheelEvent evt) {
+	Vec2 point = Vec2{ evt.x, evt.y } * m_coordinateMapping;
+
 	// Forward events to hovered control, if any.
 	if (m_hoveredControl) {
-		m_hoveredControl->CallEventUpstream(&Control::OnMouseWheel, m_hoveredControl, evt.rotation);
+		m_hoveredControl->CallEventUpstream(&Control::OnMouseWheel, m_hoveredControl, point, evt.rotation);
 	}
 }
 
@@ -256,7 +257,7 @@ void Board::DebugTreeRecurse(const Control* control, int level) const {
 	for (int i = 0; i < level; ++i) {
 		std::cout << "  ";
 	}
-	std::cout << "- " << typeid(*control).name() << " " << control->GetPosition() << ", " << control->GetSize() << "\n";
+	std::cout << "- " << typeid(*control).name() << " " << control->GetPosition() << ", " << control->GetSize() << ", z=" << control->GetDepth() << "\n";
 
 	auto children = control->GetChildren();
 	for (auto child : children) {

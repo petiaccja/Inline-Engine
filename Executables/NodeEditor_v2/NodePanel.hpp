@@ -67,11 +67,11 @@ public:
 	Event<const NodeControl*, int, const NodeControl*, int> OnDeleteLink;
 
 	void UpdateStyle() override;
-
+	void SetSize(const Vec2& size) override;
 private:
 	void OffsetAllNodes(Vec2 offset);
-	void UpdateArrowPositions();
 	void UpdateArrowPosition(const ArrowKey& key, ArrowControl& arrow);
+	void UpdateArrowPositions();
 
 	void OnNodeDragBegin(Control* control, Vec2 dragOrigin);
 	void OnNodeDragged(Control* control, Vec2 dragTarget);
@@ -83,7 +83,7 @@ private:
 
 	void OnPanViewBegin(Control* control, Vec2 dragOrigin);
 	void OnPanView(Control* control, Vec2 dragTarget);
-	void OnZoomView(Control* control, float value);
+	void OnZoomView(Control* control, Vec2 around, float value);
 
 	void OnSelect(Control* control);
 	void OnDeselect(Control* control);

@@ -1,0 +1,13 @@
+{
+    "header": {
+        "contentType": "pipeline"
+    },
+    "nodes": [
+        {
+            "class": "CSM",
+            "id": 0,
+            "meta_pos": "[107374176, 107374176]"
+        }
+    ],
+    "links": []
+}

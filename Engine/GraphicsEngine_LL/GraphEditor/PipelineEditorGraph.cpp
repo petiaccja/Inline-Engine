@@ -1,16 +1,16 @@
 #include "PipelineEditorGraph.hpp"
 
+#include "../../../Executables/NodeEditor/Node.hpp"
+
 #include <BaseLibrary/GraphEditor/GraphParser.hpp>
 #include <BaseLibrary/Range.hpp>
-#include "../../../Executables/NodeEditor/Node.hpp"
 
 
 namespace inl::gxeng {
 
 
 PipelineEditorGraph::PipelineEditorGraph(const NodeFactory& factory)
-	: m_factory(factory)
-{}
+	: m_factory(factory) {}
 
 
 std::vector<std::string> PipelineEditorGraph::GetNodeList() const {
@@ -123,7 +123,7 @@ std::vector<Link> PipelineEditorGraph::GetLinks() const {
 
 		if (link) {
 			auto& src = *outputMap.find(link);
-			
+
 			inl::Link link;
 			link.sourceNode = src.second.parent;
 			link.sourcePort = src.second.index;
@@ -151,8 +151,8 @@ std::string PipelineEditorGraph::SerializeJSON() {
 	}
 
 	auto FindName = [&](const ISerializableNode& node) {
-		auto[group, className] = m_factory.GetFullName(typeid(node));
-		return group + "/" + className;
+		auto [group, className] = m_factory.GetFullName(typeid(node));
+		return !group.empty() ? group + "/" + className : className;
 	};
 
 	GraphHeader header;

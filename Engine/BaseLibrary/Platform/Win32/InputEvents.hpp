@@ -45,6 +45,8 @@ struct MouseMoveEvent {
 
 
 struct MouseWheelEvent {
+	int32_t x;
+	int32_t y;
 	float rotation;
 };
 

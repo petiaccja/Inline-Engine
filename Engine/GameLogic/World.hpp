@@ -2,7 +2,6 @@
 
 
 #include "ComponentStore.hpp"
-#include "Entity.hpp"
 
 #include <unordered_map>
 
@@ -11,9 +10,11 @@ namespace inl::game {
 
 
 class System;
+class Entity;
 
 
 struct EntitySet {
+	~EntitySet();
 	ContiguousVector<std::unique_ptr<Entity>> entities;
 	ComponentStore store;
 };
@@ -44,6 +45,14 @@ private:
 	std::vector<System*> m_systems;
 };
 
+
+} // namespace inl::game
+
+
+#include "Entity.hpp"
+
+
+namespace inl::game {
 
 
 template <class... ComponentTypes>

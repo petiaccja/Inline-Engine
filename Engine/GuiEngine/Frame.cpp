@@ -71,6 +71,27 @@ void Frame::UpdateStyle() {
 }
 
 
+void Frame::ShowBackground(bool show) {
+	// Ugly hack, do it properly with SetVisible.
+	try {
+		if (show) {
+			AddChild(m_background);
+		}
+		else {
+			RemoveChild(&m_background);
+		}
+	}
+	catch (...) {
+		// ignore
+	}
+}
+
+
+bool Frame::IsShowingBackground() {
+	return m_background.GetVisible();
+}
+
+
 float Frame::SetDepth(float depth) {
 	m_background.SetDepth(depth);
 	float span = 1.0f;

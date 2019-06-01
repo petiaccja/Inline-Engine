@@ -31,6 +31,8 @@ public:
 
 	void UpdateStyle() override;
 
+	void ShowBackground(bool show);
+	bool IsShowingBackground();
 protected:
 	Sprite& GetBackground() { return m_background; }
 

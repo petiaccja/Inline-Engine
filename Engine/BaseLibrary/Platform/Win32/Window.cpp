@@ -663,6 +663,8 @@ LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LP
 			signed short rot = static_cast<signed short>(HIWORD(wParam));
 			MouseWheelEvent evt;
 			evt.rotation = (float)rot / (float)WHEEL_DELTA;
+			evt.x = GET_X_LPARAM(lParam);
+			evt.y = GET_Y_LPARAM(lParam);
 			instance.CallEvent(instance.OnMouseWheel, evt);
 			break;
 		}

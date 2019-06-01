@@ -1,10 +1,12 @@
 #pragma once
 
+#include <BaseLibrary/Transformable.hpp>
+
 // Description:
 // The link has a source transform, a relative transform and the resulting transform.
 // The source transform is another entity, the relative transform is inside this component
 // and the resulting transform is the transform of this entity.
-// 
+//
 // Problem #1:
 // Need a reference to the source entity's transform.
 // If said transform is moved or deleted, we have dangling pointers in all links.
@@ -28,11 +30,11 @@
 
 
 
-
 namespace inl::gamelib {
 
 
-struct RelativeTransformComponent {
+struct RelativeTransformComponent : public Transformable3DN {
+	const game::Entity* sourceTransform = nullptr;
 };
 
 

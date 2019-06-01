@@ -2,25 +2,25 @@
 
 #include "BasicCamera.hpp"
 
-#include <string>
+#include <GraphicsEngine/Scene/IPerspectiveCamera.hpp>
+
 #include <InlineMath.hpp>
 
 
 namespace inl::gxeng {
 
 
-class PerspectiveCamera : public BasicCamera {
+class PerspectiveCamera : virtual public BasicCamera, virtual public IPerspectiveCamera {
 public:
 	PerspectiveCamera();
-	virtual ~PerspectiveCamera() {}
-
+	
 	// Set rendering properties.
-	void SetFOVAspect(float horizontalFov, float aspectRatio);
-	void SetFOVAxis(float horizontalFov, float verticalFov);
+	void SetFOVAspect(float horizontalFov, float aspectRatio) override;
+	void SetFOVAxis(float horizontalFov, float verticalFov) override;
 
 	// Get rendering properties.
-	float GetFOVVertical() const;
-	float GetFOVHorizontal() const;
+	float GetFOVVertical() const override;
+	float GetFOVHorizontal() const override;
 
 	float GetAspectRatio() const override;
 

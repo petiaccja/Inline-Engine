@@ -2,32 +2,33 @@
 
 #include "BasicCamera.hpp"
 
-#include <string>
+#include <GraphicsEngine/Scene/IOrthographicCamera.hpp>
+
 #include <InlineMath.hpp>
 
 
 namespace inl::gxeng {
 
 
-class OrthographicCamera : public BasicCamera {
+class OrthographicCamera : virtual public BasicCamera, virtual public IOrthographicCamera {
 public:
 	enum eMoveBehaviour {
 		KEEP_TARGET,
 		KEEP_LOOKDIR,
 	};
+
 public:
 	OrthographicCamera();
-	virtual ~OrthographicCamera() {}
 
 	// Set Frustum bounds the traditional way. Will overwrite view transform too.
-	void SetBounds(float left, float right, float bottom, float top, float zNear, float zFar);
+	void SetBounds(float left, float right, float bottom, float top, float zNear, float zFar) override;
 
 	//negative values are accepted and will result in a flipped image
-	void SetWidth(float width);
-	void SetHeight(float height);
+	void SetWidth(float width) override;
+	void SetHeight(float height) override;
 
-	float GetWidth() const;
-	float GetHeight() const;
+	float GetWidth() const override;
+	float GetHeight() const override;
 
 	float GetAspectRatio() const override;
 

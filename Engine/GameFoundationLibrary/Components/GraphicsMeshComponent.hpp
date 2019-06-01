@@ -8,8 +8,10 @@
 namespace inl::gamelib {
 
 
-struct GraphicsComponent {
+struct GraphicsMeshComponent {
 	std::unique_ptr<gxeng::IMeshEntity> entity;
+	std::shared_ptr<gxeng::IMesh> mesh;
+	std::shared_ptr<gxeng::IMaterial> material;
 };
 
 

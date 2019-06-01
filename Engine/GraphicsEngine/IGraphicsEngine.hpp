@@ -18,6 +18,9 @@ class IMesh;
 class IImage;
 class IFont;
 class IMaterial;
+class IMaterialShader;
+class IMaterialShaderGraph;
+class IMaterialShaderEquation;
 
 class IScene;
 class IMeshEntity;
@@ -82,18 +85,18 @@ public:
 	// Resources
 	virtual IMesh* CreateMesh() = 0;
 	virtual IImage* CreateImage() = 0;
-	//virtual IMaterial* CreateMaterial() = 0;
-	//virtual IMaterialShaderEquation* CreateMaterialShaderEquation() = 0;
-	//virtual IMaterialShaderGraph* CreateMaterialShaderGraph() = 0;
+	virtual IMaterial* CreateMaterial() = 0;
+	virtual IMaterialShaderEquation* CreateMaterialShaderEquation() = 0;
+	virtual IMaterialShaderGraph* CreateMaterialShaderGraph() = 0;
 	virtual IFont* CreateFont() = 0;
 
 	// Scene
 	virtual IScene* CreateScene(std::string name) = 0;
-	//virtual IMeshEntity* CreateMeshEntity() = 0;
+	virtual IMeshEntity* CreateMeshEntity() = 0;
 	virtual IOverlayEntity* CreateOverlayEntity() = 0;
 	virtual ITextEntity* CreateTextEntity() = 0;
-	//virtual IPerspectiveCamera* CreatePerspectiveCamera(std::string name) = 0;
-	//virtual IOrthographicCamera* CreateOrthographicCamera(std::string name) = 0;
+	virtual IPerspectiveCamera* CreatePerspectiveCamera(std::string name) = 0;
+	virtual IOrthographicCamera* CreateOrthographicCamera(std::string name) = 0;
 	virtual ICamera2D* CreateCamera2D(std::string name) = 0;
 
 
