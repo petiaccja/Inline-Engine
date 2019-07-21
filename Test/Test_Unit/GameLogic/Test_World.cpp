@@ -128,3 +128,15 @@ TEST_CASE("World - Remove component merge", "[GameLogic]") {
 	REQUIRE(entity1->GetIndex() == 0);
 	REQUIRE(entity1->GetWorld() == &world);
 }
+
+
+TEST_CASE("World - Create empty entities", "[GameLogic]") {
+	World world;
+	auto entity0 = world.CreateEntity();
+	world.AddComponent(*entity0, BazComponent{});
+	auto entity1 = world.CreateEntity();
+	world.AddComponent(*entity1, BarComponent{});
+
+	REQUIRE(entity0->HasComponent<BazComponent>());
+	REQUIRE(entity1->HasComponent<BarComponent>());
+}

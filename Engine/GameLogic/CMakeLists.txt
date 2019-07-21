@@ -1,7 +1,7 @@
 # GAMELOGIC
 
 # Files comprising the target
-set(src_base
+set(src_world
 	World.cpp
 	World.hpp
 	Entity.cpp
@@ -13,15 +13,24 @@ set(src_base
 	ComponentScheme.hpp
 	ComponentScheme.cpp
 	System.hpp
-)
+	)
+
+set(src_factory
+	ComponentFactory.hpp
+	ComponentFactory.cpp
+	ComponentClassFactory.hpp
+	AutoRegisterComponent.hpp
+	)
 
 # Create target
 add_library(GameLogic STATIC 
-	${src_base}
+	${src_world}
+	${src_factory}
 )
 
 # Filters
-source_group("World" FILES ${src_base})
+source_group("World" FILES ${src_world})
+source_group("Factory" FILES ${src_factory})
 
 # Dependencies
 target_link_libraries(GameLogic

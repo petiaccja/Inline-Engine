@@ -84,8 +84,6 @@ TEST_CASE_METHOD(ShaderManagerFixture, "MaterialShader get params out", "[Materi
 
 
 TEST_CASE_METHOD(ShaderManagerFixture, "MaterialShader make graph", "[MaterialShader]") {
-	inl::Exception::BreakOnce();
-
 	auto add = std::make_unique<MaterialShaderEquation>(&shaderManager);
 	auto sub = std::make_unique<MaterialShaderEquation>(&shaderManager);
 	auto mad = std::make_unique<MaterialShaderEquation>(&shaderManager);

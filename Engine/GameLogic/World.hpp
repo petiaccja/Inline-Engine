@@ -62,11 +62,15 @@ Entity* World::CreateEntity(ComponentTypes&&... args) {
 	auto it = m_componentStores.find(scheme);
 	if (it == m_componentStores.end()) {
 		auto [newIt, ignored_] = m_componentStores.insert(decltype(m_componentStores)::value_type{ scheme, std::make_unique<EntitySet>() });
-		newIt->second->store.Extend<ComponentTypes...>();
+		if constexpr (sizeof...(ComponentTypes) > 0) {
+			newIt->second->store.Extend<ComponentTypes...>();
+		}
 		it = newIt;
 	}
-	it->second->store.PushBack(std::forward<ComponentTypes>(args)...);
-	it->second->entities.push_back(std::make_unique<Entity>(this, it->second.get(), it->second->store.Size() - 1));
+	if constexpr (sizeof...(ComponentTypes) > 0) {
+		it->second->store.PushBack(std::forward<ComponentTypes>(args)...);
+	}
+	it->second->entities.push_back(std::make_unique<Entity>(this, it->second.get(), it->second->entities.size()));
 
 	return it->second->entities.back().get();
 }
