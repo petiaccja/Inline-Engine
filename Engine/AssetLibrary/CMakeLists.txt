@@ -1,7 +1,7 @@
 # ASSETLIBRARY
 
 # Files
-set(primitives
+set(src_primitives
 	"Image.cpp"
 	"Image.hpp"
 	"Model.cpp"
@@ -10,18 +10,32 @@ set(primitives
 
 set(main
 	"AssetStore.cpp"
-	"AssetStore.hpp"
+	"AssetStore.hpp"	
+)
+
+set(src_assetcache
+	"AssetCache.hpp"
+	"GraphicsMeshCache.cpp"
+	"GraphicsMeshCache.hpp"
+	"ImageCache.cpp"
+	"ImageCache.hpp"
+	"MaterialShaderCache.cpp"
+	"MaterialShaderCache.hpp"
+	"MaterialCache.cpp"
+	"MaterialCache.hpp"
 )
 
 # Target
 add_library(AssetLibrary STATIC
-	${primitives}
-	${main})
-
+	${src_primitives}
+	${main}
+	${src_assetcache}
+)
 
 # Filters
-source_group("Primitives" FILES ${primitives})
-source_group("Main" FILES ${main})
+source_group("Primitives" FILES ${src_primitives})
+source_group("Deprecated" FILES ${main})
+source_group("Caches" FILES ${src_assetcache})
 
 # Dependencies
 target_link_libraries(AssetLibrary

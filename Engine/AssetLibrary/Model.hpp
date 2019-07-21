@@ -2,20 +2,24 @@
 
 #include <GraphicsEngine/Resources/Vertex.hpp>
 
+#include <InlineMath.hpp>
 #include <assimp/Importer.hpp>
 #include <assimp/mesh.h>
 #include <assimp/scene.h>
-
-#include <InlineMath.hpp>
-
-#include <vector>
 #include <memory>
+#include <vector>
 
 
-namespace inl {
-namespace asset {
+namespace inl::asset {
 
-enum class AxisDir : uint8_t { POS_X, NEG_X, POS_Y, NEG_Y, POS_Z, NEG_Z };
+enum class AxisDir : uint8_t {
+	POS_X,
+	NEG_X,
+	POS_Y,
+	NEG_Y,
+	POS_Z,
+	NEG_Z
+};
 
 Vec4 GetAxis(AxisDir dir);
 
@@ -36,7 +40,7 @@ public:
 	std::vector<unsigned> GetIndices(unsigned submeshID) const;
 
 protected:
-	// It is cleary stated in the documentation that an imporer instance will keep ownership
+	// It is clearly stated in the documentation that an imporer instance will keep ownership
 	// of the imported scene. This is fine. But seems like an importer can only store one scene
 	// at a time so an importer instance is inherently attached to a scene instance.
 	std::shared_ptr<Assimp::Importer> m_importer;
@@ -46,7 +50,6 @@ protected:
 	Mat44 m_invTrTransform;
 
 private:
-
 	template <typename VertexT, typename... AttribsT>
 	struct VertexAttributeSetter;
 };
@@ -100,8 +103,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Position<semanticIndex>, Tai
 		const aiMesh* mesh,
 		uint32_t vertexIndex,
 		const Mat44& posTr,
-		const Mat44& normTr
-		) {
+		const Mat44& normTr) {
 		using DataType = gxeng::VertexPartReader<gxeng::eVertexElementSemantic::POSITION>::DataType;
 		assert(mesh->HasPositions());
 		assert(vertexIndex < mesh->mNumVertices);
@@ -121,8 +123,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Normal<semanticIndex>, TailA
 		const aiMesh* mesh,
 		uint32_t vertexIndex,
 		const Mat44& posTr,
-		const Mat44& normTr
-		) {
+		const Mat44& normTr) {
 		using DataType = gxeng::VertexPartReader<gxeng::eVertexElementSemantic::NORMAL>::DataType;
 		if (mesh->HasNormals() == false) {
 			throw InvalidCallException("Vertex array requested with normals but loaded mesh does not have such an attribute.");
@@ -145,8 +146,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Tangent<semanticIndex>, Tail
 		const aiMesh* mesh,
 		uint32_t vertexIndex,
 		const Mat44& posTr,
-		const Mat44& normTr
-		) {
+		const Mat44& normTr) {
 		using DataType = typename gxeng::VertexPart<gxeng::eVertexElementSemantic::NORMAL>::DataType;
 		if (mesh->HasTangentsAndBitangents() == false) {
 			throw InvalidCallException("Vertex array requested with tangents but loaded mesh does not have such an attribute.");
@@ -168,8 +168,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Bitangent<semanticIndex>, Ta
 		const aiMesh* mesh,
 		uint32_t vertexIndex,
 		const Mat44& posTr,
-		const Mat44& normTr
-		) {
+		const Mat44& normTr) {
 		using DataType = typename gxeng::VertexPart<gxeng::eVertexElementSemantic::NORMAL>::DataType;
 		if (mesh->HasTangentsAndBitangents() == false) {
 			throw InvalidCallException("Vertex array requested with bitangents but loaded mesh does not have such an attribute.");
@@ -190,8 +189,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::TexCoord<semanticIndex>, Tai
 		const aiMesh* mesh,
 		uint32_t vertexIndex,
 		const Mat44& posTr,
-		const Mat44& normTr
-		) {
+		const Mat44& normTr) {
 		using DataType = gxeng::VertexPartReader<gxeng::eVertexElementSemantic::TEX_COORD>::DataType;
 		if (mesh->HasTextureCoords(semanticIndex) == false) {
 			throw InvalidCallException(
@@ -215,8 +213,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Color<semanticIndex>, TailAt
 		const aiMesh* mesh,
 		uint32_t vertexIndex,
 		const Mat44& posTr,
-		const Mat44& normTr
-		) {
+		const Mat44& normTr) {
 		using DataType = gxeng::VertexPartReader<gxeng::eVertexElementSemantic::COLOR>::DataType;
 		if (mesh->HasVertexColors(semanticIndex) == false) {
 			throw InvalidCallException(
@@ -233,5 +230,4 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Color<semanticIndex>, TailAt
 };
 
 
-} // namespace asset
-} // namespace inl
+} // namespace inl::asset

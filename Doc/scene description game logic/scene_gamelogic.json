@@ -1,0 +1,39 @@
+{
+	"world": {
+    "name": "main3D",
+    "entities": [
+      {
+        "name": "just_a_car",
+        "components": [
+          {
+            "class": "GraphicsMeshComponent",
+            "mesh": "models/car/car.fbx",
+            "material": "models/car/car.mtl"
+          },
+          {
+            "class": "TransformComponent",
+            "position": "[0,1,2]",
+            "rotation": "[1,0,0,0]",
+            "scale": "[1,1,1]"
+          }
+        ]
+      },
+      {
+        "name": "house",
+        "components": [
+          {
+            "class": "GraphicsMeshComponent",
+            "mesh": "models/house/house.fbx",
+            "material": "models/house/house.mtl"
+          },
+          {
+            "class": "TransformComponent",
+            "position": "[50,10,0]",
+            "rotation": "[1,0,0,0]",
+            "scale": "[1,1,1]"
+          }
+        ]
+      }
+    ]	
+	}
+}

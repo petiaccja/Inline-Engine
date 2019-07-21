@@ -2,12 +2,11 @@
 
 #include <BaseLibrary/Exception/Exception.hpp>
 
+#include <assimp/mesh.h>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
-#include <assimp/mesh.h>
 
-namespace inl {
-namespace asset {
+namespace inl::asset {
 
 // Number of nodes that contain at least one mesh
 static unsigned FilledNodeCount(const aiNode* node) {
@@ -50,32 +49,30 @@ static Mat44 GetAbsoluteTransform(const aiNode* node) {
 
 Vec4 GetAxis(AxisDir dir) {
 	switch (dir) {
-	case AxisDir::POS_X:
-		return Vec4(+1, 0, 0, 0);
-	case AxisDir::NEG_X:
-		return Vec4(-1, 0, 0, 0);
-	case AxisDir::POS_Y:
-		return Vec4(0, +1, 0, 0);
-	case AxisDir::NEG_Y:
-		return Vec4(0, -1, 0, 0);
-	case AxisDir::POS_Z:
-		return Vec4(0, 0, +1, 0);
-	case AxisDir::NEG_Z:
-		return Vec4(0, 0, -1, 0);
-	default:
-		assert(false);
+		case AxisDir::POS_X:
+			return Vec4(+1, 0, 0, 0);
+		case AxisDir::NEG_X:
+			return Vec4(-1, 0, 0, 0);
+		case AxisDir::POS_Y:
+			return Vec4(0, +1, 0, 0);
+		case AxisDir::NEG_Y:
+			return Vec4(0, -1, 0, 0);
+		case AxisDir::POS_Z:
+			return Vec4(0, 0, +1, 0);
+		case AxisDir::NEG_Z:
+			return Vec4(0, 0, -1, 0);
+		default:
+			assert(false);
 	}
 
 	return Vec4(0, 0, 0, 0);
 }
 
 
-Model::Model() :
-	m_scene(nullptr)
-{}
+Model::Model() : m_scene(nullptr) {}
 
 
-Model::Model(const std::string & filename) {
+Model::Model(const std::string& filename) {
 	m_importer.reset(new Assimp::Importer);
 	// "aiProcess_OptimizeGraph" will collapse nodes if possible.
 	// This flag is used to have ideally all submeshes in a single node.
@@ -83,7 +80,7 @@ Model::Model(const std::string & filename) {
 
 	if (m_scene == nullptr) {
 		const std::string msg(m_importer->GetErrorString());
-		throw RuntimeException("Could not load model \"" + filename + "\".",  msg);
+		throw RuntimeException("Could not load model \"" + filename + "\".", msg);
 	}
 
 	if (!m_scene->HasMeshes()) {
@@ -128,6 +125,4 @@ std::vector<unsigned> Model::GetIndices(unsigned submeshID) const {
 }
 
 
-
-} // namespace asset
-} // namespace inl
+} // namespace inl::asset
