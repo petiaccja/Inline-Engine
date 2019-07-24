@@ -1,6 +1,8 @@
 #include <GameLogic/AutoRegisterComponent.hpp>
 #include <GameLogic/ComponentClassFactory.hpp>
 
+#include <cereal/cereal.hpp>
+
 
 class FooComponent {
 public:
@@ -30,6 +32,7 @@ public:
 	void Configure(float defvalue) {
 		m_defvalue = defvalue;
 	}
+
 private:
 	float m_defvalue = 0.0f;
 };
@@ -45,4 +48,25 @@ public:
 
 inline void SpecialFactory::Create(inl::game::Entity& entity) {
 	entity.AddComponent(SpecialComponent{ m_defvalue });
+}
+
+
+template <class Archive>
+void serialize(Archive& ar, FooComponent& obj) {
+	ar(obj.value);
+}
+
+template <class Archive>
+void serialize(Archive& ar, BarComponent& obj) {
+	ar(obj.value);
+}
+
+template <class Archive>
+void serialize(Archive& ar, BazComponent& obj) {
+	ar(obj.value);
+}
+
+template <class Archive>
+void serialize(Archive& ar, SpecialComponent& obj) {
+	ar(obj.value);
 }

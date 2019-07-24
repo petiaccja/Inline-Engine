@@ -3,6 +3,9 @@
 #include <GameLogic/ComponentFactory.hpp>
 
 #include <Catch2/catch.hpp>
+#include <cereal/archives/json.hpp>
+#include <cereal/archives/binary.hpp>
+#include <sstream>
 
 using namespace inl::game;
 
@@ -32,4 +35,22 @@ TEST_CASE("ComponentFactory - Create with special factory", "[GameLogic]") {
 
 	REQUIRE(entity.HasComponent<SpecialComponent>());
 	REQUIRE(entity.GetFirstComponent<SpecialComponent>().value == 16.0f);
+}
+
+
+TEST_CASE("ComponentFactory - Variant serializer", "[GameLogic]") {
+	using ArchiveMix = VariantOutputArchive<cereal::JSONOutputArchive, cereal::BinaryOutputArchive>;
+	std::stringstream ss1, ss2;
+	FooComponent serializable{ 5.0f };
+	{
+		ArchiveMix archiveMix{ std::in_place_type<cereal::JSONOutputArchive>, ss1 };
+		cereal::JSONOutputArchive jsonArchive{ ss2 };
+		archiveMix(serializable);
+		jsonArchive(serializable);	
+		archiveMix(12.f);
+		jsonArchive(12.f);
+	}
+	std::string s1 = ss1.str();
+	std::string s2 = ss2.str();
+	REQUIRE(s1 == s2);
 }

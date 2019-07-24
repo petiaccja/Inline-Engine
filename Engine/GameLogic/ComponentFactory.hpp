@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ComponentClassFactory.hpp"
+#include "VariantArchive.hpp"
 
 #include <BaseLibrary/Exception/Exception.hpp>
 #include <BaseLibrary/Singleton.hpp>

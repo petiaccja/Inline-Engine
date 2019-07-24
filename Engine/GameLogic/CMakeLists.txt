@@ -20,6 +20,7 @@ set(src_factory
 	ComponentFactory.cpp
 	ComponentClassFactory.hpp
 	AutoRegisterComponent.hpp
+	VariantArchive.hpp
 	)
 
 # Create target
