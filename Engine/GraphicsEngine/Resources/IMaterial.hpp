@@ -53,14 +53,14 @@ public:
 		operator Vec4() const { return std::get<Vec4>(m_data); }
 		operator float() const { return std::get<float>(m_data); }
 
-		bool IsSet() const { return !m_data.valueless_by_exception(); }
+		bool IsSet() const { return !std::holds_alternative<std::monostate>(m_data); }
 		bool IsOptional() const { return m_optional; }
 
 	private:
 		std::string m_name;
 		eMaterialShaderParamType m_type = eMaterialShaderParamType::UNKNOWN;
 		int m_shaderParamIndex = 0;
-		std::variant<IImage*, Vec4, float> m_data;
+		std::variant<std::monostate, IImage*, Vec4, float> m_data;
 		bool m_optional = false;
 	};
 

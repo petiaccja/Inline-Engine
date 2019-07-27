@@ -137,7 +137,7 @@ public:
 	/// <summary> Return the <paramref name="index"/>th vector of components. </summary>
 	/// <exception cref="InvalidCastException"> In case you have given the wrong type. </exception>
 	/// <remarks> You must specify the type correctly.
-	///		TODO: remove this function and use ranges instead for non-const access to underlying components. 
+	///		TODO: remove this function and use ranges instead for non-const access to underlying components.
 	///	</remarks>
 	template <class ComponentT>
 	ContiguousVector<ComponentT>& GetComponentVector(size_t index);
@@ -232,8 +232,8 @@ void ComponentStore::SpliceBackExtend(ComponentStore& other, size_t index, Compo
 	}();
 
 	static const auto types = std::array{ std::type_index(typeid(Components))... };
-	static const auto constness = std::array{ std::is_rvalue_reference_v<Components>... };
-	static const auto extraComponentPtrs = std::array{ static_cast<const void*>(&extraComponents)... };
+	static constexpr auto constness = std::array{ std::is_rvalue_reference_v<Components>... };
+	const auto extraComponentPtrs = std::array{ reinterpret_cast<const void*>(std::addressof(extraComponents))... };
 
 	size_t myVectorIndex = 0;
 	size_t otherVectorIndex = 0;
@@ -277,10 +277,15 @@ size_t ComponentVector<ComponentType>::Size() const {
 
 template <class ComponentType>
 void ComponentVector<ComponentType>::PushBack(const void* firstObject, size_t count) {
-	auto firstComponent = reinterpret_cast<const ComponentType*>(firstObject);
-	auto lastComponent = firstComponent + count;
-	for (; firstComponent != lastComponent; ++firstComponent) {
-		m_container.push_back(*firstComponent);
+	if constexpr (std::is_copy_constructible_v<ComponentType>) {
+		auto firstComponent = reinterpret_cast<const ComponentType*>(firstObject);
+		auto lastComponent = firstComponent + count;
+		for (; firstComponent != lastComponent; ++firstComponent) {
+			m_container.push_back(*firstComponent);
+		}
+	}
+	else {
+		throw NotImplementedException{"Cannot copy non-copy-constructible objects, but this function needs to be here as virtual."};
 	}
 }
 

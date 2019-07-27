@@ -25,4 +25,15 @@ void ComponentFactory::Create(Entity& entity, std::string_view name) {
 }
 
 
+void ComponentFactory::Create(Entity& entity, std::string_view name, InputArchive& archive) {
+	auto it = m_factoriesByName.find(std::string(name));
+	if (it != m_factoriesByName.end()) {
+		it->second->Create(entity, archive);
+	}
+	else {
+		throw OutOfRangeException("No component class is registered with given name.");
+	}
+}
+
+
 } // namespace inl::game

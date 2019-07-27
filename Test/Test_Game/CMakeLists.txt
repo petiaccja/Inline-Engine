@@ -16,6 +16,7 @@ source_group("UI" FILES ${src_ui})
 
 # Dependencies
 target_link_libraries(Test_Game
+	AssetLibrary
 	BaseLibrary
 	GraphicsApi_D3D12
 	GraphicsEngine_LL

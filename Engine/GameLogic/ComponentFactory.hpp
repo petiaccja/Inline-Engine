@@ -11,6 +11,7 @@
 #include <string_view>
 #include <typeindex>
 #include <unordered_map>
+#include "Archive.hpp"
 
 
 namespace inl::game {
@@ -29,6 +30,11 @@ public:
 	void Create(Entity& entity) const;
 
 	void Create(Entity& entity, std::string_view name);
+	
+	template <class ComponentT>
+	void Create(Entity& entity, InputArchive& archive) const;
+
+	void Create(Entity& entity, std::string_view name, InputArchive& archive);
 
 	template <class ComponentT, class FactoryT>
 	void Register(std::string className);
@@ -53,6 +59,18 @@ void ComponentFactory::Create(Entity& entity) const {
 	auto it = m_factoriesByType.find(typeid(ComponentT));
 	if (it != m_factoriesByType.end()) {
 		it->second->Create(entity);
+	}
+	else {
+		throw OutOfRangeException("No component class is registered with given name.");
+	}
+}
+
+
+template <class ComponentT>
+void ComponentFactory::Create(Entity& entity, InputArchive& archive) const {
+	auto it = m_factoriesByType.find(typeid(ComponentT));
+	if (it != m_factoriesByType.end()) {
+		it->second->Create(entity, archive);
 	}
 	else {
 		throw OutOfRangeException("No component class is registered with given name.");

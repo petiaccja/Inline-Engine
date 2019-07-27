@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cereal/cereal.hpp>
 #include <variant>
 
@@ -12,7 +14,6 @@ struct IsNameValuePair<cereal::NameValuePair<U>> : std::true_type {};
 
 template <class T>
 struct HandleArchive : std::conditional_t<std::is_arithmetic_v<T> || IsNameValuePair<T>::value, std::true_type, std::false_type> {};
-
 
 
 template <class... ArchiveOptions>
@@ -46,22 +47,26 @@ public:
 
 template <class T, class... ArchiveOptions>
 void prologue(VariantInputArchive<ArchiveOptions...>& ar, const T& arg) {
-	std::visit([&arg](auto&& ar) { prologue(ar, arg); }, ar);
+	if constexpr (!HandleArchive<T>::value) {
+		std::visit([&arg](auto&& ar) { prologue(ar, arg); }, ar);
+	}
 }
 
 template <class T, class... ArchiveOptions>
 void epilogue(VariantInputArchive<ArchiveOptions...>& ar, const T& arg) {
-	std::visit([&arg](auto&& ar) { epilogue(ar, arg); }, ar);
+	if constexpr (!HandleArchive<T>::value) {
+		std::visit([&arg](auto&& ar) { epilogue(ar, arg); }, ar);
+	}
 }
 
 template <class T, class... ArchiveOptions>
 std::enable_if_t<HandleArchive<T>::value, void> CEREAL_SAVE_FUNCTION_NAME(VariantInputArchive<ArchiveOptions...>& ar, const T& arg) {
-	std::visit([&arg](auto&& ar) { CEREAL_SAVE_FUNCTION_NAME(ar, arg); }, ar);
+	std::visit([&arg](auto&& ar) { ar(arg); }, ar);
 }
 
 template <class T, class... ArchiveOptions>
 std::enable_if_t<HandleArchive<T>::value, void> CEREAL_LOAD_FUNCTION_NAME(VariantInputArchive<ArchiveOptions...>& ar, T& arg) {
-	std::visit([&arg](auto&& ar) { CEREAL_LOAD_FUNCTION_NAME(ar, arg); }, ar);
+	std::visit([&arg](auto&& ar) { ar(arg); }, ar);
 }
 
 
@@ -96,22 +101,26 @@ public:
 
 template <class T, class... ArchiveOptions>
 void prologue(VariantOutputArchive<ArchiveOptions...>& ar, const T& arg) {
-	std::visit([&arg](auto&& ar) { prologue(ar, arg); }, ar);
+	if constexpr (!HandleArchive<T>::value) {
+		std::visit([&arg](auto&& ar) { prologue(ar, arg); }, ar);
+	}
 }
 
 template <class T, class... ArchiveOptions>
 void epilogue(VariantOutputArchive<ArchiveOptions...>& ar, const T& arg) {
-	std::visit([&arg](auto&& ar) { epilogue(ar, arg); }, ar);
+	if constexpr (!HandleArchive<T>::value) {
+		std::visit([&arg](auto&& ar) { epilogue(ar, arg); }, ar);
+	}
 }
 
 template <class T, class... ArchiveOptions>
 std::enable_if_t<HandleArchive<T>::value, void> CEREAL_SAVE_FUNCTION_NAME(VariantOutputArchive<ArchiveOptions...>& ar, const T& arg) {
-	std::visit([&arg](auto&& ar) { CEREAL_SAVE_FUNCTION_NAME(ar, arg); }, ar);
+	std::visit([&arg](auto&& ar) { ar(arg); }, ar);
 }
 
 template <class T, class... ArchiveOptions>
 std::enable_if_t<HandleArchive<T>::value, void> CEREAL_LOAD_FUNCTION_NAME(VariantOutputArchive<ArchiveOptions...>& ar, T& arg) {
-	std::visit([&arg](auto&& ar) { CEREAL_LOAD_FUNCTION_NAME(ar, arg); }, ar);
+	std::visit([&arg](auto&& ar) { ar(arg); }, ar);
 }
 
 

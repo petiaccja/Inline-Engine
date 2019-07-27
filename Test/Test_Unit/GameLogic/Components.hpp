@@ -7,28 +7,32 @@
 class FooComponent {
 public:
 	float value = 0.0f;
+private:
 	static constexpr char ClassName[] = "FooComponent";
-	static constexpr inl::game::AutoRegisterComponent<FooComponent> reg{};
+	static constexpr inl::game::AutoRegisterComponent<FooComponent, ClassName> reg{};
 };
 
 class BarComponent {
 public:
 	float value = 1.0f;
+private:
 	static constexpr char ClassName[] = "BarComponent";
-	static constexpr inl::game::AutoRegisterComponent<BarComponent> reg{};
+	static constexpr inl::game::AutoRegisterComponent<BarComponent, ClassName> reg{};
 };
 
 class BazComponent {
 public:
 	float value = 2.0f;
+private:
 	static constexpr char ClassName[] = "BazComponent";
-	static constexpr inl::game::AutoRegisterComponent<BazComponent> reg{};
+	static constexpr inl::game::AutoRegisterComponent<BazComponent, ClassName> reg{};
 };
 
 
 class SpecialFactory : public inl::game::ComponentClassFactoryBase {
 public:
 	void Create(inl::game::Entity& entity) override;
+	void Create(inl::game::Entity& entity, inl::game::InputArchive& archive) override;
 	void Configure(float defvalue) {
 		m_defvalue = defvalue;
 	}
@@ -42,12 +46,19 @@ class SpecialComponent {
 public:
 	float value = 3.0f;
 	static constexpr char ClassName[] = "SpecialComponent";
-	static constexpr inl::game::AutoRegisterComponent<SpecialComponent, SpecialFactory> reg{};
+	static constexpr inl::game::AutoRegisterComponent<SpecialComponent, ClassName, SpecialFactory> reg{};
 };
 
 
 inline void SpecialFactory::Create(inl::game::Entity& entity) {
 	entity.AddComponent(SpecialComponent{ m_defvalue });
+}
+
+
+inline void SpecialFactory::Create(inl::game::Entity& entity, inl::game::InputArchive& archive) {
+	SpecialComponent component{};
+	archive(component);
+	entity.AddComponent(std::move(component));
 }
 
 

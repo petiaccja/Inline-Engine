@@ -603,13 +603,13 @@ void RenderForwardSimple::Execute(RenderContext& context) {
 		if (!entity->GetMesh() || !entity->GetMaterial()) {
 			continue;
 		}
-		const Mesh& mesh = *entity->GetMesh();
-		const Material& material = *entity->GetMaterial();
+		const Mesh& mesh = static_cast<const Mesh&>(*entity->GetMesh());
+		const Material& material = static_cast<const Material&>(*entity->GetMaterial());
 
 		const PipelineStateManager::StateDesc& stateDesc = m_psoManager.GetPipelineState(context, mesh, material);
 		std::vector<uint8_t> mtlConstants = stateDesc.materialCbuffer(material);
 		std::vector<const Image*> mtlTextures = stateDesc.materialTex(material);
-
+		
 		world = entity->GetTransform();
 		dworld = entity->GetTransformMotion();
 		vsConstants.world = world;

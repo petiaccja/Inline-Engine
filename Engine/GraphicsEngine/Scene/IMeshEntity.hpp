@@ -9,6 +9,7 @@ namespace inl::gxeng {
 
 
 class IMeshEntity : public virtual ITransformable3D {
+public:
 	/// <summary> Provides the base geometry for the mesh. </summary>
 	/// <remarks> Passing nullptr is ok, but rendering it is undefined behviour.
 	///		The mesh must not be deleted while assigned to the entity. </remarks>

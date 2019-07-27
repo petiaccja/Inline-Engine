@@ -67,7 +67,8 @@ add_custom_target(Files SOURCES
 	GetPlatform.cmake
 	CopyRuntime.cmake
 	Utils.cmake
-	WholeArchive.cmake)
+	WholeArchive.cmake
+	.clang-format)
 set_target_properties(Files PROPERTIES FOLDER Files)
 
 # Add Mathter.natvis to all targets

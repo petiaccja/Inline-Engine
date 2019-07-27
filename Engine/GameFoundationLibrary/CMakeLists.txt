@@ -7,6 +7,7 @@ file(GLOB_RECURSE src_all "*.?pp")
 add_library(GameFoundationLibrary STATIC 
 	${src_all}
 )
+set_property(TARGET GraphicsFoundationLibrary PROPERTY WHOLE_ARCHIVE true)
 
 # Filters
 foreach(src_file IN ITEMS ${src_all})

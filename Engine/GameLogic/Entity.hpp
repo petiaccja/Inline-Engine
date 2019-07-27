@@ -35,7 +35,7 @@ public:
 	Entity(World* world, EntitySet* store, size_t index) : m_world(world), m_store(store), m_index(index) {}
 
 	template <class ComponentT>
-	void AddComponent(ComponentT component);
+	void AddComponent(ComponentT&& component);
 
 	template <class ComponentT>
 	void RemoveComponent();
@@ -72,7 +72,7 @@ private:
 namespace inl::game {
 
 template <class ComponentT>
-void Entity::AddComponent(ComponentT component) {
+void Entity::AddComponent(ComponentT&& component) {
 	assert(m_world);
 	m_world->AddComponent(*this, std::forward<ComponentT>(component));
 }

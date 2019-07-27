@@ -30,7 +30,7 @@ public:
 	void DeleteEntity(Entity& entity);
 
 	template <class ComponentT>
-	void AddComponent(Entity& entity, ComponentT component);
+	void AddComponent(Entity& entity, ComponentT&& component);
 
 	template <class ComponentT>
 	void RemoveComponent(Entity& entity);
@@ -77,7 +77,7 @@ Entity* World::CreateEntity(ComponentTypes&&... args) {
 
 
 template <class ComponentT>
-void World::AddComponent(Entity& entity, ComponentT component) {
+void World::AddComponent(Entity& entity, ComponentT&& component) {
 	assert(entity.GetWorld() == this);
 
 	// Naive implementation of the extended Scheme's construction as use as a hash key.
