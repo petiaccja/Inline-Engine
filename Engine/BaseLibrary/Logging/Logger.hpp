@@ -1,12 +1,14 @@
 #pragma once
 
-#include "LogStream.hpp"
 #include "LogNode.hpp"
+#include "LogStream.hpp"
 
-#include <string>
-#include <ostream>
+#include <BaseLibrary/Singleton.hpp>
+
 #include <fstream>
 #include <memory>
+#include <ostream>
+#include <string>
 
 namespace inl {
 
@@ -21,7 +23,6 @@ namespace inl {
 class Logger {
 public:
 	Logger();
-	~Logger();
 
 	/// <summary> Open a log file for output. </summary>
 	bool OpenFile(const std::string& path);
@@ -37,12 +38,16 @@ public:
 
 	/// <summary> Write all pending events to log file immediately. </summary>
 	void Flush();
+
 private:
 	// do not ever flip the order of the two below!
 	// myNode must be destroyed first because it's using outputFile
 	std::unique_ptr<std::ofstream> outputFile;
 	std::shared_ptr<LogNode> myNode;
 };
+
+
+extern Logger g_logger;
 
 
 } // namespace inl

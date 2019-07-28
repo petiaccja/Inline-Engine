@@ -58,13 +58,11 @@ struct CommandListCounters {
 
 
 namespace std {
-
-using namespace inl;
-
+	
 template<>
-struct hash<gxeng::SubresourceId> {
-	std::size_t operator()(const gxeng::SubresourceId& instance) const {
-		return CombineHash(std::hash<const void*>{}(instance.resource._GetResourcePtr()), std::hash<unsigned>{}(instance.subresource));
+struct hash<inl::gxeng::SubresourceId> {
+	std::size_t operator()(const inl::gxeng::SubresourceId& instance) const {
+		return inl::CombineHash(std::hash<const void*>{}(instance.resource._GetResourcePtr()), std::hash<unsigned>{}(instance.subresource));
 	}
 };
 

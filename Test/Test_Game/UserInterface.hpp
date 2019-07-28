@@ -13,26 +13,26 @@ class Window;
 
 class UserInterface {
 public:
-	UserInterface(gxeng::IGraphicsEngine& engine, gxeng::IScene& scene, gxeng::ICamera2D& camera);
+	UserInterface(inl::gxeng::IGraphicsEngine& engine, inl::gxeng::IScene& scene, inl::gxeng::ICamera2D& camera);
 
 	void Update(float elapsed);
 
-	void AddFrame(gui::Frame& frame);
-	void RemoveFrame(gui::Frame& frame);
+	void AddFrame(inl::gui::Frame& frame);
+	void RemoveFrame(inl::gui::Frame& frame);
 
-	auto& operator[](gui::Frame& frame) {
+	auto& operator[](inl::gui::Frame& frame) {
 		return m_layout[&frame];
 	}
-	const auto& operator[](gui::Frame& frame) const {
+	const auto& operator[](inl::gui::Frame& frame) const {
 		return m_layout[&frame];
 	}
 
-	void SetResolution(Vec2u windowSize, Vec2u renderSize);
+	void SetResolution(inl::Vec2u windowSize, inl::Vec2u renderSize);
 
 private:
-	gui::GraphicsContext m_context;
-	gui::Board m_board;
-	gui::AbsoluteLayout m_layout;
-	std::unique_ptr<gxeng::IFont> m_font;
-	gxeng::ICamera2D& m_camera;
+	inl::gui::GraphicsContext m_context;
+	inl::gui::Board m_board;
+	inl::gui::AbsoluteLayout m_layout;
+	std::unique_ptr<inl::gxeng::IFont> m_font;
+	inl::gxeng::ICamera2D& m_camera;
 };

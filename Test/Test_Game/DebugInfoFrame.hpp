@@ -11,21 +11,21 @@ class Window;
 }
 
 
-class DebugInfoFrame : public gui::Frame {
+class DebugInfoFrame : public inl::gui::Frame {
 public:
 	DebugInfoFrame();
 
 	void Update(float elapsed) override;
 	void UpdateStyle() override;
 
-	void SetAdapterInfo(const gxapi::AdapterInfo& info);
-	void SetResolutionInfo(Vec2u resolution);
+	void SetAdapterInfo(const inl::gxapi::AdapterInfo& info);
+	void SetResolutionInfo(inl::Vec2u resolution);
 
 private:
-	gui::LinearLayout m_layout;
-	gui::Label m_videoCardLabel;
-	gui::Label m_frameBufferLabel;
+	inl::gui::LinearLayout m_layout;
+	inl::gui::Label m_videoCardLabel;
+	inl::gui::Label m_frameBufferLabel;
 	float m_rollingAvgFrametime = 1.0f;
-	gxapi::AdapterInfo m_adatperInfo;
-	Vec2u m_resolution = { 0, 0 };
+	inl::gxapi::AdapterInfo m_adatperInfo;
+	inl::Vec2u m_resolution = { 0, 0 };
 };

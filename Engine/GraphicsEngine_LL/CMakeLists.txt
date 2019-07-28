@@ -8,6 +8,8 @@ file(GLOB interfaces_resources "../GraphicsEngine/Resources/*.hpp")
 set(main 
 	"GraphicsEngine.cpp"
 	"GraphicsEngine.hpp"
+	"Logging.cpp"
+	"Logging.hpp"
 )
 
 set(scene

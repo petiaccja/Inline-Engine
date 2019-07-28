@@ -283,11 +283,11 @@ const char MathFunctionNames::Round[] = "Round:The nearest integer";
 
 extern "C"
 bool g_autoRegisterNodes = [] {
-	RegisterIntegerArithmeticNodes(&NodeFactory_Singleton::GetInstance(), "Integer");
-	RegisterIntegerComparisonNodes(&NodeFactory_Singleton::GetInstance(), "Integer");
-	RegisterFloatArithmeticNodes(&NodeFactory_Singleton::GetInstance(), "Float");
-	RegisterFloatComparisonNodes(&NodeFactory_Singleton::GetInstance(), "Float");
-	RegisterFloatMathNodes(&NodeFactory_Singleton::GetInstance(), "Float");
-	RegisterLogicNodes(&NodeFactory_Singleton::GetInstance(), "Logic");
+	inl::RegisterIntegerArithmeticNodes(&inl::NodeFactory_Singleton::GetInstance(), "Integer");
+	inl::RegisterIntegerComparisonNodes(&inl::NodeFactory_Singleton::GetInstance(), "Integer");
+	inl::RegisterFloatArithmeticNodes(&inl::NodeFactory_Singleton::GetInstance(), "Float");
+	inl::RegisterFloatComparisonNodes(&inl::NodeFactory_Singleton::GetInstance(), "Float");
+	inl::RegisterFloatMathNodes(&inl::NodeFactory_Singleton::GetInstance(), "Float");
+	inl::RegisterLogicNodes(&inl::NodeFactory_Singleton::GetInstance(), "Logic");
 	return true;
 }();

@@ -11,11 +11,13 @@
 
 class ModuleCollection {
 public:
-	ModuleCollection(inl::WindowHandle windowHandle, );
+	ModuleCollection(inl::WindowHandle windowHandle);
+
+	inl::gxeng::IGraphicsEngine& GetGraphicsEngine() const;
 
 private:
-	std::unique_ptr<inl::gxapi::IGxapiManager> gxapiManager;
-	std::unique_ptr<inl::gxapi::IGraphicsApi> graphicsApi;
-	std::unique_ptr<inl::gxeng::IGraphicsEngine> graphicsEngine;
-	gxapi::AdapterInfo info;
+	std::unique_ptr<inl::gxapi::IGxapiManager> m_gxapiManager;
+	std::unique_ptr<inl::gxapi::IGraphicsApi> m_graphicsApi;
+	std::unique_ptr<inl::gxeng::IGraphicsEngine> m_graphicsEngine;
+	inl::gxapi::AdapterInfo info;
 };

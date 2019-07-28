@@ -148,8 +148,6 @@ int main(int argc, char* argv[]) {
 		desc.width = window.GetClientSize().x;
 		desc.height = window.GetClientSize().y;
 		desc.targetWindow = window.GetNativeHandle();
-		desc.logger = &logger;
-
 		engine.reset(new GraphicsEngine(desc));
 
 		// Load graphics pipeline

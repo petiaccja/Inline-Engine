@@ -18,6 +18,7 @@
 #include <GraphicsEngine_LL/DirectionalLight.hpp>
 #include <GraphicsEngine_LL/GraphicsEngine.hpp>
 
+#include <fstream>
 #include <sstream>
 
 
@@ -53,7 +54,7 @@ struct AssetCaches {
 };
 
 
-Modules CreateModules(Window& window, Logger& logger) {
+Modules CreateModules(Window& window) {
 	std::unique_ptr<gxapi::IGxapiManager> gxapiManager = std::make_unique<gxapi_dx12::GxapiManager>();
 
 	// Get first hardware adapter, if none, get software, if none, quit.
@@ -80,7 +81,6 @@ Modules CreateModules(Window& window, Logger& logger) {
 		false,
 		(int)window.GetClientSize().x,
 		(int)window.GetClientSize().y,
-		&logger
 	};
 	std::unique_ptr<gxeng::IGraphicsEngine> graphicsEngine = std::make_unique<gxeng::GraphicsEngine>(graphicsEngineDesc);
 
@@ -167,10 +167,9 @@ std::vector<game::Entity*> LoadScene(game::World& world) {
 int main() {
 	try {
 		Timer timer;
-		Logger logger;
 		Window window("Test game");
 
-		Modules modules = CreateModules(window, logger);
+		Modules modules = CreateModules(window);
 
 		SetupGraphicsEngine(modules.graphicsEngine.get());
 

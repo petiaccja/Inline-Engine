@@ -1,11 +1,12 @@
 #include "AssetStore.hpp"
-#include "Model.hpp"
-#include "Image.hpp"
 
-#include <rapidjson/document.h>
-#include <cstdlib>
+#include "Image.hpp"
+#include "Model.hpp"
 
 #include <InlineMath.hpp>
+#include <cstdlib>
+#include <fstream>
+#include <rapidjson/document.h>
 
 
 namespace inl::asset {
@@ -146,7 +147,7 @@ std::shared_ptr<gxeng::Material> AssetStore::ForceLoadMaterial(std::filesystem::
 	ParseErrorCode ec = doc.GetParseError();
 	if (ec != kParseErrorNone) {
 		size_t errorCharacter = doc.GetErrorOffset();
-		auto[lineNumber, characterNumber, line] = GetStringErrorPosition(desc, errorCharacter);
+		auto [lineNumber, characterNumber, line] = GetStringErrorPosition(desc, errorCharacter);
 		throw InvalidArgumentException("JSON descripion has syntax errors.", "Check line " + std::to_string(lineNumber) + ":" + std::to_string(characterNumber));
 	}
 
@@ -234,7 +235,7 @@ std::shared_ptr<gxeng::Image> AssetStore::ForceLoadImage(std::filesystem::path p
 	eChannelType channelType = image.GetType();
 
 	gxeng::IPixelReader& reader = GetPixelReader(channelType, channelCount);
-	
+
 	std::shared_ptr<gxeng::Image> resource(m_graphicsEngine->CreateImage());
 	resource->SetLayout(image.GetWidth(), (uint32_t)image.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
 	resource->Update(0, 0, image.GetWidth(), (uint32_t)image.GetHeight(), 0, image.GetData(), reader);
@@ -297,8 +298,6 @@ std::filesystem::path AssetStore::GetFullPath(std::filesystem::path localPath) c
 
 
 
-
-
 StringErrorPosition GetStringErrorPosition(const std::string& str, size_t errorCharacter) {
 	int currentCharacter = 0;
 	int characterNumber = 0;
@@ -327,7 +326,6 @@ StringErrorPosition GetStringErrorPosition(const std::string& str, size_t errorC
 
 	return { lineNumber, characterNumber, str.substr(lineBegIdx, lineEndIdx) };
 }
-
 
 
 

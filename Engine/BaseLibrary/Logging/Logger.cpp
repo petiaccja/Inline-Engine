@@ -13,10 +13,6 @@ Logger::Logger() {
 	outputFile = std::make_unique<std::ofstream>();
 }
 
-Logger::~Logger() {
-
-}
-
 bool Logger::OpenFile(const std::string& path) {
 	std::ofstream newStream(path, std::ios::out | std::ios::trunc);
 	if (!newStream.is_open()) {
@@ -53,6 +49,6 @@ void Logger::Flush() {
 }
 
 
-
+Logger g_logger;
 
 } // namespace inl

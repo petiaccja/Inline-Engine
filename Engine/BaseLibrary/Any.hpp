@@ -4,7 +4,6 @@
 #include <typeindex>
 #include <memory>
 #include "Exception/Exception.hpp"
-using namespace inl;
 
 namespace inl {
 

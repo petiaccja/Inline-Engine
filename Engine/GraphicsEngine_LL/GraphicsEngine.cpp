@@ -38,7 +38,6 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	  m_dsvHeap(desc.graphicsApi),
 	  m_rtvHeap(desc.graphicsApi),
 	  m_persResViewHeap(desc.graphicsApi),
-	  m_logger(desc.logger),
 	  m_shaderManager(desc.gxapiManager) {
 	// Create swapchain
 	SwapChainDesc swapChainDesc;
@@ -71,17 +70,11 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 	// Register nodes
 	RegisterPipelineClasses();
 
-	// Init logger
-	m_logStreamGeneral = m_logger->CreateLogStream("General");
-	m_logStreamPipeline = m_logger->CreateLogStream("Pipeline");
-
 	// Init misc stuff
 	m_absoluteTime = decltype(m_absoluteTime)(0);
-	m_commandAllocatorPool.SetLogStream(&m_logStreamPipeline);
 
 	m_pipelineEventDispatcher += &m_memoryManager.GetUploadManager();
 	m_pipelineEventDispatcher += &m_memoryManager.GetConstBufferHeap();
-
 
 	// Begin awaiting frame #0's Update()
 	m_pipelineEventDispatcher.DispachFrameBeginAwait(0);
@@ -109,7 +102,6 @@ void GraphicsEngine::Update(float elapsed) {
 	FrameContext context;
 	context.frameTime = frameTime;
 	context.absoluteTime = m_absoluteTime;
-	context.log = &m_logStreamPipeline;
 	context.frame = m_frame;
 
 	context.gxApi = m_graphicsApi;
@@ -144,9 +136,6 @@ void GraphicsEngine::Update(float elapsed) {
 	SyncPoint frameEnd = m_masterCommandQueue.Signal();
 	m_frameEndFenceValues[backBufferIndex] = frameEnd;
 	m_pipelineEventDispatcher.DispatchDeviceFrameEnd(frameEnd, m_frame);
-
-	// Flush log
-	m_logger->Flush();
 
 	// Present frame
 	m_swapChain->Present();

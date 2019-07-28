@@ -10,9 +10,6 @@
 #include <map>
 #include <cassert>
 
-#include <iostream> // only for debug
-#include <BaseLibrary/Logging/LogStream.hpp>
-
 
 namespace inl {
 namespace gxeng {
@@ -63,14 +60,11 @@ namespace impl {
 
 		gxapi::IGraphicsApi* GetGraphicsApi() const { return m_gxApi; }
 
-		void SetLogStream(LogStream* logStream) { m_logStream = logStream; }
-		LogStream* GetLogStream() const { return m_logStream; }
 	private:
 		std::vector<std::unique_ptr<gxapi::ICommandAllocator>> m_pool;
 		SlabAllocatorEngine m_allocator;
 		gxapi::IGraphicsApi* m_gxApi;
 		std::map<gxapi::ICommandAllocator*, size_t> m_addressToIndex;
-		LogStream* m_logStream = nullptr;
 
 		std::mutex m_mtx;
 	};
@@ -167,8 +161,6 @@ public:
 
 	gxapi::IGraphicsApi* GetGraphicsApi() const;
 
-	void SetLogStream(LogStream* logStream);
-	LogStream* GetLogStream() const;
 private:
 	impl::CommandAllocatorPool<gxapi::eCommandListType::GRAPHICS> m_gxPool;
 	impl::CommandAllocatorPool<gxapi::eCommandListType::COMPUTE> m_cuPool;

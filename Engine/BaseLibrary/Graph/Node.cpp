@@ -1,9 +1,8 @@
 #include "Node.hpp"
 
-
 #include <regex>
 
-
+namespace inl {
 
 std::string NodeBase::GetClassName(bool simplify, const std::vector<std::regex>& additional) const {
 	std::string name = typeid(*this).name();
@@ -43,3 +42,5 @@ std::string NodeBase::GetClassName(bool simplify, const std::vector<std::regex>&
 
 	return name;
 }
+
+} // namespace inl

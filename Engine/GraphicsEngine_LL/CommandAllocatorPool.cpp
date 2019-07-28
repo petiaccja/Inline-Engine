@@ -58,18 +58,5 @@ gxapi::IGraphicsApi* CommandAllocatorPool::GetGraphicsApi() const {
 }
 
 
-
-void CommandAllocatorPool::SetLogStream(LogStream* logStream){
-	m_cpPool.SetLogStream(logStream);
-	m_cuPool.SetLogStream(logStream);
-	m_gxPool.SetLogStream(logStream);
-}
-
-LogStream* CommandAllocatorPool::GetLogStream() const {
-	return m_gxPool.GetLogStream();
-}
-
-
-
 } // namespace gxeng
 } // namespace inl

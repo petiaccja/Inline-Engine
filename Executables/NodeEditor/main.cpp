@@ -47,9 +47,6 @@ std::vector<std::string> GetMaterialShaders() {
 
 int main() {
 	try {
-		// Create logger.
-		Logger logger;
-
 		// Create graphics API.
 		gxapi_dx12::GxapiManager gxapiManager;
 		auto adapters = gxapiManager.EnumerateAdapters();
@@ -71,7 +68,6 @@ int main() {
 		desc.graphicsApi = graphicsApi.get();
 		desc.width = window.GetClientSize().x;
 		desc.height = window.GetClientSize().y;
-		desc.logger = &logger;
 		desc.targetWindow = window.GetNativeHandle();
 		gxeng::GraphicsEngine graphicsEngine(desc);
 

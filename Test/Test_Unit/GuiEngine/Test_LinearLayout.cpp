@@ -4,6 +4,7 @@
 #include <Catch2/catch.hpp>
 
 
+using namespace inl;
 using namespace inl::gui;
 
 

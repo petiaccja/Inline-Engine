@@ -36,7 +36,6 @@ namespace gxeng {
 	struct FrameContext {
 		std::chrono::nanoseconds frameTime;
 		std::chrono::nanoseconds absoluteTime;
-		LogStream* log = nullptr;
 
 		gxapi::IGraphicsApi* gxApi = nullptr;
 		CommandAllocatorPool* commandAllocatorPool = nullptr;
