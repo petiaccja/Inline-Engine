@@ -5,7 +5,6 @@
 #include <AssetLibrary/ImageCache.hpp>
 #include <AssetLibrary/MaterialCache.hpp>
 #include <AssetLibrary/MaterialShaderCache.hpp>
-#include <BaseLibrary/Platform/System.hpp>
 #include <BaseLibrary/Platform/Window.hpp>
 #include <BaseLibrary/Timer.hpp>
 #include <GameFoundationLibrary/Components/GraphicsMeshComponent.hpp>

@@ -1,18 +1,23 @@
 # TEST GAME
 
 # Files
-set(sources main.cpp UserInterface.hpp UserInterface.cpp)
+set(src_main main.cpp UserInterface.hpp UserInterface.cpp)
+
+set(src_collections
+	ModuleCollection.hpp
+	ModuleCollection.cpp)
 
 set(src_ui
 	DebugInfoFrame.hpp
 	DebugInfoFrame.cpp)
 
 # Target
-add_executable(Test_Game ${sources} ${src_ui})
+add_executable(Test_Game ${src_main} ${src_ui} ${src_collections})
 
 # Filters
-source_group("" FILES ${sources})
+source_group("" FILES ${src_main})
 source_group("UI" FILES ${src_ui})
+source_group("FacilityCollections" FILES ${src_collections})
 
 # Dependencies
 target_link_libraries(Test_Game
