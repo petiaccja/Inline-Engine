@@ -137,7 +137,7 @@ AssetCaches CreateAssetCaches(gxeng::IGraphicsEngine* graphicsEngine) {
 void SetupComponentFactories(gxeng::IGraphicsEngine* engine, const RenderScene& scene, const AssetCaches& caches) {
 	auto& componentFactory = game::ComponentFactory_Singleton::GetInstance();
 	auto& graphicsMeshFactory = componentFactory.GetClassFactory<gamelib::GraphicsMeshComponent, gamelib::GraphicsMeshComponentFactory>();
-	graphicsMeshFactory.SetCaches(caches.m_meshCache, caches.m_materialCache);
+	graphicsMeshFactory.SetCaches(caches.m_meshCache.get(), caches.m_materialCache.get());
 	graphicsMeshFactory.SetEngine(engine);
 	graphicsMeshFactory.SetScenes({ scene.mainScene.get(), scene.guiScene.get() });
 }

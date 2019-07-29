@@ -12,6 +12,7 @@ public:
 	virtual ~ComponentClassFactoryBase() = default;
 	virtual void Create(Entity& entity) = 0;
 	virtual void Create(Entity& entity, InputArchive& archive) = 0;
+	virtual std::unique_ptr<ComponentClassFactoryBase> Clone() = 0;
 };
 
 
@@ -24,6 +25,9 @@ class ComponentClassFactory : public ComponentClassFactoryBase {
 		ComponentT component{};
 		archive(component);
 		entity.AddComponent(std::move(component));
+	}
+	std::unique_ptr<ComponentClassFactoryBase> Clone() override {
+		return std::make_unique<ComponentClassFactory>(*this);
 	}
 };
 

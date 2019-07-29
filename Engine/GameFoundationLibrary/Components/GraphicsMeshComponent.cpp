@@ -7,9 +7,9 @@
 namespace inl::gamelib {
 
 
-void GraphicsMeshComponentFactory::SetCaches(std::shared_ptr<asset::GraphicsMeshCache> meshCache, std::shared_ptr<asset::MaterialCache> materialCache) {
-	m_meshCache = std::move(meshCache);
-	m_materialCache = std::move(materialCache);
+void GraphicsMeshComponentFactory::SetCaches(asset::GraphicsMeshCache* meshCache, asset::MaterialCache* materialCache) {
+	m_meshCache = meshCache;
+	m_materialCache = materialCache;
 }
 
 
@@ -56,6 +56,11 @@ void GraphicsMeshComponentFactory::Create(game::Entity& entity, game::InputArchi
 	component.entity->SetMaterial(component.material.get());
 	sceneIt->second->GetEntities<gxeng::IMeshEntity>().Add(component.entity.get());
 	entity.AddComponent(std::move(component));
+}
+
+
+std::unique_ptr<game::ComponentClassFactoryBase> GraphicsMeshComponentFactory::Clone() {
+	return std::make_unique<GraphicsMeshComponentFactory>(*this);
 }
 
 

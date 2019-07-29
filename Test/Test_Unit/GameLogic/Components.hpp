@@ -7,6 +7,7 @@
 class FooComponent {
 public:
 	float value = 0.0f;
+
 private:
 	static constexpr char ClassName[] = "FooComponent";
 	static constexpr inl::game::AutoRegisterComponent<FooComponent, ClassName> reg{};
@@ -15,6 +16,7 @@ private:
 class BarComponent {
 public:
 	float value = 1.0f;
+
 private:
 	static constexpr char ClassName[] = "BarComponent";
 	static constexpr inl::game::AutoRegisterComponent<BarComponent, ClassName> reg{};
@@ -23,6 +25,7 @@ private:
 class BazComponent {
 public:
 	float value = 2.0f;
+
 private:
 	static constexpr char ClassName[] = "BazComponent";
 	static constexpr inl::game::AutoRegisterComponent<BazComponent, ClassName> reg{};
@@ -36,6 +39,7 @@ public:
 	void Configure(float defvalue) {
 		m_defvalue = defvalue;
 	}
+	std::unique_ptr<ComponentClassFactoryBase> Clone() override;
 
 private:
 	float m_defvalue = 0.0f;
@@ -59,6 +63,10 @@ inline void SpecialFactory::Create(inl::game::Entity& entity, inl::game::InputAr
 	SpecialComponent component{};
 	archive(component);
 	entity.AddComponent(std::move(component));
+}
+
+inline std::unique_ptr<inl::game::ComponentClassFactoryBase> SpecialFactory::Clone() {
+	return std::make_unique<SpecialFactory>(*this);
 }
 
 

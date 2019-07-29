@@ -5,7 +5,9 @@ set(src_main main.cpp UserInterface.hpp UserInterface.cpp)
 
 set(src_collections
 	ModuleCollection.hpp
-	ModuleCollection.cpp)
+	ModuleCollection.cpp
+	AssetCacheCollection.hpp
+	AssetCacheCollection.cpp)
 
 set(src_ui
 	DebugInfoFrame.hpp

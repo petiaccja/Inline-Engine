@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Archive.hpp"
 #include "ComponentClassFactory.hpp"
 #include "VariantArchive.hpp"
 
@@ -11,7 +12,6 @@
 #include <string_view>
 #include <typeindex>
 #include <unordered_map>
-#include "Archive.hpp"
 
 
 namespace inl::game {
@@ -19,6 +19,14 @@ namespace inl::game {
 
 class ComponentFactory {
 public:
+	ComponentFactory() = default;
+	ComponentFactory(const ComponentFactory&);
+	ComponentFactory(ComponentFactory&&) = default;
+	ComponentFactory& operator=(const ComponentFactory&);
+	ComponentFactory& operator=(ComponentFactory&&) = default;
+
+	void Copy(const ComponentFactory& rhs);
+
 	template <class ComponentT>
 	bool IsRegistered() const;
 
@@ -30,7 +38,7 @@ public:
 	void Create(Entity& entity) const;
 
 	void Create(Entity& entity, std::string_view name);
-	
+
 	template <class ComponentT>
 	void Create(Entity& entity, InputArchive& archive) const;
 

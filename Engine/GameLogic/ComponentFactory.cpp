@@ -1,7 +1,43 @@
 #include "ComponentFactory.hpp"
 
+#include <optional>
+
 
 namespace inl::game {
+
+
+
+ComponentFactory::ComponentFactory(const ComponentFactory& rhs) {
+	Copy(rhs);
+}
+
+
+ComponentFactory& ComponentFactory::operator=(const ComponentFactory& rhs) {
+	m_factoriesByName = {};
+	m_factoriesByType = {};
+	Copy(rhs);
+	return *this;
+}
+
+
+void ComponentFactory::Copy(const ComponentFactory& rhs) {
+	std::unordered_map<std::shared_ptr<ComponentClassFactoryBase>, std::pair<std::string, std::optional<std::type_index>>> reverseLookup;
+
+	for (const auto& [name, factory] : rhs.m_factoriesByName) {
+		reverseLookup[factory].first = name;
+	}
+	for (const auto& [type, factory] : rhs.m_factoriesByType) {
+		reverseLookup[factory].second = type;
+	}
+
+	for (auto& [factory, keys] : reverseLookup) {
+		std::shared_ptr<ComponentClassFactoryBase> factoryCopy = factory->Clone();
+		assert(!keys.first.empty());
+		assert(keys.second);
+		m_factoriesByName.insert({ std::move(keys.first), factoryCopy });
+		m_factoriesByType.insert({ keys.second.value(), factoryCopy });
+	}
+}
 
 
 bool ComponentFactory::IsRegistered(std::type_index componentType) const {

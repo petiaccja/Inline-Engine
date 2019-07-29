@@ -28,17 +28,18 @@ struct GraphicsMeshProperties {
 
 class GraphicsMeshComponentFactory : public game::ComponentClassFactoryBase {
 public:
-	void SetCaches(std::shared_ptr<asset::GraphicsMeshCache> meshCache, std::shared_ptr<asset::MaterialCache> materialCache);
+	void SetCaches(asset::GraphicsMeshCache* meshCache, asset::MaterialCache* materialCache);
 	void SetEngine(gxeng::IGraphicsEngine* engine) noexcept;
 	void SetScenes(const std::vector<gxeng::IScene*>& scenes);
 	void Create(game::Entity& entity) override;
 	void Create(game::Entity& entity, game::InputArchive& archive) override;
+	std::unique_ptr<ComponentClassFactoryBase> Clone() override;
 
 private:
 	gxeng::IGraphicsEngine* m_engine = nullptr;
 	std::unordered_map<std::string, gxeng::IScene*> m_scenes;
-	std::shared_ptr<asset::GraphicsMeshCache> m_meshCache;
-	std::shared_ptr<asset::MaterialCache> m_materialCache;
+	asset::GraphicsMeshCache* m_meshCache;
+	asset::MaterialCache* m_materialCache;
 };
 
 
