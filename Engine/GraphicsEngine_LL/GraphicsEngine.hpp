@@ -33,6 +33,7 @@
 #include "PerspectiveCamera.hpp"
 #include "Scene.hpp"
 #include "TextEntity.hpp"
+#include "DirectionalLight.hpp"
 
 
 #undef CreateFont // Fuck goddamn winapi -.-
@@ -111,20 +112,20 @@ namespace gxeng {
 		// Resources
 		Mesh* CreateMesh() override;
 		Image* CreateImage() override;
-		Material* CreateMaterial();
-		MaterialShaderEquation* CreateMaterialShaderEquation();
-		MaterialShaderGraph* CreateMaterialShaderGraph();
+		Material* CreateMaterial() override;
+		MaterialShaderEquation* CreateMaterialShaderEquation() override;
+		MaterialShaderGraph* CreateMaterialShaderGraph() override;
 		Font* CreateFont() override;
 
 		// Scene
 		Scene* CreateScene(std::string name) override;
-		MeshEntity* CreateMeshEntity();
+		MeshEntity* CreateMeshEntity() override;
 		OverlayEntity* CreateOverlayEntity() override;
 		TextEntity* CreateTextEntity() override;
-		PerspectiveCamera* CreatePerspectiveCamera(std::string name);
-		OrthographicCamera* CreateOrthographicCamera(std::string name);
+		PerspectiveCamera* CreatePerspectiveCamera(std::string name) override;
+		OrthographicCamera* CreateOrthographicCamera(std::string name) override;
 		Camera2D* CreateCamera2D(std::string name) override;
-
+		DirectionalLight* CreateDirectionalLight() override;
 
 		// Pipeline and environment variables
 

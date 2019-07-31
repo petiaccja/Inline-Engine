@@ -1,7 +1,7 @@
 # TEST GAME
 
 # Files
-set(src_main main.cpp UserInterface.hpp UserInterface.cpp)
+set(src_main main.cpp UserInterface.hpp UserInterface.cpp Game.hpp Game.cpp)
 
 set(src_collections
 	ModuleCollection.hpp

@@ -38,8 +38,8 @@ public:
 private:
 	gxeng::IGraphicsEngine* m_engine = nullptr;
 	std::unordered_map<std::string, gxeng::IScene*> m_scenes;
-	asset::GraphicsMeshCache* m_meshCache;
-	asset::MaterialCache* m_materialCache;
+	asset::GraphicsMeshCache* m_meshCache = nullptr;
+	asset::MaterialCache* m_materialCache = nullptr;
 };
 
 

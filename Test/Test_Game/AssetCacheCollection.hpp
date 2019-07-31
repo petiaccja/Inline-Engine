@@ -21,5 +21,3 @@ private:
 	std::unique_ptr<inl::asset::MaterialShaderCache> m_materialShaderCache;
 	std::unique_ptr<inl::asset::ImageCache> m_imageCache;
 };
-
-

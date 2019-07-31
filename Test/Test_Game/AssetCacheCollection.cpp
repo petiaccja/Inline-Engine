@@ -6,6 +6,10 @@ AssetCacheCollection::AssetCacheCollection(inl::gxeng::IGraphicsEngine& graphics
 	m_imageCache = std::make_unique<inl::asset::ImageCache>(graphicsEngine);
 	m_materialShaderCache = std::make_unique<inl::asset::MaterialShaderCache>(graphicsEngine);
 	m_materialCache = std::make_unique<inl::asset::MaterialCache>(graphicsEngine, *m_materialShaderCache, *m_imageCache);
+	m_meshCache->SetSearchDirectories({ INL_GAMEDATA });
+	m_imageCache->SetSearchDirectories({ INL_GAMEDATA });
+	m_materialShaderCache->SetSearchDirectories({ INL_GAMEDATA });
+	m_materialCache->SetSearchDirectories({ INL_GAMEDATA });
 }
 
 

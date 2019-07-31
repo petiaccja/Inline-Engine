@@ -1,11 +1,10 @@
 #pragma once
 
-
-#include <BaseLibrary/GraphEditor/IEditorGraph.hpp>
 #include <BaseLibrary/Any.hpp>
+#include <BaseLibrary/GraphEditor/IEditorGraph.hpp>
 
-#include <string>
 #include <filesystem>
+#include <string>
 
 
 #undef CreateFont // damn bullshit winapi
@@ -29,6 +28,7 @@ class ITextEntity;
 class IPerspectiveCamera;
 class IOrthographicCamera;
 class ICamera2D;
+class IDirectionalLight;
 
 
 /// <summary>
@@ -98,6 +98,7 @@ public:
 	virtual IPerspectiveCamera* CreatePerspectiveCamera(std::string name) = 0;
 	virtual IOrthographicCamera* CreateOrthographicCamera(std::string name) = 0;
 	virtual ICamera2D* CreateCamera2D(std::string name) = 0;
+	virtual IDirectionalLight* CreateDirectionalLight() = 0;
 
 
 	/// <summary> Creates or sets an environment variable to the given value. </summary>

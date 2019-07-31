@@ -325,6 +325,10 @@ Camera2D* GraphicsEngine::CreateCamera2D(std::string name) {
 	return camera;
 }
 
+DirectionalLight* GraphicsEngine::CreateDirectionalLight() {
+	return new DirectionalLight;
+}
+
 MeshEntity* GraphicsEngine::CreateMeshEntity() {
 	return new MeshEntity;
 }

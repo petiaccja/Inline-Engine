@@ -38,3 +38,8 @@ ModuleCollection::ModuleCollection(inl::WindowHandle windowHandle) {
 inl::gxeng::IGraphicsEngine& ModuleCollection::GetGraphicsEngine() const {
 	return *m_graphicsEngine;
 }
+
+
+const inl::gxapi::AdapterInfo& ModuleCollection::GetGraphicsAdapter() const {
+	return m_adapterInfo;
+}
