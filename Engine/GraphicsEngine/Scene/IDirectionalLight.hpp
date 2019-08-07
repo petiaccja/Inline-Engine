@@ -1,13 +1,14 @@
 #pragma once
 
+#include "Entity.hpp"
+
 #include <InlineMath.hpp>
 
 
-namespace inl::gxeng
-{
-	
+namespace inl::gxeng {
 
-class IDirectionalLight {
+
+class IDirectionalLight : public Entity {
 public:
 	virtual ~IDirectionalLight() = default;
 
@@ -19,4 +20,4 @@ public:
 };
 
 
-}
+} // namespace inl::gxeng

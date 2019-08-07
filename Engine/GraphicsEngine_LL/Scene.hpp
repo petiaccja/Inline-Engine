@@ -34,13 +34,16 @@ public:
 
 	using IScene::GetEntities;
 protected:
-	EntityCollectionBase* GetEntities(const std::type_index& entityType) override;
-	const EntityCollectionBase* GetEntities(const std::type_index& entityType) const override;
-	void NewCollection(std::unique_ptr<EntityCollectionBase> collection, const std::type_index& type) override;
+	// EntityCollectionBase* GetEntities(const std::type_index& entityType) override;
+	// const EntityCollectionBase* GetEntities(const std::type_index& entityType) const override;
+	// void NewCollection(std::unique_ptr<EntityCollectionBase> collection, const std::type_index& type) override;
+
+	std::optional<std::reference_wrapper<EntityCollectionBase>> GetCollection(std::type_index type) override;
+	std::optional<std::reference_wrapper<const EntityCollectionBase>> GetCollection(std::type_index type) const override;
+	EntityCollectionBase& AddCollection(std::unique_ptr<EntityCollectionBase> collection) override;
 
 private:
 	std::unordered_map<std::type_index, std::unique_ptr<EntityCollectionBase>> m_entityCollections;
-
 	std::string m_name;
 };
 

@@ -4,6 +4,7 @@
 #include <InlineMath.hpp>
 #include <BaseLibrary/Transformable.hpp>
 #include <BaseLibrary/Rect.hpp>
+#include "Entity.hpp"
 
 #include <utility>
 
@@ -14,7 +15,7 @@ namespace inl::gxeng {
 class IFont;
 
 
-class ITextEntity : public virtual ITransformable2DN {
+class ITextEntity : public virtual ITransformable2DN, public Entity {
 public:
 	virtual ~ITextEntity() = default;
 

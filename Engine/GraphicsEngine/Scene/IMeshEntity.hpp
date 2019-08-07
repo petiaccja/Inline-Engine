@@ -1,14 +1,16 @@
 #pragma once
 
-#include <BaseLibrary/Transformable.hpp>
-#include "../Resources/IMesh.hpp"
 #include "../Resources/IMaterial.hpp"
+#include "../Resources/IMesh.hpp"
+#include "Entity.hpp"
+
+#include <BaseLibrary/Transformable.hpp>
 
 
 namespace inl::gxeng {
 
 
-class IMeshEntity : public virtual ITransformable3D {
+class IMeshEntity : public virtual ITransformable3D, public Entity {
 public:
 	/// <summary> Provides the base geometry for the mesh. </summary>
 	/// <remarks> Passing nullptr is ok, but rendering it is undefined behviour.

@@ -1,28 +1,46 @@
 #pragma once
 
-#include <set>
-
 #include <BaseLibrary/Exception/Exception.hpp>
 
-namespace inl {
-namespace gxeng {
+#include <cassert>
+#include <set>
+#include <typeindex>
+
+namespace inl::gxeng {
+
+
+class Entity;
 
 
 /// <summary> A helper polymorphic base for all EntityCollections. </summary>
 class EntityCollectionBase {
 public:
 	virtual ~EntityCollectionBase() {}
+
+	virtual std::type_index GetType() const = 0;
+	virtual void Remove(const Entity* entity) = 0;
+
+protected:
+	void Own(const Entity* entity);
+	static void Orphan(const Entity* entity);
 };
 
 
-/// <summary> A collection of a certain type of entities. 
+
+/// <summary> A collection of a certain type of entities.
 ///		A <see cref="Scene"/> consists of multiple entity collections. </summary>
 template <class EntityType>
 class EntityCollection : public EntityCollectionBase {
+	static_assert(std::is_base_of_v<Entity, EntityType>, "You need to derive your specific entity from this base class.");
+
 public:
 	using iterator = typename std::set<const EntityType*>::iterator;
 	using const_iterator = typename std::set<const EntityType*>::const_iterator;
+
 public:
+	~EntityCollection();
+	std::type_index GetType() const override;
+
 	iterator begin();
 	iterator end();
 	const_iterator begin() const;
@@ -35,12 +53,24 @@ public:
 
 	void Add(const EntityType* entity);
 	void Remove(const EntityType* entity);
+	void Remove(const Entity* entity) override;
 	bool Contains(const EntityType* entity) const;
 	void Clear();
+
 private:
 	std::set<const EntityType*> m_entites;
 };
 
+
+template <class EntityType>
+EntityCollection<EntityType>::~EntityCollection() {
+	Clear();
+}
+
+template <class EntityType>
+std::type_index EntityCollection<EntityType>::GetType() const {
+	return typeid(EntityType);
+}
 
 template <class EntityType>
 typename EntityCollection<EntityType>::iterator EntityCollection<EntityType>::begin() {
@@ -84,6 +114,8 @@ size_t EntityCollection<EntityType>::Size() const {
 
 template <class EntityType>
 void EntityCollection<EntityType>::Add(const EntityType* entity) {
+	Own(entity);
+
 	auto result = m_entites.insert(entity);
 	if (result.second == false) {
 		throw InvalidArgumentException("Entity already member of this collection.");
@@ -92,8 +124,9 @@ void EntityCollection<EntityType>::Add(const EntityType* entity) {
 
 template <class EntityType>
 void EntityCollection<EntityType>::Remove(const EntityType* entity) {
-	m_entites.erase(entity);
+	this->Remove(static_cast<const Entity*>(entity));
 }
+
 
 template <class EntityType>
 bool EntityCollection<EntityType>::Contains(const EntityType* entity) const {
@@ -102,10 +135,42 @@ bool EntityCollection<EntityType>::Contains(const EntityType* entity) const {
 
 template <class EntityType>
 void EntityCollection<EntityType>::Clear() {
+	for (auto& entity : m_entites) {
+		Orphan(entity);
+	}
 	m_entites.clear();
 }
 
 
+} // namespace inl::gxeng
 
-} // namespace gxeng
-} // namespace inl
+
+#include "Entity.hpp"
+
+namespace inl::gxeng {
+
+
+inline void EntityCollectionBase::Own(const Entity* entity) {
+	if (entity->m_collection) {
+		throw InvalidArgumentException("Entity already in a collection.");
+	}
+	entity->m_collection = this;
+}
+
+inline void EntityCollectionBase::Orphan(const Entity* entity) {
+	entity->m_collection = nullptr;
+}
+
+template <class EntityType>
+void EntityCollection<EntityType>::Remove(const Entity* entity) {
+	auto collection = entity->GetCollection();
+	if (collection) {
+		std::cout << typeid(*entity).name() << std::endl;
+		const EntityType* ptr = static_cast<const EntityType*>(entity);
+		assert(ptr);
+		m_entites.erase(ptr);
+		Orphan(entity);
+	}
+}
+
+} // namespace inl::gxeng

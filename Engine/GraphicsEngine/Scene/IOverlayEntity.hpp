@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include "Entity.hpp"
+
 #include <BaseLibrary/Rect.hpp>
 #include <BaseLibrary/Transformable.hpp>
 
@@ -14,7 +16,7 @@ class IMesh;
 class IImage;
 
 
-class IOverlayEntity : public virtual ITransformable2DN {
+class IOverlayEntity : public virtual ITransformable2DN, public Entity {
 
 public:
 	virtual ~IOverlayEntity() = default;
