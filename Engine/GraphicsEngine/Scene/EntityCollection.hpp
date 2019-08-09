@@ -165,9 +165,7 @@ template <class EntityType>
 void EntityCollection<EntityType>::Remove(const Entity* entity) {
 	auto collection = entity->GetCollection();
 	if (collection) {
-		std::cout << typeid(*entity).name() << std::endl;
 		const EntityType* ptr = static_cast<const EntityType*>(entity);
-		assert(ptr);
 		m_entites.erase(ptr);
 		Orphan(entity);
 	}

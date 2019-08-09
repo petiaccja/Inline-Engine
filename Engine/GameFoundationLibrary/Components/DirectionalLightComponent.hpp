@@ -1,9 +1,12 @@
 #pragma once
 
+#include <BaseLibrary/Serialization/Math.hpp>
 #include <GameLogic/AutoRegisterComponent.hpp>
 #include <GameLogic/ComponentClassFactory.hpp>
 #include <GraphicsEngine/Scene/IDirectionalLight.hpp>
 #include <GraphicsEngine/Scene/IScene.hpp>
+
+#include <cereal/types/string.hpp>
 
 
 namespace inl::gxeng {
@@ -28,14 +31,38 @@ private:
 };
 
 
+struct DirectionalLightProperties {
+	std::string sceneName;
+};
+
 
 struct DirectionalLightComponent {
 	std::unique_ptr<gxeng::IDirectionalLight> entity;
+	DirectionalLightProperties properties;
 
 private:
 	static constexpr char ClassName[] = "DirectionalLightComponent";
 	inline static const game::AutoRegisterComponent<DirectionalLightComponent, ClassName, DirectionalLightComponentFactory> reg = {};
 };
+
+
+template <class Archive>
+void save(Archive& ar, const DirectionalLightComponent& obj) {
+	ar(cereal::make_nvp("scene", obj.properties.sceneName),
+	   cereal::make_nvp("color", obj.entity->GetColor()),
+	   cereal::make_nvp("direction", obj.entity->GetDirection()));
+}
+
+template <class Archive>
+void load(Archive& ar, DirectionalLightComponent& obj) {
+	Vec3 color;
+	Vec3 direction;
+	ar(cereal::make_nvp("scene", obj.properties.sceneName),
+	   cereal::make_nvp("color", color),
+	   cereal::make_nvp("direction", direction));
+	obj.entity->SetColor(color);
+	obj.entity->SetDirection(direction);
+}
 
 
 } // namespace inl::gamelib
