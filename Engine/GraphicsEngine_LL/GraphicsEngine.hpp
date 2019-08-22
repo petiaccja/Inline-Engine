@@ -23,6 +23,7 @@
 
 // For the create functions, type covariance.
 #include "Camera2D.hpp"
+#include "DirectionalLight.hpp"
 #include "Font.hpp"
 #include "Image.hpp"
 #include "Material.hpp"
@@ -33,7 +34,6 @@
 #include "PerspectiveCamera.hpp"
 #include "Scene.hpp"
 #include "TextEntity.hpp"
-#include "DirectionalLight.hpp"
 
 
 #undef CreateFont // Fuck goddamn winapi -.-
@@ -105,27 +105,27 @@ namespace gxeng {
 
 
 		// Graph editor interfaces
-		IEditorGraph* QueryPipelineEditor() const override;
-		IEditorGraph* QueryMaterialEditor() const override;
+		std::unique_ptr<IEditorGraph> QueryPipelineEditor() const override;
+		std::unique_ptr<IEditorGraph> QueryMaterialEditor() const override;
 
 
 		// Resources
-		Mesh* CreateMesh() override;
-		Image* CreateImage() override;
-		Material* CreateMaterial() override;
-		MaterialShaderEquation* CreateMaterialShaderEquation() override;
-		MaterialShaderGraph* CreateMaterialShaderGraph() override;
-		Font* CreateFont() override;
+		std::unique_ptr<IMesh> CreateMesh() const override;
+		std::unique_ptr<IImage> CreateImage() const override;
+		std::unique_ptr<IMaterial> CreateMaterial() const override;
+		std::unique_ptr<IMaterialShaderEquation> CreateMaterialShaderEquation() const override;
+		std::unique_ptr<IMaterialShaderGraph> CreateMaterialShaderGraph() const override;
+		std::unique_ptr<IFont> CreateFont() const override;
 
 		// Scene
-		Scene* CreateScene(std::string name) override;
-		MeshEntity* CreateMeshEntity() override;
-		OverlayEntity* CreateOverlayEntity() override;
-		TextEntity* CreateTextEntity() override;
-		PerspectiveCamera* CreatePerspectiveCamera(std::string name) override;
-		OrthographicCamera* CreateOrthographicCamera(std::string name) override;
-		Camera2D* CreateCamera2D(std::string name) override;
-		DirectionalLight* CreateDirectionalLight() override;
+		std::unique_ptr<IScene> CreateScene(std::string name) override;
+		std::unique_ptr<IMeshEntity> CreateMeshEntity() const override;
+		std::unique_ptr<IOverlayEntity> CreateOverlayEntity() const override;
+		std::unique_ptr<ITextEntity> CreateTextEntity() const override;
+		std::unique_ptr<IPerspectiveCamera> CreatePerspectiveCamera(std::string name) override;
+		std::unique_ptr<IOrthographicCamera> CreateOrthographicCamera(std::string name) override;
+		std::unique_ptr<ICamera2D> CreateCamera2D(std::string name) override;
+		std::unique_ptr<IDirectionalLight> CreateDirectionalLight() const override;
 
 		// Pipeline and environment variables
 

@@ -45,9 +45,9 @@ void NodeEditor::OnResize(ResizeEvent evt) {
 
 
 void NodeEditor::CreateGraphicsEnvironment() {
-	m_camera.reset(m_engine->CreateCamera2D("GuiCam"));
-	m_scene.reset(m_engine->CreateScene("GuiScene"));
-	m_font.reset(m_engine->CreateFont());
+	m_camera = m_engine->CreateCamera2D("GuiCam");
+	m_scene = m_engine->CreateScene("GuiScene");
+	m_font = m_engine->CreateFont();
 
 	std::ifstream fontFile;
 	fontFile.open(R"(C:\Windows\Fonts\calibri.ttf)", std::ios::binary);

@@ -16,7 +16,7 @@ UserInterface::UserInterface(inl::gxeng::IGraphicsEngine& engine, inl::gxeng::IS
 	m_layout.SetReferencePoint(inl::gui::AbsoluteLayout::eRefPoint::BOTTOMLEFT);
 	m_board.SetDrawingContext(m_context);
 
-	m_font.reset(engine.CreateFont());
+	m_font = engine.CreateFont();
 
 	std::ifstream fontFile;
 	fontFile.open(R"(C:\Windows\Fonts\calibri.ttf)", std::ios::binary);

@@ -176,44 +176,44 @@ bool GraphicsEngine::GetFullScreen() const {
 
 
 // Graph editor interfaces
-IEditorGraph* GraphicsEngine::QueryPipelineEditor() const {
-	return new PipelineEditorGraph(GraphicsNodeFactory_Singleton::GetInstance());
+std::unique_ptr<IEditorGraph> GraphicsEngine::QueryPipelineEditor() const {
+	return std::make_unique<PipelineEditorGraph>(GraphicsNodeFactory_Singleton::GetInstance());
 }
 
-IEditorGraph* GraphicsEngine::QueryMaterialEditor() const {
-	return new MaterialEditorGraph(m_shaderManager);
+std::unique_ptr<IEditorGraph> GraphicsEngine::QueryMaterialEditor() const {
+	return std::make_unique<MaterialEditorGraph>(m_shaderManager);
 }
 
 
 // Resources
-Mesh* GraphicsEngine::CreateMesh() {
-	return new Mesh(&m_memoryManager);
+std::unique_ptr<IMesh> GraphicsEngine::CreateMesh() const {
+	return std::make_unique<Mesh>(&const_cast<MemoryManager&>(m_memoryManager));
 }
 
-Image* GraphicsEngine::CreateImage() {
-	return new Image(&m_memoryManager, &m_textureSpace);
+std::unique_ptr<IImage> GraphicsEngine::CreateImage() const {
+	return std::make_unique<Image>(&const_cast<MemoryManager&>(m_memoryManager), &const_cast<CbvSrvUavHeap&>(m_textureSpace));
 }
 
-Material* GraphicsEngine::CreateMaterial() {
-	return new Material;
+std::unique_ptr<IMaterial> GraphicsEngine::CreateMaterial() const {
+	return std::make_unique<Material>();
 }
 
-MaterialShaderEquation* GraphicsEngine::CreateMaterialShaderEquation() {
-	return new MaterialShaderEquation(&m_shaderManager);
+std::unique_ptr<IMaterialShaderEquation> GraphicsEngine::CreateMaterialShaderEquation() const {
+	return std::make_unique<MaterialShaderEquation>(&m_shaderManager);
 }
 
-MaterialShaderGraph* GraphicsEngine::CreateMaterialShaderGraph() {
-	return new MaterialShaderGraph(&m_shaderManager);
+std::unique_ptr<IMaterialShaderGraph> GraphicsEngine::CreateMaterialShaderGraph() const {
+	return std::make_unique<MaterialShaderGraph>(&m_shaderManager);
 }
 
-Font* GraphicsEngine::CreateFont() {
-	return new Font(std::move(*CreateImage()));
+std::unique_ptr<IFont> GraphicsEngine::CreateFont() const {
+	return std::make_unique<Font>(Image{ &const_cast<MemoryManager&>(m_memoryManager), &const_cast<CbvSrvUavHeap&>(m_textureSpace) });
 }
 
 
 
 // Scene
-Scene* GraphicsEngine::CreateScene(std::string name) {
+std::unique_ptr<IScene> GraphicsEngine::CreateScene(std::string name) {
 	// Declare a derived class for the sole purpose of making the destructor unregister the object from scene list.
 	class ObservedScene : public Scene {
 	public:
@@ -234,14 +234,14 @@ Scene* GraphicsEngine::CreateScene(std::string name) {
 	};
 
 	// Allocate a new scene, and register it.
-	Scene* scene = new ObservedScene(unregisterScene, std::move(name));
-	m_scenes.insert(scene);
+	std::unique_ptr<Scene> scene = std::make_unique<ObservedScene>(unregisterScene, std::move(name));
+	m_scenes.insert(scene.get());
 
 	return scene;
 }
 
 
-PerspectiveCamera* GraphicsEngine::CreatePerspectiveCamera(std::string name) {
+std::unique_ptr<IPerspectiveCamera> GraphicsEngine::CreatePerspectiveCamera(std::string name) {
 	class ObservedPerspectiveCamera : public PerspectiveCamera {
 	public:
 		ObservedPerspectiveCamera(std::function<void(PerspectiveCamera*)> deleteHandler, std::string name) : m_deleteHandler(std::move(deleteHandler)) {
@@ -263,13 +263,13 @@ PerspectiveCamera* GraphicsEngine::CreatePerspectiveCamera(std::string name) {
 	};
 
 	// Allocate a new scene, and register it.
-	PerspectiveCamera* camera = new ObservedPerspectiveCamera(unregisterCamera, std::move(name));
-	m_cameras.insert(camera);
+	std::unique_ptr<PerspectiveCamera> camera = std::make_unique<ObservedPerspectiveCamera>(unregisterCamera, std::move(name));
+	m_cameras.insert(camera.get());
 
 	return camera;
 }
 
-OrthographicCamera* GraphicsEngine::CreateOrthographicCamera(std::string name) {
+std::unique_ptr<IOrthographicCamera> GraphicsEngine::CreateOrthographicCamera(std::string name) {
 	class ObservedOrthographicCamera : public OrthographicCamera {
 	public:
 		ObservedOrthographicCamera(std::function<void(OrthographicCamera*)> deleteHandler, std::string name) : m_deleteHandler(std::move(deleteHandler)) {
@@ -291,13 +291,13 @@ OrthographicCamera* GraphicsEngine::CreateOrthographicCamera(std::string name) {
 	};
 
 	// Allocate a new scene, and register it.
-	OrthographicCamera* camera = new ObservedOrthographicCamera(unregisterCamera, std::move(name));
-	m_cameras.insert(camera);
+	std::unique_ptr<OrthographicCamera> camera = std::make_unique<ObservedOrthographicCamera>(unregisterCamera, std::move(name));
+	m_cameras.insert(camera.get());
 
 	return camera;
 }
 
-Camera2D* GraphicsEngine::CreateCamera2D(std::string name) {
+std::unique_ptr<ICamera2D> GraphicsEngine::CreateCamera2D(std::string name) {
 	class ObservedCamera2D : public Camera2D {
 	public:
 		ObservedCamera2D(std::function<void(Camera2D*)> deleteHandler, std::string name) : m_deleteHandler(std::move(deleteHandler)) {
@@ -319,26 +319,26 @@ Camera2D* GraphicsEngine::CreateCamera2D(std::string name) {
 	};
 
 	// Allocate a new scene, and register it.
-	Camera2D* camera = new ObservedCamera2D(unregisterCamera, std::move(name));
-	m_cameras2d.insert(camera);
+	std::unique_ptr<Camera2D> camera = std::make_unique<ObservedCamera2D>(unregisterCamera, std::move(name));
+	m_cameras2d.insert(camera.get());
 
 	return camera;
 }
 
-DirectionalLight* GraphicsEngine::CreateDirectionalLight() {
-	return new DirectionalLight;
+std::unique_ptr<IDirectionalLight> GraphicsEngine::CreateDirectionalLight() const {
+	return std::make_unique<DirectionalLight>();
 }
 
-MeshEntity* GraphicsEngine::CreateMeshEntity() {
-	return new MeshEntity;
+std::unique_ptr<IMeshEntity> GraphicsEngine::CreateMeshEntity() const {
+	return std::make_unique<MeshEntity>();
 }
 
-OverlayEntity* GraphicsEngine::CreateOverlayEntity() {
-	return new OverlayEntity;
+std::unique_ptr<IOverlayEntity> GraphicsEngine::CreateOverlayEntity() const {
+	return std::make_unique<OverlayEntity>();
 }
 
-TextEntity* GraphicsEngine::CreateTextEntity() {
-	return new TextEntity;
+std::unique_ptr<ITextEntity> GraphicsEngine::CreateTextEntity() const {
+	return std::make_unique<TextEntity>();
 }
 
 

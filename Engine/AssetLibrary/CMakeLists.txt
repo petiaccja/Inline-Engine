@@ -8,11 +8,6 @@ set(src_primitives
 	"Model.hpp"
 )
 
-set(main
-	"AssetStore.cpp"
-	"AssetStore.hpp"	
-)
-
 set(src_assetcache
 	"AssetCache.hpp"
 	"GraphicsMeshCache.cpp"
@@ -34,7 +29,6 @@ add_library(AssetLibrary STATIC
 
 # Filters
 source_group("Primitives" FILES ${src_primitives})
-source_group("Deprecated" FILES ${main})
 source_group("Caches" FILES ${src_assetcache})
 
 # Dependencies

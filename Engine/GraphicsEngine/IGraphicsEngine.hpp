@@ -78,34 +78,34 @@ public:
 
 
 	// Graph editor interfaces
-	virtual IEditorGraph* QueryPipelineEditor() const = 0;
-	virtual IEditorGraph* QueryMaterialEditor() const = 0;
+	virtual std::unique_ptr<IEditorGraph> QueryPipelineEditor() const = 0;
+	virtual std::unique_ptr<IEditorGraph> QueryMaterialEditor() const = 0;
 
 
 	// Resources
-	virtual IMesh* CreateMesh() = 0;
-	virtual IImage* CreateImage() = 0;
-	virtual IMaterial* CreateMaterial() = 0;
-	virtual IMaterialShaderEquation* CreateMaterialShaderEquation() = 0;
-	virtual IMaterialShaderGraph* CreateMaterialShaderGraph() = 0;
-	virtual IFont* CreateFont() = 0;
+	virtual std::unique_ptr<IMesh> CreateMesh() const = 0;
+	virtual std::unique_ptr<IImage> CreateImage() const = 0;
+	virtual std::unique_ptr<IMaterial> CreateMaterial() const = 0;
+	virtual std::unique_ptr<IMaterialShaderEquation> CreateMaterialShaderEquation() const = 0;
+	virtual std::unique_ptr<IMaterialShaderGraph> CreateMaterialShaderGraph() const = 0;
+	virtual std::unique_ptr<IFont> CreateFont() const = 0;
 
 	// Scene
-	virtual IScene* CreateScene(std::string name) = 0;
-	virtual IMeshEntity* CreateMeshEntity() = 0;
-	virtual IOverlayEntity* CreateOverlayEntity() = 0;
-	virtual ITextEntity* CreateTextEntity() = 0;
-	virtual IPerspectiveCamera* CreatePerspectiveCamera(std::string name) = 0;
-	virtual IOrthographicCamera* CreateOrthographicCamera(std::string name) = 0;
-	virtual ICamera2D* CreateCamera2D(std::string name) = 0;
-	virtual IDirectionalLight* CreateDirectionalLight() = 0;
+	virtual std::unique_ptr<IScene> CreateScene(std::string name) = 0;
+	virtual std::unique_ptr<IMeshEntity> CreateMeshEntity() const = 0;
+	virtual std::unique_ptr<IOverlayEntity> CreateOverlayEntity() const = 0;
+	virtual std::unique_ptr<ITextEntity> CreateTextEntity() const = 0;
+	virtual std::unique_ptr<IPerspectiveCamera> CreatePerspectiveCamera(std::string name) = 0;
+	virtual std::unique_ptr<IOrthographicCamera> CreateOrthographicCamera(std::string name) = 0;
+	virtual std::unique_ptr<ICamera2D> CreateCamera2D(std::string name) = 0;
+	virtual std::unique_ptr<IDirectionalLight> CreateDirectionalLight() const = 0;
 
 
 	/// <summary> Creates or sets an environment variable to the given value. </summary>
 	/// <returns> True if a new variable was created, false if old was overridden. </returns>
 	/// <remarks> Environment variables can be accessed in the graphics pipeline graph by the special
 	///		<see cref="nodes::GetEnvVariable"/> node. You can use it to slightly
-	///		alter pipeline behavriour from outside. </remarks>
+	///		alter pipeline behaviour from outside. </remarks>
 	virtual bool SetEnvVariable(std::string name, Any obj) = 0;
 
 	/// <summary> Returns true if env var with given name exists. </summary>

@@ -62,10 +62,10 @@ void SetupGraphicsEngine(gxeng::IGraphicsEngine& graphicsEngine) {
 
 RenderScene CreateRenderScene(gxeng::IGraphicsEngine& graphicsEngine) {
 	RenderScene s;
-	s.mainScene.reset(graphicsEngine.CreateScene("MainScene"));
-	s.mainCamera.reset(graphicsEngine.CreatePerspectiveCamera("MainCamera"));
-	s.guiScene.reset(graphicsEngine.CreateScene("GuiScene"));
-	s.guiCamera.reset(graphicsEngine.CreateCamera2D("GuiCamera"));
+	s.mainScene = graphicsEngine.CreateScene("MainScene");
+	s.mainCamera = graphicsEngine.CreatePerspectiveCamera("MainCamera");
+	s.guiScene = graphicsEngine.CreateScene("GuiScene");
+	s.guiCamera = graphicsEngine.CreateCamera2D("GuiCamera");
 	return s;
 }
 

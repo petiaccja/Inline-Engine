@@ -32,8 +32,8 @@ void Game::CreateScenes() {
 	auto& engine = m_modules.GetGraphicsEngine();
 	m_scenes.push_back(std::unique_ptr<inl::gxeng::IScene>(engine.CreateScene("MainScene")));
 	m_scenes.push_back(std::unique_ptr<inl::gxeng::IScene>(engine.CreateScene("GuiScene")));
-	m_guiCamera.reset(engine.CreateCamera2D("GuiCamera"));
-	m_3dCamera.reset(engine.CreatePerspectiveCamera("MaiNCamera"));
+	m_guiCamera = engine.CreateCamera2D("GuiCamera");
+	m_3dCamera = engine.CreatePerspectiveCamera("MaiNCamera");
 }
 
 

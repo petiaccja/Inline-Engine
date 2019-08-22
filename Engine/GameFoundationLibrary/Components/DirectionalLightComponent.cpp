@@ -32,7 +32,7 @@ void DirectionalLightComponentFactory::Create(game::Entity& entity, game::InputA
 	}
 
 	DirectionalLightComponent component;
-	component.entity.reset(m_engine->CreateDirectionalLight());
+	component.entity = m_engine->CreateDirectionalLight();
 	archive(component);
 	entity.AddComponent(std::move(component));
 }
