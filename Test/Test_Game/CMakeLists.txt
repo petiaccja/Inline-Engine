@@ -13,13 +13,20 @@ set(src_ui
 	DebugInfoFrame.hpp
 	DebugInfoFrame.cpp)
 
+set(src_systems
+	WindowEventSystem.hpp
+	WindowEventSystem.cpp
+	UserInterfaceSystem.hpp
+	UserInterfaceSystem.cpp)
+
 # Target
-add_executable(Test_Game ${src_main} ${src_ui} ${src_collections})
+add_executable(Test_Game ${src_main} ${src_ui} ${src_collections} ${src_systems})
 
 # Filters
 source_group("" FILES ${src_main})
 source_group("UI" FILES ${src_ui})
 source_group("FacilityCollections" FILES ${src_collections})
+source_group("Systems" FILES ${src_systems})
 
 # Dependencies
 target_link_libraries(Test_Game

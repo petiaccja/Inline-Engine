@@ -2,6 +2,7 @@
 
 #include <BaseLibrary/Platform/Window.hpp>
 #include <GraphicsEngine/Scene/ICamera2D.hpp>
+
 #include <fstream>
 
 
@@ -50,4 +51,9 @@ void UserInterface::SetResolution(inl::Vec2u windowSize, inl::Vec2u renderSize) 
 	m_camera.SetVerticalFlip(false);
 	m_layout.SetPosition(inl::Vec2(renderSize) / 2.0f);
 	m_layout.SetSize(renderSize);
+}
+
+
+inl::gui::Board& UserInterface::GetBoard() {
+	return m_board;
 }

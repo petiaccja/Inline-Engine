@@ -23,7 +23,7 @@ inl::asset::MaterialCache& AssetCacheCollection::GetMaterialCache() const {
 }
 
 
-inl::asset::MaterialShaderCache& AssetCacheCollection::GetCache() const {
+inl::asset::MaterialShaderCache& AssetCacheCollection::GetMaterialShaderCache() const {
 	return *m_materialShaderCache;
 }
 

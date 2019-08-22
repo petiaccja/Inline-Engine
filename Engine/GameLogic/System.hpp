@@ -20,7 +20,7 @@ public:
 template <class DerivedSystem, class... ComponentTypes>
 class SpecificSystem : public System {
 public:
-	const ComponentScheme& Scheme() const override;
+	const ComponentScheme& Scheme() const override final;
 	void Update(float elapsed) override final { throw InvalidCallException("Don't call this."); }
 	void Update(float elapsed, ComponentStore& store) override;
 
@@ -36,7 +36,7 @@ private:
 template <class DerivedSystem>
 class SpecificSystem<DerivedSystem> : public System {
 public:
-	const ComponentScheme& Scheme() const override {
+	const ComponentScheme& Scheme() const override final {
 		static const ComponentScheme scheme;
 		return scheme;
 	}

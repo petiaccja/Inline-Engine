@@ -1,9 +1,9 @@
 #pragma once
 
+#include <GraphicsEngine/Resources/IFont.hpp>
 #include <GuiEngine/AbsoluteLayout.hpp>
 #include <GuiEngine/Board.hpp>
 #include <GuiEngine/Frame.hpp>
-#include <GraphicsEngine/Resources/IFont.hpp>
 
 
 namespace inl {
@@ -28,6 +28,8 @@ public:
 	}
 
 	void SetResolution(inl::Vec2u windowSize, inl::Vec2u renderSize);
+
+	inl::gui::Board& GetBoard();
 
 private:
 	inl::gui::GraphicsContext m_context;

@@ -12,7 +12,7 @@ public:
 
 	inl::asset::GraphicsMeshCache& GetGraphicsMeshCache() const;
 	inl::asset::MaterialCache& GetMaterialCache() const;
-	inl::asset::MaterialShaderCache& GetCache() const;
+	inl::asset::MaterialShaderCache& GetMaterialShaderCache() const;
 	inl::asset::ImageCache& GetImageCache() const;
 
 private:
