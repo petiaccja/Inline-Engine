@@ -24,7 +24,7 @@ Game::Game(inl::Window& window)
 
 
 void Game::Update(float elapsed) {
-	world.Update(elapsed);
+	m_world.Update(elapsed);
 }
 
 
@@ -33,7 +33,7 @@ void Game::CreateScenes() {
 	m_scenes.push_back(std::unique_ptr<inl::gxeng::IScene>(engine.CreateScene("MainScene")));
 	m_scenes.push_back(std::unique_ptr<inl::gxeng::IScene>(engine.CreateScene("GuiScene")));
 	m_guiCamera = engine.CreateCamera2D("GuiCamera");
-	m_3dCamera = engine.CreatePerspectiveCamera("MaiNCamera");
+	m_3dCamera = engine.CreatePerspectiveCamera("MainCamera");
 }
 
 
@@ -48,6 +48,12 @@ void Game::CreateSystems() {
 	m_systems.push_back(std::move(userInterfaceSystem));
 	m_systems.push_back(std::make_unique<inl::gamelib::LinkTransformSystem>());
 	m_systems.push_back(std::make_unique<inl::gamelib::RenderingSystem>(&m_modules.GetGraphicsEngine()));
+
+	std::vector<inl::game::System*> systems;
+	for (const auto& s : m_systems) {
+		systems.push_back(s.get());
+	}
+	m_world.SetSystems(std::move(systems));
 }
 
 
@@ -89,5 +95,33 @@ void Game::SetupRenderPipeline() {
 
 void Game::SetupGui() {
 	auto& engine = m_modules.GetGraphicsEngine();
-	auto font = engine.CreateFont();
+
+	auto m_font = engine.CreateFont();
+	std::ifstream fontFile;
+	fontFile.open(R"(C:\Windows\Fonts\calibri.ttf)", std::ios::binary);
+	m_font->LoadFile(fontFile);
+
+	inl::gui::GraphicsContext ctx;
+	ctx.engine = &engine;
+	ctx.scene = m_scenes[1].get();
+	m_board.SetDrawingContext(ctx);
+	m_board.SetDepth(0.0f);
+}
+
+
+void Game::SetupEvents() {
+	m_window->OnResize += inl::Delegate<void(inl::ResizeEvent)>{ &Game::OnResize, this };
+}
+
+
+void Game::OnResize(inl::ResizeEvent evt) {
+	const auto& resolution = evt.clientSize;
+
+	m_modules.GetGraphicsEngine().SetScreenSize(evt.clientSize.x, evt.clientSize.y);
+
+	m_board.SetCoordinateMapping({ 0.f, (float)resolution.x, (float)resolution.y, 0.f }, { 0.f, (float)resolution.x, 0.f, (float)resolution.y });
+	m_guiCamera->SetPosition(inl::Vec2(resolution) / 2.0f);
+	m_guiCamera->SetExtent(resolution);
+	m_guiCamera->SetRotation(0.0f);
+	m_guiCamera->SetVerticalFlip(false);
 }

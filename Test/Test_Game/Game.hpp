@@ -25,13 +25,16 @@ private:
 	void SetupComponentFactories();
 	void SetupRenderPipeline();
 	void SetupGui();
+	void SetupEvents();
+
+	void OnResize(inl::ResizeEvent evt);
 
 private:
 	inl::Window* m_window = nullptr;
 	ModuleCollection m_modules;
 	AssetCacheCollection m_assetCaches;
 	inl::game::ComponentFactory m_componentFactory;
-	inl::game::World world;
+	inl::game::World m_world;
 	inl::gui::Board m_board;
 	std::vector<std::unique_ptr<inl::gxeng::IScene>> m_scenes;
 	std::vector<std::unique_ptr<inl::game::System>> m_systems;

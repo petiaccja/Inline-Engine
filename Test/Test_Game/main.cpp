@@ -1,5 +1,6 @@
 #include "AssetCacheCollection.hpp"
 #include "DebugInfoFrame.hpp"
+#include "Game.hpp"
 #include "ModuleCollection.hpp"
 #include "UserInterface.hpp"
 
@@ -101,6 +102,24 @@ std::vector<game::Entity*> LoadScene(game::World& world) {
 
 
 int main() {
+	try {
+		Timer timer;
+		Window window("Test game");
+		Game game(window);
+
+		timer.Start();
+		while (!window.IsClosed()) {
+			float frameTime = float(timer.Elapsed());
+			timer.Reset();
+			game.Update(frameTime);
+		}
+	}
+	catch (std::exception& ex) {
+		std::cout << ex.what() << std::endl;
+	}
+	return 0;
+
+
 	try {
 		Timer timer;
 		Window window("Test game");
