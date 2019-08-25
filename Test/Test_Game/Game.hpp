@@ -1,8 +1,9 @@
 #pragma once
 
 #include "AssetCacheCollection.hpp"
+#include "IGameLevel.hpp"
+#include "IGameUI.hpp"
 #include "ModuleCollection.hpp"
-#include "UserInterface.hpp"
 
 #include <BaseLibrary/Platform/Window.hpp>
 #include <GameLogic/ComponentFactory.hpp>
@@ -11,6 +12,7 @@
 #include <GraphicsEngine/Scene/ICamera2D.hpp>
 #include <GraphicsEngine/Scene/IPerspectiveCamera.hpp>
 #include <GraphicsEngine/Scene/IScene.hpp>
+#include <GuiEngine/Board.hpp>
 
 
 class Game {
@@ -18,6 +20,8 @@ public:
 	Game(inl::Window& window);
 
 	void Update(float elapsed);
+	void SetGameUi(IGameUI& gameUi);
+	void SetGameLevel(IGameLevel& gameLevel);
 
 private:
 	void CreateScenes();
@@ -41,4 +45,6 @@ private:
 	std::unique_ptr<inl::gxeng::IPerspectiveCamera> m_3dCamera;
 	std::unique_ptr<inl::gxeng::ICamera2D> m_guiCamera;
 	std::unique_ptr<inl::gxeng::IFont> m_font;
+	IGameUI* m_gameUi = nullptr;
+	IGameLevel* m_gameLevel = nullptr;
 };

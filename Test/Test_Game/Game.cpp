@@ -20,6 +20,8 @@ Game::Game(inl::Window& window)
 	CreateSystems();
 	SetupComponentFactories();
 	SetupRenderPipeline();
+	SetupGui();
+	SetupEvents();
 }
 
 
@@ -106,11 +108,32 @@ void Game::SetupGui() {
 	ctx.scene = m_scenes[1].get();
 	m_board.SetDrawingContext(ctx);
 	m_board.SetDepth(0.0f);
+	inl::gui::ControlStyle style = inl::gui::ControlStyle::Dark(inl::Window::GetWindows10AccentColor().value_or(inl::ColorF{ 0.8f, 0.2f, 0.2f, 1.0f }));
+	style.font = m_font.get();
+	m_board.SetStyle(style);
 }
 
 
 void Game::SetupEvents() {
 	m_window->OnResize += inl::Delegate<void(inl::ResizeEvent)>{ &Game::OnResize, this };
+}
+
+
+void Game::SetGameUi(IGameUI& gameUi) {
+	if (m_gameUi) {
+		m_gameUi->Reset();
+	}
+	m_gameUi = &gameUi;
+	m_gameUi->SetBoard(m_board);
+}
+
+
+void Game::SetGameLevel(IGameLevel& gameLevel) {
+	if (m_gameLevel) {
+		m_gameLevel->Reset();
+	}
+	m_gameLevel = &gameLevel;
+	m_gameLevel->SetWorld(m_world);
 }
 
 
