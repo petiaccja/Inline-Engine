@@ -22,6 +22,7 @@ Game::Game(inl::Window& window)
 	SetupRenderPipeline();
 	SetupGui();
 	SetupEvents();
+	OnResize({ m_window->GetClientSize(), m_window->GetClientSize() });
 }
 
 
@@ -98,7 +99,7 @@ void Game::SetupRenderPipeline() {
 void Game::SetupGui() {
 	auto& engine = m_modules.GetGraphicsEngine();
 
-	auto m_font = engine.CreateFont();
+	m_font = engine.CreateFont();
 	std::ifstream fontFile;
 	fontFile.open(R"(C:\Windows\Fonts\calibri.ttf)", std::ios::binary);
 	m_font->LoadFile(fontFile);
@@ -116,6 +117,10 @@ void Game::SetupGui() {
 
 void Game::SetupEvents() {
 	m_window->OnResize += inl::Delegate<void(inl::ResizeEvent)>{ &Game::OnResize, this };
+	m_window->OnMouseButton += inl::Delegate<void(inl::MouseButtonEvent)>{ &inl::gui::Board::OnMouseButton, &m_board };
+	m_window->OnMouseMove += inl::Delegate<void(inl::MouseMoveEvent)>{ &inl::gui::Board::OnMouseMove, &m_board };
+	m_window->OnMouseWheel += inl::Delegate<void(inl::MouseWheelEvent)>{ &inl::gui::Board::OnMouseWheel, &m_board };
+	m_window->OnKeyboard += inl::Delegate<void(inl::KeyboardEvent)>{ &inl::gui::Board::OnKeyboard, &m_board };
 }
 
 
@@ -125,6 +130,7 @@ void Game::SetGameUi(IGameUI& gameUi) {
 	}
 	m_gameUi = &gameUi;
 	m_gameUi->SetBoard(m_board);
+	m_gameUi->SetResolution(m_window->GetClientSize());
 }
 
 
@@ -147,4 +153,8 @@ void Game::OnResize(inl::ResizeEvent evt) {
 	m_guiCamera->SetExtent(resolution);
 	m_guiCamera->SetRotation(0.0f);
 	m_guiCamera->SetVerticalFlip(false);
+
+	if (m_gameUi) {
+		m_gameUi->SetResolution(evt.clientSize);
+	}
 }

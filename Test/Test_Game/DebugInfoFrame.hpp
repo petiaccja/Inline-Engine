@@ -6,11 +6,6 @@
 #include <GuiEngine/LinearLayout.hpp>
 
 
-namespace inl {
-class Window;
-}
-
-
 class DebugInfoFrame : public inl::gui::Frame {
 public:
 	DebugInfoFrame();

@@ -9,6 +9,15 @@
 using namespace inl;
 
 
+
+void OtherMain() {
+	try {
+	}
+	catch (std::exception& ex) {
+	}
+}
+
+
 int main() {
 	try {
 		Timer timer;

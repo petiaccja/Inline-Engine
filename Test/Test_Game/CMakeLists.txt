@@ -11,7 +11,9 @@ set(src_collections
 
 set(src_ui
 	DebugInfoFrame.hpp
-	DebugInfoFrame.cpp)
+	DebugInfoFrame.cpp
+	MainMenuFrame.hpp
+	MainMenuFrame.cpp)
 
 set(src_systems
 	WindowEventSystem.hpp

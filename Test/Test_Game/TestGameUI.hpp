@@ -2,6 +2,7 @@
 
 #include "DebugInfoFrame.hpp"
 #include "IGameUI.hpp"
+#include "MainMenuFrame.hpp"
 
 #include <GuiEngine/AbsoluteLayout.hpp>
 
@@ -18,4 +19,5 @@ private:
 	inl::gui::Board* m_board = nullptr;
 	inl::gui::AbsoluteLayout m_mainLayout;
 	DebugInfoFrame m_debugInfoFrame;
+	MainMenuFrame m_mainMenuFrame;
 };

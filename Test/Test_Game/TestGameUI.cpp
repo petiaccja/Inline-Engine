@@ -9,6 +9,9 @@ TestGameUI::TestGameUI() {
 
 	m_mainLayout.AddChild(m_debugInfoFrame);
 	m_mainLayout[&m_debugInfoFrame].SetPosition(m_debugInfoFrame.GetSize() / 2.0f);
+
+	m_mainLayout.AddChild(m_mainMenuFrame);
+	m_mainLayout[&m_mainMenuFrame].SetPosition({ 0, 0 });
 }
 
 
@@ -21,6 +24,10 @@ void TestGameUI::SetBoard(inl::gui::Board& board) {
 void TestGameUI::SetResolution(inl::Vec2u boardSize) {
 	m_mainLayout.SetSize(inl::Vec2(boardSize));
 	m_mainLayout.SetPosition(inl::Vec2(boardSize) / 2.0f);
+	m_debugInfoFrame.SetResolutionInfo(boardSize);
+
+	m_mainLayout[&m_mainMenuFrame].SetPosition(m_mainLayout.GetSize() / 2.0f).MoveToFront();
+	m_mainMenuFrame.SetSize({200,400});
 }
 
 
