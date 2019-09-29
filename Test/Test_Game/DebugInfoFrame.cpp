@@ -14,6 +14,7 @@ DebugInfoFrame::DebugInfoFrame() {
 	m_layout.SetDirection(inl::gui::LinearLayout::eDirection::VERTICAL);
 	m_layout.SetInverted(true);
 	ShowBackground(false);
+	SetClickThrough(true);
 
 	inl::gui::ControlStyle textStyle = GetStyle();
 	textStyle.text = { 1.0f, 1.0f, 1.0f };

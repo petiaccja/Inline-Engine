@@ -126,6 +126,16 @@ bool Control::IsShown() const {
 }
 
 
+void Control::SetClickThrough(bool clickThrough) {
+	m_clickThrough = clickThrough;
+}
+
+
+bool Control::GetClickThrough() const {
+	return m_clickThrough;
+}
+
+
 bool Control::HitTest(const Vec2& point) const {
 	Vec2 pos = GetPosition();
 	Vec2 size = GetSize();

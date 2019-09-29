@@ -1,8 +1,6 @@
 #include "Button.hpp"
 
 #include "Layout.hpp"
-#include "Placeholders/PlaceholderOverlayEntity.hpp"
-#include "Placeholders/PlaceholderTextEntity.hpp"
 
 #include <BaseLibrary/Platform/System.hpp>
 

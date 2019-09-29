@@ -228,7 +228,7 @@ const Control* Board::HitTestRecurse(Vec2 point, const Control* top, const Mat33
 
 	Vec2 localPoint = topTransform.Transposed().DecompositionLUP().Solve(point | 1.f).xy;
 
-	if (top->HitTest(localPoint)) {
+	if (!top->GetClickThrough() && top->IsShown() && top->HitTest(localPoint)) {
 		auto children = top->GetChildren();
 		float maxDepth = -1e4f;
 		const Control* finalHit = top;

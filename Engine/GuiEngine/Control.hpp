@@ -66,6 +66,10 @@ public:
 	bool GetVisible() const;
 	bool IsShown() const;
 
+	// Input interaction
+	void SetClickThrough(bool clickThrough);
+	bool GetClickThrough() const;
+
 	virtual bool HitTest(const Vec2& point) const;
 	virtual void Update(float elapsed = 0.0f) {}
 
@@ -122,6 +126,7 @@ private:
 	bool m_usingDefaultStyle = true;
 	ControlStyle m_style;
 	bool m_visible = true;
+	bool m_clickThrough = false;
 };
 
 
