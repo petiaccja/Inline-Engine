@@ -74,11 +74,11 @@ private:
 	void ChildAddedHandler(Control& child) override;
 	void ChildRemovedHandler(Control& child) override;
 private:
-	Control* m_parent = nullptr;
 	std::list<Control*> m_childrenOrder;
 
 	Vec2 m_position = { 0,0 };
 	Vec2 m_size = { 10,10 };
+
 	eRefPoint m_refPoint = eRefPoint::TOPLEFT;
 	bool m_yDown = true;
 	float m_depth = 0.0f;

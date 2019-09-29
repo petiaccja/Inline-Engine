@@ -1,7 +1,14 @@
 # TEST GAME
 
 # Files
-set(src_main main.cpp Game.hpp Game.cpp)
+set(src_main
+	main.cpp
+	GameWorld.hpp
+	GameWorld.cpp
+	GameInterface.hpp
+	GameInterface.cpp
+	UserInterfaceCompositor.hpp
+	UserInterfaceCompositor.cpp)
 
 set(src_collections
 	ModuleCollection.hpp
@@ -13,31 +20,24 @@ set(src_ui
 	DebugInfoFrame.hpp
 	DebugInfoFrame.cpp
 	MainMenuFrame.hpp
-	MainMenuFrame.cpp)
+	MainMenuFrame.cpp
+	WindowLayout.hpp
+	WindowLayout.cpp)
 
 set(src_systems
 	WindowEventSystem.hpp
 	WindowEventSystem.cpp
 	UserInterfaceSystem.hpp
 	UserInterfaceSystem.cpp)
-
-set(src_level
-	IGameLevel.hpp
-	TestGameLevel.hpp
-	TestGameLevel.cpp
-	IGameUI.hpp
-	TestGameUI.hpp
-	TestGameUI.cpp)
-
+	
 # Target
-add_executable(Test_Game ${src_main} ${src_ui} ${src_collections} ${src_systems} ${src_level})
+add_executable(Test_Game ${src_main} ${src_ui} ${src_collections} ${src_systems})
 
 # Filters
 source_group("" FILES ${src_main})
 source_group("UI" FILES ${src_ui})
 source_group("FacilityCollections" FILES ${src_collections})
 source_group("Systems" FILES ${src_systems})
-source_group("Level" FILES ${src_level})
 
 # Dependencies
 target_link_libraries(Test_Game

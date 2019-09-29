@@ -21,6 +21,7 @@ ModuleCollection::ModuleCollection(inl::WindowHandle windowHandle) {
 		throw inl::RuntimeException("Could not find suitable graphics card or software rendering driver for DirectX 12.");
 	}
 
+	m_adapterInfo = info;
 	m_graphicsApi.reset(m_gxapiManager->CreateGraphicsApi(graphicsAdapterId));
 
 	inl::gxeng::GraphicsEngineDesc graphicsEngineDesc{

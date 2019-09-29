@@ -111,7 +111,9 @@ void Board::OnMouseMove(MouseMoveEvent evt) {
 	}
 
 	// Hovering events.
-	target->CallEventUpstream(&Control::OnHover, target, point);
+	if (target) {
+		target->CallEventUpstream(&Control::OnHover, target, point);
+	}
 
 	// Drag events.
 	if (m_draggedControl) {
@@ -222,9 +224,9 @@ void Board::UpdateLayouts(Control* subject) {
 
 
 const Control* Board::HitTestRecurse(Vec2 point, const Control* top, const Mat33& preTransform) {
-	const Mat33& topTransform = top->HasIdentityTransform() ? preTransform : preTransform*top->GetTransform();
+	const Mat33& topTransform = top->HasIdentityTransform() ? preTransform : preTransform * top->GetTransform();
 
-	Vec2 localPoint = topTransform.Transposed().DecompositionLUP().Solve(point|1.f).xy;
+	Vec2 localPoint = topTransform.Transposed().DecompositionLUP().Solve(point | 1.f).xy;
 
 	if (top->HitTest(localPoint)) {
 		auto children = top->GetChildren();
@@ -327,7 +329,7 @@ void Board::UpdateResultantTransformRecurse(Control* root, const Mat33& preTrans
 	rootClip.left = *std::min_element(boundaryXs.begin(), boundaryXs.end());
 	rootClip.right = *std::max_element(boundaryXs.begin(), boundaryXs.end());
 	rootClip.bottom = *std::min_element(boundaryYs.begin(), boundaryYs.end());
-	rootClip.top = *std::max_element(boundaryYs.begin(), boundaryYs.end());	
+	rootClip.top = *std::max_element(boundaryYs.begin(), boundaryYs.end());
 
 	RectF combinedClip = RectF::Intersection(rootClip, clip);
 

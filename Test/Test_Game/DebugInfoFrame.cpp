@@ -19,6 +19,9 @@ DebugInfoFrame::DebugInfoFrame() {
 	textStyle.text = { 1.0f, 1.0f, 1.0f };
 	m_videoCardLabel.SetStyle(textStyle);
 	m_frameBufferLabel.SetStyle(textStyle);
+
+	SetSize({ 400, 200 });
+	SetPosition({ 200, 300 });
 }
 
 

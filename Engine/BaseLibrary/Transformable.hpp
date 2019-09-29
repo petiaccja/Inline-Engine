@@ -507,7 +507,6 @@ typename Transformable23Base<T, Dim>::MatHomT Transformable23Base<T, Dim>::Motio
 	T c0 = 1/elapsed;
 	T c1 = -c0;
 	MatHomT motion = c0*currentTransform + c1*pastTransform;
-	//motion(motion.RowCount()-1, motion.ColumnCount()-1) = 1;
 	return motion;
 }
 
@@ -518,7 +517,6 @@ typename Transformable23Base<T, Dim>::MatHomT Transformable23Base<T, Dim>::Motio
 	T c1 = elapsed2/(elapsed1*elapsed1 - elapsed1*elapsed2);
 	T c0 = -(c1 + c2);
 	MatHomT motion = c0*currentTransform + c1*pastTransform1 + c2*pastTransform2;
-	//motion(motion.RowCount()-1, motion.ColumnCount()-1) = 1;
 	return motion;
 }
 

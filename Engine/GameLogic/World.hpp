@@ -40,6 +40,9 @@ public:
 	void SetSystems(std::vector<System*> systems);
 	const std::vector<System*>& GetSystems() const;
 
+	template <class SystemT>
+	SystemT& GetSystem();
+
 private:
 	std::unordered_map<ComponentScheme, std::unique_ptr<EntitySet>> m_componentStores;
 	std::vector<System*> m_systems;
@@ -124,6 +127,17 @@ void World::RemoveComponent(Entity& entity) {
 	}
 
 	RemoveComponent(entity, indexToRemove);
+}
+
+
+template <class SystemT>
+SystemT& World::GetSystem() {
+	for (auto sys : m_systems) {
+		if (auto* typedSys = dynamic_cast<SystemT*>(sys)) {
+			return *typedSys;
+		}
+	}
+	throw OutOfRangeException("System of specific type not found.");
 }
 
 
