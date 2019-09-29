@@ -56,6 +56,8 @@ public:
 
 	bool HitTest(const Vec2& point) const override;
 
+	void Update(float elapsed) override;
+
 	//-------------------------------------
 	// OverlayEntity
 	//-------------------------------------

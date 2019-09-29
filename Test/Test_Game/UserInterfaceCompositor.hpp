@@ -47,6 +47,9 @@ public:
 	std::enable_if_t<frame_type_valid<FrameT>> HideFrame();
 
 	template <class FrameT>
+	std::enable_if_t<frame_type_valid<FrameT>, bool> IsFrameVisible() const;
+
+	template <class FrameT>
 	std::enable_if_t<frame_type_valid<FrameT>> DeleteFrame();
 
 	WindowLayout::Binding& GetBinding(const TopLevelFrame& frame);
@@ -98,6 +101,16 @@ std::enable_if_t<UserInterfaceCompositor::frame_type_valid<FrameT>> UserInterfac
 		assert(control);
 		control->SetVisible(false);
 	}
+}
+
+template <class FrameT>
+std::enable_if_t<UserInterfaceCompositor::frame_type_valid<FrameT>, bool> UserInterfaceCompositor::IsFrameVisible() const {
+	auto existingFrame = FindFrame<FrameT>();
+	if (existingFrame) {
+		const auto* control = dynamic_cast<const inl::gui::Control*>(&existingFrame.value().get());
+		return control->GetVisible();
+	}
+	return false;
 }
 
 

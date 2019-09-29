@@ -32,7 +32,10 @@ void Sprite::SetContext(const GraphicsContext& context) {
 	assert(context.scene);
 
 	if (m_context.scene) {
-		m_context.scene->GetEntities<gxeng::IOverlayEntity>().Remove(m_entity.get());
+		auto& entitySet = m_context.scene->GetEntities<gxeng::IOverlayEntity>();
+		if (entitySet.Contains(m_entity.get())) {
+			entitySet.Remove(m_entity.get());
+		}
 	}
 
 	std::unique_ptr<gxeng::IOverlayEntity> newEntity(context.engine->CreateOverlayEntity());
@@ -41,7 +44,9 @@ void Sprite::SetContext(const GraphicsContext& context) {
 
 	m_entity = std::move(newEntity);
 	m_context = context;
-	m_context.scene->GetEntities<gxeng::IOverlayEntity>().Add(m_entity.get());
+	if (IsShown()) {
+		m_context.scene->GetEntities<gxeng::IOverlayEntity>().Add(m_entity.get());
+	}
 }
 
 
@@ -133,6 +138,20 @@ bool Sprite::HitTest(const Vec2& point) const {
 	return false;
 }
 
+void Sprite::Update(float elapsed) {
+	bool shown = IsShown();
+	if (m_context.scene) {
+		auto& entitySet = m_context.scene->GetEntities<gxeng::IOverlayEntity>();
+		bool contained = entitySet.Contains(m_entity.get());
+		if (contained && !shown) {
+			entitySet.Remove(m_entity.get());
+		}
+		if (!contained && shown) {
+			entitySet.Add(m_entity.get());
+		}
+	}
+}
+
 
 //-------------------------------------
 // OverlayEntity
@@ -169,7 +188,7 @@ void Sprite::CopyProperties(const gxeng::IOverlayEntity& source, gxeng::IOverlay
 
 
 void Sprite::SetResultantTransform() {
-	m_entity->SetTransform(Mat33::Scale(m_size)*Mat33::Rotation(m_rotation)*Mat33::Translation(m_position)*m_postTransform);
+	m_entity->SetTransform(Mat33::Scale(m_size) * Mat33::Rotation(m_rotation) * Mat33::Translation(m_position) * m_postTransform);
 }
 
 

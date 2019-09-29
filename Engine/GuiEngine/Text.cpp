@@ -35,7 +35,10 @@ void Text::SetContext(const GraphicsContext& context) {
 	assert(context.scene);
 
 	if (m_context.scene) {
-		m_context.scene->GetEntities<gxeng::ITextEntity>().Remove(m_entity.get());
+		auto& entitySet = m_context.scene->GetEntities<gxeng::ITextEntity>();
+		if (entitySet.Contains(m_entity.get())) {
+			entitySet.Remove(m_entity.get());
+		}
 	}
 
 	std::unique_ptr<gxeng::ITextEntity> newEntity(context.engine->CreateTextEntity());
@@ -44,7 +47,9 @@ void Text::SetContext(const GraphicsContext& context) {
 
 	m_entity = std::move(newEntity);
 	m_context = context;
-	m_context.scene->GetEntities<gxeng::ITextEntity>().Add(m_entity.get());
+	if (IsShown()) {
+		m_context.scene->GetEntities<gxeng::ITextEntity>().Add(m_entity.get());
+	}
 }
 
 
@@ -118,6 +123,20 @@ bool Text::HitTest(const Vec2& point) const {
 void Text::UpdateStyle() {
 	m_entity->SetFont(GetStyle().font);
 	m_entity->SetColor(GetStyle().text.v);
+}
+
+void Text::Update(float elapsed) {
+	bool shown = IsShown();
+	if (m_context.scene) {
+		auto& entitySet = m_context.scene->GetEntities<gxeng::ITextEntity>();
+		bool contained = entitySet.Contains(m_entity.get());
+		if (contained && !shown) {
+			entitySet.Remove(m_entity.get());
+		}
+		if (!contained && shown) {
+			entitySet.Add(m_entity.get());
+		}
+	}
 }
 
 

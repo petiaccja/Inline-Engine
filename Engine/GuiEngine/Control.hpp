@@ -62,9 +62,9 @@ public:
 	virtual float GetDepth() const = 0;
 
 	// Visibility
-	void SetVisible(bool visible) {}
-	bool GetVisible() const { return true; }
-	bool IsShown() const { return true; }
+	void SetVisible(bool visible);
+	bool GetVisible() const;
+	bool IsShown() const;
 
 	virtual bool HitTest(const Vec2& point) const;
 	virtual void Update(float elapsed = 0.0f) {}
@@ -121,6 +121,7 @@ private:
 
 	bool m_usingDefaultStyle = true;
 	ControlStyle m_style;
+	bool m_visible = true;
 };
 
 

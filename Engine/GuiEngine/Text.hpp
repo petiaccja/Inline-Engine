@@ -49,6 +49,8 @@ public:
 	bool HitTest(const Vec2& point) const override;
 	void UpdateStyle() override;
 
+	void Update(float elapsed) override;
+
 	//-------------------------------------
 	// TextEntity
 	//-------------------------------------

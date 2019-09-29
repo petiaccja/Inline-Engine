@@ -72,18 +72,7 @@ void Frame::UpdateStyle() {
 
 
 void Frame::ShowBackground(bool show) {
-	// Ugly hack, do it properly with SetVisible.
-	try {
-		if (show) {
-			AddChild(m_background);
-		}
-		else {
-			RemoveChild(&m_background);
-		}
-	}
-	catch (...) {
-		// ignore
-	}
+	m_background.SetVisible(show);
 }
 
 

@@ -110,6 +110,22 @@ std::set<Control*> Control::GetChildren() const {
 }
 
 
+void Control::SetVisible(bool visible) {
+	m_visible = visible;
+}
+
+
+bool Control::GetVisible() const {
+	return m_visible;
+}
+
+
+bool Control::IsShown() const {
+	const auto* parent = GetParent();
+	return m_visible && (parent ? parent->IsShown() : true);
+}
+
+
 bool Control::HitTest(const Vec2& point) const {
 	Vec2 pos = GetPosition();
 	Vec2 size = GetSize();

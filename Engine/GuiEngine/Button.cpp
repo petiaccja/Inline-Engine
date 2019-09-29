@@ -32,7 +32,7 @@ Vec2 Button::GetSize() const {
 
 Vec2 Button::GetPreferredSize() const {
 	if (m_text.GetFont()) {
-		return { m_text.CalculateTextHeight(), m_text.CalculateTextWidth() };
+		return { m_text.CalculateTextWidth(), m_text.CalculateTextHeight() };
 	}
 	else {
 		return { 10, 10 };
