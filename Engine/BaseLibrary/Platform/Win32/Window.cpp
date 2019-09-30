@@ -146,7 +146,7 @@ bool Window::IsClosed() const {
 }
 
 void Window::Close() {
-	CloseWindow(m_handle);
+	SendMessage(m_handle, WM_CLOSE, 0, 0);
 	m_handle = nullptr;
 }
 

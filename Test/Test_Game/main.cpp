@@ -16,7 +16,10 @@ using namespace inl;
 
 
 void SetEvents(Window& window, GameWorld& world, GameInterface& interface, gxeng::IGraphicsEngine& engine, UserInterfaceCompositor& compositor) {
-	window.OnResize += [&](ResizeEvent evt) {
+	window.OnResize += [&](ResizeEvent evt) -> void {
+		if (evt.resizeMode == eResizeMode::MINIMIZED) {
+			return;
+		}
 		interface.GetCamera().SetPosition(Vec2(evt.clientSize) / 2.0f);
 		interface.GetCamera().SetExtent(Vec2(evt.clientSize));
 		interface.GetBoard().SetCoordinateMapping({ 0.f, (float)evt.clientSize.x, (float)evt.clientSize.y, 0.f }, { 0.f, (float)evt.clientSize.x, 0.f, (float)evt.clientSize.y });
@@ -48,13 +51,16 @@ int main() {
 		GameInterface gameInterface{ modules };
 		UserInterfaceCompositor compositor{ gameInterface.GetBoard() };
 
-		compositor.ShowFrame<DebugInfoFrame>();
-		compositor.ShowFrame<MainMenuFrame>();
-		compositor.GetBinding<DebugInfoFrame>().SetAnchors(true, false, false, true);
-		compositor.GetFrame<DebugInfoFrame>().SetSize({ 300, 150 });
-		compositor.GetFrame<DebugInfoFrame>().SetAdapterInfo(modules.GetGraphicsAdapter());
-		compositor.GetBinding<MainMenuFrame>().SetAnchors(true, true, true, true).SetResizing(false);
-		compositor.GetFrame<MainMenuFrame>().SetSize({ 200, 350});
+		DebugInfoFrame& debugInfoFrame = compositor.ShowFrame<DebugInfoFrame>();
+		MainMenuFrame& mainMenuFrame = compositor.ShowFrame<MainMenuFrame>();
+
+		compositor.GetBinding(debugInfoFrame).SetAnchors(true, false, false, true);
+		debugInfoFrame.SetSize({ 300, 150 });
+		debugInfoFrame.SetAdapterInfo(modules.GetGraphicsAdapter());
+
+		compositor.GetBinding(mainMenuFrame).SetAnchors(true, true, true, true).SetResizing(false);
+		mainMenuFrame.SetSize({ 200, 350 });
+		mainMenuFrame.OnQuit += [&window] { window.Close(); };
 
 		auto& weSystem = gameWorld.GetWorld().GetSystem<WindowEventSystem>();
 		auto& uiSystem = gameWorld.GetWorld().GetSystem<UserInterfaceSystem>();
@@ -63,7 +69,7 @@ int main() {
 
 		SetEvents(window, gameWorld, gameInterface, modules.GetGraphicsEngine(), compositor);
 
-		window.SetSize(Vec2u{640, 480} + window.GetSize() - window.GetClientSize());
+		window.SetSize(Vec2u{ 640, 480 } + window.GetSize() - window.GetClientSize());
 
 		timer.Start();
 		while (!window.IsClosed()) {

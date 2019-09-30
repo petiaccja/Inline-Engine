@@ -12,6 +12,7 @@ class MainMenuFrame final : public TopLevelFrame, public inl::gui::Frame {
 public:
 	MainMenuFrame();
 
+	inl::Event<> OnQuit;
 private:
 	inl::gui::LinearLayout m_layout;
 	inl::gui::Button m_startButton;

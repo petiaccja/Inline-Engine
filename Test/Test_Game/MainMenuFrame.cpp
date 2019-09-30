@@ -19,12 +19,12 @@ MainMenuFrame::MainMenuFrame() {
 	m_layout[&m_quitButton].SetAuto();
 
 	m_startButton.SetText(U"Start");
-	m_startButton.OnClick += [](auto, auto, auto) {
+	m_startButton.OnClick += [](auto...) {
 		std::cout << "Should start game..." << std::endl;
 	};
 
 	m_toggleDebugInfoButton.SetText(U"Toggle Info");
-	m_toggleDebugInfoButton.OnClick += [this](auto, auto, auto) {
+	m_toggleDebugInfoButton.OnClick += [this](auto...) {
 		bool isShown = GetCompositor().IsFrameVisible<DebugInfoFrame>();
 		if (isShown) {
 			GetCompositor().HideFrame<DebugInfoFrame>();
@@ -35,6 +35,9 @@ MainMenuFrame::MainMenuFrame() {
 	};
 
 	m_quitButton.SetText(U"Quit");
+	m_quitButton.OnClick += [this](auto...) {
+		OnQuit();
+	};
 
 	SetSize({ 200, 300 });
 	SetPosition({ 0, 0 });
