@@ -1,6 +1,7 @@
 #include "MainMenuFrame.hpp"
 
 #include "DebugInfoFrame.hpp"
+#include "GameSceneFrame.hpp"
 
 #include <iostream> // debug only
 
@@ -19,8 +20,10 @@ MainMenuFrame::MainMenuFrame() {
 	m_layout[&m_quitButton].SetAuto();
 
 	m_startButton.SetText(U"Start");
-	m_startButton.OnClick += [](auto...) {
-		std::cout << "Should start game..." << std::endl;
+	m_startButton.OnClick += [this](auto...) {
+		GetCompositor().ShowFrame<GameSceneFrame>();
+		GetCompositor().GetBinding<GameSceneFrame>().SetAnchors(true, true, true, true).SetResizing(true).MoveToBack();
+		GetCompositor().HideFrame<MainMenuFrame>();
 	};
 
 	m_toggleDebugInfoButton.SetText(U"Toggle Info");

@@ -21,6 +21,8 @@ set(src_ui
 	DebugInfoFrame.cpp
 	MainMenuFrame.hpp
 	MainMenuFrame.cpp
+	GameSceneFrame.hpp
+	GameSceneFrame.cpp
 	WindowLayout.hpp
 	WindowLayout.cpp)
 
