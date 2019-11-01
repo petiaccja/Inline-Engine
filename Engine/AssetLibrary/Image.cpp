@@ -4,11 +4,10 @@
 #include <BaseLibrary/Exception/Exception.hpp>
 
 
-namespace inl {
-namespace asset {
+namespace inl::asset {
 
 
-Image::Image(const std::string& file) {
+Image::Image(const std::filesystem::path& file) {
 	Load(file);
 }
 
@@ -108,8 +107,9 @@ void Image::Create(size_t width, size_t height, eChannelType type, int channelCo
 	}
 }
 
-void Image::Load(const std::string& file) {
-	if (!m_image.load(file.c_str())) {
+void Image::Load(const std::filesystem::path& file) {
+	auto fileStr = file.generic_string();
+	if (!m_image.load(fileStr.c_str())) {
 		throw RuntimeException("Failed to load image.");
 	}
 }
@@ -163,5 +163,4 @@ void Image::TranslateImageType(eChannelType& typeOut, size_t& countOut) const {
 }
 
 
-}
 }

@@ -64,7 +64,7 @@ std::shared_ptr<gxeng::IMaterial> MaterialCache::Create(const std::filesystem::p
 
 	std::ifstream file(path);
 	if (!file.is_open()) {
-		throw FileNotFoundException("Asset file exists but cannot be opened.", path.generic_u8string());
+		throw FileNotFoundException("Asset file exists but cannot be opened.", path.generic_string());
 	}
 	std::string desc((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 

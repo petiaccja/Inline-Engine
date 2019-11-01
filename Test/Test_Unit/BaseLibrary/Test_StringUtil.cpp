@@ -1,6 +1,7 @@
 #include <BaseLibrary/StringUtil.hpp>
 
 #include <Catch2/catch.hpp>
+#include <string>
 
 using namespace inl;
 
@@ -20,7 +21,7 @@ TEST_CASE("Tokenize, no trim, mixed view", "[StringUtil]") {
 	auto tokens = Tokenize(str, " '", false);
 
 	std::vector<std::string_view> expectedTokens = {
-		"i", "m",  "never", "coming", "down"
+		"i", "m", "never", "coming", "down"
 	};
 
 	REQUIRE(tokens == expectedTokens);
@@ -141,7 +142,8 @@ TEST_CASE("Decode UTF-8->UCS4 character", "[StringEncode]") {
 
 
 TEST_CASE("Transcode string UTF-8 -> UTF-32 -> UTF-8", "[StringEncode]") {
-	std::string original = u8"На берегу пустынных волн";
+	using namespace std::string_literals;
+	std::string original = (const char*)u8"На берегу пустынных волн";
 	std::u32string interm = EncodeString<char32_t>(original);
 	std::string recoded = EncodeString<char>(interm);
 

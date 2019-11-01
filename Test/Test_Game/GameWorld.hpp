@@ -16,6 +16,7 @@ public:
 
 	inl::game::World& GetWorld();
 	inl::gxeng::IPerspectiveCamera& GetCamera();
+	inl::game::ComponentFactory GetComponentFactory();
 	
 private:
 	void CreateSystems(const ModuleCollection& modules);

@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <cstdint>
 #include <string>
+#include <filesystem>
 
 
 namespace inl {
@@ -64,7 +65,7 @@ private:
 class Image {
 public:
 	Image() = default;
-	Image(const std::string& file);
+	Image(const std::filesystem::path& file);
 	~Image() = default;
 
 	size_t GetWidth() const;
@@ -83,7 +84,8 @@ public:
 	const Pixel<type, count>& At(size_t x, size_t y);
 
 	void Create(size_t width, size_t height, eChannelType type, int channelCount);
-	void Load(const std::string& file);
+	void Load(const std::filesystem::path& file);
+
 private:
 	void TranslateImageType(eChannelType& typeOut, size_t& countOut) const;
 private:

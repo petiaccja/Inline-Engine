@@ -72,15 +72,16 @@ Vec4 GetAxis(AxisDir dir) {
 Model::Model() : m_scene(nullptr) {}
 
 
-Model::Model(const std::string& filename) {
+Model::Model(const std::filesystem::path& file) {
 	m_importer.reset(new Assimp::Importer);
 	// "aiProcess_OptimizeGraph" will collapse nodes if possible.
 	// This flag is used to have ideally all submeshes in a single node.
-	m_scene = m_importer->ReadFile(filename, aiProcessPreset_TargetRealtime_Quality | aiProcess_OptimizeGraph);
+	auto fileStr = file.generic_string();
+	m_scene = m_importer->ReadFile(fileStr, aiProcessPreset_TargetRealtime_Quality | aiProcess_OptimizeGraph);
 
 	if (m_scene == nullptr) {
 		const std::string msg(m_importer->GetErrorString());
-		throw RuntimeException("Could not load model \"" + filename + "\".", msg);
+		throw RuntimeException("Could not load model \"" + fileStr + "\".", msg);
 	}
 
 	if (!m_scene->HasMeshes()) {

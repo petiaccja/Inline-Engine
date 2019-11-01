@@ -8,6 +8,7 @@
 #include <assimp/scene.h>
 #include <memory>
 #include <vector>
+#include <filesystem>
 
 
 namespace inl::asset {
@@ -30,7 +31,7 @@ struct CoordSysLayout {
 class Model {
 public:
 	Model();
-	explicit Model(const std::string& filename);
+	explicit Model(const std::filesystem::path& file);
 
 	unsigned SubmeshCount() const;
 

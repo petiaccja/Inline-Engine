@@ -9,6 +9,9 @@ set(src_world
 	ContiguousVector.hpp
 	ComponentStore.cpp
 	ComponentStore.hpp
+	ComponentMatrix.cpp
+	ComponentMatrix.hpp
+	ComponentVector.hpp
 	ComponentRange.hpp
 	ComponentScheme.hpp
 	ComponentScheme.cpp

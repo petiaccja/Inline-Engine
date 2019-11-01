@@ -30,6 +30,10 @@ inl::gxeng::IPerspectiveCamera& GameWorld::GetCamera() {
 	return *m_camera;
 }
 
+inl::game::ComponentFactory GameWorld::GetComponentFactory() {
+	return m_componentFactory;
+}
+
 
 void GameWorld::CreateSystems(const ModuleCollection& modules) {
 	auto windowEventSystem = std::make_unique<WindowEventSystem>();

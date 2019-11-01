@@ -1,24 +1,24 @@
 #pragma once
 
-#include <type_traits>
 #include <iostream>
+#include <type_traits>
 
 namespace inl::templ {
 
 
 // all, conjunction
-template<class ...AnyT>
+template <class... AnyT>
 struct all;
 
 template <>
 struct all<> : public std::true_type {};
 
-template <class HeadT, class ...TailT>
+template <class HeadT, class... TailT>
 struct all<HeadT, TailT...> : public std::integral_constant<bool, HeadT::value && all<TailT...>::value> {};
 
 
 // any, disjunction
-template <class ...AnyT>
+template <class... AnyT>
 struct any;
 
 template <>
@@ -40,6 +40,7 @@ private:
 
 	template <class U>
 	static constexpr bool check(...) { return false; }
+
 public:
 	static constexpr bool value = check<T>(0);
 };
@@ -58,11 +59,12 @@ private:
 
 	template <class U>
 	static constexpr bool check(Helper<U, decltype(*(IS*)nullptr >> (*(std::decay_t<U>*)nullptr))>*) {
-		return !std::is_const_v<std::remove_reference_t<U>> && !std::is_rvalue_reference_v<U>; 
+		return !std::is_const_v<std::remove_reference_t<U>> && !std::is_rvalue_reference_v<U>;
 	}
 
 	template <class U>
 	static constexpr bool check(...) { return false; }
+
 public:
 	static constexpr bool value = check<T>(0);
 };
@@ -74,7 +76,7 @@ struct is_readable<void, IS> {
 
 
 
-// can be compared with == 
+// can be compared with ==
 template <class T>
 struct is_equality_comparable {
 private:
@@ -86,6 +88,7 @@ private:
 
 	template <class U>
 	static constexpr bool check(...) { return false; }
+
 public:
 	static constexpr bool value = check<T>(0);
 };
@@ -103,9 +106,18 @@ private:
 
 	template <class U>
 	static constexpr bool check(...) { return false; }
+
 public:
 	static constexpr bool value = check<T>(0);
 };
+
+
+// conditionally add const to a type
+template <class T, bool Const>
+using add_const_conditional = std::conditional<Const, std::add_const_t<T>, T>;
+
+template <class T, bool Const>
+using add_const_conditional_t = typename add_const_conditional<T, Const>::type;
 
 
 

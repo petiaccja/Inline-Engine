@@ -82,7 +82,7 @@ std::filesystem::path AssetCache<AssetT>::FindFullPath(std::filesystem::path pat
 			return fullPath;
 		}
 	}
-	throw FileNotFoundException("File not found in any of the directories specified for assets files.", path.generic_u8string());
+	throw FileNotFoundException{ "File not found in any of the directories specified for assets files.", path.generic_string() };
 }
 
 

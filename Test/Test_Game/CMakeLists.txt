@@ -31,15 +31,21 @@ set(src_systems
 	WindowEventSystem.cpp
 	UserInterfaceSystem.hpp
 	UserInterfaceSystem.cpp)
+
+set(src_level
+	ILevel.hpp
+	TestLevel.hpp
+	TestLevel.cpp)
 	
 # Target
-add_executable(Test_Game ${src_main} ${src_ui} ${src_collections} ${src_systems})
+add_executable(Test_Game ${src_main} ${src_ui} ${src_collections} ${src_systems} ${src_level})
 
 # Filters
 source_group("" FILES ${src_main})
 source_group("UI" FILES ${src_ui})
 source_group("FacilityCollections" FILES ${src_collections})
 source_group("Systems" FILES ${src_systems})
+source_group("Level" FILES ${src_level})
 
 # Dependencies
 target_link_libraries(Test_Game

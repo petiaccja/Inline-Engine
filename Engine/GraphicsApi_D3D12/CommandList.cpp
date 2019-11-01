@@ -1,18 +1,18 @@
 #include "CommandList.hpp"
 
-#include "PipelineState.hpp"
-#include "NativeCast.hpp"
 #include "ExceptionExpansions.hpp"
+#include "NativeCast.hpp"
+#include "PipelineState.hpp"
 
 #include "../GraphicsApi_LL/Common.hpp"
+#include <BaseLibrary/StringUtil.hpp>
 
-#include <vector>
 #include <cassert>
+#include <vector>
 
 #define _CRT_SECURE_NO_WARNINGS
 
-namespace inl {
-namespace gxapi_dx12 {
+namespace inl::gxapi_dx12 {
 
 
 
@@ -22,8 +22,7 @@ namespace gxapi_dx12 {
 
 
 BasicCommandList::BasicCommandList(ComPtr<ID3D12GraphicsCommandList>& native)
-	: m_native(native)
-{}
+	: m_native(native) {}
 
 
 ID3D12CommandList* BasicCommandList::GetNativeGenericList() {
@@ -51,9 +50,8 @@ void BasicCommandList::EndDebuggerEvent() const {
 
 void BasicCommandList::SetName(const char* name) {
 	size_t count = strlen(name);
-	std::unique_ptr<wchar_t[]> dest = std::make_unique<wchar_t[]>(count + 1);
-	mbstowcs(dest.get(), name, count);
-	m_native->SetName(dest.get());
+	auto name16 = EncodeString<char16_t>(name);
+	m_native->SetName(reinterpret_cast<const wchar_t*>(name16.c_str()));
 }
 
 
@@ -65,12 +63,9 @@ void BasicCommandList::SetName(const char* name) {
 
 // basic
 CopyCommandList::CopyCommandList(ComPtr<ID3D12GraphicsCommandList>& native)
-	: BasicCommandList(native)
-{
+	: BasicCommandList(native) {
 
-	assert(native->GetType() == D3D12_COMMAND_LIST_TYPE_DIRECT ||
-		   native->GetType() == D3D12_COMMAND_LIST_TYPE_COMPUTE ||
-		   native->GetType() == D3D12_COMMAND_LIST_TYPE_COPY);
+	assert(native->GetType() == D3D12_COMMAND_LIST_TYPE_DIRECT || native->GetType() == D3D12_COMMAND_LIST_TYPE_COMPUTE || native->GetType() == D3D12_COMMAND_LIST_TYPE_COPY);
 }
 
 
@@ -90,8 +85,7 @@ void CopyCommandList::CopyBuffer(
 	size_t dstOffset,
 	gxapi::IResource* src,
 	size_t srcOffset,
-	size_t numBytes
-) {
+	size_t numBytes) {
 	m_native->CopyBufferRegion(native_cast(dst), dstOffset, native_cast(src), srcOffset, numBytes);
 }
 
@@ -105,8 +99,7 @@ void CopyCommandList::CopyTexture(
 	int dstX, int dstY, int dstZ,
 	gxapi::IResource* src,
 	unsigned srcSubresourceIndex,
-	gxapi::Cube srcRegion
-) {
+	gxapi::Cube srcRegion) {
 	auto nativeDst = CreateTextureCopyLocation(dst, dstSubresourceIndex);
 	auto nativeSrc = CreateTextureCopyLocation(src, srcSubresourceIndex);
 
@@ -119,8 +112,7 @@ void CopyCommandList::CopyTexture(
 	int dstX, int dstY, int dstZ,
 	gxapi::IResource* src,
 	gxapi::TextureCopyDesc srcDesc,
-	gxapi::Cube srcRegion
-) {
+	gxapi::Cube srcRegion) {
 	auto nativeDst = CreateTextureCopyLocation(dst, dstDesc);
 	auto nativeSrc = CreateTextureCopyLocation(src, srcDesc);
 
@@ -135,8 +127,7 @@ void CopyCommandList::CopyTexture(
 	gxapi::TextureCopyDesc dstDesc,
 	int dstX, int dstY, int dstZ,
 	gxapi::IResource* src,
-	gxapi::TextureCopyDesc srcDesc
-) {
+	gxapi::TextureCopyDesc srcDesc) {
 	auto nativeDst = CreateTextureCopyLocation(dst, dstDesc);
 	auto nativeSrc = CreateTextureCopyLocation(src, srcDesc);
 
@@ -183,7 +174,7 @@ D3D12_TEXTURE_COPY_LOCATION CopyCommandList::CreateTextureCopyLocation(gxapi::IR
 				footprint.Format = native_cast(description.format);
 				footprint.Height = description.height;
 				footprint.Width = (UINT)description.width; // narrowing conversion!
-				size_t rowSize = size_t(GetFormatSizeInBytes(description.format)*description.width);
+				size_t rowSize = size_t(GetFormatSizeInBytes(description.format) * description.width);
 				size_t alignement = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
 				footprint.RowPitch = static_cast<UINT>(rowSize + (alignement - rowSize % alignement) % alignement);
 			}
@@ -198,8 +189,7 @@ D3D12_TEXTURE_COPY_LOCATION CopyCommandList::CreateTextureCopyLocation(gxapi::IR
 }
 
 
-D3D12_TEXTURE_COPY_LOCATION CopyCommandList::CreateTextureCopyLocation(gxapi::IResource* texture, unsigned subresourceIndex)
-{
+D3D12_TEXTURE_COPY_LOCATION CopyCommandList::CreateTextureCopyLocation(gxapi::IResource* texture, unsigned subresourceIndex) {
 	D3D12_TEXTURE_COPY_LOCATION result;
 	result.pResource = native_cast(texture);
 	result.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
@@ -216,10 +206,8 @@ D3D12_TEXTURE_COPY_LOCATION CopyCommandList::CreateTextureCopyLocation(gxapi::IR
 
 // basic
 ComputeCommandList::ComputeCommandList(ComPtr<ID3D12GraphicsCommandList>& native)
-	: CopyCommandList(native)
-{
-	assert(native->GetType() == D3D12_COMMAND_LIST_TYPE_DIRECT ||
-		   native->GetType() == D3D12_COMMAND_LIST_TYPE_COMPUTE);
+	: CopyCommandList(native) {
+	assert(native->GetType() == D3D12_COMMAND_LIST_TYPE_DIRECT || native->GetType() == D3D12_COMMAND_LIST_TYPE_COMPUTE);
 }
 
 
@@ -274,13 +262,13 @@ void ComputeCommandList::ResetState(gxapi::IPipelineState* newState) {
 
 
 // set pipeline state
-void ComputeCommandList::SetPipelineState(gxapi::IPipelineState * pipelineState) {
+void ComputeCommandList::SetPipelineState(gxapi::IPipelineState* pipelineState) {
 	m_native->SetPipelineState(native_cast(pipelineState));
 }
 
 
 // set descriptor heaps
-void ComputeCommandList::SetDescriptorHeaps(gxapi::IDescriptorHeap*const * heaps, uint32_t count) {
+void ComputeCommandList::SetDescriptorHeaps(gxapi::IDescriptorHeap* const* heaps, uint32_t count) {
 
 	std::vector<ID3D12DescriptorHeap*> nativeHeaps;
 	nativeHeaps.reserve(count);
@@ -300,8 +288,7 @@ void ComputeCommandList::SetDescriptorHeaps(gxapi::IDescriptorHeap*const * heaps
 
 // basic
 GraphicsCommandList::GraphicsCommandList(ComPtr<ID3D12GraphicsCommandList>& native)
-	: ComputeCommandList(native)
-{
+	: ComputeCommandList(native) {
 	assert(native->GetType() == D3D12_COMMAND_LIST_TYPE_DIRECT);
 }
 
@@ -369,7 +356,7 @@ void GraphicsCommandList::ExecuteBundle(IGraphicsCommandList* bundle) {
 
 
 // Input assembler
-void GraphicsCommandList::SetIndexBuffer(void * gpuVirtualAddress, size_t sizeInBytes, gxapi::eFormat format) {
+void GraphicsCommandList::SetIndexBuffer(void* gpuVirtualAddress, size_t sizeInBytes, gxapi::eFormat format) {
 	D3D12_INDEX_BUFFER_VIEW ibv;
 	ibv.BufferLocation = native_cast_ptr(gpuVirtualAddress);
 	ibv.Format = native_cast(format);
@@ -494,5 +481,4 @@ void GraphicsCommandList::SetGraphicsRootSignature(gxapi::IRootSignature* rootSi
 
 
 
-} // namespace gxapi_dx12
-} // namespace inl
+} // namespace inl::gxapi_dx12

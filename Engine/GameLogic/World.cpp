@@ -11,10 +11,10 @@ EntitySet::~EntitySet() {
 	// It's complicated... so World's methods need the definition of Entity and EntitySet,
 	// Entity's methods need World's definition, and EntitySet's dtor needs Entity's definition.
 	// That would all be fine, but World and Entity has template methods, so the two headers need to sort-of include
-	// each other. That would all be fine, just add prototype declaration of the other and include the other's header 
+	// each other. That would all be fine, just add prototype declaration of the other and include the other's header
 	// after the declaration of the class In other words, Entity would be defined under World,
 	// EntitySet would be defined above World, and Entity would be defined above EntitySet... I think now you see the problem.
-	// Fortunately, only EntitySet's destructor's definition needs Entity to be defined, so we can move EntitySet's dtor 
+	// Fortunately, only EntitySet's destructor's definition needs Entity to be defined, so we can move EntitySet's dtor
 	// below World and below Entity. Clear and easy to understand, right? Please don't mess with this shit, unless you
 	// know a better way to sort this out, because this is anything but nice.
 }
@@ -95,6 +95,27 @@ void World::SetSystems(std::vector<System*> systems) {
 
 const std::vector<System*>& World::GetSystems() const {
 	return m_systems;
+}
+
+
+World& World::operator+=(World&& entities) {
+	for (auto&& [scheme, entitySet] : entities.m_componentStores) {
+		MergeScheme(scheme, std::move(*entitySet));
+	}
+
+	return *this;
+}
+
+void World::MergeScheme(const ComponentScheme& scheme, EntitySet&& entitySet) {
+	if (m_componentStores.count(scheme) == 0) {
+		m_componentStores.insert({ scheme, std::make_unique<EntitySet>(std::move(entitySet)) });
+	}
+	else {
+		AppendScheme(scheme, std::move(entitySet));
+	}
+}
+
+void World::AppendScheme(const ComponentScheme& scheme, EntitySet&& entitySet) {
 }
 
 

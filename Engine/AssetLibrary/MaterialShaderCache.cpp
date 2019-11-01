@@ -13,7 +13,7 @@ MaterialShaderCache::MaterialShaderCache(gxeng::IGraphicsEngine& engine)
 std::shared_ptr<gxeng::IMaterialShader> MaterialShaderCache::Create(const std::filesystem::path& path) {
 	std::ifstream file(path);
 	if (!file.is_open()) {
-		throw FileNotFoundException("Asset file exists but cannot be opened.", path.generic_u8string());
+		throw FileNotFoundException("Asset file exists but cannot be opened.", path.generic_string());
 	}
 	std::string desc((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 

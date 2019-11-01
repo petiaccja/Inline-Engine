@@ -10,7 +10,7 @@ GraphicsMeshCache::GraphicsMeshCache(gxeng::IGraphicsEngine& engine)
 
 
 std::shared_ptr<gxeng::IMesh> GraphicsMeshCache::Create(const std::filesystem::path& path) {
-	Model model{ path.generic_u8string() };
+	Model model{ path };
 
 	CoordSysLayout csys;
 	csys.x = AxisDir::POS_X;

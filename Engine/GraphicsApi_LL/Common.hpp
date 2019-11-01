@@ -720,8 +720,6 @@ struct BufferDesc {
 };
 
 struct TextureDesc {
-	TextureDesc() = default;
-
 	static constexpr uint16_t ALL_MIPLEVELS = 0;
 
 	eTextueDimension dimension;

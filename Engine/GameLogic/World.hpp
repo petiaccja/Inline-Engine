@@ -14,6 +14,8 @@ class Entity;
 
 
 struct EntitySet {
+	EntitySet() = default;
+	EntitySet(EntitySet&&) = default;
 	~EntitySet();
 	ContiguousVector<std::unique_ptr<Entity>> entities;
 	ComponentStore store;
@@ -42,6 +44,13 @@ public:
 
 	template <class SystemT>
 	SystemT& GetSystem();
+
+	/// <summary> Moves all entities form another World into this. </summary>
+	World& operator+=(World&& entities);
+
+private:
+	void MergeScheme(const ComponentScheme& scheme, EntitySet&& entitySet);
+	void AppendScheme(const ComponentScheme& scheme, EntitySet&& entitySet);
 
 private:
 	std::unordered_map<ComponentScheme, std::unique_ptr<EntitySet>> m_componentStores;

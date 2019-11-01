@@ -41,7 +41,7 @@ private:
 
 int TestWindow::Run() {
 	try {
-		Window window{ u8"Test Window", {640, 480}, false, true };
+		Window window{ (const char*)u8"Test Window", Vec2u{640, 480}, false, true };
 		//window.SetQueueMode(eInputQueueMode::QUEUED);
 
 		window.OnMouseButton += Delegate<void(MouseButtonEvent)>{&TestWindow::OnClick, this};
