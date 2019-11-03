@@ -54,6 +54,8 @@ public:
 	using VectorT::clear;
 	using VectorT::emplace_back;
 	using VectorT::push_back;
+	using VectorT::insert;
+	using VectorT::emplace;
 	void erase(const_iterator it);
 	void erase(const_iterator first, const_iterator last);
 	void swap_elements(const_iterator elem1, const_iterator elem2);

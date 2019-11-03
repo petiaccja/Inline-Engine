@@ -11,6 +11,7 @@ set(src_world
 	ComponentStore.hpp
 	ComponentMatrix.cpp
 	ComponentMatrix.hpp
+	ComponentMatrixIterator.hpp
 	ComponentVector.hpp
 	ComponentRange.hpp
 	ComponentScheme.hpp
