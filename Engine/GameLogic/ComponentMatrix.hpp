@@ -12,6 +12,7 @@ namespace inl::game {
 //------------------------------------------------------------------------------
 
 // BUT WHY WAS THIS ALL NEEDED?
+//  ahh yeah, for the World+= which I didn't want to make hacky
 // Requirements:
 // method of specifying permutation:
 // - user wants to provide complete permutation (no work to do)
