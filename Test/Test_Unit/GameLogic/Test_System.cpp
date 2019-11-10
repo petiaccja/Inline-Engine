@@ -10,14 +10,14 @@ using namespace inl::game;
 TEST_CASE("System - Update default", "[GameLogic]") {
 	DoubleFooToBarSystem system;
 
-	ComponentStore store;
-	store.Extend<FooComponent>();
-	store.Extend<BarComponent>();
-	store.Extend<BazComponent>();
+	ComponentMatrix store;
+	store.types.push_back(_ComponentVector<FooComponent>{});
+	store.types.push_back(_ComponentVector<BarComponent>{});
+	store.types.push_back(_ComponentVector<BazComponent>{});
 
-	store.PushBack(FooComponent{ 1 }, BarComponent{ 4 }, BazComponent{ 7 });
-	store.PushBack(FooComponent{ 2 }, BarComponent{ 5 }, BazComponent{ 8 });
-	store.PushBack(FooComponent{ 3 }, BarComponent{ 6 }, BazComponent{ 9 });
+	store.entities.emplace_back(FooComponent{ 1 }, BarComponent{ 4 }, BazComponent{ 7 });
+	store.entities.emplace_back(FooComponent{ 2 }, BarComponent{ 5 }, BazComponent{ 8 });
+	store.entities.emplace_back(FooComponent{ 3 }, BarComponent{ 6 }, BazComponent{ 9 });
 
 	ComponentRange<const FooComponent, BarComponent> range(store);
 

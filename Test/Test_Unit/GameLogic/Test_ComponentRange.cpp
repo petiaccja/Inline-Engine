@@ -9,24 +9,24 @@ using namespace inl::game;
 
 
 TEST_CASE("ComponentRange - Construct", "[GameLogic]") {
-	ComponentStore store;
-	store.Extend<FooComponent>();
-	store.Extend<BarComponent>();
-	store.Extend<BazComponent>();
+	ComponentMatrix store;
+	store.types.push_back(_ComponentVector<FooComponent>{});
+	store.types.push_back(_ComponentVector<BarComponent>{});
+	store.types.push_back(_ComponentVector<BazComponent>{});
 
 	ComponentRange<const FooComponent, BazComponent> range(store);
 }
 
 
 TEST_CASE("ComponentRange - Iterator", "[GameLogic]") {
-	ComponentStore store;
-	store.Extend<FooComponent>();
-	store.Extend<BarComponent>();
-	store.Extend<BazComponent>();
+	ComponentMatrix store;
+	store.types.push_back(_ComponentVector<FooComponent>{});
+	store.types.push_back(_ComponentVector<BarComponent>{});
+	store.types.push_back(_ComponentVector<BazComponent>{});
 
-	store.PushBack(FooComponent{ 1 }, BarComponent{ 4 }, BazComponent{ 7 });
-	store.PushBack(FooComponent{ 2 }, BarComponent{ 5 }, BazComponent{ 8 });
-	store.PushBack(FooComponent{ 3 }, BarComponent{ 6 }, BazComponent{ 9 });
+	store.entities.emplace_back(FooComponent{ 1 }, BarComponent{ 4 }, BazComponent{ 7 });
+	store.entities.emplace_back(FooComponent{ 2 }, BarComponent{ 5 }, BazComponent{ 8 });
+	store.entities.emplace_back(FooComponent{ 3 }, BarComponent{ 6 }, BazComponent{ 9 });
 
 	ComponentRange<const FooComponent, BazComponent> range(store);
 
@@ -44,14 +44,14 @@ TEST_CASE("ComponentRange - Iterator", "[GameLogic]") {
 
 
 TEST_CASE("ComponentRange - Modify elements", "[GameLogic]") {
-	ComponentStore store;
-	store.Extend<FooComponent>();
-	store.Extend<BarComponent>();
-	store.Extend<BazComponent>();
+	ComponentMatrix store;
+	store.types.push_back(_ComponentVector<FooComponent>{});
+	store.types.push_back(_ComponentVector<BarComponent>{});
+	store.types.push_back(_ComponentVector<BazComponent>{});
 
-	store.PushBack(FooComponent{ 1 }, BarComponent{ 4 }, BazComponent{ 7 });
-	store.PushBack(FooComponent{ 2 }, BarComponent{ 5 }, BazComponent{ 8 });
-	store.PushBack(FooComponent{ 3 }, BarComponent{ 6 }, BazComponent{ 9 });
+	store.entities.emplace_back(FooComponent{ 1 }, BarComponent{ 4 }, BazComponent{ 7 });
+	store.entities.emplace_back(FooComponent{ 2 }, BarComponent{ 5 }, BazComponent{ 8 });
+	store.entities.emplace_back(FooComponent{ 3 }, BarComponent{ 6 }, BazComponent{ 9 });
 
 	ComponentRange<const FooComponent, BazComponent> range(store);
 
@@ -68,13 +68,13 @@ TEST_CASE("ComponentRange - Modify elements", "[GameLogic]") {
 
 
 TEST_CASE("ComponentRange - Failure to get vectors", "[GameLogic]") {
-	ComponentStore store;
-	store.Extend<FooComponent>();
-	store.Extend<BarComponent>();
+	ComponentMatrix store;
+	store.types.push_back(_ComponentVector<FooComponent>{});
+	store.types.push_back(_ComponentVector<BarComponent>{});
 
-	store.PushBack(FooComponent{ 1 }, BarComponent{ 4 });
-	store.PushBack(FooComponent{ 2 }, BarComponent{ 5 });
-	store.PushBack(FooComponent{ 3 }, BarComponent{ 6 });
+	store.entities.emplace_back(FooComponent{ 1 }, BarComponent{ 4 });
+	store.entities.emplace_back(FooComponent{ 2 }, BarComponent{ 5 });
+	store.entities.emplace_back(FooComponent{ 3 }, BarComponent{ 6 });
 
 	REQUIRE_THROWS(ComponentRange<const FooComponent, BazComponent>(store));
 }

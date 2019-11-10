@@ -25,12 +25,13 @@ public:
 	virtual void Resize(size_t size) = 0;
 	virtual void Erase(size_t where) = 0;
 	virtual void Erase(size_t first, size_t last) = 0;
+	virtual std::unique_ptr<ComponentVectorBase> CloneEmpty() = 0;
 
 	virtual size_t Size() const = 0;
 	virtual std::type_index Type() const = 0;
 
 	virtual void Copy(size_t targetIndex, const ComponentVectorBase& sourceVector, size_t sourceIndex) = 0;
-	virtual void Move(size_t targetIndex, const ComponentVectorBase& sourceVector, size_t sourceIndex) = 0;
+	virtual void Move(size_t targetIndex, ComponentVectorBase& sourceVector, size_t sourceIndex) = 0;
 
 protected:
 	virtual void InsertMove(size_t where, void* componentPtr) = 0;
@@ -50,12 +51,16 @@ public:
 	void Resize(size_t size) override;
 	void Erase(size_t where) override;
 	void Erase(size_t first, size_t last) override;
+	std::unique_ptr<ComponentVectorBase> CloneEmpty() override;
 	size_t Size() const override;
 	std::type_index Type() const override;
 	T& operator[](size_t index);
 	const T& operator[](size_t index) const;
 	void Copy(size_t targetIndex, const ComponentVectorBase& sourceVector, size_t sourceIndex) override;
-	void Move(size_t targetIndex, const ComponentVectorBase& sourceVector, size_t sourceIndex) override;
+	void Move(size_t targetIndex, ComponentVectorBase& sourceVector, size_t sourceIndex) override;
+
+	ContiguousVector<T>& Raw();
+	const ContiguousVector<T>& Raw() const;
 
 protected:
 	void InsertMove(size_t where, void* componentPtr) override;
@@ -124,6 +129,11 @@ void _ComponentVector<T>::Erase(size_t first, size_t last) {
 }
 
 template <class T>
+std::unique_ptr<ComponentVectorBase> _ComponentVector<T>::CloneEmpty() {
+	return std::make_unique<_ComponentVector>();
+}
+
+template <class T>
 size_t _ComponentVector<T>::Size() const {
 	return m_data.size();
 }
@@ -140,7 +150,12 @@ void _ComponentVector<T>::InsertMove(size_t where, void* componentPtr) {
 
 template <class T>
 void _ComponentVector<T>::InsertCopy(size_t where, const void* componentPtr) {
-	m_data.insert(m_data.begin() + where, *reinterpret_cast<const T*>(componentPtr));
+	if constexpr (std::is_copy_constructible_v<T>) {
+		m_data.insert(m_data.begin() + where, *reinterpret_cast<const T*>(componentPtr));
+	}
+	else {
+		throw InvalidCallException("Type is not copy constructible. No compile time check due to type erasure.", typeid(T).name());
+	}
 }
 
 template <class T>
@@ -155,14 +170,29 @@ const T& _ComponentVector<T>::operator[](size_t index) const {
 
 template <class T>
 void _ComponentVector<T>::Copy(size_t targetIndex, const ComponentVectorBase& sourceVector, size_t sourceIndex) {
-	auto& sourceVectorTyped = dynamic_cast<const _ComponentVector<T>&>(sourceVector);
-	(*this)[targetIndex] = sourceVectorTyped[sourceIndex];
+	if constexpr (std::is_copy_assignable_v<T>) {
+		auto& sourceVectorTyped = dynamic_cast<const _ComponentVector<T>&>(sourceVector);
+		(*this)[targetIndex] = sourceVectorTyped[sourceIndex];
+	}
+	else {
+		throw InvalidCallException("Type is not copy assignable. No compile time check due to type erasure.", typeid(T).name());
+	}
 }
 
 template <class T>
-void _ComponentVector<T>::Move(size_t targetIndex, const ComponentVectorBase& sourceVector, size_t sourceIndex) {
-	auto& sourceVectorTyped = dynamic_cast<const _ComponentVector<T>&>(sourceVector);
+void _ComponentVector<T>::Move(size_t targetIndex, ComponentVectorBase& sourceVector, size_t sourceIndex) {
+	auto& sourceVectorTyped = dynamic_cast<_ComponentVector<T>&>(sourceVector);
 	(*this)[targetIndex] = std::move(sourceVectorTyped[sourceIndex]);
+}
+
+template <class T>
+ContiguousVector<T>& _ComponentVector<T>::Raw() {
+	return m_data;
+}
+
+template <class T>
+const ContiguousVector<T>& _ComponentVector<T>::Raw() const {
+	return m_data;
 }
 
 

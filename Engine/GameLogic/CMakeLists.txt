@@ -7,11 +7,8 @@ set(src_world
 	Entity.cpp
 	Entity.hpp
 	ContiguousVector.hpp
-	ComponentStore.cpp
-	ComponentStore.hpp
 	ComponentMatrix.cpp
 	ComponentMatrix.hpp
-	ComponentMatrixIterator.hpp
 	ComponentVector.hpp
 	ComponentRange.hpp
 	ComponentScheme.hpp

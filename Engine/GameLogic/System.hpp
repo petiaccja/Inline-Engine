@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ComponentRange.hpp"
-#include "ComponentStore.hpp"
+#include "ComponentMatrix.hpp"
 
 
 namespace inl::game {
@@ -13,7 +13,7 @@ public:
 
 	virtual const ComponentScheme& Scheme() const = 0;
 	virtual void Update(float elapsed) = 0;
-	virtual void Update(float elapsed, ComponentStore& store) = 0;
+	virtual void Update(float elapsed, ComponentMatrix& store) = 0;
 };
 
 
@@ -22,7 +22,7 @@ class SpecificSystem : public System {
 public:
 	const ComponentScheme& Scheme() const override final;
 	void Update(float elapsed) override final { throw InvalidCallException("Don't call this."); }
-	void Update(float elapsed, ComponentStore& store) override;
+	void Update(float elapsed, ComponentMatrix& store) override;
 
 protected:
 	virtual void Update(float elapsed, ComponentRange<ComponentTypes...>& range);
@@ -40,7 +40,7 @@ public:
 		static const ComponentScheme scheme;
 		return scheme;
 	}
-	void Update(float elapsed, ComponentStore& store) override final { throw InvalidCallException("Don't call this."); }
+	void Update(float elapsed, ComponentMatrix& store) override final { throw InvalidCallException("Don't call this."); }
 };
 
 
@@ -52,7 +52,7 @@ const ComponentScheme& SpecificSystem<DerivedSystem, ComponentTypes...>::Scheme(
 
 
 template <class DerivedSystem, class... ComponentTypes>
-void SpecificSystem<DerivedSystem, ComponentTypes...>::Update(float elapsed, ComponentStore& store) {
+void SpecificSystem<DerivedSystem, ComponentTypes...>::Update(float elapsed, ComponentMatrix& store) {
 	ComponentRange<ComponentTypes...> range(store);
 	Update(elapsed, range);
 }

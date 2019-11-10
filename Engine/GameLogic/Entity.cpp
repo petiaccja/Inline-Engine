@@ -11,10 +11,4 @@ void Entity::RemoveComponent(size_t index) {
 }
 
 
-const ComponentScheme& Entity::GetScheme() const {
-	assert(m_store);
-	return m_store->store.Scheme();
-}
-
-
 } // namespace inl::game

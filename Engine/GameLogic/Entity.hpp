@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ComponentStore.hpp"
+#include "ComponentMatrix.hpp"
 
 #include <cassert>
 
@@ -20,7 +20,7 @@ namespace impl {
 
 
 
-		std::conditional<isConst, const ComponentStore*, ComponentStore*> m_store;
+		std::conditional<isConst, const ComponentMatrix*, ComponentMatrix*> m_store;
 		size_t m_entityIndex; // At which index in the vectors this entity's components reside.
 		size_t m_first; // Index of the first component vector with ComponentT.
 		size_t m_last; // Index of the past-the-last component vector with ComponentT.
@@ -51,7 +51,6 @@ public:
 	template <class ComponentT>
 	const ComponentT& GetFirstComponent() const;
 
-	const ComponentScheme& GetScheme() const;
 	const World* GetWorld() const { return m_world; }
 	const EntitySet* GetStore() const { return m_store; }
 	size_t GetIndex() const { return m_index; }
@@ -84,23 +83,23 @@ void Entity::RemoveComponent() {
 	m_world->RemoveComponent<ComponentT>(*this);
 }
 
-
 template <class ComponentT>
 bool Entity::HasComponent() const {
-	auto [firstIdx, lastIdx] = GetScheme().Index(typeid(ComponentT));
-	return firstIdx < lastIdx;
+	assert(m_store);
+	auto& store = m_store->store;
+	auto [first, last] = store.types.equal_range(typeid(ComponentT));
+	return first < last;
 }
-
 
 template <class ComponentT>
 ComponentT& Entity::GetFirstComponent() {
 	assert(m_store);
 	auto& store = m_store->store;
-	auto [index, last] = store.Scheme().Index(typeid(ComponentT));
-	if (index == last) {
+	auto [first, last] = store.types.equal_range(typeid(ComponentT));
+	if (first == last) {
 		throw InvalidArgumentException("No such component in entity.");
 	}
-	return m_store->store.GetComponentVector<ComponentT>(index)[m_index];
+	return m_store->store.entities[m_index].get<ComponentT>(first->second);
 }
 
 
@@ -108,11 +107,11 @@ template <class ComponentT>
 const ComponentT& Entity::GetFirstComponent() const {
 	assert(m_store);
 	auto& store = m_store->store;
-	auto [index, last] = store.Scheme().Index(typeid(ComponentT));
-	if (index == last) {
+	auto [first, last] = store.types.equal_range(typeid(ComponentT));
+	if (first == last) {
 		throw InvalidArgumentException("No such component in entity.");
 	}
-	return m_store->store.GetComponentVector<ComponentT>(index)[m_index];
+	return m_store->store.entities[m_index].get<ComponentT>(first->second);
 }
 
 

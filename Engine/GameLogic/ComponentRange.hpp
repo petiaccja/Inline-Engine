@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ComponentStore.hpp"
+#include "ComponentMatrix.hpp"
 
 #include <map>
 #include <type_traits>
@@ -99,7 +99,7 @@ public:
 
 private:
 	static constexpr bool IsAllConst = std::conjunction_v<std::is_const<std::remove_reference_t<ComponentTypes>>...>;
-	using ComponentStoreOptConstT = impl::AddConstOptT<ComponentStore, IsAllConst>;
+	using ComponentStoreOptConstT = impl::AddConstOptT<ComponentMatrix, IsAllConst>;
 	using ComponentVectorTupleT = std::tuple<impl::ComponentVectorOptConstT<ComponentTypes>&...>;
 
 public:
@@ -128,18 +128,17 @@ template <class... ComponentTypes>
 std::vector<size_t> ComponentRange<ComponentTypes...>::DefaultIndices(ComponentStoreOptConstT& componentStore) {
 	std::map<std::type_index, size_t> indexCounter;
 	std::array types = { std::type_index(typeid(ComponentTypes))... };
-	const ComponentScheme& scheme = componentStore.Scheme();
 	std::vector<size_t> indices;
 
 	for (auto& type : types) {
 		auto it = indexCounter.find(type);
 		if (it == indexCounter.end()) {
-			auto [firstIdx, lastIdx] = scheme.Index(type);
-			if (firstIdx == lastIdx) {
+			auto [first, last] = componentStore.types.equal_range(type);
+			if (first == last) {
 				throw InvalidArgumentException("Component type not found in store.");
 			}
-			indexCounter[type] = firstIdx;
-			indices.push_back(firstIdx);
+			indexCounter[type] = first->second;
+			indices.push_back(first->second);
 		}
 		else {
 			indices.push_back(++it->second);
@@ -198,7 +197,8 @@ auto ComponentRange<ComponentTypes...>::cend() const -> const_iterator {
 template <class... ComponentTypes>
 template <size_t... Indices>
 auto ComponentRange<ComponentTypes...>::FindComponentVectors(ComponentStoreOptConstT& componentStore, const std::vector<size_t>& componentVectorIndices, std::index_sequence<Indices...>) -> ComponentVectorTupleT {
-	return { componentStore.template GetComponentVector<std::decay_t<ComponentTypes>>(componentVectorIndices[Indices])... };
+	//return { componentStore.template GetComponentVector<std::decay_t<ComponentTypes>>(componentVectorIndices[Indices])... };
+	return { componentStore.types[componentVectorIndices[Indices]].template get_vector<std::decay_t<ComponentTypes>>().Raw()... };
 }
 
 
