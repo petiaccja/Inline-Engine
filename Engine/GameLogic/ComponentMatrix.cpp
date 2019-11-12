@@ -100,11 +100,12 @@ TypeVector& TypeVector::operator=(const TypeVector& rhs) {
 	std::vector<std::unique_ptr<ComponentVectorBase>> addedVectors;
 	std::vector<size_t> deletedVectors;
 
-	for (; rhsIt != rhsEnd; ++rhsIt) {
-		if (rhsIt->first < myIt->first) {
+	while (rhsIt != rhsEnd) {
+		if (myIt == myEnd || rhsIt->first < myIt->first) {
 			// clone & add
 			addedVectors.push_back(rhs.m_matrix[rhsIt->second]->CloneEmpty());
 			addedVectors.back()->Resize(sz);
+			++rhsIt;
 		}
 		else if (rhsIt->first > myIt->first) {
 			// delete my
@@ -113,11 +114,17 @@ TypeVector& TypeVector::operator=(const TypeVector& rhs) {
 		}
 		else {
 			++myIt;
+			++rhsIt;
 		}
 	}
+	while (myIt != myEnd) {
+		m_matrix[myIt->second].reset();
+		++myIt;
+	}
+	
 
 	m_matrix.reserve(rhs.m_matrix.size());
-	const auto lastKept = std::remove_if(m_matrix.begin(), m_matrix.end(), [](const std::unique_ptr<ComponentVectorBase>& arg) { return bool(arg); });
+	const auto lastKept = std::remove_if(m_matrix.begin(), m_matrix.end(), [](const std::unique_ptr<ComponentVectorBase>& arg) { return !arg; });
 	m_matrix.erase(lastKept, m_matrix.end());
 	for (auto& added : addedVectors) {
 		m_matrix.push_back(std::move(added));

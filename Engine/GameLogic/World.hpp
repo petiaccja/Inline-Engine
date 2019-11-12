@@ -121,11 +121,12 @@ void World::AddComponent(Entity& entity, ComponentT&& component) {
 	const size_t schemeOrderedIndex = extendedScheme.Index(typeid(ComponentT)).second - 1;
 	const size_t componentIndex = newStore.types.type_order()[schemeOrderedIndex].second;
 	newStore.entities.back().get<ComponentT>(componentIndex) = std::forward<ComponentT>(component);
+	currentStore.entities.erase(currentStore.entities.begin() + currentIndex);
 
 	// Update entities.
 	it->second->entities.push_back(std::move(currentEntities[currentIndex]));
 	currentEntities.erase(currentEntities.begin() + currentIndex);
-	entity = Entity(this, it->second.get(), currentStore.entities.size() - 1);
+	entity = Entity(this, it->second.get(), newStore.entities.size() - 1);
 	if (currentEntities.size() > currentIndex) {
 		*currentEntities[currentIndex] = Entity(this, (EntitySet*)currentEntities[currentIndex]->GetStore(), currentIndex);
 	}

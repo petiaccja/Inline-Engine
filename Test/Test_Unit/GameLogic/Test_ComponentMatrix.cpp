@@ -110,11 +110,11 @@ TEST_CASE("Emplace entity partial", "[ComponentMatrix]") {
 	matrix.entities.emplace(matrix.entities.end(), FooComponent{ 13.f }, BarComponent{ 12.f });
 	REQUIRE(matrix.entities[0].get<FooComponent>(0).value == 13.f);
 	REQUIRE(matrix.entities[0].get<BarComponent>(1).value == 12.f);
-	
+
 	matrix.entities.emplace(matrix.entities.end(), FooComponent{ 16.f }, BazComponent{ 15.f });
 	REQUIRE(matrix.entities[1].get<FooComponent>(0).value == 16.f);
 	REQUIRE(matrix.entities[1].get<BazComponent>(2).value == 15.f);
-	
+
 	for (auto it = matrix.types.begin(); it != matrix.types.end(); ++it) {
 		REQUIRE(it->size() == 2);
 	}
@@ -156,3 +156,63 @@ TEST_CASE("Add type non-empty", "[ComponentMatrix]") {
 }
 
 
+TEST_CASE("Types assign empty", "[ComponentMatrix]") {
+	ComponentMatrix matrix1;
+
+	matrix1.types.insert(matrix1.types.end(), _ComponentVector<FooComponent>{});
+	matrix1.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});
+	
+	ComponentMatrix matrix2;
+	matrix2.types = matrix1.types;
+
+	REQUIRE(matrix1.types.size() == matrix2.types.size());
+	REQUIRE(matrix1.types.type_order().size() == matrix1.types.size());
+	REQUIRE(matrix2.types.type_order().size() == matrix2.types.size());
+	const size_t end = matrix1.types.size();
+	for (size_t i = 0; i < end; ++i) {
+		REQUIRE(matrix1.types.type_order()[i].first == matrix2.types.type_order()[i].first);
+	}
+}
+
+
+TEST_CASE("Types assign subset", "[ComponentMatrix]") {
+	ComponentMatrix matrix1;
+
+	matrix1.types.insert(matrix1.types.end(), _ComponentVector<FooComponent>{});
+	matrix1.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});
+	
+	ComponentMatrix matrix2;
+	matrix2.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});	
+	matrix2.types = matrix1.types;
+
+	REQUIRE(matrix1.types.size() == matrix2.types.size());
+	REQUIRE(matrix1.types.type_order().size() == matrix1.types.size());
+	REQUIRE(matrix2.types.type_order().size() == matrix2.types.size());
+	const size_t end = matrix1.types.size();
+	for (size_t i = 0; i < end; ++i) {
+		REQUIRE(matrix1.types.type_order()[i].first == matrix2.types.type_order()[i].first);
+}
+}
+
+TEST_CASE("Types assign superset", "[ComponentMatrix]") {
+	ComponentMatrix matrix1;
+
+	matrix1.types.insert(matrix1.types.end(), _ComponentVector<FooComponent>{});
+	matrix1.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});
+
+	ComponentMatrix matrix2;
+	matrix2.types.insert(matrix1.types.end(), _ComponentVector<FooComponent>{});
+	matrix2.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});
+	matrix2.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});
+	matrix2.types.insert(matrix1.types.end(), _ComponentVector<BazComponent>{});
+	
+	matrix2.types = matrix1.types;
+
+	REQUIRE(matrix1.types.size() == matrix2.types.size());
+	REQUIRE(matrix1.types.type_order().size() == matrix1.types.size());
+	REQUIRE(matrix2.types.type_order().size() == matrix2.types.size());
+	const size_t end = matrix1.types.size();
+	for (size_t i = 0; i < end; ++i) {
+		REQUIRE(matrix1.types.type_order()[i].first == matrix2.types.type_order()[i].first);
+	}
+}
