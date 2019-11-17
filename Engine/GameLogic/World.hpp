@@ -56,7 +56,7 @@ private:
 	
 	ComponentScheme GetScheme(const ComponentMatrix& matrix);
 	void MergeScheme(const ComponentScheme& scheme, EntitySet&& entitySet);
-	void AppendScheme(const ComponentScheme& scheme, EntitySet&& entitySet);
+	void AppendScheme(EntitySet& target, EntitySet&& source);
 
 private:
 	std::unordered_map<ComponentScheme, std::unique_ptr<EntitySet>> m_componentStores;

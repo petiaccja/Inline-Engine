@@ -121,15 +121,24 @@ ComponentScheme World::GetScheme(const ComponentMatrix& matrix) {
 
 
 void World::MergeScheme(const ComponentScheme& scheme, EntitySet&& entitySet) {
-	if (m_componentStores.count(scheme) == 0) {
+	auto it = m_componentStores.find(scheme);
+	if (it == m_componentStores.end()) {
 		m_componentStores.insert({ scheme, std::make_unique<EntitySet>(std::move(entitySet)) });
 	}
 	else {
-		AppendScheme(scheme, std::move(entitySet));
+		AppendScheme(*it->second, std::move(entitySet));
 	}
 }
 
-void World::AppendScheme(const ComponentScheme& scheme, EntitySet&& entitySet) {
+void World::AppendScheme(EntitySet& target, EntitySet&& source) {
+	for (auto& components : source.store.entities) {
+		target.store.entities.push_back(std::move(components));
+	}
+	for (auto& entity : source.entities) {
+		size_t idx = target.entities.size();
+		target.entities.push_back(std::move(entity));
+		*target.entities.back() = Entity{ this, &target, idx };
+	}
 }
 
 

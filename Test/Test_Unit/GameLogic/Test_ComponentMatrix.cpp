@@ -32,9 +32,9 @@ TEST_CASE("Add multiple in order", "[ComponentMatrix]") {
 
 	REQUIRE(matrix.entities.size() == 0);
 	REQUIRE(matrix.types.size() == 3);
-	REQUIRE((matrix.types[0])->get_type() == typeid(FooComponent));
-	REQUIRE((matrix.types[1])->get_type() == typeid(BarComponent));
-	REQUIRE((matrix.types[2])->get_type() == typeid(BazComponent));
+	REQUIRE((matrix.types[0]).get_type() == typeid(FooComponent));
+	REQUIRE((matrix.types[1]).get_type() == typeid(BarComponent));
+	REQUIRE((matrix.types[2]).get_type() == typeid(BazComponent));
 }
 
 
@@ -84,8 +84,8 @@ TEST_CASE("Insert entity copy ref", "[ComponentMatrix]") {
 
 	matrix.entities.insert(matrix.entities.end(), *matrix.entities.cbegin());
 
-	REQUIRE(matrix.entities[1]->get<FooComponent>(0).value == 13.f);
-	REQUIRE(matrix.entities[1]->get<BarComponent>(1).value == 12.f);
+	REQUIRE(matrix.entities[1].get<FooComponent>(0).value == 13.f);
+	REQUIRE(matrix.entities[1].get<BarComponent>(1).value == 12.f);
 }
 
 
@@ -161,7 +161,7 @@ TEST_CASE("Types assign empty", "[ComponentMatrix]") {
 
 	matrix1.types.insert(matrix1.types.end(), _ComponentVector<FooComponent>{});
 	matrix1.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});
-	
+
 	ComponentMatrix matrix2;
 	matrix2.types = matrix1.types;
 
@@ -180,9 +180,9 @@ TEST_CASE("Types assign subset", "[ComponentMatrix]") {
 
 	matrix1.types.insert(matrix1.types.end(), _ComponentVector<FooComponent>{});
 	matrix1.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});
-	
+
 	ComponentMatrix matrix2;
-	matrix2.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});	
+	matrix2.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});
 	matrix2.types = matrix1.types;
 
 	REQUIRE(matrix1.types.size() == matrix2.types.size());
@@ -191,7 +191,7 @@ TEST_CASE("Types assign subset", "[ComponentMatrix]") {
 	const size_t end = matrix1.types.size();
 	for (size_t i = 0; i < end; ++i) {
 		REQUIRE(matrix1.types.type_order()[i].first == matrix2.types.type_order()[i].first);
-}
+	}
 }
 
 TEST_CASE("Types assign superset", "[ComponentMatrix]") {
@@ -205,7 +205,7 @@ TEST_CASE("Types assign superset", "[ComponentMatrix]") {
 	matrix2.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});
 	matrix2.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});
 	matrix2.types.insert(matrix1.types.end(), _ComponentVector<BazComponent>{});
-	
+
 	matrix2.types = matrix1.types;
 
 	REQUIRE(matrix1.types.size() == matrix2.types.size());

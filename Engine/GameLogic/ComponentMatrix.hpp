@@ -29,37 +29,42 @@ struct EntityTypeMatrix : public std::vector<std::unique_ptr<ComponentVectorBase
 class EntityVector {
 public:
 	template <bool Const>
-	class generic_reference {
-		friend generic_reference<!Const>;
+	class generic_iterator;
+
+	class value_type {
+		template <bool Const>
+		friend class generic_iterator;
 
 	public:
-		generic_reference() : m_index(std::numeric_limits<decltype(m_index)>::max()), m_matrix(nullptr) {}
-		generic_reference(size_t index, templ::add_const_conditional_t<EntityTypeMatrix, Const>& matrix) : m_index(index), m_matrix(&matrix) {}
+		value_type() : m_index(std::numeric_limits<decltype(m_index)>::max()), m_matrix(nullptr) {}
+		value_type(size_t index, EntityTypeMatrix* matrix) : m_index(index), m_matrix(matrix) {}
 
-		generic_reference(const generic_reference&) = default;
-		template <class Dummy = void, class = std::enable_if_t<Const, Dummy>>
-		generic_reference(const generic_reference<false>& rhs) : m_index(rhs.m_index), m_matrix(rhs.m_matrix) {}
+		value_type(const value_type&) = delete;
+		value_type(value_type&& rhs) noexcept : m_index(rhs.m_index), m_matrix(rhs.m_matrix) {}
+
+		value_type& operator=(const value_type& rhs);
+		value_type& operator=(value_type&& rhs);
+
+		template <class... Components>
+		value_type& assign_extend(const value_type&, Components&&... rhs);
+
+		template <class... Components>
+		value_type& assign_extend(value_type&&, Components&&... rhs);
+
+		template <class SkipPred>
+		value_type& assign_partial(const value_type&, SkipPred skipPred);
+
+		template <class SkipPred>
+		value_type& assign_partial(value_type&&, SkipPred skipPred);
 
 		template <class AsType>
-		templ::add_const_conditional_t<AsType, Const>& get(size_t index) const;
+		AsType& get(size_t index);
+
+		template <class AsType>
+		const AsType& get(size_t index) const;
+
 		size_t size() const;
 		std::type_index get_type(size_t index) const;
-		generic_reference& operator=(const generic_reference<true>& rhs);
-		generic_reference& operator=(generic_reference<false>&& rhs);
-
-		template <class... Components>
-		generic_reference& assign_extend(const generic_reference<true>&, Components&&... rhs);
-
-		template <class... Components>
-		generic_reference& assign_extend(generic_reference<false>&&, Components&&... rhs);
-
-		template <class SkipPred>
-		generic_reference& assign_partial(const generic_reference<true>&, SkipPred skipPred);
-
-		template <class SkipPred>
-		generic_reference& assign_partial(generic_reference<false>&&, SkipPred skipPred);
-
-		generic_reference* operator->() { return this; }
 
 	private:
 		template <class other_t>
@@ -71,14 +76,14 @@ public:
 		template <class other_t, class SkipPred>
 		void assign_partial(other_t&&, SkipPred skipPred, int);
 
-		void assign_same(const generic_reference<true>& rhs);
-		void assign_same(generic_reference<false>&& rhs);
-		void assign_auto(const generic_reference<true>& rhs);
-		void assign_auto(generic_reference<false>&& rhs);
+		void assign_same(const value_type& rhs);
+		void assign_same(value_type&& rhs);
+		void assign_auto(const value_type& rhs);
+		void assign_auto(value_type&& rhs);
 
 	private:
 		size_t m_index;
-		templ::add_const_conditional_t<EntityTypeMatrix, Const>* m_matrix;
+		EntityTypeMatrix* m_matrix;
 	};
 
 	template <bool Const>
@@ -86,15 +91,15 @@ public:
 		friend generic_iterator<!Const>;
 
 	public:
-		generic_iterator() : m_index(std::numeric_limits<decltype(m_index)>::max()), m_matrix(nullptr) {}
-		generic_iterator(size_t index, templ::add_const_conditional_t<EntityTypeMatrix, Const>& matrix) : m_index(index), m_matrix(&matrix) {}
+		generic_iterator() : m_value(0, nullptr) {}
+		generic_iterator(size_t index, EntityTypeMatrix* matrix) : m_value(index, matrix) {}
 
-		generic_iterator(const generic_iterator&) = default;
+		generic_iterator(const generic_iterator& rhs) : m_value(rhs.m_value.m_index, rhs.m_value.m_matrix) {}
 		template <class Dummy = void, class = std::enable_if_t<Const, Dummy>>
-		generic_iterator(const generic_iterator<false>& rhs) : m_index(rhs.m_index), m_matrix(rhs.m_matrix) {}
+		generic_iterator(const generic_iterator<false>& rhs) : m_value(rhs.m_value.m_index, rhs.m_value.m_matrix) {}
 
-		generic_reference<Const> operator*() const { return generic_reference<Const>{ m_index, *m_matrix }; }
-		generic_reference<Const> operator->() const { return generic_reference<Const>{ m_index, *m_matrix }; }
+		templ::add_const_conditional_t<value_type, Const>& operator*() const { return m_value; }
+		templ::add_const_conditional_t<value_type, Const>* operator->() const { return &m_value; }
 
 		generic_iterator& operator++();
 		generic_iterator& operator--();
@@ -105,34 +110,35 @@ public:
 		friend generic_iterator operator+(generic_iterator lhs, size_t n) { return lhs += n; }
 		friend generic_iterator operator+(size_t n, generic_iterator rhs) { return rhs += n; }
 		friend generic_iterator operator-(generic_iterator lhs, size_t n) { return lhs -= n; }
-		friend size_t operator-(const generic_iterator& lhs, const generic_iterator& rhs) { return lhs.m_index - rhs.m_index; }
+		friend size_t operator-(const generic_iterator& lhs, const generic_iterator& rhs) { return lhs.get_index() - rhs.get_index(); }
 		auto operator<=>(const generic_iterator& rhs) const { return get_index() <=> rhs.get_index(); }
 		auto operator==(const generic_iterator& rhs) const { return get_index() == rhs.get_index(); }
+		auto operator!=(const generic_iterator& rhs) const { return get_index() != rhs.get_index(); }
 
-		size_t get_index() const { return m_index; }
+		size_t get_index() const { return m_value.m_index; }
 
 	private:
-		size_t m_index;
-		templ::add_const_conditional_t<EntityTypeMatrix, Const>* m_matrix;
+		mutable value_type m_value;
 	};
 
 public:
 	using size_type = size_t;
 	using iterator = generic_iterator<false>;
 	using const_iterator = generic_iterator<true>;
-	using reference = generic_reference<false>;
-	using const_reference = generic_reference<true>;
+	using reference = value_type&;
+	using const_reference = const value_type&;
+	using rvalue_reference = value_type&&;
 
 public:
 	EntityVector(EntityTypeMatrix& matrix) : m_matrix(matrix) {}
 
 	// Element access
-	reference operator[](size_t index);
-	const_reference operator[](size_t index) const;
-	reference back();
-	reference front();
-	const_reference back() const;
-	const_reference front() const;
+	value_type operator[](size_t index);
+	const value_type operator[](size_t index) const;
+	value_type back();
+	value_type front();
+	const value_type back() const;
+	const value_type front() const;
 
 	// Iterators
 	iterator begin();
@@ -148,10 +154,12 @@ public:
 
 	// Modifiers
 	void insert(const_iterator where, const_reference entity);
+	void insert(const_iterator where, reference&& entity);
 	template <class... Components>
 	void emplace(const_iterator where, Components&&... components);
 	void erase(const_iterator where);
 	void push_back(const_reference entity) { insert(end(), entity); }
+	void push_back(reference&& entity) { insert(end(), std::move(entity)); }
 	template <class... Components>
 	void emplace_back(Components&&... components) { emplace(end(), std::forward<Components>(components)...); }
 
@@ -171,32 +179,35 @@ private:
 class TypeVector {
 public:
 	template <bool Const>
-	class generic_reference {
-		friend generic_reference<!Const>;
+	class generic_iterator;
+
+	class value_type {
+		template <bool Const>
+		friend class generic_iterator;
 
 	public:
-		generic_reference() : m_index(std::numeric_limits<decltype(m_index)>::max()), m_matrix(nullptr) {}
-		generic_reference(size_t index, templ::add_const_conditional_t<EntityTypeMatrix, Const>& matrix) : m_index(index), m_matrix(&matrix) {}
+		value_type() : m_index(0), m_matrix(nullptr) {}
+		value_type(size_t index, EntityTypeMatrix* matrix) : m_index(index), m_matrix(matrix) {}
 
-		generic_reference(const generic_reference&) = default;
-		template <class Dummy = void, class = std::enable_if_t<Const, Dummy>>
-		generic_reference(const generic_reference<false>& rhs) : m_index(rhs.m_index), m_matrix(rhs.m_matrix) {}
-
-		template <class const_reference_t = std::enable_if_t<!Const, generic_reference<Const>>>
-		operator const_reference_t() const { return const_reference_t{ m_index }; }
+		value_type(const value_type&) = delete;
+		value_type(value_type&& rhs) noexcept : m_index(rhs.m_index), m_matrix(rhs.m_matrix) {}
 
 		template <class AsType>
-		templ::add_const_conditional_t<AsType, Const>& get(size_t index) const;
+		AsType& get(size_t index);
 		template <class AsType>
-		templ::add_const_conditional_t<_ComponentVector<AsType>, Const>& get_vector() const;
+		const AsType& get(size_t index) const;
+
+		template <class AsType>
+		_ComponentVector<AsType>& get_vector();
+		template <class AsType>
+		const _ComponentVector<AsType>& get_vector() const;
+
 		size_t size() const;
 		std::type_index get_type() const;
 
-		generic_reference* operator->() { return this; }
-
 	private:
 		size_t m_index;
-		templ::add_const_conditional_t<EntityTypeMatrix, Const>* m_matrix;
+		EntityTypeMatrix* m_matrix;
 	};
 
 
@@ -205,15 +216,15 @@ public:
 		friend generic_iterator<!Const>;
 
 	public:
-		generic_iterator() : m_index(std::numeric_limits<decltype(m_index)>::max()), m_matrix(nullptr) {}
-		generic_iterator(size_t index, templ::add_const_conditional_t<EntityTypeMatrix, Const>& matrix) : m_index(index), m_matrix(&matrix) {}
+		generic_iterator() : m_value(0, nullptr) {}
+		generic_iterator(size_t index, EntityTypeMatrix* matrix) : m_value(index, matrix) {}
 
-		generic_iterator(const generic_iterator&) = default;
+		generic_iterator(const generic_iterator& rhs) : m_value(rhs.m_value.m_index, rhs.m_value.m_matrix) {}
 		template <class Dummy = void, class = std::enable_if_t<Const, Dummy>>
-		generic_iterator(const generic_iterator<false>& rhs) : m_index(rhs.m_index), m_matrix(rhs.m_matrix) {}
+		generic_iterator(const generic_iterator<false>& rhs) : m_value(rhs.m_value.m_index, rhs.m_value.m_matrix) {}
 
-		generic_reference<Const> operator*() const { return generic_reference<Const>{ m_index, *m_matrix }; }
-		generic_reference<Const> operator->() const { return generic_reference<Const>{ m_index, *m_matrix }; }
+		templ::add_const_conditional_t<value_type, Const>& operator*() const { return m_value; }
+		templ::add_const_conditional_t<value_type, Const>* operator->() const { return &m_value; }
 
 		generic_iterator& operator++();
 		generic_iterator& operator--();
@@ -224,15 +235,15 @@ public:
 		friend generic_iterator operator+(generic_iterator lhs, size_t n) { return lhs += n; }
 		friend generic_iterator operator+(size_t n, generic_iterator rhs) { return rhs += n; }
 		friend generic_iterator operator-(generic_iterator lhs, size_t n) { return lhs -= n; }
-		friend size_t operator-(const generic_iterator& lhs, const generic_iterator& rhs) { return lhs.m_index - rhs.m_index; }
+		friend size_t operator-(const generic_iterator& lhs, const generic_iterator& rhs) { return lhs.get_index() - rhs.get_index(); }
 		auto operator<=>(const generic_iterator& rhs) const { return get_index() <=> rhs.get_index(); }
 		auto operator==(const generic_iterator& rhs) const { return get_index() == rhs.get_index(); }
+		auto operator!=(const generic_iterator& rhs) const { return get_index() != rhs.get_index(); }
 
-		size_t get_index() const { return m_index; }
+		size_t get_index() const { return m_value.m_index; }
 
 	private:
-		size_t m_index;
-		templ::add_const_conditional_t<EntityTypeMatrix, Const>* m_matrix;
+		mutable value_type m_value;
 	};
 
 public:
@@ -240,8 +251,9 @@ public:
 
 	using iterator = generic_iterator<false>;
 	using const_iterator = generic_iterator<true>;
-	using reference = generic_reference<false>;
-	using const_reference = generic_reference<true>;
+	using reference = value_type&;
+	using const_reference = const value_type&;
+	using rvalue_reference = value_type&&;
 
 public:
 	TypeVector(EntityTypeMatrix& matrix) : m_matrix(matrix) {}
@@ -249,8 +261,8 @@ public:
 	TypeVector& operator=(const TypeVector& rhs);
 
 	// Element access
-	reference operator[](size_t index);
-	const_reference operator[](size_t index) const;
+	value_type operator[](size_t index);
+	const value_type operator[](size_t index) const;
 
 	// Iterators
 	iterator begin();
@@ -376,56 +388,23 @@ const std::array<std::pair<std::type_index, size_t>, SortedComponents<Components
 
 
 //------------------------------------------------------------------------------
-// EntityVector::generic_reference -- implementation
+// EntityVector::value_type -- implementation
 //------------------------------------------------------------------------------
 
-template <bool Const>
 template <class AsType>
-templ::add_const_conditional_t<AsType, Const>& EntityVector::generic_reference<Const>::get(size_t index) const {
-	auto& vec = dynamic_cast<templ::add_const_conditional_t<_ComponentVector<AsType>&, Const>>(*(*m_matrix)[index]);
+AsType& EntityVector::value_type::get(size_t index) {
+	auto& vec = dynamic_cast<_ComponentVector<AsType>&>(*(*m_matrix)[index]);
 	return vec[m_index];
 }
 
-template <bool Const>
-size_t EntityVector::generic_reference<Const>::size() const {
-	assert(m_matrix);
-	return m_matrix->size();
+template <class AsType>
+const AsType& EntityVector::value_type::get(size_t index) const {
+	auto& vec = dynamic_cast<const _ComponentVector<AsType>&>(*(*m_matrix)[index]);
+	return vec[m_index];
 }
 
-template <bool Const>
-std::type_index EntityVector::generic_reference<Const>::get_type(size_t index) const {
-	return (*m_matrix)[index]->Type();
-}
-
-template <bool Const>
-EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::operator=(const generic_reference<true>& rhs) {
-	if (m_matrix && m_matrix == rhs.m_matrix) {
-		if (m_index != rhs.m_index) {
-			assign_same(rhs);
-		}
-	}
-	else if (m_matrix && rhs.m_matrix) {
-		assign_auto(rhs);
-	}
-	return *this;
-}
-
-template <bool Const>
-EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::operator=(generic_reference<false>&& rhs) {
-	if (m_matrix && m_matrix == rhs.m_matrix) {
-		if (m_index != rhs.m_index) {
-			assign_same(std::move(rhs));
-		}
-	}
-	else if (m_matrix && rhs.m_matrix) {
-		assign_auto(std::move(rhs));
-	}
-	return *this;
-}
-
-template <bool Const>
 template <class... Components>
-EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::assign_extend(const generic_reference<true>& rhs, Components&&... components) {
+EntityVector::value_type& EntityVector::value_type::assign_extend(const value_type& rhs, Components&&... components) {
 	if (m_matrix && rhs.m_matrix) {
 		const std::vector<bool>& mask = assign_auto_mask(rhs);
 		assign_extra_mask([&](const auto& tar) { return mask[tar.second]; }, std::forward<Components>(components)...);
@@ -437,9 +416,8 @@ EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::
 	return *this;
 }
 
-template <bool Const>
 template <class... Components>
-EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::assign_extend(generic_reference<false>&& rhs, Components&&... components) {
+EntityVector::value_type& EntityVector::value_type::assign_extend(value_type&& rhs, Components&&... components) {
 	if (m_matrix && rhs.m_matrix) {
 		const std::vector<bool>& mask = assign_auto_mask(rhs);
 		assign_extra_mask([&](const auto& tar) { return mask[tar.second]; }, std::forward<Components>(components)...);
@@ -451,28 +429,24 @@ EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::
 	return *this;
 }
 
-template <bool Const>
 template <class SkipPred>
-EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::assign_partial(const generic_reference<true>& rhs, SkipPred skipPred) {
+EntityVector::value_type& EntityVector::value_type::assign_partial(const value_type& rhs, SkipPred skipPred) {
 	if (m_matrix && rhs.m_matrix) {
 		assign_partial(rhs, skipPred, int());
 	}
 	return *this;
 }
 
-template <bool Const>
 template <class SkipPred>
-EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::assign_partial(generic_reference<false>&& rhs, SkipPred skipPred) {
+EntityVector::value_type& EntityVector::value_type::assign_partial(value_type&& rhs, SkipPred skipPred) {
 	if (m_matrix && rhs.m_matrix) {
 		assign_partial(rhs, skipPred, int());
 	}
 	return *this;
 }
 
-
-template <bool Const>
 template <class other_t>
-const std::vector<bool>& EntityVector::generic_reference<Const>::assign_auto_mask(other_t&& rhs) {
+const std::vector<bool>& EntityVector::value_type::assign_auto_mask(other_t&& rhs) {
 	thread_local std::vector<bool> mask;
 	mask.resize(size(), false);
 
@@ -494,9 +468,8 @@ const std::vector<bool>& EntityVector::generic_reference<Const>::assign_auto_mas
 	return mask;
 }
 
-template <bool Const>
 template <class Pred, class... Components>
-void EntityVector::generic_reference<Const>::assign_extra_mask(Pred pred, Components&&... components) {
+void EntityVector::value_type::assign_extra_mask(Pred pred, Components&&... components) {
 	std::array<size_t, sizeof...(Components)> pairing;
 	memset(&pairing, 0xFF, sizeof(pairing));
 
@@ -514,9 +487,8 @@ void EntityVector::generic_reference<Const>::assign_extra_mask(Pred pred, Compon
 }
 
 
-template <bool Const>
 template <class other_t, class SkipPred>
-void EntityVector::generic_reference<Const>::assign_partial(other_t&& rhs, SkipPred skipPred, int) {
+void EntityVector::value_type::assign_partial(other_t&& rhs, SkipPred skipPred, int) {
 	auto& lhsOrder = m_matrix->m_parent.types.type_order();
 	auto& rhsOrder = rhs.m_matrix->m_parent.types.type_order();
 
@@ -543,65 +515,19 @@ void EntityVector::generic_reference<Const>::assign_partial(other_t&& rhs, SkipP
 }
 
 
-template <bool Const>
-void EntityVector::generic_reference<Const>::assign_same(const generic_reference<true>& rhs) {
-	assert(m_matrix == rhs.m_matrix);
-	for (auto i : Range(size())) {
-		auto& lhsVec = (*m_matrix)[i];
-		auto& rhsVec = (*rhs.m_matrix)[i];
-		lhsVec->Copy(m_index, *rhsVec, rhs.m_index);
-	}
-}
-
-template <bool Const>
-void EntityVector::generic_reference<Const>::assign_same(generic_reference<false>&& rhs) {
-	assert(m_matrix == rhs.m_matrix);
-	for (auto i : Range(size())) {
-		auto& lhsVec = (*m_matrix)[i];
-		auto& rhsVec = (*rhs.m_matrix)[i];
-		lhsVec->Move(m_index, *rhsVec, rhs.m_index);
-	}
-}
-
-
-template <bool Const>
-void EntityVector::generic_reference<Const>::assign_auto(const generic_reference<true>& rhs) {
-	auto& lhsOrder = m_matrix->m_parent.types.type_order();
-	auto& rhsOrder = rhs.m_matrix->m_parent.types.type_order();
-
-	PairComponents(lhsOrder.begin(), lhsOrder.end(), rhsOrder.begin(), rhsOrder.end(), [&](const auto& tar, const auto& src) {
-		auto& lhsVec = (*m_matrix)[tar.second];
-		auto& rhsVec = (*rhs.m_matrix)[src.second];
-		lhsVec->Copy(m_index, *rhsVec, rhs.m_index);
-	});
-}
-
-template <bool Const>
-void EntityVector::generic_reference<Const>::assign_auto(generic_reference<false>&& rhs) {
-	auto& lhsOrder = m_matrix->m_parent.types.type_order();
-	auto& rhsOrder = rhs.m_matrix->m_parent.types.type_order();
-
-	PairComponents(lhsOrder.begin(), lhsOrder.end(), rhsOrder.begin(), rhsOrder.end(), [&](const auto& tar, const auto& src) {
-		auto& lhsVec = (*m_matrix)[tar.second];
-		auto& rhsVec = (*rhs.m_matrix)[src.second];
-		lhsVec->Move(m_index, *rhsVec, rhs.m_index);
-	});
-}
-
-
 //------------------------------------------------------------------------------
 // EntityVector::generic_iterator -- implementation
 //------------------------------------------------------------------------------
 
 template <bool Const>
 EntityVector::generic_iterator<Const>& EntityVector::generic_iterator<Const>::operator++() {
-	++m_index;
+	++m_value.m_index;
 	return *this;
 }
 
 template <bool Const>
 EntityVector::generic_iterator<Const>& EntityVector::generic_iterator<Const>::operator--() {
-	--m_index;
+	--m_value.m_index;
 	return *this;
 }
 
@@ -621,13 +547,13 @@ EntityVector::generic_iterator<Const> EntityVector::generic_iterator<Const>::ope
 
 template <bool Const>
 EntityVector::generic_iterator<Const>& EntityVector::generic_iterator<Const>::operator+=(size_t n) {
-	m_index += n;
+	m_value.m_index += n;
 	return *this;
 }
 
 template <bool Const>
 EntityVector::generic_iterator<Const>& EntityVector::generic_iterator<Const>::operator-=(size_t n) {
-	m_index -= n;
+	m_value.m_index -= n;
 	return *this;
 }
 
@@ -674,35 +600,32 @@ void EntityVector::emplace_recurse(const_iterator where, const std::array<size_t
 
 
 //------------------------------------------------------------------------------
-// TypeVector::generic_reference -- implementation
+// TypeVector::value_type -- implementation
 //------------------------------------------------------------------------------
 
-
-template <bool Const>
 template <class AsType>
-templ::add_const_conditional_t<AsType, Const>& TypeVector::generic_reference<Const>::get(size_t index) const {
-	auto& vec = dynamic_cast<templ::add_const_conditional_t<_ComponentVector<AsType>&, Const>>(*(*m_matrix)[m_index]);
+AsType& TypeVector::value_type::get(size_t index) {
+	auto& vec = dynamic_cast<_ComponentVector<AsType>&>(*(*m_matrix)[m_index]);
 	return vec[index];
 }
 
-template <bool Const>
 template <class AsType>
-templ::add_const_conditional_t<_ComponentVector<AsType>, Const>& TypeVector::generic_reference<Const>::get_vector() const {
-	auto& vec = dynamic_cast<templ::add_const_conditional_t<_ComponentVector<AsType>&, Const>>(*(*m_matrix)[m_index]);
+const AsType& TypeVector::value_type::get(size_t index) const {
+	auto& vec = dynamic_cast<const _ComponentVector<AsType>&>(*(*m_matrix)[m_index]);
+	return vec[index];
+}
+
+template <class AsType>
+_ComponentVector<AsType>& TypeVector::value_type::get_vector() {
+	auto& vec = dynamic_cast<_ComponentVector<AsType>&>(*(*m_matrix)[m_index]);
 	return vec;
 }
 
-template <bool Const>
-size_t TypeVector::generic_reference<Const>::size() const {
-	assert(m_matrix);
-	return (*m_matrix)[m_index]->Size();
+template <class AsType>
+const _ComponentVector<AsType>& TypeVector::value_type::get_vector() const {
+	auto& vec = dynamic_cast<const _ComponentVector<AsType>&>(*(*m_matrix)[m_index]);
+	return vec;
 }
-
-template <bool Const>
-std::type_index TypeVector::generic_reference<Const>::get_type() const {
-	return (*m_matrix)[m_index]->Type();
-}
-
 
 //------------------------------------------------------------------------------
 // TypeVector::generic_iterator -- implementation
@@ -710,13 +633,13 @@ std::type_index TypeVector::generic_reference<Const>::get_type() const {
 
 template <bool Const>
 TypeVector::generic_iterator<Const>& TypeVector::generic_iterator<Const>::operator++() {
-	++m_index;
+	++m_value.m_index;
 	return *this;
 }
 
 template <bool Const>
 TypeVector::generic_iterator<Const>& TypeVector::generic_iterator<Const>::operator--() {
-	--m_index;
+	--m_value.m_index;
 	return *this;
 }
 
@@ -737,13 +660,13 @@ TypeVector::generic_iterator<Const> TypeVector::generic_iterator<Const>::operato
 template <bool Const>
 TypeVector::generic_iterator<Const>& TypeVector::generic_iterator<Const>::operator+=(size_t n) {
 
-	m_index += n;
+	m_value.m_index += n;
 	return *this;
 }
 
 template <bool Const>
 TypeVector::generic_iterator<Const>& TypeVector::generic_iterator<Const>::operator-=(size_t n) {
-	m_index -= n;
+	m_value.m_index -= n;
 	return *this;
 }
 
