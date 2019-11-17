@@ -7,35 +7,14 @@
 #include <BaseLibrary/TemplateUtil.hpp>
 
 #include <array>
+#include <optional>
 
 namespace inl::game {
-
-
-//------------------------------------------------------------------------------
-// Notes
-//------------------------------------------------------------------------------
-
-// BUT WHY WAS THIS ALL NEEDED?
-//  ahh yeah, for the World+= which I didn't want to make hacky
-// Requirements:
-// method of specifying permutation:
-// - user wants to provide complete permutation (no work to do)
-// - automatically match permutations (stable_sort both and match)
-// method of selecting components:
-// - subset: only a subset of source components used
-// - superset: additional components specified as tuple
-//
-// Idea:
-// Make an explicit class to represent user permutations.
-// + Cache ordering of types in ComponentMatrices.
-
-
 
 //------------------------------------------------------------------------------
 // Types
 //------------------------------------------------------------------------------
 
-//using EntityTypeMatrix = std::vector<std::unique_ptr<ComponentVectorBase>>;
 class ComponentMatrix;
 struct EntityTypeMatrix : public std::vector<std::unique_ptr<ComponentVectorBase>> {
 	EntityTypeMatrix(ComponentMatrix& parent) : m_parent(parent) {}
@@ -69,10 +48,10 @@ public:
 		generic_reference& operator=(generic_reference<false>&& rhs);
 
 		template <class... Components>
-		generic_reference& assign(const generic_reference<true>&, Components&&... rhs);
+		generic_reference& assign_extend(const generic_reference<true>&, Components&&... rhs);
 
 		template <class... Components>
-		generic_reference& assign(generic_reference<false>&&, Components&&... rhs);
+		generic_reference& assign_extend(generic_reference<false>&&, Components&&... rhs);
 
 		template <class SkipPred>
 		generic_reference& assign_partial(const generic_reference<true>&, SkipPred skipPred);
@@ -83,6 +62,15 @@ public:
 		generic_reference* operator->() { return this; }
 
 	private:
+		template <class other_t>
+		const std::vector<bool>& assign_auto_mask(other_t&& rhs);
+
+		template <class Pred, class... Components>
+		void assign_extra_mask(Pred pred, Components&&... components);
+
+		template <class other_t, class SkipPred>
+		void assign_partial(other_t&&, SkipPred skipPred, int);
+
 		void assign_same(const generic_reference<true>& rhs);
 		void assign_same(generic_reference<false>&& rhs);
 		void assign_auto(const generic_reference<true>& rhs);
@@ -411,12 +399,12 @@ std::type_index EntityVector::generic_reference<Const>::get_type(size_t index) c
 
 template <bool Const>
 EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::operator=(const generic_reference<true>& rhs) {
-	if (m_matrix == rhs.m_matrix) {
+	if (m_matrix && m_matrix == rhs.m_matrix) {
 		if (m_index != rhs.m_index) {
 			assign_same(rhs);
 		}
 	}
-	else {
+	else if (m_matrix && rhs.m_matrix) {
 		assign_auto(rhs);
 	}
 	return *this;
@@ -424,12 +412,12 @@ EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::
 
 template <bool Const>
 EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::operator=(generic_reference<false>&& rhs) {
-	if (m_matrix == rhs.m_matrix) {
+	if (m_matrix && m_matrix == rhs.m_matrix) {
 		if (m_index != rhs.m_index) {
 			assign_same(std::move(rhs));
 		}
 	}
-	else {
+	else if (m_matrix && rhs.m_matrix) {
 		assign_auto(std::move(rhs));
 	}
 	return *this;
@@ -437,87 +425,29 @@ EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::
 
 template <bool Const>
 template <class... Components>
-EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::assign(const generic_reference<true>& rhs, Components&&... components) {
-	std::vector<bool> mask;
-	mask.resize(size(), false);
-
-	// Assign components from the other entity.
+EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::assign_extend(const generic_reference<true>& rhs, Components&&... components) {
 	if (m_matrix && rhs.m_matrix) {
-		auto& lhsOrder = m_matrix->m_parent.types.type_order();
-		auto& rhsOrder = rhs.m_matrix->m_parent.types.type_order();
-
-		PairComponents(lhsOrder.begin(), lhsOrder.end(), rhsOrder.begin(), rhsOrder.end(), [&](const auto& tar, const auto& src) {
-			auto& lhsVec = (*m_matrix)[tar.second];
-			auto& rhsVec = (*rhs.m_matrix)[src.second];
-			mask[tar.second] = true;
-			lhsVec->Copy(m_index, *rhsVec, rhs.m_index);
-		});
+		const std::vector<bool>& mask = assign_auto_mask(rhs);
+		assign_extra_mask([&](const auto& tar) { return mask[tar.second]; }, std::forward<Components>(components)...);
+	}
+	else if (m_matrix) {
+		assign_extra_mask([&](const auto& tar) { return false; }, std::forward<Components>(components)...);
 	}
 
-	// Assign extra components from the tuple.
-	if (m_matrix) {
-		std::array<size_t, sizeof...(Components)> pairing;
-		memset(&pairing, 0xFF, sizeof(pairing));
-
-		auto onMatch = [&](const auto& tar, const auto& src) {
-			size_t thisIndex = tar.second;
-			size_t argIndex = src.second;
-			pairing[argIndex] = thisIndex;
-		};
-		auto onMismatch = [&](auto) {};
-		auto skipPred = [&](const auto& tar) {
-			return mask[tar.second];
-		};
-
-		auto& lhsOrder = m_matrix->m_parent.types.type_order();
-		const auto& argOrder = SortedComponents<Components...>::order;
-		PairComponents(lhsOrder.begin(), lhsOrder.end(), argOrder.begin(), argOrder.end(), onMatch, onMismatch);
-
-		// TODO: assign recurse
-	}
 	return *this;
 }
 
 template <bool Const>
 template <class... Components>
-EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::assign(generic_reference<false>&& rhs, Components&&... components) {
-	std::vector<bool> mask;
-	mask.resize(size(), false);
-
-	// Assign components from the other entity.
+EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::assign_extend(generic_reference<false>&& rhs, Components&&... components) {
 	if (m_matrix && rhs.m_matrix) {
-		auto& lhsOrder = m_matrix->m_parent.types.type_order();
-		auto& rhsOrder = rhs.m_matrix->m_parent.types.type_order();
-
-		PairComponents(lhsOrder.begin(), lhsOrder.end(), rhsOrder.begin(), rhsOrder.end(), [&](const auto& tar, const auto& src) {
-			auto& lhsVec = (*m_matrix)[tar.second];
-			auto& rhsVec = (*rhs.m_matrix)[src.second];
-			mask[tar.second] = true;
-			lhsVec->Move(m_index, *rhsVec, rhs.m_index);
-		});
+		const std::vector<bool>& mask = assign_auto_mask(rhs);
+		assign_extra_mask([&](const auto& tar) { return mask[tar.second]; }, std::forward<Components>(components)...);
+	}
+	else if (m_matrix) {
+		assign_extra_mask([&](const auto& tar) { return false; }, std::forward<Components>(components)...);
 	}
 
-	// Assign extra components from the tuple.
-	if (m_matrix) {
-		std::array<size_t, sizeof...(Components)> pairing;
-		memset(&pairing, 0xFF, sizeof(pairing));
-
-		auto onMatch = [&](const auto& tar, const auto& src) {
-			size_t thisIndex = tar.second;
-			size_t argIndex = src.second;
-			pairing[argIndex] = thisIndex;
-		};
-		auto onMismatch = [&](auto) {};
-		auto skipPred = [&](const auto& tar) {
-			return mask[tar.second];
-		};
-
-		auto& lhsOrder = m_matrix->m_parent.types.type_order();
-		const auto& argOrder = SortedComponents<Components...>::order;
-		PairComponents(lhsOrder.begin(), lhsOrder.end(), argOrder.begin(), argOrder.end(), onMatch, onMismatch);
-
-		// TODO: assign recurse
-	}
 	return *this;
 }
 
@@ -525,26 +455,7 @@ template <bool Const>
 template <class SkipPred>
 EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::assign_partial(const generic_reference<true>& rhs, SkipPred skipPred) {
 	if (m_matrix && rhs.m_matrix) {
-		auto& lhsOrder = m_matrix->m_parent.types.type_order();
-		auto& rhsOrder = rhs.m_matrix->m_parent.types.type_order();
-
-		auto onMatch = [&](const auto& tar, const auto& src) {
-			auto& lhsVec = (*m_matrix)[tar.second];
-			auto& rhsVec = (*rhs.m_matrix)[src.second];
-			lhsVec->Copy(m_index, *rhsVec, rhs.m_index);
-		};
-		auto onMismatch = [](auto) {};
-		auto skipTarget = [](auto) { return false; };
-		auto skipSource = [&](const auto& record) {
-			const auto& type = record.first;
-			const auto& index = record.second; // real index, not type-ordered index
-			return skipPred(type, index);
-		};
-
-		PairComponents(lhsOrder.begin(), lhsOrder.end(),
-					   rhsOrder.begin(), rhsOrder.end(),
-					   onMatch, onMismatch,
-					   skipTarget, skipSource);
+		assign_partial(rhs, skipPred, int());
 	}
 	return *this;
 }
@@ -553,30 +464,83 @@ template <bool Const>
 template <class SkipPred>
 EntityVector::generic_reference<Const>& EntityVector::generic_reference<Const>::assign_partial(generic_reference<false>&& rhs, SkipPred skipPred) {
 	if (m_matrix && rhs.m_matrix) {
-		auto& lhsOrder = m_matrix->m_parent.types.type_order();
-		auto& rhsOrder = rhs.m_matrix->m_parent.types.type_order();
-
-		auto onMatch = [&](const auto& tar, const auto& src) {
-			auto& lhsVec = (*m_matrix)[tar.second];
-			auto& rhsVec = (*rhs.m_matrix)[src.second];
-			lhsVec->Move(m_index, *rhsVec, rhs.m_index);
-		};
-		auto onMismatch = [](auto) {};
-		auto skipTarget = [](auto) { return false; };
-		auto skipSource = [&](const auto& record) {
-			const auto& type = record.first;
-			const auto& index = record.second; // real index, not type-ordered index
-			return skipPred(type, index);
-		};
-
-		PairComponents(lhsOrder.begin(), lhsOrder.end(),
-					   rhsOrder.begin(), rhsOrder.end(),
-					   onMatch, onMismatch,
-					   skipTarget, skipSource);
+		assign_partial(rhs, skipPred, int());
 	}
 	return *this;
 }
 
+
+template <bool Const>
+template <class other_t>
+const std::vector<bool>& EntityVector::generic_reference<Const>::assign_auto_mask(other_t&& rhs) {
+	thread_local std::vector<bool> mask;
+	mask.resize(size(), false);
+
+	auto& lhsOrder = m_matrix->m_parent.types.type_order();
+	auto& rhsOrder = rhs.m_matrix->m_parent.types.type_order();
+
+	PairComponents(lhsOrder.begin(), lhsOrder.end(), rhsOrder.begin(), rhsOrder.end(), [&](const auto& tar, const auto& src) {
+		auto& lhsVec = (*m_matrix)[tar.second];
+		auto& rhsVec = (*rhs.m_matrix)[src.second];
+		mask[tar.second] = true;
+		if constexpr (std::is_rvalue_reference_v<decltype(rhs)>) {
+			lhsVec->Move(m_index, *rhsVec, rhs.m_index);
+		}
+		else {
+			lhsVec->Copy(m_index, *rhsVec, rhs.m_index);
+		}
+	});
+
+	return mask;
+}
+
+template <bool Const>
+template <class Pred, class... Components>
+void EntityVector::generic_reference<Const>::assign_extra_mask(Pred pred, Components&&... components) {
+	std::array<size_t, sizeof...(Components)> pairing;
+	memset(&pairing, 0xFF, sizeof(pairing));
+
+	auto onMatch = [&](const auto& tar, const auto& src) {
+		size_t thisIndex = tar.second;
+		size_t argIndex = src.second;
+		pairing[argIndex] = thisIndex;
+	};
+
+	auto& lhsOrder = m_matrix->m_parent.types.type_order();
+	const auto& argOrder = SortedComponents<Components...>::order;
+	PairComponents(lhsOrder.begin(), lhsOrder.end(), argOrder.begin(), argOrder.end(), onMatch, noOpLambda, pred);
+
+	// TODO: assign recurse
+}
+
+
+template <bool Const>
+template <class other_t, class SkipPred>
+void EntityVector::generic_reference<Const>::assign_partial(other_t&& rhs, SkipPred skipPred, int) {
+	auto& lhsOrder = m_matrix->m_parent.types.type_order();
+	auto& rhsOrder = rhs.m_matrix->m_parent.types.type_order();
+
+	auto onMatch = [&](const auto& tar, const auto& src) {
+		auto& lhsVec = (*m_matrix)[tar.second];
+		auto& rhsVec = (*rhs.m_matrix)[src.second];
+		if constexpr (std::is_rvalue_reference_v<decltype(rhs)>) {
+			lhsVec->Move(m_index, *rhsVec, rhs.m_index);
+		}
+		else {
+			lhsVec->Copy(m_index, *rhsVec, rhs.m_index);
+		}
+	};
+	auto skipSource = [&](const auto& record) {
+		const auto& type = record.first;
+		const auto& index = record.second; // real index, not type-ordered index
+		return skipPred(type, index);
+	};
+
+	PairComponents(lhsOrder.begin(), lhsOrder.end(),
+				   rhsOrder.begin(), rhsOrder.end(),
+				   onMatch, noOpLambda,
+				   noOpLambdaFalse, skipSource);
+}
 
 
 template <bool Const>
@@ -595,37 +559,33 @@ void EntityVector::generic_reference<Const>::assign_same(generic_reference<false
 	for (auto i : Range(size())) {
 		auto& lhsVec = (*m_matrix)[i];
 		auto& rhsVec = (*rhs.m_matrix)[i];
-		lhsVec->Copy(m_index, *rhsVec, rhs.m_index);
+		lhsVec->Move(m_index, *rhsVec, rhs.m_index);
 	}
 }
 
 
 template <bool Const>
 void EntityVector::generic_reference<Const>::assign_auto(const generic_reference<true>& rhs) {
-	if (m_matrix && rhs.m_matrix) {
-		auto& lhsOrder = m_matrix->m_parent.types.type_order();
-		auto& rhsOrder = rhs.m_matrix->m_parent.types.type_order();
+	auto& lhsOrder = m_matrix->m_parent.types.type_order();
+	auto& rhsOrder = rhs.m_matrix->m_parent.types.type_order();
 
-		PairComponents(lhsOrder.begin(), lhsOrder.end(), rhsOrder.begin(), rhsOrder.end(), [&](const auto& tar, const auto& src) {
-			auto& lhsVec = (*m_matrix)[tar.second];
-			auto& rhsVec = (*rhs.m_matrix)[src.second];
-			lhsVec->Move(m_index, *rhsVec, rhs.m_index);
-		});
-	}
+	PairComponents(lhsOrder.begin(), lhsOrder.end(), rhsOrder.begin(), rhsOrder.end(), [&](const auto& tar, const auto& src) {
+		auto& lhsVec = (*m_matrix)[tar.second];
+		auto& rhsVec = (*rhs.m_matrix)[src.second];
+		lhsVec->Copy(m_index, *rhsVec, rhs.m_index);
+	});
 }
 
 template <bool Const>
 void EntityVector::generic_reference<Const>::assign_auto(generic_reference<false>&& rhs) {
-	if (m_matrix && rhs.m_matrix) {
-		auto& lhsOrder = m_matrix->m_parent.types.type_order();
-		auto& rhsOrder = rhs.m_matrix->m_parent.types.type_order();
+	auto& lhsOrder = m_matrix->m_parent.types.type_order();
+	auto& rhsOrder = rhs.m_matrix->m_parent.types.type_order();
 
-		PairComponents(lhsOrder.begin(), lhsOrder.end(), rhsOrder.begin(), rhsOrder.end(), [&](const auto& tar, const auto& src) {
-			auto& lhsVec = (*m_matrix)[tar.second];
-			auto& rhsVec = (*rhs.m_matrix)[src.second];
-			lhsVec->Move(m_index, *rhsVec, rhs.m_index);
-		});
-	}
+	PairComponents(lhsOrder.begin(), lhsOrder.end(), rhsOrder.begin(), rhsOrder.end(), [&](const auto& tar, const auto& src) {
+		auto& lhsVec = (*m_matrix)[tar.second];
+		auto& rhsVec = (*rhs.m_matrix)[src.second];
+		lhsVec->Move(m_index, *rhsVec, rhs.m_index);
+	});
 }
 
 

@@ -48,6 +48,12 @@ public:
 	World& operator+=(World&& entities);
 
 private:
+	template <class Component>
+	static size_t MoveEntityExtend(EntitySet& target, EntitySet& source, size_t sourceIndex, Component&& component);
+	static size_t MoveEntityPartial(EntitySet& target, EntitySet& source, size_t sourceIndex, size_t skippedComponent);
+	static size_t MoveEntity(EntitySet& target, EntitySet& source, size_t sourceIndex);	
+	
+	
 	ComponentScheme GetScheme(const ComponentMatrix& matrix);
 	void MergeScheme(const ComponentScheme& scheme, EntitySet&& entitySet);
 	void AppendScheme(const ComponentScheme& scheme, EntitySet&& entitySet);

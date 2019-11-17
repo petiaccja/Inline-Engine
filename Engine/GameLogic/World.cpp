@@ -82,7 +82,7 @@ void World::RemoveComponent(Entity& entity, size_t index) {
 	};
 	newStore.entities.push_back({});
 	it->second->entities.push_back(std::move(currentEntities[currentIndex]));
-	newStore.entities.back().assign(std::move(currentStore.entities[currentIndex]), filterDeleted);
+	newStore.entities.back().assign_partial(std::move(currentStore.entities[currentIndex]), filterDeleted);
 	entity = Entity(this, it->second.get(), newStore.entities.size() - 1);
 	currentStore.entities.erase(currentStore.entities.begin() + currentIndex);
 	currentEntities.erase(currentEntities.begin() + currentIndex);
