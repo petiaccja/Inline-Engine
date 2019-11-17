@@ -22,7 +22,9 @@ void DirectionalLightComponentFactory::SetScenes(const std::vector<gxeng::IScene
 }
 
 void DirectionalLightComponentFactory::Create(game::Entity& entity) {
-	entity.AddComponent(DirectionalLightComponent{});
+	DirectionalLightComponent component;
+	component.entity = m_engine->CreateDirectionalLight();
+	entity.AddComponent(std::move(component));
 }
 
 
@@ -40,6 +42,11 @@ void DirectionalLightComponentFactory::Create(game::Entity& entity, game::InputA
 
 std::unique_ptr<game::ComponentClassFactoryBase> DirectionalLightComponentFactory::Clone() {
 	return std::make_unique<DirectionalLightComponentFactory>(*this);
+}
+
+
+const std::unordered_map<std::string, gxeng::IScene*>& DirectionalLightComponentFactory::GetScenes() const {
+	return m_scenes;
 }
 
 

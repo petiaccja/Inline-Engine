@@ -55,6 +55,7 @@ private:
 	
 	
 	ComponentScheme GetScheme(const ComponentMatrix& matrix);
+	void MoveScheme(const ComponentScheme& scheme, EntitySet&& entitySet);
 	void MergeScheme(const ComponentScheme& scheme, EntitySet&& entitySet);
 	void AppendScheme(EntitySet& target, EntitySet&& source);
 

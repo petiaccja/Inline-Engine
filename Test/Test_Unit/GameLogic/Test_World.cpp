@@ -140,3 +140,25 @@ TEST_CASE("World - Create empty entities", "[GameLogic]") {
 	REQUIRE(entity0->HasComponent<BazComponent>());
 	REQUIRE(entity1->HasComponent<BarComponent>());
 }
+
+
+TEST_CASE("World - Concatenating worlds", "[GameLogic]") {
+	World world1;
+	World world2;
+
+	Entity* entity11 = world1.CreateEntity(FooComponent{ 11 }, BarComponent{ 11 });
+	Entity* entity12 = world1.CreateEntity(FooComponent{ 12 }, BazComponent{ 12 });
+
+	Entity* entity21 = world2.CreateEntity(FooComponent{ 21 }, BarComponent{ 21 });
+	Entity* entity22 = world2.CreateEntity(BarComponent{ 22 }, BazComponent{ 22 });
+
+	world1 += std::move(world2);
+
+	REQUIRE(entity11->GetWorld() == &world1);
+	REQUIRE(entity12->GetWorld() == &world1);
+	REQUIRE(entity21->GetWorld() == &world1);
+	REQUIRE(entity22->GetWorld() == &world1);
+
+	REQUIRE(entity21->GetIndex() == 1);
+	REQUIRE(entity22->GetIndex() == 0);
+}

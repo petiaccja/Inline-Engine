@@ -24,7 +24,8 @@ public:
 	void Create(game::Entity& entity) override;
 	void Create(game::Entity& entity, game::InputArchive& archive) override;
 	std::unique_ptr<ComponentClassFactoryBase> Clone() override;
-
+	const std::unordered_map<std::string, gxeng::IScene*>& GetScenes() const;
+	
 private:
 	gxeng::IGraphicsEngine* m_engine = nullptr;
 	std::unordered_map<std::string, gxeng::IScene*> m_scenes;

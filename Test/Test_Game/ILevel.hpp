@@ -22,6 +22,9 @@ public:
 
 	/// <summary> Deletes unimportant entities from tiles that are now too far away. </summary>
 	virtual void Sweep(inl::Vec3 centerPosition) = 0;
+
+	/// <summary> Name of the level for debugging purposes.
+	virtual const std::string& GetName() const = 0;
 };
 
 

@@ -120,10 +120,19 @@ ComponentScheme World::GetScheme(const ComponentMatrix& matrix) {
 }
 
 
+void World::MoveScheme(const ComponentScheme& scheme, EntitySet&& entitySet) {
+	for (auto& entity : entitySet.entities) {
+		size_t idx = entity->GetIndex();
+		*entity = Entity{ this, &entitySet, idx };
+	}
+	m_componentStores.insert({ scheme, std::make_unique<EntitySet>(std::move(entitySet)) });
+}
+
+
 void World::MergeScheme(const ComponentScheme& scheme, EntitySet&& entitySet) {
 	auto it = m_componentStores.find(scheme);
 	if (it == m_componentStores.end()) {
-		m_componentStores.insert({ scheme, std::make_unique<EntitySet>(std::move(entitySet)) });
+		MoveScheme(scheme, std::move(entitySet));
 	}
 	else {
 		AppendScheme(*it->second, std::move(entitySet));

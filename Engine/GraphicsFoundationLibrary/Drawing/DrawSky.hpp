@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GraphicsApi_LL/IPipelineState.hpp>
+#include <GraphicsEngine/Scene/IDirectionalLight.hpp>
 #include <GraphicsEngine_LL/BasicCamera.hpp>
 #include <GraphicsEngine_LL/GraphicsNode.hpp>
 
@@ -13,7 +14,7 @@ namespace inl::gxeng::nodes {
 /// </summary>
 class DrawSky : virtual public GraphicsNode,
 				virtual public GraphicsTask,
-				virtual public InputPortConfig<Texture2D, Texture2D, const BasicCamera*, const EntityCollection<DirectionalLight>*>,
+				virtual public InputPortConfig<Texture2D, Texture2D, const BasicCamera*, const EntityCollection<IDirectionalLight>*>,
 				virtual public OutputPortConfig<Texture2D> {
 public:
 	static const char* Info_GetName() { return "DrawSky"; }

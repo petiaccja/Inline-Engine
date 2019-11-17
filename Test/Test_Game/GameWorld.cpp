@@ -30,7 +30,7 @@ inl::gxeng::IPerspectiveCamera& GameWorld::GetCamera() {
 	return *m_camera;
 }
 
-inl::game::ComponentFactory GameWorld::GetComponentFactory() {
+inl::game::ComponentFactory& GameWorld::GetComponentFactory() {
 	return m_componentFactory;
 }
 

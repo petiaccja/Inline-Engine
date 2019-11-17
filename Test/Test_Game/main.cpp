@@ -8,6 +8,7 @@
 
 #include <BaseLibrary/Platform/Window.hpp>
 #include <BaseLibrary/Timer.hpp>
+#include "GameSceneFrame.hpp"
 
 #undef interface // fucking shitty winapi as usual
 
@@ -53,6 +54,7 @@ int main() {
 
 		DebugInfoFrame& debugInfoFrame = compositor.ShowFrame<DebugInfoFrame>();
 		MainMenuFrame& mainMenuFrame = compositor.ShowFrame<MainMenuFrame>();
+		GameSceneFrame& gameSceneFrame = compositor.ShowFrame<GameSceneFrame>();
 
 		compositor.GetBinding(debugInfoFrame).SetAnchors(true, false, false, true);
 		debugInfoFrame.SetSize({ 300, 150 });
@@ -62,10 +64,20 @@ int main() {
 		mainMenuFrame.SetSize({ 200, 350 });
 		mainMenuFrame.OnQuit += [&window] { window.Close(); };
 
+		gameSceneFrame.SetGameWorld(gameWorld);
+		compositor.HideFrame<GameSceneFrame>();
+
 		auto& weSystem = gameWorld.GetWorld().GetSystem<WindowEventSystem>();
 		auto& uiSystem = gameWorld.GetWorld().GetSystem<UserInterfaceSystem>();
 		weSystem.SetWindows({ &window });
 		uiSystem.SetBoards({ &gameInterface.GetBoard() });
+
+		gameWorld.GetCamera().SetTarget({ 0, 0, 0 });
+		gameWorld.GetCamera().SetPosition({ 5, 5, 2 });
+		gameWorld.GetCamera().SetUpVector({ 0, 0, 1 });
+		gameWorld.GetCamera().SetNearPlane(0.5f);
+		gameWorld.GetCamera().SetFarPlane(200.f);
+		gameWorld.GetCamera().SetFOVAspect(70.f, 4.f / 3.f);
 
 		SetEvents(window, gameWorld, gameInterface, modules.GetGraphicsEngine(), compositor);
 

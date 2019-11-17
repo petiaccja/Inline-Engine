@@ -8,11 +8,12 @@ public:
 	inl::game::World Initialize(inl::game::ComponentFactory& componentFactory, inl::Vec3 centerPosition) override;
 
 	// Does nothing, not a tiled level loader.
-	inl::game::World Expand(inl::game::ComponentFactory& componentFactory, inl::Vec3 centerPosition) override {}
+	inl::game::World Expand(inl::game::ComponentFactory& componentFactory, inl::Vec3 centerPosition) override { return {}; }
 
 	// Does nothing, not a tiled level loader.
 	void Sweep(inl::Vec3 centerPosition) override {}
 
-private:
+	const std::string& GetName() const override;
 
+private:
 };
