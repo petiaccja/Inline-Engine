@@ -94,7 +94,7 @@ namespace gxeng {
 		void SetScreenSize(unsigned width, unsigned height) override;
 
 		/// <summary> Returns the current backbuffer size in the out parameters. </remarks>
-		void GetScreenSize(unsigned& width, unsigned& height) override;
+		void GetScreenSize(unsigned& width, unsigned& height) const override;
 
 		/// <summary> Sets the D3D swap chain to full-screen mode. </summary>
 		/// <param name="enable"> True to full screen, false to windowed. </param>
@@ -118,13 +118,13 @@ namespace gxeng {
 		std::unique_ptr<IFont> CreateFont() const override;
 
 		// Scene
-		std::unique_ptr<IScene> CreateScene(std::string name) override;
+		std::unique_ptr<IScene> CreateScene(std::string name) const override;
 		std::unique_ptr<IMeshEntity> CreateMeshEntity() const override;
 		std::unique_ptr<IOverlayEntity> CreateOverlayEntity() const override;
 		std::unique_ptr<ITextEntity> CreateTextEntity() const override;
-		std::unique_ptr<IPerspectiveCamera> CreatePerspectiveCamera(std::string name) override;
-		std::unique_ptr<IOrthographicCamera> CreateOrthographicCamera(std::string name) override;
-		std::unique_ptr<ICamera2D> CreateCamera2D(std::string name) override;
+		std::unique_ptr<IPerspectiveCamera> CreatePerspectiveCamera(std::string name) const override;
+		std::unique_ptr<IOrthographicCamera> CreateOrthographicCamera(std::string name) const override;
+		std::unique_ptr<ICamera2D> CreateCamera2D(std::string name) const override;
 		std::unique_ptr<IDirectionalLight> CreateDirectionalLight() const override;
 
 		// Pipeline and environment variables
@@ -137,10 +137,10 @@ namespace gxeng {
 		bool SetEnvVariable(std::string name, Any obj) override;
 
 		/// <summary> Returns true if env var with given name exists. </summary>
-		bool EnvVariableExists(const std::string& name) override;
+		bool EnvVariableExists(const std::string& name) const override;
 
 		/// <summary> Return the env var with given name or throws <see cref="InvalidArgumentException"/>. </summary>
-		const Any& GetEnvVariable(const std::string& name) override;
+		const Any& GetEnvVariable(const std::string& name) const override;
 
 		/// <summary> Load the pipeline from the JSON node graph description. </summary>
 		/// <remarks> Tears down all the resources associated with the old pipeline, including
@@ -198,9 +198,9 @@ namespace gxeng {
 		std::unordered_map<std::string, Any> m_envVariables;
 
 		// Scene
-		std::set<Scene*> m_scenes;
-		std::set<BasicCamera*> m_cameras;
-		std::set<Camera2D*> m_cameras2d;
+		mutable std::set<Scene*> m_scenes;
+		mutable std::set<BasicCamera*> m_cameras;
+		mutable std::set<Camera2D*> m_cameras2d;
 	};
 
 

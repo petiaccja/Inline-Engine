@@ -25,11 +25,25 @@ class World {
 public:
 	void Update(float elapsed);
 
+	// Manage entities.
 	template <class... ComponentTypes>
 	Entity* CreateEntity(ComponentTypes&&... args);
 
 	void DeleteEntity(Entity& entity);
 
+	// Manage systems.
+	void SetSystems(std::vector<System*> systems);
+	const std::vector<System*>& GetSystems() const;
+
+	template <class SystemT>
+	SystemT& GetSystem();
+
+	// Misc stuff
+
+	/// <summary> Moves all entities form another World into this. </summary>
+	World& operator+=(World&& entities);
+
+	// Function only used by entities.
 	template <class ComponentT>
 	void AddComponent(Entity& entity, ComponentT&& component);
 
@@ -38,16 +52,8 @@ public:
 
 	void RemoveComponent(Entity& entity, size_t index);
 
-	void SetSystems(std::vector<System*> systems);
-	const std::vector<System*>& GetSystems() const;
-
-	template <class SystemT>
-	SystemT& GetSystem();
-
-	/// <summary> Moves all entities form another World into this. </summary>
-	World& operator+=(World&& entities);
-
 private:
+	// TODO: refactor stuff
 	template <class Component>
 	static size_t MoveEntityExtend(EntitySet& target, EntitySet& source, size_t sourceIndex, Component&& component);
 	static size_t MoveEntityPartial(EntitySet& target, EntitySet& source, size_t sourceIndex, size_t skippedComponent);

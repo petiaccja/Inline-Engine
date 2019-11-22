@@ -160,7 +160,7 @@ void GraphicsEngine::SetScreenSize(unsigned width, unsigned height) {
 	m_swapChain->Resize(width, height);
 	m_backBufferHeap = std::make_unique<BackBufferManager>(m_graphicsApi, m_swapChain.get());
 }
-void GraphicsEngine::GetScreenSize(unsigned& width, unsigned& height) {
+void GraphicsEngine::GetScreenSize(unsigned& width, unsigned& height) const {
 	auto desc = m_swapChain->GetDesc();
 	width = desc.width;
 	height = desc.height;
@@ -213,7 +213,7 @@ std::unique_ptr<IFont> GraphicsEngine::CreateFont() const {
 
 
 // Scene
-std::unique_ptr<IScene> GraphicsEngine::CreateScene(std::string name) {
+std::unique_ptr<IScene> GraphicsEngine::CreateScene(std::string name) const {
 	// Declare a derived class for the sole purpose of making the destructor unregister the object from scene list.
 	class ObservedScene : public Scene {
 	public:
@@ -241,7 +241,7 @@ std::unique_ptr<IScene> GraphicsEngine::CreateScene(std::string name) {
 }
 
 
-std::unique_ptr<IPerspectiveCamera> GraphicsEngine::CreatePerspectiveCamera(std::string name) {
+std::unique_ptr<IPerspectiveCamera> GraphicsEngine::CreatePerspectiveCamera(std::string name) const {
 	class ObservedPerspectiveCamera : public PerspectiveCamera {
 	public:
 		ObservedPerspectiveCamera(std::function<void(PerspectiveCamera*)> deleteHandler, std::string name) : m_deleteHandler(std::move(deleteHandler)) {
@@ -269,7 +269,7 @@ std::unique_ptr<IPerspectiveCamera> GraphicsEngine::CreatePerspectiveCamera(std:
 	return camera;
 }
 
-std::unique_ptr<IOrthographicCamera> GraphicsEngine::CreateOrthographicCamera(std::string name) {
+std::unique_ptr<IOrthographicCamera> GraphicsEngine::CreateOrthographicCamera(std::string name) const {
 	class ObservedOrthographicCamera : public OrthographicCamera {
 	public:
 		ObservedOrthographicCamera(std::function<void(OrthographicCamera*)> deleteHandler, std::string name) : m_deleteHandler(std::move(deleteHandler)) {
@@ -297,7 +297,7 @@ std::unique_ptr<IOrthographicCamera> GraphicsEngine::CreateOrthographicCamera(st
 	return camera;
 }
 
-std::unique_ptr<ICamera2D> GraphicsEngine::CreateCamera2D(std::string name) {
+std::unique_ptr<ICamera2D> GraphicsEngine::CreateCamera2D(std::string name) const {
 	class ObservedCamera2D : public Camera2D {
 	public:
 		ObservedCamera2D(std::function<void(Camera2D*)> deleteHandler, std::string name) : m_deleteHandler(std::move(deleteHandler)) {
@@ -347,11 +347,11 @@ bool GraphicsEngine::SetEnvVariable(std::string name, Any obj) {
 	return res.second;
 }
 
-bool GraphicsEngine::EnvVariableExists(const std::string& name) {
+bool GraphicsEngine::EnvVariableExists(const std::string& name) const {
 	return m_envVariables.count(name) > 0;
 }
 
-const Any& GraphicsEngine::GetEnvVariable(const std::string& name) {
+const Any& GraphicsEngine::GetEnvVariable(const std::string& name) const {
 	auto it = m_envVariables.find(name);
 	if (it != m_envVariables.end()) {
 		return it->second;

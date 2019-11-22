@@ -67,7 +67,7 @@ public:
 	virtual void SetScreenSize(unsigned width, unsigned height) = 0;
 
 	/// <summary> Returns the current backbuffer size in the out parameters. </remarks>
-	virtual void GetScreenSize(unsigned& width, unsigned& height) = 0;
+	virtual void GetScreenSize(unsigned& width, unsigned& height) const = 0;
 
 	/// <summary> Sets the D3D swap chain to full-screen mode. </summary>
 	/// <param name="enable"> True to full screen, false to windowed. </param>
@@ -91,13 +91,13 @@ public:
 	virtual std::unique_ptr<IFont> CreateFont() const = 0;
 
 	// Scene
-	virtual std::unique_ptr<IScene> CreateScene(std::string name) = 0;
+	virtual std::unique_ptr<IScene> CreateScene(std::string name) const = 0;
 	virtual std::unique_ptr<IMeshEntity> CreateMeshEntity() const = 0;
 	virtual std::unique_ptr<IOverlayEntity> CreateOverlayEntity() const = 0;
 	virtual std::unique_ptr<ITextEntity> CreateTextEntity() const = 0;
-	virtual std::unique_ptr<IPerspectiveCamera> CreatePerspectiveCamera(std::string name) = 0;
-	virtual std::unique_ptr<IOrthographicCamera> CreateOrthographicCamera(std::string name) = 0;
-	virtual std::unique_ptr<ICamera2D> CreateCamera2D(std::string name) = 0;
+	virtual std::unique_ptr<IPerspectiveCamera> CreatePerspectiveCamera(std::string name) const = 0;
+	virtual std::unique_ptr<IOrthographicCamera> CreateOrthographicCamera(std::string name) const = 0;
+	virtual std::unique_ptr<ICamera2D> CreateCamera2D(std::string name) const = 0;
 	virtual std::unique_ptr<IDirectionalLight> CreateDirectionalLight() const = 0;
 
 
@@ -109,10 +109,10 @@ public:
 	virtual bool SetEnvVariable(std::string name, Any obj) = 0;
 
 	/// <summary> Returns true if env var with given name exists. </summary>
-	virtual bool EnvVariableExists(const std::string& name) = 0;
+	virtual bool EnvVariableExists(const std::string& name) const = 0;
 
 	/// <summary> Return the env var with given name or throws <see cref="InvalidArgumentException"/>. </summary>
-	virtual const Any& GetEnvVariable(const std::string& name) = 0;
+	virtual const Any& GetEnvVariable(const std::string& name) const = 0;
 
 	/// <summary> Load the pipeline from the JSON node graph description. </summary>
 	/// <remarks> Tears down all the resources associated with the old pipeline, including
