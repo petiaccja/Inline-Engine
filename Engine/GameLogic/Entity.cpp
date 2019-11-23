@@ -1,6 +1,6 @@
 #include "Entity.hpp"
 
-#include "World.hpp"
+#include "Scene.hpp"
 
 namespace inl::game {
 

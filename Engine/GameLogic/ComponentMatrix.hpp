@@ -107,9 +107,9 @@ public:
 		generic_iterator operator--(int);
 		generic_iterator& operator+=(size_t n);
 		generic_iterator& operator-=(size_t n);
-		friend generic_iterator operator+(generic_iterator lhs, size_t n) { return lhs += n; }
-		friend generic_iterator operator+(size_t n, generic_iterator rhs) { return rhs += n; }
-		friend generic_iterator operator-(generic_iterator lhs, size_t n) { return lhs -= n; }
+		friend generic_iterator operator+(generic_iterator lhs, size_t n) { return generic_iterator{lhs} += n; }
+		friend generic_iterator operator+(size_t n, generic_iterator rhs) { return generic_iterator{rhs} += n; }
+		friend generic_iterator operator-(generic_iterator lhs, size_t n) { return generic_iterator{lhs} -= n; }
 		friend size_t operator-(const generic_iterator& lhs, const generic_iterator& rhs) { return lhs.get_index() - rhs.get_index(); }
 		auto operator<=>(const generic_iterator& rhs) const { return get_index() <=> rhs.get_index(); }
 		auto operator==(const generic_iterator& rhs) const { return get_index() == rhs.get_index(); }
@@ -232,9 +232,9 @@ public:
 		generic_iterator operator--(int);
 		generic_iterator& operator+=(size_t n);
 		generic_iterator& operator-=(size_t n);
-		friend generic_iterator operator+(generic_iterator lhs, size_t n) { return lhs += n; }
-		friend generic_iterator operator+(size_t n, generic_iterator rhs) { return rhs += n; }
-		friend generic_iterator operator-(generic_iterator lhs, size_t n) { return lhs -= n; }
+		friend generic_iterator operator+(generic_iterator lhs, size_t n) { return generic_iterator{lhs} += n; }
+		friend generic_iterator operator+(size_t n, generic_iterator rhs) { return generic_iterator{rhs} += n; }
+		friend generic_iterator operator-(generic_iterator lhs, size_t n) { return generic_iterator{lhs} -= n; }
 		friend size_t operator-(const generic_iterator& lhs, const generic_iterator& rhs) { return lhs.get_index() - rhs.get_index(); }
 		auto operator<=>(const generic_iterator& rhs) const { return get_index() <=> rhs.get_index(); }
 		auto operator==(const generic_iterator& rhs) const { return get_index() == rhs.get_index(); }

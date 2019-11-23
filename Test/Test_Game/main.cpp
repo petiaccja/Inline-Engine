@@ -67,8 +67,8 @@ int main() {
 		gameSceneFrame.SetGameWorld(gameWorld);
 		compositor.HideFrame<GameSceneFrame>();
 
-		auto& weSystem = gameWorld.GetWorld().GetSystem<WindowEventSystem>();
-		auto& uiSystem = gameWorld.GetWorld().GetSystem<UserInterfaceSystem>();
+		auto& weSystem = gameWorld.GetSimulation().Get<WindowEventSystem>();
+		auto& uiSystem = gameWorld.GetSimulation().Get<UserInterfaceSystem>();
 		weSystem.SetWindows({ &window });
 		uiSystem.SetBoards({ &gameInterface.GetBoard() });
 
@@ -87,7 +87,7 @@ int main() {
 		while (!window.IsClosed()) {
 			float frameTime = float(timer.Elapsed());
 			timer.Reset();
-			gameWorld.GetWorld().Update(frameTime);
+			gameWorld.GetSimulation().Run(gameWorld.GetWorld(), frameTime);
 		}
 	}
 	catch (std::exception& ex) {

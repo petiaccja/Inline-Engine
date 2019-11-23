@@ -18,7 +18,7 @@ TEST_CASE("ComponentFactory - Registration", "[GameLogic]") {
 
 
 TEST_CASE("ComponentFactory - Create", "[GameLogic]") {
-	World world;
+	Scene world;
 	Entity& entity = *world.CreateEntity();
 	ComponentFactory_Singleton::GetInstance().Create(entity, "FooComponent");
 	REQUIRE(entity.HasComponent<FooComponent>());
@@ -26,7 +26,7 @@ TEST_CASE("ComponentFactory - Create", "[GameLogic]") {
 
 
 TEST_CASE("ComponentFactory - Create with special factory", "[GameLogic]") {
-	World world;
+	Scene world;
 	Entity& entity = *world.CreateEntity();
 	auto& factory = ComponentFactory_Singleton::GetInstance();
 	auto& specialFactory = factory.GetClassFactory<SpecialComponent, SpecialFactory>();
@@ -57,7 +57,7 @@ TEST_CASE("ComponentFactory - Variant serializer", "[GameLogic]") {
 
 
 TEST_CASE("ComponentFactory - Create with serialization", "[GameLogic]") {
-	World world;
+	Scene world;
 	Entity& entity = *world.CreateEntity();
 	std::stringstream ss;
 	{

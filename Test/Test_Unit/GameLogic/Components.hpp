@@ -1,3 +1,5 @@
+#pragma once
+
 #include <GameLogic/AutoRegisterComponent.hpp>
 #include <GameLogic/ComponentClassFactory.hpp>
 

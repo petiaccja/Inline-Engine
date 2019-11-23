@@ -22,7 +22,7 @@ class SpecificSystem : public System {
 public:
 	const ComponentScheme& Scheme() const override final;
 	void Update(float elapsed) override final { throw InvalidCallException("Don't call this."); }
-	void Update(float elapsed, ComponentMatrix& store) override;
+	void Update(float elapsed, ComponentMatrix& store) final override;
 
 protected:
 	virtual void Update(float elapsed, ComponentRange<ComponentTypes...>& range);

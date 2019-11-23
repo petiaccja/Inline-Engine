@@ -1,6 +1,6 @@
 #pragma once
 #include <InlineMath.hpp>
-#include "GameLogic/World.hpp"
+#include "GameLogic/Scene.hpp"
 
 
 namespace inl {
@@ -15,10 +15,10 @@ class GameWorld;
 class ILevel {
 public:
 	/// <summary> Loads entire level (or nearby tiles). </summary>
-	virtual inl::game::World Initialize(inl::game::ComponentFactory& componentFactory, inl::Vec3 centerPosition) = 0;
+	virtual inl::game::Scene Initialize(inl::game::ComponentFactory& componentFactory, inl::Vec3 centerPosition) = 0;
 
 	/// <summary> Loads tiles previously not loaded if camera position changed. </summary>
-	virtual inl::game::World Expand(inl::game::ComponentFactory& componentFactory, inl::Vec3 centerPosition) = 0;
+	virtual inl::game::Scene Expand(inl::game::ComponentFactory& componentFactory, inl::Vec3 centerPosition) = 0;
 
 	/// <summary> Deletes unimportant entities from tiles that are now too far away. </summary>
 	virtual void Sweep(inl::Vec3 centerPosition) = 0;
@@ -31,7 +31,7 @@ public:
 // The issue here:
 // Load may take a significant amount of time: parsing meshes, loading images, transcoding etc...
 // Therefore load should be async, otherwise it blocks the whole game, including the loading screen!
-// Load is essentially a for loop that adds Entities to the World, but the World and it's ComponentStores
+// Load is essentially a for loop that adds Entities to the Scene, but the Scene and it's ComponentStores
 // are strictly single-threaded. This prevents loading on multiple threads at the same time (very much
 // beneficial for heavy mesh and image processing) and also prevents simulating the world and loading
 // new content at the same time (for example a large-scale tiled level loader like GTA).
@@ -46,9 +46,9 @@ public:
 //
 // Idea #3:
 // Have multiple Worlds at the same time, only one of them permanent.
-// Create new entities in temporary Worlds, and then += them to the permanent World.
+// Create new entities in temporary Worlds, and then += them to the permanent Scene.
 //
-// Even if all the things are multi-threaded, the World must not be arbitrarily changed in the
+// Even if all the things are multi-threaded, the Scene must not be arbitrarily changed in the
 // middle of the simulation. That is, change of entities from another thread between the run
 // of two consecutive Systems is forbidden.
 //

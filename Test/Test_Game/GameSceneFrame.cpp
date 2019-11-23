@@ -15,8 +15,8 @@ void GameSceneFrame::SetGameWorld(GameWorld& gameWorld) {
 void GameSceneFrame::Start(std::unique_ptr<ILevel> level) {	
 	assert(m_gameWorld);
 	m_level = std::move(level);
-	inl::game::World newWorld = m_level->Initialize(m_gameWorld->GetComponentFactory(), { 0, 0, 0 });
-	inl::game::World& oldWorld = m_gameWorld->GetWorld();
+	inl::game::Scene newWorld = m_level->Initialize(m_gameWorld->GetComponentFactory(), { 0, 0, 0 });
+	inl::game::Scene& oldWorld = m_gameWorld->GetWorld();
 
 	oldWorld += std::move(newWorld);
 }

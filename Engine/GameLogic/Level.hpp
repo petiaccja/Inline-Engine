@@ -1,11 +1,11 @@
-#include "World.hpp"
+#include "Scene.hpp"
 
 
 namespace inl::game {
 
 class Level {
 public:
-	Level(World& world);
+	Level(Scene& world);
 
 	template <class Archive>
 	void Load(Archive& ar);
@@ -14,7 +14,7 @@ public:
 	void Save(Archive& ar) const;
 
 private:
-	World& world;	
+	Scene& world;	
 };
 
 

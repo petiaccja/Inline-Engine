@@ -5,10 +5,10 @@
 class TestLevel : public ILevel {
 public:
 	// Loads entire level at once.
-	inl::game::World Initialize(inl::game::ComponentFactory& componentFactory, inl::Vec3 centerPosition) override;
+	inl::game::Scene Initialize(inl::game::ComponentFactory& componentFactory, inl::Vec3 centerPosition) override;
 
 	// Does nothing, not a tiled level loader.
-	inl::game::World Expand(inl::game::ComponentFactory& componentFactory, inl::Vec3 centerPosition) override { return {}; }
+	inl::game::Scene Expand(inl::game::ComponentFactory& componentFactory, inl::Vec3 centerPosition) override { return {}; }
 
 	// Does nothing, not a tiled level loader.
 	void Sweep(inl::Vec3 centerPosition) override {}

@@ -21,8 +21,12 @@ GameWorld::GameWorld(const ModuleCollection& modules, const AssetCacheCollection
 }
 
 
-inl::game::World& GameWorld::GetWorld() {
+inl::game::Scene& GameWorld::GetWorld() {
 	return m_world;
+}
+
+inl::game::Simulation& GameWorld::GetSimulation() {
+	return m_simulation;
 }
 
 
@@ -39,16 +43,10 @@ void GameWorld::CreateSystems(const ModuleCollection& modules) {
 	auto windowEventSystem = std::make_unique<WindowEventSystem>();
 	auto userInterfaceSystem = std::make_unique<UserInterfaceSystem>();
 
-	m_systems.push_back(std::move(windowEventSystem));
-	m_systems.push_back(std::move(userInterfaceSystem));
-	m_systems.push_back(std::make_unique<inl::gamelib::LinkTransformSystem>());
-	m_systems.push_back(std::make_unique<inl::gamelib::RenderingSystem>(&modules.GetGraphicsEngine()));
-
-	std::vector<inl::game::System*> systems;
-	for (const auto& s : m_systems) {
-		systems.push_back(s.get());
-	}
-	m_world.SetSystems(std::move(systems));
+	m_simulation.PushBack(WindowEventSystem{});
+	m_simulation.PushBack(UserInterfaceSystem{});
+	m_simulation.PushBack(inl::gamelib::LinkTransformSystem{});
+	m_simulation.PushBack(inl::gamelib::RenderingSystem{ &modules.GetGraphicsEngine() });
 }
 
 

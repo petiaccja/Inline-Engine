@@ -2,6 +2,7 @@
 
 #include "ComponentMatrix.hpp"
 
+#include <experimental/generator>
 #include <unordered_map>
 
 
@@ -21,35 +22,65 @@ struct EntitySet {
 };
 
 
-class World {
-public:
-	void Update(float elapsed);
+class Scene {
+	template <bool Const>
+	class generic_iterator {
+		friend generic_iterator<!Const>;
+		using store_iterator = std::conditional_t<Const,
+												  std::unordered_map<ComponentScheme, std::unique_ptr<EntitySet>>::const_iterator,
+												  std::unordered_map<ComponentScheme, std::unique_ptr<EntitySet>>::iterator>;
+		using entity_iterator = std::conditional_t<Const,
+												   ContiguousVector<std::unique_ptr<Entity>>::const_iterator,
+												   ContiguousVector<std::unique_ptr<Entity>>::iterator>;
 
-	// Manage entities.
+	public:
+		generic_iterator() = default;
+		generic_iterator(store_iterator store, store_iterator storeEnd, entity_iterator entity) : m_store(store), m_storeEnd(storeEnd), m_entity(entity) {}
+
+		generic_iterator(const generic_iterator& rhs) = default;
+		template <class Dummy = void, class = std::enable_if_t<Const, Dummy>>
+		generic_iterator(const generic_iterator<false>& rhs) : m_store(rhs.m_store), m_storeEnd(rhs.m_storeEnd), m_entity(rhs.m_entity) {}
+
+		Entity& operator*() const { return **m_entity; }
+		Entity* operator->() const { return m_entity->get(); }
+
+		generic_iterator& operator++();
+		generic_iterator& operator--();
+		generic_iterator operator++(int);
+		generic_iterator operator--(int);
+		bool operator==(const generic_iterator&) const;
+		bool operator!=(const generic_iterator&) const;
+
+	private:
+		store_iterator m_store;
+		store_iterator m_storeEnd;
+		entity_iterator m_entity;
+	};
+
+public:
+	using iterator = generic_iterator<false>;
+	using const_iterator = generic_iterator<true>;
+
 	template <class... ComponentTypes>
 	Entity* CreateEntity(ComponentTypes&&... args);
-
 	void DeleteEntity(Entity& entity);
 
-	// Manage systems.
-	void SetSystems(std::vector<System*> systems);
-	const std::vector<System*>& GetSystems() const;
+	iterator begin();
+	iterator end();
+	const_iterator begin() const;
+	const_iterator end() const;
+	const_iterator cbegin() const;
+	const_iterator cend() const;
 
-	template <class SystemT>
-	SystemT& GetSystem();
+	Scene& operator+=(Scene&& entities);
 
-	// Misc stuff
+	std::experimental::generator<std::reference_wrapper<ComponentMatrix>> GetStores(const ComponentScheme& subset);
+	std::experimental::generator<std::reference_wrapper<const ComponentMatrix>> GetStores(const ComponentScheme& subset) const;
 
-	/// <summary> Moves all entities form another World into this. </summary>
-	World& operator+=(World&& entities);
-
-	// Function only used by entities.
 	template <class ComponentT>
 	void AddComponent(Entity& entity, ComponentT&& component);
-
 	template <class ComponentT>
 	void RemoveComponent(Entity& entity);
-
 	void RemoveComponent(Entity& entity, size_t index);
 
 private:
@@ -57,9 +88,9 @@ private:
 	template <class Component>
 	static size_t MoveEntityExtend(EntitySet& target, EntitySet& source, size_t sourceIndex, Component&& component);
 	static size_t MoveEntityPartial(EntitySet& target, EntitySet& source, size_t sourceIndex, size_t skippedComponent);
-	static size_t MoveEntity(EntitySet& target, EntitySet& source, size_t sourceIndex);	
-	
-	
+	static size_t MoveEntity(EntitySet& target, EntitySet& source, size_t sourceIndex);
+
+
 	ComponentScheme GetScheme(const ComponentMatrix& matrix);
 	void MoveScheme(const ComponentScheme& scheme, EntitySet&& entitySet);
 	void MergeScheme(const ComponentScheme& scheme, EntitySet&& entitySet);
@@ -67,7 +98,6 @@ private:
 
 private:
 	std::unordered_map<ComponentScheme, std::unique_ptr<EntitySet>> m_componentStores;
-	std::vector<System*> m_systems;
 };
 
 
@@ -80,15 +110,69 @@ private:
 namespace inl::game {
 
 
+template <bool Const>
+Scene::generic_iterator<Const>& Scene::generic_iterator<Const>::operator++() {
+	++m_entity;
+	if (m_entity == m_store->second->entities.end()) {
+		do {
+			++m_store;
+		} while (m_store != m_storeEnd && m_store->second->entities.empty());
+		if (m_store != m_storeEnd) {
+			m_entity = m_store->second->entities.begin();
+		}
+	}
+	return *this;
+}
+
+template <bool Const>
+Scene::generic_iterator<Const>& Scene::generic_iterator<Const>::operator--() {
+	if (m_store == m_storeEnd || m_entity == m_store->second->entities.begin()) {
+		do {
+			--m_store;
+		} while (m_store->second->entities.empty());
+		m_entity = m_store->second->entities.end();
+	}
+	--m_entity;
+	return *this;
+}
+
+template <bool Const>
+Scene::generic_iterator<Const> Scene::generic_iterator<Const>::operator++(int) {
+	auto cpy = *this;
+	++*this;
+	return cpy;
+}
+
+template <bool Const>
+Scene::generic_iterator<Const> Scene::generic_iterator<Const>::operator--(int) {
+	auto cpy = *this;
+	--*this;
+	return cpy;
+}
+
+template <bool Const>
+bool Scene::generic_iterator<Const>::operator==(const generic_iterator& rhs) const {
+	if (m_store == m_storeEnd) {
+		return m_store == rhs.m_store;
+	}
+	return m_store == rhs.m_store && m_entity == rhs.m_entity;
+}
+
+template <bool Const>
+bool Scene::generic_iterator<Const>::operator!=(const generic_iterator& rhs) const {
+	return !(*this == rhs);
+}
+
+
 template <class... ComponentTypes>
-Entity* World::CreateEntity(ComponentTypes&&... args) {
+Entity* Scene::CreateEntity(ComponentTypes&&... args) {
 	static const ComponentScheme scheme = { typeid(ComponentTypes)... };
 
 	auto it = m_componentStores.find(scheme);
 	if (it == m_componentStores.end()) {
 		auto [newIt, ignored_] = m_componentStores.insert(decltype(m_componentStores)::value_type{ scheme, std::make_unique<EntitySet>() });
 		if constexpr (sizeof...(ComponentTypes) > 0) {
-			(newIt->second->store.types.push_back(_ComponentVector<ComponentTypes>{}),...);
+			(newIt->second->store.types.push_back(_ComponentVector<ComponentTypes>{}), ...);
 		}
 		it = newIt;
 	}
@@ -102,7 +186,7 @@ Entity* World::CreateEntity(ComponentTypes&&... args) {
 
 
 template <class ComponentT>
-void World::AddComponent(Entity& entity, ComponentT&& component) {
+void Scene::AddComponent(Entity& entity, ComponentT&& component) {
 	assert(entity.GetWorld() == this);
 
 	// STUCK HERE
@@ -147,7 +231,7 @@ void World::AddComponent(Entity& entity, ComponentT&& component) {
 
 
 template <class ComponentT>
-void World::RemoveComponent(Entity& entity) {
+void Scene::RemoveComponent(Entity& entity) {
 	assert(entity.GetWorld() == this);
 
 	// Find the index of the first component of specified type.
@@ -161,17 +245,6 @@ void World::RemoveComponent(Entity& entity) {
 	}
 
 	RemoveComponent(entity, indexToRemove);
-}
-
-
-template <class SystemT>
-SystemT& World::GetSystem() {
-	for (auto sys : m_systems) {
-		if (auto* typedSys = dynamic_cast<SystemT*>(sys)) {
-			return *typedSys;
-		}
-	}
-	throw OutOfRangeException("System of specific type not found.");
 }
 
 

@@ -8,7 +8,7 @@
 namespace inl::game {
 
 
-class World;
+class Scene;
 struct EntitySet;
 class ComponentScheme;
 
@@ -32,7 +32,7 @@ namespace impl {
 class Entity {
 public:
 	Entity() = default;
-	Entity(World* world, EntitySet* store, size_t index) : m_world(world), m_store(store), m_index(index) {}
+	Entity(Scene* world, EntitySet* store, size_t index) : m_world(world), m_store(store), m_index(index) {}
 
 	template <class ComponentT>
 	void AddComponent(ComponentT&& component);
@@ -51,12 +51,12 @@ public:
 	template <class ComponentT>
 	const ComponentT& GetFirstComponent() const;
 
-	const World* GetWorld() const { return m_world; }
+	const Scene* GetWorld() const { return m_world; }
 	const EntitySet* GetStore() const { return m_store; }
 	size_t GetIndex() const { return m_index; }
 
 private:
-	World* m_world;
+	Scene* m_world;
 	EntitySet* m_store;
 	size_t m_index;
 };
@@ -65,7 +65,7 @@ private:
 
 
 
-#include "World.hpp"
+#include "Scene.hpp"
 
 
 namespace inl::game {

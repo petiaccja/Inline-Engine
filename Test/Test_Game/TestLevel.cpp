@@ -3,12 +3,12 @@
 #include "GameFoundationLibrary/Components/DirectionalLightComponent.hpp"
 
 
-inl::game::World TestLevel::Initialize(inl::game::ComponentFactory& componentFactory, inl::Vec3 centerPosition) {
+inl::game::Scene TestLevel::Initialize(inl::game::ComponentFactory& componentFactory, inl::Vec3 centerPosition) {
 	using namespace inl;
 	using namespace game;
 	using namespace gamelib;
 
-	World newWorld;
+	Scene newWorld;
 
 	// Create a directional light.
 	Entity* entity = newWorld.CreateEntity();

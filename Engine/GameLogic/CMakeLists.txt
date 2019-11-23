@@ -2,8 +2,10 @@
 
 # Files comprising the target
 set(src_world
-	World.cpp
-	World.hpp
+	Scene.cpp
+	Scene.hpp
+	Simulation.cpp
+	Simulation.hpp
 	Entity.cpp
 	Entity.hpp
 	ContiguousVector.hpp
