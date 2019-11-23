@@ -11,8 +11,8 @@ void Simulation::Run(Scene& scene, float elapsed) {
 			system.Update(elapsed);
 		}
 		else {
-			for (auto& store : scene.GetStores(systemScheme)) {
-				system.Update(elapsed, store);
+			for (auto& matrix : scene.GetMatrices(systemScheme)) {
+				system.Update(elapsed, matrix);
 			}
 		}
 	}

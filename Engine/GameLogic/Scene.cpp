@@ -21,109 +21,109 @@ EntitySet::~EntitySet() {
 
 
 void Scene::DeleteEntity(Entity& entity) {
-	assert(entity.GetWorld() == this);
-	auto& store = *const_cast<EntitySet*>(entity.GetStore());
-	auto& componentStore = store.store;
-	auto& entityVector = store.entities;
+	assert(entity.GetScene() == this);
+	auto& set = *const_cast<EntitySet*>(entity.GetSet());
+	auto& componentMatrix = set.matrix;
+	auto& entityVector = set.entities;
 	auto index = entity.GetIndex();
-	componentStore.entities.erase(componentStore.entities.begin() + index);
+	componentMatrix.entities.erase(componentMatrix.entities.begin() + index);
 	entityVector.erase(entityVector.begin() + index);
 	if (index < entityVector.size()) {
-		*entityVector[index] = Entity{ this, &store, index };
+		*entityVector[index] = Entity{ this, &set, index };
 	}
 }
 
 
 Scene::iterator Scene::begin() {
-	auto storeBegin = m_componentStores.begin();
-	auto storeEnd = m_componentStores.end();
-	auto entity = storeBegin->second->entities.begin();
-	auto it = iterator{ storeBegin, storeEnd, entity };
-	if (entity == storeBegin->second->entities.end()) {
+	auto setsBegin = m_componentSets.begin();
+	auto setsEnd = m_componentSets.end();
+	auto entity = setsBegin->second->entities.begin();
+	auto it = iterator{ setsBegin, setsEnd, entity };
+	if (entity == setsBegin->second->entities.end()) {
 		++it;
 	}
 	return it;
 }
 
 Scene::iterator Scene::end() {
-	auto storeEnd = m_componentStores.end();
-	return iterator{ storeEnd, storeEnd, {} };
+	auto setEnd = m_componentSets.end();
+	return iterator{ setEnd, setEnd, {} };
 }
 
 Scene::const_iterator Scene::begin() const {
-	auto storeBegin = m_componentStores.begin();
-	auto storeEnd = m_componentStores.end();
-	auto entity = storeBegin->second->entities.begin();
-	auto it = const_iterator{ storeBegin, storeEnd, entity };
-	if (entity == storeBegin->second->entities.end()) {
+	auto setsBegin = m_componentSets.begin();
+	auto setsEnd = m_componentSets.end();
+	auto entity = setsBegin->second->entities.begin();
+	auto it = const_iterator{ setsBegin, setsEnd, entity };
+	if (entity == setsBegin->second->entities.end()) {
 		++it;
 	}
 	return it;
 }
 
 Scene::const_iterator Scene::end() const {
-	auto storeEnd = m_componentStores.end();
-	return const_iterator{ storeEnd, storeEnd, {} };
+	auto setsEnd = m_componentSets.end();
+	return const_iterator{ setsEnd, setsEnd, {} };
 }
 
 Scene::const_iterator Scene::cbegin() const {
-	auto storeBegin = m_componentStores.begin();
-	auto storeEnd = m_componentStores.end();
-	auto entity = storeBegin->second->entities.begin();
-	auto it = const_iterator{ storeBegin, storeEnd, entity };
-	if (entity == storeBegin->second->entities.end()) {
+	auto setsBegin = m_componentSets.begin();
+	auto setsEnd = m_componentSets.end();
+	auto entity = setsBegin->second->entities.begin();
+	auto it = const_iterator{ setsBegin, setsEnd, entity };
+	if (entity == setsBegin->second->entities.end()) {
 		++it;
 	}
 	return it;
 }
 
 Scene::const_iterator Scene::cend() const {
-	auto storeEnd = m_componentStores.end();
-	return const_iterator{ storeEnd, storeEnd, {} };
+	auto setsEnd = m_componentSets.end();
+	return const_iterator{ setsEnd, setsEnd, {} };
 }
 
 
 void Scene::RemoveComponent(Entity& entity, size_t index) {
-	assert(entity.GetWorld() == this);
-	assert(index < entity.GetStore()->store.types.size());
+	assert(entity.GetScene() == this);
+	assert(index < entity.GetSet()->matrix.types.size());
 
 	// Naive implementation of the reduced Scheme's construction as use as a hash key.
-	auto& currentEntities = const_cast<ContiguousVector<std::unique_ptr<Entity>>&>(entity.GetStore()->entities);
-	auto& currentStore = const_cast<ComponentMatrix&>(entity.GetStore()->store);
+	auto& currentEntities = const_cast<ContiguousVector<std::unique_ptr<Entity>>&>(entity.GetSet()->entities);
+	auto& currentMatrix = const_cast<ComponentMatrix&>(entity.GetSet()->matrix);
 	const size_t currentIndex = entity.GetIndex();
-	const ComponentScheme& currentScheme = GetScheme(currentStore);
+	const ComponentScheme& currentScheme = GetScheme(currentMatrix);
 	ComponentScheme reducedScheme = currentScheme;
 	reducedScheme.Erase(reducedScheme.begin() + index);
 
-	// Find or create reduced store.
-	auto it = m_componentStores.find(reducedScheme);
-	if (it == m_componentStores.end()) {
-		auto [newIt, ignore_] = m_componentStores.insert({ reducedScheme, std::make_unique<EntitySet>() });
-		auto& newStore = newIt->second->store;
-		newStore.types = currentStore.types;
-		newStore.types.erase(newStore.types.begin() + newStore.types.type_order()[index].second);
+	// Find or create reduced matrix.
+	auto it = m_componentSets.find(reducedScheme);
+	if (it == m_componentSets.end()) {
+		auto [newIt, ignore_] = m_componentSets.insert({ reducedScheme, std::make_unique<EntitySet>() });
+		auto& newMatrix = newIt->second->matrix;
+		newMatrix.types = currentMatrix.types;
+		newMatrix.types.erase(newMatrix.types.begin() + newMatrix.types.type_order()[index].second);
 		it = newIt;
 	}
 
 	// Splice entity
-	auto& newStore = it->second->store;
+	auto& newMatrix = it->second->matrix;
 	auto filterDeleted = [&](auto t, auto i) {
-		return i == currentStore.types.type_order()[index].second;
+		return i == currentMatrix.types.type_order()[index].second;
 	};
-	newStore.entities.push_back({});
+	newMatrix.entities.push_back({});
 	it->second->entities.push_back(std::move(currentEntities[currentIndex]));
-	newStore.entities.back().assign_partial(std::move(currentStore.entities[currentIndex]), filterDeleted);
-	entity = Entity(this, it->second.get(), newStore.entities.size() - 1);
-	currentStore.entities.erase(currentStore.entities.begin() + currentIndex);
+	newMatrix.entities.back().assign_partial(std::move(currentMatrix.entities[currentIndex]), filterDeleted);
+	entity = Entity(this, it->second.get(), newMatrix.entities.size() - 1);
+	currentMatrix.entities.erase(currentMatrix.entities.begin() + currentIndex);
 	currentEntities.erase(currentEntities.begin() + currentIndex);
 	if (currentEntities.size() > currentIndex) {
-		*currentEntities[currentIndex] = Entity(this, (EntitySet*)currentEntities[currentIndex]->GetStore(), currentIndex);
+		*currentEntities[currentIndex] = Entity(this, (EntitySet*)currentEntities[currentIndex]->GetSet(), currentIndex);
 	}
 }
 
 
 Scene& Scene::operator+=(Scene&& entities) {
-	for (auto&& [scheme, entitySet] : entities.m_componentStores) {
+	for (auto&& [scheme, entitySet] : entities.m_componentSets) {
 		MergeScheme(scheme, std::move(*entitySet));
 	}
 
@@ -131,33 +131,33 @@ Scene& Scene::operator+=(Scene&& entities) {
 }
 
 
-std::experimental::generator<std::reference_wrapper<ComponentMatrix>> Scene::GetStores(const ComponentScheme& subset) {
-	auto coro = [](decltype(m_componentStores)& stores, ComponentScheme subset) -> std::experimental::generator<std::reference_wrapper<ComponentMatrix>> {
-		auto it = stores.begin();
-		auto end = stores.end();
+std::experimental::generator<std::reference_wrapper<ComponentMatrix>> Scene::GetMatrices(const ComponentScheme& subset) {
+	auto coro = [](decltype(m_componentSets)& sets, ComponentScheme subset) -> std::experimental::generator<std::reference_wrapper<ComponentMatrix>> {
+		auto it = sets.begin();
+		auto end = sets.end();
 		while (it != end) {
 			if (subset.SubsetOf(it->first)) {
-				co_yield it->second->store;
+				co_yield it->second->matrix;
 			}
 			++it;
 		}
 	};
-	return coro(m_componentStores, subset);
+	return coro(m_componentSets, subset);
 }
 
 
-std::experimental::generator<std::reference_wrapper<const ComponentMatrix>> Scene::GetStores(const ComponentScheme& subset) const {
-	auto coro = [](const decltype(m_componentStores)& stores, ComponentScheme subset) -> std::experimental::generator<std::reference_wrapper<const ComponentMatrix>> {
-		auto it = stores.begin();
-		auto end = stores.end();
+std::experimental::generator<std::reference_wrapper<const ComponentMatrix>> Scene::GetMatrices(const ComponentScheme& subset) const {
+	auto coro = [](const decltype(m_componentSets)& sets, ComponentScheme subset) -> std::experimental::generator<std::reference_wrapper<const ComponentMatrix>> {
+		auto it = sets.begin();
+		auto end = sets.end();
 		while (it != end) {
 			if (subset.SubsetOf(it->first)) {
-				co_yield it->second->store;
+				co_yield it->second->matrix;
 			}
 			++it;
 		}
 	};
-	return coro(m_componentStores, subset);
+	return coro(m_componentSets, subset);
 }
 
 
@@ -175,13 +175,13 @@ void Scene::MoveScheme(const ComponentScheme& scheme, EntitySet&& entitySet) {
 		size_t idx = entity->GetIndex();
 		*entity = Entity{ this, &entitySet, idx };
 	}
-	m_componentStores.insert({ scheme, std::make_unique<EntitySet>(std::move(entitySet)) });
+	m_componentSets.insert({ scheme, std::make_unique<EntitySet>(std::move(entitySet)) });
 }
 
 
 void Scene::MergeScheme(const ComponentScheme& scheme, EntitySet&& entitySet) {
-	auto it = m_componentStores.find(scheme);
-	if (it == m_componentStores.end()) {
+	auto it = m_componentSets.find(scheme);
+	if (it == m_componentSets.end()) {
 		MoveScheme(scheme, std::move(entitySet));
 	}
 	else {
@@ -190,8 +190,8 @@ void Scene::MergeScheme(const ComponentScheme& scheme, EntitySet&& entitySet) {
 }
 
 void Scene::AppendScheme(EntitySet& target, EntitySet&& source) {
-	for (auto& components : source.store.entities) {
-		target.store.entities.push_back(std::move(components));
+	for (auto& components : source.matrix.entities) {
+		target.matrix.entities.push_back(std::move(components));
 	}
 	for (auto& entity : source.entities) {
 		size_t idx = target.entities.size();

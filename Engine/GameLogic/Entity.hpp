@@ -20,7 +20,7 @@ namespace impl {
 
 
 
-		std::conditional<isConst, const ComponentMatrix*, ComponentMatrix*> m_store;
+		std::conditional<isConst, const ComponentMatrix*, ComponentMatrix*> m_matrix;
 		size_t m_entityIndex; // At which index in the vectors this entity's components reside.
 		size_t m_first; // Index of the first component vector with ComponentT.
 		size_t m_last; // Index of the past-the-last component vector with ComponentT.
@@ -32,7 +32,7 @@ namespace impl {
 class Entity {
 public:
 	Entity() = default;
-	Entity(Scene* world, EntitySet* store, size_t index) : m_world(world), m_store(store), m_index(index) {}
+	Entity(Scene* scene, EntitySet* set, size_t index) : m_scene(scene), m_set(set), m_index(index) {}
 
 	template <class ComponentT>
 	void AddComponent(ComponentT&& component);
@@ -51,13 +51,13 @@ public:
 	template <class ComponentT>
 	const ComponentT& GetFirstComponent() const;
 
-	const Scene* GetWorld() const { return m_world; }
-	const EntitySet* GetStore() const { return m_store; }
+	const Scene* GetScene() const { return m_scene; }
+	const EntitySet* GetSet() const { return m_set; }
 	size_t GetIndex() const { return m_index; }
 
 private:
-	Scene* m_world;
-	EntitySet* m_store;
+	Scene* m_scene;
+	EntitySet* m_set;
 	size_t m_index;
 };
 
@@ -72,46 +72,46 @@ namespace inl::game {
 
 template <class ComponentT>
 void Entity::AddComponent(ComponentT&& component) {
-	assert(m_world);
-	m_world->AddComponent(*this, std::forward<ComponentT>(component));
+	assert(m_scene);
+	m_scene->AddComponent(*this, std::forward<ComponentT>(component));
 }
 
 
 template <class ComponentT>
 void Entity::RemoveComponent() {
-	assert(m_world);
-	m_world->RemoveComponent<ComponentT>(*this);
+	assert(m_scene);
+	m_scene->RemoveComponent<ComponentT>(*this);
 }
 
 template <class ComponentT>
 bool Entity::HasComponent() const {
-	assert(m_store);
-	auto& store = m_store->store;
-	auto [first, last] = store.types.equal_range(typeid(ComponentT));
+	assert(m_set);
+	auto& matrix = m_set->matrix;
+	auto [first, last] = matrix.types.equal_range(typeid(ComponentT));
 	return first < last;
 }
 
 template <class ComponentT>
 ComponentT& Entity::GetFirstComponent() {
-	assert(m_store);
-	auto& store = m_store->store;
-	auto [first, last] = store.types.equal_range(typeid(ComponentT));
+	assert(m_set);
+	auto& matrix = m_set->matrix;
+	auto [first, last] = matrix.types.equal_range(typeid(ComponentT));
 	if (first == last) {
 		throw InvalidArgumentException("No such component in entity.");
 	}
-	return m_store->store.entities[m_index].get<ComponentT>(first->second);
+	return m_set->matrix.entities[m_index].get<ComponentT>(first->second);
 }
 
 
 template <class ComponentT>
 const ComponentT& Entity::GetFirstComponent() const {
-	assert(m_store);
-	auto& store = m_store->store;
-	auto [first, last] = store.types.equal_range(typeid(ComponentT));
+	assert(m_set);
+	auto& matrix = m_set->matrix;
+	auto [first, last] = matrix.types.equal_range(typeid(ComponentT));
 	if (first == last) {
 		throw InvalidArgumentException("No such component in entity.");
 	}
-	return m_store->store.entities[m_index].get<ComponentT>(first->second);
+	return m_set->matrix.entities[m_index].get<ComponentT>(first->second);
 }
 
 

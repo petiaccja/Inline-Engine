@@ -99,12 +99,12 @@ public:
 
 private:
 	static constexpr bool IsAllConst = std::conjunction_v<std::is_const<std::remove_reference_t<ComponentTypes>>...>;
-	using ComponentStoreOptConstT = impl::AddConstOptT<ComponentMatrix, IsAllConst>;
+	using ComponentMatrixOptConstT = impl::AddConstOptT<ComponentMatrix, IsAllConst>;
 	using ComponentVectorTupleT = std::tuple<impl::ComponentVectorOptConstT<ComponentTypes>&...>;
 
 public:
-	ComponentRange(ComponentStoreOptConstT& componentStore);
-	ComponentRange(ComponentStoreOptConstT& componentStore, const std::vector<size_t>& componentVectorIndices);
+	ComponentRange(ComponentMatrixOptConstT& componentMatrix);
+	ComponentRange(ComponentMatrixOptConstT& componentMatrix, const std::vector<size_t>& componentVectorIndices);
 
 	iterator begin();
 	iterator end();
@@ -114,10 +114,10 @@ public:
 	const_iterator cend() const;
 
 private:
-	std::vector<size_t> DefaultIndices(ComponentStoreOptConstT& componentStore);
+	std::vector<size_t> DefaultIndices(ComponentMatrixOptConstT& componentMatrix);
 
 	template <size_t... Indices>
-	ComponentVectorTupleT FindComponentVectors(ComponentStoreOptConstT& componentStore, const std::vector<size_t>& componentVectorIndices, std::index_sequence<Indices...>);
+	ComponentVectorTupleT FindComponentVectors(ComponentMatrixOptConstT& componentMatrix, const std::vector<size_t>& componentVectorIndices, std::index_sequence<Indices...>);
 
 private:
 	ComponentVectorTupleT m_componentVectors;
@@ -125,7 +125,7 @@ private:
 
 
 template <class... ComponentTypes>
-std::vector<size_t> ComponentRange<ComponentTypes...>::DefaultIndices(ComponentStoreOptConstT& componentStore) {
+std::vector<size_t> ComponentRange<ComponentTypes...>::DefaultIndices(ComponentMatrixOptConstT& componentMatrix) {
 	std::map<std::type_index, size_t> indexCounter;
 	std::array types = { std::type_index(typeid(ComponentTypes))... };
 	std::vector<size_t> indices;
@@ -133,9 +133,9 @@ std::vector<size_t> ComponentRange<ComponentTypes...>::DefaultIndices(ComponentS
 	for (auto& type : types) {
 		auto it = indexCounter.find(type);
 		if (it == indexCounter.end()) {
-			auto [first, last] = componentStore.types.equal_range(type);
+			auto [first, last] = componentMatrix.types.equal_range(type);
 			if (first == last) {
-				throw InvalidArgumentException("Component type not found in store.");
+				throw InvalidArgumentException("Component type not found in matrix.");
 			}
 			indexCounter[type] = first->second;
 			indices.push_back(first->second);
@@ -149,13 +149,13 @@ std::vector<size_t> ComponentRange<ComponentTypes...>::DefaultIndices(ComponentS
 }
 
 template <class... ComponentTypes>
-ComponentRange<ComponentTypes...>::ComponentRange(ComponentStoreOptConstT& componentStore)
-	: m_componentVectors(FindComponentVectors(componentStore, DefaultIndices(componentStore), std::make_index_sequence<sizeof...(ComponentTypes)>())) {}
+ComponentRange<ComponentTypes...>::ComponentRange(ComponentMatrixOptConstT& componentMatrix)
+	: m_componentVectors(FindComponentVectors(componentMatrix, DefaultIndices(componentMatrix), std::make_index_sequence<sizeof...(ComponentTypes)>())) {}
 
 
 template <class... ComponentTypes>
-ComponentRange<ComponentTypes...>::ComponentRange(ComponentStoreOptConstT& componentStore, const std::vector<size_t>& componentVectorIndices)
-	: m_componentVectors(FindComponentVectors(componentStore, componentVectorIndices, std::make_index_sequence<sizeof...(ComponentTypes)>())) {}
+ComponentRange<ComponentTypes...>::ComponentRange(ComponentMatrixOptConstT& componentMatrix, const std::vector<size_t>& componentVectorIndices)
+	: m_componentVectors(FindComponentVectors(componentMatrix, componentVectorIndices, std::make_index_sequence<sizeof...(ComponentTypes)>())) {}
 
 
 template <class... ComponentTypes>
@@ -196,9 +196,8 @@ auto ComponentRange<ComponentTypes...>::cend() const -> const_iterator {
 
 template <class... ComponentTypes>
 template <size_t... Indices>
-auto ComponentRange<ComponentTypes...>::FindComponentVectors(ComponentStoreOptConstT& componentStore, const std::vector<size_t>& componentVectorIndices, std::index_sequence<Indices...>) -> ComponentVectorTupleT {
-	//return { componentStore.template GetComponentVector<std::decay_t<ComponentTypes>>(componentVectorIndices[Indices])... };
-	return { componentStore.types[componentVectorIndices[Indices]].template get_vector<std::decay_t<ComponentTypes>>().Raw()... };
+auto ComponentRange<ComponentTypes...>::FindComponentVectors(ComponentMatrixOptConstT& componentMatrix, const std::vector<size_t>& componentVectorIndices, std::index_sequence<Indices...>) -> ComponentVectorTupleT {
+	return { componentMatrix.types[componentVectorIndices[Indices]].template get_vector<std::decay_t<ComponentTypes>>().Raw()... };
 }
 
 

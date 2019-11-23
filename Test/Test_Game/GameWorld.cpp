@@ -21,7 +21,7 @@ GameWorld::GameWorld(const ModuleCollection& modules, const AssetCacheCollection
 }
 
 
-inl::game::Scene& GameWorld::GetWorld() {
+inl::game::Scene& GameWorld::GetScene() {
 	return m_world;
 }
 

@@ -11,9 +11,9 @@ TEST_CASE("AddEntity", "[GameLogic:Scene]") {
 	Scene scene;
 	auto entity = scene.CreateEntity(FooComponent{}, BarComponent{}, BazComponent{});
 
-	REQUIRE(entity->GetStore()->store.entities.size() == 1);
+	REQUIRE(entity->GetSet()->matrix.entities.size() == 1);
 	REQUIRE(entity->GetIndex() == 0);
-	REQUIRE(entity->GetWorld() == &scene);
+	REQUIRE(entity->GetScene() == &scene);
 }
 
 
@@ -24,9 +24,9 @@ TEST_CASE("Delete entity", "[GameLogic:Scene]") {
 
 	scene.DeleteEntity(*entity1);
 
-	REQUIRE(entity2->GetStore()->store.entities.size() == 1);
+	REQUIRE(entity2->GetSet()->matrix.entities.size() == 1);
 	REQUIRE(entity2->GetIndex() == 0);
-	REQUIRE(entity2->GetWorld() == &scene);
+	REQUIRE(entity2->GetScene() == &scene);
 }
 
 
@@ -41,7 +41,7 @@ TEST_CASE("Iterate entities", "[GameLogic:Scene]") {
 
 	int count = 0;
 	for (auto& entity : scene) {
-		REQUIRE(entity.GetWorld() == &scene);
+		REQUIRE(entity.GetScene() == &scene);
 		++count;
 	}
 	REQUIRE(count == 3);
@@ -62,7 +62,7 @@ TEST_CASE("Iterate backwards", "[GameLogic:Scene]") {
 	auto last = scene.end();
 	do {
 		--last;
-		REQUIRE((*last).GetWorld() == &scene);
+		REQUIRE((*last).GetScene() == &scene);
 		++count;
 	} while (last != first);
 
@@ -77,19 +77,19 @@ TEST_CASE("Get stores", "[GameLogic:Scene]") {
 	scene.CreateEntity(FooComponent{}, BazComponent{});
 
 	int count = 0;
-	for (auto& store : scene.GetStores({ typeid(FooComponent), typeid(BarComponent) })) {
+	for (auto& matrix : scene.GetMatrices({ typeid(FooComponent), typeid(BarComponent) })) {
 		++count;
 	}
 	REQUIRE(count == 1);
 
 	count = 0;
-	for (auto& store : scene.GetStores({ typeid(FooComponent) })) {
+	for (auto& matrix : scene.GetMatrices({ typeid(FooComponent) })) {
 		++count;
 	}
 	REQUIRE(count == 2);
 
 	count = 0;
-	for (auto& store : scene.GetStores({ typeid(float) })) {
+	for (auto& matrix : scene.GetMatrices({ typeid(float) })) {
 		++count;
 	}
 	REQUIRE(count == 0);
@@ -101,13 +101,13 @@ TEST_CASE("Add multiple entities", "[GameLogic:Scene]") {
 	auto entity0 = scene.CreateEntity(FooComponent{}, BarComponent{}, BazComponent{});
 	auto entity1 = scene.CreateEntity(FooComponent{}, BarComponent{}, BazComponent{});
 
-	REQUIRE(entity0->GetStore()->store.entities.size() == 2);
+	REQUIRE(entity0->GetSet()->matrix.entities.size() == 2);
 	REQUIRE(entity0->GetIndex() == 0);
-	REQUIRE(entity0->GetWorld() == &scene);
+	REQUIRE(entity0->GetScene() == &scene);
 
-	REQUIRE(entity1->GetStore()->store.entities.size() == 2);
+	REQUIRE(entity1->GetSet()->matrix.entities.size() == 2);
 	REQUIRE(entity1->GetIndex() == 1);
-	REQUIRE(entity1->GetWorld() == &scene);
+	REQUIRE(entity1->GetScene() == &scene);
 }
 
 
@@ -116,13 +116,13 @@ TEST_CASE("Add different entities", "[GameLogic:Scene]") {
 	auto entity0 = scene.CreateEntity(FooComponent{}, BarComponent{}, BazComponent{});
 	auto entity1 = scene.CreateEntity(FooComponent{}, BarComponent{});
 
-	REQUIRE(entity0->GetStore()->store.entities.size() == 1);
+	REQUIRE(entity0->GetSet()->matrix.entities.size() == 1);
 	REQUIRE(entity0->GetIndex() == 0);
-	REQUIRE(entity0->GetWorld() == &scene);
+	REQUIRE(entity0->GetScene() == &scene);
 
-	REQUIRE(entity1->GetStore()->store.entities.size() == 1);
+	REQUIRE(entity1->GetSet()->matrix.entities.size() == 1);
 	REQUIRE(entity1->GetIndex() == 0);
-	REQUIRE(entity1->GetWorld() == &scene);
+	REQUIRE(entity1->GetScene() == &scene);
 }
 
 
@@ -132,15 +132,15 @@ TEST_CASE("Add component new", "[GameLogic:Scene]") {
 	auto entity1 = scene.CreateEntity(FooComponent{}, BarComponent{});
 	scene.AddComponent(*entity0, BazComponent{});
 
-	REQUIRE(entity0->GetStore()->store.entities.size() == 1);
-	REQUIRE(entity0->GetStore()->store.types.size() == 4);
+	REQUIRE(entity0->GetSet()->matrix.entities.size() == 1);
+	REQUIRE(entity0->GetSet()->matrix.types.size() == 4);
 	REQUIRE(entity0->GetIndex() == 0);
-	REQUIRE(entity0->GetWorld() == &scene);
+	REQUIRE(entity0->GetScene() == &scene);
 
-	REQUIRE(entity1->GetStore()->store.entities.size() == 1);
-	REQUIRE(entity1->GetStore()->store.types.size() == 2);
+	REQUIRE(entity1->GetSet()->matrix.entities.size() == 1);
+	REQUIRE(entity1->GetSet()->matrix.types.size() == 2);
 	REQUIRE(entity1->GetIndex() == 0);
-	REQUIRE(entity1->GetWorld() == &scene);
+	REQUIRE(entity1->GetScene() == &scene);
 }
 
 
@@ -150,13 +150,13 @@ TEST_CASE("Add component merge", "[GameLogic:Scene]") {
 	auto entity1 = scene.CreateEntity(FooComponent{}, BarComponent{});
 	scene.AddComponent(*entity1, BazComponent{});
 
-	REQUIRE(entity0->GetStore()->store.entities.size() == 2);
+	REQUIRE(entity0->GetSet()->matrix.entities.size() == 2);
 	REQUIRE(entity0->GetIndex() == 0);
-	REQUIRE(entity0->GetWorld() == &scene);
+	REQUIRE(entity0->GetScene() == &scene);
 
-	REQUIRE(entity1->GetStore() == entity0->GetStore());
+	REQUIRE(entity1->GetSet() == entity0->GetSet());
 	REQUIRE(entity1->GetIndex() == 1);
-	REQUIRE(entity1->GetWorld() == &scene);
+	REQUIRE(entity1->GetScene() == &scene);
 }
 
 
@@ -166,15 +166,15 @@ TEST_CASE("Remove component new", "[GameLogic:Scene]") {
 	auto entity1 = scene.CreateEntity(FooComponent{}, BarComponent{});
 	scene.RemoveComponent<BarComponent>(*entity1);
 
-	REQUIRE(entity0->GetStore()->store.entities.size() == 1);
-	REQUIRE(entity0->GetStore()->store.types.size() == 3);
+	REQUIRE(entity0->GetSet()->matrix.entities.size() == 1);
+	REQUIRE(entity0->GetSet()->matrix.types.size() == 3);
 	REQUIRE(entity0->GetIndex() == 0);
-	REQUIRE(entity0->GetWorld() == &scene);
+	REQUIRE(entity0->GetScene() == &scene);
 
-	REQUIRE(entity1->GetStore()->store.entities.size() == 1);
-	REQUIRE(entity1->GetStore()->store.types.size() == 1);
+	REQUIRE(entity1->GetSet()->matrix.entities.size() == 1);
+	REQUIRE(entity1->GetSet()->matrix.types.size() == 1);
 	REQUIRE(entity1->GetIndex() == 0);
-	REQUIRE(entity1->GetWorld() == &scene);
+	REQUIRE(entity1->GetScene() == &scene);
 }
 
 
@@ -184,14 +184,14 @@ TEST_CASE("Remove component merge", "[GameLogic:Scene]") {
 	auto entity1 = scene.CreateEntity(FooComponent{}, BarComponent{});
 	scene.RemoveComponent<BazComponent>(*entity0);
 
-	REQUIRE(entity0->GetStore()->store.entities.size() == 2);
-	REQUIRE(entity0->GetStore()->store.types.size() == 2);
+	REQUIRE(entity0->GetSet()->matrix.entities.size() == 2);
+	REQUIRE(entity0->GetSet()->matrix.types.size() == 2);
 	REQUIRE(entity0->GetIndex() == 1);
-	REQUIRE(entity0->GetWorld() == &scene);
+	REQUIRE(entity0->GetScene() == &scene);
 
-	REQUIRE(entity1->GetStore() == entity0->GetStore());
+	REQUIRE(entity1->GetSet() == entity0->GetSet());
 	REQUIRE(entity1->GetIndex() == 0);
-	REQUIRE(entity1->GetWorld() == &scene);
+	REQUIRE(entity1->GetScene() == &scene);
 }
 
 
@@ -219,10 +219,10 @@ TEST_CASE("Concatenating worlds", "[GameLogic:Scene]") {
 
 	world1 += std::move(world2);
 
-	REQUIRE(entity11->GetWorld() == &world1);
-	REQUIRE(entity12->GetWorld() == &world1);
-	REQUIRE(entity21->GetWorld() == &world1);
-	REQUIRE(entity22->GetWorld() == &world1);
+	REQUIRE(entity11->GetScene() == &world1);
+	REQUIRE(entity12->GetScene() == &world1);
+	REQUIRE(entity21->GetScene() == &world1);
+	REQUIRE(entity22->GetScene() == &world1);
 
 	REQUIRE(entity21->GetIndex() == 1);
 	REQUIRE(entity22->GetIndex() == 0);

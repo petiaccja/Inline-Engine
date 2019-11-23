@@ -87,7 +87,7 @@ int main() {
 		while (!window.IsClosed()) {
 			float frameTime = float(timer.Elapsed());
 			timer.Reset();
-			gameWorld.GetSimulation().Run(gameWorld.GetWorld(), frameTime);
+			gameWorld.GetSimulation().Run(gameWorld.GetScene(), frameTime);
 		}
 	}
 	catch (std::exception& ex) {

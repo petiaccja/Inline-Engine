@@ -5,7 +5,7 @@ namespace inl::game {
 
 class Level {
 public:
-	Level(Scene& world);
+	Level(Scene& scene);
 
 	template <class Archive>
 	void Load(Archive& ar);
@@ -14,7 +14,7 @@ public:
 	void Save(Archive& ar) const;
 
 private:
-	Scene& world;	
+	Scene& m_scene;	
 };
 
 

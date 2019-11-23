@@ -15,7 +15,7 @@ class GameWorld {
 public:
 	GameWorld(const ModuleCollection& modules, const AssetCacheCollection& assetCaches);
 
-	inl::game::Scene& GetWorld();
+	inl::game::Scene& GetScene();
 	inl::game::Simulation& GetSimulation();	
 	inl::gxeng::IPerspectiveCamera& GetCamera();
 	inl::game::ComponentFactory& GetComponentFactory();
