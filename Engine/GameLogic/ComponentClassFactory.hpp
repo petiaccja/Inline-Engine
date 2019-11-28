@@ -11,23 +11,29 @@ class ComponentClassFactoryBase {
 public:
 	virtual ~ComponentClassFactoryBase() = default;
 	virtual void Create(Entity& entity) = 0;
-	virtual void Create(Entity& entity, InputArchive& archive) = 0;
+	virtual void Load(Entity& entity, InputArchive& archive) = 0;
+	virtual void Save(const Entity& entity, size_t componentIndex, OutputArchive& archive) = 0;
 	virtual std::unique_ptr<ComponentClassFactoryBase> Clone() = 0;
 };
 
 
 template <class ComponentT>
 class ComponentClassFactory : public ComponentClassFactoryBase {
+public:
 	void Create(Entity& entity) override {
 		entity.AddComponent(ComponentT{});
 	}
-	void Create(Entity& entity, InputArchive& archive) override {
+	void Load(Entity& entity, InputArchive& archive) override {
 		ComponentT component{};
 		archive(component);
 		entity.AddComponent(std::move(component));
 	}
 	std::unique_ptr<ComponentClassFactoryBase> Clone() override {
 		return std::make_unique<ComponentClassFactory>(*this);
+	}
+	void Save(const Entity& entity, size_t componentIndex, OutputArchive& archive) override {
+		const ComponentT& component = entity.GetSet()->matrix.entities[entity.GetIndex()].get<ComponentT>(componentIndex);
+		archive(component);
 	}
 };
 

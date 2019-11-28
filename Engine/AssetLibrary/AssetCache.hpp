@@ -32,7 +32,7 @@ public:
 	/// <exception cref="FileNotFoundException"> In case none of the search directories contain the file. </exception>
 	std::shared_ptr<AssetT> Load(std::filesystem::path path);
 
-	/// <summary> Searches for assets whithin these directories. </summary>
+	/// <summary> Searches for assets within these directories. </summary>
 	void SetSearchDirectories(std::vector<std::filesystem::path> directories);
 
 protected:

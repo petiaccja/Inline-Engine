@@ -13,6 +13,8 @@
 #include <typeindex>
 #include <unordered_map>
 
+#undef GetClassName
+
 
 namespace inl::game {
 
@@ -25,31 +27,31 @@ public:
 	ComponentFactory& operator=(const ComponentFactory&);
 	ComponentFactory& operator=(ComponentFactory&&) = default;
 
-	void Copy(const ComponentFactory& rhs);
+	template <class ComponentT, class FactoryT>
+	void Register(std::string className);
 
 	template <class ComponentT>
 	bool IsRegistered() const;
-
 	bool IsRegistered(std::type_index componentType) const;
-
 	bool IsRegistered(std::string_view componentName);
 
 	template <class ComponentT>
 	void Create(Entity& entity) const;
-
 	void Create(Entity& entity, std::string_view name);
-
+	
 	template <class ComponentT>
-	void Create(Entity& entity, InputArchive& archive) const;
+	void Load(Entity& entity, InputArchive& archive) const;
+	void Load(Entity& entity, std::string_view name, InputArchive& archive);
 
-	void Create(Entity& entity, std::string_view name, InputArchive& archive);
-
-	template <class ComponentT, class FactoryT>
-	void Register(std::string className);
+	void Save(const Entity& entity, size_t componentIndex, OutputArchive& archive);
+	
+	std::string GetClassName(std::type_index type) const;
 
 	template <class ComponenT, class FactoryT>
 	FactoryT& GetClassFactory();
 
+private:
+	void Copy(const ComponentFactory& rhs);
 private:
 	std::unordered_map<std::type_index, std::shared_ptr<ComponentClassFactoryBase>> m_factoriesByType;
 	std::unordered_map<std::string, std::shared_ptr<ComponentClassFactoryBase>> m_factoriesByName;
@@ -75,10 +77,10 @@ void ComponentFactory::Create(Entity& entity) const {
 
 
 template <class ComponentT>
-void ComponentFactory::Create(Entity& entity, InputArchive& archive) const {
+void ComponentFactory::Load(Entity& entity, InputArchive& archive) const {
 	auto it = m_factoriesByType.find(typeid(ComponentT));
 	if (it != m_factoriesByType.end()) {
-		it->second->Create(entity, archive);
+		it->second->Load(entity, archive);
 	}
 	else {
 		throw OutOfRangeException("No component class is registered with given name.");

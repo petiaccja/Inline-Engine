@@ -36,7 +36,7 @@ void GraphicsMeshComponentFactory::Create(game::Entity& entity) {
 }
 
 
-void GraphicsMeshComponentFactory::Create(game::Entity& entity, game::InputArchive& archive) {
+void GraphicsMeshComponentFactory::Load(game::Entity& entity, game::InputArchive& archive) {
 	GraphicsMeshComponent component;
 	archive(component);
 	if (!m_engine) {

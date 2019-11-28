@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ComponentMatrix.hpp"
+#include "ComponentScheme.hpp"
 
 #include <experimental/generator>
 #include <unordered_map>

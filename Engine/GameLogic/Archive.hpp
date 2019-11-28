@@ -9,6 +9,6 @@
 namespace inl::game {
 
 using InputArchive = VariantInputArchive<cereal::JSONInputArchive, cereal::PortableBinaryInputArchive>;
-using OutputArchive = VariantOutputArchive<cereal::JSONInputArchive, cereal::PortableBinaryInputArchive>;
+using OutputArchive = VariantOutputArchive<cereal::JSONOutputArchive, cereal::PortableBinaryOutputArchive>;
 
 } // namespace inl::game

@@ -28,7 +28,7 @@ void DirectionalLightComponentFactory::Create(game::Entity& entity) {
 }
 
 
-void DirectionalLightComponentFactory::Create(game::Entity& entity, game::InputArchive& archive) {
+void DirectionalLightComponentFactory::Load(game::Entity& entity, game::InputArchive& archive) {
 	if (!m_engine) {
 		throw InvalidStateException("Please set graphics engine before attempting to create entities.");
 	}

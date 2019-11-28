@@ -2,6 +2,7 @@
 
 #include "ComponentRange.hpp"
 #include "ComponentMatrix.hpp"
+#include "ComponentScheme.hpp"
 
 
 namespace inl::game {

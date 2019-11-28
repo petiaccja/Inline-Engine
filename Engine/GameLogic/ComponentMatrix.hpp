@@ -1,6 +1,5 @@
 #pragma once
 
-#include "ComponentScheme.hpp"
 #include "ComponentVector.hpp"
 
 #include <BaseLibrary/Range.hpp>

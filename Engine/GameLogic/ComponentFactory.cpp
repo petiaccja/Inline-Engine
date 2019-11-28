@@ -61,15 +61,33 @@ void ComponentFactory::Create(Entity& entity, std::string_view name) {
 }
 
 
-void ComponentFactory::Create(Entity& entity, std::string_view name, InputArchive& archive) {
+void ComponentFactory::Load(Entity& entity, std::string_view name, InputArchive& archive) {
 	auto it = m_factoriesByName.find(std::string(name));
 	if (it != m_factoriesByName.end()) {
-		it->second->Create(entity, archive);
+		it->second->Load(entity, archive);
 	}
 	else {
 		throw OutOfRangeException("No component class is registered with given name.");
 	}
 }
 
+void ComponentFactory::Save(const Entity& entity, size_t componentIndex, OutputArchive& archive) {
+	const auto& components = entity.GetSet()->matrix.entities[entity.GetIndex()];
+
+	std::type_index type = components.get_type(componentIndex);
+	
+	auto it = m_factoriesByType.find(type);
+	if (it != m_factoriesByType.end()) {
+		it->second->Save(entity, componentIndex, archive);
+	}
+	else {
+		throw OutOfRangeException("No component class is registered with given name.");
+	}
+}
+
+
+std::string ComponentFactory::GetClassName(std::type_index type) const {
+	throw NotImplementedException();
+}
 
 } // namespace inl::game

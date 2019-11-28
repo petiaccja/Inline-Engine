@@ -66,7 +66,7 @@ TEST_CASE("ComponentFactory - Create with serialization", "[GameLogic]") {
 		outputArchive(component);
 	}
 	InputArchive archive{ std::in_place_type<cereal::JSONInputArchive>, ss };
-	ComponentFactory_Singleton::GetInstance().Create(entity, "FooComponent", archive);
+	ComponentFactory_Singleton::GetInstance().Load(entity, "FooComponent", archive);
 	REQUIRE(entity.HasComponent<FooComponent>());
 	REQUIRE(entity.GetFirstComponent<FooComponent>().value == 19.f);
 }

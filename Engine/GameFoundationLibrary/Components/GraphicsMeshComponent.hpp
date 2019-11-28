@@ -26,13 +26,14 @@ struct GraphicsMeshProperties {
 };
 
 
-class GraphicsMeshComponentFactory : public game::ComponentClassFactoryBase {
+class [[deprecated("Special factories should disappear.")]] GraphicsMeshComponentFactory : public game::ComponentClassFactoryBase {
 public:
 	void SetCaches(asset::GraphicsMeshCache* meshCache, asset::MaterialCache* materialCache);
 	void SetEngine(gxeng::IGraphicsEngine* engine) noexcept;
 	void SetScenes(const std::vector<gxeng::IScene*>& scenes);
 	void Create(game::Entity& entity) override;
-	void Create(game::Entity& entity, game::InputArchive& archive) override;
+	void Load(game::Entity& entity, game::InputArchive& archive) override;
+	void Save(const game::Entity& entity, size_t componentIndex, game::OutputArchive& archive) override { throw NotImplementedException(); }
 	std::unique_ptr<ComponentClassFactoryBase> Clone() override;
 
 private:

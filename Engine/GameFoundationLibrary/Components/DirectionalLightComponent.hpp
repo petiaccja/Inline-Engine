@@ -17,12 +17,13 @@ class IGraphicsEngine;
 namespace inl::gamelib {
 
 
-class DirectionalLightComponentFactory : public game::ComponentClassFactoryBase {
+class [[deprecated("Special factories should disappear.")]] DirectionalLightComponentFactory : public game::ComponentClassFactoryBase {
 public:
 	void SetEngine(gxeng::IGraphicsEngine* engine) noexcept;
 	void SetScenes(const std::vector<gxeng::IScene*>& scenes);
 	void Create(game::Entity& entity) override;
-	void Create(game::Entity& entity, game::InputArchive& archive) override;
+	void Load(game::Entity& entity, game::InputArchive& archive) override;
+	void Save(const game::Entity& entity, size_t componentIndex, game::OutputArchive& archive) override { throw NotImplementedException(); }
 	std::unique_ptr<ComponentClassFactoryBase> Clone() override;
 	const std::unordered_map<std::string, gxeng::IScene*>& GetScenes() const;
 	
