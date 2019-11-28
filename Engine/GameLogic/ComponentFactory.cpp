@@ -61,7 +61,7 @@ void ComponentFactory::Create(Entity& entity, std::string_view name) {
 }
 
 
-void ComponentFactory::Load(Entity& entity, std::string_view name, InputArchive& archive) {
+void ComponentFactory::Load(Entity& entity, std::string_view name, LevelInputArchive& archive) const {
 	auto it = m_factoriesByName.find(std::string(name));
 	if (it != m_factoriesByName.end()) {
 		it->second->Load(entity, archive);
@@ -71,7 +71,7 @@ void ComponentFactory::Load(Entity& entity, std::string_view name, InputArchive&
 	}
 }
 
-void ComponentFactory::Save(const Entity& entity, size_t componentIndex, OutputArchive& archive) {
+void ComponentFactory::Save(const Entity& entity, size_t componentIndex, LevelOutputArchive& archive) const {
 	const auto& components = entity.GetSet()->matrix.entities[entity.GetIndex()];
 
 	std::type_index type = components.get_type(componentIndex);

@@ -33,44 +33,6 @@ private:
 	static constexpr inl::game::AutoRegisterComponent<BazComponent, ClassName> reg{};
 };
 
-class [[deprecated("Special factories should disappear.")]] SpecialFactory : public inl::game::ComponentClassFactoryBase {
-public:
-	void Create(inl::game::Entity& entity) override;
-	void Load(inl::game::Entity& entity, inl::game::InputArchive& archive) override;
-	void Configure(float defvalue) {
-		m_defvalue = defvalue;
-	}
-	void Save(const inl::game::Entity& entity, size_t componentIndex, inl::game::OutputArchive& archive) override { throw std::logic_error("not implemented"); }
-	std::unique_ptr<ComponentClassFactoryBase> Clone() override;
-
-private:
-	float m_defvalue = 0.0f;
-};
-
-
-class SpecialComponent {
-public:
-	float value = 3.0f;
-	static constexpr char ClassName[] = "SpecialComponent";
-	static constexpr inl::game::AutoRegisterComponent<SpecialComponent, ClassName, SpecialFactory> reg{};
-};
-
-
-inline void SpecialFactory::Create(inl::game::Entity& entity) {
-	entity.AddComponent(SpecialComponent{ m_defvalue });
-}
-
-
-inline void SpecialFactory::Load(inl::game::Entity& entity, inl::game::InputArchive& archive) {
-	SpecialComponent component{};
-	archive(component);
-	entity.AddComponent(std::move(component));
-}
-
-inline std::unique_ptr<inl::game::ComponentClassFactoryBase> SpecialFactory::Clone() {
-	return std::make_unique<SpecialFactory>(*this);
-}
-
 
 template <class Archive>
 void save(Archive& ar, const FooComponent& obj) {
@@ -96,14 +58,5 @@ void save(Archive& ar, const BazComponent& obj) {
 }
 template <class Archive>
 void load(Archive& ar, BazComponent& obj) {
-	ar(obj.value);
-}
-
-template <class Archive>
-void save(Archive& ar, const SpecialComponent& obj) {
-	ar(obj.value);
-}
-template <class Archive>
-void load(Archive& ar, SpecialComponent& obj) {
 	ar(obj.value);
 }

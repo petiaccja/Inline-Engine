@@ -1,3 +1,5 @@
+#pragma once
+
 #include <GraphicsEngine/IGraphicsEngine.hpp>
 #include "AssetLibrary/ImageCache.hpp"
 #include "AssetLibrary/MaterialShaderCache.hpp"

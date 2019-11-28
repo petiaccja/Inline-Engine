@@ -22,7 +22,6 @@ public:
 	
 private:
 	void CreateSystems(const ModuleCollection& modules);
-	void SetupComponentFactories(const ModuleCollection& modules, const AssetCacheCollection& assetCaches);
 	void SetupRenderPipeline(const ModuleCollection& modules);
 
 private:

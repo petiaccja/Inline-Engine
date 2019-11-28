@@ -17,11 +17,11 @@ inl::game::Scene TestLevel::Initialize(inl::game::ComponentFactory& componentFac
 	dcl->SetDirection(Vec3{ 0.5, 0.5, -0.3 }.Normalized());
 	dcl->SetColor({ 1.0f, 0.9f, 0.8f });
 
-	auto& directionalLightFactory = componentFactory.GetClassFactory<DirectionalLightComponent, DirectionalLightComponentFactory>();
-	auto mainSceneIt = directionalLightFactory.GetScenes().find("MainScene");
-	if (mainSceneIt != directionalLightFactory.GetScenes().end()) {
-		mainSceneIt->second->GetEntities<gxeng::IDirectionalLight>().Add(dcl.get());
-	}
+	//auto& directionalLightFactory = componentFactory.GetClassFactory<DirectionalLightComponent>();
+	//auto mainSceneIt = directionalLightFactory.GetScenes().find("MainScene");
+	//if (mainSceneIt != directionalLightFactory.GetScenes().end()) {
+	//	mainSceneIt->second->GetEntities<gxeng::IDirectionalLight>().Add(dcl.get());
+	//}
 
 	return newWorld;
 }

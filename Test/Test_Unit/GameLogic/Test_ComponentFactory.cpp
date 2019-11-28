@@ -25,19 +25,6 @@ TEST_CASE("ComponentFactory - Create", "[GameLogic]") {
 }
 
 
-TEST_CASE("ComponentFactory - Create with special factory", "[GameLogic]") {
-	Scene world;
-	Entity& entity = *world.CreateEntity();
-	auto& factory = ComponentFactory_Singleton::GetInstance();
-	auto& specialFactory = factory.GetClassFactory<SpecialComponent, SpecialFactory>();
-	specialFactory.Configure(16.0f);
-	factory.Create(entity, "SpecialComponent");
-
-	REQUIRE(entity.HasComponent<SpecialComponent>());
-	REQUIRE(entity.GetFirstComponent<SpecialComponent>().value == 16.0f);
-}
-
-
 TEST_CASE("ComponentFactory - Variant serializer", "[GameLogic]") {
 	using ArchiveMix = VariantOutputArchive<cereal::JSONOutputArchive, cereal::BinaryOutputArchive>;
 	std::stringstream ss1, ss2;
@@ -65,7 +52,7 @@ TEST_CASE("ComponentFactory - Create with serialization", "[GameLogic]") {
 		FooComponent component{ 19.f };
 		outputArchive(component);
 	}
-	InputArchive archive{ std::in_place_type<cereal::JSONInputArchive>, ss };
+	LevelInputArchive archive{ std::in_place_type<cereal::JSONInputArchive>, ss };
 	ComponentFactory_Singleton::GetInstance().Load(entity, "FooComponent", archive);
 	REQUIRE(entity.HasComponent<FooComponent>());
 	REQUIRE(entity.GetFirstComponent<FooComponent>().value == 19.f);

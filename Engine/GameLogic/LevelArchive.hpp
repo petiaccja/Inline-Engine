@@ -1,36 +1,19 @@
-#include "Archive.hpp"
+#pragma once
 
-#include <BaseLibrary/DynamicTuple.hpp>
+
+#include "Archive.hpp"
 
 
 namespace inl::game {
 
 
+
 template <class Archive>
-class LevelArchive : public Archive {
+class LevelArchive : public Archive, public ModuleArchive {
 public:
-	template <class T>
-	const T* GetModule() const;
-
-	template <class T>
-	void RegisterModule(const T* module);
-
-private:
-	DynamicTuple m_modules;
+	using Archive::Archive;
 };
 
-
-template <class Archive>
-template <class T>
-const T* LevelArchive<Archive>::GetModule() const {
-	return m_modules.Get<const T*>();
-}
-
-template <class Archive>
-template <class T>
-void LevelArchive<Archive>::RegisterModule(const T* module) {
-	m_modules.Insert(module);
-}
 
 
 using LevelInputArchive = LevelArchive<InputArchive>;

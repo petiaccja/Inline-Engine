@@ -16,7 +16,6 @@ GameWorld::GameWorld(const ModuleCollection& modules, const AssetCacheCollection
 	m_scene = modules.GetGraphicsEngine().CreateScene("MainScene");
 	m_componentFactory = inl::game::ComponentFactory_Singleton::GetInstance();
 	CreateSystems(modules);
-	SetupComponentFactories(modules, assetCaches);
 	SetupRenderPipeline(modules);
 }
 
@@ -48,19 +47,6 @@ void GameWorld::CreateSystems(const ModuleCollection& modules) {
 	m_simulation.PushBack(inl::gamelib::LinkTransformSystem{});
 	m_simulation.PushBack(inl::gamelib::RenderingSystem{ &modules.GetGraphicsEngine() });
 }
-
-
-void GameWorld::SetupComponentFactories(const ModuleCollection& modules, const AssetCacheCollection& assetCaches) {
-	auto& graphicsMeshFactory = m_componentFactory.GetClassFactory<inl::gamelib::GraphicsMeshComponent, inl::gamelib::GraphicsMeshComponentFactory>();
-	graphicsMeshFactory.SetEngine(&modules.GetGraphicsEngine());
-	graphicsMeshFactory.SetCaches(&assetCaches.GetGraphicsMeshCache(), &assetCaches.GetMaterialCache());
-	graphicsMeshFactory.SetScenes({ m_scene.get() });
-
-	auto& directionalLightFactory = m_componentFactory.GetClassFactory<inl::gamelib::DirectionalLightComponent, inl::gamelib::DirectionalLightComponentFactory>();
-	directionalLightFactory.SetEngine(&modules.GetGraphicsEngine());
-	directionalLightFactory.SetScenes({ m_scene.get() });
-}
-
 
 void GameWorld::SetupRenderPipeline(const ModuleCollection& modules) {
 	auto& engine = modules.GetGraphicsEngine();

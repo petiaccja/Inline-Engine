@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Archive.hpp"
+#include "LevelArchive.hpp"
 #include "ComponentClassFactory.hpp"
 #include "VariantArchive.hpp"
 
@@ -40,14 +40,14 @@ public:
 	void Create(Entity& entity, std::string_view name);
 	
 	template <class ComponentT>
-	void Load(Entity& entity, InputArchive& archive) const;
-	void Load(Entity& entity, std::string_view name, InputArchive& archive);
+	void Load(Entity& entity, LevelInputArchive& archive) const;
+	void Load(Entity& entity, std::string_view name, LevelInputArchive& archive) const;
 
-	void Save(const Entity& entity, size_t componentIndex, OutputArchive& archive);
+	void Save(const Entity& entity, size_t componentIndex, LevelOutputArchive& archive) const;
 	
 	std::string GetClassName(std::type_index type) const;
 
-	template <class ComponenT, class FactoryT>
+	template <class ComponentT, class FactoryT = ComponentClassFactory<ComponentT>>
 	FactoryT& GetClassFactory();
 
 private:
@@ -77,7 +77,7 @@ void ComponentFactory::Create(Entity& entity) const {
 
 
 template <class ComponentT>
-void ComponentFactory::Load(Entity& entity, InputArchive& archive) const {
+void ComponentFactory::Load(Entity& entity, LevelInputArchive& archive) const {
 	auto it = m_factoriesByType.find(typeid(ComponentT));
 	if (it != m_factoriesByType.end()) {
 		it->second->Load(entity, archive);
@@ -102,9 +102,9 @@ void ComponentFactory::Register(std::string className) {
 }
 
 
-template <class ComponenT, class FactoryT>
+template <class ComponentT, class FactoryT>
 FactoryT& ComponentFactory::GetClassFactory() {
-	auto it = m_factoriesByType.find(typeid(ComponenT));
+	auto it = m_factoriesByType.find(typeid(ComponentT));
 	if (it == m_factoriesByType.end()) {
 		throw OutOfRangeException("Component is not registered at all.");
 	}

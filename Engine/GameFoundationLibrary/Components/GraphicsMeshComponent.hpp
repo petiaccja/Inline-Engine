@@ -1,9 +1,8 @@
 #pragma once
 
-#include <AssetLibrary/GraphicsMeshCache.hpp>
-#include <AssetLibrary/MaterialCache.hpp>
 #include <GameLogic/AutoRegisterComponent.hpp>
 #include <GraphicsEngine/Scene/IMeshEntity.hpp>
+#include "../Modules/GraphicsModule.hpp"
 
 #include <cereal/cereal.hpp>
 #include <cereal/types/string.hpp>
@@ -19,50 +18,41 @@ class IGraphicsEngine;
 namespace inl::gamelib {
 
 
-struct GraphicsMeshProperties {
-	std::string meshPath;
-	std::string materialPath;
-	std::string sceneName;
-};
-
-
-class [[deprecated("Special factories should disappear.")]] GraphicsMeshComponentFactory : public game::ComponentClassFactoryBase {
-public:
-	void SetCaches(asset::GraphicsMeshCache* meshCache, asset::MaterialCache* materialCache);
-	void SetEngine(gxeng::IGraphicsEngine* engine) noexcept;
-	void SetScenes(const std::vector<gxeng::IScene*>& scenes);
-	void Create(game::Entity& entity) override;
-	void Load(game::Entity& entity, game::InputArchive& archive) override;
-	void Save(const game::Entity& entity, size_t componentIndex, game::OutputArchive& archive) override { throw NotImplementedException(); }
-	std::unique_ptr<ComponentClassFactoryBase> Clone() override;
-
-private:
-	gxeng::IGraphicsEngine* m_engine = nullptr;
-	std::unordered_map<std::string, gxeng::IScene*> m_scenes;
-	asset::GraphicsMeshCache* m_meshCache = nullptr;
-	asset::MaterialCache* m_materialCache = nullptr;
-};
-
-
 struct GraphicsMeshComponent {
 	std::unique_ptr<gxeng::IMeshEntity> entity;
 	std::shared_ptr<gxeng::IMesh> mesh;
 	std::shared_ptr<gxeng::IMaterial> material;
-	GraphicsMeshProperties properties;
+	std::string meshPath;
+	std::string materialPath;
+	std::string sceneName;
 
 private:
 	static constexpr char ClassName[] = "GraphicsMeshComponent";
-	inline static const game::AutoRegisterComponent<GraphicsMeshComponent, ClassName, GraphicsMeshComponentFactory> reg = {};
+	inline static const game::AutoRegisterComponent<GraphicsMeshComponent, ClassName> reg = {};
 };
 
 
 template <class Archive>
-void serialize(Archive& ar, GraphicsMeshComponent& obj) {
-	ar(cereal::make_nvp("mesh", obj.properties.meshPath),
-	   cereal::make_nvp("material", obj.properties.materialPath),
-	   cereal::make_nvp("scene", obj.properties.sceneName));
+void save(Archive& ar, const GraphicsMeshComponent& obj) {
+	ar(cereal::make_nvp("mesh", obj.meshPath),
+	   cereal::make_nvp("material", obj.materialPath),
+	   cereal::make_nvp("scene", obj.sceneName));
 }
 
+
+template <class Archive>
+void load(Archive& ar, GraphicsMeshComponent& obj) {
+	ar(cereal::make_nvp("mesh", obj.meshPath),
+	   cereal::make_nvp("material", obj.materialPath),
+	   cereal::make_nvp("scene", obj.sceneName));
+	const auto& moduleArchive = dynamic_cast<const game::ModuleArchive&>(ar);
+	const auto graphicsModule = moduleArchive.GetModule<GraphicsModule>();
+	obj.entity = graphicsModule->CreateMeshEntity();
+	obj.mesh = graphicsModule->LoadMesh(obj.meshPath);
+	obj.material = graphicsModule->LoadMaterial(obj.materialPath);
+	obj.entity->SetMesh(obj.mesh.get());
+	obj.entity->SetMaterial(obj.material.get());
+}
 
 
 } // namespace inl::gamelib
