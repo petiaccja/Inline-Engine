@@ -75,7 +75,7 @@ void ComponentFactory::Save(const Entity& entity, size_t componentIndex, LevelOu
 	const auto& components = entity.GetSet()->matrix.entities[entity.GetIndex()];
 
 	std::type_index type = components.get_type(componentIndex);
-	
+
 	auto it = m_factoriesByType.find(type);
 	if (it != m_factoriesByType.end()) {
 		it->second->Save(entity, componentIndex, archive);
@@ -87,7 +87,13 @@ void ComponentFactory::Save(const Entity& entity, size_t componentIndex, LevelOu
 
 
 std::string ComponentFactory::GetClassName(std::type_index type) const {
-	throw NotImplementedException();
+	auto it = m_namesByType.find(type);
+	if (it != m_namesByType.end()) {
+		return it->second;
+	}
+	else {
+		throw OutOfRangeException("No component class is registered with given name.");
+	}
 }
 
 } // namespace inl::game

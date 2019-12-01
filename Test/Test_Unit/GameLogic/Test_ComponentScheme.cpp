@@ -9,27 +9,27 @@ using namespace inl::game;
 
 
 
-TEST_CASE("ComponentScheme - Ctor empty", "[GameLogic]") {
+TEST_CASE("ComponentScheme - Ctor empty", "[GameLogic:ComponentScheme]") {
 	ComponentScheme scheme;
 	REQUIRE(scheme.Size() == 0);
 }
 
 
-TEST_CASE("ComponentScheme - Ctor list", "[GameLogic]") {
+TEST_CASE("ComponentScheme - Ctor list", "[GameLogic:ComponentScheme]") {
 	ComponentScheme scheme = { typeid(FooComponent), typeid(BarComponent), typeid(BarComponent) };
 	REQUIRE(scheme.Size() == 3);
 	REQUIRE(std::is_sorted(scheme.begin(), scheme.end()));
 }
 
 
-TEST_CASE("ComponentScheme - Iterators & Size", "[GameLogic]") {
+TEST_CASE("ComponentScheme - Iterators & Size", "[GameLogic:ComponentScheme]") {
 	ComponentScheme scheme = { typeid(FooComponent), typeid(BarComponent), typeid(BarComponent) };
 	REQUIRE(scheme.Size() == 3);
 	REQUIRE(std::distance(scheme.begin(), scheme.end()) == 3);
 }
 
 
-TEST_CASE("ComponentScheme - Insert", "[GameLogic]") {
+TEST_CASE("ComponentScheme - Insert", "[GameLogic:ComponentScheme]") {
 	ComponentScheme scheme;
 	scheme.Insert(typeid(FooComponent));
 	scheme.Insert(typeid(BarComponent));
@@ -41,7 +41,7 @@ TEST_CASE("ComponentScheme - Insert", "[GameLogic]") {
 }
 
 
-TEST_CASE("ComponentScheme - Search", "[GameLogic]") {
+TEST_CASE("ComponentScheme - Search", "[GameLogic:ComponentScheme]") {
 	ComponentScheme scheme = {
 		typeid(FooComponent),
 		typeid(BarComponent),
@@ -65,7 +65,7 @@ TEST_CASE("ComponentScheme - Search", "[GameLogic]") {
 }
 
 
-TEST_CASE("ComponentScheme - Erase", "[GameLogic]") {
+TEST_CASE("ComponentScheme - Erase", "[GameLogic:ComponentScheme]") {
 	ComponentScheme scheme = {
 		typeid(FooComponent),
 		typeid(BarComponent),
@@ -84,7 +84,7 @@ TEST_CASE("ComponentScheme - Erase", "[GameLogic]") {
 }
 
 
-TEST_CASE("ComponentScheme - Comparison", "[GameLogic]") {
+TEST_CASE("ComponentScheme - Comparison", "[GameLogic:ComponentScheme]") {
 	ComponentScheme scheme1 = {
 		typeid(FooComponent),
 		typeid(BarComponent),
@@ -115,7 +115,7 @@ TEST_CASE("ComponentScheme - Comparison", "[GameLogic]") {
 }
 
 
-TEST_CASE("ComponentScheme - Hash equality", "[GameLogic]") {
+TEST_CASE("ComponentScheme - Hash equality", "[GameLogic:ComponentScheme]") {
 	ComponentScheme scheme1 = {
 		typeid(FooComponent),
 		typeid(BarComponent),
@@ -135,7 +135,7 @@ TEST_CASE("ComponentScheme - Hash equality", "[GameLogic]") {
 }
 
 
-TEST_CASE("ComponentScheme - Subset", "[GameLogic]") {
+TEST_CASE("ComponentScheme - Subset", "[GameLogic:ComponentScheme]") {
 	ComponentScheme subset1 = {
 		typeid(FooComponent),
 		typeid(FooComponent),

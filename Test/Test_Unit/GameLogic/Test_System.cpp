@@ -7,7 +7,7 @@
 using namespace inl::game;
 
 
-TEST_CASE("System - Update default", "[GameLogic]") {
+TEST_CASE("System - Update default", "[GameLogic:System]") {
 	DoubleFooToBarSystem system;
 
 	ComponentMatrix store;
@@ -29,7 +29,7 @@ TEST_CASE("System - Update default", "[GameLogic]") {
 }
 
 
-TEST_CASE("System - Update no components", "[GameLogic]") {
+TEST_CASE("System - Update no components", "[GameLogic:System]") {
 	StandaloneSystem system;
 
 	system.Update(0.0f);

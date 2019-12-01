@@ -2,6 +2,7 @@
 
 #include <cereal/cereal.hpp>
 #include <variant>
+#include <cereal/types/string.hpp>
 
 
 namespace inl::game {
@@ -11,6 +12,18 @@ struct IsNameValuePair : std::false_type {};
 
 template <class U>
 struct IsNameValuePair<cereal::NameValuePair<U>> : std::true_type {};
+
+template <class T>
+struct IsBinaryData : std::false_type {};
+
+template <class U>
+struct IsBinaryData<cereal::BinaryData<U>> : std::true_type {};
+
+template <class T>
+struct IsSizeTag : std::false_type {};
+
+template <class U>
+struct IsSizeTag<cereal::SizeTag<U>> : std::true_type {};
 
 template <class T>
 struct HandleArchive : std::conditional_t<std::is_arithmetic_v<T> || IsNameValuePair<T>::value, std::true_type, std::false_type> {};
@@ -60,12 +73,12 @@ void epilogue(VariantInputArchive<ArchiveOptions...>& ar, const T& arg) {
 }
 
 template <class T, class... ArchiveOptions>
-std::enable_if_t<HandleArchive<T>::value, void> CEREAL_SAVE_FUNCTION_NAME(VariantInputArchive<ArchiveOptions...>& ar, const T& arg) {
+std::enable_if_t<HandleArchive<T>::value, void> CEREAL_LOAD_FUNCTION_NAME(VariantInputArchive<ArchiveOptions...>& ar, T& arg) {
 	std::visit([&arg](auto&& ar) { ar(arg); }, ar);
 }
 
-template <class T, class... ArchiveOptions>
-std::enable_if_t<HandleArchive<T>::value, void> CEREAL_LOAD_FUNCTION_NAME(VariantInputArchive<ArchiveOptions...>& ar, T& arg) {
+template <class... ArchiveOptions, class CharT, class Traits, class Alloc>
+void CEREAL_LOAD_FUNCTION_NAME(VariantInputArchive<ArchiveOptions...>& ar,std::basic_string<CharT, Traits, Alloc>& arg) {
 	std::visit([&arg](auto&& ar) { ar(arg); }, ar);
 }
 
@@ -118,8 +131,8 @@ std::enable_if_t<HandleArchive<T>::value, void> CEREAL_SAVE_FUNCTION_NAME(Varian
 	std::visit([&arg](auto&& ar) { ar(arg); }, ar);
 }
 
-template <class T, class... ArchiveOptions>
-std::enable_if_t<HandleArchive<T>::value, void> CEREAL_LOAD_FUNCTION_NAME(VariantOutputArchive<ArchiveOptions...>& ar, T& arg) {
+template <class... ArchiveOptions, class CharT, class Traits, class Alloc>
+void CEREAL_SAVE_FUNCTION_NAME(VariantOutputArchive<ArchiveOptions...>& ar, const std::basic_string<CharT, Traits, Alloc>& arg) {
 	std::visit([&arg](auto&& ar) { ar(arg); }, ar);
 }
 

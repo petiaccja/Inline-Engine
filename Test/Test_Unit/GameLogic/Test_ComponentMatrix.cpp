@@ -7,14 +7,14 @@
 using namespace inl::game;
 
 
-TEST_CASE("Ctor", "[ComponentMatrix]") {
+TEST_CASE("Ctor", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix;
 	REQUIRE(matrix.entities.size() == 0);
 	REQUIRE(matrix.types.size() == 0);
 }
 
 
-TEST_CASE("Add types", "[ComponentMatrix]") {
+TEST_CASE("Add types", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix;
 	matrix.types.insert(matrix.types.begin(), _ComponentVector<FooComponent>{});
 
@@ -24,7 +24,7 @@ TEST_CASE("Add types", "[ComponentMatrix]") {
 }
 
 
-TEST_CASE("Add multiple in order", "[ComponentMatrix]") {
+TEST_CASE("Add multiple in order", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix;
 	matrix.types.insert(matrix.types.end(), _ComponentVector<FooComponent>{});
 	matrix.types.insert(matrix.types.end(), _ComponentVector<BarComponent>{});
@@ -38,7 +38,7 @@ TEST_CASE("Add multiple in order", "[ComponentMatrix]") {
 }
 
 
-TEST_CASE("Remove types", "[ComponentMatrix]") {
+TEST_CASE("Remove types", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix;
 	matrix.types.insert(matrix.types.end(), _ComponentVector<FooComponent>{});
 	matrix.types.insert(matrix.types.end(), _ComponentVector<BarComponent>{});
@@ -53,13 +53,13 @@ TEST_CASE("Remove types", "[ComponentMatrix]") {
 }
 
 
-TEST_CASE("Insert entity empty types", "[ComponentMatrix]") {
+TEST_CASE("Insert entity empty types", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix;
 	REQUIRE_THROWS(matrix.entities.insert(matrix.entities.begin(), {}));
 }
 
 
-TEST_CASE("Insert entity empty ref", "[ComponentMatrix]") {
+TEST_CASE("Insert entity empty ref", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix;
 	matrix.types.insert(matrix.types.end(), _ComponentVector<FooComponent>{});
 	matrix.types.insert(matrix.types.end(), _ComponentVector<BarComponent>{});
@@ -73,7 +73,7 @@ TEST_CASE("Insert entity empty ref", "[ComponentMatrix]") {
 }
 
 
-TEST_CASE("Insert entity copy ref", "[ComponentMatrix]") {
+TEST_CASE("Insert entity copy ref", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix;
 	matrix.types.insert(matrix.types.end(), _ComponentVector<FooComponent>{});
 	matrix.types.insert(matrix.types.end(), _ComponentVector<BarComponent>{});
@@ -89,7 +89,7 @@ TEST_CASE("Insert entity copy ref", "[ComponentMatrix]") {
 }
 
 
-TEST_CASE("Emplace entity", "[ComponentMatrix]") {
+TEST_CASE("Emplace entity", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix;
 	matrix.types.insert(matrix.types.end(), _ComponentVector<FooComponent>{});
 	matrix.types.insert(matrix.types.end(), _ComponentVector<BarComponent>{});
@@ -100,7 +100,7 @@ TEST_CASE("Emplace entity", "[ComponentMatrix]") {
 }
 
 
-TEST_CASE("Emplace entity partial", "[ComponentMatrix]") {
+TEST_CASE("Emplace entity partial", "[GameLogic:ComponentMatrix]") {
 	using namespace inl::game;
 	ComponentMatrix matrix;
 	matrix.types.insert(matrix.types.end(), _ComponentVector<FooComponent>{});
@@ -121,7 +121,7 @@ TEST_CASE("Emplace entity partial", "[ComponentMatrix]") {
 }
 
 
-TEST_CASE("Insert entity copy ref partial", "[ComponentMatrix]") {
+TEST_CASE("Insert entity copy ref partial", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix srcMatrix;
 	srcMatrix.types.insert(srcMatrix.types.end(), _ComponentVector<FooComponent>{});
 	srcMatrix.types.insert(srcMatrix.types.end(), _ComponentVector<BarComponent>{});
@@ -141,7 +141,7 @@ TEST_CASE("Insert entity copy ref partial", "[ComponentMatrix]") {
 }
 
 
-TEST_CASE("Add type non-empty", "[ComponentMatrix]") {
+TEST_CASE("Add type non-empty", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix;
 	matrix.types.insert(matrix.types.end(), _ComponentVector<FooComponent>{});
 	matrix.types.insert(matrix.types.end(), _ComponentVector<BarComponent>{});
@@ -156,7 +156,7 @@ TEST_CASE("Add type non-empty", "[ComponentMatrix]") {
 }
 
 
-TEST_CASE("Types assign empty", "[ComponentMatrix]") {
+TEST_CASE("Types assign empty", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix1;
 
 	matrix1.types.insert(matrix1.types.end(), _ComponentVector<FooComponent>{});
@@ -175,7 +175,7 @@ TEST_CASE("Types assign empty", "[ComponentMatrix]") {
 }
 
 
-TEST_CASE("Types assign subset", "[ComponentMatrix]") {
+TEST_CASE("Types assign subset", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix1;
 
 	matrix1.types.insert(matrix1.types.end(), _ComponentVector<FooComponent>{});
@@ -194,7 +194,7 @@ TEST_CASE("Types assign subset", "[ComponentMatrix]") {
 	}
 }
 
-TEST_CASE("Types assign superset", "[ComponentMatrix]") {
+TEST_CASE("Types assign superset", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix1;
 
 	matrix1.types.insert(matrix1.types.end(), _ComponentVector<FooComponent>{});

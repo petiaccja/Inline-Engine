@@ -28,6 +28,7 @@ set(src_factory
 	)
 	
 set(src_level
+	BasicLevel.hpp
 	Level.hpp
 	Level.cpp
 	LevelArchive.hpp

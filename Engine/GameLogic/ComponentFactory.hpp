@@ -55,6 +55,7 @@ private:
 private:
 	std::unordered_map<std::type_index, std::shared_ptr<ComponentClassFactoryBase>> m_factoriesByType;
 	std::unordered_map<std::string, std::shared_ptr<ComponentClassFactoryBase>> m_factoriesByName;
+	std::unordered_map<std::type_index, std::string> m_namesByType; // Kinda ugly to make it like this to be honest...
 };
 
 
@@ -94,7 +95,8 @@ void ComponentFactory::Register(std::string className) {
 	if (!registered) {
 		auto factory = std::make_shared<FactoryT>();
 		m_factoriesByType.insert({ typeid(ComponentT), factory });
-		m_factoriesByName.insert({ std::move(className), factory });
+		m_factoriesByName.insert({ className, factory });
+		m_namesByType.insert({ typeid(ComponentT), std::move(className) });
 	}
 	else {
 		throw InvalidArgumentException("Component class has already been registered.", className);

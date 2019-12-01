@@ -8,7 +8,7 @@ using namespace inl::game;
 
 
 
-TEST_CASE("ComponentRange - Construct", "[GameLogic]") {
+TEST_CASE("ComponentRange - Construct", "[GameLogic:ComponentRange]") {
 	ComponentMatrix store;
 	store.types.push_back(_ComponentVector<FooComponent>{});
 	store.types.push_back(_ComponentVector<BarComponent>{});
@@ -18,7 +18,7 @@ TEST_CASE("ComponentRange - Construct", "[GameLogic]") {
 }
 
 
-TEST_CASE("ComponentRange - Iterator", "[GameLogic]") {
+TEST_CASE("ComponentRange - Iterator", "[GameLogic:ComponentRange]") {
 	ComponentMatrix store;
 	store.types.push_back(_ComponentVector<FooComponent>{});
 	store.types.push_back(_ComponentVector<BarComponent>{});
@@ -43,7 +43,7 @@ TEST_CASE("ComponentRange - Iterator", "[GameLogic]") {
 }
 
 
-TEST_CASE("ComponentRange - Modify elements", "[GameLogic]") {
+TEST_CASE("ComponentRange - Modify elements", "[GameLogic:ComponentRange]") {
 	ComponentMatrix store;
 	store.types.push_back(_ComponentVector<FooComponent>{});
 	store.types.push_back(_ComponentVector<BarComponent>{});
@@ -67,7 +67,7 @@ TEST_CASE("ComponentRange - Modify elements", "[GameLogic]") {
 }
 
 
-TEST_CASE("ComponentRange - Failure to get vectors", "[GameLogic]") {
+TEST_CASE("ComponentRange - Failure to get vectors", "[GameLogic:ComponentRange]") {
 	ComponentMatrix store;
 	store.types.push_back(_ComponentVector<FooComponent>{});
 	store.types.push_back(_ComponentVector<BarComponent>{});

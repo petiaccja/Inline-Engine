@@ -10,14 +10,14 @@
 using namespace inl::game;
 
 
-TEST_CASE("ComponentFactory - Registration", "[GameLogic]") {
+TEST_CASE("ComponentFactory - Registration", "[GameLogic:ComponentFactory]") {
 	REQUIRE(ComponentFactory_Singleton::GetInstance().IsRegistered<FooComponent>());
 	REQUIRE(ComponentFactory_Singleton::GetInstance().IsRegistered<BarComponent>());
 	REQUIRE(ComponentFactory_Singleton::GetInstance().IsRegistered<BazComponent>());
 }
 
 
-TEST_CASE("ComponentFactory - Create", "[GameLogic]") {
+TEST_CASE("ComponentFactory - Create", "[GameLogic:ComponentFactory]") {
 	Scene world;
 	Entity& entity = *world.CreateEntity();
 	ComponentFactory_Singleton::GetInstance().Create(entity, "FooComponent");
@@ -25,7 +25,7 @@ TEST_CASE("ComponentFactory - Create", "[GameLogic]") {
 }
 
 
-TEST_CASE("ComponentFactory - Variant serializer", "[GameLogic]") {
+TEST_CASE("ComponentFactory - Variant serializer", "[GameLogic:ComponentFactory]") {
 	using ArchiveMix = VariantOutputArchive<cereal::JSONOutputArchive, cereal::BinaryOutputArchive>;
 	std::stringstream ss1, ss2;
 	FooComponent serializable{ 5.0f };
@@ -43,7 +43,7 @@ TEST_CASE("ComponentFactory - Variant serializer", "[GameLogic]") {
 }
 
 
-TEST_CASE("ComponentFactory - Create with serialization", "[GameLogic]") {
+TEST_CASE("ComponentFactory - Create with serialization", "[GameLogic:ComponentFactory]") {
 	Scene world;
 	Entity& entity = *world.CreateEntity();
 	std::stringstream ss;
