@@ -1,6 +1,6 @@
 #include "GameSceneFrame.hpp"
 
-#include "GameWorld.hpp"
+#include "Game.hpp"
 
 
 GameSceneFrame::GameSceneFrame() {
@@ -8,15 +8,10 @@ GameSceneFrame::GameSceneFrame() {
 }
 
 
-void GameSceneFrame::SetGameWorld(GameWorld& gameWorld) {
+void GameSceneFrame::SetGameWorld(Game& gameWorld) {
 	m_gameWorld = &gameWorld;
 }
 
 void GameSceneFrame::Start(std::unique_ptr<ILevel> level) {	
-	assert(m_gameWorld);
-	m_level = std::move(level);
-	inl::game::Scene newWorld = m_level->Initialize(m_gameWorld->GetComponentFactory(), { 0, 0, 0 });
-	inl::game::Scene& oldWorld = m_gameWorld->GetScene();
 
-	oldWorld += std::move(newWorld);
 }

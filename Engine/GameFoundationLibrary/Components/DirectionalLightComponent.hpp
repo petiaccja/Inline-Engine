@@ -10,17 +10,7 @@
 #include <cereal/types/string.hpp>
 
 
-namespace inl::gxeng {
-class IGraphicsEngine;
-} // namespace inl::gxeng
-
-
 namespace inl::gamelib {
-
-
-struct DirectionalLightProperties {
-	std::string sceneName;
-};
 
 
 struct DirectionalLightComponent {

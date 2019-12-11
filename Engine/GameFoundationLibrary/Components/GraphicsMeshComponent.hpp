@@ -9,11 +9,6 @@
 #include <memory>
 
 
-namespace inl::gxeng {
-class IScene;
-class IGraphicsEngine;
-} // namespace inl::gxeng
-
 
 namespace inl::gamelib {
 

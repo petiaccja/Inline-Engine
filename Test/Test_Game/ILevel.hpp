@@ -9,7 +9,7 @@ namespace game {
 }
 }
 
-class GameWorld;
+class Game;
 
 
 class ILevel {

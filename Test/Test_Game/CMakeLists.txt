@@ -3,10 +3,10 @@
 # Files
 set(src_main
 	main.cpp
-	GameWorld.hpp
-	GameWorld.cpp
-	GameInterface.hpp
-	GameInterface.cpp
+	Game.hpp
+	Game.cpp
+	Interface.hpp
+	Interface.cpp
 	UserInterfaceCompositor.hpp
 	UserInterfaceCompositor.cpp)
 

@@ -1,4 +1,4 @@
-#include "GameWorld.hpp"
+#include "Game.hpp"
 
 #include "UserInterfaceSystem.hpp"
 #include "WindowEventSystem.hpp"
@@ -11,44 +11,27 @@
 #include <fstream>
 
 
-GameWorld::GameWorld(const ModuleCollection& modules, const AssetCacheCollection& assetCaches) {
-	m_camera = modules.GetGraphicsEngine().CreatePerspectiveCamera("MainCamera");
-	m_scene = modules.GetGraphicsEngine().CreateScene("MainScene");
-	m_componentFactory = inl::game::ComponentFactory_Singleton::GetInstance();
+Game::Game(const ModuleCollection& modules)
+	: m_graphicsModule(modules.GetGraphicsEngine(), INL_GAMEDATA) {
 	CreateSystems(modules);
 	SetupRenderPipeline(modules);
 }
 
-
-inl::game::Scene& GameWorld::GetScene() {
-	return m_world;
+void Game::Update(float elapsed) {
+	m_simulation.Run(m_scene, elapsed);
 }
 
-inl::game::Simulation& GameWorld::GetSimulation() {
-	return m_simulation;
-}
-
-
-inl::gxeng::IPerspectiveCamera& GameWorld::GetCamera() {
-	return *m_camera;
-}
-
-inl::game::ComponentFactory& GameWorld::GetComponentFactory() {
-	return m_componentFactory;
+void Game::ResizeRender(int width, int height) {
+	// TODO: resize all cameras???
 }
 
 
-void GameWorld::CreateSystems(const ModuleCollection& modules) {
-	auto windowEventSystem = std::make_unique<WindowEventSystem>();
-	auto userInterfaceSystem = std::make_unique<UserInterfaceSystem>();
-
-	m_simulation.PushBack(WindowEventSystem{});
-	m_simulation.PushBack(UserInterfaceSystem{});
+void Game::CreateSystems(const ModuleCollection& modules) {
 	m_simulation.PushBack(inl::gamelib::LinkTransformSystem{});
 	m_simulation.PushBack(inl::gamelib::RenderingSystem{ &modules.GetGraphicsEngine() });
 }
 
-void GameWorld::SetupRenderPipeline(const ModuleCollection& modules) {
+void Game::SetupRenderPipeline(const ModuleCollection& modules) {
 	auto& engine = modules.GetGraphicsEngine();
 	engine.SetShaderDirectories({ INL_NODE_SHADER_DIRECTORY,
 								  INL_MTL_SHADER_DIRECTORY,

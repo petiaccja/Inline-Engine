@@ -14,9 +14,9 @@ class GameSceneFrame : public TopLevelFrame, public inl::gui::Frame {
 public:
 	GameSceneFrame();
 
-	void SetGameWorld(GameWorld& gameWorld);
+	void SetGameWorld(Game& gameWorld);
 	void Start(std::unique_ptr<ILevel> level);
 private:
-	GameWorld* m_gameWorld = nullptr;
+	Game* m_gameWorld = nullptr;
 	std::unique_ptr<ILevel> m_level;
 };
