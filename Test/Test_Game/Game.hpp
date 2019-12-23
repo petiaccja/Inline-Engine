@@ -1,18 +1,29 @@
 #pragma once
 
+#include "Actions.hpp"
 #include "ModuleCollection.hpp"
-#include "Interface.hpp"
 
+#include <BaseLibrary/ActionSystem/ActionSystem.hpp>
 #include <GameFoundationLibrary/Modules/GraphicsModule.hpp>
 #include <GameLogic/Scene.hpp>
 #include <GameLogic/Simulation.hpp>
 
 
-class Game {
+// TODO:
+// How does Game receive action to load level?
+// - just a string?
+// - maybe an ILevel object?
+// - a function object taking Scene&?
+// - the LoadLevelAction could be a cultured functor?
+
+class Game : public inl::ActionListener<Game, ResizeScreenAction, LoadLevelAction> {
 public:
 	Game(const ModuleCollection& modules);
 
 	void Update(float elapsed);
+
+	void operator()(ResizeScreenAction action);
+	void operator()(LoadLevelAction action);
 
 	void ResizeRender(int width, int height);
 

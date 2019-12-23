@@ -3,7 +3,7 @@
 #include "UserInterfaceSystem.hpp"
 #include "WindowEventSystem.hpp"
 
-#include <GameFoundationLibrary/Components/DirectionalLightComponent.hpp>
+#include <GameFoundationLibrary/Components/PerspectiveCameraComponent.hpp>
 #include <GameFoundationLibrary/Components/GraphicsMeshComponent.hpp>
 #include <GameFoundationLibrary/Systems/LinkTransformSystem.hpp>
 #include <GameFoundationLibrary/Systems/RenderingSystem.hpp>
@@ -21,8 +21,26 @@ void Game::Update(float elapsed) {
 	m_simulation.Run(m_scene, elapsed);
 }
 
+void Game::operator()(ResizeScreenAction action) {
+	ResizeRender(action.width, action.height);
+}
+
+void Game::operator()(LoadLevelAction action) {
+	m_scene.Clear();
+	auto level = action.Level(m_scene);
+	//level->Load(inl::game::ComponentFactory_Singleton::GetInstance());
+	
+}
+
 void Game::ResizeRender(int width, int height) {
-	// TODO: resize all cameras???
+	// Set aspect ratios for cameras.
+	for (auto& matrix : m_scene.GetMatrices({ typeid(inl::gamelib::PerspectiveCameraComponent) })) {
+		inl::game::ComponentRange<inl::gamelib::PerspectiveCameraComponent> range{ matrix.get().GetMatrix() };
+		for (auto [camera] : range) {
+			float fovh = camera.entity->GetFOVHorizontal();
+			camera.entity->SetFOVAspect(fovh, float(width) / float(height));
+		}		
+	}
 }
 
 

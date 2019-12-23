@@ -4,7 +4,7 @@
 file(GLOB sources "*.cpp")
 file(GLOB headers "*.hpp")
 
-file(GLOB src_eventsystem "EventSystem/*.?pp")
+file(GLOB src_actionsystem "ActionSystem/*.?pp")
 file(GLOB src_exception "Exception/*.?pp")
 file(GLOB src_graph "Graph/*.?pp")
 file(GLOB src_grapheditor "GraphEditor/*.?pp")
@@ -19,7 +19,7 @@ file(GLOB src_jobsystem "JobSystem/*.?pp")
 add_library(BaseLibrary STATIC
 	${sources} ${headers}
 	
-	${src_eventsystem}
+	${src_actionsystem}
 	${src_exception}
 	${src_graph}
 	${src_grapheditor}
@@ -34,7 +34,7 @@ add_library(BaseLibrary STATIC
 # Filters
 source_group("" FILES ${sources} ${headers})
 
-source_group("EventSystem" FILES ${src_eventsystem})
+source_group("EventSystem" FILES ${src_actionsystem})
 source_group("Exception" FILES ${src_exception})
 source_group("Graph" FILES ${src_graph})
 source_group("GraphEditor" FILES ${src_grapheditor})

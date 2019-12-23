@@ -49,6 +49,16 @@ Interface::Interface(const ModuleCollection& modules, inl::Window& window)
 }
 
 
+void Interface::operator()(ResizeScreenAction action) {
+	ResizeRender(action.width, action.height);
+}
+
+
+void Interface::operator()(UpdateLoadingAction action) {
+	
+}
+
+
 void Interface::ResizeRender(int width, int height) {
 	m_camera->SetPosition(Vec2(width, height) / 2.0f);
 	m_camera->SetExtent(Vec2(width, height));

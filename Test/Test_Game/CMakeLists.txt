@@ -7,8 +7,7 @@ set(src_main
 	Game.cpp
 	Interface.hpp
 	Interface.cpp
-	UserInterfaceCompositor.hpp
-	UserInterfaceCompositor.cpp)
+	Actions.hpp)
 
 set(src_collections
 	ModuleCollection.hpp
@@ -17,6 +16,8 @@ set(src_collections
 	AssetCacheCollection.cpp)
 
 set(src_ui
+	UserInterfaceCompositor.hpp
+	UserInterfaceCompositor.cpp
 	DebugInfoFrame.hpp
 	DebugInfoFrame.cpp
 	MainMenuFrame.hpp

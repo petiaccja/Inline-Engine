@@ -59,9 +59,8 @@ void load(Archive& ar, PerspectiveCameraComponent& obj) {
 
 	const auto& moduleArchive = dynamic_cast<const game::ModuleArchive&>(ar);
 	const auto graphicsModule = moduleArchive.GetModule<GraphicsModule>();
-	obj.entity = graphicsModule->CreatePerspectiveCamera();
+	obj.entity = graphicsModule->CreatePerspectiveCamera(name);
 
-	obj.entity->SetName(name);
 	obj.entity->SetFOVAspect(fieldOfView, aspectRatio);
 	obj.entity->SetNearPlane(nearPlane);
 	obj.entity->SetFarPlane(farPlane);

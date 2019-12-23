@@ -61,7 +61,7 @@ private:
 
 template <class Archive>
 void ComponentArchiver::save(Archive& ar) const {
-	const ComponentMatrix& matrix = m_entity.GetSet()->matrix;
+	const ComponentMatrix& matrix = m_entity.GetSet()->GetMatrix();
 	const auto& components = matrix.entities[m_entity.GetIndex()];
 	std::type_index type = components.get_type(m_componentIndex);
 
@@ -82,7 +82,7 @@ void ComponentArchiver::load(Archive& ar) {
 
 template <class Archive>
 void EntityArchiver::save(Archive& ar) const {
-	const ComponentMatrix& matrix = m_entity.GetSet()->matrix;
+	const ComponentMatrix& matrix = m_entity.GetSet()->GetMatrix();
 	const auto& components = matrix.entities[m_entity.GetIndex()];
 
 	std::vector<ComponentArchiver> archivers;

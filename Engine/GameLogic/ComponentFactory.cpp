@@ -72,7 +72,7 @@ void ComponentFactory::Load(Entity& entity, std::string_view name, LevelInputArc
 }
 
 void ComponentFactory::Save(const Entity& entity, size_t componentIndex, LevelOutputArchive& archive) const {
-	const auto& components = entity.GetSet()->matrix.entities[entity.GetIndex()];
+	const auto& components = entity.GetSet()->GetMatrix().entities[entity.GetIndex()];
 
 	std::type_index type = components.get_type(componentIndex);
 

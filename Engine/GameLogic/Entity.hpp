@@ -9,30 +9,17 @@ namespace inl::game {
 
 
 class Scene;
-struct EntitySet;
+class EntitySchemeSet;
 class ComponentScheme;
-
-
-namespace impl {
-	template <class ComponentT>
-	class ComponentIterator {
-		static constexpr bool isConst = std::is_const_v<std::remove_reference_t<ComponentT>>;
-
-
-
-		std::conditional<isConst, const ComponentMatrix*, ComponentMatrix*> m_matrix;
-		size_t m_entityIndex; // At which index in the vectors this entity's components reside.
-		size_t m_first; // Index of the first component vector with ComponentT.
-		size_t m_last; // Index of the past-the-last component vector with ComponentT.
-	};
-} // namespace impl
 
 
 
 class Entity {
+	friend class EntitySchemeSet;
+
 public:
 	Entity() = default;
-	Entity(Scene* scene, EntitySet* set, size_t index) : m_scene(scene), m_set(set), m_index(index) {}
+	Entity(Scene* scene, EntitySchemeSet* set, size_t index) : m_scene(scene), m_set(set), m_index(index) {}
 
 	template <class ComponentT>
 	void AddComponent(ComponentT&& component);
@@ -52,12 +39,12 @@ public:
 	const ComponentT& GetFirstComponent() const;
 
 	const Scene* GetScene() const { return m_scene; }
-	const EntitySet* GetSet() const { return m_set; }
+	const EntitySchemeSet* GetSet() const { return m_set; }
 	size_t GetIndex() const { return m_index; }
 
 private:
 	Scene* m_scene;
-	EntitySet* m_set;
+	EntitySchemeSet* m_set;
 	size_t m_index;
 };
 
@@ -65,6 +52,7 @@ private:
 
 
 
+#include "EntitySchemeSet.hpp"
 #include "Scene.hpp"
 
 
@@ -86,7 +74,7 @@ void Entity::RemoveComponent() {
 template <class ComponentT>
 bool Entity::HasComponent() const {
 	assert(m_set);
-	auto& matrix = m_set->matrix;
+	auto& matrix = m_set->GetMatrix();
 	auto [first, last] = matrix.types.equal_range(typeid(ComponentT));
 	return first < last;
 }
@@ -94,24 +82,24 @@ bool Entity::HasComponent() const {
 template <class ComponentT>
 ComponentT& Entity::GetFirstComponent() {
 	assert(m_set);
-	auto& matrix = m_set->matrix;
+	auto& matrix = m_set->GetMatrix();
 	auto [first, last] = matrix.types.equal_range(typeid(ComponentT));
 	if (first == last) {
 		throw InvalidArgumentException("No such component in entity.");
 	}
-	return m_set->matrix.entities[m_index].get<ComponentT>(first->second);
+	return m_set->GetMatrix().entities[m_index].get<ComponentT>(first->second);
 }
 
 
 template <class ComponentT>
 const ComponentT& Entity::GetFirstComponent() const {
 	assert(m_set);
-	auto& matrix = m_set->matrix;
+	auto& matrix = m_set->GetMatrix();
 	auto [first, last] = matrix.types.equal_range(typeid(ComponentT));
 	if (first == last) {
 		throw InvalidArgumentException("No such component in entity.");
 	}
-	return m_set->matrix.entities[m_index].get<ComponentT>(first->second);
+	return m_set->GetMatrix().entities[m_index].get<ComponentT>(first->second);
 }
 
 

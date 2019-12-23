@@ -8,6 +8,8 @@ set(src_world
 	Simulation.hpp
 	Entity.cpp
 	Entity.hpp
+	EntitySchemeSet.hpp
+	EntitySchemeSet.cpp
 	ContiguousVector.hpp
 	ComponentMatrix.cpp
 	ComponentMatrix.hpp

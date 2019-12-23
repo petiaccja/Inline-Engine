@@ -10,54 +10,54 @@
 
 namespace inl {
 
-class EventSystem;
+class ActionSystem;
 
 
-class BasicEventListener {
+class BasicActionListener {
 public:
-	virtual ~BasicEventListener() = default;
+	virtual ~BasicActionListener() = default;
 	virtual void TryEvent(const std::any& event) = 0;
-	void SetEventSystem(EventSystem* system);
+	void SetEventSystem(ActionSystem* system);
 
 protected:
 	template <class Event>
 	void Send(Event&& event);
 
 private:
-	EventSystem* m_system = nullptr;
+	ActionSystem* m_system = nullptr;
 };
 
 
 template <class Listener, class... AcceptedEvents>
-class EventListener : public BasicEventListener {
+class ActionListener : public BasicActionListener {
 public:
 	void TryEvent(const std::any& event) override;
 };
 
 
-class EventSystem {
+class ActionSystem {
 public:
 	template <class Event>
 	void Send(Event&& event);
 
 	void Update();
 
-	void Add(std::shared_ptr<BasicEventListener> listener);
-	void Remove(const std::shared_ptr<BasicEventListener>& listener);
+	void Add(std::shared_ptr<BasicActionListener> listener);
+	void Remove(const std::shared_ptr<BasicActionListener>& listener);
 	void Clear();
 	
 private:
 	std::queue<std::any> m_events;
-	std::unordered_set<std::shared_ptr<BasicEventListener>> m_listeners;
+	std::unordered_set<std::shared_ptr<BasicActionListener>> m_listeners;
 };
 
 
 
-inline void BasicEventListener::SetEventSystem(EventSystem* system) {
+inline void BasicActionListener::SetEventSystem(ActionSystem* system) {
 	m_system = system;
 }
 
-inline void EventSystem::Update() {
+inline void ActionSystem::Update() {
 	auto eventsCopy = std::move(m_events);
 	while (!eventsCopy.empty()) {
 		std::any event = std::move(eventsCopy.front());
@@ -68,32 +68,32 @@ inline void EventSystem::Update() {
 	}
 }
 
-inline void EventSystem::Add(std::shared_ptr<BasicEventListener> listener) {
+inline void ActionSystem::Add(std::shared_ptr<BasicActionListener> listener) {
 	m_listeners.insert(listener);
 	listener->SetEventSystem(this);
 }
 
-inline void EventSystem::Remove(const std::shared_ptr<BasicEventListener>& listener) {
+inline void ActionSystem::Remove(const std::shared_ptr<BasicActionListener>& listener) {
 	listener->SetEventSystem(nullptr);
 	m_listeners.erase(listener);
 }
 
-inline void EventSystem::Clear() {
+inline void ActionSystem::Clear() {
 	m_listeners.clear();
 	
 }
 
 template <class Event>
-void BasicEventListener::Send(Event&& event) {
+void BasicActionListener::Send(Event&& event) {
 	if (m_system) {
 		m_system->Send(std::forward<Event>(event));
 	}
 }
 
 template <class Listener, class... AcceptedEvents>
-void EventListener<Listener, AcceptedEvents...>::TryEvent(const std::any& event) {
+void ActionListener<Listener, AcceptedEvents...>::TryEvent(const std::any& event) {
 	constexpr bool invocableForAll = (true && ... && std::is_invocable_v<Listener, AcceptedEvents>);
-	static_assert(invocableForAll, "Make sure your Listener type can be invoked with all types listed for the EventListener.");
+	static_assert(invocableForAll, "Make sure your Listener type can be invoked with all types listed for the ActionListener.");
 
 	const auto& type = event.type();
 
@@ -108,7 +108,7 @@ void EventListener<Listener, AcceptedEvents...>::TryEvent(const std::any& event)
 }
 
 template <class Event>
-void EventSystem::Send(Event&& event) {
+void ActionSystem::Send(Event&& event) {
 	m_events.push(std::any{ std::forward<Event>(event) });
 }
 

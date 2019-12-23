@@ -32,7 +32,7 @@ public:
 		return std::make_unique<ComponentClassFactory>(*this);
 	}
 	void Save(const Entity& entity, size_t componentIndex, LevelOutputArchive& archive) const override {
-		const ComponentT& component = entity.GetSet()->matrix.entities[entity.GetIndex()].get<ComponentT>(componentIndex);
+		const ComponentT& component = entity.GetSet()->GetMatrix().entities[entity.GetIndex()].get<ComponentT>(componentIndex);
 		archive(component);
 	}
 };

@@ -6,7 +6,9 @@
 #include <BaseLibrary/TemplateUtil.hpp>
 
 #include <array>
-#include <optional>
+#include <typeindex>
+#include <utility>
+
 
 namespace inl::game {
 
@@ -106,9 +108,9 @@ public:
 		generic_iterator operator--(int);
 		generic_iterator& operator+=(size_t n);
 		generic_iterator& operator-=(size_t n);
-		friend generic_iterator operator+(generic_iterator lhs, size_t n) { return generic_iterator{lhs} += n; }
-		friend generic_iterator operator+(size_t n, generic_iterator rhs) { return generic_iterator{rhs} += n; }
-		friend generic_iterator operator-(generic_iterator lhs, size_t n) { return generic_iterator{lhs} -= n; }
+		friend generic_iterator operator+(generic_iterator lhs, size_t n) { return generic_iterator{ lhs } += n; }
+		friend generic_iterator operator+(size_t n, generic_iterator rhs) { return generic_iterator{ rhs } += n; }
+		friend generic_iterator operator-(generic_iterator lhs, size_t n) { return generic_iterator{ lhs } -= n; }
 		friend size_t operator-(const generic_iterator& lhs, const generic_iterator& rhs) { return lhs.get_index() - rhs.get_index(); }
 		auto operator<=>(const generic_iterator& rhs) const { return get_index() <=> rhs.get_index(); }
 		auto operator==(const generic_iterator& rhs) const { return get_index() == rhs.get_index(); }
@@ -150,6 +152,9 @@ public:
 	// Capacity
 	size_type size() const;
 	bool empty() const;
+	void clear();
+	void resize(size_t size);
+	void reserve(size_t capacity);
 
 	// Modifiers
 	void insert(const_iterator where, const_reference entity);
@@ -161,6 +166,7 @@ public:
 	void push_back(reference&& entity) { insert(end(), std::move(entity)); }
 	template <class... Components>
 	void emplace_back(Components&&... components) { emplace(end(), std::forward<Components>(components)...); }
+	void pop_back();
 
 private:
 	template <int Index, class... Components>
@@ -231,9 +237,9 @@ public:
 		generic_iterator operator--(int);
 		generic_iterator& operator+=(size_t n);
 		generic_iterator& operator-=(size_t n);
-		friend generic_iterator operator+(generic_iterator lhs, size_t n) { return generic_iterator{lhs} += n; }
-		friend generic_iterator operator+(size_t n, generic_iterator rhs) { return generic_iterator{rhs} += n; }
-		friend generic_iterator operator-(generic_iterator lhs, size_t n) { return generic_iterator{lhs} -= n; }
+		friend generic_iterator operator+(generic_iterator lhs, size_t n) { return generic_iterator{ lhs } += n; }
+		friend generic_iterator operator+(size_t n, generic_iterator rhs) { return generic_iterator{ rhs } += n; }
+		friend generic_iterator operator-(generic_iterator lhs, size_t n) { return generic_iterator{ lhs } -= n; }
 		friend size_t operator-(const generic_iterator& lhs, const generic_iterator& rhs) { return lhs.get_index() - rhs.get_index(); }
 		auto operator<=>(const generic_iterator& rhs) const { return get_index() <=> rhs.get_index(); }
 		auto operator==(const generic_iterator& rhs) const { return get_index() == rhs.get_index(); }
@@ -273,6 +279,8 @@ public:
 
 	// Capacity
 	size_type size() const;
+	bool empty() const;
+	void clear();
 
 	// Modifiers
 	template <class T>
@@ -292,6 +300,7 @@ public:
 
 	template <class T, class... Args>
 	void emplace_back(Args&&... args) { return emplace(end(), std::forward<Args>(args)...); }
+
 
 	// Additional
 	auto& type_order() const { return m_orderedTypes; }
@@ -371,12 +380,12 @@ void PairComponents(
 template <class... Components>
 struct SortedComponents {
 	static constexpr size_t count = sizeof...(Components);
-	static const std::array<std::pair<std::type_index, size_t>, count> order;
+	static const std::vector<std::pair<std::type_index, size_t>> order;
 };
 
 template <class... Components>
-const std::array<std::pair<std::type_index, size_t>, SortedComponents<Components...>::count> SortedComponents<Components...>::order = [] {
-	std::array<std::pair<std::type_index, size_t>, SortedComponents<Components...>::count> arr = { std::pair<std::type_index, size_t>{ typeid(Components), 0 }... };
+const std::vector<std::pair<std::type_index, size_t>> SortedComponents<Components...>::order = [] {
+	std::vector<std::pair<std::type_index, size_t>> arr = { std::pair<std::type_index, size_t>{ typeid(Components), 0 }... };
 	for (auto i : Range(SortedComponents<Components...>::count))
 		arr[i].second = i;
 	std::stable_sort(arr.begin(), arr.end(), [](const auto& lhs, const auto& rhs) {

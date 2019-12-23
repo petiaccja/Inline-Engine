@@ -11,7 +11,7 @@ TEST_CASE("AddEntity", "[GameLogic:Scene]") {
 	Scene scene;
 	auto entity = scene.CreateEntity(FooComponent{}, BarComponent{}, BazComponent{});
 
-	REQUIRE(entity->GetSet()->matrix.entities.size() == 1);
+	REQUIRE(entity->GetSet()->Size() == 1);
 	REQUIRE(entity->GetIndex() == 0);
 	REQUIRE(entity->GetScene() == &scene);
 }
@@ -24,7 +24,7 @@ TEST_CASE("Delete entity", "[GameLogic:Scene]") {
 
 	scene.DeleteEntity(*entity1);
 
-	REQUIRE(entity2->GetSet()->matrix.entities.size() == 1);
+	REQUIRE(entity2->GetSet()->Size() == 1);
 	REQUIRE(entity2->GetIndex() == 0);
 	REQUIRE(entity2->GetScene() == &scene);
 }
@@ -101,11 +101,11 @@ TEST_CASE("Add multiple entities", "[GameLogic:Scene]") {
 	auto entity0 = scene.CreateEntity(FooComponent{}, BarComponent{}, BazComponent{});
 	auto entity1 = scene.CreateEntity(FooComponent{}, BarComponent{}, BazComponent{});
 
-	REQUIRE(entity0->GetSet()->matrix.entities.size() == 2);
+	REQUIRE(entity0->GetSet()->Size() == 2);
 	REQUIRE(entity0->GetIndex() == 0);
 	REQUIRE(entity0->GetScene() == &scene);
 
-	REQUIRE(entity1->GetSet()->matrix.entities.size() == 2);
+	REQUIRE(entity1->GetSet()->Size() == 2);
 	REQUIRE(entity1->GetIndex() == 1);
 	REQUIRE(entity1->GetScene() == &scene);
 }
@@ -116,11 +116,11 @@ TEST_CASE("Add different entities", "[GameLogic:Scene]") {
 	auto entity0 = scene.CreateEntity(FooComponent{}, BarComponent{}, BazComponent{});
 	auto entity1 = scene.CreateEntity(FooComponent{}, BarComponent{});
 
-	REQUIRE(entity0->GetSet()->matrix.entities.size() == 1);
+	REQUIRE(entity0->GetSet()->Size() == 1);
 	REQUIRE(entity0->GetIndex() == 0);
 	REQUIRE(entity0->GetScene() == &scene);
 
-	REQUIRE(entity1->GetSet()->matrix.entities.size() == 1);
+	REQUIRE(entity1->GetSet()->Size() == 1);
 	REQUIRE(entity1->GetIndex() == 0);
 	REQUIRE(entity1->GetScene() == &scene);
 }
@@ -132,13 +132,13 @@ TEST_CASE("Add component new", "[GameLogic:Scene]") {
 	auto entity1 = scene.CreateEntity(FooComponent{}, BarComponent{});
 	scene.AddComponent(*entity0, BazComponent{});
 
-	REQUIRE(entity0->GetSet()->matrix.entities.size() == 1);
-	REQUIRE(entity0->GetSet()->matrix.types.size() == 4);
+	REQUIRE(entity0->GetSet()->Size() == 1);
+	REQUIRE(entity0->GetSet()->GetMatrix().types.size() == 4);
 	REQUIRE(entity0->GetIndex() == 0);
 	REQUIRE(entity0->GetScene() == &scene);
 
-	REQUIRE(entity1->GetSet()->matrix.entities.size() == 1);
-	REQUIRE(entity1->GetSet()->matrix.types.size() == 2);
+	REQUIRE(entity1->GetSet()->Size() == 1);
+	REQUIRE(entity1->GetSet()->GetMatrix().types.size() == 2);
 	REQUIRE(entity1->GetIndex() == 0);
 	REQUIRE(entity1->GetScene() == &scene);
 }
@@ -150,7 +150,7 @@ TEST_CASE("Add component merge", "[GameLogic:Scene]") {
 	auto entity1 = scene.CreateEntity(FooComponent{}, BarComponent{});
 	scene.AddComponent(*entity1, BazComponent{});
 
-	REQUIRE(entity0->GetSet()->matrix.entities.size() == 2);
+	REQUIRE(entity0->GetSet()->Size() == 2);
 	REQUIRE(entity0->GetIndex() == 0);
 	REQUIRE(entity0->GetScene() == &scene);
 
@@ -166,13 +166,13 @@ TEST_CASE("Remove component new", "[GameLogic:Scene]") {
 	auto entity1 = scene.CreateEntity(FooComponent{}, BarComponent{});
 	scene.RemoveComponent<BarComponent>(*entity1);
 
-	REQUIRE(entity0->GetSet()->matrix.entities.size() == 1);
-	REQUIRE(entity0->GetSet()->matrix.types.size() == 3);
+	REQUIRE(entity0->GetSet()->Size() == 1);
+	REQUIRE(entity0->GetSet()->GetMatrix().types.size() == 3);
 	REQUIRE(entity0->GetIndex() == 0);
 	REQUIRE(entity0->GetScene() == &scene);
 
-	REQUIRE(entity1->GetSet()->matrix.entities.size() == 1);
-	REQUIRE(entity1->GetSet()->matrix.types.size() == 1);
+	REQUIRE(entity1->GetSet()->Size() == 1);
+	REQUIRE(entity1->GetSet()->GetMatrix().types.size() == 1);
 	REQUIRE(entity1->GetIndex() == 0);
 	REQUIRE(entity1->GetScene() == &scene);
 }
@@ -184,8 +184,8 @@ TEST_CASE("Remove component merge", "[GameLogic:Scene]") {
 	auto entity1 = scene.CreateEntity(FooComponent{}, BarComponent{});
 	scene.RemoveComponent<BazComponent>(*entity0);
 
-	REQUIRE(entity0->GetSet()->matrix.entities.size() == 2);
-	REQUIRE(entity0->GetSet()->matrix.types.size() == 2);
+	REQUIRE(entity0->GetSet()->Size() == 2);
+	REQUIRE(entity0->GetSet()->GetMatrix().types.size() == 2);
 	REQUIRE(entity0->GetIndex() == 1);
 	REQUIRE(entity0->GetScene() == &scene);
 

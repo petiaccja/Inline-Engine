@@ -147,6 +147,24 @@ bool EntityVector::empty() const {
 	return size() == 0;
 }
 
+void EntityVector::clear() {
+	for (auto& v : m_matrix) {
+		v->Resize(0);
+	}
+}
+
+void EntityVector::resize(size_t size) {
+	for (auto& v : m_matrix) {
+		v->Resize(size);
+	}
+}
+
+void EntityVector::reserve(size_t capacity) {
+	for (auto& v : m_matrix) {
+		v->Reserve(capacity);
+	}
+}
+
 void EntityVector::insert(const_iterator where, const_reference entity) {
 	if (m_matrix.empty()) {
 		throw InvalidStateException("Cannot add an entity when there are no components.");
@@ -174,6 +192,11 @@ void EntityVector::erase(const_iterator where) {
 	for (auto& vector : m_matrix) {
 		vector->Erase(index);
 	}
+}
+
+void EntityVector::pop_back() {
+	assert(size() > 0);
+	erase(--end());
 }
 
 
@@ -278,9 +301,17 @@ TypeVector::size_type TypeVector::size() const {
 	return m_matrix.size();
 }
 
+bool TypeVector::empty() const {
+	return size() == 0;
+}
+
 void TypeVector::erase(const_iterator where) {
 	m_matrix.erase(m_matrix.begin() + where.get_index());
 	recompute_order();
+}
+
+void TypeVector::clear() {
+	m_matrix.clear();
 }
 
 auto TypeVector::equal_range(std::type_index type) const

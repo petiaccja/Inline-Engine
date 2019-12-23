@@ -23,6 +23,7 @@ public:
 	virtual void PushBackDefault() = 0;
 	virtual void InsertDefault(size_t where) = 0;
 	virtual void Resize(size_t size) = 0;
+	virtual void Reserve(size_t capacity) = 0;
 	virtual void Erase(size_t where) = 0;
 	virtual void Erase(size_t first, size_t last) = 0;
 	virtual std::unique_ptr<ComponentVectorBase> CloneEmpty() = 0;
@@ -49,6 +50,7 @@ public:
 	void PushBackDefault() override;
 	void InsertDefault(size_t where) override;
 	void Resize(size_t size) override;
+	void Reserve(size_t capacity) override;
 	void Erase(size_t where) override;
 	void Erase(size_t first, size_t last) override;
 	std::unique_ptr<ComponentVectorBase> CloneEmpty() override;
@@ -116,6 +118,11 @@ void _ComponentVector<T>::InsertDefault(size_t where) {
 template <class T>
 void _ComponentVector<T>::Resize(size_t size) {
 	m_data.resize(size);
+}
+
+template <class T>
+void _ComponentVector<T>::Reserve(size_t capacity) {
+	m_data.reserve(capacity);
 }
 
 template <class T>

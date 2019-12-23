@@ -1,18 +1,22 @@
 #pragma once
 
+#include "Actions.hpp"
 #include "ModuleCollection.hpp"
 #include "UserInterfaceCompositor.hpp"
 
+#include <BaseLibrary/ActionSystem/ActionSystem.hpp>
 #include <GraphicsEngine/Scene/ICamera2D.hpp>
 #include <GraphicsEngine/Scene/IScene.hpp>
 #include <GuiEngine/Board.hpp>
 
 
-
-class Interface {
+class Interface : public inl::ActionListener<Interface, ResizeScreenAction, UpdateLoadingAction> {
 public:
 	Interface(const ModuleCollection& modules, inl::Window& window);
 
+	void operator()(ResizeScreenAction action);
+	void operator()(UpdateLoadingAction action);
+	
 	void ResizeRender(int width, int height);
 
 private:

@@ -9,41 +9,29 @@
 
 namespace inl::game {
 
-
-class System;
 class Entity;
-
-
-struct EntitySet {
-	EntitySet() = default;
-	EntitySet(EntitySet&&) = default;
-	~EntitySet();
-	ContiguousVector<std::unique_ptr<Entity>> entities;
-	ComponentMatrix matrix;
-};
+class EntitySchemeSet;
 
 
 class Scene {
+	using ComponentSetMap = std::unordered_map<ComponentScheme, std::unique_ptr<EntitySchemeSet>>;
+
 	template <bool Const>
 	class generic_iterator {
 		friend generic_iterator<!Const>;
 		using set_iterator = std::conditional_t<Const,
-												  std::unordered_map<ComponentScheme, std::unique_ptr<EntitySet>>::const_iterator,
-												  std::unordered_map<ComponentScheme, std::unique_ptr<EntitySet>>::iterator>;
-		using entity_iterator = std::conditional_t<Const,
-												   ContiguousVector<std::unique_ptr<Entity>>::const_iterator,
-												   ContiguousVector<std::unique_ptr<Entity>>::iterator>;
-
+												ComponentSetMap::const_iterator,
+												ComponentSetMap::iterator>;
 	public:
 		generic_iterator() = default;
-		generic_iterator(set_iterator setIt, set_iterator setEnd, entity_iterator entity) : m_setIt(setIt), m_setEnd(setEnd), m_entityIt(entity) {}
+		generic_iterator(set_iterator setIt, set_iterator setEnd, size_t entityIdx) : m_setIt(setIt), m_setEnd(setEnd), m_entityIdx(entityIdx) {}
 
 		generic_iterator(const generic_iterator& rhs) = default;
 		template <class Dummy = void, class = std::enable_if_t<Const, Dummy>>
-		generic_iterator(const generic_iterator<false>& rhs) : m_setIt(rhs.m_setIt), m_setEnd(rhs.m_setEnd), m_entityIt(rhs.m_entityIt) {}
+		generic_iterator(const generic_iterator<false>& rhs) : m_setIt(rhs.m_setIt), m_setEnd(rhs.m_setEnd), m_entityIdx(rhs.m_entityIdx) {}
 
-		Entity& operator*() const { return **m_entityIt; }
-		Entity* operator->() const { return m_entityIt->get(); }
+		Entity& operator*() const { return (*m_setIt->second)[m_entityIdx]; }
+		Entity* operator->() const { return &(*m_setIt->second)[m_entityIdx]; }
 
 		generic_iterator& operator++();
 		generic_iterator& operator--();
@@ -55,7 +43,7 @@ class Scene {
 	private:
 		set_iterator m_setIt;
 		set_iterator m_setEnd;
-		entity_iterator m_entityIt;
+		size_t m_entityIdx;
 	};
 
 public:
@@ -65,6 +53,7 @@ public:
 	template <class... ComponentTypes>
 	Entity* CreateEntity(ComponentTypes&&... args);
 	void DeleteEntity(Entity& entity);
+	void Clear();
 
 	iterator begin();
 	iterator end();
@@ -75,8 +64,8 @@ public:
 
 	Scene& operator+=(Scene&& entities);
 
-	std::experimental::generator<std::reference_wrapper<ComponentMatrix>> GetMatrices(const ComponentScheme& subset);
-	std::experimental::generator<std::reference_wrapper<const ComponentMatrix>> GetMatrices(const ComponentScheme& subset) const;
+	std::experimental::generator<std::reference_wrapper<EntitySchemeSet>> GetMatrices(const ComponentScheme& subset);
+	std::experimental::generator<std::reference_wrapper<const EntitySchemeSet>> GetMatrices(const ComponentScheme& subset) const;
 
 	template <class ComponentT>
 	void AddComponent(Entity& entity, ComponentT&& component);
@@ -85,20 +74,11 @@ public:
 	void RemoveComponent(Entity& entity, size_t index);
 
 private:
-	// TODO: refactor stuff
-	template <class Component>
-	static size_t MoveEntityExtend(EntitySet& target, EntitySet& source, size_t sourceIndex, Component&& component);
-	static size_t MoveEntityPartial(EntitySet& target, EntitySet& source, size_t sourceIndex, size_t skippedComponent);
-	static size_t MoveEntity(EntitySet& target, EntitySet& source, size_t sourceIndex);
-
-
 	ComponentScheme GetScheme(const ComponentMatrix& matrix);
-	void MoveScheme(const ComponentScheme& scheme, EntitySet&& entitySet);
-	void MergeScheme(const ComponentScheme& scheme, EntitySet&& entitySet);
-	void AppendScheme(EntitySet& target, EntitySet&& source);
+	void MergeScheme(const ComponentScheme& scheme, EntitySchemeSet&& entitySet);
 
 private:
-	std::unordered_map<ComponentScheme, std::unique_ptr<EntitySet>> m_componentSets;
+	ComponentSetMap m_componentSets;
 };
 
 
@@ -106,6 +86,7 @@ private:
 
 
 #include "Entity.hpp"
+#include "EntitySchemeSet.hpp"
 
 
 namespace inl::game {
@@ -113,13 +94,13 @@ namespace inl::game {
 
 template <bool Const>
 Scene::generic_iterator<Const>& Scene::generic_iterator<Const>::operator++() {
-	++m_entityIt;
-	if (m_entityIt == m_setIt->second->entities.end()) {
+	++m_entityIdx;
+	if (m_entityIdx == m_setIt->second->Size()) {
 		do {
 			++m_setIt;
-		} while (m_setIt != m_setEnd && m_setIt->second->entities.empty());
+		} while (m_setIt != m_setEnd && m_setIt->second->Empty());
 		if (m_setIt != m_setEnd) {
-			m_entityIt = m_setIt->second->entities.begin();
+			m_entityIdx = 0;
 		}
 	}
 	return *this;
@@ -127,13 +108,13 @@ Scene::generic_iterator<Const>& Scene::generic_iterator<Const>::operator++() {
 
 template <bool Const>
 Scene::generic_iterator<Const>& Scene::generic_iterator<Const>::operator--() {
-	if (m_setIt == m_setEnd || m_entityIt == m_setIt->second->entities.begin()) {
+	if (m_setIt == m_setEnd || m_entityIdx == 0) {
 		do {
 			--m_setIt;
-		} while (m_setIt->second->entities.empty());
-		m_entityIt = m_setIt->second->entities.end();
+		} while (m_setIt->second->Empty());
+		m_entityIdx = m_setIt->second->Size();
 	}
-	--m_entityIt;
+	--m_entityIdx;
 	return *this;
 }
 
@@ -156,7 +137,7 @@ bool Scene::generic_iterator<Const>::operator==(const generic_iterator& rhs) con
 	if (m_setIt == m_setEnd) {
 		return m_setIt == rhs.m_setIt;
 	}
-	return m_setIt == rhs.m_setIt && m_entityIt == rhs.m_entityIt;
+	return m_setIt == rhs.m_setIt && m_entityIdx == rhs.m_entityIdx;
 }
 
 template <bool Const>
@@ -171,18 +152,13 @@ Entity* Scene::CreateEntity(ComponentTypes&&... args) {
 
 	auto it = m_componentSets.find(scheme);
 	if (it == m_componentSets.end()) {
-		auto [newIt, ignored_] = m_componentSets.insert(decltype(m_componentSets)::value_type{ scheme, std::make_unique<EntitySet>() });
-		if constexpr (sizeof...(ComponentTypes) > 0) {
-			(newIt->second->matrix.types.push_back(_ComponentVector<ComponentTypes>{}), ...);
-		}
+		auto [newIt, ignored_] = m_componentSets.insert(ComponentSetMap::value_type{ scheme, std::make_unique<EntitySchemeSet>(*this) });
+		newIt->second->SetComponentTypes<ComponentTypes...>();
 		it = newIt;
 	}
-	if constexpr (sizeof...(ComponentTypes) > 0) {
-		it->second->matrix.entities.emplace_back(std::forward<ComponentTypes>(args)...);
-	}
-	it->second->entities.push_back(std::make_unique<Entity>(this, it->second.get(), it->second->entities.size()));
 
-	return it->second->entities.back().get();
+	Entity& entity = it->second->Create(std::forward<ComponentTypes>(args)...);
+	return &entity;
 }
 
 
@@ -190,44 +166,24 @@ template <class ComponentT>
 void Scene::AddComponent(Entity& entity, ComponentT&& component) {
 	assert(entity.GetScene() == this);
 
-	// STUCK HERE
-	// This query and extend scheme and hashtable shit is very slow and pretty ugly...
-	// New ComponentMatrix doesn't make this part any better.
-	// How to rewrite?
+	auto& currentSet = const_cast<EntitySchemeSet&>(*entity.GetSet());
+	size_t currentIndex = entity.GetIndex();
+	auto& currentScheme = currentSet.GetScheme();
 
-	// Naive implementation of the extended Scheme's construction as use as a hash key.
-	auto& currentEntities = const_cast<ContiguousVector<std::unique_ptr<Entity>>&>(entity.GetSet()->entities);
-	auto& currentMatrix = const_cast<ComponentMatrix&>(entity.GetSet()->matrix);
-	const size_t currentIndex = entity.GetIndex();
-	const ComponentScheme& currentScheme = GetScheme(currentMatrix);
+	// Find extended set.
 	ComponentScheme extendedScheme = currentScheme;
 	extendedScheme.Insert(typeid(ComponentT));
-
-	// Find or create extended matrix.
 	auto it = m_componentSets.find(extendedScheme);
 	if (it == m_componentSets.end()) {
-		auto [newIt, ignore_] = m_componentSets.insert({ extendedScheme, std::make_unique<EntitySet>() });
-		newIt->second->matrix.types = currentMatrix.types;
-		newIt->second->matrix.types.push_back(_ComponentVector<ComponentT>{});
+		auto [newIt, ignore_] = m_componentSets.insert({ extendedScheme, std::make_unique<EntitySchemeSet>(*this) });
+		newIt->second->CopyComponentTypes(currentSet);
+		newIt->second->AddComponent<ComponentT>();
 		it = newIt;
 	}
-	auto& newMatrix = it->second->matrix;
+	auto& newSet = it->second;
 
-	// Move components.
-	auto source = currentMatrix.entities[currentIndex];
-	newMatrix.entities.push_back(std::move(source));
-	const size_t schemeOrderedIndex = extendedScheme.Index(typeid(ComponentT)).second - 1;
-	const size_t componentIndex = newMatrix.types.type_order()[schemeOrderedIndex].second;
-	newMatrix.entities.back().get<ComponentT>(componentIndex) = std::forward<ComponentT>(component);
-	currentMatrix.entities.erase(currentMatrix.entities.begin() + currentIndex);
-
-	// Update entities.
-	it->second->entities.push_back(std::move(currentEntities[currentIndex]));
-	currentEntities.erase(currentEntities.begin() + currentIndex);
-	entity = Entity(this, it->second.get(), newMatrix.entities.size() - 1);
-	if (currentEntities.size() > currentIndex) {
-		*currentEntities[currentIndex] = Entity(this, (EntitySet*)currentEntities[currentIndex]->GetSet(), currentIndex);
-	}
+	// Splice entity.
+	newSet->Splice(currentSet, currentIndex, std::forward<ComponentT>(component));
 }
 
 
@@ -236,8 +192,7 @@ void Scene::RemoveComponent(Entity& entity) {
 	assert(entity.GetScene() == this);
 
 	// Find the index of the first component of specified type.
-	auto& currentMatrix = const_cast<ComponentMatrix&>(entity.GetSet()->matrix);
-	const ComponentScheme& currentScheme = GetScheme(currentMatrix);
+	const ComponentScheme& currentScheme = entity.GetSet()->GetScheme();
 
 	const auto [firstOfType, lastOfType] = currentScheme.Range(typeid(ComponentT));
 	const size_t indexToRemove = std::distance(currentScheme.begin(), firstOfType);
