@@ -18,7 +18,7 @@ void Simulation::Run(Scene& scene, float elapsed) {
 			system.Run(elapsed, createEntity, deleteEntity);
 		}
 		else {
-			for (auto& entitySet: scene.GetMatrices(systemScheme)) {
+			for (auto& entitySet: scene.GetSchemeSets(systemScheme)) {
 				system.Run(elapsed, entitySet, createEntity, deleteEntity);
 			}
 		}

@@ -91,14 +91,14 @@ void Scene::RemoveComponent(Entity& entity, size_t index) {
 
 Scene& Scene::operator+=(Scene&& entities) {
 	for (auto&& [scheme, entitySet] : entities.m_componentSets) {
-		MergeScheme(scheme, std::move(*entitySet));
+		MergeSchemeSets(scheme, std::move(*entitySet));
 	}
 
 	return *this;
 }
 
 
-std::experimental::generator<std::reference_wrapper<EntitySchemeSet>> Scene::GetMatrices(const ComponentScheme& subset) {
+std::experimental::generator<std::reference_wrapper<EntitySchemeSet>> Scene::GetSchemeSets(const ComponentScheme& subset) {
 	auto coro = [](decltype(m_componentSets)& sets, ComponentScheme subset) -> std::experimental::generator<std::reference_wrapper<EntitySchemeSet>> {
 		auto it = sets.begin();
 		auto end = sets.end();
@@ -113,7 +113,7 @@ std::experimental::generator<std::reference_wrapper<EntitySchemeSet>> Scene::Get
 }
 
 
-std::experimental::generator<std::reference_wrapper<const EntitySchemeSet>> Scene::GetMatrices(const ComponentScheme& subset) const {
+std::experimental::generator<std::reference_wrapper<const EntitySchemeSet>> Scene::GetSchemeSets(const ComponentScheme& subset) const {
 	auto coro = [](const decltype(m_componentSets)& sets, ComponentScheme subset) -> std::experimental::generator<std::reference_wrapper<const EntitySchemeSet>> {
 		auto it = sets.begin();
 		auto end = sets.end();
@@ -137,7 +137,7 @@ ComponentScheme Scene::GetScheme(const ComponentMatrix& matrix) {
 }
 
 
-void Scene::MergeScheme(const ComponentScheme& scheme, EntitySchemeSet&& entitySet) {
+void Scene::MergeSchemeSets(const ComponentScheme& scheme, EntitySchemeSet&& entitySet) {
 	auto it = m_componentSets.find(scheme);
 	if (it == m_componentSets.end()) {
 		m_componentSets.insert({ scheme, std::make_unique<EntitySchemeSet>(std::move(entitySet)) });

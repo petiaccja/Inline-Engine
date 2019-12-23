@@ -77,19 +77,19 @@ TEST_CASE("Get stores", "[GameLogic:Scene]") {
 	scene.CreateEntity(FooComponent{}, BazComponent{});
 
 	int count = 0;
-	for (auto& matrix : scene.GetMatrices({ typeid(FooComponent), typeid(BarComponent) })) {
+	for (auto& matrix : scene.GetSchemeSets({ typeid(FooComponent), typeid(BarComponent) })) {
 		++count;
 	}
 	REQUIRE(count == 1);
 
 	count = 0;
-	for (auto& matrix : scene.GetMatrices({ typeid(FooComponent) })) {
+	for (auto& matrix : scene.GetSchemeSets({ typeid(FooComponent) })) {
 		++count;
 	}
 	REQUIRE(count == 2);
 
 	count = 0;
-	for (auto& matrix : scene.GetMatrices({ typeid(float) })) {
+	for (auto& matrix : scene.GetSchemeSets({ typeid(float) })) {
 		++count;
 	}
 	REQUIRE(count == 0);

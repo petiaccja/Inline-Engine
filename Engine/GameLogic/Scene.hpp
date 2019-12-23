@@ -64,8 +64,8 @@ public:
 
 	Scene& operator+=(Scene&& entities);
 
-	std::experimental::generator<std::reference_wrapper<EntitySchemeSet>> GetMatrices(const ComponentScheme& subset);
-	std::experimental::generator<std::reference_wrapper<const EntitySchemeSet>> GetMatrices(const ComponentScheme& subset) const;
+	std::experimental::generator<std::reference_wrapper<EntitySchemeSet>> GetSchemeSets(const ComponentScheme& subset);
+	std::experimental::generator<std::reference_wrapper<const EntitySchemeSet>> GetSchemeSets(const ComponentScheme& subset) const;
 
 	template <class ComponentT>
 	void AddComponent(Entity& entity, ComponentT&& component);
@@ -75,7 +75,7 @@ public:
 
 private:
 	ComponentScheme GetScheme(const ComponentMatrix& matrix);
-	void MergeScheme(const ComponentScheme& scheme, EntitySchemeSet&& entitySet);
+	void MergeSchemeSets(const ComponentScheme& scheme, EntitySchemeSet&& entitySet);
 
 private:
 	ComponentSetMap m_componentSets;

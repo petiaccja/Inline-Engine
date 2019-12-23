@@ -34,7 +34,7 @@ void Game::operator()(LoadLevelAction action) {
 
 void Game::ResizeRender(int width, int height) {
 	// Set aspect ratios for cameras.
-	for (auto& matrix : m_scene.GetMatrices({ typeid(inl::gamelib::PerspectiveCameraComponent) })) {
+	for (auto& matrix : m_scene.GetSchemeSets({ typeid(inl::gamelib::PerspectiveCameraComponent) })) {
 		inl::game::ComponentRange<inl::gamelib::PerspectiveCameraComponent> range{ matrix.get().GetMatrix() };
 		for (auto [camera] : range) {
 			float fovh = camera.entity->GetFOVHorizontal();

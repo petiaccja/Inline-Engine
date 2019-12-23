@@ -38,7 +38,7 @@ public:
 	virtual const ComponentScheme& Scheme() const = 0;
 
 	virtual void Run(float elapsed, CreateEntity createEntity, DeleteEntity deleteEntity) = 0;
-	virtual void Run(float elapsed, EntitySchemeSet& matrix, CreateEntity createEntity, DeleteEntity deleteEntity) = 0;
+	virtual void Run(float elapsed, EntitySchemeSet& entitySet, CreateEntity createEntity, DeleteEntity deleteEntity) = 0;
 };
 
 
@@ -51,7 +51,7 @@ public:
 	const ComponentScheme& Scheme() const override final;
 
 	void Run(float elapsed, CreateEntity createEntity, DeleteEntity deleteEntity) override final;
-	void Run(float elapsed, EntitySchemeSet& matrix, CreateEntity createEntity, DeleteEntity deleteEntity) override final;
+	void Run(float elapsed, EntitySchemeSet& entitySet, CreateEntity createEntity, DeleteEntity deleteEntity) override final;
 
 	virtual UpdateMarks Update(float elapsed, ComponentRange<ComponentTypes...>& range);
 	virtual void Modify(const std::vector<Entity*>& entities) {}
@@ -72,7 +72,7 @@ public:
 	const ComponentScheme& Scheme() const override final;
 
 	void Run(float elapsed, CreateEntity createEntity, DeleteEntity deleteEntity) override final;
-	void Run(float elapsed, EntitySchemeSet& matrix, CreateEntity createEntity, DeleteEntity deleteEntity) override final;
+	void Run(float elapsed, EntitySchemeSet& entitySet, CreateEntity createEntity, DeleteEntity deleteEntity) override final;
 
 	virtual void Update(float elapsed) = 0;
 	virtual void Create(const CreateEntity& createEntity) {};
@@ -98,8 +98,8 @@ void SpecificSystem<DerivedSystem>::Run(float elapsed, CreateEntity createEntity
 
 
 template <class DerivedSystem>
-void SpecificSystem<DerivedSystem>::Run(float elapsed, EntitySchemeSet& matrix, CreateEntity createEntity, DeleteEntity deleteEntity) {
-	throw InvalidCallException("Please call the other function with no component matrix.");
+void SpecificSystem<DerivedSystem>::Run(float elapsed, EntitySchemeSet& entitySet, CreateEntity createEntity, DeleteEntity deleteEntity) {
+	throw InvalidCallException("Please call the other function with no entity set.");
 }
 
 
@@ -115,21 +115,21 @@ const ComponentScheme& SpecificSystem<DerivedSystem, ComponentTypes...>::Scheme(
 
 template <class DerivedSystem, class... ComponentTypes>
 void SpecificSystem<DerivedSystem, ComponentTypes...>::Run(float elapsed, CreateEntity createEntity, DeleteEntity deleteEntity) {
-	throw InvalidCallException("Please call the other function with component matrix.");
+	throw InvalidCallException("Please call the other function with entity set.");
 }
 
 
 template <class DerivedSystem, class... ComponentTypes>
-void SpecificSystem<DerivedSystem, ComponentTypes...>::Run(float elapsed, EntitySchemeSet& matrix, CreateEntity createEntity, DeleteEntity deleteEntity) {
+void SpecificSystem<DerivedSystem, ComponentTypes...>::Run(float elapsed, EntitySchemeSet& entitySet, CreateEntity createEntity, DeleteEntity deleteEntity) {
 	// Update
-	ComponentRange<ComponentTypes...> range(matrix.GetMatrix());
+	ComponentRange<ComponentTypes...> range(entitySet.GetMatrix());
 	UpdateMarks marks = Update(elapsed, range);
 
 	// Modify
 	std::vector<Entity*> modifySet;
 	modifySet.reserve(marks.modify.size());
 	for (auto index : marks.modify) {
-		modifySet.push_back(&matrix[index]);
+		modifySet.push_back(&entitySet[index]);
 	}
 	Modify(modifySet);
 
@@ -138,7 +138,7 @@ void SpecificSystem<DerivedSystem, ComponentTypes...>::Run(float elapsed, Entity
 
 	// Sweep
 	for (auto index : marks.sweep) {
-		Entity* entity = &matrix[index];
+		Entity* entity = &entitySet[index];
 		deleteEntity(entity);
 	}	
 }
