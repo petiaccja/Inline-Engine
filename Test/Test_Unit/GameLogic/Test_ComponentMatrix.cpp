@@ -16,7 +16,7 @@ TEST_CASE("Ctor", "[GameLogic:ComponentMatrix]") {
 
 TEST_CASE("Add types", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix;
-	matrix.types.insert(matrix.types.begin(), _ComponentVector<FooComponent>{});
+	matrix.types.insert(matrix.types.begin(), ComponentVector<FooComponent>{});
 
 	REQUIRE(matrix.entities.size() == 0);
 	REQUIRE(matrix.types.size() == 1);
@@ -26,9 +26,9 @@ TEST_CASE("Add types", "[GameLogic:ComponentMatrix]") {
 
 TEST_CASE("Add multiple in order", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix;
-	matrix.types.insert(matrix.types.end(), _ComponentVector<FooComponent>{});
-	matrix.types.insert(matrix.types.end(), _ComponentVector<BarComponent>{});
-	matrix.types.insert(matrix.types.end(), _ComponentVector<BazComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<FooComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<BarComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<BazComponent>{});
 
 	REQUIRE(matrix.entities.size() == 0);
 	REQUIRE(matrix.types.size() == 3);
@@ -38,11 +38,11 @@ TEST_CASE("Add multiple in order", "[GameLogic:ComponentMatrix]") {
 }
 
 
-TEST_CASE("Remove types", "[GameLogic:ComponentMatrix]") {
+TEST_CASE("Remove types matrix", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix;
-	matrix.types.insert(matrix.types.end(), _ComponentVector<FooComponent>{});
-	matrix.types.insert(matrix.types.end(), _ComponentVector<BarComponent>{});
-	matrix.types.insert(matrix.types.end(), _ComponentVector<BazComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<FooComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<BarComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<BazComponent>{});
 
 	matrix.types.erase(matrix.types.begin() + 1);
 
@@ -61,8 +61,8 @@ TEST_CASE("Insert entity empty types", "[GameLogic:ComponentMatrix]") {
 
 TEST_CASE("Insert entity empty ref", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix;
-	matrix.types.insert(matrix.types.end(), _ComponentVector<FooComponent>{});
-	matrix.types.insert(matrix.types.end(), _ComponentVector<BarComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<FooComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<BarComponent>{});
 
 	matrix.entities.insert(matrix.entities.begin(), {});
 
@@ -75,8 +75,8 @@ TEST_CASE("Insert entity empty ref", "[GameLogic:ComponentMatrix]") {
 
 TEST_CASE("Insert entity copy ref", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix;
-	matrix.types.insert(matrix.types.end(), _ComponentVector<FooComponent>{});
-	matrix.types.insert(matrix.types.end(), _ComponentVector<BarComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<FooComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<BarComponent>{});
 
 	matrix.entities.insert(matrix.entities.end(), {});
 	matrix.entities[0].get<FooComponent>(0).value = 13.f;
@@ -91,8 +91,8 @@ TEST_CASE("Insert entity copy ref", "[GameLogic:ComponentMatrix]") {
 
 TEST_CASE("Emplace entity", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix;
-	matrix.types.insert(matrix.types.end(), _ComponentVector<FooComponent>{});
-	matrix.types.insert(matrix.types.end(), _ComponentVector<BarComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<FooComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<BarComponent>{});
 
 	matrix.entities.emplace(matrix.entities.end(), FooComponent{ 13.f }, BarComponent{ 12.f });
 	REQUIRE(matrix.entities[0].get<FooComponent>(0).value == 13.f);
@@ -103,9 +103,9 @@ TEST_CASE("Emplace entity", "[GameLogic:ComponentMatrix]") {
 TEST_CASE("Emplace entity partial", "[GameLogic:ComponentMatrix]") {
 	using namespace inl::game;
 	ComponentMatrix matrix;
-	matrix.types.insert(matrix.types.end(), _ComponentVector<FooComponent>{});
-	matrix.types.insert(matrix.types.end(), _ComponentVector<BarComponent>{});
-	matrix.types.insert(matrix.types.end(), _ComponentVector<BazComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<FooComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<BarComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<BazComponent>{});
 
 	matrix.entities.emplace(matrix.entities.end(), FooComponent{ 13.f }, BarComponent{ 12.f });
 	REQUIRE(matrix.entities[0].get<FooComponent>(0).value == 13.f);
@@ -123,15 +123,15 @@ TEST_CASE("Emplace entity partial", "[GameLogic:ComponentMatrix]") {
 
 TEST_CASE("Insert entity copy ref partial", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix srcMatrix;
-	srcMatrix.types.insert(srcMatrix.types.end(), _ComponentVector<FooComponent>{});
-	srcMatrix.types.insert(srcMatrix.types.end(), _ComponentVector<BarComponent>{});
+	srcMatrix.types.insert(srcMatrix.types.end(), ComponentVector<FooComponent>{});
+	srcMatrix.types.insert(srcMatrix.types.end(), ComponentVector<BarComponent>{});
 
 	srcMatrix.entities.emplace(srcMatrix.entities.end(), FooComponent{ 13.f }, BarComponent{ 12.f });
 
 	ComponentMatrix tarMatrix;
-	tarMatrix.types.insert(tarMatrix.types.end(), _ComponentVector<FooComponent>{});
-	tarMatrix.types.insert(tarMatrix.types.end(), _ComponentVector<BarComponent>{});
-	tarMatrix.types.insert(tarMatrix.types.end(), _ComponentVector<BazComponent>{});
+	tarMatrix.types.insert(tarMatrix.types.end(), ComponentVector<FooComponent>{});
+	tarMatrix.types.insert(tarMatrix.types.end(), ComponentVector<BarComponent>{});
+	tarMatrix.types.insert(tarMatrix.types.end(), ComponentVector<BazComponent>{});
 
 	tarMatrix.entities.insert(tarMatrix.entities.end(), srcMatrix.entities[0]);
 
@@ -143,12 +143,12 @@ TEST_CASE("Insert entity copy ref partial", "[GameLogic:ComponentMatrix]") {
 
 TEST_CASE("Add type non-empty", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix;
-	matrix.types.insert(matrix.types.end(), _ComponentVector<FooComponent>{});
-	matrix.types.insert(matrix.types.end(), _ComponentVector<BarComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<FooComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<BarComponent>{});
 
 	matrix.entities.emplace(matrix.entities.end(), FooComponent{ 13.f }, BarComponent{ 12.f });
 
-	matrix.types.insert(matrix.types.end(), _ComponentVector<BazComponent>{});
+	matrix.types.insert(matrix.types.end(), ComponentVector<BazComponent>{});
 
 	for (auto it = matrix.types.begin(); it != matrix.types.end(); ++it) {
 		REQUIRE(it->size() == 1);
@@ -159,8 +159,8 @@ TEST_CASE("Add type non-empty", "[GameLogic:ComponentMatrix]") {
 TEST_CASE("Types assign empty", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix1;
 
-	matrix1.types.insert(matrix1.types.end(), _ComponentVector<FooComponent>{});
-	matrix1.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});
+	matrix1.types.insert(matrix1.types.end(), ComponentVector<FooComponent>{});
+	matrix1.types.insert(matrix1.types.end(), ComponentVector<BarComponent>{});
 
 	ComponentMatrix matrix2;
 	matrix2.types = matrix1.types;
@@ -178,11 +178,11 @@ TEST_CASE("Types assign empty", "[GameLogic:ComponentMatrix]") {
 TEST_CASE("Types assign subset", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix1;
 
-	matrix1.types.insert(matrix1.types.end(), _ComponentVector<FooComponent>{});
-	matrix1.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});
+	matrix1.types.insert(matrix1.types.end(), ComponentVector<FooComponent>{});
+	matrix1.types.insert(matrix1.types.end(), ComponentVector<BarComponent>{});
 
 	ComponentMatrix matrix2;
-	matrix2.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});
+	matrix2.types.insert(matrix1.types.end(), ComponentVector<BarComponent>{});
 	matrix2.types = matrix1.types;
 
 	REQUIRE(matrix1.types.size() == matrix2.types.size());
@@ -197,14 +197,14 @@ TEST_CASE("Types assign subset", "[GameLogic:ComponentMatrix]") {
 TEST_CASE("Types assign superset", "[GameLogic:ComponentMatrix]") {
 	ComponentMatrix matrix1;
 
-	matrix1.types.insert(matrix1.types.end(), _ComponentVector<FooComponent>{});
-	matrix1.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});
+	matrix1.types.insert(matrix1.types.end(), ComponentVector<FooComponent>{});
+	matrix1.types.insert(matrix1.types.end(), ComponentVector<BarComponent>{});
 
 	ComponentMatrix matrix2;
-	matrix2.types.insert(matrix1.types.end(), _ComponentVector<FooComponent>{});
-	matrix2.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});
-	matrix2.types.insert(matrix1.types.end(), _ComponentVector<BarComponent>{});
-	matrix2.types.insert(matrix1.types.end(), _ComponentVector<BazComponent>{});
+	matrix2.types.insert(matrix1.types.end(), ComponentVector<FooComponent>{});
+	matrix2.types.insert(matrix1.types.end(), ComponentVector<BarComponent>{});
+	matrix2.types.insert(matrix1.types.end(), ComponentVector<BarComponent>{});
+	matrix2.types.insert(matrix1.types.end(), ComponentVector<BazComponent>{});
 
 	matrix2.types = matrix1.types;
 

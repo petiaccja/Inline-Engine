@@ -20,6 +20,10 @@ class Entity {
 public:
 	Entity() = default;
 	Entity(Scene* scene, EntitySchemeSet* set, size_t index) : m_scene(scene), m_set(set), m_index(index) {}
+	Entity(const Entity&) = delete;
+	Entity(Entity&&) = delete;
+	Entity& operator=(const Entity&) = delete;
+	Entity& operator=(Entity&&) = delete;
 
 	template <class ComponentT>
 	void AddComponent(ComponentT&& component);
@@ -33,10 +37,10 @@ public:
 	bool HasComponent() const;
 
 	template <class ComponentT>
-	ComponentT& GetFirstComponent();
+	decltype(auto) GetFirstComponent();
 
 	template <class ComponentT>
-	const ComponentT& GetFirstComponent() const;
+	decltype(auto) GetFirstComponent() const;
 
 	const Scene* GetScene() const { return m_scene; }
 	const EntitySchemeSet* GetSet() const { return m_set; }
@@ -80,7 +84,7 @@ bool Entity::HasComponent() const {
 }
 
 template <class ComponentT>
-ComponentT& Entity::GetFirstComponent() {
+decltype(auto) Entity::GetFirstComponent() {
 	assert(m_set);
 	auto& matrix = m_set->GetMatrix();
 	auto [first, last] = matrix.types.equal_range(typeid(ComponentT));
@@ -92,7 +96,7 @@ ComponentT& Entity::GetFirstComponent() {
 
 
 template <class ComponentT>
-const ComponentT& Entity::GetFirstComponent() const {
+decltype(auto) Entity::GetFirstComponent() const {
 	assert(m_set);
 	auto& matrix = m_set->GetMatrix();
 	auto [first, last] = matrix.types.equal_range(typeid(ComponentT));

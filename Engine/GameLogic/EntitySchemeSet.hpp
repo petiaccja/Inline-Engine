@@ -36,8 +36,8 @@ class EntitySchemeSet {
 		template <class Dummy = void, class = std::enable_if_t<Const, Dummy>>
 		generic_iterator(const generic_iterator<false>& rhs) : m_it(rhs.m_it) {}
 
-		templ::add_const_conditional<value_type, Const>& operator*() const { return **m_it; }
-		templ::add_const_conditional<value_type, Const>* operator->() const { return m_it->get(); }
+		templ::add_const_conditional_t<value_type, Const>& operator*() const { return **m_it; }
+		templ::add_const_conditional_t<value_type, Const>* operator->() const { return m_it->get(); }
 
 		generic_iterator& operator+=(size_t n);
 		generic_iterator& operator-=(size_t n);
@@ -80,16 +80,16 @@ public:
 	template <class... ComponentTypes>
 	void SetComponentTypes();
 	template <class ComponentType>
-	void AddComponent();
-	void RemoveComponent(size_t index);
+	void AddComponentType();
+	void RemoveComponentType(size_t index);
 	void CopyComponentTypes(const EntitySchemeSet& model);
 
 	Entity& operator[](size_t index);
 	const Entity& operator[](size_t index) const;
 
 	template <class Component>
-	size_t Splice(EntitySchemeSet& source, size_t sourceIndex, Component&& component);
-	size_t Splice(EntitySchemeSet& source, size_t sourceIndex, size_t skippedComponent);
+	size_t SpliceExtend(EntitySchemeSet& source, size_t sourceIndex, Component&& component);
+	size_t SpliceReduce(EntitySchemeSet& source, size_t sourceIndex, size_t skippedComponent);
 	size_t Splice(EntitySchemeSet& source, size_t sourceIndex);
 
 	Scene& GetParent();
@@ -162,33 +162,40 @@ template <class... Components>
 Entity& EntitySchemeSet::Create(Components&&... components) {
 	size_t index = m_entities.size();
 	m_entities.push_back(std::make_unique<Entity>(&m_parent, this, index));
-	m_components.entities.emplace_back(std::forward<Components>(components)...);
+	if (!m_components.types.empty()) {
+		m_components.entities.emplace_back(std::forward<Components>(components)...);
+	}
 	return *m_entities.back();
 }
 
 template <class... ComponentTypes>
 void EntitySchemeSet::SetComponentTypes() {
 	m_components.types.clear();
-	(..., m_components.types.push_back(_ComponentVector<ComponentTypes>{}));
+	(..., m_components.types.push_back(ComponentVector<ComponentTypes>{}));
 	m_components.entities.resize(m_entities.size());
 	m_scheme = { typeid(ComponentTypes)... };
 }
 
 template <class ComponentType>
-void EntitySchemeSet::AddComponent() {
-	m_components.types.push_back(_ComponentVector<ComponentType>{});
+void EntitySchemeSet::AddComponentType() {
+	m_components.types.push_back(ComponentVector<ComponentType>{});
 	m_scheme.Insert(typeid(ComponentType));
 }
 
 template <class Component>
-size_t EntitySchemeSet::Splice(EntitySchemeSet& source, size_t sourceIndex, Component&& component) {
+size_t EntitySchemeSet::SpliceExtend(EntitySchemeSet& source, size_t sourceIndex, Component&& component) {
 	m_entities.push_back(std::move(source.m_entities[sourceIndex]));
-	source.m_entities.erase(m_entities.begin() + sourceIndex);
+	source.m_entities.erase(source.m_entities.begin() + sourceIndex);
 
 	m_components.entities.emplace_back();
-	m_components.entities.back().assign_extend(std::move(source.m_components.entities.back()), std::forward<Component>(component));
-	source.m_components.entities.erase(source.m_components.entities.begin() + sourceIndex);
-
+	if (!source.m_components.entities.empty()) {
+		m_components.entities.back().assign_extend(std::move(source.m_components.entities.back()), std::forward<Component>(component));
+		source.m_components.entities.erase(source.m_components.entities.begin() + sourceIndex);
+	}
+	else {
+		m_components.entities.back().assign_extend({}, std::forward<Component>(component));
+	}
+	
 	m_entities.back()->m_index = m_entities.size() - 1;
 	m_entities.back()->m_set = this;
 

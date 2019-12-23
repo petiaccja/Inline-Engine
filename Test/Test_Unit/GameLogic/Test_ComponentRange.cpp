@@ -10,9 +10,9 @@ using namespace inl::game;
 
 TEST_CASE("ComponentRange - Construct", "[GameLogic:ComponentRange]") {
 	ComponentMatrix store;
-	store.types.push_back(_ComponentVector<FooComponent>{});
-	store.types.push_back(_ComponentVector<BarComponent>{});
-	store.types.push_back(_ComponentVector<BazComponent>{});
+	store.types.push_back(ComponentVector<FooComponent>{});
+	store.types.push_back(ComponentVector<BarComponent>{});
+	store.types.push_back(ComponentVector<BazComponent>{});
 
 	ComponentRange<const FooComponent, BazComponent> range(store);
 }
@@ -20,9 +20,9 @@ TEST_CASE("ComponentRange - Construct", "[GameLogic:ComponentRange]") {
 
 TEST_CASE("ComponentRange - Iterator", "[GameLogic:ComponentRange]") {
 	ComponentMatrix store;
-	store.types.push_back(_ComponentVector<FooComponent>{});
-	store.types.push_back(_ComponentVector<BarComponent>{});
-	store.types.push_back(_ComponentVector<BazComponent>{});
+	store.types.push_back(ComponentVector<FooComponent>{});
+	store.types.push_back(ComponentVector<BarComponent>{});
+	store.types.push_back(ComponentVector<BazComponent>{});
 
 	store.entities.emplace_back(FooComponent{ 1 }, BarComponent{ 4 }, BazComponent{ 7 });
 	store.entities.emplace_back(FooComponent{ 2 }, BarComponent{ 5 }, BazComponent{ 8 });
@@ -45,9 +45,9 @@ TEST_CASE("ComponentRange - Iterator", "[GameLogic:ComponentRange]") {
 
 TEST_CASE("ComponentRange - Modify elements", "[GameLogic:ComponentRange]") {
 	ComponentMatrix store;
-	store.types.push_back(_ComponentVector<FooComponent>{});
-	store.types.push_back(_ComponentVector<BarComponent>{});
-	store.types.push_back(_ComponentVector<BazComponent>{});
+	store.types.push_back(ComponentVector<FooComponent>{});
+	store.types.push_back(ComponentVector<BarComponent>{});
+	store.types.push_back(ComponentVector<BazComponent>{});
 
 	store.entities.emplace_back(FooComponent{ 1 }, BarComponent{ 4 }, BazComponent{ 7 });
 	store.entities.emplace_back(FooComponent{ 2 }, BarComponent{ 5 }, BazComponent{ 8 });
@@ -69,8 +69,8 @@ TEST_CASE("ComponentRange - Modify elements", "[GameLogic:ComponentRange]") {
 
 TEST_CASE("ComponentRange - Failure to get vectors", "[GameLogic:ComponentRange]") {
 	ComponentMatrix store;
-	store.types.push_back(_ComponentVector<FooComponent>{});
-	store.types.push_back(_ComponentVector<BarComponent>{});
+	store.types.push_back(ComponentVector<FooComponent>{});
+	store.types.push_back(ComponentVector<BarComponent>{});
 
 	store.entities.emplace_back(FooComponent{ 1 }, BarComponent{ 4 });
 	store.entities.emplace_back(FooComponent{ 2 }, BarComponent{ 5 });

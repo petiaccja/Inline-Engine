@@ -45,7 +45,7 @@ private:
 
 
 template <class T>
-class _ComponentVector : public ComponentVectorBase {
+class ComponentVector : public ComponentVectorBase {
 public:
 	void PushBackDefault() override;
 	void InsertDefault(size_t where) override;
@@ -56,8 +56,8 @@ public:
 	std::unique_ptr<ComponentVectorBase> CloneEmpty() override;
 	size_t Size() const override;
 	std::type_index Type() const override;
-	T& operator[](size_t index);
-	const T& operator[](size_t index) const;
+	decltype(auto) operator[](size_t index);
+	decltype(auto) operator[](size_t index) const;
 	void Copy(size_t targetIndex, const ComponentVectorBase& sourceVector, size_t sourceIndex) override;
 	void Move(size_t targetIndex, ComponentVectorBase& sourceVector, size_t sourceIndex) override;
 
@@ -106,57 +106,57 @@ bool ComponentVectorBase::CheckType() const {
 }
 
 template <class T>
-void _ComponentVector<T>::PushBackDefault() {
+void ComponentVector<T>::PushBackDefault() {
 	m_data.push_back({});
 }
 
 template <class T>
-void _ComponentVector<T>::InsertDefault(size_t where) {
+void ComponentVector<T>::InsertDefault(size_t where) {
 	m_data.insert(m_data.begin() + where, T{});
 }
 
 template <class T>
-void _ComponentVector<T>::Resize(size_t size) {
+void ComponentVector<T>::Resize(size_t size) {
 	m_data.resize(size);
 }
 
 template <class T>
-void _ComponentVector<T>::Reserve(size_t capacity) {
+void ComponentVector<T>::Reserve(size_t capacity) {
 	m_data.reserve(capacity);
 }
 
 template <class T>
-void _ComponentVector<T>::Erase(size_t where) {
+void ComponentVector<T>::Erase(size_t where) {
 	m_data.erase(m_data.begin() + where);
 }
 
 template <class T>
-void _ComponentVector<T>::Erase(size_t first, size_t last) {
+void ComponentVector<T>::Erase(size_t first, size_t last) {
 	m_data.erase(m_data.begin() + first, m_data.begin() + last);
 }
 
 template <class T>
-std::unique_ptr<ComponentVectorBase> _ComponentVector<T>::CloneEmpty() {
-	return std::make_unique<_ComponentVector>();
+std::unique_ptr<ComponentVectorBase> ComponentVector<T>::CloneEmpty() {
+	return std::make_unique<ComponentVector>();
 }
 
 template <class T>
-size_t _ComponentVector<T>::Size() const {
+size_t ComponentVector<T>::Size() const {
 	return m_data.size();
 }
 
 template <class T>
-std::type_index _ComponentVector<T>::Type() const {
+std::type_index ComponentVector<T>::Type() const {
 	return typeid(T);
 }
 
 template <class T>
-void _ComponentVector<T>::InsertMove(size_t where, void* componentPtr) {
+void ComponentVector<T>::InsertMove(size_t where, void* componentPtr) {
 	m_data.insert(m_data.begin() + where, std::move(*reinterpret_cast<T*>(componentPtr)));
 }
 
 template <class T>
-void _ComponentVector<T>::InsertCopy(size_t where, const void* componentPtr) {
+void ComponentVector<T>::InsertCopy(size_t where, const void* componentPtr) {
 	if constexpr (std::is_copy_constructible_v<T>) {
 		m_data.insert(m_data.begin() + where, *reinterpret_cast<const T*>(componentPtr));
 	}
@@ -166,19 +166,19 @@ void _ComponentVector<T>::InsertCopy(size_t where, const void* componentPtr) {
 }
 
 template <class T>
-T& _ComponentVector<T>::operator[](size_t index) {
+decltype(auto) ComponentVector<T>::operator[](size_t index) {
 	return m_data[index];
 }
 
 template <class T>
-const T& _ComponentVector<T>::operator[](size_t index) const {
+decltype(auto) ComponentVector<T>::operator[](size_t index) const {
 	return m_data[index];
 }
 
 template <class T>
-void _ComponentVector<T>::Copy(size_t targetIndex, const ComponentVectorBase& sourceVector, size_t sourceIndex) {
+void ComponentVector<T>::Copy(size_t targetIndex, const ComponentVectorBase& sourceVector, size_t sourceIndex) {
 	if constexpr (std::is_copy_assignable_v<T>) {
-		auto& sourceVectorTyped = dynamic_cast<const _ComponentVector<T>&>(sourceVector);
+		auto& sourceVectorTyped = dynamic_cast<const ComponentVector<T>&>(sourceVector);
 		(*this)[targetIndex] = sourceVectorTyped[sourceIndex];
 	}
 	else {
@@ -187,18 +187,18 @@ void _ComponentVector<T>::Copy(size_t targetIndex, const ComponentVectorBase& so
 }
 
 template <class T>
-void _ComponentVector<T>::Move(size_t targetIndex, ComponentVectorBase& sourceVector, size_t sourceIndex) {
-	auto& sourceVectorTyped = dynamic_cast<_ComponentVector<T>&>(sourceVector);
+void ComponentVector<T>::Move(size_t targetIndex, ComponentVectorBase& sourceVector, size_t sourceIndex) {
+	auto& sourceVectorTyped = dynamic_cast<ComponentVector<T>&>(sourceVector);
 	(*this)[targetIndex] = std::move(sourceVectorTyped[sourceIndex]);
 }
 
 template <class T>
-ContiguousVector<T>& _ComponentVector<T>::Raw() {
+ContiguousVector<T>& ComponentVector<T>::Raw() {
 	return m_data;
 }
 
 template <class T>
-const ContiguousVector<T>& _ComponentVector<T>::Raw() const {
+const ContiguousVector<T>& ComponentVector<T>::Raw() const {
 	return m_data;
 }
 

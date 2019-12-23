@@ -35,7 +35,7 @@ Scene::iterator Scene::end() {
 Scene::const_iterator Scene::begin() const {
 	auto setsBegin = m_componentSets.begin();
 	auto setsEnd = m_componentSets.end();
-	auto it = const_iterator{ setsBegin, setsEnd, 0	};
+	auto it = const_iterator{ setsBegin, setsEnd, 0 };
 	if (setsBegin->second->Empty()) {
 		++it;
 	}
@@ -79,19 +79,21 @@ void Scene::RemoveComponent(Entity& entity, size_t index) {
 	if (it == m_componentSets.end()) {
 		auto [newIt, ignore_] = m_componentSets.insert({ reducedScheme, std::make_unique<EntitySchemeSet>(*this) });
 		newIt->second->CopyComponentTypes(currentSet);
-		newIt->second->RemoveComponent(index);
+		newIt->second->RemoveComponentType(index);
+		assert(reducedScheme == newIt->second->GetScheme());
 		it = newIt;
 	}
 	auto& newSet = it->second;
 
 	// Splice entity.
-	newSet->Splice(currentSet, currentIndex, index);
+	newSet->SpliceReduce(currentSet, currentIndex, index);
 }
 
 
 Scene& Scene::operator+=(Scene&& entities) {
 	for (auto&& [scheme, entitySet] : entities.m_componentSets) {
-		MergeSchemeSets(scheme, std::move(*entitySet));
+		assert(scheme == entitySet->GetScheme());
+		MergeSchemeSet(std::move(*entitySet));
 	}
 
 	return *this;
@@ -104,7 +106,7 @@ std::experimental::generator<std::reference_wrapper<EntitySchemeSet>> Scene::Get
 		auto end = sets.end();
 		while (it != end) {
 			if (subset.SubsetOf(it->first)) {
-				co_yield *it->second;
+				co_yield * it->second;
 			}
 			++it;
 		}
@@ -119,7 +121,7 @@ std::experimental::generator<std::reference_wrapper<const EntitySchemeSet>> Scen
 		auto end = sets.end();
 		while (it != end) {
 			if (subset.SubsetOf(it->first)) {
-				co_yield *it->second;
+				co_yield * it->second;
 			}
 			++it;
 		}
@@ -137,13 +139,16 @@ ComponentScheme Scene::GetScheme(const ComponentMatrix& matrix) {
 }
 
 
-void Scene::MergeSchemeSets(const ComponentScheme& scheme, EntitySchemeSet&& entitySet) {
+void Scene::MergeSchemeSet(EntitySchemeSet&& entitySet) {
+	const auto& scheme = entitySet.GetScheme();
 	auto it = m_componentSets.find(scheme);
 	if (it == m_componentSets.end()) {
-		m_componentSets.insert({ scheme, std::make_unique<EntitySchemeSet>(std::move(entitySet)) });
+		auto [newIt, _ignore] = m_componentSets.insert({ scheme, std::make_unique<EntitySchemeSet>(*this) });
+		newIt->second->CopyComponentTypes(entitySet);
+		*newIt->second += std::move(entitySet);
 	}
 	else {
-		(*it->second) += std::move(entitySet);
+		*it->second += std::move(entitySet);
 	}
 }
 

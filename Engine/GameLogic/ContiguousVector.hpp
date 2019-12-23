@@ -30,7 +30,7 @@ public:
 
 	using VectorT::at;
 	using VectorT::operator[];
-	using VectorT::data;
+	//using VectorT::data;
 	using VectorT::front;
 	using VectorT::back;
 
@@ -59,13 +59,22 @@ public:
 	void erase(const_iterator it);
 	void erase(const_iterator first, const_iterator last);
 	void swap_elements(const_iterator elem1, const_iterator elem2);
+
+	template <class Q = std::enable_if_t<std::is_same_v<T, bool>, T*>>
+	Q data() {
+		return VectorT::data();
+	}
+	template <class Q = std::enable_if_t<std::is_same_v<T, bool>, const T*>>
+	Q data() const {
+		return VectorT::data();
+	}
 };
 
 
 template <class T, class Alloc>
 void ContiguousVector<T, Alloc>::erase(const_iterator it) {
 	iterator last = --end(); // Container must not be empty to remove from it.
-	const_cast<T&>(*it) = std::move(*last);
+	(*this)[it - begin()] = std::move(*last);	
 	VectorT::pop_back();
 }
 
@@ -78,7 +87,7 @@ void ContiguousVector<T, Alloc>::erase(const_iterator first, const_iterator last
 	firstToMove = std::max(last, firstToMove);
 
 	for (; firstToMove != endIt; ++firstToMove, ++first) {
-		const_cast<T&>(*first) = std::move(const_cast<T&>(*last));
+		(*this)[first - begin()] = std::move((*this)[firstToMove - begin()]);
 	}
 
 	resize(size() - count);
@@ -86,7 +95,7 @@ void ContiguousVector<T, Alloc>::erase(const_iterator first, const_iterator last
 
 template <class T, class Alloc>
 void ContiguousVector<T, Alloc>::swap_elements(const_iterator elem1, const_iterator elem2) {
-	std::swap(const_cast<T&>(*elem1), const_cast<T&>(*elem2));
+	std::swap((*this)[elem1 - begin()], (*this)[elem2 - begin()]);
 }
 
 

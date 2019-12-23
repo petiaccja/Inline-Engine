@@ -59,10 +59,10 @@ public:
 		value_type& assign_partial(value_type&&, SkipPred skipPred);
 
 		template <class AsType>
-		AsType& get(size_t index);
+		decltype(auto) get(size_t index);
 
 		template <class AsType>
-		const AsType& get(size_t index) const;
+		decltype(auto) get(size_t index) const;
 
 		size_t size() const;
 		std::type_index get_type(size_t index) const;
@@ -81,6 +81,8 @@ public:
 		void assign_same(value_type&& rhs);
 		void assign_auto(const value_type& rhs);
 		void assign_auto(value_type&& rhs);
+		template <int Index, class... Components>
+		void assign_recurse(const std::array<size_t, sizeof...(Components)>& pairing, const std::tuple<Components&&...>& args);
 
 	private:
 		size_t m_index;
@@ -203,9 +205,9 @@ public:
 		const AsType& get(size_t index) const;
 
 		template <class AsType>
-		_ComponentVector<AsType>& get_vector();
+		ComponentVector<AsType>& get_vector();
 		template <class AsType>
-		const _ComponentVector<AsType>& get_vector() const;
+		const ComponentVector<AsType>& get_vector() const;
 
 		size_t size() const;
 		std::type_index get_type() const;
@@ -284,9 +286,9 @@ public:
 
 	// Modifiers
 	template <class T>
-	void insert(const_iterator where, const _ComponentVector<T>& components);
+	void insert(const_iterator where, const ComponentVector<T>& components);
 	template <class T>
-	void insert(const_iterator where, _ComponentVector<T>&& components);
+	void insert(const_iterator where, ComponentVector<T>&& components);
 
 	template <class T, class... Args>
 	void emplace(const_iterator where, Args&&... args);
@@ -294,9 +296,9 @@ public:
 	void erase(const_iterator where);
 
 	template <class T>
-	void push_back(const _ComponentVector<T>& components) { insert(end(), components); }
+	void push_back(const ComponentVector<T>& components) { insert(end(), components); }
 	template <class T>
-	void push_back(_ComponentVector<T>&& components) { insert(end(), std::move(components)); }
+	void push_back(ComponentVector<T>&& components) { insert(end(), std::move(components)); }
 
 	template <class T, class... Args>
 	void emplace_back(Args&&... args) { return emplace(end(), std::forward<Args>(args)...); }
@@ -374,6 +376,10 @@ void PairComponents(
 			++srcFirst;
 		}
 	}
+	while (tarFirst != tarLast) {
+		onMismatch(*tarFirst);
+		++tarFirst;
+	}
 }
 
 
@@ -400,14 +406,14 @@ const std::vector<std::pair<std::type_index, size_t>> SortedComponents<Component
 //------------------------------------------------------------------------------
 
 template <class AsType>
-AsType& EntityVector::value_type::get(size_t index) {
-	auto& vec = dynamic_cast<_ComponentVector<AsType>&>(*(*m_matrix)[index]);
+decltype(auto) EntityVector::value_type::get(size_t index) {
+	auto& vec = dynamic_cast<ComponentVector<AsType>&>(*(*m_matrix)[index]);
 	return vec[m_index];
 }
 
 template <class AsType>
-const AsType& EntityVector::value_type::get(size_t index) const {
-	auto& vec = dynamic_cast<const _ComponentVector<AsType>&>(*(*m_matrix)[index]);
+decltype(auto) EntityVector::value_type::get(size_t index) const {
+	auto& vec = dynamic_cast<const ComponentVector<AsType>&>(*(*m_matrix)[index]);
 	return vec[m_index];
 }
 
@@ -491,7 +497,7 @@ void EntityVector::value_type::assign_extra_mask(Pred pred, Components&&... comp
 	const auto& argOrder = SortedComponents<Components...>::order;
 	PairComponents(lhsOrder.begin(), lhsOrder.end(), argOrder.begin(), argOrder.end(), onMatch, noOpLambda, pred);
 
-	// TODO: assign recurse
+	assign_recurse<0>(pairing, std::forward_as_tuple(std::forward<Components>(components)...));
 }
 
 
@@ -520,6 +526,19 @@ void EntityVector::value_type::assign_partial(other_t&& rhs, SkipPred skipPred, 
 				   rhsOrder.begin(), rhsOrder.end(),
 				   onMatch, noOpLambda,
 				   noOpLambdaFalse, skipSource);
+}
+
+template <int Index, class... Components>
+void EntityVector::value_type::assign_recurse(const std::array<size_t, sizeof...(Components)>& pairing, const std::tuple<Components&&...>& args) {
+	if constexpr (Index < sizeof...(Components)) {
+		size_t thisIndex = pairing[Index];
+		if (thisIndex < std::numeric_limits<size_t>::max()) {
+			using ComponentT = std::tuple_element_t<Index, std::tuple<Components&&...>>;
+			auto& thisVector = dynamic_cast<ComponentVector<std::decay_t<ComponentT>>&>(*(*m_matrix)[thisIndex]);
+			thisVector[m_index] = std::forward<ComponentT>(std::get<Index>(args));
+		}
+		assign_recurse<Index + 1>(pairing, args);
+	}
 }
 
 
@@ -599,8 +618,9 @@ void EntityVector::emplace_recurse(const_iterator where, const std::array<size_t
 	if constexpr (Index < sizeof...(Components)) {
 		size_t thisIndex = pairing[Index];
 		if (thisIndex < std::numeric_limits<size_t>::max()) {
-			auto& thisVector = dynamic_cast<_ComponentVector<std::decay_t<std::tuple_element_t<Index, std::tuple<Components&&...>>>>&>(*m_matrix[thisIndex]);
-			thisVector.Insert(where.get_index(), std::get<Index>(args));
+			using ComponentT = std::tuple_element_t<Index, std::tuple<Components&&...>>;
+			auto& thisVector = dynamic_cast<ComponentVector<std::decay_t<ComponentT>>&>(*m_matrix[thisIndex]);
+			thisVector.Insert(where.get_index(), std::forward<ComponentT>(std::get<Index>(args)));
 		}
 		emplace_recurse<Index + 1>(where, pairing, args);
 	}
@@ -613,25 +633,25 @@ void EntityVector::emplace_recurse(const_iterator where, const std::array<size_t
 
 template <class AsType>
 AsType& TypeVector::value_type::get(size_t index) {
-	auto& vec = dynamic_cast<_ComponentVector<AsType>&>(*(*m_matrix)[m_index]);
+	auto& vec = dynamic_cast<ComponentVector<AsType>&>(*(*m_matrix)[m_index]);
 	return vec[index];
 }
 
 template <class AsType>
 const AsType& TypeVector::value_type::get(size_t index) const {
-	auto& vec = dynamic_cast<const _ComponentVector<AsType>&>(*(*m_matrix)[m_index]);
+	auto& vec = dynamic_cast<const ComponentVector<AsType>&>(*(*m_matrix)[m_index]);
 	return vec[index];
 }
 
 template <class AsType>
-_ComponentVector<AsType>& TypeVector::value_type::get_vector() {
-	auto& vec = dynamic_cast<_ComponentVector<AsType>&>(*(*m_matrix)[m_index]);
+ComponentVector<AsType>& TypeVector::value_type::get_vector() {
+	auto& vec = dynamic_cast<ComponentVector<AsType>&>(*(*m_matrix)[m_index]);
 	return vec;
 }
 
 template <class AsType>
-const _ComponentVector<AsType>& TypeVector::value_type::get_vector() const {
-	auto& vec = dynamic_cast<const _ComponentVector<AsType>&>(*(*m_matrix)[m_index]);
+const ComponentVector<AsType>& TypeVector::value_type::get_vector() const {
+	auto& vec = dynamic_cast<const ComponentVector<AsType>&>(*(*m_matrix)[m_index]);
 	return vec;
 }
 
@@ -684,16 +704,16 @@ TypeVector::generic_iterator<Const>& TypeVector::generic_iterator<Const>::operat
 //------------------------------------------------------------------------------
 
 template <class T>
-void TypeVector::insert(const_iterator where, const _ComponentVector<T>& components) {
-	auto newContainer = std::make_unique<_ComponentVector<T>>(components);
+void TypeVector::insert(const_iterator where, const ComponentVector<T>& components) {
+	auto newContainer = std::make_unique<ComponentVector<T>>(components);
 	newContainer->Resize(m_matrix.empty() ? 0 : m_matrix[0]->Size());
 	m_matrix.push_back(std::move(newContainer));
 	recompute_order();
 }
 
 template <class T>
-void TypeVector::insert(const_iterator where, _ComponentVector<T>&& components) {
-	auto newContainer = std::make_unique<_ComponentVector<T>>(std::move(components));
+void TypeVector::insert(const_iterator where, ComponentVector<T>&& components) {
+	auto newContainer = std::make_unique<ComponentVector<T>>(std::move(components));
 	newContainer->Resize(m_matrix.empty() ? 0 : m_matrix[0]->Size());
 	m_matrix.push_back(std::move(newContainer));
 	recompute_order();
@@ -701,7 +721,7 @@ void TypeVector::insert(const_iterator where, _ComponentVector<T>&& components) 
 
 template <class T, class... Args>
 void TypeVector::emplace(const_iterator where, Args&&... args) {
-	m_matrix.push_back(std::make_unique<_ComponentVector<T>>(std::forward<Args>(args)...));
+	m_matrix.push_back(std::make_unique<ComponentVector<T>>(std::forward<Args>(args)...));
 	recompute_order();
 }
 

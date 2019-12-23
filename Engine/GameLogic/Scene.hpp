@@ -75,7 +75,7 @@ public:
 
 private:
 	ComponentScheme GetScheme(const ComponentMatrix& matrix);
-	void MergeSchemeSets(const ComponentScheme& scheme, EntitySchemeSet&& entitySet);
+	void MergeSchemeSet(EntitySchemeSet&& entitySet);
 
 private:
 	ComponentSetMap m_componentSets;
@@ -177,13 +177,14 @@ void Scene::AddComponent(Entity& entity, ComponentT&& component) {
 	if (it == m_componentSets.end()) {
 		auto [newIt, ignore_] = m_componentSets.insert({ extendedScheme, std::make_unique<EntitySchemeSet>(*this) });
 		newIt->second->CopyComponentTypes(currentSet);
-		newIt->second->AddComponent<ComponentT>();
+		newIt->second->AddComponentType<ComponentT>();
+		assert(extendedScheme == newIt->second->GetScheme());
 		it = newIt;
 	}
 	auto& newSet = it->second;
 
 	// Splice entity.
-	newSet->Splice(currentSet, currentIndex, std::forward<ComponentT>(component));
+	newSet->SpliceExtend(currentSet, currentIndex, std::forward<ComponentT>(component));
 }
 
 

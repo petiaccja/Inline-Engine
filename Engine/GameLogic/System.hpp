@@ -28,19 +28,36 @@ public:
 		SWEEP,
 		MODIFY,
 	};
-	using CreateEntity = std::function<Entity*()>;
-	using DeleteEntity = std::function<void(Entity*)>;
-	using GetEntity = std::function<Entity*(size_t)>;
+	using CreateEntity = std::function<Entity&()>;
+	using DeleteEntity = std::function<void(Entity&)>;
 
 public:
 	virtual ~System() = default;
 
 	virtual const ComponentScheme& Scheme() const = 0;
 
+	void Run(float elapsed, Scene& scene);
+	void Run(float elapsed, EntitySchemeSet& entitySet, Scene& scene);
+
 	virtual void Run(float elapsed, CreateEntity createEntity, DeleteEntity deleteEntity) = 0;
 	virtual void Run(float elapsed, EntitySchemeSet& entitySet, CreateEntity createEntity, DeleteEntity deleteEntity) = 0;
 };
 
+
+inline void System::Run(float elapsed, Scene& scene) {
+	Run(
+		elapsed,
+		[&]() -> Entity& { return *scene.CreateEntity(); },
+		[&](Entity& entity) { scene.DeleteEntity(entity); });
+}
+
+inline void System::Run(float elapsed, EntitySchemeSet& entitySet, Scene& scene) {
+	Run(
+		elapsed,
+		entitySet,
+		[&]() -> Entity& { return *scene.CreateEntity(); },
+		[&](Entity& entity) { scene.DeleteEntity(entity); });
+}
 
 //------------------------------------------------------------------------------
 // Specific system taking a set of components
@@ -49,6 +66,8 @@ template <class DerivedSystem, class... ComponentTypes>
 class SpecificSystem : public System {
 public:
 	const ComponentScheme& Scheme() const override final;
+
+	using System::Run;
 
 	void Run(float elapsed, CreateEntity createEntity, DeleteEntity deleteEntity) override final;
 	void Run(float elapsed, EntitySchemeSet& entitySet, CreateEntity createEntity, DeleteEntity deleteEntity) override final;
@@ -71,11 +90,13 @@ class SpecificSystem<DerivedSystem> : public System {
 public:
 	const ComponentScheme& Scheme() const override final;
 
+	using System::Run;
+	
 	void Run(float elapsed, CreateEntity createEntity, DeleteEntity deleteEntity) override final;
 	void Run(float elapsed, EntitySchemeSet& entitySet, CreateEntity createEntity, DeleteEntity deleteEntity) override final;
 
 	virtual void Update(float elapsed) = 0;
-	virtual void Create(const CreateEntity& createEntity) {};
+	virtual void Create(const CreateEntity& createEntity){};
 };
 
 
@@ -138,9 +159,9 @@ void SpecificSystem<DerivedSystem, ComponentTypes...>::Run(float elapsed, Entity
 
 	// Sweep
 	for (auto index : marks.sweep) {
-		Entity* entity = &entitySet[index];
+		Entity& entity = entitySet[index];
 		deleteEntity(entity);
-	}	
+	}
 }
 
 

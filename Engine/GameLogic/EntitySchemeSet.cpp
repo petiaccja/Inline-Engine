@@ -35,8 +35,10 @@ void EntitySchemeSet::Destroy(Entity& entity) {
 	size_t index = entity.GetIndex();
 	// Contiguous vectors remove element at index and move the last one there.
 	m_entities.erase(m_entities.begin() + index);
-	m_components.entities.erase(m_components.entities.begin() + index);
-
+	if (!m_components.entities.empty()) {
+		m_components.entities.erase(m_components.entities.begin() + index);
+	}
+		
 	if (m_entities.size() > index) {
 		m_entities[index]->m_index = index;
 	}
@@ -78,13 +80,16 @@ EntitySchemeSet& EntitySchemeSet::operator+=(EntitySchemeSet&& rhs) {
 }
 
 
-void EntitySchemeSet::RemoveComponent(size_t index) {
+void EntitySchemeSet::RemoveComponentType(size_t index) {
+	assert(m_components.types.type_order()[index].first == *(m_scheme.begin() + index));
 	size_t unsortedIndex = m_components.types.type_order()[index].second;
+	m_scheme.Erase(m_scheme.begin() + index);
 	m_components.types.erase(m_components.types.begin() + unsortedIndex);
 }
 
 void EntitySchemeSet::CopyComponentTypes(const EntitySchemeSet& model) {
 	m_components.types = model.m_components.types;
+	m_scheme = model.m_scheme;
 }
 
 Entity& EntitySchemeSet::operator[](size_t index) {
@@ -96,16 +101,18 @@ const Entity& EntitySchemeSet::operator[](size_t index) const {
 }
 
 
-size_t EntitySchemeSet::Splice(EntitySchemeSet& source, size_t sourceIndex, size_t skippedComponent) {
+size_t EntitySchemeSet::SpliceReduce(EntitySchemeSet& source, size_t sourceIndex, size_t skippedComponent) {
 	m_entities.push_back(std::move(source.m_entities[sourceIndex]));
-	source.m_entities.erase(m_entities.begin() + sourceIndex);
+	source.m_entities.erase(source.m_entities.begin() + sourceIndex);
 
 	m_components.entities.emplace_back();
-	m_components.entities.back().assign_partial(source.m_components.entities.back(), [&](auto t, auto i) {
-		return i == source.m_components.types.type_order()[skippedComponent].second;
-	});
-	source.m_components.entities.erase(source.m_components.entities.begin() + sourceIndex);
-
+	if (!source.m_components.entities.empty()) {
+		m_components.entities.back().assign_partial(source.m_components.entities.back(), [&](auto t, auto i) {
+			return i == source.m_components.types.type_order()[skippedComponent].second;
+		});
+		source.m_components.entities.erase(source.m_components.entities.begin() + sourceIndex);
+	}
+	
 	m_entities.back()->m_index = m_entities.size() - 1;
 	m_entities.back()->m_set = this;
 
@@ -117,11 +124,17 @@ size_t EntitySchemeSet::Splice(EntitySchemeSet& source, size_t sourceIndex, size
 }
 
 size_t EntitySchemeSet::Splice(EntitySchemeSet& source, size_t sourceIndex) {
-	m_entities.push_back(std::move(source.m_entities[sourceIndex]));
-	source.m_entities.erase(m_entities.begin() + sourceIndex);
+	if (&source == this) {
+		return sourceIndex;
+	}
 
-	m_components.entities.push_back(std::move(source.m_components.entities[sourceIndex]));
-	source.m_components.entities.erase(source.m_components.entities.begin() + sourceIndex);
+	m_entities.push_back(std::move(source.m_entities[sourceIndex]));
+	source.m_entities.erase(source.m_entities.begin() + sourceIndex);
+
+	if (!source.m_components.entities.empty()) {
+		m_components.entities.push_back(std::move(source.m_components.entities[sourceIndex]));
+		source.m_components.entities.erase(source.m_components.entities.begin() + sourceIndex);
+	}
 
 	m_entities.back()->m_index = m_entities.size() - 1;
 	m_entities.back()->m_set = this;

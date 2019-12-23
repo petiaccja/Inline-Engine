@@ -5,21 +5,14 @@ namespace inl::game {
 
 
 void Simulation::Run(Scene& scene, float elapsed) {
-	auto createEntity = [&scene]() -> Entity* {
-		return scene.CreateEntity();
-	};
-	auto deleteEntity = [&scene](Entity* entity) {
-		scene.DeleteEntity(*entity);
-	};
-	
 	for (auto& system : *this) {
 		const auto& systemScheme = system.Scheme();
 		if (systemScheme.Empty()) {
-			system.Run(elapsed, createEntity, deleteEntity);
+			system.Run(elapsed, scene);
 		}
 		else {
-			for (auto& entitySet: scene.GetSchemeSets(systemScheme)) {
-				system.Run(elapsed, entitySet, createEntity, deleteEntity);
+			for (auto& entitySet : scene.GetSchemeSets(systemScheme)) {
+				system.Run(elapsed, entitySet, scene);
 			}
 		}
 	}
