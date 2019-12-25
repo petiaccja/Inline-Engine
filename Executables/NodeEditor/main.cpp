@@ -74,7 +74,7 @@ int main() {
 		// Set up graphics engine.
 		graphicsEngine.SetShaderDirectories({ INL_NODE_SHADER_DIRECTORY, INL_MTL_SHADER_DIRECTORY, "./Shaders", "./Materials" });
 
-		std::ifstream pipelineFile(INL_GAMEDATA "/Pipelines/node_editor.json");
+		std::ifstream pipelineFile(INL_GAMEDATA "/Pipelines/gui_only.json");
 		if (!pipelineFile.is_open()) {
 			throw FileNotFoundException("Failed to open pipeline JSON.");
 		}

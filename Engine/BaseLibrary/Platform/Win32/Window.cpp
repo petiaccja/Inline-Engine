@@ -218,7 +218,9 @@ void Window::SetSize(const Vec2u& size) {
 	if (IsClosed()) {
 		return;
 	}
-	SetWindowPos(m_handle, NULL, 0, 0, size.x, size.y, SWP_NOMOVE);
+	//SetWindowPos(m_handle, NULL, 0, 0, size.x, size.y, SWP_NOMOVE | SWP_ASYNCWINDOWPOS);
+	Vec2i pos = GetPosition();
+	MoveWindow(m_handle, pos.x, pos.y, size.x, size.y, false);
 }
 
 

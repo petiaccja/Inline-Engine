@@ -5,8 +5,6 @@ set(src_main
 	main.cpp
 	Game.hpp
 	Game.cpp
-	Interface.hpp
-	Interface.cpp
 	Actions.hpp)
 
 set(src_collections

@@ -1,10 +1,12 @@
 #pragma once
 
-#include <GraphicsEngine/IGraphicsEngine.hpp>
-#include "AssetLibrary/ImageCache.hpp"
-#include "AssetLibrary/MaterialShaderCache.hpp"
-#include "AssetLibrary/MaterialCache.hpp"
 #include "AssetLibrary/GraphicsMeshCache.hpp"
+#include "AssetLibrary/ImageCache.hpp"
+#include "AssetLibrary/MaterialCache.hpp"
+#include "AssetLibrary/MaterialShaderCache.hpp"
+#include <GraphicsEngine/IGraphicsEngine.hpp>
+#include <GraphicsEngine/Scene/IScene.hpp>
+
 #include <optional>
 
 #undef LoadImage
@@ -36,7 +38,7 @@ public:
 
 private:
 	std::optional<std::reference_wrapper<gxeng::IScene>> FindScene(std::string_view name) const;
-	
+
 private:
 	gxeng::IGraphicsEngine& m_engine;
 	std::vector<std::unique_ptr<gxeng::IScene>> m_scenes;

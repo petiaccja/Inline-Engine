@@ -4,6 +4,25 @@
     },
     "nodes": [
         {
+            "class": "ClearColor",
+            "id": 11,
+			"inputs": [
+				{},
+				"[0,0,0,0]"
+			],
+            "meta_pos": "[-162, 157]"
+        },
+        {
+            "class": "ClearDepthStencil",
+            "id": 10,
+			"inputs": [
+				{},
+				1,
+				0
+			],
+            "meta_pos": "[-158, 28]"
+        },
+        {
             "class": "CreateTexture",
             "id": 0,
             "inputs": [
@@ -15,17 +34,17 @@
                 "false",
                 "false"
             ],
-            "meta_pos": "[-397, 37]"
+            "meta_pos": "[-527, 19]"
         },
         {
             "class": "DrawSky",
             "id": 1,
-            "meta_pos": "[537, 53]"
+            "meta_pos": "[598, 35]"
         },
         {
             "class": "GetBackBuffer",
             "id": 2,
-            "meta_pos": "[-753, 211]"
+            "meta_pos": "[-883, 193]"
         },
         {
             "class": "GetCamera2DByName",
@@ -33,7 +52,7 @@
             "inputs": [
                 "GuiCamera"
             ],
-            "meta_pos": "[537, -55]"
+            "meta_pos": "[590, -91]"
         },
         {
             "class": "GetCameraByName",
@@ -41,38 +60,38 @@
             "inputs": [
                 "MainCamera"
             ],
-            "meta_pos": "[-396, -115]"
+            "meta_pos": "[-186, -107]"
         },
         {
             "class": "GetSceneByName",
             "id": 6,
             "inputs": [
-                "MainScene"
+                "GuiScene"
             ],
-            "meta_pos": "[-396, -189]"
+            "meta_pos": "[614, -170]"
         },
         {
             "class": "GetSceneByName",
             "id": 5,
             "inputs": [
-                "GuiScene"
+                "MainScene"
             ],
-            "meta_pos": "[536, -125]"
+            "meta_pos": "[-184, -193]"
         },
         {
             "class": "RenderForwardSimple",
             "id": 7,
-            "meta_pos": "[112, 59]"
+            "meta_pos": "[213, 31]"
         },
         {
             "class": "RenderOverlay",
             "id": 8,
-            "meta_pos": "[977, 53]"
+            "meta_pos": "[967, 39]"
         },
         {
             "class": "TextureProperties",
             "id": 9,
-            "meta_pos": "[-755, 77]"
+            "meta_pos": "[-885, 59]"
         }
     ],
     "links": [
@@ -107,19 +126,19 @@
             "dstp": 2
         },
         {
-            "src": 6,
+            "src": 5,
             "dst": 1,
             "srcp": 0,
             "dstp": 3
         },
         {
-            "src": 2,
+            "src": 11,
             "dst": 7,
             "srcp": 0,
             "dstp": 0
         },
         {
-            "src": 0,
+            "src": 10,
             "dst": 7,
             "srcp": 0,
             "dstp": 1
@@ -131,13 +150,13 @@
             "dstp": 2
         },
         {
-            "src": 6,
+            "src": 5,
             "dst": 7,
             "srcp": 0,
             "dstp": 3
         },
         {
-            "src": 6,
+            "src": 5,
             "dst": 7,
             "srcp": 0,
             "dstp": 4
@@ -155,13 +174,13 @@
             "dstp": 1
         },
         {
-            "src": 5,
+            "src": 6,
             "dst": 8,
             "srcp": 0,
             "dstp": 2
         },
         {
-            "src": 5,
+            "src": 6,
             "dst": 8,
             "srcp": 0,
             "dstp": 3
@@ -169,6 +188,18 @@
         {
             "src": 2,
             "dst": 9,
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 0,
+            "dst": 10,
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 2,
+            "dst": 11,
             "srcp": 0,
             "dstp": 0
         }

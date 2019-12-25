@@ -228,7 +228,7 @@ Vec2 LinearLayout::GetPreferredSize() const {
 Vec2 LinearLayout::GetMinimumSize() const {
 	SizingMeasurement measures = CalcMeasures();
 
-	Vec2 minSize = { measures.sumMinSizeAbs + measures.sumMinSizeAbs, measures.maxPreferredAux };
+	Vec2 minSize = { measures.sumMinSizeAbs + measures.sumMinSizeAbs, measures.minSizeAux };
 	if (m_direction == VERTICAL) {
 		minSize = minSize.yx;
 	}

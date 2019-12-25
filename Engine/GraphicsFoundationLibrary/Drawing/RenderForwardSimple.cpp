@@ -576,9 +576,6 @@ void RenderForwardSimple::Execute(RenderContext& context) {
 	commandList.SetResourceState(m_dsv.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
 	commandList.SetRenderTargets(1, renderTargets, &m_dsv);
 
-	commandList.ClearRenderTarget(m_rtv, gxapi::ColorRGBA{ 0, 0, 0, 0 });
-	commandList.ClearDepthStencil(m_dsv, 1.0f, 0);
-
 	// Set scissor rects and shit like that.
 	gxapi::Rectangle scissorRect{ 0, (int)m_rtv.GetResource().GetHeight(), 0, (int)m_rtv.GetResource().GetWidth() };
 	gxapi::Viewport viewport;

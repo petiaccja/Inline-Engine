@@ -6,7 +6,6 @@
 #include <GraphicsEngine/Scene/IOrthographicCamera.hpp>
 #include <GraphicsEngine/Scene/IOverlayEntity.hpp>
 #include <GraphicsEngine/Scene/IPerspectiveCamera.hpp>
-#include <GraphicsEngine/Scene/IScene.hpp>
 #include <GraphicsEngine/Scene/ITextEntity.hpp>
 
 

@@ -4,10 +4,15 @@
     },
     "nodes": [
         {
+            "class": "ClearColor",
+            "id": 4,
+            "meta_pos": "[174, 47]"
+        },
+        {
             "class": "GetBackBuffer",
             "id": 0,
             "name": "BackBuffer",
-            "meta_pos": "[-124, -152]"
+            "meta_pos": "[-252, 85]"
         },
         {
             "class": "GetCamera2DByName",
@@ -16,13 +21,13 @@
             "inputs": [
                 "GuiCam"
             ],
-            "meta_pos": "[-125, 4]"
+            "meta_pos": "[-250, -15]"
         },
         {
             "class": "RenderOverlay",
             "id": 2,
             "name": "Renderer",
-            "meta_pos": "[351, -6]"
+            "meta_pos": "[584, -10]"
         },
         {
             "class": "GetSceneByName",
@@ -31,12 +36,18 @@
             "inputs": [
                 "GuiScene"
             ],
-            "meta_pos": "[-102, 154]"
+            "meta_pos": "[-256, -106]"
         }
     ],
     "links": [
         {
             "src": "BackBuffer",
+            "dst": 4,
+            "srcp": 0,
+            "dstp": 0
+        },
+        {
+            "src": 4,
             "dst": "Renderer",
             "srcp": 0,
             "dstp": 0

@@ -17,13 +17,29 @@ std::string TidyTypename(std::string name) {
 	static std::regex cl("class\\s*", std::regex_constants::ECMAScript | std::regex_constants::optimize);
 	static std::regex st("struct\\s*", std::regex_constants::ECMAScript | std::regex_constants::optimize);
 	static std::regex cnst("const", std::regex_constants::ECMAScript | std::regex_constants::optimize);
+	static std::regex ptr64("__ptr64", std::regex_constants::ECMAScript | std::regex_constants::optimize);
 
 	name = std::regex_replace(name, ns1, "");
 	name = std::regex_replace(name, ns2, "");
 	name = std::regex_replace(name, ns3, "");
 	name = std::regex_replace(name, cl, "");
 	name = std::regex_replace(name, st, "");
-	name = std::regex_replace(name, cnst, "!C");
+	name = std::regex_replace(name, cnst, "");
+	name = std::regex_replace(name, ptr64, "");
+
+	size_t bs = name.find("basic_string");
+	if (bs != name.npos) {
+		int counter = 0;
+		bool flag = false;
+		auto it = name.begin() + bs;
+		while ((!flag || counter > 0) && it != name.end()) {
+			counter += *it == '>' ? -1 : (*it == '<' ? +1 : 0);
+			flag = flag || (*it == '<');
+			++it;
+		}
+		name.erase(name.begin() + bs, it);
+		name.insert(bs, "string");
+	}
 
 	return name;
 }
