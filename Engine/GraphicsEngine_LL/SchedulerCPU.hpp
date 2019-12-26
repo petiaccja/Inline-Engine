@@ -9,7 +9,10 @@
 namespace inl::gxeng {
 
 
-class SchedulerGPU;
+struct RenderCommand {
+	std::unique_ptr<BasicCommandList> list;
+	std::unique_ptr<VolatileViewHeap> vheap;
+};
 
 
 class SchedulerCPU {
@@ -19,17 +22,14 @@ class SchedulerCPU {
 		std::unique_ptr<BasicCommandList> list;
 		std::unique_ptr<VolatileViewHeap> vheap;
 	};
-	struct RenderCommand {
-		std::unique_ptr<BasicCommandList> list;
-		std::unique_ptr<VolatileViewHeap> vheap;
-	};
 
 public:
 	SchedulerCPU(const Pipeline& pipeline);
 	SchedulerCPU(SchedulerCPU&& rhs);
 
-	void RunPipeline(const FrameContext& frameContext, jobs::Scheduler& scheduler, SchedulerGPU& schedulerGpu);
+	void RunPipeline(const FrameContext& frameContext, jobs::Scheduler& scheduler);
 
+	auto GetCommandJobs() const -> const lemon::ListDigraph::NodeMap<std::shared_ptr<jobs::SharedFuture<RenderCommand>>>&;
 private:
 	void CalculateListForwarding();
 	void FindTaskGraphSinks();

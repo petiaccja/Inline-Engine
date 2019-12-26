@@ -106,7 +106,6 @@ set (pipeline_scheduling
 	"Scheduler.cpp"
 	"SchedulerCPU.cpp"
 	"SchedulerGPU.cpp"
-	"UploadTask.cpp"
 
 	"Pipeline.hpp"
 	"PipelineEventDispatcher.hpp"
@@ -114,7 +113,6 @@ set (pipeline_scheduling
 	"Scheduler.hpp"
 	"SchedulerCPU.hpp"
 	"SchedulerGPU.hpp"
-	"UploadTask.hpp"
 	
 	"CommandQueue.hpp"
 	"FrameContext.hpp"

@@ -1,160 +1,112 @@
 #include "SchedulerGPU.hpp"
 
+#include "GraphicsCommandList.hpp"
 #include "ResourceResidencyQueue.hpp"
+#include "SchedulerCPU.hpp"
 
-#include <functional>
+#include <queue>
 
 
 namespace inl::gxeng {
 
+using VolatileViewPtr = std::unique_ptr<VolatileViewHeap>;
 
-void SchedulerGPU::SetPipeline(const Pipeline& pipeline) {
-	m_pipeline = &pipeline;
-}
-
-
-void SchedulerGPU::SetJobScheduler(jobs::Scheduler& scheduler) {
-	m_scheduler = &scheduler;
-}
-
-
-void SchedulerGPU::BeginFrame(const FrameContext& context) {
-	if (m_currentContext) {
-		throw InvalidCallException("First finalize previous frame by EndFrame.");
-	}
-	m_currentContext = std::make_shared<FrameContext>(context);
-	m_enqueueCoro = m_scheduler->Enqueue(&SchedulerGPU::EnqueueCoro, this, std::ref(*m_scheduler));
-}
+struct DecomposedRenderCommand {
+	CmdAllocPtr commandAllocator;
+	CmdListPtr commandList;
+	VolatileViewPtr volatileViewHeap;
+	std::vector<ScratchSpacePtr> scratchSpaces;
+	std::vector<ResourceUsage> usedResources;
+	std::vector<MemoryObject> additionalResources;
+};
 
 
-jobs::SharedFuture<void> SchedulerGPU::Enqueue(std::unique_ptr<BasicCommandList> commandList, std::unique_ptr<VolatileViewHeap> vheap) {
-	assert(commandList);
-	if (!m_currentContext) {
-		throw InvalidCallException("First call BeginFrame.");
-	}
-	jobs::UniqueLock lk(m_mtx);
-	co_await lk.Lock();
-	m_queue.push(QueueItem{ std::move(commandList), std::move(vheap), eItemFlag::EXECUTE, m_currentContext });
-	m_cvar.NotifyOne();
-}
+class LinearQueue {
+public:
+	LinearQueue(const FrameContext& context);
+	void operator<<(RenderCommand command);
+	void Present();
+
+private:
+	/// <summary> Dissects the command list to raw gxapi command list and resource information. </summary>
+	DecomposedRenderCommand DecomposeRenderCommand(RenderCommand command);
+
+	/// <summary> Injects transition barriers into <paramref name="subject"/> to match states for <paramref name="next"/>. </summary>
+	void Finalize(DecomposedRenderCommand& subject, const DecomposedRenderCommand& next);
+
+	/// <summary> Injects transition barrier into <paramref name="subject"/> to set back-buffer to PRESENT. </summary>
+	void FinalizeBackBuffer(DecomposedRenderCommand& subject);
+
+	/// <summary> Submits some command lists to the command queue. </summary>
+	/// <param name="chunk"> How many lists to submit at once. </param>
+	/// <param name="keep"> How many lists to keep in m_queue. </param>
+	void SubmitSome(size_t chunk = 5, size_t keep = 1);
+
+	/// <summary> Enqueues command list, manages init and clean jobs. </summary>
+	template <class... Args>
+	static void Submit(CommandQueue& target,
+					   const FrameContext& context,
+					   CmdListPtr list,
+					   std::vector<MemoryObject> usedResources,
+					   Args&&... cleanables);
+
+	/// <summary> Barriers from the resource's current state to the first usage state. </summary>
+	static std::vector<gxapi::ResourceBarrier> TransitionBarriers(const std::vector<ResourceUsage>& usages);
+
+	/// <summary> Update the state of the resources to the last usage state. </summary>
+	static void UpdateResourceStates(const std::vector<ResourceUsage>& usages);
+
+	/// <summary> Concatenates the two sets of <see cref="MemoryObject"/>s. </summary>
+	std::vector<MemoryObject> UsedResources(const std::vector<ResourceUsage>& usages, std::vector<MemoryObject> additional);
+
+private:
+	std::queue<DecomposedRenderCommand> m_queue;
+	const FrameContext& m_context;
+};
 
 
-jobs::SharedFuture<void> SchedulerGPU::EndFrame(bool successful) {
-	if (!m_currentContext) {
-		throw InvalidCallException("First call BeginFrame.");
-	}
-	jobs::UniqueLock lk(m_mtx);
-	co_await lk.Lock();
-	m_queue.push(QueueItem{ nullptr, nullptr, eItemFlag::END_FRAME, nullptr });
-	lk.Unlock();
-	m_cvar.NotifyOne();
-	co_await m_enqueueCoro;
-	m_currentContext = {};
-}
-
-
-jobs::SharedFuture<void> SchedulerGPU::EnqueueCoro(SchedulerGPU* self, jobs::Scheduler& scheduler) {
-	bool runSession = true;
-	ListEnqueuer enqueuer(*self->m_currentContext);
-	do {
-		jobs::UniqueLock lk(self->m_mtx);
-		co_await lk.Lock();
-		co_await self->m_cvar.Wait(lk, [self] { return !self->m_queue.empty(); });
-
-		auto first = std::move(self->m_queue.front());
-		self->m_queue.pop();
-
-		lk.Unlock();
-
-		switch (first.flag) {
-			case eItemFlag::EXECUTE:
-				enqueuer(std::move(first.commandList), std::move(first.vheap));
-				break;
-			case eItemFlag::END_FRAME:
-				enqueuer.Present();
-				runSession = false;
-				break;
-		}
-	} while (runSession);
-}
-
-
-ListEnqueuer::ListEnqueuer(const FrameContext& context)
+LinearQueue::LinearQueue(const FrameContext& context)
 	: m_context(context) {}
 
 
-void ListEnqueuer::operator()(std::unique_ptr<BasicCommandList> commandList, std::unique_ptr<VolatileViewHeap> currentVheap) {
-	// Process current list.
-	auto currentList = commandList->Decompose();
-	auto barriers = GetTransitionBarriers(currentList.usedResources);
-	UpdateResourceStates(currentList.usedResources);
+void LinearQueue::operator<<(RenderCommand command) {
+	DecomposedRenderCommand decomp = DecomposeRenderCommand(std::move(command));
 
-	// Submit barriers.
-	if (!barriers.empty()) {
-		if (!m_prevList.commandList) {
-			m_prevList.commandAllocator = m_context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
-			m_prevList.commandList = m_context.commandListPool->RequestGraphicsList(m_prevList.commandAllocator.get());
-		}
-		auto* prevCopyList = dynamic_cast<gxapi::ICopyCommandList*>(m_prevList.commandList.get());
-		prevCopyList->ResourceBarrier((unsigned)barriers.size(), barriers.data());
+	if (m_queue.empty()) {
+		m_queue.push({});
 	}
+	Finalize(m_queue.back(), decomp);
 
-	// Enqueue previous list.
-	if (m_prevList.commandList) {
-		dynamic_cast<gxapi::ICopyCommandList*>(m_prevList.commandList.get())->Close();
-		auto usedResource = GetUsedResources(m_prevList.usedResources, m_prevList.additionalResources);
-
-		SendToQueue(*m_context.commandQueue,
-			m_context,
-			std::move(m_prevList.commandList),
-			std::move(usedResource),
-			std::move(m_prevList.scratchSpaces),
-			std::move(m_prevList.commandAllocator),
-			std::move(m_prevVheap));
-	}
-
-	// Save current list for barrier injection of the next list.
-	m_prevList = std::move(currentList);
-	m_prevVheap = std::move(currentVheap);
+	m_queue.push(std::move(decomp));
+	SubmitSome();
 }
 
 
-void ListEnqueuer::Present() {
-	// Set backBuffer to PRESENT state.
-	Texture2D backBuffer = m_context.backBuffer;
-	gxapi::eResourceState backBufferState = backBuffer.ReadState(0);
-	if (backBufferState != gxapi::eResourceState::PRESENT) {
-		if (!m_prevList.commandList) {
-			m_prevList.commandAllocator = m_context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
-			m_prevList.commandList = m_context.commandListPool->RequestGraphicsList(m_prevList.commandAllocator.get());
-		}
-
-		gxapi::TransitionBarrier barrier(m_context.backBuffer._GetResourcePtr(), backBufferState, gxapi::eResourceState::PRESENT);
-		dynamic_cast<gxapi::ICopyCommandList*>(m_prevList.commandList.get())->ResourceBarrier(barrier);
-		backBuffer.RecordState(gxapi::eResourceState::PRESENT);
+void LinearQueue::Present() {
+	if (m_queue.empty()) {
+		m_queue.push({});
 	}
+	FinalizeBackBuffer(m_queue.back());
 
-	// Enqueue last command list, if exists.
-	if (m_prevList.commandList) {
-		dynamic_cast<gxapi::ICopyCommandList*>(m_prevList.commandList.get())->Close();
+	SubmitSome(0, 0);
+}
 
-		std::vector<MemoryObject> usedResources = GetUsedResources(std::move(m_prevList.usedResources), std::move(m_prevList.additionalResources));
-
-		SendToQueue(*m_context.commandQueue,
-					m_context,
-					std::move(m_prevList.commandList),
-					std::move(usedResources),
-					std::move(m_prevList.scratchSpaces),
-					std::move(m_prevList.commandAllocator),
-					std::move(m_prevVheap));
-	}
+DecomposedRenderCommand LinearQueue::DecomposeRenderCommand(RenderCommand command) {
+	auto d = command.list->Decompose();
+	return {
+		std::move(d.commandAllocator),
+		std::move(d.commandList),
+		std::move(command.vheap),
+		std::move(d.scratchSpaces),
+		std::move(d.usedResources),
+		std::move(d.additionalResources)
+	};
 }
 
 
-std::vector<gxapi::ResourceBarrier> ListEnqueuer::GetTransitionBarriers(const std::vector<ResourceUsage>& usages) {
+std::vector<gxapi::ResourceBarrier> LinearQueue::TransitionBarriers(const std::vector<ResourceUsage>& usages) {
 	std::vector<gxapi::ResourceBarrier> barriers;
 
-	// Collect all necessary barriers.
 	for (auto usage : usages) {
 		MemoryObject& resource = usage.resource;
 		unsigned subresource = usage.subresource;
@@ -180,21 +132,21 @@ std::vector<gxapi::ResourceBarrier> ListEnqueuer::GetTransitionBarriers(const st
 }
 
 
-void ListEnqueuer::UpdateResourceStates(const std::vector<ResourceUsage>& usages) {
+void LinearQueue::UpdateResourceStates(const std::vector<ResourceUsage>& usages) {
 	for (auto usage : usages) {
-		if (usage.subresource == gxapi::ALL_SUBRESOURCES) {
+		if (usage.subresource != gxapi::ALL_SUBRESOURCES) {
+			usage.resource.RecordState(usage.subresource, usage.lastState);
+		}
+		else {
 			for (unsigned s = 0; s < usage.resource.GetNumSubresources(); ++s) {
 				usage.resource.RecordState(s, usage.lastState);
 			}
-		}
-		else {
-			usage.resource.RecordState(usage.subresource, usage.lastState);
 		}
 	}
 }
 
 
-std::vector<MemoryObject> ListEnqueuer::GetUsedResources(const std::vector<ResourceUsage>& usages, std::vector<MemoryObject> additional) {
+std::vector<MemoryObject> LinearQueue::UsedResources(const std::vector<ResourceUsage>& usages, std::vector<MemoryObject> additional) {
 	std::vector<MemoryObject> usedResourceList = std::move(additional);
 
 	usedResourceList.reserve(usages.size() + additional.size());
@@ -208,13 +160,64 @@ std::vector<MemoryObject> ListEnqueuer::GetUsedResources(const std::vector<Resou
 	return usedResourceList;
 }
 
+void LinearQueue::Finalize(DecomposedRenderCommand& subject, const DecomposedRenderCommand& next) {
+	auto barriers = TransitionBarriers(next.usedResources);
+	UpdateResourceStates(next.usedResources);
+
+	if (!barriers.empty()) {
+		// Create an ad-hoc command list just for the barriers.
+		if (!subject.commandList) {
+			subject.commandAllocator = m_context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
+			subject.commandList = m_context.commandListPool->RequestGraphicsList(subject.commandAllocator.get());
+		}
+		auto* underlyingList = dynamic_cast<gxapi::IGraphicsCommandList*>(subject.commandList.get());
+		underlyingList->ResourceBarrier((unsigned)barriers.size(), barriers.data());
+	}
+}
+
+void LinearQueue::FinalizeBackBuffer(DecomposedRenderCommand& subject) {
+	Texture2D backBuffer = m_context.backBuffer;
+	gxapi::eResourceState backBufferState = backBuffer.ReadState(0);
+	if (backBufferState != gxapi::eResourceState::PRESENT) {
+		// Create an ad-hoc list.
+		if (!subject.commandList) {
+			subject.commandAllocator = m_context.commandAllocatorPool->RequestAllocator(gxapi::eCommandListType::GRAPHICS);
+			subject.commandList = m_context.commandListPool->RequestGraphicsList(subject.commandAllocator.get());
+		}
+
+		gxapi::TransitionBarrier barrier(m_context.backBuffer._GetResourcePtr(), backBufferState, gxapi::eResourceState::PRESENT);
+		dynamic_cast<gxapi::ICopyCommandList*>(subject.commandList.get())->ResourceBarrier(barrier);
+		backBuffer.RecordState(gxapi::eResourceState::PRESENT);
+	}
+}
+
+void LinearQueue::SubmitSome(size_t chunk, size_t keep) {
+	while (m_queue.size() > keep) {
+		auto& command = m_queue.front();
+		if (command.commandList) {
+			dynamic_cast<gxapi::ICopyCommandList*>(command.commandList.get())->Close();
+			auto usedResource = UsedResources(command.usedResources, command.additionalResources);
+
+			Submit(*m_context.commandQueue,
+				   m_context,
+				   std::move(command.commandList),
+				   std::move(usedResource),
+				   std::move(command.scratchSpaces),
+				   std::move(command.commandAllocator),
+				   std::move(command.volatileViewHeap));
+		}
+
+		m_queue.pop();
+	}
+}
+
 
 template <class... Args>
-void ListEnqueuer::SendToQueue(CommandQueue& target,
-							   const FrameContext& context,
-							   CmdListPtr list,
-							   std::vector<MemoryObject> usedResources,
-							   Args&&... cleanables) {
+void LinearQueue::Submit(CommandQueue& target,
+						 const FrameContext& context,
+						 CmdListPtr list,
+						 std::vector<MemoryObject> usedResources,
+						 Args&&... cleanables) {
 	// Enqueue CPU task to make resources resident before the command list runs.
 	SyncPoint residentPoint = context.residencyQueue->EnqueueInit(usedResources);
 
@@ -230,6 +233,87 @@ void ListEnqueuer::SendToQueue(CommandQueue& target,
 	context.residencyQueue->EnqueueClean(completionPoint, std::move(usedResources), std::forward<Args>(cleanables)...);
 }
 
+
+SchedulerGPU::SchedulerGPU(Pipeline& pipeline) : m_pipeline(pipeline) {
+}
+
+void SchedulerGPU::RunPipeline(const FrameContext& frameContext, jobs::Scheduler& scheduler, const SchedulerCPU& cpuScheduler) {
+	jobs::SharedFuture<void> fut = EnqueueCommands(frameContext, cpuScheduler);
+	fut.Schedule(scheduler);
+	fut.get();
+}
+
+std::vector<lemon::ListDigraph::Node> SchedulerGPU::SortNodes(const lemon::ListDigraph& taskGraph) {
+	std::vector<lemon::ListDigraph::Node> sortedNodes;
+
+	lemon::ListDigraph::NodeMap<int> topologicalOrder(taskGraph);
+	topologicalSort(taskGraph, topologicalOrder);
+
+	std::vector<std::pair<int, lemon::ListDigraph::Node>> sortHelper;
+	for (lemon::ListDigraph::NodeIt node(taskGraph); node != lemon::INVALID; ++node) {
+		sortHelper.push_back({ topologicalOrder[node], node });
+	}
+	std::sort(sortHelper.begin(), sortHelper.end(), [](const auto& lhs, const auto& rhs) {
+		return lhs.first < rhs.first;
+	});
+
+	for (auto [_ignore, node] : sortHelper) {
+		sortedNodes.push_back(node);
+	}
+
+	return sortedNodes;
+}
+
+jobs::SharedFuture<void> SchedulerGPU::EnqueueCommands(const FrameContext& frameContext, const SchedulerCPU& cpuScheduler) {
+	auto sortedNodes = SortNodes(m_pipeline.GetTaskGraph());
+
+	auto& commandJobs = cpuScheduler.GetCommandJobs();
+
+	LinearQueue linearQueue{ frameContext };
+
+	linearQueue << UploadResources(frameContext);
+	for (auto& node : sortedNodes) {
+		RenderCommand& command = co_await * commandJobs[node];
+		if (command.list) {
+			linearQueue << std::move(command);
+		}
+	}
+
+	linearQueue.Present();
+}
+
+
+RenderCommand SchedulerGPU::UploadResources(const FrameContext& frameContext) {
+	const std::vector<UploadManager::UploadDescription>& uploads = *frameContext.uploadRequests;
+	auto vheap = std::make_unique<VolatileViewHeap>(frameContext.gxApi);
+	auto clist = std::make_unique<GraphicsCommandList>(frameContext.gxApi,
+													   *frameContext.commandListPool,
+													   *frameContext.commandAllocatorPool,
+													   *frameContext.scratchSpacePool,
+													   *frameContext.memoryManager, *vheap);
+	for (auto& request : uploads) {
+		// Init copy parameters
+		auto& source = request.source;
+		auto& destination = request.destination;
+
+		// Set resource states
+		clist->SetResourceState(destination, gxapi::eResourceState::COPY_DEST);
+
+		auto destType = request.destType;
+
+		if (destType == UploadManager::DestType::BUFFER) {
+			auto& dstBuffer = static_cast<const LinearBuffer&>(destination);
+			clist->CopyBuffer(dstBuffer, request.dstOffsetX, source, 0, source.GetSize());
+		}
+		else if (destType == UploadManager::DestType::TEXTURE_2D) {
+			auto& dstTexture = static_cast<const Texture2D&>(destination);
+			SubTexture2D dstPlace(request.dstSubresource, Vector<intptr_t, 2>((intptr_t)request.dstOffsetX, (intptr_t)request.dstOffsetY));
+			clist->CopyTexture(dstTexture, source, dstPlace, request.textureBufferDesc);
+		}
+	}
+
+	return { std::move(clist), std::move(vheap) };
+}
 
 
 } // namespace inl::gxeng

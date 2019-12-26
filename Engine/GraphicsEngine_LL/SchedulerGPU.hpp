@@ -16,58 +16,18 @@
 namespace inl::gxeng {
 
 
-// Handles the enqueuing of command lists, including barrier injection, resource state tracking
-// and determining if async mode is possible.
-class ListEnqueuer {
-public:
-	ListEnqueuer(const FrameContext& context);
-	void operator()(std::unique_ptr<BasicCommandList> commandList, std::unique_ptr<VolatileViewHeap> currentVheap);
-	void Present();
-
-	// Command lists (gxeng, not gxapi) do not issue resource barriers for the first time SetResourceState is called.
-	// Instead, these states are recorded, and must be "patched in", that is, issued before said command list
-	// by the scheduler. This function gives the list of barriers to issue.
-	static std::vector<gxapi::ResourceBarrier> GetTransitionBarriers(const std::vector<ResourceUsage>& usages);
-
-	// Goes over the list of resource usages of a command list and updates CPU-side resource state tracking accordingly.
-	static void UpdateResourceStates(const std::vector<ResourceUsage>& usages);
-
-	std::vector<MemoryObject> GetUsedResources(const std::vector<ResourceUsage>& usages, std::vector<MemoryObject> additional);
-
-	// Enqueues a command list in target, manages init and clean jobs for the command list.
-	template <class... Args>
-	void SendToQueue(CommandQueue& target,
-		const FrameContext& context,
-		CmdListPtr list,
-		std::vector<MemoryObject> usedResources,
-		Args&&... cleanables);
-private:
-	BasicCommandList::Decomposition m_prevList;
-	std::unique_ptr<VolatileViewHeap> m_prevVheap;
-	const FrameContext& m_context;
-};
+struct RenderCommand;
+class SchedulerCPU;
 
 
 class SchedulerGPU {
 public:
-	void SetPipeline(const Pipeline& pipeline);
-	void SetJobScheduler(jobs::Scheduler& scheduler);
-
-	void BeginFrame(const FrameContext& context);
-	jobs::SharedFuture<void> Enqueue(std::unique_ptr<BasicCommandList> commandList, std::unique_ptr<VolatileViewHeap> vheap);
-	jobs::SharedFuture<void> EndFrame(bool successful);
+	SchedulerGPU(Pipeline& pipeline);
+	
+	void RunPipeline(const FrameContext& frameContext, jobs::Scheduler& scheduler, const SchedulerCPU& cpuScheduler);
+	static std::vector<lemon::ListDigraph::Node> SortNodes(const lemon::ListDigraph& taskGraph);
 
 private:
-	enum class eItemFlag {
-		EXECUTE, // Just queue the command list.
-		END_FRAME, // Last item in the frame, not to be queued, exit coro.
-	};
-	struct QueueItem {
-		std::unique_ptr<BasicCommandList> commandList;
-		std::unique_ptr<VolatileViewHeap> vheap;
-		eItemFlag flag;
-		std::shared_ptr<FrameContext> context;
-	};
 	struct UsedResource {
 		MemoryObject* resource;
 		unsigned subresource;
@@ -76,19 +36,11 @@ private:
 	};
 
 private:
-	// Coroutine running through one frame and enqueues incoming command lists in command queues.
-	static jobs::SharedFuture<void> EnqueueCoro(SchedulerGPU* self, jobs::Scheduler& scheduler);
+	jobs::SharedFuture<void> EnqueueCommands(const FrameContext& frameContext, const SchedulerCPU& cpuScheduler);
+	RenderCommand UploadResources(const FrameContext& frameContext);
 
 private:
-	const Pipeline* m_pipeline = nullptr;
-	jobs::Scheduler* m_scheduler = nullptr;
-
-	std::shared_ptr<FrameContext> m_currentContext;
-
-	std::queue<QueueItem> m_queue;
-	jobs::ConditionVariable m_cvar;
-	jobs::Mutex m_mtx;
-	jobs::SharedFuture<void> m_enqueueCoro;
+	const Pipeline& m_pipeline;
 };
 
 

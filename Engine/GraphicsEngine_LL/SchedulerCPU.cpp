@@ -1,36 +1,8 @@
 #include "SchedulerCPU.hpp"
 
 #include "GraphicsCommandList.hpp"
-#include "SchedulerGPU.hpp"
-#include "UploadTask.hpp"
 
 namespace inl::gxeng {
-
-
-
-static std::tuple<std::unique_ptr<BasicCommandList>, std::unique_ptr<VolatileViewHeap>> ExecuteUploadTask(const FrameContext& context) {
-	UploadTask uploadTask(context.uploadRequests);
-	SetupContext setupContext(context.memoryManager,
-							  context.textureSpace,
-							  context.rtvHeap,
-							  context.dsvHeap,
-							  context.shaderManager,
-							  context.gxApi);
-	RenderContext renderContext(context.memoryManager,
-								context.textureSpace,
-								context.shaderManager,
-								context.gxApi,
-								context.commandListPool,
-								context.commandAllocatorPool,
-								context.scratchSpacePool,
-								nullptr);
-	uploadTask.Setup(setupContext);
-	uploadTask.Execute(renderContext);
-	std::unique_ptr<BasicCommandList> uploadInherit, uploadList;
-	std::unique_ptr<VolatileViewHeap> uploadVheap;
-	renderContext.Decompose(uploadInherit, uploadList, uploadVheap);
-	return { std::move(uploadList), std::move(uploadVheap) };
-}
 
 
 SchedulerCPU::SchedulerCPU(const Pipeline& pipeline)
@@ -60,42 +32,23 @@ SchedulerCPU::SchedulerCPU(SchedulerCPU&& rhs)
 	}
 }
 
-void SchedulerCPU::RunPipeline(const FrameContext& frameContext, jobs::Scheduler& scheduler, SchedulerGPU& schedulerGpu) {
+void SchedulerCPU::RunPipeline(const FrameContext& frameContext, jobs::Scheduler& scheduler) {
 	// Create jobs.
 	CreateSetupJobs(frameContext, scheduler);
 	CreateExecuteJobs(frameContext, scheduler);
+	CreateCommandJobs(scheduler);
 
-	// Lazily evaluate jobs.
-	// This is not necessary, the GPU scheduler should take this task over.
-	for (auto& sink : m_sinks) {
-		m_executeJobs[sink]->get();
-	}
-
-	// Topologically sort the task graph.
+	// Unsuspend all execute jobs.
+	// GPU scheduler would do the same eventually, but it may run them in order.
+	// We want to run even while the GPU scheduler is processing only the first few results.
 	const auto& taskGraph = m_pipeline.GetTaskGraph();
-	lemon::ListDigraph::NodeMap<int> topologicalOrder(taskGraph);
-	topologicalSort(taskGraph, topologicalOrder);
-	std::vector<std::pair<int, lemon::ListDigraph::Node>> nodes;
 	for (lemon::ListDigraph::NodeIt node(taskGraph); node != lemon::INVALID; ++node) {
-		nodes.push_back({ topologicalOrder[node], node });
+		m_executeJobs[node]->Run();
 	}
-	std::sort(nodes.begin(), nodes.end(), [](const auto& lhs, const auto& rhs) {
-		return lhs.first < rhs.first;
-	});
+}
 
-	// Send results to the GPU scheduler in the proper topological order.
-	schedulerGpu.BeginFrame(frameContext);
-	for (auto& [_ingore, node] : nodes) {
-		RenderCommandCandidate& task = m_executeJobs[node]->get();
-
-		if (task.inheritedList) {
-			schedulerGpu.Enqueue(std::move(task.inheritedList), nullptr).get();
-		}
-		if (task.list) {
-			schedulerGpu.Enqueue(std::move(task.list), std::move(task.vheap)).get();
-		}
-	}
-	schedulerGpu.EndFrame(true).get();
+auto SchedulerCPU::GetCommandJobs() const -> const lemon::ListDigraph::NodeMap<std::shared_ptr<jobs::SharedFuture<RenderCommand>>>& {
+	return m_commandJobs;
 }
 
 void SchedulerCPU::CalculateListForwarding() {
@@ -180,17 +133,22 @@ jobs::SharedFuture<SchedulerCPU::RenderCommandCandidate> SchedulerCPU::ExecuteJo
 
 	// Wait for dependencies.
 	auto& taskGraph = m_pipeline.GetTaskGraph();
+	RenderCommandCandidate* inherited = nullptr;
 	for (lemon::ListDigraph::InArcIt arc(taskGraph, node); arc != lemon::INVALID; ++arc) {
 		lemon::ListDigraph::Node dependencyNode = taskGraph.source(arc);
-		// Setup jobs & execute jobs may execute in parallel (for different nodes), hence the extra wait.
-		co_await* m_setupJobs[dependencyNode];
-		co_await* m_executeJobs[dependencyNode];
+		
+		if (m_listForwarding[arc]) {
+			inherited = &(co_await* m_executeJobs[dependencyNode]);
+		}
 	}
 	co_await* m_setupJobs[node];
 
 	// Run task.
 	GraphicsTask& task = *m_pipeline.GetTaskFunctionMap()[node];
 
+	std::unique_ptr<BasicCommandList> inheritanceCandidateList = inherited ? std::move(inherited->list) : nullptr;
+	std::unique_ptr<VolatileViewHeap> inheritanceCandidateVheap = inherited ? std::move(inherited->vheap) : nullptr;
+	;
 	RenderContext context{
 		frameContext.memoryManager,
 		frameContext.textureSpace,
@@ -199,8 +157,8 @@ jobs::SharedFuture<SchedulerCPU::RenderCommandCandidate> SchedulerCPU::ExecuteJo
 		frameContext.commandListPool,
 		frameContext.commandAllocatorPool,
 		frameContext.scratchSpacePool,
-		nullptr, // No inheritence for now.
-		nullptr, // No inheritence for now.
+		std::move(inheritanceCandidateList),
+		std::move(inheritanceCandidateVheap),
 	};
 	task.Execute(context);
 
@@ -209,10 +167,10 @@ jobs::SharedFuture<SchedulerCPU::RenderCommandCandidate> SchedulerCPU::ExecuteJo
 	std::unique_ptr<VolatileViewHeap> currentVheap;
 	context.Decompose(inheritedList, currentList, currentVheap);
 
-	co_return RenderCommandCandidate{ nullptr, nullptr, std::move(currentList), std::move(currentVheap) };
+	co_return RenderCommandCandidate{ std::move(inheritedList), nullptr, std::move(currentList), std::move(currentVheap) };
 }
 
-jobs::SharedFuture<SchedulerCPU::RenderCommand> SchedulerCPU::CommandJob(lemon::ListDigraph::Node node) {
+jobs::SharedFuture<RenderCommand> SchedulerCPU::CommandJob(lemon::ListDigraph::Node node) {
 	// See if dependant refused to inherit. Return its dropped inherited list.
 	auto& taskGraph = m_pipeline.GetTaskGraph();
 	for (lemon::ListDigraph::OutArcIt arc(taskGraph, node); arc != lemon::INVALID; ++arc) {
