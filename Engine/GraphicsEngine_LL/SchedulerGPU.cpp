@@ -27,7 +27,7 @@ void SchedulerGPU::BeginFrame(const FrameContext& context) {
 }
 
 
-jobs::Future<void> SchedulerGPU::Enqueue(std::unique_ptr<BasicCommandList> commandList, std::unique_ptr<VolatileViewHeap> vheap) {
+jobs::SharedFuture<void> SchedulerGPU::Enqueue(std::unique_ptr<BasicCommandList> commandList, std::unique_ptr<VolatileViewHeap> vheap) {
 	assert(commandList);
 	if (!m_currentContext) {
 		throw InvalidCallException("First call BeginFrame.");
@@ -39,7 +39,7 @@ jobs::Future<void> SchedulerGPU::Enqueue(std::unique_ptr<BasicCommandList> comma
 }
 
 
-jobs::Future<void> SchedulerGPU::EndFrame(bool successful) {
+jobs::SharedFuture<void> SchedulerGPU::EndFrame(bool successful) {
 	if (!m_currentContext) {
 		throw InvalidCallException("First call BeginFrame.");
 	}
@@ -53,7 +53,7 @@ jobs::Future<void> SchedulerGPU::EndFrame(bool successful) {
 }
 
 
-jobs::Future<void> SchedulerGPU::EnqueueCoro(SchedulerGPU* self, jobs::Scheduler& scheduler) {
+jobs::SharedFuture<void> SchedulerGPU::EnqueueCoro(SchedulerGPU* self, jobs::Scheduler& scheduler) {
 	bool runSession = true;
 	ListEnqueuer enqueuer(*self->m_currentContext);
 	do {

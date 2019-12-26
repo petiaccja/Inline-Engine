@@ -1,6 +1,6 @@
 #include "ConditionVariable.hpp"
 #include <mutex>
-#include "Future.hpp"
+#include "SharedFuture.hpp"
 
 
 namespace inl::jobs {

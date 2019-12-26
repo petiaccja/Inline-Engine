@@ -3,12 +3,8 @@
 #include "FrameContext.hpp"
 #include "Pipeline.hpp"
 
+#include "BaseLibrary/JobSystem/Mutex.hpp"
 #include <BaseLibrary/JobSystem/Scheduler.hpp>
-
-#include <any>
-#include <optional>
-
-
 
 namespace inl::gxeng {
 
@@ -17,34 +13,42 @@ class SchedulerGPU;
 
 
 class SchedulerCPU {
-public:
-	void SetPipeline(const Pipeline& pipeline);
-	void SetJobScheduler(jobs::Scheduler& scheduler);
-
-	void RunPipeline(const FrameContext& frameContext, SchedulerGPU& schedulerGpu);
-
-private:
-	// Refactored way
-	struct ProducedCommands {
+	struct RenderCommandCandidate {
+		std::unique_ptr<BasicCommandList> inheritedList;
+		std::unique_ptr<VolatileViewHeap> inheritedVheap;
 		std::unique_ptr<BasicCommandList> list;
 		std::unique_ptr<VolatileViewHeap> vheap;
 	};
-	struct FrameContextEx : public FrameContext {
-		SchedulerGPU* schedulerGpu = nullptr;
+	struct RenderCommand {
+		std::unique_ptr<BasicCommandList> list;
+		std::unique_ptr<VolatileViewHeap> vheap;
 	};
 
-	static std::vector<lemon::ListDigraph::Node> GetSourceNodes(const lemon::ListDigraph& graph);
-	void LaunchTasks(const FrameContextEx& context, std::function<jobs::Future<std::any>(const FrameContextEx&, const Pipeline&, lemon::ListDigraph::Node, std::any)> onNode);
+public:
+	SchedulerCPU(const Pipeline& pipeline);
+	SchedulerCPU(SchedulerCPU&& rhs);
 
-	static jobs::Future<std::any> OnSetupNode(const FrameContextEx& context, const Pipeline& pipeline, lemon::ListDigraph::Node node, std::any);
-	static void SetupNode(GraphicsTask& task, const FrameContextEx& context);
-
-	static jobs::Future<std::any> OnExecuteNode(const FrameContextEx& context, const Pipeline& pipeline, lemon::ListDigraph::Node node, std::any forwarded);
-	static ProducedCommands ExecuteNode(GraphicsTask& task, std::optional<ProducedCommands>& inherited, const FrameContextEx& context);
+	void RunPipeline(const FrameContext& frameContext, jobs::Scheduler& scheduler, SchedulerGPU& schedulerGpu);
 
 private:
-	const Pipeline* m_pipeline = nullptr;
-	jobs::Scheduler* m_scheduler = nullptr;
+	void CalculateListForwarding();
+	void FindTaskGraphSinks();
+
+	void CreateSetupJobs(const FrameContext& frameContext, jobs::Scheduler& scheduler);
+	void CreateExecuteJobs(const FrameContext& frameContext, jobs::Scheduler& scheduler);
+	void CreateCommandJobs(jobs::Scheduler& scheduler);
+
+	jobs::SharedFuture<void> SetupJob(lemon::ListDigraph::Node node, const FrameContext& frameContext);
+	jobs::SharedFuture<RenderCommandCandidate> ExecuteJob(lemon::ListDigraph::Node node, const FrameContext& frameContext);
+	jobs::SharedFuture<RenderCommand> CommandJob(lemon::ListDigraph::Node node);
+
+private:
+	const Pipeline& m_pipeline;
+	lemon::ListDigraph::ArcMap<bool> m_listForwarding;
+	std::vector<lemon::ListDigraph::Node> m_sinks;
+	lemon::ListDigraph::NodeMap<std::shared_ptr<jobs::SharedFuture<void>>> m_setupJobs;
+	lemon::ListDigraph::NodeMap<std::shared_ptr<jobs::SharedFuture<RenderCommandCandidate>>> m_executeJobs;
+	lemon::ListDigraph::NodeMap<std::shared_ptr<jobs::SharedFuture<RenderCommand>>> m_commandJobs;
 };
 
 

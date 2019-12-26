@@ -34,9 +34,9 @@ public:
 	void ReleaseResources();
 
 private:
+	Pipeline m_pipeline;
 	SchedulerCPU m_cpuScheduler;
 	SchedulerGPU m_gpuScheduler;
-	Pipeline m_pipeline;
 	jobs::ThreadpoolScheduler m_jobScheduler;
 };
 

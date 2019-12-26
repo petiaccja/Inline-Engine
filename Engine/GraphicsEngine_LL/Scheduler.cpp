@@ -1,20 +1,21 @@
 #include "Scheduler.hpp"
 
 #include <cassert>
+#include <new>
 
 namespace inl::gxeng {
 
 
-Scheduler::Scheduler() {
-	m_cpuScheduler.SetPipeline(m_pipeline);
-	m_cpuScheduler.SetJobScheduler(m_jobScheduler);
+Scheduler::Scheduler() : m_cpuScheduler(m_pipeline) {
 	m_gpuScheduler.SetPipeline(m_pipeline);
 	m_gpuScheduler.SetJobScheduler(m_jobScheduler);
 }
 
 void Scheduler::SetPipeline(Pipeline&& pipeline) {
 	m_pipeline = std::move(pipeline);
-	m_cpuScheduler.SetPipeline(m_pipeline);
+	// TODO: Ugly hack...
+	m_cpuScheduler.~SchedulerCPU();
+	new (&m_cpuScheduler) SchedulerCPU{ m_pipeline };
 	m_gpuScheduler.SetPipeline(m_pipeline);
 }
 
@@ -39,7 +40,7 @@ void Scheduler::ReleaseResources() {
 
 void Scheduler::Execute(FrameContext context) {
 	try {
-		m_cpuScheduler.RunPipeline(context, m_gpuScheduler);
+		m_cpuScheduler.RunPipeline(context, m_jobScheduler, m_gpuScheduler);
 	}
 	catch (Exception& ex) {
 		std::cout << "=== This frame is fucked ===" << std::endl;

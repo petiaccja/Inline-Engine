@@ -2,18 +2,18 @@
 
 
 #include "Fence.hpp"
-
-#include <experimental/coroutine>
-#include <cassert>
-
 #include "SchedulablePromiseTag.hpp"
+
+#include <cassert>
+#include <experimental/coroutine>
+#include <future>
 
 
 namespace inl::jobs {
 
 
 template <class T>
-class Future;
+class SharedFuture;
 
 class Scheduler;
 
@@ -58,9 +58,10 @@ public:
 	PromiseBase(PromiseBase&&) noexcept = default;
 	PromiseBase& operator=(PromiseBase&&) noexcept = default;
 
-	Future<T> get_future();
+	SharedFuture<T> get_future();
 
 	void set_exception(std::exception_ptr ex);
+
 protected:
 	std::shared_ptr<SharedState<T>> m_sharedState;
 };
@@ -102,54 +103,55 @@ template <class T>
 class CoroPromise : public CoroPromiseBase<T>, public SchedulablePromiseTag {
 public:
 	void return_value(T value) { this->set_value(std::move(value)); }
-	Future<T> get_return_object();
+	SharedFuture<T> get_return_object();
 };
 
 template <>
 class CoroPromise<void> : public CoroPromiseBase<void>, public SchedulablePromiseTag {
 public:
 	void return_void() { set_value(); }
-	Future<void> get_return_object();
+	SharedFuture<void> get_return_object();
 };
 
 template <class T>
 class Awaiter {
 	template <class T>
-	friend class Future;
+	friend class SharedFuture;
+
 public:
 	Awaiter(Fence::FenceAwaiter fenceAwaiter) : m_fenceAwaiter(std::move(fenceAwaiter)) {}
 
 	bool await_ready() const noexcept;
 	template <class HandleT>
 	bool await_suspend(HandleT awaitingCoroutine) noexcept;
-	T await_resume();
-	
+	decltype(auto) await_resume();
+
 private:
 	Scheduler* m_awatingScheduler = nullptr;
 	std::experimental::coroutine_handle<> m_awaitingHandle;
 	Fence::FenceAwaiter m_fenceAwaiter;
-	Future<T>* m_future;
+	SharedFuture<T>* m_future;
 };
 
 
 template <class T>
-class Future {
+class SharedFuture {
 	friend class PromiseBase<T>;
 	friend class CoroPromise<T>;
 	friend class Awaiter<T>;
 
 public:
-	Future() = default;
-	Future(const Future&) = delete;
-	Future& operator=(const Future&) = delete;
-	Future(Future&&) noexcept = default;
-	Future& operator=(Future&&) noexcept = default;
-	~Future();
+	SharedFuture() = default;
+	SharedFuture(const SharedFuture&) = delete;
+	SharedFuture& operator=(const SharedFuture&) = delete;
+	SharedFuture(SharedFuture&&) noexcept = default;
+	SharedFuture& operator=(SharedFuture&&) noexcept = default;
+	~SharedFuture();
 
 	bool valid() const noexcept;
 	bool ready() const noexcept;
 	void wait() const;
-	T get() const;
+	decltype(auto) get() const;
 
 	using promise_type = CoroPromise<T>;
 	auto operator co_await() const;
@@ -159,15 +161,17 @@ public:
 
 protected:
 	using handle_type = std::experimental::coroutine_handle<promise_type>;
-	Future(handle_type coroutineHandle, std::shared_ptr<SharedState<T>> sharedState) 
+	SharedFuture(handle_type coroutineHandle, std::shared_ptr<SharedState<T>> sharedState)
 		: m_handle(std::move(coroutineHandle)), m_sharedState(std::move(sharedState)) {}
-	Future(std::shared_ptr<SharedState<T>> sharedState)
+	SharedFuture(std::shared_ptr<SharedState<T>> sharedState)
 		: m_sharedState(std::move(sharedState)) {}
+
 protected:
 	std::shared_ptr<SharedState<T>> m_sharedState;
 	mutable bool m_ready = false;
 	mutable bool m_alreadyRun = false;
 	handle_type m_handle;
+
 public:
 	handle_type& TMP_GetHandle() { return m_handle; }
 };
@@ -185,8 +189,8 @@ PromiseBase<T>::PromiseBase() {
 
 
 template <class T>
-Future<T> PromiseBase<T>::get_future() {
-	return Future<T>{ m_sharedState };
+SharedFuture<T> PromiseBase<T>::get_future() {
+	return SharedFuture<T>{ m_sharedState };
 }
 
 
@@ -209,13 +213,13 @@ inline void Promise<void>::set_value() {
 
 
 template <class T>
-Future<T> CoroPromise<T>::get_return_object() {
-	return Future<T>{ std::experimental::coroutine_handle<CoroPromise>::from_promise(*this), this->m_sharedState };
+SharedFuture<T> CoroPromise<T>::get_return_object() {
+	return SharedFuture<T>{ std::experimental::coroutine_handle<CoroPromise>::from_promise(*this), this->m_sharedState };
 }
 
 
-inline Future<void> CoroPromise<void>::get_return_object() {
-	return Future<void>{ std::experimental::coroutine_handle<CoroPromise>::from_promise(*this), this->m_sharedState };
+inline SharedFuture<void> CoroPromise<void>::get_return_object() {
+	return SharedFuture<void>{ std::experimental::coroutine_handle<CoroPromise>::from_promise(*this), this->m_sharedState };
 }
 
 
@@ -225,24 +229,24 @@ inline Future<void> CoroPromise<void>::get_return_object() {
 //------------------------------------------------------------------------------
 
 template <class T>
-Future<T>::~Future() {
+SharedFuture<T>::~SharedFuture() {
 	if (valid() && !m_alreadyRun) {
 		std::terminate();
 	}
 }
 
 template <class T>
-bool Future<T>::valid() const noexcept {
+bool SharedFuture<T>::valid() const noexcept {
 	return (bool)m_sharedState;
 }
 
 template <class T>
-bool Future<T>::ready() const noexcept {
+bool SharedFuture<T>::ready() const noexcept {
 	return m_sharedState->fence.TryWait(1);
 }
 
 template <class T>
-void Future<T>::wait() const {
+void SharedFuture<T>::wait() const {
 	assert(valid());
 
 	// Run if needed.
@@ -264,8 +268,10 @@ void Future<T>::wait() const {
 }
 
 template <class T>
-T Future<T>::get() const {
-	assert(valid());
+decltype(auto) SharedFuture<T>::get() const {
+	if (!valid()) {
+		throw std::future_error{ std::future_errc::no_state };
+	}
 	if (!m_ready) {
 		wait();
 	}
@@ -273,20 +279,20 @@ T Future<T>::get() const {
 		std::rethrow_exception(m_sharedState->ex);
 	}
 	if constexpr (!std::is_void_v<T>) {
-		return m_sharedState->value;
+		return static_cast<T&>(m_sharedState->value);
 	}
 }
 
 template <class T>
-auto Future<T>::operator co_await() const {
+auto SharedFuture<T>::operator co_await() const {
 	Awaiter<T> awaiter{ m_sharedState->fence.Wait(1) };
-	awaiter.m_future = const_cast<Future<T>*>(this);
+	awaiter.m_future = const_cast<SharedFuture<T>*>(this);
 	return awaiter;
 }
 
 
 template <class T>
-void Future<T>::Schedule(Scheduler& scheduler) {
+void SharedFuture<T>::Schedule(Scheduler& scheduler) {
 	m_handle.promise().m_scheduler = &scheduler;
 }
 
@@ -297,7 +303,7 @@ bool Awaiter<T>::await_ready() const noexcept {
 }
 
 template <class T>
-T Awaiter<T>::await_resume() {
+decltype(auto) Awaiter<T>::await_resume() {
 	m_fenceAwaiter.await_resume();
 
 	// Handle exceptions.
@@ -311,7 +317,7 @@ T Awaiter<T>::await_resume() {
 
 	// Return value.
 	if constexpr (!std::is_void_v<T>) {
-		return m_future->m_sharedState->value;
+		return static_cast<T&>(m_future->m_sharedState->value);
 	}
 }
 
@@ -342,7 +348,7 @@ bool Awaiter<T>::await_suspend(HandleT awaitingCoroutine) noexcept {
 
 
 template <class T>
-void Future<T>::Run() {
+void SharedFuture<T>::Run() {
 	bool hasStarted = m_sharedState->coroStarted.test_and_set();
 	if (!hasStarted) {
 		m_alreadyRun = true;

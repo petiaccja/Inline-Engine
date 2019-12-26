@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Future.hpp"
+#include "SharedFuture.hpp"
 #include <experimental/coroutine>
 #include <future>
 #include <type_traits>
@@ -15,7 +15,7 @@ struct is_schedulable_task {
 };
 
 template <class T>
-struct is_schedulable_task<Future<T>> {
+struct is_schedulable_task<SharedFuture<T>> {
 	static constexpr bool value = true;
 };
 
@@ -41,7 +41,7 @@ public:
 	virtual void Resume(std::experimental::coroutine_handle<> coroutine) = 0;
 protected:
 	template <class Func, class... Args>
-	static auto Wrapper(Func func, Args... args) -> Future<std::invoke_result_t<Func, Args...>> {
+	static auto Wrapper(Func func, Args... args) -> SharedFuture<std::invoke_result_t<Func, Args...>> {
 		using Ret = std::invoke_result_t<Func, Args...>;
 		if constexpr (std::is_void_v<Ret>) {
 			func(std::forward<Args>(args)...);

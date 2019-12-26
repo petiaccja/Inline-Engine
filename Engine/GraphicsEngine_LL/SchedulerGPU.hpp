@@ -6,7 +6,7 @@
 #include "VolatileViewHeap.hpp"
 
 #include <BaseLibrary/JobSystem/ConditionVariable.hpp>
-#include <BaseLibrary/JobSystem/Future.hpp>
+#include <BaseLibrary/JobSystem/SharedFuture.hpp>
 #include <BaseLibrary/JobSystem/Scheduler.hpp>
 
 #include <memory>
@@ -54,8 +54,8 @@ public:
 	void SetJobScheduler(jobs::Scheduler& scheduler);
 
 	void BeginFrame(const FrameContext& context);
-	jobs::Future<void> Enqueue(std::unique_ptr<BasicCommandList> commandList, std::unique_ptr<VolatileViewHeap> vheap);
-	jobs::Future<void> EndFrame(bool successful);
+	jobs::SharedFuture<void> Enqueue(std::unique_ptr<BasicCommandList> commandList, std::unique_ptr<VolatileViewHeap> vheap);
+	jobs::SharedFuture<void> EndFrame(bool successful);
 
 private:
 	enum class eItemFlag {
@@ -77,7 +77,7 @@ private:
 
 private:
 	// Coroutine running through one frame and enqueues incoming command lists in command queues.
-	static jobs::Future<void> EnqueueCoro(SchedulerGPU* self, jobs::Scheduler& scheduler);
+	static jobs::SharedFuture<void> EnqueueCoro(SchedulerGPU* self, jobs::Scheduler& scheduler);
 
 private:
 	const Pipeline* m_pipeline = nullptr;
@@ -88,7 +88,7 @@ private:
 	std::queue<QueueItem> m_queue;
 	jobs::ConditionVariable m_cvar;
 	jobs::Mutex m_mtx;
-	jobs::Future<void> m_enqueueCoro;
+	jobs::SharedFuture<void> m_enqueueCoro;
 };
 
 

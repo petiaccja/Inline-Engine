@@ -1,4 +1,4 @@
-#include <BaseLibrary/JobSystem/Future.hpp>
+#include <BaseLibrary/JobSystem/SharedFuture.hpp>
 #include <BaseLibrary/JobSystem/Scheduler.hpp>
 #include <BaseLibrary/JobSystem/Mutex.hpp>
 #include <BaseLibrary/JobSystem/ConditionVariable.hpp>
@@ -14,14 +14,14 @@ using std::endl;
 
 
 
-Future<int> DoJob(int arg = 1) {
+SharedFuture<int> DoJob(int arg = 1) {
 	co_return arg;
 }
 
 
-Future<int> AddJob(int a, int b) {
-	Future<int> futa = DoJob(a);
-	Future<int> futb = DoJob(b);
+SharedFuture<int> AddJob(int a, int b) {
+	SharedFuture<int> futa = DoJob(a);
+	SharedFuture<int> futb = DoJob(b);
 
 	int ap = co_await futa;
 	int bp = co_await futb;
@@ -36,7 +36,7 @@ void PromiseJob(Promise<int> promise) {
 
 TEST_CASE("JobSystem - Future explicit", "[JobSystem]") {
 	ThreadpoolScheduler scheduler(2);
-	Future<int> fut = scheduler.Enqueue(DoJob, 1);
+	SharedFuture<int> fut = scheduler.Enqueue(DoJob, 1);
 
 	fut.wait();
 	int result = fut.get();
@@ -46,7 +46,7 @@ TEST_CASE("JobSystem - Future explicit", "[JobSystem]") {
 
 TEST_CASE("JobSystem - Future nested await", "[JobSystem]") {
 	ThreadpoolScheduler scheduler(2);
-	Future<int> fut = scheduler.Enqueue(AddJob, 5, 6);
+	SharedFuture<int> fut = scheduler.Enqueue(AddJob, 5, 6);
 
 	fut.wait();
 	int result = fut.get();
@@ -59,7 +59,7 @@ TEST_CASE("JobSystem - Promise explicit", "[JobSystem]") {
 	ThreadpoolScheduler scheduler(1);
 
 	Promise<int> promise;
-	Future<int> future = promise.get_future();
+	SharedFuture<int> future = promise.get_future();
 
 	scheduler.Enqueue(PromiseJob, std::move(promise));
 
@@ -70,7 +70,7 @@ TEST_CASE("JobSystem - Promise explicit", "[JobSystem]") {
 
 TEST_CASE("JobSystem - Exception", "[JobSystem]") {
 	ThreadpoolScheduler scheduler(2);
-	Future<int> fut = scheduler.Enqueue([]() -> Future<int> {
+	SharedFuture<int> fut = scheduler.Enqueue([]() -> SharedFuture<int> {
 		throw std::runtime_error("Ooops");
 		co_return 42;
 	});
@@ -82,17 +82,17 @@ TEST_CASE("JobSystem - Exception", "[JobSystem]") {
 TEST_CASE("JobSystem - Exception nested", "[JobSystem]") {
 	ImmediateScheduler scheduler;
 
-	auto One = []() -> Future<int> {
+	auto One = []() -> SharedFuture<int> {
 		throw std::runtime_error("Ooops");
 		co_return 42;
 	};
-	auto Two = [](Scheduler& scheduler, auto functor) -> Future<int> {
-		Future<int> one = scheduler.Enqueue(functor);
+	auto Two = [](Scheduler& scheduler, auto functor) -> SharedFuture<int> {
+		SharedFuture<int> one = scheduler.Enqueue(functor);
 		co_await one;
 		co_return 0;
 	};
 
-	Future<int> fut = scheduler.Enqueue(Two, std::ref(scheduler), One);
+	SharedFuture<int> fut = scheduler.Enqueue(Two, std::ref(scheduler), One);
 
 	REQUIRE_THROWS(fut.get());
 }
@@ -103,14 +103,14 @@ TEST_CASE("JobSystem - Fence signal", "[JobSystem]") {
 	ImmediateScheduler schedimm;
 	Fence fence{0};
 
-	auto func = [&fence]() -> Future<int> {
+	auto func = [&fence]() -> SharedFuture<int> {
 		auto* address = &fence;
 		//co_await fence.Wait(1);
 		co_return 10;
 	};
 
 	fence.Signal(1);	
-	Future<int> fut = scheduler.Enqueue(func);
+	SharedFuture<int> fut = scheduler.Enqueue(func);
 
 	REQUIRE(10 == fut.get());
 }
@@ -120,7 +120,7 @@ TEST_CASE("JobSystem - Fence signal unordered", "[JobSystem]") {
 	ThreadpoolScheduler scheduler(2);
 	Fence fence{ 0 };
 
-	auto func = [&fence]() -> Future<int> {
+	auto func = [&fence]() -> SharedFuture<int> {
 		int result = 0;
 		co_await fence.Wait(1);
 		++result;
@@ -131,13 +131,13 @@ TEST_CASE("JobSystem - Fence signal unordered", "[JobSystem]") {
 		co_return result;
 	};
 
-	Future<int> fut = scheduler.Enqueue(func);
+	SharedFuture<int> fut = scheduler.Enqueue(func);
 
 	fence.Signal(2);
 	fence.Signal(3);
 	fence.Signal(1);
 
-	Future<int> fut2 = scheduler.Enqueue(func);
+	SharedFuture<int> fut2 = scheduler.Enqueue(func);
 
 	REQUIRE(3 == fut.get());
 	REQUIRE(3 == fut2.get());
@@ -150,7 +150,7 @@ TEST_CASE("JobSystem - Mutex", "[JobSystem]") {
 	Fence sync;
 	Fence syncBack;
 
-	auto func1 = [&mutex, &sync, &syncBack]() -> Future<void> {
+	auto func1 = [&mutex, &sync, &syncBack]() -> SharedFuture<void> {
 		co_await sync.Wait(1);
 		co_await mutex.Lock();
 		syncBack.Signal(1);
@@ -158,7 +158,7 @@ TEST_CASE("JobSystem - Mutex", "[JobSystem]") {
 		mutex.Unlock();
 	};
 
-	auto func2 = [&mutex, &sync, &syncBack]() -> Future<void> {
+	auto func2 = [&mutex, &sync, &syncBack]() -> SharedFuture<void> {
 		co_await sync.Wait(2);
 		if (mutex.TryLock()) {
 			throw std::logic_error("Mutex should be locked.");
@@ -168,8 +168,8 @@ TEST_CASE("JobSystem - Mutex", "[JobSystem]") {
 		mutex.Unlock();
 	};
 
-	Future<void> fut1 = scheduler.Enqueue(func1);
-	Future<void> fut2 = scheduler.Enqueue(func2);
+	SharedFuture<void> fut1 = scheduler.Enqueue(func1);
+	SharedFuture<void> fut2 = scheduler.Enqueue(func2);
 
 	sync.Signal(1);
 	syncBack.WaitExplicit(1);
@@ -189,7 +189,7 @@ TEST_CASE("JobSystem - Condvar notify one", "[JobSystem]") {
 	Fence sync, syncBack;
 	std::vector<int> order;
 
-	auto func1 = [&]() -> Future<void> {
+	auto func1 = [&]() -> SharedFuture<void> {
 		UniqueLock lk(mutex);
 		co_await lk.Lock();
 		syncBack.Signal(1);
@@ -202,7 +202,7 @@ TEST_CASE("JobSystem - Condvar notify one", "[JobSystem]") {
 		order.push_back(1);
 	};
 
-	auto func2 = [&]() -> Future<void> {
+	auto func2 = [&]() -> SharedFuture<void> {
 		co_await sync.Wait(1);
 
 		// Just to wait until cvar released the mutex.
@@ -239,7 +239,7 @@ TEST_CASE("JobSystem - Condvar notify all", "[JobSystem]") {
 	std::atomic_int counter = 0;
 	std::vector<int> order;
 
-	auto func1 = [&]() -> Future<void> {
+	auto func1 = [&]() -> SharedFuture<void> {
 		int myCount = counter.fetch_add(1);
 
 		UniqueLock lk(mutex);
@@ -257,7 +257,7 @@ TEST_CASE("JobSystem - Condvar notify all", "[JobSystem]") {
 		}
 	};
 
-	auto func2 = [&]() -> Future<void> {
+	auto func2 = [&]() -> SharedFuture<void> {
 		co_await sync.Wait(1);
 
 		// Just to wait until cvar released the mutex.
@@ -307,7 +307,7 @@ TEST_CASE("JobSystem - WaitAny", "[JobSystem]") {
 	};
 	bool preds[3] = { false, false, false };
 
-	auto func = [&]() -> Future<void> {
+	auto func = [&]() -> SharedFuture<void> {
 		int myId = counter.fetch_add(1);
 		co_await fence.Wait(myId);
 
@@ -319,7 +319,7 @@ TEST_CASE("JobSystem - WaitAny", "[JobSystem]") {
 		cvar[myId].NotifyAll();
 	};
 
-	auto waitFunc = [&]() -> Future<void> {
+	auto waitFunc = [&]() -> SharedFuture<void> {
 		co_await lk[0].Lock();
 		co_await lk[1].Lock();
 		co_await lk[2].Lock();
