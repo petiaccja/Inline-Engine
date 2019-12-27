@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ModuleCollection.hpp"
+#include "EngineCollection.hpp"
 #include "UserInterfaceCompositor.hpp"
 
 #include <GameLogic/System.hpp>
@@ -18,7 +18,7 @@ class Window;
 
 class UserInterfaceSystem : public inl::game::SpecificSystem<UserInterfaceSystem> {
 public:
-	UserInterfaceSystem(const ModuleCollection& modules, inl::Window& window);
+	UserInterfaceSystem(const EngineCollection& modules, inl::Window& window);
 	UserInterfaceSystem(UserInterfaceSystem&& rhs);
 	UserInterfaceSystem(const UserInterfaceSystem&) = delete;
 	UserInterfaceSystem& operator=(UserInterfaceSystem&&) = delete;
@@ -26,6 +26,7 @@ public:
 	~UserInterfaceSystem();
 
 	void Update(float elapsed) override;
+	UserInterfaceCompositor& GetCompositor();
 	
 private:
 	void ResizeRender(inl::ResizeEvent evt);

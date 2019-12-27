@@ -378,8 +378,7 @@ void GraphicsEngine::LoadPipeline(const std::string& graphDesc) {
 	auto specialNodes = SelectSpecialNodes(pipeline);
 
 	m_specialNodes = specialNodes;
-	m_pipeline = std::move(pipeline);
-	m_scheduler.SetPipeline(std::move(m_pipeline));
+	m_scheduler.SetPipeline(std::move(pipeline));
 }
 
 

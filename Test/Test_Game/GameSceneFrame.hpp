@@ -1,6 +1,5 @@
 #pragma once
 
-#include "ILevel.hpp"
 #include "UserInterfaceCompositor.hpp"
 
 #include <GuiEngine/Frame.hpp>
@@ -14,9 +13,5 @@ class GameSceneFrame : public TopLevelFrame, public inl::gui::Frame {
 public:
 	GameSceneFrame();
 
-	void SetGameWorld(Game& gameWorld);
-	void Start(std::unique_ptr<ILevel> level);
 private:
-	Game* m_gameWorld = nullptr;
-	std::unique_ptr<ILevel> m_level;
 };

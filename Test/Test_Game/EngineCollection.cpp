@@ -1,9 +1,9 @@
-#include "ModuleCollection.hpp"
+#include "EngineCollection.hpp"
 #include "GraphicsEngine_LL/GraphicsEngine.hpp"
 #include "GraphicsApi_D3D12/GxapiManager.hpp"
 
 
-ModuleCollection::ModuleCollection(inl::WindowHandle windowHandle) {
+EngineCollection::EngineCollection(inl::WindowHandle windowHandle) {
 	m_gxapiManager = std::make_unique<inl::gxapi_dx12::GxapiManager>();
 
 	// Get first hardware adapter, if none, get software, if none, quit.
@@ -36,11 +36,11 @@ ModuleCollection::ModuleCollection(inl::WindowHandle windowHandle) {
 }
 
 
-inl::gxeng::IGraphicsEngine& ModuleCollection::GetGraphicsEngine() const {
+inl::gxeng::IGraphicsEngine& EngineCollection::GetGraphicsEngine() const {
 	return *m_graphicsEngine;
 }
 
 
-const inl::gxapi::AdapterInfo& ModuleCollection::GetGraphicsAdapter() const {
+const inl::gxapi::AdapterInfo& EngineCollection::GetGraphicsAdapter() const {
 	return m_adapterInfo;
 }

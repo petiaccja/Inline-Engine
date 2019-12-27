@@ -9,13 +9,12 @@
 using namespace inl;
 
 
-void SetEvents(Window& window, Game& world, gxeng::IGraphicsEngine& engine) {
+void SetEvents(Window& window, Game& game, gxeng::IGraphicsEngine& engine) {
 	window.OnResize += [&](ResizeEvent evt) -> void {
 		if (evt.resizeMode == eResizeMode::MINIMIZED) {
 			return;
 		}
 		engine.SetScreenSize(evt.clientSize.x, evt.clientSize.y);
-		world.ResizeRender(evt.clientSize.x, evt.clientSize.y);
 	};
 }
 
@@ -24,7 +23,7 @@ int main() {
 	try {
 		Timer timer;
 		Window window{ "Test game" };
-		ModuleCollection modules{ window.GetNativeHandle() };
+		EngineCollection modules{ window.GetNativeHandle() };
 		Game gameWorld{ modules, window };
 
 		SetEvents(window, gameWorld, modules.GetGraphicsEngine());
@@ -40,7 +39,13 @@ int main() {
 			gameWorld.Update(frameTime);
 		}
 	}
+	catch (Exception& ex) {
+		std::cout << "Exception occured:" << std::endl;
+		ex.PrintStackTrace(std::cout);
+		std::cout << ex.what() << std::endl;
+	}
 	catch (std::exception& ex) {
+		std::cout << "Exception occured:" << std::endl;
 		std::cout << ex.what() << std::endl;
 	}
 	return 0;

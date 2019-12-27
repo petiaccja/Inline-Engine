@@ -178,7 +178,6 @@ namespace gxeng {
 		CommandListPool m_commandListPool;
 		ScratchSpacePool m_scratchSpacePool; // Creates CBV_SRV_UAV type scratch spaces
 		CbvSrvUavHeap m_textureSpace;
-		Pipeline m_pipeline;
 		Scheduler m_scheduler;
 		ShaderManager m_shaderManager;
 		std::vector<SyncPoint> m_frameEndFenceValues;

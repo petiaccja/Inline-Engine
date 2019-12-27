@@ -1,7 +1,8 @@
 #include "Game.hpp"
 
+#include "MainMenuFrame.hpp"
+#include "TestLevelSystem.hpp"
 #include "UserInterfaceSystem.hpp"
-#include "WindowEventSystem.hpp"
 
 #include <GameFoundationLibrary/Components/GraphicsMeshComponent.hpp>
 #include <GameFoundationLibrary/Components/PerspectiveCameraComponent.hpp>
@@ -14,45 +15,89 @@
 #define RENDER_PIPELINE_FULL_3D "forward_with_gui.json"
 #define RENDER_PIPELINE_GUI_ONLY "gui_only.json"
 
-Game::Game(const ModuleCollection& modules, inl::Window& window)
-	: m_graphicsModule(modules.GetGraphicsEngine(), INL_GAMEDATA), m_window(window) {
-	CreateSystems(modules);
-	SetupRenderPipeline(modules);
+
+Game::Game(const EngineCollection& modules, inl::Window& window)
+	: m_graphicsModule(modules.GetGraphicsEngine(), INL_GAMEDATA), m_window(window), m_engines(modules) {
+	InitSimulation();
+	InitRenderPaths();
+	m_modules.Insert(&m_graphicsModule);
+	UpdateRenderPipeline();
 }
 
+
 void Game::Update(float elapsed) {
+	UpdateRenderPipeline();
 	m_simulation.Run(m_scene, elapsed);
 }
 
-void Game::ResizeRender(int width, int height) {
-	// Set aspect ratios for cameras.
-	for (auto& matrix : m_scene.GetSchemeSets({ typeid(inl::gamelib::PerspectiveCameraComponent) })) {
-		inl::game::ComponentRange<inl::gamelib::PerspectiveCameraComponent> range{ matrix.get().GetMatrix() };
-		for (auto [camera] : range) {
-			float fovh = camera.entity->GetFOVHorizontal();
-			camera.entity->SetFOVAspect(fovh, float(width) / float(height));
-		}
-	}
-}
 
-
-void Game::CreateSystems(const ModuleCollection& modules) {
-	m_simulation.PushBack(UserInterfaceSystem{ modules, m_window });
+void Game::InitSimulation() {
+	m_simulation.PushBack(UserInterfaceSystem{ m_engines, m_window });
+	m_simulation.PushBack(TestLevelSystem{});
 	m_simulation.PushBack(inl::gamelib::LinkTransformSystem{});
-	m_simulation.PushBack(inl::gamelib::RenderingSystem{ &modules.GetGraphicsEngine() });
+	m_simulation.PushBack(inl::gamelib::RenderingSystem{ &m_engines.GetGraphicsEngine() });
+
+	m_simulation.Get<UserInterfaceSystem>().GetCompositor().GetFrame<MainMenuFrame>().OnStart += [this, &testLevelSystem = m_simulation.Get<TestLevelSystem>()] {
+		testLevelSystem.LoadAsync(inl::game::ComponentFactory_Singleton::GetInstance(), m_modules);
+	};
 }
 
-void Game::SetupRenderPipeline(const ModuleCollection& modules) {
-	auto& engine = modules.GetGraphicsEngine();
+
+void Game::InitRenderPaths() {
+	auto& engine = m_engines.GetGraphicsEngine();
 	engine.SetShaderDirectories({ INL_NODE_SHADER_DIRECTORY,
 								  INL_MTL_SHADER_DIRECTORY,
 								  "./Shaders",
 								  "./Materials" });
+}
 
-	std::ifstream pipelineFile(INL_GAMEDATA "/Pipelines/" RENDER_PIPELINE_GUI_ONLY);
+
+void Game::LoadRenderPipeline(std::string_view path) {
+	std::ifstream pipelineFile(std::filesystem::path(INL_GAMEDATA) / path);
 	if (!pipelineFile.is_open()) {
 		throw inl::FileNotFoundException("Failed to open pipeline JSON.");
 	}
 	std::string pipelineDesc((std::istreambuf_iterator<char>(pipelineFile)), std::istreambuf_iterator<char>());
-	engine.LoadPipeline(pipelineDesc);
+	m_engines.GetGraphicsEngine().LoadPipeline(pipelineDesc);
+}
+
+
+std::vector<inl::gxeng::IPerspectiveCamera*> Game::GetSceneCameras() const {
+	std::vector<inl::gxeng::IPerspectiveCamera*> cameras;
+	for (auto& matrix : m_scene.GetSchemeSets({ typeid(inl::gamelib::PerspectiveCameraComponent) })) {
+		inl::game::ComponentRange<const inl::gamelib::PerspectiveCameraComponent> range{ matrix.get().GetMatrix() };
+		for (auto [camera] : range) {
+			cameras.push_back(camera.entity.get());
+		}
+	}
+	return cameras;
+}
+
+
+void Game::SetSceneCameraARs(float aspectRatio) const {
+	auto cameras = GetSceneCameras();
+	for (auto camera : cameras) {
+		float fovh = camera->GetFOVHorizontal();
+		camera->SetFOVAspect(fovh, aspectRatio);
+	}
+}
+
+
+void Game::UpdateRenderPipeline() {
+	auto cameras = GetSceneCameras();
+	bool cameraFound = false;
+	for (auto& camera : cameras) {
+		cameraFound = cameraFound || camera->GetName() == "MainCamera";
+	}
+	m_graphicsModule.GetOrCreateScene("MainScene");
+
+	eRenderMode desiredMode = cameraFound ? eRenderMode::FULL : eRenderMode::GUI;
+
+	if (m_renderMode != desiredMode) {
+		switch (desiredMode) {
+			case eRenderMode::FULL: LoadRenderPipeline("Pipelines/" RENDER_PIPELINE_FULL_3D); break;
+			case eRenderMode::GUI: LoadRenderPipeline("Pipelines/" RENDER_PIPELINE_GUI_ONLY); break;
+		}
+		m_renderMode = desiredMode;
+	}		
 }

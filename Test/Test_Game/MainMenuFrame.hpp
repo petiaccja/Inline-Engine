@@ -13,6 +13,8 @@ public:
 	MainMenuFrame();
 
 	inl::Event<> OnQuit;
+	inl::Event<> OnStart;
+
 private:
 	inl::gui::LinearLayout m_layout;
 	inl::gui::Button m_startButton;

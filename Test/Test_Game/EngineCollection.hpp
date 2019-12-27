@@ -9,9 +9,9 @@
 
 
 
-class ModuleCollection {
+class EngineCollection {
 public:
-	ModuleCollection(inl::WindowHandle windowHandle);
+	EngineCollection(inl::WindowHandle windowHandle);
 
 	inl::gxeng::IGraphicsEngine& GetGraphicsEngine() const;
 	const inl::gxapi::AdapterInfo& GetGraphicsAdapter() const;

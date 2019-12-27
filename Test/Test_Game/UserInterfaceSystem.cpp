@@ -9,7 +9,7 @@
 #include <fstream>
 
 
-UserInterfaceSystem::UserInterfaceSystem(const ModuleCollection& modules, inl::Window& window)
+UserInterfaceSystem::UserInterfaceSystem(const EngineCollection& modules, inl::Window& window)
 	: m_window(window), m_board(std::make_unique<inl::gui::Board>()), m_compositor(std::make_unique<UserInterfaceCompositor>(*m_board)) {
 	m_camera = modules.GetGraphicsEngine().CreateCamera2D("GuiCam");
 	m_font = modules.GetGraphicsEngine().CreateFont();
@@ -64,6 +64,10 @@ UserInterfaceSystem::~UserInterfaceSystem() noexcept {
 void UserInterfaceSystem::Update(float elapsed) {
 	m_window.CallEvents();
 	m_board->Update(elapsed);
+}
+
+UserInterfaceCompositor& UserInterfaceSystem::GetCompositor() {
+	return *m_compositor;
 }
 
 

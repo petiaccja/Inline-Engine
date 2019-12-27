@@ -2,7 +2,6 @@
 
 #include "DebugInfoFrame.hpp"
 #include "GameSceneFrame.hpp"
-#include "TestLevel.hpp"
 
 
 MainMenuFrame::MainMenuFrame() {
@@ -22,8 +21,8 @@ MainMenuFrame::MainMenuFrame() {
 	m_startButton.OnClick += [this](auto...) {
 		GetCompositor().ShowFrame<GameSceneFrame>();
 		GetCompositor().GetBinding<GameSceneFrame>().SetAnchors(true, true, true, true).SetResizing(true).MoveToBack();
-		GetCompositor().GetFrame<GameSceneFrame>().Start(std::make_unique<TestLevel>());
 		GetCompositor().HideFrame<MainMenuFrame>();
+		OnStart();
 	};
 
 	m_toggleDebugInfoButton.SetText(U"Toggle Info");

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <InlineMath.hpp>
 #include <cereal/cereal.hpp>
 

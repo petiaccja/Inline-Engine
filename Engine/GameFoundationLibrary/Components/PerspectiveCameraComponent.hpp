@@ -4,9 +4,7 @@
 
 #include <BaseLibrary/Serialization/Math.hpp>
 #include <GameLogic/AutoRegisterComponent.hpp>
-#include <GameLogic/ComponentClassFactory.hpp>
 #include <GraphicsEngine/Scene/IPerspectiveCamera.hpp>
-#include <GraphicsEngine/Scene/IScene.hpp>
 
 #include <cereal/types/string.hpp>
 

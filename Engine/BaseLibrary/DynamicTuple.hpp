@@ -1,3 +1,5 @@
+#pragma once
+
 #include "Exception/Exception.hpp"
 
 #include <any>
