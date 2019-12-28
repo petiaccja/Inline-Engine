@@ -51,6 +51,20 @@ void TestLevelSystem::Create(const CreateEntity& createEntity) {
 	terrainComponent.entity->SetScale({ 1, 1, 1 });
 	scene.GetEntities<gxeng::IMeshEntity>().Add(terrainComponent.entity.get());
 
+	// Create a tree.
+	Entity& tree = createEntity();
+	componentFactory.Create<GraphicsMeshComponent>(tree);
+	auto&& treeComponent = tree.GetFirstComponent<GraphicsMeshComponent>();
+	treeComponent.entity = graphicsModule.CreateMeshEntity();
+	treeComponent.mesh = graphicsModule.LoadMesh("Models/Vegetation/Trees/chestnut.fbx");
+	treeComponent.material = graphicsModule.LoadMaterial("Models/Vegetation/Trees/chestnut.mtl");
+	treeComponent.entity->SetMesh(treeComponent.mesh.get());
+	treeComponent.entity->SetMaterial(treeComponent.material.get());
+	treeComponent.entity->SetPosition({ 0, 0, 0 });
+	treeComponent.entity->SetRotation(Quat::Identity());
+	treeComponent.entity->SetScale({ 0.003937, 0.003937, 0.003937 });
+	scene.GetEntities<gxeng::IMeshEntity>().Add(treeComponent.entity.get());
+
 	// Create a 3D camera.
 	Entity& camera = createEntity();
 	componentFactory.Create<PerspectiveCameraComponent>(camera);

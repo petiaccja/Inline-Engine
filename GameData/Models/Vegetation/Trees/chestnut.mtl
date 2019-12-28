@@ -1,0 +1,6 @@
+{
+	"shader": "MaterialShaders/SimpleTextured.json",
+	"inputs": {
+		"DiffuseTex_image": "Models/Vegetation/Trees/chestnut_diffuse_leaves_alpha.png"
+	}
+}
