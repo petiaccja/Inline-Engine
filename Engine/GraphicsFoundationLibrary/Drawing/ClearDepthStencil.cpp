@@ -26,7 +26,7 @@ void ClearDepthStencil::Execute(RenderContext& context) {
 
 	float depthValue = GetInput<1>().Get();
 	uint8_t stencilValue = GetInput<2>().Get();
-	list.SetResourceState(m_dsv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+	list.SetResourceState(m_dsv.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
 	list.ClearDepthStencil(m_dsv, depthValue, stencilValue);
 	m_dsv = {};
 }

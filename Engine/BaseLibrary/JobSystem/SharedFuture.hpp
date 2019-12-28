@@ -146,7 +146,7 @@ public:
 	SharedFuture& operator=(const SharedFuture&) = delete;
 	SharedFuture(SharedFuture&&) noexcept = default;
 	SharedFuture& operator=(SharedFuture&&) noexcept = default;
-	~SharedFuture();
+	~SharedFuture() = default;
 
 	bool valid() const noexcept;
 	bool ready() const noexcept;
@@ -227,13 +227,6 @@ inline SharedFuture<void> CoroPromise<void>::get_return_object() {
 //------------------------------------------------------------------------------
 // Future - defs
 //------------------------------------------------------------------------------
-
-template <class T>
-SharedFuture<T>::~SharedFuture() {
-	if (valid() && !m_alreadyRun) {
-		std::terminate();
-	}
-}
 
 template <class T>
 bool SharedFuture<T>::valid() const noexcept {

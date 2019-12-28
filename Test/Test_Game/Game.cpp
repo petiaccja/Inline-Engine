@@ -22,6 +22,10 @@ Game::Game(const EngineCollection& modules, inl::Window& window)
 	InitRenderPaths();
 	m_modules.Insert(&m_graphicsModule);
 	UpdateRenderPipeline();
+
+	window.OnResize += [this] (inl::ResizeEvent evt){
+		SetSceneCameraARs(evt.clientSize.x / float(evt.clientSize.y));
+	};
 }
 
 

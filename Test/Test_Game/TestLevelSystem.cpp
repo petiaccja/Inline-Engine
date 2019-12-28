@@ -3,6 +3,7 @@
 #include <BaseLibrary/AtScopeExit.hpp>
 #include <BaseLibrary/DynamicTuple.hpp>
 #include <GameFoundationLibrary/Components/DirectionalLightComponent.hpp>
+#include <GameFoundationLibrary/Components/GraphicsMeshComponent.hpp>
 #include <GameFoundationLibrary/Components/PerspectiveCameraComponent.hpp>
 #include <GameLogic/ComponentFactory.hpp>
 #include <GameLogic/Entity.hpp>
@@ -32,20 +33,34 @@ void TestLevelSystem::Create(const CreateEntity& createEntity) {
 	componentFactory.Create<DirectionalLightComponent>(light);
 	auto&& lightComponent = light.GetFirstComponent<DirectionalLightComponent>();
 	lightComponent.entity = graphicsModule.CreateDirectionalLight();
-	lightComponent.entity->SetDirection(Vec3{ 0.5, 0.5, -0.3 }.Normalized());
-	lightComponent.entity->SetColor({ 1.0f, 0.9f, 0.8f });
+	lightComponent.entity->SetDirection(Vec3{ 0.5, 0.5, -0.2 }.Normalized());
+	lightComponent.entity->SetColor({ 1.0f, 0.7f, 0.4f });
 	scene.GetEntities<gxeng::IDirectionalLight>().Add(lightComponent.entity.get());
+
+	// Create terrain.
+	Entity& terrain = createEntity();
+	componentFactory.Create<GraphicsMeshComponent>(terrain);
+	auto&& terrainComponent = terrain.GetFirstComponent<GraphicsMeshComponent>();
+	terrainComponent.entity = graphicsModule.CreateMeshEntity();
+	terrainComponent.mesh = graphicsModule.LoadMesh("Models/Terrain/terrain.fbx");
+	terrainComponent.material = graphicsModule.LoadMaterial("Models/Terrain/terrain.mtl");
+	terrainComponent.entity->SetMesh(terrainComponent.mesh.get());
+	terrainComponent.entity->SetMaterial(terrainComponent.material.get());
+	terrainComponent.entity->SetPosition({ 0, 0, 0 });
+	terrainComponent.entity->SetRotation(Quat::Identity());
+	terrainComponent.entity->SetScale({ 1, 1, 1 });
+	scene.GetEntities<gxeng::IMeshEntity>().Add(terrainComponent.entity.get());
 
 	// Create a 3D camera.
 	Entity& camera = createEntity();
 	componentFactory.Create<PerspectiveCameraComponent>(camera);
 	auto&& cameraComponent = camera.GetFirstComponent<PerspectiveCameraComponent>();
 	cameraComponent.entity = graphicsModule.CreatePerspectiveCamera("MainCamera");
-	cameraComponent.entity->SetFOVAspect(75.f, 1.33f);
+	cameraComponent.entity->SetFOVAspect(Deg2Rad(75.f), 1.33f);
 	cameraComponent.entity->SetNearPlane(0.5f);
 	cameraComponent.entity->SetFarPlane(200.f);
 	cameraComponent.entity->SetUpVector({ 0, 0, 1 });
-	cameraComponent.entity->SetPosition({ 5.f, 5.f, 2.f });
+	cameraComponent.entity->SetPosition({ 20.f, 5.f, 4.f });
 	cameraComponent.entity->SetTarget({ 0, 0, 0 });
 }
 

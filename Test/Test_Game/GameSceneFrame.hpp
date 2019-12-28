@@ -13,5 +13,6 @@ class GameSceneFrame : public TopLevelFrame, public inl::gui::Frame {
 public:
 	GameSceneFrame();
 
+	void UpdateStyle() override;
 private:
 };

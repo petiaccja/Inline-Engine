@@ -12,6 +12,27 @@ namespace inl::gxeng {
 using VolatileViewPtr = std::unique_ptr<VolatileViewHeap>;
 
 struct DecomposedRenderCommand {
+	DecomposedRenderCommand() = default;
+	DecomposedRenderCommand(CmdAllocPtr commandAllocator,
+							CmdListPtr commandList,
+							VolatileViewPtr volatileViewHeap,
+							std::vector<ScratchSpacePtr> scratchSpaces,
+							std::vector<ResourceUsage> usedResources,
+							std::vector<MemoryObject> additionalResources)
+		: commandAllocator(std::move(commandAllocator)),
+		  commandList(std::move(commandList)),
+		  volatileViewHeap(std::move(volatileViewHeap)),
+		  scratchSpaces(std::move(scratchSpaces)),
+		  usedResources(std::move(usedResources)),
+		  additionalResources(std::move(additionalResources)) {}
+	DecomposedRenderCommand(DecomposedRenderCommand&&) = default;
+	DecomposedRenderCommand& operator=(DecomposedRenderCommand&&) = default;
+	~DecomposedRenderCommand() {
+		if (commandList) {
+			dynamic_cast<gxapi::ICopyCommandList*>(commandList.get())->Close();
+		}
+	}
+
 	CmdAllocPtr commandAllocator;
 	CmdListPtr commandList;
 	VolatileViewPtr volatileViewHeap;
@@ -32,7 +53,7 @@ private:
 	DecomposedRenderCommand DecomposeRenderCommand(RenderCommand command);
 
 	/// <summary> Injects transition barriers into <paramref name="subject"/> to match states for <paramref name="next"/>. </summary>
-	void Finalize(DecomposedRenderCommand& subject, const DecomposedRenderCommand& next);
+	void InjectBarriers(DecomposedRenderCommand& subject, const DecomposedRenderCommand& next);
 
 	/// <summary> Injects transition barrier into <paramref name="subject"/> to set back-buffer to PRESENT. </summary>
 	void FinalizeBackBuffer(DecomposedRenderCommand& subject);
@@ -54,7 +75,7 @@ private:
 	static std::vector<gxapi::ResourceBarrier> TransitionBarriers(const std::vector<ResourceUsage>& usages);
 
 	/// <summary> Update the state of the resources to the last usage state. </summary>
-	static void UpdateResourceStates(const std::vector<ResourceUsage>& usages);
+	static void UpdateResourceStates(std::vector<ResourceUsage>& usages);
 
 	/// <summary> Concatenates the two sets of <see cref="MemoryObject"/>s. </summary>
 	std::vector<MemoryObject> UsedResources(const std::vector<ResourceUsage>& usages, std::vector<MemoryObject> additional);
@@ -75,7 +96,8 @@ void LinearQueue::operator<<(RenderCommand command) {
 	if (m_queue.empty()) {
 		m_queue.push({});
 	}
-	Finalize(m_queue.back(), decomp);
+	InjectBarriers(m_queue.back(), decomp);
+	UpdateResourceStates(decomp.usedResources);
 
 	m_queue.push(std::move(decomp));
 	SubmitSome();
@@ -107,8 +129,8 @@ DecomposedRenderCommand LinearQueue::DecomposeRenderCommand(RenderCommand comman
 std::vector<gxapi::ResourceBarrier> LinearQueue::TransitionBarriers(const std::vector<ResourceUsage>& usages) {
 	std::vector<gxapi::ResourceBarrier> barriers;
 
-	for (auto usage : usages) {
-		MemoryObject& resource = usage.resource;
+	for (auto& usage : usages) {
+		const MemoryObject& resource = usage.resource;
 		unsigned subresource = usage.subresource;
 		gxapi::eResourceState targetState = usage.firstState;
 
@@ -132,8 +154,8 @@ std::vector<gxapi::ResourceBarrier> LinearQueue::TransitionBarriers(const std::v
 }
 
 
-void LinearQueue::UpdateResourceStates(const std::vector<ResourceUsage>& usages) {
-	for (auto usage : usages) {
+void LinearQueue::UpdateResourceStates(std::vector<ResourceUsage>& usages) {
+	for (auto& usage : usages) {
 		if (usage.subresource != gxapi::ALL_SUBRESOURCES) {
 			usage.resource.RecordState(usage.subresource, usage.lastState);
 		}
@@ -160,9 +182,8 @@ std::vector<MemoryObject> LinearQueue::UsedResources(const std::vector<ResourceU
 	return usedResourceList;
 }
 
-void LinearQueue::Finalize(DecomposedRenderCommand& subject, const DecomposedRenderCommand& next) {
+void LinearQueue::InjectBarriers(DecomposedRenderCommand& subject, const DecomposedRenderCommand& next) {
 	auto barriers = TransitionBarriers(next.usedResources);
-	UpdateResourceStates(next.usedResources);
 
 	if (!barriers.empty()) {
 		// Create an ad-hoc command list just for the barriers.
@@ -172,7 +193,7 @@ void LinearQueue::Finalize(DecomposedRenderCommand& subject, const DecomposedRen
 		}
 		auto* underlyingList = dynamic_cast<gxapi::IGraphicsCommandList*>(subject.commandList.get());
 		underlyingList->ResourceBarrier((unsigned)barriers.size(), barriers.data());
-	}
+	}	
 }
 
 void LinearQueue::FinalizeBackBuffer(DecomposedRenderCommand& subject) {
@@ -195,7 +216,6 @@ void LinearQueue::SubmitSome(size_t chunk, size_t keep) {
 	while (m_queue.size() > keep) {
 		auto& command = m_queue.front();
 		if (command.commandList) {
-			dynamic_cast<gxapi::ICopyCommandList*>(command.commandList.get())->Close();
 			auto usedResource = UsedResources(command.usedResources, command.additionalResources);
 
 			Submit(*m_context.commandQueue,
@@ -220,6 +240,9 @@ void LinearQueue::Submit(CommandQueue& target,
 						 Args&&... cleanables) {
 	// Enqueue CPU task to make resources resident before the command list runs.
 	SyncPoint residentPoint = context.residencyQueue->EnqueueInit(usedResources);
+
+	// Close the command list.
+	dynamic_cast<gxapi::ICopyCommandList*>(list.get())->Close();
 
 	// Enqueue the command list itself on the GPU.
 	gxapi::ICommandList* execLists[] = {

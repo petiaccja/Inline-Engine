@@ -50,7 +50,7 @@
             "class": "GetCamera2DByName",
             "id": 3,
             "inputs": [
-                "GuiCamera"
+                "GuiCam"
             ],
             "meta_pos": "[590, -91]"
         },

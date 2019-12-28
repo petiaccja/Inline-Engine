@@ -4,6 +4,7 @@
 #include <GraphicsApi_LL/Common.hpp>
 #include <GraphicsApi_LL/IPipelineState.hpp>
 #include <GraphicsEngine/Scene/IMeshEntity.hpp>
+#include <GraphicsEngine/Scene/IDirectionalLight.hpp>
 #include <GraphicsEngine_LL/BasicCamera.hpp>
 #include <GraphicsEngine_LL/GraphicsNode.hpp>
 
@@ -107,7 +108,7 @@ private:
 /// </summary>
 class RenderForwardSimple : virtual public GraphicsNode,
 							public GraphicsTask,
-							public InputPortConfig<Texture2D, Texture2D, const BasicCamera*, const EntityCollection<IMeshEntity>*, const EntityCollection<DirectionalLight>*>,
+							public InputPortConfig<Texture2D, Texture2D, const BasicCamera*, const EntityCollection<IMeshEntity>*, const EntityCollection<IDirectionalLight>*>,
 							public OutputPortConfig<Texture2D, Texture2D> {
 public:
 	static const char* Info_GetName() { return "RenderForwardSimple"; }
