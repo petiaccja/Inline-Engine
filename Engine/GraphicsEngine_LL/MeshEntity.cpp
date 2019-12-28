@@ -3,12 +3,6 @@
 namespace inl::gxeng {
 
 
-MeshEntity::MeshEntity() :
-	m_mesh(nullptr),
-	m_material(nullptr)
-{}
-
-
 
 void MeshEntity::SetMesh(Mesh* mesh) {
 	m_mesh = mesh;
@@ -23,13 +17,6 @@ void MeshEntity::SetMaterial(Material* material) {
 Material* MeshEntity::GetMaterial() const {
 	return m_material;
 }
-
-
-
-
-
-
-
 
 
 } // namespace inl::gxeng

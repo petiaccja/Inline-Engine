@@ -48,15 +48,19 @@ namespace mathter {
 template <class T, int Rows, int Columns, eMatrixOrder Order = eMatrixOrder::FOLLOW_VECTOR, eMatrixLayout Layout = eMatrixLayout::ROW_MAJOR, bool Packed = false>
 class MatrixData {
 public:
+	/// <summary> Returns the number of columns of the matrix. </summary>
 	constexpr int ColumnCount() const {
 		return Columns;
 	}
+	/// <summary> Returns the number of rows of the matrix. </summary>
 	constexpr int RowCount() const {
 		return Rows;
 	}
+	/// <summary> Returns the number of columns of the matrix. </summary>
 	constexpr int Width() const {
 		return Columns;
 	}
+	/// <summary> Returns the number of rows of the matrix. </summary>
 	constexpr int Height() const {
 		return Rows;
 	}
@@ -431,15 +435,19 @@ public:
 		return SubmatrixHelper<const Matrix, Subrows, Subcolumns>(*this, rowIdx, colIdx);
 	}
 
+	/// <summary> Return the submatrix corresponding to the specified column. </summary>
 	auto Column(int colIdx) {
 		return Submatrix<Rows, 1>(0, colIdx);
 	}
+	/// <summary> Return the submatrix corresponding to the specified row. </summary>
 	auto Row(int rowIdx) {
 		return Submatrix<1, Columns>(rowIdx, 0);
 	}
+	/// <summary> Return the submatrix corresponding to the specified column. </summary>
 	auto Column(int colIdx) const {
 		return Submatrix<Rows, 1>(0, colIdx);
 	}
+	/// <summary> Return the submatrix corresponding to the specified row. </summary>
 	auto Row(int rowIdx) const {
 		return Submatrix<1, Columns>(rowIdx, 0);
 	}
@@ -564,12 +572,15 @@ public:
 	// Internal modifying operators
 
 	// Addition, subtraction
+
+	/// <summary> Performs matrix addition and stores result in this. </summary>
 	template <class U, eMatrixOrder Order2, eMatrixLayout Layout2>
 	inline Matrix& operator+=(const Matrix<U, Rows, Columns, Order2, Layout2, Packed>& rhs) {
 		*this = mathter::operator+<T, U, Rows, Columns, Order, Order2, Layout2, Packed, T>(*this, rhs);
 		return *this;
 	}
 
+	/// <summary> Performs matrix subtraction and stores result in this. </summary>
 	template <class U, eMatrixOrder Order2, eMatrixLayout Layout2>
 	inline Matrix& operator-=(const Matrix<U, Rows, Columns, Order2, Layout2, Packed>& rhs) {
 		*this = mathter::operator-<T, U, Rows, Columns, Order, Order2, Layout2, Packed, T>(*this, rhs);
@@ -577,12 +588,14 @@ public:
 	}
 
 	// Scalar multiplication
+	/// <summary> Multiplies all elements of the matrix by scalar. </summary>
 	inline Matrix& operator*=(T s) {
 		for (auto& stripe : stripes) {
 			stripe *= s;
 		}
 		return *this;
 	}
+	/// <summary> Divides all elements of the matrix by scalar. </summary>
 	inline Matrix& operator/=(T s) {
 		*this *= (1 / s);
 		return *this;
@@ -656,9 +669,11 @@ public:
 	static Matrix Identity();
 	Matrix& SetIdentity();
 
+	/// <summary> Calculates the Frobenius norm of the matrix. </summary>
 	T Norm() const {
 		return sqrt(NormSquared());
 	}
+	/// <summary> Calculates the square of the Frobenius norm of the matrix. </summary>
 	T NormSquared() const {
 		T sum = T(0);
 		for (auto& stripe : stripes) {

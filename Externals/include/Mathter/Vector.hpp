@@ -148,7 +148,8 @@ constexpr int Swizzle<T, Indices...>::IndexTable[];
 template <class T, int Dim, bool Packed>
 class VectorData {
 public:
-	T data[Dim]; /// <summary> Raw array containing the elements. </summary>
+	/// <summary> Raw array containing the elements. </summary>
+	T data[Dim];
 };
 
 
@@ -167,7 +168,8 @@ public:
 	}
 	union {
 		struct { T x, y; };
-		T data[2]; /// <summary> Raw array containing the elements. </summary>
+		/// <summary> Raw array containing the elements. </summary>
+		T data[2];
 #include "Swizzle/Swizzle_2.inc.hpp"
 	};
 };
@@ -186,7 +188,8 @@ public:
 	}
 	union {
 		struct { T x, y, z; };
-		T data[3]; /// <summary> Raw array containing the elements. </summary>
+		/// <summary> Raw array containing the elements. </summary>
+		T data[3];
 #include "Swizzle/Swizzle_3.inc.hpp"
 	};
 };
@@ -205,7 +208,8 @@ public:
 	}
 	union {
 		struct { T x, y, z, w; };
-		T data[4]; /// <summary> Raw array containing the elements. </summary>
+		/// <summary> Raw array containing the elements. </summary>
+		T data[4];
 #include "Swizzle/Swizzle_4.inc.hpp"
 	};
 };
@@ -220,9 +224,11 @@ public:
 	VectorData(const VectorData& rhs) { simd = rhs.simd; }
 	VectorData& operator=(const VectorData& rhs) { simd = rhs.simd; return *this; }
 	union {
-		Simd<float, 2> simd; /// <summary> Leave this member alone. You can't fuck it up though. </summary>
+		/// <summary> Leave this member alone. You can't fuck it up though. </summary>
+		Simd<float, 2> simd;
 		struct { float x, y; };
-		float data[2]; /// <summary> Raw array containing the elements. </summary>
+		/// <summary> Raw array containing the elements. </summary>
+		float data[2];
 #include "Swizzle/Swizzle_2.inc.hpp"
 	};
 };
@@ -235,9 +241,11 @@ public:
 	VectorData(const VectorData& rhs) { simd = rhs.simd; }
 	VectorData& operator=(const VectorData& rhs) { simd = rhs.simd; return *this; }
 	union {
-		Simd<float, 4> simd; /// <summary> Leave this member alone. You can't fuck it up though. </summary>
+		/// <summary> Leave this member alone. You can't fuck it up though. </summary>
+		Simd<float, 4> simd;
 		struct { float x, y, z; };
-		float data[3]; /// <summary> Raw array containing the elements. </summary>
+		/// <summary> Raw array containing the elements. </summary>
+		float data[3];
 #include "Swizzle/Swizzle_3.inc.hpp"
 	};
 };
@@ -250,9 +258,11 @@ public:
 	VectorData(const VectorData& rhs) { simd = rhs.simd; }
 	VectorData& operator=(const VectorData& rhs) { simd = rhs.simd; return *this; }
 	union {
-		Simd<float, 4> simd; /// <summary> Leave this member alone. You can't fuck it up though. </summary>
+		/// <summary> Leave this member alone. You can't fuck it up though. </summary>
+		Simd<float, 4> simd;
 		struct { float x, y, z, w; };
-		float data[4]; /// <summary> Raw array containing the elements. </summary>
+		/// <summary> Raw array containing the elements. </summary>
+		float data[4];
 #include "Swizzle/Swizzle_4.inc.hpp"
 	};
 };
@@ -264,8 +274,10 @@ public:
 	VectorData(const VectorData& rhs) { simd = rhs.simd; }
 	VectorData& operator=(const VectorData& rhs) { simd = rhs.simd; return *this; }
 	union {
-		Simd<float, 8> simd; /// <summary> Leave this member alone. You can't fuck it up though. </summary>
-		float data[8]; /// <summary> Raw array containing the elements. </summary>
+		/// <summary> Leave this member alone. You can't fuck it up though. </summary>
+		Simd<float, 8> simd;
+		/// <summary> Raw array containing the elements. </summary>
+		float data[8];
 	};
 };
 
@@ -279,9 +291,11 @@ public:
 	VectorData(const VectorData& rhs) { simd = rhs.simd; }
 	VectorData& operator=(const VectorData& rhs) { simd = rhs.simd; return *this; }
 	union {
-		Simd<double, 2> simd; /// <summary> Leave this member alone. You can't fuck it up though. </summary>
+		/// <summary> Leave this member alone. You can't fuck it up though. </summary>
+		Simd<double, 2> simd;
 		struct { double x, y; };
-		double data[2]; /// <summary> Raw array containing the elements. </summary>
+		/// <summary> Raw array containing the elements. </summary>
+		double data[2];
 #include "Swizzle/Swizzle_2.inc.hpp"
 	};
 };
@@ -294,9 +308,11 @@ public:
 	VectorData(const VectorData& rhs) { simd = rhs.simd; }
 	VectorData& operator=(const VectorData& rhs) { simd = rhs.simd; return *this; }
 	union {
-		Simd<double, 4> simd; /// <summary> Leave this member alone. You can't fuck it up though. </summary>
+		/// <summary> Leave this member alone. You can't fuck it up though. </summary>
+		Simd<double, 4> simd;
 		struct { double x, y, z; };
-		double data[3]; /// <summary> Raw array containing the elements. </summary>
+		/// <summary> Raw array containing the elements. </summary>
+		double data[3];
 #include "Swizzle/Swizzle_3.inc.hpp"
 	};
 };
@@ -309,9 +325,11 @@ public:
 	VectorData(const VectorData& rhs) { simd = rhs.simd; }
 	VectorData& operator=(const VectorData& rhs) { simd = rhs.simd; return *this; }
 	union {
-		Simd<double, 4> simd; /// <summary> Leave this member alone. You can't fuck it up though. </summary>
+		/// <summary> Leave this member alone. You can't fuck it up though. </summary>
+		Simd<double, 4> simd;
 		struct { double x, y, z, w; };
-		double data[4]; /// <summary> Raw array containing the elements. </summary>
+		/// <summary> Raw array containing the elements. </summary>
+		double data[4];
 #include "Swizzle/Swizzle_4.inc.hpp"
 	};
 };
@@ -684,6 +702,8 @@ public:
 	//--------------------------------------------
 	// Properties
 	//--------------------------------------------
+
+	/// <summary> Returns the number of dimensions of the vector. </summary>
 	constexpr int Dimension() const {
 		return Dim;
 	}
@@ -970,7 +990,7 @@ public:
 		if (length == 0) {
 			*this = degenerate;
 		}
-		return operator/=(length);
+		operator/=(length);
 	}
 
 	/// <summary> Returns the unit vector having the same direction, without modifying the object. Leans towards (1,0,0...) for nullvectors, costs more. </summary>

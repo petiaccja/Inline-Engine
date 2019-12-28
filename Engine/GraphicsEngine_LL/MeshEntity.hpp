@@ -12,8 +12,6 @@ namespace inl::gxeng {
 
 class MeshEntity : public IMeshEntity, public virtual Transformable3D {
 public:
-	MeshEntity();
-
 	void SetMesh(Mesh* mesh);
 	void SetMesh(IMesh* mesh) override { SetMesh(static_cast<Mesh*>(mesh)); }
 	Mesh* GetMesh() const override;
@@ -23,11 +21,9 @@ public:
 	Material* GetMaterial() const override;
 
 private:
-	// Physical properties
-	Mesh* m_mesh;
-	Material* m_material;
+	Mesh* m_mesh = nullptr;
+	Material* m_material = nullptr;
 };
-
 
 
 } // namespace inl::gxeng

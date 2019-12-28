@@ -14,6 +14,8 @@ class Vector;
 
 
 // Common mathematical constants
+
+/// <summary> Accurate mathematical constants. </summary>
 template <class Scalar>
 class Constants {
 public:
@@ -27,12 +29,15 @@ public:
 
 
 // Radians and degrees
+
+/// <summary> Converts radians to degrees. </summary>
 template <class Scalar>
 auto Rad2Deg(Scalar rad) {
 	using ComputeT = typename std::conditional<std::is_floating_point<Scalar>::value, Scalar, long double>::type;
 	return rad / Constants<ComputeT>::Pi * ComputeT(180);
 }
 
+/// <summary> Converts degrees to radians. </summary>
 template <class Scalar>
 auto Deg2Rad(Scalar deg) {
 	using ComputeT = typename std::conditional<std::is_floating_point<Scalar>::value, Scalar, long double>::type;
@@ -41,19 +46,24 @@ auto Deg2Rad(Scalar deg) {
 
 
 // Clamp and saturate
+
+/// <summary> Limits arg to the range [lower, upper], making it either lower or upper if out of range. </summary>
 template <class Scalar>
 Scalar Clamp(Scalar arg, Scalar lower, Scalar upper) {
 	return std::max(lower, std::min(upper, arg));
 }
 
+/// <summary> Clamps all elements of the vector according to the scalar clamp. </summary>
 template <class T, int Dim, bool Packed>
 Vector<T, Dim, Packed> Clamp(const Vector<T, Dim, Packed>& arg, T lower, T upper);
 
+/// <summary> Clamps argument into range [0,1]. </summary>
 template <class Scalar>
 Scalar Saturate(Scalar arg) {
 	return Clamp(arg, Scalar(0), Scalar(1));
 }
 
+/// <summary> Clamps all elements into range [0,1]. </summary>
 template <class T, int Dim, bool Packed>
 Vector<T, Dim, Packed> Saturate(const Vector<T, Dim, Packed>& arg);
 

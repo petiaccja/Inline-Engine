@@ -107,23 +107,23 @@ class MatrixPerspective<T, 3, 3, Order, Layout, Packed>
 	const MatrixT& self() const { return *static_cast<const MatrixT*>(this); }
 public:
 	/// <summary> Creates a 2D projection matrix. </summary>
-	/// <param name="fov"/> Field of view. </param>
-	/// <param name="nearPlane"/> Lower bound of the volume on the Y axis. </param>
-	/// <param name="farPlane"/> Upper bound of the volume on the Y axis. </param>
-	/// <param name="projNearPlane"/> Near plane is taken here after projection. </param>
-	/// <param name="projFarPlane"/> Far plane is taken here after projection. </param>
-	/// <remarks> Post-projection bounds may be inverted. </summary>
+	/// <param name="fov"> Field of view. </param>
+	/// <param name="nearPlane"> Lower bound of the volume on the Y axis. </param>
+	/// <param name="farPlane"> Upper bound of the volume on the Y axis. </param>
+	/// <param name="projNearPlane"> Near plane is taken here after projection. </param>
+	/// <param name="projFarPlane"> Far plane is taken here after projection. </param>
+	/// <remarks> Post-projection bounds may be inverted. </remarks>
 	static MatrixT Perspective(T fov, T nearPlane, T farPlane, T projNearPlane = 0, T projFarPlane = 1) {
 		return MatrixProjectiveBase<T, 3, Order, Layout, Packed>::Perspective(
 			abs(fov), Vector<T, 1, Packed>{ fov < 0 ? -1 : 1 }, nearPlane, farPlane, projNearPlane, projFarPlane);
 	}
 	/// <summary> Sets this matrix to a 2D projection matrix. </summary>
-	/// <param name="fov"/> Field of view. </param>
-	/// <param name="nearPlane"/> Lower bound of the volume on the Y axis. </param>
-	/// <param name="farPlane"/> Upper bound of the volume on the Y axis. </param>
-	/// <param name="projNearPlane"/> Near plane is taken here after projection. </param>
-	/// <param name="projFarPlane"/> Far plane is taken here after projection. </param>
-	/// <remarks> Post-projection bounds may be inverted. </summary>
+	/// <param name="fov"> Field of view. </param>
+	/// <param name="nearPlane"> Lower bound of the volume on the Y axis. </param>
+	/// <param name="farPlane"> Upper bound of the volume on the Y axis. </param>
+	/// <param name="projNearPlane"> Near plane is taken here after projection. </param>
+	/// <param name="projFarPlane"> Far plane is taken here after projection. </param>
+	/// <remarks> Post-projection bounds may be inverted. </remarks>
 	MatrixT& SetPerspective(T fov, T nearPlane, T farPlane, T projNearPlane = 0, T projFarPlane = 1) {
 		self() = Perspective(fov, nearPlane, farPlane, projNearPlane, projFarPlane);
 		return self();
@@ -143,13 +143,13 @@ class MatrixPerspective<T, 4, 4, Order, Layout, Packed>
 	const MatrixT& self() const { return *static_cast<const MatrixT*>(this); }
 public:
 	/// <summary> Creates a 3D projection matrix. </summary>
-	/// <param name="fov"> Field of view. </param>
+	/// <param name="fov"/> Field of view. </param>
 	/// <param name="aspectRatio"> FovX/FovY, so 1.777 for a 16:9 screen. </param>
-	/// <param name="nearPlane"> Lower bound of the volume on the Y axis. </param>
-	/// <param name="farPlane"> Upper bound of the volume on the Y axis. </param>
-	/// <param name="projNearPlane"> Near plane is taken here after projection. </param>
-	/// <param name="projFarPlane"> Far plane is taken here after projection. </param>
-	/// <remarks> Post-projection bounds may be inverted. </remarks>
+	/// <param name="nearPlane"/> Lower bound of the volume on the Y axis. </param>
+	/// <param name="farPlane"/> Upper bound of the volume on the Y axis. </param>
+	/// <param name="projNearPlane"/> Near plane is taken here after projection. </param>
+	/// <param name="projFarPlane"/> Far plane is taken here after projection. </param>
+	/// <remarks> Post-projection bounds may be inverted. </summary>
 	static MatrixT Perspective(T fov, T aspectRatio, T nearPlane, T farPlane, T projNearPlane = 0, T projFarPlane = 1) {
 		return MatrixProjectiveBase<T, 4, Order, Layout, Packed>::Perspective(
 			std::abs(fov), Vector<T, 2, Packed>{ fov < 0 ? -1 : 1, T(1)/aspectRatio}, nearPlane, farPlane, projNearPlane, projFarPlane);

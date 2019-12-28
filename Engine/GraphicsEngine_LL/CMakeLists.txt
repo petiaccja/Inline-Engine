@@ -23,6 +23,7 @@ set(scene
 	"TextEntity.cpp"
 	"Camera2D.cpp"
 	"AnimationState.cpp"
+	"HeightmapEntity.cpp"
 	
 	"BasicCamera.hpp"
 	"DirectionalLight.hpp"	
@@ -34,6 +35,7 @@ set(scene
 	"TextEntity.hpp"
 	"Camera2D.hpp"
 	"AnimationState.hpp"
+	"HeightmapEntity.hpp"
 )
 
 set(resources
