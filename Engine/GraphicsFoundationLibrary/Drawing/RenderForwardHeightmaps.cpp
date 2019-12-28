@@ -1,4 +1,4 @@
-#include "RenderForwardSimple.hpp"
+#include "RenderForwardHeightmaps.hpp"
 
 #include <BaseLibrary/Range.hpp>
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
@@ -11,13 +11,16 @@
 namespace inl::gxeng::nodes {
 
 
-INL_REGISTER_GRAPHICS_NODE(RenderForwardSimple)
+INL_REGISTER_GRAPHICS_NODE(RenderForwardHeightmaps)
 
 
 struct VsConstants {
 	Mat44_Packed world;
 	Mat44_Packed worldViewProj;
 	Mat44_Packed worldViewProjDer;
+	alignas(16) Vec3_Packed direction;
+	float magnitude;
+	float offset;
 };
 
 struct PsConstants {
@@ -26,11 +29,11 @@ struct PsConstants {
 };
 
 
-RenderForwardSimple::RenderForwardSimple()
-	: m_psoCache(sizeof(VsConstants), sizeof(PsConstants), "RenderForwardSimple", "RenderForwardSimple") {}
+RenderForwardHeightmaps::RenderForwardHeightmaps()
+	: m_psoCache(sizeof(VsConstants), sizeof(PsConstants), "RenderForwardHeightmaps", "RenderForwardHeightmaps") {}
 
 
-void RenderForwardSimple::Reset() {
+void RenderForwardHeightmaps::Reset() {
 	m_rtv = {};
 	m_dsv = {};
 	GetInput(0)->Clear();
@@ -38,7 +41,7 @@ void RenderForwardSimple::Reset() {
 }
 
 
-void RenderForwardSimple::Setup(SetupContext& context) {
+void RenderForwardHeightmaps::Setup(SetupContext& context) {
 	auto renderTarget = GetInput<0>().Get();
 	auto depthTarget = GetInput<1>().Get();
 
@@ -50,7 +53,7 @@ void RenderForwardSimple::Setup(SetupContext& context) {
 }
 
 
-void RenderForwardSimple::Execute(RenderContext& context) {
+void RenderForwardHeightmaps::Execute(RenderContext& context) {
 	auto renderTarget = GetInput<0>().Get();
 	auto depthTarget = GetInput<1>().Get();
 	auto camera = GetInput<2>().Get();
@@ -102,6 +105,12 @@ void RenderForwardSimple::Execute(RenderContext& context) {
 		}
 		const Mesh& mesh = static_cast<const Mesh&>(*entity->GetMesh());
 		const Material& material = static_cast<const Material&>(*entity->GetMaterial());
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		// ADD ACTUAL HEIGHT MAP RENDERING HERE, NOT JUST SHITTY MESH ENTITY AS COPIED CURRENTLY FROM FW RENDER
+		assert(false);
 
 		const PipelineStateCache::StateDesc& stateDesc = m_psoCache.GetPipelineState(context, mesh, material);
 		std::vector<uint8_t> mtlConstants = stateDesc.materialCbuffer(material);
@@ -147,7 +156,7 @@ void RenderForwardSimple::Execute(RenderContext& context) {
 
 
 
-const std::string& RenderForwardSimple::GetInputName(size_t index) const {
+const std::string& RenderForwardHeightmaps::GetInputName(size_t index) const {
 	static const std::vector<std::string> names = {
 		"Target",
 		"Depth",
@@ -159,7 +168,7 @@ const std::string& RenderForwardSimple::GetInputName(size_t index) const {
 }
 
 
-const std::string& RenderForwardSimple::GetOutputName(size_t index) const {
+const std::string& RenderForwardHeightmaps::GetOutputName(size_t index) const {
 	static const std::vector<std::string> names = {
 		"Target",
 		"Depth",
@@ -168,7 +177,7 @@ const std::string& RenderForwardSimple::GetOutputName(size_t index) const {
 }
 
 
-void RenderForwardSimple::CreateRenderTargetViews(SetupContext& context, const Texture2D& rt, const Texture2D& ds) {
+void RenderForwardHeightmaps::CreateRenderTargetViews(SetupContext& context, const Texture2D& rt, const Texture2D& ds) {
 	if (!m_rtv || rt != m_rtv.GetResource()) {
 		gxapi::RtvTexture2DArray desc;
 		desc.activeArraySize = 1;

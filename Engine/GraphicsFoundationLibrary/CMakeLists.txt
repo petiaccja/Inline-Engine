@@ -1,4 +1,4 @@
-# GUIENGINE
+# GRAPHICS FOUNDATION LIBRARY
 
 # Files comprising the target
 file(GLOB_RECURSE node_sources "*.?pp")

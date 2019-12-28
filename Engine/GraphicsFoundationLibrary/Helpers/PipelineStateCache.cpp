@@ -12,6 +12,12 @@
 namespace inl::gxeng::nodes {
 
 
+const BindParameter PipelineStateCache::vsBindParam{ eBindParameterType::CONSTANT, 0, 0 };
+const BindParameter PipelineStateCache::psBindParam{ eBindParameterType::CONSTANT, 100, 0 };
+const BindParameter PipelineStateCache::mtlBindParam{ eBindParameterType::CONSTANT, 200, 0 };
+
+
+
 PipelineStateCache::PipelineStateCache(size_t vsConstantSize, size_t psConstantSize, std::string vsName, std::string psName)
 	: m_vsConstantSize(vsConstantSize),
 	  m_psConstantSize(psConstantSize),
