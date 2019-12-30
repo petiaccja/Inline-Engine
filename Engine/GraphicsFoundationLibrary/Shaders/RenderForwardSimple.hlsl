@@ -127,6 +127,7 @@ static float4 go_color = float4(1, 0, 0, 1);
 
 
 //!1#include "material_shader_################.hlsl"
+//MATERIAL_CODE_INCLUDE
 #ifdef VERTEX_SHADER
 void MtlMain() {}
 #endif

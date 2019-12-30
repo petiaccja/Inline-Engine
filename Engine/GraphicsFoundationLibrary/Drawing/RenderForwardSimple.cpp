@@ -26,8 +26,51 @@ struct PsConstants {
 };
 
 
+static const BindParameterDesc vsConstantsBind{
+	.parameter = BindParameter{ eBindParameterType::CONSTANT, 0, 0 },
+	.constantSize = sizeof(VsConstants),
+	.relativeAccessFrequency = 1.0f,
+	.relativeChangeFrequency = 1.0f,
+	.shaderVisibility = gxapi::eShaderVisiblity::VERTEX
+};
+
+static const BindParameterDesc psConstantsBind{
+	.parameter = BindParameter{ eBindParameterType::CONSTANT, 100, 0 },
+	.constantSize = sizeof(PsConstants),
+	.relativeAccessFrequency = 1.0f,
+	.relativeChangeFrequency = 1.0f,
+	.shaderVisibility = gxapi::eShaderVisiblity::PIXEL
+};
+
+static const PipelineStateTemplate psoTemplate = [] {
+	PipelineStateTemplate psoTemplate;
+	psoTemplate.vsFileName = "RenderForwardSimple.hlsl";
+	psoTemplate.psFileName = "RenderForwardSimple.hlsl";
+
+	psoTemplate.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+	psoTemplate.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+
+	psoTemplate.depthStencilState = gxapi::DepthStencilState(true, true);
+	psoTemplate.depthStencilState.depthFunc = gxapi::eComparisonFunction::LESS_EQUAL;
+	psoTemplate.depthStencilState.enableStencilTest = true;
+	psoTemplate.depthStencilState.stencilReadMask = 0;
+	psoTemplate.depthStencilState.stencilWriteMask = ~uint8_t(0);
+	psoTemplate.depthStencilState.ccwFace.stencilFunc = gxapi::eComparisonFunction::ALWAYS;
+	psoTemplate.depthStencilState.ccwFace.stencilOpOnStencilFail = gxapi::eStencilOp::KEEP;
+	psoTemplate.depthStencilState.ccwFace.stencilOpOnDepthFail = gxapi::eStencilOp::KEEP;
+	psoTemplate.depthStencilState.ccwFace.stencilOpOnPass = gxapi::eStencilOp::REPLACE;
+	psoTemplate.depthStencilState.cwFace = psoTemplate.depthStencilState.ccwFace;
+	psoTemplate.depthStencilFormat = gxapi::eFormat::UNKNOWN;
+
+	psoTemplate.numRenderTargets = 1;
+	psoTemplate.renderTargetFormats[0] = gxapi::eFormat::UNKNOWN;
+
+	return psoTemplate;
+}();
+
+
 RenderForwardSimple::RenderForwardSimple()
-	: m_psoCache(sizeof(VsConstants), sizeof(PsConstants), "RenderForwardSimple", "RenderForwardSimple") {}
+	: m_psoCache({ psConstantsBind, vsConstantsBind }, psoTemplate) {}
 
 
 void RenderForwardSimple::Reset() {
@@ -43,7 +86,14 @@ void RenderForwardSimple::Setup(SetupContext& context) {
 	auto depthTarget = GetInput<1>().Get();
 
 	CreateRenderTargetViews(context, renderTarget, depthTarget);
-	m_psoCache.SetTextureFormats(renderTarget.GetFormat(), depthTarget.GetFormat());
+
+	if (m_psoCache.GetTemplate().renderTargetFormats[0] != renderTarget.GetFormat()
+		|| m_psoCache.GetTemplate().depthStencilFormat != depthTarget.GetFormat()) {
+		auto psoTemplateFmt = psoTemplate;
+		psoTemplateFmt.renderTargetFormats[0] = renderTarget.GetFormat();
+		psoTemplateFmt.depthStencilFormat = depthTarget.GetFormat();
+		m_psoCache.Reset({ psConstantsBind, vsConstantsBind }, psoTemplateFmt);
+	}
 
 	GetOutput<0>().Set(renderTarget);
 	GetOutput<1>().Set(depthTarget);
@@ -103,9 +153,7 @@ void RenderForwardSimple::Execute(RenderContext& context) {
 		const Mesh& mesh = static_cast<const Mesh&>(*entity->GetMesh());
 		const Material& material = static_cast<const Material&>(*entity->GetMaterial());
 
-		const PipelineStateCache::StateDesc& stateDesc = m_psoCache.GetPipelineState(context, mesh, material);
-		std::vector<uint8_t> mtlConstants = stateDesc.materialCbuffer(material);
-		std::vector<const Image*> mtlTextures = stateDesc.materialTex(material);
+		const PipelineStateConfig& stateDesc = m_psoCache.GetConfig(context, mesh, material);
 
 		world = entity->GetTransform();
 		dworld = entity->GetTransformMotion();
@@ -113,19 +161,12 @@ void RenderForwardSimple::Execute(RenderContext& context) {
 		vsConstants.worldViewProj = world * view * proj;
 		vsConstants.worldViewProjDer = dworld * view * proj; // Okay, it's actually not this simple to calculate, I just write something.
 
-		commandList.SetGraphicsBinder(&stateDesc.binder);
-		commandList.SetPipelineState(stateDesc.pso.get());
+		commandList.SetGraphicsBinder(&stateDesc.GetBinder());
+		commandList.SetPipelineState(stateDesc.GetPSO());
 
-		commandList.BindGraphics(PipelineStateCache::vsBindParam, &vsConstants, sizeof(vsConstants));
-		commandList.BindGraphics(PipelineStateCache::psBindParam, &psConstants, sizeof(psConstants));
-		commandList.BindGraphics(PipelineStateCache::mtlBindParam, mtlConstants.data(), (int)mtlConstants.size());
-
-		for (auto i : Range(mtlTextures.size())) {
-			BindParameter texParam{ eBindParameterType::TEXTURE, (unsigned)i, 0 };
-			const Image* image = mtlTextures[i];
-			commandList.SetResourceState(image->GetSrv().GetResource(), { gxapi::eResourceState::PIXEL_SHADER_RESOURCE, gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE });
-			commandList.BindGraphics(texParam, image->GetSrv());
-		}
+		commandList.BindGraphics(vsConstantsBind.parameter, &vsConstants, sizeof(vsConstants));
+		commandList.BindGraphics(psConstantsBind.parameter, &psConstants, sizeof(psConstants));
+		stateDesc.BindMaterial(commandList, material);
 
 		vertexBuffers.clear();
 		vertexBufferSizes.clear();

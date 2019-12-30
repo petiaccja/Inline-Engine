@@ -1,6 +1,9 @@
 #pragma once
 
+#include "DynamicPipelineSetup.hpp"
+
 #include "GraphicsEngine_LL/Binder.hpp"
+#include "GraphicsEngine_LL/Material.hpp"
 #include "GraphicsEngine_LL/ShaderManager.hpp"
 #include <BaseLibrary/UniqueIdGenerator.hpp>
 #include <GraphicsApi_LL/Common.hpp>
@@ -14,6 +17,7 @@
 
 
 namespace inl::gxeng {
+class GraphicsCommandList;
 class RenderContext;
 class Mesh;
 class Material;
@@ -24,18 +28,75 @@ class Image;
 namespace inl::gxeng::nodes {
 
 
-class PipelineStateCache {
-public:
-	struct StateDesc {
-		std::unique_ptr<gxapi::IPipelineState> pso;
-		Binder binder;
-		ShaderProgram shader;
-		std::function<std::vector<uint8_t>(const Material&)> materialCbuffer;
-		std::function<std::vector<const Image*>(const Material&)> materialTex;
-		gxapi::eFormat renderTargetFormat = gxapi::eFormat::UNKNOWN;
-		gxapi::eFormat depthStencilFormat = gxapi::eFormat::UNKNOWN;
-	};
+struct PipelineStateTemplate {
+	std::string vsFileName;
+	std::string gsFileName;
+	std::string hsFileName;
+	std::string dsFileName;
+	std::string psFileName;
 
+	gxapi::StreamOutputState streamOutput;
+	gxapi::RasterizerState rasterization;
+	gxapi::DepthStencilState depthStencilState;
+	gxapi::BlendState blending;
+	unsigned blendSampleMask = 0xFFFFFFFF;
+
+	gxapi::ePrimitiveTopologyType primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+	gxapi::eTriangleStripCutIndex triangleStripCutIndex = gxapi::eTriangleStripCutIndex::DISABLED;
+
+	unsigned numRenderTargets = 1;
+	gxapi::eFormat renderTargetFormats[8] = {
+		gxapi::eFormat::UNKNOWN,
+		gxapi::eFormat::UNKNOWN,
+		gxapi::eFormat::UNKNOWN,
+		gxapi::eFormat::UNKNOWN,
+		gxapi::eFormat::UNKNOWN,
+		gxapi::eFormat::UNKNOWN,
+		gxapi::eFormat::UNKNOWN,
+		gxapi::eFormat::UNKNOWN,
+	};
+	gxapi::eFormat depthStencilFormat = gxapi::eFormat::UNKNOWN;
+	unsigned multisampleCount = 1;
+	unsigned multisampleQuality = 0;
+};
+
+
+
+class PipelineStateConfig {
+public:
+	PipelineStateConfig(std::unique_ptr<gxapi::IPipelineState> pso,
+			  Binder binder,
+			  std::vector<BindParameterDesc> materialConstantParams,
+			  std::vector<BindParameterDesc> materialTextureParams,
+			  std::vector<MaterialCbufferElement> materialCbufferElements)
+		: m_pso(std::move(pso)),
+		  m_binder(std::move(binder)),
+		  m_materialConstantParams(std::move(materialConstantParams)),
+		  m_materialTextureParams(std::move(materialTextureParams)),
+		  m_materialCbufferElements(std::move(materialCbufferElements)) {}
+
+	void BindMaterial(GraphicsCommandList& list, const Material& material) const;
+	const Binder& GetBinder() const;
+	gxapi::IPipelineState* GetPSO() const;
+
+private:
+	static void UpdateParamColor(const Material::Parameter& param, const MaterialCbufferElement& desc, std::vector<uint8_t>& cbuffer);
+	static void UpdateParamValue(const Material::Parameter& param, const MaterialCbufferElement& desc, std::vector<uint8_t>& cbuffer);
+	static void UpdateParamOptional(const Material::Parameter& param, const MaterialCbufferElement& desc, std::vector<uint8_t>& cbuffer);
+	static void BindParamImage(GraphicsCommandList& list, const Material::Parameter& param, const BindParameter& slot);
+	static void BindConstant(GraphicsCommandList& list, const BindParameter& slot, const std::vector<uint8_t>& cbuffer);
+
+private:
+	std::unique_ptr<gxapi::IPipelineState> m_pso;
+	Binder m_binder;
+	std::vector<BindParameterDesc> m_materialConstantParams;
+	std::vector<BindParameterDesc> m_materialTextureParams;
+	std::vector<MaterialCbufferElement> m_materialCbufferElements;
+};
+
+
+
+class PipelineStateCache {
 private:
 	struct StateKey {
 		UniqueId materialShaderId;
@@ -51,46 +112,24 @@ private:
 	};
 
 public:
-	PipelineStateCache(size_t vsConstantSize, size_t psConstantSize, std::string vsName, std::string psName);
+	PipelineStateCache(std::vector<BindParameterDesc> originalBindParams, PipelineStateTemplate psoTemplate);
 
-	void SetTextureFormats(gxapi::eFormat renderTargetFormat, gxapi::eFormat depthStencilFormat);
-	const StateDesc& GetPipelineState(RenderContext& context, const Mesh& mesh, const Material& material);
-
-	static const BindParameter vsBindParam;
-	static const BindParameter psBindParam;
-	static const BindParameter mtlBindParam;
+	void Reset(std::vector<BindParameterDesc> originalBindParams, PipelineStateTemplate psoTemplate);
+	const PipelineStateConfig& GetConfig(RenderContext& context, const Mesh& mesh, const Material& material);
+	const PipelineStateTemplate& GetTemplate() const;
+	
+private:
+	PipelineStateConfig CreateConfig(RenderContext& context, const Mesh& mesh, const Material& material) const;
 
 private:
-	static void VerifyLayout(const Mesh& mesh);
-	static std::pair<std::function<std::vector<uint8_t>(const Material&)>, unsigned> GenerateMtlCb(const Material& material);
-	static std::pair<std::function<std::vector<const Image*>(const Material&)>, unsigned> GenerateMtlTex(const Material& material);
-	static Binder GenerateBinder(RenderContext& context, unsigned vsCbSize, unsigned psCbSize, unsigned mtlCbSize, unsigned numTextures);
-	static std::string GetLayoutShaderMacros(const Mesh& mesh);
-	static std::string GenerateVertexShader(RenderContext& context, const Mesh& mesh, const std::string& psName);
-	static std::string GenerateMaterialShader(const Material& shader);
-	static std::string GeneratePixelShader(RenderContext& context, const Material& shader, const std::string& vsName);
+	// Should use these caches:
+	//std::unordered_map<UniqueId, ShaderProgram> m_vertexShaderCache; // Mesh element list -> Vertex shader.
+	//std::unordered_map<UniqueId, ShaderProgram> m_materialShaderCache; // Material shader -> Pixel shader.
 
-	static std::unique_ptr<gxapi::IPipelineState> GeneratePSO(RenderContext& context,
-															  const Mesh& mesh,
-															  const Binder& binder,
-															  const ShaderProgram& shader,
-															  gxapi::eFormat renderTargetFormat,
-															  gxapi::eFormat depthStencilFormat);
+	std::unordered_map<StateKey, std::unique_ptr<PipelineStateConfig>, StateKeyHash> m_configCache; // Mesh layout & mtl shader -> PSO.
 
-	StateDesc CreateNewStateDesc(RenderContext& context, const Mesh& mesh, const Material& material) const;
-
-private:
-	std::unordered_map<UniqueId, ShaderProgram> m_vertexShaderCache; // Mesh element list -> Vertex shader.
-	std::unordered_map<UniqueId, ShaderProgram> m_materialShaderCache; // Material shader -> Pixel shader.
-	std::unordered_map<StateKey, std::unique_ptr<StateDesc>, StateKeyHash> m_psoCache; // Mesh layout & mtl shader -> PSO.
-
-	gxapi::eFormat m_renderTargetFormat = gxapi::eFormat::UNKNOWN; // Current render target format to use for PSOs.
-	gxapi::eFormat m_depthStencilFormat = gxapi::eFormat::UNKNOWN; // Current depth-stencil format to use for PSOs.
-
-	size_t m_vsConstantSize;
-	size_t m_psConstantSize;
-	std::string m_vsName;
-	std::string m_psName;
+	std::vector<BindParameterDesc> m_originalBindParams;
+	PipelineStateTemplate m_psoTemplate;
 };
 
 

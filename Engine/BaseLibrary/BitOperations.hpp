@@ -94,6 +94,8 @@ inline int CountLeadingZeros(uint64_t arg) {
 // Bit clear/set
 //------------------------------------------------------------------------------
 
+#undef BitTestAndSet
+
 inline bool BitTestAndClear(uint32_t& arg, unsigned bit) {
 #if defined(_MSC_VER)
 	return 0 != _bittestandreset(reinterpret_cast<long*>(&arg), bit);
