@@ -184,12 +184,12 @@ void GraphicsCommandList::SetStencilRef(unsigned stencilRef) {
 // Rasterizer state
 //------------------------------------------------------------------------------
 
-void GraphicsCommandList::SetScissorRects(unsigned numRects, gxapi::Rectangle* rects) {
+void GraphicsCommandList::SetScissorRects(unsigned numRects, const gxapi::Rectangle* rects) {
 	m_commandList->SetScissorRects(numRects, rects);
 }
 
 
-void GraphicsCommandList::SetViewports(unsigned numViewports, gxapi::Viewport* viewports) {
+void GraphicsCommandList::SetViewports(unsigned numViewports, const gxapi::Viewport* viewports) {
 	m_commandList->SetViewports(numViewports, viewports);
 }
 

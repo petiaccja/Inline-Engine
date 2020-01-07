@@ -156,7 +156,6 @@ void GraphicsEngine::SetScreenSize(unsigned width, unsigned height) {
 	m_backBufferHeap.reset();
 	m_scheduler.ReleaseResources();
 
-	m_graphicsApi->ReportLiveObjects();
 	m_swapChain->Resize(width, height);
 	m_backBufferHeap = std::make_unique<BackBufferManager>(m_graphicsApi, m_swapChain.get());
 }

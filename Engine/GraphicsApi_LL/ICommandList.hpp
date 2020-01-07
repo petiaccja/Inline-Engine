@@ -163,8 +163,8 @@ public:
 
 
 	// rasterizer state
-	virtual void SetScissorRects(unsigned numRects, Rectangle* rects) = 0;
-	virtual void SetViewports(unsigned numViewports, Viewport* viewports) = 0;
+	virtual void SetScissorRects(unsigned numRects, const Rectangle* rects) = 0;
+	virtual void SetViewports(unsigned numViewports, const Viewport* viewports) = 0;
 
 
 	// set graphics root signature stuff

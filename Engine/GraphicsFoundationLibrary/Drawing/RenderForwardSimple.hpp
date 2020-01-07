@@ -37,6 +37,8 @@ public:
 
 private:
 	void CreateRenderTargetViews(SetupContext& context, const Texture2D& rt, const Texture2D& ds);
+	void UpdatePsoCache(const Texture2D& renderTarget, const Texture2D& depthTarget);
+	void RenderEntities(RenderContext& context, GraphicsCommandList& commandList);
 
 private:
 	RenderTargetView2D m_rtv;

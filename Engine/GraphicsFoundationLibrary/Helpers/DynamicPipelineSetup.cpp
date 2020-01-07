@@ -169,7 +169,7 @@ size_t BaseTextureRegister(const std::vector<BindParameterDesc>& params, int spa
 			maxRegister = std::max(maxRegister, (size_t)param.parameter.reg);
 		}
 	}
-	return maxRegister;
+	return maxRegister + 1;
 }
 
 

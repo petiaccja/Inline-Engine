@@ -75,6 +75,7 @@ public:
 		  m_materialTextureParams(std::move(materialTextureParams)),
 		  m_materialCbufferElements(std::move(materialCbufferElements)) {}
 
+	void BindPipeline(GraphicsCommandList& list) const;
 	void BindMaterial(GraphicsCommandList& list, const Material& material) const;
 	const Binder& GetBinder() const;
 	gxapi::IPipelineState* GetPSO() const;

@@ -422,7 +422,7 @@ void GraphicsCommandList::SetStencilRef(unsigned stencilRef) {
 
 
 // Rasterizer
-void GraphicsCommandList::SetScissorRects(unsigned numRects, gxapi::Rectangle* rects) {
+void GraphicsCommandList::SetScissorRects(unsigned numRects, const gxapi::Rectangle* rects) {
 	std::vector<D3D12_RECT> nativeRects;
 	nativeRects.reserve(numRects);
 
@@ -434,7 +434,7 @@ void GraphicsCommandList::SetScissorRects(unsigned numRects, gxapi::Rectangle* r
 }
 
 
-void GraphicsCommandList::SetViewports(unsigned numViewports, gxapi::Viewport* viewports) {
+void GraphicsCommandList::SetViewports(unsigned numViewports, const gxapi::Viewport* viewports) {
 	std::vector<D3D12_VIEWPORT> nativeViewports;
 	nativeViewports.reserve(numViewports);
 

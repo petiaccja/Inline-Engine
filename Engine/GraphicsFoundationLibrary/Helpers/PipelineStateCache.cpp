@@ -193,6 +193,13 @@ PipelineStateConfig PipelineStateCache::CreateConfig(RenderContext& context, con
 //------------------------------------------------------------------------------
 // PsoRecord
 //------------------------------------------------------------------------------
+
+void PipelineStateConfig::BindPipeline(GraphicsCommandList& list) const {
+	list.SetGraphicsBinder(&m_binder);
+	list.SetPipelineState(m_pso.get());
+}
+
+
 void PipelineStateConfig::BindMaterial(GraphicsCommandList& list, const Material& material) const {
 	size_t constantElementIndex = 0;
 	size_t textureSlotIndex = 0;

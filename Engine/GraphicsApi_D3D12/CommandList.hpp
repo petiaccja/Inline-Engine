@@ -181,8 +181,8 @@ public:
 
 
 	// rasterizer state
-	void SetScissorRects(unsigned numRects, gxapi::Rectangle* rects) override;
-	void SetViewports(unsigned numViewports, gxapi::Viewport* viewports) override;
+	void SetScissorRects(unsigned numRects, const gxapi::Rectangle* rects) override;
+	void SetViewports(unsigned numViewports, const gxapi::Viewport* viewports) override;
 
 
 	// set graphics root signature stuff

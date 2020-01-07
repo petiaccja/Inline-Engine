@@ -76,8 +76,8 @@ public:
 
 
 	// rasterizer state
-	void SetScissorRects(unsigned numRects, gxapi::Rectangle* rects);
-	void SetViewports(unsigned numViewports, gxapi::Viewport* viewports);
+	void SetScissorRects(unsigned numRects, const gxapi::Rectangle* rects);
+	void SetViewports(unsigned numViewports, const gxapi::Viewport* viewports);
 
 
 	// set graphics root signature stuff

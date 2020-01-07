@@ -1,10 +1,11 @@
 #include "RenderForwardSimple.hpp"
 
+#include "../Helpers/PipelineSetupUtility.hpp"
+
 #include <BaseLibrary/Range.hpp>
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
 #include <GraphicsEngine_LL/DirectionalLight.hpp>
 #include <GraphicsEngine_LL/GraphicsCommandList.hpp>
-#include <GraphicsEngine_LL/Image.hpp>
 #include <GraphicsEngine_LL/MeshEntity.hpp>
 
 
@@ -25,7 +26,6 @@ struct PsConstants {
 	alignas(16) Vec3_Packed lightColor;
 };
 
-
 static const BindParameterDesc vsConstantsBind{
 	.parameter = BindParameter{ eBindParameterType::CONSTANT, 0, 0 },
 	.constantSize = sizeof(VsConstants),
@@ -40,6 +40,16 @@ static const BindParameterDesc psConstantsBind{
 	.relativeAccessFrequency = 1.0f,
 	.relativeChangeFrequency = 1.0f,
 	.shaderVisibility = gxapi::eShaderVisiblity::PIXEL
+};
+
+static const BindParameterDesc vsHeightMapBind{
+	.parameter = BindParameter{ eBindParameterType::TEXTURE, 0, 0 },
+	.shaderVisibility = gxapi::eShaderVisiblity::VERTEX
+};
+
+static const std::vector shaderBindParams = {
+	vsConstantsBind,
+	psConstantsBind,
 };
 
 static const PipelineStateTemplate psoTemplate = [] {
@@ -70,7 +80,7 @@ static const PipelineStateTemplate psoTemplate = [] {
 
 
 RenderForwardSimple::RenderForwardSimple()
-	: m_psoCache({ psConstantsBind, vsConstantsBind }, psoTemplate) {}
+	: m_psoCache(shaderBindParams, psoTemplate) {}
 
 
 void RenderForwardSimple::Reset() {
@@ -82,18 +92,11 @@ void RenderForwardSimple::Reset() {
 
 
 void RenderForwardSimple::Setup(SetupContext& context) {
-	auto renderTarget = GetInput<0>().Get();
-	auto depthTarget = GetInput<1>().Get();
+	const auto renderTarget = GetInput<0>().Get();
+	const auto depthTarget = GetInput<1>().Get();
 
 	CreateRenderTargetViews(context, renderTarget, depthTarget);
-
-	if (m_psoCache.GetTemplate().renderTargetFormats[0] != renderTarget.GetFormat()
-		|| m_psoCache.GetTemplate().depthStencilFormat != depthTarget.GetFormat()) {
-		auto psoTemplateFmt = psoTemplate;
-		psoTemplateFmt.renderTargetFormats[0] = renderTarget.GetFormat();
-		psoTemplateFmt.depthStencilFormat = depthTarget.GetFormat();
-		m_psoCache.Reset({ psConstantsBind, vsConstantsBind }, psoTemplateFmt);
-	}
+	UpdatePsoCache(renderTarget, depthTarget);
 
 	GetOutput<0>().Set(renderTarget);
 	GetOutput<1>().Set(depthTarget);
@@ -103,89 +106,28 @@ void RenderForwardSimple::Setup(SetupContext& context) {
 void RenderForwardSimple::Execute(RenderContext& context) {
 	auto renderTarget = GetInput<0>().Get();
 	auto depthTarget = GetInput<1>().Get();
-	auto camera = GetInput<2>().Get();
-	auto entities = GetInput<3>().Get();
-	auto directionalLight = GetInput<4>().Get();
-
-	VsConstants vsConstants;
-	PsConstants psConstants;
-
-	Mat44 world, view, proj, dworld;
-	view = camera->GetViewMatrix();
-	proj = camera->GetProjectionMatrix();
-
-	psConstants.lightColor = directionalLight->Size() > 0 ? (*directionalLight->begin())->GetColor() : Vec3{ 0, 0, 0 };
-	psConstants.lightDir = directionalLight->Size() > 0 ? (*directionalLight->begin())->GetDirection() : Vec3{ 0, 0, -1 };
 
 	// Request command list.
 	GraphicsCommandList& commandList = context.AsGraphics();
 
-	// Set render targets.
+	// Set up the render pipeline.
+	const int screenWidth = int(m_rtv.GetResource().GetWidth());
+	const int screenHeight = int(m_rtv.GetResource().GetHeight());
 	const RenderTargetView2D* renderTargets[] = { &m_rtv };
+	const gxapi::Rectangle scissorRect = ScissorRect(screenWidth, screenHeight);
+	const gxapi::Viewport viewport = Viewport(screenWidth, screenHeight);
+
 	commandList.SetResourceState(m_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
 	commandList.SetResourceState(m_dsv.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
 	commandList.SetRenderTargets(1, renderTargets, &m_dsv);
-
-	// Set scissor rects and shit like that.
-	gxapi::Rectangle scissorRect{ 0, (int)m_rtv.GetResource().GetHeight(), 0, (int)m_rtv.GetResource().GetWidth() };
-	gxapi::Viewport viewport;
-	viewport.width = (float)scissorRect.right;
-	viewport.height = (float)scissorRect.bottom;
-	viewport.topLeftX = 0;
-	viewport.topLeftY = 0;
-	viewport.minDepth = 0.0f;
-	viewport.maxDepth = 1.0f;
 	commandList.SetScissorRects(1, &scissorRect);
 	commandList.SetViewports(1, &viewport);
-
 	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
 	commandList.SetStencilRef(1);
 
 	// Render entities.
-	std::vector<const VertexBuffer*> vertexBuffers;
-	std::vector<unsigned> vertexBufferSizes;
-	std::vector<unsigned> vertexBufferStrides;
-
-	for (auto& entity : *entities) {
-		if (!entity->GetMesh() || !entity->GetMaterial()) {
-			continue;
-		}
-		const Mesh& mesh = static_cast<const Mesh&>(*entity->GetMesh());
-		const Material& material = static_cast<const Material&>(*entity->GetMaterial());
-
-		const PipelineStateConfig& stateDesc = m_psoCache.GetConfig(context, mesh, material);
-
-		world = entity->GetTransform();
-		dworld = entity->GetTransformMotion();
-		vsConstants.world = world;
-		vsConstants.worldViewProj = world * view * proj;
-		vsConstants.worldViewProjDer = dworld * view * proj; // Okay, it's actually not this simple to calculate, I just write something.
-
-		commandList.SetGraphicsBinder(&stateDesc.GetBinder());
-		commandList.SetPipelineState(stateDesc.GetPSO());
-
-		commandList.BindGraphics(vsConstantsBind.parameter, &vsConstants, sizeof(vsConstants));
-		commandList.BindGraphics(psConstantsBind.parameter, &psConstants, sizeof(psConstants));
-		stateDesc.BindMaterial(commandList, material);
-
-		vertexBuffers.clear();
-		vertexBufferSizes.clear();
-		vertexBufferStrides.clear();
-		for (auto streamIdx : Range(mesh.GetNumStreams())) {
-			vertexBuffers.push_back(&mesh.GetVertexBuffer(streamIdx));
-			vertexBufferSizes.push_back((unsigned)mesh.GetVertexBuffer(streamIdx).GetSize());
-			vertexBufferStrides.push_back((unsigned)mesh.GetVertexBufferStride(streamIdx));
-			commandList.SetResourceState(*vertexBuffers[streamIdx], gxapi::eResourceState::VERTEX_AND_CONSTANT_BUFFER);
-		}
-		commandList.SetResourceState(mesh.GetIndexBuffer(), gxapi::eResourceState::INDEX_BUFFER);
-
-		commandList.SetVertexBuffers(0, (unsigned)mesh.GetNumStreams(), vertexBuffers.data(), vertexBufferSizes.data(), vertexBufferStrides.data());
-		commandList.SetIndexBuffer(&mesh.GetIndexBuffer(), mesh.IsIndexBuffer32Bit());
-
-		commandList.DrawIndexedInstanced((unsigned)mesh.GetIndexBuffer().GetIndexCount(), 0, 0, 1, 0);
-	}
+	RenderEntities(context, commandList);
 }
-
 
 
 const std::string& RenderForwardSimple::GetInputName(size_t index) const {
@@ -228,6 +170,60 @@ void RenderForwardSimple::CreateRenderTargetViews(SetupContext& context, const T
 		m_dsv = context.CreateDsv(ds, ds.GetFormat(), desc);
 	}
 }
+
+
+void RenderForwardSimple::UpdatePsoCache(const Texture2D& renderTarget, const Texture2D& depthTarget) {
+	if (m_psoCache.GetTemplate().renderTargetFormats[0] != renderTarget.GetFormat()
+		|| m_psoCache.GetTemplate().depthStencilFormat != depthTarget.GetFormat()) {
+		auto psoTemplateFmt = psoTemplate;
+		psoTemplateFmt.renderTargetFormats[0] = renderTarget.GetFormat();
+		psoTemplateFmt.depthStencilFormat = depthTarget.GetFormat();
+		m_psoCache.Reset(shaderBindParams, psoTemplateFmt);
+	}
+}
+
+
+void RenderForwardSimple::RenderEntities(RenderContext& context, GraphicsCommandList& commandList) {
+	const auto camera = GetInput<2>().Get();
+	const auto entities = GetInput<3>().Get();
+	auto directionalLight = GetInput<4>().Get();
+
+	const Mat44 view = camera->GetViewMatrix();
+	const Mat44 proj = camera->GetProjectionMatrix();
+	const Mat44 viewProj = view * proj;
+
+	PsConstants psConstants{
+		.lightDir = directionalLight->Size() > 0 ? (*directionalLight->begin())->GetDirection() : Vec3{ 0, 0, -1 },
+		.lightColor = directionalLight->Size() > 0 ? (*directionalLight->begin())->GetColor() : Vec3{ 0, 0, 0 }
+	};
+
+	for (auto& entity : *entities) {
+		if (!entity->GetMesh() || !entity->GetMaterial()) {
+			continue;
+		}
+
+		VsConstants vsConstants;
+		const Mesh& mesh = static_cast<const Mesh&>(*entity->GetMesh());
+		const Material& material = static_cast<const Material&>(*entity->GetMaterial());
+
+		const PipelineStateConfig& stateDesc = m_psoCache.GetConfig(context, mesh, material);
+
+		const Mat44 world = entity->GetTransform();
+		vsConstants.world = world;
+		vsConstants.worldViewProj = world * viewProj;
+		vsConstants.worldViewProjDer = Mat44::Zero(); // TODO
+
+		stateDesc.BindPipeline(commandList);
+		commandList.BindGraphics(vsConstantsBind.parameter, &vsConstants, sizeof(vsConstants));
+		commandList.BindGraphics(psConstantsBind.parameter, &psConstants, sizeof(psConstants));
+		stateDesc.BindMaterial(commandList, material);
+
+		BindMeshBuffers(commandList, mesh);
+
+		commandList.DrawIndexedInstanced((unsigned)mesh.GetIndexBuffer().GetIndexCount(), 0, 0, 1, 0);
+	}
+}
+
 
 
 } // namespace inl::gxeng::nodes

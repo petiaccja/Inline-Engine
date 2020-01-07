@@ -3,8 +3,13 @@ struct VsConstants
     float4x4 world;
     float4x4 worldViewProj;
     float4x4 worldViewProjDer;
+	float3 direction;
+	float magnitude;
+	float offset;
 };
 ConstantBuffer<VsConstants> vsConstants : register(b0);
+
+Texture2D<float4> heightmapTex : register(t0);
 
 struct PsInput {
     float4 hPos : SV_Position;

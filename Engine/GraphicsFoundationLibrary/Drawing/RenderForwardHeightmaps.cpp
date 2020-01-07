@@ -18,7 +18,7 @@ struct VsConstants {
 	Mat44_Packed world;
 	Mat44_Packed worldViewProj;
 	Mat44_Packed worldViewProjDer;
-	alignas(16) Vec3_Packed direction;
+	Vec3_Packed direction;
 	float magnitude;
 	float offset;
 };
@@ -27,6 +27,48 @@ struct PsConstants {
 	alignas(16) Vec3_Packed lightDir;
 	alignas(16) Vec3_Packed lightColor;
 };
+
+static const BindParameterDesc vsConstantsBind{
+	.parameter = BindParameter{ eBindParameterType::CONSTANT, 0, 0 },
+	.constantSize = sizeof(VsConstants),
+	.relativeAccessFrequency = 1.0f,
+	.relativeChangeFrequency = 1.0f,
+	.shaderVisibility = gxapi::eShaderVisiblity::VERTEX
+};
+
+static const BindParameterDesc psConstantsBind{
+	.parameter = BindParameter{ eBindParameterType::CONSTANT, 100, 0 },
+	.constantSize = sizeof(PsConstants),
+	.relativeAccessFrequency = 1.0f,
+	.relativeChangeFrequency = 1.0f,
+	.shaderVisibility = gxapi::eShaderVisiblity::PIXEL
+};
+
+static const PipelineStateTemplate psoTemplate = [] {
+	PipelineStateTemplate psoTemplate;
+	psoTemplate.vsFileName = "RenderForwardHeightmap.hlsl";
+	psoTemplate.psFileName = "RenderForwardHeightmap.hlsl";
+
+	psoTemplate.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+	psoTemplate.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+
+	psoTemplate.depthStencilState = gxapi::DepthStencilState(true, true);
+	psoTemplate.depthStencilState.depthFunc = gxapi::eComparisonFunction::LESS_EQUAL;
+	psoTemplate.depthStencilState.enableStencilTest = true;
+	psoTemplate.depthStencilState.stencilReadMask = 0;
+	psoTemplate.depthStencilState.stencilWriteMask = ~uint8_t(0);
+	psoTemplate.depthStencilState.ccwFace.stencilFunc = gxapi::eComparisonFunction::ALWAYS;
+	psoTemplate.depthStencilState.ccwFace.stencilOpOnStencilFail = gxapi::eStencilOp::KEEP;
+	psoTemplate.depthStencilState.ccwFace.stencilOpOnDepthFail = gxapi::eStencilOp::KEEP;
+	psoTemplate.depthStencilState.ccwFace.stencilOpOnPass = gxapi::eStencilOp::REPLACE;
+	psoTemplate.depthStencilState.cwFace = psoTemplate.depthStencilState.ccwFace;
+	psoTemplate.depthStencilFormat = gxapi::eFormat::UNKNOWN;
+
+	psoTemplate.numRenderTargets = 1;
+	psoTemplate.renderTargetFormats[0] = gxapi::eFormat::UNKNOWN;
+
+	return psoTemplate;
+}();
 
 
 RenderForwardHeightmaps::RenderForwardHeightmaps()
@@ -46,7 +88,14 @@ void RenderForwardHeightmaps::Setup(SetupContext& context) {
 	auto depthTarget = GetInput<1>().Get();
 
 	CreateRenderTargetViews(context, renderTarget, depthTarget);
-	//m_psoCache.SetTextureFormats(renderTarget.GetFormat(), depthTarget.GetFormat());
+	
+	if (m_psoCache.GetTemplate().renderTargetFormats[0] != renderTarget.GetFormat()
+		|| m_psoCache.GetTemplate().depthStencilFormat != depthTarget.GetFormat()) {
+		auto psoTemplateFmt = psoTemplate;
+		psoTemplateFmt.renderTargetFormats[0] = renderTarget.GetFormat();
+		psoTemplateFmt.depthStencilFormat = depthTarget.GetFormat();
+		m_psoCache.Reset({ psConstantsBind, vsConstantsBind }, psoTemplateFmt);
+	}
 
 	GetOutput<0>().Set(renderTarget);
 	GetOutput<1>().Set(depthTarget);
