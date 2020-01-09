@@ -126,9 +126,9 @@ void DepthPrepass::Setup(SetupContext& context) {
 		m_depthStencilFormat = currDepthStencilFormat;
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
-			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
-			gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
-			gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
+			gxapi::InputElementDesc{ .semanticName = "POSITION", .semanticIndex = 0, .format = gxapi::eFormat::R32G32B32_FLOAT, .inputSlot = 0, .offset = 0 },
+			gxapi::InputElementDesc{ .semanticName = "NORMAL", .semanticIndex = 0, .format = gxapi::eFormat::R32G32B32_FLOAT, .inputSlot = 0, .offset = 12 },
+			gxapi::InputElementDesc{ .semanticName = "TEX_COORD", .semanticIndex = 0, .format = gxapi::eFormat::R32G32_FLOAT, .inputSlot = 0, .offset = 24 },
 		};
 
 		gxapi::GraphicsPipelineStateDesc psoDesc;
@@ -137,10 +137,10 @@ void DepthPrepass::Setup(SetupContext& context) {
 		psoDesc.rootSignature = m_binder.GetRootSignature();
 		psoDesc.vs = m_shader.vs;
 		psoDesc.ps = m_shader.ps;
-		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
+		psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW };
 		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
-		psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
+		psoDesc.depthStencilState = gxapi::DepthStencilState{.enableDepthTest = true, .enableDepthStencilWrite = true, .enableStencilTest = false };
 		psoDesc.depthStencilFormat = m_depthStencilFormat;
 
 		psoDesc.numRenderTargets = 0;

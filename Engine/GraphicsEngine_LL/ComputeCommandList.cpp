@@ -230,7 +230,7 @@ void ComputeCommandList::NewScratchSpace(size_t hint) {
 // UAV barrier
 //------------------------------------------------------------------------------
 void ComputeCommandList::UAVBarrier(const MemoryObject& memoryObject) {
-	m_commandList->ResourceBarrier(gxapi::UavBarrier(memoryObject._GetResourcePtr()));
+	m_commandList->ResourceBarrier(gxapi::UavBarrier{ .resource = memoryObject._GetResourcePtr() });
 }
 
 

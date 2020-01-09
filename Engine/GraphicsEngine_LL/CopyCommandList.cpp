@@ -75,10 +75,10 @@ void CopyCommandList::SetResourceState(const MemoryObject& resource, gxapi::eRes
 			if (prevState != state) {
 				m_commandList->ResourceBarrier(
 					gxapi::TransitionBarrier{
-					resource._GetResourcePtr(),
-					prevState,
-					state,
-					subresource
+					.resource = resource._GetResourcePtr(),
+					.subResource = subresource,
+					.beforeState = prevState,
+					.afterState = state
 				}
 				);
 				iter->second.lastState = state;

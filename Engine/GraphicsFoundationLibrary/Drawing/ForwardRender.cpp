@@ -913,9 +913,9 @@ std::unique_ptr<gxapi::IPipelineState> ForwardRender::CreatePso(
 	std::unique_ptr<gxapi::IPipelineState> result;
 
 	std::vector<gxapi::InputElementDesc> inputElementDesc = {
-		gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
-		gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
-		gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
+		gxapi::InputElementDesc{ .semanticName = "POSITION", .semanticIndex = 0, .format = gxapi::eFormat::R32G32B32_FLOAT, .inputSlot = 0, .offset = 0 },
+		gxapi::InputElementDesc{ .semanticName = "NORMAL", .semanticIndex = 0, .format = gxapi::eFormat::R32G32B32_FLOAT, .inputSlot = 0, .offset = 12 },
+		gxapi::InputElementDesc{ .semanticName = "TEX_COORD", .semanticIndex = 0, .format = gxapi::eFormat::R32G32_FLOAT, .inputSlot = 0, .offset = 24 },
 	};
 
 	gxapi::GraphicsPipelineStateDesc psoDesc;
@@ -924,11 +924,11 @@ std::unique_ptr<gxapi::IPipelineState> ForwardRender::CreatePso(
 	psoDesc.rootSignature = binder.GetRootSignature();
 	psoDesc.vs = vs;
 	psoDesc.ps = ps;
-	psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
+	psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW };
 	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
-	//psoDesc.depthStencilState = gxapi::DepthStencilState(false, true);
-	psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
+	//psoDesc.depthStencilState = gxapi::DepthStencilState{false, true};
+	psoDesc.depthStencilState = gxapi::DepthStencilState{.enableDepthTest = true, .enableDepthStencilWrite = true };
 	psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::EQUAL;
 	psoDesc.depthStencilState.enableStencilTest = true;
 	psoDesc.depthStencilState.stencilReadMask = 0;

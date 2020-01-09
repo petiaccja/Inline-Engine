@@ -111,7 +111,7 @@ void DrawSky::Setup(SetupContext& context) {
 
 	if (m_colorFormat != renderTarget.GetFormat() || m_depthStencilFormat != currDepthStencilFormat) {
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
-			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0)
+			gxapi::InputElementDesc{ .semanticName = "POSITION", .semanticIndex = 0, .format = gxapi::eFormat::R32G32B32_FLOAT, .inputSlot = 0, .offset = 0 }
 		};
 
 		m_colorFormat = renderTarget.GetFormat();
@@ -123,7 +123,7 @@ void DrawSky::Setup(SetupContext& context) {
 		psoDesc.rootSignature = m_binder.GetRootSignature();
 		psoDesc.vs = m_shader.vs;
 		psoDesc.ps = m_shader.ps;
-		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+		psoDesc.rasterization = gxapi::RasterizerState{ .fillMode = gxapi::eFillMode::SOLID, .cullMode = gxapi::eCullMode::DRAW_ALL };
 		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 		psoDesc.depthStencilState.enableDepthTest = false;

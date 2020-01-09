@@ -221,9 +221,9 @@ void Voxelization::Setup(SetupContext& context) {
 
 		{
 			std::vector<gxapi::InputElementDesc> inputElementDesc = {
-				gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
-				gxapi::InputElementDesc("NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12),
-				gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24),
+				gxapi::InputElementDesc{ "POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0 },
+				gxapi::InputElementDesc{"NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12},
+				gxapi::InputElementDesc{"TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24},
 			};
 
 			gxapi::GraphicsPipelineStateDesc psoDesc;
@@ -233,7 +233,7 @@ void Voxelization::Setup(SetupContext& context) {
 			psoDesc.vs = m_voxelizationShader.vs;
 			psoDesc.gs = m_voxelizationShader.gs;
 			psoDesc.ps = m_voxelizationShader.ps;
-			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+			psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
 			bool peti = false;
 			if (!peti) {
 				psoDesc.rasterization.conservativeRasterization = gxapi::eConservativeRasterizationMode::ON;

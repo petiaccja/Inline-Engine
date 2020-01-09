@@ -52,10 +52,10 @@ static const PipelineStateTemplate psoTemplate = [] {
 	psoTemplate.vsFileName = "RenderForwardSimple.hlsl";
 	psoTemplate.psFileName = "RenderForwardSimple.hlsl";
 
-	psoTemplate.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+	psoTemplate.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
 	psoTemplate.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
-	psoTemplate.depthStencilState = gxapi::DepthStencilState(true, true);
+	psoTemplate.depthStencilState = gxapi::DepthStencilState{ .enableDepthTest = true, .enableDepthStencilWrite = true };
 	psoTemplate.depthStencilState.depthFunc = gxapi::eComparisonFunction::LESS_EQUAL;
 	psoTemplate.depthStencilState.enableStencilTest = true;
 	psoTemplate.depthStencilState.stencilReadMask = 0;

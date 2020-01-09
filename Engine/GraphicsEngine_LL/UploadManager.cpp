@@ -170,7 +170,7 @@ size_t UploadManager::SnapUpwrads(size_t value, size_t gridSize) {
 MemoryObject::UniquePtr UploadManager::CreateStagingResource(const void* data, size_t size) {
 	auto resource = MemoryObject::UniquePtr(
 		m_graphicsApi->CreateCommittedResource(
-			gxapi::HeapProperties(gxapi::eHeapType::UPLOAD),
+			gxapi::HeapProperties{ .type = gxapi::eHeapType::UPLOAD },
 			gxapi::eHeapFlags::NONE,
 			gxapi::ResourceDesc::Buffer(size),
 			//NOTE: GENERIC_READ is the required starting state for upload heap resources according to msdn
@@ -205,7 +205,7 @@ MemoryObject::UniquePtr UploadManager::CreateStagingResource(const void* data, u
 
 	auto resource = MemoryObject::UniquePtr(
 		m_graphicsApi->CreateCommittedResource(
-			gxapi::HeapProperties(gxapi::eHeapType::UPLOAD),
+			gxapi::HeapProperties{ .type = gxapi::eHeapType::UPLOAD },
 			gxapi::eHeapFlags::NONE,
 			gxapi::ResourceDesc::Buffer(requiredSize),
 			// GENERIC_READ is the required starting state for upload heap resources according to MSDN.

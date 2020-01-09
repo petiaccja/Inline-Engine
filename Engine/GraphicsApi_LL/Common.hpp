@@ -14,8 +14,7 @@
 #include <cassert>
 #include "Exception.hpp"
 
-namespace inl {
-namespace gxapi {
+namespace inl::gxapi {
 
 
 class ICommandAllocator;
@@ -665,81 +664,52 @@ struct MemoryRange {
 // todo: operator++, += for traversing heap like iterator?
 //		ctor as obj(Heap*, index)
 struct DescriptorHandle {
-public:
-	DescriptorHandle() {
-		cpuAddress = nullptr;
-		gpuAddress = nullptr;
-	}
-	DescriptorHandle(const DescriptorHandle&) = default;
-	DescriptorHandle& operator=(const DescriptorHandle&) = default;
-	DescriptorHandle(DescriptorHandle&& rhs) {
-		cpuAddress = rhs.cpuAddress;
-		gpuAddress = rhs.gpuAddress;
-	}
-	DescriptorHandle& operator=(DescriptorHandle&& rhs) {
-		cpuAddress = rhs.cpuAddress;
-		gpuAddress = rhs.gpuAddress;
-		return *this;
-	}
+	bool operator==(const DescriptorHandle& rhs) const = default;
+	bool operator!=(const DescriptorHandle& rhs) const = default;
 
-	bool operator==(const DescriptorHandle& rhs) const {
-		return cpuAddress == rhs.cpuAddress && gpuAddress == rhs.gpuAddress;
-	}
-	bool operator!=(const DescriptorHandle& rhs) const {
-		return !(*this == rhs);
-	}
-public:
-	void* cpuAddress;
-	void* gpuAddress;
+	void* cpuAddress = nullptr;
+	void* gpuAddress = nullptr;
 };
 
 
 struct Viewport {
-	float topLeftX;
-	float topLeftY;
-	float width;
-	float height;
-	float minDepth;
-	float maxDepth;
+	float topLeftX = 0;
+	float topLeftY = 0;
+	float width = 0;
+	float height = 0;
+	float minDepth = 0;
+	float maxDepth = 1;
 };
 
 struct HeapProperties {
-	HeapProperties(eHeapType type = eHeapType::DEFAULT,
-		eCpuPageProperty cpuPageProperty = eCpuPageProperty::UNKNOWN,
-		eMemoryPool memoryPool = eMemoryPool::UNKNOWN)
-		: type(type), pool(memoryPool), cpuPageProperty(cpuPageProperty) {}
-	eHeapType type;
-	eCpuPageProperty cpuPageProperty;
-	eMemoryPool pool;
+	eHeapType type = eHeapType::DEFAULT;
+	eCpuPageProperty cpuPageProperty = eCpuPageProperty::UNKNOWN;
+	eMemoryPool pool = eMemoryPool::UNKNOWN;
 };
 
 struct BufferDesc {
-	BufferDesc() = default;
-
-	uint64_t sizeInBytes;
+	uint64_t sizeInBytes = 0;
 };
 
 struct TextureDesc {
 	static constexpr uint16_t ALL_MIPLEVELS = 0;
 
-	eTextueDimension dimension;
-	uint64_t alignment;
-	uint64_t width;
-	uint32_t height;
-	uint16_t depthOrArraySize;
-	uint16_t mipLevels;
-	eFormat format;
-	eTextureLayout layout;
-	eResourceFlags flags;
-	uint32_t multisampleCount;
-	uint32_t multisampleQuality;
+	eTextueDimension dimension = eTextueDimension::TWO;
+	uint64_t alignment = 0;
+	uint64_t width = 0;
+	uint32_t height = 0;
+	uint16_t depthOrArraySize = 0;
+	uint16_t mipLevels = 0;
+	eFormat format = eFormat::UNKNOWN;
+	eTextureLayout layout = eTextureLayout::UNKNOWN;
+	eResourceFlags flags = eResourceFlags::NONE;
+	uint32_t multisampleCount = 1;
+	uint32_t multisampleQuality = 0;
 };
 
 
 struct ResourceDesc {
-	ResourceDesc() = default;
-
-	eResourceType type;
+	eResourceType type = eResourceType::BUFFER;
 
 	// C++ won't let it be a union because members are not POD types technically... Fuck that!
 	//union {
@@ -803,63 +773,48 @@ struct ClearValue {
 // Describes which subresource of a texture should be used or
 // how data should be interpreted inside a buffer when treating it as a texture during a copy
 struct TextureCopyDesc {
-	TextureCopyDesc() = default;
-	TextureCopyDesc(eFormat format, uint64_t width, uint32_t height, uint16_t depth, size_t byteOffset, uint32_t subresourceIndex)
-		: format(format), width(width), height(height), depth(depth), byteOffset(byteOffset), subresourceIndex(subresourceIndex) {}
-
 	// to describe texture information inside a buffer:
-	eFormat format;
-	uint64_t width;
-	uint32_t height;
-	uint16_t depth;
-	size_t byteOffset;
+	eFormat format = eFormat::UNKNOWN;
+	uint64_t width = 0;
+	uint32_t height = 0;
+	uint16_t depth = 0;
+	size_t byteOffset = 0;
 
 	// to identify a texture subresource:
-	uint32_t subresourceIndex;
+	uint32_t subresourceIndex = 0;
 
 
 	static TextureCopyDesc Texture(uint32_t subresourceIndex) {
-		TextureCopyDesc result; result.subresourceIndex = subresourceIndex; return result;
+		return TextureCopyDesc{ .subresourceIndex = subresourceIndex };
 	}
 
 	static TextureCopyDesc Buffer(eFormat format, uint64_t width, uint32_t height, uint16_t depth, size_t byteOffset) {
-		return TextureCopyDesc(format, width, height, depth, byteOffset, 0);
+		return TextureCopyDesc{ .format = format, .width = width, .height = height, .depth = depth, .byteOffset = byteOffset };
 	}
 };
 
 
 struct CommandQueueDesc {
-	CommandQueueDesc() = default;
-	CommandQueueDesc(eCommandListType type, eCommandQueuePriority priority = eCommandQueuePriority::NORMAL, bool enableGpuTimeout = true)
-		: type(type), priority(priority), enableGpuTimeout(enableGpuTimeout) {}
-	eCommandListType type;
-	eCommandQueuePriority priority;
-	bool enableGpuTimeout;
+	eCommandListType type = eCommandListType::GRAPHICS;
+	eCommandQueuePriority priority = eCommandQueuePriority::NORMAL;
+	bool enableGpuTimeout = true;
 };
 
 
 struct CommandListDesc {
-	CommandListDesc(ICommandAllocator* allocator = nullptr, IPipelineState* initialState = nullptr)
-		: allocator(allocator), initialState(initialState) {}
-	ICommandAllocator* allocator;
-	IPipelineState* initialState;
+	ICommandAllocator* allocator = nullptr;
+	IPipelineState* initialState = nullptr;
 };
 
 
 struct DescriptorHeapDesc {
-	DescriptorHeapDesc() = default;
-	DescriptorHeapDesc(eDescriptorHeapType type, size_t numDescriptors, bool isShaderVisible)
-		: type(type), numDescriptors(numDescriptors), isShaderVisible(isShaderVisible) {}
-	eDescriptorHeapType type;
-	size_t numDescriptors;
-	bool isShaderVisible;
+	eDescriptorHeapType type = eDescriptorHeapType::CBV_SRV_UAV;
+	size_t numDescriptors = 0;
+	bool isShaderVisible = false;
 };
 
 
 struct ShaderByteCodeDesc {
-	ShaderByteCodeDesc() = default;
-	ShaderByteCodeDesc(const void* byteCode, size_t sizeOfByteCode)
-		: shaderByteCode(byteCode), sizeOfByteCode(sizeOfByteCode) {}
 	const void* shaderByteCode = nullptr;
 	size_t sizeOfByteCode = 0;
 };
@@ -871,61 +826,23 @@ private:
 
 
 struct RenderTargetBlendState {
-	RenderTargetBlendState(
-		bool enableBlending = false,
-		bool enableLogicOp = false,
-		eBlendOperand shaderColorFactor = eBlendOperand::SHADER_OUT,
-		eBlendOperand targetColorFactor = eBlendOperand::ZERO,
-		eBlendOperation colorOperation = eBlendOperation::ADD,
-		eBlendOperand shaderAlphaFactor = eBlendOperand::SHADER_OUT,
-		eBlendOperand targetAlphaFactor = eBlendOperand::ZERO,
-		eBlendOperation alphaOperation = eBlendOperation::ADD,
-		eColorMask mask = eColorMask::ALL,
-		eBlendLogicOperation logicOperation = eBlendLogicOperation::NOOP)
-		:
-		enableBlending(enableBlending),
-		enableLogicOp(enableLogicOp),
-		shaderColorFactor(shaderColorFactor),
-		targetColorFactor(targetColorFactor),
-		colorOperation(colorOperation),
-		shaderAlphaFactor(shaderAlphaFactor),
-		targetAlphaFactor(targetAlphaFactor),
-		alphaOperation(alphaOperation),
-		mask(mask),
-		logicOperation(logicOperation)
-	{}
+	bool operator==(const RenderTargetBlendState&) const = default;
+	bool operator!=(const RenderTargetBlendState&) const = default;
 
-	bool operator==(const RenderTargetBlendState& other) const {
-		return enableBlending == other.enableBlending
-			&& enableLogicOp == other.enableLogicOp
-			&& shaderColorFactor == other.shaderColorFactor
-			&& targetColorFactor == other.targetColorFactor
-			&& colorOperation == other.colorOperation
-			&& shaderAlphaFactor == other.shaderAlphaFactor
-			&& targetAlphaFactor == other.targetAlphaFactor
-			&& alphaOperation == other.alphaOperation
-			&& mask == other.mask
-			&& logicOperation == other.logicOperation;
-	}
+	bool enableBlending = false;
+	bool enableLogicOp = false;
 
-	bool operator!=(const RenderTargetBlendState& other) const {
-		return !(*this == other);
-	}
+	eBlendOperand shaderColorFactor = eBlendOperand::SHADER_OUT;
+	eBlendOperand targetColorFactor = eBlendOperand::ZERO;
+	eBlendOperation colorOperation = eBlendOperation::ADD;
 
-	bool enableBlending;
-	bool enableLogicOp;
+	eBlendOperand shaderAlphaFactor = eBlendOperand::SHADER_OUT;
+	eBlendOperand targetAlphaFactor = eBlendOperand::ZERO;
+	eBlendOperation alphaOperation = eBlendOperation::ADD;
 
-	eBlendOperand shaderColorFactor;
-	eBlendOperand targetColorFactor;
-	eBlendOperation colorOperation;
+	eColorMask mask = eColorMask::ALL;
 
-	eBlendOperand shaderAlphaFactor;
-	eBlendOperand targetAlphaFactor;
-	eBlendOperation alphaOperation;
-
-	eColorMask mask;
-
-	eBlendLogicOperation logicOperation;
+	eBlendLogicOperation logicOperation = eBlendLogicOperation::NOOP;
 };
 
 
@@ -950,70 +867,27 @@ struct BlendState {
 
 
 struct RasterizerState {
-	RasterizerState(
-		eFillMode fillMode = eFillMode::SOLID,
-		eCullMode cullMode = eCullMode::DRAW_ALL,
-		int depthBias = 0,
-		float depthBiasClamp = 0,
-		float slopeScaledDepthBias = 0,
-		bool depthClipEnabled = false,
-		bool multisampleEnabled = false,
-		bool lineAntialiasingEnabled = false,
-		unsigned forcedSampleCount = 0,
-		eConservativeRasterizationMode conservativeRasterization = eConservativeRasterizationMode::OFF)
-		:
-		fillMode(fillMode),
-		cullMode(cullMode),
-		depthBias(depthBias),
-		depthBiasClamp(depthBiasClamp),
-		slopeScaledDepthBias(slopeScaledDepthBias),
-		depthClipEnabled(depthClipEnabled),
-		multisampleEnabled(multisampleEnabled),
-		lineAntialiasingEnabled(lineAntialiasingEnabled),
-		forcedSampleCount(forcedSampleCount),
-		conservativeRasterization(conservativeRasterization)
-	{}
-
-	eFillMode fillMode;
-	eCullMode cullMode;
-	int depthBias;
-	float depthBiasClamp;
-	float slopeScaledDepthBias;
-	bool depthClipEnabled;
-	bool multisampleEnabled;
-	bool lineAntialiasingEnabled;
-	unsigned forcedSampleCount;
-	eConservativeRasterizationMode conservativeRasterization;
+	eFillMode fillMode = eFillMode::SOLID;
+	eCullMode cullMode = eCullMode::DRAW_ALL;
+	int depthBias = 0;
+	float depthBiasClamp = 0;
+	float slopeScaledDepthBias = 0;
+	bool depthClipEnabled = false;
+	bool multisampleEnabled = false;
+	bool lineAntialiasingEnabled = false;
+	unsigned forcedSampleCount = 0;
+	eConservativeRasterizationMode conservativeRasterization = eConservativeRasterizationMode::OFF;
 };
 
 
 struct InputElementDesc {
-	InputElementDesc(
-		const char* semanticName = nullptr,
-		unsigned semanticIndex = 0,
-		eFormat format = eFormat::UNKNOWN,
-		unsigned inputSlot = 0,
-		unsigned offset = 0,
-		eInputClassification classifiacation = eInputClassification::VERTEX_DATA,
-		unsigned instanceDataStepRate = 0
-	)
-		:
-		semanticName(semanticName),
-		semanticIndex(semanticIndex),
-		format(format),
-		inputSlot(inputSlot),
-		offset(offset),
-		classifiacation(classifiacation),
-		instanceDataStepRate(instanceDataStepRate)
-	{}
-
-	const char* semanticName;
-	unsigned semanticIndex;
-	eFormat format;
-	unsigned inputSlot;
-	unsigned offset;
-	eInputClassification classifiacation;
-	unsigned instanceDataStepRate;
+	const char* semanticName = nullptr;
+	unsigned semanticIndex = 0;
+	eFormat format = eFormat::UNKNOWN;
+	unsigned inputSlot = 0;
+	unsigned offset = 0;
+	eInputClassification classifiacation = eInputClassification::VERTEX_DATA;
+	unsigned instanceDataStepRate = 0;
 };
 
 struct InputLayout {
@@ -1023,47 +897,18 @@ struct InputLayout {
 
 struct DepthStencilState {
 	struct FaceOperations {
-		FaceOperations(eStencilOp stencilOpOnStencilFail = eStencilOp::KEEP,
-			eStencilOp stencilOpOnDepthFail = eStencilOp::KEEP,
-			eStencilOp stencilOpOnPass = eStencilOp::KEEP,
-			eComparisonFunction stencilFunc = eComparisonFunction::ALWAYS)
-			:stencilOpOnStencilFail(stencilOpOnStencilFail),
-			stencilOpOnDepthFail(stencilOpOnDepthFail),
-			stencilOpOnPass(stencilOpOnPass),
-			stencilFunc(stencilFunc)
-		{}
-
-		eStencilOp stencilOpOnStencilFail;
-		eStencilOp stencilOpOnDepthFail;
-		eStencilOp stencilOpOnPass;
-		eComparisonFunction stencilFunc;
+		eStencilOp stencilOpOnStencilFail = eStencilOp::KEEP;
+		eStencilOp stencilOpOnDepthFail = eStencilOp::KEEP;
+		eStencilOp stencilOpOnPass = eStencilOp::KEEP;
+		eComparisonFunction stencilFunc = eComparisonFunction::ALWAYS;
 	};
 
-	DepthStencilState(bool enableDepthTest = false,
-		bool enableDepthStencilWrite = false,
-		eComparisonFunction depthFunc = eComparisonFunction::LESS,
-		bool enableStencilTest = false,
-		uint8_t stencilReadMask = 0,
-		uint8_t stencilWriteMask = 0,
-		FaceOperations cwFace = {},
-		FaceOperations ccwFace = {})
-		:
-		enableDepthTest(enableDepthTest),
-		enableDepthStencilWrite(enableDepthStencilWrite),
-		depthFunc(depthFunc),
-		enableStencilTest(enableStencilTest),
-		stencilReadMask(stencilReadMask),
-		stencilWriteMask(stencilWriteMask),
-		cwFace(cwFace),
-		ccwFace(ccwFace)
-	{}
-
-	bool enableDepthTest;
-	bool enableDepthStencilWrite;
-	eComparisonFunction depthFunc;
-	bool enableStencilTest;
-	uint8_t stencilReadMask;
-	uint8_t stencilWriteMask;
+	bool enableDepthTest = false;
+	bool enableDepthStencilWrite = false;
+	eComparisonFunction depthFunc = eComparisonFunction::LESS;
+	bool enableStencilTest = false;
+	uint8_t stencilReadMask = 0;
+	uint8_t stencilWriteMask = 0;
 
 	FaceOperations cwFace, ccwFace;
 };
@@ -1072,24 +917,8 @@ struct DepthStencilState {
 /// <summary> Describes the fixed function parts of the GPU pipeline. </summary>
 /// <remarks> Values are filled with sensible defaults. </remarks>
 struct GraphicsPipelineStateDesc {
-	GraphicsPipelineStateDesc()
-		:
-		blendSampleMask(0xFFFFFFFF),
-		multisampleCount(1),
-		multisampleQuality(0),
-		depthStencilFormat(eFormat::UNKNOWN),
-		numRenderTargets(1),
-		addDebugInfo(false),
-		primitiveTopologyType(ePrimitiveTopologyType::UNDEFINED),
-		triangleStripCutIndex(eTriangleStripCutIndex::DISABLED)
-	{
-		for (auto& v : renderTargetFormats) {
-			v = eFormat::UNKNOWN;
-		}
-	}
-
-	IRootSignature* rootSignature;
-
+	IRootSignature* rootSignature = nullptr;
+	
 	ShaderByteCodeDesc vs;
 	ShaderByteCodeDesc gs;
 	ShaderByteCodeDesc hs;
@@ -1100,31 +929,25 @@ struct GraphicsPipelineStateDesc {
 	RasterizerState rasterization;
 	DepthStencilState depthStencilState;
 	BlendState blending;
-	unsigned blendSampleMask;
+	unsigned blendSampleMask = 0xFFFFFFFF;
 
 	InputLayout inputLayout;
-	ePrimitiveTopologyType primitiveTopologyType;
-	eTriangleStripCutIndex triangleStripCutIndex;
+	ePrimitiveTopologyType primitiveTopologyType = ePrimitiveTopologyType::UNDEFINED;
+	eTriangleStripCutIndex triangleStripCutIndex = eTriangleStripCutIndex::DISABLED;
 
-	unsigned numRenderTargets; 
-	eFormat renderTargetFormats[8];
-	eFormat depthStencilFormat;
-	unsigned multisampleCount;
-	unsigned multisampleQuality;
+	unsigned numRenderTargets = 1; 
+	eFormat renderTargetFormats[8] = { eFormat::UNKNOWN, eFormat::UNKNOWN, eFormat::UNKNOWN, eFormat::UNKNOWN, eFormat::UNKNOWN, eFormat::UNKNOWN, eFormat::UNKNOWN, eFormat::UNKNOWN };
+	eFormat depthStencilFormat = eFormat::UNKNOWN;
+	unsigned multisampleCount = 1;
+	unsigned multisampleQuality = 0;
 
-	bool addDebugInfo;
+	bool addDebugInfo = false;
 };
 
 struct ComputePipelineStateDesc {
-	ComputePipelineStateDesc() : rootSignature(nullptr), addDebugInfo(false) {}
-	ComputePipelineStateDesc(
-		IRootSignature* rootSignature,
-		ShaderByteCodeDesc cs,
-		bool addDebugInfo = false)
-		: rootSignature(rootSignature), cs(cs), addDebugInfo(addDebugInfo) {};
-	IRootSignature* rootSignature;
-	ShaderByteCodeDesc cs;
-	bool addDebugInfo;
+	IRootSignature* rootSignature = nullptr;
+	ShaderByteCodeDesc cs = {};
+	bool addDebugInfo = false;
 };
 
 struct DescriptorRange {
@@ -1135,25 +958,11 @@ struct DescriptorRange {
 		SAMPLER,
 	};
 
-	DescriptorRange() = default;
-	DescriptorRange(eType type,
-		unsigned numDescriptors,
-		unsigned baseShaderRegister,
-		unsigned registerSpace,
-		unsigned offsetFromTableStart = OFFSET_APPEND)
-		:
-		type(type),
-		numDescriptors(numDescriptors),
-		baseShaderRegister(baseShaderRegister),
-		registerSpace(registerSpace),
-		offsetFromTableStart(offsetFromTableStart)
-	{}
-
-	eType type;
-	unsigned numDescriptors;
-	unsigned baseShaderRegister;
-	unsigned registerSpace;
-	unsigned offsetFromTableStart;
+	eType type = CBV;
+	unsigned numDescriptors = 0;
+	unsigned baseShaderRegister = 0;
+	unsigned registerSpace = 0;
+	unsigned offsetFromTableStart = OFFSET_APPEND;
 
 	static constexpr auto OFFSET_APPEND = std::numeric_limits<unsigned>::max();
 };
@@ -1297,51 +1106,19 @@ private:
 };
 
 struct StaticSamplerDesc {
-	StaticSamplerDesc(
-		unsigned shaderRegister = 0,
-		eTextureFilterMode filter = eTextureFilterMode::ANISOTROPIC,
-		eTextureAddressMode addressU = eTextureAddressMode::WRAP,
-		eTextureAddressMode addressV = eTextureAddressMode::WRAP,
-		eTextureAddressMode addressW = eTextureAddressMode::WRAP,
-		float mipLevelBias = 0,
-		unsigned maxAnisotropy = 16,
-		eComparisonFunction compareFunc = eComparisonFunction::LESS_EQUAL,
-		eTextureBorderColor border = eTextureBorderColor::OPAQUE_WHITE,
-		float minMipLevel = 0,
-		float maxMipLevel = std::numeric_limits<float>::max(),
-		unsigned registerSpace = 0,
-		eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL
-	)
-
-		: filter(filter),
-		addressU(addressU),
-		addressV(addressV),
-		addressW(addressW),
-		mipLevelBias(mipLevelBias),
-		maxAnisotropy(maxAnisotropy),
-		compareFunc(compareFunc),
-		border(border),
-		minMipLevel(minMipLevel),
-		maxMipLevel(maxMipLevel),
-		shaderRegister(shaderRegister),
-		registerSpace(registerSpace),
-		shaderVisibility(shaderVisibility)
-	{}
-
-
-	eTextureFilterMode filter;
-	eTextureAddressMode addressU;
-	eTextureAddressMode addressV;
-	eTextureAddressMode addressW;
-	float mipLevelBias;
-	unsigned maxAnisotropy;
-	eComparisonFunction compareFunc;
-	eTextureBorderColor border;
-	float minMipLevel;
-	float maxMipLevel;
-	unsigned shaderRegister;
-	unsigned registerSpace;
-	eShaderVisiblity shaderVisibility;
+	eTextureFilterMode filter = eTextureFilterMode::ANISOTROPIC;
+	eTextureAddressMode addressU = eTextureAddressMode::WRAP;
+	eTextureAddressMode addressV = eTextureAddressMode::WRAP;
+	eTextureAddressMode addressW = eTextureAddressMode::WRAP;
+	float mipLevelBias = 0;
+	unsigned maxAnisotropy = 16;
+	eComparisonFunction compareFunc = eComparisonFunction::LESS_EQUAL;
+	eTextureBorderColor border = eTextureBorderColor::OPAQUE_WHITE;
+	float minMipLevel = 0;
+	float maxMipLevel = std::numeric_limits<float>::max();
+	unsigned shaderRegister = 0;
+	unsigned registerSpace = 0;
+	eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL;
 };
 
 struct RootSignatureDesc {
@@ -1385,9 +1162,9 @@ struct DsvTextureMultisampled2DArray {
 
 
 struct DepthStencilViewDesc {
-	eFormat format;
-	eDsvDimension dimension;
-	eDsvFlags flags;
+	eFormat format = eFormat::UNKNOWN;
+	eDsvDimension dimension = eDsvDimension::UNKNOWN;
+	eDsvFlags flags = eDsvFlags::NONE;
 	union {
 		DsvTexture1D tex1D;
 		DsvTexture1DArray tex1DArray;
@@ -1436,8 +1213,8 @@ struct RtvTexture3D {
 };
 
 struct RenderTargetViewDesc {
-	eFormat format;
-	eRtvDimension dimension;
+	eFormat format = eFormat::UNKNOWN;
+	eRtvDimension dimension = eRtvDimension::UNKNOWN;
 	union {
 		RtvBuffer buffer;
 		RtvTexture1D tex1D;
@@ -1512,8 +1289,8 @@ struct SrvTextureCubeArray {
 };
 
 struct ShaderResourceViewDesc {
-	eFormat format;
-	eSrvDimension dimension;
+	eFormat format = eFormat::UNKNOWN;
+	eSrvDimension dimension = eSrvDimension::UNKNOWN;
 
 	union {
 		SrvBuffer buffer;
@@ -1571,8 +1348,8 @@ struct UavTexture3D {
 };
 
 struct UnorderedAccessViewDesc {
-	eFormat format;
-	eUavDimension dimension;
+	eFormat format = eFormat::UNKNOWN;
+	eUavDimension dimension = eUavDimension::UNKNOWN;
 	union {
 		UavBuffer buffer;
 		UavTexture1D tex1D;
@@ -1588,26 +1365,17 @@ struct UnorderedAccessViewDesc {
 struct ResourceBarrierTag {};
 
 struct TransitionBarrier : public ResourceBarrierTag {
-	TransitionBarrier() = default;
-	TransitionBarrier(IResource* resource,
-		eResourceState beforeState,
-		eResourceState afterState,
-		unsigned subResource = 0,
-		eResourceBarrierSplit splitMode = eResourceBarrierSplit::NORMAL)
-		: resource(resource), beforeState(beforeState), afterState(afterState), subResource(subResource), splitMode(splitMode) {}
-
-	IResource* resource;
-	unsigned subResource;
-	eResourceState beforeState;
-	eResourceState afterState;
-	eResourceBarrierSplit splitMode;
+	IResource* resource = nullptr;
+	unsigned subResource = 0;
+	eResourceState beforeState = eResourceState::COMMON;
+	eResourceState afterState = eResourceState::COMMON;
+	eResourceBarrierSplit splitMode = eResourceBarrierSplit::NORMAL;
 };
 
 static constexpr auto ALL_SUBRESOURCES = std::numeric_limits<unsigned>::max();
 
 struct UavBarrier : public ResourceBarrierTag {
-	UavBarrier(IResource* resource = nullptr) : resource(resource) {}
-	IResource* resource;
+	IResource* resource = nullptr;
 };
 
 struct ResourceBarrier {
@@ -2050,5 +1818,4 @@ inline unsigned GetFormatSizeInBytes(eFormat format) {
 
 
 } // namespace gxapi
-} // namespace inl
 

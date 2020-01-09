@@ -175,8 +175,8 @@ void DOFMain::Setup(SetupContext& context) {
 		shaderParts.ps = true;
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
-			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
-			gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12)
+			gxapi::InputElementDesc{ "POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0 },
+			gxapi::InputElementDesc{"TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12}
 		};
 
 		{
@@ -188,7 +188,7 @@ void DOFMain::Setup(SetupContext& context) {
 			psoDesc.rootSignature = m_binder.GetRootSignature();
 			psoDesc.vs = m_mainShader.vs;
 			psoDesc.ps = m_mainShader.ps;
-			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+			psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 			psoDesc.depthStencilState.enableDepthTest = false;
@@ -211,7 +211,7 @@ void DOFMain::Setup(SetupContext& context) {
 			psoDesc.rootSignature = m_binder.GetRootSignature();
 			psoDesc.vs = m_postfilterShader.vs;
 			psoDesc.ps = m_postfilterShader.ps;
-			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+			psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 			psoDesc.depthStencilState.enableDepthTest = false;
@@ -234,7 +234,7 @@ void DOFMain::Setup(SetupContext& context) {
 			psoDesc.rootSignature = m_binder.GetRootSignature();
 			psoDesc.vs = m_upsampleShader.vs;
 			psoDesc.ps = m_upsampleShader.ps;
-			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+			psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 			psoDesc.depthStencilState.enableDepthTest = false;

@@ -137,14 +137,14 @@ std::vector<gxapi::ResourceBarrier> LinearQueue::TransitionBarriers(const std::v
 		if (subresource != gxapi::ALL_SUBRESOURCES) {
 			gxapi::eResourceState sourceState = resource.ReadState(subresource);
 			if (sourceState != targetState) {
-				barriers.push_back(gxapi::TransitionBarrier{ resource._GetResourcePtr(), sourceState, targetState, subresource });
+				barriers.push_back(gxapi::TransitionBarrier{ .resource = resource._GetResourcePtr(), .subResource = subresource, .beforeState = sourceState, .afterState = targetState });
 			}
 		}
 		else {
 			for (unsigned subresourceIdx = 0; subresourceIdx < resource.GetNumSubresources(); ++subresourceIdx) {
 				gxapi::eResourceState sourceState = resource.ReadState(subresourceIdx);
 				if (sourceState != targetState) {
-					barriers.push_back(gxapi::TransitionBarrier{ resource._GetResourcePtr(), sourceState, targetState, subresourceIdx });
+					barriers.push_back(gxapi::TransitionBarrier{ .resource = resource._GetResourcePtr(), .subResource = subresourceIdx, .beforeState = sourceState, .afterState = targetState });
 				}
 			}
 		}
@@ -206,7 +206,7 @@ void LinearQueue::FinalizeBackBuffer(DecomposedRenderCommand& subject) {
 			subject.commandList = m_context.commandListPool->RequestGraphicsList(subject.commandAllocator.get());
 		}
 
-		gxapi::TransitionBarrier barrier(m_context.backBuffer._GetResourcePtr(), backBufferState, gxapi::eResourceState::PRESENT);
+		gxapi::TransitionBarrier barrier{ .resource = m_context.backBuffer._GetResourcePtr(), .beforeState = backBufferState, .afterState = gxapi::eResourceState::PRESENT };
 		dynamic_cast<gxapi::ICopyCommandList*>(subject.commandList.get())->ResourceBarrier(barrier);
 		backBuffer.RecordState(gxapi::eResourceState::PRESENT);
 	}

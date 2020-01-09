@@ -91,7 +91,7 @@ void Blend::Setup(SetupContext& context) {
 		m_blendMode = currBlendMode;
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
-			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32_FLOAT, 0, 0)
+			gxapi::InputElementDesc{"POSITION", 0, gxapi::eFormat::R32G32_FLOAT, 0, 0}
 		};
 
 		gxapi::GraphicsPipelineStateDesc psoDesc;
@@ -100,7 +100,7 @@ void Blend::Setup(SetupContext& context) {
 		psoDesc.rootSignature = m_binder.GetRootSignature();
 		psoDesc.vs = m_shader.vs;
 		psoDesc.ps = m_shader.ps;
-		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+		psoDesc.rasterization = gxapi::RasterizerState{gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL};
 		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 		psoDesc.blending.alphaToCoverage = false;
 		psoDesc.blending.independentBlending = false;

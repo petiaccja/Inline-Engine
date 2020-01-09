@@ -21,7 +21,7 @@ CriticalBufferHeap::CriticalBufferHeap(gxapi::IGraphicsApi* graphicsApi) :
 CriticalBufferHeap::UniquePtr CriticalBufferHeap::Allocate(gxapi::ResourceDesc desc, gxapi::ClearValue* clearValue) {
 	UniquePtr resource{
 		m_graphicsApi->CreateCommittedResource(
-			gxapi::HeapProperties(gxapi::eHeapType::DEFAULT, gxapi::eCpuPageProperty::UNKNOWN, gxapi::eMemoryPool::UNKNOWN),
+			gxapi::HeapProperties{ .type = gxapi::eHeapType::DEFAULT, .cpuPageProperty = gxapi::eCpuPageProperty::UNKNOWN, .pool = gxapi::eMemoryPool::UNKNOWN },
 			gxapi::eHeapFlags::NONE,
 			desc,
 			gxapi::eResourceState::COMMON,

@@ -132,7 +132,7 @@ void DebugDraw::Setup(SetupContext& context) {
 		m_shader = context.CreateShader("DebugDraw", shaderParts, "");
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
-			gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
+			gxapi::InputElementDesc{ .semanticName = "POSITION", .semanticIndex = 0, .format = gxapi::eFormat::R32G32B32_FLOAT, .inputSlot = 0, .offset = 0 },
 		};
 
 		gxapi::GraphicsPipelineStateDesc psoDesc;
@@ -141,10 +141,10 @@ void DebugDraw::Setup(SetupContext& context) {
 		psoDesc.rootSignature = m_binder.GetRootSignature();
 		psoDesc.vs = m_shader.vs;
 		psoDesc.ps = m_shader.ps;
-		psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::WIREFRAME, gxapi::eCullMode::DRAW_CCW);
+		psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::WIREFRAME, gxapi::eCullMode::DRAW_CCW };
 		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::LINE;
 
-		psoDesc.depthStencilState = gxapi::DepthStencilState(false, false);
+		psoDesc.depthStencilState = gxapi::DepthStencilState{ .enableDepthTest = false, .enableDepthStencilWrite = false, .enableStencilTest = false };
 
 		psoDesc.numRenderTargets = 1;
 		psoDesc.renderTargetFormats[0] = renderTarget.GetFormat();

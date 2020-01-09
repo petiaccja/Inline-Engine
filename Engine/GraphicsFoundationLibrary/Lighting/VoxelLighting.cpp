@@ -376,8 +376,8 @@ void VoxelLighting::Setup(SetupContext& context) {
 
 		{ //light injection from a cascaded shadow map
 			std::vector<gxapi::InputElementDesc> inputElementDesc2 = {
-				gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
-				gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12)
+				gxapi::InputElementDesc{ "POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0 },
+				gxapi::InputElementDesc{ "TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12}
 			};
 
 			gxapi::GraphicsPipelineStateDesc psoDesc;
@@ -386,7 +386,7 @@ void VoxelLighting::Setup(SetupContext& context) {
 			psoDesc.rootSignature = m_binder.GetRootSignature();
 			psoDesc.vs = m_lightInjectionCSMShader.vs;
 			psoDesc.ps = m_lightInjectionCSMShader.ps;
-			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+			psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 			psoDesc.depthStencilState.enableDepthStencilWrite = false;
 			psoDesc.depthStencilState.enableDepthTest = false;
@@ -406,9 +406,9 @@ void VoxelLighting::Setup(SetupContext& context) {
 			psoDesc.vs = m_visualizerShader.vs;
 			psoDesc.gs = m_visualizerShader.gs;
 			psoDesc.ps = m_visualizerShader.ps;
-			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW);
+			psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW };
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::POINT;
-			psoDesc.depthStencilState = gxapi::DepthStencilState(true, true);
+			psoDesc.depthStencilState = gxapi::DepthStencilState{true, true};
 			psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::LESS;
 			psoDesc.depthStencilFormat = m_visualizationDSV.GetDescription().format;
 
@@ -420,8 +420,8 @@ void VoxelLighting::Setup(SetupContext& context) {
 
 		{ //final gather shader
 			std::vector<gxapi::InputElementDesc> inputElementDesc = {
-				gxapi::InputElementDesc("POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0),
-				gxapi::InputElementDesc("TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12)
+				gxapi::InputElementDesc{ "POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0 },
+				gxapi::InputElementDesc{ "TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12 }
 			};
 
 			gxapi::GraphicsPipelineStateDesc psoDesc;
@@ -430,9 +430,9 @@ void VoxelLighting::Setup(SetupContext& context) {
 			psoDesc.rootSignature = m_binder.GetRootSignature();
 			psoDesc.vs = m_finalGatherShader.vs;
 			psoDesc.ps = m_finalGatherShader.ps;
-			psoDesc.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
+			psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
-			psoDesc.depthStencilState = gxapi::DepthStencilState(false, false);
+			psoDesc.depthStencilState = gxapi::DepthStencilState{false, false};
 			psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::LESS;
 			psoDesc.depthStencilFormat = m_visualizationDSV.GetDescription().format;
 

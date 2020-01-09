@@ -52,7 +52,7 @@ StackDescHeap::StackDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescripto
 	m_next(0)
 {
 	assert(type == gxapi::eDescriptorHeapType::CBV_SRV_UAV || type == gxapi::eDescriptorHeapType::SAMPLER);
-	gxapi::DescriptorHeapDesc desc(type, size, true);
+	gxapi::DescriptorHeapDesc desc{ .type = type, .numDescriptors = size, .isShaderVisible = true };
 	m_heap.reset(graphicsApi->CreateDescriptorHeap(desc));
 }
 
