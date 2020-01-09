@@ -332,6 +332,10 @@ std::unique_ptr<IMeshEntity> GraphicsEngine::CreateMeshEntity() const {
 	return std::make_unique<MeshEntity>();
 }
 
+std::unique_ptr<IHeightmapEntity> GraphicsEngine::CreateHeightmapEntity() const {
+	return std::make_unique<HeightmapEntity>();
+}
+
 std::unique_ptr<IOverlayEntity> GraphicsEngine::CreateOverlayEntity() const {
 	return std::make_unique<OverlayEntity>();
 }

@@ -1,0 +1,26 @@
+{
+    "header": {
+        "contentType": "material"
+    },
+    "nodes": [
+        {
+            "class": "BasicShaded",
+            "id": 1,
+            "meta_pos": "[-196, 25]",
+			"name": "BasicShader"
+        },
+        {
+            "class": "UniversalSink",
+            "id": 0,
+            "meta_pos": "[196, -25]"
+        }
+    ],
+    "links": [
+        {
+            "src": 1,
+            "dst": 0,
+            "srcp": 0,
+            "dstp": 0
+        }
+    ]
+}

@@ -4,6 +4,7 @@
 #include <BaseLibrary/DynamicTuple.hpp>
 #include <GameFoundationLibrary/Components/DirectionalLightComponent.hpp>
 #include <GameFoundationLibrary/Components/GraphicsMeshComponent.hpp>
+#include <GameFoundationLibrary/Components/GraphicsHeightmapComponent.hpp>
 #include <GameFoundationLibrary/Components/PerspectiveCameraComponent.hpp>
 #include <GameLogic/ComponentFactory.hpp>
 #include <GameLogic/Entity.hpp>
@@ -76,6 +77,22 @@ void TestLevelSystem::Create(const CreateEntity& createEntity) {
 	cameraComponent.entity->SetUpVector({ 0, 0, 1 });
 	cameraComponent.entity->SetPosition({ 20.f, 5.f, 4.f });
 	cameraComponent.entity->SetTarget({ 0, 0, 0 });
+
+	// Create test heightmap entity.
+	Entity& heightmap = createEntity();
+	componentFactory.Create<GraphicsHeightmapComponent>(heightmap);
+	auto&& heightmapComponent = heightmap.GetFirstComponent<GraphicsHeightmapComponent>();
+	heightmapComponent.entity = graphicsModule.CreateHeightmapEntity();
+	heightmapComponent.mesh = graphicsModule.LoadMesh("Models/Test/Heightmap/heightmap.fbx");
+	heightmapComponent.material = graphicsModule.LoadMaterial("Models/Test/Heightmap/heightmap.mtl");
+	heightmapComponent.heightmap = graphicsModule.LoadImage("Models/Test/Heightmap/heightmap.png");
+	heightmapComponent.entity->SetMesh(heightmapComponent.mesh.get());
+	heightmapComponent.entity->SetMaterial(heightmapComponent.material.get());
+	heightmapComponent.entity->SetHeightmap(heightmapComponent.heightmap.get());
+	heightmapComponent.entity->SetPosition({ 0, 0, 1 });
+	heightmapComponent.entity->SetRotation(Quat::Identity());
+	heightmapComponent.entity->SetScale({ 1, 1, 1 });
+	scene.GetEntities<gxeng::IHeightmapEntity>().Add(heightmapComponent.entity.get());
 }
 
 void TestLevelSystem::LoadAsync(const inl::game::ComponentFactory& componentFactory, const inl::DynamicTuple& subsystems) {

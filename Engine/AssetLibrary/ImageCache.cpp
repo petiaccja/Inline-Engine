@@ -41,7 +41,7 @@ std::shared_ptr<gxeng::IImage> ImageCache::Create(const std::filesystem::path& p
 	gxeng::IPixelReader& reader = GetPixelReader(channelType, channelCount);
 
 	std::shared_ptr<gxeng::IImage> resource(m_engine.CreateImage());
-	resource->SetLayout(image.GetWidth(), (uint32_t)image.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, 4, gxeng::ePixelClass::LINEAR);
+	resource->SetLayout(image.GetWidth(), (uint32_t)image.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, channelCount, gxeng::ePixelClass::LINEAR);
 	resource->Update(0, 0, image.GetWidth(), (uint32_t)image.GetHeight(), 0, image.GetData(), reader);
 
 	return resource;

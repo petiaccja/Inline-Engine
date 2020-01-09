@@ -29,6 +29,7 @@
 #include "Material.hpp"
 #include "Mesh.hpp"
 #include "MeshEntity.hpp"
+#include "HeightmapEntity.hpp"
 #include "OrthographicCamera.hpp"
 #include "OverlayEntity.hpp"
 #include "PerspectiveCamera.hpp"
@@ -120,6 +121,7 @@ namespace gxeng {
 		// Scene
 		std::unique_ptr<IScene> CreateScene(std::string name) const override;
 		std::unique_ptr<IMeshEntity> CreateMeshEntity() const override;
+		std::unique_ptr<IHeightmapEntity> CreateHeightmapEntity() const override;
 		std::unique_ptr<IOverlayEntity> CreateOverlayEntity() const override;
 		std::unique_ptr<ITextEntity> CreateTextEntity() const override;
 		std::unique_ptr<IPerspectiveCamera> CreatePerspectiveCamera(std::string name) const override;

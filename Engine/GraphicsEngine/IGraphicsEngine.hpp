@@ -23,6 +23,7 @@ class IMaterialShaderEquation;
 
 class IScene;
 class IMeshEntity;
+class IHeightmapEntity;
 class IOverlayEntity;
 class ITextEntity;
 class IPerspectiveCamera;
@@ -93,6 +94,7 @@ public:
 	// Scene
 	virtual std::unique_ptr<IScene> CreateScene(std::string name) const = 0;
 	virtual std::unique_ptr<IMeshEntity> CreateMeshEntity() const = 0;
+	virtual std::unique_ptr<IHeightmapEntity> CreateHeightmapEntity() const = 0;
 	virtual std::unique_ptr<IOverlayEntity> CreateOverlayEntity() const = 0;
 	virtual std::unique_ptr<ITextEntity> CreateTextEntity() const = 0;
 	virtual std::unique_ptr<IPerspectiveCamera> CreatePerspectiveCamera(std::string name) const = 0;

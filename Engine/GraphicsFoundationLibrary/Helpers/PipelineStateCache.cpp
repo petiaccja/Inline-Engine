@@ -16,11 +16,11 @@ namespace inl::gxeng::nodes {
 
 
 
-PipelineStateCache::PipelineStateCache(std::vector<BindParameterDesc> originalBindParams, PipelineStateTemplate psoTemplate)
+PipelineStateCache::PipelineStateCache(PipelineStateTemplate psoTemplate, std::vector<BindParameterDesc> originalBindParams, std::vector<gxapi::StaticSamplerDesc> staticSamplers)
 	: m_originalBindParams(std::move(originalBindParams)), m_psoTemplate(std::move(psoTemplate)) {}
 
 
-void PipelineStateCache::Reset(std::vector<BindParameterDesc> originalBindParams, PipelineStateTemplate psoTemplate) {
+void PipelineStateCache::Reset(PipelineStateTemplate psoTemplate, std::vector<BindParameterDesc> originalBindParams, std::vector<gxapi::StaticSamplerDesc> staticSamplers) {
 	m_originalBindParams = std::move(originalBindParams);
 	m_psoTemplate = std::move(psoTemplate);
 	// Clear all data.
@@ -58,21 +58,21 @@ Binder CreateBinder(RenderContext& context,
                       const std::vector<BindParameterDesc>& materialTextureParams) {
 	std::vector<BindParameterDesc> params;
 
-	gxapi::StaticSamplerDesc sampler;
-	sampler.shaderRegister = 0;
-	sampler.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
-	sampler.addressU = gxapi::eTextureAddressMode::CLAMP;
-	sampler.addressV = gxapi::eTextureAddressMode::CLAMP;
-	sampler.addressW = gxapi::eTextureAddressMode::CLAMP;
-	sampler.mipLevelBias = 0.f;
-	sampler.registerSpace = 0;
-	sampler.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+	gxapi::StaticSamplerDesc materialSampler;
+	materialSampler.shaderRegister = 0;
+	materialSampler.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
+	materialSampler.addressU = gxapi::eTextureAddressMode::CLAMP;
+	materialSampler.addressV = gxapi::eTextureAddressMode::CLAMP;
+	materialSampler.addressW = gxapi::eTextureAddressMode::CLAMP;
+	materialSampler.mipLevelBias = 0.f;
+	materialSampler.registerSpace = 0;
+	materialSampler.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
 
 	params.insert(params.end(), originalParams.begin(), originalParams.end());
 	params.insert(params.end(), materialConstantParams.begin(), materialConstantParams.end());
 	params.insert(params.end(), materialTextureParams.begin(), materialTextureParams.end());
 
-	return context.CreateBinder(params, { sampler });
+	return context.CreateBinder(params, { materialSampler });
 }
 
 

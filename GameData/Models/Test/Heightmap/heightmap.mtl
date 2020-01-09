@@ -1,0 +1,6 @@
+{
+	"shader": "MaterialShaders/UniformShaded.json",
+	"inputs": {
+		"BasicShader_diffuse": "[1, 0, 0, 1]"
+	}
+}

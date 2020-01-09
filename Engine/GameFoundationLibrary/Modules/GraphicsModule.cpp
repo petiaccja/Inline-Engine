@@ -28,6 +28,10 @@ std::unique_ptr<gxeng::IMeshEntity> GraphicsModule::CreateMeshEntity() const {
 	return m_engine.CreateMeshEntity();
 }
 
+std::unique_ptr<gxeng::IHeightmapEntity> GraphicsModule::CreateHeightmapEntity() const {
+	return m_engine.CreateHeightmapEntity();
+}
+
 std::unique_ptr<gxeng::IOverlayEntity> GraphicsModule::CreateOverlayEntity() const {
 	return m_engine.CreateOverlayEntity();
 }

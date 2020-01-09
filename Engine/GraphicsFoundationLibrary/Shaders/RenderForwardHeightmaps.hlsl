@@ -1,7 +1,7 @@
 struct VsConstants
 {
     float4x4 world;
-    float4x4 worldViewProj;
+    float4x4 viewProj;
     float4x4 worldViewProjDer;
 	float3 direction;
 	float magnitude;
@@ -51,9 +51,10 @@ PsInput VSMain(float4 lPos : POSITION
 {
     PsInput output;
 
-    output.hPos = mul(lPos, vsConstants.worldViewProj);
     output.sVelocity = mul(lPos, vsConstants.worldViewProjDer).xy;
     output.wPos = mul(lPos, vsConstants.world);
+	output.wPos.xyz += vsConstants.direction * sin(100.f * output.wPos.x);
+    output.hPos = mul(output.wPos, vsConstants.viewProj);
 
 #ifdef HAS_NORMAL
     float3x3 worldRotation = (float3x3)vsConstants.world;
@@ -131,7 +132,7 @@ static float4 go_color = float4(1, 0, 0, 1);
 #undef main
 
 
-//!1#include "material_shader_################.hlsl"
+//MATERIAL_CODE_INCLUDE
 #ifdef VERTEX_SHADER
 void MtlMain() {}
 #endif

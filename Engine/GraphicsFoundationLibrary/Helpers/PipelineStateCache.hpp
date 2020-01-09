@@ -113,9 +113,9 @@ private:
 	};
 
 public:
-	PipelineStateCache(std::vector<BindParameterDesc> originalBindParams, PipelineStateTemplate psoTemplate);
+	PipelineStateCache(PipelineStateTemplate psoTemplate, std::vector<BindParameterDesc> originalBindParams, std::vector<gxapi::StaticSamplerDesc> staticSamplers = {});
 
-	void Reset(std::vector<BindParameterDesc> originalBindParams, PipelineStateTemplate psoTemplate);
+	void Reset(PipelineStateTemplate psoTemplate, std::vector<BindParameterDesc> originalBindParams, std::vector<gxapi::StaticSamplerDesc> staticSamplers = {});
 	const PipelineStateConfig& GetConfig(RenderContext& context, const Mesh& mesh, const Material& material);
 	const PipelineStateTemplate& GetTemplate() const;
 	

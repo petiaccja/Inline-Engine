@@ -4,6 +4,7 @@
 #include "AssetLibrary/ImageCache.hpp"
 #include "AssetLibrary/MaterialCache.hpp"
 #include "AssetLibrary/MaterialShaderCache.hpp"
+#include "GraphicsEngine/Scene/IHeightmapEntity.hpp"
 #include <GraphicsEngine/IGraphicsEngine.hpp>
 #include <GraphicsEngine/Scene/IScene.hpp>
 
@@ -22,6 +23,7 @@ public:
 	GraphicsModule(GraphicsModule&&) = default;
 
 	std::unique_ptr<gxeng::IMeshEntity> CreateMeshEntity() const;
+	std::unique_ptr<gxeng::IHeightmapEntity> CreateHeightmapEntity() const;
 	std::unique_ptr<gxeng::IOverlayEntity> CreateOverlayEntity() const;
 	std::unique_ptr<gxeng::ITextEntity> CreateTextEntity() const;
 	std::unique_ptr<gxeng::IPerspectiveCamera> CreatePerspectiveCamera(std::string name) const;

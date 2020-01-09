@@ -1,5 +1,7 @@
 #include "RenderForwardHeightmaps.hpp"
 
+#include "../Helpers/PipelineSetupUtility.hpp"
+
 #include <BaseLibrary/Range.hpp>
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
 #include <GraphicsEngine_LL/DirectionalLight.hpp>
@@ -16,7 +18,7 @@ INL_REGISTER_GRAPHICS_NODE(RenderForwardHeightmaps)
 
 struct VsConstants {
 	Mat44_Packed world;
-	Mat44_Packed worldViewProj;
+	Mat44_Packed viewProj;
 	Mat44_Packed worldViewProjDer;
 	Vec3_Packed direction;
 	float magnitude;
@@ -44,10 +46,25 @@ static const BindParameterDesc psConstantsBind{
 	.shaderVisibility = gxapi::eShaderVisiblity::PIXEL
 };
 
+static const BindParameterDesc vsHeightMapBind{
+	.parameter = BindParameter{ eBindParameterType::TEXTURE, 0, 0 },
+	.shaderVisibility = gxapi::eShaderVisiblity::VERTEX
+};
+
+static const gxapi::StaticSamplerDesc vsHeightmapSampler{
+
+};
+
+static const std::vector shaderBindParams = {
+	vsConstantsBind,
+	psConstantsBind,
+	vsHeightMapBind,
+};
+
 static const PipelineStateTemplate psoTemplate = [] {
 	PipelineStateTemplate psoTemplate;
-	psoTemplate.vsFileName = "RenderForwardHeightmap.hlsl";
-	psoTemplate.psFileName = "RenderForwardHeightmap.hlsl";
+	psoTemplate.vsFileName = "RenderForwardHeightmaps.hlsl";
+	psoTemplate.psFileName = "RenderForwardHeightmaps.hlsl";
 
 	psoTemplate.rasterization = gxapi::RasterizerState(gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL);
 	psoTemplate.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
@@ -72,7 +89,7 @@ static const PipelineStateTemplate psoTemplate = [] {
 
 
 RenderForwardHeightmaps::RenderForwardHeightmaps()
-	: m_psoCache({}, {}) {}
+	: m_psoCache(psoTemplate, shaderBindParams) {}
 
 
 void RenderForwardHeightmaps::Reset() {
@@ -84,18 +101,11 @@ void RenderForwardHeightmaps::Reset() {
 
 
 void RenderForwardHeightmaps::Setup(SetupContext& context) {
-	auto renderTarget = GetInput<0>().Get();
-	auto depthTarget = GetInput<1>().Get();
+	const auto renderTarget = GetInput<0>().Get();
+	const auto depthTarget = GetInput<1>().Get();
 
 	CreateRenderTargetViews(context, renderTarget, depthTarget);
-	
-	if (m_psoCache.GetTemplate().renderTargetFormats[0] != renderTarget.GetFormat()
-		|| m_psoCache.GetTemplate().depthStencilFormat != depthTarget.GetFormat()) {
-		auto psoTemplateFmt = psoTemplate;
-		psoTemplateFmt.renderTargetFormats[0] = renderTarget.GetFormat();
-		psoTemplateFmt.depthStencilFormat = depthTarget.GetFormat();
-		m_psoCache.Reset({ psConstantsBind, vsConstantsBind }, psoTemplateFmt);
-	}
+	UpdatePsoCache(renderTarget, depthTarget);
 
 	GetOutput<0>().Set(renderTarget);
 	GetOutput<1>().Set(depthTarget);
@@ -103,9 +113,30 @@ void RenderForwardHeightmaps::Setup(SetupContext& context) {
 
 
 void RenderForwardHeightmaps::Execute(RenderContext& context) {
-	// COPY CODE FROM FW RENDER SIMPLE
-}
+	auto renderTarget = GetInput<0>().Get();
+	auto depthTarget = GetInput<1>().Get();
 
+	// Request command list.
+	GraphicsCommandList& commandList = context.AsGraphics();
+
+	// Set up the render pipeline.
+	const int screenWidth = int(m_rtv.GetResource().GetWidth());
+	const int screenHeight = int(m_rtv.GetResource().GetHeight());
+	const RenderTargetView2D* renderTargets[] = { &m_rtv };
+	const gxapi::Rectangle scissorRect = ScissorRect(screenWidth, screenHeight);
+	const gxapi::Viewport viewport = Viewport(screenWidth, screenHeight);
+
+	commandList.SetResourceState(m_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
+	commandList.SetResourceState(m_dsv.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
+	commandList.SetRenderTargets(1, renderTargets, &m_dsv);
+	commandList.SetScissorRects(1, &scissorRect);
+	commandList.SetViewports(1, &viewport);
+	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
+	commandList.SetStencilRef(1);
+
+	// Render entities.
+	RenderEntities(context, commandList);
+}
 
 
 const std::string& RenderForwardHeightmaps::GetInputName(size_t index) const {
@@ -148,6 +179,66 @@ void RenderForwardHeightmaps::CreateRenderTargetViews(SetupContext& context, con
 		m_dsv = context.CreateDsv(ds, ds.GetFormat(), desc);
 	}
 }
+
+
+void RenderForwardHeightmaps::UpdatePsoCache(const Texture2D& renderTarget, const Texture2D& depthTarget) {
+	if (m_psoCache.GetTemplate().renderTargetFormats[0] != renderTarget.GetFormat()
+		|| m_psoCache.GetTemplate().depthStencilFormat != depthTarget.GetFormat()) {
+		auto psoTemplateFmt = psoTemplate;
+		psoTemplateFmt.renderTargetFormats[0] = renderTarget.GetFormat();
+		psoTemplateFmt.depthStencilFormat = depthTarget.GetFormat();
+		m_psoCache.Reset(psoTemplateFmt, shaderBindParams);
+	}
+}
+
+
+void RenderForwardHeightmaps::RenderEntities(RenderContext& context, GraphicsCommandList& commandList) {
+	const auto camera = GetInput<2>().Get();
+	const auto entities = GetInput<3>().Get();
+	auto directionalLight = GetInput<4>().Get();
+
+	const Mat44 view = camera->GetViewMatrix();
+	const Mat44 proj = camera->GetProjectionMatrix();
+	const Mat44 viewProj = view * proj;
+
+	PsConstants psConstants{
+		.lightDir = directionalLight->Size() > 0 ? (*directionalLight->begin())->GetDirection() : Vec3{ 0, 0, -1 },
+		.lightColor = directionalLight->Size() > 0 ? (*directionalLight->begin())->GetColor() : Vec3{ 0, 0, 0 }
+	};
+
+	for (auto& entity : *entities) {
+		if (!entity->GetMesh() || !entity->GetMaterial() || !entity->GetHeightmap()) {
+			continue;
+		}
+
+		VsConstants vsConstants;
+		const Mesh& mesh = static_cast<const Mesh&>(*entity->GetMesh());
+		const Material& material = static_cast<const Material&>(*entity->GetMaterial());
+		const Image& heightmap = static_cast<const Image&>(*entity->GetHeightmap());
+
+		const PipelineStateConfig& stateDesc = m_psoCache.GetConfig(context, mesh, material);
+
+		const Mat44 world = entity->GetTransform();
+		vsConstants.world = world;
+		vsConstants.viewProj = viewProj;
+		vsConstants.worldViewProjDer = Mat44::Zero(); // TODO
+		vsConstants.direction = entity->GetDirection();
+		vsConstants.magnitude = entity->GetMagnitude();
+		vsConstants.offset = entity->GetOffset();
+
+		stateDesc.BindPipeline(commandList);
+		commandList.BindGraphics(vsConstantsBind.parameter, &vsConstants, sizeof(vsConstants));
+		commandList.BindGraphics(psConstantsBind.parameter, &psConstants, sizeof(psConstants));
+		commandList.SetResourceState(heightmap.GetSrv().GetResource(), gxapi::eResourceState::NON_PIXEL_SHADER_RESOURCE);
+		commandList.BindGraphics(vsHeightMapBind.parameter, heightmap.GetSrv());
+		stateDesc.BindMaterial(commandList, material);
+
+		BindMeshBuffers(commandList, mesh);
+
+		commandList.DrawIndexedInstanced((unsigned)mesh.GetIndexBuffer().GetIndexCount(), 0, 0, 1, 0);
+	}
+}
+
 
 
 } // namespace inl::gxeng::nodes

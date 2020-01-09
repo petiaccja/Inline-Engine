@@ -17,7 +17,7 @@ INL_REGISTER_GRAPHICS_NODE(RenderForwardSimple)
 
 struct VsConstants {
 	Mat44_Packed world;
-	Mat44_Packed worldViewProj;
+	Mat44_Packed viewProj;
 	Mat44_Packed worldViewProjDer;
 };
 
@@ -40,11 +40,6 @@ static const BindParameterDesc psConstantsBind{
 	.relativeAccessFrequency = 1.0f,
 	.relativeChangeFrequency = 1.0f,
 	.shaderVisibility = gxapi::eShaderVisiblity::PIXEL
-};
-
-static const BindParameterDesc vsHeightMapBind{
-	.parameter = BindParameter{ eBindParameterType::TEXTURE, 0, 0 },
-	.shaderVisibility = gxapi::eShaderVisiblity::VERTEX
 };
 
 static const std::vector shaderBindParams = {
@@ -80,7 +75,7 @@ static const PipelineStateTemplate psoTemplate = [] {
 
 
 RenderForwardSimple::RenderForwardSimple()
-	: m_psoCache(shaderBindParams, psoTemplate) {}
+	: m_psoCache(psoTemplate, shaderBindParams) {}
 
 
 void RenderForwardSimple::Reset() {
@@ -178,7 +173,7 @@ void RenderForwardSimple::UpdatePsoCache(const Texture2D& renderTarget, const Te
 		auto psoTemplateFmt = psoTemplate;
 		psoTemplateFmt.renderTargetFormats[0] = renderTarget.GetFormat();
 		psoTemplateFmt.depthStencilFormat = depthTarget.GetFormat();
-		m_psoCache.Reset(shaderBindParams, psoTemplateFmt);
+		m_psoCache.Reset(psoTemplateFmt, shaderBindParams);
 	}
 }
 
@@ -210,7 +205,7 @@ void RenderForwardSimple::RenderEntities(RenderContext& context, GraphicsCommand
 
 		const Mat44 world = entity->GetTransform();
 		vsConstants.world = world;
-		vsConstants.worldViewProj = world * viewProj;
+		vsConstants.viewProj = world * viewProj;
 		vsConstants.worldViewProjDer = Mat44::Zero(); // TODO
 
 		stateDesc.BindPipeline(commandList);

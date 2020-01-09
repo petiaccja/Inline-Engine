@@ -12,7 +12,7 @@
 #include <fstream>
 
 
-#define RENDER_PIPELINE_FULL_3D "forward_with_gui.json"
+#define RENDER_PIPELINE_FULL_3D "forward_heightmap_with_gui.json"
 #define RENDER_PIPELINE_GUI_ONLY "gui_only.json"
 
 
