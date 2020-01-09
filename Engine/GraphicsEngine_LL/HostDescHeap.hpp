@@ -1,16 +1,16 @@
 #pragma once
 
-#include "../GraphicsApi_LL/IGraphicsApi.hpp"
+#include "../BaseLibrary/Memory/SlabAllocatorEngine.hpp"
 #include "../GraphicsApi_LL/Exception.hpp"
 #include "../GraphicsApi_LL/IDescriptorHeap.hpp"
-#include "../BaseLibrary/Memory/SlabAllocatorEngine.hpp"
+#include "../GraphicsApi_LL/IGraphicsApi.hpp"
 
-#include <vector>
-#include <mutex>
-#include <functional>
 #include <cassert>
+#include <functional>
+#include <mutex>
+#include <vector>
 
-namespace inl :: gxeng {
+namespace inl ::gxeng {
 
 class MemoryObject;
 
@@ -49,11 +49,13 @@ public:
 	size_t Allocate() override;
 	void Deallocate(size_t pos) override;
 	gxapi::DescriptorHandle At(size_t pos) override;
+
 private:
 	void Grow();
 
 protected:
 	gxapi::IGraphicsApi* const m_graphicsApi;
+
 private:
 	std::mutex m_listMutex;
 	std::unique_ptr<ChunkListItem> m_first;
@@ -69,10 +71,9 @@ private:
 template <gxapi::eDescriptorHeapType HeapType>
 HostDescHeap<HeapType>::HostDescHeap(gxapi::IGraphicsApi* graphicsApi, size_t heapSize)
 	: m_graphicsApi(graphicsApi),
-	heapDim(heapSize),
-	m_allocEngine(0),
-	m_descriptorCount(0)
-{}
+	  heapDim(heapSize),
+	  m_allocEngine(0),
+	  m_descriptorCount(0) {}
 
 template <gxapi::eDescriptorHeapType HeapType>
 size_t HostDescHeap<HeapType>::Allocate() {
@@ -98,9 +99,9 @@ gxapi::DescriptorHandle HostDescHeap<HeapType>::At(size_t pos) {
 	assert(pos < m_descriptorCount);
 
 	// structure is like a 3D texture
-	const size_t chunkIdx = pos / (chunkDim*chunkDim); // z = i / (width*height)
-	const size_t heapIdx = (pos - chunkIdx*heapDim*chunkDim) / heapDim; // y = (i - z*width*height) / width
-	const size_t descIdx = (pos - chunkIdx*heapDim*chunkDim - heapIdx*heapDim) / 1; // x = (i - z*width*height - y*width) / 1
+	const size_t chunkIdx = pos / (chunkDim * chunkDim); // z = i / (width*height)
+	const size_t heapIdx = (pos - chunkIdx * heapDim * chunkDim) / heapDim; // y = (i - z*width*height) / width
+	const size_t descIdx = (pos - chunkIdx * heapDim * chunkDim - heapIdx * heapDim) / 1; // x = (i - z*width*height - y*width) / 1
 
 	ChunkListItem* chunk = m_first.get();
 	for (size_t i = chunkIdx; i != 0; --i) {
@@ -149,7 +150,6 @@ void HostDescHeap<HeapType>::Grow() {
 
 
 
-
 class RTVHeap : public HostDescHeap<gxapi::eDescriptorHeapType::RTV> {
 public:
 	RTVHeap(gxapi::IGraphicsApi* graphicsApi);
@@ -179,4 +179,4 @@ public:
 };
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

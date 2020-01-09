@@ -1,9 +1,11 @@
 #include "Test.hpp"
-#include <thread>
-#include <iostream>
+
 #include "GraphicsApi_D3D12/GxapiManager.hpp"
-#include "GraphicsApi_LL/IGraphicsApi.hpp"
 #include "GraphicsApi_LL/IFence.hpp"
+#include "GraphicsApi_LL/IGraphicsApi.hpp"
+
+#include <iostream>
+#include <thread>
 
 using namespace std::literals::chrono_literals;
 
@@ -24,6 +26,7 @@ public:
 		return "Gapi Sync";
 	}
 	virtual int Run() override;
+
 private:
 	static int a;
 };
@@ -39,7 +42,7 @@ int TestGapiSync::Run() {
 	std::unique_ptr<inl::gxapi::IGxapiManager> gxapiManager(new inl::gxapi_dx12::GxapiManager());
 	std::unique_ptr<inl::gxapi::IGraphicsApi> graphicsApi(gxapiManager->CreateGraphicsApi(0));
 	std::unique_ptr<inl::gxapi::IFence> fence(graphicsApi->CreateFence(0));
-	
+
 	std::thread th([&] {
 		std::this_thread::sleep_for(500ms);
 		fence->Wait(2);
@@ -55,7 +58,7 @@ int TestGapiSync::Run() {
 	cout << "Fence value: " << fence->Fetch() << endl;
 
 
-	th.join();	
+	th.join();
 
 	return 0;
 }

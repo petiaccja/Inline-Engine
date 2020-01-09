@@ -1,8 +1,9 @@
 #include "LogPipe.hpp"
+
 #include "LogNode.hpp"
 
-#include <thread>
 #include <iostream>
+#include <thread>
 
 namespace inl {
 

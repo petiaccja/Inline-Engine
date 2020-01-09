@@ -2,9 +2,9 @@
 
 #include "Common.hpp"
 
-#include <vector>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 
 namespace inl {
@@ -53,4 +53,4 @@ public:
 };
 
 
-} // namespace gxapi
+} // namespace inl::gxapi

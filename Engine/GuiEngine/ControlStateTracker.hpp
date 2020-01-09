@@ -23,6 +23,7 @@ public:
 	~ControlStateTracker();
 
 	eControlState Get() const;
+
 private:
 	void OnMouseEnter(Control*);
 	void OnMouseLeave(Control*);

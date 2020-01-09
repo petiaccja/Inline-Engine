@@ -4,29 +4,26 @@
 * Output: shadow map
 */
 
-struct Uniforms
-{
+struct Uniforms {
 	float4x4 mvp;
 };
 
 ConstantBuffer<Uniforms> uniforms : register(b0);
 
-struct PS_Input
-{
+struct PS_Input {
 	float4 position : SV_POSITION;
 };
 
 
-PS_Input VSMain(float4 position : POSITION)
-{
+PS_Input VSMain(float4 position
+				: POSITION) {
 	PS_Input result;
 
-    result.position = mul(position, uniforms.mvp);
+	result.position = mul(position, uniforms.mvp);
 
 	return result;
 }
 
 
-void PSMain(PS_Input input)
-{
+void PSMain(PS_Input input) {
 }

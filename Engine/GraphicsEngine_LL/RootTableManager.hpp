@@ -1,12 +1,14 @@
 #pragma once
 
-#include <vector>
-#include <utility>
+#include "Binder.hpp"
+#include "StackDescHeap.hpp"
+
+#include <GraphicsApi_LL/ICommandList.hpp>
+
 #include <cassert>
 #include <type_traits>
-#include <GraphicsApi_LL/ICommandList.hpp>
-#include "StackDescHeap.hpp"
-#include "Binder.hpp"
+#include <utility>
+#include <vector>
 
 
 namespace inl::gxeng {
@@ -15,8 +17,7 @@ namespace inl::gxeng {
 struct DescriptorTableState {
 	DescriptorTableState() : slot(0), committed(false) {}
 	DescriptorTableState(DescriptorArrayRef&& reference, int slot)
-		: reference(std::move(reference)), slot(slot), committed(false)
-	{}
+		: reference(std::move(reference)), slot(slot), committed(false) {}
 
 	DescriptorArrayRef reference; // current place in scratch space
 	int slot; // which root signature slot it belongs to
@@ -33,6 +34,7 @@ protected:
 		gxapi::eCommandListType::GRAPHICS == Type,
 		gxapi::IGraphicsCommandList,
 		gxapi::IComputeCommandList>::type;
+
 public:
 	RootTableManager();
 	RootTableManager(gxapi::IGraphicsApi* graphicsApi, CommandListT* commandList);
@@ -42,6 +44,7 @@ public:
 	void UpdateBinding(gxapi::DescriptorHandle handle, int rootSignatureSlot, int indexInTable);
 
 	size_t GetDescriptorCounter() const { return m_descriptorCounter; }
+
 private:
 	/// <summary> Updates a binding which is managed on the scratch space. </summary>
 	void UpdateRootTable(gxapi::DescriptorHandle, int rootSignatureSlot, int indexInTable);
@@ -50,7 +53,7 @@ private:
 	void DuplicateRootTable(DescriptorTableState& table);
 
 	/// <summary> Get reference to root table state identified by it's root signature slot. </summary>
-	DescriptorTableState&  FindRootTable(int rootSignatureSlot);
+	DescriptorTableState& FindRootTable(int rootSignatureSlot);
 
 	/// <summary> Calculates root table states based on the currently bound Binder. </summary>
 	std::vector<DescriptorTableState> InitRootTables(const Binder* binder);
@@ -65,6 +68,7 @@ private:
 	void SetRootDescriptorTable(gxapi::IComputeCommandList* list, unsigned parameterIndex, gxapi::DescriptorHandle baseHandle);
 	void SetRootSignature(gxapi::IGraphicsCommandList* list, gxapi::IRootSignature* sig);
 	void SetRootSignature(gxapi::IComputeCommandList* list, gxapi::IRootSignature* sig);
+
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
 	CommandListT* m_commandList;

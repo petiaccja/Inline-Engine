@@ -1,6 +1,6 @@
+#include <BaseLibrary/GraphEditor/GraphParser.hpp>
 #include <BaseLibrary/GraphEditor/IGraphEditorNode.hpp>
 #include <BaseLibrary/Graph_All.hpp>
-#include <BaseLibrary/GraphEditor/GraphParser.hpp>
 
 
 #undef GetClassName // retarded Windows
@@ -13,7 +13,7 @@ class PipelineEditorNode : public IGraphEditorNode {
 public:
 	PipelineEditorNode() = default;
 	PipelineEditorNode(std::unique_ptr<NodeBase> realNode);
-	
+
 	std::string GetName() const override;
 	void SetName(std::string name) override;
 	std::string GetClassName() const override;
@@ -40,6 +40,7 @@ public:
 
 	void SetMetaData(NodeMetaDescription data) override;
 	NodeMetaDescription GetMetaData() const override;
+
 private:
 	std::unique_ptr<NodeBase> m_realNode;
 	NodeMetaDescription m_metaData;
@@ -47,4 +48,4 @@ private:
 
 
 
-} // namespace inl
+} // namespace inl::gxeng

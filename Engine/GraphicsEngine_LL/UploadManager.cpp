@@ -1,19 +1,18 @@
 #include "UploadManager.hpp"
+
 #include "CopyCommandList.hpp"
 
-#include <GraphicsApi_LL/Common.hpp>
 #include <BaseLibrary/Exception/Exception.hpp>
+#include <GraphicsApi_LL/Common.hpp>
 
+#include <atomic>
 #include <cassert>
 #include <sstream>
-#include <atomic>
 
 namespace inl::gxeng {
 
 
-UploadManager::UploadManager(gxapi::IGraphicsApi* graphicsApi) :
-	m_graphicsApi(graphicsApi)
-{
+UploadManager::UploadManager(gxapi::IGraphicsApi* graphicsApi) : m_graphicsApi(graphicsApi) {
 	std::lock_guard<std::mutex> lock(m_mtx);
 }
 
@@ -32,8 +31,7 @@ void UploadManager::Upload(const LinearBuffer& target, size_t offset, const void
 	UploadDescription uploadDesc(
 		LinearBuffer(std::move(resource), true, eResourceHeap::UPLOAD),
 		target,
-		offset
-	);
+		offset);
 	currQueue.push_back(std::move(uploadDesc));
 }
 
@@ -46,8 +44,7 @@ void UploadManager::Upload(const Texture2D& target,
 						   uint64_t width,
 						   uint32_t height,
 						   gxapi::eFormat format,
-						   size_t bytesPerRow)
-{
+						   size_t bytesPerRow) {
 	if (target.GetWidth() < (offsetX + width) || target.GetHeight() < (offsetY + height)) {
 		throw InvalidArgumentException("Uploaded data does not fit inside target texture. (Uploaded size or offset is too large)", "target");
 	}
@@ -65,20 +62,17 @@ void UploadManager::Upload(const Texture2D& target,
 		offsetX,
 		offsetY,
 		0,
-		gxapi::TextureCopyDesc::Buffer(format, width, height, 1, 0)
-	);
+		gxapi::TextureCopyDesc::Buffer(format, width, height, 1, 0));
 
 	currQueue.push_back(std::move(uploadDesc));
 	currQueue.back().source._SetResident(true);
-
 }
 
 void UploadManager::UploadNow(CopyCommandList& commandList,
 							  const LinearBuffer& target,
 							  size_t offset,
 							  const void* data,
-							  size_t size)
-{
+							  size_t size) {
 	if (target.GetSize() < (offset + size)) {
 		throw InvalidArgumentException("Target buffer is not large enough for the uploaded data to fit.", "target");
 	}
@@ -99,8 +93,7 @@ void UploadManager::UploadNow(CopyCommandList& commandList,
 							  uint64_t width,
 							  uint32_t height,
 							  gxapi::eFormat format,
-							  size_t bytesPerRow)
-{
+							  size_t bytesPerRow) {
 	if (target.GetWidth() < (offsetX + width) || target.GetHeight() < (offsetY + height)) {
 		throw InvalidArgumentException("Uploaded data does not fit inside target texture. (Uploaded size or offset is too large)", "target");
 	}
@@ -175,10 +168,8 @@ MemoryObject::UniquePtr UploadManager::CreateStagingResource(const void* data, s
 			gxapi::ResourceDesc::Buffer(size),
 			//NOTE: GENERIC_READ is the required starting state for upload heap resources according to msdn
 			// (also there is no need for resource state transition)
-			gxapi::eResourceState::GENERIC_READ
-		),
-		std::default_delete<const gxapi::IResource>()
-	);
+			gxapi::eResourceState::GENERIC_READ),
+		std::default_delete<const gxapi::IResource>());
 
 	// Set resource name for tracking purposes.
 	static std::atomic_uint64_t counter = 0;
@@ -210,10 +201,8 @@ MemoryObject::UniquePtr UploadManager::CreateStagingResource(const void* data, u
 			gxapi::ResourceDesc::Buffer(requiredSize),
 			// GENERIC_READ is the required starting state for upload heap resources according to MSDN.
 			// (Also there is no need for resource state transition.)
-			gxapi::eResourceState::GENERIC_READ
-		),
-		std::default_delete<const gxapi::IResource>()
-	);
+			gxapi::eResourceState::GENERIC_READ),
+		std::default_delete<const gxapi::IResource>());
 
 	// Set resource name for tracking purposes.
 #ifdef _DEBUG
@@ -226,7 +215,7 @@ MemoryObject::UniquePtr UploadManager::CreateStagingResource(const void* data, u
 	auto stagePtr = reinterpret_cast<uint8_t*>(resource->Map(0, &noReadRange));
 	auto byteData = reinterpret_cast<const uint8_t*>(data);
 	for (size_t y = 0; y < height; y++) {
-		memcpy(stagePtr + rowPitch*y, byteData + rowSize*y, rowSize);
+		memcpy(stagePtr + rowPitch * y, byteData + rowSize * y, rowSize);
 	}
 	resource->Unmap(0, nullptr);
 

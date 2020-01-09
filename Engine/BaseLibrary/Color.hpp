@@ -20,7 +20,7 @@ public:
 public:
 	Color() {}
 
-	Color(Scalar r, Scalar g, Scalar b, Scalar a = Scalar(1)) : r(r), g(g), b(b), a(a) {}	
+	Color(Scalar r, Scalar g, Scalar b, Scalar a = Scalar(1)) : r(r), g(g), b(b), a(a) {}
 
 	Color(const Color& rhs) {
 		v = rhs.v;
@@ -123,7 +123,7 @@ public:
 		return Color(*this) -= rhs;
 	}
 
-	bool operator ==(const Color& rhs) const {
+	bool operator==(const Color& rhs) const {
 		return v == rhs.v;
 	}
 

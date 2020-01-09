@@ -96,22 +96,22 @@ std::vector<gxapi::InputElementDesc> MeshInputElements(const Mesh& mesh) {
 			}
 			switch (element.semantic) {
 				case eVertexElementSemantic::POSITION:
-					inputElements.push_back({ "POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, unsigned(streamIdx), unsigned(element.offset )});
+					inputElements.push_back({ "POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, unsigned(streamIdx), unsigned(element.offset) });
 					break;
 				case eVertexElementSemantic::NORMAL:
-					inputElements.push_back({"NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, unsigned(streamIdx), unsigned(element.offset)});
+					inputElements.push_back({ "NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, unsigned(streamIdx), unsigned(element.offset) });
 					break;
 				case eVertexElementSemantic::COLOR:
-					inputElements.push_back({"COLOR", 0, gxapi::eFormat::R32G32B32A32_FLOAT, unsigned(streamIdx), unsigned(element.offset)});
+					inputElements.push_back({ "COLOR", 0, gxapi::eFormat::R32G32B32A32_FLOAT, unsigned(streamIdx), unsigned(element.offset) });
 					break;
 				case eVertexElementSemantic::TEX_COORD:
-					inputElements.push_back({"TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, unsigned(streamIdx), unsigned(element.offset)});
+					inputElements.push_back({ "TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, unsigned(streamIdx), unsigned(element.offset) });
 					break;
 				case eVertexElementSemantic::TANGENT:
-					inputElements.push_back({"TANGENT", 0, gxapi::eFormat::R32G32B32_FLOAT, unsigned(streamIdx), unsigned(element.offset)});
+					inputElements.push_back({ "TANGENT", 0, gxapi::eFormat::R32G32B32_FLOAT, unsigned(streamIdx), unsigned(element.offset) });
 					break;
 				case eVertexElementSemantic::BITANGENT:
-					inputElements.push_back({ "BITANGENT", 0, gxapi::eFormat::R32G32B32_FLOAT, unsigned(streamIdx), unsigned(element.offset )});
+					inputElements.push_back({ "BITANGENT", 0, gxapi::eFormat::R32G32B32_FLOAT, unsigned(streamIdx), unsigned(element.offset) });
 					break;
 			}
 		}

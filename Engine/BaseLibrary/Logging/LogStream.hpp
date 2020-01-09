@@ -3,9 +3,9 @@
 #include "Event.hpp"
 #include "EventEntry.hpp"
 
+#include <chrono>
 #include <cstdint>
 #include <deque>
-#include <chrono>
 #include <mutex>
 
 
@@ -25,15 +25,17 @@ enum class eEventDisplayMode {
 	STDERR,
 };
 
-/// <summary> 
+/// <summary>
 /// Used to create individual stream that all belong to a Logger.
 /// Each stream is independent, but events are logged into the same file.
 /// Completely thread-safe.
 /// <summary>
 class LogStream {
 	friend class LoggerInterface;
+
 private:
 	LogStream(std::shared_ptr<LogPipe> pipe);
+
 public:
 	LogStream();
 	LogStream(const LogStream&) = delete;
@@ -44,14 +46,15 @@ public:
 	LogStream& operator=(LogStream&&);
 
 	/// <summary> Log an event. </summary>
-	/// <param name="displayMode"> Optionally display event immediatly to stdout or stderr. 
+	/// <param name="displayMode"> Optionally display event immediatly to stdout or stderr.
 	///		Event is still logged. </param>
 	void Event(const inl::LogEvent& e, eEventDisplayMode displayMode = eEventDisplayMode::DONT_DISPLAY);
 
 	/// <summary> Log an event. </summary>
-	/// <param name="displayMode"> Optionally display event immediatly to stdout or stderr. 
+	/// <param name="displayMode"> Optionally display event immediatly to stdout or stderr.
 	///		Event is still logged. </param>
 	void Event(inl::LogEvent&& e, eEventDisplayMode displayMode = eEventDisplayMode::DONT_DISPLAY);
+
 private:
 	std::shared_ptr<LogPipe> pipe; // log goes through this pipe
 };
@@ -60,8 +63,9 @@ private:
 /// <summary> Just a little helper to expose only the ctor to Logger, not the whole class. </summary>
 class LoggerInterface {
 	friend class Logger;
+
 private:
-	/// <summary> Does exactly what you think it does. 
+	/// <summary> Does exactly what you think it does.
 	/// Okay... it creates a LogStream with specified pipe associated.
 	/// </summary>
 	inline static LogStream Construct(std::shared_ptr<LogPipe> pipe) {

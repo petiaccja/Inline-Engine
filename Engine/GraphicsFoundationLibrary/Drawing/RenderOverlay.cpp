@@ -388,7 +388,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			const Image* texture = entity->GetTexture();
 
 			// Cancel the overlay early if possible/needed.
-			auto[shouldDraw, discardTransform] = CullEntity(*entity, view*proj);
+			auto [shouldDraw, discardTransform] = CullEntity(*entity, view * proj);
 			if (!shouldDraw) {
 				++itOverlay;
 				continue;
@@ -451,7 +451,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			// Cancel entity early if possible/needed.
 			const TextEntity* entity = *itText;
 			const Font* font = entity->GetFont();
-			auto[shouldDraw, discardTransform] = CullEntity(*entity, view*proj);
+			auto [shouldDraw, discardTransform] = CullEntity(*entity, view * proj);
 			if (!shouldDraw || !font || !font->GetGlyphAtlas().GetSrv()) {
 				++itText;
 				continue;
@@ -479,7 +479,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 
 			cbufferRender.enableDiscard = (bool)discardTransform;
 			if (discardTransform) {
-				cbufferRender.discardTransform.Submatrix<3,3>(0,0) = discardTransform.value();
+				cbufferRender.discardTransform.Submatrix<3, 3>(0, 0) = discardTransform.value();
 			}
 
 			// Position of the first letter.
@@ -487,7 +487,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			RectF letterRect = AlignFirstLetter(entity);
 
 			// Letters can be drawn only inside the limits on the X axis.
-			Vec2 limits = Vec2(-0.5f, 0.5f)*entity->GetSize().xx;
+			Vec2 limits = Vec2(-0.5f, 0.5f) * entity->GetSize().xx;
 
 
 			// Draw letters one-by-one.
@@ -548,7 +548,7 @@ std::tuple<bool, std::optional<Mat33>> CullByClip(const RectF& clipRect, const M
 		return { false, {} };
 	}
 	else {
-		Mat33 discardTransform = Mat33::Scale(clipRect.GetSize())*Mat33::Translation(clipRect.GetCenter())*clipTransform*viewProj;
+		Mat33 discardTransform = Mat33::Scale(clipRect.GetSize()) * Mat33::Translation(clipRect.GetCenter()) * clipTransform * viewProj;
 		discardTransform.Invert();
 
 		return { true, discardTransform };
@@ -558,7 +558,7 @@ std::tuple<bool, std::optional<Mat33>> CullByClip(const RectF& clipRect, const M
 
 std::tuple<bool, std::optional<Mat33>> RenderOverlay::CullEntity(const OverlayEntity& entity, const Mat33& viewProj) {
 	if (entity.IsAdditionalClipEnabled()) {
-		auto[clipRect, clipTransform] = entity.GetAdditionalClip();
+		auto [clipRect, clipTransform] = entity.GetAdditionalClip();
 		return CullByClip(clipRect, clipTransform, viewProj);
 	}
 	return { true, {} };
@@ -567,7 +567,7 @@ std::tuple<bool, std::optional<Mat33>> RenderOverlay::CullEntity(const OverlayEn
 
 std::tuple<bool, std::optional<Mat33>> RenderOverlay::CullEntity(const TextEntity& entity, const Mat33& viewProj) {
 	if (entity.IsAdditionalClipEnabled()) {
-		auto[clipRect, clipTransform] = entity.GetAdditionalClip();
+		auto [clipRect, clipTransform] = entity.GetAdditionalClip();
 		return CullByClip(clipRect, clipTransform, viewProj);
 	}
 	return { true, {} };

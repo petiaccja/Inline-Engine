@@ -1,16 +1,16 @@
 #pragma once
 
-#include "Node.hpp"
 #include "../Singleton.hpp"
 #include "../StringUtil.hpp"
+#include "Node.hpp"
 
-#include <unordered_map>
-#include <functional>
-#include <type_traits>
-#include <string>
-#include <typeinfo>
-#include <typeindex>
 #include <cassert>
+#include <functional>
+#include <string>
+#include <type_traits>
+#include <typeindex>
+#include <typeinfo>
+#include <unordered_map>
 
 
 namespace inl {
@@ -67,6 +67,7 @@ public:
 
 	/// <summary> Get path and class name for given node type. </summary>
 	std::tuple<std::string, std::string> GetFullName(std::type_index classType) const;
+
 private:
 	RegistryMapT registeredClasses; // Maps group/name entries to creators.
 	std::unordered_map<std::type_index, std::tuple<std::string, std::string>> typeLookup;
@@ -114,7 +115,7 @@ bool NodeFactory::RegisterNodeClass(const std::string& group) {
 	creator.info.name = strName;
 	creator.info.description = strDesc;
 	creator.info.group = strGroup;
-	creator.creator = []() -> NodeBase* {return new T();};
+	creator.creator = []() -> NodeBase* { return new T(); };
 
 	// insert class to registered classes' map
 	registeredClasses.insert({ strGroup + (strGroup.size() > 0 ? "/" : "") + strName, std::move(creator) });
@@ -128,11 +129,11 @@ using NodeFactory_Singleton = Singleton<NodeFactory>;
 
 
 
-#define INL_REGISTER_NODE(ClassName) \
-const int __declspec(dllexport) s_registrar_##ClassName = [] { \
-	std::cout << ClassName::Info_GetName() << std::endl; \
-	return true; \
-}();
+#define INL_REGISTER_NODE(ClassName)                               \
+	const int __declspec(dllexport) s_registrar_##ClassName = [] { \
+		std::cout << ClassName::Info_GetName() << std::endl;       \
+		return true;                                               \
+	}();
 
 
 } // namespace inl

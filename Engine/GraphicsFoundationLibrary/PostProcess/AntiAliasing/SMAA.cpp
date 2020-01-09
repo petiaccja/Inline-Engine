@@ -1,10 +1,10 @@
 #include "SMAA.hpp"
 
 #include "../../Debug/DebugDrawManager.hpp"
-#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
 #include <GraphicsEngine_LL/GraphicsCommandList.hpp>
+#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 
 
 
@@ -215,7 +215,7 @@ void SMAA::Setup(SetupContext& context) {
 			m_blendingWeightsShader = context.CreateShader("SMAABlendingWeights", shaderParts, "");
 
 			std::vector<gxapi::InputElementDesc> inputElementDesc = {
-				gxapi::InputElementDesc{"POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0},
+				gxapi::InputElementDesc{ "POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0 },
 				gxapi::InputElementDesc{ "TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12 }
 			};
 
@@ -247,7 +247,7 @@ void SMAA::Setup(SetupContext& context) {
 			m_neighborhoodBlendingShader = context.CreateShader("SMAANeighborhoodBlending", shaderParts, "");
 
 			std::vector<gxapi::InputElementDesc> inputElementDesc = {
-				gxapi::InputElementDesc{"POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0},
+				gxapi::InputElementDesc{ "POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0 },
 				gxapi::InputElementDesc{ "TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12 }
 			};
 

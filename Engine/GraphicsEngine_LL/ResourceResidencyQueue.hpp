@@ -1,16 +1,16 @@
 #pragma once
 
+#include "CommandAllocatorPool.hpp"
+#include "CriticalBufferHeap.hpp"
+#include "SyncPoint.hpp"
+
+#include <atomic>
+#include <functional>
 #include <mutex>
 #include <queue>
-#include <functional>
-
-#include "SyncPoint.hpp"
-#include "CriticalBufferHeap.hpp"
-#include "CommandAllocatorPool.hpp"
-#include <atomic>
 
 
-namespace inl:: gxeng {
+namespace inl::gxeng {
 
 /// <summary> Manages initializing and cleanup of command lists. </summary>
 class ResourceResidencyQueue {
@@ -18,10 +18,11 @@ class ResourceResidencyQueue {
 		Task() = default;
 		Task(std::vector<MemoryObject> resources, SyncPoint syncPoint)
 			: resources(std::move(resources)), syncPoint(syncPoint) {}
-		virtual ~Task() {};
+		virtual ~Task(){};
 		std::vector<MemoryObject> resources;
 		SyncPoint syncPoint;
 	};
+
 public:
 	ResourceResidencyQueue(std::unique_ptr<gxapi::IFence> fence);
 	~ResourceResidencyQueue();
@@ -42,13 +43,13 @@ public:
 	/// <returns> The SyncPoint returned will be signaled when the requested resources are all resident. </returns>
 	SyncPoint EnqueueInit(std::vector<MemoryObject> resources);
 
-	/// <summary> Enqueue a list of resources which should be marked as evictable. 
+	/// <summary> Enqueue a list of resources which should be marked as evictable.
 	///			  Their memory may be made unresident if more space is needed on the GPU. </summary>
 	/// <param name="waitFor"> The resources will only be marked evictable after the SyncPoint is signaled. </param>
 	/// <param name="resources"> The list of resources to be evicted. </param>
 	/// <param name="cleanObjects"> Object that should live until 'waitFor' is signaled. The destructor of given objects
 	///								will be called afterwards. </param>
-	/// <remarks> The cleanObjects list could be used to free up command lists and command allocators associated 
+	/// <remarks> The cleanObjects list could be used to free up command lists and command allocators associated
 	///			  with the resources. </remarks>
 	template <class... CleanObjectT>
 	void EnqueueClean(SyncPoint waitFor, std::vector<MemoryObject> resources, CleanObjectT&&... cleanObjects);
@@ -56,7 +57,7 @@ public:
 private:
 	void InitThreadFunc();
 	void CleanThreadFunc();
-	
+
 private:
 	// Init
 	std::mutex m_initMutex;
@@ -83,18 +84,18 @@ private:
 };
 
 
-template<class... CleanObjectT>
+template <class... CleanObjectT>
 inline void ResourceResidencyQueue::EnqueueClean(SyncPoint waitFor, std::vector<MemoryObject> resources, CleanObjectT&&... cleanObjects) {
 	struct SpecialTask : Task {
 		SpecialTask() = default;
 		SpecialTask(std::vector<MemoryObject> resources, SyncPoint syncPoint, CleanObjectT&&... cleanObjects)
 			: Task(std::move(resources), std::move(syncPoint)), data(std::forward<CleanObjectT>(cleanObjects)...) {}
 		std::tuple<CleanObjectT...> data;
- 	};
+	};
 
 	std::lock_guard<std::mutex> lkg(m_cleanMutex);
 	m_cleanQueue.push(std::make_unique<SpecialTask>(std::move(resources), std::move(waitFor), std::forward<CleanObjectT>(cleanObjects)...));
 	m_cleanCv.notify_one();
 }
 
-} // namespace gxeng
+} // namespace inl::gxeng

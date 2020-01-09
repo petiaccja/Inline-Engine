@@ -1,9 +1,11 @@
 #include "Test.hpp"
-#include <thread>
-#include <iostream>
-#include <InlineMath.hpp>
-#include <GraphicsEngine/Resources/Vertex.hpp>
+
 #include "BaseLibrary/ArrayView.hpp"
+#include <GraphicsEngine/Resources/Vertex.hpp>
+
+#include <InlineMath.hpp>
+#include <iostream>
+#include <thread>
 
 using namespace std::literals::chrono_literals;
 using namespace inl;
@@ -25,6 +27,7 @@ public:
 		return "Vertex";
 	}
 	int Run() override;
+
 private:
 	static int a;
 };
@@ -40,12 +43,12 @@ int TestVertex::Run() {
 	using inl::ArrayView;
 
 	// create a vertex
-	using MyVertex1 = Vertex < Position<0>, Position<1>, Normal<0> >;
+	using MyVertex1 = Vertex<Position<0>, Position<1>, Normal<0>>;
 
 	MyVertex1 v;
-	v.positions[0] = { 1,2,3 };
+	v.positions[0] = { 1, 2, 3 };
 	v.normals[0] = { 0.7071f, 0.f, 0.7071f };
-	
+
 	auto* p1 = static_cast<inl::gxeng::impl::VertexPartRealization<Normal<0>>*>(&v);
 	auto* p2 = static_cast<inl::gxeng::VertexPart<eVertexElementSemantic::NORMAL, 0>*>(&v);
 

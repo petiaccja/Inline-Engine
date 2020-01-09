@@ -1,12 +1,12 @@
 #pragma once
 
+#include <GraphicsEngine/Scene/IScene.hpp>
+
 #include <string>
 #include <typeindex>
 #include <unordered_map>
 
-#include <GraphicsEngine/Scene/IScene.hpp>
-
-namespace inl:: gxeng {
+namespace inl::gxeng {
 
 
 class GraphicsEngine;
@@ -32,6 +32,7 @@ public:
 	const std::string& GetName() const override;
 
 	using IScene::GetEntities;
+
 protected:
 	// EntityCollectionBase* GetEntities(const std::type_index& entityType) override;
 	// const EntityCollectionBase* GetEntities(const std::type_index& entityType) const override;
@@ -48,6 +49,4 @@ private:
 
 
 
-
-
-} // namespace gxeng
+} // namespace inl::gxeng

@@ -1,18 +1,20 @@
 #pragma once
 
-#include <BaseLibrary/EnumFlag.hpp>
-
 #include "Native.hpp"
+
+#include <BaseLibrary/EnumFlag.hpp>
 
 #include <cstdint>
 #include <limits>
 #include <string>
 #undef DOMAIN // math.h, conflicting with eShaderVisibility::DOMAIN
+#include "Exception.hpp"
+
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
+
+#include <cassert>
 #include <memory>
 #include <vector>
-#include <cassert>
-#include "Exception.hpp"
 
 namespace inl::gxapi {
 
@@ -31,7 +33,7 @@ class IResource;
 struct Rectangle {
 	Rectangle() = default;
 	Rectangle(int top, int bottom, int left, int right)
-		:top(top), bottom(bottom), left(left), right(right) {}
+		: top(top), bottom(bottom), left(left), right(right) {}
 
 	int Width() const { return right - left; }
 	int Height() const { return top - bottom; }
@@ -45,7 +47,7 @@ struct Rectangle {
 
 struct Cube {
 	Cube(int top, int bottom, int left, int right, int front, int back)
-		:top(top), bottom(bottom), left(left), right(right), front(front), back(back) {}
+		: top(top), bottom(bottom), left(left), right(right), front(front), back(back) {}
 
 	int top, bottom, left, right, front, back;
 };
@@ -515,89 +517,89 @@ enum class eResourceBarrierType {
 namespace bitflag_enum_impl {
 
 
-struct eShaderCompileFlags_Base {
-	enum EnumT {
-		DEBUG = (1 << 0),
-		NO_OPTIMIZATION = (1 << 1),
-		ROW_MAJOR_MATRICES = (1 << 2),
-		COLUMN_MAJOR_MATRICES = (1 << 3),
-		FORCE_IEEE = (1 << 4),
-		WARNINGS_AS_ERRORS = (1 << 5),
-		OPTIMIZATION_LOW = (1 << 6),
-		OPTIMIZATION_MEDIUM = (1 << 7),
-		OPTIMIZATION_HIGH = (1 << 8),
+	struct eShaderCompileFlags_Base {
+		enum EnumT {
+			DEBUG = (1 << 0),
+			NO_OPTIMIZATION = (1 << 1),
+			ROW_MAJOR_MATRICES = (1 << 2),
+			COLUMN_MAJOR_MATRICES = (1 << 3),
+			FORCE_IEEE = (1 << 4),
+			WARNINGS_AS_ERRORS = (1 << 5),
+			OPTIMIZATION_LOW = (1 << 6),
+			OPTIMIZATION_MEDIUM = (1 << 7),
+			OPTIMIZATION_HIGH = (1 << 8),
+		};
 	};
-};
 
 
-struct eHeapFlags_Base {
-	enum EnumT {
-		NONE = 0,
-		SHARED = 0x1,
-		DENY_BUFFERS = 0x4,
-		ALLOW_DISPLAY = 0x8,
-		SHARED_CROSS_ADAPTER = 0x20,
-		DENY_RT_DS_TEXTURES = 0x40,
-		DENY_NON_RT_DS_TEXTURES = 0x80,
-		ALLOW_ALL_BUFFERS_AND_TEXTURES = 0,
-		ALLOW_ONLY_BUFFERS = 0xc0,
-		ALLOW_ONLY_NON_RT_DS_TEXTURES = 0x44,
-		ALLOW_ONLY_RT_DS_TEXTURES = 0x84
+	struct eHeapFlags_Base {
+		enum EnumT {
+			NONE = 0,
+			SHARED = 0x1,
+			DENY_BUFFERS = 0x4,
+			ALLOW_DISPLAY = 0x8,
+			SHARED_CROSS_ADAPTER = 0x20,
+			DENY_RT_DS_TEXTURES = 0x40,
+			DENY_NON_RT_DS_TEXTURES = 0x80,
+			ALLOW_ALL_BUFFERS_AND_TEXTURES = 0,
+			ALLOW_ONLY_BUFFERS = 0xc0,
+			ALLOW_ONLY_NON_RT_DS_TEXTURES = 0x44,
+			ALLOW_ONLY_RT_DS_TEXTURES = 0x84
+		};
 	};
-};
 
-struct eResourceState_Base {
-	enum EnumT {
-		COMMON = 0,
-		VERTEX_AND_CONSTANT_BUFFER = 0x1,
-		INDEX_BUFFER = 0x2,
-		RENDER_TARGET = 0x4,
-		UNORDERED_ACCESS = 0x8,
-		DEPTH_WRITE = 0x10,
-		DEPTH_READ = 0x20,
-		NON_PIXEL_SHADER_RESOURCE = 0x40,
-		PIXEL_SHADER_RESOURCE = 0x80,
-		STREAM_OUT = 0x100,
-		INDIRECT_ARGUMENT = 0x200,
-		COPY_DEST = 0x400,
-		COPY_SOURCE = 0x800,
-		RESOLVE_DEST = 0x1000,
-		RESOLVE_SOURCE = 0x2000,
-		GENERIC_READ = (((((0x1 | 0x2) | 0x40) | 0x80) | 0x200) | 0x800),
-		PRESENT = 0,
-		PREDICATION = 0x200
+	struct eResourceState_Base {
+		enum EnumT {
+			COMMON = 0,
+			VERTEX_AND_CONSTANT_BUFFER = 0x1,
+			INDEX_BUFFER = 0x2,
+			RENDER_TARGET = 0x4,
+			UNORDERED_ACCESS = 0x8,
+			DEPTH_WRITE = 0x10,
+			DEPTH_READ = 0x20,
+			NON_PIXEL_SHADER_RESOURCE = 0x40,
+			PIXEL_SHADER_RESOURCE = 0x80,
+			STREAM_OUT = 0x100,
+			INDIRECT_ARGUMENT = 0x200,
+			COPY_DEST = 0x400,
+			COPY_SOURCE = 0x800,
+			RESOLVE_DEST = 0x1000,
+			RESOLVE_SOURCE = 0x2000,
+			GENERIC_READ = (((((0x1 | 0x2) | 0x40) | 0x80) | 0x200) | 0x800),
+			PRESENT = 0,
+			PREDICATION = 0x200
+		};
 	};
-};
 
-struct eResourceFlags_Base {
-	enum EnumT {
-		NONE = 0,
-		ALLOW_RENDER_TARGET = 0x1,
-		ALLOW_DEPTH_STENCIL = 0x2,
-		ALLOW_UNORDERED_ACCESS = 0x4,
-		DENY_SHADER_RESOURCE = 0x8,
-		ALLOW_CROSS_ADAPTER = 0x10,
-		ALLOW_SIMULTANEOUS_ACCESS = 0x20
+	struct eResourceFlags_Base {
+		enum EnumT {
+			NONE = 0,
+			ALLOW_RENDER_TARGET = 0x1,
+			ALLOW_DEPTH_STENCIL = 0x2,
+			ALLOW_UNORDERED_ACCESS = 0x4,
+			DENY_SHADER_RESOURCE = 0x8,
+			ALLOW_CROSS_ADAPTER = 0x10,
+			ALLOW_SIMULTANEOUS_ACCESS = 0x20
+		};
 	};
-};
 
-struct eColorMask_Base {
-	enum EnumT {
-		RED = 1,
-		GREEN = 2,
-		BLUE = 4,
-		ALPHA = 8,
-		ALL = (RED | GREEN | BLUE | ALPHA),
+	struct eColorMask_Base {
+		enum EnumT {
+			RED = 1,
+			GREEN = 2,
+			BLUE = 4,
+			ALPHA = 8,
+			ALL = (RED | GREEN | BLUE | ALPHA),
+		};
 	};
-};
 
-struct eDsvFlags_Base {
-	enum EnumT {
-		NONE = 0,
-		READ_ONLY_DEPTH = 0x1,
-		READ_ONLY_STENCIL = 0x2,
+	struct eDsvFlags_Base {
+		enum EnumT {
+			NONE = 0,
+			READ_ONLY_DEPTH = 0x1,
+			READ_ONLY_STENCIL = 0x2,
+		};
 	};
-};
 
 } // namespace bitflag_enum_impl
 
@@ -719,38 +721,38 @@ struct ResourceDesc {
 
 	static inline ResourceDesc Buffer(uint64_t sizeInBytes);
 	static inline ResourceDesc Texture1D(uint64_t width, eFormat format, eResourceFlags flags = eResourceFlags::NONE,
-		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
-		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+										 uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+										 uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
 
 	static inline ResourceDesc Texture1DArray(uint64_t width, eFormat format, uint16_t arraySize,
-		eResourceFlags flags = eResourceFlags::NONE,
-		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
-		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+											  eResourceFlags flags = eResourceFlags::NONE,
+											  uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+											  uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
 
 	static inline ResourceDesc Texture2D(uint64_t width, uint32_t height, eFormat format,
-		eResourceFlags flags = eResourceFlags::NONE,
-		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
-		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+										 eResourceFlags flags = eResourceFlags::NONE,
+										 uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+										 uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
 
 	static inline ResourceDesc Texture2DArray(uint64_t width, uint32_t height, eFormat format, uint16_t arraySize,
-		eResourceFlags flags = eResourceFlags::NONE,
-		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
-		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+											  eResourceFlags flags = eResourceFlags::NONE,
+											  uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+											  uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
 
 	static inline ResourceDesc Texture3D(uint64_t width, uint32_t height, uint16_t depth, eFormat format,
-		eResourceFlags flags = eResourceFlags::NONE,
-		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
-		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+										 eResourceFlags flags = eResourceFlags::NONE,
+										 uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+										 uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
 
 	static inline ResourceDesc CubeMap(uint64_t width, uint32_t height, eFormat format,
-		eResourceFlags flags = eResourceFlags::NONE,
-		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
-		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+									   eResourceFlags flags = eResourceFlags::NONE,
+									   uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+									   uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
 
 	static inline ResourceDesc CubeMapArray(uint64_t width, uint32_t height, eFormat format, uint16_t arraySize,
-		eResourceFlags flags = eResourceFlags::NONE,
-		uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
-		uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
+											eResourceFlags flags = eResourceFlags::NONE,
+											uint16_t mipLevels = 1, uint32_t multisampleCount = 1, uint32_t multisampleQuality = 0,
+											uint64_t alignment = 0, eTextureLayout layout = eTextureLayout::UNKNOWN);
 };
 
 
@@ -918,7 +920,7 @@ struct DepthStencilState {
 /// <remarks> Values are filled with sensible defaults. </remarks>
 struct GraphicsPipelineStateDesc {
 	IRootSignature* rootSignature = nullptr;
-	
+
 	ShaderByteCodeDesc vs;
 	ShaderByteCodeDesc gs;
 	ShaderByteCodeDesc hs;
@@ -935,7 +937,7 @@ struct GraphicsPipelineStateDesc {
 	ePrimitiveTopologyType primitiveTopologyType = ePrimitiveTopologyType::UNDEFINED;
 	eTriangleStripCutIndex triangleStripCutIndex = eTriangleStripCutIndex::DISABLED;
 
-	unsigned numRenderTargets = 1; 
+	unsigned numRenderTargets = 1;
 	eFormat renderTargetFormats[8] = { eFormat::UNKNOWN, eFormat::UNKNOWN, eFormat::UNKNOWN, eFormat::UNKNOWN, eFormat::UNKNOWN, eFormat::UNKNOWN, eFormat::UNKNOWN, eFormat::UNKNOWN };
 	eFormat depthStencilFormat = eFormat::UNKNOWN;
 	unsigned multisampleCount = 1;
@@ -974,7 +976,7 @@ struct RootDescriptorTable {
 struct RootConstant {
 	RootConstant() = default;
 	RootConstant(unsigned shaderRegister, unsigned registerSpace, unsigned numConstant)
-		:shaderRegister(shaderRegister), registerSpace(registerSpace), numConstants(numConstants) {}
+		: shaderRegister(shaderRegister), registerSpace(registerSpace), numConstants(numConstants) {}
 	unsigned shaderRegister;
 	unsigned registerSpace;
 	unsigned numConstants;
@@ -983,7 +985,7 @@ struct RootConstant {
 struct RootDescriptor {
 	RootDescriptor() = default;
 	RootDescriptor(unsigned shaderRegister, unsigned registerSpace)
-		:shaderRegister(shaderRegister), registerSpace(registerSpace) {}
+		: shaderRegister(shaderRegister), registerSpace(registerSpace) {}
 	unsigned shaderRegister;
 	unsigned registerSpace;
 };
@@ -1000,7 +1002,7 @@ struct RootParameterDesc {
 	};
 
 	// Special ctors and dtor to manage unions
-	RootParameterDesc() : m_type(UNITIALIZED), type(m_type), shaderVisibility(m_shaderVisibility), m_shaderVisibility(eShaderVisiblity::ALL) {};
+	RootParameterDesc() : m_type(UNITIALIZED), type(m_type), shaderVisibility(m_shaderVisibility), m_shaderVisibility(eShaderVisiblity::ALL){};
 	RootParameterDesc(const RootParameterDesc& rhs) : m_type(rhs.m_type), type(m_type), shaderVisibility(m_shaderVisibility) {
 		m_shaderVisibility = rhs.m_shaderVisibility;
 		switch (m_type) {
@@ -1052,47 +1054,50 @@ struct RootParameterDesc {
 	const eShaderVisiblity& shaderVisibility;
 
 	template <eType Type>
-	const typename std::conditional < Type == CONSTANT, RootConstant,
-		typename std::conditional < Type == CBV || Type == SRV || Type == UAV, RootDescriptor,
-		typename std::conditional < Type == DESCRIPTOR_TABLE, RootDescriptorTable, void>::type>::type>::type &
-		As() const {};
+	const typename std::conditional<Type == CONSTANT, RootConstant,
+									typename std::conditional<Type == CBV || Type == SRV || Type == UAV, RootDescriptor,
+															  typename std::conditional<Type == DESCRIPTOR_TABLE, RootDescriptorTable, void>::type>::type>::type&
+	As() const {};
 	template <eType Type>
-	typename std::conditional < Type == CONSTANT, RootConstant,
-		typename std::conditional < Type == CBV || Type == SRV || Type == UAV, RootDescriptor,
-		typename std::conditional < Type == DESCRIPTOR_TABLE, RootDescriptorTable, void>::type>::type>::type &
-		As() {};
+	typename std::conditional<Type == CONSTANT, RootConstant,
+							  typename std::conditional<Type == CBV || Type == SRV || Type == UAV, RootDescriptor,
+														typename std::conditional<Type == DESCRIPTOR_TABLE, RootDescriptorTable, void>::type>::type>::type&
+	As(){};
 
 
 	// Constructors to initialize object.
 	static inline RootParameterDesc Constant(unsigned numConstants, unsigned shaderRegister, unsigned registerSpace = 0,
-		eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+											 eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
 
 	static inline RootParameterDesc Cbv(unsigned shaderRegister, unsigned registerSpace = 0,
-		eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+										eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
 
 	static inline RootParameterDesc Srv(unsigned shaderRegister, unsigned registerSpace = 0,
-		eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+										eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
 
 	static inline RootParameterDesc Uav(unsigned shaderRegister, unsigned registerSpace = 0,
-		eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+										eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
 
 	static inline RootParameterDesc DescriptorTable(unsigned numDescriptorRanges, DescriptorRange* descriptorRanges,
-		eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+													eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
 	static inline RootParameterDesc DescriptorTable(std::vector<DescriptorRange> descriptorRanges,
-		eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
+													eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
 	static inline RootParameterDesc DescriptorTable(eShaderVisiblity shaderVisibility = eShaderVisiblity::ALL);
 
 private:
 	void Destruct() {
 		switch (m_type) {
 			case CONSTANT:
-				constant.~RootConstant(); break;
+				constant.~RootConstant();
+				break;
 			case CBV:
 			case SRV:
 			case UAV:
-				descriptor.~RootDescriptor(); break;
+				descriptor.~RootDescriptor();
+				break;
 			case DESCRIPTOR_TABLE:
-				descriptorTable.~RootDescriptorTable(); break;
+				descriptorTable.~RootDescriptorTable();
+				break;
 		}
 	}
 
@@ -1427,10 +1432,9 @@ inline ResourceDesc ResourceDesc::Buffer(uint64_t sizeInBytes) {
 }
 
 inline ResourceDesc ResourceDesc::Texture1D(uint64_t width, eFormat format,
-	eResourceFlags flags,
-	uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
-	uint64_t alignment, eTextureLayout layout)
-{
+											eResourceFlags flags,
+											uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+											uint64_t alignment, eTextureLayout layout) {
 	ResourceDesc desc;
 	desc.type = eResourceType::TEXTURE;
 
@@ -1451,10 +1455,9 @@ inline ResourceDesc ResourceDesc::Texture1D(uint64_t width, eFormat format,
 }
 
 inline ResourceDesc ResourceDesc::Texture1DArray(uint64_t width, eFormat format, uint16_t arraySize,
-	eResourceFlags flags,
-	uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
-	uint64_t alignment, eTextureLayout layout)
-{
+												 eResourceFlags flags,
+												 uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+												 uint64_t alignment, eTextureLayout layout) {
 	ResourceDesc desc;
 	desc.type = eResourceType::TEXTURE;
 
@@ -1475,10 +1478,9 @@ inline ResourceDesc ResourceDesc::Texture1DArray(uint64_t width, eFormat format,
 }
 
 inline ResourceDesc ResourceDesc::Texture2D(uint64_t width, uint32_t height, eFormat format,
-	eResourceFlags flags,
-	uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
-	uint64_t alignment, eTextureLayout layout)
-{
+											eResourceFlags flags,
+											uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+											uint64_t alignment, eTextureLayout layout) {
 	ResourceDesc desc;
 	desc.type = eResourceType::TEXTURE;
 
@@ -1498,10 +1500,9 @@ inline ResourceDesc ResourceDesc::Texture2D(uint64_t width, uint32_t height, eFo
 	return desc;
 }
 inline ResourceDesc ResourceDesc::Texture2DArray(uint64_t width, uint32_t height, eFormat format, uint16_t arraySize,
-	eResourceFlags flags,
-	uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
-	uint64_t alignment, eTextureLayout layout)
-{
+												 eResourceFlags flags,
+												 uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+												 uint64_t alignment, eTextureLayout layout) {
 	ResourceDesc desc;
 	desc.type = eResourceType::TEXTURE;
 
@@ -1522,10 +1523,9 @@ inline ResourceDesc ResourceDesc::Texture2DArray(uint64_t width, uint32_t height
 }
 
 inline ResourceDesc ResourceDesc::Texture3D(uint64_t width, uint32_t height, uint16_t depth, eFormat format,
-	eResourceFlags flags,
-	uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
-	uint64_t alignment, eTextureLayout layout)
-{
+											eResourceFlags flags,
+											uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+											uint64_t alignment, eTextureLayout layout) {
 	ResourceDesc desc;
 	desc.type = eResourceType::TEXTURE;
 
@@ -1545,10 +1545,9 @@ inline ResourceDesc ResourceDesc::Texture3D(uint64_t width, uint32_t height, uin
 	return desc;
 }
 inline ResourceDesc ResourceDesc::CubeMap(uint64_t width, uint32_t height, eFormat format,
-	eResourceFlags flags,
-	uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
-	uint64_t alignment, eTextureLayout layout)
-{
+										  eResourceFlags flags,
+										  uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+										  uint64_t alignment, eTextureLayout layout) {
 	ResourceDesc desc;
 	desc.type = eResourceType::TEXTURE;
 
@@ -1568,10 +1567,9 @@ inline ResourceDesc ResourceDesc::CubeMap(uint64_t width, uint32_t height, eForm
 	return desc;
 }
 inline ResourceDesc ResourceDesc::CubeMapArray(uint64_t width, uint32_t height, eFormat format, uint16_t arraySize,
-	eResourceFlags flags,
-	uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
-	uint64_t alignment, eTextureLayout layout)
-{
+											   eResourceFlags flags,
+											   uint16_t mipLevels, uint32_t multisampleCount, uint32_t multisampleQuality,
+											   uint64_t alignment, eTextureLayout layout) {
 	assert(arraySize <= 65535 / 6);
 	ResourceDesc desc;
 	desc.type = eResourceType::TEXTURE;
@@ -1667,61 +1665,71 @@ inline RootParameterDesc RootParameterDesc::DescriptorTable(eShaderVisiblity sha
 
 template <>
 inline const RootConstant& RootParameterDesc::As<RootParameterDesc::eType::CONSTANT>() const {
-	if (m_type != eType::CONSTANT) throw InvalidCastException("Object has different type than requested.");
+	if (m_type != eType::CONSTANT)
+		throw InvalidCastException("Object has different type than requested.");
 	return constant;
 }
 
 template <>
 inline const RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::CBV>() const {
-	if (m_type != eType::CBV) throw InvalidCastException("Object has different type than requested.");
+	if (m_type != eType::CBV)
+		throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline const RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::SRV>() const {
-	if (m_type != eType::SRV) throw InvalidCastException("Object has different type than requested.");
+	if (m_type != eType::SRV)
+		throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline const RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::UAV>() const {
-	if (m_type != eType::UAV) throw InvalidCastException("Object has different type than requested.");
+	if (m_type != eType::UAV)
+		throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline const RootDescriptorTable& RootParameterDesc::As<RootParameterDesc::eType::DESCRIPTOR_TABLE>() const {
-	if (m_type != eType::DESCRIPTOR_TABLE) throw InvalidCastException("Object has different type than requested.");
+	if (m_type != eType::DESCRIPTOR_TABLE)
+		throw InvalidCastException("Object has different type than requested.");
 	return descriptorTable;
 }
 
 template <>
 inline RootConstant& RootParameterDesc::As<RootParameterDesc::eType::CONSTANT>() {
-	if (m_type != eType::CONSTANT) throw InvalidCastException("Object has different type than requested.");
+	if (m_type != eType::CONSTANT)
+		throw InvalidCastException("Object has different type than requested.");
 	return constant;
 }
 
 template <>
 inline RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::CBV>() {
-	if (m_type != eType::CBV) throw InvalidCastException("Object has different type than requested.");
+	if (m_type != eType::CBV)
+		throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::SRV>() {
-	if (m_type != eType::SRV) throw InvalidCastException("Object has different type than requested.");
+	if (m_type != eType::SRV)
+		throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline RootDescriptor& RootParameterDesc::As<RootParameterDesc::eType::UAV>() {
-	if (m_type != eType::UAV) throw InvalidCastException("Object has different type than requested.");
+	if (m_type != eType::UAV)
+		throw InvalidCastException("Object has different type than requested.");
 	return descriptor;
 }
 
 template <>
 inline RootDescriptorTable& RootParameterDesc::As<RootParameterDesc::eType::DESCRIPTOR_TABLE>() {
-	if (m_type != eType::DESCRIPTOR_TABLE) throw InvalidCastException("Object has different type than requested.");
+	if (m_type != eType::DESCRIPTOR_TABLE)
+		throw InvalidCastException("Object has different type than requested.");
 	return descriptorTable;
 }
 
@@ -1817,5 +1825,4 @@ inline unsigned GetFormatSizeInBytes(eFormat format) {
 }
 
 
-} // namespace gxapi
-
+} // namespace inl::gxapi

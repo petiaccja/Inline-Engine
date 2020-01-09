@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Blend.hpp"
-#include <GraphicsEngine_LL/GraphicsCommandList.hpp>
+
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
+#include <GraphicsEngine_LL/GraphicsCommandList.hpp>
+
 #include <InlineMath.hpp>
 
 
@@ -12,7 +14,7 @@ namespace inl::gxeng {
 INL_REGISTER_GRAPHICS_NODE(Blend)
 
 
-void Blend::Initialize(EngineContext & context) {
+void Blend::Initialize(EngineContext& context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
@@ -91,7 +93,7 @@ void Blend::Setup(SetupContext& context) {
 		m_blendMode = currBlendMode;
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
-			gxapi::InputElementDesc{"POSITION", 0, gxapi::eFormat::R32G32_FLOAT, 0, 0}
+			gxapi::InputElementDesc{ "POSITION", 0, gxapi::eFormat::R32G32_FLOAT, 0, 0 }
 		};
 
 		gxapi::GraphicsPipelineStateDesc psoDesc;
@@ -100,18 +102,17 @@ void Blend::Setup(SetupContext& context) {
 		psoDesc.rootSignature = m_binder.GetRootSignature();
 		psoDesc.vs = m_shader.vs;
 		psoDesc.ps = m_shader.ps;
-		psoDesc.rasterization = gxapi::RasterizerState{gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL};
+		psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
 		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 		psoDesc.blending.alphaToCoverage = false;
 		psoDesc.blending.independentBlending = false;
 		psoDesc.blending.singleTarget = m_blendMode;
-		
+
 		psoDesc.numRenderTargets = 1;
 		psoDesc.renderTargetFormats[0] = m_renderTargetFormat;
 
 		m_PSO.reset(context.CreatePSO(psoDesc));
 	}
-	
 }
 
 
@@ -146,4 +147,4 @@ void Blend::Execute(RenderContext& context) {
 }
 
 
-} // namespace inl::gxeng::nodes
+} // namespace inl::gxeng

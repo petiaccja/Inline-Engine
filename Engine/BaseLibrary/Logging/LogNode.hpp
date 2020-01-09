@@ -1,10 +1,10 @@
 #pragma once
 
-#include <shared_mutex>
 #include <atomic>
-#include <memory>
-#include <vector>
 #include <chrono>
+#include <memory>
+#include <shared_mutex>
+#include <vector>
 
 namespace inl {
 
@@ -15,6 +15,7 @@ namespace inl {
 /// </summary>
 class LogNode {
 	friend class LogPipe;
+
 private:
 	struct PipeInfo {
 		std::weak_ptr<LogPipe> pipe;
@@ -24,6 +25,7 @@ private:
 		std::shared_ptr<LogPipe> pipe;
 		std::string name;
 	};
+
 public:
 	LogNode();
 	~LogNode();
@@ -36,13 +38,14 @@ public:
 
 	/// <summary> Specify output stream. </summary>
 	void SetOutputStream(std::ostream* outputStream);
+
 private:
 	/// <summary> Call this from Pipe whenever a new message is buffered. </summary>
 	void NotifyNewEvent();
-	
-	std::vector<PipeInfo> pipes; /// <summary> List of associated pipes. </summary>	
+
+	std::vector<PipeInfo> pipes; /// <summary> List of associated pipes. </summary>
 	std::shared_timed_mutex mtx; /// <summary> Synchronize pipes with node. Node uses exclusive, pipes use shared mode. </summary>
-	std::atomic_bool prohibitPipes;	/// <summary> Set to true to give node priority locking mtx. </summary>
+	std::atomic_bool prohibitPipes; /// <summary> Set to true to give node priority locking mtx. </summary>
 	std::atomic_ptrdiff_t pendingEvents; /// <summary> Number of pending events. </summary>
 
 	std::ostream* outputStream;

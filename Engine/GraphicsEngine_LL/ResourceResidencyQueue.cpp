@@ -1,13 +1,13 @@
 #include "ResourceResidencyQueue.hpp"
+
 #include <BaseLibrary/ThreadName.hpp>
 
-namespace inl :: gxeng {
+namespace inl ::gxeng {
 
 
-ResourceResidencyQueue::ResourceResidencyQueue(std::unique_ptr<gxapi::IFence> fence) 
+ResourceResidencyQueue::ResourceResidencyQueue(std::unique_ptr<gxapi::IFence> fence)
 	: m_fence(std::move(fence)),
-	m_fenceValue(0)
-{
+	  m_fenceValue(0) {
 	m_fence->Signal(0);
 	m_runThreads = true;
 	m_initThread = std::thread(std::bind(&ResourceResidencyQueue::InitThreadFunc, this));
@@ -52,7 +52,7 @@ void ResourceResidencyQueue::InitThreadFunc() {
 	std::vector<std::unique_ptr<Task>> workingSet;
 	while (m_runThreads) {
 		std::unique_lock<std::mutex> lk(m_initMutex);
-		m_initCv.wait(lk, [this] {return !m_runThreads || !m_initQueue.empty(); });
+		m_initCv.wait(lk, [this] { return !m_runThreads || !m_initQueue.empty(); });
 
 		while (!m_initQueue.empty()) {
 			std::unique_ptr<Task> task = std::move(m_initQueue.front());
@@ -79,7 +79,7 @@ void ResourceResidencyQueue::CleanThreadFunc() {
 	std::vector<std::unique_ptr<Task>> workingSet;
 	while (m_runThreads) {
 		std::unique_lock<std::mutex> lk(m_cleanMutex);
-		m_cleanCv.wait(lk, [this] {return !m_runThreads || !m_cleanQueue.empty(); });
+		m_cleanCv.wait(lk, [this] { return !m_runThreads || !m_cleanQueue.empty(); });
 
 		while (!m_cleanQueue.empty()) {
 			std::unique_ptr<Task> task = std::move(m_cleanQueue.front());
@@ -100,4 +100,4 @@ void ResourceResidencyQueue::CleanThreadFunc() {
 }
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

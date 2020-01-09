@@ -116,5 +116,3 @@ gxapi::eFormat FormatDepthToColor(gxapi::eFormat sourceFormat) {
 
 
 } // namespace inl::gxeng::nodes
-
-

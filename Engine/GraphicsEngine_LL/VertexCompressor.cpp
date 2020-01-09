@@ -1,7 +1,8 @@
 #include "VertexCompressor.hpp"
-#include <InlineMath.hpp>
+
 #include <BaseLibrary/ArrayView.hpp>
 
+#include <InlineMath.hpp>
 #include <algorithm>
 
 
@@ -29,10 +30,9 @@ int NormalCompressor::Size() const {
 }
 bool NormalCompressor::IsSupported(eVertexElementSemantic semantic) const {
 	return semantic == eVertexElementSemantic::NORMAL
-		|| semantic == eVertexElementSemantic::TANGENT
-		|| semantic == eVertexElementSemantic::BITANGENT;
+		   || semantic == eVertexElementSemantic::TANGENT
+		   || semantic == eVertexElementSemantic::BITANGENT;
 }
-
 
 
 
@@ -75,9 +75,8 @@ bool PassthroughCompressor::IsSupported(eVertexElementSemantic semantic) const {
 //------------------------------------------------------------------------------
 
 VertexCompressor::VertexCompressor(
-	const IVertexReader* reader, 
-	const std::vector<bool>& elementMap) 
-{
+	const IVertexReader* reader,
+	const std::vector<bool>& elementMap) {
 	assert(reader != nullptr);
 	m_reader = reader;
 
@@ -101,15 +100,15 @@ VertexCompressor::VertexCompressor(
 		chosenElements.begin(),
 		chosenElements.end(),
 		[](const IVertexReader::Element& lhs, const IVertexReader::Element& rhs) {
-		return lhs.index < rhs.index;
-	});
+			return lhs.index < rhs.index;
+		});
 
 	std::stable_sort(
 		chosenElements.begin(),
 		chosenElements.end(),
 		[](const IVertexReader::Element& lhs, const IVertexReader::Element& rhs) {
-		return lhs.semantic < rhs.semantic;
-	});
+			return lhs.semantic < rhs.semantic;
+		});
 
 
 	// Fill elements.
@@ -117,19 +116,15 @@ VertexCompressor::VertexCompressor(
 		auto* compressor = AssignCompressor(v);
 
 		if (compressor != nullptr) {
-			m_elementsToCompress.push_back({
-				v,
-				compressor
-			});
+			m_elementsToCompress.push_back({ v,
+											 compressor });
 		}
 		else {
 			m_passThroughCompressors.push_back(std::make_unique<PassthroughCompressor>());
 			m_passThroughCompressors.back()->Setup(v.semantic, reader);
 			compressor = m_passThroughCompressors.back().get();
-			m_elementsToCompress.push_back({
-				v,
-				compressor
-			});
+			m_elementsToCompress.push_back({ v,
+											 compressor });
 		}
 	}
 }
@@ -186,8 +181,7 @@ std::vector<int> VertexCompressor::GetCompressedOffsets() const {
 
 		for (size_t i = 0; i < elements.size(); ++i) {
 			if (v.sourceElement.semantic == elements[i].semantic
-				&& v.sourceElement.index == elements[i].index)
-			{
+				&& v.sourceElement.index == elements[i].index) {
 				offsets[i] = stride;
 			}
 		}
@@ -196,7 +190,6 @@ std::vector<int> VertexCompressor::GetCompressedOffsets() const {
 	}
 	return offsets;
 }
-
 
 
 
@@ -222,11 +215,10 @@ SemanticCompressor* VertexCompressor::AssignCompressor(const IVertexReader::Elem
 void VertexCompressor::CreateDefaultCompressorList() {
 	// Compressors are checked in order.
 	// They shouldn't have overlapping capabilities.
-	
-	m_availableCompressors.push_back(std::make_unique<NormalCompressor>());
-	m_availableCompressors.push_back(std::make_unique<ColorCompressor>());	
-}
 
+	m_availableCompressors.push_back(std::make_unique<NormalCompressor>());
+	m_availableCompressors.push_back(std::make_unique<ColorCompressor>());
+}
 
 
 

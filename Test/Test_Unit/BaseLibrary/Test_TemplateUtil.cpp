@@ -1,7 +1,7 @@
 #include <BaseLibrary/TemplateUtil.hpp>
-#include <iostream>
 
 #include <Catch2/catch.hpp>
+#include <iostream>
 
 using namespace inl;
 

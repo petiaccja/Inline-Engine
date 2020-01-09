@@ -2,11 +2,10 @@
 
 #define FREEIMAGE_COLORORDER 0
 #include <FreeImage/FreeImagePlus.h>
-
-#include <type_traits>
 #include <cstdint>
-#include <string>
 #include <filesystem>
+#include <string>
+#include <type_traits>
 
 
 namespace inl::asset {
@@ -23,9 +22,9 @@ template <eChannelType channelType>
 class ChannelType {
 public:
 	using type = typename std::conditional<channelType == eChannelType::INT8, uint8_t,
-		typename std::conditional<channelType == eChannelType::INT16, uint16_t,
-		typename std::conditional<channelType == eChannelType::INT32, uint32_t,
-		typename std::conditional<channelType == eChannelType::FLOAT, float, void>::type>::type>::type>::type;
+										   typename std::conditional<channelType == eChannelType::INT16, uint16_t,
+																	 typename std::conditional<channelType == eChannelType::INT32, uint32_t,
+																							   typename std::conditional<channelType == eChannelType::FLOAT, float, void>::type>::type>::type>::type;
 };
 
 
@@ -51,6 +50,7 @@ public:
 	channel_type operator[](int idx) const {
 		return channels[idx];
 	}
+
 private:
 	template <class Head, class... Rest>
 	void SetArg(int n, Head head, Rest... rest) {
@@ -87,9 +87,10 @@ public:
 
 private:
 	void TranslateImageType(eChannelType& typeOut, size_t& countOut) const;
+
 private:
 	fipImage m_image;
 };
 
 
-}
+} // namespace inl::asset

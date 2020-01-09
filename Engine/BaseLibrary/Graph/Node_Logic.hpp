@@ -10,8 +10,7 @@ namespace inl {
 
 class LogicAny
 	: public InputPortConfig<Any, Any, Any, Any, Any, Any>,
-	public OutputPortConfig<Any>
-{
+	  public OutputPortConfig<Any> {
 public:
 	LogicAny() {
 		lastActivated = -1;
@@ -65,6 +64,7 @@ public:
 		};
 		return names[idx];
 	}
+
 private:
 	intptr_t lastActivated;
 };
@@ -73,8 +73,7 @@ private:
 
 class LogicAll
 	: public InputPortConfig<void, Any, Any, Any, Any, Any, Any>,
-	public OutputPortConfig<Any>
-{
+	  public OutputPortConfig<Any> {
 public:
 	LogicAll() {
 		activationMap = 0;
@@ -137,6 +136,7 @@ public:
 		};
 		return names[idx];
 	}
+
 private:
 	intptr_t lastActivated;
 	uint32_t activationMap;

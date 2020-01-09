@@ -7,7 +7,7 @@ using inl::Range;
 
 
 TEST_CASE("Simple loop", "[Range]") {
-	std::vector<int> v = { 1,2,3,4,5 };
+	std::vector<int> v = { 1, 2, 3, 4, 5 };
 	std::vector<int> u;
 	for (auto i : Range(1, 6)) {
 		u.push_back(i);
@@ -37,7 +37,7 @@ TEST_CASE("Bigger step unaligned", "[Range]") {
 
 
 TEST_CASE("Simple loop negative", "[Range]") {
-	std::vector<int> v = { 2,1,0,-1,-2 };
+	std::vector<int> v = { 2, 1, 0, -1, -2 };
 	std::vector<int> u;
 	for (auto i : Range(2, -3)) {
 		u.push_back(i);

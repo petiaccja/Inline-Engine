@@ -2,8 +2,9 @@
 #undef OUT
 
 #include "Pipeline.hpp"
-#include "GraphicsNodeFactory.hpp"
+
 #include "GraphicsNode.hpp"
+#include "GraphicsNodeFactory.hpp"
 
 #include <BaseLibrary/Exception/Exception.hpp>
 #include <BaseLibrary/GraphEditor/GraphParser.hpp>
@@ -21,12 +22,10 @@ namespace inl::gxeng {
 //------------------------------------------------------------------------------
 
 Pipeline::NodeIterator::NodeIterator(const Pipeline* parent, lemon::ListDigraph::NodeIt graphIt)
-	: m_graphIt(graphIt), m_parent(parent)
-{}
+	: m_graphIt(graphIt), m_parent(parent) {}
 
 Pipeline::NodeIterator::NodeIterator()
-	: m_graphIt(lemon::INVALID), m_parent(nullptr)
-{}
+	: m_graphIt(lemon::INVALID), m_parent(nullptr) {}
 
 NodeBase& Pipeline::NodeIterator::operator*() const {
 	return *(operator->());
@@ -65,9 +64,8 @@ Pipeline::NodeIterator Pipeline::NodeIterator::operator++(int) const {
 
 Pipeline::Pipeline()
 	: m_nodeMap(m_dependencyGraph),
-	m_taskFunctionMap(m_taskGraph),
-	m_taskParentMap(m_taskGraph, lemon::INVALID)
-{}
+	  m_taskFunctionMap(m_taskGraph),
+	  m_taskParentMap(m_taskGraph, lemon::INVALID) {}
 
 
 Pipeline::Pipeline(Pipeline&& rhs) : Pipeline() {
@@ -197,7 +195,7 @@ std::string Pipeline::SerializeToJSON(const NodeFactory& factory) const {
 	}
 
 	auto FindName = [&](const ISerializableNode& node) {
-		auto[group, className] = factory.GetFullName(typeid(node));
+		auto [group, className] = factory.GetFullName(typeid(node));
 		return group + "/" + className;
 	};
 
@@ -217,28 +215,28 @@ void Pipeline::Clear() {
 
 
 Pipeline::NodeIterator Pipeline::begin() {
-	return{ this, lemon::ListDigraph::NodeIt(m_dependencyGraph) };
+	return { this, lemon::ListDigraph::NodeIt(m_dependencyGraph) };
 }
 
 
 Pipeline::NodeIterator Pipeline::end() {
-	return{ this, lemon::INVALID };
+	return { this, lemon::INVALID };
 }
 
 
 Pipeline::ConstNodeIterator Pipeline::begin() const {
-	return{ this, lemon::ListDigraph::NodeIt(m_dependencyGraph) };
+	return { this, lemon::ListDigraph::NodeIt(m_dependencyGraph) };
 }
 
 
 Pipeline::ConstNodeIterator Pipeline::end() const {
-	return{ this, lemon::INVALID };
+	return { this, lemon::INVALID };
 }
 
 
 
 void Pipeline::CalculateTaskGraph() {
-	// This structure is used to assign 
+	// This structure is used to assign
 	//		{source,sink} pairs in m_taskGraph
 	//		to
 	//		nodes in m_dependencyGraph
@@ -282,8 +280,7 @@ void Pipeline::CalculateTaskGraph() {
 			for (lemon::ListDigraph::ArcIt arc(subtaskNodes); arc != lemon::INVALID; ++arc) {
 				m_taskGraph.addArc(
 					taskNodesToTaskGraphNodes[subtaskNodes.source(arc)],
-					taskNodesToTaskGraphNodes[subtaskNodes.target(arc)]
-				);
+					taskNodesToTaskGraphNodes[subtaskNodes.target(arc)]);
 			}
 
 			// Find sources and sinks
@@ -412,9 +409,9 @@ bool Pipeline::IsLinked(NodeBase* srcNode, NodeBase* dstNode) {
 
 void Pipeline::TransitiveReduction(lemon::ListDigraph& graph) {
 	const int nodeCount = lemon::countNodes(graph);
-	std::vector<bool> reachabilityData(nodeCount*nodeCount, false);
+	std::vector<bool> reachabilityData(nodeCount * nodeCount, false);
 	auto reachbility = [&reachabilityData, nodeCount](int source, int target) {
-		return reachabilityData[nodeCount*source + target];
+		return reachabilityData[nodeCount * source + target];
 	};
 
 	// Get topological sort.
@@ -427,8 +424,7 @@ void Pipeline::TransitiveReduction(lemon::ListDigraph& graph) {
 		sortedNodes.push_back(nodeIt);
 	}
 
-	std::sort(sortedNodes.begin(), sortedNodes.end(), [&](auto n1, auto n2)
-	{
+	std::sort(sortedNodes.begin(), sortedNodes.end(), [&](auto n1, auto n2) {
 		return sortedMap[n1] < sortedMap[n2];
 	});
 
@@ -443,7 +439,7 @@ void Pipeline::TransitiveReduction(lemon::ListDigraph& graph) {
 		for (lemon::ListDigraph::InArcIt inArcIt(graph, *it); inArcIt != lemon::INVALID; ++inArcIt) {
 			lemon::ListDigraph::Node pred = graph.source(inArcIt);
 			int predIndex = sortedMap[pred];
-			for (int i=0; i<nodeCount; ++i) {
+			for (int i = 0; i < nodeCount; ++i) {
 				reachbility(predIndex, i) = reachbility(predIndex, i) || reachbility(index, i);
 			}
 		}
@@ -454,13 +450,13 @@ void Pipeline::TransitiveReduction(lemon::ListDigraph& graph) {
 		lemon::ListDigraph::Node source = graph.source(arcIt);
 		lemon::ListDigraph::Node target = graph.target(arcIt);
 		int targetIdx = sortedMap[target];
-		
+
 		bool reachable = false;
 		for (lemon::ListDigraph::OutArcIt outArcIt(graph, source); outArcIt != lemon::INVALID && !reachable; ++outArcIt) {
 			lemon::ListDigraph::Node jumper = graph.target(outArcIt);
 			if (jumper != target) {
 				int jumperIdx = sortedMap[jumper];
-				for (int i = 0; i<nodeCount && !reachable; ++i) {
+				for (int i = 0; i < nodeCount && !reachable; ++i) {
 					reachable = reachable || reachbility(jumperIdx, targetIdx);
 				}
 			}

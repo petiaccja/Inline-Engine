@@ -1,19 +1,16 @@
 #pragma once
 
-#include <GraphicsEngine_LL/GraphicsNode.hpp>
-
 #include <GraphicsApi_LL/IPipelineState.hpp>
+#include <GraphicsEngine_LL/GraphicsNode.hpp>
 
 
 namespace inl::gxeng::nodes {
 
 
-class NeighborMax :
-	virtual public GraphicsNode,
-	virtual public GraphicsTask,
-	virtual public InputPortConfig<Texture2D>,
-	virtual public OutputPortConfig<Texture2D>
-{
+class NeighborMax : virtual public GraphicsNode,
+					virtual public GraphicsTask,
+					virtual public InputPortConfig<Texture2D>,
+					virtual public OutputPortConfig<Texture2D> {
 public:
 	static const char* Info_GetName() { return "NeightborMax"; }
 	const std::string& GetInputName(size_t index) const override;
@@ -48,4 +45,3 @@ private:
 
 
 } // namespace inl::gxeng::nodes
-

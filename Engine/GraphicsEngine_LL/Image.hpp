@@ -1,12 +1,13 @@
 #pragma once
 
-#include <memory>
-
-#include <GraphicsEngine/Resources/IImage.hpp>
 #include "ImageBase.hpp"
 
+#include <GraphicsEngine/Resources/IImage.hpp>
 
-namespace inl:: gxeng {
+#include <memory>
+
+
+namespace inl::gxeng {
 
 
 class Image : public IImage, protected ImageBase {
@@ -33,4 +34,4 @@ private:
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

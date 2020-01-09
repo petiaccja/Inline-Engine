@@ -1,16 +1,18 @@
 #pragma once
 
-#include "../GraphicsApi_LL/IFence.hpp"
-#include "../GraphicsApi_LL/Exception.hpp"
 #include "ExceptionExpansions.hpp"
+
+#include "../GraphicsApi_LL/Exception.hpp"
+#include "../GraphicsApi_LL/IFence.hpp"
 
 #include <utility>
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#include <wrl.h>
-#include <d3d12.h>
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
+
+#include <d3d12.h>
+#include <wrl.h>
 
 namespace inl::gxapi_dx12 {
 
@@ -31,12 +33,20 @@ class Fence : public gxapi::IFence {
 			}
 		}
 		EventHelper(const EventHelper& rhs) = delete;
-		EventHelper(EventHelper&& rhs) { evt = rhs.evt; rhs.evt = INVALID_HANDLE_VALUE; }
+		EventHelper(EventHelper&& rhs) {
+			evt = rhs.evt;
+			rhs.evt = INVALID_HANDLE_VALUE;
+		}
 		EventHelper& operator=(const EventHelper& rhs) = delete;
-		EventHelper& operator=(EventHelper&& rhs) { evt = rhs.evt; rhs.evt = INVALID_HANDLE_VALUE; return *this; }
+		EventHelper& operator=(EventHelper&& rhs) {
+			evt = rhs.evt;
+			rhs.evt = INVALID_HANDLE_VALUE;
+			return *this;
+		}
 
 		HANDLE evt;
 	};
+
 public:
 	Fence(ComPtr<ID3D12Fence>& native);
 	Fence(const Fence&) = delete;
@@ -49,12 +59,14 @@ public:
 	void Wait(uint64_t value, uint64_t timeoutMillis = FOREVER) const override;
 	void WaitAny(const IFence** fences, uint64_t* values, size_t count, uint64_t timeoutMillis = FOREVER) const override;
 	void WaitAll(const IFence** fences, uint64_t* values, size_t count, uint64_t timeoutMillis = FOREVER) const override;
+
 private:
 	void WaitMultiple(const IFence** fences, uint64_t* values, size_t count, uint64_t timeoutMillis, bool all) const;
+
 protected:
 	ComPtr<ID3D12Fence> m_native;
 	static thread_local EventHelper threadEvent;
 };
 
 
-} // namespace gxapi_dx12
+} // namespace inl::gxapi_dx12

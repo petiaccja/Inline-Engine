@@ -1,15 +1,15 @@
 #include "MemoryObject.hpp"
 
-#include "../GraphicsApi_LL/ICommandList.hpp"
-#include "../GraphicsApi_LL/Exception.hpp"
-#include "../GraphicsApi_D3D12/Resource.hpp"
-#include "../GraphicsApi_D3D12/NativeCast.hpp"
-
-#include "MemoryManager.hpp"
 #include "CriticalBufferHeap.hpp"
+#include "MemoryManager.hpp"
 
-#include <utility>
+#include "../GraphicsApi_D3D12/NativeCast.hpp"
+#include "../GraphicsApi_D3D12/Resource.hpp"
+#include "../GraphicsApi_LL/Exception.hpp"
+#include "../GraphicsApi_LL/ICommandList.hpp"
+
 #include <iostream>
+#include <utility>
 
 namespace inl::gxeng {
 
@@ -18,8 +18,7 @@ using namespace gxapi;
 
 
 MemoryObject::MemoryObject(UniquePtr resource, bool resident, eResourceHeap heap)
-	: m_contents(std::make_shared<Contents>(std::move(resource), resident, heap))
-{
+	: m_contents(std::make_shared<Contents>(std::move(resource), resident, heap)) {
 	InitResourceStates(eResourceState::COMMON);
 }
 
@@ -63,7 +62,7 @@ bool MemoryObject::_GetResident() const noexcept {
 	return m_contents->resident;
 }
 
-gxapi::IResource * MemoryObject::_GetResourcePtr() const noexcept {
+gxapi::IResource* MemoryObject::_GetResourcePtr() const noexcept {
 	assert(m_contents);
 	return m_contents->resource.get();
 }
@@ -93,13 +92,11 @@ void MemoryObject::InitResourceStates(gxapi::eResourceState initialState) {
 	gxapi::ResourceDesc desc = m_contents->resource->GetDesc();
 	unsigned numSubresources = 0;
 	switch (desc.type) {
-		case eResourceType::TEXTURE:
-		{
+		case eResourceType::TEXTURE: {
 			numSubresources = m_contents->resource->GetNumSubresources();
 			break;
 		}
-		case eResourceType::BUFFER:
-		{
+		case eResourceType::BUFFER: {
 			numSubresources = 1;
 			break;
 		}
@@ -113,10 +110,8 @@ uint64_t LinearBuffer::GetSize() const {
 	return GetDescription().bufferDesc.sizeInBytes;
 }
 
-IndexBuffer::IndexBuffer(UniquePtr resource, bool resident, eResourceHeap heap, size_t indexCount) :
-	LinearBuffer(std::move(resource), resident, heap),
-	m_indexCount(indexCount)
-{}
+IndexBuffer::IndexBuffer(UniquePtr resource, bool resident, eResourceHeap heap, size_t indexCount) : LinearBuffer(std::move(resource), resident, heap),
+																									 m_indexCount(indexCount) {}
 
 
 size_t IndexBuffer::GetIndexCount() const {
@@ -124,12 +119,10 @@ size_t IndexBuffer::GetIndexCount() const {
 }
 
 
-ConstBuffer::ConstBuffer(UniquePtr resource, bool resident, eResourceHeap heap, void* gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize) :
-	LinearBuffer(std::move(resource), resident, heap),
-	m_gpuVirtualPtr(gpuVirtualPtr),
-	m_dataSize(dataSize),
-	m_bufferSize(bufferSize)
-{}
+ConstBuffer::ConstBuffer(UniquePtr resource, bool resident, eResourceHeap heap, void* gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize) : LinearBuffer(std::move(resource), resident, heap),
+																																			   m_gpuVirtualPtr(gpuVirtualPtr),
+																																			   m_dataSize(dataSize),
+																																			   m_bufferSize(bufferSize) {}
 
 
 void* ConstBuffer::GetVirtualAddress() const {
@@ -147,14 +140,10 @@ uint64_t ConstBuffer::GetDataSize() const {
 }
 
 
-VolatileConstBuffer::VolatileConstBuffer(UniquePtr resource, bool resident, eResourceHeap heap, void * gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize) :
-	ConstBuffer(std::move(resource), resident, heap, gpuVirtualPtr, dataSize, bufferSize)
-{}
+VolatileConstBuffer::VolatileConstBuffer(UniquePtr resource, bool resident, eResourceHeap heap, void* gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize) : ConstBuffer(std::move(resource), resident, heap, gpuVirtualPtr, dataSize, bufferSize) {}
 
 
-PersistentConstBuffer::PersistentConstBuffer(UniquePtr resource, bool resident, eResourceHeap heap, void * gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize) :
-	ConstBuffer(std::move(resource), resident, heap, gpuVirtualPtr, dataSize, bufferSize)
-{}
+PersistentConstBuffer::PersistentConstBuffer(UniquePtr resource, bool resident, eResourceHeap heap, void* gpuVirtualPtr, uint32_t dataSize, uint32_t bufferSize) : ConstBuffer(std::move(resource), resident, heap, gpuVirtualPtr, dataSize, bufferSize) {}
 
 
 

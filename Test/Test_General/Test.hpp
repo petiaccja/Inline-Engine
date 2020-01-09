@@ -1,10 +1,10 @@
 #pragma once
 
-#include <string>
-#include <vector>
+#include <cstring>
 #include <functional>
 #include <map>
-#include <cstring>
+#include <string>
+#include <vector>
 
 
 class TestFactory {
@@ -37,6 +37,7 @@ public:
 	void RegisterTest() {
 		testMap.insert({ TestT::Name(), []() -> int {TestT t; return t.Run(); } });
 	}
+
 private:
 	struct StrCmp {
 		bool operator()(const std::string& lhs, const std::string& rhs) const {
@@ -52,6 +53,7 @@ class AutoRegisterTest {
 public:
 	virtual ~AutoRegisterTest() = default;
 	virtual int Run() { return helper.a; }
+
 private:
 	struct Helper {
 		Helper() {

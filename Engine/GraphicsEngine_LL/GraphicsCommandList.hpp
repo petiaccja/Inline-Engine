@@ -1,11 +1,11 @@
 #pragma once
 
-#include "ComputeCommandList.hpp"
-#include "ResourceView.hpp"
-#include "PipelineEventListener.hpp"
-#include "StackDescHeap.hpp"
 #include "BindingManager.hpp"
+#include "ComputeCommandList.hpp"
 #include "Cubemap.hpp"
+#include "PipelineEventListener.hpp"
+#include "ResourceView.hpp"
+#include "StackDescHeap.hpp"
 
 namespace inl::gxeng {
 
@@ -62,13 +62,13 @@ public:
 
 	void SetVertexBuffers(unsigned startSlot,
 						  unsigned count,
-						  const VertexBuffer* const * resources,
+						  const VertexBuffer* const* resources,
 						  unsigned* sizeInBytes,
 						  unsigned* strideInBytes);
 
 	// output merger
 	void SetRenderTargets(unsigned numRenderTargets,
-						  const RenderTargetView2D* const * renderTargets,
+						  const RenderTargetView2D* const* renderTargets,
 						  const DepthStencilView2D* depthStencil = nullptr);
 	void SetBlendFactor(float r, float g, float b, float a);
 	void SetStencilRef(unsigned stencilRef);
@@ -87,14 +87,16 @@ public:
 	void BindGraphics(BindParameter parameter, const TextureView3D& shaderResource);
 	void BindGraphics(BindParameter parameter, const TextureViewCube& shaderResource);
 	void BindGraphics(BindParameter parameter, const ConstBufferView& shaderConstant);
-	void BindGraphics(BindParameter parameter, const void* shaderConstant, int size/*, int offset*/);
+	void BindGraphics(BindParameter parameter, const void* shaderConstant, int size /*, int offset*/);
 	void BindGraphics(BindParameter parameter, const RWTextureView1D& rwResource);
 	void BindGraphics(BindParameter parameter, const RWTextureView2D& rwResource);
 	void BindGraphics(BindParameter parameter, const RWTextureView3D& rwResource);
 	void BindGraphics(BindParameter parameter, const RWBufferView& rwResource);
+
 protected:
 	virtual Decomposition Decompose() override;
 	virtual void NewScratchSpace(size_t hint) override;
+
 private:
 	gxapi::IGraphicsCommandList* m_commandList;
 
@@ -104,4 +106,4 @@ private:
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

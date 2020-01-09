@@ -1,3 +1,4 @@
+#include "../../GraphicsNodeFactory.hpp"
 #include "CreateTexture.hpp"
 #include "GetBackBuffer.hpp"
 #include "GetCamera2DByName.hpp"
@@ -6,10 +7,7 @@
 #include "GetSceneByName.hpp"
 #include "GetTime.hpp"
 
-#include "../../GraphicsNodeFactory.hpp"
-
-extern "C"
-bool g_autoRegisterSysNodes = [] {
+extern "C" bool g_autoRegisterSysNodes = [] {
 	using namespace inl::gxeng;
 
 	GraphicsNodeFactory_Singleton::GetInstance().RegisterNodeClass<nodes::CreateTexture>("");
@@ -22,5 +20,3 @@ bool g_autoRegisterSysNodes = [] {
 
 	return true;
 }();
-
-

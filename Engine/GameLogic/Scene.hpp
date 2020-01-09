@@ -22,6 +22,7 @@ class Scene {
 		using set_iterator = std::conditional_t<Const,
 												ComponentSetMap::const_iterator,
 												ComponentSetMap::iterator>;
+
 	public:
 		generic_iterator() = default;
 		generic_iterator(set_iterator setIt, set_iterator setEnd, size_t entityIdx) : m_setIt(setIt), m_setEnd(setEnd), m_entityIdx(entityIdx) {}

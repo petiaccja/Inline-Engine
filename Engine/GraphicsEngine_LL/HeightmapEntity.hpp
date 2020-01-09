@@ -1,8 +1,8 @@
 #pragma once
 
+#include "Image.hpp"
 #include "Material.hpp"
 #include "Mesh.hpp"
-#include "Image.hpp"
 
 #include <BaseLibrary/Transformable.hpp>
 #include <GraphicsEngine/Scene/IHeightmapEntity.hpp>
@@ -30,7 +30,7 @@ public:
 
 	void SetMagnitude(float magnitude) override;
 	float GetMagnitude() const override;
-	
+
 	void SetOffset(float offset) override;
 	float GetOffset() const override;
 

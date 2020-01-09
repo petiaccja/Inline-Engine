@@ -1,9 +1,9 @@
 #pragma once
 
-#include <string>
-#include <sstream>
-#include <vector>
 #include <memory>
+#include <sstream>
+#include <string>
+#include <vector>
 
 #undef ERROR
 
@@ -27,7 +27,7 @@ enum class eEventType {
 };
 
 
-/// <summary> 
+/// <summary>
 /// Attach to events as parameters.
 /// This class is extended to provide parameters that have values
 /// of type float, int or raw bytes. See <see cref="EventParameterFloat"/>,
@@ -155,7 +155,7 @@ public:
 
 	/// <summary> Create an event with specific message. </summary>
 	LogEvent(const char* message) : LogEvent(std::string(message)) {}
-	
+
 	/// <summary> Construct object with message and a list of parameters. </summary>
 	/// <param name="message"> The message of the event. </param>
 	/// <param name="parameters"> Any number of EventParameters which describe the event's parameters. </param>
@@ -167,7 +167,7 @@ public:
 	/// <param name="message"> The message of the event. </param>
 	/// <param name="parameters"> Any number of EventParameters which describe the event's parameters. </param>
 	template <class Head, class... Args, std::enable_if_t<!std::is_same_v<Head, eEventType>, int> = 0>
-	LogEvent(const char* message, Head&& head, Args&&... parameters) 
+	LogEvent(const char* message, Head&& head, Args&&... parameters)
 		: LogEvent(std::string(message), eEventType::UNSPECIFIED, std::forward<Head>(head), std::forward<Args>(parameters)...) {}
 
 	/// <summary> Construct object with message and a list of parameters and specific event type. </summary>
@@ -196,6 +196,7 @@ public:
 	EventParameter& operator[](size_t index);
 	/// <summary> Read indexth parameter. </summary>
 	const EventParameter& operator[](size_t index) const;
+
 private:
 	/// <summary> Helper function for variadic ctor. </summary>
 	template <size_t Index, class Head, class... Args>

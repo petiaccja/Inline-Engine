@@ -1,9 +1,9 @@
 #include "NodeContext.hpp"
 
-#include "MemoryManager.hpp" 
 #include "CommandAllocatorPool.hpp"
-#include "ScratchSpacePool.hpp"
 #include "GraphicsCommandList.hpp"
+#include "MemoryManager.hpp"
+#include "ScratchSpacePool.hpp"
 
 
 namespace inl::gxeng {
@@ -41,21 +41,24 @@ SetupContext::SetupContext(MemoryManager* memoryManager,
 						   ShaderManager* shaderManager,
 						   gxapi::IGraphicsApi* graphicsApi)
 	: m_memoryManager(memoryManager),
-	m_srvHeap(srvHeap),
-	m_rtvHeap(rtvHeap),
-	m_dsvHeap(dsvHeap),
-	m_shaderManager(shaderManager),
-	m_graphicsApi(graphicsApi)
-{}
+	  m_srvHeap(srvHeap),
+	  m_rtvHeap(rtvHeap),
+	  m_dsvHeap(dsvHeap),
+	  m_shaderManager(shaderManager),
+	  m_graphicsApi(graphicsApi) {}
 
 
 Texture2D SetupContext::CreateTexture2D(const Texture2DDesc& desc, const TextureUsage& usage) const {
 	gxapi::eResourceFlags flags;
 
-	if (!usage.shaderResource) flags += gxapi::eResourceFlags::DENY_SHADER_RESOURCE;
-	if (usage.renderTarget) flags += gxapi::eResourceFlags::ALLOW_RENDER_TARGET;
-	if (usage.depthStencil) flags += gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL;
-	if (usage.randomAccess) flags += gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS;
+	if (!usage.shaderResource)
+		flags += gxapi::eResourceFlags::DENY_SHADER_RESOURCE;
+	if (usage.renderTarget)
+		flags += gxapi::eResourceFlags::ALLOW_RENDER_TARGET;
+	if (usage.depthStencil)
+		flags += gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL;
+	if (usage.randomAccess)
+		flags += gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS;
 
 	Texture2D texture = m_memoryManager->CreateTexture2D(eResourceHeap::CRITICAL, desc, flags);
 	return texture;
@@ -64,10 +67,14 @@ Texture2D SetupContext::CreateTexture2D(const Texture2DDesc& desc, const Texture
 Texture3D SetupContext::CreateTexture3D(const Texture3DDesc& desc, const TextureUsage& usage) const {
 	gxapi::eResourceFlags flags;
 
-	if (!usage.shaderResource) flags += gxapi::eResourceFlags::DENY_SHADER_RESOURCE;
-	if (usage.renderTarget) flags += gxapi::eResourceFlags::ALLOW_RENDER_TARGET;
-	if (usage.depthStencil) flags += gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL;
-	if (usage.randomAccess) flags += gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS;
+	if (!usage.shaderResource)
+		flags += gxapi::eResourceFlags::DENY_SHADER_RESOURCE;
+	if (usage.renderTarget)
+		flags += gxapi::eResourceFlags::ALLOW_RENDER_TARGET;
+	if (usage.depthStencil)
+		flags += gxapi::eResourceFlags::ALLOW_DEPTH_STENCIL;
+	if (usage.randomAccess)
+		flags += gxapi::eResourceFlags::ALLOW_UNORDERED_ACCESS;
 
 	Texture3D texture = m_memoryManager->CreateTexture3D(eResourceHeap::CRITICAL, desc, flags);
 	return texture;
@@ -75,45 +82,52 @@ Texture3D SetupContext::CreateTexture3D(const Texture3DDesc& desc, const Texture
 
 
 TextureView2D SetupContext::CreateSrv(const Texture2D& texture, gxapi::eFormat format, gxapi::SrvTexture2DArray desc) const {
-	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create srv without srv/cbv/uav heap.");
+	if (m_srvHeap == nullptr)
+		throw InvalidStateException("Cannot create srv without srv/cbv/uav heap.");
 
 	return TextureView2D{ texture, *m_srvHeap, format, desc };
 }
 
-TextureViewCube SetupContext::CreateSrv(const Texture2D & texture, gxapi::eFormat format, gxapi::SrvTextureCubeArray desc) const {
-	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create srv without srv/cbv/uav heap.");
+TextureViewCube SetupContext::CreateSrv(const Texture2D& texture, gxapi::eFormat format, gxapi::SrvTextureCubeArray desc) const {
+	if (m_srvHeap == nullptr)
+		throw InvalidStateException("Cannot create srv without srv/cbv/uav heap.");
 
 	return TextureViewCube{ texture, *m_srvHeap, format, desc };
 }
 
-TextureView3D SetupContext::CreateSrv(const Texture3D & texture, gxapi::eFormat format, gxapi::SrvTexture3D desc) const {
-	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create srv without srv/cbv/uav heap.");
+TextureView3D SetupContext::CreateSrv(const Texture3D& texture, gxapi::eFormat format, gxapi::SrvTexture3D desc) const {
+	if (m_srvHeap == nullptr)
+		throw InvalidStateException("Cannot create srv without srv/cbv/uav heap.");
 
 	return TextureView3D{ texture, *m_srvHeap, format, desc };
 }
 
 RenderTargetView2D SetupContext::CreateRtv(const Texture2D& texture, gxapi::eFormat format, gxapi::RtvTexture2DArray desc) const {
-	if (m_rtvHeap == nullptr) throw InvalidStateException("Cannot create rtv without rtv heap.");
+	if (m_rtvHeap == nullptr)
+		throw InvalidStateException("Cannot create rtv without rtv heap.");
 
 	return RenderTargetView2D{ texture, *m_rtvHeap, format, desc };
 }
 
 
 DepthStencilView2D SetupContext::CreateDsv(const Texture2D& texture, gxapi::eFormat format, gxapi::DsvTexture2DArray desc) const {
-	if (m_dsvHeap == nullptr) throw InvalidStateException("Cannot create dsv without dsv heap.");
+	if (m_dsvHeap == nullptr)
+		throw InvalidStateException("Cannot create dsv without dsv heap.");
 
 	return DepthStencilView2D{ texture, *m_dsvHeap, format, desc };
 }
 
 
 RWTextureView2D SetupContext::CreateUav(const Texture2D& rwTexture, gxapi::eFormat format, gxapi::UavTexture2DArray desc) const {
-	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create uav wihtout srv/cbv/uav heap.");
+	if (m_srvHeap == nullptr)
+		throw InvalidStateException("Cannot create uav wihtout srv/cbv/uav heap.");
 
 	return RWTextureView2D{ rwTexture, *m_srvHeap, format, desc };
 }
 
 RWTextureView3D SetupContext::CreateUav(const Texture3D& rwTexture, gxapi::eFormat format, gxapi::UavTexture3D desc) const {
-	if (m_srvHeap == nullptr) throw InvalidStateException("Cannot create uav wihtout srv/cbv/uav heap.");
+	if (m_srvHeap == nullptr)
+		throw InvalidStateException("Cannot create uav wihtout srv/cbv/uav heap.");
 
 	return RWTextureView3D{ rwTexture, *m_srvHeap, format, desc };
 }
@@ -176,15 +190,14 @@ RenderContext::RenderContext(MemoryManager* memoryManager,
 							 std::unique_ptr<BasicCommandList> inheritedList,
 							 std::unique_ptr<VolatileViewHeap> inheritedVheap)
 	: m_memoryManager(memoryManager),
-	m_srvHeap(srvHeap),
-	m_shaderManager(shaderManager),
-	m_graphicsApi(graphicsApi),
-	m_commandListPool(commandListPool),
-	m_commandAllocatorPool(commandAllocatorPool),
-	m_scratchSpacePool(scratchSpacePool),
-	m_inheritedCommandList(std::move(inheritedList)),
-	m_vheap(std::move(inheritedVheap))
-{}
+	  m_srvHeap(srvHeap),
+	  m_shaderManager(shaderManager),
+	  m_graphicsApi(graphicsApi),
+	  m_commandListPool(commandListPool),
+	  m_commandAllocatorPool(commandAllocatorPool),
+	  m_scratchSpacePool(scratchSpacePool),
+	  m_inheritedCommandList(std::move(inheritedList)),
+	  m_vheap(std::move(inheritedVheap)) {}
 
 
 // Misc
@@ -199,8 +212,7 @@ ConstBufferView RenderContext::CreateCbv(VolatileConstBuffer& buffer, size_t off
 	return ConstBufferView(
 		buffer,
 		m_vheap->Allocate(),
-		m_graphicsApi
-	);
+		m_graphicsApi);
 }
 
 ShaderProgram RenderContext::CreateShader(const std::string& name, ShaderParts stages, const std::string& macros) const {
@@ -234,8 +246,7 @@ Binder RenderContext::CreateBinder(const std::vector<BindParameterDesc>& paramet
 void RenderContext::Upload(const LinearBuffer& target,
 						   size_t offset,
 						   const void* data,
-						   size_t size)
-{
+						   size_t size) {
 	if (!m_commandList) {
 		throw InvalidCallException("Call one of AsGraphics/AsCompute/AsCopy before calling this.");
 	}
@@ -251,8 +262,7 @@ void RenderContext::Upload(const Texture2D& target,
 						   uint64_t width,
 						   uint32_t height,
 						   gxapi::eFormat format,
-						   size_t bytesPerRow)
-{
+						   size_t bytesPerRow) {
 	if (!m_commandList) {
 		throw InvalidCallException("Call one of AsGraphics/AsCompute/AsCopy before calling this.");
 	}
@@ -324,9 +334,8 @@ CopyCommandList& RenderContext::AsCopy() {
 }
 
 void RenderContext::Decompose(std::unique_ptr<BasicCommandList>& inheritedList,
-							  std::unique_ptr<BasicCommandList>& currentList, 
-							  std::unique_ptr<VolatileViewHeap>& currentVheap) 
-{
+							  std::unique_ptr<BasicCommandList>& currentList,
+							  std::unique_ptr<VolatileViewHeap>& currentVheap) {
 	if (m_commandList) {
 		m_commandList->EndDebuggerEvent();
 	}

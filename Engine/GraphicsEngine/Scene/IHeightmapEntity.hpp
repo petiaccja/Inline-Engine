@@ -1,8 +1,8 @@
 #pragma once
 
+#include "../Resources/IImage.hpp"
 #include "../Resources/IMaterial.hpp"
 #include "../Resources/IMesh.hpp"
-#include "../Resources/IImage.hpp"
 #include "Entity.hpp"
 
 #include <BaseLibrary/Transformable.hpp>

@@ -4,9 +4,10 @@
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#include <wrl.h>
-#include <d3d12.h>
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
+
+#include <d3d12.h>
+#include <wrl.h>
 
 namespace inl::gxapi_dx12 {
 
@@ -51,8 +52,8 @@ public:
 	void CreateDepthStencilView(const gxapi::IResource* resource,
 								gxapi::DescriptorHandle destination) override;
 	void CreateDepthStencilView(const gxapi::IResource* resource,
-	                            gxapi::DepthStencilViewDesc desc,
-	                            gxapi::DescriptorHandle destination) override;
+								gxapi::DepthStencilViewDesc desc,
+								gxapi::DescriptorHandle destination) override;
 
 	void CreateRenderTargetView(const gxapi::IResource* resource,
 								gxapi::DescriptorHandle destination) override;
@@ -65,8 +66,8 @@ public:
 	void CreateShaderResourceView(const gxapi::IResource* resource,
 								  gxapi::DescriptorHandle destination) override;
 	void CreateShaderResourceView(const gxapi::IResource* resource,
-	                              gxapi::ShaderResourceViewDesc desc,
-	                              gxapi::DescriptorHandle destination) override;
+								  gxapi::ShaderResourceViewDesc desc,
+								  gxapi::DescriptorHandle destination) override;
 
 	void CreateUnorderedAccessView(gxapi::UnorderedAccessViewDesc descriptor,
 								   gxapi::DescriptorHandle destination) override;
@@ -77,11 +78,11 @@ public:
 								   gxapi::DescriptorHandle destination) override;
 
 	void CopyDescriptors(size_t numSrcDescRanges,
-	                     gxapi::DescriptorHandle* srcRangeStarts,
-	                     size_t numDstDescRanges,
-	                     gxapi::DescriptorHandle* dstRangeStarts,
-	                     uint32_t* rangeCounts,
-	                     gxapi::eDescriptorHeapType descHeapsType) override;
+						 gxapi::DescriptorHandle* srcRangeStarts,
+						 size_t numDstDescRanges,
+						 gxapi::DescriptorHandle* dstRangeStarts,
+						 uint32_t* rangeCounts,
+						 gxapi::eDescriptorHeapType descHeapsType) override;
 
 	void CopyDescriptors(size_t numSrcDescRanges,
 						 gxapi::DescriptorHandle* srcRangeStarts,
@@ -92,9 +93,9 @@ public:
 						 gxapi::eDescriptorHeapType descHeapsType) override;
 
 	void CopyDescriptors(gxapi::DescriptorHandle srcStart,
-	                     gxapi::DescriptorHandle dstStart,
-	                     size_t rangeCount,
-	                     gxapi::eDescriptorHeapType descHeapsType) override;
+						 gxapi::DescriptorHandle dstStart,
+						 size_t rangeCount,
+						 gxapi::eDescriptorHeapType descHeapsType) override;
 
 	// Misc
 	gxapi::IFence* CreateFence(uint64_t initialValue) override;
@@ -113,4 +114,4 @@ protected:
 };
 
 
-} // namespace gxapi_dx12
+} // namespace inl::gxapi_dx12

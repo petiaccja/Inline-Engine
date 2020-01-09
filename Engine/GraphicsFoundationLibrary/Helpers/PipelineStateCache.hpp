@@ -65,10 +65,10 @@ struct PipelineStateTemplate {
 class PipelineStateConfig {
 public:
 	PipelineStateConfig(std::unique_ptr<gxapi::IPipelineState> pso,
-			  Binder binder,
-			  std::vector<BindParameterDesc> materialConstantParams,
-			  std::vector<BindParameterDesc> materialTextureParams,
-			  std::vector<MaterialCbufferElement> materialCbufferElements)
+						Binder binder,
+						std::vector<BindParameterDesc> materialConstantParams,
+						std::vector<BindParameterDesc> materialTextureParams,
+						std::vector<MaterialCbufferElement> materialCbufferElements)
 		: m_pso(std::move(pso)),
 		  m_binder(std::move(binder)),
 		  m_materialConstantParams(std::move(materialConstantParams)),
@@ -118,7 +118,7 @@ public:
 	void Reset(PipelineStateTemplate psoTemplate, std::vector<BindParameterDesc> originalBindParams, std::vector<gxapi::StaticSamplerDesc> staticSamplers = {});
 	const PipelineStateConfig& GetConfig(RenderContext& context, const Mesh& mesh, const Material& material);
 	const PipelineStateTemplate& GetTemplate() const;
-	
+
 private:
 	PipelineStateConfig CreateConfig(RenderContext& context, const Mesh& mesh, const Material& material) const;
 

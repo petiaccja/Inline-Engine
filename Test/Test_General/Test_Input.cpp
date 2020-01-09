@@ -1,7 +1,9 @@
 #include "Test.hpp"
+
+#include <BaseLibrary/Platform/Input.hpp>
+
 #include <csignal>
 #include <iostream>
-#include <BaseLibrary/Platform/Input.hpp>
 
 
 using namespace std;
@@ -24,6 +26,7 @@ public:
 	void OnClick(MouseButtonEvent evt);
 	void OnKey(KeyboardEvent evt);
 	void OnAxis(JoystickMoveEvent evt);
+
 private:
 	static int a;
 };
@@ -83,8 +86,8 @@ int TestInput::Run() {
 
 		inputJoystick->OnJoystickMove += Delegate<void(JoystickMoveEvent)>{ &TestInput::OnAxis, this };
 	}
-	
-	
+
+
 
 	cout << "Press Control-C to quit." << endl;
 	signal(SIGINT, SignalHandler);

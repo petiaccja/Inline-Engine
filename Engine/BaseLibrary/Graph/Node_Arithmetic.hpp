@@ -9,8 +9,7 @@ namespace inl {
 template <class ArithmeticT, class Operator, const char* name, const char* op1desc, const char* op2desc, const char* resdesc>
 class BinaryArithmeticNode
 	: public InputPortConfig<ArithmeticT, ArithmeticT>,
-	public OutputPortConfig < ArithmeticT >
-{
+	  public OutputPortConfig<ArithmeticT> {
 public:
 	BinaryArithmeticNode() {
 		this->template GetInput<0>().AddObserver(this);

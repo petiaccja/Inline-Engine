@@ -1,8 +1,9 @@
 #pragma once
 
-#include <iostream>
-#include "SharedFuture.hpp"
 #include "Fence.hpp"
+#include "SharedFuture.hpp"
+
+#include <iostream>
 
 
 namespace inl::jobs {
@@ -10,8 +11,7 @@ namespace inl::jobs {
 
 namespace impl {
 
-	inline void WaitAnyHelper(std::shared_ptr<Fence> fence) 
-	{}
+	inline void WaitAnyHelper(std::shared_ptr<Fence> fence) {}
 
 	template <class Head, class... Awaitable>
 	void WaitAnyHelper(std::shared_ptr<Fence> fence, Head head, Awaitable&&... awaitables) {
@@ -23,7 +23,7 @@ namespace impl {
 		task.Run();
 		WaitAnyHelper(std::move(fence), std::forward<Awaitable>(awaitables)...);
 	}
-	
+
 
 	inline auto WaitAllHelper() {
 		return std::experimental::suspend_never();
@@ -67,7 +67,6 @@ template <class... Awaitable>
 SharedFuture<void> WaitAll(Awaitable&&... awaitables) {
 	return impl::WaitAllHelper(std::forward<Awaitable>(awaitables)...);
 }
-
 
 
 

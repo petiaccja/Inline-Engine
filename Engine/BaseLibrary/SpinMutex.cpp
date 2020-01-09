@@ -1,9 +1,10 @@
 #include "SpinMutex.hpp"
+
 #include "Exception/Exception.hpp"
 
 #include <cassert>
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 
 
 namespace inl {
@@ -13,9 +14,8 @@ SpinMutex::SpinMutex() {
 	flag = false;
 }
 
-SpinMutex::SpinMutex(SpinMutex&& rhs) noexcept 
-	: ownerId(rhs.ownerId.load()), flag(rhs.flag.load())
-{
+SpinMutex::SpinMutex(SpinMutex&& rhs) noexcept
+	: ownerId(rhs.ownerId.load()), flag(rhs.flag.load()) {
 	rhs.flag.store(false);
 }
 

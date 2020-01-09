@@ -49,7 +49,8 @@ int Cubemap::GetFaceIndex(eAxis facePosition) {
 		case inl::gxeng::Cubemap::NEG_Z:
 			return 5;
 		default:
-			assert(false); return -1;
+			assert(false);
+			return -1;
 	}
 }
 

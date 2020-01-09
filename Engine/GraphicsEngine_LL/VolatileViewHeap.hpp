@@ -2,10 +2,10 @@
 
 //#include "HostDescHeap.hpp"
 #include "../BaseLibrary/Memory/SlabAllocatorEngine.hpp"
-#include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include "../GraphicsApi_LL/IDescriptorHeap.hpp"
+#include "../GraphicsApi_LL/IGraphicsApi.hpp"
 
-namespace inl :: gxeng {
+namespace inl ::gxeng {
 
 
 /// <summary>
@@ -30,4 +30,4 @@ private:
 };
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

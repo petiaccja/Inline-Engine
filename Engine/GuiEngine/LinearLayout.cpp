@@ -274,7 +274,7 @@ void LinearLayout::UpdateLayout() {
 	float unitsPerRel = (measures.sumMinSizeRel + relativeExtraBudget) / measures.sumRelative;
 
 	float primaryOffset = 0.0f;
-	
+
 	for (auto child : m_childrenOrder) {
 		const CellSize& sizing = GetLayoutPosition<const CellSize>(*child);
 

@@ -46,5 +46,5 @@ TEST_CASE("Swap elems", "[GameLogic:ContiguousVector]") {
 	REQUIRE(v.size() == 6);
 	for (size_t i = 0; i < v.size(); ++i) {
 		REQUIRE(v[i] == i);
-	}	
+	}
 }

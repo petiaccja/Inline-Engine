@@ -1,5 +1,7 @@
 #include "ThreadpoolScheduler.hpp"
+
 #include <BaseLibrary/ThreadName.hpp>
+
 #include <sstream>
 
 namespace inl::jobs {
@@ -17,7 +19,7 @@ ThreadpoolScheduler::ThreadpoolScheduler(int threadCount) {
 			SetCurrentThreadName(ss.str().c_str());
 			ThreadFunc();
 		},
-		threadIndex);
+							 threadIndex);
 		++threadIndex;
 	}
 }

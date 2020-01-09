@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cereal/cereal.hpp>
-#include <variant>
 #include <cereal/types/string.hpp>
+#include <variant>
 
 
 namespace inl::game {
@@ -78,7 +78,7 @@ std::enable_if_t<HandleArchive<T>::value, void> CEREAL_LOAD_FUNCTION_NAME(Varian
 }
 
 template <class... ArchiveOptions, class CharT, class Traits, class Alloc>
-void CEREAL_LOAD_FUNCTION_NAME(VariantInputArchive<ArchiveOptions...>& ar,std::basic_string<CharT, Traits, Alloc>& arg) {
+void CEREAL_LOAD_FUNCTION_NAME(VariantInputArchive<ArchiveOptions...>& ar, std::basic_string<CharT, Traits, Alloc>& arg) {
 	std::visit([&arg](auto&& ar) { ar(arg); }, ar);
 }
 

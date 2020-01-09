@@ -1,7 +1,9 @@
 #include "Test.hpp"
+
+#include <BaseLibrary/Platform/Window.hpp>
+
 #include <csignal>
 #include <iostream>
-#include <BaseLibrary/Platform/Window.hpp>
 
 
 using namespace std;
@@ -28,6 +30,7 @@ public:
 		closed = true;
 	}
 	void OnDropped(DragDropEvent evt);
+
 private:
 	static int a;
 	volatile bool closed = false;
@@ -41,14 +44,14 @@ private:
 
 int TestWindow::Run() {
 	try {
-		Window window{ (const char*)u8"Test Window", Vec2u{640, 480}, false, true };
+		Window window{ (const char*)u8"Test Window", Vec2u{ 640, 480 }, false, true };
 		//window.SetQueueMode(eInputQueueMode::QUEUED);
 
-		window.OnMouseButton += Delegate<void(MouseButtonEvent)>{&TestWindow::OnClick, this};
+		window.OnMouseButton += Delegate<void(MouseButtonEvent)>{ &TestWindow::OnClick, this };
 		//window.OnKeyboard += {&TestWindow::OnKey, this};
-		window.OnCharacter += Delegate<void(char32_t)>{&TestWindow::OnChar, this};
-		window.OnClose += Delegate<void()>{&TestWindow::OnClose, this};
-		window.OnDrop += Delegate<void(DragDropEvent)>{&TestWindow::OnDropped, this};
+		window.OnCharacter += Delegate<void(char32_t)>{ &TestWindow::OnChar, this };
+		window.OnClose += Delegate<void()>{ &TestWindow::OnClose, this };
+		window.OnDrop += Delegate<void(DragDropEvent)>{ &TestWindow::OnDropped, this };
 
 		while (!closed) {
 			this_thread::sleep_for(chrono::milliseconds(50));
@@ -73,8 +76,8 @@ void TestWindow::OnClick(MouseButtonEvent evt) {
 		case eMouseButton::EXTRA1: btn = "e1"; break;
 		case eMouseButton::EXTRA2: btn = "e2"; break;
 	}
-	cout << "click: " << evt.x << ", " << evt.y << " " << btn 
-		<< (evt.state == eKeyState::DOWN ? " down" : (evt.state == eKeyState::UP ? " up" : " double")) << endl;
+	cout << "click: " << evt.x << ", " << evt.y << " " << btn
+		 << (evt.state == eKeyState::DOWN ? " down" : (evt.state == eKeyState::UP ? " up" : " double")) << endl;
 }
 
 

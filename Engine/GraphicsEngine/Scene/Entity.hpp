@@ -15,6 +15,7 @@ public:
 
 	void Orphan() const;
 	const EntityCollectionBase* GetCollection() const;
+
 private:
 	mutable EntityCollectionBase* m_collection = nullptr;
 };

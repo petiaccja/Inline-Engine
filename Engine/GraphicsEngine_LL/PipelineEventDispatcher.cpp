@@ -1,8 +1,9 @@
 #include "PipelineEventDispatcher.hpp"
+
 #include <BaseLibrary/ThreadName.hpp>
 
 
-namespace inl:: gxeng {
+namespace inl::gxeng {
 
 
 
@@ -83,7 +84,7 @@ std::future<void> PipelineEventDispatcher::DispatchDeviceFrameBegin(SyncPoint de
 
 	std::future<void> ret = action.signal.get_future();
 
-	std::unique_lock<std::mutex>  lkg(state->m_deviceEventMutex);
+	std::unique_lock<std::mutex> lkg(state->m_deviceEventMutex);
 	state->m_deviceEventActions.push(std::move(action));
 	state->m_deviceCv.notify_all();
 
@@ -97,7 +98,7 @@ std::future<void> PipelineEventDispatcher::DispatchDeviceFrameEnd(SyncPoint devi
 
 	std::future<void> ret = action.signal.get_future();
 
-	std::unique_lock<std::mutex>  lkg(state->m_deviceEventMutex);
+	std::unique_lock<std::mutex> lkg(state->m_deviceEventMutex);
 	state->m_deviceEventActions.push(std::move(action));
 	state->m_deviceCv.notify_all();
 
@@ -124,7 +125,7 @@ void PipelineEventDispatcher::DispatchThread(std::shared_ptr<State> state) {
 		// 0. acquire unique lock
 		std::unique_lock<std::mutex> eventLock(state->m_eventMutex);
 
-		// 1. wait on any of: 
+		// 1. wait on any of:
 		//	- first event (condvar)
 		//	- first device event (SyncPoint - cannot be changed)
 		//	- cancel event (condvar)
@@ -190,11 +191,11 @@ void PipelineEventDispatcher::DeviceSyncThread(std::shared_ptr<State> state) {
 
 
 void PipelineEventDispatcher::PushEventAction(State* state, EventAction eventAction) {
-	std::unique_lock<std::mutex>  lkg(state->m_eventMutex);
+	std::unique_lock<std::mutex> lkg(state->m_eventMutex);
 	state->m_eventActions.push(std::move(eventAction));
 	state->m_eventCv.notify_all();
 }
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

@@ -13,4 +13,4 @@ public:
 	}
 };
 
-}
+} // namespace inl

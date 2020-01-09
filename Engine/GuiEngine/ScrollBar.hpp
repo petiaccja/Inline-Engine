@@ -2,9 +2,10 @@
 
 
 
-#include <GraphicsEngine/Scene/ITextEntity.hpp>
-#include <BaseLibrary/Event.hpp>
 #include "Sprite.hpp"
+
+#include <BaseLibrary/Event.hpp>
+#include <GraphicsEngine/Scene/ITextEntity.hpp>
 
 
 namespace inl::gui {
@@ -30,7 +31,7 @@ public:
 	Vec2 GetPosition() const override;
 	float SetDepth(float depth) override;
 	float GetDepth() const override;
-	
+
 	void Update(float elapsed = 0.0f) override;
 
 	// ScrollBar specific properties
@@ -45,7 +46,7 @@ public:
 	float GetVisiblePosition() const;
 
 	Event<float> OnChanged;
-	
+
 private:
 	std::pair<float, float> GetBudgets() const;
 	void UpdateHandlePosition();

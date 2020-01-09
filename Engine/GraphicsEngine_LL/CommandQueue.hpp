@@ -1,11 +1,11 @@
 #pragma once
 
 
-#include "../GraphicsApi_LL/IGraphicsApi.hpp"
+#include "SyncPoint.hpp"
+
 #include "../GraphicsApi_LL/ICommandQueue.hpp"
 #include "../GraphicsApi_LL/IFence.hpp"
-
-#include "SyncPoint.hpp"
+#include "../GraphicsApi_LL/IGraphicsApi.hpp"
 
 
 namespace inl::gxeng {
@@ -15,16 +15,14 @@ class CommandQueue {
 public:
 	// Consturctors
 	CommandQueue(gxapi::IGraphicsApi* graphicsApi, gxapi::eCommandListType type, gxapi::eCommandQueuePriority priority = gxapi::eCommandQueuePriority::NORMAL)
-		: m_commandQueue(graphicsApi->CreateCommandQueue(gxapi::CommandQueueDesc{type, priority})), m_progressFence(graphicsApi->CreateFence(0))
-	{}
+		: m_commandQueue(graphicsApi->CreateCommandQueue(gxapi::CommandQueueDesc{ type, priority })), m_progressFence(graphicsApi->CreateFence(0)) {}
 	CommandQueue(gxapi::ICommandQueue* queue, gxapi::IFence* fence)
-		: m_commandQueue(queue), m_progressFence(fence)
-	{}
+		: m_commandQueue(queue), m_progressFence(fence) {}
 	~CommandQueue() {
 		SyncPoint finish = Signal();
 		finish.Wait();
 	}
-	
+
 	// General
 	gxapi::ICommandQueue* GetUnderlyingQueue() {
 		return m_commandQueue.get();
@@ -55,6 +53,7 @@ public:
 	gxapi::CommandQueueDesc GetDesc() const {
 		return m_commandQueue->GetDesc();
 	}
+
 private:
 	std::unique_ptr<gxapi::ICommandQueue> m_commandQueue;
 	std::shared_ptr<gxapi::IFence> m_progressFence;
@@ -62,4 +61,4 @@ private:
 };
 
 
-}
+} // namespace inl::gxeng

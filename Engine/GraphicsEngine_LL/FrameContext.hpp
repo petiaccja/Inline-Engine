@@ -14,49 +14,49 @@
 #include <set>
 
 
-namespace inl:: gxeng {
+namespace inl::gxeng {
 
 
-	class CommandAllocatorPool;
-	class CommandListPool;
-	class ScratchSpacePool;
-	class Scene;
-	class BasicCamera;
-	class PerspectiveCamera;
-	class RenderTargetView2D;
-	class ShaderManager;
-	class MemoryManager;
-	class ResourceResidencyQueue;
-	class CbvSrvUavHeap;
-	class RTVHeap;
-	class DSVHeap;
-	class CommandQueue;
+class CommandAllocatorPool;
+class CommandListPool;
+class ScratchSpacePool;
+class Scene;
+class BasicCamera;
+class PerspectiveCamera;
+class RenderTargetView2D;
+class ShaderManager;
+class MemoryManager;
+class ResourceResidencyQueue;
+class CbvSrvUavHeap;
+class RTVHeap;
+class DSVHeap;
+class CommandQueue;
 
-	struct FrameContext {
-		std::chrono::nanoseconds frameTime;
-		std::chrono::nanoseconds absoluteTime;
+struct FrameContext {
+	std::chrono::nanoseconds frameTime;
+	std::chrono::nanoseconds absoluteTime;
 
-		gxapi::IGraphicsApi* gxApi = nullptr;
-		CommandAllocatorPool* commandAllocatorPool = nullptr;
-		CommandListPool* commandListPool = nullptr;
-		ScratchSpacePool* scratchSpacePool = nullptr;
-		MemoryManager* memoryManager = nullptr;
-		CbvSrvUavHeap* textureSpace = nullptr;
-		RTVHeap* rtvHeap = nullptr;
-		DSVHeap* dsvHeap = nullptr;
-		ShaderManager* shaderManager = nullptr;
+	gxapi::IGraphicsApi* gxApi = nullptr;
+	CommandAllocatorPool* commandAllocatorPool = nullptr;
+	CommandListPool* commandListPool = nullptr;
+	ScratchSpacePool* scratchSpacePool = nullptr;
+	MemoryManager* memoryManager = nullptr;
+	CbvSrvUavHeap* textureSpace = nullptr;
+	RTVHeap* rtvHeap = nullptr;
+	DSVHeap* dsvHeap = nullptr;
+	ShaderManager* shaderManager = nullptr;
 
-		CommandQueue* commandQueue = nullptr;
-		Texture2D backBuffer;
-		const std::set<Scene*>* scenes = nullptr;
-		const std::set<BasicCamera*>* cameras = nullptr;
-		const std::vector<UploadManager::UploadDescription>* uploadRequests = nullptr;
+	CommandQueue* commandQueue = nullptr;
+	Texture2D backBuffer;
+	const std::set<Scene*>* scenes = nullptr;
+	const std::set<BasicCamera*>* cameras = nullptr;
+	const std::vector<UploadManager::UploadDescription>* uploadRequests = nullptr;
 
-		ResourceResidencyQueue* residencyQueue = nullptr;
+	ResourceResidencyQueue* residencyQueue = nullptr;
 
-		uint64_t frame;
-	};
+	uint64_t frame;
+};
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

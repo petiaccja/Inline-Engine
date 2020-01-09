@@ -29,6 +29,7 @@ public:
 		friend class LinearLayout;
 		CellSize(std::list<Control*>* orderList, std::list<Control*>::iterator orderIter)
 			: orderList(orderList), orderIter(orderIter) {}
+
 	public:
 		CellSize& SetWidth(float width);
 		CellSize& SetWeight(float weight);

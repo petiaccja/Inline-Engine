@@ -4,9 +4,10 @@
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#include <wrl.h>
-#include <d3d12.h>
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
+
+#include <d3d12.h>
+#include <wrl.h>
 
 namespace inl::gxapi_dx12 {
 
@@ -21,4 +22,4 @@ private:
 	ComPtr<ID3D12PipelineState> m_native;
 };
 
-} // namespace gxapi_dx12
+} // namespace inl::gxapi_dx12

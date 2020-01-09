@@ -18,4 +18,4 @@ public:
 };
 
 
-} // namespace gxapi
+} // namespace inl::gxapi

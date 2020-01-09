@@ -1,7 +1,7 @@
 #pragma once
 
-#include "LevelArchive.hpp"
 #include "ComponentClassFactory.hpp"
+#include "LevelArchive.hpp"
 #include "VariantArchive.hpp"
 
 #include <BaseLibrary/Exception/Exception.hpp>
@@ -38,13 +38,13 @@ public:
 	template <class ComponentT>
 	void Create(Entity& entity) const;
 	void Create(Entity& entity, std::string_view name);
-	
+
 	template <class ComponentT>
 	void Load(Entity& entity, LevelInputArchive& archive) const;
 	void Load(Entity& entity, std::string_view name, LevelInputArchive& archive) const;
 
 	void Save(const Entity& entity, size_t componentIndex, LevelOutputArchive& archive) const;
-	
+
 	std::string GetClassName(std::type_index type) const;
 
 	template <class ComponentT, class FactoryT = ComponentClassFactory<ComponentT>>
@@ -52,6 +52,7 @@ public:
 
 private:
 	void Copy(const ComponentFactory& rhs);
+
 private:
 	std::unordered_map<std::type_index, std::shared_ptr<ComponentClassFactoryBase>> m_factoriesByType;
 	std::unordered_map<std::string, std::shared_ptr<ComponentClassFactoryBase>> m_factoriesByName;

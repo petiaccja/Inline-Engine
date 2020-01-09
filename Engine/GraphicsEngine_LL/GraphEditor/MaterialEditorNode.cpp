@@ -5,8 +5,7 @@ namespace inl::gxeng {
 
 
 MaterialEditorNode::MaterialEditorNode(std::unique_ptr<MaterialShader> realNode)
-	: m_realNode(std::move(realNode)), m_metaData{ Vec2i{ 0,0 } }
-{}
+	: m_realNode(std::move(realNode)), m_metaData{ Vec2i{ 0, 0 } } {}
 
 std::string MaterialEditorNode::GetName() const {
 	return m_realNode->GetDisplayName();

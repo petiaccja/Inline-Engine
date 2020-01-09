@@ -1,6 +1,8 @@
 #include "Test.hpp"
-#include <iostream>
+
 #include "GraphicsEngine_LL/Binder.hpp"
+
+#include <iostream>
 
 using std::cout;
 using std::endl;
@@ -21,6 +23,7 @@ public:
 		return "Binder";
 	}
 	virtual int Run() override;
+
 private:
 	static int a;
 };

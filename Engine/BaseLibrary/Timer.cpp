@@ -58,4 +58,4 @@ double Timer::GetSpeed() const {
 }
 
 
-} // namespace exc
+} // namespace inl

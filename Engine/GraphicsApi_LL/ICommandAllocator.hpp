@@ -12,8 +12,7 @@ public:
 
 	virtual void Reset() = 0;
 	virtual eCommandListType GetType() const = 0;
-
 };
 
 
-} // namespace gxapi
+} // namespace inl::gxapi

@@ -10,4 +10,4 @@ struct SchedulablePromiseTag {
 };
 
 
-}
+} // namespace inl::jobs

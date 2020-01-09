@@ -26,7 +26,7 @@ ScrollFrameV::ScrollFrameV() {
 	};
 
 	OnMouseWheel += [this](Control*, Vec2, float amount) {
-		m_scrollBar.SetVisiblePosition(m_scrollBar.GetVisiblePosition() + -60.f*amount);
+		m_scrollBar.SetVisiblePosition(m_scrollBar.GetVisiblePosition() + -60.f * amount);
 	};
 }
 

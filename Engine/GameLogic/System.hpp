@@ -91,7 +91,7 @@ public:
 	const ComponentScheme& Scheme() const override final;
 
 	using System::Run;
-	
+
 	void Run(float elapsed, CreateEntity createEntity, DeleteEntity deleteEntity) override final;
 	void Run(float elapsed, EntitySchemeSet& entitySet, CreateEntity createEntity, DeleteEntity deleteEntity) override final;
 

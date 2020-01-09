@@ -1,10 +1,10 @@
 #include "ShadowFilter.hpp"
 
 #include "../../Debug/DebugDrawManager.hpp"
-#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
 #include <GraphicsEngine_LL/GraphicsCommandList.hpp>
+#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 #include <GraphicsEngine_LL/PerspectiveCamera.hpp>
 
 namespace inl::gxeng::nodes {
@@ -253,8 +253,8 @@ void ShadowFilter::Setup(SetupContext& context) {
 		m_blurShader = context.CreateShader("ShadowBlur", shaderParts, "");
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
-			gxapi::InputElementDesc{"POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0},
-			gxapi::InputElementDesc{"TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12}
+			gxapi::InputElementDesc{ "POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0 },
+			gxapi::InputElementDesc{ "TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12 }
 		};
 
 		{ //minfilter pso
@@ -264,7 +264,7 @@ void ShadowFilter::Setup(SetupContext& context) {
 			psoDesc.rootSignature = m_binder.GetRootSignature();
 			psoDesc.vs = m_minfilterShader.vs;
 			psoDesc.ps = m_minfilterShader.ps;
-			psoDesc.rasterization = gxapi::RasterizerState{gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL};
+			psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 			psoDesc.depthStencilState.enableDepthTest = false;
@@ -285,7 +285,7 @@ void ShadowFilter::Setup(SetupContext& context) {
 			psoDesc.rootSignature = m_binder.GetRootSignature();
 			psoDesc.vs = m_penumbraShader.vs;
 			psoDesc.ps = m_penumbraShader.ps;
-			psoDesc.rasterization = gxapi::RasterizerState{gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL};
+			psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 			psoDesc.depthStencilState.enableDepthTest = false;
@@ -307,7 +307,7 @@ void ShadowFilter::Setup(SetupContext& context) {
 			psoDesc.rootSignature = m_binder.GetRootSignature();
 			psoDesc.vs = m_blurShader.vs;
 			psoDesc.ps = m_blurShader.ps;
-			psoDesc.rasterization = gxapi::RasterizerState{gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL};
+			psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 			psoDesc.depthStencilState.enableDepthTest = false;
@@ -352,11 +352,10 @@ void ShadowFilter::Execute(RenderContext& context) {
 	uniformsCBData.farPlane = m_camera->GetFarPlane();
 
 	//far ndc corners
-	Vec4 ndcCorners[] =
-		{
-			Vec4(-1.f, -1.f, 1.f, 1.f),
-			Vec4(1.f, 1.f, 1.f, 1.f),
-		};
+	Vec4 ndcCorners[] = {
+		Vec4(-1.f, -1.f, 1.f, 1.f),
+		Vec4(1.f, 1.f, 1.f, 1.f),
+	};
 
 	Mat44 p = m_camera->GetProjectionMatrix();
 	Mat44 invP = p.Inverse();

@@ -1,11 +1,12 @@
 
 #include "MemoryManager.hpp"
+
 #include "MemoryObject.hpp"
 
+#include <BaseLibrary/Exception/Exception.hpp>
+#include <GraphicsApi_LL/Common.hpp>
 #include <GraphicsApi_LL/Exception.hpp>
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
-#include <GraphicsApi_LL/Common.hpp>
-#include <BaseLibrary/Exception/Exception.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -14,12 +15,10 @@
 namespace inl::gxeng {
 
 
-MemoryManager::MemoryManager(gxapi::IGraphicsApi* graphicsApi) :
-	m_graphicsApi(graphicsApi),
-	m_criticalHeap(graphicsApi),
-	m_uploadHeap(graphicsApi),
-	m_constBufferHeap(graphicsApi)
-{}
+MemoryManager::MemoryManager(gxapi::IGraphicsApi* graphicsApi) : m_graphicsApi(graphicsApi),
+																 m_criticalHeap(graphicsApi),
+																 m_uploadHeap(graphicsApi),
+																 m_constBufferHeap(graphicsApi) {}
 
 
 void MemoryManager::LockResident(const std::vector<MemoryObject>& resources) {
@@ -39,7 +38,7 @@ UploadManager& MemoryManager::GetUploadManager() {
 	return m_uploadHeap;
 }
 
-ConstantBufferHeap & MemoryManager::GetConstBufferHeap() {
+ConstantBufferHeap& MemoryManager::GetConstBufferHeap() {
 	return m_constBufferHeap;
 }
 
@@ -49,7 +48,7 @@ VolatileConstBuffer MemoryManager::CreateVolatileConstBuffer(const void* data, u
 }
 
 
-PersistentConstBuffer MemoryManager::CreatePersistentConstBuffer(const void * data, uint32_t size) {
+PersistentConstBuffer MemoryManager::CreatePersistentConstBuffer(const void* data, uint32_t size) {
 	return m_constBufferHeap.CreatePersistentConstBuffer(data, size);
 }
 
@@ -92,4 +91,4 @@ BufferHeap& MemoryManager::GetHeap(eResourceHeap heap) {
 }
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

@@ -1,9 +1,9 @@
 #include "CommandListPool.hpp"
 
+#include <BaseLibrary/SmartPtrCast.hpp>
+
 #include <algorithm>
 #include <cassert>
-
-#include <BaseLibrary/SmartPtrCast.hpp>
 
 
 
@@ -11,23 +11,21 @@ namespace inl::gxeng {
 
 
 CommandListPool::CommandListPool(gxapi::IGraphicsApi* gxApi)
-	: m_gxPool(gxApi), m_cuPool(gxApi), m_cpPool(gxApi)
-{}
+	: m_gxPool(gxApi), m_cuPool(gxApi), m_cpPool(gxApi) {}
 
 
 auto CommandListPool::RequestList(gxapi::eCommandListType type, gxapi::ICommandAllocator* allocator) -> CmdListPtr {
-	switch (type)
-	{
-	case gxapi::eCommandListType::COPY:
-		return m_cpPool.RequestList(allocator);
-	case gxapi::eCommandListType::COMPUTE:
-		return m_cuPool.RequestList(allocator);
-	case gxapi::eCommandListType::GRAPHICS:
-		return m_gxPool.RequestList(allocator);
-	case gxapi::eCommandListType::BUNDLE:
-		return nullptr;
-	default:
-		return nullptr;
+	switch (type) {
+		case gxapi::eCommandListType::COPY:
+			return m_cpPool.RequestList(allocator);
+		case gxapi::eCommandListType::COMPUTE:
+			return m_cuPool.RequestList(allocator);
+		case gxapi::eCommandListType::GRAPHICS:
+			return m_gxPool.RequestList(allocator);
+		case gxapi::eCommandListType::BUNDLE:
+			return nullptr;
+		default:
+			return nullptr;
 	}
 }
 
@@ -46,16 +44,15 @@ void CommandListPool::RecycleList(gxapi::ICommandList* list) {
 	if (auto x = dynamic_cast<gxapi::IComputeCommandList*>(list)) {
 		x->ResetState(nullptr);
 	}
-	switch (list->GetType())
-	{
-	case gxapi::eCommandListType::COPY:
-		m_cpPool.RecycleList(list);
-	case gxapi::eCommandListType::COMPUTE:
-		m_cuPool.RecycleList(list);
-	case gxapi::eCommandListType::GRAPHICS:
-		m_gxPool.RecycleList(list);
-	default:
-		assert(false); // hülye vagy bazmeg
+	switch (list->GetType()) {
+		case gxapi::eCommandListType::COPY:
+			m_cpPool.RecycleList(list);
+		case gxapi::eCommandListType::COMPUTE:
+			m_cuPool.RecycleList(list);
+		case gxapi::eCommandListType::GRAPHICS:
+			m_gxPool.RecycleList(list);
+		default:
+			assert(false); // hülye vagy bazmeg
 	}
 }
 

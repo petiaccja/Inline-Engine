@@ -6,8 +6,7 @@
 * Output: blurred HDR color texture
 */
 
-struct Uniforms
-{
+struct Uniforms {
 	float maxBlurDiameter;
 	float tileSize;
 };
@@ -20,15 +19,13 @@ Texture2D neighborhoodMaxTex : register(t2); //
 SamplerState samp0 : register(s0);
 SamplerState samp1 : register(s1);
 
-struct PS_Input
-{
+struct PS_Input {
 	float4 position : SV_POSITION;
 	float2 texCoord : TEXCOORD0;
 };
 
 //warning: result [0...far]
-float LinearizeDepth(float depth, float near, float far)
-{
+float LinearizeDepth(float depth, float near, float far) {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 	float zndc = depth;
@@ -41,11 +38,10 @@ float LinearizeDepth(float depth, float near, float far)
 };
 
 //warning: result [0...1]
-float ToDepth(float depth, float near, float far)
-{
+float ToDepth(float depth, float near, float far) {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
-	
+
 	float zndc = B / depth + A;
 	return zndc;
 }
@@ -54,32 +50,27 @@ float Rand(float2 co) {
 	return frac(sin(dot(co.xy, float2(12.9898, 78.233))) * 43758.5453);
 }
 
-float BokehShape(float2 center, float2 uv, float radius)
-{
+float BokehShape(float2 center, float2 uv, float radius) {
 	float2 pos = center;
 	float radiusSqr = radius * radius;
 
 	float2 diff = pos - uv;
 	float diffSqr = dot(diff, diff);
 
-	if (diffSqr <= radiusSqr)
-	{
+	if (diffSqr <= radiusSqr) {
 		float linearValue = (radiusSqr - diffSqr) / radiusSqr;
 		float cosValue = cos(linearValue);
 		float cosSqr = cosValue * cosValue;
 		float cos4 = cosSqr * cosSqr;
-		if ((1.0 - linearValue)>0.8)
-		{
+		if ((1.0 - linearValue) > 0.8) {
 			float invLinear = linearValue / 0.2;
 			return invLinear * invLinear;
 		}
-		else
-		{
+		else {
 			return lerp(0.35, 1.0, cos4 / 0.8);
 		}
 	}
-	else
-	{
+	else {
 		return 0.0;
 	}
 }
@@ -110,21 +101,18 @@ gl_FragColor = vec4(accum.rgb / clamp(accum.a, 1e-4, 5e4), r);
 ...}", accumTexture, revealageTexture);
 */
 
-float Weight(float2 uv, float alpha)
-{
+float Weight(float2 uv, float alpha) {
 	float subjectDistance = ToDepth(0.3, 0.1, 100); //0.667
 	float depth = depthTex.Sample(samp0, uv).x;
 	float toSubjectDist = abs(depthTex.Sample(samp0, uv).x - subjectDistance);
 
-	if (depth > subjectDistance)
-	{
+	if (depth > subjectDistance) {
 		float dist = toSubjectDist;
 		float oneMinusDepth = 1 - dist;
 		float oneMinusDepth3 = oneMinusDepth * oneMinusDepth * oneMinusDepth;
 		return alpha * max(0.01, 200 * oneMinusDepth3);
 	}
-	else
-	{
+	else {
 		float dist = depth;
 		float oneMinusDepth = 1 - dist;
 		float oneMinusDepth3 = oneMinusDepth * oneMinusDepth * oneMinusDepth;
@@ -132,17 +120,15 @@ float Weight(float2 uv, float alpha)
 	}
 }
 
-float4 CircleFilter(float2 uv, float dist, float2 resolution, const int taps, inout float4 result, inout float revealage)
-{
+float4 CircleFilter(float2 uv, float dist, float2 resolution, const int taps, inout float4 result, inout float revealage) {
 	const float pi = 3.14159265;
 	float ftaps = 1.0 / float(taps);
 	float2 pixelSize = 1.0 / resolution;
-	
+
 	//result = float4(0,0,0,0);
 	//revealage = 1;
-	
-	for (int c = 0; c < taps; ++c)
-	{
+
+	for (int c = 0; c < taps; ++c) {
 		float xx = (cos(2.0 * pi * float(c) * ftaps + 0.464)) * dist;
 		float yy = (sin(2.0 * pi * float(c) * ftaps + 0.464)) * dist;
 
@@ -154,18 +140,16 @@ float4 CircleFilter(float2 uv, float dist, float2 resolution, const int taps, in
 
 		//float bokeh = bokehShape(uv*resolution + float2(xx, yy), uv*resolution, tapCoc * 0.5);
 
-		if (tapCoc > 15)
-		{
+		if (tapCoc > 15) {
 			//data.xyz *= bokeh;
 		}
-		
-		if (tapCoc * tapCoc * 0.25 > tapDistSqr)
-		{
-			float alpha = (4 * pi) / (tapCoc*tapCoc*pi*0.25);
+
+		if (tapCoc * tapCoc * 0.25 > tapDistSqr) {
+			float alpha = (4 * pi) / (tapCoc * tapCoc * pi * 0.25);
 			//float alpha = (pi) / (tapCoc*tapCoc*pi*0.25);
 
 			result += float4(data.xyz * alpha, alpha) * min(Weight(sampleUV, alpha), 1.0);
-			
+
 			if (revealage > 0.001) //float underflow fix
 			{
 				revealage *= (1.0 - alpha);
@@ -175,29 +159,27 @@ float4 CircleFilter(float2 uv, float dist, float2 resolution, const int taps, in
 	return result;
 }
 
-float4 FilterFunc(float2 uv, float2 resolution, float4 centerTap, float coc, int rings)
-{
+float4 FilterFunc(float2 uv, float2 resolution, float4 centerTap, float coc, int rings) {
 	const float pi = 3.14159265;
 
 	float dist = coc * 0.5;
 
 	float centerCoc = max(centerTap.w, 1.0);
-	float centerAlpha = (4 * pi) / (centerCoc*centerCoc*pi*0.25);
+	float centerAlpha = (4 * pi) / (centerCoc * centerCoc * pi * 0.25);
 	//float center_alpha = (pi) / (center_coc*center_coc*pi*0.25);
 
 	float4 result = float4(centerTap.xyz * centerAlpha, centerAlpha) * min(Weight(uv, centerAlpha), 1.0);
 	float revealage = (1 - centerAlpha);
 
-	for (int d = 1; d <= rings; ++d)
-	{
+	for (int d = 1; d <= rings; ++d) {
 		CircleFilter(uv, float(d) / float(rings) * dist, resolution, 8 * d, result, revealage);
 	}
 
 	return float4((result.rgb / clamp(result.a, 1e-4, 5e4)) * saturate(1.0 - revealage), 1);
 }
 
-PS_Input VSMain(uint vertexId : SV_VertexID)
-{
+PS_Input VSMain(uint vertexId
+				: SV_VertexID) {
 	// Triangle strip based on vertex id
 	// 3-----2
 	// |   / |
@@ -207,20 +189,19 @@ PS_Input VSMain(uint vertexId : SV_VertexID)
 	// 1: (0, 0)
 	// 2: (1, 1)
 	// 3: (0, 1)
-    PS_Input output;
+	PS_Input output;
 
-    output.texCoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
-    output.texCoord.y = vertexId >> 1; // 1 if bit1 is 1.
+	output.texCoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
+	output.texCoord.y = vertexId >> 1; // 1 if bit1 is 1.
 
-    float2 posL = output.texCoord.xy * 2.0f - float2(1, 1);
-    output.position = float4(posL, 0.5f, 1.0f);
-    output.texCoord.y = 1.f - output.texCoord.y;
+	float2 posL = output.texCoord.xy * 2.0f - float2(1, 1);
+	output.position = float4(posL, 0.5f, 1.0f);
+	output.texCoord.y = 1.f - output.texCoord.y;
 
-    return output;
+	return output;
 }
 
-float4 PSMain(PS_Input input) : SV_TARGET
-{
+float4 PSMain(PS_Input input) : SV_TARGET {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 
@@ -229,18 +210,18 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float currentDepth = LinearizeDepth(depthTex.Sample(samp0, input.texCoord), 0.1, 100.0);
 	return currentColor;
 
-	float tileDistX = float((currPixelPos.x % (int)uniforms.tileSize - (int)uniforms.tileSize / 2)) / (uniforms.tileSize*0.5);
-	float tileDistY = float((currPixelPos.y % (int)uniforms.tileSize - (int)uniforms.tileSize / 2)) / (uniforms.tileSize*0.5);
+	float tileDistX = float((currPixelPos.x % (int)uniforms.tileSize - (int)uniforms.tileSize / 2)) / (uniforms.tileSize * 0.5);
+	float tileDistY = float((currPixelPos.y % (int)uniforms.tileSize - (int)uniforms.tileSize / 2)) / (uniforms.tileSize * 0.5);
 
 	int2 offset = int2(sign(tileDistX) * float(Rand(input.texCoord) < (abs(tileDistX) * 0.5)), sign(tileDistY) * float(Rand(input.texCoord + 1) < (abs(tileDistY) * 0.5)));
-	float2 tileData = neighborhoodMaxTex.Load(clamp(int3(currPixelPos/(int)uniforms.tileSize + offset, 0), int3(0,0,0), int3(inputTexSize.xy / (int)uniforms.tileSize - 1, 0))).xy;
+	float2 tileData = neighborhoodMaxTex.Load(clamp(int3(currPixelPos / (int)uniforms.tileSize + offset, 0), int3(0, 0, 0), int3(inputTexSize.xy / (int)uniforms.tileSize - 1, 0))).xy;
 	//float2 tileData = neighborhoodMaxTex.Sample(samp1, input.texCoord + float2(rand(input.texCoord)*2-1, rand(input.texCoord*2)*2-1)*0.05);
 	//float2 tileData = neighborhoodMaxTex.Sample(samp1, input.texCoord);
 
 	float tileMaxCoc = tileData.x;
 
 	float4 result = float4(0, 0, 0, 0);
-	
+
 	result = FilterFunc(input.texCoord, float2(inputTexSize.xy), currentColor, tileMaxCoc, 7);
 
 	/*if (tileMaxCoc >= 29.0)

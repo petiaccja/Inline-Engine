@@ -8,7 +8,7 @@ namespace inl::gui {
 
 
 struct ControlStyle {
-	static ControlStyle Dark(ColorF accent)	{
+	static ControlStyle Dark(ColorF accent) {
 		ControlStyle style;
 		style.background = { 0.16f, 0.16f, 0.16f, 1 };
 		style.foreground = { 0.24f, 0.24f, 0.24f, 1 };

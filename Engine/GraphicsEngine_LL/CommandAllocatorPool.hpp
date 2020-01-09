@@ -4,11 +4,11 @@
 #include <GraphicsApi_LL/ICommandAllocator.hpp>
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
 
-#include <vector>
-#include <mutex>
 #include <algorithm>
-#include <map>
 #include <cassert>
+#include <map>
+#include <mutex>
+#include <vector>
 
 
 namespace inl::gxeng {
@@ -30,10 +30,12 @@ namespace impl {
 				assert(m_container != nullptr);
 				m_container->RecycleAllocator(object);
 			}
+
 		private:
 			CommandAllocatorPoolBase* m_container;
 		};
 		using UniquePtr = std::unique_ptr<gxapi::ICommandAllocator, Deleter>;
+
 	public:
 		virtual ~CommandAllocatorPoolBase() {}
 		virtual UniquePtr RequestAllocator() = 0;
@@ -72,14 +74,12 @@ namespace impl {
 
 	template <gxapi::eCommandListType TYPE>
 	CommandAllocatorPool<TYPE>::CommandAllocatorPool(gxapi::IGraphicsApi* gxApi, size_t initialSize)
-		: m_pool(initialSize), m_allocator(initialSize), m_gxApi(gxApi)
-	{}
+		: m_pool(initialSize), m_allocator(initialSize), m_gxApi(gxApi) {}
 
 
 	template <gxapi::eCommandListType TYPE>
 	CommandAllocatorPool<TYPE>::CommandAllocatorPool(CommandAllocatorPool&& rhs)
-		: m_pool(std::move(rhs.m_pool)), m_allocator(std::move(rhs.m_allocator)), m_gxApi(rhs.m_gxApi)
-	{}
+		: m_pool(std::move(rhs.m_pool)), m_allocator(std::move(rhs.m_allocator)), m_gxApi(rhs.m_gxApi) {}
 
 
 	template <gxapi::eCommandListType TYPE>
@@ -110,13 +110,13 @@ namespace impl {
 		}
 
 		if (m_pool[index] != nullptr) {
-			return UniquePtr{ m_pool[index].get(), Deleter{this} };
+			return UniquePtr{ m_pool[index].get(), Deleter{ this } };
 		}
 		else {
 			std::unique_ptr<gxapi::ICommandAllocator> ptr(m_gxApi->CreateCommandAllocator(TYPE));
 			m_addressToIndex[ptr.get()] = index;
 			m_pool[index] = std::move(ptr);
-			return UniquePtr{ m_pool[index].get(), Deleter{this} };
+			return UniquePtr{ m_pool[index].get(), Deleter{ this } };
 		}
 	}
 
@@ -168,4 +168,4 @@ private:
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

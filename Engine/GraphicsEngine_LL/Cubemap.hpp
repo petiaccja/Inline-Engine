@@ -1,8 +1,8 @@
 #pragma once
 
-#include <memory>
-
 #include "ImageBase.hpp"
+
+#include <memory>
 
 
 namespace inl::gxeng {

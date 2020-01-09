@@ -80,8 +80,8 @@ private:
 	void SetResultantTransform();
 
 private:
-	Vec2 m_position = {0,0};
-	Vec2 m_size = {1,1};
+	Vec2 m_position = { 0, 0 };
+	Vec2 m_size = { 1, 1 };
 	float m_rotation = 0;
 	Mat33 m_postTransform = Mat33::Identity();
 	std::unique_ptr<gxeng::IOverlayEntity> m_entity;

@@ -1,7 +1,7 @@
+#include "MaterialEditorNode.hpp"
+
 #include <BaseLibrary/GraphEditor/IEditorGraph.hpp>
 #include <BaseLibrary/Graph_All.hpp>
-
-#include "MaterialEditorNode.hpp"
 
 
 namespace inl::gxeng {

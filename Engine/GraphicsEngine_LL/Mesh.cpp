@@ -1,11 +1,12 @@
 #include "Mesh.hpp"
 //#include "VertexElementCompressor.hpp"
 #include "VertexCompressor.hpp"
+
 #include <BaseLibrary/ArrayView.hpp>
 #include <BaseLibrary/HashCombine.hpp>
 
 
-namespace inl :: gxeng {
+namespace inl ::gxeng {
 
 
 
@@ -83,8 +84,7 @@ bool Mesh::Layout::EqualElements(const Layout& rhs) const {
 	for (size_t i = 0; i < lhsElements.size(); ++i) {
 		if (lhsElements[i].semantic != rhsElements[i].semantic
 			|| lhsElements[i].index != rhsElements[i].index
-			|| lhsElements[i].offset != rhsElements[i].offset)
-		{
+			|| lhsElements[i].offset != rhsElements[i].offset) {
 			return false;
 		}
 	}
@@ -106,8 +106,7 @@ bool Mesh::Layout::EqualLayout(const Layout& rhs) const {
 	for (size_t i = 0; i < lhsElements.size(); ++i) {
 		if (lhsElements[i].semantic != rhsElements[i].semantic
 			|| lhsElements[i].index != rhsElements[i].index
-			|| lhsElements[i].offset != rhsElements[i].offset)
-		{
+			|| lhsElements[i].offset != rhsElements[i].offset) {
 			return false;
 		}
 	}
@@ -137,7 +136,7 @@ void Mesh::Layout::Clear() {
 	m_elementId = m_layoutId = UniqueId{};
 }
 
-Mesh::Layout::Layout(std::vector<std::vector<Element>> layout): m_layout(std::move(layout)) {
+Mesh::Layout::Layout(std::vector<std::vector<Element>> layout) : m_layout(std::move(layout)) {
 	CalculateHashes(m_layout, m_elementHash, m_layoutHash);
 	std::lock_guard lkg(idGeneratorMtx);
 	m_elementId = elementIdGenerator(*this);
@@ -242,4 +241,4 @@ std::mutex Mesh::Layout::idGeneratorMtx;
 
 
 
-} // namespace gxe
+} // namespace inl::gxeng

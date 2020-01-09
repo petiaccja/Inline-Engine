@@ -178,8 +178,7 @@ struct KeyboardEvent {
 	int repcount = 0;
 };
 
-enum class eResizeMode
-{
+enum class eResizeMode {
 	RESTORED,
 	MINIMIZED,
 	MAXIMIZED,
@@ -254,7 +253,6 @@ struct InputEvent {
 		JoystickMoveEvent joystickMove;
 	};
 };
-
 
 
 

@@ -1,21 +1,22 @@
 #pragma once
 
 
-#include "../BaseLibrary/Graph/Node.hpp"
 #include "GraphicsPortConverters.hpp"
 #include "NodeContext.hpp"
 
+#include "../BaseLibrary/Graph/Node.hpp"
 
-#ifdef _MSC_VER // disable lemon warnings 
-#pragma warning(push) 
-#pragma warning(disable: 4267) 
-#endif 
 
-#include <lemon/list_graph.h> 
+#ifdef _MSC_VER // disable lemon warnings
+#pragma warning(push)
+#pragma warning(disable : 4267)
+#endif
 
-#ifdef _MSC_VER 
-#pragma warning(pop) 
-#endif 
+#include <lemon/list_graph.h>
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 
 
@@ -30,7 +31,7 @@ class RenderContext;
 
 
 /// <summary>
-/// A graphics task is responsible for both CPU-side and GPU-side data processing in the 
+/// A graphics task is responsible for both CPU-side and GPU-side data processing in the
 /// node-based pipeline graph.
 /// </summary>
 /// <remarks>
@@ -41,8 +42,8 @@ class RenderContext;
 /// </para>
 /// <para> Rendering the frame is done in two phases.
 ///	The first phase (<see cref="GraphicsTask::Setup"/>) allows the node to create the resources
-/// and resource view to render the current frame. By this time, all the node input ports should be 
-/// considered defined. Resource views are tied to the graphics task that created them, 
+/// and resource view to render the current frame. By this time, all the node input ports should be
+/// considered defined. Resource views are tied to the graphics task that created them,
 /// and passing and using them in another graphics task will be blocked by the engine. No restrictions
 /// apply to the resources themselves. Resources and view can be stored and held over multiple frames.
 /// In the second phase (<see cref="GraphicsTask::Execute"/>) the node gets limited access to creation
@@ -129,4 +130,4 @@ void GraphicsNode::SetTaskSequential(Iter first, Iter last) {
 }
 
 
-} // namespace inlgxeng::gxeng
+} // namespace inl::gxeng

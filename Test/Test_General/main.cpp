@@ -1,19 +1,20 @@
+#include "Test.hpp"
+
 #include <BaseLibrary/Logging_All.hpp>
 
-#include "Test.hpp"
+#include <conio.h>
 #include <iostream>
 #include <string>
-#include <conio.h>
 
 using namespace std;
 
-#if !defined(_WIN32) 
+#if !defined(_WIN32)
 static_assert(false, "This file only works under Win32");
 #endif
 
 
 int main() {
-	auto instance = TestFactory::GetInstance();	
+	auto instance = TestFactory::GetInstance();
 	auto testList = instance->GetTests();
 
 	cout << "List of available tests:" << endl;
@@ -38,11 +39,13 @@ int main() {
 	system("cls");
 
 	cout << "Running " << testList[choice] << "...\n";
-	cout << "------------------------------------------------------------------------" << endl << endl;
+	cout << "------------------------------------------------------------------------" << endl
+		 << endl;
 
 	int ret = instance->Run(testList[choice]);
 
-	cout << endl << "------------------------------------------------------------------------" << endl;
+	cout << endl
+		 << "------------------------------------------------------------------------" << endl;
 	cout << "Test returned: " << ret << endl;
 	cout << "Press any key to exit." << endl;
 	_getch();

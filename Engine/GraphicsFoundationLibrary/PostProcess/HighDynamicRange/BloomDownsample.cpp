@@ -1,10 +1,10 @@
 #include "BloomDownsample.hpp"
 
-#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
-#include <GraphicsEngine_LL/GraphicsCommandList.hpp>
-#include <GraphicsEngine_LL/AutoRegisterNode.hpp>
-
 #include "../../Debug/DebugDrawManager.hpp"
+
+#include <GraphicsEngine_LL/AutoRegisterNode.hpp>
+#include <GraphicsEngine_LL/GraphicsCommandList.hpp>
+#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 
 
 
@@ -13,8 +13,7 @@ namespace inl::gxeng::nodes {
 INL_REGISTER_GRAPHICS_NODE(BloomDownsample)
 
 
-struct Uniforms
-{
+struct Uniforms {
 };
 
 
@@ -23,7 +22,7 @@ BloomDownsample::BloomDownsample() {
 }
 
 
-void BloomDownsample::Initialize(EngineContext & context) {
+void BloomDownsample::Initialize(EngineContext& context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
@@ -58,7 +57,7 @@ void BloomDownsample::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	
+
 
 	if (!m_binder) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -94,7 +93,7 @@ void BloomDownsample::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc }, { samplerDesc });
 	}
 
 
@@ -108,8 +107,8 @@ void BloomDownsample::Setup(SetupContext& context) {
 		m_shader = context.CreateShader("BloomDownsample", shaderParts, "");
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
-			gxapi::InputElementDesc{"POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0},
-			gxapi::InputElementDesc{"TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12}
+			gxapi::InputElementDesc{ "POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0 },
+			gxapi::InputElementDesc{ "TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12 }
 		};
 
 		gxapi::GraphicsPipelineStateDesc psoDesc;
@@ -118,7 +117,7 @@ void BloomDownsample::Setup(SetupContext& context) {
 		psoDesc.rootSignature = m_binder.GetRootSignature();
 		psoDesc.vs = m_shader.vs;
 		psoDesc.ps = m_shader.ps;
-		psoDesc.rasterization = gxapi::RasterizerState{gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL};
+		psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
 		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 		psoDesc.depthStencilState.enableDepthTest = false;
@@ -208,10 +207,9 @@ void BloomDownsample::InitRenderTarget(SetupContext& context) {
 			formatDownsample
 		};
 
-		Texture2D downsampleTex = context.CreateTexture2D(desc, {1, 1, 0, 0});
+		Texture2D downsampleTex = context.CreateTexture2D(desc, { 1, 1, 0, 0 });
 		downsampleTex.SetName("Bloom Downsample tex");
 		m_downsampleRtv = context.CreateRtv(downsampleTex, formatDownsample, rtvDesc);
-		
 	}
 }
 

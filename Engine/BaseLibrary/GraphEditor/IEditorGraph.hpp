@@ -1,8 +1,9 @@
 #pragma once
 
+#include "../Exception/Exception.hpp"
+
 #include <string>
 #include <vector>
-#include "../Exception/Exception.hpp"
 
 
 
@@ -40,7 +41,6 @@ public:
 
 	virtual const std::string& GetContentType() const = 0;
 	virtual void Clear() = 0;
-
 };
 
 

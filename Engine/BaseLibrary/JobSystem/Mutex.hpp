@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SchedulablePromiseTag.hpp"
+
 #include <atomic>
 #include <experimental/coroutine>
 
@@ -13,6 +14,7 @@ public:
 	class MutexAwaiter {
 		friend class ConditionVariable;
 		friend class Mutex;
+
 	public:
 		MutexAwaiter(MutexAwaiter&&) noexcept;
 		MutexAwaiter& operator=(MutexAwaiter&&) = delete;
@@ -24,9 +26,11 @@ public:
 		template <class T>
 		bool await_suspend(T awaitingCoroutine) noexcept;
 		void await_resume() noexcept {}
+
 	private:
 		MutexAwaiter(Mutex& mtx);
 		bool await_suspend(std::experimental::coroutine_handle<> awaitingCoroutine, Scheduler* scheduler = nullptr) noexcept;
+
 	private:
 		std::experimental::coroutine_handle<> m_awaitingHandle;
 		MutexAwaiter* m_next = nullptr;
@@ -34,6 +38,7 @@ public:
 		Mutex& m_mtx;
 		mutable bool m_wasAwaited = false;
 	};
+
 public:
 	Mutex() noexcept;
 	Mutex(const Mutex&) = delete;
@@ -41,11 +46,12 @@ public:
 	Mutex& operator=(const Mutex&) = delete;
 	Mutex& operator=(Mutex&&) noexcept = default;
 	~Mutex();
-	
+
 	MutexAwaiter Lock();
 	void LockExplicit();
 	bool TryLock();
 	void Unlock();
+
 private:
 	std::atomic<MutexAwaiter*> m_firstAwaiter; // Nullptr if free, otherwise last in the list owns mutex. Lst is a dangling pointer.
 	volatile MutexAwaiter* m_holder; // If same as the last in the list above. Used to figure out where the list ends, because last pointer in list in always dangling.
@@ -59,6 +65,7 @@ public:
 	~LockGuard() noexcept;
 
 	Mutex::MutexAwaiter Lock();
+
 private:
 	Mutex& m_mutex;
 	bool m_locked = false;
@@ -74,6 +81,7 @@ public:
 	void LockExplicit();
 	bool TryLock();
 	void Unlock();
+
 private:
 	Mutex& m_mutex;
 	bool m_locked = false;
@@ -88,8 +96,6 @@ bool Mutex::MutexAwaiter::await_suspend(T awaitingCoroutine) noexcept {
 	}
 	return await_suspend(std::experimental::coroutine_handle<>(awaitingCoroutine), scheduler);
 }
-
-
 
 
 

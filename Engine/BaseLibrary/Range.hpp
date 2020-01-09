@@ -1,8 +1,8 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <iterator>
-#include <cassert>
 
 
 namespace inl {
@@ -15,6 +15,7 @@ public:
 	class iterator {
 		friend class RangeHelper;
 		iterator(T value, T step) : value(value), step(step) {}
+
 	public:
 		iterator() : value(std::numeric_limits<T>::lowest()) {}
 
@@ -36,6 +37,7 @@ public:
 		bool operator!=(const iterator& rhs) const {
 			return !(*this == rhs);
 		}
+
 	private:
 		T value;
 		T step;
@@ -43,7 +45,7 @@ public:
 
 	RangeHelper(T first, T last, T step) : first(first), step(step) {
 		assert((last >= first && std::is_unsigned_v<T>) || std::is_signed_v<T>);
-		T diff = last-first;
+		T diff = last - first;
 		T sign = (step >= 0) - (step < 0);
 		T rounded = ((diff + step - sign) / step) * step;
 		this->last = first + rounded;
@@ -53,6 +55,7 @@ public:
 	iterator end() const { return iterator(last, step); }
 	iterator cbegin() const { return iterator(first, step); }
 	iterator cend() const { return iterator(last, step); }
+
 private:
 	T first, last, step;
 };
@@ -81,5 +84,4 @@ RangeHelper<T> Range(T last) {
 
 
 
-
-}
+} // namespace inl

@@ -1,18 +1,18 @@
 #pragma once
 
-#include <GraphicsApi_LL/IGraphicsApi.hpp>
-#include <GraphicsApi_LL/ISwapChain.hpp>
 #include "MemoryObject.hpp"
 
+#include <GraphicsApi_LL/IGraphicsApi.hpp>
+#include <GraphicsApi_LL/ISwapChain.hpp>
 
-namespace inl:: gxeng {
+
+namespace inl::gxeng {
 
 
 class RenderTargetView2D;
 
 
-class BackBufferManager
-{
+class BackBufferManager {
 public:
 	BackBufferManager(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapChain* swapChain);
 
@@ -26,4 +26,4 @@ protected:
 };
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

@@ -195,7 +195,7 @@ size_t EntitySchemeSet::SpliceExtend(EntitySchemeSet& source, size_t sourceIndex
 	else {
 		m_components.entities.back().assign_extend({}, std::forward<Component>(component));
 	}
-	
+
 	m_entities.back()->m_index = m_entities.size() - 1;
 	m_entities.back()->m_set = this;
 

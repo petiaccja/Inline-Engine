@@ -1,7 +1,9 @@
 #include "Test.hpp"
-#include <iostream>
+
 #include "BaseLibrary/Delegate.hpp"
 #include "BaseLibrary/Event.hpp"
+
+#include <iostream>
 
 
 using namespace std;
@@ -21,6 +23,7 @@ public:
 		return "Event";
 	}
 	int Run() override;
+
 private:
 	static int a;
 };
@@ -71,15 +74,15 @@ int TestEvent::Run() {
 
 	src.Evt += OnEventGlobal1;
 	src.Evt += OnEventGlobal2;
-	src.Evt += Delegate<void(float, float)>{&Subscriber::OnEvent1, &sub};
-	src.Evt += Delegate<void(float, float)>{&Subscriber::OnEvent2, &sub};
+	src.Evt += Delegate<void(float, float)>{ &Subscriber::OnEvent1, &sub };
+	src.Evt += Delegate<void(float, float)>{ &Subscriber::OnEvent2, &sub };
 
 	cout << "--- all events ---" << endl;
 	src.DoEvent();
 
 	cout << "--- only 2 events ---" << endl;
 	src.Evt -= OnEventGlobal2;
-	src.Evt -= Delegate<void(float, float)>{&Subscriber::OnEvent2, &sub};
+	src.Evt -= Delegate<void(float, float)>{ &Subscriber::OnEvent2, &sub };
 	src.DoEvent();
 
 

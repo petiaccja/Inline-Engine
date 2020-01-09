@@ -1,7 +1,9 @@
 #include "Mutex.hpp"
+
+#include "Scheduler.hpp"
+
 #include <cassert>
 #include <iostream>
-#include "Scheduler.hpp"
 #include <wrl/wrappers/corewrappers.h>
 
 
@@ -12,13 +14,12 @@ namespace inl::jobs {
 // MutexAwaiter
 //------------------------------------------------------------------------------
 
-Mutex::MutexAwaiter::MutexAwaiter(MutexAwaiter&& rhs) noexcept 
+Mutex::MutexAwaiter::MutexAwaiter(MutexAwaiter&& rhs) noexcept
 	: m_awaitingHandle(std::move(rhs.m_awaitingHandle)),
-	m_next(rhs.m_next),
-	m_scheduler(rhs.m_scheduler),
-	m_mtx(rhs.m_mtx),
-	m_wasAwaited(rhs.m_wasAwaited)
-{
+	  m_next(rhs.m_next),
+	  m_scheduler(rhs.m_scheduler),
+	  m_mtx(rhs.m_mtx),
+	  m_wasAwaited(rhs.m_wasAwaited) {
 	rhs.m_awaitingHandle = {};
 	rhs.m_next = nullptr;
 	rhs.m_scheduler = nullptr;
@@ -47,9 +48,8 @@ bool Mutex::MutexAwaiter::await_ready() const noexcept {
 }
 
 
-Mutex::MutexAwaiter::MutexAwaiter(Mutex& mtx) 
-	: m_mtx(mtx)
-{}
+Mutex::MutexAwaiter::MutexAwaiter(Mutex& mtx)
+	: m_mtx(mtx) {}
 
 bool Mutex::MutexAwaiter::await_suspend(std::experimental::coroutine_handle<> awaitingCoroutine, Scheduler* scheduler) noexcept {
 	// Coroutine is suspended.
@@ -175,8 +175,7 @@ void Mutex::Unlock() {
 // LockGuard
 
 LockGuard::LockGuard(Mutex& mutex) noexcept
-	: m_mutex(mutex)
-{}
+	: m_mutex(mutex) {}
 
 LockGuard::~LockGuard() noexcept {
 	if (m_locked) {
@@ -192,9 +191,8 @@ Mutex::MutexAwaiter LockGuard::Lock() {
 
 // UniqueLock
 
-UniqueLock::UniqueLock(Mutex& mutex) noexcept 
-	: m_mutex(mutex) 
-{}
+UniqueLock::UniqueLock(Mutex& mutex) noexcept
+	: m_mutex(mutex) {}
 
 UniqueLock::~UniqueLock() noexcept {
 	if (m_locked) {

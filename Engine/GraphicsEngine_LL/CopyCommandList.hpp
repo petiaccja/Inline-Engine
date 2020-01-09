@@ -1,8 +1,8 @@
 #pragma once
 
-#include "MemoryObject.hpp"
-#include "Binder.hpp"
 #include "BasicCommandList.hpp"
+#include "Binder.hpp"
+#include "MemoryObject.hpp"
 
 #include <GraphicsApi_LL/Common.hpp>
 #include <GraphicsApi_LL/ICommandList.hpp>
@@ -10,10 +10,10 @@
 
 #include <InlineMath.hpp>
 
-namespace inl:: gxapi {
+namespace inl::gxapi {
 class ICommandAllocator;
 class IPipelineState;
-}
+} // namespace inl::gxapi
 
 
 namespace inl::gxeng {
@@ -25,8 +25,8 @@ struct SubTexture1D {
 				 intptr_t firstPixel = -1,
 				 intptr_t lastPixel = -1)
 		: subresource(subresource),
-		firstPixel(firstPixel),
-		lastPixel(lastPixel) {}
+		  firstPixel(firstPixel),
+		  lastPixel(lastPixel) {}
 
 	unsigned subresource;
 	intptr_t firstPixel, lastPixel;
@@ -34,11 +34,11 @@ struct SubTexture1D {
 
 struct SubTexture2D {
 	SubTexture2D(unsigned subresource = 0,
-				Vector<intptr_t, 2> corner1 = { -1, -1 },
-				Vector<intptr_t, 2> corner2 = { -1, -1 })
+				 Vector<intptr_t, 2> corner1 = { -1, -1 },
+				 Vector<intptr_t, 2> corner2 = { -1, -1 })
 		: subresource(subresource),
-		corner1(corner1),
-		corner2(corner2) {}
+		  corner1(corner1),
+		  corner2(corner2) {}
 
 	unsigned subresource;
 	Vector<intptr_t, 2> corner1;
@@ -50,8 +50,8 @@ struct SubTexture3D {
 				 Vector<intptr_t, 3> corner1 = { -1, -1, -1 },
 				 Vector<intptr_t, 3> corner2 = { -1, -1, -1 })
 		: subresource(subresource),
-		corner1(corner1),
-		corner2(corner2) {}
+		  corner1(corner1),
+		  corner2(corner2) {}
 
 	unsigned subresource;
 	Vector<intptr_t, 3> corner1;
@@ -71,6 +71,7 @@ public:
 	CopyCommandList(CopyCommandList&& rhs);
 	CopyCommandList& operator=(const CopyCommandList& rhs) = delete;
 	CopyCommandList& operator=(CopyCommandList&& rhs);
+
 protected:
 	CopyCommandList(
 		gxapi::IGraphicsApi* gxApi,
@@ -94,8 +95,8 @@ public:
 					 SubTexture2D dstPlace,
 					 SubTexture2D srcPlace);
 	void CopyTexture(const Texture2D& dst,
-	                 const Texture2D& src,
-	                 SubTexture2D dstPlace = {});
+					 const Texture2D& src,
+					 SubTexture2D dstPlace = {});
 	void CopyTexture(const Texture2D& dst,
 					 const LinearBuffer& src,
 					 SubTexture2D dstPlace,
@@ -108,16 +109,18 @@ public:
 
 	// barriers
 	void SetResourceState(const MemoryObject& resource, gxapi::eResourceState state, unsigned subresource = gxapi::ALL_SUBRESOURCES);
+
 protected:
 	void ExpectResourceState(const MemoryObject& resource, gxapi::eResourceState state, const std::vector<uint32_t>& subresources);
 	void ExpectResourceState(const MemoryObject& resource, const std::initializer_list<gxapi::eResourceState>& anyOfStates, const std::vector<uint32_t>& subresources);
 	//void ExpectResourceState(const MemoryObject& resource, gxapi::eResourceState state, unsigned subresource = gxapi::ALL_SUBRESOURCES);
 	//void ExpectResourceState(const MemoryObject& resource, const std::initializer_list<gxapi::eResourceState>& anyOfStates, unsigned subresource = gxapi::ALL_SUBRESOURCES);
 	virtual Decomposition Decompose() override;
+
 private:
 	gxapi::ICopyCommandList* m_commandList;
 };
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

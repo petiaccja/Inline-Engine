@@ -1,8 +1,9 @@
 #include "GraphicsCommandList.hpp"
-#include "VolatileViewHeap.hpp"
-#include "MemoryManager.hpp"
 
-namespace inl:: gxeng {
+#include "MemoryManager.hpp"
+#include "VolatileViewHeap.hpp"
+
+namespace inl::gxeng {
 
 
 //------------------------------------------------------------------------------
@@ -15,10 +16,7 @@ GraphicsCommandList::GraphicsCommandList(
 	CommandAllocatorPool& commandAllocatorPool,
 	ScratchSpacePool& scratchSpacePool,
 	MemoryManager& memoryManager,
-	VolatileViewHeap& volatileCbvHeap
-) :
-	ComputeCommandList(gxApi, commandListPool, commandAllocatorPool, scratchSpacePool, memoryManager, volatileCbvHeap, gxapi::eCommandListType::GRAPHICS)
-{
+	VolatileViewHeap& volatileCbvHeap) : ComputeCommandList(gxApi, commandListPool, commandAllocatorPool, scratchSpacePool, memoryManager, volatileCbvHeap, gxapi::eCommandListType::GRAPHICS) {
 	m_commandList = dynamic_cast<gxapi::IGraphicsCommandList*>(GetCommandList());
 	m_graphicsBindingManager = BindingManager<gxapi::eCommandListType::GRAPHICS>(m_graphicsApi, m_commandList, &memoryManager, &volatileCbvHeap);
 	m_graphicsBindingManager.SetDescriptorHeap(GetCurrentScratchSpace());
@@ -27,8 +25,7 @@ GraphicsCommandList::GraphicsCommandList(
 
 GraphicsCommandList::GraphicsCommandList(GraphicsCommandList&& rhs)
 	: ComputeCommandList(std::move(rhs)),
-	m_commandList(rhs.m_commandList)
-{
+	  m_commandList(rhs.m_commandList) {
 	rhs.m_commandList = nullptr;
 }
 
@@ -53,22 +50,20 @@ BasicCommandList::Decomposition GraphicsCommandList::Decompose() {
 // Clear buffers
 //------------------------------------------------------------------------------
 void GraphicsCommandList::ClearDepthStencil(const DepthStencilView2D& resource,
-	float depth,
-	uint8_t stencil,
-	size_t numRects,
-	gxapi::Rectangle* rects,
-	bool clearDepth,
-	bool clearStencil)
-{
+											float depth,
+											uint8_t stencil,
+											size_t numRects,
+											gxapi::Rectangle* rects,
+											bool clearDepth,
+											bool clearStencil) {
 	//ExpectResourceState(resource.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
 	m_commandList->ClearDepthStencil(resource.GetHandle(), depth, stencil, numRects, rects, clearDepth, clearStencil);
 }
 
 void GraphicsCommandList::ClearRenderTarget(const RenderTargetView2D& resource,
-	gxapi::ColorRGBA color,
-	size_t numRects,
-	gxapi::Rectangle* rects)
-{
+											gxapi::ColorRGBA color,
+											size_t numRects,
+											gxapi::Rectangle* rects) {
 	ExpectResourceState(resource.GetResource(), gxapi::eResourceState::RENDER_TARGET, resource.GetSubresourceList());
 	m_commandList->ClearRenderTarget(resource.GetHandle(), color, numRects, rects);
 }
@@ -79,11 +74,10 @@ void GraphicsCommandList::ClearRenderTarget(const RenderTargetView2D& resource,
 //------------------------------------------------------------------------------
 
 void GraphicsCommandList::DrawIndexedInstanced(unsigned numIndices,
-	unsigned startIndex,
-	int vertexOffset,
-	unsigned numInstances,
-	unsigned startInstance)
-{
+											   unsigned startIndex,
+											   int vertexOffset,
+											   unsigned numInstances,
+											   unsigned startInstance) {
 	m_commandList->DrawIndexedInstanced(numIndices, startIndex, vertexOffset, numInstances, startInstance);
 	m_graphicsBindingManager.CommitDrawCall();
 
@@ -91,10 +85,9 @@ void GraphicsCommandList::DrawIndexedInstanced(unsigned numIndices,
 }
 
 void GraphicsCommandList::DrawInstanced(unsigned numVertices,
-	unsigned startVertex,
-	unsigned numInstances,
-	unsigned startInstance)
-{
+										unsigned startVertex,
+										unsigned numInstances,
+										unsigned startInstance) {
 	m_commandList->DrawInstanced(numVertices, startVertex, numInstances, startInstance);
 	m_graphicsBindingManager.CommitDrawCall();
 
@@ -109,8 +102,8 @@ void GraphicsCommandList::DrawInstanced(unsigned numVertices,
 void GraphicsCommandList::SetIndexBuffer(const IndexBuffer* resource, bool is32Bit) {
 	ExpectResourceState(*resource, gxapi::eResourceState::INDEX_BUFFER, { gxapi::ALL_SUBRESOURCES });
 	m_commandList->SetIndexBuffer(resource->GetVirtualAddress(),
-		resource->GetSize(),
-		is32Bit ? gxapi::eFormat::R32_UINT : gxapi::eFormat::R16_UINT);
+								  resource->GetSize(),
+								  is32Bit ? gxapi::eFormat::R32_UINT : gxapi::eFormat::R16_UINT);
 }
 
 
@@ -120,11 +113,10 @@ void GraphicsCommandList::SetPrimitiveTopology(gxapi::ePrimitiveTopology topolog
 
 
 void GraphicsCommandList::SetVertexBuffers(unsigned startSlot,
-	unsigned count,
-	const VertexBuffer* const * resources,
-	unsigned* sizeInBytes,
-	unsigned* strideInBytes)
-{
+										   unsigned count,
+										   const VertexBuffer* const* resources,
+										   unsigned* sizeInBytes,
+										   unsigned* strideInBytes) {
 	auto virtualAddresses = std::make_unique<void*[]>(count);
 
 	for (unsigned i = 0; i < count; ++i) {
@@ -133,10 +125,10 @@ void GraphicsCommandList::SetVertexBuffers(unsigned startSlot,
 	}
 
 	m_commandList->SetVertexBuffers(startSlot,
-		count,
-		virtualAddresses.get(),
-		sizeInBytes,
-		strideInBytes);
+									count,
+									virtualAddresses.get(),
+									sizeInBytes,
+									strideInBytes);
 }
 
 
@@ -145,9 +137,8 @@ void GraphicsCommandList::SetVertexBuffers(unsigned startSlot,
 //------------------------------------------------------------------------------
 
 void GraphicsCommandList::SetRenderTargets(unsigned numRenderTargets,
-	const RenderTargetView2D* const* renderTargets,
-	const DepthStencilView2D* depthStencil)
-{
+										   const RenderTargetView2D* const* renderTargets,
+										   const DepthStencilView2D* depthStencil) {
 	auto renderTargetHandles = std::make_unique<gxapi::DescriptorHandle[]>(numRenderTargets);
 	for (unsigned i = 0; i < numRenderTargets; ++i) {
 		ExpectResourceState(renderTargets[i]->GetResource(), gxapi::eResourceState::RENDER_TARGET, renderTargets[i]->GetSubresourceList());
@@ -158,13 +149,13 @@ void GraphicsCommandList::SetRenderTargets(unsigned numRenderTargets,
 		ExpectResourceState(depthStencil->GetResource(), gxapi::eResourceState::DEPTH_WRITE, depthStencil->GetSubresourceList());
 		gxapi::DescriptorHandle dsvHandle = depthStencil->GetHandle();
 		m_commandList->SetRenderTargets(numRenderTargets,
-			renderTargetHandles.get(),
-			&dsvHandle);
+										renderTargetHandles.get(),
+										&dsvHandle);
 	}
 	else {
 		m_commandList->SetRenderTargets(numRenderTargets,
-			renderTargetHandles.get(),
-			nullptr);
+										renderTargetHandles.get(),
+										nullptr);
 	}
 }
 
@@ -283,13 +274,13 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const ConstBuffe
 	}
 }
 
-void GraphicsCommandList::BindGraphics(BindParameter parameter, const void* shaderConstant, int size/*, int offset*/) {
+void GraphicsCommandList::BindGraphics(BindParameter parameter, const void* shaderConstant, int size /*, int offset*/) {
 	try {
-		m_graphicsBindingManager.Bind(parameter, shaderConstant, size/*, offset*/);
+		m_graphicsBindingManager.Bind(parameter, shaderConstant, size /*, offset*/);
 	}
 	catch (std::bad_alloc&) {
 		NewScratchSpace(1000);
-		m_graphicsBindingManager.Bind(parameter, shaderConstant, size/*, offset*/);
+		m_graphicsBindingManager.Bind(parameter, shaderConstant, size /*, offset*/);
 	}
 }
 
@@ -351,4 +342,4 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWBufferVi
 }
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

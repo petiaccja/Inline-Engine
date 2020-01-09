@@ -1,7 +1,8 @@
 #include "Image.hpp"
-#include <cassert>
 
 #include <BaseLibrary/Exception/Exception.hpp>
+
+#include <cassert>
 
 
 namespace inl::asset {
@@ -122,10 +123,22 @@ void Image::TranslateImageType(eChannelType& typeOut, size_t& countOut) const {
 	if (type == FIT_BITMAP) {
 		int bitdepth = m_image.getBitsPerPixel();
 		switch (bitdepth) {
-			case 8: typeOut = eChannelType::INT8; countOut = 1; break;
-			case 16: typeOut = eChannelType::INT8; countOut = 2; break;
-			case 24: typeOut = eChannelType::INT8; countOut = 3; break;
-			case 32: typeOut = eChannelType::INT8; countOut = 4; break;
+			case 8:
+				typeOut = eChannelType::INT8;
+				countOut = 1;
+				break;
+			case 16:
+				typeOut = eChannelType::INT8;
+				countOut = 2;
+				break;
+			case 24:
+				typeOut = eChannelType::INT8;
+				countOut = 3;
+				break;
+			case 32:
+				typeOut = eChannelType::INT8;
+				countOut = 4;
+				break;
 			default: throw OutOfRangeException("No matching type.");
 		}
 	}
@@ -163,4 +176,4 @@ void Image::TranslateImageType(eChannelType& typeOut, size_t& countOut) const {
 }
 
 
-}
+} // namespace inl::asset

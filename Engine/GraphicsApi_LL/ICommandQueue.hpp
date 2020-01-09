@@ -28,4 +28,4 @@ public:
 	virtual void EndDebuggerEvent() const = 0;
 };
 
-} // namespace gxapi
+} // namespace inl::gxapi

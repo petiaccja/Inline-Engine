@@ -1,15 +1,14 @@
 #pragma once
 
+#include "Font.hpp"
+
+#include <BaseLibrary/Rect.hpp>
+#include <BaseLibrary/Transformable.hpp>
 #include <GraphicsEngine/Scene/ITextEntity.hpp>
 
-#include <BaseLibrary/Transformable.hpp>
-#include <BaseLibrary/Rect.hpp>
-
 #include <InlineMath.hpp>
-#include <variant>
 #include <utility>
-
-#include "Font.hpp"
+#include <variant>
 
 
 namespace inl::gxeng {
@@ -44,7 +43,7 @@ public:
 	Vec4 GetColor() const override;
 
 
-	/// <summary> The text goes into a box of this size. 
+	/// <summary> The text goes into a box of this size.
 	///		The center of the box is the position of the entity. </summary>
 	/// <remarks> Size is in the same units as the font height, and gets
 	///		physical meaning through the 2D camera that view the overlays.
@@ -89,7 +88,7 @@ public:
 	float GetZDepth() const override;
 
 private:
-	Vec4 m_color = { 1,0,0,1 };
+	Vec4 m_color = { 1, 0, 0, 1 };
 	float m_fontSize = 16;
 	std::u32string m_text;
 	const Font* m_font = nullptr;

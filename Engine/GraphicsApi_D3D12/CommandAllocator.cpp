@@ -8,7 +8,7 @@ namespace inl::gxapi_dx12 {
 
 
 CommandAllocator::CommandAllocator(ComPtr<ID3D12CommandAllocator>& native, gxapi::eCommandListType type)
-	: m_native{native}, m_type(type) {
+	: m_native{ native }, m_type(type) {
 }
 
 
@@ -27,4 +27,4 @@ gxapi::eCommandListType CommandAllocator::GetType() const {
 }
 
 
-} // namespace gxapi_dx12
+} // namespace inl::gxapi_dx12

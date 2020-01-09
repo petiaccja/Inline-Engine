@@ -57,7 +57,7 @@ void load(Archive& ar, GraphicsHeightmapComponent& obj) {
 	obj.entity->SetDirection(direction);
 	obj.entity->SetMagnitude(magnitude);
 	obj.entity->SetOffset(offset);
-	
+
 	const auto& moduleArchive = dynamic_cast<const game::ModuleArchive&>(ar);
 	const auto graphicsModule = moduleArchive.GetModule<GraphicsModule>();
 	obj.entity = graphicsModule->CreateHeightmapEntity();

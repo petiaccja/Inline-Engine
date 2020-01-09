@@ -1,4 +1,5 @@
 #include "LogNode.hpp"
+
 #include "LogPipe.hpp"
 
 #include <cassert>
@@ -76,8 +77,7 @@ void LogNode::Flush() {
 		std::chrono::high_resolution_clock::time_point oldestTimestamp = std::chrono::high_resolution_clock::time_point::max();
 		for (auto& pipeInfo : promotedPipes) {
 			if (!pipeInfo.pipe->buffer.empty()
-				&& pipeInfo.pipe->buffer[0].timestamp < oldestTimestamp)
-			{
+				&& pipeInfo.pipe->buffer[0].timestamp < oldestTimestamp) {
 				oldestTimestamp = pipeInfo.pipe->buffer[0].timestamp;
 				oldestBuffer = &pipeInfo.pipe->buffer;
 				oldestPipeName = &pipeInfo.name;

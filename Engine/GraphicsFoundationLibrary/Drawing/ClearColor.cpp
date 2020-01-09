@@ -1,7 +1,8 @@
 #include "ClearColor.hpp"
+
+#include "GraphicsEngine_LL/AutoRegisterNode.hpp"
 #include "GraphicsEngine_LL/Nodes/NodeUtility.hpp"
 #include <GraphicsEngine_LL/GraphicsCommandList.hpp>
-#include "GraphicsEngine_LL/AutoRegisterNode.hpp"
 
 
 namespace inl::gxeng::nodes {
@@ -27,7 +28,7 @@ void ClearColor::Execute(RenderContext& context) {
 
 	Vec4 clearValue = GetInput<1>().Get();
 	list.SetResourceState(m_rtv.GetResource(), gxapi::eResourceState::RENDER_TARGET);
-	list.ClearRenderTarget(m_rtv, {clearValue.x, clearValue.y, clearValue.z, clearValue.w});
+	list.ClearRenderTarget(m_rtv, { clearValue.x, clearValue.y, clearValue.z, clearValue.w });
 	m_rtv = {};
 }
 
@@ -45,4 +46,4 @@ const std::string& ClearColor::GetOutputName(size_t index) const {
 	return names[index];
 }
 
-}
+} // namespace inl::gxeng::nodes

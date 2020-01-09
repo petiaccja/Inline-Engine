@@ -1,18 +1,18 @@
 #pragma once
 
-#include <set>
-#include <typeinfo>
-#include <typeindex>
-#include <type_traits>
-#include <functional>
-#include <iterator>
-#include <memory>
-#include <unordered_map>
-#include <sstream>
-
 #include "../Any.hpp"
 #include "../TemplateUtil.hpp"
 #include "SerializableNode.hpp"
+
+#include <functional>
+#include <iterator>
+#include <memory>
+#include <set>
+#include <sstream>
+#include <type_traits>
+#include <typeindex>
+#include <typeinfo>
+#include <unordered_map>
 
 
 namespace inl {
@@ -26,7 +26,6 @@ class OutputPort;
 
 template <class T, class C>
 class InputPort;
-
 
 
 
@@ -67,6 +66,7 @@ public:
 			throw InvalidCallException("This type cannot be converted to string.");
 		}
 	}
+
 private:
 	template <class Head, class... Functions>
 	void RegisterFunctions(Head head, Functions... functions) {
@@ -76,16 +76,14 @@ private:
 	void RegisterFunctions() {}
 
 	template <class SourceT>
-	void RegisterFunction(T(*function)(SourceT)) {
-		auto convfunc = [function](const void* src, void* dst)
-		{
+	void RegisterFunction(T (*function)(SourceT)) {
+		auto convfunc = [function](const void* src, void* dst) {
 			*reinterpret_cast<T*>(dst) = function(*reinterpret_cast<const std::remove_reference_t<SourceT>*>(src));
 		};
-		m_converters.insert({
-			typeid(SourceT),
-			convfunc
-		});
+		m_converters.insert({ typeid(SourceT),
+							  convfunc });
 	}
+
 private:
 	std::unordered_map<std::type_index, std::function<void(const void*, void*)>> m_converters;
 };
@@ -93,7 +91,7 @@ private:
 template <>
 class PortConverterCollection<void> {
 public:
-	using Functor = void(*)(const void*, void*);
+	using Functor = void (*)(const void*, void*);
 	Functor operator[](std::type_index type) const {
 		throw OutOfRangeException("Cannot find a converter for type.", type.name());
 	}
@@ -103,15 +101,14 @@ public:
 };
 
 
-template <class T, bool Readable> 
-class DefaultPortConverter : public PortConverterCollection<T> 
-{};
+template <class T, bool Readable>
+class DefaultPortConverter : public PortConverterCollection<T> {};
 
 template <class T>
 class DefaultPortConverter<T, true> : public PortConverterCollection<T> {
 public:
-	DefaultPortConverter() : PortConverterCollection<T>(&FromString) 
-	{}
+	DefaultPortConverter() : PortConverterCollection<T>(&FromString) {}
+
 protected:
 	static T FromString(const std::string& str) {
 		T val;
@@ -136,8 +133,7 @@ protected:
 ///		method should throw an std::out_of_range. </para>
 /// </summary>
 template <class T>
-class PortConverter : public DefaultPortConverter<T, templ::is_readable<T>::value> 
-{};
+class PortConverter : public DefaultPortConverter<T, templ::is_readable<T>::value> {};
 
 
 
@@ -154,6 +150,7 @@ class OutputPortBase : public ISerializableOutputPort {
 public:
 	using LinkIterator = std::set<InputPortBase*>::iterator;
 	using ConstLinkIterator = std::set<InputPortBase*>::const_iterator;
+
 public:
 	OutputPortBase();
 	~OutputPortBase();
@@ -180,6 +177,7 @@ public:
 	ConstLinkIterator end() const;
 	ConstLinkIterator cbegin() const;
 	ConstLinkIterator cend() const;
+
 protected:
 	std::set<InputPortBase*> links;
 };
@@ -188,7 +186,7 @@ protected:
 
 /// <summary>
 /// <para> Input port of a Node. </para>
-/// <para> 
+/// <para>
 /// Input ports are attached to a node. An input port can also be linked
 /// to an output port, from where it receives the data.
 /// </para>
@@ -196,6 +194,7 @@ protected:
 class InputPortBase : public ISerializableInputPort {
 	friend class OutputPortBase;
 	friend class OutputPort<Any>;
+
 public:
 	InputPortBase();
 	~InputPortBase();
@@ -235,12 +234,14 @@ public:
 	void SetConvert(const U& u);
 
 	/// <summary> Converts underlying data to string using it's &lt;&lt; operator </summary>
-	/// <exception cref="InvalidCallException"> If no ostream operator available. </exception> 
+	/// <exception cref="InvalidCallException"> If no ostream operator available. </exception>
 	virtual std::string ToString() const override = 0;
+
 protected:
 	OutputPortBase* link;
 	void NotifyAll();
 	virtual void SetConvert(const void* object, std::type_index type) = 0;
+
 private:
 	// should only be called by an output port when it's ready with building up the linkage
 	// this function only sets internal state of the inputport to represent the link set up by outputport
@@ -269,7 +270,7 @@ public:
 	InputPort& operator=(InputPort&&) = default;
 
 
-	/// <summary> 
+	/// <summary>
 	/// Set an object as input to this port.
 	/// This is normally called by linked output ports, but may as well be
 	/// called manually.
@@ -280,7 +281,7 @@ public:
 		NotifyAll();
 	}
 
-	/// <summary> 
+	/// <summary>
 	/// Get the data that was previously set.
 	/// If no data is set, the behaviour is undefined.
 	/// </summary>
@@ -289,7 +290,7 @@ public:
 		return data;
 	}
 
-	/// <summary> 
+	/// <summary>
 	/// Get the data that was previously set.
 	/// If no data is set, the behaviour is undefined.
 	/// </summary>
@@ -319,8 +320,10 @@ public:
 	}
 
 	virtual bool IsCompatible(std::type_index type) const override;
+
 protected:
 	virtual void SetConvert(const void* object, std::type_index type) override;
+
 private:
 	bool isSet;
 	T data;
@@ -362,7 +365,6 @@ class OutputPort : public OutputPortBase {
 public:
 	// ctors
 	OutputPort() {
-
 	}
 	OutputPort(const OutputPort&) = default;
 	OutputPort(OutputPort&&) = default;
@@ -428,11 +430,13 @@ public:
 	std::string ToString() const override {
 		throw InvalidCallException("Void ports cannot be converted to a string.");
 	}
+
 protected:
 	void SetConvert(const void* object, std::type_index type) override {
 		isSet = true;
 		// conversion does nothing
 	}
+
 private:
 	bool isSet;
 };
@@ -447,7 +451,6 @@ class OutputPort<void> : public OutputPortBase {
 public:
 	// ctors
 	OutputPort() {
-
 	}
 	OutputPort(const OutputPort&) = default;
 	OutputPort(OutputPort&&) = default;
@@ -522,10 +525,12 @@ public:
 	std::string ToString() const override {
 		throw InvalidCallException("Any ports cannot be converted to string.");
 	}
+
 protected:
 	void SetConvert(const void* object, std::type_index type) override {
 		throw InvalidCallException("Any-type ports cannot convert anything.");
 	}
+
 private:
 	Any data;
 };
@@ -565,6 +570,7 @@ public:
 	std::type_index GetCurrentType() const {
 		return currentType;
 	}
+
 private:
 	std::type_index currentType;
 };

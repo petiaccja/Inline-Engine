@@ -1,9 +1,10 @@
 #pragma once
 
 
+#include "GraphParser.hpp"
+
 #include <string>
 #include <typeindex>
-#include "GraphParser.hpp"
 
 
 #undef GetClassName // retarded Windows

@@ -23,7 +23,7 @@ Game::Game(const EngineCollection& modules, inl::Window& window)
 	m_modules.Insert(&m_graphicsModule);
 	UpdateRenderPipeline();
 
-	window.OnResize += [this] (inl::ResizeEvent evt){
+	window.OnResize += [this](inl::ResizeEvent evt) {
 		SetSceneCameraARs(evt.clientSize.x / float(evt.clientSize.y));
 	};
 }
@@ -103,5 +103,5 @@ void Game::UpdateRenderPipeline() {
 			case eRenderMode::GUI: LoadRenderPipeline("Pipelines/" RENDER_PIPELINE_GUI_ONLY); break;
 		}
 		m_renderMode = desiredMode;
-	}		
+	}
 }

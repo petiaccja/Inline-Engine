@@ -1,6 +1,8 @@
 #include "Test.hpp"
-#include <iostream>
+
 #include "BaseLibrary/StackTrace.hpp"
+
+#include <iostream>
 
 
 using namespace std;
@@ -19,6 +21,7 @@ public:
 		return "Stack Trace";
 	}
 	int Run() override;
+
 private:
 	static int a;
 };

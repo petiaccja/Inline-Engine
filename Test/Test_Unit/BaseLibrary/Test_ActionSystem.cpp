@@ -63,7 +63,7 @@ TEST_CASE("Message passing", "BaseLibrary:ActionSystem") {
 	ActionSystem system;
 	system.Add(a);
 	system.Add(b);
-	
+
 	system.Send(MessageForA{ 0.0f });
 	for (int i = 0; i < 10; ++i) {
 		system.Update();

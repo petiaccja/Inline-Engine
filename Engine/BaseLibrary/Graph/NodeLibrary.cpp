@@ -1,9 +1,8 @@
+#include "NodeFactory.hpp"
 #include "Node_Arithmetic.hpp"
-#include "Node_MathFunctions.hpp"
 #include "Node_Comparison.hpp"
 #include "Node_Logic.hpp"
-
-#include "NodeFactory.hpp"
+#include "Node_MathFunctions.hpp"
 
 namespace inl {
 
@@ -260,7 +259,7 @@ const char MathFunctionNames::Tan[] = "Tan:Tangent function";
 const char MathFunctionNames::Asin[] = "Asin:Inverse sine function";
 const char MathFunctionNames::Acos[] = "Acos:Inverse cosine function";
 const char MathFunctionNames::Atan[] = "Atan:Inverse tangent function";
-// hyperbolic  
+// hyperbolic
 const char MathFunctionNames::Sinh[] = "Sinh:Hyperbolic sine function";
 const char MathFunctionNames::Cosh[] = "Cosh:Hyperbolic cosine function";
 const char MathFunctionNames::Tanh[] = "Tanh:Hyperbolic tangent function";
@@ -281,8 +280,7 @@ const char MathFunctionNames::Round[] = "Round:The nearest integer";
 } // namespace inl
 
 
-extern "C"
-bool g_autoRegisterNodes = [] {
+extern "C" bool g_autoRegisterNodes = [] {
 	inl::RegisterIntegerArithmeticNodes(&inl::NodeFactory_Singleton::GetInstance(), "Integer");
 	inl::RegisterIntegerComparisonNodes(&inl::NodeFactory_Singleton::GetInstance(), "Integer");
 	inl::RegisterFloatArithmeticNodes(&inl::NodeFactory_Singleton::GetInstance(), "Float");

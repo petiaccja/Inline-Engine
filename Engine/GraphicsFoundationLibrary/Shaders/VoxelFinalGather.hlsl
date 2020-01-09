@@ -81,25 +81,28 @@ static const float3 coneDirs[46] = {
 #elif QUALITY == LOW
 #define NUM_CONES 6
 #define DIFFUSE_APERTURE 0.453786
-	static const float3 coneDirs[6] = {
-		float3(0.0, 1.0,  0.000000),
-		float3(-0.794654, 0.607062,  0.000000),
-		float3(0.642889, 0.607062,  0.467086),
-		float3(0.642889, 0.607062, -0.467086),
-		float3(-0.245562, 0.607062,  0.755761),
-		float3(-0.245562, 0.607062, -0.755761)
-	};
+static const float3 coneDirs[6] = {
+	float3(0.0, 1.0, 0.000000),
+	float3(-0.794654, 0.607062, 0.000000),
+	float3(0.642889, 0.607062, 0.467086),
+	float3(0.642889, 0.607062, -0.467086),
+	float3(-0.245562, 0.607062, 0.755761),
+	float3(-0.245562, 0.607062, -0.755761)
+};
 #else
 #error "define quality"
 #endif
 
-struct Uniforms
-{
+struct Uniforms {
 	float4x4 model, viewProj, invView;
-	float3 voxelCenter; float voxelSize;
+	float3 voxelCenter;
+	float voxelSize;
 	float4 farPlaneData0, farPlaneData1;
 	float4 wsCamPos;
-	int voxelDimension; int inputMipLevel; int outputMipLevel; int dummy;
+	int voxelDimension;
+	int inputMipLevel;
+	int outputMipLevel;
+	int dummy;
 	float nearPlane, farPlane;
 };
 
@@ -119,17 +122,14 @@ SamplerState samp2 : register(s2); //trilinear
 
 //transforms a direction into the coordinate system
 //defined by the normal vector
-float3 TransNormal(float3 n, float3 d)
-{
+float3 TransNormal(float3 n, float3 d) {
 	float3 a, b;
 
 	//had to modify it to 0.9 (should be 1 for normalization check, div-by-0)
-	if (abs(n.z) < 0.9)
-	{
+	if (abs(n.z) < 0.9) {
 		a = normalize(cross(float3(0, 0, 1), n));
 	}
-	else
-	{
+	else {
 		a = normalize(cross(float3(1, 0, 0), n));
 	}
 
@@ -138,8 +138,7 @@ float3 TransNormal(float3 n, float3 d)
 	return a * d.x + b * d.y + n * d.z;
 }
 
-float3 MultiBounce(float ao, float3 albedo)
-{
+float3 MultiBounce(float ao, float3 albedo) {
 	float3 a = 2.0404 * albedo - 0.3324;
 	float3 b = -4.7951 * albedo + 0.6417;
 	float3 c = 2.7552 * albedo + 0.6903;
@@ -147,8 +146,7 @@ float3 MultiBounce(float ao, float3 albedo)
 	return max(ao, ((ao * a + b) * ao + c) * ao);
 }
 
-float LinearizeDepth(float depth, float near, float far)
-{
+float LinearizeDepth(float depth, float near, float far) {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 	float zndc = depth;
@@ -157,11 +155,10 @@ float LinearizeDepth(float depth, float near, float far)
 	float vsZrecon = B / (zndc - A);
 
 	//range: [0...far]
-	return vsZrecon;// / far;
+	return vsZrecon; // / far;
 };
 
-float3 WsPosToVoxelTC(float3 wsPos)
-{
+float3 WsPosToVoxelTC(float3 wsPos) {
 	const float voxelTotalSize = uniforms.voxelDimension * uniforms.voxelSize;
 	const float voxelTotalSizeInv = 1.0 / voxelTotalSize;
 	const float3 voxelOrigin = uniforms.voxelCenter - float3(voxelTotalSize, voxelTotalSize, voxelTotalSize) * 0.5;
@@ -169,8 +166,7 @@ float3 WsPosToVoxelTC(float3 wsPos)
 }
 
 //aperture: tan(coneHalfAngle) ???
-float4 ConeTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneAperture, float ssao, const bool opacityOnly = false)
-{
+float4 ConeTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneAperture, float ssao, const bool opacityOnly = false) {
 	//float4 result = float4(0, 0, 0, 0.0);
 	float4 result = float4(0, 0, 0, ssao);
 
@@ -183,8 +179,7 @@ float4 ConeTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneApert
 	const float maxMipLevel = log2(uniforms.voxelDimension);
 
 	//max # of steps?
-	while(traceDist < maxDist && result.w < 1.0)
-	{
+	while (traceDist < maxDist && result.w < 1.0) {
 		//at least one voxel
 		float diameter = max(uniforms.voxelSize, 2.0 * coneAperture * traceDist);
 		float mipLevel = log2(diameter * invVoxelSize); //is this correct?
@@ -192,21 +187,19 @@ float4 ConeTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneApert
 		//get texture coordinate to sample
 		float3 voxelTexCoord = WsPosToVoxelTC(wsStartPos + traceDir * traceDist);
 
-		if (any(voxelTexCoord > float3(1,1,1)) || any(voxelTexCoord < float3(0,0,0)) || mipLevel >= maxMipLevel)
-		{
+		if (any(voxelTexCoord > float3(1, 1, 1)) || any(voxelTexCoord < float3(0, 0, 0)) || mipLevel >= maxMipLevel) {
 			//we are outsize the voxel texture
 			//TODO: just sample from neighbouring voxel tex
-			break; 
+			break;
 		}
 
 		//TODO: alpha won't be correct here, as we used the alpha channel for atomic avg counter...
 		float4 data = float4(0, 0, 0, 0);
-		if (!opacityOnly)
-		{
+		if (!opacityOnly) {
 			data.xyz = inputTex0.SampleLevel(samp2, voxelTexCoord, mipLevel).xyz;
 		}
 		data.w = inputTex3.SampleLevel(samp2, voxelTexCoord, mipLevel).x;
-		
+
 
 		result += (1.0 - result.w) * data;
 		//result += min(1.0-ssao, 1.0 - result.w) * data;
@@ -218,25 +211,22 @@ float4 ConeTrace(float3 wsPos, float3 wsNormal, float3 traceDir, float coneApert
 		traceDist += diameter * 0.5;
 	}
 
-	if (!opacityOnly)
-	{
+	if (!opacityOnly) {
 		return float4(result.xyz, result.w);
 	}
-	else
-	{
+	else {
 		return result.wwww;
 	}
 }
 
-struct PS_Input
-{
+struct PS_Input {
 	float4 position : SV_POSITION;
 	float2 texcoord : TEX_COORD0;
 };
 
 
-PS_Input VSMain(uint vertexId : SV_VertexID)
-{
+PS_Input VSMain(uint vertexId
+				: SV_VertexID) {
 	// Triangle strip based on vertex id
 	// 3-----2
 	// |   / |
@@ -246,24 +236,22 @@ PS_Input VSMain(uint vertexId : SV_VertexID)
 	// 1: (0, 0)
 	// 2: (1, 1)
 	// 3: (0, 1)
-    PS_Input output;
+	PS_Input output;
 
 	output.texcoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
 	output.texcoord.y = vertexId >> 1; // 1 if bit1 is 1.
 
-    float2 posL = output.texcoord.xy * 2.0f - float2(1, 1);
-    output.position = float4(posL, 0.5f, 1.0f);
-    output.texcoord.y = 1.f - output.texcoord.y;
+	float2 posL = output.texcoord.xy * 2.0f - float2(1, 1);
+	output.position = float4(posL, 0.5f, 1.0f);
+	output.texcoord.y = 1.f - output.texcoord.y;
 
-    return output;
+	return output;
 }
 
-float4 PSMain(PS_Input input) : SV_TARGET
-{
+float4 PSMain(PS_Input input) : SV_TARGET {
 	float depth = inputTex2.Sample(samp0, input.texcoord);
 
-	if (depth > 0.9999)
-	{
+	if (depth > 0.9999) {
 		return 0.0;
 	}
 
@@ -307,9 +295,8 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	float4 specularResult = ConeTrace(wsPos, wsNormal, perfectReflectionDir, 0.0, tan(0.174533 * 0.5)) * pow(max(dot(perfectReflectionDir, wsNormal), 0.0), 0.75);
 
 	//cone trace diffuse GI + AO in alpha
-	float4 diffuseResult = float4(0,0,0,0);
-	for (int c = 0; c < NUM_CONES; ++c)
-	{
+	float4 diffuseResult = float4(0, 0, 0, 0);
+	for (int c = 0; c < NUM_CONES; ++c) {
 		float3 dir = coneDirs[c];
 		float3 dirOriented = TransNormal(wsNormal, dir);
 
@@ -328,7 +315,7 @@ float4 PSMain(PS_Input input) : SV_TARGET
 	//return float4(diffuseResult.xyz * ssao, 1.0);
 	//return float4(diffuseResult.xyz, 1.0);
 	//return float4(specularResult.xyz, 1.0);
-	return float4(/*albedo * */(diffuseResult.xyz + specularResult.xyz), 1.0);
+	return float4(/*albedo * */ (diffuseResult.xyz + specularResult.xyz), 1.0);
 	//return float4(multiBounce(aoResult, float3(1,1,1)), 1.0);
 	//return result;
 	//return float4(linearDepth, linearDepth, linearDepth, linearDepth);

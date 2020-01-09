@@ -106,7 +106,7 @@ BinarySerializer::const_iterator BinarySerializer::cend() const {
 uint32_t FloatToIEEE754(float v) {
 	// check if platform is using IEEE-754 floats
 	// msvc can't compile to anything else anyways so...
-#if defined(__STDC_IEC_559__ ) || defined(_MSC_VER)
+#if defined(__STDC_IEC_559__) || defined(_MSC_VER)
 	return *reinterpret_cast<uint32_t*>(&v);
 #else
 	static_assert(false, "I'm done with this shit, write you own...");
@@ -124,7 +124,7 @@ uint32_t FloatToIEEE754(float v) {
 	exponent += 127 - 1;
 	significand *= 2;
 
-	unsigned significand_int = unsigned((significand - 1)*(1u << 23));
+	unsigned significand_int = unsigned((significand - 1) * (1u << 23));
 
 	bits |= (1 << 31) * isNegative;
 	bits |= (unsigned)exponent << 23;
@@ -135,7 +135,7 @@ uint32_t FloatToIEEE754(float v) {
 }
 
 float IEEE754ToFloat(uint32_t b) {
-#if defined(__STDC_IEC_559__ ) || defined(_MSC_VER)
+#if defined(__STDC_IEC_559__) || defined(_MSC_VER)
 	return *reinterpret_cast<float*>(&b);
 #else
 	static_assert(false, "I'm done with this shit, write you own...");
@@ -151,7 +151,7 @@ float IEEE754ToFloat(uint32_t b) {
 }
 
 uint64_t DoubleToIEEE754(double v) {
-#if defined(__STDC_IEC_559__ ) || defined(_MSC_VER)
+#if defined(__STDC_IEC_559__) || defined(_MSC_VER)
 	return *reinterpret_cast<uint64_t*>(&v);
 #else
 	static_assert(false, "I'm done with this shit, write you own...");
@@ -168,14 +168,14 @@ uint64_t DoubleToIEEE754(double v) {
 
 	bits |= (1ull << 63) * isNegative;
 	bits |= uint64_t(exponent + 1023) << 62;
-	bits |= ((1ull << 53) - 1) & uint64_t((significand - 1.0f)*(1ull << 52));
+	bits |= ((1ull << 53) - 1) & uint64_t((significand - 1.0f) * (1ull << 52));
 
 	return bits;
 #endif
 }
 
 double IEEE754ToDouble(uint64_t b) {
-#if defined(__STDC_IEC_559__ ) || defined(_MSC_VER)
+#if defined(__STDC_IEC_559__) || defined(_MSC_VER)
 	return *reinterpret_cast<double*>(&b);
 #else
 	static_assert(false, "I'm done with this shit, write you own...");
@@ -192,27 +192,27 @@ double IEEE754ToDouble(uint64_t b) {
 
 
 
-BinarySerializer& operator << (BinarySerializer& s, float v) {
+BinarySerializer& operator<<(BinarySerializer& s, float v) {
 	uint32_t ieee754 = FloatToIEEE754(v);
 	s << ieee754;
 	return s;
 }
 
-BinarySerializer& operator << (BinarySerializer& s, double v) {
+BinarySerializer& operator<<(BinarySerializer& s, double v) {
 	uint64_t ieee754 = DoubleToIEEE754(v);
 	s << ieee754;
 	return s;
 }
 
 
-BinarySerializer& operator >> (BinarySerializer& s, float& v) {
+BinarySerializer& operator>>(BinarySerializer& s, float& v) {
 	uint32_t ieee754;
 	s >> ieee754;
 	v = IEEE754ToFloat(ieee754);
 	return s;
 }
 
-BinarySerializer& operator >> (BinarySerializer& s, double& v) {
+BinarySerializer& operator>>(BinarySerializer& s, double& v) {
 	uint64_t ieee754;
 	s >> ieee754;
 	v = IEEE754ToDouble(ieee754);

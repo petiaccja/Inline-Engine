@@ -99,10 +99,10 @@ template <>
 std::vector<std::pair<gxapi::eBlendOperation, std::string>> impl::ParseTableGenerator() {
 	std::vector<std::pair<gxapi::eBlendOperation, std::string>> records = {
 		{ gxapi::eBlendOperation::ADD, "ADD" },
-		{ gxapi::eBlendOperation::SUBTRACT, "SUBTRACT"},
-		{ gxapi::eBlendOperation::REVERSE_SUBTRACT,	"REVERSE_SUBTRACT"},
-		{ gxapi::eBlendOperation::MIN, "MIN"},
-		{ gxapi::eBlendOperation::MAX, "MAX"},
+		{ gxapi::eBlendOperation::SUBTRACT, "SUBTRACT" },
+		{ gxapi::eBlendOperation::REVERSE_SUBTRACT, "REVERSE_SUBTRACT" },
+		{ gxapi::eBlendOperation::MIN, "MIN" },
+		{ gxapi::eBlendOperation::MAX, "MAX" },
 	};
 	return records;
 }
@@ -122,7 +122,7 @@ std::vector<std::pair<gxapi::eBlendOperand, std::string>> impl::ParseTableGenera
 		{ gxapi::eBlendOperand::INV_TARGET_ALPHA, "INV_TARGET_ALPHA" },
 		{ gxapi::eBlendOperand::SHADER_ALPHA_SAT, "SHADER_ALPHA_SAT" },
 		{ gxapi::eBlendOperand::BLEND_FACTOR, "BLEND_FACTOR" },
-		{ gxapi::eBlendOperand::INV_BLEND_FACTOR, "INV_BLEND_FACTOR"},
+		{ gxapi::eBlendOperand::INV_BLEND_FACTOR, "INV_BLEND_FACTOR" },
 	};
 	return records;
 }
@@ -152,7 +152,6 @@ std::vector<std::pair<gxapi::eBlendLogicOperation, std::string>> impl::ParseTabl
 
 
 
-
 std::string PortConverter<gxapi::RenderTargetBlendState>::ToString(const gxapi::RenderTargetBlendState& arg) const {
 	std::stringstream ss;
 
@@ -177,17 +176,17 @@ std::string PortConverter<gxapi::RenderTargetBlendState>::ToString(const gxapi::
 	};
 
 	ss << "{"
-		<< (arg.enableBlending ? "enabled" : "disabled") << ","
-		<< (arg.enableLogicOp ? "enabled" : "disabled") << ","
-		<< ToString(arg.shaderColorFactor) << ","
-		<< ToString(arg.targetColorFactor) << ","
-		<< ToString(arg.colorOperation) << ","
-		<< ToString(arg.shaderAlphaFactor) << ","
-		<< ToString(arg.targetAlphaFactor) << ","
-		<< ToString(arg.alphaOperation) << ","
-		<< ToStringMask(arg.mask) << ","
-		<< ToString(arg.logicOperation)
-		<< "}";
+	   << (arg.enableBlending ? "enabled" : "disabled") << ","
+	   << (arg.enableLogicOp ? "enabled" : "disabled") << ","
+	   << ToString(arg.shaderColorFactor) << ","
+	   << ToString(arg.targetColorFactor) << ","
+	   << ToString(arg.colorOperation) << ","
+	   << ToString(arg.shaderAlphaFactor) << ","
+	   << ToString(arg.targetAlphaFactor) << ","
+	   << ToString(arg.alphaOperation) << ","
+	   << ToStringMask(arg.mask) << ","
+	   << ToString(arg.logicOperation)
+	   << "}";
 
 	return ss.str();
 }
@@ -220,18 +219,24 @@ gxapi::RenderTargetBlendState PortConverter<gxapi::RenderTargetBlendState>::From
 
 	// Parse helper
 	auto FromString = [](std::string in, auto& out) -> void {
-		out =  EnumConverter<std::decay_t<decltype(out)>, impl::ParseTableGenerator<std::decay_t<decltype(out)>>>::FromString(in);
+		out = EnumConverter<std::decay_t<decltype(out)>, impl::ParseTableGenerator<std::decay_t<decltype(out)>>>::FromString(in);
 	};
 
 	// Parse tokens one-by-one
 	gxapi::RenderTargetBlendState obj;
-	if (tokens[0] == "enabled") obj.enableBlending = true;
-	else if (tokens[0] == "disabled") obj.enableBlending = false;
-	else throw InvalidArgumentException("Field 0 must be 'enabled' or 'disabled'.");
+	if (tokens[0] == "enabled")
+		obj.enableBlending = true;
+	else if (tokens[0] == "disabled")
+		obj.enableBlending = false;
+	else
+		throw InvalidArgumentException("Field 0 must be 'enabled' or 'disabled'.");
 
-	if (tokens[1] == "enabled") obj.enableLogicOp = true;
-	else if (tokens[1] == "disabled") obj.enableLogicOp = false;
-	else throw InvalidArgumentException("Field 1 must be 'enabled' or 'disabled'.");
+	if (tokens[1] == "enabled")
+		obj.enableLogicOp = true;
+	else if (tokens[1] == "disabled")
+		obj.enableLogicOp = false;
+	else
+		throw InvalidArgumentException("Field 1 must be 'enabled' or 'disabled'.");
 
 	FromString(tokens[2], obj.shaderColorFactor);
 	FromString(tokens[3], obj.targetColorFactor);
@@ -248,11 +253,16 @@ gxapi::RenderTargetBlendState PortConverter<gxapi::RenderTargetBlendState>::From
 			maskTokens.back() += c;
 	}
 	for (const auto& mtoken : maskTokens) {
-		if (mtoken == "RED") obj.mask += gxapi::eColorMask::RED;
-		else if (mtoken == "GREEN") obj.mask += gxapi::eColorMask::GREEN;
-		else if (mtoken == "BLUE") obj.mask += gxapi::eColorMask::BLUE;
-		else if (mtoken == "ALPHA") obj.mask += gxapi::eColorMask::ALPHA;
-		else throw InvalidArgumentException("Colormask (param 9) must be RED, GREEN, BLUE, ALPHA, or a | combination of them.");
+		if (mtoken == "RED")
+			obj.mask += gxapi::eColorMask::RED;
+		else if (mtoken == "GREEN")
+			obj.mask += gxapi::eColorMask::GREEN;
+		else if (mtoken == "BLUE")
+			obj.mask += gxapi::eColorMask::BLUE;
+		else if (mtoken == "ALPHA")
+			obj.mask += gxapi::eColorMask::ALPHA;
+		else
+			throw InvalidArgumentException("Colormask (param 9) must be RED, GREEN, BLUE, ALPHA, or a | combination of them.");
 	}
 
 	FromString(tokens[9], obj.logicOperation);
@@ -290,11 +300,16 @@ gxeng::TextureUsage PortConverter<gxeng::TextureUsage>::FromString(const std::st
 			tokens.back() += c;
 	}
 	for (const auto& tk : tokens) {
-		if (tk == "DS") obj.depthStencil = true;
-		else if (tk == "RW") obj.randomAccess = true;
-		else if (tk == "RT") obj.renderTarget = true;
-		else if (tk == "SR") obj.shaderResource = true;
-		else throw InvalidArgumentException("Usage must be DS, RW, RT, SR, or a | combination of them.");
+		if (tk == "DS")
+			obj.depthStencil = true;
+		else if (tk == "RW")
+			obj.randomAccess = true;
+		else if (tk == "RT")
+			obj.renderTarget = true;
+		else if (tk == "SR")
+			obj.shaderResource = true;
+		else
+			throw InvalidArgumentException("Usage must be DS, RW, RT, SR, or a | combination of them.");
 	}
 
 	return obj;
@@ -302,5 +317,4 @@ gxeng::TextureUsage PortConverter<gxeng::TextureUsage>::FromString(const std::st
 
 
 
-
-};
+}; // namespace inl

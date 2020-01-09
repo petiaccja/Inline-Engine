@@ -1,10 +1,10 @@
 #pragma once
 
-#include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include "../GraphicsApi_LL/IDescriptorHeap.hpp"
+#include "../GraphicsApi_LL/IGraphicsApi.hpp"
 
-#include <limits>
 #include <cstdint>
+#include <limits>
 
 namespace inl::gxeng {
 
@@ -51,6 +51,7 @@ protected:
 /// </summary>
 class StackDescHeap {
 	friend class DescriptorArrayRef;
+
 public:
 	StackDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type, uint32_t size);
 
@@ -62,6 +63,7 @@ public:
 	void Reset();
 
 	gxapi::IDescriptorHeap* GetHeap() const { return m_heap.get(); }
+
 protected:
 	std::unique_ptr<gxapi::IDescriptorHeap> m_heap;
 	uint32_t m_size;
@@ -69,4 +71,4 @@ protected:
 };
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

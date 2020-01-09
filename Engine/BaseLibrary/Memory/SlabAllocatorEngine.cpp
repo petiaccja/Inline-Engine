@@ -1,20 +1,19 @@
 #include "SlabAllocatorEngine.hpp"
+
 #include "../BitOperations.hpp"
 
-#include <cassert>
 #include <algorithm>
+#include <cassert>
 
 
 namespace inl {
 
 SlabAllocatorEngine::SlabAllocatorEngine() : m_poolSize(0), m_blocks(), m_first(nullptr) {
-
 }
 
 
 SlabAllocatorEngine::SlabAllocatorEngine(size_t poolSize)
-	: m_poolSize(poolSize), m_blocks((poolSize + SlotsPerBlock - 1) / SlotsPerBlock)
-{
+	: m_poolSize(poolSize), m_blocks((poolSize + SlotsPerBlock - 1) / SlotsPerBlock) {
 	Reset();
 }
 

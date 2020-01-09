@@ -35,12 +35,11 @@ private:
 	lemon::ListDigraph m_graph;
 	lemon::ListDigraph::NodeMap<game::Entity*> m_entityMap;
 	std::unordered_map<const game::Entity*, lemon::ListDigraph::Node> m_nodeMap;
-	
+
 	bool m_dirty = true;
 	std::vector<game::Entity*> m_sortedEntities;
 };
 
 
 
-
-} // namespace inl::game
+} // namespace inl::gamelib

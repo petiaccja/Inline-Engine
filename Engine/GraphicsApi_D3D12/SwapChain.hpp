@@ -1,11 +1,11 @@
 #pragma once
 
-#include "../GraphicsApi_LL/ISwapChain.hpp"
 #include "../GraphicsApi_LL/Common.hpp"
+#include "../GraphicsApi_LL/DisableWin32Macros.h"
+#include "../GraphicsApi_LL/ISwapChain.hpp"
 
 #include <dxgi1_4.h>
 #include <wrl.h>
-#include "../GraphicsApi_LL/DisableWin32Macros.h"
 
 namespace inl::gxapi_dx12 {
 
@@ -28,4 +28,4 @@ private:
 	Microsoft::WRL::ComPtr<IDXGISwapChain3> m_native;
 };
 
-} //namespace gxapi_dx12
+} // namespace inl::gxapi_dx12

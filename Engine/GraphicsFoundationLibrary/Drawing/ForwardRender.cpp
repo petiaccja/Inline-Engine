@@ -1,7 +1,5 @@
 #include "ForwardRender.hpp"
 
-#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
-
 #include <BaseLibrary/Range.hpp>
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
 #include <GraphicsEngine_LL/GraphicsCommandList.hpp>
@@ -9,6 +7,7 @@
 #include <GraphicsEngine_LL/Material.hpp>
 #include <GraphicsEngine_LL/MaterialShader.hpp>
 #include <GraphicsEngine_LL/MeshEntity.hpp>
+#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 
 #include <regex>
 
@@ -928,7 +927,7 @@ std::unique_ptr<gxapi::IPipelineState> ForwardRender::CreatePso(
 	psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 	//psoDesc.depthStencilState = gxapi::DepthStencilState{false, true};
-	psoDesc.depthStencilState = gxapi::DepthStencilState{.enableDepthTest = true, .enableDepthStencilWrite = true };
+	psoDesc.depthStencilState = gxapi::DepthStencilState{ .enableDepthTest = true, .enableDepthStencilWrite = true };
 	psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::EQUAL;
 	psoDesc.depthStencilState.enableStencilTest = true;
 	psoDesc.depthStencilState.stencilReadMask = 0;

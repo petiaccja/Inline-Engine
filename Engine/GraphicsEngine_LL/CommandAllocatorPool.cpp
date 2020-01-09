@@ -9,13 +9,11 @@ namespace inl::gxeng {
 
 
 CommandAllocatorPool::CommandAllocatorPool(gxapi::IGraphicsApi* gxApi)
-	: m_gxPool(gxApi), m_cuPool(gxApi), m_cpPool(gxApi)
-{}
+	: m_gxPool(gxApi), m_cuPool(gxApi), m_cpPool(gxApi) {}
 
 
 auto CommandAllocatorPool::RequestAllocator(gxapi::eCommandListType type) -> CmdAllocPtr {
-	switch (type)
-	{
+	switch (type) {
 		case gxapi::eCommandListType::COPY:
 			return m_cpPool.RequestAllocator();
 		case gxapi::eCommandListType::COMPUTE:
@@ -31,8 +29,7 @@ auto CommandAllocatorPool::RequestAllocator(gxapi::eCommandListType type) -> Cmd
 
 
 void CommandAllocatorPool::RecycleAllocator(gxapi::ICommandAllocator* allocator) {
-	switch (allocator->GetType())
-	{
+	switch (allocator->GetType()) {
 		case gxapi::eCommandListType::COPY:
 			m_cpPool.RecycleAllocator(allocator);
 		case gxapi::eCommandListType::COMPUTE:
@@ -57,4 +54,4 @@ gxapi::IGraphicsApi* CommandAllocatorPool::GetGraphicsApi() const {
 }
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

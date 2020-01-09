@@ -1,4 +1,5 @@
 #include "Logger.hpp"
+
 #include "LogNode.hpp"
 #include "LogPipe.hpp"
 

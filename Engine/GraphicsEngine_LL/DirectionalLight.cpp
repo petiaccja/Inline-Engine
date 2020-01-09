@@ -3,11 +3,8 @@
 namespace inl::gxeng {
 
 
-DirectionalLight::DirectionalLight(Vec3 direction, Vec3 color
-):
-	m_direction(direction.Normalized()),
-	m_color(color)
-{}
+DirectionalLight::DirectionalLight(Vec3 direction, Vec3 color) : m_direction(direction.Normalized()),
+																 m_color(color) {}
 
 
 void DirectionalLight::SetDirection(const Vec3& dir) {

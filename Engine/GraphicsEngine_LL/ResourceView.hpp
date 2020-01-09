@@ -6,8 +6,8 @@
 #include <GraphicsApi_LL/Common.hpp>
 
 #include <cassert>
-#include <utility>
 #include <iostream>
+#include <utility>
 
 namespace inl::gxeng {
 
@@ -34,9 +34,10 @@ class ResourceViewBase {
 			}
 		}
 	};
+
 public:
 	ResourceViewBase() = default;
-	
+
 	/// <summary> Returns the underlying resource. </summary>
 	ResourceT& GetResource() {
 		assert(operator bool());
@@ -65,6 +66,7 @@ public:
 	explicit operator bool() const {
 		return (bool)m_state;
 	}
+
 protected:
 	ResourceViewBase(const ResourceT& resource, IHostDescHeap* heap) {
 		m_state = std::make_shared<SharedState>(resource, heap, heap->Allocate());
@@ -77,6 +79,7 @@ protected:
 	void SetSubresourceList(std::vector<uint32_t> list) {
 		m_state->subresourceList = std::move(list);
 	}
+
 private:
 	std::shared_ptr<SharedState> m_state;
 };
@@ -88,7 +91,7 @@ public:
 
 	const VertexBuffer& GetResource();
 
-	const std::vector<uint32_t>& GetSubresourceList() const { 
+	const std::vector<uint32_t>& GetSubresourceList() const {
 		static const std::vector<uint32_t> list = std::initializer_list<uint32_t>{ gxapi::ALL_SUBRESOURCES };
 		return list;
 	}
@@ -114,7 +117,7 @@ public:
 	RenderTargetView2D() = default;
 	RenderTargetView2D(const Texture2D& resource, RTVHeap& heap, gxapi::eFormat format, gxapi::RtvTexture2DArray desc);
 	RenderTargetView2D(const Texture2D& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::RtvTexture2DArray desc);
-	
+
 	gxapi::RenderTargetViewDesc GetDescription() const;
 
 protected:
@@ -285,4 +288,4 @@ protected:
 };
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

@@ -2,8 +2,9 @@
 
 
 #include "Input.hpp"
-#include <vector>
+
 #include <InlineMath.hpp>
+#include <vector>
 
 
 namespace inl {

@@ -19,4 +19,4 @@ struct EventEntry {
 using EventBuffer = std::deque<EventEntry>;
 
 
-}
+} // namespace inl

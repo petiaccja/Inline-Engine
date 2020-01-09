@@ -15,8 +15,7 @@ namespace inl::gxeng {
 //------------------------------------------------------------------------------
 
 MeshBuffer::MeshBuffer(MemoryManager* memoryManager)
-	: m_memoryManager(memoryManager), m_isIndex32Bit(false)
-{
+	: m_memoryManager(memoryManager), m_isIndex32Bit(false) {
 	assert(m_memoryManager != nullptr);
 }
 
@@ -65,4 +64,4 @@ const IndexBuffer& MeshBuffer::GetIndexBuffer() const {
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

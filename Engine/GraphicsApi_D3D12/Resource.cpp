@@ -4,23 +4,20 @@
 
 #include "Resource.hpp"
 
-#include "NativeCast.hpp"
-#include "ExceptionExpansions.hpp"
-
 #include "D3dx12.h"
+#include "ExceptionExpansions.hpp"
+#include "NativeCast.hpp"
 
 #include <cassert>
 
 
 namespace inl::gxapi_dx12 {
 
-Resource::Resource(ComPtr<ID3D12Resource>& native, std::nullptr_t) : Resource(native, ComPtr<ID3D12Device>(nullptr))
-{}
+Resource::Resource(ComPtr<ID3D12Resource>& native, std::nullptr_t) : Resource(native, ComPtr<ID3D12Device>(nullptr)) {}
 
 
 Resource::Resource(ComPtr<ID3D12Resource>& native, ComPtr<ID3D12Device> device)
-	: m_native{ native }
-{
+	: m_native{ native } {
 	auto desc = GetDesc();
 
 	// calculate number of mip levels
@@ -147,7 +144,7 @@ Vec3u64 Resource::GetSize(unsigned mipLevel) const {
 
 	for (unsigned i = 1; i < mipLevel; ++i) {
 		topLevelSize /= 2;
-		topLevelSize = Vec3u64::Max(topLevelSize, { 1,1,1 });
+		topLevelSize = Vec3u64::Max(topLevelSize, { 1, 1, 1 });
 	}
 
 	return topLevelSize;
@@ -162,4 +159,4 @@ void Resource::SetName(const char* name) {
 }
 
 
-} // namespace inl
+} // namespace inl::gxapi_dx12

@@ -2,12 +2,10 @@
 
 #include <cassert>
 
-namespace inl :: gxeng {
+namespace inl ::gxeng {
 
 
-ConstantBufferHeap::ConstantBufferHeap(gxapi::IGraphicsApi* graphicsApi) :
-	m_graphicsApi(graphicsApi)
-{
+ConstantBufferHeap::ConstantBufferHeap(gxapi::IGraphicsApi* graphicsApi) : m_graphicsApi(graphicsApi) {
 	m_pages.PushFront(CreatePage());
 }
 
@@ -33,9 +31,8 @@ VolatileConstBuffer ConstantBufferHeap::CreateVolatileConstBuffer(const void* da
 
 				auto roundEnd = m_largePages.End();
 				for (;
-					m_largePages.Begin() != roundEnd;
-					m_largePages.RotateFront())
-				{
+					 m_largePages.Begin() != roundEnd;
+					 m_largePages.RotateFront()) {
 					auto& currPage = m_largePages.Front();
 					MarkEmptyIfRecycled(currPage);
 					if (currPage.m_consumedSize + targetSize <= currPage.m_pageSize) {
@@ -94,12 +91,11 @@ PersistentConstBuffer ConstantBufferHeap::CreatePersistentConstBuffer(const void
 			gxapi::HeapProperties{ gxapi::eHeapType::UPLOAD },
 			gxapi::eHeapFlags::NONE,
 			gxapi::ResourceDesc::Buffer(dataSize),
-			gxapi::eResourceState::GENERIC_READ
-		),
+			gxapi::eResourceState::GENERIC_READ),
 		std::default_delete<const gxapi::IResource>()
 	};
 
-	gxapi::MemoryRange noReadRange{0, 0};
+	gxapi::MemoryRange noReadRange{ 0, 0 };
 	void* dst = resource->Map(0, &noReadRange);
 	memcpy(dst, data, dataSize);
 	resource->Unmap(0, nullptr);
@@ -110,12 +106,10 @@ PersistentConstBuffer ConstantBufferHeap::CreatePersistentConstBuffer(const void
 }
 
 
-void ConstantBufferHeap::OnFrameBeginDevice(uint64_t frameId)
-{}
+void ConstantBufferHeap::OnFrameBeginDevice(uint64_t frameId) {}
 
 
-void ConstantBufferHeap::OnFrameBeginHost(uint64_t frameId)
-{}
+void ConstantBufferHeap::OnFrameBeginHost(uint64_t frameId) {}
 
 
 void ConstantBufferHeap::OnFrameCompleteDevice(uint64_t frameId) {
@@ -128,9 +122,8 @@ void ConstantBufferHeap::OnFrameCompleteDevice(uint64_t frameId) {
 		foundVictim = false;
 
 		for (auto roundEnd = m_largePages.End();
-			m_largePages.Begin() != roundEnd && !foundVictim;
-			m_largePages.RotateFront())
-		{
+			 m_largePages.Begin() != roundEnd && !foundVictim;
+			 m_largePages.RotateFront()) {
 			if (HasBecomeAvailable(m_largePages.Front())) {
 				foundVictim = true;
 				m_largePages.PopFront();
@@ -147,8 +140,8 @@ void ConstantBufferHeap::OnFrameCompleteHost(uint64_t frameId) {
 
 size_t ConstantBufferHeap::SnapUpward(size_t value, size_t gridSize) {
 	// alignement should be power of two
-	assert(((gridSize-1) & gridSize) == 0);
-	return (value + (gridSize-1)) & ~(gridSize-1);
+	assert(((gridSize - 1) & gridSize) == 0);
+	return (value + (gridSize - 1)) & ~(gridSize - 1);
 }
 
 
@@ -161,18 +154,17 @@ ConstantBufferHeap::ConstBufferPage ConstantBufferHeap::CreateLargePage(size_t f
 	const size_t resourceSize = SnapUpward(fittingSize, ALIGNEMENT);
 	std::unique_ptr<gxapi::IResource> resource{
 		m_graphicsApi->CreateCommittedResource(
-			gxapi::HeapProperties{gxapi::eHeapType::UPLOAD},
+			gxapi::HeapProperties{ gxapi::eHeapType::UPLOAD },
 			gxapi::eHeapFlags::NONE,
 			gxapi::ResourceDesc::Buffer(resourceSize),
-			gxapi::eResourceState::GENERIC_READ
-		)
+			gxapi::eResourceState::GENERIC_READ)
 	};
 
-	gxapi::MemoryRange noReadRange{0, 0};
+	gxapi::MemoryRange noReadRange{ 0, 0 };
 	void* cpuAddress = resource->Map(0, &noReadRange);
 	void* gpuAddress = resource->GetGPUAddress();
 
-	ConstBufferPage newPage{std::move(resource), cpuAddress, gpuAddress, resourceSize, m_currFrameID};
+	ConstBufferPage newPage{ std::move(resource), cpuAddress, gpuAddress, resourceSize, m_currFrameID };
 	return newPage;
 }
 
@@ -189,4 +181,4 @@ void ConstantBufferHeap::MarkEmptyIfRecycled(ConstBufferPage& page) {
 }
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

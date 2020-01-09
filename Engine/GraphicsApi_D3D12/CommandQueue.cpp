@@ -1,22 +1,22 @@
 #include "CommandQueue.hpp"
 
-#include "NativeCast.hpp"
-#include "ExceptionExpansions.hpp"
 #include "CommandList.hpp"
+#include "ExceptionExpansions.hpp"
 #include "Fence.hpp"
+#include "NativeCast.hpp"
 
-#include <cassert>
-#include <vector>
-
-#include <d3d12.h>
-#include <WinPixEventRuntime/pix3.h>
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
+
+#include <WinPixEventRuntime/pix3.h>
+#include <cassert>
+#include <d3d12.h>
+#include <vector>
 
 namespace inl::gxapi_dx12 {
 
 
 CommandQueue::CommandQueue(ComPtr<ID3D12CommandQueue>& native)
-	: m_native{native} {
+	: m_native{ native } {
 }
 
 
@@ -25,7 +25,7 @@ ID3D12CommandQueue* CommandQueue::GetNative() {
 }
 
 
-void CommandQueue::ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommandList* const * commandLists) {
+void CommandQueue::ExecuteCommandLists(uint32_t numCommandLists, gxapi::ICommandList* const* commandLists) {
 	std::vector<ID3D12CommandList*> nativeCommandLists;
 	nativeCommandLists.reserve(numCommandLists);
 
@@ -64,4 +64,4 @@ void CommandQueue::EndDebuggerEvent() const {
 }
 
 
-} // namespace gxapi_dx12
+} // namespace inl::gxapi_dx12

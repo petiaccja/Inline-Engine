@@ -4,8 +4,7 @@
 * Output: upsampled HDR color texture
 */
 
-struct Uniforms
-{
+struct Uniforms {
 	float maxBlurDiameter;
 	float tileSize;
 };
@@ -18,15 +17,13 @@ Texture2D originalTex : register(t2); //full res tex
 SamplerState samp0 : register(s0); //point
 SamplerState samp1 : register(s1); //linear
 
-struct PS_Input
-{
+struct PS_Input {
 	float4 position : SV_POSITION;
 	float2 texCoord : TEX_COORD0;
 };
 
 //warning: result [0...far]
-float LinearizeDepth(float depth, float near, float far)
-{
+float LinearizeDepth(float depth, float near, float far) {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 	float zndc = depth;
@@ -38,8 +35,7 @@ float LinearizeDepth(float depth, float near, float far)
 	return vsZrecon;
 };
 
-float4 FilterFuncTier3(float2 uv, float2 resolution, float4 centerTap)
-{
+float4 FilterFuncTier3(float2 uv, float2 resolution, float4 centerTap) {
 	const float pi = 3.14159265;
 	int taps = 8;
 	const float threshold = 0.1;
@@ -47,8 +43,7 @@ float4 FilterFuncTier3(float2 uv, float2 resolution, float4 centerTap)
 	float centerCoc = centerTap.w;
 	float dist = max(centerCoc * 0.5 * 0.333, 1.0); //9
 
-	if (centerCoc <= 1.0)
-	{
+	if (centerCoc <= 1.0) {
 		return centerTap;
 	}
 
@@ -56,13 +51,12 @@ float4 FilterFuncTier3(float2 uv, float2 resolution, float4 centerTap)
 	float ftaps = 1.0 / float(taps);
 	float2 pixelSize = 1.0 / resolution;
 
-	for (int c = 0; c < taps; ++c)
-	{
+	for (int c = 0; c < taps; ++c) {
 		float xx = cos(2.0 * pi * float(c) * ftaps) * dist;
 		float yy = sin(2.0 * pi * float(c) * ftaps) * dist;
 
 		float2 sampleUV = uv + float2(xx, yy) * pixelSize;
- 
+
 		result += inputTex.Sample(samp1, sampleUV); //bilinear tap
 	}
 
@@ -70,8 +64,7 @@ float4 FilterFuncTier3(float2 uv, float2 resolution, float4 centerTap)
 }
 
 //all in metres (scene unit)
-float CalculateCoc(float focalLength, float subjectDistance, float openingDiameter, float sceneDepth)
-{
+float CalculateCoc(float focalLength, float subjectDistance, float openingDiameter, float sceneDepth) {
 	//return focal_length * (focal_length / subject_distance) * abs(scene_depth - subject_distance) /
 	//	((focal_length / opening_diameter) * (subject_distance + (scene_depth < subject_distance ? -1 : 1) * abs(scene_depth - subject_distance)));
 
@@ -83,14 +76,14 @@ float CalculateCoc(float focalLength, float subjectDistance, float openingDiamet
 
 	//gpu gems, optimized math
 	//gpu
-	//CoC = abs(z * CoCScale + CoCBias) 
+	//CoC = abs(z * CoCScale + CoCBias)
 	//cpu
 	//CoCScale = (aperture * focallength * planeinfocus * (zfar - znear)) / ((planeinfocus - focallength) * znear * zfar)
 	//CoCBias = (aperture * focallength * (znear - planeinfocus)) /	((planeinfocus * focallength) * znear)
 }
 
-PS_Input VSMain(uint vertexId : SV_VertexID)
-{
+PS_Input VSMain(uint vertexId
+				: SV_VertexID) {
 	// Triangle strip based on vertex id
 	// 3-----2
 	// |   / |
@@ -100,20 +93,19 @@ PS_Input VSMain(uint vertexId : SV_VertexID)
 	// 1: (0, 0)
 	// 2: (1, 1)
 	// 3: (0, 1)
-    PS_Input output;
+	PS_Input output;
 
-    output.texCoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
-    output.texCoord.y = vertexId >> 1; // 1 if bit1 is 1.
+	output.texCoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
+	output.texCoord.y = vertexId >> 1; // 1 if bit1 is 1.
 
-    float2 posL = output.texCoord.xy * 2.0f - float2(1, 1);
-    output.position = float4(posL, 0.5f, 1.0f);
-    output.texCoord.y = 1.f - output.texCoord.y;
+	float2 posL = output.texCoord.xy * 2.0f - float2(1, 1);
+	output.position = float4(posL, 0.5f, 1.0f);
+	output.texCoord.y = 1.f - output.texCoord.y;
 
-    return output;
+	return output;
 }
 
-float4 PSMain(PS_Input input) : SV_TARGET
-{
+float4 PSMain(PS_Input input) : SV_TARGET {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 

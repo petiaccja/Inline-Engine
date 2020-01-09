@@ -41,7 +41,7 @@ TEST_CASE("Save-Load cycle", "[GameLogic:Level]") {
 		LevelOutputArchive archive{ std::in_place_type<cereal::JSONOutputArchive>, output };
 		savedLevel.Save(archive, ComponentFactory_Singleton::GetInstance());
 	}
-	
+
 	Scene loadedScene;
 	Level loadedLevel{ loadedScene };
 

@@ -5,8 +5,8 @@
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include "../GraphicsApi_LL/IResource.hpp"
 
-#include <functional>
 #include <cassert>
+#include <functional>
 #include <string>
 
 namespace inl::gxeng {
@@ -32,6 +32,7 @@ public:
 	friend struct std::hash<MemoryObject>;
 
 	using UniquePtr = std::unique_ptr<gxapi::IResource, std::function<void(const gxapi::IResource*)>>;
+
 public:
 	static bool PtrLess(const MemoryObject& lhs, const MemoryObject& rhs);
 	static bool PtrGreater(const MemoryObject& lhs, const MemoryObject& rhs);
@@ -69,7 +70,7 @@ public:
 	bool HasObject() const {
 		return (bool)m_contents;
 	}
-	
+
 	/// <summary> Return the virtual address of the GPU resource behind this object. </summary>
 	virtual void* GetVirtualAddress() const;
 
@@ -98,7 +99,10 @@ public:
 	unsigned GetNumMiplevels() const { return (unsigned)m_contents->resource->GetNumMipLevels(); }
 
 
-	eResourceHeap GetHeap() const { assert(m_contents->heap != eResourceHeap::INVALID); return m_contents->heap; }
+	eResourceHeap GetHeap() const {
+		assert(m_contents->heap != eResourceHeap::INVALID);
+		return m_contents->heap;
+	}
 
 	void _SetResident(bool value) noexcept;
 	bool _GetResident() const noexcept;
@@ -242,4 +246,4 @@ struct hash<inl::gxeng::MemoryObject> {
 		return reinterpret_cast<size_t>(obj.m_contents.get());
 	}
 };
-}
+} // namespace std

@@ -6,23 +6,19 @@ Texture2D<float4> layeredShadowTex : register(t602);
 SamplerState theSampler : register(s500);
 
 //NOTE: actually, just use SRGB, it's got better quality!
-float3 LinearToGamma(float3 col)
-{
+float3 LinearToGamma(float3 col) {
 	return pow(col, float3(1 / 2.2, 1 / 2.2, 1 / 2.2));
 }
 
-float3 GammaToLinear(float3 col)
-{
+float3 GammaToLinear(float3 col) {
 	return pow(col, float3(2.2, 2.2, 2.2));
 }
 
-float3 GetSkyColor()
-{
+float3 GetSkyColor() {
 	return float3(110, 165, 255) / 255.0;
 }
 
-float3 HemisphereAmbientLighting(float3 wsN)
-{
+float3 HemisphereAmbientLighting(float3 wsN) {
 	//hemisphere ambient term for visualization
 	float4 skyCol = float4(GetSkyColor(), 1);
 	float3 skyDir = float3(0, 0, 1);
@@ -33,34 +29,27 @@ float3 HemisphereAmbientLighting(float3 wsN)
 	return hemiIntensity * lerp(groundCol.xyz, skyCol.xyz, vecHemi);
 }
 
-float GetLayeredShadow( float2 texCoord, const int layer )
-{
-	if(layer == 0)
-	{
+float GetLayeredShadow(float2 texCoord, const int layer) {
+	if (layer == 0) {
 		return layeredShadowTex.SampleLevel(theSampler, texCoord, 0).x;
 	}
-	else if(layer == 1)
-	{
+	else if (layer == 1) {
 		return layeredShadowTex.SampleLevel(theSampler, texCoord, 0).y;
 	}
-	else if(layer == 2)
-	{
+	else if (layer == 2) {
 		return layeredShadowTex.SampleLevel(theSampler, texCoord, 0).z;
 	}
-	else
-	{
+	else {
 		return layeredShadowTex.SampleLevel(theSampler, texCoord, 0).w;
 	}
 }
 
 float3 GetLighting(float4 svPosition, //gl_FragCoord
-					float4 albedo, 
-					float3 vsNormal,
-					float4 vsPos,
-					float roughness,
-					float metalness
-						)
-{
+				   float4 albedo,
+				   float3 vsNormal,
+				   float4 vsPos,
+				   float roughness,
+				   float metalness) {
 	uint2 globalId = uint2(svPosition.xy);
 	float2 globalSize = uniforms.screenDimensions;
 	uint2 localSize = uint2(16, 16);
@@ -69,15 +58,14 @@ float3 GetLighting(float4 svPosition, //gl_FragCoord
 
 	uint localNumOfLights = lightCullData.Load(int3(groupId.x * uniforms.groupSizeY + groupId.y, 0, 0));
 	//uint local_num_of_lights = lightCullData.Load(int3(global_id, 0));
-	
+
 	//return float3(asfloat(local_num_of_lights), 0, 0);
 	//return float3(float(local_num_of_lights), 0, 0);
 
 	float3 vsViewDir = normalize(uniforms.vsCamPos.xyz - vsPos.xyz);
 
 	float3 color = float3(0, 0, 0);
-	for (uint c = 0; c < localNumOfLights; ++c)
-	{
+	for (uint c = 0; c < localNumOfLights; ++c) {
 		uint index = lightCullData.Load(int3(groupId.x * uniforms.groupSizeY + groupId.y, c + 1, 0));
 		float3 vsLightPos = uniforms.ld[index].vsPosition.xyz;
 		float attenuationEnd = uniforms.ld[index].attenuationEnd;
@@ -89,8 +77,7 @@ float3 GetLighting(float4 svPosition, //gl_FragCoord
 
 		float attenuation = (attenuationEnd - distance) / attenuationEnd;
 
-		if (attenuation > 0.0)
-		{
+		if (attenuation > 0.0) {
 			float nDotL = max(dot(vsNormal, lightDir), 0.0);
 
 			//color += (n_dot_l * attenuation) * (diffuse_color.xyz * 10.0 * albedo.xyz); //TODO: shadow
@@ -98,11 +85,10 @@ float3 GetLighting(float4 svPosition, //gl_FragCoord
 			color += getCookTorranceBRDF(albedo.xyz,
 										 vsNormal,
 										 vsViewDir,
-									     lightDir,
+										 lightDir,
 										 diffuseColor.xyz * attenuation * 10.0 * GetLayeredShadow(texel, 1),
-										 roughness, 
-										 metalness 
-										);
+										 roughness,
+										 metalness);
 
 			//const float roughness = 1.0;
 			//const float metallic = 0.0;
@@ -127,9 +113,9 @@ float3 GetLighting(float4 svPosition, //gl_FragCoord
 	}
 
 	float screenSpaceShadow = 1.0;
-	#ifndef NO_SSShadow
+#ifndef NO_SSShadow
 	screenSpaceShadow = screenSpaceShadowTex.Sample(samp0, texel);
-	#endif
+#endif
 
 	color += getCookTorranceBRDF(albedo.xyz,
 								 vsNormal,
@@ -139,7 +125,7 @@ float3 GetLighting(float4 svPosition, //gl_FragCoord
 								 roughness,
 								 metalness);
 
-    //color.xyz += hemisphere_ambient_lighting(g_wsNormal.xyz) * 0.8f * albedo.xyz;
+	//color.xyz += hemisphere_ambient_lighting(g_wsNormal.xyz) * 0.8f * albedo.xyz;
 
 	return color;
 	//return g_normal.xyz;

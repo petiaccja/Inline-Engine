@@ -1,14 +1,15 @@
 #pragma once
 
-#include "InputEvents.hpp"
 #include "../../Event.hpp"
-#include <thread>
+#include "../../Singleton.hpp"
+#include "InputEvents.hpp"
+
 #include <atomic>
 #include <map>
-#include <set>
 #include <mutex>
 #include <queue>
-#include "../../Singleton.hpp"
+#include <set>
+#include <thread>
 
 
 #define WIN32_LEAN_AND_MEAN
@@ -45,6 +46,7 @@ struct InputDevice {
 
 class Input {
 	friend class RawInputSourceBase;
+
 public:
 	Input();
 	Input(size_t deviceId);
@@ -54,9 +56,9 @@ public:
 	/// <summary> Tells how many events should be queued at maximum. Only applies to queued mode. </summary>
 	void SetQueueSizeHint(size_t queueSize);
 
-	/// <summary> Sets event calling mode: in immediate mode, events are called 
+	/// <summary> Sets event calling mode: in immediate mode, events are called
 	///		asynchonously from another thread; in queued mode, events are stored
-	///		and you have to call <see cref="CallEvents"> manually to call all queued 
+	///		and you have to call <see cref="CallEvents"> manually to call all queued
 	///		events on the caller's thread. </summary>
 	void SetQueueMode(eInputQueueMode mode);
 
@@ -74,6 +76,7 @@ public:
 	static std::vector<InputDevice> GetDeviceList(eInputSourceType filter);
 
 	static DWORD DbgTID() { return RawInputSource::GetInstance().DbgTID(); }
+
 public:
 	Event<MouseButtonEvent> OnMouseButton;
 	Event<MouseMoveEvent> OnMouseMove;
@@ -101,6 +104,7 @@ private:
 			std::vector<HIDP_BUTTON_CAPS> buttonCaps;
 			std::vector<HIDP_VALUE_CAPS> valueCaps;
 		};
+
 	public:
 		RawInputSourceBase();
 		~RawInputSourceBase();
@@ -108,6 +112,7 @@ private:
 		void AddInput(Input* input, size_t device);
 		void RemoveInput(Input* input, size_t device = InvalidDeviceId);
 		DWORD DbgTID() { return GetThreadId(m_messageLoopThread.native_handle()); }
+
 	private:
 		static LRESULT __stdcall WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 		void ProcessInput(const RAWINPUT& rawInput);
@@ -117,6 +122,7 @@ private:
 		void CallEvents(size_t device, Event<EventArg> Input::*eventMember, const EventArg& evt) const;
 
 		static JoyState GetJoyInfo(size_t deviceId);
+
 	private:
 		std::mutex m_mtx;
 		std::thread m_messageLoopThread;
@@ -157,7 +163,7 @@ void Input::RawInputSourceBase::CallEvents(size_t device, Event<EventArg> Input:
 
 
 namespace impl {
-eKey TranslateKey(unsigned vkey);
+	eKey TranslateKey(unsigned vkey);
 }
 
 

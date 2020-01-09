@@ -38,7 +38,7 @@ void EntitySchemeSet::Destroy(Entity& entity) {
 	if (!m_components.entities.empty()) {
 		m_components.entities.erase(m_components.entities.begin() + index);
 	}
-		
+
 	if (m_entities.size() > index) {
 		m_entities[index]->m_index = index;
 	}
@@ -112,7 +112,7 @@ size_t EntitySchemeSet::SpliceReduce(EntitySchemeSet& source, size_t sourceIndex
 		});
 		source.m_components.entities.erase(source.m_components.entities.begin() + sourceIndex);
 	}
-	
+
 	m_entities.back()->m_index = m_entities.size() - 1;
 	m_entities.back()->m_set = this;
 

@@ -45,7 +45,7 @@ public:
 	void Add(std::shared_ptr<BasicActionListener> listener);
 	void Remove(const std::shared_ptr<BasicActionListener>& listener);
 	void Clear();
-	
+
 private:
 	std::queue<std::any> m_events;
 	std::unordered_set<std::shared_ptr<BasicActionListener>> m_listeners;
@@ -80,7 +80,6 @@ inline void ActionSystem::Remove(const std::shared_ptr<BasicActionListener>& lis
 
 inline void ActionSystem::Clear() {
 	m_listeners.clear();
-	
 }
 
 template <class Event>

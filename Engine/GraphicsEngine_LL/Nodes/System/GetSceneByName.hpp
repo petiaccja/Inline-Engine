@@ -1,7 +1,6 @@
 #pragma once
 
 #include <GraphicsEngine_LL/GraphicsNode.hpp>
-
 #include <GraphicsEngine_LL/Scene.hpp>
 
 namespace inl::gxeng::nodes {
@@ -15,12 +14,10 @@ namespace inl::gxeng::nodes {
 /// <remarks>
 /// Throws an exception if the scene cannot be found, never returns nulls.
 /// </remarks>
-class GetSceneByName :
-	virtual public GraphicsNode,
-	virtual public GraphicsTask,
-	virtual public InputPortConfig<std::string>,
-	virtual public OutputPortConfig<const Scene*>
-{
+class GetSceneByName : virtual public GraphicsNode,
+					   virtual public GraphicsTask,
+					   virtual public InputPortConfig<std::string>,
+					   virtual public OutputPortConfig<const Scene*> {
 public:
 	static const char* Info_GetName() { return "GetSceneByName"; }
 
@@ -65,6 +62,7 @@ public:
 	const std::vector<const Scene*>& GetSceneList() const {
 		return m_sceneList;
 	}
+
 private:
 	std::vector<const Scene*> m_sceneList;
 };

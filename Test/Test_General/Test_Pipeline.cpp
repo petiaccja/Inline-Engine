@@ -1,13 +1,13 @@
 #include "Test.hpp"
 
+#include <BaseLibrary/Graph_All.hpp>
+#include <GraphicsEngine_LL/GraphicsNode.hpp>
 #include <GraphicsEngine_LL/GraphicsNodeFactory.hpp>
 #include <GraphicsEngine_LL/Pipeline.hpp>
-#include <GraphicsEngine_LL/GraphicsNode.hpp>
-#include <BaseLibrary/Graph_All.hpp>
-
-#include <iostream>
-#include <fstream>
 #include <GraphicsEngine_LL/Scheduler.hpp>
+
+#include <fstream>
+#include <iostream>
 
 using namespace std;
 using namespace inl::gxeng;
@@ -22,8 +22,8 @@ using namespace inl;
 class TestNode : public InputPortConfig<int, int>, public OutputPortConfig<int> {
 public:
 	static std::string Info_GetName() { return "TestNode"; }
-	static std::vector<std::string> Info_GetInputNames() { return{ "in" }; }
-	static std::vector<std::string> Info_GetOutputNames() { return{ "out" }; }
+	static std::vector<std::string> Info_GetInputNames() { return { "in" }; }
+	static std::vector<std::string> Info_GetOutputNames() { return { "out" }; }
 
 	virtual void Update() override {
 		auto input1 = GetInput<0>();
@@ -31,11 +31,11 @@ public:
 		auto output = GetOutput<0>();
 		auto inputValue = input1.Get() + input2.Get() + 1;
 		output.Set(inputValue);
-		cout << "id = " << id << ", " << "value = " << inputValue << endl;
+		cout << "id = " << id << ", "
+			 << "value = " << inputValue << endl;
 	}
 
 	virtual void Notify(InputPortBase*) override {
-
 	}
 
 	mutable int id;
@@ -44,19 +44,19 @@ public:
 class TestGraphicsNode : public TestNode, public GraphicsNode {
 public:
 	static std::string Info_GetName() { return "TestGraphicsNode"; }
-	static std::vector<std::string> Info_GetInputNames() { return{ "in" }; }
-	static std::vector<std::string> Info_GetOutputNames() { return{ "out" }; }
+	static std::vector<std::string> Info_GetInputNames() { return { "in" }; }
+	static std::vector<std::string> Info_GetOutputNames() { return { "out" }; }
 
 	void Update() override {
 		auto input1 = GetInput<0>();
 		auto input2 = GetInput<1>();
 		value = input1.Get() + input2.Get();
-		cout << "id = " << id << ", " << "value = " << value << endl;
+		cout << "id = " << id << ", "
+			 << "value = " << value << endl;
 		GetOutput<0>().Set(value);
 	}
 
 	void Notify(InputPortBase*) override {
-
 	}
 
 	// OBSOLETE
@@ -115,6 +115,7 @@ public:
 		return "Pipeline";
 	}
 	virtual int Run() override;
+
 private:
 	static int a;
 };

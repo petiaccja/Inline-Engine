@@ -1,23 +1,25 @@
 #pragma once
 
-#include <InlineMath.hpp>
-#include <string>
-#include <thread>
-#include <mutex>
-#include <atomic>
-#include <filesystem>
-#include <vector>
-
 #include "../../Event.hpp"
 #include "../../Rect.hpp"
-#include "InputEvents.hpp"
 #include "Input.hpp"
+#include "InputEvents.hpp"
+
+#include <InlineMath.hpp>
+#include <atomic>
+#include <filesystem>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <vector>
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#include <Windows.h>
 #include "oleidl.h"
+
 #include "BaseLibrary/Color.hpp"
+
+#include <Windows.h>
 #include <optional>
 #undef DELETE
 
@@ -44,10 +46,10 @@ enum class eWindowCaptionButton {
 class Window : private IDropTarget {
 public:
 	Window(const std::string& title = "Untitled",
-		Vec2u size = { 640, 480 },
-		bool borderless = false, 
-		bool resizable = true,
-		bool hiddenInitially = false);
+		   Vec2u size = { 640, 480 },
+		   bool borderless = false,
+		   bool resizable = true,
+		   bool hiddenInitially = false);
 	Window(const Window&) = delete;
 	Window(Window&& rhs) noexcept;
 	Window& operator=(const Window&) = delete;
@@ -97,7 +99,7 @@ public:
 	/// <summary> Calls all queued events synchronously on the caller's thread. </summary>
 	/// <returns> False if some events were dropped due to too small queue size. </returns>
 	bool CallEvents();
-	
+
 public:
 	Event<MouseButtonEvent> OnMouseButton;
 	Event<MouseMoveEvent> OnMouseMove;
@@ -121,19 +123,19 @@ private:
 	void CallEvent(Event<EventArgs...>& evt, EventArgs... args);
 
 	// drag'n'drop
-	HRESULT __stdcall QueryInterface(const IID& riid, void **ppv) override;
+	HRESULT __stdcall QueryInterface(const IID& riid, void** ppv) override;
 	ULONG __stdcall AddRef() override;
 	ULONG __stdcall Release() override;
-	HRESULT __stdcall DragEnter(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) override;
-	HRESULT __stdcall DragOver(DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) override;
+	HRESULT __stdcall DragEnter(IDataObject* pdto, DWORD grfKeyState, POINTL ptl, DWORD* pdwEffect) override;
+	HRESULT __stdcall DragOver(DWORD grfKeyState, POINTL ptl, DWORD* pdwEffect) override;
 	HRESULT __stdcall DragLeave() override;
-	HRESULT __stdcall Drop(IDataObject *pdto, DWORD grfKeyState, POINTL ptl, DWORD *pdwEffect) override;
+	HRESULT __stdcall Drop(IDataObject* pdto, DWORD grfKeyState, POINTL ptl, DWORD* pdwEffect) override;
 	std::atomic<ULONG> m_refCount;
 	DragDropEvent m_currentDragDropEvent;
 
 	// borderless
 	int DwmHittest(Vec2i cursorPos) const;
-		
+
 private:
 	// WinAPI handles
 	WindowHandle m_handle = NULL;
@@ -142,7 +144,7 @@ private:
 	// Window properties
 	bool m_borderless = false;
 	bool m_resizable = true;
-	RectI m_frameMargins = { 8,8,8,8 };
+	RectI m_frameMargins = { 8, 8, 8, 8 };
 	std::function<eWindowCaptionButton(Vec2i)> m_captionButtonHandler;
 	eWindowCaptionButton m_mouseHover = eWindowCaptionButton::NONE;
 

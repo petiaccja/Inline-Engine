@@ -2,38 +2,32 @@
 
 #include "MemoryObject.hpp"
 
-#include <cassert>
 #include <array>
+#include <cassert>
 #include <type_traits>
 
 
-namespace inl :: gxeng {
+namespace inl ::gxeng {
 
 
 
-RTVHeap::RTVHeap(gxapi::IGraphicsApi * graphicsApi) :
-	HostDescHeap(graphicsApi, 32)
-{}
+RTVHeap::RTVHeap(gxapi::IGraphicsApi* graphicsApi) : HostDescHeap(graphicsApi, 32) {}
 
 
-void RTVHeap::Create(MemoryObject & resource, gxapi::RenderTargetViewDesc desc, gxapi::DescriptorHandle destination) {
+void RTVHeap::Create(MemoryObject& resource, gxapi::RenderTargetViewDesc desc, gxapi::DescriptorHandle destination) {
 	m_graphicsApi->CreateRenderTargetView(resource._GetResourcePtr(), desc, destination);
 }
 
 
-DSVHeap::DSVHeap(gxapi::IGraphicsApi* graphicsApi) :
-	HostDescHeap(graphicsApi, 16)
-{}
+DSVHeap::DSVHeap(gxapi::IGraphicsApi* graphicsApi) : HostDescHeap(graphicsApi, 16) {}
 
 
-void DSVHeap::Create(MemoryObject & resource, gxapi::DepthStencilViewDesc desc, gxapi::DescriptorHandle destination) {
+void DSVHeap::Create(MemoryObject& resource, gxapi::DepthStencilViewDesc desc, gxapi::DescriptorHandle destination) {
 	m_graphicsApi->CreateDepthStencilView(resource._GetResourcePtr(), desc, destination);
 }
 
 
-CbvSrvUavHeap::CbvSrvUavHeap(gxapi::IGraphicsApi* graphicsApi) :
-	HostDescHeap(graphicsApi, 256)
-{}
+CbvSrvUavHeap::CbvSrvUavHeap(gxapi::IGraphicsApi* graphicsApi) : HostDescHeap(graphicsApi, 256) {}
 
 
 void CbvSrvUavHeap::CreateCBV(gxapi::ConstantBufferViewDesc desc, gxapi::DescriptorHandle destination) {
@@ -52,4 +46,4 @@ void CbvSrvUavHeap::CreateUAV(MemoryObject& resource, gxapi::UnorderedAccessView
 
 
 
-} // namespace inl
+} // namespace inl::gxeng

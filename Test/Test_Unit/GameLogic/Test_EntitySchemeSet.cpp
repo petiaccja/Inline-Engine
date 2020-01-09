@@ -53,7 +53,7 @@ TEST_CASE("Remove types", "[GameLogic:EntitySchemeSet]") {
 	set.SetComponentTypes<float, int, bool>();
 	auto indexOfInt = set.GetScheme().Index(typeid(int)).first;
 	set.RemoveComponentType(indexOfInt);
-	
+
 	REQUIRE(set.Size() == 0);
 	REQUIRE(set.GetScheme() == ComponentScheme{ typeid(float), typeid(bool) });
 	REQUIRE(set.GetMatrix().entities.size() == 0);

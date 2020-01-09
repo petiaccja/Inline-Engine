@@ -1,20 +1,22 @@
 #pragma once
 
+#include "CommandAllocator.hpp"
+#include "CommandList.hpp"
+#include "CommandQueue.hpp"
+#include "DescriptorHeap.hpp"
+#include "Fence.hpp"
 #include "PipelineState.hpp"
 #include "Resource.hpp"
-#include "CommandAllocator.hpp"
-#include "CommandQueue.hpp"
 #include "RootSignature.hpp"
-#include "DescriptorHeap.hpp"
-#include "CommandList.hpp"
-#include "Fence.hpp"
+
 #include "../GraphicsApi_LL/Common.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
+#include "../GraphicsApi_LL/DisableWin32Macros.h"
+
 #include <d3d12.h>
 #include <dxgi.h>
-#include "../GraphicsApi_LL/DisableWin32Macros.h"
 
 namespace inl::gxapi_dx12 {
 
@@ -138,9 +140,9 @@ UINT native_cast(gxapi::eShaderCompileFlags);
 
 //---------------
 //OBJECT
-D3D12_VIEWPORT native_cast(gxapi::Viewport const & source);
+D3D12_VIEWPORT native_cast(gxapi::Viewport const& source);
 
-D3D12_RECT native_cast(gxapi::Rectangle const & source);
+D3D12_RECT native_cast(gxapi::Rectangle const& source);
 
 D3D12_BOX native_cast(gxapi::Cube source);
 
@@ -220,7 +222,7 @@ D3D12_TEX1D_SRV native_cast(gxapi::SrvTexture1D source);
 
 D3D12_TEX1D_ARRAY_SRV native_cast(gxapi::SrvTexture1DArray source);
 
-D3D12_TEX2D_SRV	native_cast(gxapi::SrvTexture2D source);
+D3D12_TEX2D_SRV native_cast(gxapi::SrvTexture2D source);
 
 D3D12_TEX2D_ARRAY_SRV native_cast(gxapi::SrvTexture2DArray source);
 
@@ -240,7 +242,7 @@ D3D12_TEX1D_UAV native_cast(gxapi::UavTexture1D source);
 
 D3D12_TEX1D_ARRAY_UAV native_cast(gxapi::UavTexture1DArray source);
 
-D3D12_TEX2D_UAV	native_cast(gxapi::UavTexture2D source);
+D3D12_TEX2D_UAV native_cast(gxapi::UavTexture2D source);
 
 D3D12_TEX2D_ARRAY_UAV native_cast(gxapi::UavTexture2DArray source);
 
@@ -285,4 +287,4 @@ gxapi::ResourceDesc native_cast(D3D12_RESOURCE_DESC source);
 gxapi::SwapChainDesc native_cast(DXGI_SWAP_CHAIN_DESC source);
 
 
-} // namespace gxapi_dx12
+} // namespace inl::gxapi_dx12

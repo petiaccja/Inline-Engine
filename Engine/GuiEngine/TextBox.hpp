@@ -42,7 +42,7 @@ private:
 	Sprite m_frame;
 	Sprite m_background;
 	Sprite m_cursor;
-	ControlStateTracker m_stateTracker{this};
+	ControlStateTracker m_stateTracker{ this };
 	std::u32string m_textValue;
 	std::u32string m_hintValue;
 

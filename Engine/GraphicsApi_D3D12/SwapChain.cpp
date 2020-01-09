@@ -1,11 +1,13 @@
 #include "SwapChain.hpp"
-#include "Resource.hpp"
+
 #include "NativeCast.hpp"
+#include "Resource.hpp"
+
+#include "../GraphicsApi_LL/DisableWin32Macros.h"
 #include "../GraphicsApi_LL/Exception.hpp"
 
 #include <D3d12.h>
 #include <d3dcompiler.h>
-#include "../GraphicsApi_LL/DisableWin32Macros.h"
 
 using namespace inl::gxapi;
 using Microsoft::WRL::ComPtr;
@@ -14,7 +16,7 @@ namespace inl::gxapi_dx12 {
 
 SwapChain::SwapChain(Microsoft::WRL::ComPtr<IDXGISwapChain3> native) {
 	m_native = native;
-	for (unsigned i=0; i<GetDesc().numBuffers; ++i) {
+	for (unsigned i = 0; i < GetDesc().numBuffers; ++i) {
 		std::unique_ptr<IResource> buf(GetBuffer(i));
 		buf->SetName("BackBuffer");
 	}
@@ -57,7 +59,7 @@ void SwapChain::SetFullScreen(bool isFullScreen) {
 			throw RuntimeException("Cannot switch to fullscreen mode now. Try again later.");
 		case DXGI_STATUS_MODE_CHANGE_IN_PROGRESS:
 			throw InvalidStateException("Already transitioning to fullscreen or windowed.");
-		case E_OUTOFMEMORY: 
+		case E_OUTOFMEMORY:
 			throw OutOfMemoryException("Not enough memory for swap chain.");
 		default:
 			throw Exception();
@@ -83,4 +85,4 @@ void SwapChain::Present() {
 }
 
 
-} // namespace inl
+} // namespace inl::gxapi_dx12

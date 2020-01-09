@@ -1,7 +1,8 @@
 #include "Font.hpp"
+
 #include <BaseLibrary/Exception/Exception.hpp>
-#include <BaseLibrary/Singleton.hpp>
 #include <BaseLibrary/Range.hpp>
+#include <BaseLibrary/Singleton.hpp>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -20,7 +21,7 @@ static constexpr int ATLAS_FONT_SIZE = 24;
 // rendered glyphs to the atlas.
 class AtlasHelper {
 public:
-	AtlasHelper(int width = 0, int height = 0) : m_width(width), m_height(height), m_pixels(width*height) {}
+	AtlasHelper(int width = 0, int height = 0) : m_width(width), m_height(height), m_pixels(width * height) {}
 
 	void Resize(int width, int height) {
 		AtlasHelper resized(width, height);
@@ -28,8 +29,8 @@ public:
 		int overlapWidth = std::min(width, m_width);
 		int overlapHeight = std::min(height, m_height);
 
-		for (int y = 0; y<overlapHeight; ++y) {
-			for (int x = 0; x<overlapWidth; ++x) {
+		for (int y = 0; y < overlapHeight; ++y) {
+			for (int x = 0; x < overlapWidth; ++x) {
 				resized(x, y) = (*this)(x, y);
 			}
 		}
@@ -38,14 +39,15 @@ public:
 	}
 
 	uint8_t& operator()(int x, int y) {
-		return m_pixels[y*m_width + x];
+		return m_pixels[y * m_width + x];
 	}
 	uint8_t operator()(int x, int y) const {
-		return m_pixels[y*m_width + x];
+		return m_pixels[y * m_width + x];
 	}
 	const uint8_t* Data() const { return m_pixels.data(); }
 	int Width() const { return m_width; }
 	int Height() const { return m_height; }
+
 private:
 	int m_width, m_height;
 	std::vector<uint8_t> m_pixels;
@@ -70,6 +72,7 @@ public:
 	FT_Library GetFreetype() const {
 		return m_library;
 	}
+
 private:
 	FT_Library m_library;
 };
@@ -84,8 +87,7 @@ using Freetype = Singleton<FreetypeInit>;
 
 
 Font::Font(Image atlas)
-	: m_atlas(std::move(atlas))
-{}
+	: m_atlas(std::move(atlas)) {}
 
 
 void Font::LoadFile(std::istream& file) {
@@ -121,7 +123,7 @@ void Font::LoadFile(const void* data, size_t size) {
 		ThrowIfFailed<RuntimeException>(FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL), "Freetype could not render glyph.", std::to_string(glyphIndex));
 
 		Vec2i position = { totalWidth, 0 };
-		Vec2i size = { 
+		Vec2i size = {
 			face->glyph->bitmap_left + face->glyph->bitmap.width,
 			face->glyph->bitmap_top + face->glyph->bitmap.rows
 		};
@@ -129,7 +131,7 @@ void Font::LoadFile(const void* data, size_t size) {
 		maxHeight = std::max(size.y, maxHeight);
 
 		m_glyphs[ch] = GlyphInfo{
-			float(face->glyph->advance.x)/64.f/sizeInPixels,
+			float(face->glyph->advance.x) / 64.f / sizeInPixels,
 			position,
 			size
 		};
@@ -138,10 +140,10 @@ void Font::LoadFile(const void* data, size_t size) {
 		if (maxHeight > atlasPixels.Height() || totalWidth > atlasPixels.Width()) {
 			atlasPixels.Resize(totalWidth, maxHeight);
 		}
-		for (unsigned y = 0; y<face->glyph->bitmap.rows; ++y) {
-			for (unsigned x = 0; x<face->glyph->bitmap.width; ++x) {
-				Vec2i pxPos = position + Vec2i(x, y) + Vec2i(face->glyph->bitmap_left, sizeInPixels-face->glyph->bitmap_top);
-				atlasPixels(pxPos.x, pxPos.y) = face->glyph->bitmap.buffer[y*face->glyph->bitmap.pitch + x];
+		for (unsigned y = 0; y < face->glyph->bitmap.rows; ++y) {
+			for (unsigned x = 0; x < face->glyph->bitmap.width; ++x) {
+				Vec2i pxPos = position + Vec2i(x, y) + Vec2i(face->glyph->bitmap_left, sizeInPixels - face->glyph->bitmap_top);
+				atlasPixels(pxPos.x, pxPos.y) = face->glyph->bitmap.buffer[y * face->glyph->bitmap.pitch + x];
 			}
 		}
 	}
@@ -202,7 +204,7 @@ intptr_t Font::FindCharacter(std::u32string_view text, float coordinate, float f
 	float width = 0.0f;
 	for (auto glyphIdx : Range(intptr_t(text.size()))) {
 		const auto& info = GetGlyphInfo(text[glyphIdx]);
-		width += info.advance*fontSize;
+		width += info.advance * fontSize;
 		if (width >= coordinate) {
 			return glyphIdx;
 		}
@@ -215,7 +217,7 @@ std::pair<float, float> Font::FindCoordinates(std::u32string_view text, size_t i
 	assert(index < text.size());
 	assert(fontSize > 0);
 	float precedingWidth = CalculateTextWidth(text.substr(0, index), fontSize);
-	float glyphWidth = GetGlyphInfo(text[index]).advance*fontSize;
+	float glyphWidth = GetGlyphInfo(text[index]).advance * fontSize;
 	return { precedingWidth, precedingWidth + glyphWidth };
 }
 

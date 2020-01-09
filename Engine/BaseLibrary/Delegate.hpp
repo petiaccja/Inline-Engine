@@ -1,9 +1,9 @@
 #pragma once
 
-#include <typeindex>
 #include <cassert>
-#include <new>
 #include <cstring>
+#include <new>
+#include <typeindex>
 #include <utility>
 
 
@@ -18,75 +18,78 @@ class Delegate;
 
 namespace impl {
 
-template <class ReturnT, class... ArgsT>
-class Callable;
+	template <class ReturnT, class... ArgsT>
+	class Callable;
 
-template <class... ArgsT>
-class CallableBase {
-public:
-	virtual ~CallableBase() {}
-	virtual void CallVoid(ArgsT... args) const = 0;
-	virtual bool IsEmpty() const = 0;
-	bool operator==(const CallableBase& rhs);
-	bool operator!=(const CallableBase& rhs);
-	bool operator<(const CallableBase& rhs);
-protected:
-	virtual void* GetFuncPtr() const = 0;
-	virtual size_t GetFuncPtrSize() const = 0;
-	virtual bool IsClass() const = 0;
-	virtual std::type_index GetClassType() const = 0;
-	virtual void* GetClassPtr() const = 0;
-};
+	template <class... ArgsT>
+	class CallableBase {
+	public:
+		virtual ~CallableBase() {}
+		virtual void CallVoid(ArgsT... args) const = 0;
+		virtual bool IsEmpty() const = 0;
+		bool operator==(const CallableBase& rhs);
+		bool operator!=(const CallableBase& rhs);
+		bool operator<(const CallableBase& rhs);
 
-template <class ReturnT, class... ArgsT>
-class Callable : public CallableBase<ArgsT...> {
-public:
-	~Callable() {}
-	void CallVoid(ArgsT... args) const override final {
-		Call(std::forward<ArgsT>(args)...);
-	}
-	virtual ReturnT Call(ArgsT... args) const = 0;
-};
+	protected:
+		virtual void* GetFuncPtr() const = 0;
+		virtual size_t GetFuncPtrSize() const = 0;
+		virtual bool IsClass() const = 0;
+		virtual std::type_index GetClassType() const = 0;
+		virtual void* GetClassPtr() const = 0;
+	};
 
-template <class ReturnT, class... ArgsT>
-class GlobalCallable : public Callable<ReturnT, ArgsT...> {
-public:
-	GlobalCallable(ReturnT(*func)(ArgsT...)) : m_func(func) {}
-	~GlobalCallable() {}
-	bool IsEmpty() const override { return m_func == nullptr; }
-	void* GetFuncPtr() const override { return m_func; }
-	size_t GetFuncPtrSize() const override { return sizeof(m_func); }
-	bool IsClass() const override { return false; }
-	std::type_index GetClassType() const override { return typeid(void); }
-	void* GetClassPtr() const override { return nullptr; }
-	ReturnT Call(ArgsT... args) const override {
-		assert(m_func != nullptr);
-		return m_func(std::forward<ArgsT>(args)...);
-	}
-private:
-	ReturnT(*m_func)(ArgsT...) = nullptr;
-};
+	template <class ReturnT, class... ArgsT>
+	class Callable : public CallableBase<ArgsT...> {
+	public:
+		~Callable() {}
+		void CallVoid(ArgsT... args) const override final {
+			Call(std::forward<ArgsT>(args)...);
+		}
+		virtual ReturnT Call(ArgsT... args) const = 0;
+	};
 
-template <class ClassT, class ReturnT, class... ArgsT>
-class MemberCallable : public Callable<ReturnT, ArgsT...> {
-public:
-	using FuncT = typename std::conditional<std::is_const<ClassT>::value, ReturnT(ClassT::*)(ArgsT...) const, ReturnT(ClassT::*)(ArgsT...)>::type;
-	MemberCallable(FuncT func, ClassT* cl) : m_func(func), m_class(cl) {}
-	~MemberCallable() {}
-	bool IsEmpty() const override { return m_func == nullptr; }
-	void* GetFuncPtr() const override { return (void*)&m_func; }
-	size_t GetFuncPtrSize() const override { return sizeof(m_func); }
-	bool IsClass() const override { return true; }
-	std::type_index GetClassType() const override { return typeid(ClassT); }
-	void* GetClassPtr() const override { return m_class; }
-	ReturnT Call(ArgsT... args) const override { 
-		assert(m_func != nullptr && m_class != nullptr);
-		return (m_class->*m_func)(std::forward<ArgsT>(args)...); 
-	}
-private:
-	FuncT m_func = nullptr;
-	ClassT* m_class = nullptr;
-};
+	template <class ReturnT, class... ArgsT>
+	class GlobalCallable : public Callable<ReturnT, ArgsT...> {
+	public:
+		GlobalCallable(ReturnT (*func)(ArgsT...)) : m_func(func) {}
+		~GlobalCallable() {}
+		bool IsEmpty() const override { return m_func == nullptr; }
+		void* GetFuncPtr() const override { return m_func; }
+		size_t GetFuncPtrSize() const override { return sizeof(m_func); }
+		bool IsClass() const override { return false; }
+		std::type_index GetClassType() const override { return typeid(void); }
+		void* GetClassPtr() const override { return nullptr; }
+		ReturnT Call(ArgsT... args) const override {
+			assert(m_func != nullptr);
+			return m_func(std::forward<ArgsT>(args)...);
+		}
+
+	private:
+		ReturnT (*m_func)(ArgsT...) = nullptr;
+	};
+
+	template <class ClassT, class ReturnT, class... ArgsT>
+	class MemberCallable : public Callable<ReturnT, ArgsT...> {
+	public:
+		using FuncT = typename std::conditional<std::is_const<ClassT>::value, ReturnT (ClassT::*)(ArgsT...) const, ReturnT (ClassT::*)(ArgsT...)>::type;
+		MemberCallable(FuncT func, ClassT* cl) : m_func(func), m_class(cl) {}
+		~MemberCallable() {}
+		bool IsEmpty() const override { return m_func == nullptr; }
+		void* GetFuncPtr() const override { return (void*)&m_func; }
+		size_t GetFuncPtrSize() const override { return sizeof(m_func); }
+		bool IsClass() const override { return true; }
+		std::type_index GetClassType() const override { return typeid(ClassT); }
+		void* GetClassPtr() const override { return m_class; }
+		ReturnT Call(ArgsT... args) const override {
+			assert(m_func != nullptr && m_class != nullptr);
+			return (m_class->*m_func)(std::forward<ArgsT>(args)...);
+		}
+
+	private:
+		FuncT m_func = nullptr;
+		ClassT* m_class = nullptr;
+	};
 
 
 
@@ -97,6 +100,7 @@ private:
 template <class ReturnT, class... ArgsT>
 class Delegate<ReturnT(ArgsT...)> {
 	class Dummy {};
+
 public:
 	Delegate() = default;
 	Delegate(const Delegate& rhs) {
@@ -111,21 +115,21 @@ public:
 	Delegate(Delegate&&) = delete;
 	Delegate& operator=(Delegate&&) = delete;
 
-	Delegate(ReturnT(*func)(ArgsT...)) {
+	Delegate(ReturnT (*func)(ArgsT...)) {
 		static_assert(sizeof(impl::GlobalCallable<ReturnT, ArgsT...>) <= sizeof(m_callablePlaceholder), "Tell this error and the compiler you used to the author.");
 		new (m_callablePlaceholder) impl::GlobalCallable<ReturnT, ArgsT...>(func);
 		m_callable = static_cast<impl::Callable<ReturnT, ArgsT...>*>(reinterpret_cast<impl::GlobalCallable<ReturnT, ArgsT...>*>(m_callablePlaceholder));
 	}
 
 	template <class ClassT, typename std::enable_if<!std::is_const<ClassT>::value, int>::type = 0>
-	Delegate(ReturnT(ClassT::*func)(ArgsT...), ClassT* owner) {
+	Delegate(ReturnT (ClassT::*func)(ArgsT...), ClassT* owner) {
 		static_assert(sizeof(impl::MemberCallable<ClassT, ReturnT, ArgsT...>) <= sizeof(m_callablePlaceholder), "Tell this error and the compiler you used to the author.");
 		new (m_callablePlaceholder) impl::MemberCallable<ClassT, ReturnT, ArgsT...>(func, owner);
 		m_callable = static_cast<impl::Callable<ReturnT, ArgsT...>*>(reinterpret_cast<impl::MemberCallable<ClassT, ReturnT, ArgsT...>*>(m_callablePlaceholder));
 	}
 
 	template <class ClassT>
-	Delegate(ReturnT(ClassT::*func)(ArgsT...) const, const ClassT* owner) {
+	Delegate(ReturnT (ClassT::*func)(ArgsT...) const, const ClassT* owner) {
 		static_assert(sizeof(impl::MemberCallable<ClassT, ReturnT, ArgsT...>) <= sizeof(m_callablePlaceholder), "Tell this error and the compiler you used to the author.");
 		new (m_callablePlaceholder) impl::MemberCallable<ClassT, ReturnT, ArgsT...>(func, owner);
 		m_callable = static_cast<impl::Callable<ReturnT, ArgsT...>*>(reinterpret_cast<impl::MemberCallable<ClassT, ReturnT, ArgsT...>*>(m_callablePlaceholder));
@@ -158,6 +162,7 @@ public:
 		assert(operator bool());
 		return m_callable->Call(std::forward<ArgsT>(args)...);
 	}
+
 private:
 	alignas(impl::MemberCallable<Dummy, ReturnT, ArgsT...>) char m_callablePlaceholder[sizeof(impl::MemberCallable<Dummy, ReturnT, ArgsT...>)]; // actual stuff is placement newed here
 	inl::impl::Callable<ReturnT, ArgsT...>* m_callable = nullptr;
@@ -168,6 +173,7 @@ private:
 template <class... ArgsT>
 class Delegate<void(ArgsT...)> {
 	class Dummy {};
+
 public:
 	Delegate() = default;
 	Delegate(const Delegate& rhs) {
@@ -196,21 +202,21 @@ public:
 	Delegate& operator=(Delegate&& rhs) { return *this = (const Delegate&)rhs; }
 
 	template <class ReturnT>
-	Delegate(ReturnT(*func)(ArgsT...)) {
+	Delegate(ReturnT (*func)(ArgsT...)) {
 		static_assert(sizeof(impl::GlobalCallable<ReturnT, ArgsT...>) <= sizeof(m_callablePlaceholder), "Tell this error and the compiler you used to the author.");
 		new (m_callablePlaceholder) impl::GlobalCallable<ReturnT, ArgsT...>(func);
 		m_callable = static_cast<impl::Callable<ReturnT, ArgsT...>*>(reinterpret_cast<impl::GlobalCallable<ReturnT, ArgsT...>*>(m_callablePlaceholder));
 	}
 
 	template <class ClassT, class ReturnT, typename std::enable_if<!std::is_const<ClassT>::value, int>::type = 0>
-	Delegate(ReturnT(ClassT::*func)(ArgsT...), ClassT* owner) {
+	Delegate(ReturnT (ClassT::*func)(ArgsT...), ClassT* owner) {
 		static_assert(sizeof(impl::MemberCallable<ClassT, ReturnT, ArgsT...>) <= sizeof(m_callablePlaceholder), "Tell this error and the compiler you used to the author.");
 		new (m_callablePlaceholder) impl::MemberCallable<ClassT, ReturnT, ArgsT...>(func, owner);
 		m_callable = static_cast<impl::Callable<ReturnT, ArgsT...>*>(reinterpret_cast<impl::MemberCallable<ClassT, ReturnT, ArgsT...>*>(m_callablePlaceholder));
 	}
 
 	template <class ClassT, class ReturnT>
-	Delegate(ReturnT(ClassT::*func)(ArgsT...) const, const ClassT* owner) {
+	Delegate(ReturnT (ClassT::*func)(ArgsT...) const, const ClassT* owner) {
 		static_assert(sizeof(impl::MemberCallable<ClassT, ReturnT, ArgsT...>) <= sizeof(m_callablePlaceholder), "Tell this error and the compiler you used to the author.");
 		new (m_callablePlaceholder) impl::MemberCallable<ClassT, ReturnT, ArgsT...>(func, owner);
 		m_callable = static_cast<impl::Callable<ReturnT, ArgsT...>*>(reinterpret_cast<impl::MemberCallable<ClassT, ReturnT, ArgsT...>*>(m_callablePlaceholder));
@@ -243,6 +249,7 @@ public:
 		assert(operator bool());
 		m_callable->CallVoid(std::forward<ArgsT>(args)...);
 	}
+
 private:
 	alignas(impl::MemberCallable<Dummy, void, ArgsT...>) char m_callablePlaceholder[sizeof(impl::MemberCallable<Dummy, void, ArgsT...>)]; // actual stuff is placement newed here
 	impl::CallableBase<ArgsT...>* m_callable = nullptr;
@@ -254,9 +261,9 @@ template <class... ArgsT>
 bool impl::CallableBase<ArgsT...>::operator==(const CallableBase& rhs) {
 	if (IsClass() && rhs.IsClass()) {
 		return GetClassPtr() == rhs.GetClassPtr()
-			&& GetClassType() == rhs.GetClassType()
-			&& GetFuncPtrSize() == rhs.GetFuncPtrSize()
-			&& 0 == memcmp(GetFuncPtr(), rhs.GetFuncPtr(), GetFuncPtrSize());
+			   && GetClassType() == rhs.GetClassType()
+			   && GetFuncPtrSize() == rhs.GetFuncPtrSize()
+			   && 0 == memcmp(GetFuncPtr(), rhs.GetFuncPtr(), GetFuncPtrSize());
 	}
 	else if (!IsClass() && !rhs.IsClass()) {
 		return GetFuncPtr() == rhs.GetFuncPtr();
@@ -311,7 +318,6 @@ bool impl::CallableBase<ArgsT...>::operator<(const CallableBase& rhs) {
 
 
 } // namespace inl
-
 
 
 

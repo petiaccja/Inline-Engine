@@ -1,9 +1,10 @@
 #pragma once
 
+#include "Exception/Exception.hpp"
+
+#include <memory>
 #include <stdexcept>
 #include <typeindex>
-#include <memory>
-#include "Exception/Exception.hpp"
 
 namespace inl {
 
@@ -17,6 +18,7 @@ class Any {
 		virtual Data* Clone() const = 0;
 		virtual std::type_index Type() const = 0;
 	};
+
 public:
 	Any() = default;
 
@@ -37,8 +39,14 @@ public:
 
 	Any(const Any& rhs) : m_data(rhs.m_data->Clone()) {}
 	Any(Any&& rhs) : m_data(std::move(rhs.m_data)) {}
-	Any& operator=(const Any& rhs) { m_data.reset(rhs.m_data->Clone()); return *this; }
-	Any& operator=(Any&& rhs) { m_data = std::move(rhs.m_data); return *this; }
+	Any& operator=(const Any& rhs) {
+		m_data.reset(rhs.m_data->Clone());
+		return *this;
+	}
+	Any& operator=(Any&& rhs) {
+		m_data = std::move(rhs.m_data);
+		return *this;
+	}
 
 	template <class T>
 	Any& operator=(T&& obj) {
@@ -86,6 +94,7 @@ public:
 		}
 		return m_data->Type();
 	}
+
 private:
 	std::unique_ptr<Data> m_data;
 };

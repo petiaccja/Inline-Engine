@@ -1,7 +1,7 @@
 #include "ResourceView.hpp"
 
-#include "MemoryObject.hpp"
 #include "HostDescHeap.hpp"
+#include "MemoryObject.hpp"
 
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
 
@@ -21,11 +21,9 @@ static std::vector<uint32_t> CalcSubresourceList(const Texture3D&, const gxapi::
 
 
 
-VertexBufferView::VertexBufferView(const VertexBuffer& resource, uint32_t stride, uint32_t size) :
-	m_resource(resource),
-	m_stride(stride),
-	m_size(size)
-{}
+VertexBufferView::VertexBufferView(const VertexBuffer& resource, uint32_t stride, uint32_t size) : m_resource(resource),
+																								   m_stride(stride),
+																								   m_size(size) {}
 
 
 const VertexBuffer& VertexBufferView::GetResource() {
@@ -33,9 +31,7 @@ const VertexBuffer& VertexBufferView::GetResource() {
 }
 
 
-ConstBufferView::ConstBufferView(const VolatileConstBuffer& resource, CbvSrvUavHeap& heap) :
-	ResourceViewBase(resource, &heap)
-{
+ConstBufferView::ConstBufferView(const VolatileConstBuffer& resource, CbvSrvUavHeap& heap) : ResourceViewBase(resource, &heap) {
 	gxapi::ConstantBufferViewDesc desc;
 	desc.gpuVirtualAddress = resource.GetVirtualAddress();
 	desc.sizeInBytes = resource.GetSize();
@@ -46,9 +42,7 @@ ConstBufferView::ConstBufferView(const VolatileConstBuffer& resource, CbvSrvUavH
 }
 
 
-ConstBufferView::ConstBufferView(const PersistentConstBuffer& resource, CbvSrvUavHeap& heap) :
-	ResourceViewBase(resource, &heap)
-{
+ConstBufferView::ConstBufferView(const PersistentConstBuffer& resource, CbvSrvUavHeap& heap) : ResourceViewBase(resource, &heap) {
 	gxapi::ConstantBufferViewDesc desc;
 	desc.gpuVirtualAddress = resource.GetVirtualAddress();
 	desc.sizeInBytes = resource.GetSize();
@@ -59,9 +53,8 @@ ConstBufferView::ConstBufferView(const PersistentConstBuffer& resource, CbvSrvUa
 }
 
 
-ConstBufferView::ConstBufferView(const VolatileConstBuffer & resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi * gxapi)
-	: ResourceViewBase(resource, handle)
-{
+ConstBufferView::ConstBufferView(const VolatileConstBuffer& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi)
+	: ResourceViewBase(resource, handle) {
 	gxapi::ConstantBufferViewDesc desc;
 	desc.gpuVirtualAddress = resource.GetVirtualAddress();
 	desc.sizeInBytes = resource.GetSize();
@@ -72,9 +65,8 @@ ConstBufferView::ConstBufferView(const VolatileConstBuffer & resource, gxapi::De
 }
 
 
-ConstBufferView::ConstBufferView(const PersistentConstBuffer & resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi * gxapi)
-	: ResourceViewBase(resource, handle)
-{
+ConstBufferView::ConstBufferView(const PersistentConstBuffer& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi)
+	: ResourceViewBase(resource, handle) {
 	gxapi::ConstantBufferViewDesc desc;
 	desc.gpuVirtualAddress = resource.GetVirtualAddress();
 	desc.sizeInBytes = resource.GetSize();
@@ -89,10 +81,7 @@ RenderTargetView2D::RenderTargetView2D(
 	const Texture2D& resource,
 	RTVHeap& heap,
 	gxapi::eFormat format,
-	gxapi::RtvTexture2DArray desc
-) :
-	ResourceViewBase(resource, &heap)
-{
+	gxapi::RtvTexture2DArray desc) : ResourceViewBase(resource, &heap) {
 	gxapi::RenderTargetViewDesc RTVdesc;
 	RTVdesc.format = format;
 	RTVdesc.dimension = gxapi::eRtvDimension::TEXTURE2DARRAY;
@@ -106,14 +95,11 @@ RenderTargetView2D::RenderTargetView2D(
 }
 
 RenderTargetView2D::RenderTargetView2D(
-	const Texture2D & resource,
+	const Texture2D& resource,
 	gxapi::DescriptorHandle handle,
-	gxapi::IGraphicsApi * gxapi,
+	gxapi::IGraphicsApi* gxapi,
 	gxapi::eFormat format,
-	gxapi::RtvTexture2DArray desc
-) :
-	ResourceViewBase(resource, handle)
-{
+	gxapi::RtvTexture2DArray desc) : ResourceViewBase(resource, handle) {
 	gxapi::RenderTargetViewDesc RTVdesc;
 	RTVdesc.format = format;
 	RTVdesc.dimension = gxapi::eRtvDimension::TEXTURE2DARRAY;
@@ -135,10 +121,7 @@ DepthStencilView2D::DepthStencilView2D(
 	const Texture2D& resource,
 	DSVHeap& heap,
 	gxapi::eFormat format,
-	gxapi::DsvTexture2DArray desc
-) :
-	ResourceViewBase(resource, &heap)
-{
+	gxapi::DsvTexture2DArray desc) : ResourceViewBase(resource, &heap) {
 	gxapi::DepthStencilViewDesc DSVdesc;
 	DSVdesc.format = format;
 	DSVdesc.dimension = gxapi::eDsvDimension::TEXTURE2DARRAY;
@@ -151,9 +134,8 @@ DepthStencilView2D::DepthStencilView2D(
 	SetSubresourceList(CalcSubresourceList(resource, desc));
 }
 
-DepthStencilView2D::DepthStencilView2D(const Texture2D & resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi * gxapi, gxapi::eFormat format, gxapi::DsvTexture2DArray desc)
-	: ResourceViewBase(resource, handle)
-{
+DepthStencilView2D::DepthStencilView2D(const Texture2D& resource, gxapi::DescriptorHandle handle, gxapi::IGraphicsApi* gxapi, gxapi::eFormat format, gxapi::DsvTexture2DArray desc)
+	: ResourceViewBase(resource, handle) {
 	gxapi::DepthStencilViewDesc DSVdesc;
 	DSVdesc.format = format;
 	DSVdesc.dimension = gxapi::eDsvDimension::TEXTURE2DARRAY;
@@ -177,12 +159,9 @@ BufferView::BufferView(
 	const LinearBuffer& resource,
 	CbvSrvUavHeap& heap,
 	gxapi::eFormat format,
-	gxapi::SrvBuffer desc
-) :
-	ResourceViewBase(resource, &heap),
-	m_format(format),
-	m_srvDesc(desc)
-{
+	gxapi::SrvBuffer desc) : ResourceViewBase(resource, &heap),
+							 m_format(format),
+							 m_srvDesc(desc) {
 	gxapi::ShaderResourceViewDesc fullSrvDesc;
 	fullSrvDesc.format = format;
 	fullSrvDesc.dimension = gxapi::eSrvDimension::BUFFER;
@@ -196,14 +175,11 @@ BufferView::BufferView(
 BufferView::BufferView(
 	const LinearBuffer& resource,
 	gxapi::DescriptorHandle handle,
-	gxapi::IGraphicsApi * gxapi,
+	gxapi::IGraphicsApi* gxapi,
 	gxapi::eFormat format,
-	gxapi::SrvBuffer desc
-) :
-	ResourceViewBase(resource, handle),
-	m_format(format),
-	m_srvDesc(desc)
-{
+	gxapi::SrvBuffer desc) : ResourceViewBase(resource, handle),
+							 m_format(format),
+							 m_srvDesc(desc) {
 	gxapi::ShaderResourceViewDesc fullSrvDesc;
 	fullSrvDesc.format = format;
 	fullSrvDesc.dimension = gxapi::eSrvDimension::BUFFER;
@@ -229,12 +205,9 @@ TextureView1D::TextureView1D(
 	const Texture1D& resource,
 	CbvSrvUavHeap& heap,
 	gxapi::eFormat format,
-	gxapi::SrvTexture1DArray desc
-) :
-	ResourceViewBase(resource, &heap),
-	m_format(format),
-	m_srvDesc(desc)
-{
+	gxapi::SrvTexture1DArray desc) : ResourceViewBase(resource, &heap),
+									 m_format(format),
+									 m_srvDesc(desc) {
 	gxapi::ShaderResourceViewDesc fullSrvDesc;
 	fullSrvDesc.format = format;
 	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURE1DARRAY;
@@ -246,16 +219,13 @@ TextureView1D::TextureView1D(
 }
 
 TextureView1D::TextureView1D(
-	const Texture1D & resource,
+	const Texture1D& resource,
 	gxapi::DescriptorHandle handle,
-	gxapi::IGraphicsApi * gxapi,
+	gxapi::IGraphicsApi* gxapi,
 	gxapi::eFormat format,
-	gxapi::SrvTexture1DArray desc
-) :
-	ResourceViewBase(resource, handle),
-	m_format(format),
-	m_srvDesc(desc)
-{
+	gxapi::SrvTexture1DArray desc) : ResourceViewBase(resource, handle),
+									 m_format(format),
+									 m_srvDesc(desc) {
 	gxapi::ShaderResourceViewDesc fullSrvDesc;
 	fullSrvDesc.format = format;
 	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURE1DARRAY;
@@ -279,14 +249,11 @@ const gxapi::SrvTexture1DArray& TextureView1D::GetDescription() const {
 
 TextureView2D::TextureView2D(
 	const Texture2D& resource,
-	CbvSrvUavHeap & heap,
+	CbvSrvUavHeap& heap,
 	gxapi::eFormat format,
-	gxapi::SrvTexture2DArray srvDesc
-) :
-	ResourceViewBase(resource, &heap),
-	m_format(format),
-	m_srvDesc(srvDesc)
-{
+	gxapi::SrvTexture2DArray srvDesc) : ResourceViewBase(resource, &heap),
+										m_format(format),
+										m_srvDesc(srvDesc) {
 	gxapi::ShaderResourceViewDesc fullSrvDesc;
 	fullSrvDesc.format = format;
 	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURE2DARRAY;
@@ -298,16 +265,13 @@ TextureView2D::TextureView2D(
 }
 
 TextureView2D::TextureView2D(
-	const Texture2D & resource,
+	const Texture2D& resource,
 	gxapi::DescriptorHandle handle,
-	gxapi::IGraphicsApi * gxapi,
+	gxapi::IGraphicsApi* gxapi,
 	gxapi::eFormat format,
-	gxapi::SrvTexture2DArray srvDesc
-) :
-	ResourceViewBase(resource, handle),
-	m_format(format),
-	m_srvDesc(srvDesc)
-{
+	gxapi::SrvTexture2DArray srvDesc) : ResourceViewBase(resource, handle),
+										m_format(format),
+										m_srvDesc(srvDesc) {
 	gxapi::ShaderResourceViewDesc fullSrvDesc;
 	fullSrvDesc.format = format;
 	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURE2DARRAY;
@@ -333,12 +297,9 @@ TextureView3D::TextureView3D(
 	const Texture3D& resource,
 	CbvSrvUavHeap& heap,
 	gxapi::eFormat format,
-	gxapi::SrvTexture3D srvDesc
-) :
-	ResourceViewBase(resource, &heap),
-	m_format(format),
-	m_srvDesc(srvDesc)
-{
+	gxapi::SrvTexture3D srvDesc) : ResourceViewBase(resource, &heap),
+								   m_format(format),
+								   m_srvDesc(srvDesc) {
 	gxapi::ShaderResourceViewDesc fullSrvDesc;
 	fullSrvDesc.format = format;
 	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURE3D;
@@ -350,16 +311,13 @@ TextureView3D::TextureView3D(
 }
 
 TextureView3D::TextureView3D(
-	const Texture3D & resource,
+	const Texture3D& resource,
 	gxapi::DescriptorHandle handle,
-	gxapi::IGraphicsApi * gxapi,
+	gxapi::IGraphicsApi* gxapi,
 	gxapi::eFormat format,
-	gxapi::SrvTexture3D srvDesc
-) :
-	ResourceViewBase(resource, handle),
-	m_format(format),
-	m_srvDesc(srvDesc)
-{
+	gxapi::SrvTexture3D srvDesc) : ResourceViewBase(resource, handle),
+								   m_format(format),
+								   m_srvDesc(srvDesc) {
 	gxapi::ShaderResourceViewDesc fullSrvDesc;
 	fullSrvDesc.format = format;
 	fullSrvDesc.dimension = gxapi::eSrvDimension::TEXTURE3D;
@@ -384,12 +342,9 @@ TextureViewCube::TextureViewCube(
 	const Texture2D& resource,
 	CbvSrvUavHeap& heap,
 	gxapi::eFormat format,
-	gxapi::SrvTextureCubeArray srvDesc
-) :
-	ResourceViewBase(resource, &heap),
-	m_format(format),
-	m_srvDesc(srvDesc)
-{
+	gxapi::SrvTextureCubeArray srvDesc) : ResourceViewBase(resource, &heap),
+										  m_format(format),
+										  m_srvDesc(srvDesc) {
 	if (resource.GetArrayCount() != 6 * srvDesc.numCubes) {
 		throw InvalidArgumentException("Input texture must have array dimension 6*numCubes.");
 	}
@@ -407,14 +362,11 @@ TextureViewCube::TextureViewCube(
 TextureViewCube::TextureViewCube(
 	const Texture2D& resource,
 	gxapi::DescriptorHandle handle,
-	gxapi::IGraphicsApi * gxapi,
+	gxapi::IGraphicsApi* gxapi,
 	gxapi::eFormat format,
-	gxapi::SrvTextureCubeArray srvDesc
-) :
-	ResourceViewBase(resource, handle),
-	m_format(format),
-	m_srvDesc(srvDesc)
-{
+	gxapi::SrvTextureCubeArray srvDesc) : ResourceViewBase(resource, handle),
+										  m_format(format),
+										  m_srvDesc(srvDesc) {
 	if (resource.GetArrayCount() != 6 * srvDesc.numCubes) {
 		throw InvalidArgumentException("Input texture must have array dimension 6*numCubes.");
 	}
@@ -435,10 +387,9 @@ gxapi::eFormat TextureViewCube::GetFormat() {
 }
 
 
-const gxapi::SrvTextureCubeArray & TextureViewCube::GetDescription() const {
+const gxapi::SrvTextureCubeArray& TextureViewCube::GetDescription() const {
 	return m_srvDesc;
 }
-
 
 
 
@@ -450,12 +401,10 @@ const gxapi::SrvTextureCubeArray & TextureViewCube::GetDescription() const {
 RWBufferView::RWBufferView(const LinearBuffer& resource,
 						   CbvSrvUavHeap& heap,
 						   gxapi::eFormat format,
-						   gxapi::UavBuffer desc) 
-	:
-	ResourceViewBase(resource, &heap),
-	m_format(format),
-	m_uavDesc(desc) 
-{
+						   gxapi::UavBuffer desc)
+	: ResourceViewBase(resource, &heap),
+	  m_format(format),
+	  m_uavDesc(desc) {
 	gxapi::UnorderedAccessViewDesc fullUavDesc;
 	fullUavDesc.format = format;
 	fullUavDesc.dimension = gxapi::eUavDimension::BUFFER;
@@ -467,12 +416,10 @@ RWBufferView::RWBufferView(const LinearBuffer& resource,
 RWBufferView::RWBufferView(const LinearBuffer& resource,
 						   gxapi::DescriptorHandle handle,
 						   gxapi::IGraphicsApi* gxapi, gxapi::eFormat format,
-						   gxapi::UavBuffer desc) 
-	:
-	ResourceViewBase(resource, handle),
-	m_format(format),
-	m_uavDesc(desc)
-{
+						   gxapi::UavBuffer desc)
+	: ResourceViewBase(resource, handle),
+	  m_format(format),
+	  m_uavDesc(desc) {
 	gxapi::UnorderedAccessViewDesc fullUavDesc;
 	fullUavDesc.format = format;
 	fullUavDesc.dimension = gxapi::eUavDimension::BUFFER;
@@ -495,13 +442,11 @@ const gxapi::UavBuffer& RWBufferView::GetDescription() const {
 
 RWTextureView1D::RWTextureView1D(const Texture1D& resource,
 								 CbvSrvUavHeap& heap,
-								 gxapi::eFormat format, 
-								 gxapi::UavTexture1DArray desc) 
-	:
-	ResourceViewBase(resource, &heap),
-	m_format(format),
-	m_uavDesc(desc)
-{
+								 gxapi::eFormat format,
+								 gxapi::UavTexture1DArray desc)
+	: ResourceViewBase(resource, &heap),
+	  m_format(format),
+	  m_uavDesc(desc) {
 	gxapi::UnorderedAccessViewDesc fullUavDesc;
 	fullUavDesc.format = format;
 	fullUavDesc.dimension = gxapi::eUavDimension::TEXTURE1D;
@@ -517,11 +462,9 @@ RWTextureView1D::RWTextureView1D(const Texture1D& resource,
 								 gxapi::IGraphicsApi* gxapi,
 								 gxapi::eFormat format,
 								 gxapi::UavTexture1DArray desc)
-	:
-	ResourceViewBase(resource, handle),
-	m_format(format),
-	m_uavDesc(desc)
-{
+	: ResourceViewBase(resource, handle),
+	  m_format(format),
+	  m_uavDesc(desc) {
 	gxapi::UnorderedAccessViewDesc fullUavDesc;
 	fullUavDesc.format = format;
 	fullUavDesc.dimension = gxapi::eUavDimension::TEXTURE1D;
@@ -545,12 +488,10 @@ const gxapi::UavTexture1DArray& RWTextureView1D::GetDescription() const {
 RWTextureView2D::RWTextureView2D(const Texture2D& resource,
 								 CbvSrvUavHeap& heap,
 								 gxapi::eFormat format,
-								 gxapi::UavTexture2DArray desc) 
-	:
-	ResourceViewBase(resource, &heap),
-	m_format(format),
-	m_uavDesc(desc)
-{
+								 gxapi::UavTexture2DArray desc)
+	: ResourceViewBase(resource, &heap),
+	  m_format(format),
+	  m_uavDesc(desc) {
 	gxapi::UnorderedAccessViewDesc fullUavDesc;
 	fullUavDesc.format = format;
 	fullUavDesc.dimension = gxapi::eUavDimension::TEXTURE2DARRAY;
@@ -565,12 +506,10 @@ RWTextureView2D::RWTextureView2D(const Texture2D& resource,
 								 gxapi::DescriptorHandle handle,
 								 gxapi::IGraphicsApi* gxapi,
 								 gxapi::eFormat format,
-								 gxapi::UavTexture2DArray desc) 
-	:
-	ResourceViewBase(resource, handle),
-	m_format(format),
-	m_uavDesc(desc)
-{
+								 gxapi::UavTexture2DArray desc)
+	: ResourceViewBase(resource, handle),
+	  m_format(format),
+	  m_uavDesc(desc) {
 	gxapi::UnorderedAccessViewDesc fullUavDesc;
 	fullUavDesc.format = format;
 	fullUavDesc.dimension = gxapi::eUavDimension::TEXTURE2DARRAY;
@@ -593,13 +532,11 @@ const gxapi::UavTexture2DArray& RWTextureView2D::GetDescription() const {
 
 RWTextureView3D::RWTextureView3D(const Texture3D& resource,
 								 CbvSrvUavHeap& heap,
-								 gxapi::eFormat format, 
-								 gxapi::UavTexture3D desc) 
-	:
-	ResourceViewBase(resource, &heap),
-	m_format(format),
-	m_uavDesc(desc)
-{
+								 gxapi::eFormat format,
+								 gxapi::UavTexture3D desc)
+	: ResourceViewBase(resource, &heap),
+	  m_format(format),
+	  m_uavDesc(desc) {
 	gxapi::UnorderedAccessViewDesc fullUavDesc;
 	fullUavDesc.format = format;
 	fullUavDesc.dimension = gxapi::eUavDimension::TEXTURE3D;
@@ -614,12 +551,10 @@ RWTextureView3D::RWTextureView3D(const Texture3D& resource,
 								 gxapi::DescriptorHandle handle,
 								 gxapi::IGraphicsApi* gxapi,
 								 gxapi::eFormat format,
-								 gxapi::UavTexture3D desc) 
-	:
-	ResourceViewBase(resource, handle),
-	m_format(format),
-	m_uavDesc(desc)
-{
+								 gxapi::UavTexture3D desc)
+	: ResourceViewBase(resource, handle),
+	  m_format(format),
+	  m_uavDesc(desc) {
 	gxapi::UnorderedAccessViewDesc fullUavDesc;
 	fullUavDesc.format = format;
 	fullUavDesc.dimension = gxapi::eUavDimension::TEXTURE3D;
@@ -637,7 +572,6 @@ gxapi::eFormat RWTextureView3D::GetFormat() {
 const gxapi::UavTexture3D& RWTextureView3D::GetDescription() const {
 	return m_uavDesc;
 }
-
 
 
 
@@ -715,7 +649,7 @@ static std::vector<uint32_t> CalcSubresourceList(const Texture2D& obj, const gxa
 	}
 
 	uint32_t firstArray = desc.indexOfFirst2DTex;
-	uint32_t lastArray = firstArray + 6*desc.numCubes;
+	uint32_t lastArray = firstArray + 6 * desc.numCubes;
 
 	for (uint32_t arr = firstArray; arr < lastArray; ++arr) {
 		for (uint32_t mip = desc.mostDetailedMip; mip < lastMip; ++mip) {
@@ -755,4 +689,4 @@ static std::vector<uint32_t> CalcSubresourceList(const Texture3D& obj, const gxa
 }
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

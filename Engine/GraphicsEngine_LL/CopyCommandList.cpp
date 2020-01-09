@@ -1,16 +1,13 @@
 #include "CopyCommandList.hpp"
 
-namespace inl  ::gxeng {
+namespace inl ::gxeng {
 
 
 CopyCommandList::CopyCommandList(
 	gxapi::IGraphicsApi* gxApi,
 	CommandListPool& commandListPool,
 	CommandAllocatorPool& commandAllocatorPool,
-	ScratchSpacePool& scratchSpacePool
-) :
-	BasicCommandList(gxApi, commandListPool, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::COPY)
-{
+	ScratchSpacePool& scratchSpacePool) : BasicCommandList(gxApi, commandListPool, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::COPY) {
 	m_commandList = dynamic_cast<gxapi::ICopyCommandList*>(GetCommandList());
 }
 
@@ -20,18 +17,14 @@ CopyCommandList::CopyCommandList(
 	CommandListPool& commandListPool,
 	CommandAllocatorPool& commandAllocatorPool,
 	ScratchSpacePool& scratchSpacePool,
-	gxapi::eCommandListType type
-) :
-	BasicCommandList(gxApi, commandListPool, commandAllocatorPool, scratchSpacePool, type)
-{
+	gxapi::eCommandListType type) : BasicCommandList(gxApi, commandListPool, commandAllocatorPool, scratchSpacePool, type) {
 	m_commandList = dynamic_cast<gxapi::ICopyCommandList*>(GetCommandList());
 }
 
 
 CopyCommandList::CopyCommandList(CopyCommandList&& rhs)
 	: BasicCommandList(std::move(rhs)),
-	m_commandList(rhs.m_commandList)
-{
+	  m_commandList(rhs.m_commandList) {
 	rhs.m_commandList = nullptr;
 }
 
@@ -74,12 +67,10 @@ void CopyCommandList::SetResourceState(const MemoryObject& resource, gxapi::eRes
 			if (prevState != state) {
 				m_commandList->ResourceBarrier(
 					gxapi::TransitionBarrier{
-					.resource = resource._GetResourcePtr(),
-					.subResource = subresource,
-					.beforeState = prevState,
-					.afterState = state
-				}
-				);
+						.resource = resource._GetResourcePtr(),
+						.subResource = subresource,
+						.beforeState = prevState,
+						.afterState = state });
 				iter->second.lastState = state;
 				iter->second.multipleStates = true;
 			}
@@ -238,8 +229,7 @@ void CopyCommandList::CopyTexture(const Texture2D& dst, const Texture2D& src, Su
 		(int)offsetX, (int)offsetY, 0,
 		const_cast<gxapi::IResource*>(src._GetResourcePtr()),
 		srcDesc,
-		srcRegion
-	);
+		srcRegion);
 }
 
 
@@ -260,8 +250,7 @@ void CopyCommandList::CopyTexture(const Texture2D& dst, const Texture2D& src, Su
 		dstDesc,
 		(int)offsetX, (int)offsetY, 0,
 		const_cast<gxapi::IResource*>(src._GetResourcePtr()),
-		srcDesc
-	);
+		srcDesc);
 }
 
 
@@ -277,8 +266,7 @@ void CopyCommandList::CopyTexture(const Texture2D& dst, const LinearBuffer& src,
 		dstDesc,
 		(int)dstPlace.corner1.x, (int)dstPlace.corner1.y, 0,
 		const_cast<gxapi::IResource*>(src._GetResourcePtr()),
-		bufferDesc
-	);
+		bufferDesc);
 }
 
 
@@ -288,4 +276,4 @@ void CopyCommandList::CopyTexture(const Texture2D& dst, const LinearBuffer& src,
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

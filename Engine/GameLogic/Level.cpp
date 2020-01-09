@@ -2,6 +2,7 @@
 
 #include "ComponentFactory.hpp"
 #include "LevelArchive.hpp"
+
 #include <cereal/types/string.hpp>
 
 namespace inl::game {

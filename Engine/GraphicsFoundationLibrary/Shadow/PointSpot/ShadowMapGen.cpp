@@ -1,11 +1,10 @@
 #include "ShadowMapGen.hpp"
 
-#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
-
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
 #include <GraphicsEngine_LL/GraphicsCommandList.hpp>
 #include <GraphicsEngine_LL/Mesh.hpp>
 #include <GraphicsEngine_LL/MeshEntity.hpp>
+#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 
 
 namespace inl::gxeng::nodes {
@@ -145,8 +144,8 @@ void ShadowMapGen::Setup(SetupContext& context) {
 		shaderParts.ps = true;
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
-			gxapi::InputElementDesc{"POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0},
-			gxapi::InputElementDesc{"NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12},
+			gxapi::InputElementDesc{ "POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0 },
+			gxapi::InputElementDesc{ "NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12 },
 			gxapi::InputElementDesc{ "TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24 },
 		};
 
@@ -159,10 +158,10 @@ void ShadowMapGen::Setup(SetupContext& context) {
 			psoDesc.rootSignature = m_binder.GetRootSignature();
 			psoDesc.vs = m_shadowGenShader.vs;
 			psoDesc.ps = m_shadowGenShader.ps;
-			psoDesc.rasterization = gxapi::RasterizerState{gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW};
+			psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW };
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
-			psoDesc.depthStencilState = gxapi::DepthStencilState{true, true};
+			psoDesc.depthStencilState = gxapi::DepthStencilState{ true, true };
 			psoDesc.depthStencilFormat = m_depthStencilFormat;
 
 			psoDesc.numRenderTargets = 0;

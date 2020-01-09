@@ -5,7 +5,7 @@ namespace inl {
 
 LogEvent::LogEvent() : type(eEventType::UNSPECIFIED) {}
 
-//LogEvent::LogEvent(std::string message, eEventType type) 
+//LogEvent::LogEvent(std::string message, eEventType type)
 //	: message(std::move(message)), type(type)
 //{}
 

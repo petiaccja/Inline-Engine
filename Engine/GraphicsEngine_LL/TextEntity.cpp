@@ -1,4 +1,5 @@
 #include "TextEntity.hpp"
+
 #include "Font.hpp"
 
 #include <BaseLibrary/Exception/Exception.hpp>

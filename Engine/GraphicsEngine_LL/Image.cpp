@@ -1,6 +1,6 @@
 #include "Image.hpp"
 
-namespace inl:: gxeng {
+namespace inl::gxeng {
 
 
 void Image::SetLayout(uint64_t width, uint32_t height, ePixelChannelType channelType, int channelCount, ePixelClass pixelClass) {
@@ -29,4 +29,4 @@ void Image::CreateResourceView(const Texture2D& texture) {
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

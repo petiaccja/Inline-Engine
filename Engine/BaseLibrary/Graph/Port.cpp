@@ -1,4 +1,5 @@
 #include "Port.hpp"
+
 #include "Node.hpp"
 
 #include <cassert>
@@ -67,7 +68,6 @@ void InputPortBase::NotifyAll() {
 		v->Notify(this);
 	}
 }
-
 
 
 

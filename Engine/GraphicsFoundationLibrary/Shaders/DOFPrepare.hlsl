@@ -5,8 +5,7 @@
 * Output: premultiplied color texture, coc
 */
 
-struct Uniforms
-{
+struct Uniforms {
 	float maxBlurDiameter;
 };
 
@@ -17,21 +16,18 @@ Texture2D depthTex : register(t1); //
 SamplerState samp0 : register(s0);
 SamplerState samp1 : register(s1);
 
-struct PS_Input
-{
+struct PS_Input {
 	float4 position : SV_POSITION;
 	float2 texCoord : TEXCOORD0;
 };
 
-struct PS_Output
-{
+struct PS_Output {
 	float4 colorCoc : SV_TARGET0;
 	float depth : SV_TARGET1;
 };
 
 //warning: result [0...far]
-float LinearizeDepth(float depth, float near, float far)
-{
+float LinearizeDepth(float depth, float near, float far) {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 	float zndc = depth;
@@ -44,8 +40,7 @@ float LinearizeDepth(float depth, float near, float far)
 };
 
 //warning: result [0...1]
-float ToDepth(float depth, float near, float far)
-{
+float ToDepth(float depth, float near, float far) {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 
@@ -57,8 +52,7 @@ float Rand(float2 co) {
 	return frac(sin(dot(co.xy, float2(12.9898, 78.233))) * 43758.5453);
 }
 
-float4 FilterFuncTier3(float2 uv, float2 resolution, float4 centerTap, float centerDepth)
-{
+float4 FilterFuncTier3(float2 uv, float2 resolution, float4 centerTap, float centerDepth) {
 	const float pi = 3.14159265;
 	int taps = 8;
 	const float threshold = 0.1;
@@ -66,8 +60,7 @@ float4 FilterFuncTier3(float2 uv, float2 resolution, float4 centerTap, float cen
 	float centerCoc = centerTap.w;
 	float dist = max(centerCoc * 0.5 * 0.333, 1.0); //9
 
-	if (centerCoc <= 1.0)
-	{
+	if (centerCoc <= 1.0) {
 		return centerTap;
 	}
 
@@ -76,8 +69,7 @@ float4 FilterFuncTier3(float2 uv, float2 resolution, float4 centerTap, float cen
 	float ftaps = 1.0 / float(taps);
 	float2 pixelSize = 1.0 / resolution;
 
-	for (int c = 0; c < taps; ++c)
-	{
+	for (int c = 0; c < taps; ++c) {
 		float xx = cos(2.0 * pi * float(c) * ftaps) * dist;
 		float yy = sin(2.0 * pi * float(c) * ftaps) * dist;
 
@@ -88,8 +80,7 @@ float4 FilterFuncTier3(float2 uv, float2 resolution, float4 centerTap, float cen
 		float depthMin = LinearizeDepth(min(depthGather.x, min(depthGather.y, min(depthGather.z, depthGather.w))), 0.1, 100);
 
 
-		if (abs(depthMin - centerDepth) < threshold)
-		{
+		if (abs(depthMin - centerDepth) < threshold) {
 			result += data;
 			samples++;
 		}
@@ -99,11 +90,10 @@ float4 FilterFuncTier3(float2 uv, float2 resolution, float4 centerTap, float cen
 }
 
 //all in metres (scene unit)
-float CalculateCoc(float focalLength, float subjectDistance, float openingDiameter, float sceneDepth)
-{
+float CalculateCoc(float focalLength, float subjectDistance, float openingDiameter, float sceneDepth) {
 	//return focal_length * (focal_length / subject_distance) * abs(scene_depth - subject_distance) /
 	//	((focal_length / opening_diameter) * (subject_distance + (scene_depth < subject_distance ? -1 : 1) * abs(scene_depth - subject_distance)));
-	
+
 	//based on wikipedia
 	return openingDiameter * (focalLength / subjectDistance) * abs(sceneDepth - subjectDistance) / sceneDepth;
 
@@ -112,15 +102,15 @@ float CalculateCoc(float focalLength, float subjectDistance, float openingDiamet
 
 	//gpu gems, optimized math
 	//gpu
-	//CoC = abs(z * CoCScale + CoCBias) 
+	//CoC = abs(z * CoCScale + CoCBias)
 	//cpu
 	//CoCScale = (aperture * focallength * planeinfocus * (zfar - znear)) / ((planeinfocus - focallength) * znear * zfar)
 	//CoCBias = (aperture * focallength * (znear - planeinfocus)) /	((planeinfocus * focallength) * znear)
 }
 
 
-PS_Input VSMain(uint vertexId : SV_VertexID)
-{
+PS_Input VSMain(uint vertexId
+				: SV_VertexID) {
 	// Triangle strip based on vertex id
 	// 3-----2
 	// |   / |
@@ -130,20 +120,19 @@ PS_Input VSMain(uint vertexId : SV_VertexID)
 	// 1: (0, 0)
 	// 2: (1, 1)
 	// 3: (0, 1)
-    PS_Input output;
+	PS_Input output;
 
-    output.texCoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
-    output.texCoord.y = vertexId >> 1; // 1 if bit1 is 1.
+	output.texCoord.x = (vertexId & 1) ^ 1; // 1 if bit0 is 0.
+	output.texCoord.y = vertexId >> 1; // 1 if bit1 is 1.
 
-    float2 posL = output.texCoord.xy * 2.0f - float2(1, 1);
-    output.position = float4(posL, 0.5f, 1.0f);
-    output.texCoord.y = 1.f - output.texCoord.y;
+	float2 posL = output.texCoord.xy * 2.0f - float2(1, 1);
+	output.position = float4(posL, 0.5f, 1.0f);
+	output.texCoord.y = 1.f - output.texCoord.y;
 
-    return output;
+	return output;
 }
 
-PS_Output PSMain(PS_Input input)
-{
+PS_Output PSMain(PS_Input input) {
 	PS_Output output;
 
 	uint3 inputTexSize;
@@ -153,7 +142,7 @@ PS_Output PSMain(PS_Input input)
 	float4 depthGather = depthTex.Gather(samp0, input.texCoord);
 	float maxDepth = max(depthGather.x, max(depthGather.y, max(depthGather.z, depthGather.w)));
 	float inputDepth = LinearizeDepth(maxDepth, 0.1, 100);
-	
+
 	output.colorCoc = inputData;
 	output.depth = maxDepth;
 	return output;

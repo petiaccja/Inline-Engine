@@ -3,7 +3,7 @@
 #include "Common.hpp"
 
 
-namespace inl:: gxapi {
+namespace inl::gxapi {
 
 class IResource;
 
@@ -17,11 +17,11 @@ public:
 	virtual bool IsFullScreen() const = 0;
 	virtual unsigned GetCurrentBufferIndex() const = 0;
 
-	virtual void SetFullScreen(bool isFullScreen) = 0; 
+	virtual void SetFullScreen(bool isFullScreen) = 0;
 	virtual void Resize(unsigned width, unsigned height, unsigned bufferCount = 0, eFormat format = eFormat::UNKNOWN) = 0;
 
 	virtual void Present() = 0;
 };
 
 
-} //namespace gxapi
+} // namespace inl::gxapi

@@ -7,6 +7,7 @@
 #include "../GraphicsApi_LL/Common.hpp"
 #include <BaseLibrary/StringUtil.hpp>
 
+#include <WinPixEventRuntime/pix3.h>
 #include <cassert>
 #include <vector>
 

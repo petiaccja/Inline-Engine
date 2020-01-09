@@ -1,9 +1,11 @@
 #include "Test.hpp"
+
 #include "BaseLibrary/Memory/MultiInstanceTLS.hpp"
-#include <thread>
-#include <mutex>
-#include <iostream>
+
 #include <atomic>
+#include <iostream>
+#include <mutex>
+#include <thread>
 
 #ifdef _MSC_VER
 #include <Windows.h>
@@ -48,7 +50,7 @@ struct TestData {
 class TestUser {
 public:
 	TestUser() : value(0) {
-		cout << "user: ctor" << endl; 
+		cout << "user: ctor" << endl;
 	}
 	TestUser(const TestUser& rhs) {
 		cout << "user: copy" << endl;
@@ -88,6 +90,7 @@ public:
 		return "Multi Instance TLS";
 	}
 	virtual int Run() override;
+
 private:
 	static int a;
 };
@@ -118,14 +121,13 @@ int TestMultiTLS::Run() {
 
 	int i = 0;
 	auto startTime = std::chrono::high_resolution_clock::now();
-	for (auto& thread : threads)
-	{
-		thread = std::thread([&, i]{
+	for (auto& thread : threads) {
+		thread = std::thread([&, i] {
 
 #ifdef _MSC_VER
 			SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 #endif
-			TestUser& myInstance = *instances[i/(NumThreads / NumInstances)];
+			TestUser& myInstance = *instances[i / (NumThreads / NumInstances)];
 
 			long long js = iterations / 10;
 			for (long long j = 0; j < js; ++j) {
@@ -159,9 +161,6 @@ int TestMultiTLS::Run() {
 	double elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime).count() / 1e9; // seconds
 	cout << "Time = " << elapsed * 1000 << " ms" << endl;
 	cout << "Performance = " << 3.7e9 * elapsed / (iterations) << " cycles / operation" << endl;
-
-
-
 
 
 

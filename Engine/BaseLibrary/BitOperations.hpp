@@ -18,7 +18,7 @@ namespace inl {
 
 
 /// <summary> Counts the trailing zero bits of a 32 bit unsigned argument. From LSB to MSB. </summary>
-/// <returns> If the argument is zero, -1 is returned, the number of trailing zeros otherwise. </returns> 
+/// <returns> If the argument is zero, -1 is returned, the number of trailing zeros otherwise. </returns>
 inline int CountTrailingZeros(uint32_t arg) {
 #if defined(_MSC_VER)
 	unsigned long index;
@@ -26,7 +26,7 @@ inline int CountTrailingZeros(uint32_t arg) {
 	return res > 0 ? (int)index : -1;
 #elif defined(__GNUC__)
 	return arg == 0 ? -1 : __builtin_ctz(arg);
-#else 
+#else
 	for (uint8_t idx = 0; idx < 32; ++idx) {
 		if ((arg >> idx) & 0x01)
 			return idx;
@@ -36,7 +36,7 @@ inline int CountTrailingZeros(uint32_t arg) {
 }
 
 /// <summary> Counts the leading zero bits of a 32 bit unsigned argument. From MSB to LSB. </summary>
-/// <returns> If the argument is zero, -1 is returned, the number of leading zeros otherwise. </returns> 
+/// <returns> If the argument is zero, -1 is returned, the number of leading zeros otherwise. </returns>
 inline int CountLeadingZeros(uint32_t arg) {
 #if defined(_MSC_VER)
 	unsigned long index;
@@ -44,7 +44,7 @@ inline int CountLeadingZeros(uint32_t arg) {
 	return res > 0 ? (31 - (int)index) : -1;
 #elif defined(__GNUC__)
 	return arg == 0 ? -1 : __builtin_clz(arg);
-#else 
+#else
 	for (uint8_t idx = 0; idx < 32; ++idx) {
 		if ((arg << idx) & 0x8000'0000U)
 			return idx;
@@ -54,7 +54,7 @@ inline int CountLeadingZeros(uint32_t arg) {
 }
 
 /// <summary> Counts the trailing zero bits of a 64 bit unsigned argument. From LSB to MSB. </summary>
-/// <returns> If the argument is zero, -1 is returned, the number of trailing zeros otherwise. </returns> 
+/// <returns> If the argument is zero, -1 is returned, the number of trailing zeros otherwise. </returns>
 inline int CountTrailingZeros(uint64_t arg) {
 #if defined(_MSC_VER)
 	unsigned long index;
@@ -62,7 +62,7 @@ inline int CountTrailingZeros(uint64_t arg) {
 	return res > 0 ? (int)index : -1;
 #elif defined(__GNUC__)
 	return arg == 0 ? -1 : __builtin_ctzll(arg);
-#else 
+#else
 	for (uint8_t idx = 0; idx < 64; ++idx) {
 		if ((arg >> idx) & 0x01)
 			return idx;
@@ -72,7 +72,7 @@ inline int CountTrailingZeros(uint64_t arg) {
 }
 
 /// <summary> Counts the leading zero bits of a 64 bit unsigned argument. From MSB to LSB. </summary>
-/// <returns> If the argument is zero, -1 is returned, the number of leading zeros otherwise. </returns> 
+/// <returns> If the argument is zero, -1 is returned, the number of leading zeros otherwise. </returns>
 inline int CountLeadingZeros(uint64_t arg) {
 #if defined(_MSC_VER)
 	unsigned long index;
@@ -80,7 +80,7 @@ inline int CountLeadingZeros(uint64_t arg) {
 	return res > 0 ? (63 - (int)index) : -1;
 #elif defined(__GNUC__)
 	return arg == 0 ? -1 : __builtin_clzll(arg);
-#else 
+#else
 	for (uint8_t idx = 0; idx < 64; ++idx) {
 		if ((arg << idx) & 0x8000'0000'0000'0000ULL)
 			return idx;
@@ -145,7 +145,6 @@ inline bool BitTestAndSet(uint64_t& arg, unsigned bit) {
 //------------------------------------------------------------------------------
 
 // TODO...
-
 
 
 

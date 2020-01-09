@@ -17,8 +17,8 @@ AbsoluteLayout::Binding& AbsoluteLayout::operator[](const Control* child) {
 
 	return GetLayoutPosition<Binding>(*child);
 }
-	
-	
+
+
 const AbsoluteLayout::Binding& AbsoluteLayout::operator[](const Control* child) const {
 	if (child->GetParent() != this) {
 		throw InvalidArgumentException("Child does not belong to this control.");

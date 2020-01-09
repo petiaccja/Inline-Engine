@@ -23,7 +23,7 @@ TEST_CASE("Add and fire", "[Event]") {
 
 	Event<int&> evt;
 	evt += Increment;
-	evt += Delegate<void(int&)>{&Incrementer::operator(), &inc};
+	evt += Delegate<void(int&)>{ &Incrementer::operator(), &inc };
 
 	evt(value);
 
@@ -36,9 +36,9 @@ TEST_CASE("Add and remove", "[Event]") {
 
 	Event<int&> evt;
 	evt += Increment;
-	evt += Delegate<void(int&)>{&Incrementer::operator(), &inc};
+	evt += Delegate<void(int&)>{ &Incrementer::operator(), &inc };
 	evt -= Increment;
-	evt -= Delegate<void(int&)>{&Incrementer::operator(), &inc};
+	evt -= Delegate<void(int&)>{ &Incrementer::operator(), &inc };
 
 	evt(value);
 
@@ -51,7 +51,7 @@ TEST_CASE("Copy and fire", "[Event]") {
 
 	Event<int&> evt;
 	evt += Increment;
-	evt += Delegate<void(int&)>{&Incrementer::operator(), &inc};
+	evt += Delegate<void(int&)>{ &Incrementer::operator(), &inc };
 
 	Event<int&> evt2 = evt;
 	evt2(value);

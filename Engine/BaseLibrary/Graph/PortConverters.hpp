@@ -1,10 +1,11 @@
 #pragma once
 
 #include "Port.hpp"
-#include <type_traits>
+
+#include <InlineMath.hpp>
 #include <cstdlib>
 #include <string>
-#include <InlineMath.hpp>
+#include <type_traits>
 
 
 namespace inl {
@@ -30,8 +31,7 @@ protected:
 		&FromArithmetic<float>,
 		&FromArithmetic<double>,
 		&FromArithmetic<long double>,
-		&FromString)
-	{}
+		&FromString) {}
 
 	template <class SourceT>
 	static AritT FromArithmetic(SourceT src) {
@@ -66,53 +66,40 @@ protected:
 
 
 template <>
-class PortConverter<char> : public PortConverterArithmetic<char>
-{};
+class PortConverter<char> : public PortConverterArithmetic<char> {};
 template <>
-class PortConverter<unsigned char> : public PortConverterArithmetic<unsigned char>
-{};
+class PortConverter<unsigned char> : public PortConverterArithmetic<unsigned char> {};
 template <>
-class PortConverter<signed char> : public PortConverterArithmetic<signed char>
-{};
+class PortConverter<signed char> : public PortConverterArithmetic<signed char> {};
 template <>
-class PortConverter<short> : public PortConverterArithmetic<short>
-{};
+class PortConverter<short> : public PortConverterArithmetic<short> {};
 template <>
-class PortConverter<unsigned short> : public PortConverterArithmetic<unsigned short>
-{};
+class PortConverter<unsigned short> : public PortConverterArithmetic<unsigned short> {};
 template <>
-class PortConverter<int> : public PortConverterArithmetic<int>
-{};
+class PortConverter<int> : public PortConverterArithmetic<int> {};
 template <>
-class PortConverter<unsigned int> : public PortConverterArithmetic<unsigned int>
-{};
+class PortConverter<unsigned int> : public PortConverterArithmetic<unsigned int> {};
 template <>
-class PortConverter<long> : public PortConverterArithmetic<long>
-{};
+class PortConverter<long> : public PortConverterArithmetic<long> {};
 template <>
-class PortConverter<unsigned long> : public PortConverterArithmetic<unsigned long>
-{};
+class PortConverter<unsigned long> : public PortConverterArithmetic<unsigned long> {};
 template <>
-class PortConverter<long long> : public PortConverterArithmetic<long long>
-{};
+class PortConverter<long long> : public PortConverterArithmetic<long long> {};
 template <>
-class PortConverter<unsigned long long> : public PortConverterArithmetic<unsigned long long>
-{};
+class PortConverter<unsigned long long> : public PortConverterArithmetic<unsigned long long> {};
 template <>
-class PortConverter<float> : public PortConverterArithmetic<float>
-{};
+class PortConverter<float> : public PortConverterArithmetic<float> {};
 template <>
-class PortConverter<double> : public PortConverterArithmetic<double>
-{};
+class PortConverter<double> : public PortConverterArithmetic<double> {};
 template <>
-class PortConverter<long double> : public PortConverterArithmetic<long double>
-{};
+class PortConverter<long double> : public PortConverterArithmetic<long double> {};
 
 
 
 template <class T, int Dim, bool Packed>
 class PortConverter<Vector<T, Dim, Packed>> : public PortConverterCollection<Vector<T, Dim, Packed>> {
 	using VectorT = Vector<T, Dim, Packed>;
+
 public:
 	PortConverter() : PortConverterCollection<Vector<T, Dim, Packed>>(
 		&FromVector<char, true>,
@@ -145,8 +132,7 @@ public:
 		&FromVector<double, false>,
 		&FromVector<long double, false>,
 
-		&FromString)
-	{}
+		&FromString) {}
 
 protected:
 	template <class T2, bool Packed2>
@@ -175,6 +161,7 @@ public:
 	std::string ToString(const bool& arg) const override {
 		return arg ? "true" : "false";
 	}
+
 protected:
 	static bool FromString(const std::string& arg) {
 		if (arg == "true" || arg == "enabled") {

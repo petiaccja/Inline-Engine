@@ -1,9 +1,9 @@
 #pragma once
 
-#include <vector>
 #include <iostream>
-#include <string>
 #include <mutex>
+#include <string>
+#include <vector>
 
 
 template <template <class> class Allocator = std::allocator>
@@ -33,13 +33,13 @@ std::ostream& operator<<(std::ostream& os, const StackFrameT<Allocator>& frame) 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <Windows.h>
+#define STACKTRACE_HPP_CLANGTIDY_FORCE_INCLUDE_ORDER_1
 #include <Dbghelp.h>
 
 template <template <class> class Allocator = std::allocator>
 std::vector<StackFrameT<Allocator>, Allocator<StackFrameT<Allocator>>> GetStackTrace() {
 	// Initialize sym stuff
-	[[maybe_unused]]
-	static bool isInitalized = [] {
+	[[maybe_unused]] static bool isInitalized = [] {
 		SymInitialize(GetCurrentProcess(), NULL, TRUE);
 		return true;
 	}();
@@ -56,7 +56,7 @@ std::vector<StackFrameT<Allocator>, Allocator<StackFrameT<Allocator>>> GetStackT
 		char nameExtra[1024] = { 0 };
 	};
 
-	
+
 	// Get process and thread
 	HANDLE process = GetCurrentProcess();
 	HANDLE thread = GetCurrentThread();
@@ -76,7 +76,7 @@ std::vector<StackFrameT<Allocator>, Allocator<StackFrameT<Allocator>>> GetStackT
 
 	// Iterate over stack frames
 	std::vector<StackFrameT<Allocator>, Allocator<StackFrameT<Allocator>>> frames;
-	for (int frame = 0; ; frame++) {
+	for (int frame = 0;; frame++) {
 		BOOL result;
 		result = StackWalk64(IMAGE_FILE_MACHINE_AMD64,
 							 process,
@@ -121,8 +121,7 @@ std::vector<StackFrameT<Allocator>, Allocator<StackFrameT<Allocator>>> GetStackT
 		currentFrame.sourceLine = lineInfo.LineNumber != (DWORD)-1 ? lineInfo.LineNumber : 0;
 		frames.push_back(currentFrame);
 
-		if (!result)
-		{
+		if (!result) {
 			break;
 		}
 	}

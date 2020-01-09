@@ -1,7 +1,7 @@
+#include "GraphicsEngine_LL/MaterialShader.hpp"
+#include <BaseLibrary/GraphEditor/GraphParser.hpp>
 #include <BaseLibrary/GraphEditor/IGraphEditorNode.hpp>
 #include <BaseLibrary/Graph_All.hpp>
-#include <BaseLibrary/GraphEditor/GraphParser.hpp>
-#include "GraphicsEngine_LL/MaterialShader.hpp"
 
 
 #undef GetClassName // retarded Windows
@@ -41,6 +41,7 @@ public:
 
 	void SetMetaData(NodeMetaDescription data) override;
 	NodeMetaDescription GetMetaData() const override;
+
 private:
 	std::unique_ptr<MaterialShader> m_realNode;
 	NodeMetaDescription m_metaData;
@@ -48,4 +49,4 @@ private:
 
 
 
-} // namespace inl
+} // namespace inl::gxeng

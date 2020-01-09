@@ -1,11 +1,12 @@
 #pragma once
 
 
-#include <InlineMath.hpp>
-#include <BaseLibrary/Transformable.hpp>
-#include <BaseLibrary/Rect.hpp>
 #include "Entity.hpp"
 
+#include <BaseLibrary/Rect.hpp>
+#include <BaseLibrary/Transformable.hpp>
+
+#include <InlineMath.hpp>
 #include <utility>
 
 
@@ -43,7 +44,7 @@ public:
 	virtual Vec4 GetColor() const = 0;
 
 
-	/// <summary> The text goes into a box of this size. 
+	/// <summary> The text goes into a box of this size.
 	///		The center of the box is the position of the entity. </summary>
 	/// <remarks> Size is in the same units as the font height, and gets
 	///		physical meaning through the 2D camera that view the overlays.

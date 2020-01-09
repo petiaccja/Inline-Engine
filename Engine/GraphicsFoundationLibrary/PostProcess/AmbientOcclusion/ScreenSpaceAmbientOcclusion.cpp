@@ -1,10 +1,10 @@
 #include "ScreenSpaceAmbientOcclusion.hpp"
 
 #include "../../Debug/DebugDrawManager.hpp"
-#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
 #include <GraphicsEngine_LL/GraphicsCommandList.hpp>
+#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 
 
 
@@ -151,7 +151,7 @@ void ScreenSpaceAmbientOcclusion::Setup(SetupContext& context) {
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
 			gxapi::InputElementDesc{ "POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0 },
-			gxapi::InputElementDesc{"TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12}
+			gxapi::InputElementDesc{ "TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12 }
 		};
 
 		{
@@ -264,11 +264,10 @@ void ScreenSpaceAmbientOcclusion::Execute(RenderContext& context) {
 	uniformsCBData.scaleFactor = 0.5f * (m_depthTexSrv.GetResource().GetHeight() / (2.0f * p(0, 0)));
 
 	//far ndc corners
-	Vec4 ndcCorners[] =
-		{
-			Vec4(-1.f, -1.f, 1.f, 1.f),
-			Vec4(1.f, 1.f, 1.f, 1.f),
-		};
+	Vec4 ndcCorners[] = {
+		Vec4(-1.f, -1.f, 1.f, 1.f),
+		Vec4(1.f, 1.f, 1.f, 1.f),
+	};
 
 	//convert to world space frustum corners
 	ndcCorners[0] = ndcCorners[0] * invP;

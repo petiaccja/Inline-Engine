@@ -1,16 +1,16 @@
 #pragma once
 
-#include "../GraphicsApi_LL/IRootSignature.hpp"
 #include "../GraphicsApi_LL/ICommandList.hpp"
+#include "../GraphicsApi_LL/IRootSignature.hpp"
 
-#include <cstdint>
 #include <cassert>
-#include <iostream>
+#include <cstdint>
 #include <initializer_list>
+#include <iostream>
 
 
-namespace inl :: gxapi {
-	class IGraphicsApi;
+namespace inl ::gxapi {
+class IGraphicsApi;
 }
 
 
@@ -33,12 +33,11 @@ enum class eBindParameterType {
 
 
 /// <summary>
-/// Bind parameters identify a register in the shader. 
+/// Bind parameters identify a register in the shader.
 /// You can bind resources to the register via <see cref="Binder"/> and <see cref="inl::gxeng::BasicCommandList"/>.
 /// </summary>
 struct BindParameter {
-	constexpr BindParameter(eBindParameterType type = eBindParameterType::CONSTANT, unsigned reg = 0, unsigned space = 0) :
-		type(type), reg(reg), space(space) {}
+	constexpr BindParameter(eBindParameterType type = eBindParameterType::CONSTANT, unsigned reg = 0, unsigned space = 0) : type(type), reg(reg), space(space) {}
 	eBindParameterType type;
 	unsigned reg; // register
 	unsigned space; // register space
@@ -74,6 +73,7 @@ struct BindParameterDesc {
 /// </remarks>
 class Binder {
 	friend std::ostream& ::operator<<(std::ostream& os, const Binder& binder);
+
 private:
 	// Specifies which BindParameter corresponds to Root Signature's parameters.
 	struct RootParameterMapping {
@@ -85,6 +85,7 @@ private:
 
 	// Radix sort for BindParameters
 	static bool RadixLess(const BindParameter& lhs, const BindParameter& rhs);
+
 public:
 	Binder() = default;
 
@@ -106,15 +107,17 @@ public:
 
 	/// <summary> True if the binder has been initialized with a list of parameters. </summary>
 	operator bool() const { return (bool)m_rootSignature; }
+
 private:
 	void CalculateLayout(const std::vector<BindParameterDesc>& parameters);
 	void DistributeParameters(const std::vector<BindParameterDesc>& parameters,
-		std::vector<std::vector<BindParameterDesc>> & tableParams,
-		std::vector<BindParameterDesc> & samplerParams,
-		std::vector<BindParameterDesc> & constantParams);
+							  std::vector<std::vector<BindParameterDesc>>& tableParams,
+							  std::vector<BindParameterDesc>& samplerParams,
+							  std::vector<BindParameterDesc>& constantParams);
 	gxapi::DescriptorRange::eType CastRangeType(eBindParameterType source);
 
 	std::pair<std::vector<RootParameterMapping>::const_iterator, bool> FindMapping(BindParameter param) const;
+
 private:
 	std::vector<RootParameterMapping> m_parameters;
 	std::unique_ptr<gxapi::IRootSignature> m_rootSignature;
@@ -122,16 +125,16 @@ private:
 
 	// Maximum root signature size = 64 DWORDs.
 	// TODO: query from gxapi!
-	static constexpr int maxSize = 64*sizeof(uint32_t); 
+	static constexpr int maxSize = 64 * sizeof(uint32_t);
 };
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng
 
 
-#include <map>
 #include <list>
+#include <map>
 inline std::ostream& ::operator<<(std::ostream& os, const inl::gxeng::Binder& binder) {
 	struct RootSignatureSlot {
 		bool isTable;
@@ -152,14 +155,13 @@ inline std::ostream& ::operator<<(std::ostream& os, const inl::gxeng::Binder& bi
 			os << "[";
 
 			for (auto it = desc.bindParameters.begin(); it != desc.bindParameters.end(); ++it) {
-				os << [](inl::gxeng::eBindParameterType type)
-				{
+				os << [](inl::gxeng::eBindParameterType type) {
 					switch (type) {
-					case inl::gxeng::eBindParameterType::CONSTANT: return "C";
-					case inl::gxeng::eBindParameterType::TEXTURE: return "T";
-					case inl::gxeng::eBindParameterType::UNORDERED: return "U";
-					case inl::gxeng::eBindParameterType::SAMPLER: return "S";
-					default: assert(false);
+						case inl::gxeng::eBindParameterType::CONSTANT: return "C";
+						case inl::gxeng::eBindParameterType::TEXTURE: return "T";
+						case inl::gxeng::eBindParameterType::UNORDERED: return "U";
+						case inl::gxeng::eBindParameterType::SAMPLER: return "S";
+						default: assert(false);
 					}
 				}(it->bindParam.type);
 				if (++decltype(it)(it) != desc.bindParameters.end()) {
@@ -170,14 +172,13 @@ inline std::ostream& ::operator<<(std::ostream& os, const inl::gxeng::Binder& bi
 			os << "]";
 		}
 		else {
-			os << [](inl::gxeng::eBindParameterType type)
-			{
+			os << [](inl::gxeng::eBindParameterType type) {
 				switch (type) {
-				case inl::gxeng::eBindParameterType::CONSTANT: return "C";
-				case inl::gxeng::eBindParameterType::TEXTURE: return "T";
-				case inl::gxeng::eBindParameterType::UNORDERED: return "U";
-				case inl::gxeng::eBindParameterType::SAMPLER: return "S";
-				default: assert(false);
+					case inl::gxeng::eBindParameterType::CONSTANT: return "C";
+					case inl::gxeng::eBindParameterType::TEXTURE: return "T";
+					case inl::gxeng::eBindParameterType::UNORDERED: return "U";
+					case inl::gxeng::eBindParameterType::SAMPLER: return "S";
+					default: assert(false);
 				}
 			}(desc.bindParameters.begin()->bindParam.type);
 			if (desc.bindParameters.begin()->bindParam.type == inl::gxeng::eBindParameterType::CONSTANT && desc.bindParameters.begin()->constantCount > 0) {

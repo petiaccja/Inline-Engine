@@ -4,7 +4,7 @@
 #include "ICommandList.hpp"
 
 
-namespace inl :: gxapi {
+namespace inl ::gxapi {
 
 
 class ICommandQueue;
@@ -55,7 +55,7 @@ public:
 										DescriptorHandle destination) = 0;
 	virtual void CreateDepthStencilView(const IResource* resource,
 										DescriptorHandle destination) = 0;
-	virtual void CreateDepthStencilView(const IResource * resource,
+	virtual void CreateDepthStencilView(const IResource* resource,
 										DepthStencilViewDesc desc,
 										DescriptorHandle destination) = 0;
 
@@ -116,4 +116,4 @@ public:
 };
 
 
-} // namespace gxapi
+} // namespace inl::gxapi

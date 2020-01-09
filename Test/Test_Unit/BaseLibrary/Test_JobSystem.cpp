@@ -1,7 +1,7 @@
-#include <BaseLibrary/JobSystem/SharedFuture.hpp>
-#include <BaseLibrary/JobSystem/Scheduler.hpp>
-#include <BaseLibrary/JobSystem/Mutex.hpp>
 #include <BaseLibrary/JobSystem/ConditionVariable.hpp>
+#include <BaseLibrary/JobSystem/Mutex.hpp>
+#include <BaseLibrary/JobSystem/Scheduler.hpp>
+#include <BaseLibrary/JobSystem/SharedFuture.hpp>
 #include <BaseLibrary/JobSystem/ThreadpoolScheduler.hpp>
 #include <BaseLibrary/JobSystem/Wait.hpp>
 
@@ -101,7 +101,7 @@ TEST_CASE("JobSystem - Exception nested", "[JobSystem]") {
 TEST_CASE("JobSystem - Fence signal", "[JobSystem]") {
 	ThreadpoolScheduler scheduler(2);
 	ImmediateScheduler schedimm;
-	Fence fence{0};
+	Fence fence{ 0 };
 
 	auto func = [&fence]() -> SharedFuture<int> {
 		auto* address = &fence;
@@ -109,7 +109,7 @@ TEST_CASE("JobSystem - Fence signal", "[JobSystem]") {
 		co_return 10;
 	};
 
-	fence.Signal(1);	
+	fence.Signal(1);
 	SharedFuture<int> fut = scheduler.Enqueue(func);
 
 	REQUIRE(10 == fut.get());
@@ -243,7 +243,7 @@ TEST_CASE("JobSystem - Condvar notify all", "[JobSystem]") {
 		int myCount = counter.fetch_add(1);
 
 		UniqueLock lk(mutex);
-		
+
 		co_await lk.Lock();
 		syncBack[myCount].Signal(1);
 		co_await cvar.Wait(lk);
@@ -325,10 +325,9 @@ TEST_CASE("JobSystem - WaitAny", "[JobSystem]") {
 		co_await lk[2].Lock();
 
 		co_await WaitAny(
-			cvar[0].Wait(lk[0], [&]{ return preds[0]; }),
-			cvar[1].Wait(lk[1], [&]{ return preds[1]; }),
-			cvar[2].Wait(lk[2], [&]{ return preds[2]; })
-		);
+			cvar[0].Wait(lk[0], [&] { return preds[0]; }),
+			cvar[1].Wait(lk[1], [&] { return preds[1]; }),
+			cvar[2].Wait(lk[2], [&] { return preds[2]; }));
 	};
 
 	auto fut1 = scheduler.Enqueue(func);

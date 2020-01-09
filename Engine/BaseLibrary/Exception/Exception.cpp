@@ -1,4 +1,5 @@
 #include "Exception.hpp"
+
 #include <sstream>
 
 namespace inl {
@@ -10,31 +11,27 @@ std::atomic_bool Exception::breakOnce(false);
 
 
 
-Exception::Exception() 
-	: m_message(std::make_shared<std::string>("Unknown error occured."))
-{
+Exception::Exception()
+	: m_message(std::make_shared<std::string>("Unknown error occured.")) {
 	CalculateStackTrace();
 	DoBreak();
 }
 
-Exception::Exception(std::string message) 
-	: m_message(std::make_shared<std::string>(std::move(message)))
-{
+Exception::Exception(std::string message)
+	: m_message(std::make_shared<std::string>(std::move(message))) {
 	CalculateStackTrace();
 	DoBreak();
 }
 
-Exception::Exception(std::string message, std::string subject) 
-	: m_message(std::make_shared<std::string>(std::move(message))), m_subject(std::make_shared<std::string>(std::move(subject)))
-{
+Exception::Exception(std::string message, std::string subject)
+	: m_message(std::make_shared<std::string>(std::move(message))), m_subject(std::make_shared<std::string>(std::move(subject))) {
 	m_what = std::make_shared<std::string>(*m_message + ": " + *m_subject);
 	CalculateStackTrace();
 	DoBreak();
 }
 
-Exception::Exception(nullptr_t, std::string subject) 
-	: m_message(std::make_shared<std::string>("Unknown error occured.")), m_subject(std::make_shared<std::string>(std::move(subject)))
-{
+Exception::Exception(nullptr_t, std::string subject)
+	: m_message(std::make_shared<std::string>("Unknown error occured.")), m_subject(std::make_shared<std::string>(std::move(subject))) {
 	CalculateStackTrace();
 	DoBreak();
 }
@@ -78,7 +75,7 @@ void Exception::BreakOnce() {
 
 void Exception::DoBreak() {
 	bool shouldBreak = breakOnce.exchange(false);
-#ifdef _MSC_VER 
+#ifdef _MSC_VER
 	if (IsDebuggerPresent() && shouldBreak) {
 		DebugBreak();
 	}
@@ -129,7 +126,6 @@ void Exception::CalculateStackTrace() {
 		*m_stackTrace = std::vector<StackFrame>(m_stackTrace->begin() + 2, m_stackTrace->end());
 	}
 }
-
 
 
 

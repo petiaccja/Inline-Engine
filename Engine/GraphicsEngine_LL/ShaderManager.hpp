@@ -1,17 +1,17 @@
 #pragma once
 
+#include <BaseLibrary/HashCombine.hpp>
+#include <GraphicsApi_LL/Common.hpp>
+#include <GraphicsApi_LL/IGxapiManager.hpp>
+
 #include <filesystem>
-#include <unordered_map>
-#include <unordered_set>
 #include <mutex>
 #include <shared_mutex>
-
-#include <GraphicsApi_LL/IGxapiManager.hpp>
-#include <GraphicsApi_LL/Common.hpp>
-#include <BaseLibrary/HashCombine.hpp>
+#include <unordered_map>
+#include <unordered_set>
 
 
-namespace inl:: gxeng {
+namespace inl::gxeng {
 
 
 /// <summary> Contains the compiled binaries for a shader stage (VS, PS, etc.). </summary>
@@ -25,12 +25,13 @@ public:
 
 	const void* Data() const { return m_binary.data(); }
 	size_t Size() const { return m_binary.size(); }
+
 private:
 	std::vector<uint8_t> m_binary;
 };
 
 #ifdef _MSC_VER
-#pragma warning(disable: 4522)
+#pragma warning(disable : 4522)
 #endif
 
 /// <summary> Helper class for keeping track of which shader stages have been compiled. </summary>
@@ -38,11 +39,11 @@ struct ShaderParts {
 	bool vs = false, hs = false, ds = false, gs = false, ps = false, cs = false;
 	bool SubsetOf(const volatile ShaderParts& other) const volatile {
 		return (vs <= other.vs)
-			&& (hs <= other.hs)
-			&& (ds <= other.ds)
-			&& (gs <= other.gs)
-			&& (ps <= other.ps)
-			&& (cs <= other.cs);
+			   && (hs <= other.hs)
+			   && (ds <= other.ds)
+			   && (gs <= other.gs)
+			   && (ps <= other.ps)
+			   && (cs <= other.cs);
 	}
 	ShaderParts SetSubtract(const volatile ShaderParts& other) const volatile {
 		ShaderParts ret;
@@ -85,7 +86,7 @@ struct ShaderParts {
 };
 
 #ifdef _MSC_VER
-#pragma warning(default: 4522)
+#pragma warning(default : 4522)
 #endif
 
 /// <summary> Contains all binaries associated with a shader program.
@@ -137,33 +138,34 @@ private:
 	using PathContainer = std::unordered_set<std::filesystem::path, PathHash>;
 	using CodeContainer = std::unordered_map<std::string, std::string>;
 	using ShaderContainer = std::unordered_map<ShaderId, std::unique_ptr<ShaderStore>, ShaderIdHash>;
+
 public:
 	ShaderManager(gxapi::IGxapiManager* gxapiManager);
 	~ShaderManager();
 
-	/// <summary> Adds a new source directory to look for shader codes. </summary> 
+	/// <summary> Adds a new source directory to look for shader codes. </summary>
 	/// <remarks> This method is thread-safe. </remarks>
 	void AddSourceDirectory(std::filesystem::path directory);
 
-	/// <summary> Removes a shader source directory from the list. </summary> 
+	/// <summary> Removes a shader source directory from the list. </summary>
 	/// <remarks> This method is thread-safe. </remarks>
 	void RemoveSourceDirectory(std::filesystem::path directory);
 
 	/// <summary> Removes all added source directories. </summary>
 	void ClearSourceDirectories();
 
-	/// <summary> Query source directories currently in use. </summary> 
+	/// <summary> Query source directories currently in use. </summary>
 	/// <returns> Iterator to the beginning and end of the range containing shader directories. </returns>
 	/// <remarks> This method is NOT thread-safe,
 	///	adding or removing directories concurrently with this is disallowed. </remarks>
 	std::pair<PathContainer::const_iterator, PathContainer::const_iterator> GetSourceDirectories() const;
 
 
-	/// <summary> Adds a source code to the list. </summary> 
+	/// <summary> Adds a source code to the list. </summary>
 	/// <remarks> This method is thread-safe. </remarks>
 	void AddSourceCode(std::string name, std::string sourceCode);
 
-	/// <summary> Removes a source code to the list. </summary> 
+	/// <summary> Removes a source code to the list. </summary>
 	/// <remarks> This method is thread-safe. </remarks>
 	void RemoveSourceCode(const std::string& name);
 
@@ -175,7 +177,7 @@ public:
 	std::pair<CodeContainer::const_iterator, CodeContainer::const_iterator> GetSourceCodes() const;
 
 
-	/// <summary> Set the global flags to compile all shaders. 
+	/// <summary> Set the global flags to compile all shaders.
 	///	Specify debugging, matrix memory layout and optimization here. </summary>
 	/// <remarks> This method is NOT thread-safe (though it shouldn't cause much trouble). </remarks>
 	void SetShaderCompileFlags(gxapi::eShaderCompileFlags flags);
@@ -201,11 +203,12 @@ public:
 	/// <summary> Compile arbitrary source code without adding it to the library. </summary>
 	/// <remarks> Include directives will still work if registered files are referenced. </remarks>
 	ShaderProgram CompileShader(const std::string& sourceCode, ShaderParts parts, const std::string& macros = {});
+
 private:
 	/// <summary> Find a source in dirs, resource and codes by its name. Does not lock anything. </summary>
-	/// <returns> 
+	/// <returns>
 	///		A {name, code} pair, where name is the canonical, unique name for the shader,
-	///		and code is the actual HLSL(/other) shader code. 
+	///		and code is the actual HLSL(/other) shader code.
 	/// </returns>
 	std::pair<std::string, std::string> FindShaderCode(const std::string& name) const;
 
@@ -214,6 +217,7 @@ private:
 
 	// Cuts off extension (only .hlsl, .glsl, .cg, .txt), converts to lowercase.
 	static std::string StripShaderName(std::string name, bool lowerCase = true);
+
 private:
 	gxapi::IGxapiManager* m_gxapiManager;
 
@@ -232,4 +236,4 @@ private:
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

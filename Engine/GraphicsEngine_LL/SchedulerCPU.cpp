@@ -96,7 +96,7 @@ void SchedulerCPU::CreateCommandJobs(jobs::Scheduler& scheduler) {
 	for (lemon::ListDigraph::NodeIt nodeIt(taskGraph); nodeIt != lemon::INVALID; ++nodeIt) {
 		m_commandJobs[nodeIt] = std::make_shared<jobs::SharedFuture<RenderCommand>>(CommandJob(nodeIt));
 		// Note that these are short tasks and may be better using immediate scheduling.
-		m_commandJobs[nodeIt]->Schedule(scheduler); 
+		m_commandJobs[nodeIt]->Schedule(scheduler);
 	}
 }
 
@@ -136,9 +136,9 @@ jobs::SharedFuture<SchedulerCPU::RenderCommandCandidate> SchedulerCPU::ExecuteJo
 	RenderCommandCandidate* inherited = nullptr;
 	for (lemon::ListDigraph::InArcIt arc(taskGraph, node); arc != lemon::INVALID; ++arc) {
 		lemon::ListDigraph::Node dependencyNode = taskGraph.source(arc);
-		
+
 		if (m_listForwarding[arc]) {
-			inherited = &(co_await* m_executeJobs[dependencyNode]);
+			inherited = &(co_await * m_executeJobs[dependencyNode]);
 		}
 	}
 	co_await* m_setupJobs[node];

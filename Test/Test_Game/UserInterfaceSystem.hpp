@@ -27,7 +27,7 @@ public:
 
 	void Update(float elapsed) override;
 	UserInterfaceCompositor& GetCompositor();
-	
+
 private:
 	void ResizeRender(inl::ResizeEvent evt);
 	void RegisterBoardEvents();

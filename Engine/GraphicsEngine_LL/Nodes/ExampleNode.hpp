@@ -1,16 +1,17 @@
 #pragma once
 
 
-#include <GraphicsEngine_LL/GraphicsNode.hpp>
 #include "../PipelineTypes.hpp"
 #include "../ResourceView.hpp"
+
 #include <GraphicsEngine_LL/GraphicsCommandList.hpp>
+#include <GraphicsEngine_LL/GraphicsNode.hpp>
 
 
 namespace inl::gxeng::nodes {
 
 // To create a node, you generally have to inherit from NodeBase, and you are all set.
-// To enable graphics engine specific things, such as creating resources or access to drawing commands, 
+// To enable graphics engine specific things, such as creating resources or access to drawing commands,
 // you must inherit from GraphicsNode instead.
 //
 // To declare input ports and output, inherit from the InputPortConfig and OutputPortConfig
@@ -18,15 +19,14 @@ namespace inl::gxeng::nodes {
 // NodeBase's interface manually. Refer to InputPort<T> and OutputPort<T>.
 //
 // You should use virtual inheritence because of the way these helpers are implemented.
-class ExampleNode 
+class ExampleNode
 	: virtual public GraphicsNode,
-	// Comment the names of the input, to let others know:
-	// Input HDR color texture | tone-mapping key
-	virtual public InputPortConfig<Texture2D, float>,
-	// Same for outputs:
-	// Blurred output
-	virtual public OutputPortConfig<Texture2D>
-{
+	  // Comment the names of the input, to let others know:
+	  // Input HDR color texture | tone-mapping key
+	  virtual public InputPortConfig<Texture2D, float>,
+	  // Same for outputs:
+	  // Blurred output
+	  virtual public OutputPortConfig<Texture2D> {
 private:
 	// [Graphics nodes only]
 	// Graphics nodes must implement sub-tasks, which means that the actual work is not done
@@ -55,8 +55,7 @@ private:
 			// Validate cached resources, and create new if necessary.
 			if (!m_outputTexture.HasObject()
 				|| sourceTexture.GetWidth() != m_outputTexture.GetWidth()
-				|| sourceTexture.GetHeight() != m_outputTexture.GetHeight())
-			{
+				|| sourceTexture.GetHeight() != m_outputTexture.GetHeight()) {
 				m_outputTexture = context.CreateRenderTarget2D(sourceTexture.GetWidth(),
 															   sourceTexture.GetHeight(),
 															   sourceTexture.GetFormat());
@@ -67,7 +66,7 @@ private:
 			// Dissatisfied with inputs, any problems occured?
 			if (key < 0.0f) {
 				// You are allowed to throw an exception with a meaningful message as to what went wrong.
-				// [NOT YET IMPLEMENTED - you should still throw, nonetheless] The scheduler will display 
+				// [NOT YET IMPLEMENTED - you should still throw, nonetheless] The scheduler will display
 				// a graph of the pipeline, highlighting the wrong node, and displaying the error message.
 				throw InvalidArgumentException("Tone-mapping key must not be negative!");
 			}
@@ -106,6 +105,7 @@ private:
 
 			// Don't worry, you will recreate all you need in the next setup.
 		}
+
 	private:
 		ExampleNode* m_parent; // store a reference to the parent Node to access its ports
 		Texture2D m_outputTexture;
@@ -120,7 +120,7 @@ public:
 	// This function is part of NodeBase. The graphics pipeline does not use it, you should leave
 	// it blank, and not rely on it.
 	void Notify(InputPortBase* sender) override {}
-	
+
 
 	// Called just after the pipeline is created. This is the place where the Node has access
 	// to engine-specific parameters, such as number of CPUs. Create your sub-tasks here.
@@ -138,12 +138,10 @@ public:
 	void Reset() override {
 		m_subtask->Reset();
 	}
+
 private:
 	std::unique_ptr<ExampleTask> m_subtask;
 };
-
-
-
 
 
 

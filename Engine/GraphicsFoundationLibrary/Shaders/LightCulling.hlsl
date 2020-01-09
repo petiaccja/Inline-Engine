@@ -7,19 +7,17 @@
 Texture2D inputTex : register(t0);
 RWTexture2D<uint> outputTex0 : register(u0);
 
-struct LightData
-{
+struct LightData {
 	float4 vsPosition;
 	float attenuationEnd;
 	float3 dummy;
 };
 
-struct Uniforms
-{
+struct Uniforms {
 	LightData ld[10];
 	float4x4 p;
 	float4 farPlane0, farPlane1;
-	float camNear, camFar; 
+	float camNear, camFar;
 	uint numLights, numWorkgroupsX, numWorkgroupsY;
 	float3 dummy;
 };
@@ -39,8 +37,7 @@ groupshared uint localMinDepth;
 groupshared uint localMaxDepth;
 groupshared uint localDepthMask;
 
-float LinearizeDepth(float depth, float near, float far)
-{
+float LinearizeDepth(float depth, float near, float far) {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 	float zndc = depth;
@@ -52,20 +49,22 @@ float LinearizeDepth(float depth, float near, float far)
 	return vsZrecon / far;
 };
 
-[numthreads(LOCAL_SIZE_X, LOCAL_SIZE_Y, 1)]
-void CSMain(
-	uint3 groupId : SV_GroupID, //WorkGroupId
-	uint3 groupThreadId : SV_GroupThreadID, //LocalInvocationId
-	uint3 dispatchThreadId : SV_DispatchThreadID, //GlobalInvocationId
-	uint groupIndex : SV_GroupIndex //LocalInvocationIndex
-)
-{
+[numthreads(LOCAL_SIZE_X, LOCAL_SIZE_Y, 1)] void CSMain(
+	uint3 groupId
+	: SV_GroupID, //WorkGroupId
+	  uint3 groupThreadId
+	: SV_GroupThreadID, //LocalInvocationId
+	  uint3 dispatchThreadId
+	: SV_DispatchThreadID, //GlobalInvocationId
+	  uint groupIndex
+	: SV_GroupIndex //LocalInvocationIndex
+) {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 
 	//per-pixel depth
 	float4 rawDepth = inputTex.Load(int3(dispatchThreadId.xy, 0));
-	
+
 	//outputTex0[dispatchThreadId.xy] = asuint(linearize_depth(raw_depth.x, uniforms.cam_near, uniforms.cam_far));
 	//return;
 
@@ -73,12 +72,11 @@ void CSMain(
 	float maxDepth = 0;
 	float minDepth = 1;
 
-	if (groupIndex == 0)
-	{
+	if (groupIndex == 0) {
 		localLL = float4(uniforms.farPlane0.xyz, 1.0);
 		localUR = float4(uniforms.farPlane0.w, uniforms.farPlane1.xy, 1.0);
-		localFar = uniforms.camFar; 
-		localNear = uniforms.camNear; 
+		localFar = uniforms.camFar;
+		localNear = uniforms.camNear;
 		localNumLightsInput = uniforms.numLights;
 
 		localNumLightsOutput = 0;
@@ -104,15 +102,13 @@ void CSMain(
 	//check for skybox
 	bool earlyRejection = (rawDepth.x > 0.999 || rawDepth.x < 0.001);
 
-	if (!earlyRejection)
-	{
+	if (!earlyRejection) {
 		float tmpDepth = rawDepth.x;
 
 		minDepth = min(minDepth, tmpDepth);
 		maxDepth = max(maxDepth, tmpDepth);
 
-		if (maxDepth >= minDepth)
-		{
+		if (maxDepth >= minDepth) {
 			InterlockedMin(localMinDepth, asuint(minDepth));
 			InterlockedMax(localMaxDepth, asuint(maxDepth));
 		}
@@ -139,9 +135,9 @@ void CSMain(
 	frustumPlanes[1] = c4 + c1;
 	frustumPlanes[2] = c4 - c2;
 	frustumPlanes[3] = c4 + c2;
-	frustumPlanes[4] = float4(0.0, 0.0, 1.0, minDepth * far); 
-	frustumPlanes[5] = float4(0.0, 0.0, 1.0, maxDepth * far); 
-		   
+	frustumPlanes[4] = float4(0.0, 0.0, 1.0, minDepth * far);
+	frustumPlanes[5] = float4(0.0, 0.0, 1.0, maxDepth * far);
+
 	frustumPlanes[0].xyz = normalize(frustumPlanes[0].xyz);
 	frustumPlanes[1].xyz = normalize(frustumPlanes[1].xyz);
 	frustumPlanes[2].xyz = normalize(frustumPlanes[2].xyz);
@@ -171,8 +167,7 @@ void CSMain(
 	GroupMemoryBarrierWithGroupSync(); //local memory barrier
 	/**/
 
-	for (uint c = groupIndex; c < numOfLights; c += LOCAL_SIZE_X * LOCAL_SIZE_Y)
-	{
+	for (uint c = groupIndex; c < numOfLights; c += LOCAL_SIZE_X * LOCAL_SIZE_Y) {
 		bool inFrustum = true;
 		int index = int(c);
 
@@ -234,8 +229,7 @@ void CSMain(
 			inFrustum = inFrustum && (e >= -attEnd);
 		}
 
-		if (inFrustum)
-		{
+		if (inFrustum) {
 			localLights[localNumLightsOutput] = int(index);
 			InterlockedAdd(localNumLightsOutput, 1);
 		}
@@ -246,13 +240,11 @@ void CSMain(
 
 	GroupMemoryBarrierWithGroupSync(); //local memory barrier
 
-	if (groupIndex == 0)
-	{
+	if (groupIndex == 0) {
 		outputTex0[int2(groupId.x * uniforms.numWorkgroupsY + groupId.y, 0)] = uint(localNumLightsOutput);
 	}
 
-	for (uint c = groupIndex; c < localNumLightsOutput; c += LOCAL_SIZE_X * LOCAL_SIZE_Y)
-	{
+	for (uint c = groupIndex; c < localNumLightsOutput; c += LOCAL_SIZE_X * LOCAL_SIZE_Y) {
 		outputTex0[int2(groupId.x * uniforms.numWorkgroupsY + groupId.y, c + 1)] = uint(localLights[c]);
 	}
 }

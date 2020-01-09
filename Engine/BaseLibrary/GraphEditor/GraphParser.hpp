@@ -1,20 +1,19 @@
 #pragma once
 
-#include <string>
-#include <unordered_map>
-#include <optional>
-#include <functional>
+#include "../Graph/SerializableNode.hpp"
 
 #include <InlineMath.hpp>
-
-#include "../Graph/SerializableNode.hpp"
+#include <functional>
+#include <optional>
+#include <string>
+#include <unordered_map>
 
 
 namespace inl {
 
 
 struct NodeMetaDescription {
-	Vec2i placement = {0,0};
+	Vec2i placement = { 0, 0 };
 };
 
 struct NodeDescription {
@@ -75,7 +74,6 @@ private:
 
 	std::unordered_map<int, size_t> m_idLookup;
 	std::unordered_map<std::string, size_t> m_nameLookup;
-
 };
 
 

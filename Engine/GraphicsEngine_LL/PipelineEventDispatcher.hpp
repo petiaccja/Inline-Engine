@@ -1,13 +1,13 @@
 #pragma once
 
-#include "SyncPoint.hpp"
 #include "PipelineEventListener.hpp"
+#include "SyncPoint.hpp"
 
-#include <future>
 #include <cstdint>
-#include <set>
-#include <queue>
+#include <future>
 #include <mutex>
+#include <queue>
+#include <set>
 #include <thread>
 
 
@@ -41,6 +41,7 @@ class PipelineEventDispatcher {
 		std::mutex m_listenerMutex;
 		std::set<PipelineEventListener*> m_listeners;
 	};
+
 public:
 	PipelineEventDispatcher();
 	PipelineEventDispatcher(const PipelineEventDispatcher&) = delete;
@@ -59,11 +60,13 @@ public:
 
 	void operator+=(PipelineEventListener* listener);
 	void operator-=(PipelineEventListener* listener);
+
 private:
 	static void DispatchThread(std::shared_ptr<State> state);
 	static void DeviceSyncThread(std::shared_ptr<State> state);
 	static void PushEventAction(State* state, EventAction eventAction);
 	void Shutdown();
+
 private:
 	std::shared_ptr<State> state;
 
@@ -72,4 +75,4 @@ private:
 };
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

@@ -23,5 +23,3 @@ gxapi::eFormat FormatAnyToDepthStencil(gxapi::eFormat sourceFormat);
 gxapi::eFormat FormatDepthToColor(gxapi::eFormat sourceFormat);
 
 } // namespace inl::gxeng::nodes
-
-

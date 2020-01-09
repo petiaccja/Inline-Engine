@@ -3,7 +3,6 @@
 
 #include "Control.hpp"
 #include "Layout.hpp"
-
 #include "Sprite.hpp"
 
 
@@ -33,6 +32,7 @@ public:
 
 	void ShowBackground(bool show);
 	bool IsShowingBackground();
+
 protected:
 	Sprite& GetBackground() { return m_background; }
 

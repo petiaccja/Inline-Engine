@@ -1,8 +1,9 @@
 #pragma once
 
+#include "Binder.hpp"
+
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
 
-#include "Binder.hpp"
 #include <algorithm>
 
 
@@ -16,7 +17,7 @@ Binder::Binder(inl::gxapi::IGraphicsApi* gxApi, const std::vector<BindParameterD
 	m_rootSignature.reset(gxApi->CreateRootSignature(m_rootSignatureDesc));
 }
 
-void Binder::Translate(BindParameter parameter, int & rootParamIndex, int & rootTableIndex) const {
+void Binder::Translate(BindParameter parameter, int& rootParamIndex, int& rootTableIndex) const {
 	auto result = FindMapping(parameter);
 	if (result.second != true) {
 		throw OutOfRangeException("Parameter was not found.");
@@ -72,16 +73,13 @@ void Binder::CalculateLayout(const std::vector<BindParameterDesc>& parameters) {
 		rootTableIndex = 0;
 
 		// sort table by type (CBV/SRV/UAV) by register by space [radix sort]
-		std::stable_sort(table.begin(), table.end(), [](const BindParameterDesc& lhs, const BindParameterDesc& rhs)
-		{
+		std::stable_sort(table.begin(), table.end(), [](const BindParameterDesc& lhs, const BindParameterDesc& rhs) {
 			return lhs.parameter.reg < rhs.parameter.reg;
 		});
-		std::stable_sort(table.begin(), table.end(), [](const BindParameterDesc& lhs, const BindParameterDesc& rhs)
-		{
+		std::stable_sort(table.begin(), table.end(), [](const BindParameterDesc& lhs, const BindParameterDesc& rhs) {
 			return lhs.parameter.space < rhs.parameter.space;
 		});
-		std::stable_sort(table.begin(), table.end(), [](const BindParameterDesc& lhs, const BindParameterDesc& rhs)
-		{
+		std::stable_sort(table.begin(), table.end(), [](const BindParameterDesc& lhs, const BindParameterDesc& rhs) {
 			return lhs.parameter.type < rhs.parameter.type;
 		});
 
@@ -107,8 +105,7 @@ void Binder::CalculateLayout(const std::vector<BindParameterDesc>& parameters) {
 			if (param.parameter.type != typeOfStreak
 				|| param.parameter.space != spaceOfStreak
 				|| param.parameter.reg != regOfStreak + 1
-				|| typeStreakLength == 0)
-			{
+				|| typeStreakLength == 0) {
 				rootTable.ranges.push_back(gxapi::DescriptorRange{ CastRangeType(param.parameter.type), 0, param.parameter.reg, param.parameter.space });
 			}
 
@@ -121,8 +118,7 @@ void Binder::CalculateLayout(const std::vector<BindParameterDesc>& parameters) {
 	}
 
 	// radix sort mapping for easy search
-	std::sort(m_parameters.begin(), m_parameters.end(), [](const RootParameterMapping& lhs, const RootParameterMapping& rhs)
-	{
+	std::sort(m_parameters.begin(), m_parameters.end(), [](const RootParameterMapping& lhs, const RootParameterMapping& rhs) {
 		return RadixLess(lhs.bindParam, rhs.bindParam);
 	});
 
@@ -132,10 +128,9 @@ void Binder::CalculateLayout(const std::vector<BindParameterDesc>& parameters) {
 
 // Note that this function is optimized for nvidia, without taking much care for nvidia either.
 void Binder::DistributeParameters(const std::vector<BindParameterDesc>& parameters,
-								  std::vector<std::vector<BindParameterDesc>> & tableParams,
-								  std::vector<BindParameterDesc> & samplerParams,
-								  std::vector<BindParameterDesc> & constantParams)
-{
+								  std::vector<std::vector<BindParameterDesc>>& tableParams,
+								  std::vector<BindParameterDesc>& samplerParams,
+								  std::vector<BindParameterDesc>& constantParams) {
 	// put SRV's and UAV's into descriptor table: they have so many limitation that inlining them is basically worthless
 	// put samplers into separate list
 	for (const auto& param : parameters) {
@@ -173,8 +168,7 @@ void Binder::DistributeParameters(const std::vector<BindParameterDesc>& paramete
 
 
 	// sort constant parametes by size, ascending, 0 is considered biggest
-	std::sort(constantParams.begin(), constantParams.end(), [](const BindParameterDesc& lhs, const BindParameterDesc& rhs)
-	{
+	std::sort(constantParams.begin(), constantParams.end(), [](const BindParameterDesc& lhs, const BindParameterDesc& rhs) {
 		auto lhscmp = lhs.constantSize <= 0 ? std::numeric_limits<decltype(lhs.constantSize)>::max() : lhs.constantSize;
 		auto rhscmp = rhs.constantSize <= 0 ? std::numeric_limits<decltype(rhs.constantSize)>::max() : rhs.constantSize;
 		return lhscmp < rhscmp;
@@ -186,8 +180,7 @@ void Binder::DistributeParameters(const std::vector<BindParameterDesc>& paramete
 		largeBegin++;
 	}
 
-	std::sort(largeBegin, constantParams.end(), [](const BindParameterDesc& lhs, const BindParameterDesc& rhs)
-	{
+	std::sort(largeBegin, constantParams.end(), [](const BindParameterDesc& lhs, const BindParameterDesc& rhs) {
 		return lhs.relativeChangeFrequency < rhs.relativeChangeFrequency;
 	});
 
@@ -226,9 +219,9 @@ std::pair<std::vector<Binder::RootParameterMapping>::const_iterator, bool> Binde
 							   m_parameters.end(),
 							   key,
 							   [](const RootParameterMapping& lhs, const RootParameterMapping& rhs) {
-		return RadixLess(lhs.bindParam, rhs.bindParam);
-	});
-	return{ it, it != m_parameters.end() };
+								   return RadixLess(lhs.bindParam, rhs.bindParam);
+							   });
+	return { it, it != m_parameters.end() };
 }
 
 
@@ -259,4 +252,4 @@ gxapi::DescriptorRange::eType Binder::CastRangeType(eBindParameterType source) {
 }
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

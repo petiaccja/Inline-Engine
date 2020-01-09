@@ -2,10 +2,8 @@
 
 namespace inl::gxeng {
 
-OrthographicCamera::OrthographicCamera():
-	m_width(2),
-	m_height(2)
-{}
+OrthographicCamera::OrthographicCamera() : m_width(2),
+										   m_height(2) {}
 
 
 void OrthographicCamera::SetBounds(float left, float right, float bottom, float top, float zNear, float zFar) {
@@ -14,7 +12,7 @@ void OrthographicCamera::SetBounds(float left, float right, float bottom, float 
 	m_nearPlane = zNear;
 	m_farPlane = zFar;
 
-	m_position = Vec3(left + m_width*0.5f, bottom + m_height*0.5f, 0.f);
+	m_position = Vec3(left + m_width * 0.5f, bottom + m_height * 0.5f, 0.f);
 	m_lookdir = Vec3(0, 0, -1);
 	m_upVector = Vec3(0, 1, 0);
 	m_targetDistance = 1.f;
@@ -51,12 +49,11 @@ Mat44 OrthographicCamera::GetPrevViewMatrix() const {
 }
 
 Mat44 OrthographicCamera::GetProjectionMatrix() const {
-	const float widthHalf = m_width*0.5f;
-	const float heightHalf = m_height*0.5f;
+	const float widthHalf = m_width * 0.5f;
+	const float heightHalf = m_height * 0.5f;
 	return Mat44::Orthographic({ -widthHalf, -heightHalf, m_nearPlane }, { widthHalf, heightHalf, m_farPlane }, 0, 1);
 }
 
 
 
-
-}
+} // namespace inl::gxeng

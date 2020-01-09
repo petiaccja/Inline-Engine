@@ -1,22 +1,22 @@
 #include "GxapiManager.hpp"
+
+#include "ExceptionExpansions.hpp"
+#include "GraphicsApi.hpp"
 #include "NativeCast.hpp"
 #include "SwapChain.hpp"
-#include "GraphicsApi.hpp"
-#include "ExceptionExpansions.hpp"
 
+#include "../GraphicsApi_LL/DisableWin32Macros.h"
 #include "../GraphicsApi_LL/Exception.hpp"
 
+#include <cassert>
 #include <d3d12.h>
 #include <d3dcompiler.h>
-#include "../GraphicsApi_LL/DisableWin32Macros.h"
-
-#include <string>
 #include <regex>
-#include <cassert>
+#include <string>
 
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
-#pragma warning(disable: 4996) // secure no warning does not work -.-
+#pragma warning(disable : 4996) // secure no warning does not work -.-
 #endif
 
 using Microsoft::WRL::ComPtr;
@@ -35,9 +35,8 @@ public:
 	HRESULT __stdcall Open(D3D_INCLUDE_TYPE IncludeType,
 						   LPCSTR pFileName,
 						   LPCVOID pParentData,
-						   LPCVOID *ppData,
-						   UINT *pBytes) override
-	{
+						   LPCVOID* ppData,
+						   UINT* pBytes) override {
 		try {
 			auto it = streams.find(pFileName);
 			if (it == streams.end()) {
@@ -47,14 +46,12 @@ public:
 			Stream& stream = *it->second;
 		}
 		catch (std::exception ex) {
-
 		}
-
 	}
 
 	HRESULT __stdcall Close(LPCVOID pData) override {
-
 	}
+
 private:
 	const std::unordered_map<std::string, Stream*>& streams;
 };
@@ -68,8 +65,7 @@ GxapiManager::GxapiManager() {
 	}
 
 	// Enable debug layer
-	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&m_debugController))))
-	{
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&m_debugController)))) {
 		m_debugController->EnableDebugLayer();
 	}
 }
@@ -125,7 +121,7 @@ std::vector<AdapterInfo> GxapiManager::EnumerateAdapters() {
 
 		//char mbs[256];
 		//wcstombs(mbs, desc.Description, 256);
-		info.name = "WARP12";// mbs;
+		info.name = "WARP12"; // mbs;
 		info.adapterId = index;
 		info.vendorId = desc.VendorId;
 		info.deviceId = desc.DeviceId;
@@ -202,7 +198,7 @@ struct Macro {
 
 static std::vector<Macro> ParseMacros(const char* macros) {
 	if (macros == nullptr) {
-		return{};
+		return {};
 	}
 
 	enum {
@@ -281,8 +277,7 @@ public:
 				 LPCSTR pFileName,
 				 LPCVOID pParentData,
 				 LPCVOID* ppData,
-				 UINT* pBytes) override
-	{
+				 UINT* pBytes) override {
 		bool systemInclude = IncludeType == D3D_INCLUDE_SYSTEM;
 
 		// search in cache
@@ -319,6 +314,7 @@ public:
 	HRESULT Close(LPCVOID pData) override {
 		return S_OK;
 	}
+
 private:
 	std::unordered_map<std::string, std::string> cache;
 	IShaderIncludeProvider* userProvider;
@@ -331,8 +327,7 @@ gxapi::ShaderProgramBinary GxapiManager::CompileShader(
 	gxapi::eShaderType type,
 	gxapi::eShaderCompileFlags flags,
 	gxapi::IShaderIncludeProvider* includeProvider,
-	const char* macroDefinitions)
-{
+	const char* macroDefinitions) {
 	std::vector<Macro> parsedMacroDefinitions = ParseMacros(macroDefinitions);
 
 	ComPtr<ID3DBlob> binaryCode;
@@ -388,11 +383,10 @@ gxapi::ShaderProgramBinary GxapiManager::CompileShaderFromFile(const std::string
 															   const std::string& mainFunctionName,
 															   gxapi::eShaderType type,
 															   gxapi::eShaderCompileFlags flags,
-															   const std::vector<gxapi::ShaderMacroDefinition>& macros)
-{
+															   const std::vector<gxapi::ShaderMacroDefinition>& macros) {
 	// variables
-	ID3DBlob *code = nullptr;
-	ID3DBlob *error = nullptr;
+	ID3DBlob* code = nullptr;
+	ID3DBlob* error = nullptr;
 
 	std::vector<D3D_SHADER_MACRO> d3dDefines(macros.size()); // native d3d macros
 	const size_t wFileNameSize = fileName.size() + 1;
@@ -426,8 +420,7 @@ gxapi::ShaderProgramBinary GxapiManager::CompileShaderFromFile(const std::string
 
 
 const char* GxapiManager::GetTarget(gxapi::eShaderType type) {
-	switch (type)
-	{
+	switch (type) {
 		case inl::gxapi::eShaderType::VERTEX:
 			return "vs_5_1";
 		case inl::gxapi::eShaderType::PIXEL:
@@ -455,7 +448,8 @@ gxapi::ShaderProgramBinary GxapiManager::ConvertShaderOutput(HRESULT hr, ID3DBlo
 		shaderOut.data.resize(code->GetBufferSize());
 		memcpy(shaderOut.data.data(), code->GetBufferPointer(), shaderOut.data.size());
 		code->Release();
-		if (error) error->Release();
+		if (error)
+			error->Release();
 	}
 	else {
 		if (error) {
@@ -472,4 +466,4 @@ gxapi::ShaderProgramBinary GxapiManager::ConvertShaderOutput(HRESULT hr, ID3DBlo
 }
 
 
-} // namespace inl
+} // namespace inl::gxapi_dx12

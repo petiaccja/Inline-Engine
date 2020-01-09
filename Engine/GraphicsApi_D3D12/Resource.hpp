@@ -4,9 +4,10 @@
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#include <wrl.h>
-#include <d3d12.h>
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
+
+#include <d3d12.h>
+#include <wrl.h>
 
 namespace inl::gxapi_dx12 {
 
@@ -34,10 +35,11 @@ public:
 	Vec3u64 GetSize(unsigned mipLevel = 0) const override;
 
 	void SetName(const char* name) override;
+
 private:
 	ComPtr<ID3D12Resource> m_native;
 	unsigned m_numMipLevels, m_numTexturePlanes, m_numArrayLevels;
 };
 
 
-} // namespace gxapi_dx12
+} // namespace inl::gxapi_dx12

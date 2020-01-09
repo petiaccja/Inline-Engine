@@ -1,7 +1,7 @@
 #pragma once
 
-#include <GraphicsEngine/Scene/ITextEntity.hpp>
 #include <BaseLibrary/Transformable.hpp>
+#include <GraphicsEngine/Scene/ITextEntity.hpp>
 
 
 namespace inl::gui {
@@ -57,6 +57,7 @@ public:
 		target->SetZDepth(source->GetZDepth());
 		target->SetTransform(source->GetTransform());
 	}
+
 private:
 	const gxeng::IFont* m_font = nullptr;
 	float m_fontSize = 14.f;

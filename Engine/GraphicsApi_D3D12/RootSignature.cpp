@@ -3,7 +3,7 @@
 namespace inl::gxapi_dx12 {
 
 RootSignature::RootSignature(ComPtr<ID3D12RootSignature>& native)
-	: m_native{native} {
+	: m_native{ native } {
 }
 
 
@@ -12,4 +12,4 @@ ID3D12RootSignature* RootSignature::GetNative() {
 }
 
 
-} // namespace inl
+} // namespace inl::gxapi_dx12

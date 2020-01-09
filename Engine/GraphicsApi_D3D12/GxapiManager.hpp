@@ -36,6 +36,7 @@ public:
 protected:
 	static const char* GetTarget(gxapi::eShaderType type);
 	static gxapi::ShaderProgramBinary ConvertShaderOutput(HRESULT hr, ID3DBlob* code, ID3DBlob* error);
+
 private:
 	Microsoft::WRL::ComPtr<IDXGIFactory4> m_factory;
 	Microsoft::WRL::ComPtr<ID3D12Debug> m_debugController;
@@ -43,4 +44,4 @@ private:
 };
 
 
-} // namespace gxapi_dx12
+} // namespace inl::gxapi_dx12

@@ -1,12 +1,12 @@
 #include "ScratchSpacePool.hpp"
-#include <cassert>
+
 #include <algorithm>
+#include <cassert>
 
-namespace inl:: gxeng {
+namespace inl::gxeng {
 
-ScratchSpacePool::ScratchSpacePool(gxapi::IGraphicsApi* gxApi, gxapi::eDescriptorHeapType type) 
-	: m_gxApi(gxApi), m_type(type)
-{}
+ScratchSpacePool::ScratchSpacePool(gxapi::IGraphicsApi* gxApi, gxapi::eDescriptorHeapType type)
+	: m_gxApi(gxApi), m_type(type) {}
 
 
 auto ScratchSpacePool::RequestScratchSpace() -> UniquePtr {
@@ -26,13 +26,13 @@ auto ScratchSpacePool::RequestScratchSpace() -> UniquePtr {
 	}
 
 	if (m_pool[index] != nullptr) {
-		return UniquePtr{ m_pool[index].get(), Deleter{this} };
+		return UniquePtr{ m_pool[index].get(), Deleter{ this } };
 	}
 	else {
 		std::unique_ptr<StackDescHeap> ptr(new StackDescHeap{ m_gxApi, m_type, 1000 });
 		m_addressToIndex[ptr.get()] = index;
 		m_pool[index] = std::move(ptr);
-		return UniquePtr{ m_pool[index].get(), Deleter{this} };
+		return UniquePtr{ m_pool[index].get(), Deleter{ this } };
 	}
 }
 
@@ -48,4 +48,4 @@ void ScratchSpacePool::RecycleScratchSpace(StackDescHeap* scratchSpace) {
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

@@ -1,12 +1,13 @@
 #pragma once
 
-#include <deque>
-#include <cstdint>
-#include <limits>
-#include <iterator>
-#include <vector>
-#include <type_traits>
 #include "../Exception/Exception.hpp"
+
+#include <cstdint>
+#include <deque>
+#include <iterator>
+#include <limits>
+#include <type_traits>
+#include <vector>
 
 
 namespace inl {
@@ -51,9 +52,7 @@ private:
 		}
 
 		bool operator==(const iterator_base& rhs) const {
-			return (index == rhs.index) ||
-				((rhs.index < 0) && (index < 0)) ||
-				((rhs.index >= (ptrdiff_t)parent->Size()) && (index >= (ptrdiff_t)parent->Size()));
+			return (index == rhs.index) || ((rhs.index < 0) && (index < 0)) || ((rhs.index >= (ptrdiff_t)parent->Size()) && (index >= (ptrdiff_t)parent->Size()));
 		}
 		bool operator!=(const iterator_base& rhs) const {
 			return !(*this == rhs);
@@ -121,11 +120,11 @@ private:
 			it.index = index;
 			return it;
 		}
+
 	protected:
 		/// <summary> The container that created this iterator. </summary>
 		/// <remarks> Note that constness is selected to match the iterator's constness. </remarks>
-		typename std::conditional<std::is_const<T>::value, const BinarySerializer, BinarySerializer>::type
-			*parent;
+		typename std::conditional<std::is_const<T>::value, const BinarySerializer, BinarySerializer>::type* parent;
 		/// <summary> The index of the element pointed to by the iterator. </summary>
 		intptr_t index;
 	};
@@ -173,7 +172,7 @@ public:
 	void PushFront(uint8_t* data, size_t size);
 
 	/// <summary> Append a range of bytes to the front of the stream. </summary>
-	/// <param name="first"> Iterator to the first element in the range. </param> 
+	/// <param name="first"> Iterator to the first element in the range. </param>
 	/// <param name="last"> Iterator past the last element in the range. This element is not inserted. </param>
 	template <class Iter>
 	void PushFront(Iter first, Iter last);
@@ -188,7 +187,7 @@ public:
 	void PushBack(uint8_t* data, size_t size);
 
 	/// <summary> Append a range of bytes to the end of the stream. </summary>
-	/// <param name="first"> Iterator to the first element in the range. </param> 
+	/// <param name="first"> Iterator to the first element in the range. </param>
 	/// <param name="last"> Iterator past the last element in the range. This element is not inserted. </param>
 	template <class Iter>
 	void PushBack(Iter first, Iter last);
@@ -231,7 +230,7 @@ public:
 	bool Empty() const { return buffer.empty(); }
 
 	/// <summary> Returns the bytes currently in the stream. </summary>
-	std::vector<uint8_t> GetBytes() const { 
+	std::vector<uint8_t> GetBytes() const {
 		std::vector<uint8_t> ret;
 		ret.reserve(Size());
 		for (auto v : *this) {
@@ -304,8 +303,7 @@ void BinarySerializer::PushBack(Iter first, Iter last) {
 template <class T>
 inline BinarySerializer::iterator_base<T> operator+(
 	typename BinarySerializer::iterator_base<T>::difference_type n,
-	const BinarySerializer::iterator_base<T>& it)
-{
+	const BinarySerializer::iterator_base<T>& it) {
 	return it + n;
 }
 
@@ -315,9 +313,7 @@ inline BinarySerializer::iterator_base<T> operator+(
 //------------------------------------------------------------------------------
 
 template <typename T, typename U>
-struct decay_equiv :
-	std::is_same<typename std::decay<T>::type, U>::type
-{};
+struct decay_equiv : std::is_same<typename std::decay<T>::type, U>::type {};
 
 // overload for bool
 
@@ -325,7 +321,7 @@ struct decay_equiv :
 ///	Serialize a boolean value and append to the end of the stream.
 /// Size is 8 bits, LSB set to 1 for true, 0 for false, other bits are 0.
 /// </summary>
-inline BinarySerializer& operator << (BinarySerializer& s, bool v) {
+inline BinarySerializer& operator<<(BinarySerializer& s, bool v) {
 	s.PushBack(v ? 1 : 0);
 	return s;
 }
@@ -335,10 +331,8 @@ template <class T>
 void InsertSerialized(BinarySerializer& s, const BinarySerializer::const_iterator& where,
 					  T v,
 					  typename std::enable_if<
-					  std::is_integral<T>::value &&
-					  std::is_signed<T>::value,
-					  T>::type = T())
-{
+						  std::is_integral<T>::value && std::is_signed<T>::value,
+						  T>::type = T()) {
 	uint8_t buffer[sizeof(T)];
 	bool isNegative = v < 0;
 	T absolute = std::abs(v);
@@ -356,10 +350,8 @@ template <class T>
 void InsertSerialized(BinarySerializer& s, const BinarySerializer::const_iterator& where,
 					  T v,
 					  typename std::enable_if<
-					  std::is_integral<T>::value &&
-					  !std::is_signed<T>::value,
-					  T>::type = T())
-{
+						  std::is_integral<T>::value && !std::is_signed<T>::value,
+						  T>::type = T()) {
 	uint8_t buffer[sizeof(T)];
 	for (int i = 0; i < sizeof(T); i++) {
 		buffer[i] = uint8_t(v >> (8 * (sizeof(T) - i - 1)));
@@ -372,9 +364,8 @@ template <class T>
 void InsertSerialized(BinarySerializer& s, const BinarySerializer::const_iterator& where,
 					  T v,
 					  typename std::enable_if<
-					  std::is_enum<T>::value,
-					  T>::type = T())
-{
+						  std::is_enum<T>::value,
+						  T>::type = T()) {
 	using Underlying = typename std::underlying_type<T>::type;
 	InsertSerialized(s, where, (Underlying)v);
 }
@@ -389,8 +380,7 @@ void InsertSerialized(BinarySerializer& s, const BinarySerializer::const_iterato
 /// <para> Byte order is big-endian in all cases. </para>
 /// </summary>
 template <class T, class = typename std::enable_if<!decay_equiv<T, BinarySerializer>::value && (std::is_integral<T>::value || std::is_enum<T>::value)>::type>
-BinarySerializer& operator << (BinarySerializer& s, T v)
-{
+BinarySerializer& operator<<(BinarySerializer& s, T v) {
 	InsertSerialized(s, s.end(), v);
 	return s;
 };
@@ -400,18 +390,18 @@ BinarySerializer& operator << (BinarySerializer& s, T v)
 /// Serialize 32-bit float and append to the end of the stream.
 /// Format is IEEE-754 for 32 bit binary floats, big-endian.
 /// </summary>
-BinarySerializer& operator << (BinarySerializer& s, float v);
+BinarySerializer& operator<<(BinarySerializer& s, float v);
 
 /// <summary>
 /// Serialize 64-bit float and append to the end of the stream.
 /// Format is IEEE-754 for 64 bit binary floats, big-endian.
 /// </summary>
-BinarySerializer& operator << (BinarySerializer& s, double v);
+BinarySerializer& operator<<(BinarySerializer& s, double v);
 
 /// <summary>
 /// Intended for 128 bit floats, not implemented yet.
 /// </summary>
-BinarySerializer& operator << (BinarySerializer& s, long double v) = delete;
+BinarySerializer& operator<<(BinarySerializer& s, long double v) = delete;
 
 
 //------------------------------------------------------------------------------
@@ -421,7 +411,7 @@ BinarySerializer& operator << (BinarySerializer& s, long double v) = delete;
 // overload for bool
 
 /// <summary> Extracts a boolean from the stream. <summary>
-inline BinarySerializer& operator >> (BinarySerializer& s, bool& v) {
+inline BinarySerializer& operator>>(BinarySerializer& s, bool& v) {
 	v = s.PopFront() > 0;
 	return s;
 }
@@ -432,10 +422,8 @@ template <class T>
 void ExtractSerialized(BinarySerializer& s, BinarySerializer::const_iterator where,
 					   T& v,
 					   typename std::enable_if<
-					   std::is_integral<T>::value &&
-					   std::is_signed<T>::value,
-					   T>::type = T())
-{
+						   std::is_integral<T>::value && std::is_signed<T>::value,
+						   T>::type = T()) {
 	T value = 0;
 	uint8_t first = *where;
 	auto it = where;
@@ -462,10 +450,8 @@ template <class T>
 void ExtractSerialized(BinarySerializer& s, BinarySerializer::const_iterator where,
 					   T& v,
 					   typename std::enable_if<
-					   std::is_integral<T>::value &&
-					   !std::is_signed<T>::value,
-					   T>::type = T())
-{
+						   std::is_integral<T>::value && !std::is_signed<T>::value,
+						   T>::type = T()) {
 	T value = 0;
 	auto it = where;
 	for (int i = 0; i < sizeof(T); ++i, ++it) {
@@ -481,9 +467,8 @@ template <class T>
 void ExtractSerialized(BinarySerializer& s, BinarySerializer::const_iterator where,
 					   T& v,
 					   typename std::enable_if<
-					   std::is_enum<T>::value,
-					   T>::type = T())
-{
+						   std::is_enum<T>::value,
+						   T>::type = T()) {
 	using Underlying = typename std::underlying_type<T>::type;
 	Underlying v_;
 	ExtractSerialized(s, where, v_);
@@ -494,7 +479,7 @@ void ExtractSerialized(BinarySerializer& s, BinarySerializer::const_iterator whe
 // overload for integral and enum types
 /// <summary> Extract integer an enum values from the stream. <sumamry>
 template <class T, class = typename std::enable_if<!decay_equiv<T, BinarySerializer>::value && (std::is_integral<T>::value || std::is_enum<T>::value)>::type>
-BinarySerializer& operator >> (BinarySerializer& s, T& v) {
+BinarySerializer& operator>>(BinarySerializer& s, T& v) {
 	if (s.Size() < sizeof(T)) {
 		throw OutOfRangeException("Not enough bytes to deserialize requested type.");
 	}
@@ -505,13 +490,13 @@ BinarySerializer& operator >> (BinarySerializer& s, T& v) {
 
 // overload for floating point types
 /// <summary> Extract 32 bit IEEE-754 binary float from stream. </summary>
-BinarySerializer& operator >> (BinarySerializer& s, float& v);
+BinarySerializer& operator>>(BinarySerializer& s, float& v);
 
 /// <summary> Extract 64 bit IEEE-754 binary float from stream. </summary>
-BinarySerializer& operator >> (BinarySerializer& s, double& v);
+BinarySerializer& operator>>(BinarySerializer& s, double& v);
 
 /// <summary> Intended to extract 128 bit IEEE-754 binary float from stream. Not implemented yet. </summary>
-BinarySerializer& operator >> (BinarySerializer& s, long double& v) = delete;
+BinarySerializer& operator>>(BinarySerializer& s, long double& v) = delete;
 
 
-} // !namespace inl!
+} // namespace inl

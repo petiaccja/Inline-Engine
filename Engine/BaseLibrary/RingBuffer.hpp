@@ -1,7 +1,7 @@
 #pragma once
 
-#include <list>
 #include <cassert>
+#include <list>
 
 namespace inl {
 
@@ -35,7 +35,7 @@ protected:
 			return *this;
 		}
 		TemplateIterator operator++(int) {
-			TemplateIterator copy{*this};
+			TemplateIterator copy{ *this };
 			++(*this);
 			return copy;
 		}
@@ -45,7 +45,7 @@ protected:
 			return *this;
 		}
 		TemplateIterator operator--(int) {
-			TemplateIterator copy{*this};
+			TemplateIterator copy{ *this };
 			--(*this);
 			return copy;
 		}
@@ -64,10 +64,11 @@ protected:
 		// Count may be negative. In this case the function
 		// decrements round count.
 		TemplateIterator AddRounds(int32_t count) const {
-			TemplateIterator result{*this};
+			TemplateIterator result{ *this };
 			result.m_offset += count * m_pContainer->size();
 			return result;
 		}
+
 	protected:
 		IterContainerT* m_pContainer;
 		IterContainerIterT m_nativeIterator;
@@ -76,22 +77,18 @@ protected:
 
 
 public:
-
 	using Iterator = TemplateIterator<ContainerT, ContainerIter>;
 	using ConstIterator = TemplateIterator<const ContainerT, ContainerConstIter>;
 
 public:
-
 	// Construction and assignement
 
-	RingBuffer() : m_currOffset{0} {
+	RingBuffer() : m_currOffset{ 0 } {
 		m_currBegin = m_container.begin();
 	}
 
-	RingBuffer(const RingBuffer& other) :
-		m_container{other.m_container},
-		m_currOffset{other.m_currOffset}
-	{
+	RingBuffer(const RingBuffer& other) : m_container{ other.m_container },
+										  m_currOffset{ other.m_currOffset } {
 		m_currBegin = std::advance(m_container.begin(), m_currOffset % m_container.size());
 	}
 
@@ -196,7 +193,6 @@ protected:
 	int64_t m_currOffset;
 
 private:
-
 	template <typename Fun_ContainerT, typename Fun_IterT>
 	static Fun_IterT RotateFrontNative(Fun_ContainerT& container, Fun_IterT target) {
 		if (container.size() == 0) {
@@ -217,7 +213,7 @@ private:
 
 		if (target == container.begin()) {
 			target = --container.end();
-		} 
+		}
 		else {
 			--target;
 		}
@@ -226,26 +222,25 @@ private:
 };
 
 // begin and end for "range-based for"
-template<typename T, typename C>
+template <typename T, typename C>
 typename RingBuffer<T, C>::Iterator begin(RingBuffer<T, C>& buffer) {
 	return buffer.Begin();
 }
 
-template<typename T, typename C>
+template <typename T, typename C>
 typename RingBuffer<T, C>::Iterator end(RingBuffer<T, C>& buffer) {
 	return buffer.End();
 }
 
-template<typename T, typename C>
+template <typename T, typename C>
 typename RingBuffer<T, C>::ConstIterator cbegin(const RingBuffer<T, C>& buffer) {
 	return buffer.Begin();
 }
 
-template<typename T, typename C>
+template <typename T, typename C>
 typename RingBuffer<T, C>::ConstIterator cend(const RingBuffer<T, C>& buffer) {
 	return buffer.End();
 }
 
 
 } // namespace inl
-

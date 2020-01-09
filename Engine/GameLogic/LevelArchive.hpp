@@ -42,7 +42,7 @@ std::enable_if_t<HandleArchive<T>::value, void> CEREAL_LOAD_FUNCTION_NAME(LevelI
 }
 
 template <class CharT, class Traits, class Alloc>
-void CEREAL_LOAD_FUNCTION_NAME(LevelInputArchive  &ar, std::basic_string<CharT, Traits, Alloc>& arg) {
+void CEREAL_LOAD_FUNCTION_NAME(LevelInputArchive& ar, std::basic_string<CharT, Traits, Alloc>& arg) {
 	ar.Base()(arg);
 }
 

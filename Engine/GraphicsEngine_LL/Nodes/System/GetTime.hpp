@@ -44,4 +44,4 @@ private:
 };
 
 
-} // namespace inl::gxeng
+} // namespace inl::gxeng::nodes

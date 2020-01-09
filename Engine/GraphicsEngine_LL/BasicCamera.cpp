@@ -6,26 +6,24 @@ namespace inl::gxeng {
 
 
 
-BasicCamera::BasicCamera():
-	m_name("unnamed"),
-	m_position(0, -1, 0),
-	m_upVector(0, 0, 1),
-	m_lookdir(0, 1, 0),
-	m_prevPosition(m_position),
-	m_prevUpVector(m_upVector),
-	m_prevLookdir(m_lookdir),
-	m_targetDistance(1),
-	m_focus(1.f),
-	m_nearPlane(0.1f),
-	m_farPlane(100.0f)
-{}
+BasicCamera::BasicCamera() : m_name("unnamed"),
+							 m_position(0, -1, 0),
+							 m_upVector(0, 0, 1),
+							 m_lookdir(0, 1, 0),
+							 m_prevPosition(m_position),
+							 m_prevUpVector(m_upVector),
+							 m_prevLookdir(m_lookdir),
+							 m_targetDistance(1),
+							 m_focus(1.f),
+							 m_nearPlane(0.1f),
+							 m_farPlane(100.0f) {}
 
 void BasicCamera::SetName(std::string name) {
 	m_name = name;
 }
 
 
-const std::string & BasicCamera::GetName() const {
+const std::string& BasicCamera::GetName() const {
 	return m_name;
 }
 
@@ -119,4 +117,4 @@ float BasicCamera::GetFarPlane() const {
 }
 
 
-}
+} // namespace inl::gxeng

@@ -1,18 +1,18 @@
 #pragma once
 
-#include "../GraphicsApi_LL/ICommandList.hpp"
 #include "CommandList.hpp"
 
 #include "../GraphicsApi_LL/Common.hpp"
+#include "../GraphicsApi_LL/ICommandList.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#include <wrl.h>
-#include <d3d12.h>
-#include <WinPixEventRuntime/pix3.h>
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
 
-#pragma warning(disable: 4250)
+#include <d3d12.h>
+#include <wrl.h>
+
+#pragma warning(disable : 4250)
 
 namespace inl::gxapi {
 
@@ -41,6 +41,7 @@ public:
 	void EndDebuggerEvent() const override;
 
 	void SetName(const char* name) override;
+
 protected:
 	ComPtr<ID3D12GraphicsCommandList> m_native;
 };
@@ -82,10 +83,10 @@ public:
 					 gxapi::Cube srcRegion) override;
 
 	void CopyTexture(gxapi::IResource* dst,
-	                 gxapi::TextureCopyDesc dstDesc,
-	                 int dstX, int dstY, int dstZ,
-	                 gxapi::IResource* src,
-	                 gxapi::TextureCopyDesc srcDesc) override;
+					 gxapi::TextureCopyDesc dstDesc,
+					 int dstX, int dstY, int dstZ,
+					 gxapi::IResource* src,
+					 gxapi::TextureCopyDesc srcDesc) override;
 
 	// barriers
 	// TODO: transition, aliasing and bullshit barriers, i would put them into separate functions
@@ -98,7 +99,7 @@ protected:
 
 
 
-class ComputeCommandList : public CopyCommandList, virtual public gxapi::IComputeCommandList {	
+class ComputeCommandList : public CopyCommandList, virtual public gxapi::IComputeCommandList {
 public:
 	ComputeCommandList(ComPtr<ID3D12GraphicsCommandList>& native);
 
@@ -120,7 +121,7 @@ public:
 	void ResetState(gxapi::IPipelineState* initialPipelineState) override;
 
 	// descriptor heaps
-	void SetDescriptorHeaps(gxapi::IDescriptorHeap*const * heaps, uint32_t count) override;
+	void SetDescriptorHeaps(gxapi::IDescriptorHeap* const* heaps, uint32_t count) override;
 };
 
 
@@ -193,8 +194,8 @@ public:
 };
 
 
-#pragma warning(default: 4250)
+#pragma warning(default : 4250)
 
 
 
-} //namespace gxapi_dx12
+} // namespace inl::gxapi_dx12

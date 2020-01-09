@@ -7,8 +7,7 @@ namespace inl {
 template <typename OperandT, typename OperatorT, const char* name, const char* op1desc, const char* op2desc, const char* resdesc>
 class ComparsionNode
 	: public InputPortConfig<OperandT, OperandT>,
-	public OutputPortConfig<bool>
-{
+	  public OutputPortConfig<bool> {
 public:
 	ComparsionNode() {
 		this->template GetInput<0>().AddObserver(this);

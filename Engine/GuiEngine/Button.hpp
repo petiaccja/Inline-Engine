@@ -35,7 +35,7 @@ public:
 private:
 	Sprite m_background;
 	Text m_text;
-	ControlStateTracker m_stateTracker{this};
+	ControlStateTracker m_stateTracker{ this };
 };
 
 

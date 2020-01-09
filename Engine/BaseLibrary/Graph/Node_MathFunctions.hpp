@@ -3,17 +3,16 @@
 
 #include "Node.hpp"
 
-#include <cmath>
 #include <cassert>
+#include <cmath>
 
 namespace inl {
 
 
-template <class ArithmeticT, ArithmeticT(*Function)(ArithmeticT), const char* name>
+template <class ArithmeticT, ArithmeticT (*Function)(ArithmeticT), const char* name>
 class MathFunctionNode
 	: public InputPortConfig<ArithmeticT>,
-	public OutputPortConfig<ArithmeticT>
-{
+	  public OutputPortConfig<ArithmeticT> {
 public:
 	MathFunctionNode() {
 		this->template GetInput<0>().AddObserver(this);
@@ -33,7 +32,8 @@ public:
 	}
 	std::string GetClassName(bool simplify = false, const std::vector<std::regex>& additional = {}) const override {
 		auto s = Info_GetName();
-		return s.substr(0, s.find_first_of(':'));;
+		return s.substr(0, s.find_first_of(':'));
+		;
 	}
 
 	const std::string& GetInputName(size_t idx) const override {

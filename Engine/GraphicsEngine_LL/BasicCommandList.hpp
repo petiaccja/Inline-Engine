@@ -1,21 +1,21 @@
 #pragma once
 
-#include "../GraphicsApi_LL/IGraphicsApi.hpp"
-#include "../GraphicsApi_LL/Common.hpp"
-
-#include "MemoryObject.hpp"
 #include "CommandAllocatorPool.hpp"
 #include "CommandListPool.hpp"
-#include "ScratchSpacePool.hpp"
 #include "HostDescHeap.hpp"
+#include "MemoryObject.hpp"
+#include "ScratchSpacePool.hpp"
 
-#include <vector>
-#include <memory>
-#include <unordered_map>
+#include "../GraphicsApi_LL/Common.hpp"
+#include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include <BaseLibrary/HashCombine.hpp>
 
+#include <memory>
+#include <unordered_map>
+#include <vector>
 
-namespace inl:: gxeng {
+
+namespace inl::gxeng {
 
 struct SubresourceId {
 	SubresourceId() = default;
@@ -52,12 +52,12 @@ struct CommandListCounters {
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng
 
 
 namespace std {
-	
-template<>
+
+template <>
 struct hash<inl::gxeng::SubresourceId> {
 	std::size_t operator()(const inl::gxeng::SubresourceId& instance) const {
 		return inl::CombineHash(std::hash<const void*>{}(instance.resource._GetResourcePtr()), std::hash<unsigned>{}(instance.subresource));
@@ -73,7 +73,6 @@ namespace inl::gxeng {
 
 class BasicCommandList {
 public:
-
 	struct Decomposition {
 		CmdAllocPtr commandAllocator;
 		CmdListPtr commandList;
@@ -81,6 +80,7 @@ public:
 		std::vector<ResourceUsage> usedResources;
 		std::vector<MemoryObject> additionalResources;
 	};
+
 public:
 	BasicCommandList(const BasicCommandList& rhs) = delete; // could be, but big perf hit, better not allow user
 	BasicCommandList(BasicCommandList&& rhs);
@@ -94,11 +94,12 @@ public:
 
 	void BeginDebuggerEvent(const std::string& name);
 	void EndDebuggerEvent();
-	
+
 	void SetName(const std::string& name);
 	void SetName(const char* name);
 
 	const CommandListCounters& GetPerformanceCounters() const { return m_performanceCounters; }
+
 protected:
 	BasicCommandList(
 		gxapi::IGraphicsApi* gxApi,
@@ -111,12 +112,14 @@ protected:
 
 	StackDescHeap* GetCurrentScratchSpace();
 	virtual void NewScratchSpace(size_t sizeHint);
+
 protected:
 	std::unordered_map<SubresourceId, SubresourceUsageInfo> m_resourceTransitions;
 	std::vector<MemoryObject> m_additionalResources;
 	gxapi::IGraphicsApi* m_graphicsApi;
 
 	CommandListCounters m_performanceCounters;
+
 private:
 	// Part sources
 	ScratchSpacePool* m_scratchSpacePool;
@@ -129,4 +132,4 @@ private:
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

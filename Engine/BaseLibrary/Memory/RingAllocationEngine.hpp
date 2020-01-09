@@ -1,9 +1,9 @@
 #pragma once
 
 
+#include <algorithm>
 #include <cstdint>
 #include <limits>
-#include <algorithm>
 #include <vector>
 
 
@@ -12,14 +12,17 @@ namespace inl {
 
 /// <summary>
 /// This class provides a base for ring allocation tasks.
-/// 
+///
 /// This class will not allocate the actual objects, it only
 /// administrates the object positions and sizes.
 ///
 /// </summary>
 class RingAllocationEngine {
 protected:
-	enum class eCellState { FREE = 0, INSIDE, END, PREVIOUS_IN_USE };
+	enum class eCellState { FREE = 0,
+							INSIDE,
+							END,
+							PREVIOUS_IN_USE };
 
 	class CellContainer {
 	public:
@@ -80,4 +83,3 @@ protected:
 
 
 } // namespace inl
-

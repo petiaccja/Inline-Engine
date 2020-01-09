@@ -6,9 +6,9 @@
 #include <assimp/Importer.hpp>
 #include <assimp/mesh.h>
 #include <assimp/scene.h>
+#include <filesystem>
 #include <memory>
 #include <vector>
-#include <filesystem>
 
 
 namespace inl::asset {

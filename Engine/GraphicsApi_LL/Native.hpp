@@ -4,10 +4,11 @@
 
 #define _WIN32_LEAN_AND_MEAN
 #define NOMINMAX
-#include <windows.h>
 #include "DisableWin32Macros.h"
 
-namespace inl:: gxapi {
+#include <windows.h>
+
+namespace inl::gxapi {
 
 using NativeWindowHandle = HWND;
 

@@ -1,13 +1,13 @@
 #pragma once
 
+#include "BufferHeap.hpp"
 #include "MemoryObject.hpp"
 #include "PipelineEventListener.hpp"
-#include "BufferHeap.hpp"
 
-#include "../GraphicsApi_LL/IGraphicsApi.hpp"
-#include "../GraphicsApi_LL/IResource.hpp"
 #include "../BaseLibrary/RingBuffer.hpp"
 #include "../BaseLibrary/ScalarLiterals.hpp"
+#include "../GraphicsApi_LL/IGraphicsApi.hpp"
+#include "../GraphicsApi_LL/IResource.hpp"
 
 #include <memory>
 #include <mutex>
@@ -21,14 +21,12 @@ protected:
 	class ConstBufferPage {
 	public:
 		ConstBufferPage() = default;
-		ConstBufferPage(std::unique_ptr<gxapi::IResource>&& representedMemory, void* cpuAddress, void* gpuAddress, size_t pageSize, size_t ownerFrameID) :
-			m_representedMemory(std::move(representedMemory)),
-			m_cpuAddress(cpuAddress),
-			m_gpuAddress(gpuAddress),
-			m_pageSize(pageSize),
-			m_consumedSize(0),
-			m_ownerFrameID(ownerFrameID)
-		{}
+		ConstBufferPage(std::unique_ptr<gxapi::IResource>&& representedMemory, void* cpuAddress, void* gpuAddress, size_t pageSize, size_t ownerFrameID) : m_representedMemory(std::move(representedMemory)),
+																																						   m_cpuAddress(cpuAddress),
+																																						   m_gpuAddress(gpuAddress),
+																																						   m_pageSize(pageSize),
+																																						   m_consumedSize(0),
+																																						   m_ownerFrameID(ownerFrameID) {}
 		ConstBufferPage(ConstBufferPage&&) = default;
 		ConstBufferPage& operator=(ConstBufferPage&&) = default;
 
@@ -48,7 +46,7 @@ public:
 
 	void OnFrameBeginDevice(uint64_t frameId) override;
 	void OnFrameBeginHost(uint64_t frameId) override;
-	void OnFrameBeginAwait(uint64_t frameId) override {};
+	void OnFrameBeginAwait(uint64_t frameId) override{};
 	void OnFrameCompleteDevice(uint64_t frameId) override;
 	void OnFrameCompleteHost(uint64_t frameId) override;
 
@@ -66,11 +64,12 @@ protected:
 	// From ( https://msdn.microsoft.com/en-us/library/windows/desktop/dn899216%28v=vs.85%29.aspx )
 	// "Linear subresource copying must be aligned to 512 bytes"
 	static constexpr size_t ALIGNEMENT = 512;
-	static constexpr size_t PAGE_SIZE = 64*1024;
+	static constexpr size_t PAGE_SIZE = 64 * 1024;
 
 	static constexpr size_t MAX_PERMANENT_LARGE_PAGE_COUNT = 5;
 
 	static size_t SnapUpward(size_t value, size_t gridSize);
+
 protected:
 	ConstBufferPage CreatePage();
 	ConstBufferPage CreateLargePage(size_t fittingSize);
@@ -78,4 +77,4 @@ protected:
 	void MarkEmptyIfRecycled(ConstBufferPage& page);
 };
 
-} // namespace gxeng
+} // namespace inl::gxeng

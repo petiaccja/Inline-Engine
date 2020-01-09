@@ -2,12 +2,12 @@
 
 #include "../StackTrace.hpp"
 
+#include <atomic>
+#include <cstddef>
+#include <memory>
+#include <ostream>
 #include <stdexcept>
 #include <string>
-#include <cstddef>
-#include <ostream>
-#include <memory>
-#include <atomic>
 
 
 namespace inl {
@@ -38,6 +38,7 @@ public:
 	void PrintStackTrace(std::ostream& os) const;
 
 	static void BreakOnce();
+
 protected:
 	void CalculateStackTrace();
 	static void DoBreak();

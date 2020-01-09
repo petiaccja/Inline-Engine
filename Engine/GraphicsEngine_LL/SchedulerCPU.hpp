@@ -30,6 +30,7 @@ public:
 	void RunPipeline(const FrameContext& frameContext, jobs::Scheduler& scheduler);
 
 	auto GetCommandJobs() const -> const lemon::ListDigraph::NodeMap<std::shared_ptr<jobs::SharedFuture<RenderCommand>>>&;
+
 private:
 	void CalculateListForwarding();
 	void FindTaskGraphSinks();

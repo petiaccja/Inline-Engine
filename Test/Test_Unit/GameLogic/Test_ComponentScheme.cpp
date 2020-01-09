@@ -192,14 +192,12 @@ TEST_CASE("ComponentScheme - Subset", "[GameLogic:ComponentScheme]") {
 		typeid(BazComponent),
 	};
 
-	ComponentScheme superset4 = {
-	};
+	ComponentScheme superset4 = {};
 
 	REQUIRE(!subset4.SubsetOf(superset4));
 
 
-	ComponentScheme subset5 = {
-	};
+	ComponentScheme subset5 = {};
 
 	ComponentScheme superset5 = {
 		typeid(FooComponent),

@@ -1,6 +1,5 @@
 #include "Fence.hpp"
 
-
 #include <memory>
 
 
@@ -73,4 +72,4 @@ void Fence::WaitMultiple(const IFence** fences, uint64_t* values, size_t count, 
 }
 
 
-} // namespace inl
+} // namespace inl::gxapi_dx12

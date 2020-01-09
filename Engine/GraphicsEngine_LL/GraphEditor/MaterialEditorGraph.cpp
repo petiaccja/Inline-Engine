@@ -1,15 +1,17 @@
 #include "MaterialEditorGraph.hpp"
+
 #include "../ShaderManager.hpp"
+
 #include <BaseLibrary/Range.hpp>
+
 #include <map>
 
 
 namespace inl::gxeng {
 
 
-MaterialEditorGraph::MaterialEditorGraph(const ShaderManager& shaderManager) 
-	: m_shaderManager(shaderManager)
-{}
+MaterialEditorGraph::MaterialEditorGraph(const ShaderManager& shaderManager)
+	: m_shaderManager(shaderManager) {}
 
 
 std::vector<std::string> MaterialEditorGraph::GetNodeList() const {
@@ -234,7 +236,6 @@ const std::string& MaterialEditorGraph::GetContentType() const {
 void MaterialEditorGraph::Clear() {
 	m_nodes.clear();
 }
-
 
 
 

@@ -13,7 +13,7 @@ TEST_CASE("System - Update default", "[GameLogic:System]") {
 	Scene scene;
 	EntitySchemeSet set(scene);
 	set.SetComponentTypes<FooComponent, BarComponent, BazComponent>();
-	
+
 
 	set.Create(FooComponent{ 1 }, BarComponent{ 4 }, BazComponent{ 7 });
 	set.Create(FooComponent{ 2 }, BarComponent{ 5 }, BazComponent{ 8 });

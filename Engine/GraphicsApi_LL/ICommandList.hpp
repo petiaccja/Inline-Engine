@@ -52,10 +52,10 @@ public:
 							 Cube srcRegion) = 0;
 
 	virtual void CopyTexture(gxapi::IResource* dst,
-	                         gxapi::TextureCopyDesc dstDesc,
-	                         int dstX, int dstY, int dstZ,
-	                         gxapi::IResource* src,
-	                         gxapi::TextureCopyDesc srcDesc) = 0;
+							 gxapi::TextureCopyDesc dstDesc,
+							 int dstX, int dstY, int dstZ,
+							 gxapi::IResource* src,
+							 gxapi::TextureCopyDesc srcDesc) = 0;
 
 	// barriers
 	// TODO: transition, aliasing and bullshit barriers, i would put them into separate functions
@@ -64,8 +64,7 @@ public:
 	template <class... Barriers>
 	std::enable_if_t<
 		templ::all<std::is_base_of<ResourceBarrierTag, std::remove_reference_t<Barriers>>...>::value,
-		void
-	>
+		void>
 	ResourceBarrier(Barriers&&... barriers) {
 		constexpr unsigned int tableSize = sizeof...(Barriers);
 		::inl::gxapi::ResourceBarrier table[tableSize];
@@ -103,7 +102,7 @@ public:
 	virtual void ResetState(IPipelineState* initialPipelineState) = 0;
 
 	// descriptor heaps
-	virtual void SetDescriptorHeaps(IDescriptorHeap*const * heaps, uint32_t count) = 0;
+	virtual void SetDescriptorHeaps(IDescriptorHeap* const* heaps, uint32_t count) = 0;
 };
 
 
@@ -186,4 +185,4 @@ void ICopyCommandList::PopulateBarrierTable(::inl::gxapi::ResourceBarrier* targe
 
 
 
-} // namespace gxapi
+} // namespace inl::gxapi

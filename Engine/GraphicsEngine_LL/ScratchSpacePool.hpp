@@ -1,14 +1,16 @@
 #pragma once
 
+#include "StackDescHeap.hpp"
+
 #include "../BaseLibrary/Memory/SlabAllocatorEngine.hpp"
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
-#include "StackDescHeap.hpp"
-#include <vector>
+
 #include <map>
 #include <mutex>
+#include <vector>
 
 
-namespace inl:: gxeng {
+namespace inl::gxeng {
 
 
 
@@ -21,20 +23,24 @@ public:
 		void operator()(StackDescHeap* object) const {
 			m_container->RecycleScratchSpace(object);
 		}
+
 	private:
 		ScratchSpacePool* m_container;
 	};
 
 	using UniquePtr = std::unique_ptr<StackDescHeap, Deleter>;
+
 public:
 	ScratchSpacePool(gxapi::IGraphicsApi* gxApi, gxapi::eDescriptorHeapType type);
 	ScratchSpacePool(const ScratchSpacePool&) = delete;
 	ScratchSpacePool(ScratchSpacePool&&) = default;
 	ScratchSpacePool& operator=(const ScratchSpacePool&) = delete;
-	ScratchSpacePool& operator=(ScratchSpacePool&& rhs) = default;;
+	ScratchSpacePool& operator=(ScratchSpacePool&& rhs) = default;
+	;
 
 	UniquePtr RequestScratchSpace();
 	void RecycleScratchSpace(StackDescHeap* scratchSpace);
+
 private:
 	std::vector<std::unique_ptr<StackDescHeap>> m_pool;
 	gxapi::eDescriptorHeapType m_type;
@@ -50,4 +56,4 @@ using ScratchSpacePtr = ScratchSpacePool::UniquePtr;
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

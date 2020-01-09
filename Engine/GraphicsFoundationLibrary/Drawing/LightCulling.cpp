@@ -1,10 +1,10 @@
 #include "LightCulling.hpp"
 
 #include "../Debug/DebugDrawManager.hpp"
-#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
 #include <GraphicsEngine_LL/GraphicsCommandList.hpp>
+#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 
 
 
@@ -181,11 +181,10 @@ void LightCulling::Execute(RenderContext& context) {
 	Mat44 invVP = (m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix()).Inverse();
 
 	//far ndc corners
-	Vec4 ndcCorners[] =
-		{
-			Vec4(-1.f, -1.f, 1.f, 1.f),
-			Vec4(1.f, 1.f, 1.f, 1.f),
-		};
+	Vec4 ndcCorners[] = {
+		Vec4(-1.f, -1.f, 1.f, 1.f),
+		Vec4(1.f, 1.f, 1.f, 1.f),
+	};
 
 	//convert to world space frustum corners
 	ndcCorners[0] = ndcCorners[0] * invVP;

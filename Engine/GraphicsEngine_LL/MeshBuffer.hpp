@@ -1,15 +1,15 @@
 #pragma once
 
-#include <vector>
-#include <memory>
-#include <cstdint>
-#include <type_traits>
-
-#include "MemoryObject.hpp"
 #include "MemoryManager.hpp"
+#include "MemoryObject.hpp"
+
+#include <cstdint>
+#include <memory>
+#include <type_traits>
+#include <vector>
 
 
-namespace inl:: gxeng {
+namespace inl::gxeng {
 
 
 class MemoryManager;
@@ -30,6 +30,7 @@ class MeshBuffer {
 		INDEX_TOO_LARGE,
 		NOT_TRIANGLE,
 	};
+
 public:
 	MeshBuffer(MemoryManager* memoryManager);
 
@@ -44,9 +45,11 @@ public:
 	size_t GetVertexBufferStride(size_t streamIndex) const;
 	const IndexBuffer& GetIndexBuffer() const;
 	bool IsIndexBuffer32Bit() const { return m_isIndex32Bit; }
+
 private:
 	template <class StreamIt, class IndexIt>
 	eValidationResult Validate(StreamIt firstStream, StreamIt lastStream, IndexIt firstIndex, IndexIt lastIndex);
+
 private:
 	std::vector<VertexBuffer> m_vertexBuffers;
 	std::vector<size_t> m_vertexStrides;
@@ -66,17 +69,17 @@ void MeshBuffer::Set(StreamIt firstStream, StreamIt lastStream, IndexIt firstInd
 	// Validate input data
 	eValidationResult valid = Validate(firstStream, lastStream, firstIndex, lastIndex);
 	switch (valid) {
-	case eValidationResult::VERTEX_COUNT_MISMATCH:
-		throw InvalidArgumentException("All streams must have the same number of vertices.");
-		break;
-	case eValidationResult::INDEX_TOO_LARGE:
-		throw InvalidArgumentException("Indices over-index the vertex buffers.");
-		break;
-	case eValidationResult::NOT_TRIANGLE:
-		throw InvalidArgumentException("Index count not divisible by 3. Must be triangles.");
-		break;
-	case eValidationResult::OK:
-		break;
+		case eValidationResult::VERTEX_COUNT_MISMATCH:
+			throw InvalidArgumentException("All streams must have the same number of vertices.");
+			break;
+		case eValidationResult::INDEX_TOO_LARGE:
+			throw InvalidArgumentException("Indices over-index the vertex buffers.");
+			break;
+		case eValidationResult::NOT_TRIANGLE:
+			throw InvalidArgumentException("Index count not divisible by 3. Must be triangles.");
+			break;
+		case eValidationResult::OK:
+			break;
 	}
 
 
@@ -181,4 +184,4 @@ MeshBuffer::eValidationResult MeshBuffer::Validate(StreamIt firstStream, StreamI
 }
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

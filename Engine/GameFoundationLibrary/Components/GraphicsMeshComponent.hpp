@@ -1,8 +1,9 @@
 #pragma once
 
+#include "../Modules/GraphicsModule.hpp"
+
 #include <GameLogic/AutoRegisterComponent.hpp>
 #include <GraphicsEngine/Scene/IMeshEntity.hpp>
-#include "../Modules/GraphicsModule.hpp"
 
 #include <cereal/cereal.hpp>
 #include <cereal/types/string.hpp>

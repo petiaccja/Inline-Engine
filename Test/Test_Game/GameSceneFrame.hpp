@@ -14,5 +14,6 @@ public:
 	GameSceneFrame();
 
 	void UpdateStyle() override;
+
 private:
 };

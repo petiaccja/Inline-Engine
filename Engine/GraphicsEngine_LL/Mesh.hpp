@@ -1,15 +1,16 @@
 #pragma once
 
 #include "MeshBuffer.hpp"
-#include <GraphicsEngine/Resources/Vertex.hpp>
-#include <GraphicsEngine/Resources/IMesh.hpp>
 
-#include <type_traits>
-#include <mutex>
 #include <BaseLibrary/UniqueIdGenerator.hpp>
+#include <GraphicsEngine/Resources/IMesh.hpp>
+#include <GraphicsEngine/Resources/Vertex.hpp>
+
+#include <mutex>
+#include <type_traits>
 
 
-namespace inl :: gxeng {
+namespace inl ::gxeng {
 
 
 class Mesh : public IMesh, protected MeshBuffer {
@@ -44,11 +45,11 @@ public:
 		/// <summary> Returns the hash for this particular list of elements in this particular arrangement. </summary>
 		size_t GetLayoutHash() const;
 
-		/// <summary> Return an ID that is the same for all Layouts that contain the same particular list of elements. 
+		/// <summary> Return an ID that is the same for all Layouts that contain the same particular list of elements.
 		///		Does not change throughout program execution. </summary>
 		UniqueId GetElementId() const;
 
-		/// <summary> Return an ID that is the same for all Layouts that contain the same particular arrangement of elements. 
+		/// <summary> Return an ID that is the same for all Layouts that contain the same particular arrangement of elements.
 		///		Does not change throughout program execution. </summary>
 		UniqueId GetLayoutId() const;
 
@@ -68,6 +69,7 @@ public:
 		struct EqualToLayout {
 			size_t operator()(const Layout& lhs, const Layout& rhs) const { return lhs.EqualLayout(rhs); }
 		};
+
 	private:
 		static void CalculateHashes(const std::vector<std::vector<Element>>& layout, size_t& elementHash, size_t& layoutHash);
 		static std::vector<Element> GetAllElements(const std::vector<std::vector<Element>>& layout);
@@ -83,6 +85,7 @@ public:
 		static UniqueIdGenerator<Layout, HashLayout, EqualToLayout> layoutIdGenerator;
 		static std::mutex idGeneratorMtx;
 	};
+
 public:
 	Mesh(MemoryManager* memoryManager) : MeshBuffer(memoryManager) {}
 
@@ -90,17 +93,18 @@ public:
 	void Update(const VertexBase* vertices, const IVertexReader* vertexReader, size_t numVertices, size_t offsetInVertices) override;
 	void Clear() override;
 
+	using MeshBuffer::GetIndexBuffer;
 	using MeshBuffer::GetNumStreams;
 	using MeshBuffer::GetVertexBuffer;
 	using MeshBuffer::GetVertexBufferStride;
-	using MeshBuffer::GetIndexBuffer;
 	using MeshBuffer::IsIndexBuffer32Bit;
 
 	const Layout& GetLayout() const;
+
 private:
 	Layout m_layout;
 };
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

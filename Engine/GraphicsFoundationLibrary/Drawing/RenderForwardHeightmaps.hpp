@@ -12,9 +12,9 @@ namespace inl::gxeng::nodes {
 
 
 class RenderForwardHeightmaps : virtual public GraphicsNode,
-							public GraphicsTask,
-							public InputPortConfig<Texture2D, Texture2D, const BasicCamera*, const EntityCollection<IHeightmapEntity>*, const EntityCollection<IDirectionalLight>*>,
-							public OutputPortConfig<Texture2D, Texture2D> {
+								public GraphicsTask,
+								public InputPortConfig<Texture2D, Texture2D, const BasicCamera*, const EntityCollection<IHeightmapEntity>*, const EntityCollection<IDirectionalLight>*>,
+								public OutputPortConfig<Texture2D, Texture2D> {
 public:
 	static const char* Info_GetName() { return "RenderForwardHeightmaps"; }
 

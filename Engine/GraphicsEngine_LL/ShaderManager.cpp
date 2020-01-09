@@ -1,17 +1,16 @@
 #include "ShaderManager.hpp"
 
-#include <thread>
 #include <algorithm>
 #include <fstream>
 #include <functional>
+#include <thread>
 
 
-namespace inl :: gxeng {
+namespace inl ::gxeng {
 
 
 ShaderManager::ShaderManager(gxapi::IGxapiManager* gxapiManager)
-	: m_gxapiManager(gxapiManager)
-{
+	: m_gxapiManager(gxapiManager) {
 	unsigned numCores = std::thread::hardware_concurrency();
 	numCores = std::max(1u, numCores); // must be at least one core
 	numCores = std::min(64u, numCores); // there should not be more than 64 cores... too many mutexes
@@ -43,7 +42,7 @@ void ShaderManager::ClearSourceDirectories() {
 }
 
 auto ShaderManager::GetSourceDirectories() const -> std::pair<PathContainer::const_iterator, PathContainer::const_iterator> {
-	return{ m_directories.begin(), m_directories.end() };
+	return { m_directories.begin(), m_directories.end() };
 }
 
 
@@ -65,8 +64,8 @@ void ShaderManager::ClearSourceCodes() {
 	m_codes.clear();
 }
 
-auto ShaderManager::GetSourceCodes() const ->std::pair<CodeContainer::const_iterator, CodeContainer::const_iterator> {
-	return{ m_codes.begin(), m_codes.end() };
+auto ShaderManager::GetSourceCodes() const -> std::pair<CodeContainer::const_iterator, CodeContainer::const_iterator> {
+	return { m_codes.begin(), m_codes.end() };
 }
 
 
@@ -122,12 +121,24 @@ const ShaderProgram& ShaderManager::CreateShader(const std::string& name, Shader
 	}
 
 	shader->parts = shader->parts.SetUnion(partsToCompile);
-	if (partsToCompile.vs) { shader->program.vs = std::move(program.vs); }
-	if (partsToCompile.hs) { shader->program.hs = std::move(program.hs); }
-	if (partsToCompile.ds) { shader->program.ds = std::move(program.ds); }
-	if (partsToCompile.gs) { shader->program.gs = std::move(program.gs); }
-	if (partsToCompile.ps) { shader->program.ps = std::move(program.ps); }
-	if (partsToCompile.cs) { shader->program.cs = std::move(program.cs); }
+	if (partsToCompile.vs) {
+		shader->program.vs = std::move(program.vs);
+	}
+	if (partsToCompile.hs) {
+		shader->program.hs = std::move(program.hs);
+	}
+	if (partsToCompile.ds) {
+		shader->program.ds = std::move(program.ds);
+	}
+	if (partsToCompile.gs) {
+		shader->program.gs = std::move(program.gs);
+	}
+	if (partsToCompile.ps) {
+		shader->program.ps = std::move(program.ps);
+	}
+	if (partsToCompile.cs) {
+		shader->program.cs = std::move(program.cs);
+	}
 
 	return shader->program;
 }
@@ -198,6 +209,7 @@ ShaderProgram ShaderManager::CompileShaderInternal(const std::string& sourceCode
 		std::string LoadInclude(const char* includeName, bool systemInclude) override {
 			return m_findShader(includeName);
 		}
+
 	private:
 		std::function<std::string(const char*)> m_findShader;
 	};
@@ -224,14 +236,34 @@ ShaderProgram ShaderManager::CompileShaderInternal(const std::string& sourceCode
 
 	int compileIndices[7]; // last item is a guard (-1), not used otherwise
 	{
-		for (auto& v : compileIndices) { v = -1; }
+		for (auto& v : compileIndices) {
+			v = -1;
+		}
 		int idx = 0;
-		if (parts.vs) { compileIndices[idx] = 0; ++idx; }
-		if (parts.hs) { compileIndices[idx] = 1; ++idx; }
-		if (parts.ds) { compileIndices[idx] = 2; ++idx; }
-		if (parts.gs) { compileIndices[idx] = 3; ++idx; }
-		if (parts.ps) { compileIndices[idx] = 4; ++idx; }
-		if (parts.cs) { compileIndices[idx] = 5; ++idx; }
+		if (parts.vs) {
+			compileIndices[idx] = 0;
+			++idx;
+		}
+		if (parts.hs) {
+			compileIndices[idx] = 1;
+			++idx;
+		}
+		if (parts.ds) {
+			compileIndices[idx] = 2;
+			++idx;
+		}
+		if (parts.gs) {
+			compileIndices[idx] = 3;
+			++idx;
+		}
+		if (parts.ps) {
+			compileIndices[idx] = 4;
+			++idx;
+		}
+		if (parts.cs) {
+			compileIndices[idx] = 5;
+			++idx;
+		}
 	}
 
 	int idx = 0;
@@ -240,15 +272,15 @@ ShaderProgram ShaderManager::CompileShaderInternal(const std::string& sourceCode
 		const char* mainName = mainNames[stageId];
 		gxapi::eShaderType type = types[stageId];
 		auto binary = m_gxapiManager->CompileShader(sourceCode.c_str(),
-			mainName,
-			type,
-			m_compileFlags,
-			&includeProvider,
-			macros.c_str());
+													mainName,
+													type,
+													m_compileFlags,
+													&includeProvider,
+													macros.c_str());
 
 		ShaderStage* dest = nullptr;
 		switch (type) {
-		case gxapi::eShaderType::VERTEX: dest = &ret.vs; break;
+			case gxapi::eShaderType::VERTEX: dest = &ret.vs; break;
 			case gxapi::eShaderType::HULL: dest = &ret.hs; break;
 			case gxapi::eShaderType::DOMAIN: dest = &ret.ds; break;
 			case gxapi::eShaderType::GEOMETRY: dest = &ret.gs; break;
@@ -284,4 +316,4 @@ std::string ShaderManager::StripShaderName(std::string name, bool lowerCase) {
 }
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

@@ -1,12 +1,12 @@
 #pragma once
 
 #include "Scheduler.hpp"
-#include <thread>
-#include <queue>
-#include <mutex>
-#include <atomic>
 
+#include <atomic>
 #include <moodycamel/blockingconcurrentqueue.h>
+#include <mutex>
+#include <queue>
+#include <thread>
 
 namespace inl::jobs {
 

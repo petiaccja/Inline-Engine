@@ -1,7 +1,7 @@
 #pragma once
 
-#include <GraphicsEngine/Scene/IOverlayEntity.hpp>
 #include <BaseLibrary/Transformable.hpp>
+#include <GraphicsEngine/Scene/IOverlayEntity.hpp>
 
 
 namespace inl::gui {
@@ -36,6 +36,7 @@ public:
 	std::pair<RectF, Mat33> GetAdditionalClip() const override { return { m_clipRectangle, m_clipRectangleTransform }; }
 	void EnableAdditionalClip(bool enabled) override { m_clipEnabled = enabled; }
 	bool IsAdditionalClipEnabled() const override { return m_clipEnabled; }
+
 private:
 	gxeng::IMesh* m_mesh = nullptr;
 	Vec4 m_color = { 1, 1, 1, 1 };

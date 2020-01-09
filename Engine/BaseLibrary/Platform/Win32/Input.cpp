@@ -1,4 +1,5 @@
 #include "Input.hpp"
+
 #include "../../Exception/Exception.hpp"
 
 #pragma comment(lib, "hid.lib") // No need to put in project files because noone else should use these anywhere else.
@@ -47,7 +48,7 @@ bool Input::CallEvents() {
 		InputEvent evt = eventQueue.front();
 		eventQueue.pop();
 		switch (evt.type) {
-			case eInputEventType::MOUSE_BUTTON: 
+			case eInputEventType::MOUSE_BUTTON:
 				OnMouseButton(evt.mouseButton);
 				break;
 			case eInputEventType::MOUSE_MOVE:
@@ -56,7 +57,7 @@ bool Input::CallEvents() {
 			case eInputEventType::KEYBOARD:
 				OnKeyboard(evt.keyboard);
 				break;
-			case eInputEventType::JOYSTICK_BUTTON: 
+			case eInputEventType::JOYSTICK_BUTTON:
 				OnJoystickButton(evt.joystickButton);
 				break;
 			case eInputEventType::JOYSTICK_MOVE:
@@ -109,7 +110,7 @@ std::vector<InputDevice> Input::GetDeviceList() {
 			device.type = eInputSourceType::MOUSE;
 		}
 		else if (d.dwType == RIM_TYPEHID && deviceInfo.hid.usUsage == 4 && deviceInfo.hid.usUsagePage == 1) {
-			device.type = eInputSourceType::JOYSTICK; 
+			device.type = eInputSourceType::JOYSTICK;
 		}
 		else {
 			continue; // Unknown device type should not be listed
@@ -218,8 +219,7 @@ void Input::RawInputSourceBase::ProcessInput(const RAWINPUT& rawInput) {
 
 		// Movement events.
 		if ((mouse.usFlags & MOUSE_MOVE_RELATIVE)
-			&& (mouse.lLastX != 0 || mouse.lLastY != 0))
-		{
+			&& (mouse.lLastX != 0 || mouse.lLastY != 0)) {
 			MouseMoveEvent evt;
 			evt.relx = mouse.lLastX;
 			evt.rely = mouse.lLastY;
@@ -303,17 +303,17 @@ void Input::RawInputSourceBase::ProcessInput(const RAWINPUT& rawInput) {
 
 			// Get axis states.
 			ULONG value;
-			for (int i=0; i<state.valueCaps.size(); ++i) {
+			for (int i = 0; i < state.valueCaps.size(); ++i) {
 				HidP_GetUsageValue(HidP_Input,
-					state.valueCaps[i].UsagePage,
-					0,
-					state.valueCaps[i].Range.UsageMin,
-					&value,
-					preparsedData,
-					(PCHAR)rawInput.data.hid.bRawData,
-					rawInput.data.hid.dwSizeHid);
+								   state.valueCaps[i].UsagePage,
+								   0,
+								   state.valueCaps[i].Range.UsageMin,
+								   &value,
+								   preparsedData,
+								   (PCHAR)rawInput.data.hid.bRawData,
+								   rawInput.data.hid.dwSizeHid);
 
-				float normalizedValue = -1.f + 2.f*(value - state.valueCaps[i].PhysicalMin)/(state.valueCaps[i].PhysicalMax - state.valueCaps[i].PhysicalMin);
+				float normalizedValue = -1.f + 2.f * (value - state.valueCaps[i].PhysicalMin) / (state.valueCaps[i].PhysicalMax - state.valueCaps[i].PhysicalMin);
 				if (normalizedValue != state.valueStates[i]) {
 					JoystickMoveEvent evt;
 					evt.axis = i;
@@ -342,13 +342,13 @@ void Input::RawInputSourceBase::MessageLoopThreadFunc() {
 	}
 
 	HWND hwnd = CreateWindowA("INL_INPUT_CAPTURE",
-		"Inl input capture",
-		WS_OVERLAPPEDWINDOW,
-		0, 0, 100, 100,
-		NULL,
-		NULL,
-		GetModuleHandle(NULL),
-		this);
+							  "Inl input capture",
+							  WS_OVERLAPPEDWINDOW,
+							  0, 0, 100, 100,
+							  NULL,
+							  NULL,
+							  GetModuleHandle(NULL),
+							  this);
 
 	if (!hwnd) {
 		DWORD error = GetLastError();
@@ -363,17 +363,17 @@ void Input::RawInputSourceBase::MessageLoopThreadFunc() {
 
 	Rid[0].usUsagePage = 0x01;
 	Rid[0].usUsage = 0x02;
-	Rid[0].dwFlags = RIDEV_INPUTSINK;   // adds HID mouse and also ignores legacy mouse messages
+	Rid[0].dwFlags = RIDEV_INPUTSINK; // adds HID mouse and also ignores legacy mouse messages
 	Rid[0].hwndTarget = m_messageLoopWindow;
 
 	Rid[1].usUsagePage = 0x01;
 	Rid[1].usUsage = 0x06;
-	Rid[1].dwFlags = RIDEV_INPUTSINK;   // adds HID keyboard and also ignores legacy keyboard messages
+	Rid[1].dwFlags = RIDEV_INPUTSINK; // adds HID keyboard and also ignores legacy keyboard messages
 	Rid[1].hwndTarget = m_messageLoopWindow;
 
 	Rid[2].usUsagePage = 0x01;
 	Rid[2].usUsage = 0x04;
-	Rid[2].dwFlags = RIDEV_INPUTSINK;   // adds HID joystick
+	Rid[2].dwFlags = RIDEV_INPUTSINK; // adds HID joystick
 	Rid[2].hwndTarget = m_messageLoopWindow;
 
 	if (RegisterRawInputDevices(Rid, 3, sizeof(Rid[0])) == FALSE) {
@@ -432,87 +432,91 @@ Input::RawInputSourceBase::JoyState Input::RawInputSourceBase::GetJoyInfo(size_t
 
 
 namespace impl {
-eKey TranslateKey(unsigned vkey) {
-	switch (vkey) {
-		case VK_BACK: return eKey::BACKSPACE;
-		case VK_TAB: return eKey::TAB;
-		case VK_CLEAR: return eKey::CLEAR;
-		case VK_RETURN: return eKey::ENTER;
-		case VK_SHIFT: return eKey::SHIFT_LEFT;
-		case VK_CONTROL: return eKey::CONTROL_LEFT;
-		case VK_MENU: return eKey::ALT_LEFT; // alt
-		case VK_PAUSE: return eKey::PAUSE;
-		case VK_CAPITAL: return eKey::CAPS_LOCK;  // caps lock
-		case VK_ESCAPE: return eKey::ESCAPE;
-		case VK_SPACE: return eKey::SPACE;
-		case VK_PRIOR: return eKey::PAGE_UP; // page up
-		case VK_NEXT: return eKey::PAGE_DOWN; // page down
-		case VK_END: return eKey::END;
-		case VK_HOME: return eKey::HOME;
-		case VK_LEFT: return eKey::LEFT;
-		case VK_UP: return eKey::UP;
-		case VK_RIGHT: return eKey::RIGHT;
-		case VK_DOWN: return eKey::DOWN;
-		case VK_SELECT: return eKey::SELECT;
-		case VK_PRINT: return eKey::PRINT;
-		case VK_SNAPSHOT: return eKey::PRINT_SCREEN; // print screen
-		case VK_INSERT: return eKey::INSERT;
-		case VK_DELETE: return eKey::DELETE;
-		case VK_LWIN: return eKey::WINKEY_LEFT;
-		case VK_RWIN: return eKey::WINKEY_RIGHT;
-		case VK_SLEEP: return eKey::SLEEP;
+	eKey TranslateKey(unsigned vkey) {
+		switch (vkey) {
+			case VK_BACK: return eKey::BACKSPACE;
+			case VK_TAB: return eKey::TAB;
+			case VK_CLEAR: return eKey::CLEAR;
+			case VK_RETURN: return eKey::ENTER;
+			case VK_SHIFT: return eKey::SHIFT_LEFT;
+			case VK_CONTROL: return eKey::CONTROL_LEFT;
+			case VK_MENU: return eKey::ALT_LEFT; // alt
+			case VK_PAUSE: return eKey::PAUSE;
+			case VK_CAPITAL: return eKey::CAPS_LOCK; // caps lock
+			case VK_ESCAPE: return eKey::ESCAPE;
+			case VK_SPACE: return eKey::SPACE;
+			case VK_PRIOR: return eKey::PAGE_UP; // page up
+			case VK_NEXT: return eKey::PAGE_DOWN; // page down
+			case VK_END: return eKey::END;
+			case VK_HOME: return eKey::HOME;
+			case VK_LEFT: return eKey::LEFT;
+			case VK_UP: return eKey::UP;
+			case VK_RIGHT: return eKey::RIGHT;
+			case VK_DOWN: return eKey::DOWN;
+			case VK_SELECT: return eKey::SELECT;
+			case VK_PRINT: return eKey::PRINT;
+			case VK_SNAPSHOT: return eKey::PRINT_SCREEN; // print screen
+			case VK_INSERT: return eKey::INSERT;
+			case VK_DELETE: return eKey::DELETE;
+			case VK_LWIN: return eKey::WINKEY_LEFT;
+			case VK_RWIN: return eKey::WINKEY_RIGHT;
+			case VK_SLEEP:
+				return eKey::SLEEP;
 
-			// numpad
-		case VK_MULTIPLY: return eKey::MULTIPLY;
-		case VK_ADD: return eKey::ADD;
-		case VK_SEPARATOR: return eKey::SPEPARATOR;
-		case VK_SUBTRACT: return eKey::SUBTRACT;
-		case VK_DECIMAL: return eKey::DECIMAL;
-		case VK_DIVIDE: return eKey::DIVIDE;
+				// numpad
+			case VK_MULTIPLY: return eKey::MULTIPLY;
+			case VK_ADD: return eKey::ADD;
+			case VK_SEPARATOR: return eKey::SPEPARATOR;
+			case VK_SUBTRACT: return eKey::SUBTRACT;
+			case VK_DECIMAL: return eKey::DECIMAL;
+			case VK_DIVIDE:
+				return eKey::DIVIDE;
 
-			// misc
-		case VK_NUMLOCK: return eKey::NUM_LOCK;
-		case VK_SCROLL: return eKey::SCROLL_LOCK; // scroll lock
+				// misc
+			case VK_NUMLOCK: return eKey::NUM_LOCK;
+			case VK_SCROLL:
+				return eKey::SCROLL_LOCK; // scroll lock
 
-		// modifiers
-		case VK_LSHIFT: return eKey::SHIFT_LEFT;
-		case VK_RSHIFT: return eKey::SHIFT_RIGHT;
-		case VK_LCONTROL: return eKey::CONTROL_LEFT;
-		case VK_RCONTROL: return eKey::CONTROL_RIGHT;
-		case VK_LMENU: return eKey::ALT_LEFT; // alt
-		case VK_RMENU: return eKey::ALT_RIGHT; // alt gr
+			// modifiers
+			case VK_LSHIFT: return eKey::SHIFT_LEFT;
+			case VK_RSHIFT: return eKey::SHIFT_RIGHT;
+			case VK_LCONTROL: return eKey::CONTROL_LEFT;
+			case VK_RCONTROL: return eKey::CONTROL_RIGHT;
+			case VK_LMENU: return eKey::ALT_LEFT; // alt
+			case VK_RMENU:
+				return eKey::ALT_RIGHT; // alt gr
 
-		// browser
-		case VK_BROWSER_BACK: return eKey::UNKNOWN;
-		case VK_BROWSER_FORWARD: return eKey::UNKNOWN;
-		case VK_BROWSER_REFRESH: return eKey::UNKNOWN;
-		case VK_BROWSER_STOP: return eKey::UNKNOWN;
-		case VK_BROWSER_SEARCH: return eKey::UNKNOWN;
-		case VK_BROWSER_FAVORITES: return eKey::UNKNOWN;
-		case VK_BROWSER_HOME: return eKey::UNKNOWN;
-		default: break;
+			// browser
+			case VK_BROWSER_BACK: return eKey::UNKNOWN;
+			case VK_BROWSER_FORWARD: return eKey::UNKNOWN;
+			case VK_BROWSER_REFRESH: return eKey::UNKNOWN;
+			case VK_BROWSER_STOP: return eKey::UNKNOWN;
+			case VK_BROWSER_SEARCH: return eKey::UNKNOWN;
+			case VK_BROWSER_FAVORITES: return eKey::UNKNOWN;
+			case VK_BROWSER_HOME: return eKey::UNKNOWN;
+			default: break;
+		}
+
+		// 0x30-0x39: 0-9 keys
+		// 0x41-0x5A: A-Z keys
+		// 0x60-0x69: numpad 0-9 keys
+		// 0x70-0x87: F1-F24 keys
+		if (0x30 <= vkey && vkey <= 0x39) {
+			return static_cast<eKey>(static_cast<unsigned>(eKey::NUMBER_0) + vkey - 0x30);
+		}
+		else if (0x41 <= vkey && vkey <= 0x5A) {
+			return static_cast<eKey>(static_cast<unsigned>(eKey::A) + vkey - 0x41);
+		}
+		else if (0x60 <= vkey && vkey <= 0x69) {
+			return static_cast<eKey>(static_cast<unsigned>(eKey::NUMPAD_0) + vkey - 0x60);
+		}
+		else if (0x70 <= vkey && vkey <= 0x87) {
+			return static_cast<eKey>(static_cast<unsigned>(eKey::F1) + vkey - 0x70);
+		}
+
+		return eKey::UNKNOWN;
 	}
-
-	// 0x30-0x39: 0-9 keys
-	// 0x41-0x5A: A-Z keys
-	// 0x60-0x69: numpad 0-9 keys
-	// 0x70-0x87: F1-F24 keys
-	if (0x30 <= vkey && vkey <= 0x39) {
-		return static_cast<eKey>(static_cast<unsigned>(eKey::NUMBER_0) + vkey - 0x30);
-	}
-	else if (0x41 <= vkey && vkey <= 0x5A) {
-		return static_cast<eKey>(static_cast<unsigned>(eKey::A) + vkey - 0x41);
-	}
-	else if (0x60 <= vkey && vkey <= 0x69) {
-		return static_cast<eKey>(static_cast<unsigned>(eKey::NUMPAD_0) + vkey - 0x60);
-	}
-	else if (0x70 <= vkey && vkey <= 0x87) {
-		return static_cast<eKey>(static_cast<unsigned>(eKey::F1) + vkey - 0x70);
-	}
-
-	return eKey::UNKNOWN;
-}
-}
+} // namespace impl
 
 
 

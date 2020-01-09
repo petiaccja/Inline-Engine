@@ -1,10 +1,10 @@
 #include "DOFTileMax.hpp"
 
-#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
+#include "../../Debug/DebugDrawManager.hpp"
+
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
 #include <GraphicsEngine_LL/GraphicsCommandList.hpp>
-
-#include "../../Debug/DebugDrawManager.hpp"
+#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 
 
 
@@ -14,8 +14,7 @@ namespace inl::gxeng::nodes {
 INL_REGISTER_GRAPHICS_NODE(DOFTileMax)
 
 
-struct Uniforms
-{
+struct Uniforms {
 	float tileSize;
 };
 
@@ -26,7 +25,7 @@ DOFTileMax::DOFTileMax() {
 }
 
 
-void DOFTileMax::Initialize(EngineContext & context) {
+void DOFTileMax::Initialize(EngineContext& context) {
 	GraphicsNode::SetTaskSingle(this);
 }
 
@@ -64,11 +63,11 @@ void DOFTileMax::Setup(SetupContext& context) {
 
 	Texture2D inputTex = this->GetInput<0>().Get();
 	m_inputTexSrv = context.CreateSrv(inputTex, inputTex.GetFormat(), srvDesc);
-	
+
 
 	Texture2D depthTex = this->GetInput<1>().Get();
 	m_depthTexSrv = context.CreateSrv(depthTex, FormatDepthToColor(depthTex.GetFormat()), srvDesc);
-	
+
 
 	if (!m_binder) {
 		BindParameterDesc uniformsBindParamDesc;
@@ -113,7 +112,7 @@ void DOFTileMax::Setup(SetupContext& context) {
 		samplerDesc.registerSpace = 0;
 		samplerDesc.shaderVisibility = gxapi::eShaderVisiblity::ALL;
 
-		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, depthBindParamDesc },{ samplerDesc });
+		m_binder = context.CreateBinder({ uniformsBindParamDesc, sampBindParamDesc, inputBindParamDesc, depthBindParamDesc }, { samplerDesc });
 	}
 
 
@@ -128,7 +127,7 @@ void DOFTileMax::Setup(SetupContext& context) {
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
 			gxapi::InputElementDesc{ "POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0 },
-			gxapi::InputElementDesc{"TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 1}
+			gxapi::InputElementDesc{ "TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 1 }
 		};
 
 		gxapi::GraphicsPipelineStateDesc psoDesc;
@@ -233,10 +232,9 @@ void DOFTileMax::InitRenderTarget(SetupContext& context) {
 			formatTileMax
 		};
 
-		Texture2D tilemaxTex = context.CreateTexture2D(desc, {true, true, false, false});
+		Texture2D tilemaxTex = context.CreateTexture2D(desc, { true, true, false, false });
 		tilemaxTex.SetName("DOF tilemax tex");
 		m_tilemaxRTV = context.CreateRtv(tilemaxTex, formatTileMax, rtvDesc);
-		
 	}
 }
 

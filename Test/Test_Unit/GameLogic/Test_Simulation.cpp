@@ -148,7 +148,7 @@ TEST_CASE("Run systems on Scene", "[GameLogic:Simulation]") {
 
 	Entity* entity1 = scene.CreateEntity(FooComponent{ 12.f }, BarComponent{ 0.0f });
 	Entity* entity2 = scene.CreateEntity(FooComponent{ 12.f }, BarComponent{ 0.0f }, BazComponent{ 0.0f });
-	
+
 	sm.PushBack(DoubleFooToBarSystem{});
 	sm.PushBack(StandaloneSystem{});
 

@@ -1,11 +1,11 @@
 #pragma once
 
+#include "Image.hpp"
+
 #include <GraphicsEngine/Resources/IFont.hpp>
 
 #include <string>
 #include <unordered_map>
-
-#include "Image.hpp"
 
 
 namespace inl::gxeng {
@@ -19,6 +19,7 @@ public:
 		Vec2i atlasPos;
 		Vec2i atlasSize;
 	};
+
 public:
 	Font(Image atlas);
 
@@ -37,6 +38,7 @@ public:
 
 	/// <summary> Returns the texture atlas that contain the rasterized letters. </summary>
 	const Image& GetGlyphAtlas() const;
+
 private:
 	Image m_atlas;
 	std::unordered_map<char32_t, GlyphInfo> m_glyphs;

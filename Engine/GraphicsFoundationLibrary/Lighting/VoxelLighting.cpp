@@ -1,10 +1,9 @@
 #include "VoxelLighting.hpp"
 
-#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
-
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
 #include <GraphicsEngine_LL/GraphicsCommandList.hpp>
 #include <GraphicsEngine_LL/Mesh.hpp>
+#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 
 
 
@@ -377,7 +376,7 @@ void VoxelLighting::Setup(SetupContext& context) {
 		{ //light injection from a cascaded shadow map
 			std::vector<gxapi::InputElementDesc> inputElementDesc2 = {
 				gxapi::InputElementDesc{ "POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0 },
-				gxapi::InputElementDesc{ "TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12}
+				gxapi::InputElementDesc{ "TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12 }
 			};
 
 			gxapi::GraphicsPipelineStateDesc psoDesc;
@@ -408,7 +407,7 @@ void VoxelLighting::Setup(SetupContext& context) {
 			psoDesc.ps = m_visualizerShader.ps;
 			psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW };
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::POINT;
-			psoDesc.depthStencilState = gxapi::DepthStencilState{true, true};
+			psoDesc.depthStencilState = gxapi::DepthStencilState{ true, true };
 			psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::LESS;
 			psoDesc.depthStencilFormat = m_visualizationDSV.GetDescription().format;
 
@@ -432,7 +431,7 @@ void VoxelLighting::Setup(SetupContext& context) {
 			psoDesc.ps = m_finalGatherShader.ps;
 			psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
-			psoDesc.depthStencilState = gxapi::DepthStencilState{false, false};
+			psoDesc.depthStencilState = gxapi::DepthStencilState{ false, false };
 			psoDesc.depthStencilState.depthFunc = gxapi::eComparisonFunction::LESS;
 			psoDesc.depthStencilFormat = m_visualizationDSV.GetDescription().format;
 
@@ -491,11 +490,10 @@ void VoxelLighting::Execute(RenderContext& context) {
 	uniformsCBData.invView = invV;
 
 	//far ndc corners
-	Vec4 ndcCorners[] =
-		{
-			Vec4(-1.f, -1.f, 1.f, 1.f),
-			Vec4(1.f, 1.f, 1.f, 1.f),
-		};
+	Vec4 ndcCorners[] = {
+		Vec4(-1.f, -1.f, 1.f, 1.f),
+		Vec4(1.f, 1.f, 1.f, 1.f),
+	};
 
 	//convert to world space frustum corners
 	ndcCorners[0] = ndcCorners[0] * invP;

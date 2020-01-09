@@ -1,12 +1,12 @@
 #pragma once
 
-#include "PipelineEventListener.hpp"
 #include "MemoryObject.hpp"
+#include "PipelineEventListener.hpp"
 
-#include <utility>
-#include <mutex>
 #include <deque>
 #include <list>
+#include <mutex>
+#include <utility>
 
 namespace inl::gxeng {
 
@@ -15,27 +15,28 @@ class CopyCommandList;
 
 class UploadManager : public PipelineEventListener {
 public:
-	enum class DestType { BUFFER, TEXTURE_2D };
+	enum class DestType { BUFFER,
+						  TEXTURE_2D };
 	struct UploadDescription {
 		UploadDescription(LinearBuffer&& source,
 						  const LinearBuffer& destination,
-						  size_t bufferOffset) :
-			source(std::move(source)),
-			destination(destination),
-			destType(DestType::BUFFER),
-			dstOffsetX(bufferOffset) {}
+						  size_t bufferOffset) : source(std::move(source)),
+												 destination(destination),
+												 destType(DestType::BUFFER),
+												 dstOffsetX(bufferOffset) {}
 
 		UploadDescription(LinearBuffer&& source,
 						  const Texture2D& destination, unsigned dstSubresource,
 						  size_t dstOffsetX, uint32_t dstOffsetY, uint32_t dstOffsetZ,
-						  gxapi::TextureCopyDesc textureBufferDesc) :
-			source(std::move(source)),
-			destination(destination),
-			dstSubresource(dstSubresource),
-			destType(DestType::TEXTURE_2D),
-			dstOffsetX(dstOffsetX), dstOffsetY(dstOffsetY), dstOffsetZ(dstOffsetZ),
-			textureBufferDesc(textureBufferDesc) {}
-		
+						  gxapi::TextureCopyDesc textureBufferDesc) : source(std::move(source)),
+																	  destination(destination),
+																	  dstSubresource(dstSubresource),
+																	  destType(DestType::TEXTURE_2D),
+																	  dstOffsetX(dstOffsetX),
+																	  dstOffsetY(dstOffsetY),
+																	  dstOffsetZ(dstOffsetZ),
+																	  textureBufferDesc(textureBufferDesc) {}
+
 		LinearBuffer source;
 
 		// Destination is a weak pointer because it might get deleted before
@@ -50,6 +51,7 @@ public:
 
 		gxapi::TextureCopyDesc textureBufferDesc;
 	};
+
 private:
 	struct UploadFrame {
 		std::vector<UploadDescription> uploads;
@@ -89,7 +91,7 @@ public:
 				const void* data,
 				uint64_t width,
 				uint32_t height,
-				gxapi::eFormat format, 
+				gxapi::eFormat format,
 				size_t bytesPerRow = 0);
 
 	/// <summary> Schedules a data copy on the given command list immediately. </summary>
@@ -138,6 +140,7 @@ public:
 	/// <remarks> If this function is called from the <see cref="Scheduler"/> - as it should be -
 	///		the upcoming frame will be the one currently processed by the scheduler. </remarks>
 	const std::vector<UploadDescription>& GetQueuedUploads() const;
+
 protected:
 	gxapi::IGraphicsApi* m_graphicsApi;
 	std::list<UploadFrame> m_uploadFrames;
@@ -148,6 +151,7 @@ protected:
 	MemoryObject::UniquePtr CreateStagingResource(const void* data, size_t size);
 	// Creates and copies uploaded data into a staging GPU buffer (for textures).
 	MemoryObject::UniquePtr CreateStagingResource(const void* data, uint64_t width, uint32_t height, gxapi::eFormat format, size_t bytesPerRow);
+
 protected:
 	static constexpr int DUP_D3D12_TEXTURE_DATA_PITCH_ALIGNMENT = 256;
 

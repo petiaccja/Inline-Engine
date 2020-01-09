@@ -18,4 +18,4 @@ public:
 	static constexpr uint64_t FOREVER = std::numeric_limits<uint64_t>::max();
 };
 
-} // namespace gxapi
+} // namespace inl::gxapi

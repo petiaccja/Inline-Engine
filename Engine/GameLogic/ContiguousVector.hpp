@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector>
 #include <algorithm>
+#include <vector>
 
 
 namespace inl::game {
@@ -20,8 +20,8 @@ public:
 	using VectorT::pointer;
 	using VectorT::reference;
 	using VectorT::reverse_iterator;
-	using VectorT::value_type;
 	using VectorT::size_type;
+	using VectorT::value_type;
 
 	using VectorT::VectorT;
 	using VectorT::operator=;
@@ -31,8 +31,8 @@ public:
 	using VectorT::at;
 	using VectorT::operator[];
 	//using VectorT::data;
-	using VectorT::front;
 	using VectorT::back;
+	using VectorT::front;
 
 	using VectorT::begin;
 	using VectorT::cbegin;
@@ -43,19 +43,19 @@ public:
 	using VectorT::rbegin;
 	using VectorT::rend;
 
-	using VectorT::resize;
 	using VectorT::capacity;
 	using VectorT::empty;
 	using VectorT::max_size;
 	using VectorT::reserve;
+	using VectorT::resize;
 	using VectorT::shrink_to_fit;
 	using VectorT::size;
 
 	using VectorT::clear;
-	using VectorT::emplace_back;
-	using VectorT::push_back;
-	using VectorT::insert;
 	using VectorT::emplace;
+	using VectorT::emplace_back;
+	using VectorT::insert;
+	using VectorT::push_back;
 	void erase(const_iterator it);
 	void erase(const_iterator first, const_iterator last);
 	void swap_elements(const_iterator elem1, const_iterator elem2);
@@ -74,7 +74,7 @@ public:
 template <class T, class Alloc>
 void ContiguousVector<T, Alloc>::erase(const_iterator it) {
 	iterator last = --end(); // Container must not be empty to remove from it.
-	(*this)[it - begin()] = std::move(*last);	
+	(*this)[it - begin()] = std::move(*last);
 	VectorT::pop_back();
 }
 

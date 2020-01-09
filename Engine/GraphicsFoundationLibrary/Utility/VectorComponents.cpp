@@ -1,7 +1,7 @@
 #pragma once
 
-#include <GraphicsEngine_LL/GraphicsNode.hpp>
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
+#include <GraphicsEngine_LL/GraphicsNode.hpp>
 
 #include <InlineMath.hpp>
 

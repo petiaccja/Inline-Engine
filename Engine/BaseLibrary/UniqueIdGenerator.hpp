@@ -8,17 +8,19 @@ namespace inl {
 
 class UniqueId {
 	friend struct std::hash<UniqueId>;
+
 public:
 	explicit UniqueId(uint64_t value = ~0ull) : value(value) {}
 	bool operator==(const UniqueId& rhs) const { return value == rhs.value; }
 	bool operator!=(const UniqueId& rhs) const { return value != rhs.value; }
-	bool operator< (const UniqueId& rhs) const { return value < rhs.value; }
-	bool operator> (const UniqueId& rhs) const { return value > rhs.value; }
+	bool operator<(const UniqueId& rhs) const { return value < rhs.value; }
+	bool operator>(const UniqueId& rhs) const { return value > rhs.value; }
 	bool operator<=(const UniqueId& rhs) const { return value <= rhs.value; }
 	bool operator>=(const UniqueId& rhs) const { return value >= rhs.value; }
 
 	uint64_t Value() const { return value; }
 	uint64_t Hash() const { return std::hash<uint64_t>()(value); }
+
 private:
 	uint64_t value;
 };
@@ -39,6 +41,7 @@ public:
 	void Reset();
 
 	size_t DataBaseSize() const;
+
 private:
 	std::unordered_map<T, uint64_t, Hash, Equal> m_knownObjects;
 	uint64_t m_counter = 0;
@@ -65,7 +68,7 @@ void UniqueIdGenerator<T, Hash, Equal>::Reset() {
 	m_counter = 0;
 }
 
-template<class T, class Hash, class Equal>
+template <class T, class Hash, class Equal>
 size_t UniqueIdGenerator<T, Hash, Equal>::DataBaseSize() const {
 	return m_knownObjects.size();
 }

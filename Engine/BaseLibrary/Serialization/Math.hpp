@@ -30,4 +30,4 @@ void serialize(Archive& ar, Quaternion<Scalar, Packed>& obj) {
 }
 
 
-} // namespace inl
+} // namespace mathter

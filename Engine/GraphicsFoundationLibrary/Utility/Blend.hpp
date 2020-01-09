@@ -11,12 +11,10 @@ namespace inl::gxeng {
 /// Inputs: Blend Destination, Blend source, BlendMode
 /// Output: Blend Destination
 /// </summary>
-class Blend :
-	virtual public GraphicsNode,
-	virtual public GraphicsTask,
-	virtual public InputPortConfig<Texture2D, Texture2D, gxapi::RenderTargetBlendState>,
-	virtual public OutputPortConfig<Texture2D>
-{
+class Blend : virtual public GraphicsNode,
+			  virtual public GraphicsTask,
+			  virtual public InputPortConfig<Texture2D, Texture2D, gxapi::RenderTargetBlendState>,
+			  virtual public OutputPortConfig<Texture2D> {
 public:
 	static const char* Info_GetName() { return "Blend"; }
 	void Update() override {}
@@ -41,4 +39,4 @@ private: // excute context
 };
 
 
-} // namespace inl::gxeng::nodes
+} // namespace inl::gxeng

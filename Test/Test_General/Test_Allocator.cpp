@@ -1,11 +1,13 @@
 #include "Test.hpp"
+
 #include <BaseLibrary/Memory/SlabAllocatorEngine.hpp>
-#include <thread>
-#include <iostream>
-#include <stack>
-#include <random>
+
 #include <algorithm>
+#include <iostream>
 #include <mutex>
+#include <random>
+#include <stack>
+#include <thread>
 #include <unordered_set>
 
 using std::cout;
@@ -25,6 +27,7 @@ public:
 		return "Allocator";
 	}
 	virtual int Run() override;
+
 private:
 	static int a;
 };
@@ -81,7 +84,8 @@ int TestAllocator::Run() {
 
 	auto endTime = std::chrono::high_resolution_clock::now();
 	cout << "Time = " << std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime).count() / 1e6 << " ms" << endl;
-	cout << "Allocs = " << PoolSize << endl << endl;
+	cout << "Allocs = " << PoolSize << endl
+		 << endl;
 
 
 	// test repeated allocations
@@ -101,7 +105,7 @@ int TestAllocator::Run() {
 			try {
 				index = engine.Allocate();
 			}
-			catch (...)	{
+			catch (...) {
 				engine.Resize(size_t(engine.Size() * 1.2f) + 1);
 				index = engine.Allocate();
 			}
@@ -145,8 +149,8 @@ int TestAllocator::Run() {
 	cout << "Time = " << elapsed.count() / 1e6 << " ms" << endl;
 	cout << "Allocs = " << BatchSize + BatchSize * NumCycles << endl;
 	cout << "Deallocs = " << BatchSize * NumCycles << endl;
-	cout << "Total = " << BatchSize + 2*BatchSize*NumCycles << endl;
-	cout << "Avg. " << (double)elapsed.count() / (BatchSize + 2 * BatchSize*NumCycles) << " nanoseconds/allocation." << endl;
+	cout << "Total = " << BatchSize + 2 * BatchSize * NumCycles << endl;
+	cout << "Avg. " << (double)elapsed.count() / (BatchSize + 2 * BatchSize * NumCycles) << " nanoseconds/allocation." << endl;
 
 	bool isOk = true;
 	for (auto v : counter) {

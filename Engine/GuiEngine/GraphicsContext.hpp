@@ -1,7 +1,7 @@
 #pragma once
 
-#include <GraphicsEngine/Scene/IScene.hpp>
 #include <GraphicsEngine/IGraphicsEngine.hpp>
+#include <GraphicsEngine/Scene/IScene.hpp>
 
 
 namespace inl::gui {

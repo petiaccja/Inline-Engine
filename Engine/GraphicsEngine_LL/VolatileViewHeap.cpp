@@ -1,13 +1,11 @@
 #include "VolatileViewHeap.hpp"
 
 
-namespace inl :: gxeng {
+namespace inl ::gxeng {
 
 
-VolatileViewHeap::VolatileViewHeap(gxapi::IGraphicsApi* graphicsApi) :
-	m_graphicsApi(graphicsApi),
-	m_nextPos(0)
-{}
+VolatileViewHeap::VolatileViewHeap(gxapi::IGraphicsApi* graphicsApi) : m_graphicsApi(graphicsApi),
+																	   m_nextPos(0) {}
 
 
 gxapi::DescriptorHandle VolatileViewHeap::Allocate() {
@@ -16,13 +14,11 @@ gxapi::DescriptorHandle VolatileViewHeap::Allocate() {
 	if (heapId >= m_heaps.size()) {
 		m_heaps.push_back(
 			std::unique_ptr<gxapi::IDescriptorHeap>(
-				m_graphicsApi->CreateDescriptorHeap({ gxapi::eDescriptorHeapType::CBV_SRV_UAV, HEAP_SIZE, false })
-			)
-		);
+				m_graphicsApi->CreateDescriptorHeap({ gxapi::eDescriptorHeapType::CBV_SRV_UAV, HEAP_SIZE, false })));
 	}
 	m_nextPos += 1;
 	return m_heaps[heapId]->At(descriptorIndex);
 }
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

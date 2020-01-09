@@ -1,8 +1,9 @@
 #pragma once
 
-#include <GraphicsApi_LL/IResource.hpp>
-#include <BaseLibrary/Exception/Exception.hpp>
 #include "MemoryObject.hpp"
+
+#include <BaseLibrary/Exception/Exception.hpp>
+#include <GraphicsApi_LL/IResource.hpp>
 
 
 namespace inl::gxeng {
@@ -18,6 +19,7 @@ class BufferHeap {
 	NotSupportedException DefaultEx() {
 		return NotSupportedException{ "This heap cannot create the resource of requested type." };
 	}
+
 public:
 	virtual ~BufferHeap() {}
 

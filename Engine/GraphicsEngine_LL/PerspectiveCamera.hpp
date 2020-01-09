@@ -13,7 +13,7 @@ namespace inl::gxeng {
 class PerspectiveCamera : virtual public BasicCamera, virtual public IPerspectiveCamera {
 public:
 	PerspectiveCamera();
-	
+
 	// Set rendering properties.
 	void SetFOVAspect(float horizontalFov, float aspectRatio) override;
 	void SetFOVAxis(float horizontalFov, float verticalFov) override;

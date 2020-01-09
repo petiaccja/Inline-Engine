@@ -3,28 +3,25 @@
 #endif
 
 #ifndef LIGHTDIR_IMPLEMENTATION
-#define LIGHTDIR_IMPLEMENTATION return float3(0,0,-1);
+#define LIGHTDIR_IMPLEMENTATION return float3(0, 0, -1);
 #endif
 
 #ifndef LIGHTCOLOR_IMPLEMENTATION
-#define LIGHTCOLOR_IMPLEMENTATION return float3(1,1,1);
+#define LIGHTCOLOR_IMPLEMENTATION return float3(1, 1, 1);
 #endif
 
 
-int GetLightCount()
-{
+int GetLightCount(){
 	LIGHTCOUNT_IMPLEMENTATION
 }
 
 
-float3 GetLightDir(int i)
-{
+float3 GetLightDir(int i){
 	LIGHTDIR_IMPLEMENTATION
 }
 
 
-float3 GetLightColor(int i)
-{
+float3 GetLightColor(int i) {
 	LIGHTCOLOR_IMPLEMENTATION
 }
 

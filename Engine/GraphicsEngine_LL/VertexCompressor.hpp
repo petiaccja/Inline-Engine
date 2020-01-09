@@ -1,6 +1,7 @@
 #pragma once
 
 #include <GraphicsEngine/Resources/Vertex.hpp>
+
 #include <memory>
 
 
@@ -40,11 +41,10 @@ public:
 	void Compress(const void* input, void* output) const override;
 	int Size() const override;
 	bool IsSupported(eVertexElementSemantic semantic) const override;
+
 private:
 	int m_stride = 0;
 };
-
-
 
 
 

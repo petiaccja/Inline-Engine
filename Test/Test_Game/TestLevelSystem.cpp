@@ -3,8 +3,8 @@
 #include <BaseLibrary/AtScopeExit.hpp>
 #include <BaseLibrary/DynamicTuple.hpp>
 #include <GameFoundationLibrary/Components/DirectionalLightComponent.hpp>
-#include <GameFoundationLibrary/Components/GraphicsMeshComponent.hpp>
 #include <GameFoundationLibrary/Components/GraphicsHeightmapComponent.hpp>
+#include <GameFoundationLibrary/Components/GraphicsMeshComponent.hpp>
 #include <GameFoundationLibrary/Components/PerspectiveCameraComponent.hpp>
 #include <GameLogic/ComponentFactory.hpp>
 #include <GameLogic/Entity.hpp>

@@ -4,7 +4,7 @@
 // The link has a source transform, a relative transform and the resulting transform.
 // The source transform is another entity, the relative transform is inside this component
 // and the resulting transform is the transform of this entity.
-// 
+//
 // Problem #1:
 // Need a reference to the source entity's transform.
 // If said transform is moved or deleted, we have dangling pointers in all links.
@@ -25,7 +25,6 @@
 // ...Or just fuck the whole thing and do a totally separate system which does not use components at all.
 // Starting to make more sense than abusing components to include relations between entities when they
 // were absolutely not made for that.
-
 
 
 

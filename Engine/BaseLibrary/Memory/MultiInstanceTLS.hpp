@@ -2,12 +2,12 @@
 
 #include "SlabAllocatorEngine.hpp"
 
-#include <map>
 #include <algorithm>
-#include <mutex>
-#include <set>
 #include <deque>
+#include <map>
+#include <mutex>
 #include <optional>
+#include <set>
 
 namespace inl {
 
@@ -66,7 +66,7 @@ public:
 		GetRef() = std::move(rhs.GetRef());
 		return *this;
 	}
-	
+
 
 	// Convert to underlying type
 	operator T&() & {
@@ -75,9 +75,10 @@ public:
 	operator const T&() const& {
 		return GetRef();
 	}
-	operator T && () && {
+	operator T &&() && {
 		return std::move(GetRef());
 	}
+
 private:
 	void AllocateSlot() {
 		std::lock_guard<std::mutex> lkg(indexAllocatorLock);
@@ -94,10 +95,10 @@ private:
 
 
 	T& GetRef() {
-		size_t size = threadObjects.size()-1;
+		size_t size = threadObjects.size() - 1;
 		size_t testIndex = myIndex < size ? myIndex : size;
 		if (!threadObjects[testIndex]) {
-			if (threadObjects.size()-1 <= myIndex) {
+			if (threadObjects.size() - 1 <= myIndex) {
 				threadObjects.resize(myIndex + 2);
 			}
 			threadObjects[myIndex] = defaultRecord;
@@ -158,7 +159,6 @@ std::mutex mi_tls<T>::indexAllocatorLock;
 
 template <class T>
 SlabAllocatorEngine mi_tls<T>::indexAllocator(10);
-
 
 
 

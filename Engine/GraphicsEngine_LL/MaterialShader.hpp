@@ -1,19 +1,19 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <memory>
-#include <tuple>
-#include <mutex>
-
 #include <BaseLibrary/Graph/Port.hpp>
 #include <BaseLibrary/Graph/SerializableNode.hpp>
 #include <BaseLibrary/UniqueIdGenerator.hpp>
 #include <GraphicsEngine/Resources/IMaterialShader.hpp>
 
+#include <memory>
+#include <mutex>
+#include <string>
+#include <tuple>
+#include <vector>
+
 #ifdef _MSC_VER // disable lemon warnings
 #pragma warning(push)
-#pragma warning(disable: 4267)
+#pragma warning(disable : 4267)
 #endif
 
 #include <lemon/list_graph.h>
@@ -68,6 +68,7 @@ public:
 	const std::string name;
 	const std::string type;
 	const int index = 0;
+
 private:
 	std::vector<IMaterialShaderInput*> m_links;
 	const MaterialShader* m_parent = nullptr;
@@ -77,6 +78,7 @@ private:
 
 class MaterialShaderInput : public IMaterialShaderInput {
 	friend class MaterialShaderOutput;
+
 public:
 	MaterialShaderInput() = default;
 	MaterialShaderInput(const MaterialShader& parent);
@@ -139,6 +141,7 @@ public:
 	/// <summary> Returns an ID that is the same for all MaterialShaders with the same shader code.
 	///		Does not change throughout program execution. </summary>
 	UniqueId GetId() const { return m_id; }
+
 protected:
 	// HLSL string processing helpers
 	static std::string RemoveComments(std::string code);
@@ -147,6 +150,7 @@ protected:
 
 	void SetClassName(std::string className) { m_className = std::move(className); }
 	void RecalcId();
+
 protected:
 	std::vector<MaterialShaderInput> m_inputs;
 	std::vector<MaterialShaderOutput> m_outputs;
@@ -194,6 +198,7 @@ public:
 
 	/// <summary> Cannot handle nested graphs. </summary>
 	void SetGraph(std::string jsonDescription) override;
+
 private:
 	// Creates one graph node per shader node, adds arc in graph for any two shader nodes which have their ports linked together.
 	static void CalculateDependencyGraph(const std::vector<std::unique_ptr<MaterialShader>>& nodes,
@@ -202,7 +207,7 @@ private:
 
 	// Gets the list of unlinked (free) ports of the node graph.
 	static auto GetUnlinkedPorts(const std::vector<std::unique_ptr<MaterialShader>>& nodes)
-		->std::tuple<std::vector<MaterialShaderInput*>, std::vector<MaterialShaderOutput*>>;
+		-> std::tuple<std::vector<MaterialShaderInput*>, std::vector<MaterialShaderOutput*>>;
 
 
 	// Creates the parameter list string of the main function using the list of unlinked ports.
@@ -214,6 +219,7 @@ private:
 	// Creates input and outputs ports.
 	void CreatePorts(const std::vector<MaterialShaderInput*>& inputs,
 					 const std::vector<MaterialShaderOutput*>& outputs);
+
 private:
 	std::vector<std::unique_ptr<MaterialShader>> m_nodes;
 	std::string m_sourceCode;

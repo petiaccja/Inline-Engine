@@ -7,9 +7,9 @@ namespace inl::gxeng::nodes {
 
 
 class ClearColor : virtual public GraphicsNode,
-						  virtual public GraphicsTask,
-						  virtual public InputPortConfig<Texture2D, Vec4>,
-						  virtual public OutputPortConfig<Texture2D> {
+				   virtual public GraphicsTask,
+				   virtual public InputPortConfig<Texture2D, Vec4>,
+				   virtual public OutputPortConfig<Texture2D> {
 public:
 	static const char* Info_GetName() { return "ClearColor"; }
 	void Update() override {}

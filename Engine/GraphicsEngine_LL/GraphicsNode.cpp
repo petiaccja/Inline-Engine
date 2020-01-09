@@ -5,8 +5,7 @@ namespace inl::gxeng {
 
 
 GraphicsNode::GraphicsNode()
-	: m_taskMap(m_taskNodes)
-{}
+	: m_taskMap(m_taskNodes) {}
 
 
 

@@ -1,15 +1,15 @@
 #include "GraphParser.hpp"
+
 #include "IGraphEditorNode.hpp"
 
-#include <BaseLibrary/Range.hpp>
 #include <BaseLibrary/Exception/Exception.hpp>
+#include <BaseLibrary/Range.hpp>
 
-#include <sstream>
-
-#include <rapidjson/encodings.h>
 #include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
+#include <rapidjson/encodings.h>
 #include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
+#include <sstream>
 
 
 namespace inl {
@@ -31,7 +31,6 @@ static StringErrorPosition GetStringErrorPosition(const std::string& str, size_t
 
 
 
-
 //------------------------------------------------------------------------------
 // GraphParser.
 //------------------------------------------------------------------------------
@@ -46,8 +45,7 @@ std::string GraphParser::Serialize(const ISerializableNode* const* nodes,
 								   const NodeMetaDescription* metaData,
 								   size_t count,
 								   std::function<std::string(const ISerializableNode&)> FindName,
-								   const GraphHeader& header)
-{
+								   const GraphHeader& header) {
 	// { node -> description }
 	std::unordered_map<const ISerializableNode*, NodeDescription> nodeDescLookup;
 	// { output port -> { parent, index in parent }}
@@ -100,7 +98,7 @@ std::string GraphParser::Serialize(const ISerializableNode* const* nodes,
 			if (output) {
 				auto nit = outputLookup.find(output);
 				assert(nit != outputLookup.end());
-				const auto[src, srcpidx] = nit->second;
+				const auto [src, srcpidx] = nit->second;
 
 				LinkDescription desc;
 				if (!src->GetDisplayName().empty()) {
@@ -192,8 +190,7 @@ size_t GraphParser::FindNode(const std::string& name) const {
 
 
 ISerializableInputPort* GraphParser::FindInputPort(ISerializableNode* holder, const std::optional<int>& index,
-										  const std::optional<std::string>& name) 
-{
+												   const std::optional<std::string>& name) {
 	if (index) {
 		return FindInputPort(holder, index.value());
 	}
@@ -223,8 +220,7 @@ ISerializableInputPort* GraphParser::FindInputPort(ISerializableNode* holder, in
 
 
 ISerializableOutputPort* GraphParser::FindOutputPort(ISerializableNode* holder, const std::optional<int>& index,
-											const std::optional<std::string>& name) 
-{
+													 const std::optional<std::string>& name) {
 	if (index) {
 		return FindOutputPort(holder, index.value());
 	}
@@ -262,7 +258,7 @@ void GraphParser::ParseDocument(const std::string& document) {
 	ParseErrorCode ec = doc.GetParseError();
 	if (ec != ParseErrorCode::kParseErrorNone) {
 		size_t errorCharacter = doc.GetErrorOffset();
-		auto[lineNumber, characterNumber, line] = GetStringErrorPosition(document, errorCharacter);
+		auto [lineNumber, characterNumber, line] = GetStringErrorPosition(document, errorCharacter);
 		throw InvalidArgumentException("JSON descripion has syntax errors.", "Check line " + std::to_string(lineNumber) + ":" + std::to_string(characterNumber));
 	}
 	AssertThrow(doc.IsObject(), R"(JSON root must be an object with member arrays "nodes" and "links".)");
@@ -472,9 +468,9 @@ LinkDescription ParseLink(const rapidjson::GenericValue<rapidjson::UTF8<>>& obj)
 	LinkDescription info;
 
 	AssertThrow(obj.HasMember("src")
-				&& obj.HasMember("dst")
-				&& obj.HasMember("srcp")
-				&& obj.HasMember("dstp"),
+					&& obj.HasMember("dst")
+					&& obj.HasMember("srcp")
+					&& obj.HasMember("dstp"),
 				"Link must have members src, dst, srcp and dstp.");
 
 	if (obj["src"].IsString()) {

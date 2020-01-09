@@ -3,19 +3,19 @@
 // inheritence by dominance
 // derived classes of *PortConfig inherit methods from multiple sources or smth like that
 #ifdef _MSC_VER
-#pragma warning(disable: 4250)
+#pragma warning(disable : 4250)
 #endif
 
 #include "Port.hpp"
 
 #include <cstddef>
-#include <type_traits>
-#include <string>
 #include <initializer_list>
-#include <vector>
-#include <typeinfo>
-#include <typeindex>
 #include <regex>
+#include <string>
+#include <type_traits>
+#include <typeindex>
+#include <typeinfo>
+#include <vector>
 
 
 #undef GetClassName // retarded Windows
@@ -73,9 +73,15 @@ public:
 	virtual void Notify(InputPortBase* sender) = 0;
 
 	/// <summary> Returns the name of the input port. This is optionally specified for the node class. </summary>
-	virtual const std::string& GetInputName(size_t index) const override { static const std::string n = ""; return n; }
+	virtual const std::string& GetInputName(size_t index) const override {
+		static const std::string n = "";
+		return n;
+	}
 	/// <summary> Returns the name of the output port. This is optionally specified for the node class. </summary>
-	virtual const std::string& GetOutputName(size_t index) const override { static const std::string n = ""; return n; }
+	virtual const std::string& GetOutputName(size_t index) const override {
+		static const std::string n = "";
+		return n;
+	}
 
 	/// <summary> Sets a name for the node so that a graph drawing is more readable. </summary>
 	void SetDisplayName(std::string name) { m_displayName = name; }
@@ -88,6 +94,7 @@ public:
 	virtual std::string GetClassName(bool simplify, const std::vector<std::regex>& additional = {}) const;
 
 	virtual std::string GetClassName() const override { return GetClassName(false); }
+
 protected:
 	std::string m_displayName;
 };
@@ -108,14 +115,13 @@ class InputPortConfig : virtual public NodeBase {
 public:
 	/// <summary> Initialize input ports. </sumamry>
 	InputPortConfig() {
-		InitTable<sizeof...(Types)-1>();
+		InitTable<sizeof...(Types) - 1>();
 	}
 	/// <summary> Initiaize input ports from given arguments. </summary>
 	template <class... Args>
 	explicit InputPortConfig(Args&&... args)
-		: ports(std::forward<Args>(args)...)
-	{
-		InitTable<sizeof...(Types)-1>();
+		: ports(std::forward<Args>(args)...) {
+		InitTable<sizeof...(Types) - 1>();
 	}
 
 	/// <summary> Get reference to typed input port by its index. </summary>
@@ -159,6 +165,7 @@ public:
 		};
 		return inputTypes;
 	}
+
 private:
 	// Initialize a pointer table to get inputs with dynamic indices.
 	template <size_t Index, typename std::enable_if<Index != 0, void>::type* = nullptr>
@@ -180,7 +187,6 @@ private:
 template <>
 class InputPortConfig<> : virtual public NodeBase {
 public:
-
 	size_t GetNumInputs() const override {
 		return 0;
 	}
@@ -223,14 +229,13 @@ class OutputPortConfig : virtual public NodeBase {
 public:
 	/// <summary> Initialize output ports. </sumamry>
 	OutputPortConfig() {
-		InitTable<sizeof...(Types)-1>();
+		InitTable<sizeof...(Types) - 1>();
 	}
 	/// <summary> Initiaize output ports from given arguments. </summary>
 	template <class... Args>
 	explicit OutputPortConfig(Args&&... args)
-		: ports(std::forward<Args>(args)...)
-	{
-		InitTable<sizeof...(Types)-1>();
+		: ports(std::forward<Args>(args)...) {
+		InitTable<sizeof...(Types) - 1>();
 	}
 
 	/// <summary> Get reference to typed output port by its index. </summary>
@@ -273,6 +278,7 @@ public:
 	static constexpr size_t Info_GetNumOutputs() {
 		return sizeof...(Types);
 	}
+
 private:
 	template <size_t Index, typename std::enable_if<Index != 0, void>::type* = nullptr>
 	void InitTable() {

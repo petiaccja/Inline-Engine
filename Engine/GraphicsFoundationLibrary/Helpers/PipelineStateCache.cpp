@@ -53,9 +53,9 @@ const PipelineStateTemplate& PipelineStateCache::GetTemplate() const {
 
 
 Binder CreateBinder(RenderContext& context,
-                      const std::vector<BindParameterDesc>& originalParams,
-                      const std::vector<BindParameterDesc>& materialConstantParams,
-                      const std::vector<BindParameterDesc>& materialTextureParams) {
+					const std::vector<BindParameterDesc>& originalParams,
+					const std::vector<BindParameterDesc>& materialConstantParams,
+					const std::vector<BindParameterDesc>& materialTextureParams) {
 	std::vector<BindParameterDesc> params;
 
 	gxapi::StaticSamplerDesc materialSampler;
@@ -77,10 +77,10 @@ Binder CreateBinder(RenderContext& context,
 
 
 std::unique_ptr<gxapi::IPipelineState> CreatePSO(RenderContext& context,
-												   const PipelineSetupDesc& setupDesc,
-												   const PipelineStateTemplate& base,
-												   const Binder& binder,
-												   const ShaderProgram& shader) {
+												 const PipelineSetupDesc& setupDesc,
+												 const PipelineStateTemplate& base,
+												 const Binder& binder,
+												 const ShaderProgram& shader) {
 	gxapi::GraphicsPipelineStateDesc psoDesc;
 
 	psoDesc.rootSignature = binder.GetRootSignature();

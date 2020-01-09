@@ -1,6 +1,7 @@
 #include "LogStream.hpp"
-#include "LogPipe.hpp"
+
 #include "LogNode.hpp"
+#include "LogPipe.hpp"
 
 #include <intrin.h>
 #include <iostream>

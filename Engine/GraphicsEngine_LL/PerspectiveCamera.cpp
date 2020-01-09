@@ -4,10 +4,8 @@
 namespace inl::gxeng {
 
 
-PerspectiveCamera::PerspectiveCamera() : 
-	m_fovH(60.f / 180.f*3.14159f),
-	m_fovV(45.f / 180.f*3.14159f)
-{}
+PerspectiveCamera::PerspectiveCamera() : m_fovH(60.f / 180.f * 3.14159f),
+										 m_fovV(45.f / 180.f * 3.14159f) {}
 
 
 void PerspectiveCamera::SetFOVAspect(float horizontalFov, float aspectRatio) {

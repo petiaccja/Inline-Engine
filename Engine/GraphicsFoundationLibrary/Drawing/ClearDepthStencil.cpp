@@ -1,7 +1,8 @@
 #include "ClearDepthStencil.hpp"
+
+#include "GraphicsEngine_LL/AutoRegisterNode.hpp"
 #include <GraphicsEngine_LL/GraphicsCommandList.hpp>
 #include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
-#include "GraphicsEngine_LL/AutoRegisterNode.hpp"
 
 namespace inl::gxeng::nodes {
 
@@ -10,7 +11,7 @@ INL_REGISTER_GRAPHICS_NODE(ClearDepthStencil)
 
 void ClearDepthStencil::Setup(SetupContext& context) {
 	Texture2D input = GetInput<0>().Get();
-	
+
 	const gxapi::eFormat currDepthStencilFormat = FormatAnyToDepthStencil(input.GetFormat());
 	gxapi::DsvTexture2DArray dsvDesc;
 	dsvDesc.activeArraySize = 1;
@@ -38,7 +39,6 @@ const std::string& ClearDepthStencil::GetInputName(size_t index) const {
 		"StencilValue"
 	};
 	return names[index];
-	
 }
 const std::string& ClearDepthStencil::GetOutputName(size_t index) const {
 	static const std::array<std::string, 1> names = {

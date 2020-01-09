@@ -16,9 +16,9 @@ public:
 
 	using Control::AddChild;
 	using Control::ClearChildren;
+	using Control::GetStyle;
 	using Control::RemoveChild;
 	using Control::SetStyle;
-	using Control::GetStyle;
 
 	void SetDrawingContext(GraphicsContext context);
 	const GraphicsContext& GetDrawingContext() const;
@@ -49,7 +49,7 @@ private:
 	void UpdateRecurse(Control* root, float elapsed);
 	void SetGraphicsContextRecurse(Control* root);
 	void ClearGraphicsContextRecurse(Control* root);
-	void UpdateResultantTransformRecurse(Control* root, const Mat33& preTransform = Mat33::Identity(), RectF clip = RectF::FromCenter(0,0,100000,100000));
+	void UpdateResultantTransformRecurse(Control* root, const Mat33& preTransform = Mat33::Identity(), RectF clip = RectF::FromCenter(0, 0, 100000, 100000));
 
 	/// <summary> If a Control is removed, but focus, drag or similar operations are in progress on it, the Board
 	/// keeps a reference to it, which might in turn become dangling. This function removes references to
@@ -95,7 +95,7 @@ template <class Func>
 void Board::ApplyRecurse(Control* root, Func func) {
 	func(root);
 	auto children = root->GetChildren();
-	for (auto child: children) {
+	for (auto child : children) {
 		ApplyRecurse(child, func);
 	}
 }

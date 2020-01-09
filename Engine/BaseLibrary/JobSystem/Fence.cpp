@@ -1,9 +1,11 @@
 #include "Fence.hpp"
+
 #include "Scheduler.hpp"
 
-#include <mutex>
-#include <future>
 #include "BaseLibrary/AtScopeExit.hpp"
+
+#include <future>
+#include <mutex>
 
 
 namespace inl::jobs {
@@ -15,8 +17,7 @@ bool Fence::FenceAwaiter::await_ready() const noexcept {
 
 
 Fence::FenceAwaiter::FenceAwaiter(const Fence& f, uint64_t expected) noexcept
-	: m_fence(f), m_targetValue(expected), m_next(nullptr), m_awaitingHandle(nullptr)
-{
+	: m_fence(f), m_targetValue(expected), m_next(nullptr), m_awaitingHandle(nullptr) {
 	volatile int a;
 	a = 0;
 }
@@ -66,7 +67,7 @@ void Fence::Signal(uint64_t value) {
 
 	int total = 0, awoke = 0, putback = 0;
 	bool totalCounted = false;
-	AtScopeExit([&]{
+	AtScopeExit([&] {
 		assert(total == awoke + putback);
 	});
 	// Process the list.
@@ -123,7 +124,7 @@ void Fence::Signal(uint64_t value) {
 }
 
 Fence::FenceAwaiter Fence::Wait(uint64_t value) const {
-	return FenceAwaiter{*this, value};
+	return FenceAwaiter{ *this, value };
 }
 
 bool Fence::TryWait(uint64_t value) const {

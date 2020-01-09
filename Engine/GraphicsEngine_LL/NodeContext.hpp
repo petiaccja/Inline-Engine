@@ -1,12 +1,13 @@
 #pragma once
 
 
-#include "MemoryObject.hpp"
+#include "Binder.hpp"
 #include "MemoryManager.hpp"
+#include "MemoryObject.hpp"
 #include "ResourceView.hpp"
 #include "ShaderManager.hpp"
 #include "VolatileViewHeap.hpp"
-#include "Binder.hpp"
+
 #include <cstdint>
 
 
@@ -47,6 +48,7 @@ public:
 	// Parallelism
 	int GetProcessorCoreCount() const;
 	int GetGraphicsDeviceCount() const;
+
 private:
 	int m_cpuCount;
 	int m_gpuCount;

@@ -9,12 +9,12 @@ OverlayEntity::OverlayEntity() {
 }
 
 
-void OverlayEntity::SetMesh(Mesh * mesh) {
+void OverlayEntity::SetMesh(Mesh* mesh) {
 	m_mesh = mesh;
 }
 
 
-Mesh * OverlayEntity::GetMesh() const {
+Mesh* OverlayEntity::GetMesh() const {
 	return m_mesh;
 }
 
@@ -28,7 +28,7 @@ Vec4 OverlayEntity::GetColor() const {
 }
 
 
-void OverlayEntity::SetTexture(Image * texture) {
+void OverlayEntity::SetTexture(Image* texture) {
 	m_texture = texture;
 }
 
@@ -59,7 +59,6 @@ void OverlayEntity::EnableAdditionalClip(bool enabled) {
 bool OverlayEntity::IsAdditionalClipEnabled() const {
 	return m_clipEnabled;
 }
-
 
 
 

@@ -1,6 +1,8 @@
 #include "BasicCommandList.hpp"
-#include <iterator>
+
 #include "GraphicsApi_D3D12/CommandList.hpp"
+
+#include <iterator>
 
 namespace inl::gxeng {
 
@@ -9,10 +11,7 @@ BasicCommandList::BasicCommandList(gxapi::IGraphicsApi* gxApi,
 								   CommandListPool& commandListPool,
 								   CommandAllocatorPool& commandAllocatorPool,
 								   ScratchSpacePool& scratchSpacePool,
-								   gxapi::eCommandListType type
-) :
-	m_scratchSpacePool(&scratchSpacePool)
-{
+								   gxapi::eCommandListType type) : m_scratchSpacePool(&scratchSpacePool) {
 	// Set gxapi
 	m_graphicsApi = gxApi;
 
@@ -63,12 +62,11 @@ void BasicCommandList::NewScratchSpace(size_t sizeHint) {
 
 BasicCommandList::BasicCommandList(BasicCommandList&& rhs)
 	: m_resourceTransitions(std::move(rhs.m_resourceTransitions)),
-	m_scratchSpacePool(rhs.m_scratchSpacePool),
-	m_commandAllocator(std::move(rhs.m_commandAllocator)),
-	m_commandList(std::move(rhs.m_commandList)),
-	m_scratchSpaces(std::move(rhs.m_scratchSpaces)),
-	m_currentScratchSpace(rhs.m_currentScratchSpace)
-{}
+	  m_scratchSpacePool(rhs.m_scratchSpacePool),
+	  m_commandAllocator(std::move(rhs.m_commandAllocator)),
+	  m_commandList(std::move(rhs.m_commandList)),
+	  m_scratchSpaces(std::move(rhs.m_scratchSpaces)),
+	  m_currentScratchSpace(rhs.m_currentScratchSpace) {}
 
 
 BasicCommandList& BasicCommandList::operator=(BasicCommandList&& rhs) {
@@ -118,4 +116,4 @@ void BasicCommandList::SetName(const char* name) {
 }
 
 
-} // namespace gxapi
+} // namespace inl::gxeng

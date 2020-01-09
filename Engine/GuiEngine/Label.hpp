@@ -1,8 +1,9 @@
 #pragma once
 
 
-#include <BaseLibrary/Color.hpp>
 #include "Text.hpp"
+
+#include <BaseLibrary/Color.hpp>
 
 
 namespace inl::gui {

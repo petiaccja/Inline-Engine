@@ -1,9 +1,8 @@
 #include "../GraphicsNodeFactory.hpp"
+#include "PipelineEditorNode.hpp"
 
 #include <BaseLibrary/GraphEditor/IEditorGraph.hpp>
 #include <BaseLibrary/Graph_All.hpp>
-
-#include "PipelineEditorNode.hpp"
 
 
 namespace inl::gxeng {

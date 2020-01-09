@@ -1,4 +1,5 @@
 #include "CapabilityQuery.hpp"
+
 #include "NativeCast.hpp"
 
 
@@ -57,7 +58,7 @@ CapsResourceHeaps CapabilityQuery::QueryResourceHeaps() const {
 
 CapsAdditional CapabilityQuery::QueryAdditional() const {
 	CapsAdditional caps;
-	
+
 	HRESULT hr;
 	D3D12_FEATURE_DATA_SHADER_MODEL shader;
 	shader.HighestShaderModel = (D3D_SHADER_MODEL)0x61; // D3D_SHADER_MODEL_6_1; // AppVeyor does not take it
@@ -175,7 +176,6 @@ bool CapabilityQuery::SupportsAll(const CapsRequirementSet& requiredFeatures) co
 
 	return featuresSupported && formatsSupported;
 }
-
 
 
 

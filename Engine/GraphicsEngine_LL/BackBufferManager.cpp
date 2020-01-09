@@ -1,18 +1,16 @@
 #include "BackBufferManager.hpp"
 
+#include "HostDescHeap.hpp"
 #include "MemoryObject.hpp"
 #include "ResourceView.hpp"
-#include "HostDescHeap.hpp"
 
 #include <cassert>
 
 namespace inl::gxeng {
 
 
-BackBufferManager::BackBufferManager(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapChain* swapChain) :
-	m_graphicsApi(graphicsApi),
-	m_swapChain(swapChain)
-{
+BackBufferManager::BackBufferManager(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapChain* swapChain) : m_graphicsApi(graphicsApi),
+																									   m_swapChain(swapChain) {
 	const unsigned numBuffers = swapChain->GetDesc().numBuffers;
 
 	m_backBuffers.reserve(numBuffers);
@@ -31,4 +29,4 @@ Texture2D& BackBufferManager::GetBackBuffer(unsigned index) {
 }
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

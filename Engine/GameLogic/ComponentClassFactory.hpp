@@ -1,7 +1,7 @@
 #pragma once
 
-#include "LevelArchive.hpp"
 #include "Entity.hpp"
+#include "LevelArchive.hpp"
 
 
 namespace inl::game {

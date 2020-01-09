@@ -1,10 +1,12 @@
 #pragma once
 
-#include <memory>
-#include "MemoryObject.hpp"
-#include <GraphicsEngine/Resources/Pixel.hpp>
 #include "MemoryManager.hpp"
+#include "MemoryObject.hpp"
 #include "ResourceView.hpp"
+
+#include <GraphicsEngine/Resources/Pixel.hpp>
+
+#include <memory>
 
 
 namespace inl::gxeng {
@@ -60,13 +62,14 @@ protected:
 
 	/// <summary> Converts simplified pixel format to GraphicsAPI format. </summary>
 	static bool ConvertFormat(ePixelChannelType channelType, int channelCount, ePixelClass pixelClass, gxapi::eFormat& fmt, int& resultingChannelCount);
-	
+
 	/// <summary> This method is called whenever a new view needs to be created. </summary>
 	/// <remarks> This must be implemented until the bottom-most subclass. </remarks>
 	virtual void CreateResourceView(const Texture2D& texture) = 0;
 
 protected:
 	CbvSrvUavHeap* m_descriptorHeap;
+
 private:
 	Texture2D m_resource;
 	ePixelChannelType m_channelType;

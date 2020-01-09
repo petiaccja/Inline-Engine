@@ -1,16 +1,17 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <iterator>
+#include "GraphicsNode.hpp"
+
 #include <BaseLibrary/Graph/Node.hpp>
 #include <BaseLibrary/Graph/NodeFactory.hpp>
 
-#include "GraphicsNode.hpp"
+#include <iterator>
+#include <string>
+#include <vector>
 
 #ifdef _MSC_VER // disable lemon warnings
 #pragma warning(push)
-#pragma warning(disable: 4267)
+#pragma warning(disable : 4267)
 #endif
 
 #include <lemon/euler.h>
@@ -21,7 +22,7 @@
 #endif
 
 
-namespace inl:: gxeng {
+namespace inl::gxeng {
 
 
 class GraphicsNodeFactory;
@@ -33,6 +34,7 @@ public:
 	private:
 		friend class inl::gxeng::Pipeline;
 		NodeIterator(const Pipeline* parent, lemon::ListDigraph::NodeIt graphIt);
+
 	public:
 		NodeIterator();
 		NodeIterator(const NodeIterator&) = default;
@@ -46,6 +48,7 @@ public:
 
 		NodeIterator& operator++();
 		NodeIterator operator++(int) const;
+
 	private:
 		lemon::ListDigraph::NodeIt m_graphIt;
 		const Pipeline* m_parent;
@@ -53,6 +56,7 @@ public:
 	class ConstNodeIterator : protected NodeIterator {
 		friend class inl::gxeng::Pipeline;
 		ConstNodeIterator(const Pipeline* parent, lemon::ListDigraph::NodeIt graphIt) : NodeIterator(parent, graphIt) {}
+
 	public:
 		ConstNodeIterator() = default;
 		ConstNodeIterator(const NodeIterator& rhs) : NodeIterator(rhs) {}
@@ -68,6 +72,7 @@ public:
 		SimpleNodeTask(NodeBase* subject) : m_subject(subject) {}
 		void Setup(SetupContext& context) override { m_subject->Update(); }
 		void Execute(RenderContext& context) override {}
+
 	private:
 		NodeBase* m_subject;
 	};
@@ -121,4 +126,4 @@ private:
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

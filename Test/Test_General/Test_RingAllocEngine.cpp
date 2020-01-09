@@ -2,12 +2,12 @@
 
 #include <BaseLibrary/Memory/RingAllocationEngine.hpp>
 
-#include <iostream>
 #include <array>
+#include <cassert>
+#include <iostream>
+#include <list>
 #include <stdexcept>
 #include <string>
-#include <cassert>
-#include <list>
 
 using namespace std::string_literals;
 
@@ -25,12 +25,13 @@ static void ExpectAllocationFail(inl::RingAllocationEngine& allocator) {
 		allocator.Allocate();
 		throw std::runtime_error("Expected allocation error!");
 	}
-	catch (std::bad_alloc&) {} // OK!
+	catch (std::bad_alloc&) {
+	} // OK!
 }
 
 
 static int RandomAllocSize(size_t poolSize) {
-	size_t divisor = poolSize/4 - 1;
+	size_t divisor = poolSize / 4 - 1;
 	assert(divisor > 0);
 	return (rand() % divisor) + 1;
 }
@@ -51,7 +52,8 @@ public:
 					allocator.Allocate(5);
 					throw std::runtime_error("New allocation has overriden an existing allocation");
 				}
-				catch (const std::bad_alloc&) {}
+				catch (const std::bad_alloc&) {
+				}
 			}
 			{
 				inl::RingAllocationEngine allocator(50);
@@ -96,7 +98,7 @@ public:
 				size_t prev = allocations.at(0);
 				for (int i = 1; i < allocations.size(); i++) {
 					size_t curr = allocations.at(i);
-					TestAssert(curr == prev+1);
+					TestAssert(curr == prev + 1);
 					prev = curr;
 				}
 			}
@@ -104,9 +106,9 @@ public:
 			allocator.Reset();
 
 			{
-				size_t half = size/2;
+				size_t half = size / 2;
 				size_t first = allocator.Allocate(half);
-				size_t second = allocator.Allocate(size-half);
+				size_t second = allocator.Allocate(size - half);
 
 				ExpectAllocationFail(allocator);
 				allocator.Deallocate(second);
@@ -114,17 +116,17 @@ public:
 				allocator.Deallocate(first);
 				allocator.Allocate(size);
 			}
-			
+
 			allocator.Reset();
 
-			// Random sized allocations 
+			// Random sized allocations
 			{
 				// Repeat it 10 times to maximize safety
 				for (int currentTestRepeatIndex = 0; currentTestRepeatIndex < 10; currentTestRepeatIndex++) {
 					std::vector<size_t> allocations;
 					// offset the allocation from start
 					{
-						size_t offsetter = allocator.Allocate(size/6);
+						size_t offsetter = allocator.Allocate(size / 6);
 						allocator.Deallocate(offsetter);
 					}
 
@@ -153,16 +155,16 @@ public:
 					size_t firstPos = allocations.front();
 					while (allocations.size() > 1) {
 						const size_t min = 1;
-						const size_t max = allocations.size()-1;
+						const size_t max = allocations.size() - 1;
 						const auto diff = max - min;
-						const size_t target = (rand() % (diff+1)) + min;
+						const size_t target = (rand() % (diff + 1)) + min;
 
 						auto iter = allocations.begin() + target;
 						allocator.Deallocate(*iter);
 						allocations.erase(iter);
 						ExpectAllocationFail(allocator);
 					}
-				
+
 					allocator.Deallocate(allocations.front());
 					allocator.Allocate(size);
 
@@ -173,11 +175,11 @@ public:
 
 			std::cout << "Test finished correctly" << std::endl;
 		}
-		catch(std::exception& ex) {
+		catch (std::exception& ex) {
 			std::cout << "Test failed with exception: " << ex.what() << std::endl;
 			return 1;
 		}
-		catch(...) {
+		catch (...) {
 			std::cout << "Test failed with unknown exception" << std::endl;
 			return 1;
 		}

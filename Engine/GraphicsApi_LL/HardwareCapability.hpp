@@ -1,11 +1,10 @@
 #pragma once
 
-#include <limits>
-#include <vector>
+#include "Common.hpp"
 
 #include <InlineMath.hpp>
-
-#include "Common.hpp"
+#include <limits>
+#include <vector>
 
 
 namespace inl::gxapi {
@@ -28,17 +27,17 @@ struct CapsResourceBinding {
 	unsigned samplersPerStage = 1; // Max number of samplers bound per stage.
 	unsigned unboundEntries = 0; // 0 - all root sig entries must be bound, 1 - except SRVs, 2 - nothing needed
 
-	static CapsResourceBinding Dx12Tier1() { return { 1'000'000, 14, 128, 8, 16, 0}; }
-	static CapsResourceBinding Dx12Tier2() { return { 1'000'000, 14, UNLIMITED, 64, UNLIMITED, 1}; }
-	static CapsResourceBinding Dx12Tier3() { return { UNLIMITED, UNLIMITED, UNLIMITED, UNLIMITED, UNLIMITED, 2}; }
+	static CapsResourceBinding Dx12Tier1() { return { 1'000'000, 14, 128, 8, 16, 0 }; }
+	static CapsResourceBinding Dx12Tier2() { return { 1'000'000, 14, UNLIMITED, 64, UNLIMITED, 1 }; }
+	static CapsResourceBinding Dx12Tier3() { return { UNLIMITED, UNLIMITED, UNLIMITED, UNLIMITED, UNLIMITED, 2 }; }
 
 	bool operator>=(const CapsResourceBinding& rhs) const {
 		return descriptorsPerHeap >= rhs.descriptorsPerHeap
-			&& cbvsPerStage >= rhs.cbvsPerStage
-			&& srvsPerStage >= rhs.srvsPerStage
-			&& uavsPerStage >= rhs.uavsPerStage
-			&& samplersPerStage >= rhs.samplersPerStage
-			&& unboundEntries >= rhs.unboundEntries;
+			   && cbvsPerStage >= rhs.cbvsPerStage
+			   && srvsPerStage >= rhs.srvsPerStage
+			   && uavsPerStage >= rhs.uavsPerStage
+			   && samplersPerStage >= rhs.samplersPerStage
+			   && unboundEntries >= rhs.unboundEntries;
 	}
 	bool operator<=(const CapsResourceBinding& rhs) const {
 		return rhs >= *this;
@@ -72,12 +71,12 @@ struct CapsTiledResources {
 
 	bool operator>=(const CapsTiledResources& rhs) const {
 		return tiledBufferAvailable >= rhs.tiledBufferAvailable
-			&& tiledTexture2DAvailable >= rhs.tiledTexture2DAvailable
-			&& sampleWithLodClampAvailable >= rhs.sampleWithLodClampAvailable
-			&& sampleWithFeedbackAvailable >= rhs.sampleWithFeedbackAvailable
-			&& nullTileReadDefined >= rhs.nullTileReadDefined
-			&& nullTileWriteDefined >= rhs.nullTileWriteDefined
-			&& tiledTexture3DAvailable >= rhs.tiledTexture3DAvailable;
+			   && tiledTexture2DAvailable >= rhs.tiledTexture2DAvailable
+			   && sampleWithLodClampAvailable >= rhs.sampleWithLodClampAvailable
+			   && sampleWithFeedbackAvailable >= rhs.sampleWithFeedbackAvailable
+			   && nullTileReadDefined >= rhs.nullTileReadDefined
+			   && nullTileWriteDefined >= rhs.nullTileWriteDefined
+			   && tiledTexture3DAvailable >= rhs.tiledTexture3DAvailable;
 	}
 	bool operator<=(const CapsTiledResources& rhs) const {
 		return rhs >= *this;
@@ -107,8 +106,8 @@ struct CapsConservativeRasterization {
 
 	bool operator>=(const CapsConservativeRasterization& rhs) const {
 		return uncertaintyRegion >= rhs.uncertaintyRegion
-			&& postSnapDegenerateTrianglesCulled >= rhs.postSnapDegenerateTrianglesCulled
-			&& innerInputCoverage >= rhs.innerInputCoverage;
+			   && postSnapDegenerateTrianglesCulled >= rhs.postSnapDegenerateTrianglesCulled
+			   && innerInputCoverage >= rhs.innerInputCoverage;
 	}
 	bool operator<=(const CapsConservativeRasterization& rhs) const {
 		return rhs >= *this;
@@ -159,12 +158,12 @@ struct CapsAdditional {
 	unsigned virtualAddressBitsPerProcess = 32;
 
 	bool operator>=(const CapsAdditional& rhs) const {
-		int shm = shaderModelMajor*100 + shaderModelMinor;
-		int shmrhs = rhs.shaderModelMajor*100 + rhs.shaderModelMinor;
+		int shm = shaderModelMajor * 100 + shaderModelMinor;
+		int shmrhs = rhs.shaderModelMajor * 100 + rhs.shaderModelMinor;
 		return rovsSupported >= rhs.rovsSupported
-			&& shm >= shmrhs
-			&& virtualAddressBitsPerResource >= rhs.virtualAddressBitsPerResource
-			&& virtualAddressBitsPerProcess >= rhs.virtualAddressBitsPerProcess;
+			   && shm >= shmrhs
+			   && virtualAddressBitsPerResource >= rhs.virtualAddressBitsPerResource
+			   && virtualAddressBitsPerProcess >= rhs.virtualAddressBitsPerProcess;
 	}
 	bool operator<=(const CapsAdditional& rhs) const {
 		return rhs >= *this;
@@ -185,14 +184,14 @@ struct CapsLimits {
 
 	bool operator>=(const CapsLimits& rhs) const {
 		return texture1DSize >= rhs.texture1DSize
-			&& texture2DSize.x >= rhs.texture2DSize.x && texture2DSize.y >= rhs.texture2DSize.y
-			&& texture3DSize.x >= rhs.texture3DSize.x && texture3DSize.y >= rhs.texture3DSize.y && texture3DSize.z >= rhs.texture3DSize.z
-			&& textureRepeat >= rhs.textureRepeat
-			&& anisotropy >= rhs.anisotropy
-			&& primitiveCount >= rhs.primitiveCount
-			&& vertexCount >= rhs.vertexCount
-			&& inputSlots >= rhs.inputSlots
-			&& multipleRenderTargets >= rhs.multipleRenderTargets;
+			   && texture2DSize.x >= rhs.texture2DSize.x && texture2DSize.y >= rhs.texture2DSize.y
+			   && texture3DSize.x >= rhs.texture3DSize.x && texture3DSize.y >= rhs.texture3DSize.y && texture3DSize.z >= rhs.texture3DSize.z
+			   && textureRepeat >= rhs.textureRepeat
+			   && anisotropy >= rhs.anisotropy
+			   && primitiveCount >= rhs.primitiveCount
+			   && vertexCount >= rhs.vertexCount
+			   && inputSlots >= rhs.inputSlots
+			   && multipleRenderTargets >= rhs.multipleRenderTargets;
 	}
 	bool operator<=(const CapsLimits& rhs) const {
 		return rhs >= *this;

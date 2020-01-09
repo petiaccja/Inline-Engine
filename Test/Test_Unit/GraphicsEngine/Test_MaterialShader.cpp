@@ -1,6 +1,6 @@
+#include <BaseLibrary/Exception/Exception.hpp>
 #include <GraphicsEngine_LL/MaterialShader.hpp>
 #include <GraphicsEngine_LL/ShaderManager.hpp>
-#include <BaseLibrary/Exception/Exception.hpp>
 
 #include <Catch2/catch.hpp>
 
@@ -17,7 +17,7 @@ std::string subtractorSource =
 	R"(  return a-b;)"
 	R"(})";
 
-std::string mad4Source = 
+std::string mad4Source =
 	R"(void main(float a, float b, float c, out float o) {)"
 	R"(  o = a*b+c;)"
 	R"(})";
@@ -32,6 +32,7 @@ public:
 		shaderManager.AddSourceCode("subtractor", subtractorSource);
 		shaderManager.AddSourceCode("mad4", mad4Source);
 	}
+
 protected:
 	ShaderManager shaderManager;
 };

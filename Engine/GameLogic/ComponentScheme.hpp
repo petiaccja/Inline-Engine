@@ -1,10 +1,10 @@
 #pragma once
 
 
-#include <typeindex>
-#include <vector>
-#include <unordered_set>
 #include <initializer_list>
+#include <typeindex>
+#include <unordered_set>
+#include <vector>
 
 
 namespace inl::game {

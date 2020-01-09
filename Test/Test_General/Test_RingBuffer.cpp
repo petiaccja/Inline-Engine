@@ -1,12 +1,12 @@
 #include "Test.hpp"
 
-#include <BaseLibrary/ScalarLiterals.hpp>
 #include <BaseLibrary/RingBuffer.hpp>
+#include <BaseLibrary/ScalarLiterals.hpp>
 
-#include <iostream>
+#include <array>
 #include <chrono>
 #include <functional>
-#include <array>
+#include <iostream>
 
 using namespace std;
 using namespace inl::prefix;
@@ -47,26 +47,26 @@ public:
 		try {
 			constexpr int count = int(1_mega);
 
-			string containerName{typeid(container_type<int>).name()};
+			string containerName{ typeid(container_type<int>).name() };
 			containerName = containerName.substr(0, containerName.find('<'));
-			cout << "Testing RingBuffer with container type: " << containerName << endl << endl;
+			cout << "Testing RingBuffer with container type: " << containerName << endl
+				 << endl;
 
 			////////////////////////////////
-			
+
 			TestRingBuffer<int> intBuffer;
 			auto duration = TimedExecution(
 				[&intBuffer, count]() {
 					for (int i = 0; i < count; i++) {
 						intBuffer.PushFront(i);
 					}
-				}
-			);
+				});
 			cout << "Pushed " << count << " integers in " << duration.count() << " sec" << endl;
 
 			intBuffer.RotateFront();
-			TestAssert(intBuffer.Back() == count-1);
-			TestAssert(intBuffer.Front() == count-2);
-			
+			TestAssert(intBuffer.Back() == count - 1);
+			TestAssert(intBuffer.Front() == count - 2);
+
 			////////////////////////////////
 
 			TestRingBuffer<std::array<int, 100>> arrayBuffer;
@@ -75,7 +75,7 @@ public:
 			//just fill with some data
 			int i = 0;
 			for (auto& curr : testArray) {
-				curr = i*3;
+				curr = i * 3;
 			}
 
 			duration = TimedExecution(
@@ -84,12 +84,11 @@ public:
 						testArray[0] = i;
 						arrayBuffer.PushFront(testArray);
 					}
-				}
-			);
+				});
 			cout << "Pushed " << count << " std::array<int, 100> in " << duration.count() << " sec" << endl;
 
 			arrayBuffer.RotateFront();
-			TestAssert(arrayBuffer.Back()[0] == count-1);
+			TestAssert(arrayBuffer.Back()[0] == count - 1);
 
 			////////////////////////////////
 
@@ -106,8 +105,7 @@ public:
 						intVector.push_back(intBuffer.Front());
 						intBuffer.RotateFront();
 					} while (++currPos != targetPos);
-				}
-			);
+				});
 			cout << "Rotated and copied " << count << " int in " << duration.count() << " sec" << endl;
 
 			TestAssert(intVector[0] == intBuffer.Front());
@@ -125,8 +123,7 @@ public:
 						arrayVector.push_back(arrayBuffer.Front());
 						arrayBuffer.RotateFront();
 					} while (++currPos != targetPos);
-				}
-			);
+				});
 			cout << "Rotated and copied " << count << " std::array<int, 100> in " << duration.count() << " sec" << endl;
 
 
@@ -146,9 +143,9 @@ public:
 				countedSize += 1;
 			}
 
-			TestAssert(countedSize == intBuffer.Count()*3);
+			TestAssert(countedSize == intBuffer.Count() * 3);
 		}
-		catch(std::exception& e) {
+		catch (std::exception& e) {
 			std::cerr << "ERROR: " << e.what() << std::endl;
 			return 1;
 		}

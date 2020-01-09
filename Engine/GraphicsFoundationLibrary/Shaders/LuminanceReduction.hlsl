@@ -13,8 +13,7 @@ RWTexture2D<float2> outputTex : register(u0);
 //avg luminance
 groupshared float localData[LOCAL_SIZE_X * LOCAL_SIZE_Y];
 
-void init(uint2 dispatchThreadId, uint groupIndex)
-{
+void init(uint2 dispatchThreadId, uint groupIndex) {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 	if (any(dispatchThreadId.xy >= inputTexSize.xy))
@@ -25,19 +24,20 @@ void init(uint2 dispatchThreadId, uint groupIndex)
 	localData[groupIndex] = luminance;
 }
 
-void reduce(uint groupIndex, uint idx)
-{
+void reduce(uint groupIndex, uint idx) {
 	localData[groupIndex] += localData[groupIndex + idx];
 }
 
-[numthreads(LOCAL_SIZE_X, LOCAL_SIZE_Y, 1)]
-void CSMain(
-	uint3 groupId : SV_GroupID, //WorkGroupId
-	uint3 groupThreadId : SV_GroupThreadID, //LocalInvocationId
-	uint3 dispatchThreadId : SV_DispatchThreadID, //GlobalInvocationId
-	uint groupIndex : SV_GroupIndex //LocalInvocationIndex
-	)
-{
+[numthreads(LOCAL_SIZE_X, LOCAL_SIZE_Y, 1)] void CSMain(
+	uint3 groupId
+	: SV_GroupID, //WorkGroupId
+	  uint3 groupThreadId
+	: SV_GroupThreadID, //LocalInvocationId
+	  uint3 dispatchThreadId
+	: SV_DispatchThreadID, //GlobalInvocationId
+	  uint groupIndex
+	: SV_GroupIndex //LocalInvocationIndex
+) {
 	localData[groupIndex] = 0.0f;
 
 	//get data from every second workgroup on the x axis
@@ -50,18 +50,15 @@ void CSMain(
 	GroupMemoryBarrierWithGroupSync();
 
 	const uint reductionSize = LOCAL_SIZE_X * LOCAL_SIZE_Y;
-	for (uint x = reductionSize / 2; x > 0; x >>= 1)
-	{
-		if (groupIndex < x)
-		{
+	for (uint x = reductionSize / 2; x > 0; x >>= 1) {
+		if (groupIndex < x) {
 			reduce(groupIndex, x);
 		}
 
 		GroupMemoryBarrierWithGroupSync();
 	}
 
-	if (!groupIndex)
-	{
+	if (!groupIndex) {
 		outputTex[groupId.xy] = localData[0] * (1.0 / (LOCAL_SIZE_X * LOCAL_SIZE_Y));
 	}
 }

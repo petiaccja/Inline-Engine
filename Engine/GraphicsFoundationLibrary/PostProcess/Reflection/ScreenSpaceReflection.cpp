@@ -1,10 +1,10 @@
 #include "ScreenSpaceReflection.hpp"
 
 #include "../../Debug/DebugDrawManager.hpp"
-#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
 #include <GraphicsEngine_LL/GraphicsCommandList.hpp>
+#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 
 namespace inl::gxeng::nodes {
 
@@ -147,8 +147,8 @@ void ScreenSpaceReflection::Setup(SetupContext& context) {
 		shaderParts.ps = true;
 
 		std::vector<gxapi::InputElementDesc> inputElementDesc = {
-			gxapi::InputElementDesc{"POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0},
-			gxapi::InputElementDesc{"TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12}
+			gxapi::InputElementDesc{ "POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0 },
+			gxapi::InputElementDesc{ "TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 12 }
 		};
 
 		{
@@ -160,7 +160,7 @@ void ScreenSpaceReflection::Setup(SetupContext& context) {
 			psoDesc.rootSignature = m_binder.GetRootSignature();
 			psoDesc.vs = m_shader.vs;
 			psoDesc.ps = m_shader.ps;
-			psoDesc.rasterization = gxapi::RasterizerState{gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL};
+			psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 			psoDesc.depthStencilState.enableDepthTest = false;
@@ -183,7 +183,7 @@ void ScreenSpaceReflection::Setup(SetupContext& context) {
 			psoDesc.rootSignature = m_binder.GetRootSignature();
 			psoDesc.vs = m_downsampleShader.vs;
 			psoDesc.ps = m_downsampleShader.ps;
-			psoDesc.rasterization = gxapi::RasterizerState{gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL};
+			psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 			psoDesc.depthStencilState.enableDepthTest = false;
@@ -212,7 +212,7 @@ void ScreenSpaceReflection::Setup(SetupContext& context) {
 			psoDesc.rootSignature = m_binder.GetRootSignature();
 			psoDesc.vs = m_blurShader.vs;
 			psoDesc.ps = m_blurShader.ps;
-			psoDesc.rasterization = gxapi::RasterizerState{gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL};
+			psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
 			psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
 			psoDesc.depthStencilState.enableDepthTest = false;
@@ -296,11 +296,10 @@ void ScreenSpaceReflection::Execute(RenderContext& context) {
 	uniformsCBData.invV = v.Inverse();
 
 	//far ndc corners
-	Vec4 ndcCorners[] =
-		{
-			Vec4(-1.f, -1.f, 1.f, 1.f),
-			Vec4(1.f, 1.f, 1.f, 1.f),
-		};
+	Vec4 ndcCorners[] = {
+		Vec4(-1.f, -1.f, 1.f, 1.f),
+		Vec4(1.f, 1.f, 1.f, 1.f),
+	};
 
 	//convert to world space frustum corners
 	ndcCorners[0] = ndcCorners[0] * invP;

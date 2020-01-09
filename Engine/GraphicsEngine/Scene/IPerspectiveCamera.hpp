@@ -1,7 +1,8 @@
 #pragma once
 
-#include <InlineMath.hpp>
 #include "IBasicCamera.hpp"
+
+#include <InlineMath.hpp>
 
 
 namespace inl::gxeng {

@@ -193,7 +193,7 @@ void LinearQueue::InjectBarriers(DecomposedRenderCommand& subject, const Decompo
 		}
 		auto* underlyingList = dynamic_cast<gxapi::IGraphicsCommandList*>(subject.commandList.get());
 		underlyingList->ResourceBarrier((unsigned)barriers.size(), barriers.data());
-	}	
+	}
 }
 
 void LinearQueue::FinalizeBackBuffer(DecomposedRenderCommand& subject) {

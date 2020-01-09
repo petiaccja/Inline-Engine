@@ -1,21 +1,21 @@
 #include "ConditionVariable.hpp"
-#include <mutex>
+
 #include "SharedFuture.hpp"
+
+#include <mutex>
 
 
 namespace inl::jobs {
 
 
-ConditionVariable::CvarAwaiter::CvarAwaiter(CvarAwaiter&& rhs) 
-	: 
-	m_mtx(rhs.m_mtx), 
-	m_cvar(rhs.m_cvar),
-	m_pred(std::move(rhs.m_pred)),
-	m_next(rhs.m_next),
-	m_awaitingHandle(std::move(rhs.m_awaitingHandle)),
-	m_mutexAwaiter(std::move(rhs.m_mutexAwaiter)),
-	m_scheduler(rhs.m_scheduler)
-{
+ConditionVariable::CvarAwaiter::CvarAwaiter(CvarAwaiter&& rhs)
+	: m_mtx(rhs.m_mtx),
+	  m_cvar(rhs.m_cvar),
+	  m_pred(std::move(rhs.m_pred)),
+	  m_next(rhs.m_next),
+	  m_awaitingHandle(std::move(rhs.m_awaitingHandle)),
+	  m_mutexAwaiter(std::move(rhs.m_mutexAwaiter)),
+	  m_scheduler(rhs.m_scheduler) {
 	rhs.m_awaitingHandle = {};
 	rhs.m_next = nullptr;
 	rhs.m_scheduler = nullptr;
@@ -42,7 +42,7 @@ bool ConditionVariable::CvarAwaiter::await_suspend(std::experimental::coroutine_
 		m_next = first;
 		success = m_cvar.m_firstAwaiter.compare_exchange_weak(m_next, this);
 	} while (!success);
-	
+
 	// Accessing *this is safe as coro cannot be continued while the mutex is being held.
 	m_mtx.Unlock();
 
@@ -137,8 +137,8 @@ void ConditionVariable::NotifyAll() {
 		AwakeAwaiter(iter);
 
 		iter = next;
-	}	
+	}
 }
 
 
-}
+} // namespace inl::jobs

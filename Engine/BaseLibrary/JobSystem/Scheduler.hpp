@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SharedFuture.hpp"
+
 #include <experimental/coroutine>
 #include <future>
 #include <type_traits>
@@ -37,8 +38,9 @@ public:
 		task.Run();
 		return task;
 	}
-	
+
 	virtual void Resume(std::experimental::coroutine_handle<> coroutine) = 0;
+
 protected:
 	template <class Func, class... Args>
 	static auto Wrapper(Func func, Args... args) -> SharedFuture<std::invoke_result_t<Func, Args...>> {
@@ -56,11 +58,12 @@ protected:
 	template <class Func, class... Args>
 	static auto MakeTask(Func func, Scheduler* scheduler, Args... args) {
 		if constexpr (is_schedulable<Func, Args...>::value) {
-			auto task = [](Func func, Scheduler* scheduler, Args... args) -> std::invoke_result_t<Func, Args...> {
+			auto task = [](Func func, Scheduler * scheduler, Args... args) -> std::invoke_result_t<Func, Args...> {
 				auto innerTask = func(std::forward<Args>(args)...);
 				innerTask.Schedule(*scheduler);
 				co_return co_await innerTask;
-			}(std::move(func), scheduler, std::forward<Args>(args)...);
+			}
+			(std::move(func), scheduler, std::forward<Args>(args)...);
 			//auto task = func(std::forward<Args>(args)...);
 			return task;
 		}
@@ -70,7 +73,6 @@ protected:
 			return task;
 		}
 	}
-
 };
 
 class ImmediateScheduler : public Scheduler {

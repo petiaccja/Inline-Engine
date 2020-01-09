@@ -15,7 +15,7 @@ TEST_CASE("Defctor", "[Rect]") {
 
 
 TEST_CASE("Field ctor", "[Rect]") {
-	RectF rc(1,2,3,4);
+	RectF rc(1, 2, 3, 4);
 	REQUIRE(rc.left == 1);
 	REQUIRE(rc.right == 2);
 	REQUIRE(rc.bottom == 3);
@@ -24,7 +24,7 @@ TEST_CASE("Field ctor", "[Rect]") {
 
 
 TEST_CASE("Point ctor", "[Rect]") {
-	RectF rc(Vec2(1,2), Vec2(2,4));
+	RectF rc(Vec2(1, 2), Vec2(2, 4));
 	REQUIRE(rc.left == 1);
 	REQUIRE(rc.right == 2);
 	REQUIRE(rc.bottom == 2);
@@ -33,7 +33,7 @@ TEST_CASE("Point ctor", "[Rect]") {
 
 
 TEST_CASE("Size ctor", "[Rect]") {
-	RectF rc = RectF::FromSize(Vec2(1,2), Vec2(2,4));
+	RectF rc = RectF::FromSize(Vec2(1, 2), Vec2(2, 4));
 	REQUIRE(rc.left == 1);
 	REQUIRE(rc.right == 3);
 	REQUIRE(rc.bottom == 2);
@@ -64,7 +64,7 @@ TEST_CASE("GetArea", "[Rect]") {
 TEST_CASE("SetSize", "[Rect]") {
 	// Calls SetWidth and SetHeight.
 	RectF rc(Vec2(-1, -1), Vec2(1, 1));
-	rc.SetSize({ 3,4 }, { 0.25f, 0.5f });
+	rc.SetSize({ 3, 4 }, { 0.25f, 0.5f });
 
 	REQUIRE(rc.GetWidth() == Approx(3));
 	REQUIRE(rc.GetHeight() == Approx(4));
@@ -101,22 +101,22 @@ TEST_CASE("Intersection", "[Rect]") {
 
 TEST_CASE("Is point inside", "[Rect]") {
 	RectF rc(Vec2(-2, -1), Vec2(1, 3));
-	REQUIRE(!rc.IsPointInside({0,4}));
-	REQUIRE(!rc.IsPointInside({1.5f,3}));
-	REQUIRE(rc.IsPointInside({0,0}));
+	REQUIRE(!rc.IsPointInside({ 0, 4 }));
+	REQUIRE(!rc.IsPointInside({ 1.5f, 3 }));
+	REQUIRE(rc.IsPointInside({ 0, 0 }));
 }
 
 
 TEST_CASE("Is rect inside", "[Rect]") {
 	RectF rc(Vec2(-2, -1), Vec2(1, 3));
-	REQUIRE(!rc.IsRectInside(RectF({ 0,4 }, {3,8})));
-	REQUIRE(!rc.IsRectInside(RectF({ 0,0 }, { 3, 3 })));
-	REQUIRE(rc.IsRectInside(RectF({ 0,0 }, { 0.5f, 0.5f })));
+	REQUIRE(!rc.IsRectInside(RectF({ 0, 4 }, { 3, 8 })));
+	REQUIRE(!rc.IsRectInside(RectF({ 0, 0 }, { 3, 3 })));
+	REQUIRE(rc.IsRectInside(RectF({ 0, 0 }, { 0.5f, 0.5f })));
 }
 
 
 TEST_CASE("Is intersecting", "[Rect]") {
 	RectF rc(Vec2(-2, -1), Vec2(1, 3));
-	REQUIRE(!rc.IsIntersecting(RectF({ 0,4 }, { 3,8 })));
-	REQUIRE(rc.IsIntersecting(RectF({ 0,0 }, { 3, 3 })));
+	REQUIRE(!rc.IsIntersecting(RectF({ 0, 4 }, { 3, 8 })));
+	REQUIRE(rc.IsIntersecting(RectF({ 0, 0 }, { 3, 3 })));
 }

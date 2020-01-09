@@ -1,13 +1,12 @@
 #include "Voxelization.hpp"
 
-#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
-
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
 #include <GraphicsEngine_LL/GraphicsCommandList.hpp>
 #include <GraphicsEngine_LL/Image.hpp>
 #include <GraphicsEngine_LL/Material.hpp>
 #include <GraphicsEngine_LL/Mesh.hpp>
 #include <GraphicsEngine_LL/MeshEntity.hpp>
+#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 
 
 
@@ -222,8 +221,8 @@ void Voxelization::Setup(SetupContext& context) {
 		{
 			std::vector<gxapi::InputElementDesc> inputElementDesc = {
 				gxapi::InputElementDesc{ "POSITION", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 0 },
-				gxapi::InputElementDesc{"NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12},
-				gxapi::InputElementDesc{"TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24},
+				gxapi::InputElementDesc{ "NORMAL", 0, gxapi::eFormat::R32G32B32_FLOAT, 0, 12 },
+				gxapi::InputElementDesc{ "TEX_COORD", 0, gxapi::eFormat::R32G32_FLOAT, 0, 24 },
 			};
 
 			gxapi::GraphicsPipelineStateDesc psoDesc;

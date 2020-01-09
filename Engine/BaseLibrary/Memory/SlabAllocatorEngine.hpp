@@ -29,6 +29,7 @@ private:
 		size_t slotOccupancy; /// <summary> 0 means the slot if free, 1 is occupied. </summary>
 	};
 	static constexpr unsigned SlotsPerBlock = 8 * sizeof(size_t);
+
 public:
 	/// <summary>
 	/// Initialize an allocator of specified size.
@@ -60,6 +61,7 @@ public:
 
 	/// <summary> Get the total number of slots (free + taken). </summary>
 	size_t Size() const { return m_poolSize; }
+
 private:
 	inline size_t IndexOf(const Block* block) const {
 		return block - m_blocks.data();
@@ -69,6 +71,7 @@ private:
 		block = &m_blocks[divRes];
 		inBlockIndex = int(globalIndex - (divRes * SlotsPerBlock)); // globalIndex % SlotsPerBlock costs much more
 	}
+
 private:
 	size_t m_poolSize;
 	std::vector<Block> m_blocks;

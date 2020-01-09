@@ -6,24 +6,22 @@
 
 namespace inl {
 
-RingAllocationEngine::CellContainer::CellContainer(size_t size) :
-	m_bitset(size*CELL_SIZE)
-{}
+RingAllocationEngine::CellContainer::CellContainer(size_t size) : m_bitset(size * CELL_SIZE) {}
 
 
 void RingAllocationEngine::CellContainer::Set(size_t index, eCellState value) {
 	bool first = (int(value) >> 1) != 0;
 	bool second = (int(value) & 1) != 0;
-	m_bitset[index*CELL_SIZE] = first;
-	m_bitset[index*CELL_SIZE + 1] = second;
+	m_bitset[index * CELL_SIZE] = first;
+	m_bitset[index * CELL_SIZE + 1] = second;
 }
 
 
 RingAllocationEngine::eCellState RingAllocationEngine::CellContainer::At(size_t index) const {
-	uint8_t first = m_bitset[index*CELL_SIZE];
-	uint8_t second = m_bitset[index*CELL_SIZE + 1];
+	uint8_t first = m_bitset[index * CELL_SIZE];
+	uint8_t second = m_bitset[index * CELL_SIZE + 1];
 
-	return eCellState((first<<1) + second);
+	return eCellState((first << 1) + second);
 }
 
 
@@ -33,8 +31,7 @@ size_t RingAllocationEngine::CellContainer::Size() const {
 
 
 void RingAllocationEngine::CellContainer::Resize(size_t size) {
-	m_bitset.resize(size*CELL_SIZE);
-
+	m_bitset.resize(size * CELL_SIZE);
 }
 
 
@@ -46,11 +43,8 @@ void RingAllocationEngine::CellContainer::Reset() {
 
 
 
-
-RingAllocationEngine::RingAllocationEngine(size_t poolSize) :
-	m_container(poolSize),
-	m_nextIndex(0)
-{}
+RingAllocationEngine::RingAllocationEngine(size_t poolSize) : m_container(poolSize),
+															  m_nextIndex(0) {}
 
 
 
@@ -70,7 +64,7 @@ size_t RingAllocationEngine::Allocate(size_t allocationSize) {
 	// check if first and last cell of allocation is free
 	// if they are, then the whole range of the allocation is free
 	{
-		bool lastFree = m_container.At(allocStartIndex + allocationSize-1) == eCellState::FREE;
+		bool lastFree = m_container.At(allocStartIndex + allocationSize - 1) == eCellState::FREE;
 		bool firstFree = m_container.At(allocStartIndex) == eCellState::FREE;
 		if (!lastFree || !firstFree) {
 			throw std::bad_alloc();
@@ -79,7 +73,7 @@ size_t RingAllocationEngine::Allocate(size_t allocationSize) {
 
 	// mark allocated area
 	{
-		size_t end = allocationSize-1;
+		size_t end = allocationSize - 1;
 		for (size_t i = 0; i < end; i++) {
 			m_container.Set(allocStartIndex + i, eCellState::INSIDE);
 		}
@@ -99,8 +93,8 @@ void RingAllocationEngine::Deallocate(size_t index) {
 	}
 
 	static_assert(std::is_unsigned<size_t>::value, "Utilizing underflow. Size type should be unsigned.");
-	size_t prevIndex = index-1;
-	prevIndex = prevIndex >= m_container.Size() ? m_container.Size()-1 : prevIndex;
+	size_t prevIndex = index - 1;
+	prevIndex = prevIndex >= m_container.Size() ? m_container.Size() - 1 : prevIndex;
 	bool isPreviousInUse = m_container.At(prevIndex) != eCellState::FREE;
 	bool previousIsNotFront = index != m_nextIndex;
 
@@ -113,8 +107,8 @@ void RingAllocationEngine::Deallocate(size_t index) {
 		do {
 			isEnd = m_container.At(current) == eCellState::END;
 			m_container.Set(current, eCellState::PREVIOUS_IN_USE);
-			current = (current+1) % m_container.Size();
-		} while(!isEnd);
+			current = (current + 1) % m_container.Size();
+		} while (!isEnd);
 	}
 	else {
 		// if it has no allocated space befor this one
@@ -128,8 +122,8 @@ void RingAllocationEngine::Deallocate(size_t index) {
 			do {
 				isEnd = m_container.At(current) == eCellState::END;
 				m_container.Set(current, eCellState::FREE);
-				current = (current+1) % m_container.Size();
-			} while(!isEnd);
+				current = (current + 1) % m_container.Size();
+			} while (!isEnd);
 		}
 
 		// go forward, and free every cell in a contigous range starting at this cell
@@ -137,7 +131,7 @@ void RingAllocationEngine::Deallocate(size_t index) {
 		{
 			while (m_container.At(current) == eCellState::PREVIOUS_IN_USE) {
 				m_container.Set(current, eCellState::FREE);
-				current = (current+1) % m_container.Size();
+				current = (current + 1) % m_container.Size();
 			}
 		}
 	}

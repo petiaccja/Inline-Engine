@@ -14,29 +14,27 @@ RWTexture2D<float4> dstTex : register(u2);
 
 #include "CSMSample"
 
-struct SdfData
-{
+struct SdfData {
 	float4 vsPosition;
 	float radius;
 	float3 dummy;
 };
 
-struct LightData
-{
+struct LightData {
 	float4 diffuseLightColor;
 	float4 vsPosition;
 	float attenuationEnd;
 	float3 dummy;
 };
 
-struct Uniforms
-{
+struct Uniforms {
 	SdfData sd[10];
 	LightData ld[10];
 	float4x4 v, p;
 	float4x4 invVP, oldVP;
 	float camNear, camFar, dummy1, dummy2;
-	uint numSdfs, numWorkgroupsX, numWorkgroupsY; float haltonFactor;
+	uint numSdfs, numWorkgroupsX, numWorkgroupsY;
+	float haltonFactor;
 	float4 sunDirection;
 	float4 sunColor;
 	float4 camPos;
@@ -52,8 +50,7 @@ static const float pi = 3.14159265;
 #define LOCAL_SIZE_X 16
 #define LOCAL_SIZE_Y 16
 
-float LinearizeDepth(float depth, float near, float far)
-{
+float LinearizeDepth(float depth, float near, float far) {
 	float A = far / (far - near);
 	float B = -far * near / (far - near);
 	float zndc = depth;
@@ -62,31 +59,26 @@ float LinearizeDepth(float depth, float near, float far)
 	float vsZrecon = B / (zndc - A);
 
 	//range: [0...far]
-	return vsZrecon;// / far;
+	return vsZrecon; // / far;
 };
 
-float Sphere(float3 rayOri, float3 rayDir, float3 center, float radius)
-{
+float Sphere(float3 rayOri, float3 rayDir, float3 center, float radius) {
 	return distance(rayOri, center) - radius;
 }
 
-float3 SphereNormal(float3 rayOri, float3 rayDir, float3 spherePos, float sphereRad)
-{
+float3 SphereNormal(float3 rayOri, float3 rayDir, float3 spherePos, float sphereRad) {
 	return normalize(float3(
 		sphere(rayOri + float3(epsilon, 0, 0), rayDir, spherePos, sphereRad) - Sphere(rayOri + float3(-epsilon, 0, 0), rayDir, spherePos, sphereRad),
 		sphere(rayOri + float3(0, epsilon, 0), rayDir, spherePos, sphereRad) - Sphere(rayOri + float3(0, -epsilon, 0), rayDir, spherePos, sphereRad),
-		sphere(rayOri + float3(0, 0, epsilon), rayDir, spherePos, sphereRad) - Sphere(rayOri + float3(0, 0, -epsilon), rayDir, spherePos, sphereRad)
-	));
+		sphere(rayOri + float3(0, 0, epsilon), rayDir, spherePos, sphereRad) - Sphere(rayOri + float3(0, 0, -epsilon), rayDir, spherePos, sphereRad)));
 }
 
 //neutral for now
-float PhaseFunction()
-{
-	return 1.0 / (4.0*3.14);
+float PhaseFunction() {
+	return 1.0 / (4.0 * 3.14);
 }
 
-float GetNextStepSize(float currStep, float maxSteps, float currPos, float minz, float maxz)
-{
+float GetNextStepSize(float currStep, float maxSteps, float currPos, float minz, float maxz) {
 	float z = maxz;
 	float ratio = maxz / minz;
 	float power = currStep / maxSteps;
@@ -95,14 +87,16 @@ float GetNextStepSize(float currStep, float maxSteps, float currPos, float minz,
 	return z - currPos;
 }
 
-[numthreads(LOCAL_SIZE_X, LOCAL_SIZE_Y, 1)]
-void CSMain(
-	uint3 groupId : SV_GroupID, //WorkGroupId
-	uint3 groupThreadId : SV_GroupThreadID, //LocalInvocationId
-	uint3 dispatchThreadId : SV_DispatchThreadID, //GlobalInvocationId
-	uint groupIndex : SV_GroupIndex //LocalInvocationIndex
-)
-{
+[numthreads(LOCAL_SIZE_X, LOCAL_SIZE_Y, 1)] void CSMain(
+	uint3 groupId
+	: SV_GroupID, //WorkGroupId
+	  uint3 groupThreadId
+	: SV_GroupThreadID, //LocalInvocationId
+	  uint3 dispatchThreadId
+	: SV_DispatchThreadID, //GlobalInvocationId
+	  uint groupIndex
+	: SV_GroupIndex //LocalInvocationIndex
+) {
 	uint3 inputTexSize;
 	inputColorTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 
@@ -146,19 +140,17 @@ void CSMain(
 	//initial step
 	t += initialSkip;
 
-	//2x2 initial jitter pattern 
-	float jitter = (dispatchThreadId.x + dispatchThreadId.y) % 2 ? stepSize*0.5 : 0.0;
+	//2x2 initial jitter pattern
+	float jitter = (dispatchThreadId.x + dispatchThreadId.y) % 2 ? stepSize * 0.5 : 0.0;
 
 	t += jitter;
 
-	for (float d = 0; d < maxSteps; ++d)
-	{
+	for (float d = 0; d < maxSteps; ++d) {
 		float3 evalPos = rayOri + rayDir * (t + stepSize * uniforms.haltonFactor);
 
 		float3 vsEvalPos = mul(float4(evalPos, 1.0), uniforms.v).xyz;
 
-		if (t > maxDist || transmittance < 0.0001)
-		{
+		if (t > maxDist || transmittance < 0.0001) {
 			break;
 		}
 
@@ -168,8 +160,7 @@ void CSMain(
 		float phase = 0.0;
 		float phaseCounter = 0.0;
 
-		for (uint c = 0; c < localNumOfSdfs; ++c)
-		{
+		for (uint c = 0; c < localNumOfSdfs; ++c) {
 			uint index = sdfCullTex.Load(int3(groupId.x * uniforms.numWorkgroupsY + groupId.y, c + 1, 0));
 			//world space
 			float3 pos = uniforms.sd[index].vsPosition;
@@ -191,8 +182,7 @@ void CSMain(
 		phase += PhaseFunction();
 		phaseCounter++;
 
-		if (phaseCounter > 0.0)
-		{
+		if (phaseCounter > 0.0) {
 			phase /= phaseCounter;
 		}
 
@@ -200,8 +190,7 @@ void CSMain(
 
 		float3 lighting = float3(0, 0, 0);
 
-		for (uint e = 0; e < localNumOfLights; ++e)
-		{
+		for (uint e = 0; e < localNumOfLights; ++e) {
 			uint index = lightCullTex.Load(int3(groupId.x * uniforms.numWorkgroupsY + groupId.y, e + 1, 0));
 			//world space
 			float3 pos = uniforms.ld[index].vsPosition;
@@ -244,18 +233,15 @@ void CSMain(
 	float4 result;
 	//result = lerp(volDstTex1[dispatchThreadId.xy], float4(scatteredLight, transmittance), blendFactor);
 	int2 reprojCoord = (float2(reprojPos.x, -reprojPos.y) * 0.5 + 0.5) * float2(inputTexSize.xy);
-	if (reprojCoord.x >= 0 && reprojCoord.x < inputTexSize.x &&
-		reprojCoord.y >= 0 && reprojCoord.y < inputTexSize.y)
-	{
+	if (reprojCoord.x >= 0 && reprojCoord.x < inputTexSize.x && reprojCoord.y >= 0 && reprojCoord.y < inputTexSize.y) {
 		float4 prevResult = volDstTex1[reprojCoord];
 		//lerp: x*(1-s) + y*s
 		float4 blendedResult = lerp(prevResult, float4(scatteredLight, transmittance), blendFactor);
 		//if there's no history available (because opaque occluded area) then just use current
-		result = lerp(float4(scatteredLight, transmittance), blendedResult, exp(-8.0*prevResult.w));
+		result = lerp(float4(scatteredLight, transmittance), blendedResult, exp(-8.0 * prevResult.w));
 		//result = blendedResult;
 	}
-	else
-	{
+	else {
 		result = float4(scatteredLight, transmittance);
 	}
 	volDstTex0[dispatchThreadId.xy] = result;

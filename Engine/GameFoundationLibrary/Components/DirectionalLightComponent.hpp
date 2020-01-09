@@ -1,11 +1,12 @@
 #pragma once
 
+#include "../Modules/GraphicsModule.hpp"
+
 #include <BaseLibrary/Serialization/Math.hpp>
 #include <GameLogic/AutoRegisterComponent.hpp>
 #include <GameLogic/ComponentClassFactory.hpp>
 #include <GraphicsEngine/Scene/IDirectionalLight.hpp>
 #include <GraphicsEngine/Scene/IScene.hpp>
-#include "../Modules/GraphicsModule.hpp"
 
 #include <cereal/types/string.hpp>
 
@@ -38,11 +39,11 @@ void load(Archive& ar, DirectionalLightComponent& obj) {
 	ar(cereal::make_nvp("scene", obj.sceneName),
 	   cereal::make_nvp("color", color),
 	   cereal::make_nvp("direction", direction));
-	
+
 	const auto& moduleArchive = dynamic_cast<const game::ModuleArchive&>(ar);
 	const auto graphicsModule = moduleArchive.GetModule<GraphicsModule>();
 	obj.entity = graphicsModule->CreateDirectionalLight();
-	
+
 	obj.entity->SetColor(color);
 	obj.entity->SetDirection(direction);
 }

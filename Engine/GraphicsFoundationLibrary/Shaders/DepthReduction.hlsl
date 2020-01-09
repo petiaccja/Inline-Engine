@@ -15,8 +15,7 @@ RWTexture2D<float2> outputTex : register(u0);
 //y: max depth
 groupshared float2 localData[LOCAL_SIZE_X * LOCAL_SIZE_Y];
 
-float LinearizeDepth(float depth)
-{
+float LinearizeDepth(float depth) {
 	float near = 0.1;
 	float far = 100.0;
 	float A = -(far + near) / (far - near);
@@ -27,11 +26,10 @@ float LinearizeDepth(float depth)
 	float vsZrecon = -B / (zndc + A);
 
 	//range: [0...1]
-	return vsZrecon / -1.0;//far;
+	return vsZrecon / -1.0; //far;
 };
 
-void Init(uint2 dispatchThreadId, uint groupIndex)
-{
+void Init(uint2 dispatchThreadId, uint groupIndex) {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 	if (any(dispatchThreadId.xy >= inputTexSize.xy))
@@ -39,28 +37,28 @@ void Init(uint2 dispatchThreadId, uint groupIndex)
 
 	float depth = inputTex.Load(int3(dispatchThreadId.xy, 0)).x;
 
-	if (depth < 1.0f && depth > 0.0f)
-	{
+	if (depth < 1.0f && depth > 0.0f) {
 		//depth = linearize_depth(depth);
 		localData[groupIndex].x = min(depth, localData[groupIndex].x);
 		localData[groupIndex].y = max(depth, localData[groupIndex].y);
 	}
 }
 
-void Reduce(uint groupIndex, uint idx)
-{
+void Reduce(uint groupIndex, uint idx) {
 	localData[groupIndex].x = min(localData[groupIndex].x, localData[groupIndex + idx].x);
 	localData[groupIndex].y = max(localData[groupIndex].y, localData[groupIndex + idx].y);
 }
 
-[numthreads(LOCAL_SIZE_X, LOCAL_SIZE_Y, 1)]
-void CSMain(
-	uint3 groupId : SV_GroupID, //WorkGroupId
-	uint3 groupThreadId : SV_GroupThreadID, //LocalInvocationId
-	uint3 dispatchThreadId : SV_DispatchThreadID, //GlobalInvocationId
-	uint groupIndex : SV_GroupIndex //LocalInvocationIndex
-	)
-{
+[numthreads(LOCAL_SIZE_X, LOCAL_SIZE_Y, 1)] void CSMain(
+	uint3 groupId
+	: SV_GroupID, //WorkGroupId
+	  uint3 groupThreadId
+	: SV_GroupThreadID, //LocalInvocationId
+	  uint3 dispatchThreadId
+	: SV_DispatchThreadID, //GlobalInvocationId
+	  uint groupIndex
+	: SV_GroupIndex //LocalInvocationIndex
+) {
 	//localData[groupIndex] = float2(100.0f, 0.0f);
 	localData[groupIndex] = float2(1.0f, 0.0f);
 
@@ -74,18 +72,15 @@ void CSMain(
 	GroupMemoryBarrierWithGroupSync();
 
 	const uint reductionSize = LOCAL_SIZE_X * LOCAL_SIZE_Y;
-	for (uint x = reductionSize / 2; x > 0; x >>= 1)
-	{
-		if (groupIndex < x)
-		{
+	for (uint x = reductionSize / 2; x > 0; x >>= 1) {
+		if (groupIndex < x) {
 			Reduce(groupIndex, x);
 		}
 
 		GroupMemoryBarrierWithGroupSync();
 	}
 
-	if (!groupIndex)
-	{
+	if (!groupIndex) {
 		outputTex[groupId.xy].xy = localData[0];
 	}
 }

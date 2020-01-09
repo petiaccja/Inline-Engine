@@ -5,12 +5,10 @@
 
 #include <cassert>
 
-namespace inl:: gxeng {
+namespace inl::gxeng {
 
 
-DescriptorArrayRef::DescriptorArrayRef() :
-	m_home(nullptr), m_pos(INVALID_POS), m_allocationSize(0)
-{}
+DescriptorArrayRef::DescriptorArrayRef() : m_home(nullptr), m_pos(INVALID_POS), m_allocationSize(0) {}
 
 
 gxapi::DescriptorHandle DescriptorArrayRef::Get(uint32_t position) {
@@ -36,20 +34,16 @@ bool DescriptorArrayRef::IsValid() const {
 }
 
 
-DescriptorArrayRef::DescriptorArrayRef(StackDescHeap* home, uint32_t pos, uint32_t allocSize) :
-	m_home(home),
-	m_pos(pos),
-	m_allocationSize(allocSize)
-{}
+DescriptorArrayRef::DescriptorArrayRef(StackDescHeap* home, uint32_t pos, uint32_t allocSize) : m_home(home),
+																								m_pos(pos),
+																								m_allocationSize(allocSize) {}
 
 
 // =======================================================
 
 
-StackDescHeap::StackDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type, uint32_t size) :
-	m_size(size),
-	m_next(0)
-{
+StackDescHeap::StackDescHeap(gxapi::IGraphicsApi* graphicsApi, gxapi::eDescriptorHeapType type, uint32_t size) : m_size(size),
+																												 m_next(0) {
 	assert(type == gxapi::eDescriptorHeapType::CBV_SRV_UAV || type == gxapi::eDescriptorHeapType::SAMPLER);
 	gxapi::DescriptorHeapDesc desc{ .type = type, .numDescriptors = size, .isShaderVisible = true };
 	m_heap.reset(graphicsApi->CreateDescriptorHeap(desc));
@@ -72,4 +66,4 @@ void StackDescHeap::Reset() {
 }
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

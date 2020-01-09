@@ -6,8 +6,8 @@
 #include "VolatileViewHeap.hpp"
 
 #include <BaseLibrary/JobSystem/ConditionVariable.hpp>
-#include <BaseLibrary/JobSystem/SharedFuture.hpp>
 #include <BaseLibrary/JobSystem/Scheduler.hpp>
+#include <BaseLibrary/JobSystem/SharedFuture.hpp>
 
 #include <memory>
 #include <queue>
@@ -23,7 +23,7 @@ class SchedulerCPU;
 class SchedulerGPU {
 public:
 	SchedulerGPU(Pipeline& pipeline);
-	
+
 	void RunPipeline(const FrameContext& frameContext, jobs::Scheduler& scheduler, const SchedulerCPU& cpuScheduler);
 	static std::vector<lemon::ListDigraph::Node> SortNodes(const lemon::ListDigraph& taskGraph);
 

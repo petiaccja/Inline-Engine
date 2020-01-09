@@ -1,12 +1,10 @@
-struct LightData
-{
+struct LightData {
 	float4 diffuseColor;
 	float4 vsPosition;
 	float4 attenuationEnd;
 };
 
-struct Uniforms
-{
+struct Uniforms {
 	float4x4 invV;
 	LightData ld[10];
 	float4 screenDimensions;

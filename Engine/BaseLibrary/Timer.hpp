@@ -13,6 +13,7 @@ class Timer {
 		STOPPED,
 		PAUSED
 	};
+
 public:
 	Timer();
 
@@ -36,6 +37,7 @@ public:
 	void SetSpeed(double speed);
 
 	double GetSpeed() const;
+
 private:
 	double m_accumulator;
 	double m_speed;
@@ -44,4 +46,4 @@ private:
 };
 
 
-} // namespace exc
+} // namespace inl

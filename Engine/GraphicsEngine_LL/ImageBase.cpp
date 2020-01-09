@@ -13,7 +13,6 @@ ImageBase::ImageBase(MemoryManager* memoryManager, CbvSrvUavHeap* descriptorHeap
 
 
 ImageBase::~ImageBase() {
-
 }
 
 
@@ -50,8 +49,7 @@ void ImageBase::Update(uint64_t x, uint32_t y, uint64_t width, uint32_t height, 
 	if (GetChannelCount() != 4 && reader.GetChannelCount() == 3) {
 		if (reader.GetChannelCount() != GetChannelCount()
 			|| reader.GetPixelClass() != GetPixelClass()
-			|| reader.GetChannelType() != GetChannelType())
-		{
+			|| reader.GetChannelType() != GetChannelType()) {
 			throw NotImplementedException("Pixel types mismatch, conversion is not supported yet (but will be).");
 		}
 	}
@@ -128,29 +126,25 @@ bool ImageBase::ConvertFormat(ePixelChannelType channelType, int channelCount, e
 	using gxapi::eFormat;
 
 	switch (channelType) {
-		case ePixelChannelType::INT8_NORM:
-		{
-			eFormat arr[] = { eFormat::R8_UNORM, eFormat::R8G8_UNORM, eFormat::R8G8B8A8_UNORM , eFormat::R8G8B8A8_UNORM };
+		case ePixelChannelType::INT8_NORM: {
+			eFormat arr[] = { eFormat::R8_UNORM, eFormat::R8G8_UNORM, eFormat::R8G8B8A8_UNORM, eFormat::R8G8B8A8_UNORM };
 			fmt = arr[channelCount - 1];
 			resultingChannelCount = channelCount == 3 ? 4 : channelCount;
 			return true;
 		}
-		case ePixelChannelType::INT16_NORM:
-		{
-			eFormat arr[] = { eFormat::R16_UNORM, eFormat::R16G16_UNORM, eFormat::R16G16B16A16_UNORM , eFormat::R16G16B16A16_UNORM };
+		case ePixelChannelType::INT16_NORM: {
+			eFormat arr[] = { eFormat::R16_UNORM, eFormat::R16G16_UNORM, eFormat::R16G16B16A16_UNORM, eFormat::R16G16B16A16_UNORM };
 			fmt = arr[channelCount - 1];
 			resultingChannelCount = channelCount == 3 ? 4 : channelCount;
 			return true;
 		}
-		case ePixelChannelType::INT32:
-		{
-			eFormat arr[] = { eFormat::R32_UINT, eFormat::R32G32_UINT, eFormat::R32G32B32_UINT , eFormat::R32G32B32A32_UINT };
+		case ePixelChannelType::INT32: {
+			eFormat arr[] = { eFormat::R32_UINT, eFormat::R32G32_UINT, eFormat::R32G32B32_UINT, eFormat::R32G32B32A32_UINT };
 			fmt = arr[channelCount - 1];
 			resultingChannelCount = channelCount;
 			return true;
 		}
-		case ePixelChannelType::FLOAT32:
-		{
+		case ePixelChannelType::FLOAT32: {
 			eFormat arr[] = { eFormat::R32_FLOAT, eFormat::R32G32_FLOAT, eFormat::R32G32B32_FLOAT, eFormat::R32G32B32A32_FLOAT };
 			fmt = arr[channelCount - 1];
 			resultingChannelCount = channelCount;
@@ -163,4 +157,4 @@ bool ImageBase::ConvertFormat(ePixelChannelType channelType, int channelCount, e
 
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

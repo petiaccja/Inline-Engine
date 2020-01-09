@@ -1,12 +1,12 @@
 #pragma once
 
-#include "RootTableManager.hpp"
-#include "ResourceView.hpp"
 #include "MemoryManager.hpp"
+#include "ResourceView.hpp"
+#include "RootTableManager.hpp"
 #include "VolatileViewHeap.hpp"
 
-#include <GraphicsApi_LL/IGraphicsApi.hpp>
 #include <BaseLibrary/Exception/Exception.hpp>
+#include <GraphicsApi_LL/IGraphicsApi.hpp>
 
 #include <stdexcept>
 
@@ -22,6 +22,7 @@ class BindingManager : protected RootTableManager<Type> {
 	using RootTableManager<Type>::m_binder;
 	using RootTableManager<Type>::m_heap;
 	using RootTableManager<Type>::UpdateBinding;
+
 public:
 	BindingManager();
 	BindingManager(gxapi::IGraphicsApi* graphicsApi, CommandListT* commandList, MemoryManager* memoryManager, VolatileViewHeap* volatileCbvHeap);
@@ -40,12 +41,13 @@ public:
 
 	//! Offset was removed because:
 	//! When implicitly creating a CBV to accomodate data, previously set bytes cannot be retrieved, thus bytes before offset cannot be defined.
-	void Bind(BindParameter parameter, const void* shaderConstant, int size/*, int offset*/);
+	void Bind(BindParameter parameter, const void* shaderConstant, int size /*, int offset*/);
 
 	void Bind(BindParameter parameter, const RWTextureView1D& rwResource);
 	void Bind(BindParameter parameter, const RWTextureView2D& rwResource);
 	void Bind(BindParameter parameter, const RWTextureView3D& rwResource);
 	void Bind(BindParameter parameter, const RWBufferView& rwResource);
+
 protected:
 	void SetRootConstants(gxapi::IGraphicsCommandList* list, unsigned parameterIndex, unsigned destOffset, unsigned numValues, const uint32_t* value);
 	void SetRootConstants(gxapi::IComputeCommandList* list, unsigned parameterIndex, unsigned destOffset, unsigned numValues, const uint32_t* value);
@@ -55,6 +57,7 @@ protected:
 private:
 	void BindTexture(BindParameter parameter, gxapi::DescriptorHandle handle);
 	void BindUav(BindParameter parameter, gxapi::DescriptorHandle handle);
+
 private:
 	MemoryManager* m_memoryManager;
 	VolatileViewHeap* m_volatileCbvHeap;
@@ -63,13 +66,11 @@ private:
 
 template <gxapi::eCommandListType Type>
 BindingManager<Type>::BindingManager()
-	: RootTableManager<Type>()
-{}
+	: RootTableManager<Type>() {}
 
 template <gxapi::eCommandListType Type>
 BindingManager<Type>::BindingManager(gxapi::IGraphicsApi* graphicsApi, CommandListT* commandList, MemoryManager* memoryManager, VolatileViewHeap* volatileCbvHeap)
-	: RootTableManager<Type>(graphicsApi, commandList), m_memoryManager(memoryManager), m_volatileCbvHeap(volatileCbvHeap)
-{}
+	: RootTableManager<Type>(graphicsApi, commandList), m_memoryManager(memoryManager), m_volatileCbvHeap(volatileCbvHeap) {}
 
 
 template <gxapi::eCommandListType Type>
@@ -148,7 +149,7 @@ void BindingManager<Type>::Bind(BindParameter parameter, const void* shaderConst
 
 	if (desc.rootParameters[slot].type == gxapi::RootParameterDesc::CONSTANT) {
 		assert(desc.rootParameters[slot].As<gxapi::RootParameterDesc::CONSTANT>().numConstants >= unsigned(size /*+ offset*/) / 4);
-		SetRootConstants(m_commandList, slot, /*offset*/0, size / 4, reinterpret_cast<const uint32_t*>(shaderConstant));
+		SetRootConstants(m_commandList, slot, /*offset*/ 0, size / 4, reinterpret_cast<const uint32_t*>(shaderConstant));
 	}
 	else if (desc.rootParameters[slot].type == gxapi::RootParameterDesc::CBV) {
 		// we have to create a volatile CB right here, to accomodate immediate arguments which don't fit in root signature

@@ -3,8 +3,8 @@
 #include "Image.hpp"
 #include "Mesh.hpp"
 
-#include <BaseLibrary/Transformable.hpp>
 #include <BaseLibrary/Rect.hpp>
+#include <BaseLibrary/Transformable.hpp>
 #include <GraphicsEngine/Scene/IOverlayEntity.hpp>
 
 #include <InlineMath.hpp>

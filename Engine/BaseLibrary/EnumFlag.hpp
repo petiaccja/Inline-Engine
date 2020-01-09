@@ -7,24 +7,26 @@ namespace inl {
 
 namespace impl {
 
-template <class T>
-struct IsEnumFlagSuitable {
-private:
-	template <class U = typename T::EnumT>
-	static constexpr bool has(int) { return true; }
+	template <class T>
+	struct IsEnumFlagSuitable {
+	private:
+		template <class U = typename T::EnumT>
+		static constexpr bool has(int) { return true; }
 
-	template <class U>
-	static constexpr bool has(...) { return false; }
-public:
-	static constexpr bool value = has<int>(0) && std::is_enum_v<typename T::EnumT>;
-};
+		template <class U>
+		static constexpr bool has(...) { return false; }
 
-}
+	public:
+		static constexpr bool value = has<int>(0) && std::is_enum_v<typename T::EnumT>;
+	};
+
+} // namespace impl
 
 
 template <typename EnumFlagData>
 struct EnumFlag_Helper : public EnumFlagData {
 	static_assert(impl::IsEnumFlagSuitable<EnumFlagData>::value, "Enum flag data must be a struct containing a plain enum called EnumT");
+
 public:
 	using EnumT = typename EnumFlagData::EnumT;
 	using UnderlyingT = typename std::underlying_type<EnumT>::type;
@@ -98,7 +100,7 @@ public:
 	}
 
 	/// <summary> Check if any flag is set. </summary>
-	/// <returns> True if not an empty bitset, false if empty. </returns> 
+	/// <returns> True if not an empty bitset, false if empty. </returns>
 	explicit operator bool() const {
 		return (UnderlyingT)m_value != 0;
 	}
@@ -116,9 +118,10 @@ public:
 	bool Contains(EnumFlag_Helper rhs) {
 		return (rhs - *this).Empty();
 	}
+
 private:
 	EnumT m_value;
 };
 
 
-}
+} // namespace inl

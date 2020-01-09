@@ -7,8 +7,7 @@
 Texture2D inputTex : register(t0);
 RWTexture2D<float> outputTex0 : register(u0);
 
-struct Uniforms
-{
+struct Uniforms {
 	float middleGrey, deltaTime;
 };
 
@@ -22,8 +21,7 @@ ConstantBuffer<Uniforms> uniforms : register(b0);
 //avg luminance
 groupshared float localData[LOCAL_SIZE_X * LOCAL_SIZE_Y];
 
-void Init(uint2 dispatchThreadId, uint groupIndex)
-{
+void Init(uint2 dispatchThreadId, uint groupIndex) {
 	uint3 inputTexSize;
 	inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
 	//uint2 inputTexSize;
@@ -36,19 +34,20 @@ void Init(uint2 dispatchThreadId, uint groupIndex)
 	localData[groupIndex] = data;
 }
 
-void Reduce(uint groupIndex, uint idx)
-{
+void Reduce(uint groupIndex, uint idx) {
 	localData[groupIndex] += localData[groupIndex + idx];
 }
 
-[numthreads(LOCAL_SIZE_X, LOCAL_SIZE_Y, 1)]
-void CSMain(
-	uint3 groupId : SV_GroupID, //WorkGroupId
-	uint3 groupThreadId : SV_GroupThreadID, //LocalInvocationId
-	uint3 dispatchThreadId : SV_DispatchThreadID, //GlobalInvocationId
-	uint groupIndex : SV_GroupIndex //LocalInvocationIndex
-)
-{
+[numthreads(LOCAL_SIZE_X, LOCAL_SIZE_Y, 1)] void CSMain(
+	uint3 groupId
+	: SV_GroupID, //WorkGroupId
+	  uint3 groupThreadId
+	: SV_GroupThreadID, //LocalInvocationId
+	  uint3 dispatchThreadId
+	: SV_DispatchThreadID, //GlobalInvocationId
+	  uint groupIndex
+	: SV_GroupIndex //LocalInvocationIndex
+) {
 	{ //INIT
 		uint3 inputTexSize;
 		inputTex.GetDimensions(0, inputTexSize.x, inputTexSize.y, inputTexSize.z);
@@ -56,8 +55,7 @@ void CSMain(
 		localData[groupIndex] = 0.0;
 
 		for (uint y = groupThreadId.y * (inputTexSize.y / float(LOCAL_SIZE_Y)); y < (groupThreadId.y + 1) * (inputTexSize.y / float(LOCAL_SIZE_Y)); ++y)
-			for (uint x = groupThreadId.x * (inputTexSize.x / float(LOCAL_SIZE_X)); x < (groupThreadId.x + 1) * (inputTexSize.x / float(LOCAL_SIZE_X)); ++x)
-			{
+			for (uint x = groupThreadId.x * (inputTexSize.x / float(LOCAL_SIZE_X)); x < (groupThreadId.x + 1) * (inputTexSize.x / float(LOCAL_SIZE_X)); ++x) {
 				Init(uint2(x, y), groupIndex);
 			}
 
@@ -66,10 +64,8 @@ void CSMain(
 
 	{ //REDUCTION
 		const uint reductionSize = LOCAL_SIZE_X * LOCAL_SIZE_Y;
-		for (uint x = reductionSize / 2; x > 0; x >>= 1)
-		{
-			if (groupIndex < x)
-			{
+		for (uint x = reductionSize / 2; x > 0; x >>= 1) {
+			if (groupIndex < x) {
 				Reduce(groupIndex, x);
 			}
 
@@ -78,8 +74,7 @@ void CSMain(
 	}
 
 	//CALC FINAL RESULTS
-	if (!bool(groupIndex))
-	{
+	if (!bool(groupIndex)) {
 		float avgLum = localData[0] * (1.0 / (LOCAL_SIZE_X * LOCAL_SIZE_Y));
 
 		const float delta = 0.0001;

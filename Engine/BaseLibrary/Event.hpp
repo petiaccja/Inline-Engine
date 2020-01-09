@@ -4,22 +4,22 @@
 #include "SpinMutex.hpp"
 #include "TemplateUtil.hpp"
 
-#include <set>
-#include <mutex>
-#include <vector>
-#include <typeindex>
 #include <functional>
+#include <mutex>
+#include <set>
+#include <typeindex>
+#include <vector>
 
 
 #ifdef _MSC_VER
-#pragma warning(disable: 4180)
+#pragma warning(disable : 4180)
 #endif
 
 
 namespace inl {
 
 
-/// <summary> You can sign up functors, then fire the event by calling it's (), 
+/// <summary> You can sign up functors, then fire the event by calling it's (),
 ///		and all the signed up functors will be called. </summary>
 template <class... ArgsT>
 class Event {
@@ -34,9 +34,8 @@ class Event {
 				const ComparableFun* target1 = lhs.target<const ComparableFun>();
 				const ComparableFun* target2 = rhs.target<const ComparableFun>();
 				if (target1 == nullptr || target2 == nullptr) {
-					return
-						((std::type_index)rhs.target_type() < (std::type_index)lhs.target_type())
-						- ((std::type_index)lhs.target_type() < (std::type_index)rhs.target_type());
+					return ((std::type_index)rhs.target_type() < (std::type_index)lhs.target_type())
+						   - ((std::type_index)lhs.target_type() < (std::type_index)rhs.target_type());
 				}
 				return (*target2 < *target1) - (*target1 < *target2);
 			};
@@ -61,7 +60,8 @@ class Event {
 
 	// Functors having both < and == are considered comparable.
 	template <class Fun>
-	static constexpr bool IsComparable = templ::is_equality_comparable<Fun>::value && templ::is_less_comparable<Fun>::value;
+	static constexpr bool IsComparable = templ::is_equality_comparable<Fun>::value&& templ::is_less_comparable<Fun>::value;
+
 public:
 	Event() = default;
 
@@ -102,12 +102,12 @@ public:
 			callee(args...);
 		}
 	}
-	
+
 	/// <summary> Signs up functor for the event. You may remove this functor via <see cref="operator-="/>. </summary>
 	template <class ComparableFun>
 	std::enable_if_t<IsComparable<ComparableFun>, void> operator+=(const ComparableFun& fun) {
 		std::lock_guard<decltype(m_mtx)> lkg(m_mtx);
-		
+
 		m_comparables.insert(Comparable(fun));
 	}
 

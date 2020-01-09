@@ -10,9 +10,10 @@
 #include <vector>
 
 // Graphics API & Engine includes
-#include <GraphicsApi_LL/Common.hpp>
 #include "NodeContext.hpp"
 #include "Scene.hpp"
+
+#include <GraphicsApi_LL/Common.hpp>
 
 
 
@@ -20,11 +21,12 @@ namespace inl {
 
 
 // Utility class for enum <-> string conversion.
-template <class EnumT, std::vector<std::pair<EnumT, std::string>>(*Generator)()>
+template <class EnumT, std::vector<std::pair<EnumT, std::string>> (*Generator)()>
 class EnumConverter {
 public:
 	static std::string ToString(const EnumT& arg);
 	static EnumT FromString(const std::string& arg);
+
 protected:
 	using Record = std::pair<EnumT, std::string>;
 
@@ -38,12 +40,12 @@ protected:
 	};
 
 	static void GetMaps(const std::unordered_set<const Record*, FmtHash, FmtHash>** byFmt,
-		const std::unordered_set<const Record*, StrHash, StrHash>** byStr);
+						const std::unordered_set<const Record*, StrHash, StrHash>** byStr);
 };
 
 
-template<class EnumT, std::vector<std::pair<EnumT, std::string>>(*Generator)()>
-inline std::string EnumConverter<EnumT, Generator>::ToString(const EnumT & arg) {
+template <class EnumT, std::vector<std::pair<EnumT, std::string>> (*Generator)()>
+inline std::string EnumConverter<EnumT, Generator>::ToString(const EnumT& arg) {
 	const std::unordered_set<const Record*, FmtHash, FmtHash>* byFmt;
 	const std::unordered_set<const Record*, StrHash, StrHash>* byStr;
 
@@ -59,8 +61,8 @@ inline std::string EnumConverter<EnumT, Generator>::ToString(const EnumT & arg) 
 	}
 }
 
-template<class EnumT, std::vector<std::pair<EnumT, std::string>>(*Generator)()>
-inline EnumT EnumConverter<EnumT, Generator>::FromString(const std::string & arg) {
+template <class EnumT, std::vector<std::pair<EnumT, std::string>> (*Generator)()>
+inline EnumT EnumConverter<EnumT, Generator>::FromString(const std::string& arg) {
 	const std::unordered_set<const Record*, FmtHash, FmtHash>* byFmt;
 	const std::unordered_set<const Record*, StrHash, StrHash>* byStr;
 
@@ -76,11 +78,10 @@ inline EnumT EnumConverter<EnumT, Generator>::FromString(const std::string & arg
 	}
 }
 
-template<class EnumT, std::vector<std::pair<EnumT, std::string>>(*Generator)()>
+template <class EnumT, std::vector<std::pair<EnumT, std::string>> (*Generator)()>
 inline void EnumConverter<EnumT, Generator>::GetMaps(
 	const std::unordered_set<const Record*, FmtHash, FmtHash>** byFmt,
-	const std::unordered_set<const Record*, StrHash, StrHash>** byStr) 
-{
+	const std::unordered_set<const Record*, StrHash, StrHash>** byStr) {
 	static std::vector<Record> records = Generator();
 
 	static std::unordered_set<const Record*, FmtHash, FmtHash> byFmtData = [&] {
@@ -120,16 +121,15 @@ namespace impl {
 
 	template <>
 	std::vector<std::pair<gxapi::eBlendLogicOperation, std::string>> ParseTableGenerator();
-	
-}
+
+} // namespace impl
 
 
 // eFormat
 template <>
 class PortConverter<gxapi::eFormat> : public PortConverterCollection<gxapi::eFormat> {
 public:
-	PortConverter() :
-		PortConverterCollection<gxapi::eFormat>(&FromString) {}
+	PortConverter() : PortConverterCollection<gxapi::eFormat>(&FromString) {}
 
 	std::string ToString(const gxapi::eFormat& fmt) const override {
 		return EnumConverter<gxapi::eFormat, &impl::ParseTableGenerator<gxapi::eFormat>>::ToString(fmt);
@@ -146,10 +146,10 @@ public:
 template <>
 class PortConverter<gxapi::RenderTargetBlendState> : public PortConverterCollection<gxapi::RenderTargetBlendState> {
 public:
-	PortConverter() :
-		PortConverterCollection<gxapi::RenderTargetBlendState>(&FromString) {}
+	PortConverter() : PortConverterCollection<gxapi::RenderTargetBlendState>(&FromString) {}
 
 	std::string ToString(const gxapi::RenderTargetBlendState& fmt) const override;
+
 protected:
 	static gxapi::RenderTargetBlendState FromString(const std::string&);
 };
@@ -160,10 +160,10 @@ protected:
 template <>
 class PortConverter<gxeng::TextureUsage> : public PortConverterCollection<gxeng::TextureUsage> {
 public:
-	PortConverter() :
-		PortConverterCollection<gxeng::TextureUsage>(&FromString) {}
+	PortConverter() : PortConverterCollection<gxeng::TextureUsage>(&FromString) {}
 
 	std::string ToString(const gxeng::TextureUsage& fmt) const override;
+
 protected:
 	static gxeng::TextureUsage FromString(const std::string&);
 };
@@ -173,8 +173,7 @@ protected:
 template <class EntityType>
 class PortConverter<const gxeng::EntityCollection<EntityType>*> : public PortConverterCollection<const gxeng::EntityCollection<EntityType>*> {
 public:
-	PortConverter() :
-		PortConverterCollection<const gxeng::EntityCollection<EntityType>*>(&FromScene) {}
+	PortConverter() : PortConverterCollection<const gxeng::EntityCollection<EntityType>*>(&FromScene) {}
 
 protected:
 	static const gxeng::EntityCollection<EntityType>* FromScene(const gxeng::Scene* scene) {

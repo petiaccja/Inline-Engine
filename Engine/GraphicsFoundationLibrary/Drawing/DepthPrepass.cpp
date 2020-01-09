@@ -1,11 +1,10 @@
 #include "DepthPrepass.hpp"
 
-#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
-
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
 #include <GraphicsEngine_LL/GraphicsCommandList.hpp>
 #include <GraphicsEngine_LL/Mesh.hpp>
 #include <GraphicsEngine_LL/MeshEntity.hpp>
+#include <GraphicsEngine_LL/Nodes/NodeUtility.hpp>
 
 
 
@@ -140,7 +139,7 @@ void DepthPrepass::Setup(SetupContext& context) {
 		psoDesc.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_CCW };
 		psoDesc.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
 
-		psoDesc.depthStencilState = gxapi::DepthStencilState{.enableDepthTest = true, .enableDepthStencilWrite = true, .enableStencilTest = false };
+		psoDesc.depthStencilState = gxapi::DepthStencilState{ .enableDepthTest = true, .enableDepthStencilWrite = true, .enableStencilTest = false };
 		psoDesc.depthStencilFormat = m_depthStencilFormat;
 
 		psoDesc.numRenderTargets = 0;

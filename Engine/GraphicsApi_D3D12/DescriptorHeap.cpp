@@ -1,8 +1,9 @@
 #include "DescriptorHeap.hpp"
-#include "../GraphicsApi_LL/Exception.hpp"
 
 #include "NativeCast.hpp"
 #include "d3dx12.h"
+
+#include "../GraphicsApi_LL/Exception.hpp"
 
 #include <cassert>
 #include <stdexcept>
@@ -11,15 +12,14 @@ namespace inl::gxapi_dx12 {
 
 
 DescriptorHeap::DescriptorHeap(ComPtr<ID3D12DescriptorHeap>& native, ID3D12Device* device)
-	: m_native{ native }
-{
+	: m_native{ native } {
 	// THIS SHIT IF FUCKED UP BECAUSE OF RENDERDOC
 
 	//ID3D12Device* device;
 	//if (FAILED(m_native->GetDevice(IID_PPV_ARGS(&device)))) {
 	//	throw inl::gxapi::Exception{ "Could not get device for heap." };
 	//}
-	
+
 	m_incrementSize = device->GetDescriptorHandleIncrementSize(m_native->GetDesc().Type);
 	m_cpuBaseHandle = m_native->GetCPUDescriptorHandleForHeapStart();
 	m_gpuBaseHandle = m_native->GetGPUDescriptorHandleForHeapStart();
@@ -53,4 +53,4 @@ ID3D12DescriptorHeap* DescriptorHeap::GetNative() {
 }
 
 
-} // namespace gxapi_dx12
+} // namespace inl::gxapi_dx12

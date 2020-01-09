@@ -1,9 +1,10 @@
 #include "ComputeCommandList.hpp"
+
 #include "MemoryManager.hpp"
 #include "VolatileViewHeap.hpp"
 
 
-namespace inl:: gxeng {
+namespace inl::gxeng {
 
 //------------------------------------------------------------------------------
 // Basic stuff
@@ -15,10 +16,7 @@ ComputeCommandList::ComputeCommandList(
 	CommandAllocatorPool& commandAllocatorPool,
 	ScratchSpacePool& scratchSpacePool,
 	MemoryManager& memoryManager,
-	VolatileViewHeap& volatileCbvHeap
-) :
-	CopyCommandList(gxApi, commandListPool, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::COMPUTE)
-{
+	VolatileViewHeap& volatileCbvHeap) : CopyCommandList(gxApi, commandListPool, commandAllocatorPool, scratchSpacePool, gxapi::eCommandListType::COMPUTE) {
 	m_commandList = dynamic_cast<gxapi::IComputeCommandList*>(GetCommandList());
 
 	m_computeBindingManager = BindingManager<gxapi::eCommandListType::COMPUTE>(m_graphicsApi, m_commandList, &memoryManager, &volatileCbvHeap);
@@ -32,10 +30,7 @@ ComputeCommandList::ComputeCommandList(
 	ScratchSpacePool& scratchSpacePool,
 	MemoryManager& memoryManager,
 	VolatileViewHeap& volatileCbvHeap,
-	gxapi::eCommandListType type
-) :
-	CopyCommandList(gxApi, commandListPool, commandAllocatorPool, scratchSpacePool, type)
-{
+	gxapi::eCommandListType type) : CopyCommandList(gxApi, commandListPool, commandAllocatorPool, scratchSpacePool, type) {
 	m_commandList = dynamic_cast<gxapi::IComputeCommandList*>(GetCommandList());
 
 	m_computeBindingManager = BindingManager<gxapi::eCommandListType::COMPUTE>(m_graphicsApi, m_commandList, &memoryManager, &volatileCbvHeap);
@@ -45,8 +40,7 @@ ComputeCommandList::ComputeCommandList(
 
 ComputeCommandList::ComputeCommandList(ComputeCommandList&& rhs)
 	: CopyCommandList(std::move(rhs)),
-	m_commandList(rhs.m_commandList)
-{
+	  m_commandList(rhs.m_commandList) {
 	rhs.m_commandList = nullptr;
 }
 
@@ -158,13 +152,13 @@ void ComputeCommandList::BindCompute(BindParameter parameter, const ConstBufferV
 	}
 }
 
-void ComputeCommandList::BindCompute(BindParameter parameter, const void* shaderConstant, int size/*, int offset*/) {
+void ComputeCommandList::BindCompute(BindParameter parameter, const void* shaderConstant, int size /*, int offset*/) {
 	try {
-		m_computeBindingManager.Bind(parameter, shaderConstant, size/*, offset*/);
+		m_computeBindingManager.Bind(parameter, shaderConstant, size /*, offset*/);
 	}
 	catch (std::bad_alloc&) {
 		NewScratchSpace(1000);
-		m_computeBindingManager.Bind(parameter, shaderConstant, size/*, offset*/);
+		m_computeBindingManager.Bind(parameter, shaderConstant, size /*, offset*/);
 	}
 }
 
@@ -233,4 +227,4 @@ void ComputeCommandList::UAVBarrier(const MemoryObject& memoryObject) {
 }
 
 
-} // namespace gxeng
+} // namespace inl::gxeng

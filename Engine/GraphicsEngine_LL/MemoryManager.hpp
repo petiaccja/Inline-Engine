@@ -1,30 +1,30 @@
 #pragma once
 
+#include "ConstBufferHeap.hpp"
+#include "CriticalBufferHeap.hpp"
 #include "HostDescHeap.hpp"
 #include "MemoryObject.hpp"
-#include "CriticalBufferHeap.hpp"
 #include "UploadManager.hpp"
-#include "ConstBufferHeap.hpp"
 
-#include "../GraphicsApi_LL/Common.hpp"
 #include "../GraphicsApi_D3D12/DescriptorHeap.hpp"
 #include "../GraphicsApi_D3D12/GraphicsApi.hpp"
+#include "../GraphicsApi_LL/Common.hpp"
 
-#include <iostream>
-#include <unordered_set>
-#include <mutex>
 #include <cassert>
+#include <iostream>
+#include <mutex>
 #include <type_traits>
+#include <unordered_set>
 
-namespace inl:: gxeng {
+namespace inl::gxeng {
 
 
 
 struct Texture1DDesc {
 	Texture1DDesc(uint64_t width = 0,
-		gxapi::eFormat format = gxapi::eFormat::UNKNOWN,
-		uint16_t mipLevels = 1,
-		uint16_t arraySize = 1)
+				  gxapi::eFormat format = gxapi::eFormat::UNKNOWN,
+				  uint16_t mipLevels = 1,
+				  uint16_t arraySize = 1)
 		: width(width), format(format), mipLevels(mipLevels), arraySize(arraySize) {}
 	uint64_t width;
 	uint16_t arraySize;
@@ -34,10 +34,10 @@ struct Texture1DDesc {
 
 struct Texture2DDesc {
 	Texture2DDesc(uint64_t width = 0,
-		uint32_t height = 0,
-		gxapi::eFormat format = gxapi::eFormat::UNKNOWN,
-		uint16_t mipLevels = 1,
-		uint16_t arraySize = 1)
+				  uint32_t height = 0,
+				  gxapi::eFormat format = gxapi::eFormat::UNKNOWN,
+				  uint16_t mipLevels = 1,
+				  uint16_t arraySize = 1)
 		: width(width), height(height), format(format), mipLevels(mipLevels), arraySize(arraySize) {}
 	uint64_t width;
 	uint32_t height;
@@ -48,10 +48,10 @@ struct Texture2DDesc {
 
 struct Texture3DDesc {
 	Texture3DDesc(uint64_t width = 0,
-		uint32_t height = 0,
-		uint16_t depth = 0,
-		gxapi::eFormat format = gxapi::eFormat::UNKNOWN,
-		uint16_t mipLevels = 1)
+				  uint32_t height = 0,
+				  uint16_t depth = 0,
+				  gxapi::eFormat format = gxapi::eFormat::UNKNOWN,
+				  uint16_t mipLevels = 1)
 		: width(width), height(height), depth(depth), mipLevels(mipLevels), format(format) {}
 	uint64_t width;
 	uint32_t height;
@@ -73,14 +73,14 @@ public:
 	/// memory pool for the resource to fit in.
 	/// </exception>
 	void LockResident(const std::vector<MemoryObject>& resources);
-	template<typename IterT>
+	template <typename IterT>
 	void LockResident(IterT begin, IterT end);
 
 	/// <summary>
 	/// WRITE A DESCRIPTION
 	/// </summary>
 	void UnlockResident(const std::vector<MemoryObject>& resources);
-	template<typename IterT>
+	template <typename IterT>
 	void UnlockResident(IterT begin, IterT end);
 
 	UploadManager& GetUploadManager();
@@ -110,7 +110,7 @@ private:
 };
 
 
-template<typename IterT>
+template <typename IterT>
 void MemoryManager::LockResident(IterT begin, IterT end) {
 	static_assert(std::is_same<typename IterT::value_type, MemoryObject>::value);
 
@@ -165,7 +165,7 @@ void MemoryManager::LockResident(IterT begin, IterT end) {
 }
 
 
-template<typename IterT>
+template <typename IterT>
 void MemoryManager::UnlockResident(IterT begin, IterT end) {
 	static_assert(std::is_same<typename IterT::value_type, MemoryObject>::value);
 
@@ -173,4 +173,4 @@ void MemoryManager::UnlockResident(IterT begin, IterT end) {
 	m_evictables.insert(begin, end);
 }
 
-} // namespace gxeng
+} // namespace inl::gxeng
