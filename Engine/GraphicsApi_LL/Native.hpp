@@ -7,12 +7,10 @@
 #include <windows.h>
 #include "DisableWin32Macros.h"
 
-namespace inl {
-namespace gxapi {
+namespace inl:: gxapi {
 
 using NativeWindowHandle = HWND;
 
-}
 }
 
 

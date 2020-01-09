@@ -9,8 +9,7 @@
 #include "MemoryManager.hpp"
 
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 
 class MemoryManager;
@@ -183,4 +182,3 @@ MeshBuffer::eValidationResult MeshBuffer::Validate(StreamIt firstStream, StreamI
 
 
 } // namespace gxeng
-} // namespace inl

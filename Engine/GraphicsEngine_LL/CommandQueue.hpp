@@ -8,8 +8,7 @@
 #include "SyncPoint.hpp"
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 class CommandQueue {
@@ -63,5 +62,4 @@ private:
 };
 
 
-}
 }

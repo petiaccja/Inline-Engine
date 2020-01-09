@@ -1,7 +1,6 @@
 #include "PipelineState.hpp"
 
-namespace inl {
-namespace gxapi_dx12 {
+namespace inl::gxapi_dx12 {
 
 PipelineState::PipelineState(ComPtr<ID3D12PipelineState> native)
 	: m_native{native}
@@ -12,5 +11,4 @@ ID3D12PipelineState* PipelineState::GetNative() {
 }
 
 
-} // namespace gxapi_dx12
 } // namespace inl

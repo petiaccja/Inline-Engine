@@ -5,8 +5,7 @@
 #include <BaseLibrary/HashCombine.hpp>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl :: gxeng {
 
 
 
@@ -243,5 +242,4 @@ std::mutex Mesh::Layout::idGeneratorMtx;
 
 
 
-} // namespace gxeng
-} // namespace inl
+} // namespace gxe

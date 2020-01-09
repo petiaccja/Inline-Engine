@@ -14,8 +14,7 @@
 #include <set>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 
 	class CommandAllocatorPool;
@@ -61,4 +60,3 @@ namespace gxeng {
 
 
 } // namespace gxeng
-} // namespace inl

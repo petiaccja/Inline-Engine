@@ -3,8 +3,7 @@
 #include "VolatileViewHeap.hpp"
 
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 //------------------------------------------------------------------------------
 // Basic stuff
@@ -235,4 +234,3 @@ void ComputeCommandList::UAVBarrier(const MemoryObject& memoryObject) {
 
 
 } // namespace gxeng
-} // namespace inl

@@ -6,8 +6,7 @@
 #include "MemoryObject.hpp"
 #include "BufferHeap.hpp"
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 namespace impl {
 
@@ -32,4 +31,3 @@ private:
 
 } // namespace impl
 } // namespace gxeng
-} // namespace inl

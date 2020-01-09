@@ -3,8 +3,7 @@
 #include <cstdint>
 #include <limits>
 
-namespace inl {
-namespace gxapi {
+namespace inl::gxapi {
 
 class IFence {
 public:
@@ -20,4 +19,3 @@ public:
 };
 
 } // namespace gxapi
-} // namespace inl

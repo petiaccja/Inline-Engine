@@ -8,8 +8,7 @@
 //Dont even think about returning a pointer that points to a locally allocated space
 //#include <vector>
 
-namespace inl {
-namespace gxapi_dx12 {
+namespace inl::gxapi_dx12 {
 
 
 ///////////////////////
@@ -2329,5 +2328,4 @@ gxapi::SwapChainDesc native_cast(DXGI_SWAP_CHAIN_DESC source) {
 }
 
 
-} // namespace gxapi_dx12
 } // namespace inl

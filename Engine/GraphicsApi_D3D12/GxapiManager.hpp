@@ -7,8 +7,7 @@
 #include <wrl.h>
 
 
-namespace inl {
-namespace gxapi_dx12 {
+namespace inl::gxapi_dx12 {
 
 
 class GxapiManager : public gxapi::IGxapiManager {
@@ -45,4 +44,3 @@ private:
 
 
 } // namespace gxapi_dx12
-} // namespace inl

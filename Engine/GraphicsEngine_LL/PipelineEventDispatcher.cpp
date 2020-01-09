@@ -2,8 +2,7 @@
 #include <BaseLibrary/ThreadName.hpp>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 
 
@@ -199,4 +198,3 @@ void PipelineEventDispatcher::PushEventAction(State* state, EventAction eventAct
 
 
 } // namespace gxeng
-} // namespace inl

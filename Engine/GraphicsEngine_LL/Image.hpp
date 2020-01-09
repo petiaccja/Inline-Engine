@@ -6,8 +6,7 @@
 #include "ImageBase.hpp"
 
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 
 class Image : public IImage, protected ImageBase {
@@ -35,4 +34,3 @@ private:
 
 
 } // namespace gxeng
-} // namespace inl

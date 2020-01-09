@@ -12,8 +12,7 @@
 #include <d3d12.h>
 #include "../GraphicsApi_LL/DisableWin32Macros.h"
 
-namespace inl {
-namespace gxapi_dx12 {
+namespace inl::gxapi_dx12 {
 
 using Microsoft::WRL::ComPtr;
 
@@ -59,4 +58,3 @@ protected:
 
 
 } // namespace gxapi_dx12
-} // namespace inl

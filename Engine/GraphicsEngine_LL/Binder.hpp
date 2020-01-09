@@ -9,21 +9,18 @@
 #include <initializer_list>
 
 
-namespace inl {namespace gxapi {
+namespace inl :: gxapi {
 	class IGraphicsApi;
 }
-}
 
 
-namespace inl {namespace gxeng {
+namespace inl::gxeng {
 class Binder;
-}
 }
 inline std::ostream& operator<<(std::ostream& os, const inl::gxeng::Binder& binder);
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 /// <summary> Specifies the target registers type. </summary>
@@ -131,7 +128,6 @@ private:
 
 
 } // namespace gxeng
-} // namespace inl
 
 
 #include <map>

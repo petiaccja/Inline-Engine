@@ -5,8 +5,7 @@
 #include <cstdint>
 
 
-namespace inl {
-namespace gxapi {
+namespace inl::gxapi {
 
 
 class ICommandList;
@@ -30,4 +29,3 @@ public:
 };
 
 } // namespace gxapi
-} // namespace inl

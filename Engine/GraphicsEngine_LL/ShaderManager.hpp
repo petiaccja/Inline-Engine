@@ -11,8 +11,7 @@
 #include <BaseLibrary/HashCombine.hpp>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 
 /// <summary> Contains the compiled binaries for a shader stage (VS, PS, etc.). </summary>
@@ -234,4 +233,3 @@ private:
 
 
 } // namespace gxeng
-} // namespace inl

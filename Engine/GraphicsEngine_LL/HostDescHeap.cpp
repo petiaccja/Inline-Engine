@@ -7,8 +7,7 @@
 #include <type_traits>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl :: gxeng {
 
 
 
@@ -54,4 +53,3 @@ void CbvSrvUavHeap::CreateUAV(MemoryObject& resource, gxapi::UnorderedAccessView
 
 
 } // namespace inl
-} // namespace gxeng

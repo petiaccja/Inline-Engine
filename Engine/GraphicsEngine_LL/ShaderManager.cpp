@@ -6,8 +6,7 @@
 #include <functional>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl :: gxeng {
 
 
 ShaderManager::ShaderManager(gxapi::IGxapiManager* gxapiManager)
@@ -286,4 +285,3 @@ std::string ShaderManager::StripShaderName(std::string name, bool lowerCase) {
 
 
 } // namespace gxeng
-} // namespace inl

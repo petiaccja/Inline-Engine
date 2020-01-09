@@ -6,8 +6,7 @@
 #include <comdef.h>
 #include <string>
 
-namespace inl {
-namespace gxapi_dx12 {
+namespace inl::gxapi_dx12 {
 
 
 void ThrowIfFailed(HRESULT code, const std::string& additionalInfo) {
@@ -64,5 +63,4 @@ void ThrowIfFailed(HRESULT code, const std::string& additionalInfo) {
 }
 
 
-} // namespace gxapi_dx12
 } // namespace inl

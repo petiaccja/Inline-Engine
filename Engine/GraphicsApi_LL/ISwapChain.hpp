@@ -3,8 +3,7 @@
 #include "Common.hpp"
 
 
-namespace inl {
-namespace gxapi {
+namespace inl:: gxapi {
 
 class IResource;
 
@@ -26,4 +25,3 @@ public:
 
 
 } //namespace gxapi
-} // namespace inl

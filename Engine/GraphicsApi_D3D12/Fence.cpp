@@ -4,8 +4,7 @@
 #include <memory>
 
 
-namespace inl {
-namespace gxapi_dx12 {
+namespace inl::gxapi_dx12 {
 
 
 thread_local Fence::EventHelper Fence::threadEvent;
@@ -74,5 +73,4 @@ void Fence::WaitMultiple(const IFence** fences, uint64_t* values, size_t count, 
 }
 
 
-} // namespace gxapi_dx12
 } // namespace inl

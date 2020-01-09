@@ -5,8 +5,7 @@
 #include <cstdint>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 enum class ePixelChannelType {
@@ -164,4 +163,3 @@ typename Pixel<ChannelType, ChannelCount, ePixelClass::LINEAR>::PixelReader Pixe
 
 
 } // namespace gxeng
-} // namespace inl

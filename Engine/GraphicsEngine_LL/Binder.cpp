@@ -6,8 +6,7 @@
 #include <algorithm>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 
@@ -261,4 +260,3 @@ gxapi::DescriptorRange::eType Binder::CastRangeType(eBindParameterType source) {
 
 
 } // namespace gxeng
-} // namespace inl

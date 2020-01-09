@@ -9,8 +9,7 @@
 #include <utility>
 #include <iostream>
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 class RTVHeap;
@@ -287,4 +286,3 @@ protected:
 
 
 } // namespace gxeng
-} // namespace inl

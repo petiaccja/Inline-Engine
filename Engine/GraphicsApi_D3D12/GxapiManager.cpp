@@ -24,8 +24,7 @@ using Microsoft::WRL::ComPtr;
 using namespace inl::gxapi;
 
 
-namespace inl {
-namespace gxapi_dx12 {
+namespace inl::gxapi_dx12 {
 
 
 
@@ -473,5 +472,4 @@ gxapi::ShaderProgramBinary GxapiManager::ConvertShaderOutput(HRESULT hr, ID3DBlo
 }
 
 
-} // namespace gxapi_dx12
 } // namespace inl

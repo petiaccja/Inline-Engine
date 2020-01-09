@@ -5,8 +5,7 @@
 #include "MemoryObject.hpp"
 
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 
 class RenderTargetView2D;
@@ -28,4 +27,3 @@ protected:
 
 
 } // namespace gxeng
-} // namespace inl

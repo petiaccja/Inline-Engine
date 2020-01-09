@@ -10,8 +10,7 @@
 #include <atomic>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 /// <summary> Manages initializing and cleanup of command lists. </summary>
 class ResourceResidencyQueue {
@@ -99,4 +98,3 @@ inline void ResourceResidencyQueue::EnqueueClean(SyncPoint waitFor, std::vector<
 }
 
 } // namespace gxeng
-} // namespace inl

@@ -4,8 +4,7 @@
 
 #include "../BaseLibrary/TemplateUtil.hpp"
 
-namespace inl {
-namespace gxapi {
+namespace inl::gxapi {
 
 class IDescriptorHeap;
 
@@ -188,4 +187,3 @@ void ICopyCommandList::PopulateBarrierTable(::inl::gxapi::ResourceBarrier* targe
 
 
 } // namespace gxapi
-} // namespace inl

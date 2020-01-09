@@ -5,8 +5,7 @@
 #include "../GraphicsApi_LL/IGraphicsApi.hpp"
 #include "../GraphicsApi_LL/IDescriptorHeap.hpp"
 
-namespace inl {
-namespace gxeng {
+namespace inl :: gxeng {
 
 
 /// <summary>
@@ -32,4 +31,3 @@ private:
 
 
 } // namespace gxeng
-} // namespace inl

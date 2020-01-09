@@ -21,8 +21,7 @@
 #endif
 
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 
 class GraphicsNodeFactory;
@@ -123,4 +122,3 @@ private:
 
 
 } // namespace gxeng
-} // namespace inl

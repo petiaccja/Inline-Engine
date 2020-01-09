@@ -2,8 +2,7 @@
 
 #include <cassert>
 
-namespace inl {
-namespace gxeng {
+namespace inl :: gxeng {
 
 
 ConstantBufferHeap::ConstantBufferHeap(gxapi::IGraphicsApi* graphicsApi) :
@@ -191,4 +190,3 @@ void ConstantBufferHeap::MarkEmptyIfRecycled(ConstBufferPage& page) {
 
 
 } // namespace gxeng
-} // namespace inl

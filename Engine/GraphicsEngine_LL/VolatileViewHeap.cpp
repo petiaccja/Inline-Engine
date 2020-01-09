@@ -1,8 +1,7 @@
 #include "VolatileViewHeap.hpp"
 
 
-namespace inl {
-namespace gxeng {
+namespace inl :: gxeng {
 
 
 VolatileViewHeap::VolatileViewHeap(gxapi::IGraphicsApi* graphicsApi) :
@@ -27,4 +26,3 @@ gxapi::DescriptorHandle VolatileViewHeap::Allocate() {
 
 
 } // namespace gxeng
-} // namespace inl

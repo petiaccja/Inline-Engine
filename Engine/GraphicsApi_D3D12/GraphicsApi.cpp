@@ -18,8 +18,7 @@
 #include <array>
 #include <list>
 
-namespace inl {
-namespace gxapi_dx12 {
+namespace inl::gxapi_dx12 {
 
 
 GraphicsApi::GraphicsApi(Microsoft::WRL::ComPtr<ID3D12Device> device) : m_device(device) {
@@ -550,6 +549,4 @@ gxapi::ICapabilityQuery* GraphicsApi::GetCapabilityQuery() const {
 }
 
 
-
-} // namespace gxapi_dx12
 } // namespace inl

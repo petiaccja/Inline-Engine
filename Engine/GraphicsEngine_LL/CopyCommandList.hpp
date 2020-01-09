@@ -10,16 +10,13 @@
 
 #include <InlineMath.hpp>
 
-namespace inl {
-namespace gxapi {
+namespace inl:: gxapi {
 class ICommandAllocator;
 class IPipelineState;
 }
-}
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 class CommandAllocatorPool;
 
@@ -124,4 +121,3 @@ private:
 
 
 } // namespace gxeng
-} // namespace inl

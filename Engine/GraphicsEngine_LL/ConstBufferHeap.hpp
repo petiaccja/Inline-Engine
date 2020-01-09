@@ -12,8 +12,7 @@
 #include <memory>
 #include <mutex>
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 class MemoryManager;
 
@@ -80,4 +79,3 @@ protected:
 };
 
 } // namespace gxeng
-} // namespace inl

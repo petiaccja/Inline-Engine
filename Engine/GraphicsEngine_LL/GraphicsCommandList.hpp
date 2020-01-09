@@ -7,8 +7,7 @@
 #include "BindingManager.hpp"
 #include "Cubemap.hpp"
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 
@@ -106,4 +105,3 @@ private:
 
 
 } // namespace gxeng
-} // namespace inl

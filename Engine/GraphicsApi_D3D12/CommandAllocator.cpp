@@ -4,8 +4,7 @@
 
 #include <stdexcept>
 
-namespace inl {
-namespace gxapi_dx12 {
+namespace inl::gxapi_dx12 {
 
 
 CommandAllocator::CommandAllocator(ComPtr<ID3D12CommandAllocator>& native, gxapi::eCommandListType type)
@@ -29,4 +28,3 @@ gxapi::eCommandListType CommandAllocator::GetType() const {
 
 
 } // namespace gxapi_dx12
-} // namespace inl

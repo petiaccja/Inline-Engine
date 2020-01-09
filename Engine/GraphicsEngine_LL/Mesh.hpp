@@ -9,8 +9,7 @@
 #include <BaseLibrary/UniqueIdGenerator.hpp>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl :: gxeng {
 
 
 class Mesh : public IMesh, protected MeshBuffer {
@@ -105,4 +104,3 @@ private:
 
 
 } // namespace gxeng
-} // namespace inl

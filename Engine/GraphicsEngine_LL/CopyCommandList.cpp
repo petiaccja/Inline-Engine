@@ -1,7 +1,6 @@
 #include "CopyCommandList.hpp"
 
-namespace inl {
-namespace gxeng {
+namespace inl  ::gxeng {
 
 
 CopyCommandList::CopyCommandList(
@@ -290,4 +289,3 @@ void CopyCommandList::CopyTexture(const Texture2D& dst, const LinearBuffer& src,
 
 
 } // namespace gxeng
-} // namespace inl

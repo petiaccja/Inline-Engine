@@ -11,8 +11,7 @@
 #include <thread>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 class PipelineEventDispatcher {
@@ -74,4 +73,3 @@ private:
 
 
 } // namespace gxeng
-} // namespace inl

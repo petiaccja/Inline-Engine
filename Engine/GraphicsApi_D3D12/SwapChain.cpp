@@ -10,8 +10,7 @@
 using namespace inl::gxapi;
 using Microsoft::WRL::ComPtr;
 
-namespace inl {
-namespace gxapi_dx12 {
+namespace inl::gxapi_dx12 {
 
 SwapChain::SwapChain(Microsoft::WRL::ComPtr<IDXGISwapChain3> native) {
 	m_native = native;
@@ -84,5 +83,4 @@ void SwapChain::Present() {
 }
 
 
-} // namespace gxapi_dx12
 } // namespace inl

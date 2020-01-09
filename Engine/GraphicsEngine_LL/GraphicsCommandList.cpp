@@ -2,8 +2,7 @@
 #include "VolatileViewHeap.hpp"
 #include "MemoryManager.hpp"
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 
 //------------------------------------------------------------------------------
@@ -353,4 +352,3 @@ void GraphicsCommandList::BindGraphics(BindParameter parameter, const RWBufferVi
 
 
 } // namespace gxeng
-} // namespace inl

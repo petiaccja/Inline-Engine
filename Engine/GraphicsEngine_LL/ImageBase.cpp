@@ -1,7 +1,6 @@
 #include "ImageBase.hpp"
 
-namespace inl {
-namespace gxeng {
+namespace inl ::gxeng {
 
 
 ImageBase::ImageBase(MemoryManager* memoryManager, CbvSrvUavHeap* descriptorHeap) {
@@ -165,4 +164,3 @@ bool ImageBase::ConvertFormat(ePixelChannelType channelType, int channelCount, e
 
 
 } // namespace gxeng
-} // namespace inl

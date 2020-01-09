@@ -6,8 +6,7 @@
 
 #include <cassert>
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 BackBufferManager::BackBufferManager(gxapi::IGraphicsApi* graphicsApi, gxapi::ISwapChain* swapChain) :
@@ -33,4 +32,3 @@ Texture2D& BackBufferManager::GetBackBuffer(unsigned index) {
 
 
 } // namespace gxeng
-} // namespace inl

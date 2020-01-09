@@ -7,8 +7,7 @@
 #include <cassert>
 #include <stdexcept>
 
-namespace inl {
-namespace gxapi_dx12 {
+namespace inl::gxapi_dx12 {
 
 
 DescriptorHeap::DescriptorHeap(ComPtr<ID3D12DescriptorHeap>& native, ID3D12Device* device)
@@ -55,4 +54,3 @@ ID3D12DescriptorHeap* DescriptorHeap::GetNative() {
 
 
 } // namespace gxapi_dx12
-} // namespace inl

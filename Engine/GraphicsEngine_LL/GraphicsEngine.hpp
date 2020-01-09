@@ -40,8 +40,7 @@
 #undef CreateFont // Fuck goddamn winapi -.-
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 	class Mesh;
@@ -207,4 +206,3 @@ namespace gxeng {
 
 
 } // namespace gxeng
-} // namespace inl

@@ -4,8 +4,7 @@
 #include "ICommandList.hpp"
 
 
-namespace inl {
-namespace gxapi {
+namespace inl :: gxapi {
 
 
 class ICommandQueue;
@@ -118,4 +117,3 @@ public:
 
 
 } // namespace gxapi
-} // namespace inl

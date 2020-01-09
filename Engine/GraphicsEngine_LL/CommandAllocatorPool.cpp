@@ -5,8 +5,7 @@
 
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 CommandAllocatorPool::CommandAllocatorPool(gxapi::IGraphicsApi* gxApi)
@@ -59,4 +58,3 @@ gxapi::IGraphicsApi* CommandAllocatorPool::GetGraphicsApi() const {
 
 
 } // namespace gxeng
-} // namespace inl

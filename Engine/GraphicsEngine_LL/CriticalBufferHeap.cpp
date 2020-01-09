@@ -7,8 +7,7 @@
 #include <iostream>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 namespace impl {
 
 
@@ -119,4 +118,3 @@ Texture3D CriticalBufferHeap::CreateTexture3D(const Texture3DDesc& desc, gxapi::
 
 } // namespace impl
 } // namespace gxeng
-} // namespace inl

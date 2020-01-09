@@ -13,8 +13,7 @@ class Stream;
 
 
 
-namespace inl {
-namespace gxapi {
+namespace inl::gxapi {
 
 class ISwapChain;
 class IGraphicsApi;
@@ -55,4 +54,3 @@ public:
 
 
 } // namespace gxapi
-} // namespace inl

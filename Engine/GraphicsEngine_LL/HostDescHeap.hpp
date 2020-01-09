@@ -10,8 +10,7 @@
 #include <functional>
 #include <cassert>
 
-namespace inl {
-namespace gxeng {
+namespace inl :: gxeng {
 
 class MemoryObject;
 
@@ -181,5 +180,3 @@ public:
 
 
 } // namespace gxeng
-} // namespace inl
-

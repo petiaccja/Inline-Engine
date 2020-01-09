@@ -2,8 +2,7 @@
 #include <cassert>
 #include <algorithm>
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 ScratchSpacePool::ScratchSpacePool(gxapi::IGraphicsApi* gxApi, gxapi::eDescriptorHeapType type) 
 	: m_gxApi(gxApi), m_type(type)
@@ -50,4 +49,3 @@ void ScratchSpacePool::RecycleScratchSpace(StackDescHeap* scratchSpace) {
 
 
 } // namespace gxeng
-} // namespace inl

@@ -6,8 +6,7 @@
 #include <memory>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 class CommandQueue;
@@ -40,4 +39,3 @@ private:
 
 
 } // namespace gxeng
-} // namespace inl

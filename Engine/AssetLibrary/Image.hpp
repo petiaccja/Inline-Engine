@@ -9,8 +9,7 @@
 #include <filesystem>
 
 
-namespace inl {
-namespace asset {
+namespace inl::asset {
 
 
 enum class eChannelType {
@@ -93,5 +92,4 @@ private:
 };
 
 
-}
 }

@@ -11,8 +11,7 @@
 #include <cassert>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 MemoryManager::MemoryManager(gxapi::IGraphicsApi* graphicsApi) :
@@ -94,4 +93,3 @@ BufferHeap& MemoryManager::GetHeap(eResourceHeap heap) {
 
 
 } // namespace gxeng
-} // namespace inl

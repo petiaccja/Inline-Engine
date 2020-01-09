@@ -8,8 +8,7 @@
 #include <mutex>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 
 
@@ -52,4 +51,3 @@ using ScratchSpacePtr = ScratchSpacePool::UniquePtr;
 
 
 } // namespace gxeng
-} // namespace inl

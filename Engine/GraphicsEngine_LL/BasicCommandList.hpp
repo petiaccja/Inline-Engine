@@ -15,8 +15,7 @@
 #include <BaseLibrary/HashCombine.hpp>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 struct SubresourceId {
 	SubresourceId() = default;
@@ -54,7 +53,6 @@ struct CommandListCounters {
 
 
 } // namespace gxeng
-} // namespace inl
 
 
 namespace std {
@@ -70,8 +68,7 @@ struct hash<inl::gxeng::SubresourceId> {
 
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 class BasicCommandList {
@@ -133,4 +130,3 @@ private:
 
 
 } // namespace gxeng
-} // namespace inl

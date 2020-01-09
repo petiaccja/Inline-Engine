@@ -5,8 +5,7 @@
 #include <cstdint>
 
 
-namespace inl {
-namespace gxapi {
+namespace inl::gxapi {
 
 // note: done
 class IDescriptorHeap {
@@ -21,4 +20,3 @@ public:
 
 
 } // namespace gxapi
-} // namespace inl

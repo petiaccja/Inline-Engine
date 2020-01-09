@@ -6,8 +6,7 @@
 
 #include <GraphicsEngine/Scene/IScene.hpp>
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 
 class GraphicsEngine;
@@ -52,4 +51,3 @@ private:
 
 
 } // namespace gxeng
-} // namespace inl

@@ -12,8 +12,7 @@
 #include <cassert>
 
 
-namespace inl {
-namespace gxapi_dx12 {
+namespace inl::gxapi_dx12 {
 
 Resource::Resource(ComPtr<ID3D12Resource>& native, std::nullptr_t) : Resource(native, ComPtr<ID3D12Device>(nullptr))
 {}
@@ -163,5 +162,4 @@ void Resource::SetName(const char* name) {
 }
 
 
-} // namespace gxapi_dx12
 } // namespace inl

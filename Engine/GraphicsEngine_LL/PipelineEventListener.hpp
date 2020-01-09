@@ -3,8 +3,7 @@
 #include <cstdint>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 
 
@@ -19,4 +18,3 @@ public:
 
 
 } // namespace gxeng
-} // namespace inl

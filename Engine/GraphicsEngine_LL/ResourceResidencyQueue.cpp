@@ -1,8 +1,7 @@
 #include "ResourceResidencyQueue.hpp"
 #include <BaseLibrary/ThreadName.hpp>
 
-namespace inl {
-namespace gxeng {
+namespace inl :: gxeng {
 
 
 ResourceResidencyQueue::ResourceResidencyQueue(std::unique_ptr<gxapi::IFence> fence) 
@@ -102,4 +101,3 @@ void ResourceResidencyQueue::CleanThreadFunc() {
 
 
 } // namespace gxeng
-} // namespace inl

@@ -16,8 +16,7 @@
 #include <cassert>
 #include <type_traits>
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 
 
@@ -175,4 +174,3 @@ void MemoryManager::UnlockResident(IterT begin, IterT end) {
 }
 
 } // namespace gxeng
-} // namespace inl

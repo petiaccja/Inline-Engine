@@ -11,8 +11,7 @@
 #include <cassert>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 namespace impl {
@@ -170,4 +169,3 @@ private:
 
 
 } // namespace gxeng
-} // namespace inl

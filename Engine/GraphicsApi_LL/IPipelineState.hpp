@@ -1,7 +1,6 @@
 #pragma once
 
-namespace inl {
-namespace gxapi {
+namespace inl:: gxapi {
 
 class IPipelineState {
 public:
@@ -9,5 +8,4 @@ public:
 
 };
 
-}
 }

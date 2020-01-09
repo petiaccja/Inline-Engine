@@ -5,8 +5,7 @@
 
 #include <cassert>
 
-namespace inl {
-namespace gxeng {
+namespace inl:: gxeng {
 
 
 DescriptorArrayRef::DescriptorArrayRef() :
@@ -74,4 +73,3 @@ void StackDescHeap::Reset() {
 
 
 } // namespace gxeng
-} // namespace inl

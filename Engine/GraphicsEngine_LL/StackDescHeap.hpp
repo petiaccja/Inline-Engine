@@ -6,8 +6,7 @@
 #include <limits>
 #include <cstdint>
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 class StackDescHeap;
 
@@ -71,5 +70,3 @@ protected:
 
 
 } // namespace gxeng
-} // namespace inl
-

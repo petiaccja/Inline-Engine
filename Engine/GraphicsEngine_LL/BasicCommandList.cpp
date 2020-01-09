@@ -2,8 +2,7 @@
 #include <iterator>
 #include "GraphicsApi_D3D12/CommandList.hpp"
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 BasicCommandList::BasicCommandList(gxapi::IGraphicsApi* gxApi,
@@ -120,4 +119,3 @@ void BasicCommandList::SetName(const char* name) {
 
 
 } // namespace gxapi
-} // namespace inl

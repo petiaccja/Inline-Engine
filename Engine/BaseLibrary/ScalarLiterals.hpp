@@ -1,7 +1,6 @@
 #pragma once
 
-namespace inl {
-namespace prefix {
+namespace inl::prefix {
 
 
 ////////////////////////////////
@@ -100,5 +99,4 @@ constexpr long long operator "" _Ti(unsigned long long x) {
 }
 
 
-}
 }

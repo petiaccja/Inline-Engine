@@ -6,8 +6,7 @@
 #include <GraphicsApi_LL/IGraphicsApi.hpp>
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 static std::vector<uint32_t> CalcSubresourceList(const Texture2D&, const gxapi::RtvTexture2DArray&);
@@ -757,5 +756,3 @@ static std::vector<uint32_t> CalcSubresourceList(const Texture3D& obj, const gxa
 
 
 } // namespace gxeng
-} // namespace inl
-

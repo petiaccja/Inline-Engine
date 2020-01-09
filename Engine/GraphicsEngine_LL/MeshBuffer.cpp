@@ -6,8 +6,7 @@
 
 
 
-namespace inl {
-namespace gxeng {
+namespace inl::gxeng {
 
 
 
@@ -67,4 +66,3 @@ const IndexBuffer& MeshBuffer::GetIndexBuffer() const {
 
 
 } // namespace gxeng
-} // namespace inl

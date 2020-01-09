@@ -14,16 +14,13 @@
 
 #pragma warning(disable: 4250)
 
-namespace inl {
-namespace gxapi {
+namespace inl::gxapi {
 
 class IDescriptorHeap;
 
 }
-}
 
-namespace inl {
-namespace gxapi_dx12 {
+namespace inl::gxapi_dx12 {
 
 
 using Microsoft::WRL::ComPtr;
@@ -201,4 +198,3 @@ public:
 
 
 } //namespace gxapi_dx12
-} //namespace inl
