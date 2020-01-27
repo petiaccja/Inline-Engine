@@ -122,6 +122,15 @@ public:
 };
 
 
+class KeyNotFoundException : public LogicException {
+public:
+	using LogicException::LogicException;
+
+	KeyNotFoundException() : LogicException("Key was not found.") {}
+	KeyNotFoundException(nullptr_t, std::string subject) : LogicException("Key was not found.", std::move(subject)) {}
+};
+
+
 class OutOfMemoryException : public LogicException {
 public:
 	using LogicException::LogicException;

@@ -3,10 +3,12 @@
 #include "../Helpers/PipelineSetupUtility.hpp"
 
 #include <BaseLibrary/Range.hpp>
+#include <GraphicsEngine/Exception.hpp>
 #include <GraphicsEngine_LL/AutoRegisterNode.hpp>
 #include <GraphicsEngine_LL/DirectionalLight.hpp>
 #include <GraphicsEngine_LL/GraphicsCommandList.hpp>
 #include <GraphicsEngine_LL/Image.hpp>
+#include <GraphicsEngine_LL/Mesh.hpp>
 #include <GraphicsEngine_LL/MeshEntity.hpp>
 
 
@@ -52,13 +54,24 @@ static const BindParameterDesc vsHeightMapBind{
 };
 
 static const gxapi::StaticSamplerDesc vsHeightmapSampler{
-
+	.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_LINEAR,
+	.addressU = gxapi::eTextureAddressMode::CLAMP,
+	.addressV = gxapi::eTextureAddressMode::CLAMP,
+	.addressW = gxapi::eTextureAddressMode::CLAMP,
+	.mipLevelBias = 0.f,
+	.shaderRegister = 0,
+	.registerSpace = 0,
+	.shaderVisibility = gxapi::eShaderVisiblity::VERTEX
 };
 
 static const std::vector shaderBindParams = {
 	vsConstantsBind,
 	psConstantsBind,
 	vsHeightMapBind,
+};
+
+static const std::vector staticSamplers = {
+	vsHeightmapSampler,
 };
 
 static const PipelineStateTemplate psoTemplate = [] {
@@ -89,7 +102,7 @@ static const PipelineStateTemplate psoTemplate = [] {
 
 
 RenderForwardHeightmaps::RenderForwardHeightmaps()
-	: m_psoCache(psoTemplate, shaderBindParams) {}
+	: m_psoCache(psoTemplate, shaderBindParams, staticSamplers) {}
 
 
 void RenderForwardHeightmaps::Reset() {
@@ -187,7 +200,7 @@ void RenderForwardHeightmaps::UpdatePsoCache(const Texture2D& renderTarget, cons
 		auto psoTemplateFmt = psoTemplate;
 		psoTemplateFmt.renderTargetFormats[0] = renderTarget.GetFormat();
 		psoTemplateFmt.depthStencilFormat = depthTarget.GetFormat();
-		m_psoCache.Reset(psoTemplateFmt, shaderBindParams);
+		m_psoCache.Reset(psoTemplateFmt, shaderBindParams, staticSamplers);
 	}
 }
 
@@ -207,14 +220,13 @@ void RenderForwardHeightmaps::RenderEntities(RenderContext& context, GraphicsCom
 	};
 
 	for (auto& entity : *entities) {
-		if (!entity->GetMesh() || !entity->GetMaterial() || !entity->GetHeightmap()) {
-			continue;
-		}
+		IsEntityValid(*entity);
 
 		VsConstants vsConstants;
 		const Mesh& mesh = static_cast<const Mesh&>(*entity->GetMesh());
 		const Material& material = static_cast<const Material&>(*entity->GetMaterial());
 		const Image& heightmap = static_cast<const Image&>(*entity->GetHeightmap());
+
 
 		const PipelineStateConfig& stateDesc = m_psoCache.GetConfig(context, mesh, material);
 
@@ -239,6 +251,47 @@ void RenderForwardHeightmaps::RenderEntities(RenderContext& context, GraphicsCom
 	}
 }
 
+
+void RenderForwardHeightmaps::IsEntityValid(const IHeightmapEntity& entity) {
+	auto ptr2str = [](const void* p) {
+		std::stringstream ss;
+		ss << p;
+		return ss.str();
+	};
+
+	if (!entity.GetMesh()) {
+		throw InvalidEntityException{ "HeightmapEntity has no associated mesh.", ptr2str(&entity) };
+	}
+	if (!entity.GetMaterial()) {
+		throw InvalidEntityException{ "HeightmapEntity has no associated material.", ptr2str(&entity) };
+	}
+	if (!entity.GetHeightmap()) {
+		throw InvalidEntityException{ "HeightmapEntity has no associated heightmap image.", ptr2str(&entity) };
+	}
+
+	const Mesh& mesh = static_cast<const Mesh&>(*entity.GetMesh());
+	if (!IsMeshValid(mesh)) {
+		throw InvalidEntityException{ "HeightmapEntity must have mesh with POSITION, TEXCOORD, NORMAL and TANGENT attributes.", ptr2str(&entity) };
+	}
+}
+
+
+bool RenderForwardHeightmaps::IsMeshValid(const Mesh& mesh) {
+	auto& layout = mesh.GetLayout();
+	bool hasPosition = false;
+	bool hasTexcoord = false;
+	bool hasNormal = false;
+	bool hasTangent = false;
+	for (auto stream : Range(layout.GetStreamCount())) {
+		for (const auto& element : layout[stream]) {
+			hasPosition = hasPosition || element.semantic == eVertexElementSemantic::POSITION;
+			hasTexcoord = hasTexcoord || element.semantic == eVertexElementSemantic::TEX_COORD;
+			hasNormal = hasNormal || element.semantic == eVertexElementSemantic::NORMAL;
+			hasTangent = hasTangent || element.semantic == eVertexElementSemantic::TANGENT;
+		}
+	}
+	return hasPosition && hasTexcoord && hasNormal && hasTangent;
+}
 
 
 } // namespace inl::gxeng::nodes

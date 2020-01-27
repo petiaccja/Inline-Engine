@@ -74,7 +74,7 @@ PsInput VSMain(float4 lPos
 #if HAS_BITANGENT
 	output.wBitangent = mul(lBitangent, worldRotation);
 #else
-	output.wBitangent = cross(output.wNormal, output.wBitangent);
+	output.wBitangent = cross(output.wNormal, output.wTangent);
 #endif
 #endif
 
@@ -88,8 +88,6 @@ struct PsConstants {
 	float3 lightColor;
 };
 ConstantBuffer<PsConstants> psConstants : register(b100);
-
-SamplerState globalSamp : register(s0);
 
 
 struct PsOutput {

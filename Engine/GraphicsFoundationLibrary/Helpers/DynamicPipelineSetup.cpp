@@ -355,6 +355,7 @@ std::string MaterialCode(const Material& material, std::string_view materialMain
 	materialCode << material.GetShader()->GetShaderCode() << "\n\n"
 				 << MaterialConstantsStructCode(material, "MaterialConstants") << "\n"
 				 << MaterialConstantsDeclarationCode(baseConstantReg, "MaterialConstants", "materialConstants") << "\n"
+				 << "SamplerState " << materialSamplerName << " : register(s0, space1);\n"
 				 << MaterialTexturesDeclarationCode(material, baseTextureReg, "materialTexture") << "\n";
 
 	materialCode << "void " << materialMainName << "() {\n"

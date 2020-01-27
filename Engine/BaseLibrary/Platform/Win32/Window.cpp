@@ -456,6 +456,11 @@ bool Window::CallEvents() {
 }
 
 
+void Window::ShowMessageBox(std::string_view title, std::string_view text) {
+	MessageBoxA(NULL, text.data(), title.data(), MB_OK);
+}
+
+
 LRESULT __stdcall Window::WndProc(WindowHandle hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	void* pInstance = (void*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
 	Window& instance = *reinterpret_cast<Window*>(pInstance);

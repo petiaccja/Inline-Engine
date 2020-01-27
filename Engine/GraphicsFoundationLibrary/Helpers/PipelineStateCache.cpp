@@ -11,18 +11,21 @@
 #include <GraphicsEngine_LL/MaterialShader.hpp>
 #include <GraphicsEngine_LL/Mesh.hpp>
 
+#include <numeric>
+
 
 namespace inl::gxeng::nodes {
 
 
 
 PipelineStateCache::PipelineStateCache(PipelineStateTemplate psoTemplate, std::vector<BindParameterDesc> originalBindParams, std::vector<gxapi::StaticSamplerDesc> staticSamplers)
-	: m_originalBindParams(std::move(originalBindParams)), m_psoTemplate(std::move(psoTemplate)) {}
+	: m_originalBindParams(std::move(originalBindParams)), m_psoTemplate(std::move(psoTemplate)), m_staticSamplers(std::move(staticSamplers)) {}
 
 
 void PipelineStateCache::Reset(PipelineStateTemplate psoTemplate, std::vector<BindParameterDesc> originalBindParams, std::vector<gxapi::StaticSamplerDesc> staticSamplers) {
 	m_originalBindParams = std::move(originalBindParams);
 	m_psoTemplate = std::move(psoTemplate);
+	m_staticSamplers = std::move(staticSamplers);
 	// Clear all data.
 	m_configCache.clear();
 }
@@ -55,24 +58,28 @@ const PipelineStateTemplate& PipelineStateCache::GetTemplate() const {
 Binder CreateBinder(RenderContext& context,
 					const std::vector<BindParameterDesc>& originalParams,
 					const std::vector<BindParameterDesc>& materialConstantParams,
-					const std::vector<BindParameterDesc>& materialTextureParams) {
+					const std::vector<BindParameterDesc>& materialTextureParams,
+					std::vector<gxapi::StaticSamplerDesc> staticSamplers) {
 	std::vector<BindParameterDesc> params;
 
-	gxapi::StaticSamplerDesc materialSampler;
-	materialSampler.shaderRegister = 0;
-	materialSampler.filter = gxapi::eTextureFilterMode::MIN_MAG_MIP_POINT;
-	materialSampler.addressU = gxapi::eTextureAddressMode::CLAMP;
-	materialSampler.addressV = gxapi::eTextureAddressMode::CLAMP;
-	materialSampler.addressW = gxapi::eTextureAddressMode::CLAMP;
-	materialSampler.mipLevelBias = 0.f;
-	materialSampler.registerSpace = 0;
-	materialSampler.shaderVisibility = gxapi::eShaderVisiblity::PIXEL;
+	gxapi::StaticSamplerDesc materialSampler{
+		.filter = gxapi::eTextureFilterMode::ANISOTROPIC,
+		.addressU = gxapi::eTextureAddressMode::CLAMP,
+		.addressV = gxapi::eTextureAddressMode::CLAMP,
+		.addressW = gxapi::eTextureAddressMode::CLAMP,
+		.mipLevelBias = 0.f,
+		.shaderRegister = 0,
+		.registerSpace = 1,
+		.shaderVisibility = gxapi::eShaderVisiblity::PIXEL
+	};
+
+	staticSamplers.push_back(materialSampler);
 
 	params.insert(params.end(), originalParams.begin(), originalParams.end());
 	params.insert(params.end(), materialConstantParams.begin(), materialConstantParams.end());
 	params.insert(params.end(), materialTextureParams.begin(), materialTextureParams.end());
 
-	return context.CreateBinder(params, { materialSampler });
+	return context.CreateBinder(params, staticSamplers);
 }
 
 
@@ -183,7 +190,7 @@ PipelineStateConfig PipelineStateCache::CreateConfig(RenderContext& context, con
 	shader.ps = context.CompileShader(psStr, parts, ConcatMacros(pdesc.psMacros)).ps;
 
 	// Create record.
-	auto binder = CreateBinder(context, base.bindParams, pdesc.materialConstantParams, pdesc.materialTextureParams);
+	auto binder = CreateBinder(context, base.bindParams, pdesc.materialConstantParams, pdesc.materialTextureParams, m_staticSamplers);
 	auto pso = CreatePSO(context, pdesc, m_psoTemplate, binder, shader);
 	return { std::move(pso), std::move(binder), std::move(pdesc.materialConstantParams), std::move(pdesc.materialTextureParams), std::move(pdesc.materialConstantElements) };
 }

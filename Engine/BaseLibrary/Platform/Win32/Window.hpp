@@ -93,13 +93,16 @@ public:
 	std::string GetTitle() const;
 	void SetIcon(const std::string& imageFilePath);
 
-	/// <summary> Return the Windows 10 accent color of the UI, or no value on other systems. </summary>
-	static std::optional<ColorF> GetWindows10AccentColor();
 
 	/// <summary> Calls all queued events synchronously on the caller's thread. </summary>
 	/// <returns> False if some events were dropped due to too small queue size. </returns>
 	bool CallEvents();
 
+	
+	/// <summary> Return the Windows 10 accent color of the UI, or no value on other systems. </summary>
+	static std::optional<ColorF> GetWindows10AccentColor();
+
+	static void ShowMessageBox(std::string_view title, std::string_view text);
 public:
 	Event<MouseButtonEvent> OnMouseButton;
 	Event<MouseMoveEvent> OnMouseMove;

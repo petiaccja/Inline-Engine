@@ -39,6 +39,8 @@ private:
 	void CreateRenderTargetViews(SetupContext& context, const Texture2D& rt, const Texture2D& ds);
 	void UpdatePsoCache(const Texture2D& renderTarget, const Texture2D& depthTarget);
 	void RenderEntities(RenderContext& context, GraphicsCommandList& commandList);
+	static void IsEntityValid(const IHeightmapEntity& entity);
+	static bool IsMeshValid(const Mesh& mesh);
 
 private:
 	RenderTargetView2D m_rtv;

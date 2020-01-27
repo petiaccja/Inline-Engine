@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <new>
+#include "BaseLibrary/Platform/Win32/Window.hpp"
 
 namespace inl::gxeng {
 
@@ -41,6 +42,10 @@ void Scheduler::Execute(FrameContext context) {
 	try {
 		m_cpuScheduler.RunPipeline(context, m_jobScheduler);
 		m_gpuScheduler.RunPipeline(context, m_jobScheduler, m_cpuScheduler);
+	}
+	catch (gxapi::ShaderCompilationError& ex) {
+		std::string_view log = ex.Subject();
+		Window::ShowMessageBox("Shader compilation error", log);
 	}
 	catch (Exception& ex) {
 		std::cout << "=== This frame is fucked ===" << std::endl;

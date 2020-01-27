@@ -1,4 +1,5 @@
-struct VsConstants {
+struct VsConstants
+{
 	float4x4 world;
 	float4x4 viewProj;
 	float4x4 worldViewProjDer;
@@ -8,80 +9,79 @@ struct VsConstants {
 };
 ConstantBuffer<VsConstants> vsConstants : register(b0);
 
+SamplerState heightmapSampler : register(s0);
 Texture2D<float4> heightmapTex : register(t0);
 
-struct PsInput {
+struct PsInput
+{
 	float4 hPos : SV_Position;
 	float4 wPos : Output0;
 	float2 sVelocity : Output1;
-#ifdef HAS_NORMAL
 	float3 wNormal : Output2;
-#endif
-#ifdef HAS_COLOR
-	float4 color : Output3;
-#endif
-#ifdef HAS_TEXCOORD
 	float2 texCoord : TEXCOORD0;
-#endif
-#ifdef HAS_TANGENT
 	float3 wTangent : Output4;
 	float3 wBitangent : Output5;
+#ifdef HAS_COLOR
+	float4 color : Output3;
 #endif
 };
 
 
-PsInput VSMain(float4 lPos
-			   : POSITION
-#ifdef HAS_NORMAL
-				 ,
-				 float3 lNormal
-			   : NORMAL
-#endif
+PsInput VSMain(float4 lPos : POSITION,
+				 float3 lNormal : NORMAL,
+				 float3 lTangent : TANGENT,
+				 float2 texCoord : TEX_COORD
 #ifdef HAS_COLOR
-				 ,
-				 float4 color
-			   : COLOR
-#endif
-#ifdef HAS_TEXCOORD
-				 ,
-				 float2 texCoord
-			   : TEX_COORD
-#endif
-#ifdef HAS_TANGENT
-				 ,
-				 float3 lTangent
-			   : TANGENT
+				 , float4 color : COLOR
 #endif
 #ifdef HAS_BITANGENT
-				 ,
-				 float3 lBitangent
-			   : BITANGENT
+				 , float3 lBitangent : BITANGENT
 #endif
-) {
+)
+{
 	PsInput output;
 
 	output.sVelocity = mul(lPos, vsConstants.worldViewProjDer).xy;
 	output.wPos = mul(lPos, vsConstants.world);
-	output.wPos.xyz += vsConstants.direction * sin(100.f * output.wPos.x);
+		
+	float z = heightmapTex.SampleLevel(heightmapSampler, texCoord, 0);
+	output.wPos.xyz += vsConstants.direction * (z * vsConstants.magnitude + vsConstants.offset);
 	output.hPos = mul(output.wPos, vsConstants.viewProj);
+	
+	float du = 0.01f;
+	float dv = 0.01f;
+	float zx = heightmapTex.SampleLevel(heightmapSampler, texCoord + float2(du, 0), 0);
+	float zy = heightmapTex.SampleLevel(heightmapSampler, texCoord + float2(0, dv), 0);
+	
+	float dudx = 1.0f;
+	float dvdy = 1.0f;
+	
+	float dzdx = (zx - z) / (du / dudx);
+	float dzdy = (zy - z) / (dv / dvdy);
+	
+	float3 gradX = float3(1.0f, 0.0f, dzdx);
+	float3 gradY = float3(0.0f, 1.0f, dzdy);
+	float3 normal = cross(gradX, gradY);
 
-#ifdef HAS_NORMAL
-	float3x3 worldRotation = (float3x3)vsConstants.world;
-	output.wNormal = mul(lNormal, worldRotation);
-#endif
-#ifdef HAS_COLOR
-	output.color = color;
-#endif
-#ifdef HAS_TEXCOORD
+	// Write through texCoord.
 	output.texCoord = texCoord;
-#endif
-#ifdef HAS_TANGENT
+	
+	// Transform through normal.
+	float3x3 worldRotation = (float3x3)vsConstants.world;
+	output.wNormal = normalize(mul(normal, worldRotation));
+	
+	// Transform through tangent.
 	output.wTangent = mul(lTangent, worldRotation);
+	
+	// Transform through or calculate bitangent.
 #if HAS_BITANGENT
 	output.wBitangent = mul(lBitangent, worldRotation);
 #else
-	output.wBitangent = cross(output.wNormal, output.wBitangent);
+	output.wBitangent = cross(output.wNormal, output.wTangent);
 #endif
+	
+	#ifdef HAS_COLOR
+	output.color = color;
 #endif
 
 	return output;
@@ -89,16 +89,16 @@ PsInput VSMain(float4 lPos
 
 
 
-struct PsConstants {
+struct PsConstants
+{
 	float3 lightDir;
 	float3 lightColor;
 };
 ConstantBuffer<PsConstants> psConstants : register(b100);
 
-SamplerState globalSamp : register(s0);
 
-
-struct PsOutput {
+struct PsOutput
+{
 	float4 color : SV_Target0;
 };
 
@@ -145,24 +145,16 @@ void MtlMain() {}
 #endif
 
 
-PsOutput PSMain(PsInput input) {
+PsOutput PSMain(PsInput input)
+{
 	g_wPosition = input.wPos;
-
-#ifdef HAS_NORMAL
 	g_wNormal = normalize(input.wNormal);
-#endif
-
-#ifdef HAS_TANGENT
 	g_wTangent = normalize(input.wTangent);
 	g_wBitangent = normalize(input.wBitangent);
-#endif
+	g_texCoord = input.texCoord;
 
 #ifdef HAS_COLOR
 	g_vertexColor = input.color;
-#endif
-
-#ifdef HAS_TEXCOORD
-	g_texCoord = input.texCoord;
 #endif
 
 	PsOutput output;

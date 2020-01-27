@@ -148,13 +148,13 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Tangent<semanticIndex>, Tail
 		uint32_t vertexIndex,
 		const Mat44& posTr,
 		const Mat44& normTr) {
-		using DataType = typename gxeng::VertexPart<gxeng::eVertexElementSemantic::NORMAL>::DataType;
+		using DataType = gxeng::VertexPartReader<gxeng::eVertexElementSemantic::TANGENT>::DataType;
 		if (mesh->HasTangentsAndBitangents() == false) {
 			throw InvalidCallException("Vertex array requested with tangents but loaded mesh does not have such an attribute.");
 		}
 		assert(vertexIndex < mesh->mNumVertices);
 		const aiVector3D& tangent = mesh->mTangents[vertexIndex];
-		target.tangent = normTr * DataType(tangent.x, tangent.y, tangent.z);
+		target.tangent = normTr * (Vec3)DataType(tangent.x, tangent.y, tangent.z);
 
 		VertexAttributeSetter<VertexT, TailAttribT...>()(target, mesh, vertexIndex, posTr, normTr);
 	}
@@ -170,13 +170,13 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Bitangent<semanticIndex>, Ta
 		uint32_t vertexIndex,
 		const Mat44& posTr,
 		const Mat44& normTr) {
-		using DataType = typename gxeng::VertexPart<gxeng::eVertexElementSemantic::NORMAL>::DataType;
+		using DataType = gxeng::VertexPartReader<gxeng::eVertexElementSemantic::BITANGENT>::DataType;
 		if (mesh->HasTangentsAndBitangents() == false) {
 			throw InvalidCallException("Vertex array requested with bitangents but loaded mesh does not have such an attribute.");
 		}
 		assert(vertexIndex < mesh->mNumVertices);
 		const aiVector3D& bitangent = mesh->mBitangents[vertexIndex];
-		target.bitangent = normTr * DataType(bitangent.x, bitangent.y, bitangent.z);
+		target.bitangent = normTr * (Vec3)DataType(bitangent.x, bitangent.y, bitangent.z);
 
 		VertexAttributeSetter<VertexT, TailAttribT...>()(target, mesh, vertexIndex, posTr, normTr);
 	}

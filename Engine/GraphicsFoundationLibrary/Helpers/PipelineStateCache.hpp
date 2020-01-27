@@ -130,6 +130,7 @@ private:
 	std::unordered_map<StateKey, std::unique_ptr<PipelineStateConfig>, StateKeyHash> m_configCache; // Mesh layout & mtl shader -> PSO.
 
 	std::vector<BindParameterDesc> m_originalBindParams;
+	std::vector<gxapi::StaticSamplerDesc> m_staticSamplers;
 	PipelineStateTemplate m_psoTemplate;
 };
 
