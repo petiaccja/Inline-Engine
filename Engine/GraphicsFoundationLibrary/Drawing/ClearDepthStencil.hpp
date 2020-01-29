@@ -8,7 +8,7 @@ namespace inl::gxeng::nodes {
 
 class ClearDepthStencil : virtual public GraphicsNode,
 						  virtual public GraphicsTask,
-						  virtual public InputPortConfig<Texture2D, float, uint32_t>,
+						  virtual public InputPortConfig<Texture2D, float, uint32_t, bool, bool>,
 						  virtual public OutputPortConfig<Texture2D> {
 public:
 	static const char* Info_GetName() { return "ClearDepthStencil"; }

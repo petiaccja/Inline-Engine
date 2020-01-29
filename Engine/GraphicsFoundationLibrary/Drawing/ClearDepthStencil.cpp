@@ -27,8 +27,10 @@ void ClearDepthStencil::Execute(RenderContext& context) {
 
 	float depthValue = GetInput<1>().Get();
 	uint8_t stencilValue = GetInput<2>().Get();
+	bool clearDepth = GetInput<3>().Get();
+	bool clearStencil = GetInput<4>().Get();
 	list.SetResourceState(m_dsv.GetResource(), gxapi::eResourceState::DEPTH_WRITE);
-	list.ClearDepthStencil(m_dsv, depthValue, stencilValue);
+	list.ClearDepthStencil(m_dsv, depthValue, stencilValue, 0, nullptr, clearDepth, clearStencil);
 	m_dsv = {};
 }
 
@@ -37,6 +39,8 @@ const std::string& ClearDepthStencil::GetInputName(size_t index) const {
 		"DepthStencilIn",
 		"DepthValue",
 		"StencilValue"
+		"ClearDepth"
+		"ClearStencil"
 	};
 	return names[index];
 }
