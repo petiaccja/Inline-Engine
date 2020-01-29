@@ -1,5 +1,6 @@
 #include "UserInterfaceSystem.hpp"
 
+#include "CameraMoveSystem.hpp"
 #include "DebugInfoFrame.hpp"
 #include "MainMenuFrame.hpp"
 
@@ -9,8 +10,8 @@
 #include <fstream>
 
 
-UserInterfaceSystem::UserInterfaceSystem(const EngineCollection& modules, inl::Window& window)
-	: m_window(window), m_board(std::make_unique<inl::gui::Board>()), m_compositor(std::make_unique<UserInterfaceCompositor>(*m_board)) {
+UserInterfaceSystem::UserInterfaceSystem(const EngineCollection& modules, inl::Window& window, std::shared_ptr<ActionHeap> actionHeap)
+	: m_window(window), m_board(std::make_unique<inl::gui::Board>()), m_compositor(std::make_unique<UserInterfaceCompositor>(*m_board)), m_actionHeap(actionHeap) {
 	m_camera = modules.GetGraphicsEngine().CreateCamera2D("GuiCam");
 	m_font = modules.GetGraphicsEngine().CreateFont();
 	m_scene = modules.GetGraphicsEngine().CreateScene("GuiScene");
@@ -53,6 +54,7 @@ UserInterfaceSystem::UserInterfaceSystem(UserInterfaceSystem&& rhs) : m_window(r
 	m_camera = std::move(rhs.m_camera);
 	m_board = std::move(rhs.m_board);
 	m_compositor = std::move(rhs.m_compositor);
+	m_actionHeap = std::move(rhs.m_actionHeap);
 	RegisterWindowEvents();
 }
 
@@ -88,6 +90,17 @@ void UserInterfaceSystem::ResizeRender(inl::ResizeEvent evt) {
 	}
 }
 
+void UserInterfaceSystem::KeyboardShortcuts(inl::KeyboardEvent evt) {
+	if (evt.state == inl::eKeyState::DOWN) {
+		switch (evt.key) {
+			case inl::eKey::W: m_actionHeap->Push(CameraMoveAction{ 5.0f, eCameraMoveAxis::FORWARD }); break;
+			case inl::eKey::A: m_actionHeap->Push(CameraMoveAction{ -5.0f, eCameraMoveAxis::RIGHT }); break;
+			case inl::eKey::S: m_actionHeap->Push(CameraMoveAction{ -5.0f, eCameraMoveAxis::FORWARD }); break;
+			case inl::eKey::D: m_actionHeap->Push(CameraMoveAction{ 5.0f, eCameraMoveAxis::RIGHT }); break;
+		}
+	}
+}
+
 
 void UserInterfaceSystem::RegisterBoardEvents() {
 	m_window.OnKeyboard += inl::Delegate<void(inl::KeyboardEvent)>{ &inl::gui::Board::OnKeyboard, m_board.get() };
@@ -105,8 +118,10 @@ void UserInterfaceSystem::UnregisterBoardEvents() {
 
 void UserInterfaceSystem::RegisterWindowEvents() {
 	m_window.OnResize += inl::Delegate<void(inl::ResizeEvent)>{ &UserInterfaceSystem::ResizeRender, this };
+	m_window.OnKeyboard += inl::Delegate<void(inl::KeyboardEvent)>{ &UserInterfaceSystem::KeyboardShortcuts, this };
 }
 
 void UserInterfaceSystem::UnregisterWindowEvents() {
 	m_window.OnResize -= inl::Delegate<void(inl::ResizeEvent)>{ &UserInterfaceSystem::ResizeRender, this };
+	m_window.OnKeyboard -= inl::Delegate<void(inl::KeyboardEvent)>{ &UserInterfaceSystem::KeyboardShortcuts, this };
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ActionHeap.hpp"
 #include "EngineCollection.hpp"
 
 #include "BaseLibrary/DynamicTuple.hpp"
@@ -38,4 +39,5 @@ private:
 	inl::DynamicTuple m_modules;
 	inl::Window& m_window;
 	const EngineCollection& m_engines;
+	std::shared_ptr<ActionHeap> m_actionHeap;
 };

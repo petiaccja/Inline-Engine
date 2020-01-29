@@ -82,9 +82,7 @@ GraphicsEngine::GraphicsEngine(GraphicsEngineDesc desc)
 
 
 GraphicsEngine::~GraphicsEngine() {
-	std::cout << "Graphics engine shutting down..." << std::endl;
 	FlushPipelineQueue();
-	std::cout << "Graphics engine deleting..." << std::endl;
 }
 
 

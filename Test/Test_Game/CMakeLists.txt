@@ -24,16 +24,24 @@ set(src_systems
 	UserInterfaceSystem.hpp
 	UserInterfaceSystem.cpp
 	TestLevelSystem.hpp
-	TestLevelSystem.cpp)
+	TestLevelSystem.cpp	
+	CameraMoveSystem.hpp
+	CameraMoveSystem.cpp
+	)
 
+
+set(src_misc
+	ActionHeap.hpp
+	)
 	
 # Target
-add_executable(Test_Game ${src_main} ${src_ui} ${src_systems})
+add_executable(Test_Game ${src_main} ${src_ui} ${src_systems} ${src_misc})
 
 # Filters
 source_group("" FILES ${src_main})
 source_group("UI" FILES ${src_ui})
 source_group("Systems" FILES ${src_systems})
+source_group("Misc" FILES ${src_misc})
 
 # Dependencies
 target_link_libraries(Test_Game

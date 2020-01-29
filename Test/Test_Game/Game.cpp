@@ -1,5 +1,6 @@
 #include "Game.hpp"
 
+#include "CameraMoveSystem.hpp"
 #include "MainMenuFrame.hpp"
 #include "TestLevelSystem.hpp"
 #include "UserInterfaceSystem.hpp"
@@ -32,12 +33,16 @@ Game::Game(const EngineCollection& modules, inl::Window& window)
 void Game::Update(float elapsed) {
 	UpdateRenderPipeline();
 	m_simulation.Run(m_scene, elapsed);
+	m_actionHeap->Clear();
 }
 
 
 void Game::InitSimulation() {
-	m_simulation.PushBack(UserInterfaceSystem{ m_engines, m_window });
+	m_actionHeap = std::make_shared<ActionHeap>();
+	
+	m_simulation.PushBack(UserInterfaceSystem{ m_engines, m_window, m_actionHeap });
 	m_simulation.PushBack(TestLevelSystem{});
+	m_simulation.PushBack(CameraMoveSystem{m_actionHeap});
 	m_simulation.PushBack(inl::gamelib::LinkTransformSystem{});
 	m_simulation.PushBack(inl::gamelib::RenderingSystem{ &m_engines.GetGraphicsEngine() });
 
