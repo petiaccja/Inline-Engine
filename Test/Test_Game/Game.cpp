@@ -11,6 +11,8 @@
 #include <GameFoundationLibrary/Systems/RenderingSystem.hpp>
 
 #include <fstream>
+#include "UserInputSystem.hpp"
+#include "CameraMoveSource.hpp"
 
 
 #define RENDER_PIPELINE_FULL_3D "forward_heightmap_with_gui.json"
@@ -41,6 +43,7 @@ void Game::InitSimulation() {
 	m_actionHeap = std::make_shared<ActionHeap>();
 	
 	m_simulation.PushBack(UserInterfaceSystem{ m_engines, m_window, m_actionHeap });
+	m_simulation.PushBack(UserInputSystem{ m_actionHeap });
 	m_simulation.PushBack(TestLevelSystem{});
 	m_simulation.PushBack(CameraMoveSystem{m_actionHeap});
 	m_simulation.PushBack(inl::gamelib::LinkTransformSystem{});
@@ -49,6 +52,8 @@ void Game::InitSimulation() {
 	m_simulation.Get<UserInterfaceSystem>().GetCompositor().GetFrame<MainMenuFrame>().OnStart += [this, &testLevelSystem = m_simulation.Get<TestLevelSystem>()] {
 		testLevelSystem.LoadAsync(inl::game::ComponentFactory_Singleton::GetInstance(), m_modules);
 	};
+
+	m_simulation.Get<UserInputSystem>().Insert(CameraMoveSource{});
 }
 
 

@@ -1,6 +1,6 @@
 #include "UserInterfaceSystem.hpp"
 
-#include "CameraMoveSystem.hpp"
+#include "CameraMoveActions.hpp"
 #include "DebugInfoFrame.hpp"
 #include "MainMenuFrame.hpp"
 
@@ -91,14 +91,6 @@ void UserInterfaceSystem::ResizeRender(inl::ResizeEvent evt) {
 }
 
 void UserInterfaceSystem::KeyboardShortcuts(inl::KeyboardEvent evt) {
-	if (evt.state == inl::eKeyState::DOWN) {
-		switch (evt.key) {
-			case inl::eKey::W: m_actionHeap->Push(CameraMoveAction{ 5.0f, eCameraMoveAxis::FORWARD }); break;
-			case inl::eKey::A: m_actionHeap->Push(CameraMoveAction{ -5.0f, eCameraMoveAxis::RIGHT }); break;
-			case inl::eKey::S: m_actionHeap->Push(CameraMoveAction{ -5.0f, eCameraMoveAxis::FORWARD }); break;
-			case inl::eKey::D: m_actionHeap->Push(CameraMoveAction{ 5.0f, eCameraMoveAxis::RIGHT }); break;
-		}
-	}
 }
 
 

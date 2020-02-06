@@ -4,7 +4,6 @@
 #include "../../Singleton.hpp"
 #include "InputEvents.hpp"
 
-#include <atomic>
 #include <map>
 #include <mutex>
 #include <queue>
@@ -21,6 +20,7 @@
 
 namespace inl {
 
+class Input;
 
 enum class eInputSourceType {
 	MOUSE,
@@ -28,13 +28,10 @@ enum class eInputSourceType {
 	JOYSTICK,
 };
 
-
 enum class eInputQueueMode {
 	IMMEDIATE,
 	QUEUED,
 };
-
-
 
 struct InputDevice {
 	eInputSourceType type;
@@ -42,17 +39,27 @@ struct InputDevice {
 	std::string name;
 };
 
+struct InputSharedState {
+	const size_t deviceId;
+	volatile eInputQueueMode queueMode;
+	volatile size_t queueSize;
+	volatile bool eventDropped;
+	Input* volatile parent; // Only for immediate mode.
+	std::queue<InputEvent> eventQueue;
+	std::unique_ptr<std::mutex> queueMtx = std::make_unique<std::mutex>();
+};
 
 
 class Input {
-	friend class RawInputSourceBase;
-
 public:
-	Input();
+	Input() = default;
+	Input(Input&& rhs);
+	Input& operator=(Input&& rhs);
+	Input(const Input&) = delete;
+	Input& operator=(const Input&) = delete;
 	Input(size_t deviceId);
 	~Input();
-
-
+	
 	/// <summary> Tells how many events should be queued at maximum. Only applies to queued mode. </summary>
 	void SetQueueSizeHint(size_t queueSize);
 
@@ -75,8 +82,6 @@ public:
 	/// <summary> Returns the list of available input devices of specific type that you can listen to. </summary>
 	static std::vector<InputDevice> GetDeviceList(eInputSourceType filter);
 
-	static DWORD DbgTID() { return RawInputSource::GetInstance().DbgTID(); }
-
 public:
 	Event<MouseButtonEvent> OnMouseButton;
 	Event<MouseMoveEvent> OnMouseMove;
@@ -85,87 +90,77 @@ public:
 	Event<JoystickMoveEvent> OnJoystickMove;
 
 private:
-	static constexpr size_t InvalidDeviceId = -1;
-	size_t m_deviceId;
+	std::shared_ptr<InputSharedState> m_sharedState;
+};
 
-	volatile eInputQueueMode m_queueMode;
-	volatile size_t m_queueSize;
-	volatile bool m_eventDropped;
-	std::queue<InputEvent> m_eventQueue;
-	std::mutex m_queueMtx;
+
+class RawInputSourceBase {
+	struct JoyState {
+		std::vector<uint8_t> preparsedBuffer;
+		std::vector<bool> buttonStates;
+		std::vector<float> valueStates;
+		std::vector<HIDP_BUTTON_CAPS> buttonCaps;
+		std::vector<HIDP_VALUE_CAPS> valueCaps;
+	};
+
+public:
+	RawInputSourceBase();
+	~RawInputSourceBase();
+
+	void AddInput(std::shared_ptr<InputSharedState> state);
+	void RemoveInput(const std::shared_ptr<InputSharedState>& state);
+	DWORD DbgTID() { return GetThreadId(m_messageLoopThread.native_handle()); }
 
 private:
-	class RawInputSourceBase {
-		static constexpr size_t InvalidDeviceId = -1;
-		struct JoyState {
-			std::vector<uint8_t> preparsedBuffer;
-			std::vector<bool> buttonStates;
-			std::vector<float> valueStates;
-			std::vector<HIDP_BUTTON_CAPS> buttonCaps;
-			std::vector<HIDP_VALUE_CAPS> valueCaps;
-		};
+	static LRESULT __stdcall WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	void ProcessInput(const RAWINPUT& rawInput);
+	void MessageLoopThreadFunc();
 
-	public:
-		RawInputSourceBase();
-		~RawInputSourceBase();
+	template <class EventArg>
+	void CallEvents(size_t device, Event<EventArg> Input::*eventMember, const EventArg& evt) const;
 
-		void AddInput(Input* input, size_t device);
-		void RemoveInput(Input* input, size_t device = InvalidDeviceId);
-		DWORD DbgTID() { return GetThreadId(m_messageLoopThread.native_handle()); }
+	static JoyState GetJoyInfo(size_t deviceId);
 
-	private:
-		static LRESULT __stdcall WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-		void ProcessInput(const RAWINPUT& rawInput);
-		void MessageLoopThreadFunc();
+private:
+	std::mutex m_mtx;
+	std::thread m_messageLoopThread;
+	HWND m_messageLoopWindow = nullptr;
+	std::map<size_t, std::set<std::shared_ptr<InputSharedState>>> m_sources;
 
-		template <class EventArg>
-		void CallEvents(size_t device, Event<EventArg> Input::*eventMember, const EventArg& evt) const;
-
-		static JoyState GetJoyInfo(size_t deviceId);
-
-	private:
-		std::mutex m_mtx;
-		std::thread m_messageLoopThread;
-		HWND m_messageLoopWindow = 0;
-		std::map<size_t, std::set<Input*>> m_sources;
-
-		std::unordered_map<size_t, JoyState> m_joyStates; // deviceId -> joyState
-	};
-	using RawInputSource = Singleton<RawInputSourceBase>;
+	std::unordered_map<size_t, JoyState> m_joyStates; // deviceId -> joyState
 };
+using RawInputSource = Singleton<RawInputSourceBase>;
 
 
 
 template <class EventArg>
-void Input::RawInputSourceBase::CallEvents(size_t device, Event<EventArg> Input::*eventMember, const EventArg& evt) const {
+void RawInputSourceBase::CallEvents(size_t device, Event<EventArg> Input::*eventMember, const EventArg& evt) const {
 	auto group = m_sources.find(device);
 	if (group != m_sources.end()) {
 		for (auto it = group->second.begin(); it != group->second.end(); ++it) {
-			Input& input = **it;
-			eInputQueueMode queueMode = input.GetQueueMode();
+			InputSharedState& state = **it;
+			std::lock_guard lkg(*state.queueMtx);
+			eInputQueueMode queueMode = state.parent->GetQueueMode();
 			if (queueMode == eInputQueueMode::IMMEDIATE) {
-				(input.*eventMember)(evt);
+				(state.parent->*eventMember)(evt);
 			}
 			else {
-				std::lock_guard<decltype(Input::m_queueMtx)> lkg(input.m_queueMtx);
-				size_t queueSize = input.m_queueSize;
-				input.m_eventQueue.push(InputEvent(evt));
-				if (input.m_eventQueue.size() > queueSize) {
-					input.m_eventDropped = true;
+				size_t queueSize = state.queueSize;
+				state.eventQueue.push(InputEvent(evt));
+				if (state.eventQueue.size() > queueSize) {
+					state.eventDropped = true;
 				}
-				while (input.m_eventQueue.size() > queueSize) {
-					input.m_eventQueue.pop();
+				while (state.eventQueue.size() > queueSize) {
+					state.eventQueue.pop();
 				}
 			}
 		}
 	}
 }
 
-
 namespace impl {
 	eKey TranslateKey(unsigned vkey);
 }
-
 
 
 } // namespace inl

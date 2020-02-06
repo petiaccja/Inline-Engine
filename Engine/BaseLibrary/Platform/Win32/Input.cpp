@@ -2,69 +2,87 @@
 
 #include "../../Exception/Exception.hpp"
 
-#pragma comment(lib, "hid.lib") // No need to put in project files because noone else should use these anywhere else.
+#pragma comment(lib, "hid.lib") // No need to put in project files because no one else should use these anywhere else.
 
 
 namespace inl {
 
 
-Input::Input() {
-	m_deviceId = InvalidDeviceId;
-	m_queueMode = eInputQueueMode::IMMEDIATE;
-	m_queueSize = 10000;
+Input::Input(Input&& rhs)
+	: m_sharedState(std::move(rhs.m_sharedState)) {
+	std::lock_guard lkg(*m_sharedState->queueMtx);
+	m_sharedState->parent = this;
 }
 
+
+Input& Input::operator=(Input&& rhs) {
+	m_sharedState = std::move(rhs.m_sharedState);
+	std::lock_guard lkg(*m_sharedState->queueMtx);
+	m_sharedState->parent = this;
+	return *this;
+}
+
+
 Input::Input(size_t deviceId) {
-	m_queueMode = eInputQueueMode::IMMEDIATE;
-	m_queueSize = 10000;
-	RawInputSource::GetInstance().AddInput(this, deviceId);
+	m_sharedState = std::make_shared<InputSharedState>(InputSharedState{
+		.deviceId = deviceId,
+		.queueMode = eInputQueueMode::QUEUED,
+		.queueSize = 10000,
+		.parent = this });
+	RawInputSource::GetInstance().AddInput(m_sharedState);
 }
 
 Input::~Input() {
-	RawInputSource::GetInstance().RemoveInput(this);
+	if (m_sharedState) {
+		RawInputSource::GetInstance().RemoveInput(m_sharedState);
+	}
 }
 
 
 void Input::SetQueueSizeHint(size_t queueSize) {
-	m_queueSize = queueSize;
+	if (m_sharedState) {
+		m_sharedState->queueSize = queueSize;
+	}
 }
 
 
 void Input::SetQueueMode(eInputQueueMode mode) {
-	m_queueMode = mode;
+	if (m_sharedState) {
+		m_sharedState->queueMode = mode;
+	}
 }
 
 
 bool Input::CallEvents() {
-	std::unique_lock<decltype(m_queueMtx)> lk(m_queueMtx);
+	if (!m_sharedState) {
+		return false;
+	}
 
-	bool eventDropped = m_eventDropped;
-	m_eventDropped = false;
-	std::queue<InputEvent> eventQueue = std::move(m_eventQueue);
+	std::unique_lock lk(*m_sharedState->queueMtx);
+
+	bool eventDropped = m_sharedState->eventDropped;
+	m_sharedState->eventDropped = false;
+	std::queue<InputEvent> eventQueue = std::move(m_sharedState->eventQueue);
 
 	lk.unlock();
+
+	auto visitor = [this](auto evt) {
+		if constexpr (std::is_same_v<decltype(evt), MouseButtonEvent>)
+			OnMouseButton(evt);
+		else if constexpr (std::is_same_v<decltype(evt), MouseMoveEvent>)
+			OnMouseMove(evt);
+		else if constexpr (std::is_same_v<decltype(evt), KeyboardEvent>)
+			OnKeyboard(evt);
+		else if constexpr (std::is_same_v<decltype(evt), JoystickButtonEvent>)
+			OnJoystickButton(evt);
+		else if constexpr (std::is_same_v<decltype(evt), JoystickMoveEvent>)
+			OnJoystickMove(evt);
+	};
 
 	while (!eventQueue.empty()) {
 		InputEvent evt = eventQueue.front();
 		eventQueue.pop();
-		switch (evt.type) {
-			case eInputEventType::MOUSE_BUTTON:
-				OnMouseButton(evt.mouseButton);
-				break;
-			case eInputEventType::MOUSE_MOVE:
-				OnMouseMove(evt.mouseMove);
-				break;
-			case eInputEventType::KEYBOARD:
-				OnKeyboard(evt.keyboard);
-				break;
-			case eInputEventType::JOYSTICK_BUTTON:
-				OnJoystickButton(evt.joystickButton);
-				break;
-			case eInputEventType::JOYSTICK_MOVE:
-				OnJoystickMove(evt.joystickMove);
-				break;
-			default:;
-		}
+		std::visit(visitor, evt);
 	}
 
 	return eventDropped;
@@ -72,7 +90,10 @@ bool Input::CallEvents() {
 
 
 eInputQueueMode Input::GetQueueMode() const {
-	return m_queueMode;
+	if (!m_sharedState) {
+		return eInputQueueMode::QUEUED;
+	}
+	return m_sharedState->queueMode;
 }
 
 
@@ -136,45 +157,38 @@ std::vector<InputDevice> Input::GetDeviceList(eInputSourceType filter) {
 }
 
 
-Input::RawInputSourceBase::RawInputSourceBase() {
+RawInputSourceBase::RawInputSourceBase() {
 	m_messageLoopThread = std::thread([this] {
 		MessageLoopThreadFunc();
 	});
 }
 
-Input::RawInputSourceBase::~RawInputSourceBase() {
+RawInputSourceBase::~RawInputSourceBase() {
 	PostMessage(m_messageLoopWindow, WM_CLOSE, 0, 0);
 	if (m_messageLoopThread.joinable()) {
 		m_messageLoopThread.join();
 	}
 }
 
-void Input::RawInputSourceBase::AddInput(Input* input, size_t device) {
+void RawInputSourceBase::AddInput(std::shared_ptr<InputSharedState> input) {
 	std::lock_guard<std::mutex> lk(m_mtx);
-	auto group = m_sources.find(device);
+	auto group = m_sources.find(input->deviceId);
 	if (group == m_sources.end()) {
-		group = m_sources.insert({ device, {} }).first;
+		group = m_sources.insert({ input->deviceId, {} }).first;
 	}
 	group->second.insert(input);
 }
 
-void Input::RawInputSourceBase::RemoveInput(Input* input, size_t device) {
+void RawInputSourceBase::RemoveInput(const std::shared_ptr<InputSharedState>& input) {
 	std::lock_guard<std::mutex> lk(m_mtx);
-	if (device != InvalidDeviceId) {
-		auto group = m_sources.find(device);
-		if (group != m_sources.end()) {
-			group->second.erase(input);
-		}
-	}
-	else {
-		for (auto& group : m_sources) {
-			group.second.erase(input);
-		}
+	auto group = m_sources.find(input->deviceId);
+	if (group != m_sources.end()) {
+		group->second.erase(input);
 	}
 }
 
 
-LRESULT __stdcall Input::RawInputSourceBase::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+LRESULT __stdcall RawInputSourceBase::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	RawInputSourceBase* instance = reinterpret_cast<RawInputSourceBase*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 	switch (msg) {
 		case WM_CLOSE:
@@ -206,7 +220,7 @@ LRESULT __stdcall Input::RawInputSourceBase::WndProc(HWND hwnd, UINT msg, WPARAM
 }
 
 
-void Input::RawInputSourceBase::ProcessInput(const RAWINPUT& rawInput) {
+void RawInputSourceBase::ProcessInput(const RAWINPUT& rawInput) {
 	std::unique_lock<std::mutex> lk(m_mtx);
 
 	size_t deviceId = reinterpret_cast<size_t>(rawInput.header.hDevice);
@@ -218,7 +232,7 @@ void Input::RawInputSourceBase::ProcessInput(const RAWINPUT& rawInput) {
 		GetCursorPos(&point);
 
 		// Movement events.
-		if ((mouse.usFlags & MOUSE_MOVE_RELATIVE)
+		if (!(mouse.usFlags & MOUSE_MOVE_ABSOLUTE)
 			&& (mouse.lLastX != 0 || mouse.lLastY != 0)) {
 			MouseMoveEvent evt;
 			evt.relx = mouse.lLastX;
@@ -327,7 +341,7 @@ void Input::RawInputSourceBase::ProcessInput(const RAWINPUT& rawInput) {
 }
 
 
-void Input::RawInputSourceBase::MessageLoopThreadFunc() {
+void RawInputSourceBase::MessageLoopThreadFunc() {
 	// Create a basic invisible window just for the message loop.
 	WNDCLASSA wc;
 	ZeroMemory(&wc, sizeof(wc));
@@ -389,7 +403,7 @@ void Input::RawInputSourceBase::MessageLoopThreadFunc() {
 }
 
 
-Input::RawInputSourceBase::JoyState Input::RawInputSourceBase::GetJoyInfo(size_t deviceId) {
+RawInputSourceBase::JoyState RawInputSourceBase::GetJoyInfo(size_t deviceId) {
 	HANDLE hDevice = (HANDLE)deviceId;
 	UINT bufferSize;
 
@@ -429,7 +443,6 @@ Input::RawInputSourceBase::JoyState Input::RawInputSourceBase::GetJoyInfo(size_t
 
 	return state;
 }
-
 
 namespace impl {
 	eKey TranslateKey(unsigned vkey) {

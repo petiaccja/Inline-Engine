@@ -2,6 +2,7 @@
 
 #include <InlineMath.hpp>
 #include <cstdint>
+#include <variant>
 #undef DELETE // hogy a faszomat húzzam bele a winapiba
 
 
@@ -226,34 +227,7 @@ struct JoystickMoveEvent {
 	float absPos;
 };
 
-
-// Union for all events
-enum class eInputEventType {
-	MOUSE_BUTTON,
-	MOUSE_MOVE,
-	KEYBOARD,
-	JOYSTICK_BUTTON,
-	JOYSTICK_MOVE,
-	INVALID,
-};
-
-struct InputEvent {
-	InputEvent() : type(eInputEventType::INVALID) {}
-	explicit InputEvent(const MouseButtonEvent& evt) : type(eInputEventType::MOUSE_BUTTON), mouseButton(evt) {}
-	explicit InputEvent(const MouseMoveEvent& evt) : type(eInputEventType::MOUSE_MOVE), mouseMove(evt) {}
-	explicit InputEvent(const KeyboardEvent& evt) : type(eInputEventType::KEYBOARD), keyboard(evt) {}
-	explicit InputEvent(const JoystickButtonEvent& evt) : type(eInputEventType::JOYSTICK_BUTTON), joystickButton(evt) {}
-	explicit InputEvent(const JoystickMoveEvent& evt) : type(eInputEventType::JOYSTICK_MOVE), joystickMove(evt) {}
-	eInputEventType type;
-	union {
-		MouseButtonEvent mouseButton;
-		MouseMoveEvent mouseMove;
-		KeyboardEvent keyboard;
-		JoystickButtonEvent joystickButton;
-		JoystickMoveEvent joystickMove;
-	};
-};
-
+using InputEvent = std::variant<MouseButtonEvent, MouseMoveEvent, KeyboardEvent, JoystickButtonEvent, JoystickMoveEvent>;
 
 
 } // namespace inl
