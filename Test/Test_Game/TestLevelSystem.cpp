@@ -92,6 +92,8 @@ void TestLevelSystem::Create(const CreateEntity& createEntity) {
 	heightmapComponent.entity->SetPosition({ 0, 0, 1 });
 	heightmapComponent.entity->SetRotation(Quat::Identity());
 	heightmapComponent.entity->SetScale({ 1, 1, 1 });
+	heightmapComponent.entity->SetUvSize({ 5, 5 });
+	heightmapComponent.entity->SetMagnitude(0.3f);
 	scene.GetEntities<gxeng::IHeightmapEntity>().Add(heightmapComponent.entity.get());
 }
 

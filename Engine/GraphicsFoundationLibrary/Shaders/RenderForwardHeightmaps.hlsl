@@ -6,6 +6,7 @@ struct VsConstants
 	float3 direction;
 	float magnitude;
 	float offset;
+	float2 uvSize;
 };
 ConstantBuffer<VsConstants> vsConstants : register(b0);
 
@@ -27,6 +28,52 @@ struct PsInput
 };
 
 
+struct Derivatives
+{
+	float z;
+	float2 grad;
+};
+
+
+float2 CalculateDuv(Texture2D tex, float2 texCoord)
+{
+	float width;
+	float height;
+	uint numLevels;
+	tex.GetDimensions(0, width, height, numLevels);
+	return float2(1.0f / width, 1.0f / height) * 0.5f;
+}
+
+
+Derivatives SampleHeightmap(Texture2D tex, SamplerState samp, float2 texCoord, float2 uvSize)
+{
+	Derivatives result;
+	result.z = vsConstants.magnitude * heightmapTex.SampleLevel(heightmapSampler, texCoord, 0);
+	
+	float2 duv = CalculateDuv(tex, texCoord);
+	
+	float2 dz = float2(
+		vsConstants.magnitude * heightmapTex.SampleLevel(heightmapSampler, texCoord + float2(duv.x, 0), 0).x - result.z,
+		vsConstants.magnitude * heightmapTex.SampleLevel(heightmapSampler, texCoord + float2(0, duv.y), 0).x - result.z
+	);
+	
+	float2 duvDxy = float2(1.0f, 1.0f) / uvSize;
+	
+	float2 dzDxy = dz / duv * duvDxy;
+	
+	result.grad = dzDxy;
+	return result;
+}
+
+
+float3 DisplacementAdjustedNormal(float3 normal, float3 tangent, float3 bitangent, float2 dnDtb)
+{
+	float3 gradT = tangent + normal * dnDtb.x;
+	float3 gradB = bitangent + normal * dnDtb.y;
+	return cross(gradT, gradB);
+}
+
+
 PsInput VSMain(float4 lPos : POSITION,
 				 float3 lNormal : NORMAL,
 				 float3 lTangent : TANGENT,
@@ -39,48 +86,37 @@ PsInput VSMain(float4 lPos : POSITION,
 #endif
 )
 {
+	// Calculate bitangent if not provided.
+#if !HAS_BITANGENT
+	float3 lBitangent = cross(lNormal, lTangent);
+#endif
+	
 	PsInput output;
-
-	output.sVelocity = mul(lPos, vsConstants.worldViewProjDer).xy;
-	output.wPos = mul(lPos, vsConstants.world);
 		
-	float z = heightmapTex.SampleLevel(heightmapSampler, texCoord, 0);
-	output.wPos.xyz += vsConstants.direction * (z * vsConstants.magnitude + vsConstants.offset);
+	Derivatives derivatives = SampleHeightmap(heightmapTex, heightmapSampler, texCoord, vsConstants.uvSize);
+	
+	float4 modifiedPos = lPos + float4(vsConstants.direction * (derivatives.z + vsConstants.offset), 0);
+	float3 modifiedNormal = DisplacementAdjustedNormal(lNormal, lTangent, lBitangent, derivatives.grad);
+
+	// Transform position.
+	output.sVelocity = mul(modifiedPos, vsConstants.worldViewProjDer).xy;
+	output.wPos = mul(modifiedPos, vsConstants.world);
 	output.hPos = mul(output.wPos, vsConstants.viewProj);
 	
-	float du = 0.01f;
-	float dv = 0.01f;
-	float zx = heightmapTex.SampleLevel(heightmapSampler, texCoord + float2(du, 0), 0);
-	float zy = heightmapTex.SampleLevel(heightmapSampler, texCoord + float2(0, dv), 0);
-	
-	float dudx = 1.0f;
-	float dvdy = 1.0f;
-	
-	float dzdx = (zx - z) / (du / dudx);
-	float dzdy = (zy - z) / (dv / dvdy);
-	
-	float3 gradX = float3(1.0f, 0.0f, dzdx);
-	float3 gradY = float3(0.0f, 1.0f, dzdy);
-	float3 normal = cross(gradX, gradY);
-
 	// Write through texCoord.
 	output.texCoord = texCoord;
 	
 	// Transform through normal.
-	float3x3 worldRotation = (float3x3)vsConstants.world;
-	output.wNormal = normalize(mul(normal, worldRotation));
+	float3x3 worldRotation = (float3x3) vsConstants.world;
+	output.wNormal = normalize(mul(modifiedNormal, worldRotation));
 	
 	// Transform through tangent.
 	output.wTangent = mul(lTangent, worldRotation);
 	
-	// Transform through or calculate bitangent.
-#if HAS_BITANGENT
+	// Transform through bitangent.
 	output.wBitangent = mul(lBitangent, worldRotation);
-#else
-	output.wBitangent = cross(output.wNormal, output.wTangent);
-#endif
 	
-	#ifdef HAS_COLOR
+#ifdef HAS_COLOR
 	output.color = color;
 #endif
 

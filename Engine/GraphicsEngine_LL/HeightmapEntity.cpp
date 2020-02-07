@@ -51,5 +51,13 @@ float HeightmapEntity::GetOffset() const {
 	return m_offset;
 }
 
+void HeightmapEntity::SetUvSize(Vec2 size) {
+	m_uvSize = size;
+}
+
+Vec2 HeightmapEntity::GetUvSize() const {
+	return m_uvSize;
+}
+
 
 } // namespace inl::gxeng

@@ -4,7 +4,7 @@
 
 
 GameSceneFrame::GameSceneFrame() {
-	GetBackground().SetColor({ 1.0f, 1.0f, 1.0f, 0.1f });
+	GetBackground().SetColor({ 1.0f, 1.0f, 1.0f, 0.0f });
 }
 
 void GameSceneFrame::UpdateStyle() {

@@ -37,7 +37,8 @@ void save(Archive& ar, const GraphicsHeightmapComponent& obj) {
 	   cereal::make_nvp("scene", obj.sceneName),
 	   cereal::make_nvp("direction", obj.entity->GetDirection()),
 	   cereal::make_nvp("magnitude", obj.entity->GetMagnitude()),
-	   cereal::make_nvp("offset", obj.entity->GetOffset()));
+	   cereal::make_nvp("offset", obj.entity->GetOffset()),
+	   cereal::make_nvp("uvsize", obj.entity->GetUvSize()));
 }
 
 
@@ -46,17 +47,20 @@ void load(Archive& ar, GraphicsHeightmapComponent& obj) {
 	Vec3 direction;
 	float magnitude;
 	float offset;
+	Vec2 uvSize;
 	ar(cereal::make_nvp("mesh", obj.meshPath),
 	   cereal::make_nvp("material", obj.materialPath),
 	   cereal::make_nvp("heightmap", obj.heightmapPath),
 	   cereal::make_nvp("scene", obj.sceneName),
 	   cereal::make_nvp("direction", direction),
 	   cereal::make_nvp("magnitude", magnitude),
-	   cereal::make_nvp("offset", offset));
+	   cereal::make_nvp("offset", offset),
+	   cereal::make_nvp("uvsize", uvSize));
 
 	obj.entity->SetDirection(direction);
 	obj.entity->SetMagnitude(magnitude);
 	obj.entity->SetOffset(offset);
+	obj.entity->SetUvSize(uvSize);
 
 	const auto& moduleArchive = dynamic_cast<const game::ModuleArchive&>(ar);
 	const auto graphicsModule = moduleArchive.GetModule<GraphicsModule>();

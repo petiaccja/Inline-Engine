@@ -34,6 +34,9 @@ public:
 	void SetOffset(float offset) override;
 	float GetOffset() const override;
 
+	void SetUvSize(Vec2 size) override;
+	Vec2 GetUvSize() const override;
+
 private:
 	Mesh* m_mesh = nullptr;
 	Material* m_material = nullptr;
@@ -41,6 +44,7 @@ private:
 	Vec3 m_direction = { 0, 0, 1 };
 	float m_magnitude = 1.0f;
 	float m_offset = 0.0f;
+	Vec2 m_uvSize = { 1, 1 };
 };
 
 

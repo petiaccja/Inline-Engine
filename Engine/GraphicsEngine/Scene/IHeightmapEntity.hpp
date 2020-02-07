@@ -43,6 +43,10 @@ public:
 	/// <summary> Displacement = heightmap(u, v) * magnitude + offset. </summary>
 	virtual void SetOffset(float offset) = 0;
 	virtual float GetOffset() const = 0;
+
+	/// <summary> Entities must have a rectangular UV map. This function specifies its dimensions in local coordinates. </summary>
+	virtual void SetUvSize(Vec2 size) = 0;
+	virtual Vec2 GetUvSize() const = 0;
 };
 
 

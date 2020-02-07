@@ -25,6 +25,7 @@ struct VsConstants {
 	Vec3_Packed direction;
 	float magnitude;
 	float offset;
+	Vec2_Packed uvSize;
 };
 
 struct PsConstants {
@@ -237,6 +238,7 @@ void RenderForwardHeightmaps::RenderEntities(RenderContext& context, GraphicsCom
 		vsConstants.direction = entity->GetDirection();
 		vsConstants.magnitude = entity->GetMagnitude();
 		vsConstants.offset = entity->GetOffset();
+		vsConstants.uvSize = entity->GetUvSize();
 
 		stateDesc.BindPipeline(commandList);
 		commandList.BindGraphics(vsConstantsBind.parameter, &vsConstants, sizeof(vsConstants));
