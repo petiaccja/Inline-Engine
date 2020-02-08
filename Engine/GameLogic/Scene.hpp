@@ -52,7 +52,7 @@ public:
 	using const_iterator = generic_iterator<true>;
 
 	template <class... ComponentTypes>
-	Entity* CreateEntity(ComponentTypes&&... args);
+	Entity& CreateEntity(ComponentTypes&&... args);
 	void DeleteEntity(Entity& entity);
 	void Clear();
 
@@ -148,7 +148,7 @@ bool Scene::generic_iterator<Const>::operator!=(const generic_iterator& rhs) con
 
 
 template <class... ComponentTypes>
-Entity* Scene::CreateEntity(ComponentTypes&&... args) {
+Entity& Scene::CreateEntity(ComponentTypes&&... args) {
 	static const ComponentScheme scheme = { typeid(ComponentTypes)... };
 
 	auto it = m_componentSets.find(scheme);
@@ -159,7 +159,7 @@ Entity* Scene::CreateEntity(ComponentTypes&&... args) {
 	}
 
 	Entity& entity = it->second->Create(std::forward<ComponentTypes>(args)...);
-	return &entity;
+	return entity;
 }
 
 

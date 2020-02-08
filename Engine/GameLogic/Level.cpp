@@ -134,8 +134,8 @@ void SceneArchiver::load(Archive& ar) {
 
 	std::vector<EntityArchiver> archivers;
 	for (auto i : Range(numEntities)) {
-		Entity* entity = m_scene.CreateEntity();
-		archivers.push_back(EntityArchiver{ *entity, m_scene, m_factory });
+		Entity& entity = m_scene.CreateEntity();
+		archivers.push_back(EntityArchiver{ entity, m_scene, m_factory });
 	}
 
 	for (EntityArchiver& archiver : archivers) {

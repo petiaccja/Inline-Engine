@@ -6,6 +6,7 @@
 #include "EntitySchemeSet.hpp"
 
 #include <functional>
+#include <span>
 
 
 namespace inl::game {
@@ -28,36 +29,16 @@ public:
 		SWEEP,
 		MODIFY,
 	};
-	using CreateEntity = std::function<Entity&()>;
-	using DeleteEntity = std::function<void(Entity&)>;
 
 public:
 	virtual ~System() = default;
 
 	virtual const ComponentScheme& Scheme() const = 0;
 
-	void Run(float elapsed, Scene& scene);
-	void Run(float elapsed, EntitySchemeSet& entitySet, Scene& scene);
-
-	virtual void Run(float elapsed, CreateEntity createEntity, DeleteEntity deleteEntity) = 0;
-	virtual void Run(float elapsed, EntitySchemeSet& entitySet, CreateEntity createEntity, DeleteEntity deleteEntity) = 0;
+	virtual void Run(float elapsed, Scene& scene) = 0;
+	virtual void Run(float elapsed, EntitySchemeSet& entitySet, Scene& scene) = 0;
 };
 
-
-inline void System::Run(float elapsed, Scene& scene) {
-	Run(
-		elapsed,
-		[&]() -> Entity& { return *scene.CreateEntity(); },
-		[&](Entity& entity) { scene.DeleteEntity(entity); });
-}
-
-inline void System::Run(float elapsed, EntitySchemeSet& entitySet, Scene& scene) {
-	Run(
-		elapsed,
-		entitySet,
-		[&]() -> Entity& { return *scene.CreateEntity(); },
-		[&](Entity& entity) { scene.DeleteEntity(entity); });
-}
 
 //------------------------------------------------------------------------------
 // Specific system taking a set of components
@@ -69,12 +50,12 @@ public:
 
 	using System::Run;
 
-	void Run(float elapsed, CreateEntity createEntity, DeleteEntity deleteEntity) override final;
-	void Run(float elapsed, EntitySchemeSet& entitySet, CreateEntity createEntity, DeleteEntity deleteEntity) override final;
+	void Run(float elapsed, Scene& scene) override final;
+	void Run(float elapsed, EntitySchemeSet& entitySet, Scene& scene) override final;
 
 	virtual UpdateMarks Update(float elapsed, ComponentRange<ComponentTypes...>& range);
-	virtual void Modify(const std::vector<Entity*>& entities) {}
-	virtual void Create(const CreateEntity& createEntity) {}
+	virtual void Modify(std::span<Entity* const> entities) {}
+	virtual void Spawn(std::function<Entity&()> spawn, std::span<const Entity* const> entities) {}
 
 private:
 	template <size_t... Indices>
@@ -92,11 +73,11 @@ public:
 
 	using System::Run;
 
-	void Run(float elapsed, CreateEntity createEntity, DeleteEntity deleteEntity) override final;
-	void Run(float elapsed, EntitySchemeSet& entitySet, CreateEntity createEntity, DeleteEntity deleteEntity) override final;
+	void Run(float elapsed, Scene& scene) override final;
+	void Run(float elapsed, EntitySchemeSet& entitySet, Scene& scene) override final;
 
 	virtual void Update(float elapsed) = 0;
-	virtual void Create(const CreateEntity& createEntity){};
+	virtual void Modify(Scene& scene) {}
 };
 
 
@@ -112,14 +93,14 @@ const ComponentScheme& SpecificSystem<DerivedSystem>::Scheme() const {
 
 
 template <class DerivedSystem>
-void SpecificSystem<DerivedSystem>::Run(float elapsed, CreateEntity createEntity, DeleteEntity deleteEntity) {
+void SpecificSystem<DerivedSystem>::Run(float elapsed, Scene& scene) {
 	Update(elapsed);
-	Create(createEntity);
+	Modify(scene);
 }
 
 
 template <class DerivedSystem>
-void SpecificSystem<DerivedSystem>::Run(float elapsed, EntitySchemeSet& entitySet, CreateEntity createEntity, DeleteEntity deleteEntity) {
+void SpecificSystem<DerivedSystem>::Run(float elapsed, EntitySchemeSet& entitySet, Scene& scene) {
 	throw InvalidCallException("Please call the other function with no entity set.");
 }
 
@@ -135,13 +116,13 @@ const ComponentScheme& SpecificSystem<DerivedSystem, ComponentTypes...>::Scheme(
 
 
 template <class DerivedSystem, class... ComponentTypes>
-void SpecificSystem<DerivedSystem, ComponentTypes...>::Run(float elapsed, CreateEntity createEntity, DeleteEntity deleteEntity) {
+void SpecificSystem<DerivedSystem, ComponentTypes...>::Run(float elapsed, Scene& scene) {
 	throw InvalidCallException("Please call the other function with entity set.");
 }
 
 
 template <class DerivedSystem, class... ComponentTypes>
-void SpecificSystem<DerivedSystem, ComponentTypes...>::Run(float elapsed, EntitySchemeSet& entitySet, CreateEntity createEntity, DeleteEntity deleteEntity) {
+void SpecificSystem<DerivedSystem, ComponentTypes...>::Run(float elapsed, EntitySchemeSet& entitySet, Scene& scene) {
 	// Update
 	ComponentRange<ComponentTypes...> range(entitySet.GetMatrix());
 	UpdateMarks marks = Update(elapsed, range);
@@ -155,12 +136,13 @@ void SpecificSystem<DerivedSystem, ComponentTypes...>::Run(float elapsed, Entity
 	Modify(modifySet);
 
 	// Create
-	Create(createEntity);
+	const Entity* const* first = modifySet.data();
+	Spawn([&scene]() -> Entity& { return scene.CreateEntity(); }, modifySet);
 
 	// Sweep
 	for (auto index : marks.sweep) {
 		Entity& entity = entitySet[index];
-		deleteEntity(entity);
+		scene.DeleteEntity(entity);
 	}
 }
 

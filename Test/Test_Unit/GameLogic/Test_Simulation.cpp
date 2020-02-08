@@ -146,15 +146,15 @@ TEST_CASE("Run systems on Scene", "[GameLogic:Simulation]") {
 	Scene scene;
 	Simulation sm;
 
-	Entity* entity1 = scene.CreateEntity(FooComponent{ 12.f }, BarComponent{ 0.0f });
-	Entity* entity2 = scene.CreateEntity(FooComponent{ 12.f }, BarComponent{ 0.0f }, BazComponent{ 0.0f });
+	Entity& entity1 = scene.CreateEntity(FooComponent{ 12.f }, BarComponent{ 0.0f });
+	Entity& entity2 = scene.CreateEntity(FooComponent{ 12.f }, BarComponent{ 0.0f }, BazComponent{ 0.0f });
 
 	sm.PushBack(DoubleFooToBarSystem{});
 	sm.PushBack(StandaloneSystem{});
 
 	sm.Run(scene, 0.0f);
 
-	REQUIRE(entity1->GetFirstComponent<BarComponent>().value == 24.f);
-	REQUIRE(entity2->GetFirstComponent<BarComponent>().value == 24.f);
+	REQUIRE(entity1.GetFirstComponent<BarComponent>().value == 24.f);
+	REQUIRE(entity2.GetFirstComponent<BarComponent>().value == 24.f);
 	REQUIRE(sm.Get<StandaloneSystem>().content == "use renewables;");
 }

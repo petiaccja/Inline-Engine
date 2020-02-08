@@ -19,7 +19,7 @@ TEST_CASE("ComponentFactory - Registration", "[GameLogic:ComponentFactory]") {
 
 TEST_CASE("ComponentFactory - Create", "[GameLogic:ComponentFactory]") {
 	Scene world;
-	Entity& entity = *world.CreateEntity();
+	Entity& entity = world.CreateEntity();
 	ComponentFactory_Singleton::GetInstance().Create(entity, "FooComponent");
 	REQUIRE(entity.HasComponent<FooComponent>());
 }
@@ -45,7 +45,7 @@ TEST_CASE("ComponentFactory - Variant serializer", "[GameLogic:ComponentFactory]
 
 TEST_CASE("ComponentFactory - Create with serialization", "[GameLogic:ComponentFactory]") {
 	Scene world;
-	Entity& entity = *world.CreateEntity();
+	Entity& entity = world.CreateEntity();
 	std::stringstream ss;
 	{
 		cereal::JSONOutputArchive outputArchive{ ss };

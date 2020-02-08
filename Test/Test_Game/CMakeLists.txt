@@ -29,6 +29,8 @@ set(src_systems
 	CameraMoveSystem.cpp
 	UserInputSystem.hpp
 	UserInputSystem.cpp
+	LevelSystem.hpp
+	LevelSystem.cpp
 	)
 
 

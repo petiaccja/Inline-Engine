@@ -23,7 +23,7 @@ class TestLevelSystem : public inl::game::SpecificSystem<TestLevelSystem> {
 
 public:
 	void Update(float elapsed) override;
-	void Create(const CreateEntity& createEntity) override;
+	void Modify(inl::game::Scene& scene) override;
 
 	void LoadAsync(const inl::game::ComponentFactory& componentFactory, const inl::DynamicTuple& subsystems);
 

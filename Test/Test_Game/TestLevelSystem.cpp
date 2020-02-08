@@ -13,7 +13,7 @@ void TestLevelSystem::Update(float elapsed) {
 	// Do nothing.
 }
 
-void TestLevelSystem::Create(const CreateEntity& createEntity) {
+void TestLevelSystem::Modify(inl::game::Scene& scene) {
 	using namespace inl::game;
 	using namespace inl::gamelib;
 	using namespace inl;
@@ -27,19 +27,19 @@ void TestLevelSystem::Create(const CreateEntity& createEntity) {
 	GraphicsModule& graphicsModule = *m_command->modules.Get<GraphicsModule*>();
 
 	// Get scene.
-	gxeng::IScene& scene = graphicsModule.GetOrCreateScene("MainScene");
+	gxeng::IScene& graphicsScene = graphicsModule.GetOrCreateScene("MainScene");
 
 	// Create a directional light.
-	Entity& light = createEntity();
+	Entity& light = scene.CreateEntity();
 	componentFactory.Create<DirectionalLightComponent>(light);
 	auto&& lightComponent = light.GetFirstComponent<DirectionalLightComponent>();
 	lightComponent.entity = graphicsModule.CreateDirectionalLight();
 	lightComponent.entity->SetDirection(Vec3{ 0.5, 0.5, -0.2 }.Normalized());
 	lightComponent.entity->SetColor({ 1.0f, 0.7f, 0.4f });
-	scene.GetEntities<gxeng::IDirectionalLight>().Add(lightComponent.entity.get());
+	graphicsScene.GetEntities<gxeng::IDirectionalLight>().Add(lightComponent.entity.get());
 
 	// Create terrain.
-	Entity& terrain = createEntity();
+	Entity& terrain = scene.CreateEntity();
 	componentFactory.Create<GraphicsMeshComponent>(terrain);
 	auto&& terrainComponent = terrain.GetFirstComponent<GraphicsMeshComponent>();
 	terrainComponent.entity = graphicsModule.CreateMeshEntity();
@@ -50,10 +50,10 @@ void TestLevelSystem::Create(const CreateEntity& createEntity) {
 	terrainComponent.entity->SetPosition({ 0, 0, 0 });
 	terrainComponent.entity->SetRotation(Quat::Identity());
 	terrainComponent.entity->SetScale({ 1, 1, 1 });
-	scene.GetEntities<gxeng::IMeshEntity>().Add(terrainComponent.entity.get());
+	graphicsScene.GetEntities<gxeng::IMeshEntity>().Add(terrainComponent.entity.get());
 
 	// Create a tree.
-	Entity& tree = createEntity();
+	Entity& tree = scene.CreateEntity();
 	componentFactory.Create<GraphicsMeshComponent>(tree);
 	auto&& treeComponent = tree.GetFirstComponent<GraphicsMeshComponent>();
 	treeComponent.entity = graphicsModule.CreateMeshEntity();
@@ -64,10 +64,10 @@ void TestLevelSystem::Create(const CreateEntity& createEntity) {
 	treeComponent.entity->SetPosition({ 0, 0, 0 });
 	treeComponent.entity->SetRotation(Quat::Identity());
 	treeComponent.entity->SetScale({ 0.003937, 0.003937, 0.003937 });
-	scene.GetEntities<gxeng::IMeshEntity>().Add(treeComponent.entity.get());
+	graphicsScene.GetEntities<gxeng::IMeshEntity>().Add(treeComponent.entity.get());
 
 	// Create a 3D camera.
-	Entity& camera = createEntity();
+	Entity& camera = scene.CreateEntity();
 	componentFactory.Create<PerspectiveCameraComponent>(camera);
 	auto&& cameraComponent = camera.GetFirstComponent<PerspectiveCameraComponent>();
 	cameraComponent.entity = graphicsModule.CreatePerspectiveCamera("MainCamera");
@@ -79,7 +79,7 @@ void TestLevelSystem::Create(const CreateEntity& createEntity) {
 	cameraComponent.entity->SetTarget({ 0, 0, 0 });
 
 	// Create test heightmap entity.
-	Entity& heightmap = createEntity();
+	Entity& heightmap = scene.CreateEntity();
 	componentFactory.Create<GraphicsHeightmapComponent>(heightmap);
 	auto&& heightmapComponent = heightmap.GetFirstComponent<GraphicsHeightmapComponent>();
 	heightmapComponent.entity = graphicsModule.CreateHeightmapEntity();
@@ -94,7 +94,7 @@ void TestLevelSystem::Create(const CreateEntity& createEntity) {
 	heightmapComponent.entity->SetScale({ 1, 1, 1 });
 	heightmapComponent.entity->SetUvSize({ 5, 5 });
 	heightmapComponent.entity->SetMagnitude(0.3f);
-	scene.GetEntities<gxeng::IHeightmapEntity>().Add(heightmapComponent.entity.get());
+	graphicsScene.GetEntities<gxeng::IHeightmapEntity>().Add(heightmapComponent.entity.get());
 }
 
 void TestLevelSystem::LoadAsync(const inl::game::ComponentFactory& componentFactory, const inl::DynamicTuple& subsystems) {
