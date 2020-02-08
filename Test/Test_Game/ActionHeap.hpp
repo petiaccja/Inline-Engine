@@ -18,6 +18,9 @@ public:
 	template <class VisitorT>
 	void Visit(VisitorT visitor);
 
+	template <class VisitableT, class VisitorT>
+	void Visit(VisitorT visitor);
+
 	void Clear();
 
 private:
@@ -43,6 +46,11 @@ template <class VisitorT>
 void ActionHeap::Visit(VisitorT visitor) {
 	// Must be convertible to a Visitor<...>.
 	Visit(visitor, visitor);
+}
+
+template <class VisitableT, class VisitorT>
+void ActionHeap::Visit(VisitorT visitor) {
+	Visit(visitor, std::declval<VisitableT>());
 }
 
 template <class VisitorT, class... Actions>

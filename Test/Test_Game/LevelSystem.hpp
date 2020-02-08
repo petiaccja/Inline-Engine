@@ -1,6 +1,19 @@
 #pragma once
 
+#include "ActionHeap.hpp"
+
 #include <GameLogic/System.hpp>
+
+#include <filesystem>
+
+
+struct LoadLevelAction {
+	std::filesystem::path fileName;
+};
+
+struct SaveLevelAction {
+	std::filesystem::path fileName;
+};
 
 
 namespace inl::game {
@@ -9,15 +22,21 @@ class ComponentFactory;
 class LevelOutputArchive;
 } // namespace inl::game
 
+
 class LevelSystem : public inl::game::SpecificSystem<LevelSystem> {
 public:
-	void Update(float elapsed) override;
-	void Modify(const inl::game::Scene&);
+	LevelSystem(std::shared_ptr<ActionHeap> actionHeap);
+
+	void Update(float elapsed) override {}
+	void Modify(inl::game::Scene& scene) override;
 
 private:
-	void Load(inl::game::LevelInputArchive& ar, inl::game::ComponentFactory& factory);
-	void Save(inl::game::LevelOutputArchive& ar, inl::game::ComponentFactory& factory) const;
-	void Clear();
+	void ProcessLoadActions(inl::game::Scene& scene);
+	void ProcessSaveActions(inl::game::Scene& scene);
+	void Load(inl::game::Scene& scene, inl::game::LevelInputArchive& ar, inl::game::ComponentFactory& factory) const;
+	void Save(inl::game::Scene& scene, inl::game::LevelOutputArchive& ar, inl::game::ComponentFactory& factory) const;
+	void Clear(inl::game::Scene& scene) const;
 
 private:
+	std::shared_ptr<ActionHeap> m_actionHeap;
 };
