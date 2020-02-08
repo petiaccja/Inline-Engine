@@ -4,10 +4,10 @@
 #include "MemoryObject.hpp"
 #include "PipelineEventListener.hpp"
 
-#include "../BaseLibrary/RingBuffer.hpp"
-#include "../BaseLibrary/ScalarLiterals.hpp"
-#include "../GraphicsApi_LL/IGraphicsApi.hpp"
-#include "../GraphicsApi_LL/IResource.hpp"
+#include <BaseLibrary/Container/RingBuffer.hpp>
+#include <BaseLibrary/ScalarLiterals.hpp>
+#include <GraphicsApi_LL/IGraphicsApi.hpp>
+#include <GraphicsApi_LL/IResource.hpp>
 
 #include <memory>
 #include <mutex>

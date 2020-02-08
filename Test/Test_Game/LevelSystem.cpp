@@ -75,7 +75,7 @@ void LevelSystem::ProcessLoadActions(Scene& scene) {
 		if (!is.is_open()) {
 			throw FileNotFoundException{};
 		}
-		LevelInputArchive ar{ cereal::JSONInputArchive{ is } };
+		LevelInputArchive ar{ std::in_place_type<cereal::JSONInputArchive>, is };
 		Load(scene, ar, ComponentFactory_Singleton::GetInstance());
 	};
 	m_actionHeap->Visit<Visitor<LoadLevelAction>>(visitor);
@@ -84,11 +84,11 @@ void LevelSystem::ProcessLoadActions(Scene& scene) {
 
 void LevelSystem::ProcessSaveActions(Scene& scene) {
 	auto visitor = [this, &scene](const SaveLevelAction& action) {
-		std::ofstream is{ action.fileName };
-		if (!is.is_open()) {
+		std::ofstream os{ action.fileName };
+		if (!os.is_open()) {
 			throw FileNotFoundException{};
 		}
-		LevelOutputArchive ar{ cereal::JSONOutputArchive{ is } };
+		LevelOutputArchive ar{ std::in_place_type<cereal::JSONOutputArchive>, os };
 		Save(scene, ar, ComponentFactory_Singleton::GetInstance());
 	};
 	m_actionHeap->Visit<Visitor<SaveLevelAction>>(visitor);

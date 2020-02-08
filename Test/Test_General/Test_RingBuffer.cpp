@@ -1,6 +1,6 @@
 #include "Test.hpp"
 
-#include <BaseLibrary/RingBuffer.hpp>
+#include <BaseLibrary/Container/RingBuffer.hpp>
 #include <BaseLibrary/ScalarLiterals.hpp>
 
 #include <array>

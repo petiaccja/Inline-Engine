@@ -1,6 +1,6 @@
 #include "Components.hpp"
 
-#include <GameLogic/ContiguousVector.hpp>
+#include <BaseLibrary/Container/ContiguousVector.hpp>
 
 #include <Catch2/catch.hpp>
 

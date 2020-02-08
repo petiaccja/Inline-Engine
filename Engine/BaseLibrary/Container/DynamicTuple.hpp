@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Exception/Exception.hpp"
+#include "../Exception/Exception.hpp"
 
 #include <any>
 #include <typeindex>

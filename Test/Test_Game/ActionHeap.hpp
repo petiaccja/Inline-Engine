@@ -1,6 +1,7 @@
 #pragma once
 
 #include <any>
+#include <utility>
 #include <vector>
 
 
@@ -50,7 +51,7 @@ void ActionHeap::Visit(VisitorT visitor) {
 
 template <class VisitableT, class VisitorT>
 void ActionHeap::Visit(VisitorT visitor) {
-	Visit(visitor, std::declval<VisitableT>());
+	Visit(visitor, VisitableT{});
 }
 
 template <class VisitorT, class... Actions>

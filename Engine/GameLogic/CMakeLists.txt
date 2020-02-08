@@ -10,7 +10,6 @@ set(src_world
 	Entity.hpp
 	EntitySchemeSet.hpp
 	EntitySchemeSet.cpp
-	ContiguousVector.hpp
 	ComponentMatrix.cpp
 	ComponentMatrix.hpp
 	ComponentVector.hpp
