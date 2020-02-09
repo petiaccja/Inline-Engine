@@ -5,6 +5,7 @@ file(GLOB sources "*.cpp")
 file(GLOB headers "*.hpp")
 
 file(GLOB src_actionsystem "ActionSystem/*.?pp")
+file(GLOB src_container "Container/*.?pp")
 file(GLOB src_exception "Exception/*.?pp")
 file(GLOB src_graph "Graph/*.?pp")
 file(GLOB src_grapheditor "GraphEditor/*.?pp")
@@ -20,6 +21,7 @@ add_library(BaseLibrary STATIC
 	${sources} ${headers}
 	
 	${src_actionsystem}
+	${src_container}
 	${src_exception}
 	${src_graph}
 	${src_grapheditor}
@@ -44,6 +46,7 @@ source_group("Platform" FILES ${src_platform})
 source_group("Platform\\Win32" FILES ${src_platform_win32})
 source_group("Serialization" FILES ${src_serialization})
 source_group("JobSystem" FILES ${src_jobsystem})
+source_group("Container" FILES ${src_container})
 
 # Dependencies
 if (TARGET_PLATFORM_WINDOWS) 

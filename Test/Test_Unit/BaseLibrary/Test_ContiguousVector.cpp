@@ -1,13 +1,11 @@
-#include "Components.hpp"
-
 #include <BaseLibrary/Container/ContiguousVector.hpp>
 
 #include <Catch2/catch.hpp>
 
-using namespace inl::game;
+using namespace inl;
 
 
-TEST_CASE("Erase single", "[GameLogic:ContiguousVector]") {
+TEST_CASE("Erase single", "[BaseLibrary:ContiguousVector]") {
 	ContiguousVector<int> v = { 0, 1, 2, 10, 4, 5, 3 };
 	v.erase(v.begin() + 3);
 
@@ -18,7 +16,7 @@ TEST_CASE("Erase single", "[GameLogic:ContiguousVector]") {
 }
 
 
-TEST_CASE("Erase range extra", "[GameLogic:ContiguousVector]") {
+TEST_CASE("Erase range extra", "[BaseLibrary:ContiguousVector]") {
 	ContiguousVector<int> v = { 0, 1, 2, 10, 11, 12, 6, 3, 4, 5 };
 	v.erase(v.begin() + 3, v.begin() + 6);
 
@@ -28,7 +26,7 @@ TEST_CASE("Erase range extra", "[GameLogic:ContiguousVector]") {
 	}
 }
 
-TEST_CASE("Erase range optimized", "[GameLogic:ContiguousVector]") {
+TEST_CASE("Erase range optimized", "[BaseLibrary:ContiguousVector]") {
 	ContiguousVector<int> v = { 0, 1, 2, 10, 11, 12, 3, 4 };
 	v.erase(v.begin() + 3, v.begin() + 6);
 
@@ -39,7 +37,7 @@ TEST_CASE("Erase range optimized", "[GameLogic:ContiguousVector]") {
 }
 
 
-TEST_CASE("Swap elems", "[GameLogic:ContiguousVector]") {
+TEST_CASE("Swap elems", "[BaseLibrary:ContiguousVector]") {
 	ContiguousVector<int> v = { 0, 1, 3, 2, 4, 5 };
 	v.swap_elements(v.begin() + 2, v.begin() + 3);
 

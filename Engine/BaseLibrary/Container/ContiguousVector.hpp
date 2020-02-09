@@ -4,7 +4,7 @@
 #include <vector>
 
 
-namespace inl::game {
+namespace inl {
 
 template <class T, class Alloc = std::allocator<T>>
 class ContiguousVector : private std::vector<T, Alloc> {
@@ -100,4 +100,4 @@ void ContiguousVector<T, Alloc>::swap_elements(const_iterator elem1, const_itera
 
 
 
-} // namespace inl::game
+} // namespace inl
