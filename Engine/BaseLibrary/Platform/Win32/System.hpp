@@ -4,6 +4,7 @@
 #include "Input.hpp"
 
 #include <InlineMath.hpp>
+#include <filesystem>
 #include <vector>
 
 
@@ -47,7 +48,7 @@ public:
 	static void SetCursorVisible(bool visible);
 
 	// File paths
-	static std::string GetExecutableDir();
+	static std::filesystem::path GetExecutableDir();
 };
 
 

@@ -6,7 +6,8 @@ set(src_main
 	Game.hpp
 	Game.cpp
 	EngineCollection.hpp
-	EngineCollection.cpp)
+	EngineCollection.cpp
+	)
 
 set(src_ui
 	UserInterfaceCompositor.hpp
@@ -17,8 +18,11 @@ set(src_ui
 	MainMenuFrame.cpp
 	GameSceneFrame.hpp
 	GameSceneFrame.cpp
+	PauseMenuFrame.hpp
+	PauseMenuFrame.cpp
 	WindowLayout.hpp
-	WindowLayout.cpp)
+	WindowLayout.cpp
+	)
 
 set(src_systems
 	UserInterfaceSystem.hpp
@@ -40,6 +44,7 @@ set(src_actions
 	CameraMoveSource.hpp
 	CameraMoveSource.cpp
 	CameraMoveActions.hpp
+	LevelActions.hpp
 	)
 	
 # Target

@@ -3,6 +3,7 @@
 #include <BaseLibrary/Range.hpp>
 #include <GameLogic/ComponentFactory.hpp>
 #include <GameLogic/LevelArchive.hpp>
+#include "LevelActions.hpp"
 
 #include <fstream>
 

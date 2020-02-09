@@ -1,6 +1,5 @@
 #include "UserInterfaceSystem.hpp"
 
-#include "CameraMoveActions.hpp"
 #include "DebugInfoFrame.hpp"
 #include "MainMenuFrame.hpp"
 

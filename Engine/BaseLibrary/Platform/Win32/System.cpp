@@ -64,7 +64,7 @@ void System::SetCursorVisible(bool visible) {
 }
 
 // File paths
-std::string System::GetExecutableDir() {
+std::filesystem::path System::GetExecutableDir() {
 	char name[1024];
 	GetModuleFileNameA(GetModuleHandleA(nullptr), name, sizeof(name));
 	std::string s(name);
