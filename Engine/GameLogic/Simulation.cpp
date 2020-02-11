@@ -18,7 +18,7 @@ void Simulation::Run(Scene& scene, float elapsed) {
 	}
 }
 
-void Simulation::Remove(const System& system) {
+void Simulation::Remove(const SystemBase& system) {
 	auto keep = std::remove_if(m_systems.begin(), m_systems.end(), [&system](const auto& ptr) {
 		return ptr.get() == &system;
 	});
@@ -41,11 +41,11 @@ size_t Simulation::Size() const {
 	return m_systems.size();
 }
 
-System& Simulation::operator[](size_t index) {
+SystemBase& Simulation::operator[](size_t index) {
 	return *(begin() + index);
 }
 
-const System& Simulation::operator[](size_t index) const {
+const SystemBase& Simulation::operator[](size_t index) const {
 	return *(begin() + index);
 }
 

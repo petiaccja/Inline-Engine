@@ -9,7 +9,7 @@
 #include <map>
 
 
-class UserInputSystem : public inl::game::SpecificSystem<UserInputSystem> {
+class UserInputSystem : public inl::game::System<UserInputSystem> {
 public:
 	UserInputSystem(std::shared_ptr<ActionHeap> actionHeap);
 	UserInputSystem(UserInputSystem&& rhs);

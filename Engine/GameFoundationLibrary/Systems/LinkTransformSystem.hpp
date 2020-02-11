@@ -17,7 +17,7 @@
 namespace inl::gamelib {
 
 
-class LinkTransformSystem : public game::SpecificSystem<LinkTransformSystem> {
+class LinkTransformSystem : public game::System<LinkTransformSystem> {
 public:
 	LinkTransformSystem();
 	LinkTransformSystem(const LinkTransformSystem&);

@@ -6,7 +6,7 @@
 #include <GameLogic/System.hpp>
 
 
-class CameraMoveSystem : public inl::game::SpecificSystem<CameraMoveSystem, inl::gamelib::PerspectiveCameraComponent> {
+class CameraMoveSystem : public inl::game::System<CameraMoveSystem, inl::gamelib::PerspectiveCameraComponent> {
 public:
 	explicit CameraMoveSystem(std::shared_ptr<ActionHeap> actionHeap);
 

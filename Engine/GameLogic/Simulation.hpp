@@ -13,7 +13,7 @@ class Simulation {
 	template <bool Const>
 	class generic_iterator {
 		friend generic_iterator<!Const>;
-		using vector_iterator = std::conditional_t<Const, std::vector<std::unique_ptr<System>>::const_iterator, std::vector<std::unique_ptr<System>>::iterator>;
+		using vector_iterator = std::conditional_t<Const, std::vector<std::unique_ptr<SystemBase>>::const_iterator, std::vector<std::unique_ptr<SystemBase>>::iterator>;
 
 	public:
 		generic_iterator() = default;
@@ -23,8 +23,8 @@ class Simulation {
 		template <class Dummy = void, class = std::enable_if_t<Const, Dummy>>
 		generic_iterator(const generic_iterator<false>& rhs) : m_it(rhs.m_it) {}
 
-		System& operator*() const { return **m_it; }
-		System* operator->() const { return m_it->get(); }
+		SystemBase& operator*() const { return **m_it; }
+		SystemBase* operator->() const { return m_it->get(); }
 
 		generic_iterator& operator++();
 		generic_iterator& operator--();
@@ -59,13 +59,13 @@ public:
 	void RemoveAll();
 	template <class SystemT>
 	void Remove();
-	void Remove(const System& system);
+	void Remove(const SystemBase& system);
 	void Clear();
 	void Splice(const_iterator where, const_iterator which);
 	size_t Size() const;
 
-	System& operator[](size_t index);
-	const System& operator[](size_t index) const;
+	SystemBase& operator[](size_t index);
+	const SystemBase& operator[](size_t index) const;
 
 	template <class SystemT>
 	SystemT& Get();
@@ -86,7 +86,7 @@ public:
 
 
 private:
-	std::vector<std::unique_ptr<System>> m_systems;
+	std::vector<std::unique_ptr<SystemBase>> m_systems;
 };
 
 

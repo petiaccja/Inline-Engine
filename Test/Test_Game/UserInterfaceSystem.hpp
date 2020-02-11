@@ -17,7 +17,7 @@ class Window;
 
 
 
-class UserInterfaceSystem : public inl::game::SpecificSystem<UserInterfaceSystem> {
+class UserInterfaceSystem : public inl::game::System<UserInterfaceSystem> {
 public:
 	UserInterfaceSystem(const EngineCollection& modules, inl::Window& window, std::shared_ptr<ActionHeap> actionHeap);
 	UserInterfaceSystem(UserInterfaceSystem&& rhs);

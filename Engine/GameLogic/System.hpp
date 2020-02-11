@@ -18,7 +18,7 @@ class Entity;
 //------------------------------------------------------------------------------
 // General system
 //------------------------------------------------------------------------------
-class System {
+class SystemBase {
 public:
 	struct UpdateMarks {
 		std::vector<size_t> sweep;
@@ -31,7 +31,7 @@ public:
 	};
 
 public:
-	virtual ~System() = default;
+	virtual ~SystemBase() = default;
 
 	virtual const ComponentScheme& Scheme() const = 0;
 
@@ -44,11 +44,11 @@ public:
 // Specific system taking a set of components
 //------------------------------------------------------------------------------
 template <class DerivedSystem, class... ComponentTypes>
-class SpecificSystem : public System {
+class System : public SystemBase {
 public:
 	const ComponentScheme& Scheme() const override final;
 
-	using System::Run;
+	using SystemBase::Run;
 
 	void Run(float elapsed, Scene& scene) override final;
 	void Run(float elapsed, EntitySchemeSet& entitySet, Scene& scene) override final;
@@ -67,11 +67,11 @@ private:
 // Specific System taking zero components
 //------------------------------------------------------------------------------
 template <class DerivedSystem>
-class SpecificSystem<DerivedSystem> : public System {
+class System<DerivedSystem> : public SystemBase {
 public:
 	const ComponentScheme& Scheme() const override final;
 
-	using System::Run;
+	using SystemBase::Run;
 
 	void Run(float elapsed, Scene& scene) override final;
 	void Run(float elapsed, EntitySchemeSet& entitySet, Scene& scene) override final;
@@ -86,21 +86,21 @@ public:
 //------------------------------------------------------------------------------
 
 template <class DerivedSystem>
-const ComponentScheme& SpecificSystem<DerivedSystem>::Scheme() const {
+const ComponentScheme& System<DerivedSystem>::Scheme() const {
 	static const ComponentScheme scheme;
 	return scheme;
 }
 
 
 template <class DerivedSystem>
-void SpecificSystem<DerivedSystem>::Run(float elapsed, Scene& scene) {
+void System<DerivedSystem>::Run(float elapsed, Scene& scene) {
 	Update(elapsed);
 	Modify(scene);
 }
 
 
 template <class DerivedSystem>
-void SpecificSystem<DerivedSystem>::Run(float elapsed, EntitySchemeSet& entitySet, Scene& scene) {
+void System<DerivedSystem>::Run(float elapsed, EntitySchemeSet& entitySet, Scene& scene) {
 	throw InvalidCallException("Please call the other function with no entity set.");
 }
 
@@ -109,20 +109,20 @@ void SpecificSystem<DerivedSystem>::Run(float elapsed, EntitySchemeSet& entitySe
 // Implementation -- System taking multiple components
 //------------------------------------------------------------------------------
 template <class DerivedSystem, class... ComponentTypes>
-const ComponentScheme& SpecificSystem<DerivedSystem, ComponentTypes...>::Scheme() const {
+const ComponentScheme& System<DerivedSystem, ComponentTypes...>::Scheme() const {
 	static const ComponentScheme scheme{ std::type_index(typeid(ComponentTypes))... };
 	return scheme;
 }
 
 
 template <class DerivedSystem, class... ComponentTypes>
-void SpecificSystem<DerivedSystem, ComponentTypes...>::Run(float elapsed, Scene& scene) {
+void System<DerivedSystem, ComponentTypes...>::Run(float elapsed, Scene& scene) {
 	throw InvalidCallException("Please call the other function with entity set.");
 }
 
 
 template <class DerivedSystem, class... ComponentTypes>
-void SpecificSystem<DerivedSystem, ComponentTypes...>::Run(float elapsed, EntitySchemeSet& entitySet, Scene& scene) {
+void System<DerivedSystem, ComponentTypes...>::Run(float elapsed, EntitySchemeSet& entitySet, Scene& scene) {
 	// Update
 	ComponentRange<ComponentTypes...> range(entitySet.GetMatrix());
 	UpdateMarks marks = Update(elapsed, range);
@@ -148,14 +148,14 @@ void SpecificSystem<DerivedSystem, ComponentTypes...>::Run(float elapsed, Entity
 
 
 template <class DerivedSystem, class... ComponentTypes>
-auto SpecificSystem<DerivedSystem, ComponentTypes...>::Update(float elapsed, ComponentRange<ComponentTypes...>& range) -> UpdateMarks {
+auto System<DerivedSystem, ComponentTypes...>::Update(float elapsed, ComponentRange<ComponentTypes...>& range) -> UpdateMarks {
 	return UpdateHelper(std::make_index_sequence<sizeof...(ComponentTypes)>(), elapsed, range);
 }
 
 
 template <class DerivedSystem, class... ComponentTypes>
 template <size_t... Indices>
-auto SpecificSystem<DerivedSystem, ComponentTypes...>::UpdateHelper(std::index_sequence<Indices...> indices, float elapsed, ComponentRange<ComponentTypes...>& range) -> UpdateMarks {
+auto System<DerivedSystem, ComponentTypes...>::UpdateHelper(std::index_sequence<Indices...> indices, float elapsed, ComponentRange<ComponentTypes...>& range) -> UpdateMarks {
 	auto&& self = static_cast<DerivedSystem&>(*this);
 	using SingleUpdateReturnT = decltype(self.UpdateEntity(elapsed, std::get<Indices>(*range.begin())...));
 	static_assert(std::is_void_v<SingleUpdateReturnT> || std::is_same_v<SingleUpdateReturnT, eUpdateFlag>, "Single entity update function UpdateEntity returns either void or eUpdateFlag");

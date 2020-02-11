@@ -14,7 +14,7 @@ class LevelOutputArchive;
 } // namespace inl::game
 
 
-class LevelSystem : public inl::game::SpecificSystem<LevelSystem> {
+class LevelSystem : public inl::game::System<LevelSystem> {
 public:
 	LevelSystem(std::shared_ptr<ActionHeap> actionHeap);
 

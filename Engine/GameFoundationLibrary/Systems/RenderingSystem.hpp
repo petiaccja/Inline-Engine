@@ -5,7 +5,7 @@
 namespace inl::gamelib {
 
 
-class RenderingSystem : public game::SpecificSystem<RenderingSystem> {
+class RenderingSystem : public game::System<RenderingSystem> {
 public:
 	RenderingSystem(gxeng::IGraphicsEngine* engine);
 	void Update(float elapsed) override;

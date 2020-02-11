@@ -15,7 +15,7 @@ class ComponentFactory;
 }
 
 
-class TestLevelSystem : public inl::game::SpecificSystem<TestLevelSystem> {
+class TestLevelSystem : public inl::game::System<TestLevelSystem> {
 	struct Command {
 		const inl::game::ComponentFactory& componentFactory;
 		const inl::DynamicTuple& modules;
