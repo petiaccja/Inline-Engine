@@ -17,6 +17,7 @@ set(src_world
 	ComponentScheme.hpp
 	ComponentScheme.cpp
 	System.hpp
+	Hook.hpp
 	)
 
 set(src_factory
