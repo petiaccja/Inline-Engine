@@ -10,7 +10,10 @@ class SystemBase;
 
 class HookBase {
 public:
-	virtual void Run(SystemBase& system) = 0;
+	virtual void BeginFrame() = 0;
+	virtual void PreRun(SystemBase& system) = 0;
+	virtual void PostRun(SystemBase& system) = 0;
+	virtual void EndFrame() = 0;
 };
 
 
@@ -19,19 +22,32 @@ class Hook : public HookBase {
 	static_assert(!std::is_same_v<SystemInterface, SystemBase>);
 
 public:
-	virtual void Run(SystemInterface& system) = 0;
+	void BeginFrame() override {}
+	virtual void PreRun(SystemInterface& system) {}
+	virtual void PostRun(SystemInterface& system) {}
+	void EndFrame() override {}
 
 private:
-	void Run(SystemBase& system) override;
+	void PreRun(SystemBase& system) override final;
+	void PostRun(SystemBase& system) override final;
 };
 
 
 template <class SystemInterface>
-void Hook<SystemInterface>::Run(SystemBase& system) {
+void Hook<SystemInterface>::PreRun(SystemBase& system) {
 	SystemInterface* systemInterface = dynamic_cast<SystemInterface*>(&system);
 	if (systemInterface != nullptr) {
-		Run(*systemInterface);
+		PreRun(*systemInterface);
 	}
 }
+
+template <class SystemInterface>
+void Hook<SystemInterface>::PostRun(SystemBase& system) {
+	SystemInterface* systemInterface = dynamic_cast<SystemInterface*>(&system);
+	if (systemInterface != nullptr) {
+		PostRun(*systemInterface);
+	}
+}
+
 
 } // namespace inl::game

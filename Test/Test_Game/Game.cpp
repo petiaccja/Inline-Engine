@@ -1,8 +1,10 @@
 #include "Game.hpp"
 
+#include "CameraMoveSource.hpp"
 #include "CameraMoveSystem.hpp"
 #include "MainMenuFrame.hpp"
 #include "TestLevelSystem.hpp"
+#include "UserInputSystem.hpp"
 #include "UserInterfaceSystem.hpp"
 
 #include <GameFoundationLibrary/Components/GraphicsMeshComponent.hpp>
@@ -11,8 +13,6 @@
 #include <GameFoundationLibrary/Systems/RenderingSystem.hpp>
 
 #include <fstream>
-#include "UserInputSystem.hpp"
-#include "CameraMoveSource.hpp"
 
 
 #define RENDER_PIPELINE_FULL_3D "forward_heightmap_with_gui.json"
@@ -41,19 +41,25 @@ void Game::Update(float elapsed) {
 
 void Game::InitSimulation() {
 	m_actionHeap = std::make_shared<ActionHeap>();
-	
-	m_simulation.PushBack(UserInterfaceSystem{ m_engines, m_window, m_actionHeap });
-	m_simulation.PushBack(UserInputSystem{ m_actionHeap });
-	m_simulation.PushBack(TestLevelSystem{});
-	m_simulation.PushBack(CameraMoveSystem{m_actionHeap});
-	m_simulation.PushBack(inl::gamelib::LinkTransformSystem{});
-	m_simulation.PushBack(inl::gamelib::RenderingSystem{ &m_engines.GetGraphicsEngine() });
 
-	m_simulation.Get<UserInterfaceSystem>().GetCompositor().GetFrame<MainMenuFrame>().OnStart += [this, &testLevelSystem = m_simulation.Get<TestLevelSystem>()] {
+	m_simulation.systems = {
+		UserInterfaceSystem{ m_engines, m_window, m_actionHeap },
+		UserInputSystem{ m_actionHeap },
+		TestLevelSystem{},
+		CameraMoveSystem{ m_actionHeap },
+		inl::gamelib::LinkTransformSystem{},
+		inl::gamelib::RenderingSystem{ &m_engines.GetGraphicsEngine() },
+	};
+
+	
+	auto& userInterfaceSystem = dynamic_cast<UserInterfaceSystem&>(*std::find_if(m_simulation.systems.begin(), m_simulation.systems.end(), [](auto& sys) { return typeid(sys) == typeid(UserInterfaceSystem); }));
+	auto& testLevelSystem = dynamic_cast<TestLevelSystem&>(*std::find_if(m_simulation.systems.begin(), m_simulation.systems.end(), [](auto& sys) { return typeid(sys) == typeid(TestLevelSystem); }));
+	auto& userInputSystem = dynamic_cast<UserInputSystem&>(*std::find_if(m_simulation.systems.begin(), m_simulation.systems.end(), [](auto& sys) { return typeid(sys) == typeid(UserInputSystem); }));
+	userInterfaceSystem.GetCompositor().GetFrame<MainMenuFrame>().OnStart += [this, &testLevelSystem] {
 		testLevelSystem.LoadAsync(inl::game::ComponentFactory_Singleton::GetInstance(), m_modules);
 	};
 
-	m_simulation.Get<UserInputSystem>().Insert(CameraMoveSource{});
+	userInputSystem.Insert(CameraMoveSource{});
 }
 
 
