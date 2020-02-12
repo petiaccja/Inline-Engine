@@ -10,7 +10,7 @@ public:
 	void OnKeyboard(inl::KeyboardEvent evt, ActionHeap& actionHeap) override;
 	void OnMouseMove(inl::MouseMoveEvent evt, ActionHeap& actionHeap) override;
 	void OnMouseButton(inl::MouseButtonEvent evt, ActionHeap& actionHeap) override;
-	void Update(ActionHeap& actionHeap) override;
+	void Emit(ActionHeap& actionHeap) override;
 
 private:
 	bool m_movingForward = false;

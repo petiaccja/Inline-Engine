@@ -49,7 +49,7 @@ void CameraMoveSource::OnMouseButton(inl::MouseButtonEvent evt, ActionHeap& acti
 }
 
 
-void CameraMoveSource::Update(ActionHeap& actionHeap) {
+void CameraMoveSource::Emit(ActionHeap& actionHeap) {
 	float speed = m_boost ? 12.0f : 3.0f;
 	if (m_movingForward) {
 		actionHeap.Push(CameraMoveAction{ speed, eCameraMoveAxis::FORWARD });

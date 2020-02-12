@@ -1,6 +1,8 @@
 #pragma once
 
-#include <BaseLibrary/Platform/Window.hpp>
+#include "ActionSystem.hpp"
+
+#include <BaseLibrary/Container/DynamicTuple.hpp>
 #include <GameLogic/System.hpp>
 
 #include <optional>
@@ -15,18 +17,17 @@ class ComponentFactory;
 }
 
 
-class TestLevelSystem : public inl::game::System<TestLevelSystem> {
-	struct Command {
-		const inl::game::ComponentFactory& componentFactory;
-		const inl::DynamicTuple& modules;
-	};
-
+class TestLevelSystem : public inl::game::System<TestLevelSystem>, public ActionSystem {
 public:
-	void Update(float elapsed) override;
+	void ReactActions(ActionHeap& actions) override;
+	void Update(float elapsed) override {}
 	void Modify(inl::game::Scene& scene) override;
-
-	void LoadAsync(const inl::game::ComponentFactory& componentFactory, const inl::DynamicTuple& subsystems);
+	void EmitActions(ActionHeap& actions) override;
 
 private:
-	std::optional<Command> m_command;
+	void Load(inl::game::Scene& scene, inl::game::ComponentFactory& factory) const;
+
+private:
+	mutable inl::DynamicTuple m_subsystems;
+	std::optional<std::reference_wrapper<ActionHeap>> m_transientActionHeap;
 };

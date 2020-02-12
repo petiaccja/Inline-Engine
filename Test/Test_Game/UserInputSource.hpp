@@ -12,7 +12,7 @@ public:
 	virtual void OnMouseMove(inl::MouseMoveEvent evt, ActionHeap& actionHeap) {}
 	virtual void OnMouseWheel(inl::MouseWheelEvent evt, ActionHeap& actionHeap) {}
 
-	virtual void Update(ActionHeap& actionHeap) {}
+	virtual void Emit(ActionHeap& actionHeap) {}
 
 	void SetEnabled(bool enabled) { m_enabled = enabled; }
 	void Enable() { m_enabled = true; }

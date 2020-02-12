@@ -4,9 +4,9 @@
 
 using namespace inl;
 
-CameraMoveSystem::CameraMoveSystem(std::shared_ptr<ActionHeap> actionHeap)
-	: m_actionHeap(std::move(actionHeap)) {}
-
+void CameraMoveSystem::ReactActions(ActionHeap& actions) {
+	m_transientActionHeap = actions;
+}
 
 void CameraMoveSystem::UpdateEntity(float elapsed, inl::gamelib::PerspectiveCameraComponent& camera) {
 	struct Visitor : ::Visitor<CameraMoveAction, CameraRotateAction> {
@@ -46,5 +46,9 @@ void CameraMoveSystem::UpdateEntity(float elapsed, inl::gamelib::PerspectiveCame
 		const float& elapsed;
 	} visitor{ *camera.entity, elapsed };
 
-	m_actionHeap->Visit(visitor);
+	m_transientActionHeap.value().get().Visit(visitor);
+}
+
+void CameraMoveSystem::EmitActions(ActionHeap& actions) {
+	m_transientActionHeap.reset();
 }

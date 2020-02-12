@@ -4,7 +4,6 @@
 file(GLOB sources "*.cpp")
 file(GLOB headers "*.hpp")
 
-file(GLOB src_actionsystem "ActionSystem/*.?pp")
 file(GLOB src_container "Container/*.?pp")
 file(GLOB src_exception "Exception/*.?pp")
 file(GLOB src_graph "Graph/*.?pp")
@@ -36,7 +35,6 @@ add_library(BaseLibrary STATIC
 # Filters
 source_group("" FILES ${sources} ${headers})
 
-source_group("EventSystem" FILES ${src_actionsystem})
 source_group("Exception" FILES ${src_exception})
 source_group("Graph" FILES ${src_graph})
 source_group("GraphEditor" FILES ${src_grapheditor})

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ActionHeap.hpp"
+#include "ActionSystem.hpp"
 #include "EngineCollection.hpp"
 #include "UserInterfaceCompositor.hpp"
 
@@ -17,22 +18,25 @@ class Window;
 
 
 
-class UserInterfaceSystem : public inl::game::System<UserInterfaceSystem> {
+class UserInterfaceSystem : public inl::game::System<UserInterfaceSystem>, public ActionSystem {
 public:
-	UserInterfaceSystem(const EngineCollection& modules, inl::Window& window, std::shared_ptr<ActionHeap> actionHeap);
+	UserInterfaceSystem(const EngineCollection& modules, inl::Window& window);
 	UserInterfaceSystem(UserInterfaceSystem&& rhs);
 	UserInterfaceSystem(const UserInterfaceSystem&) = delete;
 	UserInterfaceSystem& operator=(UserInterfaceSystem&&) = delete;
 	UserInterfaceSystem& operator=(const UserInterfaceSystem&) = delete;
 	~UserInterfaceSystem();
 
+	void ReactActions(ActionHeap& actions) override;
 	void Update(float elapsed) override;
+	void EmitActions(ActionHeap& actions) override;
+
 	UserInterfaceCompositor& GetCompositor();
 
 private:
 	void ResizeRender(inl::ResizeEvent evt);
 	void KeyboardShortcuts(inl::KeyboardEvent evt);
-	
+
 	void RegisterBoardEvents();
 	void UnregisterBoardEvents();
 	void RegisterWindowEvents();
@@ -46,5 +50,4 @@ private:
 	std::unique_ptr<inl::gui::Board> m_board;
 	std::unique_ptr<UserInterfaceCompositor> m_compositor;
 	inl::Window& m_window;
-	std::shared_ptr<ActionHeap> m_actionHeap;
 };

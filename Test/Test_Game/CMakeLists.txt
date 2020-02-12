@@ -36,6 +36,12 @@ set(src_systems
 	LevelSystem.hpp
 	LevelSystem.cpp
 	)
+	
+set(src_hooks
+	ActionHook.hpp
+	ActionHook.cpp
+	ActionSystem.hpp
+	)
 
 
 set(src_actions
@@ -48,12 +54,13 @@ set(src_actions
 	)
 	
 # Target
-add_executable(Test_Game ${src_main} ${src_ui} ${src_systems} ${src_actions})
+add_executable(Test_Game ${src_main} ${src_ui} ${src_systems} ${src_hooks} ${src_actions})
 
 # Filters
 source_group("" FILES ${src_main})
 source_group("UI" FILES ${src_ui})
 source_group("Systems" FILES ${src_systems})
+source_group("Hooks" FILES ${src_hooks})
 source_group("Actions" FILES ${src_actions})
 
 # Dependencies

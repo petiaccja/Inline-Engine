@@ -1,10 +1,12 @@
 #pragma once
 
 #include "ActionHeap.hpp"
+#include "ActionSystem.hpp"
 
+#include "BaseLibrary/Container/DynamicTuple.hpp"
 #include <GameLogic/System.hpp>
 
-#include <filesystem>
+#include <optional>
 
 
 namespace inl::game {
@@ -14,20 +16,21 @@ class LevelOutputArchive;
 } // namespace inl::game
 
 
-class LevelSystem : public inl::game::System<LevelSystem> {
+class LevelSystem : public inl::game::System<LevelSystem>, public ActionSystem {
 public:
-	LevelSystem(std::shared_ptr<ActionHeap> actionHeap);
+	LevelSystem();
 
+	void ReactActions(ActionHeap& actions) override;
 	void Update(float elapsed) override {}
 	void Modify(inl::game::Scene& scene) override;
+	void EmitActions(ActionHeap& actions) override;
 
 private:
-	void ProcessLoadActions(inl::game::Scene& scene);
-	void ProcessSaveActions(inl::game::Scene& scene);
 	void Load(inl::game::Scene& scene, inl::game::LevelInputArchive& ar, inl::game::ComponentFactory& factory) const;
 	void Save(inl::game::Scene& scene, inl::game::LevelOutputArchive& ar, inl::game::ComponentFactory& factory) const;
 	void Clear(inl::game::Scene& scene) const;
 
 private:
-	std::shared_ptr<ActionHeap> m_actionHeap;
+	inl::DynamicTuple m_subsystems;
+	std::optional<std::reference_wrapper<ActionHeap>> m_transientActionHeap;
 };

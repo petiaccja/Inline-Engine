@@ -9,8 +9,8 @@
 #include <fstream>
 
 
-UserInterfaceSystem::UserInterfaceSystem(const EngineCollection& modules, inl::Window& window, std::shared_ptr<ActionHeap> actionHeap)
-	: m_window(window), m_board(std::make_unique<inl::gui::Board>()), m_compositor(std::make_unique<UserInterfaceCompositor>(*m_board)), m_actionHeap(actionHeap) {
+UserInterfaceSystem::UserInterfaceSystem(const EngineCollection& modules, inl::Window& window)
+	: m_window(window), m_board(std::make_unique<inl::gui::Board>()), m_compositor(std::make_unique<UserInterfaceCompositor>(*m_board)) {
 	m_camera = modules.GetGraphicsEngine().CreateCamera2D("GuiCam");
 	m_font = modules.GetGraphicsEngine().CreateFont();
 	m_scene = modules.GetGraphicsEngine().CreateScene("GuiScene");
@@ -53,7 +53,6 @@ UserInterfaceSystem::UserInterfaceSystem(UserInterfaceSystem&& rhs) : m_window(r
 	m_camera = std::move(rhs.m_camera);
 	m_board = std::move(rhs.m_board);
 	m_compositor = std::move(rhs.m_compositor);
-	m_actionHeap = std::move(rhs.m_actionHeap);
 	RegisterWindowEvents();
 }
 
@@ -62,15 +61,23 @@ UserInterfaceSystem::~UserInterfaceSystem() noexcept {
 	UnregisterWindowEvents();
 }
 
+
+void UserInterfaceSystem::ReactActions(ActionHeap& actions) {
+}
+
 void UserInterfaceSystem::Update(float elapsed) {
 	m_window.CallEvents();
 	m_board->Update(elapsed);
 }
 
+void UserInterfaceSystem::EmitActions(ActionHeap& actions) {
+}
+
+
+
 UserInterfaceCompositor& UserInterfaceSystem::GetCompositor() {
 	return *m_compositor;
 }
-
 
 void UserInterfaceSystem::ResizeRender(inl::ResizeEvent evt) {
 	int width = evt.clientSize.x;

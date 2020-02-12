@@ -1,23 +1,27 @@
 #pragma once
 
 #include "ActionHeap.hpp"
+#include "ActionSystem.hpp"
 #include "UserInputSource.hpp"
 
 #include <BaseLibrary/Platform/Input.hpp>
 #include <GameLogic/System.hpp>
 
 #include <map>
+#include <optional>
 
 
-class UserInputSystem : public inl::game::System<UserInputSystem> {
+class UserInputSystem : public inl::game::System<UserInputSystem>, public ActionSystem {
 public:
-	UserInputSystem(std::shared_ptr<ActionHeap> actionHeap);
+	UserInputSystem();
 	UserInputSystem(UserInputSystem&& rhs);
 	UserInputSystem& operator=(UserInputSystem&& rhs);
 	UserInputSystem(const UserInputSystem&) = delete;
 	UserInputSystem& operator=(const UserInputSystem&) = delete;
 
-	void Update(float elapsed) override;
+	void ReactActions(ActionHeap& actions) override;
+	void Update(float elapsed) override {}
+	void EmitActions(ActionHeap& actions) override;
 
 	template <class SourceT>
 	void Insert(SourceT&& source) requires std::is_base_of_v<UserInputSource, SourceT>;
@@ -45,12 +49,13 @@ private:
 
 	void RegisterDevices();
 	void RegisterEvents();
+
 private:
 	inl::Input m_keyBoardInput;
 	inl::Input m_mouseInput;
 	bool m_enabled = true;
-	std::shared_ptr<ActionHeap> m_actionHeap;
 	std::map<std::type_index, std::unique_ptr<UserInputSource>> m_sources;
+	std::optional<std::reference_wrapper<ActionHeap>> m_transientActionHeap;
 };
 
 

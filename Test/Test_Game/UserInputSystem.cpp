@@ -1,33 +1,40 @@
 #include "UserInputSystem.hpp"
 
+#include <BaseLibrary/AtScopeExit.hpp>
 
-UserInputSystem::UserInputSystem(std::shared_ptr<ActionHeap> actionHeap) : m_actionHeap(actionHeap) {
+UserInputSystem::UserInputSystem() {
 	RegisterDevices();
 	RegisterEvents();
 }
 
 
 UserInputSystem::UserInputSystem(UserInputSystem&& rhs)
-	: m_actionHeap(rhs.m_actionHeap),
-	  m_sources(std::move(rhs.m_sources)) {
+	: m_sources(std::move(rhs.m_sources)) {
 	RegisterDevices();
 	RegisterEvents();
 }
 
 
 UserInputSystem& UserInputSystem::operator=(UserInputSystem&& rhs) {
-	m_actionHeap = rhs.m_actionHeap;
 	m_sources = std::move(rhs.m_sources);
 	return *this;
 }
 
 
-void UserInputSystem::Update(float elapsed) {
+void UserInputSystem::ReactActions(ActionHeap& actions) {
+	m_transientActionHeap = actions;
+	inl::AtScopeExit clearTransientData{
+		[this] { m_transientActionHeap.reset(); }
+	};
 	m_keyBoardInput.CallEvents();
 	m_mouseInput.CallEvents();
+}
+
+
+void UserInputSystem::EmitActions(ActionHeap& actions) {
 	if (IsEnabled()) {
 		for (auto& [_ignore, source] : m_sources) {
-			source->Update(*m_actionHeap);
+			source->Emit(actions);
 		}
 	}
 }
@@ -63,7 +70,7 @@ bool UserInputSystem::IsEnabled() const { return m_enabled; }
 void UserInputSystem::OnKeyboard(inl::KeyboardEvent evt) {
 	if (IsEnabled()) {
 		for (auto& [_ignore, source] : m_sources) {
-			source->OnKeyboard(evt, *m_actionHeap);
+			source->OnKeyboard(evt, *m_transientActionHeap);
 		}
 	}
 }
@@ -71,7 +78,7 @@ void UserInputSystem::OnKeyboard(inl::KeyboardEvent evt) {
 void UserInputSystem::OnMouseButton(inl::MouseButtonEvent evt) {
 	if (IsEnabled()) {
 		for (auto& [_ignore, source] : m_sources) {
-			source->OnMouseButton(evt, *m_actionHeap);
+			source->OnMouseButton(evt, *m_transientActionHeap);
 		}
 	}
 }
@@ -79,7 +86,7 @@ void UserInputSystem::OnMouseButton(inl::MouseButtonEvent evt) {
 void UserInputSystem::OnMouseMove(inl::MouseMoveEvent evt) {
 	if (IsEnabled()) {
 		for (auto& [_ignore, source] : m_sources) {
-			source->OnMouseMove(evt, *m_actionHeap);
+			source->OnMouseMove(evt, *m_transientActionHeap);
 		}
 	}
 }
@@ -87,7 +94,7 @@ void UserInputSystem::OnMouseMove(inl::MouseMoveEvent evt) {
 void UserInputSystem::OnMouseWheel(inl::MouseWheelEvent evt) {
 	if (IsEnabled()) {
 		for (auto& [_ignore, source] : m_sources) {
-			source->OnMouseWheel(evt, *m_actionHeap);
+			source->OnMouseWheel(evt, *m_transientActionHeap);
 		}
 	}
 }
@@ -107,6 +114,7 @@ void UserInputSystem::RegisterDevices() {
 		}
 	}
 }
+
 
 void UserInputSystem::RegisterEvents() {
 	m_keyBoardInput.OnKeyboard += inl::Delegate<void(inl::KeyboardEvent)>{ &UserInputSystem::OnKeyboard, this };

@@ -1,6 +1,7 @@
 #include "TestLevelSystem.hpp"
 
-#include <BaseLibrary/AtScopeExit.hpp>
+#include "LevelActions.hpp"
+
 #include <BaseLibrary/Container/DynamicTuple.hpp>
 #include <GameFoundationLibrary/Components/DirectionalLightComponent.hpp>
 #include <GameFoundationLibrary/Components/GraphicsHeightmapComponent.hpp>
@@ -9,22 +10,46 @@
 #include <GameLogic/ComponentFactory.hpp>
 #include <GameLogic/Entity.hpp>
 
-void TestLevelSystem::Update(float elapsed) {
-	// Do nothing.
+
+using namespace inl;
+using namespace inl::game;
+
+
+void TestLevelSystem::ReactActions(ActionHeap& actions) {
+	m_transientActionHeap = actions;
 }
 
+
 void TestLevelSystem::Modify(inl::game::Scene& scene) {
+
+	struct : Visitor<LoadTestLevelActio> {
+		void operator()(const LoadTestLevelActio& action) const {
+			system.Load(scene, ComponentFactory_Singleton::GetInstance());
+		}
+
+		TestLevelSystem& system;
+		Scene& scene;
+	} visitor{ .system = *this, .scene = scene };
+
+	m_transientActionHeap.value().get().Visit(visitor);
+}
+
+
+void TestLevelSystem::EmitActions(ActionHeap& actions) {
+	m_transientActionHeap.reset();
+}
+
+
+void TestLevelSystem::Load(inl::game::Scene& scene, inl::game::ComponentFactory& factory) const {
+	std::cout << "Loading test level placeholder" << std::endl;
+	return;
+	
 	using namespace inl::game;
 	using namespace inl::gamelib;
 	using namespace inl;
 
-	if (!m_command) {
-		return;
-	}
-	AtScopeExit ase{ [this] { m_command.reset(); } };
-
-	const ComponentFactory& componentFactory = m_command->componentFactory;
-	GraphicsModule& graphicsModule = *m_command->modules.Get<GraphicsModule*>();
+	const ComponentFactory& componentFactory = ComponentFactory_Singleton::GetInstance();
+	GraphicsModule& graphicsModule = *m_subsystems.Get<GraphicsModule*>();
 
 	// Get scene.
 	gxeng::IScene& graphicsScene = graphicsModule.GetOrCreateScene("MainScene");
@@ -95,8 +120,4 @@ void TestLevelSystem::Modify(inl::game::Scene& scene) {
 	heightmapComponent.entity->SetUvSize({ 5, 5 });
 	heightmapComponent.entity->SetMagnitude(0.3f);
 	graphicsScene.GetEntities<gxeng::IHeightmapEntity>().Add(heightmapComponent.entity.get());
-}
-
-void TestLevelSystem::LoadAsync(const inl::game::ComponentFactory& componentFactory, const inl::DynamicTuple& subsystems) {
-	m_command.emplace(Command{ componentFactory, subsystems });
 }

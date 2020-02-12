@@ -1,9 +1,10 @@
 #include "LevelSystem.hpp"
 
+#include "LevelActions.hpp"
+
 #include <BaseLibrary/Range.hpp>
 #include <GameLogic/ComponentFactory.hpp>
 #include <GameLogic/LevelArchive.hpp>
-#include "LevelActions.hpp"
 
 #include <fstream>
 
@@ -64,51 +65,67 @@ private:
 };
 
 
+LevelSystem::LevelSystem() {
+}
+
+
+void LevelSystem::ReactActions(ActionHeap& actions) {
+	m_transientActionHeap = actions;
+}
+
 void LevelSystem::Modify(Scene& scene) {
-	ProcessLoadActions(scene);
-	ProcessSaveActions(scene);
+	struct : Visitor<LoadLevelAction, SaveLevelAction, ClearLevelAction> {
+		void operator()(const LoadLevelAction& action) const {
+			std::ifstream is{ action.fileName };
+			if (!is.is_open()) {
+				throw FileNotFoundException{};
+			}
+			LevelInputArchive ar{ std::in_place_type<cereal::JSONInputArchive>, is };
+			system.Load(scene, ar, ComponentFactory_Singleton::GetInstance());
+		}
+		void operator()(const SaveLevelAction& action) const {
+			std::ofstream os{ action.fileName };
+			if (!os.is_open()) {
+				throw FileNotFoundException{};
+			}
+			LevelOutputArchive ar{ std::in_place_type<cereal::JSONOutputArchive>, os };
+			system.Save(scene, ar, ComponentFactory_Singleton::GetInstance());
+		}
+		void operator()(const ClearLevelAction& action) const {
+			system.Clear(scene);
+		}
+
+		LevelSystem& system;
+		Scene& scene;
+	} visitor{ .system = *this, .scene = scene };
+
+	m_transientActionHeap.value().get().Visit(visitor);
 }
 
-
-void LevelSystem::ProcessLoadActions(Scene& scene) {
-	auto visitor = [this, &scene](const LoadLevelAction& action) {
-		std::ifstream is{ action.fileName };
-		if (!is.is_open()) {
-			throw FileNotFoundException{};
-		}
-		LevelInputArchive ar{ std::in_place_type<cereal::JSONInputArchive>, is };
-		Load(scene, ar, ComponentFactory_Singleton::GetInstance());
-	};
-	m_actionHeap->Visit<Visitor<LoadLevelAction>>(visitor);
-}
-
-
-void LevelSystem::ProcessSaveActions(Scene& scene) {
-	auto visitor = [this, &scene](const SaveLevelAction& action) {
-		std::ofstream os{ action.fileName };
-		if (!os.is_open()) {
-			throw FileNotFoundException{};
-		}
-		LevelOutputArchive ar{ std::in_place_type<cereal::JSONOutputArchive>, os };
-		Save(scene, ar, ComponentFactory_Singleton::GetInstance());
-	};
-	m_actionHeap->Visit<Visitor<SaveLevelAction>>(visitor);
+void LevelSystem::EmitActions(ActionHeap& actions) {
+	m_transientActionHeap.reset();
 }
 
 
 void LevelSystem::Load(Scene& scene, LevelInputArchive& ar, ComponentFactory& factory) const {
+	std::cout << "Loading level placeholder" << std::endl;
+	return;
 	SceneArchiver archiver(scene, factory);
 	ar(archiver);
 }
 
 
 void LevelSystem::Save(Scene& scene, LevelOutputArchive& ar, ComponentFactory& factory) const {
+	std::cout << "Saving level placeholder" << std::endl;
+	return;
 	SceneArchiver archiver(scene, factory);
 	ar(archiver);
 }
 
 
 void LevelSystem::Clear(Scene& scene) const {
+	std::cout << "Clearing level placeholder" << std::endl;
+	return;
 	scene.Clear();
 }
 

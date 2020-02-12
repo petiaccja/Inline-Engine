@@ -1,5 +1,6 @@
 #include "Game.hpp"
 
+#include "ActionHook.hpp"
 #include "CameraMoveSource.hpp"
 #include "CameraMoveSystem.hpp"
 #include "MainMenuFrame.hpp"
@@ -43,21 +44,19 @@ void Game::InitSimulation() {
 	m_actionHeap = std::make_shared<ActionHeap>();
 
 	m_simulation.systems = {
-		UserInterfaceSystem{ m_engines, m_window, m_actionHeap },
-		UserInputSystem{ m_actionHeap },
+		UserInterfaceSystem{ m_engines, m_window },
+		UserInputSystem{},
 		TestLevelSystem{},
-		CameraMoveSystem{ m_actionHeap },
+		CameraMoveSystem{},
 		inl::gamelib::LinkTransformSystem{},
 		inl::gamelib::RenderingSystem{ &m_engines.GetGraphicsEngine() },
 	};
 
-	
-	auto& userInterfaceSystem = dynamic_cast<UserInterfaceSystem&>(*std::find_if(m_simulation.systems.begin(), m_simulation.systems.end(), [](auto& sys) { return typeid(sys) == typeid(UserInterfaceSystem); }));
-	auto& testLevelSystem = dynamic_cast<TestLevelSystem&>(*std::find_if(m_simulation.systems.begin(), m_simulation.systems.end(), [](auto& sys) { return typeid(sys) == typeid(TestLevelSystem); }));
-	auto& userInputSystem = dynamic_cast<UserInputSystem&>(*std::find_if(m_simulation.systems.begin(), m_simulation.systems.end(), [](auto& sys) { return typeid(sys) == typeid(UserInputSystem); }));
-	userInterfaceSystem.GetCompositor().GetFrame<MainMenuFrame>().OnStart += [this, &testLevelSystem] {
-		testLevelSystem.LoadAsync(inl::game::ComponentFactory_Singleton::GetInstance(), m_modules);
+	m_simulation.hooks = {
+		ActionHook{},
 	};
+
+	auto& userInputSystem = dynamic_cast<UserInputSystem&>(*std::find_if(m_simulation.systems.begin(), m_simulation.systems.end(), [](auto& sys) { return typeid(sys) == typeid(UserInputSystem); }));
 
 	userInputSystem.Insert(CameraMoveSource{});
 }

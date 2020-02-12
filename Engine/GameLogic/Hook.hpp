@@ -1,11 +1,10 @@
 #pragma once
 
 #include <type_traits>
+#include "System.hpp"
 
 
 namespace inl::game {
-
-class SystemBase;
 
 
 class HookBase {
