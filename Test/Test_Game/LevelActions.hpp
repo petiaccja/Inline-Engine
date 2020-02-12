@@ -3,7 +3,7 @@
 #include <filesystem>
 
 
-struct LoadTestLevelActio {};
+struct LoadTestLevelAction {};
 
 
 struct LoadLevelAction {

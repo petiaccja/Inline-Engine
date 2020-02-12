@@ -10,8 +10,6 @@ set(src_main
 	)
 
 set(src_ui
-	UserInterfaceCompositor.hpp
-	UserInterfaceCompositor.cpp
 	DebugInfoFrame.hpp
 	DebugInfoFrame.cpp
 	MainMenuFrame.hpp

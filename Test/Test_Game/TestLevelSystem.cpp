@@ -22,8 +22,8 @@ void TestLevelSystem::ReactActions(ActionHeap& actions) {
 
 void TestLevelSystem::Modify(inl::game::Scene& scene) {
 
-	struct : Visitor<LoadTestLevelActio> {
-		void operator()(const LoadTestLevelActio& action) const {
+	struct : Visitor<LoadTestLevelAction> {
+		void operator()(const LoadTestLevelAction& action) const {
 			system.Load(scene, ComponentFactory_Singleton::GetInstance());
 		}
 

@@ -2,8 +2,12 @@
 
 #include "ActionHeap.hpp"
 #include "ActionSystem.hpp"
+#include "DebugInfoFrame.hpp"
 #include "EngineCollection.hpp"
-#include "UserInterfaceCompositor.hpp"
+#include "GameSceneFrame.hpp"
+#include "MainMenuFrame.hpp"
+#include "PauseMenuFrame.hpp"
+#include "WindowLayout.hpp"
 
 #include <GameLogic/System.hpp>
 #include <GraphicsEngine/Resources/IFont.hpp>
@@ -31,8 +35,6 @@ public:
 	void Update(float elapsed) override;
 	void EmitActions(ActionHeap& actions) override;
 
-	UserInterfaceCompositor& GetCompositor();
-
 private:
 	void ResizeRender(inl::ResizeEvent evt);
 	void KeyboardShortcuts(inl::KeyboardEvent evt);
@@ -42,12 +44,22 @@ private:
 	void RegisterWindowEvents();
 	void UnregisterWindowEvents();
 
+	void CreateFrames();
+	void RegisterHandlers();
+	void UnregisterHandlers();
 
 private:
 	std::unique_ptr<inl::gxeng::IFont> m_font;
 	std::unique_ptr<inl::gxeng::IScene> m_scene;
 	std::unique_ptr<inl::gxeng::ICamera2D> m_camera;
 	std::unique_ptr<inl::gui::Board> m_board;
-	std::unique_ptr<UserInterfaceCompositor> m_compositor;
 	inl::Window& m_window;
+	struct Controls {
+		std::shared_ptr<WindowLayout> layout;
+		std::shared_ptr<DebugInfoFrame> debugInfo;
+		std::shared_ptr<MainMenuFrame> mainMenu;
+		std::shared_ptr<PauseMenuFrame> pauseMenu;
+		std::shared_ptr<GameSceneFrame> background;
+	} m_controls;
+	std::optional<std::reference_wrapper<ActionHeap>> m_transientActionHeap;
 };

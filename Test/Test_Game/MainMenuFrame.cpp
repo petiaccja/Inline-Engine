@@ -1,7 +1,6 @@
 #include "MainMenuFrame.hpp"
 
 #include "DebugInfoFrame.hpp"
-#include "GameSceneFrame.hpp"
 
 
 MainMenuFrame::MainMenuFrame() {
@@ -10,6 +9,8 @@ MainMenuFrame::MainMenuFrame() {
 	SetLayout(m_layout);
 	m_layout.AddChild(m_startButton);
 	m_layout[&m_startButton].SetAuto();
+	m_layout.AddChild(m_loadButton);
+	m_layout[&m_loadButton].SetAuto();
 	m_layout.AddChild(m_toggleDebugInfoButton);
 	m_layout[&m_toggleDebugInfoButton].SetAuto();
 	m_layout.AddChild(m_spacer);
@@ -19,28 +20,21 @@ MainMenuFrame::MainMenuFrame() {
 
 	m_startButton.SetText(U"Start");
 	m_startButton.OnClick += [this](auto...) {
-		GetCompositor().ShowFrame<GameSceneFrame>();
-		GetCompositor().GetBinding<GameSceneFrame>().SetAnchors(true, true, true, true).SetResizing(true).MoveToBack();
-		GetCompositor().HideFrame<MainMenuFrame>();
 		OnStart();
+	};
+
+	m_loadButton.SetText(U"Load");
+	m_loadButton.OnClick += [this](auto...) {
+		OnLoad();
 	};
 
 	m_toggleDebugInfoButton.SetText(U"Toggle Info");
 	m_toggleDebugInfoButton.OnClick += [this](auto...) {
-		bool isShown = GetCompositor().IsFrameVisible<DebugInfoFrame>();
-		if (isShown) {
-			GetCompositor().HideFrame<DebugInfoFrame>();
-		}
-		else {
-			GetCompositor().ShowFrame<DebugInfoFrame>();
-		}
+		OnToggleInfo();
 	};
 
 	m_quitButton.SetText(U"Quit");
 	m_quitButton.OnClick += [this](auto...) {
 		OnQuit();
 	};
-
-	SetSize({ 200, 300 });
-	SetPosition({ 0, 0 });
 }

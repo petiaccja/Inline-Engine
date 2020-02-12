@@ -73,6 +73,8 @@ public:
 
 	/// <summary> All signed up functors are copied as well and signed up for the new event. </summary>
 	Event& operator=(const Event& other) {
+		std::lock_guard lkg(m_mtx);
+
 		m_simples = other.m_simples;
 		m_comparables = other.m_comparables;
 
@@ -81,6 +83,8 @@ public:
 
 	/// <summary> All signed up functors are copied as well and signed up for the new event, old event is empty. </summary>
 	Event& operator=(Event&& other) {
+		std::lock_guard lkg(m_mtx);
+
 		m_simples = std::move(other.m_simples);
 		m_comparables = std::move(other.m_comparables);
 
@@ -106,7 +110,7 @@ public:
 	/// <summary> Signs up functor for the event. You may remove this functor via <see cref="operator-="/>. </summary>
 	template <class ComparableFun>
 	std::enable_if_t<IsComparable<ComparableFun>, void> operator+=(const ComparableFun& fun) {
-		std::lock_guard<decltype(m_mtx)> lkg(m_mtx);
+		std::lock_guard lkg(m_mtx);
 
 		m_comparables.insert(Comparable(fun));
 	}
@@ -116,7 +120,7 @@ public:
 	std::enable_if_t<!IsComparable<SimpleFun>, void> operator+=(SimpleFun fun) {
 		std::function<void(ArgsT...)> callee = fun;
 
-		std::lock_guard<decltype(m_mtx)> lkg(m_mtx);
+		std::lock_guard lkg(m_mtx);
 
 		m_simples.push_back(callee);
 	}
@@ -125,7 +129,7 @@ public:
 	/// <returns> True if the functor was found and removed, false if not found. </returns>
 	template <class ComparableFun>
 	std::enable_if_t<IsComparable<ComparableFun>, bool> operator-=(const ComparableFun& fun) {
-		std::lock_guard<decltype(m_mtx)> lkg(m_mtx);
+		std::lock_guard lkg(m_mtx);
 
 		auto it = m_comparables.find(Comparable(fun));
 		if (it != m_comparables.end()) {
@@ -133,6 +137,14 @@ public:
 			return true;
 		}
 		return false;
+	}
+
+	/// <summary> Removes all signed up functors. </summary>
+	void Clear() {
+		std::lock_guard lkg(m_mtx);
+
+		m_simples.clear();
+		m_comparables.clear();
 	}
 
 private:

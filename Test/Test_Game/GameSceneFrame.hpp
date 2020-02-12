@@ -1,7 +1,5 @@
 #pragma once
 
-#include "UserInterfaceCompositor.hpp"
-
 #include <GuiEngine/Frame.hpp>
 
 
@@ -9,7 +7,7 @@
 /// <remarks> It is a full-screen frame, that is placed behind all other UI controls.
 ///		Mouse clicks that miss other UI elements will hit this, and this control
 ///		can translate them to interactions with the 3D scene. </remarks>
-class GameSceneFrame : public TopLevelFrame, public inl::gui::Frame {
+class GameSceneFrame : public inl::gui::Frame {
 public:
 	GameSceneFrame();
 

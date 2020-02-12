@@ -1,14 +1,12 @@
 #pragma once
 
-#include "UserInterfaceCompositor.hpp"
-
 #include <GraphicsApi_LL/IGxapiManager.hpp>
 #include <GuiEngine/Frame.hpp>
 #include <GuiEngine/Label.hpp>
 #include <GuiEngine/LinearLayout.hpp>
 
 
-class DebugInfoFrame : public TopLevelFrame, public inl::gui::Frame {
+class DebugInfoFrame : public inl::gui::Frame {
 public:
 	DebugInfoFrame();
 

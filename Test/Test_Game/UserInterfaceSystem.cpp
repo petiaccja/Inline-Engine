@@ -1,7 +1,6 @@
 #include "UserInterfaceSystem.hpp"
 
-#include "DebugInfoFrame.hpp"
-#include "MainMenuFrame.hpp"
+#include "LevelActions.hpp"
 
 #include <BaseLibrary/Event.hpp>
 #include <BaseLibrary/Platform/Window.hpp>
@@ -10,7 +9,7 @@
 
 
 UserInterfaceSystem::UserInterfaceSystem(const EngineCollection& modules, inl::Window& window)
-	: m_window(window), m_board(std::make_unique<inl::gui::Board>()), m_compositor(std::make_unique<UserInterfaceCompositor>(*m_board)) {
+	: m_window(window), m_board(std::make_unique<inl::gui::Board>()) {
 	m_camera = modules.GetGraphicsEngine().CreateCamera2D("GuiCam");
 	m_font = modules.GetGraphicsEngine().CreateFont();
 	m_scene = modules.GetGraphicsEngine().CreateScene("GuiScene");
@@ -30,21 +29,17 @@ UserInterfaceSystem::UserInterfaceSystem(const EngineCollection& modules, inl::W
 	style.font = m_font.get();
 	m_board->SetStyle(style);
 
-	// Show frames.
-	DebugInfoFrame& debugInfoFrame = m_compositor->ShowFrame<DebugInfoFrame>();
-	MainMenuFrame& mainMenuFrame = m_compositor->ShowFrame<MainMenuFrame>();
-
-	m_compositor->GetBinding(debugInfoFrame).SetAnchors(true, false, false, true);
-	debugInfoFrame.SetSize({ 300, 150 });
-	debugInfoFrame.SetAdapterInfo(modules.GetGraphicsAdapter());
-
-	m_compositor->GetBinding(mainMenuFrame).SetAnchors(true, true, true, true).SetResizing(false);
-	mainMenuFrame.SetSize({ 200, 350 });
-	mainMenuFrame.OnQuit += [&window] { window.Close(); };
+	// Create GUI elements.
+	CreateFrames();
+	RegisterHandlers();
 
 	// Set events.
 	RegisterBoardEvents();
 	RegisterWindowEvents();
+
+	// Misc
+	auto info = modules.GetGraphicsAdapter();
+	m_controls.debugInfo->SetAdapterInfo(info);
 }
 
 UserInterfaceSystem::UserInterfaceSystem(UserInterfaceSystem&& rhs) : m_window(rhs.m_window) {
@@ -52,8 +47,10 @@ UserInterfaceSystem::UserInterfaceSystem(UserInterfaceSystem&& rhs) : m_window(r
 	m_scene = std::move(rhs.m_scene);
 	m_camera = std::move(rhs.m_camera);
 	m_board = std::move(rhs.m_board);
-	m_compositor = std::move(rhs.m_compositor);
+	rhs.UnregisterHandlers();
+	m_controls = std::move(rhs.m_controls);
 	RegisterWindowEvents();
+	RegisterHandlers();
 }
 
 UserInterfaceSystem::~UserInterfaceSystem() noexcept {
@@ -63,6 +60,7 @@ UserInterfaceSystem::~UserInterfaceSystem() noexcept {
 
 
 void UserInterfaceSystem::ReactActions(ActionHeap& actions) {
+	m_transientActionHeap = actions;
 }
 
 void UserInterfaceSystem::Update(float elapsed) {
@@ -71,13 +69,9 @@ void UserInterfaceSystem::Update(float elapsed) {
 }
 
 void UserInterfaceSystem::EmitActions(ActionHeap& actions) {
+	m_transientActionHeap.reset();
 }
 
-
-
-UserInterfaceCompositor& UserInterfaceSystem::GetCompositor() {
-	return *m_compositor;
-}
 
 void UserInterfaceSystem::ResizeRender(inl::ResizeEvent evt) {
 	int width = evt.clientSize.x;
@@ -87,13 +81,10 @@ void UserInterfaceSystem::ResizeRender(inl::ResizeEvent evt) {
 	m_camera->SetExtent(inl::Vec2(width, height));
 	m_board->SetCoordinateMapping({ 0.f, (float)width, (float)height, 0.f }, { 0.f, (float)width, 0.f, (float)height });
 
-	m_compositor->SetSize(inl::Vec2(width, height));
-	m_compositor->SetPosition(inl::Vec2(width, height) / 2.0f);
-	try {
-		m_compositor->GetFrame<DebugInfoFrame>().SetResolutionInfo(inl::Vec2(width, height));
-	}
-	catch (...) {
-	}
+	m_controls.layout->SetSize(inl::Vec2(width, height));
+	m_controls.layout->SetPosition(inl::Vec2(width, height) / 2.0f);
+
+	m_controls.debugInfo->SetResolutionInfo(inl::Vec2(width, height));
 }
 
 void UserInterfaceSystem::KeyboardShortcuts(inl::KeyboardEvent evt) {
@@ -122,4 +113,60 @@ void UserInterfaceSystem::RegisterWindowEvents() {
 void UserInterfaceSystem::UnregisterWindowEvents() {
 	m_window.OnResize -= inl::Delegate<void(inl::ResizeEvent)>{ &UserInterfaceSystem::ResizeRender, this };
 	m_window.OnKeyboard -= inl::Delegate<void(inl::KeyboardEvent)>{ &UserInterfaceSystem::KeyboardShortcuts, this };
+}
+
+void UserInterfaceSystem::CreateFrames() {
+	m_controls.layout = std::make_shared<WindowLayout>();
+
+	m_controls.debugInfo = std::make_shared<DebugInfoFrame>();
+	m_controls.mainMenu = std::make_shared<MainMenuFrame>();
+	m_controls.pauseMenu = std::make_shared<PauseMenuFrame>();
+	m_controls.background = std::make_shared<GameSceneFrame>();
+
+	m_controls.layout->AddChild(m_controls.debugInfo);
+	m_controls.layout->AddChild(m_controls.mainMenu);
+	m_controls.layout->AddChild(m_controls.pauseMenu);
+	m_controls.layout->AddChild(m_controls.background);
+
+	(*m_controls.layout)[m_controls.debugInfo.get()].SetAnchors(true, false, false, true).MoveToFront();
+	m_controls.debugInfo->SetSize({ 300, 150 });
+
+	(*m_controls.layout)[m_controls.mainMenu.get()].SetAnchors(true, true, true, true).SetResizing(false);
+	m_controls.mainMenu->SetSize({ 200, 350 });
+
+	(*m_controls.layout)[m_controls.pauseMenu.get()].SetAnchors(true, true, true, true).SetResizing(false);
+	m_controls.pauseMenu->SetSize({ 200, 350 });
+	m_controls.pauseMenu->SetVisible(false);
+
+	(*m_controls.layout)[m_controls.background.get()].SetAnchors(true, true, true, true).SetResizing(true).MoveToBack();
+	m_controls.background->SetVisible(false);
+
+	m_board->AddChild(m_controls.layout);
+}
+
+
+void UserInterfaceSystem::RegisterHandlers() {
+	// Main menu
+	m_controls.mainMenu->OnStart += [this] {
+		m_transientActionHeap.value().get().Push(LoadTestLevelAction{});
+		m_controls.mainMenu->SetVisible(false);
+	};
+	m_controls.mainMenu->OnLoad += [this] {
+		m_transientActionHeap.value().get().Push(LoadLevelAction{R"(D:\Temp\level.json)"});
+		m_controls.mainMenu->SetVisible(false);
+	};
+	m_controls.mainMenu->OnToggleInfo += [this] {
+		m_controls.debugInfo->SetVisible(!m_controls.debugInfo->GetVisible());
+	};
+	m_controls.mainMenu->OnQuit += [this] {
+		m_window.Close();
+	};
+}
+
+
+void UserInterfaceSystem::UnregisterHandlers() {
+	m_controls.mainMenu->OnStart.Clear();
+	m_controls.mainMenu->OnLoad.Clear();
+	m_controls.mainMenu->OnToggleInfo.Clear();
+	m_controls.mainMenu->OnQuit.Clear();
 }

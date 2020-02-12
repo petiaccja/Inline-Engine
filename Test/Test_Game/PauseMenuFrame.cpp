@@ -1,5 +1,3 @@
-#include "DebugInfoFrame.hpp"
-#include "GameSceneFrame.hpp"
 #include "PauseMenuFrame.hpp"
 
 #include <BaseLibrary/Platform/System.hpp>
@@ -24,7 +22,8 @@ PauseMenuFrame::PauseMenuFrame() {
 
 	m_continueButton.SetText(U"Continue");
 	m_continueButton.OnClick += [this](auto...) {
-		GetCompositor().HideFrame<PauseMenuFrame>();
+		OnContinue();
+		SetVisible(false);
 	};
 	
 	m_quickSaveButton.SetText(U"Quick Save");
@@ -41,20 +40,11 @@ PauseMenuFrame::PauseMenuFrame() {
 
 	m_toggleDebugInfoButton.SetText(U"Toggle Info");
 	m_toggleDebugInfoButton.OnClick += [this](auto...) {
-		bool isShown = GetCompositor().IsFrameVisible<DebugInfoFrame>();
-		if (isShown) {
-			GetCompositor().HideFrame<DebugInfoFrame>();
-		}
-		else {
-			GetCompositor().ShowFrame<DebugInfoFrame>();
-		}
+		OnToggleInfo();
 	};
 
 	m_quitButton.SetText(U"Quit");
 	m_quitButton.OnClick += [this](auto...) {
 		OnQuit();
 	};
-
-	SetSize({ 200, 300 });
-	SetPosition({ 0, 0 });
 }

@@ -76,6 +76,9 @@ void LevelSystem::ReactActions(ActionHeap& actions) {
 void LevelSystem::Modify(Scene& scene) {
 	struct : Visitor<LoadLevelAction, SaveLevelAction, ClearLevelAction> {
 		void operator()(const LoadLevelAction& action) const {
+			std::cout << "Loading level placeholder " << action.fileName << std::endl;
+			return;
+			
 			std::ifstream is{ action.fileName };
 			if (!is.is_open()) {
 				throw FileNotFoundException{};
@@ -84,6 +87,9 @@ void LevelSystem::Modify(Scene& scene) {
 			system.Load(scene, ar, ComponentFactory_Singleton::GetInstance());
 		}
 		void operator()(const SaveLevelAction& action) const {
+			std::cout << "Saving level placeholder " << action.fileName << std::endl;
+			return;
+			
 			std::ofstream os{ action.fileName };
 			if (!os.is_open()) {
 				throw FileNotFoundException{};
@@ -92,6 +98,9 @@ void LevelSystem::Modify(Scene& scene) {
 			system.Save(scene, ar, ComponentFactory_Singleton::GetInstance());
 		}
 		void operator()(const ClearLevelAction& action) const {
+			std::cout << "Clearing level placeholder" << std::endl;
+			return;
+			
 			system.Clear(scene);
 		}
 
@@ -108,24 +117,18 @@ void LevelSystem::EmitActions(ActionHeap& actions) {
 
 
 void LevelSystem::Load(Scene& scene, LevelInputArchive& ar, ComponentFactory& factory) const {
-	std::cout << "Loading level placeholder" << std::endl;
-	return;
 	SceneArchiver archiver(scene, factory);
 	ar(archiver);
 }
 
 
 void LevelSystem::Save(Scene& scene, LevelOutputArchive& ar, ComponentFactory& factory) const {
-	std::cout << "Saving level placeholder" << std::endl;
-	return;
 	SceneArchiver archiver(scene, factory);
 	ar(archiver);
 }
 
 
 void LevelSystem::Clear(Scene& scene) const {
-	std::cout << "Clearing level placeholder" << std::endl;
-	return;
 	scene.Clear();
 }
 

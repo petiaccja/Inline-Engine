@@ -14,6 +14,7 @@
 #include <GameFoundationLibrary/Systems/RenderingSystem.hpp>
 
 #include <fstream>
+#include "LevelSystem.hpp"
 
 
 #define RENDER_PIPELINE_FULL_3D "forward_heightmap_with_gui.json"
@@ -47,6 +48,7 @@ void Game::InitSimulation() {
 		UserInterfaceSystem{ m_engines, m_window },
 		UserInputSystem{},
 		TestLevelSystem{},
+		LevelSystem{},
 		CameraMoveSystem{},
 		inl::gamelib::LinkTransformSystem{},
 		inl::gamelib::RenderingSystem{ &m_engines.GetGraphicsEngine() },

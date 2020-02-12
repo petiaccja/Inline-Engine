@@ -1,20 +1,20 @@
 #pragma once
 
-#include "UserInterfaceCompositor.hpp"
-
 #include <GuiEngine/Button.hpp>
 #include <GuiEngine/Frame.hpp>
 #include <GuiEngine/Label.hpp>
 #include <GuiEngine/LinearLayout.hpp>
 
 
-class PauseMenuFrame final : public TopLevelFrame, public inl::gui::Frame {
+class PauseMenuFrame final : public inl::gui::Frame {
 public:
 	PauseMenuFrame();
 
-	inl::Event<> OnQuit;
-	inl::Event<std::filesystem::path> OnLoad;
+	inl::Event<> OnContinue;
+	inl::Event<> OnToggleInfo;
 	inl::Event<std::filesystem::path> OnSave;
+	inl::Event<std::filesystem::path> OnLoad;
+	inl::Event<> OnQuit;
 
 private:
 	inl::gui::LinearLayout m_layout;
