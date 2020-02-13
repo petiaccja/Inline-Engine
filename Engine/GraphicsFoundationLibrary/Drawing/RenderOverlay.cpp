@@ -401,7 +401,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 
 			CbufferOverlay cbuffer;
 
-			Mat33 world = entity->Transform().GetTransform();
+			Mat33 world = entity->Transform().GetMatrix();
 
 			cbuffer.worldViewProj.Submatrix<3, 3>(0, 0) = world * view * proj;
 			cbuffer.hasTexture = (uint32_t)(texture != nullptr && texture->GetSrv());
@@ -470,7 +470,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 			CbufferTextTransform cbufferTransform;
 			CbufferTextRender cbufferRender;
 
-			Mat33 world = entity->Transform().GetTransform();
+			Mat33 world = entity->Transform().GetMatrix();
 			Mat33 worldViewProj = world * view * proj;
 
 

@@ -75,11 +75,11 @@ Vec2 HeightmapEntity::GetUvSize() const {
 	return m_uvSize;
 }
 
-Transformable3DN& HeightmapEntity::Transform() {
+Transform3D& HeightmapEntity::Transform() {
 	return m_transform;
 }
 
-const Transformable3DN& HeightmapEntity::Transform() const {
+const Transform3D& HeightmapEntity::Transform() const {
 	return m_transform;
 }
 

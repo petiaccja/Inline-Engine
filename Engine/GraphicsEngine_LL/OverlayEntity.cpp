@@ -68,11 +68,11 @@ bool OverlayEntity::IsAdditionalClipEnabled() const {
 	return m_clipEnabled;
 }
 
-Transformable2DN& OverlayEntity::Transform() {
+Transform2D& OverlayEntity::Transform() {
 	return m_transform;
 }
 
-const Transformable2DN& OverlayEntity::Transform() const {
+const Transform2D& OverlayEntity::Transform() const {
 	return m_transform;
 }
 

@@ -32,11 +32,11 @@ const std::shared_ptr<Material>& MeshEntity::GetMaterialNative() const {
 	return m_material;
 }
 
-Transformable3DN& MeshEntity::Transform() {
+Transform3D& MeshEntity::Transform() {
 	return m_transform;
 }
 
-const Transformable3DN& MeshEntity::Transform() const {
+const Transform3D& MeshEntity::Transform() const {
 	return m_transform;
 }
 

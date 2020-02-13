@@ -4,7 +4,7 @@
 #include "Entity.hpp"
 
 #include <BaseLibrary/Rect.hpp>
-#include <BaseLibrary/Transformable.hpp>
+#include <BaseLibrary/Transform.hpp>
 
 #include <InlineMath.hpp>
 #include <utility>
@@ -99,8 +99,8 @@ public:
 	/// <summary> Align to the top when specified to either <see cref="SetHorizontalAlignment"/> or <see cref="SetVerticalAlignment"/>. </summary>
 	static constexpr float ALIGN_CENTER = 0.0f;
 
-	virtual Transformable2DN& Transform() = 0;
-	virtual const Transformable2DN& Transform() const = 0;
+	virtual Transform2D& Transform() = 0;
+	virtual const Transform2D& Transform() const = 0;
 };
 
 

@@ -7,7 +7,7 @@
 #include <BaseLibrary/Event.hpp>
 #include <BaseLibrary/Exception/Exception.hpp>
 #include <BaseLibrary/Platform/Input.hpp>
-#include <BaseLibrary/Transformable.hpp>
+#include <BaseLibrary/Transform.hpp>
 
 #include <InlineMath.hpp>
 #include <any>
@@ -31,7 +31,7 @@ private:
 	bool IsIdentity(const Mat33& transform);
 
 private:
-	std::optional<Transformable2DN> m_transform;
+	std::optional<Transform2D> m_transform;
 };
 
 

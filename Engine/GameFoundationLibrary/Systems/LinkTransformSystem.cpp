@@ -104,8 +104,8 @@ void LinkTransformSystem::TopologicalSort() {
 }
 
 
-Transformable3DN CombineTransform(const Transformable3DN& source, const Transformable3DN& relative) {
-	Transformable3DN combined = relative;
+Transform3D CombineTransform(const Transform3D& source, const Transform3D& relative) {
+	Transform3D combined = relative;
 
 	// In case of PR only, avoid the SVD by ignoring the scale which is roughly (1,1,1).
 	if ((source.GetScale() - Vec3(1, 1, 1)).LengthSquared() < 0.00001f) {
@@ -130,7 +130,7 @@ void LinkTransformSystem::UpdateTransforms() const {
 			auto& absoluteTransform = entity->GetFirstComponent<TransformComponent>();
 			const auto& relativeTransform = entity->GetFirstComponent<RelativeTransformComponent>();
 			const auto& sourceTransform = relativeTransform.sourceTransform->GetFirstComponent<TransformComponent>();
-			static_cast<Transformable3DN&>(absoluteTransform) = CombineTransform(sourceTransform, relativeTransform);
+			static_cast<Transform3D&>(absoluteTransform) = CombineTransform(sourceTransform, relativeTransform);
 		}
 		catch (...) {
 		}

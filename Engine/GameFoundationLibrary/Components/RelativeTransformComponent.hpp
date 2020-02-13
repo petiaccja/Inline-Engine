@@ -1,6 +1,6 @@
 #pragma once
 
-#include <BaseLibrary/Transformable.hpp>
+#include <BaseLibrary/Transform.hpp>
 
 // Description:
 // The link has a source transform, a relative transform and the resulting transform.
@@ -33,7 +33,7 @@
 namespace inl::gamelib {
 
 
-struct RelativeTransformComponent : public Transformable3DN {
+struct RelativeTransformComponent : public Transform3D {
 	const game::Entity* sourceTransform = nullptr;
 };
 

@@ -4,7 +4,7 @@
 #include "Mesh.hpp"
 
 #include <BaseLibrary/Rect.hpp>
-#include <BaseLibrary/Transformable.hpp>
+#include <BaseLibrary/Transform.hpp>
 #include <GraphicsEngine/Scene/IOverlayEntity.hpp>
 
 #include <InlineMath.hpp>
@@ -53,8 +53,8 @@ public:
 	/// <summary> Check if additional clip rectangle is active. </summary>
 	bool IsAdditionalClipEnabled() const override;
 
-	Transformable2DN& Transform() override;
-	const Transformable2DN& Transform() const override;
+	Transform2D& Transform() override;
+	const Transform2D& Transform() const override;
 private:
 	std::shared_ptr<Mesh> m_mesh = nullptr;
 	std::shared_ptr<Image> m_texture = nullptr;
@@ -65,7 +65,7 @@ private:
 	Mat33 m_clipRectTransform;
 	bool m_clipEnabled = false;
 
-	Transformable2DN m_transform;
+	Transform2D m_transform;
 };
 
 

@@ -207,7 +207,7 @@ void DepthPrepass::Execute(RenderContext& context) {
 
 		ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
 
-		auto MVP = entity->Transform().GetTransform() * viewProjection;
+		auto MVP = entity->Transform().GetMatrix() * viewProjection;
 
 		Mat44_Packed transformCBData;
 		transformCBData = MVP;

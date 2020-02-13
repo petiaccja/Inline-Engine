@@ -4,7 +4,7 @@
 #include "Material.hpp"
 #include "Mesh.hpp"
 
-#include <BaseLibrary/Transformable.hpp>
+#include <BaseLibrary/Transform.hpp>
 #include <GraphicsEngine/Scene/IHeightmapEntity.hpp>
 #include "GuiEngine/Board.hpp"
 #include "GuiEngine/Board.hpp"
@@ -44,8 +44,8 @@ public:
 	void SetUvSize(Vec2 size) override;
 	Vec2 GetUvSize() const override;
 
-	Transformable3DN& Transform() override;
-	const Transformable3DN& Transform() const override;
+	Transform3D& Transform() override;
+	const Transform3D& Transform() const override;
 
 private:
 	std::shared_ptr<Mesh> m_mesh = nullptr;
@@ -55,7 +55,7 @@ private:
 	float m_magnitude = 1.0f;
 	float m_offset = 0.0f;
 	Vec2 m_uvSize = { 1, 1 };
-	Transformable3DN m_transform;
+	Transform3D m_transform;
 };
 
 

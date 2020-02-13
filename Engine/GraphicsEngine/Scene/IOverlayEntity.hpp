@@ -4,7 +4,7 @@
 #include "Entity.hpp"
 
 #include <BaseLibrary/Rect.hpp>
-#include <BaseLibrary/Transformable.hpp>
+#include <BaseLibrary/Transform.hpp>
 
 #include <InlineMath.hpp>
 
@@ -52,8 +52,8 @@ public:
 	/// <summary> Check if additional clip rectangle is active. </summary>
 	virtual bool IsAdditionalClipEnabled() const = 0;
 
-	virtual Transformable2DN& Transform() = 0;
-	virtual const Transformable2DN& Transform() const = 0;
+	virtual Transform2D& Transform() = 0;
+	virtual const Transform2D& Transform() const = 0;
 };
 
 

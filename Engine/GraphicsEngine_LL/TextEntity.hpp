@@ -3,7 +3,7 @@
 #include "Font.hpp"
 
 #include <BaseLibrary/Rect.hpp>
-#include <BaseLibrary/Transformable.hpp>
+#include <BaseLibrary/Transform.hpp>
 #include <GraphicsEngine/Scene/ITextEntity.hpp>
 
 #include <InlineMath.hpp>
@@ -88,8 +88,8 @@ public:
 	void SetZDepth(float z) override;
 	float GetZDepth() const override;
 
-	Transformable2DN& Transform() override;
-	const Transformable2DN& Transform() const override;
+	Transform2D& Transform() override;
+	const Transform2D& Transform() const override;
 private:
 	Vec4 m_color = { 1, 0, 0, 1 };
 	float m_fontSize = 16;
@@ -103,7 +103,7 @@ private:
 	bool m_clipEnabled = false;
 	Vec2 m_alignment = { ALIGN_CENTER, ALIGN_CENTER };
 
-	Transformable2DN m_transform;
+	Transform2D m_transform;
 };
 
 

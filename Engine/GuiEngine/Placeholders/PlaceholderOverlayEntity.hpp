@@ -1,6 +1,6 @@
 #pragma once
 
-#include <BaseLibrary/Transformable.hpp>
+#include <BaseLibrary/Transform.hpp>
 #include <GraphicsEngine/Scene/IOverlayEntity.hpp>
 
 
@@ -37,8 +37,8 @@ public:
 	void EnableAdditionalClip(bool enabled) override { m_clipEnabled = enabled; }
 	bool IsAdditionalClipEnabled() const override { return m_clipEnabled; }
 
-	Transformable2DN& Transform() override { return m_transform; }
-	const Transformable2DN& Transform() const override { return m_transform; }
+	Transform2D& Transform() override { return m_transform; }
+	const Transform2D& Transform() const override { return m_transform; }
 
 private:
 	std::shared_ptr<gxeng::IMesh> m_mesh = nullptr;
@@ -50,7 +50,7 @@ private:
 	Mat33 m_clipRectangleTransform = Mat33::Identity();
 	bool m_clipEnabled = false;
 
-	Transformable2DN m_transform;
+	Transform2D m_transform;
 };
 
 

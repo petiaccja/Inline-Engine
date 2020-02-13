@@ -3,7 +3,7 @@
 #include "Material.hpp"
 #include "Mesh.hpp"
 
-#include <BaseLibrary/Transformable.hpp>
+#include <BaseLibrary/Transform.hpp>
 #include <GraphicsEngine/Scene/IMeshEntity.hpp>
 
 
@@ -22,13 +22,13 @@ public:
 	std::shared_ptr<IMaterial> GetMaterial() const override;
 	const std::shared_ptr<Material>& GetMaterialNative() const;
 
-	Transformable3DN& Transform() override;
-	const Transformable3DN& Transform() const override;
+	Transform3D& Transform() override;
+	const Transform3D& Transform() const override;
 	
 private:
 	std::shared_ptr<Mesh> m_mesh = nullptr;
 	std::shared_ptr<Material> m_material = nullptr;
-	Transformable3DN m_transform;
+	Transform3D m_transform;
 };
 
 

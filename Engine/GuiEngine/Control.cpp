@@ -12,13 +12,13 @@ void ControlTransform::SetTransform(const Mat33& transform) {
 	}
 	else {
 		m_transform.emplace();
-		m_transform.value().SetTransform(transform);
+		m_transform.value().SetMatrix(transform);
 	}
 }
 
 
 Mat33 ControlTransform::GetTransform() const {
-	return m_transform ? m_transform.value().GetTransform() : Mat33::Identity();
+	return m_transform ? m_transform.value().GetMatrix() : Mat33::Identity();
 }
 
 

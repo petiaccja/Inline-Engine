@@ -5,7 +5,7 @@
 #include "../Resources/IMesh.hpp"
 #include "Entity.hpp"
 
-#include <BaseLibrary/Transformable.hpp>
+#include <BaseLibrary/Transform.hpp>
 
 #include <memory>
 
@@ -47,8 +47,8 @@ public:
 	virtual void SetUvSize(Vec2 size) = 0;
 	virtual Vec2 GetUvSize() const = 0;
 
-	virtual Transformable3DN& Transform() = 0;
-	virtual const Transformable3DN& Transform() const = 0;
+	virtual Transform3D& Transform() = 0;
+	virtual const Transform3D& Transform() const = 0;
 };
 
 

@@ -326,7 +326,7 @@ void Voxelization::Execute(RenderContext& context) {
 
 				ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
 
-				uniformsCBData.model = entity->Transform().GetTransform();
+				uniformsCBData.model = entity->Transform().GetMatrix();
 
 				commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 

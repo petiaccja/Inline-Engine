@@ -1,6 +1,6 @@
 #pragma once
 
-#include <BaseLibrary/Transformable.hpp>
+#include <BaseLibrary/Transform.hpp>
 #include <GraphicsEngine/Scene/ITextEntity.hpp>
 
 
@@ -43,8 +43,8 @@ public:
 	void SetZDepth(float z) override { m_depth = z; }
 	float GetZDepth() const override { return m_depth; }
 
-	Transformable2DN& Transform() override { return m_transform; }
-	const Transformable2DN& Transform() const override { return m_transform; }
+	Transform2D& Transform() override { return m_transform; }
+	const Transform2D& Transform() const override { return m_transform; }
 
 
 	static void CopyProperties(gxeng::ITextEntity* source, gxeng::ITextEntity* target) {
@@ -73,7 +73,7 @@ private:
 	float m_horizontalAlignment = 0;
 	float m_verticalAlignment = 0;
 	float m_depth = 0;
-	Transformable2DN m_transform;
+	Transform2D m_transform;
 };
 
 

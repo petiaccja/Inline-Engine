@@ -4,7 +4,7 @@
 #include "../Resources/IMesh.hpp"
 #include "Entity.hpp"
 
-#include <BaseLibrary/Transformable.hpp>
+#include <BaseLibrary/Transform.hpp>
 
 
 namespace inl::gxeng {
@@ -26,8 +26,8 @@ public:
 	/// <summary> Returns the currently associated material. </summary>
 	virtual std::shared_ptr<IMaterial> GetMaterial() const = 0;
 
-	virtual Transformable3DN& Transform() = 0;
-	virtual const Transformable3DN& Transform() const = 0;
+	virtual Transform3D& Transform() = 0;
+	virtual const Transform3D& Transform() const = 0;
 };
 
 

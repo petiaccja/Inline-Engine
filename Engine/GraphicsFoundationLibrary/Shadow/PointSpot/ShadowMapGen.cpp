@@ -274,7 +274,7 @@ void ShadowMapGen::Execute(RenderContext& context) {
 
 				ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
 
-				Mat44 model = entity->Transform().GetTransform();
+				Mat44 model = entity->Transform().GetMatrix();
 
 				Uniforms uniformsCBData;
 				uniformsCBData.mvp = model * pointLightMVPs[shadowMapIdx % 6];

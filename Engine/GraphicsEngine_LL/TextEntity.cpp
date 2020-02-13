@@ -122,11 +122,11 @@ float TextEntity::GetZDepth() const {
 	return m_zDepth;
 }
 
-Transformable2DN& TextEntity::Transform() {
+Transform2D& TextEntity::Transform() {
 	return m_transform;
 }
 
-const Transformable2DN& TextEntity::Transform() const {
+const Transform2D& TextEntity::Transform() const {
 	return m_transform;
 }
 
