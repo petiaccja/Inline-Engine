@@ -41,13 +41,14 @@ void load(Archive& ar, GraphicsMeshComponent& obj) {
 	ar(cereal::make_nvp("mesh", obj.meshPath),
 	   cereal::make_nvp("material", obj.materialPath),
 	   cereal::make_nvp("scene", obj.sceneName));
-	const auto& moduleArchive = dynamic_cast<const game::ModuleArchive&>(ar);
-	const auto graphicsModule = moduleArchive.GetModule<GraphicsModule>();
-	obj.entity = graphicsModule->CreateMeshEntity();
-	obj.mesh = graphicsModule->LoadMesh(obj.meshPath);
-	obj.material = graphicsModule->LoadMaterial(obj.materialPath);
+	GraphicsModule& graphicsModule = *ar.Modules().Get<std::shared_ptr<GraphicsModule>>();
+	obj.entity = graphicsModule.CreateMeshEntity();
+	obj.mesh = graphicsModule.LoadMesh(obj.meshPath);
+	obj.material = graphicsModule.LoadMaterial(obj.materialPath);
 	obj.entity->SetMesh(obj.mesh.get());
 	obj.entity->SetMaterial(obj.material.get());
+
+	graphicsModule.GetOrCreateScene(obj.sceneName).GetEntities<gxeng::IMeshEntity>().Add(obj.entity.get());
 }
 
 

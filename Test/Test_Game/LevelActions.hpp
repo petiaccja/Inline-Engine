@@ -8,6 +8,7 @@ struct LoadTestLevelAction {};
 
 struct LoadLevelAction {
 	std::filesystem::path fileName;
+	bool clear = true;
 };
 
 

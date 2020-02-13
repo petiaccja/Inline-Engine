@@ -18,7 +18,7 @@ TEST_CASE("Save", "[GameLogic:Level]") {
 	std::stringstream output;
 
 	{
-		LevelOutputArchive archive{ std::in_place_type<cereal::JSONOutputArchive>, output };
+		LevelOutputArchive archive{ std::make_shared<inl::DynamicTuple>(), std::in_place_type<cereal::JSONOutputArchive>, output };
 		level.Save(archive, ComponentFactory_Singleton::GetInstance());
 	}
 
@@ -38,7 +38,7 @@ TEST_CASE("Save-Load cycle", "[GameLogic:Level]") {
 
 	std::stringstream output;
 	{
-		LevelOutputArchive archive{ std::in_place_type<cereal::JSONOutputArchive>, output };
+		LevelOutputArchive archive{ std::make_shared<inl::DynamicTuple>(), std::in_place_type<cereal::JSONOutputArchive>, output };
 		savedLevel.Save(archive, ComponentFactory_Singleton::GetInstance());
 	}
 
@@ -49,7 +49,7 @@ TEST_CASE("Save-Load cycle", "[GameLogic:Level]") {
 	output.clear();
 
 	{
-		LevelInputArchive inputArchive{ std::in_place_type<cereal::JSONInputArchive>, output };
+		LevelInputArchive inputArchive{ std::make_shared<inl::DynamicTuple>(), std::in_place_type<cereal::JSONInputArchive>, output };
 		loadedLevel.Load(inputArchive, ComponentFactory_Singleton::GetInstance());
 	}
 

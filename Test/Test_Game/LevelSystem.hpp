@@ -18,7 +18,7 @@ class LevelOutputArchive;
 
 class LevelSystem : public inl::game::System<LevelSystem>, public ActionSystem {
 public:
-	LevelSystem();
+	LevelSystem(std::shared_ptr<const inl::DynamicTuple> modules);
 
 	void ReactActions(ActionHeap& actions) override;
 	void Update(float elapsed) override {}
@@ -31,6 +31,6 @@ private:
 	void Clear(inl::game::Scene& scene) const;
 
 private:
-	inl::DynamicTuple m_subsystems;
+	std::shared_ptr<const inl::DynamicTuple> m_modules;
 	std::optional<std::reference_wrapper<ActionHeap>> m_transientActionHeap;
 };

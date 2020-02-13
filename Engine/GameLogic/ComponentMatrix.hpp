@@ -433,7 +433,7 @@ EntityVector::value_type& EntityVector::value_type::assign_extend(const value_ty
 template <class... Components>
 EntityVector::value_type& EntityVector::value_type::assign_extend(value_type&& rhs, Components&&... components) {
 	if (m_matrix && rhs.m_matrix) {
-		const std::vector<bool>& mask = assign_auto_mask(rhs);
+		const std::vector<bool>& mask = assign_auto_mask(std::move(rhs));
 		assign_extra_mask([&](const auto& tar) { return mask[tar.second]; }, std::forward<Components>(components)...);
 	}
 	else if (m_matrix) {

@@ -35,9 +35,7 @@ private:
 	inl::game::Simulation m_simulation;
 	eRenderMode m_renderMode = eRenderMode::OFF;
 
-	inl::gamelib::GraphicsModule m_graphicsModule;
-	inl::DynamicTuple m_modules;
-	inl::Window& m_window;
 	const EngineCollection& m_engines;
-	std::shared_ptr<ActionHeap> m_actionHeap;
+	std::shared_ptr<inl::DynamicTuple> m_modules;
+	inl::Window& m_window;
 };

@@ -25,17 +25,17 @@ PauseMenuFrame::PauseMenuFrame() {
 		OnContinue();
 		SetVisible(false);
 	};
-	
+
 	m_quickSaveButton.SetText(U"Quick Save");
 
 	m_quickSaveButton.OnClick += [this](auto...) {
-		OnSave(inl::System::GetExecutableDir() / "Savegames" / "quicksave.json");
+		OnSave();
 	};
-	
+
 	m_quickLoadButton.SetText(U"Quick Load");
 
 	m_quickLoadButton.OnClick += [this](auto...) {
-		OnLoad(inl::System::GetExecutableDir() / "Savegames" / "quicksave.json");
+		OnLoad();
 	};
 
 	m_toggleDebugInfoButton.SetText(U"Toggle Info");

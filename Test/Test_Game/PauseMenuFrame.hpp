@@ -12,8 +12,8 @@ public:
 
 	inl::Event<> OnContinue;
 	inl::Event<> OnToggleInfo;
-	inl::Event<std::filesystem::path> OnSave;
-	inl::Event<std::filesystem::path> OnLoad;
+	inl::Event<> OnSave;
+	inl::Event<> OnLoad;
 	inl::Event<> OnQuit;
 
 private:

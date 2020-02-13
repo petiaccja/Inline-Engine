@@ -65,8 +65,7 @@ private:
 };
 
 
-LevelSystem::LevelSystem() {
-}
+LevelSystem::LevelSystem(std::shared_ptr<const inl::DynamicTuple> modules) : m_modules(modules) {}
 
 
 void LevelSystem::ReactActions(ActionHeap& actions) {
@@ -76,31 +75,25 @@ void LevelSystem::ReactActions(ActionHeap& actions) {
 void LevelSystem::Modify(Scene& scene) {
 	struct : Visitor<LoadLevelAction, SaveLevelAction, ClearLevelAction> {
 		void operator()(const LoadLevelAction& action) const {
-			std::cout << "Loading level placeholder " << action.fileName << std::endl;
-			return;
-			
 			std::ifstream is{ action.fileName };
 			if (!is.is_open()) {
 				throw FileNotFoundException{};
 			}
-			LevelInputArchive ar{ std::in_place_type<cereal::JSONInputArchive>, is };
+			LevelInputArchive ar{ system.m_modules, std::in_place_type<cereal::JSONInputArchive>, is };
+			if (action.clear) {
+				system.Clear(scene);
+			}
 			system.Load(scene, ar, ComponentFactory_Singleton::GetInstance());
 		}
 		void operator()(const SaveLevelAction& action) const {
-			std::cout << "Saving level placeholder " << action.fileName << std::endl;
-			return;
-			
-			std::ofstream os{ action.fileName };
+			std::ofstream os{ action.fileName, std::ios::trunc };
 			if (!os.is_open()) {
 				throw FileNotFoundException{};
 			}
-			LevelOutputArchive ar{ std::in_place_type<cereal::JSONOutputArchive>, os };
+			LevelOutputArchive ar{ system.m_modules, std::in_place_type<cereal::JSONOutputArchive>, os };
 			system.Save(scene, ar, ComponentFactory_Singleton::GetInstance());
 		}
 		void operator()(const ClearLevelAction& action) const {
-			std::cout << "Clearing level placeholder" << std::endl;
-			return;
-			
 			system.Clear(scene);
 		}
 

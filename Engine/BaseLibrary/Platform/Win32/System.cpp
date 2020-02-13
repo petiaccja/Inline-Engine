@@ -1,6 +1,10 @@
 #include "System.hpp"
 
+#include "../../AtScopeExit.hpp"
 #include "../../Exception/Exception.hpp"
+
+#include <Knownfolders.h>
+#include <Shlobj.h>
 
 
 namespace inl {
@@ -75,6 +79,34 @@ std::filesystem::path System::GetExecutableDir() {
 	else {
 		return s;
 	}
+}
+
+std::filesystem::path System::GetAppdataDir() {
+	wchar_t** ppszPath = nullptr;
+	AtScopeExit deallocPath{ [&] { CoTaskMemFree(ppszPath); } };
+	HRESULT hr = SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, ppszPath);
+	if (SUCCEEDED(hr)) {
+		static_assert(sizeof(wchar_t) == sizeof(uint16_t));
+		std::filesystem::path p{ *ppszPath };
+	}
+	throw RuntimeException("Windows won't return the path.");
+}
+
+std::filesystem::path System::GetTempDir() {
+	char buf[MAX_PATH + 2];
+	GetTempPathA(MAX_PATH + 1, buf);
+	return std::filesystem::path{ buf };
+}
+
+std::filesystem::path System::GetHomeDir() {
+	wchar_t** ppszPath = nullptr;
+	AtScopeExit deallocPath{ [&] { CoTaskMemFree(ppszPath); } };
+	HRESULT hr = SHGetKnownFolderPath(FOLDERID_Profile, 0, NULL, ppszPath);
+	if (SUCCEEDED(hr)) {
+		static_assert(sizeof(wchar_t) == sizeof(uint16_t));
+		std::filesystem::path p{ *ppszPath };
+	}
+	throw RuntimeException("Windows won't return the path.");
 }
 
 

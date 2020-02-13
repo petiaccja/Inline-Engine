@@ -1,24 +1,33 @@
 #pragma once
 
+#include "VariantArchive.hpp"
 
-#include "Archive.hpp"
+#include <BaseLibrary/Container/DynamicTuple.hpp>
+
+#include <cereal/archives/json.hpp>
+#include <cereal/archives/portable_binary.hpp>
 
 
 namespace inl::game {
 
 
+using InputArchive = VariantInputArchive<cereal::JSONInputArchive, cereal::PortableBinaryInputArchive>;
+using OutputArchive = VariantOutputArchive<cereal::JSONOutputArchive, cereal::PortableBinaryOutputArchive>;
 
-class LevelInputArchive : public ModuleArchive, public cereal::InputArchive<LevelInputArchive> {
+
+
+class LevelInputArchive : public cereal::InputArchive<LevelInputArchive> {
 public:
 	template <class... Args>
-	LevelInputArchive(Args&&... args) : cereal::InputArchive<LevelInputArchive>(this), base(std::forward<Args>(args)...) {}
+	LevelInputArchive(std::shared_ptr<const DynamicTuple> modules, Args&&... args) : cereal::InputArchive<LevelInputArchive>(this), base(std::forward<Args>(args)...), modules(modules) {}
 
-	game::InputArchive& Base() {
-		return base;
-	}
+	game::InputArchive& Base() { return base; }
+
+	const DynamicTuple& Modules() const { return *modules; }
 
 private:
 	game::InputArchive base;
+	std::shared_ptr<const DynamicTuple> modules;
 };
 
 
@@ -47,17 +56,18 @@ void CEREAL_LOAD_FUNCTION_NAME(LevelInputArchive& ar, std::basic_string<CharT, T
 }
 
 
-class LevelOutputArchive : public ModuleArchive, public cereal::OutputArchive<LevelOutputArchive> {
+class LevelOutputArchive : public cereal::OutputArchive<LevelOutputArchive> {
 public:
 	template <class... Args>
-	LevelOutputArchive(Args&&... args) : cereal::OutputArchive<LevelOutputArchive>(this), base(std::forward<Args>(args)...) {}
+	LevelOutputArchive(std::shared_ptr<const DynamicTuple> modules, Args&&... args) : cereal::OutputArchive<LevelOutputArchive>(this), base(std::forward<Args>(args)...), modules(modules) {}
 
-	game::OutputArchive& Base() {
-		return base;
-	}
+	game::OutputArchive& Base() { return base; }
+
+	const DynamicTuple& Modules() const { return *modules; }
 
 private:
 	game::OutputArchive base;
+	std::shared_ptr<const DynamicTuple> modules;
 };
 
 

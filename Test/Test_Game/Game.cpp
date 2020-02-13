@@ -3,6 +3,7 @@
 #include "ActionHook.hpp"
 #include "CameraMoveSource.hpp"
 #include "CameraMoveSystem.hpp"
+#include "LevelSystem.hpp"
 #include "MainMenuFrame.hpp"
 #include "TestLevelSystem.hpp"
 #include "UserInputSystem.hpp"
@@ -10,11 +11,12 @@
 
 #include <GameFoundationLibrary/Components/GraphicsMeshComponent.hpp>
 #include <GameFoundationLibrary/Components/PerspectiveCameraComponent.hpp>
+#include <GameFoundationLibrary/Systems/HeightmapTransformSystem.hpp>
 #include <GameFoundationLibrary/Systems/LinkTransformSystem.hpp>
+#include <GameFoundationLibrary/Systems/MeshTransformSystem.hpp>
 #include <GameFoundationLibrary/Systems/RenderingSystem.hpp>
 
 #include <fstream>
-#include "LevelSystem.hpp"
 
 
 #define RENDER_PIPELINE_FULL_3D "forward_heightmap_with_gui.json"
@@ -22,10 +24,13 @@
 
 
 Game::Game(const EngineCollection& modules, inl::Window& window)
-	: m_graphicsModule(modules.GetGraphicsEngine(), INL_GAMEDATA), m_window(window), m_engines(modules) {
+	: m_window(window), m_engines(modules), m_modules(std::make_shared<inl::DynamicTuple>()) {
+	auto graphicsModule = std::make_shared<inl::gamelib::GraphicsModule>(modules.GetGraphicsEngine(), INL_GAMEDATA);
+	graphicsModule->GetOrCreateScene("MainScene"); // Make it in advance
+	m_modules->Insert(graphicsModule);
+
 	InitSimulation();
 	InitRenderPaths();
-	m_modules.Insert(&m_graphicsModule);
 	UpdateRenderPipeline();
 
 	window.OnResize += [this](inl::ResizeEvent evt) {
@@ -37,20 +42,19 @@ Game::Game(const EngineCollection& modules, inl::Window& window)
 void Game::Update(float elapsed) {
 	UpdateRenderPipeline();
 	m_simulation.Run(m_scene, elapsed);
-	m_actionHeap->Clear();
 }
 
 
 void Game::InitSimulation() {
-	m_actionHeap = std::make_shared<ActionHeap>();
-
 	m_simulation.systems = {
 		UserInterfaceSystem{ m_engines, m_window },
 		UserInputSystem{},
-		TestLevelSystem{},
-		LevelSystem{},
+		TestLevelSystem{ m_modules },
+		LevelSystem{ m_modules },
 		CameraMoveSystem{},
 		inl::gamelib::LinkTransformSystem{},
+		inl::gamelib::MeshTransformSystem{},
+		inl::gamelib::HeightmapTransformSystem{},
 		inl::gamelib::RenderingSystem{ &m_engines.GetGraphicsEngine() },
 	};
 
@@ -110,7 +114,6 @@ void Game::UpdateRenderPipeline() {
 	for (auto& camera : cameras) {
 		cameraFound = cameraFound || camera->GetName() == "MainCamera";
 	}
-	m_graphicsModule.GetOrCreateScene("MainScene");
 
 	eRenderMode desiredMode = cameraFound ? eRenderMode::FULL : eRenderMode::GUI;
 

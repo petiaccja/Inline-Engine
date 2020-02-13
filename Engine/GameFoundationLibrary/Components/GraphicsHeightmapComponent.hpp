@@ -57,20 +57,21 @@ void load(Archive& ar, GraphicsHeightmapComponent& obj) {
 	   cereal::make_nvp("offset", offset),
 	   cereal::make_nvp("uvsize", uvSize));
 
+	GraphicsModule& graphicsModule = *ar.Modules().Get<std::shared_ptr<GraphicsModule>>();
+	obj.entity = graphicsModule.CreateHeightmapEntity();
+	obj.mesh = graphicsModule.LoadMesh(obj.meshPath);
+	obj.material = graphicsModule.LoadMaterial(obj.materialPath);
+	obj.heightmap = graphicsModule.LoadImage(obj.heightmapPath);
+	obj.entity->SetMesh(obj.mesh.get());
+	obj.entity->SetMaterial(obj.material.get());
+	obj.entity->SetHeightmap(obj.heightmap.get());
+
 	obj.entity->SetDirection(direction);
 	obj.entity->SetMagnitude(magnitude);
 	obj.entity->SetOffset(offset);
 	obj.entity->SetUvSize(uvSize);
 
-	const auto& moduleArchive = dynamic_cast<const game::ModuleArchive&>(ar);
-	const auto graphicsModule = moduleArchive.GetModule<GraphicsModule>();
-	obj.entity = graphicsModule->CreateHeightmapEntity();
-	obj.mesh = graphicsModule->LoadMesh(obj.meshPath);
-	obj.material = graphicsModule->LoadMaterial(obj.materialPath);
-	obj.heightmap = graphicsModule->LoadImage(obj.heightmapPath);
-	obj.entity->SetMesh(obj.mesh.get());
-	obj.entity->SetMaterial(obj.material.get());
-	obj.entity->SetHeightmap(obj.heightmap.get());
+	graphicsModule.GetOrCreateScene(obj.sceneName).GetEntities<gxeng::IHeightmapEntity>().Add(obj.entity.get());
 }
 
 

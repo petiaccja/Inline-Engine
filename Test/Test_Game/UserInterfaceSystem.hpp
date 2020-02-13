@@ -23,6 +23,14 @@ class Window;
 
 
 class UserInterfaceSystem : public inl::game::System<UserInterfaceSystem>, public ActionSystem {
+	enum class eGameState {
+		MAIN_MENU,
+		LOADING,
+		PLAYING,
+		PAUSED,
+		QUIT,
+	};
+
 public:
 	UserInterfaceSystem(const EngineCollection& modules, inl::Window& window);
 	UserInterfaceSystem(UserInterfaceSystem&& rhs);
@@ -48,6 +56,8 @@ private:
 	void RegisterHandlers();
 	void UnregisterHandlers();
 
+	static std::filesystem::path GetSaveFileDir();
+	
 private:
 	std::unique_ptr<inl::gxeng::IFont> m_font;
 	std::unique_ptr<inl::gxeng::IScene> m_scene;
@@ -62,4 +72,5 @@ private:
 		std::shared_ptr<GameSceneFrame> background;
 	} m_controls;
 	std::optional<std::reference_wrapper<ActionHeap>> m_transientActionHeap;
+	eGameState m_gameState = eGameState::MAIN_MENU;
 };

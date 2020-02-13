@@ -55,9 +55,8 @@ void load(Archive& ar, PerspectiveCameraComponent& obj) {
 	   cereal::make_nvp("target", target),
 	   cereal::make_nvp("upVector", upVector));
 
-	const auto& moduleArchive = dynamic_cast<const game::ModuleArchive&>(ar);
-	const auto graphicsModule = moduleArchive.GetModule<GraphicsModule>();
-	obj.entity = graphicsModule->CreatePerspectiveCamera(name);
+	const auto& graphicsModule = *ar.Modules().Get<std::shared_ptr<GraphicsModule>>();
+	obj.entity = graphicsModule.CreatePerspectiveCamera(name);
 
 	obj.entity->SetFOVAspect(fieldOfView, aspectRatio);
 	obj.entity->SetNearPlane(nearPlane);

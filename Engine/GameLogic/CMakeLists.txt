@@ -26,7 +26,6 @@ set(src_factory
 	ComponentClassFactory.hpp
 	AutoRegisterComponent.hpp
 	VariantArchive.hpp
-	Archive.hpp
 	)
 	
 set(src_level

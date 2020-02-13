@@ -76,7 +76,9 @@ Model::Model(const std::filesystem::path& file) {
 	m_importer.reset(new Assimp::Importer);
 	// "aiProcess_OptimizeGraph" will collapse nodes if possible.
 	// This flag is used to have ideally all submeshes in a single node.
-	auto fileStr = file.generic_string();
+	std::filesystem::path filePreferred = file;
+	filePreferred.make_preferred();
+	auto fileStr = filePreferred.string();
 	m_scene = m_importer->ReadFile(fileStr, aiProcessPreset_TargetRealtime_Quality | aiProcess_OptimizeGraph);
 
 	if (m_scene == nullptr) {

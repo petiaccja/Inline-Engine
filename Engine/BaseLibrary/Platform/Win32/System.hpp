@@ -49,6 +49,9 @@ public:
 
 	// File paths
 	static std::filesystem::path GetExecutableDir();
+	static std::filesystem::path GetAppdataDir();
+	static std::filesystem::path GetTempDir();
+	static std::filesystem::path GetHomeDir();
 };
 
 

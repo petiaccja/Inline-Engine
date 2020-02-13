@@ -52,7 +52,7 @@ TEST_CASE("ComponentFactory - Create with serialization", "[GameLogic:ComponentF
 		FooComponent component{ 19.f };
 		outputArchive(component);
 	}
-	LevelInputArchive archive{ std::in_place_type<cereal::JSONInputArchive>, ss };
+	LevelInputArchive archive{ std::make_shared<inl::DynamicTuple>(), std::in_place_type<cereal::JSONInputArchive>, ss };
 	ComponentFactory_Singleton::GetInstance().Load(entity, "FooComponent", archive);
 	REQUIRE(entity.HasComponent<FooComponent>());
 	REQUIRE(entity.GetFirstComponent<FooComponent>().value == 19.f);

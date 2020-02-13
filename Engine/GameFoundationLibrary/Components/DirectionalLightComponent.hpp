@@ -40,12 +40,13 @@ void load(Archive& ar, DirectionalLightComponent& obj) {
 	   cereal::make_nvp("color", color),
 	   cereal::make_nvp("direction", direction));
 
-	const auto& moduleArchive = dynamic_cast<const game::ModuleArchive&>(ar);
-	const auto graphicsModule = moduleArchive.GetModule<GraphicsModule>();
-	obj.entity = graphicsModule->CreateDirectionalLight();
+	GraphicsModule& graphicsModule = *ar.Modules().Get<std::shared_ptr<GraphicsModule>>();
+	obj.entity = graphicsModule.CreateDirectionalLight();
 
 	obj.entity->SetColor(color);
 	obj.entity->SetDirection(direction);
+
+	graphicsModule.GetOrCreateScene(obj.sceneName).GetEntities<gxeng::IDirectionalLight>().Add(obj.entity.get());
 }
 
 

@@ -8,6 +8,8 @@ namespace inl::game {
 
 class ComponentVectorBase {
 public:
+	virtual ~ComponentVectorBase() = default;
+	
 	template <class Component>
 	void PushBack(Component&& component);
 

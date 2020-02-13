@@ -9,11 +9,14 @@
 #include <GameFoundationLibrary/Components/PerspectiveCameraComponent.hpp>
 #include <GameLogic/ComponentFactory.hpp>
 #include <GameLogic/Entity.hpp>
+#include "GameFoundationLibrary/Components/TransformComponent.hpp"
 
 
 using namespace inl;
 using namespace inl::game;
 
+
+TestLevelSystem::TestLevelSystem(std::shared_ptr<const DynamicTuple> modules) : m_modules(modules) {}
 
 void TestLevelSystem::ReactActions(ActionHeap& actions) {
 	m_transientActionHeap = actions;
@@ -40,16 +43,13 @@ void TestLevelSystem::EmitActions(ActionHeap& actions) {
 }
 
 
-void TestLevelSystem::Load(inl::game::Scene& scene, inl::game::ComponentFactory& factory) const {
-	std::cout << "Loading test level placeholder" << std::endl;
-	return;
-	
+void TestLevelSystem::Load(inl::game::Scene& scene, inl::game::ComponentFactory& factory) const {	
 	using namespace inl::game;
 	using namespace inl::gamelib;
 	using namespace inl;
 
 	const ComponentFactory& componentFactory = ComponentFactory_Singleton::GetInstance();
-	GraphicsModule& graphicsModule = *m_subsystems.Get<GraphicsModule*>();
+	GraphicsModule& graphicsModule = *m_modules->Get<const std::shared_ptr<GraphicsModule>&>();
 
 	// Get scene.
 	gxeng::IScene& graphicsScene = graphicsModule.GetOrCreateScene("MainScene");
@@ -58,6 +58,7 @@ void TestLevelSystem::Load(inl::game::Scene& scene, inl::game::ComponentFactory&
 	Entity& light = scene.CreateEntity();
 	componentFactory.Create<DirectionalLightComponent>(light);
 	auto&& lightComponent = light.GetFirstComponent<DirectionalLightComponent>();
+	lightComponent.sceneName = "MainScene";
 	lightComponent.entity = graphicsModule.CreateDirectionalLight();
 	lightComponent.entity->SetDirection(Vec3{ 0.5, 0.5, -0.2 }.Normalized());
 	lightComponent.entity->SetColor({ 1.0f, 0.7f, 0.4f });
@@ -67,30 +68,35 @@ void TestLevelSystem::Load(inl::game::Scene& scene, inl::game::ComponentFactory&
 	Entity& terrain = scene.CreateEntity();
 	componentFactory.Create<GraphicsMeshComponent>(terrain);
 	auto&& terrainComponent = terrain.GetFirstComponent<GraphicsMeshComponent>();
+	terrainComponent.sceneName = "MainScene";
+	terrainComponent.meshPath = "Models/Terrain/terrain.fbx";
+	terrainComponent.materialPath = "Models/Terrain/terrain.mtl";
 	terrainComponent.entity = graphicsModule.CreateMeshEntity();
-	terrainComponent.mesh = graphicsModule.LoadMesh("Models/Terrain/terrain.fbx");
-	terrainComponent.material = graphicsModule.LoadMaterial("Models/Terrain/terrain.mtl");
+	terrainComponent.mesh = graphicsModule.LoadMesh(terrainComponent.meshPath);
+	terrainComponent.material = graphicsModule.LoadMaterial(terrainComponent.materialPath);
 	terrainComponent.entity->SetMesh(terrainComponent.mesh.get());
 	terrainComponent.entity->SetMaterial(terrainComponent.material.get());
-	terrainComponent.entity->SetPosition({ 0, 0, 0 });
-	terrainComponent.entity->SetRotation(Quat::Identity());
-	terrainComponent.entity->SetScale({ 1, 1, 1 });
 	graphicsScene.GetEntities<gxeng::IMeshEntity>().Add(terrainComponent.entity.get());
 
+	terrain.AddComponent(TransformComponent{});
+	
 	// Create a tree.
 	Entity& tree = scene.CreateEntity();
 	componentFactory.Create<GraphicsMeshComponent>(tree);
 	auto&& treeComponent = tree.GetFirstComponent<GraphicsMeshComponent>();
+	treeComponent.sceneName = "MainScene";
+	treeComponent.meshPath = "Models/Vegetation/Trees/chestnut.fbx";
+	treeComponent.materialPath = "Models/Vegetation/Trees/chestnut.mtl";
 	treeComponent.entity = graphicsModule.CreateMeshEntity();
-	treeComponent.mesh = graphicsModule.LoadMesh("Models/Vegetation/Trees/chestnut.fbx");
-	treeComponent.material = graphicsModule.LoadMaterial("Models/Vegetation/Trees/chestnut.mtl");
+	treeComponent.mesh = graphicsModule.LoadMesh(treeComponent.meshPath);
+	treeComponent.material = graphicsModule.LoadMaterial(treeComponent.materialPath);
 	treeComponent.entity->SetMesh(treeComponent.mesh.get());
 	treeComponent.entity->SetMaterial(treeComponent.material.get());
-	treeComponent.entity->SetPosition({ 0, 0, 0 });
-	treeComponent.entity->SetRotation(Quat::Identity());
-	treeComponent.entity->SetScale({ 0.003937, 0.003937, 0.003937 });
 	graphicsScene.GetEntities<gxeng::IMeshEntity>().Add(treeComponent.entity.get());
 
+	tree.AddComponent(TransformComponent{});
+	tree.GetFirstComponent<TransformComponent>().SetScale({ 0.003937, 0.003937, 0.003937 });
+	
 	// Create a 3D camera.
 	Entity& camera = scene.CreateEntity();
 	componentFactory.Create<PerspectiveCameraComponent>(camera);
@@ -107,17 +113,21 @@ void TestLevelSystem::Load(inl::game::Scene& scene, inl::game::ComponentFactory&
 	Entity& heightmap = scene.CreateEntity();
 	componentFactory.Create<GraphicsHeightmapComponent>(heightmap);
 	auto&& heightmapComponent = heightmap.GetFirstComponent<GraphicsHeightmapComponent>();
+	heightmapComponent.sceneName = "MainScene";
+	heightmapComponent.meshPath = "Models/Test/Heightmap/heightmap.fbx";
+	heightmapComponent.materialPath = "Models/Test/Heightmap/heightmap.mtl";
+	heightmapComponent.heightmapPath = "Models/Test/Heightmap/heightmap.png";
 	heightmapComponent.entity = graphicsModule.CreateHeightmapEntity();
-	heightmapComponent.mesh = graphicsModule.LoadMesh("Models/Test/Heightmap/heightmap.fbx");
-	heightmapComponent.material = graphicsModule.LoadMaterial("Models/Test/Heightmap/heightmap.mtl");
-	heightmapComponent.heightmap = graphicsModule.LoadImage("Models/Test/Heightmap/heightmap.png");
+	heightmapComponent.mesh = graphicsModule.LoadMesh(heightmapComponent.meshPath);
+	heightmapComponent.material = graphicsModule.LoadMaterial(heightmapComponent.materialPath);
+	heightmapComponent.heightmap = graphicsModule.LoadImage(heightmapComponent.heightmapPath);
 	heightmapComponent.entity->SetMesh(heightmapComponent.mesh.get());
 	heightmapComponent.entity->SetMaterial(heightmapComponent.material.get());
 	heightmapComponent.entity->SetHeightmap(heightmapComponent.heightmap.get());
-	heightmapComponent.entity->SetPosition({ 0, 0, 1 });
-	heightmapComponent.entity->SetRotation(Quat::Identity());
-	heightmapComponent.entity->SetScale({ 1, 1, 1 });
 	heightmapComponent.entity->SetUvSize({ 5, 5 });
 	heightmapComponent.entity->SetMagnitude(0.3f);
 	graphicsScene.GetEntities<gxeng::IHeightmapEntity>().Add(heightmapComponent.entity.get());
+	
+	heightmap.AddComponent(TransformComponent{});
+	heightmap.GetFirstComponent<TransformComponent>().Move({ 0, 0, 1 });
 }

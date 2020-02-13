@@ -3,6 +3,7 @@
 #include "LevelActions.hpp"
 
 #include <BaseLibrary/Event.hpp>
+#include <BaseLibrary/Platform/System.hpp>
 #include <BaseLibrary/Platform/Window.hpp>
 
 #include <fstream>
@@ -51,6 +52,7 @@ UserInterfaceSystem::UserInterfaceSystem(UserInterfaceSystem&& rhs) : m_window(r
 	m_controls = std::move(rhs.m_controls);
 	RegisterWindowEvents();
 	RegisterHandlers();
+	m_gameState = rhs.m_gameState;
 }
 
 UserInterfaceSystem::~UserInterfaceSystem() noexcept {
@@ -146,27 +148,85 @@ void UserInterfaceSystem::CreateFrames() {
 
 
 void UserInterfaceSystem::RegisterHandlers() {
-	// Main menu
+	// Global.
+	m_controls.layout->OnKeyup += [this](inl::gui::Control*, inl::eKey key) {
+		if (key == inl::eKey::ESCAPE) {
+			if (m_gameState == eGameState::PLAYING) {
+				m_controls.pauseMenu->SetVisible(true);
+				m_gameState = eGameState::PAUSED;
+			}
+			else if (m_gameState == eGameState::PAUSED) {
+				m_controls.pauseMenu->SetVisible(false);
+				m_gameState = eGameState::PLAYING;
+			}
+		}
+	};
+
+	// Main menu.
 	m_controls.mainMenu->OnStart += [this] {
 		m_transientActionHeap.value().get().Push(LoadTestLevelAction{});
 		m_controls.mainMenu->SetVisible(false);
+		m_gameState = eGameState::PLAYING;
 	};
 	m_controls.mainMenu->OnLoad += [this] {
-		m_transientActionHeap.value().get().Push(LoadLevelAction{R"(D:\Temp\level.json)"});
+		m_transientActionHeap.value().get().Push(LoadLevelAction{ GetSaveFileDir() / "save01.json" });
 		m_controls.mainMenu->SetVisible(false);
+		m_gameState = eGameState::PLAYING;
 	};
 	m_controls.mainMenu->OnToggleInfo += [this] {
 		m_controls.debugInfo->SetVisible(!m_controls.debugInfo->GetVisible());
 	};
 	m_controls.mainMenu->OnQuit += [this] {
 		m_window.Close();
+		m_gameState = eGameState::QUIT;
+	};
+
+	// Pause menu
+	m_controls.pauseMenu->OnContinue += [this] {
+		m_controls.mainMenu->SetVisible(false);
+		m_gameState = eGameState::PLAYING;
+	};
+	m_controls.pauseMenu->OnSave += [this] {
+		m_transientActionHeap.value().get().Push(SaveLevelAction{ GetSaveFileDir() / "save01.json" });
+	};
+	m_controls.pauseMenu->OnLoad += [this] {
+		m_transientActionHeap.value().get().Push(LoadLevelAction{ GetSaveFileDir() / "save01.json" });
+		m_controls.pauseMenu->SetVisible(false);
+		m_gameState = eGameState::PLAYING;
+	};
+	m_controls.pauseMenu->OnToggleInfo += [this] {
+		m_controls.debugInfo->SetVisible(!m_controls.debugInfo->GetVisible());
+	};
+	m_controls.pauseMenu->OnQuit += [this] {
+		m_window.Close();
+		m_gameState = eGameState::QUIT;
 	};
 }
 
 
 void UserInterfaceSystem::UnregisterHandlers() {
+	m_controls.layout->OnKeyup.Clear();
+
 	m_controls.mainMenu->OnStart.Clear();
 	m_controls.mainMenu->OnLoad.Clear();
 	m_controls.mainMenu->OnToggleInfo.Clear();
 	m_controls.mainMenu->OnQuit.Clear();
+
+	m_controls.pauseMenu->OnContinue.Clear();
+	m_controls.pauseMenu->OnSave.Clear();
+	m_controls.pauseMenu->OnLoad.Clear();
+	m_controls.pauseMenu->OnToggleInfo.Clear();
+	m_controls.pauseMenu->OnQuit.Clear();
+}
+
+
+std::filesystem::path UserInterfaceSystem::GetSaveFileDir() {
+	static std::filesystem::path path = inl::System::GetTempDir() / "InlSavegames";
+	if (!exists(path)) {
+		bool success = create_directory(path);
+		if (!success) {
+			throw inl::RuntimeException("Could not create the directory.");
+		}
+	}
+	return path;
 }
