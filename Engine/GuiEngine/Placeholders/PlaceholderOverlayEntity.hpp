@@ -9,14 +9,14 @@ namespace inl::gui {
 
 class PlaceholderOverlayEntity : public gxeng::IOverlayEntity, public Transformable2DN {
 public:
-	void SetMesh(gxeng::IMesh* mesh) override { m_mesh = mesh; }
-	gxeng::IMesh* GetMesh() const override { return m_mesh; }
+	void SetMesh(std::shared_ptr<gxeng::IMesh> mesh) override { m_mesh = mesh; }
+	std::shared_ptr<gxeng::IMesh> GetMesh() const override { return m_mesh; }
 
 	void SetColor(Vec4 color) override { m_color = color; }
 	Vec4 GetColor() const override { return m_color; }
 
-	void SetTexture(gxeng::IImage* texture) override { m_image = texture; }
-	gxeng::IImage* GetTexture() const override { return m_image; }
+	void SetTexture(std::shared_ptr<gxeng::IImage> texture) override { m_image = texture; }
+	std::shared_ptr<gxeng::IImage> GetTexture() const override { return m_image; }
 
 	void SetZDepth(float z) override { m_depth = z; }
 	float GetZDepth() const override { return m_depth; }
@@ -38,9 +38,9 @@ public:
 	bool IsAdditionalClipEnabled() const override { return m_clipEnabled; }
 
 private:
-	gxeng::IMesh* m_mesh = nullptr;
+	std::shared_ptr<gxeng::IMesh> m_mesh = nullptr;
 	Vec4 m_color = { 1, 1, 1, 1 };
-	gxeng::IImage* m_image = nullptr;
+	std::shared_ptr<gxeng::IImage> m_image = nullptr;
 	float m_depth = 0.0f;
 
 	RectF m_clipRectangle = { 0, 0, 0, 0 };

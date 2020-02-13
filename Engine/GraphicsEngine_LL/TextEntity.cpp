@@ -10,7 +10,7 @@ namespace inl::gxeng {
 
 TextEntity::TextEntity() {}
 
-void TextEntity::SetFont(const Font* font) {
+void TextEntity::SetFont(std::shared_ptr<const Font> font) {
 	m_font = font;
 }
 
@@ -33,7 +33,11 @@ void TextEntity::SetSize(const Vec2& size) {
 	m_size = size;
 }
 
-const Font* TextEntity::GetFont() const {
+std::shared_ptr<const IFont> TextEntity::GetFont() const {
+	return m_font;
+}
+
+std::shared_ptr<const Font> TextEntity::GetFontNative() const {
 	return m_font;
 }
 

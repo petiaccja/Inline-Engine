@@ -72,10 +72,8 @@ void TestLevelSystem::Load(inl::game::Scene& scene, inl::game::ComponentFactory&
 	terrainComponent.meshPath = "Models/Terrain/terrain.fbx";
 	terrainComponent.materialPath = "Models/Terrain/terrain.mtl";
 	terrainComponent.entity = graphicsModule.CreateMeshEntity();
-	terrainComponent.mesh = graphicsModule.LoadMesh(terrainComponent.meshPath);
-	terrainComponent.material = graphicsModule.LoadMaterial(terrainComponent.materialPath);
-	terrainComponent.entity->SetMesh(terrainComponent.mesh.get());
-	terrainComponent.entity->SetMaterial(terrainComponent.material.get());
+	terrainComponent.entity->SetMesh(graphicsModule.LoadMesh(terrainComponent.meshPath));
+	terrainComponent.entity->SetMaterial(graphicsModule.LoadMaterial(terrainComponent.materialPath));
 	graphicsScene.GetEntities<gxeng::IMeshEntity>().Add(terrainComponent.entity.get());
 
 	terrain.AddComponent(TransformComponent{});
@@ -88,10 +86,8 @@ void TestLevelSystem::Load(inl::game::Scene& scene, inl::game::ComponentFactory&
 	treeComponent.meshPath = "Models/Vegetation/Trees/chestnut.fbx";
 	treeComponent.materialPath = "Models/Vegetation/Trees/chestnut.mtl";
 	treeComponent.entity = graphicsModule.CreateMeshEntity();
-	treeComponent.mesh = graphicsModule.LoadMesh(treeComponent.meshPath);
-	treeComponent.material = graphicsModule.LoadMaterial(treeComponent.materialPath);
-	treeComponent.entity->SetMesh(treeComponent.mesh.get());
-	treeComponent.entity->SetMaterial(treeComponent.material.get());
+	treeComponent.entity->SetMesh(graphicsModule.LoadMesh(treeComponent.meshPath));
+	treeComponent.entity->SetMaterial(graphicsModule.LoadMaterial(treeComponent.materialPath));
 	graphicsScene.GetEntities<gxeng::IMeshEntity>().Add(treeComponent.entity.get());
 
 	tree.AddComponent(TransformComponent{});
@@ -118,12 +114,9 @@ void TestLevelSystem::Load(inl::game::Scene& scene, inl::game::ComponentFactory&
 	heightmapComponent.materialPath = "Models/Test/Heightmap/heightmap.mtl";
 	heightmapComponent.heightmapPath = "Models/Test/Heightmap/heightmap.png";
 	heightmapComponent.entity = graphicsModule.CreateHeightmapEntity();
-	heightmapComponent.mesh = graphicsModule.LoadMesh(heightmapComponent.meshPath);
-	heightmapComponent.material = graphicsModule.LoadMaterial(heightmapComponent.materialPath);
-	heightmapComponent.heightmap = graphicsModule.LoadImage(heightmapComponent.heightmapPath);
-	heightmapComponent.entity->SetMesh(heightmapComponent.mesh.get());
-	heightmapComponent.entity->SetMaterial(heightmapComponent.material.get());
-	heightmapComponent.entity->SetHeightmap(heightmapComponent.heightmap.get());
+	heightmapComponent.entity->SetMesh(graphicsModule.LoadMesh(heightmapComponent.meshPath));
+	heightmapComponent.entity->SetMaterial(graphicsModule.LoadMaterial(heightmapComponent.materialPath));
+	heightmapComponent.entity->SetHeightmap(graphicsModule.LoadImage(heightmapComponent.heightmapPath));
 	heightmapComponent.entity->SetUvSize({ 5, 5 });
 	heightmapComponent.entity->SetMagnitude(0.3f);
 	graphicsScene.GetEntities<gxeng::IHeightmapEntity>().Add(heightmapComponent.entity.get());

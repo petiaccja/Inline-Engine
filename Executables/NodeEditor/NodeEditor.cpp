@@ -61,7 +61,7 @@ void NodeEditor::CreateGui() {
 	m_board.SetDrawingContext(drawingContext);
 	ColorF accent = Window::GetWindows10AccentColor().value_or(ColorF{ 0.24f, 0.45f, 0.37f, 1 });
 	gui::ControlStyle style = gui::ControlStyle::Dark(accent);
-	style.font = m_font.get();
+	style.font = m_font;
 	m_board.SetStyle(style);
 
 	m_board.AddChild(m_mainFrame);

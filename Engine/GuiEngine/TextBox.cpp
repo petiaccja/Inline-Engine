@@ -72,7 +72,7 @@ void TextBox::Update(float elapsed) {
 	m_cursor.SetColor(currentColor.xyz | alpha);
 
 	// Calculate cursor position.
-	gxeng::IFont* font = GetStyle().font;
+	auto font = GetStyle().font;
 	auto fontSize = m_text.GetFontSize();
 	if (font) {
 		std::u32string u32text = EncodeString<char32_t>(GetText()) + U"_";

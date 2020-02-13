@@ -59,7 +59,7 @@ private:
 	static std::filesystem::path GetSaveFileDir();
 	
 private:
-	std::unique_ptr<inl::gxeng::IFont> m_font;
+	std::shared_ptr<inl::gxeng::IFont> m_font;
 	std::unique_ptr<inl::gxeng::IScene> m_scene;
 	std::unique_ptr<inl::gxeng::ICamera2D> m_camera;
 	std::unique_ptr<inl::gui::Board> m_board;

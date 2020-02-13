@@ -61,14 +61,14 @@ public:
 	//-------------------------------------
 	// OverlayEntity
 	//-------------------------------------
-	void SetMesh(gxeng::IMesh* mesh);
-	gxeng::IMesh* GetMesh() const;
+	void SetMesh(std::shared_ptr<gxeng::IMesh> mesh);
+	std::shared_ptr<gxeng::IMesh> GetMesh() const;
 
 	void SetColor(Vec4 color);
 	Vec4 GetColor() const;
 
-	void SetTexture(gxeng::IImage* texture);
-	gxeng::IImage* GetTexture() const;
+	void SetTexture(std::shared_ptr<gxeng::IImage> texture);
+	std::shared_ptr<gxeng::IImage> GetTexture() const;
 
 	void SetAdditionalClip(RectF clipRectangle, Mat33 transform);
 	std::pair<RectF, Mat33> GetAdditionalClip() const;

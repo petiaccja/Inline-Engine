@@ -33,7 +33,7 @@ struct ControlStyle {
 	ColorF text = { 0.8f, 0.8f, 0.8f, 1 };
 	ColorF selection = { 0.2f, 0.3f, 0.8f, 1.0f };
 
-	gxeng::IFont* font = nullptr;
+	std::shared_ptr<const gxeng::IFont> font = nullptr;
 	float fontSize = 12.0f;
 };
 

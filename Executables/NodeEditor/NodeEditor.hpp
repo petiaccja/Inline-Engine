@@ -43,7 +43,7 @@ private:
 
 	std::unique_ptr<gxeng::ICamera2D> m_camera;
 	std::unique_ptr<gxeng::IScene> m_scene;
-	std::unique_ptr<gxeng::IFont> m_font;
+	std::shared_ptr<gxeng::IFont> m_font;
 
 	gui::Board m_board;
 	gui::Frame m_mainFrame;

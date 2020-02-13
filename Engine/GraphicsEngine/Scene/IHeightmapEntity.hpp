@@ -7,6 +7,8 @@
 
 #include <BaseLibrary/Transformable.hpp>
 
+#include <memory>
+
 
 namespace inl::gxeng {
 
@@ -14,22 +16,19 @@ namespace inl::gxeng {
 class IHeightmapEntity : public virtual ITransformable3D, public Entity {
 public:
 	/// <summary> Provides the base geometry for the mesh. </summary>
-	/// <remarks> Passing nullptr is ok, but rendering it is undefined behviour.
-	///		The mesh must not be deleted while assigned to the entity. </remarks>
-	virtual void SetMesh(IMesh* mesh) = 0;
-	virtual IMesh* GetMesh() const = 0;
+	/// <remarks> Passing nullptr is ok, but rendering it is undefined behviour. </remarks>
+	virtual void SetMesh(std::shared_ptr<IMesh> mesh) = 0;
+	virtual std::shared_ptr<IMesh> GetMesh() const = 0;
 
 	/// <summary> Describes the surface of the triangle mesh. </summary>
-	/// <remarks> Passing nullptr is ok, but rendering it is undefined behviour.
-	///		The material must not be deleted while assigned to the entity. </remarks>
-	virtual void SetMaterial(IMaterial* material) = 0;
-	virtual IMaterial* GetMaterial() const = 0;
+	/// <remarks> Passing nullptr is ok, but rendering it is undefined behviour. </remarks>
+	virtual void SetMaterial(std::shared_ptr<IMaterial> material) = 0;
+	virtual std::shared_ptr<IMaterial> GetMaterial() const = 0;
 
 	/// <summary> Displacement = heightmap(u, v) * magnitude + offset. </summary>
-	/// <remarks> Passing nullptr is ok, but rendering it is undefined behviour.
-	///		The heightmap must not be deleted while assigned to the entity. </remarks>
-	virtual void SetHeightmap(IImage* heightmap) = 0;
-	virtual IImage* GetHeightmap() const = 0;
+	/// <remarks> Passing nullptr is ok, but rendering it is undefined behviour. </remarks>
+	virtual void SetHeightmap(std::shared_ptr<IImage> heightmap) = 0;
+	virtual std::shared_ptr<IImage> GetHeightmap() const = 0;
 
 	/// <summary> The direction of the displacement. </summary>
 	/// <param name="direction"> Non-zero, normalized. (Otherwise will be SafeNormalized.) </param>

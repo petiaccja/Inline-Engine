@@ -9,12 +9,16 @@ OverlayEntity::OverlayEntity() {
 }
 
 
-void OverlayEntity::SetMesh(Mesh* mesh) {
+void OverlayEntity::SetMesh(std::shared_ptr<Mesh> mesh) {
 	m_mesh = mesh;
 }
 
 
-Mesh* OverlayEntity::GetMesh() const {
+std::shared_ptr<IMesh> OverlayEntity::GetMesh() const {
+	return m_mesh;
+}
+
+const std::shared_ptr<Mesh>& OverlayEntity::GetMeshNative() const {
 	return m_mesh;
 }
 
@@ -28,12 +32,16 @@ Vec4 OverlayEntity::GetColor() const {
 }
 
 
-void OverlayEntity::SetTexture(Image* texture) {
+void OverlayEntity::SetTexture(std::shared_ptr<Image> texture) {
 	m_texture = texture;
 }
 
 
-Image* OverlayEntity::GetTexture() const {
+std::shared_ptr<IImage> OverlayEntity::GetTexture() const {
+	return m_texture;
+}
+
+const std::shared_ptr<Image>& OverlayEntity::GetTextureNative() const {
 	return m_texture;
 }
 

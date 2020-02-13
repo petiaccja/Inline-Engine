@@ -21,9 +21,9 @@ public:
 	virtual ~ITextEntity() = default;
 
 	/// <summary> Text is drawn using given font face. </summary>
-	virtual void SetFont(const IFont* font) = 0;
+	virtual void SetFont(std::shared_ptr<const IFont> font) = 0;
 	/// <summary> Returns the currently used font face. </summary>
-	virtual const IFont* GetFont() const = 0;
+	virtual std::shared_ptr<const IFont> GetFont() const = 0;
 
 
 	/// <summary> Sets the height of characters, in 2D camera units. </summary>

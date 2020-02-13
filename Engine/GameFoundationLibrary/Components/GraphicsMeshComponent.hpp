@@ -16,8 +16,6 @@ namespace inl::gamelib {
 
 struct GraphicsMeshComponent {
 	std::unique_ptr<gxeng::IMeshEntity> entity;
-	std::shared_ptr<gxeng::IMesh> mesh;
-	std::shared_ptr<gxeng::IMaterial> material;
 	std::string meshPath;
 	std::string materialPath;
 	std::string sceneName;
@@ -43,10 +41,8 @@ void load(Archive& ar, GraphicsMeshComponent& obj) {
 	   cereal::make_nvp("scene", obj.sceneName));
 	GraphicsModule& graphicsModule = *ar.Modules().Get<std::shared_ptr<GraphicsModule>>();
 	obj.entity = graphicsModule.CreateMeshEntity();
-	obj.mesh = graphicsModule.LoadMesh(obj.meshPath);
-	obj.material = graphicsModule.LoadMaterial(obj.materialPath);
-	obj.entity->SetMesh(obj.mesh.get());
-	obj.entity->SetMaterial(obj.material.get());
+	obj.entity->SetMesh(graphicsModule.LoadMesh(obj.meshPath));
+	obj.entity->SetMaterial(graphicsModule.LoadMaterial(obj.materialPath));
 
 	graphicsModule.GetOrCreateScene(obj.sceneName).GetEntities<gxeng::IMeshEntity>().Add(obj.entity.get());
 }

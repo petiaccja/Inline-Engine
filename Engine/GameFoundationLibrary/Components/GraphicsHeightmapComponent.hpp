@@ -15,9 +15,6 @@ namespace inl::gamelib {
 
 struct GraphicsHeightmapComponent {
 	std::unique_ptr<gxeng::IHeightmapEntity> entity;
-	std::shared_ptr<gxeng::IMesh> mesh;
-	std::shared_ptr<gxeng::IMaterial> material;
-	std::shared_ptr<gxeng::IImage> heightmap;
 	std::string meshPath;
 	std::string materialPath;
 	std::string heightmapPath;
@@ -59,12 +56,9 @@ void load(Archive& ar, GraphicsHeightmapComponent& obj) {
 
 	GraphicsModule& graphicsModule = *ar.Modules().Get<std::shared_ptr<GraphicsModule>>();
 	obj.entity = graphicsModule.CreateHeightmapEntity();
-	obj.mesh = graphicsModule.LoadMesh(obj.meshPath);
-	obj.material = graphicsModule.LoadMaterial(obj.materialPath);
-	obj.heightmap = graphicsModule.LoadImage(obj.heightmapPath);
-	obj.entity->SetMesh(obj.mesh.get());
-	obj.entity->SetMaterial(obj.material.get());
-	obj.entity->SetHeightmap(obj.heightmap.get());
+	obj.entity->SetMesh(graphicsModule.LoadMesh(obj.meshPath));
+	obj.entity->SetMaterial(graphicsModule.LoadMaterial(obj.materialPath));
+	obj.entity->SetHeightmap(graphicsModule.LoadImage(obj.heightmapPath));
 
 	obj.entity->SetDirection(direction);
 	obj.entity->SetMagnitude(magnitude);

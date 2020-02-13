@@ -27,7 +27,7 @@ UserInterfaceSystem::UserInterfaceSystem(const EngineCollection& modules, inl::W
 	m_board->SetDrawingContext(ctx);
 	m_board->SetDepth(0.0f);
 	inl::gui::ControlStyle style = inl::gui::ControlStyle::Dark(inl::Window::GetWindows10AccentColor().value_or(inl::ColorF{ 0.8f, 0.2f, 0.2f, 1.0f }));
-	style.font = m_font.get();
+	style.font = m_font;
 	m_board->SetStyle(style);
 
 	// Create GUI elements.

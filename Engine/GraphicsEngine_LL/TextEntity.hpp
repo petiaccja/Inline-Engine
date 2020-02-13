@@ -19,10 +19,11 @@ public:
 	TextEntity();
 
 	/// <summary> Text is drawn using given font face. </summary>
-	void SetFont(const IFont* font) override { SetFont(static_cast<const Font*>(font)); }
-	void SetFont(const Font* font);
+	void SetFont(std::shared_ptr<const IFont> font) override { SetFont(static_pointer_cast<const Font>(font)); }
+	void SetFont(std::shared_ptr<const Font> font);
 	/// <summary> Returns the currently used font face. </summary>
-	const Font* GetFont() const override;
+	std::shared_ptr<const IFont> GetFont() const override;
+	std::shared_ptr<const Font> GetFontNative() const;
 
 
 	/// <summary> Sets the height of characters, in 2D camera units. </summary>
@@ -91,7 +92,7 @@ private:
 	Vec4 m_color = { 1, 0, 0, 1 };
 	float m_fontSize = 16;
 	std::u32string m_text;
-	const Font* m_font = nullptr;
+	std::shared_ptr<const Font> m_font = nullptr;
 	float m_zDepth = 0.0f;
 	Vec2 m_size = { 16, 16 };
 

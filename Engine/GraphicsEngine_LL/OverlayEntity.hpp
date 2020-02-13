@@ -20,9 +20,10 @@ public:
 	/// <summary> Sets a 2D triangle mesh as shape of the object. </summary>
 	/// <remarks> Set to null to draw a unit rectangle with corners (0,0) and (1,1).
 	///		<para/> Mesh must have at least Vec2 position and Vec2 texcoord0. </remarks>
-	void SetMesh(IMesh* mesh) { SetMesh(static_cast<Mesh*>(mesh)); }
-	void SetMesh(Mesh* mesh);
-	Mesh* GetMesh() const override;
+	void SetMesh(std::shared_ptr<IMesh> mesh) { SetMesh(static_pointer_cast<Mesh>(mesh)); }
+	void SetMesh(std::shared_ptr<Mesh> mesh);
+	std::shared_ptr<IMesh> GetMesh() const override;
+	const std::shared_ptr<Mesh>& GetMeshNative() const;
 
 	/// <summary> Solid color of the object. Multiplied together with texture color. </summary>
 	void SetColor(Vec4 color) override;
@@ -30,9 +31,10 @@ public:
 
 	/// <summary> Texture color of the object. Multiplied together with base color. </summary>
 	/// <remarks> Set to null if you only want solid color. </remarks>
-	void SetTexture(IImage* texture) { SetTexture(static_cast<Image*>(texture)); }
-	void SetTexture(Image* texture);
-	Image* GetTexture() const override;
+	void SetTexture(std::shared_ptr<IImage> texture) { SetTexture(static_pointer_cast<Image>(texture)); }
+	void SetTexture(std::shared_ptr<Image> texture);
+	std::shared_ptr<IImage> GetTexture() const override;
+	const std::shared_ptr<Image>& GetTextureNative() const;
 
 	/// <summary> Z-Depth determines which 2D entity lays over the other. </summary>
 	/// <remarks> Number are not limited to [0,1], anything is fine. Don't pass NaN and Inf. </remarks>
@@ -52,8 +54,8 @@ public:
 	bool IsAdditionalClipEnabled() const override;
 
 private:
-	Mesh* m_mesh = nullptr;
-	Image* m_texture = nullptr;
+	std::shared_ptr<Mesh> m_mesh = nullptr;
+	std::shared_ptr<Image> m_texture = nullptr;
 	Vec4 m_color;
 	float m_zDepth = 0.0f;
 

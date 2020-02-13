@@ -157,17 +157,17 @@ void Sprite::Update(float elapsed) {
 // OverlayEntity
 //-------------------------------------
 
-void Sprite::SetMesh(gxeng::IMesh* mesh) { m_entity->SetMesh(mesh); }
+void Sprite::SetMesh(std::shared_ptr<gxeng::IMesh> mesh) { m_entity->SetMesh(mesh); }
 
-gxeng::IMesh* Sprite::GetMesh() const { return m_entity->GetMesh(); }
+std::shared_ptr<gxeng::IMesh> Sprite::GetMesh() const { return m_entity->GetMesh(); }
 
 void Sprite::SetColor(Vec4 color) { m_entity->SetColor(color); }
 
 Vec4 Sprite::GetColor() const { return m_entity->GetColor(); }
 
-void Sprite::SetTexture(gxeng::IImage* texture) { m_entity->SetTexture(texture); }
+void Sprite::SetTexture(std::shared_ptr<gxeng::IImage> texture) { m_entity->SetTexture(texture); }
 
-gxeng::IImage* Sprite::GetTexture() const { return m_entity->GetTexture(); }
+std::shared_ptr<gxeng::IImage> Sprite::GetTexture() const { return m_entity->GetTexture(); }
 
 void Sprite::SetAdditionalClip(RectF clipRectangle, Mat33 transform) { m_entity->SetAdditionalClip(clipRectangle, transform); }
 

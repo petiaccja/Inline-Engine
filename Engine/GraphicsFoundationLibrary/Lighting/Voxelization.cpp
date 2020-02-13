@@ -310,8 +310,8 @@ void Voxelization::Execute(RenderContext& context) {
 		{ // scene voxelization
 			for (const MeshEntity* entity : *m_entities) {
 				// Get entity parameters
-				Mesh* mesh = entity->GetMesh();
-				Material* material = entity->GetMaterial();
+				Mesh* mesh = entity->GetMeshNative().get();
+				Material* material = entity->GetMaterialNative().get();
 				auto position = entity->GetPosition();
 
 				if (mesh->GetIndexBuffer().GetIndexCount() == 3600) {

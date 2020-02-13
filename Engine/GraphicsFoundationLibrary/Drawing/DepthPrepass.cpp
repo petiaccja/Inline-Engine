@@ -193,7 +193,10 @@ void DepthPrepass::Execute(RenderContext& context) {
 	// Iterate over all entities
 	for (const MeshEntity* entity : *entities) {
 		// Get entity parameters
-		Mesh* mesh = entity->GetMesh();
+		if (!entity->GetMesh()) {
+			continue;
+		}
+		Mesh* mesh = entity->GetMeshNative().get();
 		auto position = entity->GetPosition();
 
 		// Draw mesh

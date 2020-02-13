@@ -305,8 +305,8 @@ void ForwardRender::Execute(RenderContext& context) {
 	// Iterate over all entities
 	for (const MeshEntity* entity : *m_entities) {
 		// Get entity parameters
-		Mesh* mesh = entity->GetMesh();
-		Material* material = entity->GetMaterial();
+		Mesh* mesh = entity->GetMeshNative().get();
+		Material* material = entity->GetMaterialNative().get();
 
 		assert(mesh != nullptr);
 		assert(material != nullptr);

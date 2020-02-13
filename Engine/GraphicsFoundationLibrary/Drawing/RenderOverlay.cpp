@@ -384,8 +384,8 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 		if (zOverlay < zText) {
 			// Render the overlay.
 			const OverlayEntity* entity = *itOverlay;
-			const Mesh* mesh = entity->GetMesh();
-			const Image* texture = entity->GetTexture();
+			const Mesh* mesh = entity->GetMeshNative().get();
+			const Image* texture = entity->GetTextureNative().get();
 
 			// Cancel the overlay early if possible/needed.
 			auto [shouldDraw, discardTransform] = CullEntity(*entity, view * proj);
@@ -405,7 +405,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 
 			cbuffer.worldViewProj.Submatrix<3, 3>(0, 0) = world * view * proj;
 			cbuffer.hasTexture = (uint32_t)(texture != nullptr && texture->GetSrv());
-			cbuffer.hasMesh = mesh != nullptr;
+			cbuffer.hasMesh = bool(mesh);
 			cbuffer.color = entity->GetColor();
 			cbuffer.z = RecalcZ(entity->GetZDepth());
 
@@ -450,7 +450,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 
 			// Cancel entity early if possible/needed.
 			const TextEntity* entity = *itText;
-			const Font* font = entity->GetFont();
+			const Font* font = entity->GetFontNative().get();
 			auto [shouldDraw, discardTransform] = CullEntity(*entity, view * proj);
 			if (!shouldDraw || !font || !font->GetGlyphAtlas().GetSrv()) {
 				++itText;

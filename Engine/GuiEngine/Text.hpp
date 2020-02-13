@@ -54,8 +54,8 @@ public:
 	//-------------------------------------
 	// TextEntity
 	//-------------------------------------
-	void SetFont(const gxeng::IFont* font) { m_entity->SetFont(font); }
-	const gxeng::IFont* GetFont() const { return m_entity->GetFont(); }
+	void SetFont(std::shared_ptr<const gxeng::IFont> font) { m_entity->SetFont(font); }
+	std::shared_ptr<const gxeng::IFont> GetFont() const { return m_entity->GetFont(); }
 
 	void SetFontSize(float size) { m_entity->SetFontSize(size); }
 	float GetFontSize() const { return m_entity->GetFontSize(); }

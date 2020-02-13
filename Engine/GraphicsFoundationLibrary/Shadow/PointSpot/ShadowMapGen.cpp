@@ -259,7 +259,7 @@ void ShadowMapGen::Execute(RenderContext& context) {
 			// Iterate over all entities
 			for (const MeshEntity* entity : *m_entities) {
 				// Get entity parameters
-				Mesh* mesh = entity->GetMesh();
+				Mesh* mesh = entity->GetMeshNative().get();
 				auto position = entity->GetPosition();
 
 				if (mesh->GetIndexBuffer().GetIndexCount() == 3600) {

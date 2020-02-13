@@ -3,27 +3,39 @@
 namespace inl::gxeng {
 
 
-void HeightmapEntity::SetMesh(Mesh* mesh) {
+void HeightmapEntity::SetMesh(std::shared_ptr<Mesh> mesh) {
 	m_mesh = mesh;
 }
 
-Mesh* HeightmapEntity::GetMesh() const {
+std::shared_ptr<IMesh> HeightmapEntity::GetMesh() const {
 	return m_mesh;
 }
 
-void HeightmapEntity::SetMaterial(Material* material) {
+const std::shared_ptr<Mesh>& HeightmapEntity::GetMeshNative() const {
+	return m_mesh;
+}
+
+void HeightmapEntity::SetMaterial(std::shared_ptr<Material> material) {
 	m_material = material;
 }
 
-Material* HeightmapEntity::GetMaterial() const {
+std::shared_ptr<IMaterial> HeightmapEntity::GetMaterial() const {
 	return m_material;
 }
 
-void HeightmapEntity::SetHeightmap(Image* heightmap) {
+const std::shared_ptr<Material>& HeightmapEntity::GetMaterialNative() const {
+	return m_material;
+}
+
+void HeightmapEntity::SetHeightmap(std::shared_ptr<Image> heightmap) {
 	m_heightmap = heightmap;
 }
 
-Image* HeightmapEntity::GetHeightmap() const {
+std::shared_ptr<IImage> HeightmapEntity::GetHeightmap() const {
+	return m_heightmap;
+}
+
+const std::shared_ptr<Image>& HeightmapEntity::GetHeightmapNative() const {
 	return m_heightmap;
 }
 

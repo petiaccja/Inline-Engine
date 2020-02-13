@@ -9,8 +9,8 @@ namespace inl::gui {
 
 class PlaceholderTextEntity : public gxeng::ITextEntity, public Transformable2DN {
 public:
-	void SetFont(const gxeng::IFont* font) override { m_font = font; }
-	const gxeng::IFont* GetFont() const override { return m_font; }
+	void SetFont(std::shared_ptr<const gxeng::IFont> font) override { m_font = font; }
+	std::shared_ptr<const gxeng::IFont> GetFont() const override { return m_font; }
 
 	void SetFontSize(float size) override { m_fontSize = size; }
 	float GetFontSize() const override { return m_fontSize; }
@@ -59,7 +59,7 @@ public:
 	}
 
 private:
-	const gxeng::IFont* m_font = nullptr;
+	std::shared_ptr<const gxeng::IFont> m_font = nullptr;
 	float m_fontSize = 14.f;
 	std::u32string m_text;
 	Vec4 m_color = { 1, 0, 0, 1 };
