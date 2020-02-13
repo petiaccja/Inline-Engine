@@ -197,7 +197,7 @@ void DepthPrepass::Execute(RenderContext& context) {
 			continue;
 		}
 		Mesh* mesh = entity->GetMeshNative().get();
-		auto position = entity->GetPosition();
+		auto position = entity->Transform().GetPosition();
 
 		// Draw mesh
 		if (!CheckMeshFormat(*mesh)) {
@@ -207,7 +207,7 @@ void DepthPrepass::Execute(RenderContext& context) {
 
 		ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
 
-		auto MVP = entity->GetTransform() * viewProjection;
+		auto MVP = entity->Transform().GetTransform() * viewProjection;
 
 		Mat44_Packed transformCBData;
 		transformCBData = MVP;

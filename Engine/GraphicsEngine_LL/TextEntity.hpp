@@ -14,7 +14,7 @@
 namespace inl::gxeng {
 
 
-class TextEntity : public ITextEntity, public Transformable2DN {
+class TextEntity : public ITextEntity {
 public:
 	TextEntity();
 
@@ -88,6 +88,8 @@ public:
 	void SetZDepth(float z) override;
 	float GetZDepth() const override;
 
+	Transformable2DN& Transform() override;
+	const Transformable2DN& Transform() const override;
 private:
 	Vec4 m_color = { 1, 0, 0, 1 };
 	float m_fontSize = 16;
@@ -100,6 +102,8 @@ private:
 	Mat33 m_clipRectTransform;
 	bool m_clipEnabled = false;
 	Vec2 m_alignment = { ALIGN_CENTER, ALIGN_CENTER };
+
+	Transformable2DN m_transform;
 };
 
 

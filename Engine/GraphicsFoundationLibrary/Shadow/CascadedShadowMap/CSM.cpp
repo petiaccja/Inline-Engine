@@ -236,7 +236,7 @@ void CSM::Execute(RenderContext& context) {
 		for (const MeshEntity* entity : *m_entities) {
 			// Get entity parameters
 			Mesh* mesh = entity->GetMeshNative().get();
-			auto position = entity->GetPosition();
+			auto position = entity->Transform().GetPosition();
 
 			if (mesh->GetIndexBuffer().GetIndexCount() == 3600) {
 				continue; //skip quadcopter for visualization purposes (obscures camera...)
@@ -250,7 +250,7 @@ void CSM::Execute(RenderContext& context) {
 
 			ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
 
-			Mat44 model = entity->GetTransform();
+			Mat44 model = entity->Transform().GetTransform();
 
 			Uniforms uniformsCBData;
 			uniformsCBData.model = model;

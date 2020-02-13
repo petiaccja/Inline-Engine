@@ -16,7 +16,7 @@ namespace inl::gxeng {
 class IFont;
 
 
-class ITextEntity : public virtual ITransformable2DN, public Entity {
+class ITextEntity : public Entity {
 public:
 	virtual ~ITextEntity() = default;
 
@@ -98,6 +98,9 @@ public:
 	static constexpr float ALIGN_TOP = 1.0f;
 	/// <summary> Align to the top when specified to either <see cref="SetHorizontalAlignment"/> or <see cref="SetVerticalAlignment"/>. </summary>
 	static constexpr float ALIGN_CENTER = 0.0f;
+
+	virtual Transformable2DN& Transform() = 0;
+	virtual const Transformable2DN& Transform() const = 0;
 };
 
 

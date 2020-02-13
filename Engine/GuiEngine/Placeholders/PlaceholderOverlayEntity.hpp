@@ -7,7 +7,7 @@
 namespace inl::gui {
 
 
-class PlaceholderOverlayEntity : public gxeng::IOverlayEntity, public Transformable2DN {
+class PlaceholderOverlayEntity : public gxeng::IOverlayEntity {
 public:
 	void SetMesh(std::shared_ptr<gxeng::IMesh> mesh) override { m_mesh = mesh; }
 	std::shared_ptr<gxeng::IMesh> GetMesh() const override { return m_mesh; }
@@ -26,7 +26,7 @@ public:
 		target->SetColor(source->GetColor());
 		target->SetTexture(source->GetTexture());
 		target->SetZDepth(source->GetZDepth());
-		target->SetTransform(source->GetTransform());
+		target->Transform() = source->Transform();
 	}
 
 	void SetAdditionalClip(RectF clipRectangle, Mat33 transform) override {
@@ -37,6 +37,9 @@ public:
 	void EnableAdditionalClip(bool enabled) override { m_clipEnabled = enabled; }
 	bool IsAdditionalClipEnabled() const override { return m_clipEnabled; }
 
+	Transformable2DN& Transform() override { return m_transform; }
+	const Transformable2DN& Transform() const override { return m_transform; }
+
 private:
 	std::shared_ptr<gxeng::IMesh> m_mesh = nullptr;
 	Vec4 m_color = { 1, 1, 1, 1 };
@@ -46,6 +49,8 @@ private:
 	RectF m_clipRectangle = { 0, 0, 0, 0 };
 	Mat33 m_clipRectangleTransform = Mat33::Identity();
 	bool m_clipEnabled = false;
+
+	Transformable2DN m_transform;
 };
 
 

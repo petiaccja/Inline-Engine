@@ -68,6 +68,13 @@ bool OverlayEntity::IsAdditionalClipEnabled() const {
 	return m_clipEnabled;
 }
 
+Transformable2DN& OverlayEntity::Transform() {
+	return m_transform;
+}
+
+const Transformable2DN& OverlayEntity::Transform() const {
+	return m_transform;
+}
 
 
 } // namespace inl::gxeng

@@ -231,7 +231,7 @@ void RenderForwardHeightmaps::RenderEntities(RenderContext& context, GraphicsCom
 
 		const PipelineStateConfig& stateDesc = m_psoCache.GetConfig(context, mesh, material);
 
-		const Mat44 world = entity->GetTransform();
+		const Mat44 world = entity->Transform().GetTransform();
 		vsConstants.world = world;
 		vsConstants.viewProj = viewProj;
 		vsConstants.worldViewProjDer = Mat44::Zero(); // TODO

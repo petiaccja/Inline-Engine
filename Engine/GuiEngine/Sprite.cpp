@@ -183,12 +183,12 @@ void Sprite::CopyProperties(const gxeng::IOverlayEntity& source, gxeng::IOverlay
 	target.SetColor(source.GetColor());
 	target.SetTexture(source.GetTexture());
 	target.SetZDepth(source.GetZDepth());
-	target.SetTransform(source.GetTransform());
+	target.Transform() = source.Transform();
 }
 
 
 void Sprite::SetResultantTransform() {
-	m_entity->SetTransform(Mat33::Scale(m_size) * Mat33::Rotation(m_rotation) * Mat33::Translation(m_position) * m_postTransform);
+	m_entity->Transform() = Mat33::Scale(m_size) * Mat33::Rotation(m_rotation) * Mat33::Translation(m_position) * m_postTransform;
 }
 
 

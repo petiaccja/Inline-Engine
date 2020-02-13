@@ -4,7 +4,7 @@
 namespace inl::gamelib {
 
 void MeshTransformSystem::UpdateEntity(float elapsed, const TransformComponent& transform, GraphicsMeshComponent& mesh) {
-	mesh.entity->SetTransform(transform.GetTransform());
+	mesh.entity->Transform() = transform;
 }
 
 } // namespace inl::gamelib

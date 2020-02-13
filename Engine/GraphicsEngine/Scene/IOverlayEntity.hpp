@@ -16,7 +16,7 @@ class IMesh;
 class IImage;
 
 
-class IOverlayEntity : public virtual ITransformable2DN, public Entity {
+class IOverlayEntity : public Entity {
 
 public:
 	virtual ~IOverlayEntity() = default;
@@ -51,6 +51,9 @@ public:
 	virtual void EnableAdditionalClip(bool enabled) = 0;
 	/// <summary> Check if additional clip rectangle is active. </summary>
 	virtual bool IsAdditionalClipEnabled() const = 0;
+
+	virtual Transformable2DN& Transform() = 0;
+	virtual const Transformable2DN& Transform() const = 0;
 };
 
 

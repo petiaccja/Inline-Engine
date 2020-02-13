@@ -3,7 +3,7 @@
 namespace inl::gamelib {
 
 void HeightmapTransformSystem::UpdateEntity(float elapsed, const TransformComponent& transform, GraphicsHeightmapComponent& heightmap) {
-	heightmap.entity->SetTransform(transform.GetTransform());
+	heightmap.entity->Transform() = transform;
 }
 
 } // namespace inl::gamelib

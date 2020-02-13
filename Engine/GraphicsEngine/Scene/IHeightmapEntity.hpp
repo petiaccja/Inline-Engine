@@ -13,7 +13,7 @@
 namespace inl::gxeng {
 
 
-class IHeightmapEntity : public virtual ITransformable3D, public Entity {
+class IHeightmapEntity : public Entity {
 public:
 	/// <summary> Provides the base geometry for the mesh. </summary>
 	/// <remarks> Passing nullptr is ok, but rendering it is undefined behviour. </remarks>
@@ -46,6 +46,9 @@ public:
 	/// <summary> Entities must have a rectangular UV map. This function specifies its dimensions in local coordinates. </summary>
 	virtual void SetUvSize(Vec2 size) = 0;
 	virtual Vec2 GetUvSize() const = 0;
+
+	virtual Transformable3DN& Transform() = 0;
+	virtual const Transformable3DN& Transform() const = 0;
 };
 
 

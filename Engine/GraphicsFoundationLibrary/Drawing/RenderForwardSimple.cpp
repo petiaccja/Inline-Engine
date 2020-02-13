@@ -203,7 +203,7 @@ void RenderForwardSimple::RenderEntities(RenderContext& context, GraphicsCommand
 
 		const PipelineStateConfig& stateDesc = m_psoCache.GetConfig(context, mesh, material);
 
-		const Mat44 world = entity->GetTransform();
+		const Mat44 world = entity->Transform().GetTransform();
 		vsConstants.world = world;
 		vsConstants.viewProj = world * viewProj;
 		vsConstants.worldViewProjDer = Mat44::Zero(); // TODO

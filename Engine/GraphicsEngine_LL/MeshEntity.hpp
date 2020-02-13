@@ -10,7 +10,7 @@
 namespace inl::gxeng {
 
 
-class MeshEntity : public IMeshEntity, public virtual Transformable3D {
+class MeshEntity : public IMeshEntity {
 public:
 	void SetMesh(std::shared_ptr<Mesh> mesh);
 	void SetMesh(std::shared_ptr<IMesh> mesh) override { SetMesh(static_pointer_cast<Mesh>(mesh)); }
@@ -22,9 +22,13 @@ public:
 	std::shared_ptr<IMaterial> GetMaterial() const override;
 	const std::shared_ptr<Material>& GetMaterialNative() const;
 
+	Transformable3DN& Transform() override;
+	const Transformable3DN& Transform() const override;
+	
 private:
 	std::shared_ptr<Mesh> m_mesh = nullptr;
 	std::shared_ptr<Material> m_material = nullptr;
+	Transformable3DN m_transform;
 };
 
 

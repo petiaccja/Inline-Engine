@@ -7,7 +7,7 @@
 namespace inl::gui {
 
 
-class PlaceholderTextEntity : public gxeng::ITextEntity, public Transformable2DN {
+class PlaceholderTextEntity : public gxeng::ITextEntity {
 public:
 	void SetFont(std::shared_ptr<const gxeng::IFont> font) override { m_font = font; }
 	std::shared_ptr<const gxeng::IFont> GetFont() const override { return m_font; }
@@ -43,6 +43,9 @@ public:
 	void SetZDepth(float z) override { m_depth = z; }
 	float GetZDepth() const override { return m_depth; }
 
+	Transformable2DN& Transform() override { return m_transform; }
+	const Transformable2DN& Transform() const override { return m_transform; }
+
 
 	static void CopyProperties(gxeng::ITextEntity* source, gxeng::ITextEntity* target) {
 		target->SetFont(source->GetFont());
@@ -55,7 +58,7 @@ public:
 		target->SetHorizontalAlignment(source->GetHorizontalAlignment());
 		target->SetVerticalAlignment(source->GetVerticalAlignment());
 		target->SetZDepth(source->GetZDepth());
-		target->SetTransform(source->GetTransform());
+		target->Transform() = source->Transform();
 	}
 
 private:
@@ -70,6 +73,7 @@ private:
 	float m_horizontalAlignment = 0;
 	float m_verticalAlignment = 0;
 	float m_depth = 0;
+	Transformable2DN m_transform;
 };
 
 

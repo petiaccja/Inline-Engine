@@ -1,4 +1,8 @@
 #include "MeshEntity.hpp"
+#include "GuiEngine/Board.hpp"
+#include "GuiEngine/Board.hpp"
+#include "GuiEngine/Board.hpp"
+#include "GuiEngine/Board.hpp"
 
 namespace inl::gxeng {
 
@@ -26,6 +30,14 @@ std::shared_ptr<IMaterial> MeshEntity::GetMaterial() const {
 
 const std::shared_ptr<Material>& MeshEntity::GetMaterialNative() const {
 	return m_material;
+}
+
+Transformable3DN& MeshEntity::Transform() {
+	return m_transform;
+}
+
+const Transformable3DN& MeshEntity::Transform() const {
+	return m_transform;
 }
 
 

@@ -152,11 +152,11 @@ void Text::CopyProperties(const gxeng::ITextEntity& source, gxeng::ITextEntity& 
 	target.SetHorizontalAlignment(source.GetHorizontalAlignment());
 	target.SetVerticalAlignment(source.GetVerticalAlignment());
 	target.SetZDepth(source.GetZDepth());
-	target.SetTransform(source.GetTransform());
+	target.Transform() = source.Transform();
 }
 
 void Text::SetResultantTransform() {
-	m_entity->SetTransform(Mat33::Translation(m_position) * m_postTransform);
+	m_entity->Transform() = Mat33::Translation(m_position) * m_postTransform;
 }
 
 

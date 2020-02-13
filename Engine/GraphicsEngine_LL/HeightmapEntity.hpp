@@ -6,12 +6,16 @@
 
 #include <BaseLibrary/Transformable.hpp>
 #include <GraphicsEngine/Scene/IHeightmapEntity.hpp>
+#include "GuiEngine/Board.hpp"
+#include "GuiEngine/Board.hpp"
+#include "GuiEngine/Board.hpp"
+#include "GuiEngine/Board.hpp"
 
 
 namespace inl::gxeng {
 
 
-class HeightmapEntity : public IHeightmapEntity, public virtual Transformable3D {
+class HeightmapEntity : public IHeightmapEntity {
 public:
 	void SetMesh(std::shared_ptr<Mesh> mesh);
 	void SetMesh(std::shared_ptr<IMesh> mesh) override { SetMesh(static_pointer_cast<Mesh>(mesh)); }
@@ -40,6 +44,9 @@ public:
 	void SetUvSize(Vec2 size) override;
 	Vec2 GetUvSize() const override;
 
+	Transformable3DN& Transform() override;
+	const Transformable3DN& Transform() const override;
+
 private:
 	std::shared_ptr<Mesh> m_mesh = nullptr;
 	std::shared_ptr<Material> m_material = nullptr;
@@ -48,6 +55,7 @@ private:
 	float m_magnitude = 1.0f;
 	float m_offset = 0.0f;
 	Vec2 m_uvSize = { 1, 1 };
+	Transformable3DN m_transform;
 };
 
 

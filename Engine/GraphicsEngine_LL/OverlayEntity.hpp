@@ -12,7 +12,7 @@
 namespace inl::gxeng {
 
 
-class OverlayEntity : public IOverlayEntity, public Transformable2DN {
+class OverlayEntity : public IOverlayEntity {
 
 public:
 	OverlayEntity();
@@ -53,6 +53,8 @@ public:
 	/// <summary> Check if additional clip rectangle is active. </summary>
 	bool IsAdditionalClipEnabled() const override;
 
+	Transformable2DN& Transform() override;
+	const Transformable2DN& Transform() const override;
 private:
 	std::shared_ptr<Mesh> m_mesh = nullptr;
 	std::shared_ptr<Image> m_texture = nullptr;
@@ -62,6 +64,8 @@ private:
 	RectF m_clipRect;
 	Mat33 m_clipRectTransform;
 	bool m_clipEnabled = false;
+
+	Transformable2DN m_transform;
 };
 
 

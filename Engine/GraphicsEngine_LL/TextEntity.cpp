@@ -122,5 +122,13 @@ float TextEntity::GetZDepth() const {
 	return m_zDepth;
 }
 
+Transformable2DN& TextEntity::Transform() {
+	return m_transform;
+}
+
+const Transformable2DN& TextEntity::Transform() const {
+	return m_transform;
+}
+
 
 } // namespace inl::gxeng

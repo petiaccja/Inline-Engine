@@ -312,7 +312,7 @@ void Voxelization::Execute(RenderContext& context) {
 				// Get entity parameters
 				Mesh* mesh = entity->GetMeshNative().get();
 				Material* material = entity->GetMaterialNative().get();
-				auto position = entity->GetPosition();
+				auto position = entity->Transform().GetPosition();
 
 				if (mesh->GetIndexBuffer().GetIndexCount() == 3600) {
 					continue; //skip quadcopter for visualization purposes (obscures camera...)
@@ -326,7 +326,7 @@ void Voxelization::Execute(RenderContext& context) {
 
 				ConvertToSubmittable(mesh, vertexBuffers, sizes, strides);
 
-				uniformsCBData.model = entity->GetTransform();
+				uniformsCBData.model = entity->Transform().GetTransform();
 
 				commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));
 

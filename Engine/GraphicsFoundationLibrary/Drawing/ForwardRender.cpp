@@ -371,9 +371,9 @@ void ForwardRender::Execute(RenderContext& context) {
 		// Set vertex and light constants
 		VsConstants vsConstants;
 		LightConstants lightConstants;
-		vsConstants.m = entity->GetTransform();
-		vsConstants.mvp = entity->GetTransform() * viewProjection;
-		vsConstants.mv = entity->GetTransform() * view;
+		vsConstants.m = entity->Transform().GetTransform();
+		vsConstants.mvp = entity->Transform().GetTransform() * viewProjection;
+		vsConstants.mv = entity->Transform().GetTransform() * view;
 		vsConstants.v = view;
 		vsConstants.p = projection;
 		vsConstants.prevMVP = vsConstants.mvp; // entity->GetPrevTransform() * prevViewProjection;

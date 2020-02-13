@@ -1,4 +1,8 @@
 #include "HeightmapEntity.hpp"
+#include "GuiEngine/Board.hpp"
+#include "GuiEngine/Board.hpp"
+#include "GuiEngine/Board.hpp"
+#include "GuiEngine/Board.hpp"
 
 namespace inl::gxeng {
 
@@ -69,6 +73,14 @@ void HeightmapEntity::SetUvSize(Vec2 size) {
 
 Vec2 HeightmapEntity::GetUvSize() const {
 	return m_uvSize;
+}
+
+Transformable3DN& HeightmapEntity::Transform() {
+	return m_transform;
+}
+
+const Transformable3DN& HeightmapEntity::Transform() const {
+	return m_transform;
 }
 
 
