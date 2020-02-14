@@ -18,6 +18,7 @@ public:
 
 protected:
 	std::shared_ptr<gxeng::IMaterial> Create(const std::filesystem::path& path) override;
+	void Reload(gxeng::IMaterial& asset, const std::filesystem::path& path) override;
 
 private:
 	void SetMaterialParameter(gxeng::IMaterial::Parameter& param, std::string value);

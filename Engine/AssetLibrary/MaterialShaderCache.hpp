@@ -15,6 +15,7 @@ public:
 
 protected:
 	std::shared_ptr<gxeng::IMaterialShader> Create(const std::filesystem::path& path) override;
+	void Reload(gxeng::IMaterialShader& asset, const std::filesystem::path& path) override;
 
 private:
 	gxeng::IGraphicsEngine& m_engine;

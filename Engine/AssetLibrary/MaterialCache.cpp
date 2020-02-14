@@ -59,8 +59,15 @@ MaterialCache::MaterialCache(gxeng::IGraphicsEngine& engine, MaterialShaderCache
 
 
 std::shared_ptr<gxeng::IMaterial> MaterialCache::Create(const std::filesystem::path& path) {
-	using namespace rapidjson;
+	std::shared_ptr<gxeng::IMaterial> material(m_engine.CreateMaterial());
+	Reload(*material, path);
 
+	return material;
+}
+
+
+void MaterialCache::Reload(gxeng::IMaterial& asset, const std::filesystem::path& path) {
+	using namespace rapidjson;
 
 	std::ifstream file(path);
 	if (!file.is_open()) {
@@ -86,8 +93,7 @@ std::shared_ptr<gxeng::IMaterial> MaterialCache::Create(const std::filesystem::p
 	std::string shaderName = doc["shader"].GetString();
 
 	std::shared_ptr<gxeng::IMaterialShader> shader = m_shaderCache.Load(shaderName);
-	std::shared_ptr<gxeng::IMaterial> material(m_engine.CreateMaterial());
-	material->SetShader(shader.get());
+	asset.SetShader(shader.get());
 
 	const auto& inputs = doc["inputs"];
 
@@ -112,22 +118,20 @@ std::shared_ptr<gxeng::IMaterial> MaterialCache::Create(const std::filesystem::p
 	if (inputs.IsObject()) {
 		for (auto it = inputs.MemberBegin(); it != inputs.MemberEnd(); ++it) {
 			std::string name = it->name.GetString();
-			gxeng::IMaterial::Parameter& param = material->GetParameter(name);
+			gxeng::IMaterial::Parameter& param = asset.GetParameter(name);
 			SetParam(param, name, it->value);
 		}
 	}
 	else if (inputs.IsArray()) {
 		int idx = 0;
 		for (auto it = inputs.Begin(); it != inputs.End(); ++it, ++idx) {
-			gxeng::IMaterial::Parameter& param = material->GetParameter(idx);
+			gxeng::IMaterial::Parameter& param = asset.GetParameter(idx);
 			SetParam(param, std::to_string(idx), *it);
 		}
 	}
 	else {
 		throw InvalidArgumentException("Material JSON input list must be an object with key-value pairs or an array with the values.");
 	}
-
-	return material;
 }
 
 

@@ -15,6 +15,7 @@ public:
 
 protected:
 	std::shared_ptr<gxeng::IImage> Create(const std::filesystem::path& path) override;
+	void Reload(gxeng::IImage& asset, const std::filesystem::path& path) override;
 
 private:
 	gxeng::IGraphicsEngine& m_engine;

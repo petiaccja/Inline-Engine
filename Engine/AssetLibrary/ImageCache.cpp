@@ -34,17 +34,21 @@ ImageCache::ImageCache(gxeng::IGraphicsEngine& engine)
 
 
 std::shared_ptr<gxeng::IImage> ImageCache::Create(const std::filesystem::path& path) {
+	std::shared_ptr<gxeng::IImage> resource(m_engine.CreateImage());
+	Reload(*resource, path);
+	return resource;
+}
+
+
+void ImageCache::Reload(gxeng::IImage& asset, const std::filesystem::path& path) {
 	Image image{ path.generic_u8string() };
 	int channelCount = image.GetChannelCount();
 	eChannelType channelType = image.GetType();
 
 	gxeng::IPixelReader& reader = GetPixelReader(channelType, channelCount);
 
-	std::shared_ptr<gxeng::IImage> resource(m_engine.CreateImage());
-	resource->SetLayout(image.GetWidth(), (uint32_t)image.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, channelCount, gxeng::ePixelClass::LINEAR);
-	resource->Update(0, 0, image.GetWidth(), (uint32_t)image.GetHeight(), 0, image.GetData(), reader);
-
-	return resource;
+	asset.SetLayout(image.GetWidth(), (uint32_t)image.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, channelCount, gxeng::ePixelClass::LINEAR);
+	asset.Update(0, 0, image.GetWidth(), (uint32_t)image.GetHeight(), 0, image.GetData(), reader);
 }
 
 
