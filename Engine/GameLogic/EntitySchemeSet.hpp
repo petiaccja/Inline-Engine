@@ -171,14 +171,14 @@ Entity& EntitySchemeSet::Create(Components&&... components) {
 template <class... ComponentTypes>
 void EntitySchemeSet::SetComponentTypes() {
 	m_components.types.clear();
-	(..., m_components.types.push_back(ComponentVector<ComponentTypes>{}));
+	(..., m_components.types.push_back(ComponentVector<std::decay_t<ComponentTypes>>{}));
 	m_components.entities.resize(m_entities.size());
 	m_scheme = { typeid(ComponentTypes)... };
 }
 
 template <class ComponentType>
 void EntitySchemeSet::AddComponentType() {
-	m_components.types.push_back(ComponentVector<ComponentType>{});
+	m_components.types.push_back(ComponentVector<std::decay_t<ComponentType>>{});
 	m_scheme.Insert(typeid(ComponentType));
 }
 

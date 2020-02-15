@@ -1,3 +1,7 @@
+//------------------------------------------------------------------------------
+// Constant buffers
+//------------------------------------------------------------------------------
+
 struct VsConstants
 {
 	float4x4 world;
@@ -10,23 +14,22 @@ struct VsConstants
 };
 ConstantBuffer<VsConstants> vsConstants : register(b0);
 
+
+struct PsConstants
+{
+	float3 lightDir;
+	float3 lightColor;
+};
+ConstantBuffer<PsConstants> psConstants : register(b100);
+
+
 SamplerState heightmapSampler : register(s0);
 Texture2D<float4> heightmapTex : register(t0);
 
-struct PsInput
-{
-	float4 hPos : SV_Position;
-	float4 wPos : Output0;
-	float2 sVelocity : Output1;
-	float3 wNormal : Output2;
-	float2 texCoord : TEXCOORD0;
-	float3 wTangent : Output4;
-	float3 wBitangent : Output5;
-#ifdef HAS_COLOR
-	float4 color : Output3;
-#endif
-};
 
+//------------------------------------------------------------------------------
+// Helper functions
+//------------------------------------------------------------------------------
 
 struct Derivatives
 {
@@ -74,70 +77,9 @@ float3 DisplacementAdjustedNormal(float3 normal, float3 tangent, float3 bitangen
 }
 
 
-PsInput VSMain(float4 lPos : POSITION,
-				 float3 lNormal : NORMAL,
-				 float3 lTangent : TANGENT,
-				 float2 texCoord : TEX_COORD
-#ifdef HAS_COLOR
-				 , float4 color : COLOR
-#endif
-#ifdef HAS_BITANGENT
-				 , float3 lBitangent : BITANGENT
-#endif
-)
-{
-	// Calculate bitangent if not provided.
-#if !HAS_BITANGENT
-	float3 lBitangent = cross(lNormal, lTangent);
-#endif
-	
-	PsInput output;
-		
-	Derivatives derivatives = SampleHeightmap(heightmapTex, heightmapSampler, texCoord, vsConstants.uvSize);
-	
-	float4 modifiedPos = lPos + float4(vsConstants.direction * (derivatives.z + vsConstants.offset), 0);
-	float3 modifiedNormal = DisplacementAdjustedNormal(lNormal, lTangent, lBitangent, derivatives.grad);
-
-	// Transform position.
-	output.sVelocity = mul(modifiedPos, vsConstants.worldViewProjDer).xy;
-	output.wPos = mul(modifiedPos, vsConstants.world);
-	output.hPos = mul(output.wPos, vsConstants.viewProj);
-	
-	// Write through texCoord.
-	output.texCoord = texCoord;
-	
-	// Transform through normal.
-	float3x3 worldRotation = (float3x3) vsConstants.world;
-	output.wNormal = normalize(mul(modifiedNormal, worldRotation));
-	
-	// Transform through tangent.
-	output.wTangent = mul(lTangent, worldRotation);
-	
-	// Transform through bitangent.
-	output.wBitangent = mul(lBitangent, worldRotation);
-	
-#ifdef HAS_COLOR
-	output.color = color;
-#endif
-
-	return output;
-}
-
-
-
-struct PsConstants
-{
-	float3 lightDir;
-	float3 lightColor;
-};
-ConstantBuffer<PsConstants> psConstants : register(b100);
-
-
-struct PsOutput
-{
-	float4 color : SV_Target0;
-};
-
+//------------------------------------------------------------------------------
+// Material rendering implementation
+//------------------------------------------------------------------------------
 
 // Surface params
 static float3 g_wPosition;
@@ -176,12 +118,186 @@ static float4 go_color = float4(1, 0, 0, 1);
 
 
 //MATERIAL_CODE_INCLUDE
-#ifdef VERTEX_SHADER
-void MtlMain() {}
+#ifndef PIXEL_SHADER
+void MtlMain()
+{
+}
 #endif
 
 
-PsOutput PSMain(PsInput input)
+//------------------------------------------------------------------------------
+// Transfer structures
+//------------------------------------------------------------------------------
+
+struct VsOutput
+{
+	float4 hPos : SV_Position;
+	float4 wPos : Output0;
+	float2 sVelocity : Output1;
+	float3 wNormal : Output2;
+	float2 texCoord : TEXCOORD0;
+	float3 wTangent : Output4;
+	float3 wBitangent : Output5;
+#ifdef HAS_COLOR
+	float4 color : Output3;
+#endif
+};
+
+struct HsOutput
+{
+	float4 hPos : SV_Position;
+	float4 wPos : Output0;
+	float2 sVelocity : Output1;
+	float3 wNormal : Output2;
+	float2 texCoord : TEXCOORD0;
+	float3 wTangent : Output4;
+	float3 wBitangent : Output5;
+#ifdef HAS_COLOR
+	float4 color : Output3;
+#endif
+};
+
+struct HsConstantDataOutput
+{
+	float edges[3] : SV_TessFactor;
+	float inside : SV_InsideTessFactor;
+};
+
+struct DsOutput
+{
+	float4 hPos : SV_Position;
+	float4 wPos : Output0;
+	float2 sVelocity : Output1;
+	float3 wNormal : Output2;
+	float2 texCoord : TEXCOORD0;
+	float3 wTangent : Output4;
+	float3 wBitangent : Output5;
+#ifdef HAS_COLOR
+	float4 color : Output3;
+#endif
+};
+
+struct PsOutput
+{
+	float4 color : SV_Target0;
+};
+
+
+//------------------------------------------------------------------------------
+// Vertex shader
+//------------------------------------------------------------------------------
+VsOutput VSMain(float4 lPos : POSITION,
+				 float3 lNormal : NORMAL,
+				 float3 lTangent : TANGENT,
+				 float2 texCoord : TEX_COORD
+#ifdef HAS_COLOR
+				 , float4 color : COLOR
+#endif
+#ifdef HAS_BITANGENT
+				 , float3 lBitangent : BITANGENT
+#endif
+)
+{
+	// Calculate bitangent if not provided.
+#if !HAS_BITANGENT
+	float3 lBitangent = cross(lNormal, lTangent);
+#endif
+	
+	VsOutput output;
+		
+	Derivatives derivatives = SampleHeightmap(heightmapTex, heightmapSampler, texCoord, vsConstants.uvSize);
+	
+	float4 modifiedPos = lPos + float4(vsConstants.direction * (derivatives.z + vsConstants.offset), 0);
+	float3 modifiedNormal = DisplacementAdjustedNormal(lNormal, lTangent, lBitangent, derivatives.grad);
+
+	// Transform position.
+	output.sVelocity = mul(modifiedPos, vsConstants.worldViewProjDer).xy;
+	output.wPos = mul(modifiedPos, vsConstants.world);
+	output.hPos = mul(output.wPos, vsConstants.viewProj);
+	
+	// Write through texCoord.
+	output.texCoord = texCoord;
+	
+	// Transform through normal.
+	float3x3 worldRotation = (float3x3) vsConstants.world;
+	output.wNormal = normalize(mul(modifiedNormal, worldRotation));
+	
+	// Transform through tangent.
+	output.wTangent = mul(lTangent, worldRotation);
+	
+	// Transform through bitangent.
+	output.wBitangent = mul(lBitangent, worldRotation);
+	
+#ifdef HAS_COLOR
+	output.color = color;
+#endif
+
+	return output;
+}
+
+//------------------------------------------------------------------------------
+// Hull shader
+//------------------------------------------------------------------------------
+
+HsConstantDataOutput Subdivide(InputPatch<VsOutput, 3> patch, uint patchId : SV_PrimitiveID)
+{
+	HsConstantDataOutput output;
+	output.edges[0] = 2;
+	output.edges[1] = 2;
+	output.edges[2] = 2;
+	output.inside = 2;
+	return output;
+}
+
+
+[domain("tri")]
+[partitioning("integer")]
+[outputtopology("triangle_cw")]
+[outputcontrolpoints(3)]
+[patchconstantfunc("Subdivide")]
+HsOutput HSMain(InputPatch<VsOutput, 3> patch, uint pointId : SV_OutputControlPointID, uint patchId : SV_PrimitiveID)
+{
+	HsOutput output;
+	
+	output.hPos = patch[pointId].hPos;
+	output.wPos = patch[pointId].wPos;
+	output.sVelocity = patch[pointId].sVelocity;
+	output.wNormal = patch[pointId].wNormal;
+	output.texCoord = patch[pointId].texCoord;
+	output.wTangent = patch[pointId].wTangent;
+	output.wBitangent = patch[pointId].wBitangent;
+#ifdef HAS_COLOR
+	output.color = patch[pointId].color;
+#endif
+	return output;
+}
+
+//------------------------------------------------------------------------------
+// Domain shader
+//------------------------------------------------------------------------------
+
+[domain("tri")]
+DsOutput DSMain(HsConstantDataOutput constantInput, float3 bariCoord : SV_DomainLocation, const OutputPatch<HsOutput, 3> patch)
+{
+	HsOutput output;
+	
+	output.hPos = bariCoord[0] * patch[0].hPos + bariCoord[1] * patch[1].hPos + bariCoord[2] * patch[2].hPos;
+	output.wPos = bariCoord[0] * patch[0].wPos + bariCoord[1] * patch[1].wPos + bariCoord[2] * patch[2].wPos;
+	output.sVelocity = bariCoord[0] * patch[0].sVelocity + bariCoord[1] * patch[1].sVelocity + bariCoord[2] * patch[2].sVelocity;
+	output.wNormal = bariCoord[0] * patch[0].wNormal + bariCoord[1] * patch[1].wNormal + bariCoord[2] * patch[2].wNormal;
+	output.texCoord = bariCoord[0] * patch[0].texCoord + bariCoord[1] * patch[1].texCoord + bariCoord[2] * patch[2].texCoord;
+	output.wTangent = bariCoord[0] * patch[0].wTangent + bariCoord[1] * patch[1].wTangent + bariCoord[2] * patch[2].wTangent;
+	output.wBitangent = bariCoord[0] * patch[0].wBitangent + bariCoord[1] * patch[1].wBitangent + bariCoord[2] * patch[2].wBitangent;
+#ifdef HAS_COLOR
+	output.color = bariCoord[0] * patch[0].color + bariCoord[1] * patch[1].color + bariCoord[2] * patch[2].color;
+#endif
+	return output;
+}
+
+//------------------------------------------------------------------------------
+// Pixel shader
+//------------------------------------------------------------------------------
+PsOutput PSMain(HsOutput input)
 {
 	g_wPosition = input.wPos;
 	g_wNormal = normalize(input.wNormal);

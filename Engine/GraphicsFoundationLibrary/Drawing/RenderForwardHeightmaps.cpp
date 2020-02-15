@@ -78,10 +78,12 @@ static const std::vector staticSamplers = {
 static const PipelineStateTemplate psoTemplate = [] {
 	PipelineStateTemplate psoTemplate;
 	psoTemplate.vsFileName = "RenderForwardHeightmaps.hlsl";
+	psoTemplate.hsFileName = "RenderForwardHeightmaps.hlsl";
+	psoTemplate.dsFileName = "RenderForwardHeightmaps.hlsl";
 	psoTemplate.psFileName = "RenderForwardHeightmaps.hlsl";
 
-	psoTemplate.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::SOLID, gxapi::eCullMode::DRAW_ALL };
-	psoTemplate.primitiveTopologyType = gxapi::ePrimitiveTopologyType::TRIANGLE;
+	psoTemplate.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::WIREFRAME, gxapi::eCullMode::DRAW_ALL };
+	psoTemplate.primitiveTopologyType = gxapi::ePrimitiveTopologyType::PATCH;
 
 	psoTemplate.depthStencilState = gxapi::DepthStencilState{ .enableDepthTest = true, .enableDepthStencilWrite = true, .enableStencilTest = false };
 	psoTemplate.depthStencilState.depthFunc = gxapi::eComparisonFunction::LESS_EQUAL;
@@ -145,7 +147,7 @@ void RenderForwardHeightmaps::Execute(RenderContext& context) {
 	commandList.SetRenderTargets(1, renderTargets, &m_dsv);
 	commandList.SetScissorRects(1, &scissorRect);
 	commandList.SetViewports(1, &viewport);
-	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::TRIANGLELIST);
+	commandList.SetPrimitiveTopology(gxapi::ePrimitiveTopology::PATCHLIST_3);
 	commandList.SetStencilRef(1);
 
 	// Render entities.

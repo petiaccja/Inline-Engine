@@ -40,13 +40,17 @@ int main() {
 		}
 	}
 	catch (Exception& ex) {
-		std::cout << "Exception occured:" << std::endl;
+		std::cout << "\033[91mUnhandled exception:\033[m\n" << std::endl;
+		std::cout << "\033[33mStack trace:\033[m" << std::endl;
 		ex.PrintStackTrace(std::cout);
-		std::cout << ex.what() << std::endl;
+		std::cout << "\033[33mStack trace ^^\033[m" << std::endl;
+		std::cout << std::endl;
+		std::cout << "\033[33m" << ex.Message() << "\033[m" << std::endl;
+		std::cout << "\033[95m  >> " << ex.Subject() << "\033[m" << std::endl;
 	}
 	catch (std::exception& ex) {
-		std::cout << "Exception occured:" << std::endl;
-		std::cout << ex.what() << std::endl;
+		std::cout << "\033[91mUnhandled exception:\033[m\n" << std::endl;
+		std::cout << "\033[33m" << ex.what() << "\033[m" << std::endl;
 	}
 	return 0;
 }

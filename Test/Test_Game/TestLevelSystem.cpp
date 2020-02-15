@@ -65,18 +65,18 @@ void TestLevelSystem::Load(inl::game::Scene& scene, inl::game::ComponentFactory&
 	graphicsScene.GetEntities<gxeng::IDirectionalLight>().Add(lightComponent.entity.get());
 
 	// Create terrain.
-	Entity& terrain = scene.CreateEntity();
-	componentFactory.Create<GraphicsMeshComponent>(terrain);
-	auto&& terrainComponent = terrain.GetFirstComponent<GraphicsMeshComponent>();
-	terrainComponent.sceneName = "MainScene";
-	terrainComponent.meshPath = "Models/Terrain/terrain.fbx";
-	terrainComponent.materialPath = "Models/Terrain/terrain.mtl";
-	terrainComponent.entity = graphicsModule.CreateMeshEntity();
-	terrainComponent.entity->SetMesh(graphicsModule.LoadMesh(terrainComponent.meshPath));
-	terrainComponent.entity->SetMaterial(graphicsModule.LoadMaterial(terrainComponent.materialPath));
-	graphicsScene.GetEntities<gxeng::IMeshEntity>().Add(terrainComponent.entity.get());
+	//Entity& terrain = scene.CreateEntity();
+	//componentFactory.Create<GraphicsMeshComponent>(terrain);
+	//auto&& terrainComponent = terrain.GetFirstComponent<GraphicsMeshComponent>();
+	//terrainComponent.sceneName = "MainScene";
+	//terrainComponent.meshPath = "Models/Test/Terrain/terrain.fbx";
+	//terrainComponent.materialPath = "Models/Test/Terrain/terrain.mtl";
+	//terrainComponent.entity = graphicsModule.CreateMeshEntity();
+	//terrainComponent.entity->SetMesh(graphicsModule.LoadMesh(terrainComponent.meshPath));
+	//terrainComponent.entity->SetMaterial(graphicsModule.LoadMaterial(terrainComponent.materialPath));
+	//graphicsScene.GetEntities<gxeng::IMeshEntity>().Add(terrainComponent.entity.get());
 
-	terrain.AddComponent(TransformComponent{});
+	//terrain.AddComponent(TransformComponent{});
 	
 	// Create a tree.
 	Entity& tree = scene.CreateEntity();
@@ -123,4 +123,25 @@ void TestLevelSystem::Load(inl::game::Scene& scene, inl::game::ComponentFactory&
 	
 	heightmap.AddComponent(TransformComponent{});
 	heightmap.GetFirstComponent<TransformComponent>().Move({ 0, 0, 1 });
+	
+	// Create heightmap terrain.
+	Entity& hmTerrain = scene.CreateEntity();
+	componentFactory.Create<GraphicsHeightmapComponent>(hmTerrain);
+	auto&& hmTerrainComponent = hmTerrain.GetFirstComponent<GraphicsHeightmapComponent>();
+	hmTerrainComponent.sceneName = "MainScene";
+	hmTerrainComponent.meshPath = "Models/Test/Heightmap/heightmap.fbx";
+	hmTerrainComponent.materialPath = "Models/Terrain/Helmfirth/terrain.mtl";
+	hmTerrainComponent.heightmapPath = "Models/Terrain/Helmfirth/terrain.png";
+	hmTerrainComponent.entity = graphicsModule.CreateHeightmapEntity();
+	hmTerrainComponent.entity->SetMesh(graphicsModule.LoadMesh(hmTerrainComponent.meshPath));
+	hmTerrainComponent.entity->SetMaterial(graphicsModule.LoadMaterial(hmTerrainComponent.materialPath));
+	hmTerrainComponent.entity->SetHeightmap(graphicsModule.LoadImage(hmTerrainComponent.heightmapPath));
+	hmTerrainComponent.entity->SetUvSize({ 5, 5 });
+	hmTerrainComponent.entity->SetMagnitude(25.5f);
+	hmTerrainComponent.entity->SetOffset(-12.7f);
+	graphicsScene.GetEntities<gxeng::IHeightmapEntity>().Add(hmTerrainComponent.entity.get());
+
+	TransformComponent hmTerrainTransform;
+	hmTerrainTransform.SetScale({ 10, 10, 10 });
+	hmTerrain.AddComponent(hmTerrainTransform);
 }

@@ -497,7 +497,7 @@ void EntityVector::value_type::assign_extra_mask(Pred pred, Components&&... comp
 	const auto& argOrder = SortedComponents<Components...>::order;
 	PairComponents(lhsOrder.begin(), lhsOrder.end(), argOrder.begin(), argOrder.end(), onMatch, noOpLambda, pred);
 
-	assign_recurse<0>(pairing, std::forward_as_tuple(std::forward<Components>(components)...));
+	assign_recurse<0, Components...>(pairing, std::forward_as_tuple(std::forward<Components>(components)...));
 }
 
 
@@ -537,7 +537,7 @@ void EntityVector::value_type::assign_recurse(const std::array<size_t, sizeof...
 			auto& thisVector = dynamic_cast<ComponentVector<std::decay_t<ComponentT>>&>(*(*m_matrix)[thisIndex]);
 			thisVector[m_index] = std::forward<ComponentT>(std::get<Index>(args));
 		}
-		assign_recurse<Index + 1>(pairing, args);
+		assign_recurse<Index + 1, Components...>(pairing, args);
 	}
 }
 
@@ -610,7 +610,7 @@ void EntityVector::emplace(const_iterator where, Components&&... components) {
 	};
 	PairComponents(thisOrder.begin(), thisOrder.end(), argOrder.begin(), argOrder.end(), onMatch, onMismatch);
 
-	emplace_recurse<0>(where, pairing, std::forward_as_tuple(std::forward<Components>(components)...));
+	emplace_recurse<0, Components...>(where, pairing, std::forward_as_tuple(std::forward<Components>(components)...));
 }
 
 template <int Index, class... Components>
@@ -622,7 +622,7 @@ void EntityVector::emplace_recurse(const_iterator where, const std::array<size_t
 			auto& thisVector = dynamic_cast<ComponentVector<std::decay_t<ComponentT>>&>(*m_matrix[thisIndex]);
 			thisVector.Insert(where.get_index(), std::forward<ComponentT>(std::get<Index>(args)));
 		}
-		emplace_recurse<Index + 1>(where, pairing, args);
+		emplace_recurse<Index + 1, Components...>(where, pairing, args);
 	}
 }
 

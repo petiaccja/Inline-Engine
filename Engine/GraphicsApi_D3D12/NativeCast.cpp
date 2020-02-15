@@ -154,26 +154,8 @@ D3D12_SHADER_VISIBILITY native_cast(gxapi::eShaderVisiblity source) {
 
 
 D3D12_PRIMITIVE_TOPOLOGY native_cast(gxapi::ePrimitiveTopology source) {
-	using gxapi::ePrimitiveTopology;
-
-	switch (source) {
-		case ePrimitiveTopology::LINELIST:
-			return D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_LINELIST;
-		case ePrimitiveTopology::LINESTRIP:
-			return D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP;
-		case ePrimitiveTopology::POINTLIST:
-			return D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_POINTLIST;
-		case ePrimitiveTopology::TRIANGLELIST:
-			return D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		case ePrimitiveTopology::TRIANGLESTRIP:
-			return D3D12_PRIMITIVE_TOPOLOGY::D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-
-		default:
-			assert(false);
-			break;
-	}
-
-	return D3D12_PRIMITIVE_TOPOLOGY{};
+	// The values are set to be the same as in Direct3D 12.
+	return static_cast<D3D12_PRIMITIVE_TOPOLOGY>(source);
 }
 
 
