@@ -47,7 +47,17 @@ void ImageCache::Reload(gxeng::IImage& asset, const std::filesystem::path& path)
 
 	gxeng::IPixelReader& reader = GetPixelReader(channelType, channelCount);
 
-	asset.SetLayout(image.GetWidth(), (uint32_t)image.GetHeight(), gxeng::ePixelChannelType::INT8_NORM, channelCount, gxeng::ePixelClass::LINEAR);
+	gxeng::ePixelChannelType gxChannelType = [&] {
+		switch (channelType) {
+			case eChannelType::INT8: return gxeng::ePixelChannelType::INT8_NORM;
+			case eChannelType::INT16: return gxeng::ePixelChannelType::INT16_NORM;
+			case eChannelType::INT32: return gxeng::ePixelChannelType::INT32;
+			case eChannelType::FLOAT: return gxeng::ePixelChannelType::FLOAT32;
+			default: assert(false); return gxeng::ePixelChannelType::INT8_NORM;
+		}
+	}();
+
+	asset.SetLayout(image.GetWidth(), (uint32_t)image.GetHeight(), gxChannelType, channelCount, gxeng::ePixelClass::LINEAR);
 	asset.Update(0, 0, image.GetWidth(), (uint32_t)image.GetHeight(), 0, image.GetData(), reader);
 }
 

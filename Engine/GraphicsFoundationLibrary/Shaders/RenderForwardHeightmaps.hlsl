@@ -8,9 +8,11 @@ struct VsConstants
 	float4x4 viewProj;
 	float4x4 worldViewProjDer;
 	float3 direction;
+	float _padding01;
 	float magnitude;
 	float offset;
 	float2 uvSize;
+	float2 screenSize;
 };
 ConstantBuffer<VsConstants> vsConstants : register(b0);
 
@@ -38,31 +40,35 @@ struct Derivatives
 };
 
 
-float2 CalculateDuv(Texture2D tex, float2 texCoord)
+float2 CalculateDuv(Texture2D tex, float2 texCoord, float2 triangleUvSize)
 {
 	float width;
 	float height;
 	uint numLevels;
 	tex.GetDimensions(0, width, height, numLevels);
-	return float2(1.0f / width, 1.0f / height) * 0.5f;
+	float2 pixelMin = 1.0f / float2(width, height) * 0.5f;
+	float2 target = length(triangleUvSize) * 1.0f;
+	return max(pixelMin, target);
 }
 
 
-Derivatives SampleHeightmap(Texture2D tex, SamplerState samp, float2 texCoord, float2 uvSize)
+Derivatives SampleHeightmap(Texture2D tex, SamplerState samp, float2 texCoord, float2 uvSize, float2 duv)
 {
 	Derivatives result;
 	result.z = vsConstants.magnitude * heightmapTex.SampleLevel(heightmapSampler, texCoord, 0);
-	
-	float2 duv = CalculateDuv(tex, texCoord);
 	
 	float2 dz = float2(
 		vsConstants.magnitude * heightmapTex.SampleLevel(heightmapSampler, texCoord + float2(duv.x, 0), 0).x - result.z,
 		vsConstants.magnitude * heightmapTex.SampleLevel(heightmapSampler, texCoord + float2(0, duv.y), 0).x - result.z
 	);
+	float2 dz2 = float2(
+		result.z - vsConstants.magnitude * heightmapTex.SampleLevel(heightmapSampler, texCoord + float2(-duv.x, 0), 0).x,
+		result.z - vsConstants.magnitude * heightmapTex.SampleLevel(heightmapSampler, texCoord + float2(0, -duv.y), 0).x
+	);
 	
 	float2 duvDxy = float2(1.0f, 1.0f) / uvSize;
 	
-	float2 dzDxy = dz / duv * duvDxy;
+	float2 dzDxy = (dz + dz2) / 2.0f / duv * duvDxy;
 	
 	result.grad = dzDxy;
 	return result;
@@ -131,29 +137,26 @@ void MtlMain()
 
 struct VsOutput
 {
-	float4 hPos : SV_Position;
-	float4 wPos : Output0;
-	float2 sVelocity : Output1;
-	float3 wNormal : Output2;
-	float2 texCoord : TEXCOORD0;
-	float3 wTangent : Output4;
-	float3 wBitangent : Output5;
+	float4 lPos : POSITION;
+	float4 lPosDisplaced : POSITIOND;
+	float3 lNormal : NORMAL;
+	float3 lTangent : TANGENT;
+	float2 texCoord : TEX_COORD;
+	float3 lBitangent : BITANGENT;
 #ifdef HAS_COLOR
-	float4 color : Output3;
+	float4 color : COLOR;
 #endif
 };
 
 struct HsOutput
 {
-	float4 hPos : SV_Position;
-	float4 wPos : Output0;
-	float2 sVelocity : Output1;
-	float3 wNormal : Output2;
-	float2 texCoord : TEXCOORD0;
-	float3 wTangent : Output4;
-	float3 wBitangent : Output5;
+	float4 lPos : POSITION;
+	float3 lNormal : NORMAL;
+	float3 lTangent : TANGENT;
+	float2 texCoord : TEX_COORD;
+	float3 lBitangent : BITANGENT;
 #ifdef HAS_COLOR
-	float4 color : Output3;
+	float4 color : COLOR;
 #endif
 };
 
@@ -204,33 +207,18 @@ VsOutput VSMain(float4 lPos : POSITION,
 #endif
 	
 	VsOutput output;
-		
-	Derivatives derivatives = SampleHeightmap(heightmapTex, heightmapSampler, texCoord, vsConstants.uvSize);
 	
-	float4 modifiedPos = lPos + float4(vsConstants.direction * (derivatives.z + vsConstants.offset), 0);
-	float3 modifiedNormal = DisplacementAdjustedNormal(lNormal, lTangent, lBitangent, derivatives.grad);
-
-	// Transform position.
-	output.sVelocity = mul(modifiedPos, vsConstants.worldViewProjDer).xy;
-	output.wPos = mul(modifiedPos, vsConstants.world);
-	output.hPos = mul(output.wPos, vsConstants.viewProj);
-	
-	// Write through texCoord.
+	output.lPos = lPos;
+	output.lNormal = lNormal;
+	output.lTangent = lTangent;
+	output.lBitangent = lBitangent;
 	output.texCoord = texCoord;
-	
-	// Transform through normal.
-	float3x3 worldRotation = (float3x3) vsConstants.world;
-	output.wNormal = normalize(mul(modifiedNormal, worldRotation));
-	
-	// Transform through tangent.
-	output.wTangent = mul(lTangent, worldRotation);
-	
-	// Transform through bitangent.
-	output.wBitangent = mul(lBitangent, worldRotation);
-	
 #ifdef HAS_COLOR
 	output.color = color;
 #endif
+	
+	float z = vsConstants.magnitude * heightmapTex.SampleLevel(heightmapSampler, texCoord, 0);
+	output.lPosDisplaced = lPos + float4(vsConstants.direction * (z + vsConstants.offset), 0);
 
 	return output;
 }
@@ -241,11 +229,39 @@ VsOutput VSMain(float4 lPos : POSITION,
 
 HsConstantDataOutput Subdivide(InputPatch<VsOutput, 3> patch, uint patchId : SV_PrimitiveID)
 {
+	float4x4 wvp = mul(vsConstants.world, vsConstants.viewProj);
+	float3 scPos[3];
+	for (uint i = 0; i < 3; ++i)
+	{
+		float4 hPos = mul(patch[i].lPosDisplaced, wvp);
+		scPos[i] = hPos.xyz / hPos.w;
+	}
+	//bool cullz = scPos[0].z < -1.0f && scPos[1].z < -1.0f && scPos[2].z < -1.0f;
+	bool cullx = (scPos[0].x > 1.0f && scPos[1].x > 1.0f && scPos[2].x > 1.0f)
+				|| (scPos[0].x < -1.0f && scPos[1].x < -1.0f && scPos[2].x < -1.0f);
+	bool cully = (scPos[0].y > 1.0f && scPos[1].y > 1.0f && scPos[2].y > 1.0f)
+				|| (scPos[0].y < -1.0f && scPos[1].y < -1.0f && scPos[2].y < -1.0f);
+	
 	HsConstantDataOutput output;
-	output.edges[0] = 2;
-	output.edges[1] = 2;
-	output.edges[2] = 2;
-	output.inside = 2;
+	if (cullx || cully)
+	{
+		output.edges[0] = 0.0f;
+		output.edges[1] = 0.0f;
+		output.edges[2] = 0.0f;
+		output.inside = 0.0f;
+	}
+	else
+	{
+		output.inside = 0.0f;
+		for (uint i = 0; i < 3; ++i)
+		{
+			float len = length((scPos[(i + 1) % 3].xy - scPos[(i + 2) % 3].xy) * vsConstants.screenSize);
+			output.edges[i] = len / 32.f;
+			output.inside += output.edges[i];
+		}
+		output.inside /= 3.0f;
+	}
+	
 	return output;
 }
 
@@ -259,13 +275,11 @@ HsOutput HSMain(InputPatch<VsOutput, 3> patch, uint pointId : SV_OutputControlPo
 {
 	HsOutput output;
 	
-	output.hPos = patch[pointId].hPos;
-	output.wPos = patch[pointId].wPos;
-	output.sVelocity = patch[pointId].sVelocity;
-	output.wNormal = patch[pointId].wNormal;
+	output.lPos = patch[pointId].lPos;
+	output.lNormal = patch[pointId].lNormal;
+	output.lTangent = patch[pointId].lTangent;
+	output.lBitangent = patch[pointId].lBitangent;
 	output.texCoord = patch[pointId].texCoord;
-	output.wTangent = patch[pointId].wTangent;
-	output.wBitangent = patch[pointId].wBitangent;
 #ifdef HAS_COLOR
 	output.color = patch[pointId].color;
 #endif
@@ -279,17 +293,48 @@ HsOutput HSMain(InputPatch<VsOutput, 3> patch, uint pointId : SV_OutputControlPo
 [domain("tri")]
 DsOutput DSMain(HsConstantDataOutput constantInput, float3 bariCoord : SV_DomainLocation, const OutputPatch<HsOutput, 3> patch)
 {
-	HsOutput output;
+	HsOutput interpolated;
 	
-	output.hPos = bariCoord[0] * patch[0].hPos + bariCoord[1] * patch[1].hPos + bariCoord[2] * patch[2].hPos;
-	output.wPos = bariCoord[0] * patch[0].wPos + bariCoord[1] * patch[1].wPos + bariCoord[2] * patch[2].wPos;
-	output.sVelocity = bariCoord[0] * patch[0].sVelocity + bariCoord[1] * patch[1].sVelocity + bariCoord[2] * patch[2].sVelocity;
-	output.wNormal = bariCoord[0] * patch[0].wNormal + bariCoord[1] * patch[1].wNormal + bariCoord[2] * patch[2].wNormal;
-	output.texCoord = bariCoord[0] * patch[0].texCoord + bariCoord[1] * patch[1].texCoord + bariCoord[2] * patch[2].texCoord;
-	output.wTangent = bariCoord[0] * patch[0].wTangent + bariCoord[1] * patch[1].wTangent + bariCoord[2] * patch[2].wTangent;
-	output.wBitangent = bariCoord[0] * patch[0].wBitangent + bariCoord[1] * patch[1].wBitangent + bariCoord[2] * patch[2].wBitangent;
+	interpolated.lPos = bariCoord[0] * patch[0].lPos + bariCoord[1] * patch[1].lPos + bariCoord[2] * patch[2].lPos;
+	interpolated.lNormal = bariCoord[0] * patch[0].lNormal + bariCoord[1] * patch[1].lNormal + bariCoord[2] * patch[2].lNormal;
+	interpolated.lTangent = bariCoord[0] * patch[0].lTangent + bariCoord[1] * patch[1].lTangent + bariCoord[2] * patch[2].lTangent;
+	interpolated.lBitangent = bariCoord[0] * patch[0].lBitangent + bariCoord[1] * patch[1].lBitangent + bariCoord[2] * patch[2].lBitangent;
+	interpolated.texCoord = bariCoord[0] * patch[0].texCoord + bariCoord[1] * patch[1].texCoord + bariCoord[2] * patch[2].texCoord;
 #ifdef HAS_COLOR
-	output.color = bariCoord[0] * patch[0].color + bariCoord[1] * patch[1].color + bariCoord[2] * patch[2].color;
+	interpolated.color = bariCoord[0] * patch[0].color + bariCoord[1] * patch[1].color + bariCoord[2] * patch[2].color;
+#endif	
+	
+	DsOutput output;
+	
+	float2 maxTexCoord = max(patch[0].texCoord, max(patch[1].texCoord, patch[2].texCoord));
+	float2 minTexCoord = min(patch[0].texCoord, min(patch[1].texCoord, patch[2].texCoord));
+	float2 triangleUvSize = (maxTexCoord - minTexCoord) / max(1.0f, constantInput.inside);
+	float2 duv = CalculateDuv(heightmapTex, interpolated.texCoord, triangleUvSize);
+	Derivatives derivatives = SampleHeightmap(heightmapTex, heightmapSampler, interpolated.texCoord, vsConstants.uvSize, duv);
+	
+	float4 modifiedPos = interpolated.lPos + float4(vsConstants.direction * (derivatives.z + vsConstants.offset), 0);
+	float3 modifiedNormal = DisplacementAdjustedNormal(interpolated.lNormal, interpolated.lTangent, interpolated.lBitangent, derivatives.grad);
+
+	// Transform position.
+	output.sVelocity = mul(modifiedPos, vsConstants.worldViewProjDer).xy;
+	output.wPos = mul(modifiedPos, vsConstants.world);
+	output.hPos = mul(output.wPos, vsConstants.viewProj);
+	
+	// Write through texCoord.
+	output.texCoord = interpolated.texCoord;
+	
+	// Transform through normal.
+	float3x3 worldRotation = (float3x3) vsConstants.world;
+	output.wNormal = normalize(mul(modifiedNormal, worldRotation));
+	
+	// Transform through tangent.
+	output.wTangent = mul(interpolated.lTangent, worldRotation);
+	
+	// Transform through bitangent.
+	output.wBitangent = mul(interpolated.lBitangent, worldRotation);
+	
+#ifdef HAS_COLOR
+	output.color = color;
 #endif
 	return output;
 }
@@ -297,7 +342,7 @@ DsOutput DSMain(HsConstantDataOutput constantInput, float3 bariCoord : SV_Domain
 //------------------------------------------------------------------------------
 // Pixel shader
 //------------------------------------------------------------------------------
-PsOutput PSMain(HsOutput input)
+PsOutput PSMain(DsOutput input)
 {
 	g_wPosition = input.wPos;
 	g_wNormal = normalize(input.wNormal);

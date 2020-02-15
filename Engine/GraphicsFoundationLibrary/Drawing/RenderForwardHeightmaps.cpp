@@ -23,9 +23,11 @@ struct VsConstants {
 	Mat44_Packed viewProj;
 	Mat44_Packed worldViewProjDer;
 	Vec3_Packed direction;
+	float _padding01 = 0.0f;
 	float magnitude;
 	float offset;
 	Vec2_Packed uvSize;
+	Vec2_Packed screenSize;
 };
 
 struct PsConstants {
@@ -38,7 +40,7 @@ static const BindParameterDesc vsConstantsBind{
 	.constantSize = sizeof(VsConstants),
 	.relativeAccessFrequency = 1.0f,
 	.relativeChangeFrequency = 1.0f,
-	.shaderVisibility = gxapi::eShaderVisiblity::VERTEX
+	.shaderVisibility = gxapi::eShaderVisiblity::ALL
 };
 
 static const BindParameterDesc psConstantsBind{
@@ -51,7 +53,7 @@ static const BindParameterDesc psConstantsBind{
 
 static const BindParameterDesc vsHeightMapBind{
 	.parameter = BindParameter{ eBindParameterType::TEXTURE, 0, 0 },
-	.shaderVisibility = gxapi::eShaderVisiblity::VERTEX
+	.shaderVisibility = gxapi::eShaderVisiblity::ALL
 };
 
 static const gxapi::StaticSamplerDesc vsHeightmapSampler{
@@ -62,7 +64,7 @@ static const gxapi::StaticSamplerDesc vsHeightmapSampler{
 	.mipLevelBias = 0.f,
 	.shaderRegister = 0,
 	.registerSpace = 0,
-	.shaderVisibility = gxapi::eShaderVisiblity::VERTEX
+	.shaderVisibility = gxapi::eShaderVisiblity::ALL
 };
 
 static const std::vector shaderBindParams = {
@@ -241,6 +243,7 @@ void RenderForwardHeightmaps::RenderEntities(RenderContext& context, GraphicsCom
 		vsConstants.magnitude = entity->GetMagnitude();
 		vsConstants.offset = entity->GetOffset();
 		vsConstants.uvSize = entity->GetUvSize();
+		vsConstants.screenSize = { m_rtv.GetResource().GetWidth(), m_rtv.GetResource().GetHeight() };
 
 		stateDesc.BindPipeline(commandList);
 		commandList.BindGraphics(vsConstantsBind.parameter, &vsConstants, sizeof(vsConstants));
