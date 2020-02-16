@@ -44,15 +44,18 @@ UserInterfaceSystem::UserInterfaceSystem(const EngineCollection& modules, inl::W
 }
 
 UserInterfaceSystem::UserInterfaceSystem(UserInterfaceSystem&& rhs) : m_window(rhs.m_window) {
+	rhs.UnregisterWindowEvents();
+	rhs.UnregisterHandlers();
+	rhs.UnregisterBoardEvents();
 	m_font = std::move(rhs.m_font);
 	m_scene = std::move(rhs.m_scene);
 	m_camera = std::move(rhs.m_camera);
 	m_board = std::move(rhs.m_board);
-	rhs.UnregisterHandlers();
 	m_controls = std::move(rhs.m_controls);
+	m_gameState = rhs.m_gameState;
 	RegisterWindowEvents();
 	RegisterHandlers();
-	m_gameState = rhs.m_gameState;
+	RegisterBoardEvents();
 }
 
 UserInterfaceSystem::~UserInterfaceSystem() noexcept {
