@@ -18,6 +18,12 @@
 
 namespace inl {
 
+namespace impl_tmp {
+	// Remove this as soon as spaceship operator is properly added to the STL for type_index.
+	inline std::strong_ordering operator<=>(const std::type_index& lhs, const std::type_index& rhs) {
+		return lhs < rhs ? std::strong_ordering::less : (lhs == rhs ? std::strong_ordering::equal : std::strong_ordering::greater);
+	}
+} // namespace impl_tmp
 
 /// <summary> You can sign up functors, then fire the event by calling it's (),
 ///		and all the signed up functors will be called. </summary>
@@ -30,14 +36,14 @@ class Event {
 			callee = fun;
 
 			// Compares two comparable functors as -1, 0, +1 for less, equal and greater (like strcmp)
-			compare = [](const std::function<void(ArgsT...)>& lhs, const std::function<void(ArgsT...)>& rhs) {
+			compare = [](const std::function<void(ArgsT...)>& lhs, const std::function<void(ArgsT...)>& rhs) -> std::strong_ordering {
 				const ComparableFun* target1 = lhs.target<const ComparableFun>();
 				const ComparableFun* target2 = rhs.target<const ComparableFun>();
 				if (target1 == nullptr || target2 == nullptr) {
-					return ((std::type_index)rhs.target_type() < (std::type_index)lhs.target_type())
-						   - ((std::type_index)lhs.target_type() < (std::type_index)rhs.target_type());
+					using impl_tmp::operator<=>;
+					return std::type_index(lhs.target_type()) <=> std::type_index(rhs.target_type());
 				}
-				return (*target2 < *target1) - (*target1 < *target2);
+				return *target1 < *target2 ? std::strong_ordering::less : (*target1 == *target2 ? std::strong_ordering::equal : std::strong_ordering::greater);
 			};
 		}
 
@@ -49,13 +55,15 @@ class Event {
 		bool operator==(const Comparable& rhs) const {
 			return compare(callee, rhs.callee) == 0;
 		}
-		// Check less of underlying functors.
-		bool operator<(const Comparable& rhs) const {
-			return compare(callee, rhs.callee) < 0;
+		bool operator!=(const Comparable& rhs) const {
+			return !(*this == rhs);
+		}
+		std::strong_ordering operator<=>(const Comparable& rhs) const {
+			return compare(callee, rhs.callee);
 		}
 
 		std::function<void(ArgsT...)> callee; // Underlying functor.
-		std::function<int(const std::function<void(ArgsT...)>&, const std::function<void(ArgsT...)>&)> compare; // Comparison inner helper.
+		std::function<std::strong_ordering(const std::function<void(ArgsT...)>&, const std::function<void(ArgsT...)>&)> compare; // Comparison inner helper.
 	};
 
 	// Functors having both < and == are considered comparable.

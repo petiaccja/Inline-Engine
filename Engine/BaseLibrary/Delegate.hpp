@@ -1,14 +1,15 @@
 #pragma once
 
 #include <cassert>
+#include <compare>
 #include <cstring>
 #include <new>
+#include <tuple>
 #include <typeindex>
 #include <utility>
 
 
 namespace inl {
-
 
 
 template <class ReturnT, class... ArgsT>
@@ -27,9 +28,9 @@ namespace impl {
 		virtual ~CallableBase() {}
 		virtual void CallVoid(ArgsT... args) const = 0;
 		virtual bool IsEmpty() const = 0;
-		bool operator==(const CallableBase& rhs);
-		bool operator!=(const CallableBase& rhs);
-		bool operator<(const CallableBase& rhs);
+		bool operator==(const CallableBase& rhs) const;
+		bool operator!=(const CallableBase& rhs) const;
+		std::strong_ordering operator<=>(const CallableBase& rhs) const;
 
 	protected:
 		virtual void* GetFuncPtr() const = 0;
@@ -38,6 +39,7 @@ namespace impl {
 		virtual std::type_index GetClassType() const = 0;
 		virtual void* GetClassPtr() const = 0;
 	};
+
 
 	template <class ReturnT, class... ArgsT>
 	class Callable : public CallableBase<ArgsT...> {
@@ -55,7 +57,7 @@ namespace impl {
 		GlobalCallable(ReturnT (*func)(ArgsT...)) : m_func(func) {}
 		~GlobalCallable() {}
 		bool IsEmpty() const override { return m_func == nullptr; }
-		void* GetFuncPtr() const override { return m_func; }
+		void* GetFuncPtr() const override { return &m_func; }
 		size_t GetFuncPtrSize() const override { return sizeof(m_func); }
 		bool IsClass() const override { return false; }
 		std::type_index GetClassType() const override { return typeid(void); }
@@ -71,18 +73,47 @@ namespace impl {
 
 	template <class ClassT, class ReturnT, class... ArgsT>
 	class MemberCallable : public Callable<ReturnT, ArgsT...> {
+	private:
+		template <typename T>
+		struct is_complete_helper {
+			template <typename U>
+			static auto test(U*) -> std::integral_constant<bool, sizeof(U) == sizeof(U)>;
+			static auto test(...) -> std::false_type;
+			using type = decltype(test((T*)0));
+		};
+
+		template <typename T>
+		struct is_complete : is_complete_helper<T>::type {};
+		template <typename T>
+		static constexpr bool is_complete_v = is_complete<T>::value;
 	public:
-		using FuncT = typename std::conditional<std::is_const<ClassT>::value, ReturnT (ClassT::*)(ArgsT...) const, ReturnT (ClassT::*)(ArgsT...)>::type;
-		MemberCallable(FuncT func, ClassT* cl) : m_func(func), m_class(cl) {}
+		using FuncT = std::conditional_t<std::is_const_v<ClassT>, ReturnT (ClassT::*)(ArgsT...) const, ReturnT (ClassT::*)(ArgsT...)>;
+		MemberCallable(FuncT func, ClassT* cl) : m_class(cl) {
+			m_func = func;
+		}
+		MemberCallable(const MemberCallable& rhs) : m_class(rhs.m_class) {
+			m_func = rhs.m_func;
+		}
+		MemberCallable& operator=(const MemberCallable& rhs) {
+			m_class = rhs.m_class;
+			m_func = rhs.m_func;
+		}
 		~MemberCallable() {}
 		bool IsEmpty() const override { return m_func == nullptr; }
 		void* GetFuncPtr() const override { return (void*)&m_func; }
 		size_t GetFuncPtrSize() const override { return sizeof(m_func); }
 		bool IsClass() const override { return true; }
-		std::type_index GetClassType() const override { return typeid(ClassT); }
+		std::type_index GetClassType() const override {
+			if constexpr (is_complete_v<ClassT>)
+				return typeid(ClassT);
+			else {
+				return typeid(void);
+			}
+		}
 		void* GetClassPtr() const override { return m_class; }
 		ReturnT Call(ArgsT... args) const override {
 			assert(m_func != nullptr && m_class != nullptr);
+			FuncT func = static_cast<FuncT>(m_func);
 			return (m_class->*m_func)(std::forward<ArgsT>(args)...);
 		}
 
@@ -99,7 +130,7 @@ namespace impl {
 
 template <class ReturnT, class... ArgsT>
 class Delegate<ReturnT(ArgsT...)> {
-	class Dummy {};
+	class Dummy;
 
 public:
 	Delegate() = default;
@@ -140,22 +171,16 @@ public:
 	}
 
 	bool operator==(const Delegate& rhs) const {
-		if (!m_callable || !rhs.m_callable) {
-			return false;
-		}
-		return *m_callable == *rhs.m_callable;
+		return (*this <=> rhs) == 0;
 	}
 	bool operator!=(const Delegate& rhs) const {
 		return !(*this == rhs);
 	}
-	bool operator<(const Delegate& rhs) const {
-		if (!m_callable) {
-			return rhs.m_callable != nullptr;
+	std::strong_ordering operator<=>(const Delegate& rhs) const {
+		if (!m_callable || !rhs.m_callable) {
+			return m_callable <=> rhs.m_callable;
 		}
-		if (rhs.m_callable) {
-			return *m_callable < *rhs.m_callable;
-		}
-		return false;
+		return *m_callable <=> *rhs.m_callable;
 	}
 
 	ReturnT operator()(ArgsT... args) const {
@@ -164,7 +189,7 @@ public:
 	}
 
 private:
-	alignas(impl::MemberCallable<Dummy, ReturnT, ArgsT...>) char m_callablePlaceholder[sizeof(impl::MemberCallable<Dummy, ReturnT, ArgsT...>)]; // actual stuff is placement newed here
+	alignas(impl::MemberCallable<Dummy, void>) char m_callablePlaceholder[sizeof(impl::MemberCallable<Dummy, void>)]; // actual stuff is placement newed here
 	inl::impl::Callable<ReturnT, ArgsT...>* m_callable = nullptr;
 };
 
@@ -172,15 +197,7 @@ private:
 
 template <class... ArgsT>
 class Delegate<void(ArgsT...)> {
-	class DummyBase1 {
-		virtual ~DummyBase1() {}
-	};
-	class DummyBase2 {
-		virtual ~DummyBase2() {}
-	};
-	class Dummy : virtual public DummyBase1, public virtual DummyBase2 {
-		virtual ~Dummy() {}
-	};
+	class Dummy;
 
 public:
 	Delegate() = default;
@@ -235,22 +252,16 @@ public:
 	}
 
 	bool operator==(const Delegate& rhs) const {
-		if (!m_callable || !rhs.m_callable) {
-			return false;
-		}
-		return *m_callable == *rhs.m_callable;
+		return (*this <=> rhs) == 0;
 	}
 	bool operator!=(const Delegate& rhs) const {
 		return !(*this == rhs);
 	}
-	bool operator<(const Delegate& rhs) const {
-		if (!m_callable) {
-			return rhs.m_callable != nullptr;
+	std::strong_ordering operator<=>(const Delegate& rhs) const {
+		if (!m_callable || !rhs.m_callable) {
+			return m_callable <=> rhs.m_callable;
 		}
-		if (rhs.m_callable) {
-			return *m_callable < *rhs.m_callable;
-		}
-		return false;
+		return *m_callable <=> *rhs.m_callable;
 	}
 
 	void operator()(ArgsT... args) const {
@@ -259,70 +270,39 @@ public:
 	}
 
 private:
-	alignas(impl::MemberCallable<Dummy, void, ArgsT...>) char m_callablePlaceholder[sizeof(impl::MemberCallable<Dummy, void, ArgsT...>)]; // actual stuff is placement newed here
+	alignas(impl::MemberCallable<Dummy, void>) char m_callablePlaceholder[sizeof(impl::MemberCallable<Dummy, void>)]; // actual stuff is placement newed here
 	impl::CallableBase<ArgsT...>* m_callable = nullptr;
 };
 
 
 
 template <class... ArgsT>
-bool impl::CallableBase<ArgsT...>::operator==(const CallableBase& rhs) {
-	if (IsClass() && rhs.IsClass()) {
-		return GetClassPtr() == rhs.GetClassPtr()
-			   && GetClassType() == rhs.GetClassType()
-			   && GetFuncPtrSize() == rhs.GetFuncPtrSize()
-			   && 0 == memcmp(GetFuncPtr(), rhs.GetFuncPtr(), GetFuncPtrSize());
-	}
-	else if (!IsClass() && !rhs.IsClass()) {
-		return GetFuncPtr() == rhs.GetFuncPtr();
-	}
-	else {
-		return false;
-	}
+bool impl::CallableBase<ArgsT...>::operator==(const CallableBase& rhs) const {
+	return (*this <=> rhs) == 0;
 }
 
 template <class... ArgsT>
-bool impl::CallableBase<ArgsT...>::operator!=(const CallableBase& rhs) {
+bool impl::CallableBase<ArgsT...>::operator!=(const CallableBase& rhs) const {
 	return !(*this == rhs);
 }
 
+
 template <class... ArgsT>
-bool impl::CallableBase<ArgsT...>::operator<(const CallableBase& rhs) {
-	if (IsClass() && rhs.IsClass()) {
-		// observe angle bracket direction
-		unsigned ct = (GetClassType() == rhs.GetClassType()) + (GetClassType() > rhs.GetClassType());
-		unsigned cp = (GetClassPtr() == rhs.GetClassPtr()) + (GetClassPtr() > rhs.GetClassPtr());
-		unsigned fs = (GetFuncPtrSize() == rhs.GetFuncPtrSize()) + (GetFuncPtrSize() > rhs.GetFuncPtrSize());
-		unsigned fp = 1;
-		if (fs == 1) {
-			int cres = memcmp(GetFuncPtr(), rhs.GetFuncPtr(), GetFuncPtrSize());
-			fp = cres < 0 ? 0 : (cres == 0 ? 1 : 2);
-		}
-
-		// notice how the angle brackets are turned around
-		unsigned rct = (GetClassType() == rhs.GetClassType()) + (GetClassType() < rhs.GetClassType());
-		unsigned rcp = (GetClassPtr() == rhs.GetClassPtr()) + (GetClassPtr() < rhs.GetClassPtr());
-		unsigned rfs = (GetFuncPtrSize() == rhs.GetFuncPtrSize()) + (GetFuncPtrSize() < rhs.GetFuncPtrSize());
-		unsigned rfp = 1;
-		if (rfs == 1) {
-			int cres = memcmp(rhs.GetFuncPtr(), GetFuncPtr(), GetFuncPtrSize());
-			rfp = cres < 0 ? 0 : (cres == 0 ? 1 : 2);
-		}
-
-		// all are represented by two bit, hence the 2 incerement in bitshift (values 0,1,2)
-		unsigned l = (ct << 6) | (cp << 4) | (fs << 2) | fp;
-		unsigned r = (rct << 6) | (rcp << 4) | (rfs << 2) | rfp;
-
-		return l < r;
+std::strong_ordering impl::CallableBase<ArgsT...>::operator<=>(const CallableBase& rhs) const {
+	auto lhsTuple = std::make_tuple(IsClass(), GetClassPtr(), GetClassType(), GetFuncPtrSize());
+	auto rhsTuple = std::make_tuple(rhs.IsClass(), rhs.GetClassPtr(), rhs.GetClassType(), rhs.GetFuncPtrSize());
+	auto cmp = lhsTuple < rhsTuple ? std::strong_ordering::less : (lhsTuple == rhsTuple ? std::strong_ordering::equal : std::strong_ordering::greater);
+	if (cmp == 0) {
+#ifdef _MSC_VER
+		// MSVC stores the member function's address in the first PTR of the MFP structure.
+		// It's enough to compare that, the rest is just undecipherable garbage because of its shitty implementation.
+		return 0 <=> memcmp(GetFuncPtr(), rhs.GetFuncPtr(), sizeof(void*));
+#else
+		return 0 <=> memcmp(GetFuncPtr(), rhs.GetFuncPtr(), GetFuncPtrSize());
+#endif
 	}
-	else if (!IsClass() && !rhs.IsClass()) {
-		return GetFuncPtr() < rhs.GetFuncPtr();
-	}
-	else {
-		return IsClass() < rhs.IsClass();
-	}
+	return cmp;
 }
-
 
 
 } // namespace inl
