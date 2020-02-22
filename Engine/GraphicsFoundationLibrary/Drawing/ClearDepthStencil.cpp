@@ -35,7 +35,7 @@ void ClearDepthStencil::Execute(RenderContext& context) {
 }
 
 const std::string& ClearDepthStencil::GetInputName(size_t index) const {
-	static const std::array<std::string, 3> names = {
+	static const std::array<std::string, 5> names = {
 		"DepthStencilIn",
 		"DepthValue",
 		"StencilValue"

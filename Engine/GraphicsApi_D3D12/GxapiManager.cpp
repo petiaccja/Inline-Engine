@@ -58,15 +58,9 @@ private:
 
 
 GxapiManager::GxapiManager() {
-	// create a dxgi factory
 	if (FAILED(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&m_factory)))) {
 		// it is not supposed to fail unless you call it from a dll main
 		throw InvalidCallException("Are you calling this from a DllMain...? See, that's the problem.");
-	}
-
-	// Enable debug layer
-	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&m_debugController)))) {
-		m_debugController->EnableDebugLayer();
 	}
 }
 
@@ -133,6 +127,13 @@ std::vector<AdapterInfo> GxapiManager::EnumerateAdapters() {
 	}
 
 	return adapterInfos;
+}
+
+
+void GxapiManager::EnableDebugLayer() {
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&m_debugController)))) {
+		m_debugController->EnableDebugLayer();
+	}
 }
 
 

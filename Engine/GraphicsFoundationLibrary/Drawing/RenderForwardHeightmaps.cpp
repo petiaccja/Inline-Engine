@@ -84,7 +84,7 @@ static const PipelineStateTemplate psoTemplate = [] {
 	psoTemplate.dsFileName = "RenderForwardHeightmaps.hlsl";
 	psoTemplate.psFileName = "RenderForwardHeightmaps.hlsl";
 
-	psoTemplate.rasterization = gxapi::RasterizerState{ gxapi::eFillMode::WIREFRAME, gxapi::eCullMode::DRAW_ALL };
+	psoTemplate.rasterization = gxapi::RasterizerState{ .fillMode = gxapi::eFillMode::SOLID, .cullMode = gxapi::eCullMode::DRAW_ALL, .depthClipEnabled = true};
 	psoTemplate.primitiveTopologyType = gxapi::ePrimitiveTopologyType::PATCH;
 
 	psoTemplate.depthStencilState = gxapi::DepthStencilState{ .enableDepthTest = true, .enableDepthStencilWrite = true, .enableStencilTest = false };

@@ -137,8 +137,8 @@ void TestLevelSystem::Load(inl::game::Scene& scene, inl::game::ComponentFactory&
 	hmTerrainComponent.entity->SetMaterial(graphicsModule.LoadMaterial(hmTerrainComponent.materialPath));
 	hmTerrainComponent.entity->SetHeightmap(graphicsModule.LoadImage(hmTerrainComponent.heightmapPath));
 	hmTerrainComponent.entity->SetUvSize({ 5, 5 });
-	hmTerrainComponent.entity->SetMagnitude(25.5f);
-	hmTerrainComponent.entity->SetOffset(-12.7f);
+	hmTerrainComponent.entity->SetMagnitude(2.0f);
+	hmTerrainComponent.entity->SetOffset(-1.f);
 	graphicsScene.GetEntities<gxeng::IHeightmapEntity>().Add(hmTerrainComponent.entity.get());
 
 	TransformComponent hmTerrainTransform;

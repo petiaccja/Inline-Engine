@@ -31,6 +31,7 @@ public:
 	virtual ~IGxapiManager() = default;
 
 	virtual std::vector<AdapterInfo> EnumerateAdapters() = 0;
+	virtual void EnableDebugLayer() = 0;
 
 	virtual ISwapChain* CreateSwapChain(SwapChainDesc desc, ICommandQueue* flushThisQueue) = 0;
 	virtual IGraphicsApi* CreateGraphicsApi(unsigned adapterId) = 0;

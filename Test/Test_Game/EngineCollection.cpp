@@ -7,6 +7,10 @@
 EngineCollection::EngineCollection(inl::WindowHandle windowHandle) {
 	m_gxapiManager = std::make_unique<inl::gxapi_dx12::GxapiManager>();
 
+#if defined(_DEBUG) || !defined(_WIN32)
+	m_gxapiManager->EnableDebugLayer();
+#endif
+
 	// Get first hardware adapter, if none, get software, if none, quit.
 	auto graphicsAdapters = m_gxapiManager->EnumerateAdapters();
 	int graphicsAdapterId = -1;

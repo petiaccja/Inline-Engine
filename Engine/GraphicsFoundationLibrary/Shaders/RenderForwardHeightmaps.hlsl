@@ -137,8 +137,8 @@ void MtlMain()
 
 struct VsOutput
 {
-	float4 lPos : POSITION;
-	float4 lPosDisplaced : POSITIOND;
+	float3 lPos : POSITION;
+	float3 lPosDisplaced : POSITIOND;
 	float3 lNormal : NORMAL;
 	float3 lTangent : TANGENT;
 	float2 texCoord : TEX_COORD;
@@ -150,7 +150,7 @@ struct VsOutput
 
 struct HsOutput
 {
-	float4 lPos : POSITION;
+	float3 lPos : POSITION;
 	float3 lNormal : NORMAL;
 	float3 lTangent : TANGENT;
 	float2 texCoord : TEX_COORD;
@@ -169,7 +169,7 @@ struct HsConstantDataOutput
 struct DsOutput
 {
 	float4 hPos : SV_Position;
-	float4 wPos : Output0;
+	float3 wPos : Output0;
 	float2 sVelocity : Output1;
 	float3 wNormal : Output2;
 	float2 texCoord : TEXCOORD0;
@@ -178,6 +178,7 @@ struct DsOutput
 #ifdef HAS_COLOR
 	float4 color : Output3;
 #endif
+	float tessFactor : Output6;
 };
 
 struct PsOutput
@@ -189,7 +190,7 @@ struct PsOutput
 //------------------------------------------------------------------------------
 // Vertex shader
 //------------------------------------------------------------------------------
-VsOutput VSMain(float4 lPos : POSITION,
+VsOutput VSMain(float3 lPos : POSITION,
 				 float3 lNormal : NORMAL,
 				 float3 lTangent : TANGENT,
 				 float2 texCoord : TEX_COORD
@@ -218,7 +219,7 @@ VsOutput VSMain(float4 lPos : POSITION,
 #endif
 	
 	float z = vsConstants.magnitude * heightmapTex.SampleLevel(heightmapSampler, texCoord, 0);
-	output.lPosDisplaced = lPos + float4(vsConstants.direction * (z + vsConstants.offset), 0);
+	output.lPosDisplaced = lPos + vsConstants.direction * (z + vsConstants.offset);
 
 	return output;
 }
@@ -233,34 +234,25 @@ HsConstantDataOutput Subdivide(InputPatch<VsOutput, 3> patch, uint patchId : SV_
 	float3 scPos[3];
 	for (uint i = 0; i < 3; ++i)
 	{
-		float4 hPos = mul(patch[i].lPosDisplaced, wvp);
-		scPos[i] = hPos.xyz / hPos.w;
+		float4 hPos = mul(float4(patch[i].lPosDisplaced, 1.0f), wvp);
+		scPos[i] = hPos.xyz / max(hPos.w, 0.05f);
 	}
-	//bool cullz = scPos[0].z < -1.0f && scPos[1].z < -1.0f && scPos[2].z < -1.0f;
-	bool cullx = (scPos[0].x > 1.0f && scPos[1].x > 1.0f && scPos[2].x > 1.0f)
-				|| (scPos[0].x < -1.0f && scPos[1].x < -1.0f && scPos[2].x < -1.0f);
-	bool cully = (scPos[0].y > 1.0f && scPos[1].y > 1.0f && scPos[2].y > 1.0f)
-				|| (scPos[0].y < -1.0f && scPos[1].y < -1.0f && scPos[2].y < -1.0f);
+
 	
 	HsConstantDataOutput output;
-	if (cullx || cully)
+
+	output.inside = 0.0f;
+	for (uint i = 0; i < 3; ++i)
 	{
-		output.edges[0] = 0.0f;
-		output.edges[1] = 0.0f;
-		output.edges[2] = 0.0f;
-		output.inside = 0.0f;
+		float2 p0 = scPos[(i + 1) % 3].xy;
+		float2 p1 = scPos[(i + 2) % 3].xy;
+		float off = max(1.0f, max(p0.x * p1.x, p0.y * p1.y) / 1.44);
+		float len = length((p0 - p1) * vsConstants.screenSize);
+		output.edges[i] = len / 32.f / (off * off);
+		output.inside += output.edges[i];
 	}
-	else
-	{
-		output.inside = 0.0f;
-		for (uint i = 0; i < 3; ++i)
-		{
-			float len = length((scPos[(i + 1) % 3].xy - scPos[(i + 2) % 3].xy) * vsConstants.screenSize);
-			output.edges[i] = len / 32.f;
-			output.inside += output.edges[i];
-		}
-		output.inside /= 3.0f;
-	}
+	output.inside /= 3.0f;
+
 	
 	return output;
 }
@@ -312,13 +304,13 @@ DsOutput DSMain(HsConstantDataOutput constantInput, float3 bariCoord : SV_Domain
 	float2 duv = CalculateDuv(heightmapTex, interpolated.texCoord, triangleUvSize);
 	Derivatives derivatives = SampleHeightmap(heightmapTex, heightmapSampler, interpolated.texCoord, vsConstants.uvSize, duv);
 	
-	float4 modifiedPos = interpolated.lPos + float4(vsConstants.direction * (derivatives.z + vsConstants.offset), 0);
+	float3 modifiedPos = interpolated.lPos + vsConstants.direction * (derivatives.z + vsConstants.offset);
 	float3 modifiedNormal = DisplacementAdjustedNormal(interpolated.lNormal, interpolated.lTangent, interpolated.lBitangent, derivatives.grad);
 
 	// Transform position.
-	output.sVelocity = mul(modifiedPos, vsConstants.worldViewProjDer).xy;
-	output.wPos = mul(modifiedPos, vsConstants.world);
-	output.hPos = mul(output.wPos, vsConstants.viewProj);
+	output.sVelocity = mul(float4(modifiedPos, 1.0f), vsConstants.worldViewProjDer).xy;
+	output.wPos = mul(float4(modifiedPos, 1.0f), vsConstants.world);
+	output.hPos = mul(float4(output.wPos, 1.0f), vsConstants.viewProj);
 	
 	// Write through texCoord.
 	output.texCoord = interpolated.texCoord;
@@ -336,6 +328,7 @@ DsOutput DSMain(HsConstantDataOutput constantInput, float3 bariCoord : SV_Domain
 #ifdef HAS_COLOR
 	output.color = color;
 #endif
+	output.tessFactor = constantInput.inside;
 	return output;
 }
 

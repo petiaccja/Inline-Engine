@@ -15,6 +15,7 @@ public:
 	GxapiManager();
 
 	std::vector<gxapi::AdapterInfo> EnumerateAdapters() override;
+	void EnableDebugLayer() override;
 
 	gxapi::ISwapChain* CreateSwapChain(gxapi::SwapChainDesc desc, gxapi::ICommandQueue* flushThisQueue) override;
 	gxapi::IGraphicsApi* CreateGraphicsApi(unsigned adapterId) override;
