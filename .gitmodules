@@ -1,0 +1,3 @@
+[submodule "Engine/BaseLibrary"]
+	path = Engine/BaseLibrary
+	url = https://github.com/petiaccja/Inline-BaseLibrary.git
