@@ -7,6 +7,17 @@
 #include <queue>
 
 
+#ifdef _MSC_VER // disable lemon warnings
+#pragma warning(push)
+#pragma warning(disable : 4267)
+#endif
+#include <lemon/euler.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+
+
 namespace inl::gxeng {
 
 using VolatileViewPtr = std::unique_ptr<VolatileViewHeap>;

@@ -13,10 +13,7 @@
 #pragma warning(push)
 #pragma warning(disable : 4267)
 #endif
-
-#include <lemon/euler.h>
 #include <lemon/list_graph.h>
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -86,7 +83,7 @@ public:
 	~Pipeline();
 
 	void CreateFromDescription(const std::string& jsonDescription, NodeFactory& factory);
-	void CreateFromNodesList(const std::vector<std::shared_ptr<NodeBase>> nodes);
+	void CreateFromNodesList(const std::vector<std::shared_ptr<NodeBase>>& nodes);
 	std::string SerializeToJSON(const NodeFactory& factory) const;
 	void Clear();
 

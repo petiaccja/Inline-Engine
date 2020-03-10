@@ -11,7 +11,15 @@
 
 #include <cassert>
 #include <optional>
-#include <typeinfo>
+
+#ifdef _MSC_VER // disable lemon warnings
+#pragma warning(push)
+#pragma warning(disable : 4267)
+#endif
+#include <lemon/euler.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 
 namespace inl::gxeng {
@@ -158,7 +166,7 @@ void Pipeline::CreateFromDescription(const std::string& jsonDescription, NodeFac
 }
 
 
-void Pipeline::CreateFromNodesList(const std::vector<std::shared_ptr<NodeBase>> nodes) {
+void Pipeline::CreateFromNodesList(const std::vector<std::shared_ptr<NodeBase>>& nodes) {
 	// Assign pipeline nodes to graph nodes.
 	for (auto pipelineNode : nodes) {
 		lemon::ListDigraph::Node graphNode = m_dependencyGraph.addNode();
@@ -416,7 +424,7 @@ void Pipeline::TransitiveReduction(lemon::ListDigraph& graph) {
 
 	// Get topological sort.
 	lemon::ListDigraph::NodeMap<int> sortedMap(graph);
-	bool isSortable = lemon::checkedTopologicalSort(graph, sortedMap);
+	bool isSortable = checkedTopologicalSort(graph, sortedMap);
 	assert(isSortable);
 
 	std::vector<lemon::ListDigraph::NodeIt> sortedNodes;
