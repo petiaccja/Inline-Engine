@@ -160,8 +160,8 @@ void ScreenSpaceShadow::Execute(RenderContext& context) {
 	Mat44 v = m_camera->GetViewMatrix();
 	Mat44 p = m_camera->GetProjectionMatrix();
 	Mat44 vp = v * p;
-	Mat44 invVP = vp.Inverse();
-	Mat44 invP = p.Inverse();
+	Mat44 invVP = Inverse(vp);
+	Mat44 invP = Inverse(p);
 	Mat44 mulHalf = {
 		0.5, 0, 0, 0,
 		0, -0.5, 0, 0,
@@ -187,7 +187,7 @@ void ScreenSpaceShadow::Execute(RenderContext& context) {
 	uniformsCBData.jitter = 0;
 	uniformsCBData.maxDistance = 1000.0;
 
-	Vec3 sunDir = -Vec3(0.8f, -0.7f, -0.9f).Normalized();
+	Vec3 sunDir = -Normalize(Vec3(0.8f, -0.7f, -0.9f));
 	uniformsCBData.vsSunDirection = Vec4(sunDir, 0.0f) * v;
 
 	//far ndc corners

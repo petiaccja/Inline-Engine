@@ -188,7 +188,7 @@ void Sprite::CopyProperties(const gxeng::IOverlayEntity& source, gxeng::IOverlay
 
 
 void Sprite::SetResultantTransform() {
-	m_entity->Transform() = Mat33::Scale(m_size) * Mat33::Rotation(m_rotation) * Mat33::Translation(m_position) * m_postTransform;
+	m_entity->Transform() = (Mat33)Scale(m_size) * (Mat33)Rotation(m_rotation) * (Mat33)Translation(m_position) * m_postTransform;
 }
 
 

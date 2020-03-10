@@ -43,13 +43,13 @@ private:
 	template <class Func>
 	static void ApplyRecurse(Control* root, Func func);
 
-	static const Control* HitTestRecurse(Vec2 point, const Control* top, const Mat33& preTransform = Mat33::Identity());
+	static const Control* HitTestRecurse(Vec2 point, const Control* top, const Mat33& preTransform = Identity());
 	const Control* GetTarget(Vec2 point) const;
 
 	void UpdateRecurse(Control* root, float elapsed);
 	void SetGraphicsContextRecurse(Control* root);
 	void ClearGraphicsContextRecurse(Control* root);
-	void UpdateResultantTransformRecurse(Control* root, const Mat33& preTransform = Mat33::Identity(), RectF clip = RectF::FromCenter(0, 0, 100000, 100000));
+	void UpdateResultantTransformRecurse(Control* root, const Mat33& preTransform = Identity(), RectF clip = RectF::FromCenter(0, 0, 100000, 100000));
 
 	/// <summary> If a Control is removed, but focus, drag or similar operations are in progress on it, the Board
 	/// keeps a reference to it, which might in turn become dangling. This function removes references to
@@ -84,7 +84,7 @@ private:
 	Vec2 m_dragPointOrigin;
 	bool m_firstDrag = true;
 
-	Mat33 m_coordinateMapping = Mat33::Identity();
+	Mat33 m_coordinateMapping = Identity();
 	mutable bool m_breakOnTrace = false;
 	float m_depth = 0.0f;
 	float m_depthSpan = -1.0f; // TODO: implement properly

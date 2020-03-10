@@ -484,8 +484,8 @@ void VoxelLighting::Execute(RenderContext& context) {
 	uniformsCBData.farPlane = m_camera->GetFarPlane();
 	Mat44 v = m_camera->GetViewMatrix();
 	Mat44 p = m_camera->GetProjectionMatrix();
-	Mat44 invV = v.Inverse();
-	Mat44 invP = p.Inverse();
+	Mat44 invV = Inverse(v);
+	Mat44 invP = Inverse(p);
 	uniformsCBData.wsCamPos = Vec4(m_camera->GetPosition(), 1.0);
 	uniformsCBData.invView = invV;
 

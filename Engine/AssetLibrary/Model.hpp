@@ -78,7 +78,7 @@ inline std::vector<gxeng::Vertex<AttribT...>> Model::GetVertices(unsigned submes
 			  0, 0, 0, 1);
 
 
-	const Mat44 normalTransform = posTransform.Inverse().Transpose();
+	const Mat44 normalTransform = Transpose(Inverse(posTransform));
 
 	for (uint32_t i = 0; i < mesh->mNumVertices; i++) {
 		VertexT newVertex;

@@ -178,7 +178,7 @@ void LightCulling::Execute(RenderContext& context) {
 	uniformsCBData.numLights = 1;
 	uniformsCBData.p = m_camera->GetProjectionMatrix();
 
-	Mat44 invVP = (m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix()).Inverse();
+	Mat44 invVP = Inverse(m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix());
 
 	//far ndc corners
 	Vec4 ndcCorners[] = {

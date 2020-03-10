@@ -104,14 +104,14 @@ TEST_CASE("LinearLayout margins", "[GUI]") {
 
 	layout.UpdateLayout();
 
-	REQUIRE(b1.GetSize().Approx() == Vec2{ 70.f, 50.f });
-	REQUIRE(b1.GetPosition().Approx() == Vec2{ 55.f, 55.f });
+	REQUIRE(ApproxVec(b1.GetSize()) == Vec2{ 70.f, 50.f });
+	REQUIRE(ApproxVec(b1.GetPosition()) == Vec2{ 55.f, 55.f });
 
-	REQUIRE(b2.GetSize().Approx() == Vec2{ 94.f, 94.f });
-	REQUIRE(b2.GetPosition().Approx() == Vec2{ 150.f, 50.f });
+	REQUIRE(ApproxVec(b2.GetSize()) == Vec2{ 94.f, 94.f });
+	REQUIRE(ApproxVec(b2.GetPosition()) == Vec2{ 150.f, 50.f });
 
-	REQUIRE(b3.GetSize().Approx() == Vec2{ 94.f, 94.f });
-	REQUIRE(b3.GetPosition().Approx() == Vec2{ 250.f, 50.f });
+	REQUIRE(ApproxVec(b3.GetSize()) == Vec2{ 94.f, 94.f });
+	REQUIRE(ApproxVec(b3.GetPosition()) == Vec2{ 250.f, 50.f });
 }
 
 
@@ -129,7 +129,7 @@ TEST_CASE("LinearLayout preferred size", "[GUI]") {
 	layout[&b2].SetAuto().SetMargin({ 4, 4, 3, 3 }).MoveToBack();
 	layout[&b3].SetWeight(1).SetMargin({ 5, 5, 3, 3 }).MoveToBack();
 
-	REQUIRE(layout.GetPreferredSize().Approx() == Vec2{ 100.f + (b2.GetPreferredSize().x + 8.f) + (b3.GetPreferredSize().x + 10.f), (b1.GetPreferredSize().y + 6.f) });
+	REQUIRE(ApproxVec(layout.GetPreferredSize()) == Vec2{ 100.f + (b2.GetPreferredSize().x + 8.f) + (b3.GetPreferredSize().x + 10.f), (b1.GetPreferredSize().y + 6.f) });
 }
 
 

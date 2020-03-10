@@ -238,7 +238,7 @@ void RenderForwardHeightmaps::RenderEntities(RenderContext& context, GraphicsCom
 		const Mat44 world = entity->Transform().GetMatrix();
 		vsConstants.world = world;
 		vsConstants.viewProj = viewProj;
-		vsConstants.worldViewProjDer = Mat44::Zero(); // TODO
+		vsConstants.worldViewProjDer = Zero(); // TODO
 		vsConstants.direction = entity->GetDirection();
 		vsConstants.magnitude = entity->GetMagnitude();
 		vsConstants.offset = entity->GetOffset();

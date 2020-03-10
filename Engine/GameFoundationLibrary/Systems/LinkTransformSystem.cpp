@@ -108,7 +108,7 @@ Transform3D CombineTransform(const Transform3D& source, const Transform3D& relat
 	Transform3D combined = relative;
 
 	// In case of PR only, avoid the SVD by ignoring the scale which is roughly (1,1,1).
-	if ((source.GetScale() - Vec3(1, 1, 1)).LengthSquared() < 0.00001f) {
+	if (LengthSquared(source.GetScale() - Vec3(1, 1, 1)) < 0.00001f) {
 		combined.Rotate(source.GetRotation());
 		combined.Move(source.GetPosition());
 	}

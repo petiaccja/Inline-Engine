@@ -190,7 +190,7 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 	Mat44 projection = m_camera->GetProjectionMatrix();
 	Mat44 vp = view * projection;
 
-	uniformsCBData.invVP = vp.Inverse();
+	uniformsCBData.invVP = Inverse(vp);
 
 	Mat44 biasMatrix(0.5f, 0, 0, 0,
 					 0, -0.5f, 0, 0,
@@ -198,7 +198,7 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 					 0.5f, 0.5f, 0.0f, 1);
 	uniformsCBData.biasMx = biasMatrix;
 
-	uniformsCBData.invMv = view.Inverse();
+	uniformsCBData.invMv = Inverse(view);
 
 	const PerspectiveCamera* perpectiveCamera = dynamic_cast<const PerspectiveCamera*>(m_camera);
 	if (perpectiveCamera == nullptr) {
@@ -206,8 +206,8 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 	}
 
 	Vec4 camPos(perpectiveCamera->GetPosition(), 1.0f);
-	Vec4 camViewDir(perpectiveCamera->GetLookDirection().Normalized(), 0.0f);
-	Vec4 camUpVector(perpectiveCamera->GetUpVector().Normalized(), 0.0f);
+	Vec4 camViewDir(Normalize(perpectiveCamera->GetLookDirection()), 0.0f);
+	Vec4 camUpVector(Normalize(perpectiveCamera->GetUpVector()), 0.0f);
 
 	uniformsCBData.camPos = camPos;
 	uniformsCBData.camViewDir = camViewDir;
@@ -220,16 +220,16 @@ void DepthReductionFinal::Execute(RenderContext& context) {
 	auto sun = *(*m_suns)->begin();
 	//TODO get from somewhere
 	Vec4 lightCamPos = Vec4(0.f, 0.f, 0.f, 1.f);
-	Vec4 lightCamViewDir = Vec4(sun->GetDirection().Normalized(), 0); //Vec4(1, 1, 1, 0).Normalized();
+	Vec4 lightCamViewDir = Vec4(Normalize(sun->GetDirection()), 0); //Vec4(1, 1, 1, 0).Normalized();
 	//printf("%f %f %f\n", light_cam_view_dir.x, light_cam_view_dir.y, light_cam_view_dir.z);
 	Vec4 lightCamUpVector = Vec4(0, 0, 1, 0);
 
 	auto lookat = [](Vec3 eye, Vec3 lookat, Vec3 up, Vec3* result) -> void {
-		result[0] = (lookat - eye).Normalized(); //view dir
-		result[1] = up.Normalized();
+		result[0] = Normalize((lookat - eye)); //view dir
+		result[1] = Normalize(up);
 		result[2] = eye;
-		Vec3 right = Cross(result[0], result[1]).Normalized();
-		result[1] = Cross(right, result[0]).Normalized();
+		Vec3 right = Normalize(Cross(result[0], result[1]));
+		result[1] = Normalize(Cross(right, result[0]));
 	};
 
 	Vec3 res[3];

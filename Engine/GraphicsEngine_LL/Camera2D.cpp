@@ -60,14 +60,14 @@ bool Camera2D::GetVerticalFlip() const {
 
 
 Mat33 Camera2D::GetViewMatrix() const {
-	Vec2 target = Vec2{ 0.0f, 1.0f } * Mat22::Rotation(m_rotation) + m_position;
-	Mat33 view = Mat33::LookAt(m_position, target, !m_verticalFlip, false);
+	Vec2 target = Vec2{ 0.0f, 1.0f } * Mat22(Rotation(m_rotation)) + m_position;
+	Mat33 view = LookAt(m_position, target, !m_verticalFlip, false);
 	return view;
 }
 
 
 Mat33 Camera2D::GetProjectionMatrix() const {
-	Mat33 proj = Mat33::Orthographic(-m_extent / 2, m_extent / 2, -1.f, 1.0f);
+	Mat33 proj = Orthographic(-m_extent / 2.f, m_extent / 2.f, -1.f, 1.0f);
 	return proj;
 }
 

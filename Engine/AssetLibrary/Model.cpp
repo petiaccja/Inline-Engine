@@ -97,7 +97,7 @@ Model::Model(const std::filesystem::path& file) {
 	const aiNode* node = GetFirstFilledNode(m_scene->mRootNode);
 
 	m_transform = GetAbsoluteTransform(node);
-	m_invTrTransform = m_transform.Inverse().Transpose();
+	m_invTrTransform = Transpose(Inverse(m_transform));
 }
 
 

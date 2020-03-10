@@ -155,7 +155,7 @@ Vec2 AbsoluteLayout::CalculateChildPosition(const Binding& binding) const {
 	if (m_yDown) {
 		pos.y = -pos.y;
 	}
-	Vec2 offset = GetSize() / 2;
+	Vec2 offset = GetSize() / 2.f;
 	switch (m_refPoint) {
 		case eRefPoint::TOPLEFT:
 			offset *= { -1, 1 };

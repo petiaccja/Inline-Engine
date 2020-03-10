@@ -156,7 +156,7 @@ void Text::CopyProperties(const gxeng::ITextEntity& source, gxeng::ITextEntity& 
 }
 
 void Text::SetResultantTransform() {
-	m_entity->Transform() = Mat33::Translation(m_position) * m_postTransform;
+	m_entity->Transform() = Mat33(Translation(m_position)) * m_postTransform;
 }
 
 

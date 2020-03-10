@@ -194,10 +194,10 @@ void DrawSky::Execute(RenderContext& context) {
 	// TODO render all the suns using additive blending
 	auto sun = *suns->begin();
 
-	Mat44 viewInv = camera->GetViewMatrix().Inverse();
+	Mat44 viewInv = Inverse(camera->GetViewMatrix());
 	Vec4 sunViewDir = Vec4(sun->GetDirection(), 0.0f) * viewInv;
 	Vec4 sunColor = Vec4(sun->GetColor(), 1.0f);
-	Mat44 invViewProj = (camera->GetViewMatrix() * camera->GetProjectionMatrix()).Inverse();
+	Mat44 invViewProj = Inverse(camera->GetViewMatrix() * camera->GetProjectionMatrix());
 
 	sunCB.dir = Vec4(sun->GetDirection(), 0.0);
 	sunCB.color = sunColor;

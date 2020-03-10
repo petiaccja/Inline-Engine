@@ -253,8 +253,8 @@ void ScreenSpaceAmbientOcclusion::Execute(RenderContext& context) {
 	Mat44 v = m_camera->GetViewMatrix();
 	Mat44 p = m_camera->GetProjectionMatrix();
 	Mat44 vp = v * p;
-	Mat44 invP = p.Inverse();
-	Mat44 invVP = vp.Inverse();
+	Mat44 invP = Inverse(p);
+	Mat44 invVP = Inverse(vp);
 	uniformsCBData.invVP = invVP;
 	uniformsCBData.oldVP = m_prevVP;
 	uniformsCBData.nearPlane = m_camera->GetNearPlane();

@@ -164,11 +164,11 @@ void Board::OnCharacter(char32_t evt) {
 
 
 void Board::SetCoordinateMapping(RectF window, RectF gui) {
-	Mat33 transform = Mat33::Identity();
-	transform *= Mat33::Translation(-window.GetCenter());
-	transform *= Mat33::Scale(1.f / window.GetSize());
-	transform *= Mat33::Scale(gui.GetSize());
-	transform *= Mat33::Translation(gui.GetCenter());
+	Mat33 transform = Identity();
+	transform *= Mat33(Translation(-window.GetCenter()));
+	transform *= Mat33(Scale(1.f / window.GetSize()));
+	transform *= Mat33(Scale(gui.GetSize()));
+	transform *= Mat33(Translation(gui.GetCenter()));
 
 	m_coordinateMapping = transform;
 }
@@ -226,7 +226,7 @@ void Board::UpdateLayouts(Control* subject) {
 const Control* Board::HitTestRecurse(Vec2 point, const Control* top, const Mat33& preTransform) {
 	const Mat33& topTransform = top->HasIdentityTransform() ? preTransform : preTransform * top->GetTransform();
 
-	Vec2 localPoint = topTransform.Transposed().DecompositionLUP().Solve(point | 1.f).xy;
+	Vec2 localPoint = DecomposeLUP(Transpose(topTransform)).Solve(point | 1.f).xy;
 
 	if (!top->GetClickThrough() && top->IsShown() && top->HitTest(localPoint)) {
 		auto children = top->GetChildren();
@@ -314,7 +314,7 @@ void Board::UpdateResultantTransformRecurse(Control* root, const Mat33& preTrans
 
 	if (GraphicalControl* graphical = dynamic_cast<GraphicalControl*>(root)) {
 		graphical->SetPostTransform(topTransform);
-		graphical->SetClipRect(clip, Mat33::Identity());
+		graphical->SetClipRect(clip, Identity());
 	}
 
 	RectF rootClip = RectF::FromCenter(root->GetPosition(), root->GetSize());
@@ -370,7 +370,7 @@ void Board::UpdateStyleRecurse(Control* root) {
 void Board::UpdateClipRecurse(Control* root) {
 	auto RecurseHelper = [](auto self, Control* root, const RectF& carry) -> void {
 		if (GraphicalControl* graphicalRoot = dynamic_cast<GraphicalControl*>(root)) {
-			graphicalRoot->SetClipRect(carry, Mat33::Identity());
+			graphicalRoot->SetClipRect(carry, Identity());
 		}
 
 		RectF rootRect = RectF::FromCenter(root->GetPosition(), root->GetSize());

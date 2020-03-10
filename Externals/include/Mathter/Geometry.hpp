@@ -32,14 +32,14 @@ public:
 	/// <param name="base"> Any point in 3D space. </param>
 	/// <param name="direction"> Must be normalized. </param>
 	Line(const VectorT& base, const VectorT& direction) : direction(direction), base(base) {
-		assert(direction.IsNormalized());
+		assert(IsNormalized(direction));
 	}
 
 	/// <summary> Constructs a line through both points. </summary>
 	/// <param name="point1"> Base of the line. </param>
 	/// <param name="point2"> Specifies direction only. </param>
 	static Line Through(const VectorT& point1, const VectorT& point2) {
-		return Line(point1, (point2 - point1).SafeNormalized());
+		return Line(point1, SafeNormalize(point2 - point1));
 	}
 
 	/// <summary> A 2D plane and line are equivalent, converts representation. Only for 2D. </summary>
@@ -72,8 +72,8 @@ public:
 	}
 	LineSegment(const VectorT& point1, const VectorT& point2) : point1(point1), point2(point2) {}
 
-	T Length() const { return (point2 - point1).Length(); }
-	VectorT Direction() const { return (point2 - point1).Normalized(); }
+	T Length() const { return mathter::Length(point2 - point1); }
+	VectorT Direction() const { return Normalize(point2 - point1); }
 	VectorT Start() const { return point1; }
 	VectorT End() const { return point2; }
 	VectorT Interpol(T t) const { return t*point2 + (T(1) - t)*point1; }
@@ -111,16 +111,16 @@ class Hyperplane {
 public:
 	Hyperplane() : normal(0), scalar(0) { normal(0) = 1; }
 	Hyperplane(const VectorT& base, const VectorT& normal) : normal(normal) {
-		assert(impl::AlmostEqual(normal.Length(), T(1)));
-		scalar = VectorT::Dot(normal, base);
+		assert(IsNormalized(normal));
+		scalar = Dot(normal, base);
 	}
 	Hyperplane(const VectorT& normal, T scalar) : normal(normal), scalar(scalar) {
-		assert(impl::AlmostEqual(normal.Length(), T(1)));
+		assert(IsNormalized(normal));
 	}
 	Hyperplane(const Line<T, 2>& line) {
 		static_assert(Dim == 2, "Plane dimension must be two, which is a line.");
 		normal = { -line.Direction()(1), line.Direction()(0) };
-		scalar = Vector<T, 2>::Dot(normal, line.Base());
+		scalar = Dot(normal, line.Base());
 	}
 
 	const VectorT& Normal() const { return normal; }
@@ -259,8 +259,8 @@ Intersection<Hyperplane<T, Dim>, Line<T, Dim>>::Intersection(const PlaneT& plane
 	A_inv_t = 1 | plane.Normal();
 
 	// Compute result of the equation
-	T scaler = VectorT::Dot(line.Direction(), plane.Normal());
-	T x_t = decltype(b)::Dot(A_inv_t, b);
+	T scaler = Dot(line.Direction(), plane.Normal());
+	T x_t = Dot(A_inv_t, b);
 	T t = x_t / scaler;
 	param = -t;
 }
@@ -277,7 +277,7 @@ public:
 		line2 = l2;
 		auto intersection = Intersect(Hyperplane<T, 2>(l1), l2);
 		param2 = intersection.LineParameter();
-		param1 = std::isinf(param2) ? std::numeric_limits<T>::infinity() : (intersection.Point() - l1.Base()).Length();
+		param1 = std::isinf(param2) ? std::numeric_limits<T>::infinity() : Length(intersection.Point() - l1.Base());
 	}
 
 	bool Intersecting() const { return !std::isinf(param1); }

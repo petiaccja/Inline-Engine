@@ -83,7 +83,7 @@ private:
 	Vec2 m_position = { 0, 0 };
 	Vec2 m_size = { 1, 1 };
 	float m_rotation = 0;
-	Mat33 m_postTransform = Mat33::Identity();
+	Mat33 m_postTransform = Identity();
 	std::unique_ptr<gxeng::IOverlayEntity> m_entity;
 	GraphicsContext m_context;
 };

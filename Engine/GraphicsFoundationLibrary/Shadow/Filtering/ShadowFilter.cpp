@@ -358,7 +358,7 @@ void ShadowFilter::Execute(RenderContext& context) {
 	};
 
 	Mat44 p = m_camera->GetProjectionMatrix();
-	Mat44 invP = p.Inverse();
+	Mat44 invP = Inverse(p);
 
 	//convert to world space frustum corners
 	ndcCorners[0] = ndcCorners[0] * invP;
@@ -371,7 +371,7 @@ void ShadowFilter::Execute(RenderContext& context) {
 
 	uniformsCBData.vsLightPos = Vec4(Vec3(0, 0, 1), 1.0f) * m_camera->GetViewMatrix();
 
-	uniformsCBData.invV = m_camera->GetViewMatrix().Inverse();
+	uniformsCBData.invV = Inverse(m_camera->GetViewMatrix());
 
 	//do minfiltering
 	for (int c = 0; c < m_filterHorizontalRtv.size(); ++c) {
@@ -524,7 +524,7 @@ void ShadowFilter::Execute(RenderContext& context) {
 		pRTV = &m_blurLayersSecondPassRtv;
 		commandList.SetRenderTargets(1, &pRTV, 0);
 
-		uniformsCBData.direction = Vec2(-0.44721359585778655717526397765935, 0.89442719082100156952748325334158) * 1.11803398875;
+		uniformsCBData.direction = Vec2(-0.44721359585778655717526397765935, 0.89442719082100156952748325334158) * 1.11803398875f;
 
 		commandList.BindGraphics(m_shadowLayersTexBindParam, m_blurLayersFirstPassSrv);
 		commandList.BindGraphics(m_uniformsBindParam, &uniformsCBData, sizeof(Uniforms));

@@ -363,7 +363,7 @@ void VolumetricLighting::Execute(RenderContext& context) {
 	uniformsCBData.sunColor = Vec4(1.0f, 0.9f, 0.85f, 1.0f);
 
 	Mat44 VP = m_camera->GetViewMatrix() * m_camera->GetProjectionMatrix();
-	Mat44 invVP = VP.Inverse();
+	Mat44 invVP = Inverse(VP);
 
 	//worldVec: ndcVec * invVP
 	//reprojNdcVec: worldVec * oldVP

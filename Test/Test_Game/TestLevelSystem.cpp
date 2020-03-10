@@ -60,7 +60,7 @@ void TestLevelSystem::Load(inl::game::Scene& scene, inl::game::ComponentFactory&
 	auto&& lightComponent = light.GetFirstComponent<DirectionalLightComponent>();
 	lightComponent.sceneName = "MainScene";
 	lightComponent.entity = graphicsModule.CreateDirectionalLight();
-	lightComponent.entity->SetDirection(Vec3{ 0.5, 0.5, -0.2 }.Normalized());
+	lightComponent.entity->SetDirection(Normalize(Vec3{ 0.5, 0.5, -0.2 }));
 	lightComponent.entity->SetColor({ 1.0f, 0.7f, 0.4f });
 	graphicsScene.GetEntities<gxeng::IDirectionalLight>().Add(lightComponent.entity.get());
 

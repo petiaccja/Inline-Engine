@@ -501,7 +501,7 @@ void RenderOverlay::RenderEntities(GraphicsCommandList& commandList,
 				cbufferRender.atlasAccessTopleft = charInfo.atlasPos;
 				cbufferRender.atlasAccessSize = { charInfo.atlasSize.x, font->GetGlyphAtlas().GetHeight() };
 
-				Mat33 letterTransform = Mat33::Scale(letterRect.GetSize() / 2) * Mat33::Translation(letterRect.GetCenter());
+				Mat33 letterTransform = Mat33(Scale(letterRect.GetSize() / 2.f)) * Mat33(Translation(letterRect.GetCenter()));
 				cbufferTransform.worldViewProj.Submatrix<3, 3>(0, 0) = letterTransform * worldViewProj;
 
 
@@ -548,9 +548,7 @@ std::tuple<bool, std::optional<Mat33>> CullByClip(const RectF& clipRect, const M
 		return { false, {} };
 	}
 	else {
-		Mat33 discardTransform = Mat33::Scale(clipRect.GetSize()) * Mat33::Translation(clipRect.GetCenter()) * clipTransform * viewProj;
-		discardTransform.Invert();
-
+		Mat33 discardTransform = Inverse(Mat33(Scale(clipRect.GetSize())) * Mat33(Translation(clipRect.GetCenter())) * clipTransform * viewProj);
 		return { true, discardTransform };
 	}
 }

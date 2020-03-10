@@ -44,7 +44,7 @@ const std::shared_ptr<Image>& HeightmapEntity::GetHeightmapNative() const {
 }
 
 void HeightmapEntity::SetDirection(Vec3 direction) {
-	m_direction = direction.SafeNormalized({ 0, 0, 1 });
+	m_direction = SafeNormalize(direction, { 0, 0, 1 });
 }
 
 Vec3 HeightmapEntity::GetDirection() const {

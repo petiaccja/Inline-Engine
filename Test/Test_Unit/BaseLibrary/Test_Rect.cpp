@@ -44,7 +44,7 @@ TEST_CASE("Size ctor", "[Rect]") {
 TEST_CASE("GetSize", "[Rect]") {
 	RectF rc = RectF::FromSize(Vec2(1, 2), Vec2(2, 4));
 	Vec2 expected(2, 4);
-	REQUIRE(rc.GetSize() == expected.Approx());
+	REQUIRE(rc.GetSize() == ApproxVec(expected));
 }
 
 
@@ -69,7 +69,7 @@ TEST_CASE("SetSize", "[Rect]") {
 	REQUIRE(rc.GetWidth() == Approx(3));
 	REQUIRE(rc.GetHeight() == Approx(4));
 	Vec2 expected(0.25f, 0);
-	REQUIRE(rc.GetCenter() == expected.Approx());
+	REQUIRE(rc.GetCenter() == ApproxVec(expected));
 }
 
 
@@ -81,8 +81,8 @@ TEST_CASE("Union", "[Rect]") {
 
 	Vec2 exp1(-1, -1);
 	Vec2 exp2(3, 2);
-	REQUIRE(rcu.GetBottomLeft() == exp1.Approx());
-	REQUIRE(rcu.GetTopRight() == exp2.Approx());
+	REQUIRE(rcu.GetBottomLeft() == ApproxVec(exp1));
+	REQUIRE(rcu.GetTopRight() == ApproxVec(exp2));
 }
 
 
@@ -94,8 +94,8 @@ TEST_CASE("Intersection", "[Rect]") {
 
 	Vec2 exp1(0, 0);
 	Vec2 exp2(1, 1);
-	REQUIRE(rcu.GetBottomLeft() == exp1.Approx());
-	REQUIRE(rcu.GetTopRight() == exp2.Approx());
+	REQUIRE(rcu.GetBottomLeft() == ApproxVec(exp1));
+	REQUIRE(rcu.GetTopRight() == ApproxVec(exp2));
 }
 
 

@@ -14,8 +14,8 @@ void CameraMoveSystem::UpdateEntity(float elapsed, inl::gamelib::PerspectiveCame
 		void operator()(const CameraMoveAction& action) const {
 			Vec3 forward = entity.GetLookDirection();
 			Vec3 up = entity.GetUpVector();
-			Vec3 right = Normalized(Cross(forward, up));
-			up = Normalized(Cross(right, forward));
+			Vec3 right = Normalize(Cross(forward, up));
+			up = Normalize(Cross(right, forward));
 
 			Vec3 direction = { 0, 0, 0 };
 			switch (action.direction) {
@@ -28,15 +28,15 @@ void CameraMoveSystem::UpdateEntity(float elapsed, inl::gamelib::PerspectiveCame
 		void operator()(const CameraRotateAction& action) const {
 			Vec3 forward = entity.GetLookDirection();
 			Vec3 up = entity.GetUpVector();
-			Vec3 right = Normalized(Cross(forward, up));
-			up = Normalized(Cross(right, forward));
+			Vec3 right = Normalize(Cross(forward, up));
+			up = Normalize(Cross(right, forward));
 
 			Vec3 axis = { 0, 0, 1 };
 			switch (action.direction) {
 				case eCameraRotationAxis::PITCH: axis = right; break;
 				case eCameraRotationAxis::YAW: axis = { 0, 0, 1 }; break;
 			}
-			Quat rotation = Quat::AxisAngle(axis, -action.speed);
+			Quat rotation = RotationAxisAngle(axis, -action.speed);
 			forward *= rotation;
 			up *= rotation;
 			entity.SetLookDirection(forward);

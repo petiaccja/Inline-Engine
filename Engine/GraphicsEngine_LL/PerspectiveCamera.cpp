@@ -32,13 +32,13 @@ float PerspectiveCamera::GetAspectRatio() const {
 
 // Matrices
 Mat44 PerspectiveCamera::GetViewMatrix() const {
-	return Mat44::LookAt(m_position, m_position + m_lookdir, m_upVector, true, false, false);
+	return LookAt(m_position, m_position + m_lookdir, m_upVector, true, false, false);
 }
 Mat44 PerspectiveCamera::GetProjectionMatrix() const {
-	return Mat44::Perspective(m_fovH, m_fovH / m_fovV, m_nearPlane, m_farPlane, 0, 1);
+	return Perspective(m_fovH, m_fovH / m_fovV, m_nearPlane, m_farPlane, 0.f, 1.f);
 }
 Mat44 PerspectiveCamera::GetPrevViewMatrix() const {
-	return Mat44::LookAt(m_prevPosition, m_prevPosition + m_prevLookdir, m_prevUpVector, true, false, false);
+	return LookAt(m_prevPosition, m_prevPosition + m_prevLookdir, m_prevUpVector, true, false, false);
 }
 
 

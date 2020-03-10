@@ -24,7 +24,7 @@ void ArrowControl::SetEndPoints(Vec2 p1, Vec2 p2) {
 	m_p1 = p1;
 	m_p2 = p2;
 
-	m_holdPoint.SetPosition((p1 + p2) / 2);
+	m_holdPoint.SetPosition((p1 + p2) / 2.f);
 
 	m_arrowHead1.SetPosition(p2 + Vec2(-5.f, 3.5f));
 	m_arrowHead1.SetRotation(-Constants<float>::Pi / 6);
@@ -50,9 +50,9 @@ void ArrowControl::SetEndPoints(Vec2 p1, Vec2 p2) {
 		Vec2 pBegin = m_bezierCurve(tBegin);
 		Vec2 pEnd = m_bezierCurve(tEnd);
 
-		m_bezierSections[i].SetPosition((pBegin + pEnd) / 2);
+		m_bezierSections[i].SetPosition((pBegin + pEnd) / 2.f);
 		Vec2 diff = pEnd - pBegin;
-		m_bezierSections[i].SetSize({ diff.Length(), GetLineWidth() });
+		m_bezierSections[i].SetSize({ Length(diff), GetLineWidth() });
 		float angle = atan2(diff.y, diff.x);
 		m_bezierSections[i].SetRotation(angle);
 	}
@@ -102,7 +102,7 @@ void ArrowControl::Update(float elapsed) {
 }
 
 bool ArrowControl::HitTest(const Vec2& point) const {
-	RectF catchRect = RectF::FromCenter((m_p1 + m_p2) / 2, { 4, 4 });
+	RectF catchRect = RectF::FromCenter((m_p1 + m_p2) / 2.f, { 4, 4 });
 	return catchRect.IsPointInside(point);
 }
 

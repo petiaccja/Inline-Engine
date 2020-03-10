@@ -41,8 +41,8 @@ void BasicCamera::SetPosition(Vec3 position) {
 		Vec3 target = GetTarget();
 		m_position = position;
 		m_lookdir = target - m_position;
-		m_targetDistance = m_lookdir.Length();
-		m_lookdir.Normalize();
+		m_targetDistance = Length(m_lookdir);
+		m_lookdir = Normalize(m_lookdir);
 	}
 }
 void BasicCamera::SetTarget(Vec3 targetPosition) {
@@ -51,22 +51,22 @@ void BasicCamera::SetTarget(Vec3 targetPosition) {
 
 	//m_prevUpVector = m_upVector;
 	m_lookdir = targetPosition - m_position;
-	m_targetDistance = m_lookdir.Length();
-	m_lookdir.Normalize();
+	m_targetDistance = Length(m_lookdir);
+	m_lookdir = Normalize(m_lookdir);
 }
 void BasicCamera::SetLookDirection(Vec3 lookDirection) {
 	//m_prevPosition = m_position;
 	m_prevLookdir = m_lookdir;
 	//m_prevUpVector = m_upVector;
 
-	m_lookdir = lookDirection.Normalized();
+	m_lookdir = Normalize(lookDirection);
 }
 void BasicCamera::SetUpVector(Vec3 upVector) {
 	//m_prevPosition = m_position;
 	//m_prevLookdir = m_lookdir;
 	m_prevUpVector = m_upVector;
 
-	m_upVector = upVector.Normalized();
+	m_upVector = Normalize(upVector);
 }
 void BasicCamera::SetTargeted(bool targeted) {
 	m_targeted = targeted;

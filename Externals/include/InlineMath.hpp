@@ -5,6 +5,8 @@
 #include "Mathter/Quaternion.hpp"
 #include "Mathter/Utility.hpp"
 #include "Mathter/Geometry.hpp"
+#include "Mathter/IoStream.hpp"
+#include "Mathter/Common/Approx.hpp"
 #include <cstdint>
 
 

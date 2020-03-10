@@ -18,7 +18,7 @@ void ControlTransform::SetTransform(const Mat33& transform) {
 
 
 Mat33 ControlTransform::GetTransform() const {
-	return m_transform ? m_transform.value().GetMatrix() : Mat33::Identity();
+	return m_transform ? m_transform.value().GetMatrix() : Identity();
 }
 
 
@@ -28,7 +28,7 @@ bool ControlTransform::HasIdentityTransform() const {
 
 
 bool ControlTransform::IsIdentity(const Mat33& transform) {
-	static const Mat33 identity = Mat33::Identity();
+	static const Mat33 identity = Identity();
 	return transform == identity;
 }
 
@@ -139,7 +139,7 @@ bool Control::GetClickThrough() const {
 bool Control::HitTest(const Vec2& point) const {
 	Vec2 pos = GetPosition();
 	Vec2 size = GetSize();
-	RectF rc{ pos - size / 2, pos + size / 2 };
+	RectF rc{ pos - size / 2.f, pos + size / 2.f };
 
 	return rc.IsPointInside(point);
 }

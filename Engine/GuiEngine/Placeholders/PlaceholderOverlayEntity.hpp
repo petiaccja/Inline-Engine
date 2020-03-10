@@ -47,7 +47,7 @@ private:
 	float m_depth = 0.0f;
 
 	RectF m_clipRectangle = { 0, 0, 0, 0 };
-	Mat33 m_clipRectangleTransform = Mat33::Identity();
+	Mat33 m_clipRectangleTransform = Identity();
 	bool m_clipEnabled = false;
 
 	Transform2D m_transform;

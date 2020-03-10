@@ -189,7 +189,7 @@ void NodePanel::OnPortDragged(Control* control, Vec2 dragTarget) {
 		if (port->IsInput()) {
 			std::swap(begin, end);
 		}
-		m_temporaryArrow.SetEndPoints(begin, m_layout.GetTransform().Transposed().DecompositionLUP().Solve(end | 1.f).xy);
+		m_temporaryArrow.SetEndPoints(begin, DecomposeLUP(Transpose(m_layout.GetTransform())).Solve(end | 1.f).xy);
 	}
 }
 
@@ -221,7 +221,7 @@ void NodePanel::OnPanView(Control* control, Vec2 dragTarget) {
 		Vec2 offset = dragTarget - m_panOrigin;
 		m_panOrigin = dragTarget;
 		Mat33 transform = m_layout.GetTransform();
-		transform *= Mat33::Translation(offset * m_zoom);
+		transform *= Mat33(Translation(offset * m_zoom));
 		m_layout.SetTransform(transform);
 	}
 }
@@ -233,9 +233,9 @@ void NodePanel::OnZoomView(Control* control, Vec2 around, float value) {
 
 	Mat33 transform = m_layout.GetTransform();
 	Vec2 aroundLocal = around * transform;
-	transform *= Mat33::Translation(-around);
-	transform *= Mat33::Scale(factor, factor);
-	transform *= Mat33::Translation(around);
+	transform *= Mat33(Translation(-around));
+	transform *= Mat33(Scale(factor, factor));
+	transform *= Mat33(Translation(around));
 	m_layout.SetTransform(transform);
 }
 
@@ -327,7 +327,7 @@ void NodePanel::OnShortcutPressed(Control*, eKey key) {
 		}
 	}
 	if (key == eKey::R) {
-		m_layout.SetTransform(Mat33::Identity());
+		m_layout.SetTransform(Identity());
 		m_zoom = 1.0f;
 	}
 }

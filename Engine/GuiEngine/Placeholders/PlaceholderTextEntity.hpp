@@ -68,7 +68,7 @@ private:
 	Vec4 m_color = { 1, 0, 0, 1 };
 	Vec2 m_size = { 10, 10 };
 	RectF m_clipRectangle = { 0, 0, 0, 0 };
-	Mat33 m_clipRectangleTransform = Mat33::Identity();
+	Mat33 m_clipRectangleTransform = Identity();
 	bool m_clipEnabled = false;
 	float m_horizontalAlignment = 0;
 	float m_verticalAlignment = 0;

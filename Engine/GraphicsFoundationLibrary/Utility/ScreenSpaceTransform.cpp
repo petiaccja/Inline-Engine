@@ -38,16 +38,16 @@ public:
 		Vec2 size = GetInput<4>().Get();
 
 		// Move fsq so that its top left corner is on the origo
-		Mat44 result = Mat44::Translation(Vec3(1.f, -1.f, 0.f));
+		Mat44 result = Translation(Vec3(1.f, -1.f, 0.f));
 
 		const float scaleX = size.x / width;
 		const float scaleY = size.y / height;
-		result = Mat44::Scale(Vec3(scaleX, scaleY, 1.f)) * result;
-		result = Mat44::RotationZ(rot) * result;
+		result = (Mat44)Scale(Vec3(scaleX, scaleY, 1.f)) * result;
+		result = (Mat44)RotationZ(rot) * result;
 
 		const float posX = (pos.x / width) * 2.f - 1.f;
 		const float posY = (-pos.y / height) * 2.f + 1.f;
-		result = Mat44::Translation(Vec3(posX, posY, 0.f)) * result;
+		result = (Mat44)Translation(Vec3(posX, posY, 0.f)) * result;
 
 		GetOutput<0>().Set(result);
 	}

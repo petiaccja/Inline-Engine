@@ -143,8 +143,8 @@ Vec3u64 Resource::GetSize(unsigned mipLevel) const {
 	}
 
 	for (unsigned i = 1; i < mipLevel; ++i) {
-		topLevelSize /= 2;
-		topLevelSize = Vec3u64::Max(topLevelSize, { 1, 1, 1 });
+		topLevelSize /= 2ull;
+		topLevelSize = Max(topLevelSize, Vec3u64{ 1, 1, 1 });
 	}
 
 	return topLevelSize;

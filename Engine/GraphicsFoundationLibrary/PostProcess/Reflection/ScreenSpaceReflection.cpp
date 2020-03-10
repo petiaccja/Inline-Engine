@@ -263,8 +263,8 @@ void ScreenSpaceReflection::Execute(RenderContext& context) {
 	Mat44 v = m_camera->GetViewMatrix();
 	Mat44 p = m_camera->GetProjectionMatrix();
 	Mat44 vp = v * p;
-	Mat44 invVP = vp.Inverse();
-	Mat44 invP = p.Inverse();
+	Mat44 invVP = Inverse(vp);
+	Mat44 invP = Inverse(p);
 	Mat44 mulHalf = {
 		0.5, 0, 0, 0,
 		0, -0.5, 0, 0,
@@ -293,7 +293,7 @@ void ScreenSpaceReflection::Execute(RenderContext& context) {
 	uniformsCBData.vsCamPos = Vec4(m_camera->GetPosition(), 1.0) * v;
 
 	uniformsCBData.v = v;
-	uniformsCBData.invV = v.Inverse();
+	uniformsCBData.invV = Inverse(v);
 
 	//far ndc corners
 	Vec4 ndcCorners[] = {

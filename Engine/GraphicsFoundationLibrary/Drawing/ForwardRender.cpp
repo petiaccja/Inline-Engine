@@ -379,7 +379,7 @@ void ForwardRender::Execute(RenderContext& context) {
 		vsConstants.prevMVP = vsConstants.mvp; // entity->GetPrevTransform() * prevViewProjection;
 		if (sun) {
 			Vec4 vsLightDir = Vec4(sun->GetDirection(), 0.0f) * view;
-			lightConstants.direction = Vec3(vsLightDir.xyz).Normalized();
+			lightConstants.direction = Normalize(Vec3(vsLightDir.xyz));
 			lightConstants.color = sun->GetColor();
 		}
 
@@ -393,7 +393,7 @@ void ForwardRender::Execute(RenderContext& context) {
 		uniformsCBData.ld[0].attenuationEnd = Vec4(5.0f, 0.f, 0.f, 0.f);
 		uniformsCBData.ld[0].diffuseColor = Vec4(1.f, 0.f, 0.f, 1.f);
 		uniformsCBData.vsCamPos = Vec4(m_camera->GetPosition(), 1.0f) * m_camera->GetViewMatrix();
-		uniformsCBData.invV = m_camera->GetViewMatrix().Inverse();
+		uniformsCBData.invV = Inverse(m_camera->GetViewMatrix());
 
 		uint32_t dispatchW, dispatchH;
 		SetWorkgroupSize((unsigned)m_targetRTV.GetResource().GetWidth(), (unsigned)m_targetRTV.GetResource().GetHeight(), 16, 16, dispatchW, dispatchH);

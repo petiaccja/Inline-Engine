@@ -208,7 +208,7 @@ void ShadowMapGen::Execute(RenderContext& context) {
 									  0, 0, -1, 0,
 									  0, 0, 0, 1);
 
-	Mat44 pointLightProjMatrix = Mat44::Perspective(90.0f / 180.f * 3.14159f, 1.0f, 0.1f, 100.0f);
+	Mat44 pointLightProjMatrix = Perspective(90.0f / 180.f * 3.14159f, 1.0f, 0.1f, 100.0f, 0.0f, 1.0f);
 
 
 	//TODO wtf??????????

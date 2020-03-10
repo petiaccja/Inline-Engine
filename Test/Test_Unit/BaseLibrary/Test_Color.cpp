@@ -31,12 +31,12 @@ TEST_CASE("Float -> int16_t", "[Color]") {
 TEST_CASE("Uint16_t -> float", "[Color]") {
 	Color<uint16_t> c1(65535, 32767, 0, 65535);
 	Color<float> c2(c1);
-	REQUIRE(c2.v.Approx() == Color<float>(1, 0.5f, 0, 1).v);
+	REQUIRE(ApproxVec(c2.v) == Color<float>(1, 0.5f, 0, 1).v);
 }
 
 
 TEST_CASE("Int16_t -> float", "[Color]") {
 	Color<int16_t> c1(32767, 0, -32768, 32767);
 	Color<float> c2(c1);
-	REQUIRE(c2.v.Approx() == Color<float>(1, 0.5f, 0, 1).v);
+	REQUIRE(ApproxVec(c2.v) == Color<float>(1, 0.5f, 0, 1).v);
 }

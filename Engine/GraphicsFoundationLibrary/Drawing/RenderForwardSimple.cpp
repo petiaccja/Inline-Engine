@@ -206,7 +206,7 @@ void RenderForwardSimple::RenderEntities(RenderContext& context, GraphicsCommand
 		const Mat44 world = entity->Transform().GetMatrix();
 		vsConstants.world = world;
 		vsConstants.viewProj = world * viewProj;
-		vsConstants.worldViewProjDer = Mat44::Zero(); // TODO
+		vsConstants.worldViewProjDer = Zero(); // TODO
 
 		stateDesc.BindPipeline(commandList);
 		commandList.BindGraphics(vsConstantsBind.parameter, &vsConstants, sizeof(vsConstants));

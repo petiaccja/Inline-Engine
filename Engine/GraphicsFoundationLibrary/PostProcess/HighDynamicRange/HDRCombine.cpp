@@ -256,7 +256,7 @@ void HDRCombine::Execute(RenderContext& context) {
 
 	Vec3 up = m_camera->GetUpVector();
 	Vec3 view = m_camera->GetLookDirection();
-	Vec3 right = Cross(view, up).Normalized();
+	Vec3 right = Normalize(Cross(view, up));
 
 	float camrot = Dot(-right, Vec3(0, 0, 1)) + Dot(view, Vec3(0, 1, 0));
 

@@ -85,7 +85,7 @@ private:
 
 private:
 	Vec2 m_position = { 0, 0 };
-	Mat33 m_postTransform = Mat33::Identity();
+	Mat33 m_postTransform = Identity();
 	std::unique_ptr<gxeng::ITextEntity> m_entity;
 	GraphicsContext m_context;
 };

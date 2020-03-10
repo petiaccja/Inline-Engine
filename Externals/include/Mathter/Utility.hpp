@@ -1,7 +1,7 @@
 #pragma once
 
 #include <type_traits>
-
+#include <algorithm>
 
 namespace mathter {
 
@@ -68,30 +68,7 @@ template <class T, int Dim, bool Packed>
 Vector<T, Dim, Packed> Saturate(const Vector<T, Dim, Packed>& arg);
 
 
-
-
-
-//------------------------------------------------------------------------------
-// Internal utility stuff.
-//------------------------------------------------------------------------------
-namespace impl {
-
-template <class T>
-constexpr T ConstexprExp10(int exponent) {
-	return exponent == 0 ? T(1) : T(10) * ConstexprExp10<T>(exponent - 1);
-}
-
-template <class T>
-constexpr T ConstexprAbs(T arg) {
-	return arg >= T(0) ? arg : -arg;
-}
-
-} // namespace impl
-
-
 } // namespace mathter
-
-
 
 
 #include "Vector.hpp"
