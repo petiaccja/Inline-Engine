@@ -48,20 +48,20 @@ private:
 		T C = cos(angle);
 		T S = sin(angle);
 
-		auto elem = [&m](int i, int j) -> T& {
+		auto elem = [&m](int i, int j) -> U& {
 			return Order == eMatrixOrder::FOLLOW_VECTOR ? m(i, j) : m(j, i);
 		};
 
 		// Indices according to follow vector order
-		elem(0, 0) = C;
-		elem(0, 1) = S;
-		elem(1, 0) = -S;
-		elem(1, 1) = C;
+		elem(0, 0) = U(C);
+		elem(0, 1) = U(S);
+		elem(1, 0) = U(-S);
+		elem(1, 1) = U(C);
 
 		// Rest
 		for (int j = 0; j < m.ColumnCount(); ++j) {
 			for (int i = (j < 2 ? 2 : 0); i < m.RowCount(); ++i) {
-				m(i, j) = T(j == i);
+				m(i, j) = U(j == i);
 			}
 		}
 	}

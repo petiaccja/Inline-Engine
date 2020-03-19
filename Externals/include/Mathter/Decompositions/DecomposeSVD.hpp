@@ -25,7 +25,7 @@ class DecompositionSVD {
 	static constexpr int Vdim = Columns;
 
 public:
-	DecompositionSVD(MatrixT<Udim, Sdim> U, MatrixT<Sdim, Sdim> S, MatrixT<Sdim, Vdim> V) : U(U), S(S), V(V) {}
+	//DecompositionSVD(MatrixT<Udim, Sdim> U, MatrixT<Sdim, Sdim> S, MatrixT<Sdim, Vdim> V) : U(U), S(S), V(V) {}
 
 	MatrixT<Udim, Sdim> U;
 	MatrixT<Sdim, Sdim> S;
@@ -187,13 +187,13 @@ namespace impl {
 			Sout(i, i) = B(i, i);
 		}
 
-		return DecompositionSVD<T, Rows, Columns, Order, Layout, Packed>(U, Sout, Transpose(V));
+		return DecompositionSVD<T, Rows, Columns, Order, Layout, Packed>{ U, Sout, Transpose(V) };
 	}
 
 	template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
 	auto DecomposeSVD(Matrix<T, Rows, Columns, Order, Layout, Packed> m, std::false_type) {
 		auto [U, S, V] = DecomposeSVD(Transpose(m), std::true_type{});
-		return DecompositionSVD<T, Rows, Columns, Order, Layout, Packed>(Transpose(V), S, Transpose(U));
+		return DecompositionSVD<T, Rows, Columns, Order, Layout, Packed>{ Transpose(V), S, Transpose(U) };
 	}
 
 

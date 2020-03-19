@@ -1,3 +1,3 @@
-Swizzle<ST, 0, 0> xx;
-Swizzle<ST, 0, 0, 0> xxx;
-Swizzle<ST, 0, 0, 0, 0> xxxx;
+Swizzle<VectorData, 0, 0> xx;
+Swizzle<VectorData, 0, 0, 0> xxx;
+Swizzle<VectorData, 0, 0, 0, 0> xxxx;

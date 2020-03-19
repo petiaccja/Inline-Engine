@@ -13,7 +13,7 @@
 
 namespace mathter {
 
-	   	 
+
 /// <summary> Returns true if the vector's length is too small for precise calculations (i.e. normalization). </summary>
 /// <remarks> "Too small" means smaller than the square root of the smallest number representable by the underlying scalar.
 ///			This value is ~10^-18 for floats and ~10^-154 for doubles. </remarks>
@@ -33,7 +33,7 @@ T LengthSquared(const Vector<T, Dim, Packed>& v) {
 /// <summary> Returns the length of the vector. </summary>
 template <class T, int Dim, bool Packed>
 T Length(const Vector<T, Dim, Packed>& v) {
-	return (T)sqrt((T)LengthSquared(v));
+	return (T)std::sqrt((T)LengthSquared(v));
 }
 
 /// <summary> Returns the length of the vector, avoids overflow and underflow, so it's more expensive. </summary>
@@ -47,7 +47,7 @@ T LengthPrecise(const Vector<T, Dim, Packed>& v) {
 		return T(0);
 	}
 	auto scaled = v / maxElement;
-	return sqrt(Dot(scaled, scaled)) * maxElement;
+	return std::sqrt(Dot(scaled, scaled)) * maxElement;
 }
 
 /// <summary> Returns the euclidean distance between to vectors. </summary>
@@ -93,16 +93,16 @@ Vector<T, Dim, Packed> SafeNormalize(const Vector<T, Dim, Packed>& v, const Vect
 }
 
 /// <summary> Sets all elements of the vector to the same value. </summary>
-template <class T, int Dim, bool Packed>
-void Fill(Vector<T, Dim, Packed>& lhs, T all) {
+template <class T, int Dim, bool Packed, class U, std::enable_if_t<std::is_convertible_v<U, T>, int> = 0>
+void Fill(Vector<T, Dim, Packed>& lhs, U all) {
 	if constexpr (!traits::HasSimd<Vector<T, Dim, Packed>>::value) {
 		for (auto& v : lhs) {
-			v = all;
+			v = (T)all;
 		}
 	}
 	else {
 		using SimdT = decltype(VectorData<T, Dim, Packed>::simd);
-		lhs.simd = SimdT::spread(all);
+		lhs.simd = SimdT::spread((T)all);
 	}
 }
 
@@ -151,9 +151,15 @@ Vector<T, 2, Packed> Cross(const std::array<const Vector<T, 2, Packed>*, 1>& arg
 /// <summary> Returns the 3-dimensional cross-product. </summary>
 template <class T, bool Packed>
 Vector<T, 3, Packed> Cross(const Vector<T, 3, Packed>& lhs, const Vector<T, 3, Packed>& rhs) {
-	return Vector<T, 3, Packed>(lhs.y * rhs.z - lhs.z * rhs.y,
-								lhs.z * rhs.x - lhs.x * rhs.z,
-								lhs.x * rhs.y - lhs.y * rhs.x);
+	using VecT = Vector<T, 3, Packed>;
+	if constexpr (traits::HasSimd<VecT>::value) {
+		return VecT(lhs.yzx) * VecT(rhs.zxy) - VecT(lhs.zxy) * VecT(rhs.yzx);
+	}
+	else {
+		return VecT(lhs.y * rhs.z - lhs.z * rhs.y,
+					lhs.z * rhs.x - lhs.x * rhs.z,
+					lhs.x * rhs.y - lhs.y * rhs.x);
+	}
 }
 /// <summary> Returns the 3-dimensional cross-product. </summary>
 template <class T, bool Packed>

@@ -41,29 +41,35 @@ mathter::Vector<T, Dim + 1, Packed> operator|(U lhs, const mathter::Vector<T, Di
 }
 
 /// <summary> Concatenates the arguments, and returns the concatenated vector. </summary>
-template <class T1, int... Indices1, class T2, int... Indices2>
-Vector<T1, sizeof...(Indices2) + sizeof...(Indices2), false> operator|(const Swizzle<T1, Indices1...>& lhs, const Swizzle<T2, Indices2...>& rhs) {
-	return Vector<T1, sizeof...(Indices1), false>(lhs) | Vector<T1, sizeof...(Indices2), false>(rhs);
+template <class VectorData1, int... Indices1, class VectorData2, int... Indices2>
+auto operator|(const Swizzle<VectorData1, Indices1...>& lhs, const Swizzle<VectorData2, Indices2...>& rhs) {
+	using TS1 = typename traits::VectorTraits<VectorData1>::Type;
+	using TS2 = typename traits::VectorTraits<VectorData2>::Type;	
+	return Vector<TS1, sizeof...(Indices1), false>(lhs) | Vector<TS2, sizeof...(Indices2), false>(rhs);
 }
 /// <summary> Concatenates the arguments, and returns the concatenated vector. </summary>
-template <class T1, int... Indices1, class T2, int Dim, bool Packed>
-Vector<T1, sizeof...(Indices1) + Dim, Packed> operator|(const Swizzle<T1, Indices1...>& lhs, const Vector<T2, Dim, Packed>& rhs) {
-	return Vector<T1, sizeof...(Indices1), Packed>(lhs) | rhs;
+template <class VectorData1, int... Indices1, class T2, int Dim, bool Packed>
+auto operator|(const Swizzle<VectorData1, Indices1...>& lhs, const Vector<T2, Dim, Packed>& rhs) {
+	using TS = typename traits::VectorTraits<VectorData1>::Type;
+	return Vector<TS, sizeof...(Indices1), Packed>(lhs) | rhs;
 }
 /// <summary> Concatenates the arguments, and returns the concatenated vector. </summary>
-template <class T1, int... Indices1, class T2, int Dim, bool Packed>
-Vector<T1, sizeof...(Indices1) + Dim, Packed> operator|(const Vector<T2, Dim, Packed>& lhs, const Swizzle<T1, Indices1...>& rhs) {
-	return lhs | Vector<T1, sizeof...(Indices1), false>(rhs);
+template <class VectorData1, int... Indices1, class T2, int Dim, bool Packed>
+auto operator|(const Vector<T2, Dim, Packed>& lhs, const Swizzle<VectorData1, Indices1...>& rhs) {
+	using TS = typename traits::VectorTraits<VectorData1>::Type;
+	return lhs | Vector<TS, sizeof...(Indices1), false>(rhs);
 }
 /// <summary> Concatenates the arguments, and returns the concatenated vector. </summary>
-template <class T1, int... Indices1, class U>
-Vector<T1, sizeof...(Indices1) + 1, false> operator|(const Swizzle<T1, Indices1...>& lhs, U rhs) {
-	return Vector<T1, sizeof...(Indices1), false>(lhs) | rhs;
+template <class VectorData1, int... Indices1, class U>
+auto operator|(const Swizzle<VectorData1, Indices1...>& lhs, U rhs) {
+	using TS = typename traits::VectorTraits<VectorData1>::Type;
+	return Vector<TS, sizeof...(Indices1), false>(lhs) | rhs;
 }
 /// <summary> Concatenates the arguments, and returns the concatenated vector. </summary>
-template <class T1, int... Indices1, class U>
-Vector<T1, sizeof...(Indices1) + 1, false> operator|(U lhs, const Swizzle<T1, Indices1...>& rhs) {
-	return lhs | Vector<T1, sizeof...(Indices1), false>(rhs);
+template <class VectorData1, int... Indices1, class U>
+auto operator|(U lhs, const Swizzle<VectorData1, Indices1...>& rhs) {
+	using TS = typename traits::VectorTraits<VectorData1>::Type;
+	return lhs | Vector<TS, sizeof...(Indices1), false>(rhs);
 }
 
 

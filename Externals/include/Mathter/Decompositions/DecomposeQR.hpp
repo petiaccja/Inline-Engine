@@ -20,8 +20,8 @@ class DecompositionQR {
 	using MatrixT = Matrix<T, Rows, Columns, Order, Layout, Packed>;
 
 public:
-	DecompositionQR(Matrix<T, Rows, Rows, Order, Layout, Packed> Q,
-					Matrix<T, Rows, Columns, Order, Layout, Packed> R) : Q(Q), R(R) {}
+	//DecompositionQR(Matrix<T, Rows, Rows, Order, Layout, Packed> Q,
+	//				Matrix<T, Rows, Columns, Order, Layout, Packed> R) : Q(Q), R(R) {}
 
 	Matrix<T, Rows, Rows, Order, Layout, Packed> Q;
 	Matrix<T, Rows, Columns, Order, Layout, Packed> R;

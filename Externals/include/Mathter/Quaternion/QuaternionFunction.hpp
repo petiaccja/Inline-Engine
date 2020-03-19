@@ -36,7 +36,7 @@ Quaternion<T, Packed> Log(const Quaternion<T, Packed>& q) {
 	auto magq = Length(q);
 	auto vn = Normalize(q.VectorPart());
 
-	Quaternion ret = { std::log(magq), vn * acos(q.s / magq) };
+	Quaternion ret = { std::log(magq), vn * std::acos(q.s / magq) };
 	return ret;
 }
 

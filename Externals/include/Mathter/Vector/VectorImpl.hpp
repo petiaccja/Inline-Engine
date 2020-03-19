@@ -6,9 +6,9 @@
 #pragma once
 
 #include "../Common/Definitions.hpp"
+#include "../Common/MathUtil.hpp"
 #include "../Common/Traits.hpp"
 #include "../SIMD/Simd.hpp"
-#include "../Common/MathUtil.hpp"
 
 #include <algorithm>
 #include <array>
@@ -31,8 +31,9 @@ namespace mathter {
 /// Swizzlers can be used with assignments, concatenation, casting and constructors.
 /// To perform arithmetic, cast swizzlers to corresponding vector type.
 /// </remarks>
-template <class T, int... Indices>
+template <class VectorData, int... Indices>
 class Swizzle {
+	using T = typename traits::VectorTraits<VectorData>::Type;
 	static constexpr int IndexTable[] = { Indices... };
 	static constexpr int Dim = sizeof...(Indices);
 	T* data() { return reinterpret_cast<T*>(this); }
@@ -213,20 +214,22 @@ class VectorData<float, 2, false> {
 	using ST = float;
 
 public:
+	using SimdT = Simd<ST, 2>;
 	VectorData() {}
 	VectorData(const VectorData& rhs) { simd = rhs.simd; }
+	explicit VectorData(SimdT simd) : simd(simd) {}
 	VectorData& operator=(const VectorData& rhs) {
 		simd = rhs.simd;
 		return *this;
 	}
 	union {
 		/// <summary> Leave this member alone. You can't fuck it up though. </summary>
-		Simd<float, 2> simd;
+		SimdT simd;
 		struct {
-			float x, y;
+			ST x, y;
 		};
 		/// <summary> Raw array containing the elements. </summary>
-		float data[2];
+		ST data[2];
 #include "../Swizzle/Swizzle_2.inc.hpp"
 	};
 };
@@ -236,20 +239,22 @@ class VectorData<float, 3, false> {
 	using ST = float;
 
 public:
+	using SimdT = Simd<ST, 4>;
 	VectorData() {}
 	VectorData(const VectorData& rhs) { simd = rhs.simd; }
+	explicit VectorData(SimdT simd) : simd(simd) {}
 	VectorData& operator=(const VectorData& rhs) {
 		simd = rhs.simd;
 		return *this;
 	}
 	union {
 		/// <summary> Leave this member alone. You can't fuck it up though. </summary>
-		Simd<float, 4> simd;
+		SimdT simd;
 		struct {
-			float x, y, z;
+			ST x, y, z;
 		};
 		/// <summary> Raw array containing the elements. </summary>
-		float data[3];
+		ST data[3];
 #include "../Swizzle/Swizzle_3.inc.hpp"
 	};
 };
@@ -259,20 +264,22 @@ class VectorData<float, 4, false> {
 	using ST = float;
 
 public:
+	using SimdT = Simd<ST, 4>;
 	VectorData() {}
 	VectorData(const VectorData& rhs) { simd = rhs.simd; }
+	explicit VectorData(SimdT simd) : simd(simd) {}
 	VectorData& operator=(const VectorData& rhs) {
 		simd = rhs.simd;
 		return *this;
 	}
 	union {
 		/// <summary> Leave this member alone. You can't fuck it up though. </summary>
-		Simd<float, 4> simd;
+		SimdT simd;
 		struct {
-			float x, y, z, w;
+			ST x, y, z, w;
 		};
 		/// <summary> Raw array containing the elements. </summary>
-		float data[4];
+		ST data[4];
 #include "../Swizzle/Swizzle_4.inc.hpp"
 	};
 };
@@ -280,15 +287,17 @@ public:
 template <>
 class VectorData<float, 8, false> {
 public:
+	using SimdT = Simd<float, 8>;
 	VectorData() {}
 	VectorData(const VectorData& rhs) { simd = rhs.simd; }
+	explicit VectorData(SimdT simd) : simd(simd) {}
 	VectorData& operator=(const VectorData& rhs) {
 		simd = rhs.simd;
 		return *this;
 	}
 	union {
 		/// <summary> Leave this member alone. You can't fuck it up though. </summary>
-		Simd<float, 8> simd;
+		SimdT simd;
 		/// <summary> Raw array containing the elements. </summary>
 		float data[8];
 	};
@@ -301,20 +310,22 @@ class VectorData<double, 2, false> {
 	using ST = double;
 
 public:
+	using SimdT = Simd<ST, 2>;
 	VectorData() {}
 	VectorData(const VectorData& rhs) { simd = rhs.simd; }
+	explicit VectorData(SimdT simd) : simd(simd) {}
 	VectorData& operator=(const VectorData& rhs) {
 		simd = rhs.simd;
 		return *this;
 	}
 	union {
 		/// <summary> Leave this member alone. You can't fuck it up though. </summary>
-		Simd<double, 2> simd;
+		SimdT simd;
 		struct {
-			double x, y;
+			ST x, y;
 		};
 		/// <summary> Raw array containing the elements. </summary>
-		double data[2];
+		ST data[2];
 #include "../Swizzle/Swizzle_2.inc.hpp"
 	};
 };
@@ -324,20 +335,22 @@ class VectorData<double, 3, false> {
 	using ST = double;
 
 public:
+	using SimdT = Simd<ST, 4>;
 	VectorData() {}
 	VectorData(const VectorData& rhs) { simd = rhs.simd; }
+	explicit VectorData(SimdT simd) : simd(simd) {}
 	VectorData& operator=(const VectorData& rhs) {
 		simd = rhs.simd;
 		return *this;
 	}
 	union {
 		/// <summary> Leave this member alone. You can't fuck it up though. </summary>
-		Simd<double, 4> simd;
+		SimdT simd;
 		struct {
-			double x, y, z;
+			ST x, y, z;
 		};
 		/// <summary> Raw array containing the elements. </summary>
-		double data[3];
+		ST data[3];
 #include "../Swizzle/Swizzle_3.inc.hpp"
 	};
 };
@@ -347,20 +360,22 @@ class VectorData<double, 4, false> {
 	using ST = double;
 
 public:
+	using SimdT = Simd<ST, 4>;
 	VectorData() {}
 	VectorData(const VectorData& rhs) { simd = rhs.simd; }
+	explicit VectorData(SimdT simd) : simd(simd) {}
 	VectorData& operator=(const VectorData& rhs) {
 		simd = rhs.simd;
 		return *this;
 	}
 	union {
 		/// <summary> Leave this member alone. You can't fuck it up though. </summary>
-		Simd<double, 4> simd;
+		SimdT simd;
 		struct {
-			double x, y, z, w;
+			ST x, y, z, w;
 		};
 		/// <summary> Raw array containing the elements. </summary>
-		double data[4];
+		ST data[4];
 #include "../Swizzle/Swizzle_4.inc.hpp"
 	};
 };
@@ -393,6 +408,8 @@ class Vector : public VectorData<T, Dim, Packed> {
 
 public:
 	using VectorData<T, Dim, Packed>::data;
+	struct FromSimd_ {};
+	static constexpr FromSimd_ FromSimd = {};
 
 	//--------------------------------------------
 	// Properties
@@ -412,6 +429,14 @@ public:
 	Vector(const Vector&) = default;
 	Vector& operator=(const Vector&) = default;
 
+	/// <summary> Constructs the vector by converting elements of <paramref name="other"/>. </summary>
+	template <class U, bool UPacked, std::enable_if_t<std::is_convertible_v<U, T>, int> = 0>
+	Vector(const Vector<U, Dim, UPacked>& other) {
+		for (int i = 0; i < Dim; ++i) {
+			this->data[i] = (T)other.data[i];
+		}
+	}
+
 	/// <summary> Sets all elements to the same value. </summary>
 	explicit Vector(T all) {
 		if constexpr (!traits::HasSimd<Vector>::value) {
@@ -427,13 +452,18 @@ public:
 
 	/// <summary> Constructs the vector from an array of elements. </summary>
 	/// <remarks> The number of elements must be the same as the vector's dimension. </remarks>
-	template <class U>
+	template <class U, std::enable_if_t<std::is_convertible_v<U, T>, int> = 0>
 	explicit Vector(const U* data) {
 		for (int i = 0; i < Dim; ++i) {
 			this->data[i] = data[i];
 		}
 	}
 
+	template <class SimdArgT>
+	Vector(FromSimd_, SimdArgT simd) : VectorData<T, Dim, Packed>(simd) {
+		static_assert(traits::HasSimd<Vector>::value, "To the developer of Mathter: don't call this unless has SIMD.");
+	}
+	
 	//--------------------------------------------
 	// Homogeneous up- and downcast
 	//--------------------------------------------
@@ -448,45 +478,46 @@ public:
 
 
 	//--------------------------------------------
-	// Copy, assignment, set
+	// Scalar set & concatenation
 	//--------------------------------------------
-
-	// NOTE: somehow msvc 2015 is buggy and cannot compile sizeof... checks for ctors as in Set
 
 	/// <summary> Initializes the vector to the given scalar elements. </summary>
 	/// <remarks> Number of arguments must equal vector dimension.
-	///		Types of arguments may differ from vector's underlying type, in which case explicit cast is performed. </remarks>
-	template <class H1, class H2, class... Scalars, typename std::enable_if<traits::All<traits::IsScalar, H1, H2, Scalars...>::value && traits::SumDimensions<H1, H2, Scalars...>::value == Dim, int>::type = 0>
-	Vector(H1 h1, H2 h2, Scalars... scalars) {
-		Assign(0, h1, h2, scalars...);
+	///		Types of arguments may differ from vector's underlying type, in which case cast is forced without a warning. </remarks>
+	template <class... Scalars, typename std::enable_if<Dim >= 2
+															&& std::conjunction_v<std::is_convertible<Scalars, T>...>
+															&& sizeof...(Scalars) == Dim,
+														int>::type = 0>
+	Vector(Scalars... scalars) {
+		if constexpr (traits::HasSimd<Vector>::value) {
+			if constexpr (Dim == 3) {
+				this->simd = VectorData<T, 3, Packed>::SimdT::set(scalars..., T(0));
+			}
+			else {
+				this->simd = VectorData<T, Dim, Packed>::SimdT::set(scalars...);
+			}
+		}
+		else {
+			*reinterpret_cast<std::array<T, Dim>*>(this->data) = { (T)scalars... };
+		}
 	}
 
-	/// <summary> Initializes the vector by concatenating given scalar and vector arguments. </summary>
+	/// <summary> Initializes the vector by concatenating given scalar, vector or swizzle arguments. </summary>
 	/// <remarks> Sum of the dimension of arguments must equal vector dimension.
-	///		Types of arguments may differ from vector's underlying type, in which case explicit cast is performed. </remarks>
-	template <class H1, class... Mixed, typename std::enable_if<traits::Any<traits::IsVectorOrSwizzle, H1, Mixed...>::value && traits::SumDimensions<H1, Mixed...>::value == Dim, int>::type = 0>
-	Vector(const H1& h1, const Mixed&... mixed) {
-		Assign(0, h1, mixed...);
-	}
-
-	/// <summary> Sets the vector's elements to the given scalars. </summary>
-	/// <remarks> Number of arguments must equal vector dimension.
-	///		Types of arguments may differ from vector's underlying type, in which case explicit cast is performed. </remarks>
-	template <class... Scalars, typename std::enable_if<((sizeof...(Scalars) > 1) && traits::All<traits::IsScalar, Scalars...>::value), int>::type = 0>
-	Vector& Set(Scalars... scalars) {
-		static_assert(traits::SumDimensions<Scalars...>::value == Dim, "Arguments must match vector dimension.");
-		Assign(0, scalars...);
-		return *this;
-	}
-
-	/// <summary> Sets the vector's elements by concatenating given scalar and vector arguments. </summary>
-	/// <remarks> Sum of the dimension of arguments must equal vector dimension.
-	///		Types of arguments may differ from vector's underlying type, in which case explicit cast is performed. </remarks>
-	template <class... Mixed, typename std::enable_if<(sizeof...(Mixed) > 0) && traits::Any<traits::IsVectorOrSwizzle, Mixed...>::value, int>::type = 0>
-	Vector& Set(const Mixed&... mixed) {
-		static_assert(traits::SumDimensions<Mixed...>::value == Dim, "Arguments must match vector dimension.");
+	///		Types of arguments may differ from vector's underlying type, in which case cast is forced without a warning. </remarks>
+	template <class... Mixed, typename std::enable_if<sizeof...(Mixed) >= 1
+														  && !std::conjunction_v<std::is_convertible<Mixed, T>...>
+														  && traits::SumDimensions<Mixed...>::value == Dim,
+													  int>::type = 0>
+	Vector(const Mixed&... mixed) {
 		Assign(0, mixed...);
-		return *this;
+	}
+
+
+	/// <summary> Sets the vector the provided elements. </summary>
+	template <class... Args>
+	void Set(Args&&... args) {
+		new (this) Vector(std::forward<Args>(args)...);
 	}
 
 
@@ -564,9 +595,9 @@ protected:
 	struct GetVectorElement<Vector<T2, D2, P2>> {
 		static T2 Get(const Vector<T2, D2, P2>& u, int idx) { return u.data[idx]; }
 	};
-	template <class U, int... Indices>
-	struct GetVectorElement<Swizzle<U, Indices...>> {
-		static U Get(const Swizzle<T, Indices...>& u, int idx) { return u[idx]; }
+	template <class VectorDataU, int... Indices>
+	struct GetVectorElement<Swizzle<VectorDataU, Indices...>> {
+		static auto Get(const Swizzle<VectorDataU, Indices...>& u, int idx) { return u[idx]; }
 	};
 
 	// Assign
@@ -596,17 +627,42 @@ protected:
 };
 
 
-template <class T, int... Indices>
-Swizzle<T, Indices...>::operator Vector<T, sizeof...(Indices), false>() const {
-	return Vector<T, sizeof...(Indices), false>(data()[Indices]...);
+template <class SimdT, int... Indices>
+auto ShuffleReverse(SimdT arg, std::integer_sequence<int, Indices...>) {
+	return SimdT::template shuffle<Indices...>(arg);
 }
-template <class T, int... Indices>
-Swizzle<T, Indices...>::operator Vector<T, sizeof...(Indices), true>() const {
+
+template <class VectorData, int... Indices>
+Swizzle<VectorData, Indices...>::operator Vector<typename Swizzle<VectorData, Indices...>::T, sizeof...(Indices), false>() const {
+	using DestVecT = Vector<T, sizeof...(Indices), false>;
+	constexpr bool SourceHasSimd = traits::HasSimd<VectorData>::value;
+	constexpr bool DestHasSimd = traits::HasSimd<DestVecT>::value;
+	if constexpr (SourceHasSimd && DestHasSimd) {
+		using SourceSimdT = decltype(std::declval<VectorData>().simd);
+		using DestSimdT = decltype(std::declval<VectorData>().simd);
+		constexpr int VectorDataDim = traits::VectorTraits<VectorData>::Dim;
+		if constexpr (std::is_same_v<SourceSimdT, DestSimdT>) {
+			const auto& sourceSimd = reinterpret_cast<const VectorData*>(this)->simd;
+			if constexpr (sizeof...(Indices) == 3 && VectorDataDim == 3 && VectorDataDim == 4) {
+				return { DestVecT::FromSimd, ShuffleReverse(sourceSimd, typename traits::ReverseIntegerSequence<std::integer_sequence<int, Indices..., 3>>::type{}) };
+			}
+			else if constexpr (sizeof...(Indices) == 4 && VectorDataDim == 3 && VectorDataDim == 4) {
+				return { DestVecT::FromSimd, ShuffleReverse(sourceSimd, typename traits::ReverseIntegerSequence<std::integer_sequence<int, Indices...>>::type{}) };
+			}
+			else  if constexpr (sizeof...(Indices) == 2 && VectorDataDim == 2) {
+				return { DestVecT::FromSimd, ShuffleReverse(sourceSimd, typename traits::ReverseIntegerSequence<std::integer_sequence<int, Indices...>>::type{}) };
+			}
+		}
+	}	
+	return DestVecT(data()[Indices]...);
+}
+template <class VectorData, int... Indices>
+Swizzle<VectorData, Indices...>::operator Vector<typename Swizzle<VectorData, Indices...>::T, sizeof...(Indices), true>() const {
 	return Vector<T, sizeof...(Indices), true>(data()[Indices]...);
 }
 
-template <class T, int... Indices>
-Swizzle<T, Indices...>& Swizzle<T, Indices...>::operator=(const Vector<T, sizeof...(Indices), false>& rhs) {
+template <class VectorData, int... Indices>
+Swizzle<VectorData, Indices...>& Swizzle<VectorData, Indices...>::operator=(const Vector<T, sizeof...(Indices), false>& rhs) {
 	if (data() != rhs.data) {
 		Assign<Indices...>(rhs.data);
 	}
@@ -616,8 +672,8 @@ Swizzle<T, Indices...>& Swizzle<T, Indices...>::operator=(const Vector<T, sizeof
 	}
 	return *this;
 }
-template <class T, int... Indices>
-Swizzle<T, Indices...>& Swizzle<T, Indices...>::operator=(const Vector<T, sizeof...(Indices), true>& rhs) {
+template <class VectorData, int... Indices>
+Swizzle<VectorData, Indices...>& Swizzle<VectorData, Indices...>::operator=(const Vector<T, sizeof...(Indices), true>& rhs) {
 	if (data() != rhs.data) {
 		Assign<Indices...>(rhs.data);
 	}

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 template <class T>
 T sign(T arg) {
 	return T(arg > T(0)) - (arg < T(0));
@@ -7,7 +9,7 @@ T sign(T arg) {
 
 template <class T>
 T sign_nonzero(T arg) {
-	return copysign(T(1), arg);
+	return std::copysign(T(1), arg);
 }
 
 template <class T>

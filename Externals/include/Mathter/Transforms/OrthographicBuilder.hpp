@@ -70,7 +70,7 @@ private:
 /// <param name="projFarPlane"> The upper bound of the last axis of the projected volume (Z axis in 3D). </param>
 /// <remarks> After projection, all axes range from -1 to 1, except for the last axis, which is specified explicitly. </remarks>
 template <class T, int Dim, bool Packed>
-auto Orthographic(const Vector<T, Dim, Packed>& minBounds, const Vector<T, Dim, Packed>& maxBounds, T projNearPlane = T(0), T projFarPlane = T(1)) {
+auto Orthographic(const Vector<T, Dim, Packed>& minBounds, const Vector<T, Dim, Packed>& maxBounds, T projNearPlane, T projFarPlane) {
 	if constexpr (std::is_integral_v<T>) {
 		using VectorT = Vector<float, Dim, false>;
 		return OrthographicBuilder(VectorT(minBounds), VectorT(maxBounds), float(projNearPlane), float(projFarPlane));

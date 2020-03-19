@@ -34,13 +34,14 @@ bool AlmostEqual(T d1, T d2, std::false_type) {
 }
 
 // Check equivalence with tolerance.
-template <class T, class = std::enable_if_t<traits::NotVector<T>::value && traits::NotMatrix<T>::value && traits::NotQuaternion<T>::value>>
-bool AlmostEqual(T d1, T d2) {
-	return AlmostEqual(d1, d2, std::integral_constant<bool, std::is_floating_point<T>::value>());
+template <class T, class U, class = std::enable_if_t<traits::NotVector<T>::value && traits::NotMatrix<T>::value && traits::NotQuaternion<T>::value>>
+bool AlmostEqual(T d1, U d2) {
+	using P = traits::MatMulElemT<T, U>;
+	return AlmostEqual(P(d1), P(d2), std::integral_constant<bool, std::is_floating_point<P>::value>());
 }
 
-template <class T, int Dim, bool Packed1, bool Packed2>
-bool AlmostEqual(const Vector<T, Dim, Packed1>& lhs, const Vector<T, Dim, Packed2>& rhs) {
+template <class T1, class T2, int Dim, bool Packed1, bool Packed2>
+bool AlmostEqual(const Vector<T1, Dim, Packed1>& lhs, const Vector<T2, Dim, Packed2>& rhs) {
 	bool eq = true;
 	for (auto i : Range(Dim)) {
 		eq = eq && AlmostEqual(lhs[i], rhs[i]);
@@ -57,7 +58,8 @@ bool AlmostEqual(const Quaternion<T, Packed1>& lhs, const Quaternion<T, Packed2>
 	return eq;
 }
 
-template <class T,
+template <class T1,
+		  class T2,
 		  int Rows,
 		  int Columns,
 		  eMatrixOrder Order1,
@@ -66,7 +68,7 @@ template <class T,
 		  eMatrixOrder Order2,
 		  eMatrixLayout Layout2,
 		  bool Packed2>
-bool AlmostEqual(const Matrix<T, Rows, Columns, Order1, Layout1, Packed1>& lhs, const Matrix<T, Rows, Columns, Order2, Layout2, Packed2>& rhs) {
+bool AlmostEqual(const Matrix<T1, Rows, Columns, Order1, Layout1, Packed1>& lhs, const Matrix<T2, Rows, Columns, Order2, Layout2, Packed2>& rhs) {
 	bool eq = true;
 	for (auto i : Range(Rows)) {
 		for (auto j : Range(Columns)) {

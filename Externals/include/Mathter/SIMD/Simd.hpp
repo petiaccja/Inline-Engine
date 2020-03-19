@@ -9,6 +9,8 @@
 #include <cassert>
 
 
+namespace mathter {
+
 // Default implementation without SSE.
 // Additional implementation are #included as template specializations of this class.
 
@@ -16,74 +18,74 @@
 /// 2,4 or 8 dimension float or double parameters accepted.
 /// Uses SSE2 or AVX acceleration if enabled in the compiler.
 /// </summary>
-template <class T, int Dim>
+template<class T, int Dim>
 union Simd {
 	static_assert(Dim == 2 || Dim == 4 || Dim == 8, "Dimension must be 2, 4, or 8.");
-	static_assert(std::is_same<T, float>::value 
-				  || std::is_same<T, double>::value
-				  || std::is_same<T, int32_t>::value
-				  || std::is_same<T, int64_t>::value,
-				  "Type must be float, double, in32 or int64.");
+	static_assert(std::is_same<T, float>::value
+	              || std::is_same<T, double>::value
+	              || std::is_same<T, int32_t>::value
+	              || std::is_same<T, int64_t>::value,
+	              "Type must be float, double, in32 or int64.");
 public:
 	T v[Dim];
 
-	static inline Simd mul(const Simd& lhs, const Simd& rhs) {
+	static inline Simd mul(const Simd &lhs, const Simd &rhs) {
 		Simd res;
 		for (int i = 0; i < Dim; ++i)
 			res.v[i] = lhs.v[i] * rhs.v[i];
 		return res;
 	}
 
-	static inline Simd div(const Simd& lhs, const Simd& rhs) {
+	static inline Simd div(const Simd &lhs, const Simd &rhs) {
 		Simd res;
 		for (int i = 0; i < Dim; ++i)
 			res.v[i] = lhs.v[i] / rhs.v[i];
 		return res;
 	}
 
-	static inline Simd add(const Simd& lhs, const Simd& rhs) {
+	static inline Simd add(const Simd &lhs, const Simd &rhs) {
 		Simd res;
 		for (int i = 0; i < Dim; ++i)
 			res.v[i] = lhs.v[i] + rhs.v[i];
 		return res;
 	}
 
-	static inline Simd sub(const Simd& lhs, const Simd& rhs) {
+	static inline Simd sub(const Simd &lhs, const Simd &rhs) {
 		Simd res;
 		for (int i = 0; i < Dim; ++i)
 			res.v[i] = lhs.v[i] - rhs.v[i];
 		return res;
 	}
 
-	static inline Simd mul(const Simd& lhs, T rhs) {
+	static inline Simd mul(const Simd &lhs, T rhs) {
 		Simd res;
 		for (int i = 0; i < Dim; ++i)
 			res.v[i] = lhs.v[i] * rhs;
 		return res;
 	}
 
-	static inline Simd div(const Simd& lhs, T rhs) {
+	static inline Simd div(const Simd &lhs, T rhs) {
 		Simd res;
 		for (int i = 0; i < Dim; ++i)
 			res.v[i] = lhs.v[i] / rhs;
 		return res;
 	}
 
-	static inline Simd add(const Simd& lhs, T rhs) {
+	static inline Simd add(const Simd &lhs, T rhs) {
 		Simd res;
 		for (int i = 0; i < Dim; ++i)
 			res.v[i] = lhs.v[i] + rhs;
 		return res;
 	}
 
-	static inline Simd sub(const Simd& lhs, T rhs) {
+	static inline Simd sub(const Simd &lhs, T rhs) {
 		Simd res;
 		for (int i = 0; i < Dim; ++i)
 			res.v[i] = lhs.v[i] - rhs;
 		return res;
 	}
 
-	static inline Simd mad(const Simd& a, const Simd& b, const Simd& c) {
+	static inline Simd mad(const Simd &a, const Simd &b, const Simd &c) {
 		return add(mul(a, b), c);
 	}
 
@@ -94,18 +96,18 @@ public:
 		return res;
 	}
 
-	template <class... Args>
+	template<class... Args>
 	static inline Simd set(Args... args) {
 		Simd res;
 		static_assert(sizeof...(Args) == Dim, "Number of arguments must be equal to dimension.");
-		T table[] = { T(args)... };
+		T table[] = {T(args)...};
 		for (int i = 0; i < Dim; ++i)
 			res.v[i] = table[i];
 		return res;
 	}
 
-	template <int Count = Dim>
-	static inline T dot(const Simd& lhs, const Simd& rhs) {
+	template<int Count = Dim>
+	static inline T dot(const Simd &lhs, const Simd &rhs) {
 		static_assert(Count <= Dim, "Number of elements to dot must be smaller or equal to dimension.");
 		static_assert(0 < Count, "Count must not be zero.");
 		T sum = lhs.v[0] * rhs.v[0];
@@ -114,7 +116,7 @@ public:
 		return sum;
 	}
 
-	template <int i0, int i1>
+	template<int i0, int i1>
 	static inline Simd shuffle(Simd arg) {
 		static_assert(Dim == 2, "Only for 2-way simd.");
 		Simd ret;
@@ -123,7 +125,7 @@ public:
 		return ret;
 	}
 
-	template <int i0, int i1, int i2, int i3>
+	template<int i0, int i1, int i2, int i3>
 	static inline Simd shuffle(Simd arg) {
 		static_assert(Dim == 4, "Only for 4-way simd.");
 		Simd ret;
@@ -134,7 +136,7 @@ public:
 		return ret;
 	}
 
-	template <int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7>
+	template<int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7>
 	static inline Simd shuffle(Simd arg) {
 		static_assert(Dim == 8, "Only for 8-way simd.");
 		Simd ret;
@@ -150,11 +152,12 @@ public:
 	}
 };
 
-
+} // namespace mathter
 
 
 #if defined(__SSE2__) || _M_IX86_FP >= 2 || _M_X64 
 
 #include "Simd_SSE2.hpp"
+#define MATHTER_SSE2_HACK
 
 #endif

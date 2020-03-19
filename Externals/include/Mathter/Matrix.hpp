@@ -10,6 +10,7 @@
 #include "Matrix/MatrixArithmetic.hpp"
 #include "Matrix/MatrixVectorArithmetic.hpp"
 #include "Matrix/MatrixCompare.hpp"
+#include "Matrix/MatrixCast.hpp"
 
 #include "Decompositions/DecomposeLU.hpp"
 #include "Decompositions/DecomposeQR.hpp"

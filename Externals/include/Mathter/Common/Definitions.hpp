@@ -54,6 +54,9 @@ constexpr int DYNAMIC = -1;
 //------------------------------------------------------------------------------
 
 template <class T, int Dim, bool Packed>
+class VectorData;
+
+template <class T, int Dim, bool Packed>
 class Vector;
 
 template <class T, int... Indices>

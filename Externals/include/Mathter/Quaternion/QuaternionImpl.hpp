@@ -61,6 +61,9 @@ public:
 	/// <summary> Sets the scalar part to zero, and the vector part to given argument. </summary>
 	explicit Quaternion(const Vector<T, 3, true>& vector) : Quaternion(0, vector) {}
 
+	/// <summary> Sets the scalar part to zero, and the vector part to given argument. </summary>
+	explicit Quaternion(const Vector<T, 3, false>& vector) : Quaternion(0, vector) {}
+
 	template <class U, bool P>
 	Quaternion(const Quaternion<U, P>& rhs) : vec(rhs.vec) {}
 

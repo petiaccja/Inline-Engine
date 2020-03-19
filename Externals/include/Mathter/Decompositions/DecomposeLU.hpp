@@ -24,7 +24,7 @@ private:
 	static Vector<float, Dim, Packed> Solve(const MatrixT& L, const MatrixT& U, const Vector<T, Dim, Packed>& b);
 
 public:
-	DecompositionLU(MatrixT L, MatrixT U) : L(L), U(U) {}
+	//DecompositionLU(MatrixT L, MatrixT U) : L(L), U(U) {}
 
 	/// <summary> Solves the equation system Ax=b, that is LUx=b. </summary>
 	/// <remarks> If the equation is singular or the LU decomposition fails, garbage is returned. </remarks>
@@ -59,7 +59,7 @@ class DecompositionLUP {
 	using MatrixT = Matrix<T, Dim, Dim, Order, Layout, Packed>;
 
 public:
-	DecompositionLUP(MatrixT L, MatrixT U, Vector<int, Dim, false> P) : L(L), U(U), P(P) {}
+	//DecompositionLUP(MatrixT L, MatrixT U, Vector<int, Dim, false> P) : L(L), U(U), P(P) {}
 
 	/// <summary> Solves the equation system Ax=b, that is LUx=Pb. </summary>
 	/// <remarks> If the equation is singular garbage is returned. </remarks>
@@ -205,7 +205,7 @@ auto DecomposeLUP(const Matrix<T, Dim, Dim, Order, Layout, Packed>& m, int& pari
 		L(i, i) = 1;
 	}
 
-	return DecompositionLUP<T, Dim, Order, Layout, Packed>(L, U, P);
+	return DecompositionLUP<T, Dim, Order, Layout, Packed>{ L, U, P };
 }
 
 

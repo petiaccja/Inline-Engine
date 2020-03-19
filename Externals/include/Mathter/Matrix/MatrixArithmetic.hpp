@@ -2,114 +2,93 @@
 
 #include "MatrixImpl.hpp"
 
+#include <utility>
+
+
 namespace mathter {
-	
-// Macros for manual matrix multiplication loop unrolling
 
-// Row-major * Row-major
-#define MATHTER_MATMUL_EXPAND(...) __VA_ARGS__
 
-#define MATHTER_MATMUL_RR_FACTOR(X, Y) rhs.stripes[X] * lhs(Y, X)
+//------------------------------------------------------------------------------
+// Matrix-matrix multiplication
+//------------------------------------------------------------------------------
 
-#define MATHTER_MATMUL_RR_STRIPE_1(Y) MATHTER_MATMUL_RR_FACTOR(0, Y)
-#define MATHTER_MATMUL_RR_STRIPE_2(Y) MATHTER_MATMUL_RR_STRIPE_1(Y) + MATHTER_MATMUL_RR_FACTOR(1, Y)
-#define MATHTER_MATMUL_RR_STRIPE_3(Y) MATHTER_MATMUL_RR_STRIPE_2(Y) + MATHTER_MATMUL_RR_FACTOR(2, Y)
-#define MATHTER_MATMUL_RR_STRIPE_4(Y) MATHTER_MATMUL_RR_STRIPE_3(Y) + MATHTER_MATMUL_RR_FACTOR(3, Y)
-#define MATHTER_MATMUL_RR_STRIPE(CX, Y)                  \
-	MATHTER_MATMUL_EXPAND(MATHTER_MATMUL_RR_STRIPE_##CX) \
-	(Y)
-
-#define MATHTER_MATMUL_RR_ARRAY_1(CX) result.stripes[0] = MATHTER_MATMUL_RR_STRIPE(CX, 0);
-#define MATHTER_MATMUL_RR_ARRAY_2(CX) \
-	MATHTER_MATMUL_RR_ARRAY_1(CX)     \
-	result.stripes[1] = MATHTER_MATMUL_RR_STRIPE(CX, 1);
-#define MATHTER_MATMUL_RR_ARRAY_3(CX) \
-	MATHTER_MATMUL_RR_ARRAY_2(CX)     \
-	result.stripes[2] = MATHTER_MATMUL_RR_STRIPE(CX, 2);
-#define MATHTER_MATMUL_RR_ARRAY_4(CX) \
-	MATHTER_MATMUL_RR_ARRAY_3(CX)     \
-	result.stripes[3] = MATHTER_MATMUL_RR_STRIPE(CX, 3);
-
-#define MATHTER_MATMUL_RR_ARRAY(CX, CY)                 \
-	MATHTER_MATMUL_EXPAND(MATHTER_MATMUL_RR_ARRAY_##CY) \
-	(CX)
-
-#define MATHTER_MATMUL_RR_UNROLL(MATCH, ROWS1) \
-	if (Rows1 == ROWS1 && Match == MATCH) {    \
-		MATHTER_MATMUL_RR_ARRAY(MATCH, ROWS1)  \
-		return result;                         \
+namespace impl {
+	template <class T, class U, int Rows1, int Match, int Columns2, eMatrixOrder Order, bool Packed, int... MatchIndices>
+	inline auto SmallProductRowRR(const Matrix<T, Rows1, Match, Order, eMatrixLayout::ROW_MAJOR, Packed>& lhs,
+								  const Matrix<U, Match, Columns2, Order, eMatrixLayout::ROW_MAJOR, Packed>& rhs,
+								  int row,
+								  std::integer_sequence<int, MatchIndices...>) {
+		return (... + (rhs.stripes[MatchIndices] * lhs(row, MatchIndices)));
 	}
 
-// Column-major * Column-major
-#define MATHTER_MATMUL_CC_FACTOR(X, Y) lhs.stripes[Y] * rhs(Y, X)
-
-#define MATHTER_MATMUL_CC_STRIPE_1(X) MATHTER_MATMUL_CC_FACTOR(X, 0)
-#define MATHTER_MATMUL_CC_STRIPE_2(X) MATHTER_MATMUL_CC_STRIPE_1(X) + MATHTER_MATMUL_CC_FACTOR(X, 1)
-#define MATHTER_MATMUL_CC_STRIPE_3(X) MATHTER_MATMUL_CC_STRIPE_2(X) + MATHTER_MATMUL_CC_FACTOR(X, 2)
-#define MATHTER_MATMUL_CC_STRIPE_4(X) MATHTER_MATMUL_CC_STRIPE_3(X) + MATHTER_MATMUL_CC_FACTOR(X, 3)
-#define MATHTER_MATMUL_CC_STRIPE(CY, X)                  \
-	MATHTER_MATMUL_EXPAND(MATHTER_MATMUL_CC_STRIPE_##CY) \
-	(X)
-
-#define MATHTER_MATMUL_CC_ARRAY_1(CY) result.stripes[0] = MATHTER_MATMUL_CC_STRIPE(CY, 0);
-#define MATHTER_MATMUL_CC_ARRAY_2(CY) \
-	MATHTER_MATMUL_CC_ARRAY_1(CY)     \
-	result.stripes[1] = MATHTER_MATMUL_CC_STRIPE(CY, 1);
-#define MATHTER_MATMUL_CC_ARRAY_3(CY) \
-	MATHTER_MATMUL_CC_ARRAY_2(CY)     \
-	result.stripes[2] = MATHTER_MATMUL_CC_STRIPE(CY, 2);
-#define MATHTER_MATMUL_CC_ARRAY_4(CY) \
-	MATHTER_MATMUL_CC_ARRAY_3(CY)     \
-	result.stripes[3] = MATHTER_MATMUL_CC_STRIPE(CY, 3);
-
-#define MATHTER_MATMUL_CC_ARRAY(CX, CY)                 \
-	MATHTER_MATMUL_EXPAND(MATHTER_MATMUL_CC_ARRAY_##CX) \
-	(CY)
-
-#define MATHTER_MATMUL_CC_UNROLL(COLUMNS2, MATCH) \
-	if (Columns2 == COLUMNS2 && Match == MATCH) { \
-		MATHTER_MATMUL_CC_ARRAY(COLUMNS2, MATCH)  \
-		return result;                            \
+	template <class T, class U, int Rows1, int Match, int Columns2, eMatrixOrder Order, bool Packed, int... RowIndices>
+	inline auto SmallProductRR(const Matrix<T, Rows1, Match, Order, eMatrixLayout::ROW_MAJOR, Packed>& lhs,
+							   const Matrix<U, Match, Columns2, Order, eMatrixLayout::ROW_MAJOR, Packed>& rhs,
+							   std::integer_sequence<int, RowIndices...>) {
+		using V = traits::MatMulElemT<T, U>;
+		using ResultT = Matrix<V, Rows1, Columns2, Order, eMatrixLayout::ROW_MAJOR, Packed>;
+		return ResultT{ ResultT::FromStripes, SmallProductRowRR(lhs, rhs, RowIndices, std::make_integer_sequence<int, Match>{})... };
 	}
 
-
-
-template <class T, class U, int Rows1, int Match, int Columns2, eMatrixOrder Order1, eMatrixOrder Order2, bool Packed, class V>
-inline auto operator*(const Matrix<T, Rows1, Match, Order1, eMatrixLayout::ROW_MAJOR, Packed>& lhs,
-					  const Matrix<U, Match, Columns2, Order2, eMatrixLayout::ROW_MAJOR, Packed>& rhs)
-	-> Matrix<V, Rows1, Columns2, Order1, eMatrixLayout::ROW_MAJOR, Packed> {
-	Matrix<V, Rows1, Columns2, Order1, eMatrixLayout::ROW_MAJOR, Packed> result;
-
-	MATHTER_MATMUL_RR_UNROLL(2, 2);
-	MATHTER_MATMUL_RR_UNROLL(2, 3);
-	MATHTER_MATMUL_RR_UNROLL(2, 4);
-
-	MATHTER_MATMUL_RR_UNROLL(3, 2);
-	MATHTER_MATMUL_RR_UNROLL(3, 3);
-	MATHTER_MATMUL_RR_UNROLL(3, 4);
-
-	MATHTER_MATMUL_RR_UNROLL(4, 2);
-	MATHTER_MATMUL_RR_UNROLL(4, 3);
-	MATHTER_MATMUL_RR_UNROLL(4, 4);
-
-	// general algorithm
-	for (int i = 0; i < Rows1; ++i) {
-		result.stripes[i] = rhs.stripes[0] * lhs(i, 0);
+	template <class T, class U, int Rows1, int Match, int Columns2, eMatrixOrder Order, eMatrixLayout Layout2, bool Packed, int... MatchIndices>
+	inline auto SmallProductRowCC(const Matrix<T, Rows1, Match, Order, eMatrixLayout::COLUMN_MAJOR, Packed>& lhs,
+								  const Matrix<U, Match, Columns2, Order, Layout2, Packed>& rhs,
+								  int col,
+								  std::integer_sequence<int, MatchIndices...>) {
+		return (... + (lhs.stripes[MatchIndices] * rhs(MatchIndices, col)));
 	}
-	for (int i = 0; i < Rows1; ++i) {
-		for (int j = 1; j < Match; ++j) {
-			result.stripes[i] += rhs.stripes[j] * lhs(i, j);
+
+	template <class T, class U, int Rows1, int Match, int Columns2, eMatrixOrder Order, eMatrixLayout Layout2, bool Packed, int... ColIndices>
+	inline auto SmallProductCC(const Matrix<T, Rows1, Match, Order, eMatrixLayout::COLUMN_MAJOR, Packed>& lhs,
+							   const Matrix<U, Match, Columns2, Order, Layout2, Packed>& rhs,
+							   std::integer_sequence<int, ColIndices...>) {
+		using V = traits::MatMulElemT<T, U>;
+		using ResultT = Matrix<V, Rows1, Columns2, Order, eMatrixLayout::COLUMN_MAJOR, Packed>;
+		return ResultT{ ResultT::FromStripes, SmallProductRowCC(lhs, rhs, ColIndices, std::make_integer_sequence<int, Match>{})... };
+	}
+} // namespace impl
+
+
+template <class T, class U, int Rows1, int Match, int Columns2, eMatrixOrder Order, bool Packed>
+inline auto operator*(const Matrix<T, Rows1, Match, Order, eMatrixLayout::ROW_MAJOR, Packed>& lhs,
+					  const Matrix<U, Match, Columns2, Order, eMatrixLayout::ROW_MAJOR, Packed>& rhs) {
+#ifdef MATHTER_SSE2_HACK
+	if constexpr (Rows1 == 2 && Match == 2 && Columns2 == 2 && std::is_same_v<T, float> && std::is_same_v<U, float>) {
+		using V = traits::MatMulElemT<T, U>;
+		using Vec4T = Vector<V, 4>;
+		Vec4T lhsv;
+		Vec4T rhsv;
+		lhsv.simd.reg = _mm_loadu_ps(reinterpret_cast<const float*>(&lhs));
+		rhsv.simd.reg = _mm_loadu_ps(reinterpret_cast<const float*>(&rhs));
+		Vec4T resultv = Vec4T(lhsv.xxzz) * Vec4T(rhsv.xyxy) + Vec4T(lhsv.yyww) * Vec4T(rhsv.zwzw);
+		Matrix<V, 2, 2, Order, eMatrixLayout::ROW_MAJOR, Packed> result;
+		_mm_storeu_ps(reinterpret_cast<float*>(&result), resultv.simd.reg);
+		return result;
+	}
+#endif
+	if constexpr (Rows1 <= 4 && Match <= 4 && Columns2 <= 4) {
+		return impl::SmallProductRR(lhs, rhs, std::make_integer_sequence<int, Rows1>{});
+	}
+	else {
+		using V = traits::MatMulElemT<T, U>;
+		Matrix<V, Rows1, Columns2, Order, eMatrixLayout::ROW_MAJOR, Packed> result;
+		for (int i = 0; i < Rows1; ++i) {
+			result.stripes[i] = rhs.stripes[0] * lhs(i, 0);
 		}
+		for (int i = 0; i < Rows1; ++i) {
+			for (int j = 1; j < Match; ++j) {
+				result.stripes[i] += rhs.stripes[j] * lhs(i, j);
+			}
+		}
+		return result;
 	}
-
-	return result;
 }
 
-template <class T, class U, int Rows1, int Match, int Columns2, eMatrixOrder Order1, eMatrixOrder Order2, bool Packed, class V>
-inline auto operator*(const Matrix<T, Rows1, Match, Order1, eMatrixLayout::ROW_MAJOR, Packed>& lhs,
-					  const Matrix<U, Match, Columns2, Order2, eMatrixLayout::COLUMN_MAJOR, Packed>& rhs)
-	-> Matrix<V, Rows1, Columns2, Order1, eMatrixLayout::ROW_MAJOR, Packed> {
-	Matrix<V, Rows1, Columns2, Order1, eMatrixLayout::ROW_MAJOR, Packed> result;
+template <class T, class U, int Rows1, int Match, int Columns2, eMatrixOrder Order, bool Packed>
+inline auto operator*(const Matrix<T, Rows1, Match, Order, eMatrixLayout::ROW_MAJOR, Packed>& lhs,
+					  const Matrix<U, Match, Columns2, Order, eMatrixLayout::COLUMN_MAJOR, Packed>& rhs) {
+	using V = traits::MatMulElemT<T, U>;
+	Matrix<V, Rows1, Columns2, Order, eMatrixLayout::ROW_MAJOR, Packed> result;
 
 	for (int j = 0; j < Columns2; ++j) {
 		for (int i = 0; i < Rows1; ++i) {
@@ -120,145 +99,142 @@ inline auto operator*(const Matrix<T, Rows1, Match, Order1, eMatrixLayout::ROW_M
 	return result;
 }
 
-template <class T, class U, int Rows1, int Match, int Columns2, eMatrixOrder Order1, eMatrixOrder Order2, bool Packed, class V>
-inline auto operator*(const Matrix<T, Rows1, Match, Order1, eMatrixLayout::COLUMN_MAJOR, Packed>& lhs,
-					  const Matrix<U, Match, Columns2, Order2, eMatrixLayout::COLUMN_MAJOR, Packed>& rhs)
-	-> Matrix<V, Rows1, Columns2, Order1, eMatrixLayout::COLUMN_MAJOR, Packed> {
-	Matrix<V, Rows1, Columns2, Order1, eMatrixLayout::COLUMN_MAJOR, Packed> result;
-
-	MATHTER_MATMUL_CC_UNROLL(2, 2);
-	MATHTER_MATMUL_CC_UNROLL(2, 3);
-	MATHTER_MATMUL_CC_UNROLL(2, 4);
-
-	MATHTER_MATMUL_CC_UNROLL(3, 2);
-	MATHTER_MATMUL_CC_UNROLL(3, 3);
-	MATHTER_MATMUL_CC_UNROLL(3, 4);
-
-	MATHTER_MATMUL_CC_UNROLL(4, 2);
-	MATHTER_MATMUL_CC_UNROLL(4, 3);
-	MATHTER_MATMUL_CC_UNROLL(4, 4);
-
-	// general algorithm
-	for (int j = 0; j < Columns2; ++j) {
-		result.stripes[j] = lhs.stripes[0] * rhs(0, j);
+template <class T, class U, int Rows1, int Match, int Columns2, eMatrixOrder Order, bool Packed>
+inline auto operator*(const Matrix<T, Rows1, Match, Order, eMatrixLayout::COLUMN_MAJOR, Packed>& lhs,
+					  const Matrix<U, Match, Columns2, Order, eMatrixLayout::COLUMN_MAJOR, Packed>& rhs) {
+	if constexpr (Rows1 <= 4 && Match <= 4 && Columns2 <= 4) {
+		return impl::SmallProductCC(lhs, rhs, std::make_integer_sequence<int, Columns2>{});
 	}
-	for (int i = 1; i < Match; ++i) {
+	else {
+		using V = traits::MatMulElemT<T, U>;
+		Matrix<V, Rows1, Columns2, Order, eMatrixLayout::COLUMN_MAJOR, Packed> result;
 		for (int j = 0; j < Columns2; ++j) {
-			result.stripes[j] += lhs.stripes[i] * rhs(i, j);
+			result.stripes[j] = lhs.stripes[0] * rhs(0, j);
 		}
+		for (int i = 1; i < Match; ++i) {
+			for (int j = 0; j < Columns2; ++j) {
+				result.stripes[j] += lhs.stripes[i] * rhs(i, j);
+			}
+		}
+		return result;
 	}
-
-	return result;
 }
 
-template <class T, class U, int Rows1, int Match, int Columns2, eMatrixOrder Order1, eMatrixOrder Order2, bool Packed, class V>
-inline auto operator*(const Matrix<T, Rows1, Match, Order1, eMatrixLayout::COLUMN_MAJOR, Packed>& lhs,
-					  const Matrix<U, Match, Columns2, Order2, eMatrixLayout::ROW_MAJOR, Packed>& rhs)
-	-> Matrix<V, Rows1, Columns2, Order1, eMatrixLayout::COLUMN_MAJOR, Packed> {
-	Matrix<V, Rows1, Columns2, Order1, eMatrixLayout::COLUMN_MAJOR, Packed> result;
-
-	MATHTER_MATMUL_CC_UNROLL(2, 2);
-	MATHTER_MATMUL_CC_UNROLL(2, 3);
-	MATHTER_MATMUL_CC_UNROLL(2, 4);
-
-	MATHTER_MATMUL_CC_UNROLL(3, 2);
-	MATHTER_MATMUL_CC_UNROLL(3, 3);
-	MATHTER_MATMUL_CC_UNROLL(3, 4);
-
-	MATHTER_MATMUL_CC_UNROLL(4, 2);
-	MATHTER_MATMUL_CC_UNROLL(4, 3);
-	MATHTER_MATMUL_CC_UNROLL(4, 4);
-
-	// general algorithm
-	// CC algorithm is completely fine for COL_MAJOR x ROW_MAJOR
-	// see that rhs is only indexed per-element, so its layout does not matter
-	for (int j = 0; j < Columns2; ++j) {
-		result.stripes[j] = lhs.stripes[0] * rhs(0, j);
+template <class T, class U, int Rows1, int Match, int Columns2, eMatrixOrder Order, bool Packed>
+inline auto operator*(const Matrix<T, Rows1, Match, Order, eMatrixLayout::COLUMN_MAJOR, Packed>& lhs,
+					  const Matrix<U, Match, Columns2, Order, eMatrixLayout::ROW_MAJOR, Packed>& rhs) {
+	// CC algorithm is completely fine for COL_MAJOR x ROW_MAJOR.
+	// See that rhs is only indexed per-element, so its layout does not matter.
+	if constexpr (Rows1 <= 4 && Match <= 4 && Columns2 <= 4) {
+		return impl::SmallProductCC(lhs, rhs, std::make_integer_sequence<int, Columns2>{});
 	}
-	for (int i = 1; i < Match; ++i) {
+	else {
+		using V = traits::MatMulElemT<T, U>;
+		Matrix<V, Rows1, Columns2, Order, eMatrixLayout::COLUMN_MAJOR, Packed> result;
 		for (int j = 0; j < Columns2; ++j) {
-			result.stripes[j] += lhs.stripes[i] * rhs(i, j);
+			result.stripes[j] = lhs.stripes[0] * rhs(0, j);
 		}
+		for (int i = 1; i < Match; ++i) {
+			for (int j = 0; j < Columns2; ++j) {
+				result.stripes[j] += lhs.stripes[i] * rhs(i, j);
+			}
+		}
+		return result;
 	}
-
-	return result;
-}
-
-
-template <class T1, class T2, int Rows1, int Match, int Columns2, eMatrixOrder Order1, eMatrixOrder Order2, eMatrixLayout Layout1, eMatrixLayout Layout2, bool PackedA>
-inline auto operator*(const Matrix<T1, Rows1, Match, Order1, Layout1, PackedA>& lhs,
-					  const Matrix<T2, Match, Columns2, Order2, Layout2, PackedA>& rhs)
-	-> Matrix<traits::MatMulElemT<T1, T2>, Rows1, Columns2, Order1, Layout1, PackedA> {
-	return mathter::operator*<T1, T2, Rows1, Match, Columns2, Order1, Order2, PackedA, traits::MatMulElemT<T1, T2>>(lhs, rhs);
 }
 
 
 // Assign-multiply
-template <class T1, class T2, int Dim, eMatrixOrder Order1, eMatrixOrder Order2, eMatrixLayout Layout1, eMatrixLayout Layout2, bool Packed>
-inline Matrix<T1, Dim, Dim, Order1, Layout1, Packed>& operator*=(Matrix<T1, Dim, Dim, Order1, Layout1, Packed>& lhs, const Matrix<T2, Dim, Dim, Order2, Layout2, Packed>& rhs) {
-	lhs = operator*<T1, T2, Dim, Dim, Dim, Order1, Order2, Packed, T1>(lhs, rhs);
+template <class T1, class T2, int Dim, eMatrixOrder Order, eMatrixLayout Layout1, eMatrixLayout Layout2, bool Packed>
+inline Matrix<T1, Dim, Dim, Order, Layout1, Packed>& operator*=(Matrix<T1, Dim, Dim, Order, Layout1, Packed>& lhs, const Matrix<T2, Dim, Dim, Order, Layout2, Packed>& rhs) {
+	lhs = lhs * rhs;
 	return lhs;
 }
 
-#define MATHTER_MATADD_SAME_ARRAY_1(OP) result.stripes[0] = lhs.stripes[0] OP rhs.stripes[0];
-#define MATHTER_MATADD_SAME_ARRAY_2(OP) \
-	MATHTER_MATADD_SAME_ARRAY_1(OP)     \
-	result.stripes[1] = lhs.stripes[1] OP rhs.stripes[1];
-#define MATHTER_MATADD_SAME_ARRAY_3(OP) \
-	MATHTER_MATADD_SAME_ARRAY_2(OP)     \
-	result.stripes[2] = lhs.stripes[2] OP rhs.stripes[2];
-#define MATHTER_MATADD_SAME_ARRAY_4(OP) \
-	MATHTER_MATADD_SAME_ARRAY_3(OP)     \
-	result.stripes[3] = lhs.stripes[3] OP rhs.stripes[3];
-#define MATHTER_MATADD_SAME_UNROLL(S, OP)                    \
-	if (result.StripeCount == S) {                           \
-		MATHTER_MATMUL_EXPAND(MATHTER_MATADD_SAME_ARRAY_##S) \
-		(OP) return result;                                  \
+//------------------------------------------------------------------------------
+// Matrix-matrix addition & subtraction
+//------------------------------------------------------------------------------
+
+namespace impl {
+	template <class T, class U, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout SameLayout, bool Packed, int... StripeIndices>
+	inline auto SmallAdd(const Matrix<T, Rows, Columns, Order, SameLayout, Packed>& lhs,
+						 const Matrix<U, Rows, Columns, Order, SameLayout, Packed>& rhs,
+						 std::integer_sequence<int, StripeIndices...>) {
+		using V = traits::MatMulElemT<T, U>;
+		using ResultT = Matrix<V, Rows, Columns, Order, SameLayout, Packed>;
+		return ResultT{ ResultT::FromStripes, (lhs.stripes[StripeIndices] + rhs.stripes[StripeIndices])... };
 	}
 
-
-// Add & sub same layout
-template <class T, class U, int Rows, int Columns, eMatrixOrder Order1, eMatrixOrder Order2, eMatrixLayout SameLayout, bool Packed, class V = decltype(T() + U())>
-inline Matrix<U, Rows, Columns, Order1, SameLayout, Packed> operator+(
-	const Matrix<T, Rows, Columns, Order1, SameLayout, Packed>& lhs,
-	const Matrix<U, Rows, Columns, Order2, SameLayout, Packed>& rhs) {
-	Matrix<U, Rows, Columns, Order1, SameLayout, Packed> result;
-
-	MATHTER_MATADD_SAME_UNROLL(1, +);
-	MATHTER_MATADD_SAME_UNROLL(2, +);
-	MATHTER_MATADD_SAME_UNROLL(3, +);
-	MATHTER_MATADD_SAME_UNROLL(4, +);
-
-	for (int i = 0; i < result.StripeCount; ++i) {
-		result.stripes[i] = lhs.stripes[i] + rhs.stripes[i];
+	template <class T, class U, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout SameLayout, bool Packed, int... StripeIndices>
+	inline auto SmallSub(const Matrix<T, Rows, Columns, Order, SameLayout, Packed>& lhs,
+						 const Matrix<U, Rows, Columns, Order, SameLayout, Packed>& rhs,
+						 std::integer_sequence<int, StripeIndices...>) {
+		using V = traits::MatMulElemT<T, U>;
+		using ResultT = Matrix<V, Rows, Columns, Order, SameLayout, Packed>;
+		return ResultT{ ResultT::FromStripes, (lhs.stripes[StripeIndices] - rhs.stripes[StripeIndices])... };
 	}
-	return result;
+} // namespace impl
+
+// Same layout
+template <class T, class U, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout SameLayout, bool Packed>
+inline auto operator+(const Matrix<T, Rows, Columns, Order, SameLayout, Packed>& lhs,
+					  const Matrix<U, Rows, Columns, Order, SameLayout, Packed>& rhs) {
+	using V = traits::MatMulElemT<T, U>;
+
+	if constexpr (Rows * Columns == 4) {
+		Matrix<V, Rows, Columns, Order, SameLayout, Packed> result;
+		for (int i = 0; i < result.RowCount(); ++i) {
+			for (int j = 0; j < result.ColumnCount(); ++j) {
+				result(i, j) = lhs(i, j) + rhs(i, j);
+			}
+		}
+		return result;
+	}
+	else if constexpr (Rows <= 4 && Columns <= 4) {
+		return impl::SmallAdd(lhs, rhs, std::make_integer_sequence<int, std::decay_t<decltype(lhs)>::StripeCount>{});
+	}
+	else {
+		Matrix<V, Rows, Columns, Order, SameLayout, Packed> result;
+		for (int i = 0; i < result.StripeCount; ++i) {
+			result.stripes[i] = lhs.stripes[i] + rhs.stripes[i];
+		}
+		return result;
+	}
 }
 
-template <class T, class U, int Rows, int Columns, eMatrixOrder Order1, eMatrixOrder Order2, eMatrixLayout SameLayout, bool Packed, class V = decltype(T() - U())>
-inline Matrix<U, Rows, Columns, Order1, SameLayout, Packed> operator-(
-	const Matrix<T, Rows, Columns, Order1, SameLayout, Packed>& lhs,
-	const Matrix<U, Rows, Columns, Order2, SameLayout, Packed>& rhs) {
-	Matrix<U, Rows, Columns, Order1, SameLayout, Packed> result;
+template <class T, class U, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout SameLayout, bool Packed>
+inline auto operator-(const Matrix<T, Rows, Columns, Order, SameLayout, Packed>& lhs,
+					  const Matrix<U, Rows, Columns, Order, SameLayout, Packed>& rhs) {
+	using V = traits::MatMulElemT<T, U>;
 
-	MATHTER_MATADD_SAME_UNROLL(1, -);
-	MATHTER_MATADD_SAME_UNROLL(2, -);
-	MATHTER_MATADD_SAME_UNROLL(3, -);
-	MATHTER_MATADD_SAME_UNROLL(4, -);
-
-	for (int i = 0; i < result.StripeCount; ++i) {
-		result.stripes[i] = lhs.stripes[i] - rhs.stripes[i];
+	if constexpr (Rows * Columns == 4) {
+		Matrix<V, Rows, Columns, Order, SameLayout, Packed> result;
+		for (int i = 0; i < result.RowCount(); ++i) {
+			for (int j = 0; j < result.ColumnCount(); ++j) {
+				result(i, j) = lhs(i, j) - rhs(i, j);
+			}
+		}
+		return result;
 	}
-	return result;
+	else if constexpr (Rows <= 4 && Columns <= 4) {
+		return impl::SmallSub(lhs, rhs, std::make_integer_sequence<int, std::decay_t<decltype(lhs)>::StripeCount>{});
+	}
+	else {
+		Matrix<V, Rows, Columns, Order, SameLayout, Packed> result;
+		for (int i = 0; i < result.StripeCount; ++i) {
+			result.stripes[i] = lhs.stripes[i] - rhs.stripes[i];
+		}
+		return result;
+	}
 }
 
 
 // Add & sub opposite layout
-template <class T, class U, int Rows, int Columns, eMatrixOrder Order1, eMatrixOrder Order2, eMatrixLayout Layout1, eMatrixLayout Layout2, bool Packed, class V, class = typename std::enable_if<Layout1 != Layout2>::type>
-inline Matrix<U, Rows, Columns, Order1, Layout1, Packed> operator+(
-	const Matrix<T, Rows, Columns, Order1, Layout1, Packed>& lhs,
-	const Matrix<U, Rows, Columns, Order2, Layout2, Packed>& rhs) {
-	Matrix<U, Rows, Columns, Order1, Layout1, Packed> result;
+template <class T, class U, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout1, eMatrixLayout Layout2, bool Packed, class = typename std::enable_if<Layout1 != Layout2>::type>
+inline auto operator+(const Matrix<T, Rows, Columns, Order, Layout1, Packed>& lhs,
+					  const Matrix<U, Rows, Columns, Order, Layout2, Packed>& rhs) {
+	using V = traits::MatMulElemT<T, U>;
+	Matrix<V, Rows, Columns, Order, Layout1, Packed> result;
 	for (int i = 0; i < result.RowCount(); ++i) {
 		for (int j = 0; j < result.ColumnCount(); ++j) {
 			result(i, j) = lhs(i, j) + rhs(i, j);
@@ -267,11 +243,11 @@ inline Matrix<U, Rows, Columns, Order1, Layout1, Packed> operator+(
 	return result;
 }
 
-template <class T, class U, int Rows, int Columns, eMatrixOrder Order1, eMatrixOrder Order2, eMatrixLayout Layout1, eMatrixLayout Layout2, bool Packed, class V, class = typename std::enable_if<Layout1 != Layout2>::type>
-inline Matrix<U, Rows, Columns, Order1, Layout1, Packed> operator-(
-	const Matrix<T, Rows, Columns, Order1, Layout1, Packed>& lhs,
-	const Matrix<U, Rows, Columns, Order2, Layout2, Packed>& rhs) {
-	Matrix<U, Rows, Columns, Order1, Layout1, Packed> result;
+template <class T, class U, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout1, eMatrixLayout Layout2, bool Packed, class = typename std::enable_if<Layout1 != Layout2>::type>
+inline auto operator-(const Matrix<T, Rows, Columns, Order, Layout1, Packed>& lhs,
+					  const Matrix<U, Rows, Columns, Order, Layout2, Packed>& rhs) {
+	using V = traits::MatMulElemT<T, U>;
+	Matrix<V, Rows, Columns, Order, Layout1, Packed> result;
 	for (int i = 0; i < result.RowCount(); ++i) {
 		for (int j = 0; j < result.ColumnCount(); ++j) {
 			result(i, j) = lhs(i, j) - rhs(i, j);
@@ -283,19 +259,19 @@ inline Matrix<U, Rows, Columns, Order1, Layout1, Packed> operator-(
 
 
 /// <summary> Performs matrix addition and stores result in this. </summary>
-template <class T, class U, int Rows, int Columns, eMatrixOrder Order1, eMatrixOrder Order2, eMatrixLayout Layout1, eMatrixLayout Layout2, bool Packed, class V>
-inline Matrix<U, Rows, Columns, Order1, Layout1, Packed>& operator+=(
-	Matrix<T, Rows, Columns, Order1, Layout1, Packed>& lhs,
-	const Matrix<U, Rows, Columns, Order2, Layout2, Packed>& rhs) {
+template <class T, class U, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout1, eMatrixLayout Layout2, bool Packed>
+inline Matrix<U, Rows, Columns, Order, Layout1, Packed>& operator+=(
+	Matrix<T, Rows, Columns, Order, Layout1, Packed>& lhs,
+	const Matrix<U, Rows, Columns, Order, Layout2, Packed>& rhs) {
 	lhs = lhs + rhs;
 	return lhs;
 }
 
 /// <summary> Performs matrix subtraction and stores result in this. </summary>
-template <class T, class U, int Rows, int Columns, eMatrixOrder Order1, eMatrixOrder Order2, eMatrixLayout Layout1, eMatrixLayout Layout2, bool Packed, class V>
-inline Matrix<U, Rows, Columns, Order1, Layout1, Packed>& operator-=(
-	Matrix<T, Rows, Columns, Order1, Layout1, Packed>& lhs,
-	const Matrix<U, Rows, Columns, Order2, Layout2, Packed>& rhs) {
+template <class T, class U, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout1, eMatrixLayout Layout2, bool Packed>
+inline Matrix<U, Rows, Columns, Order, Layout1, Packed>& operator-=(
+	Matrix<T, Rows, Columns, Order, Layout1, Packed>& lhs,
+	const Matrix<U, Rows, Columns, Order, Layout2, Packed>& rhs) {
 	lhs = lhs - rhs;
 	return lhs;
 }
@@ -309,51 +285,54 @@ inline Matrix<U, Rows, Columns, Order1, Layout1, Packed>& operator-=(
 
 // Scalar multiplication
 /// <summary> Multiplies all elements of the matrix by scalar. </summary>
-template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
-inline Matrix<T, Rows, Columns, Order, Layout, Packed>& operator*=(Matrix<T, Rows, Columns, Order, Layout, Packed>& mat, T s) {
+template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed, class U, std::enable_if_t<std::is_convertible_v<U, T>, int> = 0>
+inline Matrix<T, Rows, Columns, Order, Layout, Packed>& operator*=(Matrix<T, Rows, Columns, Order, Layout, Packed>& mat, U s) {
 	for (auto& stripe : mat.stripes) {
 		stripe *= s;
 	}
 	return mat;
 }
 /// <summary> Divides all elements of the matrix by scalar. </summary>
-template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
-inline Matrix<T, Rows, Columns, Order, Layout, Packed>& operator/=(Matrix<T, Rows, Columns, Order, Layout, Packed>& mat, T s) {
-	mat *= T(1 / s);
+template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed, class U, std::enable_if_t<std::is_convertible_v<U, T>, int> = 0>
+inline Matrix<T, Rows, Columns, Order, Layout, Packed>& operator/=(Matrix<T, Rows, Columns, Order, Layout, Packed>& mat, U s) {
+	mat *= U(1) / s;
 	return mat;
 }
 
-
-template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
-Matrix<T, Rows, Columns, Order, Layout, Packed> operator*(T s, const Matrix<T, Rows, Columns, Order, Layout, Packed>& mat) {
-	return mat * s;
-}
-
-template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
-Matrix<T, Rows, Columns, Order, Layout, Packed> operator/(T s, const Matrix<T, Rows, Columns, Order, Layout, Packed>& mat) {
-	return mat / s;
-}
-
-template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
-Matrix<T, Rows, Columns, Order, Layout, Packed> operator*(const Matrix<T, Rows, Columns, Order, Layout, Packed>& mat, T s) {
+template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed, class U, std::enable_if_t<std::is_convertible_v<U, T>, int> = 0>
+Matrix<T, Rows, Columns, Order, Layout, Packed> operator*(const Matrix<T, Rows, Columns, Order, Layout, Packed>& mat, U s) {
 	Matrix<T, Rows, Columns, Order, Layout, Packed> copy(mat);
 	copy *= s;
 	return copy;
 }
 
-template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
-Matrix<T, Rows, Columns, Order, Layout, Packed> operator/(const Matrix<T, Rows, Columns, Order, Layout, Packed>& mat, T s) {
+template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed, class U, std::enable_if_t<std::is_convertible_v<U, T>, int> = 0>
+Matrix<T, Rows, Columns, Order, Layout, Packed> operator/(const Matrix<T, Rows, Columns, Order, Layout, Packed>& mat, U s) {
 	Matrix<T, Rows, Columns, Order, Layout, Packed> copy(mat);
 	copy /= s;
 	return copy;
+}
+
+template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed, class U, std::enable_if_t<std::is_convertible_v<U, T>, int> = 0>
+Matrix<T, Rows, Columns, Order, Layout, Packed> operator*(U s, const Matrix<T, Rows, Columns, Order, Layout, Packed>& mat) {
+	return mat * s;
+}
+
+template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed, class U, std::enable_if_t<std::is_convertible_v<U, T>, int> = 0>
+Matrix<T, Rows, Columns, Order, Layout, Packed> operator/(U s, const Matrix<T, Rows, Columns, Order, Layout, Packed>& mat) {
+	Matrix<T, Rows, Columns, Order, Layout, Packed> result;
+	for (int i = 0; i < Matrix<T, Rows, Columns, Order, Layout, Packed>::StripeCount; ++i) {
+		result.stripes[i] = T(s) / mat.stripes[i];
+	}
+	return result;
 }
 
 
 //------------------------------------------------------------------------------
 // Elementwise multiply and divide
 //------------------------------------------------------------------------------
-template <class T, class T2, int Rows, int Columns, eMatrixOrder Order, eMatrixOrder Order2, eMatrixLayout Layout, bool Packed>
-auto MulElementwise(const Matrix<T, Rows, Columns, Order, Layout, Packed>& lhs, const Matrix<T2, Rows, Columns, Order2, Layout, Packed>& rhs) {
+template <class T, class T2, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
+auto MulElementwise(const Matrix<T, Rows, Columns, Order, Layout, Packed>& lhs, const Matrix<T2, Rows, Columns, Order, Layout, Packed>& rhs) {
 	Matrix<T, Rows, Columns, Order, Layout, Packed> result;
 	for (int i = 0; i < result.StripeCount; ++i) {
 		result.stripes[i] = lhs.stripes[i] * rhs.stripes[i];
@@ -361,8 +340,8 @@ auto MulElementwise(const Matrix<T, Rows, Columns, Order, Layout, Packed>& lhs, 
 	return result;
 }
 
-template <class T, class T2, int Rows, int Columns, eMatrixOrder Order, eMatrixOrder Order2, eMatrixLayout Layout, bool Packed>
-auto MulElementwise(const Matrix<T, Rows, Columns, Order, Layout, Packed>& lhs, const Matrix<T2, Rows, Columns, Order2, traits::OppositeLayout<Layout>::value, Packed>& rhs) {
+template <class T, class T2, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
+auto MulElementwise(const Matrix<T, Rows, Columns, Order, Layout, Packed>& lhs, const Matrix<T2, Rows, Columns, Order, traits::OppositeLayout<Layout>::value, Packed>& rhs) {
 	Matrix<T, Rows, Columns, Order, Layout, Packed> result;
 	for (int i = 0; i < Rows; ++i) {
 		for (int j = 0; j < Columns; ++j) {
@@ -372,8 +351,8 @@ auto MulElementwise(const Matrix<T, Rows, Columns, Order, Layout, Packed>& lhs, 
 	return result;
 }
 
-template <class T, class T2, int Rows, int Columns, eMatrixOrder Order, eMatrixOrder Order2, eMatrixLayout Layout, bool Packed>
-auto DivElementwise(const Matrix<T, Rows, Columns, Order, Layout, Packed>& lhs, const Matrix<T2, Rows, Columns, Order2, Layout, Packed>& rhs) {
+template <class T, class T2, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
+auto DivElementwise(const Matrix<T, Rows, Columns, Order, Layout, Packed>& lhs, const Matrix<T2, Rows, Columns, Order, Layout, Packed>& rhs) {
 	Matrix<T, Rows, Columns, Order, Layout, Packed> result;
 	for (int i = 0; i < result.StripeCount; ++i) {
 		result.stripes[i] = lhs.stripes[i] / rhs.stripes[i];
@@ -381,8 +360,8 @@ auto DivElementwise(const Matrix<T, Rows, Columns, Order, Layout, Packed>& lhs, 
 	return result;
 }
 
-template <class T, class T2, int Rows, int Columns, eMatrixOrder Order, eMatrixOrder Order2, eMatrixLayout Layout, bool Packed>
-auto DivElementwise(const Matrix<T, Rows, Columns, Order, Layout, Packed>& lhs, const Matrix<T2, Rows, Columns, Order2, traits::OppositeLayout<Layout>::value, Packed>& rhs) {
+template <class T, class T2, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
+auto DivElementwise(const Matrix<T, Rows, Columns, Order, Layout, Packed>& lhs, const Matrix<T2, Rows, Columns, Order, traits::OppositeLayout<Layout>::value, Packed>& rhs) {
 	Matrix<T, Rows, Columns, Order, Layout, Packed> result;
 	for (int i = 0; i < Rows; ++i) {
 		for (int j = 0; j < Columns; ++j) {
@@ -397,13 +376,13 @@ auto DivElementwise(const Matrix<T, Rows, Columns, Order, Layout, Packed>& lhs, 
 //------------------------------------------------------------------------------
 // Unary signs
 //------------------------------------------------------------------------------
-template <class U, class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
-inline Matrix<T, Rows, Columns, Order, Layout, Packed> operator+(const Matrix<T, Rows, Columns, Order, Layout, Packed>& mat) {
+template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
+auto operator+(const Matrix<T, Rows, Columns, Order, Layout, Packed>& mat) {
 	return Matrix<T, Rows, Columns, Order, Layout, Packed>(mat);
 }
 
-template <class U, class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
-inline Matrix<T, Rows, Columns, Order, Layout, Packed> operator-(const Matrix<T, Rows, Columns, Order, Layout, Packed>& mat) {
+template <class T, int Rows, int Columns, eMatrixOrder Order, eMatrixLayout Layout, bool Packed>
+auto operator-(const Matrix<T, Rows, Columns, Order, Layout, Packed>& mat) {
 	return Matrix<T, Rows, Columns, Order, Layout, Packed>(mat) * T(-1);
 }
 

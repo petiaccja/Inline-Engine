@@ -70,15 +70,14 @@ inline std::vector<gxeng::Vertex<AttribT...>> Model::GetVertices(unsigned submes
 	auto yAxis = GetAxis(csys.y);
 	auto zAxis = GetAxis(csys.z);
 	const Mat44 posTransform =
-		m_transform *
-		//(Mat44(GetAxis(csys.x), GetAxis(csys.y), GetAxis(csys.z), Vec4(0, 0, 0, 1)).Transpose());
+		Transpose(m_transform *
 		Mat44(xAxis.x, yAxis.x, zAxis.x, 0,
 			  xAxis.y, yAxis.y, zAxis.y, 0,
 			  xAxis.z, yAxis.z, zAxis.z, 0,
-			  0, 0, 0, 1);
+			  0, 0, 0, 1));
 
 
-	const Mat44 normalTransform = Transpose(Inverse(posTransform));
+	const Mat44 normalTransform = Inverse(posTransform);
 
 	for (uint32_t i = 0; i < mesh->mNumVertices; i++) {
 		VertexT newVertex;
@@ -109,7 +108,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Position<semanticIndex>, Tai
 		assert(mesh->HasPositions());
 		assert(vertexIndex < mesh->mNumVertices);
 		const aiVector3D& pos = mesh->mVertices[vertexIndex];
-		target.position = (posTr * Vec4(pos.x, pos.y, pos.z, 1)).xyz;
+		target.position = (Vec4(pos.x, pos.y, pos.z, 1) * posTr).xyz;
 
 		VertexAttributeSetter<VertexT, TailAttribT...>()(target, mesh, vertexIndex, posTr, normTr);
 	}
@@ -131,7 +130,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Normal<semanticIndex>, TailA
 		}
 		assert(vertexIndex < mesh->mNumVertices);
 		const aiVector3D& normal = mesh->mNormals[vertexIndex];
-		target.normal = normTr * (Vec3)DataType(normal.x, normal.y, normal.z);
+		target.normal = (Vec3)DataType(normal.x, normal.y, normal.z) * normTr;
 		//target.normal = DataType(normal.x, normal.y, normal.z);
 
 		VertexAttributeSetter<VertexT, TailAttribT...>()(target, mesh, vertexIndex, posTr, normTr);
@@ -154,7 +153,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Tangent<semanticIndex>, Tail
 		}
 		assert(vertexIndex < mesh->mNumVertices);
 		const aiVector3D& tangent = mesh->mTangents[vertexIndex];
-		target.tangent = normTr * (Vec3)DataType(tangent.x, tangent.y, tangent.z);
+		target.tangent = (Vec3)DataType(tangent.x, tangent.y, tangent.z) * normTr;
 
 		VertexAttributeSetter<VertexT, TailAttribT...>()(target, mesh, vertexIndex, posTr, normTr);
 	}
@@ -176,7 +175,7 @@ struct Model::VertexAttributeSetter<VertexT, gxeng::Bitangent<semanticIndex>, Ta
 		}
 		assert(vertexIndex < mesh->mNumVertices);
 		const aiVector3D& bitangent = mesh->mBitangents[vertexIndex];
-		target.bitangent = normTr * (Vec3)DataType(bitangent.x, bitangent.y, bitangent.z);
+		target.bitangent = (Vec3)DataType(bitangent.x, bitangent.y, bitangent.z) * normTr;
 
 		VertexAttributeSetter<VertexT, TailAttribT...>()(target, mesh, vertexIndex, posTr, normTr);
 	}

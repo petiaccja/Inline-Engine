@@ -103,33 +103,35 @@ private:
 };
 
 
-/// <summary> Creates a camera look-at matrix. </summary>
+/// <summary> Creates a general, n-dimensional camera look-at matrix. </summary>
 /// <param name="eye"> The camera's position. </param>
 /// <param name="target"> The camera's target. </param>
 /// <param name="bases"> Basis vectors fixing the camera's orientation. </param>
 /// <param name="flipAxis"> Set any element to true to flip an axis in camera space. </param>
-/// <remarks> The camera look down the vector going from <paramref name="eye"/> to
+/// <remarks> The camera looks down the vector going from <paramref name="eye"/> to
 ///		<paramref name="target"/>, but it can still rotate around that vector. To fix the rotation,
 ///		an "up" vector must be provided in 3 dimensions. In higher dimensions,
-///		we need multiple up vectors. Unfortunately I can't fucking remember how these
+///		we need multiple up vectors. Unfortunately I can't remember how these
 ///		basis vectors are used, but they are orthogonalized to each-other and to the look vector.
 ///		I can't remember the order of orthogonalization. </remarks>
-template <class T, int Dim, bool Packed>
+template <class T, int Dim, bool Packed, size_t BaseDim, size_t FlipDim>
 auto LookAt(const Vector<T, Dim, Packed>& eye,
 			const Vector<T, Dim, Packed>& target,
-			const std::array<Vector<T, Dim, Packed>, size_t(Dim - 2)>& bases,
-			const std::array<bool, Dim>& flipAxes) {
-	return ViewBuilder(eye, target, bases, flipAxes);
+			const std::array<Vector<T, Dim, Packed>, BaseDim>& bases,
+			const std::array<bool, FlipDim>& flipAxes) {
+	static_assert(BaseDim == Dim - 2, "You must provide 2 fewer bases than the dimension of the transform.");
+	static_assert(Dim == FlipDim, "You must provide the same number of flips as the dimension of the transform.");
+	return ViewBuilder<T, Dim, Packed>(eye, target, bases, flipAxes);
 }
 
 
 /// <summary> Creates a 2D look-at matrix. </summary>
 /// <param name="eye"> The camera's position. </param>
 /// <param name="target"> The camera's target. </param>
-/// <param name="positiveYForward"> True if the camera looks towards +Y, false if -Y. </param>
+/// <param name="positiveYForward"> True if the camera looks towards +Y in camera space, false if -Y. </param>
 /// <param name="flipX"> True to flip X in camera space. </param>
 template <class T, bool Packed>
-auto LookAt(const Vector<T, 2, Packed>& eye, const Vector<T, 2, Packed>& target, bool positiveYForward = true, bool flipX = false) {
+auto LookAt(const Vector<T, 2, Packed>& eye, const Vector<T, 2, Packed>& target, bool positiveYForward, bool flipX) {
 	return LookAt(eye, target, std::array<Vector<T, 2, Packed>, 0>{}, std::array{ flipX, positiveYForward });
 }
 
@@ -138,12 +140,14 @@ auto LookAt(const Vector<T, 2, Packed>& eye, const Vector<T, 2, Packed>& target,
 /// <param name="eye"> The camera's position. </param>
 /// <param name="target"> The camera's target. </param>
 /// <param name="up"> Up direction in world space. </param>
-/// <param name="positiveZForward"> True if the camera looks towards +Z, false if -Z. </param>
+/// <param name="positiveZForward"> True if the camera looks towards +Z in camera space, false if -Z. </param>
 /// <param name="flipX"> True to flip X in camera space. </param>
 /// <param name="flipY"> True to flip Y in camera space. </param>
+/// <remarks> The camera space X is selected to be orthogonal to both the look direction and the <paramref name="up"/> vector.
+///		Afterwards, the <paramref name="up"/> vector is re-orthogonalized to the camera-space Z and X vectors. </remarks>
 template <class T, bool Packed>
-auto LookAt(const Vector<T, 3, Packed>& eye, const Vector<T, 3, Packed>& target, const Vector<T, 3, Packed>& up, bool positiveZForward = true, bool flipX = false, bool flipY = false) {
-	return LookAt(eye, target, std::array<Vector<T, 3, Packed>, 1>{ up }, std::array{ flipX, flipY, positiveZForward });
+auto LookAt(const Vector<T, 3, Packed>& eye, const Vector<T, 3, Packed>& target, const Vector<T, 3, Packed>& up, bool positiveZForward, bool flipX, bool flipY) {
+	return LookAt(eye, target, std::array<Vector<T, 3, Packed>, 1>{ up }, std::array<bool, 3>{ flipX, flipY, positiveZForward });
 }
 
 

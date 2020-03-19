@@ -29,22 +29,24 @@ private:
 	void Set(Matrix<U, Rows, Columns, Order, Layout, MPacked>& m) const {
 		assert((nearPlane < 0 && farPlane < nearPlane) || (0 < nearPlane && nearPlane < farPlane));
 
+		using UVec = Vector<U, Dim - 1, Packed>;
+		
 		m = Zero();
 		// Layout be like (precede_vector):
 		// w 0 0 0
 		// 0 h 0 0
 		// 0 0 A B
 		// 0 0 C 0
-		auto absFovX = std::abs(fovX);
-		T N = nearPlane;
-		T F = farPlane;
-		T n = projNearPlane;
-		T f = projFarPlane;
-		T C = nearPlane < T(0) ? T(-1) : T(1);
-		T A = C * (f * F - n * N) / (F - N);
-		T B = C * F * N * (n - f) / (F - N);
-		Vector<T, Dim - 1, Packed> adjRatios = ratios(0) / ratios;
-		T w = tan(T(0.5) * absFovX);
+		auto absFovX = std::abs(U(fovX));
+		U N = U(nearPlane);
+		U F = U(farPlane);
+		U n = U(projNearPlane);
+		U f = U(projFarPlane);
+		U C = U(nearPlane) < U(0) ? U(-1) : U(1);
+		U A = C * (f * F - n * N) / (F - N);
+		U B = C * F * N * (n - f) / (F - N);
+		UVec adjRatios = U(ratios(0)) / UVec(ratios);
+		U w = tan(U(0.5) * absFovX);
 		adjRatios /= w;
 		for (int i = 0; i < adjRatios.Dimension(); ++i) {
 			m(i, i) = adjRatios(i);
@@ -66,16 +68,19 @@ private:
 };
 
 
-/// <summary> Creates a perspective projection matrix. </summary>
+/// <summary> Creates a general, n-dimensional perspective projection matrix. </summary>
 /// <param name="fovX"> Field of view on the first axis (usually denoted X) in radians. </param>
 /// <param name="ratios"> Aspect ratio (or ratios in higher dimensions). FovX/FovY. </param>
 /// <param name="nearPlane"> Near bound of the projected volume on the last axis (Z in 3D). </param>
 /// <param name="farPlane"> Far bound of the projected volume on the last axis (Z in 3D). </param>
 /// <param name="projNearPlane"> The near plane is taken here after projection. </param>
 /// <param name="projFarPlane"> The far plane is taken here after projection. </param>
-/// <remarks> Post-projection near and far planes can be inverted. Negative ratios invert image. </remarks>
+/// <remarks> The pre-projection near and far planes must be on the same side of the last axis, i.e. both negative or both positive.
+///		The post-projection near and far planes can be arbitrary, that is, near larger, near smaller, both positive, both negative,
+///		one positive the other negative, etc.
+///		Negative <paramref name="ratios"/> invert image on the axis which has a negative value. </remarks>
 template <class T, int DimMinus1, bool Packed>
-auto Perspective(T fovX, const Vector<T, DimMinus1, Packed>& ratios, T nearPlane, T farPlane, T projNearPlane = T(0), T projFarPlane = T(1)) {
+auto Perspective(T fovX, const Vector<T, DimMinus1, Packed>& ratios, T nearPlane, T farPlane, T projNearPlane, T projFarPlane) {
 	using NonIntegral = std::conditional_t<std::is_integral_v<T>, float, T>;
 	return PerspectiveBuilder<NonIntegral, DimMinus1 + 1, Packed>{ fovX, ratios, nearPlane, farPlane, projNearPlane, projFarPlane };
 }
@@ -87,10 +92,12 @@ auto Perspective(T fovX, const Vector<T, DimMinus1, Packed>& ratios, T nearPlane
 /// <param name="farPlane"> Upper bound of the volume on the Y axis. </param>
 /// <param name="projNearPlane"> Near plane is taken here after projection. </param>
 /// <param name="projFarPlane"> Far plane is taken here after projection. </param>
-/// <remarks> Post-projection bounds may be inverted. </remarks>
+/// <remarks> The pre-projection near and far planes must be on the same side of the last axis, i.e. both negative or both positive.
+///		The post-projection near and far planes can be arbitrary, that is, near larger, near smaller, both positive, both negative,
+///		one positive the other negative, etc. </remarks>
 template <class T>
-auto Perspective(T fov, T nearPlane, T farPlane, T projNearPlane = T(0), T projFarPlane = T(1)) {
-	return Perspective(std::abs(fov), Vector<T, 1, false>{ fov < 0 ? -1 : 1 }, nearPlane, farPlane, projNearPlane, projFarPlane);
+auto Perspective(T fov, T nearPlane, T farPlane, T projNearPlane, T projFarPlane) {
+	return Perspective(std::abs(fov), Vector<T, 1, false>{ fov < T(0) ? T(-1) : T(1) }, nearPlane, farPlane, projNearPlane, projFarPlane);
 }
 
 
@@ -101,10 +108,13 @@ auto Perspective(T fov, T nearPlane, T farPlane, T projNearPlane = T(0), T projF
 /// <param name="farPlane"/> Upper bound of the volume on the Y axis. </param>
 /// <param name="projNearPlane"/> Near plane is taken here after projection. </param>
 /// <param name="projFarPlane"/> Far plane is taken here after projection. </param>
-/// <remarks> Post-projection bounds may be inverted. </summary>
+/// <remarks> The pre-projection near and far planes must be on the same side of the last axis, i.e. both negative or both positive.
+///		The post-projection near and far planes can be arbitrary, that is, near larger, near smaller, both positive, both negative,
+///		one positive the other negative, etc.
+///		The <paramref name="aspectRatio"/> can be negative, in which case the second axis (i.e. Y) is inverted. </remarks>
 template <class T>
-auto Perspective(T fov, T aspectRatio, T nearPlane, T farPlane, T projNearPlane = T(0), T projFarPlane = T(1)) {
-	return Perspective(std::abs(fov), Vector<T, 2, false>{ fov < 0 ? -1 : 1, T(1) / aspectRatio }, nearPlane, farPlane, projNearPlane, projFarPlane);
+auto Perspective(T fov, T aspectRatio, T nearPlane, T farPlane, T projNearPlane, T projFarPlane) {
+	return Perspective(std::abs(fov), Vector<T, 2, false>{ fov < T(0) ? T(-1) : T(1), T(1) / aspectRatio }, nearPlane, farPlane, projNearPlane, projFarPlane);
 }
 
 
